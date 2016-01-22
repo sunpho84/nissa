@@ -1,5 +1,7 @@
-#ifndef _RECTANGLES_H
-#define _RECTANGLES_H
+#ifndef _RECTANGLES_HPP
+#define _RECTANGLES_HPP
+
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

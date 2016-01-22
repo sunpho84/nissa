@@ -1,5 +1,7 @@
-#ifndef _DIRAC_OPERATOR_TMCLOVQ2_H
-#define _DIRAC_OPERATOR_TMCLOVQ2_H
+#ifndef _DIRAC_OPERATOR_TMCLOVQ2_HPP
+#define _DIRAC_OPERATOR_TMCLOVQ2_HPP
+
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

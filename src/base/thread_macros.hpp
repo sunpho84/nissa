@@ -1,14 +1,14 @@
-#ifndef _OPENMP_MACROS_H
-#define _OPENMP_MACROS_H
+#ifndef _THREAD_MACROS_HPP
+#define _THREAD_MACROS_HPP
 
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
 
-#include "global_variables.hpp"
 #include "debug.hpp"
 #ifdef USE_THREADS
  #include <omp.h>
+ #include "routines/thread.hpp"
 #endif
 
 #if defined BGQ && !defined BGQ_EMU

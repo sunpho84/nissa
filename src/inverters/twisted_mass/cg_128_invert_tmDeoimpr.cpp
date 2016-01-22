@@ -2,10 +2,10 @@
 
 #include "cg_invert_tmDeoimpr.hpp"
 
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "inverters/twisted_mass/cg_64_invert_tmDeoimpr.hpp"
 #include "linalgs/linalgs.hpp"
 

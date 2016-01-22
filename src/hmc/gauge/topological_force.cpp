@@ -2,8 +2,8 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "hmc/theory_pars.hpp"
 #include "new_types/su3.hpp"

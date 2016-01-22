@@ -6,6 +6,10 @@
 
 #include "base/macros.hpp"
 
+#ifndef EXTERN_VECTORS
+ #define EXTERN_VECTORS extern
+#endif
+
 namespace nissa
 {
   //nissa vector
@@ -29,6 +33,15 @@ namespace nissa
     char pad[(NISSA_VECT_ALIGNMENT-(2*sizeof(int64_t)+3*NISSA_VECT_STRING_LENGTH+sizeof(int)+2*sizeof(nissa_vect*)+sizeof(uint32_t))%NISSA_VECT_ALIGNMENT)%
 	      NISSA_VECT_ALIGNMENT];
   };
+  
+  EXTERN_VECTORS int warn_if_not_disallocated;
+  //vectors
+  EXTERN_VECTORS int64_t max_required_memory;
+  EXTERN_VECTORS int64_t required_memory;
+  EXTERN_VECTORS void *main_arr;
+  EXTERN_VECTORS nissa_vect main_vect;
+  EXTERN_VECTORS nissa_vect *last_vect;
+  EXTERN_VECTORS void *return_malloc_ptr;
   
   char *get_vect_name(void *v);
   int check_borders_allocated(void *data);
@@ -63,5 +76,8 @@ namespace nissa
   void vect_content_fprintf(FILE *f,void *vec);
   void vect_content_printf(void *vec);
 }
+
+#undef EXTERN_VECTORS
+
 #endif
 

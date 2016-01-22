@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "base/global_variables.hpp"
+#include "io/endianness.hpp"
 
 namespace nissa
 {

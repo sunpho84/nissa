@@ -2,10 +2,11 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
-#include "communicate/communicate.hpp"
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
+#include "communicate/communicate.hpp"
+#include "geometry/geometry_lx.hpp"
+#include "new_types/su3.hpp"
 
 #include "../tmQ/dirac_operator_tmQ_128.hpp"
 

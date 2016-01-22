@@ -2,6 +2,7 @@
 #define _READER_HPP
 
 #include "ILDG_File.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

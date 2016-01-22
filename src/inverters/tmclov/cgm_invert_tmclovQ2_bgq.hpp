@@ -1,5 +1,7 @@
-#ifndef _CGM_INVERT_TMCLOVQ2_BGQ_H
-#define _CGM_INVERT_TMCLOVQ2_BGQ_H
+#ifndef _CGM_INVERT_TMCLOVQ2_BGQ_HPP
+#define _CGM_INVERT_TMCLOVQ2_BGQ_HPP
+
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

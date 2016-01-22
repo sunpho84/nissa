@@ -60,6 +60,10 @@
  
 */
 
+#ifndef EXTERN_COMMUNICATE
+ #define EXTERN_COMMUNICATE extern
+#endif
+
 namespace nissa
 {
   
@@ -94,6 +98,33 @@ namespace nissa
     comm_t(){initialized=false;}
   };
 #endif
+  
+  EXTERN_COMMUNICATE int ncomm_allocated;
+  EXTERN_COMMUNICATE int comm_in_prog;
+  EXTERN_COMMUNICATE int warn_if_not_communicated;
+  EXTERN_COMMUNICATE int use_async_communications;
+
+  //buffers
+  EXTERN_COMMUNICATE uint64_t recv_buf_size,send_buf_size;
+  EXTERN_COMMUNICATE char *recv_buf,*send_buf;
+  
+  EXTERN_COMMUNICATE comm_t lx_spin_comm,eo_spin_comm;
+  EXTERN_COMMUNICATE comm_t lx_spin1field_comm,eo_spin1field_comm;
+  EXTERN_COMMUNICATE comm_t lx_color_comm,eo_color_comm;
+  EXTERN_COMMUNICATE comm_t lx_spincolor_comm,eo_spincolor_comm;
+  EXTERN_COMMUNICATE comm_t lx_spincolor_128_comm,eo_spincolor_128_comm;
+  EXTERN_COMMUNICATE comm_t lx_halfspincolor_comm,eo_halfspincolor_comm;
+  EXTERN_COMMUNICATE comm_t lx_colorspinspin_comm,eo_colorspinspin_comm;
+  EXTERN_COMMUNICATE comm_t lx_spinspin_comm,eo_spinspin_comm;
+  EXTERN_COMMUNICATE comm_t lx_su3spinspin_comm,eo_su3spinspin_comm;
+  EXTERN_COMMUNICATE comm_t lx_su3_comm,eo_su3_comm;
+  EXTERN_COMMUNICATE comm_t lx_as2t_su3_comm,eo_as2t_su3_comm;
+  EXTERN_COMMUNICATE comm_t lx_quad_su3_comm,eo_quad_su3_comm;
+  EXTERN_COMMUNICATE comm_t lx_single_color_comm,eo_single_color_comm;
+  EXTERN_COMMUNICATE comm_t lx_single_halfspincolor_comm,eo_single_halfspincolor_comm;
+  EXTERN_COMMUNICATE comm_t lx_single_quad_su3_comm,eo_single_quad_su3_comm;
 }
+
+#undef EXTERN_COMMUNICATE
 
 #endif

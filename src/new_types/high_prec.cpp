@@ -7,7 +7,6 @@
 #endif
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "routines/ios.hpp"
 #include "high_prec.hpp"
 

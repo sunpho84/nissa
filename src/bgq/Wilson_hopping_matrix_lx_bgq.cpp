@@ -2,11 +2,14 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
+#define EXTERN_HOPPING_MATRIX_BGQ_LX
+#include "Wilson_hopping_matrix_lx_bgq.hpp"
+
 #include "base/thread_macros.hpp"
 #include "communicate/borders.hpp"
+#include "geometry/geometry_vir.hpp"
 #include "new_types/complex.hpp"
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/two_stage_computation.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -17,7 +20,7 @@
   In bgq version we merge two sites along t directions, that is, (t,x,y,z) and (t+T/2,x,y,z),
   so that only site with time coordinate between 0 and T/2-1 must be considered.
   Since we want to load everything sequentially, we need to duplicate the gauge configuration.
-
+  
   We apply hopping matrix scanning on sink index, then store the 8 contributions to each source separately.
   They can be summed outside according to external usage.
   First 4 entries contains forward derivative scattered backward, then others.

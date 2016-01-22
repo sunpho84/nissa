@@ -5,7 +5,7 @@
  #include "config.hpp"
 #endif
 
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

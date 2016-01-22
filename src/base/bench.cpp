@@ -2,15 +2,18 @@
  #include "config.hpp"
 #endif
 
+#include "base/vectors.hpp"
+#include "new_types/float_128.hpp"
 #include "routines/ios.hpp"
+
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
+
 #ifdef BGQ
  #include "bgq/intrinsic.hpp"
 #endif
 
-#include "global_variables.cpp"
 #include "thread_macros.hpp"
 
 #define EXTERN

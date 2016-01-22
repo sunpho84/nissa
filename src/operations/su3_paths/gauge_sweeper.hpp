@@ -6,6 +6,7 @@
 #endif
 
 #include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
 #include "communicate/all_to_all.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "new_types/su3.hpp"

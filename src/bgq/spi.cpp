@@ -24,8 +24,47 @@
 
 //#define HINTS_DEBUG
 
+#include <spi/include/kernel/MU.h>
+#include <spi/include/mu/InjFifo.h>
+#include <spi/include/mu/GIBarrier.h>
+  
+//spi fifo and counters for bytes
+#define NSPI_FIFO 8
+
 namespace nissa
 {
+  //flag to remember if spi has been initialized
+  int spi_inited;
+  
+  //spi rank coordinates
+  coords_5D spi_rank_coord;
+  coords_5D spi_dir_is_torus,spi_dir_size;
+  
+  //destination coords
+  MUHWI_Destination spi_dest[8];
+  coords_5D spi_dest_coord[8];
+  
+  //neighbours in the 4 dirs
+  MUHWI_Destination_t spi_neigh[2][4];
+  
+  uint64_t *spi_fifo[NSPI_FIFO],spi_desc_count[NSPI_FIFO];
+  MUSPI_InjFifoSubGroup_t spi_fifo_sg_ptr;
+  uint64_t spi_fifo_map[8];
+  uint8_t spi_hint_ABCD[8],spi_hint_E[8];
+  
+  //spi barrier
+  MUSPI_GIBarrier_t spi_barrier;
+  
+  //bats
+  MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
+  uint32_t spi_bat_id[2];
+  
+  //counter
+  volatile uint64_t spi_recv_counter;
+  
+  //physical address
+  uint64_t spi_send_buf_phys_addr;
+  
   //global barrier for spi
   void spi_global_barrier()
   {
@@ -241,34 +280,34 @@ namespace nissa
 	////////////////////////////////// init the fifos ///////////////////////////////////
 	
 	//alloc space for the injection fifos
-	uint32_t fifo_size=64*nspi_fifo;
-	for(int ififo=0;ififo<nspi_fifo;ififo++) spi_fifo[ififo]=(uint64_t*)memalign(64,fifo_size);
+	uint32_t fifo_size=64*NSPI_FIFO;
+	for(int ififo=0;ififo<NSPI_FIFO;ififo++) spi_fifo[ififo]=(uint64_t*)memalign(64,fifo_size);
 	
 	//set default attributes for inj fifo
-	Kernel_InjFifoAttributes_t fifo_attrs[nspi_fifo];
-	memset(fifo_attrs,0,nspi_fifo*sizeof(Kernel_InjFifoAttributes_t));
+	Kernel_InjFifoAttributes_t fifo_attrs[NSPI_FIFO];
+	memset(fifo_attrs,0,NSPI_FIFO*sizeof(Kernel_InjFifoAttributes_t));
 	
 	//initialize them with default attributes
-	uint32_t fifo_id[nspi_fifo];
-	for(int ififo=0;ififo<nspi_fifo;ififo++) fifo_id[ififo]=ififo;
-	if(Kernel_AllocateInjFifos(0,&spi_fifo_sg_ptr,nspi_fifo,fifo_id,fifo_attrs)) crash("allocating inj fifos");
+	uint32_t fifo_id[NSPI_FIFO];
+	for(int ififo=0;ififo<NSPI_FIFO;ififo++) fifo_id[ififo]=ififo;
+	if(Kernel_AllocateInjFifos(0,&spi_fifo_sg_ptr,NSPI_FIFO,fifo_id,fifo_attrs)) crash("allocating inj fifos");
 	
 	//init the MU MMIO for the fifos
-	for(int ififo=0;ififo<nspi_fifo;ififo++)
+	for(int ififo=0;ififo<NSPI_FIFO;ififo++)
 	  {
 	    //create the memory region
 	    Kernel_MemoryRegion_t mem_region;
-	    if(Kernel_CreateMemoryRegion(&mem_region,spi_fifo[nspi_fifo-1-ififo],fifo_size))
+	    if(Kernel_CreateMemoryRegion(&mem_region,spi_fifo[NSPI_FIFO-1-ififo],fifo_size))
 	      crash("creating memory region %d of bytes",ififo,fifo_size);
 	    
 	    //initialize the fifos
 	    if(Kernel_InjFifoInit(&spi_fifo_sg_ptr,fifo_id[ififo],&mem_region,
-				  (uint64_t)spi_fifo[nspi_fifo-1-ififo]-(uint64_t)mem_region.BaseVa,fifo_size-1))
+				  (uint64_t)spi_fifo[NSPI_FIFO-1-ififo]-(uint64_t)mem_region.BaseVa,fifo_size-1))
 	      crash("initializing fifo");
 	  }
 	
 	//activate the fifos
-	if(Kernel_InjFifoActivate(&spi_fifo_sg_ptr,nspi_fifo,fifo_id,KERNEL_INJ_FIFO_ACTIVATE)) crash("activating fifo");
+	if(Kernel_InjFifoActivate(&spi_fifo_sg_ptr,NSPI_FIFO,fifo_id,KERNEL_INJ_FIFO_ACTIVATE)) crash("activating fifo");
 	
 	//check alignment
 	CRASH_IF_NOT_ALIGNED(recv_buf,64);

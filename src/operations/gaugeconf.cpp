@@ -5,6 +5,7 @@
 #include "base/bench.hpp"
 #include "base/random.hpp"
 #include "communicate/borders.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "new_types/su3.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"

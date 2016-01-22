@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/all_to_all.hpp"

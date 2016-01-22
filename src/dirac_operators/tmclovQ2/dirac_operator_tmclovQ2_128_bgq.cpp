@@ -2,10 +2,9 @@
  #include "config.hpp"
 #endif
 
-#include "new_types/new_types_definitions.hpp"
-#include "base/global_variables.hpp"
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_vir.hpp"
 
 #include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.hpp"

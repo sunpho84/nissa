@@ -1,10 +1,10 @@
 #include <math.h>
 
 #include "cg_64_invert_tmQ2.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmQ2/dirac_operator_tmQ2.hpp"
 #include "dirac_operators/tmQ2/dirac_operator_tmQ2_128.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "linalgs/linalgs.hpp"
 
 #define BASETYPE spincolor

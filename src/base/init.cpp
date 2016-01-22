@@ -19,7 +19,6 @@
 
 #include "bench.hpp"
 #include "debug.hpp"
-#include "global_variables.hpp"
 #include "random.hpp"
 #include "vectors.hpp"
 
@@ -29,7 +28,6 @@
 #include "io/endianness.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_Wsklx.hpp"
 #ifdef USE_VNODES
  #include "geometry/geometry_vir.hpp"
 #endif
@@ -123,7 +121,6 @@ namespace nissa
 #ifdef USE_VNODES
     vir_geom_inited=0;
 #endif
-    Wsklx_order_inited=0;
     eo_geom_inited=0;
     loc_rnd_gen_inited=0;
     glb_rnd_gen_inited=0;
@@ -198,8 +195,9 @@ namespace nissa
     warn_if_not_communicated=NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
     for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
+#ifdef USE_VNODES
     vnode_paral_dir=NISSA_DEFAULT_VNODE_PARAL_DIR;
-    
+#endif
     //put 0 as minimal request
     recv_buf_size=0;
     send_buf_size=0;
@@ -720,7 +718,6 @@ namespace nissa
     
     //set the cartesian and eo geometry
     set_lx_geometry();
-    set_Wsklx_order(); //sink-based
     
     if(use_eo_geom) set_eo_geometry();
     

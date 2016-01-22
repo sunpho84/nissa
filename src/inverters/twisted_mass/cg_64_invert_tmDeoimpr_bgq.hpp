@@ -1,7 +1,7 @@
 #ifndef _CG_64_INVERT_TMDEOIMPR_BGQ_HPP
 #define _CG_64_INVERT_TMDEOIMPR_BGQ_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

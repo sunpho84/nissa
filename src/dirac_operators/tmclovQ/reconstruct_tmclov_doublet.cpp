@@ -2,10 +2,10 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operator_tmclovQ.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 
 #ifdef USE_THREADS

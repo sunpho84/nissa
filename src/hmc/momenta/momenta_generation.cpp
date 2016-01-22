@@ -6,11 +6,11 @@
  #include <gmpxx.h>
 #endif
 
-#include "base/global_variables.hpp"
 #include "base/random.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/momenta/MFACC.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "hmc/gauge/MFACC_fields.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
 #include "inverters/momenta/cgm_invert_MFACC.hpp"

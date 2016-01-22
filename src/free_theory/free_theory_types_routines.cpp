@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "free_theory_types.hpp"
 

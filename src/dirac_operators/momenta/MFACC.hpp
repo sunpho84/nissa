@@ -1,5 +1,7 @@
-#ifndef _OPERATOR_MFACC_HPP
-#define _OPERATOR_MFACC_HPP
+#ifndef _MFACC_HPP
+#define _MFACC_HPP
+
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

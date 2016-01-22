@@ -1,15 +1,27 @@
-#ifndef _FLOAT128_HPP
-#define _FLOAT128_HPP
+#ifndef _FLOAT_128_HPP
+#define _FLOAT_128_HPP
 
-#include "su3.hpp"
+#include "complex.hpp"
+
+#ifndef EXTERN_FLOAT_128
+ #define EXTERN_FLOAT_128 extern
+#endif
 
 namespace nissa
 {
+  EXTERN_FLOAT_128 int use_128_bit_precision;
+  
   //quadruple precision float
   typedef double float_128[2];
   typedef float_128 complex_128[2];
   typedef complex_128 color_128[NCOL];
   typedef color_128 spincolor_128[4];
+  typedef complex_128 bi_complex_128[2];
+  
+  typedef bi_complex_128 bi_color_128[NCOL];
+  typedef bi_color_128 bi_su3_128[NCOL];
+  typedef bi_su3_128 bi_oct_su3_128[8];
+  typedef bi_color_128 bi_spincolor_128[4];
   
   double double_from_float_128(float_128 b);
   void color_128_copy(color_128 a,color_128 b);
@@ -66,11 +78,10 @@ namespace nissa
   void float_64_summ_the_prod_complex_128(complex_128 a,double b,complex_128 c);
   void float_subt_the_64_prod_128(float_128 c,double a,float_128 b);
   void float_summ_the_64_prod_128(float_128 c,double a,float_128 b);
-  void su3_subt_the_prod_color_128(color_128 a,su3 b,color_128 c);
-  void su3_dag_summ_the_prod_color_128(color_128 a,su3 b,color_128 c);
-  void unsafe_complex_64_conj1_prod_128(complex_128 a,complex b,complex_128 c);
   void unsafe_complex_64_prod_128(complex_128 a,complex b,complex_128 c);
-  void unsafe_su3_dag_prod_color_128(color_128 a,su3 b,color_128 c);
-  void unsafe_su3_prod_color_128(color_128 a,su3 b,color_128 c);
+  void unsafe_complex_64_conj1_prod_128(complex_128 a,complex b,complex_128 c);
 }
+
+#undef EXTERN_FLOAT_128
+
 #endif

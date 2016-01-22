@@ -3,6 +3,8 @@
 #endif
 
 #include "base/bench.hpp"
+#include "base/vectors.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"

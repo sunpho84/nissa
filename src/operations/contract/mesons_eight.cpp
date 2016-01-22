@@ -4,9 +4,9 @@
 
 #include <string.h>
 
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/spin.hpp"

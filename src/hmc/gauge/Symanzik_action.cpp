@@ -3,7 +3,7 @@
 #endif
 
 #include "communicate/communicate.hpp"
-#include "base/global_variables.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "operations/su3_paths/rectangles.hpp"
 #include "routines/ios.hpp"
 

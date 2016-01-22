@@ -1,7 +1,8 @@
-#ifndef _CGM_INVERT_STD2EE_M2_BGQ_H
-#define _CGM_INVERT_STD2EE_M2_BGQ_H
+#ifndef _CGM_INVERT_STD2EE_M2_BGQ_HPP
+#define _CGM_INVERT_STD2EE_M2_BGQ_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/rat_approx.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

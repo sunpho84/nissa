@@ -2,7 +2,7 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
 #include "dirac_operators/momenta/MFACC.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
 #include "linalgs/linalgs.hpp"

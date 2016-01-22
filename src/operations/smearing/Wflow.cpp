@@ -3,6 +3,7 @@
 #endif
 
 #include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
 #include "communicate/edges.hpp"
 #include "new_types/su3.hpp"
 #include "operations/su3_paths/plaquette.hpp"

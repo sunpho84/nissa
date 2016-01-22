@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "bgq/bgq_macros.hpp"
@@ -27,15 +26,15 @@ namespace nissa
   THREADABLE_FUNCTION_5ARG(hopping_matrix_lx_tmclovQ_diag_term_bgq, bi_spincolor*,out, double,kappa, double,mu, bi_opt_as2t_su3*, Cl, bi_spincolor*,in)
   {
     GET_THREAD_ID();
-
+    
     double A=-1/kappa,B=-2*mu;
     bi_complex diag[2]={{{+A,B},{+A,B}},{{-A,B},{-A,B}}};
-
+    
     DECLARE_REG_BI_COMPLEX(reg_diag);
-
+    
     //wait that all the terms are put in place
     THREAD_BARRIER();
-
+    
     /* factor csw/2 already included in Cl
        +A  +B^+ 0    0
        +B  -A   0    0
@@ -48,12 +47,12 @@ namespace nissa
 	DECLARE_REG_BI_HALFSPINCOLOR(reg_out);
 	DECLARE_REG_BI_SU3(U);
 	DECLARE_REG_BI_HALFSPINCOLOR(reg_in);
-
+	
 	//
 	
 	//load first half of in
 	REG_LOAD_BI_HALFSPINCOLOR(reg_in,in[i][0]);
-
+	
 	//multiply the first two terms
 	REG_LOAD_BI_COMPLEX(reg_diag,diag[0]);
 	REG_BI_HALFSPINCOLOR_PROD_COMPLEX(reg_out,reg_in,reg_diag);
@@ -71,10 +70,10 @@ namespace nissa
 	STORE_REG_BI_HALFSPINCOLOR(out[i][0],reg_out);
 	
 	//
-
+	
 	//load second half of in
 	REG_LOAD_BI_HALFSPINCOLOR(reg_in,in[i][2]);
-
+	
 	//multiply the other two terms
 	REG_LOAD_BI_COMPLEX(reg_diag,diag[1]);
 	REG_BI_HALFSPINCOLOR_PROD_COMPLEX(reg_out,reg_in,reg_diag);
@@ -91,12 +90,12 @@ namespace nissa
 	
 	STORE_REG_BI_HALFSPINCOLOR(out[i][2],reg_out);
       }
-
+    
     //final sync
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   THREADABLE_FUNCTION_6ARG(apply_tmclovQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, bi_opt_as2t_su3*,Cl, double,mu, bi_spincolor*,in)
   {
     //compute on the surface and start communications

@@ -1,12 +1,14 @@
 #pragma once
 
+#include "geometry/geometry_lx.hpp"
+
 //Apply the Q=D*g5 operator to a spincolor
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                              + -1
 // The inverter solve Scgm=(DD )   in twisted basis    tw    +   + -1    +
 // The solution in the twisted basis can be obtained as S   = D (DD )   = D Scgm
-//      tw                                                                       +                                    
+//      tw                                                                       +
 // --> S   = (1/2k +i g5 m) Scgm (x) - 1/2 \sum   U   (x) ( 1 - g  )S(x+mu) + U (x-mu) (1 + g  ) S(x-mu)
 //                                               mu  mu            mu                          mu
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,8 @@
 #ifndef _MOMENTA_EVOLVE_HPP
 #define _MOMENTA_EVOLVE_HPP
 
+#include "new_types/su3.hpp"
+
 namespace nissa
 {  
   void accelerate_lx_momenta(quad_su3 *M,quad_su3 *conf,double kappa,int niter,double residue,quad_su3 *H);

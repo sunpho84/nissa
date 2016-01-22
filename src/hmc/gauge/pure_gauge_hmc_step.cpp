@@ -3,7 +3,6 @@
 #endif
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/MFACC_fields.hpp"

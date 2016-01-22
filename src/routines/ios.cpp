@@ -2,6 +2,9 @@
  #include "config.hpp"
 #endif
 
+#define EXTERN_IOS
+#include "ios.hpp"
+
 #include <math.h>
 #include <mpi.h>
 #include <stdarg.h>
@@ -12,11 +15,12 @@
 #include <sys/stat.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "io/input.hpp"
+#include "new_types/dirac.hpp"
 
 #include "mpi_routines.hpp"
+
 #ifdef USE_THREADS
  #include "thread.hpp"
 #endif

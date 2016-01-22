@@ -9,7 +9,7 @@
 #include "complex.hpp"
 #include "dirac.hpp"
 #include "spin.hpp"
-#include "su3.hpp"
+#include "float_128.hpp"
 
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
@@ -59,13 +59,6 @@ namespace nissa
   typedef bi_single_color bi_single_spincolor[4];
   typedef bi_single_su3 bi_single_oct_su3[8];
   
-#ifdef BGQ
-  typedef bi_complex_128 bi_color_128[NCOL];
-  typedef bi_color_128 bi_su3_128[NCOL];
-  typedef bi_su3_128 bi_oct_su3_128[8];
-  typedef bi_color_128 bi_spincolor_128[4];
-#endif
-
 #if NCOL == 3
   //used to exponentiate for stouting
   struct hermitian_exp_ingredients
@@ -1362,6 +1355,40 @@ namespace nissa
     su3_subt_the_prod_su3_dag(zero,u,u);
     
     return sqrt(real_part_of_trace_su3_prod_su3_dag(zero,zero));
+  }
+  
+  ///////////////////////// ops with 128 bit data //////////////////////////
+  
+  inline void unsafe_su3_prod_color_128(color_128 a,su3 b,color_128 c)
+  {
+    for(int c1=0;c1<3;c1++)
+      {
+	unsafe_complex_64_prod_128(a[c1],b[c1][0],c[0]);
+	for(int c2=1;c2<3;c2++) complex_summ_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
+      }
+  }
+  
+  inline void unsafe_su3_dag_prod_color_128(color_128 a,su3 b,color_128 c)
+  {
+    for(int c1=0;c1<3;c1++)
+      {
+	unsafe_complex_64_conj1_prod_128(a[c1],b[0][c1],c[0]);
+	for(int c2=1;c2<3;c2++) complex_summ_the_64_conj1_prod_128(a[c1],b[c2][c1],c[c2]);
+      }
+  }
+  
+  inline void su3_dag_summ_the_prod_color_128(color_128 a,su3 b,color_128 c)
+  {
+    for(int c1=0;c1<3;c1++)
+      for(int c2=0;c2<3;c2++)
+	complex_summ_the_64_conj1_prod_128(a[c1],b[c2][c1],c[c2]);
+  }
+  
+  inline void su3_subt_the_prod_color_128(color_128 a,su3 b,color_128 c)
+  {
+    for(int c1=0;c1<3;c1++)
+      for(int c2=0;c2<3;c2++)
+	complex_subt_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
   }
 }
 

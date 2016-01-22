@@ -5,7 +5,7 @@
 #include "cg_64_invert_tmclovQ2.hpp"
 #include "cg_128_invert_tmclovQ2.hpp"
 
-#include "base/global_variables.hpp"
+#include "geometry/geometry_lx.hpp"
 
 namespace nissa
 {

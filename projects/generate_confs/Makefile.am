@@ -5,10 +5,11 @@ AUTOMAKE_OPTIONS=subdir-objects
 LDADD=$(top_builddir)/lib/libnissa.a
 
 bin_PROGRAMS= \
-	$(top_builddir)/bin/generate_stag \
 	$(top_builddir)/bin/test_parser \
 	$(top_builddir)/bin/generate_quenched
 
+
+#	$(top_builddir)/bin/generate_stag 
 
 ############################################### parser ####################################
 
@@ -30,9 +31,9 @@ CLEANFILES=$(generate_stag_parser_built_sources)
 
 #############################################################################################
 
-__top_builddir__bin_generate_stag_SOURCES=generate_stag.cpp $(generate_stag_parser_sources)
-__top_builddir__bin_generate_stag_LDADD=$(LDADD)
-__top_builddir__bin_generate_stag_LDFLAGS=$(LDFLAGS)
+#__top_builddir__bin_generate_stag_SOURCES=generate_stag.cpp $(generate_stag_parser_sources)
+#__top_builddir__bin_generate_stag_LDADD=$(LDADD)
+#__top_builddir__bin_generate_stag_LDFLAGS=$(LDFLAGS)
 
 __top_builddir__bin_generate_quenched_SOURCES=generate_quenched.cpp
 __top_builddir__bin_generate_quenched_LDADD=$(LDADD)

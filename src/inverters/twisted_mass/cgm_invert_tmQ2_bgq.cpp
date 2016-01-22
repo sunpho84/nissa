@@ -6,13 +6,11 @@
 
 #include "cg_128_invert_tmQ2_bgq.hpp"
 
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "base/debug.hpp"
 #include "communicate/communicate.hpp"
 #include "dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE bi_spincolor
 #define NDOUBLES_PER_SITE 48
@@ -28,10 +26,10 @@
 #define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_tmQ2_cgm_bgq_run_hm_up_to_comm_prec
 #define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_tmQ2_cgm_bgq
 
-#define CGM_START_COMMUNICATING_BORDERS(A) 
+#define CGM_START_COMMUNICATING_BORDERS(A)
 #define CGM_FINISH_COMMUNICATING_BORDERS(A)
 
-#define CGM_ADDITIONAL_VECTORS_ALLOCATION() 
+#define CGM_ADDITIONAL_VECTORS_ALLOCATION()
 #define CGM_ADDITIONAL_VECTORS_FREE()
 
 //additional parameters

@@ -7,11 +7,11 @@
 #include <stdlib.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/random.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"

@@ -5,9 +5,9 @@
 #include "cgm_invert_tmclovQ2.hpp"
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmclovQ/reconstruct_tmclov_doublet.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "new_types/spin.hpp"
 #include "routines/ios.hpp"
 

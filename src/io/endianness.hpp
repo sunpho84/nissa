@@ -3,8 +3,15 @@
 
 #include <stdint.h>
 
+#ifndef EXTERN_ENDIANNESS
+ #define EXTERN_ENDIANNESS extern
+#endif
+
 namespace nissa
 {
+  //endianness
+  EXTERN_ENDIANNESS int little_endian;
+  
   void check_endianness();
   void doubles_to_floats_changing_endianness(float *dest,double *sour,int n,int verbose=1);
   void doubles_to_floats_same_endianness(float *dest,double *sour,int n,int verbose=1);
@@ -23,5 +30,7 @@ namespace nissa
   
   template <class T> void change_endianness(T &a,int verbose=0){change_endianness(&a,&a,1,verbose);}
 }
+
+#undef EXTERN_ENDIANNESS
 
 #endif

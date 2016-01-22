@@ -5,14 +5,18 @@
 #include <math.h>
 #include <string.h>
 
+#define EXTERN_GEOMETRY_LX
+#include "geometry_lx.hpp"
+
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "communicate/communicate.hpp"
 #include "new_types/su3.hpp"
 #include "operations/remap_vector.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "routines/ios.hpp"
+#include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

@@ -1,6 +1,8 @@
 #ifndef _SYMANZIK_ACTION_HPP
 #define _SYMANZIK_ACTION_HPP
 
+#include "new_types/su3.hpp"
+
 namespace nissa
 {
   const double C1_WILSON=0;

@@ -6,8 +6,15 @@
 #include <stdint.h>
 #include "new_types/complex.hpp"
 
+#ifndef EXTERN_IOS
+ #define EXTERN_IOS extern
+#endif
+
 namespace nissa
 {
+  EXTERN_IOS int verb_call;
+  EXTERN_IOS int verbosity_lv;
+  
   int count_substrings(const char *str,const char *sub);
   FILE* open_file(std::string path,const char *mode);
   FILE* open_text_file_for_output(std::string path);
@@ -26,5 +33,7 @@ namespace nissa
   void print_contraction_to_file(FILE *fout,int op1,int op2,complex *contr,int twall,const char *tag,double norm);
   void print_contractions_to_file(FILE *fout,int ncontr,const int *op1,const int *op2,complex *contr,int twall,const char *tag,double norm);
 }
+
+#undef EXTERN_IOS
 
 #endif

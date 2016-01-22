@@ -3,7 +3,6 @@
 #endif
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/random.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"

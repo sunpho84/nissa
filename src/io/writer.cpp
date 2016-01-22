@@ -4,7 +4,6 @@
 
 #include <string.h>
 
-#include "base/global_variables.hpp"
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"

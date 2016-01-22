@@ -1,12 +1,10 @@
 #include <math.h>
 
 #include "cg_64_invert_tmQ2_bgq.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp"
 #include "dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE bi_spincolor
 #define BASETYPE_128 bi_spincolor_128

@@ -2,6 +2,8 @@
  #include "config.hpp"
 #endif
 
+#include "base/vectors.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "hmc/backfield.hpp"
 #include "hmc/theory_pars.hpp"
 #include "inverters/staggered/cg_invert_stD.hpp"

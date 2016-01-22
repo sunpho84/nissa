@@ -2,18 +2,25 @@
  #include "config.hpp"
 #endif
 
+#define EXTERN_GEOMETRY_VIR
+#include "geometry_vir.hpp"
+
 //for the moment we still call "bgq"
 #include "bgq/bgq_macros.hpp"
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "bgq/Wilson_hopping_matrix_lx_bgq.hpp"
+#include "communicate/borders.hpp"
 #include "communicate/communicate.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_vir.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
+#include "new_types/two_stage_computation.hpp"
 #include "operations/su3_paths/topological_charge.hpp"
 
 #ifdef USE_THREADS

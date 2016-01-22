@@ -19,10 +19,6 @@ namespace nissa
   typedef complex bi_complex[2];
   typedef single_complex bi_single_complex[2];
   
-#ifdef BGQ
-  typedef complex_128 bi_complex_128[2];
-#endif
-  
   //////////////////////////////////////////////////////////
   
   inline double real_part_of_complex_prod(complex a,complex b)

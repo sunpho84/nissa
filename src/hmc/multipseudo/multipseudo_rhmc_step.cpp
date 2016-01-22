@@ -8,7 +8,6 @@
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/rat_approx.hpp"

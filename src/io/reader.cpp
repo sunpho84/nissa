@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmQ/reconstruct_tm_doublet.hpp"
 #include "geometry/geometry_mix.hpp"

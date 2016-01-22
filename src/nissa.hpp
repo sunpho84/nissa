@@ -9,7 +9,6 @@
 #include "base/bench.hpp"
 #include "base/close.hpp"
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/init.hpp"
 #include "base/macros.hpp"
 #include "base/random.hpp"
@@ -32,7 +31,9 @@
  #include "geometry/geometry_vir.hpp"
 #endif
 
+#include "communicate/borders.hpp"
 #include "communicate/communicate.hpp"
+#include "communicate/edges.hpp"
 
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
@@ -59,7 +60,6 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
-#include "geometry/geometry_Wsklx.hpp"
 
 #include "hmc/backfield.hpp"
 #include "hmc/gauge/gluonic_action.hpp"

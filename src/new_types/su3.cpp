@@ -3,7 +3,7 @@
 #endif
 
 #include "su3.hpp"
-#include "base/global_variables.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "operations/su3_paths/rectangular_staples.hpp"
 
 namespace nissa

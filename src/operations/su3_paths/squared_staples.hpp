@@ -1,6 +1,8 @@
 #ifndef _SQUARED_STAPLE_HPP
 #define _SQUARED_STAPLE_HPP
 
+#include <mpi.h>
+
 #include "new_types/su3.hpp"
 
 namespace nissa

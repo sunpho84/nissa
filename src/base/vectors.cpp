@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "communicate/communicate.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #ifdef USE_THREADS
@@ -15,8 +17,10 @@
 #endif
 
 #include "debug.hpp"
-#include "global_variables.hpp"
 #include "thread_macros.hpp"
+
+#define EXTERN_VECTORS
+#include "vectors.hpp"
 
 //#define DEBUG
 

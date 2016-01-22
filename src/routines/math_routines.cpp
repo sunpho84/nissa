@@ -4,7 +4,6 @@
 
 #include <math.h>
 
-#include "base/global_variables.hpp"
 #include "base/random.hpp"
 #include "new_types/complex.hpp"
 

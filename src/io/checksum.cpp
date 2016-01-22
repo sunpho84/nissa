@@ -6,8 +6,8 @@
 #include <unistd.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "endianness.hpp"
+#include "geometry/geometry_lx.hpp"
 
 namespace nissa
 {

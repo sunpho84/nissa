@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "io/input.hpp"
 #include "new_types/su3.hpp"

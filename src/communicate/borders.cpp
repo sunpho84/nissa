@@ -7,11 +7,15 @@
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
+#include "routines/mpi_routines.hpp"
+
+#include "communicate.hpp"
+
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

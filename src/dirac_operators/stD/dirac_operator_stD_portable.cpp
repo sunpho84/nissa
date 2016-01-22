@@ -3,6 +3,7 @@
 #endif
 
 #include "base/thread_macros.hpp"
+#include "geometry/geometry_eo.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

@@ -9,7 +9,6 @@
 
 #include "communicate/communicate.hpp"
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"

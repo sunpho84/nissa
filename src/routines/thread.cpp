@@ -7,11 +7,15 @@
 
 #include "ios.hpp"
 
+#define EXTERN_THREAD
+#include "thread.hpp"
+
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/macros.hpp"
 #include "base/random.hpp"
 #include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
+
 //put in the external bgq_barrier.c file, to avoid alignement problem
 #if defined BGQ && (! defined BGQ_EMU)
  #include "bgq/bgq_barrier.hpp"

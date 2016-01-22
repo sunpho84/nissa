@@ -1,6 +1,8 @@
 #ifndef _RAT_APPROX_HPP
 #define _RAT_APPROX_HPP
 
+#include <string.h>
+
 #include "io/buffer.hpp"
 
 namespace nissa

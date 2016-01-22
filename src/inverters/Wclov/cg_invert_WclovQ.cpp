@@ -2,8 +2,8 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
+#include "geometry/geometry_lx.hpp"
 
 #include "dirac_operators/WclovQ/dirac_operator_WclovQ.hpp"
 #include "cg_invert_WclovQ2.hpp"

@@ -2,10 +2,10 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
-#include "base/vectors.hpp"
 #include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
 #include "communicate/borders.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "new_types/float_128.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

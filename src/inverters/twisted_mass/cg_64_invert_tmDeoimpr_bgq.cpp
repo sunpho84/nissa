@@ -1,12 +1,10 @@
 #include <math.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "routines/ios.hpp"
 
 #define BASETYPE bi_spincolor

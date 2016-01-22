@@ -1,7 +1,7 @@
-#ifndef _DIRAC_OPERATOR_TMCLOVQ_BGQ_H
-#define _DIRAC_OPERATOR_TMCLOVQ_BGQ_H
+#ifndef _DIRAC_OPERATOR_TMCLOVQ_BGQ_HPP
+#define _DIRAC_OPERATOR_TMCLOVQ_BGQ_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

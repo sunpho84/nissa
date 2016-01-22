@@ -2,7 +2,6 @@
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "dirac_operators/momenta/MFACC.hpp"

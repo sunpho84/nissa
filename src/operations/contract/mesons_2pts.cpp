@@ -2,9 +2,9 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/su3.hpp"

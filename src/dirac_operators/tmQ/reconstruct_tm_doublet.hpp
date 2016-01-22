@@ -1,5 +1,8 @@
-#ifndef _RECONSTRUCT_TM_DOUBLET_H
-#define _RECONSTRUCT_TM_DOUBLET_H
+#ifndef _RECONSTRUCT_TM_DOUBLET_HPP
+#define _RECONSTRUCT_TM_DOUBLET_HPP
+
+#include "new_types/su3.hpp"
+
 
 namespace nissa
 {

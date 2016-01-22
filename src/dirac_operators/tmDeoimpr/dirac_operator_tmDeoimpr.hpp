@@ -1,6 +1,8 @@
 #ifndef _DIRAC_OPERATOR_TMDEOIMPR_HPP
 #define _DIRAC_OPERATOR_TMDEOIMPR_HPP
 
+#include "new_types/su3.hpp"
+
 namespace nissa
 {
   void inv_tmDee_or_oo_eos(spincolor *out,double kappa,double mu,spincolor *in);

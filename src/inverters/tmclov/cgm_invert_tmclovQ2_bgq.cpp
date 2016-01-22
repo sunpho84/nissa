@@ -4,7 +4,6 @@
 
 #include <math.h>
 
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "base/debug.hpp"
 #include "communicate/communicate.hpp"
@@ -12,7 +11,6 @@
 #include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp"
 #include "inverters/tmclov/cg_128_invert_tmclovQ2_bgq.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE bi_spincolor
 #define NDOUBLES_PER_SITE 48
@@ -28,10 +26,10 @@
 #define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_tmclovQ2_cgm_bgq_run_hm_up_to_comm_prec
 #define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_tmclovQ2_cgm_bgq
 
-#define CGM_START_COMMUNICATING_BORDERS(A) 
+#define CGM_START_COMMUNICATING_BORDERS(A)
 #define CGM_FINISH_COMMUNICATING_BORDERS(A)
 
-#define CGM_ADDITIONAL_VECTORS_ALLOCATION() 
+#define CGM_ADDITIONAL_VECTORS_ALLOCATION()
 #define CGM_ADDITIONAL_VECTORS_FREE()
 
 //additional parameters

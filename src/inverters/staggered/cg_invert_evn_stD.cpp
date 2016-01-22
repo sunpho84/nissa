@@ -2,9 +2,9 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "inverters/staggered/cg_invert_stD2ee_m2.hpp"
 #include "linalgs/linalgs.hpp"
 

@@ -1,13 +1,44 @@
-#ifndef _MPI_NISSA_HPP
-#define _MPI_NISSA_HPP
+#ifndef _MPI_ROUTINES_HPP
+#define _MPI_ROUTINES_HPP
 
 #include <mpi.h>
 #include <algorithm>
-#include "new_types/rat_approx.hpp"
+
+#include "geometry/geometry_lx.hpp"
 #include "math_routines.hpp"
+#include "new_types/float_128.hpp"
+#include "new_types/rat_approx.hpp"
+
+#ifndef EXTERN_MPI
+ #define EXTERN_MPI extern
+#endif
 
 namespace nissa
 {
+  //basic mpi types
+  EXTERN_MPI MPI_Datatype MPI_FLOAT_128;
+  EXTERN_MPI MPI_Datatype MPI_SU3;
+  EXTERN_MPI MPI_Datatype MPI_QUAD_SU3;
+  EXTERN_MPI MPI_Datatype MPI_AS2T_SU3;
+  EXTERN_MPI MPI_Datatype MPI_COLOR;
+  EXTERN_MPI MPI_Datatype MPI_SPIN;
+  EXTERN_MPI MPI_Datatype MPI_SPINSPIN;
+  EXTERN_MPI MPI_Datatype MPI_SPINCOLOR;
+  EXTERN_MPI MPI_Datatype MPI_SPINCOLOR_128;
+  EXTERN_MPI MPI_Datatype MPI_REDSPINCOLOR;
+  //float 128 summ
+  EXTERN_MPI MPI_Op MPI_FLOAT_128_SUM;
+
+  EXTERN_MPI MPI_Datatype MPI_LX_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
+  EXTERN_MPI MPI_Datatype MPI_LX_AS2T_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_AS2T_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
+  EXTERN_MPI MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_QUAD_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
+  EXTERN_MPI MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
+  
+  //volume, plan and line communicator
+  EXTERN_MPI MPI_Comm cart_comm;
+  EXTERN_MPI MPI_Comm plan_comm[NDIM];
+  EXTERN_MPI MPI_Comm line_comm[NDIM];
+  
   size_t MPI_Get_count_size_t(MPI_Status &status);
   void coords_broadcast(coords c);
   void get_MPI_nranks();
@@ -44,4 +75,5 @@ namespace nissa
   {glb_nodes_reduce_double_vect(vect[0],2*nel);}
   void glb_reduce_float_128(float_128 out_glb,float_128 in_loc);
 }
+
 #endif

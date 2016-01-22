@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "hmc/theory_pars.hpp"

@@ -8,10 +8,10 @@
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 #include "rectangular_staples.hpp"
 #ifdef USE_THREADS

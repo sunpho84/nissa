@@ -1,7 +1,7 @@
-#ifndef _WILSON_HOPPING_MATRIX_BGQ_EO_OR_OE_H
-#define _WILSON_HOPPING_MATRIX_BGQ_EO_OR_OE_H
+#ifndef _WILSON_HOPPING_MATRIX_BGQ_EO_OR_OE_HPP
+#define _WILSON_HOPPING_MATRIX_BGQ_EO_OR_OE_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "Wilson_hopping_matrix_lx_bgq.hpp"
 #include "base/macros.hpp"
 
 namespace nissa

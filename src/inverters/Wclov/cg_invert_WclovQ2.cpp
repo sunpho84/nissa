@@ -1,10 +1,10 @@
 #include <math.h>
 
 
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "base/debug.hpp"
 #include "dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "linalgs/linalgs.hpp"
 
 #define BASETYPE spincolor

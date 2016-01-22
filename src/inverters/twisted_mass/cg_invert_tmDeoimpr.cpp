@@ -5,10 +5,11 @@
 #include <string.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
+#include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 
 #include "cg_64_invert_tmDeoimpr.hpp"

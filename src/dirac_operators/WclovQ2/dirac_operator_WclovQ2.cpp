@@ -4,7 +4,6 @@
 
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
-#include "base/global_variables.hpp"
 
 #include "../WclovQ/dirac_operator_WclovQ.hpp"
 

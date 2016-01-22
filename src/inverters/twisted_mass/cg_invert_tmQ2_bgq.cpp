@@ -5,9 +5,6 @@
 #include "cg_64_invert_tmQ2_bgq.hpp"
 #include "cg_128_invert_tmQ2_bgq.hpp"
 
-#include "new_types/new_types_definitions.hpp"
-#include "base/global_variables.hpp"
-
 namespace nissa
 {
   //switch 64 and 128

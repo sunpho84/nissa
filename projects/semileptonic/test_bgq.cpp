@@ -2,8 +2,10 @@
 
 #include <math.h>
 
-#include "../../src/bgq/staggered_hopping_matrix_eo_or_oe_bgq.hpp"
-#include "../../src/bgq/Wilson_hopping_matrix_lx_bgq.hpp"
+#include "bgq/spi.hpp"
+
+#include "bgq/staggered_hopping_matrix_eo_or_oe_bgq.hpp"
+#include "bgq/Wilson_hopping_matrix_lx_bgq.hpp"
 
 #if (defined BGQ && !defined BGQ_EMU)
  #include <bgpm/include/bgpm.h>

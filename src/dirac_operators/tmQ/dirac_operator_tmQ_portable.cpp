@@ -1,3 +1,9 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
+#include "geometry/geometry_lx.hpp"
+#include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 
 namespace nissa
@@ -9,10 +15,10 @@ namespace nissa
   //
   // when applying transformation chi->(1+i g5 t3)/sqrt(2) to the fermionic field, meaning that we multiply
   // source and sink of the propagator by (1-i g5 t3)/sqrt(2), the dirac operator becomes
-  // 
+  //
   // (1-i g5 t3)^2/2 = - i g5 t3
   //
-  // (1-i g5 t3)gmu(1-i g5 t3)^2/2 = gmu 
+  // (1-i g5 t3)gmu(1-i g5 t3)^2/2 = gmu
   //
   // D_{x,y}=[-i g5 t3/(2k)+mass] \delta_{x,y}-1/2*
   //          \sum_mu{[-i g5 t3-gmu]U_x,mu\delta_{x+\hat{mu},y}+(-i g5 t3+gmu)U^+_{x-\hat{\mu},\mu}\delta_{x-\hat{\mu}}}

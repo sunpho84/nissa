@@ -2,15 +2,16 @@
  #include "config.hpp"
 #endif
 
+#define EXTERN_ENDIANNESS
+#include "endianness.hpp"
+
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "routines/ios.hpp"
 
 #include "reader.hpp"
 
 namespace nissa
 {
-  
   //types to revert uint16_t, float and double
   union uint16_t_reverter_t
   {
@@ -38,7 +39,7 @@ namespace nissa
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //revert the endianness of doubles
-  void change_endianness(double *dest,double *sour,int ndoubles,int verbose=1)
+  void change_endianness(double *dest,double *sour,int ndoubles,int verbose)
   {
     if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d doubles\n",ndoubles);
     for(int idouble=0;idouble<ndoubles;idouble++)
@@ -54,7 +55,7 @@ namespace nissa
   }
   
   //revert the endianness of floats
-  void change_endianness(float *dest,float *sour,int nfloats,int verbose=1)
+  void change_endianness(float *dest,float *sour,int nfloats,int verbose)
   {
     if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d floats\n",nfloats);
     for(int ifloat=0;ifloat<nfloats;ifloat++)
@@ -67,7 +68,7 @@ namespace nissa
       }
   }
   
-  void change_endianness(uint16_t *dest,uint16_t *sour,int nshorts,int verbose=1)
+  void change_endianness(uint16_t *dest,uint16_t *sour,int nshorts,int verbose)
   {
     if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d uint16_t\n",nshorts);
     for(int ishort=0;ishort<nshorts;ishort++)
@@ -82,16 +83,16 @@ namespace nissa
   ////////////////////Copy a vector of floats to doubles. Sweep is reversed to avoid overwriting////////////////
   
   //Do not change endianness
-  void floats_to_doubles_same_endianness(double *dest,float *sour,int n,int verbose=1)
+  void floats_to_doubles_same_endianness(double *dest,float *sour,int n,int verbose)
   {
     if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles\n",n);
     for(int i=n-1;i>=0;i--) dest[i]=(double)(sour[i]);
   }
   
   //Change endianness
-  void floats_to_doubles_changing_endianness(double *dest,float *sour,int n,int verbose=1)
+  void floats_to_doubles_changing_endianness(double *dest,float *sour,int n,int verbose)
   {
-    if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles changing endianness (two steps\n",n);    
+    if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles changing endianness (two steps\n",n);
     floats_to_doubles_same_endianness(dest,sour,n,verbose);
     change_endianness(dest,dest,n,verbose);
   }
@@ -99,14 +100,14 @@ namespace nissa
   ////////////////////Copy a vector of doubles to floats. Sweep is direct, to avoid overwriting////////////////
   
   //Do not change the endianness
-  void doubles_to_floats_same_endianness(float *dest,double *sour,int n,int verbose=1)
+  void doubles_to_floats_same_endianness(float *dest,double *sour,int n,int verbose)
   {
     if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats\n",n);
     for(int i=0;i<n;i++) dest[i]=(float)(sour[i]);
   }
   
   //Change endianness
-  void doubles_to_floats_changing_endianness(float *dest,double *sour,int n,int verbose=1)
+  void doubles_to_floats_changing_endianness(float *dest,double *sour,int n,int verbose)
   {
     if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats changing endianness (two steps)\n",n);
     doubles_to_floats_same_endianness(dest,sour,n,verbose);

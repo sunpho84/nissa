@@ -2,9 +2,8 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
-#include "base/vectors.hpp"
 #include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/float_128.hpp"

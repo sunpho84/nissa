@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "io/input.hpp"
 #include "operations/stag/nucleon.hpp"

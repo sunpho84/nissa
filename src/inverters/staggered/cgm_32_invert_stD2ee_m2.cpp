@@ -2,13 +2,16 @@
  #include "config.hpp"
 #endif
 
+#include <string.h>
+
 #ifdef BGQ
  #include "cgm_32_invert_stD2ee_m2_bgq.hpp"
  #include "geometry/geometry_vir.hpp"
 #endif
 #include "cgm_32_invert_stD2ee_m2_portable.hpp"
 
-#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "linalgs/linalgs.hpp"
 
 namespace nissa

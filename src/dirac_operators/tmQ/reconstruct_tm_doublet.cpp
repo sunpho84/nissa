@@ -2,11 +2,11 @@
  #include "config.hpp"
 #endif
 
-#include "new_types/su3.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operator_tmQ.hpp"
+#include "free_theory/free_theory_types.hpp"
+#include "new_types/su3.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

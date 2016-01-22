@@ -4,6 +4,8 @@
 #include <map>
 #include <vector>
 
+#include "geometry/geometry_lx.hpp"
+
 namespace nissa
 {
   //all to all communicators initializing structure

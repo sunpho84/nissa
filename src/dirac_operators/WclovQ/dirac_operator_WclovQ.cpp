@@ -4,7 +4,6 @@
 
 #include "new_types/su3.hpp"
 #include "communicate/borders.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "base/thread_macros.hpp"
 #include "linalgs/linalgs.hpp"

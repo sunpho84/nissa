@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "new_types/new_types_definitions.hpp"
 #include "dirac_operators/tmclovQ/dirac_operator_tmclovQ_bgq.hpp"
 
 namespace nissa

@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_lx.hpp"

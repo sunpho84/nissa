@@ -1,11 +1,9 @@
 #include <math.h>
 
-#include "base/global_variables.hpp"
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE bi_spincolor
 

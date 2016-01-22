@@ -3,7 +3,6 @@
 
 #include <sstream>
 
-#include "base/global_variables.hpp"
 #include "io/endianness.hpp"
 
 namespace nissa

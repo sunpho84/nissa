@@ -2,6 +2,7 @@
 #define _CGM_SINGLE_INVERT_STD2EE_M2_PORTABLE_HPP
 
 #include "new_types/rat_approx.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

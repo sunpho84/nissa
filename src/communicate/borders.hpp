@@ -1,8 +1,9 @@
-#ifndef _BUFFERED_BORDERS_HPP
-#define _BUFFERED_BORDERS_HPP
+#ifndef _BORDERS_HPP
+#define _BORDERS_HPP
 
 #include "communicate.hpp"
-#include "base/global_variables.hpp"
+#include "new_types/spin.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

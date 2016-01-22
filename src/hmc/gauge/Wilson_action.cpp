@@ -2,7 +2,7 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
 

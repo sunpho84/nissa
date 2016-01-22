@@ -10,6 +10,10 @@
 
 #include "routines/math_routines.hpp"
 
+#ifndef EXTERN_SPIN
+ #define EXTERN_SPIN extern
+#endif
+
 namespace nissa
 {
   typedef complex spin[4];
@@ -21,6 +25,10 @@ namespace nissa
   //this is just for avoid misleading, but is nothing more that a spinspin
   typedef complex spin1field[4];
   typedef spin1field spin1prop[4];
+  
+  EXTERN_SPIN as2t smunu_entr[4];   //these are the sigma matrices entries
+  EXTERN_SPIN int smunu_pos[4][6];  //and positions
+  EXTERN_SPIN spinspin opg[4],omg[4];
   
   /////////////////////////////////////////////////////
   
@@ -436,6 +444,9 @@ namespace nissa
   //compute the determinant of spinspin matrix
   inline void spinspin_det(complex d,spinspin s)
   {matrix_determinant(d,(complex*)s,4);}
+  
 }
+
+#undef EXTERN_SPIN
 
 #endif

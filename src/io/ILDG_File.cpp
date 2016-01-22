@@ -10,7 +10,6 @@
 #include <string.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/macros.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
@@ -122,7 +121,7 @@ namespace nissa
   {
     ILDG_File file;
 #ifdef USE_MPI_IO
-    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,path.c_str(),amode,MPI_INFO_NULL,&file),"while opening file %s",path.c_str());
+    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,(char*)path.c_str(),amode,MPI_INFO_NULL,&file),"while opening file %s",path.c_str());
 #else
     file=fopen(path.c_str(),mode);
     if(file==NULL) crash("while opening file %s",path.c_str());

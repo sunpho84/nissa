@@ -5,10 +5,10 @@
 #include <math.h>
 
 #include "new_types/su3.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
+#include "geometry/geometry_lx.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

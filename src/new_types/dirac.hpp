@@ -6,6 +6,11 @@
 #include "complex.hpp"
 #include "base/debug.hpp"
 
+#ifndef EXTERN_DIRAC
+ #define EXTERN_DIRAC extern
+ #define ONLY_INSTANTIATION
+#endif
+
 namespace nissa
 {
   //The structure for gamma matrix
@@ -14,6 +19,20 @@ namespace nissa
     int pos[4];
     complex entr[4];
   };
+  
+  //The base of the 16 gamma matrixes, the two rotators and Ci=G0*Gi*G5
+  EXTERN_DIRAC dirac_matr base_gamma[19];
+  EXTERN_DIRAC dirac_matr Pplus,Pminus;
+  EXTERN_DIRAC char gtag[19][3]
+#ifndef ONLY_INSTANTIATION
+  ={"S0","V1","V2","V3","V0","P5","A1","A2","A3","A0","T1","T2","T3","B1","B2","B3","C1","C2","C3"}
+#endif
+    ;
+  EXTERN_DIRAC int tau3[2]
+#ifndef ONLY_INSTANTIATION
+  ={-1,+1}
+#endif
+    ;
   
   //Initialize a dirac matrix with outside entries
   inline void init_dirac(dirac_matr *out,int pos0,double rea0,double ima0,int pos1,double rea1,double ima1,int pos2,double rea2,double ima2,int pos3,double rea3,double ima3)
@@ -179,5 +198,7 @@ namespace nissa
   
   void init_base_gamma();
 }
+
+#undef EXTERN_DIRAC
 
 #endif

@@ -2,10 +2,10 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/edges.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"

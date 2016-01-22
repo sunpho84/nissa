@@ -5,9 +5,10 @@
 #include <string.h>
 
 #include "base/bench.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "geometry_eo.hpp"
+#include "geometry_lx.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

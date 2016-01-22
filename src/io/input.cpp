@@ -10,8 +10,16 @@
 #include <dirent.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
+#include "communicate/communicate.hpp"
+#include "geometry/geometry_eo.hpp"
+#include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_vir.hpp"
+#include "new_types/su3.hpp"
 #include "routines/ios.hpp"
+
+#define EXTERN_INPUT
+#include "input.hpp"
 
 namespace nissa
 {
@@ -332,7 +340,11 @@ namespace nissa
     char path[1024]="nissa_config";
     
     const int navail_tag=11;
-    char tag_name[11][100]={
+#ifndef USE_VNODES
+    int vnode_paral_dir;
+#endif
+    
+    char tag_name[navail_tag][100]={
       "verbosity_lv",
       "use_128_bit_precision",
       "use_eo_geom",
@@ -344,7 +356,7 @@ namespace nissa
       "set_y_nranks",
       "set_z_nranks",
       "vnode_paral_dir"};
-    char *tag_addr[11]={
+    char *tag_addr[navail_tag]={
       (char*)&verbosity_lv,
       (char*)&use_128_bit_precision,
       (char*)&use_eo_geom,
@@ -356,8 +368,8 @@ namespace nissa
       (char*)(fix_nranks+2),
       (char*)(fix_nranks+3),
       (char*)(&vnode_paral_dir)};
-    char tag_type[11][3]={"%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d"};
-    char tag_size[11]={4,4,4,4,4,4,4,4,4,4,4};
+    char tag_type[navail_tag][3]={"%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d"};
+    char tag_size[navail_tag]={4,4,4,4,4,4,4,4,4,4,4};
     
     if(file_exists(path))
       {

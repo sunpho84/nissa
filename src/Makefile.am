@@ -14,7 +14,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	base/bench.cpp \
 	base/close.cpp \
 	base/debug.cpp \
-	base/global_variables.cpp \
 	base/init.cpp \
 	base/random.cpp \
 	base/vectors.cpp
@@ -22,7 +21,6 @@ include_HEADERS+= \
 	base/bench.hpp \
 	base/close.hpp \
 	base/debug.hpp \
-	base/global_variables.hpp \
 	base/init.hpp \
 	base/macros.hpp \
 	base/random.hpp \
@@ -33,11 +31,6 @@ include_HEADERS+= \
 if BGQ
 include_HEADERS+=base/bgq_instructions.hpp
 endif
-
-#include global_variables.cpp in the installation
-#needed because included in global_variables.hpp
-global_variabledir=$(prefix)/include/base
-global_variable_DATA=base/global_variables.cpp
 
 ######################################### bgq specific #####################################
 if BGQ
@@ -80,6 +73,7 @@ endif
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	communicate/all_to_all.cpp \
 	communicate/borders.cpp \
+	communicate/communicate.cpp \
 	communicate/edges.cpp
 
 include_HEADERS+= \
@@ -183,14 +177,12 @@ include_HEADERS+= \
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	geometry/geometry_eo.cpp \
 	geometry/geometry_lx.cpp \
-	geometry/geometry_mix.cpp \
-	geometry/geometry_Wsklx.cpp
+	geometry/geometry_mix.cpp
 
 include_HEADERS+= \
 	geometry/geometry_eo.hpp \
 	geometry/geometry_lx.hpp \
-	geometry/geometry_mix.hpp \
-	geometry/geometry_Wsklx.hpp
+	geometry/geometry_mix.hpp
 
 #compile or not virtual parallelization
 if USE_VNODES

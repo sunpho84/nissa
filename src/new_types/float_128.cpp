@@ -12,8 +12,9 @@
 #include "routines/ios.hpp"
 
 #include "complex.hpp"
+
+#define EXTERN_FLOAT_128
 #include "float_128.hpp"
-#include "su3.hpp"
 
 namespace nissa
 {
@@ -493,36 +494,4 @@ namespace nissa
   {for(int ic=0;ic<3;ic++) complex_128_isubt(a[ic],b[ic],c[ic]);}
   void color_128_isubtassign(color_128 a,color_128 b)
   {color_128_isubt(a,a,b);}
-  
-  void unsafe_su3_prod_color_128(color_128 a,su3 b,color_128 c)
-  {
-    for(int c1=0;c1<3;c1++)
-      {
-	unsafe_complex_64_prod_128(a[c1],b[c1][0],c[0]);
-	for(int c2=1;c2<3;c2++) complex_summ_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
-      }
-  }
-  
-  void unsafe_su3_dag_prod_color_128(color_128 a,su3 b,color_128 c)
-  {
-    for(int c1=0;c1<3;c1++)
-      {
-	unsafe_complex_64_conj1_prod_128(a[c1],b[0][c1],c[0]);
-	for(int c2=1;c2<3;c2++) complex_summ_the_64_conj1_prod_128(a[c1],b[c2][c1],c[c2]);
-      }
-  }
-  
-  void su3_dag_summ_the_prod_color_128(color_128 a,su3 b,color_128 c)
-  {
-    for(int c1=0;c1<3;c1++)
-      for(int c2=0;c2<3;c2++)
-	complex_summ_the_64_conj1_prod_128(a[c1],b[c2][c1],c[c2]);
-  }
-
-  void su3_subt_the_prod_color_128(color_128 a,su3 b,color_128 c)
-  {
-    for(int c1=0;c1<3;c1++)
-      for(int c2=0;c2<3;c2++)
-	complex_subt_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
-  }
 }

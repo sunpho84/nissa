@@ -1,6 +1,8 @@
 #ifndef _DIRAC_OPERATOR_TMDEOIMPR_BGQ_HPP
 #define _DIRAC_OPERATOR_TMDEOIMPR_BGQ_HPP
 
+#include "new_types/su3.hpp"
+
 namespace nissa
 {
   void tmD_or_Qkern_eoprec_eos_bgq(bi_spincolor *out,bi_oct_su3 **conf,double kappa,double mu,bi_spincolor *in,int D_or_Q);

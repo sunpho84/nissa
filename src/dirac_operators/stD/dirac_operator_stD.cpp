@@ -6,7 +6,6 @@
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "linalgs/linalgs.hpp"

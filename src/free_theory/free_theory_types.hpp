@@ -7,11 +7,12 @@
 #include "new_types/complex.hpp"
 
 namespace nissa
-{  
+{
   enum tm_basis_t{WILSON_BASE,MAX_TWIST_BASE};
   enum zero_mode_sub_t{PECIONA,UNNO_ALEMANNA,ONLY_100};
   const double FEYNMAN_ALPHA=1,LANDAU_ALPHA=0;
   const double WILSON_C1=0,TLSYM_C1=-1.0/12;
+  
   
   struct tm_quark_info
   {

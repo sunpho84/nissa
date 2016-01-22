@@ -1,5 +1,5 @@
-#ifndef _GAUSSIAN_H
-#define _GAUSSIAN_H
+#ifndef _GAUSSIAN_HPP
+#define _GAUSSIAN_HPP
 
 namespace nissa
 {
@@ -10,8 +10,6 @@ namespace nissa
   void gaussian_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int nterm,double *coeff,int *exponent);
   void gaussian_smearing_apply_kappa_H_color(color *H,double kappa,quad_su3 *conf,color *smear_c);
   void gaussian_smearing_apply_kappa_H_spincolor(spincolor *H,double kappa,quad_su3 *conf,spincolor *smear_sc);
-  void gaussian_smearing_sink_based(su3spinspin *ext_out,su3spinspin *ext_in,quad_su3 *ext_conf,double kappa,int niter,su3spinspin *aux_temp=NULL,su3spinspin *aux_out=NULL,su3spinspin *aux_in=NULL,oct_su3 *aux_conf=NULL);
-  void gaussian_smearing_sink_based(colorspinspin *ext_out,colorspinspin *ext_in,quad_su3 *ext_conf,double kappa,int niter,colorspinspin *aux_temp=NULL,colorspinspin *aux_out=NULL,colorspinspin *aux_in=NULL,oct_su3 *aux_conf=NULL);
 }
 
 #endif
