@@ -67,10 +67,13 @@ public:
     int fL=(LX==LY&&LX==LZ),fT=(T!=def_T());;
     if(full||fX||fY||fZ||fT) nprinted+=nissa::master_fprintf(fout,"Geometry\n");
     if(full||fT) nprinted+=nissa::master_fprintf(fout," T\t\t=\t%d\n",T);
-    if(full||(fX&&!fL)) nprinted+=nissa::master_fprintf(fout," LX\t\t=\t%d\n",LX);
-    if(full||(fY&&!fL)) nprinted+=nissa::master_fprintf(fout," LY\t\t=\t%d\n",LY);
-    if(full||(fZ&&!fL)) nprinted+=nissa::master_fprintf(fout," LZ\t\t=\t%d\n",LZ);
-    if(full||((fX||fY||fZ)&&fL)) nprinted+=nissa::master_fprintf(fout," L\t\t=\t%d\n",LX);
+    if(!fL)
+      {
+	if(full||fX) nprinted+=nissa::master_fprintf(fout," LX\t\t=\t%d\n",LX);
+	if(full||fY) nprinted+=nissa::master_fprintf(fout," LY\t\t=\t%d\n",LY);
+	if(full||fZ) nprinted+=nissa::master_fprintf(fout," LZ\t\t=\t%d\n",LZ);
+      }
+    else if(full||(fX||fY||fZ)) nprinted+=nissa::master_fprintf(fout," L\t\t=\t%d\n",LX);
     
     return nprinted;
   }

@@ -116,37 +116,32 @@
 %type <double_numb> elec_charge
 //smooth method
 %token TK_SMOOTH_METHOD
-%token TK_STOUT
-%token TK_COOLING
-%token TK_HYP
-%token TK_APE
-%token TK_WFLOW
 %token TK_MEAS_EACH
 %type <smooth_pars> smooth_pars
 //stout pars
-%token TK_STOUT_PARS
+%token TK_STOUT
 %type <stout_pars> stout_pars
 %token TK_NLEVELS
 %type <int_numb> nlevels
 %token TK_RHO
 %type <double_numb> rho
 //cooling pars
-%token TK_COOL_PARS
+%token TK_COOLING
 %type <cool_pars> cool_pars
 %token TK_NSTEPS
 %type <int_numb> nsteps
 //ape pars
-%token TK_APE_PARS
+%token TK_APE
 %type <ape_pars> ape_pars
 %token TK_ALPHA
 %type <double_numb> alpha
 //hyp pars
-%token TK_HYP_PARS
+%token TK_HYP
 %type <hyp_pars> hyp_pars
 %token TK_ALPHAS
 %type <double_list> alphas
-//wflow pars
-%token TK_WFLOW_PARS
+//Wflow pars
+%token TK_WFLOW
 %type <Wflow_pars> Wflow_pars
 %token TK_FLOW_TIME
 %type <double_numb> flow_time
@@ -296,22 +291,17 @@ topo_potential_pars: TK_TOPO_POTENTIAL '=' TK_META {driver->topotential_pars.fla
 
 ////////////////////////////////////////////////// SMOOTH PARS /////////////////////////////////////////////////
 
-smooth_pars: TK_SMOOTH_METHOD '=' TK_STOUT {$$=new smooth_pars_t;$$->method=smooth_pars_t::STOUT;}
-           | TK_SMOOTH_METHOD '=' TK_COOLING {$$=new smooth_pars_t;$$->method=smooth_pars_t::COOLING;}
-           | TK_SMOOTH_METHOD '=' TK_WFLOW {$$=new smooth_pars_t;$$->method=smooth_pars_t::WFLOW;}
-           | TK_SMOOTH_METHOD '=' TK_APE {$$=new smooth_pars_t;$$->method=smooth_pars_t::APE;}
-           | TK_SMOOTH_METHOD '=' TK_HYP {$$=new smooth_pars_t;$$->method=smooth_pars_t::HYP;}
-           | smooth_pars stout_pars {$$->stout_pars=(*$2);}
-           | smooth_pars cool_pars {$$->cool_pars=(*$2);}
-           | smooth_pars Wflow_pars {$$->Wflow_pars=(*$2);}
-           | smooth_pars ape_pars {$$->ape_pars=(*$2);}
-           | smooth_pars hyp_pars {$$->hyp_pars=(*$2);}
+smooth_pars: TK_SMOOTH_METHOD '=' stout_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::STOUT;$$->stout_pars=(*$3);}
+           | TK_SMOOTH_METHOD '=' cool_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::COOLING;$$->cool_pars=(*$3);}
+           | TK_SMOOTH_METHOD '=' Wflow_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::WFLOW;$$->Wflow_pars=(*$3);}
+           | TK_SMOOTH_METHOD '=' ape_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::APE;$$->ape_pars=(*$3);}
+           | TK_SMOOTH_METHOD '=' hyp_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::HYP;$$->hyp_pars=(*$3);}
            | smooth_pars TK_MEAS_EACH '=' double_numb {$$->meas_each=$4;}
 ;
 
 ////////////////////////////////////////////////// STOUT PARS //////////////////////////////////////////////////
 
-stout_pars: TK_STOUT_PARS {$$=new stout_pars_t;}
+stout_pars: TK_STOUT {$$=new stout_pars_t;}
           | stout_pars nlevels {$$=$1;$$->nlevels=$2;}
           | stout_pars rho {$$=$1;$$->rho=$2;}
 ;
@@ -321,7 +311,7 @@ rho: TK_RHO '=' double_numb {$$=$3;};
 
 ////////////////////////////////////////////////// COOL PARS //////////////////////////////////////////////////
 
-cool_pars: TK_COOL_PARS {$$=new cool_pars_t;}
+cool_pars: TK_COOLING {$$=new cool_pars_t;}
          | cool_pars nsteps {$$=$1;$$->nsteps=$2;}
          | cool_pars action {$$=$1;$$->gauge_action=$2;}
 ;
@@ -330,7 +320,7 @@ nsteps: TK_NSTEPS '=' int_numb {$$=$3;};
 
 ////////////////////////////////////////////////// APE PARS //////////////////////////////////////////////////
 
-ape_pars: TK_APE_PARS {$$=new ape_pars_t;}
+ape_pars: TK_APE {$$=new ape_pars_t;}
         | ape_pars nlevels {$$=$1;$$->nlevels=$2;}
         | ape_pars alpha {$$=$1;$$->alpha=$2;}
 ;
@@ -339,7 +329,7 @@ alpha: TK_ALPHA '=' double_numb {$$=$3;};
 
 ////////////////////////////////////////////////// APE PARS //////////////////////////////////////////////////
 
-hyp_pars: TK_HYP_PARS {$$=new hyp_pars_t;}
+hyp_pars: TK_HYP {$$=new hyp_pars_t;}
         | hyp_pars nlevels {$$=$1;$$->nlevels=$2;}
         | hyp_pars alphas {
 	    $$=$1;
@@ -354,7 +344,7 @@ alphas: TK_ALPHAS '=' double_list {$$=$3;};
 
 ////////////////////////////////////////////////// WFLOW PARS //////////////////////////////////////////////////
 
-Wflow_pars: TK_WFLOW_PARS {$$=new Wflow_pars_t;}
+Wflow_pars: TK_WFLOW {$$=new Wflow_pars_t;}
           | Wflow_pars flow_time {$$=$1;$$->T=$2;}
           | Wflow_pars inte_step {$$=$1;$$->dt=$2;}
 ;

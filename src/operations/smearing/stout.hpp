@@ -28,7 +28,7 @@ namespace nissa
       int nprinted=0;
       if(full||is_nonstandard())
 	{
-	  nprinted+=nissa::master_fprintf(fout,"StoutPars\n");
+	  nprinted+=nissa::master_fprintf(fout,"Stout\n");
 	  if(full||nlevels!=def_nlevels()) nprinted+=nissa::master_fprintf(fout," NLevels\t=\t%d\n",nlevels);
 	  if(full||rho!=def_rho()) nprinted+=nissa::master_fprintf(fout," Rho\t\t=\t%lg\n",rho);
 	}

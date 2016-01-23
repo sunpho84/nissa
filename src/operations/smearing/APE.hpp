@@ -21,7 +21,7 @@ namespace nissa
       
       if(full||is_nonstandard())
 	{
-	  nprinted+=nissa::master_fprintf(fout,"ApePars\n");
+	  nprinted+=nissa::master_fprintf(fout,"Ape\n");
 	  if(full||alpha!=def_alpha()) nprinted+=nissa::master_fprintf(fout," Alpha\t\t=\t%lg\n",alpha);
 	  if(full||nlevels!=def_nlevels()) nprinted+=nissa::master_fprintf(fout," NLevels\t=\t%d\n",nlevels);
 	}

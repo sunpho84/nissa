@@ -19,7 +19,7 @@ namespace nissa
       
       if(full||is_nonstandard())
 	{
-	  nprinted+=nissa::master_fprintf(fout,"WFlowPars\n");
+	  nprinted+=nissa::master_fprintf(fout,"WFlow\n");
 	  if(full||T!=def_T()) nprinted+=nissa::master_fprintf(fout," FlowTime\t=\t%lg\n",T);
 	  if(full||dt!=def_dt()) nprinted+=nissa::master_fprintf(fout," InteStep\t=\t%lg\n",dt);
 	}

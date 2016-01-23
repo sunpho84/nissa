@@ -162,31 +162,26 @@ ElecCharge  DEBUG_PRINTF("Found ElecCharge\n");return TK_ELEC_CHARGE;
 
  /* smooth method */
 SmoothMethod DEBUG_PRINTF("Found SmoothMethod\n");return TK_SMOOTH_METHOD;
-Stout DEBUG_PRINTF("Found Stout\n");return TK_STOUT;
-Cooling DEBUG_PRINTF("Found Cooling\n");return TK_COOLING;
-WFlow DEBUG_PRINTF("Found WFlow\n");return TK_WFLOW;
-Ape DEBUG_PRINTF("Found Ape\n");return TK_APE;
-Hyp DEBUG_PRINTF("Found Hyp\n");return TK_HYP;
 MeasEach DEBUG_PRINTF("Found MeasEach\n");return TK_MEAS_EACH;
 
  /* stout parameters */
-StoutPars DEBUG_PRINTF("Found StoutPars\n");return TK_STOUT_PARS;
+Stout DEBUG_PRINTF("Found Stout\n");return TK_STOUT;
 NLevels DEBUG_PRINTF("Found NLevels\n");return TK_NLEVELS;
 Rho DEBUG_PRINTF("Found Rho\n");return TK_RHO;
 
  /* cooling parameters */
-CoolPars DEBUG_PRINTF("Found CoolPars\n");return TK_COOL_PARS;
+Cooling DEBUG_PRINTF("Found Cooling\n");return TK_COOLING;
 
  /* hyp parameters */
-HypPars DEBUG_PRINTF("Found HypPars\n");return TK_HYP_PARS;
+Hyp DEBUG_PRINTF("Found Hyp\n");return TK_HYP;
 Alphas DEBUG_PRINTF("Found Alphas\n");return TK_ALPHAS;
 
  /* ape parameters */
-ApePars DEBUG_PRINTF("Found ApePars\n");return TK_APE_PARS;
+Ape DEBUG_PRINTF("Found Ape\n");return TK_APE;
 Alpha DEBUG_PRINTF("Found Alpha\n");return TK_ALPHA;
 
- /* wflow parameters */
-WFlowPars DEBUG_PRINTF("Found WFlowPars\n");return TK_WFLOW_PARS;
+ /* Wflow parameters */
+WFlow DEBUG_PRINTF("Found WFlow\n");return TK_WFLOW;
 InteStep DEBUG_PRINTF("Found InteStep\n");return TK_INTE_STEP;
 FlowTime DEBUG_PRINTF("Found FlowTime\n");return TK_FLOW_TIME;
 

@@ -36,7 +36,7 @@ namespace nissa
 	case WFLOW:return "WFlow";break;
 	case APE:return "Ape";break;
 	case HYP:return "Hyp";break;
-	default:return "Unspec";break;
+	case UNSPEC_SMOOTH_METHOD:return "Unspec";break;
 	}
     }
     
@@ -46,13 +46,21 @@ namespace nissa
       
       if(full||is_nonstandard())
 	{
-	  if(full||method!=def_method()) nprinted+=nissa::master_fprintf(fout," SmoothMethod\t=\t%s\n",get_method_name().c_str());
+	  if(full||method!=def_method())
+	    {
+	      nprinted+=nissa::master_fprintf(fout," /* alternatives: Cooling, Stout, WFlow, Ape, Hyp */\n");
+	      nprinted+=nissa::master_fprintf(fout," SmoothMethod\t=\t");
+	    }
+	  switch(method)
+	    {
+	    case COOLING: if(cool_pars.is_nonstandard()||full) nprinted+=cool_pars.master_fprintf(fout,full);break;
+	    case STOUT: if(stout_pars.is_nonstandard()||full) nprinted+=stout_pars.master_fprintf(fout,full);break;
+	    case WFLOW: if(Wflow_pars.is_nonstandard()||full) nprinted+=Wflow_pars.master_fprintf(fout,full);break;
+	    case APE: if(ape_pars.is_nonstandard()||full) nprinted+=ape_pars.master_fprintf(fout,full);break;
+	    case HYP: if(hyp_pars.is_nonstandard()||full) nprinted+=hyp_pars.master_fprintf(fout,full);break;
+	    case UNSPEC_SMOOTH_METHOD: crash("unspecified");
+	    }
 	  if(full||meas_each!=def_meas_each()) nprinted+=nissa::master_fprintf(fout," MeasEach\t=\t%lg\n",def_meas_each());
-	  nprinted+=cool_pars.master_fprintf(fout,full);
-	  nprinted+=stout_pars.master_fprintf(fout,full);
-	  nprinted+=Wflow_pars.master_fprintf(fout,full);
-	  nprinted+=ape_pars.master_fprintf(fout,full);
-	  nprinted+=hyp_pars.master_fprintf(fout,full);
 	}
       
       return nprinted;
