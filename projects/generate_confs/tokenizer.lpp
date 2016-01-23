@@ -133,6 +133,9 @@ MesonList DEBUG_PRINTF("Found MesonList\n");return TK_MESON_LIST;
  /* time and space */
 Geometry  DEBUG_PRINTF("Found Geometry\n");return TK_GEOMETRY;
 L DEBUG_PRINTF("Found L\n");return TK_L;
+LX DEBUG_PRINTF("Found LX\n");return TK_LX;
+LY DEBUG_PRINTF("Found LY\n");return TK_LY;
+LZ DEBUG_PRINTF("Found LX\n");return TK_LZ;
 T DEBUG_PRINTF("Found T\n");return TK_T;
 
  /* gauge action */
@@ -175,9 +178,11 @@ Rho DEBUG_PRINTF("Found Rho\n");return TK_RHO;
 CoolPars DEBUG_PRINTF("Found CoolPars\n");return TK_COOL_PARS;
 
  /* hyp parameters */
+HypPars DEBUG_PRINTF("Found HypPars\n");return TK_HYP_PARS;
 Alphas DEBUG_PRINTF("Found Alphas\n");return TK_ALPHAS;
 
  /* ape parameters */
+ApePars DEBUG_PRINTF("Found ApePars\n");return TK_APE_PARS;
 Alpha DEBUG_PRINTF("Found Alpha\n");return TK_ALPHA;
 
  /* wflow parameters */
@@ -258,7 +263,9 @@ Seconds? DEBUG_PRINTF("Found Second(s)\n");yylval->int_numb=1;return TK_QUANTITY
 
 //initializator
 driver_t::driver_t(FILE *ext) :
-                        L(def_L()),
+                        LX(def_L()),
+                        LY(def_L()),
+                        LZ(def_L()),
 			T(def_T()),
 			walltime(def_walltime()),
 			seed(def_seed()),

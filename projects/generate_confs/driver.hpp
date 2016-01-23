@@ -13,7 +13,7 @@ public:
   driver_t(FILE *file);
   
   //geometry
-  int L;
+  int LX,LY,LZ;
   int T;
   int def_L(){return 4;}
   int def_T(){return 4;}
@@ -63,9 +63,14 @@ public:
   int master_fprintf_geometry(FILE *fout,int full)
   {
     int nprinted=0;
-    if(full||L!=def_L()||T!=def_T()) nprinted+=nissa::master_fprintf(fout,"Geometry\n",L);
-    if(full||L!=def_L()) nprinted+=nissa::master_fprintf(fout," L\t\t=\t%d\n",L);
-    if(full||T!=def_T()) nprinted+=nissa::master_fprintf(fout," T\t\t=\t%d\n",T);
+    int fX=(LX!=def_L()),fY=(LY!=def_L()),fZ=(LZ!=def_L());
+    int fL=(LX==LY&&LX==LZ),fT=(T!=def_T());;
+    if(full||fX||fY||fZ||fT) nprinted+=nissa::master_fprintf(fout,"Geometry\n");
+    if(full||fT) nprinted+=nissa::master_fprintf(fout," T\t\t=\t%d\n",T);
+    if(full||(fX&&!fL)) nprinted+=nissa::master_fprintf(fout," LX\t\t=\t%d\n",LX);
+    if(full||(fY&&!fL)) nprinted+=nissa::master_fprintf(fout," LY\t\t=\t%d\n",LY);
+    if(full||(fZ&&!fL)) nprinted+=nissa::master_fprintf(fout," LZ\t\t=\t%d\n",LZ);
+    if(full||((fX||fY||fZ)&&fL)) nprinted+=nissa::master_fprintf(fout," L\t\t=\t%d\n",LX);
     
     return nprinted;
   }

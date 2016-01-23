@@ -50,6 +50,9 @@
 
 //geometry
 %token TK_GEOMETRY
+%token TK_LX
+%token TK_LY
+%token TK_LZ
 %token TK_L
 %token TK_T
 //gauge pars
@@ -267,7 +270,10 @@ path: TK_PATH '=' TK_QUOTED_TEXT {$$=$3;};
 
 geometry: TK_GEOMETRY
         | geometry TK_T '=' int_numb {driver->T=$4;}
-        | geometry TK_L '=' int_numb {driver->L=$4;}
+        | geometry TK_L '=' int_numb {driver->LX=driver->LY=driver->LZ=$4;}
+        | geometry TK_LX '=' int_numb {driver->LX=$4;}
+        | geometry TK_LY '=' int_numb {driver->LY=$4;}
+        | geometry TK_LZ '=' int_numb {driver->LZ=$4;}
 ;
 
 gauge_pars: TK_GAUGE_PARS

@@ -1,9 +1,12 @@
 #ifndef _HYP_HPP
 #define _HYP_HPP
 
+#include "routines/ios.hpp"
+#include "new_types/su3.hpp"
+
 namespace nissa
 {
-    //parameters to perform hyp
+  //parameters to perform hyp
   struct hyp_pars_t
   {
     double alpha0;
@@ -23,7 +26,7 @@ namespace nissa
       if(full||is_nonstandard())
 	{
 	  nprinted+=nissa::master_fprintf(fout,"HypPars\n");
-	  if(full||alpha0!=def_alpha0()||alpha1!=def_alpha1()||alpha2!=def_alpha2()) nprinted+=nissa::master_fprintf(fout," Alpha\t\t=\t{%lg,%lg,%lg}\n",alpha0,alpha1,alpha2);
+	  if(full||alpha0!=def_alpha0()||alpha1!=def_alpha1()||alpha2!=def_alpha2()) nprinted+=nissa::master_fprintf(fout," Alphas\t\t=\t{%lg,%lg,%lg}\n",alpha0,alpha1,alpha2);
 	  if(full||nlevels!=def_nlevels()) nprinted+=nissa::master_fprintf(fout," NLevels\t=\t%d\n",nlevels);
 	}
       
