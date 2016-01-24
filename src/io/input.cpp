@@ -341,7 +341,7 @@ namespace nissa
     
     const int navail_tag=11;
 #ifndef USE_VNODES
-    int vnode_paral_dir;
+    int vnode_paral_dir=0;
 #endif
     
     char tag_name[navail_tag][100]={

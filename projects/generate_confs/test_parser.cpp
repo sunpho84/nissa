@@ -19,6 +19,8 @@ void in_main(int narg,char **arg)
   
   master_printf("read %d quarks\n",(int)driver->quarks.size());
   master_printf("nlevels %d\n",(int)driver->stout_pars.nlevels);
+  
+  delete driver;
 }
 
 int main(int narg,char **arg)

@@ -28,7 +28,7 @@
 {
     double double_numb;
     int int_numb;
-    char *text;
+    std::string *text;
     gauge_action_name_t gauge_action_name;
     smooth_pars_t *smooth_pars;
     stout_pars_t *stout_pars;
@@ -101,19 +101,12 @@
 //quark content
 %token TK_QUARK
 %token TK_DEGENERACY
-%type <int_numb> degeneracy
 %token TK_IS_STAG
-%type <int_numb> is_stag
 %token TK_KAPPA
-%type <double_numb> kappa
 %token TK_MASS
-%type <double_numb> mass
 %token TK_RE_POT_CH
-%type <double_numb> re_pot_ch
 %token TK_IM_POT_CH
-%type <double_numb> im_pot_ch
 %token TK_ELEC_CHARGE
-%type <double_numb> elec_charge
 //smooth method
 %token TK_SMOOTH_METHOD
 %token TK_MEAS_EACH
@@ -215,7 +208,7 @@ global_specify: geometry
               | gauge_pars
               | topo_potential_pars
               | add_quark
-              | stout_pars {driver->stout_pars=(*$1);};
+              | stout_pars {driver->stout_pars=(*$1);delete $1;};
               | bckgr_field
 /////////////// fermionic measures ////////////////
               | meson_corr_meas
@@ -240,8 +233,8 @@ meta_command: meta_print_scanned
             | meta_print_full
 ;
 
-meta_print_scanned: TK_META_PRINT_SCANNED TK_QUOTED_TEXT {FILE *fout=open_file($2,"w");driver->master_fprintf(fout);close_file(fout);}
-meta_print_full: TK_META_PRINT_FULL TK_QUOTED_TEXT {FILE *fout=open_file($2,"w");driver->master_fprintf(fout,true);close_file(fout);}
+meta_print_scanned: TK_META_PRINT_SCANNED TK_QUOTED_TEXT {FILE *fout=open_file($2->c_str(),"w");driver->master_fprintf(fout);close_file(fout);}
+meta_print_full: TK_META_PRINT_FULL TK_QUOTED_TEXT {FILE *fout=open_file($2->c_str(),"w");driver->master_fprintf(fout,true);close_file(fout);}
 
 //////////////////////////////////////////////// SIMPLE STUFF //////////////////////////////////////////////////
 
@@ -291,11 +284,11 @@ topo_potential_pars: TK_TOPO_POTENTIAL '=' TK_META {driver->topotential_pars.fla
 
 ////////////////////////////////////////////////// SMOOTH PARS /////////////////////////////////////////////////
 
-smooth_pars: TK_SMOOTH_METHOD '=' stout_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::STOUT;$$->stout_pars=(*$3);}
-           | TK_SMOOTH_METHOD '=' cool_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::COOLING;$$->cool_pars=(*$3);}
-           | TK_SMOOTH_METHOD '=' Wflow_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::WFLOW;$$->Wflow_pars=(*$3);}
-           | TK_SMOOTH_METHOD '=' ape_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::APE;$$->ape_pars=(*$3);}
-           | TK_SMOOTH_METHOD '=' hyp_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::HYP;$$->hyp_pars=(*$3);}
+smooth_pars: TK_SMOOTH_METHOD '=' stout_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::STOUT;$$->stout_pars=(*$3);delete $3;}
+           | TK_SMOOTH_METHOD '=' cool_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::COOLING;$$->cool_pars=(*$3);delete $3;}
+           | TK_SMOOTH_METHOD '=' Wflow_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::WFLOW;$$->Wflow_pars=(*$3);delete $3;}
+           | TK_SMOOTH_METHOD '=' ape_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::APE;$$->ape_pars=(*$3);delete $3;}
+           | TK_SMOOTH_METHOD '=' hyp_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::HYP;$$->hyp_pars=(*$3);delete $3;}
            | smooth_pars TK_MEAS_EACH '=' double_numb {$$->meas_each=$4;}
 ;
 
@@ -337,6 +330,7 @@ hyp_pars: TK_HYP {$$=new hyp_pars_t;}
 	    $$->alpha0=(*$2)[0];
 	    $$->alpha1=(*$2)[1];
 	    $$->alpha2=(*$2)[2];
+	    delete $2;
 	    }
 ;
 
@@ -354,36 +348,20 @@ inte_step: TK_INTE_STEP '=' double_numb {$$=$3;};
 
 ////////////////////////////////////////////////// QUARK CONTENT //////////////////////////////////////////////////
 
-add_quark: name_quark quark_pars;
-
-name_quark: TK_QUARK '=' TK_QUOTED_TEXT
-          {
-	      quark_content_t q;
-	      q.name=$3;
-	      driver->quarks.push_back(q);
-	  }
+add_quark: TK_QUARK '=' TK_QUOTED_TEXT
+         {
+	     driver->quarks.push_back(quark_content_t());
+             driver->quarks.back().name=(*$3);
+	     delete $3;
+	 }
+         | add_quark TK_DEGENERACY '=' int_numb {driver->quarks.back().deg=$4;}
+         | add_quark TK_IS_STAG '=' int_numb {driver->quarks.back().is_stag=$4;}
+         | add_quark TK_MASS '=' double_numb {driver->quarks.back().mass=$4;}
+         | add_quark TK_KAPPA '=' double_numb{driver->quarks.back().kappa=$4;}
+         | add_quark TK_RE_POT_CH '=' double_numb {driver->quarks.back().re_pot=$4;}
+         | add_quark TK_IM_POT_CH '=' double_numb {driver->quarks.back().im_pot=$4;}
+         | add_quark TK_ELEC_CHARGE '=' double_numb {driver->quarks.back().charge=$4;}
 ;
-
-quark_pars: quark_pars quark_par
-          | quark_par
-;
-
-quark_par: degeneracy {driver->quarks.back().deg=$1;}
-         | is_stag {driver->quarks.back().is_stag=$1;}
-         | mass {driver->quarks.back().mass=$1;}
-         | kappa {driver->quarks.back().kappa=$1;}
-         | re_pot_ch {driver->quarks.back().re_pot=$1;}
-         | im_pot_ch {driver->quarks.back().im_pot=$1;}
-         | elec_charge {driver->quarks.back().charge=$1;}
-;
-
-degeneracy: TK_DEGENERACY '=' int_numb {$$=$3;};
-is_stag: TK_IS_STAG '=' int_numb {$$=true;};
-mass: TK_MASS '=' double_numb {$$=$3;};
-kappa: TK_KAPPA '=' double_numb {$$=$3;};
-re_pot_ch: TK_RE_POT_CH '=' double_numb {$$=$3;};
-im_pot_ch: TK_IM_POT_CH '=' double_numb {$$=$3;};
-elec_charge: TK_ELEC_CHARGE '=' double_numb {$$=$3;};
 
 ////////////////////////////////////////////////// BACKGROUND FIELD //////////////////////////////////////////////////
 
@@ -397,7 +375,7 @@ bckgr_field: TK_BKGRD_EM_FIELD {driver->em_field_pars.flag=1;}
 nucleon_corr_meas: TK_MEAS_NUCLEON_CORRS {driver->nucleon_corr_meas.push_back(nucleon_corr_meas_pars_t());}
                  | nucleon_corr_meas each {driver->nucleon_corr_meas.back().each=$2;}
                  | nucleon_corr_meas after {driver->nucleon_corr_meas.back().after=$2;}
-                 | nucleon_corr_meas path {driver->nucleon_corr_meas.back().path=$2;}
+                 | nucleon_corr_meas path {driver->nucleon_corr_meas.back().path=(*$2);delete $2;}
                  | nucleon_corr_meas residue {driver->nucleon_corr_meas.back().residue=$2;}
                  | nucleon_corr_meas nhits {driver->nucleon_corr_meas.back().nhits=$2;}
 ;
@@ -407,10 +385,10 @@ nucleon_corr_meas: TK_MEAS_NUCLEON_CORRS {driver->nucleon_corr_meas.push_back(nu
 meson_corr_meas: TK_MEAS_MESON_CORRS {driver->meson_corr_meas.push_back(meson_corr_meas_pars_t());}
                | meson_corr_meas each {driver->meson_corr_meas.back().each=$2;}
                | meson_corr_meas after {driver->meson_corr_meas.back().after=$2;}
-               | meson_corr_meas path {driver->meson_corr_meas.back().path=$2;}
+               | meson_corr_meas path {driver->meson_corr_meas.back().path=(*$2);delete $2;}
                | meson_corr_meas residue {driver->meson_corr_meas.back().residue=$2;}
                | meson_corr_meas nhits {driver->meson_corr_meas.back().nhits=$2;}
-               | meson_corr_meas meson_list {driver->meson_corr_meas.back().mesons=*$2;}
+               | meson_corr_meas meson_list {driver->meson_corr_meas.back().mesons=(*$2);delete $2;}
 ;
 
 meson_list: TK_MESON_LIST '=' int_pair_list {
@@ -421,7 +399,7 @@ meson_list: TK_MESON_LIST '=' int_pair_list {
 	    int s=(*$3)[i].second;
 	    if((f<0)||(f>15)) crash("first part of entry %d is %d, should be in the range [0,15]",f);
 	    if((s<0)||(s>15)) crash("second part of entry %d is %d, should be in the range [0,15]",s);
-        }
+	}
 	$$=$3;}
 ;
 
@@ -431,7 +409,7 @@ meson_list: TK_MESON_LIST '=' int_pair_list {
 fermionic_putpourri_meas: TK_MEAS_PUTPOURRI {driver->fermionic_putpourri_meas.push_back(fermionic_putpourri_meas_pars_t());}
                         | fermionic_putpourri_meas each {driver->fermionic_putpourri_meas.back().each=$2;}
                         | fermionic_putpourri_meas after {driver->fermionic_putpourri_meas.back().after=$2;}
-                        | fermionic_putpourri_meas path {driver->fermionic_putpourri_meas.back().path=$2;}
+                        | fermionic_putpourri_meas path {driver->fermionic_putpourri_meas.back().path=(*$2);delete $2;}
                         | fermionic_putpourri_meas residue {driver->fermionic_putpourri_meas.back().residue=$2;}
                         | fermionic_putpourri_meas compute_susc {driver->fermionic_putpourri_meas.back().compute_susc=$2;}
                         | fermionic_putpourri_meas ncopies {driver->fermionic_putpourri_meas.back().ncopies=$2;}
@@ -443,7 +421,7 @@ fermionic_putpourri_meas: TK_MEAS_PUTPOURRI {driver->fermionic_putpourri_meas.pu
 quark_rendens_meas: TK_MEAS_RENDENS {driver->quark_rendens_meas.push_back(quark_rendens_meas_pars_t());}
                   | quark_rendens_meas each {driver->quark_rendens_meas.back().each=$2;}
                   | quark_rendens_meas after {driver->quark_rendens_meas.back().after=$2;}
-                  | quark_rendens_meas path {driver->quark_rendens_meas.back().path=$2;}
+                  | quark_rendens_meas path {driver->quark_rendens_meas.back().path=(*$2);delete $2;}
                   | quark_rendens_meas residue {driver->quark_rendens_meas.back().residue=$2;}
                   | quark_rendens_meas ncopies {driver->quark_rendens_meas.back().ncopies=$2;}
                   | quark_rendens_meas nhits {driver->quark_rendens_meas.back().nhits=$2;}
@@ -454,7 +432,7 @@ quark_rendens_meas: TK_MEAS_RENDENS {driver->quark_rendens_meas.push_back(quark_
 magnetization_meas: TK_MEAS_MAGNETIZ {driver->magnetization_meas.push_back(magnetization_meas_pars_t());}
                   | magnetization_meas each {driver->magnetization_meas.back().each=$2;}
                   | magnetization_meas after {driver->magnetization_meas.back().after=$2;}
-                  | magnetization_meas path {driver->magnetization_meas.back().path=$2;}
+                  | magnetization_meas path {driver->magnetization_meas.back().path=(*$2);delete $2;}
                   | magnetization_meas residue {driver->magnetization_meas.back().residue=$2;}
                   | magnetization_meas ncopies {driver->magnetization_meas.back().ncopies=$2;}
                   | magnetization_meas nhits {driver->magnetization_meas.back().nhits=$2;}
@@ -470,20 +448,23 @@ global_evolve_pars: TK_EVOLUTION {}
                   | global_evolve_pars TK_MD_RESIDUE '=' double_numb {driver->evol_pars.md_residue=$4;}
                   | global_evolve_pars TK_NSTEPS '=' int_numb {driver->evol_pars.nmd_steps=$4;}
                   | global_evolve_pars TK_NSUBSTEPS '=' int_numb {driver->evol_pars.ngauge_substeps=$4;}
-                  | global_evolve_pars TK_NPSEUDO_FERMS '=' int_list {driver->evol_pars.npseudo_fs=(*$4);}
+                  | global_evolve_pars TK_NPSEUDO_FERMS '=' int_list {driver->evol_pars.npseudo_fs=(*$4);delete $4;}
 ;
 
 ////////////////////////////////////////////////// CONF PARS ///////////////////////////////////////////////////
 
 global_conf_pars: TK_CONFIGURATION {}
-                | global_conf_pars path {driver->conf_pars.path=$2;}
-                | global_conf_pars TK_STORE_PATH '=' TK_QUOTED_TEXT {
-                        driver->conf_pars.store_path=$4;
+                | global_conf_pars path {driver->conf_pars.path=(*$2);delete $2;}
+                | global_conf_pars TK_STORE_PATH '=' TK_QUOTED_TEXT
+                    {
+                        driver->conf_pars.store_path=(*$4);
                         char test1[128];
                         char test2[128];
-                        snprintf(test1,128,$4,100);
-                        snprintf(test2,128,$4,101);
-                        if(!strcmp(test1,test2)) crash("bad template %s for store_path",$4);}
+                        snprintf(test1,128,$4->c_str(),100);
+                        snprintf(test2,128,$4->c_str(),101);
+                        if(!strcmp(test1,test2)) crash("bad template %s for store_path",$4);
+			delete $4;
+		    }
                 | global_conf_pars TK_STORE_EACH '=' int_numb {driver->conf_pars.store_each=$4;}
                 | global_conf_pars TK_STORE_RUNNING '=' int_numb {driver->conf_pars.store_running=$4;}
                 | global_conf_pars TK_START_COND '=' TK_HOT {driver->conf_pars.start_cond=HOT_START_COND;}
@@ -495,7 +476,7 @@ global_conf_pars: TK_CONFIGURATION {}
 plaq_pol_meas: TK_MEAS_PLAQ_POL {driver->plaq_pol_meas.push_back(gauge_obs_meas_pars_t());}
              | plaq_pol_meas each {driver->plaq_pol_meas.back().each=$2;}
              | plaq_pol_meas after {driver->plaq_pol_meas.back().after=$2;}
-             | plaq_pol_meas path {driver->plaq_pol_meas.back().path=$2;}
+             | plaq_pol_meas path {driver->plaq_pol_meas.back().path=(*$2);delete $2;}
 ;
 
 //////////////////////////////////////////////// TOPO CHARGE ////////////////////////////////////////////////////////
@@ -503,8 +484,8 @@ plaq_pol_meas: TK_MEAS_PLAQ_POL {driver->plaq_pol_meas.push_back(gauge_obs_meas_
 top_meas: TK_MEAS_TOP {driver->top_meas.push_back(top_meas_pars_t());}
         | top_meas each {driver->top_meas.back().each=$2;}
         | top_meas after {driver->top_meas.back().after=$2;}
-        | top_meas path {driver->top_meas.back().path=$2;}
-        | top_meas smooth_pars {driver->top_meas.back().smooth_pars=(*$2);}
+        | top_meas path {driver->top_meas.back().path=(*$2);delete $2;}
+        | top_meas smooth_pars {driver->top_meas.back().smooth_pars=(*$2);delete $2;}
 ;
 
 //////////////////////////////////////////// POLYAKOV LOOP CORRELATORS /////////////////////////////////////////////
@@ -512,7 +493,7 @@ top_meas: TK_MEAS_TOP {driver->top_meas.push_back(top_meas_pars_t());}
 luppoli_meas: TK_MEAS_LUPPOLI {driver->luppoli_meas.push_back(poly_corr_meas_pars_t());}
             | luppoli_meas each {driver->luppoli_meas.back().each=$2;}
             | luppoli_meas after {driver->luppoli_meas.back().after=$2;}
-            | luppoli_meas path {driver->luppoli_meas.back().path=$2;}
+            | luppoli_meas path {driver->luppoli_meas.back().path=(*$2);delete $2;}
 ;
 
 /////////////////////////////////////////////////////// WATUSSO /////////////////////////////////////////////////////
@@ -520,7 +501,7 @@ luppoli_meas: TK_MEAS_LUPPOLI {driver->luppoli_meas.push_back(poly_corr_meas_par
 watusso_meas: TK_MEAS_WATUSSO {driver->watusso_meas.push_back(watusso_meas_pars_t());}
             | watusso_meas each {driver->watusso_meas.back().each=$2;}
             | watusso_meas after {driver->watusso_meas.back().after=$2;}
-            | watusso_meas path {driver->watusso_meas.back().path=$2;}
+            | watusso_meas path {driver->watusso_meas.back().path=(*$2);delete $2;}
 ;
 
 /////////////////////////////////////////// RECTANGLES OF VARIOUS SIZE /////////////////////////////////////////////
@@ -528,7 +509,7 @@ watusso_meas: TK_MEAS_WATUSSO {driver->watusso_meas.push_back(watusso_meas_pars_
 all_rect_meas: TK_MEAS_ALL_RECTS {driver->all_rect_meas.push_back(all_rect_meas_pars_t());}
              | all_rect_meas each {driver->all_rect_meas.back().each=$2;}
              | all_rect_meas after {driver->all_rect_meas.back().after=$2;}
-             | all_rect_meas path {driver->all_rect_meas.back().path=$2;}
+             | all_rect_meas path {driver->all_rect_meas.back().path=(*$2);delete $2;}
 ;
 
 /////////////////////////////////////////////// LIST OF INTEGERS ///////////////////////////////////////////////////
@@ -554,8 +535,8 @@ internal_double_list: TK_CUR_BR_OP double_numb {$$=new std::vector<double>;$$->p
 int_pair_list: internal_int_pair_list TK_CUR_BR_CL {$$=$1;}
 ;
 
-internal_int_pair_list: TK_CUR_BR_OP int_pair {$$=new std::vector<std::pair<int,int> >;$$->push_back(*$2);}
-                      | internal_int_pair_list TK_COMMA int_pair {$$->push_back(*$3);}
+internal_int_pair_list: TK_CUR_BR_OP int_pair {$$=new std::vector<std::pair<int,int> >;$$->push_back(*$2);delete $2;}
+                      | internal_int_pair_list TK_COMMA int_pair {$$->push_back(*$3);delete $3;}
 ;
 
 /////////////////////////////////////////////// PAIR OF INTEGERS ///////////////////////////////////////////////////
