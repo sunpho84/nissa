@@ -35,7 +35,7 @@
 
 #include "inverters/templates/cg_invert_template_threaded.cpp"
 
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 
 namespace nissa
 {

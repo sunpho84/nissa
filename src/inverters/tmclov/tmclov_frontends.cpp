@@ -9,6 +9,7 @@
 #include "dirac_operators/tmclovQ/reconstruct_tmclov_doublet.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/spin.hpp"
+#include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
 
 namespace nissa

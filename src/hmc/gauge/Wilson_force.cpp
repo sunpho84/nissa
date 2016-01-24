@@ -6,7 +6,7 @@
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 #include "operations/su3_paths/squared_staples.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS

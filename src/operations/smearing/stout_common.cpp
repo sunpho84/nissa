@@ -12,7 +12,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

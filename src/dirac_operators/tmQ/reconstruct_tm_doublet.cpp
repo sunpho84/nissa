@@ -6,7 +6,7 @@
 #include "base/vectors.hpp"
 #include "dirac_operator_tmQ.hpp"
 #include "free_theory/free_theory_types.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

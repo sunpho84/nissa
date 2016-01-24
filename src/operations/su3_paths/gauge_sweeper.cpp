@@ -6,7 +6,7 @@
 #include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "hmc/gauge/Symanzik_action.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

@@ -8,7 +8,7 @@
 #include "inverters/momenta/cg_invert_MFACC.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

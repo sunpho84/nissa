@@ -2,7 +2,7 @@
  #include "config.hpp"
 #endif
 
-#include "su3.hpp"
+#include "su3_op.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "operations/su3_paths/rectangular_staples.hpp"
 

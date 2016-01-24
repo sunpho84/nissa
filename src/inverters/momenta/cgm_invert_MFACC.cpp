@@ -6,7 +6,7 @@
 #include "communicate/communicate.hpp"
 #include "dirac_operators/momenta/MFACC.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 
 #define BASETYPE su3
 #define NDOUBLES_PER_SITE 18

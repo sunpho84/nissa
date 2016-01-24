@@ -375,7 +375,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	new_types/rat_approx.cpp \
 	new_types/read_new_types.cpp \
 	new_types/spin.cpp \
-	new_types/su3.cpp \
+	new_types/su3_op.cpp \
 	new_types/write_new_types.cpp
 
 include_HEADERS+= \
@@ -390,6 +390,7 @@ include_HEADERS+= \
 	new_types/read_new_types.hpp \
 	new_types/spin.hpp \
 	new_types/su3.hpp \
+	new_types/su3_op.hpp \
 	new_types/write_new_types.hpp
 
 ####################################### operations ##################################

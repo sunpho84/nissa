@@ -13,6 +13,7 @@
 #include "io/endianness.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/dirac.hpp"
+#include "new_types/su3_op.hpp"
 #include "operations/fft.hpp"
 #include "operations/shift.hpp"
 #include "operations/remap_vector.hpp"

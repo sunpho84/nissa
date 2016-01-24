@@ -6,7 +6,7 @@
 #include "base/random.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "routines/mpi_routines.hpp"

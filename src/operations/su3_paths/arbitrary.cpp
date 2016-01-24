@@ -15,7 +15,7 @@
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "new_types/complex.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 #include "operations/shift.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS

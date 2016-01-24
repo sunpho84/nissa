@@ -12,7 +12,7 @@
 #include "new_types/dirac.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/spin.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS

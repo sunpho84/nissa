@@ -2,7 +2,7 @@
 #define _STOUT_HPP
 
 #include "routines/ios.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 
 namespace nissa
 {
