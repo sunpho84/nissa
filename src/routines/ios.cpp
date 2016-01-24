@@ -44,9 +44,7 @@ namespace nissa
     
     va_list ap;
     va_start(ap,format);
-    char s[1024];
-    ret=vsnprintf(s,1024,format,ap);
-    if(rank==0 && IS_MASTER_THREAD) fputs(s,stream);
+    if(rank==0 && IS_MASTER_THREAD) ret=vfprintf(stream,format,ap);
     va_end(ap);
     
     return ret;
@@ -119,8 +117,12 @@ namespace nissa
     
     if(rank==0)
       {
-	fout=fopen(outfile.c_str(),mode);
-	if(fout==NULL) crash("Couldn't open file: \"%s\" with mode: \"%s\"",outfile.c_str(),mode);
+	if(outfile=="-") fout=stdout;
+	else
+	{
+	  fout=fopen(outfile.c_str(),mode);
+	  if(fout==NULL) crash("Couldn't open file: \"%s\" with mode: \"%s\"",outfile.c_str(),mode);
+	}
       }
     
     return fout;
@@ -136,7 +138,7 @@ namespace nissa
   
   //close an open file
   void close_file(FILE *file)
-  {if(rank==0) fclose(file);}
+  {if(rank==0 && file!=stdout) fclose(file);}
   
   //count the number of lines in a file
   int count_file_lines(std::string path)

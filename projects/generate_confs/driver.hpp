@@ -1,5 +1,5 @@
-#ifndef _PARSER_DRIVER_HPP
-#define _PARSER_DRIVER_HPP
+#ifndef _DRIVER_HPP
+#define _DRIVER_HPP
 
 #include "nissa.hpp"
 
@@ -56,9 +56,15 @@ public:
   std::vector<watusso_meas_pars_t> watusso_meas;
   std::vector<all_rect_meas_pars_t> all_rect_meas;
   
+  //mode of running
+  enum run_mode_t{EVOLUTION_MODE,ANALYSIS_MODE};
+  run_mode_t run_mode;
+  run_mode_t def_run_mode(){return EVOLUTION_MODE;}
+  
   //evolution and conf
   hmc_evol_pars_t evol_pars;
   conf_pars_t conf_pars;
+  std::vector<std::string> an_conf_list;
   
   int master_fprintf_geometry(FILE *fout,int full)
   {
@@ -142,12 +148,25 @@ public:
     //gauge masures
     nprinted+=master_printf_vector(fout,plaq_pol_meas,full);
     nprinted+=master_printf_vector(fout,top_meas,full);
-    //hmc evolution
-    if(evol_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //walltime and seed
     if(master_fprintf_walltime_seed(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    //configuration
-    if(conf_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    
+    switch(run_mode)
+      {
+      case EVOLUTION_MODE:
+	if(evol_pars.master_fprintf(fout,full)) nprinted+=nissa::master_fprintf(fout,"\n");
+	if(conf_pars.master_fprintf(fout,full)) nprinted+=nissa::master_fprintf(fout,"\n");
+	break;
+      case ANALYSIS_MODE:
+	if(full||def_run_mode()!=ANALYSIS_MODE) nprinted+=nissa::master_fprintf(fout,"Analysis\n");
+	if(an_conf_list.size())
+	  {
+	    nprinted+=nissa::master_fprintf(fout," ConfList\t=\t{\"%s\"",an_conf_list[0].c_str());
+	    for(size_t i=1;i<an_conf_list.size();i++) nprinted+=nissa::master_fprintf(fout,",\"%s\"",an_conf_list[i].c_str());
+	    nprinted+=nissa::master_fprintf(fout,"}\n");
+	  }
+	break;
+      }
     
     return nprinted;
   }

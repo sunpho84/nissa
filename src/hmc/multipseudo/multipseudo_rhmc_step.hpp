@@ -96,7 +96,7 @@ namespace nissa
       
       if(full||is_nonstandard())
 	{
-	  nissa::master_fprintf(fout,"Configuration\n");
+	  nissa::master_fprintf(fout,"GaugeConf\n");
 	  if(full||path!=def_path()) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
 	  if(full||store_path!=def_store_path()) nprinted+=nissa::master_fprintf(fout," StorePath\t=\t\"%s\"\n",store_path.c_str());
 	  if(full||store_each!=def_store_each()) nprinted+=nissa::master_fprintf(fout," StoreEach\t=\t%d\n",store_each);

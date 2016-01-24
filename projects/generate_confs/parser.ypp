@@ -38,6 +38,7 @@
     Wflow_pars_t *Wflow_pars;
     std::vector<int> *int_list;
     std::vector<double> *double_list;
+    std::vector<std::string> *text_list;
     std::pair<int,int> *int_pair;
     std::vector<std::pair<int,int> > *int_pair_list;
 }
@@ -72,11 +73,9 @@
 %type <int_pair_list> int_pair_list
 %type <int_pair_list> internal_int_pair_list
 %token <text> TK_QUOTED_TEXT
-%token TK_COMMA
-%token TK_BR_OP
-%token TK_BR_CL
-%token TK_CUR_BR_OP
-%token TK_CUR_BR_CL
+%type <text> text
+%type <text_list> text_list
+%type <text_list> internal_text_list
 //each
 %token <int_numb> TK_EACH
 %type <int_numb> each
@@ -96,8 +95,9 @@
 %token TK_PATH
 %type <text> path
 //meta commands
-%token TK_META_PRINT_SCANNED
-%token TK_META_PRINT_FULL
+%token TK_META_PRINT_SCANNED_INPUT
+%token TK_META_PRINT_FULL_INPUT
+%token TK_META_PRINT
 //quark content
 %token TK_QUARK
 %token TK_DEGENERACY
@@ -182,14 +182,17 @@
 %token TK_MD_RESIDUE
 %token TK_NSUBSTEPS
 %token TK_NPSEUDO_FERMS
-//conf parameters
-%token TK_CONFIGURATION
+//gauge conf parameters
+%token TK_GAUGE_CONF
 %token TK_STORE_PATH
 %token TK_STORE_EACH
 %token TK_STORE_RUNNING
 %token TK_START_COND
 %token TK_HOT
 %token TK_COLD
+//gauge conf list
+%token TK_ANALYSIS
+%token TK_CONF_LIST
 //run pars
 %token TK_RUN
 %token TK_WALLTIME
@@ -222,19 +225,19 @@ global_specify: geometry
               | luppoli_meas
               | watusso_meas
               | all_rect_meas
-/////////////// evolve and confpars ///////////////////////
+/////////////// evolve and confpars /////////////////
               | global_evolve_pars
               | global_conf_pars
+//////////////////// analysis ///////////////////////
+              | global_analysis_pars
 //////////////// walltime and seed /////////////////
               | run_pars
 ;
 
-meta_command: meta_print_scanned
-            | meta_print_full
+meta_command: TK_META_PRINT_SCANNED_INPUT '(' text ')' {FILE *fout=open_file($3->c_str(),"w");driver->master_fprintf(fout);close_file(fout);delete $3;}
+            | TK_META_PRINT_FULL_INPUT '(' text ')' {FILE *fout=open_file($3->c_str(),"w");driver->master_fprintf(fout,true);close_file(fout);delete $3;}
+            | TK_META_PRINT '(' text ')' {nissa::master_printf($3->c_str());delete $3;}
 ;
-
-meta_print_scanned: TK_META_PRINT_SCANNED TK_QUOTED_TEXT {FILE *fout=open_file($2->c_str(),"w");driver->master_fprintf(fout);close_file(fout);delete $2;}
-meta_print_full: TK_META_PRINT_FULL TK_QUOTED_TEXT {FILE *fout=open_file($2->c_str(),"w");driver->master_fprintf(fout,true);close_file(fout);delete $2;}
 
 //////////////////////////////////////////////// SIMPLE STUFF //////////////////////////////////////////////////
 
@@ -254,7 +257,7 @@ nhits: TK_NHITS '=' int_numb {$$=$3;};
 
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 
-path: TK_PATH '=' TK_QUOTED_TEXT {$$=$3;};
+path: TK_PATH '=' text {$$=$3;};
 
 geometry: TK_GEOMETRY
         | geometry TK_T '=' int_numb {driver->T=$4;}
@@ -348,7 +351,7 @@ inte_step: TK_INTE_STEP '=' double_numb {$$=$3;};
 
 ////////////////////////////////////////////////// QUARK CONTENT //////////////////////////////////////////////////
 
-add_quark: TK_QUARK '=' TK_QUOTED_TEXT
+add_quark: TK_QUARK '=' text
          {
 	     driver->quarks.push_back(quark_content_t());
              driver->quarks.back().name=(*$3);
@@ -453,9 +456,9 @@ global_evolve_pars: TK_EVOLUTION {}
 
 ////////////////////////////////////////////////// CONF PARS ///////////////////////////////////////////////////
 
-global_conf_pars: TK_CONFIGURATION {}
+global_conf_pars: TK_GAUGE_CONF {driver->run_mode=driver_t::EVOLUTION_MODE;}
                 | global_conf_pars path {driver->conf_pars.path=(*$2);delete $2;}
-                | global_conf_pars TK_STORE_PATH '=' TK_QUOTED_TEXT
+                | global_conf_pars TK_STORE_PATH '=' text
                     {
                         driver->conf_pars.store_path=(*$4);
                         char test1[128];
@@ -469,6 +472,12 @@ global_conf_pars: TK_CONFIGURATION {}
                 | global_conf_pars TK_STORE_RUNNING '=' int_numb {driver->conf_pars.store_running=$4;}
                 | global_conf_pars TK_START_COND '=' TK_HOT {driver->conf_pars.start_cond=HOT_START_COND;}
                 | global_conf_pars TK_START_COND '=' TK_COLD {driver->conf_pars.start_cond=COLD_START_COND;}
+;
+
+////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////
+
+global_analysis_pars: TK_ANALYSIS {driver->run_mode=driver_t::ANALYSIS_MODE;}
+                    | global_analysis_pars TK_CONF_LIST '=' text_list {driver->an_conf_list=(*$4);delete $4;}
 ;
 
 /////////////////////////////////////////// PLAQ AND POLYAKOV LOOP //////////////////////////////////////////////////
@@ -514,41 +523,55 @@ all_rect_meas: TK_MEAS_ALL_RECTS {driver->all_rect_meas.push_back(all_rect_meas_
 
 /////////////////////////////////////////////// LIST OF INTEGERS ///////////////////////////////////////////////////
 
-int_list: internal_int_list TK_CUR_BR_CL {$$=$1;}
+int_list: internal_int_list '}' {$$=$1;}
 ;
 
-internal_int_list: TK_CUR_BR_OP int_numb {$$=new std::vector<int>;$$->push_back($2);}
-                 | internal_int_list TK_COMMA int_numb {$$->push_back($3);}
+internal_int_list: '{' int_numb {$$=new std::vector<int>;$$->push_back($2);}
+                 | internal_int_list ',' int_numb {$$->push_back($3);}
 ;
 
 /////////////////////////////////////////////// LIST OF DOUBLE ///////////////////////////////////////////////////
 
-double_list: internal_double_list TK_CUR_BR_CL {$$=$1;}
+double_list: internal_double_list '}' {$$=$1;}
 ;
 
-internal_double_list: TK_CUR_BR_OP double_numb {$$=new std::vector<double>;$$->push_back($2);}
-                    | internal_double_list TK_COMMA double_numb {$$->push_back($3);}
+internal_double_list: '{' double_numb {$$=new std::vector<double>;$$->push_back($2);}
+                    | internal_double_list ',' double_numb {$$->push_back($3);}
+;
+
+/////////////////////////////////////////////// LIST OF TEXT ///////////////////////////////////////////////////
+
+text_list: internal_text_list '}' {$$=$1;}
+;
+
+internal_text_list: '{' text {$$=new std::vector<std::string>;$$->push_back(*$2);delete $2;}
+                    | internal_text_list ',' text {$$->push_back(*$3);delete $3;}
 ;
 
 /////////////////////////////////////////// LIST OF PAIR OF INTEGERS ///////////////////////////////////////////////
 
-int_pair_list: internal_int_pair_list TK_CUR_BR_CL {$$=$1;}
+int_pair_list: internal_int_pair_list '}' {$$=$1;}
 ;
 
-internal_int_pair_list: TK_CUR_BR_OP int_pair {$$=new std::vector<std::pair<int,int> >;$$->push_back(*$2);delete $2;}
-                      | internal_int_pair_list TK_COMMA int_pair {$$->push_back(*$3);delete $3;}
+internal_int_pair_list: '{' int_pair {$$=new std::vector<std::pair<int,int> >;$$->push_back(*$2);delete $2;}
+                      | internal_int_pair_list ',' int_pair {$$->push_back(*$3);delete $3;}
 ;
 
 /////////////////////////////////////////////// PAIR OF INTEGERS ///////////////////////////////////////////////////
 
-int_pair: TK_BR_OP int_numb TK_COMMA int_numb TK_BR_CL {$$=new std::pair<int,int>; (*$$)=std::make_pair($2,$4);}
+int_pair: '(' int_numb ',' int_numb ')' {$$=new std::pair<int,int>; (*$$)=std::make_pair($2,$4);}
 ;
 
 //////////////////////////////////////////////////// ARITHMETIC //////////////////////////////////////////////////////
 
+//text
+text: TK_QUOTED_TEXT {$$=$1;}
+| text '+' text {$$=new std::string(*$1);(*$$)+=(*$3);delete $1;delete $3;}
+;
+
 //double
-double_numb: TK_DOUBLE {$$=$1;master_printf("Copying %lg to double\n",$1);}
-         | int_numb {$$=$1;master_printf("Casting %d to double\n",$1);}
+double_numb: TK_DOUBLE {$$=$1;}
+         | int_numb {$$=$1;}
          | TK_PLUS double_numb %prec NEG {$$=$2;}
          | TK_MINUS double_numb %prec NEG {$$=-$2;}
          | double_numb TK_PLUS double_numb {$$=$1+$3;}
@@ -556,11 +579,11 @@ double_numb: TK_DOUBLE {$$=$1;master_printf("Copying %lg to double\n",$1);}
          | double_numb TK_TIMES double_numb {$$=$1*$3;}
          | double_numb TK_DIV double_numb {$$=$1/$3;}
          | double_numb TK_POW double_numb {$$=pow($1,$3);}
-         | TK_BR_OP double_numb TK_BR_CL {$$=$2;}
+         | '(' double_numb ')' {$$=$2;}
 ;
 
 //integer
-int_numb: TK_INT {$$=$1;master_printf("Copying %d to integer\n",$1);}
+int_numb: TK_INT {$$=$1;}
         | TK_PLUS int_numb %prec NEG {$$=$2;}
         | TK_MINUS int_numb %prec NEG {$$=-$2;}
         | int_numb TK_PLUS int_numb {$$=$1+$3;}
@@ -569,6 +592,6 @@ int_numb: TK_INT {$$=$1;master_printf("Copying %d to integer\n",$1);}
         | int_numb TK_TIMES int_numb {$$=$1*$3;}
         | int_numb TK_DIV int_numb {$$=$1/$3;}
         | int_numb TK_POW int_numb {$$=(int)pow($1,$3);}
-        | TK_BR_OP int_numb TK_BR_CL {$$=$2;}
+        | '(' int_numb ')' {$$=$2;}
 ;
 

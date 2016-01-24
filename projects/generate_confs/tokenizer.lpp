@@ -65,7 +65,7 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
    
 #include "parser.hpp"
    
-   const int debug_lexer=1;
+   const int debug_lexer=0;
    
    std::string curr_comment;
 %}
@@ -122,9 +122,11 @@ Path DEBUG_PRINTF("Found Path\n");return TK_PATH;
 MesonList DEBUG_PRINTF("Found MesonList\n");return TK_MESON_LIST;
 
  /* meta commands */
-\#PrintScanned DEBUG_PRINTF("Found #PrintScanned\n");return TK_META_PRINT_SCANNED;
-\#PrintFull DEBUG_PRINTF("Found #PrintFull\n");return TK_META_PRINT_FULL;
+\#PrintScannedInput DEBUG_PRINTF("Found #PrintScannedInput\n");return TK_META_PRINT_SCANNED_INPUT;
+\#PrintFullInput DEBUG_PRINTF("Found #PrintFullInput\n");return TK_META_PRINT_FULL_INPUT;
+\#Print DEBUG_PRINTF("Found #Print\n");return TK_META_PRINT;
 \#End DEBUG_PRINTF("Found #End\n");return EOF;
+\#Now DEBUG_PRINTF("Found #Now\n");yylval->int_numb=time(0);return TK_INT;
 
  /* recognizing number */
 {SCI_DOUBLE}|{DOUBLE} DEBUG_PRINTF("Found Double: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb);return TK_DOUBLE;
@@ -222,8 +224,12 @@ NSteps DEBUG_PRINTF("Found NSteps\n");return TK_NSTEPS;
 NSubsteps DEBUG_PRINTF("Found NSubsteps\n");return TK_NSUBSTEPS;
 NPseudoFerms DEBUG_PRINTF("Found NPseudoFerms\n");return TK_NPSEUDO_FERMS;
 
- /* conf pars */
-Configuration DEBUG_PRINTF("Found Configuration\n");return TK_CONFIGURATION;
+ /* analysis pars */
+Analysis DEBUG_PRINTF("Found Analysis\n");return TK_ANALYSIS;
+ConfList DEBUG_PRINTF("Found ConfList\n");return TK_CONF_LIST;
+
+ /* gauge conf pars */
+GaugeConf DEBUG_PRINTF("Found GaugeConf\n");return TK_GAUGE_CONF;
 StorePath DEBUG_PRINTF("Found StorePath\n");return TK_STORE_PATH;
 StoreEach DEBUG_PRINTF("Found StoreEach\n");return TK_STORE_EACH;
 StoreRunning DEBUG_PRINTF("Found StoreRunning\n");return TK_STORE_RUNNING;
@@ -237,11 +243,11 @@ Walltime DEBUG_PRINTF("Found Walltime\n");return TK_WALLTIME;
 Seed DEBUG_PRINTF("Found Seed\n");return TK_SEED;
 
  /* punctuation */
-\, return TK_COMMA;
-\( return TK_BR_OP;
-\) return TK_BR_CL;
-\{ return TK_CUR_BR_OP;
-\} return TK_CUR_BR_CL;
+\, return ',';
+\( return '(';
+\) return ')';
+\{ return '{';
+\} return '}';
 
  /* quantities */
 Days? DEBUG_PRINTF("Found Day(s)\n");yylval->int_numb=24*60*60;return TK_QUANTITY;
@@ -265,7 +271,8 @@ driver_t::driver_t(FILE *ext) :
 			walltime(def_walltime()),
 			seed(def_seed()),
 			beta(def_beta()),
-			gauge_action_name(def_gauge_action_name()){
+			gauge_action_name(def_gauge_action_name()),
+			run_mode(def_run_mode()){
   fin=ext;
   
   init_scanner();
