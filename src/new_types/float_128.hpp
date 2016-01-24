@@ -7,6 +7,8 @@
  #define EXTERN_FLOAT_128 extern
 #endif
 
+#define NISSA_DEFAULT_USE_128_BIT_PRECISION 0
+
 namespace nissa
 {
   EXTERN_FLOAT_128 int use_128_bit_precision;

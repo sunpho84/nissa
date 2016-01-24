@@ -4,11 +4,34 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "base/macros.hpp"
-
 #ifndef EXTERN_VECTORS
  #define EXTERN_VECTORS extern
 #endif
+
+//vector tags name
+#define BORDERS_ALLOCATED 1
+#define BORDERS_VALID 2
+#define EDGES_ALLOCATED 4
+#define EDGES_VALID 8
+#define BORDERS_COMMUNICATED_AT_LEAST_ONCE 16
+#define DO_NOT_SET_FLAGS 1
+#define SEND_BACKWARD_BORD 1
+#define SEND_FORWARD_BORD 2
+
+#define NISSA_DEFAULT_WARN_IF_NOT_DISALLOCATED 1
+
+#define NISSA_VECT_STRING_LENGTH 20
+#if defined(BGQ) && !defined(BGQ_EMU)
+ #define NISSA_VECT_ALIGNMENT 32
+#else
+ #define NISSA_VECT_ALIGNMENT 16
+#endif
+
+#define nissa_malloc(a,b,c) (c*)internal_nissa_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
+#define nissa_free(a) internal_nissa_free((char**)&(a),__FILE__,__LINE__)
+
+#define CRASH_IF_NOT_ALIGNED(a,b) MACRO_GUARD(if((long long int)(void*)a%b!=0) crash("alignement problem");)
+#define IF_VECT_NOT_INITIALIZED() if(main_arr!=((char*)&main_vect)+sizeof(nissa_vect))
 
 namespace nissa
 {

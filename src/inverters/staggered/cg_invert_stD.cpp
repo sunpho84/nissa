@@ -6,6 +6,7 @@
 
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "linalgs/linalgs.hpp"
 
 //this is the famous trick to invert the full D matrix using e/o precond: sol[ODD]=1/m*(source[ODD]-Doe*sol[EVN])

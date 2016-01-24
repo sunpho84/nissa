@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "nissa.hpp"
+#include "driver.hpp"
 
 using namespace nissa;
 
@@ -29,7 +30,7 @@ int nconf_to_analyze;
 
 //structures containing parameters
 int ntheories;
-theory_pars_t *theory_pars;
+theory_pars_t theory_pars;
 hmc_evol_pars_t evol_pars;
 conf_pars_t conf_pars;
 
@@ -69,7 +70,7 @@ void write_conf(std::string path,quad_su3 **conf)
   //rational approximation
   char *appr_data=NULL;
   int appr_data_length;
-  convert_rat_approx(appr_data,appr_data_length,evol_pars.rat_appr,theory_pars[SEA_THEORY].nflavs());
+  convert_rat_approx(appr_data,appr_data_length,evol_pars.rat_appr,theory_pars.nflavs());
   
   ILDG_bin_message_append_to_last(&mess,"RAT_approx",appr_data,appr_data_length);
   nissa_free(appr_data);
@@ -227,47 +228,16 @@ void init_simulation(char *path)
 {
   init_time=take_time();
   
-  //////////////////////////// read the input /////////////////////////
+  driver_t *driver=new driver_t(input_global);
+  parser_parse(driver);
   
-  //open input file
-  open_input(path);
+  glb_size[0]=driver->T;
+  glb_size[1]=driver->LX;
+  glb_size[2]=driver->LY;
+  glb_size[3]=driver->LZ;
+  init_grid(0,0);
   
-  //init the grid
-  int L;
-  read_str_int("L",&L);
-  if(L>0)
-    {
-      int T;
-      read_str_int("T",&T);
-      init_grid(T,L);
-    }
-  else
-    {
-      read_str_int("LT",glb_size+0);
-      read_str_int("LX",glb_size+1);
-      read_str_int("LY",glb_size+2);
-      read_str_int("LZ",glb_size+3);
-      init_grid(0,0);
-   }
-  
-  //read number of additional theory to read
-  int nvalence_theories;
-  read_str_int("NValenceTheories",&nvalence_theories);
-  ntheories=nvalence_theories+1;
-  theory_pars=new theory_pars_t[ntheories];
-  fermionic_putpourri_meas_pars=new fermionic_putpourri_meas_pars_t[ntheories];
-  quark_rendens_meas_pars=new quark_rendens_meas_pars_t[ntheories];
-  spinpol_meas_pars=new spinpol_meas_pars_t[ntheories];
-  magnetization_meas_pars=new magnetization_meas_pars_t[ntheories];
-  nucleon_corr_meas_pars=new nucleon_corr_meas_pars_t[ntheories];
-  meson_corr_meas_pars=new meson_corr_meas_pars_t[ntheories];
-  
-  //read physical theory: theory 0 is the sea (simulated one)
-  for(int itheory=0;itheory<ntheories;itheory++)
-    {
-      if(itheory==0) master_printf("Reading info on sea theory\n");
-      else           master_printf("Reading info on additional (valence) theory %d/%d\n",itheory,nvalence_theories);
-      read_theory_pars(theory_pars[itheory]);
+  read_theory_pars(theory_pars[itheory]);
       read_nucleon_corr_meas_pars(nucleon_corr_meas_pars[itheory]);
       read_meson_corr_meas_pars(meson_corr_meas_pars[itheory]);
       read_fermionic_putpourri_meas_pars(fermionic_putpourri_meas_pars[itheory]);

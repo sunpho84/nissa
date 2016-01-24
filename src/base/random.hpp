@@ -5,6 +5,9 @@
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 
+//random number generator table length
+#define RAN2_NTAB 32
+
 namespace nissa
 {
   //Random types

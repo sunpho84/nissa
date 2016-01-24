@@ -6,8 +6,11 @@
 #endif
 
 #include <math.h>
+#include <stdio.h>
 
-#include "base/macros.hpp"
+//real/imag
+#define RE 0
+#define IM 1
 
 namespace nissa
 {

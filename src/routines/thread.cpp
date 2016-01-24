@@ -11,7 +11,6 @@
 #include "thread.hpp"
 
 #include "base/debug.hpp"
-#include "base/macros.hpp"
 #include "base/random.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"

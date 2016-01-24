@@ -3,6 +3,15 @@
 
 #include <algorithm>
 
+#include "new_types/complex.hpp"
+
+//Pi
+#ifndef M_PI
+ #define M_PI           3.14159265358979323846
+#endif
+//sqrt(2)
+#define RAD2 1.414213562373095048801688724209l
+
 namespace nissa
 {
   double lfact(double n);

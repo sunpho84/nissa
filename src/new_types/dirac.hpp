@@ -1,6 +1,7 @@
 #ifndef _DIRAC_HPP
 #define _DIRAC_HPP
 
+#include <stdio.h>
 #include <string.h>
 
 #include "complex.hpp"

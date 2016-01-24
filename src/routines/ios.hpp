@@ -10,6 +10,32 @@
  #define EXTERN_IOS extern
 #endif
 
+#define master_printf(...) master_fprintf(stdout,__VA_ARGS__)
+
+//add verbosity macro
+#if MAX_VERBOSITY_LV>=1
+#define VERBOSITY_LV1 (verbosity_lv>=1)
+#else
+ #define VERBOSITY_LV1 0
+#endif
+#if MAX_VERBOSITY_LV>=2
+ #define VERBOSITY_LV2 (verbosity_lv>=2)
+#else
+ #define VERBOSITY_LV2 0
+#endif
+#if MAX_VERBOSITY_LV>=3
+ #define VERBOSITY_LV3 (verbosity_lv>=3)
+#else
+ #define VERBOSITY_LV3 0
+#endif
+
+#define NISSA_DEFAULT_VERBOSITY_LV 1
+
+//wrappers for verbosity_lv?
+#define verbosity_lv1_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV1) master_printf(__VA_ARGS__);)
+#define verbosity_lv2_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV2) master_printf(__VA_ARGS__);)
+#define verbosity_lv3_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV3) master_printf(__VA_ARGS__);)
+
 namespace nissa
 {
   EXTERN_IOS int verb_call;

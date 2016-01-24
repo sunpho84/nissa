@@ -8,7 +8,6 @@
 #include <math.h>
 
 #include "base/debug.hpp"
-#include "base/macros.hpp"
 #include "routines/ios.hpp"
 
 #include "complex.hpp"

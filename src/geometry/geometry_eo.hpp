@@ -5,6 +5,14 @@
  #define EXTERN_GEOMETRY_EO extern
 #endif
 
+//ODD/EVN
+#define EVN 0
+#define ODD 1
+
+#define NISSA_DEFAULT_USE_EO_GEOM 1
+
+#define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<loc_volh;a++)
+
 #include "geometry_lx.hpp"
 #include "new_types/su3.hpp"
 

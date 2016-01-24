@@ -22,7 +22,6 @@ include_HEADERS+= \
 	base/close.hpp \
 	base/debug.hpp \
 	base/init.hpp \
-	base/macros.hpp \
 	base/random.hpp \
 	base/thread_macros.hpp \
 	base/vectors.hpp
@@ -218,6 +217,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 
 include_HEADERS+= \
 	hmc/backfield.hpp \
+	hmc/hmc.hpp \
 	hmc/gauge/MFACC_fields.hpp \
 	hmc/gauge/MFACC_fields.hpp \
 	hmc/gauge/gluonic_action.hpp \

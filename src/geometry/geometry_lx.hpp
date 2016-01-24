@@ -16,6 +16,8 @@
  #define ONLY_INSTANTIATION
 #endif
 
+#define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<loc_vol;a++)
+
 namespace nissa
 {
   typedef int coords[NDIM];

@@ -4,6 +4,7 @@
 
 #include "base/vectors.hpp"
 #include "dirac_operators/momenta/MFACC.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"

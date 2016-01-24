@@ -8,6 +8,12 @@
 #include "new_types/su3.hpp"
 #include "new_types/float_128.hpp"
 
+#define NISSA_DEFAULT_VNODE_PARAL_DIR 0
+
+#ifdef USE_VNODES
+ #define NVNODES 2
+#endif
+
 namespace nissa
 {
   EXTERN_GEOMETRY_VIR int vir_geom_inited;

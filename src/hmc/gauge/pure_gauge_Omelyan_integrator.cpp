@@ -5,6 +5,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "hmc/hmc.hpp"
 #include "hmc/momenta/momenta_evolve.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"

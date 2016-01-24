@@ -21,7 +21,7 @@ AM_CONFIG_HEADER(src/config.hpp)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 
-# Checks for programs
+#checks for programs
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
@@ -35,14 +35,14 @@ CFLAGS="$AM_CFLAGS $MPI_CXXFLAGS $CFLAGS"
 LDFLAGS="$AM_LDFLAGS $MPI_CXXLDFLAGS $LDFLAGS"
 LIBS="$LIBS $MPI_CXXLDFLAGS"
 
-#Checks for headers
+#checks for headers
 AC_CHECK_HEADERS([fftw3.h],[fftw_found_headers=yes])
 
-# Checks for libraries
+#checks for libraries
 AC_SEARCH_LIBS(__gmpz_init,gmp)
 AC_SEARCH_LIBS(fftw_plan_dft_r2c_2d,fftw3)
 
-# Check ntl library
+#check ntl library
 #LB_CHECK_NTL(,,AC_MSG_ERROR(["Unable to find NTL library"]))
 
 #spi
@@ -207,6 +207,17 @@ if ! printf "%f" "$col" >/dev/null 2>&1; then AC_MSG_ERROR([String $ncol is not 
 AC_MSG_RESULT([enabling number of colors... $ncol])
 AM_CONDITIONAL([NCOL3], [test x$ncol = x3])
 AC_DEFINE_UNQUOTED([NCOL],$ncol,[Number of colors])
+
+#macros to concatenate
+AC_DEFINE([_CONCAT(X,Y)],[X##Y],[Internally concatenation])
+AC_DEFINE([CONCAT(X,Y)],[_CONCAT(X,Y)],[Concatenate two pieces to produce a new token])
+AC_DEFINE([CONCAT2(s1,s2)],[CONCAT(s1,s2)],[Wrapper to beat CPP])
+AC_DEFINE([CONCAT3(s1,s2,s3)],[CONCAT(CONCAT2(s1,s2),s3)],[Concatenate three])
+AC_DEFINE([NAME2(s1,s2)],[CONCAT3(s1,_,s2)],[Link with a _])
+AC_DEFINE([NAME3(s1,s2,s3)],[NAME2(CONCAT3(s1,_,s2),s3)],[Name with two _])
+AC_DEFINE([NAME4(s1,s2,s3,s4)],[NAME3(CONCAT3(s1,_,s2),s3,s4)],[Name with four _])
+AC_DEFINE([REORDER_BARRIER],[__asm volatile ("")],[Avoid spilling])
+AC_DEFINE([MACRO_GUARD(...)],[do{__VA_ARGS__}while(0)],[Guard semicolon])
 
 #create config.hpp
 AC_CONFIG_FILES(

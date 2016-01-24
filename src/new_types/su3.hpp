@@ -6,6 +6,12 @@
 #include "spin.hpp"
 #include "float_128.hpp"
 
+#if NCOL == 3
+ #define CRASH_IF_NOT_3COL()
+#else
+ #define CRASH_IF_NOT_3COL() crash("ncol == %d, expected 3",ncol)
+#endif
+
 namespace nissa
 {
   typedef complex color[NCOL];

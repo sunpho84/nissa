@@ -11,6 +11,7 @@
  #include "routines/thread.hpp"
 #endif
 
+#include "hmc/hmc.hpp"
 #include "hmc/theory_pars.hpp"
 #include "hmc/gauge/gluonic_force.hpp"
 #include "hmc/gauge/pure_gauge_Omelyan_integrator.hpp"

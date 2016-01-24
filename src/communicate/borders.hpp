@@ -2,6 +2,7 @@
 #define _BORDERS_HPP
 
 #include "communicate.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
 

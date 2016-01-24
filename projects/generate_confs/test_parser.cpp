@@ -15,8 +15,6 @@ void in_main(int narg,char **arg)
   driver_t *driver=new driver_t(input_global);
   parser_parse(driver);
   
-  driver->master_fprintf(stdout);
-  
   master_printf("read %d quarks\n",(int)driver->quarks.size());
   master_printf("nlevels %d\n",(int)driver->stout_pars.nlevels);
   
