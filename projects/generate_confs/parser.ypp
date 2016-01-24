@@ -233,8 +233,8 @@ meta_command: meta_print_scanned
             | meta_print_full
 ;
 
-meta_print_scanned: TK_META_PRINT_SCANNED TK_QUOTED_TEXT {FILE *fout=open_file($2->c_str(),"w");driver->master_fprintf(fout);close_file(fout);}
-meta_print_full: TK_META_PRINT_FULL TK_QUOTED_TEXT {FILE *fout=open_file($2->c_str(),"w");driver->master_fprintf(fout,true);close_file(fout);}
+meta_print_scanned: TK_META_PRINT_SCANNED TK_QUOTED_TEXT {FILE *fout=open_file($2->c_str(),"w");driver->master_fprintf(fout);close_file(fout);delete $2;}
+meta_print_full: TK_META_PRINT_FULL TK_QUOTED_TEXT {FILE *fout=open_file($2->c_str(),"w");driver->master_fprintf(fout,true);close_file(fout);delete $2;}
 
 //////////////////////////////////////////////// SIMPLE STUFF //////////////////////////////////////////////////
 
