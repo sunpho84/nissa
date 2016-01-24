@@ -11,6 +11,7 @@ public:
   void *scanner;
   FILE *fin;
   driver_t(FILE *file);
+  ~driver_t() {destroy_scanner();}
   
   //geometry
   int LX,LY,LZ;
@@ -24,23 +25,8 @@ public:
   int def_walltime(){return 3500;}
   int def_seed(){return 23526211;}
   
-  //gauge action
-  double beta;
-  gauge_action_name_t gauge_action_name;
-  double def_beta(){return 6.0;}
-  gauge_action_name_t def_gauge_action_name(){return WILSON_GAUGE_ACTION;}
-  
-  //topo potential pars
-  topotential_pars_t topotential_pars;
-  
-  //content of quarks
-  std::vector<quark_content_t> quarks;
-  
-  //stout parameters
-  stout_pars_t stout_pars;
-  
-  //background em field
-  em_field_pars_t em_field_pars;
+  //parameters of actions
+  std::vector<theory_pars_t> theories;
   
   //fermionic measures
   std::vector<meson_corr_meas_pars_t> meson_corr_meas;
@@ -84,27 +70,6 @@ public:
     return nprinted;
   }
   
-  int master_fprintf_betaact(FILE *fout,int full)
-  {
-    int nprinted=0;
-    if(full||(beta!=def_beta())||(gauge_action_name!=def_gauge_action_name())) nprinted+=nissa::master_fprintf(fout,"GaugePars\n");
-    if(full||(beta!=def_beta())) nprinted+=nissa::master_fprintf(fout," Beta\t\t=\t%lg\n",beta);
-    if(full||(gauge_action_name!=def_gauge_action_name()))
-      {
-	nprinted+=nissa::master_fprintf(fout," Action\t\t=\t");
-	switch(gauge_action_name)
-	  {
-	  case WILSON_GAUGE_ACTION: nprinted+=nissa::master_fprintf(fout,"Wilson");break;
-	  case TLSYM_GAUGE_ACTION: nprinted+=nissa::master_fprintf(fout,"tlSym");break;
-	  case IWASAKI_GAUGE_ACTION: nprinted+=nissa::master_fprintf(fout,"Iwasaki");break;
-	  default:crash("unknown gauge action %d",(int)gauge_action_name);
-	  }
-	nprinted+=nissa::master_fprintf(fout,"\n");
-      }
-    
-    return nprinted;
-  }
-  
   int master_fprintf_walltime_seed(FILE *fout,int full)
   {
     int nprinted=0;
@@ -129,16 +94,8 @@ public:
     
     //geometry
     if(master_fprintf_geometry(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    //beta and action
-    if(master_fprintf_betaact(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    //topotential
-    if(topotential_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    //quarks
-    for(size_t i=0;i<quarks.size();i++) if(quarks[i].master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    //global stout pars
-    if(stout_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    //global em field pars
-    if(em_field_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    //theories
+    for(size_t i=0;i<theories.size();i++) if(theories[i].master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //fermionic measures
     nprinted+=master_printf_vector(fout,meson_corr_meas,full);
     nprinted+=master_printf_vector(fout,nucleon_corr_meas,full);

@@ -199,7 +199,7 @@ namespace nissa
 	master_fprintf(file,"%d",iconf);
 	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
 	  {
-	    if(!theory_pars.quark_content[iflav].is_stag) crash("not defined for non-staggered quarks");
+	    if(!theory_pars.quarks[iflav].is_stag) crash("not defined for non-staggered quarks");
 	    
 	    fermionic_putpourri_t putpourri;
 	    
@@ -212,7 +212,7 @@ namespace nissa
 		
 		//compute and summ
 		fermionic_putpourri_t temp;
-		fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],&theory_pars.quark_content[iflav],meas_pars.residue,comp_susc);
+		fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue,comp_susc);
 		complex_summassign(putpourri.chiral_cond,temp.chiral_cond);
 		if(comp_susc) complex_summassign(putpourri.chiral_cond_susc,temp.chiral_cond_susc);
 		complex_summassign(putpourri.energy_dens,temp.energy_dens);

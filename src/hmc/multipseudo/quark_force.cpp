@@ -45,8 +45,8 @@ namespace nissa
 	{
 	  verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %d/%d\n",iflav+1,tp->nflavs(),ipf+1,(*npfs)[iflav]);
 	  
-	  if(tp->quark_content[iflav].is_stag)
-	    summ_the_rootst_eoimpr_quark_force(F,tp->quark_content[iflav].charge,conf,pf[iflav].stag[ipf],tp->em_field_pars.flag,tp->backfield[iflav],appr+(iflav*3+2),residue);
+	  if(tp->quarks[iflav].is_stag)
+	    summ_the_rootst_eoimpr_quark_force(F,tp->quarks[iflav].charge,conf,pf[iflav].stag[ipf],tp->em_field_pars.flag,tp->backfield[iflav],appr+(iflav*3+2),residue);
 	  else crash("non staggered not yet implemented");
 	}
     

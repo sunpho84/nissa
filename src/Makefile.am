@@ -193,6 +193,7 @@ endif
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/backfield.cpp \
+	hmc/theory_pars.cpp \
 	hmc/gauge/MFACC_fields.cpp \
 	hmc/gauge/MFACC_fields.cpp \
 	hmc/gauge/gluonic_force.cpp \
@@ -218,6 +219,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 include_HEADERS+= \
 	hmc/backfield.hpp \
 	hmc/hmc.hpp \
+	hmc/theory_pars.hpp \
 	hmc/gauge/MFACC_fields.hpp \
 	hmc/gauge/MFACC_fields.hpp \
 	hmc/gauge/gluonic_action.hpp \

@@ -30,6 +30,10 @@
     int int_numb;
     std::string *text;
     gauge_action_name_t gauge_action_name;
+    em_field_pars_t *em_field_pars;
+    topotential_pars_t *topotential_pars;
+    theory_pars_t *theory;
+    quark_content_t *quark;
     smooth_pars_t *smooth_pars;
     stout_pars_t *stout_pars;
     cool_pars_t *cool_pars;
@@ -56,6 +60,9 @@
 %token TK_LZ
 %token TK_L
 %token TK_T
+//theory
+%token TK_THEORY
+%type <theory> theory
 //gauge pars
 %token TK_GAUGE_PARS
 %token TK_BETA
@@ -91,6 +98,7 @@
 %token TK_META
 %token TK_ORDINARY
 %token TK_TOPO_POTENTIAL
+%type<topotential_pars> topo_potential_pars
 //path
 %token TK_PATH
 %type <text> path
@@ -100,6 +108,7 @@
 %token TK_META_PRINT
 //quark content
 %token TK_QUARK
+%type <quark> quark
 %token TK_DEGENERACY
 %token TK_IS_STAG
 %token TK_KAPPA
@@ -141,13 +150,14 @@
 %token TK_INTE_STEP
 %type <double_numb> inte_step
 //gauge action
-%token TK_ACTION
+%token TK_GAUGE_ACTION
 %token TK_WILSON
 %token TK_TLSYM
 %token TK_IWASAKI
-%type <gauge_action_name> action
+%type <gauge_action_name> gauge_action
 //background field
 %token TK_BKGRD_EM_FIELD
+%type <em_field_pars> em_field_pars
 %token <int_numb> TK_B_COMP
 %token <int_numb> TK_E_COMP
 //number of copies and hits
@@ -208,11 +218,7 @@ command: global_specify
 ;
 
 global_specify: geometry
-              | gauge_pars
-              | topo_potential_pars
-              | add_quark
-              | stout_pars {driver->stout_pars=(*$1);delete $1;};
-              | bckgr_field
+              | theory {driver->theories.push_back(*$1);delete $1;}
 /////////////// fermionic measures ////////////////
               | meson_corr_meas
               | nucleon_corr_meas
@@ -241,9 +247,9 @@ meta_command: TK_META_PRINT_SCANNED_INPUT '(' text ')' {FILE *fout=open_file($3-
 
 //////////////////////////////////////////////// SIMPLE STUFF //////////////////////////////////////////////////
 
-action: TK_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
-      | TK_ACTION '=' TK_TLSYM {$$=TLSYM_GAUGE_ACTION;};
-      | TK_ACTION '=' TK_IWASAKI {$$=IWASAKI_GAUGE_ACTION;};
+gauge_action: TK_GAUGE_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
+            | TK_GAUGE_ACTION '=' TK_TLSYM {$$=TLSYM_GAUGE_ACTION;};
+            | TK_GAUGE_ACTION '=' TK_IWASAKI {$$=IWASAKI_GAUGE_ACTION;};
 
 each: TK_EACH '=' int_numb {$$=$3;};
 
@@ -267,10 +273,24 @@ geometry: TK_GEOMETRY
         | geometry TK_LZ '=' int_numb {driver->LZ=$4;}
 ;
 
-gauge_pars: TK_GAUGE_PARS
-          | gauge_pars TK_BETA '=' double_numb {driver->beta=$4;}
-          | gauge_pars action {driver->gauge_action_name=$2;}
+///////////////////////////////////////////////// THEORY ///////////////////////////////////////////////////////
+
+theory: TK_THEORY {$$=new theory_pars_t;}
+      | theory stout_pars {$$->stout_pars=(*$2);delete $2;};
+      | theory topo_potential_pars {$$->topotential_pars=(*$2);delete $2;}
+      | theory quark {$$->quarks.push_back(*$2);delete $2;}
+      | theory em_field_pars {$$->em_field_pars=(*$2);delete $2;}
+      | theory TK_BETA '=' double_numb {$$->beta=$4;}
+      | theory gauge_action {$$->gauge_action_name=$2;}
 ;
+
+///////////////////////////////////////////////////// EM FIELD /////////////////////////////////////////////////
+em_field_pars: TK_BKGRD_EM_FIELD {$$=new em_field_pars_t;$$->flag=1;}
+             | em_field_pars TK_E_COMP '=' double_numb {$$->E[$2]=$4;}
+             | em_field_pars TK_B_COMP '=' double_numb {$$->B[$2]=$4;}
+;
+
+////////////////////////////////////////////// RUNNING PARAMETERS //////////////////////////////////////////////
 
 run_pars: TK_RUN {}
         | run_pars TK_WALLTIME '=' int_numb {driver->walltime=$4;}
@@ -279,10 +299,9 @@ run_pars: TK_RUN {}
 
 ////////////////////////////////////////////// TOPO POTENTIAL //////////////////////////////////////////////////
 
-//specify topopotential pars
-topo_potential_pars: TK_TOPO_POTENTIAL '=' TK_META {driver->topotential_pars.flag=2;}
-                   | TK_TOPO_POTENTIAL '=' TK_ORDINARY {driver->topotential_pars.flag=1;}
-                   | TK_TOPO_POTENTIAL '=' TK_NONE {driver->topotential_pars.flag=0;}
+topo_potential_pars: TK_TOPO_POTENTIAL '=' TK_META {$$=new topotential_pars_t;$$->flag=2;}
+                   | TK_TOPO_POTENTIAL '=' TK_ORDINARY {$$=new topotential_pars_t;$$->flag=1;}
+                   | TK_TOPO_POTENTIAL '=' TK_NONE {$$=new topotential_pars_t;$$->flag=0;}
 ;
 
 ////////////////////////////////////////////////// SMOOTH PARS /////////////////////////////////////////////////
@@ -309,7 +328,7 @@ rho: TK_RHO '=' double_numb {$$=$3;};
 
 cool_pars: TK_COOLING {$$=new cool_pars_t;}
          | cool_pars nsteps {$$=$1;$$->nsteps=$2;}
-         | cool_pars action {$$=$1;$$->gauge_action=$2;}
+         | cool_pars gauge_action {$$=$1;$$->gauge_action=$2;}
 ;
 
 nsteps: TK_NSTEPS '=' int_numb {$$=$3;};
@@ -351,27 +370,22 @@ inte_step: TK_INTE_STEP '=' double_numb {$$=$3;};
 
 ////////////////////////////////////////////////// QUARK CONTENT //////////////////////////////////////////////////
 
-add_quark: TK_QUARK '=' text
-         {
-	     driver->quarks.push_back(quark_content_t());
-             driver->quarks.back().name=(*$3);
-	     delete $3;
-	 }
-         | add_quark TK_DEGENERACY '=' int_numb {driver->quarks.back().deg=$4;}
-         | add_quark TK_IS_STAG '=' int_numb {driver->quarks.back().is_stag=$4;}
-         | add_quark TK_MASS '=' double_numb {driver->quarks.back().mass=$4;}
-         | add_quark TK_KAPPA '=' double_numb{driver->quarks.back().kappa=$4;}
-         | add_quark TK_RE_POT_CH '=' double_numb {driver->quarks.back().re_pot=$4;}
-         | add_quark TK_IM_POT_CH '=' double_numb {driver->quarks.back().im_pot=$4;}
-         | add_quark TK_ELEC_CHARGE '=' double_numb {driver->quarks.back().charge=$4;}
+quark: TK_QUARK '=' text
+     {
+	 $$=new quark_content_t();
+	 $$->name=(*$3);
+	 delete $3;
+     }
+     | quark TK_DEGENERACY '=' int_numb {$$->deg=$4;}
+     | quark TK_IS_STAG '=' int_numb {$$->is_stag=$4;}
+     | quark TK_MASS '=' double_numb {$$->mass=$4;}
+     | quark TK_KAPPA '=' double_numb{$$->kappa=$4;}
+     | quark TK_RE_POT_CH '=' double_numb {$$->re_pot=$4;}
+     | quark TK_IM_POT_CH '=' double_numb {$$->im_pot=$4;}
+     | quark TK_ELEC_CHARGE '=' double_numb {$$->charge=$4;}
 ;
 
 ////////////////////////////////////////////////// BACKGROUND FIELD //////////////////////////////////////////////////
-
-bckgr_field: TK_BKGRD_EM_FIELD {driver->em_field_pars.flag=1;}
-           | bckgr_field TK_E_COMP '=' double_numb {driver->em_field_pars.E[$2]=$4;}
-           | bckgr_field TK_B_COMP '=' double_numb {driver->em_field_pars.B[$2]=$4;}
-;
 
 ////////////////////////////////////////////////// NUCLEON CORR //////////////////////////////////////////////////
 

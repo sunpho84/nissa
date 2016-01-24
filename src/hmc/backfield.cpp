@@ -220,9 +220,9 @@ namespace nissa
     for(int iflav=0;iflav<nflavs();iflav++)
       {
 	init_backfield_to_id(backfield[iflav]);
-	add_im_pot_to_backfield(backfield[iflav],&(quark_content[iflav]));
-	add_em_field_to_backfield(backfield[iflav],&(quark_content[iflav]),&(em_field_pars));
-	if(quark_content[iflav].is_stag) add_stagphases_to_backfield(backfield[iflav]);
+	add_im_pot_to_backfield(backfield[iflav],&(quarks[iflav]));
+	add_em_field_to_backfield(backfield[iflav],&(quarks[iflav]),&(em_field_pars));
+	if(quarks[iflav].is_stag) add_stagphases_to_backfield(backfield[iflav]);
 	add_antiperiodic_condition_to_backfield(backfield[iflav],0);
       }
   }

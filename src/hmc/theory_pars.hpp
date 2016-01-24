@@ -13,23 +13,36 @@ namespace nissa
   struct theory_pars_t
   {
     double beta;
+    gauge_action_name_t gauge_action_name;
     double def_beta(){return 6;}
+    gauge_action_name_t def_gauge_action_name(){return WILSON_GAUGE_ACTION;}
     
     std::vector<quad_u1**> backfield;
-    std::vector<quark_content_t> quark_content;
-    gauge_action_name_t gauge_action_name;
+    std::vector<quark_content_t> quarks;
     topotential_pars_t topotential_pars;
     stout_pars_t stout_pars;
     em_field_pars_t em_field_pars;
     
+    int master_fprintf(FILE *fout,int full);
+    
     int is_nonstandard()
-    {return beta!=def_beta();}
+    {
+      return
+	beta!=def_beta()||
+	gauge_action_name!=def_gauge_action_name()||
+	quarks.size()||
+	topotential_pars.is_nonstandard()||
+	stout_pars.is_nonstandard()||
+	em_field_pars.is_nonstandard()
+	;}
     
     int nflavs()
-    {return quark_content.size();}
+    {return quarks.size();}
     
     theory_pars_t() :
-      beta(def_beta()) {}
+      beta(def_beta()),
+      gauge_action_name(def_gauge_action_name())
+    {}
     
     void allocate_backfield();
     void init_backfield();

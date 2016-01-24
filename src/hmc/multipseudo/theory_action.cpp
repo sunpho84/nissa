@@ -70,7 +70,7 @@ namespace nissa
 	verbosity_lv1_master_printf("No need to compute pseudofermion action\n");
 	quark_action=external_quark_action;
       }
-    else compute_quark_action(&quark_action,sme_conf,theory_pars->nflavs(),theory_pars->backfield,pf,theory_pars->quark_content,simul_pars);
+    else compute_quark_action(&quark_action,sme_conf,theory_pars->nflavs(),theory_pars->backfield,pf,theory_pars->quarks,simul_pars);
     verbosity_lv1_master_printf("Quark_action: %16.16lg\n",quark_action);
     
     //gauge action

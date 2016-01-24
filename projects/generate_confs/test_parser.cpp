@@ -4,6 +4,8 @@
 
 using namespace nissa;
 
+int parser_lex_destroy  (driver_t* yyscanner);
+
 void in_main(int narg,char **arg)
 {
   //check argument
@@ -14,9 +16,6 @@ void in_main(int narg,char **arg)
   
   driver_t *driver=new driver_t(input_global);
   parser_parse(driver);
-  
-  master_printf("read %d quarks\n",(int)driver->quarks.size());
-  master_printf("nlevels %d\n",(int)driver->stout_pars.nlevels);
   
   delete driver;
 }

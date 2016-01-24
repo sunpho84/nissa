@@ -265,7 +265,7 @@ namespace nissa
 	  int spin=meas_pars.mesons[iop].first;
 	  int taste=meas_pars.mesons[iop].second;
 	  master_fprintf(file," # conf %d ; iop %d , spin %d , taste %d ; flv = %d , m = %lg\n",
-			 iconf,iop,spin,taste,iflav,tp.quark_content[iflav].mass);
+			 iconf,iop,spin,taste,iflav,tp.quarks[iflav].mass);
 	  for(int t=0;t<glb_size[0];t++)
 	    {
 	      int ic=icombo(iflav,iop,t);

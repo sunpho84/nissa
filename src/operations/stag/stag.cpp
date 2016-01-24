@@ -25,7 +25,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   void mult_Minv(color **prop,quad_su3 **conf,theory_pars_t *pars,int iflav,double residue,color **source)
-  {mult_Minv(prop,conf,pars->backfield[iflav],pars->quark_content[iflav].mass,residue,source);}
+  {mult_Minv(prop,conf,pars->backfield[iflav],pars->quarks[iflav].mass,residue,source);}
   
   //compute the matrix element of the derivative of the dirac operator between two vectors
   //forward and backward derivative are stored separately, for a reason

@@ -140,10 +140,12 @@ LY DEBUG_PRINTF("Found LY\n");return TK_LY;
 LZ DEBUG_PRINTF("Found LX\n");return TK_LZ;
 T DEBUG_PRINTF("Found T\n");return TK_T;
 
+ /* theory */
+Theory DEBUG_PRINTF("Found Theory\n");return TK_THEORY;
+
  /* gauge action */
-GaugePars DEBUG_PRINTF("Found GaugePars\n");return TK_GAUGE_PARS;
 Beta DEBUG_PRINTF("Found Beta\n");return TK_BETA;
-Action DEBUG_PRINTF("Found Action\n");return TK_ACTION;
+GaugeAction DEBUG_PRINTF("Found GaugeAction\n");return TK_GAUGE_ACTION;
 Wilson DEBUG_PRINTF("Found Wilson\n");return TK_WILSON;
 tlSym DEBUG_PRINTF("Found tlSym\n");return TK_TLSYM;
 Iwasaki DEBUG_PRINTF("Found Iwasaki\n");return TK_IWASAKI;
@@ -188,7 +190,7 @@ InteStep DEBUG_PRINTF("Found InteStep\n");return TK_INTE_STEP;
 FlowTime DEBUG_PRINTF("Found FlowTime\n");return TK_FLOW_TIME;
 
  /* background field parameters */
-BkgrdEMField DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
+BkgrdEMField  DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
 Bx DEBUG_PRINTF("Found Bx\n");yylval->int_numb=0;return TK_B_COMP;
 By DEBUG_PRINTF("Found By\n");yylval->int_numb=1;return TK_B_COMP;
 Bz DEBUG_PRINTF("Found Bz\n");yylval->int_numb=2;return TK_B_COMP;
@@ -270,8 +272,6 @@ driver_t::driver_t(FILE *ext) :
 			T(def_T()),
 			walltime(def_walltime()),
 			seed(def_seed()),
-			beta(def_beta()),
-			gauge_action_name(def_gauge_action_name()),
 			run_mode(def_run_mode()){
   fin=ext;
   
@@ -288,5 +288,5 @@ void driver_t::init_scanner()
 //destroy the scanner
 void driver_t::destroy_scanner()
 {
-  yylex_destroy(scanner);
+    yylex_destroy(scanner);
 }

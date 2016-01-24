@@ -24,9 +24,8 @@ watusso_meas_pars_t watusso_meas_pars;
 quad_su3 *new_conf[2];
 quad_su3 *conf[2];
 
-//in case we want to load and analyze only
-char **conf_to_analyze_paths;
-int nconf_to_analyze;
+//running mode
+driver_t::run_mode_t run_mode;
 
 //structures containing parameters
 int ntheories;
@@ -81,8 +80,8 @@ void write_conf(std::string path,quad_su3 **conf)
   //#endif
   
   //topology history
-  if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
-    theory_pars[SEA_THEORY].topotential_pars.grid.append_to_message_with_name(mess,"TopoGrid");
+  if(theory_pars.topotential_pars.flag==2)
+    theory_pars.topotential_pars.grid.append_to_message_with_name(mess,"TopoGrid");
   
   //glb_rnd_gen status
   convert_rnd_gen_to_text(text,&glb_rnd_gen,1024);
@@ -98,8 +97,8 @@ void write_conf(std::string path,quad_su3 **conf)
   STOP_TIMING(write_conf_time);
   
   //save the potential if needed
-  if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
-    save_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars);
+  if(theory_pars.topotential_pars.flag==2)
+    save_topodynamical_potential(theory_pars.topotential_pars);
 }
 
 //read conf
@@ -121,8 +120,8 @@ void read_conf(quad_su3 **conf,const char *path)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
       if(glb_rnd_gen_inited==0 && strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
-      if(theory_pars[SEA_THEORY].topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TopoGrid")==0)
-	theory_pars[SEA_THEORY].topotential_pars.grid.convert_from_message(*cur_mess);
+      if(theory_pars.topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TopoGrid")==0)
+	theory_pars.topotential_pars.grid.convert_from_message(*cur_mess);
       
       //check for rational approximation
       if(evol_pars.ntraj_tot)
@@ -140,7 +139,7 @@ void read_conf(quad_su3 **conf,const char *path)
 	      convert_rat_approx(temp_appr,nflavs_appr_read,cur_mess->data,cur_mess->data_length);
 	      
 	      //check and possibly copy
-	      if(nflavs_appr_read==theory_pars[SEA_THEORY].nflavs())
+	      if(nflavs_appr_read==theory_pars.nflavs())
 		{
 		  rat_approx_found++;
 		  for(int i=0;i<nflavs_appr_read*3;i++) evol_pars.rat_appr[i]=temp_appr[i];
@@ -157,7 +156,7 @@ void read_conf(quad_su3 **conf,const char *path)
   switch(rat_approx_found)
     {
     case 0: if(evol_pars.ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
-    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars[SEA_THEORY].nflavs());break;
+    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars.nflavs());break;
     case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
     default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
     }
@@ -170,8 +169,8 @@ void read_conf(quad_su3 **conf,const char *path)
     }
   
   //load metapotential if needed and possible
-  if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
-    load_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars,false);
+  if(theory_pars.topotential_pars.flag==2)
+    load_topodynamical_potential(theory_pars.topotential_pars,false);
   
   ILDG_message_free_all(&mess);
 }
@@ -180,7 +179,7 @@ void read_conf(quad_su3 **conf,const char *path)
 void init_program_to_run(start_conf_cond_t start_conf_cond)
 {
   //initialize the sweepers
-  if(theory_pars[SEA_THEORY].nflavs()==0) init_sweeper(theory_pars[SEA_THEORY].gauge_action_name);
+  if(theory_pars.nflavs()==0) init_sweeper(theory_pars.gauge_action_name);
   
   //load conf or generate it
   if(file_exists(conf_pars.path))
@@ -231,11 +230,20 @@ void init_simulation(char *path)
   driver_t *driver=new driver_t(input_global);
   parser_parse(driver);
   
+  //geometry
   glb_size[0]=driver->T;
   glb_size[1]=driver->LX;
   glb_size[2]=driver->LY;
   glb_size[3]=driver->LZ;
   init_grid(0,0);
+  
+  //seed
+  seed=driver->seed;
+  
+  //theory pars
+  theory_pars.quark_content=driver->quarks;
+  theory_pars.beta=driver->beta;
+  theory_pars.stout_pars
   
   read_theory_pars(theory_pars[itheory]);
       read_nucleon_corr_meas_pars(nucleon_corr_meas_pars[itheory]);

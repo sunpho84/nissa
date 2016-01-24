@@ -68,7 +68,7 @@ namespace nissa
 	    get_color_from_su3(temp_source,source,ic);
 	    for(int iflav=0;iflav<nflavs;iflav++)
 	      {
-		if(!theory_pars.quark_content[iflav].is_stag) crash("not defined for non-staggered quarks");
+		if(!theory_pars.quarks[iflav].is_stag) crash("not defined for non-staggered quarks");
 	    
 		mult_Minv(temp_sol,conf,&theory_pars,iflav,meas_pars.residue,temp_source);
 		
@@ -126,7 +126,7 @@ namespace nissa
 	for(int ifl2=0;ifl2<=ifl1;ifl2++)
 	  {
 	    master_fprintf(file," # conf %d ; flv1 = %d , m1 = %lg ; flv2 = %d , m2 = %lg ; flv3 = %d , m3 = %lg\n",
-			   iconf,ifl0,theory_pars.quark_content[ifl0].mass,ifl1,theory_pars.quark_content[ifl1].mass,ifl2,theory_pars.quark_content[ifl2].mass);
+			   iconf,ifl0,theory_pars.quarks[ifl0].mass,ifl1,theory_pars.quarks[ifl1].mass,ifl2,theory_pars.quarks[ifl2].mass);
 	  
 	  for(int t=0;t<glb_size[0];t++)
 	    master_fprintf(file,"%d %+016.16lg\n",t,glb_contr[icombo*glb_size[0]+t][RE]/norm);

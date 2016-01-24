@@ -152,13 +152,13 @@ namespace nissa
 	//find min and max eigenvalue
 	double eig_min,eig_max;
 	add_backfield_to_conf(eo_conf,theory_pars->backfield[iflav]);
-	max_eigenval(&eig_max,&(theory_pars->quark_content[iflav]),eo_conf,max_iter);
-	eig_min=pow(theory_pars->quark_content[iflav].mass,2);
+	max_eigenval(&eig_max,&(theory_pars->quarks[iflav]),eo_conf,max_iter);
+	eig_min=pow(theory_pars->quarks[iflav].mass,2);
 	rem_backfield_from_conf(eo_conf,theory_pars->backfield[iflav]);
 	
 	//take the pointer to the rational approximations for current flavor and mark down degeneracy
 	rat_approx_t *appr=evol_pars->rat_appr+3*iflav;
-	int deg=theory_pars->quark_content[iflav].deg;
+	int deg=theory_pars->quarks[iflav].deg;
 	int npf=evol_pars->npseudo_fs[iflav];
 	
 	//generate the three approximations

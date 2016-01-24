@@ -161,7 +161,7 @@ namespace nissa
         //measure magnetization for each quark
         for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
           {
-	    if(!theory_pars.quark_content[iflav].is_stag) crash("not defined for non-staggered quarks");
+	    if(!theory_pars.quarks[iflav].is_stag) crash("not defined for non-staggered quarks");
 	    
             complex magn={0,0};
             complex magn_proj_x[glb_size[1]]; //this makes pair and pact with "1" and "2" upstairs
@@ -176,7 +176,7 @@ namespace nissa
             
                 //compute and summ
                 complex temp,temp_magn_proj_x[glb_size[1]];
-                magnetization(&temp,temp_magn_proj_x,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],&theory_pars.quark_content[iflav],meas_pars.residue); //flag holds quantization
+                magnetization(&temp,temp_magn_proj_x,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue); //flag holds quantization
                 
                 //normalize
                 complex_summ_the_prod_double(magn,temp,1.0/nhits);

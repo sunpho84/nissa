@@ -135,7 +135,7 @@ namespace nissa
 	//loop over flavor
 	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
 	  {
-	    if(!theory_pars.quark_content[iflav].is_stag) crash("not defined for non-staggered quarks");
+	    if(!theory_pars.quarks[iflav].is_stag) crash("not defined for non-staggered quarks");
 	    
 	    //vectors for output
 	    NEW_TRACE_RES(Tr_M_dM);
