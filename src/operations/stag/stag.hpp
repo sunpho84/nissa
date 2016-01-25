@@ -25,6 +25,9 @@ namespace nissa
     
     int master_fprintf(FILE *fout,bool full=false);
     
+    int measure_is_due(int ext_itheory,int iconf)
+    {return (itheory==ext_itheory)&&(each>0)&&(iconf%each==0)&&(iconf>=after);}
+    
     int is_nonstandard()
     {
       return

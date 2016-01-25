@@ -395,12 +395,10 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   nissa_free(lx_conf);
 }
 
-//return 1 if we need to measure
-template <class T> int measure_is_due(T &pars,int iconf)
-{return (pars.each>0)&&(iconf%pars.each==0)&&(iconf>=pars.after);}
 
-#define RANGE_MEAS(A,B)				\
-  for(size_t B=0;B<drv->A.size();B++)		\
+
+#define RANGE_GAUGE_MEAS(A,B)				\
+  for(size_t B=0;B<drv->A.size();B++)			\
     if(measure_is_due(drv->A[B],iconf))
 
 //measures
@@ -408,9 +406,9 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 {
   double meas_time=-take_time();
   
-  RANGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i].path,conf,iconf,acc,gauge_action_name);
-  RANGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],conf,conf_created);
-  RANGE_MEAS(top_meas,i)
+  RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i].path,conf,iconf,acc,gauge_action_name);
+  RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],conf,conf_created);
+  RANGE_GAUGE_MEAS(top_meas,i)
     if(measure_is_due(drv->top_meas[i],iconf))
       {
 	top_meas_time[i]-=take_time();
@@ -418,76 +416,28 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	top_meas_time[i]+=take_time();
       }
   
-  RANGE_MEAS(all_rects_meas,i) measure_all_rectangular_paths(&drv->all_rects_meas[i],conf,iconf,conf_created);
-  RANGE_MEAS(watusso_meas,i) measure_watusso(&drv->watusso_meas[i],conf,iconf,conf_created);
+  RANGE_GAUGE_MEAS(all_rects_meas,i) measure_all_rectangular_paths(&drv->all_rects_meas[i],conf,iconf,conf_created);
+  RANGE_GAUGE_MEAS(watusso_meas,i) measure_watusso(&drv->watusso_meas[i],conf,iconf,conf_created);
   
-  /*
-  for(int itheory=0;itheory<drv->theories.size();itheory++)
-    {
-      //check measure
-      int fermionic_putpourri_flag=measure_is_due(drv>fermionic_putpourri_meas_pars[itheory],iconf);
-      int magnetization_flag=measure_is_due(magnetization_meas_pars[itheory],iconf);
-      int nucleon_corr_flag=measure_is_due(nucleon_corr_meas_pars[itheory],iconf);
-      int meson_corr_flag=measure_is_due(meson_corr_meas_pars[itheory],iconf);
-      int quark_rendens_flag=measure_is_due(quark_rendens_meas_pars[itheory],iconf);
-      int spinpol_flag=measure_is_due(spinpol_meas_pars[itheory],iconf);
-      int meas_flag=fermionic_putpourri_flag||magnetization_flag||nucleon_corr_flag||meson_corr_flag||
-	quark_rendens_flag||spinpol_flag;
-	
-      if(meas_flag)
-	{
+  for(int itheory=0;itheory<drv->ntheories();itheory++)
+    if(drv->any_fermionic_measure_is_due(itheory,iconf))
+      {
 	  //if needed stout
 	  quad_su3 **sme_conf=(drv->theories[itheory].stout_pars.nlevels==0)?conf:new_conf;
 	  
 	  //it is pointless to smear if there is no fermionic measurement
 	  stout_smear(sme_conf,conf,&(drv->theories[itheory].stout_pars));
 	  
-	  //fermionic grand mix
-	  if(fermionic_putpourri_flag)
-	    {
-	      verbosity_lv1_master_printf("Measuring fermionic putpourri for theory %d/%d\n",itheory+1,drv->theories.size());
-	      measure_fermionic_putpourri(sme_conf,drv->theories[itheory],fermionic_putpourri_meas_pars[itheory],iconf,conf_created);
-	    }
-	  
-	  //quark rendensity
-	  if(quark_rendens_flag)
-	    {
-	      verbosity_lv1_master_printf("Measuring quark rendensity for theory %d/%d\n",itheory+1,drv->theories.size());
-	      measure_quark_rendens(sme_conf,drv->theories[itheory],quark_rendens_meas_pars[itheory],iconf,conf_created);
-	    }
-	  
-	  //quark rendensity
-	  if(spinpol_flag)
-	    {
-	      verbosity_lv1_master_printf("Measuring spin polarizability %d/%d\n",itheory+1,drv->theories.size());
-	      measure_spinpol(sme_conf,conf,drv->theories[itheory],spinpol_meas_pars[itheory],iconf,conf_created);
-	    }
-	  
-	  //magnetization
-	  if(magnetization_flag)
-	    {
-	      verbosity_lv1_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,drv->theories.size());
-	      measure_magnetization(sme_conf,drv->theories[itheory],magnetization_meas_pars[itheory],iconf,conf_created);
-	    }
-	  
-	  //nucleon corr
-	  if(nucleon_corr_flag)
-	    {
-	      verbosity_lv1_master_printf("Measuring nucleon correlator for theory %d/%d\n",itheory+1,drv->theories.size());
-	      measure_nucleon_corr(sme_conf,drv->theories[itheory],nucleon_corr_meas_pars[itheory],iconf,conf_created);
-	    }
-	  
-	  //staggered meson
-	  if(meson_corr_flag)
-	    {
-	      verbosity_lv1_master_printf("Measuring staggered meson correlator for theory %d/%d\n",itheory+1,drv->theories.size());
-	      measure_staggered_meson_corr(sme_conf,drv->theories[itheory],meson_corr_meas_pars[itheory],iconf,conf_created);
-	    }
-	}
-    }
+	  RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
+	  RANGE_FERMIONIC_MEAS(drv,quark_rendens);
+	  //RANGE_FERMIONIC_MEAS(drv,spinpol);
+	  RANGE_FERMIONIC_MEAS(drv,magnetization);
+	  RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
+	  RANGE_FERMIONIC_MEAS(drv,meson_corr);
+      }
   
   meas_time+=take_time();
-  */
+  
   verbosity_lv1_master_printf("Time to do all the measurement: %lg sec\n",meas_time);
 }
 

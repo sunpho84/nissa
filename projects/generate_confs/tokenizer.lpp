@@ -42,14 +42,14 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 #include "nissa.hpp"
 #include "driver.hpp"
 
-#define YY_EXTRA_TYPE driver_t*
+#define YY_EXTRA_TYPE nissa::driver_t*
 
 #define DEBUG_PRINTF(...) if(debug_lexer) master_printf(__VA_ARGS__)
 
 #define YY_INPUT(buf,result,max_size)					\
    {									\
      int rc[2];								\
-     if(rank==0)							\
+     if(nissa::rank==0)							\
        {								\
 	 rc[0]=fscanf(yyextra->fin,"%c",buf);				\
 	 rc[1]=feof(yyextra->fin);					\
@@ -78,7 +78,7 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 "/*"                                DEBUG_PRINTF("Entering c++-style comment\n");BEGIN(COMMENT); 
 <COMMENT>"/*"                       master_printf("warning: multiple comments opened at line: %d\n", yylineno);
 <COMMENT>"*/"                       DEBUG_PRINTF("Exiting c++-style comment\n");BEGIN(INITIAL);
-<COMMENT>"EOF"                      crash("reached end of file while scanning comment");
+<COMMENT>"EOF"                      nissa::crash("reached end of file while scanning comment");
 <COMMENT>"\n"                       yycolumn=1;yylineno++;
 <COMMENT>{ANY}
 {NEWLINE}                           DEBUG_PRINTF("Ignoring endline\n");yycolumn=1;yylineno++;
@@ -267,14 +267,14 @@ Minute? DEBUG_PRINTF("Found Minute(s)\n");yylval->int_numb=60;return TK_QUANTITY
 Seconds? DEBUG_PRINTF("Found Second(s)\n");yylval->int_numb=1;return TK_QUANTITY;
 
  /* crash if finds unexpected word or unrecognized char */
-\#{LETTER}{ALNUM}* crash("found unexpected preprocessor directive %s",yytext);
-{LETTER}{ALNUM}* crash("found unexpected string %s",yytext);
-{ANY} crash("found unexpected char %c",yytext[0]);
+\#{LETTER}{ALNUM}* nissa::crash("found unexpected preprocessor directive %s",yytext);
+{LETTER}{ALNUM}* nissa::crash("found unexpected string %s",yytext);
+{ANY} nissa::crash("found unexpected char %c",yytext[0]);
 
 %%
 
 //initializator
-driver_t::driver_t(FILE *ext) :
+nissa::driver_t::driver_t(FILE *ext) :
                         LX(def_L()),
                         LY(def_L()),
                         LZ(def_L()),
@@ -288,14 +288,14 @@ driver_t::driver_t(FILE *ext) :
 }
 
 //initialize the scanner
-void driver_t::init_scanner()
+void nissa::driver_t::init_scanner()
 {
     yylex_init(&scanner);
     yyset_extra(this,scanner);
 }
 
 //destroy the scanner
-void driver_t::destroy_scanner()
+void nissa::driver_t::destroy_scanner()
 {
     yylex_destroy(scanner);
 }

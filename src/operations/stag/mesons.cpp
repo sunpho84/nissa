@@ -159,7 +159,7 @@ namespace nissa
   }
   
   //compute correlation functions for staggered mesons, arbitary taste and spin
-  THREADABLE_FUNCTION_4ARG(compute_staggered_meson_corr, complex*,corr, quad_su3**,conf, theory_pars_t*,tp, meson_corr_meas_pars_t*,meas_pars)
+  THREADABLE_FUNCTION_4ARG(compute_meson_corr, complex*,corr, quad_su3**,conf, theory_pars_t*,tp, meson_corr_meas_pars_t*,meas_pars)
   {
     GET_THREAD_ID();
     
@@ -247,7 +247,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute and print
-  void measure_staggered_meson_corr(quad_su3 **ext_conf,theory_pars_t &tp,meson_corr_meas_pars_t &meas_pars,int iconf,int conf_created)
+  void measure_meson_corr(quad_su3 **ext_conf,theory_pars_t &tp,meson_corr_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     nop=meas_pars.mesons.size();
     nflavs=tp.nflavs();
@@ -255,7 +255,7 @@ namespace nissa
     double norm=1.0/(meas_pars.nhits*glb_spat_vol);
     complex *corr=nissa_malloc("corr",ncombo,complex);
     
-    compute_staggered_meson_corr(corr,ext_conf,&tp,&meas_pars);
+    compute_meson_corr(corr,ext_conf,&tp,&meas_pars);
     
     //open the file, allocate point result and source
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");

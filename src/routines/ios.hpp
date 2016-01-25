@@ -10,7 +10,7 @@
  #define EXTERN_IOS extern
 #endif
 
-#define master_printf(...) master_fprintf(stdout,__VA_ARGS__)
+#define master_printf(...) nissa::master_fprintf(stdout,__VA_ARGS__)
 
 //add verbosity macro
 #if MAX_VERBOSITY_LV>=1

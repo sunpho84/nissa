@@ -28,7 +28,7 @@ namespace nissa
     virtual ~meson_corr_meas_pars_t(){}
   };
   
-  void measure_staggered_meson_corr(quad_su3 **conf,theory_pars_t &tp,meson_corr_meas_pars_t &pars,int iconf,int conf_created);
+  void measure_meson_corr(quad_su3 **conf,theory_pars_t &tp,meson_corr_meas_pars_t &pars,int iconf,int conf_created);
 }
 
 #endif

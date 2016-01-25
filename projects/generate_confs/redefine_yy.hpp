@@ -1,5 +1,5 @@
 #define yymaxdepth parser_maxdepth
-#define yyparse parser_parse
+#define yyparse nissa::parser_parse
 #define yylex   parser_lex
 #define yyerror parser_error
 #define yylval  parser_lval
