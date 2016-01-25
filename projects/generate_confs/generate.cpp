@@ -21,7 +21,7 @@ quad_su3 *conf[2];
 driver_t *drv;
 
 //traj
-double init_time,max_traj_time=0,wall_time;
+double init_time,max_traj_time=0;
 int ntraj_prod;
 int itraj;
 int conf_created;
@@ -467,7 +467,7 @@ bool enough_time()
   if(ntraj_prod==0) return true;
   
   //compute the number of trajectory that can be run
-  double remaining_time=broadcast(wall_time-(take_time()-init_time));
+  double remaining_time=broadcast(drv->walltime-(take_time()-init_time));
   verbosity_lv2_master_printf("Remaining time: %2.2lg s, max time per trajectory, needed so far: %2.2lg s\n",remaining_time,max_traj_time);
   int ntraj_poss=floor(remaining_time/max_traj_time);
   int nmin_traj_req=2;
