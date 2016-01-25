@@ -432,6 +432,7 @@ void in_main(int narg,char **arg)
       driver->conf_pars.path=temp;
       read_str_str("StoreConfPath",temp,1024);
       driver->conf_pars.store_path=temp;
+      driver->conf_pars.store_path+=".%04d";
       read_str_int("StoreConfEach",&driver->conf_pars.store_each);
       read_str_int("StoreRunningTempConf",&driver->conf_pars.store_running);
       

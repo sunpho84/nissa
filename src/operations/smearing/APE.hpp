@@ -2,6 +2,7 @@
 #define _APE_HPP
 
 #include "geometry/geometry_lx.hpp"
+#include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 
 namespace nissa

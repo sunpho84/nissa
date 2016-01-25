@@ -414,6 +414,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/smearing/APE.cpp \
 	operations/smearing/gaussian.cpp \
 	operations/smearing/HYP.cpp \
+	operations/smearing/smooth.cpp \
 	operations/smearing/stout_common.cpp \
 	operations/smearing/stout_eo.cpp \
 	operations/smearing/stout_lx.cpp \
@@ -454,6 +455,7 @@ include_HEADERS+= \
 	operations/smearing/APE.hpp \
 	operations/smearing/gaussian.hpp \
 	operations/smearing/HYP.hpp \
+	operations/smearing/smooth.hpp \
 	operations/smearing/stout.hpp \
 	operations/smearing/Wflow.hpp \
 	operations/stag/mesons.hpp \

@@ -520,7 +520,7 @@ global_conf_pars: TK_GAUGE_CONF {driver->run_mode=driver_t::EVOLUTION_MODE;}
                         char test2[128];
                         snprintf(test1,128,$4->c_str(),100);
                         snprintf(test2,128,$4->c_str(),101);
-                        if(!strcmp(test1,test2)) crash("bad template %s for store_path",$4);
+                        if(!strcmp(test1,test2)) crash("bad template \"%s\" for store_path",$4->c_str());
 			delete $4;
 		    }
                 | global_conf_pars TK_STORE_EACH '=' int_numb {driver->conf_pars.store_each=$4;}
