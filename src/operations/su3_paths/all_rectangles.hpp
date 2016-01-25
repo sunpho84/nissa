@@ -7,7 +7,7 @@
 namespace nissa
 {
   //parameters to measure all rectangles path
-  struct all_rect_meas_pars_t
+  struct all_rects_meas_pars_t
   {
     int each;
     int after;
@@ -36,7 +36,7 @@ namespace nissa
 	smear_pars.is_nonstandard();
     }
     
-    all_rect_meas_pars_t() :
+    all_rects_meas_pars_t() :
       each(def_each()),
       after(def_after()),
       path(def_path()),
@@ -46,9 +46,9 @@ namespace nissa
       Dmax(def_Dmax()) {}
   };
   
-  void measure_all_rectangular_paths(all_rect_meas_pars_t *pars,quad_su3  *conf,int iconf,int create_output_file);
-  void measure_all_rectangular_paths_old(all_rect_meas_pars_t *pars,quad_su3  *conf,int iconf,int create_output_file);
-  void measure_all_rectangular_paths(all_rect_meas_pars_t *pars,quad_su3 **conf,int iconf,int create_output_file);
+  void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,quad_su3  *conf,int iconf,int create_output_file);
+  void measure_all_rectangular_paths_old(all_rects_meas_pars_t *pars,quad_su3  *conf,int iconf,int create_output_file);
+  void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,quad_su3 **conf,int iconf,int create_output_file);
 }
 
 #endif

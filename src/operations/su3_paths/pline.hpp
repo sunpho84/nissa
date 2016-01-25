@@ -19,7 +19,7 @@ namespace nissa
     std::string def_path(){return "luppoli";}
     int def_dir(){return 0;}
     
-    int master_fprintf(FILE *fout,bool full=false);
+    int master_fprintf(FILE *fout,int a,bool full=false);
     
     int is_nonstandard()
     {
@@ -35,7 +35,8 @@ namespace nissa
       each(def_each()),
       after(def_after()),
       path(def_path()),
-      dir(def_dir()) {}
+      dir(def_dir())
+    {}
   };
   
   void average_and_corr_polyakov_loop_lx_conf(complex tra,FILE *fout,quad_su3 *conf,int mu,int itraj);

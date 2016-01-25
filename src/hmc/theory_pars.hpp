@@ -47,6 +47,7 @@ namespace nissa
     void allocate_backfield();
     void init_backfield();
     void allocinit_backfield();
+    void destroy_backfield();
   };
 }
 

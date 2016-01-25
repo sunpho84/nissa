@@ -11,42 +11,20 @@
 
 using namespace nissa;
 
-//observables
-gauge_obs_meas_pars_t gauge_obs_meas_pars;
-poly_corr_meas_pars_t poly_corr_meas_pars;
-int ntop_meas;
 double *top_meas_time;
-top_meas_pars_t *top_meas_pars;
-all_rect_meas_pars_t all_rect_meas_pars;
-watusso_meas_pars_t watusso_meas_pars;
 
 //new and old conf
 quad_su3 *new_conf[2];
 quad_su3 *conf[2];
 
-//running mode
-driver_t::run_mode_t run_mode;
-
-//structures containing parameters
-int ntheories;
-theory_pars_t theory_pars;
-hmc_evol_pars_t evol_pars;
-conf_pars_t conf_pars;
-
-//meaures
-fermionic_putpourri_meas_pars_t *fermionic_putpourri_meas_pars;
-quark_rendens_meas_pars_t *quark_rendens_meas_pars;
-spinpol_meas_pars_t *spinpol_meas_pars;
-magnetization_meas_pars_t *magnetization_meas_pars;
-meson_corr_meas_pars_t *meson_corr_meas_pars;
-nucleon_corr_meas_pars_t *nucleon_corr_meas_pars;
+//all infos
+driver_t *drv;
 
 //traj
 double init_time,max_traj_time=0,wall_time;
 int ntraj_prod;
 int itraj;
 int conf_created;
-int seed;
 
 //write a conf adding info
 int nwrite_conf=0;
@@ -69,7 +47,7 @@ void write_conf(std::string path,quad_su3 **conf)
   //rational approximation
   char *appr_data=NULL;
   int appr_data_length;
-  convert_rat_approx(appr_data,appr_data_length,evol_pars.rat_appr,theory_pars.nflavs());
+  convert_rat_approx(appr_data,appr_data_length,drv->evol_pars.rat_appr,drv->sea_theory().nflavs());
   
   ILDG_bin_message_append_to_last(&mess,"RAT_approx",appr_data,appr_data_length);
   nissa_free(appr_data);
@@ -80,8 +58,8 @@ void write_conf(std::string path,quad_su3 **conf)
   //#endif
   
   //topology history
-  if(theory_pars.topotential_pars.flag==2)
-    theory_pars.topotential_pars.grid.append_to_message_with_name(mess,"TopoGrid");
+  if(drv->sea_theory().topotential_pars.flag==2)
+    drv->sea_theory().topotential_pars.grid.append_to_message_with_name(mess,"TopoGrid");
   
   //glb_rnd_gen status
   convert_rnd_gen_to_text(text,&glb_rnd_gen,1024);
@@ -97,8 +75,8 @@ void write_conf(std::string path,quad_su3 **conf)
   STOP_TIMING(write_conf_time);
   
   //save the potential if needed
-  if(theory_pars.topotential_pars.flag==2)
-    save_topodynamical_potential(theory_pars.topotential_pars);
+  if(drv->sea_theory().topotential_pars.flag==2)
+    save_topodynamical_potential(drv->sea_theory().topotential_pars);
 }
 
 //read conf
@@ -120,11 +98,11 @@ void read_conf(quad_su3 **conf,const char *path)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
       if(glb_rnd_gen_inited==0 && strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
-      if(theory_pars.topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TopoGrid")==0)
-	theory_pars.topotential_pars.grid.convert_from_message(*cur_mess);
+      if(drv->sea_theory().topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TopoGrid")==0)
+	drv->sea_theory().topotential_pars.grid.convert_from_message(*cur_mess);
       
       //check for rational approximation
-      if(evol_pars.ntraj_tot)
+      if(drv->evol_pars.ntraj_tot)
 	{
 	  if(strcasecmp(cur_mess->name,"RAT_approx")==0)
 	    {
@@ -139,14 +117,14 @@ void read_conf(quad_su3 **conf,const char *path)
 	      convert_rat_approx(temp_appr,nflavs_appr_read,cur_mess->data,cur_mess->data_length);
 	      
 	      //check and possibly copy
-	      if(nflavs_appr_read==theory_pars.nflavs())
+	      if(nflavs_appr_read==drv->sea_theory().nflavs())
 		{
 		  rat_approx_found++;
-		  for(int i=0;i<nflavs_appr_read*3;i++) evol_pars.rat_appr[i]=temp_appr[i];
+		  for(int i=0;i<nflavs_appr_read*3;i++) drv->evol_pars.rat_appr[i]=temp_appr[i];
 		}
 	      else
 		for(int i=0;i<nflavs_appr_read*3;i++)
-		  rat_approx_destroy(evol_pars.rat_appr+i);
+		  rat_approx_destroy(drv->evol_pars.rat_appr+i);
 	      nissa_free(temp_appr);
 	    }
 	}
@@ -155,8 +133,8 @@ void read_conf(quad_su3 **conf,const char *path)
   //report on rational approximation
   switch(rat_approx_found)
     {
-    case 0: if(evol_pars.ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
-    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars.nflavs());break;
+    case 0: if(drv->evol_pars.ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
+    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,drv->sea_theory().nflavs());break;
     case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
     default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
     }
@@ -165,12 +143,12 @@ void read_conf(quad_su3 **conf,const char *path)
   if(glb_rnd_gen_inited==0)
     {
       master_printf("RND_gen status not found inside conf, starting from input passed seed\n");
-      start_loc_rnd_gen(seed);
+      start_loc_rnd_gen(drv->seed);
     }
   
   //load metapotential if needed and possible
-  if(theory_pars.topotential_pars.flag==2)
-    load_topodynamical_potential(theory_pars.topotential_pars,false);
+  if(drv->sea_theory().topotential_pars.flag==2)
+    load_topodynamical_potential(drv->sea_theory().topotential_pars,false);
   
   ILDG_message_free_all(&mess);
 }
@@ -179,13 +157,19 @@ void read_conf(quad_su3 **conf,const char *path)
 void init_program_to_run(start_conf_cond_t start_conf_cond)
 {
   //initialize the sweepers
-  if(theory_pars.nflavs()==0) init_sweeper(theory_pars.gauge_action_name);
+  int nflavs=drv->sea_theory().nflavs();
+  if(nflavs==0) init_sweeper(drv->sea_theory().gauge_action_name);
+  else
+    {
+      drv->evol_pars.rat_appr=new rat_approx_t[3*nflavs];
+      for(int i=0;i<nflavs*3;i++) drv->evol_pars.rat_appr[i].reset();
+    }
   
   //load conf or generate it
-  if(file_exists(conf_pars.path))
+  if(file_exists(drv->conf_pars.path))
     {
-      master_printf("File %s found, loading\n",conf_pars.path.c_str());
-      read_conf(conf,conf_pars.path.c_str());
+      master_printf("File %s found, loading\n",drv->conf_pars.path.c_str());
+      read_conf(conf,drv->conf_pars.path.c_str());
       conf_created=false;
     }
   else
@@ -193,17 +177,17 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
       conf_created=true;
       
       //start the random generator using passed seed
-      start_loc_rnd_gen(seed);
+      start_loc_rnd_gen(drv->seed);
       
       //generate hot or cold conf
       if(start_conf_cond==HOT_START_COND)
 	{
-	  master_printf("File %s not found, generating hot conf\n",conf_pars.path.c_str());
+	  master_printf("File %s not found, generating hot conf\n",drv->conf_pars.path.c_str());
 	  generate_hot_eo_conf(conf);
 	}
       else
 	{
-	  master_printf("File %s not found, generating cold conf\n",conf_pars.path.c_str());
+	  master_printf("File %s not found, generating cold conf\n",drv->conf_pars.path.c_str());
 	  generate_cold_eo_conf(conf);
 	}
       
@@ -216,7 +200,7 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
 void init_program_to_analyze()
 {
   //start the random generator using passed seed
-  start_loc_rnd_gen(seed);
+  start_loc_rnd_gen(drv->seed);
   
   //we always append...
   conf_created=false;
@@ -227,97 +211,19 @@ void init_simulation(char *path)
 {
   init_time=take_time();
   
-  driver_t *driver=new driver_t(input_global);
-  parser_parse(driver);
+  open_input(path);
+  drv=new driver_t(input_global);
+  parser_parse(drv);
   
   //geometry
-  glb_size[0]=driver->T;
-  glb_size[1]=driver->LX;
-  glb_size[2]=driver->LY;
-  glb_size[3]=driver->LZ;
+  glb_size[0]=drv->T;
+  glb_size[1]=drv->LX;
+  glb_size[2]=drv->LY;
+  glb_size[3]=drv->LZ;
   init_grid(0,0);
   
-  //seed
-  seed=driver->seed;
-  
-  //theory pars
-  theory_pars.quark_content=driver->quarks;
-  theory_pars.beta=driver->beta;
-  theory_pars.stout_pars
-  
-  read_theory_pars(theory_pars[itheory]);
-      read_nucleon_corr_meas_pars(nucleon_corr_meas_pars[itheory]);
-      read_meson_corr_meas_pars(meson_corr_meas_pars[itheory]);
-      read_fermionic_putpourri_meas_pars(fermionic_putpourri_meas_pars[itheory]);
-      read_quark_rendens_meas_pars(quark_rendens_meas_pars[itheory]);
-      read_spinpol_meas_pars(spinpol_meas_pars[itheory]);
-      read_magnetization_meas_pars(magnetization_meas_pars[itheory]);
-    }
-  
-  //read if we want to measure gauge obs
-  read_gauge_obs_meas_pars(gauge_obs_meas_pars);
-  
-  //read if we want to measure polyakov correlators
-  read_poly_corr_meas_pars(poly_corr_meas_pars);
-  
-  //read if we want to measure topological charge
-  read_str_int("NTopMeas",&ntop_meas);
-  top_meas_pars=new top_meas_pars_t[ntop_meas];
-  top_meas_time=nissa_malloc("top_meas_time",ntop_meas,double);
+  top_meas_time=nissa_malloc("top_meas_time",drv->top_meas.size(),double);
   vector_reset(top_meas_time);
-  for(int itop=0;itop<ntop_meas;itop++) read_top_meas_pars(top_meas_pars[itop]);
-  
-  //read if we want to measure all rectangles
-  read_all_rect_meas_pars(all_rect_meas_pars);
-  
-  //read if we want to measure flux tube
-  read_watusso_meas_pars(watusso_meas_pars);
-  
-  //read the number of trajectory to evolve and the wall_time
-  read_str_int("NTrajTot",&evol_pars.ntraj_tot);
-  read_str_double("WallTime",&wall_time);
-  
-  //read the seed
-  read_str_int("Seed",&seed);
-  
-  //if we want to produce something, let's do it, otherwise load the list of configurations to analyze
-  if(evol_pars.ntraj_tot>0)
-    {
-      //load evolution info depending if is a quenched simulation or unquenched
-      read_hmc_evol_pars(evol_pars,theory_pars[SEA_THEORY]);
-      
-      //read in and out conf path
-      char temp[1024];
-      read_str_str("ConfPath",temp,1024);
-      conf_pars.path=temp;
-      read_str_str("StoreConfPath",temp,1024);
-      conf_pars.store_path=temp;
-      read_str_int("StoreConfEach",&conf_pars.store_each);
-      read_str_int("StoreRunningTempConf",&conf_pars.store_running);
-      
-      //read if configuration must be generated cold or hot
-      char start_conf_cond_str[1024];
-      read_str_str("StartConfCond",start_conf_cond_str,1024);
-      conf_pars.start_cond=UNSPEC_START_COND;
-      if(strcasecmp(start_conf_cond_str,"HOT")==0) conf_pars.start_cond=HOT_START_COND;
-      if(strcasecmp(start_conf_cond_str,"COLD")==0) conf_pars.start_cond=COLD_START_COND;
-      if(conf_pars.start_cond==UNSPEC_START_COND)
-	crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
-    }
-  else
-    {
-      //load the number of configurations to analyze
-      read_str_int("NConfToAnalyze",&nconf_to_analyze);
-      conf_to_analyze_paths=nissa_malloc("conf_to_analyze_paths",nconf_to_analyze,char*);
-      for(int iconf_to=0;iconf_to<nconf_to_analyze;iconf_to++)
-	{
-	  char temp_path[1024];
-	  read_str(temp_path,1024);
-	  conf_to_analyze_paths[iconf_to]=nissa_malloc("path",strlen(temp_path)+1,char);
-	  strcpy(conf_to_analyze_paths[iconf_to],temp_path);
-	}
-    }
-  close_input();
   
   ////////////////////////// allocate stuff ////////////////////////
   
@@ -330,27 +236,17 @@ void init_simulation(char *path)
   //////////////////////// initialize stuff ////////////////////
   
   //initialize the theory_pars theory to simulate
-  for(int itheory=0;itheory<ntheories;itheory++) theory_pars_allocinit_backfield(theory_pars[itheory]);
+  for(size_t itheory=0;itheory<drv->theories.size();itheory++) drv->theories[itheory].allocinit_backfield();
   
   //initialize sweeper to cool
-  for(int i=0;i<ntop_meas;i++)
-    if(top_meas_pars[i].each && top_meas_pars[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(top_meas_pars[i].smooth_pars.cool_pars.gauge_action);
+  for(size_t i=0;i<drv->top_meas.size();i++)
+    if(drv->top_meas[i].each && drv->top_meas[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(drv->top_meas[i].smooth_pars.cool_pars.gauge_action);
   
   //init the program in "production" or "analysis" mode
-  if(evol_pars.ntraj_tot>0) init_program_to_run(conf_pars.start_cond);
-  else                      init_program_to_analyze();
-}
-
-//unset the background field
-void unset_theory_pars(theory_pars_t &theory_pars)
-{
-  for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
-    {
-      for(int par=0;par<2;par++) nissa_free(theory_pars.backfield[iflav][par]);
-      nissa_free(theory_pars.backfield[iflav]);
-    }
+  if(drv->evol_pars.ntraj_tot>0) init_program_to_run(drv->conf_pars.start_cond);
+  else                           init_program_to_analyze();
   
-  nissa_free(theory_pars.backfield);
+  close_file(input_global);
 }
 
 namespace nissa
@@ -363,40 +259,32 @@ void close_simulation()
 {
   master_printf("glb rnd generated: %d\n",nglbgen);
   
-  if(!conf_pars.store_running && ntraj_prod>0) write_conf(conf_pars.path,conf);
-  
-  //delete the conf list
-  if(evol_pars.ntraj_tot==0)
-    {
-      for(int iconf_to=0;iconf_to<nconf_to_analyze;iconf_to++) nissa_free(conf_to_analyze_paths[iconf_to]);
-      nissa_free(conf_to_analyze_paths);
-    }
+  if(!drv->conf_pars.store_running && ntraj_prod>0) write_conf(drv->conf_pars.path,conf);
   
   //destroy rational approximations
-  if(evol_pars.ntraj_tot)
-    for(int i=0;i<theory_pars[SEA_THEORY].nflavs()*3;i++)
-      rat_approx_destroy(evol_pars.rat_appr+i);
+  if(drv->evol_pars.ntraj_tot)
+    if(drv->sea_theory().nflavs())
+      {
+	for(int i=0;i<drv->sea_theory().nflavs()*3;i++)
+	  rat_approx_destroy(drv->evol_pars.rat_appr+i);
+	delete[] drv->evol_pars.rat_appr;
+      }
   
   //destroy topo pars
-  delete[] top_meas_pars;
   nissa_free(top_meas_time);
   
-  //unset theories
-  for(int itheory=0;itheory<ntheories;itheory++)
-    unset_theory_pars(theory_pars[itheory]);
-  delete[] theory_pars;
-  delete[] fermionic_putpourri_meas_pars;
-  delete[] quark_rendens_meas_pars;
-  delete[] spinpol_meas_pars;
-  delete[] magnetization_meas_pars;
-  delete[] nucleon_corr_meas_pars;
-  delete[] meson_corr_meas_pars;
+  //deallocate backfield
+  for(size_t itheory=0;itheory<drv->theories.size();itheory++)
+    drv->theories[itheory].destroy_backfield();
   
+  //deallocate confs
   for(int par=0;par<2;par++)
     {
       nissa_free(new_conf[par]);
       nissa_free(conf[par]);
     }
+  
+  delete drv;
 }
 
 //generate a new conf (or, keep old one)
@@ -405,13 +293,13 @@ int generate_new_conf(int itraj)
   int acc;
   
   //if not quenched
-  if(theory_pars[SEA_THEORY].nflavs()!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
+  if(drv->sea_theory().nflavs()!=0||drv->sea_theory().topotential_pars.flag!=0)
     {
       //find if needed to perform test
-      int perform_test=(itraj>=evol_pars.skip_mtest_ntraj);
+      int perform_test=(itraj>=drv->evol_pars.skip_mtest_ntraj);
       
       //integrare and compute difference of action
-      double diff_act=multipseudo_rhmc_step(new_conf,conf,theory_pars[SEA_THEORY],evol_pars,itraj);
+      double diff_act=multipseudo_rhmc_step(new_conf,conf,drv->sea_theory(),drv->evol_pars,itraj);
       
       //perform the test in any case
       master_printf("Diff action: %lg, ",diff_act);
@@ -433,7 +321,7 @@ int generate_new_conf(int itraj)
       else master_printf("rejected.\n");
       
       //store the topological charge if needed
-      theory_pars[SEA_THEORY].topotential_pars.store_if_needed(conf,itraj);
+      drv->sea_theory().topotential_pars.store_if_needed(conf,itraj);
     }
   else
     {
@@ -443,11 +331,11 @@ int generate_new_conf(int itraj)
       
       /*
       //number of hb sweeps
-      for(int ihb_sweep=0;ihb_sweep<evol_pars.pure_gauge_evol_pars.nhb_sweeps;ihb_sweep++)
-	heatbath_conf(conf,&theory_pars[SEA_THEORY],&evol_pars.pure_gauge_evol_pars);
+      for(int ihb_sweep=0;ihb_sweep<drv->evol_pars.pure_gauge_drv->evol_pars.nhb_sweeps;ihb_sweep++)
+	heatbath_conf(conf,&theory_pars[SEA_THEORY],&drv->evol_pars.pure_gauge_drv->evol_pars);
       //numer of overrelax sweeps
-      for(int iov_sweep=0;iov_sweep<evol_pars.pure_gauge_evol_pars.nov_sweeps;iov_sweep++)
-	get_sweeper(theory_pars[SEA_THEORY].gauge_action_name)->sweep_conf(conf,[](su3 out,su3 staple,int ivol,int mu){su3_find_overrelaxed(out,out,staple,evol_pars.pure_gauge_evol_pars.nov_hits);});
+      for(int iov_sweep=0;iov_sweep<drv->evol_pars.pure_gauge_drv->evol_pars.nov_sweeps;iov_sweep++)
+	get_sweeper(theory_pars[SEA_THEORY].gauge_action_name)->sweep_conf(conf,[](su3 out,su3 staple,int ivol,int mu){su3_find_overrelaxed(out,out,staple,drv->evol_pars.pure_gauge_drv->evol_pars.nov_hits);});
       */
     }
   
@@ -485,10 +373,12 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   quad_su3 *lx_conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
   
+  crash("tobexixed");
+  
   //hyp or ape
-  gauge_obs_temp_smear_pars_t smear_pars=pars.gauge_smear_pars;
-  if(smear_pars.use_hyp_or_ape_temp==0) hyp_smear_conf_dir(lx_conf,lx_conf,smear_pars.hyp_temp_alpha0,smear_pars.hyp_temp_alpha1,smear_pars.hyp_temp_alpha2,pars.dir);
-  else ape_single_dir_smear_conf(lx_conf,lx_conf,smear_pars.ape_temp_alpha,smear_pars.nape_temp_iters,pars.dir);
+  //gauge_obs_temp_smear_pars_t smear_pars=pars.gauge_smear_pars;
+  //if(smear_pars.use_hyp_or_ape_temp==0) hyp_smear_conf_dir(lx_conf,lx_conf,smear_pars.hyp_temp_alpha0,smear_pars.hyp_temp_alpha1,smear_pars.hyp_temp_alpha2,pars.dir);
+  //else ape_single_dir_smear_conf(lx_conf,lx_conf,smear_pars.ape_temp_alpha,smear_pars.nape_temp_iters,pars.dir);
   verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",pars.dir,global_plaquette_lx_conf(lx_conf));
   
   //open
@@ -509,28 +399,33 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
 template <class T> int measure_is_due(T &pars,int iconf)
 {return (pars.each>0)&&(iconf%pars.each==0)&&(iconf>=pars.after);}
 
+#define RANGE_MEAS(A,B)				\
+  for(size_t B=0;B<drv->A.size();B++)		\
+    if(measure_is_due(drv->A[B],iconf))
+
 //measures
 void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   double meas_time=-take_time();
   
-  if(measure_is_due(gauge_obs_meas_pars,iconf)) measure_gauge_obs(gauge_obs_meas_pars.path,conf,iconf,acc,gauge_action_name);
-  if(measure_is_due(poly_corr_meas_pars,iconf)) measure_poly_corrs(poly_corr_meas_pars,conf,conf_created);
-  for(int i=0;i<ntop_meas;i++)
-    if(measure_is_due(top_meas_pars[i],iconf))
+  RANGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i].path,conf,iconf,acc,gauge_action_name);
+  RANGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],conf,conf_created);
+  RANGE_MEAS(top_meas,i)
+    if(measure_is_due(drv->top_meas[i],iconf))
       {
 	top_meas_time[i]-=take_time();
-	measure_topology_eo_conf(top_meas_pars[i],conf,iconf,conf_created);
+	measure_topology_eo_conf(drv->top_meas[i],conf,iconf,conf_created);
 	top_meas_time[i]+=take_time();
       }
   
-  if(measure_is_due(all_rect_meas_pars,iconf)) measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
-  if(measure_is_due(watusso_meas_pars,iconf)) measure_watusso(&watusso_meas_pars,conf,iconf,conf_created);
+  RANGE_MEAS(all_rects_meas,i) measure_all_rectangular_paths(&drv->all_rects_meas[i],conf,iconf,conf_created);
+  RANGE_MEAS(watusso_meas,i) measure_watusso(&drv->watusso_meas[i],conf,iconf,conf_created);
   
-  for(int itheory=0;itheory<ntheories;itheory++)
+  /*
+  for(int itheory=0;itheory<drv->theories.size();itheory++)
     {
       //check measure
-      int fermionic_putpourri_flag=measure_is_due(fermionic_putpourri_meas_pars[itheory],iconf);
+      int fermionic_putpourri_flag=measure_is_due(drv>fermionic_putpourri_meas_pars[itheory],iconf);
       int magnetization_flag=measure_is_due(magnetization_meas_pars[itheory],iconf);
       int nucleon_corr_flag=measure_is_due(nucleon_corr_meas_pars[itheory],iconf);
       int meson_corr_flag=measure_is_due(meson_corr_meas_pars[itheory],iconf);
@@ -542,67 +437,67 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       if(meas_flag)
 	{
 	  //if needed stout
-	  quad_su3 **sme_conf=(theory_pars[itheory].stout_pars.nlevels==0)?conf:new_conf;
+	  quad_su3 **sme_conf=(drv->theories[itheory].stout_pars.nlevels==0)?conf:new_conf;
 	  
 	  //it is pointless to smear if there is no fermionic measurement
-	  stout_smear(sme_conf,conf,&(theory_pars[itheory].stout_pars));
+	  stout_smear(sme_conf,conf,&(drv->theories[itheory].stout_pars));
 	  
 	  //fermionic grand mix
 	  if(fermionic_putpourri_flag)
 	    {
-	      verbosity_lv1_master_printf("Measuring fermionic putpourri for theory %d/%d\n",itheory+1,ntheories);
-	      measure_fermionic_putpourri(sme_conf,theory_pars[itheory],fermionic_putpourri_meas_pars[itheory],iconf,conf_created);
+	      verbosity_lv1_master_printf("Measuring fermionic putpourri for theory %d/%d\n",itheory+1,drv->theories.size());
+	      measure_fermionic_putpourri(sme_conf,drv->theories[itheory],fermionic_putpourri_meas_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //quark rendensity
 	  if(quark_rendens_flag)
 	    {
-	      verbosity_lv1_master_printf("Measuring quark rendensity for theory %d/%d\n",itheory+1,ntheories);
-	      measure_quark_rendens(sme_conf,theory_pars[itheory],quark_rendens_meas_pars[itheory],iconf,conf_created);
+	      verbosity_lv1_master_printf("Measuring quark rendensity for theory %d/%d\n",itheory+1,drv->theories.size());
+	      measure_quark_rendens(sme_conf,drv->theories[itheory],quark_rendens_meas_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //quark rendensity
 	  if(spinpol_flag)
 	    {
-	      verbosity_lv1_master_printf("Measuring spin polarizability %d/%d\n",itheory+1,ntheories);
-	      measure_spinpol(sme_conf,conf,theory_pars[itheory],spinpol_meas_pars[itheory],iconf,conf_created);
+	      verbosity_lv1_master_printf("Measuring spin polarizability %d/%d\n",itheory+1,drv->theories.size());
+	      measure_spinpol(sme_conf,conf,drv->theories[itheory],spinpol_meas_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //magnetization
 	  if(magnetization_flag)
 	    {
-	      verbosity_lv1_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,ntheories);
-	      measure_magnetization(sme_conf,theory_pars[itheory],magnetization_meas_pars[itheory],iconf,conf_created);
+	      verbosity_lv1_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,drv->theories.size());
+	      measure_magnetization(sme_conf,drv->theories[itheory],magnetization_meas_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //nucleon corr
 	  if(nucleon_corr_flag)
 	    {
-	      verbosity_lv1_master_printf("Measuring nucleon correlator for theory %d/%d\n",itheory+1,ntheories);
-	      measure_nucleon_corr(sme_conf,theory_pars[itheory],nucleon_corr_meas_pars[itheory],iconf,conf_created);
+	      verbosity_lv1_master_printf("Measuring nucleon correlator for theory %d/%d\n",itheory+1,drv->theories.size());
+	      measure_nucleon_corr(sme_conf,drv->theories[itheory],nucleon_corr_meas_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //staggered meson
 	  if(meson_corr_flag)
 	    {
-	      verbosity_lv1_master_printf("Measuring staggered meson correlator for theory %d/%d\n",itheory+1,ntheories);
-	      measure_staggered_meson_corr(sme_conf,theory_pars[itheory],meson_corr_meas_pars[itheory],iconf,conf_created);
+	      verbosity_lv1_master_printf("Measuring staggered meson correlator for theory %d/%d\n",itheory+1,drv->theories.size());
+	      measure_staggered_meson_corr(sme_conf,drv->theories[itheory],meson_corr_meas_pars[itheory],iconf,conf_created);
 	    }
 	}
     }
   
   meas_time+=take_time();
-  
+  */
   verbosity_lv1_master_printf("Time to do all the measurement: %lg sec\n",meas_time);
 }
 
 //store conf when appropriate
 void store_conf_if_necessary()
 {
-  if(conf_pars.store_each!=0 && itraj%conf_pars.store_each==0)
+  if(drv->conf_pars.store_each!=0 && itraj%drv->conf_pars.store_each==0)
     {
       char path[1024];
-      sprintf(path,conf_pars.store_path.c_str(),itraj);
+      sprintf(path,drv->conf_pars.store_path.c_str(),itraj);
       write_conf(path,conf);
     }
 }
@@ -652,10 +547,10 @@ bool check_if_continue()
     }
   
   //check if all traj performed
-  bool finished_all_traj=(itraj>=evol_pars.ntraj_tot);
+  bool finished_all_traj=(itraj>=drv->evol_pars.ntraj_tot);
   if(finished_all_traj)
     {
-      verbosity_lv1_master_printf("Requested trajectory %d, perfomed %d, closing\n",evol_pars.ntraj_tot,itraj);
+      verbosity_lv1_master_printf("Requested trajectory %d, perfomed %d, closing\n",drv->evol_pars.ntraj_tot,itraj);
       file_touch("stop");
       return false;
     }
@@ -683,7 +578,7 @@ void run_program_for_production()
       
       // 1) produce new conf
       int acc=1;
-      if(evol_pars.ntraj_tot!=0)
+      if(drv->evol_pars.ntraj_tot!=0)
 	{
 	  acc=generate_new_conf(itraj);
 	  ntraj_prod++;
@@ -691,12 +586,12 @@ void run_program_for_production()
 	}
       
       // 2) measure
-      measurements(new_conf,conf,itraj,acc,theory_pars[SEA_THEORY].gauge_action_name);
+      measurements(new_conf,conf,itraj,acc,drv->sea_theory().gauge_action_name);
       
       // 3) increment id and write conf
-      if(conf_pars.store_running && (itraj%conf_pars.store_running==0)) write_conf(conf_pars.path,conf);
+      if(drv->conf_pars.store_running && (itraj%drv->conf_pars.store_running==0)) write_conf(drv->conf_pars.path,conf);
       
-      // 4) if conf is multiple of conf_pars.store_each copy it
+      // 4) if conf is multiple of drv->conf_pars.store_each copy it
       store_conf_if_necessary();
       
       // 5) spacing between output
@@ -715,14 +610,15 @@ void run_program_for_production()
 void run_program_for_analysis()
 {
   int nconf_analyzed=0;
+  std::vector<std::string>::iterator it=drv->an_conf_list.begin();
   do
     {
-      read_conf(conf,conf_to_analyze_paths[nconf_analyzed]);
-      measurements(new_conf,conf,itraj,0,theory_pars[SEA_THEORY].gauge_action_name);
+      read_conf(conf,it->c_str());
+      measurements(new_conf,conf,itraj,0,drv->sea_theory().gauge_action_name);
       
       nconf_analyzed++;
     }
-  while(nconf_analyzed<nconf_to_analyze && !file_exists("stop"));
+  while(it!=drv->an_conf_list.end() && !file_exists("stop") && enough_time());
   
   master_printf("Analyzed %d configurations\n\n",nconf_analyzed);
 }
@@ -746,7 +642,7 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  if(evol_pars.ntraj_tot!=0) run_program_for_production();
+  if(drv->evol_pars.ntraj_tot!=0) run_program_for_production();
   else                       run_program_for_analysis();
   
   /////////////////////////////////////// timings /////////////////////////////////
@@ -759,14 +655,14 @@ void in_main(int narg,char **arg)
   print_stat("cg invert (overhead)",cg_inv_over_time,ncg_inv);
   print_stat("stout smearing",sto_time,nsto);
   print_stat("stout remapping",sto_remap_time,nsto_remap);
-  print_stat("compute gluon force",gluon_force_time,ngluon_force,((theory_pars[SEA_THEORY].gauge_action_name!=WILSON_GAUGE_ACTION)?
+  print_stat("compute gluon force",gluon_force_time,ngluon_force,((drv->sea_theory().gauge_action_name!=WILSON_GAUGE_ACTION)?
 								  flops_per_link_gauge_tlSym:flops_per_link_gauge_Wilson)*NDIM*loc_vol);
   print_stat("compute quark force (overhead)",quark_force_over_time,nquark_force_over);
   print_stat("evolve the gauge conf with momenta",conf_evolve_time,nconf_evolve);
   print_stat("remap geometry of vectors",remap_time,nremap);
   print_stat("unitarize the conf",unitarize_time,nunitarize);
   print_stat("write",write_conf_time,nwrite_conf);
-  for(int i=0;i<ntop_meas;i++) master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,top_meas_pars[i].path.c_str(),top_meas_time[i],
+  for(size_t i=0;i<drv->top_meas.size();i++) master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,drv->top_meas[i].path.c_str(),top_meas_time[i],
 					     top_meas_time[i]*100/(take_time()-init_time),'%');
   
   close_simulation();

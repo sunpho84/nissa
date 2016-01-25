@@ -10,6 +10,7 @@ namespace nissa
   //evolution parameters for hybrid monte carlo
   struct hmc_evol_pars_t
   {
+    int id_sea_theory;
     int ntraj_tot;
     int skip_mtest_ntraj;
     double traj_length;
@@ -18,6 +19,7 @@ namespace nissa
     int nmd_steps;
     int ngauge_substeps;
     
+    int def_id_sea_theory(){return 0;}
     int def_ntraj_tot(){return 100;}
     int def_skip_mtest_ntraj(){return 30;}
     double def_traj_length(){return 1.0;}
@@ -36,6 +38,7 @@ namespace nissa
       if(full||is_nonstandard())
 	{
 	  nissa::master_fprintf(fout,"Evolution\n");
+	  if(full||id_sea_theory!=def_id_sea_theory()) nprinted+=nissa::master_fprintf(fout," IdSeaTheory\t=\t%d\n",id_sea_theory);
 	  if(full||ntraj_tot!=def_ntraj_tot()) nprinted+=nissa::master_fprintf(fout," NTrajTot\t=\t%d\n",ntraj_tot);
 	  if(full||skip_mtest_ntraj!=def_skip_mtest_ntraj()) nprinted+=nissa::master_fprintf(fout," SkipMetro\t=\t%d\n",skip_mtest_ntraj);
 	  if(full||traj_length!=def_traj_length()) nprinted+=nissa::master_fprintf(fout," TrajLength\t=\t%lg\n",traj_length);
@@ -57,6 +60,7 @@ namespace nissa
     int is_nonstandard()
     {
       return
+	id_sea_theory!=def_id_sea_theory()||
 	ntraj_tot!=def_ntraj_tot()||
 	skip_mtest_ntraj!=def_skip_mtest_ntraj()||
 	traj_length!=def_traj_length()||
@@ -67,6 +71,7 @@ namespace nissa
     }
     
     hmc_evol_pars_t() :
+      id_sea_theory(def_id_sea_theory()),
       ntraj_tot(def_ntraj_tot()),
       skip_mtest_ntraj(def_skip_mtest_ntraj()),
       traj_length(def_traj_length()),

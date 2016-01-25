@@ -283,24 +283,17 @@ namespace nissa
   {
     int nprinted=0;
     
-	nprinted+=nissa::master_fprintf(fout,"MeasMesonCorrs\n");
-    if(is_nonstandard()||full)
+    nprinted+=nissa::master_fprintf(fout,"MeasMesonCorrs\n");
+    nprinted+=base_fermionic_meas_t::master_fprintf(fout,full);
+    if(mesons.size()||full)
       {
-	if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
-	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
-	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
-	if(mesons.size()||full)
+	nprinted+=nissa::master_fprintf(fout," MesonList\t=\t{");
+	for(size_t i=0;i<mesons.size();i++)
 	  {
-	    nprinted+=nissa::master_fprintf(fout," MesonList\t=\t{");
-	    for(size_t i=0;i<mesons.size();i++)
-	      {
-		nprinted+=nissa::master_fprintf(fout,"(%d,%d)",mesons[i].first,mesons[i].second);
-		if(i!=mesons.size()-1) nprinted+=nissa::master_fprintf(fout,",");
-		else                   nprinted+=nissa::master_fprintf(fout,"}\n");
-	      }
+	    nprinted+=nissa::master_fprintf(fout,"(%d,%d)",mesons[i].first,mesons[i].second);
+	    if(i!=mesons.size()-1) nprinted+=nissa::master_fprintf(fout,",");
+	    else                   nprinted+=nissa::master_fprintf(fout,"}\n");
 	  }
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout," Residue\t=\t%lg\n",residue);
-	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout," NHits\t\t=\t%d\n",nhits);
       }
     
     return nprinted;

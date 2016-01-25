@@ -1,50 +1,38 @@
 #ifndef _SPINPOL_HPP
 #define _SPINPOL_HPP
 
+#include "stag.hpp"
 #include "operations/smearing/smooth.hpp"
 
 namespace nissa
 {
-  struct spinpol_meas_pars_t
+  struct spinpol_meas_pars_t : base_fermionic_meas_t
   {
-    int each;
-    int after;
-    std::string path;
-    double residue;
     int dir;
-    int nhits;
     int use_ferm_conf_for_gluons;
     smooth_pars_t smooth_pars;
     
-    int def_each(){return 1;}
-    int def_after(){return 0;}
     std::string def_path(){return "pollo";}
-    double def_residue(){return 1e-12;}
     int def_dir(){return 1;}
-    int def_nhits(){return 1;}
     int def_use_ferm_conf_for_gluons(){return 0;}
+    
+    int master_fprintf(FILE *fout,bool full=false);
     
     int is_nonstandard()
     {
       return
-	each!=def_each()||
-	after!=def_after()||
-	path!=def_path()||
-	residue!=def_residue()||
+	base_fermionic_meas_t::is_nonstandard()||
 	dir!=def_dir()||
-	nhits!=def_nhits()||
 	use_ferm_conf_for_gluons!=def_use_ferm_conf_for_gluons()||
+	path!=def_path()||
 	smooth_pars.is_nonstandard();
     }
     
     spinpol_meas_pars_t() :
-      each(def_each()),
-      after(def_after()),
-      path(def_path()),
-      residue(def_residue()),
+      base_fermionic_meas_t(),
       dir(def_dir()),
-      nhits(def_nhits()),
-      use_ferm_conf_for_gluons(def_use_ferm_conf_for_gluons()) {}
+      use_ferm_conf_for_gluons(def_use_ferm_conf_for_gluons())
+    {path=def_path();}
   };
   
   void measure_spinpol(quad_su3 **ferm_conf,quad_su3 **glu_conf,theory_pars_t &theory_pars,spinpol_meas_pars_t &meas_pars,int iconf,int conf_created);

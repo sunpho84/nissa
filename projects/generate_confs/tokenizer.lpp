@@ -62,22 +62,26 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 	 MPI_Bcast(buf,1,MPI_CHAR,0,MPI_COMM_WORLD);			\
        }								\
    }
-   
+
+ /* handle locations */
+#define YY_USER_ACTION yylloc->first_line=yylloc->last_line=yylineno; \
+    yylloc->first_column=yycolumn;yylloc->last_column=yycolumn+yyleng-1; \
+    yycolumn+=yyleng;
+
 #include "parser.hpp"
    
    const int debug_lexer=0;
-   
-   std::string curr_comment;
 %}
 
 %%
  /* ignoring rules */
-"/*"                                DEBUG_PRINTF("Entering c++-style comment\n");curr_comment="";BEGIN(COMMENT);
+"/*"                                DEBUG_PRINTF("Entering c++-style comment\n");BEGIN(COMMENT); 
 <COMMENT>"/*"                       master_printf("warning: multiple comments opened at line: %d\n", yylineno);
-<COMMENT>"*/"                       DEBUG_PRINTF("Exiting c++-style comment: %s\n",curr_comment.c_str());BEGIN(INITIAL);
+<COMMENT>"*/"                       DEBUG_PRINTF("Exiting c++-style comment\n");BEGIN(INITIAL);
 <COMMENT>"EOF"                      crash("reached end of file while scanning comment");
-<COMMENT>.|"\n"                     curr_comment+=yytext[0];
-{NEWLINE}                           DEBUG_PRINTF("Ignoring endline\n");
+<COMMENT>"\n"                       yycolumn=1;yylineno++;
+<COMMENT>{ANY}
+{NEWLINE}                           DEBUG_PRINTF("Ignoring endline\n");yycolumn=1;yylineno++;
 {C_COMM}                            DEBUG_PRINTF("Ignoring single line comment: %s\n",yytext);
 {SPACE}+                            DEBUG_PRINTF("Ignoring spaces: \"%s\"\n",yytext);
 
@@ -111,7 +115,8 @@ After DEBUG_PRINTF("Found After\n");return TK_AFTER;
  /* residue */
 Residue DEBUG_PRINTF("Found Residue\n");return TK_RESIDUE;
 
- /* ncopies and nhits */
+ /* index of theory, ncopies and nhits */
+Itheory DEBUG_PRINTF("Found Itheory\n");return TK_ITHEORY;
 NCopies DEBUG_PRINTF("Found NCopies\n");return TK_NCOPIES;
 NHits DEBUG_PRINTF("Found NHits\n");return TK_NHITS;
 
@@ -120,6 +125,9 @@ Path DEBUG_PRINTF("Found Path\n");return TK_PATH;
 
  /* meson list */
 MesonList DEBUG_PRINTF("Found MesonList\n");return TK_MESON_LIST;
+
+ /* rendens pars */
+MaxOrder  DEBUG_PRINTF("Found MaxOrder\n");return TK_MAX_ORDER;
 
  /* meta commands */
 \#PrintScannedInput DEBUG_PRINTF("Found #PrintScannedInput\n");return TK_META_PRINT_SCANNED_INPUT;
@@ -217,6 +225,7 @@ MeasAllRects DEBUG_PRINTF("Found MeasAllRects\n");return TK_MEAS_ALL_RECTS;
 
  /* evol pars */
 Evolution DEBUG_PRINTF("Found Evolution\n");return TK_EVOLUTION;
+IdSeaTheory DEBUG_PRINTF("Found IdSeaTheoryn");return TK_ID_SEA_THEORY;
 NTrajTot DEBUG_PRINTF("Found NTrajTot\n");return TK_NTRAJ_TOT;
 SkipMetro DEBUG_PRINTF("Found SkipMetro\n");return TK_SKIP_METRO;
 TrajLength DEBUG_PRINTF("Found TrajLength\n");return TK_TRAJ_LENGTH;

@@ -28,6 +28,7 @@ namespace nissa
     int after;
     std::string path;
     
+    int def_itheory(){return 0;}
     int def_each(){return 1;}
     int def_after(){return 0;}
     std::string def_path(){return "gauge_obs";}
@@ -37,12 +38,10 @@ namespace nissa
       int nprinted=0;
       
       nprinted+=nissa::master_fprintf(fout,"MeasPlaqPol\n");
-      if(full||is_nonstandard())
-	{
-	  if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
-	  if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
-	  if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
-	}
+      if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+      if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+      if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
+      if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
       
       return nprinted;
     }

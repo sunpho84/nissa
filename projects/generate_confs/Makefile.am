@@ -5,10 +5,10 @@ AUTOMAKE_OPTIONS=subdir-objects
 LDADD=$(top_builddir)/lib/libnissa.a
 
 bin_PROGRAMS= \
+	$(top_builddir)/bin/generate \
 	$(top_builddir)/bin/test_parser
 
 #	$(top_builddir)/bin/generate_quenched
-#	$(top_builddir)/bin/generate
 
 ############################################### parser ####################################
 
@@ -30,9 +30,9 @@ CLEANFILES=$(generate_parser_built_sources)
 
 #############################################################################################
 
-#__top_builddir__bin_generate_SOURCES=generate_.cpp $(generate_parser_sources)
-#__top_builddir__bin_generate_LDADD=$(LDADD)
-#__top_builddir__bin_generate_LDFLAGS=$(LDFLAGS)
+__top_builddir__bin_generate_SOURCES=generate.cpp $(generate_parser_sources)
+__top_builddir__bin_generate_LDADD=$(LDADD)
+__top_builddir__bin_generate_LDFLAGS=$(LDFLAGS)
 
 #__top_builddir__bin_generate_quenched_SOURCES=generate_quenched.cpp
 #__top_builddir__bin_generate_quenched_LDADD=$(LDADD)

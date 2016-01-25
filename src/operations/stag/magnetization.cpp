@@ -202,15 +202,7 @@ namespace nissa
     int nprinted=0;
     
     nprinted+=nissa::master_fprintf(fout,"MeasMagnetiz\n");
-    if(is_nonstandard()||full)
-      {
-	if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
-	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
-	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout," Residue\t=\t%lg\n",residue);
-	if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout," NCopies\t=\t%d\n",ncopies);
-	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout," NHits\t\t=\t%d\n",nhits);
-      }
+    nprinted+=base_fermionic_meas_t::master_fprintf(fout,full);
     
     return nprinted;
   }

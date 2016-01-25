@@ -652,13 +652,10 @@ namespace nissa
       int nprinted=0;
       
       nprinted+=nissa::master_fprintf(fout,"MeasTop\n");
-      if(full||is_nonstandard())
-	{
-	  if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
-	  if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
-	  if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
-	  nprinted+=smooth_pars.master_fprintf(fout,full);
-	}
+      if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+      if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
+      if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
+      nprinted+=smooth_pars.master_fprintf(fout,full);
       
       return nprinted;
     }

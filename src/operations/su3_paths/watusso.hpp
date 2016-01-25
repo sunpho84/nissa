@@ -41,7 +41,8 @@ namespace nissa
       each(def_each()),
       after(def_after()),
       path(def_path()),
-      dmax(def_dmax()) {}
+      dmax(def_dmax())
+    {}
   };
   
   void measure_watusso(watusso_meas_pars_t *pars,quad_su3 **conf,int iconf,int create_output_file);

@@ -130,4 +130,12 @@ namespace nissa
     close_file(fout);
     */
   }
+  
+  int spinpol_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  {
+    int nprinted=0;
+    crash("");
+    
+    return nprinted;
+  }
 }

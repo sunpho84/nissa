@@ -10,6 +10,8 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 
+#include "stag.hpp"
+
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -51,5 +53,19 @@ namespace nissa
 	THREAD_BARRIER();
 	complex_vector_glb_collapse(res_fw_bw[fw_bw],point_result,loc_vol);
       }
+  }
+  
+  int base_fermionic_meas_t::master_fprintf(FILE *fout,bool full)
+  {
+    int nprinted=0;
+    if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+    if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
+    if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
+    if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout," Residue\t=\t%lg\n",residue);
+    if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout," NCopies\t=\t%d\n",ncopies);
+    if(itheory!=def_itheory()||full) nprinted+=nissa::master_fprintf(fout," ITheory\t=\t%d\n",itheory);
+    if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout," NHits\t\t=\t%d\n",nhits);
+    
+    return nprinted;
   }
 }

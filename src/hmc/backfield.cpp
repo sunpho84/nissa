@@ -233,4 +233,14 @@ namespace nissa
     allocate_backfield();
     init_backfield();
   }
+  
+  //destroy
+  void theory_pars_t::destroy_backfield()
+  {
+    for(int iflav=0;iflav<nflavs();iflav++)
+      {
+	for(int par=0;par<2;par++) nissa_free(backfield[iflav][par]);
+	nissa_free(backfield[iflav]);
+      }
+  }
 }

@@ -85,7 +85,7 @@ namespace nissa
   }
 
   //compute all possible rectangular paths among a defined interval
-  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
+  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rects_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
     crash("To be fixed");
     /*
@@ -327,7 +327,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute all possible rectangular paths among a defined interval
-  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths_old, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
+  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths_old, all_rects_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
     crash("to be fixed");
     /*
@@ -470,7 +470,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  void measure_all_rectangular_paths(all_rect_meas_pars_t *pars,quad_su3 **conf_eo,int iconf,int create_output_file)
+  void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,quad_su3 **conf_eo,int iconf,int create_output_file)
   {
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);

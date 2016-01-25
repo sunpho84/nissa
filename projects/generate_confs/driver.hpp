@@ -27,6 +27,8 @@ public:
   
   //parameters of actions
   std::vector<theory_pars_t> theories;
+  int ntheories(){return theories.size();}
+  theory_pars_t &sea_theory(){return theories[evol_pars.id_sea_theory];}
   
   //fermionic measures
   std::vector<meson_corr_meas_pars_t> meson_corr_meas;
@@ -35,12 +37,26 @@ public:
   std::vector<quark_rendens_meas_pars_t> quark_rendens_meas;
   std::vector<magnetization_meas_pars_t> magnetization_meas;
   
+  //add
+  void add_meson_corr_meas(meson_corr_meas_pars_t &m){meson_corr_meas.push_back(m);meson_corr_meas.back().itheory=ntheories()-1;}
+  void add_nucleon_corr_meas(nucleon_corr_meas_pars_t &m){nucleon_corr_meas.push_back(m);nucleon_corr_meas.back().itheory=ntheories()-1;}
+  void add_fermionic_putpourri_meas(fermionic_putpourri_meas_pars_t &m){fermionic_putpourri_meas.push_back(m);fermionic_putpourri_meas.back().itheory=ntheories()-1;}
+   void add_quark_rendens_meas(quark_rendens_meas_pars_t &m){quark_rendens_meas.push_back(m);quark_rendens_meas.back().itheory=ntheories()-1;}
+  void add_magnetization_meas(magnetization_meas_pars_t &m){magnetization_meas.push_back(m);magnetization_meas.back().itheory=ntheories()-1;}
+
   //gauge measures
   std::vector<gauge_obs_meas_pars_t> plaq_pol_meas;
   std::vector<top_meas_pars_t> top_meas;
   std::vector<poly_corr_meas_pars_t> luppoli_meas;
   std::vector<watusso_meas_pars_t> watusso_meas;
-  std::vector<all_rect_meas_pars_t> all_rect_meas;
+  std::vector<all_rects_meas_pars_t> all_rects_meas;
+  
+  //add
+  void add_plaq_pol_meas(gauge_obs_meas_pars_t &m){plaq_pol_meas.push_back(m);}
+  void add_top_meas(top_meas_pars_t &m){top_meas.push_back(m);}
+  void add_luppoli_meas(poly_corr_meas_pars_t &m){luppoli_meas.push_back(m);}
+  void add_watusso_meas(watusso_meas_pars_t &m){watusso_meas.push_back(m);watusso_meas.back();}
+  void add_all_rects_meas(all_rects_meas_pars_t &m){all_rects_meas.push_back(m);all_rects_meas.back();}
   
   //mode of running
   enum run_mode_t{EVOLUTION_MODE,ANALYSIS_MODE};
