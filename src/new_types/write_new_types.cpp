@@ -14,34 +14,34 @@ namespace nissa
   int master_fprintf(FILE *stream,const char *format,...);
   
   //print quark content
-  int quark_content_t::master_fprintf(FILE *fout,bool full)
+  std::string quark_content_t::get_str(bool full)
   {
-    int nprinted=0;
-    nprinted+=nissa::master_fprintf(fout,"Quark\t\t=\t\"%s\"\n",name.c_str());
-    if(full||deg!=def_deg()) nprinted+=nissa::master_fprintf(fout," Degeneracy\t=\t%d\n",deg);
-    if(full||mass!=def_mass()) nprinted+=nissa::master_fprintf(fout," Mass\t\t=\t%lg\n",mass);
-    if(full||re_pot!=def_re_pot()) nprinted+=nissa::master_fprintf(fout," RePotCh\t=\t%lg\n",re_pot);
-    if(full||im_pot!=def_im_pot()) nprinted+=nissa::master_fprintf(fout," ImPotCh\t=\t%lg\n",re_pot);
-    if(full||charge!=def_charge()) nprinted+=nissa::master_fprintf(fout," ElecCharge\t=\t%lg\n",charge);
+    std::ostringstream os;
+    os<<"Quark\t\t=\t\""<<name.c_str()<<"\"\n";
+    if(full||deg!=def_deg()) os<<" Degeneracy\t=\t"<<deg<<"\n";
+    if(full||mass!=def_mass()) os<<" Mass\t\t=\t"<<mass<<"\n";
+    if(full||re_pot!=def_re_pot()) os<<" RePotCh\t=\t"<<re_pot<<"\n";
+    if(full||im_pot!=def_im_pot()) os<<" ImPotCh\t=\t"<<re_pot<<"\n";
+    if(full||charge!=def_charge()) os<<" ElecCharge\t=\t"<<charge<<"\n";
     
-    return nprinted;
+    return os.str();
   }
   
   //print em_field_pars
-  int em_field_pars_t::master_fprintf(FILE *fout,bool full)
+  std::string em_field_pars_t::get_str(bool full)
   {
-    int nprinted=0;
+    std::ostringstream os;
     if(full||flag||is_nonstandard())
       {
-	nissa::master_fprintf(fout,"BkgrdEMField\n");
-	if(full||fabs(E[0])>1e-14) nprinted+=nissa::master_fprintf(fout," Ex\t\t=\t%lg\n",E[0]);
-	if(full||fabs(E[1])>1e-14) nprinted+=nissa::master_fprintf(fout," Ey\t\t=\t%lg\n",E[1]);
-	if(full||fabs(E[2])>1e-14) nprinted+=nissa::master_fprintf(fout," Ez\t\t=\t%lg\n",E[2]);
-	if(full||fabs(B[0])>1e-14) nprinted+=nissa::master_fprintf(fout," Bx\t\t=\t%lg\n",B[0]);
-	if(full||fabs(B[1])>1e-14) nprinted+=nissa::master_fprintf(fout," By\t\t=\t%lg\n",B[1]);
-	if(full||fabs(B[2])>1e-14) nprinted+=nissa::master_fprintf(fout," Bz\t\t=\t%lg\n",B[2]);
+	os<<"BkgrdEMField\n";
+	if(full||fabs(E[0])>1e-14) os<<" Ex\t\t=\t"<<E[0]<<"\n";
+	if(full||fabs(E[1])>1e-14) os<<" Ey\t\t=\t"<<E[1]<<"\n";
+	if(full||fabs(E[2])>1e-14) os<<" Ez\t\t=\t"<<E[2]<<"\n";
+	if(full||fabs(B[0])>1e-14) os<<" Bx\t\t=\t"<<B[0]<<"\n";
+	if(full||fabs(B[1])>1e-14) os<<" By\t\t=\t"<<B[1]<<"\n";
+	if(full||fabs(B[2])>1e-14) os<<" Bz\t\t=\t"<<B[2]<<"\n";
       }
     
-    return nprinted;
+    return os.str();
   }
 }

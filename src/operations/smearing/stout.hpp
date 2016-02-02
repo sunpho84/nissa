@@ -1,6 +1,8 @@
 #ifndef _STOUT_HPP
 #define _STOUT_HPP
 
+#include <sstream>
+
 #include "routines/ios.hpp"
 #include "new_types/su3_op.hpp"
 
@@ -23,17 +25,17 @@ namespace nissa
     int def_nlevels(){return 0;}
     double def_rho(){return 0;}
     
-    int master_fprintf(FILE *fout,bool full=false)
+    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(int full=false)
     {
-      int nprinted=0;
+      std::ostringstream os;
       if(full||is_nonstandard())
 	{
-	  nprinted+=nissa::master_fprintf(fout,"Stout\n");
-	  if(full||nlevels!=def_nlevels()) nprinted+=nissa::master_fprintf(fout," NLevels\t=\t%d\n",nlevels);
-	  if(full||rho!=def_rho()) nprinted+=nissa::master_fprintf(fout," Rho\t\t=\t%lg\n",rho);
+	  os<<"Stout\n";
+	  if(full||nlevels!=def_nlevels()) os<<" NLevels\t=\t"<<nlevels<<"\n";
+	  if(full||rho!=def_rho()) os<<" Rho\t\t=\t"<<rho<<"\n";
 	}
-      
-      return nprinted;
+      return os.str();
     }
     
     int is_nonstandard()

@@ -7,6 +7,7 @@
 
 #include "base/debug.hpp"
 #include "io/ILDG_File.hpp"
+#include "routines/ios.hpp"
 
 namespace nissa
 {
@@ -33,7 +34,8 @@ namespace nissa
     void init();
     void read_pars();
     
-    int master_fprintf(FILE *fout,bool full=false);
+    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(bool full=false);
     
     meta_pars_t() : after(30),each(1),coeff(1.0),width(1.0),barr(10.0),force_out(100.0),well_tempering(0.0),bend(0.0),ngrid(0){}
   };

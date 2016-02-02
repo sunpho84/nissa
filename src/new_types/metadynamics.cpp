@@ -16,19 +16,19 @@
 namespace nissa
 {
   //print all pars
-  int meta_pars_t::master_fprintf(FILE *fout,bool full)
+  std::string meta_pars_t::get_str(bool full)
   {
-    int nprinted=0;
-    nprinted+=nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
-    nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",each);
-    nprinted+=nissa::master_fprintf(fout,"Coeff\t\t=\t%lg\n",coeff);
-    nprinted+=nissa::master_fprintf(fout,"Width\t\t=\t%lg\n",width);
-    nprinted+=nissa::master_fprintf(fout,"Barr\t\t=\t%lg\n",barr);
-    nprinted+=nissa::master_fprintf(fout,"ForceOut\t=\t%lg\n",force_out);
-    nprinted+=nissa::master_fprintf(fout,"WellTempering\t=\t%lg\n",well_tempering);
-    nprinted+=nissa::master_fprintf(fout,"Bend\t\t=\t%lg\n",bend);
+    std::ostringstream os;
+    os<<"After\t\t=\t"<<after<<"\n";
+    os<<"Each\t\t=\t"<<each<<"\n";
+    os<<"Coeff\t\t=\t"<<coeff<<"\n";
+    os<<"Width\t\t=\t"<<width<<"\n";
+    os<<"Barr\t\t=\t"<<barr<<"\n";
+    os<<"ForceOut\t=\t"<<force_out<<"\n";
+    os<<"WellTempering\t=\t"<<well_tempering<<"\n";
+    os<<"Bend\t\t=\t"<<bend<<"\n";
     
-    return nprinted;
+    return os.str();
   }
   
   //update the history-dependent potential

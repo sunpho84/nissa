@@ -23,7 +23,8 @@ namespace nissa
     stout_pars_t stout_pars;
     em_field_pars_t em_field_pars;
     
-    int master_fprintf(FILE *fout,int full);
+    std::string get_str(int full=false);
+    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,get_str().c_str());}
     
     int is_nonstandard()
     {

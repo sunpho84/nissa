@@ -71,4 +71,21 @@ namespace nissa
     
     return topo_action;
   }
+  
+  std::string topotential_pars_t::get_str(bool full)
+  {
+    std::ostringstream os;
+    const char name_known[3][10]={"None","","Meta"};
+    if(full||flag!=def_flag()) os<<"TopoPotential\t=\t"<<name_known[flag]<<"\n";
+    switch(flag)
+      {
+      case 0:break;
+      case 1:os<<"Theta\t\t"<<theta<<"\n";break;
+      case 2:
+	os<<meta_pars_t::get_str(full);
+	os<<stout_pars.get_str(full);
+	break;
+      }
+    return os.str();
+    }
 }

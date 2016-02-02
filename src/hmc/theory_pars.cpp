@@ -6,36 +6,36 @@
 
 namespace nissa
 {
-  int theory_pars_t::master_fprintf(FILE *fout,int full)
+  std::string theory_pars_t::get_str(int full)
   {
-    int nprinted=0;
+    std::ostringstream os;
     //header
-    if(full||is_nonstandard()) nprinted+=nissa::master_fprintf(fout,"\nTheory\n");
+    if(full||is_nonstandard()) os<<"\nTheory\n";
     //gauge action
     if(full||(gauge_action_name!=def_gauge_action_name()))
-      {
-	nprinted+=nissa::master_fprintf(fout," GaugeAction\t=\t");
-	switch(gauge_action_name)
-	  {
-	  case WILSON_GAUGE_ACTION: nprinted+=nissa::master_fprintf(fout,"Wilson");break;
-	  case TLSYM_GAUGE_ACTION: nprinted+=nissa::master_fprintf(fout,"tlSym");break;
-	  case IWASAKI_GAUGE_ACTION: nprinted+=nissa::master_fprintf(fout,"Iwasaki");break;
-	  default:crash("unknown gauge action %d",(int)gauge_action_name);
-	  }
-	nprinted+=nissa::master_fprintf(fout,"\n");
-      }
+      os<<" GaugeAction\t=\t"<<gauge_action_str_from_name(gauge_action_name)<<"\n";
     //beta
-    if(full||(beta!=def_beta())) nprinted+=nissa::master_fprintf(fout," Beta\t\t=\t%lg\n",beta);
+    if(full||(beta!=def_beta())) os<<" Beta\t\t=\t"<<beta<<"\n";
     //topotential_pars
-    if(topotential_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    std::string topo_str=topotential_pars.get_str(full);
+    os<<topo_str;
+    if(topo_str.size()) os<<"\n";
     //quarks
-    for(size_t i=0;i<quarks.size();i++) if(quarks[i].master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    for(size_t i=0;i<quarks.size();i++)
+      {
+	std::string quark_str=quarks[i].get_str(full);
+	os<<quark_str;
+	if(quark_str.size()) os<<"\n";
+      }
     //stout pars
-    if(stout_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    std::string stout_str=stout_pars.get_str();
+    os<<stout_str;
+    if(stout_str.size()) os<<"\n";
     //global em field pars
-    if(em_field_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    if(full||is_nonstandard()) nprinted+=nissa::master_fprintf(fout,"\n");
+    std::string em_field_str=em_field_pars.get_str(full);
+    os<<em_field_str;
+    if(em_field_str.size()) os<<"\n";
     
-    return nprinted;
+    return os.str();
   }
 }
