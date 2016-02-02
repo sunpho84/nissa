@@ -45,11 +45,7 @@ void write_conf(std::string path,quad_su3 **conf)
   ILDG_string_message_append_to_last(&mess,"MD_traj",text);
   
   //action, beta
-  std::ostringstream os_tp;
-  os_tp<<std::endl
-    <<"Action\t=\t"<<gauge_action_str_from_name(drv->sea_theory().gauge_action_name)<<std::endl
-    <<"Beta\t=\t"<<drv->sea_theory().beta<<std::endl;
-  ILDG_string_message_append_to_last(&mess,"Theory_pars",os_tp.str().c_str());
+  ILDG_string_message_append_to_last(&mess,"Theory_pars",drv->sea_theory().get_str().c_str());
   
   //rational approximation
   char *appr_data=NULL;
