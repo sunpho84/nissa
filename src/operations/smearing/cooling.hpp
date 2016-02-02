@@ -26,7 +26,7 @@ namespace nissa
       if(full||is_nonstandard())
 	{
 	  nprinted+=nissa::master_fprintf(fout,"Cooling\n");
-	  if(full||gauge_action!=def_gauge_action()) nprinted+=nissa::master_fprintf(fout," GaugeAction\t\t=\t%s\n",get_gauge_action_name_str(gauge_action).c_str());
+	  if(full||gauge_action!=def_gauge_action()) nprinted+=nissa::master_fprintf(fout," GaugeAction\t\t=\t%s\n",gauge_action_str_from_name(gauge_action).c_str());
 	  if(full||nsteps!=def_nsteps()) nprinted+=nissa::master_fprintf(fout," NSteps\t\t=\t%d\n",nsteps);
 	}
       

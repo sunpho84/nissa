@@ -340,11 +340,11 @@ topo_potential_pars: TK_TOPO_POTENTIAL '=' TK_META {$$=new topotential_pars_t;$$
 
 ////////////////////////////////////////////////// SMOOTH PARS /////////////////////////////////////////////////
 
-smooth_pars: TK_SMOOTH_METHOD '=' stout_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::STOUT;$$->stout_pars=(*$3);delete $3;}
-           | TK_SMOOTH_METHOD '=' cool_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::COOLING;$$->cool_pars=(*$3);delete $3;}
-           | TK_SMOOTH_METHOD '=' Wflow_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::WFLOW;$$->Wflow_pars=(*$3);delete $3;}
-           | TK_SMOOTH_METHOD '=' ape_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::APE;$$->ape_pars=(*$3);delete $3;}
-           | TK_SMOOTH_METHOD '=' hyp_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::HYP;$$->hyp_pars=(*$3);delete $3;}
+smooth_pars: TK_SMOOTH_METHOD '=' stout_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::STOUT;$$->stout=(*$3);delete $3;}
+           | TK_SMOOTH_METHOD '=' cool_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::COOLING;$$->cool=(*$3);delete $3;}
+           | TK_SMOOTH_METHOD '=' Wflow_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::WFLOW;$$->Wflow=(*$3);delete $3;}
+           | TK_SMOOTH_METHOD '=' ape_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::APE;$$->ape=(*$3);delete $3;}
+           | TK_SMOOTH_METHOD '=' hyp_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::HYP;$$->hyp=(*$3);delete $3;}
            | smooth_pars TK_MEAS_EACH '=' double_numb {$$->meas_each=$4;}
 ;
 

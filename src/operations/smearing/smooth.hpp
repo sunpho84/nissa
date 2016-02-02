@@ -21,11 +21,11 @@ namespace nissa
     double def_meas_each(){return 1;}
     
     //pars
-    cool_pars_t cool_pars;
-    stout_pars_t stout_pars;
-    Wflow_pars_t Wflow_pars;
-    ape_pars_t ape_pars;
-    hyp_pars_t hyp_pars;
+    cool_pars_t cool;
+    stout_pars_t stout;
+    Wflow_pars_t Wflow;
+    ape_pars_t ape;
+    hyp_pars_t hyp;
     
     std::string get_method_name()
     {
@@ -52,6 +52,8 @@ namespace nissa
       method(def_method()),
       meas_each(def_meas_each()) {}
   };
+  
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,double &t,double &tnext_meas);
 }
 
 #endif

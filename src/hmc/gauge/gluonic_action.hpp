@@ -31,7 +31,7 @@ namespace nissa
   }
   
   //convert a gauge action name into a str
-  inline std::string get_gauge_action_name_str(gauge_action_name_t name)
+  inline std::string gauge_action_str_from_name(gauge_action_name_t name)
   {
     switch(name)
       {

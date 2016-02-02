@@ -42,7 +42,7 @@ namespace nissa
       alpha(def_alpha()) {}
   };
   
-  void ape_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int ndirs,int *dirs);
+  void ape_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int ndirs=NDIM,int *dir=all_dirs);
   void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep);
   void ape_temporal_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep);
   inline void ape_single_dir_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int mu)

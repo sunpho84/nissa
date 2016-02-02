@@ -23,7 +23,7 @@ namespace nissa
     int def_ntraj_tot(){return 100;}
     int def_skip_mtest_ntraj(){return 30;}
     double def_traj_length(){return 1.0;}
-    double def_pf_action_residue(){return 1e-12;}
+    double def_pf_action_residue(){return 1e-16;}
     double def_md_residue(){return 1e-6;}
     int def_nmd_steps(){return 13;}
     int def_ngauge_substeps(){return 5;}

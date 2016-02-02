@@ -452,66 +452,17 @@ namespace nissa
       }
     else smoothed_conf=unsmoothed_conf;
     
-    //print curent measure and smooth
-    smooth_pars_t sp=pars.smooth_pars;
-    cool_pars_t cop=sp.cool_pars;
-    stout_pars_t stp=sp.stout_pars;
-    Wflow_pars_t wfp=sp.Wflow_pars;
-    int int_each=int(sp.meas_each);
-    switch(sp.method)
+    double t=0,tnext_meas=pars.smooth_pars.meas_each;
+    bool finished;
+    do
       {
-      case smooth_pars_t::COOLING:
-	for(int istep=0;istep<=(cop.nsteps/int_each)*int_each;istep++)
-	  {
-	    if(istep%int_each==0)
-	      {
-		double tot_charge;
-		double plaq=global_plaquette_lx_conf(smoothed_conf);
-		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		master_fprintf(file,"%d %d %+016.016lg %16.16lg\n",iconf,istep,tot_charge,plaq);
-		verbosity_lv2_master_printf("Topological charge after %d cooling steps: %+016.016lg, plaquette: %16.16lg\n",istep,tot_charge,plaq);
-	      }
-	    if(istep!=cop.nsteps) cool_lx_conf(smoothed_conf,get_sweeper(cop.gauge_action));
-	  }
-	break;
-      case smooth_pars_t::STOUT:
-	for(int ilev=0;ilev<=(stp.nlevels/int_each)*int_each;ilev++)
-	  {
-	    //fix to stout for "meas_each"
-	    stout_pars_t iter_pars=stp;
-	    iter_pars.nlevels=sp.meas_each;
-	    
-	    if(ilev%int_each==0)
-	      {
-		double tot_charge;
-		double plaq=global_plaquette_lx_conf(smoothed_conf);
-		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		master_fprintf(file,"%d %d %+016.016lg %16.16lg\n",iconf,ilev,tot_charge,plaq);
-		verbosity_lv2_master_printf("Topological charge after %d stouting levels: %+016.016lg, plaquette: %16.16lg\n",ilev,tot_charge,plaq);
-	      }
-	    if(ilev!=stp.nlevels) stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
-	  }
-	break;
-      case smooth_pars_t::WFLOW:
-	for(double dt=wfp.dt,tmeas=-dt/2,t=0;t<wfp.T;t+=dt)
-	  {
-	    if(tmeas<t)
-	      {
-		tmeas+=sp.meas_each;
-		double tot_charge;
-		double plaq=global_plaquette_lx_conf(smoothed_conf);
-		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		master_fprintf(file,"%d %lg %+016.016lg %16.16lg\n",iconf,t,tot_charge,plaq);
-		verbosity_lv2_master_printf("Topological charge after %lg time of flow: +%16.16lg, plaquette: %16.16lg\n",t,tot_charge,plaq);
-	      }
-	    Wflow_lx_conf(smoothed_conf,dt);
-	  }
-	break;
-      case smooth_pars_t::UNSPEC_SMOOTH_METHOD:
-	crash("should have not arrived here");
-      default:
-	crash("not handled yet");
+	double plaq=global_plaquette_lx_conf(smoothed_conf);
+	double tot_charge;
+	total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
+	master_fprintf(file,"%d %lg %+016.016lg %16.16lg\n",iconf,t,tot_charge,plaq);
+	finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,t,tnext_meas);
       }
+    while(!finished);
     
     //discard smoothed conf
     if(preserve_unsmoothed) nissa_free(smoothed_conf);

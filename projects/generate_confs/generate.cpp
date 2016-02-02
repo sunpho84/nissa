@@ -44,6 +44,13 @@ void write_conf(std::string path,quad_su3 **conf)
   snprintf(text,1024,"%d",itraj);
   ILDG_string_message_append_to_last(&mess,"MD_traj",text);
   
+  //action, beta
+  std::ostringstream os_tp;
+  os_tp<<std::endl
+    <<"Action\t=\t"<<gauge_action_str_from_name(drv->sea_theory().gauge_action_name)<<std::endl
+    <<"Beta\t=\t"<<drv->sea_theory().beta<<std::endl;
+  ILDG_string_message_append_to_last(&mess,"Theory_pars",os_tp.str().c_str());
+  
   //rational approximation
   char *appr_data=NULL;
   int appr_data_length;
@@ -80,8 +87,14 @@ void write_conf(std::string path,quad_su3 **conf)
 }
 
 //read conf
+int nread_conf=0;
+double read_conf_time=0;
 void read_conf(quad_su3 **conf,const char *path)
 {
+  GET_THREAD_ID();
+  
+  START_TIMING(read_conf_time,nread_conf);
+  
   master_printf("Reading conf from file: %s\n",path);
   
   //init messages
@@ -151,6 +164,9 @@ void read_conf(quad_su3 **conf,const char *path)
     load_topodynamical_potential(drv->sea_theory().topotential_pars,false);
   
   ILDG_message_free_all(&mess);
+  
+  //mark time
+  STOP_TIMING(read_conf_time);
 }
 
 //initialize the program in "production" mode
@@ -240,7 +256,7 @@ void init_simulation(char *path)
   
   //initialize sweeper to cool
   for(size_t i=0;i<drv->top_meas.size();i++)
-    if(drv->top_meas[i].each && drv->top_meas[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(drv->top_meas[i].smooth_pars.cool_pars.gauge_action);
+    if(drv->top_meas[i].each && drv->top_meas[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(drv->top_meas[i].smooth_pars.cool.gauge_action);
   
   //init the program in "production" or "analysis" mode
   if(drv->evol_pars.ntraj_tot>0) init_program_to_run(drv->conf_pars.start_cond);
@@ -394,8 +410,6 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   
   nissa_free(lx_conf);
 }
-
-
 
 #define RANGE_GAUGE_MEAS(A,B)				\
   for(size_t B=0;B<drv->A.size();B++)			\
@@ -611,9 +625,11 @@ void in_main(int narg,char **arg)
   print_stat("evolve the gauge conf with momenta",conf_evolve_time,nconf_evolve);
   print_stat("remap geometry of vectors",remap_time,nremap);
   print_stat("unitarize the conf",unitarize_time,nunitarize);
+  print_stat("read",read_conf_time,nread_conf);
   print_stat("write",write_conf_time,nwrite_conf);
-  for(size_t i=0;i<drv->top_meas.size();i++) master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,drv->top_meas[i].path.c_str(),top_meas_time[i],
-					     top_meas_time[i]*100/(take_time()-init_time),'%');
+  for(size_t i=0;i<drv->top_meas.size();i++)
+    master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,drv->top_meas[i].path.c_str(),top_meas_time[i],
+		  top_meas_time[i]*100/(take_time()-init_time),'%');
   
   close_simulation();
 }

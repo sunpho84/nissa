@@ -53,9 +53,9 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
       smooth_pars.method=smooth_method_name_from_str(smooth_method_name_str);
       switch(smooth_pars.method)
 	{
-	case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool_pars);break;
-	case smooth_pars_t::STOUT: read_stout_pars(smooth_pars.stout_pars);break;
-	case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow_pars);break;
+	case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool);break;
+	case smooth_pars_t::STOUT: read_stout_pars(smooth_pars.stout);break;
+	case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow);break;
 	default: crash("should not arrive here");break;
 	}
       read_str_double("MeasEach",&smooth_pars.meas_each);
@@ -250,15 +250,15 @@ void read_gauge_obs_temp_smear_pars(smooth_pars_t &pars)
   if(use_hyp_or_ape_temp==0)
     {
       pars.method=smooth_pars_t::HYP;
-      read_str_double("HYPTempAlpha0",&pars.hyp_pars.alpha0);
-      read_str_double("HYPTempAlpha1",&pars.hyp_pars.alpha1);
-      read_str_double("HYPTempAlpha2",&pars.hyp_pars.alpha2);
+      read_str_double("HYPTempAlpha0",&pars.hyp.alpha0);
+      read_str_double("HYPTempAlpha1",&pars.hyp.alpha1);
+      read_str_double("HYPTempAlpha2",&pars.hyp.alpha2);
     }
   else
     {
       pars.method=smooth_pars_t::APE;
-      read_str_double("APETempAlpha",&pars.ape_pars.alpha);
-      read_str_int("APETempNiters",&pars.ape_pars.nlevels);
+      read_str_double("APETempAlpha",&pars.ape.alpha);
+      read_str_int("APETempNiters",&pars.ape.nlevels);
     }
 }
 
