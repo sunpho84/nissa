@@ -105,7 +105,7 @@ namespace nissa
     conf_pars_t conf_pars;
     std::vector<std::string> an_conf_list;
     
-    int master_fprintf_geometry(FILE *fout,bool full){return nissa::master_fprintf(fout,geo_get_str(full).c_str());}
+    int master_fprintf_geometry(FILE *fout,bool full){return nissa::master_fprintf(fout,"%s",geo_get_str(full).c_str());}
     std::string geo_get_str(bool full)
     {
       std::ostringstream os;
@@ -124,7 +124,7 @@ namespace nissa
       return os.str();
     }
     
-    int master_fprintf_walltime_seed(FILE *fout,bool full){return nissa::master_fprintf(fout,walltime_seed_get_str(full).c_str());}
+    int master_fprintf_walltime_seed(FILE *fout,bool full){return nissa::master_fprintf(fout,"%s",walltime_seed_get_str(full).c_str());}
     std::string walltime_seed_get_str(bool full)
     {
       std::ostringstream os;
@@ -146,9 +146,9 @@ namespace nissa
     
     //print a whole vector
     template <class T> int master_fprintf_vector(FILE *fout,std::vector<T> &v,bool full)
-    {return nissa::master_fprintf(fout,get_str(full).c_str());}
+    {return nissa::master_fprintf(fout,"%s",get_str(full).c_str());}
     
-    int master_fprintf(FILE *fout,bool full=false) {return nissa::master_fprintf(fout,get_str(full).c_str());}
+    int master_fprintf(FILE *fout,bool full=false) {return nissa::master_fprintf(fout,"%s",get_str(full).c_str());}
     std::string get_str(bool full=false)
     {
       std::ostringstream os;

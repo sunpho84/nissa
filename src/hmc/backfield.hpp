@@ -19,7 +19,7 @@ namespace nissa
     double E[3];
     double B[3];
     
-    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
     
     int is_nonstandard()

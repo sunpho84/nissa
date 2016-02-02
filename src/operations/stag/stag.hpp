@@ -26,7 +26,7 @@ namespace nissa
     int measure_is_due(int ext_itheory,int iconf)
     {return (itheory==ext_itheory)&&(each>0)&&(iconf%each==0)&&(iconf>=after);}
     
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
     
     int is_nonstandard()

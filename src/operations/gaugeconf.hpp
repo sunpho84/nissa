@@ -35,7 +35,7 @@ namespace nissa
     int def_after(){return 0;}
     std::string def_path(){return "gauge_obs";}
     
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false)
     {
       std::ostringstream os;

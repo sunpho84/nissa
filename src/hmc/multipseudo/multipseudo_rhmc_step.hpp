@@ -31,7 +31,7 @@ namespace nissa
     std::vector<int> npseudo_fs;
     rat_approx_t *rat_appr;
     
-    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(int full=false)
     {
       std::ostringstream os;

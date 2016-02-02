@@ -24,7 +24,7 @@ namespace nissa
     em_field_pars_t em_field_pars;
     
     std::string get_str(int full=false);
-    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     
     int is_nonstandard()
     {

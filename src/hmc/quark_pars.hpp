@@ -29,7 +29,7 @@ namespace nissa
     double def_im_pot(){return 0;}
     double def_charge(){return 0;}
     
-    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
     
     int is_nonstandard()

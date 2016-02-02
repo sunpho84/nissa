@@ -21,7 +21,7 @@ namespace nissa
     int def_overrelax_flag(){return 0;}
     double def_overrelax_exp(){return 0.0;}
     
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false)
     {
       std::ostringstream os;
