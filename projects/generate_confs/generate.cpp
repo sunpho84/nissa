@@ -44,8 +44,9 @@ void write_conf(std::string path,quad_su3 **conf)
   snprintf(text,1024,"%d",itraj);
   ILDG_string_message_append_to_last(&mess,"MD_traj",text);
   
-  //action, beta
-  ILDG_string_message_append_to_last(&mess,"Theory_pars",drv->sea_theory().get_str().c_str());
+  //theroy and evolution parameters
+  ILDG_string_message_append_to_last(&mess,"TheoryPars",("\n"+drv->sea_theory().get_str()).c_str());
+  ILDG_string_message_append_to_last(&mess,"EvolPars",("\n"+drv->evol_pars.get_str()).c_str());
   
   //rational approximation
   char *appr_data=NULL;

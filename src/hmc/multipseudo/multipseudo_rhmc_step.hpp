@@ -24,37 +24,38 @@ namespace nissa
     int def_skip_mtest_ntraj(){return 30;}
     double def_traj_length(){return 1.0;}
     double def_pf_action_residue(){return 1e-16;}
-    double def_md_residue(){return 1e-6;}
-    int def_nmd_steps(){return 13;}
+    double def_md_residue(){return 1e-8;}
+    int def_nmd_steps(){return 11;}
     int def_ngauge_substeps(){return 5;}
     
     std::vector<int> npseudo_fs;
     rat_approx_t *rat_appr;
     
-    int master_fprintf(FILE *fout,bool full=false)
+    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(int full=false)
     {
-      int nprinted=0;
+      std::ostringstream os;
       
       if(full||is_nonstandard())
 	{
-	  nissa::master_fprintf(fout,"Evolution\n");
-	  if(full||id_sea_theory!=def_id_sea_theory()) nprinted+=nissa::master_fprintf(fout," IdSeaTheory\t=\t%d\n",id_sea_theory);
-	  if(full||ntraj_tot!=def_ntraj_tot()) nprinted+=nissa::master_fprintf(fout," NTrajTot\t=\t%d\n",ntraj_tot);
-	  if(full||skip_mtest_ntraj!=def_skip_mtest_ntraj()) nprinted+=nissa::master_fprintf(fout," SkipMetro\t=\t%d\n",skip_mtest_ntraj);
-	  if(full||traj_length!=def_traj_length()) nprinted+=nissa::master_fprintf(fout," TrajLength\t=\t%lg\n",traj_length);
-	  if(full||pf_action_residue!=def_pf_action_residue()) nprinted+=nissa::master_fprintf(fout," ActResidue\t=\t%lg\n",pf_action_residue);
-	  if(full||md_residue!=def_md_residue()) nprinted+=nissa::master_fprintf(fout," MdResidue\t=\t%lg\n",md_residue);
-	  if(full||nmd_steps!=def_nmd_steps()) nprinted+=nissa::master_fprintf(fout," NSteps\t\t=\t%d\n",nmd_steps);
-	  if(full||ngauge_substeps!=def_ngauge_substeps()) nprinted+=nissa::master_fprintf(fout," NSubSteps\t=\t%d\n",ngauge_substeps);
+	  os<<"Evolution\n";
+	  if(full||id_sea_theory!=def_id_sea_theory()) os<<" IdSeaTheory\t=\t"<<id_sea_theory<<"\n";
+	  if(full||ntraj_tot!=def_ntraj_tot()) os<<" NTrajTot\t=\t"<<ntraj_tot<<"\n";
+	  if(full||skip_mtest_ntraj!=def_skip_mtest_ntraj()) os<<" SkipMetro\t=\t"<<skip_mtest_ntraj<<"\n";
+	  if(full||traj_length!=def_traj_length()) os<<" TrajLength\t=\t"<<traj_length<<"\n";
+	  if(full||pf_action_residue!=def_pf_action_residue()) os<<" ActResidue\t=\t"<<pf_action_residue<<"\n";
+	  if(full||md_residue!=def_md_residue()) os<<" MdResidue\t=\t"<<md_residue<<"\n";
+	  if(full||nmd_steps!=def_nmd_steps()) os<<" NSteps\t\t=\t"<<nmd_steps<<"\n";
+	  if(full||ngauge_substeps!=def_ngauge_substeps()) os<<" NSubSteps\t=\t"<<ngauge_substeps<<"\n";
 	  if(full||npseudo_fs.size())
 	    {
-	      nprinted+=nissa::master_fprintf(fout," NPseudoFerms\t=\t{%d",npseudo_fs[0]);
-	      for(size_t i=1;i<npseudo_fs.size();i++) nprinted+=nissa::master_fprintf(fout,",%d",npseudo_fs[i]);
-	      nprinted+=nissa::master_fprintf(fout,"}\n");
+	      os<<" NPseudoFerms\t=\t{"<<npseudo_fs[0];
+	      for(size_t i=1;i<npseudo_fs.size();i++) os<<","<<npseudo_fs[i];
+	      os<<"}\n";
 	    }
 	}
       
-      return nprinted;
+      return os.str();
     }
     
     int is_nonstandard()
@@ -95,28 +96,29 @@ namespace nissa
     int def_store_running(){return 1;}
     start_conf_cond_t def_start_cond(){return COLD_START_COND;}
     
-    int master_fprintf(FILE *fout,bool full)
+    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(int full=false)
     {
-      int nprinted=0;
+      std::ostringstream os;
       
       if(full||is_nonstandard())
 	{
-	  nissa::master_fprintf(fout,"GaugeConf\n");
-	  if(full||path!=def_path()) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
-	  if(full||store_path!=def_store_path()) nprinted+=nissa::master_fprintf(fout," StorePath\t=\t\"%s\"\n",store_path.c_str());
-	  if(full||store_each!=def_store_each()) nprinted+=nissa::master_fprintf(fout," StoreEach\t=\t%d\n",store_each);
-	  if(full||store_running!=def_store_running()) nprinted+=nissa::master_fprintf(fout," StoreRunning\t=\t%d\n",store_running);
+	  os<<"GaugeConf\n";
+	  if(full||path!=def_path()) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+	  if(full||store_path!=def_store_path()) os<<" StorePath\t=\t\""<<store_path.c_str()<<"\"\n";
+	  if(full||store_each!=def_store_each()) os<<" StoreEach\t=\t"<<store_each<<"\n";
+	  if(full||store_running!=def_store_running()) os<<" StoreRunning\t=\t"<<store_running<<"\n";
 	  if(full||start_cond!=def_start_cond())
 	    {
-	      nprinted+=nissa::master_fprintf(fout," StartCond\t=\t");
-	      if(start_cond==HOT_START_COND) nprinted+=nissa::master_fprintf(fout,"HOT");
-	      if(start_cond==COLD_START_COND) nprinted+=nissa::master_fprintf(fout,"COLD");
+	      os<<" StartCond\t=\t";
+	      if(start_cond==HOT_START_COND) os<<"HOT";
+	      if(start_cond==COLD_START_COND) os<<"COLD";
 	      if(start_cond==UNSPEC_START_COND) crash("unspecified start cond");
-	      nprinted+=nissa::master_fprintf(fout,"\n");
+	      os<<"\n";
 	    }
 	}
       
-      return nprinted;
+      return os.str();
     }
     
     int is_nonstandard()

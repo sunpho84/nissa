@@ -10,7 +10,7 @@ namespace nissa
   {
     std::ostringstream os;
     //header
-    if(full||is_nonstandard()) os<<"\nTheory\n";
+    if(full||is_nonstandard()) os<<"Theory\n";
     //gauge action
     if(full||(gauge_action_name!=def_gauge_action_name()))
       os<<" GaugeAction\t=\t"<<gauge_action_str_from_name(gauge_action_name)<<"\n";
