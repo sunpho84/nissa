@@ -279,23 +279,23 @@ namespace nissa
   }
   
   //nucleon correlators
-  int meson_corr_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  std::string meson_corr_meas_pars_t::get_str(bool full)
   {
-    int nprinted=0;
+    std::ostringstream os;
     
-    nprinted+=nissa::master_fprintf(fout,"MeasMesonCorrs\n");
-    nprinted+=base_fermionic_meas_t::master_fprintf(fout,full);
+    os<<"MeasMesonCorrs\n";
+    os<<base_fermionic_meas_t::get_str(full);
     if(mesons.size()||full)
       {
-	nprinted+=nissa::master_fprintf(fout," MesonList\t=\t{");
+	os<<" MesonList\t=\t{";
 	for(size_t i=0;i<mesons.size();i++)
 	  {
-	    nprinted+=nissa::master_fprintf(fout,"(%d,%d)",mesons[i].first,mesons[i].second);
-	    if(i!=mesons.size()-1) nprinted+=nissa::master_fprintf(fout,",");
-	    else                   nprinted+=nissa::master_fprintf(fout,"}\n");
+	    os<<"("<<mesons[i].first<<","<<mesons[i].second<<")";
+	    if(i!=mesons.size()-1) os<<",";
+	    else                   os<<"}\n";
 	  }
       }
     
-    return nprinted;
+    return os.str();
   }
 }

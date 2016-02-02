@@ -218,14 +218,14 @@ namespace nissa
   }
   
   //print
-  int quark_rendens_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  std::string quark_rendens_meas_pars_t::get_str(bool full)
   {
-    int nprinted=0;
+    std::ostringstream os;
     
-    nprinted+=nissa::master_fprintf(fout,"MeasRendens\n");
-    nprinted+=base_fermionic_meas_t::master_fprintf(fout,full);
-    if(max_order!=def_max_order()||full) nprinted+=nissa::master_fprintf(fout," MaxOrder\t=\t%d\n",max_order);
+    os<<"MeasRendens\n";
+    os<<base_fermionic_meas_t::get_str(full);
+    if(max_order!=def_max_order()||full) os<<" MaxOrder\t=\t"<<max_order<<"\n";
     
-    return nprinted;
+    return os.str();
   }
 }

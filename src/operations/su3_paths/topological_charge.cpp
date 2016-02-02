@@ -598,16 +598,16 @@ namespace nissa
   }
   
   //print pars
-  int top_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  std::string top_meas_pars_t::get_str(bool full)
     {
-      int nprinted=0;
+      std::ostringstream os;
       
-      nprinted+=nissa::master_fprintf(fout,"MeasTop\n");
-      if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
-      if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
-      if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
-      nprinted+=smooth_pars.master_fprintf(fout,full);
+      os<<"MeasTop\n";
+      if(each!=def_each()||full) os<<" Each\t\t=\t"<<each<<"\n";
+      if(after!=def_after()||full) os<<" After\t\t=\t"<<after<<"\n";
+      if(path!=def_path()||full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+      os<<smooth_pars.get_str(full);
       
-      return nprinted;
+      return os.str();
     }
 }

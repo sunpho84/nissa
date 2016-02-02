@@ -1,6 +1,9 @@
 #ifndef _WFLOW_HPP
 #define _WFLOW_HPP
 
+#include <sstream>
+
+#include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 
 namespace nissa
@@ -13,18 +16,19 @@ namespace nissa
     double def_T(){return 10;}
     double def_dt(){return 0.2;}
     
-    int master_fprintf(FILE *fout,bool full=false)
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(bool full=false)
     {
-      int nprinted=0;
+      std::ostringstream os;
       
+      os<<"WFlow\n";
       if(full||is_nonstandard())
 	{
-	  nprinted+=nissa::master_fprintf(fout,"WFlow\n");
-	  if(full||T!=def_T()) nprinted+=nissa::master_fprintf(fout," FlowTime\t=\t%lg\n",T);
-	  if(full||dt!=def_dt()) nprinted+=nissa::master_fprintf(fout," InteStep\t=\t%lg\n",dt);
+	  if(full||T!=def_T()) os<<" FlowTime\t=\t"<<T<<"\n";
+	  if(full||dt!=def_dt()) os<<" InteStep\t=\t"<<dt<<"\n";
 	}
       
-      return nprinted;
+      return os.str();
     }
     
     int is_nonstandard()

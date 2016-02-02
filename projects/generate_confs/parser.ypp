@@ -83,6 +83,8 @@ std::vector<int> *int_list;
 %token TK_LZ
 %token TK_L
 %token TK_T
+//tag for the run
+%token TK_TAG
 //theory
 %token TK_THEORY
 %type <theory> theory
@@ -248,6 +250,9 @@ command: global_specify
 ;
 
 global_specify: geometry
+////////////////////// tag ////////////////////////
+              | TK_TAG '=' text {driver->tag=(*$3);delete $3;}
+////////////////// new theory /////////////////////
               | theory {driver->theories.push_back(*$1);delete $1;}
 /////////////// fermionic measures ////////////////
               | meson_corr_meas {driver->add_meson_corr_meas(*$1);delete $1;}
@@ -345,7 +350,6 @@ smooth_pars: TK_SMOOTH_METHOD '=' stout_pars {$$=new smooth_pars_t;$$->method=sm
            | TK_SMOOTH_METHOD '=' Wflow_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::WFLOW;$$->Wflow=(*$3);delete $3;}
            | TK_SMOOTH_METHOD '=' ape_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::APE;$$->ape=(*$3);delete $3;}
            | TK_SMOOTH_METHOD '=' hyp_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::HYP;$$->hyp=(*$3);delete $3;}
-           | smooth_pars TK_MEAS_EACH '=' double_numb {$$->meas_each=$4;}
 ;
 
 ////////////////////////////////////////////////// STOUT PARS //////////////////////////////////////////////////
@@ -550,6 +554,7 @@ top_meas: TK_MEAS_TOP {$$=new top_meas_pars_t();}
         | top_meas after {$$->after=$2;}
         | top_meas path {$$->path=(*$2);delete $2;}
         | top_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
+        | top_meas TK_MEAS_EACH '=' double_numb {$$->smooth_pars.meas_each=$4;}
 ;
 
 //////////////////////////////////////////// POLYAKOV LOOP CORRELATORS /////////////////////////////////////////////

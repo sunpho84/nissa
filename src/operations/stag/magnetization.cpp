@@ -197,13 +197,13 @@ namespace nissa
   }
   
   //print
-  int magnetization_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  std::string magnetization_meas_pars_t::get_str(bool full)
   {
-    int nprinted=0;
+    std::ostringstream os;
     
-    nprinted+=nissa::master_fprintf(fout,"MeasMagnetiz\n");
-    nprinted+=base_fermionic_meas_t::master_fprintf(fout,full);
+    os<<"MeasMagnetiz\n";
+    os<<base_fermionic_meas_t::get_str(full);
     
-    return nprinted;
+    return os.str();
   }
 }

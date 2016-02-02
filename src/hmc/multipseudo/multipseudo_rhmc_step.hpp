@@ -91,12 +91,12 @@ namespace nissa
     start_conf_cond_t start_cond;
     
     std::string def_path(){return "conf";}
-    std::string def_store_path(){return "stored_conf.08%d";}
+    std::string def_store_path(){return "stored_conf.%08d";}
     int def_store_each(){return 10;}
     int def_store_running(){return 1;}
     start_conf_cond_t def_start_cond(){return COLD_START_COND;}
     
-    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(int full=false)
     {
       std::ostringstream os;
@@ -104,8 +104,8 @@ namespace nissa
       if(full||is_nonstandard())
 	{
 	  os<<"GaugeConf\n";
-	  if(full||path!=def_path()) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
-	  if(full||store_path!=def_store_path()) os<<" StorePath\t=\t\""<<store_path.c_str()<<"\"\n";
+	  if(full||path!=def_path()) os<<" Path\t\t=\t\""<<path<<"\"\n";
+	  if(full||store_path!=def_store_path()) os<<" StorePath\t=\t\""<<store_path<<"\"\n";
 	  if(full||store_each!=def_store_each()) os<<" StoreEach\t=\t"<<store_each<<"\n";
 	  if(full||store_running!=def_store_running()) os<<" StoreRunning\t=\t"<<store_running<<"\n";
 	  if(full||start_cond!=def_start_cond())

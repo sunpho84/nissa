@@ -241,14 +241,14 @@ namespace nissa
   }
   
   //fermionic putpourri
-  int fermionic_putpourri_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  std::string fermionic_putpourri_meas_pars_t::get_str(bool full)
   {
-    int nprinted=0;
+    std::ostringstream os;
     
-    nprinted+=nissa::master_fprintf(fout,"MeasPutpourri\n");
-    if(is_nonstandard()||full) nprinted+=base_fermionic_meas_t::master_fprintf(fout,full);
-    if(compute_susc!=def_compute_susc()||full)  nprinted+=nissa::master_fprintf(fout," ComputeSusc\t=\t%d\n",compute_susc);
+    os<<"MeasPutpourri\n";
+    if(is_nonstandard()||full) os<<base_fermionic_meas_t::get_str(full);
+    if(compute_susc!=def_compute_susc()||full)  os<<" ComputeSusc\t=\t"<<compute_susc<<"\n";
     
-    return nprinted;
+    return os.str();
   }
 }

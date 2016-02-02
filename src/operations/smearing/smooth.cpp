@@ -27,9 +27,9 @@ namespace nissa
     return finished;
   }
   
-  int smooth_pars_t::master_fprintf(FILE *fout,bool full)
+  std::string smooth_pars_t::get_str(bool full)
   {
-    int nprinted=0;
+    std::ostringstream os;
     
     if(full||is_nonstandard())
       {
@@ -40,21 +40,21 @@ namespace nissa
 	   (method==APE&&ape.is_nonstandard())||
 	   (method==HYP&&hyp.is_nonstandard()))
 	  {
-	    nprinted+=nissa::master_fprintf(fout," /* alternatives: Cooling, Stout, WFlow, Ape, Hyp */\n");
-	    nprinted+=nissa::master_fprintf(fout," SmoothMethod\t=\t");
+	    os<<" /* alternatives: Cooling, Stout, WFlow, Ape, Hyp */\n";
+	    os<<" SmoothMethod\t=\t";
+	    switch(method)
+	      {
+	      case COOLING: os<<cool.get_str(full);break;
+	      case STOUT: os<<stout.get_str(full);break;
+	      case WFLOW: os<<Wflow.get_str(full);break;
+	      case APE: os<<ape.get_str(full);break;
+	      case HYP: os<<hyp.get_str(full);break;
+	      case UNSPEC_SMOOTH_METHOD: crash("unspecified");
+	      }
 	  }
-	switch(method)
-	  {
-	  case COOLING: if(cool.is_nonstandard()||full) nprinted+=cool.master_fprintf(fout,full);break;
-	  case STOUT: if(stout.is_nonstandard()||full) nprinted+=stout.master_fprintf(fout,full);break;
-	  case WFLOW: if(Wflow.is_nonstandard()||full) nprinted+=Wflow.master_fprintf(fout,full);break;
-	  case APE: if(ape.is_nonstandard()||full) nprinted+=ape.master_fprintf(fout,full);break;
-	  case HYP: if(hyp.is_nonstandard()||full) nprinted+=hyp.master_fprintf(fout,full);break;
-	  case UNSPEC_SMOOTH_METHOD: crash("unspecified");
-	  }
-	if(full||meas_each!=def_meas_each()) nprinted+=nissa::master_fprintf(fout," MeasEach\t=\t%lg\n",def_meas_each());
+	if(full||meas_each!=def_meas_each()) os<<" MeasEach\t=\t"<<def_meas_each()<<"\n";
       }
     
-    return nprinted;
+    return os.str();
   }
 }

@@ -13,7 +13,8 @@ namespace nissa
     int def_max_order(){return 2;}
     std::string def_path(){return "rende";}
     
-    int master_fprintf(FILE *fout,bool full=false);
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(bool full=false);
     
     int is_nonstandard()
     {

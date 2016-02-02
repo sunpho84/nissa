@@ -28,7 +28,8 @@ namespace nissa
 	smooth_pars.is_nonstandard();
     }
     
-    int master_fprintf(FILE *fout,bool full=false);
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(bool full=false);
     
     top_meas_pars_t() :
       each(def_each()),

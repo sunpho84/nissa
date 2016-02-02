@@ -17,24 +17,13 @@ namespace nissa
     //beta
     if(full||(beta!=def_beta())) os<<" Beta\t\t=\t"<<beta<<"\n";
     //topotential_pars
-    std::string topo_str=topotential_pars.get_str(full);
-    os<<topo_str;
-    if(topo_str.size()) os<<"\n";
+    os<<topotential_pars.get_str(full)<<"\n";
     //quarks
-    for(size_t i=0;i<quarks.size();i++)
-      {
-	std::string quark_str=quarks[i].get_str(full);
-	os<<quark_str;
-	if(quark_str.size()) os<<"\n";
-      }
+    for(size_t i=0;i<quarks.size();i++)	os<<quarks[i].get_str(full)<<"\n";
     //stout pars
-    std::string stout_str=stout_pars.get_str();
-    os<<stout_str;
-    if(stout_str.size()) os<<"\n";
+    os<<stout_pars.get_str()<<"\n";
     //global em field pars
-    std::string em_field_str=em_field_pars.get_str(full);
-    os<<em_field_str;
-    if(em_field_str.size()) os<<"\n";
+    os<<em_field_pars.get_str(full)<<"\n";
     
     return os.str();
   }

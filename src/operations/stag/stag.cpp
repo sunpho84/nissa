@@ -55,17 +55,18 @@ namespace nissa
       }
   }
   
-  int base_fermionic_meas_t::master_fprintf(FILE *fout,bool full)
+  std::string base_fermionic_meas_t::get_str(bool full)
   {
-    int nprinted=0;
-    if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
-    if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
-    if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
-    if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout," Residue\t=\t%lg\n",residue);
-    if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout," NCopies\t=\t%d\n",ncopies);
-    if(itheory!=def_itheory()||full) nprinted+=nissa::master_fprintf(fout," ITheory\t=\t%d\n",itheory);
-    if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout," NHits\t\t=\t%d\n",nhits);
+    std::ostringstream os;
     
-    return nprinted;
+    if(each!=def_each()||full) os<<" Each\t\t=\t"<<each<<"\n";
+    if(after!=def_after()||full) os<<" After\t\t=\t"<<after<<"\n";
+    if(path!=def_path()||full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+    if(residue!=def_residue()||full) os<<" Residue\t=\t"<<residue<<"\n";
+    if(ncopies!=def_ncopies()||full) os<<" NCopies\t=\t"<<ncopies<<"\n";
+    if(itheory!=def_itheory()||full) os<<" ITheory\t=\t"<<itheory<<"\n";
+    if(nhits!=def_nhits()||full) os<<" NHits\t\t=\t"<<nhits<<"\n";
+    
+    return os.str();
   }
 }

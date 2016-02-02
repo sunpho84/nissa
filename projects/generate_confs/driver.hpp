@@ -17,6 +17,10 @@ namespace nissa
     driver_t(FILE *file);
     ~driver_t() {destroy_scanner();}
     
+    //tag
+    std::string tag;
+    std::string def_tag(){return "";}
+    
     //geometry
     int LX,LY,LZ;
     int T;
@@ -101,80 +105,90 @@ namespace nissa
     conf_pars_t conf_pars;
     std::vector<std::string> an_conf_list;
     
-    int master_fprintf_geometry(FILE *fout,int full)
+    int master_fprintf_geometry(FILE *fout,bool full){return nissa::master_fprintf(fout,geo_get_str(full).c_str());}
+    std::string geo_get_str(bool full)
     {
-      int nprinted=0;
+      std::ostringstream os;
       int fX=(LX!=def_L()),fY=(LY!=def_L()),fZ=(LZ!=def_L());
       int fL=(LX==LY&&LX==LZ),fT=(T!=def_T());;
-      if(full||fX||fY||fZ||fT) nprinted+=nissa::master_fprintf(fout,"Geometry\n");
-      if(full||fT) nprinted+=nissa::master_fprintf(fout," T\t\t=\t%d\n",T);
+      if(full||fX||fY||fZ||fT) os<<"Geometry\n";
+      if(full||fT) os<<" T\t\t=\t"<<T<<"\n";
       if(!fL)
 	{
-	  if(full||fX) nprinted+=nissa::master_fprintf(fout," LX\t\t=\t%d\n",LX);
-	  if(full||fY) nprinted+=nissa::master_fprintf(fout," LY\t\t=\t%d\n",LY);
-	  if(full||fZ) nprinted+=nissa::master_fprintf(fout," LZ\t\t=\t%d\n",LZ);
+	  if(full||fX) os<<" LX\t\t=\t"<<LX<<"\n";
+	  if(full||fY) os<<" LY\t\t=\t"<<LY<<"\n";
+	  if(full||fZ) os<<" LZ\t\t=\t"<<LZ<<"\n";
 	}
-      else if(full||(fX||fY||fZ)) nprinted+=nissa::master_fprintf(fout," L\t\t=\t%d\n",LX);
+      else if(full||(fX||fY||fZ)) os<<" L\t\t=\t"<<LX<<"\n";
       
-      return nprinted;
+      return os.str();
     }
     
-    int master_fprintf_walltime_seed(FILE *fout,int full)
+    int master_fprintf_walltime_seed(FILE *fout,bool full){return nissa::master_fprintf(fout,walltime_seed_get_str(full).c_str());}
+    std::string walltime_seed_get_str(bool full)
     {
-      int nprinted=0;
-      if(full||walltime!=def_walltime()||seed!=def_seed()) nprinted+=nissa::master_fprintf(fout,"Run\n");
-      if(full||walltime!=def_walltime()) nprinted+=nissa::master_fprintf(fout," Walltime\t=\t%d\n",walltime);
-      if(full||seed!=def_seed()) nprinted+=nissa::master_fprintf(fout," Seed\t\t=\t%d\n",seed);
+      std::ostringstream os;
+      if(full||walltime!=def_walltime()||seed!=def_seed()) os<<"Run\n";
+      if(full||walltime!=def_walltime()) os<<" Walltime\t=\t"<<walltime<<"\n";
+      if(full||seed!=def_seed()) os<<" Seed\t\t=\t"<<seed<<"\n";
       
-      return nprinted;
+      return os.str();
     }
     
     //print a whole vector
-    template <class T> int master_printf_vector(FILE *fout,std::vector<T> &v,int full)
+    template <class T> std::string vector_get_str(std::vector<T> &v,bool full)
     {
-      int nprinted=0;
-      for(typename std::vector<T>::iterator it=v.begin();it!=v.end();it++) if(it->master_fprintf(fout,full)){nprinted+=nissa::master_fprintf(fout,"\n");}
-      return nprinted;
+      std::ostringstream os;
+      for(typename std::vector<T>::iterator it=v.begin();it!=v.end();it++)
+	os<<it->get_str(full)<<"\n";
+      return os.str();
     }
     
-    int master_fprintf(FILE *fout,bool full=false)
+    //print a whole vector
+    template <class T> int master_fprintf_vector(FILE *fout,std::vector<T> &v,bool full)
+    {return nissa::master_fprintf(fout,get_str(full).c_str());}
+    
+    int master_fprintf(FILE *fout,bool full=false) {return nissa::master_fprintf(fout,get_str(full).c_str());}
+    std::string get_str(bool full=false)
     {
-      int nprinted=0;
+      std::ostringstream os;
       
+      //tag
+      if(tag!=def_tag()||full) os<<"Tag\t\t=\t\""<<tag.c_str()<<"\"\n\n";
       //geometry
-      if(master_fprintf_geometry(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+      os<<geo_get_str(full)<<"\n";
       //theories
-      for(size_t i=0;i<theories.size();i++) if(theories[i].master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+      for(size_t i=0;i<theories.size();i++) os<<theories[i].get_str(full)<<"\n";
       //fermionic measures
-      nprinted+=master_printf_vector(fout,meson_corr_meas,full);
-      nprinted+=master_printf_vector(fout,nucleon_corr_meas,full);
-      nprinted+=master_printf_vector(fout,fermionic_putpourri_meas,full);
-      nprinted+=master_printf_vector(fout,quark_rendens_meas,full);
-      nprinted+=master_printf_vector(fout,magnetization_meas,full);
+      os<<vector_get_str(meson_corr_meas,full);
+      os<<vector_get_str(nucleon_corr_meas,full);
+      os<<vector_get_str(fermionic_putpourri_meas,full);
+      os<<vector_get_str(quark_rendens_meas,full);
+      os<<vector_get_str(magnetization_meas,full);
       //gauge masures
-      nprinted+=master_printf_vector(fout,plaq_pol_meas,full);
-      nprinted+=master_printf_vector(fout,top_meas,full);
+      os<<vector_get_str(plaq_pol_meas,full);
+      os<<vector_get_str(top_meas,full);
       //walltime and seed
-      if(master_fprintf_walltime_seed(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+      os<<walltime_seed_get_str(full)<<"\n";
       
       switch(run_mode)
 	{
 	case EVOLUTION_MODE:
-	  if(evol_pars.master_fprintf(fout,full)) nprinted+=nissa::master_fprintf(fout,"\n");
-	  if(conf_pars.master_fprintf(fout,full)) nprinted+=nissa::master_fprintf(fout,"\n");
+	  os<<evol_pars.get_str(full)<<"\n";
+	  os<<conf_pars.get_str(full)<<"\n";
 	  break;
 	case ANALYSIS_MODE:
-	  if(full||def_run_mode()!=ANALYSIS_MODE) nprinted+=nissa::master_fprintf(fout,"Analysis\n");
+	  if(full||def_run_mode()!=ANALYSIS_MODE) os<<"Analysis\n";
 	  if(an_conf_list.size())
 	    {
-	      nprinted+=nissa::master_fprintf(fout," ConfList\t=\t{\"%s\"",an_conf_list[0].c_str());
-	      for(size_t i=1;i<an_conf_list.size();i++) nprinted+=nissa::master_fprintf(fout,",\"%s\"",an_conf_list[i].c_str());
-	      nprinted+=nissa::master_fprintf(fout,"}\n");
+	      os<<" ConfList\t=\t{\""<<an_conf_list[0].c_str()<<"\"";
+	      for(size_t i=1;i<an_conf_list.size();i++) os<<",\""<<an_conf_list[i].c_str()<<"\"";
+	      os<<"}\n";
 	    }
 	  break;
 	}
       
-      return nprinted;
+      return os.str();
     }
     
   private:

@@ -1,6 +1,8 @@
 #ifndef _APE_HPP
 #define _APE_HPP
 
+#include <sstream>
+
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
@@ -16,18 +18,19 @@ namespace nissa
     int def_nlevels(){return 20;}
     double def_alpha(){return 0.5;}
     
-    int master_fprintf(FILE *fout,bool full=false)
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(bool full=false)
     {
-      int nprinted=0;
+      std::ostringstream os;
       
+      os<<"Ape\n";
       if(full||is_nonstandard())
 	{
-	  nprinted+=nissa::master_fprintf(fout,"Ape\n");
-	  if(full||alpha!=def_alpha()) nprinted+=nissa::master_fprintf(fout," Alpha\t\t=\t%lg\n",alpha);
-	  if(full||nlevels!=def_nlevels()) nprinted+=nissa::master_fprintf(fout," NLevels\t=\t%d\n",nlevels);
+	  if(full||alpha!=def_alpha()) os<<" Alpha\t\t=\t"<<alpha<<"\n";
+	  if(full||nlevels!=def_nlevels()) os<<" NLevels\t=\t"<<nlevels<<"\n";
 	}
       
-      return nprinted;
+      return os.str();
     }
     
     int is_nonstandard()

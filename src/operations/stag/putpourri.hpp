@@ -13,7 +13,8 @@ namespace nissa
     std::string def_path(){return "lavanda";}
     int def_compute_susc(){return 0;}
     
-    int master_fprintf(FILE *fout,bool full=false);
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(bool full=false);
     
     int is_nonstandard()
     {

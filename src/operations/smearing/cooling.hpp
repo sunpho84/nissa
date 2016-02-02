@@ -1,6 +1,8 @@
 #ifndef _COOLING_HPP
 #define _COOLING_HPP
 
+#include <sstream>
+
 #include "routines/ios.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 
@@ -19,18 +21,18 @@ namespace nissa
     int def_overrelax_flag(){return 0;}
     double def_overrelax_exp(){return 0.0;}
     
-    int master_fprintf(FILE *fout,bool full=false)
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(bool full=false)
     {
-      int nprinted=0;
-      
+      std::ostringstream os;
+      os<<"Cooling\n";
       if(full||is_nonstandard())
 	{
-	  nprinted+=nissa::master_fprintf(fout,"Cooling\n");
-	  if(full||gauge_action!=def_gauge_action()) nprinted+=nissa::master_fprintf(fout," GaugeAction\t\t=\t%s\n",gauge_action_str_from_name(gauge_action).c_str());
-	  if(full||nsteps!=def_nsteps()) nprinted+=nissa::master_fprintf(fout," NSteps\t\t=\t%d\n",nsteps);
+	  if(full||gauge_action!=def_gauge_action()) os<<" GaugeAction\t=\t"<<gauge_action_str_from_name(gauge_action).c_str()<<"\n";
+	  if(full||nsteps!=def_nsteps()) os<<" NSteps\t\t=\t"<<nsteps<<"\n";
 	}
       
-      return nprinted;
+      return os.str();
     }
     
     int is_nonstandard()

@@ -1,6 +1,8 @@
 #ifndef _GAUGECONF_HPP
 #define _GAUGECONF_HPP
 
+#include <sstream>
+
 #include "operations/su3_paths/gauge_sweeper.hpp"
 
 namespace nissa
@@ -33,17 +35,17 @@ namespace nissa
     int def_after(){return 0;}
     std::string def_path(){return "gauge_obs";}
     
-    int master_fprintf(FILE *fout,bool full=false)
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(bool full=false)
     {
-      int nprinted=0;
+      std::ostringstream os;
       
-      nprinted+=nissa::master_fprintf(fout,"MeasPlaqPol\n");
-      if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
-      if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
-      if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
-      if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
+      os<<"MeasPlaqPol\n";
+      if(each!=def_each()||full) os<<" Each\t\t=\t"<<each<<"\n";
+      if(after!=def_after()||full) os<<" After\t\t=\t"<<after<<"\n";
+      if(path!=def_path()||full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
       
-      return nprinted;
+      return os.str();
     }
     
     int is_nonstandard()

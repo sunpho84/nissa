@@ -148,6 +148,9 @@ LY DEBUG_PRINTF("Found LY\n");return TK_LY;
 LZ DEBUG_PRINTF("Found LX\n");return TK_LZ;
 T DEBUG_PRINTF("Found T\n");return TK_T;
 
+ /* tag for the run */
+Tag DEBUG_PRINTF("Found Tag\n");return TK_TAG;
+
  /* theory */
 Theory DEBUG_PRINTF("Found Theory\n");return TK_THEORY;
 
@@ -275,6 +278,7 @@ Seconds? DEBUG_PRINTF("Found Second(s)\n");yylval->int_numb=1;return TK_QUANTITY
 
 //initializator
 nissa::driver_t::driver_t(FILE *ext) :
+                        tag(def_tag()),
                         LX(def_L()),
                         LY(def_L()),
                         LZ(def_L()),

@@ -34,8 +34,8 @@ namespace nissa
 	quarks.size()||
 	topotential_pars.is_nonstandard()||
 	stout_pars.is_nonstandard()||
-	em_field_pars.is_nonstandard()
-	;}
+	em_field_pars.is_nonstandard();
+    }
     
     int nflavs()
     {return quarks.size();}

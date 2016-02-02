@@ -1,6 +1,8 @@
 #ifndef _HYP_HPP
 #define _HYP_HPP
 
+#include <sstream>
+
 #include "routines/ios.hpp"
 #include "new_types/su3.hpp"
 
@@ -19,18 +21,19 @@ namespace nissa
     double def_alpha2() {return 0.5;}
     int def_nlevels() {return 1;}
     
-    int master_fprintf(FILE *fout,bool full=false)
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,get_str().c_str());}
+    std::string get_str(bool full=false)
     {
-      int nprinted=0;
+      std::ostringstream os;
       
+      os<<"Hyp\n";
       if(full||is_nonstandard())
 	{
-	  nprinted+=nissa::master_fprintf(fout,"Hyp\n");
-	  if(full||alpha0!=def_alpha0()||alpha1!=def_alpha1()||alpha2!=def_alpha2()) nprinted+=nissa::master_fprintf(fout," Alphas\t\t=\t{%lg,%lg,%lg}\n",alpha0,alpha1,alpha2);
-	  if(full||nlevels!=def_nlevels()) nprinted+=nissa::master_fprintf(fout," NLevels\t=\t%d\n",nlevels);
+	  if(full||alpha0!=def_alpha0()||alpha1!=def_alpha1()||alpha2!=def_alpha2()) os<<" Alphas\t\t=\t{"<<alpha0<<","<<alpha1<<","<<alpha2<<"}\n";
+	  if(full||nlevels!=def_nlevels()) os<<" NLevels\t=\t"<<nlevels<<"\n";
 	}
       
-      return nprinted;
+      return os.str();
     }
     
     int is_nonstandard()

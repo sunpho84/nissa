@@ -131,11 +131,11 @@ namespace nissa
     */
   }
   
-  int spinpol_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  std::string spinpol_meas_pars_t::get_str(bool full)
   {
-    int nprinted=0;
+    std::ostringstream os;
     crash("");
     
-    return nprinted;
+    return os.str();
   }
 }
