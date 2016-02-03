@@ -241,7 +241,8 @@ std::vector<int> *int_list;
 %token TK_SEED
 %%
 
-commands: commands command
+commands:
+        | commands command
         | command
 ;
 

@@ -1,6 +1,8 @@
 #ifndef _RAT_APPROX_HPP
 #define _RAT_APPROX_HPP
 
+#include <sstream>
+#include <vector>
 #include <string.h>
 
 #include "io/buffer.hpp"
@@ -16,29 +18,25 @@ namespace nissa
     double maxerr;
     double cons;
     int num,den;
-    int degree;
-    double *poles;
-    double *weights;
-    void reset()
-    {
-      strcpy(name,"");
-      minimum=maximum=cons=maxerr=0;
-      degree=num=den=0;
-      poles=weights=NULL;
-    }
-    rat_approx_t(){reset();}
+    std::vector<double> poles;
+    std::vector<double> weights;
+    rat_approx_t() :
+      name(""),minimum(0),maximum(0),maxerr(0),cons(0),
+      num(0),den(0) {}
+    
+    //return the degree
+    int degree(){return poles.size();}
+    
+    //resize
+    void resize(int size){poles.resize(size);weights.resize(size);}
+    
+    std::string get_str();
+    void shift_all_poles(double sh) {for(int iterm=0;iterm<degree();iterm++) poles[iterm]+=sh;}
   };
-
-  void convert_rat_approx(buffer_t &s,rat_approx_t *appr,int nflav);
-  void convert_rat_approx(char *&data,int &data_length,rat_approx_t *appr,int nflav);
-  void convert_rat_approx(rat_approx_t *&appr,int &nflav,char *data,int data_length);
-  void master_printf_rat_approx(rat_approx_t *appr);
-  void rat_approx_create(rat_approx_t *appr,int nterms,const char *name=NULL);
-  void rat_approx_destroy(rat_approx_t *appr);
-  //shift all poles
-  inline void rat_approx_shift_all_poles(rat_approx_t *appr,double sh)
-  {for(int iterm=0;iterm<appr->degree;iterm++) appr->poles[iterm]+=sh;}
   
+  std::string convert_rat_approx(std::vector<rat_approx_t> &appr);
+  std::vector<rat_approx_t> convert_rat_approx(const char *data,size_t len);
+  inline std::vector<rat_approx_t> convert_rat_approx(std::string &in) {return convert_rat_approx(in.c_str(),in.size());}
 }
 
 #endif

@@ -48,12 +48,7 @@ void write_conf(std::string path,quad_su3 **conf)
   ILDG_string_message_append_to_last(&mess,"InputPars",("\n"+drv->get_str()).c_str());
   
   //rational approximation
-  char *appr_data=NULL;
-  int appr_data_length;
-  convert_rat_approx(appr_data,appr_data_length,drv->evol_pars.rat_appr,drv->sea_theory().nflavs());
-  
-  ILDG_bin_message_append_to_last(&mess,"RAT_approx",appr_data,appr_data_length);
-  nissa_free(appr_data);
+  ILDG_bin_message_append_to_last(&mess,"RAT_approx",convert_rat_approx(drv->evol_pars.rat_appr).c_str(),64);
   
   //#ifndef REPRODUCIBLE_RUN
   //skip 10 random numbers
@@ -102,9 +97,8 @@ void read_conf(quad_su3 **conf,const char *path)
   
   //scan messages
   int rat_approx_found=0;
-  int nflavs_appr_read=0;
   for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
-    {  
+    {
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
       if(glb_rnd_gen_inited==0 && strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
       if(drv->sea_theory().topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TopoGrid")==0)
@@ -122,19 +116,14 @@ void read_conf(quad_su3 **conf,const char *path)
 	      rat_approx_found++;
 	      
 	      //strategy: load in a temporary array and check that it is appropriate
-	      rat_approx_t *temp_appr=NULL;
-	      convert_rat_approx(temp_appr,nflavs_appr_read,cur_mess->data,cur_mess->data_length);
+	      std::vector<rat_approx_t> temp_appr=convert_rat_approx(cur_mess->data,cur_mess->data_length);
 	      
 	      //check and possibly copy
-	      if(nflavs_appr_read==drv->sea_theory().nflavs())
+	      if((int)temp_appr.size()/3==drv->sea_theory().nflavs())
 		{
 		  rat_approx_found++;
-		  for(int i=0;i<nflavs_appr_read*3;i++) drv->evol_pars.rat_appr[i]=temp_appr[i];
+		  drv->evol_pars.rat_appr=temp_appr;
 		}
-	      else
-		for(int i=0;i<nflavs_appr_read*3;i++)
-		  rat_approx_destroy(drv->evol_pars.rat_appr+i);
-	      nissa_free(temp_appr);
 	    }
 	}
     }
@@ -143,7 +132,7 @@ void read_conf(quad_su3 **conf,const char *path)
   switch(rat_approx_found)
     {
     case 0: if(drv->evol_pars.ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
-    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,drv->sea_theory().nflavs());break;
+    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for different flavors than what we are running\n");
     case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
     default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
     }
@@ -171,11 +160,7 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
   //initialize the sweepers
   int nflavs=drv->sea_theory().nflavs();
   if(nflavs==0) init_sweeper(drv->sea_theory().gauge_action_name);
-  else
-    {
-      drv->evol_pars.rat_appr=new rat_approx_t[3*nflavs];
-      for(int i=0;i<nflavs*3;i++) drv->evol_pars.rat_appr[i].reset();
-    }
+  else drv->evol_pars.rat_appr.resize(3*nflavs);
   
   //load conf or generate it
   if(file_exists(drv->conf_pars.path))
@@ -226,6 +211,7 @@ void init_simulation(char *path)
   open_input(path);
   drv=new driver_t(input_global);
   parser_parse(drv);
+  if(drv->theories.size()==0) crash("need to sepcify a theory");
   
   //geometry
   glb_size[0]=drv->T;
@@ -272,15 +258,6 @@ void close_simulation()
   master_printf("glb rnd generated: %d\n",nglbgen);
   
   if(!drv->conf_pars.store_running && ntraj_prod>0) write_conf(drv->conf_pars.path,conf);
-  
-  //destroy rational approximations
-  if(drv->evol_pars.ntraj_tot)
-    if(drv->sea_theory().nflavs())
-      {
-	for(int i=0;i<drv->sea_theory().nflavs()*3;i++)
-	  rat_approx_destroy(drv->evol_pars.rat_appr+i);
-	delete[] drv->evol_pars.rat_appr;
-      }
   
   //destroy topo pars
   nissa_free(top_meas_time);

@@ -40,7 +40,7 @@ namespace nissa
 	    double flav_action;
 	    if(quark_content[ifl].is_stag)
 	      {
-		summ_src_and_all_inv_stD2ee_m2_cgm(chi_e,eo_conf,simul_pars->rat_appr+3*ifl+1,1000000,simul_pars->pf_action_residue,pf[ifl].stag[ipf]);
+		summ_src_and_all_inv_stD2ee_m2_cgm(chi_e,eo_conf,&simul_pars->rat_appr[3*ifl+1],1000000,simul_pars->pf_action_residue,pf[ifl].stag[ipf]);
 		double_vector_glb_scalar_prod(&flav_action,(double*)chi_e,(double*)(pf[ifl].stag[ipf]),loc_volh*6);
 	      }
 	    else crash("still not implemented");

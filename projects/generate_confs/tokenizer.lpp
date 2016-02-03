@@ -75,7 +75,7 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 
 %%
  /* ignoring rules */
-"/*"                                DEBUG_PRINTF("Entering c++-style comment\n");BEGIN(COMMENT); 
+"/*"                                DEBUG_PRINTF("Entering c++-style comment\n");BEGIN(COMMENT);
 <COMMENT>"/*"                       master_printf("warning: multiple comments opened at line: %d\n", yylineno);
 <COMMENT>"*/"                       DEBUG_PRINTF("Exiting c++-style comment\n");BEGIN(INITIAL);
 <COMMENT>"EOF"                      nissa::crash("reached end of file while scanning comment");

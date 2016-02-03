@@ -98,7 +98,7 @@ namespace nissa
     //shift all the poles of the mass
     for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
       for(int i=0;i<3;i++)
-	rat_approx_shift_all_poles(simul_pars.rat_appr+iflav*3+i,sqr(theory_pars.quarks[iflav].mass));
+	simul_pars.rat_appr[iflav*3+i].shift_all_poles(sqr(theory_pars.quarks[iflav].mass));
     
     //create pseudo-fermions and store action
     double pf_action=0;
@@ -107,7 +107,7 @@ namespace nissa
 	{
 	  verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs());
 	  double pf_action_flav;
-	  if(theory_pars.quarks[iflav].is_stag) generate_pseudo_fermion(&pf_action_flav,pf[iflav].stag[ipf],sme_conf,theory_pars.backfield[iflav],simul_pars.rat_appr+3*iflav+0,simul_pars.pf_action_residue);
+	  if(theory_pars.quarks[iflav].is_stag) generate_pseudo_fermion(&pf_action_flav,pf[iflav].stag[ipf],sme_conf,theory_pars.backfield[iflav],&simul_pars.rat_appr[3*iflav+0],simul_pars.pf_action_residue);
 	  else crash("not yet implemented");
 	  pf_action+=pf_action_flav;
 	}
@@ -148,7 +148,7 @@ namespace nissa
     //shift back
     for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
       for(int i=0;i<3;i++)
-	rat_approx_shift_all_poles(simul_pars.rat_appr+iflav*3+i,-sqr(theory_pars.quarks[iflav].mass));
+	simul_pars.rat_appr[iflav*3+i].shift_all_poles(-sqr(theory_pars.quarks[iflav].mass));
     
     //take time
     hmc_time+=take_time();

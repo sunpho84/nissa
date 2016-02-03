@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <vector>
 
 #include "base/debug.hpp"
 #include "base/thread_macros.hpp"
@@ -18,84 +19,77 @@
 
 namespace nissa
 {
-  //allocate a new rat approx
-  void rat_approx_create(rat_approx_t *appr,int degree,const char *name)
+  //convert to string
+  std::string rat_approx_t::get_str()
   {
-    appr->poles=nissa_malloc("poles",2*degree,double);
-    if(name!=NULL) memcpy(appr->name,name,20);
-    appr->minimum=appr->maximum=0;
-    appr->degree=degree;
-    appr->weights=appr->poles+degree;
-    THREAD_BARRIER();
-  }
-  
-  //free a rational approx
-  void rat_approx_destroy(rat_approx_t *appr)
-  {
-    THREAD_BARRIER();
-    appr->degree=0;
-    nissa_free(appr->poles);
-  }
-  
-  //print a rational approximation
-  void master_printf_rat_approx(rat_approx_t *appr)
-  {
-    master_printf("Rational approximation \"%s\" of x^(%d/%d):\n",appr->name,appr->num,appr->den);
-    master_printf("  valid in the interval: %.16lg %.16lg with a maximal relative error of: %lg\n",appr->minimum,appr->maximum,appr->maxerr);
-    master_printf("  const: %.16lg\n",appr->cons);
-    master_printf("  degree: %d\n",appr->degree);
-    for(int iterm=0;iterm<appr->degree;iterm++)
-      master_printf("   %d) pole: %.16lg, weight: %.16lg\n",iterm,appr->poles[iterm],appr->weights[iterm]);
+    std::ostringstream out;
+    out.precision(16);
+    out<<"Rational approximation \""<<name<<"\" of x^("<<num<<"/"<<den<<"):\n";
+    out<<"  valid in the interval: "<<minimum<<" "<<maximum<<" with a maximal relative error of: "<<maxerr<<"%lg\n";
+    out<<"  const: "<<cons<<"%.16lg\n";
+    out<<"  degree: "<<degree()<<"%d\n";
+    for(int iterm=0;iterm<degree();iterm++)
+      out<<"   "<<iterm<<") pole: "<<poles[iterm]<<", weight: "<<weights[iterm]<<"\n";
+    
+    return out.str();
   }
   
   //convert from a stored approximation
-  void convert_rat_approx(rat_approx_t *&appr,int &nflav,char *data,int data_length)
+  std::vector<rat_approx_t> convert_rat_approx(const char *data,size_t len)
   {
+    std::vector<rat_approx_t> out;
+    
     //create a stream
     buffer_t s;
-    s.write(data,data_length);
+    s.write(data,len);
     
     //read nflav
+    int nflav;
     if(!(s>>nflav)) crash("reading nflav");
     verbosity_lv3_master_printf("NFlav read: %d\n",nflav);
     
     //create the approximations
-    appr=nissa_malloc("read_appr_list",nflav*3,rat_approx_t);
     for(int i=0;i<nflav*3;i++)
       {
+	rat_approx_t appr;
 	//read name and degree
 	int degree;
-	char name[20];
 	if(!(s>>degree)) crash("reading degree for approx %d",i);
-	s.read(name,20);
+	s.read(appr.name,20);
 	
 	//create the appr and read it
-	rat_approx_create(appr+i,degree,name);
-	if(!(s>>appr[i].minimum)) crash("reading minimum for approx %d",i);
-	if(!(s>>appr[i].maximum)) crash("reading maximum for approx %d",i);
-	if(!(s>>appr[i].maxerr)) crash("reading maxerr for approx %d",i);
-	if(!(s>>appr[i].num)) crash("reading num for approx %d",i);
-	if(!(s>>appr[i].den)) crash("reading den for approx %d",i);
-	if(!(s>>appr[i].cons)) crash("reading cons for approx %d",i);
+	if(!(s>>appr.minimum)) crash("reading minimum for approx %d",i);
+	if(!(s>>appr.maximum)) crash("reading maximum for approx %d",i);
+	if(!(s>>appr.maxerr)) crash("reading maxerr for approx %d",i);
+	if(!(s>>appr.num)) crash("reading num for approx %d",i);
+	if(!(s>>appr.den)) crash("reading den for approx %d",i);
+	if(!(s>>appr.cons)) crash("reading cons for approx %d",i);
 	for(int j=0;j<degree;j++)
 	  {
-	    if(!(s>>appr[i].poles[j])) crash("reading pole %d for approx %d",j,i);
-	    if(!(s>>appr[i].weights[j])) crash("reading weight %d for approx %d",j,i);
+	    double pole,weight;
+	    if(!(s>>pole)) crash("reading pole %d for approx %d",j,i);
+	    if(!(s>>weight)) crash("reading weight %d for approx %d",j,i);
+	    appr.poles.push_back(pole);
+	    appr.weights.push_back(weight);
 	  }
-	if(VERBOSITY_LV3) master_printf_rat_approx(appr+i);
+	
+	out.push_back(appr);
+	if(VERBOSITY_LV3) master_printf("%s",appr.get_str().c_str());
       }
+    
+    return out;
   }
   
   //convert an approximation to store it
-  void convert_rat_approx(buffer_t &s,rat_approx_t *appr,int nflav)
+  void convert_rat_approx(buffer_t &s,std::vector<rat_approx_t> &appr)
   {
     //write nflav
-    s<<nflav;
+    s<<appr.size()/3;
     
     //store each approx
-    for(int i=0;i<nflav*3;i++)
+    for(size_t i=0;i<appr.size();i++)
       {
-	s<<appr[i].degree;
+	s<<appr[i].degree();
 	s.write(appr[i].name,20);
 	s<<appr[i].minimum;
 	s<<appr[i].maximum;
@@ -103,21 +97,15 @@ namespace nissa
 	s<<appr[i].num;
 	s<<appr[i].den;
 	s<<appr[i].cons;
-	for(int j=0;j<appr[i].degree;j++)
+	for(int j=0;j<appr[i].degree();j++)
 	  s<<appr[i].poles[j]<<appr[i].weights[j];
       }
   }
-  void convert_rat_approx(char *&data,int &data_length,rat_approx_t *appr,int nflav)
+  std::string convert_rat_approx(std::vector<rat_approx_t> &appr)
   {
     //create a stream
     buffer_t s;
-    convert_rat_approx(s,appr,nflav);
-    
-    //allocate data
-    data_length=s.size();
-    data=nissa_malloc("data",data_length,char);
-    
-    //copy data
-    s.read(data,data_length);
+    convert_rat_approx(s,appr);
+    return s.str();
   }
 }

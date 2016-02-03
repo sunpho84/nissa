@@ -703,13 +703,13 @@ namespace nissa
     float_high_prec_t cons;
     float_high_prec_t *poles=NULL;
     float_high_prec_t *weights=NULL;
-    THREAD_BROADCAST_PTR(poles,new float_high_prec_t[appr.degree]);
-    THREAD_BROADCAST_PTR(weights,new float_high_prec_t[appr.degree]);
+    THREAD_BROADCAST_PTR(poles,new float_high_prec_t[appr.degree()]);
+    THREAD_BROADCAST_PTR(weights,new float_high_prec_t[appr.degree()]);
     
     //create the approx
     rat_approx_finder_t *finder;
     THREAD_BROADCAST_PTR(finder,new rat_approx_finder_t);
-    double ans=finder->generate_approx(weights,poles,cons,minimum,maximum,appr.degree,num,den,minerr,tollerance);
+    double ans=finder->generate_approx(weights,poles,cons,minimum,maximum,appr.degree(),num,den,minerr,tollerance);
     if(IS_MASTER_THREAD) delete finder;
     
     //copy
@@ -717,8 +717,8 @@ namespace nissa
       {
 	appr.maxerr=ans;
 	appr.cons=cons.get_d();
-	for(int iterm=0;iterm<appr.degree;iterm++) appr.poles[iterm]=poles[iterm].get_d();
-	for(int iterm=0;iterm<appr.degree;iterm++) appr.weights[iterm]=weights[iterm].get_d();
+	for(int iterm=0;iterm<appr.degree();iterm++) appr.poles[iterm]=poles[iterm].get_d();
+	for(int iterm=0;iterm<appr.degree();iterm++) appr.weights[iterm]=weights[iterm].get_d();
 	
 	delete[] poles;
 	delete[] weights;
@@ -738,7 +738,8 @@ namespace nissa
     if(num==-den)
       {
 	verbosity_lv2_master_printf("Creating trivial approx for x^%d/%d\n",num,den);
-	rat_approx_create(&appr,1,name);
+	strncpy(appr.name,name,20);
+	appr.resize(1);
 	appr.num=num;
 	appr.den=den;
 	appr.maxerr=maxerr;
@@ -756,7 +757,6 @@ namespace nissa
 	if(name!=NULL && IS_MASTER_THREAD) snprintf(appr.name,20,"%s",name);
 	verbosity_lv3_master_printf("Generating approximation of x^(%d/%d) with max error %lg over the interval [%lg,%lg]\n",
 				    num,den,maxerr,minimum,maximum);
-	if(appr.degree!=0) rat_approx_destroy(&appr);
 	
 	//increase iteratively until it converges
 	int degree=1;
@@ -764,7 +764,7 @@ namespace nissa
 	do
 	  {
 	    //allocate it
-	    rat_approx_create(&appr,degree,name);
+	    appr.resize(degree);
 	    
 	    //generate
 	    double err;
@@ -777,11 +777,7 @@ namespace nissa
 					num,den,degree,err,maxerr,found);
 	    
 	    //if not found increase number of poles
-	    if(!found)
-	      {
-		degree++;
-		rat_approx_destroy(&appr);
-	      }
+	    if(!found)degree++;
 	  }
 	while(!found);
 	

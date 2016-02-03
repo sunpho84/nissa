@@ -29,7 +29,7 @@ namespace nissa
     int def_ngauge_substeps(){return 5;}
     
     std::vector<int> npseudo_fs;
-    rat_approx_t *rat_appr;
+    std::vector<rat_approx_t> rat_appr;
     
     int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(int full=false)
@@ -49,7 +49,8 @@ namespace nissa
 	  if(full||ngauge_substeps!=def_ngauge_substeps()) os<<" NSubSteps\t=\t"<<ngauge_substeps<<"\n";
 	  if(full||npseudo_fs.size())
 	    {
-	      os<<" NPseudoFerms\t=\t{"<<npseudo_fs[0];
+	      os<<" NPseudoFerms\t=\t{";
+	      if(npseudo_fs.size()) os<<npseudo_fs[0];
 	      for(size_t i=1;i<npseudo_fs.size();i++) os<<","<<npseudo_fs[i];
 	      os<<"}\n";
 	    }

@@ -229,15 +229,15 @@ namespace nissa
     GET_THREAD_ID();
     
     //first destroy on non-sending
-    if(rank_from!=rank && rat->degree!=0) rat_approx_destroy(rat);
     THREAD_BARRIER(); //need to barrier to avoid race condition when later "rat-degree" is update through mpi_bcast
     
     //get degree
-    if(IS_MASTER_THREAD) MPI_Bcast(&(rat->degree),1,MPI_INT,rank_from,MPI_COMM_WORLD);
+    int degree=rat->degree();
+    if(IS_MASTER_THREAD) MPI_Bcast(&degree,1,MPI_INT,rank_from,MPI_COMM_WORLD);
     THREAD_BARRIER(); //need to barrier because "create" is collective call
     
     //allocate if not generated here
-    if(rank_from!=rank)	rat_approx_create(rat,rat->degree,NULL);
+    if(rank_from!=rank)	rat->resize(degree);
     
     //and now broadcast the remaining part
     if(IS_MASTER_THREAD)
@@ -249,8 +249,8 @@ namespace nissa
     	MPI_Bcast(&rat->num,1,MPI_INT,rank_from,MPI_COMM_WORLD);
     	MPI_Bcast(&rat->den,1,MPI_INT,rank_from,MPI_COMM_WORLD);
     	MPI_Bcast(&rat->cons,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-	MPI_Bcast(rat->poles,rat->degree,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-	MPI_Bcast(rat->weights,rat->degree,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+	MPI_Bcast(rat->poles.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+	MPI_Bcast(rat->weights.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
       }
     THREAD_BARRIER();
   }
