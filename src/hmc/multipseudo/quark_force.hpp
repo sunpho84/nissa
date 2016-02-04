@@ -2,6 +2,7 @@
 #define _QUARK_FORCE_HPP
 
 #include "multipseudo_rhmc_step.hpp"
+#include "new_types/rat_approx.hpp"
 
 namespace nissa
 {

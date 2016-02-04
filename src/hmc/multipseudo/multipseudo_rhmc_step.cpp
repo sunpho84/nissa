@@ -52,7 +52,7 @@ namespace nissa
   }
   
   //perform a full hmc step and return the difference between final and original action
-  double multipseudo_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,int itraj)
+  double multipseudo_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr,int itraj)
   {
     //header
     master_printf("Trajectory %d->%d\n",itraj,itraj+1);
@@ -93,12 +93,12 @@ namespace nissa
       }
     
     //generate the appropriate expansion of rational approximations
-    set_expansions(&simul_pars,sme_conf,&theory_pars);
+    set_expansions(&rat_appr,sme_conf,&theory_pars,&simul_pars);
     
     //shift all the poles of the mass
     for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
       for(int i=0;i<3;i++)
-	simul_pars.rat_appr[iflav*3+i].shift_all_poles(sqr(theory_pars.quarks[iflav].mass));
+	rat_appr[iflav*3+i].shift_all_poles(sqr(theory_pars.quarks[iflav].mass));
     
     //create pseudo-fermions and store action
     double pf_action=0;
@@ -107,7 +107,7 @@ namespace nissa
 	{
 	  verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs());
 	  double pf_action_flav;
-	  if(theory_pars.quarks[iflav].is_stag) generate_pseudo_fermion(&pf_action_flav,pf[iflav].stag[ipf],sme_conf,theory_pars.backfield[iflav],&simul_pars.rat_appr[3*iflav+0],simul_pars.pf_action_residue);
+	  if(theory_pars.quarks[iflav].is_stag) generate_pseudo_fermion(&pf_action_flav,pf[iflav].stag[ipf],sme_conf,theory_pars.backfield[iflav],&rat_appr[3*iflav+0],simul_pars.pf_action_residue);
 	  else crash("not yet implemented");
 	  pf_action+=pf_action_flav;
 	}
@@ -117,11 +117,11 @@ namespace nissa
     
     //compute initial action
     double init_action;
-    full_theory_action(&init_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars,pf_action);
+    full_theory_action(&init_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars,&rat_appr,pf_action);
     verbosity_lv2_master_printf("Initial action: %lg\n",init_action);
     
     //evolve
-    Omelyan_integrator(H,out_conf,pf,&theory_pars,&simul_pars);
+    Omelyan_integrator(H,out_conf,pf,&theory_pars,&simul_pars,&rat_appr);
     
     //if needed, resmear the conf
     if(theory_pars.stout_pars.nlevels!=0)
@@ -132,7 +132,7 @@ namespace nissa
     
     //compute final action
     double final_action;
-    full_theory_action(&final_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars);
+    full_theory_action(&final_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars,&rat_appr);
     verbosity_lv2_master_printf("Final action: %lg\n",final_action);
     
     //compute the diff
@@ -148,7 +148,7 @@ namespace nissa
     //shift back
     for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
       for(int i=0;i<3;i++)
-	simul_pars.rat_appr[iflav*3+i].shift_all_poles(-sqr(theory_pars.quarks[iflav].mass));
+	rat_appr[iflav*3+i].shift_all_poles(-sqr(theory_pars.quarks[iflav].mass));
     
     //take time
     hmc_time+=take_time();

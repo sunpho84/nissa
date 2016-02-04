@@ -34,9 +34,8 @@ namespace nissa
     void shift_all_poles(double sh) {for(int iterm=0;iterm<degree();iterm++) poles[iterm]+=sh;}
   };
   
-  std::string convert_rat_approx(std::vector<rat_approx_t> &appr);
+  void convert_rat_approx(char *&data,int &data_length,std::vector<rat_approx_t> &appr);
   std::vector<rat_approx_t> convert_rat_approx(const char *data,size_t len);
-  inline std::vector<rat_approx_t> convert_rat_approx(std::string &in) {return convert_rat_approx(in.c_str(),in.size());}
 }
 
 #endif

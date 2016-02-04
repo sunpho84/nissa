@@ -29,7 +29,6 @@ namespace nissa
     int def_ngauge_substeps(){return 5;}
     
     std::vector<int> npseudo_fs;
-    std::vector<rat_approx_t> rat_appr;
     
     int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(int full=false)
@@ -154,7 +153,7 @@ namespace nissa
   };
   
   double multipseudo_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,
-				 hmc_evol_pars_t &simul_pars,int itraj);
+			       hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr,int itraj);
 }
 
 #endif

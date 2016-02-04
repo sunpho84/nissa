@@ -125,7 +125,7 @@ namespace nissa
   /////////////////////////////////////// QUARK E/O PART ////////////////////////////////////////////////
   
   // Evolve momenta according to the rooted staggered force
-  THREADABLE_FUNCTION_6ARG(evolve_momenta_with_quark_force, quad_su3**,H, quad_su3**,conf, pseudofermion_t*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, double,dt)
+  THREADABLE_FUNCTION_7ARG(evolve_momenta_with_quark_force, quad_su3**,H, quad_su3**,conf, pseudofermion_t*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr, double,dt)
   {
     GET_THREAD_ID();
     
@@ -135,7 +135,7 @@ namespace nissa
     quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
     
     //compute the force
-    compute_quark_force(F,conf,pf,theory_pars,&simul_pars->rat_appr,&simul_pars->npseudo_fs,simul_pars->md_residue);
+    compute_quark_force(F,conf,pf,theory_pars,rat_appr,&simul_pars->npseudo_fs,simul_pars->md_residue);
     
     //#define DEBUG
     
@@ -224,7 +224,7 @@ namespace nissa
   
   ////////////////////////////////////// MACRO OMELYAN ////////////////////////////////////////////////
   
-  THREADABLE_FUNCTION_5ARG(Omelyan_integrator, quad_su3**,H, quad_su3**,conf, pseudofermion_t*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars)
+  THREADABLE_FUNCTION_6ARG(Omelyan_integrator, quad_su3**,H, quad_su3**,conf, pseudofermion_t*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
   {
     //macro step or micro step
     double dt=simul_pars->traj_length/simul_pars->nmd_steps,
@@ -233,7 +233,7 @@ namespace nissa
     topotential_pars_t tp=theory_pars->topotential_pars;
     
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-    evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,ldt);
+    evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,ldt);
     if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,ldt);
     
     //         Main loop
@@ -245,11 +245,11 @@ namespace nissa
 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
 	Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
-	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,uml2dt);
+	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,uml2dt);
 	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,uml2dt);
 	
 	Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
-	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,last_dt);
+	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,last_dt);
 	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt);
       }
     

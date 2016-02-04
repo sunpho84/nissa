@@ -7,28 +7,27 @@
 
 namespace nissa
 {
-  struct buffer_t : public std::stringstream
+  struct buffer_t
   {
     //return size
     int size()
     {
-      int cur=tellg();
-      seekg(0,std::ios::end);
-      int s=tellg();
-      seekg(cur,std::ios::beg);
-      
+      int cur=st.tellg();
+      st.seekg(0,std::ios::end);
+      int s=st.tellg();
+      st.seekg(cur,std::ios::beg);
       return s;
     }
+    std::ostream& write(const char *s,std::streamsize n){return st.write(s,n);}
+    std::istream& read(char *s,std::streamsize n){return st.read(s,n);}
+    bool operator!(){return !st;}
+  private:
+    std::stringstream st;
   };
-  template <class T> buffer_t &operator<<(buffer_t &out,T &in)
+  template <class T> buffer_t &operator<<(buffer_t &out,T in)
   {
-    if(!little_endian)
-      {
-        T temp=in;
-        change_endianness(temp);
-        out.write((char*)&temp,sizeof(T));
-      }
-    else out.write((char*)&in,sizeof(T));
+    if(!little_endian) change_endianness(in);
+    out.write((char*)&in,sizeof(T));
     
     return out;
   }

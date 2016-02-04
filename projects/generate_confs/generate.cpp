@@ -19,6 +19,7 @@ quad_su3 *conf[2];
 
 //all infos
 driver_t *drv;
+std::vector<rat_approx_t> rat_appr;
 
 //traj
 double init_time,max_traj_time=0;
@@ -48,7 +49,13 @@ void write_conf(std::string path,quad_su3 **conf)
   ILDG_string_message_append_to_last(&mess,"InputPars",("\n"+drv->get_str()).c_str());
   
   //rational approximation
-  ILDG_bin_message_append_to_last(&mess,"RAT_approx",convert_rat_approx(drv->evol_pars.rat_appr).c_str(),64);
+  {
+    char *appr_data=NULL;
+    int appr_data_length;
+    convert_rat_approx(appr_data,appr_data_length,rat_appr);
+    ILDG_bin_message_append_to_last(&mess,"RAT_approx",appr_data,appr_data_length);
+    nissa_free(appr_data);
+  }
   
   //#ifndef REPRODUCIBLE_RUN
   //skip 10 random numbers
@@ -122,7 +129,7 @@ void read_conf(quad_su3 **conf,const char *path)
 	      if((int)temp_appr.size()/3==drv->sea_theory().nflavs())
 		{
 		  rat_approx_found++;
-		  drv->evol_pars.rat_appr=temp_appr;
+		  rat_appr=temp_appr;
 		}
 	    }
 	}
@@ -160,7 +167,6 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
   //initialize the sweepers
   int nflavs=drv->sea_theory().nflavs();
   if(nflavs==0) init_sweeper(drv->sea_theory().gauge_action_name);
-  else drv->evol_pars.rat_appr.resize(3*nflavs);
   
   //load conf or generate it
   if(file_exists(drv->conf_pars.path))
@@ -288,7 +294,7 @@ int generate_new_conf(int itraj)
       int perform_test=(itraj>=drv->evol_pars.skip_mtest_ntraj);
       
       //integrare and compute difference of action
-      double diff_act=multipseudo_rhmc_step(new_conf,conf,drv->sea_theory(),drv->evol_pars,itraj);
+      double diff_act=multipseudo_rhmc_step(new_conf,conf,drv->sea_theory(),drv->evol_pars,rat_appr,itraj);
       
       //perform the test in any case
       master_printf("Diff action: %lg, ",diff_act);

@@ -132,7 +132,7 @@ namespace nissa
   }
   
   //scale the rational expansion
-  THREADABLE_FUNCTION_3ARG(set_expansions, hmc_evol_pars_t*,evol_pars, quad_su3**,eo_conf, theory_pars_t*,theory_pars)
+  THREADABLE_FUNCTION_4ARG(set_expansions, std::vector<rat_approx_t>*,rat_appr, quad_su3**,eo_conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,evol_pars)
   {
     GET_THREAD_ID();
     
@@ -157,7 +157,7 @@ namespace nissa
 	rem_backfield_from_conf(eo_conf,theory_pars->backfield[iflav]);
 	
 	//take the pointer to the rational approximations for current flavor and mark down degeneracy
-	rat_approx_t *appr=&evol_pars->rat_appr[3*iflav];
+	rat_approx_t *appr=&(*rat_appr)[3*iflav];
 	int deg=theory_pars->quarks[iflav].deg;
 	int npf=evol_pars->npseudo_fs[iflav];
 	
@@ -235,7 +235,7 @@ namespace nissa
     for(int ito=0;ito<nto_recreate;ito++)
       if(rank_recreating[ito]==rank)
 	{
-	  rat_approx_t *rat=&evol_pars->rat_appr[iappr_to_recreate[ito]];
+	  rat_approx_t *rat=&(*rat_appr)[iappr_to_recreate[ito]];
 	  generate_approx_of_maxerr(*rat,min_to_recreate[ito],max_to_recreate[ito],maxerr_to_recreate[ito],rat->num,rat->den);
 	}
     if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
@@ -244,7 +244,7 @@ namespace nissa
     //now collect from other nodes
     for(int ito=0;ito<nto_recreate;ito++)
       {
-	rat_approx_t *rat=&evol_pars->rat_appr[iappr_to_recreate[ito]];
+	rat_approx_t *rat=&(*rat_appr)[iappr_to_recreate[ito]];
 	broadcast(rat,rank_recreating[ito]);
 	verbosity_lv1_master_printf("Approximation x^(%d/%d) recreated, now %d terms present\n",rat->num,rat->den,rat->degree());
       }

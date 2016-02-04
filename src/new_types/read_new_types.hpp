@@ -1,13 +1,8 @@
 #ifndef _READ_NEW_TYPES_HPP
 #define _READ_NEW_TYPES_HPP
 
-#include "operations/stag/putpourri.hpp"
-#include "operations/stag/magnetization.hpp"
-#include "operations/stag/mesons.hpp"
-#include "operations/stag/nucleon.hpp"
-#include "operations/stag/rendens.hpp"
-#include "operations/stag/spinpol.hpp"
-#include "operations/su3_paths/topological_charge.hpp"
+#include "operations/smearing/stout.hpp"
+#include "operations/smearing/APE.hpp"
 
 namespace nissa
 {

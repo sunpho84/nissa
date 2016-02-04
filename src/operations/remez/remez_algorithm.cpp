@@ -764,7 +764,7 @@ namespace nissa
 	do
 	  {
 	    //allocate it
-	    appr.resize(degree);
+	    THREAD_ATOMIC_EXEC(if(IS_MASTER_THREAD) appr.resize(degree));
 	    
 	    //generate
 	    double err;

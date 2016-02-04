@@ -25,9 +25,9 @@ namespace nissa
     std::ostringstream out;
     out.precision(16);
     out<<"Rational approximation \""<<name<<"\" of x^("<<num<<"/"<<den<<"):\n";
-    out<<"  valid in the interval: "<<minimum<<" "<<maximum<<" with a maximal relative error of: "<<maxerr<<"%lg\n";
-    out<<"  const: "<<cons<<"%.16lg\n";
-    out<<"  degree: "<<degree()<<"%d\n";
+    out<<"  valid in the interval: "<<minimum<<" "<<maximum<<" with a maximal relative error of: "<<maxerr<<"\n";
+    out<<"  const: "<<cons<<"\n";
+    out<<"  degree: "<<degree()<<"\n";
     for(int iterm=0;iterm<degree();iterm++)
       out<<"   "<<iterm<<") pole: "<<poles[iterm]<<", weight: "<<weights[iterm]<<"\n";
     
@@ -81,15 +81,18 @@ namespace nissa
   }
   
   //convert an approximation to store it
-  void convert_rat_approx(buffer_t &s,std::vector<rat_approx_t> &appr)
+  void convert_rat_approx(char *&data,int &data_length,std::vector<rat_approx_t> &appr)
   {
+    buffer_t s;
+    
     //write nflav
-    s<<appr.size()/3;
+    s<<(int)(appr.size()/3);;
     
     //store each approx
     for(size_t i=0;i<appr.size();i++)
       {
 	s<<appr[i].degree();
+	master_printf("degree: %d\n",appr[i].degree());
 	s.write(appr[i].name,20);
 	s<<appr[i].minimum;
 	s<<appr[i].maximum;
@@ -100,12 +103,12 @@ namespace nissa
 	for(int j=0;j<appr[i].degree();j++)
 	  s<<appr[i].poles[j]<<appr[i].weights[j];
       }
-  }
-  std::string convert_rat_approx(std::vector<rat_approx_t> &appr)
-  {
-    //create a stream
-    buffer_t s;
-    convert_rat_approx(s,appr);
-    return s.str();
+    
+    //allocate data
+    data_length=s.size();
+    data=nissa_malloc("data",data_length,char);
+    
+    //copy data
+    s.read(data,data_length);
   }
 }
