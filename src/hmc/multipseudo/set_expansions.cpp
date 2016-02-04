@@ -146,6 +146,9 @@ namespace nissa
     double max_to_recreate[3*nflavs];
     double maxerr_to_recreate[3*nflavs];
     
+    //check that we have the appropriate number of quarks
+    THREAD_ATOMIC_EXEC(if(IS_MASTER_THREAD) rat_appr->resize(3*nflavs));
+    
     const int max_iter=100;
     for(int iflav=0;iflav<nflavs;iflav++)
       {

@@ -103,7 +103,6 @@ void read_conf(quad_su3 **conf,const char *path)
   read_ildg_gauge_conf_and_split_into_eo_parts(conf,path,&mess);
   
   //scan messages
-  int rat_approx_found=0;
   for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
     {
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
@@ -112,36 +111,11 @@ void read_conf(quad_su3 **conf,const char *path)
 	drv->sea_theory().topotential_pars.grid.convert_from_message(*cur_mess);
       
       //check for rational approximation
-      if(drv->evol_pars.ntraj_tot)
+      if(strcasecmp(cur_mess->name,"RAT_approx")==0)
 	{
-	  if(strcasecmp(cur_mess->name,"RAT_approx")==0)
-	    {
-	      verbosity_lv1_master_printf("Rational approximation found in the configuration\n");
-	      
-	      //check that no other approx found and mark it
-	      if(rat_approx_found!=0) crash("a rational approximation has been already found!");
-	      rat_approx_found++;
-	      
-	      //strategy: load in a temporary array and check that it is appropriate
-	      std::vector<rat_approx_t> temp_appr=convert_rat_approx(cur_mess->data,cur_mess->data_length);
-	      
-	      //check and possibly copy
-	      if((int)temp_appr.size()/3==drv->sea_theory().nflavs())
-		{
-		  rat_approx_found++;
-		  rat_appr=temp_appr;
-		}
-	    }
+	  verbosity_lv1_master_printf("Rational approximation found in the configuration\n");
+	  rat_appr=convert_rat_approx(cur_mess->data,cur_mess->data_length);
 	}
-    }
-  
-  //report on rational approximation
-  switch(rat_approx_found)
-    {
-    case 0: if(drv->evol_pars.ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
-    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for different flavors than what we are running\n");
-    case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
-    default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
     }
   
   //if message with string not found start from input seed
