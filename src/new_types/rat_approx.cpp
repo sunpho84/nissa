@@ -86,13 +86,12 @@ namespace nissa
     buffer_t s;
     
     //write nflav
-    s<<(int)(appr.size()/3);;
+    s<<(int)(appr.size()/3);
     
     //store each approx
     for(size_t i=0;i<appr.size();i++)
       {
 	s<<appr[i].degree();
-	master_printf("degree: %d\n",appr[i].degree());
 	s.write(appr[i].name,20);
 	s<<appr[i].minimum;
 	s<<appr[i].maximum;
