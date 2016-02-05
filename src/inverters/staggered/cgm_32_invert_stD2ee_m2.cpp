@@ -12,6 +12,7 @@
 
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "linalgs/linalgs.hpp"
 
 namespace nissa

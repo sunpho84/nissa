@@ -10,6 +10,7 @@
 #include "communicate/all_to_all.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

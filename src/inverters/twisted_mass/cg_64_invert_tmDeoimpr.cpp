@@ -6,6 +6,7 @@
 
 #ifdef BGQ
  #include "cg_64_invert_tmDeoimpr_bgq.hpp"
+ #include "geometry/geometry_eo.hpp"
  #include "geometry/geometry_vir.hpp"
 #endif
 #include "base/bench.hpp"

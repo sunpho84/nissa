@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/macros.hpp"
 #include "base/thread_macros.hpp"
 #include "bgq/bgq_macros.hpp"
 #include "bgq/intrinsic.hpp"

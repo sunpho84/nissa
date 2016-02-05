@@ -1,7 +1,6 @@
 #ifndef _STAGGERED_HOPPING_MATRIX_BGQ_EO_OR_OE_HPP
 #define _STAGGERED_HOPPING_MATRIX_BGQ_EO_OR_OE_HPP
 
-#include "base/macros.hpp"
 #include "new_types/su3.hpp"
 
 namespace nissa

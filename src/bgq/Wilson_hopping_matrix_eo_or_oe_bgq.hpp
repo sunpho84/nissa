@@ -2,7 +2,6 @@
 #define _WILSON_HOPPING_MATRIX_BGQ_EO_OR_OE_HPP
 
 #include "Wilson_hopping_matrix_lx_bgq.hpp"
-#include "base/macros.hpp"
 
 namespace nissa
 {
