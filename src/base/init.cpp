@@ -140,6 +140,12 @@ namespace nissa
     for(int mu=1;mu<NDIM;mu++) scidac_mapping[mu]=NDIM-mu;
     
     for(int mu=0;mu<NDIM;mu++) all_dirs[mu]=1;
+    for(int mu=0;mu<NDIM;mu++)
+      for(int nu=0;nu<NDIM;nu++)
+	{
+	  only_dir[mu][nu]=(mu==nu);
+	  all_other_dirs[mu][nu]=(mu!=nu);
+	}
     //perpendicular dir
 #if NDIM >= 2
     for(int mu=0;mu<NDIM;mu++)

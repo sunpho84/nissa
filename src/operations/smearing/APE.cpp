@@ -87,15 +87,4 @@ namespace nissa
     nissa_free(temp_conf);
   }
   THREADABLE_FUNCTION_END
-
-  void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
-  {
-    int dirs[3]={1,2,3};
-    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,3,dirs);
-  }
-  void ape_temporal_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
-  {
-    int dirs[1]={0};
-    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,1,dirs);
-  }
 }

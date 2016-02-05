@@ -3,6 +3,7 @@
 
 #include <sstream>
 
+#include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 
@@ -43,8 +44,7 @@ namespace nissa
       dt(def_dt()) {}
   };
   
-  void adaptative_stout_lx_conf(quad_su3 *conf,double *t,double Tmax,double *ext_dt);
-  void Wflow_lx_conf(quad_su3 *conf,double dt);
+  void Wflow_lx_conf(quad_su3 *conf,double dt,int *dirs=all_dirs);
 }
 
 #endif

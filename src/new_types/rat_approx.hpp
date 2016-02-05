@@ -21,8 +21,8 @@ namespace nissa
     std::vector<double> poles;
     std::vector<double> weights;
     rat_approx_t() :
-      name(""),minimum(0),maximum(0),maxerr(0),cons(0),
-      num(0),den(0) {}
+      minimum(0),maximum(0),maxerr(0),cons(0),
+      num(0),den(0){name[0]='\0';}
     
     //return the degree
     int degree(){return poles.size();}

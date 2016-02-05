@@ -12,7 +12,7 @@ namespace nissa
   //parameters to smooth a configuration
   struct smooth_pars_t
   {
-    enum method_t{UNSPEC_SMOOTH_METHOD,COOLING,STOUT,WFLOW,APE,HYP};
+    enum method_t{COOLING,STOUT,WFLOW,APE,HYP};
     
     //basic
     method_t method;
@@ -36,7 +36,18 @@ namespace nissa
 	case WFLOW:return "WFlow";break;
 	case APE:return "Ape";break;
 	case HYP:return "Hyp";break;
-	case UNSPEC_SMOOTH_METHOD:return "Unspec";break;
+	}
+    }
+    
+    int nmeas()
+    {
+      switch(method)
+	{
+	case COOLING:return cool.nsteps/(int)meas_each;break;
+	case STOUT:return stout.nlevels/(int)meas_each; break;
+	case WFLOW:return Wflow.T/meas_each;break;
+	case APE:return ape.nlevels/(int)meas_each;break;
+	case HYP:return hyp.nlevels/(int)meas_each;break;
 	}
     }
     
@@ -55,7 +66,8 @@ namespace nissa
       meas_each(def_meas_each()) {}
   };
   
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,double &t,double &tnext_meas);
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,double &t,double &tnext_meas,int *dirs=all_dirs);
+  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs=all_dirs);
 }
 
 #endif

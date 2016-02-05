@@ -69,7 +69,7 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, double,rho)
+  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, double,rho, int*,dirs)
   {
     GET_THREAD_ID();
     
@@ -89,17 +89,18 @@ namespace nissa
     
     for(int p=0;p<2;p++)
       for(int mu=0;mu<NDIM;mu++)
-	NISSA_PARALLEL_LOOP(A,0,loc_volh)
-	  {
-	    //compute the staples needed to smear
-	    stout_link_staples sto_ste;
-	    stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
-	    
-	    //exp(iQ)*U (eq. 3)
-	    su3 expiQ;
-	    safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-	    unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
-	  }
+	if(dirs[mu])
+	  NISSA_PARALLEL_LOOP(A,0,loc_volh)
+	    {
+	      //compute the staples needed to smear
+	      stout_link_staples sto_ste;
+	      stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
+	      
+	      //exp(iQ)*U (eq. 3)
+	      su3 expiQ;
+	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
+	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
+	    }
     
     //invalid the border and free allocated memory, if any
     for(int eo=0;eo<2;eo++)
@@ -113,14 +114,14 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   //smear n times, using only one additional vectors
-  THREADABLE_FUNCTION_3ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars)
+  THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars, int*,dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
     switch(stout_pars->nlevels)
       {
       case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
       case 1:
-	stout_smear_single_level(ext_out,ext_in,stout_pars->rho);
+	stout_smear_single_level(ext_out,ext_in,stout_pars->rho,dirs);
 	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_out));
 	break;
       default:
@@ -136,7 +137,7 @@ namespace nissa
 	
 	for(int i=0;i<stout_pars->nlevels;i++)
 	  {
-	    stout_smear_single_level(out,in,stout_pars->rho);
+	    stout_smear_single_level(out,in,stout_pars->rho,dirs);
             verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(out));
 	    //next input is current output
 	    in=out;
@@ -149,7 +150,7 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
-
+  
   //allocate all the stack for smearing
   THREADABLE_FUNCTION_3ARG(stout_smear_conf_stack_allocate, quad_su3****,out, quad_su3**,in, int,nlev)
   {
@@ -162,7 +163,7 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
-
+  
   //free all the stack of allocated smeared conf
   THREADABLE_FUNCTION_2ARG(stout_smear_conf_stack_free, quad_su3****,out, int,nlev)
   {
@@ -174,14 +175,14 @@ namespace nissa
     nissa_free(*out);
   }
   THREADABLE_FUNCTION_END
-
+  
   //smear iteratively retainig all the stack
-  THREADABLE_FUNCTION_3ARG(stout_smear_whole_stack, quad_su3***,out, quad_su3**,in, stout_pars_t*,stout_pars)
+  THREADABLE_FUNCTION_4ARG(stout_smear_whole_stack, quad_su3***,out, quad_su3**,in, stout_pars_t*,stout_pars, int*,dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)
       {
-	stout_smear_single_level(out[i],out[i-1],stout_pars->rho);
+	stout_smear_single_level(out[i],out[i-1],stout_pars->rho,dirs);
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
       }
   }

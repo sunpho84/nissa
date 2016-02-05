@@ -87,19 +87,13 @@ namespace nissa
   //compute all possible rectangular paths among a defined interval
   THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rects_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
-    crash("To be fixed");
-    /*
 #if NDIM>=3
     GET_THREAD_ID();
-
+    
     verbosity_lv1_master_printf("Computing all rectangular paths\n");
     
-    //take a copy of smear pars
-    gauge_obs_temp_spat_smear_pars_t *smear_pars=&pars->smear_pars;
-    gauge_obs_temp_smear_pars_t *temp_smear_pars=&smear_pars->gauge_temp_smear_pars;
-    
     //remapping
-    int nape_spat_levls=smear_pars->nape_spat_levls,ntot_sme=1+nape_spat_levls;
+    int nspat_sme=pars->spat_smear_pars.nmeas(),ntot_sme=1+nspat_sme;
     int prp_vol[12],cmp_vol[12],imu01=0,mu0_l[12],mu1_l[12],cmp_vol_max=0;
     vector_remap_t *remap[12];
     su3 *transp_conf[12];
@@ -135,19 +129,16 @@ namespace nissa
     
     //hyp or APE smear the conf
     quad_su3 *sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-    for(int mu0=0;mu0<4;mu0++)
+    for(int mu0=0;mu0<NDIM;mu0++)
       {
-	if(temp_smear_pars->use_hyp_or_ape_temp==0)
-	  hyp_smear_conf_dir(sme_conf,ori_conf,temp_smear_pars->hyp_temp_alpha0,
-			     temp_smear_pars->hyp_temp_alpha1,temp_smear_pars->hyp_temp_alpha2,mu0);
-	else ape_single_dir_smear_conf(sme_conf,ori_conf,temp_smear_pars->ape_temp_alpha,temp_smear_pars->nape_temp_iters,mu0);
+	smooth_lx_conf(sme_conf,pars->spat_smear_pars,only_dir[0]);
 	verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
 	
 	//store temporal links and send them
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  su3_copy(pre_transp_conf_holder[ivol],sme_conf[ivol][mu0]);
-	THREAD_BARRIER();	
-	for(int imu1=0;imu1<3;imu1++)
+	THREAD_BARRIER();
+	for(int imu1=0;imu1<NDIM-1;imu1++)
 	  {
 	    int imu01=mu0*3+imu1;
 	    remap[imu01]->remap(post_transp_conf_holder,pre_transp_conf_holder,sizeof(su3));
@@ -322,7 +313,6 @@ namespace nissa
 #else
     crash("not implemented");
 #endif
-    */
   }
   THREADABLE_FUNCTION_END
   

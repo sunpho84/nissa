@@ -3,6 +3,7 @@
 
 #include <sstream>
 
+#include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
 #include "new_types/su3.hpp"
 
@@ -51,8 +52,7 @@ namespace nissa
       nlevels(def_nlevels()) {}
   };
   
-  void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2);
-  void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2,int req_mu);
+  void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2,int *dirs=all_dirs);
 }
 
 #endif

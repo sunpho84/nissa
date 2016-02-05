@@ -12,7 +12,8 @@ namespace nissa
     int each;
     int after;
     std::string path;
-    smooth_pars_t smear_pars;
+    smooth_pars_t temp_smear_pars;
+    smooth_pars_t spat_smear_pars;
     int Tmin,Tmax,Dmin,Dmax;
     
     int def_each(){return 1;}
@@ -33,7 +34,8 @@ namespace nissa
 	Tmax!=def_Tmax()||
 	Dmin!=def_Dmin()||
 	Dmax!=def_Dmax()||
-	smear_pars.is_nonstandard();
+	temp_smear_pars.is_nonstandard()||
+	spat_smear_pars.is_nonstandard();
     }
     
     all_rects_meas_pars_t() :
