@@ -113,6 +113,29 @@ tm_quark_info get_lepton_info(int ilepton,int orie,int r)
 
 ///////////////////////////////// initialise the library, read input file, allocate /////////////////////////////////////
 
+//set all the inversions and contractions
+void set_inversion_contractions()
+{
+  //add the propagators
+  qprop_list.clear();
+  PROP_0=add_qprop("PROP_0",'0',ORIGINAL,0);
+  PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
+  PROP_P=add_qprop("PROP_P",'P',PSEUDO,PROP_0);
+  PROP_T=add_qprop("PROP_T",'T',TADPOLE,PROP_0);
+  PROP_PHOTON=add_qprop("PROP_PHOTON",'L',PHOTON,PROP_0);
+  PROP_PHOTON2=add_qprop("PROP_PHOTON2",'M',PHOTON,PROP_PHOTON);
+  
+  //add the contraction combination
+  prop_hadr_corr_map.clear();
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_0));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_S));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_P));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_T));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_PHOTON2));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_PHOTON,PROP_PHOTON));
+  //prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_VECTOR));
+}
+
 void init_simulation(char *path)
 {
   //open input file
@@ -193,9 +216,11 @@ void init_simulation(char *path)
   read_nsources();
   read_ngauge_conf();
   
+  set_inversion_contractions();
+  
   ///////////////////// finihed reading apart from conf list ///////////////
   
-  //Allocate
+  //allocate
   nqprop=iqprop(nqmass-1,nqprop_kind()-1,nr-1)+1;
   nlprop=ilprop(nleptons-1,nlins-1,norie-1,nr-1)+1;
   
@@ -238,25 +263,6 @@ void start_new_conf()
   //reset correlations
   vector_reset(hadr_corr);
   vector_reset(hadrolept_corr);
-  
-  //add the propagators
-  qprop_list.clear();
-  PROP_0=add_qprop("PROP_0",'0',ORIGINAL,0);
-  PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
-  PROP_P=add_qprop("PROP_P",'P',PSEUDO,PROP_0);
-  PROP_T=add_qprop("PROP_T",'T',TADPOLE,PROP_0);
-  PROP_PHOTON=add_qprop("PROP_PHOTON",'L',PHOTON,PROP_0);
-  PROP_PHOTON2=add_qprop("PROP_PHOTON2",'M',PHOTON,PROP_PHOTON);
-  
-  //add the contraction combination
-  prop_hadr_corr_map.clear();
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_0));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_S));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_P));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_T));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_PHOTON2));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_PHOTON,PROP_PHOTON));
-  //prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_VECTOR));
 }
 
 //generate a wall-source for stochastic QCD propagator
@@ -347,6 +353,7 @@ void generate_quark_propagators()
 	  {
 	    if(!pure_wilson) master_printf(" mass[%d]=%lg, r=%d\n",imass,qmass[imass],r);
 	    else             master_printf(" kappa[%d]=%lg\n",imass,qkappa[imass]);
+	    
 	    generate_source(insertion,r,Q[iqprop(imass,isource,r)]);
 	    get_qprop(Q[iqprop(imass,ip,r)],source,imass,r);
 	  }

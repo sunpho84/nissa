@@ -25,14 +25,15 @@ namespace nissa
     quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     if(origi_conf!=smear_conf) double_vector_copy((double*)smear_conf,(double*)origi_conf,loc_vol*sizeof(quad_su3)/sizeof(double));
     
-    char dirs[21]="";
+    char listed_dirs[21]="";
     for(int mu=0;mu<NDIM;mu++)
-      {
-	char temp[3];
-	snprintf(temp,3,",%d",dirs[mu]);
-	strncat(dirs,temp,20);
-      }
-    verbosity_lv1_master_printf("APE {%s} smearing with alpha=%g, %d iterations\n",dirs,alpha,nstep);
+      if(dirs[mu])
+	{
+	  char temp[3];
+	  snprintf(temp,3,"%d ",mu);
+	  strncat(listed_dirs,temp,20);
+	}
+    verbosity_lv1_master_printf("APE { %s} smearing with alpha=%g, %d iterations\n",listed_dirs,alpha,nstep);
     
     for(int istep=0;istep<nstep;istep++)
       {
