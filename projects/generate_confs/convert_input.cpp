@@ -299,7 +299,7 @@ void read_all_rect_meas_pars(all_rects_meas_pars_t &pars,int flag=false)
   if(flag)
     {
       pars.path=read_path();
-      read_gauge_obs_temp_smear_pars(pars.smear_pars);
+      read_gauge_obs_temp_smear_pars(pars.temp_smear_pars);
       read_str_int("Tint",&pars.Tmin);
       read_int(&pars.Tmax);
       read_str_int("Dint",&pars.Dmin);

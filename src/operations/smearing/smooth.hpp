@@ -48,6 +48,7 @@ namespace nissa
 	case WFLOW:return Wflow.T/meas_each;break;
 	case APE:return ape.nlevels/(int)meas_each;break;
 	case HYP:return hyp.nlevels/(int)meas_each;break;
+	default:crash("not meant to be reached");return 0;
 	}
     }
     
@@ -66,8 +67,8 @@ namespace nissa
       meas_each(def_meas_each()) {}
   };
   
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,double &t,double &tnext_meas,int *dirs=all_dirs);
-  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs=all_dirs);
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,double &t,double &tnext_meas,int *dirs=all_dirs,int staple_min_dir=0);
+  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs=all_dirs,int staple_min_dir=0);
 }
 
 #endif

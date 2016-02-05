@@ -34,7 +34,7 @@ namespace nissa
         icmp/=L[mu];
       }
   }
-
+  
   //return the three coords of site in the transposed space
   int get_site_of_tricoords(tricoords_t c,tricoords_t L)
   {
@@ -73,7 +73,7 @@ namespace nissa
 #if NDIM>=3
     int mu0=((int*)pars)[0],imu1=((int*)pars)[1],prp_vol=((int*)pars)[2];
     int mu1=perp_dir[mu0][imu1],mu2=perp2_dir[mu0][imu1][0],mu3=perp2_dir[mu0][imu1][1];
-
+    
     //find dest in the global indexing
     int *g=glb_coord_of_loclx[iloc_lx];
     int glb_dest_site=g[mu1]+glb_size[mu1]*(g[mu0]+glb_size[mu0]*(g[mu2]+glb_size[mu2]*g[mu3]));
@@ -131,7 +131,8 @@ namespace nissa
     quad_su3 *sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     for(int mu0=0;mu0<NDIM;mu0++)
       {
-	smooth_lx_conf(sme_conf,pars->spat_smear_pars,only_dir[0]);
+	vector_copy(sme_conf,ori_conf);
+	smooth_lx_conf(sme_conf,pars->temp_smear_pars,only_dir[0]);
 	verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
 	
 	//store temporal links and send them
@@ -147,14 +148,15 @@ namespace nissa
 	    THREAD_BARRIER();
 	  }
 	
-	//spatial APE smearing
-	for(int iape=0;iape<nape_spat_levls;iape++)
+	//spatial smearing
+	double t=0,tnext_meas=0;
+	bool finished;
+	int imeas=0;
+	do
 	  {
-	    ape_perp_dir_smear_conf(sme_conf,sme_conf,smear_pars->ape_spat_alpha,
-				    (iape==0)?smear_pars->nape_spat_iters[0]:
-				    (smear_pars->nape_spat_iters[iape]-smear_pars->nape_spat_iters[iape-1]),mu0);
-	    verbosity_lv1_master_printf("Plaquette after %d perp %d ape smears: %16.16lg\n",
-					iape+1,mu0,global_plaquette_lx_conf(sme_conf));
+	    finished=smooth_lx_conf_until_next_meas(sme_conf,pars->spat_smear_pars,t,tnext_meas,all_other_dirs[mu0]);
+	    verbosity_lv1_master_printf("Plaquette after %d perp to dir time %lg smooth: %16.16lg\n",
+					imeas,mu0,tnext_meas,global_plaquette_lx_conf(sme_conf));
 	    
 	    //store "spatial" links and send them
 	    for(int imu1=0;imu1<3;imu1++)
@@ -166,10 +168,13 @@ namespace nissa
 		THREAD_BARRIER();
 		remap[imu01]->remap(post_transp_conf_holder,pre_transp_conf_holder,sizeof(su3));
 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
-		  su3_copy(transp_conf[imu01][icmp+cmp_vol[imu01]*(1+iape)],post_transp_conf_holder[icmp]);
+		  su3_copy(transp_conf[imu01][icmp+cmp_vol[imu01]*(1+imeas)],post_transp_conf_holder[icmp]);
 		THREAD_BARRIER();
 	      }
+	    imeas++;
+	    if(imeas>nspat_sme) crash("imeas %d while max expected %d",imeas,nspat_sme);
 	  }
+	while(!finished);
       }
     
     //free smeared conf, pre-post buffers and remappers
@@ -183,7 +188,7 @@ namespace nissa
     //all the rectangles
     int dD=pars->Dmax+1-pars->Dmin;
     int dT=pars->Tmax+1-pars->Tmin;
-    int nrect=dD*dT*12*nape_spat_levls;
+    int nrect=dD*dT*12*nspat_sme;
     double *all_rectangles=nissa_malloc("all_rectangles",nrect*NACTIVE_THREADS,double);
     vector_reset(all_rectangles);
     double *all_rectangles_loc_thread=all_rectangles+nrect*THREAD_ID;
@@ -204,11 +209,11 @@ namespace nissa
 	    //take initial link
 	    su3 U;
 	    su3_copy(U,transp_conf[imu01][icmp+cmp_vol[imu01]*0]);
-
+	    
 	    //arrive to initial t
 	    for(int t=1;t<pars->Tmin;t++)
 	      safe_su3_prod_su3(U,U,transp_conf[imu01][site_shift(icmp,L,1,t)+cmp_vol[imu01]*0]);
-
+	    
 	    //multiply all the rest
 	    for(int dt=0;dt<dT;dt++)
 	      {
@@ -217,18 +222,18 @@ namespace nissa
 	      }
 	  }
 	
-	for(int iape=0;iape<nape_spat_levls;iape++)
+	for(int ispat_sme=0;ispat_sme<nspat_sme;ispat_sme++)
 	  {
 	    //create Dlines up to Dmin
 	    NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 	      {
 		//copy initial link
-		su3_copy(Dline[icmp],transp_conf[imu01][icmp+cmp_vol[imu01]*(1+iape)]);
-
+		su3_copy(Dline[icmp],transp_conf[imu01][icmp+cmp_vol[imu01]*(1+ispat_sme)]);
+		
 		//procede until minimum
 		for(int d=1;d<pars->Dmin;d++)
 		  safe_su3_prod_su3(Dline[icmp],Dline[icmp],
-				    transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+iape)]);
+				    transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+ispat_sme)]);
 	      }
 	    THREAD_BARRIER();
 	    
@@ -259,7 +264,7 @@ namespace nissa
 		//prolong
 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 		  safe_su3_prod_su3(Dline[icmp],Dline[icmp],
-				    transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+iape)]);
+				    transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+ispat_sme)]);
 		THREAD_BARRIER();
 	      }
 	  }
@@ -292,13 +297,13 @@ namespace nissa
 	    irect=0;
 	    char dir_name[5]="txyz";
 	    for(int imu01=0;imu01<12;imu01++)
-	      for(int iape=0;iape<nape_spat_levls;iape++)
+	      for(int isme=0;isme<nspat_sme;isme++)
 		for(int dd=0;dd<dD;dd++)
 		  for(int dt=0;dt<dT;dt++)
 		    {
-		      fprintf(fout,"cnf=%d %c_ape_%d=%d %c_hyp=%d %16.16lg\n",
+		      fprintf(fout,"cnf=%d %c_spatsme_%lg=%d %c_hyp=%d %16.16lg\n",
 			      iconf,
-			      dir_name[mu1_l[imu01]],smear_pars->nape_spat_iters[iape],dd+pars->Dmin,
+			      dir_name[mu1_l[imu01]],isme*pars->spat_smear_pars.meas_each,dd+pars->Dmin,
 			      dir_name[mu0_l[imu01]],dt+pars->Tmin,
 			      all_rectangles_glb[irect++]/(3*glb_vol));
 		    }

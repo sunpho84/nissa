@@ -79,6 +79,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX coords all_dirs;
   EXTERN_GEOMETRY_LX coords only_dir[NDIM];
   EXTERN_GEOMETRY_LX coords all_other_dirs[NDIM];
+  EXTERN_GEOMETRY_LX coords all_other_spat_dirs[NDIM];
 #if NDIM >= 2
   EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
 #endif

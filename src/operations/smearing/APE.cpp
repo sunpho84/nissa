@@ -18,7 +18,7 @@ namespace nissa
 {
   //perform ape smearing
   //be sure not to have border condition added
-  THREADABLE_FUNCTION_6ARG(ape_smear_conf, quad_su3*,smear_conf, quad_su3*,origi_conf, double,alpha, int,nstep, int,ndirs, int*,dirs_list)
+  THREADABLE_FUNCTION_6ARG(ape_smear_conf, quad_su3*,smear_conf, quad_su3*,origi_conf, double,alpha, int,nstep, int*,dirs, int,min_staple_dir)
   {
     GET_THREAD_ID();
     
@@ -26,11 +26,10 @@ namespace nissa
     if(origi_conf!=smear_conf) double_vector_copy((double*)smear_conf,(double*)origi_conf,loc_vol*sizeof(quad_su3)/sizeof(double));
     
     char dirs[21]="";
-    if(ndirs) sprintf(dirs,"%d",dirs_list[0]);
-    for(int idir=1;idir<ndirs;idir++)
+    for(int mu=0;mu<NDIM;mu++)
       {
 	char temp[3];
-	snprintf(temp,3,",%d",dirs_list[idir]);
+	snprintf(temp,3,",%d",dirs[mu]);
 	strncat(dirs,temp,20);
       }
     verbosity_lv1_master_printf("APE {%s} smearing with alpha=%g, %d iterations\n",dirs,alpha,nstep);
@@ -44,15 +43,13 @@ namespace nissa
 	communicate_lx_quad_su3_edges(temp_conf);
 	
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  {
-	    for(int idir=0;idir<ndirs;idir++)
+	  for(int mu=0;mu<NDIM;mu++)
+	    if(dirs[mu])
 	      {
-		int mu=dirs_list[idir];
-		
 		//calculate staples
 		su3 stap,temp1,temp2;
 		su3_put_to_zero(stap);
-		for(int nu=1;nu<4;nu++)                   //  E---F---C
+		for(int nu=min_staple_dir;nu<NDIM;nu++)   //  E---F---C
 		  if(nu!=mu)                              //  |   |   | mu
 		    {                                     //  D---A---B
 		      int A=ivol;                         //   nu
@@ -71,8 +68,8 @@ namespace nissa
 		
 		//create new link to be reunitarized
 		su3 prop_link;
-		for(int icol1=0;icol1<3;icol1++)
-		  for(int icol2=0;icol2<3;icol2++)
+		for(int icol1=0;icol1<NCOL;icol1++)
+		  for(int icol2=0;icol2<NCOL;icol2++)
 		    for(int ri=0;ri<2;ri++)
 		      //prop_link[icol1][icol2][ri]=(1-alpha)*temp_conf[ivol][mu][icol1][icol2][ri]+alpha/6*stap[icol1][icol2][ri];
 		      prop_link[icol1][icol2][ri]=temp_conf[ivol][mu][icol1][icol2][ri]+alpha*stap[icol1][icol2][ri];
@@ -80,9 +77,8 @@ namespace nissa
 		su3_unitarize_maximal_trace_projecting(smear_conf[ivol][mu],prop_link);
 	      }
 	  }
-	
-	set_borders_invalid(smear_conf);
-      }
+    
+    set_borders_invalid(smear_conf);
     
     nissa_free(temp_conf);
   }

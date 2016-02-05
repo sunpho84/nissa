@@ -21,7 +21,7 @@ namespace nissa
 {
   //smear a conf using hyp
   //warning, the input conf needs to have edges allocate!
-  THREADABLE_FUNCTION_6ARG(hyp_smear_conf_dir, quad_su3*,sm_conf, quad_su3*,conf, double,alpha0, double,alpha1, double,alpha2, int*,dirs)
+  THREADABLE_FUNCTION_6ARG(hyp_smear_conf, quad_su3*,sm_conf, quad_su3*,conf, double,alpha0, double,alpha1, double,alpha2, int*,dirs)
   {
 #if NDIM == 4
     GET_THREAD_ID();
