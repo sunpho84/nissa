@@ -65,6 +65,10 @@
  #define EXTERN_COMMUNICATE extern
 #endif
 
+#ifdef SPI
+ #include <spi/include/kernel/MU.h>
+#endif
+
 namespace nissa
 {
   
@@ -80,7 +84,7 @@ namespace nissa
 #else
     //destinations and source ranks
     int send_rank[8],recv_rank[8];
-#    //requests and message
+    //requests and message
     MPI_Request requests[16];
     int nrequest,imessage;
 #endif

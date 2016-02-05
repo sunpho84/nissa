@@ -501,6 +501,13 @@ inline void cache_flush()
 #endif
 }
 
+#if defined BGQ && (! defined BGQ_EMU)
+namespace nissa
+{
+  extern unsigned int nthreads;
+}
+#endif
+
 //barrier without any possible checking
 inline void thread_barrier_internal()
 {

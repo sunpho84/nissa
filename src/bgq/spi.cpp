@@ -5,17 +5,14 @@
 #include <malloc.h>
 #include <stdlib.h>
 
-#include <firmware/include/personality.h>
-#include <spi/include/mu/Descriptor_inlines.h>
-#include <spi/include/mu/Addressing_inlines.h>
-#include <spi/include/kernel/MU.h>
-#include <spi/include/kernel/location.h>
+#define EXTERN_SPI
+#include "spi.hpp"
 
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "communicate/communicate.hpp"
 #include "routines/ios.hpp"
-#include "spi.hpp"
+#include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -27,43 +24,11 @@
 #include <spi/include/kernel/MU.h>
 #include <spi/include/mu/InjFifo.h>
 #include <spi/include/mu/GIBarrier.h>
-  
-//spi fifo and counters for bytes
-#define NSPI_FIFO 8
 
 namespace nissa
 {
-  //flag to remember if spi has been initialized
-  int spi_inited;
-  
-  //spi rank coordinates
-  coords_5D spi_rank_coord;
-  coords_5D spi_dir_is_torus,spi_dir_size;
-  
-  //destination coords
-  MUHWI_Destination spi_dest[8];
-  coords_5D spi_dest_coord[8];
-  
-  //neighbours in the 4 dirs
-  MUHWI_Destination_t spi_neigh[2][4];
-  
-  uint64_t *spi_fifo[NSPI_FIFO],spi_desc_count[NSPI_FIFO];
-  MUSPI_InjFifoSubGroup_t spi_fifo_sg_ptr;
-  uint64_t spi_fifo_map[8];
-  uint8_t spi_hint_ABCD[8],spi_hint_E[8];
-  
-  //spi barrier
-  MUSPI_GIBarrier_t spi_barrier;
-  
-  //bats
-  MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
-  uint32_t spi_bat_id[2];
-  
   //counter
   volatile uint64_t spi_recv_counter;
-  
-  //physical address
-  uint64_t spi_send_buf_phys_addr;
   
   //global barrier for spi
   void spi_global_barrier()

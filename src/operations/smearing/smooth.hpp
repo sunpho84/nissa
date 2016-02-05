@@ -31,11 +31,12 @@ namespace nissa
     {
       switch(method)
 	{
-	case COOLING:return "Cooling";break;
-	case STOUT:return "Stout";break;
-	case WFLOW:return "WFlow";break;
-	case APE:return "Ape";break;
-	case HYP:return "Hyp";break;
+	case COOLING: return "Cooling";break;
+	case STOUT: return "Stout";break;
+	case WFLOW: return "WFlow";break;
+	case APE: return "Ape";break;
+	case HYP: return "Hyp";break;
+	default: crash("not meant to be reached");return "";
 	}
     }
     

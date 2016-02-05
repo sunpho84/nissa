@@ -44,7 +44,7 @@ namespace nissa
     //mark initialization
     if(comm.initialized) crash("trying to initialize an already initialized communicator!");
     comm.initialized=true;
-
+    
     //check that buffers are large enough
     if(comm.tot_mess_size>std::min(send_buf_size,recv_buf_size))
       crash("asking to create a communicator that need %d large buffer (%d allocated)",
