@@ -12,9 +12,7 @@
 
 #include <stdint.h>
 
-#include "communicate/borders.hpp"
 #include "communicate/communicate.hpp"
-#include "routines/mpi_routines.hpp"
 
 #ifndef EXTERN_SPI
  #define EXTERN_SPI extern
