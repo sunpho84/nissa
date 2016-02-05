@@ -214,6 +214,13 @@ std::vector<int> *int_list;
 %type <luppoli_meas> luppoli_meas
 %type <watusso_meas> watusso_meas
 %type <all_rects_meas> all_rects_meas
+//rectangle meas
+%token TK_SPATIAL
+%token TK_TEMPORAL
+%token TK_DMIN
+%token TK_DMAX
+%token TK_TMIN
+%token TK_TMAX
 //evolution parameters
 %token TK_EVOLUTION
 %token TK_ID_SEA_THEORY
@@ -579,6 +586,12 @@ watusso_meas: TK_MEAS_WATUSSO {$$=new watusso_meas_pars_t();}
 all_rects_meas: TK_MEAS_ALL_RECTS {$$=new all_rects_meas_pars_t();}
               | all_rects_meas each {$$->each=$2;}
               | all_rects_meas after {$$->after=$2;}
+              | all_rects_meas TK_DMIN '=' int_numb {$$->Dmin=$4;}
+              | all_rects_meas TK_DMAX '=' int_numb {$$->Dmax=$4;}
+              | all_rects_meas TK_TMIN '=' int_numb {$$->Tmin=$4;}
+              | all_rects_meas TK_TMAX '=' int_numb {$$->Tmax=$4;}
+              | all_rects_meas TK_SPATIAL smooth_pars {$$->spat_smear_pars=(*$3);delete $3;}
+              | all_rects_meas TK_TEMPORAL smooth_pars {$$->temp_smear_pars=(*$3);delete $3;}
               | all_rects_meas path {$$->path=(*$2);delete $2;}
 ;
 

@@ -5,8 +5,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/macros.hpp"
-
 #ifndef BGQ_EMU
  #include <builtins.h>
 #endif

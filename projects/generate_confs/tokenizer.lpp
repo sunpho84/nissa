@@ -179,6 +179,16 @@ ElecCharge  DEBUG_PRINTF("Found ElecCharge\n");return TK_ELEC_CHARGE;
 SmoothMethod DEBUG_PRINTF("Found SmoothMethod\n");return TK_SMOOTH_METHOD;
 MeasEach DEBUG_PRINTF("Found MeasEach\n");return TK_MEAS_EACH;
 
+ /* spatial or temporal */
+Spatial DEBUG_PRINTF("Found Spatial\n");return TK_SPATIAL;
+Temporal DEBUG_PRINTF("Found Temporal\n");return TK_TEMPORAL;
+
+ /* sizes for rectangles */
+Dmin DEBUG_PRINTF("Found Dmin\n");return TK_DMIN;
+Dmax DEBUG_PRINTF("Found Dmax\n");return TK_DMAX;
+Tmin DEBUG_PRINTF("Found Tmin\n");return TK_TMIN;
+Tmax DEBUG_PRINTF("Found Tmax\n");return TK_TMAX;
+
  /* stout parameters */
 Stout DEBUG_PRINTF("Found Stout\n");return TK_STOUT;
 NLevels DEBUG_PRINTF("Found NLevels\n");return TK_NLEVELS;

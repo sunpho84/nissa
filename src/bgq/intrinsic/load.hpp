@@ -5,7 +5,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/macros.hpp"
 #include "bgq/bgq_macros.hpp"
 
 #ifndef BGQ_EMU

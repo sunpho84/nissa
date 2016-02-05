@@ -56,7 +56,6 @@ namespace nissa
 	   (method==APE&&ape.is_nonstandard())||
 	   (method==HYP&&hyp.is_nonstandard()))
 	  {
-	    os<<" /* alternatives: Cooling, Stout, WFlow, Ape, Hyp */\n";
 	    os<<" SmoothMethod\t=\t";
 	    switch(method)
 	      {
@@ -66,6 +65,7 @@ namespace nissa
 	      case APE: os<<ape.get_str(full);break;
 	      case HYP: os<<hyp.get_str(full);break;
 	      }
+	    //os<<" /* alternatives: Cooling, Stout, WFlow, Ape, Hyp */\n";
 	  }
 	if(full||meas_each!=def_meas_each()) os<<" MeasEach\t=\t"<<def_meas_each()<<"\n";
       }

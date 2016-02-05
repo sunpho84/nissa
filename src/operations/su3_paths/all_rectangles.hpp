@@ -24,6 +24,9 @@ namespace nissa
     int def_Dmin(){return 1;}
     int def_Dmax(){return 9;}
     
+    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
+    std::string get_str(bool full=false);
+    
     int is_nonstandard()
     {
       return

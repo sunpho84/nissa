@@ -5,8 +5,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/macros.hpp"
-
 #if defined BGQ && !defined BGQ_EMU
 
 #define REG_BI_COMPLEX_SUMM(out,op1,op2)                      out=vec_add(op1,op2)

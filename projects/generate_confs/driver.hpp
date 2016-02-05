@@ -168,6 +168,7 @@ namespace nissa
       //gauge masures
       os<<vector_get_str(plaq_pol_meas,full);
       os<<vector_get_str(top_meas,full);
+      os<<vector_get_str(all_rects_meas,full);
       //walltime and seed
       os<<walltime_seed_get_str(full)<<"\n";
       

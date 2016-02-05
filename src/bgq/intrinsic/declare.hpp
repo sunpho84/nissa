@@ -1,8 +1,6 @@
 #ifndef _BGQ_INTRINSIC_DECLARE_HPP
 #define _BGQ_INTRINSIC_DECLARE_HPP
 
-#include "base/macros.hpp"
-
 #define DECLARE_REG_BI_COLOR(A)			\
   DECLARE_REG_BI_COMPLEX(NAME2(A,c0));		\
   DECLARE_REG_BI_COMPLEX(NAME2(A,c1));		\

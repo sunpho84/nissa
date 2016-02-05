@@ -5,8 +5,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/macros.hpp"
-
 ///////////////////////////////// prefetching ////////////////////////////////
 
 #if defined(XLC)

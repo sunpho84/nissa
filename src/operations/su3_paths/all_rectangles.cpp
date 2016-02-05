@@ -470,8 +470,43 @@ namespace nissa
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
+    //check that we do not exceed geometry
+    for(int i=1;i<NDIM;i++) if(pars->Dmin>=glb_size[i]) crash("minimal spatial %d size exceeds global size[%d]=%d",pars->Dmin,i,glb_size[i]);
+    for(int i=1;i<NDIM;i++)
+      if(pars->Dmax>=glb_size[i])
+	{
+	  master_printf("maximal spatial %d size exceeds global size[%d]=%d, reducing it\n",pars->Dmax,i,glb_size[i]);
+	  pars->Dmax=glb_size[i];
+	}
+    if(pars->Tmin>=glb_size[0]) crash("minimal temporal %d size exceeds global size[0]=%d",pars->Tmin,glb_size[0]);
+    if(pars->Tmax>=glb_size[0])
+      {
+	master_printf("maximal temporal %d size exceeds global size[0]=%d, reducing it\n",pars->Tmax,glb_size[0]);
+	pars->Tmax=glb_size[0];
+      }
+    
     measure_all_rectangular_paths(pars,conf_lx,iconf,create_output_file);
     
     nissa_free(conf_lx);
   }
+  
+  //print pars
+  std::string all_rects_meas_pars_t::get_str(bool full)
+    {
+      std::ostringstream os;
+      
+      os<<"MeasAllRects\n";
+      if(each!=def_each()||full) os<<" Each\t\t=\t"<<each<<"\n";
+      if(after!=def_after()||full) os<<" After\t\t=\t"<<after<<"\n";
+      if(path!=def_path()||full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+      if(Dmin!=def_Dmin()||full) os<<" Dmin\t\t=\t"<<Dmin<<"\n";
+      if(Dmax!=def_Dmax()||full) os<<" Dmax\t\t=\t"<<Dmax<<"\n";
+      if(Tmin!=def_Tmin()||full) os<<" Tmin\t\t=\t"<<Tmin<<"\n";
+      if(Tmax!=def_Tmax()||full) os<<" Tmax\t\t=\t"<<Tmax<<"\n";
+      if(spat_smear_pars.is_nonstandard()||full) os<<" Spatial "<<spat_smear_pars.get_str(full);
+      if(temp_smear_pars.is_nonstandard()||full) os<<" Temporal "<<temp_smear_pars.get_str(full);
+      
+      return os.str();
+    }
+
 }
