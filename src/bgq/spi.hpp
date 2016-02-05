@@ -12,7 +12,9 @@
 
 #include <stdint.h>
 
+#include "communicate/borders.hpp"
 #include "communicate/communicate.hpp"
+#include "routines/mpi_routines.hpp"
 
 #ifndef EXTERN_SPI
  #define EXTERN_SPI extern
@@ -30,25 +32,36 @@ namespace nissa
   
   //spi rank coordinates
   EXTERN_SPI coords_5D spi_rank_coord;
+#ifdef SPI
   EXTERN_SPI coords_5D spi_dir_is_torus,spi_dir_size;
+#endif
   
   //destination coords
+#ifdef SPI
   EXTERN_SPI MUHWI_Destination spi_dest[8];
+#endif
+  
   EXTERN_SPI coords_5D spi_dest_coord[8];
   
   //neighbours in the 4 dirs
+#ifdef SPI
   EXTERN_SPI MUHWI_Destination_t spi_neigh[2][4];
+  #endif
   
   EXTERN_SPI uint64_t *spi_fifo[NSPI_FIFO],spi_desc_count[NSPI_FIFO];
+#ifdef SPI
   EXTERN_SPI MUSPI_InjFifoSubGroup_t spi_fifo_sg_ptr;
+#endif
   EXTERN_SPI uint64_t spi_fifo_map[8];
   EXTERN_SPI uint8_t spi_hint_ABCD[8],spi_hint_E[8];
   
   //spi barrier
+#ifdef SPI
   EXTERN_SPI MUSPI_GIBarrier_t spi_barrier;
   
   //bats
   EXTERN_SPI MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
+#endif
   EXTERN_SPI uint32_t spi_bat_id[2];
   
   //physical address
