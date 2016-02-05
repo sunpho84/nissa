@@ -35,7 +35,7 @@ namespace nissa
     
     switch(sp.method)
       {
-      case smooth_pars_t::COOLING: for(int icool;icool<sp.cool.nsteps;icool++) cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));break;
+      case smooth_pars_t::COOLING: for(int icool=0;icool<sp.cool.nsteps;icool++) cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));break;
       case smooth_pars_t::STOUT: for(int istout=0;istout<sp.stout.nlevels;istout++) stout_smear(smoothed_conf,smoothed_conf,&sp.stout,dirs);break;
       case smooth_pars_t::WFLOW: for(double t=0;t<sp.Wflow.T;t+=sp.Wflow.dt) Wflow_lx_conf(smoothed_conf,sp.Wflow.dt,dirs);break;
       case smooth_pars_t::HYP: for(int ihyp=0;ihyp<sp.hyp.nlevels;ihyp++) hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);break;

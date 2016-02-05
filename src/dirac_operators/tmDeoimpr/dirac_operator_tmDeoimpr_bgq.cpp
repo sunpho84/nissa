@@ -2,13 +2,10 @@
  #include "config.hpp"
 #endif
 
-#include "base/macros.hpp"
 #include "base/thread_macros.hpp"
 #include "bgq/bgq_macros.hpp"
 #include "bgq/intrinsic.hpp"
 #include "bgq/Wilson_hopping_matrix_eo_or_oe_bgq.hpp"
-
-#include "new_types/new_types_definitions.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
