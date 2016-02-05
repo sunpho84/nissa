@@ -342,54 +342,6 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
 //generate all the quark propagators
 void generate_quark_propagators()
 {
-#ifdef BGQ
-  static int i000=0;
-
-  if(i000==0)
-  {
-    i000++;
-    spincolor *out=nissa_malloc("out",loc_volh,spincolor);
-    spincolor *out_bgq=nissa_malloc("out",loc_volh,spincolor);
-    spincolor *temp=nissa_malloc("temp",loc_volh,spincolor);
-    spincolor *in=nissa_malloc("in",loc_volh,spincolor);
-    vector_reset(in);
-    in[0][0][0][0]=1;
-    double kappa=0.132;
-    double mu=0.32;
-    quad_su3 *eo_conf[2]={nissa_malloc("conf_evn",loc_volh,quad_su3),nissa_malloc("conv_odd",loc_volh,quad_su3)};
-    tmDkern_eoprec_eos(out,temp,eo_conf,kappa,mu,in);
-
-    //allocate
-    bi_spincolor *bi_in=nissa_malloc("bi_in",loc_volh/2,bi_spincolor);
-    bi_oct_su3 *bi_eo_conf[2]={nissa_malloc("bi_conf_evn",loc_volh+bord_volh,bi_oct_su3),
-                               nissa_malloc("bi_conf_odd",loc_volh+bord_volh,bi_oct_su3)};
-    bi_spincolor *bi_out=nissa_malloc("bi_out",loc_volh/2,bi_spincolor);
-    bi_spincolor *bi_temp=nissa_malloc("bi_temp",loc_volh/2,bi_spincolor);
-    
-    ////////////////////////
-    
-    //remap in
-    evn_or_odd_spincolor_remap_to_virevn_or_odd(bi_in,in,EVN);
-    eo_conf_remap_to_vireo(bi_eo_conf,eo_conf);
-    
-    tmDkern_eoprec_square_eos_bgq(bi_out,bi_temp,bi_eo_conf,kappa,mu, bi_in);
-    
-    //remap out
-    virevn_or_odd_spincolor_remap_to_evn_or_odd(out_bgq,bi_out,EVN);
-
-    //out=temp2;
-    //virevn_or_odd_spincolor_remap_to_evn_or_odd(out_bgq,bi_temp,EVN);
-    
-    for(int ivol=0;ivol<loc_volh;ivol++)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    master_printf("ivol=%d, id=%d ic=%d ri=%d %lg - %lg = %lg\n",ivol,id,ic,ri,out[ivol][id][ic][ri],out_bgq[ivol][id][ic][ri],out[ivol][id][ic][ri]-out_bgq[ivol][id][ic][ri]);
-    //crash("");
-  }
-  #endif
-
-    
   for(int ip=0;ip<nqprop_kind();ip++)
     {
       insertion_t insertion=qprop_list[ip].insertion;
