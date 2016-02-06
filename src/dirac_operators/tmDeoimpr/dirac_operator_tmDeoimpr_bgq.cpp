@@ -43,45 +43,48 @@ namespace nissa
   }
   
   //implement ee or oo part of Dirac operator, equation(3) and finish
-  void minus_one_quarter_g5_subt_tmQee_or_oo_eos(bi_spincolor *out,double kappa,double mass,bi_spincolor *in)
+  void minus_one_quarter_subt_tmD_or_Qee_or_oo_eos(bi_spincolor *out,double kappa,double mass,bi_spincolor *in,int D_or_Q)
   {
-    DECLARE_REG_BI_COMPLEX(BI_REG_MONE_QUARTER);
-    REG_SPLAT_BI_COMPLEX(BI_REG_MONE_QUARTER,-0.25);
-    DECLARE_REG_BI_COMPLEX(BI_REG_ONE_QUARTER);
-    REG_SPLAT_BI_COMPLEX(BI_REG_ONE_QUARTER,+0.25);
+    DECLARE_REG_BI_COMPLEX(BI_REG_COEF_OUT_01);
+    REG_SPLAT_BI_COMPLEX(BI_REG_COEF_OUT_01,-0.25);
+    DECLARE_REG_BI_COMPLEX(BI_REG_COEF_OUT_23); //-+1 according to D or Q
+    if(D_or_Q==0) REG_SPLAT_BI_COMPLEX(BI_REG_COEF_OUT_23,+0.25);
+    else          REG_SPLAT_BI_COMPLEX(BI_REG_COEF_OUT_23,-0.25);
     
     double a=1/(2*kappa),b=mass;
     bi_complex z={a,b, a,b};
-    bi_complex mzc={-a,b, -a,b};
-    DECLARE_REG_BI_COMPLEX(BI_REG_Z);
-    DECLARE_REG_BI_COMPLEX(BI_REG_MZC);
-    REG_LOAD_BI_COMPLEX(BI_REG_Z,z);
-    REG_LOAD_BI_COMPLEX(BI_REG_MZC,mzc);
+    DECLARE_REG_BI_COMPLEX(BI_REG_COEF_IN_01);
+    REG_LOAD_BI_COMPLEX(BI_REG_COEF_IN_01,z);
+    bi_complex zc={a,-b, a,-b}; //complex conjugate of Z (when using Q)
+    bi_complex mzc={-a,b, -a,b}; //minus complex conjugate of Z (when using D)
+    DECLARE_REG_BI_COMPLEX(BI_REG_COEF_IN_23);
+    if(D_or_Q==0) REG_LOAD_BI_COMPLEX(BI_REG_COEF_IN_23,mzc);
+    else          REG_LOAD_BI_COMPLEX(BI_REG_COEF_IN_23,zc);
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_volh/2)
       {
 	DECLARE_REG_BI_HALFSPINCOLOR(BI_REG_OUT);
 	DECLARE_REG_BI_HALFSPINCOLOR(BI_REG_IN);
-
+	
 	//multiply OUT{[0],[1]} by -1/4
 	REG_LOAD_BI_HALFSPINCOLOR(BI_REG_OUT,out[ivol][0]);
-	REG_BI_HALFSPINCOLOR_PROD_4DOUBLE(BI_REG_OUT,BI_REG_OUT,BI_REG_MONE_QUARTER);
+	REG_BI_HALFSPINCOLOR_PROD_4DOUBLE(BI_REG_OUT,BI_REG_OUT,BI_REG_COEF_OUT_01);
 	
 	//summ Z*in
 	REG_LOAD_BI_HALFSPINCOLOR(BI_REG_IN,in[ivol][0]);
-	REG_BI_HALFSPINCOLOR_SUMM_THE_PROD_COMPLEX(BI_REG_OUT,BI_REG_IN,BI_REG_Z);
+	REG_BI_HALFSPINCOLOR_SUMM_THE_PROD_COMPLEX(BI_REG_OUT,BI_REG_IN,BI_REG_COEF_IN_01);
         STORE_REG_BI_HALFSPINCOLOR(out[ivol][0],BI_REG_OUT);
 	
 	REORDER_BARRIER();
 	
 	//multiply OUT{[2],[3]} by +1/4
 	REG_LOAD_BI_HALFSPINCOLOR(BI_REG_OUT,out[ivol][2]);
-	REG_BI_HALFSPINCOLOR_PROD_4DOUBLE(BI_REG_OUT,BI_REG_OUT,BI_REG_ONE_QUARTER);
+	REG_BI_HALFSPINCOLOR_PROD_4DOUBLE(BI_REG_OUT,BI_REG_OUT,BI_REG_COEF_OUT_23);
 	
 	//subt (Z^+)*in
 	REG_LOAD_BI_HALFSPINCOLOR(BI_REG_IN,in[ivol][2]);
-	REG_BI_HALFSPINCOLOR_SUMM_THE_PROD_COMPLEX(BI_REG_OUT,BI_REG_IN,BI_REG_MZC);
+	REG_BI_HALFSPINCOLOR_SUMM_THE_PROD_COMPLEX(BI_REG_OUT,BI_REG_IN,BI_REG_COEF_IN_23);
         STORE_REG_BI_HALFSPINCOLOR(out[ivol][2],BI_REG_OUT);
       }
     set_borders_invalid(out);
@@ -106,7 +109,7 @@ namespace nissa
   void tmn2Deo_eos_bgq(bi_spincolor *out,bi_oct_su3 **conf,bi_spincolor *in){tmn2Doe_or_tmn2Deo_eos_bgq(out,conf,1,in);}
   
   //implement Koo defined in equation (7)
-  void tmDkern_eoprec_eos_bgq(bi_spincolor *out,bi_oct_su3 **conf,double kappa,double mass,bi_spincolor *in)
+  THREADABLE_FUNCTION_6ARG(tmD_or_Qkern_eoprec_eos_bgq, bi_spincolor*,out, bi_oct_su3**,conf, double,kappa, double,mass, bi_spincolor*,in, int,D_or_Q)
   {
     if(in==out) crash("cannot work with in==out");
     
@@ -114,14 +117,7 @@ namespace nissa
     inv_tmDee_or_oo_eos(out,kappa,mass,out);
     tmn2Doe_eos_bgq(out,conf,out);
     
-    minus_one_quarter_g5_subt_tmQee_or_oo_eos(out,kappa,mass,in);
-  }
-
-  //square of Koo
-  THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_square_eos_bgq, bi_spincolor*,out, bi_spincolor*,temp, bi_oct_su3**,conf, double,kappa, double,mass, bi_spincolor*,in)
-  {
-    tmDkern_eoprec_eos_bgq(temp,conf,kappa,-mass, in);
-    tmDkern_eoprec_eos_bgq(out,conf,kappa,+mass,temp);
+    minus_one_quarter_subt_tmD_or_Qee_or_oo_eos(out,kappa,mass,in,D_or_Q);
   }
   THREADABLE_FUNCTION_END
 }
