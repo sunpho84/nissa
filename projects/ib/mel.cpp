@@ -12,10 +12,10 @@
 #include "prop.hpp"
 
 /* the loop is normalised such that the physical rate at leading order
-  is obtained multiplying the loop by Gf^2 fpi^2 * phi2 (space phase
-  factor) which is (1-rl^2)/(16 pi mpi) where rl=ml/mpi, whereas the
-  interference is obtained by the full hadrolepton correlation
-  multiplied by 4*mpi*fpi*Gf^2*phi2 */
+   is obtained multiplying the loop by Gf^2 fpi^2 * phi2 (space phase
+   factor) which is (1-rl^2)/(16 pi mpi) where rl=ml/mpi, whereas the
+   interference is obtained by the full hadrolepton correlation
+   multiplied by 4*mpi*fpi*Gf^2*phi2 */
 
 using namespace nissa;
 

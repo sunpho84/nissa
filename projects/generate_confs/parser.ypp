@@ -509,7 +509,7 @@ magnetization_meas: TK_MEAS_MAGNETIZ {$$=new magnetization_meas_pars_t();}
 
 ////////////////////////////////////////////////// EVOLUTION //////////////////////////////////////////////////
 
-global_evolve_pars: TK_EVOLUTION {}
+global_evolve_pars: TK_EVOLUTION {driver->run_mode=driver_t::EVOLUTION_MODE;}
                   | global_evolve_pars TK_NTRAJ_TOT '=' int_numb {driver->evol_pars.ntraj_tot=$4;}
                   | global_evolve_pars TK_ID_SEA_THEORY '=' int_numb {driver->evol_pars.id_sea_theory=$4;}
                   | global_evolve_pars TK_SKIP_METRO '=' int_numb {driver->evol_pars.skip_mtest_ntraj=$4;}

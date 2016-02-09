@@ -220,9 +220,9 @@ void init_simulation(char *path)
   for(size_t i=0;i<drv->top_meas.size();i++)
     if(drv->top_meas[i].each && drv->top_meas[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(drv->top_meas[i].smooth_pars.cool.gauge_action);
   
-  //init the program in "production" or "analysis" mode
-  if(drv->evol_pars.ntraj_tot>0) init_program_to_run(drv->conf_pars.start_cond);
-  else                           init_program_to_analyze();
+  //init the program in "evolution" or "analysis" mode
+  if(drv->run_mode==driver_t::EVOLUTION_MODE) init_program_to_run(drv->conf_pars.start_cond);
+  else                                        init_program_to_analyze();
   
   close_file(input_global);
 }
@@ -559,8 +559,8 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  if(drv->evol_pars.ntraj_tot!=0) run_program_for_production();
-  else                       run_program_for_analysis();
+  if(drv->run_mode==driver_t::EVOLUTION_MODE) run_program_for_production();
+  else                                        run_program_for_analysis();
   
   /////////////////////////////////////// timings /////////////////////////////////
   
