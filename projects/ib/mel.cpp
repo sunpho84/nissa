@@ -338,7 +338,6 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
   nsource_tot++;
 }
 
-
 //generate all the quark propagators
 void generate_quark_propagators()
 {
