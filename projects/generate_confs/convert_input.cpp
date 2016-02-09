@@ -91,21 +91,21 @@ void read_quark_content(quark_content_t &quark_content,bool flag=false)
   read_str_double("ElecCharge",&(quark_content.charge));
 }
 
-  //read parameters of the background em field
-  void read_em_field_pars(em_field_pars_t &pars,bool flag=false)
-  {
-    if(flag==true) pars.flag=true;
-    else read_str_int("PutBkgrdEMField",&pars.flag);
-    if(pars.flag)
-      {
-        read_str_double("Ex",&(pars.E[0]));
-        read_str_double("Ey",&(pars.E[1]));
-        read_str_double("Ez",&(pars.E[2]));
-        read_str_double("Bx",&(pars.B[0]));
-        read_str_double("By",&(pars.B[1]));
-        read_str_double("Bz",&(pars.B[2]));
-      }
-  }
+//read parameters of the background em field
+void read_em_field_pars(em_field_pars_t &pars)
+{
+  int flag;
+  read_str_int("PutBkgrdEMField",&flag);
+  if(flag)
+    {
+      read_str_double("Ex",&(pars.E[0]));
+      read_str_double("Ey",&(pars.E[1]));
+      read_str_double("Ez",&(pars.E[2]));
+      read_str_double("Bx",&(pars.B[0]));
+      read_str_double("By",&(pars.B[1]));
+      read_str_double("Bz",&(pars.B[2]));
+    }
+}
 
 //read and return path
 std::string read_path()
@@ -150,26 +150,30 @@ void read_theory_pars(theory_pars_t &theory_pars)
 }
 
 //read parameters to measure nucleon correlators
-void read_nucleon_corr_meas_pars(nucleon_corr_meas_pars_t &pars,int flag=false)
+void read_nucleon_corr_meas_pars(std::vector<nucleon_corr_meas_pars_t> &pars,int itheory)
 {
-  
-  if(!flag==true)
-    read_str_int("MeasureNucleonCorr",&flag);
+  int flag;
+  read_str_int("MeasureNucleonCorr",&flag);
   if(flag)
     {
-      pars.path=read_path();
-      read_str_double("InvResidue",&pars.residue);
-      read_str_int("NHits",&pars.nhits);
+      pars.push_back(nucleon_corr_meas_pars_t());
+      pars.back().itheory=itheory;
+      pars.back().path=read_path();
+      read_str_double("InvResidue",&pars.back().residue);
+      read_str_int("NHits",&pars.back().nhits);
     }
 }
 
 //read how to measure staggered mesons
-void read_stag_meson_corr_meas_pars(meson_corr_meas_pars_t &pars,int flag=false)
+void read_stag_meson_corr_meas_pars(std::vector<meson_corr_meas_pars_t> &pars,int itheory)
 {
-  if(!flag==true) read_str_int("MeasureStagMesonCorr",&flag);
+  int flag;
+  read_str_int("MeasureStagMesonCorr",&flag);
   if(flag)
     {
-      pars.path=read_path();
+      pars.push_back(meson_corr_meas_pars_t());
+      pars.back().itheory=itheory;
+      pars.back().path=read_path();
       int nmesons;
       read_str_int("NMesons",&nmesons);
       for(int imeson=0;imeson<nmesons;imeson++)
@@ -177,68 +181,80 @@ void read_stag_meson_corr_meas_pars(meson_corr_meas_pars_t &pars,int flag=false)
 	  int spin,taste;
 	  read_int(&spin);
 	  read_int(&taste);
-	  pars.mesons.push_back(std::make_pair(spin,taste));
+	  pars.back().mesons.push_back(std::make_pair(spin,taste));
 	}
-      read_str_double("InvResidue",&pars.residue);
-      read_str_int("NCopies",&pars.ncopies);
-      read_str_int("NHits",&pars.nhits);
+      read_str_double("InvResidue",&pars.back().residue);
+      read_str_int("NCopies",&pars.back().ncopies);
+      read_str_int("NHits",&pars.back().nhits);
     }
 }
 
 //read parameters to measure the fermionic gran mix
-void read_fermionic_putpourri_meas_pars(fermionic_putpourri_meas_pars_t &pars,int flag=false)
+void read_fermionic_putpourri_meas_pars(std::vector<fermionic_putpourri_meas_pars_t> &pars,int itheory)
 {
-  if(!flag==true) read_str_int("MeasureFermionicPutpourri",&flag);
+  int flag;
+  read_str_int("MeasureFermionicPutpourri",&flag);
   if(flag)
     {
-      pars.path=read_path();
-      read_str_double("InvResidue",&pars.residue);
-      read_str_int("ComputeSusceptivities",&pars.compute_susc);
-      read_str_int("NCopies",&pars.ncopies);
-      read_str_int("NHits",&pars.nhits);
+      pars.push_back(fermionic_putpourri_meas_pars_t());
+      pars.back().itheory=itheory;
+      pars.back().path=read_path();
+      read_str_double("InvResidue",&pars.back().residue);
+      read_str_int("ComputeSusceptivities",&pars.back().compute_susc);
+      read_str_int("NCopies",&pars.back().ncopies);
+      read_str_int("NHits",&pars.back().nhits);
     }
 }
 
 //read parameters to measure the quark density and its derivatives
-void read_quark_rendens_meas_pars(quark_rendens_meas_pars_t &pars,int flag=false)
+void read_quark_rendens_meas_pars(std::vector<quark_rendens_meas_pars_t> &pars,int itheory)
 {
-  if(!flag==true) read_str_int("MeasureQuarkRendens",&flag);
+  int flag;
+  read_str_int("MeasureQuarkRendens",&flag);
   if(flag)
     {
-      pars.path=read_path();
-      read_str_int("After",&pars.after);
-      read_str_int("MaxOrder",&pars.max_order);
-      read_str_double("InvResidue",&pars.residue);
-      read_str_int("NCopies",&pars.ncopies);
-      read_str_int("NHits",&pars.nhits);
+      pars.push_back(quark_rendens_meas_pars_t());
+      pars.back().itheory=itheory;
+      pars.back().path=read_path();
+      read_str_int("After",&pars.back().after);
+      read_str_int("MaxOrder",&pars.back().max_order);
+      read_str_double("InvResidue",&pars.back().residue);
+      read_str_int("NCopies",&pars.back().ncopies);
+      read_str_int("NHits",&pars.back().nhits);
     }
 }
 
 //read parameters to measure magnetization
-void read_magnetization_meas_pars(magnetization_meas_pars_t &pars,int flag=false)
+void read_magnetization_meas_pars(std::vector<magnetization_meas_pars_t> &pars,int itheory)
 {
-  if(!flag==true) read_str_int("MeasureMagnetization",&flag);
+  int flag;
+  read_str_int("MeasureMagnetization",&flag);
   if(flag)
     {
-      pars.path=read_path();
-      read_str_double("InvResidue",&pars.residue);
-      read_str_int("NCopies",&pars.ncopies);
-      read_str_int("NHits",&pars.nhits);
+      pars.push_back(magnetization_meas_pars_t());
+      pars.back().itheory=itheory;
+      pars.back().path=read_path();
+      read_str_double("InvResidue",&pars.back().residue);
+      read_str_int("NCopies",&pars.back().ncopies);
+      read_str_int("NHits",&pars.back().nhits);
     }
 }
 
 //read parameters to measure the spin polarization
-void read_spinpol_meas_pars(spinpol_meas_pars_t &pars,int flag=false)
+void read_spinpol_meas_pars(std::vector<spinpol_meas_pars_t> &pars,int itheory)
 {
-  if(!flag==true) read_str_int("MeasureSpinpol",&flag);
+  int flag;
+  read_str_int("MeasureSpinpol",&flag);
   if(flag)
     {
-      pars.path=read_path();
-      read_str_double("InvResidue",&pars.residue);
-      read_str_int("Dir",&pars.dir);
-      read_str_int("NHits",&pars.nhits);
-      read_str_int("UseFermConfForGluons",&pars.use_ferm_conf_for_gluons);
-      read_smooth_pars(pars.smooth_pars);
+      pars.push_back(spinpol_meas_pars_t());
+      pars.back().itheory=itheory;
+      pars.back().path=read_path();
+      read_str_double("InvResidue",&pars.back().residue);
+      read_str_int("Dir",&pars.back().dir);
+      read_str_int("NHits",&pars.back().nhits);
+      read_str_int("UseFermConfForGluons",&pars.back().use_ferm_conf_for_gluons);
+      read_smooth_pars(pars.back().smooth_pars);
     }
 }
 
@@ -263,28 +279,33 @@ void read_gauge_obs_temp_smear_pars(smooth_pars_t &pars)
 }
 
 //read the parameters to measure gauge observables
-void read_gauge_obs_meas_pars(gauge_obs_meas_pars_t &pars,int flag=false)
+void read_gauge_obs_meas_pars(std::vector<gauge_obs_meas_pars_t> &pars,int flag=false)
 {
-  if(!flag==true) read_str_int("MeasureGaugeObs",&flag);
-  if(flag) pars.path=read_path();
+  if(!flag) read_str_int("MeasureGaugeObs",&flag);
+  if(flag)
+    {
+      pars.push_back(gauge_obs_meas_pars_t());
+      pars.back().path=read_path();
+    }
 }
 
 //read the parameters to compute polyakov correlators
-void read_poly_corr_meas_pars(poly_corr_meas_pars_t &pars,int flag=false)
+void read_poly_corr_meas_pars(std::vector<poly_corr_meas_pars_t> &pars,int flag=false)
 {
-  if(!flag==true) read_str_int("MeasurePolyCorrs",&flag);
+  if(!flag) read_str_int("MeasurePolyCorrs",&flag);
   if(flag)
     {
-      pars.path=read_path();
-      read_gauge_obs_temp_smear_pars(pars.smear_pars);
-      read_str_int("Dir",&pars.dir);
+      pars.push_back(poly_corr_meas_pars_t());
+      pars.back().path=read_path();
+      read_gauge_obs_temp_smear_pars(pars.back().smear_pars);
+      read_str_int("Dir",&pars.back().dir);
     }
 }
 
 //read parameters to study topology
 void read_top_meas_pars(top_meas_pars_t &pars,int flag=false)
 {
-  if(!flag==true) read_str_int("MeasureTopology",&flag);
+  if(!flag) read_str_int("MeasureTopology",&flag);
   if(flag)
     {
       pars.path=read_path();
@@ -293,34 +314,36 @@ void read_top_meas_pars(top_meas_pars_t &pars,int flag=false)
 }
 
 //read parameters to measure all rectangles
-void read_all_rect_meas_pars(all_rects_meas_pars_t &pars,int flag=false)
+void read_all_rect_meas_pars(std::vector<all_rects_meas_pars_t> &pars,int flag=false)
 {
-  if(!flag==true) read_str_int("MeasureAllRect",&flag);
+  if(!flag) read_str_int("MeasureAllRect",&flag);
   if(flag)
     {
-      pars.path=read_path();
-      read_gauge_obs_temp_smear_pars(pars.temp_smear_pars);
-      read_str_int("Tint",&pars.Tmin);
-      read_int(&pars.Tmax);
-      read_str_int("Dint",&pars.Dmin);
-      read_int(&pars.Dmax);
+      pars.push_back(all_rects_meas_pars_t());
+      pars.back().path=read_path();
+      read_gauge_obs_temp_smear_pars(pars.back().temp_smear_pars);
+      read_str_int("Tint",&pars.back().Tmin);
+      read_int(&pars.back().Tmax);
+      read_str_int("Dint",&pars.back().Dmin);
+      read_int(&pars.back().Dmax);
     }
 }
 
 //read parameters to measure flux tube
-void read_watusso_meas_pars(watusso_meas_pars_t &pars,int flag=false)
+void read_watusso_meas_pars(std::vector<watusso_meas_pars_t> &pars,int flag=false)
 {
-  if(!flag==true) read_str_int("MeasureWatusso",&flag);
+  if(!flag) read_str_int("MeasureWatusso",&flag);
   if(flag)
     {
-      pars.path=read_path();
-      read_gauge_obs_temp_smear_pars(pars.smear_pars);
+      pars.push_back(watusso_meas_pars_t());
+      pars.back().path=read_path();
+      read_gauge_obs_temp_smear_pars(pars.back().smear_pars);
       int size_min,size_step,size_max;
       read_str_int("SizeMin",&size_min);
       read_str_int("SizeStep",&size_step);
       read_str_int("SizeMax",&size_max);
-      for(int size=size_min;size<=size_max;size+=size_step) pars.sizes.push_back(size);
-      read_str_int("dmax",&pars.dmax);
+      for(int size=size_min;size<=size_max;size+=size_step) pars.back().sizes.push_back(size);
+      read_str_int("dmax",&pars.back().dmax);
     }
 }
 
@@ -369,12 +392,7 @@ void in_main(int narg,char **arg)
   read_str_int("NValenceTheories",&nvalence_theories);
   int ntheories=nvalence_theories+1;
   driver->theories.resize(ntheories);
-  driver->fermionic_putpourri_meas.resize(ntheories);
-  driver->quark_rendens_meas.resize(ntheories);
   std::vector<spinpol_meas_pars_t> spinpol_meas(ntheories);
-  driver->magnetization_meas.resize(ntheories);
-  driver->nucleon_corr_meas.resize(ntheories);
-  driver->meson_corr_meas.resize(ntheories);
   
   //read physical theory: theory 0 is the sea (simulated one)
   for(int itheory=0;itheory<ntheories;itheory++)
@@ -382,21 +400,19 @@ void in_main(int narg,char **arg)
       if(itheory==0) master_printf("Reading info on sea theory\n");
       else           master_printf("Reading info on additional (valence) theory %d/%d\n",itheory,nvalence_theories);
       read_theory_pars(driver->theories[itheory]);
-      read_nucleon_corr_meas_pars(driver->nucleon_corr_meas[itheory]);driver->nucleon_corr_meas[itheory].itheory=itheory;
-      read_stag_meson_corr_meas_pars(driver->meson_corr_meas[itheory]);driver->meson_corr_meas[itheory].itheory=itheory;
-      read_fermionic_putpourri_meas_pars(driver->fermionic_putpourri_meas[itheory]);driver->fermionic_putpourri_meas[itheory].itheory=itheory;
-      read_quark_rendens_meas_pars(driver->quark_rendens_meas[itheory]);driver->quark_rendens_meas[itheory].itheory=itheory;
-      read_spinpol_meas_pars(spinpol_meas[itheory]);spinpol_meas[itheory].itheory=itheory;
-      read_magnetization_meas_pars(driver->magnetization_meas[itheory]);driver->magnetization_meas[itheory].itheory=itheory;
+      read_nucleon_corr_meas_pars(driver->nucleon_corr_meas,itheory);
+      read_stag_meson_corr_meas_pars(driver->meson_corr_meas,itheory);
+      read_fermionic_putpourri_meas_pars(driver->fermionic_putpourri_meas,itheory);
+      read_quark_rendens_meas_pars(driver->quark_rendens_meas,itheory);
+      read_spinpol_meas_pars(spinpol_meas,itheory);
+      read_magnetization_meas_pars(driver->magnetization_meas,itheory);
     }
   
   //read if we want to measure gauge obs
-  driver->plaq_pol_meas.resize(1);
-  read_gauge_obs_meas_pars(driver->plaq_pol_meas[0]);
+  read_gauge_obs_meas_pars(driver->plaq_pol_meas);
   
   //read if we want to measure polyakov correlators
-  driver->luppoli_meas.resize(1);
-  read_poly_corr_meas_pars(driver->luppoli_meas[0]);
+  read_poly_corr_meas_pars(driver->luppoli_meas);
   
   //read if we want to measure topological charge
   int ntop_meas;
@@ -405,12 +421,11 @@ void in_main(int narg,char **arg)
   for(int itop=0;itop<ntop_meas;itop++) read_top_meas_pars(driver->top_meas[itop]);
   
   //read if we want to measure all rectangles
-  driver->all_rects_meas.resize(1);
-  read_all_rect_meas_pars(driver->all_rects_meas[0]);
+  read_all_rect_meas_pars(driver->all_rects_meas);
   
   //read if we want to measure flux tube
   driver->watusso_meas.resize(1);
-  read_watusso_meas_pars(driver->watusso_meas[0]);
+  read_watusso_meas_pars(driver->watusso_meas);
   
   //read the number of trajectory to evolve and the wall_time
   read_str_int("NTrajTot",&driver->evol_pars.ntraj_tot);

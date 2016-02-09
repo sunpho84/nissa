@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <sstream>
 
 #include "routines/ios.hpp"
 
@@ -30,7 +31,18 @@ namespace nissa
     double def_charge(){return 0;}
     
     int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false);
+    std::string get_str(bool full=false)
+    {
+      std::ostringstream os;
+      os<<"Quark\t\t=\t\""<<name.c_str()<<"\"\n";
+      if(full||deg!=def_deg()) os<<" Degeneracy\t=\t"<<deg<<"\n";
+      if(full||mass!=def_mass()) os<<" Mass\t\t=\t"<<mass<<"\n";
+      if(full||re_pot!=def_re_pot()) os<<" RePotCh\t=\t"<<re_pot<<"\n";
+      if(full||im_pot!=def_im_pot()) os<<" ImPotCh\t=\t"<<im_pot<<"\n";
+      if(full||charge!=def_charge()) os<<" ElecCharge\t=\t"<<charge<<"\n";
+    
+    return os.str();
+  }
     
     int is_nonstandard()
     {

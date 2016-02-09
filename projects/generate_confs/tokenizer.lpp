@@ -54,7 +54,7 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 	 rc[0]=fscanf(yyextra->fin,"%c",buf);				\
 	 rc[1]=feof(yyextra->fin);					\
        }								\
-     MPI_Bcast(rc,1,MPI_INT,0,MPI_COMM_WORLD);				\
+     MPI_Bcast(rc,2,MPI_INT,0,MPI_COMM_WORLD);				\
      if(rc[0]!=1||rc[1]) result=YY_NULL;				\
      else								\
        {								\

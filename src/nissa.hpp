@@ -116,7 +116,6 @@
 #include "new_types/read_new_types.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
-#include "new_types/write_new_types.hpp"
 
 #include "operations/contract/mesons_2pts.hpp"
 #include "operations/contract/mesons_eight.hpp"

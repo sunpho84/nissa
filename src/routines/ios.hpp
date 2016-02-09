@@ -42,7 +42,7 @@ namespace nissa
   EXTERN_IOS int verbosity_lv;
   
   int count_substrings(const char *str,const char *sub);
-  FILE* open_file(std::string path,const char *mode);
+  FILE* open_file(std::string path,const char *mode,int ext_rank=0);
   FILE* open_text_file_for_output(std::string path);
   int cd(std::string path);
   int cp(std::string path_out,std::string path_in);

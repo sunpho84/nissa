@@ -91,15 +91,7 @@ namespace nissa
   
   //open an input file
   void open_input(std::string input_path)
-  {
-    if(rank==0)
-      {
-	input_global=fopen(input_path.c_str(),"r");
-	if(input_global==NULL) crash("File '%s' not found",input_path.c_str());
-	
-	verbosity_lv1_master_printf("File '%s' opened\n",input_path.c_str());
-      }	
-  }
+  {input_global=open_file(input_path.c_str(),"r");}
   
   //close the input file
   void close_input()

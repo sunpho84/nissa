@@ -20,7 +20,22 @@ namespace nissa
     double B[3];
     
     int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false);
+    std::string get_str(bool full=false)
+    {
+      std::ostringstream os;
+      if(full||flag||is_nonstandard())
+	{
+	  os<<"BkgrdEMField\n";
+	  if(full||fabs(E[0])>1e-14) os<<" Ex\t\t=\t"<<E[0]<<"\n";
+	  if(full||fabs(E[1])>1e-14) os<<" Ey\t\t=\t"<<E[1]<<"\n";
+	  if(full||fabs(E[2])>1e-14) os<<" Ez\t\t=\t"<<E[2]<<"\n";
+	  if(full||fabs(B[0])>1e-14) os<<" Bx\t\t=\t"<<B[0]<<"\n";
+	  if(full||fabs(B[1])>1e-14) os<<" By\t\t=\t"<<B[1]<<"\n";
+	  if(full||fabs(B[2])>1e-14) os<<" Bz\t\t=\t"<<B[2]<<"\n";
+	}
+      
+      return os.str();
+    }
     
     int is_nonstandard()
     {

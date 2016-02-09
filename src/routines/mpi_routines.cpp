@@ -31,7 +31,7 @@ namespace nissa
     if(nbytes<0) crash("negative count: %d",nbytes);
     
     return (size_t)nbytes;
-  }  
+  }
   
   //take the different with following multiple of eight
   MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos)

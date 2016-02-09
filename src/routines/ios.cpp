@@ -111,11 +111,11 @@ namespace nissa
   }
   
   //Open a file checking it
-  FILE* open_file(std::string outfile,const char *mode)
+  FILE *open_file(std::string outfile,const char *mode,int ext_rank)
   {
     FILE *fout=NULL;
     
-    if(rank==0)
+    if(ext_rank==-1||rank==ext_rank)
       {
 	if(outfile=="-") fout=stdout;
 	else
