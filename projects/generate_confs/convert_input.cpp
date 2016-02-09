@@ -437,6 +437,8 @@ void in_main(int narg,char **arg)
   //if we want to produce something, let's do it, otherwise load the list of configurations to analyze
   if(driver->evol_pars.ntraj_tot>0)
     {
+      driver->run_mode=driver_t::EVOLUTION_MODE;
+      
       //load evolution info depending if is a quenched simulation or unquenched
       if(driver->theories[0].nflavs()!=0||driver->theories[0].topotential_pars.flag!=0)
         read_hmc_evol_pars(driver->evol_pars,driver->theories[0]);
@@ -459,6 +461,8 @@ void in_main(int narg,char **arg)
     }
   else
     {
+      driver->run_mode=driver_t::ANALYSIS_MODE;
+      
       //load the number of configurations to analyze
       int nconf_to_analyze;
       read_str_int("NConfToAnalyze",&nconf_to_analyze);

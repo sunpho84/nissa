@@ -543,8 +543,7 @@ global_conf_pars: TK_GAUGE_CONF {driver->run_mode=driver_t::EVOLUTION_MODE;}
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////
 
-global_analysis_pars: TK_ANALYSIS {driver->run_mode=driver_t::ANALYSIS_MODE;}
-                    | global_analysis_pars TK_CONF_LIST '=' text_list {driver->an_conf_list=(*$4);delete $4;}
+global_analysis_pars: TK_ANALYSIS TK_CONF_LIST '=' text_list {driver->run_mode=driver_t::ANALYSIS_MODE;driver->an_conf_list=(*$4);delete $4;}
 ;
 
 /////////////////////////////////////////// PLAQ AND POLYAKOV LOOP //////////////////////////////////////////////////

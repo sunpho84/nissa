@@ -181,6 +181,9 @@ void init_program_to_analyze()
   
   //we always append...
   conf_created=false;
+  
+  //check conf list
+  if(drv->an_conf_list.size()==0) crash("no configuration has been specified in the analysis list, add:\n ConfList\t=\t{\"conf1\",\"conf2\",...} to the input file");
 }
 
 //initialize the simulation
