@@ -537,6 +537,7 @@ void run_program_for_analysis()
       measurements(new_conf,conf,itraj,0,drv->sea_theory().gauge_action_name);
       
       nconf_analyzed++;
+      it++;
     }
   while(it!=drv->an_conf_list.end() && !file_exists("stop") && enough_time());
   
