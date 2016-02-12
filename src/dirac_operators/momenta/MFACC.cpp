@@ -86,17 +86,6 @@ namespace nissa
 	su3_summ_the_prod_double(out[ivol],in[ivol],(1-kappa/2)+offset);
       }
     
-    //checking hermiticity
-    su3_print(in[0]);
-    complex res={0,0};
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      {
-	complex e;
-	trace_su3_prod_su3(e,out[ivol],in[ivol]);
-	complex_summassign(res,e);
-      }
-    master_printf("%lg %lg\n",res[0],res[1]);
-    
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END

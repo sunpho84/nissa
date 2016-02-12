@@ -27,6 +27,7 @@ boundary_cond_t boundary_cond=UNSPEC_BOUNDARY_COND;
 double(*compute_action)(double *paths);
 double(*compute_action_per_timeslice)(double *paths,double *paths_per_timeslice);
 int npaths_per_action;
+rat_approx_t rat_exp_H;
 
 //confs
 int nprod_confs;
@@ -84,6 +85,82 @@ void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
 void measure_gauge_obs();
 void measure_topology(top_meas_pars_t&,quad_su3*,int,bool,bool presereve_uncooled=true);
 
+//read and return path
+std::string read_path()
+{
+  char temp[1024];
+  read_str_str("Path",temp,1024);
+  return temp;
+}
+
+//read parameters to cool
+void read_cool_pars(cool_pars_t &cool_pars)
+{
+  char gauge_action_name_str[1024];
+  read_str_str("CoolAction",gauge_action_name_str,1024);
+  cool_pars.gauge_action=gauge_action_name_from_str(gauge_action_name_str);
+  read_str_int("CoolNSteps",&cool_pars.nsteps);
+  read_str_int("CoolOverrelaxing",&cool_pars.overrelax_flag);
+  if(cool_pars.overrelax_flag==1) read_str_double("CoolOverrelaxExp",&cool_pars.overrelax_exp);
+}
+
+//read parameters to flow
+void read_Wflow_pars(Wflow_pars_t &pars)
+{
+  read_str_double("FlowTime",&pars.T);
+  read_str_double("InteStep",&pars.dt);
+}
+
+//convert a string into smoothing method
+smooth_pars_t::method_t smooth_method_name_from_str(const char *name)
+{
+  //database
+  const int nmet_known=3;
+  smooth_pars_t::method_t met_known[nmet_known]={smooth_pars_t::COOLING,smooth_pars_t::STOUT,smooth_pars_t::WFLOW};
+  const char name_known[nmet_known][20]={"Cooling","Stouting","Wflowing"};
+  
+  //search
+  int imet=0;
+  while(imet<nmet_known && strcasecmp(name,name_known[imet])!=0) imet++;
+  
+  //check
+  if(imet==nmet_known) crash("unknown smoothing method: %s",name);
+  
+  return met_known[imet];
+}
+
+//read parameters to smooth
+void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
+{
+  if(!flag==true) read_str_int("Smoothing",&flag);
+  if(flag)
+    {
+      char smooth_method_name_str[1024];
+      read_str_str("SmoothMethod",smooth_method_name_str,1024);
+      smooth_pars.method=smooth_method_name_from_str(smooth_method_name_str);
+      switch(smooth_pars.method)
+	{
+	case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool);break;
+	case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow);break;
+	default: crash("should not arrive here");break;
+	}
+      read_str_double("MeasEach",&smooth_pars.meas_each);
+      if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUT)&&fabs(smooth_pars.meas_each-int(smooth_pars.meas_each))>=1.e-14)
+	crash("MeasEach must be integer if Cooling or Stouting method selected");
+    }
+}
+
+//read parameters to study topology
+void read_top_meas_pars(top_meas_pars_t &pars,int flag=false)
+{
+  if(!flag) read_str_int("MeasureTopology",&flag);
+  if(flag)
+    {
+      pars.path=read_path();
+      read_smooth_pars(pars.smooth_pars,true);
+    }
+}
+
 //write a conf adding info
 void write_conf(const char *path)
 {
@@ -93,14 +170,14 @@ void write_conf(const char *path)
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
   char text[1024];
-
+  
   //conf id
   sprintf(text,"%d",iconf);
   ILDG_string_message_append_to_last(&mess,"ConfID",text);
   
   //skip 10 random numbers
   for(int iskip=0;iskip<10;iskip++) rnd_get_unif(&glb_rnd_gen,0,1);
-
+  
   //glb_rnd_gen status
   convert_rnd_gen_to_text(text,&glb_rnd_gen,1024);
   ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
@@ -122,8 +199,8 @@ THREADABLE_FUNCTION_2ARG(compute_corr, double*,corr, su3spinspin*,Q)
   vector_reset(corr);
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int ic=0;ic<3;ic++)
-      for(int jc=0;jc<3;jc++)
+    for(int ic=0;ic<NCOL;ic++)
+      for(int jc=0;jc<NCOL;jc++)
 	for(int id=0;id<4;id++)
 	  for(int jd=0;jd<4;jd++)
 	    corr[ivol]+=real_part_of_complex_scalar_prod(Q[ivol][ic][jc][id][jd],Q[ivol][ic][jc][id][jd]);
@@ -148,8 +225,8 @@ THREADABLE_FUNCTION_3ARG(compute_corr_stoch, double*,corr, su3spinspin**,phi, su
   
   //combine phi1 with eta2
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int ic=0;ic<3;ic++)
-      for(int jc=0;jc<3;jc++)
+    for(int ic=0;ic<NCOL;ic++)
+      for(int jc=0;jc<NCOL;jc++)
 	for(int id=0;id<4;id++)
 	  for(int jd=0;jd<4;jd++)
 	    {
@@ -163,8 +240,8 @@ THREADABLE_FUNCTION_3ARG(compute_corr_stoch, double*,corr, su3spinspin**,phi, su
   
   vector_reset(corr_tilde);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int ic=0;ic<3;ic++)
-      for(int jc=0;jc<3;jc++)
+    for(int ic=0;ic<NCOL;ic++)
+      for(int jc=0;jc<NCOL;jc++)
 	for(int id=0;id<2;id++)
 	  for(int jd=0;jd<2;jd++)
 	    {
@@ -220,7 +297,7 @@ void meas_x_corr(const char *path,quad_su3 *conf,bool conf_created)
   
   for(int r=0;r<x_corr_nr;r++)
     {
-      for(int ic=0;ic<3;ic++)
+      for(int ic=0;ic<NCOL;ic++)
 	for(int id=0;id<4;id++)
 	  { 
 	    vector_reset(source);
@@ -273,7 +350,7 @@ void meas_x_corr_stoch(const char *path,quad_su3 *conf,bool conf_created)
     {
       for(int iso=0;iso<2;iso++)
 	for(int id=0;id<4;id++)
-	  for(int ic=0;ic<3;ic++)
+	  for(int ic=0;ic<NCOL;ic++)
 	    { 
 	      //rotate the source index - please note that the propagator rotate AS the sign of mass term
 	      get_spincolor_from_su3spinspin(source,eta[iso],id,ic);
@@ -449,9 +526,8 @@ void init_simulation(char *path)
     crash("unknown boundary condition %s, expected 'PERIODIC' or 'OPEN'",boundary_cond_str);
   
   //read the topology measures info
-  crash("fix reading topomeas");
-  //read_top_meas_pars(top_meas_pars);
-  if(top_meas_pars.each) init_sweeper(top_meas_pars.smooth_pars.cool_pars.gauge_action);
+  read_top_meas_pars(top_meas_pars);
+  if(top_meas_pars.smooth_pars.method==smooth_pars_t::COOLING && top_meas_pars.smooth_pars.meas_each) init_sweeper(top_meas_pars.smooth_pars.cool.gauge_action);
   
   //read X space correlation measurement
   read_str_int("MeasXCorr",&x_corr_flag);
@@ -604,10 +680,6 @@ void generate_new_conf(quad_su3 *conf,int check=0)
 {
   if(evol_pars.use_hmc)
     {
-      rat_approx_t rat_exp_H;
-      generate_approx_of_maxerr(rat_exp_H,1e-6,10,sqrt(evol_pars.residue),-1,2);
-      master_printf_rat_approx(&rat_exp_H);
-      
       int perform_test=true;
       double diff_act=pure_gauge_hmc_step(temp_conf,conf,theory_pars,evol_pars,&rat_exp_H,iconf);
       
@@ -720,6 +792,12 @@ void in_main(int narg,char **arg)
   init_simulation(arg[1]);
   
   ///////////////////////////////////////
+  
+  if(evol_pars.use_hmc)
+    {
+      generate_approx_of_maxerr(rat_exp_H,1e-6,10,sqrt(evol_pars.residue),-1,2);
+      rat_exp_H.master_fprintf(stdout);
+    }
   
   //generate the required amount of confs
   nprod_confs=0;

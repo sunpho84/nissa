@@ -67,11 +67,11 @@ namespace nissa
 	su3_put_to_zero(nu_plus);
 	su3_put_to_zero(nu_minus);
 	
-	for(int igen=0;igen<8;igen++)
+	for(int igen=0;igen<NCOL*NCOL-1;igen++)
 	  {
 	    //prepare increment and change
 	    su3 ba;
-	    su3_prod_double(ba,gell_mann_matr[igen],eps);
+	    su3_prod_double(ba,gell_mann_matr[igen],eps/2);
 	    
 	    //change -, compute action
 	    su3_subt(pi[ifield][0],sto,ba);
@@ -87,8 +87,8 @@ namespace nissa
 	    printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
 	    double gr_plus=(act_plus-act_ori)/eps;
 	    double gr_minus=(act_ori-act_minus)/eps;
-	    su3_summ_the_prod_double(nu_plus,gell_mann_matr[igen],gr_plus/2);
-	    su3_summ_the_prod_double(nu_minus,gell_mann_matr[igen],gr_minus/2);
+	    su3_summ_the_prod_double(nu_plus,gell_mann_matr[igen],gr_plus);
+	    su3_summ_the_prod_double(nu_minus,gell_mann_matr[igen],gr_minus);
 	  }
 	
 	//take the average
@@ -107,7 +107,6 @@ namespace nissa
 	su3_print(F[0]);
 	master_printf("nu\n");
 	su3_print(nu);
-	//crash("ciccio");
 #endif
 	//evolve
         double_vector_summ_double_vector_prod_double((double*)(phi[ifield]),(double*)(phi[ifield]),(double*)F,dt,loc_vol*sizeof(su3)/sizeof(double));
@@ -125,19 +124,17 @@ namespace nissa
     
     for(int ifield=0;ifield<NDIM/2;ifield++)
       double_vector_summ_double_vector_prod_double((double*)(pi[ifield]),(double*)(pi[ifield]),(double*)(phi[ifield]),-dt,loc_vol*sizeof(su3)/sizeof(double));
-    su3_print(pi[0][0]);
   }
   THREADABLE_FUNCTION_END
   
   //compute the QCD force originated from MFACC momenta (derivative of \pi^\dag MM \pi/2) w.r.t U
-  THREADABLE_FUNCTION_5ARG(MFACC_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, su3**,pi, bool,reset)
+  THREADABLE_FUNCTION_4ARG(summ_the_MFACC_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, su3**,pi)
   {
     GET_THREAD_ID();
     
     verbosity_lv2_master_printf("Computing QCD force originated by MFACC momenta (derivative of \\pi^\\dag MM \\pi/2) w.r.t U\n");
     
     su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
-    if(reset) vector_reset(F);
     
 #ifdef DEBUG
     double eps=1e-5;
@@ -152,7 +149,7 @@ namespace nissa
     su3_put_to_zero(nu_plus);
     su3_put_to_zero(nu_minus);
     
-    for(int igen=0;igen<8;igen++)
+    for(int igen=0;igen<NCOL*NCOL-1;igen++)
       {
 	//prepare increment and change
 	su3 ba;
@@ -174,8 +171,8 @@ namespace nissa
 	//printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
 	double gr_plus=-(act_plus-act_ori)/eps;
 	double gr_minus=-(act_ori-act_minus)/eps;
-	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus/2);
-	su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus/2);
+	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus);
+	su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus);
       }
     
     //take the average
@@ -206,8 +203,8 @@ namespace nissa
 	      unsafe_su3_dag_prod_su3_dag(t,temp[up],conf[ivol][mu]);
 	      su3_summ_the_prod_su3(E,t,pi[ifield][ivol]);
 	      
-	      //factor of kappa/16
-	      su3_summ_the_prod_double(F[ivol][mu],E,-kappa/16);
+	      //factor of 2*kappa/4NDIM
+	      su3_summ_the_prod_double(F[ivol][mu],E,-2*kappa/(4*NDIM));
 	    }
 	THREAD_BARRIER();
       }
@@ -225,16 +222,17 @@ namespace nissa
     su3_print(r2);
     master_printf("nu\n");
     su3_print(nu);
+    //crash("ciccio");
 #endif
   }
   THREADABLE_FUNCTION_END
   
   //compute the QCD momenta force (derivative of \H^\dag G \H/2) (eq.8)
-  THREADABLE_FUNCTION_7ARG(MFACC_QCD_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, int,niter, double,residue, quad_su3*,H, bool,reset)
+  THREADABLE_FUNCTION_6ARG(summ_the_MFACC_QCD_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, int,niter, double,residue, quad_su3*,H)
   {
     GET_THREAD_ID();
     
-    verbosity_lv2_master_printf("Computing QCD force due to Fourier Accelerated QCD momentas\n");
+    verbosity_lv2_master_printf("Computing QCD force due to Fourier Accelerated QCD momenta\n");
     
 #ifdef DEBUG
     double eps=1e-5;
@@ -249,7 +247,7 @@ namespace nissa
     su3_put_to_zero(nu_plus);
     su3_put_to_zero(nu_minus);
     
-    for(int igen=0;igen<8;igen++)
+    for(int igen=0;igen<NCOL*NCOL-1;igen++)
       {
 	//prepare increment and change
 	su3 ba;
@@ -271,8 +269,8 @@ namespace nissa
 	//printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
 	double gr_plus=-(act_plus-act_ori)/eps;
 	double gr_minus=-(act_ori-act_minus)/eps;
-	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus/2);
-	su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus/2);
+	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus);
+	su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus);
       }
     
     //take the average
@@ -285,7 +283,6 @@ namespace nissa
     
     su3 *H_nu=nissa_malloc("H_nu",loc_vol+bord_vol,su3);
     su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
-    if(reset) vector_reset(F);
     
     for(int nu=0;nu<NDIM;nu++)
       {
@@ -313,7 +310,7 @@ namespace nissa
 		unsafe_su3_dag_prod_su3_dag(t,temp[up],conf[ivol][mu]);
 		su3_summ_the_prod_su3(E,t,temp[ivol]);
 		
-		su3_summ_the_prod_double(F[ivol][mu],E,kappa/32); //it likes /32 more then -/32
+		su3_summ_the_prod_double(F[ivol][mu],E,kappa/(4*NDIM));
 	      }
 	  }
 	THREAD_BARRIER();

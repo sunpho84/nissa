@@ -18,6 +18,8 @@
 #include "hmc/theory_pars.hpp"
 #include "gluonic_action.hpp"
 
+//#define DEBUG
+
 namespace nissa
 {
   //Finish the computation multiplying for the conf and taking TA
@@ -36,14 +38,24 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //compute only the gauge part
+  //compute the gauge force
+  void compute_gluonic_force_lx_conf_do_not_finish(quad_su3 *F,quad_su3 *conf,theory_pars_t *physics)
+  {
+    switch(physics->gauge_action_name)
+      {
+      case WILSON_GAUGE_ACTION: Wilson_force_lx_conf(F,conf,physics->beta);break;
+      case TLSYM_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_TLSYM);break;
+      case IWASAKI_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_IWASAKI);break;
+      default: crash("Unknown action");
+      }
+  }
+  
+  //take also the TA
   THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics)
   {
     GET_THREAD_ID();
     
     START_TIMING(gluon_force_time,ngluon_force);
-    
-    //#define DEBUG
     
 #ifdef DEBUG
     vector_reset(F);
@@ -53,7 +65,7 @@ namespace nissa
     su3 sto;
     su3_copy(sto,conf[0][0]);
     double act_ori;
-    gluonic_action(&act_ori,conf,physics);
+    gluonic_action(&act_ori,conf,physics->gauge_action_name,physics->beta);
     
     //store derivative
     su3 nu_plus,nu_minus;
@@ -72,12 +84,12 @@ namespace nissa
 	//change -, compute action
 	unsafe_su3_dag_prod_su3(conf[0][0],exp_mod,sto);
 	double act_minus;
-	gluonic_action(&act_minus,conf,physics);
+	gluonic_action(&act_minus,conf,physics->gauge_action_name,physics->beta);
 	
 	//change +, compute action
 	unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
 	double act_plus;
-	gluonic_action(&act_plus,conf);
+	gluonic_action(&act_plus,conf,physics->gauge_action_name,physics->beta);
 	
 	//set back everything
 	su3_copy(conf[0][0],sto);
@@ -97,13 +109,7 @@ namespace nissa
     vector_reset(F);
 #endif
     
-    switch(physics->gauge_action_name)
-      {
-      case WILSON_GAUGE_ACTION: Wilson_force_lx_conf(F,conf,physics->beta);break;
-      case TLSYM_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_TLSYM);break;
-      case IWASAKI_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_IWASAKI);break;
-      default: crash("Unknown action");
-      }
+    compute_gluonic_force_lx_conf_do_not_finish(F,conf,physics);
     
     //finish the calculation
     gluonic_force_finish_computation(F,conf);
@@ -118,7 +124,7 @@ namespace nissa
     su3_print(nu_plus);
     master_printf("nu_minus\n");
     su3_print(nu_minus);
-    crash("anna");
+    //crash("anna");
 #endif
     
     //print the intensity of the force
