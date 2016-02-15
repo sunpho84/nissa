@@ -6,6 +6,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/momenta/MFACC.hpp"
+#include "hmc/gauge/MFACC_fields.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3_op.hpp"
@@ -15,9 +16,10 @@
 #endif
 
 //#define DEBUG
-
-#include "hmc/momenta/momenta_action.hpp"
-#include "operations/gauge_fixing.hpp"
+#ifdef DEBUG
+ #include "hmc/momenta/momenta_action.hpp"
+ #include "operations/gauge_fixing.hpp"
+#endif
 
 namespace nissa
 {
@@ -36,11 +38,14 @@ namespace nissa
   double MFACC_fields_action(su3 **phi)
   {
     //summ the square of pi
-    double glb_action_lx[NDIM/2];
-    for(int ifield=0;ifield<NDIM/2;ifield++)
+    double glb_action_lx[n_FACC_fields];
+    for(int ifield=0;ifield<n_FACC_fields;ifield++)
       double_vector_glb_scalar_prod(&(glb_action_lx[ifield]),(double*)(phi[ifield]),(double*)(phi[ifield]),sizeof(su3)/sizeof(double)*loc_vol);
     
-    return (glb_action_lx[0]+glb_action_lx[1])/2;
+    double act=0;
+    for(int id=0;id<n_FACC_fields;id++) act+=glb_action_lx[id];
+    
+    return act/2;
   }
   
   //Evolve Fourier acceleration related fields - eq.5
@@ -52,7 +57,7 @@ namespace nissa
     su3 *F=nissa_malloc("temp",loc_vol+bord_vol,su3);
     su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
     
-    for(int ifield=0;ifield<NDIM/2;ifield++)
+    for(int ifield=0;ifield<n_FACC_fields;ifield++)
       {
 #ifdef DEBUG
 	double eps=1e-5;
@@ -122,7 +127,7 @@ namespace nissa
   {
     verbosity_lv2_master_printf("Evolving Fourier momenta, dt=%lg\n",dt);
     
-    for(int ifield=0;ifield<NDIM/2;ifield++)
+    for(int ifield=0;ifield<n_FACC_fields;ifield++)
       double_vector_summ_double_vector_prod_double((double*)(pi[ifield]),(double*)(pi[ifield]),(double*)(phi[ifield]),-dt,loc_vol*sizeof(su3)/sizeof(double));
   }
   THREADABLE_FUNCTION_END
@@ -183,7 +188,7 @@ namespace nissa
     vector_reset(F);
 #endif
     
-    for(int ifield=0;ifield<NDIM/2;ifield++)
+    for(int ifield=0;ifield<n_FACC_fields;ifield++)
       {
 	//apply
 	apply_MFACC(temp,conf,kappa,pi[ifield]);

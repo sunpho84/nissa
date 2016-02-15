@@ -5,6 +5,8 @@
 
 namespace nissa
 {
+  const int n_FACC_fields=NDIM/2;
+  
   void generate_MFACC_fields(su3 *phi);
   double MFACC_fields_action(su3 **phi);
   void evolve_MFACC_fields(su3 **phi,quad_su3 *conf,double kappa,su3 **pi,double dt);

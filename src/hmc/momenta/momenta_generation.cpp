@@ -98,7 +98,7 @@ namespace nissa
     //allocate gaussian field
     su3 *V=nissa_malloc("V",loc_vol+bord_vol,su3);
     
-    for(int id=0;id<NDIM/2;id++)
+    for(int id=0;id<n_FACC_fields;id++)
       {
         //generate gaussianly V and then invert on it
         generate_MFACC_fields(V);

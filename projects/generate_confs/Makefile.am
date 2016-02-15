@@ -14,7 +14,6 @@ bin_PROGRAMS= \
 generate_parser_sources= \
         parser.ypp \
         tokenizer.lpp \
-        parser.hpp \
         driver.hpp \
         redefine_yy.hpp
 generate_parser_built_sources= \
@@ -22,14 +21,17 @@ generate_parser_built_sources= \
         parser.hpp \
         parser.cpp
 
-AM_YFLAGS=-d
-BUILT_SOURCES=$(generate_parser_built_sources)
+parser_fixed.cpp: $(top_srcdir)/projects/generate_confs/fix_bison.sh Makefile
+	bash $(top_srcdir)/projects/generate_confs/fix_bison.sh parser.cpp > $@
 
-CLEANFILES=$(generate_parser_built_sources)
+AM_YFLAGS=-d
+BUILT_SOURCES=$(generate_parser_built_sources) parser_fixed.cpp
+
+CLEANFILES=$(generate_parser_built_sources) parser_fixed.cpp
 
 #############################################################################################
 
-__top_builddir__bin_generate_SOURCES=generate.cpp $(generate_parser_sources)
+__top_builddir__bin_generate_SOURCES=generate.cpp parser.hpp parser_fixed.cpp tokenizer.cpp
 __top_builddir__bin_generate_LDADD=$(LDADD)
 __top_builddir__bin_generate_LDFLAGS=$(LDFLAGS)
 

@@ -281,8 +281,8 @@ Seconds? DEBUG_PRINTF("Found Second(s)\n");yylval->int_numb=1;return TK_QUANTITY
 
  /* crash if finds unexpected word or unrecognized char */
 \#{LETTER}{ALNUM}* nissa::crash("found unexpected preprocessor directive %s",yytext);
-{LETTER}{ALNUM}* nissa::crash("found unexpected string %s",yytext);
-{ANY} nissa::crash("found unexpected char %c",yytext[0]);
+{LETTER}{ALNUM}* return TK_INVALID_STRING;
+{ANY} return TK_INVALID_STRING;
 
 %%
 

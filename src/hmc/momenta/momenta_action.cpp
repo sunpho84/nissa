@@ -6,6 +6,7 @@
 #include "dirac_operators/momenta/MFACC.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
+#include "hmc/gauge/MFACC_fields.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "routines/mpi_routines.hpp"
@@ -56,15 +57,17 @@ namespace nissa
     //allocate temporary field where to store output
     su3 *V=nissa_malloc("V",loc_vol,su3);
     
-    double glb_action_id[2];
-    for(int id=0;id<NDIM/2;id++)
+    double glb_action_id[n_FACC_fields];
+    for(int id=0;id<n_FACC_fields;id++)
       {
         //apply the kernel
         apply_MFACC(V,conf,kappa,pi[id]);
         double_vector_glb_scalar_prod(&(glb_action_id[id]),(double*)V,(double*)V,sizeof(su3)/sizeof(double)*loc_vol);
       }
     
-    (*tot_action)=(glb_action_id[0]+glb_action_id[1])/2;
+    (*tot_action)=0;
+    for(int id=0;id<n_FACC_fields;id++) (*tot_action)+=glb_action_id[id]/2;
+    
     nissa_free(V);
   }
   THREADABLE_FUNCTION_END

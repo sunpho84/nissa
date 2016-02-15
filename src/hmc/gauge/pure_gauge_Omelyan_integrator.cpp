@@ -24,6 +24,10 @@
 
 //#define DEBUG
 
+#ifdef DEBUG
+  double pure_gauge_action(quad_su3 *conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,quad_su3 *H,su3 **phi,su3 **pi);
+#endif
+
 int evolve_SU3=1;
 int evolve_FACC=1;
 
@@ -47,8 +51,6 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  double pure_gauge_action(quad_su3 *conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,quad_su3 *H,su3 **phi,su3 **pi);
-
   //same but with acceleration
   THREADABLE_FUNCTION_8ARG(evolve_momenta_and_FACC_momenta, quad_su3*,H, su3**,pi, quad_su3*,conf, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul, double,dt, quad_su3*,ext_F)
   {

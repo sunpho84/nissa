@@ -58,13 +58,14 @@
     nissa::watusso_meas_pars_t *watusso_meas;
     nissa::all_rects_meas_pars_t *all_rects_meas;
 
-std::vector<int> *int_list;
+    std::vector<int> *int_list;
     std::vector<double> *double_list;
     std::vector<std::string> *text_list;
     std::pair<int,int> *int_pair;
     std::vector<std::pair<int,int> > *int_pair_list;
 }
 
+%token TK_INVALID_STRING
 //arithmethc
 %token <double_numb> TK_DOUBLE
 %type <double_numb> double_numb

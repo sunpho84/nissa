@@ -549,31 +549,29 @@ void init_simulation(char *path)
   //allocate conf
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
-  if(evol_pars.use_hmc) temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  else
+  switch(theory_pars.gauge_action_name)
     {
-      switch(theory_pars.gauge_action_name)
-	{
-	case WILSON_GAUGE_ACTION:
-	  compute_action=compute_Wilson_action;
-	  compute_action_per_timeslice=compute_Wilson_action_per_timeslice;
-	  npaths_per_action=1;
-	  break;
-	case TLSYM_GAUGE_ACTION:
-	  compute_action=compute_tlSym_action;
-	  compute_action_per_timeslice=compute_tlSym_action_per_timeslice;
-	  npaths_per_action=2;
-	  break;
-	case IWASAKI_GAUGE_ACTION:
-	  compute_action=compute_Iwasaki_action;
-	  compute_action_per_timeslice=compute_Iwasaki_action_per_timeslice;
-	  npaths_per_action=2;
-	  break;
-	default:
-	  crash("unknown action");
-	}
-      sweeper=get_sweeper(theory_pars.gauge_action_name);
+    case WILSON_GAUGE_ACTION:
+      compute_action=compute_Wilson_action;
+      compute_action_per_timeslice=compute_Wilson_action_per_timeslice;
+      npaths_per_action=1;
+      break;
+    case TLSYM_GAUGE_ACTION:
+      compute_action=compute_tlSym_action;
+      compute_action_per_timeslice=compute_tlSym_action_per_timeslice;
+      npaths_per_action=2;
+      break;
+    case IWASAKI_GAUGE_ACTION:
+      compute_action=compute_Iwasaki_action;
+      compute_action_per_timeslice=compute_Iwasaki_action_per_timeslice;
+      npaths_per_action=2;
+      break;
+    default:
+      crash("unknown action");
     }
+  
+  if(evol_pars.use_hmc) temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  else sweeper=get_sweeper(theory_pars.gauge_action_name);
   
   if(x_corr_flag)
     {
@@ -745,11 +743,7 @@ void measure_gauge_obs()
   double time_action=-take_time();
   double paths[2];
   double paths_per_timeslice[glb_size[0]*npaths_per_action];
-  double action;
-  if(evol_pars.use_hmc) gluonic_action(&action,conf,theory_pars.gauge_action_name,theory_pars.beta);
-  else
-    action=(boundary_cond==OPEN_BOUNDARY_COND)?compute_action_per_timeslice(paths,paths_per_timeslice):
-      compute_action(paths);
+  double action=(boundary_cond==OPEN_BOUNDARY_COND)?compute_action_per_timeslice(paths,paths_per_timeslice):compute_action(paths);
   master_printf("Action: %015.15lg measured in %lg sec\n",action,time_action+take_time());
   
   master_fprintf(file_obs,"%6d\t%015.15lg",iconf,action);
@@ -758,7 +752,7 @@ void measure_gauge_obs()
   if(rank==0 && iconf%flushing_nconfs==0) fflush(file_obs);
   
   meas_time+=take_time();
-
+  
   if(boundary_cond==OPEN_BOUNDARY_COND)
     {
       for(int t=0;t<glb_size[0];t++)
