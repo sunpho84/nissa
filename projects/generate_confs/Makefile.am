@@ -22,7 +22,8 @@ generate_parser_built_sources= \
         parser.cpp
 
 parser_fixed.cpp: $(top_srcdir)/projects/generate_confs/fix_bison.sh Makefile
-	bash $(top_srcdir)/projects/generate_confs/fix_bison.sh parser.cpp > $@
+	@echo "Fixing the parser"
+	@bash $(top_srcdir)/projects/generate_confs/fix_bison.sh parser.cpp > $@
 
 AM_YFLAGS=-d
 BUILT_SOURCES=$(generate_parser_built_sources) parser_fixed.cpp
