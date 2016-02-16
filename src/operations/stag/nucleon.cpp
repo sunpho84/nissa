@@ -71,7 +71,7 @@ namespace nissa
 		get_color_from_su3(temp_source,source,ic);
 		for(int iflav=0;iflav<nflavs;iflav++)
 		  {
-		    if(!theory_pars.quarks[iflav].is_stag) crash("not defined for non-staggered quarks");
+		    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
 		    
 		    mult_Minv(temp_sol,conf,&theory_pars,iflav,meas_pars.residue,temp_source);
 		    

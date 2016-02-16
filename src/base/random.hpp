@@ -46,6 +46,8 @@ namespace nissa
   void generate_undiluted_source(spincolor *source,enum rnd_t rtype,int twall);
   void generate_fully_undiluted_eo_source(color *source,enum rnd_t rtype,int twall,int par,int dir=0);
   void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall,int dir=0);
+  void generate_fully_undiluted_eo_source(spincolor *source,enum rnd_t rtype,int twall,int par,int dir=0);
+  void generate_fully_undiluted_eo_source(spincolor **source,enum rnd_t rtype,int twall,int dir=0);
   void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma);
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);

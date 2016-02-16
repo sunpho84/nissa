@@ -3,18 +3,63 @@
 
 #include <stdio.h>
 #include <string>
+#include <string.h>
 #include <sstream>
 
+#include "base/debug.hpp"
 #include "routines/ios.hpp"
 
 namespace nissa
 {
+  namespace ferm_discretiz
+  {
+    const int nknown=2;
+    enum name_t{ROOT_STAG,ROOT_TM_CLOV};
+    const name_t list[nknown]={ROOT_STAG,ROOT_TM_CLOV};
+    const char text[nknown][20]={"RootStag","RootTmClov"};
+    
+    //change from name to string
+    inline std::string str_from_name(name_t name)
+    {
+      switch(name)
+	{
+	case ROOT_STAG:return "RootStag";break;
+	case ROOT_TM_CLOV:return "RootTMClov";break;
+	default: crash("should not happen"); return "unkwnonw";
+	}
+    }
+    
+    //string into name
+    inline name_t name_from_str(const char *in)
+    {
+      //search
+      int iname=0;
+      while(iname<nknown && strcasecmp(in,text[iname])!=0) iname++;
+      
+      //check
+      if(iname==nknown) crash("unknown fermion discretiz action: %s",in);
+      
+      return list[iname];
+    }
+    
+    //determine if staggered or not
+    inline bool is_stag(name_t name)
+    {
+      switch(name)
+	{
+	case ROOT_STAG: return true;
+	case ROOT_TM_CLOV: return false;
+	default: crash("unkwnown");return false;
+	}
+    }
+  }
+  
   //quark content
   struct quark_content_t
   {
     std::string name;
     int deg;
-    bool is_stag;
+    ferm_discretiz::name_t discretiz;
     double mass;
     double kappa;
     double re_pot;
@@ -23,7 +68,7 @@ namespace nissa
     
     std::string def_name(){return "quark";}
     int def_deg(){return 1;}
-    bool def_is_stag(){return true;}
+    ferm_discretiz::name_t def_discretiz(){return ferm_discretiz::ROOT_STAG;}
     double def_mass(){return 0.1;}
     double def_kappa(){return 0.125;}
     double def_re_pot(){return 0;}
@@ -36,19 +81,20 @@ namespace nissa
       std::ostringstream os;
       os<<"Quark\t\t=\t\""<<name.c_str()<<"\"\n";
       if(full||deg!=def_deg()) os<<" Degeneracy\t=\t"<<deg<<"\n";
+      if(full||discretiz!=def_discretiz()) os<<" Discretiz\t=\t"<<ferm_discretiz::str_from_name(discretiz)<<"\n";
       if(full||mass!=def_mass()) os<<" Mass\t\t=\t"<<mass<<"\n";
       if(full||re_pot!=def_re_pot()) os<<" RePotCh\t=\t"<<re_pot<<"\n";
       if(full||im_pot!=def_im_pot()) os<<" ImPotCh\t=\t"<<im_pot<<"\n";
       if(full||charge!=def_charge()) os<<" ElecCharge\t=\t"<<charge<<"\n";
-    
-    return os.str();
-  }
+      
+      return os.str();
+    }
     
     int is_nonstandard()
     {
       return
 	deg!=def_deg()||
-	is_stag!=def_is_stag()||
+	discretiz!=def_discretiz()||
 	mass!=def_mass()||
 	kappa!=def_kappa()||
 	re_pot!=def_re_pot()||
@@ -58,7 +104,7 @@ namespace nissa
     
     quark_content_t() :
       deg(def_deg()),
-      is_stag(def_is_stag()),
+      discretiz(def_discretiz()),
       mass(def_mass()),
       kappa(def_kappa()),
       re_pot(def_re_pot()),

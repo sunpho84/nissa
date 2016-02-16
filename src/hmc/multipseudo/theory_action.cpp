@@ -20,7 +20,7 @@
 namespace nissa
 {
   //compute quark action for a set of quark
-  THREADABLE_FUNCTION_8ARG(compute_quark_action, double*,glb_action, quad_su3**,eo_conf, int,nfl, std::vector<quad_u1**>,u1b, pseudofermion_t*,pf, std::vector<quark_content_t>,quark_content, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
+  THREADABLE_FUNCTION_8ARG(compute_quark_action, double*,glb_action, quad_su3**,eo_conf, int,nfl, std::vector<quad_u1**>,u1b, std::vector<std::vector<pseudofermion_t> >*,pf, std::vector<quark_content_t>,quark_content, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
   {
     //allocate chi
     color *chi_e=nissa_malloc("chi_e",loc_volh,color);
@@ -38,12 +38,14 @@ namespace nissa
 	    
 	    //compute chi with background field
 	    double flav_action;
-	    if(quark_content[ifl].is_stag)
+	    switch(quark_content[ifl].discretiz)
 	      {
-		summ_src_and_all_inv_stD2ee_m2_cgm(chi_e,eo_conf,&(*rat_appr)[3*ifl+1],1000000,simul_pars->pf_action_residue,pf[ifl].stag[ipf]);
-		double_vector_glb_scalar_prod(&flav_action,(double*)chi_e,(double*)(pf[ifl].stag[ipf]),loc_volh*6);
+	      case ferm_discretiz::ROOT_STAG:
+		summ_src_and_all_inv_stD2ee_m2_cgm(chi_e,eo_conf,&(*rat_appr)[3*ifl+1],1000000,simul_pars->pf_action_residue,(*pf)[ifl][ipf].stag);
+		double_vector_glb_scalar_prod(&flav_action,(double*)chi_e,(double*)((*pf)[ifl][ipf].stag),loc_volh*2*NCOL);
+		break;
+		default: crash("still not implemented");
 	      }
-	    else crash("still not implemented");
 	    
 	    //compute scalar product
 	    (*glb_action)+=flav_action;
@@ -59,7 +61,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //Compute the total action of the rooted staggered e/o improved theory
-  THREADABLE_FUNCTION_9ARG(full_theory_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, pseudofermion_t*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr, double,external_quark_action)
+  THREADABLE_FUNCTION_9ARG(full_theory_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, std::vector<std::vector<pseudofermion_t> > *,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr, double,external_quark_action)
   {
     verbosity_lv1_master_printf("Computing action\n");
     

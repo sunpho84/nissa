@@ -2,7 +2,9 @@
 #define _MULTIPSEUDO_RHMC_STEP_HPP
 
 #include "hmc/theory_pars.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/rat_approx.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "operations/gaugeconf.hpp"
 
 namespace nissa
@@ -144,12 +146,57 @@ namespace nissa
   //to hold rhmc fields
   struct pseudofermion_t
   {
-    int is_stag,npf;
-    color **stag;
-    spincolor **Wils;
+    int is_stag;
+    int ndoubles;
+    double *double_ptr;
     
-    void create(int npf,int is_stag);
-    void destroy();
+    color *stag;
+    spincolor *Wils;
+    
+    //fill to random
+    void fill(enum rnd_t rtype=RND_GAUSS,int twall=-1,int par=EVN,int dir=0)
+    {
+      if(is_stag) generate_fully_undiluted_eo_source(stag,rtype,twall,par,dir);
+      else generate_fully_undiluted_eo_source(Wils,rtype,twall,par,dir);
+    }
+    
+    //normalize and return the size
+    double normalize(pseudofermion_t &other_vector,double norm=1)
+    {
+      double other_norm;
+      double_vector_normalize(&other_norm,double_ptr,other_vector.double_ptr,norm,ndoubles);
+      
+      return other_norm;
+    }
+    double normalize(double norm=1)
+    {return normalize(*this,norm);}
+    
+    //allocate and mark size
+    void create(ferm_discretiz::name_t discretiz,const char *name="pf")
+    {
+      is_stag=ferm_discretiz::is_stag(discretiz);
+      
+      if(is_stag)
+	{
+	  stag=nissa_malloc(name,loc_volh+bord_volh,color);
+	  double_ptr=(double*)stag;
+	  ndoubles=loc_volh*NCOL*2;
+	}
+      else
+	{
+	  Wils=nissa_malloc(name,loc_volh+bord_volh,spincolor);
+	  double_ptr=(double*)Wils;
+	  ndoubles=loc_volh*4*NCOL*2;
+	}
+    }
+    pseudofermion_t(ferm_discretiz::name_t regul,const char *name="pf"){create(regul,name);}
+    
+    pseudofermion_t()
+    {double_ptr=NULL;}
+    ~pseudofermion_t() {destroy();}
+  private:
+    void destroy()
+    {if(double_ptr) nissa_free(double_ptr);}
   };
   
   double multipseudo_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,

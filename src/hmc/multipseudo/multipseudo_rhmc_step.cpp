@@ -26,31 +26,6 @@
 
 namespace nissa
 {
-  //create a pseudofermion
-  void pseudofermion_t::create(int _npf,int _is_stag)
-  {
-    is_stag=_is_stag;
-    npf=_npf;
-    
-    if(is_stag) stag=nissa_malloc("pf*",loc_volh,color*);
-    else        Wils=nissa_malloc("pf*",loc_volh,spincolor*);
-    
-    for(int ipf=0;ipf<npf;ipf++)
-      if(is_stag) stag[ipf]=nissa_malloc("pf",loc_volh,color);
-      else Wils[ipf]=nissa_malloc("pf",loc_volh,spincolor);
-  }
-  
-  //destroy it
-  void pseudofermion_t::destroy()
-  {
-    for(int ipf=0;ipf<npf;ipf++)
-      if(is_stag) nissa_free(stag[ipf]);
-      else        nissa_free(Wils[ipf]);
-    
-    if(is_stag) nissa_free(stag);
-    else        nissa_free(Wils);
-  }
-  
   //perform a full hmc step and return the difference between final and original action
   double multipseudo_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr,int itraj)
   {
@@ -73,10 +48,13 @@ namespace nissa
       }
     
     //allocate pseudo-fermions
-    pseudofermion_t pf[theory_pars.nflavs()];
+    std::vector<std::vector<pseudofermion_t> > pf(theory_pars.nflavs());
     for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
-      pf[iflav].create(simul_pars.npseudo_fs[iflav],theory_pars.quarks[iflav].is_stag);
-    
+      {
+	int npf=simul_pars.npseudo_fs[iflav];
+	pf[iflav].resize(npf);
+	for(int ipf=0;ipf<npf;ipf++) pf[iflav][ipf].create(theory_pars.quarks[iflav].discretiz);
+      }
     //if needed smear the configuration for pseudo-fermions, approx generation and action computation
     //otherwise bind out_conf to sme_conf
     quad_su3 *sme_conf[2];
@@ -107,8 +85,13 @@ namespace nissa
 	{
 	  verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs());
 	  double pf_action_flav;
-	  if(theory_pars.quarks[iflav].is_stag) generate_pseudo_fermion(&pf_action_flav,pf[iflav].stag[ipf],sme_conf,theory_pars.backfield[iflav],&rat_appr[3*iflav+0],simul_pars.pf_action_residue);
-	  else crash("not yet implemented");
+	  switch(theory_pars.quarks[iflav].discretiz)
+	    {
+	    case ferm_discretiz::ROOT_STAG:
+	      generate_pseudo_fermion(&pf_action_flav,pf[iflav][ipf].stag,sme_conf,theory_pars.backfield[iflav],&rat_appr[3*iflav+0],simul_pars.pf_action_residue);break;
+	    default:
+	      crash("not yet implemented");
+	    }
 	  pf_action+=pf_action_flav;
 	}
     
@@ -117,11 +100,11 @@ namespace nissa
     
     //compute initial action
     double init_action;
-    full_theory_action(&init_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars,&rat_appr,pf_action);
+    full_theory_action(&init_action,out_conf,sme_conf,H,&pf,&theory_pars,&simul_pars,&rat_appr,pf_action);
     verbosity_lv2_master_printf("Initial action: %lg\n",init_action);
     
     //evolve
-    Omelyan_integrator(H,out_conf,pf,&theory_pars,&simul_pars,&rat_appr);
+    Omelyan_integrator(H,out_conf,&pf,&theory_pars,&simul_pars,&rat_appr);
     
     //if needed, resmear the conf
     if(theory_pars.stout_pars.nlevels!=0)
@@ -132,15 +115,11 @@ namespace nissa
     
     //compute final action
     double final_action;
-    full_theory_action(&final_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars,&rat_appr);
+    full_theory_action(&final_action,out_conf,sme_conf,H,&pf,&theory_pars,&simul_pars,&rat_appr);
     verbosity_lv2_master_printf("Final action: %lg\n",final_action);
     
     //compute the diff
     double diff_action=final_action-init_action;
-    
-    //free stuff
-    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
-      pf[iflav].destroy();
     
     for(int par=0;par<2;par++) nissa_free(H[par]);
     if(theory_pars.stout_pars.nlevels!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);

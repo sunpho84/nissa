@@ -222,7 +222,7 @@ namespace nissa
 	init_backfield_to_id(backfield[iflav]);
 	add_im_pot_to_backfield(backfield[iflav],&(quarks[iflav]));
 	add_em_field_to_backfield(backfield[iflav],&(quarks[iflav]),&(em_field_pars));
-	if(quarks[iflav].is_stag) add_stagphases_to_backfield(backfield[iflav]);
+	if(quarks[iflav].discretiz==ferm_discretiz::ROOT_STAG) add_stagphases_to_backfield(backfield[iflav]);
 	add_antiperiodic_condition_to_backfield(backfield[iflav],0);
       }
   }

@@ -28,7 +28,7 @@ namespace nissa
     
     for(int iflav=0;iflav<tp->nflavs();iflav++)
       {
-	if(!tp->quarks[iflav].is_stag) crash("not defined for non-staggered quarks");
+	if(tp->quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
 	    
 	//reset the local density
 	vector_reset(loc_dens[iflav]);

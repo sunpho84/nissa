@@ -199,7 +199,7 @@ namespace nissa
 	master_fprintf(file,"%d",iconf);
 	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
 	  {
-	    if(!theory_pars.quarks[iflav].is_stag) crash("not defined for non-staggered quarks");
+	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
 	    
 	    fermionic_putpourri_t putpourri;
 	    

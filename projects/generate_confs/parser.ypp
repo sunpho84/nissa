@@ -57,7 +57,7 @@
     nissa::poly_corr_meas_pars_t *luppoli_meas;
     nissa::watusso_meas_pars_t *watusso_meas;
     nissa::all_rects_meas_pars_t *all_rects_meas;
-
+    
     std::vector<int> *int_list;
     std::vector<double> *double_list;
     std::vector<std::string> *text_list;
@@ -66,6 +66,7 @@
 }
 
 %token TK_INVALID_STRING
+%token TK_INVALID_CHAR
 //arithmethc
 %token <double_numb> TK_DOUBLE
 %type <double_numb> double_numb
@@ -131,7 +132,9 @@
 %token TK_QUARK
 %type <quark> quark
 %token TK_DEGENERACY
-%token TK_IS_STAG
+%token TK_DISCRETIZ
+%token TK_ROOT_STAG
+%token TK_ROOT_TM_CLOV
 %token TK_KAPPA
 %token TK_MASS
 %token TK_RE_POT_CH
@@ -424,7 +427,8 @@ quark: TK_QUARK '=' text
 	 delete $3;
      }
      | quark TK_DEGENERACY '=' int_numb {$$->deg=$4;}
-     | quark TK_IS_STAG '=' int_numb {$$->is_stag=$4;}
+     | quark TK_DISCRETIZ '=' TK_ROOT_STAG {$$->discretiz=nissa::ferm_discretiz::ROOT_STAG;}
+     | quark TK_DISCRETIZ '=' TK_ROOT_TM_CLOV {$$->discretiz=nissa::ferm_discretiz::ROOT_TM_CLOV;}
      | quark TK_MASS '=' double_numb {$$->mass=$4;}
      | quark TK_KAPPA '=' double_numb{$$->kappa=$4;}
      | quark TK_RE_POT_CH '=' double_numb {$$->re_pot=$4;}

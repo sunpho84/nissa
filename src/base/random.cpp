@@ -360,8 +360,8 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
       {
 	int ilx=loclx_of_loceo[par][ieo];
-	if(glb_coord_of_loclx[ilx][dir]==twall||twall<0)
-	  for(int ic=0;ic<3;ic++)
+	if(twall<0||glb_coord_of_loclx[ilx][dir]==twall)
+	  for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ieo][ic],&(loc_rnd_gen[ilx]),rtype);
       }
     
@@ -369,6 +369,27 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall,int dir)
+  {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
+  
+  //same for spincolor
+  THREADABLE_FUNCTION_5ARG(generate_fully_undiluted_eo_source, spincolor*,source, enum rnd_t,rtype, int,twall, int,par, int,dir)
+  {
+    vector_reset(source);
+    
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+      {
+	int ilx=loclx_of_loceo[par][ieo];
+	if(twall<0||glb_coord_of_loclx[ilx][dir]==twall)
+	  for(int id=0;id<4;id++)
+	    for(int ic=0;ic<NCOL;ic++)
+	    comp_get_rnd(source[ieo][id][ic],&(loc_rnd_gen[ilx]),rtype);
+      }
+    
+    set_borders_invalid(source);
+  }
+  THREADABLE_FUNCTION_END
+  void generate_fully_undiluted_eo_source(spincolor **source,enum rnd_t rtype,int twall,int dir)
   {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
   
   //generate a delta source

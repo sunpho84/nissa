@@ -29,18 +29,17 @@
 namespace nissa
 {
   //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
-  THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark_content, quad_su3**,eo_conf, int,niters)
+  THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark, quad_su3**,eo_conf, int,niters)
   {
-    color *vec_in=nissa_malloc("vec_in",loc_volh+bord_volh,color);
-    color *vec_out=nissa_malloc("vec_out",loc_volh,color);
-    color *tmp=nissa_malloc("tmp",loc_volh+bord_volh,color);
+    pseudofermion_t in(pseudofermion_t(quark->discretiz));
+    pseudofermion_t temp(pseudofermion_t(quark->discretiz));
+    pseudofermion_t out(pseudofermion_t(quark->discretiz));
     
     //generate the random field
-    generate_fully_undiluted_eo_source(vec_in,RND_GAUSS,-1,EVN);
+    in.fill();
     
     //perform initial normalization
-    double init_norm;
-    double_vector_normalize(&init_norm,(double*)vec_in,(double*)vec_in,glb_volh*NCOL,2*NCOL*loc_volh);
+    double init_norm=in.normalize();
     verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
     
     //apply the vector niter times normalizing at each iter
@@ -49,25 +48,26 @@ namespace nissa
     double old_eig_max;
     do
       {
-	apply_stD2ee_m2(vec_out,eo_conf,tmp,quark_content->mass*quark_content->mass,vec_in);
+	switch(quark->discretiz)
+	  {
+	  case ferm_discretiz::ROOT_STAG:
+	    apply_stD2ee_m2(out.stag,eo_conf,temp.stag,sqr(quark->mass),in.stag);break;
+	  default:
+	    crash("not supported yet");
+	  }
 	
 	//compute the norm
 	old_eig_max=*eig_max;
-	double_vector_normalize(eig_max,(double*)vec_in,(double*)vec_out,glb_volh*NCOL,2*NCOL*loc_volh);
+	(*eig_max)=in.normalize(out);
 	
 	if((iter++)>0) is_increasing=(*eig_max/old_eig_max-1>1e-14);
-	verbosity_lv2_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark_content->mass,iter,*eig_max);
+	verbosity_lv2_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark->mass,iter,*eig_max);
       }
     while(iter<niters&&is_increasing);
     
     //assume a 10% excess
     (*eig_max)*=1.1;
-    verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark_content->mass,*eig_max);
-    
-    //free
-    nissa_free(tmp);
-    nissa_free(vec_out);
-    nissa_free(vec_in);
+    verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark->mass,*eig_max);
   }
   THREADABLE_FUNCTION_END
   

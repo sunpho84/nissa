@@ -35,31 +35,35 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the quark force, without stouting reampping
-  THREADABLE_FUNCTION_7ARG(compute_quark_force_no_stout_remapping, quad_su3**,F, quad_su3**,conf, pseudofermion_t*,pf, theory_pars_t*,tp, std::vector<rat_approx_t>*,appr, std::vector<int>*,npfs, double,residue)
+  THREADABLE_FUNCTION_6ARG(compute_quark_force_no_stout_remapping, quad_su3**,F, quad_su3**,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,tp, std::vector<rat_approx_t>*,appr, double,residue)
   {
     //reset forces
     for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
     
     for(int iflav=0;iflav<tp->nflavs();iflav++)
-      for(int ipf=0;ipf<(*npfs)[iflav];ipf++)
+      for(size_t ipf=0;ipf<(*pf)[iflav].size();ipf++)
 	{
-	  verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %d/%d\n",iflav+1,tp->nflavs(),ipf+1,(*npfs)[iflav]);
-	  
-	  if(tp->quarks[iflav].is_stag)
-	    summ_the_rootst_eoimpr_quark_force(F,tp->quarks[iflav].charge,conf,pf[iflav].stag[ipf],tp->em_field_pars.flag,tp->backfield[iflav],&((*appr)[iflav*3+2]),residue);
-	  else crash("non staggered not yet implemented");
+	  verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %d/%d\n",iflav+1,tp->nflavs(),ipf+1,(*pf)[iflav].size());
+
+	  switch(tp->quarks[iflav].discretiz)
+	    {
+	    case ferm_discretiz::ROOT_STAG:
+	      summ_the_rootst_eoimpr_quark_force(F,tp->quarks[iflav].charge,conf,(*pf)[iflav][ipf].stag,tp->em_field_pars.flag,tp->backfield[iflav],&((*appr)[iflav*3+2]),residue);break;
+	    default:
+	      crash("non staggered not yet implemented");
+	    }
 	}
     
   }
   THREADABLE_FUNCTION_END
   
   //take into account the stout remapping procedure
-  THREADABLE_FUNCTION_7ARG(compute_quark_force, quad_su3**,F, quad_su3**,conf, pseudofermion_t*,pf, theory_pars_t*,physics, std::vector<rat_approx_t>*,appr, std::vector<int>*,npfs, double,residue)
+  THREADABLE_FUNCTION_6ARG(compute_quark_force, quad_su3**,F, quad_su3**,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,physics, std::vector<rat_approx_t>*,appr, double,residue)
   {
     int nlevls=physics->stout_pars.nlevels;
     
     //first of all we take care of the trivial case
-    if(nlevls==0) compute_quark_force_no_stout_remapping(F,conf,pf,physics,appr,npfs,residue);
+    if(nlevls==0) compute_quark_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]
@@ -70,7 +74,7 @@ namespace nissa
 	stout_smear_whole_stack(sme_conf,conf,&(physics->stout_pars));
 	
 	//compute the force in terms of the most smeared conf
-	compute_quark_force_no_stout_remapping(F,sme_conf[nlevls],pf,physics,appr,npfs,residue);
+	compute_quark_force_no_stout_remapping(F,sme_conf[nlevls],pf,physics,appr,residue);
 	
 	//remap the force backward
 	stouted_force_remap(F,sme_conf,&(physics->stout_pars));

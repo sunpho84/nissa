@@ -169,6 +169,9 @@ TopoPotential DEBUG_PRINTF("Found TopoPotential\n");return TK_TOPO_POTENTIAL;
  /* quark content */
 Quark DEBUG_PRINTF("Found Quark\n");return TK_QUARK;
 Degeneracy DEBUG_PRINTF("Found Degeneracy\n");return TK_DEGENERACY;
+Discretiz DEBUG_PRINTF("Found Discretiz\n");return TK_DISCRETIZ;
+RootStag DEBUG_PRINTF("Found RootStag\n");return TK_ROOT_STAG;
+RootTMClov DEBUG_PRINTF("Found RootTMClov\n");return TK_ROOT_TM_CLOV;
 Mass DEBUG_PRINTF("Found Mass\n");return TK_MASS;
 Kappa DEBUG_PRINTF("Found Kappa\n");return TK_KAPPA;
 RePotCh  DEBUG_PRINTF("Found RePotCh\n");return TK_RE_POT_CH;
@@ -211,7 +214,7 @@ InteStep DEBUG_PRINTF("Found InteStep\n");return TK_INTE_STEP;
 FlowTime DEBUG_PRINTF("Found FlowTime\n");return TK_FLOW_TIME;
 
  /* background field parameters */
-BkgrdEMField  DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
+BkgrdEMField DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
 Bx DEBUG_PRINTF("Found Bx\n");yylval->int_numb=0;return TK_B_COMP;
 By DEBUG_PRINTF("Found By\n");yylval->int_numb=1;return TK_B_COMP;
 Bz DEBUG_PRINTF("Found Bz\n");yylval->int_numb=2;return TK_B_COMP;
@@ -281,8 +284,8 @@ Seconds? DEBUG_PRINTF("Found Second(s)\n");yylval->int_numb=1;return TK_QUANTITY
 
  /* crash if finds unexpected word or unrecognized char */
 \#{LETTER}{ALNUM}* nissa::crash("found unexpected preprocessor directive %s",yytext);
-{LETTER}{ALNUM}* return TK_INVALID_STRING;
-{ANY} return TK_INVALID_STRING;
+{LETTER}{ALNUM}* master_printf("Found invalid string \"%s\"\n",yytext);return TK_INVALID_STRING;
+{ANY} master_printf("Found invalid character \'%c\'\n",yytext[0]);return TK_INVALID_CHAR;
 
 %%
 

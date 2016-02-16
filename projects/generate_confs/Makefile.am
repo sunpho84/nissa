@@ -21,7 +21,7 @@ generate_parser_built_sources= \
         parser.hpp \
         parser.cpp
 
-parser_fixed.cpp: $(top_srcdir)/projects/generate_confs/fix_bison.sh Makefile
+parser_fixed.cpp: $(top_srcdir)/projects/generate_confs/fix_bison.sh Makefile $(top_builddir)/projects/generate_confs/parser.cpp
 	@echo "Fixing the parser"
 	@bash $(top_srcdir)/projects/generate_confs/fix_bison.sh parser.cpp > $@
 
