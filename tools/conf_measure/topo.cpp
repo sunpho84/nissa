@@ -4,6 +4,82 @@ using namespace nissa;
 
 int L,T;
 
+//read and return path
+std::string read_path()
+{
+  char temp[1024];
+  read_str_str("Path",temp,1024);
+  return temp;
+}
+
+//read parameters to cool
+void read_cool_pars(cool_pars_t &cool_pars)
+{
+  char gauge_action_name_str[1024];
+  read_str_str("CoolAction",gauge_action_name_str,1024);
+  cool_pars.gauge_action=gauge_action_name_from_str(gauge_action_name_str);
+  read_str_int("CoolNSteps",&cool_pars.nsteps);
+  read_str_int("CoolOverrelaxing",&cool_pars.overrelax_flag);
+  if(cool_pars.overrelax_flag==1) read_str_double("CoolOverrelaxExp",&cool_pars.overrelax_exp);
+}
+
+//read parameters to flow
+void read_Wflow_pars(Wflow_pars_t &pars)
+{
+  read_str_double("FlowTime",&pars.T);
+  read_str_double("InteStep",&pars.dt);
+}
+
+//convert a string into smoothing method
+smooth_pars_t::method_t smooth_method_name_from_str(const char *name)
+{
+  //database
+  const int nmet_known=3;
+  smooth_pars_t::method_t met_known[nmet_known]={smooth_pars_t::COOLING,smooth_pars_t::STOUT,smooth_pars_t::WFLOW};
+  const char name_known[nmet_known][20]={"Cooling","Stouting","Wflowing"};
+  
+  //search
+  int imet=0;
+  while(imet<nmet_known && strcasecmp(name,name_known[imet])!=0) imet++;
+  
+  //check
+  if(imet==nmet_known) crash("unknown smoothing method: %s",name);
+  
+  return met_known[imet];
+}
+
+//read parameters to smooth
+void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
+{
+  if(!flag==true) read_str_int("Smoothing",&flag);
+  if(flag)
+    {
+      char smooth_method_name_str[1024];
+      read_str_str("SmoothMethod",smooth_method_name_str,1024);
+      smooth_pars.method=smooth_method_name_from_str(smooth_method_name_str);
+      switch(smooth_pars.method)
+        {
+        case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool);break;
+        case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow);break;
+        default: crash("should not arrive here");break;
+        }
+      read_str_double("MeasEach",&smooth_pars.meas_each);
+      if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUT)&&fabs(smooth_pars.meas_each-int(smooth_pars.meas_each))>=1.e-14)
+        crash("MeasEach must be integer if Cooling or Stouting method selected");
+    }
+}
+
+//read parameters to study topology
+void read_top_meas_pars(top_meas_pars_t &pars,int flag=false)
+{
+  if(!flag) read_str_int("MeasureTopology",&flag);
+  if(flag)
+    {
+      pars.path=read_path();
+      read_smooth_pars(pars.smooth_pars,true);
+    }
+}
+
 THREADABLE_FUNCTION_1ARG(unitarize_conf_max, quad_su3*,conf)
 {
   GET_THREAD_ID();
