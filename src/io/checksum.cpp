@@ -107,7 +107,7 @@ namespace nissa
 	    crash("unknown precision %d",prec);
 	    break;
 	  }
-
+	
 	return ildg_crc32(crc,temp_buf,len);
       }
     else
