@@ -83,7 +83,7 @@ namespace nissa
 	
 	//add normalization and similar
 	su3_prod_double(out[ivol],out[ivol],-kappa/(4*NDIM));
-	su3_summ_the_prod_double(out[ivol],in[ivol],(1-kappa/2)+offset);
+	su3_summ_the_prod_double(out[ivol],in[ivol],1-kappa/2+offset);
       }
     
     set_borders_invalid(out);

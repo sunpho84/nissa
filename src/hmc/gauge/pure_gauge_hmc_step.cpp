@@ -21,22 +21,22 @@ namespace nissa
     double action_H=0;
     if(evol_pars.use_Facc) action_H=momenta_action_with_FACC(conf,evol_pars.kappa,100000,evol_pars.residue,H);
     else action_H=momenta_action(H);
-    verbosity_lv2_master_printf("Momenta action: %lg\n",action_H);
+    verbosity_lv1_master_printf("Momenta action: %lg\n",action_H);
     
     //compute action for FACC
     double action_phi=0,action_pi=0;
     if(evol_pars.use_Facc)
       {
 	action_phi=MFACC_fields_action(phi);
-	verbosity_lv2_master_printf("Fourier acceleration fields action: %lg\n",action_phi);
+	verbosity_lv1_master_printf("Fourier acceleration fields action: %lg\n",action_phi);
 	action_pi=MFACC_momenta_action(pi,conf,evol_pars.kappa);
-	verbosity_lv2_master_printf("Fourier acceleration momenta action: %lg\n",action_pi);
+	verbosity_lv1_master_printf("Fourier acceleration momenta action: %lg\n",action_pi);
       }
     
     //compute action for G
     double action_G=0;
     gluonic_action(&action_G,conf,theory_pars.gauge_action_name,theory_pars.beta);
-    verbosity_lv2_master_printf("Gauge action: %lg\n",action_G);
+    verbosity_lv1_master_printf("Gauge action: %lg\n",action_G);
     
     return action_G+action_H+action_phi+action_pi;
   }

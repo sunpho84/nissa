@@ -18,6 +18,10 @@
  #include "routines/thread.hpp"
 #endif
 
+//add a check that loc_vol is a multiple of 2
+//#define REM_2 if(0)
+#define REM_2
+
 namespace nissa
 {
   //compute the parity of a global site
@@ -45,8 +49,8 @@ namespace nissa
     
     //check that all local sizes are multiples of 2
     int ok=1;
-    for(int mu=0;mu<NDIM;mu++) ok&=(loc_size[mu]%2==0);
-    if(!ok) crash("local lattice size odd!");
+    REM_2 for(int mu=0;mu<NDIM;mu++) ok&=(loc_size[mu]%2==0);
+    REM_2 if(!ok) crash("local lattice size odd!");
     
     //set half the vol, bord and edge size
     glb_volh=glb_vol/2;
@@ -105,7 +109,7 @@ namespace nissa
 	int surflx=surflx_of_bordlx[bordlx];
 	surfeo_of_bordeo[loclx_parity[surflx]][loceo_of_loclx[bordlx+loc_vol]-loc_volh]=loceo_of_loclx[surflx];
       }
-
+    
     master_printf("E/O Geometry intialized\n");
     
     eo_geom_inited=1;

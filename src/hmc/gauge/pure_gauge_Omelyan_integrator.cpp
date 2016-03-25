@@ -25,7 +25,10 @@
 //#define DEBUG
 
 #ifdef DEBUG
+namespace nissa
+{
   double pure_gauge_action(quad_su3 *conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,quad_su3 *H,su3 **phi,su3 **pi);
+}
 #endif
 
 int evolve_SU3=1;

@@ -16,9 +16,15 @@
 #endif
 
 //#define DEBUG
+
 #ifdef DEBUG
  #include "hmc/momenta/momenta_action.hpp"
  #include "operations/gauge_fixing.hpp"
+
+namespace
+{
+  double eps=1e-4;
+}
 #endif
 
 namespace nissa
@@ -60,8 +66,6 @@ namespace nissa
     for(int ifield=0;ifield<n_FACC_fields;ifield++)
       {
 #ifdef DEBUG
-	double eps=1e-5;
-	
 	//store initial link and compute action
 	su3 sto;
 	su3_copy(sto,pi[ifield][0]);
@@ -107,11 +111,14 @@ namespace nissa
         apply_MFACC(F,conf,kappa,temp);
         
 #ifdef DEBUG
-	master_printf("Comparing MFACC fields derivative\n");
+	master_printf("Comparing MFACC fields derivative (apply M twice)\n");
 	master_printf("an\n");
 	su3_print(F[0]);
 	master_printf("nu\n");
 	su3_print(nu);
+	su3 diff;
+	su3_subt(diff,F[0],nu);
+	master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
 #endif
 	//evolve
         double_vector_summ_double_vector_prod_double((double*)(phi[ifield]),(double*)(phi[ifield]),(double*)F,dt,loc_vol*sizeof(su3)/sizeof(double));
@@ -142,8 +149,6 @@ namespace nissa
     su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
     
 #ifdef DEBUG
-    double eps=1e-5;
-    
     //store initial link and compute action
     su3 sto;
     su3_copy(sto,conf[0][0]);
@@ -222,11 +227,14 @@ namespace nissa
     unsafe_su3_prod_su3(r1,conf[0][0],F[0][0]);
     unsafe_su3_traceless_anti_hermitian_part(r2,r1);
     
-    master_printf("Comparing MFACC momenta QCD force\n");
+    master_printf("Comparing MFACC momenta QCD force (apply MFACC)\n");
     master_printf("an\n");
     su3_print(r2);
     master_printf("nu\n");
     su3_print(nu);
+    su3 diff;
+    su3_subt(diff,r2,nu);
+    master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
     //crash("ciccio");
 #endif
   }
@@ -240,8 +248,6 @@ namespace nissa
     verbosity_lv2_master_printf("Computing QCD force due to Fourier Accelerated QCD momenta\n");
     
 #ifdef DEBUG
-    double eps=1e-5;
-    
     //store initial link and compute action
     su3 sto;
     su3_copy(sto,conf[0][0]);
@@ -327,11 +333,14 @@ namespace nissa
     unsafe_su3_prod_su3(r1,conf[0][0],F[0][0]);
     unsafe_su3_traceless_anti_hermitian_part(r2,r1);
     
-    master_printf("QCD force originating from H\n");
+    master_printf("QCD force originating from H (inverting M)\n");
     master_printf("an\n");
     su3_print(r2);
     master_printf("nu\n");
     su3_print(nu);
+    su3 diff;
+    su3_subt(diff,r2,nu);
+    master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
     //crash("ciccio");
 #endif
     

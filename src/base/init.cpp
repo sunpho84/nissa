@@ -46,6 +46,10 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
+//test to remove limit 2
+//#define REM_2 if(0)
+#define REM_2
+
 namespace nissa
 {
   extern const char *git_version;
@@ -337,7 +341,7 @@ namespace nissa
       }
     
     //check that all directions can be made even, if requested
-    if(use_eo_geom) if((V/NR)%(1<<NDIM)!=0) crash("in order to use eo geometry, local size must be a multiple of (1<<NDIM)");
+    REM_2 if(use_eo_geom) if((V/NR)%(1<<NDIM)!=0) crash("in order to use eo geometry, local size must be a multiple of (1<<NDIM)");
     
     //check that the global lattice is a multiple of the number of ranks
     if(V%NR) crash("global volume must be a multiple of ranks number");
@@ -435,7 +439,7 @@ namespace nissa
 		  //check that all directions have at least 2 nodes
 		  if(check_all_dir_parallelized) valid_partitioning&=(R[mu]>=2);
 		  //check that lattice size is even in all directions
-		  if(use_eo_geom) valid_partitioning&=((L[mu]/R[mu])%2==0);
+		  REM_2 if(use_eo_geom) valid_partitioning&=((L[mu]/R[mu])%2==0);
 		  //check that we match the possibly fixed dir
 		  if(fix_nranks[mu]) valid_partitioning&=(fix_nranks[mu]==R[mu]);
 		}

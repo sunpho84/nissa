@@ -7,7 +7,7 @@ namespace nissa
 {
   //return 1 if we need to measure
   template <class T> int measure_is_due(T &pars,int iconf)
-  {return (pars.each>0)&&(iconf%pars.each==0)&&(iconf>=pars.after);}
+  {iconf-=pars.after;return (pars.each>0)&&(iconf%pars.each==0)&&(iconf>=0);}
   
   class driver_t
   {
