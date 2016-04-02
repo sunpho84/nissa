@@ -5,6 +5,8 @@
 
 #include "nissa.hpp"
 
+using namespace nissa;
+
 typedef spinspin sss[4];
 typedef sss ssss[4];
 typedef ssss cssss[3];
@@ -77,7 +79,7 @@ int eps_sig[6]={1,-1,-1,1,1,-1};
 int eps1[3]={2,0,1},eps2[3]={1,2,0};
 
 //timings
-double tinv=0,tcontr_2pt=0,tcontr_3pt=0,tot_time=0;
+double tinv=0,tcontr_2pt=0,tcontr_3pt=0,tot_prog_time=0;
 
 dirac_matr gC;
 
@@ -114,18 +116,18 @@ void initialize_nucleons(char *input_path)
       complex_prod_double(Proj[0][id1][id2],base_gamma[4].entr[id1],+0.5);
       complex_prod_double(Proj[1][id1][id2],base_gamma[4].entr[id1],-0.5);
     }
-
+  
   for(int id1=0;id1<4;id1++) if(id1==0||id1==2) Proj[2][id1][id1][0]=0.5;
   Proj[2][0][2][0]=Proj[2][2][0][0]=-0.5; 
-
+  
   open_input(input_path);
-
+  
   // 1) Information about the gauge conf
-
+  
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  //Init the MPI grid 
+  //Init the MPI grid
   init_grid(T,L);
   //Allocate the gauge Conf
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -142,15 +144,15 @@ void initialize_nucleons(char *input_path)
       read_str_str("GaugeConfPath",conf_path[iconf],1024);
       read_str(out_path[iconf],1024);
     }
-
+  
   //Kappa
   read_str_double("Kappa",&(kappa));
   
   // 2) Source position, masses and smearing parameters
-
+  
   expect_str("SourcePosition");
   master_printf("Source position: ");
-  for(int idir=0;idir<4;idir++) 
+  for(int idir=0;idir<NDIM;idir++)
     {
       read_int(&(source_pos[idir]));
       master_printf("%d ",source_pos[idir]);
@@ -221,14 +223,14 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   read_ildg_gauge_conf(conf,conf_path);
   
   //calculate plaquette of original conf
-  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  master_printf("plaq: %+016.016lg\n",global_plaquette_lx_conf(conf));
   
   //calcolate Pmunu
   Pmunu_term(Pmunu,conf);
   
   //prepared the smerded version and  calculate plaquette
   ape_spatial_smear_conf(smea_conf,conf,ape_alpha,ape_niter);
-  master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(smea_conf));
+  master_printf("smerded plaq: %+016.16lg\n",global_plaquette_lx_conf(smea_conf));
   
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
@@ -245,7 +247,7 @@ void prepare_source()
   memset(original_source,0,sizeof(spincolor)*loc_vol);
   
   //check if the source position is associated to the rank and calculate its local position
-  for(int idir=0;idir<4;idir++)
+  for(int idir=0;idir<NDIM;idir++)
     {
       lx[idir]=source_pos[idir]-rank_coord[idir]*loc_size[idir];
       isloc=isloc && (lx[idir]>=0 && lx[idir]<loc_size[idir]);
@@ -253,18 +255,17 @@ void prepare_source()
   
   //if the source is in the rank, put it
   int ivol=loclx_of_coord(lx);
-  for(int ic=0;ic<3;ic++)
+  for(int ic=0;ic<NCOL;ic++)
     for(int id=0;id<4;id++)
       if(isloc) original_source[ivol][ic][ic][id][id][0]=1;
-}      
+}
 
 //perform the first inversion to produce the S0 for u and d
 void calculate_S0()
 {
-  for(int ic_sour=0;ic_sour<3;ic_sour++)
+  for(int ic_sour=0;ic_sour<NCOL;ic_sour++)
     for(int id_sour=0;id_sour<4;id_sour++)
       {
-	
 	// =====================================================================
 	
 	// 1) prepare the source
@@ -276,17 +277,18 @@ void calculate_S0()
 	  {
 	    get_spincolor_from_su3spinspin(temp_source[ivol],original_source[ivol],id_sour,ic_sour);
 	    for(int id_sink=2;id_sink<4;id_sink++)
-	      for(int ic_sink=0;ic_sink<3;ic_sink++)
+	      for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
 		for(int ri=0;ri<2;ri++)
 		  temp_source[ivol][id_sink][ic_sink][ri]=-temp_source[ivol][id_sink][ic_sink][ri];
 	  }
 	set_borders_invalid(temp_source);
 	
 	//smerd the source
-	jacobi_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
+	gaussian_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
 	set_borders_invalid(source);
 	
 	//print the denisity profile
+	/*
         if(ic_sour==0 && id_sour==0)
           {
             int L=glb_size[1];
@@ -299,23 +301,24 @@ void calculate_S0()
                 fclose(fout);
               }
           }     
+	*/
 	
 	master_printf(" -> source smeared\n");
 	
 	//============================================================================
 	
 	// 2) peform the inversion taking time
-
+	
 	tinv-=take_time();
 	inv_tmQ2_cgm(solDD,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
 	tinv+=take_time();
-
+	
 	master_printf("inversions finished\n");
 	
 	//============================================================================
-
+	
 	// 3) reconstruct the doublet and smerd the sink
-
+	
 	for(int imass=0;imass<nmass;imass++)
 	  {
 	    //reconstruct the doublet
@@ -336,19 +339,19 @@ void calculate_S0()
 		  }
 		
 		//smerd the sink
-		jacobi_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
+		gaussian_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
 		NISSA_LOC_VOL_LOOP(ivol)
 		  put_spincolor_into_su3spinspin(S0_SS[imass][r][ivol],source[ivol],id_sour,ic_sour);
 	      }
 	  }
       }
-
+  
   //put the (1+ig5)/sqrt(2) factor
   for(int imass=0;imass<nmass;imass++)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
       NISSA_LOC_VOL_LOOP(ivol)
-	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
+	for(int ic1=0;ic1<NCOL;ic1++)
+	  for(int ic2=0;ic2<NCOL;ic2++)
 	    {
 	      rotate_spinspin_to_physical_basis(S0_SL[imass][r][ivol][ic1][ic2],!r,!r);
 	      rotate_spinspin_to_physical_basis(S0_SS[imass][r][ivol][ic1][ic2],!r,!r);
@@ -365,11 +368,11 @@ void local_diquark(diquark *diq,su3spinspin *S)
       for(int al1=0;al1<4;al1++)
 	for(int ga=0;ga<4;ga++)
 	  for(int ga1=0;ga1<4;ga1++)
-	    for(int b=0;b<3;b++)
-	      for(int b1=0;b1<3;b1++)
+	    for(int b=0;b<NCOL;b++)
+	      for(int b1=0;b1<NCOL;b1++)
 		{
 		  int a=eps1[b],c=eps2[b],a1=eps1[b1],c1=eps2[b1];
-
+		  
 		  //first time reset
 		  unsafe_complex_prod  (diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][a1][a][al1][al],S[ivol][c1][c][ga1][ga]);
 		  complex_subt_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][a1][c][al1][ga],S[ivol][c1][a][ga1][al]);
@@ -390,7 +393,7 @@ void close_diquark(ssssss *prot6,diquark *diq,su3spinspin* S)
 {
   ssssss *loc_prot6=(ssssss*)malloc(sizeof(ssssss)*glb_size[0]);
   memset(loc_prot6,0,sizeof(ssssss)*glb_size[0]);
-
+  
   NISSA_LOC_VOL_LOOP(ivol)
     {
       int t=glb_coord_of_loclx[ivol][0];
@@ -407,7 +410,7 @@ void close_diquark(ssssss *prot6,diquark *diq,su3spinspin* S)
     }
   
   MPI_Reduce(loc_prot6,prot6,glb_size[0]*8192,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-
+  
   free(loc_prot6);
 }
 
@@ -416,7 +419,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 {
   //output file
   FILE *output=open_text_file_for_output(path);
-
+  
   //take initial time
   tcontr_2pt-=take_time();
   
@@ -431,7 +434,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
   
   //contraction
   int ncontr=nproton_2pt_contr;
-
+  
   //list of gamma
   dirac_matr o1[ncontr],o2[ncontr],o3;
   for(int icontr=0;icontr<ncontr;icontr++)
@@ -440,7 +443,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
       o2[icontr]=base_gamma[list_2pt_op2[icontr]];
     }
   dirac_prod(&o3,&gC,&base_gamma[5]);
-
+  
   //loop over like masses
   for(int im_like=0;im_like<nmass;im_like++)
     for(int rlike=0;rlike<2;rlike++)
@@ -483,7 +486,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 		  //   0 + 0 -     0 + 0 +     0 0 0 0  	are different from 0. Entries are numbered seq.lly,
 		  //   - 0 + 0     + 0 + 0     + 0 + 0  	and summed in pairs.                               
 		  //   0 - 0 +     0 + 0 +     0 0 0 0 	                                                   
-
+		  
 		  for(int icontr=0;icontr<nproton_2pt_contr;icontr++)
 		    {
 		      memset(prot,0,sizeof(spin)*glb_size[0]);
@@ -493,7 +496,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 			  if(SS==0)fprintf(output,"   # %s%s-P5S0\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
 			  else     fprintf(output,"   # P5S0-%s%s\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
 			}
-
+		      
 		      for(int t=0;t<glb_size[0];t++)
 			for(int ind_p=0;ind_p<4;ind_p++)
 			  for(int ico=0;ico<2;ico++)
@@ -566,17 +569,17 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 	memset(temp,0,sizeof(su3spinspin));
 	
 	for(int ieps1=0;ieps1<6;ieps1++)
-	  {	  
+	  {
 	    int a1=eps_pos[ieps1][0];
 	    int b1=eps_pos[ieps1][1];
 	    int c1=eps_pos[ieps1][2];
 	    
 	    for(int ieps2=0;ieps2<6;ieps2++)
-	      {	  
+	      {
 		int a2=eps_pos[ieps2][0];
 		int b2=eps_pos[ieps2][1];
 		int c2=eps_pos[ieps2][2];
-
+		
 		for(int mu1=0;mu1<4;mu1++)
 		  for(int mu2=0;mu2<4;mu2++)
 		    for(int be1=0;be1<4;be1++)
@@ -600,7 +603,7 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 				  else      temp[a2][a1][mu2][mu1][ri]-=ter[ri];
 			      }
 	      }	
-	  }		
+	  }
 	
 	//remove the anti-periodic condition on the sequential source
 	unsafe_su3spinspin_prod_complex(seq_source[ivol],temp,phase);
@@ -618,7 +621,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
       {
 	su3spinspin temp;
 	memset(temp,0,sizeof(su3spinspin));
-
+	
 	for(int x=0;x<3;x++)
 	  for(int z=0;z<3;z++)
 	    for(int rho=0;rho<4;rho++)
@@ -644,36 +647,36 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 						  if(epsilon[x][b2][c2])
 						    {
 						      complex part={0,0};
-
+						      
 						      if(a1==z && al1==tau) complex_summ(part,part,S0_SL[im_3pts][rlike][ivol][c1][c2][ga1][ga2]);
 						      if(c1==z && ga1==tau) complex_subt(part,part,S0_SL[im_3pts][rlike][ivol][a1][c2][al1][ga2]);
-							
+						      
 						      safe_complex_prod(part,C5[rho][be2],part);
 						      complex_prod_double(part,part,epsilon[x][b2][c2]);
 						      safe_complex_prod(part,S0_SL[im_3pts][rdislike][ivol][b1][b2][be1][be2],part);
 						      safe_complex_prod(part,Proj[2][ga2][ga1],part); //spin z+ polarized proton
-							
+						      
 						      if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
 						      else complex_subt_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
 						    }
 					      
 					    //second part
-					    for(int al2=0;al2<4;al2++)					       
+					    for(int al2=0;al2<4;al2++)
 					      if((C5[al2][be2][0]||C5[al2][be2][1])&&(ga2==rho))
 						for(int a2=0;a2<3;a2++)
 						  for(int b2=0;b2<3;b2++)
 						    if(epsilon[a2][b2][x])
 						      {
 							complex part={0,0};
-							  
+							
 							if(c1==z && ga1==tau) complex_summ(part,part,S0_SL[im_3pts][rlike][ivol][a1][a2][al1][al2]);
 							if(a1==z && al1==tau) complex_subt(part,part,S0_SL[im_3pts][rlike][ivol][c1][a2][ga1][al2]);
-							  
+							
 							safe_complex_prod(part,C5[al2][be2],part);
 							complex_prod_double(part,part,epsilon[a2][b2][x]);
 							safe_complex_prod(part,S0_SL[im_3pts][rdislike][ivol][b1][b2][be1][be2],part);
 							safe_complex_prod(part,Proj[2][ga2][ga1],part);
-							  
+							
 							if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
 							else complex_subt_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
 						      }
@@ -689,7 +692,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 {
   char tag[2][1024]={"like","dislike"};
-
+  
   for(int id_sink=0;id_sink<4;id_sink++)
     for(int ic_sink=0;ic_sink<3;ic_sink++)
       { //take the source and put g5 on the source, and pre-rotate
@@ -708,8 +711,7 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	master_printf("\n(S1) %s, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",tag[ld],rlike,rdislike,id_sink,ic_sink);
 	
 	tinv-=take_time();
-	inv_tmQ2_left_cgm(solDD,conf,kappa,mass,nmass,
-			    niter_max,stopping_residues,source);
+	inv_tmQ2_left_cgm(solDD,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
 	tinv+=take_time();
 	
 	//use sol_reco[0] as temporary storage. We solve for rdislike
@@ -766,7 +768,7 @@ void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++) //eta+*S
 	    complex_summ_the_conj1_prod(loc_contr[glb_coord_of_loclx[ivol][0]],eta[ivol][ic2][ic1][id2][id1],S[ivol][ic2][ic1][id2][id1]);
-
+  
   MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   
   free(loc_contr);
@@ -893,7 +895,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 		  {
 		    fprintf(fout," # Three point for rlike=%d, rdislike=%d, %s source, m_spe=%g m_seq=%g m_close=%g\n",
 			    rlike,rdislike,tag,mass[im_3pts],mass[im_seq],mass[im_close]);
-
+		    
 		    switch(norm_chro_EDM)
 		      {
 		      case 0:fprintf(fout," # Proton-%s-Proton\n",gtag[list_3pt_op[icontr]]);break;
@@ -943,12 +945,9 @@ void close_nucleons()
   close_nissa();
 }
 
-int main(int narg,char **arg)
+void in_main(int narg,char **arg)
 {
-  //basic mpi initialization
-  init_nissa();
-  
-  tot_time-=take_time();
+  tot_prog_time-=take_time();
   
   if(narg<2 && rank==0)
     {
@@ -978,7 +977,7 @@ int main(int narg,char **arg)
       //now print both SL and SS
       if(compute_also_SL_2pts) calculate_all_2pts(path_SL,S0_SL);
       calculate_all_2pts(path_SS,S0_SS);
-
+      
       //time for the three points
       for(int rlike=0;rlike<2;rlike++)
 	for(int rdislike=0;rdislike<2;rdislike++)
@@ -1007,16 +1006,23 @@ int main(int narg,char **arg)
       
     }
   
-  tot_time+=take_time();
+  tot_prog_time+=take_time();
   
   ///////////////////////////////////////////
   
   master_printf("Total time: %g s\n",tot_time);
   master_printf("-inversion time: %g%s avg: %d s\n",tinv/tot_time*100,"%",(int)(tinv/nconf/12));
-  master_printf("-contraction time for 2pts: %g%s\n",tcontr_2pt/tot_time*100,"%");
-  master_printf("-contraction time for 3pts: %g%s\n",tcontr_3pt/tot_time*100,"%");
+  master_printf("-contraction time for 2pts: %g%s\n",tcontr_2pt/tot_prog_time*100,"%");
+  master_printf("-contraction time for 3pts: %g%s\n",tcontr_3pt/tot_prog_time*100,"%");
   
   close_nucleons();
+}
+
+
+int main(int narg,char **arg)
+{
+  init_nissa_threaded(narg,arg,in_main);
+  close_nissa();
   
   return 0;
 }

@@ -230,6 +230,7 @@ AC_CONFIG_FILES(
 	projects/g/Makefile
 	projects/generate_confs/Makefile
 	projects/ib/Makefile
+	projects/nucleons/Makefile
 	projects/reno_const/Makefile
 	projects/semileptonic/Makefile
 	projects/static_potential/Makefile
