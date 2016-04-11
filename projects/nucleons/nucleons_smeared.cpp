@@ -40,8 +40,8 @@ double *stopping_residues;
 int niter_max=100000;
 
 //smearing parameters
-double jacobi_kappa,ape_alpha;
-int jacobi_niter,ape_niter;
+double Gauss_kappa,ape_alpha;
+int Gauss_niter,ape_niter;
 
 //insertion
 int tseparation;
@@ -161,8 +161,8 @@ void initialize_nucleons(char *input_path)
   //Smearing parameters
   read_str_double("ApeAlpha",&ape_alpha);
   read_str_int("ApeNiter",&ape_niter);
-  read_str_double("JacobiKappa",&jacobi_kappa);
-  read_str_int("JacobiNiter",&jacobi_niter);
+  read_str_double("GaussKappa",&Gauss_kappa);
+  read_str_int("GaussNiter",&Gauss_niter);
   //Mass
   read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
   read_str_int("Ind3ptsMass",&(im_3pts));
@@ -284,7 +284,7 @@ void calculate_S0()
 	set_borders_invalid(temp_source);
 	
 	//smerd the source
-	gaussian_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
+	gaussian_smearing(source,temp_source,smea_conf,Gauss_kappa,Gauss_niter);
 	set_borders_invalid(source);
 	
 	//print the denisity profile
@@ -339,7 +339,7 @@ void calculate_S0()
 		  }
 		
 		//smerd the sink
-		gaussian_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
+		gaussian_smearing(source,temp_source,smea_conf,Gauss_kappa,Gauss_niter);
 		NISSA_LOC_VOL_LOOP(ivol)
 		  put_spincolor_into_su3spinspin(S0_SS[imass][r][ivol],source[ivol],id_sour,ic_sour);
 	      }
