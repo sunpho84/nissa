@@ -87,15 +87,17 @@ namespace nissa
   {inv_tmQ2_RL_cgm(sol,conf,kappa,1,m,nmass,niter_max,req_res,source);}
   
   //put the g5
-  void inv_tmDQ_RL_cgm(spincolor **sol,quad_su3 *conf,double kappa,int RL,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
+  THREADABLE_FUNCTION_9ARG(inv_tmDQ_RL_cgm, spincolor**,sol, quad_su3*,conf, double,kappa, int,RL, double*,m, int,nmass, int,niter_max, double*,req_res, spincolor*,source)
   {
+    GET_THREAD_ID();
     
-    NISSA_LOC_VOL_LOOP(ivol) for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
     set_borders_invalid(source);
     inv_tmQ2_RL_cgm(sol,conf,kappa,RL,m,nmass,niter_max,req_res,source);
-    NISSA_LOC_VOL_LOOP(ivol) for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
     set_borders_invalid(source);
   }
+  THREADABLE_FUNCTION_END
   
   //wrap RL
   void inv_tmDQ_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
