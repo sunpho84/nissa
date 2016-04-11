@@ -141,7 +141,7 @@ void initialize_nucleons(char *input_path)
     {
       conf_path[iconf]=(char*)malloc(1024);
       out_path[iconf]=(char*)malloc(1024);
-      read_str_str("GaugeConfPath",conf_path[iconf],1024);
+      read_str(conf_path[iconf],1024);
       read_str(out_path[iconf],1024);
     }
   
