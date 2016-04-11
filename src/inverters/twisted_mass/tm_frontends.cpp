@@ -31,7 +31,7 @@ namespace nissa
     
     //loop over the source dirac and color index
     for(int id=0;id<4;id++)
-      for(int ic=0;ic<3;ic++)
+      for(int ic=0;ic<NCOL;ic++)
 	{
 	  NISSA_LOC_VOL_LOOP(ivol)
 	    get_spincolor_from_su3spinspin(temp_source[ivol],source[ivol],id,ic);
@@ -49,7 +49,7 @@ namespace nissa
 	      //convert the id-th spincolor into the su3spinspin
 	      for(int r=0;r<2;r++)
 		{
-		  NISSA_LOC_VOL_LOOP(ivol)       
+		  NISSA_LOC_VOL_LOOP(ivol)
 		    put_spincolor_into_su3spinspin(prop[r][imass][ivol],temp_vec[r][ivol],id,ic);
 		  set_borders_invalid(prop[r]);
 		}
