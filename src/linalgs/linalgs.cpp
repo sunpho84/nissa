@@ -80,7 +80,7 @@ namespace nissa
   //prod with double
   THREADABLE_FUNCTION_4ARG(double_vector_prod_double, double*,out, double*,in, double,r, int,n)
   {GET_THREAD_ID();NISSA_PARALLEL_LOOP(i,0,n) out[i]=r*in[i];set_borders_invalid(out);}THREADABLE_FUNCTION_END
-
+  
   //prod with double of the summ
   THREADABLE_FUNCTION_5ARG(double_vector_prod_the_summ_double, double*,out, double,r, double*,in1, double*,in2, int,n)
   {GET_THREAD_ID();NISSA_PARALLEL_LOOP(i,0,n) out[i]=r*(in1[i]+in2[i]);set_borders_invalid(out);}THREADABLE_FUNCTION_END
@@ -468,7 +468,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   THREADABLE_FUNCTION_4ARG(put_spincolor_into_su3spinspin, su3spinspin*,out, spincolor*,in, int,id, int,ic)
   {
     GET_THREAD_ID();
