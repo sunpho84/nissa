@@ -28,7 +28,7 @@ namespace nissa
 									\
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
       {									\
-	for(int mu=1;mu<4;mu++)						\
+	for(int mu=1;mu<NDIM;mu++)						\
 	  {								\
 	    int ivup=loclx_neighup[ivol][mu];				\
 	    int ivdw=loclx_neighdw[ivol][mu];				\
@@ -97,7 +97,7 @@ namespace nissa
 
   DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(color)
   DEFINE_GAUSSIAN_SMEARING(color)
-
+    
   //smear with a polynomial of H
   template <class TYPE> void gaussian_smearing(TYPE *smear_sc,TYPE *origi_sc,quad_su3 *conf,double kappa,int nterm,double *coeff,int *exponent)
   {
