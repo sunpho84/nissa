@@ -118,7 +118,7 @@ void initialize_nucleons(char *input_path)
     }
   
   for(int id1=0;id1<4;id1++) if(id1==0||id1==2) Proj[2][id1][id1][0]=0.5;
-  Proj[2][0][2][0]=Proj[2][2][0][0]=-0.5; 
+  Proj[2][0][2][0]=Proj[2][2][0][0]=-0.5;
   
   open_input(input_path);
   
@@ -213,7 +213,7 @@ void initialize_nucleons(char *input_path)
   
   seq_source=nissa_malloc("seqential_source",loc_vol,su3spinspin);
   
-  S1=(su3spinspin**)malloc(nmass*sizeof(su3spinspin*));
+  S1=nissa_malloc("S1",nmass,su3spinspin*);
   for(int imass=0;imass<nmass;imass++) S1[imass]=nissa_malloc("S1",loc_vol,su3spinspin);
 }
 
@@ -228,106 +228,53 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   //calcolate Pmunu
   Pmunu_term(Pmunu,conf);
   
-  //prepared the smerded version and  calculate plaquette
+  //prepared the smeared version and  calculate plaquette
   ape_spatial_smear_conf(smea_conf,conf,ape_alpha,ape_niter);
-  master_printf("smerded plaq: %+016.16lg\n",global_plaquette_lx_conf(smea_conf));
+  master_printf("smeared plaq: %+016.16lg\n",global_plaquette_lx_conf(smea_conf));
   
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
   put_boundaries_conditions(conf,put_theta,1,1);
 }
 
-//create a 12 index point source
-void prepare_source()
-{
-  int isloc=1;
-  int lx[4];
-  
-  //reset the source
-  memset(original_source,0,sizeof(spincolor)*loc_vol);
-  
-  //check if the source position is associated to the rank and calculate its local position
-  for(int idir=0;idir<NDIM;idir++)
-    {
-      lx[idir]=source_pos[idir]-rank_coord[idir]*loc_size[idir];
-      isloc=isloc && (lx[idir]>=0 && lx[idir]<loc_size[idir]);
-    }
-  
-  //if the source is in the rank, put it
-  int ivol=loclx_of_coord(lx);
-  for(int ic=0;ic<NCOL;ic++)
-    for(int id=0;id<4;id++)
-      if(isloc) original_source[ivol][ic][ic][id][id][0]=1;
-}
-
 //perform the first inversion to produce the S0 for u and d
-void calculate_S0()
+THREADABLE_FUNCTION_0ARG(calculate_S0)
 {
+  GET_THREAD_ID();
+  
   for(int ic_sour=0;ic_sour<NCOL;ic_sour++)
     for(int id_sour=0;id_sour<4;id_sour++)
       {
 	// =====================================================================
 	
 	// 1) prepare the source
-	
 	master_printf("\n(S0) source index: id=%d, ic=%d\n",id_sour,ic_sour);
+	get_spincolor_from_su3spinspin(temp_source,original_source,id_sour,ic_sour);
 	
-	//take the source and put g5
-	NISSA_LOC_VOL_LOOP(ivol)
-	  {
-	    get_spincolor_from_su3spinspin(temp_source[ivol],original_source[ivol],id_sour,ic_sour);
-	    for(int id_sink=2;id_sink<4;id_sink++)
-	      for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
-		for(int ri=0;ri<2;ri++)
-		  temp_source[ivol][id_sink][ic_sink][ri]=-temp_source[ivol][id_sink][ic_sink][ri];
-	  }
-	set_borders_invalid(temp_source);
-	
-	//smerd the source
+	//smear the source
 	gaussian_smearing(source,temp_source,smea_conf,Gauss_kappa,Gauss_niter);
-	set_borders_invalid(source);
-	
-	//print the denisity profile
-	/*
-        if(ic_sour==0 && id_sour==0)
-          {
-            int L=glb_size[1];
-            double rho[L];
-            density_profile(rho,source,source_pos);
-            FILE *fout=open_text_file_for_output("profile");
-            if(rank==0)
-              {
-                for(int d=0;d<L;d++) fprintf(fout,"%d %g\n",d,rho[d]);
-                fclose(fout);
-              }
-          }     
-	*/
-	
 	master_printf(" -> source smeared\n");
 	
 	//============================================================================
 	
 	// 2) peform the inversion taking time
-	
-	tinv-=take_time();
-	inv_tmQ2_cgm(solDD,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
-	tinv+=take_time();
-	
+	if(IS_MASTER_THREAD) tinv-=take_time();
+	inv_tmDQ_cgm(solDD,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
+	if(IS_MASTER_THREAD) tinv+=take_time();
 	master_printf("inversions finished\n");
 	
 	//============================================================================
 	
-	// 3) reconstruct the doublet and smerd the sink
-	
+	// 3) reconstruct the doublet and smear the sink
 	for(int imass=0;imass<nmass;imass++)
 	  {
 	    //reconstruct the doublet
 	    reconstruct_tm_doublet(sol_reco[0],sol_reco[1],conf,kappa,mass[imass],solDD[imass]);
 	    
-	    //convert the id-th spincolor into the colorspinspin and prepare the sink smerded version
+	    //convert the id-th spincolor into the colorspinspin and prepare the sink smeared version
 	    for(int r=0;r<2;r++)
 	      {
-		NISSA_LOC_VOL_LOOP(ivol)
+		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		  {
 		    //put the anti-periodic condition on the propagator
 		    int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
@@ -337,33 +284,39 @@ void calculate_S0()
 		    unsafe_spincolor_prod_complex(temp_source[ivol],sol_reco[r][ivol],phase);
 		    put_spincolor_into_su3spinspin(S0_SL[imass][r][ivol],temp_source[ivol],id_sour,ic_sour);
 		  }
+		set_borders_invalid(S0_SL[imass][r]);
 		
-		//smerd the sink
+		//smear the sink
 		gaussian_smearing(source,temp_source,smea_conf,Gauss_kappa,Gauss_niter);
-		NISSA_LOC_VOL_LOOP(ivol)
+		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		  put_spincolor_into_su3spinspin(S0_SS[imass][r][ivol],source[ivol],id_sour,ic_sour);
+		set_borders_invalid(S0_SS[imass][r]);
 	      }
 	  }
       }
-  
+
   //put the (1+ig5)/sqrt(2) factor
   for(int imass=0;imass<nmass;imass++)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-      NISSA_LOC_VOL_LOOP(ivol)
-	for(int ic1=0;ic1<NCOL;ic1++)
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      	for(int ic1=0;ic1<NCOL;ic1++)
 	  for(int ic2=0;ic2<NCOL;ic2++)
 	    {
 	      rotate_spinspin_to_physical_basis(S0_SL[imass][r][ivol][ic1][ic2],!r,!r);
 	      rotate_spinspin_to_physical_basis(S0_SS[imass][r][ivol][ic1][ic2],!r,!r);
 	    }
+  THREAD_BARRIER();
   
   master_printf(" final rotations performed\n");
 }
+THREADABLE_FUNCTION_END
 
 //Calculate the proton contraction for a single point
-void local_diquark(diquark *diq,su3spinspin *S)
+THREADABLE_FUNCTION_2ARG(local_diquark, diquark*,diq, su3spinspin*,S)
 {
-  NISSA_LOC_VOL_LOOP(ivol)
+  GET_THREAD_ID();
+  
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int al=0;al<4;al++)
       for(int al1=0;al1<4;al1++)
 	for(int ga=0;ga<4;ga++)
@@ -372,7 +325,6 @@ void local_diquark(diquark *diq,su3spinspin *S)
 	      for(int b1=0;b1<NCOL;b1++)
 		{
 		  int a=eps1[b],c=eps2[b],a1=eps1[b1],c1=eps2[b1];
-		  
 		  //first time reset
 		  unsafe_complex_prod  (diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][a1][a][al1][al],S[ivol][c1][c][ga1][ga]);
 		  complex_subt_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][a1][c][al1][ga],S[ivol][c1][a][ga1][al]);
@@ -386,38 +338,46 @@ void local_diquark(diquark *diq,su3spinspin *S)
 		  complex_subt_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][c1][a][al1][al],S[ivol][a1][c][ga1][ga]);
 		  complex_summ_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][c1][c][al1][ga],S[ivol][a1][a][ga1][al]);
 		}
+  THREAD_BARRIER();
 }
+THREADABLE_FUNCTION_END
 
 //close the diquark with the third propagator
-void close_diquark(ssssss *prot6,diquark *diq,su3spinspin* S)
+THREADABLE_FUNCTION_3ARG(close_diquark, ssssss*,prot6, diquark*,diq, su3spinspin*,S)
 {
-  ssssss *loc_prot6=(ssssss*)malloc(sizeof(ssssss)*glb_size[0]);
+  GET_THREAD_ID();
+  
+  ssssss *loc_prot6=new ssssss[glb_size[0]];
   memset(loc_prot6,0,sizeof(ssssss)*glb_size[0]);
   
-  NISSA_LOC_VOL_LOOP(ivol)
-    {
-      int t=glb_coord_of_loclx[ivol][0];
-      
-      for(int al=0;al<4;al++)
-	for(int be=0;be<4;be++)
-	  for(int ga=0;ga<4;ga++)
-	    for(int al1=0;al1<4;al1++)
-	      for(int be1=0;be1<4;be1++)
-		for(int ga1=0;ga1<4;ga1++)
-		  for(int b=0;b<3;b++)
-		    for(int b1=0;b1<3;b1++)
-		      complex_summ_the_prod(loc_prot6[t][al][be][ga][al1][be1][ga1],S[ivol][b1][b][be1][be],diq[ivol][b][b1][al][ga][al1][ga1]);
-    }
+  for(int loc_t=0;loc_t<loc_size[0];loc_t++)
+    NISSA_PARALLEL_LOOP(ispat,0,loc_spat_vol)
+      {
+	int ivol=loc_t*loc_spat_vol+ispat;
+	int t=glb_coord_of_loclx[ivol][0];
+	
+	for(int al=0;al<4;al++)
+	  for(int be=0;be<4;be++)
+	    for(int ga=0;ga<4;ga++)
+	      for(int al1=0;al1<4;al1++)
+		for(int be1=0;be1<4;be1++)
+		  for(int ga1=0;ga1<4;ga1++)
+		    for(int b=0;b<NCOL;b++)
+		      for(int b1=0;b1<NCOL;b1++)
+			complex_summ_the_prod(loc_prot6[t][al][be][ga][al1][be1][ga1],S[ivol][b1][b][be1][be],diq[ivol][b][b1][al][ga][al1][ga1]);
+      }
+  THREAD_BARRIER();
+  int ndoub=sizeof(ssssss)/sizeof(double)*glb_size[0];
+  glb_threads_reduce_double_vect((double*)loc_prot6,ndoub);
+  MPI_Reduce(loc_prot6,prot6,ndoub,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   
-  MPI_Reduce(loc_prot6,prot6,glb_size[0]*8192,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  
-  free(loc_prot6);
+  delete[] loc_prot6;
 }
+THREADABLE_FUNCTION_END
 
 //calculate all the 2pts contractions
 void calculate_all_2pts(char *path,su3spinspin ***S0)
 {
-  //output file
   FILE *output=open_text_file_for_output(path);
   
   //take initial time
@@ -427,7 +387,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
   char pm_tag[2][2]={"+","-"};
   
   //diquark term and all-open dirac indices term
-  diquark *diq=(diquark*)malloc(sizeof(diquark)*loc_vol);
+  diquark *diq=nissa_malloc("diq",loc_vol,diquark);
   ssssss prot6[glb_size[0]];
   ssss prot4[glb_size[0]];
   spin prot[glb_size[0]];
@@ -484,18 +444,15 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 		  //
 		  //   + 0 - 0     + 0 + 0     + 0 + 0  	This are (2 times) the 3 projectors. Only 8 entries
 		  //   0 + 0 -     0 + 0 +     0 0 0 0  	are different from 0. Entries are numbered seq.lly,
-		  //   - 0 + 0     + 0 + 0     + 0 + 0  	and summed in pairs.                               
-		  //   0 - 0 +     0 + 0 +     0 0 0 0 	                                                   
+		  //   - 0 + 0     + 0 + 0     + 0 + 0  	and summed in pairs.
+		  //   0 - 0 +     0 + 0 +     0 0 0 0
 		  
 		  for(int icontr=0;icontr<nproton_2pt_contr;icontr++)
 		    {
 		      memset(prot,0,sizeof(spin)*glb_size[0]);
 		      
-		      if(rank==0) //header
-			{
-			  if(SS==0)fprintf(output,"   # %s%s-P5S0\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
-			  else     fprintf(output,"   # P5S0-%s%s\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
-			}
+		      if(SS==0) master_fprintf(output,"   # %s%s-P5S0\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
+		      else      master_fprintf(output,"   # P5S0-%s%s\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
 		      
 		      for(int t=0;t<glb_size[0];t++)
 			for(int ind_p=0;ind_p<4;ind_p++)
@@ -520,25 +477,22 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 		      //still we need to project them, using the already defined 3 projectors
 		      for(int nns=0;nns<3;nns++)
 			{
-			  if(rank==0)
-			    {
-			      if(nns<2) fprintf(output,"# Contraction with (1%sg4)/2\n",pm_tag[nns]);
-			      else      fprintf(output,"# Contraction with (1+g4)_00(spinorial)/2\n");
+			  if(nns<2) master_fprintf(output,"# Contraction with (1%sg4)/2\n",pm_tag[nns]);
+			  else      master_fprintf(output,"# Contraction with (1+g4)_00(spinorial)/2\n");
 			      
-			      for(int tt=0;tt<glb_size[0];tt++)
+			  for(int tt=0;tt<glb_size[0];tt++)
+			    {
+			      int t=(tt+source_pos[0])%glb_size[0];
+			      
+			      complex contr={0,0};
+			      for(int ind_p=0;ind_p<4;ind_p++)
 				{
-				  int t=(tt+source_pos[0])%glb_size[0];
-				  
-				  complex contr={0,0};
-				  for(int ind_p=0;ind_p<4;ind_p++)
-				    {
-				      if(Proj_entr[nns][ind_p]==+1) complex_summ(contr,contr,prot[t][ind_p]);
-				      if(Proj_entr[nns][ind_p]==-1) complex_subt(contr,contr,prot[t][ind_p]);
-				    }
-				  fprintf(output," %+016.16g\t%+016.16g\n",contr[0]/2,contr[1]/2);
+				  if(Proj_entr[nns][ind_p]==+1) complex_summ(contr,contr,prot[t][ind_p]);
+				  if(Proj_entr[nns][ind_p]==-1) complex_subt(contr,contr,prot[t][ind_p]);
 				}
-			      fprintf(output,"\n");
+			      master_fprintf(output," %+016.16g\t%+016.16g\n",contr[0]/2,contr[1]/2);
 			    }
+			  master_fprintf(output,"\n");
 			}
 		    }
 		}
@@ -547,13 +501,10 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
   
   tcontr_2pt+=take_time();
   
-  if(rank==0)
-    {
-      printf("contractions finished\n");
-      fclose(output);
-    }
+  master_printf("contractions finished\n");
+  close_file(output);
   
-  free(diq);
+  nissa_free(diq);
 }
 
 void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
@@ -940,21 +891,15 @@ void close_nucleons()
       nissa_free(S0_SS[imass][0]);nissa_free(S0_SS[imass][1]);
       nissa_free(S1[imass]);
     }
+  nissa_free(S1);
   nissa_free(sol_reco[0]);nissa_free(sol_reco[1]);
-  
-  close_nissa();
 }
 
 void in_main(int narg,char **arg)
 {
   tot_prog_time-=take_time();
   
-  if(narg<2 && rank==0)
-    {
-      fprintf(stderr,"Use: %s input_file\n",arg[0]);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  if(narg<2) crash("Use: %s input_file\n",arg[0]);
   
   initialize_nucleons(arg[1]);
   
@@ -1010,14 +955,13 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  master_printf("Total time: %g s\n",tot_time);
-  master_printf("-inversion time: %g%s avg: %d s\n",tinv/tot_time*100,"%",(int)(tinv/nconf/12));
+  master_printf("Total time: %g s\n",tot_prog_time);
+  master_printf("-inversion time: %g%s avg: %d s\n",tinv/tot_prog_time*100,"%",(int)(tinv/nconf/12));
   master_printf("-contraction time for 2pts: %g%s\n",tcontr_2pt/tot_prog_time*100,"%");
   master_printf("-contraction time for 3pts: %g%s\n",tcontr_3pt/tot_prog_time*100,"%");
   
   close_nucleons();
 }
-
 
 int main(int narg,char **arg)
 {
