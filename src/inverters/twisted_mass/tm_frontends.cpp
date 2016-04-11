@@ -12,12 +12,18 @@
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
 
+#ifdef USE_THREADS
+ #include "routines/thread.hpp"
+#endif
+
 namespace nissa
 {
   //invert a set of propagators using the passed source
   //the output is stored in twisted basis, assuming that prop=su3spinspin[2][nmass][>=loc_vol]
   void compute_su3spinspin_tm_propagators_multi_mass(su3spinspin ***prop,quad_su3 *conf,double kappa,double *mass,int nmass,int niter_max,double *req_res,su3spinspin *source)
   {
+    GET_THREAD_ID();
+    
     //allocate temporary source
     spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
     //allocate temp_vec
@@ -49,7 +55,7 @@ namespace nissa
 	      //convert the id-th spincolor into the su3spinspin
 	      for(int r=0;r<2;r++)
 		{
-		  NISSA_LOC_VOL_LOOP(ivol)
+		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		    put_spincolor_into_su3spinspin(prop[r][imass][ivol],temp_vec[r][ivol],id,ic);
 		  set_borders_invalid(prop[r]);
 		}
