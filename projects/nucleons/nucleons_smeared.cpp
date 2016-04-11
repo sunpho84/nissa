@@ -25,7 +25,7 @@ double kappa;
 as2t_su3 *Pmunu;
 
 //source
-int source_pos[4];
+coords source_pos;
 spincolor *source,*temp_source;
 su3spinspin *original_source;
 su3spinspin *seq_source;
