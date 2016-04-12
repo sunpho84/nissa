@@ -350,26 +350,20 @@ THREADABLE_FUNCTION_3ARG(close_diquark, ssssss*,prot6, diquark*,diq, su3spinspin
   ssssss *loc_prot6=new ssssss[glb_size[0]];
   memset(loc_prot6,0,sizeof(ssssss)*glb_size[0]);
   
-  for(int loc_t=0;loc_t<loc_size[0];loc_t++)
-    NISSA_PARALLEL_LOOP(ispat,0,loc_spat_vol)
-      {
-	int ivol=loc_t*loc_spat_vol+ispat;
-	int t=glb_coord_of_loclx[ivol][0];
-	
-	for(int al=0;al<4;al++)
-	  for(int be=0;be<4;be++)
-	    for(int ga=0;ga<4;ga++)
-	      for(int al1=0;al1<4;al1++)
-		for(int be1=0;be1<4;be1++)
-		  for(int ga1=0;ga1<4;ga1++)
-		    for(int b=0;b<NCOL;b++)
-		      for(int b1=0;b1<NCOL;b1++)
-			complex_summ_the_prod(loc_prot6[t][al][be][ga][al1][be1][ga1],S[ivol][b1][b][be1][be],diq[ivol][b][b1][al][ga][al1][ga1]);
-      }
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int al=0;al<4;al++)
+      for(int be=0;be<4;be++)
+	for(int ga=0;ga<4;ga++)
+	  for(int al1=0;al1<4;al1++)
+	    for(int be1=0;be1<4;be1++)
+	      for(int ga1=0;ga1<4;ga1++)
+		for(int b=0;b<NCOL;b++)
+		  for(int b1=0;b1<NCOL;b1++)
+		    complex_summ_the_prod(loc_prot6[glb_coord_of_loclx[ivol][0]][al][be][ga][al1][be1][ga1],S[ivol][b1][b][be1][be],diq[ivol][b][b1][al][ga][al1][ga1]);
   THREAD_BARRIER();
   int ndoub=sizeof(ssssss)/sizeof(double)*glb_size[0];
   glb_threads_reduce_double_vect((double*)loc_prot6,ndoub);
-  MPI_Reduce(loc_prot6,prot6,ndoub,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  if(IS_MASTER_THREAD) MPI_Reduce(loc_prot6,prot6,ndoub,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   
   delete[] loc_prot6;
 }
