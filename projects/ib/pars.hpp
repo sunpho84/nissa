@@ -3,8 +3,10 @@
 
 #include <nissa.hpp>
 
-#ifndef EXTERN
- #define EXTERN extern
+#include "conf.hpp"
+
+#ifndef EXTERN_PARS
+ #define EXTERN_PARS extern
 #endif
 
 namespace nissa
@@ -25,15 +27,20 @@ namespace nissa
   const int nlins=2;
   const int nrev=2;
   
-  EXTERN int pure_wilson;
-  EXTERN tm_basis_t base;
-  EXTERN double kappa;
+  EXTERN_PARS int pure_wilson;
+  EXTERN_PARS tm_basis_t base;
+  EXTERN_PARS double kappa;
   
-  EXTERN int nqmass,nr;
-  EXTERN double *qmass,*qkappa,*residue;
+  EXTERN_PARS tm_quark_info *leps;
   
-  EXTERN gauge_info photon;
-  EXTERN double tadpole[4];
+  EXTERN_PARS int nqmass,nr;
+  EXTERN_PARS double *qmass,*qkappa,*residue;
+  
+  EXTERN_PARS gauge_info photon;
+  EXTERN_PARS double tadpole[4];
+  
+  EXTERN_PARS int nleptons;
+  EXTERN_PARS double *lep_energy,*neu_energy;
   
   void read_input_preamble();
   void read_photon_pars();
@@ -47,30 +54,30 @@ namespace nissa
   }
   
   //flag to simulate in the free theory
-  EXTERN int free_theory;
+  EXTERN_PARS int free_theory;
   inline void read_free_theory_flag()
   {read_str_int("FreeTheory",&free_theory);}
   
   //flag to make the muon with or without the external line
-  EXTERN int follow_chris_or_nazario;
+  EXTERN_PARS int follow_chris_or_nazario;
   inline void read_gospel_convention()
   {read_str_int("FollowChrisOrNazario",&follow_chris_or_nazario);}
   
   //noise type
-  EXTERN int noise_type;
+  EXTERN_PARS int noise_type;
   inline void read_noise_type()
   {read_str_int("NoiseType",&noise_type);}
   
   //perform a random gauge transformation
-  EXTERN int rnd_gauge_transform;
+  EXTERN_PARS int rnd_gauge_transform;
   inline void read_random_gauge_transform()
   {read_str_int("RandomGaugeTransform",&rnd_gauge_transform);}
   
   //local pion or muon current?
-  EXTERN int loc_pion_curr;
+  EXTERN_PARS int loc_pion_curr;
   inline void read_loc_pion_curr()
   {read_str_int("LocPionCurr",&loc_pion_curr);}
-  EXTERN int loc_muon_curr;
+  EXTERN_PARS int loc_muon_curr;
   inline void read_loc_muon_curr()
   {read_str_int("LocMuonCurr",&loc_muon_curr);}
   
@@ -79,11 +86,11 @@ namespace nissa
   {read_str_int("NGaugeConf",&ngauge_conf);}
   
   //number of sources
-  EXTERN int nsources;
+  EXTERN_PARS int nsources;
   inline void read_nsources()
   {read_str_int("NSources",&nsources);}
 }
 
-#undef EXTERN
+#undef EXTERN_PARS
 
 #endif

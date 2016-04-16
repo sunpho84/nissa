@@ -2,7 +2,7 @@
 
 #include "conf.hpp"
 
-#define EXTERN
+#define EXTERN_PARS
 #include "pars.hpp"
 
 namespace nissa

@@ -16,6 +16,10 @@ namespace nissa
     init_grid(T,L);
   }
   
+  //needed to avoid any check
+  bool finish_file_present()
+  {return !file_exists(combine("%s/finished",outfolder).c_str());}
+  
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {

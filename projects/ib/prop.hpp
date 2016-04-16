@@ -6,60 +6,67 @@
 #include "conf.hpp"
 #include "pars.hpp"
 
-namespace nissa
-{
-  int ninv_tot=0;
-  double inv_time=0;
-  
-  inline void get_qprop(spincolor *out,spincolor *in,int imass,bool r)
-  {
-    //rotate the source index - the propagator rotate AS the sign of mass term
-    if(!pure_wilson) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
-    
-    //invert
-    inv_time-=take_time();
-    if(!pure_wilson) inv_tmD_cg_eoprec_eos(out,NULL,conf,kappa,tau3[r]*qmass[imass],100000,residue[imass],in);
-    else             inv_tmD_cg_eoprec_eos(out,NULL,conf,qkappa[imass],0,100000,residue[imass],in);
-    ninv_tot++;inv_time+=take_time();
-    
-    //rotate the sink index
-    if(!pure_wilson) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
-  }
-  
-  //invert on top of a source, putting all needed for the appropriate quark
-  inline void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
-  {
-    spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
-    spincolor *temp_solution=nissa_malloc("temp_solution",loc_vol+bord_vol,spincolor);
-    
-    //these are the ways in which Dirac operator rotates - propagator is opposite, see below
 #ifdef POINT_SOURCE_VERSION
-    for(int ic=0;ic<NCOL;ic++)
-#endif
-      for(int id=0;id<4;id++)
-	{ 
-	  //read the source out
-#ifdef POINT_SOURCE_VERSION
-	  get_spincolor_from_su3spinspin(temp_source,in,id,ic);
+ #define PROP_TYPE su3spinspin
 #else
-	  get_spincolor_from_colorspinspin(temp_source,in,id);
+ #define PROP_TYPE colorspinspin
 #endif
 
-	  get_qprop(temp_solution,temp_source,imass,r);
-	  
-	  //put the output on place
-#ifdef POINT_SOURCE_VERSION
-	  master_printf("  finished the inversion dirac index %d, color %d\n",id,ic);
-	  put_spincolor_into_su3spinspin(out,temp_solution,id,ic);
+#ifndef EXTERN_PROP
+ #define EXTERN_PROP extern
+ #define INIT_TO_ZERO
 #else
-	  master_printf("  finished the inversion dirac index %d\n",id);
-	  put_spincolor_into_colorspinspin(out,temp_solution,id);
+ #define INIT_TO_ZERO =0
 #endif
-	}
-    
-    nissa_free(temp_source);
-    nissa_free(temp_solution);
-  }
+
+namespace nissa
+{
+  //hold name and information on how to build a propagator
+  struct qprop_t
+  {
+    std::string name;
+    char shortname;
+    insertion_t insertion;
+    int isource;
+    qprop_t(const char *tag,char shortname,insertion_t insertion,int isource) : name(tag),shortname(shortname),insertion(insertion),isource(isource) {}
+  };
+  
+  EXTERN_PROP int PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON,PROP_PHOTON2;
+  
+  EXTERN_PROP int ninv_tot INIT_TO_ZERO;
+  EXTERN_PROP double inv_time INIT_TO_ZERO;
+  
+  EXTERN_PROP PROP_TYPE **Q;
+  EXTERN_PROP spinspin **L;
+  
+  EXTERN_PROP int nqprop,nlprop;
+  
+  EXTERN_PROP PROP_TYPE *source,*original_source;
+  EXTERN_PROP std::vector<qprop_t> qprop_list;
+  
+  EXTERN_PROP int nsource_tot INIT_TO_ZERO,nphoton_prop_tot INIT_TO_ZERO;
+  EXTERN_PROP double source_time INIT_TO_ZERO,photon_prop_time INIT_TO_ZERO,lepton_prop_time INIT_TO_ZERO;
+  
+  EXTERN_PROP spin1field *photon_field;
+  EXTERN_PROP spinspin *temp_lep;
+  
+  int nqprop_kind();
+  int iqprop(int imass,int ip,int r);
+  int ilprop(int ilepton,int ilins,int orie,int r);
+  tm_quark_info get_lepton_info(int ilepton,int orie,int r);
+  int add_qprop(const char *tag,char shortname,insertion_t insertion,int isource);
+  void get_qprop(spincolor *out,spincolor *in,int imass,bool r);
+  void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r);
+  void generate_original_source();
+  void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,coords dirs,PROP_TYPE *in,int t);
+  void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,int t);
+  void insert_external_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *ori,int t,int r,int loc);
+  void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1);
+  void generate_quark_propagators();
+  void set_inversions();
+  void generate_photon_stochastic_propagator();
+  void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc);
+  void generate_lepton_propagators();
 }
 
 #endif

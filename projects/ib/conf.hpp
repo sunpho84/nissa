@@ -22,6 +22,7 @@ namespace nissa
   void random_shift_gauge_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta);
   int check_remaining_time();
   int read_conf_parameters(int &iconf,void(*skip_conf)(),bool(*external_condition)());
+  bool finish_file_present();
 }
 
 #undef EXTERN
