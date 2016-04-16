@@ -294,7 +294,7 @@ THREADABLE_FUNCTION_0ARG(calculate_S0)
 	      }
 	  }
       }
-
+  
   //put the (1+ig5)/sqrt(2) factor
   for(int imass=0;imass<nmass;imass++)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
