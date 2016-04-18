@@ -301,7 +301,7 @@ namespace nissa
   }
   
   //reduce a double vector among threads
-  void glb_threads_reduce_double_vect(double *vect,int nel)
+  double *glb_threads_reduce_double_vect(double *vect,int nel)
   {
     GET_THREAD_ID();
     
@@ -322,6 +322,9 @@ namespace nissa
       NISSA_PARALLEL_LOOP(iel,0,nel)
 	ptr[jthread][iel]=ptr[0][iel];
     
+    //return ptr 0
+    double *ret=ptr[0];
     nissa_free(ptr);
+    return ret;
   } 
 }

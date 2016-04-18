@@ -89,6 +89,24 @@ namespace nissa
   EXTERN_PARS int nsources;
   inline void read_nsources()
   {read_str_int("NSources",&nsources);}
+  
+  //ape smearing pars
+  EXTERN_PARS int ape_smearing_niters;
+  EXTERN_PARS double ape_smearing_alpha;
+  inline void read_ape_smearing_pars()
+  {
+    read_str_double("ApeSmearingAlpha",&ape_smearing_alpha);
+    read_str_int("ApeSmearingNiters",&ape_smearing_niters);
+  }
+
+  //gaussian smearing pars
+  EXTERN_PARS int gaussian_smearing_niters;
+  EXTERN_PARS double gaussian_smearing_kappa;
+  inline void read_gaussian_smearing_pars()
+  {  
+    read_str_double("GaussianSmearingKappa",&gaussian_smearing_kappa);
+    read_str_int("GaussianSmearingNiters",&gaussian_smearing_niters);
+  }
 }
 
 #undef EXTERN_PARS

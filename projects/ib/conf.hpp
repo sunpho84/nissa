@@ -1,20 +1,24 @@
 #ifndef _CONF_HPP
 #define _CONF_HPP
 
-#ifndef EXTERN
- #define EXTERN extern
+#ifndef EXTERN_CONF
+ #define EXTERN_CONF extern
+ #define INIT_TO_NULL
+#else
+  #define INIT_TO_NULL =NULL
 #endif
 
 namespace nissa
 {
-  EXTERN int nanalyzed_conf;
-  EXTERN double tot_prog_time,wall_time;
+  EXTERN_CONF int nanalyzed_conf;
+  EXTERN_CONF double tot_prog_time,wall_time;
   
-  EXTERN char conf_path[1024],outfolder[1024];
-  EXTERN int ngauge_conf;
-  EXTERN quad_su3 *conf;
+  EXTERN_CONF char conf_path[1024],outfolder[1024];
+  EXTERN_CONF int ngauge_conf;
+  EXTERN_CONF quad_su3 *conf;
+  EXTERN_CONF quad_su3 *ape_smeared_conf INIT_TO_NULL;
   
-  EXTERN double put_theta[4],old_theta[4];
+  EXTERN_CONF double put_theta[4],old_theta[4];
   
   void read_init_grid();
   void generate_random_coord(coords);
@@ -25,6 +29,6 @@ namespace nissa
   bool finish_file_present();
 }
 
-#undef EXTERN
+#undef EXTERN_CONF
 
 #endif

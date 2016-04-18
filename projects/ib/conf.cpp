@@ -1,6 +1,6 @@
 #include <nissa.hpp>
 
-#define EXTERN
+#define EXTERN_CONF
  #include "conf.hpp"
 
 namespace nissa
@@ -64,6 +64,7 @@ namespace nissa
     double shift_time=-take_time();
     vector_remap_t shifter(loc_vol,index_shift,(void*)shift_coord);
     shifter.remap(conf,conf,sizeof(quad_su3));
+    if(ape_smeared_conf!=NULL) shifter.remap(ape_smeared_conf,ape_smeared_conf,sizeof(quad_su3));
     shift_time+=take_time();
     master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+016.016lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
     
@@ -134,7 +135,7 @@ namespace nissa
     
     master_printf("\n");
     
-    if(iconf==ngauge_conf) master_printf("Analyzed all confs, exiting\n\n");
+    if(!ok_conf && iconf==ngauge_conf) master_printf("Analyzed all confs, exiting\n\n");
     
     return ok_conf;
   }

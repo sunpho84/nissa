@@ -50,7 +50,7 @@ namespace nissa
   void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg));
   void thread_pool();
   void thread_pool_stop();
-  void glb_threads_reduce_double_vect(double *vect,int nel);
+  double *glb_threads_reduce_double_vect(double *vect,int nel);
 }
 
 #endif
