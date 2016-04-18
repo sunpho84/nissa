@@ -12,7 +12,7 @@ int main(int narg,char **arg)
   int L=atoi(arg[1]);
   int T=atoi(arg[2]);
   
-  //Init the MPI grid 
+  //Init the MPI grid
   init_grid(T,L);
   
   //crete and write
