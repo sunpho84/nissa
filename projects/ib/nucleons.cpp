@@ -50,8 +50,9 @@ int ind_rot_prop(int iprop,int ic_si,int ic_so,int id_si,int id_so,int ri,int iv
 {return ind_rot_prop(iprop,dirspin_ind(ic_si,ic_so,id_si,id_so,ri),ivol);}
 
 //contains how to bind the indices of the three propagators to make a Wick contraction
-int eps_perm[6][4]={{0,1,2,+1},{1,2,0,+1},{2,0,1,+1},
-		    {0,2,1,-1},{2,1,0,-1},{1,0,2,-1}};
+const int neps_perm=6;
+int eps_perm[neps_perm][4]={{0,1,2,+1},{1,2,0,+1},{2,0,1,+1},
+			    {0,2,1,-1},{2,1,0,-1},{1,0,2,-1}};
 dirac_matr Cg5;
 int nwick;
 int ind_wick(int dir_exc,int ri,int id_g0)
@@ -71,14 +72,14 @@ void set_wickes_contractions()
   
   int id_g0[2]={0,4};
   for(int iid_g0=0;iid_g0<2;iid_g0++)
-    for(int iperm_si=0;iperm_si<6;iperm_si++)
-      for(int iperm_so=0;iperm_so<6;iperm_so++)
+    for(int iperm_si=0;iperm_si<neps_perm;iperm_si++)
+      for(int iperm_so=0;iperm_so<neps_perm;iperm_so++)
 	for(int al1=0;al1<4;al1++)
 	  for(int al=0;al<4;al++)
 	    for(int ga=0;ga<4;ga++)
 	      {
 		//find other indices
-		int a =eps_perm[iperm_si][0],b =eps_perm[iperm_si][1],c =eps_perm[iperm_si][2];
+		int a =eps_perm[iperm_so][0],b =eps_perm[iperm_so][1],c =eps_perm[iperm_so][2];
 		int a1=eps_perm[iperm_si][0],b1=eps_perm[iperm_si][1],c1=eps_perm[iperm_si][2];
 		int be1=Cg5.pos[al1],be=Cg5.pos[al];
 		int ga1=base_gamma[id_g0[iid_g0]].pos[ga];
@@ -103,16 +104,22 @@ void set_wickes_contractions()
 			unsafe_complex_prod(w,wabc,PCg5Cg5_eps);
 			
 			//loop over direct or exchange
-			for(int dir_exc=0;dir_exc<2;dir_exc++)
+			for(int idir_exc=0;idir_exc<2;idir_exc++)
 			  {
 			    const int itb=dirspin_ind(b1,b,be1,be,rib);
-			    const int ita=dirspin_ind(a1,(dir_exc==0)?a:c,al1,(dir_exc==0)?al:ga,ria);
-			    const int itc=dirspin_ind(c1,(dir_exc==0)?c:a,ga1,(dir_exc==0)?ga:al,ric);
+			    const int ita=dirspin_ind(a1,(idir_exc==0)?a:c,al1,(idir_exc==0)?al:ga,ria);
+			    const int itc=dirspin_ind(c1,(idir_exc==0)?c:a,ga1,(idir_exc==0)?ga:al,ric);
 			    
 			    //find whether the real or imaginary part contributes
 			    for(int ri=0;ri<2;ri++)
 			      if(w[ri])
-				wickes[ind_wick(dir_exc,ri,iid_g0)].push_back(std::make_pair(bar_triplet_t(ita,itb,itc),w[ri]));
+				{
+				  //char id_g0_tag[2][10]={"id","g0"};
+				  //char dir_exc_tag[2][10]={"dir","exc"};
+				  //char reim_tag[2][10]={"re","im"};
+				  //master_printf("%s %s %s contributed with %lg of si(perm%d,al%d,be%d,ga%d,a%d,b%d,c%d) so(perm%d,al%d,be%d,ga%d,a%d,b%d,c%d) ra%d,rb%d,rc%d\n",id_g0_tag[iid_g0],dir_exc_tag[idir_exc],reim_tag[ri],w[ri],iperm_si,al1,be1,ga1,a1,b1,c1, iperm_so,al,be,ga,a,b,c,ria,rib,ric);
+				  wickes[ind_wick(idir_exc,ri,iid_g0)].push_back(std::make_pair(bar_triplet_t(ita,itb,itc),w[ri]));
+				}
 			  }
 		      }
 	      }
@@ -192,6 +199,7 @@ void start_new_conf()
   adapt_theta(conf,old_theta,put_theta,0,0);
   //spatial smearing
   ape_spatial_smear_conf(ape_smeared_conf,conf,ape_smearing_alpha,ape_smearing_niters);
+  master_printf("Smeared plaquette: %.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
   //put back anti-periodic
   put_theta[0]=1;
   adapt_theta(conf,old_theta,put_theta,0,0);
@@ -281,9 +289,12 @@ THREADABLE_FUNCTION_END
 //print all correlations averaging
 void print_correlations()
 {
+  //reduce
   glb_nodes_reduce_double_vect(corr,corr_size);
   
-  //phase
+  //open output
+  FILE *fout=open_file(combine("%s/corr",outfolder),"w");
+  
   for(size_t icombo=0;icombo<prop_hadr_combo_map.size();icombo++)
     for(int ism_sink=0;ism_sink<nsm_sink;ism_sink++)
       for(int ima=0;ima<nqmass;ima++)
@@ -294,7 +305,8 @@ void print_correlations()
 		for(int rc=0;rc<nr;rc++)
 		  for(int dir_exc=0;dir_exc<2;dir_exc++)
 		    {
-		      master_printf("\n # icombo %lu , sink_smeared %d , im %d %d %d , r %d %d %d , dir_exc %d\n",icombo,ism_sink,ima,imb,imc,ra,rb,rc,dir_exc);
+		      master_fprintf(fout,"\n # icombo %lu , sink_smeared %d , im %d %d %d , r %d %d %d , dir_exc %d\n\n",
+				     icombo,ism_sink,ima,imb,imc,ra,rb,rc,dir_exc);
 		      for(int t=0;t<glb_size[0];t++)
 			{
 			  //reassembling real/imaginary
@@ -303,22 +315,31 @@ void print_correlations()
 			  int sign=(t<glb_size[0]/2)?1:-1;
 			  complex c;
 			  
+			  //remove anti-periodic condition phase
+			  double arg=3*M_PI*t/glb_size[0];
+			  complex phase={cos(arg),sin(arg)};
+			  
 			  for(int ri=0;ri<2;ri++)
 			    {
 			      //take id and g0
 			      int iwick_id=ind_wick(dir_exc,ri,0/*id*/);
 			      int iwick_g0=ind_wick(dir_exc,ri,1/*g0*/);
 			      
+			      //the sign should be on g0, but this way the correlator is periodic
 			      c[ri]=
-				(corr[ind_corr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,iwick_id,t)]+sign*
+				(corr[ind_corr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,iwick_id,t)]*sign+
 				 corr[ind_corr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,iwick_g0,t)])/
 				(2*nsources);
 			    }
 			  
-			  master_printf("%+016.016lg %+016.016lg\n",c[RE],c[IM]);
+			  //put the phase and print
+			  safe_complex_prod(c,c,phase);
+			  master_fprintf(fout,"%+016.016lg %+016.016lg\n",c[RE],c[IM]);
 			}
-		      master_printf("\n");
+		      master_fprintf(fout,"\n");
 		    }
+  
+  close_file(fout);
 }
 
 //close deallocating everything
@@ -355,13 +376,14 @@ void in_main(int narg,char **arg)
       for(int isource=0;isource<nsources;isource++)
 	{
 	  master_printf("\n=== Source %d/%d ====\n",isource+1,nsources);
-	  
+	  //shift the conf and create the stochastic photon field
 	  random_shift_gauge_conf(conf,old_theta,put_theta);
 	  generate_photon_stochastic_propagator();
+	  //generate source and smear it
 	  generate_original_source();
 	  gaussian_smearing(original_source,original_source,ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
+	  //compute prop and correlators
 	  generate_quark_propagators();
-	  
 	  compute_correlations();
 	}
       
