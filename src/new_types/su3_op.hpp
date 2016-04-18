@@ -1187,14 +1187,19 @@ namespace nissa
   
   //colorspinspin*real or complex
   inline void su3spinspin_prod_double(su3spinspin out,su3spinspin in,double factor)
-  {for(size_t i=0;i<NCOL;i++) colorspinspin_summ_the_prod_double(out[i],in[i],factor);}
-  inline void su3spinspin_prodassign_double(su3spinspin out,double factor) {for(size_t i=0;i<NCOL;i++) colorspinspin_prodassign_double(out[i],factor);}
-  inline void su3spinspin_prodassign_idouble(su3spinspin out,double factor) {for(size_t i=0;i<NCOL;i++) colorspinspin_prodassign_idouble(out[i],factor);}
-  inline void su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor) {for(size_t i=0;i<NCOL;i++) colorspinspin_prod_complex(out[i],in[i],factor);}
+  {for(size_t i=0;i<NCOL;i++) colorspinspin_prod_double(out[i],in[i],factor);}
+  inline void su3spinspin_prodassign_double(su3spinspin out,double factor)
+  {for(size_t i=0;i<NCOL;i++) colorspinspin_prodassign_double(out[i],factor);}
+  inline void su3spinspin_prodassign_idouble(su3spinspin out,double factor)
+  {for(size_t i=0;i<NCOL;i++) colorspinspin_prodassign_idouble(out[i],factor);}
+  inline void su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor)
+  {for(size_t i=0;i<NCOL;i++) colorspinspin_prod_complex(out[i],in[i],factor);}
   inline void su3spinspin_prod_complex_conj(su3spinspin out,su3spinspin in,complex factor)
   {for(size_t i=0;i<NCOL;i++) colorspinspin_prod_complex_conj(out[i],in[i],factor);}
-  inline void su3spinspin_prodassign_complex(su3spinspin c,complex f){su3spinspin_prod_complex(c,c,f);}
-  inline void su3spinspin_prodassign_complex_conj(su3spinspin c,complex f) {su3spinspin_prod_complex_conj(c,c,f);}
+  inline void su3spinspin_prodassign_complex(su3spinspin c,complex f)
+  {su3spinspin_prod_complex(c,c,f);}
+  inline void su3spinspin_prodassign_complex_conj(su3spinspin c,complex f)
+  {su3spinspin_prod_complex_conj(c,c,f);}
   
   //su3spinspin summ
   inline void su3spinspin_summ(su3spinspin out,su3spinspin in1,su3spinspin in2) {for(size_t i=0;i<NCOL;i++) colorspinspin_summ(out[i],in1[i],in2[i]);}
@@ -1245,21 +1250,21 @@ namespace nissa
   
   inline void su3_summ_the_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c)
   {
-    for(size_t id_so=0;id_so<4;id_so++)
-      for(size_t id_si=0;id_si<4;id_si++)
-	for(size_t c1=0;c1<NCOL;c1++)
-	  for(size_t c3=0;c3<NCOL;c3++)
-	    for(size_t c2=0;c2<NCOL;c2++)
+    for(size_t c1=0;c1<NCOL;c1++)
+      for(size_t c3=0;c3<NCOL;c3++)
+	for(size_t c2=0;c2<NCOL;c2++)
+	  for(size_t id_si=0;id_si<4;id_si++)
+	    for(size_t id_so=0;id_so<4;id_so++)
 	      complex_summ_the_prod(a[c1][c3][id_si][id_so],b[c1][c2],c[c2][c3][id_si][id_so]);
   }
   
   inline void su3_dag_subt_the_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c)
   {
-    for(size_t id_so=0;id_so<4;id_so++)
-      for(size_t id_si=0;id_si<4;id_si++)
-	for(size_t c1=0;c1<NCOL;c1++)
-	  for(size_t c2=0;c2<NCOL;c2++)
-	    for(size_t c3=0;c3<NCOL;c3++)
+    for(size_t c1=0;c1<NCOL;c1++)
+      for(size_t c3=0;c3<NCOL;c3++)
+	for(size_t c2=0;c2<NCOL;c2++)
+	  for(size_t id_si=0;id_si<4;id_si++)
+	    for(size_t id_so=0;id_so<4;id_so++)
 	      complex_subt_the_conj1_prod(a[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
   }
   
