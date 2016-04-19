@@ -4,7 +4,7 @@
 #include "pars.hpp"
 #include "prop.hpp"
 
-#include <immintrin.h>
+// #include <immintrin.h>
 
 using namespace nissa;
 
@@ -389,7 +389,7 @@ void close()
   master_printf(" - %02.2f%s to prepare %d generalized sources (%2.2gs avg)\n",source_time/tot_prog_time*100,"%",nsource_tot,source_time/nsource_tot);
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
   master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to perform %d contractions (%2.2gs avg), %02.2f MFlops\n",contract_time/tot_prog_time*100,"%",ncontract,contract_time/ncontract,ncontract*4*loc_vol/(contract_time*1e6));
+  master_printf(" - %02.2f%s to perform %d contractions (%2.2gs avg), %02.2f MFlops/rank\n",contract_time/tot_prog_time*100,"%",ncontract,contract_time/ncontract,ncontract*4*loc_vol/(contract_time*1e6));
   master_printf(" - %02.2f%s to perform %d transpositions (%2.2gs avg)\n",transpose_time/tot_prog_time*100,"%",ntranspose,transpose_time/ntranspose);
   master_printf(" - %02.2f%s to perform %d smearing (%2.2gs avg)\n",smear_time/tot_prog_time*100,"%",nsmear,smear_time/nsmear);
 
