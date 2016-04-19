@@ -4,6 +4,8 @@
 #include "pars.hpp"
 #include "prop.hpp"
 
+#include <immintrin.h>
+
 using namespace nissa;
 
 /*
@@ -25,6 +27,9 @@ using namespace nissa;
    
  */
 
+int nsmear,ntranspose,ncontract;
+double smear_time=0,transpose_time=0,contract_time=0;
+
 //hadron contractions
 struct bar_triplet_t
 {
@@ -34,19 +39,19 @@ struct bar_triplet_t
 std::vector<bar_triplet_t> prop_hadr_combo_map;
 
 //index inside a colorspinspin
-int dirspin_ind(int ic_si,int ic_so,int id_si,int id_so,int ri)
+inline int dirspin_ind(int ic_si,int ic_so,int id_si,int id_so,int ri)
 {return
     (ri+2*
      (id_so+4*
       (id_si+4*
        (ic_so+NCOL*ic_si))));
 }
-int ind_rot_prop(int iprop,int ci,int ivol)
+inline int ind_rot_prop(int iprop,int ci,int ivol)
 {return
     (ivol+loc_vol*
      (ci+sizeof(su3spinspin)/sizeof(double)*iprop));
 }
-int ind_rot_prop(int iprop,int ic_si,int ic_so,int id_si,int id_so,int ri,int ivol)
+inline int ind_rot_prop(int iprop,int ic_si,int ic_so,int id_si,int id_so,int ri,int ivol)
 {return ind_rot_prop(iprop,dirspin_ind(ic_si,ic_so,id_si,id_so,ri),ivol);}
 
 //contains how to bind the indices of the three propagators to make a Wick contraction
@@ -113,13 +118,7 @@ void set_wickes_contractions()
 			    //find whether the real or imaginary part contributes
 			    for(int ri=0;ri<2;ri++)
 			      if(w[ri])
-				{
-				  //char id_g0_tag[2][10]={"id","g0"};
-				  //char dir_exc_tag[2][10]={"dir","exc"};
-				  //char reim_tag[2][10]={"re","im"};
-				  //master_printf("%s %s %s contributed with %lg of si(perm%d,al%d,be%d,ga%d,a%d,b%d,c%d) so(perm%d,al%d,be%d,ga%d,a%d,b%d,c%d) ra%d,rb%d,rc%d\n",id_g0_tag[iid_g0],dir_exc_tag[idir_exc],reim_tag[ri],w[ri],iperm_si,al1,be1,ga1,a1,b1,c1, iperm_so,al,be,ga,a,b,c,ria,rib,ric);
-				  wickes[ind_wick(idir_exc,ri,iid_g0)].push_back(std::make_pair(bar_triplet_t(ita,itb,itc),w[ri]));
-				}
+				wickes[ind_wick(idir_exc,ri,iid_g0)].push_back(std::make_pair(bar_triplet_t(ita,itb,itc),w[ri]));
 			  }
 		      }
 	      }
@@ -148,13 +147,26 @@ void set_combinations()
   //add the contraction combination
   prop_hadr_combo_map.clear();
   prop_hadr_combo_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_0));
-  //prop_hadr_combo_map.push_back(std::make_pair(PROP_0,PROP_S));
-  //prop_hadr_combo_map.push_back(std::make_pair(PROP_0,PROP_P));
-  //prop_hadr_combo_map.push_back(std::make_pair(PROP_0,PROP_T));
-  //prop_hadr_combo_map.push_back(std::make_pair(PROP_0,PROP_PHOTON2));
-  //prop_hadr_combo_map.push_back(std::make_pair(PROP_PHOTON,PROP_PHOTON));
-  
-  //prop_hadr_combo_map.push_back(std::make_pair(PROP_0,PROP_VECTOR));
+  //scalar insertion on one of the three lines
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_S,PROP_0,PROP_0));
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_0,PROP_S,PROP_0));
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_S));
+  //pseudoscalar insertion on one of the three lines
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_P,PROP_0,PROP_0));
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_0,PROP_P,PROP_0));
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_P));
+  //tadpole insertion on one of the three lines
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_T,PROP_0,PROP_0));
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_0,PROP_T,PROP_0));
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_T));
+  //self-energy insertion on one of the three lines
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_PHOTON2,PROP_0,PROP_0));
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_0,PROP_PHOTON2,PROP_0));
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_PHOTON2));
+  //photon exchange between one of the three lines
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_0,PROP_PHOTON,PROP_PHOTON));
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_PHOTON,PROP_0,PROP_PHOTON));
+  prop_hadr_combo_map.push_back(bar_triplet_t(PROP_PHOTON,PROP_PHOTON,PROP_0));
 }
 //init everything
 void init_simulation(char *path)
@@ -233,11 +245,14 @@ THREADABLE_FUNCTION_0ARG(compute_correlations)
   for(int ism_sink=0;ism_sink<nsm_sink;ism_sink++)
     {
       //smear all sinks
+      START_TIMING(smear_time,nsmear);
       if(ism_sink==1)
 	for(int ip=0;ip<nqprop;ip++)
 	gaussian_smearing(Q[ip],Q[ip],ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
+      STOP_TIMING(smear_time);
       
       //transpose all propagators
+      START_TIMING(transpose_time,ntranspose);
       for(int ip=0;ip<nqprop;ip++)
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  for(int ic_si=0;ic_si<NCOL;ic_si++)
@@ -247,7 +262,9 @@ THREADABLE_FUNCTION_0ARG(compute_correlations)
 		  for(int ri=0;ri<2;ri++)
 		    p[ind_rot_prop(ip,ic_si,ic_so,id_si,id_so,ri,ivol)]=Q[ip][ivol][ic_si][ic_so][id_si][id_so][ri];
       THREAD_BARRIER();
+      STOP_TIMING(transpose_time);
       
+      UNPAUSE_TIMING(contract_time);
       for(size_t icombo=0;icombo<prop_hadr_combo_map.size();icombo++)
 	for(int ima=0;ima<nqmass;ima++)
 	  for(int imb=0;imb<nqmass;imb++)
@@ -267,14 +284,31 @@ THREADABLE_FUNCTION_0ARG(compute_correlations)
 			    int iwb=wickes[iwick][iterm].first.b;
 			    int iwc=wickes[iwick][iterm].first.c;
 			    
+			    if(IS_MASTER_THREAD) ncontract++;
 			    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-			    loc_corr[ind_corr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,iwick,glb_coord_of_loclx[ivol][0])]+=
+			      loc_corr[ind_corr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,iwick,glb_coord_of_loclx[ivol][0])]+=
 			      wickes[iwick][iterm].second*
 			      p[ind_rot_prop(ipa,iwa,ivol)]*
 			      p[ind_rot_prop(ipb,iwb,ivol)]*
 			      p[ind_rot_prop(ipc,iwc,ivol)];
+			    // for(int t=0;t<loc_size[0];t++)
+			    //   {
+			    // 	__m256d tot=_mm256_setzero_pd();
+			    // 	NISSA_PARALLEL_LOOP(ispat_vol_quarter,0,loc_spat_vol/4)
+			    // 	  {
+			    // 	    int ivol_base=t*loc_spat_vol+ispat_vol_quarter*4;
+			    // 	    __m256d wa=_mm256_load_pd(p+ind_rot_prop(ipa,iwa,ivol_base));
+			    // 	    __m256d wb=_mm256_load_pd(p+ind_rot_prop(ipb,iwb,ivol_base));
+			    // 	    __m256d wc=_mm256_load_pd(p+ind_rot_prop(ipc,iwc,ivol_base));
+			    // 	    tot=_mm256_fmadd_pd(_mm256_mul_pd(wa,wb),wc,tot);
+			    // 	  }
+			    // 	double tott[4] __attribute__((aligned(32)));
+			    // 	_mm256_store_pd(tott,tot);
+			    // 	for(int i=0;i<4;i++) loc_corr[ind_corr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,iwick,t+loc_size[0]*rank_coord[0])]+=tott[i]*wickes[iwick][iterm].second;
+			    //   }
 			  }
 		    }
+      STOP_TIMING(contract_time);
     }
   nissa_free(p);
   
@@ -305,8 +339,11 @@ void print_correlations()
 		for(int rc=0;rc<nr;rc++)
 		  for(int dir_exc=0;dir_exc<2;dir_exc++)
 		    {
-		      master_fprintf(fout,"\n # icombo %lu , sink_smeared %d , im %d %d %d , r %d %d %d , dir_exc %d\n\n",
-				     icombo,ism_sink,ima,imb,imc,ra,rb,rc,dir_exc);
+		      master_fprintf(fout,"\n # icombo %c%c%c , sink_smeared %d , ma %lg , mb %lg , mc %lg , ra %d , rb %d , rc %d , dir_exc %d\n\n",
+				     qprop_list[prop_hadr_combo_map[icombo].a].shortname,
+				     qprop_list[prop_hadr_combo_map[icombo].b].shortname,
+				     qprop_list[prop_hadr_combo_map[icombo].c].shortname,
+				     ism_sink,qmass[ima],qmass[imb],qmass[imc],ra,rb,rc,dir_exc);
 		      for(int t=0;t<glb_size[0];t++)
 			{
 			  //reassembling real/imaginary
@@ -345,6 +382,17 @@ void print_correlations()
 //close deallocating everything
 void close()
 {
+  master_printf("\n");
+  master_printf("Inverted %d configurations.\n",nanalyzed_conf);
+  master_printf("Total time: %g, of which:\n",tot_prog_time);
+  master_printf(" - %02.2f%s to prepare %d photon stochastic propagators (%2.2gs avg)\n",photon_prop_time/tot_prog_time*100,"%",nphoton_prop_tot,photon_prop_time/nphoton_prop_tot);
+  master_printf(" - %02.2f%s to prepare %d generalized sources (%2.2gs avg)\n",source_time/tot_prog_time*100,"%",nsource_tot,source_time/nsource_tot);
+  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
+  master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
+  master_printf(" - %02.2f%s to perform %d contractions (%2.2gs avg), %02.2f MFlops\n",contract_time/tot_prog_time*100,"%",ncontract,contract_time/ncontract,ncontract*4*loc_vol/(contract_time*1e6));
+  master_printf(" - %02.2f%s to perform %d transpositions (%2.2gs avg)\n",transpose_time/tot_prog_time*100,"%",ntranspose,transpose_time/ntranspose);
+  master_printf(" - %02.2f%s to perform %d smearing (%2.2gs avg)\n",smear_time/tot_prog_time*100,"%",nsmear,smear_time/nsmear);
+
   nissa_free(photon_field);
   nissa_free(original_source);
   nissa_free(source);
@@ -381,7 +429,9 @@ void in_main(int narg,char **arg)
 	  generate_photon_stochastic_propagator();
 	  //generate source and smear it
 	  generate_original_source();
+	  smear_time-=take_time();
 	  gaussian_smearing(original_source,original_source,ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
+	  smear_time+=take_time();
 	  //compute prop and correlators
 	  generate_quark_propagators();
 	  compute_correlations();
