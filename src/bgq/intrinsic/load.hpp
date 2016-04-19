@@ -26,6 +26,13 @@
 
 #if defined BGQ && !defined BGQ_EMU
 
+//prefetch a bi_complex
+#define BI_COMPLEX_PREFETCH(addr)		\
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt   0,%[ptr]  \n"		\
+		  : :				\
+		    [ptr]  "r" (ptr));)
 //prefetch a bi_spincolor
 #define BI_SPINCOLOR_PREFETCH(addr)	\
   {					\
@@ -219,6 +226,10 @@
 
 #else
 
+#define BI_COMPLEX_PREFETCH(addr)			\
+  MACRO_GUARD(						\
+	      CACHE_PREFETCH((char*)(addr)+  0);	\
+							)
 //prefetch a bi_spincolor
 #define BI_SPINCOLOR_PREFETCH(addr)			\
   MACRO_GUARD(						\
