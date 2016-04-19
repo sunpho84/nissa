@@ -107,8 +107,8 @@ namespace nissa
 	double *a_ptr=(double*)(((bi_halfspin*)a)[i]);
 	double *b_ptr=(double*)(((bi_halfspin*)b)[i]);
 	
-	BI_HALFSPIN_PREFETCH_NEXT_NEXT(a);
-	BI_HALFSPIN_PREFETCH_NEXT_NEXT(b);
+	BI_HALFSPIN_PREFETCH_NEXT_NEXT(a_ptr);
+	BI_HALFSPIN_PREFETCH_NEXT_NEXT(b_ptr);
 	REG_LOAD_BI_HALFSPIN(reg_a,a_ptr);
 	REG_LOAD_BI_HALFSPIN(reg_b,b_ptr);
 	REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(reg_loc_thread_res,s0),NAME2(reg_loc_thread_res,s0),NAME2(reg_a,s0),NAME2(reg_b,s0));
