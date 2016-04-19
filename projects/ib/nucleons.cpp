@@ -285,12 +285,48 @@ THREADABLE_FUNCTION_0ARG(compute_correlations)
 			    int iwc=wickes[iwick][iterm].first.c;
 			    
 			    if(IS_MASTER_THREAD) ncontract++;
+#ifndef BGQ
 			    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 			      loc_corr[ind_corr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,iwick,glb_coord_of_loclx[ivol][0])]+=
 			      wickes[iwick][iterm].second*
 			      p[ind_rot_prop(ipa,iwa,ivol)]*
 			      p[ind_rot_prop(ipb,iwb,ivol)]*
 			      p[ind_rot_prop(ipc,iwc,ivol)];
+#else
+			    for(int t=0;t<loc_size[0];t++)
+			      {
+				DECLARE_REG_BI_COMPLEX(reg_tot);
+				REG_SPLAT_BI_COMPLEX(reg_tot,0);
+				
+				NISSA_PARALLEL_LOOP(ispat_vol_quarter,0,loc_spat_vol/4)
+				  {
+				    int ivol_base=t*loc_spat_vol+ispat_vol_quarter*4;
+				    
+				    DECLARE_REG_BI_COMPLEX(reg_a);
+				    DECLARE_REG_BI_COMPLEX(reg_b);
+				    DECLARE_REG_BI_COMPLEX(reg_c);
+				    
+				    complex *a_ptr=(complex*)(p+ind_rot_prop(ipa,iwa,ivol_base));
+				    complex *b_ptr=(complex*)(p+ind_rot_prop(ipb,iwb,ivol_base));
+				    complex *c_ptr=(complex*)(p+ind_rot_prop(ipc,iwc,ivol_base));
+				    
+				    //BI_COMPLEX_PREFETCH_NEXT(a_ptr);
+				    //BI_COMPLEX_PREFETCH_NEXT(b_ptr);
+				    //BI_COMPLEX_PREFETCH_NEXT(c_ptr);
+				    
+				    REG_LOAD_BI_COMPLEX(reg_a,a_ptr);
+				    REG_LOAD_BI_COMPLEX(reg_b,b_ptr);
+				    REG_LOAD_BI_COMPLEX(reg_c,c_ptr);
+				    
+				    DECLARE_REG_BI_COMPLEX(reg_temp);
+				    REG_BI_COMPLEX_PROD_4DOUBLE(reg_temp,reg_a,reg_b);
+				    REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(reg_tot,reg_tot,reg_temp,reg_c);
+				  }
+				double tot[4];
+				STORE_REG_BI_COMPLEX(tot,reg_tot);
+				for(int i=0;i<4;i++) loc_corr[ind_corr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,iwick,t+loc_size[0]*rank_coord[0])]+=tot[i]*wickes[iwick][iterm].second;
+			      }
+#endif			    
 			    // for(int t=0;t<loc_size[0];t++)
 			    //   {
 			    // 	__m256d tot=_mm256_setzero_pd();
@@ -392,7 +428,7 @@ void close()
   master_printf(" - %02.2f%s to perform %d contractions (%2.2gs avg), %02.2f MFlops/rank\n",contract_time/tot_prog_time*100,"%",ncontract,contract_time/ncontract,ncontract*4*loc_vol/(contract_time*1e6));
   master_printf(" - %02.2f%s to perform %d transpositions (%2.2gs avg)\n",transpose_time/tot_prog_time*100,"%",ntranspose,transpose_time/ntranspose);
   master_printf(" - %02.2f%s to perform %d smearing (%2.2gs avg)\n",smear_time/tot_prog_time*100,"%",nsmear,smear_time/nsmear);
-
+  
   nissa_free(photon_field);
   nissa_free(original_source);
   nissa_free(source);
