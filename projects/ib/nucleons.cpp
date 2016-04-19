@@ -31,12 +31,21 @@ int nsmear,ntranspose,ncontract;
 double smear_time=0,transpose_time=0,contract_time=0;
 
 //hadron contractions
-struct bar_triplet_t
+struct bar_triplet_t : std::vector<double>
 {
   int a,b,c;
   bar_triplet_t(int a,int b,int c) : a(a),b(b),c(c) {}
 };
 std::vector<bar_triplet_t> prop_hadr_combo_map;
+
+bool compare_el(std::pair<bar_triplet_t,int> a,std::pair<bar_triplet_t,int> b)
+{
+  return ((a.first.a<b.first.a)||
+	  ((a.first.a==b.first.a)&&
+	   ((a.first.b<b.first.b)||
+	    ((a.first.b==b.first.b)&&
+	     (a.first.c<b.first.c)))));
+}
 
 //index inside a colorspinspin
 inline int dirspin_ind(int ic_si,int ic_so,int id_si,int id_so,int ri)
@@ -122,6 +131,9 @@ void set_wickes_contractions()
 			  }
 		      }
 	      }
+  //sort the term (possibly to achieve faster access)
+  for(int iwick=0;iwick<nwick;iwick++)
+    std::sort(wickes[iwick].begin(),wickes[iwick].end(),compare_el);
 }
 
 //store correlation function
@@ -428,7 +440,8 @@ void close()
   master_printf(" - %02.2f%s to prepare %d generalized sources (%2.2gs avg)\n",source_time/tot_prog_time*100,"%",nsource_tot,source_time/nsource_tot);
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
   master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to perform %d contractions (%2.2gs avg), %02.2f MFlops/rank\n",contract_time/tot_prog_time*100,"%",ncontract,contract_time/ncontract,ncontract*4*loc_vol/(contract_time*1e6));
+  master_printf(" - %02.2f%s to perform %d contractions (%2.2gs avg), %02.2f MFlops/rank\n",contract_time/tot_prog_time*100,"%",ncontract,contract_time/ncontract,
+		(long long int)ncontract*4*loc_vol/(contract_time*1e6));
   master_printf(" - %02.2f%s to perform %d transpositions (%2.2gs avg)\n",transpose_time/tot_prog_time*100,"%",ntranspose,transpose_time/ntranspose);
   master_printf(" - %02.2f%s to perform %d smearing (%2.2gs avg)\n",smear_time/tot_prog_time*100,"%",nsmear,smear_time/nsmear);
   
