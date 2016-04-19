@@ -298,25 +298,28 @@ THREADABLE_FUNCTION_0ARG(compute_correlations)
 				DECLARE_REG_BI_COMPLEX(reg_tot);
 				REG_SPLAT_BI_COMPLEX(reg_tot,0);
 				
-				NISSA_PARALLEL_LOOP(ispat_vol_quarter,0,loc_spat_vol/4)
+				NISSA_CHUNK_WORKLOAD(START,CHUNK_LOAD,END,0,loc_spat_vol/4,thread_id,NACTIVE_THREADS);
+				
+				complex *a_ptr=(complex*)(p+ind_rot_prop(ipa,iwa,t*loc_spat_vol+START*4));
+				complex *b_ptr=(complex*)(p+ind_rot_prop(ipb,iwb,t*loc_spat_vol+START*4));
+				complex *c_ptr=(complex*)(p+ind_rot_prop(ipc,iwc,t*loc_spat_vol+START*4));
+				
+				DECLARE_REG_BI_COMPLEX(reg_a);
+				DECLARE_REG_BI_COMPLEX(reg_b);
+				DECLARE_REG_BI_COMPLEX(reg_c);
+				for(int i=START;i<END;i++)
 				  {
-				    int ivol_base=t*loc_spat_vol+ispat_vol_quarter*4;
-				    
-				    DECLARE_REG_BI_COMPLEX(reg_a);
-				    DECLARE_REG_BI_COMPLEX(reg_b);
-				    DECLARE_REG_BI_COMPLEX(reg_c);
-				    
-				    complex *a_ptr=(complex*)(p+ind_rot_prop(ipa,iwa,ivol_base));
-				    complex *b_ptr=(complex*)(p+ind_rot_prop(ipb,iwb,ivol_base));
-				    complex *c_ptr=(complex*)(p+ind_rot_prop(ipc,iwc,ivol_base));
-				    
-				    //BI_COMPLEX_PREFETCH_NEXT(a_ptr);
-				    //BI_COMPLEX_PREFETCH_NEXT(b_ptr);
-				    //BI_COMPLEX_PREFETCH_NEXT(c_ptr);
-				    
 				    REG_LOAD_BI_COMPLEX(reg_a,a_ptr);
 				    REG_LOAD_BI_COMPLEX(reg_b,b_ptr);
 				    REG_LOAD_BI_COMPLEX(reg_c,c_ptr);
+				    
+				    a_ptr+=2;
+				    b_ptr+=2;
+				    c_ptr+=2;
+				    
+				    BI_COMPLEX_PREFETCH(a_ptr);
+				    BI_COMPLEX_PREFETCH(b_ptr);
+				    BI_COMPLEX_PREFETCH(c_ptr);
 				    
 				    DECLARE_REG_BI_COMPLEX(reg_temp);
 				    REG_BI_COMPLEX_PROD_4DOUBLE(reg_temp,reg_a,reg_b);
