@@ -37,14 +37,16 @@ namespace nissa
   //get a propagator inverting on "in"
   void get_qprop(spincolor *out,spincolor *in,int imass,bool r)
   {
+    GET_THREAD_ID();
+    
     //rotate the source index - the propagator rotate AS the sign of mass term
     if(!pure_wilson) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
     
     //invert
-    inv_time-=take_time();
+    START_TIMING(inv_time,ninv_tot);
     if(!pure_wilson) inv_tmD_cg_eoprec_eos(out,NULL,conf,kappa,tau3[r]*qmass[imass],100000,residue[imass],in);
     else             inv_tmD_cg_eoprec_eos(out,NULL,conf,qkappa[imass],0,100000,residue[imass],in);
-    ninv_tot++;inv_time+=take_time();
+    STOP_TIMING(inv_time);
     
     //rotate the sink index
     if(!pure_wilson) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
