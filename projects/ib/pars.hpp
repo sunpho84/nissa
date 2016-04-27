@@ -15,9 +15,9 @@ namespace nissa
   const int follow_chris=0,follow_nazario=1;
   
   //define types of quark propagator used
-  const int nins_kind=5;
-  enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  PHOTON,   TADPOLE};//,  VECTOR};
-  const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","PHOTON", "TADPOLE"};//, "VECTOR"};
+  const int nins_kind=7;
+  enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  PHOTON,  PHOTON_ETA,  PHOTON_PHI,  TADPOLE};//,  VECTOR};
+  const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE"};//, "VECTOR"};
   
   //sign of the lepton momentum
   const int norie=2;
@@ -37,7 +37,7 @@ namespace nissa
   EXTERN_PARS double *qmass,*qkappa,*residue;
   
   EXTERN_PARS gauge_info photon;
-  EXTERN_PARS double tadpole[4];
+  EXTERN_PARS double tadpole[NDIM];
   
   EXTERN_PARS int nleptons;
   EXTERN_PARS double *lep_energy,*neu_energy;

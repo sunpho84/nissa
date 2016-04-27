@@ -56,8 +56,8 @@ void set_contractions()
   prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_S));
   prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_P));
   prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_T));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_PHOTON2));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_PHOTON,PROP_PHOTON));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_PHOTON_AB));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_PHOTON_A,PROP_PHOTON_B));
   //prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_VECTOR));
 }
 
@@ -66,6 +66,7 @@ void init_simulation(char *path)
   //open input file
   open_input(path);
   
+  use_photon_field=1;
   read_input_preamble();
   
   //Leptons
@@ -160,7 +161,9 @@ void init_simulation(char *path)
   hadrolept_corr=nissa_malloc("hadrolept_corr",glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
   original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
   source=nissa_malloc("source",loc_vol,PROP_TYPE);
-  photon_field=nissa_malloc("photon_phield",loc_vol+bord_vol,spin1field);
+  photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
+  photon_field=nissa_malloc("photon_field",loc_vol+bord_vol,spin1field);
+  photon_phi=nissa_malloc("photon_phi",loc_vol+bord_vol,spin1field);
   Q=nissa_malloc("Q*",nqprop,PROP_TYPE*);
   for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",loc_vol+bord_vol,PROP_TYPE);
   L=nissa_malloc("L*",nlprop,spinspin*);
@@ -176,7 +179,7 @@ void skip_conf()
     {
       coords coord;
       generate_random_coord(coord);
-      generate_stochastic_tlSym_gauge_propagator_source(photon_field);
+      generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
       generate_original_source();
     }
 }
@@ -372,8 +375,8 @@ void compute_hadroleptonic_correlations()
 	    
 	    //takes the propagators
 	    int PROP1_TYPE=PROP_0,PROP2_TYPE=PROP_0;
-	    if(qins==1) PROP1_TYPE=PROP_PHOTON;
-	    if(qins==2) PROP2_TYPE=PROP_PHOTON;
+	    if(qins==1) PROP1_TYPE=PROP_PHOTON_A;
+	    if(qins==2) PROP2_TYPE=PROP_PHOTON_A;
 	    
 	    //fix propagator indices
 	    int ip1=iqprop(iq1,PROP1_TYPE,r2);
@@ -478,6 +481,8 @@ void close()
   master_printf(" - %02.2f%s to perform %d leptonic contractions (%2.2gs avg)\n",lept_contr_time/tot_prog_time*100,"%",nlept_contr_tot,lept_contr_time/nlept_contr_tot);
   master_printf(" - %02.2f%s to print hadro-leptonic contractions\n",print_time/tot_prog_time*100,"%");
   
+  nissa_free(photon_eta);
+  nissa_free(photon_phi);
   nissa_free(photon_field);
   nissa_free(source);
   nissa_free(original_source);

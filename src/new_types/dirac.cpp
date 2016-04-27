@@ -68,7 +68,7 @@ namespace nissa
     int lmunu[6]={10,11,12,15,14,13};
     int cmunu[6]={1,1,1,1,-1,1};
     for(int imunu=0;imunu<6;imunu++)
-      for(int d1=0;d1<4;d1++)
+      for(int d1=0;d1<NDIRAC;d1++)
 	{
 	  smunu_entr[d1][imunu][0]=cmunu[imunu]*base_gamma[lmunu[imunu]].entr[d1][0];
 	  smunu_entr[d1][imunu][1]=cmunu[imunu]*base_gamma[lmunu[imunu]].entr[d1][1];
@@ -77,7 +77,7 @@ namespace nissa
 	}
     
     //1+gamma_mu, 1-gamma_mu
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIRAC;mu++)
       {
 	spinspin_put_to_id(opg[mu]);
 	spinspin_put_to_id(omg[mu]);

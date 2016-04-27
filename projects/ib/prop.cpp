@@ -23,8 +23,17 @@ namespace nissa
     PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
     PROP_P=add_qprop("PROP_P",'P',PSEUDO,PROP_0);
     PROP_T=add_qprop("PROP_T",'T',TADPOLE,PROP_0);
-    PROP_PHOTON=add_qprop("PROP_PHOTON",'L',PHOTON,PROP_0);
-    PROP_PHOTON2=add_qprop("PROP_PHOTON2",'M',PHOTON,PROP_PHOTON);
+    if(use_photon_field)
+      {
+	PROP_PHOTON_A=PROP_PHOTON_B=add_qprop("PROP_PHOTON",'L',PHOTON,PROP_0);
+	PROP_PHOTON_AB=add_qprop("PROP_PHOTON2",'M',PHOTON,PROP_PHOTON_A);
+      }
+    else
+      {
+	PROP_PHOTON_A=add_qprop("PROP_ETA",'A',PHOTON_ETA,PROP_0);
+	PROP_PHOTON_B=add_qprop("PROP_PHI",'B',PHOTON_PHI,PROP_0);
+	PROP_PHOTON_AB=add_qprop("PROP_PHOTON_PHI_ETA",'C',PHOTON_ETA,PROP_PHOTON_A);
+      }
   }
   
   int add_qprop(const char *tag,char shortname,insertion_t insertion,int isource)
@@ -62,7 +71,7 @@ namespace nissa
 #ifdef POINT_SOURCE_VERSION
     for(int ic=0;ic<NCOL;ic++)
 #endif
-      for(int id=0;id<4;id++)
+      for(int id=0;id<NDIRAC;id++)
 	{ 
 	  //read the source out
 #ifdef POINT_SOURCE_VERSION
@@ -148,6 +157,8 @@ namespace nissa
       case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
       case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
       case PHOTON:insert_external_source(source,photon_field,ori,t,r,loc_pion_curr);break;
+      case PHOTON_PHI:insert_external_source(source,photon_phi,ori,t,r,loc_pion_curr);break;
+      case PHOTON_ETA:insert_external_source(source,photon_eta,ori,t,r,loc_pion_curr);break;
       case TADPOLE:
 	if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
 	else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);
@@ -400,9 +411,11 @@ namespace nissa
   void generate_photon_stochastic_propagator()
   {
     photon_prop_time-=take_time();
-    generate_stochastic_tlSym_gauge_propagator_source(photon_field);
+    generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
     
-    multiply_by_sqrt_tlSym_gauge_propagator(photon_field,photon_field,photon);
+    multiply_by_sqrt_tlSym_gauge_propagator(photon_field,photon_eta,photon);
+    
+    multiply_by_sqrt_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
     
     photon_prop_time+=take_time();
     nphoton_prop_tot++;

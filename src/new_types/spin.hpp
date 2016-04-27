@@ -6,7 +6,6 @@
 
 #include "complex.hpp"
 #include "dirac.hpp"
-#include "spin.hpp"
 
 #include "routines/math_routines.hpp"
 
@@ -16,15 +15,15 @@
 
 namespace nissa
 {
-  typedef complex spin[4];
+  typedef complex spin[NDIRAC];
   typedef complex halfspin[2];
   
-  typedef spin spinspin[4];
+  typedef spin spinspin[NDIRAC];
   typedef complex as2t[NDIM*(NDIM+1)/2];
   
   //this is just for avoid misleading, but is nothing more that a spinspin
-  typedef complex spin1field[4];
-  typedef spin1field spin1prop[4];
+  typedef complex spin1field[NDIM];
+  typedef spin1field spin1prop[NDIM];
   
   EXTERN_SPIN as2t smunu_entr[4];   //these are the sigma matrices entries
   EXTERN_SPIN int smunu_pos[4][6];  //and positions
@@ -35,48 +34,48 @@ namespace nissa
   //Print a spin
   inline void spin_print(spin s)
   {
-    for(int id=0;id<4;id++) printf("%+016.16le,%+016.16le\t",s[id][0],s[id][1]);
+    for(int id=0;id<NDIRAC;id++) printf("%+016.16le,%+016.16le\t",s[id][0],s[id][1]);
     printf("\n");
   }
   
   inline void spin_put_to_zero(spin s)
-  {for(int i=0;i<4;i++) complex_put_to_zero(s[i]);}
+  {for(int i=0;i<NDIRAC;i++) complex_put_to_zero(s[i]);}
   
   inline void spin_copy(spin out,spin in)
-  {for(int i=0;i<4;i++) complex_copy(out[i],in[i]);}
+  {for(int i=0;i<NDIRAC;i++) complex_copy(out[i],in[i]);}
   inline void spin_conj(spin out,spin in)
-  {for(int i=0;i<4;i++) complex_conj(out[i],in[i]);}
+  {for(int i=0;i<NDIRAC;i++) complex_conj(out[i],in[i]);}
   
   inline void spin_summ(spin a,spin b,spin c)
-  {for(int i=0;i<4;i++) complex_summ(a[i],b[i],c[i]);}
+  {for(int i=0;i<NDIRAC;i++) complex_summ(a[i],b[i],c[i]);}
   inline void spin_summassign(spin a,spin b)
   {spin_summ(a,a,b);}
   inline void spin_subt(spin a,spin b,spin c)
-  {for(int i=0;i<4;i++) complex_subt(a[i],b[i],c[i]);}
+  {for(int i=0;i<NDIRAC;i++) complex_subt(a[i],b[i],c[i]);}
   inline void spin_subtassign(spin a,spin b)
   {spin_subt(a,a,b);}
   
   inline void spin_prod_double(spin a,spin b,double c)
-  {for(int i=0;i<4;i++) complex_prod_double(a[i],b[i],c);}
+  {for(int i=0;i<NDIRAC;i++) complex_prod_double(a[i],b[i],c);}
   inline void spin_prodassign_double(spin a,double b)
   {spin_prod_double(a,a,b);}
   
   inline void spin_summ_the_complex_prod(spin a,spin b,complex c)
-  {for(int i=0;i<4;i++) complex_summ_the_prod(a[i],b[i],c);}
+  {for(int i=0;i<NDIRAC;i++) complex_summ_the_prod(a[i],b[i],c);}
   inline void spin_subt_the_complex_prod(spin a,spin b,complex c)
-  {for(int i=0;i<4;i++) complex_subt_the_prod(a[i],b[i],c);}
+  {for(int i=0;i<NDIRAC;i++) complex_subt_the_prod(a[i],b[i],c);}
   
   inline void spin_summ_the_complex_conj2_prod(spin a,spin b,complex c)
-  {for(int i=0;i<4;i++) complex_summ_the_conj2_prod(a[i],b[i],c);}
+  {for(int i=0;i<NDIRAC;i++) complex_summ_the_conj2_prod(a[i],b[i],c);}
   inline void spin_subt_the_complex_conj2_prod(spin a,spin b,complex c)
-  {for(int i=0;i<4;i++) complex_subt_the_conj2_prod(a[i],b[i],c);}
+  {for(int i=0;i<NDIRAC;i++) complex_subt_the_conj2_prod(a[i],b[i],c);}
   
-  inline void spinspin_copy(spinspin b,spinspin a) {for(int i=0;i<4;i++) spin_copy(b[i],a[i]);}
+  inline void spinspin_copy(spinspin b,spinspin a) {for(int i=0;i<NDIRAC;i++) spin_copy(b[i],a[i]);}
   
   inline void unsafe_spinspin_hermitian(spinspin b,spinspin a)
   {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
 	complex_conj(b[id1][id2],a[id2][id1]);
   }
   inline void safe_spinspin_hermitian(spinspin b,spinspin a)
@@ -87,12 +86,12 @@ namespace nissa
   }
   
   inline void spinspin_put_to_zero(spinspin a)
-  {for(int i=0;i<4;i++) spin_put_to_zero(a[i]);}
+  {for(int i=0;i<NDIRAC;i++) spin_put_to_zero(a[i]);}
   
   inline void spinspin_put_to_diag(spinspin a,complex b)
   {
     spinspin_put_to_zero(a);
-    for(int id=0;id<4;id++)
+    for(int id=0;id<NDIRAC;id++)
       complex_copy(a[id][id],b);
   }
   inline void spinspin_put_to_diag(spinspin a,double b)
@@ -102,8 +101,8 @@ namespace nissa
 
   inline void spin_direct_prod(spinspin out,spin a,spin b)
   {
-    for(int id=0;id<4;id++)
-      for(int jd=0;jd<4;jd++)
+    for(int id=0;id<NDIRAC;id++)
+      for(int jd=0;jd<NDIRAC;jd++)
 	unsafe_complex_prod(out[id][jd],a[id],b[jd]);
   }
   
@@ -114,38 +113,38 @@ namespace nissa
   }
   
   inline void spinspin_summ(spinspin a,spinspin b,spinspin c)
-  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ(a[id1][id2],b[id1][id2],c[id1][id2]);}
+  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ(a[id1][id2],b[id1][id2],c[id1][id2]);}
   inline void spinspin_subt(spinspin a,spinspin b,spinspin c)
-  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_subt(a[id1][id2],b[id1][id2],c[id1][id2]);}
+  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_subt(a[id1][id2],b[id1][id2],c[id1][id2]);}
   inline void spinspin_summassign(spinspin a,spinspin b)
   {spinspin_summ(a,a,b);}
   inline void spinspin_subtassign(spinspin a,spinspin b)
   {spinspin_subt(a,a,b);}
   
   inline void spinspin_prod_double(spinspin a,spinspin b,double c)
-  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_prod_double(a[id1][id2],b[id1][id2],c);}
+  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_prod_double(a[id1][id2],b[id1][id2],c);}
   inline void spinspin_prodassign_double(spinspin a,double b)
   {spinspin_prod_double(a,a,b);}
   inline void spinspin_summ_the_prod_double(spinspin a,spinspin b,double c)
-  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ_the_prod_double(a[id1][id2],b[id1][id2],c);}
+  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ_the_prod_double(a[id1][id2],b[id1][id2],c);}
   inline void spinspin_prod_idouble(spinspin a,spinspin b,double c)
-  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_prod_idouble(a[id1][id2],b[id1][id2],c);}
+  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_prod_idouble(a[id1][id2],b[id1][id2],c);}
   inline void spinspin_prodassign_idouble(spinspin a,double b)
   {spinspin_prod_idouble(a,a,b);}
   inline void spinspin_summ_the_prod_idouble(spinspin a,spinspin b,double c)
-  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ_the_prod_idouble(a[id1][id2],b[id1][id2],c);}
+  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ_the_prod_idouble(a[id1][id2],b[id1][id2],c);}
   
   inline void spinspin_summ_the_complex_prod(spinspin a,spinspin b,complex c)
-  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ_the_prod(a[id1][id2],b[id1][id2],c);}
+  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ_the_prod(a[id1][id2],b[id1][id2],c);}
   inline void spinspin_subt_the_complex_prod(spinspin a,spinspin b,complex c)
-  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_subt_the_prod(a[id1][id2],b[id1][id2],c);}
+  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_subt_the_prod(a[id1][id2],b[id1][id2],c);}
   inline void spinspin_summassign_the_complex_prod(spinspin a,complex b){spinspin_summ_the_complex_prod(a,a,b);}
   inline void spinspin_subtassign_the_complex_prod(spinspin a,complex b){spinspin_subt_the_complex_prod(a,a,b);}
   
   inline void spinspin_summ_the_complex_conj2_prod(spinspin a,spinspin b,complex c)
-  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ_the_conj2_prod(a[id1][id2],b[id1][id2],c);}
+  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ_the_conj2_prod(a[id1][id2],b[id1][id2],c);}
   inline void spinspin_subt_the_complex_conj2_prod(spinspin a,spinspin b,complex c)
-  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_subt_the_conj2_prod(a[id1][id2],b[id1][id2],c);}
+  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_subt_the_conj2_prod(a[id1][id2],b[id1][id2],c);}
   
   inline void unsafe_spinspin_prod_complex(spinspin a,spinspin b,complex c)
   {
@@ -182,9 +181,9 @@ namespace nissa
   //Print a spinspin
   inline void spinspin_print(spinspin s)
   {
-    for(int id1=0;id1<4;id1++)
+    for(int id1=0;id1<NDIRAC;id1++)
       {
-	for(int id2=0;id2<4;id2++) printf("%+016.16le,%+016.16le\t",s[id1][id2][0],s[id1][id2][1]);
+	for(int id2=0;id2<NDIRAC;id2++) printf("%+016.16le,%+016.16le\t",s[id1][id2][0],s[id1][id2][1]);
 	printf("\n");
       }
   }
@@ -192,7 +191,7 @@ namespace nissa
   //trace of the product with a dirac matr of a spinspin
   inline void summ_the_trace_dirac_prod_spinspin(complex c,dirac_matr *a,spinspin b)
   {
-    for(int id=0;id<4;id++)
+    for(int id=0;id<NDIRAC;id++)
       complex_summ_the_prod(c,a->entr[id],b[a->pos[id]][id]);
   }
   inline void trace_dirac_prod_spinspin(complex c,dirac_matr *a,spinspin b)
@@ -202,7 +201,7 @@ namespace nissa
   }
   
   inline void summ_the_trace_spinspin(complex c,spinspin a)
-  {for(int id=0;id<4;id++) complex_summassign(c,a[id][id]);}
+  {for(int id=0;id<NDIRAC;id++) complex_summassign(c,a[id][id]);}
   inline void trace_spinspin(complex c,spinspin a)
   {
     c[0]=c[1]=0;
@@ -212,9 +211,9 @@ namespace nissa
   //product of two spinspins
   inline void spinspin_summ_the_spinspin_dag_prod(spinspin out,spinspin a,spinspin b)
   {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
-	for(int id=0;id<4;id++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
+	for(int id=0;id<NDIRAC;id++)
 	  complex_summ_the_conj2_prod(out[id1][id2],a[id1][id],b[id2][id]);
   }
   inline void unsafe_spinspin_prod_spinspin_dag(spinspin out,spinspin a,spinspin b)
@@ -230,16 +229,16 @@ namespace nissa
   }
   inline void spinspin_summ_the_spinspin_prod(spinspin out,spinspin a,spinspin b)
   {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
-	for(int id=0;id<4;id++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
+	for(int id=0;id<NDIRAC;id++)
 	  complex_summ_the_prod(out[id1][id2],a[id1][id],b[id][id2]);
   }
   inline void spinspin_subt_the_spinspin_prod(spinspin out,spinspin a,spinspin b)
   {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
-	for(int id=0;id<4;id++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
+	for(int id=0;id<NDIRAC;id++)
 	  complex_subt_the_prod(out[id1][id2],a[id1][id],b[id][id2]);
   }
   inline void unsafe_spinspin_prod_spinspin(spinspin out,spinspin a,spinspin b)
@@ -258,8 +257,8 @@ namespace nissa
   {
     double t=0;
     
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
 	t+=a[id1][id2][0]*b[id1][id2][0]+a[id1][id2][1]*b[id1][id2][1];
     
     return t;
@@ -271,8 +270,8 @@ namespace nissa
   inline void trace_spinspin_prod_spinspin(complex c,spinspin a,spinspin b)
   {
     complex_put_to_zero(c);
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
 	complex_summ_the_prod(c,a[id1][id2],b[id2][id1]);
   }
   
@@ -280,22 +279,22 @@ namespace nissa
   inline void spinspin_dirac_summ_the_prod_double(spinspin out,dirac_matr *in,double r)
   {
     //This is the line on the matrix
-    for(int ig=0;ig<4;ig++)
+    for(int ig=0;ig<NDIRAC;ig++)
       complex_summ_the_prod_double(out[ig][in->pos[ig]],in->entr[ig],r);
   }
   inline void spinspin_dirac_summ_the_prod_idouble(spinspin out,dirac_matr *in,double r)
   {
-    for(int ig=0;ig<4;ig++)
+    for(int ig=0;ig<NDIRAC;ig++)
       complex_summ_the_prod_idouble(out[ig][in->pos[ig]],in->entr[ig],r);
   }
   inline void spinspin_dirac_summ_the_prod_complex(spinspin out,dirac_matr *in,complex c)
   {
-    for(int ig=0;ig<4;ig++)
+    for(int ig=0;ig<NDIRAC;ig++)
       complex_summ_the_prod(out[ig][in->pos[ig]],in->entr[ig],c);
   }
   inline void spinspin_dirac_subt_the_prod_complex(spinspin out,dirac_matr *in,complex c)
   {
-    for(int ig=0;ig<4;ig++)
+    for(int ig=0;ig<NDIRAC;ig++)
       complex_subt_the_prod(out[ig][in->pos[ig]],in->entr[ig],c);
   }
   
@@ -309,8 +308,8 @@ namespace nissa
   //out=m*in
   inline void unsafe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
   {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
 	unsafe_complex_prod(out[id1][id2],m->entr[id1],in[m->pos[id1]][id2]);
   }
   inline void safe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
@@ -327,8 +326,8 @@ namespace nissa
   //out=m*in^t
   inline void unsafe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)
   {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
 	unsafe_complex_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
   }
   inline void safe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)
@@ -337,8 +336,8 @@ namespace nissa
   //out=m*in^+
   inline void unsafe_dirac_prod_spinspin_dag(spinspin out,dirac_matr *m,spinspin in)
   {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
 	unsafe_complex_conj2_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
   }
   inline void safe_dirac_prod_spinspin_dag(spinspin out,dirac_matr *m,spinspin in)
@@ -348,8 +347,8 @@ namespace nissa
   inline void unsafe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m)
   {
     spinspin_put_to_zero(out);
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
 	unsafe_complex_prod(out[id1][m->pos[id2]],in[id1][id2],m->entr[id2]);
   }
   inline void safe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m)
@@ -359,8 +358,8 @@ namespace nissa
   inline void unsafe_spinspin_prod_spin(spin out,spinspin a,spin b)
   {
     memset(out,0,sizeof(spin));
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
 	complex_summ_the_prod(out[id1],a[id1][id2],b[id2]);
   }
   inline void safe_spinspin_prod_spin(spin out,spinspin a,spin b)
@@ -374,8 +373,8 @@ namespace nissa
   inline void unsafe_spin_prod_spinspin(spin out,spin a,spinspin b)
   {
     memset(out,0,sizeof(spin));
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
 	complex_summ_the_prod(out[id1],a[id2],b[id2][id1]);
   }
   inline void safe_spin_prod_spinspin(spin out,spin a,spinspin b)
@@ -388,8 +387,8 @@ namespace nissa
   //Trace of the product of two spinspins
   inline void summ_the_trace_prod_spinspins(complex c,spinspin a,spinspin b)
   {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
 	complex_summ_the_prod(c,a[id1][id2],b[id2][id1]);
   }
   inline void trace_prod_spinspins(complex c,spinspin a,spinspin b)
@@ -400,16 +399,16 @@ namespace nissa
   inline void trace_spinspin_with_dirac(complex out,spinspin s,dirac_matr *m)
   {
     complex_put_to_zero(out);
-    for(int id1=0;id1<4;id1++)
+    for(int id1=0;id1<NDIRAC;id1++)
       complex_summ_the_prod(out,m->entr[id1],s[m->pos[id1]][id1]);
   }  
   
   //dirac*spin
   inline void unsafe_dirac_prod_spin(spin out,dirac_matr *m,spin in)
-  {for(int id1=0;id1<4;id1++) unsafe_complex_prod(out[id1],m->entr[id1],in[m->pos[id1]]);}
+  {for(int id1=0;id1<NDIRAC;id1++) unsafe_complex_prod(out[id1],m->entr[id1],in[m->pos[id1]]);}
   inline void safe_dirac_prod_spin(spin out,dirac_matr *m,spin in){spin tmp;unsafe_dirac_prod_spin(tmp,m,in);spin_copy(out,tmp);}
   inline void unsafe_spin_prod_dirac(spin out,spin in,dirac_matr *m)
-  {spin_put_to_zero(out);for(int id1=0;id1<4;id1++) complex_summ_the_prod(out[m->pos[id1]],in[id1],m->entr[id1]);}
+  {spin_put_to_zero(out);for(int id1=0;id1<NDIRAC;id1++) complex_summ_the_prod(out[m->pos[id1]],in[id1],m->entr[id1]);}
   inline void safe_spin_prod_spin(spin out,spin in,dirac_matr *m){spin tmp;unsafe_spin_prod_dirac(tmp,in,m);spin_copy(out,tmp);}
   
   //Rotate left and right by (1+-ig5)/sqrt(2)

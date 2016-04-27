@@ -12,13 +12,15 @@
  #define ONLY_INSTANTIATION
 #endif
 
+#define NDIRAC 4
+
 namespace nissa
 {
   //The structure for gamma matrix
   struct dirac_matr
   {
-    int pos[4];
-    complex entr[4];
+    int pos[NDIRAC];
+    complex entr[NDIRAC];
   };
   
   //The base of the 16 gamma matrixes, the two rotators and Ci=G0*Gi*G5
@@ -58,7 +60,7 @@ namespace nissa
   //them, otherwise it crashes
   inline void dirac_summ(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
   {
-    for(int ig=0;ig<4;ig++)
+    for(int ig=0;ig<NDIRAC;ig++)
       if(in1->pos[ig]==in2->pos[ig])
 	{
 	  out->pos[ig]=in1->pos[ig];
@@ -69,7 +71,7 @@ namespace nissa
   }
   inline void dirac_subt(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
   {
-    for(int ig=0;ig<4;ig++)
+    for(int ig=0;ig<NDIRAC;ig++)
       if(in1->pos[ig]==in2->pos[ig])
 	{
 	  out->pos[ig]=in1->pos[ig];
@@ -85,7 +87,7 @@ namespace nissa
     dirac_matr temp; //this is needed to avoid to overwrite one of the input
     
     //This is the line on the first matrix
-    for(int ig1=0;ig1<4;ig1++)
+    for(int ig1=0;ig1<NDIRAC;ig1++)
       {
 	//This is the line to be taken on the second matrix
 	int ig2=in1->pos[ig1];
@@ -104,13 +106,13 @@ namespace nissa
 	unsafe_complex_prod(temp.entr[ig1],in1->entr[ig1],in2->entr[ig2]);
       }
     
-    memcpy(out->pos,temp.pos,sizeof(int)*4);
-    memcpy(out->entr,temp.entr,sizeof(complex)*4);
+    memcpy(out->pos,temp.pos,sizeof(int)*NDIRAC);
+    memcpy(out->entr,temp.entr,sizeof(complex)*NDIRAC);
   }
   
   inline void dirac_prod_double(dirac_matr *out,dirac_matr *in1,double in2)
   {
-    for(int id=0;id<4;id++)
+    for(int id=0;id<NDIRAC;id++)
       {
 	out->pos[id]=in1->pos[id];
 	complex_prod_double(out->entr[id],in1->entr[id],in2);
@@ -119,7 +121,7 @@ namespace nissa
   
   inline void dirac_prod_idouble(dirac_matr *out,dirac_matr *in1,double in2)
   {
-    for(int id=0;id<4;id++)
+    for(int id=0;id<NDIRAC;id++)
       {
 	out->pos[id]=in1->pos[id];
 	complex_prod_idouble(out->entr[id],in1->entr[id],in2);
@@ -128,7 +130,7 @@ namespace nissa
   
   inline void unsafe_dirac_prod_complex(dirac_matr *out,dirac_matr *in1,complex in2)
   {
-    for(int id=0;id<4;id++)
+    for(int id=0;id<NDIRAC;id++)
       {
 	out->pos[id]=in1->pos[id];
 	unsafe_complex_prod(out->entr[id],in1->entr[id],in2);
@@ -137,7 +139,7 @@ namespace nissa
   
   inline void safe_dirac_prod_complex(dirac_matr *out,dirac_matr *in1,complex in2)
   {
-    for(int id=0;id<4;id++)
+    for(int id=0;id<NDIRAC;id++)
       {
 	out->pos[id]=in1->pos[id];
 	safe_complex_prod(out->entr[id],in1->entr[id],in2);
@@ -147,9 +149,9 @@ namespace nissa
   //take the hermitian
   inline void dirac_herm(dirac_matr *out,dirac_matr *in)
   {
-    for(int id=0;id<4;id++)
+    for(int id=0;id<NDIRAC;id++)
       {
-	for(int jd=id+1;jd<4;jd++)
+	for(int jd=id+1;jd<NDIRAC;jd++)
 	  if(in->pos[id]==in->pos[jd])
 	    crash("pos[%d]=%d==pos[%d]",id,in->pos[id],jd);
 	int od=in->pos[id];
@@ -163,7 +165,7 @@ namespace nissa
   inline void safe_dirac_compl_prod(dirac_matr *out,dirac_matr *in,complex c)
   {
     //This is the line on the matrix
-    for(int ig=0;ig<4;ig++)
+    for(int ig=0;ig<NDIRAC;ig++)
       {
 	out->pos[ig]=in->pos[ig];
 	
@@ -176,7 +178,7 @@ namespace nissa
   inline void unsafe_dirac_compl_prod(dirac_matr *out,dirac_matr *in,complex c)
   {
     //This is the line on the matrix
-    for(int ig=0;ig<4;ig++)
+    for(int ig=0;ig<NDIRAC;ig++)
       {
 	out->pos[ig]=in->pos[ig];
 	
@@ -187,12 +189,12 @@ namespace nissa
   //Print the dirac marix passed as argument only on node 0
   inline void print_dirac(dirac_matr *in)
   {
-    for(int ir=0;ir<4;ir++)
+    for(int ir=0;ir<NDIRAC;ir++)
       {
 	int pos=in->pos[ir];
 	for(int ic=0;ic<pos;ic++) printf("+%02.2f,+%02.2f\t",0.,0.);
 	printf("%+02.2f,%+02.2f\t",in->entr[ir][0],in->entr[ir][1]);
-	for(int ic=pos+1;ic<4;ic++) printf("+%02.2f,+%02.2f\t",0.,0.);
+	for(int ic=pos+1;ic<NDIRAC;ic++) printf("+%02.2f,+%02.2f\t",0.,0.);
 	printf("\n");
       }
   }

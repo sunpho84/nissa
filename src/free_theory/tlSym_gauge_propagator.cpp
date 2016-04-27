@@ -271,7 +271,7 @@ namespace nissa
     double tad_time=-take_time();
     spin1prop *gprop=nissa_malloc("gprop",loc_vol,spin1prop);
     compute_x_space_tlSym_gauge_propagator_by_fft(gprop,photon);
-    for(int mu=0;mu<4;mu++) tadpole[mu]=broadcast(gprop[0][mu][mu][RE]);
+    for(int mu=0;mu<NDIM;mu++) tadpole[mu]=broadcast(gprop[0][mu][mu][RE]);
     nissa_free(gprop);
     tad_time+=take_time();
     master_printf("Tadpole: (%lg,%lg,%lg,%lg), time to compute: %lg s\n",tadpole[0],tadpole[1],tadpole[2],tadpole[3],tad_time);

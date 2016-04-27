@@ -31,7 +31,7 @@ namespace nissa
     qprop_t(const char *tag,char shortname,insertion_t insertion,int isource) : name(tag),shortname(shortname),insertion(insertion),isource(isource) {}
   };
   
-  EXTERN_PROP int PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON,PROP_PHOTON2;
+  EXTERN_PROP int PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON_A,PROP_PHOTON_B,PROP_PHOTON_AB;
   
   EXTERN_PROP int ninv_tot INIT_TO_ZERO;
   EXTERN_PROP double inv_time INIT_TO_ZERO;
@@ -47,7 +47,10 @@ namespace nissa
   EXTERN_PROP int nsource_tot INIT_TO_ZERO,nphoton_prop_tot INIT_TO_ZERO;
   EXTERN_PROP double source_time INIT_TO_ZERO,photon_prop_time INIT_TO_ZERO,lepton_prop_time INIT_TO_ZERO;
   
+  EXTERN_PROP int use_photon_field;
   EXTERN_PROP spin1field *photon_field;
+  EXTERN_PROP spin1field *photon_phi;
+  EXTERN_PROP spin1field *photon_eta;
   EXTERN_PROP spinspin *temp_lep;
   
   int nqprop_kind();

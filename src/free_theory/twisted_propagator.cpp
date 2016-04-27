@@ -88,7 +88,7 @@ namespace nissa
     
     //fill the pieces
     spinspin_put_to_diag(out,c0[base]);
-    for(int mu=0;mu<4;mu++) spinspin_dirac_summ_the_prod_idouble(out,base_gamma+map_mu[mu],sin_mom[mu]);
+    for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(out,base_gamma+map_mu[mu],sin_mom[mu]);
     spinspin_dirac_summ_the_prod_idouble(out,&base_gamma[5],c5[base]);
   }
   
@@ -119,7 +119,7 @@ namespace nissa
 	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[5],c5[base]*rep_den);
       }
     else
-      for(int ig=0;ig<4;ig++)
+      for(int ig=0;ig<NDIRAC;ig++)
 	complex_prod_double(prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],qu.zmp);
   }
   
@@ -136,7 +136,7 @@ namespace nissa
     double sin2_momh=-sqr(sinh(e/2));
     coords c;
     glb_coord_of_glblx(c,imom);
-    for(int mu=1;mu<4;mu++)
+    for(int mu=1;mu<NDIM;mu++)
       {
 	double p=M_PI*(2*c[mu]+qu.bc[mu])/glb_size[mu];
 	sin_mom[mu]=sin(p);
@@ -167,7 +167,7 @@ namespace nissa
     spinspin_dirac_prod_double(proj,base_gamma+map_mu[0],-sinh(e));
     coords c;
     glb_coord_of_glblx(c,imom);
-    for(int mu=1;mu<4;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+map_mu[mu],sin(M_PI*(2*c[mu]+bc[mu])/glb_size[mu]));
+    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+map_mu[mu],sin(M_PI*(2*c[mu]+bc[mu])/glb_size[mu]));
     
     return abse;
   }
@@ -301,7 +301,7 @@ namespace nissa
     spin *tprop=nissa_malloc("tprop",loc_vol,spin);
     
     //loop over the source index
-    for(int id_so=0;id_so<4;id_so++)
+    for(int id_so=0;id_so<NDIRAC;id_so++)
       {
 	get_spin_from_spinspin(tsource,ext_source,id_so);
 	multiply_from_left_by_x_space_twisted_propagator_by_inv(tprop,tsource,qu,base);
