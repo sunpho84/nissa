@@ -122,7 +122,6 @@ void init_simulation(char *path)
   open_input(path);
   read_input_preamble();
   read_use_photon_field();
-  read_use_photon_field();
   read_loc_hadr_curr();
   read_ape_smearing_pars();
   read_gaussian_smearing_pars();
