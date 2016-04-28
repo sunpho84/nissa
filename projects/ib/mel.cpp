@@ -66,7 +66,6 @@ void init_simulation(char *path)
   //open input file
   open_input(path);
   
-  use_photon_field=1;
   read_input_preamble();
   
   //Leptons
@@ -132,12 +131,13 @@ void init_simulation(char *path)
     }
   
   read_photon_pars();
+  read_use_photon_field();
   read_seed_start_random();
   read_noise_type();
   read_free_theory_flag();
   read_gospel_convention();
   read_random_gauge_transform();
-  read_loc_pion_curr();
+  read_loc_hadr_curr();
   read_loc_muon_curr();
   read_nsources();
   read_ngauge_conf();

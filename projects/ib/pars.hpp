@@ -7,6 +7,9 @@
 
 #ifndef EXTERN_PARS
  #define EXTERN_PARS extern
+ #define INIT_TO(VAL)
+#else
+ #define INIT_TO(VAL) =VAL
 #endif
 
 namespace nissa
@@ -54,12 +57,12 @@ namespace nissa
   }
   
   //flag to simulate in the free theory
-  EXTERN_PARS int free_theory;
+  EXTERN_PARS int free_theory INIT_TO(false);
   inline void read_free_theory_flag()
   {read_str_int("FreeTheory",&free_theory);}
   
   //flag to make the muon with or without the external line
-  EXTERN_PARS int follow_chris_or_nazario;
+  EXTERN_PARS int follow_chris_or_nazario INIT_TO(follow_nazario);
   inline void read_gospel_convention()
   {read_str_int("FollowChrisOrNazario",&follow_chris_or_nazario);}
   
@@ -68,16 +71,21 @@ namespace nissa
   inline void read_noise_type()
   {read_str_int("NoiseType",&noise_type);}
   
+  //smart photon insertion
+  EXTERN_PARS int use_photon_field INIT_TO(true);
+  inline void read_use_photon_field()
+  {read_str_int("UsePhotonField",&use_photon_field);}
+  
   //perform a random gauge transformation
-  EXTERN_PARS int rnd_gauge_transform;
+  EXTERN_PARS int rnd_gauge_transform INIT_TO(0);
   inline void read_random_gauge_transform()
   {read_str_int("RandomGaugeTransform",&rnd_gauge_transform);}
   
   //local pion or muon current?
-  EXTERN_PARS int loc_pion_curr;
-  inline void read_loc_pion_curr()
-  {read_str_int("LocPionCurr",&loc_pion_curr);}
-  EXTERN_PARS int loc_muon_curr;
+  EXTERN_PARS int loc_hadr_curr INIT_TO(false);
+  inline void read_loc_hadr_curr()
+  {read_str_int("LocHadrCurr",&loc_hadr_curr);}
+  EXTERN_PARS int loc_muon_curr INIT_TO(false);
   inline void read_loc_muon_curr()
   {read_str_int("LocMuonCurr",&loc_muon_curr);}
   
@@ -86,7 +94,7 @@ namespace nissa
   {read_str_int("NGaugeConf",&ngauge_conf);}
   
   //number of sources
-  EXTERN_PARS int nsources;
+  EXTERN_PARS int nsources INIT_TO(1);
   inline void read_nsources()
   {read_str_int("NSources",&nsources);}
   
@@ -98,7 +106,7 @@ namespace nissa
     read_str_double("ApeSmearingAlpha",&ape_smearing_alpha);
     read_str_int("ApeSmearingNiters",&ape_smearing_niters);
   }
-
+  
   //gaussian smearing pars
   EXTERN_PARS int gaussian_smearing_niters;
   EXTERN_PARS double gaussian_smearing_kappa;

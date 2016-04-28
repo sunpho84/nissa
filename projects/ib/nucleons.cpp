@@ -112,8 +112,6 @@ void set_combinations()
 //init everything
 void init_simulation(char *path)
 {
-  use_photon_field=false;
-  
   //set how to compute propagators, how to make barions and how to
   //combine the different kind of propagators
   set_inversions();
@@ -123,6 +121,9 @@ void init_simulation(char *path)
   //open input file and read it
   open_input(path);
   read_input_preamble();
+  read_use_photon_field();
+  read_use_photon_field();
+  read_loc_hadr_curr();
   read_ape_smearing_pars();
   read_gaussian_smearing_pars();
   read_photon_pars();

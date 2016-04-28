@@ -29,11 +29,12 @@ void init_simulation(const char *path)
   
   read_input_preamble();
   read_photon_pars();
+  read_use_photon_field();
   read_seed_start_random();
   read_noise_type();
   read_free_theory_flag();
   read_random_gauge_transform();
-  read_loc_pion_curr();
+  read_loc_hadr_curr();
   read_nsources();
   read_ngauge_conf();
   

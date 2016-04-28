@@ -47,7 +47,6 @@ namespace nissa
   EXTERN_PROP int nsource_tot INIT_TO_ZERO,nphoton_prop_tot INIT_TO_ZERO;
   EXTERN_PROP double source_time INIT_TO_ZERO,photon_prop_time INIT_TO_ZERO,lepton_prop_time INIT_TO_ZERO;
   
-  EXTERN_PROP int use_photon_field;
   EXTERN_PROP spin1field *photon_field;
   EXTERN_PROP spin1field *photon_phi;
   EXTERN_PROP spin1field *photon_eta;

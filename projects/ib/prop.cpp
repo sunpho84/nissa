@@ -156,9 +156,9 @@ namespace nissa
       case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
       case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
       case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
-      case PHOTON:insert_external_source(source,photon_field,ori,t,r,loc_pion_curr);break;
-      case PHOTON_PHI:insert_external_source(source,photon_phi,ori,t,r,loc_pion_curr);break;
-      case PHOTON_ETA:insert_external_source(source,photon_eta,ori,t,r,loc_pion_curr);break;
+      case PHOTON:insert_external_source(source,photon_field,ori,t,r,loc_hadr_curr);break;
+      case PHOTON_PHI:insert_external_source(source,photon_phi,ori,t,r,loc_hadr_curr);break;
+      case PHOTON_ETA:insert_external_source(source,photon_eta,ori,t,r,loc_hadr_curr);break;
       case TADPOLE:
 	if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
 	else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);
