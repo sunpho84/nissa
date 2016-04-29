@@ -1,28 +1,28 @@
 #include <nissa.hpp>
 
 #include "conf.hpp"
+#include "contr.hpp"
 #include "pars.hpp"
 #include "prop.hpp"
 
 /* the loop is normalised such that the physical rate at leading order
    is obtained multiplying the loop by Gf^2 fpi^2 * phi2 (space phase
    factor) which is (1-rl^2)/(16 pi mpi) where rl=ml/mpi, whereas the
-   interference is obtained by the full hadrolepton correlation
+   interference is obtained by the full hadrolepton contrelation
    multiplied by 4*mpi*fpi*Gf^2*phi2 */
 
 using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
 
-int nhadr_contr_tot=0,nlept_contr_tot=0;
-double hadr_contr_time=0,lept_contr_time=0,print_time=0;
+double contr_print_time=0;
 
-int hadr_corr_length;
-complex *hadr_corr;
+int mes_contr_length;
+complex *mes_contr;
 const int nhadr_contr=16+1+3+12;
 const int ig_hadr_so[nhadr_contr]={ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5  ,  4  , 1,2,3, 1, 2, 3, 10,11,12, 10,11,12,13,14,15};
 const int ig_hadr_si[nhadr_contr]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15  ,  4  , 1,2,3, 10,11,12,1, 2, 3,  10,11,12,13,14,15};
-complex *glb_corr,*loc_corr;
+complex *glb_contr,*loc_contr;
 
 //list the 8 matrices to insert for the weak current
 const int nweak_ins=17;
@@ -36,30 +36,13 @@ const char list_weak_ind_nameq[nweak_ind][3]={"VK","V0","AK","A0","VK","V0","AK"
 const char list_weak_ind_namel[nweak_ind][3]={"VK","V0","AK","A0","AK","A0","VK","V0","V0"};
 int nind;
 spinspin *hadrolept_hadr_part;
-complex *hadrolept_corr;
-
-//hadron contractions
-std::vector<std::pair<int,int> > prop_hadr_corr_map;
+complex *hadrolept_contr;
 
 //parameters of the leptons
-int *lep_corr_iq1;
-int *lep_corr_iq2;
+int *lep_contr_iq1;
+int *lep_contr_iq2;
 
 ///////////////////////////////// initialise the library, read input file, allocate /////////////////////////////////////
-
-//set all the contractions
-void set_contractions()
-{
-  //add the contraction combination
-  prop_hadr_corr_map.clear();
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_0));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_S));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_P));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_T));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_PHOTON_AB));
-  prop_hadr_corr_map.push_back(std::make_pair(PROP_PHOTON_A,PROP_PHOTON_B));
-  //prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_VECTOR));
-}
 
 void init_simulation(char *path)
 {
@@ -69,9 +52,9 @@ void init_simulation(char *path)
   read_input_preamble();
   
   //Leptons
-  read_str_int("LeptonicCorrs",&nleptons);
-  lep_corr_iq1=nissa_malloc("lep_corr_iq1",nleptons,int);
-  lep_corr_iq2=nissa_malloc("lep_corr_iq2",nleptons,int);
+  read_str_int("LeptonicContr",&nleptons);
+  lep_contr_iq1=nissa_malloc("lep_contr_iq1",nleptons,int);
+  lep_contr_iq2=nissa_malloc("lep_contr_iq2",nleptons,int);
   leps=nissa_malloc("leps",nleptons,tm_quark_info);
   lep_energy=nissa_malloc("lep_energy",nleptons,double);
   neu_energy=nissa_malloc("neu_energy",nleptons,double);
@@ -80,8 +63,8 @@ void init_simulation(char *path)
   for(int il=0;il<nleptons;il++)
     {
       //read quarks identfiying the mesons
-      read_int(lep_corr_iq1+il);
-      read_int(lep_corr_iq2+il);
+      read_int(lep_contr_iq1+il);
+      read_int(lep_contr_iq2+il);
       
       //if not pure wilson read mass
       if(pure_wilson) leps[il].mass=0;
@@ -143,7 +126,7 @@ void init_simulation(char *path)
   read_ngauge_conf();
   
   set_inversions();
-  set_contractions();
+  set_mes_contract_list();
   
   ///////////////////// finihed reading apart from conf list ///////////////
   
@@ -152,13 +135,13 @@ void init_simulation(char *path)
   nlprop=ilprop(nleptons-1,nlins-1,norie-1,nr-1)+1;
   
   //allocate temporary vectors
-  hadr_corr_length=glb_size[0]*nhadr_contr*prop_hadr_corr_map.size()*nqmass*nqmass*nr;
-  hadr_corr=nissa_malloc("hadr_corr",hadr_corr_length,complex);
-  glb_corr=nissa_malloc("glb_corr",glb_size[0]*nhadr_contr,complex);
-  loc_corr=nissa_malloc("loc_corr",glb_size[0]*nhadr_contr,complex);
+  mes_contr_length=glb_size[0]*nhadr_contr*prop_mes_contr_map.size()*nqmass*nqmass*nr;
+  mes_contr=nissa_malloc("mes_contr",mes_contr_length,complex);
+  glb_contr=nissa_malloc("glb_contr",glb_size[0]*nhadr_contr,complex);
+  loc_contr=nissa_malloc("loc_contr",glb_size[0]*nhadr_contr,complex);
   nind=nleptons*nweak_ind*norie*nr*nins;
   hadrolept_hadr_part=nissa_malloc("hadr",loc_vol,spinspin);
-  hadrolept_corr=nissa_malloc("hadrolept_corr",glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
+  hadrolept_contr=nissa_malloc("hadrolept_contr",glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
   original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
   source=nissa_malloc("source",loc_vol,PROP_TYPE);
   photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
@@ -189,47 +172,47 @@ void start_new_conf()
 {
   setup_conf(conf,old_theta,put_theta,conf_path,rnd_gauge_transform,free_theory);
   
-  //reset correlations
-  vector_reset(hadr_corr);
-  vector_reset(hadrolept_corr);
+  //reset contractions
+  vector_reset(mes_contr);
+  vector_reset(hadrolept_contr);
 }
 
-////////////////////////////////////////// purely hadronic correlators ///////////////////////////////////////////
+////////////////////////////////////////// purely hadronic contractions ///////////////////////////////////////////
 
-//compute all the hadronic correlations
-void compute_hadronic_correlations()
+//compute all the hadronic contractions
+void compute_hadronic_contractions()
 {
-  master_printf("Computing hadronic correlation functions\n");
+  master_printf("Computing hadronic contraction functions\n");
   
-  hadr_contr_time-=take_time();
-  for(size_t icombo=0;icombo<prop_hadr_corr_map.size();icombo++)
+  mes_contract_time-=take_time();
+  for(size_t icombo=0;icombo<prop_mes_contr_map.size();icombo++)
     for(int imass=0;imass<nqmass;imass++)
       for(int jmass=0;jmass<nqmass;jmass++)
 	for(int r=0;r<nr;r++)
 	  {
-	    //compute the correlation function
-	    int ip1=iqprop(imass,prop_hadr_corr_map[icombo].first,r);
-	    int ip2=iqprop(jmass,prop_hadr_corr_map[icombo].second,r);
+	    //compute the contraction function
+	    int ip1=iqprop(imass,prop_mes_contr_map[icombo].a,r);
+	    int ip2=iqprop(jmass,prop_mes_contr_map[icombo].b,r);
 	    
-	    meson_two_points_Wilson_prop(glb_corr,loc_corr,ig_hadr_so,Q[ip1],ig_hadr_si,Q[ip2],nhadr_contr);
-	    nhadr_contr_tot+=nhadr_contr;
+	    meson_two_points_Wilson_prop(glb_contr,loc_contr,ig_hadr_so,Q[ip1],ig_hadr_si,Q[ip2],nhadr_contr);
+	    nmes_contract+=nhadr_contr;
 	    
 	    //save to the total stack
 	    for(int ihadr_contr=0;ihadr_contr<nhadr_contr;ihadr_contr++)
 	      for(int t=0;t<glb_size[0];t++)
 		{
 		  int i=t+glb_size[0]*(ihadr_contr+nhadr_contr*(r+nr*(jmass+nqmass*(imass+nqmass*icombo))));
-		  complex_summassign(hadr_corr[i],glb_corr[t+glb_size[0]*ihadr_contr]);
+		  complex_summassign(mes_contr[i],glb_contr[t+glb_size[0]*ihadr_contr]);
 		}
 	  }
-  hadr_contr_time+=take_time();
+  mes_contract_time+=take_time();
 }
 
-/////////////////////////////////////////////// hadroleptonic correlators //////////////////////////////////////////
+/////////////////////////////////////////////// hadroleptonic contractions //////////////////////////////////////////
 
-//compute the hadronic part of the lepton correlation function
+//compute the hadronic part of the lepton contraction function
 //as usual, FIRST propagator is reverted
-THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PROP_TYPE*,S1, PROP_TYPE*,S2)
+THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_contraction, spinspin*,hadr, PROP_TYPE*,S1, PROP_TYPE*,S2)
 {
   GET_THREAD_ID();
   
@@ -257,12 +240,12 @@ THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PRO
 }
 THREADABLE_FUNCTION_END
 
-//compute the leptonic part of the correlation function
-THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ext_ind)
+//compute the leptonic part of the contraction function
+THREADABLE_FUNCTION_6ARG(attach_leptonic_contraction, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ext_ind)
 {
   GET_THREAD_ID();
   
-  vector_reset(loc_corr);
+  vector_reset(loc_contr);
   
   //get the lepton info and prop
   tm_quark_info le=get_lepton_info(ilepton,orie,rl);
@@ -300,8 +283,8 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
   for(int ins=0;ins<nweak_ins;ins++)
     {
       //define a local storage
-      spinspin hl_loc_corr[loc_size[0]];
-      for(int i=0;i<loc_size[0];i++) spinspin_put_to_zero(hl_loc_corr[i]);
+      spinspin hl_loc_contr[loc_size[0]];
+      for(int i=0;i<loc_size[0];i++) spinspin_put_to_zero(hl_loc_contr[i]);
       
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	{
@@ -326,9 +309,9 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  
 	  //combine hl
 	  complex_prodassign(h,ph);
-	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
+	  spinspin_summ_the_complex_prod(hl_loc_contr[t],l,h);
 	}
-      glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
+      glb_threads_reduce_double_vect((double*)hl_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
       //save projection on LO
       for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
@@ -338,7 +321,7 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	    int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
 	    
 	    spinspin td;
-	    unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ilnp]);
+	    unsafe_spinspin_prod_spinspin(td,hl_loc_contr[loc_t],pronu[ilnp]);
 	    spinspin dtd;
 	    unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 	    complex hl;
@@ -346,23 +329,23 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	    
 	    //summ the average
 	    int i=glb_t+glb_size[0]*(ig_proj+nhadrolept_proj*(list_weak_ind_contr[ins]+nweak_ind*ext_ind));
-	    complex_summ_the_prod_double(hadrolept_corr[i],hl,1.0/glb_spat_vol); //here to remove the statistical average on xw
+	    complex_summ_the_prod_double(hadrolept_contr[i],hl,1.0/glb_spat_vol); //here to remove the statistical average on xw
 	  }
-      if(IS_MASTER_THREAD) nlept_contr_tot+=nhadrolept_proj;
+      if(IS_MASTER_THREAD) nmeslep_contract+=nhadrolept_proj;
       THREAD_BARRIER();
     }
 }
 THREADABLE_FUNCTION_END
 
 //return the index of the combination of r, orientation, etc
-int hadrolept_corrpack_ind(int rl,int orie,int r2,int irev,int qins,int ilepton)
+int hadrolept_contrpack_ind(int rl,int orie,int r2,int irev,int qins,int ilepton)
 {return rl+nr*(orie+norie*(r2+nr*(irev+nrev*(qins+nins*ilepton))));}
 
-//compute the total hadroleptonic correlation functions
-void compute_hadroleptonic_correlations()
+//compute the total hadroleptonic contraction functions
+void compute_hadroleptonic_contractions()
 {
-  master_printf("Computing leptonic correlation functions\n");
-  lept_contr_time-=take_time();
+  master_printf("Computing leptonic contraction functions\n");
+  meslep_contract_time-=take_time();
   
  for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int qins=0;qins<nins;qins++)
@@ -370,8 +353,8 @@ void compute_hadroleptonic_correlations()
 	for(int r2=0;r2<nr;r2++)
 	  {
 	    //takes the index of the quarks
-	    int iq1=lep_corr_iq1[ilepton];
-	    int iq2=lep_corr_iq2[ilepton];
+	    int iq1=lep_contr_iq1[ilepton];
+	    int iq2=lep_contr_iq2[ilepton];
 	    
 	    //takes the propagators
 	    int PROP1_TYPE=PROP_0,PROP2_TYPE=PROP_0;
@@ -384,7 +367,7 @@ void compute_hadroleptonic_correlations()
 	    
 	    //compute the hadronic part
 	    if(irev==1) std::swap(ip1,ip2); //select the propagator to revert
-	    hadronic_part_leptonic_correlation(hadrolept_hadr_part,Q[ip1],Q[ip2]);
+	    hadronic_part_leptonic_contraction(hadrolept_hadr_part,Q[ip1],Q[ip2]);
 	    
 	    for(int orie=0;orie<norie;orie++)
 	      for(int rl=0;rl<nr;rl++)
@@ -392,22 +375,22 @@ void compute_hadroleptonic_correlations()
 		  //contract with lepton
 		  int ilins=(qins!=0);
 		  int iprop=ilprop(ilepton,ilins,orie,rl);
-		  int ind=hadrolept_corrpack_ind(rl,orie,r2,irev,qins,ilepton);
-		  attach_leptonic_correlation(hadrolept_hadr_part,iprop,ilepton,orie,rl,ind);
+		  int ind=hadrolept_contrpack_ind(rl,orie,r2,irev,qins,ilepton);
+		  attach_leptonic_contraction(hadrolept_hadr_part,iprop,ilepton,orie,rl,ind);
 		}
 	  }
   
-  lept_contr_time+=take_time();
+  meslep_contract_time+=take_time();
 }
 
-//print out correlations
-void print_correlations()
+//print out contractions
+void print_contractions()
 {
-  print_time-=take_time();
+  contr_print_time-=take_time();
   
   //open file and reduce
-  FILE *fout=open_file(combine("%s/corr_hl",outfolder).c_str(),"w");
-  glb_nodes_reduce_complex_vect(hadrolept_corr,glb_size[0]*nweak_ind*nhadrolept_proj*nind);
+  FILE *fout=open_file(combine("%s/hl_contr",outfolder).c_str(),"w");
+  glb_nodes_reduce_complex_vect(hadrolept_contr,glb_size[0]*nweak_ind*nhadrolept_proj*nind);
   
   //write down
   for(int ilepton=0;ilepton<nleptons;ilepton++)
@@ -417,20 +400,20 @@ void print_correlations()
 	  for(int orie=0;orie<norie;orie++)
 	    for(int rl=0;rl<nr;rl++)
 	      {
-		int corrpack_ind=hadrolept_corrpack_ind(rl,orie,r2,irev,qins,ilepton);
+		int contrpack_ind=hadrolept_contrpack_ind(rl,orie,r2,irev,qins,ilepton);
 		
 		if(!pure_wilson) master_fprintf(fout," # mlept[%d]=%lg mq1=%lg mq2=%lg qins=%d qrev=%d rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
-						ilepton,leps[ilepton].mass,qmass[lep_corr_iq1[ilepton]],qmass[lep_corr_iq2[ilepton]],qins,irev+1,!r2,r2,sign_orie[orie],rl);
+						ilepton,leps[ilepton].mass,qmass[lep_contr_iq1[ilepton]],qmass[lep_contr_iq2[ilepton]],qins,irev+1,!r2,r2,sign_orie[orie],rl);
 		else             master_fprintf(fout," # klept[%d]=%lg kappaq1=%lg kappaq2=%lg qins=%d qrev=%d lep_orie=%+d\n\n",
-						ilepton,leps[ilepton].kappa,qkappa[lep_corr_iq1[ilepton]],qkappa[lep_corr_iq2[ilepton]],qins,irev+1,sign_orie[orie]);
+						ilepton,leps[ilepton].kappa,qkappa[lep_contr_iq1[ilepton]],qkappa[lep_contr_iq2[ilepton]],qins,irev+1,sign_orie[orie]);
 		for(int ind=0;ind<nweak_ind;ind++)
 		  for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 		    {
 		      master_fprintf(fout," # qins=%s lins=%s proj=%s\n\n",list_weak_ind_nameq[ind],list_weak_ind_namel[ind],gtag[hadrolept_projs[ig_proj]]);
 		      for(int t=0;t<glb_size[0];t++)
 			{
-			  int i=t+glb_size[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*corrpack_ind));
-			  master_fprintf(fout,"%+016.16lg %+016.16lg\n",hadrolept_corr[i][RE]/nsources,hadrolept_corr[i][IM]/nsources);
+			  int i=t+glb_size[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*contrpack_ind));
+			  master_fprintf(fout,"%+016.16lg %+016.16lg\n",hadrolept_contr[i][RE]/nsources,hadrolept_contr[i][IM]/nsources);
 			}
 		      master_fprintf(fout,"\n");
 		    }
@@ -441,12 +424,12 @@ void print_correlations()
   
   //normalise
   double n=1.0/nsources;
-  for(int i=0;i<hadr_corr_length;i++) complex_prodassign_double(hadr_corr[i],n);
+  for(int i=0;i<mes_contr_length;i++) complex_prodassign_double(mes_contr[i],n);
   
   int ind=0;
-  for(size_t icombo=0;icombo<prop_hadr_corr_map.size();icombo++)
+  for(size_t icombo=0;icombo<prop_mes_contr_map.size();icombo++)
     {
-      fout=open_file(combine("%s/corr_%c%c",outfolder,qprop_list[prop_hadr_corr_map[icombo].first].shortname,qprop_list[prop_hadr_corr_map[icombo].second].shortname).c_str(),"w");
+      fout=open_file(combine("%s/mes_contr_%c%c",outfolder,qprop_list[prop_mes_contr_map[icombo].a].shortname,qprop_list[prop_mes_contr_map[icombo].b].shortname).c_str(),"w");
       
       for(int imass=0;imass<nqmass;imass++)
 	for(int jmass=0;jmass<nqmass;jmass++)
@@ -454,7 +437,7 @@ void print_correlations()
 	    {
 	      if(!pure_wilson) master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d\n",qmass[imass],qmass[jmass],r);
 	      else             master_fprintf(fout," # kappa1(rev)=%lg kappa2(ins)=%lg\n",qkappa[imass],qkappa[jmass]);
-	      print_contractions_to_file(fout,nhadr_contr,ig_hadr_so,ig_hadr_si,hadr_corr+ind*glb_size[0],0,"",1.0);
+	      print_contractions_to_file(fout,nhadr_contr,ig_hadr_so,ig_hadr_si,mes_contr+ind*glb_size[0],0,"",1.0);
 	      master_fprintf(fout,"\n");
 	      ind+=nhadr_contr;
 	    }
@@ -463,7 +446,7 @@ void print_correlations()
       close_file(fout);
     }
   
-  print_time+=take_time();
+  contr_print_time+=take_time();
 }
 
 //close deallocating everything
@@ -477,9 +460,9 @@ void close()
   master_printf(" - %02.2f%s to prepare %d generalized sources (%2.2gs avg)\n",source_time/tot_prog_time*100,"%",nsource_tot,source_time/nsource_tot);
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
   master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to perform %d hadronic contractions (%2.2gs avg)\n",hadr_contr_time/tot_prog_time*100,"%",nhadr_contr_tot,hadr_contr_time/nhadr_contr_tot);
-  master_printf(" - %02.2f%s to perform %d leptonic contractions (%2.2gs avg)\n",lept_contr_time/tot_prog_time*100,"%",nlept_contr_tot,lept_contr_time/nlept_contr_tot);
-  master_printf(" - %02.2f%s to print hadro-leptonic contractions\n",print_time/tot_prog_time*100,"%");
+  master_printf(" - %02.2f%s to perform %d hadronic contractions (%2.2gs avg)\n",mes_contract_time/tot_prog_time*100,"%",nmes_contract,mes_contract_time/nmes_contract);
+  master_printf(" - %02.2f%s to perform %d leptonic contractions (%2.2gs avg)\n",meslep_contract_time/tot_prog_time*100,"%",nmeslep_contract,meslep_contract_time/nmeslep_contract);
+  master_printf(" - %02.2f%s to print hadro-leptonic contractions\n",contr_print_time/tot_prog_time*100,"%");
   
   nissa_free(photon_eta);
   nissa_free(photon_phi);
@@ -492,13 +475,13 @@ void close()
   nissa_free(L);
   nissa_free(temp_lep);
   nissa_free(conf);
-  nissa_free(hadr_corr);
-  nissa_free(glb_corr);
-  nissa_free(loc_corr);
+  nissa_free(mes_contr);
+  nissa_free(glb_contr);
+  nissa_free(loc_contr);
   nissa_free(hadrolept_hadr_part);
-  nissa_free(hadrolept_corr);
-  nissa_free(lep_corr_iq1);
-  nissa_free(lep_corr_iq2);
+  nissa_free(hadrolept_contr);
+  nissa_free(lep_contr_iq1);
+  nissa_free(lep_contr_iq2);
   nissa_free(leps);
   nissa_free(lep_energy);
   nissa_free(neu_energy);
@@ -534,12 +517,12 @@ void in_main(int narg,char **arg)
 	  generate_lepton_propagators();
 	  generate_quark_propagators();
 	  
-	  compute_hadroleptonic_correlations();
-	  compute_hadronic_correlations();
+	  compute_hadroleptonic_contractions();
+	  compute_hadronic_contractions();
 	}
       
-      //print out correlations
-      print_correlations();
+      //print out contractions
+      print_contractions();
       
       //pass to the next conf if there is enough time
       char fin_file[1024];

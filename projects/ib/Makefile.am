@@ -11,9 +11,9 @@ bin_PROGRAMS= \
 	$(top_builddir)/bin/nucleons \
 	$(top_builddir)/bin/test_prop
 
-common_sources=conf.cpp pars.cpp prop.cpp
+common_sources=conf.cpp contr.cpp pars.cpp prop.cpp
 
-include_HEADERS=conf.hpp pars.hpp
+include_HEADERS=conf.hpp contr.hpp pars.hpp prop.hpp
 
 
 __top_builddir__bin_mel_SOURCES=mel.cpp $(common_sources)

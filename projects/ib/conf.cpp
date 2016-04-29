@@ -4,8 +4,7 @@
  #include "conf.hpp"
 
 namespace nissa
-{
-  
+{  
   //init the MPI grid
   void read_init_grid()
   {

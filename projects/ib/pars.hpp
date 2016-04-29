@@ -14,6 +14,9 @@
 
 namespace nissa
 {
+  //for baryons
+  const int nsm_sink=2;
+  
   //convention on gospel
   const int follow_chris=0,follow_nazario=1;
   
@@ -118,5 +121,7 @@ namespace nissa
 }
 
 #undef EXTERN_PARS
+
+#undef INIT_TO
 
 #endif
