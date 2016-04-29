@@ -2,6 +2,9 @@
  #include "config.hpp"
 #endif
 
+#define EXTERN_FLOAT_128
+ #include "float_128.hpp"
+
 #include <mpi.h>
 #include <stdint.h>
 #include <string.h>
@@ -11,9 +14,6 @@
 #include "routines/ios.hpp"
 
 #include "complex.hpp"
-
-#define EXTERN_FLOAT_128
-#include "float_128.hpp"
 
 namespace nissa
 {

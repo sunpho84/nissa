@@ -3,6 +3,8 @@
 #define EXTERN_CONF
  #include "conf.hpp"
 
+#include "pars.hpp"
+
 namespace nissa
 {  
   //init the MPI grid
@@ -33,7 +35,14 @@ namespace nissa
     //if asked, randomly transform the configurations
     if(rnd_gauge_transform) perform_random_gauge_transform(conf,conf);
     
-    //put anti-periodic boundary condition for the fermionic propagator
+    //if the copied conf exists, ape smear
+    if(ape_smeared_conf)
+      {
+	ape_spatial_smear_conf(ape_smeared_conf,conf,ape_smearing_alpha,ape_smearing_niters);
+	master_printf("Smeared plaquette: %.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
+      }
+    
+  //put anti-periodic boundary condition for the fermionic propagator
     old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
     put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
     adapt_theta(conf,old_theta,put_theta,0,0);
@@ -75,73 +84,71 @@ namespace nissa
   //check if the time is enough
   int check_remaining_time()
   {
-    int enough_time;
-    
-    //check remaining time
-    double temp_time=take_time()+tot_prog_time;
-    double ave_time=temp_time/nanalyzed_conf;
-    double left_time=wall_time-temp_time;
-    enough_time=left_time>(ave_time*1.1);
-    
-    master_printf("Remaining time: %lg sec\n",left_time);
-    master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-    if(enough_time) master_printf("Continuing with next conf!\n");
-    else master_printf("Not enough time, exiting!\n");
-    
-    return enough_time;
+    if(nanalyzed_conf)
+      {
+	//check remaining time
+	double temp_time=take_time()+tot_prog_time;
+	double ave_time=temp_time/nanalyzed_conf;
+	double left_time=wall_time-temp_time;
+	int enough_time=left_time>(ave_time*1.1);
+	
+	master_printf("\nRemaining time: %lg sec\n",left_time);
+	master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+	if(enough_time) master_printf("Time is enough to go on!\n");
+	else master_printf("Not enough time, exiting!\n");
+	
+	return enough_time;
+      }
+    else return true;
   }
   
   //find a new conf
   int read_conf_parameters(int &iconf,void(*skip_conf)(),bool(*external_condition)())
   {
-    int ok_conf;
-    int asked_stop;
-    int asked_restart;
+    //Check if asked to stop or restart
+    int asked_stop=file_exists("stop");
+    int asked_restart=file_exists("restart");
+    //check if enough time
+    int enough_time=check_remaining_time();
     
-    do
-      {
-	//Check if asked to stop or restart
-	asked_stop=file_exists("stop");
-	asked_restart=file_exists("restart");
-	
-	//if not asked to stop or restart
-	if(!asked_stop||!asked_restart)
-	  {
-	    //Gauge path
-	    read_str(conf_path,1024);
-	    
-	    //Out folder
-	    read_str(outfolder,1024);
-	    
-	    //Check if the conf has been finished or is already running
-	    master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
-	    char run_file[1024];
-	    sprintf(run_file,"%s/running",outfolder);
-	    ok_conf=!(file_exists(run_file)) && external_condition();
-	    
-	    //if not finished
-	    if(ok_conf)
-	      {
-		master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
-		if(!dir_exists(outfolder))
-		  {
-		    int ris=create_dir(outfolder);
-		    if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
-		    else
-		      crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
-		  }
-		file_touch(run_file);
-	      }
-	    else
-	      {
-		//skipping conf
-		master_printf("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
-		skip_conf();
-	      }
-	    iconf++;
-	  }
-      }
-    while(!ok_conf && iconf<ngauge_conf && !asked_stop && !asked_restart);
+    int ok_conf=false;
+    if(!asked_stop && !asked_restart && enough_time && iconf<ngauge_conf)
+      do
+	{
+	  //Gauge path
+	  read_str(conf_path,1024);
+	  
+	  //Out folder
+	  read_str(outfolder,1024);
+	  
+	  //Check if the conf has been finished or is already running
+	  master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+	  char run_file[1024];
+	  sprintf(run_file,"%s/running",outfolder);
+	  ok_conf=!(file_exists(run_file)) && external_condition();
+	  
+	  //if not finished
+	  if(ok_conf)
+	    {
+	      master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
+	      if(!dir_exists(outfolder))
+		{
+		  int ris=create_dir(outfolder);
+		  if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+		  else
+		    crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+		}
+	      file_touch(run_file);
+	    }
+	  else
+	    {
+	      //skipping conf
+	      master_printf("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
+	      skip_conf();
+	    }
+	  iconf++;
+	}
+      while(!ok_conf && iconf<ngauge_conf);
     
     master_printf("\n");
     
@@ -150,12 +157,21 @@ namespace nissa
     if(asked_restart) master_printf("Asked to restart\n");
     
     //writing that all confs have been measured and write it
-    if(!ok_conf && iconf==ngauge_conf)
+    if(!ok_conf && iconf>=ngauge_conf)
       {
 	master_printf("Analyzed all confs, exiting\n\n");
 	file_touch("stop");
       }
     
     return ok_conf;
+  }
+  
+  //mark a conf as finished
+  void mark_finished()
+  {
+    char fin_file[1024];
+    sprintf(fin_file,"%s/finished",outfolder);
+    file_touch(fin_file);
+    nanalyzed_conf++;
   }
 }

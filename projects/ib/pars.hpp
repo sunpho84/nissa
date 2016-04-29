@@ -121,7 +121,6 @@ namespace nissa
 }
 
 #undef EXTERN_PARS
-
 #undef INIT_TO
 
 #endif

@@ -5,11 +5,40 @@
 
 namespace nissa
 {
+  //allocate source
+  void allocate_source()
+  {
+    original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
+    source=nissa_malloc("source",loc_vol,PROP_TYPE);
+  }
+  
+  //free the source
+  void free_source()
+  {
+    nissa_free(source);
+    nissa_free(original_source);
+  }
+  
   ////////////////////////////////////////////// quark propagator /////////////////////////////////////////////
   
   //return appropriate propagator
   int iqprop(int imass,int ip,int r)
   {return r+nr*(imass+nqmass*ip);}
+  
+  //allocate all prop
+  void allocate_Q_prop()
+  {
+    nqprop=iqprop(nqmass-1,nqprop_kind()-1,nr-1)+1;
+    Q=nissa_malloc("Q*",nqprop,PROP_TYPE*);
+    for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",loc_vol+bord_vol,PROP_TYPE);
+  }
+  
+  //deallocate all prop
+  void free_Q_prop()
+  {
+    for(int iprop=0;iprop<nqprop;iprop++) nissa_free(Q[iprop]);
+    nissa_free(Q);
+  }
   
   //number of quark propagators in the list
   int nqprop_kind(){return qprop_list.size();}
@@ -191,12 +220,26 @@ namespace nissa
       }
   }
   
-  //////////////////////////////////////////////  lepton propagators //////////////////////////////////////////
-  
   /////////////////////////////////////////////// lepton propagators ///////////////////////////////////////////
   
   int ilprop(int ilepton,int ilins,int orie,int r)
   {return r+nr*(ilins+nlins*(orie+norie*ilepton));}
+  
+  //allocate all leptonic propagators
+  void allocate_L_prop()
+  {
+    nlprop=ilprop(nleptons-1,nlins-1,norie-1,nr-1)+1;
+    L=nissa_malloc("L*",nlprop,spinspin*);
+    for(int iprop=0;iprop<nlprop;iprop++) L[iprop]=nissa_malloc("L",loc_vol+bord_vol,spinspin);
+  }
+  
+  //free all leptonic propagators
+  void free_L_prop()
+  {
+    for(int iprop=0;iprop<nlprop;iprop++) nissa_free(L[iprop]);
+    nissa_free(L);
+    nissa_free(temp_lep);
+  }
   
   //return appropriately modified info
   tm_quark_info get_lepton_info(int ilepton,int orie,int r)
@@ -405,7 +448,24 @@ namespace nissa
     if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
   }
   THREADABLE_FUNCTION_END
+  
   /////////////////////////////////////////////// photon propagators ///////////////////////////////////////////
+  
+  //allocate the photon fields
+  void allocate_photon_fields()
+  {
+    photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
+    photon_field=nissa_malloc("photon_field",loc_vol+bord_vol,spin1field);
+    photon_phi=nissa_malloc("photon_phi",loc_vol+bord_vol,spin1field);
+  }
+  
+  //free the photon fields
+  void free_photon_fields()
+  {
+    nissa_free(photon_eta);
+    nissa_free(photon_phi);
+    nissa_free(photon_field);
+  }
   
   //wrapper to generate a stochastic propagator
   void generate_photon_stochastic_propagator()

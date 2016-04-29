@@ -4,7 +4,9 @@
 #include <string>
 #include <stdio.h>
 #include <stdint.h>
+#include <vector>
 #include "new_types/complex.hpp"
+#include "operations/contract/mesons_2pts.hpp"
 
 #ifndef EXTERN_IOS
  #define EXTERN_IOS extern
@@ -56,8 +58,19 @@ namespace nissa
   void take_last_characters(char *out,const char *in,int size);
   int count_file_lines(std::string path);
   int get_file_size(std::string path);
-  void print_contraction_to_file(FILE *fout,int op1,int op2,complex *contr,int twall,const char *tag,double norm);
-  void print_contractions_to_file(FILE *fout,int ncontr,const int *op1,const int *op2,complex *contr,int twall,const char *tag,double norm);
+  void print_contraction_to_file(FILE *fout,int gso,int gsi,complex *contr,int twall,const char *tag,double norm);
+  void print_contractions_to_file(FILE *fout,int ncontr,const int *gso,const int *gsi,complex *contr,int twall,const char *tag,double norm);
+  inline void print_contractions_to_file(FILE *fout,std::vector<idirac_pair_t> &list,complex *contr,int twall,const char *tag,double norm)
+  {
+    int ncontr=list.size();
+    int gso[ncontr],gsi[ncontr];
+    for(int i=0;i<ncontr;i++)
+      {
+	gso[i]=list[i].so;
+	gsi[i]=list[i].si;
+      }
+    print_contractions_to_file(fout,ncontr,gso,gsi,contr,twall,tag,norm);
+  }
 }
 
 #undef EXTERN_IOS

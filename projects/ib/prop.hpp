@@ -43,6 +43,8 @@ namespace nissa
   
   EXTERN_PROP PROP_TYPE *source,*original_source;
   EXTERN_PROP std::vector<qprop_t> qprop_list;
+  void allocate_source();
+  void free_source();
   
   EXTERN_PROP int nsource_tot INIT_TO_ZERO,nphoton_prop_tot INIT_TO_ZERO;
   EXTERN_PROP double source_time INIT_TO_ZERO,photon_prop_time INIT_TO_ZERO,lepton_prop_time INIT_TO_ZERO;
@@ -50,11 +52,17 @@ namespace nissa
   EXTERN_PROP spin1field *photon_field;
   EXTERN_PROP spin1field *photon_phi;
   EXTERN_PROP spin1field *photon_eta;
+  void allocate_photon_fields();
+  void free_photon_fields();
   EXTERN_PROP spinspin *temp_lep;
   
   int nqprop_kind();
+  void allocate_Q_prop();
+  void free_Q_prop();
   int iqprop(int imass,int ip,int r);
   int ilprop(int ilepton,int ilins,int orie,int r);
+  void allocate_L_prop();
+  void free_L_prop();
   tm_quark_info get_lepton_info(int ilepton,int orie,int r);
   int add_qprop(const char *tag,char shortname,insertion_t insertion,int isource);
   void get_qprop(spincolor *out,spincolor *in,int imass,bool r);

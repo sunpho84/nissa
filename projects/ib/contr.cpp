@@ -7,17 +7,21 @@
 
 namespace nissa
 {
-  //set Cg5=ig2g4g5
-  void set_Cg5()
+  //allocate mesonic contractions
+  void allocate_mes_contr()
   {
-    dirac_matr g2g4,C;
-    dirac_prod(&g2g4,base_gamma+2,base_gamma+4);
-    dirac_prod_idouble(&C,&g2g4,1);
-    dirac_prod(&Cg5,&C,base_gamma+5);
+    mes_contr_size=glb_size[0]*mes_gamma_list.size()*prop_mes_contr_map.size()*nqmass*nqmass*nr;
+    mes_contr=nissa_malloc("mes_contr",mes_contr_size,complex);
+  }
+  
+  //free mesonic contractions
+  void free_mes_contr()
+  {
+    nissa_free(mes_contr);
   }
   
   //set all the mesonic contractions
-  void set_mes_contract_list()
+  void set_mes_contr_list()
   {
     prop_mes_contr_map.clear();
     prop_mes_contr_map.push_back(mes_doublet_t(PROP_0,PROP_0));
@@ -29,8 +33,96 @@ namespace nissa
     //prop_mes_contr_map.push_back(mes_doublet_t(PROP_0,PROP_VECTOR));
   }
   
+  //compute all the meson contractions
+  void compute_mes_contr()
+  {
+    contr_print_time-=take_time();
+    
+    master_printf("Computing meson contractions\n");
+    
+    complex *glb_contr=nissa_malloc("glb_contr",glb_size[0]*mes_gamma_list.size(),complex);
+    complex *loc_contr=nissa_malloc("loc_contr",glb_size[0]*mes_gamma_list.size(),complex);
+    
+    mes_contr_time-=take_time();
+    for(size_t icombo=0;icombo<prop_mes_contr_map.size();icombo++)
+      for(int imass=0;imass<nqmass;imass++)
+	for(int jmass=0;jmass<nqmass;jmass++)
+	  for(int r=0;r<nr;r++)
+	    {
+	      //compute the contraction function
+	      int ip1=iqprop(imass,prop_mes_contr_map[icombo].a,r);
+	      int ip2=iqprop(jmass,prop_mes_contr_map[icombo].b,r);
+	      
+	      meson_two_points_Wilson_prop(glb_contr,loc_contr,Q[ip1],Q[ip2],mes_gamma_list);
+	      nmes_contr+=mes_gamma_list.size();
+	      
+	      //save to the total stack
+	      for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
+		for(int t=0;t<glb_size[0];t++)
+		  complex_summassign(mes_contr[ind_mes_contr(icombo,imass,jmass,r,ihadr_contr,t)],glb_contr[t+glb_size[0]*ihadr_contr]);
+	    }
+    mes_contr_time+=take_time();
+    
+    nissa_free(glb_contr);
+    nissa_free(loc_contr);
+    
+    contr_print_time+=take_time();
+  }
+  
+  //print all contractions averaging
+  void print_mes_contr()
+  {
+    //normalise
+    double n=1.0/nsources;
+    for(int i=0;i<mes_contr_size;i++) complex_prodassign_double(mes_contr[i],n);
+    
+    int ind=0;
+    for(size_t icombo=0;icombo<prop_mes_contr_map.size();icombo++)
+      {
+	FILE *fout=open_file(combine("%s/mes_contr_%c%c",outfolder,qprop_list[prop_mes_contr_map[icombo].a].shortname,qprop_list[prop_mes_contr_map[icombo].b].shortname).c_str(),"w");
+	
+	for(int imass=0;imass<nqmass;imass++)
+	  for(int jmass=0;jmass<nqmass;jmass++)
+	    for(int r=0;r<nr;r++)
+	      {
+		if(!pure_wilson) master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d\n",qmass[imass],qmass[jmass],r);
+		else             master_fprintf(fout," # kappa1(rev)=%lg kappa2(ins)=%lg\n",qkappa[imass],qkappa[jmass]);
+		print_contractions_to_file(fout,mes_gamma_list,mes_contr+ind*glb_size[0],0,"",1.0);
+		master_fprintf(fout,"\n");
+		ind+=mes_gamma_list.size();
+	      }
+	
+	//close the file
+	close_file(fout);
+      }
+  }
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  //set Cg5=ig2g4g5
+  void set_Cg5()
+  {
+    dirac_matr g2g4,C;
+    dirac_prod(&g2g4,base_gamma+2,base_gamma+4);
+    dirac_prod_idouble(&C,&g2g4,1);
+    dirac_prod(&Cg5,&C,base_gamma+5);
+  }
+  
+  //allocate baryionic contr
+  void allocate_bar_contr()
+  {
+    bar_contr_size=ind_bar_contr(prop_bar_contr_map.size()-1,nsm_sink-1,nqmass-1,nr-1,nqmass-1,nr-1,nqmass-1,nr-1,2-1,glb_size[0]-1)+1;
+    bar_contr=nissa_malloc("bar_contr",bar_contr_size,complex);
+  }
+  
+  //free them
+  void free_bar_contr()
+  {
+    nissa_free(bar_contr);
+  }
+  
   //set all the baryonic contractions
-  void set_bar_contract_list()
+  void set_bar_contr_list()
   {
     //add the contraction combination
     prop_bar_contr_map.clear();
@@ -60,9 +152,11 @@ namespace nissa
 #ifdef POINT_SOURCE_VERSION
   
   //compute all contractions
-  THREADABLE_FUNCTION_0ARG(compute_bar_contractions)
+  THREADABLE_FUNCTION_0ARG(compute_bar_contr)
   {
     GET_THREAD_ID();
+    
+    master_printf("Computing baryon contractions\n");
     
     //local thread/node contractions
     complex *loc_contr=new complex[bar_contr_size];
@@ -80,7 +174,7 @@ namespace nissa
 	const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
 	
 	void (*list_fun[2])(complex,complex,complex)={complex_summ_the_prod,complex_subt_the_prod};
-	UNPAUSE_TIMING(bar_contract_time);
+	UNPAUSE_TIMING(bar_contr_time);
 	for(size_t icombo=0;icombo<prop_bar_contr_map.size();icombo++)
 	  for(int ima=0;ima<nqmass;ima++)
 	    for(int imb=0;imb<nqmass;imb++)
@@ -93,7 +187,7 @@ namespace nissa
 			int ipb=iqprop(imb,prop_bar_contr_map[icombo].b,rb);
 			int ipc=iqprop(imc,prop_bar_contr_map[icombo].c,rc);
 			
-			if(IS_MASTER_THREAD) nbar_contract++;
+			if(IS_MASTER_THREAD) nbar_contr++;
 			
 			NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 			  {
@@ -137,7 +231,7 @@ namespace nissa
 				    }
 			  }
 		      }
-	STOP_TIMING(bar_contract_time);
+	STOP_TIMING(bar_contr_time);
       }
     
     //reduce
@@ -151,7 +245,7 @@ namespace nissa
 #endif
   
   //print all contractions averaging
-  void print_bar_contractions()
+  void print_bar_contr()
   {
     //reduce
     glb_nodes_reduce_complex_vect(bar_contr,bar_contr_size);

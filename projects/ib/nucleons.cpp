@@ -27,7 +27,7 @@ using namespace nissa;
      we store them separately
    
  */
- 
+
 //init everything
 void init_simulation(char *path)
 {
@@ -35,7 +35,9 @@ void init_simulation(char *path)
   //combine the different kind of propagators
   set_inversions();
   set_Cg5();
-  set_bar_contract_list();
+  set_bar_contr_list();
+  set_mes_contr_list();
+  mes_gamma_list.push_back(idirac_pair_t(5,5)); //P5P5
   
   //open input file and read it
   open_input(path);
@@ -54,33 +56,20 @@ void init_simulation(char *path)
   //allocate
   conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol,quad_su3);
-  photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
-  photon_field=nissa_malloc("photon_field",loc_vol+bord_vol,spin1field);
-  photon_phi=nissa_malloc("photon_phi",loc_vol+bord_vol,spin1field);
-  source=nissa_malloc("source",loc_vol,su3spinspin);
-  original_source=nissa_malloc("original_source",loc_vol,su3spinspin);
-  bar_contr_size=ind_bar_contr(prop_bar_contr_map.size()-1,nsm_sink-1,nqmass-1,nr-1,nqmass-1,nr-1,nqmass-1,nr-1,2-1,glb_size[0]-1)+1;
-  bar_contr=nissa_malloc("bar_contr",bar_contr_size,complex);
-  nqprop=iqprop(nqmass-1,nqprop_kind()-1,nr-1)+1;
-  Q=nissa_malloc("Q*",nqprop,PROP_TYPE*);
-  for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",loc_vol+bord_vol,PROP_TYPE);
+  allocate_photon_fields();
+  allocate_source();
+  allocate_mes_contr();
+  allocate_bar_contr();
+  allocate_Q_prop();
 }
 
 //init a new conf
 void start_new_conf()
 {
   setup_conf(conf,old_theta,put_theta,conf_path,rnd_gauge_transform,free_theory);
-  //put periodic
-  put_theta[0]=0;
-  adapt_theta(conf,old_theta,put_theta,0,0);
-  //spatial smearing
-  ape_spatial_smear_conf(ape_smeared_conf,conf,ape_smearing_alpha,ape_smearing_niters);
-  master_printf("Smeared plaquette: %.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
-  //put back anti-periodic
-  put_theta[0]=1;
-  adapt_theta(conf,old_theta,put_theta,0,0);
   
   //reset contractions
+  vector_reset(mes_contr);
   vector_reset(bar_contr);
 }
 
@@ -104,19 +93,17 @@ void close()
   master_printf(" - %02.2f%s to prepare %d generalized sources (%2.2gs avg)\n",source_time/tot_prog_time*100,"%",nsource_tot,source_time/nsource_tot);
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
   master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to perform %d contractions (%2.2gs avg)\n",bar_contract_time/tot_prog_time*100,"%",nbar_contract,bar_contract_time/nbar_contract);
+  master_printf(" - %02.2f%s to perform %d baryonic contractions (%2.2gs avg)\n",bar_contr_time/tot_prog_time*100,"%",nbar_contr,bar_contr_time/nbar_contr);
+  master_printf(" - %02.2f%s to perform %d mesonic contractions (%2.2gs avg)\n",mes_contr_time/tot_prog_time*100,"%",nmes_contr,mes_contr_time/nmes_contr);
   master_printf(" - %02.2f%s to perform %d smearing (%2.2gs avg)\n",smear_oper_time/tot_prog_time*100,"%",nsmear_oper,smear_oper_time/nsmear_oper);
   
-  nissa_free(photon_eta);
-  nissa_free(photon_phi);
-  nissa_free(photon_field);
-  nissa_free(original_source);
-  nissa_free(source);
   nissa_free(conf);
   nissa_free(ape_smeared_conf);
-  for(int iprop=0;iprop<nqprop;iprop++) nissa_free(Q[iprop]);
-  nissa_free(Q);
-  nissa_free(bar_contr);
+  free_photon_fields();
+  free_source();
+  free_Q_prop();
+  free_bar_contr();
+  free_mes_contr();
 }
 
 void in_main(int narg,char **arg)
@@ -131,8 +118,8 @@ void in_main(int narg,char **arg)
   init_simulation(arg[1]);
   
   //loop over the configs
-  int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf,skip_conf,finish_file_present))
+  int iconf=0;
+  while(read_conf_parameters(iconf,skip_conf,finish_file_present))
     {
       //setup the conf and generate the source
       start_new_conf();
@@ -150,19 +137,15 @@ void in_main(int narg,char **arg)
 	  smear_oper_time+=take_time();
 	  //compute prop and contrelators
 	  generate_quark_propagators();
-	  compute_bar_contractions();
+	  compute_bar_contr();
+	  compute_mes_contr();
 	}
       
       //print out contractions
-      print_bar_contractions();
+      print_bar_contr();
+      print_mes_contr();
       
-      //pass to the next conf if there is enough time
-      char fin_file[1024];
-      sprintf(fin_file,"%s/finished",outfolder);
-      file_touch(fin_file);
-      
-      nanalyzed_conf++;
-      enough_time=check_remaining_time();
+      mark_finished();
     }
   
   //close the simulation
