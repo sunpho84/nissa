@@ -96,45 +96,61 @@ namespace nissa
   int read_conf_parameters(int &iconf,void(*skip_conf)(),bool(*external_condition)())
   {
     int ok_conf;
+    int asked_stop;
+    int asked_restart;
     
     do
       {
-	//Gauge path
-	read_str(conf_path,1024);
+	//Check if asked to stop or restart
+	asked_stop=file_exists("stop");
+	asked_restart=file_exists("restart");
 	
-	//Out folder
-	read_str(outfolder,1024);
-	
-	//Check if the conf has been finished or is already running
-	master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
-	char run_file[1024];
-	sprintf(run_file,"%s/running",outfolder);
-	ok_conf=!(file_exists(run_file)) && external_condition();
-	
-	//if not finished
-	if(ok_conf)
+	//if not asked to stop or restart
+	if(!asked_stop||!asked_restart)
 	  {
-	    master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
-	    if(!dir_exists(outfolder))
+	    //Gauge path
+	    read_str(conf_path,1024);
+	    
+	    //Out folder
+	    read_str(outfolder,1024);
+	    
+	    //Check if the conf has been finished or is already running
+	    master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+	    char run_file[1024];
+	    sprintf(run_file,"%s/running",outfolder);
+	    ok_conf=!(file_exists(run_file)) && external_condition();
+	    
+	    //if not finished
+	    if(ok_conf)
 	      {
-		int ris=create_dir(outfolder);
-		if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
-		else
-		  crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+		master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
+		if(!dir_exists(outfolder))
+		  {
+		    int ris=create_dir(outfolder);
+		    if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+		    else
+		      crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+		  }
+		file_touch(run_file);
 	      }
-	    file_touch(run_file);
+	    else
+	      {
+		//skipping conf
+		master_printf("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
+		skip_conf();
+	      }
+	    iconf++;
 	  }
-	else
-	  {
-	    master_printf("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
-	    skip_conf();
-	  }
-	iconf++;
       }
-    while(!ok_conf && iconf<ngauge_conf);
+    while(!ok_conf && iconf<ngauge_conf && !asked_stop && !asked_restart);
     
     master_printf("\n");
     
+    //write if it was asked to stop or restart
+    if(asked_stop) master_printf("Asked to stop\n");
+    if(asked_restart) master_printf("Asked to restart\n");
+    
+    //writing that all confs have been measured and write it
     if(!ok_conf && iconf==ngauge_conf)
       {
 	master_printf("Analyzed all confs, exiting\n\n");
