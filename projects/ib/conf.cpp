@@ -135,7 +135,11 @@ namespace nissa
     
     master_printf("\n");
     
-    if(!ok_conf && iconf==ngauge_conf) master_printf("Analyzed all confs, exiting\n\n");
+    if(!ok_conf && iconf==ngauge_conf)
+      {
+	master_printf("Analyzed all confs, exiting\n\n");
+	file_touch("stop");
+      }
     
     return ok_conf;
   }
