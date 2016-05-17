@@ -471,11 +471,9 @@ namespace nissa
   void generate_photon_stochastic_propagator()
   {
     photon_prop_time-=take_time();
-    generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
+    generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
     
     multiply_by_sqrt_tlSym_gauge_propagator(photon_field,photon_eta,photon);
-    
-    multiply_by_sqrt_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
     
     photon_prop_time+=take_time();
     nphoton_prop_tot++;
