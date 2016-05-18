@@ -71,8 +71,8 @@ void init_simulation(char *path)
       if(pure_wilson) leps[il].mass=0;
       else            read_double(&leps[il].mass);
       
-      //antiperiodic
-      leps[il].bc[0]=1;
+      //antiperiodic or periodic
+      leps[il].bc[0]=QUARK_BOUND_COND;
       
       //maximal twist (if tm), otherwise read kappa
       if(pure_wilson) read_double(&leps[il].kappa);
