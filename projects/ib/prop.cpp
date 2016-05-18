@@ -246,6 +246,7 @@ namespace nissa
   {
     tm_quark_info le=leps[ilepton];
     le.r=r;
+    le.bc[0]=QUARK_BOUND_COND;
     for(int i=1;i<NDIM;i++) le.bc[i]*=sign_orie[orie];
     
     return le;
