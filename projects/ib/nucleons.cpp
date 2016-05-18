@@ -24,7 +24,7 @@ using namespace nissa;
        |             |		    |       / \    |
      c',ga'---------c,ga	   c',ga'--@   @--c,ga
      
-     we store them separately
+     insertions are labelled as abc on the source (left) side
    
  */
 
@@ -197,7 +197,7 @@ void bar_contr_free(complex *mess,tm_quark_info qu)
 	  sin_mom(sin_q,q,qu);
 	  
 	  double pq=mom_prod(sin_p,sin_q);
-	  double numden=-NCOL*sqr(NDIRAC)*(mu2-Mp*Mq-pq)/(dp*dq*pow(glb_vol,2)*glb_size[0]);
+	  double numden=-NCOL*sqr(NDIRAC)*(mu2-Mp*Mq-pq)/(dp*dq*glb_vol*glb_size[0]);
 	  
 	  for(int r0=0;r0<glb_size[0];r0++)
 	    {
@@ -205,9 +205,8 @@ void bar_contr_free(complex *mess,tm_quark_info qu)
 	      cr[0]=(3*glb_size[0]+r0-glb_coord_of_loclx[p][0]-glb_coord_of_loclx[q][0])%glb_size[0];
 	      for(int mu=1;mu<NDIM;mu++) cr[mu]=(3*glb_size[mu]-glb_coord_of_loclx[p][mu]-glb_coord_of_loclx[q][mu])%glb_size[mu];
 	      int r=loclx_of_coord(cr);
-	      double dr=den_of_mom(r,qu);
 	      
-	      complex_summ_the_prod_double(co[r0],mess[r],numden/dr);
+	      complex_summ_the_prod_double(co[r0],mess[r],numden);
 	    }
 	}
     }
@@ -232,8 +231,9 @@ void check_bar()
   
   NISSA_LOC_VOL_LOOP(r)
     {
-      mess[r][RE]=qu.mass;
-      mess[r][IM]=-sin(mom_comp_of_site(r,qu,0));
+      double dr=den_of_mom(r,qu);
+      mess[r][RE]=qu.mass/dr/glb_vol;
+      mess[r][IM]=-sin(mom_comp_of_site(r,qu,0))/dr/glb_vol;
     }
   
   bar_contr_free(mess,qu);
@@ -256,6 +256,7 @@ void check_bar2()
   complex *mess=nissa_malloc("mess",glb_vol,complex);
   vector_reset(mess);
   
+  //photon prop
   spin1prop *pho_pro=nissa_malloc("pho_pro",loc_vol,spin1prop);
   NISSA_LOC_VOL_LOOP(p)
     mom_space_tlSym_gauge_propagator_of_imom(pho_pro[p],photon,p);
@@ -286,7 +287,7 @@ void check_bar2()
 	  
 	  complex_summ_the_prod_double(mess[p],num,pho_pro[pmq][0][0][RE]/den_of_mom(q,qu));
 	}
-      complex_prodassign_double(mess[p],1/(sqr(den_of_mom(p,qu))*glb_vol));
+      complex_prodassign_double(mess[p],1/(2*sqr(den_of_mom(p,qu))*glb_vol));
     }
   
   bar_contr_free(mess,qu);
