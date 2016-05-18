@@ -42,9 +42,9 @@ namespace nissa
 	master_printf("Smeared plaquette: %.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
       }
     
-  //put anti-periodic boundary condition for the fermionic propagator
+    //put anti-periodic boundary condition for the fermionic propagator
     old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
-    put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
+    put_theta[0]=QUARK_BOUND_COND;put_theta[1]=put_theta[2]=put_theta[3]=0;
     adapt_theta(conf,old_theta,put_theta,0,0);
   }
   
@@ -77,7 +77,7 @@ namespace nissa
     master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+016.016lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
     
     //put back the phase
-    put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
+    put_theta[0]=QUARK_BOUND_COND;put_theta[1]=put_theta[2]=put_theta[3]=0;
     adapt_theta(conf,old_theta,put_theta,0,0);
   }
   
