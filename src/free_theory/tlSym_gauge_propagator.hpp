@@ -5,6 +5,7 @@
 
 namespace nissa
 {
+  bool zero_mode_subtraction_mask(gauge_info gl,int imom);
   void compute_mom_space_tlSym_gauge_propagator(spin1prop *prop,gauge_info gl);
   void compute_x_space_tlSym_gauge_propagator_by_fft(spin1prop *prop,gauge_info gl);
   void generate_stochastic_tlSym_gauge_propagator_source(spin1field *eta);
