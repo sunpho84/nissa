@@ -194,17 +194,17 @@ void bar_contr_free(complex *mess,tm_quark_info qu)
 	  double pq=mom_prod(sin_p,sin_q);
 	  double den=den_of_mom(p,qu)*den_of_mom(q,qu);
 	  double numden=-NCOL*sqr(NDIRAC)*(sqr(qmass[0])-Mp*Mq-pq)/den/pow(glb_vol,2)/glb_size[0];
-	
-	for(int r0=0;r0<glb_size[0];r0++)
-	  {
-	    coords cr;
-	    cr[0]=(3*glb_size[0]+r0-glb_coord_of_loclx[p][0]-glb_coord_of_loclx[q][0])%glb_size[0];
-	    for(int mu=1;mu<NDIM;mu++) cr[mu]=(3*glb_size[mu]-glb_coord_of_loclx[p][mu]-glb_coord_of_loclx[q][mu])%glb_size[mu];
-	    int r=loclx_of_coord(cr);
-	    
-	    complex_summ_the_prod_double(co[r0],mess[r],numden/den_of_mom(r,qu));
-	  }
-      }
+	  
+	  for(int r0=0;r0<glb_size[0];r0++)
+	    {
+	      coords cr;
+	      cr[0]=(3*glb_size[0]+r0-glb_coord_of_loclx[p][0]-glb_coord_of_loclx[q][0])%glb_size[0];
+	      for(int mu=1;mu<NDIM;mu++) cr[mu]=(3*glb_size[mu]-glb_coord_of_loclx[p][mu]-glb_coord_of_loclx[q][mu])%glb_size[mu];
+	      int r=loclx_of_coord(cr);
+	      
+	      complex_summ_the_prod_double(co[r0],mess[r],numden/den_of_mom(r,qu));
+	    }
+	}
     }
   
   bar_transf(co,qu);
