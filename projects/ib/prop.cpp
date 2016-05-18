@@ -61,7 +61,7 @@ namespace nissa
       {
 	PROP_PHOTON_A=add_qprop("PROP_ETA",'A',PHOTON_ETA,PROP_0);
 	PROP_PHOTON_B=add_qprop("PROP_PHI",'B',PHOTON_PHI,PROP_0);
-	PROP_PHOTON_AB=add_qprop("PROP_PHOTON_PHI_ETA",'C',PHOTON_ETA,PROP_PHOTON_A);
+	PROP_PHOTON_AB=add_qprop("PROP_PHOTON_PHI_ETA",'C',PHOTON_PHI,PROP_PHOTON_A);
       }
   }
   
@@ -471,8 +471,11 @@ namespace nissa
   void generate_photon_stochastic_propagator()
   {
     photon_prop_time-=take_time();
+    
+    //generate source and stochastich propagator
     generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
     
+    //generate the photon field
     multiply_by_sqrt_tlSym_gauge_propagator(photon_field,photon_eta,photon);
     
     photon_prop_time+=take_time();
