@@ -120,14 +120,17 @@ double M_of_mom(tm_quark_info qu,int imom)
   return M_of_mom(qu,sin2_momh);
 }
 
-double mom_comp(int ip_mu,tm_quark_info qu,int mu)
+double mom_comp_of_coord(int ip_mu,tm_quark_info qu,int mu)
 {return M_PI*(2*ip_mu+qu.bc[mu])/glb_size[mu];}
 
+double mom_comp_of_site(int ip,tm_quark_info qu,int mu)
+{return mom_comp_of_coord(glb_coord_of_loclx[ip][mu],qu,mu);}
+
 void sin_mom(momentum_t sin_mom,int imom,tm_quark_info qu)
-{for(int mu=0;mu<NDIM;mu++) sin_mom[mu]=sin(mom_comp(glb_coord_of_loclx[imom][mu],qu,mu));}
+{for(int mu=0;mu<NDIM;mu++) sin_mom[mu]=sin(mom_comp_of_coord(glb_coord_of_loclx[imom][mu],qu,mu));}
 
 double sin2_mom(int imom,tm_quark_info qu)
-{double out=0;for(int mu=0;mu<NDIM;mu++) out+=sqr(sin(mom_comp(glb_coord_of_loclx[imom][mu],qu,mu)));return out;}
+{double out=0;for(int mu=0;mu<NDIM;mu++) out+=sqr(sin(mom_comp_of_coord(glb_coord_of_loclx[imom][mu],qu,mu)));return out;}
 
 double den_of_mom(int imom,tm_quark_info qu)
 {
@@ -152,23 +155,23 @@ double mom_prod(momentum_t p,momentum_t q)
 
 void bar_transf(complex *co,tm_quark_info qu)
 {
-  for(int p=0;p<glb_size[0];p++)
-  master_printf("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
-  master_printf("\n");
+  //for(int p=0;p<glb_size[0];p++)
+  //master_printf("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
+  //master_printf("\n");
   
   tm_quark_info ba=qu;
-  ba.bc[0]*=3;
+  ba.bc[0]=QUARK_BOUND_COND*3;
   
   complex c[glb_size[0]];
   for(int x=0;x<glb_size[0];x++)
     {
       complex_put_to_zero(c[x]);
-      for(int p=0;p<glb_size[0];p++)
+      for(int ip0=0;ip0<glb_size[0];ip0++)
 	{
-	  double p0=mom_comp(p,ba,0);
+	  double p0=mom_comp_of_coord(ip0,ba,0);
 	  complex fact={cos(p0*x),sin(p0*x)};
-	  if(x<glb_size[0]/2) complex_summ_the_prod(c[x],co[p],fact);
-	  else                complex_summ_the_conj1_prod(c[x],co[p],fact);
+	  if(x<glb_size[0]/2) complex_summ_the_prod(c[x],co[ip0],fact);
+	  else                complex_summ_the_conj1_prod(c[x],co[ip0],fact);
 	}
       master_printf("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
     }
@@ -176,24 +179,25 @@ void bar_transf(complex *co,tm_quark_info qu)
 
 void bar_contr_free(complex *mess,tm_quark_info qu)
 {
+  double mu2=qu.mass*qu.mass;
   complex co[glb_size[0]];
   memset(co,0,sizeof(complex)*glb_size[0]);
   NISSA_LOC_VOL_LOOP(p)
     {
       double Mp=M_of_mom(qu,p);
+      double dp=den_of_mom(p,qu);
       momentum_t sin_p;
       sin_mom(sin_p,p,qu);
       
       NISSA_LOC_VOL_LOOP(q)
         {
 	  double Mq=M_of_mom(qu,q);
-	  
+	  double dq=den_of_mom(q,qu);
 	  momentum_t sin_q;
 	  sin_mom(sin_q,q,qu);
 	  
 	  double pq=mom_prod(sin_p,sin_q);
-	  double den=den_of_mom(p,qu)*den_of_mom(q,qu);
-	  double numden=-NCOL*sqr(NDIRAC)*(sqr(qmass[0])-Mp*Mq-pq)/den/pow(glb_vol,2)/glb_size[0];
+	  double numden=-NCOL*sqr(NDIRAC)*(mu2-Mp*Mq-pq)/(dp*dq*pow(glb_vol,2)*glb_size[0]);
 	  
 	  for(int r0=0;r0<glb_size[0];r0++)
 	    {
@@ -201,8 +205,9 @@ void bar_contr_free(complex *mess,tm_quark_info qu)
 	      cr[0]=(3*glb_size[0]+r0-glb_coord_of_loclx[p][0]-glb_coord_of_loclx[q][0])%glb_size[0];
 	      for(int mu=1;mu<NDIM;mu++) cr[mu]=(3*glb_size[mu]-glb_coord_of_loclx[p][mu]-glb_coord_of_loclx[q][mu])%glb_size[mu];
 	      int r=loclx_of_coord(cr);
+	      double dr=den_of_mom(r,qu);
 	      
-	      complex_summ_the_prod_double(co[r0],mess[r],numden/den_of_mom(r,qu));
+	      complex_summ_the_prod_double(co[r0],mess[r],numden/dr);
 	    }
 	}
     }
@@ -213,7 +218,7 @@ void bar_contr_free(complex *mess,tm_quark_info qu)
 void check_bar()
 {
   tm_quark_info qu;
-  qu.bc[0]=1;
+  qu.bc[0]=QUARK_BOUND_COND;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=kappa;
   qu.mass=qmass[0];
@@ -228,7 +233,7 @@ void check_bar()
   NISSA_LOC_VOL_LOOP(r)
     {
       mess[r][RE]=qu.mass;
-      mess[r][IM]=-mom_comp(r,qu,0);
+      mess[r][IM]=-sin(mom_comp_of_site(r,qu,0));
     }
   
   bar_contr_free(mess,qu);
@@ -239,7 +244,7 @@ void check_bar()
 void check_bar2()
 {
   tm_quark_info qu;
-  qu.bc[0]=1;
+  qu.bc[0]=QUARK_BOUND_COND;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=kappa;
   qu.mass=qmass[0];
@@ -290,10 +295,33 @@ void check_bar2()
   nissa_free(pho_pro);
 }
 
+void mes_transf(complex *co,tm_quark_info qu)
+{
+  // for(int p=0;p<glb_size[0];p++)
+  //   master_printf("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
+  // master_printf("\n");
+  
+  tm_quark_info me=qu;
+  me.bc[0]=0;
+  
+  complex c[glb_size[0]];
+  for(int x=0;x<glb_size[0];x++)
+    {
+      complex_put_to_zero(c[x]);
+      for(int ip0=0;ip0<glb_size[0];ip0++)
+	{
+	  double p0=mom_comp_of_coord(ip0,me,0);
+	  complex fact={cos(p0*x),sin(p0*x)};
+	  complex_summ_the_prod(c[x],co[ip0],fact);
+	}
+      master_printf("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
+    }
+}
+
 void check_mes()
 {
   tm_quark_info qu;
-  qu.bc[0]=1;
+  qu.bc[0]=QUARK_BOUND_COND;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=kappa;
   qu.mass=qmass[0];
@@ -331,31 +359,13 @@ void check_mes()
       }
     }
   
-  // for(int p=0;p<glb_size[0];p++)
-  //   master_printf("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
-  // master_printf("\n");
-  
-  tm_quark_info me=qu;
-  me.bc[0]=0;
-  
-  complex c[glb_size[0]];
-  for(int x=0;x<glb_size[0];x++)
-    {
-      complex_put_to_zero(c[x]);
-      for(int p=0;p<glb_size[0];p++)
-	{
-	  double p0=mom_comp(p,me,0);
-	  complex fact={cos(p0*x),sin(p0*x)};
-	  complex_summ_the_prod(c[x],co[p],fact);
-	}
-      master_printf("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
-    }
+  mes_transf(co,qu);
 }
 
 void check_mes2()
 {
   tm_quark_info qu;
-  qu.bc[0]=1;
+  qu.bc[0]=QUARK_BOUND_COND;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=kappa;
   qu.mass=qmass[0];
@@ -414,25 +424,7 @@ void check_mes2()
 	}
     }
   
-  for(int p=0;p<glb_size[0];p++)
-    master_printf("%d %.16lg %.16lg\n",p,co[p][0],co[p][1]);
-  master_printf("\n");
-  
-  tm_quark_info me=qu;
-  me.bc[0]=0;
-  
-  complex c[glb_size[0]];
-  for(int x=0;x<glb_size[0];x++)
-    {
-      complex_put_to_zero(c[x]);
-      for(int p=0;p<glb_size[0];p++)
-	{
-	  double p0=mom_comp(p,me,0);
-	  complex fact={cos(p0*x),sin(p0*x)};
-	  complex_summ_the_prod(c[x],co[p],fact);
-	}
-      master_printf("%d %.16lg %.16lg\n",x,c[x][0],c[x][1]);
-    }
+  mes_transf(co,qu);
   
   nissa_free(pho_pro);
 }
