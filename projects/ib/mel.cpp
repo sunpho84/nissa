@@ -50,7 +50,6 @@ void init_simulation(char *path)
 {
   //open input file
   open_input(path);
-  
   read_input_preamble();
   
   //Leptons
