@@ -202,7 +202,7 @@ namespace nissa
     
     //fill with Z2
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z2);
     set_borders_invalid(eta);
   }
