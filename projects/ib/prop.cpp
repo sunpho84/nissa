@@ -8,8 +8,8 @@ namespace nissa
   //allocate source
   void allocate_source()
   {
-    original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
-    source=nissa_malloc("source",loc_vol,PROP_TYPE);
+    original_source=nissa_malloc("source",loc_vol+bord_vol,PROP_TYPE);
+    source=nissa_malloc("source",loc_vol+bord_vol,PROP_TYPE);
   }
   
   //free the source
