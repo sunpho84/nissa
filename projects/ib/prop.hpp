@@ -68,8 +68,8 @@ namespace nissa
   void get_qprop(spincolor *out,spincolor *in,int imass,bool r);
   void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r);
   void generate_original_source();
-  void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,coords dirs,PROP_TYPE *in,int t);
-  void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,int t);
+  // void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,coords dirs,PROP_TYPE *in,int t);
+  // void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,int t);
   void insert_external_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *ori,int t,int r,int loc);
   void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1);
   void generate_quark_propagators();
