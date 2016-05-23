@@ -128,25 +128,25 @@ namespace nissa
     prop_bar_contr_map.clear();
     prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_0));
     //scalar insertion on one of the three lines
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_S,PROP_0,PROP_0));
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_S,PROP_0));
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_S));
-    // //pseudoscalar insertion on one of the three lines
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_P,PROP_0,PROP_0));
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_P,PROP_0));
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_P));
-    // //tadpole insertion on one of the three lines
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_T,PROP_0,PROP_0));
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_T,PROP_0));
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_T));
-    // //self-energy insertion on one of the three lines
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_PHOTON_AB,PROP_0,PROP_0));
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_PHOTON_AB,PROP_0));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_S,PROP_0,PROP_0));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_S,PROP_0));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_S));
+    //pseudoscalar insertion on one of the three lines
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_P,PROP_0,PROP_0));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_P,PROP_0));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_P));
+    //tadpole insertion on one of the three lines
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_T,PROP_0,PROP_0));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_T,PROP_0));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_T));
+    //self-energy insertion on one of the three lines
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_PHOTON_AB,PROP_0,PROP_0));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_PHOTON_AB,PROP_0));
     prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_PHOTON_AB));
     //photon exchange between one of the three lines
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_PHOTON_A,PROP_PHOTON_B));
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_PHOTON_A,PROP_0,PROP_PHOTON_B));
-    // prop_bar_contr_map.push_back(bar_triplet_t(PROP_PHOTON_A,PROP_PHOTON_B,PROP_0));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_PHOTON_A,PROP_PHOTON_B));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_PHOTON_A,PROP_0,PROP_PHOTON_B));
+    prop_bar_contr_map.push_back(bar_triplet_t(PROP_PHOTON_A,PROP_PHOTON_B,PROP_0));
   }
   
 #ifdef POINT_SOURCE_VERSION
