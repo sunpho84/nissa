@@ -49,9 +49,9 @@ namespace nissa
     //add the propagators
     qprop_list.clear();
     PROP_0=add_qprop("PROP_0",'0',ORIGINAL,0);
-    PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
-    PROP_P=add_qprop("PROP_P",'P',PSEUDO,PROP_0);
-    PROP_T=add_qprop("PROP_T",'T',TADPOLE,PROP_0);
+    // PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
+    // PROP_P=add_qprop("PROP_P",'P',PSEUDO,PROP_0);
+    // PROP_T=add_qprop("PROP_T",'T',TADPOLE,PROP_0);
     if(use_photon_field)
       {
 	PROP_PHOTON_A=PROP_PHOTON_B=add_qprop("PROP_PHOTON",'L',PHOTON,PROP_0);
