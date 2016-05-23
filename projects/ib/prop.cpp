@@ -182,7 +182,7 @@ namespace nissa
     
     switch(inser)
       {
-      case ORIGINAL:prop_multiply_with_gamma(source,0,ori);break;
+      case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
       case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
       case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
       case PHOTON:insert_external_source(source,photon_field,ori,t,r,loc_hadr_curr);break;
