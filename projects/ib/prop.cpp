@@ -55,8 +55,8 @@ namespace nissa
     if(use_photon_field)
       {
 	PROP_PHOTON_A=PROP_PHOTON_B=add_qprop("PROP_PHOTON",'L',PHOTON,PROP_0);
-	PROP_PHOTON_AB=add_qprop("PROP_PHOTON2",'M',PHOTON,PROP_PHOTON_A); 
-     }
+	PROP_PHOTON_AB=add_qprop("PROP_PHOTON2",'M',PHOTON,PROP_PHOTON_A);
+      }
     else
       {
 	PROP_PHOTON_A=add_qprop("PROP_ETA",'A',PHOTON_ETA,PROP_0);
@@ -141,7 +141,7 @@ namespace nissa
   }
   
   //insert the photon on the source side
-  void insert_external_loc_source(spincolor *out,spin1field *curr,coords dirs,spincolor *in,int t)
+  void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,coords dirs,PROP_TYPE *in,int t)
   {
     GET_THREAD_ID();
     
@@ -154,25 +154,25 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  if(t==-1||glb_coord_of_loclx[ivol][0]==t)
 	    {
-	      spincolor temp1,temp2;
-	      unsafe_dirac_prod_spincolor(temp1,base_gamma+map_mu[mu],in[ivol]);
-	      unsafe_spincolor_prod_complex(temp2,temp1,curr[ivol][mu]);
-	      spincolor_summ_the_prod_idouble(out[ivol],temp2,1);
+	      PROP_TYPE temp1,temp2;
+	      NAME2(unsafe_dirac_prod,PROP_TYPE)(temp1,base_gamma+map_mu[mu],in[ivol]);
+	      NAME3(unsafe,PROP_TYPE,prod_complex)(temp2,temp1,curr[ivol][mu]);
+	      NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,1);
 	    }
     
     set_borders_invalid(out);
   }
   
   //insert the photon on the source
-  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t)
+  void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,int t)
   {insert_external_loc_source(out,curr,all_dirs,in,t);}
   
-  void insert_external_source(spincolor *out,spin1field *curr,spincolor *ori,int t,int r,int loc)
+  void insert_external_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *ori,int t,int r,int loc)
   {
-    if(loc) insert_external_loc_source(out,curr,ori,t);
+    if(loc) insert_external_loc_source(source,curr,ori,t);
     else
-      if(!pure_wilson) insert_tm_external_source(out,conf,curr,ori,r,t);
-      else             insert_wilson_external_source(out,conf,curr,ori,t);
+      if(!pure_wilson) insert_tm_external_source(source,conf,curr,ori,r,t);
+      else             insert_wilson_external_source(source,conf,curr,ori,t);
   }
   
   //generate a sequential source
@@ -180,62 +180,20 @@ namespace nissa
   {
     source_time-=take_time();
     
-    if(inser==ORIGINAL) vector_copy(ori,original_source);
-    
-    spincolor *temp_ori=nissa_malloc("temp_ori",loc_vol+bord_vol,spincolor);
-    spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
-    
-#ifdef POINT_SOURCE_VERSION
-    for(int ic=0;ic<NCOL;ic++)
-#endif
-      for(int id=0;id<NDIRAC;id++)
-	{ 
-	  //read the source out
-#ifdef POINT_SOURCE_VERSION
-	  get_spincolor_from_su3spinspin(temp_ori,ori,id,ic);
-#else
-	  get_spincolor_from_colorspinspin(temp_ori,ori,id);
-#endif
-
-	  switch(inser)
-	    {
-	    case ORIGINAL:prop_multiply_with_gamma(temp_source,0,temp_ori);break;
-	    case SCALAR:prop_multiply_with_gamma(temp_source,0,temp_ori);break;
-	    case PSEUDO:prop_multiply_with_gamma(temp_source,5,temp_ori);break;
-	    case PHOTON:insert_external_source(temp_source,photon_field,temp_ori,t,r,loc_hadr_curr);break;
-	    case PHOTON_PHI:insert_external_source(temp_source,photon_phi,temp_ori,t,r,loc_hadr_curr);break;
-	    case PHOTON_ETA:insert_external_source(temp_source,photon_eta,temp_ori,t,r,loc_hadr_curr);break;
-	    case TADPOLE:
-	      if(!pure_wilson) insert_tm_tadpole(temp_source,conf,temp_ori,r,tadpole,-1);
-	      else             insert_wilson_tadpole(temp_source,conf,temp_ori,tadpole,-1);
-	      break;
-	      //case VECTOR:insert_external_source(temp_source,NULL,temp_ori,t,r,loc_pion_curr);break;
-	    }
-	  
-	  //put the output on place
-#ifdef POINT_SOURCE_VERSION
-	  put_spincolor_into_su3spinspin(source,temp_source,id,ic);
-#else
-	  put_spincolor_into_colorspinspin(source,temp_source,id);
-#endif
-	}
-    // switch(inser)
-    //   {
-    //   case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
-    //   case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
-    //   case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
-    //   case PHOTON:insert_external_source(source,photon_field,ori,t,r,loc_hadr_curr);break;
-    //   case PHOTON_PHI:insert_external_source(source,photon_phi,ori,t,r,loc_hadr_curr);break;
-    //   case PHOTON_ETA:insert_external_source(source,photon_eta,ori,t,r,loc_hadr_curr);break;
-    //   case TADPOLE:
-    // 	if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
-    // 	else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);
-    // 	break;
-    // 	//case VECTOR:insert_external_source(source,NULL,ori,t,r,loc_pion_curr);break;
-    //   }
-    
-    nissa_free(temp_source);
-    nissa_free(temp_ori);
+    switch(inser)
+      {
+      case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
+      case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
+      case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
+      case PHOTON:insert_external_source(source,photon_field,ori,t,r,loc_hadr_curr);break;
+      case PHOTON_PHI:insert_external_source(source,photon_phi,ori,t,r,loc_hadr_curr);break;
+      case PHOTON_ETA:insert_external_source(source,photon_eta,ori,t,r,loc_hadr_curr);break;
+      case TADPOLE:
+	if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
+	else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);
+	break;
+	//case VECTOR:insert_external_source(source,NULL,ori,t,r,loc_pion_curr);break;
+      }
     
     source_time+=take_time();
     nsource_tot++;
