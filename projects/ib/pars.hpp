@@ -12,7 +12,7 @@
  #define INIT_TO(VAL) =VAL
 #endif
 
-#define QUARK_BOUND_COND 1
+#define QUARK_BOUND_COND 0
 
 namespace nissa
 {

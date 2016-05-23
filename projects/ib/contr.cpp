@@ -226,8 +226,10 @@ namespace nissa
 				      int be1=Cg5.pos[al1],be=Cg5.pos[al];
 				      complex_prodassign_double(diquark_dir,w[RE]);
 				      complex_prodassign_double(diquark_exc,w[RE]);
-				      complex_summ_the_prod(loc_contr[ind_bar_contr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,0,t)],Q[ipb][ivol][b1][b][be1][be],diquark_dir);
-				      complex_summ_the_prod(loc_contr[ind_bar_contr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,1,t)],Q[ipb][ivol][b1][b][be1][be],diquark_exc);
+				      complex_summ_the_prod(loc_contr[ind_bar_contr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,0,t)],Q[ipb][ivol][b1][b][be1][be],
+							    diquark_dir);
+				      complex_summ_the_prod(loc_contr[ind_bar_contr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,1,t)],Q[ipb][ivol][b1][b][be1][be],
+							    diquark_exc);
 				    }
 			  }
 		      }
@@ -270,8 +272,8 @@ namespace nissa
 				       ism_sink,qmass[ima],qmass[imb],qmass[imc],ra,rb,rc,dir_exc);
 			for(int t=0;t<glb_size[0];t++)
 			  {
-			    //remove anti-periodic condition phase
-			    double arg=3*M_PI*t/glb_size[0];
+			    //remove border phase
+			    double arg=3*QUARK_BOUND_COND*M_PI*t/glb_size[0];
 			    complex phase={cos(arg),sin(arg)};
 			    
 			    //normalize for nsources and 1+g0
