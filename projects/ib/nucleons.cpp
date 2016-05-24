@@ -52,6 +52,9 @@ void init_simulation(char *path)
   set_bar_contr_list();
   set_mes_contr_list();
   mes_gamma_list.push_back(idirac_pair_t(5,5)); //P5P5
+  mes_gamma_list.push_back(idirac_pair_t(1,1)); //V1V1
+  mes_gamma_list.push_back(idirac_pair_t(2,2)); //V2V2
+  mes_gamma_list.push_back(idirac_pair_t(3,3)); //V3V3
   
   //allocate
   conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
