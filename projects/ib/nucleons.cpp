@@ -41,6 +41,7 @@ void init_simulation(char *path)
   read_photon_pars();
   read_seed_start_random();
   read_free_theory_flag();
+  read_corrections_to_compute();
   read_random_gauge_transform();
   read_nsources();
   read_ngauge_conf();

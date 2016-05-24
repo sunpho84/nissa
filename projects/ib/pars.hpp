@@ -94,6 +94,15 @@ namespace nissa
   inline void read_loc_muon_curr()
   {read_str_int("LocMuonCurr",&loc_muon_curr);}
   
+  //compute mass or/and QED corrections
+  EXTERN_PARS int compute_mass_corrections INIT_TO(true);
+  EXTERN_PARS int compute_QED_corrections INIT_TO(true);
+  inline void read_corrections_to_compute()
+  {
+    read_str_int("ComputeMassCorrections",&compute_mass_corrections);
+    read_str_int("ComputeQEDCorrections",&compute_QED_corrections);
+  }
+  
   //number of configurations
   inline void read_ngauge_conf()
   {read_str_int("NGaugeConf",&ngauge_conf);}

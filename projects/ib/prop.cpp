@@ -46,22 +46,31 @@ namespace nissa
   //set all the inversions
   void set_inversions()
   {
-    //add the propagators
+    //clear the list
     qprop_list.clear();
+    
+    //compute the unperturbed propagator
     PROP_0=add_qprop("PROP_0",'0',ORIGINAL,0);
-    PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
-    PROP_P=add_qprop("PROP_P",'P',PSEUDO,PROP_0);
-    PROP_T=add_qprop("PROP_T",'T',TADPOLE,PROP_0);
-    if(use_photon_field)
+    
+    //add mass correctiosn
+    if(compute_mass_corrections) PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
+    
+    //add QED corrections
+    if(compute_QED_corrections)
       {
-	PROP_PHOTON_A=PROP_PHOTON_B=add_qprop("PROP_PHOTON",'L',PHOTON,PROP_0);
-	PROP_PHOTON_AB=add_qprop("PROP_PHOTON2",'M',PHOTON,PROP_PHOTON_A);
-      }
-    else
-      {
-	PROP_PHOTON_A=add_qprop("PROP_ETA",'A',PHOTON_ETA,PROP_0);
-	PROP_PHOTON_B=add_qprop("PROP_PHI",'B',PHOTON_PHI,PROP_0);
-	PROP_PHOTON_AB=add_qprop("PROP_PHOTON_PHI_ETA",'C',PHOTON_PHI,PROP_PHOTON_A);
+	PROP_P=add_qprop("PROP_P",'P',PSEUDO,PROP_0);
+	PROP_T=add_qprop("PROP_T",'T',TADPOLE,PROP_0);
+	if(use_photon_field)
+	  {
+	    PROP_PHOTON_A=PROP_PHOTON_B=add_qprop("PROP_PHOTON",'L',PHOTON,PROP_0);
+	    PROP_PHOTON_AB=add_qprop("PROP_PHOTON2",'M',PHOTON,PROP_PHOTON_A);
+	  }
+	else
+	  {
+	    PROP_PHOTON_A=add_qprop("PROP_ETA",'A',PHOTON_ETA,PROP_0);
+	    PROP_PHOTON_B=add_qprop("PROP_PHI",'B',PHOTON_PHI,PROP_0);
+	    PROP_PHOTON_AB=add_qprop("PROP_PHOTON_PHI_ETA",'C',PHOTON_PHI,PROP_PHOTON_A);
+	  }
       }
   }
   
