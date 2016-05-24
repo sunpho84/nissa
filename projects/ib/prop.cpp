@@ -100,12 +100,13 @@ namespace nissa
   }
   
   //invert on top of a source, putting all needed for the appropriate quark
-  void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
+  void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,const char ins,bool write_flag,int isource)
   {
     spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
     spincolor *temp_solution=nissa_malloc("temp_solution",loc_vol+bord_vol,spincolor);
     
     //these are the ways in which Dirac operator rotates - propagator is opposite, see below
+    int icd=0;
 #ifdef POINT_SOURCE_VERSION
     for(int ic=0;ic<NCOL;ic++)
 #endif
@@ -118,14 +119,28 @@ namespace nissa
 	  get_spincolor_from_colorspinspin(temp_source,in,id);
 #endif
 
-	  get_qprop(temp_solution,temp_source,imass,r);
+	  //combine the filename
+	  std::string path=combine("%s/source%d_prop%c_im%d_r%d_icd%d",outfolder,isource,ins,imass,r,icd++);
+	  
+	  //if the prop exists read it
+	  if(file_exists(path)) read_real_vector(temp_solution,path,"prop");
+	  else
+	    {
+	      //otherwise compute it and possibly store it
+	      get_qprop(temp_solution,temp_source,imass,r);
+	      if(write_flag) write_double_vector(path,temp_solution,64,"prop");
+	  
+#ifdef POINT_SOURCE_VERSION
+	      master_printf("  finished the inversion dirac index %d, color %d\n",id,ic);
+#else
+	      master_printf("  finished the inversion dirac index %d\n",id);
+#endif
+	    }
 	  
 	  //put the output on place
 #ifdef POINT_SOURCE_VERSION
-	  master_printf("  finished the inversion dirac index %d, color %d\n",id,ic);
 	  put_spincolor_into_su3spinspin(out,temp_solution,id,ic);
 #else
-	  master_printf("  finished the inversion dirac index %d\n",id);
 	  put_spincolor_into_colorspinspin(out,temp_solution,id);
 #endif
 	}
@@ -209,22 +224,22 @@ namespace nissa
   }
   
   //generate all the quark propagators
-  void generate_quark_propagators()
+  void generate_quark_propagators(int irand_source)
   {
     for(int ip=0;ip<nqprop_kind();ip++)
       {
 	insertion_t insertion=qprop_list[ip].insertion;
-	int isource=qprop_list[ip].isource;
+	int source_id=qprop_list[ip].isource;
 	master_printf("Generating propagtor of type %s inserting %s on source %s\n",qprop_list[ip].name.c_str(),ins_name[insertion],
-		      qprop_list[isource].name.c_str());
+		      qprop_list[source_id].name.c_str());
 	for(int imass=0;imass<nqmass;imass++)
 	  for(int r=0;r<nr;r++)
 	    {
 	      if(!pure_wilson) master_printf(" mass[%d]=%lg, r=%d\n",imass,qmass[imass],r);
 	      else             master_printf(" kappa[%d]=%lg\n",imass,qkappa[imass]);
 	      
-	      generate_source(insertion,r,Q[iqprop(imass,isource,r)]);
-	      get_qprop(Q[iqprop(imass,ip,r)],source,imass,r);
+	      generate_source(insertion,r,Q[iqprop(imass,source_id,r)]);
+	      get_qprop(Q[iqprop(imass,ip,r)],source,imass,r,qprop_list[ip].shortname,(ip==0)&&store_prop0,irand_source);
 	    }
       }
   }

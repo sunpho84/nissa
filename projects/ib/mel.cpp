@@ -442,7 +442,7 @@ void in_main(int narg,char **arg)
 	  generate_original_source();
 	  
 	  generate_lepton_propagators();
-	  generate_quark_propagators();
+	  generate_quark_propagators(isource);
 	  
 	  compute_meslep_contr();
 	  compute_mes_contr();

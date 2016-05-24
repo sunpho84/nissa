@@ -41,8 +41,9 @@ void init_simulation(char *path)
   read_photon_pars();
   read_seed_start_random();
   read_free_theory_flag();
-  read_corrections_to_compute();
   read_random_gauge_transform();
+  read_corrections_to_compute();
+  read_store_prop0_flag();
   read_nsources();
   read_ngauge_conf();
   
@@ -672,7 +673,7 @@ void in_main(int narg,char **arg)
 	  gaussian_smearing(original_source,original_source,ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
 	  smear_oper_time+=take_time();
 	  //compute prop and contrelators
-	  generate_quark_propagators();
+	  generate_quark_propagators(isource);
 	  compute_bar_contr();
 	  compute_mes_contr();
 	}

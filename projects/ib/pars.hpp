@@ -61,6 +61,11 @@ namespace nissa
     start_loc_rnd_gen(seed);
   }
   
+  //flag to store propagator0
+  EXTERN_PARS int store_prop0 INIT_TO(false);
+  inline void read_store_prop0_flag()
+  {read_str_int("StoreProp0",&store_prop0);}
+  
   //flag to simulate in the free theory
   EXTERN_PARS int free_theory INIT_TO(false);
   inline void read_free_theory_flag()
