@@ -206,7 +206,7 @@ namespace nissa
       {
 	insertion_t insertion=qprop_list[ip].insertion;
 	int isource=qprop_list[ip].isource;
-	master_printf("Generating propagtor of type %s inserting %s on source %s\n",qprop_list[ip].name.c_str(),qprop_list[ip].name.c_str(),
+	master_printf("Generating propagtor of type %s inserting %s on source %s\n",qprop_list[ip].name.c_str(),ins_name[insertion],
 		      qprop_list[isource].name.c_str());
 	for(int imass=0;imass<nqmass;imass++)
 	  for(int r=0;r<nr;r++)
