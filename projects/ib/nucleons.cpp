@@ -96,6 +96,7 @@ void close()
   master_printf("\n");
   master_printf("Inverted %d configurations.\n",nanalyzed_conf);
   master_printf("Total time: %g, of which:\n",tot_prog_time);
+  master_printf(" - %02.2f%s to load %d configurations (%2.2gs avg)\n",conf_load_time/tot_prog_time*100,"%",nconf_load,conf_load_time/nconf_load);
   master_printf(" - %02.2f%s to prepare %d photon stochastic propagators (%2.2gs avg)\n",photon_prop_time/tot_prog_time*100,"%",nphoton_prop_tot,photon_prop_time/nphoton_prop_tot);
   master_printf(" - %02.2f%s to prepare %d generalized sources (%2.2gs avg)\n",source_time/tot_prog_time*100,"%",nsource_tot,source_time/nsource_tot);
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);

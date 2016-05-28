@@ -1,0 +1,29 @@
+L 4
+T 8
+
+GaugeObsFlag 1
+GaugeObsPath gauge_obs
+
+MaxNConfs 10
+Seed 199
+GaugeAction Wilson
+Beta 4.3
+
+UseHMC 1
+HmcTrajLength 1
+NmdSteps 10
+
+UseFacc 1
+Kappa 0
+Residue 1e-15
+
+ConfPath conf
+StoreConfPathTempl conf.%d
+StoreConfEach 1
+StoreRunningTempConf 1
+
+StartConfCond COLD
+BoundaryCond PERIODIC
+
+MeasureTopology 0
+MeasXCorr 0

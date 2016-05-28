@@ -24,10 +24,14 @@ namespace nissa
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {
+    GET_THREAD_ID();
+    
     //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
     if(!free_theory)
       {
+	START_TIMING(conf_load_time,nconf_load);
 	read_ildg_gauge_conf(conf,conf_path);
+	STOP_TIMING(conf_load_time);
 	master_printf("plaq: %+016.016g\n",global_plaquette_lx_conf(conf));
       }
     else generate_cold_lx_conf(conf);

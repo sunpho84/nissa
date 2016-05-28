@@ -16,6 +16,9 @@ namespace nissa
   EXTERN_CONF int nanalyzed_conf;
   EXTERN_CONF double tot_prog_time,wall_time;
   
+  EXTERN_CONF double conf_load_time;
+  EXTERN_CONF int nconf_load;
+  
   EXTERN_CONF char conf_path[1024],outfolder[1024];
   EXTERN_CONF int ngauge_conf;
   EXTERN_CONF quad_su3 *conf INIT_TO(NULL);
