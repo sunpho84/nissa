@@ -202,12 +202,6 @@ namespace nissa
     out[1]=0;
   }
   
-  //return a Z3 complex
-  void rnd_get_Z3(complex out,rnd_gen *gen)
-  {
-    double ph=M_PI*(int)rnd_get_unif(gen,0,3);
-    sincos(ph,out+IM,out+RE);
-  }
   //return a Z4 complex
   void rnd_get_Z4(complex out,rnd_gen *gen)
   {
@@ -216,7 +210,7 @@ namespace nissa
   }
   
   //return a ZN complex
-  void rng_get_ZN(complex out,rnd_gen *gen,int N)
+  void rnd_get_ZN(complex out,rnd_gen *gen,int N)
   {complex_iexp(out,2*M_PI*(int)rnd_get_unif(gen,0,N)/N);}
   
   //return a gaussian double

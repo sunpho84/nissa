@@ -54,7 +54,9 @@ namespace nissa
   void generate_random_coord(coords c);
   void rnd_get_Z2(complex out,rnd_gen *gen);
   void rnd_get_Z4(complex out,rnd_gen *gen);
-  void rng_get_ZN(complex out,rnd_gen *gen,int N);
+  void rnd_get_ZN(complex out,rnd_gen *gen,int N);
+  inline void rnd_get_Z3(complex out,rnd_gen *gen)
+  {rnd_get_ZN(out,gen,3);}
   double rnd_get_gauss_double(rnd_gen *gen,double ave=0,double sig=1);
   void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig);
   void start_glb_rnd_gen(char *text);

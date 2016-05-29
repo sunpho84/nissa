@@ -655,6 +655,10 @@ void in_main(int narg,char **arg)
   // for(int i=0;i<2000;i++) check_gen();
   //MPI_Finalize();
   //exit(0);
+
+  complex c;
+  rnd_get_Z3(c,loc_rnd_gen);
+  master_printf("%lg %lg\n",c[RE],c[IM]);
   
   //loop over the configs
   int iconf=0;
