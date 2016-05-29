@@ -202,6 +202,12 @@ namespace nissa
     out[1]=0;
   }
   
+  //return a Z3 complex
+  void rnd_get_Z3(complex out,rnd_gen *gen)
+  {
+    double ph=M_PI*(int)rnd_get_unif(gen,0,3);
+    sincos(ph,out+IM,out+RE);
+  }
   //return a Z4 complex
   void rnd_get_Z4(complex out,rnd_gen *gen)
   {
@@ -248,6 +254,7 @@ namespace nissa
       case RND_ALL_MINUS_ONE: out[0]=-1;                    out[1]=0;break;
       case RND_UNIF:          out[0]=rnd_get_unif(gen,0,1); out[1]=0;break;
       case RND_Z2:            rnd_get_Z2(out,gen);                   break;
+      case RND_Z3:            rnd_get_Z3(out,gen);                   break;
       case RND_Z4:            rnd_get_Z4(out,gen);                   break;
       case RND_GAUSS:         rnd_get_gauss_complex(out,gen,z,1);    break;
       }
@@ -283,22 +290,14 @@ namespace nissa
     //reset
     vector_reset(source);
     
-    //compute normalization norm: spat vol if twall>=0, glb_vol else
-    int norm2=glb_vol;
-    if(twall>=0) norm2/=glb_size[0];
-    double inv_sqrt_norm2=1.0/sqrt(norm2);
-    
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
 	{
-	  //generate the id_sink==id_source==0 entry
 	  comp_get_rnd(source[ivol][0][0][0][0],&(loc_rnd_gen[ivol]),rtype);
-	  complex_prod_double(source[ivol][0][0][0][0],source[ivol][0][0][0][0],inv_sqrt_norm2);
-	  //copy the other three dirac indices and/or color indices
-	  for(int c=0;c<3;c++)
-	    for(int d=0;d<4;d++)
-	      if(c+d>0) 
+	  for(int c=0;c<NCOL;c++)
+	    for(int d=0;d<NDIRAC;d++)
+	      if(c||d)
 		memcpy(source[ivol][c][c][d][d],source[ivol][0][0][0][0],sizeof(complex));
 	  }
     
@@ -312,21 +311,13 @@ namespace nissa
     //reset
     vector_reset(source);
     
-    //compute normalization norm: spat vol if twall>=0, glb_vol else
-    int norm2=glb_vol;
-    if(twall>=0) norm2/=glb_size[0];
-    double inv_sqrt_norm2=1.0/sqrt(norm2);
-    
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
-	for(int ic=0;ic<3;ic++)
+	for(int ic=0;ic<NCOL;ic++)
 	  {
-	    //generate the id_sink==id_source==0 entry
 	    comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
-	    complex_prod_double(source[ivol][ic][0][0],source[ivol][ic][0][0],inv_sqrt_norm2);
-	    //copy the other three dirac indices
-	    for(int d=1;d<4;d++)
+	    for(int d=1;d<NDIRAC;d++)
 	      memcpy(source[ivol][ic][d][d],source[ivol][ic][0][0],sizeof(complex));
 	  }
     
@@ -337,14 +328,13 @@ namespace nissa
   //generate an undiluted vector according to the passed type
   THREADABLE_FUNCTION_3ARG(generate_undiluted_source, spincolor*,source, enum rnd_t,rtype, int,twall)
   {
-    //reset
     vector_reset(source);
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
-	for(int id=0;id<4;id++)
-	  for(int ic=0;ic<3;ic++)
+	for(int id=0;id<NDIRAC;id++)
+	  for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
     
     set_borders_invalid(source);
@@ -381,7 +371,7 @@ namespace nissa
       {
 	int ilx=loclx_of_loceo[par][ieo];
 	if(twall<0||glb_coord_of_loclx[ilx][dir]==twall)
-	  for(int id=0;id<4;id++)
+	  for(int id=0;id<NDIRAC;id++)
 	    for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ieo][id][ic],&(loc_rnd_gen[ilx]),rtype);
       }

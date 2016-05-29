@@ -112,6 +112,11 @@ namespace nissa
   inline void read_ngauge_conf()
   {read_str_int("NGaugeConf",&ngauge_conf);}
   
+  //stochastic sources
+  EXTERN_PARS int stoch_source INIT_TO(0);
+  inline void read_stoch_source()
+  {read_str_int("StochSource",&stoch_source);}
+  
   //number of sources
   EXTERN_PARS int nsources INIT_TO(1);
   inline void read_nsources()

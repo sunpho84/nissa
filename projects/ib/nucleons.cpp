@@ -44,6 +44,7 @@ void init_simulation(char *path)
   read_random_gauge_transform();
   read_corrections_to_compute();
   read_store_prop0_flag();
+  read_stoch_source();
   read_nsources();
   read_ngauge_conf();
   

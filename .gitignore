@@ -2,6 +2,7 @@
 aclocal.m4
 autom4te.cache/
 build_bgq_emu/
+build_bgq_emu_opt/
 build_opt/
 build_pc
 compile_commands.json
@@ -18,6 +19,8 @@ GPATH
 GRTAGS
 GSYMS
 GTAGS
+Makefile
+Makefile~
 Makefile.in
 src/config.hpp.in
 src/config.hpp.in~
