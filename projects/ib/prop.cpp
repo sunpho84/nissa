@@ -157,7 +157,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) origin_coord[mu]=0;
     
 #ifdef POINT_SOURCE_VERSION
-    if(stoch_source)
+    if(!stoch_source)
       //master_printf("Source position: t=%d x=%d y=%d z=%d\n",origin_coord[0],origin_coord[1],origin_coord[2],origin_coord[3]);
       generate_delta_source(original_source,origin_coord);
     else
