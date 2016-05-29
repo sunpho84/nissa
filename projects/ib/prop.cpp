@@ -161,7 +161,7 @@ namespace nissa
       //master_printf("Source position: t=%d x=%d y=%d z=%d\n",origin_coord[0],origin_coord[1],origin_coord[2],origin_coord[3]);
       generate_delta_source(original_source,origin_coord);
     else
-      generate_colorspindiluted_source(original_source,RND_Z3,original_coord[0]);
+      generate_colorspindiluted_source(original_source,RND_Z3,origin_coord[0]);
 #else
     generate_spindiluted_source(original_source,rnd_type_map[noise_type],origin_coord[0]);
 #endif
