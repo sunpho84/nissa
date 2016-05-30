@@ -1,6 +1,9 @@
 #ifndef _CG_INVERT_TMCLOVQ2_64_HPP
 #define _CG_INVERT_TMCLOVQ2_64_HPP
 
+#include "base/vectors.hpp"
+#include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_vir.hpp"
 #include "new_types/su3.hpp"
 
 #include "cg_64_invert_tmclovQ2_bgq.hpp"
@@ -14,15 +17,18 @@ namespace nissa
     //bufferize and remap
     bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
     lx_conf_remap_to_virlx(bi_conf,conf);
+    bi_opt_as2t_su3 *bi_cl=nissa_malloc("bi_cl",loc_volh,bi_opt_as2t_su3);
+    lx_as2t_su3_remap_to_opt_virlx(bi_cl,csw/2,Pmunu);
     bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh,bi_spincolor);
     lx_spincolor_remap_to_virlx(bi_source,source);
     bi_spincolor *bi_sol=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
     
-    inv_tmQ2_m2_cgm_bgq(bi_sol,bi_conf,kappa,m2,nmass,niter_max,req_res,bi_source);
+    inv_tmclovQ2_cg_64_bgq(bi_sol,NULL,bi_conf,kappa,bi_cl,mu,niter,residue,bi_source);
     
     //unmap and free
     virlx_spincolor_remap_to_lx(sol,bi_sol);
     nissa_free(bi_sol);
+    nissa_free(bi_cl);
     nissa_free(bi_source);
     nissa_free(bi_conf);
 #else
