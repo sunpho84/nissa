@@ -266,7 +266,8 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
 	inverters/twisted_mass/tm_frontends.cpp \
 	inverters/tmclov/cg_invert_tmclovQ2.cpp \
-	inverters/tmclov/cg_64_invert_tmclovQ2.cpp \
+	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.cpp \
+	inverters/tmclov/cg_64_invert_tmclovQ2_portable.cpp \
 	inverters/tmclov/cg_128_invert_tmclovQ2.cpp \
 	inverters/tmclov/cgm_invert_tmclovQ2.cpp \
 	inverters/tmclov/tmclov_frontends.cpp \

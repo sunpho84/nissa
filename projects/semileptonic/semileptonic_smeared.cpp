@@ -715,9 +715,9 @@ void calculate_all_S0(int ism_lev_so)
       
       //loop over the source dirac index
 #ifdef POINT_SOURCE_VERSION
-      for(int ic=0;ic<3;ic++)
+      for(int ic=0;ic<NCOL;ic++)
 #endif
-	for(int id=0;id<4;id++)
+	for(int id=0;id<NDIRAC;id++)
 	  { 
 	    //put the g5
 #ifdef POINT_SOURCE_VERSION
@@ -725,7 +725,7 @@ void calculate_all_S0(int ism_lev_so)
 #else
 	    get_spincolor_from_colorspinspin(source,original_source,id);
 #endif
-	    //add gamma5 apart if using cg or tm 
+	    //add gamma5 apart if using cg or tm
 	    if(!Wclov_tm||use_cgm_S0||(Wclov_tm&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma+5,source);
 	    
 	    //if needed apply nabla
