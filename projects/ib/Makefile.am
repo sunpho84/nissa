@@ -5,6 +5,7 @@ AUTOMAKE_OPTIONS=subdir-objects
 LDADD=$(top_builddir)/lib/libnissa.a
 
 bin_PROGRAMS= \
+	$(top_builddir)/bin/checks \
 	$(top_builddir)/bin/disco \
 	$(top_builddir)/bin/mel \
 	$(top_builddir)/bin/mel_point_source \
@@ -37,3 +38,7 @@ __top_builddir__bin_nucleons_LDFLAGS=$(LDFLAGS)
 __top_builddir__bin_test_prop_SOURCES=test_prop.cpp $(common_sources)
 __top_builddir__bin_test_prop_LDADD=$(LDADD)
 __top_builddir__bin_test_prop_LDFLAGS=$(LDFLAGS)
+
+__top_builddir__bin_checks_SOURCES=checks.cpp $(common_sources)
+__top_builddir__bin_checks_LDADD=$(LDADD)
+__top_builddir__bin_checks_LDFLAGS=$(LDFLAGS)
