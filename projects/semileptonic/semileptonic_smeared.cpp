@@ -121,7 +121,7 @@ int ithetaS0_min,ithetaS0_max;
 //cgm inverter parameters
 double *stop_res_S0;
 double *stop_res_S1;
-int niter_max=100000;
+int niter_max=1000000;
 
 //contraction method
 int use_new_contraction_layout;
