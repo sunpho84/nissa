@@ -1467,7 +1467,7 @@ void in_main(int narg,char **arg)
 		for(int sm_lev_se=0;sm_lev_se<nsm_lev_se;sm_lev_se++)
 		  {
 		    calculate_all_S1(ispec,sm_lev_se);
-		    //check_two_points(ispec,sm_lev_so,sm_lev_se);
+		    check_two_points(ispec,sm_lev_so,sm_lev_se);
 		    calculate_all_3pts(ispec,sm_lev_so,sm_lev_se);
 		  }
 	      }
