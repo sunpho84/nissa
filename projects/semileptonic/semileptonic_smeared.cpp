@@ -9,7 +9,7 @@ using namespace nissa;
 
 /*
 
-  Program to compute two and three points correlation functions 
+  Program to compute two and three points correlation functions
   relevant for semileptonic decays.
   
   Nomenclature
@@ -46,7 +46,7 @@ using namespace nissa;
    NChContrThreePoints 0
   
   If specified, the program computes also the 2 points correlations funcions with derivative
-  operator on the source. It is possible to spcify to compute derivative-source propagator 
+  operator on the source. It is possible to spcify to compute derivative-source propagator
   only for a subset of masses: the restriction is imposed to Q1.
   
   The list of configurations must be specified in the format:
@@ -55,7 +55,7 @@ using namespace nissa;
   The output folder must *not* be present and will be created by the program.
   If the directory is present, the configuration will not be analyzed.
   
-  The program will run up to finish the list of configurations, or when 
+  The program will run up to finish the list of configurations, or when
   the WallTime (in seconds) is passed.
   
 */
