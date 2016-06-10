@@ -98,14 +98,14 @@ namespace nissa
 		if(er_jt==true) it->second.erase(jt);
 	      }
 	    while(er_jt);
-	
+	    
 	    //check if to erease it
 	    if(it->second.size()==0) er_it=true;
-
+	    
 	    //if not ereasing, increase it
 	    if(!er_it) it++;
 	  }
-
+	
 	//if erasing, erase it
 	if(er_it) this->erase(it);
       }
@@ -255,7 +255,7 @@ namespace nissa
     return a;
   }
   
-  //prodassign with double 
+  //prodassign with double
   two_pts_comp_t operator*=(two_pts_comp_t &a,double b)
   {
     for(two_pts_comp_t::iterator it=a.begin();it!=a.end();it++)
@@ -267,7 +267,7 @@ namespace nissa
     return a;
   }
   
-  //divassign with double 
+  //divassign with double
   two_pts_comp_t operator/=(two_pts_comp_t &a,double b)
   {
     for(two_pts_comp_t::iterator it=a.begin();it!=a.end();it++)
