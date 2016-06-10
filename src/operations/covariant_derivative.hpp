@@ -28,6 +28,7 @@ namespace nissa
   void insert_wilson_external_source(colorspinspin *out,quad_su3 *conf,spin1field *curr,colorspinspin *in,int t);
   void insert_wilson_external_source(su3spinspin *out,quad_su3 *conf,spin1field *curr,su3spinspin *in,int t);
   
+  void prop_multiply_with_gamma(spincolor *out,int ig,spincolor *in,int it=-1);
   void prop_multiply_with_gamma(colorspinspin *out,int ig,colorspinspin *in,int it=-1);
   void prop_multiply_with_gamma(su3spinspin *out,int ig,su3spinspin *in,int it=-1);
 }
