@@ -6,31 +6,29 @@
 namespace nissa
 {
   //allocate source
-  void allocate_source()
-  {
-    original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
-    source=nissa_malloc("source",loc_vol,PROP_TYPE);
-  }
+  void allocate_source(){source=nissa_malloc("source",loc_vol,spincolor);}
   
   //free the source
-  void free_source()
-  {
-    nissa_free(source);
-    nissa_free(original_source);
-  }
+  void free_source(){nissa_free(source);}
   
   ////////////////////////////////////////////// quark propagator /////////////////////////////////////////////
   
   //return appropriate propagator
-  int iqprop(int imass,int ip,int r)
-  {return r+nr*(imass+nqmass*ip);}
+  int iqprop(int imass,int ip,int r,int is,int ic)
+  {
+    int c;
+    if(ip==ORI_SOURCE) c=0;
+    else c=1+r+nr*(imass+nqmass*ip);
+    
+    return ic+nso_col*(is+nso_spi*c);
+  }
   
   //allocate all prop
   void allocate_Q_prop()
   {
-    nqprop=iqprop(nqmass-1,nqprop_kind()-1,nr-1)+1;
-    Q=nissa_malloc("Q*",nqprop,PROP_TYPE*);
-    for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",loc_vol+bord_vol,PROP_TYPE);
+    nqprop=iqprop(nqmass-1,nqprop_kind()-1,nr-1,nso_spi-1,nso_col)+1;
+    Q=nissa_malloc("Q*",nqprop,spincolor*);
+    for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",loc_vol+bord_vol,spincolor);
   }
   
   //deallocate all prop
@@ -50,7 +48,7 @@ namespace nissa
     qprop_list.clear();
     
     //compute the unperturbed propagator
-    PROP_0=add_qprop("PROP_0",'0',ORIGINAL,0);
+    PROP_0=add_qprop("PROP_0",'0',ORIGINAL,ORI_SOURCE);
     
     //add mass correctiosn
     if(compute_mass_corrections) PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
@@ -91,83 +89,58 @@ namespace nissa
     
     //invert
     START_TIMING(inv_time,ninv_tot);
-    if(!pure_wilson) inv_tmD_cg_eoprec_eos(out,NULL,conf,kappa,tau3[r]*qmass[imass],100000,residue[imass],in);
-    else             inv_tmD_cg_eoprec_eos(out,NULL,conf,qkappa[imass],0,100000,residue[imass],in);
+    if(!pure_wilson) inv_tmD_cg_eoprec_eos(out,NULL,conf,kappa,tau3[r]*qmass[imass],1000000,residue[imass],in);
+    else             inv_tmD_cg_eoprec_eos(out,NULL,conf,qkappa[imass],0,1000000,residue[imass],in);
     STOP_TIMING(inv_time);
     
     //rotate the sink index
     if(!pure_wilson) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
   }
   
-  //invert on top of a source, putting all needed for the appropriate quark
-  void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,const char ins,bool write_flag,int isource)
-  {
-    spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
-    spincolor *temp_solution=nissa_malloc("temp_solution",loc_vol+bord_vol,spincolor);
-    
-    //these are the ways in which Dirac operator rotates - propagator is opposite, see below
-    int icd=0;
-#ifdef POINT_SOURCE_VERSION
-    for(int ic=0;ic<NCOL;ic++)
-#endif
-      for(int id=0;id<NDIRAC;id++)
-	{ 
-	  //read the source out
-#ifdef POINT_SOURCE_VERSION
-	  get_spincolor_from_su3spinspin(temp_source,in,id,ic);
-#else
-	  get_spincolor_from_colorspinspin(temp_source,in,id);
-#endif
-
-	  //combine the filename
-	  std::string path=combine("%s/source%d_prop%c_im%d_r%d_icd%d",outfolder,isource,ins,imass,r,icd++);
-	  
-	  //if the prop exists read it
-	  if(file_exists(path)) read_real_vector(temp_solution,path,"prop");
-	  else
-	    {
-	      //otherwise compute it and possibly store it
-	      get_qprop(temp_solution,temp_source,imass,r);
-	      if(write_flag) write_double_vector(path,temp_solution,64,"prop");
-	  
-#ifdef POINT_SOURCE_VERSION
-	      master_printf("  finished the inversion dirac index %d, color %d\n",id,ic);
-#else
-	      master_printf("  finished the inversion dirac index %d\n",id);
-#endif
-	    }
-	  
-	  //put the output on place
-#ifdef POINT_SOURCE_VERSION
-	  put_spincolor_into_su3spinspin(out,temp_solution,id,ic);
-#else
-	  put_spincolor_into_colorspinspin(out,temp_solution,id);
-#endif
-	}
-    
-    nissa_free(temp_source);
-    nissa_free(temp_solution);
-  }
-  
   //generate a source, wither a wall or a point in the origin
-  void generate_original_source()
+  THREADABLE_FUNCTION_0ARG(generate_original_source)
   {
-    //reset the real source position
-    coords origin_coord;
-    for(int mu=0;mu<NDIM;mu++) origin_coord[mu]=0;
+    GET_THREAD_ID();
     
-#ifdef POINT_SOURCE_VERSION
-    if(!stoch_source)
-      //master_printf("Source position: t=%d x=%d y=%d z=%d\n",origin_coord[0],origin_coord[1],origin_coord[2],origin_coord[3]);
-      generate_delta_source(original_source,origin_coord);
-    else generate_colorspindiluted_source(original_source,RND_Z3,origin_coord[0]);
-#else
-    generate_spindiluted_source(original_source,rnd_type_map[noise_type],origin_coord[0]);
-#endif
+    //consistency check
+    if(!stoch_source&&(!diluted_spi_source||!diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
+    
+    //reset all to begin
+    vector_reset(source);
+    for(int id_so=0;id_so<nso_spi;id_so++)
+      for(int ic_so=0;ic_so<nso_col;ic_so++)
+	vector_reset(Q[iqprop(0,ORI_SOURCE,0,id_so,ic_so)]);
+        
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	//fill colour and spin index 0
+	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
+	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
+	    {
+	      complex &c=source[ivol][id_si][ic_si];
+	      complex_put_to_zero(c);
+	      if(stoch_source && glb_coord_of_loclx[ivol][0]==0) comp_get_rnd(c,&(loc_rnd_gen[ivol]),rnd_type_map[noise_type]);
+	      else if(glblx_of_loclx[ivol]==0) complex_put_to_real(c,1);
+	  }
+	
+	//fill other spin indices
+	for(int id_so=0;id_so<nso_spi;id_so++)
+	  for(int ic_so=0;ic_so<nso_col;ic_so++)
+	    for(int id_si=0;id_si<NDIRAC;id_si++)
+	      for(int ic_si=0;ic_si<NCOL;ic_si++)
+		  if((!diluted_spi_source||(id_so==id_si))&&(!diluted_col_source||(ic_so==ic_si)))
+		    complex_copy(Q[iqprop(0,ORI_SOURCE,0,id_so,ic_so)][ivol][id_si][ic_si],source[ivol][diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
+      }
+    
+    //set borders invalid
+    for(int id_so=0;id_so<nso_spi;id_so++)
+      for(int ic_so=0;ic_so<nso_col;ic_so++)
+	set_borders_invalid(Q[iqprop(0,ORI_SOURCE,0,id_so,ic_so)]);
   }
+  THREADABLE_FUNCTION_END
   
   //insert the photon on the source side
-  void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,coords dirs,PROP_TYPE *in,int t)
+  void insert_external_loc_source(spincolor *out,spin1field *curr,coords dirs,spincolor *in,int t)
   {
     GET_THREAD_ID();
     
@@ -180,20 +153,20 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  if(t==-1||glb_coord_of_loclx[ivol][0]==t)
 	    {
-	      PROP_TYPE temp1,temp2;
-	      NAME2(unsafe_dirac_prod,PROP_TYPE)(temp1,base_gamma+map_mu[mu],in[ivol]);
-	      NAME3(unsafe,PROP_TYPE,prod_complex)(temp2,temp1,curr[ivol][mu]);
-	      NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,1);
+	      spincolor temp1,temp2;
+	      unsafe_dirac_prod_spincolor(temp1,base_gamma+map_mu[mu],in[ivol]);
+	      unsafe_spincolor_prod_complex(temp2,temp1,curr[ivol][mu]);
+	      spincolor_summ_the_prod_idouble(out[ivol],temp2,1);
 	    }
     
     set_borders_invalid(out);
   }
   
   //insert the photon on the source
-  void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,int t)
+  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t)
   {insert_external_loc_source(out,curr,all_dirs,in,t);}
   
-  void insert_external_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *ori,int t,int r,int loc)
+  void insert_external_source(spincolor *out,spin1field *curr,spincolor *ori,int t,int r,int loc)
   {
     if(loc) insert_external_loc_source(source,curr,ori,t);
     else
@@ -202,13 +175,13 @@ namespace nissa
   }
   
   //generate a sequential source
-  void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t)
+  void generate_source(insertion_t inser,int r,spincolor *ori,int t)
   {
     source_time-=take_time();
     
     switch(inser)
       {
-      case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
+      case ORIGINAL:prop_multiply_with_gamma(source,0,ori);break;
       case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
       case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
       case PHOTON:insert_external_source(source,photon_field,ori,t,r,loc_hadr_curr);break;
@@ -233,15 +206,38 @@ namespace nissa
 	insertion_t insertion=qprop_list[ip].insertion;
 	int source_id=qprop_list[ip].isource;
 	master_printf("Generating propagtor of type %s inserting %s on source %s\n",qprop_list[ip].name.c_str(),ins_name[insertion],
-		      qprop_list[source_id].name.c_str());
+		      (source_id==-1)?"ORIGINAL":qprop_list[source_id].name.c_str());
 	for(int imass=0;imass<nqmass;imass++)
 	  for(int r=0;r<nr;r++)
 	    {
 	      if(!pure_wilson) master_printf(" mass[%d]=%lg, r=%d\n",imass,qmass[imass],r);
 	      else             master_printf(" kappa[%d]=%lg\n",imass,qkappa[imass]);
 	      
-	      generate_source(insertion,r,Q[iqprop(imass,source_id,r)]);
-	      get_qprop(Q[iqprop(imass,ip,r)],source,imass,r,qprop_list[ip].shortname,(ip==0)&&store_prop0,irand_source);
+	      for(int id_so=0;id_so<nso_spi;id_so++)
+		for(int ic_so=0;ic_so<nso_col;ic_so++)
+		  {
+		    
+		    generate_source(insertion,r,Q[iqprop(imass,source_id,r,id_so,ic_so)]);
+		    spincolor *sol=Q[iqprop(imass,ip,r,id_so,ic_so)];
+		    
+		    //combine the filename
+		    std::string path=combine("%s/source%d_prop%c_im%d_r%d_idso%d_icso%d",outfolder,irand_source,qprop_list[ip].shortname,imass,r,id_so,ic_so);
+		    
+		    //if the prop exists read it
+		    if(file_exists(path))
+		      {
+			master_printf("  loading the inversion dirac index %d, color %d\n",id_so,ic_so);
+			read_real_vector(sol,path,"prop");
+		      }
+		    else
+		      {
+			//otherwise compute it and possibly store it
+			get_qprop(sol,source,imass,r);
+			if(ip==PROP_0 && store_prop0) write_double_vector(path,sol,64,"prop");
+			
+			master_printf("  finished the inversion dirac index %d, color %d\n",id_so,ic_so);
+		      }
+		  }
 	    }
       }
   }

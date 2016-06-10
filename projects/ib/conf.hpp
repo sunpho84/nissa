@@ -34,6 +34,7 @@ namespace nissa
   int read_conf_parameters(int &iconf,void(*skip_conf)(),bool(*external_condition)());
   bool finish_file_present();
   void mark_finished();
+  void print_statistics();
 }
 
 #undef EXTERN_CONF

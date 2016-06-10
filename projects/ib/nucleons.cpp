@@ -50,6 +50,8 @@ void init_simulation(char *path)
   
   //set how to compute propagators, how to make bars and how to
   //combine the different kind of propagators
+  set_diluted_spin(true);
+  set_diluted_color(true);
   set_inversions();
   set_Cg5();
   set_bar_contr_list();
@@ -94,17 +96,7 @@ void skip_conf()
 //close deallocating everything
 void close()
 {
-  master_printf("\n");
-  master_printf("Inverted %d configurations.\n",nanalyzed_conf);
-  master_printf("Total time: %g, of which:\n",tot_prog_time);
-  master_printf(" - %02.2f%s to load %d configurations (%2.2gs avg)\n",conf_load_time/tot_prog_time*100,"%",nconf_load,conf_load_time/nconf_load);
-  master_printf(" - %02.2f%s to prepare %d photon stochastic propagators (%2.2gs avg)\n",photon_prop_time/tot_prog_time*100,"%",nphoton_prop_tot,photon_prop_time/nphoton_prop_tot);
-  master_printf(" - %02.2f%s to prepare %d generalized sources (%2.2gs avg)\n",source_time/tot_prog_time*100,"%",nsource_tot,source_time/nsource_tot);
-  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
-  master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to perform %d baryonic contractions (%2.2gs avg)\n",bar_contr_time/tot_prog_time*100,"%",nbar_contr,bar_contr_time/nbar_contr);
-  master_printf(" - %02.2f%s to perform %d mesonic contractions (%2.2gs avg)\n",mes_contr_time/tot_prog_time*100,"%",nmes_contr,mes_contr_time/nmes_contr);
-  master_printf(" - %02.2f%s to perform %d smearing (%2.2gs avg)\n",smear_oper_time/tot_prog_time*100,"%",nsmear_oper,smear_oper_time/nsmear_oper);
+  print_statistics();
   
   nissa_free(conf);
   nissa_free(ape_smeared_conf);
@@ -142,7 +134,9 @@ void in_main(int narg,char **arg)
 	  //generate source and smear it
 	  generate_original_source();
 	  smear_oper_time-=take_time();
-	  gaussian_smearing(original_source,original_source,ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
+	  for(int is=0;is<nso_spi;is++)
+	  for(int ic=0;ic<nso_col;ic++)
+	    gaussian_smearing(Q[iqprop(0,ORI_SOURCE,0,is,ic)],Q[iqprop(0,ORI_SOURCE,0,is,ic)],ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
 	  smear_oper_time+=take_time();
 	  //compute prop and contrelators
 	  generate_quark_propagators(isource);

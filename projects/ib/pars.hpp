@@ -16,6 +16,9 @@
 
 namespace nissa
 {
+  EXTERN_PARS int diluted_spi_source,diluted_col_source;
+  EXTERN_PARS int nso_spi,nso_col;
+  
   //for baryons
   const int nsm_sink=2;
   
@@ -52,6 +55,32 @@ namespace nissa
   
   void read_input_preamble();
   void read_photon_pars();
+  
+  //set or not diluted the spin
+  inline void set_diluted_spin(int s)
+  {
+    diluted_spi_source=s;
+    if(diluted_spi_source) nso_spi=NDIRAC;
+    else nso_spi=1;
+  }
+  
+  //set or not diluted the color
+  inline void set_diluted_color(int c)
+  {
+    diluted_col_source=c;
+    if(diluted_col_source) nso_col=NCOL;
+    else nso_col=1;
+  }
+  
+  //initialize the dilutions
+  inline void read_dilutions()
+  {
+    int dil_spin,dil_col;
+    read_str_int("DilutedSpin",&dil_spin);
+    read_str_int("DilutedColor",&dil_col);
+    set_diluted_spin(dil_spin);
+    set_diluted_color(dil_col);
+  }
   
   //initialize the random generator with the read seed
   inline void read_seed_start_random()

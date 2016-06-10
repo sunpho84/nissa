@@ -3,7 +3,9 @@
 #define EXTERN_CONF
  #include "conf.hpp"
 
+#include "contr.hpp"
 #include "pars.hpp"
+#include "prop.hpp"
 
 namespace nissa
 {  
@@ -177,5 +179,30 @@ namespace nissa
     sprintf(fin_file,"%s/finished",outfolder);
     file_touch(fin_file);
     nanalyzed_conf++;
+  }
+  
+  inline void print_single_statistic(double frac_time,double tot_time,int niter,const char *tag)
+  {if(niter) master_printf(" - %02.2f%s for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,"%",niter,tag,frac_time/niter);}
+  
+  //print all statisticd
+  void print_statistics()
+  {
+    if(nanalyzed_conf)
+      {
+	master_printf("\n");
+	master_printf("Inverted %d configurations.\n",nanalyzed_conf);
+	master_printf("Total time: %g, of which:\n",tot_prog_time);
+	print_single_statistic(smear_oper_time,tot_prog_time,nsmear_oper,"smearing");
+	print_single_statistic(mes_contr_time,tot_prog_time,nmes_contr,"calculation of mesonic contractions");
+	print_single_statistic(lepton_prop_time,tot_prog_time,nlprop,"preparation of lepton propagators");
+	print_single_statistic(source_time,tot_prog_time,nsource_tot,"preparation of generalized sources");
+	print_single_statistic(inv_time,tot_prog_time,ninv_tot,"calculation of quark propagator");
+	if(ninv_tot) master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",
+				   cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
+	print_single_statistic(mes_contr_time,tot_prog_time,nmes_contr,"calculation of mesonic contractions");
+	print_single_statistic(bar_contr_time,tot_prog_time,nbar_contr,"calculation of baryonic contractions");
+	print_single_statistic(meslep_contr_time,tot_prog_time,nmeslep_contr,"calculation of hadro-leptonic contractions");
+	print_single_statistic(contr_print_time,tot_prog_time,nmeslep_contr,"printing contractions");
+      }
   }
 }

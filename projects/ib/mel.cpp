@@ -51,6 +51,8 @@ void init_simulation(char *path)
   //open input file
   open_input(path);
   read_input_preamble();
+  read_dilutions();
+  read_stoch_source();
   
   //Leptons
   read_str_int("LeptonicContr",&nleptons);
@@ -130,7 +132,7 @@ void init_simulation(char *path)
   set_mes_gamma_contr_list();
   set_mes_contr_list();
   
-  ///////////////////// finihed reading apart from conf list ///////////////
+  ///////////////////// finished reading apart from conf list ///////////////
   
   nind=nleptons*nweak_ind*norie*nr*nins;
   meslep_hadr_part=nissa_malloc("hadr",loc_vol,spinspin);
@@ -170,7 +172,7 @@ void start_new_conf()
 
 //compute the meson part of the lepton contraction function
 //as usual, FIRST propagator is reverted
-THREADABLE_FUNCTION_3ARG(meson_part_leptonic_contr, spinspin*,hadr, PROP_TYPE*,S1, PROP_TYPE*,S2)
+THREADABLE_FUNCTION_8ARG(meson_part_leptonic_contr, spinspin*,hadr, int,iq1, int,prop1_type, int,r1, int,iq2, int,prop2_type, int,r2, int,irev)
 {
   GET_THREAD_ID();
   
@@ -178,22 +180,19 @@ THREADABLE_FUNCTION_3ARG(meson_part_leptonic_contr, spinspin*,hadr, PROP_TYPE*,S
   
   //it's just the matter of inserting gamma5*gamma5=identity between S1^dag and S2
   //on the sink gamma5 must still be inserted!
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int ic_si=0;ic_si<NCOL;ic_si++)
-#ifdef POINT_SOURCE_VERSION
-      for(int ic_so=0;ic_so<NCOL;ic_so++)
-#endif
-	for(int id_si1=0;id_si1<4;id_si1++)
-	  for(int id_si2=0;id_si2<4;id_si2++)
-	    for(int id_so=0;id_so<4;id_so++)
-	      complex_summ_the_conj1_prod
-		(hadr[ivol][id_si2][id_si1], //this way when taking the trace with dirac matrix, that is acting on S2, as it should
-#ifdef POINT_SOURCE_VERSION
-		 S1[ivol][ic_si][ic_so][id_si1][id_so],S2[ivol][ic_si][ic_so][id_si2][id_so])
-#else
-                 S1[ivol][ic_si][id_si1][id_so],S2[ivol][ic_si][id_si2][id_so])
-#endif
-		 ;
+    for(int id_so=0;id_so<NDIRAC;id_so++)
+      for(int ic_so=0;ic_so<nso_col;ic_so++)
+	{
+	  int ip1=iqprop(iq1,prop1_type,r1,id_so,ic_so);
+	  int ip2=iqprop(iq2,prop2_type,r2,id_so,ic_so);
+	  if(irev==1) std::swap(ip1,ip2); //select the propagator to revert
+	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    for(int ic_si=0;ic_si<nso_spi;ic_si++)
+	      for(int id_si1=0;id_si1<NDIRAC;id_si1++)
+		for(int id_si2=0;id_si2<NDIRAC;id_si2++)
+		  //this way when taking the trace with dirac matrix, that is acting on S2, as it should
+		  complex_summ_the_conj1_prod(hadr[ivol][id_si2][id_si1],Q[ip1][ivol][id_si1][ic_si],Q[ip2][ivol][id_si2][ic_si]);
+	}
   THREAD_BARRIER();
 }
 THREADABLE_FUNCTION_END
@@ -322,13 +321,8 @@ void compute_meslep_contr()
 	    if(qins==1) PROP1_TYPE=PROP_PHOTON_A;
 	    if(qins==2) PROP2_TYPE=PROP_PHOTON_A;
 	    
-	    //fix propagator indices
-	    int ip1=iqprop(iq1,PROP1_TYPE,r2);
-	    int ip2=iqprop(iq2,PROP2_TYPE,r2);
-	    
 	    //compute the meson part
-	    if(irev==1) std::swap(ip1,ip2); //select the propagator to revert
-	    meson_part_leptonic_contr(meslep_hadr_part,Q[ip1],Q[ip2]);
+	    meson_part_leptonic_contr(meslep_hadr_part, iq1,PROP1_TYPE,r2, iq2,PROP2_TYPE,r2, irev);
 	    
 	    for(int orie=0;orie<norie;orie++)
 	      for(int rl=0;rl<nr;rl++)
@@ -387,17 +381,7 @@ void print_meslep_contr()
 //close deallocating everything
 void close()
 {
-  master_printf("\n");
-  master_printf("Inverted %d configurations.\n",nanalyzed_conf);
-  master_printf("Total time: %g, of which:\n",tot_prog_time);
-  master_printf(" - %02.2f%s to prepare %d photon stochastic propagators (%2.2gs avg)\n",photon_prop_time/tot_prog_time*100,"%",nphoton_prop_tot,photon_prop_time/nphoton_prop_tot);
-  master_printf(" - %02.2f%s to prepare %d lepton propagators (%2.2gs avg)\n",lepton_prop_time/tot_prog_time*100,"%",nlprop,lepton_prop_time/nlprop);
-  master_printf(" - %02.2f%s to prepare %d generalized sources (%2.2gs avg)\n",source_time/tot_prog_time*100,"%",nsource_tot,source_time/nsource_tot);
-  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
-  master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to perform %d meson contractions (%2.2gs avg)\n",mes_contr_time/tot_prog_time*100,"%",nmes_contr,mes_contr_time/nmes_contr);
-  master_printf(" - %02.2f%s to perform %d leptonic contractions (%2.2gs avg)\n",meslep_contr_time/tot_prog_time*100,"%",nmeslep_contr,meslep_contr_time/nmeslep_contr);
-  master_printf(" - %02.2f%s to print hadro-leptonic contractions\n",contr_print_time/tot_prog_time*100,"%");
+  print_statistics();
   
   free_photon_fields();
   free_source();

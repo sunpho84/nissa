@@ -43,47 +43,95 @@ namespace nissa
   }
   
   //compute all the meson contractions
-  void compute_mes_contr()
+  THREADABLE_FUNCTION_0ARG(compute_mes_contr)
   {
-    contr_print_time-=take_time();
+    GET_THREAD_ID();
     
     master_printf("Computing meson contractions\n");
     
-    complex *glb_contr=nissa_malloc("glb_contr",glb_size[0]*mes_gamma_list.size(),complex);
-    complex *loc_contr=nissa_malloc("loc_contr",glb_size[0]*mes_gamma_list.size(),complex);
+    // Tr [ G1 G5 S1^+ G5 G2 S2 ]      G2 is on the sink
+    // (G1)_{ij(i)} (G5)_{j(i)} (S1*)^{ab}_{kj(i)} (G5)_k (G2)_{kl(k)} (S2)^{ab}_{l(k)i}
+    //
+    // A(i)=(G1)_{ij(i)} (G5)_{j(i)}
+    // B(k)=(G5)_k (G2)_{kl(k)}
+    //
+    // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
+    
+    //allocate loc storage
+    complex *loc_contr=new complex[mes_contr_size];
+    memset(loc_contr,0,sizeof(complex)*mes_contr_size);
     
     mes_contr_time-=take_time();
     for(size_t icombo=0;icombo<prop_mes_contr_map.size();icombo++)
       for(int imass=0;imass<nqmass;imass++)
 	for(int jmass=0;jmass<nqmass;jmass++)
 	  for(int r=0;r<nr;r++)
-	    {
-	      //compute the contraction function
-	      int ip1=iqprop(imass,prop_mes_contr_map[icombo].a,r);
-	      int ip2=iqprop(jmass,prop_mes_contr_map[icombo].b,r);
-	      
-	      meson_two_points_Wilson_prop(glb_contr,loc_contr,Q[ip1],Q[ip2],mes_gamma_list);
-	      nmes_contr+=mes_gamma_list.size();
-	      
-	      //save to the total stack
-	      for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
-		for(int t=0;t<glb_size[0];t++)
-		  complex_summassign(mes_contr[ind_mes_contr(icombo,imass,jmass,r,ihadr_contr,t)],glb_contr[t+glb_size[0]*ihadr_contr]);
-	    }
-    mes_contr_time+=take_time();
+	    for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
+	      {
+		int ig1=mes_gamma_list[ihadr_contr].so;
+		int ig2=mes_gamma_list[ihadr_contr].si;
+		if(nso_spi==1 && ig1!=5) crash("implemented only g5 contraction on the source for non-diluted source");
+		
+		  for(int i=0;i<nso_spi;i++)
+		  {
+		    int j=(base_gamma+ig1)->pos[i];
+		    
+		    complex A;
+		    unsafe_complex_prod(A,(base_gamma+ig1)->entr[i],(base_gamma+5)->entr[j]);
+		    
+		    for(int b=0;b<nso_col;b++)
+		      {
+			int ip1=iqprop(imass,prop_mes_contr_map[icombo].a,r,j,b);
+			int ip2=iqprop(jmass,prop_mes_contr_map[icombo].b,r,i,b);
+			
+			for(int k=0;k<NDIRAC;k++)
+			  {
+			    int l=(base_gamma+ig2)->pos[k];
+			    
+			    //compute AB
+			    complex B;
+			    unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig2)->entr[k]);
+			    complex AB;
+			    unsafe_complex_prod(AB,A,B);
+			    
+			    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+			      {
+				complex c={0,0};
+				for(int a=0;a<NCOL;a++)
+				  complex_summ_the_conj1_prod(c,Q[ip1][ivol][k][a],Q[ip2][ivol][l][a]);
+				complex_summ_the_prod(loc_contr[ind_mes_contr(icombo,imass,jmass,r,ihadr_contr,glb_coord_of_loclx[ivol][0])],c,AB);
+			      }
+			  }
+		      }
+		  }
+	      }
+    THREAD_BARRIER();
     
-    nissa_free(glb_contr);
-    nissa_free(loc_contr);
+    //reduce between threads and summ
+    complex *red_contr=glb_threads_reduce_complex_vect(loc_contr,mes_contr_size);
+    NISSA_PARALLEL_LOOP(i,0,mes_contr_size) complex_summassign(mes_contr[i],red_contr[i]);
+    //disallocate after all threads finished
+    THREAD_BARRIER();
+    delete[] loc_contr;
     
-    contr_print_time+=take_time();
+    //stats
+    if(IS_MASTER_THREAD)
+      {
+	nmes_contr+=prop_mes_contr_map.size()*nqmass*nqmass*nr*mes_gamma_list.size();
+	mes_contr_time+=take_time();
+      }
   }
+  THREADABLE_FUNCTION_END
   
   //print all contractions averaging
   void print_mes_contr()
   {
-    //normalise
-    double n=1.0/nsources;
-    for(int i=0;i<mes_contr_size;i++) complex_prodassign_double(mes_contr[i],n);
+    contr_print_time-=take_time();
+    
+    //reduce and normalise
+    double norm=1.0/nsources;
+    glb_nodes_reduce_complex_vect(mes_contr,mes_contr_size);
+    for(int i=0;i<mes_contr_size;i++) complex_prodassign_double(mes_contr[i],norm);
     
     int ind=0;
     for(size_t icombo=0;icombo<prop_mes_contr_map.size();icombo++)
@@ -104,6 +152,8 @@ namespace nissa
 	//close the file
 	close_file(fout);
       }
+    
+    contr_print_time+=take_time();
   }
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,8 +220,6 @@ namespace nissa
       }
   }
   
-#ifdef POINT_SOURCE_VERSION
-  
   //compute all contractions
   THREADABLE_FUNCTION_0ARG(compute_bar_contr)
   {
@@ -204,55 +252,59 @@ namespace nissa
 		  for(int rb=0;rb<nr;rb++)
 		    for(int rc=0;rc<nr;rc++)
 		      {
-			int ipa=iqprop(ima,prop_bar_contr_map[icombo].a,ra);
-			int ipb=iqprop(imb,prop_bar_contr_map[icombo].b,rb);
-			int ipc=iqprop(imc,prop_bar_contr_map[icombo].c,rc);
-			
 			if(IS_MASTER_THREAD) nbar_contr++;
 			
-			NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-			  {
-			    int t=glb_coord_of_loclx[ivol][0];
-			    
-			    int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
-			    int sign_idg0[2]={(t<(glb_size[0]/2))?1:-1,-1}; //gamma0 is -1 always
-			    for(int al1=0;al1<NDIRAC;al1++)
-			      for(int al=0;al<NDIRAC;al++)
-				for(int b1=0;b1<NCOL;b1++)
-				  for(int b=0;b<NCOL;b++)
+			for(int al=0;al<NDIRAC;al++)
+			  for(int ga=0;ga<NDIRAC;ga++)
+			    for(int b=0;b<NCOL;b++)
+			      for(int iperm=0;iperm<2;iperm++)
+				{
+				  int c=eps[b][iperm],a=eps[b][!iperm];
+				  int be=Cg5.pos[al];
+				  
+				  int ipa_al_a=iqprop(ima,prop_bar_contr_map[icombo].a,ra,al,a);
+				  int ipa_ga_c=iqprop(ima,prop_bar_contr_map[icombo].a,ra,ga,c);
+				  int ipb=iqprop(imb,prop_bar_contr_map[icombo].b,rb,be,b);
+				  int ipc_ga_c=iqprop(imc,prop_bar_contr_map[icombo].c,rc,ga,c);
+				  int ipc_al_a=iqprop(imc,prop_bar_contr_map[icombo].c,rc,al,a);
+				  
+				  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 				    {
-				      complex diquark_dir={0,0},diquark_exc={0,0};
+				      int t=glb_coord_of_loclx[ivol][0];
 				      
-				      //build the diquark
-				      for(int iperm1=0;iperm1<2;iperm1++)
-					for(int iperm=0;iperm<2;iperm++)
+				      int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
+				      int sign_idg0[2]={(t<(glb_size[0]/2))?1:-1,-1}; //gamma0 is -1 always
+				      for(int al1=0;al1<NDIRAC;al1++)
+					for(int b1=0;b1<NCOL;b1++)
 					  {
-					    int c=eps[b][iperm],a=eps[b][!iperm];
-					    int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
+					    complex diquark_dir={0,0},diquark_exc={0,0};
 					    
-					    for(int ga=0;ga<NDIRAC;ga++)
-					      for(int idg0=0;idg0<2;idg0++)
-						{
-						  int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
-						  int ga1=ga1_l[idg0][ga];
-						  
-						  list_fun[isign](diquark_dir,Q[ipa][ivol][a1][a][al1][al],Q[ipc][ivol][c1][c][ga1][ga]); //direct
-						  list_fun[isign](diquark_exc,Q[ipa][ivol][a1][c][al1][ga],Q[ipc][ivol][c1][a][ga1][al]); //exchange
-						}
+					    //build the diquark
+					    for(int iperm1=0;iperm1<2;iperm1++)
+					      {
+						int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
+						
+						for(int idg0=0;idg0<2;idg0++)
+						  {
+						    int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
+						    int ga1=ga1_l[idg0][ga];
+						    
+						    list_fun[isign](diquark_dir,Q[ipa_al_a][ivol][al1][a1],Q[ipc_ga_c][ivol][ga1][c1]); //direct
+						    list_fun[isign](diquark_exc,Q[ipa_ga_c][ivol][al1][a1],Q[ipc_al_a][ivol][ga1][c1]); //exchange
+						  }
+					      }
+					    
+					    //close it
+					    complex w;
+					    unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
+					    int be1=Cg5.pos[al1];
+					    complex_prodassign_double(diquark_dir,w[RE]);
+					    complex_prodassign_double(diquark_exc,w[RE]);
+					   complex_summ_the_prod(loc_contr[ind_bar_contr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,0,t)],Q[ipb][ivol][be1][b1],diquark_dir);
+					   complex_summ_the_prod(loc_contr[ind_bar_contr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,1,t)],Q[ipb][ivol][be1][b1],diquark_exc);
 					  }
-				      
-				      //close it
-				      complex w;
-				      unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
-				      int be1=Cg5.pos[al1],be=Cg5.pos[al];
-				      complex_prodassign_double(diquark_dir,w[RE]);
-				      complex_prodassign_double(diquark_exc,w[RE]);
-				      complex_summ_the_prod(loc_contr[ind_bar_contr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,0,t)],Q[ipb][ivol][b1][b][be1][be],
-							    diquark_dir);
-				      complex_summ_the_prod(loc_contr[ind_bar_contr(icombo,ism_sink,ima,ra,imb,rb,imc,rc,1,t)],Q[ipb][ivol][b1][b][be1][be],
-							    diquark_exc);
 				    }
-			  }
+				}
 		      }
 	STOP_TIMING(bar_contr_time);
       }
@@ -264,8 +316,6 @@ namespace nissa
     delete[] loc_contr;
   }
   THREADABLE_FUNCTION_END
-  
-#endif
   
   //print all contractions averaging
   void print_bar_contr()
