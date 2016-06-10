@@ -313,7 +313,7 @@ void single_source(int isource)
   master_printf("\n=== Source %d/%d ====\n",isource+1,nsources);
   
   //generate the source
-  generate_undiluted_source(eta,rnd_type_map[noise_type],-1);
+  generate_undiluted_source(eta,noise_type,-1);
   
   for(int imass=0;imass<nqmass;imass++)
     for(int r=0;r<nr;r++)

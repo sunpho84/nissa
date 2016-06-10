@@ -180,14 +180,14 @@ THREADABLE_FUNCTION_8ARG(meson_part_leptonic_contr, spinspin*,hadr, int,iq1, int
   
   //it's just the matter of inserting gamma5*gamma5=identity between S1^dag and S2
   //on the sink gamma5 must still be inserted!
-    for(int id_so=0;id_so<NDIRAC;id_so++)
+    for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
 	  int ip1=iqprop(iq1,prop1_type,r1,id_so,ic_so);
 	  int ip2=iqprop(iq2,prop2_type,r2,id_so,ic_so);
 	  if(irev==1) std::swap(ip1,ip2); //select the propagator to revert
 	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	    for(int ic_si=0;ic_si<nso_spi;ic_si++)
+	    for(int ic_si=0;ic_si<NCOL;ic_si++)
 	      for(int id_si1=0;id_si1<NDIRAC;id_si1++)
 		for(int id_si2=0;id_si2<NDIRAC;id_si2++)
 		  //this way when taking the trace with dirac matrix, that is acting on S2, as it should

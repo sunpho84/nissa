@@ -45,6 +45,7 @@ void init_simulation(char *path)
   read_corrections_to_compute();
   read_store_prop0_flag();
   read_stoch_source();
+  noise_type=RND_Z3;
   read_nsources();
   read_ngauge_conf();
   

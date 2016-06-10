@@ -119,7 +119,7 @@ namespace nissa
 	    {
 	      complex &c=source[ivol][id_si][ic_si];
 	      complex_put_to_zero(c);
-	      if(stoch_source && glb_coord_of_loclx[ivol][0]==0) comp_get_rnd(c,&(loc_rnd_gen[ivol]),rnd_type_map[noise_type]);
+	      if(stoch_source && glb_coord_of_loclx[ivol][0]==0) comp_get_rnd(c,&(loc_rnd_gen[ivol]),noise_type);
 	      else if(glblx_of_loclx[ivol]==0) complex_put_to_real(c,1);
 	  }
 	

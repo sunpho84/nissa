@@ -16,9 +16,7 @@ namespace nissa
   
   //free mesonic contractions
   void free_mes_contr()
-  {
-    nissa_free(mes_contr);
-  }
+  {nissa_free(mes_contr);}
   
   //set all the mesonic contractions
   void set_mes_contr_list()
@@ -176,9 +174,7 @@ namespace nissa
   
   //free them
   void free_bar_contr()
-  {
-    nissa_free(bar_contr);
-  }
+  {nissa_free(bar_contr);}
   
   //set all the baryonic contractions
   void set_bar_contr_list()

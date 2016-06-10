@@ -93,7 +93,8 @@ double *massS0der;
 //source data
 int save_source;
 #ifndef POINT_SOURCE_VERSION
-int seed,noise_type;
+int seed;
+rnd_t noise_type;
 #endif
 coords source_coord;
 spincolor *source;
@@ -236,7 +237,7 @@ void generate_source()
 #ifdef POINT_SOURCE_VERSION
   generate_delta_source(original_source,source_coord);
 #else
-  generate_spindiluted_source(original_source,rnd_type_map[noise_type],source_coord[0]);
+  generate_spindiluted_source(original_source,noise_type,source_coord[0]);
   
   //if asked, save the source
   if(save_source)
@@ -307,7 +308,9 @@ void initialize_semileptonic(char *input_path)
   read_str_int("Seed",&seed);
   start_loc_rnd_gen(seed);
   //Read the noise type
-  read_str_int("NoiseType",&noise_type);
+  char noise_type_str[20];
+  read_str_str("NoiseType",noise_type_str,20);
+  noise_type=convert_str_to_rnd_t(noise_type_str);
 #endif
   //read whether we want to save the source
   read_str_int("SaveSource",&save_source);

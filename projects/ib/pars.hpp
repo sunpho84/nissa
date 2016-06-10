@@ -106,9 +106,13 @@ namespace nissa
   {read_str_int("FollowChrisOrNazario",&follow_chris_or_nazario);}
   
   //noise type
-  EXTERN_PARS int noise_type;
+  EXTERN_PARS rnd_t noise_type;
   inline void read_noise_type()
-  {read_str_int("NoiseType",&noise_type);}
+  {
+    char str_noise_type[20];
+    read_str_str("NoiseType",str_noise_type,20);
+    noise_type=convert_str_to_rnd_t(str_noise_type);
+  }
   
   //smart photon insertion
   EXTERN_PARS int use_photon_field INIT_TO(true);
