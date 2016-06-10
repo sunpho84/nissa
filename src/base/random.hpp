@@ -11,7 +11,9 @@
 namespace nissa
 {
   //Random types
+  const int nrnd_type=7;
   enum rnd_t{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z3,RND_Z4,RND_GAUSS};
+  const char rnd_t_str[nrnd_type][20]={"AllPlusOne","AllMinusOne","Unif","Z2","Z3","Z4","Gauss"};
   //Source type
   enum source_t{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
   
@@ -29,8 +31,8 @@ namespace nissa
   extern bool glb_rnd_gen_inited;
   extern rnd_gen *loc_rnd_gen;
   extern bool loc_rnd_gen_inited;
-  extern enum rnd_t rnd_type_map[6];
   
+  rnd_t convert_str_to_rnd_t(const char *str);
   void color_put_to_gauss(color H,rnd_gen *gen,double sigma);
   void convert_text_to_rnd_gen(rnd_gen *gen,char *text);
   void convert_rnd_gen_to_text(char *text,rnd_gen *gen,int size);

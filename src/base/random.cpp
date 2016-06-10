@@ -26,7 +26,6 @@ namespace nissa
   bool glb_rnd_gen_inited;
   rnd_gen *loc_rnd_gen;
   bool loc_rnd_gen_inited;
-  enum rnd_t rnd_type_map[6]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4,RND_GAUSS};
   
   double rnd_get_unif(rnd_gen *gen,double min,double max);
   
@@ -244,14 +243,24 @@ namespace nissa
     complex z={0,0};
     switch(rtype)
       {
-      case RND_ALL_PLUS_ONE:  out[0]=1;                     out[1]=0;break;
-      case RND_ALL_MINUS_ONE: out[0]=-1;                    out[1]=0;break;
-      case RND_UNIF:          out[0]=rnd_get_unif(gen,0,1); out[1]=0;break;
-      case RND_Z2:            rnd_get_Z2(out,gen);                   break;
-      case RND_Z3:            rnd_get_Z3(out,gen);                   break;
-      case RND_Z4:            rnd_get_Z4(out,gen);                   break;
-      case RND_GAUSS:         rnd_get_gauss_complex(out,gen,z,1);    break;
+      case RND_ALL_PLUS_ONE: complex_put_to_real(out,+1);                   break;
+      case RND_ALL_MINUS_ONE:complex_put_to_real(out,-1);                   break;
+      case RND_UNIF:         complex_put_to_real(out,rnd_get_unif(gen,0,1));break;
+      case RND_Z2:           rnd_get_Z2(out,gen);                           break;
+      case RND_Z3:           rnd_get_Z3(out,gen);                           break;
+      case RND_Z4:           rnd_get_Z4(out,gen);                           break;
+      case RND_GAUSS:        rnd_get_gauss_complex(out,gen,z,1);            break;
       }
+  }
+  
+  //get the type of random from a string
+  rnd_t convert_str_to_rnd_t(const char *str)
+  {
+    for(int i=0;i<nrnd_type;i++) if(strcasecmp(str,rnd_t_str[i])==0) return (rnd_t)i;
+    master_fprintf(stderr,"Error, unknown random string %s,known ones:\n",str);
+    for(int i=0;i<nrnd_type;i++) master_fprintf(stderr," %s\n",rnd_t_str[i]);
+    crash("Choose one of them");
+    return (rnd_t)RND_ALL_MINUS_ONE;
   }
   
   //fill a grid of vectors with numbers between 0 and 1
