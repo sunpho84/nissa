@@ -214,7 +214,7 @@ namespace nissa
 	    int t=tempt+twall;
 	    if(t>=glb_size[0]) t-=glb_size[0];
 	    
-	    fprintf(fout,"%+016.16g\t%+016.16g\n",contr[t][0]*norm,contr[t][1]*norm);
+	    fprintf(fout,"%+16.016g\t%+16.016g\n",contr[t][0]*norm,contr[t][1]*norm);
 	  }
       }
   }
