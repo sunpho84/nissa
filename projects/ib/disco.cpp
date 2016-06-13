@@ -19,8 +19,8 @@ int nread_sources;
 int silv_par=2;
 
 int nB;
-int iB(int par,int imass,int r)
-{return r+nr*(imass+nqmass*par);}
+int iB(int par,int iquark,int r)
+{return r+nr*(iquark+nquarks*par);}
 
 //initialize the simulation
 void init_simulation(const char *path)
@@ -39,7 +39,7 @@ void init_simulation(const char *path)
   read_ngauge_conf();
   
   //allocate
-  nB=iB(silv_par-1,nqmass-1,nr-1)+1;
+  nB=iB(silv_par-1,nquarks-1,nr-1)+1;
   conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   eta=nissa_malloc("eta",loc_vol+bord_vol,spincolor);
   phi=nissa_malloc("phi",loc_vol+bord_vol,spincolor);
@@ -52,12 +52,6 @@ void init_simulation(const char *path)
       bubble[iB]=nissa_malloc("bubble",loc_vol+bord_vol,spin1field);
       tot_bubble[iB]=nissa_malloc("tot_bubble",loc_vol+bord_vol,spin1field);
     }
-}
-
-//init a new conf
-void start_new_conf()
-{
-  setup_conf(conf,old_theta,put_theta,conf_path,rnd_gauge_transform,free_theory);
 }
 
 //read the data
@@ -81,14 +75,14 @@ void read_data()
       ILDG_File_read_all(info_data,fin,head.data_length);
       
       //parse
-      int read_version,read_par,read_nqmass,read_nr;
-      int nread_info=sscanf(info_data," Version %d Par %d NQmass %d Nr %d NSources %d",&read_version,&read_par,&read_nqmass,&read_nr,&nread_sources);
+      int read_version,read_par,read_nquarks,read_nr;
+      int nread_info=sscanf(info_data," Version %d Par %d NQuarks %d Nr %d NSources %d",&read_version,&read_par,&read_nquarks,&read_nr,&nread_sources);
       if(nread_info!=5) crash("could not parse info");
       
       //check the info record
       if(version!=read_version) crash("read version %d while program is version %d",read_version,version);
       if(silv_par!=read_par) crash("read parity %d while input is %d",read_par,silv_par);
-      if(nqmass!=read_nqmass) crash("read nqmass %d while input is %d",read_nqmass,nqmass);
+      if(nquarks!=read_nquarks) crash("read nquarks %d while input is %d",read_nquarks,nquarks);
       if(nr!=read_nr) crash("read nr %d while input is %d",read_nr,nr);
       
       //load what have been done
@@ -100,7 +94,7 @@ void read_data()
 	  
 	  //read
 	  for(int par=0;par<silv_par;par++)
-	    for(int imass=0;imass<nqmass;imass++)
+	    for(int imass=0;imass<nquarks;imass++)
 	      for(int r=0;r<nr;r++)
 		{
 		  ILDG_header head=ILDG_File_get_next_record_header(fin);
@@ -128,7 +122,7 @@ void write_data()
   std::ostringstream info;
   info<<" Version "<<version
       <<" Par "<<silv_par
-      <<" NQmass "<<nqmass
+      <<" Nquarks "<<nquarks
       <<" Nr "<<nr
       <<" NSources "<<nsources;
   ILDG_string_message_append_to_last(&mess,"Info",info.str().c_str());
@@ -141,16 +135,11 @@ void write_data()
   
   //store the different parity, masses and r
   for(int par=0;par<silv_par;par++)
-    for(int imass=0;imass<nqmass;imass++)
+    for(int imass=0;imass<nquarks;imass++)
       for(int r=0;r<nr;r++)
 	ILDG_File_write_ildg_data_all(fout,bubble[par][imass][r],sizeof(spin1field),combine("par_%d_mass_%d_r_%d",par,imass,r).c_str());
 	
   ILDG_File_close(fout);
-}
-
-//what to do to skip a configuration
-void skip_conf()
-{
 }
 
 //close deallocating everything
@@ -180,7 +169,7 @@ THREADABLE_FUNCTION_3ARG(compute_tadpole, spincolor*,eta, spincolor*,phi, int,r)
 {
   GET_THREAD_ID();
   
-  if(!pure_wilson) insert_tm_tadpole(temp,conf,phi,r,tadpole,-1);
+  if(!pure_Wilson) insert_tm_tadpole(temp,conf,phi,r,tadpole,-1);
   else             insert_wilson_tadpole(temp,conf,phi,tadpole,-1);
   
   //trace
@@ -242,7 +231,7 @@ THREADABLE_FUNCTION_5ARG(vector_matrix_element, spin1field*,out, spincolor*,sink
   
   //set parameters
   dirac_matr GAMMA;
-  if(!pure_wilson) dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[r]);
+  if(!pure_Wilson) dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[r]);
   else             GAMMA=base_gamma[0];
   
   //reset the output and communicate borders
@@ -290,7 +279,7 @@ THREADABLE_FUNCTION_END
 //compute everything with a single mass
 void single_mass(int par,int imass,int r)
 {
-  master_printf(" imass %d/%d, r %d/%d\n",imass+1,nqmass,r,nr);
+  master_printf(" imass %d/%d, r %d/%d\n",imass+1,nquarks,r,nr);
   
   //solve for phi for each quark
   get_qprop(phi,eta,imass,r);
@@ -315,7 +304,7 @@ void single_source(int isource)
   //generate the source
   generate_undiluted_source(eta,noise_type,-1);
   
-  for(int imass=0;imass<nqmass;imass++)
+  for(int imass=0;imass<nquarks;imass++)
     for(int r=0;r<nr;r++)
       single_mass(isource%silv_par,imass,r);
 }
@@ -356,7 +345,7 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf,skip_conf,sources_missing))
+  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf,sources_missing))
     {
       //setup the conf and generate the source
       start_new_conf();

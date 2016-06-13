@@ -21,7 +21,7 @@ void init_simulation(char *path)
   read_ngauge_conf();
   
   set_inversions();
-  set_mes_contr_list();
+  set_mes_prop_contr_list();
   
   ///////////////////// finihed reading apart from conf list ///////////////
   
@@ -29,26 +29,6 @@ void init_simulation(char *path)
   allocate_mes_contr();
   allocate_Q_prop();
   conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
-}
-
-//handle to discard the source
-void skip_conf()
-{
-  for(int isource=0;isource<nsources;isource++)
-    {
-      coords coord;
-      generate_random_coord(coord);
-      generate_original_source();
-    }
-}
-
-//init a new conf
-void start_new_conf()
-{
-  setup_conf(conf,old_theta,put_theta,conf_path,rnd_gauge_transform,free_theory);
-  
-  //reset contractions
-  vector_reset(mes_contr);
 }
 
 //close deallocating everything
@@ -74,7 +54,7 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0;
-  while(read_conf_parameters(iconf,skip_conf,finish_file_present))
+  while(read_conf_parameters(iconf,finish_file_present))
     {
       //setup the conf and generate the source
       start_new_conf();

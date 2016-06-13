@@ -38,22 +38,25 @@ namespace nissa
   const int nlins=2;
   const int nrev=2;
   
-  EXTERN_PARS int pure_wilson;
+  EXTERN_PARS int pure_Wilson;
   EXTERN_PARS tm_basis_t base;
   EXTERN_PARS double kappa;
   
   EXTERN_PARS tm_quark_info *leps;
   
-  EXTERN_PARS int nqmass,nr;
-  EXTERN_PARS double *qmass,*qkappa,*residue;
+  EXTERN_PARS int nquarks,nr;
+  EXTERN_PARS double *qmass,*qkappa,*qtheta,*residue;
   
   EXTERN_PARS gauge_info photon;
   EXTERN_PARS double tadpole[NDIM];
   
-  EXTERN_PARS int nleptons;
+  EXTERN_PARS int nquark_lep_combos;
   EXTERN_PARS double *lep_energy,*neu_energy;
   
   void read_input_preamble();
+  void read_mes_2pts_contr_quark_combos_list();
+  void read_mes_2pts_contr_gamma_list();
+  void read_lept_contr_pars();
   void read_photon_pars();
   
   //set or not diluted the spin
@@ -132,6 +135,31 @@ namespace nissa
   inline void read_loc_muon_curr()
   {read_str_int("LocMuonCurr",&loc_muon_curr);}
   
+  //stochastic sources
+  EXTERN_PARS int stoch_source INIT_TO(0);
+  inline void read_stoch_source()
+  {read_str_int("StochSource",&stoch_source);}
+  
+  //number of sources
+  EXTERN_PARS int nsources INIT_TO(1);
+  inline void read_nsources()
+  {read_str_int("NSources",&nsources);}
+  
+  //compute mesons and barions
+  EXTERN_PARS int compute_mes_flag;
+  inline void read_compute_mes_flag()
+  {read_str_int("ComputeMesContr",&compute_mes_flag);}
+  EXTERN_PARS int compute_meslep_flag;
+  inline void read_compute_meslep_flag()
+  {read_str_int("ComputeMeslepContr",&compute_meslep_flag);}
+  EXTERN_PARS int compute_bar_flag;
+  inline void read_compute_bar_flag()
+  {
+    read_str_int("ComputeBarContr",&compute_bar_flag);
+    if(compute_bar_flag&&(!diluted_spi_source||!diluted_col_source)) crash("source must be fully diluted to compute barions");
+    if(compute_bar_flag&&stoch_source&&(noise_type!=RND_Z3)) crash("Cannot use noise type %s for barions it must be Z3",rnd_t_str[noise_type]);
+  }
+  
   //compute mass or/and QED corrections
   EXTERN_PARS int compute_mass_corrections INIT_TO(true);
   EXTERN_PARS int compute_QED_corrections INIT_TO(true);
@@ -144,16 +172,6 @@ namespace nissa
   //number of configurations
   inline void read_ngauge_conf()
   {read_str_int("NGaugeConf",&ngauge_conf);}
-  
-  //stochastic sources
-  EXTERN_PARS int stoch_source INIT_TO(0);
-  inline void read_stoch_source()
-  {read_str_int("StochSource",&stoch_source);}
-  
-  //number of sources
-  EXTERN_PARS int nsources INIT_TO(1);
-  inline void read_nsources()
-  {read_str_int("NSources",&nsources);}
   
   //ape smearing pars
   EXTERN_PARS int ape_smearing_niters;

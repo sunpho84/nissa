@@ -72,6 +72,20 @@ namespace nissa
   void generate_photon_stochastic_propagator();
   void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc);
   void generate_lepton_propagators();
+  
+  inline void start_source(int isource)
+  {
+    master_printf("\n=== Source %d/%d ====\n",isource+1,nsources);
+    random_shift_gauge_conf(conf,old_theta,put_theta);
+  }
+  
+  inline void generate_propagators(int isource)
+  {
+    generate_photon_stochastic_propagator();
+    generate_original_source();
+    if(compute_meslep_flag) generate_lepton_propagators();
+    generate_quark_propagators(isource);
+  }
 }
 
 #endif

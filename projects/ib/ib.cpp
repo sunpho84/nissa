@@ -7,19 +7,7 @@
 
 using namespace nissa;
 
-
 ///////////////////////////////// initialise the library, read input file, allocate /////////////////////////////////////
-
-//set the list of gamma
-void set_mes_gamma_contr_list()
-{
-  for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(5,ig));    //P5GI
-  mes_gamma_list.push_back(idirac_pair_t(4,4));                              //V0V0
-  for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,mu));   //VKVK
-  for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,mu+9)); //VKTK
-  for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+9,mu)); //TKVK
-  for(int ig=10;ig<=15;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,ig)); //TKTK,BKBK
-}
 
 void init_simulation(char *path)
 {
@@ -33,9 +21,6 @@ void init_simulation(char *path)
   read_dilutions();
   read_nsources();
   
-  read_lept_contr_pars();
-  read_gospel_convention();
-  
   read_photon_pars();
   read_use_photon_field();
   
@@ -45,26 +30,47 @@ void init_simulation(char *path)
   read_loc_hadr_curr();
   read_loc_muon_curr();
   
+  //mesons
+  read_compute_mes_flag();
+  if(compute_mes_flag)
+    {
+      read_mes_2pts_contr_quark_combos_list();
+      read_mes_2pts_contr_gamma_list();
+    }
+  
+  //meslept
+  read_compute_meslep_flag();
+  if(compute_meslep_flag)
+    {
+      read_lept_contr_pars();
+      read_gospel_convention();
+    }
+  
+  //barions
+  read_compute_bar_flag();
+  
   read_ngauge_conf();
-  
-  set_inversions();
-  set_mes_gamma_contr_list();
-  set_mes_prop_contr_list();
-  
-  
   
   ///////////////////// finished reading apart from conf list ///////////////
   
-  nmeslep_corr=nleptons*nindep_meslep_weak*norie*nr*nins;
-  meslep_hadr_part=nissa_malloc("hadr",loc_vol,spinspin);
-  meslep_contr=nissa_malloc("meslep_contr",glb_size[0]*nindep_meslep_weak*nmeslep_proj*nmeslep_corr,complex);
+  set_inversions();
+  set_mes_2pts_contr_ins_map();
+  
   allocate_source();
   allocate_photon_fields();
-  allocate_mes_contr();
+  if(compute_mes_flag) allocate_mes_contr();
+  if(compute_meslep_flag)
+    {
+      nmeslep_corr=nquark_lep_combos*nindep_meslep_weak*norie*nr*nins;
+      meslep_hadr_part=nissa_malloc("hadr",loc_vol,spinspin);
+      meslep_contr=nissa_malloc("meslep_contr",glb_size[0]*nindep_meslep_weak*nmeslep_proj*nmeslep_corr,complex);
+    }
+  if(compute_bar_flag) allocate_bar_contr();
   allocate_Q_prop();
   allocate_L_prop();
   temp_lep=nissa_malloc("temp_lep",loc_vol+bord_vol,spinspin);
   conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol,quad_su3);
 }
 
 //close deallocating everything
@@ -77,14 +83,19 @@ void close()
   free_Q_prop();
   free_L_prop();
   nissa_free(conf);
-  free_mes_contr();
-  nissa_free(meslep_hadr_part);
-  nissa_free(meslep_contr);
-  nissa_free(lep_contr_iq1);
-  nissa_free(lep_contr_iq2);
-  nissa_free(leps);
-  nissa_free(lep_energy);
-  nissa_free(neu_energy);
+  nissa_free(ape_smeared_conf);
+  if(compute_mes_flag) free_mes_contr();
+  if(compute_meslep_flag)
+    {
+      nissa_free(meslep_hadr_part);
+      nissa_free(meslep_contr);
+      nissa_free(lep_contr_iq1);
+      nissa_free(lep_contr_iq2);
+      nissa_free(leps);
+      nissa_free(lep_energy);
+      nissa_free(neu_energy);
+    }
+  if(compute_bar_flag) free_bar_contr();
 }
 
 void in_main(int narg,char **arg)
@@ -107,23 +118,12 @@ void in_main(int narg,char **arg)
       
       for(int isource=0;isource<nsources;isource++)
 	{
-	  master_printf("\n=== Source %d/%d ====\n",isource+1,nsources);
-	  
-	  //init
-	  random_shift_gauge_conf(conf,old_theta,put_theta);
-	  generate_photon_stochastic_propagator();
-	  generate_original_source();
-	  
-	  generate_lepton_propagators();
-	  generate_quark_propagators(isource);
-	  
-	  compute_meslep_contr();
-	  compute_mes_contr();
+	  start_source(isource);
+	  generate_propagators(isource);
+	  compute_contractions();
 	}
       
-      //print out contractions
-      print_meslep_contr();
-      print_mes_contr();
+      print_contractions();
       
       mark_finished();
     }

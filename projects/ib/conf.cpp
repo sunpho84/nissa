@@ -108,8 +108,31 @@ namespace nissa
     else return true;
   }
   
+  //init a new conf
+  void start_new_conf()
+  {
+    setup_conf(conf,old_theta,put_theta,conf_path,rnd_gauge_transform,free_theory);
+    
+    //reset contractions
+    if(compute_mes_flag) vector_reset(mes_contr);
+    if(compute_bar_flag) vector_reset(bar_contr);
+    if(compute_meslep_flag) vector_reset(meslep_contr);
+  }
+  
+  //handle to discard the source
+  void skip_conf()
+  {
+    for(int isource=0;isource<nsources;isource++)
+      {
+	coords coord;
+	generate_random_coord(coord);
+	generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
+	generate_original_source();
+      }
+  }
+  
   //find a new conf
-  int read_conf_parameters(int &iconf,void(*skip_conf)(),bool(*external_condition)())
+  int read_conf_parameters(int &iconf,bool(*external_condition)())
   {
     //Check if asked to stop or restart
     int asked_stop=file_exists("stop");
@@ -182,7 +205,7 @@ namespace nissa
   }
   
   inline void print_single_statistic(double frac_time,double tot_time,int niter,const char *tag)
-  {if(niter) master_printf(" - %02.2f%s for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,"%",niter,tag,frac_time/niter);}
+  {if(niter) master_printf(" - %02.2f%% for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,niter,tag,frac_time/niter);}
   
   //print all statisticd
   void print_statistics()
@@ -193,7 +216,6 @@ namespace nissa
 	master_printf("Inverted %d configurations.\n",nanalyzed_conf);
 	master_printf("Total time: %g, of which:\n",tot_prog_time);
 	print_single_statistic(smear_oper_time,tot_prog_time,nsmear_oper,"smearing");
-	print_single_statistic(mes_contr_time,tot_prog_time,nmes_contr,"calculation of mesonic contractions");
 	print_single_statistic(lepton_prop_time,tot_prog_time,nlprop,"preparation of lepton propagators");
 	print_single_statistic(source_time,tot_prog_time,nsource_tot,"preparation of generalized sources");
 	print_single_statistic(inv_time,tot_prog_time,ninv_tot,"calculation of quark propagator");

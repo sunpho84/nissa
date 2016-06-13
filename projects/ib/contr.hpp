@@ -19,41 +19,63 @@ namespace nissa
 {
   EXTERN_CONTR double contr_print_time INIT_TO(0);
   
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////// meson contractions ///////////////////////////////////////////////////////
   
-  //meson contractions
   struct mes_doublet_t
   {
     int a,b;
     mes_doublet_t(int a,int b) : a(a),b(b) {}
   };
-  EXTERN_CONTR std::vector<mes_doublet_t> prop_mes_contr_map;
+  EXTERN_CONTR std::vector<mes_doublet_t> mes_2pts_contr_ins_map;
+  EXTERN_CONTR std::vector<mes_doublet_t> mes_2pts_contr_quark_map;
   EXTERN_CONTR int nmes_contr INIT_TO(0);
   EXTERN_CONTR double mes_contr_time INIT_TO(0);
   EXTERN_CONTR complex *mes_contr INIT_TO(NULL);
   EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
-  void set_mes_contr_list();
+  void set_mes_2pts_contr_ins_map();
   void allocate_mes_contr();
   void compute_mes_contr();
   void print_mes_contr();
   void free_mes_contr();
   
-  inline int ind_mes_contr(int icombo,int imass,int jmass,int r,int ihadr_contr,int t)
+  inline int ind_mes_contr(int ins,int iquark_combo,int r,int ihadr_contr,int t)
   {
     return
       (t+glb_size[0]*
        (ihadr_contr+mes_gamma_list.size()*
 	(r+nr*
-	 (jmass+nqmass*
-	  (imass+nqmass*icombo)))));
+	 (mes_2pts_contr_quark_map.size()*ins))));
   }
   EXTERN_CONTR int mes_contr_size;
   
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////  mesoleptonic contraction /////////////////////////////////////////////////////
   
-  //Cg5
-  EXTERN_CONTR dirac_matr Cg5;
-  void set_Cg5();
+  EXTERN_CONTR int nmeslep_contr INIT_TO(0);
+  EXTERN_CONTR double meslep_contr_time INIT_TO(0);
+
+  //list the 8 matrices to insert for the weak current
+  const int nmeslep_weak_ins=17;
+  const int nindep_meslep_weak=9;
+  EXTERN_CONTR int nmeslep_corr;
+  EXTERN_CONTR spinspin *meslep_hadr_part;
+  EXTERN_CONTR complex *meslep_contr;
+  
+  //parameters of the leptons
+  EXTERN_CONTR int *lep_contr_iq1;
+  EXTERN_CONTR int *lep_contr_iq2;
+  
+  //const int nmeslep_proj=4,meslep_projs[nmeslep_proj]={9,4,5,0};
+  const int nmeslep_proj=1,meslep_projs[nmeslep_proj]={4};
+  const int list_weak_insq[nmeslep_weak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9, 5};
+  const int list_weak_insl[nmeslep_weak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4, 5};
+  const int list_weak_ind_contr[nmeslep_weak_ins]={0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7, 8};
+  const char list_weak_ind_nameq[nindep_meslep_weak][3]={"VK","V0","AK","A0","VK","V0","AK","A0","P5"};
+  const char list_weak_ind_namel[nindep_meslep_weak][3]={"VK","V0","AK","A0","AK","A0","VK","V0","V0"};
+  
+  void compute_meslep_contr();
+  void print_meslep_contr();
+  
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //barion contractions
   struct bar_triplet_t
@@ -61,26 +83,31 @@ namespace nissa
     int a,b,c;
     bar_triplet_t(int a,int b,int c) : a(a),b(b),c(c) {}
   };
+  
+  //Cg5
+  EXTERN_CONTR dirac_matr Cg5;
+  void set_Cg5();
+  
   EXTERN_CONTR std::vector<bar_triplet_t> prop_bar_contr_map;
   EXTERN_CONTR int nbar_contr INIT_TO(0);
   EXTERN_CONTR double bar_contr_time INIT_TO(0);
   EXTERN_CONTR complex *bar_contr INIT_TO(NULL);
-  void set_bar_contr_list();
+  void set_bar_prop_contr_list();
   void allocate_bar_contr();
   void compute_bar_contr();
   void print_bar_contr();
   void free_bar_contr();
   
-  inline int ind_bar_contr(int icombo,int ism_sink,int ima,int ra,int imb,int rb,int imc,int rc,int dir_exc,int t)
+  inline int ind_bar_contr(int icombo,int ism_sink,int iqa,int ra,int iqb,int rb,int iqc,int rc,int dir_exc,int t)
   {return
       (t+glb_size[0]*
        (dir_exc+2*
 	(rc+nr*
-	 (imc+nqmass*
+	 (iqc+nquarks*
 	  (rb+nr*
-	   (imb+nqmass*
+	   (iqb+nquarks*
 	    (ra+nr*
-	     (ima+nqmass*
+	     (iqa+nquarks*
 	      (ism_sink+nsm_sink*icombo)))))))));
   }
   EXTERN_CONTR int bar_contr_size;
@@ -88,11 +115,24 @@ namespace nissa
   EXTERN_CONTR int nsmear_oper INIT_TO(0);
   EXTERN_CONTR double smear_oper_time INIT_TO(0);
   
+  
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  //mesoleptonic contractions
-  EXTERN_CONTR int nmeslep_contr INIT_TO(0);
-  EXTERN_CONTR double meslep_contr_time INIT_TO(0);
+  //compute all contractions
+  inline void compute_contractions()
+  {
+    if(compute_mes_flag) compute_mes_contr();
+    if(compute_meslep_flag) compute_meslep_contr();
+    if(compute_bar_flag) compute_bar_contr();
+  }
+  
+  //print out all contractions
+  inline void print_contractions()
+  {
+    if(compute_mes_flag) print_mes_contr();
+    if(compute_meslep_flag) print_meslep_contr();
+    if(compute_bar_flag) print_bar_contr();
+  }
 }
 
 #undef INIT_TO
