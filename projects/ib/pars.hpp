@@ -33,7 +33,7 @@ namespace nissa
   //sign of the lepton momentum
   const int norie=2;
   const int sign_orie[2]={-1,+1};
-
+  
   EXTERN_PARS int nr_lep;
   const int nins=3;
   const int nlins=2;
@@ -45,8 +45,8 @@ namespace nissa
   
   EXTERN_PARS tm_quark_info *leps;
   
-  EXTERN_PARS int nquarks,*qr;;
-  EXTERN_PARS double *qmass,*qkappa,*qtheta,*residue;
+  EXTERN_PARS int nquarks,*qr;
+  EXTERN_PARS double *qmass,*qkappa,*qtheta,*qresidue;
   
   EXTERN_PARS gauge_info photon;
   EXTERN_PARS double tadpole[NDIM];
@@ -57,7 +57,8 @@ namespace nissa
   void read_input_preamble();
   void read_mes2pts_contr_quark_combos_list();
   void read_mes2pts_contr_gamma_list();
-  void read_lept_contr_pars();
+  void read_meslep_contr_pars();
+  void read_bar2pts_contr_quark_combos_list();
   void read_photon_pars();
   
   //set or not diluted the spin
@@ -153,12 +154,12 @@ namespace nissa
   EXTERN_PARS int compute_meslep_flag;
   inline void read_compute_meslep_flag()
   {read_str_int("ComputeMeslepContr",&compute_meslep_flag);}
-  EXTERN_PARS int compute_bar_flag;
-  inline void read_compute_bar_flag()
+  EXTERN_PARS int compute_bar2pts_flag;
+  inline void read_compute_bar2pts_flag()
   {
-    read_str_int("ComputeBarContr",&compute_bar_flag);
-    if(compute_bar_flag&&(!diluted_spi_source||!diluted_col_source)) crash("source must be fully diluted to compute barions");
-    if(compute_bar_flag&&stoch_source&&(noise_type!=RND_Z3)) crash("Cannot use noise type %s for barions it must be Z3",rnd_t_str[noise_type]);
+    read_str_int("ComputeBar2PtsContr",&compute_bar2pts_flag);
+    if(compute_bar2pts_flag&&(!diluted_spi_source||!diluted_col_source)) crash("source must be fully diluted to compute barions");
+    if(compute_bar2pts_flag&&stoch_source&&(noise_type!=RND_Z3)) crash("Cannot use noise type %s for barions it must be Z3",rnd_t_str[noise_type]);
   }
   
   //compute mass or/and QED corrections

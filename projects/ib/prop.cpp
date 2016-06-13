@@ -74,14 +74,20 @@ namespace nissa
   {
     GET_THREAD_ID();
     
+    //put theta on the boundaries
+    adapt_spatial_theta(conf,qtheta[iq]);
+    
     //rotate the source index - the propagator rotate AS the sign of mass term
     if(!pure_Wilson) safe_dirac_prod_spincolor(in,(tau3[qr[iq]]==-1)?&Pminus:&Pplus,in);
     
     //invert
     START_TIMING(inv_time,ninv_tot);
-    if(!pure_Wilson) inv_tmD_cg_eoprec_eos(out,NULL,conf,kappa,tau3[qr[iq]]*qmass[iq],1000000,residue[iq],in);
-    else             inv_tmD_cg_eoprec_eos(out,NULL,conf,qkappa[iq],0,1000000,residue[iq],in);
+    if(!pure_Wilson) inv_tmD_cg_eoprec_eos(out,NULL,conf,kappa,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
+    else             inv_tmD_cg_eoprec_eos(out,NULL,conf,qkappa[iq],0,1000000,qresidue[iq],in);
     STOP_TIMING(inv_time);
+    
+    //put back no theta on the boundaries
+    put_spatial_theta_periodic(conf);
     
     //rotate the sink index
     if(!pure_Wilson) safe_dirac_prod_spincolor(out,(tau3[qr[iq]]==-1)?&Pminus:&Pplus,out);

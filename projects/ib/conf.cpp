@@ -23,6 +23,13 @@ namespace nissa
   bool finish_file_present()
   {return !file_exists(combine("%s/finished",outfolder).c_str());}
   
+  //adapt spatial conditions
+  void adapt_spatial_theta(quad_su3 *c,double th)
+  {
+    put_theta[1]=put_theta[2]=put_theta[3]=th;
+    adapt_theta(c,old_theta,put_theta,0,0);
+  }
+  
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {
@@ -115,7 +122,7 @@ namespace nissa
     
     //reset contractions
     if(compute_mes2pts_flag) vector_reset(mes2pts_contr);
-    if(compute_bar_flag) vector_reset(bar_contr);
+    if(compute_bar2pts_flag) vector_reset(bar2pts_contr);
     if(compute_meslep_flag) vector_reset(meslep_contr);
   }
   
@@ -222,7 +229,7 @@ namespace nissa
 	if(ninv_tot) master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",
 				   cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
 	print_single_statistic(mes2pts_contr_time,tot_prog_time,nmes2pts_contr,"calculation of mesonic 2pts_contractions");
-	print_single_statistic(bar_contr_time,tot_prog_time,nbar_contr,"calculation of baryonic contractions");
+	print_single_statistic(bar2pts_contr_time,tot_prog_time,nbar2pts_contr,"calculation of baryonic 2pts contractions");
 	print_single_statistic(meslep_contr_time,tot_prog_time,nmeslep_contr,"calculation of hadro-leptonic contractions");
 	print_single_statistic(contr_print_time,tot_prog_time,nmeslep_contr,"printing contractions");
       }

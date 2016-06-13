@@ -26,6 +26,10 @@ namespace nissa
   
   EXTERN_CONF momentum_t put_theta,old_theta;
   
+  void adapt_spatial_theta(quad_su3 *c,double th);
+  inline void put_spatial_theta_periodic(quad_su3 *c)
+  {adapt_spatial_theta(c,0);}
+  
   void read_init_grid();
   void generate_random_coord(coords);
   void start_new_conf();

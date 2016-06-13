@@ -21,8 +21,12 @@ void init_simulation(char *path)
   read_dilutions();
   read_nsources();
   
-  read_photon_pars();
-  read_use_photon_field();
+  read_corrections_to_compute();
+  if(compute_QED_corrections)
+    {
+      read_photon_pars();
+      read_use_photon_field();
+    }
   
   read_free_theory_flag();
   read_random_gauge_transform();
@@ -42,19 +46,27 @@ void init_simulation(char *path)
   read_compute_meslep_flag();
   if(compute_meslep_flag)
     {
-      read_lept_contr_pars();
+      read_meslep_contr_pars();
       read_gospel_convention();
     }
   
-  //barions
-  read_compute_bar_flag();
+  //baryons
+  read_compute_bar2pts_flag();
+  if(compute_bar2pts_flag)
+    {
+      set_Cg5();
+      read_bar2pts_contr_quark_combos_list();
+      read_ape_smearing_pars();
+      read_gaussian_smearing_pars();
+    }
   
   read_ngauge_conf();
   
   ///////////////////// finished reading apart from conf list ///////////////
   
   set_inversions();
-  set_mes2pts_contr_ins_map();
+  if(compute_mes2pts_flag) set_mes2pts_contr_ins_map();
+  if(compute_bar2pts_flag) set_bar2pts_contr_ins_map();
   
   allocate_source();
   allocate_photon_fields();
@@ -65,7 +77,8 @@ void init_simulation(char *path)
       meslep_hadr_part=nissa_malloc("hadr",loc_vol,spinspin);
       meslep_contr=nissa_malloc("meslep_contr",glb_size[0]*nindep_meslep_weak*nmeslep_proj*nmeslep_corr,complex);
     }
-  if(compute_bar_flag) allocate_bar_contr();
+  if(compute_bar2pts_flag) allocate_bar2pts_contr();
+  
   allocate_Q_prop();
   allocate_L_prop();
   temp_lep=nissa_malloc("temp_lep",loc_vol+bord_vol,spinspin);
@@ -99,9 +112,10 @@ void close()
     {
       nissa_free(qmass);
       nissa_free(qr);
-      nissa_free(residue);
     }
-  if(compute_bar_flag) free_bar_contr();
+  nissa_free(qtheta);
+  nissa_free(qresidue);
+  if(compute_bar2pts_flag) free_bar2pts_contr();
 }
 
 void in_main(int narg,char **arg)

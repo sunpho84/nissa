@@ -88,26 +88,26 @@ namespace nissa
   EXTERN_CONTR dirac_matr Cg5;
   void set_Cg5();
   
-  EXTERN_CONTR std::vector<bar_triplet_t> prop_bar_contr_map;
-  EXTERN_CONTR int nbar_contr INIT_TO(0);
-  EXTERN_CONTR double bar_contr_time INIT_TO(0);
-  EXTERN_CONTR complex *bar_contr INIT_TO(NULL);
-  void set_bar_prop_contr_list();
-  void allocate_bar_contr();
-  void compute_bar_contr();
-  void print_bar_contr();
-  void free_bar_contr();
+  EXTERN_CONTR std::vector<bar_triplet_t> bar2pts_contr_ins_map;
+  EXTERN_CONTR std::vector<bar_triplet_t> bar2pts_contr_quark_map;
+  EXTERN_CONTR int nbar2pts_contr INIT_TO(0);
+  EXTERN_CONTR double bar2pts_contr_time INIT_TO(0);
+  EXTERN_CONTR complex *bar2pts_contr INIT_TO(NULL);
+  void set_bar2pts_contr_ins_map();
+  void allocate_bar2pts_contr();
+  void compute_bar2pts_contr();
+  void print_bar2pts_contr();
+  void free_bar2pts_contr();
   
-  inline int ind_bar_contr(int icombo,int ism_sink,int iqa,int iqb,int iqc,int dir_exc,int t)
+  inline int ind_bar2pts_contr(int ins,int ism_sink,int iquark_combo,int dir_exc,int t)
   {return
       (t+glb_size[0]*
        (dir_exc+2*
-	(iqc+nquarks*
-	 (iqb+nquarks*
-	  (iqa+nquarks*
-	   (ism_sink+nsm_sink*icombo))))));
+	(iquark_combo+bar2pts_contr_quark_map.size()*
+	 (ism_sink+nsm_sink*
+	  ins))));
   }
-  EXTERN_CONTR int bar_contr_size;
+  EXTERN_CONTR int bar2pts_contr_size;
   
   EXTERN_CONTR int nsmear_oper INIT_TO(0);
   EXTERN_CONTR double smear_oper_time INIT_TO(0);
@@ -120,7 +120,7 @@ namespace nissa
   {
     if(compute_mes2pts_flag) compute_mes2pts_contr();
     if(compute_meslep_flag) compute_meslep_contr();
-    if(compute_bar_flag) compute_bar_contr();
+    if(compute_bar2pts_flag) compute_bar2pts_contr();
   }
   
   //print out all contractions
@@ -128,7 +128,7 @@ namespace nissa
   {
     if(compute_mes2pts_flag) print_mes2pts_contr();
     if(compute_meslep_flag) print_meslep_contr();
-    if(compute_bar_flag) print_bar_contr();
+    if(compute_bar2pts_flag) print_bar2pts_contr();
   }
 }
 

@@ -404,66 +404,66 @@ namespace nissa
   }
   
   //allocate baryionic contr
-  void allocate_bar_contr()
+  void allocate_bar2pts_contr()
   {
-    bar_contr_size=ind_bar_contr(prop_bar_contr_map.size()-1,nsm_sink-1,nquarks-1,nquarks-1,nquarks-1,2-1,glb_size[0]-1)+1;
-    bar_contr=nissa_malloc("bar_contr",bar_contr_size,complex);
+    bar2pts_contr_size=ind_bar2pts_contr(bar2pts_contr_ins_map.size()-1,nsm_sink-1,bar2pts_contr_quark_map.size()-1,2-1,glb_size[0]-1)+1;
+    bar2pts_contr=nissa_malloc("bar2pts_contr",bar2pts_contr_size,complex);
   }
   
   //free them
-  void free_bar_contr()
-  {nissa_free(bar_contr);}
+  void free_bar2pts_contr()
+  {nissa_free(bar2pts_contr);}
   
   //set all the baryonic contractions
-  void set_bar_prop_contr_list()
+  void set_bar2pts_contr_ins_map()
   {
     //clear the list
-    prop_bar_contr_map.clear();
+    bar2pts_contr_ins_map.clear();
     
     //non-perturbed
-    prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_0));
+    bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_0));
     
     //mass corrections
     if(compute_mass_corrections)
       {
 	//scalar insertion on one of the three lines
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_S,PROP_0,PROP_0));
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_S,PROP_0));
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_S));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_S,PROP_0,PROP_0));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_0,PROP_S,PROP_0));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_S));
       }
     
     //QED corrections
     if(compute_QED_corrections)
       {
 	//pseudoscalar insertion on one of the three lines
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_P,PROP_0,PROP_0));
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_P,PROP_0));
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_P));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_P,PROP_0,PROP_0));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_0,PROP_P,PROP_0));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_P));
 	//tadpole insertion on one of the three lines
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_T,PROP_0,PROP_0));
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_T,PROP_0));
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_T));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_T,PROP_0,PROP_0));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_0,PROP_T,PROP_0));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_T));
 	//self-energy insertion on one of the three lines
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_PHOTON_AB,PROP_0,PROP_0));
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_PHOTON_AB,PROP_0));
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_PHOTON_AB));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_PHOTON_AB,PROP_0,PROP_0));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_0,PROP_PHOTON_AB,PROP_0));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_0,PROP_0,PROP_PHOTON_AB));
 	//photon exchange between one of the three lines
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_0,PROP_PHOTON_A,PROP_PHOTON_B));
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_PHOTON_A,PROP_0,PROP_PHOTON_B));
-	prop_bar_contr_map.push_back(bar_triplet_t(PROP_PHOTON_A,PROP_PHOTON_B,PROP_0));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_0,PROP_PHOTON_A,PROP_PHOTON_B));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_PHOTON_A,PROP_0,PROP_PHOTON_B));
+	bar2pts_contr_ins_map.push_back(bar_triplet_t(PROP_PHOTON_A,PROP_PHOTON_B,PROP_0));
       }
   }
   
   //compute all contractions
-  THREADABLE_FUNCTION_0ARG(compute_bar_contr)
+  THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr)
   {
     GET_THREAD_ID();
     
-    master_printf("Computing baryon contractions\n");
+    master_printf("Computing baryon 2pts contractions\n");
     
     //local thread/node contractions
-    complex *loc_contr=new complex[bar_contr_size];
-    memset(loc_contr,0,sizeof(complex)*bar_contr_size);
+    complex *loc_contr=new complex[bar2pts_contr_size];
+    memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
     
     for(int ism_sink=0;ism_sink<nsm_sink;ism_sink++)
       {
@@ -477,117 +477,118 @@ namespace nissa
 	const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
 	
 	void (*list_fun[2])(complex,complex,complex)={complex_summ_the_prod,complex_subt_the_prod};
-	UNPAUSE_TIMING(bar_contr_time);
-	for(size_t ins_combo=0;ins_combo<prop_bar_contr_map.size();ins_combo++)
-	  for(int ima=0;ima<nquarks;ima++)
-	    for(int imb=0;imb<nquarks;imb++)
-	      for(int imc=0;imc<nquarks;imc++)
-		{
-		  if(IS_MASTER_THREAD) nbar_contr++;
-		  
-		  for(int al=0;al<NDIRAC;al++)
-		    for(int ga=0;ga<NDIRAC;ga++)
-		      for(int b=0;b<NCOL;b++)
-			for(int iperm=0;iperm<2;iperm++)
-			  {
-			    int c=eps[b][iperm],a=eps[b][!iperm];
-			    int be=Cg5.pos[al];
-			    
-			    int ipa_al_a=iqprop(ima,prop_bar_contr_map[ins_combo].a,al,a);
-			    int ipa_ga_c=iqprop(ima,prop_bar_contr_map[ins_combo].a,ga,c);
-			    int ipb=iqprop(imb,prop_bar_contr_map[ins_combo].b,be,b);
-			    int ipc_ga_c=iqprop(imc,prop_bar_contr_map[ins_combo].c,ga,c);
-			    int ipc_al_a=iqprop(imc,prop_bar_contr_map[ins_combo].c,al,a);
-			    
-			    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	UNPAUSE_TIMING(bar2pts_contr_time);
+	for(size_t ins_combo=0;ins_combo<bar2pts_contr_ins_map.size();ins_combo++)
+	for(size_t iqcombo=0;iqcombo<bar2pts_contr_quark_map.size();iqcombo++)
+	  {
+	    if(IS_MASTER_THREAD) nbar2pts_contr++;
+	    
+	    int iqa=bar2pts_contr_quark_map[iqcombo].a;
+	    int iqb=bar2pts_contr_quark_map[iqcombo].b;
+	    int iqc=bar2pts_contr_quark_map[iqcombo].c;
+	    
+	    for(int al=0;al<NDIRAC;al++)
+	      for(int ga=0;ga<NDIRAC;ga++)
+		for(int b=0;b<NCOL;b++)
+		  for(int iperm=0;iperm<2;iperm++)
+		    {
+		      int c=eps[b][iperm],a=eps[b][!iperm];
+		      int be=Cg5.pos[al];
+		      
+		      int ipa_al_a=iqprop(iqa,bar2pts_contr_ins_map[ins_combo].a,al,a);
+		      int ipa_ga_c=iqprop(iqa,bar2pts_contr_ins_map[ins_combo].a,ga,c);
+		      int ipb=iqprop(iqb,bar2pts_contr_ins_map[ins_combo].b,be,b);
+		      int ipc_ga_c=iqprop(iqc,bar2pts_contr_ins_map[ins_combo].c,ga,c);
+		      int ipc_al_a=iqprop(iqc,bar2pts_contr_ins_map[ins_combo].c,al,a);
+		      
+		      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+			{
+			  int t=glb_coord_of_loclx[ivol][0];
+			  
+			  int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
+			  int sign_idg0[2]={(t<(glb_size[0]/2))?1:-1,-1}; //gamma0 is -1 always
+			  for(int al1=0;al1<NDIRAC;al1++)
+			    for(int b1=0;b1<NCOL;b1++)
 			      {
-				int t=glb_coord_of_loclx[ivol][0];
+				complex diquark_dir={0,0},diquark_exc={0,0};
 				
-				int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
-				int sign_idg0[2]={(t<(glb_size[0]/2))?1:-1,-1}; //gamma0 is -1 always
-				for(int al1=0;al1<NDIRAC;al1++)
-				  for(int b1=0;b1<NCOL;b1++)
-				    {
-				      complex diquark_dir={0,0},diquark_exc={0,0};
-				      
-				      //build the diquark
-				      for(int iperm1=0;iperm1<2;iperm1++)
-					{
-					  int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
-					  
-					  for(int idg0=0;idg0<2;idg0++)
-					    {
-					      int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
-					      int ga1=ga1_l[idg0][ga];
+				//build the diquark
+				for(int iperm1=0;iperm1<2;iperm1++)
+				  {
+				    int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
+				    
+				    for(int idg0=0;idg0<2;idg0++)
+				      {
+					int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
+					int ga1=ga1_l[idg0][ga];
 					      
-					      list_fun[isign](diquark_dir,Q[ipa_al_a][ivol][al1][a1],Q[ipc_ga_c][ivol][ga1][c1]); //direct
-					      list_fun[isign](diquark_exc,Q[ipa_ga_c][ivol][al1][a1],Q[ipc_al_a][ivol][ga1][c1]); //exchange
-					    }
-					}
-				      
-				      //close it
-				      complex w;
-				      unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
-				      int be1=Cg5.pos[al1];
-				      complex_prodassign_double(diquark_dir,w[RE]);
-				      complex_prodassign_double(diquark_exc,w[RE]);
-				      complex_summ_the_prod(loc_contr[ind_bar_contr(ins_combo,ism_sink,ima,imb,imc,0,t)],Q[ipb][ivol][be1][b1],diquark_dir);
-				      complex_summ_the_prod(loc_contr[ind_bar_contr(ins_combo,ism_sink,ima,imb,imc,1,t)],Q[ipb][ivol][be1][b1],diquark_exc);
-				    }
+					list_fun[isign](diquark_dir,Q[ipa_al_a][ivol][al1][a1],Q[ipc_ga_c][ivol][ga1][c1]); //direct
+					list_fun[isign](diquark_exc,Q[ipa_ga_c][ivol][al1][a1],Q[ipc_al_a][ivol][ga1][c1]); //exchange
+				      }
+				  }
+				
+				//close it
+				complex w;
+				unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
+				int be1=Cg5.pos[al1];
+				complex_prodassign_double(diquark_dir,w[RE]);
+				complex_prodassign_double(diquark_exc,w[RE]);
+				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(ins_combo,ism_sink,iqcombo,0,t)],Q[ipb][ivol][be1][b1],diquark_dir);
+				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(ins_combo,ism_sink,iqcombo,1,t)],Q[ipb][ivol][be1][b1],diquark_exc);
 			      }
-			  }
-		}
-	STOP_TIMING(bar_contr_time);
+			}
+		    }
+	  }
+	STOP_TIMING(bar2pts_contr_time);
       }
     
     //reduce
-    complex *master_reduced_contr=(complex*)glb_threads_reduce_double_vect((double*)loc_contr,bar_contr_size*2);
-    NISSA_PARALLEL_LOOP(i,0,bar_contr_size) complex_summassign(bar_contr[i],master_reduced_contr[i]);
+    complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
+    NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size) complex_summassign(bar2pts_contr[i],master_reduced_contr[i]);
     THREAD_BARRIER();
     delete[] loc_contr;
   }
   THREADABLE_FUNCTION_END
   
-  //print all contractions averaging
-  void print_bar_contr()
+  //print all contractions
+  void print_bar2pts_contr()
   {
     //reduce
-    glb_nodes_reduce_complex_vect(bar_contr,bar_contr_size);
+    glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
     //open output
     FILE *fout=open_file(combine("%s/bar_contr",outfolder),"w");
     
-    for(size_t ins_combo=0;ins_combo<prop_bar_contr_map.size();ins_combo++)
+    for(size_t ins_combo=0;ins_combo<bar2pts_contr_ins_map.size();ins_combo++)
       for(int ism_sink=0;ism_sink<nsm_sink;ism_sink++)
-	for(int iqa=0;iqa<nquarks;iqa++)
-	  for(int iqb=0;iqb<nquarks;iqb++)
-	    for(int iqc=0;iqc<nquarks;iqc++)
-	      for(int dir_exc=0;dir_exc<2;dir_exc++)
+	for(size_t iqcombo=0;iqcombo<bar2pts_contr_quark_map.size();iqcombo++)
+	  for(int dir_exc=0;dir_exc<2;dir_exc++)
+	    {
+	      int iqa=bar2pts_contr_quark_map[iqcombo].a,ra=qr[iqa];
+	      int iqb=bar2pts_contr_quark_map[iqcombo].b,rb=qr[iqb];
+	      int iqc=bar2pts_contr_quark_map[iqcombo].c,rc=qr[iqc];
+	      
+	      master_fprintf(fout,"\n # ins_combo %c%c%c , sink_smeared %d , ma %lg , mb %lg , mc %lg , ra %d , rb %d , rc %d , dir_exc %d\n\n",
+			     qprop_list[bar2pts_contr_ins_map[ins_combo].a].shortname,
+			     qprop_list[bar2pts_contr_ins_map[ins_combo].b].shortname,
+			     qprop_list[bar2pts_contr_ins_map[ins_combo].c].shortname,
+			     ism_sink,qmass[iqa],qmass[iqb],qmass[iqc],ra,rb,rc,dir_exc);
+	      for(int t=0;t<glb_size[0];t++)
 		{
-		  int ra=qr[iqa];
-		  int rb=qr[iqa];
-		  int rc=qr[iqa];
-		  master_fprintf(fout,"\n # ins_combo %c%c%c , sink_smeared %d , ma %lg , mb %lg , mc %lg , ra %d , rb %d , rc %d , dir_exc %d\n\n",
-				 qprop_list[prop_bar_contr_map[ins_combo].a].shortname,
-				 qprop_list[prop_bar_contr_map[ins_combo].b].shortname,
-				 qprop_list[prop_bar_contr_map[ins_combo].c].shortname,
-				 ism_sink,qmass[iqa],qmass[iqb],qmass[iqc],ra,rb,rc,dir_exc);
-		  for(int t=0;t<glb_size[0];t++)
-		    {
-		      //remove border phase
-		      double arg=3*QUARK_BOUND_COND*M_PI*t/glb_size[0];
-		      complex phase={cos(arg),sin(arg)};
-		      
-		      //normalize for nsources and 1+g0
-		      complex c;
-		      complex_prod_double(c,bar_contr[ind_bar_contr(ins_combo,ism_sink,iqa,iqb,iqc,dir_exc,t)],1.0/(2*nsources));
-		      
-		      //put the phase and print
-		      safe_complex_prod(c,c,phase);
-		      master_fprintf(fout,"%+016.016lg %+016.016lg\n",c[RE],c[IM]);
-		    }
-		  master_fprintf(fout,"\n");
+		  //remove border phase
+		  double arg=3*QUARK_BOUND_COND*M_PI*t/glb_size[0];
+		  complex phase={cos(arg),sin(arg)};
+		  
+		  //normalize for nsources and 1+g0
+		  complex c;
+		  complex_prod_double(c,bar2pts_contr[ind_bar2pts_contr(ins_combo,ism_sink,iqcombo,dir_exc,t)],1.0/(2*nsources));
+		  
+		  //put the phase and print
+		  safe_complex_prod(c,c,phase);
+		  master_fprintf(fout,"%+16.016lg %+16.016lg\n",c[RE],c[IM]);
 		}
+	      master_fprintf(fout,"\n");
+	    }
     
     close_file(fout);
   }

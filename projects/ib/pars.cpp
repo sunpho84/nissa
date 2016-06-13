@@ -22,30 +22,35 @@ namespace nissa
       {
 	nr_lep=1;
 	base=WILSON_BASE;
-	read_list_of_double_pairs("QKappaResidues",&nquarks,&qkappa,&residue);
+	read_str_int("QKappaRThetaResidues",&nquarks);
+	qkappa=nissa_malloc("qkappa",nquarks,double);
       }
     else
       {
 	nr_lep=2;
 	base=MAX_TWIST_BASE;
-	//Kappa
 	read_str_double("Kappa",&kappa);
-	//Masses, r, theta and residue
 	read_str_int("QMassRThetaResidues",&nquarks);
 	qmass=nissa_malloc("qmass",nquarks,double);
 	qr=nissa_malloc("qr",nquarks,int);
-	residue=nissa_malloc("residue",nquarks,double);
-	for(int iq=0;iq<nquarks;iq++)
+      }
+    qtheta=nissa_malloc("qtheta",nquarks,double);
+    qresidue=nissa_malloc("qresidue",nquarks,double);
+    for(int iq=0;iq<nquarks;iq++)
+      {
+	if(pure_Wilson) read_double(&qkappa[iq]);
+	else
 	  {
 	    read_double(&qmass[iq]);
 	    read_int(&qr[iq]);
-	    read_double(&residue[iq]);
 	  }
+	read_double(&qtheta[iq]);
+	read_double(&qresidue[iq]);
       }
   }
   
   //read all the parameters to contract with leptons
-  void read_lept_contr_pars()
+  void read_meslep_contr_pars()
   {
     //Leptons
     if(!pure_Wilson) read_str_int("Q1Q2LepmassMesmass",&nquark_lep_combos);
@@ -205,6 +210,24 @@ namespace nissa
 	  case BKBK: for(int ig=13;ig<=15;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,ig)); break;
 	  default: crash("unknown meson_contr");
 	  }
+      }
+  }
+  
+  //read the list of baryons in terms of quarks
+  void read_bar2pts_contr_quark_combos_list()
+  {
+    int nquark_combos;
+    read_str_int("NQuarkCombos",&nquark_combos);
+    for(int i=0;i<nquark_combos;i++)
+      {
+	int iq1,iq2,iq3;
+	read_int(&iq1);
+	read_int(&iq2);
+	read_int(&iq3);
+	if(iq1>=nquarks) crash("iq1=%d>=nquarks=%d",iq1,nquarks);
+	if(iq2>=nquarks) crash("iq2=%d>=nquarks=%d",iq2,nquarks);
+	if(iq3>=nquarks) crash("iq3=%d>=nquarks=%d",iq3,nquarks);
+	bar2pts_contr_quark_map.push_back(bar_triplet_t(iq1,iq2,iq3));
       }
   }
 }
