@@ -19,8 +19,8 @@ int nread_sources;
 int silv_par=2;
 
 int nB;
-int iB(int par,int iquark,int r)
-{return r+nr*(iquark+nquarks*par);}
+int iB(int par,int iquark)
+{return iquark+nquarks*par;}
 
 //initialize the simulation
 void init_simulation(const char *path)
@@ -39,7 +39,7 @@ void init_simulation(const char *path)
   read_ngauge_conf();
   
   //allocate
-  nB=iB(silv_par-1,nquarks-1,nr-1)+1;
+  nB=iB(silv_par-1,nquarks-1)+1;
   conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   eta=nissa_malloc("eta",loc_vol+bord_vol,spincolor);
   phi=nissa_malloc("phi",loc_vol+bord_vol,spincolor);
@@ -75,15 +75,14 @@ void read_data()
       ILDG_File_read_all(info_data,fin,head.data_length);
       
       //parse
-      int read_version,read_par,read_nquarks,read_nr;
-      int nread_info=sscanf(info_data," Version %d Par %d NQuarks %d Nr %d NSources %d",&read_version,&read_par,&read_nquarks,&read_nr,&nread_sources);
+      int read_version,read_par,read_nquarks;
+      int nread_info=sscanf(info_data," Version %d Par %d NQuarks %d NSources %d",&read_version,&read_par,&read_nquarks,&nread_sources);
       if(nread_info!=5) crash("could not parse info");
       
       //check the info record
       if(version!=read_version) crash("read version %d while program is version %d",read_version,version);
       if(silv_par!=read_par) crash("read parity %d while input is %d",read_par,silv_par);
       if(nquarks!=read_nquarks) crash("read nquarks %d while input is %d",read_nquarks,nquarks);
-      if(nr!=read_nr) crash("read nr %d while input is %d",read_nr,nr);
       
       //load what have been done
       if(nread_sources<nsources)
@@ -94,14 +93,13 @@ void read_data()
 	  
 	  //read
 	  for(int par=0;par<silv_par;par++)
-	    for(int imass=0;imass<nquarks;imass++)
-	      for(int r=0;r<nr;r++)
-		{
-		  ILDG_header head=ILDG_File_get_next_record_header(fin);
-		  std::string exp_type=combine("par_%d_mass_%d_r_%d",par,imass,r);
-		  if(exp_type!=head.type) crash("expecting \"%s\", obtained \"%s\"",exp_type.c_str(),head.type);
-		  ILDG_File_read_ildg_data_all(bubble[par][imass][r],fin,head);
-		}
+	    for(int iquark=0;iquark<nquarks;iquark++)
+	      {
+		ILDG_header head=ILDG_File_get_next_record_header(fin);
+		std::string exp_type=combine("par_%d_mass_%d_r_%d",par,iquark);
+		if(exp_type!=head.type) crash("expecting \"%s\", obtained \"%s\"",exp_type.c_str(),head.type);
+		ILDG_File_read_ildg_data_all(bubble[par][iquark],fin,head);
+	      }
 	}
       
       ILDG_File_close(fin);
@@ -123,7 +121,6 @@ void write_data()
   info<<" Version "<<version
       <<" Par "<<silv_par
       <<" Nquarks "<<nquarks
-      <<" Nr "<<nr
       <<" NSources "<<nsources;
   ILDG_string_message_append_to_last(&mess,"Info",info.str().c_str());
   
@@ -133,11 +130,10 @@ void write_data()
   scalop_val.append_to_message_with_name(mess,"Scalar");
   ILDG_File_write_all_messages(fout,&mess);
   
-  //store the different parity, masses and r
+  //store the different parity, masses
   for(int par=0;par<silv_par;par++)
-    for(int imass=0;imass<nquarks;imass++)
-      for(int r=0;r<nr;r++)
-	ILDG_File_write_ildg_data_all(fout,bubble[par][imass][r],sizeof(spin1field),combine("par_%d_mass_%d_r_%d",par,imass,r).c_str());
+    for(int iquark=0;iquark<nquarks;iquark++)
+      ILDG_File_write_ildg_data_all(fout,bubble[par][iquark],sizeof(spin1field),combine("par_%d_quark_%d_r",par,iquark).c_str());
 	
   ILDG_File_close(fout);
 }
@@ -277,20 +273,20 @@ THREADABLE_FUNCTION_5ARG(vector_matrix_element, spin1field*,out, spincolor*,sink
 THREADABLE_FUNCTION_END
 
 //compute everything with a single mass
-void single_mass(int par,int imass,int r)
+void single_mass(int par,int iquark)
 {
-  master_printf(" imass %d/%d, r %d/%d\n",imass+1,nquarks,r,nr);
+  master_printf(" iquark %d/%d\n",iquark+1,nquarks);
   
   //solve for phi for each quark
-  get_qprop(phi,eta,imass,r);
+  get_qprop(phi,eta,iquark);
   
   //compute the various operator
-  compute_tadpole(eta,phi,r);
+  compute_tadpole(eta,phi,qr[iquark]);
   compute_scalar_pseudoscalar(eta,phi);
   
   //compute the single bubble
-  int ib=iB(par,imass,r);
-  vector_matrix_element(bubble[ib],eta,conf,r,phi);
+  int ib=iB(par,iquark);
+  vector_matrix_element(bubble[ib],eta,conf,qr[iquark],phi);
   
   //summ to the total
   double_vector_summassign((double*)(tot_bubble[ib]),(double*)(bubble[ib]),sizeof(spin1field)/sizeof(double)*loc_vol);
@@ -304,9 +300,8 @@ void single_source(int isource)
   //generate the source
   generate_undiluted_source(eta,noise_type,-1);
   
-  for(int imass=0;imass<nquarks;imass++)
-    for(int r=0;r<nr;r++)
-      single_mass(isource%silv_par,imass,r);
+  for(int iquark=0;iquark<nquarks;iquark++)
+    single_mass(isource%silv_par,iquark);
 }
 
 //read the number of sources in the file and check that it works

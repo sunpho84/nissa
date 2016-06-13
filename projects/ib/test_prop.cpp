@@ -327,7 +327,7 @@ void in_main(int narg,char **arg)
 	      
 	      //compute p+q
 	      coords cpq;
-	      for(int mu=0;mu<4;mu++) cpq[mu]=(cp[mu]+glb_coord_of_loclx[q][mu])%glb_size[mu];
+	      for(int mu=0;mu<NDIM;mu++) cpq[mu]=(cp[mu]+glb_coord_of_loclx[q][mu])%glb_size[mu];
 	      int pq=glblx_of_coord(cpq);
 	      
 	      //prepare S(p+q)*g5

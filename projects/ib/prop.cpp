@@ -13,20 +13,10 @@ namespace nissa
   
   ////////////////////////////////////////////// quark propagator /////////////////////////////////////////////
   
-  //return appropriate propagator
-  int iqprop(int iquark,int ip,int r,int is,int ic)
-  {
-    int c;
-    if(ip==ORI_SOURCE) c=0;
-    else c=1+r+nr*(iquark+nquarks*ip);
-    
-    return ic+nso_col*(is+nso_spi*c);
-  }
-  
   //allocate all prop
   void allocate_Q_prop()
   {
-    nqprop=iqprop(nquarks-1,nqprop_kind()-1,nr-1,nso_spi-1,nso_col)+1;
+    nqprop=iqprop(nquarks-1,nqprop_kind()-1,nso_spi-1,nso_col)+1;
     Q=nissa_malloc("Q*",nqprop,spincolor*);
     for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",loc_vol+bord_vol,spincolor);
   }
@@ -80,21 +70,21 @@ namespace nissa
   }
   
   //get a propagator inverting on "in"
-  void get_qprop(spincolor *out,spincolor *in,int imass,bool r)
+  void get_qprop(spincolor *out,spincolor *in,int iq)
   {
     GET_THREAD_ID();
     
     //rotate the source index - the propagator rotate AS the sign of mass term
-    if(!pure_Wilson) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
+    if(!pure_Wilson) safe_dirac_prod_spincolor(in,(tau3[qr[iq]]==-1)?&Pminus:&Pplus,in);
     
     //invert
     START_TIMING(inv_time,ninv_tot);
-    if(!pure_Wilson) inv_tmD_cg_eoprec_eos(out,NULL,conf,kappa,tau3[r]*qmass[imass],1000000,residue[imass],in);
-    else             inv_tmD_cg_eoprec_eos(out,NULL,conf,qkappa[imass],0,1000000,residue[imass],in);
+    if(!pure_Wilson) inv_tmD_cg_eoprec_eos(out,NULL,conf,kappa,tau3[qr[iq]]*qmass[iq],1000000,residue[iq],in);
+    else             inv_tmD_cg_eoprec_eos(out,NULL,conf,qkappa[iq],0,1000000,residue[iq],in);
     STOP_TIMING(inv_time);
     
     //rotate the sink index
-    if(!pure_Wilson) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
+    if(!pure_Wilson) safe_dirac_prod_spincolor(out,(tau3[qr[iq]]==-1)?&Pminus:&Pplus,out);
   }
   
   //generate a source, wither a wall or a point in the origin
@@ -109,7 +99,7 @@ namespace nissa
     vector_reset(source);
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
-	vector_reset(Q[iqprop(0,ORI_SOURCE,0,id_so,ic_so)]);
+	vector_reset(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)]);
         
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
@@ -129,13 +119,13 @@ namespace nissa
 	    for(int id_si=0;id_si<NDIRAC;id_si++)
 	      for(int ic_si=0;ic_si<NCOL;ic_si++)
 		  if((!diluted_spi_source||(id_so==id_si))&&(!diluted_col_source||(ic_so==ic_si)))
-		    complex_copy(Q[iqprop(0,ORI_SOURCE,0,id_so,ic_so)][ivol][id_si][ic_si],source[ivol][diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
+		    complex_copy(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)][ivol][id_si][ic_si],source[ivol][diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
     
     //set borders invalid
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
-	set_borders_invalid(Q[iqprop(0,ORI_SOURCE,0,id_so,ic_so)]);
+	set_borders_invalid(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)]);
   }
   THREADABLE_FUNCTION_END
   
@@ -208,49 +198,44 @@ namespace nissa
 	master_printf("Generating propagtor of type %s inserting %s on source %s\n",qprop_list[ip].name.c_str(),ins_name[insertion],
 		      (source_id==-1)?"ORIGINAL":qprop_list[source_id].name.c_str());
 	for(int iq=0;iq<nquarks;iq++)
-	  for(int r=0;r<nr;r++)
-	    {
-	      if(!pure_Wilson) master_printf(" mass[%d]=%lg, r=%d\n",iq,qmass[iq],r);
-	      else             master_printf(" kappa[%d]=%lg\n",iq,qkappa[iq]);
-	      
-	      for(int id_so=0;id_so<nso_spi;id_so++)
-		for(int ic_so=0;ic_so<nso_col;ic_so++)
-		  {
-		    
-		    generate_source(insertion,r,Q[iqprop(iq,source_id,r,id_so,ic_so)]);
-		    spincolor *sol=Q[iqprop(iq,ip,r,id_so,ic_so)];
-		    
-		    //combine the filename
-		    std::string path=combine("%s/source%d_prop%c_im%d_r%d_idso%d_icso%d",outfolder,irand_source,qprop_list[ip].shortname,iq,r,id_so,ic_so);
-		    
-		    //if the prop exists read it
-		    if(file_exists(path))
-		      {
-			master_printf("  loading the inversion dirac index %d, color %d\n",id_so,ic_so);
-			read_real_vector(sol,path,"prop");
-		      }
-		    else
-		      {
-			//otherwise compute it and possibly store it
-			get_qprop(sol,source,iq,r);
-			if(ip==PROP_0 && store_prop0) write_double_vector(path,sol,64,"prop");
-			
-			master_printf("  finished the inversion dirac index %d, color %d\n",id_so,ic_so);
-		      }
-		  }
-	    }
+	  {
+	    if(!pure_Wilson) master_printf(" mass[%d]=%lg, r=%d\n",iq,qmass[iq],qr[iq]);
+	    else             master_printf(" kappa[%d]=%lg\n",iq,qkappa[iq]);
+	    
+	    for(int id_so=0;id_so<nso_spi;id_so++)
+	      for(int ic_so=0;ic_so<nso_col;ic_so++)
+		{
+		  generate_source(insertion,qr[iq],Q[iqprop(iq,source_id,id_so,ic_so)]);
+		  spincolor *sol=Q[iqprop(iq,ip,id_so,ic_so)];
+		  
+		  //combine the filename
+		  std::string path=combine("%s/source%d_prop%c_iq%d_idso%d_icso%d",outfolder,irand_source,qprop_list[ip].shortname,iq,id_so,ic_so);
+		  
+		  //if the prop exists read it
+		  if(file_exists(path))
+		    {
+		      master_printf("  loading the inversion dirac index %d, color %d\n",id_so,ic_so);
+		      read_real_vector(sol,path,"prop");
+		    }
+		  else
+		    {
+		      //otherwise compute it and possibly store it
+		      get_qprop(sol,source,iq);
+		      if(ip==PROP_0 && store_prop0) write_double_vector(path,sol,64,"prop");
+		      
+		      master_printf("  finished the inversion dirac index %d, color %d\n",id_so,ic_so);
+		    }
+		}
+	  }
       }
   }
   
   /////////////////////////////////////////////// lepton propagators ///////////////////////////////////////////
   
-  int ilprop(int ilepton,int ilins,int orie,int r)
-  {return r+nr*(ilins+nlins*(orie+norie*ilepton));}
-  
   //allocate all leptonic propagators
   void allocate_L_prop()
   {
-    nlprop=ilprop(nquark_lep_combos-1,nlins-1,norie-1,nr-1)+1;
+    nlprop=ilprop(nquark_lep_combos-1,nlins-1,norie-1,nr_lep-1)+1;
     L=nissa_malloc("L*",nlprop,spinspin*);
     for(int iprop=0;iprop<nlprop;iprop++) L[iprop]=nissa_malloc("L",loc_vol+bord_vol,spinspin);
   }
@@ -437,7 +422,7 @@ namespace nissa
     for(int ilepton=0;ilepton<nquark_lep_combos;ilepton++)
       for(int ilins=0;ilins<nlins;ilins++)
 	for(int ori=0;ori<norie;ori++)
-	  for(int r=0;r<nr;r++)
+	  for(int r=0;r<nr_lep;r++)
 	    {
 	      //set the properties of the meson
 	      //time boundaries are anti-periodic, space are as for external line

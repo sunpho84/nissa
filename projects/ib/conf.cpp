@@ -114,7 +114,7 @@ namespace nissa
     setup_conf(conf,old_theta,put_theta,conf_path,rnd_gauge_transform,free_theory);
     
     //reset contractions
-    if(compute_mes_flag) vector_reset(mes_contr);
+    if(compute_mes2pts_flag) vector_reset(mes2pts_contr);
     if(compute_bar_flag) vector_reset(bar_contr);
     if(compute_meslep_flag) vector_reset(meslep_contr);
   }
@@ -221,7 +221,7 @@ namespace nissa
 	print_single_statistic(inv_time,tot_prog_time,ninv_tot,"calculation of quark propagator");
 	if(ninv_tot) master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",
 				   cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
-	print_single_statistic(mes_contr_time,tot_prog_time,nmes_contr,"calculation of mesonic contractions");
+	print_single_statistic(mes2pts_contr_time,tot_prog_time,nmes2pts_contr,"calculation of mesonic 2pts_contractions");
 	print_single_statistic(bar_contr_time,tot_prog_time,nbar_contr,"calculation of baryonic contractions");
 	print_single_statistic(meslep_contr_time,tot_prog_time,nmeslep_contr,"calculation of hadro-leptonic contractions");
 	print_single_statistic(contr_print_time,tot_prog_time,nmeslep_contr,"printing contractions");

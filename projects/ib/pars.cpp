@@ -20,19 +20,27 @@ namespace nissa
     read_str_int("PureWilson",&pure_Wilson);
     if(pure_Wilson)
       {
+	nr_lep=1;
 	base=WILSON_BASE;
-	nr=1;
 	read_list_of_double_pairs("QKappaResidues",&nquarks,&qkappa,&residue);
       }
     else
       {
+	nr_lep=2;
 	base=MAX_TWIST_BASE;
 	//Kappa
 	read_str_double("Kappa",&kappa);
-	//One or two r
-	read_str_int("NR",&nr);
-	//Masses and residue
-	read_list_of_double_pairs("QMassResidues",&nquarks,&qmass,&residue);
+	//Masses, r, theta and residue
+	read_str_int("QMassRThetaResidues",&nquarks);
+	qmass=nissa_malloc("qmass",nquarks,double);
+	qr=nissa_malloc("qr",nquarks,int);
+	residue=nissa_malloc("residue",nquarks,double);
+	for(int iq=0;iq<nquarks;iq++)
+	  {
+	    read_double(&qmass[iq]);
+	    read_int(&qr[iq]);
+	    read_double(&residue[iq]);
+	  }
       }
   }
   
@@ -40,14 +48,13 @@ namespace nissa
   void read_lept_contr_pars()
   {
     //Leptons
-    read_str_int("NQuarkMesCombos",&nquark_lep_combos);
+    if(!pure_Wilson) read_str_int("Q1Q2LepmassMesmass",&nquark_lep_combos);
+    else             read_str_int("Q1Q2LepkappaMesmass",&nquark_lep_combos);
     lep_contr_iq1=nissa_malloc("lep_contr_iq1",nquark_lep_combos,int);
     lep_contr_iq2=nissa_malloc("lep_contr_iq2",nquark_lep_combos,int);
     leps=nissa_malloc("leps",nquark_lep_combos,tm_quark_info);
     lep_energy=nissa_malloc("lep_energy",nquark_lep_combos,double);
     neu_energy=nissa_malloc("neu_energy",nquark_lep_combos,double);
-    if(!pure_Wilson) expect_str("Q1Q2LepmassMesmass");
-    else             expect_str("Q1Q2LepkappaMesmass");
     for(int il=0;il<nquark_lep_combos;il++)
       {
 	//read quarks identfiying the mesons
@@ -139,10 +146,10 @@ namespace nissa
   }
   
   //meson tags
-  const int nmes_2pts_known=8;
-  enum mes_2pts_known_t                       { P5P5 , P5GI , V0V0 , VKVK , VKTK , TKVK , TKTK , BKBK };
-  const char mes_2pts_tag[nmes_2pts_known][5]={"P5P5","P5GI","V0V0","VKVK","VKTK","TKVK","TKTK","BKBK"};
-  mes_2pts_known_t read_2pts_tag()
+  const int nmes2pts_known=8;
+  enum mes2pts_known_t                      { P5P5 , P5GI , V0V0 , VKVK , VKTK , TKVK , TKTK , BKBK };
+  const char mes2pts_tag[nmes2pts_known][5]={"P5P5","P5GI","V0V0","VKVK","VKTK","TKVK","TKTK","BKBK"};
+  mes2pts_known_t read_2pts_tag()
   {
     //read the tag
     char tag[10];
@@ -150,21 +157,21 @@ namespace nissa
     
     //convert to int
     int out=0;
-    while(strcasecmp(tag,mes_2pts_tag[out]) && out<nmes_2pts_known) out++;
+    while(strcasecmp(tag,mes2pts_tag[out]) && out<nmes2pts_known) out++;
     
     //check out
-    if(out==nmes_2pts_known)
+    if(out==nmes2pts_known)
       {
 	master_fprintf(stderr,"Erorr, unkwnown tag %s, use one in this list:\n",tag);
-	for(int i=0;i<nmes_2pts_known;i++) master_fprintf(stderr," %s\n",mes_2pts_tag[i]);
+	for(int i=0;i<nmes2pts_known;i++) master_fprintf(stderr," %s\n",mes2pts_tag[i]);
 	crash("See previous message");
       }
     
-    return (mes_2pts_known_t)out;
+    return (mes2pts_known_t)out;
   }
   
   //read the list of mesons in terms of quarks
-  void read_mes_2pts_contr_quark_combos_list()
+  void read_mes2pts_contr_quark_combos_list()
   {
     int nmes_quark_combos;
     read_str_int("NQuarkCombos",&nmes_quark_combos);
@@ -175,12 +182,12 @@ namespace nissa
 	read_int(&iq2);
 	if(iq1>=nquarks) crash("iq1=%d>=nquarks=%d",iq1,nquarks);
 	if(iq2>=nquarks) crash("iq2=%d>=nquarks=%d",iq2,nquarks);
-	mes_2pts_contr_quark_map.push_back(mes_doublet_t(iq1,iq2));
+	mes2pts_contr_quark_map.push_back(mes_doublet_t(iq1,iq2));
       }
   }
   
   //read the list of meson contraction asked
-  void read_mes_2pts_contr_gamma_list()
+  void read_mes2pts_contr_gamma_list()
   {
     int nmes_gamma_contr;
     read_str_int("NGammaContr",&nmes_gamma_contr);

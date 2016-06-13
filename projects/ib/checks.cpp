@@ -122,7 +122,7 @@ void check_bar()
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=kappa;
   qu.mass=qmass[0];
-  qu.r=0;
+  qu.r=qr[0];
   
   master_printf(" -----------------baryon direct -------------------- \n");
   
@@ -149,7 +149,7 @@ void check_bar2()
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=kappa;
   qu.mass=qmass[0];
-  qu.r=0;
+  qu.r=qr[0];
   
   master_printf(" -----------------baryon direct ins on outdiquark -------------------- \n");
   
@@ -210,7 +210,7 @@ void check_bar3()
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=kappa;
   qu.mass=qmass[0];
-  qu.r=0;
+  qu.r=qr[0];
   
   master_printf(" -----------------baryon direct cons ins on outdiquark -------------------- \n");
   
@@ -308,7 +308,7 @@ void check_mes()
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=kappa;
   qu.mass=qmass[0];
-  qu.r=0;
+  qu.r=qr[0];
   
   master_printf(" ------------------ meson------------------ \n");
   
@@ -352,7 +352,7 @@ void check_mes2()
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=kappa;
   qu.mass=qmass[0];
-  qu.r=0;
+  qu.r=qr[0];
   
   master_printf(" ------------------ meson with self energy ------------------ \n");
   
@@ -419,7 +419,7 @@ void check_mes3()
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
   qu.kappa=kappa;
   qu.mass=qmass[0];
-  qu.r=0;
+  qu.r=qr[0];
   
   master_printf(" ------------------ meson with self energy conservata ------------------ \n");
   

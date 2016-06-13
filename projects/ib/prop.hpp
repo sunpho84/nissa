@@ -54,14 +54,24 @@ namespace nissa
   int nqprop_kind();
   void allocate_Q_prop();
   void free_Q_prop();
-  int iqprop(int imass,int ip,int r,int is,int ic);
-  int ilprop(int ilepton,int ilins,int orie,int r);
+  
+  inline int iqprop(int iquark,int ip,int is,int ic)
+  {
+    int c;
+    if(ip==ORI_SOURCE) c=0;
+    else c=1+iquark+nquarks*ip;
+    
+    return ic+nso_col*(is+nso_spi*c);
+  }
+  
+  inline int ilprop(int ilepton,int ilins,int orie,int r)
+  {return r+nr_lep*(ilins+nlins*(orie+norie*ilepton));}
+  
   void allocate_L_prop();
   void free_L_prop();
   tm_quark_info get_lepton_info(int ilepton,int orie,int r);
   int add_qprop(const char *tag,char shortname,insertion_t insertion,int isource);
-  void get_qprop(spincolor *out,spincolor *in,int imass,bool r);
-  void get_qprop(spincolor *out,spincolor *in,int imass,bool r);
+  void get_qprop(spincolor *out,spincolor *in,int iquark);
   void generate_original_source();
   void insert_external_loc_source(spincolor *out,spin1field *curr,coords dirs,spincolor *in,int t);
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t);

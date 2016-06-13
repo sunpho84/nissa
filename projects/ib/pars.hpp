@@ -33,7 +33,8 @@ namespace nissa
   //sign of the lepton momentum
   const int norie=2;
   const int sign_orie[2]={-1,+1};
-  
+
+  EXTERN_PARS int nr_lep;
   const int nins=3;
   const int nlins=2;
   const int nrev=2;
@@ -44,7 +45,7 @@ namespace nissa
   
   EXTERN_PARS tm_quark_info *leps;
   
-  EXTERN_PARS int nquarks,nr;
+  EXTERN_PARS int nquarks,*qr;;
   EXTERN_PARS double *qmass,*qkappa,*qtheta,*residue;
   
   EXTERN_PARS gauge_info photon;
@@ -54,8 +55,8 @@ namespace nissa
   EXTERN_PARS double *lep_energy,*neu_energy;
   
   void read_input_preamble();
-  void read_mes_2pts_contr_quark_combos_list();
-  void read_mes_2pts_contr_gamma_list();
+  void read_mes2pts_contr_quark_combos_list();
+  void read_mes2pts_contr_gamma_list();
   void read_lept_contr_pars();
   void read_photon_pars();
   
@@ -146,9 +147,9 @@ namespace nissa
   {read_str_int("NSources",&nsources);}
   
   //compute mesons and barions
-  EXTERN_PARS int compute_mes_flag;
-  inline void read_compute_mes_flag()
-  {read_str_int("ComputeMesContr",&compute_mes_flag);}
+  EXTERN_PARS int compute_mes2pts_flag;
+  inline void read_compute_mes2pts_flag()
+  {read_str_int("ComputeMes2PtsContr",&compute_mes2pts_flag);}
   EXTERN_PARS int compute_meslep_flag;
   inline void read_compute_meslep_flag()
   {read_str_int("ComputeMeslepContr",&compute_meslep_flag);}
