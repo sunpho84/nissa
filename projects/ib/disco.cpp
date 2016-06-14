@@ -165,8 +165,8 @@ THREADABLE_FUNCTION_3ARG(compute_tadpole, spincolor*,eta, spincolor*,phi, int,r)
 {
   GET_THREAD_ID();
   
-  if(!pure_Wilson) insert_tm_tadpole(temp,conf,phi,r,tadpole,-1);
-  else             insert_wilson_tadpole(temp,conf,phi,tadpole,-1);
+  if(twisted_run) insert_tm_tadpole(temp,conf,phi,r,tadpole,-1);
+  else            insert_Wilson_tadpole(temp,conf,phi,tadpole,-1);
   
   //trace
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -227,8 +227,8 @@ THREADABLE_FUNCTION_5ARG(vector_matrix_element, spin1field*,out, spincolor*,sink
   
   //set parameters
   dirac_matr GAMMA;
-  if(!pure_Wilson) dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[r]);
-  else             GAMMA=base_gamma[0];
+  if(twisted_run) dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[r]);
+  else            GAMMA=base_gamma[0];
   
   //reset the output and communicate borders
   vector_reset(out);

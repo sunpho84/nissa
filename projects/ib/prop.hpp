@@ -22,9 +22,12 @@ namespace nissa
     char shortname;
     insertion_t insertion;
     int isource;
-    qprop_t(const char *tag,char shortname,insertion_t insertion,int isource) : name(tag),shortname(shortname),insertion(insertion),isource(isource) {}
+    int tins;
+    qprop_t(const char *tag,char shortname,insertion_t insertion,int isource,int tins) :
+      name(tag),shortname(shortname),insertion(insertion),isource(isource),tins(tins) {}
   };
   
+  const int ALL_TIMES=-1;
   EXTERN_PROP int ORI_SOURCE INIT_TO(-1);
   EXTERN_PROP int PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON_A,PROP_PHOTON_B,PROP_PHOTON_AB;
   
@@ -70,13 +73,13 @@ namespace nissa
   void allocate_L_prop();
   void free_L_prop();
   tm_quark_info get_lepton_info(int ilepton,int orie,int r);
-  int add_qprop(const char *tag,char shortname,insertion_t insertion,int isource);
+  int add_qprop(const char *tag,char shortname,insertion_t insertion,int isource,int tins=ALL_TIMES);
   void get_qprop(spincolor *out,spincolor *in,int iquark);
   void generate_original_source();
   void insert_external_loc_source(spincolor *out,spin1field *curr,coords dirs,spincolor *in,int t);
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t);
   void insert_external_source(spincolor *out,spin1field *curr,spincolor *ori,int t,int r,int loc);
-  void generate_source(insertion_t inser,int r,spincolor *ori,int t=-1);
+  void generate_source(insertion_t inser,int r,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
   void set_inversions();
   void generate_photon_stochastic_propagator();

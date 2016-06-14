@@ -120,7 +120,7 @@ void check_bar()
   tm_quark_info qu;
   qu.bc[0]=QUARK_BOUND_COND;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=kappa;
+  qu.kappa=glb_kappa;
   qu.mass=qmass[0];
   qu.r=qr[0];
   
@@ -147,7 +147,7 @@ void check_bar2()
   tm_quark_info qu;
   qu.bc[0]=QUARK_BOUND_COND;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=kappa;
+  qu.kappa=glb_kappa;
   qu.mass=qmass[0];
   qu.r=qr[0];
   
@@ -208,7 +208,7 @@ void check_bar3()
   tm_quark_info qu;
   qu.bc[0]=QUARK_BOUND_COND;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=kappa;
+  qu.kappa=glb_kappa;
   qu.mass=qmass[0];
   qu.r=qr[0];
   
@@ -306,7 +306,7 @@ void check_mes()
   tm_quark_info qu;
   qu.bc[0]=QUARK_BOUND_COND;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=kappa;
+  qu.kappa=glb_kappa;
   qu.mass=qmass[0];
   qu.r=qr[0];
   
@@ -350,7 +350,7 @@ void check_mes2()
   tm_quark_info qu;
   qu.bc[0]=QUARK_BOUND_COND;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=kappa;
+  qu.kappa=glb_kappa;
   qu.mass=qmass[0];
   qu.r=qr[0];
   
@@ -417,7 +417,7 @@ void check_mes3()
   tm_quark_info qu;
   qu.bc[0]=QUARK_BOUND_COND;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=kappa;
+  qu.kappa=glb_kappa;
   qu.mass=qmass[0];
   qu.r=qr[0];
   

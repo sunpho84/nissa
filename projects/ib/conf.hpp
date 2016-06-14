@@ -15,6 +15,7 @@ namespace nissa
 {
   EXTERN_CONF int nanalyzed_conf;
   EXTERN_CONF double tot_prog_time,wall_time;
+  EXTERN_CONF as2t_su3 *Pmunu;
   
   EXTERN_CONF double conf_load_time;
   EXTERN_CONF int nconf_load;

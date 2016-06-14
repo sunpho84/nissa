@@ -16,21 +16,31 @@ namespace nissa
     
     //Wall time
     read_str_double("WallTime",&wall_time);
-    //Pure Wilson
-    read_str_int("PureWilson",&pure_Wilson);
-    if(pure_Wilson)
+    //Twisted run
+    read_str_int("TwistedRun",&twisted_run);
+    //kappa for twisted run
+    if(twisted_run) read_str_double("Kappa",&glb_kappa);
+    //Clover run
+    read_str_int("CloverRun",&clover_run);
+    //cSW for clover run
+    if(clover_run) read_str_double("cSW",&glb_cSW);
+    //NQuarks
+    std::string tag="Q";
+    if(!twisted_run) tag+="Kappa";
+    else tag+="MassR";
+    tag+="ThetaResidues";
+    read_str_int(tag.c_str(),&nquarks);
+    
+    if(!twisted_run)
       {
 	nr_lep=1;
 	base=WILSON_BASE;
-	read_str_int("QKappaRThetaResidues",&nquarks);
 	qkappa=nissa_malloc("qkappa",nquarks,double);
       }
     else
       {
 	nr_lep=2;
 	base=MAX_TWIST_BASE;
-	read_str_double("Kappa",&kappa);
-	read_str_int("QMassRThetaResidues",&nquarks);
 	qmass=nissa_malloc("qmass",nquarks,double);
 	qr=nissa_malloc("qr",nquarks,int);
       }
@@ -38,7 +48,7 @@ namespace nissa
     qresidue=nissa_malloc("qresidue",nquarks,double);
     for(int iq=0;iq<nquarks;iq++)
       {
-	if(pure_Wilson) read_double(&qkappa[iq]);
+	if(!twisted_run) read_double(&qkappa[iq]);
 	else
 	  {
 	    read_double(&qmass[iq]);
@@ -53,8 +63,8 @@ namespace nissa
   void read_meslep_contr_pars()
   {
     //Leptons
-    if(!pure_Wilson) read_str_int("Q1Q2LepmassMesmass",&nquark_lep_combos);
-    else             read_str_int("Q1Q2LepkappaMesmass",&nquark_lep_combos);
+    if(twisted_run) read_str_int("Q1Q2LepmassMesmass",&nquark_lep_combos);
+    else            read_str_int("Q1Q2LepkappaMesmass",&nquark_lep_combos);
     lep_contr_iq1=nissa_malloc("lep_contr_iq1",nquark_lep_combos,int);
     lep_contr_iq2=nissa_malloc("lep_contr_iq2",nquark_lep_combos,int);
     leps=nissa_malloc("leps",nquark_lep_combos,tm_quark_info);
@@ -67,15 +77,15 @@ namespace nissa
 	read_int(lep_contr_iq2+il);
 	
 	//if not pure wilson read mass
-	if(pure_Wilson) leps[il].mass=0;
-	else            read_double(&leps[il].mass);
+	if(!twisted_run) leps[il].mass=0;
+	else             read_double(&leps[il].mass);
 	
 	//antiperiodic or periodic
 	leps[il].bc[0]=QUARK_BOUND_COND;
 	
 	//maximal twist (if tm), otherwise read kappa
-	if(pure_Wilson) read_double(&leps[il].kappa);
-	else            leps[il].kappa=0.125;
+	if(!twisted_run) read_double(&leps[il].kappa);
+	else             leps[il].kappa=0.125;
 	leps[il].r=0;
 	
 	//read the mass of the meson (that must have been determined outside)

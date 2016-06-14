@@ -68,6 +68,8 @@ void init_simulation(char *path)
   if(compute_mes2pts_flag) set_mes2pts_contr_ins_map();
   if(compute_bar2pts_flag) set_bar2pts_contr_ins_map();
   
+  if(clover_run) Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
+  
   allocate_source();
   allocate_photon_fields();
   if(compute_mes2pts_flag) allocate_mes2pts_contr();
@@ -108,10 +110,14 @@ void close()
       nissa_free(lep_energy);
       nissa_free(neu_energy);
     }
-  if(!pure_Wilson)
+  if(twisted_run)
     {
       nissa_free(qmass);
       nissa_free(qr);
+    }
+  if(clover_run)
+    {
+      nissa_free(Pmunu);
     }
   nissa_free(qtheta);
   nissa_free(qresidue);

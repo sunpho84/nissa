@@ -40,7 +40,7 @@ namespace nissa
     //compute the unperturbed propagator
     PROP_0=add_qprop("PROP_0",'0',ORIGINAL,ORI_SOURCE);
     
-    //add mass correctiosn
+    //add mass correction
     if(compute_mass_corrections) PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
     
     //add QED corrections
@@ -62,10 +62,10 @@ namespace nissa
       }
   }
   
-  int add_qprop(const char *tag,char shortname,insertion_t insertion,int isource)
+  int add_qprop(const char *tag,char shortname,insertion_t insertion,int isource,int tins)
   {
     int res=qprop_list.size();
-    qprop_list.push_back(qprop_t(tag,shortname,insertion,isource));
+    qprop_list.push_back(qprop_t(tag,shortname,insertion,isource,tins));
     return res;
   }
   
@@ -78,19 +78,19 @@ namespace nissa
     adapt_spatial_theta(conf,qtheta[iq]);
     
     //rotate the source index - the propagator rotate AS the sign of mass term
-    if(!pure_Wilson) safe_dirac_prod_spincolor(in,(tau3[qr[iq]]==-1)?&Pminus:&Pplus,in);
+    if(twisted_run) safe_dirac_prod_spincolor(in,(tau3[qr[iq]]==-1)?&Pminus:&Pplus,in);
     
     //invert
     START_TIMING(inv_time,ninv_tot);
-    if(!pure_Wilson) inv_tmD_cg_eoprec_eos(out,NULL,conf,kappa,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
-    else             inv_tmD_cg_eoprec_eos(out,NULL,conf,qkappa[iq],0,1000000,qresidue[iq],in);
+    if(twisted_run) inv_tmD_cg_eoprec_eos(out,NULL,conf,glb_kappa,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
+    else            inv_tmD_cg_eoprec_eos(out,NULL,conf,qkappa[iq],0,1000000,qresidue[iq],in);
     STOP_TIMING(inv_time);
     
     //put back no theta on the boundaries
     put_spatial_theta_periodic(conf);
     
     //rotate the sink index
-    if(!pure_Wilson) safe_dirac_prod_spincolor(out,(tau3[qr[iq]]==-1)?&Pminus:&Pplus,out);
+    if(twisted_run) safe_dirac_prod_spincolor(out,(tau3[qr[iq]]==-1)?&Pminus:&Pplus,out);
   }
   
   //generate a source, wither a wall or a point in the origin
@@ -166,8 +166,8 @@ namespace nissa
   {
     if(loc) insert_external_loc_source(source,curr,ori,t);
     else
-      if(!pure_Wilson) insert_tm_external_source(source,conf,curr,ori,r,t);
-      else             insert_wilson_external_source(source,conf,curr,ori,t);
+      if(twisted_run) insert_tm_external_source(source,conf,curr,ori,r,t);
+      else            insert_Wilson_external_source(source,conf,curr,ori,t);
   }
   
   //generate a sequential source
@@ -177,15 +177,15 @@ namespace nissa
     
     switch(inser)
       {
-      case ORIGINAL:prop_multiply_with_gamma(source,0,ori);break;
-      case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
-      case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
+      case ORIGINAL:prop_multiply_with_gamma(source,0,ori,t);break;
+      case SCALAR:prop_multiply_with_gamma(source,0,ori,t);break;
+      case PSEUDO:prop_multiply_with_gamma(source,5,ori,t);break;
       case PHOTON:insert_external_source(source,photon_field,ori,t,r,loc_hadr_curr);break;
       case PHOTON_PHI:insert_external_source(source,photon_phi,ori,t,r,loc_hadr_curr);break;
       case PHOTON_ETA:insert_external_source(source,photon_eta,ori,t,r,loc_hadr_curr);break;
       case TADPOLE:
-	if(!pure_Wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
-	else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);
+	if(twisted_run) insert_tm_tadpole(source,conf,ori,r,tadpole,t);
+	else            insert_Wilson_tadpole(source,conf,ori,tadpole,t);
 	break;
 	//case VECTOR:insert_external_source(source,NULL,ori,t,r,loc_pion_curr);break;
       }
@@ -205,13 +205,13 @@ namespace nissa
 		      (source_id==-1)?"ORIGINAL":qprop_list[source_id].name.c_str());
 	for(int iq=0;iq<nquarks;iq++)
 	  {
-	    if(!pure_Wilson) master_printf(" mass[%d]=%lg, r=%d\n",iq,qmass[iq],qr[iq]);
-	    else             master_printf(" kappa[%d]=%lg\n",iq,qkappa[iq]);
+	    if(twisted_run) master_printf(" mass[%d]=%lg, r=%d\n",iq,qmass[iq],qr[iq]);
+	    else            master_printf(" kappa[%d]=%lg\n",iq,qkappa[iq]);
 	    
 	    for(int id_so=0;id_so<nso_spi;id_so++)
 	      for(int ic_so=0;ic_so<nso_col;ic_so++)
 		{
-		  generate_source(insertion,qr[iq],Q[iqprop(iq,source_id,id_so,ic_so)]);
+		  generate_source(insertion,qr[iq],Q[iqprop(iq,source_id,id_so,ic_so)],qprop_list[ip].tins);
 		  spincolor *sol=Q[iqprop(iq,ip,id_so,ic_so)];
 		  
 		  //combine the filename
@@ -336,7 +336,7 @@ namespace nissa
     if(!loc_muon_curr)
       {
 	dirac_matr GAMMA;
-	if(pure_Wilson) dirac_prod_double(&GAMMA,base_gamma+0,1);
+	if(twisted_run) dirac_prod_double(&GAMMA,base_gamma+0,1);
 	else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
 	
 	//phases

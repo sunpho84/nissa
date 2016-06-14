@@ -142,8 +142,8 @@ namespace nissa
 	  {
 	    int iq1=mes2pts_contr_quark_map[iq_combo].a;
 	    int iq2=mes2pts_contr_quark_map[iq_combo].b;
-	    if(!pure_Wilson) master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r1(already rev)=%d r2=%d\n",qmass[iq1],qmass[iq2],qr[iq1],qr[iq2]);
-	    else             master_fprintf(fout," # kappa1(rev)=%lg kappa2(ins)=%lg\n",qkappa[iq1],qkappa[iq2]);
+	    if(twisted_run) master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r1(already rev)=%d r2=%d\n",qmass[iq1],qmass[iq2],qr[iq1],qr[iq2]);
+	    else            master_fprintf(fout," # kappa1(rev)=%lg kappa2(ins)=%lg\n",qkappa[iq1],qkappa[iq2]);
 	    print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind*glb_size[0],0,"",1.0);
 	    master_fprintf(fout,"\n");
 	    ind+=mes_gamma_list.size();
@@ -352,10 +352,10 @@ namespace nissa
 		int iq1=lep_contr_iq1[ilepton];
 		int iq2=lep_contr_iq2[ilepton];
 		
-		if(!pure_Wilson) master_fprintf(fout," # mlept[%d]=%lg mq1=%lg mq2=%lg qins=%d qrev=%d rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
-						ilepton,leps[ilepton].mass,qmass[iq1],qmass[iq2],qins,irev+1,!qr[iq1],qr[iq2],sign_orie[orie],rl);
-		else             master_fprintf(fout," # klept[%d]=%lg kappaq1=%lg kappaq2=%lg qins=%d qrev=%d lep_orie=%+d\n\n",
-						ilepton,leps[ilepton].kappa,qkappa[iq1],qkappa[iq2],qins,irev+1,sign_orie[orie]);
+		if(twisted_run) master_fprintf(fout," # mlept[%d]=%lg mq1=%lg mq2=%lg qins=%d qrev=%d rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
+					       ilepton,leps[ilepton].mass,qmass[iq1],qmass[iq2],qins,irev+1,!qr[iq1],qr[iq2],sign_orie[orie],rl);
+		else            master_fprintf(fout," # klept[%d]=%lg kappaq1=%lg kappaq2=%lg qins=%d qrev=%d lep_orie=%+d\n\n",
+					       ilepton,leps[ilepton].kappa,qkappa[iq1],qkappa[iq2],qins,irev+1,sign_orie[orie]);
 		for(int ind=0;ind<nindep_meslep_weak;ind++)
 		  for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
 		    {

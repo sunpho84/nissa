@@ -122,7 +122,7 @@ namespace nissa
 	
 	//Put the -1/2 factor on derivative and the gamma5
 	//ok this is horrible, but fast
-	for(int c=0;c<3;c++)
+	for(int c=0;c<NCOL;c++)
 	  {
 	    out[X][0][c][0]=-0.5*out[X][0][c][0]+kcf*in[X][0][c][0]-mu*in[X][0][c][1];
 	    out[X][0][c][1]=-0.5*out[X][0][c][1]+kcf*in[X][0][c][1]+mu*in[X][0][c][0];

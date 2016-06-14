@@ -39,9 +39,9 @@ namespace nissa
   const int nlins=2;
   const int nrev=2;
   
-  EXTERN_PARS int pure_Wilson;
+  EXTERN_PARS int twisted_run,clover_run;
   EXTERN_PARS tm_basis_t base;
-  EXTERN_PARS double kappa;
+  EXTERN_PARS double glb_kappa,glb_cSW;
   
   EXTERN_PARS tm_quark_info *leps;
   
