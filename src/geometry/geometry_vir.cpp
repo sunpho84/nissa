@@ -885,7 +885,7 @@ namespace nissa
       {
 	quad_su3 temp;
 	build_chromo_therm_from_anti_symmetric_four_leaves(temp,Pmunu[ivol_lx]);
-	for(int mu=0;mu<4;mu++)
+	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    su3_prod_double(temp[mu],temp[mu],csw);
 	    SU3_TO_BI_SU3(bi_cl[virlx_of_loclx[ivol_lx]][mu],temp[mu],vnode_of_loclx(ivol_lx));

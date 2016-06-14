@@ -120,7 +120,7 @@ namespace nissa
     insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_tadpole_handle,t,tad); \
   }									\
   THREADABLE_FUNCTION_END						\
-  void insert_wilson_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,double *tad,int t){insert_tadpole(out,conf,in,base_gamma+0,tad,t);} \
+  void insert_Wilson_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,double *tad,int t){insert_tadpole(out,conf,in,base_gamma+0,tad,t);} \
   void insert_tm_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,int r,double *tad,int t){DEF_TM_GAMMA(r); insert_tadpole(out,conf,in,&GAMMA,tad,t);} \
   									\
   /*insert the external source, that is one of the two extrema of the stoch prop*/ \
@@ -131,7 +131,7 @@ namespace nissa
     insert_vector_vertex(out,conf,curr,in,fw_factor,bw_factor,GAMMA,insert_external_source_handle,t); \
   }									\
   THREADABLE_FUNCTION_END						\
-  void insert_wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int t){insert_external_source(out,conf,curr,in,base_gamma+0,t);} \
+  void insert_Wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int t){insert_external_source(out,conf,curr,in,base_gamma+0,t);} \
   void insert_tm_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int r,int t){DEF_TM_GAMMA(r);insert_external_source(out,conf,curr,in,&GAMMA,t);} \
 									\
   /*insert the conserved time current*/ \
@@ -142,7 +142,7 @@ namespace nissa
     insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_conserved_current_handle,t,dirs); \
   }									\
   THREADABLE_FUNCTION_END						\
-  void insert_wilson_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int *dirs,int t){insert_conserved_current(out,conf,in,base_gamma+0,dirs,t);} \
+  void insert_Wilson_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int *dirs,int t){insert_conserved_current(out,conf,in,base_gamma+0,dirs,t);} \
   void insert_tm_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int r,int *dirs,int t){DEF_TM_GAMMA(r);insert_conserved_current(out,conf,in,&GAMMA,dirs,t);} \
 									\
   /*multiply with gamma*/						\

@@ -41,7 +41,7 @@ namespace nissa
        0    0   +C  +D^+ BUT C and D get an additional
        0    0   +D  -C   sign -1 coming from g5
     */
-	
+    
     NISSA_PARALLEL_LOOP(i,0,loc_volh)
       {
 	DECLARE_REG_BI_HALFSPINCOLOR(reg_out);

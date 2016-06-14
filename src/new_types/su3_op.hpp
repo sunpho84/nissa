@@ -78,7 +78,7 @@ namespace nissa
   //just print a color
   inline void color_print(color c)
   {
-    for(size_t ic=0;ic<NCOL;ic++) printf("%+016.16lg,%+016.16lg\t",c[ic][RE],c[ic][IM]);
+    for(size_t ic=0;ic<NCOL;ic++) printf("%+16.016lg,%+16.016lg\t",c[ic][RE],c[ic][IM]);
     master_printf("\n");
   }
   
@@ -901,7 +901,7 @@ namespace nissa
   {
     for(size_t id=0;id<NDIRAC;id++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) printf("%+016.16le,%+016.16le\t",c[id][ic][0],c[id][ic][1]);
+	for(size_t ic=0;ic<NCOL;ic++) printf("%+16.016le,%+16.016le\t",c[id][ic][0],c[id][ic][1]);
 	master_printf("\n");
       }
     master_printf("\n");

@@ -48,6 +48,24 @@ namespace nissa
     //if asked, randomly transform the configurations
     if(rnd_gauge_transform) perform_random_gauge_transform(conf,conf);
     
+    //if clover term is included, compute it
+    if(clover_run)
+      {
+	master_printf("Computing Clover term\n");
+	Pmunu_term(Pmunu,conf);
+	
+	su3_print(Pmunu[0][0]);
+	
+	quad_su3 temp;
+	build_clover_term_from_anti_symmetric_four_leaves(temp,Pmunu[0]);
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    su3_prod_double(temp[mu],temp[mu],glb_cSW);
+	    su3_print(temp[mu]);
+	    master_printf("\n");
+	  }
+      }
+    
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)
       {
