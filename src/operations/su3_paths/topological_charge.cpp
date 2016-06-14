@@ -50,12 +50,12 @@ namespace nissa
     if(!check_edges_valid(conf[0])) crash("communicate edges externally");
     
     int munu=0;
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
 	int A=loclx_neighup[X][mu];
 	int D=loclx_neighdw[X][mu];
         
-	for(int nu=mu+1;nu<4;nu++)
+	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
 	    int B=loclx_neighup[X][nu];
 	    int F=loclx_neighdw[X][nu];
@@ -110,8 +110,8 @@ namespace nissa
   void four_leaves_anti_symmetrize_fourth(as2t_su3 out,as2t_su3 in)
   {
     for(int munu=0;munu<6;munu++)
-      for(int ic1=0;ic1<3;ic1++)
-	for(int ic2=0;ic2<3;ic2++)
+      for(int ic1=0;ic1<NCOL;ic1++)
+	for(int ic2=0;ic2<NCOL;ic2++)
 	  {
 	    out[munu][ic1][ic2][0]=(in[munu][ic1][ic2][0]-in[munu][ic2][ic1][0])/4;
 	    out[munu][ic1][ic2][1]=(in[munu][ic1][ic2][1]+in[munu][ic2][ic1][1])/4;
@@ -162,7 +162,7 @@ namespace nissa
     
     NB: indeed Pi is anti-hermitian
   */
-  void build_chromo_therm_from_anti_symmetric_four_leaves(quad_su3 out,as2t_su3 in)
+  void build_clover_term_from_anti_symmetric_four_leaves(quad_su3 out,as2t_su3 in)
   {
     su3 A,B,C,D,E,F;
     
@@ -184,6 +184,36 @@ namespace nissa
     su3_summ_the_prod_idouble(out[3],F,1);
   }
   
+  //apply a diagonal matrix plus clover term to up or low components
+  void apply_diag_plus_clover_to_halfspincolor(halfspincolor out,complex diag,double pref,su3 *c,halfspincolor in)
+  {
+    color temp;
+    
+    unsafe_color_prod_complex(out[0],in[0],diag);
+    unsafe_su3_prod_color(temp,c[0],in[0]);
+    su3_dag_summ_the_prod_color(temp,c[1],in[1]);
+    color_summ_the_prod_double(out[0],temp,pref);
+    
+    unsafe_color_prod_complex(out[1],in[1],diag);
+    unsafe_su3_prod_color(temp,c[1],in[0]);
+    su3_subt_the_prod_color(temp,c[0],in[1]);
+    color_summ_the_prod_double(out[1],temp,pref);
+  }
+  
+  //form the inverse of the clover term
+  void invert_twisted_clover_term(oct_su3 inv,double mass,double kappa,double cSW,as2t_su3 Cl)
+  {
+    halfspincolor source,sol;
+    
+    for(int high_low=0;high_low<2;high_low++)
+      for(int id=0;id<NDIRAC/2;id++)
+      for(int icol=0;icol<NCOL;icol++)
+	{
+	  
+	}
+    
+  }
+  
   //takes the anti-simmetric part of the four-leaves (optimized)
   THREADABLE_FUNCTION_2ARG(opt_Pmunu_term, quad_su3*,C,quad_su3*,conf)
   {
@@ -197,7 +227,7 @@ namespace nissa
 	as2t_su3 leaves_summ;
 	four_leaves_point(leaves_summ,conf,X);
 	four_leaves_anti_symmetrize_fourth(leaves_summ,leaves_summ);
-	build_chromo_therm_from_anti_symmetric_four_leaves(C[X],leaves_summ);
+	build_clover_term_from_anti_symmetric_four_leaves(C[X],leaves_summ);
       }
     
     set_borders_invalid(C);
@@ -207,27 +237,27 @@ namespace nissa
   //apply the chromo operator to the passed spinor site by site (not optimized)
   void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in)
   {
-    for(int d1=0;d1<4;d1++)
+    for(int d1=0;d1<NDIRAC;d1++)
       {
 	color_put_to_zero(out[d1]);
 	for(int imunu=0;imunu<6;imunu++)
 	  {
 	    color temp_d1;
 	    unsafe_su3_prod_color(temp_d1,Pmunu[imunu],in[smunu_pos[d1][imunu]]);
-	    for(int c=0;c<3;c++) complex_summ_the_prod(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
+	    for(int c=0;c<NCOL;c++) complex_summ_the_prod(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
 	  }
       }
   }
   void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,as2t_su3 Pmunu,spincolor_128 in)
   {
-    for(int d1=0;d1<4;d1++)
+    for(int d1=0;d1<NDIRAC;d1++)
       {
 	color_128_put_to_zero(out[d1]);
 	for(int imunu=0;imunu<6;imunu++)
 	  {
 	    color_128 temp_d1;
 	    unsafe_su3_prod_color_128(temp_d1,Pmunu[imunu],in[smunu_pos[d1][imunu]]);
-	    for(int c=0;c<3;c++) complex_summ_the_64_prod_128(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
+	    for(int c=0;c<NCOL;c++) complex_summ_the_64_prod_128(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
 	  }
       }
   }

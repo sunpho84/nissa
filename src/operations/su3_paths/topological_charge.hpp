@@ -37,7 +37,8 @@ namespace nissa
       path(def_path()) {}
   };
   
-  void build_chromo_therm_from_anti_symmetric_four_leaves(quad_su3 out,as2t_su3 in);
+  void build_clover_term_from_anti_symmetric_four_leaves(quad_su3 out,as2t_su3 in);
+  void apply_diag_plus_clover_to_halfspincolor(halfspincolor out,complex diag,double pref,su3 *c,halfspincolor in);
   void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **uncooled_conf,int iconf,bool conf_created);
   void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,bool conf_created,bool presereve_uncooled=false);
   double topodynamical_potential(double Q,topotential_pars_t &pars);
