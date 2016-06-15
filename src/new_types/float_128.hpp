@@ -18,12 +18,12 @@ namespace nissa
   typedef float_128 complex_128[2];
   typedef complex_128 color_128[NCOL];
   typedef color_128 spincolor_128[4];
-  typedef complex_128 bi_complex_128[2];
+  typedef complex_128 vir_complex_128[2];
   
-  typedef bi_complex_128 bi_color_128[NCOL];
-  typedef bi_color_128 bi_su3_128[NCOL];
-  typedef bi_su3_128 bi_oct_su3_128[8];
-  typedef bi_color_128 bi_spincolor_128[4];
+  typedef vir_complex_128 vir_color_128[NCOL];
+  typedef vir_color_128 vir_su3_128[NCOL];
+  typedef vir_su3_128 vir_oct_su3_128[8];
+  typedef vir_color_128 vir_spincolor_128[4];
   
   double double_from_float_128(float_128 b);
   void color_128_copy(color_128 a,color_128 b);

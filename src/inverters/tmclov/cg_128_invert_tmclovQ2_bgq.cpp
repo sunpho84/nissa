@@ -26,7 +26,7 @@
 #define A1 conf
 #define AT2 double
 #define A2 kappa
-#define AT3 bi_opt_as2t_su3*
+#define AT3 bi_clover_term_t*
 #define A3 Cl
 #define AT4 double
 #define A4 mass
@@ -43,6 +43,6 @@
 
 namespace nissa
 {
-  void inv_tmclovQ2_m2_cg_128_bgq(bi_spincolor *sol,bi_spincolor *guess,bi_oct_su3 *conf,double kappa,bi_opt_as2t_su3 *Cl,double m2,int niter,double external_solver_residue,bi_spincolor *external_source)
+  void inv_tmclovQ2_m2_cg_128_bgq(bi_spincolor *sol,bi_spincolor *guess,bi_oct_su3 *conf,double kappa,bi_clover_term_t *Cl,double m2,int niter,double external_solver_residue,bi_spincolor *external_source)
   {inv_tmclovQ2_cg_128_bgq(sol,guess,conf,kappa,Cl,sqrt(m2),niter,external_solver_residue,external_source);}
 }

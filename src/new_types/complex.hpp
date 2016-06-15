@@ -19,8 +19,8 @@ namespace nissa
   
   typedef float single_complex[2];
   
-  typedef complex bi_complex[2];
-  typedef single_complex bi_single_complex[2];
+  typedef complex vir_complex[2];
+  typedef single_complex vir_single_complex[2];
   
   //////////////////////////////////////////////////////////
   

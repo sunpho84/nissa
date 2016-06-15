@@ -57,14 +57,14 @@ namespace nissa
 #if defined BGQ
     bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
     lx_conf_remap_to_virlx(bi_conf,conf);
-    bi_opt_as2t_su3 *bi_cl=nissa_malloc("bi_cl",loc_volh,bi_opt_as2t_su3);
-    lx_as2t_su3_remap_to_opt_virlx(bi_cl,csw/2,Pmunu);
+    bi_clover_term_t *bi_Cl=nissa_malloc("bi_Cl",loc_volh,bi_clover_term_t);
+    lx_clover_term_t_remap_to_virlx(bi_Cl,Cl);
     bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh,bi_spincolor);
     lx_spincolor_remap_to_virlx(bi_source,source);
     bi_spincolor *bi_sol[nmass];
     for(int imass=0;imass<nmass;imass++) bi_sol[imass]=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
     
-    inv_tmclovQ2_m2_cgm_bgq(bi_sol,bi_conf,kappa,bi_cl,m2,nmass,niter_max,req_res,bi_source);
+    inv_tmclovQ2_m2_cgm_bgq(bi_sol,bi_conf,kappa,bi_Cl,m2,nmass,niter_max,req_res,bi_source);
     
     //unmap and free
     for(int imass=0;imass<nmass;imass++)
@@ -74,7 +74,7 @@ namespace nissa
       }
     nissa_free(bi_source);
     nissa_free(bi_conf);
-    nissa_free(bi_cl);
+    nissa_free(bi_Cl);
 #else
     inv_tmclovQ2_m2_cgm_portable(sol,conf,kappa,Cl,m2,nmass,niter_max,req_res,source);
 #endif

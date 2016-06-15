@@ -1,5 +1,7 @@
 #pragma once
 
+#include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "new_types/su3_op.hpp"
 
@@ -125,10 +127,10 @@ namespace nissa
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
-      for(int ic=0;ic<3;ic++)
+      for(int ic=0;ic<NCOL;ic++)
 	{
-	  for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
-	  for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
+	  for(int id=0;id<NDIRAC/2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
+	  for(int id=NDIRAC/2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
 	}
     
     set_borders_invalid(out);
@@ -145,10 +147,10 @@ namespace nissa
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
-      for(int ic=0;ic<3;ic++)
+      for(int ic=0;ic<NCOL;ic++)
 	{
-	  for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
-	  for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
+	  for(int id=0;id<NDIRAC/2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
+	  for(int id=NDIRAC/2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
 	}
     
     set_borders_invalid(out);
@@ -166,12 +168,12 @@ namespace nissa
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-      for(int id=0;id<2;id++)
-	for(int ic=0;ic<3;ic++)
+      for(int id=0;id<NDIRAC/2;id++)
+	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
 	    { //gamma5 is explicitely implemented
 	      out[ivol][id  ][ic][ri]=+temp[ivol][id  ][ic][ri]-out[ivol][id  ][ic][ri]*0.25;
-	      out[ivol][id+2][ic][ri]=-temp[ivol][id+2][ic][ri]+out[ivol][id+2][ic][ri]*0.25;
+	      out[ivol][id+NDIRAC/2][ic][ri]=-temp[ivol][id+NDIRAC/2][ic][ri]+out[ivol][id+2][ic][ri]*0.25;
 	    }
     
     set_borders_invalid(out);

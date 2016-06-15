@@ -27,12 +27,12 @@ namespace nissa
     lx_spincolor_remap_to_virlx(bi_source,source);
     bi_spincolor *bi_sol=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
     
-    inv_tmclovQ2_cg_64_bgq(bi_sol,NULL,bi_conf,kappa,bi_cl,mu,niter,residue,bi_source);
+    inv_tmclovQ2_cg_64_bgq(bi_sol,NULL,bi_conf,kappa,bi_Cl,mu,niter,residue,bi_source);
     
     //unmap and free
     virlx_spincolor_remap_to_lx(sol,bi_sol);
     nissa_free(bi_sol);
-    nissa_free(bi_cl);
+    nissa_free(bi_Cl);
     nissa_free(bi_source);
     nissa_free(bi_conf);
 #else

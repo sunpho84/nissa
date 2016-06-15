@@ -38,7 +38,7 @@
 #define A1 conf
 #define AT2 double
 #define A2 kappa
-#define AT3 bi_opt_as2t_su3*
+#define AT3 bi_clover_term_t*
 #define A3 Cl
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,Cl,
 

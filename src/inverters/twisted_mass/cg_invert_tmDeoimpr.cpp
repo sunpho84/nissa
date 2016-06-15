@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "base/debug.hpp"
+#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -25,10 +26,11 @@ namespace nissa
     if(use_128_bit_precision) inv_tmDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
     else inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
   }
-
-//Invert twisted mass operator using e/o preconditioning.
-  void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mass,int nitermax,double residue,spincolor *source_lx)
+  
+  //Invert twisted mass operator using e/o preconditioning.
+  THREADABLE_FUNCTION_8ARG(inv_tmD_cg_eoprec_eos, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
   {
+    GET_THREAD_ID();
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
     //prepare the e/o split version of the source
@@ -58,11 +60,11 @@ namespace nissa
     
     //Equation (8.b)
     tmn2Doe_eos(varphi,conf_eos,temp);
-    NISSA_LOC_VOLH_LOOP(ivol)
-      for(int id=0;id<2;id++)
-	for(int ic=0;ic<3;ic++)
+    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+      for(int id=0;id<NDIRAC/2;id++)
+	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
-	    { //gamma5 is explicitely wrote
+	    { //gamma5 is explicitly wrote
 	      varphi[ivol][id  ][ic][ri]=+source_eos[ODD][ivol][id  ][ic][ri]+varphi[ivol][id  ][ic][ri]*0.5;
 	      varphi[ivol][id+2][ic][ri]=-source_eos[ODD][ivol][id+2][ic][ri]-varphi[ivol][id+2][ic][ri]*0.5;
 	    }
@@ -76,9 +78,9 @@ namespace nissa
     
     //Equation (10)
     tmn2Deo_eos(varphi,conf_eos,solution_eos[ODD]);
-    NISSA_LOC_VOLH_LOOP(ivol)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
+    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+      for(int id=0;id<NDIRAC;id++)
+	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
 	    varphi[ivol][id][ic][ri]=source_eos[EVN][ivol][id][ic][ri]+varphi[ivol][id][ic][ri]*0.5;
     set_borders_invalid(varphi);
@@ -97,4 +99,5 @@ namespace nissa
 	nissa_free(solution_eos[par]);
       }
   }
+  THREADABLE_FUNCTION_END
 }

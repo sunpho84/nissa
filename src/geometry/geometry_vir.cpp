@@ -761,6 +761,21 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //quad_su3 to bi_quad_su3
+  THREADABLE_FUNCTION_2ARG(lx_quad_su3_remap_to_virlx, bi_quad_su3*,out, quad_su3*,in)
+  {
+    GET_THREAD_ID();
+    START_TIMING(remap_time,nremap);
+    
+    NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
+      for(int mu=0;mu<NDIM;mu++)
+	SU3_TO_BI_SU3(out[virlx_of_loclx[ivol_lx]][mu],in[ivol_lx][mu],vnode_of_loclx(ivol_lx));
+    
+    set_borders_invalid(out);
+    STOP_TIMING(remap_time);
+  }
+  THREADABLE_FUNCTION_END
+  
   //remap a color from lx to vireo layout
   THREADABLE_FUNCTION_2ARG(lx_color_remap_to_vireo, bi_color**,out, color*,in)
   {
@@ -867,7 +882,7 @@ namespace nissa
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
       BI_SINGLE_COLOR_TO_COLOR(out[loceo_of_vireo[par][ivol_vireo]],out[loceo_of_vireo[par][ivol_vireo]+vnode_eo_offset],
-			in[ivol_vireo]);
+			       in[ivol_vireo]);
     
     //wait filling
     set_borders_invalid(out);
@@ -875,28 +890,8 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //build a clover term from an unoptimized Pmunu
-  THREADABLE_FUNCTION_3ARG(lx_as2t_su3_remap_to_opt_virlx, bi_opt_as2t_su3*,bi_cl, double,csw, as2t_su3*,Pmunu)
-  {
-    GET_THREAD_ID();
-    START_TIMING(remap_time,nremap);
-    
-    NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
-      {
-	quad_su3 temp;
-	build_chromo_therm_from_anti_symmetric_four_leaves(temp,Pmunu[ivol_lx]);
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    su3_prod_double(temp[mu],temp[mu],csw);
-	    SU3_TO_BI_SU3(bi_cl[virlx_of_loclx[ivol_lx]][mu],temp[mu],vnode_of_loclx(ivol_lx));
-	  }
-      }
-    set_borders_invalid(bi_cl);
-    STOP_TIMING(remap_time);
-  }
-  THREADABLE_FUNCTION_END
   //reverse
-  THREADABLE_FUNCTION_2ARG(virlx_opt_as2t_su3_remap_to_lx, opt_as2t_su3*,out, bi_opt_as2t_su3*,in)
+  THREADABLE_FUNCTION_2ARG(virlx_quad_su3_remap_to_lx, quad_su3*,out, bi_quad_su3*,in)
   {
     GET_THREAD_ID();
     START_TIMING(remap_time,nremap);

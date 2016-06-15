@@ -209,63 +209,87 @@ namespace nissa
   
   void apply_point_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
   {
-    
+    complex z={1/(2*kappa),mass};
+    apply_point_diag_plus_clover_term_to_halfspincolor(out,z,Cl,in);
   }
   
   void apply_point_squared_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
   {
-    
+    halfspincolor temp;
+    apply_point_twisted_clover_term_to_halfspincolor(temp,+mass,kappa,Cl,in);
+    apply_point_twisted_clover_term_to_halfspincolor(out ,-mass,kappa,Cl,temp);
   }
   
-  double halfspincolor_scal_prod(halfspincolor a,halfspincolor b)
+  inline double halfspincolor_scal_prod(halfspincolor a,halfspincolor b)
   {
     double out=0;
     for(int id=0;id<NDIRAC/2;id++)
       for(int icol=0;icol<NCOL;icol++)
 	for(int ri=0;ri<2;ri++)
 	  out+=a[id][icol][ri]*b[id][icol][ri];
-	    
+    
     return out;
   }
+  inline double halfspincolor_norm2(halfspincolor a)
+  {return halfspincolor_scal_prod(a,a);}
+  
+  inline void halfspincolor_summ_the_prod_double(halfspincolor a,halfspincolor b,halfspincolor c,double d)
+  {
+    for(int id=0;id<NDIRAC/2;id++)
+      for(int icol=0;icol<NCOL;icol++)
+	for(int ri=0;ri<2;ri++)
+	  a[id][icol][ri]=b[id][icol][ri]+c[id][icol][ri]*d;
+  }
+  inline void halfspincolor_summ_the_prod_double(halfspincolor a,halfspincolor b,double c)
+  {halfspincolor_summ_the_prod_double(a,a,b,c);}
   
   void halfspincolor_copy(halfspincolor a,halfspincolor b)
   {memcpy(a,b,sizeof(halfspincolor));}
   
   //form the inverse of the clover term
-  void invert_point_twisted_clover_term(oct_su3 inv,double mass,double kappa,double cSW,clover_term_t Cl)
+  void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl)
   {
-    int nd=NDIRAC/2*NCOL*2;
+    //inv_clover_term_t dir;
     
-    for(int high_low=0;high_low<2;high_low++)
+    for(int x_high_low=0;x_high_low<2;x_high_low++)
       for(int x_id=0;x_id<NDIRAC/2;x_id++)
 	for(int x_ic=0;x_ic<NCOL;x_ic++)
 	  {
-	    //prepare the source
-	    double b[nd];
-	    memset(b,0,nd*sizeof(double));
-	    b[RE+2*(x_ic+NCOL*x_id)]=1;
+	    //prepare the point source
+	    halfspincolor b;
+	    memset(b,0,sizeof(halfspincolor));
+	    b[x_id][x_ic][RE]=1;
+	    double ori_rr=halfspincolor_norm2(b);
+	    
+	    //halfspincolor cicc;
+	    //apply_point_twisted_clover_term_to_halfspincolor(cicc,mass,kappa,Cl+2*x_high_low,b);
+	    //for(int id=0;id<NDIRAC/2;id++)
+	    //  for(int ic=0;ic<NCOL;ic++)
+	    //	for(int ri=0;ri<2;ri++)
+	    //	  dir[x_high_low][id][ic][x_id][x_ic][ri]=cicc[id][ic][ri];
 	    
 	    //reset the solution
-	    double x[nd];
-	    memset(x,0,nd*sizeof(double));
+	    halfspincolor x;
+	    memset(x,0,sizeof(halfspincolor));
 	    
 	    //prepare r and p
-	    double r[nd],p[nd];
-	    memcpy(r,b,nd*sizeof(double));
-	    memcpy(p,b,nd*sizeof(double));
+	    halfspincolor r,p;
+	    memcpy(r,b,sizeof(halfspincolor));
+	    memcpy(p,b,sizeof(halfspincolor));
 	    
 	    //norm of r is 1
 	    double rr=1;
 	    
 	    //count iterations
 	    int iter=1;
+	    const int niter_max=20;
+	    const double target_res=1e-32;
 	    do
 	      {
 		//compute (p,Ap)
-		double ap[nd];
-		apply_point_twisted_clover_term_to_halfspincolor((color*)ap,mass,kappa,Cl,(color*)p);
-		double pap=0;
-		for(int i=0;i<nd;i++) pap+=p[i]*ap[i];
+		halfspincolor ap;
+		apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,p);
+		double pap=halfspincolor_scal_prod(p,ap);
 		
 		//compute alpha, store rr as old one
 		double alpha=rr/pap;
@@ -273,27 +297,69 @@ namespace nissa
 		
 		//adjust new solution and residual,
 		//compute new residual norm
-		rr=0;
-		for(int i=0;i<nd;i++)
-		  {
-		    x[i]+=alpha*p[i];
-		    r[i]-=alpha*ap[i];
-		    rr+=r[i]*r[i]; //computing residual here we save one loop
-		  }
+		halfspincolor_summ_the_prod_double(x, p,+alpha);
+		halfspincolor_summ_the_prod_double(r,ap,-alpha);
+		rr=halfspincolor_norm2(r);
 		
 		//adjust new krylov vector
 		double beta=rr/roro;
-		for(int i=0;i<nd;i++) p[i]=r[i]+beta*p[i];
+		halfspincolor_summ_the_prod_double(p,r,p,beta);
 		
 		//write residual
-		master_printf("iter %d residue: %lg\n",iter,rr);
+		master_printf("iter %d rel residue: %lg\n",iter,rr/ori_rr);
 		iter++;
 	      }
-	    while(rr>=1e-32);
+	    while(rr/ori_rr>=target_res && iter<niter_max);
+	    if(iter>=niter_max) crash("exceeded maximal number of iterations %d, arrived to %d",niter_max,iter);
 	    
-	    //copy the solution
-	    //out[low]
+	    //halfspincolor ap;
+	    //apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,x);
+	    //halfspincolor_summ_the_prod_double(ap,b,-1);
+	    //double trr=halfspincolor_norm2(ap)/ori_rr;
+	    //master_printf("true residue: %lg vs %lg\n",trr,rr);
+	    
+	    //copy the solution after removing the hermitian
+	    halfspincolor temp;
+	    apply_point_twisted_clover_term_to_halfspincolor(temp,-mass,kappa,Cl,x);
+	    for(int id=0;id<NDIRAC/2;id++)
+	      for(int ic=0;ic<NCOL;ic++)
+		for(int ri=0;ri<2;ri++)
+		  inv[x_high_low][id][ic][x_id][x_ic][ri]=temp[id][ic][ri];
 	  }
+    
+    // for(int x_high_low=0;x_high_low<2;x_high_low++)
+    //   {
+    // 	for(int x_id=0;x_id<NDIRAC/2;x_id++)
+    // 	  for(int x_ic=0;x_ic<NCOL;x_ic++)
+    // 	    {
+    // 	      for(int id=0;id<NDIRAC/2;id++)
+    // 		for(int ic=0;ic<NCOL;ic++)
+    // 		  {
+    // 		    for(int ri=0;ri<2;ri++)
+    // 		      master_printf("%+2.2g ",inv[x_high_low][x_id][x_ic][id][ic][ri]);
+    // 		    master_printf(" ");
+    // 		  }
+    // 	      master_printf("\n\n");
+    // 	    }
+    // 	master_printf("\n\n");
+    //   }
+    
+    //for(int x_high_low=0;x_high_low<2;x_high_low++)
+    // {
+    //	for(int x_id=0;x_id<NDIRAC/2;x_id++)
+    //	  for(int x_ic=0;x_ic<NCOL;x_ic++)
+    //	    {
+    //	      for(int id=0;id<NDIRAC/2;id++)
+    //		for(int ic=0;ic<NCOL;ic++)
+    //		  {
+    //		    for(int ri=0;ri<2;ri++)
+    //		      master_printf("%+2.2g ",dir[x_high_low][x_id][x_ic][id][ic][ri]);
+    //		    master_printf(" ");
+    //		  }
+    //	      master_printf("\n\n");
+    //	    }
+    //	master_printf("\n\n");
+    //  }
+    
   }
-  
 }

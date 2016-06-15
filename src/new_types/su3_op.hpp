@@ -144,7 +144,7 @@ namespace nissa
   {
     for(size_t ic1=0;ic1<NCOL;ic1++)
       {
-	for(size_t ic2=0;ic2<NCOL;ic2++) printf("%+016.16lg,%+016.16lg\t",U[ic1][ic2][RE],U[ic1][ic2][IM]);
+	for(size_t ic2=0;ic2<NCOL;ic2++) printf("%+16.16lg,%+16.16lg\t",U[ic1][ic2][RE],U[ic1][ic2][IM]);
 	printf("\n");
       }
     printf("\n");

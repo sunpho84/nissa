@@ -51,9 +51,12 @@ namespace nissa
     //if clover term is included, compute it
     if(clover_run)
       {
-	master_printf("Computing Clover term\n");
+	master_printf("Computing Clover term for mass=%lg kappa=%lg cSW=%lg\n",qmass[0],glb_kappa,glb_cSW);
 	clover_term(Cl,glb_cSW,conf);
 	su3_print(Cl[0][0]);
+	
+	inv_clover_term_t inv;
+	invert_point_twisted_clover_term(inv,qmass[0],glb_kappa,Cl[0]);
 	
 	for(int mu=0;mu<NDIM;mu++)
 	  {
@@ -95,12 +98,13 @@ namespace nissa
     coords shift_coord;
     generate_random_coord(shift_coord);
     
-    //shift the configuration
+    //shift the configuration and clover term if needed
     double shift_time=-take_time();
     vector_remap_t shifter(loc_vol,index_shift,(void*)shift_coord);
     shifter.remap(conf,conf,sizeof(quad_su3));
     if(ape_smeared_conf!=NULL) shifter.remap(ape_smeared_conf,ape_smeared_conf,sizeof(quad_su3));
     shift_time+=take_time();
+    if(clover_run) shifter.remap(Cl,Cl,sizeof(clover_term_t));
     master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+016.016lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
     
     //put back the phase

@@ -25,31 +25,38 @@ namespace nissa
   EXTERN_GEOMETRY_VIR int *loclx_of_vireo[2],*vireo_of_loclx;
   EXTERN_GEOMETRY_VIR int *vireo_of_loceo[2],*loceo_of_vireo[2];
   
-  void lx_conf_remap_to_virlx(bi_oct_su3 *out,quad_su3 *in);
-  void lx_conf_remap_to_virlx_blocked(bi_su3 *out,quad_su3 *in);
-  void virlx_conf_remap_to_lx(quad_su3 *out,bi_oct_su3 *in);
-  void lx_conf_remap_to_vireo(bi_oct_su3 **out,quad_su3 *in);
-  void lx_conf_remap_to_single_vireo(bi_single_oct_su3 **out,quad_su3 *in);
-  void eo_conf_remap_to_vireo(bi_oct_su3 **out,quad_su3 **in);
-  void eo_conf_remap_to_single_vireo(bi_single_oct_su3 **out,quad_su3 **in);
+  void lx_conf_remap_to_virlx(vir_oct_su3 *out,quad_su3 *in);
+  void lx_conf_remap_to_virlx_blocked(vir_su3 *out,quad_su3 *in);
+  void virlx_conf_remap_to_lx(quad_su3 *out,vir_oct_su3 *in);
+  void lx_conf_remap_to_vireo(vir_oct_su3 **out,quad_su3 *in);
+  void lx_conf_remap_to_single_vireo(vir_single_oct_su3 **out,quad_su3 *in);
+  void eo_conf_remap_to_vireo(vir_oct_su3 **out,quad_su3 **in);
+  void eo_conf_remap_to_single_vireo(vir_single_oct_su3 **out,quad_su3 **in);
   
-  void virlx_spincolor_remap_to_lx(spincolor *out,bi_spincolor *in);
-  void virevn_or_odd_spincolor_remap_to_evn_or_odd(spincolor *out,bi_spincolor *in,int par);
-  void virlx_spincolor_128_remap_to_lx(spincolor_128 *out,bi_spincolor_128 *in);
-  void lx_spincolor_remap_to_virlx(bi_spincolor *out,spincolor *in);
-  void lx_spincolor_128_remap_to_virlx(bi_spincolor_128 *out,spincolor_128 *in);
-  void vireo_spincolor_remap_to_lx(spincolor *out,bi_spincolor **in);
-  void evn_or_odd_spincolor_remap_to_virevn_or_odd(bi_spincolor *out,spincolor *in,int par);
-  void virlx_clover_t_term_remap_to_lx(bi_clover_term_t *out,clover_term_t *in);
+  void lx_quad_su3_remap_to_virlx(vir_quad_su3 *out,quad_su3 *in);
+  void virlx_quad_su3_remap_to_lx(quad_su3 *out,vir_quad_su3 *in);
+  inline void lx_clover_term_t_remap_to_virlx(vir_clover_term_t *out,clover_term_t *in)
+  {lx_quad_su3_remap_to_virlx(out,in);}
+  inline void virlx_clover_term_t_remap_to_lx(clover_term_t *out,vir_clover_term_t *in)
+  {virlx_quad_su3_remap_to_lx(out,in);}
   
-  void vireo_color_remap_to_lx(color *out,bi_color **in);
-  void virevn_or_odd_color_remap_to_evn_or_odd(color *out,bi_color *in,int par);
-  void virevn_or_odd_single_color_remap_to_evn_or_odd(color *out,bi_single_color *in,int par);
-  void lx_spincolor_remap_to_vireo(bi_spincolor **out,spincolor *in);
-  void lx_color_remap_to_vireo(bi_color **out,color *in);
-  void lx_color_remap_to_single_vireo(bi_single_color **out,color *in);
-  void evn_or_odd_color_remap_to_virevn_or_odd(bi_color *out,color *in,int par);
-  void evn_or_odd_color_remap_to_single_virevn_or_odd(bi_single_color *out,color *in,int par);
+  void virlx_spincolor_remap_to_lx(spincolor *out,vir_spincolor *in);
+  void virevn_or_odd_spincolor_remap_to_evn_or_odd(spincolor *out,vir_spincolor *in,int par);
+  void virlx_spincolor_128_remap_to_lx(spincolor_128 *out,vir_spincolor_128 *in);
+  void lx_spincolor_remap_to_virlx(vir_spincolor *out,spincolor *in);
+  void lx_spincolor_128_remap_to_virlx(vir_spincolor_128 *out,spincolor_128 *in);
+  void vireo_spincolor_remap_to_lx(spincolor *out,vir_spincolor **in);
+  void evn_or_odd_spincolor_remap_to_virevn_or_odd(vir_spincolor *out,spincolor *in,int par);
+  void virlx_clover_t_term_remap_to_lx(vir_clover_term_t *out,clover_term_t *in);
+  
+  void vireo_color_remap_to_lx(color *out,vir_color **in);
+  void virevn_or_odd_color_remap_to_evn_or_odd(color *out,vir_color *in,int par);
+  void virevn_or_odd_single_color_remap_to_evn_or_odd(color *out,vir_single_color *in,int par);
+  void lx_spincolor_remap_to_vireo(vir_spincolor **out,spincolor *in);
+  void lx_color_remap_to_vireo(vir_color **out,color *in);
+  void lx_color_remap_to_single_vireo(vir_single_color **out,color *in);
+  void evn_or_odd_color_remap_to_virevn_or_odd(vir_color *out,color *in,int par);
+  void evn_or_odd_color_remap_to_single_virevn_or_odd(vir_single_color *out,color *in,int par);
   
   void set_vir_geometry();
   void unset_vir_geometry();

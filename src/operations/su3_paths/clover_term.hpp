@@ -15,15 +15,17 @@ namespace nissa
   
   //include the factor cSW - note that we include the factor "1/2" here
   inline void chromo_operator_include_cSW(clover_term_t *Cl,double cSW)
-  {double_vector_prod_double((double*)Cl,(double*)Cl,cSW/2,sizeof(clover_term_t)*loc_vol);}
+  {double_vector_prod_double((double*)Cl,(double*)Cl,cSW/2,sizeof(clover_term_t)/sizeof(double)*loc_vol);}
   inline void chromo_operator_remove_cSW(clover_term_t *Cl,double cSW)
-  {double_vector_prod_double((double*)Cl,(double*)Cl,2/cSW,sizeof(clover_term_t)*loc_vol);}
+  {double_vector_prod_double((double*)Cl,(double*)Cl,2/cSW,sizeof(clover_term_t)/sizeof(double)*loc_vol);}
   
   inline void clover_term(clover_term_t *Cl,double cSW,quad_su3 *conf)
   {
     chromo_operator(Cl,conf);
     chromo_operator_include_cSW(Cl,cSW);
   }
+  
+  void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl);
 }
 
 #endif
