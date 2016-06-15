@@ -40,10 +40,9 @@ namespace nissa
 #endif
   {
     GET_THREAD_ID();
-
+    
     verbosity_lv2_master_printf("\n");
-
-    int riter=0;
+    
     BASETYPE *s=nissa_malloc("s",BULK_VOL,BASETYPE);
     BASETYPE *p=nissa_malloc("p",BULK_VOL+BORD_VOL,BASETYPE);
     BASETYPE *r=nissa_malloc("r",BULK_VOL,BASETYPE);
@@ -52,7 +51,7 @@ namespace nissa
     CG_ADDITIONAL_VECTORS_ALLOCATION();
     if(guess==NULL) vector_reset(sol);
     else vector_copy(sol,guess);
-
+    
     START_TIMING(cg_inv_over_time,ncg_inv);
     int each=VERBOSITY_LV3?1:10;
     
@@ -66,7 +65,7 @@ namespace nissa
     double delta;
     double_vector_glb_scalar_prod(&delta,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
     
-    if(riter==0) verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
+    verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
     if(source_norm==0 || isnan(source_norm)) crash("invalid norm: %lg",source_norm);
     verbosity_lv2_master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
     
@@ -76,7 +75,7 @@ namespace nissa
     int iter=0;
     double alpha,omega,gammag,lambda;
     do
-      {	  
+      {
 	//this is already iter 1
 	final_iter=(++iter);
 	
@@ -119,7 +118,7 @@ namespace nissa
     if(lambda/source_norm>=2*residue)
       master_printf("WARNING: true residue %lg much larger than required and expected one %lg\n",
 		    lambda/source_norm,residue);
-
+    
     //check if not converged
     if(final_iter==niter) crash("exit without converging");
     

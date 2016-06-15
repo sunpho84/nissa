@@ -30,6 +30,7 @@ namespace nissa
   void double_vector_summassign(double *out,double *in,int n);
   void double_vector_subt(double *out,double *in1,double *i2,int n);
   void double_vector_summ_double_vector_prod_double(double *a,double *b,double *c,double d,int n,int OPT=0);
+  void float_128_vector_prod_double(float_128 *out,float_128 *in,double r,int n);
   void single_vector_summ_single_vector_prod_single(float *a,float *b,float *c,float d,int n,int OPT=0);
   void get_color_from_colorspinspin(color *out,colorspinspin *in,int id1,int id2);
   void get_color_from_spincolor(color *out,spincolor *in,int id);

@@ -68,7 +68,7 @@ void init_simulation(char *path)
   if(compute_mes2pts_flag) set_mes2pts_contr_ins_map();
   if(compute_bar2pts_flag) set_bar2pts_contr_ins_map();
   
-  if(clover_run) Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
+  if(clover_run) Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
   
   allocate_source();
   allocate_photon_fields();
@@ -117,7 +117,7 @@ void close()
     }
   if(clover_run)
     {
-      nissa_free(Pmunu);
+      nissa_free(Cl);
     }
   nissa_free(qtheta);
   nissa_free(qresidue);

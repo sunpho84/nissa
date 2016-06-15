@@ -7,7 +7,8 @@
 #include "communicate/borders.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/float_128.hpp"
-#include "operations/su3_paths/topological_charge.hpp"
+#include "new_types/su3_op.hpp"
+#include "operations/su3_paths/clover_term.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -15,20 +16,13 @@
 //Apply the Q=D*g5 operator to a spincolor
 namespace nissa
 {
-  void apply_tmclovQ_128_clover_term(spincolor_128 *out,double csw,as2t_su3 *Pmunu,spincolor_128 *in)
-  {
-    //put the clover term
-    unsafe_apply_chromo_operator_to_spincolor_128(out,Pmunu,in);
-    double_vector_prod_double((double*)out,(double*)out,csw/2,loc_vol*24);
-  }
-
-  void apply_tmclovQ_128_clover_term(spincolor_128 *out,opt_as2t_su3 *Cl,spincolor_128 *in)
-  {unsafe_apply_opt_chromo_operator_to_spincolor_128(out,Cl,in);}
-
-  void apply_tmclovQ_128_common(spincolor_128 *out,quad_su3 *conf,double kappa,double mu,spincolor_128 *in)
+  THREADABLE_FUNCTION_6ARG(apply_tmclovQ_128, spincolor_128*,out, quad_su3*,conf, double,kappa, clover_term_t*,Cl, double,mu, spincolor_128*,in)
   {
     communicate_lx_spincolor_128_borders(in);
     communicate_lx_quad_su3_borders(conf);
+    
+    //put the clover term
+    unsafe_apply_chromo_operator_to_spincolor_128(out,Cl,in);
     
     double kcf=1/(2*kappa);
     
@@ -128,7 +122,7 @@ namespace nissa
 	
 	//Put the -1/2 factor on derivative, the gamma5, and the imu
 	//ok this is horrible, but fast
-	for(int c=0;c<3;c++)
+	for(int c=0;c<NCOL;c++)
 	  {
 	    float_64_prod_complex_128(out[X][0][c],-0.5,out[X][0][c]);
 	    float_64_summ_the_prod_complex_128(out[X][0][c],kcf,in[X][0][c]);
@@ -149,19 +143,6 @@ namespace nissa
       }
     
     set_borders_invalid(out);
-  }
-  
-  THREADABLE_FUNCTION_7ARG(apply_tmclovQ_128, spincolor_128*,out, quad_su3*,conf, double,kappa, double,csw, as2t_su3*,Pmunu, double,mu, spincolor_128*,in)
-  {
-    apply_tmclovQ_128_clover_term(out,csw,Pmunu,in);
-    apply_tmclovQ_128_common(out,conf,kappa,mu,in);
-  }
-  THREADABLE_FUNCTION_END
-
-  THREADABLE_FUNCTION_6ARG(apply_tmclovQ_128, spincolor_128*,out, quad_su3*,conf, double,kappa, opt_as2t_su3*,Cl, double,mu, spincolor_128*,in)
-  {
-    apply_tmclovQ_128_clover_term(out,Cl,in);
-    apply_tmclovQ_128_common(out,conf,kappa,mu,in);
   }
   THREADABLE_FUNCTION_END
 }

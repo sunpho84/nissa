@@ -744,9 +744,9 @@ void measure_gauge_obs()
   double paths[2];
   double paths_per_timeslice[glb_size[0]*npaths_per_action];
   double action=(boundary_cond==OPEN_BOUNDARY_COND)?compute_action_per_timeslice(paths,paths_per_timeslice):compute_action(paths);
-  master_printf("Action: %015.15lg measured in %lg sec\n",action,time_action+take_time());
+  master_printf("Action: %16.16lg measured in %lg sec\n",action,time_action+take_time());
   
-  master_fprintf(file_obs,"%6d\t%015.15lg",iconf,action);
+  master_fprintf(file_obs,"%6d\t%16.16lg",iconf,action);
   for(int ipath=0;ipath<npaths_per_action;ipath++) master_fprintf(file_obs,"\t%015.15lg",paths[ipath]);
   master_fprintf(file_obs,"\n");
   if(rank==0 && iconf%flushing_nconfs==0) fflush(file_obs);

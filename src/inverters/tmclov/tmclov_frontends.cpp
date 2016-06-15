@@ -16,7 +16,7 @@ namespace nissa
 {
   //invert a set of propagators using the passed source
   //the output is stored in twisted basis, assuming that prop=su3spinspin[2][nmass][>=loc_vol]
-  void compute_su3spinspin_tmclov_propagators_multi_mass(su3spinspin ***prop,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double *mass,int nmass,int niter_max,double *req_res,su3spinspin *source)
+  void compute_su3spinspin_tmclov_propagators_multi_mass(su3spinspin ***prop,quad_su3 *conf,double kappa,clover_term_t *Cl,double *mass,int nmass,int niter_max,double *req_res,su3spinspin *source)
   {
     //allocate temporary source
     spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
@@ -38,18 +38,18 @@ namespace nissa
 	  set_borders_invalid(temp_source);
 	  
 	  double init_time=take_time();
-	  inv_tmclovDQ_cgm(cgm_solution,conf,kappa,csw,Pmunu,mass,nmass,niter_max,req_res,temp_source);
+	  inv_tmclovDQ_cgm(cgm_solution,conf,kappa,Cl,mass,nmass,niter_max,req_res,temp_source);
 	  master_printf("Finished the inversion of D*Q, dirac index %d, color %d in %g sec\n",id,ic,take_time()-init_time);
 	  
 	  //reconstruct the doublet
 	  for(int imass=0;imass<nmass;imass++)
 	    {
-	      reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,csw,Pmunu,mass[imass],cgm_solution[imass]);
+	      reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,Cl,mass[imass],cgm_solution[imass]);
 	      
 	      //convert the id-th spincolor into the su3spinspin
 	      for(int r=0;r<2;r++)
 		{
-		  NISSA_LOC_VOL_LOOP(ivol)       
+		  NISSA_LOC_VOL_LOOP(ivol)
 		    put_spincolor_into_su3spinspin(prop[r][imass][ivol],temp_vec[r][ivol],id,ic);
 		  set_borders_invalid(prop[r]);
 		}

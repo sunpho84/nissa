@@ -52,16 +52,12 @@ namespace nissa
     if(clover_run)
       {
 	master_printf("Computing Clover term\n");
-	Pmunu_term(Pmunu,conf);
+	clover_term(Cl,glb_cSW,conf);
+	su3_print(Cl[0][0]);
 	
-	su3_print(Pmunu[0][0]);
-	
-	quad_su3 temp;
-	build_clover_term_from_anti_symmetric_four_leaves(temp,Pmunu[0]);
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    su3_prod_double(temp[mu],temp[mu],glb_cSW);
-	    su3_print(temp[mu]);
+	    su3_print(Cl[0][mu]);
 	    master_printf("\n");
 	  }
       }

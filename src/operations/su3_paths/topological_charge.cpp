@@ -31,7 +31,9 @@
 
 namespace nissa
 {
-  //This will calculate 2*a^2*ig*P_{mu,nu} for a single point
+  //This will calculate the six independent components of
+  //              2*a^2*ig*P_{mu,nu}
+  //for a single point. Note that P_{mu,nu} is still not anti-symmetric
   //please ensure to have communicated the edges outside!
   /*
     ^                   C--<-- B --<--Y
@@ -43,7 +45,7 @@ namespace nissa
     .                   |     | |     |
     .                   E-->-- F -->--G
     in order to have the anti-symmetric part, use
-    the routine "Pmunu_term"
+    the routine inside "clover_term"
   */
   void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X)
   {
@@ -95,285 +97,12 @@ namespace nissa
 	  }
       }
   }
-  
-  THREADABLE_FUNCTION_2ARG(four_leaves, as2t_su3*,Pmunu, quad_su3*,conf)
+  THREADABLE_FUNCTION_2ARG(four_leaves, as2t_su3*,leaves_summ, quad_su3*,conf)
   {
     GET_THREAD_ID();
     communicate_lx_quad_su3_edges(conf);
-    
-    NISSA_PARALLEL_LOOP(X,0,loc_vol) four_leaves_point(Pmunu[X],conf,X);
-    set_borders_invalid(Pmunu);
-  }
-  THREADABLE_FUNCTION_END
-  
-  //take anti-symmetric part and divide by 4
-  void four_leaves_anti_symmetrize_fourth(as2t_su3 out,as2t_su3 in)
-  {
-    for(int munu=0;munu<6;munu++)
-      for(int ic1=0;ic1<NCOL;ic1++)
-	for(int ic2=0;ic2<NCOL;ic2++)
-	  {
-	    out[munu][ic1][ic2][0]=(in[munu][ic1][ic2][0]-in[munu][ic2][ic1][0])/4;
-	    out[munu][ic1][ic2][1]=(in[munu][ic1][ic2][1]+in[munu][ic2][ic1][1])/4;
-	  }
-  }
-  
-  //takes the anti-symmetric part of the four-leaves
-  THREADABLE_FUNCTION_2ARG(Pmunu_term, as2t_su3*,Pmunu,quad_su3*,conf)
-  {
-    GET_THREAD_ID();
-    communicate_lx_quad_su3_edges(conf);
-    
-    //calculate U-U^dagger
-    NISSA_PARALLEL_LOOP(X,0,loc_vol)
-      {
-	//compute the four leaves and anti-symmetrize
-	as2t_su3 leaves_summ;
-	four_leaves_point(leaves_summ,conf,X);
-	four_leaves_anti_symmetrize_fourth(Pmunu[X],leaves_summ);
-      }
-    
-    set_borders_invalid(Pmunu);
-  }
-  THREADABLE_FUNCTION_END
-  
-  //build the clover therm from anti-symmetrized four-leaves, following this decomposition
-  /*
-    (0,-P2+P3),     (-P1-P4,-P0+P5), (0,0),          (0,0)
-    (P1+P4,-P0+P5), (0,P2-P3),       (0,0),          (0,0)
-    (0,0),          (0,0),           (0,P2+P3),      (P1-P4,P0+P5)
-    (0,0),          (0,0),           (-P1+P4,P0+P5), (0,-P2-P3)
-    
-    +iA   -B+iC  0      0
-    +B+iC -iA    0      0
-    0      0     +iD    -E+iF
-    0      0     +E+iF  -iD
-    
-    A=P3-P2, B=P4+P1, C=P5-P0
-    D=P3+P2, E=P4-P1, F=P5+P0
-    
-    +G  +H^+ 0    0
-    +H  -G   0    0
-    0    0   +I  +J^+
-    0    0   +J  -I
-    
-    out[0]=G=iA, out[1]=H=B+iC
-    out[2]=I=iD, out[3]=J=E+iF
-    
-    NB: indeed Pi is anti-hermitian
-  */
-  void build_clover_term_from_anti_symmetric_four_leaves(quad_su3 out,as2t_su3 in)
-  {
-    su3 A,B,C,D,E,F;
-    
-    su3_subt(A,in[3],in[2]);
-    su3_summ(B,in[4],in[1]);
-    su3_subt(C,in[5],in[0]);
-    su3_summ(D,in[3],in[2]);
-    su3_subt(E,in[4],in[1]);
-    su3_summ(F,in[5],in[0]);
-    
-    su3_prod_idouble(out[0],A,1);
-    
-    su3_copy(out[1],B);
-    su3_summ_the_prod_idouble(out[1],C,1);
-    
-    su3_prod_idouble(out[2],D,1);
-    
-    su3_copy(out[3],E);
-    su3_summ_the_prod_idouble(out[3],F,1);
-  }
-  
-  //apply a diagonal matrix plus clover term to up or low components
-  void apply_diag_plus_clover_to_halfspincolor(halfspincolor out,complex diag,double pref,su3 *c,halfspincolor in)
-  {
-    color temp;
-    
-    unsafe_color_prod_complex(out[0],in[0],diag);
-    unsafe_su3_prod_color(temp,c[0],in[0]);
-    su3_dag_summ_the_prod_color(temp,c[1],in[1]);
-    color_summ_the_prod_double(out[0],temp,pref);
-    
-    unsafe_color_prod_complex(out[1],in[1],diag);
-    unsafe_su3_prod_color(temp,c[1],in[0]);
-    su3_subt_the_prod_color(temp,c[0],in[1]);
-    color_summ_the_prod_double(out[1],temp,pref);
-  }
-  
-  //form the inverse of the clover term
-  void invert_twisted_clover_term(oct_su3 inv,double mass,double kappa,double cSW,as2t_su3 Cl)
-  {
-    halfspincolor source,sol;
-    
-    for(int high_low=0;high_low<2;high_low++)
-      for(int id=0;id<NDIRAC/2;id++)
-      for(int icol=0;icol<NCOL;icol++)
-	{
-	  
-	}
-    
-  }
-  
-  //takes the anti-simmetric part of the four-leaves (optimized)
-  THREADABLE_FUNCTION_2ARG(opt_Pmunu_term, quad_su3*,C,quad_su3*,conf)
-  {
-    GET_THREAD_ID();
-    communicate_lx_quad_su3_edges(conf);
-    
-    //calculate U-U^dagger and store only the independent components
-    NISSA_PARALLEL_LOOP(X,0,loc_vol)
-      {
-	//compute the four leaves and anti-symmetrize
-	as2t_su3 leaves_summ;
-	four_leaves_point(leaves_summ,conf,X);
-	four_leaves_anti_symmetrize_fourth(leaves_summ,leaves_summ);
-	build_clover_term_from_anti_symmetric_four_leaves(C[X],leaves_summ);
-      }
-    
-    set_borders_invalid(C);
-  }
-  THREADABLE_FUNCTION_END
-  
-  //apply the chromo operator to the passed spinor site by site (not optimized)
-  void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in)
-  {
-    for(int d1=0;d1<NDIRAC;d1++)
-      {
-	color_put_to_zero(out[d1]);
-	for(int imunu=0;imunu<6;imunu++)
-	  {
-	    color temp_d1;
-	    unsafe_su3_prod_color(temp_d1,Pmunu[imunu],in[smunu_pos[d1][imunu]]);
-	    for(int c=0;c<NCOL;c++) complex_summ_the_prod(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
-	  }
-      }
-  }
-  void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,as2t_su3 Pmunu,spincolor_128 in)
-  {
-    for(int d1=0;d1<NDIRAC;d1++)
-      {
-	color_128_put_to_zero(out[d1]);
-	for(int imunu=0;imunu<6;imunu++)
-	  {
-	    color_128 temp_d1;
-	    unsafe_su3_prod_color_128(temp_d1,Pmunu[imunu],in[smunu_pos[d1][imunu]]);
-	    for(int c=0;c<NCOL;c++) complex_summ_the_64_prod_128(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
-	  }
-      }
-  }
-  
-  //apply the chromo operator to the passed spinor site by site (optimized)
-  void unsafe_apply_opt_point_chromo_operator_to_spincolor(spincolor out,opt_as2t_su3 C,spincolor in)
-  {
-    unsafe_su3_prod_color(out[0],C[0],in[0]);
-    su3_dag_summ_the_prod_color(out[0],C[1],in[1]);
-    unsafe_su3_prod_color(out[1],C[1],in[0]);
-    su3_subt_the_prod_color(out[1],C[0],in[1]);
-    
-    unsafe_su3_prod_color(out[2],C[2],in[2]);
-    su3_dag_summ_the_prod_color(out[2],C[3],in[3]);
-    unsafe_su3_prod_color(out[3],C[3],in[2]);
-    su3_subt_the_prod_color(out[3],C[2],in[3]);
-  }
-  void unsafe_apply_opt_point_chromo_operator_to_spincolor_128(spincolor_128 out,opt_as2t_su3 C,spincolor_128 in)
-  {
-    unsafe_su3_prod_color_128(out[0],C[0],in[0]);
-    su3_dag_summ_the_prod_color_128(out[0],C[1],in[1]);
-    unsafe_su3_prod_color_128(out[1],C[1],in[0]);
-    su3_subt_the_prod_color_128(out[1],C[0],in[1]);
-    
-    unsafe_su3_prod_color_128(out[2],C[2],in[2]);
-    su3_dag_summ_the_prod_color_128(out[2],C[3],in[3]);
-    unsafe_su3_prod_color_128(out[3],C[3],in[2]);
-    su3_subt_the_prod_color_128(out[3],C[2],in[3]);
-  }
-  
-  //apply the chromo operator to the passed spinor to the whole volume
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_spincolor, spincolor*,out, as2t_su3*,Pmunu, spincolor*,in)
-  {
-    GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
-    set_borders_invalid(out);
-  }
-  THREADABLE_FUNCTION_END
-  
-  //apply the chromo operator to the passed spinor to the whole volume
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_spincolor_128, spincolor_128*,out, as2t_su3*,Pmunu, spincolor_128*,in)
-  {
-    GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      unsafe_apply_point_chromo_operator_to_spincolor_128(out[ivol],Pmunu[ivol],in[ivol]);
-    set_borders_invalid(out);
-  }
-  THREADABLE_FUNCTION_END
-  
-  //apply the chromo operator to the passed spinor to the whole volume (the optimized way)
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_opt_chromo_operator_to_spincolor, spincolor*,out, opt_as2t_su3*,Cl, spincolor*,in)
-  {
-    GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      unsafe_apply_opt_point_chromo_operator_to_spincolor(out[ivol],Cl[ivol],in[ivol]);
-    set_borders_invalid(out);
-  }
-  THREADABLE_FUNCTION_END
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_opt_chromo_operator_to_spincolor_128, spincolor_128*,out, opt_as2t_su3*,Cl, spincolor_128*,in)
-  {
-    GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      unsafe_apply_opt_point_chromo_operator_to_spincolor_128(out[ivol],Cl[ivol],in[ivol]);
-    set_borders_invalid(out);
-  }
-  THREADABLE_FUNCTION_END
-  
-  //apply the chromo operator to the passed colorspinspin
-  //normalization as in ape next
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_colorspinspin, colorspinspin*,out, as2t_su3*,Pmunu, colorspinspin*,in)
-  {
-    spincolor temp1,temp2;
-    
-    GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      //Loop over the four source dirac indexes
-      for(int id_source=0;id_source<4;id_source++) //dirac index of source
-	{
-	  //Switch the color_spinspin into the spincolor.
-	  get_spincolor_from_colorspinspin(temp1,in[ivol],id_source);
-	  
-	  unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[ivol],temp1);
-	  
-	  //Switch back the spincolor into the colorspinspin
-	  put_spincolor_into_colorspinspin(out[ivol],temp2,id_source);
-	}
-    
-    //invalidate borders
-    set_borders_invalid(out);
-  }
-  THREADABLE_FUNCTION_END
-  
-  //apply the chromo operator to the passed su3spinspin
-  //normalization as in ape next
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_su3spinspin, su3spinspin*,out, as2t_su3*,Pmunu, su3spinspin*,in)
-  {
-    spincolor temp1,temp2;
-    
-    GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      //Loop over the four source dirac indexes
-      for(int id_source=0;id_source<4;id_source++) //dirac index of source
-	for(int ic_source=0;ic_source<3;ic_source++) //color index of source
-	  {
-	    //Switch the su3spinspin into the spincolor.
-	    get_spincolor_from_su3spinspin(temp1,in[ivol],id_source,ic_source);
-	    
-	    unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[ivol],temp1);
-	    
-	    //Switch back the spincolor into the colorspinspin
-	    put_spincolor_into_su3spinspin(out[ivol],temp2,id_source,ic_source);
-	  }
-    
-    //invalidate borders
-    set_borders_invalid(out);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) four_leaves_point(leaves_summ[ivol],conf,ivol);
+    set_borders_invalid(leaves_summ);
   }
   THREADABLE_FUNCTION_END
   
@@ -489,7 +218,7 @@ namespace nissa
 	double plaq=global_plaquette_lx_conf(smoothed_conf);
 	double tot_charge;
 	total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-	master_fprintf(file,"%d %lg %+016.016lg %16.16lg\n",iconf,t,tot_charge,plaq);
+	master_fprintf(file,"%d %lg %+16.016lg %16.16lg\n",iconf,t,tot_charge,plaq);
 	finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,t,tnext_meas);
       }
     while(!finished);
@@ -515,13 +244,13 @@ namespace nissa
     
     //compute the clover-shape paths
     four_leaves(leaves,conf);
-    //takes the anti-symmetric part (apart from a factor 2), in an horrendous wat
+    //takes the anti-symmetric part (apart from a factor 2), in an horrendous way
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int imunu=0;imunu<6;imunu++)
 	{
 	  color *u=leaves[ivol][imunu];
-	  for(int ic1=0;ic1<3;ic1++)
-	    for(int ic2=ic1;ic2<3;ic2++)
+	  for(int ic1=0;ic1<NCOL;ic1++)
+	    for(int ic2=ic1;ic2<NCOL;ic2++)
 	      { //do not look here please, it is better to put a carpet on this uglyness
 		u[ic2][ic1][0]=-(u[ic1][ic2][0]=u[ic1][ic2][0]-u[ic2][ic1][0]);
 		u[ic2][ic1][1]=+(u[ic1][ic2][1]=u[ic1][ic2][1]+u[ic2][ic1][1]);
@@ -538,8 +267,8 @@ namespace nissa
     //loop on the three different combinations of plans
     vector_reset(staples);
     NISSA_PARALLEL_LOOP(A,0,loc_vol)
-      for(int mu=0;mu<4;mu++) //link direction
-	for(int inu=0;inu<3;inu++)                   //  E---F---C
+      for(int mu=0;mu<NCOL;mu++) //link direction
+	for(int inu=0;inu<NDIM-1;inu++)              //  E---F---C
 	  {                                          //  |   |   | mu
 	    int nu=perp_dir[mu][inu];                //  D---A---B
 	    //this gives the other pair element      //        nu

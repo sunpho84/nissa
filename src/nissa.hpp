@@ -146,6 +146,7 @@
 
 #include "operations/su3_paths/all_rectangles.hpp"
 #include "operations/su3_paths/arbitrary.hpp"
+#include "operations/su3_paths/clover_term.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "operations/su3_paths/pline.hpp"

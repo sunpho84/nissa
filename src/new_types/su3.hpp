@@ -35,7 +35,7 @@ namespace nissa
   typedef colorspinspin su3spinspin[NCOL];
   
   typedef su3 as2t_su3[NDIM*(NDIM+1)/2];
-  typedef su3 opt_as2t_su3[NDIRAC];
+  typedef su3 clover_term_t[4];
   
   typedef single_complex single_color[NCOL];
   typedef single_color single_su3[NCOL];
@@ -49,7 +49,7 @@ namespace nissa
   typedef bi_color bi_spincolor[NDIRAC];
   typedef bi_color bi_halfspincolor[2];
   typedef bi_complex bi_halfspin[2];
-  typedef bi_su3 bi_opt_as2t_su3[NDIRAC];
+  typedef bi_su3 bi_clover_term_t[4];
   
   typedef bi_single_complex bi_single_color[NCOL];
   typedef bi_single_color bi_single_su3[NCOL];

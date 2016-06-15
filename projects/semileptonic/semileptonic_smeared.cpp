@@ -75,7 +75,7 @@ double cSW;
 int ngauge_conf,nanalyzed_conf=0;
 char conf_path[1024],outfolder[1024];
 quad_su3 *conf,*sme_conf;
-as2t_su3 *Pmunu;
+clover_term_t *Cl;
 double kappa;
 double put_theta[4],old_theta[4]={0,0,0,0};
 
@@ -485,11 +485,11 @@ void initialize_semileptonic(char *input_path)
   
   ////////////////////////////////////// end of input reading/////////////////////////////////
   
-  //allocate gauge conf, Pmunu and all the needed spincolor and propagators
+  //allocate gauge conf, Cl and all the needed spincolor and propagators
   conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   if(conf_smearing!=no_conf_smearing) sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   else sme_conf=conf;
-  Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
+  Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
   
   //Allocate all the S0 PROP_TYPE vectors
   npropS0=nthetaS0*nmassS0;
@@ -580,7 +580,7 @@ void setup_conf()
   read_ildg_gauge_conf(conf,conf_path);
   master_printf("plaq: %16.16lg\n",global_plaquette_lx_conf(conf));
   
-  Pmunu_term(Pmunu,conf);
+  clover_term(Cl,cSW,conf);
   
   conf_smear_time-=take_time();
   
@@ -639,7 +639,7 @@ void close_semileptonic()
   master_printf("   * %02.2f%s to compute two points\n",contr_2pts_time*100.0/contr_time,"%");
   master_printf("   * %02.2f%s to compute three points\n",contr_3pts_time*100.0/contr_time,"%");
   master_printf(" - %02.2f%s to save correlations\n",contr_save_time*100.0/tot_prog_time,"%");
-  nissa_free(Pmunu);nissa_free(conf);if(conf_smearing!=no_conf_smearing) nissa_free(sme_conf);
+  nissa_free(Cl);nissa_free(conf);if(conf_smearing!=no_conf_smearing) nissa_free(sme_conf);
   for(int iprop=0;iprop<npropS0;iprop++)
     for(int r=0;r<2;r++)
       if(which_r_S0==2||which_r_S0==r) nissa_free(S0[r][iprop]);
@@ -749,7 +749,7 @@ void calculate_all_S0(int ism_lev_so)
 		    if(use_cgm_S0)
 		      {
 			if(cSW==0) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stop_res,source);
-			else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,cSW,Pmunu,mass,nmass,niter_max,stop_res,source);
+			else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,Cl,mass,nmass,niter_max,stop_res,source);
 		      }
 		    else
 		      for(int imass=0;imass<nmass;imass++)
@@ -762,10 +762,10 @@ void calculate_all_S0(int ism_lev_so)
 			      if(which_r_S0==0) m*=-1;
 			      
 			      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,stop_res[imass],source);
-			      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,stop_res[imass],source);
+			      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,Cl,m,niter_max,stop_res[imass],source);
 			    }
 			  else //m=kappa
-			    inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,stop_res[imass],source);
+			    inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,Cl,niter_max,stop_res[imass],source);
 			  
 			  master_printf("Finished submass[%d]=%lg\n",imass,m);
 			}
@@ -811,7 +811,7 @@ void calculate_all_S0(int ism_lev_so)
 		    if(Wclov_tm&&use_cgm_S0)
 		      {
 			if(cSW==0) reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
-			else       reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,cSW,Pmunu,mass[imass],cgm_solution[imass]);
+			else       reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,Cl,mass[imass],cgm_solution[imass]);
 			master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 		      }
 		    else memcpy(temp_vec[which_r_S0],cgm_solution[imass],sizeof(spincolor)*loc_vol);
@@ -885,7 +885,7 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 	    if(use_cgm_S1)
 	      {
 		if(cSW==0) inv_tmQ2_cgm(cgm_solution,conf,kappa,massS1,nmassS1,niter_max,stop_res_S1,source);
-		else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,cSW,Pmunu,massS1,nmassS1,niter_max,stop_res_S1,source);
+		else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,Cl,massS1,nmassS1,niter_max,stop_res_S1,source);
 	      }
 	    else
 	      for(int imass=0;imass<nmassS1;imass++)
@@ -896,9 +896,9 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 		    {
 		      if(r_spec[ispec]==1) m*=-1;
 		      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,stop_res_S1[imass],source);
-		      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,stop_res_S1[imass],source);
+		      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,Cl,m,niter_max,stop_res_S1[imass],source);
 		    }
-		  else inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,stop_res_S1[imass],source);
+		  else inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,Cl,niter_max,stop_res_S1[imass],source);
 		}
 	    
 	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
@@ -920,7 +920,7 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 		if(Wclov_tm&&use_cgm_S1)
 		  {
 		    if(cSW==0) apply_tmQ(temp_vec[0],conf,kappa,reco_mass,cgm_solution[imass]);
-		    else       apply_tmclovQ(temp_vec[0],conf,kappa,cSW,Pmunu,reco_mass,cgm_solution[imass]);
+		    else       apply_tmclovQ(temp_vec[0],conf,kappa,Cl,reco_mass,cgm_solution[imass]);
 		    master_printf("Mass %d (%g) reconstructed \n",imass,massS1[imass]);
 		  }
 		else memcpy(temp_vec[0],cgm_solution[imass],sizeof(spincolor)*loc_vol);
@@ -1099,11 +1099,13 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 				  //in case revert from new layout
 				  if(use_new_contraction_layout)
 				    revert_prop_from_new_contraction(S0_2,temp_transp);
+				  chromo_operator_remove_cSW(Cl,cSW);
 #ifdef POINT_SOURCE_VERSION
-				  unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S0_2);
+				  unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Cl,S0_2);
 #else
-				  unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S0_2);
+				  unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Cl,S0_2);
 #endif
+				  chromo_operator_include_cSW(Cl,cSW);
 				  //and return back to new layout
 				  if(use_new_contraction_layout)
 				    {
@@ -1263,13 +1265,15 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 	if(nch_contr_3pts>0)
 	  {
 	    //in case revert from new layout
+	    chromo_operator_remove_cSW(Cl,cSW);
 	    if(use_new_contraction_layout)
 	      revert_prop_from_new_contraction(S1[ip2],temp_transp);
 #ifdef POINT_SOURCE_VERSION
-	    unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S1[ip2]);
+	    unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Cl,S1[ip2]);
 #else
-	    unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S1[ip2]);
+	    unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Cl,S1[ip2]);
 #endif
+	    chromo_operator_include_cSW(Cl,cSW);
 	    //and return back to new layout
 	    if(use_new_contraction_layout)
 	      {

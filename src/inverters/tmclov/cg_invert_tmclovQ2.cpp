@@ -10,9 +10,9 @@
 namespace nissa
 {
   //switch 64 and 128
-  void inv_tmclovQ2_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double m,int niter,double residue,spincolor *source)
+  void inv_tmclovQ2_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,clover_term_t *Cl,double m,int niter,double residue,spincolor *source)
   {
-    if(use_128_bit_precision) inv_tmclovQ2_cg_128(sol,guess,conf,kappa,csw,Pmunu,m,niter,residue,source);
-    else inv_tmclovQ2_cg_64(sol,guess,conf,kappa,csw,Pmunu,m,niter,residue,source);
+    if(use_128_bit_precision) inv_tmclovQ2_cg_128(sol,guess,conf,kappa,Cl,m,niter,residue,source);
+    else inv_tmclovQ2_cg_64(sol,guess,conf,kappa,Cl,m,niter,residue,source);
   }
 }

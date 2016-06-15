@@ -10,12 +10,12 @@
 
 namespace nissa
 {
-  void inv_WclovQ_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,int niter,double residue,spincolor *source)
+  void inv_WclovQ_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,clover_term_t *Cl,int niter,double residue,spincolor *source)
   {
-    inv_WclovQ2_cg(sol,NULL,conf,kappa,csw,Pmunu,niter,residue,source);
+    inv_WclovQ2_cg(sol,NULL,conf,kappa,Cl,niter,residue,source);
     spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
     vector_copy(temp,sol);
-    apply_WclovQ(sol,conf,kappa,csw,Pmunu,temp);
+    apply_WclovQ(sol,conf,kappa,Cl,temp);
     nissa_free(temp);
   }
 }

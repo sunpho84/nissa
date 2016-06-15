@@ -1,17 +1,21 @@
 #pragma once
 
+#include "base/thread_macros.hpp"
+#include "communicate/borders.hpp"
+#include "new_types/su3_op.hpp"
+#include "operations/su3_paths/clover_term.hpp"
+
 namespace nissa
 {
   //Apply the Q=D*g5 operator to a spincolor
   
-  THREADABLE_FUNCTION_6ARG(apply_WclovQ, spincolor*,out, quad_su3*,conf, double,kappa, double,csw, as2t_su3*,Pmunu, spincolor*,in)
+  THREADABLE_FUNCTION_5ARG(apply_WclovQ, spincolor*,out, quad_su3*,conf, double,kappa, clover_term_t*,Cl, spincolor*,in)
   {
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
     //put the clover term
-    unsafe_apply_chromo_operator_to_spincolor(out,Pmunu,in);
-    double_vector_prod_double((double*)out,(double*)out,csw/2,loc_vol*24);
+    unsafe_apply_chromo_operator_to_spincolor(out,Cl,in);
     
     double kcf=1/(2*kappa);
     GET_THREAD_ID();

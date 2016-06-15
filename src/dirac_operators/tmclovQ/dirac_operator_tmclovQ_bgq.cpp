@@ -23,7 +23,7 @@ namespace nissa
     then the application of Q requires to expand the halfspincolor into full spincolor and summ the diagonal part
   */
   
-  THREADABLE_FUNCTION_5ARG(hopping_matrix_lx_tmclovQ_diag_term_bgq, bi_spincolor*,out, double,kappa, double,mu, bi_opt_as2t_su3*, Cl, bi_spincolor*,in)
+  THREADABLE_FUNCTION_5ARG(hopping_matrix_lx_tmclovQ_diag_term_bgq, bi_spincolor*,out, double,kappa, double,mu, bi_clover_term_t*, Cl, bi_spincolor*,in)
   {
     GET_THREAD_ID();
     
@@ -96,7 +96,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_6ARG(apply_tmclovQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, bi_opt_as2t_su3*,Cl, double,mu, bi_spincolor*,in)
+  THREADABLE_FUNCTION_6ARG(apply_tmclovQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, bi_clover_term_t*,Cl, double,mu, bi_spincolor*,in)
   {
     //compute on the surface and start communications
     apply_Wilson_hopping_matrix_lx_bgq_nocomm(conf,0,vsurf_vol,in);

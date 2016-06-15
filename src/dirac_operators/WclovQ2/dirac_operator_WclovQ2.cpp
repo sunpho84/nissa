@@ -9,9 +9,9 @@
 
 namespace nissa
 {
-  void apply_WclovQ2(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,spincolor *temp,spincolor *in)
+  void apply_WclovQ2(spincolor *out,quad_su3 *conf,double kappa,clover_term_t *Cl,spincolor *temp,spincolor *in)
   {
-    apply_WclovQ(temp,conf,kappa,csw,Pmunu,in);
-    apply_WclovQ(out,conf,kappa,csw,Pmunu,temp);
+    apply_WclovQ(temp,conf,kappa,Cl,in);
+    apply_WclovQ(out,conf,kappa,Cl,temp);
   } 
 }

@@ -3,22 +3,26 @@
 
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_vir.hpp"
+#if defined BGQ
+ #include "geometry/geometry_vir.hpp"
+#endif
 #include "new_types/su3.hpp"
 
-#include "cg_64_invert_tmclovQ2_bgq.hpp"
+#ifdef BGQ
+ #include "cg_64_invert_tmclovQ2_bgq.hpp"
+#endif
 #include "cg_64_invert_tmclovQ2_portable.hpp"
 
 namespace nissa
 {
-  inline void inv_tmclovQ2_cg_64(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double mu,int niter,double residue,spincolor *source)
+  inline void inv_tmclovQ2_cg_64(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,clover_term_t *Cl,double mu,int niter,double residue,spincolor *source)
   {
 #if defined BGQ
     //bufferize and remap
     bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
     lx_conf_remap_to_virlx(bi_conf,conf);
-    bi_opt_as2t_su3 *bi_cl=nissa_malloc("bi_cl",loc_volh,bi_opt_as2t_su3);
-    lx_as2t_su3_remap_to_opt_virlx(bi_cl,csw/2,Pmunu);
+    bi_clover_term_t *bi_Cl=nissa_malloc("bi_cl",loc_volh,bi_clover_term_t);
+    lx_clover_term_t_remap_to_virlx(bi_Cl,Cl);
     bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh,bi_spincolor);
     lx_spincolor_remap_to_virlx(bi_source,source);
     bi_spincolor *bi_sol=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
@@ -32,7 +36,7 @@ namespace nissa
     nissa_free(bi_source);
     nissa_free(bi_conf);
 #else
-    inv_tmclovQ2_cg_64_portable(sol,guess,conf,kappa,csw,Pmunu,mu,niter,residue,source);
+    inv_tmclovQ2_cg_64_portable(sol,guess,conf,kappa,Cl,mu,niter,residue,source);
 #endif
   }
 }

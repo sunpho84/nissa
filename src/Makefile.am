@@ -266,7 +266,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
 	inverters/twisted_mass/tm_frontends.cpp \
 	inverters/tmclov/cg_invert_tmclovQ2.cpp \
-	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.cpp \
 	inverters/tmclov/cg_64_invert_tmclovQ2_portable.cpp \
 	inverters/tmclov/cg_128_invert_tmclovQ2.cpp \
 	inverters/tmclov/cgm_invert_tmclovQ2.cpp \
@@ -428,6 +427,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/stag/stag.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
+	operations/su3_paths/clover_term.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
 	operations/su3_paths/plaquette.cpp \
 	operations/su3_paths/pline.cpp \
@@ -467,6 +467,7 @@ include_HEADERS+= \
 	operations/stag/stag.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
+	operations/su3_paths/clover_term.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \
 	operations/su3_paths/plaquette.hpp \
 	operations/su3_paths/pline.hpp \

@@ -14,7 +14,7 @@
 #define BORD_VOL bord_vol
 
 #define APPLY_OPERATOR apply_tmclovQ2
-#define CG_OPERATOR_PARAMETERS conf,kappa,csw,Pmunu,temp,mu,
+#define CG_OPERATOR_PARAMETERS conf,kappa,Cl,temp,mu,
 
 #define CG_INVERT inv_tmclovQ2_cg_64_portable
 
@@ -29,16 +29,14 @@
   nissa_free(temp);
 
 //additional parameters
-#define CG_NARG 5
+#define CG_NARG 4
 #define AT1 quad_su3*
 #define A1 conf
 #define AT2 double
 #define A2 kappa
-#define AT3 double
-#define A3 csw
-#define AT4 as2t_su3*
-#define A4 Pmunu
-#define AT5 double
-#define A5 mu
+#define AT3 clover_term_t*
+#define A3 Cl
+#define AT4 double
+#define A4 mu
 
 #include "inverters/templates/cg_invert_template_threaded.cpp"

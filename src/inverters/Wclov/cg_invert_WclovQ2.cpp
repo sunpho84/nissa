@@ -16,18 +16,16 @@
 #define APPLY_OPERATOR apply_WclovQ2
 
 #define CG_INVERT inv_WclovQ2_cg
-#define CG_OPERATOR_PARAMETERS conf,kappa,csw,Pmunu,temp,
+#define CG_OPERATOR_PARAMETERS conf,kappa,Cl,temp,
 
 //additional parameters
-#define CG_NARG 4
+#define CG_NARG 3
 #define AT1 quad_su3*
 #define A1 conf
 #define AT2 double
 #define A2 kappa
-#define AT3 double
-#define A3 csw
-#define AT4 as2t_su3*
-#define A4 Pmunu
+#define AT3 clover_term_t*
+#define A3 Cl
 
 #define CG_ADDITIONAL_VECTORS_ALLOCATION() BASETYPE *temp=nissa_malloc("temp",BULK_VOL+BORD_VOL,BASETYPE);
 

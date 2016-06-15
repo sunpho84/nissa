@@ -80,6 +80,8 @@ namespace nissa
   //prod with double
   THREADABLE_FUNCTION_4ARG(double_vector_prod_double, double*,out, double*,in, double,r, int,n)
   {GET_THREAD_ID();NISSA_PARALLEL_LOOP(i,0,n) out[i]=r*in[i];set_borders_invalid(out);}THREADABLE_FUNCTION_END
+  THREADABLE_FUNCTION_4ARG(float_128_vector_prod_double, float_128*,out, float_128*,in, double,r, int,n)
+  {GET_THREAD_ID();NISSA_PARALLEL_LOOP(i,0,n) float_128_prod_64(out[i],in[i],r);set_borders_invalid(out);}THREADABLE_FUNCTION_END
   
   //prod with double of the summ
   THREADABLE_FUNCTION_5ARG(double_vector_prod_the_summ_double, double*,out, double,r, double*,in1, double*,in2, int,n)

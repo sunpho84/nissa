@@ -227,13 +227,13 @@ void in_main(int narg,char **arg)
   {
     spinspin *pro=nissa_malloc("pr",loc_vol,spinspin);
     quad_su3 *conf=nissa_malloc("conf",loc_vol,quad_su3);
-    as2t_su3 *Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
+    clover_term_t *Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<4;mu++)
 	su3_put_to_id(conf[ivol][mu]);
     set_borders_invalid(conf);
-    Pmunu_term(Pmunu,conf);
+    chromo_operator(Cl,conf);
     
     double put_theta[4],old_theta[4]={0,0,0,0};
     old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
@@ -246,7 +246,7 @@ void in_main(int narg,char **arg)
 	vector_reset(source);
 	if(rank==0) source[0][id_so][0][RE]=(id_so<2)?1:-1;
 	set_borders_invalid(source);
-	inv_WclovQ_cg(result, NULL, conf, 0.124, 0, Pmunu, 1000000, 1e-28, source);
+	inv_WclovQ_cg(result, NULL, conf, 0.124, Cl, 1000000, 1e-28, source);
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
 	    double a=ph0*glb_coord_of_loclx[ivol][0]*M_PI/glb_size[0];

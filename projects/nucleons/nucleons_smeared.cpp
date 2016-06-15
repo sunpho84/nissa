@@ -22,7 +22,7 @@ quad_su3 *conf,*smea_conf;
 int nmass,im_3pts;
 double *mass;
 double kappa;
-as2t_su3 *Pmunu;
+clover_term_t *Cl;
 
 //source
 coords source_pos;
@@ -132,7 +132,7 @@ void initialize_nucleons(char *input_path)
   //Allocate the gauge Conf
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   smea_conf=nissa_malloc("smea_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
+  Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
   //Read the gauge conf
   read_str_int("NGaugeConf",&nconf);
   conf_path=(char**)malloc(sizeof(char*)*nconf);
@@ -223,14 +223,14 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   read_ildg_gauge_conf(conf,conf_path);
   
   //calculate plaquette of original conf
-  master_printf("plaq: %+016.016lg\n",global_plaquette_lx_conf(conf));
+  master_printf("plaq: %+16.016lg\n",global_plaquette_lx_conf(conf));
   
-  //calcolate Pmunu
-  Pmunu_term(Pmunu,conf);
+  //calcolate Cl
+  chromo_operator(Cl,conf);
   
   //prepared the smeared version and  calculate plaquette
   ape_spatial_smear_conf(smea_conf,conf,ape_alpha,ape_niter);
-  master_printf("smeared plaq: %+016.16lg\n",global_plaquette_lx_conf(smea_conf));
+  master_printf("smeared plaq: %+16.16lg\n",global_plaquette_lx_conf(smea_conf));
   
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
@@ -799,7 +799,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 	      case 0:ncontr=nproton_3pt_contr;break;
 	      case 1:
 		ncontr=nproton_3pt_chromo_contr;
-		unsafe_apply_chromo_operator_to_su3spinspin(supp_S,Pmunu,S0_SL[im_close][rS0]);
+		unsafe_apply_chromo_operator_to_su3spinspin(supp_S,Cl,S0_SL[im_close][rS0]);
 		break;
 	      case 2:
 		ncontr=3; //three spatial directions
@@ -875,7 +875,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 
 void close_nucleons()
 {
-  nissa_free(conf);nissa_free(smea_conf);nissa_free(Pmunu);
+  nissa_free(conf);nissa_free(smea_conf);nissa_free(Cl);
   nissa_free(original_source);nissa_free(source);
   nissa_free(temp_source);nissa_free(seq_source);
   for(int imass=0;imass<nmass;imass++)
