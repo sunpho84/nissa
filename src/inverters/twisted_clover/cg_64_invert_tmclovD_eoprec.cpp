@@ -24,7 +24,7 @@
 #define BORD_VOL bord_volh
 
 #define APPLY_OPERATOR tmclovDkern_eoprec_square_eos
-#define CG_OPERATOR_PARAMETERS temp1,temp2,conf,kappa,mass,
+#define CG_OPERATOR_PARAMETERS temp1,temp2,eo_conf,kappa,mass,Cl_odd,invCl_evn,
 
 #define CG_INVERT inv_tmclovDkern_eoprec_square_eos_cg_64_portable
 #define CG_NPOSSIBLE_REQUESTS 0
@@ -42,20 +42,24 @@
   nissa_free(temp2);
 
 //additional parameters
-#define CG_NARG 3
+#define CG_NARG 5
 #define AT1 quad_su3**
-#define A1 conf
+#define A1 eo_conf
 #define AT2 double
 #define A2 kappa
 #define AT3 double
 #define A3 mass
+#define AT4 clover_term_t*
+#define A4 Cl_odd
+#define AT5 inv_clover_term_t*
+#define A5 invCl_evn
 
 #include "inverters/templates/cg_invert_template_threaded.cpp"
 
 namespace nissa
 {
   //wrapper for bgq
-  void inv_tmclovDkern_eoprec_square_eos_cg_64(spincolor *sol,spincolor *guess,quad_su3 **eo_conf,double kappa,double mu,int niter,double residue,spincolor *source)
+  void inv_tmclovDkern_eoprec_square_eos_cg_64(spincolor *sol,spincolor *guess,quad_su3 **eo_conf,double kappa,double mu,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,int niter,double residue,spincolor *source)
   {
 #ifdef BGQ
     //allocate
@@ -64,16 +68,20 @@ namespace nissa
                                nissa_malloc("vir_conf_odd",loc_volh+bord_volh,vir_oct_su3)};
     vir_spincolor *vir_sol=nissa_malloc("vir_sol",loc_volh/2,vir_spincolor);
     vir_spincolor *vir_guess=(guess!=NULL)?nissa_malloc("vir_guess",loc_volh/2,vir_spincolor):NULL;
+    vir_clover_term_t *vir_Cl_odd=nissa_malloc("vir_Cl_odd",loc_volh/2,vir_clover_term_t);
+    vir_inv_clover_term_t *vir_invCl_evn=nissa_malloc("vir_invCl_evn",loc_volh/2,vir_inv_clover_term_t);
     
     ////////////////////////
     
     //remap in
     evn_or_odd_spincolor_remap_to_virevn_or_odd(vir_source,source,ODD);
+    evn_or_odd_clover_term_t_remap_to_virevn_or_odd(vir_Cl_odd,Cl_odd,ODD);
+    evn_or_odd_inv_clover_term_t_remap_to_virevn_or_odd(vir_invCl_evn,invCl_evn,EVN);
     eo_conf_remap_to_vireo(vir_eo_conf,eo_conf);
     if(guess!=NULL) evn_or_odd_spincolor_remap_to_virevn_or_odd(vir_guess,guess,ODD);
     
     //invert
-    inv_tmclovDkern_eoprec_square_eos_cg_64_bgq(vir_sol,vir_guess,vir_eo_conf,kappa,mu,niter,residue,vir_source);
+    inv_tmclovDkern_eoprec_square_eos_cg_64_bgq(vir_sol,vir_guess,vir_eo_conf,kappa,mu,vir_Cl_odd,vir_invCl_evn,niter,residue,vir_source);
     
     //remap out
     virevn_or_odd_spincolor_remap_to_evn_or_odd(sol,vir_sol,ODD);
@@ -85,9 +93,11 @@ namespace nissa
     nissa_free(vir_eo_conf[ODD]);
     nissa_free(vir_source);
     nissa_free(vir_sol);
+    nissa_free(vir_Cl_odd);
+    nissa_free(vir_invCl_evn);
     if(guess!=NULL) nissa_free(vir_guess);
 #else
-    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,mu,niter,residue,source);
+    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,mu,Cl_odd,invCl_evn,niter,residue,source);
 #endif
   } 
 }

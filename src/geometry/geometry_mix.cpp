@@ -33,6 +33,24 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //separate the even and odd part of a vector
+  THREADABLE_FUNCTION_4ARG(get_evn_or_odd_part_of_lx_vector_internal, char*,out_ev_or_od, char*,in_lx, size_t,bps, int,par)
+  {
+    GET_THREAD_ID();
+    
+    START_TIMING(remap_time,nremap);
+    
+    //get
+    NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
+      if(loclx_parity[loclx]==par)
+      memcpy(out_ev_or_od+bps*loceo_of_loclx[loclx],in_lx+bps*loclx,bps);
+    
+    STOP_TIMING(remap_time);
+    
+    set_borders_invalid(out_ev_or_od);
+  }
+  THREADABLE_FUNCTION_END
+  
   //paste the even and odd parts of a vector into a full lx vector
   THREADABLE_FUNCTION_3ARG(paste_eo_parts_into_lx_vector_internal, char*,out_lx, char**,in_eo, size_t,bps)
   {

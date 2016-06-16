@@ -25,7 +25,15 @@ namespace nissa
     chromo_operator_include_cSW(Cl,cSW);
   }
   
+  void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in);
+  inline void apply_point_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
+  {
+    complex z={1/(2*kappa),mass};
+    apply_point_diag_plus_clover_term_to_halfspincolor(out,z,Cl,in);
+  }
+  
   void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl);
+  void invert_twisted_clover_term(inv_clover_term_t *inv,double mass,double kappa,clover_term_t *Cl);
 }
 
 #endif

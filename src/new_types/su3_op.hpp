@@ -894,6 +894,31 @@ namespace nissa
       }
   }
   
+  //////////////////////////////// Operations between halfspincolors /////////////////////
+  
+  inline void unsafe_halfspincolor_halfspincolor_times_halfspincolor(halfspincolor a,halfspincolor_halfspincolor b,halfspincolor c)
+  {
+    for(int id_out=0;id_out<NDIRAC/2;id_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
+	{
+	  complex_put_to_zero(a[id_out][ic_out]);
+	  for(int id_in=0;id_in<NDIRAC/2;id_in++)
+	    for(int ic_in=0;ic_in<NCOL;ic_in++)
+	      complex_summ_the_prod(a[id_out][ic_out],b[id_out][ic_out][id_in][ic_in],c[id_in][ic_in]);
+	}
+  }
+  
+  inline void unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor(halfspincolor a,halfspincolor_halfspincolor b,halfspincolor c)
+  {
+    for(int id_out=0;id_out<NDIRAC/2;id_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
+	{
+	  complex_put_to_zero(a[id_out][ic_out]);
+	  for(int id_in=0;id_in<NDIRAC/2;id_in++)
+	    for(int ic_in=0;ic_in<NCOL;ic_in++)
+	      complex_summ_the_conj1_prod(a[id_out][ic_out],b[id_in][ic_in][id_out][ic_out],c[id_in][ic_in]);
+	}
+  }
   ////////////////////////////////// Operations between spincolor ////////////////////////
   
   //just print a spincolor

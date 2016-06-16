@@ -82,8 +82,17 @@ namespace nissa
     
     //invert
     START_TIMING(inv_time,ninv_tot);
-    if(twisted_run) inv_tmD_cg_eoprec(out,NULL,conf,glb_kappa,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
-    else            inv_tmD_cg_eoprec(out,NULL,conf,qkappa[iq],0,1000000,qresidue[iq],in);
+    if(twisted_run)
+      {
+	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,glb_kappa,tau3[qr[iq]]*qmass[iq],Cl,NULL,1000000,qresidue[iq],in);
+	else           inv_tmD_cg_eoprec(out,NULL,conf,glb_kappa,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
+      }
+    else
+      {
+	if(clover_run) crash("not sure that is implemented");
+	else           inv_tmD_cg_eoprec(out,NULL,conf,qkappa[iq],0,1000000,qresidue[iq],in);
+      }
+    
     STOP_TIMING(inv_time);
     
     //put back no theta on the boundaries

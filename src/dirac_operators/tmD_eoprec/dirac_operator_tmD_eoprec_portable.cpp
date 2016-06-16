@@ -157,15 +157,9 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //implement Koo defined in equation (7)
-  THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos, spincolor*,out, spincolor*,temp, quad_su3**,conf, double,kappa, double,mu, spincolor*,in)
+  //put g5
+  THREADABLE_FUNCTION_2ARG(tmDkern_eoprec_eos_put_together_and_include_gamma5, spincolor*,out, spincolor*,temp)
   {
-    tmn2Deo_eos(out,conf,in);
-    inv_tmDee_or_oo_eos(temp,kappa,mu,out);
-    tmn2Doe_eos(out,conf,temp);
-    
-    tmDee_or_oo_eos(temp,kappa,mu,in);
-    
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
       for(int id=0;id<NDIRAC/2;id++)
@@ -177,6 +171,19 @@ namespace nissa
 	    }
     
     set_borders_invalid(out);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //implement Koo defined in equation (7)
+  THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos, spincolor*,out, spincolor*,temp, quad_su3**,conf, double,kappa, double,mu, spincolor*,in)
+  {
+    tmn2Deo_eos(out,conf,in);
+    inv_tmDee_or_oo_eos(temp,kappa,mu,out);
+    tmn2Doe_eos(out,conf,temp);
+    
+    tmDee_or_oo_eos(temp,kappa,mu,in);
+    
+    tmDkern_eoprec_eos_put_together_and_include_gamma5(out,temp);
   }
   THREADABLE_FUNCTION_END
   

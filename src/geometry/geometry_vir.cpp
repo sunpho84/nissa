@@ -761,6 +761,8 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  ////////////////////////////////////////////////////////////////////
+  
   //quad_su3 to vir_quad_su3
   THREADABLE_FUNCTION_2ARG(lx_quad_su3_remap_to_virlx, vir_quad_su3*,out, quad_su3*,in)
   {
@@ -775,6 +777,62 @@ namespace nissa
     STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
+  
+  //only even or odd
+  THREADABLE_FUNCTION_3ARG(evn_or_odd_quad_su3_remap_to_virevn_or_odd, vir_quad_su3*,out, quad_su3*,in, int,par)
+  {
+    GET_THREAD_ID();
+    START_TIMING(remap_time,nremap);
+    
+    //split to the two VN
+    NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
+      for(int mu=0;mu<NDIM;mu++)
+	SU3_TO_VIR_SU3(out[vireo_of_loceo[par][ivol_eo]][mu],in[ivol_eo][mu],vnode_of_loceo(EVN,ivol_eo));
+    
+    //wait filling
+    set_borders_invalid(out);
+    STOP_TIMING(remap_time);
+  }
+  THREADABLE_FUNCTION_END
+  //reverse
+  THREADABLE_FUNCTION_3ARG(virevn_or_odd_quad_su3_remap_to_evn_or_odd, quad_su3*,out, vir_quad_su3*,in, int,par)
+  {
+    GET_THREAD_ID();
+    START_TIMING(remap_time,nremap);
+    
+    //split to the two VN
+    NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
+      for(int mu=0;mu<NDIM;mu++)
+	VIR_SU3_TO_SU3(out[loceo_of_vireo[par][ivol_vireo]][mu],out[loceo_of_vireo[par][ivol_vireo]+vnode_eo_offset][mu],
+			   in[ivol_vireo][mu]);
+    
+    //wait filling
+    set_borders_invalid(out);
+    STOP_TIMING(remap_time);
+  }
+  THREADABLE_FUNCTION_END
+  
+  ///////////////// GENERAL COMPLEX TO BE CHECKED //////////////////
+  
+  //only even or odd
+  THREADABLE_FUNCTION_4ARG(evn_or_odd_complex_vect_remap_to_virevn_or_odd, vir_complex*,out, complex*,in, int,par, int,vl)
+  {
+    GET_THREAD_ID();
+    START_TIMING(remap_time,nremap);
+    
+    //split to the two VN
+    NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
+      for(int i=0;i<vl;i++)
+	COMPLEX_TO_VIR_COMPLEX(((vir_complex*)out)[i+vl*vireo_of_loceo[par][ivol_eo]],
+			       ((complex*)in)[i+vl*ivol_eo],vnode_of_loceo(EVN,ivol_eo));
+    
+    //wait filling
+    set_borders_invalid(out);
+    STOP_TIMING(remap_time);
+  }
+  THREADABLE_FUNCTION_END
+  
+  /////////////////////////////////////////////////////////////////
   
   //remap a color from lx to vireo layout
   THREADABLE_FUNCTION_2ARG(lx_color_remap_to_vireo, vir_color**,out, color*,in)

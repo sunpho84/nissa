@@ -14,8 +14,10 @@
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
-
 #include "topological_charge.hpp"
+
+#include "clover_term.hpp"
+
 
 namespace nissa
 {
@@ -207,12 +209,6 @@ namespace nissa
     su3_subt_the_prod_color(out[1],Cl[0],in[1]);
   }
   
-  void apply_point_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
-  {
-    complex z={1/(2*kappa),mass};
-    apply_point_diag_plus_clover_term_to_halfspincolor(out,z,Cl,in);
-  }
-  
   void apply_point_squared_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
   {
     halfspincolor temp;
@@ -360,6 +356,14 @@ namespace nissa
     //	    }
     //	master_printf("\n\n");
     //  }
-    
   }
+  
+  THREADABLE_FUNCTION_4ARG(invert_twisted_clover_term, inv_clover_term_t*,invCl, double,mass, double,kappa, clover_term_t*,Cl)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(X,0,loc_vol) invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
+    set_borders_invalid(invCl);
+  }
+  THREADABLE_FUNCTION_END
+
 }

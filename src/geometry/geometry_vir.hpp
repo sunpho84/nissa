@@ -40,6 +40,13 @@ namespace nissa
   inline void virlx_clover_term_t_remap_to_lx(clover_term_t *out,vir_clover_term_t *in)
   {virlx_quad_su3_remap_to_lx(out,in);}
   
+  void evn_or_odd_quad_su3_remap_to_virevn_or_odd(vir_quad_su3 *out,quad_su3 *in,int par);
+  void virevn_or_odd_quad_su3_remap_to_evn_or_odd(quad_su3 *out,vir_quad_su3 *in,int par);
+  inline void evn_or_odd_clover_term_t_remap_to_virevn_or_odd(vir_clover_term_t *out,clover_term_t *in,int par)
+  {evn_or_odd_quad_su3_remap_to_virevn_or_odd(out,in,par);}
+  inline void virevn_or_odd_clover_term_t_remap_to_evn_or_odd(clover_term_t *out,vir_clover_term_t *in,int par)
+  {virevn_or_odd_quad_su3_remap_to_evn_or_odd(out,in,par);}
+  
   void virlx_spincolor_remap_to_lx(spincolor *out,vir_spincolor *in);
   void virevn_or_odd_spincolor_remap_to_evn_or_odd(spincolor *out,vir_spincolor *in,int par);
   void virlx_spincolor_128_remap_to_lx(spincolor_128 *out,vir_spincolor_128 *in);
@@ -57,6 +64,10 @@ namespace nissa
   void lx_color_remap_to_single_vireo(vir_single_color **out,color *in);
   void evn_or_odd_color_remap_to_virevn_or_odd(vir_color *out,color *in,int par);
   void evn_or_odd_color_remap_to_single_virevn_or_odd(vir_single_color *out,color *in,int par);
+  
+  void evn_or_odd_complex_vect_remap_to_virevn_or_odd(vir_complex *out,complex *in,int par,int vl);
+  inline void evn_or_odd_inv_clover_term_t_remap_to_virevn_or_odd(vir_inv_clover_term_t *out,inv_clover_term_t *in,int par)
+  {evn_or_odd_complex_vect_remap_to_virevn_or_odd((vir_complex*)out,(complex*)in,par,sizeof(inv_clover_term_t)/sizeof(complex));}
   
   void set_vir_geometry();
   void unset_vir_geometry();
