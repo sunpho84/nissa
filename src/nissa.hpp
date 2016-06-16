@@ -17,7 +17,7 @@
 //include bg/q specifics
 #ifdef BGQ
  #include "bgq/intrinsic.hpp"
- #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp"
+ #include "dirac_operators/tmDeo_prec/dirac_operator_tmDeo_prec_bgq.hpp"
  #include "dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp"
  #include "dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp"
  #include "dirac_operators/stD/dirac_operator_stD_bgq.hpp"
@@ -35,7 +35,7 @@
 #include "communicate/edges.hpp"
 
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
-#include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
+#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ_128.hpp"
 #include "dirac_operators/tmQ/reconstruct_tm_doublet.hpp"
@@ -84,16 +84,16 @@
 
 #include "inverters/staggered/cg_invert_stD.hpp"
 #include "inverters/twisted_mass/cg_128_invert_tmQ2.hpp"
-#include "inverters/twisted_mass/cg_invert_tmDeoimpr.hpp"
+#include "inverters/twisted_mass/cg_invert_tmD_eoprec.hpp"
 #include "inverters/twisted_mass/cg_invert_tmQ2.hpp"
 #include "inverters/twisted_mass/cgm_invert_tmQ2.hpp"
 #include "inverters/twisted_mass/tm_frontends.hpp"
 #include "inverters/Wclov/cg_invert_WclovQ2.hpp"
 #include "inverters/Wclov/cg_invert_WclovQ.hpp"
-#include "inverters/tmclov/cg_invert_tmclovQ2.hpp"
-#include "inverters/tmclov/cg_invert_tmclovQ.hpp"
-#include "inverters/tmclov/cgm_invert_tmclovQ2.hpp"
-#include "inverters/tmclov/tmclov_frontends.hpp"
+#include "inverters/twisted_clover/cg_invert_tmclovQ2.hpp"
+#include "inverters/twisted_clover/cg_invert_tmclovQ.hpp"
+#include "inverters/twisted_clover/cgm_invert_tmclovQ2.hpp"
+#include "inverters/twisted_clover/tmclov_frontends.hpp"
 
 #include "io/buffer.hpp"
 #include "io/checksum.hpp"

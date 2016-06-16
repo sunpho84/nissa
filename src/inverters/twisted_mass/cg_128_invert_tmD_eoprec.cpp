@@ -1,12 +1,12 @@
 #include <math.h>
 
-#include "cg_invert_tmDeoimpr.hpp"
+#include "cg_invert_tmD_eoprec.hpp"
 
 #include "base/vectors.hpp"
-#include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
-#include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp"
+#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
+#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_128.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "inverters/twisted_mass/cg_64_invert_tmDeoimpr.hpp"
+#include "inverters/twisted_mass/cg_64_invert_tmD_eoprec.hpp"
 #include "linalgs/linalgs.hpp"
 
 #define BASETYPE spincolor

@@ -12,4 +12,4 @@
  #include "routines/thread.hpp"
 #endif
 
-#include "dirac_operator_tmDeoimpr_portable.cpp"
+#include "dirac_operator_tmD_eoprec_portable.cpp"

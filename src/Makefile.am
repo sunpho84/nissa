@@ -87,7 +87,7 @@ include_HEADERS+= \
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	dirac_operators/momenta/MFACC.cpp \
 	dirac_operators/stD/dirac_operator_stD.cpp \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
+	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2.cpp \
@@ -101,14 +101,14 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.cpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_128.cpp \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.cpp \
+	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_128.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.cpp
 
 include_HEADERS+= \
 	dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp\
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp \
+	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp \
+	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_128.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.hpp \
 	dirac_operators/tmQ/reconstruct_tm_doublet.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_128.hpp \
@@ -127,7 +127,7 @@ include_HEADERS+= \
 #compile or not bgq source
 if BGQ
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.cpp \
+	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_bgq.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_bgq.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
@@ -136,7 +136,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.cpp \
 	dirac_operators/stD/dirac_operator_stD_bgq.cpp
 include_HEADERS+= \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp \
+	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_bgq.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.hpp \
@@ -151,7 +151,7 @@ EXTRA_DIST= \
 	dirac_operators/stD/dirac_operator_stD_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_32_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_bgq_template.cpp \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_portable.cpp \
+	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_portable.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_portable.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left_portable.cpp
 
@@ -257,33 +257,33 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	inverters/staggered/cg_invert_stD2ee_m2.cpp \
 	inverters/staggered/cg_invert_stD.cpp \
 	inverters/staggered/cg_invert_evn_stD.cpp \
-	inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
+	inverters/twisted_mass/cg_invert_tmD_eoprec.cpp \
 	inverters/twisted_mass/cg_invert_tmQ2.cpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_64_invert_tmDeoimpr.cpp \
+	inverters/twisted_mass/cg_64_invert_tmD_eoprec.cpp \
 	inverters/twisted_mass/cgm_invert_tmQ2.cpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
+	inverters/twisted_mass/cg_128_invert_tmD_eoprec.cpp \
 	inverters/twisted_mass/tm_frontends.cpp \
-	inverters/tmclov/cg_invert_tmclovQ2.cpp \
-	inverters/tmclov/cg_64_invert_tmclovQ2_portable.cpp \
-	inverters/tmclov/cg_128_invert_tmclovQ2.cpp \
-	inverters/tmclov/cgm_invert_tmclovQ2.cpp \
-	inverters/tmclov/tmclov_frontends.cpp \
+	inverters/twisted_clover/cg_invert_tmclovQ2.cpp \
+	inverters/twisted_clover/cg_64_invert_tmclovQ2_portable.cpp \
+	inverters/twisted_clover/cg_128_invert_tmclovQ2.cpp \
+	inverters/twisted_clover/cgm_invert_tmclovQ2.cpp \
+	inverters/twisted_clover/tmclov_frontends.cpp \
 	inverters/Wclov/cg_invert_WclovQ.cpp \
 	inverters/Wclov/cg_invert_WclovQ2.cpp \
-	inverters/tmclov/cg_invert_tmclovQ.cpp
+	inverters/twisted_clover/cg_invert_tmclovQ.cpp
 
 include_HEADERS+= \
 	inverters/momenta/cg_invert_MFACC.hpp \
 	inverters/momenta/cgm_invert_MFACC.hpp \
-	inverters/twisted_mass/cg_invert_tmDeoimpr.hpp \
+	inverters/twisted_mass/cg_invert_tmD_eoprec.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.hpp \
-	inverters/twisted_mass/cg_64_invert_tmDeoimpr.hpp \
+	inverters/twisted_mass/cg_64_invert_tmD_eoprec.hpp \
 	inverters/twisted_mass/cgm_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2.hpp \
-	inverters/twisted_mass/cg_128_invert_tmDeoimpr.hpp \
+	inverters/twisted_mass/cg_128_invert_tmD_eoprec.hpp \
 	inverters/twisted_mass/tm_frontends.hpp \
 	inverters/staggered/cgm_invert_stD2ee_m2.hpp \
 	inverters/staggered/cg_invert_stD2ee_m2.hpp \
@@ -295,12 +295,12 @@ include_HEADERS+= \
 	inverters/staggered/cg_invert_stD2ee_m2_portable.hpp \
 	inverters/Wclov/cg_invert_WclovQ.hpp \
 	inverters/Wclov/cg_invert_WclovQ2.hpp \
-	inverters/tmclov/cg_invert_tmclovQ.hpp \
-	inverters/tmclov/cg_invert_tmclovQ2.hpp \
-	inverters/tmclov/cg_64_invert_tmclovQ2.hpp \
-	inverters/tmclov/cg_128_invert_tmclovQ2.hpp \
-	inverters/tmclov/cgm_invert_tmclovQ2.hpp \
-	inverters/tmclov/tmclov_frontends.hpp
+	inverters/twisted_clover/cg_invert_tmclovQ.hpp \
+	inverters/twisted_clover/cg_invert_tmclovQ2.hpp \
+	inverters/twisted_clover/cg_64_invert_tmclovQ2.hpp \
+	inverters/twisted_clover/cg_128_invert_tmclovQ2.hpp \
+	inverters/twisted_clover/cgm_invert_tmclovQ2.hpp \
+	inverters/twisted_clover/tmclov_frontends.hpp
 
 #compile or not bgq source
 if BGQ
@@ -311,11 +311,11 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	inverters/twisted_mass/cgm_invert_tmQ2_bgq.cpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.cpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.cpp \
-	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.cpp \
+	inverters/twisted_mass/cg_64_invert_tmD_eoprec_bgq.cpp \
 	inverters/twisted_mass/cg_invert_tmQ2_bgq.cpp \
-	inverters/tmclov/cgm_invert_tmclovQ2_bgq.cpp \
-	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.cpp \
-	inverters/tmclov/cg_128_invert_tmclovQ2_bgq.cpp
+	inverters/twisted_clover/cgm_invert_tmclovQ2_bgq.cpp \
+	inverters/twisted_clover/cg_64_invert_tmclovQ2_bgq.cpp \
+	inverters/twisted_clover/cg_128_invert_tmclovQ2_bgq.cpp
 
 include_HEADERS+= \
 	inverters/staggered/cgm_invert_stD2ee_m2_bgq.hpp \
@@ -324,11 +324,11 @@ include_HEADERS+= \
 	inverters/twisted_mass/cgm_invert_tmQ2_bgq.hpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.hpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.hpp \
-	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.hpp \
+	inverters/twisted_mass/cg_64_invert_tmD_eoprec_bgq.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2_bgq.hpp \
-	inverters/tmclov/cgm_invert_tmclovQ2_bgq.hpp \
-	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.hpp \
-	inverters/tmclov/cg_128_invert_tmclovQ2_bgq.hpp
+	inverters/twisted_clover/cgm_invert_tmclovQ2_bgq.hpp \
+	inverters/twisted_clover/cg_64_invert_tmclovQ2_bgq.hpp \
+	inverters/twisted_clover/cg_128_invert_tmclovQ2_bgq.hpp
 endif
 
 EXTRA_DIST+= \

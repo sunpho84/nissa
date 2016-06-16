@@ -308,7 +308,7 @@ void meas_x_corr(const char *path,quad_su3 *conf,bool conf_created)
 	    safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,source);
 	    
 	    //invert
-	    inv_tmD_cg_eoprec_eos(temp_solution,NULL,conf,x_corr_kappa,tau3[r]*x_corr_mass,100000,x_corr_residue,source);
+	    inv_tmD_cg_eoprec(temp_solution,NULL,conf,x_corr_kappa,tau3[r]*x_corr_mass,100000,x_corr_residue,source);
 	    
 	    //rotate the sink index
 	    safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
@@ -357,7 +357,7 @@ void meas_x_corr_stoch(const char *path,quad_su3 *conf,bool conf_created)
 	      safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,source);
 	      
 	      //invert
-	      inv_tmD_cg_eoprec_eos(temp_solution,NULL,conf,x_corr_kappa,tau3[r]*x_corr_mass,100000,x_corr_residue,source);
+	      inv_tmD_cg_eoprec(temp_solution,NULL,conf,x_corr_kappa,tau3[r]*x_corr_mass,100000,x_corr_residue,source);
 	      
 	      //rotate the sink index
 	      safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
