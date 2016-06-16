@@ -19,6 +19,7 @@ namespace nissa
     //Twisted run
     read_str_int("TwistedRun",&twisted_run);
     //kappa for twisted run
+    double glb_kappa;
     if(twisted_run) read_str_double("Kappa",&glb_kappa);
     //Clover run
     read_str_int("CloverRun",&clover_run);
@@ -35,24 +36,33 @@ namespace nissa
       {
 	nr_lep=1;
 	base=WILSON_BASE;
-	qkappa=nissa_malloc("qkappa",nquarks,double);
       }
     else
       {
 	nr_lep=2;
 	base=MAX_TWIST_BASE;
-	qmass=nissa_malloc("qmass",nquarks,double);
-	qr=nissa_malloc("qr",nquarks,int);
       }
+    qr=nissa_malloc("qr",nquarks,int);
+    qmass=nissa_malloc("qmass",nquarks,double);
+    qkappa=nissa_malloc("qkappa",nquarks,double);
     qtheta=nissa_malloc("qtheta",nquarks,double);
     qresidue=nissa_malloc("qresidue",nquarks,double);
     for(int iq=0;iq<nquarks;iq++)
       {
-	if(!twisted_run) read_double(&qkappa[iq]);
+	if(!twisted_run)
+	  {
+	    qmass[iq]=0;
+	    read_double(&qkappa[iq]);
+	    qr[iq]=0;
+	  }
 	else
 	  {
 	    read_double(&qmass[iq]);
 	    read_int(&qr[iq]);
+	    qkappa[iq]=glb_kappa;
+	    
+	    //include tau in the mass
+	    qmass[iq]*=tau3[qr[iq]];
 	  }
 	read_double(&qtheta[iq]);
 	read_double(&qresidue[iq]);

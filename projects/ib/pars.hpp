@@ -41,7 +41,7 @@ namespace nissa
   
   EXTERN_PARS int twisted_run,clover_run;
   EXTERN_PARS tm_basis_t base;
-  EXTERN_PARS double glb_kappa,glb_cSW;
+  EXTERN_PARS double glb_cSW;
   
   EXTERN_PARS tm_quark_info *leps;
   

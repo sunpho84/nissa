@@ -114,16 +114,14 @@ void close()
       nissa_free(lep_energy);
       nissa_free(neu_energy);
     }
-  if(twisted_run)
-    {
-      nissa_free(qmass);
-      nissa_free(qr);
-    }
   if(clover_run)
     {
       nissa_free(Cl);
       nissa_free(invCl);
     }
+  nissa_free(qr);
+  nissa_free(qkappa);
+  nissa_free(qmass);
   nissa_free(qtheta);
   nissa_free(qresidue);
   if(compute_bar2pts_flag) free_bar2pts_contr();

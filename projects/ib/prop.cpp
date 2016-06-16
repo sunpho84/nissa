@@ -82,21 +82,13 @@ namespace nissa
     
     //invert
     START_TIMING(inv_time,ninv_tot);
-    if(twisted_run)
+    if(clover_run)
       {
-	if(clover_run)
-	  {
-	    inv_tmclovD_cg_eoprec(out,NULL,conf,glb_kappa,Cl,invCl,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
-	    //prop_multiply_with_gamma(in,5,in,ALL_TIMES);
-	    //inv_tmclovQ_cg(out, NULL, conf, glb_kappa, Cl,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
-	  }
-	else           inv_tmD_cg_eoprec(out,NULL,conf,glb_kappa,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
+	inv_tmclovD_cg_eoprec(out,NULL,conf,qkappa[iq],Cl,invCl,qmass[iq],1000000,qresidue[iq],in);
+	//prop_multiply_with_gamma(in,5,in,ALL_TIMES);
+	//inv_tmclovQ_cg(out,NULL,conf,qkappa[iq],Cl,qmass[iq],1000000,qresidue[iq],in);
       }
-    else
-      {
-	if(clover_run) crash("not sure that is implemented");
-	else           inv_tmD_cg_eoprec(out,NULL,conf,qkappa[iq],0,1000000,qresidue[iq],in);
-      }
+    else inv_tmD_cg_eoprec(out,NULL,conf,qkappa[iq],qmass[iq],1000000,qresidue[iq],in);
     
     STOP_TIMING(inv_time);
     
@@ -217,7 +209,7 @@ namespace nissa
 	else            master_printf(" kappa[%d]=%lg\n",iq,qkappa[iq]);
 	
 	//compute the inverse clover term, if needed
-	if(clover_run) invert_twisted_clover_term(invCl,qmass[0],glb_kappa,Cl);
+	if(clover_run) invert_twisted_clover_term(invCl,qmass[iq],qkappa[iq],Cl);
 	
 	for(int ip=0;ip<nqprop_kind();ip++)
 	  {

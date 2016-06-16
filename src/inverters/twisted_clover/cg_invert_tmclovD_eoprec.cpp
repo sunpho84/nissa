@@ -10,6 +10,7 @@
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
+#include "inverters/twisted_mass/cg_invert_tmD_eoprec.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 #include "routines/ios.hpp"
 
@@ -30,7 +31,6 @@ namespace nissa
   //Invert twisted clover operator using e/o preconditioning.
   THREADABLE_FUNCTION_10ARG(inv_tmclovD_cg_eoprec, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, clover_term_t*,Cl_lx, inv_clover_term_t*,ext_invCl_lx, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
   {
-    GET_THREAD_ID();
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
     inv_clover_term_t *invCl_lx;
@@ -68,40 +68,26 @@ namespace nissa
     invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
     get_evn_or_odd_part_of_lx_vector(invCl_evn,invCl_lx,EVN);
     
-    ///////////////////////////////////// invert with e/o improvement ///////////////////////////////////
-    
-    spincolor *varphi=nissa_malloc("varphi",loc_volh+bord_volh,spincolor);
+    ///////////////////////////////////// invert with e/o preconditioning ///////////////////////////////////
     
     //Equation (8.a)
     spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
     inv_tmclovDee_or_oo_eos(temp,invCl_evn,false,source_eos[EVN]);
     
     //Equation (8.b)
-    tmn2Doe_eos(varphi,conf_eos,temp);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-      for(int id=0;id<NDIRAC/2;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    { //gamma5 is explicitly wrote
-	      varphi[ivol][id  ][ic][ri]=+source_eos[ODD][ivol][id  ][ic][ri]+varphi[ivol][id  ][ic][ri]*0.5;
-	      varphi[ivol][id+2][ic][ri]=-source_eos[ODD][ivol][id+2][ic][ri]-varphi[ivol][id+2][ic][ri]*0.5;
-	    }
-    set_borders_invalid(varphi);
+    spincolor *varphi=nissa_malloc("varphi",loc_volh+bord_volh,spincolor);
+    inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,temp,source_eos[ODD]);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
     inv_tmclovDkern_eoprec_square_eos_cg(temp,guess_Koo,conf_eos,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,varphi);
+    
+    //Equation (10)
     tmclovDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,mass,Cl_odd,invCl_evn,true,temp);
     if(guess_Koo!=NULL) memcpy(guess_Koo,temp,sizeof(spincolor)*loc_volh); //if a guess was passed, return new one
     nissa_free(temp);
     
-    //Equation (10)
-    tmn2Deo_eos(varphi,conf_eos,solution_eos[ODD]);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-      for(int id=0;id<NDIRAC;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    varphi[ivol][id][ic][ri]=source_eos[EVN][ivol][id][ic][ri]+varphi[ivol][id][ic][ri]*0.5;
-    set_borders_invalid(varphi);
+    //Equation (11)
+    inv_tmD_cg_eoprec_almost_reco_sol(varphi,conf_eos,solution_eos[ODD],source_eos[EVN]);
     inv_tmclovDee_or_oo_eos(solution_eos[EVN],invCl_evn,false,varphi);
     
     nissa_free(varphi);
