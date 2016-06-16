@@ -6,27 +6,27 @@
 
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
-#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
+#include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "routines/ios.hpp"
 
-#include "cg_64_invert_tmD_eoprec.hpp"
-#include "cg_128_invert_tmD_eoprec.hpp"
+#include "cg_64_invert_tmclovD_eoprec.hpp"
+#include "cg_128_invert_tmclovD_eoprec.hpp"
 
 namespace nissa
 {
-  //Refers to the doc: "doc/eo_inverter.lyx" for explenations
+  //Refers to the tmD_eoprec
   
   //invert Koo defined in equation (7)
-  void inv_tmDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mass,int nitermax,double residue,spincolor *source)
+  void inv_tmclovDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mass,int nitermax,double residue,spincolor *source)
   {
-    if(use_128_bit_precision) inv_tmDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
-    else inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
+    if(use_128_bit_precision) inv_tmclovDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
+    else inv_tmclovDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
   }
   
   //Invert twisted mass operator using e/o preconditioning.
-  THREADABLE_FUNCTION_8ARG(inv_tmD_cg_eoprec, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
+  THREADABLE_FUNCTION_8ARG(inv_tmclovD_cg_eoprec, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
   {
     GET_THREAD_ID();
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
@@ -54,10 +54,10 @@ namespace nissa
     
     //Equation (8.a)
     spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
-    inv_tmDee_or_oo_eos(temp,kappa,mass,source_eos[EVN]);
+    inv_tmclovDee_or_oo_eos(temp,kappa,mass,source_eos[EVN]);
     
     //Equation (8.b)
-    tmn2Doe_eos(varphi,conf_eos,temp);
+    tmclovn2Doe_eos(varphi,conf_eos,temp);
     NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
       for(int id=0;id<NDIRAC/2;id++)
 	for(int ic=0;ic<NCOL;ic++)
@@ -69,20 +69,20 @@ namespace nissa
     set_borders_invalid(varphi);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
-    inv_tmDkern_eoprec_square_eos_cg(temp,guess_Koo,conf_eos,kappa,mass,nitermax,residue,varphi);
-    tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,-mass,temp);
+    inv_tmclovDkern_eoprec_square_eos_cg(temp,guess_Koo,conf_eos,kappa,mass,nitermax,residue,varphi);
+    tmclovDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,-mass,temp);
     if(guess_Koo!=NULL) memcpy(guess_Koo,temp,sizeof(spincolor)*loc_volh); //if a guess was passed, return new one
     nissa_free(temp);
     
     //Equation (10)
-    tmn2Deo_eos(varphi,conf_eos,solution_eos[ODD]);
+    tmclovn2Deo_eos(varphi,conf_eos,solution_eos[ODD]);
     NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
       for(int id=0;id<NDIRAC;id++)
 	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
 	    varphi[ivol][id][ic][ri]=source_eos[EVN][ivol][id][ic][ri]+varphi[ivol][id][ic][ri]*0.5;
     set_borders_invalid(varphi);
-    inv_tmDee_or_oo_eos(solution_eos[EVN],kappa,mass,varphi);
+    inv_tmclovDee_or_oo_eos(solution_eos[EVN],kappa,mass,varphi);
     
     nissa_free(varphi);
     
