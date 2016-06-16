@@ -1,5 +1,5 @@
-#ifndef _CG_INVERT_TMCLOVDEOPREC_HPP
-#define _CG_INVERT_TMCLOVDEOPREC_HPP
+#ifndef _CG_INVERT_TMCLOVD_EOPREC_HPP
+#define _CG_INVERT_TMCLOVD_EOPREC_HPP
 
 #include "new_types/su3.hpp"
 
