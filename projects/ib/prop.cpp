@@ -84,7 +84,12 @@ namespace nissa
     START_TIMING(inv_time,ninv_tot);
     if(twisted_run)
       {
-	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,glb_kappa,tau3[qr[iq]]*qmass[iq],Cl,NULL,1000000,qresidue[iq],in);
+	if(clover_run)
+	  {
+	    inv_tmclovD_cg_eoprec(out,NULL,conf,glb_kappa,Cl,invCl,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
+	    //prop_multiply_with_gamma(in,5,in,ALL_TIMES);
+	    //inv_tmclovQ_cg(out, NULL, conf, glb_kappa, Cl,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
+	  }
 	else           inv_tmD_cg_eoprec(out,NULL,conf,glb_kappa,tau3[qr[iq]]*qmass[iq],1000000,qresidue[iq],in);
       }
     else
@@ -206,17 +211,20 @@ namespace nissa
   //generate all the quark propagators
   void generate_quark_propagators(int irand_source)
   {
-    for(int ip=0;ip<nqprop_kind();ip++)
+    for(int iq=0;iq<nquarks;iq++)
       {
-	insertion_t insertion=qprop_list[ip].insertion;
-	int source_id=qprop_list[ip].isource;
-	master_printf("Generating propagtor of type %s inserting %s on source %s\n",qprop_list[ip].name.c_str(),ins_name[insertion],
-		      (source_id==-1)?"ORIGINAL":qprop_list[source_id].name.c_str());
-	for(int iq=0;iq<nquarks;iq++)
+	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d\n",iq,qmass[iq],qr[iq]);
+	else            master_printf(" kappa[%d]=%lg\n",iq,qkappa[iq]);
+	
+	//compute the inverse clover term, if needed
+	if(clover_run) invert_twisted_clover_term(invCl,qmass[0],glb_kappa,Cl);
+	
+	for(int ip=0;ip<nqprop_kind();ip++)
 	  {
-	    if(twisted_run) master_printf(" mass[%d]=%lg, r=%d\n",iq,qmass[iq],qr[iq]);
-	    else            master_printf(" kappa[%d]=%lg\n",iq,qkappa[iq]);
-	    
+	    insertion_t insertion=qprop_list[ip].insertion;
+	    int source_id=qprop_list[ip].isource;
+	    master_printf("Generating propagator of type %s inserting %s on source %s\n",qprop_list[ip].name.c_str(),ins_name[insertion],
+			  (source_id==-1)?"ORIGINAL":qprop_list[source_id].name.c_str());
 	    for(int id_so=0;id_so<nso_spi;id_so++)
 	      for(int ic_so=0;ic_so<nso_col;ic_so++)
 		{

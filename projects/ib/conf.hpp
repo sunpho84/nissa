@@ -16,6 +16,7 @@ namespace nissa
   EXTERN_CONF int nanalyzed_conf;
   EXTERN_CONF double tot_prog_time,wall_time;
   EXTERN_CONF clover_term_t *Cl;
+  EXTERN_CONF inv_clover_term_t *invCl;
   
   EXTERN_CONF double conf_load_time;
   EXTERN_CONF int nconf_load;

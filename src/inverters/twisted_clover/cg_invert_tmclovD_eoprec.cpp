@@ -21,14 +21,14 @@ namespace nissa
   //Refers to the tmD_eoprec
   
   //invert Koo defined in equation (7)
-  void inv_tmclovDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mass,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,int nitermax,double residue,spincolor *source)
+  void inv_tmclovDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mass,int nitermax,double residue,spincolor *source)
   {
     if(use_128_bit_precision) inv_tmclovDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,Cl_odd,invCl_evn,nitermax,residue,source);
     else inv_tmclovDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,Cl_odd,invCl_evn,nitermax,residue,source);
   }
   
   //Invert twisted clover operator using e/o preconditioning.
-  THREADABLE_FUNCTION_10ARG(inv_tmclovD_cg_eoprec, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, double,mass, clover_term_t*,Cl_lx, inv_clover_term_t*,ext_invCl_lx, int,nitermax, double,residue, spincolor*,source_lx)
+  THREADABLE_FUNCTION_10ARG(inv_tmclovD_cg_eoprec, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, clover_term_t*,Cl_lx, inv_clover_term_t*,ext_invCl_lx, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
   {
     GET_THREAD_ID();
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
@@ -89,7 +89,7 @@ namespace nissa
     set_borders_invalid(varphi);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
-    inv_tmclovDkern_eoprec_square_eos_cg(temp,guess_Koo,conf_eos,kappa,mass,Cl_odd,invCl_evn,nitermax,residue,varphi);
+    inv_tmclovDkern_eoprec_square_eos_cg(temp,guess_Koo,conf_eos,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,varphi);
     tmclovDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,mass,Cl_odd,invCl_evn,true,temp);
     if(guess_Koo!=NULL) memcpy(guess_Koo,temp,sizeof(spincolor)*loc_volh); //if a guess was passed, return new one
     nissa_free(temp);

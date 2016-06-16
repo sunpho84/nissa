@@ -49,21 +49,18 @@ namespace nissa
     if(rnd_gauge_transform) perform_random_gauge_transform(conf,conf);
     
     //if clover term is included, compute it
-    if(clover_run)
-      {
-	master_printf("Computing Clover term for mass=%lg kappa=%lg cSW=%lg\n",qmass[0],glb_kappa,glb_cSW);
-	clover_term(Cl,glb_cSW,conf);
-	su3_print(Cl[0][0]);
+    if(clover_run) clover_term(Cl,glb_cSW,conf);
+      // 	su3_print(Cl[0][0]);
 	
-	inv_clover_term_t inv;
-	invert_point_twisted_clover_term(inv,qmass[0],glb_kappa,Cl[0]);
+      // 	inv_clover_term_t inv;
+      // 	invert_point_twisted_clover_term(inv,qmass[0],glb_kappa,Cl[0]);
 	
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    su3_print(Cl[0][mu]);
-	    master_printf("\n");
-	  }
-      }
+      // 	for(int mu=0;mu<NDIM;mu++)
+      // 	  {
+      // 	    su3_print(Cl[0][mu]);
+      // 	    master_printf("\n");
+      // 	  }
+      // }
     
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)

@@ -302,7 +302,7 @@ namespace nissa
 		halfspincolor_summ_the_prod_double(p,r,p,beta);
 		
 		//write residual
-		master_printf("iter %d rel residue: %lg\n",iter,rr/ori_rr);
+		//master_printf("iter %d rel residue: %lg\n",iter,rr/ori_rr);
 		iter++;
 	      }
 	    while(rr/ori_rr>=target_res && iter<niter_max);
@@ -361,6 +361,7 @@ namespace nissa
   THREADABLE_FUNCTION_4ARG(invert_twisted_clover_term, inv_clover_term_t*,invCl, double,mass, double,kappa, clover_term_t*,Cl)
   {
     GET_THREAD_ID();
+    if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
     NISSA_PARALLEL_LOOP(X,0,loc_vol) invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
     set_borders_invalid(invCl);
   }
