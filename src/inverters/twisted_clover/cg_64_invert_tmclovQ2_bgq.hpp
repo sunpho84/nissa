@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void inv_tmclovQ2_cg_64_bgq(bi_spincolor *sol,bi_spincolor *guess,bi_oct_su3 *conf,double kappa,bi_clover_term_t *Cl,double mu,int niter,double residue,bi_spincolor *source);
+  void inv_tmclovQ2_cg_64_bgq(vir_spincolor *sol,vir_spincolor *guess,vir_oct_su3 *conf,double kappa,vir_clover_term_t *Cl,double mu,int niter,double residue,vir_spincolor *source);
 }
 
 #endif

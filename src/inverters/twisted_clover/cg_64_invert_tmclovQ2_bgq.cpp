@@ -5,7 +5,7 @@
 #include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp"
 #include "linalgs/linalgs.hpp"
 
-#define BASETYPE bi_spincolor
+#define BASETYPE vir_spincolor
 
 #define NDOUBLES_PER_SITE 48
 #define BULK_VOL loc_volh
@@ -22,11 +22,11 @@
 
 //additional parameters
 #define CG_NARG 4
-#define AT1 bi_oct_su3*
+#define AT1 vir_oct_su3*
 #define A1 conf
 #define AT2 double
 #define A2 kappa
-#define AT3 bi_clover_term_t*
+#define AT3 vir_clover_term_t*
 #define A3 Cl
 #define AT4 double
 #define A4 mu

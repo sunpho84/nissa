@@ -34,9 +34,9 @@ namespace nissa
     double *temp_in=in-4;
     for(int i=start;i<end;i+=4)
       {
-	reg_bi_complex reg;
-	REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(reg,temp_in);
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(temp_out,reg);
+	reg_vir_complex reg;
+	REG_LOAD_VIR_COMPLEX_AFTER_ADVANCING(reg,temp_in);
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(temp_out,reg);
       }
 #else
     for(int i=start;i<end;i++) out[i]=in[i];

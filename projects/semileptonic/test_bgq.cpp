@@ -198,11 +198,11 @@ THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
 #ifndef BGQ_EMU
       for(int ibench=0;ibench<nbench;ibench++)
 	{
-	  DECLARE_REG_BI_SPINCOLOR(reg);
+	  DECLARE_REG_VIR_SPINCOLOR(reg);
 	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	    {
-	      REG_LOAD_BI_SPINCOLOR(reg,in[ivol]);
-	      STORE_REG_BI_SPINCOLOR(out[ivol],reg);
+	      REG_LOAD_VIR_SPINCOLOR(reg,in[ivol]);
+	      STORE_REG_VIR_SPINCOLOR(out[ivol],reg);
 	    }
 	}
 #endif
@@ -410,19 +410,19 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
   communicate_lx_color_borders(in);
   
   //remap conf to bgq
-  bi_oct_su3 *bi_conf[2]={nissa_malloc("bi_conf_evn",loc_volh/2,bi_oct_su3),
-			  nissa_malloc("bi_conf_odd",loc_volh/2,bi_oct_su3)};
-  lx_conf_remap_to_vireo(bi_conf,conf);
+  vir_oct_su3 *vir_conf[2]={nissa_malloc("vir_conf_evn",loc_volh/2,vir_oct_su3),
+			  nissa_malloc("vir_conf_odd",loc_volh/2,vir_oct_su3)};
+  lx_conf_remap_to_vireo(vir_conf,conf);
   
   //remap in to bgq
-  bi_color *bi_in_eo[2]={nissa_malloc("bi_in",loc_volh/2,bi_color),
-			 nissa_malloc("bi_in",loc_volh/2,bi_color)};
-  lx_color_remap_to_vireo(bi_in_eo,in);
+  vir_color *vir_in_eo[2]={nissa_malloc("vir_in",loc_volh/2,vir_color),
+			 nissa_malloc("vir_in",loc_volh/2,vir_color)};
+  lx_color_remap_to_vireo(vir_in_eo,in);
   
   {
     //precheck: unmapping
     color *un_out=nissa_malloc("un_out",loc_vol+bord_vol,color);
-    vireo_color_remap_to_lx(un_out,bi_in_eo);
+    vireo_color_remap_to_lx(un_out,vir_in_eo);
     
     //compute average diff
     double diff;
@@ -438,19 +438,19 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
   memset(recv_buf,0,recv_buf_size);
   
   //apply stag bgq
-  apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf,0,vsurf_volh,bi_in_eo[oe_or_eo],oe_or_eo);
+  apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(vir_conf,0,vsurf_volh,vir_in_eo[oe_or_eo],oe_or_eo);
   THREAD_BARRIER();
   start_double_staggered_hopping_matrix_oe_or_eo_bgq_communications();
   THREAD_BARRIER();
   
   //compute on the bulk and finish communications
-  apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf,vsurf_volh,loc_volh/2,bi_in_eo[oe_or_eo],oe_or_eo);
+  apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(vir_conf,vsurf_volh,loc_volh/2,vir_in_eo[oe_or_eo],oe_or_eo);
   THREAD_BARRIER();
   finish_double_staggered_hopping_matrix_oe_or_eo_bgq_communications(oe_or_eo);
   THREAD_BARRIER();
   
   const char EVN_ODD_TAG[2][4]={"EVN","ODD"};
-  bi_color *bgq_hopping_matrix_output_data=(bi_color*)send_buf+bord_volh/2;
+  vir_color *bgq_hopping_matrix_output_data=(vir_color*)send_buf+bord_volh/2;
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(loclx_parity[ivol]==!oe_or_eo)
       {
@@ -509,10 +509,10 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
   
   nissa_free(in);
   nissa_free(conf);
-  nissa_free(bi_in_eo[EVN]);
-  nissa_free(bi_in_eo[ODD]);
-  nissa_free(bi_conf[EVN]);
-  nissa_free(bi_conf[ODD]);
+  nissa_free(vir_in_eo[EVN]);
+  nissa_free(vir_in_eo[ODD]);
+  nissa_free(vir_conf[EVN]);
+  nissa_free(vir_conf[ODD]);
 }
 
 void debug_apply_stDeo()
@@ -539,17 +539,17 @@ void debug_apply_tmQ()
   communicate_lx_spincolor_borders(in);
   
   //remap conf to bgq
-  bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_vol+bord_vol,bi_oct_su3);
-  lx_conf_remap_to_virlx(bi_conf,conf);
+  vir_oct_su3 *vir_conf=nissa_malloc("vir_conf",loc_vol+bord_vol,vir_oct_su3);
+  lx_conf_remap_to_virlx(vir_conf,conf);
   
   //remap in to bgq
-  bi_spincolor *bi_in=nissa_malloc("bi_in",loc_vol+bord_vol,bi_spincolor);
-  lx_spincolor_remap_to_virlx(bi_in,in);
+  vir_spincolor *vir_in=nissa_malloc("vir_in",loc_vol+bord_vol,vir_spincolor);
+  lx_spincolor_remap_to_virlx(vir_in,in);
   
   {
     //precheck: unmapping
     spincolor *un_out=nissa_malloc("un_out",loc_vol+bord_vol,spincolor);
-    virlx_spincolor_remap_to_lx(un_out,bi_in);
+    virlx_spincolor_remap_to_lx(un_out,vir_in);
     //compute average diff
     double diff;
     double_vector_subt((double*)un_out,(double*)un_out,(double*)in,loc_vol*sizeof(spincolor)/sizeof(double));
@@ -564,19 +564,19 @@ void debug_apply_tmQ()
   
   //apply tm bgq
   master_printf("Applying on the vsurface: %d-%d\n",0,vsurf_vol);
-  apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,0,vsurf_vol,bi_in);
+  apply_Wilson_hopping_matrix_lx_bgq_nocomm(vir_conf,0,vsurf_vol,vir_in);
   THREAD_BARRIER();
   start_Wilson_hopping_matrix_lx_bgq_communications();
   THREAD_BARRIER();
   
   //compute on the bulk and finish communications
   master_printf("Applying on the bulk: %d-%d\n",vsurf_vol,loc_volh);
-  apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,vsurf_vol,loc_volh,bi_in);
+  apply_Wilson_hopping_matrix_lx_bgq_nocomm(vir_conf,vsurf_vol,loc_volh,vir_in);
   THREAD_BARRIER();
   finish_Wilson_hopping_matrix_lx_bgq_communications();
   THREAD_BARRIER();
   
-  bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)send_buf+bord_volh;
+  vir_halfspincolor *bgq_hopping_matrix_output_data=(vir_halfspincolor*)send_buf+bord_volh;
   for(int ivol=0;ivol<loc_vol;ivol++)
     {
       int vn=(loc_coord_of_loclx[ivol][vnode_paral_dir]>=loc_size[vnode_paral_dir]/2);
@@ -633,8 +633,8 @@ void debug_apply_tmQ()
   
   nissa_free(in);
   nissa_free(conf);
-  nissa_free(bi_in);
-  nissa_free(bi_conf);
+  nissa_free(vir_in);
+  nissa_free(vir_conf);
 }
 
 void debug2_tm()
@@ -664,24 +664,24 @@ void debug2_tm()
   master_printf("bgq way\n");
   
   //remap conf to bgq
-  bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_vol+bord_vol,bi_oct_su3);
-  lx_conf_remap_to_virlx(bi_conf,conf);
+  vir_oct_su3 *vir_conf=nissa_malloc("vir_conf",loc_vol+bord_vol,vir_oct_su3);
+  lx_conf_remap_to_virlx(vir_conf,conf);
   
   //remap in to bgq
-  bi_spincolor *bi_in=nissa_malloc("bi_in",loc_vol+bord_vol,bi_spincolor);
-  lx_spincolor_remap_to_virlx(bi_in,in);
+  vir_spincolor *vir_in=nissa_malloc("vir_in",loc_vol+bord_vol,vir_spincolor);
+  lx_spincolor_remap_to_virlx(vir_in,in);
   
   //apply bgq
-  bi_spincolor *bi_out=nissa_malloc("bi_out",loc_vol+bord_vol,bi_spincolor);
+  vir_spincolor *vir_out=nissa_malloc("vir_out",loc_vol+bord_vol,vir_spincolor);
   double bgq_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_tmQ2_bgq(bi_out,bi_conf,kappa,mu,bi_in);
+    apply_tmQ2_bgq(vir_out,vir_conf,kappa,mu,vir_in);
   bgq_time+=take_time();
   bgq_time/=2*nbench;
   
   //unmap to compare
   spincolor *un_out=nissa_malloc("un_out",loc_vol+bord_vol,spincolor);
-  virlx_spincolor_remap_to_lx(un_out,bi_out);
+  virlx_spincolor_remap_to_lx(un_out,vir_out);
   
   //compute average diff
   double diff;
@@ -691,7 +691,7 @@ void debug2_tm()
   
   //print benchmark
   master_printf("In+conf+addr size: %lg Mbytes (L2 cache: 32 Mb)\n",
-		(loc_vol*(sizeof(quad_su3)+sizeof(spincolor))+8*loc_volh*sizeof(bi_halfspincolor*))/1024.0/1024.0);
+		(loc_vol*(sizeof(quad_su3)+sizeof(spincolor))+8*loc_volh*sizeof(vir_halfspincolor*))/1024.0/1024.0);
   master_printf("Time to apply %d time:\n",nbench);
   master_printf(" %lg sec in port mode\n",port_time);
   master_printf(" %lg sec in bgq mode\n",bgq_time);
@@ -699,7 +699,7 @@ void debug2_tm()
   //benchmark pure hopping matrix application
   double hop_bgq_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,0,loc_volh,bi_in);
+    apply_Wilson_hopping_matrix_lx_bgq_nocomm(vir_conf,0,loc_volh,vir_in);
   hop_bgq_time+=take_time();
   hop_bgq_time/=nbench;
   int nflops_hop=1152*loc_vol;
@@ -708,7 +708,7 @@ void debug2_tm()
   //benchmark expansion
   double exp_bgq_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    hopping_matrix_lx_expand_to_Q_bgq(bi_out);
+    hopping_matrix_lx_expand_to_Q_bgq(vir_out);
   exp_bgq_time+=take_time();
   exp_bgq_time/=nbench;
   int nflops_exp=312*loc_vol;
@@ -728,7 +728,7 @@ void debug2_tm()
   //benchmark bulk computation
   double bulk_computation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,vsurf_vol,loc_volh,bi_in);
+    apply_Wilson_hopping_matrix_lx_bgq_nocomm(vir_conf,vsurf_vol,loc_volh,vir_in);
   bulk_computation_time+=take_time();
   bulk_computation_time/=nbench;
   master_printf("bulk_computation_time: %lg sec\n",bulk_computation_time);
@@ -736,7 +736,7 @@ void debug2_tm()
   //benchmark surf computation
   double surf_compuation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,0,vsurf_vol,bi_in);
+    apply_Wilson_hopping_matrix_lx_bgq_nocomm(vir_conf,0,vsurf_vol,vir_in);
   surf_compuation_time+=take_time();
   surf_compuation_time/=nbench;
   master_printf("surf_compuation_time: %lg sec\n",surf_compuation_time);
@@ -766,9 +766,9 @@ void debug2_tm()
   nissa_free(tmp);
   nissa_free(out);
   
-  nissa_free(bi_conf);
-  nissa_free(bi_in);
-  nissa_free(bi_out);
+  nissa_free(vir_conf);
+  nissa_free(vir_in);
+  nissa_free(vir_out);
   nissa_free(un_out);
 }
 
@@ -833,55 +833,55 @@ void debug2_st()
   master_printf("bgq way\n");
   
   //remap conf to bgq
-  bi_oct_su3 *bi_conf_eo[2]={nissa_malloc("bi_conf_evn",loc_volh/2,bi_oct_su3),
-			     nissa_malloc("bi_conf_odd",loc_volh/2,bi_oct_su3)};
-  lx_conf_remap_to_vireo(bi_conf_eo,conf);
+  vir_oct_su3 *vir_conf_eo[2]={nissa_malloc("vir_conf_evn",loc_volh/2,vir_oct_su3),
+			     nissa_malloc("vir_conf_odd",loc_volh/2,vir_oct_su3)};
+  lx_conf_remap_to_vireo(vir_conf_eo,conf);
   
   //remap in to bgq
-  bi_color *bi_in_eo[2]={nissa_malloc("bi_in",loc_volh/2,bi_color),
-			 nissa_malloc("bi_in",loc_volh/2,bi_color)};
-  lx_color_remap_to_vireo(bi_in_eo,in);
+  vir_color *vir_in_eo[2]={nissa_malloc("vir_in",loc_volh/2,vir_color),
+			 nissa_malloc("vir_in",loc_volh/2,vir_color)};
+  lx_color_remap_to_vireo(vir_in_eo,in);
   
   //apply bgq
-  bi_color *bi_out_eo[2]={nissa_malloc("bi_out",loc_volh/2,bi_color),
-			  nissa_malloc("bi_out",loc_volh/2,bi_color)};
+  vir_color *vir_out_eo[2]={nissa_malloc("vir_out",loc_volh/2,vir_color),
+			  nissa_malloc("vir_out",loc_volh/2,vir_color)};
   
-  bi_single_oct_su3 *bi_single_conf_eo[2]={nissa_malloc("bi_single_conf_evn",loc_volh/2,bi_single_oct_su3),
-					   nissa_malloc("bi_single_conf_odd",loc_volh/2,bi_single_oct_su3)};
-  bi_single_color *bi_single_in_eo[2]={nissa_malloc("bi_single_in",loc_volh/2,bi_single_color),
-				       nissa_malloc("bi_single_in",loc_volh/2,bi_single_color)};
-  bi_single_color *bi_single_out_eo[2]={nissa_malloc("bi_single_out",loc_volh/2,bi_single_color),
-					nissa_malloc("bi_single_out",loc_volh/2,bi_single_color)};
+  vir_single_oct_su3 *vir_single_conf_eo[2]={nissa_malloc("vir_single_conf_evn",loc_volh/2,vir_single_oct_su3),
+					   nissa_malloc("vir_single_conf_odd",loc_volh/2,vir_single_oct_su3)};
+  vir_single_color *vir_single_in_eo[2]={nissa_malloc("vir_single_in",loc_volh/2,vir_single_color),
+				       nissa_malloc("vir_single_in",loc_volh/2,vir_single_color)};
+  vir_single_color *vir_single_out_eo[2]={nissa_malloc("vir_single_out",loc_volh/2,vir_single_color),
+					nissa_malloc("vir_single_out",loc_volh/2,vir_single_color)};
   
   //remap
   for(int eo=0;eo<2;eo++)
     {
-      for(int i=0;i<(int)(sizeof(bi_oct_su3)/sizeof(double)*loc_volh/2);i++)
-	((float*)(bi_single_conf_eo[eo]))[i]=((double*)(bi_conf_eo[eo]))[i];
-      set_borders_invalid(bi_single_conf_eo[eo]);
+      for(int i=0;i<(int)(sizeof(vir_oct_su3)/sizeof(double)*loc_volh/2);i++)
+	((float*)(vir_single_conf_eo[eo]))[i]=((double*)(vir_conf_eo[eo]))[i];
+      set_borders_invalid(vir_single_conf_eo[eo]);
       
-      for(int i=0;i<(int)(sizeof(bi_color)/sizeof(double)*loc_volh/2);i++)
-	((float*)(bi_single_in_eo[eo]))[i]=((double*)(bi_in_eo[eo]))[i];
-      set_borders_invalid(bi_single_in_eo[eo]);
+      for(int i=0;i<(int)(sizeof(vir_color)/sizeof(double)*loc_volh/2);i++)
+	((float*)(vir_single_in_eo[eo]))[i]=((double*)(vir_in_eo[eo]))[i];
+      set_borders_invalid(vir_single_in_eo[eo]);
     }
   
   double bgq_double_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_stD2ee_m2_bgq(bi_out_eo[EVN],bi_conf_eo,mass2,bi_in_eo[EVN]);
+    apply_stD2ee_m2_bgq(vir_out_eo[EVN],vir_conf_eo,mass2,vir_in_eo[EVN]);
   bgq_double_time+=take_time();
   bgq_double_time/=nbench;
   
   double bgq_single_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_single_stD2ee_m2_bgq(bi_single_out_eo[EVN],bi_single_conf_eo,mass2,bi_single_in_eo[EVN]);
+    apply_single_stD2ee_m2_bgq(vir_single_out_eo[EVN],vir_single_conf_eo,mass2,vir_single_in_eo[EVN]);
   bgq_single_time+=take_time();
   bgq_single_time/=nbench;
   
   //unamp to compare
   color *un_out=nissa_malloc("un_out",loc_volh,color);
   color *un_single_out=nissa_malloc("un_single_out",loc_volh,color);
-  virevn_or_odd_color_remap_to_evn_or_odd(un_out,bi_out_eo[EVN],EVN);
-  virevn_or_odd_single_color_remap_to_evn_or_odd(un_single_out,bi_single_out_eo[EVN],EVN);
+  virevn_or_odd_color_remap_to_evn_or_odd(un_out,vir_out_eo[EVN],EVN);
+  virevn_or_odd_single_color_remap_to_evn_or_odd(un_single_out,vir_single_out_eo[EVN],EVN);
   
   //compute average diff
   if(rank==0)
@@ -922,7 +922,7 @@ void debug2_st()
     {
       hop_bgq_time[eo_or_oe]=-take_time();
       for(int ibench=0;ibench<nbench;ibench++)
-	apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,loc_volh/2,bi_in_eo[EVN],eo_or_oe);
+	apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(vir_conf_eo,0,loc_volh/2,vir_in_eo[EVN],eo_or_oe);
       hop_bgq_time[eo_or_oe]+=take_time();
       hop_bgq_time[eo_or_oe]/=nbench;
       master_printf("hop_bgq_time_%s: %lg sec, %d flops, %lg Mflops\n",
@@ -941,19 +941,19 @@ void debug2_st()
 	  {
 	    if(eo_or_oe==0)
 	      for(int ibench=0;ibench<nbench;ibench++)
-		hopping_matrix_oe_or_eo_expand_to_single_staggered_D_bgq((bi_single_color*)(bi_out_eo[EVN]));
+		hopping_matrix_oe_or_eo_expand_to_single_staggered_D_bgq((vir_single_color*)(vir_out_eo[EVN]));
 	    else
 	      for(int ibench=0;ibench<nbench;ibench++)
-		hopping_matrix_oe_or_eo_expand_to_single_staggered_D_subtract_from_mass2_times_in_bgq((bi_single_color*)(bi_out_eo[ODD]),mass2,(bi_single_color*)(bi_in_eo[EVN]));
+		hopping_matrix_oe_or_eo_expand_to_single_staggered_D_subtract_from_mass2_times_in_bgq((vir_single_color*)(vir_out_eo[ODD]),mass2,(vir_single_color*)(vir_in_eo[EVN]));
 	  }
 	else
 	  {
 	    if(eo_or_oe==0)
 	      for(int ibench=0;ibench<nbench;ibench++)
-		hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[EVN]);
+		hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(vir_out_eo[EVN]);
 	    else
 	      for(int ibench=0;ibench<nbench;ibench++)
-		hopping_matrix_oe_or_eo_expand_to_double_staggered_D_subtract_from_mass2_times_in_bgq(bi_out_eo[ODD],mass2,bi_in_eo[EVN]);
+		hopping_matrix_oe_or_eo_expand_to_double_staggered_D_subtract_from_mass2_times_in_bgq(vir_out_eo[ODD],mass2,vir_in_eo[EVN]);
 	  }
 	exp_bgq_time[single_double][eo_or_oe]+=take_time();
 	exp_bgq_time[single_double][eo_or_oe]/=nbench;
@@ -981,18 +981,18 @@ void debug2_st()
 	tie[cas]-=take_time();
 	switch(cas)
 	  {
-	  case 0:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],OE);break;
+	  case 0:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(vir_conf_eo,0,vsurf_volh,vir_in_eo[EVN],OE);break;
 	  case 1:start_double_staggered_hopping_matrix_oe_or_eo_bgq_communications();break;
-	  case 2:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],OE);break;
+	  case 2:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(vir_conf_eo,vsurf_volh,loc_volh/2,vir_in_eo[EVN],OE);break;
 	  case 3:finish_double_staggered_hopping_matrix_oe_or_eo_bgq_communications(OE);break;
-	  case 4:hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[EVN]);break;
-	  case 5:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,vsurf_volh,bi_out_eo[EVN],EO);break;
+	  case 4:hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(vir_out_eo[EVN]);break;
+	  case 5:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(vir_conf_eo,0,vsurf_volh,vir_out_eo[EVN],EO);break;
 	  case 6:start_double_staggered_hopping_matrix_oe_or_eo_bgq_communications();break;
-	  case 7:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,vsurf_volh,loc_volh/2,bi_out_eo[EVN],EO);break;
+	  case 7:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(vir_conf_eo,vsurf_volh,loc_volh/2,vir_out_eo[EVN],EO);break;
 	  case 8:finish_double_staggered_hopping_matrix_oe_or_eo_bgq_communications(EO);break;
 	  case 9:if(mass2!=0) hopping_matrix_oe_or_eo_expand_to_double_staggered_D_subtract_from_mass2_times_in_bgq
-				(bi_out_eo[EVN],mass2,bi_in_eo[EVN]);
-	    hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[EVN],-1);
+				(vir_out_eo[EVN],mass2,vir_in_eo[EVN]);
+	    hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(vir_out_eo[EVN],-1);
 	    break;
 	  default:bull();break;
 	  }
@@ -1031,7 +1031,7 @@ void debug2_st()
   //benchmark bulk computation
   double bulk_computation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],0);
+    apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(vir_conf_eo,0,vsurf_volh,vir_in_eo[EVN],0);
   bulk_computation_time+=take_time();
   bulk_computation_time/=nbench;
   master_printf("bulk_computation_time: %lg sec\n",bulk_computation_time);
@@ -1039,7 +1039,7 @@ void debug2_st()
   //benchmark surf computation
   double surf_compuation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],0);
+    apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(vir_conf_eo,vsurf_volh,loc_volh/2,vir_in_eo[EVN],0);
   surf_compuation_time+=take_time();
   surf_compuation_time/=nbench;
   master_printf("surf_compuation_time: %lg sec\n",surf_compuation_time);
@@ -1076,23 +1076,23 @@ void debug2_st()
     }
   
   nissa_free(conf);
-  nissa_free(bi_conf_eo[0]);
-  nissa_free(bi_conf_eo[1]);
-  nissa_free(bi_single_conf_eo[0]);
-  nissa_free(bi_single_conf_eo[1]);
+  nissa_free(vir_conf_eo[0]);
+  nissa_free(vir_conf_eo[1]);
+  nissa_free(vir_single_conf_eo[0]);
+  nissa_free(vir_single_conf_eo[1]);
   nissa_free(in);
-  nissa_free(bi_in_eo[0]);
-  nissa_free(bi_in_eo[1]);
-  nissa_free(bi_single_in_eo[0]);
-  nissa_free(bi_single_in_eo[1]);
+  nissa_free(vir_in_eo[0]);
+  nissa_free(vir_in_eo[1]);
+  nissa_free(vir_single_in_eo[0]);
+  nissa_free(vir_single_in_eo[1]);
   nissa_free(out[0]);
   nissa_free(out[1]);
   nissa_free(un_out);
   nissa_free(un_single_out);
-  nissa_free(bi_out_eo[0]);
-  nissa_free(bi_out_eo[1]);
-  nissa_free(bi_single_out_eo[0]);
-  nissa_free(bi_single_out_eo[1]);
+  nissa_free(vir_out_eo[0]);
+  nissa_free(vir_out_eo[1]);
+  nissa_free(vir_single_out_eo[0]);
+  nissa_free(vir_single_out_eo[1]);
 }
 
 THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
@@ -1127,13 +1127,13 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   
   //////////////////////////////////////////////////////////
   
-  bi_su3 *bi_conf=nissa_malloc("bi_conf",loc_vol/2,bi_su3);
-  bi_su3 *bi_path_in=nissa_malloc("bi_path_in",loc_vol/2,bi_su3);
-  bi_su3 *bi_path_out=nissa_malloc("bi_path_out",loc_vol/2,bi_su3);
+  vir_su3 *vir_conf=nissa_malloc("vir_conf",loc_vol/2,vir_su3);
+  vir_su3 *vir_path_in=nissa_malloc("vir_path_in",loc_vol/2,vir_su3);
+  vir_su3 *vir_path_out=nissa_malloc("vir_path_out",loc_vol/2,vir_su3);
   
-  vector_reset(bi_conf);
-  vector_reset(bi_path_in);
-  vector_reset(bi_path_out);
+  vector_reset(vir_conf);
+  vector_reset(vir_path_in);
+  vector_reset(vir_path_out);
   
   ti=-take_time();
   
@@ -1141,17 +1141,17 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
     {
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol/2)
 	{
-	  DECLARE_REG_BI_SU3(REG_BI_CONF);
-	  REG_LOAD_BI_SU3(REG_BI_CONF,bi_conf[ivol]);
-	  BI_SU3_PREFETCH_NEXT(bi_conf[ivol]);
+	  DECLARE_REG_VIR_SU3(REG_VIR_CONF);
+	  REG_LOAD_VIR_SU3(REG_VIR_CONF,vir_conf[ivol]);
+	  VIR_SU3_PREFETCH_NEXT(vir_conf[ivol]);
 	  
-	  DECLARE_REG_BI_SU3(REG_BI_PATH_IN);
-	  REG_LOAD_BI_SU3(REG_BI_PATH_IN,bi_path_in[ivol]);
-	  BI_SU3_PREFETCH_NEXT(bi_path_in[ivol]);
+	  DECLARE_REG_VIR_SU3(REG_VIR_PATH_IN);
+	  REG_LOAD_VIR_SU3(REG_VIR_PATH_IN,vir_path_in[ivol]);
+	  VIR_SU3_PREFETCH_NEXT(vir_path_in[ivol]);
 	  
-	  DECLARE_REG_BI_SU3(REG_BI_PATH_OUT);
-  	  REG_BI_SU3_DAG_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);
-	  STORE_REG_BI_SU3(bi_path_out[ivol],REG_BI_PATH_OUT);
+	  DECLARE_REG_VIR_SU3(REG_VIR_PATH_OUT);
+  	  REG_VIR_SU3_DAG_PROD_VIR_SU3(REG_VIR_PATH_OUT,REG_VIR_CONF,REG_VIR_PATH_IN);
+	  STORE_REG_VIR_SU3(vir_path_out[ivol],REG_VIR_PATH_OUT);
 	}
       THREAD_BARRIER();
     }
@@ -1169,17 +1169,17 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
     {
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol/2)
 	{
-	  DECLARE_REG_BI_SU3(REG_BI_CONF);
-	  REG_LOAD_BI_SU3(REG_BI_CONF,bi_conf[ivol]);
-	  BI_SU3_PREFETCH_NEXT(bi_conf[ivol]);
+	  DECLARE_REG_VIR_SU3(REG_VIR_CONF);
+	  REG_LOAD_VIR_SU3(REG_VIR_CONF,vir_conf[ivol]);
+	  VIR_SU3_PREFETCH_NEXT(vir_conf[ivol]);
 	  
-	  DECLARE_REG_BI_SU3(REG_BI_PATH_IN);
-	  REG_LOAD_BI_SU3(REG_BI_PATH_IN,bi_path_in[ivol]);
-	  BI_SU3_PREFETCH_NEXT(bi_path_in[ivol]);
+	  DECLARE_REG_VIR_SU3(REG_VIR_PATH_IN);
+	  REG_LOAD_VIR_SU3(REG_VIR_PATH_IN,vir_path_in[ivol]);
+	  VIR_SU3_PREFETCH_NEXT(vir_path_in[ivol]);
 	  
-	  DECLARE_REG_BI_SU3(REG_BI_PATH_OUT);
-  	  REG_BI_SU3_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);
-	  STORE_REG_BI_SU3(bi_path_out[ivol],REG_BI_PATH_OUT);
+	  DECLARE_REG_VIR_SU3(REG_VIR_PATH_OUT);
+  	  REG_VIR_SU3_PROD_VIR_SU3(REG_VIR_PATH_OUT,REG_VIR_CONF,REG_VIR_PATH_IN);
+	  STORE_REG_VIR_SU3(vir_path_out[ivol],REG_VIR_PATH_OUT);
 	}
       THREAD_BARRIER();
     }
@@ -1197,17 +1197,17 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
     {
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol/2)
 	{
-	  DECLARE_REG_BI_PARTIAL_SU3(REG_BI_CONF);
-	  REG_LOAD_BI_PARTIAL_SU3(REG_BI_CONF,bi_conf[ivol]);
-	  BI_PARTIAL_SU3_PREFETCH_NEXT(bi_conf[ivol]);
+	  DECLARE_REG_VIR_PARTIAL_SU3(REG_VIR_CONF);
+	  REG_LOAD_VIR_PARTIAL_SU3(REG_VIR_CONF,vir_conf[ivol]);
+	  VIR_PARTIAL_SU3_PREFETCH_NEXT(vir_conf[ivol]);
 	  
-	  DECLARE_REG_BI_SU3(REG_BI_PATH_IN);
-	  REG_LOAD_BI_SU3(REG_BI_PATH_IN,bi_path_in[ivol]);
-	  BI_SU3_PREFETCH_NEXT(bi_path_in[ivol]);
+	  DECLARE_REG_VIR_SU3(REG_VIR_PATH_IN);
+	  REG_LOAD_VIR_SU3(REG_VIR_PATH_IN,vir_path_in[ivol]);
+	  VIR_SU3_PREFETCH_NEXT(vir_path_in[ivol]);
 	  
-	  DECLARE_REG_BI_PARTIAL_SU3(REG_BI_PATH_OUT);
-  	  REG_BI_PARTIAL_SU3_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);
-	  STORE_REG_BI_PARTIAL_SU3(bi_path_out[ivol],REG_BI_PATH_OUT);
+	  DECLARE_REG_VIR_PARTIAL_SU3(REG_VIR_PATH_OUT);
+  	  REG_VIR_PARTIAL_SU3_PROD_VIR_SU3(REG_VIR_PATH_OUT,REG_VIR_CONF,REG_VIR_PATH_IN);
+	  STORE_REG_VIR_PARTIAL_SU3(vir_path_out[ivol],REG_VIR_PATH_OUT);
 	}
       THREAD_BARRIER();
     }
@@ -1217,9 +1217,9 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   
   master_printf("Time to take vectorially a (local) path non-daggered partial product: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
   
-  nissa_free(bi_path_in);
-  nissa_free(bi_path_out);
-  nissa_free(bi_conf);
+  nissa_free(vir_path_in);
+  nissa_free(vir_path_out);
+  nissa_free(vir_conf);
   
   /////////////////////////////////////////////////////////////////////////////////////////////
   

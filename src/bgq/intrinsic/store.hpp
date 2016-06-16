@@ -27,14 +27,14 @@
   do									\
   {									\
     (addr)=(double*)((uintptr_t)(addr)+(offset));			\
-    BI_COMPLEX_COPY((*((bi_complex*)(addr))),data);			\
+    VIR_COMPLEX_COPY((*((vir_complex*)(addr))),data);			\
   }									\
   while(0)
 #define BGQ_QVSTFSUXA(addr,data,offset)					\
   do									\
   {									\
     (addr)=(float*)((uintptr_t)(addr)+(offset));			\
-    BI_SINGLE_COMPLEX_COPY_FROM_BI_COMPLEX((*((bi_single_complex*)(addr))),data); \
+    VIR_SINGLE_COMPLEX_COPY_FROM_VIR_COMPLEX((*((vir_single_complex*)(addr))),data); \
   }									\
   while(0)
 #define BGQ_QVSTFCDUXA(addr,data,offset)				\
@@ -54,157 +54,157 @@
 #endif
 
 #ifdef BGQ_EMU
- #define STORE_REG_BI_COMPLEX(addr,in) BI_COMPLEX_COPY((*((bi_complex*)(addr))),in)
+ #define STORE_REG_VIR_COMPLEX(addr,in) VIR_COMPLEX_COPY((*((vir_complex*)(addr))),in)
 #else
- #define STORE_REG_BI_COMPLEX(addr,in) vec_st(in,0,(double*)addr)
+ #define STORE_REG_VIR_COMPLEX(addr,in) vec_st(in,0,(double*)addr)
 #endif
 
 //store without advancing
-#define REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFDUXA(out,in,0)
-#define REG_STORE_BI_SINGLE_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFSUXA(out,in,0)
+#define REG_STORE_VIR_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFDUXA(out,in,0)
+#define REG_STORE_VIR_SINGLE_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFSUXA(out,in,0)
 #define REG_STORE_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFCDUXA(out,in,0)
 
-//store after advancing to next bi_complex
-#define REG_STORE_BI_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVSTFDUXA(out,in,32)
-#define REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVSTFSUXA(out,in,16)
+//store after advancing to next vir_complex
+#define REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVSTFDUXA(out,in,32)
+#define REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVSTFSUXA(out,in,16)
 #define REG_STORE_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVSTFCDUXA(out,in,32)
 
-#define STORE_REG_BI_HALFSPINCOLOR(addr,in)				\
+#define STORE_REG_VIR_HALFSPINCOLOR(addr,in)				\
   do									\
     {									\
       void *ptr=(addr);							\
-      REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0_c0));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c1));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c2));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c0));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
+      REG_STORE_VIR_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0_c0));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c1));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c2));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c0));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
     }									\
   while(0)
 
-#define STORE_REG_BI_HALFSPIN(addr,in)					\
+#define STORE_REG_VIR_HALFSPIN(addr,in)					\
   do									\
     {									\
       void *ptr=(addr);							\
-      REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0));		\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1));		\
+      REG_STORE_VIR_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0));		\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1));		\
     }									\
   while(0)
 
-#define STORE_REG_BI_COLOR(addr,in)					\
+#define STORE_REG_VIR_COLOR(addr,in)					\
   do									\
     {									\
       void *ptr=(addr);							\
-      REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,c0));		\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));		\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));		\
+      REG_STORE_VIR_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,c0));		\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));		\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));		\
     }									\
   while(0)
 
-#define STORE_REG_BI_SINGLE_COLOR(addr,in)				\
+#define STORE_REG_VIR_SINGLE_COLOR(addr,in)				\
   do									\
     {									\
       void *ptr=(addr);							\
-      REG_STORE_BI_SINGLE_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,c0));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,c0));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));	\
     }									\
   while(0)
 
-#define STORE_REG_BI_SINGLE_HALFSPINCOLOR(addr,in)			\
+#define STORE_REG_VIR_SINGLE_HALFSPINCOLOR(addr,in)			\
   do									\
     {									\
       void *ptr=(addr);							\
-      REG_STORE_BI_SINGLE_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0_c0));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c1));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c2));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c0));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0_c0));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c1));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c2));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c0));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
     }									\
   while(0)
 
-#define STORE_REG_BI_SINGLE_SPINCOLOR(addr,in)				\
+#define STORE_REG_VIR_SINGLE_SPINCOLOR(addr,in)				\
   do									\
     {									\
       void *ptr=(addr);							\
-      REG_STORE_BI_SINGLE_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0_c0));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c1));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c2));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c0));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c0));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c1));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c2));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c0));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c1));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c2));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0_c0));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c1));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c2));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c0));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c0));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c1));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c2));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c0));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c1));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c2));	\
     }									\
   while(0)
 
 
-#define STORE_REG_BI_COLOR_ADVANCING(ptr,in)				\
+#define STORE_REG_VIR_COLOR_ADVANCING(ptr,in)				\
   do									\
     {									\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c0));		\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));		\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));		\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c0));		\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));		\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));		\
     }									\
   while(0)
-#define STORE_REG_BI_SINGLE_COLOR_ADVANCING(ptr,in)			\
+#define STORE_REG_VIR_SINGLE_COLOR_ADVANCING(ptr,in)			\
   do									\
     {									\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c0));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));	\
-      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c0));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));	\
+      REG_STORE_VIR_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));	\
     }									\
   while(0)
 
-#define STORE_REG_BI_SPINCOLOR(addr,in)					\
+#define STORE_REG_VIR_SPINCOLOR(addr,in)					\
   do									\
     {									\
       void *ptr=(addr);							\
-      REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0_c0));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c1));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c2));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c0));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c0));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c1));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c2));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c0));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c1));	\
-      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c2));	\
+      REG_STORE_VIR_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0_c0));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c1));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c2));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c0));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c0));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c1));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c2));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c0));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c1));	\
+      REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c2));	\
     }									\
   while(0)
 
-#define STORE_REG_BI_SU3(addr,in)					\
+#define STORE_REG_VIR_SU3(addr,in)					\
     do									\
       {									\
 	void *ptr=(addr);						\
-	REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,c00));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c01));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c02));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c10));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c11));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c12));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c20));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c21));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c22));	\
+	REG_STORE_VIR_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,c00));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c01));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c02));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c10));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c11));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c12));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c20));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c21));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c22));	\
       }									\
       while(0)
-#define STORE_REG_BI_PARTIAL_SU3(addr,in)				\
+#define STORE_REG_VIR_PARTIAL_SU3(addr,in)				\
     do									\
       {									\
 	void *ptr=(addr);						\
-	REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,c00));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c01));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c02));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c10));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c11));	\
-	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c12));	\
+	REG_STORE_VIR_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,c00));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c01));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c02));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c10));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c11));	\
+	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c12));	\
       }									\
       while(0)
 #define STORE_REG_SU3(addr,vn,in)					\

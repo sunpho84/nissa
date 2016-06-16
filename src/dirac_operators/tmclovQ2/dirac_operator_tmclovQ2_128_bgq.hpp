@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void apply_tmclovQ2_128_bgq(bi_spincolor_128 *out,bi_oct_su3 *conf,double kappa,bi_clover_term_t *Cl,double mu,bi_spincolor_128 *in);
+  void apply_tmclovQ2_128_bgq(vir_spincolor_128 *out,vir_oct_su3 *conf,double kappa,vir_clover_term_t *Cl,double mu,vir_spincolor_128 *in);
 }
 
 #endif

@@ -38,30 +38,30 @@ namespace nissa
     nissa_free(ssource);
 #else
     //allocate
-    bi_single_color *bi_source=nissa_malloc("bi_source",loc_volh/2,bi_single_color);
-    bi_single_oct_su3 *bi_eo_conf[2]={nissa_malloc("bi_conf_evn",(loc_volh+bord_volh)/2,bi_single_oct_su3),
-				      nissa_malloc("bi_conf_odd",(loc_volh+bord_volh)/2,bi_single_oct_su3)};
-    bi_single_color *bi_chi_e=nissa_malloc("bi_chi_e",loc_volh/2,bi_single_color);
+    vir_single_color *vir_source=nissa_malloc("vir_source",loc_volh/2,vir_single_color);
+    vir_single_oct_su3 *vir_eo_conf[2]={nissa_malloc("vir_conf_evn",(loc_volh+bord_volh)/2,vir_single_oct_su3),
+				      nissa_malloc("vir_conf_odd",(loc_volh+bord_volh)/2,vir_single_oct_su3)};
+    vir_single_color *vir_chi_e=nissa_malloc("vir_chi_e",loc_volh/2,vir_single_color);
     
     ////////////////////////
     
     //remap in
-    evn_or_odd_color_remap_to_single_virevn_or_odd(bi_source,source,EVN);
-    eo_conf_remap_to_single_vireo(bi_eo_conf,eo_conf);
+    evn_or_odd_color_remap_to_single_virevn_or_odd(vir_source,source,EVN);
+    eo_conf_remap_to_single_vireo(vir_eo_conf,eo_conf);
     
     //invert
-    summ_src_and_all_inv_stD2ee_m2_cgm_32_bgq(bi_chi_e,bi_eo_conf,appr,niter_max,req_res,bi_source);
+    summ_src_and_all_inv_stD2ee_m2_cgm_32_bgq(vir_chi_e,vir_eo_conf,appr,niter_max,req_res,vir_source);
     
     //remap out
-    virevn_or_odd_single_color_remap_to_evn_or_odd(chi_e,bi_chi_e,EVN);
+    virevn_or_odd_single_color_remap_to_evn_or_odd(chi_e,vir_chi_e,EVN);
     
     ////////////////////////
     
     //free
-    nissa_free(bi_eo_conf[EVN]);
-    nissa_free(bi_eo_conf[ODD]);
-    nissa_free(bi_source);
-    nissa_free(bi_chi_e);
+    nissa_free(vir_eo_conf[EVN]);
+    nissa_free(vir_eo_conf[ODD]);
+    nissa_free(vir_source);
+    nissa_free(vir_chi_e);
     
 #endif
   }
@@ -90,32 +90,32 @@ namespace nissa
 #else
     
     //allocate
-    bi_single_color *bi_pf=nissa_malloc("bi_pf",loc_volh/2,bi_single_color);
-    bi_single_oct_su3 *bi_eo_conf[2]={nissa_malloc("bi_conf_evn",loc_volh/2,bi_single_oct_su3),
-				      nissa_malloc("bi_conf_odd",loc_volh/2,bi_single_oct_su3)};
-    bi_single_color *bi_chi_e[nterms];
-    for(int iterm=0;iterm<nterms;iterm++) bi_chi_e[iterm]=nissa_malloc("bi_chi_e",loc_volh/2,bi_single_color);
+    vir_single_color *vir_pf=nissa_malloc("vir_pf",loc_volh/2,vir_single_color);
+    vir_single_oct_su3 *vir_eo_conf[2]={nissa_malloc("vir_conf_evn",loc_volh/2,vir_single_oct_su3),
+				      nissa_malloc("vir_conf_odd",loc_volh/2,vir_single_oct_su3)};
+    vir_single_color *vir_chi_e[nterms];
+    for(int iterm=0;iterm<nterms;iterm++) vir_chi_e[iterm]=nissa_malloc("vir_chi_e",loc_volh/2,vir_single_color);
     
     ////////////////////////
     
     //remap in
-    evn_or_odd_color_remap_to_single_virevn_or_odd(bi_pf,pf,EVN);
-    eo_conf_remap_to_single_vireo(bi_eo_conf,eo_conf);
+    evn_or_odd_color_remap_to_single_virevn_or_odd(vir_pf,pf,EVN);
+    eo_conf_remap_to_single_vireo(vir_eo_conf,eo_conf);
     
     //invert
-    inv_stD2ee_m2_cgm_32_bgq_run_hm_up_to_comm_prec(bi_chi_e,bi_eo_conf,poles,nterms,niter_max,residue,bi_pf);
+    inv_stD2ee_m2_cgm_32_bgq_run_hm_up_to_comm_prec(vir_chi_e,vir_eo_conf,poles,nterms,niter_max,residue,vir_pf);
     
     //remap out
     for(int iterm=0;iterm<nterms;iterm++)
-      virevn_or_odd_single_color_remap_to_evn_or_odd(chi_e[iterm],bi_chi_e[iterm],EVN);
+      virevn_or_odd_single_color_remap_to_evn_or_odd(chi_e[iterm],vir_chi_e[iterm],EVN);
     
     ////////////////////////
     
     //free
-    nissa_free(bi_eo_conf[EVN]);
-    nissa_free(bi_eo_conf[ODD]);
-    nissa_free(bi_pf);
-    for(int iterm=0;iterm<nterms;iterm++) nissa_free(bi_chi_e[iterm]);
+    nissa_free(vir_eo_conf[EVN]);
+    nissa_free(vir_eo_conf[ODD]);
+    nissa_free(vir_pf);
+    for(int iterm=0;iterm<nterms;iterm++) nissa_free(vir_chi_e[iterm]);
     
 #endif
   }

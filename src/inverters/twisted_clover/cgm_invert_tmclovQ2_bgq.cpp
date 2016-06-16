@@ -9,10 +9,10 @@
 #include "communicate/communicate.hpp"
 #include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp"
 #include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp"
-#include "inverters/tmclov/cg_128_invert_tmclovQ2_bgq.hpp"
+#include "inverters/twisted_clover/cg_128_invert_tmclovQ2_bgq.hpp"
 #include "linalgs/linalgs.hpp"
 
-#define BASETYPE bi_spincolor
+#define BASETYPE vir_spincolor
 #define NDOUBLES_PER_SITE 48
 #define BULK_VOL loc_volh
 #define BORD_VOL 0
@@ -34,11 +34,11 @@
 
 //additional parameters
 #define CGM_NARG 3
-#define AT1 bi_oct_su3*
+#define AT1 vir_oct_su3*
 #define A1 conf
 #define AT2 double
 #define A2 kappa
-#define AT3 bi_clover_term_t*
+#define AT3 vir_clover_term_t*
 #define A3 Cl
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,Cl,
 

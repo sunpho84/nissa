@@ -22,7 +22,7 @@
 namespace nissa
 {
 #ifdef BGQ
-  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links);
+  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,vir_su3 *links);
 #endif
   
   //sweep a configuration, possibly using subboxes, each divided in checkboard so to avoid communication problem
@@ -71,7 +71,7 @@ namespace nissa
     void (*compute_staples)(su3 staples,su3 *links,int *ilinks,double C1);
     void (*compute_staples_packed)(su3 staples,su3 *links,double C1);
 #ifdef BGQ
-    void (*compute_staples_packed_bgq)(su3 staples1,su3 staples2,bi_su3 *links,double C1);
+    void (*compute_staples_packed_bgq)(su3 staples1,su3 staples2,vir_su3 *links,double C1);
 #endif
     
     //inits the parity checkboard according to an external parity
@@ -122,7 +122,7 @@ namespace nissa
 		if(packing_inited)
 		  NISSA_PARALLEL_LOOP(ibox_dir_par,0,box_dir_par_sizeh)
 		    compute_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+box_dir_par_sizeh],
-					       ((bi_su3*)packing_link_buf)+ibox_dir_par*nlinks_per_staples_of_link,C1);
+					       ((vir_su3*)packing_link_buf)+ibox_dir_par*nlinks_per_staples_of_link,C1);
 		THREAD_BARRIER();
 #endif
 		
@@ -170,8 +170,8 @@ namespace nissa
   };
   
 #ifdef BGQ
-  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links);
-  void compute_Symanzik_force_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double beta);
+  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,vir_su3 *links);
+  void compute_Symanzik_force_packed_bgq(su3 staples1,su3 staples2,vir_su3 *links,double beta);
 #endif
   void compute_Symanzik_staples_packed(su3 staples,su3 *links,double C1);
   void init_Symanzik_sweeper();

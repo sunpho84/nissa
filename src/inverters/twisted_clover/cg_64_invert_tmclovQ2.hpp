@@ -19,22 +19,22 @@ namespace nissa
   {
 #if defined BGQ
     //bufferize and remap
-    bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
-    lx_conf_remap_to_virlx(bi_conf,conf);
-    bi_clover_term_t *bi_Cl=nissa_malloc("bi_cl",loc_volh,bi_clover_term_t);
-    lx_clover_term_t_remap_to_virlx(bi_Cl,Cl);
-    bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh,bi_spincolor);
-    lx_spincolor_remap_to_virlx(bi_source,source);
-    bi_spincolor *bi_sol=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
+    vir_oct_su3 *vir_conf=nissa_malloc("vir_conf",loc_volh,vir_oct_su3);
+    lx_conf_remap_to_virlx(vir_conf,conf);
+    vir_clover_term_t *vir_Cl=nissa_malloc("vir_cl",loc_volh,vir_clover_term_t);
+    lx_clover_term_t_remap_to_virlx(vir_Cl,Cl);
+    vir_spincolor *vir_source=nissa_malloc("vir_source",loc_volh,vir_spincolor);
+    lx_spincolor_remap_to_virlx(vir_source,source);
+    vir_spincolor *vir_sol=nissa_malloc("vir_sol",loc_volh,vir_spincolor);
     
-    inv_tmclovQ2_cg_64_bgq(bi_sol,NULL,bi_conf,kappa,bi_Cl,mu,niter,residue,bi_source);
+    inv_tmclovQ2_cg_64_bgq(vir_sol,NULL,vir_conf,kappa,vir_Cl,mu,niter,residue,vir_source);
     
     //unmap and free
-    virlx_spincolor_remap_to_lx(sol,bi_sol);
-    nissa_free(bi_sol);
-    nissa_free(bi_Cl);
-    nissa_free(bi_source);
-    nissa_free(bi_conf);
+    virlx_spincolor_remap_to_lx(sol,vir_sol);
+    nissa_free(vir_sol);
+    nissa_free(vir_Cl);
+    nissa_free(vir_source);
+    nissa_free(vir_conf);
 #else
     inv_tmclovQ2_cg_64_portable(sol,guess,conf,kappa,Cl,mu,niter,residue,source);
 #endif

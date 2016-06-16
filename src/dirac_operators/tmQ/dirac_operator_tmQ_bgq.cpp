@@ -23,18 +23,18 @@ namespace nissa
     then the application of Q requires to expand the halfspincolor into full spincolor and summ the diagonal part
   */
   
-  THREADABLE_FUNCTION_4ARG(hopping_matrix_lx_tmQ_diag_term_bgq, bi_spincolor*,out, double,kappa, double,mu, bi_spincolor*,in)
+  THREADABLE_FUNCTION_4ARG(hopping_matrix_lx_tmQ_diag_term_bgq, vir_spincolor*,out, double,kappa, double,mu, vir_spincolor*,in)
   {
     GET_THREAD_ID();
     
     double A=-1/kappa,B=-2*mu;
-    bi_complex diag[2]={{{+A,B},{+A,B}},{{-A,B},{-A,B}}};
+    vir_complex diag[2]={{{+A,B},{+A,B}},{{-A,B},{-A,B}}};
     
 #ifdef BGQ
-    DECLARE_REG_BI_COMPLEX(reg_diag_0);
-    DECLARE_REG_BI_COMPLEX(reg_diag_1);
-    REG_LOAD_BI_COMPLEX(reg_diag_0,diag[0]);
-    REG_LOAD_BI_COMPLEX(reg_diag_1,diag[1]);
+    DECLARE_REG_VIR_COMPLEX(reg_diag_0);
+    DECLARE_REG_VIR_COMPLEX(reg_diag_1);
+    REG_LOAD_VIR_COMPLEX(reg_diag_0,diag[0]);
+    REG_LOAD_VIR_COMPLEX(reg_diag_1,diag[1]);
 #endif
     
     //wait that all the terms are put in place
@@ -43,20 +43,20 @@ namespace nissa
     NISSA_PARALLEL_LOOP(i,0,loc_volh)
       {
 #ifdef BGQ
-	DECLARE_REG_BI_SPINCOLOR(reg_out);
+	DECLARE_REG_VIR_SPINCOLOR(reg_out);
 	
 	//multiply in by the diagonal part (apart from the final term -0.5 added separately when summing non-diag)
-	DECLARE_REG_BI_SPINCOLOR(reg_in);
-	REG_LOAD_BI_SPINCOLOR(reg_in,in[i]);
-	REG_BI_COLOR_PROD_COMPLEX(reg_out_s0,reg_in_s0,reg_diag_0);
-	REG_BI_COLOR_PROD_COMPLEX(reg_out_s1,reg_in_s1,reg_diag_0);
-	REG_BI_COLOR_PROD_COMPLEX(reg_out_s2,reg_in_s2,reg_diag_1);
-	BI_SPINCOLOR_PREFETCH_NEXT(in[i]);
-	REG_BI_COLOR_PROD_COMPLEX(reg_out_s3,reg_in_s3,reg_diag_1);
+	DECLARE_REG_VIR_SPINCOLOR(reg_in);
+	REG_LOAD_VIR_SPINCOLOR(reg_in,in[i]);
+	REG_VIR_COLOR_PROD_COMPLEX(reg_out_s0,reg_in_s0,reg_diag_0);
+	REG_VIR_COLOR_PROD_COMPLEX(reg_out_s1,reg_in_s1,reg_diag_0);
+	REG_VIR_COLOR_PROD_COMPLEX(reg_out_s2,reg_in_s2,reg_diag_1);
+	VIR_SPINCOLOR_PREFETCH_NEXT(in[i]);
+	REG_VIR_COLOR_PROD_COMPLEX(reg_out_s3,reg_in_s3,reg_diag_1);
 	
-	STORE_REG_BI_SPINCOLOR(&(out[i]),reg_out);
+	STORE_REG_VIR_SPINCOLOR(&(out[i]),reg_out);
 #else
-	bi_spincolor temp;
+	vir_spincolor temp;
 	
 	//multiply in by the diagonal part
 	DIAG_TMQ(out[i],diag,in[i]);
@@ -68,7 +68,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
 
-  THREADABLE_FUNCTION_1ARG(hopping_matrix_lx_expand_to_Q_bgq, bi_spincolor*,out)
+  THREADABLE_FUNCTION_1ARG(hopping_matrix_lx_expand_to_Q_bgq, vir_spincolor*,out)
   {
     GET_THREAD_ID();
     
@@ -76,70 +76,70 @@ namespace nissa
     THREAD_BARRIER();
 
 #ifdef BGQ
-    bi_complex mone_half={{-0.5,-0.5},{-0.5,-0.5}};
-    DECLARE_REG_BI_COMPLEX(reg_mone_half);
-    REG_LOAD_BI_COMPLEX(reg_mone_half,mone_half);
+    vir_complex mone_half={{-0.5,-0.5},{-0.5,-0.5}};
+    DECLARE_REG_VIR_COMPLEX(reg_mone_half);
+    REG_LOAD_VIR_COMPLEX(reg_mone_half,mone_half);
 #endif
     
-    bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)send_buf+bord_volh;
+    vir_halfspincolor *bgq_hopping_matrix_output_data=(vir_halfspincolor*)send_buf+bord_volh;
     
     NISSA_PARALLEL_LOOP(i,0,loc_volh)
       {
 #ifdef BGQ
-	DECLARE_REG_BI_SPINCOLOR(reg_out);
-	REG_LOAD_BI_SPINCOLOR(reg_out,out[i]);
+	DECLARE_REG_VIR_SPINCOLOR(reg_out);
+	REG_LOAD_VIR_SPINCOLOR(reg_out,out[i]);
 	
 	//8 pieces
 	{
-	  bi_halfspincolor *piece=bgq_hopping_matrix_output_data+i*8;
-	  DECLARE_REG_BI_HALFSPINCOLOR(reg_temp);
+	  vir_halfspincolor *piece=bgq_hopping_matrix_output_data+i*8;
+	  DECLARE_REG_VIR_HALFSPINCOLOR(reg_temp);
 	  
 	  //TFW
 	  DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[0]);
-	  REG_BI_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_temp_s0);
-	  REG_BI_COLOR_SUBT(reg_out_s3,reg_out_s3,reg_temp_s1);
+	  REG_VIR_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_temp_s0);
+	  REG_VIR_COLOR_SUBT(reg_out_s3,reg_out_s3,reg_temp_s1);
 	  
 	  //XFW
 	  DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[1]);
-	  REG_BI_COLOR_ISUMM(reg_out_s2,reg_out_s2,reg_temp_s1);
-	  REG_BI_COLOR_ISUMM(reg_out_s3,reg_out_s3,reg_temp_s0);
+	  REG_VIR_COLOR_ISUMM(reg_out_s2,reg_out_s2,reg_temp_s1);
+	  REG_VIR_COLOR_ISUMM(reg_out_s3,reg_out_s3,reg_temp_s0);
 	  
 	  //YFW
 	  DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[2]);
-	  REG_BI_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_temp_s1);
-	  REG_BI_COLOR_SUBT(reg_out_s3,reg_out_s3,reg_temp_s0);
+	  REG_VIR_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_temp_s1);
+	  REG_VIR_COLOR_SUBT(reg_out_s3,reg_out_s3,reg_temp_s0);
 	  
 	  //ZFW
 	  DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[3]);
-	  REG_BI_COLOR_ISUMM(reg_out_s2,reg_out_s2,reg_temp_s0);
-	  REG_BI_COLOR_ISUBT(reg_out_s3,reg_out_s3,reg_temp_s1);
+	  REG_VIR_COLOR_ISUMM(reg_out_s2,reg_out_s2,reg_temp_s0);
+	  REG_VIR_COLOR_ISUBT(reg_out_s3,reg_out_s3,reg_temp_s1);
 	  
 	  //TBW
 	  DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[4]);
-	  REG_BI_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_temp_s0);
-	  REG_BI_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_temp_s1);
+	  REG_VIR_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_temp_s0);
+	  REG_VIR_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_temp_s1);
 	  
 	  //XBW
 	  DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[5]);
-	  REG_BI_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_temp_s1);
-	  REG_BI_COLOR_ISUBT(reg_out_s3,reg_out_s3,reg_temp_s0);
+	  REG_VIR_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_temp_s1);
+	  REG_VIR_COLOR_ISUBT(reg_out_s3,reg_out_s3,reg_temp_s0);
 	  
 	  //YBW
 	  DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[6]);
-	  REG_BI_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_temp_s1);
-	  REG_BI_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_temp_s0);
+	  REG_VIR_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_temp_s1);
+	  REG_VIR_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_temp_s0);
 	  
-	  BI_SPINCOLOR_PREFETCH_NEXT(out[i]);
+	  VIR_SPINCOLOR_PREFETCH_NEXT(out[i]);
 	  
 	  //ZBW
 	  DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[7]);
-	  REG_BI_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_temp_s0);
-	  REG_BI_COLOR_ISUMM(reg_out_s3,reg_out_s3,reg_temp_s1);
+	  REG_VIR_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_temp_s0);
+	  REG_VIR_COLOR_ISUMM(reg_out_s3,reg_out_s3,reg_temp_s1);
 	}
 	
 	//put final -0.5
-	REG_BI_SPINCOLOR_PROD_4DOUBLE(reg_out,reg_out,reg_mone_half);
-	STORE_REG_BI_SPINCOLOR(&(out[i]),reg_out);
+	REG_VIR_SPINCOLOR_PROD_4DOUBLE(reg_out,reg_out,reg_mone_half);
+	STORE_REG_VIR_SPINCOLOR(&(out[i]),reg_out);
 #else
 	//summ 8 contributions
 	TFW_DER_TMQ_EXP(out[i],piece[0]);
@@ -152,7 +152,7 @@ namespace nissa
 	ZBW_DER_TMQ_EXP(out[i],piece[7]);
 	
 	//put final -0.5
-	BI_SPINCOLOR_PROD_DOUBLE(out[i],out[i],-0.5);
+	VIR_SPINCOLOR_PROD_DOUBLE(out[i],out[i],-0.5);
 #endif
       }
     
@@ -161,7 +161,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
 
-  THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, double,mu, bi_spincolor*,in)
+  THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, vir_spincolor*,out, vir_oct_su3*,conf, double,kappa, double,mu, vir_spincolor*,in)
   {
     //compute on the surface and start communications
     apply_Wilson_hopping_matrix_lx_bgq_nocomm(conf,0,vsurf_vol,in);

@@ -99,28 +99,28 @@ namespace nissa
     NISSA_PARALLEL_LOOP(i,0,n) loc_thread_res+=a[i]*b[i];
 #else
     int max_n=n/8;
-    DECLARE_REG_BI_HALFSPIN(reg_loc_thread_res);
-    REG_SPLAT_BI_HALFSPIN(reg_loc_thread_res,0);
+    DECLARE_REG_VIR_HALFSPIN(reg_loc_thread_res);
+    REG_SPLAT_VIR_HALFSPIN(reg_loc_thread_res,0);
     NISSA_PARALLEL_LOOP(i,0,max_n)
       {
-	DECLARE_REG_BI_HALFSPIN(reg_a);
-	DECLARE_REG_BI_HALFSPIN(reg_b);
+	DECLARE_REG_VIR_HALFSPIN(reg_a);
+	DECLARE_REG_VIR_HALFSPIN(reg_b);
 	
-	double *a_ptr=(double*)(((bi_halfspin*)a)[i]);
-	double *b_ptr=(double*)(((bi_halfspin*)b)[i]);
+	double *a_ptr=(double*)(((vir_halfspin*)a)[i]);
+	double *b_ptr=(double*)(((vir_halfspin*)b)[i]);
 	
-	BI_HALFSPIN_PREFETCH_NEXT_NEXT(a_ptr);
-	BI_HALFSPIN_PREFETCH_NEXT_NEXT(b_ptr);
-	REG_LOAD_BI_HALFSPIN(reg_a,a_ptr);
-	REG_LOAD_BI_HALFSPIN(reg_b,b_ptr);
-	REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(reg_loc_thread_res,s0),NAME2(reg_loc_thread_res,s0),NAME2(reg_a,s0),NAME2(reg_b,s0));
-	REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(reg_loc_thread_res,s1),NAME2(reg_loc_thread_res,s1),NAME2(reg_a,s1),NAME2(reg_b,s1));
+	VIR_HALFSPIN_PREFETCH_NEXT_NEXT(a_ptr);
+	VIR_HALFSPIN_PREFETCH_NEXT_NEXT(b_ptr);
+	REG_LOAD_VIR_HALFSPIN(reg_a,a_ptr);
+	REG_LOAD_VIR_HALFSPIN(reg_b,b_ptr);
+	REG_VIR_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(reg_loc_thread_res,s0),NAME2(reg_loc_thread_res,s0),NAME2(reg_a,s0),NAME2(reg_b,s0));
+	REG_VIR_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(reg_loc_thread_res,s1),NAME2(reg_loc_thread_res,s1),NAME2(reg_a,s1),NAME2(reg_b,s1));
       }
-    REG_BI_COMPLEX_SUMM(reg_loc_thread_res_s0,reg_loc_thread_res_s0,reg_loc_thread_res_s1);
+    REG_VIR_COMPLEX_SUMM(reg_loc_thread_res_s0,reg_loc_thread_res_s0,reg_loc_thread_res_s1);
     
     //store
-    bi_complex temp;
-    STORE_REG_BI_COMPLEX(temp,reg_loc_thread_res_s0);
+    vir_complex temp;
+    STORE_REG_VIR_COMPLEX(temp,reg_loc_thread_res_s0);
     loc_thread_res=temp[0][0]+temp[0][1]+temp[1][0]+temp[1][1];
     
     //last part
@@ -238,24 +238,24 @@ namespace nissa
     NISSA_PARALLEL_LOOP(i,0,n) a[i]=b[i]+c[i]*d;
 #else
     int max_n=n/8;
-    DECLARE_REG_BI_COMPLEX(reg_d);
-    REG_SPLAT_BI_COMPLEX(reg_d,d);
+    DECLARE_REG_VIR_COMPLEX(reg_d);
+    REG_SPLAT_VIR_COMPLEX(reg_d,d);
     NISSA_PARALLEL_LOOP(i,0,max_n)
       {
-	DECLARE_REG_BI_HALFSPIN(reg_in1);
-	DECLARE_REG_BI_HALFSPIN(reg_in2);
-	DECLARE_REG_BI_HALFSPIN(reg_out);
+	DECLARE_REG_VIR_HALFSPIN(reg_in1);
+	DECLARE_REG_VIR_HALFSPIN(reg_in2);
+	DECLARE_REG_VIR_HALFSPIN(reg_out);
 	
-	double *in1=(double*)(((bi_halfspin*)b)[i]);
-	double *in2=(double*)(((bi_halfspin*)c)[i]);
+	double *in1=(double*)(((vir_halfspin*)b)[i]);
+	double *in2=(double*)(((vir_halfspin*)c)[i]);
 	
-	BI_HALFSPIN_PREFETCH_NEXT_NEXT(in1);
-	BI_HALFSPIN_PREFETCH_NEXT_NEXT(in2);
+	VIR_HALFSPIN_PREFETCH_NEXT_NEXT(in1);
+	VIR_HALFSPIN_PREFETCH_NEXT_NEXT(in2);
 	
-	REG_LOAD_BI_HALFSPIN(reg_in1,in1);
-	REG_LOAD_BI_HALFSPIN(reg_in2,in2);
-	REG_BI_HALFSPIN_SUMM_THE_PROD_4DOUBLE(reg_out,reg_in1,reg_in2,reg_d);
-	STORE_REG_BI_HALFSPIN(((bi_halfspin*)a)[i],reg_out);
+	REG_LOAD_VIR_HALFSPIN(reg_in1,in1);
+	REG_LOAD_VIR_HALFSPIN(reg_in2,in2);
+	REG_VIR_HALFSPIN_SUMM_THE_PROD_4DOUBLE(reg_out,reg_in1,reg_in2,reg_d);
+	STORE_REG_VIR_HALFSPIN(((vir_halfspin*)a)[i],reg_out);
       }
     //last part
     if(IS_MASTER_THREAD) for(int i=max_n*8;i<n;i++) a[i]=b[i]+c[i]*d;
@@ -282,27 +282,27 @@ namespace nissa
     NISSA_PARALLEL_LOOP(i,0,n) a[i]=b[i]*c+d[i]*e;
 #else
     int max_n=n/8;
-    DECLARE_REG_BI_COMPLEX(reg_c);
-    REG_SPLAT_BI_COMPLEX(reg_c,c);
-    DECLARE_REG_BI_COMPLEX(reg_e);
-    REG_SPLAT_BI_COMPLEX(reg_e,e);
+    DECLARE_REG_VIR_COMPLEX(reg_c);
+    REG_SPLAT_VIR_COMPLEX(reg_c,c);
+    DECLARE_REG_VIR_COMPLEX(reg_e);
+    REG_SPLAT_VIR_COMPLEX(reg_e,e);
     NISSA_PARALLEL_LOOP(i,0,max_n)
       {
-	DECLARE_REG_BI_HALFSPIN(reg_in1);
-	DECLARE_REG_BI_HALFSPIN(reg_in2);
-	DECLARE_REG_BI_HALFSPIN(reg_out);
+	DECLARE_REG_VIR_HALFSPIN(reg_in1);
+	DECLARE_REG_VIR_HALFSPIN(reg_in2);
+	DECLARE_REG_VIR_HALFSPIN(reg_out);
 	
-	double *in1=(double*)(((bi_halfspin*)b)[i]);
-	double *in2=(double*)(((bi_halfspin*)d)[i]);
+	double *in1=(double*)(((vir_halfspin*)b)[i]);
+	double *in2=(double*)(((vir_halfspin*)d)[i]);
 	
-	BI_HALFSPIN_PREFETCH_NEXT_NEXT(in1);
-	BI_HALFSPIN_PREFETCH_NEXT_NEXT(in2);
+	VIR_HALFSPIN_PREFETCH_NEXT_NEXT(in1);
+	VIR_HALFSPIN_PREFETCH_NEXT_NEXT(in2);
 	
-	REG_LOAD_BI_HALFSPIN(reg_in1,in1);
-	REG_LOAD_BI_HALFSPIN(reg_in2,in2);
-	REG_BI_HALFSPIN_PROD_4DOUBLE(reg_out,reg_in1,reg_c);
-	REG_BI_HALFSPIN_SUMM_THE_PROD_4DOUBLE(reg_out,reg_out,reg_in2,reg_e);
-	STORE_REG_BI_HALFSPIN(((bi_halfspin*)a)[i],reg_out);
+	REG_LOAD_VIR_HALFSPIN(reg_in1,in1);
+	REG_LOAD_VIR_HALFSPIN(reg_in2,in2);
+	REG_VIR_HALFSPIN_PROD_4DOUBLE(reg_out,reg_in1,reg_c);
+	REG_VIR_HALFSPIN_SUMM_THE_PROD_4DOUBLE(reg_out,reg_out,reg_in2,reg_e);
+	STORE_REG_VIR_HALFSPIN(((vir_halfspin*)a)[i],reg_out);
       }
     //last part
     if(IS_MASTER_THREAD) for(int i=max_n*8;i<n;i++) a[i]=b[i]*c+d[i]*e;

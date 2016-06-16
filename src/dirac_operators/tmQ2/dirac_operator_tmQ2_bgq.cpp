@@ -10,7 +10,7 @@
 
 namespace nissa
 {
-  void apply_tmQ2_bgq(bi_spincolor *out,bi_oct_su3 *conf,double kappa,double mu,bi_spincolor *in)
+  void apply_tmQ2_bgq(vir_spincolor *out,vir_oct_su3 *conf,double kappa,double mu,vir_spincolor *in)
   {
     //application is bufferized
     apply_tmQ_bgq(out,conf,kappa,+mu,in);

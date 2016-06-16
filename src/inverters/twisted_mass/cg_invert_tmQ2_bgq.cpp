@@ -8,7 +8,7 @@
 namespace nissa
 {
   //switch 64 and 128
-  void inv_tmQ2_RL_cg_bgq(bi_spincolor *sol,bi_spincolor *guess,bi_oct_su3 *conf,double kappa,int RL,double m,int niter,double residue,bi_spincolor *source)
+  void inv_tmQ2_RL_cg_bgq(vir_spincolor *sol,vir_spincolor *guess,vir_oct_su3 *conf,double kappa,int RL,double m,int niter,double residue,vir_spincolor *source)
   {
     if(use_128_bit_precision) inv_tmQ2_RL_cg_128_bgq(sol,guess,conf,kappa,RL,m,niter,residue,source);
     else inv_tmQ2_RL_cg_64_bgq(sol,guess,conf,kappa,RL,m,niter,residue,source);

@@ -58,24 +58,24 @@ namespace nissa
     if(RL==0)
       {
 	//bufferize and remap
-	bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
-	lx_conf_remap_to_virlx(bi_conf,conf);
-	bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh,bi_spincolor);
-	lx_spincolor_remap_to_virlx(bi_source,source);
-	bi_spincolor *bi_sol[nmass];
+	vir_oct_su3 *vir_conf=nissa_malloc("vir_conf",loc_volh,vir_oct_su3);
+	lx_conf_remap_to_virlx(vir_conf,conf);
+	vir_spincolor *vir_source=nissa_malloc("vir_source",loc_volh,vir_spincolor);
+	lx_spincolor_remap_to_virlx(vir_source,source);
+	vir_spincolor *vir_sol[nmass];
 	for(int imass=0;imass<nmass;imass++)
-	  bi_sol[imass]=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
+	  vir_sol[imass]=nissa_malloc("vir_sol",loc_volh,vir_spincolor);
 	
-	inv_tmQ2_m2_cgm_bgq(bi_sol,bi_conf,kappa,m2,nmass,niter_max,req_res,bi_source);
+	inv_tmQ2_m2_cgm_bgq(vir_sol,vir_conf,kappa,m2,nmass,niter_max,req_res,vir_source);
 	
 	//unmap and free
 	for(int imass=0;imass<nmass;imass++)
 	  {
-	    virlx_spincolor_remap_to_lx(sol[imass],bi_sol[imass]);
-	    nissa_free(bi_sol[imass]);
+	    virlx_spincolor_remap_to_lx(sol[imass],vir_sol[imass]);
+	    nissa_free(vir_sol[imass]);
 	  }
-	nissa_free(bi_source);
-	nissa_free(bi_conf);
+	nissa_free(vir_source);
+	nissa_free(vir_conf);
       }
     else
 #endif

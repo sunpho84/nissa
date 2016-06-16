@@ -7,11 +7,11 @@
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
-#include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp"
+#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_bgq.hpp"
 #include "linalgs/linalgs.hpp"
 #include "routines/ios.hpp"
 
-#define BASETYPE bi_spincolor
+#define BASETYPE vir_spincolor
 #define NDOUBLES_PER_SITE 48
 #define BULK_VOL loc_volh/2
 #define BORD_VOL 0
@@ -27,13 +27,13 @@
 //#define cg_finish_communicating_borders finish_communicating_ev_color_borders
 
 #define CG_ADDITIONAL_VECTORS_ALLOCATION() \
-  bi_spincolor *temp=nissa_malloc("temp",loc_volh/2,bi_spincolor);
+  vir_spincolor *temp=nissa_malloc("temp",loc_volh/2,vir_spincolor);
 #define CG_ADDITIONAL_VECTORS_FREE() \
   nissa_free(temp);
 
 //additional parameters
 #define CG_NARG 3
-#define AT1 bi_oct_su3**
+#define AT1 vir_oct_su3**
 #define A1 conf
 #define AT2 double
 #define A2 kappa

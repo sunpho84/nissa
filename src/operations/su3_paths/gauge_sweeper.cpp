@@ -378,12 +378,12 @@ namespace nissa
 #endif
 	
 	//working slower for some reason
-	//DECLARE_REG_BI_SU3(REG_U);
+	//DECLARE_REG_VIR_SU3(REG_U);
 	//REG_LOAD_SU3(REG_U,((su3*)conf)[isource]);
-	//STORE_REG_SU3(((bi_su3*)packing_link_buf)[true_dest],vnode,REG_U);
+	//STORE_REG_SU3(((vir_su3*)packing_link_buf)[true_dest],vnode,REG_U);
 	
 	//copy
-	SU3_TO_BI_SU3(((bi_su3*)packing_link_buf)[true_dest],((su3*)conf)[isource],vnode);
+	SU3_TO_VIR_SU3(((vir_su3*)packing_link_buf)[true_dest],((su3*)conf)[isource],vnode);
 #else
 	su3_copy(packing_link_buf[idest],((su3*)conf)[isource]);
 #endif
@@ -611,130 +611,130 @@ namespace nissa
   
 #ifdef BGQ
   //compute the summ of the staples pointed by "ilinks"
-  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double C1)
+  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,vir_su3 *links,double C1)
   {
     double C0=get_C0(C1);
-    bi_su3 squares,rectangles,up_rectangles,dw_rectangles;
+    vir_su3 squares,rectangles,up_rectangles,dw_rectangles;
     
-    BI_SU3_PUT_TO_ZERO(squares);
-    BI_SU3_PUT_TO_ZERO(rectangles);
-    BI_SU3_PUT_TO_ZERO(up_rectangles);
-    BI_SU3_PUT_TO_ZERO(dw_rectangles);
+    VIR_SU3_PUT_TO_ZERO(squares);
+    VIR_SU3_PUT_TO_ZERO(rectangles);
+    VIR_SU3_PUT_TO_ZERO(up_rectangles);
+    VIR_SU3_PUT_TO_ZERO(dw_rectangles);
     
-    DECLARE_REG_BI_SU3(REG_U1);
-    DECLARE_REG_BI_SU3(REG_U2);
-    DECLARE_REG_BI_SU3(REG_U3);
+    DECLARE_REG_VIR_SU3(REG_U1);
+    DECLARE_REG_VIR_SU3(REG_U2);
+    DECLARE_REG_VIR_SU3(REG_U3);
     
     for(int inu=0;inu<NDIM-1;inu++)
       {
 	//backward square staple
-	bi_su3 hb;
-	REG_LOAD_BI_SU3(REG_U2,links[0]);
-	REG_LOAD_BI_SU3(REG_U3,links[1]);
-	REG_BI_SU3_DAG_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	STORE_REG_BI_SU3(hb,REG_U1);
-	REG_LOAD_BI_SU3(REG_U2,squares);
-	REG_LOAD_BI_SU3(REG_U3,links[2]);
-	REG_BI_SU3_SUMM_THE_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
-	STORE_REG_BI_SU3(squares,REG_U2);
+	vir_su3 hb;
+	REG_LOAD_VIR_SU3(REG_U2,links[0]);
+	REG_LOAD_VIR_SU3(REG_U3,links[1]);
+	REG_VIR_SU3_DAG_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	STORE_REG_VIR_SU3(hb,REG_U1);
+	REG_LOAD_VIR_SU3(REG_U2,squares);
+	REG_LOAD_VIR_SU3(REG_U3,links[2]);
+	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
+	STORE_REG_VIR_SU3(squares,REG_U2);
 	//forward square staple
-	bi_su3 hf;
-	REG_LOAD_BI_SU3(REG_U2,links[3]);
-	REG_LOAD_BI_SU3(REG_U3,links[4]);
-	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	STORE_REG_BI_SU3(hf,REG_U1);
-	REG_LOAD_BI_SU3(REG_U2,squares);
-	REG_LOAD_BI_SU3(REG_U3,links[5]);
-	REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U2,REG_U1,REG_U3);
-	STORE_REG_BI_SU3(squares,REG_U2);
+	vir_su3 hf;
+	REG_LOAD_VIR_SU3(REG_U2,links[3]);
+	REG_LOAD_VIR_SU3(REG_U3,links[4]);
+	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	STORE_REG_VIR_SU3(hf,REG_U1);
+	REG_LOAD_VIR_SU3(REG_U2,squares);
+	REG_LOAD_VIR_SU3(REG_U3,links[5]);
+	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U2,REG_U1,REG_U3);
+	STORE_REG_VIR_SU3(squares,REG_U2);
 	
 	//backward dw rectangle
-	REG_LOAD_BI_SU3(REG_U2,links[6]);
-	REG_LOAD_BI_SU3(REG_U3,links[7]);
-	REG_BI_SU3_DAG_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_BI_SU3(REG_U3,links[8]);
-	REG_BI_SU3_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
-	REG_LOAD_BI_SU3(REG_U1,dw_rectangles);
-	REG_LOAD_BI_SU3(REG_U3,links[9]);
-	REG_BI_SU3_SUMM_THE_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	STORE_REG_BI_SU3(dw_rectangles,REG_U1);
+	REG_LOAD_VIR_SU3(REG_U2,links[6]);
+	REG_LOAD_VIR_SU3(REG_U3,links[7]);
+	REG_VIR_SU3_DAG_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_VIR_SU3(REG_U3,links[8]);
+	REG_VIR_SU3_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
+	REG_LOAD_VIR_SU3(REG_U1,dw_rectangles);
+	REG_LOAD_VIR_SU3(REG_U3,links[9]);
+	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	STORE_REG_VIR_SU3(dw_rectangles,REG_U1);
 	//backward backward rectangle
-	REG_LOAD_BI_SU3(REG_U2,links[10]);
-	REG_LOAD_BI_SU3(REG_U3,links[11]);
-	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U3,REG_U2); //not dag dag, so reverted
-	REG_LOAD_BI_SU3(REG_U3,links[12]);
-	REG_BI_SU3_DAG_PROD_BI_SU3(REG_U2,REG_U1,REG_U3); //daggering the first instead
-	REG_LOAD_BI_SU3(REG_U3,links[13]);
-	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_BI_SU3(REG_U3,links[14]);
-	REG_LOAD_BI_SU3(REG_U2,rectangles);
-	REG_BI_SU3_SUMM_THE_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
-	STORE_REG_BI_SU3(rectangles,REG_U2);
+	REG_LOAD_VIR_SU3(REG_U2,links[10]);
+	REG_LOAD_VIR_SU3(REG_U3,links[11]);
+	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U3,REG_U2); //not dag dag, so reverted
+	REG_LOAD_VIR_SU3(REG_U3,links[12]);
+	REG_VIR_SU3_DAG_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3); //daggering the first instead
+	REG_LOAD_VIR_SU3(REG_U3,links[13]);
+	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_VIR_SU3(REG_U3,links[14]);
+	REG_LOAD_VIR_SU3(REG_U2,rectangles);
+	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
+	STORE_REG_VIR_SU3(rectangles,REG_U2);
 	//backward up rectangle
-	REG_LOAD_BI_SU3(REG_U2,hb);
-	REG_LOAD_BI_SU3(REG_U3,links[15]);
-        REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_BI_SU3(REG_U3,links[16]);
-	REG_LOAD_BI_SU3(REG_U2,up_rectangles);
-	REG_BI_SU3_SUMM_THE_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
-	STORE_REG_BI_SU3(up_rectangles,REG_U2);
+	REG_LOAD_VIR_SU3(REG_U2,hb);
+	REG_LOAD_VIR_SU3(REG_U3,links[15]);
+        REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_VIR_SU3(REG_U3,links[16]);
+	REG_LOAD_VIR_SU3(REG_U2,up_rectangles);
+	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
+	STORE_REG_VIR_SU3(up_rectangles,REG_U2);
 	//forward dw rectangle
-	REG_LOAD_BI_SU3(REG_U2,links[17]);
-	REG_LOAD_BI_SU3(REG_U3,links[18]);
-	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_BI_SU3(REG_U3,links[19]);
-	REG_BI_SU3_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
-	REG_LOAD_BI_SU3(REG_U1,dw_rectangles);
-	REG_LOAD_BI_SU3(REG_U3,links[20]);
-	REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U1,REG_U2,REG_U3);
-	STORE_REG_BI_SU3(dw_rectangles,REG_U1);
+	REG_LOAD_VIR_SU3(REG_U2,links[17]);
+	REG_LOAD_VIR_SU3(REG_U3,links[18]);
+	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_VIR_SU3(REG_U3,links[19]);
+	REG_VIR_SU3_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
+	REG_LOAD_VIR_SU3(REG_U1,dw_rectangles);
+	REG_LOAD_VIR_SU3(REG_U3,links[20]);
+	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U1,REG_U2,REG_U3);
+	STORE_REG_VIR_SU3(dw_rectangles,REG_U1);
 	//forward forward rectangle
-	REG_LOAD_BI_SU3(REG_U2,links[21]);
-	REG_LOAD_BI_SU3(REG_U3,links[22]);
-	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_BI_SU3(REG_U3,links[23]);
-	REG_BI_SU3_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
-	REG_LOAD_BI_SU3(REG_U3,links[24]);
-	REG_BI_SU3_PROD_BI_SU3_DAG(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_BI_SU3(REG_U3,links[25]);
-	REG_LOAD_BI_SU3(REG_U2,rectangles);
-	REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U2,REG_U1,REG_U3);
-	STORE_REG_BI_SU3(rectangles,REG_U2);
+	REG_LOAD_VIR_SU3(REG_U2,links[21]);
+	REG_LOAD_VIR_SU3(REG_U3,links[22]);
+	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_VIR_SU3(REG_U3,links[23]);
+	REG_VIR_SU3_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
+	REG_LOAD_VIR_SU3(REG_U3,links[24]);
+	REG_VIR_SU3_PROD_VIR_SU3_DAG(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_VIR_SU3(REG_U3,links[25]);
+	REG_LOAD_VIR_SU3(REG_U2,rectangles);
+	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U2,REG_U1,REG_U3);
+	STORE_REG_VIR_SU3(rectangles,REG_U2);
 	//forward up rectangle
-	REG_LOAD_BI_SU3(REG_U2,hf);
-	REG_LOAD_BI_SU3(REG_U3,links[26]);
-        REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_BI_SU3(REG_U3,links[27]);
-	REG_LOAD_BI_SU3(REG_U2,up_rectangles);
-	REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U2,REG_U1,REG_U3);
-	STORE_REG_BI_SU3(up_rectangles,REG_U2);
+	REG_LOAD_VIR_SU3(REG_U2,hf);
+	REG_LOAD_VIR_SU3(REG_U3,links[26]);
+        REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_VIR_SU3(REG_U3,links[27]);
+	REG_LOAD_VIR_SU3(REG_U2,up_rectangles);
+	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U2,REG_U1,REG_U3);
+	STORE_REG_VIR_SU3(up_rectangles,REG_U2);
 	
 	links+=28;
       }
     
     //close the two partial rectangles
-    REG_LOAD_BI_SU3(REG_U1,rectangles);
-    REG_LOAD_BI_SU3(REG_U2,up_rectangles);
-    REG_LOAD_BI_SU3(REG_U3,links[0]);
-    REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U1,REG_U2,REG_U3);
-    REG_LOAD_BI_SU3(REG_U2,dw_rectangles);
-    REG_LOAD_BI_SU3(REG_U3,links[1]);
-    REG_BI_SU3_DAG_SUMM_THE_PROD_BI_SU3(REG_U1,REG_U3,REG_U2);
-    STORE_REG_BI_SU3(rectangles,REG_U1);
+    REG_LOAD_VIR_SU3(REG_U1,rectangles);
+    REG_LOAD_VIR_SU3(REG_U2,up_rectangles);
+    REG_LOAD_VIR_SU3(REG_U3,links[0]);
+    REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U1,REG_U2,REG_U3);
+    REG_LOAD_VIR_SU3(REG_U2,dw_rectangles);
+    REG_LOAD_VIR_SU3(REG_U3,links[1]);
+    REG_VIR_SU3_DAG_SUMM_THE_PROD_VIR_SU3(REG_U1,REG_U3,REG_U2);
+    STORE_REG_VIR_SU3(rectangles,REG_U1);
     
     //compute the summed staples
-    DECLARE_REG_BI_COMPLEX(reg_c0);
-    DECLARE_REG_BI_COMPLEX(reg_c1);
-    REG_SPLAT_BI_COMPLEX(reg_c0,C0);
-    REG_SPLAT_BI_COMPLEX(reg_c1,C1);
-    REG_LOAD_BI_SU3(REG_U2,squares);
-    REG_BI_SU3_PROD_4DOUBLE(REG_U3,REG_U2,reg_c0);
-    REG_BI_SU3_SUMM_THE_PROD_4DOUBLE(REG_U3,REG_U3,REG_U1,reg_c1);
+    DECLARE_REG_VIR_COMPLEX(reg_c0);
+    DECLARE_REG_VIR_COMPLEX(reg_c1);
+    REG_SPLAT_VIR_COMPLEX(reg_c0,C0);
+    REG_SPLAT_VIR_COMPLEX(reg_c1,C1);
+    REG_LOAD_VIR_SU3(REG_U2,squares);
+    REG_VIR_SU3_PROD_4DOUBLE(REG_U3,REG_U2,reg_c0);
+    REG_VIR_SU3_SUMM_THE_PROD_4DOUBLE(REG_U3,REG_U3,REG_U1,reg_c1);
     
     //split staples
-    bi_su3 bi_staples;
-    STORE_REG_BI_SU3(bi_staples,REG_U3);
-    BI_SU3_TO_SU3(staples1,staples2,bi_staples);
+    vir_su3 vir_staples;
+    STORE_REG_VIR_SU3(vir_staples,REG_U3);
+    VIR_SU3_TO_SU3(staples1,staples2,vir_staples);
   }
 #endif
   
@@ -848,43 +848,43 @@ namespace nissa
   
 #ifdef BGQ
   //compute the summ of the staples pointed by "ilinks"
-  void compute_Wilson_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double C1)
+  void compute_Wilson_staples_packed_bgq(su3 staples1,su3 staples2,vir_su3 *links,double C1)
   {
-    bi_su3 bi_staples;
+    vir_su3 vir_staples;
     
-    BI_SU3_PUT_TO_ZERO(bi_staples);
+    VIR_SU3_PUT_TO_ZERO(vir_staples);
     
-    DECLARE_REG_BI_SU3(REG_U1);
-    DECLARE_REG_BI_SU3(REG_U2);
-    DECLARE_REG_BI_SU3(REG_U3);
+    DECLARE_REG_VIR_SU3(REG_U1);
+    DECLARE_REG_VIR_SU3(REG_U2);
+    DECLARE_REG_VIR_SU3(REG_U3);
     
     for(int inu=0;inu<NDIM-1;inu++)
       {
 	//backward square staple
-	bi_su3 hb;
-	REG_LOAD_BI_SU3(REG_U2,links[0]);
-	REG_LOAD_BI_SU3(REG_U3,links[1]);
-	REG_BI_SU3_DAG_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	STORE_REG_BI_SU3(hb,REG_U1);
-	REG_LOAD_BI_SU3(REG_U2,bi_staples);
-	REG_LOAD_BI_SU3(REG_U3,links[2]);
-	REG_BI_SU3_SUMM_THE_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
-	STORE_REG_BI_SU3(bi_staples,REG_U2);
+	vir_su3 hb;
+	REG_LOAD_VIR_SU3(REG_U2,links[0]);
+	REG_LOAD_VIR_SU3(REG_U3,links[1]);
+	REG_VIR_SU3_DAG_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	STORE_REG_VIR_SU3(hb,REG_U1);
+	REG_LOAD_VIR_SU3(REG_U2,vir_staples);
+	REG_LOAD_VIR_SU3(REG_U3,links[2]);
+	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
+	STORE_REG_VIR_SU3(vir_staples,REG_U2);
 	//forward square staple
-	bi_su3 hf;
-	REG_LOAD_BI_SU3(REG_U2,links[3]);
-	REG_LOAD_BI_SU3(REG_U3,links[4]);
-	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-	STORE_REG_BI_SU3(hf,REG_U1);
-	REG_LOAD_BI_SU3(REG_U2,bi_staples);
-	REG_LOAD_BI_SU3(REG_U3,links[5]);
-	REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U2,REG_U1,REG_U3);
-	STORE_REG_BI_SU3(bi_staples,REG_U2);
+	vir_su3 hf;
+	REG_LOAD_VIR_SU3(REG_U2,links[3]);
+	REG_LOAD_VIR_SU3(REG_U3,links[4]);
+	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
+	STORE_REG_VIR_SU3(hf,REG_U1);
+	REG_LOAD_VIR_SU3(REG_U2,vir_staples);
+	REG_LOAD_VIR_SU3(REG_U3,links[5]);
+	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U2,REG_U1,REG_U3);
+	STORE_REG_VIR_SU3(vir_staples,REG_U2);
 	
 	links+=6;
       }
     
-    BI_SU3_TO_SU3(staples1,staples2,bi_staples);
+    VIR_SU3_TO_SU3(staples1,staples2,vir_staples);
   }
 #endif
   

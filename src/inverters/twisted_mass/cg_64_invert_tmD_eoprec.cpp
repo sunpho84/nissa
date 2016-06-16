@@ -5,7 +5,7 @@
 #include <math.h>
 
 #ifdef BGQ
- #include "cg_64_invert_tmDeoimpr_bgq.hpp"
+ #include "cg_64_invert_tmD_eoprec_bgq.hpp"
  #include "geometry/geometry_eo.hpp"
  #include "geometry/geometry_vir.hpp"
 #endif
@@ -59,33 +59,33 @@ namespace nissa
   {
 #ifdef BGQ
     //allocate
-    bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh/2,bi_spincolor);
-    bi_oct_su3 *bi_eo_conf[2]={nissa_malloc("bi_conf_evn",loc_volh+bord_volh,bi_oct_su3),
-                               nissa_malloc("bi_conf_odd",loc_volh+bord_volh,bi_oct_su3)};
-    bi_spincolor *bi_sol=nissa_malloc("bi_sol",loc_volh/2,bi_spincolor);
-    bi_spincolor *bi_guess=(guess!=NULL)?nissa_malloc("bi_guess",loc_volh/2,bi_spincolor):NULL;
+    vir_spincolor *vir_source=nissa_malloc("vir_source",loc_volh/2,vir_spincolor);
+    vir_oct_su3 *vir_eo_conf[2]={nissa_malloc("vir_conf_evn",loc_volh+bord_volh,vir_oct_su3),
+                               nissa_malloc("vir_conf_odd",loc_volh+bord_volh,vir_oct_su3)};
+    vir_spincolor *vir_sol=nissa_malloc("vir_sol",loc_volh/2,vir_spincolor);
+    vir_spincolor *vir_guess=(guess!=NULL)?nissa_malloc("vir_guess",loc_volh/2,vir_spincolor):NULL;
     
     ////////////////////////
     
     //remap in
-    evn_or_odd_spincolor_remap_to_virevn_or_odd(bi_source,source,ODD);
-    eo_conf_remap_to_vireo(bi_eo_conf,eo_conf);
-    if(guess!=NULL) evn_or_odd_spincolor_remap_to_virevn_or_odd(bi_guess,guess,ODD);
+    evn_or_odd_spincolor_remap_to_virevn_or_odd(vir_source,source,ODD);
+    eo_conf_remap_to_vireo(vir_eo_conf,eo_conf);
+    if(guess!=NULL) evn_or_odd_spincolor_remap_to_virevn_or_odd(vir_guess,guess,ODD);
     
     //invert
-    inv_tmDkern_eoprec_square_eos_cg_64_bgq(bi_sol,bi_guess,bi_eo_conf,kappa,mu,niter,residue,bi_source);
+    inv_tmDkern_eoprec_square_eos_cg_64_bgq(vir_sol,vir_guess,vir_eo_conf,kappa,mu,niter,residue,vir_source);
     
     //remap out
-    virevn_or_odd_spincolor_remap_to_evn_or_odd(sol,bi_sol,ODD);
+    virevn_or_odd_spincolor_remap_to_evn_or_odd(sol,vir_sol,ODD);
     
     ////////////////////////
     
     //free
-    nissa_free(bi_eo_conf[EVN]);
-    nissa_free(bi_eo_conf[ODD]);
-    nissa_free(bi_source);
-    nissa_free(bi_sol);
-    if(guess!=NULL) nissa_free(bi_guess);
+    nissa_free(vir_eo_conf[EVN]);
+    nissa_free(vir_eo_conf[ODD]);
+    nissa_free(vir_source);
+    nissa_free(vir_sol);
+    if(guess!=NULL) nissa_free(vir_guess);
 #else
     inv_tmDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,mu,niter,residue,source);
 #endif

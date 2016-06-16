@@ -17,16 +17,16 @@ namespace nissa
 
 #define PREC double
 #define PREC_TYPE double
-#define BI_32_64_OCT_SU3 bi_oct_su3
-#define BI_32_64_COLOR bi_color
+#define VIR_32_64_OCT_SU3 vir_oct_su3
+#define VIR_32_64_COLOR vir_color
 #define APPLY_STD2EE_M2_BGQ apply_stD2ee_m2_bgq
 
 #include "dirac_operator_stD_bgq_template.cpp"
 
 #define PREC single
 #define PREC_TYPE float
-#define BI_32_64_OCT_SU3 bi_single_oct_su3
-#define BI_32_64_COLOR bi_single_color
+#define VIR_32_64_OCT_SU3 vir_single_oct_su3
+#define VIR_32_64_COLOR vir_single_color
 #define APPLY_STD2EE_M2_BGQ apply_single_stD2ee_m2_bgq
 
 #include "dirac_operator_stD_bgq_template.cpp"

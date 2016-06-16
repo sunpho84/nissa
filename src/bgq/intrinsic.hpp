@@ -6,9 +6,9 @@
 namespace nissa
 {
 #if (defined BGQ) && (!defined BGQ_EMU)
-  typedef vector4double reg_bi_complex;
+  typedef vector4double reg_vir_complex;
 #else
-  typedef bi_complex reg_bi_complex;
+  typedef vir_complex reg_vir_complex;
 #endif //BGQ_EMU
 }
 

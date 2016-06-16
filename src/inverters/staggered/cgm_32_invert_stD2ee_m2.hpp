@@ -1,5 +1,5 @@
-#ifndef _CGM_32_INVERT_STD2EE_M2_H
-#define _CGM_32_INVERT_STD2EE_M2_H
+#ifndef _CGM_32_INVERT_STD2EE_M2_HPP
+#define _CGM_32_INVERT_STD2EE_M2_HPP
 
 namespace nissa
 {

@@ -11,7 +11,7 @@
 #include "linalgs/linalgs.hpp"
 #include "routines/ios.hpp"
 
-#define BASETYPE bi_spincolor
+#define BASETYPE vir_spincolor
 #define NDOUBLES_PER_SITE 48
 #define BULK_VOL loc_volh
 #define BORD_VOL 0
@@ -32,7 +32,7 @@
 
 //additional parameters
 #define CG_NARG 4
-#define AT1 bi_oct_su3*
+#define AT1 vir_oct_su3*
 #define A1 conf
 #define AT2 double
 #define A2 kappa

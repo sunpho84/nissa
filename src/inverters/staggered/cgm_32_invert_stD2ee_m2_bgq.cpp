@@ -10,7 +10,7 @@
 #include "dirac_operators/stD/dirac_operator_stD_bgq.hpp"
 #include "linalgs/linalgs.hpp"
 
-#define BASETYPE bi_single_color
+#define BASETYPE vir_single_color
 #define NDOUBLES_PER_SITE 12
 #define BULK_VOL loc_volh/2
 #define BORD_VOL 0
@@ -31,7 +31,7 @@
 
 //additional parameters
 #define CGM_NARG 1
-#define AT1 bi_single_oct_su3**
+#define AT1 vir_single_oct_su3**
 #define A1 conf
 
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,
