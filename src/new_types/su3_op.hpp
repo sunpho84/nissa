@@ -896,6 +896,35 @@ namespace nissa
   
   //////////////////////////////// Operations between halfspincolors /////////////////////
   
+  inline double halfspincolor_scal_prod(halfspincolor a,halfspincolor b)
+  {
+    double out=0;
+    for(int id=0;id<NDIRAC/2;id++)
+      for(int icol=0;icol<NCOL;icol++)
+	for(int ri=0;ri<2;ri++)
+	  out+=a[id][icol][ri]*b[id][icol][ri];
+    
+    return out;
+  }
+  inline double halfspincolor_norm2(halfspincolor a)
+  {return halfspincolor_scal_prod(a,a);}
+  
+  inline void halfspincolor_summ_the_prod_double(halfspincolor a,halfspincolor b,halfspincolor c,double d)
+  {
+    for(int id=0;id<NDIRAC/2;id++)
+      for(int icol=0;icol<NCOL;icol++)
+	for(int ri=0;ri<2;ri++)
+	  a[id][icol][ri]=b[id][icol][ri]+c[id][icol][ri]*d;
+  }
+  inline void halfspincolor_summ_the_prod_double(halfspincolor a,halfspincolor b,double c)
+  {halfspincolor_summ_the_prod_double(a,a,b,c);}
+  
+  inline void halfspincolor_copy(halfspincolor a,halfspincolor b)
+  {memcpy(a,b,sizeof(halfspincolor));}
+  
+  inline void halfspincolor_put_to_zero(halfspincolor a)
+  {memset(a,0,sizeof(halfspincolor));}
+  
   inline void unsafe_halfspincolor_halfspincolor_times_halfspincolor(halfspincolor a,halfspincolor_halfspincolor b,halfspincolor c)
   {
     for(int id_out=0;id_out<NDIRAC/2;id_out++)

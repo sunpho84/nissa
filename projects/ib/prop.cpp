@@ -84,7 +84,7 @@ namespace nissa
     START_TIMING(inv_time,ninv_tot);
     if(clover_run)
       {
-	inv_tmclovD_cg_eoprec(out,NULL,conf,qkappa[iq],Cl,invCl,qmass[iq],1000000,qresidue[iq],in);
+	inv_tmclovD_cg_eoprec(out,NULL,conf,qkappa[iq],Cl,NULL,qmass[iq],1000000,qresidue[iq],in);
 	//prop_multiply_with_gamma(in,5,in,ALL_TIMES);
 	//inv_tmclovQ_cg(out,NULL,conf,qkappa[iq],Cl,qmass[iq],1000000,qresidue[iq],in);
       }

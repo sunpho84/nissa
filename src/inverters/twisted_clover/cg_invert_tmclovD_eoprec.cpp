@@ -80,10 +80,10 @@ namespace nissa
     
     //Equation (9) using solution_eos[EVN] as temporary vector
     inv_tmclovDkern_eoprec_square_eos_cg(temp,guess_Koo,conf_eos,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,varphi);
+    if(guess_Koo!=NULL) vector_copy(guess_Koo,temp); //if a guess was passed, return new one
     
     //Equation (10)
     tmclovDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,mass,Cl_odd,invCl_evn,true,temp);
-    if(guess_Koo!=NULL) memcpy(guess_Koo,temp,sizeof(spincolor)*loc_volh); //if a guess was passed, return new one
     nissa_free(temp);
     
     //Equation (11)

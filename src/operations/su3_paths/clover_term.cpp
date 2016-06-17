@@ -216,32 +216,6 @@ namespace nissa
     apply_point_twisted_clover_term_to_halfspincolor(out ,-mass,kappa,Cl,temp);
   }
   
-  inline double halfspincolor_scal_prod(halfspincolor a,halfspincolor b)
-  {
-    double out=0;
-    for(int id=0;id<NDIRAC/2;id++)
-      for(int icol=0;icol<NCOL;icol++)
-	for(int ri=0;ri<2;ri++)
-	  out+=a[id][icol][ri]*b[id][icol][ri];
-    
-    return out;
-  }
-  inline double halfspincolor_norm2(halfspincolor a)
-  {return halfspincolor_scal_prod(a,a);}
-  
-  inline void halfspincolor_summ_the_prod_double(halfspincolor a,halfspincolor b,halfspincolor c,double d)
-  {
-    for(int id=0;id<NDIRAC/2;id++)
-      for(int icol=0;icol<NCOL;icol++)
-	for(int ri=0;ri<2;ri++)
-	  a[id][icol][ri]=b[id][icol][ri]+c[id][icol][ri]*d;
-  }
-  inline void halfspincolor_summ_the_prod_double(halfspincolor a,halfspincolor b,double c)
-  {halfspincolor_summ_the_prod_double(a,a,b,c);}
-  
-  void halfspincolor_copy(halfspincolor a,halfspincolor b)
-  {memcpy(a,b,sizeof(halfspincolor));}
-  
   //form the inverse of the clover term
   void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl)
   {
@@ -253,7 +227,7 @@ namespace nissa
 	  {
 	    //prepare the point source
 	    halfspincolor b;
-	    memset(b,0,sizeof(halfspincolor));
+	    halfspincolor_put_to_zero(b);
 	    b[x_id][x_ic][RE]=1;
 	    double ori_rr=halfspincolor_norm2(b);
 	    
@@ -266,12 +240,12 @@ namespace nissa
 	    
 	    //reset the solution
 	    halfspincolor x;
-	    memset(x,0,sizeof(halfspincolor));
+	    halfspincolor_put_to_zero(x);
 	    
 	    //prepare r and p
 	    halfspincolor r,p;
-	    memcpy(r,b,sizeof(halfspincolor));
-	    memcpy(p,b,sizeof(halfspincolor));
+	    halfspincolor_copy(r,b);
+	    halfspincolor_copy(p,b);
 	    
 	    //norm of r is 1
 	    double rr=1;

@@ -90,11 +90,13 @@ namespace nissa
     
     //Equation (9) using solution_eos[EVN] as temporary vector
     inv_tmDkern_eoprec_square_eos_cg(temp,guess_Koo,conf_eos,kappa,mass,nitermax,residue,varphi);
-    tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,-mass,temp);
-    if(guess_Koo!=NULL) memcpy(guess_Koo,temp,sizeof(spincolor)*loc_volh); //if a guess was passed, return new one
-    nissa_free(temp);
+    if(guess_Koo!=NULL) vector_copy(guess_Koo,temp); //if a guess was passed, return new one
     
     //Equation (10)
+    tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,-mass,temp);
+    nissa_free(temp);
+    
+    //Equation (11)
     inv_tmD_cg_eoprec_almost_reco_sol(varphi,conf_eos,solution_eos[ODD],source_eos[EVN]);
     inv_tmDee_or_oo_eos(solution_eos[EVN],kappa,mass,varphi);
     
