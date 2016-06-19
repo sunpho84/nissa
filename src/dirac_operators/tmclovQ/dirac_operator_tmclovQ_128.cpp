@@ -21,9 +21,6 @@ namespace nissa
     communicate_lx_spincolor_128_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
-    //put the clover term
-    unsafe_apply_chromo_operator_to_spincolor_128(out,Cl,in);
-    
     double kcf=1/(2*kappa);
     
     GET_THREAD_ID();
@@ -32,16 +29,24 @@ namespace nissa
 	int Xup,Xdw;
 	color_128 temp_c0,temp_c1,temp_c2,temp_c3;
 	
+	//Clover term
+	unsafe_apply_point_chromo_operator_to_spincolor_128(out[X],Cl[X],in[X]);
+	for(int ic=0;ic<NCOL;ic++)
+	  {
+	    float_64_prod_complex_128(out[X][2][ic],-1,out[X][2][ic]);
+	    float_64_prod_complex_128(out[X][3][ic],-1,out[X][3][ic]);
+	  }
+	
+	spincolor_128 temp;
+	
 	//Forward 0
 	Xup=loclx_neighup[X][0];
 	color_128_summ(temp_c0,in[Xup][0],in[Xup][2]);
 	color_128_summ(temp_c1,in[Xup][1],in[Xup][3]);
-	unsafe_su3_prod_color_128(temp_c2,conf[X][0],temp_c0);
-	unsafe_su3_prod_color_128(temp_c3,conf[X][0],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_summassign(out[X][2],temp_c2);
-	color_128_summassign(out[X][3],temp_c3);
+	unsafe_su3_prod_color_128(temp[2],conf[X][0],temp_c0);
+	unsafe_su3_prod_color_128(temp[3],conf[X][0],temp_c1);
+	color_128_copy(temp[0],temp[2]);
+	color_128_copy(temp[1],temp[3]);
 	
 	//Backward 0
 	Xdw=loclx_neighdw[X][0];
@@ -49,10 +54,10 @@ namespace nissa
 	color_128_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
 	unsafe_su3_dag_prod_color_128(temp_c2,conf[Xdw][0],temp_c0);
 	unsafe_su3_dag_prod_color_128(temp_c3,conf[Xdw][0],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_subtassign(out[X][2],temp_c2);
-	color_128_subtassign(out[X][3],temp_c3);
+	color_128_summassign(temp[0],temp_c2);
+	color_128_summassign(temp[1],temp_c3);
+	color_128_subtassign(temp[2],temp_c2);
+	color_128_subtassign(temp[3],temp_c3);
 	
 	//Forward 1
 	Xup=loclx_neighup[X][1];
@@ -60,10 +65,10 @@ namespace nissa
 	color_128_isumm(temp_c1,in[Xup][1],in[Xup][2]);
 	unsafe_su3_prod_color_128(temp_c2,conf[X][1],temp_c0);
 	unsafe_su3_prod_color_128(temp_c3,conf[X][1],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_isubtassign(out[X][2],temp_c3);
-	color_128_isubtassign(out[X][3],temp_c2);
+	color_128_summassign(temp[0],temp_c2);
+	color_128_summassign(temp[1],temp_c3);
+	color_128_isubtassign(temp[2],temp_c3);
+	color_128_isubtassign(temp[3],temp_c2);
 	
 	//Backward 1
 	Xdw=loclx_neighdw[X][1];
@@ -71,10 +76,10 @@ namespace nissa
 	color_128_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
 	unsafe_su3_dag_prod_color_128(temp_c2,conf[Xdw][1],temp_c0);
 	unsafe_su3_dag_prod_color_128(temp_c3,conf[Xdw][1],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_isummassign(out[X][2],temp_c3);
-	color_128_isummassign(out[X][3],temp_c2);
+	color_128_summassign(temp[0],temp_c2);
+	color_128_summassign(temp[1],temp_c3);
+	color_128_isummassign(temp[2],temp_c3);
+	color_128_isummassign(temp[3],temp_c2);
 	
 	//Forward 2
 	Xup=loclx_neighup[X][2];
@@ -82,10 +87,10 @@ namespace nissa
 	color_128_subt(temp_c1,in[Xup][1],in[Xup][2]);
 	unsafe_su3_prod_color_128(temp_c2,conf[X][2],temp_c0);
 	unsafe_su3_prod_color_128(temp_c3,conf[X][2],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_subtassign(out[X][2],temp_c3);
-	color_128_summassign(out[X][3],temp_c2);
+	color_128_summassign(temp[0],temp_c2);
+	color_128_summassign(temp[1],temp_c3);
+	color_128_subtassign(temp[2],temp_c3);
+	color_128_summassign(temp[3],temp_c2);
 	
 	//Backward 2
 	Xdw=loclx_neighdw[X][2];
@@ -93,10 +98,10 @@ namespace nissa
 	color_128_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
 	unsafe_su3_dag_prod_color_128(temp_c2,conf[Xdw][2],temp_c0);
 	unsafe_su3_dag_prod_color_128(temp_c3,conf[Xdw][2],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_summassign(out[X][2],temp_c3);
-	color_128_subtassign(out[X][3],temp_c2);
+	color_128_summassign(temp[0],temp_c2);
+	color_128_summassign(temp[1],temp_c3);
+	color_128_summassign(temp[2],temp_c3);
+	color_128_subtassign(temp[3],temp_c2);
 	
 	//Forward 3
 	Xup=loclx_neighup[X][3];
@@ -104,10 +109,10 @@ namespace nissa
 	color_128_isubt(temp_c1,in[Xup][1],in[Xup][3]);
 	unsafe_su3_prod_color_128(temp_c2,conf[X][3],temp_c0);
 	unsafe_su3_prod_color_128(temp_c3,conf[X][3],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_isubtassign(out[X][2],temp_c2);
-	color_128_isummassign(out[X][3],temp_c3);
+	color_128_summassign(temp[0],temp_c2);
+	color_128_summassign(temp[1],temp_c3);
+	color_128_isubtassign(temp[2],temp_c2);
+	color_128_isummassign(temp[3],temp_c3);
 	
 	//Backward 3
 	Xdw=loclx_neighdw[X][3];
@@ -115,28 +120,28 @@ namespace nissa
 	color_128_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
 	unsafe_su3_dag_prod_color_128(temp_c2,conf[Xdw][3],temp_c0);
 	unsafe_su3_dag_prod_color_128(temp_c3,conf[Xdw][3],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_isummassign(out[X][2],temp_c2);
-	color_128_isubtassign(out[X][3],temp_c3);
+	color_128_summassign(temp[0],temp_c2);
+	color_128_summassign(temp[1],temp_c3);
+	color_128_isummassign(temp[2],temp_c2);
+	color_128_isubtassign(temp[3],temp_c3);
 	
 	//Put the -1/2 factor on derivative, the gamma5, and the imu
 	//ok this is horrible, but fast
 	for(int c=0;c<NCOL;c++)
 	  {
-	    float_64_prod_complex_128(out[X][0][c],-0.5,out[X][0][c]);
+	    float_64_summ_the_prod_complex_128(out[X][0][c],-0.5,temp[0][c]);
 	    float_64_summ_the_prod_complex_128(out[X][0][c],kcf,in[X][0][c]);
 	    float_64_summ_the_iprod_complex_128(out[X][0][c],mu,in[X][0][c]);
 	    
-	    float_64_prod_complex_128(out[X][1][c],-0.5,out[X][1][c]);
+	    float_64_summ_the_prod_complex_128(out[X][1][c],-0.5,temp[1][c]);
 	    float_64_summ_the_prod_complex_128(out[X][1][c],kcf,in[X][1][c]);
 	    float_64_summ_the_iprod_complex_128(out[X][1][c],mu,in[X][1][c]);
 	    
-	    float_64_prod_complex_128(out[X][2][c],+0.5,out[X][2][c]);
+	    float_64_summ_the_prod_complex_128(out[X][2][c],+0.5,temp[2][c]);
 	    float_64_summ_the_prod_complex_128(out[X][2][c],-kcf,in[X][2][c]);
 	    float_64_summ_the_iprod_complex_128(out[X][2][c],mu,in[X][2][c]);
 	    
-	    float_64_prod_complex_128(out[X][3][c],+0.5,out[X][3][c]);
+	    float_64_summ_the_prod_complex_128(out[X][3][c],+0.5,temp[3][c]);
 	    float_64_summ_the_prod_complex_128(out[X][3][c],-kcf,in[X][3][c]);
 	    float_64_summ_the_iprod_complex_128(out[X][3][c],mu,in[X][3][c]);
 	  }

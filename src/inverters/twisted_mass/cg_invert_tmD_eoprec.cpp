@@ -70,7 +70,7 @@ namespace nissa
     //prepare the e/o split version of the solution
     spincolor *solution_eos[2];
     solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
-    solution_eos[1]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
+    solution_eos[1]=nissa_malloc("solution_eos_1",loc_volh+bord_volh,spincolor);
     
     //prepare the e/o split version of the conf
     quad_su3 *conf_eos[2];
@@ -99,7 +99,6 @@ namespace nissa
     //Equation (11)
     inv_tmD_cg_eoprec_almost_reco_sol(varphi,conf_eos,solution_eos[ODD],source_eos[EVN]);
     inv_tmDee_or_oo_eos(solution_eos[EVN],kappa,mass,varphi);
-    
     nissa_free(varphi);
     
     /////////////////////////// paste the e/o parts of the solution together and free ///////////////////

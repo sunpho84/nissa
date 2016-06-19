@@ -18,7 +18,6 @@
 
 #include "clover_term.hpp"
 
-
 namespace nissa
 {
   /*
