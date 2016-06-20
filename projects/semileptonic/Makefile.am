@@ -49,7 +49,7 @@ else
  __top_builddir__bin_semileptonic_smeared_point_source_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
 # __top_builddir__bin_gevp_SOURCES=gevp.cpp $(semileptonic_smeared_parser_built_sources)
 endif
-#__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS=-DPOINT_SOURCE_VERSION
+__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS=-DPOINT_SOURCE_VERSION
 #__top_builddir__bin_gevp_3pts_SOURCES=gevp_3pts.cpp
 
 #comment because it could happen that we don't have flex or bison
