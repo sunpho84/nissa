@@ -15,8 +15,9 @@ namespace nissa
     inv_tmclovQ2_cg(sol,NULL,conf,kappa,Cl,mu,niter,residue,source);
     spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
     
+    //remvoe the "wrong r"
     vector_copy(temp,sol);
-    apply_tmclovQ(sol,conf,kappa,Cl,mu,temp);
+    apply_tmclovQ(sol,conf,kappa,Cl,-mu,temp);
     
     nissa_free(temp);
   }
