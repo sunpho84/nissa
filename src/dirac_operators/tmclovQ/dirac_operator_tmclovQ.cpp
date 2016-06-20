@@ -12,7 +12,7 @@
  #include "routines/thread.hpp"
 #endif
 
-//Apply the Q=D*g5 operator to a spincolor
+//Apply the Q=g5*D operator to a spincolor
 namespace nissa
 {
   THREADABLE_FUNCTION_6ARG(apply_tmclovQ, spincolor*,out, quad_su3*,conf, double,kappa, clover_term_t*,Cl, double,mu, spincolor*,in)
