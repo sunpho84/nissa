@@ -24,13 +24,13 @@ namespace nissa
     
     GET_THREAD_ID();
     if(!dag)
-      NISSA_PARALLEL_LOOP(X,0,loc_volh)
+      NISSA_PARALLEL_LOOP(X,0,loc_volh/2)
 	{
 	  unsafe_vir_halfspincolor_halfspincolor_times_vir_halfspincolor(&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
 	  unsafe_vir_halfspincolor_halfspincolor_dag_times_vir_halfspincolor(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
 	}
     else
-      NISSA_PARALLEL_LOOP(X,0,loc_volh)
+      NISSA_PARALLEL_LOOP(X,0,loc_volh/2)
 	{
 	  unsafe_vir_halfspincolor_halfspincolor_dag_times_vir_halfspincolor(&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
 	  unsafe_vir_halfspincolor_halfspincolor_times_vir_halfspincolor(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
@@ -95,13 +95,13 @@ namespace nissa
   }
   
   //implement Koo defined in equation (7)
-  THREADABLE_FUNCTION_8ARG(tmclovDkern_eoprec_eos_bgq, vir_spincolor*,out, vir_oct_su3**,conf, double,kappa, vir_clover_term_t*,Cl_odd, vir_inv_clover_term_t*,invCl_evn, bool,dag, double,mass, vir_spincolor*,in)
+  THREADABLE_FUNCTION_9ARG(tmclovDkern_eoprec_eos_bgq, vir_spincolor*,out, vir_spincolor*,temp, vir_oct_su3**,conf, double,kappa, vir_clover_term_t*,Cl_odd, vir_inv_clover_term_t*,invCl_evn, bool,dag, double,mass, vir_spincolor*,in)
   {
     if(in==out) crash("cannot work with in==out");
     
     tmn2Deo_eos_bgq(out,conf,in);
-    inv_tmclovDee_or_oo_eos(out,invCl_evn,dag,out);
-    tmn2Doe_eos_bgq(out,conf,out);
+    inv_tmclovDee_or_oo_eos(temp,invCl_evn,dag,out);
+    tmn2Doe_eos_bgq(out,conf,temp);
     
     minus_one_quarter_subt_tmclovDee_or_oo_eos(out,kappa,Cl_odd,dag,mass,in);
   }

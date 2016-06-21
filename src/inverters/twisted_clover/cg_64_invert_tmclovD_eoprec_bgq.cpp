@@ -17,7 +17,7 @@
 #define BORD_VOL 0
 
 #define APPLY_OPERATOR tmclovDkern_eoprec_square_eos_bgq
-#define CG_OPERATOR_PARAMETERS temp,conf,kappa,Cl_odd,invCl_evn,mass,
+#define CG_OPERATOR_PARAMETERS temp1,temp2,conf,kappa,Cl_odd,invCl_evn,mass,
 
 #define CG_INVERT inv_tmclovDkern_eoprec_square_eos_cg_64_bgq
 #define CG_NPOSSIBLE_REQUESTS 0
@@ -27,9 +27,11 @@
 //#define cg_finish_communicating_borders finish_communicating_ev_color_borders
 
 #define CG_ADDITIONAL_VECTORS_ALLOCATION() \
-  vir_spincolor *temp=nissa_malloc("temp",loc_volh/2,vir_spincolor);
+  vir_spincolor *temp1=nissa_malloc("temp1",loc_volh/2,vir_spincolor);	\
+  vir_spincolor *temp2=nissa_malloc("temp2",loc_volh/2,vir_spincolor);
 #define CG_ADDITIONAL_VECTORS_FREE() \
-  nissa_free(temp);
+  nissa_free(temp1);		     \
+  nissa_free(temp2);
 
 //additional parameters
 #define CG_NARG 5
