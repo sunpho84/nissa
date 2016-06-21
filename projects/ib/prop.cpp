@@ -129,10 +129,14 @@ namespace nissa
 		    complex_copy(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)][ivol][id_si][ic_si],source[ivol][diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
     
-    //set borders invalid
+    //compute the norm2 and set borders invalid
+    ori_source_norm2=0;
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
-	set_borders_invalid(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)]);
+	{
+	  set_borders_invalid(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)]);
+	  ori_source_norm2+=double_vector_norm2(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)],loc_vol);
+	}
   }
   THREADABLE_FUNCTION_END
   

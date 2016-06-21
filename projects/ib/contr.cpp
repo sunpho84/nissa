@@ -129,7 +129,7 @@ namespace nissa
     contr_print_time-=take_time();
     
     //reduce and normalise
-    double norm=1.0/nsources;
+    double norm=12.0/nsources/ori_source_norm2; //in a point case the source has norm2=12
     glb_nodes_reduce_complex_vect(mes2pts_contr,mes2pts_contr_size);
     for(int i=0;i<mes2pts_contr_size;i++) complex_prodassign_double(mes2pts_contr[i],norm);
     

@@ -39,6 +39,7 @@ namespace nissa
   
   EXTERN_PROP int nqprop,nlprop;
   
+  EXTERN_PROP double ori_source_norm2;
   EXTERN_PROP spincolor *source;
   EXTERN_PROP std::vector<qprop_t> qprop_list;
   void allocate_source();
