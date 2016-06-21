@@ -21,8 +21,8 @@ namespace nissa
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       {
-	apply_point_twisted_clover_term_to_halfspincolor(out[X]+0*NDIRAC/2,+mu,kappa,Cl[X]+0*NDIRAC/2,in[X]+0*NDIRAC/2);
-	apply_point_twisted_clover_term_to_halfspincolor(out[X]+1*NDIRAC/2,-mu,kappa,Cl[X]+1*NDIRAC/2,in[X]+1*NDIRAC/2);
+	 apply_point_twisted_clover_term_to_halfspincolor(&(out[X][0*NDIRAC/2]),+mu,kappa,&(Cl[X][0*NDIRAC/2]),&(in[X][0*NDIRAC/2]));
+	 apply_point_twisted_clover_term_to_halfspincolor(&(out[X][1*NDIRAC/2]),-mu,kappa,&(Cl[X][1*NDIRAC/2]),&(in[X][1*NDIRAC/2]));
       }
     
     set_borders_invalid(out);
@@ -35,14 +35,14 @@ namespace nissa
     if(in==out) crash("in==out!");
     
     //if dagger, swaps the sign of mu, which means taking the hermitian of the inverse
-    int low=0,high=1;
+    int high=0,low=1;
     if(dag) std::swap(low,high);
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       {
-	unsafe_halfspincolor_halfspincolor_times_halfspincolor(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
-	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor(&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
+    	unsafe_halfspincolor_halfspincolor_times_halfspincolor(&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
+    	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
       }
     
     set_borders_invalid(out);

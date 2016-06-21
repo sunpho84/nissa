@@ -82,29 +82,7 @@ namespace nissa
     
     //invert
     START_TIMING(inv_time,ninv_tot);
-    if(clover_run)
-      {
-	// NISSA_PARALLEL_LOOP(X,0,loc_volh)
-	//   {
-	//     apply_point_twisted_clover_term_to_halfspincolor(out[X]+0*NDIRAC/2,+qmass[0],qkappa[0],Cl[X]+0*NDIRAC/2,in[X]+0*NDIRAC/2);
-	//     apply_point_twisted_clover_term_to_halfspincolor(out[X]+1*NDIRAC/2,-qmass[0],qkappa[0],Cl[X]+1*NDIRAC/2,in[X]+1*NDIRAC/2);
-	//   }
-	
-	// for(size_t i=0;i<loc_volh*sizeof(spincolor)/sizeof(double);i++)
-	//   master_printf("anna D %d %lg\n",i,((double*)(out))[i]);
-	
-	// vector_reset(conf);
-	// prop_multiply_with_gamma(in,5,in,ALL_TIMES);
-	// apply_tmclovQ(out,conf,qkappa[0],Cl,qmass[0],in);
-	
-	// for(size_t i=0;i<loc_volh*sizeof(spincolor)/sizeof(double);i++)
-	//   master_printf("anna Q %d %lg\n",i,((double*)(out))[i]);
-	// crash("clov\n");
-	
-	//inv_tmclovD_cg_eoprec(out,NULL,conf,qkappa[iq],Cl,NULL,qmass[iq],1000000,qresidue[iq],in);
-	prop_multiply_with_gamma(in,5,in,ALL_TIMES);
-	inv_tmclovQ_cg(out,NULL,conf,qkappa[iq],Cl,qmass[iq],1000000,qresidue[iq],in);
-      }
+    if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,qkappa[iq],Cl,invCl,qmass[iq],1000000,qresidue[iq],in);
     else inv_tmD_cg_eoprec(out,NULL,conf,qkappa[iq],qmass[iq],1000000,qresidue[iq],in);
     
     STOP_TIMING(inv_time);
