@@ -289,7 +289,7 @@ namespace nissa
 	    
 	    //copy the solution after removing the hermitian
 	    halfspincolor temp;
-	    apply_point_twisted_clover_term_to_halfspincolor(temp,-mass,kappa,Cl,x);
+	    apply_point_twisted_clover_term_to_halfspincolor(temp,-mass,kappa,Cl+2*x_high_low,x);
 	    for(int id=0;id<NDIRAC/2;id++)
 	      for(int ic=0;ic<NCOL;ic++)
 		for(int ri=0;ri<2;ri++)
