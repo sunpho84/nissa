@@ -18,7 +18,7 @@ void init_simulation(char *path)
   read_seed_start_random();
   read_stoch_source();
   if(stoch_source) read_noise_type();
-  read_dilutions();
+  read_set_dilutions_if_stoch_source(stoch_source);
   read_nsources();
   
   read_corrections_to_compute();

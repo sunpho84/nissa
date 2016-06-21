@@ -78,11 +78,14 @@ namespace nissa
   }
   
   //initialize the dilutions
-  inline void read_dilutions()
+  inline void read_set_dilutions_if_stoch_source(int stoch_source)
   {
-    int dil_spin,dil_col;
-    read_str_int("DilutedSpin",&dil_spin);
-    read_str_int("DilutedColor",&dil_col);
+    int dil_spin=1,dil_col=1;
+    if(stoch_source)
+      {
+	read_str_int("DilutedSpin",&dil_spin);
+	read_str_int("DilutedColor",&dil_col);
+      }
     set_diluted_spin(dil_spin);
     set_diluted_color(dil_col);
   }
