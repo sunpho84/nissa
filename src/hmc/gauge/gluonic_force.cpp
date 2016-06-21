@@ -131,7 +131,7 @@ namespace nissa
     if(VERBOSITY_LV2)
       {
 	double norm=0;
-	norm+=double_vector_norm2(F,loc_vol);
+	norm+=double_vector_glb_norm2(F,loc_vol);
 	master_printf("  Gluonic force average norm: %lg\n",sqrt(norm/glb_vol));
       }
     

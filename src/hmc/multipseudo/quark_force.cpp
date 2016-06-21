@@ -89,7 +89,7 @@ namespace nissa
     if(VERBOSITY_LV2)
       {
 	double norm=0;
-	for(int par=0;par<2;par++) norm+=double_vector_norm2(F[par],loc_volh);
+	for(int par=0;par<2;par++) norm+=double_vector_glb_norm2(F[par],loc_volh);
 	master_printf("  Quark force average norm: %lg\n",sqrt(norm/glb_vol));
       }
   }
