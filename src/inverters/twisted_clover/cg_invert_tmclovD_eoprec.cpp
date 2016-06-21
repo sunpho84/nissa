@@ -24,8 +24,8 @@ namespace nissa
   //invert Koo defined in equation (7)
   void inv_tmclovDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mass,int nitermax,double residue,spincolor *source)
   {
-    if(use_128_bit_precision) inv_tmclovDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,Cl_odd,invCl_evn,nitermax,residue,source);
-    else inv_tmclovDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,Cl_odd,invCl_evn,nitermax,residue,source);
+    if(use_128_bit_precision) inv_tmclovDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,source);
+    else inv_tmclovDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,source);
   }
   
   //Invert twisted clover operator using e/o preconditioning.
@@ -83,7 +83,7 @@ namespace nissa
     if(guess_Koo!=NULL) vector_copy(guess_Koo,temp); //if a guess was passed, return new one
     
     //Equation (10)
-    tmclovDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,mass,Cl_odd,invCl_evn,true,temp);
+    tmclovDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,Cl_odd,invCl_evn,true,mass,temp);
     nissa_free(temp);
     
     //Equation (11)

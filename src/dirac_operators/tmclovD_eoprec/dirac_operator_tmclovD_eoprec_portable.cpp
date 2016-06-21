@@ -12,7 +12,7 @@ namespace nissa
   //Refers to the doc: "doc/eo_inverter.lyx" for explenations
   
   //implement ee or oo part of Dirac operator, equation(3)
-  THREADABLE_FUNCTION_6ARG(tmclovDee_or_oo_eos, spincolor*,out, double,kappa, double,mu, clover_term_t*,Cl, bool,dag, spincolor*,in)
+  THREADABLE_FUNCTION_6ARG(tmclovDee_or_oo_eos, spincolor*,out, double,kappa, clover_term_t*,Cl, bool,dag, double,mu, spincolor*,in)
   {
     if(dag) mu=-mu;
     
@@ -50,22 +50,22 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //implement Koo defined in equation (7)
-  THREADABLE_FUNCTION_9ARG(tmclovDkern_eoprec_eos, spincolor*,out, spincolor*,temp, quad_su3**,conf, double,kappa, double,mu, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, bool,dag, spincolor*,in)
+  THREADABLE_FUNCTION_9ARG(tmclovDkern_eoprec_eos, spincolor*,out, spincolor*,temp, quad_su3**,conf, double,kappa, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, bool,dag, double,mu, spincolor*,in)
   {
     tmn2Deo_eos(out,conf,in);
     inv_tmclovDee_or_oo_eos(temp,invCl_evn,dag,out);
     tmn2Doe_eos(out,conf,temp);
     
-    tmclovDee_or_oo_eos(temp,kappa,mu,Cl_odd,dag,in);
+    tmclovDee_or_oo_eos(temp,kappa,Cl_odd,dag,mu,in);
     
     tmDkern_eoprec_eos_put_together_and_include_gamma5(out,temp);
   }
   THREADABLE_FUNCTION_END
   
   //square of Koo
-  void tmclovDkern_eoprec_square_eos(spincolor *out,spincolor *temp1,spincolor *temp2,quad_su3 **conf,double kappa,double mu,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,spincolor *in)
+  void tmclovDkern_eoprec_square_eos(spincolor *out,spincolor *temp1,spincolor *temp2,quad_su3 **conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor *in)
   {
-    tmclovDkern_eoprec_eos(temp1,temp2,conf,kappa,mu,Cl_odd,invCl_evn,true,  in   );
-    tmclovDkern_eoprec_eos(out,  temp2,conf,kappa,mu,Cl_odd,invCl_evn,false, temp1);
+    tmclovDkern_eoprec_eos(temp1,temp2,conf,kappa,Cl_odd,invCl_evn,true,  mu,in   );
+    tmclovDkern_eoprec_eos(out,  temp2,conf,kappa,Cl_odd,invCl_evn,false, mu,temp1);
   }
 }

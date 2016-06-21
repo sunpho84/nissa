@@ -17,7 +17,7 @@
 #define BORD_VOL 0
 
 #define APPLY_OPERATOR tmclovDkern_eoprec_square_eos_bgq
-#define CG_OPERATOR_PARAMETERS temp,conf,kappa,mass,
+#define CG_OPERATOR_PARAMETERS temp,conf,kappa,Cl_odd,invCl_evn,mass,
 
 #define CG_INVERT inv_tmclovDkern_eoprec_square_eos_cg_64_bgq
 #define CG_NPOSSIBLE_REQUESTS 0
@@ -32,12 +32,16 @@
   nissa_free(temp);
 
 //additional parameters
-#define CG_NARG 3
+#define CG_NARG 5
 #define AT1 vir_oct_su3**
 #define A1 conf
 #define AT2 double
 #define A2 kappa
-#define AT3 double
-#define A3 mass
+#define AT3 vir_clover_term_t*
+#define A3 Cl_odd
+#define AT4 vir_inv_clover_term_t*
+#define A4 invCl_evn
+#define AT5 double
+#define A5 mass
 
 #include "inverters/templates/cg_invert_template_threaded.cpp"

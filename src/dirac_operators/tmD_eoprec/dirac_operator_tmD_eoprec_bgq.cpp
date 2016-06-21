@@ -5,11 +5,10 @@
 #include "base/thread_macros.hpp"
 #include "bgq/bgq_macros.hpp"
 #include "bgq/intrinsic.hpp"
-#include "bgq/Wilson_hopping_matrix_eo_or_oe_bgq.hpp"
-
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
+#include "dirac_operator_tmD_eoprec_bgq.hpp"
 
 namespace nissa
 {
@@ -89,24 +88,6 @@ namespace nissa
       }
     set_borders_invalid(out);
   }
-  
-  void tmn2Doe_or_tmn2Deo_eos_bgq(vir_spincolor *out,vir_oct_su3 **conf,int oe_or_eo,vir_spincolor *in)
-  {
-    //compute on the surface and start communications
-    apply_double_Wilson_hopping_matrix_oe_or_eo_bgq_nocomm(conf,0,vsurf_volh,in,oe_or_eo);
-    start_double_Wilson_hopping_matrix_oe_or_eo_bgq_communications();
-    
-    //compute on the bulk and finish communications
-    apply_double_Wilson_hopping_matrix_oe_or_eo_bgq_nocomm(conf,vsurf_volh,loc_volh/2,in,oe_or_eo);
-    finish_double_Wilson_hopping_matrix_oe_or_eo_bgq_communications(oe_or_eo);
-    
-    //put together all the 8 pieces
-    hopping_matrix_oe_or_eo_expand_to_double_Wilson_2D_bgq(out);
-  }
-  
-  //wrappers
-  void tmn2Doe_eos_bgq(vir_spincolor *out,vir_oct_su3 **conf,vir_spincolor *in){tmn2Doe_or_tmn2Deo_eos_bgq(out,conf,0,in);}
-  void tmn2Deo_eos_bgq(vir_spincolor *out,vir_oct_su3 **conf,vir_spincolor *in){tmn2Doe_or_tmn2Deo_eos_bgq(out,conf,1,in);}
   
   //implement Koo defined in equation (7)
   THREADABLE_FUNCTION_6ARG(tmD_or_Qkern_eoprec_eos_bgq, vir_spincolor*,out, vir_oct_su3**,conf, double,kappa, double,mass, vir_spincolor*,in, int,D_or_Q)

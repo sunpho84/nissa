@@ -5,24 +5,14 @@
 
 namespace nissa
 {
-  void tmclovD_or_Qkern_eoprec_eos_bgq(vir_spincolor *out,vir_oct_su3 **conf,double kappa,double mu,vir_spincolor *in,int D_or_Q);
-  
   //non squared
-  inline void tmclovDkern_eoprec_eos_bgq(vir_spincolor *out,vir_oct_su3 **conf,double kappa,double mu,vir_spincolor *in)
-  {tmclovD_or_Qkern_eoprec_eos_bgq(out,conf,kappa,mu,in,0);}
-  inline void tmclovQkern_eoprec_eos_bgq(vir_spincolor *out,vir_oct_su3 **conf,double kappa,double mu,vir_spincolor *in)
-  {tmclovD_or_Qkern_eoprec_eos_bgq(out,conf,kappa,mu,in,1);}
+  void tmclovDkern_eoprec_eos_bgq(vir_spincolor *out,vir_oct_su3 **conf,double kappa,vir_clover_term_t *Cl_odd,vir_inv_clover_term_t *invCl_evn,bool dag,double mu,vir_spincolor *in);
   
   //squared
-  inline void tmclovD_or_Qkern_eoprec_square_eos_bgq(vir_spincolor *out,vir_spincolor *temp,vir_oct_su3 **conf,double kappa,double mu,vir_spincolor *in,int D_or_Q)
+  inline void tmclovDkern_eoprec_square_eos_bgq(vir_spincolor *out,vir_spincolor *temp,vir_oct_su3 **conf,double kappa,vir_clover_term_t *Cl_odd,vir_inv_clover_term_t *invCl_evn,double mu,vir_spincolor *in)
   {
-    tmclovD_or_Qkern_eoprec_eos_bgq(temp,conf,kappa,-mu, in   ,D_or_Q);
-    tmclovD_or_Qkern_eoprec_eos_bgq(out,  conf,kappa,+mu, temp,D_or_Q);
+    tmclovDkern_eoprec_eos_bgq(temp, conf,kappa,Cl_odd,invCl_evn,true, mu,in  );
+    tmclovDkern_eoprec_eos_bgq(out,  conf,kappa,Cl_odd,invCl_evn,false,mu,temp);
   }
-  inline void tmclovDkern_eoprec_square_eos_bgq(vir_spincolor *out,vir_spincolor *temp,vir_oct_su3 **conf,double kappa,double mu,vir_spincolor *in)
-  {tmclovD_or_Qkern_eoprec_square_eos_bgq(out,temp,conf,kappa,mu,in,0);}
-  inline void tmclovQkern_eoprec_square_eos_bgq(vir_spincolor *out,vir_spincolor *temp,vir_oct_su3 **conf,double kappa,double mu,vir_spincolor *in)
-  {tmclovD_or_Qkern_eoprec_square_eos_bgq(out,temp,conf,kappa,mu,in,1);}
 }
-
 #endif

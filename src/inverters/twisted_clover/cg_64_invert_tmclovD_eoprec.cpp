@@ -24,7 +24,7 @@
 #define BORD_VOL bord_volh
 
 #define APPLY_OPERATOR tmclovDkern_eoprec_square_eos
-#define CG_OPERATOR_PARAMETERS temp1,temp2,eo_conf,kappa,mass,Cl_odd,invCl_evn,
+#define CG_OPERATOR_PARAMETERS temp1,temp2,eo_conf,kappa,Cl_odd,invCl_evn,mass,
 
 #define CG_INVERT inv_tmclovDkern_eoprec_square_eos_cg_64_portable
 #define CG_NPOSSIBLE_REQUESTS 0
@@ -47,19 +47,19 @@
 #define A1 eo_conf
 #define AT2 double
 #define A2 kappa
-#define AT3 double
-#define A3 mass
-#define AT4 clover_term_t*
-#define A4 Cl_odd
-#define AT5 inv_clover_term_t*
-#define A5 invCl_evn
+#define AT3 clover_term_t*
+#define A3 Cl_odd
+#define AT4 inv_clover_term_t*
+#define A4 invCl_evn
+#define AT5 double
+#define A5 mass
 
 #include "inverters/templates/cg_invert_template_threaded.cpp"
 
 namespace nissa
 {
   //wrapper for bgq
-  void inv_tmclovDkern_eoprec_square_eos_cg_64(spincolor *sol,spincolor *guess,quad_su3 **eo_conf,double kappa,double mu,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,int niter,double residue,spincolor *source)
+  void inv_tmclovDkern_eoprec_square_eos_cg_64(spincolor *sol,spincolor *guess,quad_su3 **eo_conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,int niter,double residue,spincolor *source)
   {
 #ifdef BGQ
     //allocate
@@ -81,7 +81,7 @@ namespace nissa
     if(guess!=NULL) evn_or_odd_spincolor_remap_to_virevn_or_odd(vir_guess,guess,ODD);
     
     //invert
-    inv_tmclovDkern_eoprec_square_eos_cg_64_bgq(vir_sol,vir_guess,vir_eo_conf,kappa,mu,vir_Cl_odd,vir_invCl_evn,niter,residue,vir_source);
+    inv_tmclovDkern_eoprec_square_eos_cg_64_bgq(vir_sol,vir_guess,vir_eo_conf,kappa,vir_Cl_odd,vir_invCl_evn,mu,niter,residue,vir_source);
     
     //remap out
     virevn_or_odd_spincolor_remap_to_evn_or_odd(sol,vir_sol,ODD);
@@ -97,7 +97,7 @@ namespace nissa
     nissa_free(vir_invCl_evn);
     if(guess!=NULL) nissa_free(vir_guess);
 #else
-    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,mu,Cl_odd,invCl_evn,niter,residue,source);
+    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
 #endif
   } 
 }

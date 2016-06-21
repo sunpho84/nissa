@@ -5,6 +5,8 @@
  #include "config.hpp"
 #endif
 
+#include <stdint.h>
+
 #include "bgq/bgq_macros.hpp"
 
 #ifndef BGQ_EMU
@@ -323,6 +325,12 @@
     REG_SPLAT_VIR_COMPLEX(NAME2(out,c0),in);		\
     REG_SPLAT_VIR_COMPLEX(NAME2(out,c1),in);		\
     REG_SPLAT_VIR_COMPLEX(NAME2(out,c2),in);		\
+  }
+
+#define REG_SPLAT_VIR_HALFSPINCOLOR(out,in)		\
+  {							\
+    REG_SPLAT_VIR_COLOR(NAME2(out,s0),in);		\
+    REG_SPLAT_VIR_COLOR(NAME2(out,s1),in);		\
   }
 
 #define REG_SPLAT_VIR_SPINCOLOR(out,in)			\
