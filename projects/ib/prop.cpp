@@ -103,21 +103,21 @@ namespace nissa
     if(!stoch_source&&(!diluted_spi_source||!diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
     
     //reset all to begin
-    vector_reset(source);
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	vector_reset(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)]);
         
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
+	spincolor c;
+	spincolor_put_to_zero(c);
+	
 	//fill colour and spin index 0
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
-	      complex &c=source[ivol][id_si][ic_si];
-	      complex_put_to_zero(c);
-	      if(stoch_source && glb_coord_of_loclx[ivol][0]==0) comp_get_rnd(c,&(loc_rnd_gen[ivol]),noise_type);
-	      else if(glblx_of_loclx[ivol]==0) complex_put_to_real(c,1);
+	      if(stoch_source && glb_coord_of_loclx[ivol][0]==0) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),noise_type);
+	      else if(glblx_of_loclx[ivol]==0) complex_put_to_real(c[id_si][ic_si],1);
 	  }
 	
 	//fill other spin indices
@@ -126,7 +126,7 @@ namespace nissa
 	    for(int id_si=0;id_si<NDIRAC;id_si++)
 	      for(int ic_si=0;ic_si<NCOL;ic_si++)
 		  if((!diluted_spi_source||(id_so==id_si))&&(!diluted_col_source||(ic_so==ic_si)))
-		    complex_copy(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)][ivol][id_si][ic_si],source[ivol][diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
+		    complex_copy(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
     
     //compute the norm2 and set borders invalid
