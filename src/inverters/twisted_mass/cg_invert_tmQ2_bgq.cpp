@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "new_types/float_128.hpp"
 #include "cg_64_invert_tmQ2_bgq.hpp"
 #include "cg_128_invert_tmQ2_bgq.hpp"
 

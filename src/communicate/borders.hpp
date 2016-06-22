@@ -1,8 +1,9 @@
 #ifndef _BORDERS_HPP
 #define _BORDERS_HPP
 
-#include "communicate.hpp"
+#include "communicate/communicate.hpp"
 #include "geometry/geometry_eo.hpp"
+#include "new_types/float_128.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
 

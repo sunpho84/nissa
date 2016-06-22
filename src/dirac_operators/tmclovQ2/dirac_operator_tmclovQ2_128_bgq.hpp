@@ -1,7 +1,7 @@
 #ifndef _DIRAC_OPERATOR_TMCLOVQ2_128_BGQ_HPP
 #define _DIRAC_OPERATOR_TMCLOVQ2_128_BGQ_HPP
 
-#include "new_types/su3.hpp"
+#include "new_types/float_128.hpp"
 
 namespace nissa
 {

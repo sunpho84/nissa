@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "new_types/float_128.hpp"
 #include "cg_64_invert_tmclovQ2.hpp"
 #include "cg_128_invert_tmclovQ2.hpp"
 

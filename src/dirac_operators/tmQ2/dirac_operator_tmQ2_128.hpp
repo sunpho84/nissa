@@ -1,5 +1,7 @@
-#ifndef _DIRAC_OPERATOR_TMQ2_128_H
-#define _DIRAC_OPERATOR_TMQ2_128_H
+#ifndef _DIRAC_OPERATOR_TMQ2_128_HPP
+#define _DIRAC_OPERATOR_TMQ2_128_HPP
+
+#include "new_types/float_128.hpp"
 
 namespace nissa
 {
