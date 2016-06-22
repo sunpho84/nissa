@@ -18,6 +18,7 @@
 #ifdef BGQ
  #include "bgq/intrinsic.hpp"
  #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_bgq.hpp"
+ #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_bgq.hpp"
  #include "dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp"
  #include "dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp"
  #include "dirac_operators/stD/dirac_operator_stD_bgq.hpp"
