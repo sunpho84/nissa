@@ -113,6 +113,14 @@
   }									\
   while(0)
 
+#define REG_VIR_HALFSPINCOLOR_PROD_4DOUBLE(A,B,C)			\
+  do									\
+  {                                                                     \
+    REG_VIR_COLOR_PROD_4DOUBLE(NAME2(A,s0),NAME2(B,s0),C);		\
+    REG_VIR_COLOR_PROD_4DOUBLE(NAME2(A,s1),NAME2(B,s1),C);		\
+  }									\
+  while(0)
+
 #define REG_VIR_HALFSPINCOLOR_PROD_COMPLEX(A,B,C)			\
   do									\
   {                                                                     \
