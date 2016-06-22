@@ -5,97 +5,101 @@
 
 namespace nissa
 {
-  //allocate source
-  void allocate_source(){source=nissa_malloc("source",loc_vol,spincolor);}
-  
-  //free the source
-  void free_source(){nissa_free(source);}
-  
   ////////////////////////////////////////////// quark propagator /////////////////////////////////////////////
   
-  //allocate all prop
-  void allocate_Q_prop()
-  {
-    nqprop=iqprop(nquarks-1,nqprop_kind()-1,nso_spi-1,nso_col)+1;
-    Q=nissa_malloc("Q*",nqprop,spincolor*);
-    for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",loc_vol+bord_vol,spincolor);
-  }
-  
-  //deallocate all prop
-  void free_Q_prop()
-  {
-    for(int iprop=0;iprop<nqprop;iprop++) nissa_free(Q[iprop]);
-    nissa_free(Q);
-  }
-  
-  //number of quark propagators in the list
-  int nqprop_kind(){return qprop_list.size();}
-  
-  //set all the inversions
-  void set_inversions()
-  {
-    //clear the list
-    qprop_list.clear();
+  // void test_cl()
+  // {
+  //   generate_undiluted_source(source,RND_Z4,-1);
     
-    //compute the unperturbed propagator
-    PROP_0=add_qprop("PROP_0",'0',ORIGINAL,ORI_SOURCE);
+  //   //prepare the e/o split version of the source
+  //   spincolor *source_eos[2];
+  //   source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spincolor);
+  //   source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spincolor);
+  //   split_lx_vector_into_eo_parts(source_eos,source);
     
-    //add mass correction
-    if(compute_mass_corrections) PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
+  //   //prepare the e/o split version of the solution
+  //   spincolor *solution_eos[2];
+  //   solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
+  //   solution_eos[1]=nissa_malloc("solution_eos_1",loc_volh+bord_volh,spincolor);
     
-    //add QED corrections
-    if(compute_QED_corrections)
-      {
-	PROP_P=add_qprop("PROP_P",'P',PSEUDO,PROP_0);
-	PROP_T=add_qprop("PROP_T",'T',TADPOLE,PROP_0);
-	if(use_photon_field)
-	  {
-	    PROP_PHOTON_A=PROP_PHOTON_B=add_qprop("PROP_PHOTON",'L',PHOTON,PROP_0);
-	    PROP_PHOTON_AB=add_qprop("PROP_PHOTON2",'M',PHOTON,PROP_PHOTON_A);
-	  }
-	else
-	  {
-	    PROP_PHOTON_A=add_qprop("PROP_ETA",'A',PHOTON_ETA,PROP_0);
-	    PROP_PHOTON_B=add_qprop("PROP_PHI",'B',PHOTON_PHI,PROP_0);
-	    PROP_PHOTON_AB=add_qprop("PROP_PHOTON_PHI_ETA",'C',PHOTON_PHI,PROP_PHOTON_A);
-	  }
-      }
-  }
+  //   //prepare the e/o split version of the conf
+  //   quad_su3 *conf_eos[2];
+  //   conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+bord_volh,quad_su3);
+  //   conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+bord_volh,quad_su3);
+  //   split_lx_vector_into_eo_parts(conf_eos,conf);
+    
+  //   //prepare the e/o split version of the clover term
+  //   clover_term_t *Cl_odd;
+  //   Cl_odd=nissa_malloc("Cl_odd",loc_volh,clover_term_t);
+  //   get_evn_or_odd_part_of_lx_vector(Cl_odd,Cl,ODD);
+    
+  //   //prepare the e/o split version of the clover term
+  //   inv_clover_term_t *invCl_evn;
+  //   invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+  //   get_evn_or_odd_part_of_lx_vector(invCl_evn,invCl,EVN);
+    
+  //   vir_spincolor *vir_source=nissa_malloc("vir_source",loc_volh/2,vir_spincolor);
+  //   vir_oct_su3 *vir_eo_conf[2]={nissa_malloc("vir_conf_evn",loc_volh+bord_volh,vir_oct_su3),
+  //                              nissa_malloc("vir_conf_odd",loc_volh+bord_volh,vir_oct_su3)};
+  //   vir_spincolor *vir_temp=nissa_malloc("vir_temp",loc_volh/2,vir_spincolor);
+  //   vir_spincolor *vir_sol=nissa_malloc("vir_sol",loc_volh/2,vir_spincolor);
+  //   vir_clover_term_t *vir_Cl_odd=nissa_malloc("vir_Cl_odd",loc_volh/2,vir_clover_term_t);
+  //   vir_inv_clover_term_t *vir_invCl_evn=nissa_malloc("vir_invCl_evn",loc_volh/2,vir_inv_clover_term_t);
+  //   evn_or_odd_spincolor_remap_to_virevn_or_odd(vir_source,source_eos[ODD],ODD);
+  //   evn_or_odd_clover_term_t_remap_to_virevn_or_odd(vir_Cl_odd,Cl_odd,ODD);
+  //   evn_or_odd_inv_clover_term_t_remap_to_virevn_or_odd(vir_invCl_evn,invCl_evn,EVN);
+  //   eo_conf_remap_to_vireo(vir_eo_conf,conf_eos);
+    
+  //   tmclovDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,qkappa[0],Cl_odd,invCl_evn,true,  qmass[0],source_eos[ODD]   );
+  //   tmclovDkern_eoprec_eos_bgq(vir_sol,vir_temp, vir_eo_conf,qkappa[0],vir_Cl_odd,vir_invCl_evn,true, qmass[0],vir_source);
+
+  //   // inv_tmclovDee_or_oo_eos(vir_sol,vir_invCl_evn,true,vir_source);
+  //   // inv_tmclovDee_or_oo_eos(solution_eos[ODD],invCl_evn,true,source_eos[ODD]);
+
+  //   // vector_reset(vir_sol);
+  //   // tmclovDee_or_oo_eos(solution_eos[ODD],qkappa[0],Cl_odd,false,qmass[0],source_eos[ODD]);
+  //   // minus_one_quarter_subt_tmclovDee_or_oo_eos(vir_sol,qkappa[0],vir_Cl_odd,false,qmass[0],vir_source);
   
-  int add_qprop(const char *tag,char shortname,insertion_t insertion,int isource,int tins)
-  {
-    int res=qprop_list.size();
-    qprop_list.push_back(qprop_t(tag,shortname,insertion,isource,tins));
-    return res;
-  }
+  //   virevn_or_odd_spincolor_remap_to_evn_or_odd(solution_eos[EVN],vir_sol,ODD);
+
+  //   GET_THREAD_ID();
+  //   NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+  //     for(int id=0;id<4;id++)
+  // 	for(int ic=0;ic<3;ic++)
+  // 	  for(int ri=0;ri<2;ri++)
+  // 	    master_printf("%d %d %d %d %lg %lg\n",ivol,id,ic,ri,solution_eos[ODD][ivol][id][ic][ri],solution_eos[EVN][ivol][id][ic][ri]);
+    
+  //   crash("ci");
+  // }
   
   //get a propagator inverting on "in"
-  void get_qprop(spincolor *out,spincolor *in,int iq)
+  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double residue,double theta)
   {
     GET_THREAD_ID();
     
     //put theta on the boundaries
-    adapt_spatial_theta(conf,qtheta[iq]);
+    adapt_spatial_theta(conf,theta);
     
     //rotate the source index - the propagator rotate AS the sign of mass term
-    if(twisted_run) safe_dirac_prod_spincolor(in,(tau3[qr[iq]]==-1)?&Pminus:&Pplus,in);
+    if(twisted_run) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
     
     //invert
     START_TIMING(inv_time,ninv_tot);
-    if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,qkappa[iq],Cl,invCl,qmass[iq],1000000,qresidue[iq],in);
-    else inv_tmD_cg_eoprec(out,NULL,conf,qkappa[iq],qmass[iq],1000000,qresidue[iq],in);
+    //test_cl();
+    if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,mass,1000000,residue,in);
+    else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
     
     STOP_TIMING(inv_time);
     
+    //rotate the sink index
+    if(twisted_run) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
+    
     //put back no theta on the boundaries
     put_spatial_theta_periodic(conf);
-    
-    //rotate the sink index
-    if(twisted_run) safe_dirac_prod_spincolor(out,(tau3[qr[iq]]==-1)?&Pminus:&Pplus,out);
   }
   
   //generate a source, wither a wall or a point in the origin
-  THREADABLE_FUNCTION_0ARG(generate_original_source)
+  THREADABLE_FUNCTION_1ARG(generate_original_source, qprop_t*,sou)
   {
     GET_THREAD_ID();
     
@@ -103,9 +107,7 @@ namespace nissa
     if(!stoch_source&&(!diluted_spi_source||!diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
     
     //reset all to begin
-    for(int id_so=0;id_so<nso_spi;id_so++)
-      for(int ic_so=0;ic_so<nso_col;ic_so++)
-	vector_reset(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)]);
+    for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
         
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
@@ -116,7 +118,7 @@ namespace nissa
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
-	      if(stoch_source && glb_coord_of_loclx[ivol][0]==0) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),noise_type);
+	      if(stoch_source) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),sou->noise_type);
 	      else if(glblx_of_loclx[ivol]==0) complex_put_to_real(c[id_si][ic_si],1);
 	  }
 	
@@ -126,17 +128,17 @@ namespace nissa
 	    for(int id_si=0;id_si<NDIRAC;id_si++)
 	      for(int ic_si=0;ic_si<NCOL;ic_si++)
 		  if((!diluted_spi_source||(id_so==id_si))&&(!diluted_col_source||(ic_so==ic_si)))
-		    complex_copy(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
+		    complex_copy(sou->sp[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
     //compute the norm2 and set borders invalid
     double loc_ori_source_norm2=0;
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
-	  set_borders_invalid(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)]);
-	  loc_ori_source_norm2+=double_vector_glb_norm2(Q[iqprop(0,ORI_SOURCE,id_so,ic_so)],loc_vol);
+	  set_borders_invalid(sou->sp[so_sp_col_ind(id_so,ic_so)]);
+	  loc_ori_source_norm2+=double_vector_glb_norm2(sou->sp[so_sp_col_ind(id_so,ic_so)],loc_vol);
 	}
-    if(IS_MASTER_THREAD) ori_source_norm2=loc_ori_source_norm2;
+    if(IS_MASTER_THREAD) sou->ori_source_norm2=loc_ori_source_norm2;
   }
   THREADABLE_FUNCTION_END
   
@@ -169,10 +171,10 @@ namespace nissa
   
   void insert_external_source(spincolor *out,spin1field *curr,spincolor *ori,int t,int r,int loc)
   {
-    if(loc) insert_external_loc_source(source,curr,ori,t);
+    if(loc) insert_external_loc_source(loop_source,curr,ori,t);
     else
-      if(twisted_run) insert_tm_external_source(source,conf,curr,ori,r,t);
-      else            insert_Wilson_external_source(source,conf,curr,ori,t);
+      if(twisted_run) insert_tm_external_source(loop_source,conf,curr,ori,r,t);
+      else            insert_Wilson_external_source(loop_source,conf,curr,ori,t);
   }
   
   //generate a sequential source
@@ -182,15 +184,15 @@ namespace nissa
     
     switch(inser)
       {
-      case ORIGINAL:prop_multiply_with_gamma(source,0,ori,t);break;
-      case SCALAR:prop_multiply_with_gamma(source,0,ori,t);break;
-      case PSEUDO:prop_multiply_with_gamma(source,5,ori,t);break;
-      case PHOTON:insert_external_source(source,photon_field,ori,t,r,loc_hadr_curr);break;
-      case PHOTON_PHI:insert_external_source(source,photon_phi,ori,t,r,loc_hadr_curr);break;
-      case PHOTON_ETA:insert_external_source(source,photon_eta,ori,t,r,loc_hadr_curr);break;
+      case ORI_SOU:prop_multiply_with_gamma(loop_source,0,ori,t);break;
+      case SCALAR:prop_multiply_with_gamma(loop_source,0,ori,t);break;
+      case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,t);break;
+      case PHOTON:insert_external_source(loop_source,photon_field,ori,t,r,loc_hadr_curr);break;
+      case PHOTON_PHI:insert_external_source(loop_source,photon_phi,ori,t,r,loc_hadr_curr);break;
+      case PHOTON_ETA:insert_external_source(loop_source,photon_eta,ori,t,r,loc_hadr_curr);break;
       case TADPOLE:
-	if(twisted_run) insert_tm_tadpole(source,conf,ori,r,tadpole,t);
-	else            insert_Wilson_tadpole(source,conf,ori,tadpole,t);
+	if(twisted_run) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,t);
+	else            insert_Wilson_tadpole(loop_source,conf,ori,tadpole,t);
 	break;
 	//case VECTOR:insert_external_source(source,NULL,ori,t,r,loc_pion_curr);break;
       }
@@ -200,47 +202,53 @@ namespace nissa
   }
   
   //generate all the quark propagators
-  void generate_quark_propagators(int irand_source)
+  void generate_quark_propagators(int ihit)
   {
-    for(int iq=0;iq<nquarks;iq++)
+    for(size_t i=0;i<qprop_name_list.size();i++)
       {
-	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d\n",iq,qmass[iq],qr[iq]);
-	else            master_printf(" kappa[%d]=%lg\n",iq,qkappa[iq]);
+	//get names
+	std::string name=qprop_name_list[i];
+	qprop_t &q=Q[name];
+	std::string source_name=q.source_name;
+	qprop_t &qsource=Q[source_name];
+	
+	//copy norm
+	q.ori_source_norm2=qsource.ori_source_norm2;
+	
+	//write info on mass and r
+	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta=%lg\n",i,q.mass,q.r,q.theta);
+	else            master_printf(" kappa[%d]=%lg, theta=%lg\n",i,q.kappa,q.theta);
 	
 	//compute the inverse clover term, if needed
-	if(clover_run) invert_twisted_clover_term(invCl,qmass[iq],qkappa[iq],Cl);
+	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
 	
-	for(int ip=0;ip<nqprop_kind();ip++)
-	  {
-	    insertion_t insertion=qprop_list[ip].insertion;
-	    int source_id=qprop_list[ip].isource;
-	    master_printf("Generating propagator of type %s inserting %s on source %s\n",qprop_list[ip].name.c_str(),ins_name[insertion],
-			  (source_id==-1)?"ORIGINAL":qprop_list[source_id].name.c_str());
-	    for(int id_so=0;id_so<nso_spi;id_so++)
-	      for(int ic_so=0;ic_so<nso_col;ic_so++)
+	insertion_t insertion=q.insertion;
+	master_printf("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],ins_name[(int)insertion],source_name.c_str());
+	for(int id_so=0;id_so<nso_spi;id_so++)
+	  for(int ic_so=0;ic_so<nso_col;ic_so++)
+	    {
+	      int isou=so_sp_col_ind(id_so,ic_so);
+	      generate_source(insertion,q.r,qsource[isou],q.tins);
+	      spincolor *sol=q[isou];
+	      
+	      //combine the filename
+	      std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	      
+	      //if the prop exists read it
+	      if(file_exists(path))
 		{
-		  generate_source(insertion,qr[iq],Q[iqprop(iq,source_id,id_so,ic_so)],qprop_list[ip].tins);
-		  spincolor *sol=Q[iqprop(iq,ip,id_so,ic_so)];
-		  
-		  //combine the filename
-		  std::string path=combine("%s/source%d_prop%c_iq%d_idso%d_icso%d",outfolder,irand_source,qprop_list[ip].shortname,iq,id_so,ic_so);
-		  
-		  //if the prop exists read it
-		  if(file_exists(path))
-		    {
-		      master_printf("  loading the inversion dirac index %d, color %d\n",id_so,ic_so);
-		      read_real_vector(sol,path,"prop");
-		    }
-		  else
-		    {
-		      //otherwise compute it and possibly store it
-		      get_qprop(sol,source,iq);
-		      if(ip==PROP_0 && store_prop0) write_double_vector(path,sol,64,"prop");
-		      
-		      master_printf("  finished the inversion dirac index %d, color %d\n",id_so,ic_so);
-		    }
+		  master_printf("  loading the inversion dirac index %d, color %d\n",id_so,ic_so);
+		  read_real_vector(sol,path,"prop");
 		}
-	  }
+	      else
+		{
+		  //otherwise compute it and possibly store it
+		  get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.residue,q.theta);
+		  write_double_vector(path,sol,64,"prop");
+		  
+		  master_printf("  finished the inversion dirac index %d, color %d\n",id_so,ic_so);
+		}
+	    }
       }
   }
   

@@ -125,20 +125,20 @@ namespace nissa
     setup_conf(conf,old_theta,put_theta,conf_path,rnd_gauge_transform,free_theory);
     
     //reset contractions
-    if(compute_mes2pts_flag) vector_reset(mes2pts_contr);
-    if(compute_bar2pts_flag) vector_reset(bar2pts_contr);
-    if(compute_meslep_flag) vector_reset(meslep_contr);
+    vector_reset(mes2pts_contr);
+    vector_reset(bar2pts_contr);
+    vector_reset(meslep_contr);
   }
   
   //handle to discard the source
   void skip_conf()
   {
-    for(int isource=0;isource<nsources;isource++)
+    for(int ihit=0;ihit<nhits;ihit++)
       {
 	coords coord;
 	generate_random_coord(coord);
 	generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
-	generate_original_source();
+	generate_original_sources();
       }
   }
   

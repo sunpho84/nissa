@@ -3,78 +3,21 @@
 #define EXTERN_PARS
 #include "pars.hpp"
 
+#include "prop.hpp"
 #include "conf.hpp"
 #include "contr.hpp"
 
 namespace nissa
 {
-  //read common part of the input
-  void read_input_preamble()
-  {
-    //init the grid
-    read_init_grid();
-    
-    //Wall time
-    read_str_double("WallTime",&wall_time);
-    //Twisted run
-    read_str_int("TwistedRun",&twisted_run);
-    //kappa for twisted run
-    double glb_kappa;
-    if(twisted_run) read_str_double("Kappa",&glb_kappa);
-    //Clover run
-    read_str_int("CloverRun",&clover_run);
-    //cSW for clover run
-    if(clover_run) read_str_double("cSW",&glb_cSW);
-    //NQuarks
-    std::string tag="Q";
-    if(!twisted_run) tag+="Kappa";
-    else tag+="MassR";
-    tag+="ThetaResidues";
-    read_str_int(tag.c_str(),&nquarks);
-    
-    if(!twisted_run)
-      {
-	nr_lep=1;
-	base=WILSON_BASE;
-      }
-    else
-      {
-	nr_lep=2;
-	base=MAX_TWIST_BASE;
-      }
-    qr=nissa_malloc("qr",nquarks,int);
-    qmass=nissa_malloc("qmass",nquarks,double);
-    qkappa=nissa_malloc("qkappa",nquarks,double);
-    qtheta=nissa_malloc("qtheta",nquarks,double);
-    qresidue=nissa_malloc("qresidue",nquarks,double);
-    for(int iq=0;iq<nquarks;iq++)
-      {
-	if(!twisted_run)
-	  {
-	    qmass[iq]=0;
-	    read_double(&qkappa[iq]);
-	    qr[iq]=0;
-	  }
-	else
-	  {
-	    read_double(&qmass[iq]);
-	    read_int(&qr[iq]);
-	    qkappa[iq]=glb_kappa;
-	    
-	    //include tau in the mass
-	    qmass[iq]*=tau3[qr[iq]];
-	  }
-	read_double(&qtheta[iq]);
-	read_double(&qresidue[iq]);
-      }
-  }
-  
   //read all the parameters to contract with leptons
   void read_meslep_contr_pars()
   {
     //Leptons
-    if(twisted_run) read_str_int("Q1Q2LepmassMesmass",&nquark_lep_combos);
-    else            read_str_int("Q1Q2LepkappaMesmass",&nquark_lep_combos);
+    if(twisted_run) read_str_int("NMesLepQ1Q2LepmassMesMass",&nquark_lep_combos);
+    else            read_str_int("NMesLepQ1Q2LepkappaMesMass",&nquark_lep_combos);
+    
+    if(nquark_lep_combos)  read_gospel_convention();
+    
     lep_contr_iq1=nissa_malloc("lep_contr_iq1",nquark_lep_combos,int);
     lep_contr_iq2=nissa_malloc("lep_contr_iq2",nquark_lep_combos,int);
     leps=nissa_malloc("leps",nquark_lep_combos,tm_quark_info);
@@ -196,19 +139,24 @@ namespace nissa
   }
   
   //read the list of mesons in terms of quarks
-  void read_mes2pts_contr_quark_combos_list()
+  void read_mes2pts_contr_pars()
   {
-    int nmes_quark_combos;
-    read_str_int("NQuarkCombos",&nmes_quark_combos);
-    for(int i=0;i<nmes_quark_combos;i++)
+    int nmes_2pts_contr;
+    read_str_int("NMes2PtsContr",&nmes_2pts_contr);
+    for(int i=0;i<nmes_2pts_contr;i++)
       {
-	int iq1,iq2;
-	read_int(&iq1);
-	read_int(&iq2);
-	if(iq1>=nquarks) crash("iq1=%d>=nquarks=%d",iq1,nquarks);
-	if(iq2>=nquarks) crash("iq2=%d>=nquarks=%d",iq2,nquarks);
-	mes2pts_contr_quark_map.push_back(mes_doublet_t(iq1,iq2));
+	char name[1024];
+	read_str(name,1024);
+	char q_name[2][1024];
+	for(int iq=0;iq<2;iq++)
+	  {
+	    read_str(q_name[iq],1024);
+	    if(Q.find(q_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_name[iq]);
+	  }
+	mes2pts_contr_map.push_back(mes_contr_map_t(name,q_name[0],q_name[1]));
       }
+    
+    if(nmes_2pts_contr) read_mes2pts_contr_gamma_list();
   }
   
   //read the list of meson contraction asked
@@ -234,20 +182,27 @@ namespace nissa
   }
   
   //read the list of baryons in terms of quarks
-  void read_bar2pts_contr_quark_combos_list()
+  void read_bar2pts_contr_pars()
   {
-    int nquark_combos;
-    read_str_int("NQuarkCombos",&nquark_combos);
-    for(int i=0;i<nquark_combos;i++)
+    int nbar_2pts_contr;
+    read_str_int("NBar2PtsContr",&nbar_2pts_contr);
+    for(int i=0;i<nbar_2pts_contr;i++)
       {
-	int iq1,iq2,iq3;
-	read_int(&iq1);
-	read_int(&iq2);
-	read_int(&iq3);
-	if(iq1>=nquarks) crash("iq1=%d>=nquarks=%d",iq1,nquarks);
-	if(iq2>=nquarks) crash("iq2=%d>=nquarks=%d",iq2,nquarks);
-	if(iq3>=nquarks) crash("iq3=%d>=nquarks=%d",iq3,nquarks);
-	bar2pts_contr_quark_map.push_back(bar_triplet_t(iq1,iq2,iq3));
+	char name[1024];
+	read_str(name,1024);
+	char q_name[3][1024];
+	for(int iq=0;iq<3;iq++)
+	  {
+	    read_str(q_name[iq],1024);
+	    if(Q.find(q_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_name[iq]);
+	  }
+	bar2pts_contr_map.push_back(bar_triplet_t(name,q_name[0],q_name[1],q_name[2]));
+      }
+    
+    if(nbar_2pts_contr)
+      {
+	read_ape_smearing_pars();
+	read_gaussian_smearing_pars();
       }
   }
 }

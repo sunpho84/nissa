@@ -21,30 +21,28 @@ namespace nissa
   
   ///////////////////////////////////////// meson contractions ///////////////////////////////////////////////////////
   
-  struct mes_doublet_t
+  struct mes_contr_map_t
   {
-    int a,b;
-    mes_doublet_t(int a,int b) : a(a),b(b) {}
+    std::string name;
+    std::string a,b;
+    mes_contr_map_t(std::string name,std::string a,std::string b) : name(name),a(a),b(b) {}
   };
-  EXTERN_CONTR std::vector<mes_doublet_t> mes2pts_contr_ins_map;
-  EXTERN_CONTR std::vector<mes_doublet_t> mes2pts_contr_quark_map;
+  EXTERN_CONTR std::vector<mes_contr_map_t> mes2pts_contr_map;
   EXTERN_CONTR int nmes2pts_contr INIT_TO(0);
   EXTERN_CONTR double mes2pts_contr_time INIT_TO(0);
   EXTERN_CONTR complex *mes2pts_contr INIT_TO(NULL);
   EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
-  void set_mes2pts_contr_ins_map();
   void allocate_mes2pts_contr();
   void compute_mes2pts_contr();
   void print_mes2pts_contr();
   void free_mes2pts_contr();
   
-  inline int ind_mes2pts_contr(int ins,int iquark_combo,int ihadr_contr,int t)
+  inline int ind_mes2pts_contr(int iquark_combo,int ihadr_contr,int t)
   {
     return
       (t+glb_size[0]*
        (ihadr_contr+mes_gamma_list.size()*
-	(iquark_combo+mes2pts_contr_quark_map.size()*
-	 ins)));
+	iquark_combo));
   }
   EXTERN_CONTR int mes2pts_contr_size;
   
@@ -80,16 +78,16 @@ namespace nissa
   //barion contractions
   struct bar_triplet_t
   {
-    int a,b,c;
-    bar_triplet_t(int a,int b,int c) : a(a),b(b),c(c) {}
+    std::string name;
+    std::string a,b,c;
+    bar_triplet_t(std::string name,std::string a,std::string b,std::string c) : name(name),a(a),b(b),c(c) {}
   };
   
   //Cg5
   EXTERN_CONTR dirac_matr Cg5;
   void set_Cg5();
   
-  EXTERN_CONTR std::vector<bar_triplet_t> bar2pts_contr_ins_map;
-  EXTERN_CONTR std::vector<bar_triplet_t> bar2pts_contr_quark_map;
+  EXTERN_CONTR std::vector<bar_triplet_t> bar2pts_contr_map;
   EXTERN_CONTR int nbar2pts_contr INIT_TO(0);
   EXTERN_CONTR double bar2pts_contr_time INIT_TO(0);
   EXTERN_CONTR complex *bar2pts_contr INIT_TO(NULL);
@@ -99,36 +97,34 @@ namespace nissa
   void print_bar2pts_contr();
   void free_bar2pts_contr();
   
-  inline int ind_bar2pts_contr(int ins,int ism_sink,int iquark_combo,int dir_exc,int t)
+  inline int ind_bar2pts_contr(int ism_sink,int icombo,int dir_exc,int t)
   {return
       (t+glb_size[0]*
        (dir_exc+2*
-	(iquark_combo+bar2pts_contr_quark_map.size()*
-	 (ism_sink+nsm_sink*
-	  ins))));
+	(icombo+bar2pts_contr_map.size()*
+	 ism_sink)));
   }
   EXTERN_CONTR int bar2pts_contr_size;
   
   EXTERN_CONTR int nsmear_oper INIT_TO(0);
   EXTERN_CONTR double smear_oper_time INIT_TO(0);
   
-  
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //compute all contractions
   inline void compute_contractions()
   {
-    if(compute_mes2pts_flag) compute_mes2pts_contr();
-    if(compute_meslep_flag) compute_meslep_contr();
-    if(compute_bar2pts_flag) compute_bar2pts_contr();
+    compute_mes2pts_contr();
+    //compute_meslep_contr();
+    //compute_bar2pts_contr();
   }
   
   //print out all contractions
   inline void print_contractions()
   {
-    if(compute_mes2pts_flag) print_mes2pts_contr();
-    if(compute_meslep_flag) print_meslep_contr();
-    if(compute_bar2pts_flag) print_bar2pts_contr();
+    print_mes2pts_contr();
+    //print_meslep_contr();
+    //print_bar2pts_contr();
   }
 }
 

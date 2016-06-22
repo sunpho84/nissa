@@ -26,10 +26,18 @@ namespace nissa
   const int follow_chris=0,follow_nazario=1;
   
   //define types of quark propagator used
-  const int nins_kind=7;
-  enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  PHOTON,  PHOTON_ETA,  PHOTON_PHI,  TADPOLE};//,  VECTOR};
-  const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE"};//, "VECTOR"};
-  
+  const int nins_kind=8;
+  enum insertion_t{                       ORI_SOU,  SCALAR,  PSEUDO,  PHOTON,  PHOTON_ETA,  PHOTON_PHI,  TADPOLE };//,  VECTOR};
+  const insertion_t ins_list[nins_kind]={ ORI_SOU , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE };//,  VECTOR };
+  const char ins_name[nins_kind][20]=   {"ORI_SOU","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE"};//, "VECTOR"};
+  const char ins_tag[nins_kind]=        {'O'      ,'S'     ,'P'     ,'F'     ,'A'         ,'C'         ,'T'      };//, 'V'};
+  inline insertion_t ins_from_tag(const char tag)
+  {
+    int i=0;
+    while(i<nins_kind && ins_tag[i]!=tag) i++;
+    if(i>=nins_kind) crash("unable to find tag %c",tag);
+    return ins_list[i];
+  }
   //sign of the lepton momentum
   const int norie=2;
   const int sign_orie[2]={-1,+1};
@@ -45,9 +53,6 @@ namespace nissa
   
   EXTERN_PARS tm_quark_info *leps;
   
-  EXTERN_PARS int nquarks,*qr;
-  EXTERN_PARS double *qmass,*qkappa,*qtheta,*qresidue;
-  
   EXTERN_PARS gauge_info photon;
   EXTERN_PARS double tadpole[NDIM];
   
@@ -55,10 +60,10 @@ namespace nissa
   EXTERN_PARS double *lep_energy,*neu_energy;
   
   void read_input_preamble();
-  void read_mes2pts_contr_quark_combos_list();
+  void read_mes2pts_contr_pars();
   void read_mes2pts_contr_gamma_list();
   void read_meslep_contr_pars();
-  void read_bar2pts_contr_quark_combos_list();
+  void read_bar2pts_contr_pars();
   void read_photon_pars();
   
   //set or not diluted the spin
@@ -113,20 +118,6 @@ namespace nissa
   inline void read_gospel_convention()
   {read_str_int("FollowChrisOrNazario",&follow_chris_or_nazario);}
   
-  //noise type
-  EXTERN_PARS rnd_t noise_type;
-  inline void read_noise_type()
-  {
-    char str_noise_type[20];
-    read_str_str("NoiseType",str_noise_type,20);
-    noise_type=convert_str_to_rnd_t(str_noise_type);
-  }
-  
-  //smart photon insertion
-  EXTERN_PARS int use_photon_field INIT_TO(true);
-  inline void read_use_photon_field()
-  {read_str_int("UsePhotonField",&use_photon_field);}
-  
   //perform a random gauge transformation
   EXTERN_PARS int rnd_gauge_transform INIT_TO(0);
   inline void read_random_gauge_transform()
@@ -145,34 +136,10 @@ namespace nissa
   inline void read_stoch_source()
   {read_str_int("StochSource",&stoch_source);}
   
-  //number of sources
-  EXTERN_PARS int nsources INIT_TO(1);
-  inline void read_nsources()
-  {read_str_int("NSources",&nsources);}
-  
-  //compute mesons and barions
-  EXTERN_PARS int compute_mes2pts_flag;
-  inline void read_compute_mes2pts_flag()
-  {read_str_int("ComputeMes2PtsContr",&compute_mes2pts_flag);}
-  EXTERN_PARS int compute_meslep_flag;
-  inline void read_compute_meslep_flag()
-  {read_str_int("ComputeMeslepContr",&compute_meslep_flag);}
-  EXTERN_PARS int compute_bar2pts_flag;
-  inline void read_compute_bar2pts_flag()
-  {
-    read_str_int("ComputeBar2PtsContr",&compute_bar2pts_flag);
-    if(compute_bar2pts_flag&&(!diluted_spi_source||!diluted_col_source)) crash("source must be fully diluted to compute barions");
-    if(compute_bar2pts_flag&&stoch_source&&(noise_type!=RND_Z3)) crash("Cannot use noise type %s for barions it must be Z3",rnd_t_str[noise_type]);
-  }
-  
-  //compute mass or/and QED corrections
-  EXTERN_PARS int compute_mass_corrections INIT_TO(true);
-  EXTERN_PARS int compute_QED_corrections INIT_TO(true);
-  inline void read_corrections_to_compute()
-  {
-    read_str_int("ComputeMassCorrections",&compute_mass_corrections);
-    read_str_int("ComputeQEDCorrections",&compute_QED_corrections);
-  }
+  //number of hits
+  EXTERN_PARS int nhits INIT_TO(1);
+  inline void read_nhits()
+  {read_str_int("NHits",&nhits);}
   
   //number of configurations
   inline void read_ngauge_conf()

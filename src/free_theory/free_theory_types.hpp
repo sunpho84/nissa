@@ -21,6 +21,9 @@ namespace nissa
     momentum_t bc;
     double zmp;
     int r;
+    tm_quark_info(double kappa,double mass,int r,double theta) :
+      kappa(kappa),mass(mass),r(r) {bc[0]=1;for(int mu=1;mu<NDIM;mu++) bc[mu]=theta;}
+    tm_quark_info() {}
   };
   
   struct gauge_info

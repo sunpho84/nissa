@@ -13,20 +13,113 @@ void init_simulation(char *path)
 {
   //open input file
   open_input(path);
-  read_input_preamble();
   
+  //init the grid
+  read_init_grid();
+  
+  //Wall time
+  read_str_double("WallTime",&wall_time);
+  
+  //Sources
   read_seed_start_random();
   read_stoch_source();
-  if(stoch_source) read_noise_type();
   read_set_dilutions_if_stoch_source(stoch_source);
-  read_nsources();
-  
-  read_corrections_to_compute();
-  if(compute_QED_corrections)
+  read_nhits();
+  int nsources;
+  read_str_int("NSources",&nsources);
+  ori_source_name_list.resize(nsources);
+  for(int isource=0;isource<nsources;isource++)
     {
-      read_photon_pars();
-      read_use_photon_field();
+      //name
+      char name[1024];
+      read_str(name,1024);
+      //noise type
+      char str_noise_type[20];
+      read_str(str_noise_type,20);
+      //store
+      ori_source_name_list[isource]=name;
+      Q[name].init_as_source(convert_str_to_rnd_t(str_noise_type));
     }
+  
+  //Twisted run
+  read_str_int("TwistedRun",&twisted_run);
+  if(!twisted_run)
+    {
+      nr_lep=1;
+      base=WILSON_BASE;
+    }
+  else
+    {
+      nr_lep=2;
+      base=MAX_TWIST_BASE;
+    }
+  //kappa for twisted run
+  double glb_kappa;
+  if(twisted_run) read_str_double("Kappa",&glb_kappa);
+  //Clover run
+  read_str_int("CloverRun",&clover_run);
+  //cSW for clover run
+  if(clover_run) read_str_double("cSW",&glb_cSW);
+  //NQuarks
+  std::string tag="Name,Ins,Sourcename,Tins";
+  if(!twisted_run) tag+=",Kappa";
+  else tag+=",Mass,R";
+  tag+=",Theta,Residues";
+  int nquarks;
+  read_str_int(tag.c_str(),&nquarks);
+  qprop_name_list.resize(nquarks);
+  for(int iq=0;iq<nquarks;iq++)
+    {
+      //name
+      char name[1024];
+      read_str(name,1024);
+      master_printf("Read variable 'Name' with value: %s\n",name);
+      
+      //ins name
+      char ins[3];
+      read_str(ins,2);
+      master_printf("Read variable 'Ins' with value: %s\n",ins);
+      
+      //source_name
+      char source_name[1024];
+      read_str(source_name,1024);
+      if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
+      master_printf("Read variable 'Sourcename' with value: %s\n",source_name);
+      
+      //insertion time
+      int tins;
+      read_int(&tins);
+      master_printf("Read variable 'Tins' with value: %d\n",tins);
+      
+      double kappa,mass,theta,residue;
+      int r;
+      if(!twisted_run)
+	{
+	  mass=0;
+	  read_double(&kappa);
+	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
+	  r=0;
+	}
+      else
+	{
+	  read_double(&mass);
+	  master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	  read_int(&r);
+	  master_printf("Read variable 'R' with value: %d\n",r);
+	  kappa=glb_kappa;
+	  
+	  //include tau in the mass
+	  mass*=tau3[r];
+	}
+      read_double(&theta);
+      master_printf("Read variable 'Theta' with value: %lg\n",theta);
+      read_double(&residue);
+      master_printf("Read variable 'Residue' with value: %lg\n",residue);
+      Q[name].init_as_propagator(ins_from_tag(ins[0]),source_name,tins,residue,kappa,mass,r,theta);
+      qprop_name_list[iq]=name;
+    }
+  
+  read_photon_pars();
   
   read_free_theory_flag();
   read_random_gauge_transform();
@@ -35,38 +128,18 @@ void init_simulation(char *path)
   read_loc_muon_curr();
   
   //mesons
-  read_compute_mes2pts_flag();
-  if(compute_mes2pts_flag)
-    {
-      read_mes2pts_contr_quark_combos_list();
-      read_mes2pts_contr_gamma_list();
-    }
+  read_mes2pts_contr_pars();
   
   //meslept
-  read_compute_meslep_flag();
-  if(compute_meslep_flag)
-    {
-      read_meslep_contr_pars();
-      read_gospel_convention();
-    }
+  read_meslep_contr_pars();
   
   //baryons
-  read_compute_bar2pts_flag();
-  if(compute_bar2pts_flag)
-    {
-      set_Cg5();
-      read_bar2pts_contr_quark_combos_list();
-      read_ape_smearing_pars();
-      read_gaussian_smearing_pars();
-    }
+  set_Cg5();
+  read_bar2pts_contr_pars();
   
   read_ngauge_conf();
   
   ///////////////////// finished reading apart from conf list ///////////////
-  
-  set_inversions();
-  if(compute_mes2pts_flag) set_mes2pts_contr_ins_map();
-  if(compute_bar2pts_flag) set_bar2pts_contr_ins_map();
   
   if(clover_run)
     {
@@ -74,18 +147,17 @@ void init_simulation(char *path)
       invCl=nissa_malloc("invCl",loc_vol,inv_clover_term_t);
     }
   
-  allocate_source();
+  allocate_loop_source();
   allocate_photon_fields();
-  if(compute_mes2pts_flag) allocate_mes2pts_contr();
-  if(compute_meslep_flag)
-    {
-      nmeslep_corr=nquark_lep_combos*nindep_meslep_weak*norie*nins;
-      meslep_hadr_part=nissa_malloc("hadr",loc_vol,spinspin);
-      meslep_contr=nissa_malloc("meslep_contr",glb_size[0]*nindep_meslep_weak*nmeslep_proj*nmeslep_corr,complex);
-    }
-  if(compute_bar2pts_flag) allocate_bar2pts_contr();
   
-  allocate_Q_prop();
+  allocate_mes2pts_contr();
+  
+  nmeslep_corr=nquark_lep_combos*nindep_meslep_weak*norie*nins;
+  meslep_hadr_part=nissa_malloc("hadr",loc_vol,spinspin);
+  meslep_contr=nissa_malloc("meslep_contr",glb_size[0]*nindep_meslep_weak*nmeslep_proj*nmeslep_corr,complex);
+  
+  allocate_bar2pts_contr();
+  
   allocate_L_prop();
   temp_lep=nissa_malloc("temp_lep",loc_vol+bord_vol,spinspin);
   conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
@@ -97,34 +169,30 @@ void close()
 {
   print_statistics();
   
+  Q.clear();
+  
   free_photon_fields();
-  free_source();
-  free_Q_prop();
+  free_loop_source();
   free_L_prop();
   nissa_free(conf);
   nissa_free(ape_smeared_conf);
-  if(compute_mes2pts_flag) free_mes2pts_contr();
-  if(compute_meslep_flag)
-    {
-      nissa_free(meslep_hadr_part);
-      nissa_free(meslep_contr);
-      nissa_free(lep_contr_iq1);
-      nissa_free(lep_contr_iq2);
-      nissa_free(leps);
-      nissa_free(lep_energy);
-      nissa_free(neu_energy);
-    }
+  
+  free_mes2pts_contr();
+  
+  nissa_free(meslep_hadr_part);
+  nissa_free(meslep_contr);
+  nissa_free(lep_contr_iq1);
+  nissa_free(lep_contr_iq2);
+  nissa_free(leps);
+  nissa_free(lep_energy);
+  nissa_free(neu_energy);
+  
   if(clover_run)
     {
       nissa_free(Cl);
       nissa_free(invCl);
     }
-  nissa_free(qr);
-  nissa_free(qkappa);
-  nissa_free(qmass);
-  nissa_free(qtheta);
-  nissa_free(qresidue);
-  if(compute_bar2pts_flag) free_bar2pts_contr();
+  free_bar2pts_contr();
 }
 
 void in_main(int narg,char **arg)
@@ -145,10 +213,10 @@ void in_main(int narg,char **arg)
       //setup the conf and generate the source
       start_new_conf();
       
-      for(int isource=0;isource<nsources;isource++)
+      for(int ihit=0;ihit<nhits;ihit++)
 	{
-	  start_source(isource);
-	  generate_propagators(isource);
+	  start_hit(ihit);
+	  generate_propagators(ihit);
 	  compute_contractions();
 	}
       
