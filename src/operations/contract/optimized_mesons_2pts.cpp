@@ -174,7 +174,7 @@ namespace nissa
 		S_forw_t_id-=4;
 		S_back_t_id-=4;
 		DECLARE_REG_VIR_COMPLEX(reg_loc_temp);
-		REG_SPLAT_REG_VIR_COMPLEX(reg_loc_temp,0);
+		REG_SPLAT_VIR_COMPLEX(reg_loc_temp,0);
 		for(int iel=0;iel<nel;iel+=4)
 		  {
 		    DECLARE_REG_VIR_COMPLEX(reg_forw);
