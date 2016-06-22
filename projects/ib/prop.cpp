@@ -138,7 +138,11 @@ namespace nissa
 	  set_borders_invalid(sou->sp[so_sp_col_ind(id_so,ic_so)]);
 	  loc_ori_source_norm2+=double_vector_glb_norm2(sou->sp[so_sp_col_ind(id_so,ic_so)],loc_vol);
 	}
-    if(IS_MASTER_THREAD) sou->ori_source_norm2=loc_ori_source_norm2;
+    if(IS_MASTER_THREAD)
+      {
+	sou->ori_source_norm2=loc_ori_source_norm2;
+	master_printf("source norm: %lg\n",sou->ori_source_norm2);
+      }
   }
   THREADABLE_FUNCTION_END
   
@@ -204,6 +208,7 @@ namespace nissa
   //generate all the quark propagators
   void generate_quark_propagators(int ihit)
   {
+    GET_THREAD_ID();
     for(size_t i=0;i<qprop_name_list.size();i++)
       {
 	//get names
@@ -238,14 +243,20 @@ namespace nissa
 	      if(file_exists(path))
 		{
 		  master_printf("  loading the inversion dirac index %d, color %d\n",id_so,ic_so);
+		  START_TIMING(read_prop_time,nread_prop);
 		  read_real_vector(sol,path,"prop");
+		  STOP_TIMING(read_prop_time);
 		}
 	      else
 		{
 		  //otherwise compute it and possibly store it
 		  get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.residue,q.theta);
-		  write_double_vector(path,sol,64,"prop");
-		  
+		  if(store_prop0)
+		    {
+		      START_TIMING(store_prop_time,nstore_prop);
+		      write_double_vector(path,sol,64,"prop");
+		      STOP_TIMING(store_prop_time);
+		    }
 		  master_printf("  finished the inversion dirac index %d, color %d\n",id_so,ic_so);
 		}
 	    }

@@ -82,6 +82,12 @@ namespace nissa
   EXTERN_PROP int ninv_tot INIT_TO(0);
   EXTERN_PROP double inv_time INIT_TO(0);
   
+  EXTERN_PROP int nstore_prop INIT_TO(0);
+  EXTERN_PROP double store_prop_time INIT_TO(0);
+  
+  EXTERN_PROP int nread_prop INIT_TO(0);
+  EXTERN_PROP double read_prop_time INIT_TO(0);
+  
   EXTERN_PROP std::map<std::string,qprop_t> Q;
   EXTERN_PROP std::vector<std::string> qprop_name_list;
   EXTERN_PROP spinspin **L;
