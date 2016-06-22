@@ -20,13 +20,14 @@ namespace nissa
   typedef double float_128[2];
   typedef float_128 complex_128[2];
   typedef complex_128 color_128[NCOL];
-  typedef color_128 spincolor_128[4];
+  typedef color_128 halfspincolor_128[NDIRAC/2];
+  typedef color_128 spincolor_128[NDIRAC];
   typedef complex_128 vir_complex_128[2];
   
   typedef vir_complex_128 vir_color_128[NCOL];
   typedef vir_color_128 vir_su3_128[NCOL];
   typedef vir_su3_128 vir_oct_su3_128[8];
-  typedef vir_color_128 vir_spincolor_128[4];
+  typedef vir_color_128 vir_spincolor_128[NDIRAC/2];
   
   inline void float_128_print(float_128 a)
   {master_printf("(%16.16lg + %16.16lg)",a[0],a[1]);}
@@ -60,7 +61,7 @@ namespace nissa
   inline void float_128_put_to_zero(float_128 a)
   {a[0]=a[1]=0;}
   
-  double double_from_float_128(float_128 b)
+  inline double double_from_float_128(float_128 b)
   {return b[0]+b[1];}
   
   //128 summ 128
@@ -368,7 +369,7 @@ namespace nissa
   }
   
   //a>b?
-  int float_128_is_greater(float_128 a,float_128 b)
+  inline int float_128_is_greater(float_128 a,float_128 b)
   {
     if(a[0]>b[0]) return true;
     if(a[0]<b[0]) return false;
@@ -379,7 +380,7 @@ namespace nissa
   }
   
   //a<b?
-  int float_128_is_smaller(float_128 a,float_128 b)
+  inline int float_128_is_smaller(float_128 a,float_128 b)
   {
     if(a[0]<b[0]) return true;
     if(a[0]>b[0]) return false;
@@ -396,6 +397,9 @@ namespace nissa
   }
   
   //////////////////////////////////////////////////////
+  
+  inline void complex_128_put_to_zero(complex_128 a)
+  {for(int ri=0;ri<2;ri++) float_128_put_to_zero(a[ri]);}
   
   //c128 summ c128
   inline void complex_128_summ(complex_128 a,complex_128 b,complex_128 c)
@@ -453,6 +457,8 @@ namespace nissa
     float_64_prod_128(a[1],b[0],c[1]);
     float_summ_the_64_prod_128(a[1],b[1],c[0]);
   }
+  inline void unsafe_complex_128_prod_64(complex_128 a,complex_128 b,complex c)
+  {unsafe_complex_64_prod_128(a,c,b);}
   inline void complex_summ_the_64_prod_128(complex_128 a,complex b,complex_128 c)
   {
     complex_128 d;
@@ -505,6 +511,9 @@ namespace nissa
   inline void color_128_isubtassign(color_128 a,color_128 b)
   {color_128_isubt(a,a,b);}
   
+  inline void unsafe_color_128_prod_complex_64(color_128 out,color_128 in,complex factor)
+  {for(size_t i=0;i<NCOL;i++) unsafe_complex_128_prod_64(((complex_128*)out)[i],((complex_128*)in)[i],factor);}
+  
   inline void unsafe_su3_prod_color_128(color_128 a,su3 b,color_128 c)
   {
     for(int c1=0;c1<NCOL;c1++)
@@ -535,6 +544,37 @@ namespace nissa
     for(int c1=0;c1<NCOL;c1++)
       for(int c2=0;c2<NCOL;c2++)
 	complex_subt_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
+  }
+  
+  inline void su3_summ_the_prod_color_128(color_128 a,su3 b,color_128 c)
+  {
+    for(int c1=0;c1<NCOL;c1++)
+      for(int c2=0;c2<NCOL;c2++)
+	complex_summ_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
+  }
+  
+  inline void unsafe_halfspincolor_halfspincolor_times_halfspincolor_128(halfspincolor_128 a,halfspincolor_halfspincolor b,halfspincolor_128 c)
+  {
+    for(int id_out=0;id_out<NDIRAC/2;id_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
+	{
+	  complex_128_put_to_zero(a[id_out][ic_out]);
+	  for(int id_in=0;id_in<NDIRAC/2;id_in++)
+	    for(int ic_in=0;ic_in<NCOL;ic_in++)
+	      complex_summ_the_64_prod_128(a[id_out][ic_out],b[id_out][ic_out][id_in][ic_in],c[id_in][ic_in]);
+	}
+  }
+  
+  inline void unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor_128(halfspincolor_128 a,halfspincolor_halfspincolor b,halfspincolor_128 c)
+  {
+    for(int id_out=0;id_out<NDIRAC/2;id_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
+	{
+	  complex_128_put_to_zero(a[id_out][ic_out]);
+	  for(int id_in=0;id_in<NDIRAC/2;id_in++)
+	    for(int ic_in=0;ic_in<NCOL;ic_in++)
+	      complex_summ_the_64_conj1_prod_128(a[id_out][ic_out],b[id_in][ic_in][id_out][ic_out],c[id_in][ic_in]);
+	}
   }
 }
 
