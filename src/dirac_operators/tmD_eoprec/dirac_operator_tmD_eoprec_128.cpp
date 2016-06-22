@@ -6,6 +6,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
+#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_128.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3_op.hpp"
@@ -122,10 +123,6 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
-  //wrappers
-  void tmn2Doe_eos_128(spincolor_128 *out,quad_su3 **conf,spincolor_128 *in){tmn2Deo_or_tmn2Doe_eos_128(out,conf,1,in);}
-  void tmn2Deo_eos_128(spincolor_128 *out,quad_su3 **conf,spincolor_128 *in){tmn2Deo_or_tmn2Doe_eos_128(out,conf,0,in);}
   
   //implement ee or oo part of Dirac operator, equation(3)
   THREADABLE_FUNCTION_4ARG(tmDee_or_oo_eos_128, spincolor_128*,out, double,kappa, double,mu, spincolor_128*,in)
@@ -167,14 +164,10 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
-  //implement Koo defined in equation (7) 
-  THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos_128, spincolor_128*,out, spincolor_128*,temp, quad_su3**,conf, double,kappa, double,mu, spincolor_128*,in)
+  
+  //put g5
+  THREADABLE_FUNCTION_2ARG(tmDkern_eoprec_eos_put_together_and_include_gamma5_128, spincolor_128*,out, spincolor_128*,temp)
   {
-    tmn2Deo_eos_128(out,conf,in);
-    inv_tmDee_or_oo_eos_128(temp,kappa,mu,out);
-    tmn2Doe_eos_128(out,conf,temp);
-    tmDee_or_oo_eos_128(temp,kappa,mu,in);
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
@@ -193,7 +186,20 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
+  //implement Koo defined in equation (7)
+  THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos_128, spincolor_128*,out, spincolor_128*,temp, quad_su3**,conf, double,kappa, double,mu, spincolor_128*,in)
+  {
+    tmn2Deo_eos_128(out,conf,in);
+    inv_tmDee_or_oo_eos_128(temp,kappa,mu,out);
+    tmn2Doe_eos_128(out,conf,temp);
+    
+    tmDee_or_oo_eos_128(temp,kappa,mu,in);
+    
+    tmDkern_eoprec_eos_put_together_and_include_gamma5_128(out,temp);
+  }
+  THREADABLE_FUNCTION_END
+  
   //square of Koo
   void tmDkern_eoprec_square_eos_128(spincolor_128 *out,spincolor_128 *temp1,spincolor_128 *temp2,quad_su3 **conf,double kappa,double mu,spincolor_128 *in)
   {

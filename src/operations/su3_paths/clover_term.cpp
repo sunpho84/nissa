@@ -11,6 +11,7 @@
 #include "base/vectors.hpp"
 #include "communicate/edges.hpp"
 #include "linalgs/linalgs.hpp"
+#include "new_types/float_128.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -206,6 +207,16 @@ namespace nissa
     unsafe_color_prod_complex(out[1],in[1],diag);
     su3_summ_the_prod_color(out[1],Cl[1],in[0]);
     su3_subt_the_prod_color(out[1],Cl[0],in[1]);
+  }
+  void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex diag,clover_term_t Cl,halfspincolor_128 in)
+  {
+    unsafe_color_128_prod_complex_64(out[0],in[0],diag);
+    su3_summ_the_prod_color_128(out[0],Cl[0],in[0]);
+    su3_dag_summ_the_prod_color_128(out[0],Cl[1],in[1]);
+    
+    unsafe_color_128_prod_complex_64(out[1],in[1],diag);
+    su3_summ_the_prod_color_128(out[1],Cl[1],in[0]);
+    su3_subt_the_prod_color_128(out[1],Cl[0],in[1]);
   }
   
   void apply_point_squared_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)

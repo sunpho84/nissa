@@ -27,11 +27,17 @@ namespace nissa
   }
   
   void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in);
+  void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex diag,clover_term_t Cl,halfspincolor_128 in);
   void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in);
   inline void apply_point_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
   {
     complex z={1/(2*kappa),mass};
     apply_point_diag_plus_clover_term_to_halfspincolor(out,z,Cl,in);
+  }
+  inline void apply_point_twisted_clover_term_to_halfspincolor_128(halfspincolor_128 out,double mass,double kappa,clover_term_t Cl,halfspincolor_128 in)
+  {
+    complex z={1/(2*kappa),mass};
+    apply_point_diag_plus_clover_term_to_halfspincolor_128(out,z,Cl,in);
   }
   
   void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl);
