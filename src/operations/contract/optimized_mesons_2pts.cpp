@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -170,7 +174,7 @@ namespace nissa
 		S_forw_t_id-=4;
 		S_back_t_id-=4;
 		DECLARE_REG_BI_COMPLEX(reg_loc_temp);
-		REG_SPLAT_BI_COMPLEX(reg_loc_temp,0);
+		REG_SPLAT_REG_BI_COMPLEX(reg_loc_temp,0);
 		for(int iel=0;iel<nel;iel+=4)
 		  {
 		    DECLARE_REG_BI_COMPLEX(reg_forw);
