@@ -160,7 +160,7 @@ void init_simulation(char *path)
   
   allocate_L_prop();
   temp_lep=nissa_malloc("temp_lep",loc_vol+bord_vol,spinspin);
-  conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol,quad_su3);
 }
 
