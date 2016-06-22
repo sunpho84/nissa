@@ -173,19 +173,19 @@ namespace nissa
 #if defined BGQ && !defined BGQ_EMU
 		S_forw_t_id-=4;
 		S_back_t_id-=4;
-		DECLARE_REG_BI_COMPLEX(reg_loc_temp);
-		REG_SPLAT_REG_BI_COMPLEX(reg_loc_temp,0);
+		DECLARE_REG_VIR_COMPLEX(reg_loc_temp);
+		REG_SPLAT_REG_VIR_COMPLEX(reg_loc_temp,0);
 		for(int iel=0;iel<nel;iel+=4)
 		  {
-		    DECLARE_REG_BI_COMPLEX(reg_forw);
-		    DECLARE_REG_BI_COMPLEX(reg_back);
-		    REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(reg_forw,S_forw_t_id);
-		    REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(reg_back,S_back_t_id);
-		    REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(reg_loc_temp,reg_loc_temp,reg_forw,reg_back);
+		    DECLARE_REG_VIR_COMPLEX(reg_forw);
+		    DECLARE_REG_VIR_COMPLEX(reg_back);
+		    REG_LOAD_VIR_COMPLEX_AFTER_ADVANCING(reg_forw,S_forw_t_id);
+		    REG_LOAD_VIR_COMPLEX_AFTER_ADVANCING(reg_back,S_back_t_id);
+		    REG_VIR_COMPLEX_SUMM_THE_PROD_4DOUBLE(reg_loc_temp,reg_loc_temp,reg_forw,reg_back);
 		  }
 		
 		double loc_temp[4];
-		STORE_REG_BI_COMPLEX(loc_temp,reg_loc_temp);
+		STORE_REG_VIR_COMPLEX(loc_temp,reg_loc_temp);
 		temp[icontrib_t]=loc_temp[0]+loc_temp[1]+loc_temp[2]+loc_temp[3];
 #else
 		double loc_temp=0;
