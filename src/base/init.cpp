@@ -357,7 +357,7 @@ namespace nissa
 	if(fix_nranks[mu])
 	  {
 	    if(L[mu]%fix_nranks[mu]||L[mu]<nmin_dir)
-	      crash("asked to fix dir % in an impossible way",mu);
+	      crash("asked to fix dir %d in an impossible way",mu);
 	    res_NR/=fix_nranks[mu];
 	  }
       }
