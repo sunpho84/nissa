@@ -169,11 +169,12 @@ namespace nissa
 #if defined BGQ && !defined BGQ_EMU
 		S_forw_t_id-=4;
 		S_back_t_id-=4;
-		reg_bi_complex reg_loc_temp;
+		DECLARE_REG_BI_COMPLEX(reg_loc_temp);
 		REG_SPLAT_BI_COMPLEX(reg_loc_temp,0);
 		for(int iel=0;iel<nel;iel+=4)
 		  {
-		    reg_bi_complex reg_forw,reg_back;
+		    DECLARE_REG_BI_COMPLEX(reg_forw);
+		    DECLARE_REG_BI_COMPLEX(reg_back);
 		    REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(reg_forw,S_forw_t_id);
 		    REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(reg_back,S_back_t_id);
 		    REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(reg_loc_temp,reg_loc_temp,reg_forw,reg_back);
