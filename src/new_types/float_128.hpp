@@ -27,7 +27,7 @@ namespace nissa
   typedef vir_complex_128 vir_color_128[NCOL];
   typedef vir_color_128 vir_su3_128[NCOL];
   typedef vir_su3_128 vir_oct_su3_128[8];
-  typedef vir_color_128 vir_spincolor_128[NDIRAC/2];
+  typedef vir_color_128 vir_spincolor_128[NDIRAC];
   
   inline void float_128_print(float_128 a)
   {master_printf("(%16.16lg + %16.16lg)",a[0],a[1]);}
