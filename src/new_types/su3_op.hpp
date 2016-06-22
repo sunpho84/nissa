@@ -948,6 +948,7 @@ namespace nissa
 	      complex_summ_the_conj1_prod(a[id_out][ic_out],b[id_in][ic_in][id_out][ic_out],c[id_in][ic_in]);
 	}
   }
+  
   ////////////////////////////////// Operations between spincolor ////////////////////////
   
   //just print a spincolor
@@ -1368,40 +1369,6 @@ namespace nissa
     su3_subt_the_prod_su3_dag(zero,u,u);
     
     return sqrt(real_part_of_trace_su3_prod_su3_dag(zero,zero));
-  }
-  
-  ///////////////////////// ops with 128 bit data //////////////////////////
-  
-  inline void unsafe_su3_prod_color_128(color_128 a,su3 b,color_128 c)
-  {
-    for(int c1=0;c1<NCOL;c1++)
-      {
-	unsafe_complex_64_prod_128(a[c1],b[c1][0],c[0]);
-	for(int c2=1;c2<NCOL;c2++) complex_summ_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
-      }
-  }
-  
-  inline void unsafe_su3_dag_prod_color_128(color_128 a,su3 b,color_128 c)
-  {
-    for(int c1=0;c1<NCOL;c1++)
-      {
-	unsafe_complex_64_conj1_prod_128(a[c1],b[0][c1],c[0]);
-	for(int c2=1;c2<NCOL;c2++) complex_summ_the_64_conj1_prod_128(a[c1],b[c2][c1],c[c2]);
-      }
-  }
-  
-  inline void su3_dag_summ_the_prod_color_128(color_128 a,su3 b,color_128 c)
-  {
-    for(int c1=0;c1<NCOL;c1++)
-      for(int c2=0;c2<NCOL;c2++)
-	complex_summ_the_64_conj1_prod_128(a[c1],b[c2][c1],c[c2]);
-  }
-  
-  inline void su3_subt_the_prod_color_128(color_128 a,su3 b,color_128 c)
-  {
-    for(int c1=0;c1<NCOL;c1++)
-      for(int c2=0;c2<NCOL;c2++)
-	complex_subt_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
   }
 }
 
