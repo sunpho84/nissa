@@ -51,7 +51,7 @@ namespace nissa
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
-	      if(stoch_source) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),sou->noise_type);
+	      if(stoch_source && (sou->tins==-1||glb_coord_of_loclx[ivol][0]==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),sou->noise_type);
 	      else if(glblx_of_loclx[ivol]==0) complex_put_to_real(c[id_si][ic_si],1);
 	  }
 	
@@ -184,7 +184,7 @@ namespace nissa
 		{
 		  //otherwise compute it and possibly store it
 		  get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.residue,q.theta);
-		  if(store_prop0)
+		  if(q.store)
 		    {
 		      START_TIMING(store_prop_time,nstore_prop);
 		      write_double_vector(path,sol,64,"prop");

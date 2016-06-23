@@ -28,17 +28,36 @@ void init_simulation(char *path)
   int nsources;
   read_str_int("NSources",&nsources);
   ori_source_name_list.resize(nsources);
+  //discard header
+  expect_str("Name");
+  if(stoch_source)
+    {
+      expect_str("NoiseType");
+      expect_str("Tins");
+    }
+  expect_str("Store");
+  //loop over sources
   for(int isource=0;isource<nsources;isource++)
     {
       //name
       char name[1024];
       read_str(name,1024);
-      //noise type
-      char str_noise_type[20];
-      read_str(str_noise_type,20);
+      //noise type and tins
+      rnd_t noise_type=RND_ALL_PLUS_ONE;
+      int tins=ALL_TIMES;
+      if(stoch_source)
+	{
+	  char str_noise_type[20];
+	  read_str(str_noise_type,20);
+	  noise_type=convert_str_to_rnd_t(str_noise_type);
+	  read_int(&tins);
+	}
       //store
+      int store_source;
+      read_int(&store_source);
+      //add
       ori_source_name_list[isource]=name;
-      Q[name].init_as_source(convert_str_to_rnd_t(str_noise_type));
+      Q[name].init_as_source(noise_type,tins,store_source);
     }
   
   //Twisted run
@@ -60,20 +79,31 @@ void init_simulation(char *path)
   read_str_int("CloverRun",&clover_run);
   //cSW for clover run
   if(clover_run) read_str_double("cSW",&glb_cSW);
-  //NQuarks
-  std::string tag="Name,Ins,Sourcename,Tins";
-  if(!twisted_run) tag+=",Kappa";
-  else tag+=",Mass,R";
-  tag+=",Theta,Residues";
-  int nquarks;
-  read_str_int(tag.c_str(),&nquarks);
-  qprop_name_list.resize(nquarks);
-  for(int iq=0;iq<nquarks;iq++)
+  //NProps
+  int nprops;
+  read_str_int("NProps",&nprops);
+  qprop_name_list.resize(nprops);
+  //Discard header
+  expect_str("Name");
+  expect_str("Ins");
+  expect_str("SourceName");
+  expect_str("Tins");
+  if(!twisted_run) expect_str("Kappa");
+  else
+    {
+      expect_str("Mass");
+      expect_str("R");
+    }
+  expect_str("Theta");
+  expect_str("Residue");
+  expect_str("Store");
+  for(int iq=0;iq<nprops;iq++)
     {
       //name
       char name[1024];
       read_str(name,1024);
       master_printf("Read variable 'Name' with value: %s\n",name);
+      if(Q.find(name)!=Q.end()) crash("name \'%s\' already included",name);
       
       //ins name
       char ins[3];
@@ -92,7 +122,7 @@ void init_simulation(char *path)
       master_printf("Read variable 'Tins' with value: %d\n",tins);
       
       double kappa,mass,theta,residue;
-      int r;
+      int r,store_prop;
       if(!twisted_run)
 	{
 	  mass=0;
@@ -115,7 +145,9 @@ void init_simulation(char *path)
       master_printf("Read variable 'Theta' with value: %lg\n",theta);
       read_double(&residue);
       master_printf("Read variable 'Residue' with value: %lg\n",residue);
-      Q[name].init_as_propagator(ins_from_tag(ins[0]),source_name,tins,residue,kappa,mass,r,theta);
+      read_int(&store_prop);
+      master_printf("Read variable 'Store' with value: %d\n",store_prop);
+      Q[name].init_as_propagator(ins_from_tag(ins[0]),source_name,tins,residue,kappa,mass,r,theta,store_prop);
       qprop_name_list[iq]=name;
     }
   
