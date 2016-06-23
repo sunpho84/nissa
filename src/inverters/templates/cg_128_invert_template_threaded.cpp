@@ -68,8 +68,8 @@ namespace nissa
 	double_vector_from_quadruple_vector((double*)internal_source,(float_128*)residue_128,BULK_SIZE*NDOUBLES_PER_SITE);
 	
 	double_conv_quadruple_vector_glb_scalar_prod(&current_residue,(float_128*)residue_128,(float_128*)residue_128,BULK_SIZE*NDOUBLES_PER_SITE);
-	verbosity_lv2_master_printf("\nExternal loop iter %d relative residue: %lg\n\n",ext_iter,current_residue);
 	current_residue/=source_norm;
+	verbosity_lv2_master_printf("\nExternal loop iter %d relative residue: %lg\n\n",ext_iter,current_residue);
 	
 	// 3) calibrate inner solver stopping condition
 	double inner_solver_residue=std::max(1.e-16,external_solver_residue/current_residue);
@@ -78,7 +78,7 @@ namespace nissa
 	if(current_residue>=external_solver_residue)
 	  {
 	    //compute partial sol
-	    CG_128_INNER_SOLVER(sol,NULL,CG_128_INNER_PARAMETERS_CALL 100000,inner_solver_residue,internal_source);
+	    CG_128_INNER_SOLVER(sol,NULL,CG_128_INNER_PARAMETERS_CALL 1000000,inner_solver_residue,internal_source);
 	    
 	    //add the approximated solution to the total one
 	    quadruple_vector_summassign_double_vector((float_128*)sol_128,(double*)sol,BULK_SIZE*NDOUBLES_PER_SITE);

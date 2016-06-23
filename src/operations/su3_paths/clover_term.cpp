@@ -341,14 +341,46 @@ namespace nissa
     //	master_printf("\n\n");
     //  }
   }
-  
-  THREADABLE_FUNCTION_4ARG(invert_twisted_clover_term, inv_clover_term_t*,invCl, double,mass, double,kappa, clover_term_t*,Cl)
-  {
-    GET_THREAD_ID();
-    if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
-    NISSA_PARALLEL_LOOP(X,0,loc_vol) invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
-    set_borders_invalid(invCl);
-  }
-  THREADABLE_FUNCTION_END
+}
 
+#include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
+#include "geometry/geometry_mix.hpp"
+
+namespace nissa
+ {
+   THREADABLE_FUNCTION_4ARG(invert_twisted_clover_term, inv_clover_term_t*,invCl, double,mass, double,kappa, clover_term_t*,Cl)
+   {
+     GET_THREAD_ID();
+     if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
+     NISSA_PARALLEL_LOOP(X,0,loc_vol) invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
+     set_borders_invalid(invCl);
+     
+     //check
+     inv_clover_term_t *invCl_eo[2]={nissa_malloc("inver",loc_volh+bord_volh,inv_clover_term_t),nissa_malloc("inver",loc_volh+bord_volh,inv_clover_term_t)};
+     clover_term_t *Cl_eo[2]={nissa_malloc("Cleo",loc_volh+bord_volh,clover_term_t),nissa_malloc("Cleo",loc_volh+bord_volh,clover_term_t)};
+     spincolor *source[2]={nissa_malloc("source",loc_volh+bord_volh,spincolor),nissa_malloc("source",loc_volh+bord_volh,spincolor)};
+     generate_fully_undiluted_eo_source(source,RND_Z4,-1);
+     spincolor *inver[2]={nissa_malloc("inver",loc_volh+bord_volh,spincolor),nissa_malloc("inver",loc_volh+bord_volh,spincolor)};
+     split_lx_vector_into_eo_parts(invCl_eo,invCl);
+     split_lx_vector_into_eo_parts(Cl_eo,Cl);
+     spincolor *reco[2]={nissa_malloc("reco",loc_volh+bord_volh,spincolor),nissa_malloc("reco",loc_volh+bord_volh,spincolor)};
+     for(int eo=0;eo<2;eo++)
+       {
+	 inv_tmclovDee_or_oo_eos(inver[eo],invCl_eo[eo],false,source[eo]);
+	 tmclovDee_or_oo_eos(reco[eo],kappa,Cl_eo[eo],false,mass,inver[eo]);
+	 double_vector_subtassign((double*)(reco[eo]),(double*)(source[eo]),loc_volh*sizeof(spincolor)/sizeof(double));
+	 double r=double_vector_glb_norm2(reco[eo],loc_volh);
+	 master_printf("Check of the inverse of Clover: %lg\n",r);
+       }
+     
+     for(int eo=0;eo<2;eo++)
+       {
+	 nissa_free(source[eo]);
+	 nissa_free(inver[eo]);
+	 nissa_free(reco[eo]);
+ 	 nissa_free(Cl_eo[eo]);
+ 	 nissa_free(invCl_eo[eo]);
+       }
+   }
+   THREADABLE_FUNCTION_END
 }
