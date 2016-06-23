@@ -85,7 +85,7 @@ namespace nissa
 		  }
 	      }
 	  }
-      }	
+      }
     THREAD_BARRIER();
     
     //reduce between threads and summ
@@ -113,17 +113,12 @@ namespace nissa
     glb_nodes_reduce_complex_vect(mes2pts_contr,mes2pts_contr_size);
     for(int i=0;i<mes2pts_contr_size;i++) complex_prodassign_double(mes2pts_contr[i],1.0);
     
-    int ind=0;
     for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
       {
 	FILE *fout=open_file(combine("%s/mes_contr_%s",outfolder,mes2pts_contr_map[icombo].name.c_str()),"w");
 	
-	for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
-	  {
-	    print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind*glb_size[0],0,"",1.0);
-	    master_fprintf(fout,"\n");
-	    ind+=mes_gamma_list.size();
-	  }
+	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",1.0);
+	master_fprintf(fout,"\n");
 	
 	//close the file
 	close_file(fout);
