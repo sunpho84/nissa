@@ -7,10 +7,12 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
+#include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "inverters/twisted_mass/cg_invert_tmD_eoprec.hpp"
+#include "new_types/su3_op.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 #include "routines/ios.hpp"
 
@@ -31,6 +33,8 @@ namespace nissa
   //Invert twisted clover operator using e/o preconditioning.
   THREADABLE_FUNCTION_10ARG(inv_tmclovD_cg_eoprec, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, clover_term_t*,Cl_lx, inv_clover_term_t*,ext_invCl_lx, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
   {
+    GET_THREAD_ID();
+    
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
     inv_clover_term_t *invCl_lx;
@@ -95,6 +99,23 @@ namespace nissa
     /////////////////////////// paste the e/o parts of the solution together and free ///////////////////
     
     paste_eo_parts_into_lx_vector(solution_lx,solution_eos);
+    
+    //check for residual
+    spincolor *check_res=nissa_malloc("check_res",loc_vol+bord_vol,spincolor);
+    //multiply by g5*D
+    apply_tmclovQ(check_res,conf_lx,kappa,Cl_lx,mass,solution_lx);
+    //remove g5 and take the difference with source
+    const double mg5[2]={-1,1};
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int high_low=0;high_low<2;high_low++)
+	for(int id=high_low*NDIRAC/2;id<(high_low+1)*NDIRAC/2;id++)
+	    color_summ_the_prod_double(check_res[ivol][id],source_lx[ivol][id],mg5[high_low]);
+    set_borders_invalid(check_res);
+    //compute residual and print
+    double real_residue=double_vector_glb_norm2(check_res,loc_vol);
+    if(real_residue>residue*1.1) master_printf("WARNING preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
+    
+    nissa_free(check_res);
     
     for(int par=0;par<2;par++)
       {
