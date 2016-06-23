@@ -41,7 +41,7 @@ namespace nissa
 	START_TIMING(conf_load_time,nconf_load);
 	read_ildg_gauge_conf(conf,conf_path);
 	STOP_TIMING(conf_load_time);
-	master_printf("plaq: %+016.016g\n",global_plaquette_lx_conf(conf));
+	master_printf("plaq: %+16.16g\n",global_plaquette_lx_conf(conf));
       }
     else generate_cold_lx_conf(conf);
     
