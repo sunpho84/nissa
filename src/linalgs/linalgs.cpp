@@ -70,8 +70,8 @@ namespace nissa
   }
   
   //summ
-  THREADABLE_FUNCTION_3ARG(double_vector_summassign, double*,out, double*,in, int,n)
-  {GET_THREAD_ID();NISSA_PARALLEL_LOOP(i,0,n) out[i]+=in[i];set_borders_invalid(out);}THREADABLE_FUNCTION_END
+  THREADABLE_FUNCTION_4ARG(double_vector_summ, double*,out, double*,in1, double*,in2, int,n)
+  {GET_THREAD_ID();NISSA_PARALLEL_LOOP(i,0,n) out[i]=in1[i]+in2[i];set_borders_invalid(out);}THREADABLE_FUNCTION_END
   
   //subt
   THREADABLE_FUNCTION_4ARG(double_vector_subt, double*,out, double*,in1, double*,in2, int,n)
