@@ -496,23 +496,17 @@ namespace nissa
   void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header)
   {
 #ifdef USE_MPI_IO
-    double time=-take_time();
     //take original position and view
     ILDG_File_view normal_view=ILDG_File_get_current_view(file);
     
     //create scidac view and set it
     ILDG_File_view scidac_view=ILDG_File_create_scidac_mapped_view(file,header.data_length/glb_vol);
     ILDG_File_set_view(file,scidac_view);
-    time+=take_time();
-    master_printf("time to set the view: %lg\n",time);
+    
     //read
     MPI_Status status;
-    time=-take_time();
     decript_MPI_error(MPI_File_read_at_all(file,0,data,loc_vol,scidac_view.etype,&status),"while reading");
-    time+=take_time();
-    master_printf("time to parallel read: %lg\n",time);
     
-    time=-take_time();
     //count read bytes
     size_t nbytes_read=MPI_Get_count_size_t(status);
     if((uint64_t)nbytes_read!=header.data_length/nranks) crash("read %u bytes instead than %u",nbytes_read,header.data_length/nranks);
@@ -524,11 +518,7 @@ namespace nissa
     //reset mapped types
     unset_mapped_types(scidac_view.etype,scidac_view.ftype);
     
-    time+=take_time();
-    master_printf("time to unset the view: %lg\n",time);
-    
     //reorder
-    time=-take_time();
     int *order=nissa_malloc("order",loc_vol,int);
     NISSA_LOC_VOL_LOOP(idest)
     {
@@ -542,8 +532,7 @@ namespace nissa
     }
     reorder_vector((char*)data,order,loc_vol,header.data_length/glb_vol);
     nissa_free(order);
-    time+=take_time();
-    master_printf("time to reorder: %lg\n",time);
+    
 #else
     //allocate a buffer
     ILDG_Offset nbytes_per_rank_exp=header.data_length/nranks;
