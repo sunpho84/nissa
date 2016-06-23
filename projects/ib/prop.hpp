@@ -41,8 +41,8 @@ namespace nissa
     {
       sp.resize(nso_spi*nso_col);
       for(int i=0;i<nso_spi*nso_col;i++)
-	sp[i]=nissa_malloc("sp",loc_vol,spincolor);
-  }
+	sp[i]=nissa_malloc("sp",loc_vol+bord_vol,spincolor);
+    }
     
     //initialize as a propagator
     void init_as_propagator(insertion_t _insertion,std::string _source_name,int _tins,double _residue,double _kappa,double _mass,int _r,double _theta)
