@@ -5,73 +5,6 @@
 
 namespace nissa
 {
-  ////////////////////////////////////////////// quark propagator /////////////////////////////////////////////
-  
-  // void test_cl()
-  // {
-  //   generate_undiluted_source(source,RND_Z4,-1);
-    
-  //   //prepare the e/o split version of the source
-  //   spincolor *source_eos[2];
-  //   source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spincolor);
-  //   source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spincolor);
-  //   split_lx_vector_into_eo_parts(source_eos,source);
-    
-  //   //prepare the e/o split version of the solution
-  //   spincolor *solution_eos[2];
-  //   solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
-  //   solution_eos[1]=nissa_malloc("solution_eos_1",loc_volh+bord_volh,spincolor);
-    
-  //   //prepare the e/o split version of the conf
-  //   quad_su3 *conf_eos[2];
-  //   conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+bord_volh,quad_su3);
-  //   conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+bord_volh,quad_su3);
-  //   split_lx_vector_into_eo_parts(conf_eos,conf);
-    
-  //   //prepare the e/o split version of the clover term
-  //   clover_term_t *Cl_odd;
-  //   Cl_odd=nissa_malloc("Cl_odd",loc_volh,clover_term_t);
-  //   get_evn_or_odd_part_of_lx_vector(Cl_odd,Cl,ODD);
-    
-  //   //prepare the e/o split version of the clover term
-  //   inv_clover_term_t *invCl_evn;
-  //   invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
-  //   get_evn_or_odd_part_of_lx_vector(invCl_evn,invCl,EVN);
-    
-  //   vir_spincolor *vir_source=nissa_malloc("vir_source",loc_volh/2,vir_spincolor);
-  //   vir_oct_su3 *vir_eo_conf[2]={nissa_malloc("vir_conf_evn",loc_volh+bord_volh,vir_oct_su3),
-  //                              nissa_malloc("vir_conf_odd",loc_volh+bord_volh,vir_oct_su3)};
-  //   vir_spincolor *vir_temp=nissa_malloc("vir_temp",loc_volh/2,vir_spincolor);
-  //   vir_spincolor *vir_sol=nissa_malloc("vir_sol",loc_volh/2,vir_spincolor);
-  //   vir_clover_term_t *vir_Cl_odd=nissa_malloc("vir_Cl_odd",loc_volh/2,vir_clover_term_t);
-  //   vir_inv_clover_term_t *vir_invCl_evn=nissa_malloc("vir_invCl_evn",loc_volh/2,vir_inv_clover_term_t);
-  //   evn_or_odd_spincolor_remap_to_virevn_or_odd(vir_source,source_eos[ODD],ODD);
-  //   evn_or_odd_clover_term_t_remap_to_virevn_or_odd(vir_Cl_odd,Cl_odd,ODD);
-  //   evn_or_odd_inv_clover_term_t_remap_to_virevn_or_odd(vir_invCl_evn,invCl_evn,EVN);
-  //   eo_conf_remap_to_vireo(vir_eo_conf,conf_eos);
-    
-  //   tmclovDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,qkappa[0],Cl_odd,invCl_evn,true,  qmass[0],source_eos[ODD]   );
-  //   tmclovDkern_eoprec_eos_bgq(vir_sol,vir_temp, vir_eo_conf,qkappa[0],vir_Cl_odd,vir_invCl_evn,true, qmass[0],vir_source);
-
-  //   // inv_tmclovDee_or_oo_eos(vir_sol,vir_invCl_evn,true,vir_source);
-  //   // inv_tmclovDee_or_oo_eos(solution_eos[ODD],invCl_evn,true,source_eos[ODD]);
-
-  //   // vector_reset(vir_sol);
-  //   // tmclovDee_or_oo_eos(solution_eos[ODD],qkappa[0],Cl_odd,false,qmass[0],source_eos[ODD]);
-  //   // minus_one_quarter_subt_tmclovDee_or_oo_eos(vir_sol,qkappa[0],vir_Cl_odd,false,qmass[0],vir_source);
-  
-  //   virevn_or_odd_spincolor_remap_to_evn_or_odd(solution_eos[EVN],vir_sol,ODD);
-
-  //   GET_THREAD_ID();
-  //   NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-  //     for(int id=0;id<4;id++)
-  // 	for(int ic=0;ic<3;ic++)
-  // 	  for(int ri=0;ri<2;ri++)
-  // 	    master_printf("%d %d %d %d %lg %lg\n",ivol,id,ic,ri,solution_eos[ODD][ivol][id][ic][ri],solution_eos[EVN][ivol][id][ic][ri]);
-    
-  //   crash("ci");
-  // }
-  
   //get a propagator inverting on "in"
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double residue,double theta)
   {
@@ -85,7 +18,7 @@ namespace nissa
     
     //invert
     START_TIMING(inv_time,ninv_tot);
-    //test_cl();
+    
     if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,mass,1000000,residue,in);
     else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
     
