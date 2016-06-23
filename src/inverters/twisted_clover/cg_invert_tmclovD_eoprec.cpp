@@ -112,7 +112,7 @@ namespace nissa
 	    color_summ_the_prod_double(check_res[ivol][id],source_lx[ivol][id],mg5[high_low]);
     set_borders_invalid(check_res);
     //compute residual and print
-    double real_residue=double_vector_glb_norm2(check_res,loc_vol);
+    double real_residue=double_vector_glb_norm2(check_res,loc_vol)/double_vector_glb_norm2(source_lx,loc_vol);
     if(real_residue>residue*1.1) master_printf("WARNING preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
     
     nissa_free(check_res);
