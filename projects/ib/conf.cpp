@@ -55,7 +55,7 @@ namespace nissa
     if(ape_smeared_conf)
       {
 	ape_spatial_smear_conf(ape_smeared_conf,conf,ape_smearing_alpha,ape_smearing_niters);
-	master_printf("Smeared plaquette: %.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
+	master_printf("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
       }
     
     //put anti-periodic boundary condition for the fermionic propagator
