@@ -16,21 +16,6 @@
 
 namespace nissa
 {
-  void apply_stD2ee_zero_mass(color *out,quad_su3 **conf,color *temp,color *in)
-  {
-    communicate_ev_and_od_quad_su3_borders(conf);
-    communicate_ev_color_borders(in);
-    
-    //check arguments
-    if(out==in)   crash("out==in!");
-    if(out==temp) crash("out==temp!");
-    if(temp==in)  crash("temp==in!");
-    
-    //perform the off diagonal multiplication
-    apply_st2Doe(temp,conf,in);
-    apply_stDeo_half(out,conf,temp);
-  }
-  
   //return the even part of the application of D to a vector
   void evn_apply_stD(color *out,quad_su3 **conf,double m,color **in,double sign=1)
   {
