@@ -3,7 +3,10 @@
 #endif
 
 #include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
+#include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
+#include "new_types/su3_op.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -119,7 +122,7 @@ namespace nissa
 	su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw0][0],in[evdw0]);
 	
 	//derivatives in the spatial direction - with self summ
-	for(int mu=1;mu<4;mu++)
+	for(int mu=1;mu<NDIM;mu++)
 	  {
 	    int evup=loceo_neighup[ODD][io][mu];
 	    int evdw=loceo_neighdw[ODD][io][mu];
