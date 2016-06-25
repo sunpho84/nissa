@@ -11,6 +11,7 @@
 #include "base/random.hpp"
 #include "communicate/communicate.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
+#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "linalgs/linalgs.hpp"
@@ -32,7 +33,8 @@ namespace nissa
   THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark, quad_su3**,eo_conf, int,niters)
   {
     pseudofermion_t in(pseudofermion_t(quark->discretiz));
-    pseudofermion_t temp(pseudofermion_t(quark->discretiz));
+    pseudofermion_t temp1(pseudofermion_t(quark->discretiz));
+    pseudofermion_t temp2(pseudofermion_t(quark->discretiz)); //not used for stag... 
     pseudofermion_t out(pseudofermion_t(quark->discretiz));
     
     //generate the random field
@@ -51,7 +53,9 @@ namespace nissa
 	switch(quark->discretiz)
 	  {
 	  case ferm_discretiz::ROOT_STAG:
-	    apply_stD2ee_m2(out.stag,eo_conf,temp.stag,sqr(quark->mass),in.stag);break;
+	    apply_stD2ee_m2(out.stag,eo_conf,temp1.stag,sqr(quark->mass),in.stag);break;
+	  case ferm_discretiz::ROOT_TM_CLOV:
+	    tmDkern_eoprec_square_eos(out.Wils,temp1.Wils,temp2.Wils,eo_conf,quark->kappa,quark->mass,in.Wils); break;
 	  default:
 	    crash("not supported yet");
 	  }

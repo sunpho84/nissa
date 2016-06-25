@@ -6,6 +6,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
+#include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
@@ -17,18 +18,25 @@
 namespace nissa
 {
   //generate pseudo-fermion using color vector generator
-  THREADABLE_FUNCTION_6ARG(generate_pseudo_fermion, double*,action, color*,pf, quad_su3**,conf, quad_u1**,u1b, rat_approx_t*,rat, double,residue)
+  THREADABLE_FUNCTION_7ARG(generate_pseudo_fermion, double*,action, pseudofermion_t*,pf, quad_su3**,conf, quad_u1**,u1b, rat_approx_t*,rat, double,residue, ferm_discretiz::name_t,discretiz)
   {
     //generate the random field
-    color *pf_hb_vec=nissa_malloc("pf_hb_vec",loc_volh,color);
-    generate_fully_undiluted_eo_source(pf_hb_vec,RND_GAUSS,-1,EVN);
+    pseudofermion_t pf_hb_vec(discretiz);
+    pf_hb_vec.fill();
     
     //compute action
-    double_vector_glb_scalar_prod(action,(double*)pf_hb_vec,(double*)pf_hb_vec,sizeof(color)/sizeof(double)*loc_volh);
+    (*action)=pf_hb_vec.norm2();
     
     //invert to perform hv
     add_backfield_to_conf(conf,u1b);
-    summ_src_and_all_inv_stD2ee_m2_cgm(pf,conf,rat,1000000,residue,pf_hb_vec);
+    switch(discretiz)
+      {
+      case ferm_discretiz::ROOT_STAG:
+	summ_src_and_all_inv_stD2ee_m2_cgm(pf->stag,conf,rat,10000000,residue,pf_hb_vec.stag);break;
+      case ferm_discretiz::ROOT_TM_CLOV:
+	crash("not implemented yet");break;
+      default:crash("not supported");break;
+      }
     rem_backfield_from_conf(conf,u1b);
     
     nissa_free(pf_hb_vec);

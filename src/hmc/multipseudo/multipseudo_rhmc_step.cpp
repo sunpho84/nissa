@@ -85,13 +85,7 @@ namespace nissa
 	{
 	  verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs());
 	  double pf_action_flav;
-	  switch(theory_pars.quarks[iflav].discretiz)
-	    {
-	    case ferm_discretiz::ROOT_STAG:
-	      generate_pseudo_fermion(&pf_action_flav,pf[iflav][ipf].stag,sme_conf,theory_pars.backfield[iflav],&rat_appr[3*iflav+0],simul_pars.pf_action_residue);break;
-	    default:
-	      crash("not yet implemented");
-	    }
+	  //cwe
 	  pf_action+=pf_action_flav;
 	}
     

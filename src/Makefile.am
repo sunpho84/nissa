@@ -276,6 +276,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	inverters/twisted_clover/cg_64_invert_tmclovD_eoprec.cpp \
 	inverters/twisted_clover/cg_128_invert_tmclovQ2.cpp \
 	inverters/twisted_clover/cg_128_invert_tmclovD_eoprec.cpp \
+	inverters/twisted_clover/cgm_invert_tmclovDkern_eoprec_square_portable.cpp \
 	inverters/twisted_clover/cgm_invert_tmclovQ2.cpp \
 	inverters/twisted_clover/tmclov_frontends.cpp \
 	inverters/Wclov/cg_invert_WclovQ.cpp \
