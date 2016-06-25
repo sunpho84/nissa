@@ -230,16 +230,9 @@ void init_simulation(char *path)
   close_file(input_global);
 }
 
-namespace nissa
-{
-  extern int nglbgen;
-}
-
 //finalize everything
 void close_simulation()
 {
-  master_printf("glb rnd generated: %d\n",nglbgen);
-  
   if(!drv->conf_pars.store_running && ntraj_prod>0) write_conf(drv->conf_pars.path,conf);
   
   //destroy topo pars
