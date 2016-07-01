@@ -226,35 +226,38 @@ namespace nissa
   
   THREADABLE_FUNCTION_6ARG(Omelyan_integrator, quad_su3**,H, quad_su3**,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
   {
-    //macro step or micro step
-    double dt=simul_pars->traj_length/simul_pars->nmd_steps,
-      ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
     int nsteps=simul_pars->nmd_steps;
-    topotential_pars_t tp=theory_pars->topotential_pars;
-    
-    //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-    evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,ldt);
-    if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,ldt);
-    
-    //         Main loop
-    for(int istep=0;istep<nsteps;istep++)
+    if(nsteps)
       {
-	verbosity_lv1_master_printf("Omelyan macro-step %d/%d\n",istep+1,nsteps);
+	//macro step or micro step
+	double dt=simul_pars->traj_length/simul_pars->nmd_steps,
+	  ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
+	topotential_pars_t tp=theory_pars->topotential_pars;
 	
-	//decide if last step is final or not
-	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
+	//     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
+	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,ldt);
+	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,ldt);
 	
-	Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
-	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,uml2dt);
-	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,uml2dt);
+	//         Main loop
+	for(int istep=0;istep<nsteps;istep++)
+	  {
+	    verbosity_lv1_master_printf("Omelyan macro-step %d/%d\n",istep+1,nsteps);
+	    
+	    //decide if last step is final or not
+	    double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
+	    
+	    Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
+	    evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,uml2dt);
+	    if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,uml2dt);
+	    
+	    Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
+	    evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,last_dt);
+	    if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt);
+	  }
 	
-	Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
-	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,last_dt);
-	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt);
+	//normalize the configuration
+	unitarize_eo_conf_maximal_trace_projecting(conf);
       }
-    
-    //normalize the configuration
-    unitarize_eo_conf_maximal_trace_projecting(conf);
   }
   THREADABLE_FUNCTION_END
 }
