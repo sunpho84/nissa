@@ -32,8 +32,9 @@ namespace nissa
 #define CGM_ADDITIONAL_VECTORS_ALLOCATION() \
   BASETYPE *t1=nissa_malloc("temp1",BULK_VOL+BORD_VOL,BASETYPE);	\
   BASETYPE *t2=nissa_malloc("temp2",BULK_VOL+BORD_VOL,BASETYPE);
-#define CGM_ADDITIONAL_VECTORS_FREE() \
-  nissa_free(t1); \
+
+#define CGM_ADDITIONAL_VECTORS_FREE()		\
+  nissa_free(t1);				\
   nissa_free(t2);
 
 //additional parameters
@@ -52,3 +53,4 @@ namespace nissa
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,Cl_odd,invCl_evn,mass,
 
 #include "inverters/templates/cgm_invert_template_threaded.cpp"
+
