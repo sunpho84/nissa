@@ -96,9 +96,21 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(chromo_operator, clover_term_t*,Cl, quad_su3*,conf)
   {
     GET_THREAD_ID();
+    if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing Chromo operator\n");
     communicate_lx_quad_su3_edges(conf);
     NISSA_PARALLEL_LOOP(X,0,loc_vol) point_chromo_operator(Cl[X],conf,X);
     set_borders_invalid(Cl);
+  }
+  THREADABLE_FUNCTION_END
+  THREADABLE_FUNCTION_2ARG(chromo_operator, clover_term_t**,Cl_eo, quad_su3**,conf_eo)
+  {
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
+    clover_term_t *Cl_lx=nissa_malloc("Cl_lx",loc_vol,clover_term_t);
+    paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
+    chromo_operator(Cl_lx,conf_lx);
+    split_lx_vector_into_eo_parts(Cl_eo,Cl_lx);
+    nissa_free(conf_lx);
+    nissa_free(Cl_lx);
   }
   THREADABLE_FUNCTION_END
   
@@ -343,8 +355,8 @@ namespace nissa
   }
 }
 
-#include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
-#include "geometry/geometry_mix.hpp"
+// #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
+// #include "geometry/geometry_mix.hpp"
 
 namespace nissa
  {
@@ -352,7 +364,7 @@ namespace nissa
    {
      GET_THREAD_ID();
      if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
-     NISSA_PARALLEL_LOOP(X,0,loc_vol) invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
+     NISSA_PARALLEL_LOOP(X,0,get_vect(invCl)->nel) invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
      set_borders_invalid(invCl);
      
      // //check
