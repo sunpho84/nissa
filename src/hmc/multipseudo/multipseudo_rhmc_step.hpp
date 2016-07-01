@@ -168,14 +168,20 @@ namespace nissa
       
       return other_norm;
     }
-    //return the squared norm
-    double norm2()
-    {
-      if(is_stag) return double_vector_glb_norm2(stag,loc_volh);
-      else        return double_vector_glb_norm2(Wils,loc_volh);
-    }
+    
     double normalize(double norm=1)
     {return normalize(*this,norm);}
+    
+    //scalar product with another vector
+    double scal_prod_with(pseudofermion_t &oth)
+    {
+      double res;
+      if(is_stag) double_vector_glb_scalar_prod(&res,(double*)stag,(double*)oth.stag,loc_volh*sizeof(color)/sizeof(double));
+      else double_vector_glb_scalar_prod(&res,(double*)Wils,(double*)oth.Wils,loc_volh*sizeof(spincolor)/sizeof(double));
+      return res;
+    }
+    //return the squared norm
+    double norm2(){return scal_prod_with(*this);}
     
     //allocate and mark size
     void create(ferm_discretiz::name_t discretiz,const char *name="pf")

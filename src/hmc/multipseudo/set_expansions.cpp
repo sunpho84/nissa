@@ -11,31 +11,32 @@
 #include "base/random.hpp"
 #include "communicate/communicate.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
-#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
+#include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
+#include "hmc/hmc.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/su3.hpp"
 #include "operations/remez/remez_algorithm.hpp"
+#include "operations/su3_paths/clover_term.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
 
-#include "hmc/backfield.hpp"
-
-#define ENL_GEN 1.18920711500272106671
-
 namespace nissa
 {
+  //fourth root of 2, used to extend the range of eigenvalues
+  const double enl_gen=pow(2,0.25);
+  
   //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
-  THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark, quad_su3**,eo_conf, int,niters)
+  THREADABLE_FUNCTION_6ARG(max_eigenval, double*,eig_max, quark_content_t*,quark, quad_su3**,eo_conf, clover_term_t**,Cl, quad_u1**,backfield, int,niters)
   {
-    pseudofermion_t in(pseudofermion_t(quark->discretiz));
-    pseudofermion_t temp1(pseudofermion_t(quark->discretiz));
-    pseudofermion_t temp2(pseudofermion_t(quark->discretiz)); //not used for stag... 
-    pseudofermion_t out(pseudofermion_t(quark->discretiz));
+    pseudofermion_t in(quark->discretiz);
+    pseudofermion_t temp1(quark->discretiz);
+    pseudofermion_t temp2(quark->discretiz); //not used for stag...
+    pseudofermion_t out(quark->discretiz);
     
     //generate the random field
     in.fill();
@@ -44,10 +45,20 @@ namespace nissa
     double init_norm=in.normalize();
     verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
     
+    //prepare the ingredients
+    add_backfield_to_conf(eo_conf,backfield);
+    inv_clover_term_t *invCl_evn=NULL;
+    if(ferm_discretiz::include_clover(quark->discretiz))
+      {
+	invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+	invert_twisted_clover_term(invCl_evn,quark->mass,quark->kappa,Cl[EVN]);
+      }
+    
     //apply the vector niter times normalizing at each iter
     int iter=0;
     int is_increasing=1;
     double old_eig_max;
+    
     do
       {
 	switch(quark->discretiz)
@@ -55,7 +66,8 @@ namespace nissa
 	  case ferm_discretiz::ROOT_STAG:
 	    apply_stD2ee_m2(out.stag,eo_conf,temp1.stag,sqr(quark->mass),in.stag);break;
 	  case ferm_discretiz::ROOT_TM_CLOV:
-	    tmDkern_eoprec_square_eos(out.Wils,temp1.Wils,temp2.Wils,eo_conf,quark->kappa,quark->mass,in.Wils); break;
+	    tmclovDkern_eoprec_square_eos(out.Wils,temp1.Wils,temp2.Wils,eo_conf,quark->kappa,Cl[ODD],invCl_evn,quark->mass,in.Wils);
+	    break;
 	  default:
 	    crash("not supported yet");
 	  }
@@ -68,6 +80,9 @@ namespace nissa
 	verbosity_lv2_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark->mass,iter,*eig_max);
       }
     while(iter<niters&&is_increasing);
+
+    //remove the background field
+    rem_backfield_from_conf(eo_conf,backfield);
     
     //assume a 10% excess
     (*eig_max)*=1.1;
@@ -113,7 +128,7 @@ namespace nissa
     //check that approximation it is not exagerated
     if(valid)
       {
-	double exc=pow(ENL_GEN,4);
+	double exc=pow(enl_gen,4);
 	double fact=cond_numb_stored/cond_numb;
 	bool does_not_exceed=(fact<exc);
 	if(!does_not_exceed) verbosity_lv2_master_printf(" Condition number %lg more than %lg smaller (%lg) than %lg (stored)\n",cond_numb,exc,fact,cond_numb_stored);
@@ -145,33 +160,51 @@ namespace nissa
     
     //list of rat_approx to recreate
     int nto_recreate=0;
-    int iappr_to_recreate[3*nflavs];
-    double min_to_recreate[3*nflavs];
-    double max_to_recreate[3*nflavs];
-    double maxerr_to_recreate[3*nflavs];
+    int iappr_to_recreate[nappr_per_quark*nflavs];
+    double min_to_recreate[nappr_per_quark*nflavs];
+    double max_to_recreate[nappr_per_quark*nflavs];
+    double maxerr_to_recreate[nappr_per_quark*nflavs];
+    
+    //allocate or not clover term and inverse evn clover term
+    clover_term_t *Cl[2]={NULL,NULL};
+    if(theory_pars->clover_to_be_computed())
+      {
+	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+	chromo_operator(Cl,eo_conf);
+      }
     
     //check that we have the appropriate number of quarks
-    THREAD_ATOMIC_EXEC(if(IS_MASTER_THREAD) rat_appr->resize(3*nflavs));
+    THREAD_ATOMIC_EXEC(if(IS_MASTER_THREAD) rat_appr->resize(nappr_per_quark*nflavs));
     
-    const int max_iter=100;
+    const int max_iter=1000;
     for(int iflav=0;iflav<nflavs;iflav++)
       {
+	quark_content_t &q=theory_pars->quarks[iflav];
+	
 	//find min and max eigenvalue
 	double eig_min,eig_max;
-	add_backfield_to_conf(eo_conf,theory_pars->backfield[iflav]);
-	max_eigenval(&eig_max,&(theory_pars->quarks[iflav]),eo_conf,max_iter);
-	eig_min=pow(theory_pars->quarks[iflav].mass,2);
-	rem_backfield_from_conf(eo_conf,theory_pars->backfield[iflav]);
+	max_eigenval(&eig_max,&q,eo_conf,Cl,theory_pars->backfield[iflav],max_iter);
+	switch(q.discretiz)
+	  {
+	  case ferm_discretiz::ROOT_STAG:
+	    eig_min=pow(q.mass,2);
+	    break;
+	  case ferm_discretiz::ROOT_TM_CLOV:
+	    eig_min=pow(q.mass,2); //possibly understimate, that's why this is separate
+	    break;
+	  default: crash("unknown");
+	  }
 	
 	//take the pointer to the rational approximations for current flavor and mark down degeneracy
-	rat_approx_t *appr=&(*rat_appr)[3*iflav];
-	int deg=theory_pars->quarks[iflav].deg;
+	rat_approx_t *appr=&(*rat_appr)[nappr_per_quark*iflav];
+	int deg=q.deg;
 	int npf=evol_pars->npseudo_fs[iflav];
 	
 	//generate the three approximations
-	int extra_fact[3]={8,-4,-4};
-	double maxerr[3]={sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->md_residue)};
-	for(int i=0;i<3;i++)
+	int root=ferm_discretiz::root_needed(q.discretiz);
+	int extra_fact[nappr_per_quark]={2*root,-root,-root};
+	double maxerr[nappr_per_quark]={sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->md_residue)};
+	for(int i=0;i<nappr_per_quark;i++)
 	  {
 	    //compute condition number and exponent
 	    int num=deg,den=extra_fact[i]*npf;
@@ -219,9 +252,9 @@ namespace nissa
 	    else
 	      {
 		verbosity_lv2_master_printf("Stored rational approximation not valid, scheduling to generate a new one\n");
-		iappr_to_recreate[nto_recreate]=i+3*iflav;
-		min_to_recreate[nto_recreate]=eig_min/ENL_GEN;
-		max_to_recreate[nto_recreate]=eig_max*ENL_GEN;
+		iappr_to_recreate[nto_recreate]=i+nappr_per_quark*iflav;
+		min_to_recreate[nto_recreate]=eig_min/enl_gen;
+		max_to_recreate[nto_recreate]=eig_max*enl_gen;
 		maxerr_to_recreate[nto_recreate]=maxerr[i];
 		nto_recreate++;
 	      }

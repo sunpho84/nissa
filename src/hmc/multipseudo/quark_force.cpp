@@ -3,6 +3,7 @@
 #endif
 
 #include "base/thread_macros.hpp"
+#include "hmc/hmc.hpp"
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 #include "hmc/theory_pars.hpp"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp"
@@ -44,11 +45,11 @@ namespace nissa
       for(size_t ipf=0;ipf<(*pf)[iflav].size();ipf++)
 	{
 	  verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %d/%d\n",iflav+1,tp->nflavs(),ipf+1,(*pf)[iflav].size());
-
+	  
 	  switch(tp->quarks[iflav].discretiz)
 	    {
 	    case ferm_discretiz::ROOT_STAG:
-	      summ_the_rootst_eoimpr_quark_force(F,tp->quarks[iflav].charge,conf,(*pf)[iflav][ipf].stag,tp->em_field_pars.flag,tp->backfield[iflav],&((*appr)[iflav*3+2]),residue);break;
+	      summ_the_rootst_eoimpr_quark_force(F,tp->quarks[iflav].charge,conf,(*pf)[iflav][ipf].stag,tp->em_field_pars.flag,tp->backfield[iflav],&((*appr)[iflav*nappr_per_quark+RAT_APPR_QUARK_FORCE]),residue);break;
 	    default:
 	      crash("non staggered not yet implemented");
 	    }

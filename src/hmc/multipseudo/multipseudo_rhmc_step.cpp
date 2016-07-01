@@ -12,11 +12,13 @@
 #include "geometry/geometry_eo.hpp"
 #include "new_types/rat_approx.hpp"
 #include "operations/smearing/stout.hpp"
+#include "operations/su3_paths/clover_term.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 
 #include "hmc/backfield.hpp"
+#include "hmc/hmc.hpp"
 #include "hmc/momenta/momenta_generation.hpp"
 #include "hmc/multipseudo/Omelyan_integrator.hpp"
 #include "hmc/multipseudo/set_expansions.hpp"
@@ -26,6 +28,20 @@
 
 namespace nissa
 {
+  //ROOT_STAG has mass term completely constant
+  namespace
+  {
+    const double shift_poles=1,shift_poles_back=-1;
+    void shift_all_ROOT_STAG_poles(theory_pars_t &theory_pars,std::vector<rat_approx_t> &rat_appr,const double sign)
+    {
+      
+      for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
+	if(theory_pars.quarks[iflav].discretiz==ferm_discretiz::ROOT_STAG)
+	  for(int i=0;i<nappr_per_quark;i++)
+	    rat_appr[iflav*nappr_per_quark+i].shift_all_poles(sign*sqr(theory_pars.quarks[iflav].mass));
+    }
+  }
+  
   //perform a full hmc step and return the difference between final and original action
   double multipseudo_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr,int itraj)
   {
@@ -55,6 +71,7 @@ namespace nissa
 	pf[iflav].resize(npf);
 	for(int ipf=0;ipf<npf;ipf++) pf[iflav][ipf].create(theory_pars.quarks[iflav].discretiz);
       }
+    
     //if needed smear the configuration for pseudo-fermions, approx generation and action computation
     //otherwise bind out_conf to sme_conf
     quad_su3 *sme_conf[2];
@@ -73,23 +90,11 @@ namespace nissa
     //generate the appropriate expansion of rational approximations
     set_expansions(&rat_appr,sme_conf,&theory_pars,&simul_pars);
     
-    //shift all the poles of the mass
-    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
-      for(int i=0;i<3;i++)
-	rat_appr[iflav*3+i].shift_all_poles(sqr(theory_pars.quarks[iflav].mass));
+    //shift all the poles of the mass for staggered operator
+    shift_all_ROOT_STAG_poles(theory_pars,rat_appr,shift_poles);
     
-    //create pseudo-fermions and store action
-    double pf_action=0;
-    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
-      for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++)
-	{
-	  verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs());
-	  double pf_action_flav;
-	  //cwe
-	  pf_action+=pf_action_flav;
-	}
-    
-    //create the momenta
+    //generate all pseudofermions and momenta
+    double pf_action=generate_pseudofermions(pf,sme_conf,theory_pars,simul_pars,rat_appr);
     generate_hmc_momenta(H);
     
     //compute initial action
@@ -115,13 +120,12 @@ namespace nissa
     //compute the diff
     double diff_action=final_action-init_action;
     
+    //free smeared conf
     for(int par=0;par<2;par++) nissa_free(H[par]);
     if(theory_pars.stout_pars.nlevels!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
     
-    //shift back
-    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
-      for(int i=0;i<3;i++)
-	rat_appr[iflav*3+i].shift_all_poles(-sqr(theory_pars.quarks[iflav].mass));
+    //shift back all the poles of the mass for staggered operator
+    shift_all_ROOT_STAG_poles(theory_pars,rat_appr,shift_poles_back);
     
     //take time
     hmc_time+=take_time();
