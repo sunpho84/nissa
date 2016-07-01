@@ -277,7 +277,7 @@ namespace nissa
 	    locw_res+=plain_res*point_weight;
 	    loc_weight+=point_weight;
 	    if(plain_res>locmax_res) locmax_res=plain_res;
-	  } 
+	  }
 	
 	res=glb_reduce_double(loc_res);
 	w_res=glb_reduce_double(locw_res);
@@ -291,7 +291,7 @@ namespace nissa
 	if(res/source_norm>=2*final_res[ishift])
 	  master_printf("WARNING: true residue for shift %d (%lg) much larger than expected one (%lg)\n",
 			ishift,res/source_norm,final_res[ishift]);
-      }  
+      }
     
     verbosity_lv1_master_printf(" Total cgm iterations: %d\n",final_iter);
     
@@ -338,7 +338,7 @@ THREADABLE_FUNCTION_11ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1
     CGM_INVERT(sol,CGM_ADDITIONAL_PARAMETERS_CALL shift,nshift,niter_max,req_res_int,source);
   }
   THREADABLE_FUNCTION_END
-
+  
   //put outside to be common with single version
 #include "cgm_invert_template_summsol_threaded.hpp"
 }
