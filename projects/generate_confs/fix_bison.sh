@@ -15,4 +15,4 @@ yyformat = yyformatbuf + sizeof(YY_BASE_ERROR_STRING) - 1;\
     yyformat += sizeof(YY_EXTEND_ERROR_STRING) - 1;\
   }\
   yyformat = yyformatbuf;\
-}' $1 
+}' $1
