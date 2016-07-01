@@ -36,6 +36,7 @@ namespace nissa
     if(clover_to_be_computed)
       {
 	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+	invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
 	chromo_operator(Cl,eo_conf);
       }
     
@@ -118,7 +119,7 @@ namespace nissa
     //momenta action
     double mom_action=momenta_action(H);
     verbosity_lv1_master_printf("Mom_action: %16.16lg\n",mom_action);
-
+    
     //topological action
     double topo_action=(theory_pars->topotential_pars.flag?topotential_action(eo_conf,theory_pars->topotential_pars):0);
     if(theory_pars->topotential_pars.flag) verbosity_lv1_master_printf("Topological_action: %16.16lg\n",topo_action);
