@@ -26,6 +26,13 @@ namespace nissa
     std::string get_str(int full=false);
     int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     
+    bool clover_to_be_computed()
+    {
+      bool to_be_computed=false;
+      for(int iflav=0;iflav<nflavs();iflav++) to_be_computed|=ferm_discretiz::include_clover(quarks[iflav].discretiz);
+      return to_be_computed;
+    }
+    
     int is_nonstandard()
     {
       return
