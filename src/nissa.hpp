@@ -63,6 +63,8 @@
 #include "geometry/geometry_mix.hpp"
 
 #include "hmc/backfield.hpp"
+#include "hmc/fermions/rootst_eoimpr_quark_force.hpp"
+#include "hmc/fermions/pseudofermions_generation.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/gluonic_force.hpp"
 #include "hmc/gauge/pure_gauge_hmc_step.hpp"
@@ -80,8 +82,6 @@
 #include "hmc/multipseudo/Omelyan_integrator.hpp"
 #include "hmc/multipseudo/set_expansions.hpp"
 #include "hmc/multipseudo/theory_action.hpp"
-#include "hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp"
-#include "hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.hpp"
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 
 #include "inverters/staggered/cg_invert_stD.hpp"
