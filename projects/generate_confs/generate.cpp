@@ -1,7 +1,7 @@
 /*
-  This program can be used to generate gauge configurations
-  according to the rooted-staggered action in presence of
-  electromagnetic fields and/or imaginary chemical potentials.
+  This program can be used to generate gauge configurations according
+  to the rooted-staggered action or rooted-twisted-clover in presence
+  of electromagnetic fields and/or imaginary chemical potentials.
 */
 
 #include <math.h>
