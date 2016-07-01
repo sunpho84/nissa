@@ -155,11 +155,11 @@ namespace nissa
   //integrator for pure gauge
   THREADABLE_FUNCTION_6ARG(Omelyan_pure_gauge_FACC_evolver, quad_su3*,H, quad_su3*,conf, su3**,pi, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
   {
-    const int niter_max=100000;
+    const int niter_max=1000000;
     
     //macro step or micro step
     double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,
-      ldt=dt*OMELYAN_LAMBDA,l2dt=2*OMELYAN_LAMBDA*dt,uml2dt=(1-2*OMELYAN_LAMBDA)*dt;
+      ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
     int nsteps=simul->nmd_steps;
     
     quad_su3 *F=nissa_malloc("F",loc_vol,quad_su3);
@@ -192,7 +192,7 @@ namespace nissa
   THREADABLE_FUNCTION_4ARG(Omelyan_pure_gauge_evolver, quad_su3*,H, quad_su3*,conf, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
   {
     //macro step or micro step
-    double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,ldt=dt*OMELYAN_LAMBDA,l2dt=2*OMELYAN_LAMBDA*dt,uml2dt=(1-2*OMELYAN_LAMBDA)*dt;
+    double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
     int nsteps=simul->nmd_steps;
     
     quad_su3 *F=nissa_malloc("F",loc_vol,quad_su3);
