@@ -19,12 +19,12 @@
 
 #include "hmc/backfield.hpp"
 #include "hmc/hmc.hpp"
+#include "hmc/fermions/pseudofermions_generation.hpp"
 #include "hmc/momenta/momenta_generation.hpp"
 #include "hmc/multipseudo/Omelyan_integrator.hpp"
 #include "hmc/multipseudo/set_expansions.hpp"
 #include "hmc/multipseudo/theory_action.hpp"
 
-#include "hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.hpp"
 
 namespace nissa
 {

@@ -201,6 +201,8 @@ endif
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/backfield.cpp \
 	hmc/theory_pars.cpp \
+	hmc/fermions/rootst_eoimpr_quark_force.cpp \
+	hmc/fermions/pseudofermions_generation.cpp \
 	hmc/gauge/MFACC_fields.cpp \
 	hmc/gauge/MFACC_fields.cpp \
 	hmc/gauge/gluonic_force.cpp \
@@ -219,14 +221,14 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/multipseudo/Omelyan_integrator.cpp \
 	hmc/multipseudo/quark_force.cpp \
 	hmc/multipseudo/set_expansions.cpp \
-	hmc/multipseudo/theory_action.cpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.cpp
+	hmc/multipseudo/theory_action.cpp
 
 include_HEADERS+= \
 	hmc/backfield.hpp \
 	hmc/hmc.hpp \
 	hmc/theory_pars.hpp \
+	hmc/fermions/rootst_eoimpr_quark_force.hpp \
+	hmc/fermions/pseudofermions_generation.hpp \
 	hmc/gauge/MFACC_fields.hpp \
 	hmc/gauge/MFACC_fields.hpp \
 	hmc/gauge/gluonic_action.hpp \
@@ -246,9 +248,7 @@ include_HEADERS+= \
 	hmc/multipseudo/Omelyan_integrator.hpp \
 	hmc/multipseudo/quark_force.hpp \
 	hmc/multipseudo/set_expansions.hpp \
-	hmc/multipseudo/theory_action.hpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.hpp
+	hmc/multipseudo/theory_action.hpp
 
 ###################################### inverters #################################
 
