@@ -67,7 +67,7 @@ namespace nissa
   {
     //macro step or micro step
     double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
-      dth=dt/2,ldt=dt*OMELYAN_LAMBDA,l2dt=2*OMELYAN_LAMBDA*dt,uml2dt=(1-2*OMELYAN_LAMBDA)*dt;
+      dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
     int nsteps=simul->ngauge_substeps;
     quad_su3 *aux_F=nissa_malloc("aux_F",loc_vol,quad_su3);
     
@@ -228,7 +228,7 @@ namespace nissa
   {
     //macro step or micro step
     double dt=simul_pars->traj_length/simul_pars->nmd_steps,
-      ldt=dt*OMELYAN_LAMBDA,l2dt=2*OMELYAN_LAMBDA*dt,uml2dt=(1-2*OMELYAN_LAMBDA)*dt;
+      ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
     int nsteps=simul_pars->nmd_steps;
     topotential_pars_t tp=theory_pars->topotential_pars;
     
