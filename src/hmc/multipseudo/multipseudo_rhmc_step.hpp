@@ -168,6 +168,12 @@ namespace nissa
       
       return other_norm;
     }
+    //return the squared norm
+    double norm2()
+    {
+      if(is_stag) return double_vector_glb_norm2(stag,loc_volh);
+      else        return double_vector_glb_norm2(Wils,loc_volh);
+    }
     double normalize(double norm=1)
     {return normalize(*this,norm);}
     

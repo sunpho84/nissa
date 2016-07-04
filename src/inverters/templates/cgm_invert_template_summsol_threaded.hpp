@@ -10,6 +10,8 @@ THREADABLE_FUNCTION_7ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2
 THREADABLE_FUNCTION_8ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2, AT3,A3, rat_approx_t*,appr, int,niter_max, double,req_res, BASETYPE*,source)
 #elif CGM_NARG == 4
 THREADABLE_FUNCTION_9ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2, AT3,A3, AT4,A4, rat_approx_t*,appr, int,niter_max, double,req_res, BASETYPE*,source)
+#elif CGM_NARG == 5
+THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2, AT3,A3, AT4,A4, AT5,A5, rat_approx_t*,appr, int,niter_max, double,req_res, BASETYPE*,source)
 #endif
 {
   GET_THREAD_ID();

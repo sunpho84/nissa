@@ -41,7 +41,7 @@ namespace nissa
     
     //reset all to begin
     for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
-        
+    
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	spincolor c;
@@ -71,11 +71,7 @@ namespace nissa
 	  set_borders_invalid(sou->sp[so_sp_col_ind(id_so,ic_so)]);
 	  loc_ori_source_norm2+=double_vector_glb_norm2(sou->sp[so_sp_col_ind(id_so,ic_so)],loc_vol);
 	}
-    if(IS_MASTER_THREAD)
-      {
-	sou->ori_source_norm2=loc_ori_source_norm2;
-	master_printf("source norm: %lg\n",sou->ori_source_norm2);
-      }
+    if(IS_MASTER_THREAD) sou->ori_source_norm2=loc_ori_source_norm2;
   }
   THREADABLE_FUNCTION_END
   

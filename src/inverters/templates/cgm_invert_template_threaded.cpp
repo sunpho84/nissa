@@ -19,7 +19,7 @@ namespace nissa
     See "cgm_invert_tmQ2.c" as an example.
   */
 
-#if CGM_NARG >= 5
+#if CGM_NARG >= 6
 #error not supported
 #endif
   
@@ -33,6 +33,8 @@ namespace nissa
   THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, double*,shift, int,nshift, int,niter_max, double*,ext_req_res, BASETYPE*,source)
 #elif CGM_NARG == 4
   THREADABLE_FUNCTION_10ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT4,A4, double*,shift, int,nshift, int,niter_max, double*,ext_req_res, BASETYPE*,source)
+#elif CGM_NARG == 5
+  THREADABLE_FUNCTION_11ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT4,A4, AT5,A5, double*,shift, int,nshift, int,niter_max, double*,ext_req_res, BASETYPE*,source)
 #endif
   {
     GET_THREAD_ID();
@@ -327,6 +329,8 @@ THREADABLE_FUNCTION_8ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1,
 THREADABLE_FUNCTION_9ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, double*,shift, int,nshift, int,niter_max, double,req_res, BASETYPE*,source)
 #elif CGM_NARG == 4
 THREADABLE_FUNCTION_10ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT4,A4, double*,shift, int,nshift, int,niter_max, double,req_res, BASETYPE*,source)
+#elif CGM_NARG == 5
+THREADABLE_FUNCTION_11ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT4,A4, AT5,A5, double*,shift, int,nshift, int,niter_max, double,req_res, BASETYPE*,source)
 #endif
   {
     double req_res_int[nshift];

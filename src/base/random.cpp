@@ -144,8 +144,6 @@ namespace nissa
     loc_rnd_gen_inited=0;
   }
   
-  int nglbgen=0;
-  
   //standard ran2 from numerical recipes
   double rnd_get_unif(rnd_gen *gen,double min,double max)
   {
@@ -169,8 +167,6 @@ namespace nissa
     if(gen->iy<0) gen->iy+=imm1;
     
     out=std::min(am*gen->iy,rnmx);
-    
-    if(gen==&glb_rnd_gen) nglbgen++;
     
     return out*(max-min)+min;
   }
