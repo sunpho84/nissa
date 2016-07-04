@@ -15,7 +15,7 @@ int REIM,use_new_contraction_layout,binary_out;
 int T,ncorr,ncombo,ncorr_type,ntriple;
 int nfile_names;
 int njack,clust_size;
-int start_conf_id,nconfs,nconfs_teo;
+int start_conf_id,nconfs,nconfs_teo,confs_each;
 int start_copy_id,ncopies;
 char base_path_in[1024],base_path_out[1024];
 sa_string *corr_name,*outpath;
@@ -32,6 +32,7 @@ void parse_input(char *path)
   
   //nconfs
   read_str_int("Nconfs",&nconfs_teo);
+  read_str_int("ConfsEach",&confs_each);
   read_str_int("StartCopyId",&start_copy_id);
   read_str_int("Ncopies",&ncopies);
   read_str_int("NJack",&njack);
@@ -81,6 +82,9 @@ void count_corr(char *path)
 	int ntest3=sscanf(line,"%d %lg %lg",&t,&dre,&dim);
 	if(ntest3>0) ntriple++;
       }
+  
+  //if no header was present
+  if(ncombo==0) ncombo=1;
   
   if(ncorr==0) ncorr=ncombo=ntriple/T;
   
@@ -245,14 +249,14 @@ int main(int narg,char **arg)
 		  if(!found)
 		    {
 		      printf("conf %s not available, skipping",path[iconf][icopy]);
-		      curr_conf++;
-		      if(curr_conf>=nconfs_teo) crash("finished all available confs");
+		      curr_conf+=confs_each;
+		      if(curr_conf>=nconfs_teo*confs_each) crash("finished all available confs");
 		    }
 		}
 	      while(!found);
 	      
 	      //increment
-	      curr_conf++;
+	      curr_conf+=confs_each;
 	    }
 	}
       
