@@ -149,15 +149,6 @@ namespace nissa
 	}
     }
     
-    //check it is an hypercube origin
-    inline int is_hypercube_shift(int ivol,int ishift)
-    {
-      int is=1;
-      for(int mu=0;mu<NDIM;mu++) is&=((glb_coord_of_loclx[ivol][mu]%2)==((ishift>>mu)%2));
-      return is;
-    }
-  }
-  
   //compute correlation functions for staggered mesons, arbitary taste and spin
   THREADABLE_FUNCTION_4ARG(compute_meson_corr, complex*,corr, quad_su3**,conf, theory_pars_t*,tp, meson_corr_meas_pars_t*,meas_pars)
   {
