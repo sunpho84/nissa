@@ -14,22 +14,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 
-//include bg/q specifics
-#ifdef BGQ
- #include "bgq/intrinsic.hpp"
- #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_bgq.hpp"
- #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_bgq.hpp"
- #include "dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp"
- #include "dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp"
- #include "dirac_operators/stD/dirac_operator_stD_bgq.hpp"
-#endif
-#ifdef SPI
- #include "bgq/spi.hpp"
-#endif
-
-#ifdef USE_VNODES
- #include "geometry/geometry_vir.hpp"
-#endif
+#include "geometry/geometry_vir.hpp"
 
 #include "communicate/borders.hpp"
 #include "communicate/communicate.hpp"
