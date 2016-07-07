@@ -27,47 +27,6 @@ include_HEADERS+= \
 	base/thread_macros.hpp \
 	base/vectors.hpp
 
-#add BGQ if needed
-if BGQ
-include_HEADERS+=base/bgq_instructions.hpp
-endif
-
-######################################### bgq specific #####################################
-if BGQ
-__top_builddir__lib_libnissa_a_SOURCES+= \
-	bgq/Wilson_hopping_matrix_lx_bgq.cpp \
-	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.cpp \
-	bgq/staggered_hopping_matrix_eo_or_oe_bgq.cpp
-
-include_HEADERS+= \
-	bgq/Wilson_hopping_matrix_lx_bgq.hpp \
-	bgq/Wilson_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
-	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.hpp \
-	bgq/staggered_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
-	bgq/staggered_hopping_matrix_eo_or_oe_bgq.hpp \
-	bgq/bgq_macros.hpp \
-	bgq/intrinsic/declare.hpp \
-	bgq/intrinsic/load.hpp \
-	bgq/intrinsic/mergesplit.hpp \
-	bgq/intrinsic/oper.hpp \
-	bgq/intrinsic/store.hpp \
-	bgq/intrinsic.hpp
-
-#bgq barrier
-if BGQ_EMU
-else
-__top_builddir__lib_libnissa_a_SOURCES+=bgq/bgq_barrier.c
-include_HEADERS+=bgq/bgq_barrier.hpp
-endif
-
-#compile or not spi stuff
-if SPI
-__top_builddir__lib_libnissa_a_SOURCES+=bgq/spi.cpp
-include_HEADERS+=bgq/spi.hpp
-endif
-
-endif
-
 ######################################### communicate ######################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
@@ -128,35 +87,10 @@ include_HEADERS+= \
 	dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_128.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.hpp
 
-#compile or not bgq source
-if BGQ
-__top_builddir__lib_libnissa_a_SOURCES+= \
-	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_bgq.cpp \
-	dirac_operators/tmQ/dirac_operator_tmQ_bgq.cpp \
-	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.cpp \
-	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
-	dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_bgq.cpp \
-	dirac_operators/tmclovQ/dirac_operator_tmclovQ_bgq.cpp \
-	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.cpp \
-	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.cpp \
-	dirac_operators/stD/dirac_operator_stD_bgq.cpp
-include_HEADERS+= \
-	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_bgq.hpp \
-	dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp \
-	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp \
-	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.hpp \
-	dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_bgq.hpp \
-	dirac_operators/tmclovQ/dirac_operator_tmclovQ_bgq.hpp \
-	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp \
-	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.hpp \
-	dirac_operators/stD/dirac_operator_stD_bgq.hpp
-endif
-
 EXTRA_DIST= \
 	dirac_operators/WclovQ/dirac_operator_WclovQ_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_32_portable.cpp \
-	dirac_operators/stD/dirac_operator_stD_bgq_template.cpp \
 	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_portable.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_portable.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left_portable.cpp
@@ -183,18 +117,14 @@ include_HEADERS+= \
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	geometry/geometry_eo.cpp \
 	geometry/geometry_lx.cpp \
-	geometry/geometry_mix.cpp
+	geometry/geometry_mix.cpp \
+	geometry/geometry_vir.cpp
 
 include_HEADERS+= \
 	geometry/geometry_eo.hpp \
 	geometry/geometry_lx.hpp \
-	geometry/geometry_mix.hpp
-
-#compile or not virtual parallelization
-if USE_VNODES
-__top_builddir__lib_libnissa_a_SOURCES+=geometry/geometry_vir.cpp
-include_HEADERS+=geometry/geometry_vir.hpp
-endif
+	geometry/geometry_mix.hpp \
+	geometry/geometry_vir.hpp
 
 ###################################### hmc #########################################
 
@@ -315,40 +245,8 @@ include_HEADERS+= \
 	inverters/twisted_clover/cg_invert_tmclovD_eoprec.hpp \
 	inverters/twisted_clover/tmclov_frontends.hpp
 
-#compile or not bgq source
-if BGQ
-__top_builddir__lib_libnissa_a_SOURCES+= \
-	inverters/staggered/cgm_invert_stD2ee_m2_bgq.cpp \
-	inverters/staggered/cgm_32_invert_stD2ee_m2_bgq.cpp \
-	inverters/staggered/cg_invert_stD2ee_m2_bgq.cpp \
-	inverters/twisted_mass/cgm_invert_tmQ2_bgq.cpp \
-	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.cpp \
-	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.cpp \
-	inverters/twisted_mass/cg_64_invert_tmD_eoprec_bgq.cpp \
-	inverters/twisted_mass/cg_invert_tmQ2_bgq.cpp \
-	inverters/twisted_clover/cgm_invert_tmclovQ2_bgq.cpp \
-	inverters/twisted_clover/cg_64_invert_tmclovQ2_bgq.cpp \
-	inverters/twisted_clover/cg_64_invert_tmclovD_eoprec_bgq.cpp \
-	inverters/twisted_clover/cg_128_invert_tmclovQ2_bgq.cpp
-
-include_HEADERS+= \
-	inverters/staggered/cgm_invert_stD2ee_m2_bgq.hpp \
-	inverters/staggered/cgm_32_invert_stD2ee_m2_bgq.hpp \
-	inverters/staggered/cg_invert_stD2ee_m2_bgq.hpp \
-	inverters/twisted_mass/cgm_invert_tmQ2_bgq.hpp \
-	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.hpp \
-	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.hpp \
-	inverters/twisted_mass/cg_64_invert_tmD_eoprec_bgq.hpp \
-	inverters/twisted_mass/cg_invert_tmQ2_bgq.hpp \
-	inverters/twisted_clover/cgm_invert_tmclovQ2_bgq.hpp \
-	inverters/twisted_clover/cg_64_invert_tmclovQ2_bgq.hpp \
-	inverters/twisted_clover/cg_64_invert_tmclovD_eoprec_bgq.hpp \
-	inverters/twisted_clover/cg_128_invert_tmclovQ2_bgq.hpp
-endif
-
 EXTRA_DIST+= \
 	inverters/twisted_mass/cg_invert_tmQ2_common.cpp \
-	inverters/twisted_mass/cgm_invert_tmQ2_bgq.hpp \
 	inverters/templates/cgm_32_invert_template_threaded.cpp \
 	inverters/templates/cg_128_invert_template_threaded.cpp \
 	inverters/templates/cgm_invert_template_summsol_threaded.hpp \

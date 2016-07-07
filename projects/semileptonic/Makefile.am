@@ -4,26 +4,10 @@ LDADD=$(top_builddir)/lib/libnissa.a
 
 AUTOMAKE_OPTIONS=subdir-objects
 
-#test bgq
-if BGQ
-test_bgq_target=
-endif
-
 #target programs
 bin_PROGRAMS= \
 	$(top_builddir)/bin/semileptonic_smeared \
-	$(top_builddir)/bin/semileptonic_smeared_point_source \
-	$(test_bgq_target)
-
-#	$(top_builddir)/bin/gevp
-#	$(top_builddir)/bin/gevp_3pts
-
-
-#include sources of test_bgq
-if BGQ
- bin_PROGRAMS+=$(top_builddir)/bin/test_bgq
- __top_builddir__bin_test_bgq_SOURCES=test_bgq.cpp
-endif
+	$(top_builddir)/bin/semileptonic_smeared_point_source
 
 #semileptonic_smeared
 semileptonic_smeared_parser_sources= \
@@ -43,14 +27,8 @@ if PARSER_GENERATION
  BUILT_SOURCES=$(semileptonic_smeared_parser_built_sources)
  __top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
  __top_builddir__bin_semileptonic_smeared_point_source_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
-# __top_builddir__bin_gevp_SOURCES=gevp.cpp $(semileptonic_smeared_parser_sources)
 else
  __top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
  __top_builddir__bin_semileptonic_smeared_point_source_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
-# __top_builddir__bin_gevp_SOURCES=gevp.cpp $(semileptonic_smeared_parser_built_sources)
 endif
 __top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS=-DPOINT_SOURCE_VERSION
-#__top_builddir__bin_gevp_3pts_SOURCES=gevp_3pts.cpp
-
-#comment because it could happen that we don't have flex or bison
-#CLEANFILES=$(semileptonic_smeared_parser_built_sources)
