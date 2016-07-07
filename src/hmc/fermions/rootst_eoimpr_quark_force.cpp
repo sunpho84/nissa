@@ -6,7 +6,6 @@
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
-#include "geometry/geometry_eo.hpp"
 #include "hmc/backfield.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "new_types/su3.hpp"
@@ -16,7 +15,7 @@
 
 namespace nissa
 {
-  //Compute the fermionic force the rooted staggered e/o improved theory.
+  //Compute the fermionic force the rooted staggered eoprec improved theory.
   //Of the result still need to be taken the TA and product with U
   //The approximation need to be already scaled, and must contain physical mass term
   THREADABLE_FUNCTION_8ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, double,charge, quad_su3**,eo_conf, color*,pf, int,quantization, quad_u1**,u1b, rat_approx_t*,appr, double,residue)
