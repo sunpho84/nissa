@@ -25,14 +25,18 @@ parser_fixed.cpp: $(top_srcdir)/projects/generate_confs/fix_bison.sh Makefile $(
 	@echo "Fixing the parser"
 	@bash $(top_srcdir)/projects/generate_confs/fix_bison.sh parser.cpp > $@
 
-AM_YFLAGS=-d
-BUILT_SOURCES=$(generate_parser_built_sources) parser_fixed.cpp
+tokenizer_fixed.cpp: $(top_srcdir)/projects/generate_confs/fix_flex.sh Makefile $(top_builddir)/projects/generate_confs/tokenizer.cpp
+	@echo "Fixing the parser"
+	@bash $(top_srcdir)/projects/generate_confs/fix_flex.sh tokenizer.cpp > $@
 
-CLEANFILES=$(generate_parser_built_sources) parser_fixed.cpp
+AM_YFLAGS=-d
+BUILT_SOURCES=$(generate_parser_built_sources) parser_fixed.cpp tokenizer_fixed.cpp
+
+CLEANFILES=$(generate_parser_built_sources) parser_fixed.cpp tokenizer_fized.cpp
 
 #############################################################################################
 
-__top_builddir__bin_generate_SOURCES=generate.cpp parser.hpp parser_fixed.cpp tokenizer.cpp
+__top_builddir__bin_generate_SOURCES=generate.cpp parser.hpp parser_fixed.cpp tokenizer_fixed.cpp
 __top_builddir__bin_generate_LDADD=$(LDADD)
 __top_builddir__bin_generate_LDFLAGS=$(LDFLAGS)
 
