@@ -37,6 +37,7 @@ LIBS="$LIBS $MPI_CXXLDFLAGS"
 
 #checks for headers
 AC_CHECK_HEADERS([fftw3.h],[fftw_found_headers=yes])
+AC_CHECK_HEADERS([gmpxx.h],[gmp_found_headers=yes])
 
 #checks for libraries
 AC_SEARCH_LIBS(__gmpz_init,gmp)
@@ -78,7 +79,7 @@ AC_ARG_WITH(high-prec,
 	if test "$ac_cv_search___gmpz_init" != "no"; then with_high_prec="gmp";else with_high_prec="native";fi)
 	case "$with_high_prec" in
      	     native) AC_DEFINE_UNQUOTED([HIGH_PREC],[NATIVE_HIGH_PREC],[Enable native high-precision]) ;;
-     	     gmp) if test "$ac_cv_search___gmpz_init" != ""; then AC_DEFINE_UNQUOTED([HIGH_PREC],[GMP_HIGH_PREC],[Enable gmp high-precision]) AM_LDFLAGS="-lgmp -lgmpxx";else AC_MSG_ERROR(["Unable to find gmp lib"]);fi ;;
+     	     gmp) if test "$ac_cv_search___gmpz_init" != "" -a  x"$gmp_found_headers" == "xyes"; then AC_DEFINE_UNQUOTED([HIGH_PREC],[GMP_HIGH_PREC],[Enable gmp high-precision]) AM_LDFLAGS="-lgmp -lgmpxx";else AC_MSG_ERROR(["Unable to find gmp lib"]);fi ;;
 	     *) AC_MSG_ERROR(["Unkwnown high precision type ${withval}"])
 	esac
 AC_MSG_RESULT([with high precision type... $with_high_prec])
