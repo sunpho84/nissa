@@ -1,5 +1,5 @@
-#ifndef _CLOSE_H
-#define _CLOSE_H
+#ifndef _CLOSE_HPP
+#define _CLOSE_HPP
 
 namespace nissa
 {
