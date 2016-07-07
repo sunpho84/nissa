@@ -27,3 +27,4 @@ src/config.hpp.in
 tools/Makefile.in
 tools/Makefile.in
 build_clang
+/doc/deflation-notes.pdf

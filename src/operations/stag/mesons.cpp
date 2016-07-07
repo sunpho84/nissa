@@ -28,127 +28,127 @@ namespace nissa
     int nop;
     int ncombo;
     int nflavs;
+  }
+  //form the mask for x (-1)^[x*(s^<+n^>)]
+  inline int form_meson_pattern(int ispin,int itaste)
+  {
+    //add g5*g5
+    ispin^=15;
+    itaste^=15;
     
-    //form the mask for x (-1)^[x*(s^<+n^>)]
-    inline int form_meson_pattern(int ispin,int itaste)
-    {
-      //add g5*g5
-      ispin^=15;
-      itaste^=15;
-      
-      int res=0;
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  int p=0;
-	  for(int nu=0;nu<mu;nu++) p+=(itaste>>nu)&1;
-	  for(int nu=mu+1;nu<NDIM;nu++) p+=(ispin>>nu)&1;
-	  p&=1;
-	  
-	  res+=(p<<mu);
-	}
-      
-      return res;
-    }
+    int res=0;
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	int p=0;
+	for(int nu=0;nu<mu;nu++) p+=(itaste>>nu)&1;
+	for(int nu=mu+1;nu<NDIM;nu++) p+=(ispin>>nu)&1;
+	p&=1;
+	
+	res+=(p<<mu);
+      }
     
-    //compute the index where to store
-    inline int icombo(int iflav,int iop,int t)
-    {return t+glb_size[0]*(iop+nop*iflav);}
+    return res;
+  }
+  
+  //compute the index where to store
+  inline int icombo(int iflav,int iop,int t)
+  {return t+glb_size[0]*(iop+nop*iflav);}
+  
+  //apply a single shift
+  void apply_covariant_shift(color **out,quad_su3 **conf,int mu,color **in)
+  {
+    GET_THREAD_ID();
     
-    //apply a single shift
-    void apply_covariant_shift(color **out,quad_su3 **conf,int mu,color **in)
-    {
-      GET_THREAD_ID();
-      
-      communicate_ev_and_od_color_borders(in);
-      communicate_ev_and_od_quad_su3_borders(conf);
-      
-      for(int eo=0;eo<2;eo++)
-	{
-	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	    {
-	      int up=loceo_neighup[eo][ieo][mu];
-	      int dw=loceo_neighdw[eo][ieo][mu];
-	      unsafe_su3_prod_color(out[eo][ieo],conf[eo][ieo][mu],in[!eo][up]);
-	      su3_dag_summ_the_prod_color(out[eo][ieo],conf[!eo][dw][mu],in[!eo][dw]);
-	      color_prod_double(out[eo][ieo],out[eo][ieo],0.5);
-	    }
-	  set_borders_invalid(out[eo]);
-	}
-    }
+    communicate_ev_and_od_color_borders(in);
+    communicate_ev_and_od_quad_su3_borders(conf);
     
-    //apply the operator
-    inline void apply_op_single_perm(color **out,color **temp,quad_su3 **conf,std::vector<int> &list_dir,color **in)
-    {
-      //make a temporary copy
-      for(int eo=0;eo<2;eo++) vector_copy(temp[eo],in[eo]);
-      
-      for(std::vector<int>::iterator mu_it=list_dir.begin();mu_it!=list_dir.end();mu_it++)
-	{
-	  //write comment, copy and communicate
-	  verbosity_lv2_master_printf(" shift %d\n",*mu_it);
-	  if(mu_it!=list_dir.begin())
-	    for(int eo=0;eo<2;eo++)
-	      vector_copy(temp[eo],out[eo]);
-	  
-	  //make the shift
-	  apply_covariant_shift(out,conf,*mu_it,temp);
-	}
-    }
+    for(int eo=0;eo<2;eo++)
+      {
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  {
+	    int up=loceo_neighup[eo][ieo][mu];
+	    int dw=loceo_neighdw[eo][ieo][mu];
+	    unsafe_su3_prod_color(out[eo][ieo],conf[eo][ieo][mu],in[!eo][up]);
+	    su3_dag_summ_the_prod_color(out[eo][ieo],conf[!eo][dw][mu],in[!eo][dw]);
+	    color_prod_double(out[eo][ieo],out[eo][ieo],0.5);
+	  }
+	set_borders_invalid(out[eo]);
+      }
+  }
+  
+  //apply the operator
+  inline void apply_op_single_perm(color **out,color **temp,quad_su3 **conf,std::vector<int> &list_dir,color **in)
+  {
+    //make a temporary copy
+    for(int eo=0;eo<2;eo++) vector_copy(temp[eo],in[eo]);
     
-    //apply the operator summing all permutations
-    inline void apply_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,int shift,color **in)
-    {
-      //make a list that can be easily permuted
-      std::vector<int> list_dir;
-      for(int mu=0;mu<NDIM;mu++)
-	if((shift>>mu)&0x1)
-	  list_dir.push_back(mu);
-      std::sort(list_dir.begin(),list_dir.end());
-      
-      if(list_dir.size())
-	{
-	  //summ all perms
-	  int nperm=0;
-	  for(int eo=0;eo<2;eo++) vector_reset(out[eo]);
-	  do
-	    {
-	      //incrementing the number of permutations
-	      verbosity_lv2_master_printf("Considering permutation %d:",nperm);
-	      for(std::vector<int>::iterator it=list_dir.begin();it!=list_dir.end();it++) verbosity_lv2_master_printf(" %d",*it);
-	      verbosity_lv2_master_printf("\n");
-	      nperm++;
-	      
-	      //apply and summ
-	      apply_op_single_perm(single_perm,internal_temp,conf,list_dir,in);
-	      for(int eo=0;eo<2;eo++) double_vector_summassign((double*)(out[eo]),(double*)(single_perm[eo]),loc_volh*sizeof(color)/sizeof(double));
-	    }
-	  while(std::next_permutation(list_dir.begin(),list_dir.end()));
-	  
-	  //final normalization
-	  for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(out[eo]),(double*)(out[eo]),1.0/nperm,loc_volh*sizeof(color)/sizeof(double));
-	}
-      else for(int eo=0;eo<2;eo++) vector_copy(out[eo],in[eo]);
-    }
+    for(std::vector<int>::iterator mu_it=list_dir.begin();mu_it!=list_dir.end();mu_it++)
+      {
+	//write comment, copy and communicate
+	verbosity_lv2_master_printf(" shift %d\n",*mu_it);
+	if(mu_it!=list_dir.begin())
+	  for(int eo=0;eo<2;eo++)
+	    vector_copy(temp[eo],out[eo]);
+	
+	//make the shift
+	apply_covariant_shift(out,conf,*mu_it,temp);
+      }
+  }
+  
+  //apply the operator summing all permutations
+  inline void apply_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,int shift,color **in)
+  {
+    //make a list that can be easily permuted
+    std::vector<int> list_dir;
+    for(int mu=0;mu<NDIM;mu++)
+      if((shift>>mu)&0x1)
+	list_dir.push_back(mu);
+    std::sort(list_dir.begin(),list_dir.end());
     
-    //add the phases
-    inline void put_phases(color **source,int mask)
-    {
-      GET_THREAD_ID();
-      
-      //put the phases
-      for(int eo=0;eo<2;eo++)
-	{
-	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	    {
-	      int sign=1,ivol=loclx_of_loceo[eo][ieo];
-	      for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1)&&(glb_coord_of_loclx[ivol][mu]&0x1));
-	      if(abs(sign)!=1) crash("unexpected sign %d",sign);
-	      color_prod_double(source[eo][ieo],source[eo][ieo],sign);
-	    }
-	  set_borders_invalid(source[eo]);
-	}
-    }
+    if(list_dir.size())
+      {
+	//summ all perms
+	int nperm=0;
+	for(int eo=0;eo<2;eo++) vector_reset(out[eo]);
+	do
+	  {
+	    //incrementing the number of permutations
+	    verbosity_lv2_master_printf("Considering permutation %d:",nperm);
+	    for(std::vector<int>::iterator it=list_dir.begin();it!=list_dir.end();it++) verbosity_lv2_master_printf(" %d",*it);
+	    verbosity_lv2_master_printf("\n");
+	    nperm++;
+	    
+	    //apply and summ
+	    apply_op_single_perm(single_perm,internal_temp,conf,list_dir,in);
+	    for(int eo=0;eo<2;eo++) double_vector_summassign((double*)(out[eo]),(double*)(single_perm[eo]),loc_volh*sizeof(color)/sizeof(double));
+	  }
+	while(std::next_permutation(list_dir.begin(),list_dir.end()));
+	
+	//final normalization
+	for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(out[eo]),(double*)(out[eo]),1.0/nperm,loc_volh*sizeof(color)/sizeof(double));
+      }
+    else for(int eo=0;eo<2;eo++) vector_copy(out[eo],in[eo]);
+  }
+  
+  //add the phases
+  inline void put_phases(color **source,int mask)
+  {
+    GET_THREAD_ID();
     
+    //put the phases
+    for(int eo=0;eo<2;eo++)
+      {
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  {
+	    int sign=1,ivol=loclx_of_loceo[eo][ieo];
+	    for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1)&&(glb_coord_of_loclx[ivol][mu]&0x1));
+	    if(abs(sign)!=1) crash("unexpected sign %d",sign);
+	    color_prod_double(source[eo][ieo],source[eo][ieo],sign);
+	  }
+	set_borders_invalid(source[eo]);
+      }
+  }
+  
   //compute correlation functions for staggered mesons, arbitary taste and spin
   THREADABLE_FUNCTION_4ARG(compute_meson_corr, complex*,corr, quad_su3**,conf, theory_pars_t*,tp, meson_corr_meas_pars_t*,meas_pars)
   {
