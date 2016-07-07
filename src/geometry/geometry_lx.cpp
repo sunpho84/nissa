@@ -21,11 +21,6 @@
  #include "routines/thread.hpp"
 #endif
 
-#ifdef SPI
- #include <malloc.h>
- #include <stdlib.h>
-#endif
-
 namespace nissa
 {
   //Return the index of site of coord x in the border mu,nu
@@ -489,13 +484,8 @@ namespace nissa
     master_printf("Unsetting cartesian geometry\n");
     lx_geom_inited=0;
     
-#if defined BGQ && defined SPI
-    free(recv_buf);
-    free(send_buf);
-#else
     nissa_free(recv_buf);
     nissa_free(send_buf);
-#endif
     
     nissa_free(loc_coord_of_loclx);
     nissa_free(glb_coord_of_loclx);

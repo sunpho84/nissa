@@ -20,11 +20,6 @@
  #include "routines/thread.hpp"
 #endif
 
-#ifdef SPI
- #include <stdlib.h>
- #include "bgq/spi.hpp"
-#endif
-
 /*
   general remark: fill the send buf exactly in the same way in which the local border is ordered (bw{0,1,2,3},
   fw{0,1,2,3}, see "communicate.hpp"), because the exchanging routines will automatically take care of reverting
@@ -54,12 +49,8 @@ namespace nissa
     comm.comm_in_prog=0;
     
     //bgq replacements and original MPI initialization
-#ifdef SPI
-    spi_descriptor_setup(comm);
-#else
     comm.nrequest=0;
     comm.imessage=ncomm_allocated;
-#endif
     
     ncomm_allocated++;
   }
@@ -84,12 +75,8 @@ namespace nissa
 	  comm.send_offset[idir]=(bord_offset[mu]+bord_volh*(!bf))*comm.nbytes_per_site/div_coeff;
 	  comm.message_length[idir]=bord_dir_vol[mu]*comm.nbytes_per_site/div_coeff;
 	  comm.recv_offset[idir]=(bord_offset[mu]+bord_volh*bf)*comm.nbytes_per_site/div_coeff;
-#ifndef SPI
 	  comm.recv_rank[idir]=rank_neigh [bf][mu];
 	  comm.send_rank[idir]=rank_neigh[!bf][mu];
-#else
-	  comm.spi_dest[idir]=spi_neigh[!bf][mu];
-#endif
 	}
     
     comm_setup(comm);
@@ -117,9 +104,6 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-#ifdef SPI
-	spi_comm_start(comm,dir_comm,tot_size);
-#else
 	comm.nrequest=0;
 	
 	for(int idir=0;idir<2*NDIM;idir++)
@@ -131,7 +115,6 @@ namespace nissa
 	      MPI_Isend(send_buf+comm.send_offset[idir],comm.message_length[idir],MPI_CHAR,comm.send_rank[idir],
 			comm.imessage,cart_comm,comm.requests+(comm.nrequest++));
 	    }
-#endif
       }
   }
   
@@ -145,20 +128,12 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-#ifdef SPI
-	verbosity_lv3_master_printf("Entering SPI comm wait\n");
-#else
 	verbosity_lv3_master_printf("Entering MPI comm wait\n");
-#endif
 	
 	if(comm.comm_in_prog)
 	  {
-#ifdef SPI
-	    spi_comm_wait(comm);
-#else
 	    verbosity_lv3_master_printf("Waiting for %d MPI request\n",comm.nrequest);
 	    MPI_Waitall(comm.nrequest,comm.requests,MPI_STATUS_IGNORE);
-#endif
 	  }
 	else verbosity_lv3_master_printf("Did not have to wait for any buffered comm\n");
       }
@@ -168,9 +143,7 @@ namespace nissa
     
     //set communications as finished
     comm.comm_in_prog=0;
-#ifndef SPI
     comm.nrequest=0;
-#endif
   }
   
   //unset everything
@@ -184,10 +157,6 @@ namespace nissa
     
     //mark not initialized
     comm.initialized=false;
-    
-#ifdef SPI
-    spi_descriptor_unset(comm);
-#endif
   }
   
   /////////////////////////////////////// communicating lx vec ///////////////////////////////////
