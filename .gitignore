@@ -26,3 +26,4 @@ Makefile.in
 src/config.hpp.in
 tools/Makefile.in
 tools/Makefile.in
+build_clang
