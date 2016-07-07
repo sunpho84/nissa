@@ -25,9 +25,9 @@ namespace nissa
   inline void chromo_operator_adjust_cSW(clover_term_t **Cl,double cSW_new,double cSW_old)
   {master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(Cl[eo]),(double*)(Cl[eo]),chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old),sizeof(clover_term_t)/sizeof(double)*loc_volh);}
   template <class T> void chromo_operator_include_cSW(T Cl,double cSW)
-  {chromo_operator_adjust_cSW(Cl,cSW+1e-16,1);}
+  {chromo_operator_adjust_cSW(Cl,cSW+1e-16,-0.25);}
   template <class T> void chromo_operator_remove_cSW(T Cl,double cSW)
-  {chromo_operator_adjust_cSW(Cl,1,cSW+1e-16);}
+  {chromo_operator_adjust_cSW(Cl,-0.25,cSW+1e-16);}
   
   template <class T1,class T2> void clover_term(T1 Cl,double cSW,T2 conf)
   {
