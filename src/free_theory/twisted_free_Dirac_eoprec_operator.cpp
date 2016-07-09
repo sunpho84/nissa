@@ -161,7 +161,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    if(in==out) crash("in==out!");
+    if(in==out) CRASH("in==out!");
     complex z={1/(2*qu.kappa),qu.mass};
     
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
@@ -178,7 +178,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    if(in==out) crash("in==out!");
+    if(in==out) CRASH("in==out!");
     double a=1/(2*qu.kappa),b=qu.mass,nrm=a*a+b*b;
     complex z={+a/nrm,-b/nrm};
     

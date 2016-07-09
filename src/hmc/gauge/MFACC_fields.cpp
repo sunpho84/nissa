@@ -235,7 +235,7 @@ namespace nissa
     su3 diff;
     su3_subt(diff,r2,nu);
     master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
-    //crash("ciccio");
+    //CRASH("ciccio");
 #endif
   }
   THREADABLE_FUNCTION_END
@@ -341,7 +341,7 @@ namespace nissa
     su3 diff;
     su3_subt(diff,r2,nu);
     master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
-    //crash("ciccio");
+    //CRASH("ciccio");
 #endif
     
     nissa_free(temp);

@@ -6,9 +6,9 @@
 #include "spin.hpp"
 
 #if NCOL == 3
- #define CRASH_IF_NOT_3COL()
+ #define crash_IF_NOT_3COL()
 #else
- #define CRASH_IF_NOT_3COL() crash("ncol == %d, expected 3",NCOL)
+ #define crash_IF_NOT_3COL() CRASH("ncol == %d, expected 3",NCOL)
 #endif
 
 namespace nissa

@@ -124,7 +124,7 @@ smooth_pars_t::method_t smooth_method_name_from_str(const char *name)
   while(imet<nmet_known && strcasecmp(name,name_known[imet])!=0) imet++;
   
   //check
-  if(imet==nmet_known) crash("unknown smoothing method: %s",name);
+  if(imet==nmet_known) CRASH("unknown smoothing method: %s",name);
   
   return met_known[imet];
 }
@@ -142,11 +142,11 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
 	{
 	case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool);break;
 	case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow);break;
-	default: crash("should not arrive here");break;
+	default: CRASH("should not arrive here");break;
 	}
       read_str_double("MeasEach",&smooth_pars.meas_each);
       if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUT)&&fabs(smooth_pars.meas_each-int(smooth_pars.meas_each))>=1.e-14)
-	crash("MeasEach must be integer if Cooling or Stouting method selected");
+	CRASH("MeasEach must be integer if Cooling or Stouting method selected");
     }
 }
 
@@ -500,7 +500,7 @@ void init_simulation(char *path)
   read_str_str("ConfPath",conf_path,1024);
   read_str_str("StoreConfPathTempl",store_conf_path_templ,1024);
   if(count_substrings(store_conf_path_templ,"%")!=1)
-    crash("please provide a template path such as \"conf.%sd\" instead of \"%s\"","%",store_conf_path_templ);
+    CRASH("please provide a template path such as \"conf.%sd\" instead of \"%s\"","%",store_conf_path_templ);
   read_str_int("StoreConfEach",&store_conf_each);
   read_str_int("StoreRunningTempConf",&store_running_temp_conf);
   
@@ -511,7 +511,7 @@ void init_simulation(char *path)
   if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT_START_COND;
   if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD_START_COND;
   if(start_conf_cond==UNSPEC_START_COND)
-    crash("unknown starting condition %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
+    CRASH("unknown starting condition %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
   
   //read boundary condition
   char boundary_cond_str[1024];
@@ -523,7 +523,7 @@ void init_simulation(char *path)
       read_str_str("GaugeObsPerTimeslicePath",gauge_obs_per_timeslice_path,1024);
     }
   if(boundary_cond==UNSPEC_BOUNDARY_COND)
-    crash("unknown boundary condition %s, expected 'PERIODIC' or 'OPEN'",boundary_cond_str);
+    CRASH("unknown boundary condition %s, expected 'PERIODIC' or 'OPEN'",boundary_cond_str);
   
   //read the topology measures info
   read_top_meas_pars(top_meas_pars);
@@ -567,7 +567,7 @@ void init_simulation(char *path)
       npaths_per_action=2;
       break;
     default:
-      crash("unknown action");
+      CRASH("unknown action");
     }
   
   if(evol_pars.use_hmc) temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -780,7 +780,7 @@ void store_conf_if_necessary()
 void in_main(int narg,char **arg)
 {
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //init simulation according to input file
   init_simulation(arg[1]);

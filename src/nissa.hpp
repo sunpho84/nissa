@@ -9,6 +9,7 @@
 #include "base/bench.hpp"
 #include "base/close.hpp"
 #include "base/debug.hpp"
+#include "base/grid.hpp"
 #include "base/init.hpp"
 #include "base/random.hpp"
 #include "base/thread_macros.hpp"

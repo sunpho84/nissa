@@ -59,7 +59,7 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<2) crash("use: %s L",arg[0]);
+  if(narg<2) CRASH("use: %s L",arg[0]);
   int L=atoi(arg[1]);
   
   init_grid(2*L,L);

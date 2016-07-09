@@ -28,7 +28,7 @@ namespace nissa
   //compute the staples for the link U_A_mu weighting them with rho
   void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,double rho)
   {
-    if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("../communicate/communicate edges externally");
+    if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) CRASH("../communicate/communicate edges externally");
     
     //put staples to zero
     su3_put_to_zero(staples);

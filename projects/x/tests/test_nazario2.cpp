@@ -43,7 +43,7 @@ void transf(double *corrx,complex *corrp,int ord)
 
 void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gluon_info gl)
 {
-  if(nranks>1) crash("works only on scalar");
+  if(nranks>1) CRASH("works only on scalar");
 
   spinspin *q_prop=nissa_malloc("q_prop",loc_vol,spinspin);
   spin1prop *g_prop=nissa_malloc("g_prop",loc_vol,spin1prop);

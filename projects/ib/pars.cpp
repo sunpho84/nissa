@@ -47,7 +47,7 @@ namespace nissa
 	
 	//set initial value of bc and check kinematic
 	for(int i=1;i<NDIM;i++) leps[il].bc[i]=0;
-	if(tm_quark_energy(leps[il],0)>=mes_mass) crash("initial state is lighter (%lg) than final state at rest (%lg)!",mes_mass,tm_quark_energy(leps[il],0));
+	if(tm_quark_energy(leps[il],0)>=mes_mass) CRASH("initial state is lighter (%lg) than final state at rest (%lg)!",mes_mass,tm_quark_energy(leps[il],0));
 	
 	//compute meson momentum and bc
 	double err;
@@ -89,7 +89,7 @@ namespace nissa
       if(strncasecmp(zero_mode_sub_str,"UNNO_ALEMANNA",100)==0) photon.zms=UNNO_ALEMANNA;
       else
 	if(strncasecmp(zero_mode_sub_str,"ONLY_100",100)==0) photon.zms=ONLY_100;
-	else crash("Unkwnown zero mode subtraction: %s",zero_mode_sub_str);
+	else CRASH("Unkwnown zero mode subtraction: %s",zero_mode_sub_str);
     
     //gauge for photon propagator
     char photon_gauge_str[100];
@@ -99,7 +99,7 @@ namespace nissa
       if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) photon.alpha=LANDAU_ALPHA;
       else
 	if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) read_str_double("Alpha",&photon.alpha);
-	else crash("Unkwnown photon gauge: %s",photon_gauge_str);
+	else CRASH("Unkwnown photon gauge: %s",photon_gauge_str);
     
     //discretization for photon propagator
     char photon_discrete_str[100];
@@ -107,7 +107,7 @@ namespace nissa
     if(strncasecmp(photon_discrete_str,"WILSON",100)==0) photon.c1=WILSON_C1;
     else
       if(strncasecmp(photon_discrete_str,"TLSYM",100)==0) photon.c1=TLSYM_C1;
-      else crash("Unkwnown photon discretization: %s",photon_discrete_str);
+      else CRASH("Unkwnown photon discretization: %s",photon_discrete_str);
     
     //compute the tadpole summing all momentum
     compute_tadpole(tadpole,photon);
@@ -132,7 +132,7 @@ namespace nissa
       {
 	master_fprintf(stderr,"Erorr, unkwnown tag %s, use one in this list:\n",tag);
 	for(int i=0;i<nmes2pts_known;i++) master_fprintf(stderr," %s\n",mes2pts_tag[i]);
-	crash("See previous message");
+	CRASH("See previous message");
       }
     
     return (mes2pts_known_t)out;
@@ -151,7 +151,7 @@ namespace nissa
 	for(int iq=0;iq<2;iq++)
 	  {
 	    read_str(q_name[iq],1024);
-	    if(Q.find(q_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_name[iq]);
+	    if(Q.find(q_name[iq])==Q.end()) CRASH("unable to find q%d %s",iq,q_name[iq]);
 	  }
 	mes2pts_contr_map.push_back(mes_contr_map_t(name,q_name[0],q_name[1]));
       }
@@ -176,7 +176,7 @@ namespace nissa
 	  case TKVK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+9,mu)); break;
 	  case TKTK: for(int ig=10;ig<=12;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,ig)); break;
 	  case BKBK: for(int ig=13;ig<=15;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,ig)); break;
-	  default: crash("unknown meson_contr");
+	  default: CRASH("unknown meson_contr");
 	  }
       }
   }
@@ -194,7 +194,7 @@ namespace nissa
 	for(int iq=0;iq<3;iq++)
 	  {
 	    read_str(q_name[iq],1024);
-	    if(Q.find(q_name[iq])==Q.end()) crash("unable to find q%d %s",iq,q_name[iq]);
+	    if(Q.find(q_name[iq])==Q.end()) CRASH("unable to find q%d %s",iq,q_name[iq]);
 	  }
 	bar2pts_contr_map.push_back(bar_triplet_t(name,q_name[0],q_name[1],q_name[2]));
       }

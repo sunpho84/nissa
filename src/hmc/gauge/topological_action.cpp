@@ -31,7 +31,7 @@ namespace nissa
   {
     if(file_exists(topo_file_name)) pars.load(topo_file_name);
     else
-      if(mandatory) crash("%s file not found when mandatory present",topo_file_name);
+      if(mandatory) CRASH("%s file not found when mandatory present",topo_file_name);
       else verbosity_lv2_master_printf("%s not found, skipping reading",topo_file_name);
   }
   
@@ -63,7 +63,7 @@ namespace nissa
       {
       case 1: topo_action=Q*pars.theta;break;
       case 2: topo_action=topodynamical_potential(Q,pars);break;
-      default: crash("unknown flag %d",pars.flag);
+      default: CRASH("unknown flag %d",pars.flag);
       }
     
     //free if it was allocated

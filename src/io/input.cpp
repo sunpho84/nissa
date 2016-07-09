@@ -35,7 +35,7 @@ namespace nissa
 	    fclose(f);
 	  }
 	else
-	  crash("Unable to touch file: %s",path.c_str());
+	  CRASH("Unable to touch file: %s",path.c_str());
       }
   }
   
@@ -106,7 +106,7 @@ namespace nissa
     
     if(rank==0)
       {
-	if(feof(input_global)) crash("reached EOF while scanning input file");
+	if(feof(input_global)) CRASH("reached EOF while scanning input file");
 	ok=fscanf(input_global,"%s",tok);
 	len=strlen(tok)+1;
       }
@@ -132,7 +132,7 @@ namespace nissa
     do
       {
 	int ok=read_next_token(tok);
-	if(ok!=1) crash("reached end of file without finding end of comment");
+	if(ok!=1) CRASH("reached end of file without finding end of comment");
       }
     while(check_tok_ends_comment(tok)==0);
   }
@@ -167,7 +167,7 @@ namespace nissa
   }
   
   void read_var(char *out,const char *par,int size_of)
-  {if(!read_var_catcherr(out,par,size_of)) crash("Couldn't read from input file!!!");}
+  {if(!read_var_catcherr(out,par,size_of)) CRASH("Couldn't read from input file!!!");}
   
   //Read an integer from the file
   void read_int(int *out)
@@ -188,7 +188,7 @@ namespace nissa
     
     read_str(obt_str,1024);
     
-    if(strcasecmp(exp_str,obt_str)!=0) crash("Error, expexcted '%s' in input file, obtained: '%s'",exp_str,obt_str);
+    if(strcasecmp(exp_str,obt_str)!=0) CRASH("Error, expexcted '%s' in input file, obtained: '%s'",exp_str,obt_str);
   }
   
   //Read an integer checking the tag
@@ -331,10 +331,7 @@ namespace nissa
   {
     char path[1024]="nissa_config";
     
-    const int navail_tag=11;
-#ifndef USE_VNODES
-    int vnode_paral_dir=0;
-#endif
+    const int navail_tag=15;
     
     char tag_name[navail_tag][100]={
       "verbosity_lv",
@@ -347,7 +344,11 @@ namespace nissa
       "set_x_nranks",
       "set_y_nranks",
       "set_z_nranks",
-      "vnode_paral_dir"};
+      "set_t_nvranks",
+      "set_x_nvranks",
+      "set_y_nvranks",
+      "set_z_nvranks",
+      "use_vranks"};
     char *tag_addr[navail_tag]={
       (char*)&verbosity_lv,
       (char*)&use_128_bit_precision,
@@ -359,9 +360,13 @@ namespace nissa
       (char*)(fix_nranks+1),
       (char*)(fix_nranks+2),
       (char*)(fix_nranks+3),
-      (char*)(&vnode_paral_dir)};
-    char tag_type[navail_tag][3]={"%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d"};
-    char tag_size[navail_tag]={4,4,4,4,4,4,4,4,4,4,4};
+      (char*)(fix_nvranks+0),
+      (char*)(fix_nvranks+1),
+      (char*)(fix_nvranks+2),
+      (char*)(fix_nvranks+3),
+      (char*)(&use_vranks)};
+    char tag_type[navail_tag][3]={"%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d"};
+    char tag_size[navail_tag]={4,4,4,4,4,4,4,4,4,4,4,4,4,4,4};
     
     if(file_exists(path))
       {
@@ -380,7 +385,7 @@ namespace nissa
 		while(itag<navail_tag && strcasecmp(tag,tag_name[itag])!=0) itag++;
 		
 		//check if tag found
-		if(itag==navail_tag) crash("unkwnown parameter '%s'",tag);
+		if(itag==navail_tag) CRASH("unkwnown parameter '%s'",tag);
 		
 		//read the tag
 		read_var(tag_addr[itag],tag_type[itag],tag_size[itag]);

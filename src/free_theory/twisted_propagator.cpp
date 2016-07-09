@@ -127,7 +127,7 @@ namespace nissa
   //the sign of the energy is according to passed argument
   double twisted_on_shell_operator_of_imom(spinspin proj,tm_quark_info qu,int imom,bool tilded,int esign,tm_basis_t base)
   {
-    if(esign!=-1&&esign!=+1) crash("illegal energy sign\"%d\"",esign);
+    if(esign!=-1&&esign!=+1) CRASH("illegal energy sign\"%d\"",esign);
     double abse=tm_quark_energy(qu,imom);
     double e=esign*abse;
     
@@ -160,7 +160,7 @@ namespace nissa
   //same for the naive fermions
   double naive_massless_on_shell_operator_of_imom(spinspin proj,momentum_t bc,int imom,int esign)
   {
-    if(esign!=-1&&esign!=+1) crash("illegal energy sign\"%d\"",esign);
+    if(esign!=-1&&esign!=+1) CRASH("illegal energy sign\"%d\"",esign);
     double abse=naive_massless_quark_energy(bc,imom);
     double e=esign*abse;
     
@@ -291,7 +291,7 @@ namespace nissa
   //multiply the source for the twisted propagator by inverting twisted Dirac operator
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spin *prop,spin *ext_source,tm_quark_info qu,tm_basis_t base)
   {
-    if(base!=MAX_TWIST_BASE) crash("not yet in phys base");
+    if(base!=MAX_TWIST_BASE) CRASH("not yet in phys base");
     inv_tmD_cg_eoprec_eos(prop,NULL,qu,1000000,1.e-28,ext_source);
   }
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,tm_quark_info qu,tm_basis_t base)

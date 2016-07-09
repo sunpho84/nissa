@@ -34,7 +34,7 @@ namespace nissa
 	return !(glb_coord_of_loclx[imom][0]==0&&glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
       case ONLY_100:
 	return (glb_coord_of_loclx[imom][1]+glb_coord_of_loclx[imom][2]+glb_coord_of_loclx[imom][3]==1);break;
-      default: crash("unknown zms: %d\n",(int)gl.zms);
+      default: CRASH("unknown zms: %d\n",(int)gl.zms);
       }
     
     return 0;
@@ -161,7 +161,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    if(gl.alpha!=FEYNMAN_ALPHA && gl.c1!=0) crash("doesn't make sense out of Wilson regularisation in the Feynaman gauge");
+    if(gl.alpha!=FEYNMAN_ALPHA && gl.c1!=0) CRASH("doesn't make sense out of Wilson regularisation in the Feynaman gauge");
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
 	spin1prop prop;

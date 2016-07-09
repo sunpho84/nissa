@@ -195,8 +195,8 @@ namespace nissa
 	Symanzik_sweeper->C1=C1_IWASAKI;
 	return Symanzik_sweeper;
 	break;
-      case UNSPEC_GAUGE_ACTION:crash("unspecified action");
-      default: crash("not implemented action");return NULL;break;
+      case UNSPEC_GAUGE_ACTION:CRASH("unspecified action");
+      default: CRASH("not implemented action");return NULL;break;
       }
   }
 }

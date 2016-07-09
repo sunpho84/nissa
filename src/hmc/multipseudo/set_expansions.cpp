@@ -69,7 +69,7 @@ namespace nissa
 	    tmclovDkern_eoprec_square_eos(out.Wils,temp1.Wils,temp2.Wils,eo_conf,quark->kappa,Cl[ODD],invCl_evn,quark->mass,in.Wils);
 	    break;
 	  default:
-	    crash("not supported yet");
+	    CRASH("not supported yet");
 	  }
 	
 	//compute the norm
@@ -192,7 +192,7 @@ namespace nissa
 	  case ferm_discretiz::ROOT_TM_CLOV:
 	    eig_min=pow(q.mass,2); //possibly understimate, that's why this is separate
 	    break;
-	  default: crash("unknown");
+	  default: CRASH("unknown");
 	  }
 	
 	//take the pointer to the rational approximations for current flavor and mark down degeneracy

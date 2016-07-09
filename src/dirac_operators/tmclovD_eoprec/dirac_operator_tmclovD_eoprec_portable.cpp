@@ -16,7 +16,7 @@ namespace nissa
   {
     if(dag) mu=-mu;
     
-    if(in==out) crash("in==out!");
+    if(in==out) CRASH("in==out!");
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
@@ -32,7 +32,7 @@ namespace nissa
   //inverse
   THREADABLE_FUNCTION_4ARG(inv_tmclovDee_or_oo_eos, spincolor*,out, inv_clover_term_t*,invCl, bool,dag, spincolor*,in)
   {
-    if(in==out) crash("in==out!");
+    if(in==out) CRASH("in==out!");
     
     //if dagger, swaps the sign of mu, which means taking the hermitian of the inverse
     int high=0,low=1;

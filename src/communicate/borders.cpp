@@ -37,12 +37,12 @@ namespace nissa
   void comm_setup(comm_t &comm)
   {
     //mark initialization
-    if(comm.initialized) crash("trying to initialize an already initialized communicator!");
+    if(comm.initialized) CRASH("trying to initialize an already initialized communicator!");
     comm.initialized=true;
     
     //check that buffers are large enough
     if(comm.tot_mess_size>std::min(send_buf_size,recv_buf_size))
-      crash("asking to create a communicator that need %d large buffer (%d allocated)",
+      CRASH("asking to create a communicator that need %d large buffer (%d allocated)",
 	    comm.tot_mess_size,std::min(send_buf_size,recv_buf_size));
     
     //mark that there is no communication in progress
@@ -89,7 +89,7 @@ namespace nissa
   
   //check that the communicator is initialized
   void crash_if_not_initialized(comm_t &comm)
-  {if(!comm.initialized) crash("using uninitialized communicator!");}
+  {if(!comm.initialized) CRASH("using uninitialized communicator!");}
   
   //start the communications
   void comm_start(comm_t &comm,int *dir_comm=NULL,int tot_size=-1)
@@ -168,7 +168,7 @@ namespace nissa
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-      crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
+      CRASH("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
     
     //copy one by one the surface of vec inside the sending buffer
     NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
@@ -191,7 +191,7 @@ namespace nissa
 	
 	//check buffer size matching
 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-	  crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
+	  CRASH("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
 	
 	//the buffer is already ordered as the vec border
 	memcpy((char*)vec+loc_vol*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
@@ -260,7 +260,7 @@ namespace nissa
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
-      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
+      CRASH("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
     
     //copy one by one the surface of vec inside the sending buffer
     NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
@@ -282,7 +282,7 @@ namespace nissa
 	
 	//check buffer size matching
 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
-	  crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
+	  CRASH("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
 	
 	//the buffer is already ordered as the vec border
 	memcpy((char*)vec+loc_volh*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
@@ -351,7 +351,7 @@ namespace nissa
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
+      CRASH("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
     
     //copy one by one the surface of vec inside the sending buffer
     NISSA_PARALLEL_LOOP(ibord_lx,0,bord_vol)
@@ -379,7 +379,7 @@ namespace nissa
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
+      CRASH("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
     
     //the buffer is lx ordered
     NISSA_PARALLEL_LOOP(ibord_lx,0,bord_vol)

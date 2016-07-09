@@ -24,7 +24,7 @@ namespace nissa
   //compute the staples along a particular dir, for a single site
   void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
   {
-    if(!check_edges_valid(eo_conf[0])||!check_edges_valid(eo_conf[1])) crash("communicate edges externally");
+    if(!check_edges_valid(eo_conf[0])||!check_edges_valid(eo_conf[1])) CRASH("communicate edges externally");
     
     su3_put_to_zero(staple);
     
@@ -48,7 +48,7 @@ namespace nissa
   }
   void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,int A,int mu)
   {
-    if(!check_edges_valid(lx_conf)) crash("communicate edges externally");
+    if(!check_edges_valid(lx_conf)) CRASH("communicate edges externally");
     
     su3_put_to_zero(staple);
     

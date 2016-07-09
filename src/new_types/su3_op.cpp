@@ -99,7 +99,7 @@ namespace nissa
 	    printf("This is meant to be the product:\n");
 	    su3_print(prod);
 	    printf("The norm was: %16.16lg and the trace: %16.16lg\n",rotating_norm,su3_real_trace(prod));
-	    if(iter>niter_max) crash("%lg",rotating_norm);
+	    if(iter>niter_max) CRASH("%lg",rotating_norm);
 	  }
       }
     while(!converged);

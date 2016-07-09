@@ -66,7 +66,7 @@ namespace nissa
 	snprintf(temp,20," %d",ptr[i]);
 	strncat(text,temp,size);
       }
-    if(strlen(text)==1024) crash("use larger text");
+    if(strlen(text)==1024) CRASH("use larger text");
   }
   
   //read all the entries of the random generator from a string
@@ -77,16 +77,16 @@ namespace nissa
     for(int i=0;i<RAN2_NTAB+3;i++)
       {
 	char temp[20];
-	if(sscanf(text,"%s",temp)!=1) crash("while reading element %d from %s",i,text);
+	if(sscanf(text,"%s",temp)!=1) CRASH("while reading element %d from %s",i,text);
 	text+=1+strlen(temp);
-	if(sscanf(temp,"%d",ptr+i)!=1) crash("while converting to int %s",temp);
+	if(sscanf(temp,"%d",ptr+i)!=1) CRASH("while converting to int %s",temp);
       }
   }
   
   //initialize the global random generator
   void start_glb_rnd_gen(int seed)
   {
-    if(glb_rnd_gen_inited==1) crash("global random generator already initialized");
+    if(glb_rnd_gen_inited==1) CRASH("global random generator already initialized");
     start_rnd_gen(&(glb_rnd_gen),seed);
     
     glb_rnd_gen_inited=1;
@@ -96,7 +96,7 @@ namespace nissa
   //init from text
   void start_glb_rnd_gen(char *text)
   {
-    if(glb_rnd_gen_inited==1) crash("global random generator already initialized");
+    if(glb_rnd_gen_inited==1) CRASH("global random generator already initialized");
     convert_text_to_rnd_gen(&(glb_rnd_gen),text);
     
     glb_rnd_gen_inited=1;
@@ -106,10 +106,10 @@ namespace nissa
   //initialize the grid of local random number generator
   void start_loc_rnd_gen(int seed)
   {
-    if(loc_rnd_gen_inited==1) crash("local random generator already initialized!");
+    if(loc_rnd_gen_inited==1) CRASH("local random generator already initialized!");
     
     //check the grid to be initiaized
-    if(loc_vol==0) crash("grid not initalized!");
+    if(loc_vol==0) CRASH("grid not initalized!");
     
     //Generate the true seed
     if(glb_rnd_gen_inited==0) start_glb_rnd_gen(seed);
@@ -120,7 +120,7 @@ namespace nissa
     for(int ivol=0;ivol<loc_vol;ivol++)
       {
 	int loc_seed=internal_seed+glblx_of_loclx[ivol];
-	if(loc_seed<0) crash("something went wrong with local seed: %d + %d = %d",internal_seed,glblx_of_loclx[ivol],loc_seed);
+	if(loc_seed<0) CRASH("something went wrong with local seed: %d + %d = %d",internal_seed,glblx_of_loclx[ivol],loc_seed);
 	start_rnd_gen(&(loc_rnd_gen[ivol]),loc_seed);
       }
     loc_rnd_gen_inited=1;
@@ -137,7 +137,7 @@ namespace nissa
   //stop grid of local random generators
   void stop_loc_rnd_gen()
   {
-    if(loc_rnd_gen_inited==0) crash("local random generator not initialized");
+    if(loc_rnd_gen_inited==0) CRASH("local random generator not initialized");
     master_printf("Stopping local random generators\n");
     
     nissa_free(loc_rnd_gen);
@@ -255,7 +255,7 @@ namespace nissa
     for(int i=0;i<nrnd_type;i++) if(strcasecmp(str,rnd_t_str[i])==0) return (rnd_t)i;
     master_fprintf(stderr,"Error, unknown random string %s,known ones:\n",str);
     for(int i=0;i<nrnd_type;i++) master_fprintf(stderr," %s\n",rnd_t_str[i]);
-    crash("Choose one of them");
+    CRASH("Choose one of them");
     return (rnd_t)RND_ALL_MINUS_ONE;
   }
   

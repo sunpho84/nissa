@@ -4,7 +4,7 @@ using namespace nissa;
 
 void in_main(int narg,char **arg)
 {
-  if(narg<2) crash("use %s nx",arg[0]);
+  if(narg<2) CRASH("use %s nx",arg[0]);
   int X=atoi(arg[1]);
   int T=2*X,L=X;
   init_grid(T,L);

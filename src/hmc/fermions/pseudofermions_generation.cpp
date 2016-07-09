@@ -39,7 +39,7 @@ namespace nissa
       case ferm_discretiz::ROOT_TM_CLOV:
 	summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(pf->Wils,conf,q.kappa,Cl_odd,invCl_evn,q.mass,rat,10000000,residue,pf_hb_vec.Wils);
 	break;
-      default:crash("not supported");break;
+      default:CRASH("not supported");break;
       }
     rem_backfield_from_conf(conf,u1b);
   }

@@ -48,26 +48,26 @@ void read_conf(const char *path,int &iconf)
   
   //iconf
   header=ILDG_File_get_next_record_header(file);
-  if(strcasecmp(header.type,"ConfID")) crash("expecting ConfID record, found %s",header.type);
+  if(strcasecmp(header.type,"ConfID")) CRASH("expecting ConfID record, found %s",header.type);
   char data_iconf[30];
   ILDG_File_read_all(data_iconf,file,header.data_length);
   sscanf(data_iconf,"%d",&iconf);
   
   //rnd
   header=ILDG_File_get_next_record_header(file);
-  if(strcasecmp(header.type,"RND_gen_status")) crash("expecting RND_gen_status record, found %s",header.type);
+  if(strcasecmp(header.type,"RND_gen_status")) CRASH("expecting RND_gen_status record, found %s",header.type);
   char data_rnd[1000];
   ILDG_File_read_all(data_rnd,file,header.data_length);
   start_loc_rnd_gen(data_rnd);
   
   //lambda
   header=ILDG_File_get_next_record_header(file);
-  if(strcasecmp(header.type,"lambda")) crash("expecting lambda record, found %s",header.type);
+  if(strcasecmp(header.type,"lambda")) CRASH("expecting lambda record, found %s",header.type);
   read_real_vector((double*)lambda,file,header,sizeof(quad_u1)/sizeof(double));
 
   //zeta
   header=ILDG_File_get_next_record_header(file);
-  if(strcasecmp(header.type,"zeta")) crash("expecting zeta record, found %s",header.type);
+  if(strcasecmp(header.type,"zeta")) CRASH("expecting zeta record, found %s",header.type);
   read_real_vector((double*)zeta,file,header,sizeof(ON_t)/sizeof(double));
   
   ILDG_File_close(file);
@@ -609,7 +609,7 @@ double geometric_topology_simplified(ON_t *z)
 void in_main(int narg,char **arg)
 {
   //init
-  if(narg<2) crash("Use %s input",arg[0]);
+  if(narg<2) CRASH("Use %s input",arg[0]);
   int seed;
   read_input(seed,arg[1]);
   int base_isweep;

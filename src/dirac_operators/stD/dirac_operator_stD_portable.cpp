@@ -101,9 +101,9 @@ namespace nissa
     if(IS_MASTER_THREAD)
       {
 	//check arguments
-	if(out==in)   crash("out==in!");
-	if(out==temp) crash("out==temp!");
-	if(temp==in)  crash("temp==in!");
+	if(out==in)   CRASH("out==in!");
+	if(out==temp) CRASH("out==temp!");
+	if(temp==in)  CRASH("temp==in!");
       }
     START_TIMING(portable_stD_app_time,nportable_stD_app);
     

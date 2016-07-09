@@ -129,7 +129,7 @@ namespace nissa
   //comput third row according to other 2
   inline void su3_build_third_row(su3 o)
   {
-    CRASH_IF_NOT_3COL();
+    crash_IF_NOT_3COL();
     
     unsafe_complex_conj_conj_prod(o[2][0],o[0][1],o[1][2]);
     complex_subt_the_conj_conj_prod(o[2][0],o[0][2],o[1][1]);
@@ -566,7 +566,7 @@ namespace nissa
   //calculate explicitely the inverse
   inline void unsafe_su3_explicit_inverse(su3 invU,su3 U)
   {
-    CRASH_IF_NOT_3COL();
+    crash_IF_NOT_3COL();
     
     complex det,rec_det;
     su3_det(det,U);
@@ -661,7 +661,7 @@ namespace nissa
   //unitarize by orthonormalizing the rows
   inline void su3_unitarize_orthonormalizing(su3 o,su3 i)
   {
-    CRASH_IF_NOT_3COL();
+    crash_IF_NOT_3COL();
     
     //compute the squared norm of row 0
     double row0_norm2=color_norm2(i[0]);
@@ -1338,7 +1338,7 @@ namespace nissa
   //build the exponential from the ingredients
   inline void safe_hermitian_exact_i_exponentiate(su3 out,hermitian_exp_ingredients &ing)
   {
-    CRASH_IF_NOT_3COL();
+    crash_IF_NOT_3COL();
     
     //compute out according to (eq. 13)
     su3_put_to_diag(out,ing.f[0]);

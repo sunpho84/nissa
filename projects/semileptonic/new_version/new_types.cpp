@@ -32,11 +32,11 @@ void prop_group_t::check_itheta_mass_r(int itheta,int imass,int r)
   get_ntheta_mass_r(ntheta,nmass,nr);
   
   //check theta
-  if(itheta<0||itheta>=ntheta) crash("asked for itheta=%d, prop group contains %d",itheta,ntheta);
+  if(itheta<0||itheta>=ntheta) CRASH("asked for itheta=%d, prop group contains %d",itheta,ntheta);
   //check mass
-  if(imass<0||imass>=nmass) crash("asked for imass=%d, prop group contains %d",imass,nmass);
+  if(imass<0||imass>=nmass) CRASH("asked for imass=%d, prop group contains %d",imass,nmass);
   //check r
-  if(r<0||r>=nr) crash("asked for r=%d, prop group contains %d",r,nr);
+  if(r<0||r>=nr) CRASH("asked for r=%d, prop group contains %d",r,nr);
 }
 
 int prop_group_t::iprop(int itheta,int imass,int r)
@@ -74,19 +74,19 @@ void prop_group_t::read_pars(int ntheta_group,theta_group_t *theta_group,int nma
   int imass_res_group;
   read_str_int("iMassResGroup",&imass_res_group);
   if(imass_res_group<0||imass_res_group>=nmass_res_group)
-    crash("mass_res group chosen %d is not in the interval [0,%d)",imass_res_group,nmass_res_group);
+    CRASH("mass_res group chosen %d is not in the interval [0,%d)",imass_res_group,nmass_res_group);
       
   //read the id of the list of theta
   int itheta_group;
   read_str_int("iThetaGroup",&itheta_group);
   if(itheta_group<0||itheta_group>=ntheta_group)
-    crash("theta group chosen %d is not in the interval [0,%d)",itheta_group,ntheta_group);
+    CRASH("theta group chosen %d is not in the interval [0,%d)",itheta_group,ntheta_group);
   
   //read which r
   int which_r;
   read_str_int("WhichR",&which_r);
   if(which_r<0||which_r>2)
-    crash("r chosen %d not in the interval [0,2]",which_r);
+    CRASH("r chosen %d not in the interval [0,2]",which_r);
   
   //allocate the propagators
   create(theta_group[itheta_group],mass_res_group[imass_res_group],(TMR)which_r);
@@ -161,7 +161,7 @@ void prop_group_t::get_smearing(gauge_conf_t &conf,gauss_smear_pars_t &pars,prop
 {
   int nin=in.nprop();
   int nout=nprop();
-  if(nout!=nin) crash("in group has %d elements, out prop has %d",nin,nout);
+  if(nout!=nin) CRASH("in group has %d elements, out prop has %d",nin,nout);
   
   for(int i=0;i<nin;i++)
     gaussian_smearing(S[i],in.S[i],conf.U,pars.kappa,pars.nterm,pars.coeff,pars.expnt);
@@ -357,9 +357,9 @@ void gauss_smear_pars_t::read()
     {
       read_double(&coeff[iterm]);
       read_int(&expnt[iterm]);
-      if(expnt[iterm]<0) crash("chosen exponent %d for %d term of smearing operator, select a positive one",expnt[iterm],iterm);
+      if(expnt[iterm]<0) CRASH("chosen exponent %d for %d term of smearing operator, select a positive one",expnt[iterm],iterm);
       if(iterm>0 && expnt[iterm]<expnt[iterm-1])
-	crash("exponent %d (%d) smaller than %d (%d), please sort coefficient in ascending order",iterm,expnt[iterm],iterm-1,expnt[iterm-1]);
+	CRASH("exponent %d (%d) smaller than %d (%d), please sort coefficient in ascending order",iterm,expnt[iterm],iterm-1,expnt[iterm-1]);
     }
 }
 
@@ -402,7 +402,7 @@ two_pts_corr_pars_t *unroll_corr_to_contr(const char *what)
   int icorr=0;
   while(icorr<navail_two_pts_corr && strcmp(avail_two_pts_corr[icorr]->name,what)!=0) icorr++;
 
-  if(icorr==navail_two_pts_corr) crash("Unknown corr: %s",what);
+  if(icorr==navail_two_pts_corr) CRASH("Unknown corr: %s",what);
   
   return avail_two_pts_corr[icorr];
 }
@@ -469,8 +469,8 @@ void corr_command_t::read_prop_group_pair(int nprop_group,prop_group_t *prop_gro
   read_int(&first);
   read_int(&second);
   
-  if(first<0||first>=nprop_group) crash("first group %d must be in the interval [0,%d)",first,nprop_group);
-  if(second<0||second>=nprop_group) crash("second group %d must be in the interval [0,%d)",second,nprop_group);
+  if(first<0||first>=nprop_group) CRASH("first group %d must be in the interval [0,%d)",first,nprop_group);
+  if(second<0||second>=nprop_group) CRASH("second group %d must be in the interval [0,%d)",second,nprop_group);
   
   pair_list[ipair]=prop_group_pair_t(prop_group[first],prop_group[second]);
 }
@@ -480,7 +480,7 @@ void corr_command_t::read_corr_group(int ntwo_pts_corr_group_avail,two_pts_corr_
   int two_pts_corr_igroup;
   read_str_int("TwoPtsCorrGroupId",&two_pts_corr_igroup);
   
-  if(two_pts_corr_igroup<0||two_pts_corr_igroup>=ntwo_pts_corr_group_avail) crash("two pts corr group id %d must be in the range [0,%d)",two_pts_corr_igroup,ntwo_pts_corr_group_avail);
+  if(two_pts_corr_igroup<0||two_pts_corr_igroup>=ntwo_pts_corr_group_avail) CRASH("two pts corr group id %d must be in the range [0,%d)",two_pts_corr_igroup,ntwo_pts_corr_group_avail);
   two_pts_corr_group=ext_two_pts_corr_group+two_pts_corr_igroup;
 }
 
@@ -602,7 +602,7 @@ void gauge_conf_t::copy(gauge_conf_t &in)
   kappa=in.kappa;
   
   if(in.is_allocated()) vector_copy(U,in.U);
-  else crash("copying from an unallocated conf");
+  else CRASH("copying from an unallocated conf");
 }
 
 void gauge_conf_t::read(const char *path)

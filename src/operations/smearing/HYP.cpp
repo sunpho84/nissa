@@ -217,7 +217,7 @@ namespace nissa
     //free dec1
     for(int idec1=0;idec1<idec1_remap;idec1++) nissa_free(dec1_conf[idec1]);
 #else
-    crash("Ndim=%d cannot use HYP",NDIM);
+    CRASH("Ndim=%d cannot use HYP",NDIM);
 #endif
   }
   THREADABLE_FUNCTION_END

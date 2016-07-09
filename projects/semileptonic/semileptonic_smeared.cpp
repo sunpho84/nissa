@@ -204,7 +204,7 @@ void read_conf_smearing_pars()
 	conf_smearing=stout_conf_smearing;
 	read_stout_pars(stout_smearing_pars);
       }
-    else crash("Unkown conf smearing type: %s\n",conf_smearing_str);
+    else CRASH("Unkown conf smearing type: %s\n",conf_smearing_str);
 }
 
 //This function contract a source with a sequential spinor putting the passed list of operators
@@ -322,15 +322,15 @@ void initialize_semileptonic(char *input_path)
   read_list_of_ints("GaussianNiterSo",&nsm_lev_so,&gaussian_niter_so);
   for(int iter=1;iter<nsm_lev_so;iter++)
     if(gaussian_niter_so[iter]<gaussian_niter_so[iter-1])
-      crash("Error, gaussian lev sou %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_so[iter],gaussian_niter_so[iter-1]);
+      CRASH("Error, gaussian lev sou %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_so[iter],gaussian_niter_so[iter-1]);
   read_list_of_ints("GaussianNiterSe",&nsm_lev_se,&gaussian_niter_se);
   for(int iter=1;iter<nsm_lev_se;iter++)
     if(gaussian_niter_se[iter]<gaussian_niter_se[iter-1])
-      crash("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_se[iter],gaussian_niter_se[iter-1]);
+      CRASH("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_se[iter],gaussian_niter_se[iter-1]);
   read_list_of_ints("GaussianNiterSi",&nsm_lev_si,&gaussian_niter_si);
   for(int iter=1;iter<nsm_lev_si;iter++)
     if(gaussian_niter_si[iter]<gaussian_niter_si[iter-1])
-      crash("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_si[iter],gaussian_niter_si[iter-1]);
+      CRASH("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_si[iter],gaussian_niter_si[iter-1]);
   read_conf_smearing_pars();
   
   // 4) Read list of masses and of thetas
@@ -417,7 +417,7 @@ void initialize_semileptonic(char *input_path)
   
   read_str_int("TSep",&tsep);
   read_str_int("NSpec",&nspec);
-  if(nspec==0) crash("it has no meaning to specify 0 spectators");
+  if(nspec==0) CRASH("it has no meaning to specify 0 spectators");
   ith_spec=nissa_malloc("ith_spec",nspec,int);
   imass_spec=nissa_malloc("imass_spec",nspec,int);
   r_spec=nissa_malloc("r_spec",nspec,int);
@@ -428,10 +428,10 @@ void initialize_semileptonic(char *input_path)
       read_int(&(imass_spec[ispec]));
       read_int(&(r_spec[ispec]));
       
-      if(ith_spec[ispec]<0||ith_spec[ispec]>=nthetaS0)    crash("theta for ispec %d out of bounds",ispec);
-      if(imass_spec[ispec]<0||imass_spec[ispec]>=nmassS0) crash("mass for ispec %d out of bounds",ispec);
-      if(r_spec[ispec]<0||r_spec[ispec]>=2)               crash("r for ispec %d out of bounds",ispec);
-      if(which_r_S0!=2&&r_spec[ispec]!=which_r_S0)        crash("r for ispec %d uncomputed",ispec);
+      if(ith_spec[ispec]<0||ith_spec[ispec]>=nthetaS0)    CRASH("theta for ispec %d out of bounds",ispec);
+      if(imass_spec[ispec]<0||imass_spec[ispec]>=nmassS0) CRASH("mass for ispec %d out of bounds",ispec);
+      if(r_spec[ispec]<0||r_spec[ispec]>=2)               CRASH("r for ispec %d out of bounds",ispec);
+      if(which_r_S0!=2&&r_spec[ispec]!=which_r_S0)        CRASH("r for ispec %d uncomputed",ispec);
       
       master_printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,thetaS0[ith_spec[ispec]],massS0[imass_spec[ispec]],r_spec[ispec]);
     }
@@ -558,7 +558,7 @@ int read_conf_parameters(int *iconf)
 	      int ris=create_dir(outfolder);
 	      if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
 	      else
-		crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+		CRASH(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 	    }
 	  file_touch(run_file);
 	}
@@ -604,7 +604,7 @@ void setup_conf()
       nissa_free(eo_conf[ODD]);
       break;
     default:
-      crash("unknown conf smearing type %d",(int)conf_smearing);
+      CRASH("unknown conf smearing type %d",(int)conf_smearing);
       break;
     }
   
@@ -1412,7 +1412,7 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //initialize the program
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
   
   //loop over the configs

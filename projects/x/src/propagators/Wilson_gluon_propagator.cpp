@@ -13,7 +13,7 @@ void compute_mom_space_Wilson_gluon_propagator(spin1prop *prop,gluon_info gl)
   //check absence of zero modes
   int zmpres=1;
   for(int mu=0;mu<4;mu++) zmpres&=(gl.bc[mu]==0);
-  //if(zmpres) crash("zero mode present, prop not defined");
+  //if(zmpres) CRASH("zero mode present, prop not defined");
   
   //reset the propagator
   memset(prop,0,loc_vol*sizeof(spin1prop));

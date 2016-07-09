@@ -80,7 +80,7 @@ namespace nissa
   {
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
-    if(glb_size[mu]%4) crash("global size in %d direction must be multiple of 4, it is %d",mu,glb_size[mu]);
+    if(glb_size[mu]%4) CRASH("global size in %d direction must be multiple of 4, it is %d",mu,glb_size[mu]);
     
     //take absolute coords
     int xmu=glb_coord_of_loclx[ivol][mu];

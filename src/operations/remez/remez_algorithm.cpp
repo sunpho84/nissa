@@ -153,7 +153,7 @@ namespace nissa
 		q=abs(A[i*n+j]);
 		if(row_norm<q) row_norm=q;
 	      }
-	    if(row_norm==0.0) crash("num row norm");
+	    if(row_norm==0.0) CRASH("num row norm");
 	    x[i]=1/row_norm;
 	  }  
 	
@@ -174,7 +174,7 @@ namespace nissa
 		    ipiv=i;
 		  }
 	      }
-	    if(big.get_d()==0.0) crash("null big: %d",ipiv);
+	    if(big.get_d()==0.0) CRASH("null big: %d",ipiv);
 	    
 	    std::swap(exch[ipiv],exch[k]);
 	    
@@ -187,7 +187,7 @@ namespace nissa
 		  A[n*exch[i]+j]-=A[n*exch[i]+k]*A[n*exch[k]+j];
 	      }
 	  }
-	if(A[n*exch[n-1]+n-1]==0.0) crash("last element null");
+	if(A[n*exch[n-1]+n-1]==0.0) CRASH("last element null");
 	
 	//build solution
 	for(int i=0;i<n;i++)
@@ -442,7 +442,7 @@ namespace nissa
 	for(int i=degree-1;i>=0;i--)
 	  {
 	    roots[i]=root_find_Newton(poly,i+1,lower,upper,tol);
-	    if(roots[i]==0.0) crash("Failure to converge on root %ld/%d",i+1,degree);
+	    if(roots[i]==0.0) CRASH("Failure to converge on root %ld/%d",i+1,degree);
 	    poly[0]/=-roots[i];
 	    for(int j=1;j<=i;j++) poly[j]=(poly[j-1]-poly[j])/roots[i];
 	  }
@@ -454,7 +454,7 @@ namespace nissa
 	for(int i=degree-1;i>=0;i--)
 	  {
 	    poles[i]=root_find_Newton(poly,i+1,lower,upper,tol);
-	    if(poles[i]==0.0) crash("Failure to converge on pole %ld/%d",i+1,degree);
+	    if(poles[i]==0.0) CRASH("Failure to converge on pole %ld/%d",i+1,degree);
 	    poly[0]/=-poles[i];
 	    for(int j=1;j<=i;j++) poly[j]=(poly[j-1]-poly[j])/poles[i];
 	  }
@@ -506,7 +506,7 @@ namespace nissa
       }
     while((iter<nmax_iter)&&(abs(dx)>=acc));
     
-    if(iter==nmax_iter) crash("Maximum number of iterations exceeded in Newton_root");
+    if(iter==nmax_iter) CRASH("Maximum number of iterations exceeded in Newton_root");
     
     return rtn;
   }
@@ -734,7 +734,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //perform a few checks
-    if(num==den) crash("cannot work if the numerator has the same power of the denominator!");
+    if(num==den) CRASH("cannot work if the numerator has the same power of the denominator!");
     if(num==-den)
       {
 	verbosity_lv2_master_printf("Creating trivial approx for x^%d/%d\n",num,den);

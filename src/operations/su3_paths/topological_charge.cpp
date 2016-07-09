@@ -49,7 +49,7 @@ namespace nissa
   */
   void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X)
   {
-    if(!check_edges_valid(conf[0])) crash("communicate edges externally");
+    if(!check_edges_valid(conf[0])) CRASH("communicate edges externally");
     
     int munu=0;
     for(int mu=0;mu<NDIM;mu++)

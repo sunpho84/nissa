@@ -64,7 +64,7 @@ int read_prop_prec(const char *name)
   
   read_str_int(name,&prec);
   if(prec!=0 && prec!=32 && prec!=64)
-    crash("Error, asking to save %s in %d precision (only 0, 32, 64 available)",name,prec);
+    CRASH("Error, asking to save %s in %d precision (only 0, 32, 64 available)",name,prec);
   
   return prec;
 }
@@ -82,7 +82,7 @@ interv* read_subset_list(int *n_subset,const char *name,const char *tag)
 	{
 	  read_int(inte[isub][mu]+iext);
 	  if((*inte[isub][mu])<0||(*inte[isub][mu])>=glb_size[mu])
-	    crash("error in loading %s interval, exceeds borders!",name);
+	    CRASH("error in loading %s interval, exceeds borders!",name);
 	}
   
   return inte;
@@ -566,7 +566,7 @@ int check_remaining_time()
 
 void in_main(int narg,char **arg)
 {
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   tot_prog_time-=take_time();
   initialize_Zcomputation(arg[1]);

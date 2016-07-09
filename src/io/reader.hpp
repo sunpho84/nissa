@@ -20,7 +20,7 @@ namespace nissa
     //Search the record
     ILDG_header header;
     int found=ILDG_File_search_record(header,file,record_name,mess);
-    if(!found) crash("Error, record %s not found.\n",record_name);
+    if(!found) CRASH("Error, record %s not found.\n",record_name);
     
     //Read data
     read_real_vector(out,file,header);

@@ -123,7 +123,7 @@ namespace nissa
     decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,(char*)path.c_str(),amode,MPI_INFO_NULL,&file),"while opening file %s",path.c_str());
 #else
     file=fopen(path.c_str(),mode);
-    if(file==NULL) crash("while opening file %s",path.c_str());
+    if(file==NULL) CRASH("while opening file %s",path.c_str());
 #endif
     
     return file;
@@ -357,7 +357,7 @@ namespace nissa
 #endif
     
     if(nbytes_read!=nbytes_req)
-      crash("read %u bytes instead of %u required",nbytes_read,nbytes_req);
+      CRASH("read %u bytes instead of %u required",nbytes_read,nbytes_req);
     
     //padding
     ILDG_File_seek_to_next_eight_multiple(file);
@@ -384,7 +384,7 @@ namespace nissa
     
     //control the magic number magic number
     if(header.magic_no!=ILDG_MAGIC_NO)
-      crash("wrong magic number, expected %x and obtained %x",ILDG_MAGIC_NO,header.magic_no);
+      CRASH("wrong magic number, expected %x and obtained %x",ILDG_MAGIC_NO,header.magic_no);
     
     return header;
   }
@@ -413,7 +413,7 @@ namespace nissa
 #else
 	size_t nbytes_written=fwrite(data,1,nbytes_req,file);
 #endif
-	if(nbytes_written!=nbytes_req) crash("wrote %u bytes instead of %u required",nbytes_written,nbytes_req);
+	if(nbytes_written!=nbytes_req) CRASH("wrote %u bytes instead of %u required",nbytes_written,nbytes_req);
 	
 	//this is a blocking routine
 	ILDG_File_skip_nbytes(file,0);
@@ -509,7 +509,7 @@ namespace nissa
     
     //count read bytes
     size_t nbytes_read=MPI_Get_count_size_t(status);
-    if((uint64_t)nbytes_read!=header.data_length/nranks) crash("read %u bytes instead than %u",nbytes_read,header.data_length/nranks);
+    if((uint64_t)nbytes_read!=header.data_length/nranks) CRASH("read %u bytes instead than %u",nbytes_read,header.data_length/nranks);
     
     //put the view to original state and place at the end of the record, including padding
     normal_view.pos+=ceil_to_next_eight_multiple(header.data_length);
@@ -547,7 +547,7 @@ namespace nissa
     
     //read
     ILDG_Offset nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
-    if(nbytes_read!=nbytes_per_rank_exp) crash("read %ld bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
+    if(nbytes_read!=nbytes_per_rank_exp) CRASH("read %ld bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
     
     //place at the end of the record, including padding
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
@@ -645,7 +645,7 @@ namespace nissa
     
     //count wrote bytes
     size_t nbytes_written=MPI_Get_count_size_t(status);
-    if((uint64_t)nbytes_written!=header.data_length/nranks) crash("written %u bytes instead than %u",nbytes_written,header.data_length/nranks);
+    if((uint64_t)nbytes_written!=header.data_length/nranks) CRASH("written %u bytes instead than %u",nbytes_written,header.data_length/nranks);
     
     //reset mapped types
     unset_mapped_types(scidac_view.etype,scidac_view.ftype);
@@ -664,7 +664,7 @@ namespace nissa
     
     //write
     ILDG_Offset nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
-    if(nbytes_wrote!=nbytes_per_rank) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank);
+    if(nbytes_wrote!=nbytes_per_rank) CRASH("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank);
     
     //free buf and ord
     nissa_free(buf);

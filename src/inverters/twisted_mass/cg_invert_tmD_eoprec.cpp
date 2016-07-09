@@ -59,7 +59,7 @@ namespace nissa
   //Invert twisted mass operator using e/o preconditioning.
   THREADABLE_FUNCTION_8ARG(inv_tmD_cg_eoprec, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
   {
-    if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
+    if(!use_eo_geom) CRASH("eo geometry needed to use cg_eoprec");
     
     //prepare the e/o split version of the source
     spincolor *source_eos[2];

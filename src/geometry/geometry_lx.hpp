@@ -62,7 +62,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX coords rank_coord;
   EXTERN_GEOMETRY_LX coords rank_neigh[2],rank_neighdw,rank_neighup;
   EXTERN_GEOMETRY_LX coords plan_rank,line_rank,line_coord_rank;
-  EXTERN_GEOMETRY_LX coords nrank_dir;
+  EXTERN_GEOMETRY_LX coords nranks_per_dir;
   EXTERN_GEOMETRY_LX int grid_inited;
   EXTERN_GEOMETRY_LX int nparal_dir;
   EXTERN_GEOMETRY_LX coords paral_dir;

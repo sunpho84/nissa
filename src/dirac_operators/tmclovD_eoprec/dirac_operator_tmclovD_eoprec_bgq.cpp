@@ -18,7 +18,7 @@ namespace nissa
 {
   void inv_tmclovDee_or_oo_eos(vir_spincolor *out,vir_inv_clover_term_t *invCl,bool dag,vir_spincolor *in)
   {
-    if(in==out) crash("in==out!");
+    if(in==out) CRASH("in==out!");
     
     int high=0,low=1;
     
@@ -44,7 +44,7 @@ namespace nissa
   {
     if(dag) mass=-mass;
     
-    if(in==out) crash("in==out!");
+    if(in==out) CRASH("in==out!");
     
     //mass and kapap
     double a=1/(2*kappa),b=mass;
@@ -109,7 +109,7 @@ namespace nissa
   //implement Koo defined in equation (7)
   THREADABLE_FUNCTION_9ARG(tmclovDkern_eoprec_eos_bgq, vir_spincolor*,out, vir_spincolor*,temp, vir_oct_su3**,conf, double,kappa, vir_clover_term_t*,Cl_odd, vir_inv_clover_term_t*,invCl_evn, bool,dag, double,mass, vir_spincolor*,in)
   {
-    if(in==out) crash("cannot work with in==out");
+    if(in==out) CRASH("cannot work with in==out");
     
     tmn2Deo_eos_bgq(out,conf,in);
     inv_tmclovDee_or_oo_eos(temp,invCl_evn,dag,out);

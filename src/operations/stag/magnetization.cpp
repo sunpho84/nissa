@@ -161,7 +161,7 @@ namespace nissa
         //measure magnetization for each quark
         for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
           {
-	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) CRASH("not defined for non-staggered quarks");
 	    
             complex magn={0,0};
             complex magn_proj_x[glb_size[1]]; //this makes pair and pact with "1" and "2" upstairs

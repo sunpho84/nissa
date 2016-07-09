@@ -48,7 +48,7 @@ namespace nissa
 	  {
 	    int ig1=mes_gamma_list[ihadr_contr].so;
 	    int ig2=mes_gamma_list[ihadr_contr].si;
-	    if(nso_spi==1 && ig1!=5) crash("implemented only g5 contraction on the source for non-diluted source");
+	    if(nso_spi==1 && ig1!=5) CRASH("implemented only g5 contraction on the source for non-diluted source");
 	    
 	    for(int i=0;i<nso_spi;i++)
 	      {
@@ -140,7 +140,7 @@ namespace nissa
   //as usual, FIRST propagator is reverted
   THREADABLE_FUNCTION_6ARG(meson_part_leptonic_contr, spinspin*,hadr, int,iq1, int,prop1_type, int,iq2, int,prop2_type, int,irev)
   {
-    crash("to be reviewed");
+    CRASH("to be reviewed");
     
     // GET_THREAD_ID();
     
@@ -271,7 +271,7 @@ namespace nissa
   //compute the total meslep contraction functions
   void compute_meslep_contr()
   {
-    crash("to be revirewd");
+    CRASH("to be revirewd");
     // master_printf("Computing leptonic contraction functions\n");
     // meslep_contr_time-=take_time();
     
@@ -308,7 +308,7 @@ namespace nissa
   //print out contractions
   void print_meslep_contr()
   {
-    crash("to be reviewd");
+    CRASH("to be reviewd");
     // contr_print_time-=take_time();
     
     // //open file and reduce
@@ -391,7 +391,7 @@ namespace nissa
   //compute all contractions
   THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr)
   {
-    crash("to be reviewd");
+    CRASH("to be reviewd");
     
     // GET_THREAD_ID();
     // master_printf("Computing baryon 2pts contractions\n");
@@ -488,7 +488,7 @@ namespace nissa
   //print all contractions
   void print_bar2pts_contr()
   {
-    crash("to be reviewed");
+    CRASH("to be reviewed");
     
     // //reduce
     // glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);

@@ -41,7 +41,7 @@ namespace nissa
       {
       case 1: pot=pars->theta;break;
       case 2: pot=compute_topodynamical_potential_der(pars,conf); break;
-      default: crash("unknown way to compute topological potential %d",pars->flag);
+      default: CRASH("unknown way to compute topological potential %d",pars->flag);
       }
     
     //normalize

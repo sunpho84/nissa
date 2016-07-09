@@ -56,7 +56,7 @@ void summ_the_exchange_contributionA(corr16 corr,spinspin OB,spinspin pB,spinspi
 
 void compute_meson_exchange_correction_analyticallyA(corr16 *corr,quark_info qu,gluon_info gl)
 {
-  if(nranks>1) crash("works only on scalar");
+  if(nranks>1) CRASH("works only on scalar");
   
   //freeing memory
   memset(corr,0,sizeof(corr16)*loc_vol);
@@ -153,7 +153,7 @@ void summ_the_exchange_contributionB(corr16 corr,spinspin XB,spinspin pB,spinspi
 
 void compute_meson_exchange_correction_analyticallyB(corr16 *corr,quark_info qu,gluon_info gl)
 {
-  if(nranks>1) crash("works only on scalar");
+  if(nranks>1) CRASH("works only on scalar");
   
   memset(corr,0,sizeof(corr16)*loc_vol);
   

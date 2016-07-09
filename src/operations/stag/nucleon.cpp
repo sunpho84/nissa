@@ -26,7 +26,7 @@ namespace nissa
     const int eps_i[6][3]={{0,1,2},{1,2,0},{2,0,1},{0,2,1},{2,1,0},{1,0,2}};
     const int eps_s[6]={+1,+1,+1,-1,-1,-1};
     
-    CRASH_IF_NOT_3COL();
+    crash_IF_NOT_3COL();
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
     int nflavs=theory_pars.nflavs();
@@ -71,7 +71,7 @@ namespace nissa
 		get_color_from_su3(temp_source,source,ic);
 		for(int iflav=0;iflav<nflavs;iflav++)
 		  {
-		    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+		    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) CRASH("not defined for non-staggered quarks");
 		    
 		    mult_Minv(temp_sol,conf,&theory_pars,iflav,meas_pars.residue,temp_source);
 		    

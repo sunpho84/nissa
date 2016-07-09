@@ -57,7 +57,7 @@ namespace nissa
   }
   
   //If the two dirac matrix in1 and in2 have the same position structure sum
-  //them, otherwise it crashes
+  //them, otherwise it CRASHes
   inline void dirac_summ(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
   {
     for(int ig=0;ig<NDIRAC;ig++)
@@ -66,8 +66,7 @@ namespace nissa
 	  out->pos[ig]=in1->pos[ig];
 	  complex_summ(out->entr[ig],in1->entr[ig],in2->entr[ig]);
 	}
-      else 
-	crash("The two matrix passed to sum have different positions");
+      else CRASH("The two matrix passed to sum have different positions");
   }
   inline void dirac_subt(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
   {
@@ -77,8 +76,7 @@ namespace nissa
 	  out->pos[ig]=in1->pos[ig];
 	  complex_subt(out->entr[ig],in1->entr[ig],in2->entr[ig]);
 	}
-      else 
-	crash("The two matrix passed to sum have different positions");
+      else CRASH("The two matrix passed to sum have different positions");
   }
   
   //Assign to the first dirac matrixes the product of the second and the third
@@ -153,7 +151,7 @@ namespace nissa
       {
 	for(int jd=id+1;jd<NDIRAC;jd++)
 	  if(in->pos[id]==in->pos[jd])
-	    crash("pos[%d]=%d==pos[%d]",id,in->pos[id],jd);
+	    CRASH("pos[%d]=%d==pos[%d]",id,in->pos[id],jd);
 	int od=in->pos[id];
 	out->pos[od]=id;
 	complex_conj(out->entr[od],in->entr[id]);

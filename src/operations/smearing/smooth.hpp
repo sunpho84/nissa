@@ -36,7 +36,7 @@ namespace nissa
 	case WFLOW: return "WFlow";break;
 	case APE: return "Ape";break;
 	case HYP: return "Hyp";break;
-	default: crash("not meant to be reached");return "";
+	default: CRASH("not meant to be reached");return "";
 	}
     }
     
@@ -49,7 +49,7 @@ namespace nissa
 	case WFLOW:return Wflow.T/meas_each;break;
 	case APE:return ape.nlevels/(int)meas_each;break;
 	case HYP:return hyp.nlevels/(int)meas_each;break;
-	default:crash("not meant to be reached");return 0;
+	default:CRASH("not meant to be reached");return 0;
 	}
     }
     

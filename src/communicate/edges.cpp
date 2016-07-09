@@ -169,7 +169,7 @@ namespace nissa
 			  }
 	      }
 	    
-	    if(nrequest!=nrequest_tot) crash("something went wrong");
+	    if(nrequest!=nrequest_tot) CRASH("something went wrong");
 	    
 	    if(nrequest>0) MPI_Waitall(nrequest,request,status);
 	  }

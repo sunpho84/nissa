@@ -35,7 +35,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
+    if(!use_eo_geom) CRASH("eo geometry needed to use cg_eoprec");
     
     inv_clover_term_t *invCl_lx;
     if(ext_invCl_lx) invCl_lx=ext_invCl_lx;

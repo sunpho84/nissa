@@ -92,7 +92,7 @@ namespace nissa
   //implement Koo defined in equation (7)
   THREADABLE_FUNCTION_6ARG(tmD_or_Qkern_eoprec_eos_bgq, vir_spincolor*,out, vir_oct_su3**,conf, double,kappa, double,mass, vir_spincolor*,in, int,D_or_Q)
   {
-    if(in==out) crash("cannot work with in==out");
+    if(in==out) CRASH("cannot work with in==out");
     
     tmn2Deo_eos_bgq(out,conf,in);
     inv_tmDee_or_oo_eos(out,kappa,mass,out);

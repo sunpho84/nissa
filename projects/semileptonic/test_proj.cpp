@@ -47,7 +47,7 @@ int count_npassed_conf()
       nconf=nlines/T;
       
       //check that number of lines is a multipe of T
-      if(nconf*T!=nlines) crash("outfile %s contains %d lines which is not multiple of T=%d",out_path,nlines,T);
+      if(nconf*T!=nlines) CRASH("outfile %s contains %d lines which is not multiple of T=%d",out_path,nlines,T);
     }
   else
     {
@@ -57,7 +57,7 @@ int count_npassed_conf()
       
       //check that file size is a multiple of conf_size
       if(nconf*conf_size!=file_size)
-	crash("outfile %s has size %d which is not multiple of conf size %d",out_path,file_size,conf_size);
+	CRASH("outfile %s has size %d which is not multiple of conf size %d",out_path,file_size,conf_size);
     }
   
   return nconf;
@@ -70,7 +70,7 @@ void init(int narg,char **arg)
   init_time=take_time();
   
   //check arguments and read input header
-  if(narg<2) crash("use %s input",arg[0]);
+  if(narg<2) CRASH("use %s input",arg[0]);
   read_input_header(arg[1]);
   
   //init cartesian grid
@@ -100,7 +100,7 @@ void init(int narg,char **arg)
 void read_conf_path()
 {
   read_str(conf_path,1024);
-  if(!file_exists(conf_path)) crash("conf %s does not exist");
+  if(!file_exists(conf_path)) CRASH("conf %s does not exist");
 }
 
 //generate a point source
@@ -175,7 +175,7 @@ void gamma_proj()
   else
     {
       if(little_endian) doubles_to_doubles_changing_endianess((double*)glb_out,(double*)glb_out,NGAMMA*T);
-      if(fwrite(glb_out,sizeof(proj_prop_t),T,fout)!=(size_t)T) crash("while writing data");
+      if(fwrite(glb_out,sizeof(proj_prop_t),T,fout)!=(size_t)T) CRASH("while writing data");
     }  
   close_file(fout);
 }

@@ -72,7 +72,7 @@ namespace nissa
 	      case ferm_discretiz::ROOT_TM_CLOV:
 		summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi_e.Wils,eo_conf,q.kappa,Cl[ODD],invCl_evn,q.mass,r,1000000,res,p.Wils);
 		break;
-	      default: crash("still not implemented");
+	      default: CRASH("still not implemented");
 	      }
 	    
 	    //compute scalar product

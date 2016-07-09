@@ -29,7 +29,7 @@ void init_program(int narg,char **arg)
   init_nissa(narg,arg);
   
   //Check arguments
-  if(narg<2) crash("use %s input",arg[0]);  
+  if(narg<2) CRASH("use %s input",arg[0]);  
 }
 
 //initialize the program
@@ -95,7 +95,7 @@ void parse_input(quark_info &quark,gluon_info &gluon,char *output_folder,int &ne
   if(strcasecmp(gluon_type,"tlSym")==0) gluon=create_tlSym_gluon_info(alpha,gluon_bc);
   else
     if(strcasecmp(gluon_type,"Wilson")==0) gluon=create_Wilson_gluon_info(alpha,gluon_bc);
-    else crash("Unknown gluon type %s",gluon_type);
+    else CRASH("Unknown gluon type %s",gluon_type);
 }
 
 //save the correlation

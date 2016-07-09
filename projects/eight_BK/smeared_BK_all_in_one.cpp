@@ -129,7 +129,7 @@ void initialize_Bk(int narg,char **arg)
   // 0) base initializations
   
   //Check arguments
-  if(narg<2) crash("No input file specified!\n");
+  if(narg<2) CRASH("No input file specified!\n");
   //Take init time
   tot_prog_time-=take_time();
   //Open input
@@ -157,7 +157,7 @@ void initialize_Bk(int narg,char **arg)
   read_list_of_ints("NSeparations",&nsepa,&tsepa);
   read_list_of_chars("WallNames",&nwall,&wall_name,10);
   //Allocate twall space
-  if(nwall!=nsepa+1) crash("nwall=%d != nsepa+1=%d",nwall,nsepa+1);
+  if(nwall!=nsepa+1) CRASH("nwall=%d != nsepa+1=%d",nwall,nsepa+1);
   twall=nissa_malloc("twal",nwall,int);
   so_gnlv=nissa_malloc("so_gnlv",nwall,int);
   so_gnit=nissa_malloc("so_gnit",nwall,int*);
@@ -202,12 +202,12 @@ void initialize_Bk(int narg,char **arg)
       read_list_of_ints(tag_source,&(so_gnlv[iwall]),&(so_gnit[iwall]));
       for(int glv=1;glv<so_gnlv[iwall];glv++)
 	if(so_gnit[iwall][glv]<so_gnit[iwall][glv-1])
-	  crash("gaussian levels have to be sorted in ascending order, but this is not the case for %02 wall!",iwall);
+	  CRASH("gaussian levels have to be sorted in ascending order, but this is not the case for %02 wall!",iwall);
     }
   read_list_of_ints("SinkGaussianNiters",&si_gnlv,&si_gnit);
   for(int glv=1;glv<si_gnlv;glv++)
     if(si_gnit[glv]<si_gnit[glv-1])
-      crash("gaussian levels have to be sorted in ascending order, but this is not the case for sink!");
+      CRASH("gaussian levels have to be sorted in ascending order, but this is not the case for sink!");
   
   // 4) contraction list for eight
 
@@ -215,7 +215,7 @@ void initialize_Bk(int narg,char **arg)
   contr_mezzotto=nissa_malloc("contr_mezzotto",16*glb_size[0],complex);
   
   read_str_int("NSpec",&nspec);
-  if(nspec>nmass) crash("Nspec>nmass!!!");
+  if(nspec>nmass) CRASH("Nspec>nmass!!!");
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
   loc_2pts=nissa_malloc("loc_2pts",ncontr_2pts*glb_size[0],complex);

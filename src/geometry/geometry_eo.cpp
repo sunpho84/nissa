@@ -44,13 +44,13 @@ namespace nissa
   //set the eo geometry
   void set_eo_geometry()
   {
-    if(!use_eo_geom) crash("E/O Geometry was not to be used!");
-    if(eo_geom_inited) crash("E/O Geometry already initialized!");
+    if(!use_eo_geom) CRASH("E/O Geometry was not to be used!");
+    if(eo_geom_inited) CRASH("E/O Geometry already initialized!");
     
     //check that all local sizes are multiples of 2
     int ok=1;
     REM_2 for(int mu=0;mu<NDIM;mu++) ok&=(loc_size[mu]%2==0);
-    REM_2 if(!ok) crash("local lattice size odd!");
+    REM_2 if(!ok) CRASH("local lattice size odd!");
     
     //set half the vol, bord and edge size
     glb_volh=glb_vol/2;
@@ -140,7 +140,7 @@ namespace nissa
 		      int ivol=loclx_of_loceo[par][loc_volh+b_eo];
 		      if(loclx_neigh[!vmu][ivol][mu]>=0 && loclx_neigh[!vmu][ivol][mu]<loc_vol && loclx_neigh[vnu][ivol][nu]>=loc_vol+bord_vol) edge_pos_disp[iedge_site++]=b_eo;
 		    }
-		  if(iedge_site!=eo_edge_size) crash("iedge_site=%d did not arrive to eo_edge_size=%d",iedge_site,eo_edge_size);
+		  if(iedge_site!=eo_edge_size) CRASH("iedge_site=%d did not arrive to eo_edge_size=%d",iedge_site,eo_edge_size);
 		  
 		  MPI_Type_indexed(eo_edge_size,single,edge_pos_disp,*base,&(MPI_EO_EDGES_SEND[icomm]));
 		  //commit the mess
@@ -177,7 +177,7 @@ namespace nissa
   void unset_eo_geometry()
   {
     if(!eo_geom_inited)
-      crash("asking to unset never initialized E/O Geometry!");
+      CRASH("asking to unset never initialized E/O Geometry!");
     
     master_printf("Unsetting E/O Geometry\n");
     

@@ -113,9 +113,9 @@ namespace nissa
   
   //Return the rank of passed coord
   int rank_of_coord(coords x)
-  {return lx_of_coord(x,nrank_dir);}
+  {return lx_of_coord(x,nranks_per_dir);}
   void coord_of_rank(coords c,int x)
-  {coord_of_lx(c,x,nrank_dir);}
+  {coord_of_lx(c,x,nranks_per_dir);}
   
   //Return the rank containing the global coordinates
   int rank_hosting_site_of_coord(coords x)
@@ -207,7 +207,7 @@ namespace nissa
 	  {
 	    if(is_bord[mu]==-1) return loc_vol+bord_offset[mu]+bordlx_of_coord(x,mu);             //backward border comes first
 	    if(is_bord[mu]==+1) return loc_vol+bord_vol/2+bord_offset[mu]+bordlx_of_coord(x,mu);  //forward border comes after
-	    crash("if is bord should not arrive here %d %d %d %d",ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
+	    CRASH("if is bord should not arrive here %d %d %d %d",ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
 	  }
       }
     
@@ -233,7 +233,7 @@ namespace nissa
 	      if((is_bord[al]==-1)&&(is_bord[be]==+1)) return loc_vol+bord_vol+edge_offset[iedge]+1*edge_vol/4+edgelx_of_coord(x,mu,nu);
 	      if((is_bord[al]==+1)&&(is_bord[be]==-1)) return loc_vol+bord_vol+edge_offset[iedge]+2*edge_vol/4+edgelx_of_coord(x,mu,nu);
 	      if((is_bord[al]==+1)&&(is_bord[be]==+1)) return loc_vol+bord_vol+edge_offset[iedge]+3*edge_vol/4+edgelx_of_coord(x,mu,nu);
-	      crash("Edge: %d, mu=%d, nu=%d %d %d %d %d",iedge,mu,nu,ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
+	      CRASH("Edge: %d, mu=%d, nu=%d %d %d %d %d",iedge,mu,nu,ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
 	    }
 	}
     
@@ -244,7 +244,7 @@ namespace nissa
   int bordlx_of_surflx(int loclx,int mu)
   {
     if(!paral_dir[mu]) return -1;
-    if(loc_size[mu]<2) crash("not working if one dir is smaller than 2");
+    if(loc_size[mu]<2) CRASH("not working if one dir is smaller than 2");
     
     if(loc_coord_of_loclx[loclx][mu]==0) return loclx_neighdw[loclx][mu]-loc_vol;
     if(loc_coord_of_loclx[loclx][mu]==loc_size[mu]-1) return loclx_neighup[loclx][mu]-loc_vol;
@@ -369,21 +369,21 @@ namespace nissa
       else               loclx_of_bw_surflx[ibw_surf++]=ivol;
     }
     
-    if(ibulk!=bulk_vol) crash("mismatch in bulk id");
-    if(isurf!=surf_vol) crash("mismatch in surf id");
-    if(inon_fw_surf!=non_fw_surf_vol) crash("mismatch in non_fw_surf id");
-    if(inon_bw_surf!=non_bw_surf_vol) crash("mismatch in non_bw_surf id");
-    if(ifw_surf!=fw_surf_vol) crash("mismatch in fw_surf id");
-    if(ibw_surf!=bw_surf_vol) crash("mismatch in bw_surf id");
+    if(ibulk!=bulk_vol) CRASH("mismatch in bulk id");
+    if(isurf!=surf_vol) CRASH("mismatch in surf id");
+    if(inon_fw_surf!=non_fw_surf_vol) CRASH("mismatch in non_fw_surf id");
+    if(inon_bw_surf!=non_bw_surf_vol) CRASH("mismatch in non_bw_surf id");
+    if(ifw_surf!=fw_surf_vol) CRASH("mismatch in fw_surf id");
+    if(ibw_surf!=bw_surf_vol) CRASH("mismatch in bw_surf id");
   }  
   
   //indexes run as t,x,y,z (faster:z)
   void set_lx_geometry()
   {
-    if(lx_geom_inited==1) crash("cartesian geometry already intialized!");
+    if(lx_geom_inited==1) CRASH("cartesian geometry already intialized!");
     lx_geom_inited=1;
     
-    if(grid_inited!=1) crash("grid not initialized!");
+    if(grid_inited!=1) CRASH("grid not initialized!");
     
     //find the rank of the neighbour in the various dir
     for(int mu=0;mu<NDIM;mu++)
@@ -479,7 +479,7 @@ namespace nissa
   //unset cartesian geometry
   void unset_lx_geometry()
   {
-    if(lx_geom_inited!=1) crash("cartesian geometry not initialized!");
+    if(lx_geom_inited!=1) CRASH("cartesian geometry not initialized!");
     
     master_printf("Unsetting cartesian geometry\n");
     lx_geom_inited=0;
@@ -583,7 +583,7 @@ namespace nissa
   
   //check that passed argument is between 0 and 15
   inline void crash_if_not_hypercubic_red(int hyp_red)
-  {if(hyp_red<0||hyp_red>=16) crash("%d not a hyperucbic reduced point",hyp_red);}
+  {if(hyp_red<0||hyp_red>=16) CRASH("%d not a hyperucbic reduced point",hyp_red);}
   
   //return the coordinates inside the hypercube
   void red_coords_of_hypercubic_red_point(coords h,int hyp_red)
@@ -613,7 +613,7 @@ namespace nissa
     int hyp=0;
     for(int mu=0;mu<NDIM;mu++)
       {
-	if(h[mu]<0||h[mu]>=2) crash("coordinate %d not in the range [0,1]",h[mu]);
+	if(h[mu]<0||h[mu]>=2) CRASH("coordinate %d not in the range [0,1]",h[mu]);
 	hyp*=2;
 	hyp+=h[mu];
       }

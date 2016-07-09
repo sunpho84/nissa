@@ -24,7 +24,7 @@
   
   int parser_lex(YYSTYPE *lvalp,YYLTYPE *llocp,void *scanner);
   void parser_error(YYLTYPE *locp,driver_t *driver,const char *err)
-  {crash("exception at line %d columns [%d-%d] %s",locp->first_line,locp->first_column,locp->last_column,err);}
+  {CRASH("exception at line %d columns [%d-%d] %s",locp->first_line,locp->first_column,locp->last_column,err);}
 
 #define scanner driver->scanner
   %}
@@ -399,7 +399,7 @@ hyp_pars: TK_HYP {$$=new hyp_pars_t;}
         | hyp_pars nlevels {$$=$1;$$->nlevels=$2;}
         | hyp_pars alphas {
 	    $$=$1;
-	    if($2->size()!=3) crash("hyp alpha needs an exactly 3 long list of int");
+	    if($2->size()!=3) CRASH("hyp alpha needs an exactly 3 long list of int");
 	    $$->alpha0=(*$2)[0];
 	    $$->alpha1=(*$2)[1];
 	    $$->alpha2=(*$2)[2];
@@ -464,13 +464,13 @@ meson_corr_meas: TK_MEAS_MESON_CORRS {$$=new meson_corr_meas_pars_t();}
 ;
 
 meson_list: TK_MESON_LIST '=' int_pair_list {
-    if((*$3)[0]!=std::make_pair(15,15)) crash("first entry of the meson list must be 15,15, instead it is: %d %d",(*$$)[0].first,(*$$)[0].second);
+    if((*$3)[0]!=std::make_pair(15,15)) CRASH("first entry of the meson list must be 15,15, instead it is: %d %d",(*$$)[0].first,(*$$)[0].second);
     for(size_t i=0;i<$3->size();i++)
 	{
 	    int f=(*$3)[i].first;
 	    int s=(*$3)[i].second;
-	    if((f<0)||(f>15)) crash("first part of entry %d is %d, should be in the range [0,15]",f);
-	    if((s<0)||(s>15)) crash("second part of entry %d is %d, should be in the range [0,15]",s);
+	    if((f<0)||(f>15)) CRASH("first part of entry %d is %d, should be in the range [0,15]",f);
+	    if((s<0)||(s>15)) CRASH("second part of entry %d is %d, should be in the range [0,15]",s);
 	}
 	$$=$3;}
 ;
@@ -539,7 +539,7 @@ global_conf_pars: TK_GAUGE_CONF {driver->run_mode=driver_t::EVOLUTION_MODE;}
                         char test2[128];
                         snprintf(test1,128,$4->c_str(),100);
                         snprintf(test2,128,$4->c_str(),101);
-                        if(!strcmp(test1,test2)) crash("bad template \"%s\" for store_path",$4->c_str());
+                        if(!strcmp(test1,test2)) CRASH("bad template \"%s\" for store_path",$4->c_str());
 			delete $4;
 		    }
                 | global_conf_pars TK_STORE_EACH '=' int_numb {driver->conf_pars.store_each=$4;}

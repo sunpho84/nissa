@@ -3,6 +3,7 @@
 #endif
 
 #include <math.h>
+#include <vector>
 
 #include "base/random.hpp"
 #include "new_types/complex.hpp"
@@ -41,7 +42,7 @@ namespace nissa
   }
   
   //return the log2 of N
-  int log2N(int N)
+  int log2N(long long int N)
   {
     int log2N=0;
     
@@ -65,9 +66,10 @@ namespace nissa
   }
   
   //factorize a number
-  int factorize(int *list,int N)
+  std::vector<int> factorize(long long int N)
   {
-    int nfatt=0;
+    std::vector<int> list;
+    
     int fatt=2;
     
     while(N>1)
@@ -75,17 +77,16 @@ namespace nissa
 	int div=N/fatt;
 	int res=N-div*fatt;
 	if(res!=0) fatt++;
-	else 
+	else
 	  {
 	    N=div;
-	    list[nfatt]=fatt;
-	    nfatt++;
+	    list.push_back(fatt);
 	  }
       }
     
-    return nfatt;
+    return list;
   }
-
+  
   //recursive call - see below
   void determinant(complex d,complex *m,int *s,int n,int N)
   {

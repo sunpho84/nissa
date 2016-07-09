@@ -77,12 +77,12 @@ void read_data()
       //parse
       int read_version,read_par,read_nquarks;
       int nread_info=sscanf(info_data," Version %d Par %d NQuarks %d NSources %d",&read_version,&read_par,&read_nquarks,&nread_sources);
-      if(nread_info!=5) crash("could not parse info");
+      if(nread_info!=5) CRASH("could not parse info");
       
       //check the info record
-      if(version!=read_version) crash("read version %d while program is version %d",read_version,version);
-      if(silv_par!=read_par) crash("read parity %d while input is %d",read_par,silv_par);
-      if(nquarks!=read_nquarks) crash("read nquarks %d while input is %d",read_nquarks,nquarks);
+      if(version!=read_version) CRASH("read version %d while program is version %d",read_version,version);
+      if(silv_par!=read_par) CRASH("read parity %d while input is %d",read_par,silv_par);
+      if(nquarks!=read_nquarks) CRASH("read nquarks %d while input is %d",read_nquarks,nquarks);
       
       //load what have been done
       if(nread_sources<nsources)
@@ -97,7 +97,7 @@ void read_data()
 	      {
 		ILDG_header head=ILDG_File_get_next_record_header(fin);
 		std::string exp_type=combine("par_%d_mass_%d_r_%d",par,iquark);
-		if(exp_type!=head.type) crash("expecting \"%s\", obtained \"%s\"",exp_type.c_str(),head.type);
+		if(exp_type!=head.type) CRASH("expecting \"%s\", obtained \"%s\"",exp_type.c_str(),head.type);
 		ILDG_File_read_ildg_data_all(bubble[par][iquark],fin,head);
 	      }
 	}
@@ -333,7 +333,7 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //init simulation according to input file
   init_simulation(arg[1]);

@@ -51,7 +51,7 @@ namespace nissa
 	    case ferm_discretiz::ROOT_STAG:
 	      summ_the_rootst_eoimpr_quark_force(F,tp->quarks[iflav].charge,conf,(*pf)[iflav][ipf].stag,tp->em_field_pars.flag,tp->backfield[iflav],&((*appr)[iflav*nappr_per_quark+RAT_APPR_QUARK_FORCE]),residue);break;
 	    default:
-	      crash("non staggered not yet implemented");
+	      CRASH("non staggered not yet implemented");
 	    }
 	}
     

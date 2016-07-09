@@ -302,7 +302,7 @@ namespace nissa
 		iter++;
 	      }
 	    while(rr/ori_rr>=target_res && iter<niter_max);
-	    if(iter>=niter_max) crash("exceeded maximal number of iterations %d, arrived to %d",niter_max,iter);
+	    if(iter>=niter_max) CRASH("exceeded maximal number of iterations %d, arrived to %d",niter_max,iter);
 	    
 	    //halfspincolor ap;
 	    //apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,x);

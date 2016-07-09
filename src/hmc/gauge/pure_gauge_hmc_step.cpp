@@ -44,7 +44,7 @@ namespace nissa
   //perform a full hmc step and return the difference between final and original action
   double pure_gauge_hmc_step(quad_su3 *out_conf,quad_su3 *in_conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,rat_approx_t *rat_exp_H,int itraj)
   {
-    if(in_conf==out_conf) crash("in==out");
+    if(in_conf==out_conf) CRASH("in==out");
     
     static int init=1;
     

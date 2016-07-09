@@ -213,7 +213,7 @@ double sin2h(coords cp,momentum_t bc)
 
 void in_main(int narg,char **arg)
 {
-  if(narg<2) crash("use %s nx",arg[0]);
+  if(narg<2) CRASH("use %s nx",arg[0]);
   int X=atoi(arg[1]);
   int T=2*X,L=X;
   init_grid(T,L);
@@ -284,7 +284,7 @@ void in_main(int narg,char **arg)
       master_printf("%lg\n",3*xp5p5[t]/glb_spat_vol);
   }
   
-  crash("");
+  CRASH("");
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
@@ -394,7 +394,7 @@ void in_main(int narg,char **arg)
 	    double b=test[ivol][0][0][IM];
 	    double c=test2[ivol][0][0][0];
 	    //if(a!=b)
-	    //crash("obtained %d while expecting %d",a,b);
+	    //CRASH("obtained %d while expecting %d",a,b);
 	    printf("%d %lg\t %lg %lg ANNA\n",glblx_of_loclx[ivol],c,a,b);
 	  }
       MPI_Barrier(MPI_COMM_WORLD);

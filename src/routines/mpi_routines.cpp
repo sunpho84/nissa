@@ -28,7 +28,7 @@ namespace nissa
   {
     int nbytes;
     decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes),"while counting bytes");
-    if(nbytes<0) crash("negative count: %d",nbytes);
+    if(nbytes<0) CRASH("negative count: %d",nbytes);
     
     return (size_t)nbytes;
   }
@@ -86,7 +86,7 @@ namespace nissa
 #ifdef USE_MPI
     coords periods;
     for(int mu=0;mu<NDIM;mu++) periods[mu]=1;
-    MPI_Cart_create(MPI_COMM_WORLD,NDIM,nrank_dir,periods,1,&cart_comm);
+    MPI_Cart_create(MPI_COMM_WORLD,NDIM,nranks_per_dir,periods,1,&cart_comm);
     //takes rank and ccord of local rank
     MPI_Comm_rank(cart_comm,&cart_rank);
     MPI_Cart_coords(cart_comm,cart_rank,NDIM,rank_coord);
@@ -104,7 +104,7 @@ namespace nissa
 	MPI_Cart_sub(cart_comm,split_plan,&(plan_comm[mu]));
 	MPI_Comm_rank(plan_comm[mu],&(plan_rank[mu]));
 	if(plan_rank[mu]!=rank_of_coord(proj_rank_coord))
-	  crash("Plan communicator has messed up coord: %d and rank %d (implement reorder!)",
+	  CRASH("Plan communicator has messed up coord: %d and rank %d (implement reorder!)",
 		rank_of_coord(proj_rank_coord),plan_rank[mu]);
       }
     
@@ -125,7 +125,7 @@ namespace nissa
 	
 	//check communicator
 	if(line_rank[mu]!=rank_coord[mu] || line_rank[mu]!=line_coord_rank[mu])
-	  crash("Line communicator has messed up coord and rank (implement reorder!)");
+	  CRASH("Line communicator has messed up coord and rank (implement reorder!)");
       }
 #else
     cart_rank=plan_rank=line_rank=0;
@@ -323,7 +323,7 @@ namespace nissa
   void glb_reduce_int(int *out_glb,int in_loc)
   {
 #ifdef USE_THREADS
-    if(!thread_pool_locked) crash("not threaded yet");
+    if(!thread_pool_locked) CRASH("not threaded yet");
     else
 #endif
       MPI_Allreduce(&in_loc,out_glb,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);

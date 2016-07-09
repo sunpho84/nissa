@@ -46,7 +46,7 @@ namespace nissa
       case WILSON_GAUGE_ACTION: Wilson_force_lx_conf(F,conf,physics->beta);break;
       case TLSYM_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_TLSYM);break;
       case IWASAKI_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_IWASAKI);break;
-      default: crash("Unknown action");
+      default: CRASH("Unknown action");
       }
   }
   
@@ -124,7 +124,7 @@ namespace nissa
     su3_print(nu_plus);
     master_printf("nu_minus\n");
     su3_print(nu_minus);
-    //crash("anna");
+    //CRASH("anna");
 #endif
     
     //print the intensity of the force

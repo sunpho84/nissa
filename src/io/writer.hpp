@@ -9,7 +9,7 @@ namespace nissa
   void write_double_vector(ILDG_File &file,double *data,size_t nreals_per_site,size_t nbits,const char *header_message,ILDG_message *mess=NULL);
   template <class T> void write_double_vector(std::string path,T *data,size_t nbits,const char *header_message,ILDG_message *mess=NULL)
   {
-    if(sizeof(T)%sizeof(double)) crash("data type has size %d",(int)sizeof(T));
+    if(sizeof(T)%sizeof(double)) CRASH("data type has size %d",(int)sizeof(T));
     
     //Open the file
     ILDG_File file=ILDG_File_open_for_write(path);

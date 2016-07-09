@@ -28,7 +28,7 @@ namespace nissa
     
     for(int iflav=0;iflav<tp->nflavs();iflav++)
       {
-	if(tp->quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+	if(tp->quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) CRASH("not defined for non-staggered quarks");
 	    
 	//reset the local density
 	vector_reset(loc_dens[iflav]);
@@ -134,7 +134,7 @@ namespace nissa
   std::string spinpol_meas_pars_t::get_str(bool full)
   {
     std::ostringstream os;
-    crash("");
+    CRASH("");
     
     return os.str();
   }

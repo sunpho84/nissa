@@ -11,11 +11,6 @@
  #include "routines/thread.hpp"
 #endif
 
-#if defined BGQ && !defined BGQ_EMU
- #include <bgpm/include/bgpm.h>
- #include "bgq/bgq_barrier.hpp"
-#endif
-
 //////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef USE_THREADS
@@ -24,8 +19,8 @@
  #define MANDATORY_NOT_PARALLEL
 #else
  #define NACTIVE_THREADS ((thread_pool_locked)?1:nthreads)
- #define MANDATORY_PARALLEL if(nthreads>1 && thread_pool_locked) crash("this cannot be called when threads are locked")
- #define MANDATORY_NOT_PARALLEL if(nthreads>1 && !thread_pool_locked) crash("this cannot be called when threads are not locked")
+ #define MANDATORY_PARALLEL if(nthreads>1 && thread_pool_locked) CRASH("this cannot be called when threads are locked")
+ #define MANDATORY_NOT_PARALLEL if(nthreads>1 && !thread_pool_locked) CRASH("this cannot be called when threads are not locked")
 #endif
 
 #define IS_PARALLEL (NACTIVE_THREADS!=1)
@@ -41,15 +36,9 @@
 
 #ifdef USE_THREADS
 
- #if defined BGQ && !defined BGQ_EMU
-  #include <spi/include/kernel/location.h>
-  //#define GET_THREAD_ID() uint32_t thread_id=Kernel_ProcessorID() //works only if 64 threads are used...
-  #define GET_THREAD_ID() uint32_t thread_id=omp_get_thread_num()
- #else
-  #define GET_THREAD_ID() uint32_t thread_id=omp_get_thread_num()
- #endif
+ #define GET_THREAD_ID() uint32_t thread_id=omp_get_thread_num()
  #define THREAD_ID thread_id
- 
+
  #ifdef THREAD_DEBUG
   #define THREAD_BARRIER_FORCE() thread_barrier_internal()
   #define THREAD_BARRIER()       if(!thread_pool_locked) thread_barrier_with_check(__FILE__,__LINE__)
@@ -490,32 +479,13 @@
 //flush the cache
 inline void cache_flush()
 {
-#if defined BGQ
- #if ! defined BGQ_EMU
-  mbar();
- #else
-  __sync_synchronize();
- #endif
-#else
  #pragma omp flush
-#endif
 }
-
-#if defined BGQ && (! defined BGQ_EMU)
-namespace nissa
-{
-  extern unsigned int nthreads;
-}
-#endif
 
 //barrier without any possible checking
 inline void thread_barrier_internal()
 {
-#if defined BGQ && (! defined BGQ_EMU)
-  bgq_barrier(nissa::nthreads);
-#else
   #pragma omp barrier
-#endif
 }
 
 #else

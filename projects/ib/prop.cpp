@@ -37,7 +37,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //consistency check
-    if(!stoch_source&&(!diluted_spi_source||!diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
+    if(!stoch_source&&(!diluted_spi_source||!diluted_col_source)) CRASH("for a non-stochastic source, spin and color must be diluted");
     
     //reset all to begin
     for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
@@ -80,7 +80,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    if(in==out) crash("in==out");
+    if(in==out) CRASH("in==out");
     
     vector_reset(out);
     

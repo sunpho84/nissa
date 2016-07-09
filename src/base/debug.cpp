@@ -49,13 +49,13 @@ namespace nissa
     free(strs);
   }
   
-  //crash reporting the expanded error message
-  void internal_crash(int line,const char *file,const char *templ,...)
+  //CRASH reporting the expanded error message
+  void internal_CRASH(int line,const char *file,const char *templ,...)
   {
     fflush(stdout);
     fflush(stderr);
     
-    //give time to master thread to crash, if possible
+    //give time to master thread to CRASH, if possible
     GET_THREAD_ID();
     if(!IS_MASTER_THREAD) sleep(1);
     
@@ -89,7 +89,7 @@ namespace nissa
 	vsprintf(str2,templ,ap);
 	va_end(ap);
 	
-	internal_crash(line,file,"%s %s",str1,str2);
+	internal_CRASH(line,file,"%s %s",str1,str2);
       }
   }
   
@@ -109,7 +109,7 @@ namespace nissa
       }
     print_backtrace_list();
     print_all_vect_content();
-    crash("signal %d (%s) detected, exiting",sig,name);
+    CRASH("signal %d (%s) detected, exiting",sig,name);
   }
   
 #ifdef USE_MPI
@@ -126,7 +126,7 @@ namespace nissa
 	MPI_Error_string(rc,err,&len);
 	char mess[1024];
 	vsprintf(mess,templ,ap);
-	internal_crash(line,file,"%s, raised error: %s",mess,err);
+	internal_CRASH(line,file,"%s, raised error: %s",mess,err);
       }
     
     va_end(ap);

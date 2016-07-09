@@ -142,7 +142,7 @@ namespace nissa
 	  {
 	    int sign=1,ivol=loclx_of_loceo[eo][ieo];
 	    for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1)&&(glb_coord_of_loclx[ivol][mu]&0x1));
-	    if(abs(sign)!=1) crash("unexpected sign %d",sign);
+	    if(abs(sign)!=1) CRASH("unexpected sign %d",sign);
 	    color_prod_double(source[eo][ieo],source[eo][ieo],sign);
 	  }
 	set_borders_invalid(source[eo]);
@@ -176,7 +176,7 @@ namespace nissa
 	int taste=meas_pars->mesons[iop].second;
 	shift[iop]=(spin^taste);
 	mask[iop]=form_meson_pattern(spin,taste);
-	//if((shift[iop])&1) crash("operator %d (%d %d) has unmarched number of g0",iop,spin,taste);
+	//if((shift[iop])&1) CRASH("operator %d (%d %d) has unmarched number of g0",iop,spin,taste);
 	verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
       }
     

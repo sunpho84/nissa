@@ -176,7 +176,7 @@ namespace nissa
 		  int ris=create_dir(outfolder);
 		  if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
 		  else
-		    crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+		    CRASH(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 		}
 	      file_touch(run_file);
 	    }

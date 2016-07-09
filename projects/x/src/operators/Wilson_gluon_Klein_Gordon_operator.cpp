@@ -14,7 +14,7 @@
 
 void apply_Wilson_gluon_x_Klein_Gordon_operator(spin1field *out,spin1field *in,gluon_info gl)
 {
-  if(out==in) crash("in==out");
+  if(out==in) CRASH("in==out");
   
   double rep_alpha=1/gl.alpha;
   

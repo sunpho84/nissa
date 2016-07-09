@@ -18,7 +18,7 @@
   
   int two_pts_corr_parser_lex(YYSTYPE *lvalp,YYLTYPE *llocp,void *scanner);
   void two_pts_corr_parser_error(YYLTYPE *locp,two_pts_parser_driver *driver,const char *err)
-  {crash("%d %s",locp->first_line,err);}
+  {CRASH("%d %s",locp->first_line,err);}
 
 #define scanner driver->scanner
   %}

@@ -106,7 +106,7 @@ double pana_c2_ig_corr(double ap_mu,double a2p2,gluon_info gl)
 double real_part_of_trace_with_igamma(spinspin *q,int imom,int mu,quark_info qu)
 {
   complex tr={0,0};
-  if(mu<0||mu>=4) crash("mu=%d",mu);
+  if(mu<0||mu>=4) CRASH("mu=%d",mu);
   
   int nu=map_mu[mu];
   for(int id=0;id<4;id++)
@@ -164,7 +164,7 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<2) crash("use: %s L",arg[0]);
+  if(narg<2) CRASH("use: %s L",arg[0]);
   L=atoi(arg[1]);
   
   init_test(narg,arg);

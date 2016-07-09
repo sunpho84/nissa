@@ -30,10 +30,10 @@ namespace nissa
 	//reorder data
 	int *ord=nissa_malloc("ord",glb_vol,int);
 	int r[4];
-	for(r[0]=0;r[0]<nrank_dir[0];r[0]++)
-	  for(r[1]=0;r[1]<nrank_dir[1];r[1]++)
-	    for(r[2]=0;r[2]<nrank_dir[2];r[2]++)
-	      for(r[3]=0;r[3]<nrank_dir[3];r[3]++)
+	for(r[0]=0;r[0]<nranks_per_dir[0];r[0]++)
+	  for(r[1]=0;r[1]<nranks_per_dir[1];r[1]++)
+	    for(r[2]=0;r[2]<nranks_per_dir[2];r[2]++)
+	      for(r[3]=0;r[3]<nranks_per_dir[3];r[3]++)
 		{
 		  int irank=rank_of_coord(r);
 		  int l[4];
@@ -85,7 +85,7 @@ namespace nissa
   //ipercubicly mirrorize an already gathered vector
   void gathered_vector_mirrorize(double *vec,int dps)
   {
-    if(glb_size[0]%2 || glb_size[1]%2) crash("Error, impossible to mirrorize if sites are odds");
+    if(glb_size[0]%2 || glb_size[1]%2) CRASH("Error, impossible to mirrorize if sites are odds");
     
     int TH=glb_size[0]/2;
     int LH=glb_size[1]/2;
@@ -114,7 +114,7 @@ namespace nissa
   //symmetrize an already gathered vector
   void gathered_vector_cubic_symmetrize(double *vec,int dps)
   {
-    if(glb_size[0]%2 || glb_size[1]%2) crash("Error, impossible to symmetrize if sites are odds");
+    if(glb_size[0]%2 || glb_size[1]%2) CRASH("Error, impossible to symmetrize if sites are odds");
     
     int TH=glb_size[0]/2;
     int LH=glb_size[1]/2;

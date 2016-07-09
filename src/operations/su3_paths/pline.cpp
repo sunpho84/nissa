@@ -189,7 +189,7 @@ namespace nissa
   //remap and save - "loop" is destroyed!
   void save_poly_loop_correlator(FILE *file,complex *loop,int mu,double *tra,int itraj)
   {
-    if(IS_PARALLEL) crash("cannot work threaded!");
+    if(IS_PARALLEL) CRASH("cannot work threaded!");
     
     //remap
     vector_remap_t *poly_rem=new vector_remap_t(loc_vol,index_to_poly_corr_remapping,&mu);
@@ -205,19 +205,19 @@ namespace nissa
       }
     
     //offset to mantain 16 byte alignement
-    if(fseek(file,3*sizeof(int),SEEK_CUR)) crash("seeking to align");
+    if(fseek(file,3*sizeof(int),SEEK_CUR)) CRASH("seeking to align");
     MPI_Barrier(MPI_COMM_WORLD);
     
     //write conf id and polyakov
     if(rank==0)
       {
 	off_t nwr=fwrite(&itraj,sizeof(int),1,file);
-	if(nwr!=1) crash("wrote %d int instead of 1",nwr);
+	if(nwr!=1) CRASH("wrote %d int instead of 1",nwr);
 	nwr=fwrite(tra,sizeof(double),2,file);
-	if(nwr!=2) crash("wrote %d doubles instead of 2",nwr);
+	if(nwr!=2) CRASH("wrote %d doubles instead of 2",nwr);
       }
     else 
-      if(fseek(file,sizeof(int)+sizeof(complex),SEEK_CUR)) crash("seeking");
+      if(fseek(file,sizeof(int)+sizeof(complex),SEEK_CUR)) CRASH("seeking");
     MPI_Barrier(MPI_COMM_WORLD);
     
     //find which piece has to write data
@@ -238,7 +238,7 @@ namespace nissa
     off_t ori=ftell(file);
     
     //jump to the correct point in the file
-    if(fseek(file,ori+istart*sizeof(complex),SEEK_SET)) crash("seeking");
+    if(fseek(file,ori+istart*sizeof(complex),SEEK_SET)) CRASH("seeking");
     MPI_Barrier(MPI_COMM_WORLD);
     
     //write if something has to be written
@@ -246,7 +246,7 @@ namespace nissa
       {
 	int nbytes_to_write=loc_data*sizeof(complex);
 	off_t nbytes_wrote=fwrite(loop,1,nbytes_to_write,file);
-	if(nbytes_wrote!=nbytes_to_write) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_to_write);
+	if(nbytes_wrote!=nbytes_to_write) CRASH("wrote %d bytes instead of %d",nbytes_wrote,nbytes_to_write);
       }
     
     //point to after the data

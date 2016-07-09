@@ -159,7 +159,7 @@ namespace nissa
 	for(int irank_note=0;irank_note<nranks_note;irank_note++)
 	  MPI_Irecv(buf_note+buf_note_off_per_rank[irank_note],nper_rank_note[irank_note],MPI_INT,
 		    list_ranks_note[irank_note],909+list_ranks_note[irank_note]*nranks+rank,cart_comm,&req_list[ireq++]);
-	if(ireq!=nranks_note+nranks_expl) crash("expected %d request, obtained %d",nranks_note+nranks_expl,ireq);
+	if(ireq!=nranks_note+nranks_expl) CRASH("expected %d request, obtained %d",nranks_note+nranks_expl,ireq);
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
     THREAD_BARRIER();
@@ -172,9 +172,9 @@ namespace nissa
       for(int iel_in=0;iel_in<nel_in;iel_in++)
 	{
 	  int idest=in_buf_dest[iel_in];
-	  if(idest<0||idest>=nel_in) crash("in_buf_dest[%d] point to %d not in the range [0,nel_in=%d)",
+	  if(idest<0||idest>=nel_in) CRASH("in_buf_dest[%d] point to %d not in the range [0,nel_in=%d)",
 					   iel_in,idest,nel_in);
-	  if(in_buf_dest_check[idest]++==1) crash("multiple assignement of %d",idest);
+	  if(in_buf_dest_check[idest]++==1) CRASH("multiple assignement of %d",idest);
 	}
     THREAD_BARRIER();
     nissa_free(in_buf_dest_check);
@@ -201,7 +201,7 @@ namespace nissa
       for(int iel_out=0;iel_out<nel_out;iel_out++)
 	{
 	  int rank_to=sl[iel_out].second%nranks;
-	  if(rank_to>=nranks||rank_to<0) crash("destination rank %d does not exist!",rank_to);
+	  if(rank_to>=nranks||rank_to<0) CRASH("destination rank %d does not exist!",rank_to);
 	  build.nper_rank_to_temp[rank_to]++;
 	}
     THREAD_BARRIER();
@@ -248,7 +248,7 @@ namespace nissa
       for(all_to_all_gathering_list_t::iterator it=gl.begin();it!=gl.end();it++)
 	{
 	  int rank_fr=it->first%nranks;
-	  if(rank_fr>=nranks||rank_fr<0) crash("source rank %d does not exist!",rank_fr);
+	  if(rank_fr>=nranks||rank_fr<0) CRASH("source rank %d does not exist!",rank_fr);
 	  build.nper_rank_fr_temp[rank_fr]++;
 	}
     THREAD_BARRIER();
@@ -301,7 +301,7 @@ namespace nissa
 	for(int irank_to=0;irank_to<nranks_to;irank_to++)
 	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
 		    list_ranks_to[irank_to],909+rank*nranks+list_ranks_to[irank_to],cart_comm,&req_list[ireq++]);
-      	if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
+      	if(ireq!=nranks_to+nranks_fr) CRASH("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
     THREAD_BARRIER();

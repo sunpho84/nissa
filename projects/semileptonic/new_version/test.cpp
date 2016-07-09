@@ -96,10 +96,10 @@ void initialize_semileptonic(char *input_path)
     {
       expect_str(combine("Source%d",iso).c_str());
       read_str_int("ObtainFromSource",&obtain_source_from[iso]);
-      if(obtain_source_from[iso]>=iso||obtain_source_from[iso]<0) crash("source %d can be produced from sources in the range [0,%d)",iso,obtain_source_from[iso]);
+      if(obtain_source_from[iso]>=iso||obtain_source_from[iso]<0) CRASH("source %d can be produced from sources in the range [0,%d)",iso,obtain_source_from[iso]);
       read_str_int("ObtainApplyingSmOp",&obtain_source_applying_sm_op[iso]);
       if(obtain_source_applying_sm_op[iso]>=ngauss_sm_op||obtain_source_applying_sm_op[iso]<0)
-	crash("selected smearing operator %d not in the defined range [0,%d)",obtain_source_applying_sm_op[iso],ngauss_sm_op);
+	CRASH("selected smearing operator %d not in the defined range [0,%d)",obtain_source_applying_sm_op[iso],ngauss_sm_op);
     }
   
   // 4) Read list of masses and of thetas
@@ -230,7 +230,7 @@ int main(int narg,char **arg)
   init_nissa(narg,arg);
   
   //initialize the program
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
   
   int ngauge_conf;

@@ -2,6 +2,7 @@
 #define _MATH_ROUTINES_HPP
 
 #include <algorithm>
+#include <vector>
 
 #include "new_types/complex.hpp"
 
@@ -17,8 +18,8 @@ namespace nissa
   double lfact(double n);
   double metro_tresh(double arg);
   int metro_test(double arg);
-  int factorize(int *list,int N);
-  int log2N(int N);
+  std::vector<int> factorize(long long int N);
+  int log2N(long long int N);
   void matrix_determinant(complex d,complex *m,int n);
   int bitrev(int in,int l2n);
   int find_max_pow2(int a);

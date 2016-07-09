@@ -88,7 +88,7 @@ int iS0L(int mp,int itheta)
     case  0: return 0;break;
     case -1: return 1+0+2*itheta;break;
     case +1: return 1+1+2*itheta;break;
-    default: crash("unknown mp: %d",mp);return 0;break;
+    default: CRASH("unknown mp: %d",mp);return 0;break;
     }
 }
 
@@ -204,7 +204,7 @@ void initialize_semileptonic(char *input_path)
   // 4) Read list of masses and of thetas, as well as niter_max
 
   read_list_of_double_triples("MassThetaResidue",&nmass,&mass,&theta,&stopping_residue);
-  if(theta[0]!=0) crash("theta for light cannot be %lg",theta[0]);
+  if(theta[0]!=0) CRASH("theta for light cannot be %lg",theta[0]);
   read_str_int("NiterMax",&niter_max);
   nheavy=nmass-1;
   
@@ -584,7 +584,7 @@ void close_semileptonic()
 
 void in_main(int narg,char **arg)
 {
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   initialize_semileptonic(arg[1]);
 

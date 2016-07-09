@@ -893,7 +893,7 @@ void in_main(int narg,char **arg)
 {
   tot_prog_time-=take_time();
   
-  if(narg<2) crash("Use: %s input_file\n",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file\n",arg[0]);
   
   initialize_nucleons(arg[1]);
   

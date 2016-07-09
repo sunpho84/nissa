@@ -81,13 +81,13 @@ namespace nissa
 	int log2glb_nblk=find_max_pow2(glb_size[mu]); //number of powers of 2 contained in n
 	int glb_nblk=1<<log2glb_nblk;                 //remaining odd block
 	int blk_size=glb_size[mu]/glb_nblk;           //block size
-	int loc_nblk=glb_nblk/nrank_dir[mu];          //number of local blocks
+	int loc_nblk=glb_nblk/nranks_per_dir[mu];          //number of local blocks
 	
 	//check if the loc_size is a multiple of block_size
-	int r=nrank_dir[mu];
+	int r=nranks_per_dir[mu];
 	while(r>1)
 	  {
-	    if(r%2!=0) crash("Error, FFT implemented only for power of 2 grids! Ask sunpho to adapt it to a more general case if you really need!");
+	    if(r%2!=0) CRASH("Error, FFT implemented only for power of 2 grids! Ask sunpho to adapt it to a more general case if you really need!");
 	    r/=2;
 	  }
 	
@@ -229,7 +229,7 @@ namespace nissa
 	///////////////////////////////////// fourth part //////////////////////////////
 	
 	//now perform the lanczos procedure up to the end
-	for(int delta_rank=1;delta_rank<nrank_dir[mu];delta_rank*=2) //this is rank width of delta
+	for(int delta_rank=1;delta_rank<nranks_per_dir[mu];delta_rank*=2) //this is rank width of delta
 	  {
 	    int delta=delta_rank*loc_size[mu];    //block extent
 	    int idelta=rank_coord[mu]/delta_rank; //identify the delta of the current rank

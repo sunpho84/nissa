@@ -183,7 +183,7 @@ void init_program_to_analyze()
   conf_created=false;
   
   //check conf list
-  if(drv->an_conf_list.size()==0) crash("no configuration has been specified in the analysis list, add:\n ConfList\t=\t{\"conf1\",\"conf2\",...} to the input file");
+  if(drv->an_conf_list.size()==0) CRASH("no configuration has been specified in the analysis list, add:\n ConfList\t=\t{\"conf1\",\"conf2\",...} to the input file");
 }
 
 //initialize the simulation
@@ -194,7 +194,7 @@ void init_simulation(char *path)
   open_input(path);
   drv=new driver_t(input_global);
   parser_parse(drv);
-  if(drv->theories.size()==0) crash("need to sepcify a theory");
+  if(drv->theories.size()==0) CRASH("need to sepcify a theory");
   
   //geometry
   glb_size[0]=drv->T;
@@ -292,7 +292,7 @@ int generate_new_conf(int itraj)
     {
       //always new conf
       acc=true;
-      crash("implement lx AND CHECK");
+      CRASH("implement lx AND CHECK");
       
       /*
       //number of hb sweeps
@@ -338,7 +338,7 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   quad_su3 *lx_conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
   
-  crash("tobexixed");
+  CRASH("tobexixed");
   
   //hyp or ape
   //gauge_obs_temp_smear_pars_t smear_pars=pars.gauge_smear_pars;
@@ -348,8 +348,8 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   
   //open
   FILE *fout=fopen(pars.path.c_str(),(conf_created||!file_exists(pars.path))?"w":"r+");
-  if(fout==NULL) crash("opening %s",pars.path.c_str());
-  if(fseek(fout,0,SEEK_END)) crash("seeking to the end");
+  if(fout==NULL) CRASH("opening %s",pars.path.c_str());
+  if(fseek(fout,0,SEEK_END)) CRASH("seeking to the end");
   
   //compute and print
   complex temp;
@@ -549,7 +549,7 @@ void print_stat(const char *what,double time,int n,int flops=0)
 void in_main(int narg,char **arg)
 {
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //init simulation according to input file
   init_simulation(arg[1]);

@@ -123,7 +123,7 @@ namespace nissa
   {
     complex z={1/(2*kappa),mu};
     
-    if(in==out) crash("in==out!");
+    if(in==out) CRASH("in==out!");
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
@@ -143,7 +143,7 @@ namespace nissa
     double a=1/(2*kappa),b=mu,nrm=a*a+b*b;
     complex z={+a/nrm,-b/nrm};
     
-    if(in==out) crash("in==out!");
+    if(in==out) CRASH("in==out!");
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)

@@ -103,7 +103,7 @@ void init_simulation(char *path)
       char name[1024];
       read_str(name,1024);
       master_printf("Read variable 'Name' with value: %s\n",name);
-      if(Q.find(name)!=Q.end()) crash("name \'%s\' already included",name);
+      if(Q.find(name)!=Q.end()) CRASH("name \'%s\' already included",name);
       
       //ins name
       char ins[3];
@@ -113,7 +113,7 @@ void init_simulation(char *path)
       //source_name
       char source_name[1024];
       read_str(source_name,1024);
-      if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
+      if(Q.find(source_name)==Q.end()) CRASH("unable to find source %s",source_name);
       master_printf("Read variable 'Sourcename' with value: %s\n",source_name);
       
       //insertion time
@@ -233,7 +233,7 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   
   //init simulation according to input file
   init_simulation(arg[1]);

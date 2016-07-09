@@ -57,7 +57,7 @@ namespace nissa
 	delayed_thread_barrier[THREAD_ID]=!IS_MASTER_THREAD;
 	break;
       default:
-	crash("Unknown delay pattern %d",picked);
+	CRASH("Unknown delay pattern %d",picked);
       }
   }
   
@@ -97,7 +97,7 @@ namespace nissa
     //check
     if(!IS_MASTER_THREAD)
       if(glb_barr_line!=barr_line||strcmp(glb_barr_file,barr_file))
-	crash("Thread %d found barrier on line %d of file %s when master thread invoked it at line %d of file %s)",
+	CRASH("Thread %d found barrier on line %d of file %s when master thread invoked it at line %d of file %s)",
 	      thread_id,barr_line,barr_file,glb_barr_line,glb_barr_file);
   }
 #endif
@@ -176,7 +176,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //check that thread 0 is not inside the pool
-    if(thread_id==0) crash("thread 0 cannot enter the pool");
+    if(thread_id==0) CRASH("thread 0 cannot enter the pool");
     
     //set the thread as locked
     thread_pool_locked=true;
@@ -238,7 +238,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //check to be thread 0
-    if(thread_id!=0) crash("only thread 0 can stop the pool");
+    if(thread_id!=0) CRASH("only thread 0 can stop the pool");
     
     //pass a NULL order
     start_threaded_function(NULL,"");
@@ -259,7 +259,7 @@ namespace nissa
           {
             //check that previous state agree (if not on first iter)
 	    if(thread_id!=0 && *ptr!=thread_id-1)
-              crash("error, thread %u found the counter in wrong state %u",thread_id,*ptr);
+              CRASH("error, thread %u found the counter in wrong state %u",thread_id,*ptr);
             //update the counter
             *ptr=i;
           }
@@ -268,7 +268,7 @@ namespace nissa
       }
     
     //chech final state
-    if(thread_id==0 && *ptr!=nthreads-1) crash("loop thread not closed: %u!",*ptr);
+    if(thread_id==0 && *ptr!=nthreads-1) CRASH("loop thread not closed: %u!",*ptr);
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
@@ -313,7 +313,7 @@ namespace nissa
     //reduce among threads on thread 0
     for(unsigned int jthread=1;jthread<NACTIVE_THREADS;jthread++)
       {
-	if(ptr[0]==ptr[jthread]) crash("overlapping vectors for threads %d and 0",jthread);
+	if(ptr[0]==ptr[jthread]) CRASH("overlapping vectors for threads %d and 0",jthread);
 	NISSA_PARALLEL_LOOP(iel,0,nel) ptr[0][iel]+=ptr[jthread][iel];
       }
     

@@ -206,7 +206,7 @@ namespace nissa
     su3_print(nu_plus);
     master_printf("nu_minus\n");
     su3_print(nu_minus);
-    //crash("anna");
+    //CRASH("anna");
 #endif
     
     //evolve

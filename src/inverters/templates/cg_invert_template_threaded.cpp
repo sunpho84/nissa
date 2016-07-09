@@ -66,7 +66,7 @@ namespace nissa
     double_vector_glb_scalar_prod(&delta,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
     
     verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
-    if(source_norm==0 || isnan(source_norm)) crash("invalid norm: %lg",source_norm);
+    if(source_norm==0 || isnan(source_norm)) CRASH("invalid norm: %lg",source_norm);
     verbosity_lv2_master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
     
     int final_iter;
@@ -99,7 +99,7 @@ namespace nissa
 	delta=lambda;
 	
 	//checks
-	if(isnan(gammag)) crash("nanned");
+	if(isnan(gammag)) CRASH("nanned");
 	
 	//p_(k+1)=r_(k+1)+gammag*p_k
 	double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,gammag,BULK_VOL*NDOUBLES_PER_SITE);
@@ -120,7 +120,7 @@ namespace nissa
 		    lambda/source_norm,residue);
     
     //check if not converged
-    if(final_iter==niter) crash("exit without converging");
+    if(final_iter==niter) CRASH("exit without converging");
     
     if(IS_MASTER_THREAD) cg_inv_over_time+=take_time();
     

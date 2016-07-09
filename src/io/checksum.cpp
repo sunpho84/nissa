@@ -104,7 +104,7 @@ namespace nissa
 	    change_endianness((float*)temp_buf,(float*)buf,len/sizeof(float),0);
 	    break;
 	  default:
-	    crash("unknown precision %d",prec);
+	    CRASH("unknown precision %d",prec);
 	    break;
 	  }
 	

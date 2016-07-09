@@ -107,7 +107,7 @@ namespace nissa
     su3 *buf=NULL;
     
     //if the number of ranks in the 0 dir is greater than 1 allocate room for border
-    if(nrank_dir[0]>1) buf=nissa_malloc("buf",loc_slice_area,su3);
+    if(nranks_per_dir[0]>1) buf=nissa_malloc("buf",loc_slice_area,su3);
     
     //if we are on first rank slice put to identity the t=0 slice, otherwise receive it from previous rank slice
     if(rank_coord[0]==0)
@@ -117,7 +117,7 @@ namespace nissa
 	    su3_put_to_id(fixm[ivol]);
       }
     else
-      if(nrank_dir[0]>1)
+      if(nranks_per_dir[0]>1)
 	MPI_Recv((void*)fixm,loc_slice_area,MPI_SU3,rank_neighdw[0],252,cart_comm,MPI_STATUS_IGNORE);
     
     //now go ahead along t
@@ -136,7 +136,7 @@ namespace nissa
 		unsafe_su3_prod_su3(fixm[icurr],fixm[iback],u[iback][0]);
 	      }
 	    //border
-	    if(nrank_dir[0]>1)
+	    if(nranks_per_dir[0]>1)
 	      {
 		c[0]=loc_size[0]-1;int iback=loclx_of_coord(c);
 		c[0]=0;int icurr=loclx_of_coord(c);
@@ -147,10 +147,10 @@ namespace nissa
 	  }
     
     //if we are not on last slice of rank send g to next slice
-    if(rank_coord[0]!=(nrank_dir[0]-1) && nrank_dir[0]>1)
+    if(rank_coord[0]!=(nranks_per_dir[0]-1) && nranks_per_dir[0]>1)
       MPI_Send((void*)buf,loc_slice_area,MPI_SU3,rank_neighup[0],252,cart_comm);
     
-    if(nrank_dir[0]>1) nissa_free(buf);
+    if(nranks_per_dir[0]>1) nissa_free(buf);
   }
   
   ////////////////////////////////////// landau or coulomb gauges ///////////////////////////////////////////////////////

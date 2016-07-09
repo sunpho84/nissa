@@ -164,7 +164,7 @@ int read_conf_parameters(int *iconf)
       if(!dir_exists(outfolder))
 	{
           master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
-	  if(create_dir(outfolder)) crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+	  if(create_dir(outfolder)) CRASH(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 	  ok_conf=1;
 	}
       (*iconf)++;
@@ -326,7 +326,7 @@ void generate_sequential_source(int iseq)
       apply_C_operator(seq_source,S0_std_smsi_smso);
       break;
     default:
-      crash("unknown operator");
+      CRASH("unknown operator");
     }
 
   //seq source smearing
@@ -540,7 +540,7 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //initialize the program
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
   
   //loop over the configs

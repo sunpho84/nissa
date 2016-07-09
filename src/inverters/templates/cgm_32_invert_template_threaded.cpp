@@ -83,7 +83,7 @@ namespace nissa
     
     //writes source norm
     verbosity_lv2_master_printf(" Source norm: %lf\n",source_norm);
-    if(source_norm==0 || isnan(source_norm)) crash("invalid norm: %lf",source_norm);
+    if(source_norm==0 || isnan(source_norm)) CRASH("invalid norm: %lf",source_norm);
     
     //writes initial residue
     verbosity_lv2_master_printf(" cgm iter 0 rel. residues: ");
@@ -157,7 +157,7 @@ namespace nissa
 	    if(run_flag[ishift]==1)
 	      {
 		double ratio=betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
-		if(isnan(ratio)) crash("nanned");
+		if(isnan(ratio)) CRASH("nanned");
 		zfs[ishift]=zas[ishift]*ratio;
 		betas[ishift]=betaa*ratio;
 		
@@ -280,7 +280,7 @@ namespace nissa
     verbosity_lv1_master_printf(" Total cgm iterations: %d\n",final_iter);
     
     //check if not converged
-    if(final_iter==niter_max) crash("exit without converging");
+    if(final_iter==niter_max) CRASH("exit without converging");
     
     for(int ishift=0;ishift<nshift;ishift++) nissa_free(ps[ishift]);
     nissa_free(s);

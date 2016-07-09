@@ -45,7 +45,7 @@ namespace nissa
     
     //read nflav
     int nflav;
-    if(!(s>>nflav)) crash("reading nflav");
+    if(!(s>>nflav)) CRASH("reading nflav");
     verbosity_lv3_master_printf("NFlav read: %d\n",nflav);
     
     //create the approximations
@@ -54,21 +54,21 @@ namespace nissa
 	rat_approx_t appr;
 	//read name and degree
 	int degree;
-	if(!(s>>degree)) crash("reading degree for approx %d",i);
+	if(!(s>>degree)) CRASH("reading degree for approx %d",i);
 	s.read(appr.name,20);
 	
 	//create the appr and read it
-	if(!(s>>appr.minimum)) crash("reading minimum for approx %d",i);
-	if(!(s>>appr.maximum)) crash("reading maximum for approx %d",i);
-	if(!(s>>appr.maxerr)) crash("reading maxerr for approx %d",i);
-	if(!(s>>appr.num)) crash("reading num for approx %d",i);
-	if(!(s>>appr.den)) crash("reading den for approx %d",i);
-	if(!(s>>appr.cons)) crash("reading cons for approx %d",i);
+	if(!(s>>appr.minimum)) CRASH("reading minimum for approx %d",i);
+	if(!(s>>appr.maximum)) CRASH("reading maximum for approx %d",i);
+	if(!(s>>appr.maxerr)) CRASH("reading maxerr for approx %d",i);
+	if(!(s>>appr.num)) CRASH("reading num for approx %d",i);
+	if(!(s>>appr.den)) CRASH("reading den for approx %d",i);
+	if(!(s>>appr.cons)) CRASH("reading cons for approx %d",i);
 	for(int j=0;j<degree;j++)
 	  {
 	    double pole,weight;
-	    if(!(s>>pole)) crash("reading pole %d for approx %d",j,i);
-	    if(!(s>>weight)) crash("reading weight %d for approx %d",j,i);
+	    if(!(s>>pole)) CRASH("reading pole %d for approx %d",j,i);
+	    if(!(s>>weight)) CRASH("reading weight %d for approx %d",j,i);
 	    appr.poles.push_back(pole);
 	    appr.weights.push_back(weight);
 	  }

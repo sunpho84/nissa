@@ -35,7 +35,7 @@ namespace nissa
   {
     int i=0;
     while(i<nins_kind && ins_tag[i]!=tag) i++;
-    if(i>=nins_kind) crash("unable to find tag %c",tag);
+    if(i>=nins_kind) CRASH("unable to find tag %c",tag);
     return ins_list[i];
   }
   //sign of the lepton momentum

@@ -25,7 +25,7 @@ namespace nissa
 	{
 	case ROOT_STAG:return "RootStag";break;
 	case ROOT_TM_CLOV:return "RootTMClov";break;
-	default: crash("should not happen"); return "unkwnonw";
+	default: CRASH("should not happen"); return "unkwnonw";
 	}
     }
     
@@ -37,7 +37,7 @@ namespace nissa
       while(iname<nknown && strcasecmp(in,text[iname])!=0) iname++;
       
       //check
-      if(iname==nknown) crash("unknown fermion discretiz action: %s",in);
+      if(iname==nknown) CRASH("unknown fermion discretiz action: %s",in);
       
       return list[iname];
     }
@@ -49,7 +49,7 @@ namespace nissa
 	{
 	case ROOT_STAG: return true;
 	case ROOT_TM_CLOV: return false;
-	default: crash("unkwnown");return false;
+	default: CRASH("unkwnown");return false;
 	}
     }
     
@@ -60,7 +60,7 @@ namespace nissa
 	{
 	case ROOT_STAG: return false;
 	case ROOT_TM_CLOV: return true;
-	default: crash("unkwnown");return false;
+	default: CRASH("unkwnown");return false;
 	}
     }
     
@@ -71,7 +71,7 @@ namespace nissa
 	{
 	case ROOT_STAG:return 4;break;
 	case ROOT_TM_CLOV:return 2;break;
-	default: crash("unkwnown");return false;
+	default: CRASH("unkwnown");return false;
 	}
     }
   }

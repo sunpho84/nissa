@@ -89,7 +89,7 @@ namespace nissa
 	char command[1024];
 	sprintf(command,"cp %s %s",path_in.c_str(),path_out.c_str());
 	rc=system(command);
-	if(rc!=0) crash("cp failed!");
+	if(rc!=0) CRASH("cp failed!");
       }
     
     return broadcast(rc);
@@ -104,7 +104,7 @@ namespace nissa
 	char command[1024];
 	sprintf(command,"cd %s",path.c_str());
 	rc=system(command);
-	if(rc!=0) crash("cd to %s failed!",path.c_str());
+	if(rc!=0) CRASH("cd to %s failed!",path.c_str());
       }
     
     return broadcast(rc);
@@ -121,7 +121,7 @@ namespace nissa
 	else
 	{
 	  fout=fopen(outfile.c_str(),mode);
-	  if(fout==NULL) crash("Couldn't open file: \"%s\" with mode: \"%s\"",outfile.c_str(),mode);
+	  if(fout==NULL) CRASH("Couldn't open file: \"%s\" with mode: \"%s\"",outfile.c_str(),mode);
 	}
       }
     
@@ -172,7 +172,7 @@ namespace nissa
     int file_size=0;
     if(rank==0)
       {
-	if(fseek(fin,0,SEEK_END)) crash("while seeking");
+	if(fseek(fin,0,SEEK_END)) CRASH("while seeking");
 	file_size=ftell(fin);
       }
     

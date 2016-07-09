@@ -159,7 +159,7 @@ namespace nissa
 	{
 	  fprintf(stderr,"borders not allocated in ");
 	  vect_content_fprintf(stderr,v);
-	  crash("see error");
+	  CRASH("see error");
 	}
   }
   
@@ -171,7 +171,7 @@ namespace nissa
 	{
 	  fprintf(stderr,"edges not allocated in ");
 	  vect_content_fprintf(stderr,v);
-	  crash("see error");
+	  CRASH("see error");
 	}
   }
   
@@ -229,7 +229,7 @@ namespace nissa
 	//try to allocate the new vector
 	nissa_vect *nv=(nissa_vect*)malloc(size+sizeof(nissa_vect));
 	if(nv==NULL)
-	  crash("could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) "
+	  CRASH("could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) "
 		"request on line %d of file %s",tag,nel,type,size,line,file);
 	
 	//fill the vector with information supplied
@@ -252,7 +252,7 @@ namespace nissa
 	return_malloc_ptr=(void*)(last_vect+1);
 	int64_t offset=((int64_t)(return_malloc_ptr))%NISSA_VECT_ALIGNMENT;
 	if(offset!=0)
-	  crash("memory alignment problem, vector %s has %d offset",tag,offset);
+	  CRASH("memory alignment problem, vector %s has %d offset",tag,offset);
 	
 	//if borders or edges are allocated, set appropriate flag
 	if(nel==(loc_vol+bord_vol) || nel==(loc_volh+bord_volh))
@@ -301,12 +301,12 @@ namespace nissa
 	int64_t size_per_el_b=nissa_b->size_per_el;
 	
 	//check size agreement
-	if(nel_a!=nel_b) crash("while copying, vector %s contains %d and vector %s contains %d",
+	if(nel_a!=nel_b) CRASH("while copying, vector %s contains %d and vector %s contains %d",
 			       nissa_a->tag,nel_a,nissa_b->tag,nel_b);
 	
 	//check type agreement
 	if(size_per_el_a!=size_per_el_b)
-	  crash("while copying, vector %s contains %d bytes per el and vector %s contains %d",
+	  CRASH("while copying, vector %s contains %d bytes per el and vector %s contains %d",
 		nissa_a->tag,size_per_el_a,nissa_b->tag,size_per_el_b);
 	
 	//perform the copy
@@ -378,7 +378,7 @@ namespace nissa
 	    //really free
 	    free(vect);
 	  }
-	else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
+	else CRASH("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
 	
 	*arr=NULL;
 	cache_flush();

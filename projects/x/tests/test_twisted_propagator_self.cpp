@@ -39,7 +39,7 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_nissa(narg,arg);
   
-  if(narg<2) crash("use: %s input",arg[0]);
+  if(narg<2) CRASH("use: %s input",arg[0]);
   
   open_input(arg[1]);
   
@@ -76,7 +76,7 @@ int main(int narg,char **arg)
   if(strcasecmp(gluon_type,"tlSym")==0) gluon=create_tlSym_gluon_info(alpha,gluon_bc);
   else
     if(strcasecmp(gluon_type,"Wilson")==0) gluon=create_Wilson_gluon_info(alpha,gluon_bc);
-    else crash("Unknown gluon type %s",gluon_type);
+    else CRASH("Unknown gluon type %s",gluon_type);
   
   ////////////////////////////////////
   

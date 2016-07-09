@@ -80,7 +80,7 @@ namespace nissa
     irank_transp=glb_dest_site/prp_vol;
     iloc_transp=glb_dest_site-irank_transp*prp_vol;
 #else
-    crash("not implemented");
+    CRASH("not implemented");
 #endif
   }
 
@@ -116,7 +116,7 @@ namespace nissa
 	  //define the six remapper
 	  int pars[3]={mu0,imu1,prp_vol[imu01]};
 	  remap[imu01]=new vector_remap_t(loc_vol,index_transp,pars);
-	  if(remap[imu01]->nel_in!=cmp_vol[imu01]) crash("expected %d obtained %d",cmp_vol[imu01],remap[imu01]->nel_in);
+	  if(remap[imu01]->nel_in!=cmp_vol[imu01]) CRASH("expected %d obtained %d",cmp_vol[imu01],remap[imu01]->nel_in);
 	  
 	  //allocate transp conf
 	  transp_conf[imu01]=nissa_malloc("transp_conf",cmp_vol[imu01]*ntot_sme,su3);
@@ -172,7 +172,7 @@ namespace nissa
 		THREAD_BARRIER();
 	      }
 	    imeas++;
-	    if(imeas>nspat_sme) crash("imeas %d while max expected %d",imeas,nspat_sme);
+	    if(imeas>nspat_sme) CRASH("imeas %d while max expected %d",imeas,nspat_sme);
 	  }
 	while(!finished);
       }
@@ -269,7 +269,7 @@ namespace nissa
 	      }
 	  }
       }
-    if(nrect!=irect) crash("expected %d rects, obtained %d",nrect,irect);
+    if(nrect!=irect) CRASH("expected %d rects, obtained %d",nrect,irect);
     for(int imu01=0;imu01<12;imu01++) nissa_free(transp_conf[imu01]);
     
 #ifdef USE_THREADS
@@ -316,7 +316,7 @@ namespace nissa
     nissa_free(Tline);
     nissa_free(Dline);
 #else
-    crash("not implemented");
+    CRASH("not implemented");
 #endif
   }
   THREADABLE_FUNCTION_END
@@ -324,7 +324,7 @@ namespace nissa
   //compute all possible rectangular paths among a defined interval
   THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths_old, all_rects_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
-    crash("to be fixed");
+    CRASH("to be fixed");
     /*
     GET_THREAD_ID();
     
@@ -471,14 +471,14 @@ namespace nissa
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     //check that we do not exceed geometry
-    for(int i=1;i<NDIM;i++) if(pars->Dmin>=glb_size[i]) crash("minimal spatial %d size exceeds global size[%d]=%d",pars->Dmin,i,glb_size[i]);
+    for(int i=1;i<NDIM;i++) if(pars->Dmin>=glb_size[i]) CRASH("minimal spatial %d size exceeds global size[%d]=%d",pars->Dmin,i,glb_size[i]);
     for(int i=1;i<NDIM;i++)
       if(pars->Dmax>=glb_size[i])
 	{
 	  master_printf("maximal spatial %d size exceeds global size[%d]=%d, reducing it\n",pars->Dmax,i,glb_size[i]);
 	  pars->Dmax=glb_size[i];
 	}
-    if(pars->Tmin>=glb_size[0]) crash("minimal temporal %d size exceeds global size[0]=%d",pars->Tmin,glb_size[0]);
+    if(pars->Tmin>=glb_size[0]) CRASH("minimal temporal %d size exceeds global size[0]=%d",pars->Tmin,glb_size[0]);
     if(pars->Tmax>=glb_size[0])
       {
 	master_printf("maximal temporal %d size exceeds global size[0]=%d, reducing it\n",pars->Tmax,glb_size[0]);

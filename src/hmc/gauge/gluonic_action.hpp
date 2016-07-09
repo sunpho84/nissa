@@ -25,7 +25,7 @@ namespace nissa
     while(iact<nact_known && strcasecmp(name,name_known[iact])!=0) iact++;
     
     //check
-    if(iact==nact_known) crash("unknown gauge action: %s",name);
+    if(iact==nact_known) CRASH("unknown gauge action: %s",name);
     
     return act_known[iact];
   }
@@ -49,7 +49,7 @@ namespace nissa
       case WILSON_GAUGE_ACTION:Wilson_action(gluon_action,conf,beta);break;
       case TLSYM_GAUGE_ACTION:tlSym_action(gluon_action,conf,beta);break;
       case IWASAKI_GAUGE_ACTION:Iwasaki_action(gluon_action,conf,beta);break;
-      default:crash("Unknown action");
+      default:CRASH("Unknown action");
       }
   }
 }

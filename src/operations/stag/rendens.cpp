@@ -29,7 +29,7 @@ namespace nissa
     {
       GET_THREAD_ID();
       
-      if(ord==0) crash("makes no sense to call with order zero");
+      if(ord==0) CRASH("makes no sense to call with order zero");
       
       add_backfield_to_conf(conf,theory_pars->backfield[iflav]);
       communicate_ev_and_od_quad_su3_borders(conf);
@@ -135,7 +135,7 @@ namespace nissa
 	//loop over flavor
 	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
 	  {
-	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) CRASH("not defined for non-staggered quarks");
 	    
 	    //vectors for output
 	    NEW_TRACE_RES(Tr_M_dM);

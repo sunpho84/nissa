@@ -52,7 +52,7 @@ namespace nissa
 	//make a buffer in the case in which this dir is not parallelized
 	su3 buf;
 	int isite=loclx_of_coord(x);
-	if(nrank_dir[mu]==1)
+	if(nranks_per_dir[mu]==1)
 	  su3_copy(buf,u[isite]);
 	
 	//loop on remaining dir
@@ -71,7 +71,7 @@ namespace nissa
 	while(x[mu]!=en+sh);
 	
 	//if dir not parallelized, restore end
-	if(nrank_dir[mu]==1)
+	if(nranks_per_dir[mu]==1)
 	  su3_copy(u[isite],buf);
       }
     

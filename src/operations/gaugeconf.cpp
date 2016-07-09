@@ -42,8 +42,8 @@ namespace nissa
     int d2=1+(axis-1+2)%3;
     
     //check that the two directions have the same size and that we are not asking 0 as axis
-    if(glb_size[d1]!=glb_size[d2]) crash("Rotation works only if dir %d and %d have the same size!",glb_size[d1],glb_size[d2]);
-    if(axis==0) crash("Error, only spatial rotations implemented");
+    if(glb_size[d1]!=glb_size[d2]) CRASH("Rotation works only if dir %d and %d have the same size!",glb_size[d1],glb_size[d2]);
+    if(axis==0) CRASH("Error, only spatial rotations implemented");
     int L=glb_size[d1];
     
     //allocate destinations and sources
@@ -68,7 +68,7 @@ namespace nissa
     
     //call the remapping
     //remap_vector((char*)out,(char*)in,xto,xfr,bps);
-    crash("to be reimplemented");
+    CRASH("to be reimplemented");
     
     //free vectors
     nissa_free(xfr);
@@ -183,7 +183,7 @@ namespace nissa
   //generate a random conf
   void generate_hot_eo_conf(quad_su3 **conf)
   {
-    if(loc_rnd_gen_inited==0) crash("random number generator not inited");
+    if(loc_rnd_gen_inited==0) CRASH("random number generator not inited");
     
     for(int par=0;par<2;par++)
       {
@@ -211,7 +211,7 @@ namespace nissa
   //generate a random conf
   void generate_hot_lx_conf(quad_su3 *conf)
   {
-    if(loc_rnd_gen_inited==0) crash("random number generator not inited");
+    if(loc_rnd_gen_inited==0) CRASH("random number generator not inited");
     
     NISSA_LOC_VOL_LOOP(ivol)
       for(int mu=0;mu<NDIM;mu++)

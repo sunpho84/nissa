@@ -70,14 +70,14 @@ source |------>---->----->---->| sink
 int compute_allocable_propagators_list(int nprop_list)
 {
   //Check if the nprop_list is even (flavor doublets)
-  if(nprop_list != (2*(nprop_list/2))) crash("Error: number of propagators must be even");
+  if(nprop_list != (2*(nprop_list/2))) CRASH("Error: number of propagators must be even");
 
   //Check if there is enough room for seven propagators (nprop_list = 2).
   //This is the minimal requirement for the program to be able to work.
   colorspinspin *fuf;
   fuf=(colorspinspin*)malloc(7*sizeof(colorspinspin)*loc_vol);
 
-  if(fuf==NULL) crash("Error: not enough memory for seven propagators");
+  if(fuf==NULL) CRASH("Error: not enough memory for seven propagators");
   else if(debug_lvl>1 && rank==0) printf("Ok there is enough memory to load seven propagators\n");
 
   free(fuf);

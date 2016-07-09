@@ -52,7 +52,7 @@ void initialize_semileptonic(char *input_path)
   read_list_of_ints("GaussianNiter",&nsm_lev,&gaussian_niter);
   for(int iter=1;iter<nsm_lev;iter++)
     if(gaussian_niter[iter]<gaussian_niter[iter-1])
-      crash("Error, gaussian lev %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter[iter],gaussian_niter[iter-1]);
+      CRASH("Error, gaussian lev %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter[iter],gaussian_niter[iter-1]);
   read_ape_pars(ape_smearing_pars);
   
   // 4) Correlations
@@ -150,7 +150,7 @@ int read_conf_parameters(int *iconf)
       if(!dir_exists(outfolder))
 	{
           master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
-	  if(create_dir(outfolder)) crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+	  if(create_dir(outfolder)) CRASH(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 	  ok_conf=1;
 	}
       (*iconf)++;
@@ -391,7 +391,7 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //initialize the program
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) CRASH("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
   
   //loop over the configs
@@ -434,7 +434,7 @@ void in_main(int narg,char **arg)
 	  if(bin_write)
 	    {
 	      int nw=fwrite(glb_corr,sizeof(double),ndoubles,fout);
-	      if(nw!=ndoubles) crash("wanted to write %d, obtained %d",ndoubles,nw);
+	      if(nw!=ndoubles) CRASH("wanted to write %d, obtained %d",ndoubles,nw);
 	    }
 	  else
 	    {

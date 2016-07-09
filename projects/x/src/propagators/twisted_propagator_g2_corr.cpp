@@ -11,8 +11,8 @@
 
 void mom_space_twisted_propagator_g2_d2_corr_of_imom(spin1prop prop,quark_info qu,gluon_info gl,int imom)
 {
-  if(qu.kappa!=1.0/8 || qu.mass!=0) crash("implemented only for massless quark");
-  if(gl.c1!=0 && gl.c1!=-1.0/12) crash("implemented only for Wilson or Symanzik (c1=-1/12) gluons");
+  if(qu.kappa!=1.0/8 || qu.mass!=0) CRASH("implemented only for massless quark");
+  if(gl.c1!=0 && gl.c1!=-1.0/12) CRASH("implemented only for Wilson or Symanzik (c1=-1/12) gluons");
   double lambda=gl.alpha;
   
   //implement equation 26 of 0907.0381

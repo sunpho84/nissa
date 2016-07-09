@@ -15,6 +15,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	base/bench.cpp \
 	base/close.cpp \
 	base/debug.cpp \
+	base/grid.cpp \
 	base/init.cpp \
 	base/random.cpp \
 	base/vectors.cpp
@@ -22,6 +23,7 @@ include_HEADERS+= \
 	base/bench.hpp \
 	base/close.hpp \
 	base/debug.hpp \
+	base/grid.hpp \
 	base/init.hpp \
 	base/random.hpp \
 	base/thread_macros.hpp \
