@@ -5,13 +5,6 @@
 #ifdef USE_MPI
  #include <mpi.h>
 #endif
-#include <signal.h>
-#include <stdlib.h>
-#include <string.h>
-
-#if HIGH_PREC == GMP_HIGH_PREC
- #include <gmpxx.h>
-#endif
 
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
@@ -20,9 +13,6 @@
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
-
-#include <unistd.h>
-#include <sys/ioctl.h>
 
 namespace nissa
 {
@@ -255,7 +245,7 @@ namespace nissa
 		min_rel_surf=rel_surf;
 		
 		for(int mu=0;mu<NDIM;mu++) nranks_per_dir[mu]=RPD[mu];
-		for(int mu=0;mu<NDIM;mu++) nvranks_per_dir[mu]=RPD[mu];
+		for(int mu=0;mu<NDIM;mu++) nvranks_per_dir[mu]=VPD[mu];
 		
 		something_found=1;
 	      }
@@ -263,7 +253,7 @@ namespace nissa
       }
     
     if(!something_found) CRASH("no valid partitioning found");
-  }  
+  }
   
   //define boxes
   void init_boxes()
@@ -367,6 +357,9 @@ namespace nissa
     loc_spat_vol=loc_vol/loc_size[0];
     loc_vol2=(double)loc_vol*loc_vol;
     
+    //calculate the local virtual volume
+    for(int mu=0;mu<NDIM;mu++) vloc_size[mu]=loc_size[mu]/nvranks_per_dir[mu];
+    
     //calculate bulk size
     bulk_vol=non_bw_surf_vol=1;
     for(int mu=0;mu<NDIM;mu++)
@@ -439,7 +432,7 @@ namespace nissa
     edge_vol*=4;
     edge_volh=edge_vol/2;
     master_printf("Edge vol: %d\n",edge_vol);
-      
+    
     //set edge numb
     {
       int iedge=0;
@@ -465,6 +458,9 @@ namespace nissa
     master_printf("Border size: %d\n",bord_vol);
     for(int mu=0;mu<NDIM;mu++)
       verbosity_lv3_master_printf("Border offset for dir %d: %d\n",mu,bord_offset[mu]);
+    master_printf("Local virtual volume\t%d",vloc_size[0]);
+    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",vloc_size[mu]);
+    master_printf(" = %d\n",vloc_vol);
     
     //print orderd list of the rank names
     if(VERBOSITY_LV3)
