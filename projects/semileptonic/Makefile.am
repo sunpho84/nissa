@@ -1,15 +1,15 @@
 AM_CPPFLAGS=-I$(top_srcdir)/src
 
-LDADD=$(top_builddir)/lib/libnissa.a
-
 AUTOMAKE_OPTIONS=subdir-objects
 
-#target programs
+LDADD=$(top_builddir)/lib/libnissa.a
+
 bin_PROGRAMS= \
 	$(top_builddir)/bin/semileptonic_smeared \
 	$(top_builddir)/bin/semileptonic_smeared_point_source
 
-#semileptonic_smeared
+################################## parser ################################
+
 semileptonic_smeared_parser_sources= \
         parse_corr.ypp \
         tokenize_corr.lpp \
@@ -21,14 +21,20 @@ semileptonic_smeared_parser_built_sources= \
 	parse_corr.hpp \
 	parse_corr.cpp
 
-#with or without parser
+parse_corr_fixed.cpp: $(top_srcdir)/config/fix_bison.sh Makefile $(top_builddir)/projects/semileptonic/parse_corr.cpp
+	@echo "Fixing the parser"
+	@bash $(top_srcdir)/config/fix_bison.sh parse_corr.cpp > $@
+
+tokenize_corr_fixed.cpp: $(top_srcdir)/config/fix_flex.sh Makefile $(top_builddir)/projects/semileptonic/tokenize_corr.cpp
+	@echo "Fixing the parser"
+	@bash $(top_srcdir)/config/fix_flex.sh tokenize_corr.cpp > $@
+
 AM_YFLAGS=-d
-if PARSER_GENERATION
- BUILT_SOURCES=$(semileptonic_smeared_parser_built_sources)
- __top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
- __top_builddir__bin_semileptonic_smeared_point_source_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
-else
- __top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
- __top_builddir__bin_semileptonic_smeared_point_source_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
-endif
+BUILT_SOURCES=$(semileptonic_smeared_parser_built_sources) parse_corr_fixed.cpp tokenize_corr_fixed.cpp
+CLEANFILES=$(semileptonic_smeared_parser_built_sources) parse_corr_fixed.cpp tokenize_corr_fixed.cpp
+
+###########################################################################
+
+ __top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp parse_corr.hpp parse_corr_fixed.cpp tokenize_corr_fixed.cpp
+ __top_builddir__bin_semileptonic_smeared_point_source_SOURCES=semileptonic_smeared.cpp parse_corr.hpp parse_corr_fixed.cpp tokenize_corr_fixed.cpp
 __top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS=-DPOINT_SOURCE_VERSION
