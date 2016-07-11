@@ -25,6 +25,8 @@ AC_CANONICAL_HOST
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
+AC_PROG_YACC
+AM_PROG_LEX
 
 AC_LANG([C++])
 
@@ -82,20 +84,6 @@ AC_ARG_ENABLE(cgm-debug,
 	enable_cgm_debug="no")
 if test "$enable_cgm_debug" == "yes";then AC_DEFINE([CGM_DEBUG],1,[Enable debugging cgm inverter]) fi
 AC_MSG_RESULT([enabling cgm debug... $enable_cgm_debug])
-
-#parser generation
-AC_ARG_ENABLE(parser-generation,
-	AS_HELP_STRING([--enable-parser-generation],[Enable generation of parsers]),
-	enable_parser_generation="${enableval}",
-	enable_parser_generation="yes")
-	if test "$enable_parser_generation" == "yes"
-	then
-		#check yacc and lex
-		AC_PROG_YACC
-		AM_PROG_LEX
-	fi
-AM_CONDITIONAL([PARSER_GENERATION],[test "$enable_parser_generation" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling parser generation... $enable_parser_generation])
 
 #MPI I/O
 AC_ARG_ENABLE(mpi-io,
