@@ -26,173 +26,22 @@
 
 namespace nissa
 {
-
-  // inline int vrank_of_loclx(int lx)
-  // {return nvranks*loc_coord_of_loclx[lx][vrank_paral_dir]/loc_size[vrank_paral_dir];}
-  
-  // inline int vrank_of_loceo(int par,int eo)
-  // {return vrank_of_loclx(loclx_of_loceo[par][eo]);}
-  
-  // //return the vn=0 equivalent
-  // int vn0lx_of_loclx(int lx)
-  // {
-  //   coords c;
-  //   for(int mu=0;mu<4;mu++) c[mu]=loc_coord_of_loclx[lx][mu];
-  //   c[vrank_paral_dir]%=loc_size[vrank_paral_dir]/nvranks;
-  //   return loclx_of_coord(c);
-  // }
-  
-  // //routine to add site in the list
-  // void mark_vir_of_loclx(int &virlx,int *vireo,int &loclx)
-  // {
-  //   //take parity and loceo
-  //   int par=loclx_parity[loclx];
-  //   int loceo=loceo_of_loclx[loclx];
-    
-  //   //mark loclx of virlx and vireo
-  //   loclx_of_virlx[virlx]=loclx;
-  //   loclx_of_vireo[par][vireo[par]]=loclx;
-  //   loceo_of_vireo[par][vireo[par]]=loceo;
-    
-  //   //and virlx and vireo for all vranks loclx
-  //   for(int inode=0;inode<nvranks;inode++)
-  //     {
-  // 	virlx_of_loclx[loclx+inode*vrank_lx_offset]=virlx;
-  // 	vireo_of_loclx[loclx+inode*vrank_lx_offset]=vireo[par];
-  // 	vireo_of_loceo[par][loceo+inode*vrank_eo_offset]=vireo[par];
-  //     }
-    
-  //   //increment virlx and vireo
-  //   virlx++;
-  //   vireo[par]++;
-  // }
-  
-  // /*
-  //   Define virtual nodes ordering: surface sites comes first, then bulk sites.
-  //   Let's call v the direction where we have virtual nodes.
-  //   Each site at coord c is matched with site at coord c+L_v/2
-  //   Mapping array are defined only for first virtual node, other sites are
-  //   separated by the first (in the lx layout) by vrank_lx_offset.
-  //   We first scan v bw and fw surface, then others, then bulk.
-  //   Putting v border in front makes easier putting back in place vhalo data
-  // */
-  // void define_vir_ordering()
-  // {
-  //   //define virtual size
-  //   for(int mu=0;mu<4;mu++) vir_loc_size[mu]=loc_size[mu];
-  //   vir_loc_size[v]/=nvranks;
-    
-  //   //allocate
-  //   virlx_of_loclx=nissa_malloc("virlx_of_loclx",loc_vol+bord_vol,int);
-  //   vireo_of_loclx=nissa_malloc("vireo_of_loclx",loc_vol+bord_vol,int);
-  //   loclx_of_virlx=nissa_malloc("loclx_of_virlx",(loc_vol+bord_vol)/nvranks,int);
-  //   for(int par=0;par<2;par++)
-  //     {
-  // 	loclx_of_vireo[par]=nissa_malloc("loceo_of_virlx",(loc_vol+bord_vol)/nvranks/2,int);
-  // 	loceo_of_vireo[par]=nissa_malloc("loceo_of_vireo",(loc_vol+bord_vol)/nvranks/2,int);
-  // 	vireo_of_loceo[par]=nissa_malloc("vireo_of_loceo",(loc_vol+bord_vol)/2,int);
-  //     }
-    
-  //   //reset virtual index
-  //   int virlx=0;
-  //   int vireo[2]={0,0};
-    
-  //   //scan v- and + surface, in order
-  //   int coord_to_compare[2]={0,loc_size[v]/nvranks-1};
-  //   for(int iter=0;iter<2;iter++)
-  //     for(int loclx=0;loclx<loc_vol;loclx++)
-  // 	if(loc_coord_of_loclx[loclx][v]==coord_to_compare[iter])
-  // 	  mark_vir_of_loclx(virlx,vireo,loclx);
-    
-  //   //scan non-v surface
-  //   for(int isurflx=0;isurflx<surf_vol;isurflx++)
-  //     {
-  // 	int loclx=loclx_of_surflx[isurflx];
-	
-  // 	//check that we are on first half of v direction, and that we are not on x_v==0 or x_v==loc_size[v]/nvranks-1
-  // 	int c=loc_coord_of_loclx[loclx][v];
-  // 	if(c!=0 && c<loc_size[v]/nvranks-1) mark_vir_of_loclx(virlx,vireo,loclx);
-  //     }
-    
-  //   //take note of vsurf_vol
-  //   vsurf_vol=virlx;
-  //   vsurf_volh=vireo[0];
-    
-  //   //scan bulk
-  //   for(int ibulklx=0;ibulklx<bulk_vol;ibulklx++)
-  //     {
-  // 	int loclx=loclx_of_bulklx[ibulklx];
-	
-  // 	//check that we are on first half and not on the surf, even virtual
-  // 	int c=loc_coord_of_loclx[loclx][v];
-  // 	if(c!=0 && c<loc_size[v]/nvranks-1) mark_vir_of_loclx(virlx,vireo,loclx);
-  //     }
-    
-  //   //trivial checks
-  //   if(virlx!=loc_vol/nvranks) CRASH("defining virlx ordering: %d!=%d",virlx,loc_vol/nvranks);
-  //   if(vireo[EVN]!=loc_vol/nvranks/2) CRASH("defining vireo[EVN] ordering: %d!=%d",vireo[EVN],loc_vol/nvranks/2);
-  //   if(vireo[ODD]!=loc_vol/nvranks/2) CRASH("defining vireo[EVN] ordering: %d!=%d",vireo[ODD],loc_vol/nvranks/2);
-    
-  //   //check loceo_of_vireo
-  //   NISSA_LOC_VOL_LOOP(ilx)
-  //     if(loceo_of_vireo[loclx_parity[ilx]][vireo_of_loclx[ilx]]!=loceo_of_loclx[vn0lx_of_loclx(ilx)])
-  // 	CRASH("ilx: %d (%d %d %d %d) par %d, vireo %d %d!=%d",ilx,loc_coord_of_loclx[ilx][0],loc_coord_of_loclx[ilx][1],
-  // 		loc_coord_of_loclx[ilx][2],loc_coord_of_loclx[ilx][3],
-  // 		loclx_parity[ilx],vireo_of_loclx[ilx],
-  // 		loceo_of_vireo[loclx_parity[ilx]][vireo_of_loclx[ilx]],loceo_of_loclx[vn0lx_of_loclx(ilx)]);
-    
-  //   //scan bw and fw borders
-  //   for(int bf=0;bf<2;bf++)
-  //     for(int mu0=0;mu0<4;mu0++)
-  // 	{
-  // 	  //take dirs
-  // 	  int mu1=perp_dir[mu0][0],mu2=perp_dir[mu0][1],mu3=perp_dir[mu0][2];
-  // 	  int l2=vir_loc_size[mu2],l3=vir_loc_size[mu3];//l1=vir_loc_size[mu1];
-  // 	  for(int base_bordlx=0;base_bordlx<bord_dir_vol[mu0];base_bordlx++)
-  // 	    {
-  // 	      int loclx=loc_vol+bord_offset[mu0]+bord_volh*bf+base_bordlx;
-  // 	      int loceo=loceo_of_loclx[loclx];
-	      
-  // 	      //take coord of bordlx including nvranks factor in v dir
-  // 	      int surflx=surflx_of_bordlx[bord_offset[mu0]+bord_volh*bf+base_bordlx];
-  // 	      coords c;
-  // 	      for(int nu=0;nu<4;nu++) c[nu]=loc_coord_of_loclx[surflx][nu];
-  // 	      c[v]%=vir_loc_size[v];
-	      
-  // 	      //define destination in vir geometry, pairing sites in v dir
-  // 	      int temp=c[mu3]+l3*(c[mu2]+l2*c[mu1]);
-  // 	      if(mu0==v) temp/=nvranks;
-  // 	      int virlx=(loc_vol+bord_volh*bf+bord_offset[mu0])/nvranks+temp;
-  // 	      int vireo=virlx/2;
-  // 	      virlx_of_loclx[loclx]=virlx;
-  // 	      vireo_of_loclx[loclx]=vireo;
-  // 	      loceo_of_vireo[loclx_parity[loclx]][vireo]=loceo;
-  // 	      if(virlx<(loc_vol+bord_vol)/nvranks)
-  // 		{
-  // 		  loclx_of_virlx[virlx]=loclx;
-  // 		  loclx_of_vireo[loclx_parity[loclx]][vireo]=loclx;
-  // 		  vireo_of_loceo[loclx_parity[loclx]][loceo]=vireo;
-  // 		}
-  // 	    }
-  // 	}
-  // }
-  
-  // /*
-  //   Define output index of sink-applied hopping matrix for hoppint matrix, using virtual nodes.
-  //   See "two_stage_computations" doc for more explenations.
-  //   In v virtual halo data is ordered as for buffered communication send buffer, that is,
-  //   in the same order as explained in "communicate.h"
-  //   if par==2 it makes the computation for lx case
-  //   if par==1 for the eo case
-  //   if par==0 for the oe case
-  // */
+  /*
+    Define output index of sink-applied hopping matrix for hoppint matrix, using virtual nodes.
+    See "two_stage_computations" doc for more explenations.
+    In v virtual halo data is ordered as for buffered communication send buffer, that is,
+    in the same order as explained in "communicate.h"
+    if par==2 it makes the computation for lx case
+    if par==1 for the eo case
+    if par==0 for the oe case
+  */
   // void define_vir_hopping_matrix_output_pos()
   // {
   //   for(int par=0;par<=2;par++)
   //     {
   // 	int fact=(par==2)?1:2;
 	
-  // 	//order will be:     bord_vol/nvranks | 8*loc_vol/nvranks | vbord_vol
+  // 	//order will be:     bord_vol/nvranks | 8*vloc_vol/nvranks | vbord_vol
   // 	int loc_data_start=bord_vol/nvranks/fact;
   // 	int vbord_start=loc_data_start+8*loc_vol/nvranks/fact;
 	
@@ -583,19 +432,24 @@ namespace nissa
   // }
   // THREADABLE_FUNCTION_END
   
-  // //remap a spincolor from lx to virlx layout
-  // THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_virlx, vir_spincolor*,ext_out, spincolor*,in)
+  //remap an lx vector to vir[some] layout
+  // THREADABLE_FUNCTION_5ARG(lx_remap_to_virsome, void*,ext_out, void*,in, int,size_per_site, int,nel_per_site, int*,idx_out)
   // {
   //   GET_THREAD_ID();
   //   START_TIMING(remap_time,nremap);
     
   //   //bufferize if needed
   //   int bufferize=(void*)ext_out==(void*)in;
-  //   vir_spincolor *out=bufferize?nissa_malloc("out",loc_vol/nvranks,vir_spincolor):ext_out;
+  //   void *out=bufferize?nissa_malloc("out",vloc_vol*nel_per_site*size_per_site,char):ext_out;
     
-  //   //copy the various VN
+  //   //copy the various virtual ranks
   //   NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
-  //     SPINCOLOR_TO_VIR_SPINCOLOR(out[virlx_of_loclx[ivol_lx]],in[ivol_lx],vrank_of_loclx(ivol_lx));
+  //     for(int iel=0;iel<nel_per_site;iel++)
+  // 	memcpy((char*)out+size_per_site*(vrank_of_loclx[ivol_lx]+nvranks*(iel+nel_per_site*idx_out[ivol_lx]))
+  // 	       ,
+  // 	       (char*)in+size_per_site*(iel+nel_per_site*ivol_lx)
+  // 	       ,
+  // 	       size_per_site);
     
   //   //wait filling
   //   set_borders_invalid(out);
@@ -610,19 +464,24 @@ namespace nissa
   // }
   // THREADABLE_FUNCTION_END
   // //reverse
-  // THREADABLE_FUNCTION_2ARG(virlx_spincolor_remap_to_lx, spincolor*,ext_out, vir_spincolor*,in)
+  // THREADABLE_FUNCTION_5ARG(virsome_remap_to_lx, void*,ext_out, void*,in, int,size_per_site, int,nel_per_site, int*,idx_out)
   // {
   //   GET_THREAD_ID();
   //   START_TIMING(remap_time,nremap);
     
   //   //buffer if needed
   //   int bufferize=(void*)ext_out==(void*)in;
-  //   spincolor *out=bufferize?nissa_malloc("out",loc_vol,spincolor):ext_out;
+  //   void *out=bufferize?nissa_malloc("out",loc_vol*nel_per_site*size_per_site,char):ext_out;
     
-  //   //split to the two VN
-  //   NISSA_PARALLEL_LOOP(ivol_virlx,0,loc_vol/nvranks)
-  //     VIR_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_virlx[ivol_virlx]],out[loclx_of_virlx[ivol_virlx]+vrank_lx_offset],
-  // 				in[ivol_virlx]);
+  //   //split the virtual ranks
+  //   NISSA_PARALLEL_LOOP(virsome,0,vloc_vol)
+  //     for(int iel=0;iel<nel_per_site;iel++)
+  // 	for(int vrank=0;vrank<nvranks;vrank++)
+  // 	  memcpy((char*)out+size_per_site*(iel+nel_per_site*(idx_out[virsome]+vrank_loclx_offset[vrank]))
+  // 		 ,
+  // 		 (char*)in+size_per_site*(vrank+nvranks*(iel+nel_per_site*virsome))
+  // 		 ,
+  // 		 nel_per_site);
     
   //   //wait filling
   //   set_borders_invalid(out);
@@ -963,49 +822,88 @@ namespace nissa
   // }
   // THREADABLE_FUNCTION_END
   
-  // //set virtual geometry
-  // void set_vir_geometry()
-  // {
-  //   if(!vir_geom_inited)
-  //     {
-  // 	vir_geom_inited=true;
-	
-  // 	//CRASH if eo-geom not inited
-  // 	if(!eo_geom_inited)
-  // 	  {
-  // 	    if(!use_eo_geom) CRASH("eo geometry must be enabled in order to use vir one");
-  // 	    CRASH("initialize eo_geometry before vir one");
-	    
-  // 	    if(loc_size[vrank_paral_dir]%4) CRASH("virtual parallelized dir must have local size multiple of 4");
-  // 	  }
-	
-  // 	define_vir_ordering();
-	
-  // 	//define output index pointers
-  // 	define_vir_hopping_matrix_output_pos();
-  //     }
-  // }
+  //! assign vloclx to all loclx
+  template <class T> void fill_vlx_index(vranks_geom_t<T> *vgeo)
+  {
+    for(int loclx=0;loclx<loc_vol;loclx++)
+      {
+	int par=loclx_parity[loclx];
+	int loceo=loceo_of_loclx[loclx];
+	coords vrank_coords;  //< coordinates of the virtual rank
+	coords vloclx_coords; //< coordinates inside the virtual rank
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    vrank_coords[mu]=loc_coord_of_loclx[loclx][mu]/vgeo->vloc_size[mu];
+	    vloclx_coords[mu]=loc_coord_of_loclx[loclx][mu]-vrank_coords[mu]*vgeo->vloc_size[mu];
+	  }
+	int vrank=
+	  vgeo->vrank_of_loclx[loclx]=
+	  lx_of_coord(vrank_coords,vgeo->nvranks_per_dir);
+	int vloclx=
+	  vgeo->vloc_of_loclx[loclx]=
+	  lx_of_coord(vloclx_coords,vgeo->vloc_size);
+	int vloceo=
+	  vgeo->veos_of_loclx[loclx]=
+	  vgeo->veos_of_loceo[par][loceo]=vloclx/2;
+	if(vrank==0)
+	  {
+	    vgeo->loclx_of_vloc[vloclx]=loclx;
+	    vgeo->loceo_of_veos[par][vloceo]=loceo;
+	  }
+      }
+  }
   
-  // //unset it
-  // void unset_vir_geometry()
-  // {
-  //   if(vir_geom_inited)
-  //     {
-  // 	vir_geom_inited=false;
+  //set virtual geometry
+  void set_vranks_geometry()
+  {
+    vlx_double_geom.init(fill_vlx_index);
+
+	// //surface-first order
+	// NISSA_LOC_VOL_LOOP(loclx) vsuflx_of_loclx[loclx]=-1;
+	// int vsuflx=0,vsufeo[2]={0,0};
+	// for(int is_on_surf_loop=1;is_on_surf_loop>=0;is_on_surf_loop--)
+	//   for(int vloclx=0;vloclx<vloc_vol;vloclx++)
+	//     {
+	//       int base_loclx=loclx_of_vloclx[vloclx];
+	//       bool is_on_surf=false;
+	//       for(int mu=0;mu<NDIM;mu++) //either 0 or vloc_size[mu]-1
+	// 	is_on_surf|=((loc_coord_of_loclx[base_loclx][mu]%vloc_size[mu])%(vloc_size[mu]-1))==0;
+	// 	//if it is part of current loop, mark it and sign it
+	//       if(is_on_surf==is_on_surf_loop && vsuflx_of_loclx[base_loclx]==-1)
+	// 	{
+	// 	  int par=loclx_parity[base_loclx];
+	// 	  int loceo=loceo_of_loclx[base_loclx];
+		  
+	// 	  //issue for all vranks
+	// 	  for(int vrank=0;vrank<nvranks;vrank++)
+	// 	    {
+	// 	      int loclx=base_loclx+vrank_loclx_offset[vrank];
+		      
+	// 	      vsuflx_of_loclx[loclx]=vsuflx;
+	// 	      loclx_of_vsuflx[vsuflx]=loclx;
+		      
+	// 	      vsufeo_of_loceo[par][loceo]=vsufeo[par];
+	// 	      loceo_of_vsufeo[par][vsufeo[par]]=loceo;
+		      
+	// 	      vsufeo_of_loclx[loclx]=vsufeo[par];
+	// 	      loclx_of_vsufeo[par][vsufeo[par]]=loclx;
+	// 	    }
+		  
+	// 	  vsuflx++;
+	// 	  vsufeo[par]++;
+	// 	}
+	//     }
 	
-  // 	virlx_hopping_matrix_output_pos.free();
+	// //checks
+	// if(vsuflx!=vloc_vol) CRASH("vsuflx arrived at %d, expecting %d",vsuflx,vloc_vol);
+	// for(int par=0;par<2;par++) if(vsufeo[par]!=vloc_volh) CRASH("vsufeo[%d] arrived at %d, expecting %d",par,vsufeo[par],vloc_volh);
 	
-  // 	nissa_free(loclx_of_virlx);
-  // 	nissa_free(virlx_of_loclx);
-	
-  // 	for(int par=0;par<2;par++)
-  // 	  {
-  // 	    viroe_or_vireo_hopping_matrix_output_pos[par].free();
-  // 	    nissa_free(loclx_of_vireo[par]);
-  // 	    nissa_free(loceo_of_vireo[par]);
-  // 	    nissa_free(vireo_of_loceo[par]);
-  // 	  }
-  // 	nissa_free(vireo_of_loclx);
-  //     }
-  // }
+  	// //define output index pointers
+  	// //define_vir_hopping_matrix_output_pos();
+  }
+  
+  //unset it
+  void unset_vranks_geometry()
+  {
+  }
 }

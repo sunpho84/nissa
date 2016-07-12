@@ -109,7 +109,6 @@ namespace nissa
     //initialize global variables
     lx_geom_inited=0;
     eo_geom_inited=0;
-    vir_geom_inited=0;
     loc_rnd_gen_inited=0;
     glb_rnd_gen_inited=0;
     grid_inited=0;
@@ -118,7 +117,7 @@ namespace nissa
     //check endianness
     check_endianness();
     if(little_endian) master_printf("System endianness: little (ordinary machine)\n");
-    else master_printf("System endianness: big (BG, etc)\n");
+    else master_printf("System endianness: big (but the bg/q is off!)\n");
     
     //set scidac mapping
     scidac_mapping[0]=0;

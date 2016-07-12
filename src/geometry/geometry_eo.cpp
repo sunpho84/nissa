@@ -18,10 +18,6 @@
  #include "routines/thread.hpp"
 #endif
 
-//add a check that loc_vol is a multiple of 2
-//#define REM_2 if(0)
-#define REM_2
-
 namespace nissa
 {
   //compute the parity of a global site
@@ -49,12 +45,8 @@ namespace nissa
     
     //check that all local sizes are multiples of 2
     int ok=1;
-    REM_2 for(int mu=0;mu<NDIM;mu++) ok&=(loc_size[mu]%2==0);
-    REM_2 if(!ok) CRASH("local lattice size odd!");
-    
-    //set half the vol, bord and edge size
-    glb_volh=glb_vol/2;
-    loc_volh=loc_vol/2;
+    for(int mu=0;mu<NDIM;mu++) ok&=(loc_size[mu]%2==0);
+    if(!ok) CRASH("local lattice size odd!");
     
     //set the parity
     loclx_parity=nissa_malloc("loclx_parity",loc_vol+bord_vol+edge_vol,int);

@@ -12,9 +12,7 @@
 #include "vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
-#ifdef USE_VNODES
- #include "geometry/geometry_vir.hpp"
-#endif
+#include "geometry/geometry_vir.hpp"
 #include "hmc/gauge/Symanzik_force.hpp"
 #include "hmc/gauge/Symanzik_action.hpp"
 #include "operations/remap_vector.hpp"
@@ -44,10 +42,8 @@ namespace nissa
     //unset eo geometry
     if(eo_geom_inited) unset_eo_geometry();
     
-    //unset the virtual node parallelization geometry
-#ifdef USE_VNODES
-    unset_vir_geometry();
-#endif
+    //unset the virtual ranks parallelization geometry
+    //if(vranks_geom_inited) unset_vranks_geometry();
     
     //stop the random generator
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();

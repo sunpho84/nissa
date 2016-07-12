@@ -6,6 +6,7 @@
  #include <mpi.h>
 #endif
 
+#include "base/grid.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_vir.hpp"
@@ -34,132 +35,118 @@ namespace nissa
     return S2B;
   }
   
-  struct partitioning_t
-  {
-    std::vector<int> list_fact;
-    int icombo,ncombo;
-    int factorize_R;
-    
     //if nfact_V>=nfact_R factorize the number of ranks, otherwise the volume
     //in the first case we find the best way to assign the ranks to different directions
     //in the second case we find how many sites per direction to assign to each ranks
-    partitioning_t(long long int V,int R)
-    {
-      std::vector<int> list_fact_V=factorize(V);
-      std::vector<int> list_fact_R=factorize(R);
-      factorize_R=(list_fact_V.size()>=list_fact_R.size());
-      if(factorize_R) list_fact=list_fact_R;
-      else            list_fact=list_fact_V;
-      
-      //compute the number of combinations: this is given by NDIM^nfact
-      if(list_fact.size())
-	{
-	  ncombo=1;
-	  for(size_t ifact=0;ifact<list_fact.size();ifact++) ncombo*=NDIM;
-	}
-      else ncombo=0;
-      
-      //restart combo
-      restart();
-    }
+  partitioning_t::partitioning_t(long long int V,int R)
+  {
+    std::vector<int> list_fact_V=factorize(V);
+    std::vector<int> list_fact_R=factorize(R);
+    factorize_R=(list_fact_V.size()>=list_fact_R.size());
+    if(factorize_R) list_fact=list_fact_R;
+    else            list_fact=list_fact_V;
     
-    //start icombo
-    void restart(){icombo=-1;}
+    //compute the number of combinations: this is given by NDIM^nfact
+    if(list_fact.size())
+      {
+	ncombo=1;
+	for(size_t ifact=0;ifact<list_fact.size();ifact++) ncombo*=NDIM;
+      }
+    else ncombo=0;
     
-    //check not tried all combo
-    bool finished(){return icombo>ncombo;}
+    //restart combo
+    restart();
+  }
+  
+  int partitioning_t::partitioning_t::decrypt_and_validate_partition(coords R_per_dir,coords grid_size,coords min_grid_size,coords fix_R_per_dir)
+  {
+    //reset loc
+    for(int mu=0;mu<NDIM;mu++) R_per_dir[mu]=1;
     
-    //find the partition correseponding to the current combo and check that it satisfies all constraints
-    int decrypt_and_validate_partition(coords R_per_dir,coords grid_size,coords min_grid_size,coords fix_R_per_dir)
-    {
-      //reset loc
-      for(int mu=0;mu<NDIM;mu++) R_per_dir[mu]=1;
-      
-      //special case
-      if(ncombo==0) return 0;
-      
-      //compute mask factor
-      int mask=1;
-      for(int jfact=0;jfact<(int)list_fact.size()-1;jfact++) mask*=NDIM;
-      
-      //find the partioning corresponding to icombo
-      int ifact=list_fact.size()-1;
-      int valid_partitioning=1;
-      while(valid_partitioning && ifact>=0)
-	{
-	  //find the direction: this is given by the ifact digit of icombo wrote in base NDIM
-	  int mu=(icombo/mask)%NDIM;
-	  
-	  //if we are factorizing the number of ranks, factor is given by list_fact, otherwise from glb[mu]/list_fact
-	  if(factorize_R) R_per_dir[mu]*=list_fact[ifact];
-	  else            R_per_dir[mu]*=grid_size[mu]/list_fact[ifact];
-	  
-	  //check that the total volume is a multiple of what trying to divide it for
-	  if(valid_partitioning && grid_size[mu]%R_per_dir[mu]!=0)
-	    {
-	      valid_partitioning=false;
-	      master_printf("grid_size(%d)%%R_per_dir(%d) mu=%d !=0\n",grid_size[mu],R_per_dir[mu],mu);
-	    }
-	  //check that it is larger than the minimal size per this dir
-	  if(valid_partitioning && grid_size[mu]<R_per_dir[mu]*min_grid_size[mu])
-	    {
-	      valid_partitioning=false;
-	      master_printf("grid_size(%d)<R_per_dir*min_grid_size(%d*%d) mu=%d !=0\n",grid_size[mu],R_per_dir[mu],min_grid_size[mu],mu);
-	    }
-	  
-	  //if fixed R per this dir
-	  if(valid_partitioning && fix_R_per_dir[mu]>0)
-	    {
-	      //check that it is not larger than the agreed size
-	      valid_partitioning&=(R_per_dir[mu]<=fix_R_per_dir[mu]);
-	      //check that it divides fix_R_per_dir
-	      valid_partitioning&=(fix_R_per_dir[mu]%R_per_dir[mu]==0);
-	    }
-	  
-	  //if partition is valid move to next factor
-	  if(valid_partitioning)
-	    {
-	      ifact--;
-	      mask/=NDIM;
-	    }
-	}
-      
-      return ifact;
-    }
+    //special case
+    if(ncombo==0) return 0;
     
-    //skip all partitioning sharing the passed number of least significative factors
-    void skip_combo_of_factors(int ifact)
-    {
-      int mask=1;
-      for(int jfact=0;jfact<ifact-1;jfact++) mask*=NDIM;
-      icombo+=mask;
-    }
+    //compute mask factor
+    int mask=1;
+    for(int jfact=0;jfact<(int)list_fact.size()-1;jfact++) mask*=NDIM;
     
-    //find a valid partition
-    bool find_next_valid_partition(coords R_per_dir,coords grid_size,coords min_grid_size,coords fix_R_per_dir)
-    {
-      icombo++;
-      
-      int nunassign_factors;
-      if(!finished())
-	do
+    //find the partioning corresponding to icombo
+    int ifact=list_fact.size()-1;
+    int valid_partitioning=1;
+    while(valid_partitioning && ifact>=0)
+      {
+	//find the direction: this is given by the ifact digit of icombo wrote in base NDIM
+	int mu=(icombo/mask)%NDIM;
+	
+	//if we are factorizing the number of ranks, factor is given by list_fact, otherwise from glb[mu]/list_fact
+	if(factorize_R) R_per_dir[mu]*=list_fact[ifact];
+	else            R_per_dir[mu]*=grid_size[mu]/list_fact[ifact];
+	
+	//check that the total volume is a multiple of what trying to divide it for
+	if(valid_partitioning && grid_size[mu]%R_per_dir[mu]!=0)
 	  {
-	    nunassign_factors=decrypt_and_validate_partition(R_per_dir,grid_size,min_grid_size,fix_R_per_dir);
-	    master_printf("icombo %d unassigned %d ncombo %d\n",icombo,nunassign_factors,ncombo);
-	    if(nunassign_factors>0) skip_combo_of_factors(nunassign_factors);
+	    valid_partitioning=false;
+	    master_printf("grid_size(%d)%%R_per_dir(%d) mu=%d !=0\n",grid_size[mu],R_per_dir[mu],mu);
 	  }
-	while(nunassign_factors>0 && !finished());
-      
-      return !finished();
-    }
-  };
+	//check that it is larger than the minimal size per this dir
+	if(valid_partitioning && grid_size[mu]<R_per_dir[mu]*min_grid_size[mu])
+	  {
+	    valid_partitioning=false;
+	    master_printf("grid_size(%d)<R_per_dir*min_grid_size(%d*%d) mu=%d !=0\n",grid_size[mu],R_per_dir[mu],min_grid_size[mu],mu);
+	  }
+	
+	//if fixed R per this dir
+	if(valid_partitioning && fix_R_per_dir[mu]>0)
+	  {
+	    //check that it is not larger than the agreed size
+	    valid_partitioning&=(R_per_dir[mu]<=fix_R_per_dir[mu]);
+	    //check that it divides fix_R_per_dir
+	    valid_partitioning&=(fix_R_per_dir[mu]%R_per_dir[mu]==0);
+	  }
+	
+	//if partition is valid move to next factor
+	if(valid_partitioning)
+	  {
+	    ifact--;
+	    mask/=NDIM;
+	  }
+      }
+    
+    return ifact;
+  }
+  
+  //
+  void partitioning_t::skip_combo_of_factors(int ifact)
+  {
+    int mask=1;
+    for(int jfact=0;jfact<ifact-1;jfact++) mask*=NDIM;
+    icombo+=mask;
+  }
+  
+  //
+  bool partitioning_t::find_next_valid_partition(coords R_per_dir,coords grid_size,coords min_grid_size,coords fix_R_per_dir)
+  {
+    icombo++;
+    
+    int nunassign_factors;
+    if(!finished())
+      do
+	{
+	  nunassign_factors=decrypt_and_validate_partition(R_per_dir,grid_size,min_grid_size,fix_R_per_dir);
+	  master_printf("icombo %d unassigned %d ncombo %d\n",icombo,nunassign_factors,ncombo);
+	  if(nunassign_factors>0) skip_combo_of_factors(nunassign_factors);
+	}
+      while(nunassign_factors>0 && !finished());
+    
+    return !finished();
+  }
   
   //find the grid minimizing the surface
   void find_grid()
   {
     //check that we did not ask to fix ranks and vranks in an impossible way
     int res_nranks=nranks;
-    int res_nvranks=nvranks;
+    //int res_nvranks=nvranks_max;
     coords min_loc_size;
     coords min_vir_loc_size;
     for(int mu=0;mu<NDIM;mu++)
@@ -167,7 +154,7 @@ namespace nissa
 	min_loc_size[mu]=1;
 	if(use_eo_geom) min_loc_size[mu]*=2;
 	min_vir_loc_size[mu]=min_loc_size[mu];
-	if(fix_nvranks[mu]) min_vir_loc_size[mu]*=fix_nvranks[mu];
+	//if(fix_nvranks[mu]) min_vir_loc_size[mu]*=fix_nvranks[mu]; //impossible at the moment
 	
 	if(fix_nranks[mu])
 	  {
@@ -176,15 +163,15 @@ namespace nissa
 	    res_nranks/=fix_nranks[mu];
 	  }
 	
-	if(fix_nvranks[mu])
-	  {
-	    if(glb_size[mu]%fix_nvranks[mu]||fix_nvranks[mu]>glb_size[mu]) CRASH("asked to fix nvranks to %d in dir %d in an impossible way, global size %d",fix_nvranks[mu],mu,glb_size[mu]);
-	    if(fix_nvranks[mu]>nvranks) CRASH("asked to fix nvranks in dir %d to a number %d larger than the total vnranks, %d",mu,fix_nvranks[mu],nvranks);
-	    res_nvranks/=fix_nvranks[mu];
-	  }
+	// if(fix_nvranks[mu])
+	//   {
+	//     if(glb_size[mu]%fix_nvranks[mu]||fix_nvranks[mu]>glb_size[mu]) CRASH("asked to fix nvranks to %d in dir %d in an impossible way, global size %d",fix_nvranks[mu],mu,glb_size[mu]);
+	//     if(fix_nvranks[mu]>nvranks) CRASH("asked to fix nvranks in dir %d to a number %d larger than the total vnranks, %d",mu,fix_nvranks[mu],nvranks);
+	//     res_nvranks/=fix_nvranks[mu];
+	//    }
       }
-    if(res_nranks<1) CRASH("overfixed the number of ranks per direction");
-    if(res_nvranks<1) CRASH("overfixed the number of vranks per direction");
+  if(res_nranks<1) CRASH("overfixed the number of ranks per direction");
+  //if(res_nvranks<1) CRASH("overfixed the number of vranks per direction");
     
     //////////////////// find the partitioning which minimize the surface /////////////////////
     
@@ -195,8 +182,8 @@ namespace nissa
     
     partitioning_t ranks_partitioning(glb_vol,nranks);
     master_printf("partitioning glb_vol %d in %d ranks obtained %u possible combos\n",glb_vol,nranks,ranks_partitioning.ncombo);
-    partitioning_t vranks_partitioning(loc_vol,nvranks);
-    master_printf("partitioning lc_vol %d in %d vranks obtained %u possible combos\n",loc_vol,nvranks,vranks_partitioning.ncombo);
+    partitioning_t vranks_partitioning(loc_vol,nvranks_max);
+    master_printf("partitioning lc_vol %d in %d vranks obtained %u possible combos\n",loc_vol,nvranks_max,vranks_partitioning.ncombo);
     
     coords RPD;
     //use min_vloc_size because we want to further partition that dir
@@ -209,6 +196,8 @@ namespace nissa
 	vranks_partitioning.restart();
 	
 	coords VPD;
+	coords fix_nvranks;
+	memset(fix_nvranks,0,sizeof(coords));
 	while(vranks_partitioning.find_next_valid_partition(VPD,LS,min_loc_size,fix_nvranks))
 	  {
 	    //set the vir local size
@@ -236,7 +225,7 @@ namespace nissa
 	    
 	    //compute relative surface
 	    double bulk_rel_surf=(double)loc_bulk_vol/loc_vol;
-	    double vbulk_rel_surf=(double)vloc_bulk_vol/vloc_vol;
+	    double vbulk_rel_surf=(double)vloc_bulk_vol/vloc_min_vol;
 	    double rel_surf=sqrt(sqr(bulk_rel_surf)+sqr(vbulk_rel_surf));
 	    
 	    //if it is the minimal surface (or first valid combo) copy it and compute the border size
@@ -244,8 +233,11 @@ namespace nissa
 	      {
 		min_rel_surf=rel_surf;
 		
-		for(int mu=0;mu<NDIM;mu++) nranks_per_dir[mu]=RPD[mu];
-		for(int mu=0;mu<NDIM;mu++) nvranks_per_dir[mu]=VPD[mu];
+		for(int mu=0;mu<NDIM;mu++)
+		  {
+		    nranks_per_dir[mu]=RPD[mu];
+		    vloc_min_size[mu]=loc_size[mu]/VPD[mu];
+		  }
 		
 		something_found=1;
 	      }
@@ -314,6 +306,7 @@ namespace nissa
     //calculate global volume
     glb_vol=1;
     for(int mu=0;mu<NDIM;mu++) glb_vol*=glb_size[mu];
+    glb_volh=glb_vol/2;
     glb_spat_vol=glb_vol/glb_size[0];
     glb_vol2=(double)glb_vol*glb_vol;
     if(use_eo_geom) if(glb_vol%(1<<NDIM)!=0) CRASH("in order to use eo geometry, global volume %d must be a multiple of (1<<NDIM)=%d",glb_vol,(1<<NDIM));
@@ -326,39 +319,36 @@ namespace nissa
     //initialize local volume and check it
     master_printf("Number of MPI ranks: %d\n",nranks);
     loc_vol=glb_vol/nranks;
+    loc_volh=loc_vol/2;
     if(loc_vol*nranks!=glb_vol) CRASH("global volume %d cannot be divided by nranks %d",glb_vol,nranks);
     if(use_eo_geom) if(loc_vol%(1<<NDIM)!=0) CRASH("in order to use eo geometry, local volume %d must be a multiple of (1<<NDIM)=%d",loc_vol,(1<<NDIM));
     
-    //initialize local volume and check it
-    master_printf("Number of virtual ranks: %d\n",nvranks);
-    vloc_vol=loc_vol/nvranks;
-    if(vloc_vol*nvranks!=loc_vol) CRASH("local volume %d cannot be divided by nvranks %d",loc_vol,nvranks);
-    if(use_eo_geom) if(vloc_vol%(1<<NDIM)) CRASH("in order to use eo geometry and virtual ranks, local virtual volume %d must be a multiple of (1<<NDIM)=%d",vloc_vol,(1<<NDIM));
+    //initialize virtual local volume and check it
+    master_printf("Number of maximal virtual ranks: %d\n",nvranks_max);
+    vloc_min_vol=loc_vol/nvranks_max;
+    if(vloc_min_vol*nvranks_max!=loc_vol) CRASH("local volume %d cannot be divided by nvranks %d",loc_vol,nvranks_max);
+    if(use_eo_geom) if(vloc_min_vol%(1<<NDIM)) CRASH("in order to use eo geometry and virtual ranks, local virtual volume %d must be a multiple of (1<<NDIM)=%d",vloc_min_vol,(1<<NDIM));
     
     //find the grid minimizing the surface
     find_grid();
     
-    //and check whether each direction dir is parallelized
+    //check whether each direction dir is parallelized
     for(int mu=0;mu<NDIM;mu++)
       {
 	paral_dir[mu]=(nranks_per_dir[mu]>1);
 	nparal_dir+=paral_dir[mu];
       }
     
-    master_printf("Creating grid:\t%d",nranks_per_dir[0]);
+    //creates the grid
+    master_printf("Creating MPI cartesian grid:\t%d",nranks_per_dir[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",nranks_per_dir[mu]);
     master_printf("\n");
-    
-    //creates the grid
     create_MPI_cartesian_grid();
     
-    //calculate the local volume
+    //compute the local volume
     for(int mu=0;mu<NDIM;mu++) loc_size[mu]=glb_size[mu]/nranks_per_dir[mu];
     loc_spat_vol=loc_vol/loc_size[0];
     loc_vol2=(double)loc_vol*loc_vol;
-    
-    //calculate the local virtual volume
-    for(int mu=0;mu<NDIM;mu++) vloc_size[mu]=loc_size[mu]/nvranks_per_dir[mu];
     
     //calculate bulk size
     bulk_vol=non_bw_surf_vol=1;
@@ -447,7 +437,7 @@ namespace nissa
 	}
     }
     
-    //print information
+    //print information on local volume
     master_printf("Local volume\t%d",loc_size[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",loc_size[mu]);
     master_printf(" = %d\n",loc_vol);
@@ -458,9 +448,6 @@ namespace nissa
     master_printf("Border size: %d\n",bord_vol);
     for(int mu=0;mu<NDIM;mu++)
       verbosity_lv3_master_printf("Border offset for dir %d: %d\n",mu,bord_offset[mu]);
-    master_printf("Local virtual volume\t%d",vloc_size[0]);
-    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",vloc_size[mu]);
-    master_printf(" = %d\n",vloc_vol);
     
     //print orderd list of the rank names
     if(VERBOSITY_LV3)
@@ -485,14 +472,10 @@ namespace nissa
     
     //////////////////////////////////////////////////////////////////////////////////////////
     
-    //set the cartesian and eo geometry
+    //set the cartesian and e/o and vir geometry
     set_lx_geometry();
-    
     if(use_eo_geom) set_eo_geometry();
-    
-#ifdef USE_VNODES
-    set_vir_geometry();
-#endif
+    if(use_vranks) set_vranks_geometry();
     
     ///////////////////////////////////// start communicators /////////////////////////////////
     
