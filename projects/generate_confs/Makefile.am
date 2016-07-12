@@ -19,23 +19,27 @@ generate_parser_sources= \
 generate_parser_built_sources= \
         tokenizer.cpp \
         parser.hpp \
-        parser.cpp
+        parser.cpp \
+	parser_fixed.cpp \
+	tokenizer_fixed.cpp
 
-parser_fixed.cpp: $(top_srcdir)/config/fix_bison.sh Makefile $(top_builddir)/projects/generate_confs/parser.cpp
+parser_fixed.cpp: $(top_srcdir)/config/fix_bison.sh Makefile parser.cpp
 	@echo "Fixing the parser"
 	@bash $(top_srcdir)/config/fix_bison.sh parser.cpp > $@
+	@cp parser_fixed.cpp parser.cpp
 
-tokenizer_fixed.cpp: $(top_srcdir)/config/fix_flex.sh Makefile $(top_builddir)/projects/generate_confs/tokenizer.cpp
+tokenizer_fixed.cpp: $(top_srcdir)/config/fix_flex.sh Makefile tokenizer.cpp
 	@echo "Fixing the parser"
 	@bash $(top_srcdir)/config/fix_flex.sh tokenizer.cpp > $@
+	@cp tokenizer_fixed.cpp tokenizer.cpp
 
 AM_YFLAGS=-d
-BUILT_SOURCES=$(generate_parser_built_sources) parser_fixed.cpp tokenizer_fixed.cpp
-CLEANFILES=$(generate_parser_built_sources) parser_fixed.cpp tokenizer_fized.cpp
+BUILT_SOURCES=$(generate_parser_built_sources)
+CLEANFILES=$(generate_parser_built_sources)
 
 #############################################################################################
 
-__top_builddir__bin_generate_SOURCES=generate.cpp parser.hpp parser_fixed.cpp tokenizer_fixed.cpp
+__top_builddir__bin_generate_SOURCES=generate.cpp $(generate_parser_sources)
 __top_builddir__bin_generate_LDADD=$(LDADD)
 __top_builddir__bin_generate_LDFLAGS=$(LDFLAGS)
 
