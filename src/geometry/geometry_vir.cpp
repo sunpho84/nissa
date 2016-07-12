@@ -467,16 +467,11 @@ namespace nissa
     NISSA_PARALLEL_LOOP(virsome,0,loc_vol/nvranks)
       for(int iel=0;iel<nel_per_site;iel++)
   	for(int vrank=0;vrank<nvranks;vrank++)
-	  {
-	    master_printf("%d    %d  %d %d %d %d  %d %d\n",loc_vol/nvranks,nvranks,virsome,idx_out[virsome]+vrank_loclx_offset[vrank],vrank,vrank_loclx_offset[vrank],
-			  size_per_site*(iel+nel_per_site*(idx_out[virsome]+vrank_loclx_offset[vrank])),
-			  size_per_site*(vrank+nvranks*(iel+nel_per_site*virsome)));
-	    memcpy((char*)out+size_per_site*(iel+nel_per_site*(idx_out[virsome]+vrank_loclx_offset[vrank]))
-		   ,
-		   (char*)in+size_per_site*(vrank+nvranks*(iel+nel_per_site*virsome))
-		   ,
-		   nel_per_site);
-	  }
+	  memcpy((char*)out+size_per_site*(iel+nel_per_site*(idx_out[virsome]+vrank_loclx_offset[vrank]))
+		 ,
+		 (char*)in+size_per_site*(vrank+nvranks*(iel+nel_per_site*virsome))
+		 ,
+		 size_per_site);
     
     //wait filling
     set_borders_invalid(out);

@@ -237,15 +237,25 @@ void in_main(int narg,char **arg)
   
   //init simulation according to input file
   init_simulation(arg[1]);
-  
+
   //loop over the configs
   int iconf=0;
   while(read_conf_parameters(iconf,finish_file_present))
     {
       //setup the conf and generate the source
       start_new_conf();
-      
-      for(int ihit=0;ihit<nhits;ihit++)
+
+      //check transformation
+  vd_quad_su3 *co=nissa_malloc("co",vd_loc_vol,vd_quad_su3);
+  vlx_double_geom.lx_remap_to_virsome(co,conf);
+  quad_su3 *c=nissa_malloc("c",loc_vol,quad_su3);
+  vlx_double_geom.virsome_remap_to_lx(c, co);
+  for(int i=0;i<(int)(loc_vol*sizeof(quad_su3)/sizeof(double));i++)
+    if(((double*)c)[i]!=((double*)conf)[i]) CRASH("%lg %lg",((double*)c)[i],((double*)conf[i]));
+  nissa_free(c);
+  nissa_free(co);
+
+  for(int ihit=0;ihit<nhits;ihit++)
 	{
 	  start_hit(ihit);
 	  generate_propagators(ihit);

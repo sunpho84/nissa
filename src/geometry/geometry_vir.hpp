@@ -155,6 +155,7 @@ namespace nissa
 	    fix_nvranks[mu]=0;
 	  }
 	master_printf("need to find the optimal here ANNNNNNA\n");
+	bool something_found=false;
 	while(vranks_partitioning.find_next_valid_partition(VRPD,loc_size,min_loc_size,fix_nvranks))
 	  {
 	    //set the vir local size
@@ -172,12 +173,22 @@ namespace nissa
 		    vloc_size[mu]=loc_size[mu]/VRPD[mu];
 		  }
 		
-		//something_found=1;
+	master_printf(" proposed local volume\t%d",vloc_size[0]);
+	for(int mu=1;mu<NDIM;mu++) master_printf("x%d",vloc_size[mu]);
+	master_printf(" = %d\n",vloc_vol);
+		something_found=true;
 	      }
 	  }
+	if(!something_found) CRASH("no valid grid partitioning found");
 	
-	//compute the local virtual size
-	for(int mu=0;mu<NDIM;mu++) vloc_size[mu]=loc_size[mu]/nvranks_per_dir[mu];
+	//compute the local virtual and size check whether each direction dir is virtually parallelized
+	nvparal_dir=0;
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    vloc_size[mu]=loc_size[mu]/nvranks_per_dir[mu];
+	    vparal_dir[mu]=(nvranks_per_dir[mu]>1);
+	    nvparal_dir+=vparal_dir[mu];
+	  }
 	
 	//create the virtual grid
 	for(int i=0;i<nvranks;i++) coord_of_lx(vrank_coord[i],i,nvranks_per_dir);
@@ -205,13 +216,6 @@ namespace nissa
 	    coords c;
 	    for(int mu=0;mu<NDIM;mu++) c[mu]=vrank_coord[vrank][mu]*vloc_size[mu];
 	    vrank_loclx_offset[vrank]=loclx_of_coord(c);
-	  }
-	
-	//check whether each direction dir is virtually parallelized
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    vparal_dir[mu]=(nvranks_per_dir[mu]>1);
-	    nvparal_dir+=vparal_dir[mu];
 	  }
 	
 	//fill all indices

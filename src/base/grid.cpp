@@ -92,7 +92,7 @@ namespace nissa
 	if(valid_partitioning && grid_size[mu]<R_per_dir[mu]*min_grid_size[mu])
 	  {
 	    valid_partitioning=false;
-	    master_printf("grid_size(%d)<R_per_dir*min_grid_size(%d*%d) mu=%d !=0\n",grid_size[mu],R_per_dir[mu],min_grid_size[mu],mu);
+	    master_printf("grid_size(%d)>=R_per_dir*min_grid_size(%d*%d) mu=%d\n",grid_size[mu],R_per_dir[mu],min_grid_size[mu],mu);
 	  }
 	
 	//if fixed R per this dir
@@ -128,15 +128,15 @@ namespace nissa
   {
     icombo++;
     
-    int nunassign_factors;
+    int last_assigned_factor;
     if(!finished())
       do
 	{
-	  nunassign_factors=decrypt_and_validate_partition(R_per_dir,grid_size,min_grid_size,fix_R_per_dir);
-	  master_printf("icombo %d unassigned %d ncombo %d\n",icombo,nunassign_factors,ncombo);
-	  if(nunassign_factors>0) skip_combo_of_factors(nunassign_factors);
+	  last_assigned_factor=decrypt_and_validate_partition(R_per_dir,grid_size,min_grid_size,fix_R_per_dir);
+	  master_printf("icombo %d unassigned %d ncombo %d\n",icombo,last_assigned_factor,ncombo);
+	  if(last_assigned_factor>=0) skip_combo_of_factors(last_assigned_factor);
 	}
-      while(nunassign_factors>0 && !finished());
+      while(last_assigned_factor>=0 && !finished());
     
     return !finished();
   }
@@ -385,20 +385,6 @@ namespace nissa
     bord_vol=2*bord_volh;
     
     init_boxes();
-    
-#ifdef USE_VNODES
-    //two times the size of vnode_paral_dir face
-    vbord_vol=2*loc_vol/loc_size[vnode_paral_dir]; //so is not counting all vsites
-    vbord_volh=vbord_vol/2;
-    vdir_bord_vol=vbord_vol/2;
-    vdir_bord_volh=vbord_volh/2;
-    //compute the offset between sites of different vnodes
-    //this amount to the product of the local size of the direction running faster than
-    //vnode_paral_dir, times half the local size along vnode_paral_dir
-    vnode_lx_offset=loc_size[vnode_paral_dir]/NVNODES;
-    for(int mu=vnode_paral_dir+1;mu<NDIM;mu++) vnode_lx_offset*=loc_size[mu];
-    vnode_eo_offset=vnode_lx_offset/2;
-#endif
     
     //calculate the egdes size
     edge_vol=0;
