@@ -29,6 +29,7 @@ AC_PROG_YACC
 AM_PROG_LEX
 
 AC_LANG([C++])
+AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 
 #set mpi
 LX_FIND_MPI
