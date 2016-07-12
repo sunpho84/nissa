@@ -83,7 +83,7 @@ namespace nissa
     
     //writes source norm
     verbosity_lv2_master_printf(" Source norm: %lf\n",source_norm);
-    if(source_norm==0 || isnan(source_norm)) CRASH("invalid norm: %lf",source_norm);
+    if(source_norm==0 || std::isnan(source_norm)) CRASH("invalid norm: %lf",source_norm);
     
     //writes initial residue
     verbosity_lv2_master_printf(" cgm iter 0 rel. residues: ");
@@ -148,7 +148,7 @@ namespace nissa
 	verbosity_lv3_master_printf("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
 #endif
 	
-	//     calculate 
+	//     calculate
 	//     -zfs
 	//     -betas
 	//     -x
@@ -157,7 +157,7 @@ namespace nissa
 	    if(run_flag[ishift]==1)
 	      {
 		double ratio=betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
-		if(isnan(ratio)) CRASH("nanned");
+		if(std::isnan(ratio)) CRASH("nanned");
 		zfs[ishift]=zas[ishift]*ratio;
 		betas[ishift]=betaa*ratio;
 		
