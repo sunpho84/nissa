@@ -64,7 +64,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) R_per_dir[mu]=1;
     
     //special case
-    if(ncombo==0) return 0;
+    if(ncombo==0) return -1;
     
     //compute mask factor
     int mask=1;
