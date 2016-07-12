@@ -1,9 +1,7 @@
 #ifndef _MATH_ROUTINES_HPP
 #define _MATH_ROUTINES_HPP
 
-#include <algorithm>
 #include <vector>
-
 #include "new_types/complex.hpp"
 
 //Pi
