@@ -45,26 +45,6 @@ namespace nissa
   typedef single_color single_halfspincolor[2];
   typedef single_color single_spincolor[NDIRAC];
   typedef single_su3 single_quad_su3[NDIRAC];
-  
-  typedef vir_complex vir_color[NCOL];
-  typedef vir_color vir_su3[NCOL];
-  typedef vir_color vir_halfspincolor[NDIRAC/2];
-  typedef vir_halfspincolor vir_color_halfspincolor[NCOL];
-  typedef vir_color_halfspincolor vir_halfspincolor_halfspincolor[NDIRAC/2];
-  typedef vir_su3 vir_quad_su3[NDIM];
-  typedef vir_su3 vir_oct_su3[2*NDIM];
-  typedef vir_color vir_spincolor[NDIRAC];
-  typedef vir_color vir_halfspincolor[2];
-  typedef vir_complex vir_halfspin[2];
-  
-  typedef vir_su3 vir_clover_term_t[4];
-  typedef vir_halfspincolor_halfspincolor vir_inv_clover_term_t[2];
-  
-  typedef vir_single_complex vir_single_color[NCOL];
-  typedef vir_single_color vir_single_su3[NCOL];
-  typedef vir_single_color vir_single_halfspincolor[2];
-  typedef vir_single_color vir_single_spincolor[NDIRAC];
-  typedef vir_single_su3 vir_single_oct_su3[8];
 }
 
 #endif

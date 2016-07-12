@@ -433,68 +433,57 @@ namespace nissa
   // THREADABLE_FUNCTION_END
   
   //remap an lx vector to vir[some] layout
-  // THREADABLE_FUNCTION_5ARG(lx_remap_to_virsome, void*,ext_out, void*,in, int,size_per_site, int,nel_per_site, int*,idx_out)
-  // {
-  //   GET_THREAD_ID();
-  //   START_TIMING(remap_time,nremap);
+  THREADABLE_FUNCTION_7ARG(lx_remap_to_virsome_internal, void*,out, void*,in, int,size_per_site, int,nel_per_site, int,nvranks, int*,vrank_of_loclx, int*,idx_out)
+  {
+    GET_THREAD_ID();
+    START_TIMING(remap_time,nremap);
     
-  //   //bufferize if needed
-  //   int bufferize=(void*)ext_out==(void*)in;
-  //   void *out=bufferize?nissa_malloc("out",vloc_vol*nel_per_site*size_per_site,char):ext_out;
+    if(out==in) CRASH("cannot use with out==in");
     
-  //   //copy the various virtual ranks
-  //   NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
-  //     for(int iel=0;iel<nel_per_site;iel++)
-  // 	memcpy((char*)out+size_per_site*(vrank_of_loclx[ivol_lx]+nvranks*(iel+nel_per_site*idx_out[ivol_lx]))
-  // 	       ,
-  // 	       (char*)in+size_per_site*(iel+nel_per_site*ivol_lx)
-  // 	       ,
-  // 	       size_per_site);
+    //copy the various virtual ranks
+    NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
+      for(int iel=0;iel<nel_per_site;iel++)
+	memcpy((char*)out+size_per_site*(vrank_of_loclx[ivol_lx]+nvranks*(iel+nel_per_site*idx_out[ivol_lx]))
+	       ,
+	       (char*)in+size_per_site*(iel+nel_per_site*ivol_lx)
+	       ,
+	       size_per_site);
     
-  //   //wait filling
-  //   set_borders_invalid(out);
+    //wait filling
+    set_borders_invalid(out);
     
-  //   //unbuffer if needed
-  //   if(bufferize)
-  //     {
-  // 	vector_copy(ext_out,out);
-  // 	nissa_free(out);
-  //     }
-  //   STOP_TIMING(remap_time);
-  // }
-  // THREADABLE_FUNCTION_END
-  // //reverse
-  // THREADABLE_FUNCTION_5ARG(virsome_remap_to_lx, void*,ext_out, void*,in, int,size_per_site, int,nel_per_site, int*,idx_out)
-  // {
-  //   GET_THREAD_ID();
-  //   START_TIMING(remap_time,nremap);
+    STOP_TIMING(remap_time);
+  }
+  THREADABLE_FUNCTION_END
+  //reverse
+  THREADABLE_FUNCTION_8ARG(virsome_remap_to_lx_internal, void*,out, void*,in, int,size_per_site, int,nel_per_site, int,nvranks, int*,vrank_of_loclx, int*,vrank_loclx_offset, int*,idx_out)
+  {
+    GET_THREAD_ID();
+    START_TIMING(remap_time,nremap);
     
-  //   //buffer if needed
-  //   int bufferize=(void*)ext_out==(void*)in;
-  //   void *out=bufferize?nissa_malloc("out",loc_vol*nel_per_site*size_per_site,char):ext_out;
+    if(out==in) CRASH("cannot use with out==in");
     
-  //   //split the virtual ranks
-  //   NISSA_PARALLEL_LOOP(virsome,0,vloc_vol)
-  //     for(int iel=0;iel<nel_per_site;iel++)
-  // 	for(int vrank=0;vrank<nvranks;vrank++)
-  // 	  memcpy((char*)out+size_per_site*(iel+nel_per_site*(idx_out[virsome]+vrank_loclx_offset[vrank]))
-  // 		 ,
-  // 		 (char*)in+size_per_site*(vrank+nvranks*(iel+nel_per_site*virsome))
-  // 		 ,
-  // 		 nel_per_site);
+    //split the virtual ranks
+    NISSA_PARALLEL_LOOP(virsome,0,loc_vol/nvranks)
+      for(int iel=0;iel<nel_per_site;iel++)
+  	for(int vrank=0;vrank<nvranks;vrank++)
+	  {
+	    master_printf("%d    %d  %d %d %d %d  %d %d\n",loc_vol/nvranks,nvranks,virsome,idx_out[virsome]+vrank_loclx_offset[vrank],vrank,vrank_loclx_offset[vrank],
+			  size_per_site*(iel+nel_per_site*(idx_out[virsome]+vrank_loclx_offset[vrank])),
+			  size_per_site*(vrank+nvranks*(iel+nel_per_site*virsome)));
+	    memcpy((char*)out+size_per_site*(iel+nel_per_site*(idx_out[virsome]+vrank_loclx_offset[vrank]))
+		   ,
+		   (char*)in+size_per_site*(vrank+nvranks*(iel+nel_per_site*virsome))
+		   ,
+		   nel_per_site);
+	  }
     
-  //   //wait filling
-  //   set_borders_invalid(out);
+    //wait filling
+    set_borders_invalid(out);
     
-  //   //unbuffer if needed
-  //   if(bufferize)
-  //     {
-  // 	vector_copy(ext_out,out);
-  // 	nissa_free(out);
-  //     }
-  //   STOP_TIMING(remap_time);
-  // }
-  // THREADABLE_FUNCTION_END
+    STOP_TIMING(remap_time);
+  }
+  THREADABLE_FUNCTION_END
   
   // //only even or odd
   // THREADABLE_FUNCTION_3ARG(evn_or_odd_spincolor_remap_to_virevn_or_odd, vir_spincolor*,out, spincolor*,in, int,par)
@@ -827,29 +816,9 @@ namespace nissa
   {
     for(int loclx=0;loclx<loc_vol;loclx++)
       {
-	int par=loclx_parity[loclx];
-	int loceo=loceo_of_loclx[loclx];
-	coords vrank_coords;  //< coordinates of the virtual rank
-	coords vloclx_coords; //< coordinates inside the virtual rank
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    vrank_coords[mu]=loc_coord_of_loclx[loclx][mu]/vgeo->vloc_size[mu];
-	    vloclx_coords[mu]=loc_coord_of_loclx[loclx][mu]-vrank_coords[mu]*vgeo->vloc_size[mu];
-	  }
-	int vrank=
-	  vgeo->vrank_of_loclx[loclx]=
-	  lx_of_coord(vrank_coords,vgeo->nvranks_per_dir);
-	int vloclx=
-	  vgeo->vloc_of_loclx[loclx]=
-	  lx_of_coord(vloclx_coords,vgeo->vloc_size);
-	int vloceo=
-	  vgeo->veos_of_loclx[loclx]=
-	  vgeo->veos_of_loceo[par][loceo]=vloclx/2;
-	if(vrank==0)
-	  {
-	    vgeo->loclx_of_vloc[vloclx]=loclx;
-	    vgeo->loceo_of_veos[par][vloceo]=loceo;
-	  }
+	coords vloc_coords; //< coordinates inside the virtual rank
+	for(int mu=0;mu<NDIM;mu++) vloc_coords[mu]=loc_coord_of_loclx[loclx][mu]-vgeo->vrank_coord[vgeo->vrank_of_loclx[loclx]][mu]*vgeo->vloc_size[mu];
+	vgeo->vloc_of_loclx[loclx]=lx_of_coord(vloc_coords,vgeo->vloc_size);
       }
   }
   
@@ -857,6 +826,7 @@ namespace nissa
   void set_vranks_geometry()
   {
     vlx_double_geom.init(fill_vlx_index);
+    vlx_float_geom.init(fill_vlx_index);
 
 	// //surface-first order
 	// NISSA_LOC_VOL_LOOP(loclx) vsuflx_of_loclx[loclx]=-1;
@@ -905,5 +875,7 @@ namespace nissa
   //unset it
   void unset_vranks_geometry()
   {
+    vlx_double_geom.destroy();
+    vlx_float_geom.destroy();
   }
 }

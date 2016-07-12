@@ -3,6 +3,9 @@
 
 #ifndef EXTERN_GEOMETRY_VIR
  #define EXTERN_GEOMETRY_VIR extern
+ #define INIT_TO(A)
+#else
+ #define INIT_TO(A) =A
 #endif
 
 #include "base/grid.hpp"
@@ -20,15 +23,40 @@ namespace nissa
 #endif
   const int nvranks_max=simd_width/(8*sizeof(float));
   
+  //! switch whether to use vranks or not
   EXTERN_GEOMETRY_VIR int use_vranks;
+  //! minimal virtual volume
   EXTERN_GEOMETRY_VIR int vloc_min_vol;
+  //! minimal size for the virtual ranks
   EXTERN_GEOMETRY_VIR coords vloc_min_size;
+  //! fix the maximal number of virtual ranks
+  EXTERN_GEOMETRY_VIR coords fix_nvranks_max;
+  
+  //! remap to lx from
+  void lx_remap_to_virsome_internal(void *out,void *in,int size_per_site,int nel_per_site,int nvranks,int *vrank_of_loclx,int *idx);
+  void virsome_remap_to_lx_internal(void *out,void *in,int size_per_site,int nel_per_site,int nvranks,int *vrank_of_loclx,int *vrank_loclx_offset,int *idx);
   
   //! structure to hold a virtual geometry
   template <class base_type> struct vranks_geom_t
   {
     //! number of elements inside a simd
     static const int nvranks=simd_width/(8*sizeof(base_type));
+    
+    //types
+    typedef base_type vbase_type[nvranks];
+    typedef vbase_type vcomplex[2];
+    typedef vcomplex vcolor[NCOL];
+    typedef vcolor vsu3[NCOL];
+    typedef vcolor vhalfspincolor[NDIRAC/2];
+    typedef vhalfspincolor vcolor_halfspincolor[NCOL];
+    typedef vcolor_halfspincolor vhalfspincolor_halfspincolor[NDIRAC/2];
+    typedef vsu3 vquad_su3[NDIM];
+    typedef vsu3 voct_su3[2*NDIM];
+    typedef vcolor vspincolor[NDIRAC];
+    typedef vcomplex vhalfspin[2];
+    
+    typedef vsu3 vclover_term_t[4];
+    typedef vhalfspincolor_halfspincolor vinv_clover_term_t[2];
     
     //! initialization flag
     int inited;
@@ -71,8 +99,22 @@ namespace nissa
     int vn0lx_of_loclx(int loclx)
     {return loclx_of_vloc[vloc_of_loclx[loclx]];}
     
+    //! remap from vir to lx
+    template <class T,class VT> void virsome_remap_to_lx(T *out,VT *in)
+    {
+      static_assert(sizeof(T)*nvranks==sizeof(VT),"vector type is not nvranks time the plain type");
+      virsome_remap_to_lx_internal(out,in,sizeof(base_type),sizeof(T)/sizeof(base_type),nvranks,vrank_of_loclx,vrank_loclx_offset,loclx_of_vloc);
+    }
+    
+    //! remap from vir to lx
+    template <class VT,class T> void lx_remap_to_virsome(VT *out,T *in)
+    {
+      static_assert(sizeof(T)*nvranks==sizeof(VT),"vector type is not nvranks time the plain type");
+      lx_remap_to_virsome_internal(out,in,sizeof(base_type),sizeof(T)/sizeof(base_type),nvranks,vrank_of_loclx,vloc_of_loclx);
+    }
+    
     //! init the geometry
-    void init(void (*fill)(vranks_geom_t *geo))
+    void init(void (*fill_vloc_of_loclx)(vranks_geom_t *geo))
     {
       if(!inited)
       {
@@ -97,9 +139,9 @@ namespace nissa
 	loclx_of_vloc=nissa_malloc("loclx_of_vloc",vloc_vol,int);
 	for(int par=0;par<2;par++)
 	  {
-	    loclx_of_veos[par]=nissa_malloc("loceo_of_vloc",vloc_volh,int);
+	    loclx_of_veos[par]=nissa_malloc("loclx_of_veos",vloc_volh,int);
 	    loceo_of_veos[par]=nissa_malloc("loceo_of_veos",vloc_volh,int);
-	    veos_of_loceo[par]=nissa_malloc("veo_of_loceo",loc_volh,int);
+	    veos_of_loceo[par]=nissa_malloc("veos_of_loceo",loc_volh,int);
 	  }
 	
 	//fix the number of minimal node
@@ -118,7 +160,7 @@ namespace nissa
 	    //set the vir local size
 	    //coords VLS;
 	    //for(int mu=0;mu<NDIM;mu++) VLS[mu]=nvloc_max_per_dir[mu]/VPD[mu];
-
+	    
 	    //if it is the minimal surface (or first valid combo) copy it and compute the border size
 	    //if(rel_surf<min_rel_surf||min_rel_surf<0)
 	      {
@@ -134,17 +176,27 @@ namespace nissa
 	      }
 	  }
 	
-	//assign vrank to all loclx
+	//compute the local virtual size
+	for(int mu=0;mu<NDIM;mu++) vloc_size[mu]=loc_size[mu]/nvranks_per_dir[mu];
+	
+	//create the virtual grid
+	for(int i=0;i<nvranks;i++) coord_of_lx(vrank_coord[i],i,nvranks_per_dir);
+	
+	//print information on virtual local volume
+	master_printf("Virtual local volume\t%d",vloc_size[0]);
+	for(int mu=1;mu<NDIM;mu++) master_printf("x%d",vloc_size[mu]);
+	master_printf(" = %d\n",vloc_vol);
+	master_printf("List of virtually parallelized dirs:\t");
+	for(int mu=0;mu<NDIM;mu++) if(vparal_dir[mu]) master_printf("%d ",mu);
+	if(nvparal_dir==0) master_printf("(none)");
+	master_printf("\n");
+	
+	//assign coords of all ranks
 	for(int loclx=0;loclx<loc_vol;loclx++)
 	  {
-	    coords vrank_coords;  //< coordinates of the virtual rank
-	    //coords vloclx_coords; //< coordinates inside the virtual rank
-	    for(int mu=0;mu<NDIM;mu++)
-	      {
-		vrank_coords[mu]=loc_coord_of_loclx[loclx][mu]/vloc_size[mu];
-		//vloclx_coords[mu]=loc_coord_of_loclx[loclx][mu]-vrank_coords[mu]*vloc_size[mu];
-	      }
-	      vrank_of_loclx[loclx]=lx_of_coord(vrank_coords,nvranks_per_dir);
+	    coords loclx_vrank_coord; //host temporarily the vrank coord of loclx
+	    for(int mu=0;mu<NDIM;mu++) loclx_vrank_coord[mu]=loc_coord_of_loclx[loclx][mu]/vloc_size[mu];
+	    vrank_of_loclx[loclx]=lx_of_coord(loclx_vrank_coord,nvranks_per_dir);
 	  }
 	
 	//offset between lx sites relative to a single vector
@@ -163,28 +215,29 @@ namespace nissa
 	  }
 	
 	//fill all indices
-	fill(this);
+	fill_vloc_of_loclx(this);
 	
-	//compute the local virtual size
-	for(int mu=0;mu<NDIM;mu++) vloc_size[mu]=loc_size[mu]/nvranks_per_dir[mu];
-	
-	//create the virtual grid
-	for(int i=0;i<nvranks;i++) coord_of_lx(vrank_coord[i],i,nvranks_per_dir);
-	
-	//print information on virtual local volume
-	master_printf("Virtual local volume\t%d",vloc_size[0]);
-	for(int mu=1;mu<NDIM;mu++) master_printf("x%d",vloc_size[mu]);
-	master_printf(" = %d\n",vloc_vol);
-	master_printf("List of virtually parallelized dirs:\t");
-	for(int mu=0;mu<NDIM;mu++) if(vparal_dir[mu]) master_printf("%d ",mu);
-	if(nvparal_dir==0) master_printf("(none)");
-	master_printf("\n");
-	
+	//fill the rest
+	for(int loclx=0;loclx<loc_vol;loclx++)
+	  {
+	    int par=loclx_parity[loclx];
+	    int loceo=loceo_of_loclx[loclx];
+	    int vloc=vloc_of_loclx[loclx];
+	    int veos=vloc/2;
+	    veos_of_loclx[loclx]=veos;
+	    veos_of_loceo[par][loceo]=veos;
+	    if(vrank_of_loclx[loclx]==0)
+	      {
+		loclx_of_vloc[vloc]=loclx;
+		loclx_of_veos[par][veos]=loclx;
+		loceo_of_veos[par][veos]=loceo;
+	      }
+	  }
       }
     }
     
-    //! unset
-    ~vranks_geom_t()
+    //
+    void destroy()
     {
       if(inited)
       {
@@ -199,8 +252,6 @@ namespace nissa
 	
   	for(int par=0;par<2;par++)
   	  {
-	    //viroe_or_vireo_hopping_matrix_output_pos[par].free();
-	    
 	    nissa_free(loclx_of_veos[par]);
 	    
   	    nissa_free(veos_of_loceo[par]);
@@ -208,14 +259,9 @@ namespace nissa
 	  }
       }
     }
-    
+    //! unset
+    ~vranks_geom_t() {destroy();}
   };
-  
-  void virsome_remap_to_lx(void *out,void *in,int size_per_site,int nel_per_site,int *idx_out);
-  template <class T1,class T2,class base_type> void virsome_remap_to_lx(T1 *out,T2 *in,int *idx_out)
-  {
-    //static
-      virsome_remap_to_lx(out,in,sizeof(base_type),sizeof(T2)/sizeof(base_type),idx_out);}
   
   // void lx_conf_remap_to_virlx(vir_oct_su3 *out,quad_su3 *in);
   // void lx_conf_remap_to_virlx_blocked(vir_su3 *out,quad_su3 *in);
@@ -265,8 +311,32 @@ namespace nissa
   void unset_vranks_geometry();
   
   EXTERN_GEOMETRY_VIR vranks_geom_t<double> vlx_double_geom;
+  EXTERN_GEOMETRY_VIR vranks_geom_t<float> vlx_float_geom;
+  
+#define DEFINE_VTYPES(VSHORT,LONG)					\
+  typedef vranks_geom_t<LONG>::vcomplex NAME2(VSHORT,complex);		\
+  typedef vranks_geom_t<LONG>::vcolor NAME2(VSHORT,color);		\
+  typedef vranks_geom_t<LONG>::vsu3 NAME2(VSHORT,su3);			\
+  typedef vranks_geom_t<LONG>::vhalfspincolor NAME2(VSHORT,halfspincolor); \
+  typedef vranks_geom_t<LONG>::vcolor_halfspincolor NAME2(VSHORT,color_halfspincolor); \
+  typedef vranks_geom_t<LONG>::vhalfspincolor_halfspincolor NAME2(VSHORT,halfspincolor_halfspincolor); \
+  typedef vranks_geom_t<LONG>::vquad_su3 NAME2(VSHORT,quad_su3);	\
+  typedef vranks_geom_t<LONG>::voct_su3 NAME2(VSHORT,oct_su3);		\
+  typedef vranks_geom_t<LONG>::vspincolor NAME2(VSHORT,spincolor);	\
+  typedef vranks_geom_t<LONG>::vhalfspin NAME2(VSHORT,halfspin);	\
+  typedef vranks_geom_t<LONG>::vclover_term_t NAME2(VSHORT,clover_term_t); \
+  typedef vranks_geom_t<LONG>::vinv_clover_term_t NAME2(VSHORT,inv_clover_term_t); \
+  
+  DEFINE_VTYPES(vd,double);
+  DEFINE_VTYPES(vf,float);
+  
+  EXTERN_GEOMETRY_VIR int &vd_loc_vol INIT_TO(vlx_double_geom.vloc_vol);
+  EXTERN_GEOMETRY_VIR int &vf_loc_vol INIT_TO(vlx_float_geom.vloc_vol);
+  
+  #undef DEFINE_VTYPES
 }
 
 #undef EXTERN_GEOMETRY_VIR
+#undef INIT_TO
 
 #endif

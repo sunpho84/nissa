@@ -331,7 +331,7 @@ namespace nissa
   {
     char path[1024]="nissa_config";
     
-    const int navail_tag=11;
+    const int navail_tag=15;
     
     char tag_name[navail_tag][100]={
       "verbosity_lv",
@@ -344,6 +344,10 @@ namespace nissa
       "set_x_nranks",
       "set_y_nranks",
       "set_z_nranks",
+      "set_t_nvranks_max",
+      "set_x_nvranks_max",
+      "set_y_nvranks_max",
+      "set_z_nvranks_max",
       "use_vranks"};
     char *tag_addr[navail_tag]={
       (char*)&verbosity_lv,
@@ -356,9 +360,13 @@ namespace nissa
       (char*)(fix_nranks+1),
       (char*)(fix_nranks+2),
       (char*)(fix_nranks+3),
+      (char*)(fix_nvranks_max+0),
+      (char*)(fix_nvranks_max+1),
+      (char*)(fix_nvranks_max+2),
+      (char*)(fix_nvranks_max+3),
       (char*)(&use_vranks)};
-    char tag_type[navail_tag][3]={"%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d"};
-    char tag_size[navail_tag]={4,4,4,4,4,4,4,4,4,4,4};
+    char tag_type[navail_tag][3]={"%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d"};
+    char tag_size[navail_tag]={4,4,4,4,4,4,4,4,4,4,4,4,4,4,4};
     
     if(file_exists(path))
       {

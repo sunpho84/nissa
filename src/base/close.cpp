@@ -43,7 +43,7 @@ namespace nissa
     if(eo_geom_inited) unset_eo_geometry();
     
     //unset the virtual ranks parallelization geometry
-    //if(vranks_geom_inited) unset_vranks_geometry();
+    unset_vranks_geometry();
     
     //stop the random generator
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();

@@ -35,9 +35,9 @@ namespace nissa
     return S2B;
   }
   
-    //if nfact_V>=nfact_R factorize the number of ranks, otherwise the volume
-    //in the first case we find the best way to assign the ranks to different directions
-    //in the second case we find how many sites per direction to assign to each ranks
+  //if nfact_V>=nfact_R factorize the number of ranks, otherwise the volume
+  //in the first case we find the best way to assign the ranks to different directions
+  //in the second case we find how many sites per direction to assign to each ranks
   partitioning_t::partitioning_t(long long int V,int R)
   {
     std::vector<int> list_fact_V=factorize(V);
@@ -146,7 +146,7 @@ namespace nissa
   {
     //check that we did not ask to fix ranks and vranks in an impossible way
     int res_nranks=nranks;
-    //int res_nvranks=nvranks_max;
+    int res_nvranks=nvranks_max;
     coords min_loc_size;
     coords min_vir_loc_size;
     for(int mu=0;mu<NDIM;mu++)
@@ -154,7 +154,7 @@ namespace nissa
 	min_loc_size[mu]=1;
 	if(use_eo_geom) min_loc_size[mu]*=2;
 	min_vir_loc_size[mu]=min_loc_size[mu];
-	//if(fix_nvranks[mu]) min_vir_loc_size[mu]*=fix_nvranks[mu]; //impossible at the moment
+	if(fix_nvranks_max[mu]) min_vir_loc_size[mu]*=fix_nvranks_max[mu];
 	
 	if(fix_nranks[mu])
 	  {
@@ -163,15 +163,15 @@ namespace nissa
 	    res_nranks/=fix_nranks[mu];
 	  }
 	
-	// if(fix_nvranks[mu])
-	//   {
-	//     if(glb_size[mu]%fix_nvranks[mu]||fix_nvranks[mu]>glb_size[mu]) CRASH("asked to fix nvranks to %d in dir %d in an impossible way, global size %d",fix_nvranks[mu],mu,glb_size[mu]);
-	//     if(fix_nvranks[mu]>nvranks) CRASH("asked to fix nvranks in dir %d to a number %d larger than the total vnranks, %d",mu,fix_nvranks[mu],nvranks);
-	//     res_nvranks/=fix_nvranks[mu];
-	//    }
+	if(fix_nvranks_max[mu])
+	  {
+	    if(glb_size[mu]%fix_nvranks_max[mu]||fix_nvranks_max[mu]>glb_size[mu]) CRASH("asked to fix nvranks to %d in dir %d in an impossible way, global size %d",fix_nvranks_max[mu],mu,glb_size[mu]);
+	    if(fix_nvranks_max[mu]>nvranks_max) CRASH("asked to fix nvranks in dir %d to a number %d larger than the maximal vnranks, %d",mu,fix_nvranks_max[mu],nvranks_max);
+	    res_nvranks/=fix_nvranks_max[mu];
+	  }
       }
-  if(res_nranks<1) CRASH("overfixed the number of ranks per direction");
-  //if(res_nvranks<1) CRASH("overfixed the number of vranks per direction");
+    if(res_nranks<1) CRASH("overfixed the number of ranks per direction");
+    if(res_nvranks<1) CRASH("overfixed the number of vranks per direction");
     
     //////////////////// find the partitioning which minimize the surface /////////////////////
     
