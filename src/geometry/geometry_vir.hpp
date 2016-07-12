@@ -8,6 +8,8 @@
  #define INIT_TO(A) =A
 #endif
 
+#include <functional>
+
 #include "base/grid.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -114,7 +116,7 @@ namespace nissa
     }
     
     //! init the geometry
-    void init(void (*fill_vloc_of_loclx)(vranks_geom_t *geo))
+    void init(std::function<void(vranks_geom_t*)>fill_vloc_of_loclx)
     {
       if(!inited)
       {
@@ -314,8 +316,8 @@ namespace nissa
   void set_vranks_geometry();
   void unset_vranks_geometry();
   
-  EXTERN_GEOMETRY_VIR vranks_geom_t<double> vlx_double_geom;
-  EXTERN_GEOMETRY_VIR vranks_geom_t<float> vlx_float_geom;
+  EXTERN_GEOMETRY_VIR vranks_geom_t<double> vlx_double_geom,vsf_double_geom;
+  EXTERN_GEOMETRY_VIR vranks_geom_t<float> vlx_float_geom,vsf_float_geom;
   
 #define DEFINE_VTYPES(VSHORT,LONG)					\
   typedef vranks_geom_t<LONG>::vcomplex NAME2(VSHORT,complex);		\

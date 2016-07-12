@@ -5,6 +5,8 @@
 #define EXTERN_GEOMETRY_VIR
 #include "geometry_vir.hpp"
 
+#include <functional>
+
 #include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/thread_macros.hpp"
@@ -806,7 +808,7 @@ namespace nissa
   // }
   // THREADABLE_FUNCTION_END
   
-  //! assign vloclx to all loclx
+  //! assign vlx to all loclx
   template <class T> void fill_vlx_index(vranks_geom_t<T> *vgeo)
   {
     for(int loclx=0;loclx<loc_vol;loclx++)
@@ -817,54 +819,37 @@ namespace nissa
       }
   }
   
+  //! assign vsf to all loclx
+  template <class T> void fill_vsf_index(vranks_geom_t<T> *vgeo_sf,vranks_geom_t<T> *vgeo_lx)
+  {
+    NISSA_LOC_VOL_LOOP(loclx) vgeo_sf->vloc_of_loclx[loclx]=-1;
+    int vsf=0;
+    for(int is_on_surf_loop=1;is_on_surf_loop>=0;is_on_surf_loop--)
+      for(int vloclx=0;vloclx<vgeo_sf->vloc_vol;vloclx++)
+	{
+	  int base_loclx=vgeo_lx->loclx_of_vloc[vloclx];
+	  bool is_on_surf=false;
+	  for(int mu=0;mu<NDIM;mu++) //either 0 or vloc_size[mu]-1
+	    is_on_surf|=((loc_coord_of_loclx[base_loclx][mu]%vgeo_lx->vloc_size[mu])%(vgeo_lx->vloc_size[mu]-1))==0;
+	  //if it is part of current loop, mark it and sign it
+	  if(is_on_surf==is_on_surf_loop && vgeo_sf->vloc_of_loclx[base_loclx]==-1)
+	    {
+	      for(int vrank=0;vrank<vgeo_sf->nvranks;vrank++) vgeo_sf->vloc_of_loclx[base_loclx+vgeo_sf->vrank_loclx_offset[vrank]]=vsf;
+	      vsf++;
+	    }
+	}
+	
+	//checks
+	if(vsf!=vgeo_sf->vloc_vol) CRASH("vsuflx arrived at %d, expecting %d",vsf,vgeo_sf->vloc_vol);
+  }
+  
   //set virtual geometry
   void set_vranks_geometry()
   {
-    vlx_double_geom.init(fill_vlx_index);
-    vlx_float_geom.init(fill_vlx_index);
-
-	// //surface-first order
-	// NISSA_LOC_VOL_LOOP(loclx) vsuflx_of_loclx[loclx]=-1;
-	// int vsuflx=0,vsufeo[2]={0,0};
-	// for(int is_on_surf_loop=1;is_on_surf_loop>=0;is_on_surf_loop--)
-	//   for(int vloclx=0;vloclx<vloc_vol;vloclx++)
-	//     {
-	//       int base_loclx=loclx_of_vloclx[vloclx];
-	//       bool is_on_surf=false;
-	//       for(int mu=0;mu<NDIM;mu++) //either 0 or vloc_size[mu]-1
-	// 	is_on_surf|=((loc_coord_of_loclx[base_loclx][mu]%vloc_size[mu])%(vloc_size[mu]-1))==0;
-	// 	//if it is part of current loop, mark it and sign it
-	//       if(is_on_surf==is_on_surf_loop && vsuflx_of_loclx[base_loclx]==-1)
-	// 	{
-	// 	  int par=loclx_parity[base_loclx];
-	// 	  int loceo=loceo_of_loclx[base_loclx];
-		  
-	// 	  //issue for all vranks
-	// 	  for(int vrank=0;vrank<nvranks;vrank++)
-	// 	    {
-	// 	      int loclx=base_loclx+vrank_loclx_offset[vrank];
-		      
-	// 	      vsuflx_of_loclx[loclx]=vsuflx;
-	// 	      loclx_of_vsuflx[vsuflx]=loclx;
-		      
-	// 	      vsufeo_of_loceo[par][loceo]=vsufeo[par];
-	// 	      loceo_of_vsufeo[par][vsufeo[par]]=loceo;
-		      
-	// 	      vsufeo_of_loclx[loclx]=vsufeo[par];
-	// 	      loclx_of_vsufeo[par][vsufeo[par]]=loclx;
-	// 	    }
-		  
-	// 	  vsuflx++;
-	// 	  vsufeo[par]++;
-	// 	}
-	//     }
-	
-	// //checks
-	// if(vsuflx!=vloc_vol) CRASH("vsuflx arrived at %d, expecting %d",vsuflx,vloc_vol);
-	// for(int par=0;par<2;par++) if(vsufeo[par]!=vloc_volh) CRASH("vsufeo[%d] arrived at %d, expecting %d",par,vsufeo[par],vloc_volh);
-	
-  	// //define output index pointers
-  	// //define_vir_hopping_matrix_output_pos();
+    vlx_double_geom.init(fill_vlx_index<double>);
+    vlx_float_geom.init(fill_vlx_index<float>);
+    vsf_double_geom.init(std::bind(fill_vsf_index<double>,std::placeholders::_1,&vlx_double_geom));
+    vsf_float_geom.init(std::bind(fill_vsf_index<float>,std::placeholders::_1,&vlx_float_geom));
   }
   
   //unset it
@@ -872,5 +857,7 @@ namespace nissa
   {
     vlx_double_geom.destroy();
     vlx_float_geom.destroy();
+    vsf_double_geom.destroy();
+    vsf_float_geom.destroy();
   }
 }
