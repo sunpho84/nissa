@@ -6,28 +6,15 @@
  #include <mpi.h>
 #endif
 #include <signal.h>
-#include <stdlib.h>
-#include <string.h>
 
 #if HIGH_PREC == GMP_HIGH_PREC
  #include <gmpxx.h>
 #endif
 
-#include "bench.hpp"
-#include "debug.hpp"
-#include "random.hpp"
-#include "vectors.hpp"
-
-#include "communicate/borders.hpp"
+#include "base/bench.hpp"
 #include "communicate/communicate.hpp"
 #include "io/input.hpp"
-#include "io/endianness.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_vir.hpp"
-#include "new_types/dirac.hpp"
-#include "routines/ios.hpp"
-#include "routines/math_routines.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -186,6 +173,7 @@ namespace nissa
     warn_if_not_communicated=NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
     for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
+    for(int mu=0;mu<NDIM;mu++) fix_nvranks_max[mu]=0;
     
     //put 0 as minimal request
     recv_buf_size=0;
