@@ -244,17 +244,44 @@ void in_main(int narg,char **arg)
     {
       //setup the conf and generate the source
       start_new_conf();
-
+      
       //check transformation
-  vd_quad_su3 *co=nissa_malloc("co",vd_loc_vol,vd_quad_su3);
-  vlx_double_geom.lx_remap_to_virsome(co,conf);
-  quad_su3 *c=nissa_malloc("c",loc_vol,quad_su3);
-  vlx_double_geom.virsome_remap_to_lx(c, co);
-  for(int i=0;i<(int)(loc_vol*sizeof(quad_su3)/sizeof(double));i++)
-    if(((double*)c)[i]!=((double*)conf)[i]) CRASH("%lg %lg",((double*)c)[i],((double*)conf[i]));
-  nissa_free(c);
-  nissa_free(co);
-
+      vd_quad_su3 *vconf=nissa_malloc("vconf",vd_loc_vol,vd_quad_su3);
+      quad_su3 *conf_reco=nissa_malloc("conf_reco",loc_vol,quad_su3);
+      quad_su3 *conf_eo[2]={nissa_malloc("conf_e",loc_volh,quad_su3),nissa_malloc("conf_o",loc_volh,quad_su3)};
+      vd_quad_su3 *vconf_eo[2]={nissa_malloc("vconf_e",vd_loc_volh,vd_quad_su3),nissa_malloc("conf_o",vd_loc_volh,vd_quad_su3)};
+      
+      for(int itest=0;itest<2;itest++)
+	{
+	  switch(itest)
+	  {
+	    //lx confersion
+	  case 0:
+	    vlx_double_geom.lx_remap_to_virsome(vconf,conf);
+	    vlx_double_geom.virsome_remap_to_lx(conf_reco,vconf);
+	    break;
+	    //e/o conversion
+	  case 1:
+	    split_lx_vector_into_eo_parts(conf_eo,conf);
+	    vlx_double_geom.eo_remap_to_virsome(vconf_eo,conf_eo);
+	    vlx_double_geom.virsome_remap_to_eo(conf_eo,vconf_eo);
+	    paste_eo_parts_into_lx_vector(conf_reco,conf_eo);
+	    break;
+	  }
+	  
+	  //test
+	  for(int i=0;i<(int)(loc_vol*sizeof(quad_su3)/sizeof(double));i++)
+	    if(((double*)conf_reco)[i]!=((double*)conf)[i]) CRASH("test %d %lg %lg",itest,((double*)conf_reco)[i],((double*)conf[i]));
+	}
+      //free
+      nissa_free(conf_reco);
+      nissa_free(vconf);
+      for(int par=0;par<2;par++)
+	{
+	  nissa_free(conf_eo[par]);
+	  nissa_free(vconf_eo[par]);
+	}
+      
   for(int ihit=0;ihit<nhits;ihit++)
 	{
 	  start_hit(ihit);

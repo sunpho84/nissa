@@ -34,9 +34,9 @@ namespace nissa
   //! fix the maximal number of virtual ranks
   EXTERN_GEOMETRY_VIR coords fix_nvranks_max;
   
-  //! remap to lx from
-  void lx_remap_to_virsome_internal(void *out,void *in,int size_per_site,int nel_per_site,int nvranks,int *vrank_of_loclx,int *idx);
-  void virsome_remap_to_lx_internal(void *out,void *in,int size_per_site,int nel_per_site,int nvranks,int *vrank_of_loclx,int *vrank_loclx_offset,int *idx);
+  //! remap to and from lx
+  void something_remap_to_virsome_internal(void *out,void *in,int vol,int size_per_site,int nel_per_site,int nvranks,int *vrank_of_locsite,int *idx);
+  void virsome_remap_to_something_internal(void *out,void *in,int vol,int size_per_site,int nel_per_site,int nvranks,int *vrank_of_locsite,int *vrank_locsite_offset,int *idx);
   
   //! structure to hold a virtual grid
   template<class base_type> struct vranks_grid_t
@@ -75,14 +75,14 @@ namespace nissa
     coords vloc_size;
     //! number of virtual ranks per direction
     coords nvranks_per_dir;
-    //! offset between corresponding elements in vrank 0
+    //! offset between corresponding lx elements in vrank 0
     int vrank_loclx_offset[nvranks];
-    //! virtual rank hosting a local lattice element
+    //! offset between corresponding eo elements in vrank 0
+    int vrank_loceo_offset[nvranks];
+    //! virtual rank hosting an lx local lattice element
     int *vrank_of_loclx;
-    
-    //! return the rank of the loceo
-    int vrank_of_loceo(int par,int eo)
-    {return vrank_of_loclx[loclx_of_loceo[par][eo]];}
+    //! virtual rank hosting an eo local lattice element
+    int *vrank_of_loceo[2];
     
     //! initialize the grid
     void init()
@@ -103,6 +103,7 @@ namespace nissa
 	vloc_volh=vloc_vol/2;
 	master_printf("Initializing vgrid for data of size %d bits, nvranks=%d\n",8*sizeof(base_type),nvranks);
 	vrank_of_loclx=nissa_malloc("vrank_of_loclx",loc_vol,int);
+	for(int par=0;par<2;par++) vrank_of_loceo[par]=nissa_malloc("vrank_of_loceo",loc_volh,int);
 	
       	//fix the number of minimal node
 	partitioning_t vranks_partitioning(loc_vol,nvranks);
@@ -195,7 +196,9 @@ namespace nissa
 	  {
 	    coords loclx_vrank_coord; //host temporarily the vrank coord of loclx
 	    for(int mu=0;mu<NDIM;mu++) loclx_vrank_coord[mu]=loc_coord_of_loclx[loclx][mu]/vloc_size[mu];
-	    vrank_of_loclx[loclx]=lx_of_coord(loclx_vrank_coord,nvranks_per_dir);
+	    vrank_of_loclx[loclx]=
+	      vrank_of_loceo[loclx_parity[loclx]][loceo_of_loclx[loclx]]=
+	      lx_of_coord(loclx_vrank_coord,nvranks_per_dir);
 	  }
 	
 	//offset between lx sites relative to a single vector
@@ -204,6 +207,7 @@ namespace nissa
 	    coords c;
 	    for(int mu=0;mu<NDIM;mu++) c[mu]=vrank_coord[vrank][mu]*vloc_size[mu];
 	    vrank_loclx_offset[vrank]=loclx_of_coord(c);
+	    vrank_loceo_offset[vrank]=vrank_loclx_offset[vrank]/2;
 	  }
       }
     }
@@ -215,6 +219,7 @@ namespace nissa
 	{
 	  inited=false;
 	  nissa_free(vrank_of_loclx);
+	  for(int par=0;par<2;par++) nissa_free(vrank_of_loceo[par]);
 	}
     }
     
@@ -246,19 +251,51 @@ namespace nissa
     int vn0lx_of_loclx(int loclx)
     {return loclx_of_vloc[vloc_of_loclx[loclx]];}
     
+    //! crash if not matching
+    template <class T,class VT> void check_matching_size()
+    {static_assert(sizeof(T)*vg->nvranks==sizeof(VT),"vector type is not nvranks time the plain type");}
+    
+    //////
+    
     //! remap from vir to lx
     template <class T,class VT> void virsome_remap_to_lx(T *out,VT *in)
     {
-      static_assert(sizeof(T)*vg->nvranks==sizeof(VT),"vector type is not nvranks time the plain type");
-      virsome_remap_to_lx_internal(out,in,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loclx,vg->vrank_loclx_offset,loclx_of_vloc);
+      check_matching_size<T,VT>();
+      virsome_remap_to_something_internal(out,in,loc_vol,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loclx,vg->vrank_loclx_offset,loclx_of_vloc);
     }
     
-    //! remap from vir to lx
+    //! remap from lx to vir
     template <class VT,class T> void lx_remap_to_virsome(VT *out,T *in)
     {
-      static_assert(sizeof(T)*vg->nvranks==sizeof(VT),"vector type is not nvranks time the plain type");
-      lx_remap_to_virsome_internal(out,in,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loclx,vloc_of_loclx);
+      check_matching_size<T,VT>();
+      something_remap_to_virsome_internal(out,in,loc_vol,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loclx,vloc_of_loclx);
     }
+    
+    ///////
+    
+    //! remap from vir to evn or odd
+    template <class T,class VT> void virsome_remap_to_evn_or_odd(T *out,VT *in,int par)
+    {
+      check_matching_size<T,VT>();
+      virsome_remap_to_something_internal(out,in,loc_volh,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loceo[par],vg->vrank_loceo_offset,loceo_of_veos[par]);
+    }
+    
+    //! remap from evn or odd to vir
+    template <class VT,class T> void evn_or_odd_remap_to_virsome(VT *out,T *in,int par)
+    {
+      check_matching_size<T,VT>();
+      something_remap_to_virsome_internal(out,in,loc_volh,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loceo[par],veos_of_loceo[par]);
+    }
+    
+    ////////
+    
+    //! remap from vir to eo
+    template <class T,class VT> void virsome_remap_to_eo(T *out[2],VT *in[2]) {for(int par=0;par<2;par++) virsome_remap_to_evn_or_odd(out[par],in[par],par);}
+    
+    //! remap from eo to vir
+    template <class VT,class T> void eo_remap_to_virsome(VT *out[2],T *in[2]) {for(int par=0;par<2;par++) evn_or_odd_remap_to_virsome(out[par],in[par],par);}
+    
+    ////////
     
     //! init the geometry
     void init(vranks_grid_t<base_type> &ext_vg,std::function<void(vranks_ord_t*)>fill_vloc_of_loclx)
@@ -402,6 +439,8 @@ namespace nissa
   
   EXTERN_GEOMETRY_VIR int &vd_loc_vol INIT_TO(vdouble_grid.vloc_vol);
   EXTERN_GEOMETRY_VIR int &vf_loc_vol INIT_TO(vfloat_grid.vloc_vol);
+  EXTERN_GEOMETRY_VIR int &vd_loc_volh INIT_TO(vdouble_grid.vloc_volh);
+  EXTERN_GEOMETRY_VIR int &vf_loc_volh INIT_TO(vfloat_grid.vloc_volh);
 }
 
 #undef EXTERN_GEOMETRY_VIR

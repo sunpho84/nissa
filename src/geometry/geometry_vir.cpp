@@ -435,7 +435,7 @@ namespace nissa
   // THREADABLE_FUNCTION_END
   
   //remap an lx vector to vir[some] layout
-  THREADABLE_FUNCTION_7ARG(lx_remap_to_virsome_internal, void*,out, void*,in, int,size_per_site, int,nel_per_site, int,nvranks, int*,vrank_of_loclx, int*,idx_out)
+  THREADABLE_FUNCTION_8ARG(something_remap_to_virsome_internal, void*,out, void*,in, int,vol, int,size_per_site, int,nel_per_site, int,nvranks, int*,vrank_of_locsite, int*,idx_out)
   {
     GET_THREAD_ID();
     START_TIMING(remap_time,nremap);
@@ -443,11 +443,11 @@ namespace nissa
     if(out==in) CRASH("cannot use with out==in");
     
     //copy the various virtual ranks
-    NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
+    NISSA_PARALLEL_LOOP(isite,0,vol)
       for(int iel=0;iel<nel_per_site;iel++)
-	memcpy((char*)out+size_per_site*(vrank_of_loclx[ivol_lx]+nvranks*(iel+nel_per_site*idx_out[ivol_lx]))
+	memcpy((char*)out+size_per_site*(vrank_of_locsite[isite]+nvranks*(iel+nel_per_site*idx_out[isite]))
 	       ,
-	       (char*)in+size_per_site*(iel+nel_per_site*ivol_lx)
+	       (char*)in+size_per_site*(iel+nel_per_site*isite)
 	       ,
 	       size_per_site);
     
@@ -458,7 +458,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   //reverse
-  THREADABLE_FUNCTION_8ARG(virsome_remap_to_lx_internal, void*,out, void*,in, int,size_per_site, int,nel_per_site, int,nvranks, int*,vrank_of_loclx, int*,vrank_loclx_offset, int*,idx_out)
+  THREADABLE_FUNCTION_9ARG(virsome_remap_to_something_internal, void*,out, void*,in, int,vol, int,size_per_site, int,nel_per_site, int,nvranks, int*,vrank_of_locsite, int*,vrank_locsite_offset, int*,idx_out)
   {
     GET_THREAD_ID();
     START_TIMING(remap_time,nremap);
@@ -466,10 +466,10 @@ namespace nissa
     if(out==in) CRASH("cannot use with out==in");
     
     //split the virtual ranks
-    NISSA_PARALLEL_LOOP(virsome,0,loc_vol/nvranks)
+    NISSA_PARALLEL_LOOP(virsome,0,vol/nvranks)
       for(int iel=0;iel<nel_per_site;iel++)
   	for(int vrank=0;vrank<nvranks;vrank++)
-	  memcpy((char*)out+size_per_site*(iel+nel_per_site*(idx_out[virsome]+vrank_loclx_offset[vrank]))
+	  memcpy((char*)out+size_per_site*(iel+nel_per_site*(idx_out[virsome]+vrank_locsite_offset[vrank]))
 		 ,
 		 (char*)in+size_per_site*(vrank+nvranks*(iel+nel_per_site*virsome))
 		 ,
@@ -857,12 +857,12 @@ namespace nissa
   //unset it
   void unset_vranks_geometry()
   {
-    //destroy the geometry
+    //destroy the geometries
     vlx_double_geom.destroy();
     vlx_float_geom.destroy();
     vsf_double_geom.destroy();
     vsf_float_geom.destroy();
-    //destroy also the grid
+    //destroy also the grids
     vdouble_grid.destroy();
     vfloat_grid.destroy();
   }
