@@ -114,28 +114,56 @@ namespace nissa
 	    min_loc_size[mu]=2;
 	    fix_nvranks[mu]=0;
 	  }
-	master_printf("need to find the optimal here ANNNNNNA\n");
+	
 	bool something_found=false;
+	int nparal_dir_min=RAND_MAX;
+	int surf_min=RAND_MAX;
 	while(vranks_partitioning.find_next_valid_partition(VRPD,loc_size,min_loc_size,fix_nvranks))
 	  {
-	    //set the vir local size
-	    //coords VLS;
-	    //for(int mu=0;mu<NDIM;mu++) VLS[mu]=nvloc_max_per_dir[mu]/VPD[mu];
-	    
-	    //if it is the minimal surface (or first valid combo) copy it and compute the border size
-	    //if(rel_surf<min_rel_surf||min_rel_surf<0)
+	    //set the temporary vir local size and compute number of parallel dirs
+	    coords VLS;
+	    int NP=0,SU=0;
+	    for(int mu=0;mu<NDIM;mu++)
 	      {
-		//min_rel_surf=rel_surf;
-		
+		VLS[mu]=loc_size[mu]/VRPD[mu];
+		if(VRPD[mu]>1)
+		  {
+		    NP++;
+		    SU+=vloc_vol/VLS[mu];
+		  }
+	      }
+	    
+	    //criterion: minimal number of directions, then minimal surf
+	    bool criterion=false;
+	    if(NP<nparal_dir_min)
+	      {
+		criterion=true;
+		master_printf("Beating previous partitioning due to smaller number of virtually parallelized dirs (%d)\n",NP);
+	      }
+	    else
+	      if(NP==nparal_dir_min&&SU<surf_min)
+		{
+		  criterion=true;
+		  master_printf("Beating previous partitioning due to smaller virtual surface (%d)\n",SU);
+		}
+	    
+	    //if fullfilling criterion
+	    if(criterion)
+	      {
+		//store number of parallel dirs and surg
+		nparal_dir_min=NP;
+		surf_min=SU;
+		//store number of ranks per dir
 		for(int mu=0;mu<NDIM;mu++)
 		  {
 		    nvranks_per_dir[mu]=VRPD[mu];
 		    vloc_size[mu]=loc_size[mu]/VRPD[mu];
 		  }
 		
-	master_printf(" proposed local volume\t%d",vloc_size[0]);
-	for(int mu=1;mu<NDIM;mu++) master_printf("x%d",vloc_size[mu]);
-	master_printf(" = %d\n",vloc_vol);
+		//print some infos
+		master_printf(" new virtual local volume\t%d",vloc_size[0]);
+		for(int mu=1;mu<NDIM;mu++) master_printf("x%d",vloc_size[mu]);
+		master_printf(" = %d\n",vloc_vol);
 		something_found=true;
 	      }
 	  }
