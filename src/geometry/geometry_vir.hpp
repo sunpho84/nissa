@@ -101,7 +101,7 @@ namespace nissa
 	//set volume of the virtual node
 	vloc_vol=loc_vol/nvranks;
 	vloc_volh=vloc_vol/2;
-	master_printf("Initializing vgeom for type of %d bits, nvranks=%d\n",(int)sizeof(base_type)*8,nvranks);
+	master_printf("Initializing vgrid for data of size %d bits, nvranks=%d\n",8*sizeof(base_type),nvranks);
 	vrank_of_loclx=nissa_malloc("vrank_of_loclx",loc_vol,int);
 	
       	//fix the number of minimal node
