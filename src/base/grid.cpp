@@ -186,7 +186,7 @@ namespace nissa
     master_printf("partitioning lc_vol %d in %d vranks obtained %u possible combos\n",loc_vol,nvranks_max,vranks_partitioning.ncombo);
     
     coords RPD;
-    //use min_vloc_size because we want to further partition that dir
+    //partition the global volume, use min_vloc_size because we want to further partition that dir
     while(ranks_partitioning.find_next_valid_partition(RPD,glb_size,min_vir_loc_size,fix_nranks))
       {
 	//set the local size
@@ -195,6 +195,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++) LS[mu]=glb_size[mu]/RPD[mu];
 	vranks_partitioning.restart();
 	
+	//partition the local volume
 	coords VPD;
 	coords fix_nvranks;
 	memset(fix_nvranks,0,sizeof(coords));
