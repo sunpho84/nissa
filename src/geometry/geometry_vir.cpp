@@ -809,55 +809,61 @@ namespace nissa
   // THREADABLE_FUNCTION_END
   
   //! assign vlx to all loclx
-  template <class T> void fill_vlx_index(vranks_geom_t<T> *vgeo)
+  template <class T> void fill_vlx_index(vranks_ord_t<T> *vgeo)
   {
+    vranks_grid_t<T> *vg=vgeo->vg;
     for(int loclx=0;loclx<loc_vol;loclx++)
       {
 	coords vloc_coords; //< coordinates inside the virtual rank
-	for(int mu=0;mu<NDIM;mu++) vloc_coords[mu]=loc_coord_of_loclx[loclx][mu]-vgeo->vrank_coord[vgeo->vrank_of_loclx[loclx]][mu]*vgeo->vloc_size[mu];
-	vgeo->vloc_of_loclx[loclx]=lx_of_coord(vloc_coords,vgeo->vloc_size);
+	for(int mu=0;mu<NDIM;mu++) vloc_coords[mu]=loc_coord_of_loclx[loclx][mu]-vg->vrank_coord[vg->vrank_of_loclx[loclx]][mu]*vg->vloc_size[mu];
+	vgeo->vloc_of_loclx[loclx]=lx_of_coord(vloc_coords,vg->vloc_size);
       }
   }
   
   //! assign vsf to all loclx
-  template <class T> void fill_vsf_index(vranks_geom_t<T> *vgeo_sf,vranks_geom_t<T> *vgeo_lx)
+  template <class T> void fill_vsf_index(vranks_ord_t<T> *vgeo_sf,vranks_ord_t<T> *vgeo_lx)
   {
+    vranks_grid_t<T> *vg=vgeo_lx->vg;
     NISSA_LOC_VOL_LOOP(loclx) vgeo_sf->vloc_of_loclx[loclx]=-1;
     int vsf=0;
     for(int is_on_surf_loop=1;is_on_surf_loop>=0;is_on_surf_loop--)
-      for(int vloclx=0;vloclx<vgeo_sf->vloc_vol;vloclx++)
+      for(int vloclx=0;vloclx<vg->vloc_vol;vloclx++)
 	{
 	  int base_loclx=vgeo_lx->loclx_of_vloc[vloclx];
 	  bool is_on_surf=false;
 	  for(int mu=0;mu<NDIM;mu++) //either 0 or vloc_size[mu]-1
-	    is_on_surf|=((loc_coord_of_loclx[base_loclx][mu]%vgeo_lx->vloc_size[mu])%(vgeo_lx->vloc_size[mu]-1))==0;
-	  //if it is part of current loop, mark it and sign it
+	    is_on_surf|=((loc_coord_of_loclx[base_loclx][mu]%vg->vloc_size[mu])%(vg->vloc_size[mu]-1))==0;
+	  //if it is part of current loop, mark it and sign itbasetype::
 	  if(is_on_surf==is_on_surf_loop && vgeo_sf->vloc_of_loclx[base_loclx]==-1)
 	    {
-	      for(int vrank=0;vrank<vgeo_sf->nvranks;vrank++) vgeo_sf->vloc_of_loclx[base_loclx+vgeo_sf->vrank_loclx_offset[vrank]]=vsf;
+	      for(int vrank=0;vrank<vg->nvranks;vrank++) vgeo_sf->vloc_of_loclx[base_loclx+vg->vrank_loclx_offset[vrank]]=vsf;
 	      vsf++;
 	    }
 	}
 	
 	//checks
-	if(vsf!=vgeo_sf->vloc_vol) CRASH("vsuflx arrived at %d, expecting %d",vsf,vgeo_sf->vloc_vol);
+	if(vsf!=vg->vloc_vol) CRASH("vsuflx arrived at %d, expecting %d",vsf,vg->vloc_vol);
   }
   
   //set virtual geometry
   void set_vranks_geometry()
   {
-    vlx_double_geom.init(fill_vlx_index<double>);
-    vlx_float_geom.init(fill_vlx_index<float>);
-    vsf_double_geom.init(std::bind(fill_vsf_index<double>,std::placeholders::_1,&vlx_double_geom));
-    vsf_float_geom.init(std::bind(fill_vsf_index<float>,std::placeholders::_1,&vlx_float_geom));
+    vlx_double_geom.init(vdouble_grid,fill_vlx_index<double>);
+    vlx_float_geom.init(vfloat_grid,fill_vlx_index<float>);
+    vsf_double_geom.init(vdouble_grid,std::bind(fill_vsf_index<double>,std::placeholders::_1,&vlx_double_geom));
+    vsf_float_geom.init(vfloat_grid,std::bind(fill_vsf_index<float>,std::placeholders::_1,&vlx_float_geom));
   }
   
   //unset it
   void unset_vranks_geometry()
   {
+    //destroy the geometry
     vlx_double_geom.destroy();
     vlx_float_geom.destroy();
     vsf_double_geom.destroy();
     vsf_float_geom.destroy();
+    //destroy also the grid
+    vdouble_grid.destroy();
+    vfloat_grid.destroy();
   }
 }
