@@ -11,6 +11,7 @@
 #include <functional>
 
 #include "base/grid.hpp"
+#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -227,6 +228,14 @@ namespace nissa
     ~vranks_grid_t() {destroy();}
   };
   
+  //! flatten a vector type: T[2][2][nvranks] -> T[4][nvranks]
+  template <typename T> struct flattened_vec_type
+  {
+    typedef BASE_TYPE(T) base_type;
+    typedef base_type type[NBASE_EL(T)/vranks_grid_t<base_type>::nvranks][vranks_grid_t<base_type>::nvranks];
+  };
+#define FLATTENED_VEC_TYPE(T) typename flattened_vec_type<T>::type
+  
   //! structure to hold ordering
   template <class base_type> struct vranks_ord_t
   {
@@ -264,11 +273,36 @@ namespace nissa
       virsome_remap_to_something_internal(out,in,loc_vol,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loclx,vg->vrank_loclx_offset,loclx_of_vloc);
     }
     
+    //remap an lx vector to vir[some] layout
+    template <class VT,class T> THREADABLE_FUNCTION_5ARG(something_remap_to_virsome, VT*,out, T*,in, int,vol, int*,vrank_of_locsite, int*,idx_out)
+    {
+      static_assert(NBASE_EL(VT)==NBASE_EL(T)*vg->nvranks,"number of vrank el does not match nvranks times the number of el");
+      
+      GET_THREAD_ID();
+      //START_TIMING(remap_time,nremap);
+      
+      if((T*)out==in) CRASH("cannot use with out==in");
+      master_printf("nbase_el: %d, %s\n",NBASE_EL(T),typeid(FLATTENED_TYPE(T)).name());
+      master_printf("nbase_el v: %d, %s\n",NBASE_EL(VT),typeid(FLATTENED_TYPE(VT)).name());
+      
+      //copy the various virtual ranks
+      NISSA_PARALLEL_LOOP(isite,0,vol)
+	for(int iel=0;iel<NBASE_EL(T);iel++)
+	  ((FLATTENED_VEC_TYPE(VT)*)out)[idx_out[isite]][vrank_of_locsite[isite]][iel]=
+	    ((FLATTENED_TYPE(T)*)in)[isite][iel];
+	   
+      //wait filling
+      set_borders_invalid(out);
+      
+      //STOP_TIMING(remap_time);
+    }
+    THREADABLE_FUNCTION_END
+    
     //! remap from lx to vir
     template <class VT,class T> void lx_remap_to_virsome(VT *out,T *in)
     {
-      check_matching_size<T,VT>();
-      something_remap_to_virsome_internal(out,in,loc_vol,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loclx,vloc_of_loclx);
+      //check_matching_size<T,VT>();
+      something_remap_to_virsome(out,in,loc_vol,vg->vrank_of_loclx,vloc_of_loclx);
     }
     
     ///////
