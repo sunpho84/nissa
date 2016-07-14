@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include <functional>
 #include <omp.h>
 #include <stdlib.h>
 
@@ -22,6 +23,11 @@
 
 namespace nissa
 {
+  namespace
+  {
+    bool thread_stay_working;
+  }
+  
 #if THREAD_DEBUG>=2
   
   //wait previously delayed threads
@@ -182,51 +188,22 @@ namespace nissa
     thread_pool_locked=true;
     
     //loop until asked to exit
-    bool stay_working=true;
     do
       {
 	//hold until unlocked
 	thread_pool_unlock();
 	
 	//exec order or mark to exit in other case
-	if(threaded_function_ptr!=NULL) threaded_function_ptr();
-	else stay_working=false;
+	threaded_function();
 	
 	thread_pool_lock();
       }
-    while(stay_working);
+    while(thread_stay_working);
     
 #ifdef THREAD_DEBUG
     if(rank==0 && VERBOSITY_LV3)
       {
 	printf("thread %d exit pool\n",thread_id);
-	fflush(stdout);
-      }
-#endif
-  }
-  
-  //execute a function using all threads
-  void start_threaded_function(void(*function)(void),const char *name)
-  {
-#ifdef THREAD_DEBUG
-    if(rank==0 && VERBOSITY_LV3)
-      {
-	printf("----------Start working %s thread pool--------\n",name);
-	fflush(stdout);
-      }
-#endif
-    //set external function pointer and unlock pool threads
-    threaded_function_ptr=function;
-    thread_pool_unlock();
-    
-    //execute the function and relock the pool, so we are sure that they are not reading the work-to-do
-    if(threaded_function_ptr!=NULL) threaded_function_ptr();
-    thread_pool_lock();
-    
-#ifdef THREAD_DEBUG
-    if(rank==0 && VERBOSITY_LV3)
-      {
-	printf("----------Finished working %s thread pool--------\n",name);
 	fflush(stdout);
       }
 #endif
@@ -240,8 +217,11 @@ namespace nissa
     //check to be thread 0
     if(thread_id!=0) CRASH("only thread 0 can stop the pool");
     
-    //pass a NULL order
-    start_threaded_function(NULL,"");
+    //stop the pool
+    threaded_function=[](){};
+    thread_stay_working=false;
+    thread_pool_unlock();
+    thread_pool_lock();
   }
   
   //make all threads update a single counter in turn, checking previous state
@@ -283,6 +263,7 @@ namespace nissa
     
     //lock the pool
     thread_pool_locked=true;
+    thread_stay_working=true;
     cache_flush();
     
     //control the proper working of all the threads...
