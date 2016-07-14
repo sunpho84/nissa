@@ -1,8 +1,9 @@
 #ifndef _VECTORS_HPP
 #define _VECTORS_HPP
 
-#include <stdio.h>
-#include <stdint.h>
+#include <cstdio>
+#include <cstdint>
+#include <type_traits>
 
 #ifndef EXTERN_VECTORS
  #define EXTERN_VECTORS extern
@@ -98,6 +99,21 @@ namespace nissa
   void unset_vect_flag_non_blocking(void *v,unsigned int flag);
   void vect_content_fprintf(FILE *f,void *vec);
   void vect_content_printf(void *vec);
+
+  //! remove all brackets
+#define BASE_TYPE(T) typename std::remove_all_extents<T>::type
+
+  //! number of elements of the base type
+  template <typename T> constexpr int nbase_el(){return sizeof(T)/sizeof(BASE_TYPE(T));}
+#define NBASE_EL(T) nbase_el<T>()
+
+  //! flatten a vector type: T[2][2] -> T[4]
+  template <typename T> struct flattened_type
+  {
+    typedef BASE_TYPE(T) base_type;
+    typedef base_type type[NBASE_EL(T)];
+  };
+#define FLATTENED_TYPE(T) typename flattened_type<T>::type
 }
 
 #undef EXTERN_VECTORS
