@@ -251,6 +251,8 @@ void in_main(int narg,char **arg)
       quad_su3 *conf_eo[2]={nissa_malloc("conf_e",loc_volh,quad_su3),nissa_malloc("conf_o",loc_volh,quad_su3)};
       vd_quad_su3 *vconf_eo[2]={nissa_malloc("vconf_e",vd_loc_volh,vd_quad_su3),nissa_malloc("conf_o",vd_loc_volh,vd_quad_su3)};
       
+      master_printf("is spincolor: %d, is_vspincolor: %d\n",IS_VRANK_TYPE(spincolor),IS_VRANK_TYPE(vd_spincolor));
+      
       for(int itest=0;itest<2;itest++)
 	{
 	  switch(itest)

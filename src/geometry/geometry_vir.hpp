@@ -45,21 +45,6 @@ namespace nissa
     //! number of elements inside a simd
     static const int nvranks=simd_width/(8*sizeof(base_type));
     
-    //types
-    typedef base_type vbase_type[nvranks];
-    typedef vbase_type vcomplex[2];
-    typedef vcomplex vcolor[NCOL];
-    typedef vcolor vsu3[NCOL];
-    typedef vcolor vhalfspincolor[NDIRAC/2];
-    typedef vhalfspincolor vcolor_halfspincolor[NCOL];
-    typedef vcolor_halfspincolor vhalfspincolor_halfspincolor[NDIRAC/2];
-    typedef vsu3 vquad_su3[NDIM];
-    typedef vsu3 voct_su3[2*NDIM];
-    typedef vcolor vspincolor[NDIRAC];
-    typedef vcomplex vhalfspin[2];
-    typedef vsu3 vclover_term_t[4];
-    typedef vhalfspincolor_halfspincolor vinv_clover_term_t[2];
-    
     //! initialization flag
     int inited;
     //! hold which directions are parallelized
