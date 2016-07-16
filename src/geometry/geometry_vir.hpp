@@ -217,7 +217,7 @@ namespace nissa
   template <typename T> struct flattened_vec_type
   {
     typedef BASE_TYPE(T) base_type;
-    typedef base_type type[NBASE_EL(T)/vranks_grid_t<base_type>::nvranks][vranks_grid_t<base_type>::nvranks];
+    typedef base_type type[nbase_el<T>/vranks_grid_t<base_type>::nvranks][vranks_grid_t<base_type>::nvranks];
   };
 #define FLATTENED_VEC_TYPE(T) typename flattened_vec_type<T>::type
   
@@ -261,18 +261,18 @@ namespace nissa
     //remap an lx vector to vir[some] layout
     template <class VT,class T> THREADABLE_FUNCTION_5ARG(something_remap_to_virsome, VT*,out, T*,in, int,vol, int*,vrank_of_locsite, int*,idx_out)
     {
-      static_assert(NBASE_EL(VT)==NBASE_EL(T)*vg->nvranks,"number of vrank el does not match nvranks times the number of el");
+      static_assert(nbase_el<VT> ==nbase_el<T>*vg->nvranks,"number of vrank el does not match nvranks times the number of el");
       
       GET_THREAD_ID();
       //START_TIMING(remap_time,nremap);
       
       if((T*)out==in) CRASH("cannot use with out==in");
-      master_printf("nbase_el: %d, %s\n",NBASE_EL(T),typeid(FLATTENED_TYPE(T)).name());
-      master_printf("nbase_el v: %d, %s\n",NBASE_EL(VT),typeid(FLATTENED_TYPE(VT)).name());
+      master_printf("nbase_el: %d, %s\n",nbase_el<T>,typeid(FLATTENED_TYPE(T)).name());
+      master_printf("nbase_el v: %d, %s\n",nbase_el<VT>,typeid(FLATTENED_TYPE(VT)).name());
       
       //copy the various virtual ranks
       NISSA_PARALLEL_LOOP(isite,0,vol)
-	for(int iel=0;iel<NBASE_EL(T);iel++)
+	for(int iel=0;iel<nbase_el<T>;iel++)
 	  ((FLATTENED_VEC_TYPE(VT)*)out)[idx_out[isite]][vrank_of_locsite[isite]][iel]=
 	    ((FLATTENED_TYPE(T)*)in)[isite][iel];
 	   

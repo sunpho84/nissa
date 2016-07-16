@@ -104,14 +104,13 @@ namespace nissa
 #define BASE_TYPE(T) typename std::remove_all_extents<T>::type
 
   //! number of elements of the base type
-  template <typename T> constexpr int nbase_el(){return sizeof(T)/sizeof(BASE_TYPE(T));}
-#define NBASE_EL(T) nbase_el<T>()
+  template <typename T> constexpr int nbase_el=sizeof(T)/sizeof(BASE_TYPE(T));
 
   //! flatten a vector type: T[2][2] -> T[4]
   template <typename T> struct flattened_type
   {
     typedef BASE_TYPE(T) base_type;
-    typedef base_type type[NBASE_EL(T)];
+    typedef base_type type[nbase_el<T>];
   };
 #define FLATTENED_TYPE(T) typename flattened_type<T>::type
 }
