@@ -453,23 +453,78 @@ namespace nissa
   EXTERN_GEOMETRY_VIR vranks_ord_t<double> vlx_double_geom,vsf_double_geom;
   EXTERN_GEOMETRY_VIR vranks_ord_t<float> vlx_float_geom,vsf_float_geom;
   
-#define DEFINE_VTYPES(VSHORT,LONG)					\
-  typedef vranks_grid_t<LONG>::vcomplex NAME2(VSHORT,complex);		\
-  typedef vranks_grid_t<LONG>::vcolor NAME2(VSHORT,color);		\
-  typedef vranks_grid_t<LONG>::vsu3 NAME2(VSHORT,su3);			\
-  typedef vranks_grid_t<LONG>::vhalfspincolor NAME2(VSHORT,halfspincolor); \
-  typedef vranks_grid_t<LONG>::vcolor_halfspincolor NAME2(VSHORT,color_halfspincolor); \
-  typedef vranks_grid_t<LONG>::vhalfspincolor_halfspincolor NAME2(VSHORT,halfspincolor_halfspincolor); \
-  typedef vranks_grid_t<LONG>::vquad_su3 NAME2(VSHORT,quad_su3);	\
-  typedef vranks_grid_t<LONG>::voct_su3 NAME2(VSHORT,oct_su3);		\
-  typedef vranks_grid_t<LONG>::vspincolor NAME2(VSHORT,spincolor);	\
-  typedef vranks_grid_t<LONG>::vhalfspin NAME2(VSHORT,halfspin);	\
-  typedef vranks_grid_t<LONG>::vclover_term_t NAME2(VSHORT,clover_term_t); \
-  typedef vranks_grid_t<LONG>::vinv_clover_term_t NAME2(VSHORT,inv_clover_term_t); \
+  /////////////////////////////////// automatic vectorization of type ///////////////////
   
-  DEFINE_VTYPES(vd,double);
-  DEFINE_VTYPES(vf,float);
-  #undef DEFINE_VTYPES
+  //! return false unless is a vrank type
+  template <typename T> struct is_vrank_type
+  {const static bool flag=false;};
+#define IS_VRANK_TYPE(T) is_vrank_type<T>::flag
+  
+  //! specialize for really vectorized type (not automatic, unfortunately)
+#define MARK_IS_VECTORIZED(TP)			\
+  template<> struct is_vrank_type<TP>		\
+  {const static bool flag=true;}
+  
+  //! vectorize a simple type
+  template <typename _Tp> struct vectorize_type
+  {typedef _Tp type[vranks_grid_t<_Tp>::nvranks];};
+#define VECTORIZED_TYPE(TP) vectorize_type<TP>::type
+  
+  //! chain-vectorize arrays
+  template <typename _Tp,std::size_t _Size> struct vectorize_type<_Tp[_Size]>
+  {typedef typename VECTORIZED_TYPE(_Tp) type[_Size];};
+  
+  //! automatize the definition and marking
+#define DEFINE_VECTORIZED_TYPE_NOMARK(TP)	\
+  typedef VECTORIZED_TYPE(TP) NAME2(vd,TP)
+#define DEFINE_VECTORIZED_TYPE(TP)			\
+  DEFINE_VECTORIZED_TYPE_NOMARK(TP);			\
+  MARK_IS_VECTORIZED(NAME2(vd,TP))
+  
+  DEFINE_VECTORIZED_TYPE(complex);
+  DEFINE_VECTORIZED_TYPE(color);
+  DEFINE_VECTORIZED_TYPE(su3);
+  DEFINE_VECTORIZED_TYPE(halfspincolor);
+  DEFINE_VECTORIZED_TYPE(color_halfspincolor);
+  DEFINE_VECTORIZED_TYPE(halfspincolor_halfspincolor);
+  DEFINE_VECTORIZED_TYPE(quad_su3);
+  DEFINE_VECTORIZED_TYPE(oct_su3);
+  DEFINE_VECTORIZED_TYPE(spincolor);
+  DEFINE_VECTORIZED_TYPE(halfspin);
+  DEFINE_VECTORIZED_TYPE_NOMARK(clover_term_t); //matches quad_su3
+  DEFINE_VECTORIZED_TYPE(inv_clover_term_t);
+  
+  //////////////////// single version ////////////////////
+  
+  //! convert to single "any" (e.g. double) scalar type
+  template <typename _Tp> struct float_type
+  {typedef float type;};
+#define FLOATED_TYPE(TP) float_type<TP>::type
+  
+  //! chain-vectorize conversion of arrays to float
+  template <typename _Tp,std::size_t _Size> struct float_type<_Tp[_Size]>
+  {typedef typename FLOATED_TYPE(_Tp) type[_Size];};
+#define VECTORIZED_FLOATED_TYPE(TP) VECTORIZED_TYPE(FLOATED_TYPE(TP))
+#define DEFINE_VECTORIZED_FLOATED_TYPE_NOMARK(TP)		\
+  typedef VECTORIZED_FLOATED_TYPE(TP) NAME2(vf,TP)
+#define DEFINE_VECTORIZED_FLOATED_TYPE(TP)			\
+  DEFINE_VECTORIZED_FLOATED_TYPE_NOMARK(TP);			\
+  MARK_IS_VECTORIZED(NAME2(vf,TP))
+  
+  DEFINE_VECTORIZED_FLOATED_TYPE(complex);
+  DEFINE_VECTORIZED_FLOATED_TYPE(color);
+  DEFINE_VECTORIZED_FLOATED_TYPE(su3);
+  DEFINE_VECTORIZED_FLOATED_TYPE(halfspincolor);
+  DEFINE_VECTORIZED_FLOATED_TYPE(color_halfspincolor);
+  DEFINE_VECTORIZED_FLOATED_TYPE(halfspincolor_halfspincolor);
+  DEFINE_VECTORIZED_FLOATED_TYPE(quad_su3);
+  DEFINE_VECTORIZED_FLOATED_TYPE(oct_su3);
+  DEFINE_VECTORIZED_FLOATED_TYPE(spincolor);
+  DEFINE_VECTORIZED_FLOATED_TYPE(halfspin);
+  DEFINE_VECTORIZED_FLOATED_TYPE_NOMARK(clover_term_t);
+  DEFINE_VECTORIZED_FLOATED_TYPE(inv_clover_term_t);
+  
+  //////////////////// grids ///////////////////
   
   EXTERN_GEOMETRY_VIR int &vd_loc_vol INIT_TO(vdouble_grid.vloc_vol);
   EXTERN_GEOMETRY_VIR int &vf_loc_vol INIT_TO(vfloat_grid.vloc_vol);
