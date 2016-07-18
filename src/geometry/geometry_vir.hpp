@@ -9,6 +9,7 @@
 #endif
 
 #include <functional>
+#include <type_traits>
 
 #include "base/grid.hpp"
 #include "base/thread_macros.hpp"
@@ -217,7 +218,7 @@ namespace nissa
   template <typename T> struct flattened_vec_type
   {
     typedef BASE_TYPE(T) base_type;
-    typedef base_type type[nbase_el<T>/vranks_grid_t<base_type>::nvranks][vranks_grid_t<base_type>::nvranks];
+    typedef base_type type[NBASE_EL(T)/vranks_grid_t<base_type>::nvranks][vranks_grid_t<base_type>::nvranks];
   };
 #define FLATTENED_VEC_TYPE(T) typename flattened_vec_type<T>::type
   
@@ -261,18 +262,18 @@ namespace nissa
     //remap an lx vector to vir[some] layout
     template <class VT,class T> THREADABLE_FUNCTION_5ARG(something_remap_to_virsome, VT*,out, T*,in, int,vol, int*,vrank_of_locsite, int*,idx_out)
     {
-      static_assert(nbase_el<VT> ==nbase_el<T>*vg->nvranks,"number of vrank el does not match nvranks times the number of el");
+      static_assert(NBASE_EL(VT)==NBASE_EL(T)*vg->nvranks,"number of vrank el does not match nvranks times the number of el");
       
       GET_THREAD_ID();
       //START_TIMING(remap_time,nremap);
       
       if((T*)out==in) CRASH("cannot use with out==in");
-      master_printf("nbase_el: %d, %s\n",nbase_el<T>,typeid(FLATTENED_TYPE(T)).name());
-      master_printf("nbase_el v: %d, %s\n",nbase_el<VT>,typeid(FLATTENED_TYPE(VT)).name());
+      master_printf("nbase_el: %d, %s\n",NBASE_EL(T),typeid(FLATTENED_TYPE(T)).name());
+      master_printf("nbase_el v: %d, %s\n",NBASE_EL(VT),typeid(FLATTENED_TYPE(VT)).name());
       
       //copy the various virtual ranks
       NISSA_PARALLEL_LOOP(isite,0,vol)
-	for(int iel=0;iel<nbase_el<T>;iel++)
+	for(int iel=0;iel<NBASE_EL(T);iel++)
 	  ((FLATTENED_VEC_TYPE(VT)*)out)[idx_out[isite]][vrank_of_locsite[isite]][iel]=
 	    ((FLATTENED_TYPE(T)*)in)[isite][iel];
 	   
@@ -440,16 +441,6 @@ namespace nissa
   
   /////////////////////////////////// automatic vectorization of type ///////////////////
   
-  //! return false unless is a vrank type
-  template <typename T> struct is_vrank_type
-  {const static bool flag=false;};
-#define IS_VRANK_TYPE(T) is_vrank_type<T>::flag
-  
-  //! specialize for really vectorized type (not automatic, unfortunately)
-#define MARK_IS_VECTORIZED(TP)			\
-  template<> struct is_vrank_type<TP>		\
-  {const static bool flag=true;}
-  
   //! vectorize a simple type
   template <typename _Tp> struct vectorize_type
   {typedef _Tp type[vranks_grid_t<_Tp>::nvranks];};
@@ -459,12 +450,9 @@ namespace nissa
   template <typename _Tp,std::size_t _Size> struct vectorize_type<_Tp[_Size]>
   {typedef typename VECTORIZED_TYPE(_Tp) type[_Size];};
   
-  //! automatize the definition and marking
-#define DEFINE_VECTORIZED_TYPE_NOMARK(TP)	\
+  //! automatize the definition
+#define DEFINE_VECTORIZED_TYPE(TP)	\
   typedef VECTORIZED_TYPE(TP) NAME2(vd,TP)
-#define DEFINE_VECTORIZED_TYPE(TP)			\
-  DEFINE_VECTORIZED_TYPE_NOMARK(TP);			\
-  MARK_IS_VECTORIZED(NAME2(vd,TP))
   
   DEFINE_VECTORIZED_TYPE(complex);
   DEFINE_VECTORIZED_TYPE(color);
@@ -476,7 +464,7 @@ namespace nissa
   DEFINE_VECTORIZED_TYPE(oct_su3);
   DEFINE_VECTORIZED_TYPE(spincolor);
   DEFINE_VECTORIZED_TYPE(halfspin);
-  DEFINE_VECTORIZED_TYPE_NOMARK(clover_term_t); //matches quad_su3
+  DEFINE_VECTORIZED_TYPE(clover_term_t); //matches quad_su3
   DEFINE_VECTORIZED_TYPE(inv_clover_term_t);
   
   //////////////////// single version ////////////////////
@@ -490,11 +478,8 @@ namespace nissa
   template <typename _Tp,std::size_t _Size> struct float_type<_Tp[_Size]>
   {typedef typename FLOATED_TYPE(_Tp) type[_Size];};
 #define VECTORIZED_FLOATED_TYPE(TP) VECTORIZED_TYPE(FLOATED_TYPE(TP))
-#define DEFINE_VECTORIZED_FLOATED_TYPE_NOMARK(TP)		\
+#define DEFINE_VECTORIZED_FLOATED_TYPE(TP)		\
   typedef VECTORIZED_FLOATED_TYPE(TP) NAME2(vf,TP)
-#define DEFINE_VECTORIZED_FLOATED_TYPE(TP)			\
-  DEFINE_VECTORIZED_FLOATED_TYPE_NOMARK(TP);			\
-  MARK_IS_VECTORIZED(NAME2(vf,TP))
   
   DEFINE_VECTORIZED_FLOATED_TYPE(complex);
   DEFINE_VECTORIZED_FLOATED_TYPE(color);
@@ -506,7 +491,7 @@ namespace nissa
   DEFINE_VECTORIZED_FLOATED_TYPE(oct_su3);
   DEFINE_VECTORIZED_FLOATED_TYPE(spincolor);
   DEFINE_VECTORIZED_FLOATED_TYPE(halfspin);
-  DEFINE_VECTORIZED_FLOATED_TYPE_NOMARK(clover_term_t);
+  DEFINE_VECTORIZED_FLOATED_TYPE(clover_term_t);
   DEFINE_VECTORIZED_FLOATED_TYPE(inv_clover_term_t);
   
   //////////////////// grids ///////////////////
