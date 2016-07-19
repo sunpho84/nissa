@@ -6,7 +6,6 @@
 #include "base/vectors.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/MFACC_fields.hpp"
-#include "hmc/gauge/MFACC_fields.hpp"
 #include "hmc/momenta/momenta_action.hpp"
 #include "hmc/momenta/momenta_generation.hpp"
 #include "hmc/gauge/pure_gauge_Omelyan_integrator.hpp"
@@ -86,9 +85,20 @@ namespace nissa
     verbosity_lv2_master_printf("Init action: %lg\n",init_action);
     
     //evolve forward
-    if(evol_pars.use_Facc) Omelyan_pure_gauge_FACC_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
-    else                   Omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);
-    
+    if(evol_pars.use_Facc)
+      {
+	Omelyan_pure_gauge_FACC_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
+	// evol_pars.traj_length*=-1;
+	// Omelyan_pure_gauge_FACC_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
+	// evol_pars.traj_length*=-1;
+      }
+    else
+      {
+	Omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);
+	// evol_pars.traj_length*=-1;
+	// Omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);
+	// evol_pars.traj_length*=-1;
+      }
     //compute the action
     double final_action=pure_gauge_action(out_conf,theory_pars,evol_pars,H,phi,pi);
     verbosity_lv2_master_printf("Final action: %lg\n",final_action);
