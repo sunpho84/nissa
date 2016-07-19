@@ -62,7 +62,7 @@ namespace nissa
       {
         //apply the kernel
         apply_MFACC(V,conf,kappa,pi[id]);
-        double_vector_glb_scalar_prod(&(glb_action_id[id]),(double*)V,(double*)V,sizeof(su3)/sizeof(double)*loc_vol);
+	glb_action_id[id]=double_vector_glb_norm2(V,loc_vol);
       }
     
     (*tot_action)=0;
