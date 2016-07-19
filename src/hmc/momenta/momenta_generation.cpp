@@ -60,6 +60,7 @@ namespace nissa
     su3 *out=nissa_malloc("out",loc_vol+bord_vol,su3);
     su3 *tmp=nissa_malloc("tmp",loc_vol+bord_vol,su3);
     
+    double action=0;
     for(int mu=0;mu<NDIM;mu++)
       {
 	//fill the vector randomly
@@ -67,22 +68,23 @@ namespace nissa
 	set_borders_invalid(in);
 	
 	//compute the norm
-	double norm;
-	double_vector_glb_scalar_prod(&norm,(double*)in,(double*)in,loc_vol*sizeof(su3)/sizeof(double));
+	double norm2=double_vector_glb_norm2(in,loc_vol);
+	action+=norm2;
 	
 	//invert
 	summ_src_and_all_inv_MFACC_cgm(out,conf,kappa,rat_exp_H,1000000,residue,in);
 	
 	//try to compute the norm*D
-	apply_MFACC(tmp,conf,kappa,0,out);
-	double norm_reco;
-	double_vector_glb_scalar_prod(&norm_reco,(double*)out,(double*)tmp,loc_vol*sizeof(su3)/sizeof(double));
-	master_printf("Norm: %16.16lg, norm_reco: %16.16lg, relative error: %lg\n",sqrt(norm),sqrt(norm_reco),sqrt(norm/norm_reco)-1);
+        inv_MFACC_cg(tmp,NULL,conf,kappa,10000000,residue,out);
+	double norm2_reco;
+	double_vector_glb_scalar_prod(&norm2_reco,(double*)out,(double*)tmp,loc_vol*sizeof(su3)/sizeof(double));
+	master_printf("Norm2: %16.16lg, norm2_reco: %16.16lg, relative error: %lg\n",sqrt(norm2),sqrt(norm2_reco),sqrt(norm2/norm2_reco)-1);
 	
 	//store the vector
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_copy(H[ivol][mu],out[ivol]);
 	set_borders_invalid(H);
       }
+    master_printf("Glb action hmc momenta: %lg\n",action/2);
     
     nissa_free(in);
     nissa_free(out);
@@ -98,12 +100,15 @@ namespace nissa
     //allocate gaussian field
     su3 *V=nissa_malloc("V",loc_vol+bord_vol,su3);
     
+    double norm2=0;
     for(int id=0;id<n_FACC_fields;id++)
       {
         //generate gaussianly V and then invert on it
         generate_MFACC_fields(V);
+	norm2+=double_vector_glb_norm2(V,loc_vol);
         inv_MFACC_cg(pi[id],NULL,conf,kappa,10000000,residue,V);
       }
+    master_printf("Glb MFACC action computed internally: %lg\n",norm2/2);
     verbosity_lv1_master_printf("\n");
     
     nissa_free(V);
