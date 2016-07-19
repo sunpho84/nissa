@@ -78,7 +78,7 @@ namespace nissa
         inv_MFACC_cg(tmp,NULL,conf,kappa,10000000,residue,out);
 	double norm2_reco;
 	double_vector_glb_scalar_prod(&norm2_reco,(double*)out,(double*)tmp,loc_vol*sizeof(su3)/sizeof(double));
-	master_printf("Norm2: %16.16lg, norm2_reco: %16.16lg, relative error: %lg\n",sqrt(norm2),sqrt(norm2_reco),sqrt(norm2/norm2_reco)-1);
+	master_printf("Norm2: %16.16lg, norm2_reco: %16.16lg, relative error: %lg\n",norm2,norm2_reco,norm2/norm2_reco-1);
 	
 	//store the vector
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_copy(H[ivol][mu],out[ivol]);
