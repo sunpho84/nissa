@@ -237,7 +237,7 @@ void in_main(int narg,char **arg)
   
   //init simulation according to input file
   init_simulation(arg[1]);
-
+  
   //loop over the configs
   int iconf=0;
   while(read_conf_parameters(iconf,finish_file_present))
@@ -271,7 +271,7 @@ void in_main(int narg,char **arg)
 	  
 	  //test
 	  for(int i=0;i<(int)(loc_vol*sizeof(quad_su3)/sizeof(double));i++)
-	    if(((double*)conf_reco)[i]!=((double*)conf)[i]) CRASH("test %d %lg %lg",itest,((double*)conf_reco)[i],((double*)conf[i]));
+	  if(((double*)conf_reco)[i]!=((double*)conf)[i]) CRASH("test %d %lg %lg",itest,((double*)conf_reco)[i],((double*)conf[i]));
 	}
       //free
       nissa_free(conf_reco);

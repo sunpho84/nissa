@@ -20,7 +20,6 @@
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
 #include "new_types/two_stage_computation.hpp"
-#include "operations/su3_paths/topological_charge.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

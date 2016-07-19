@@ -274,7 +274,7 @@ namespace nissa
       //copy the various virtual ranks
       NISSA_PARALLEL_LOOP(isite,0,vol)
 	for(int iel=0;iel<NBASE_EL(T);iel++)
-	  ((FLATTENED_VEC_TYPE(VT)*)out)[idx_out[isite]][vrank_of_locsite[isite]][iel]=
+	  ((FLATTENED_VEC_TYPE(VT)*)out)[idx_out[isite]][iel][vrank_of_locsite[isite]]=
 	    ((FLATTENED_TYPE(T)*)in)[isite][iel];
 	   
       //wait filling
