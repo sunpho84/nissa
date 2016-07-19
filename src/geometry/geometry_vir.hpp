@@ -11,6 +11,7 @@
 #include <functional>
 #include <type_traits>
 
+#include "base/bench.hpp"
 #include "base/grid.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
@@ -35,10 +36,6 @@ namespace nissa
   EXTERN_GEOMETRY_VIR coords vloc_min_size;
   //! fix the maximal number of virtual ranks
   EXTERN_GEOMETRY_VIR coords fix_nvranks_max;
-  
-  //! remap to and from lx
-  void something_remap_to_virsome_internal(void *out,void *in,int vol,int size_per_site,int nel_per_site,int nvranks,int *vrank_of_locsite,int *idx);
-  void virsome_remap_to_something_internal(void *out,void *in,int vol,int size_per_site,int nel_per_site,int nvranks,int *vrank_of_locsite,int *vrank_locsite_offset,int *idx);
   
   //! structure to hold a virtual grid
   template<class base_type> struct vranks_grid_t
@@ -248,24 +245,42 @@ namespace nissa
     
     //! crash if not matching
     template <class T,class VT> void check_matching_size()
-    {static_assert(sizeof(T)*vg->nvranks==sizeof(VT),"vector type is not nvranks time the plain type");}
+    {static_assert(NBASE_EL(VT)==NBASE_EL(T)*vg->nvranks,"number of vrank el does not match nvranks times the number of el");}
     
     //////
     
-    //! remap from vir to lx
-    template <class T,class VT> void virsome_remap_to_lx(T *out,VT *in)
+    //!remap a vir[some] to something layout
+    template <class VT,class T> THREADABLE_FUNCTION_5ARG(virsome_remap_to_something, T*,out, VT*,in, int,vol, int*,vrank_locsite_offset, int*,idx_out)
     {
       check_matching_size<T,VT>();
-      virsome_remap_to_something_internal(out,in,loc_vol,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loclx,vg->vrank_loclx_offset,loclx_of_vloc);
+      GET_THREAD_ID();
+      START_TIMING(remap_time,nremap);
+      
+      if(out==(T*)in) CRASH("cannot use with out==in");
+      master_printf("nbase_el: %d, %s\n",NBASE_EL(T),typeid(FLATTENED_TYPE(T)).name());
+      master_printf("nbase_el v: %d, %s\n",NBASE_EL(VT),typeid(FLATTENED_TYPE(VT)).name());
+      
+      //split the virtual ranks
+      int nvranks=sizeof(VT)/sizeof(T);
+      NISSA_PARALLEL_LOOP(virsome,0,vol/nvranks)
+	for(int iel=0;iel<NBASE_EL(T);iel++)
+  	for(int vrank=0;vrank<nvranks;vrank++)
+	  ((FLATTENED_TYPE(T)*)out)[idx_out[virsome]+vrank_locsite_offset[vrank]][iel]=
+	    ((FLATTENED_VEC_TYPE(VT)*)in)[virsome][iel][vrank];
+	   
+      //wait filling
+      set_borders_invalid(out);
+      
+      STOP_TIMING(remap_time);
     }
+    THREADABLE_FUNCTION_END
     
-    //remap an lx vector to vir[some] layout
+    //!remap an lx vector to vir[some] layout
     template <class VT,class T> THREADABLE_FUNCTION_5ARG(something_remap_to_virsome, VT*,out, T*,in, int,vol, int*,vrank_of_locsite, int*,idx_out)
     {
-      static_assert(NBASE_EL(VT)==NBASE_EL(T)*vg->nvranks,"number of vrank el does not match nvranks times the number of el");
-      
+      check_matching_size<T,VT>();
       GET_THREAD_ID();
-      //START_TIMING(remap_time,nremap);
+      START_TIMING(remap_time,nremap);
       
       if((T*)out==in) CRASH("cannot use with out==in");
       master_printf("nbase_el: %d, %s\n",NBASE_EL(T),typeid(FLATTENED_TYPE(T)).name());
@@ -280,40 +295,37 @@ namespace nissa
       //wait filling
       set_borders_invalid(out);
       
-      //STOP_TIMING(remap_time);
+      STOP_TIMING(remap_time);
     }
     THREADABLE_FUNCTION_END
     
+    ///////////
+    
+    //! remap from vir to lx
+    template <class VT,class T> void virsome_remap_to_lx(T *out,VT *in)
+    {virsome_remap_to_something(out,in,loc_vol,vg->vrank_loclx_offset,loclx_of_vloc);}
+    
     //! remap from lx to vir
     template <class VT,class T> void lx_remap_to_virsome(VT *out,T *in)
-    {
-      //check_matching_size<T,VT>();
-      something_remap_to_virsome(out,in,loc_vol,vg->vrank_of_loclx,vloc_of_loclx);
-    }
+    {something_remap_to_virsome(out,in,loc_vol,vg->vrank_of_loclx,vloc_of_loclx);}
     
     ///////
     
     //! remap from vir to evn or odd
     template <class T,class VT> void virsome_remap_to_evn_or_odd(T *out,VT *in,int par)
-    {
-      check_matching_size<T,VT>();
-      virsome_remap_to_something_internal(out,in,loc_volh,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loceo[par],vg->vrank_loceo_offset,loceo_of_veos[par]);
-    }
+    {virsome_remap_to_something(out,in,loc_volh,vg->vrank_loceo_offset,loceo_of_veos[par]);}
     
     //! remap from evn or odd to vir
     template <class VT,class T> void evn_or_odd_remap_to_virsome(VT *out,T *in,int par)
-    {
-      check_matching_size<T,VT>();
-      something_remap_to_virsome_internal(out,in,loc_volh,sizeof(base_type),sizeof(T)/sizeof(base_type),vg->nvranks,vg->vrank_of_loceo[par],veos_of_loceo[par]);
-    }
+    {something_remap_to_virsome(out,in,loc_volh,vg->vrank_of_loceo[par],veos_of_loceo[par]);}
     
     ////////
     
     //! remap from vir to eo
-    template <class T,class VT> void virsome_remap_to_eo(T *out[2],VT *in[2]) {for(int par=0;par<2;par++) virsome_remap_to_evn_or_odd(out[par],in[par],par);}
+    template <class T,class VT> void virsome_remap_to_eo(T *out[2],VT *in[2]){for(int par=0;par<2;par++) virsome_remap_to_evn_or_odd(out[par],in[par],par);}
     
     //! remap from eo to vir
-    template <class VT,class T> void eo_remap_to_virsome(VT *out[2],T *in[2]) {for(int par=0;par<2;par++) evn_or_odd_remap_to_virsome(out[par],in[par],par);}
+    template <class VT,class T> void eo_remap_to_virsome(VT *out[2],T *in[2]){for(int par=0;par<2;par++) evn_or_odd_remap_to_virsome(out[par],in[par],par);}
     
     ////////
     
