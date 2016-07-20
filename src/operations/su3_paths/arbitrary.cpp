@@ -12,8 +12,6 @@
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_mix.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/shift.hpp"

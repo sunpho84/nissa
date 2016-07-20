@@ -11,7 +11,7 @@
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "communicate/edges.hpp"
-#include "geometry/geometry_mix.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/spin.hpp"

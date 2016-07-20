@@ -9,7 +9,6 @@
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_mix.hpp"
 #include "io/endianness.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/dirac.hpp"
@@ -39,7 +38,7 @@ namespace nissa
     for(int i=0;i<glb_size[mu];i++)
       {
 	//take the product
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) 
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][mu]);
 	set_borders_invalid(u);
 	

@@ -3,7 +3,7 @@
 #endif
 
 #include "base/thread_macros.hpp"
-#include "geometry/geometry_mix.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "hmc/theory_pars.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"

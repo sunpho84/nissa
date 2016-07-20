@@ -10,7 +10,6 @@
 #include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_mix.hpp"
 #include "inverters/twisted_mass/cg_invert_tmD_eoprec.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/su3_paths/clover_term.hpp"

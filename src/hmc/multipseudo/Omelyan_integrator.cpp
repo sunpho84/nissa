@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-#include "geometry/geometry_mix.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "operations/gaugeconf.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

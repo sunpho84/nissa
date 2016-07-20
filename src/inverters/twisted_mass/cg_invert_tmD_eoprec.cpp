@@ -8,7 +8,6 @@
 #include "base/vectors.hpp"
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_mix.hpp"
 #include "routines/ios.hpp"
 
 #include "cg_64_invert_tmD_eoprec.hpp"

@@ -2,8 +2,7 @@
 #define _CLOVER_TERM_HPP
 
 #include "base/vectors.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_mix.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 
