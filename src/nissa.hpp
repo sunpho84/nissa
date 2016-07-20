@@ -46,7 +46,6 @@
 
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_mix.hpp"
 
 #include "hmc/backfield.hpp"
 #include "hmc/fermions/rootst_eoimpr_quark_force.hpp"
