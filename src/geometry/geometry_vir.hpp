@@ -211,13 +211,138 @@ namespace nissa
     ~vranks_grid_t() {destroy();}
   };
   
+  //! get the number of ranks for the type
+#define NVRANKS_OF_TYPE(T) vranks_grid_t<BASE_TYPE(T)>::nvranks
+  
   //! flatten a vector type: T[2][2][nvranks] -> T[4][nvranks]
   template <typename T> struct flattened_vec_type
-  {
-    typedef BASE_TYPE(T) base_type;
-    typedef base_type type[NBASE_EL(T)/vranks_grid_t<base_type>::nvranks][vranks_grid_t<base_type>::nvranks];
-  };
+  {typedef BASE_TYPE(T) type[NBASE_EL(T)/NVRANKS_OF_TYPE(T)][NVRANKS_OF_TYPE(T)];};
 #define FLATTENED_VEC_TYPE(T) typename flattened_vec_type<T>::type
+  
+  //! crash if not matching
+  template <class T,class VT> void check_matching_size_vec()
+  {static_assert(NBASE_EL(VT)==NBASE_EL(T)*NVRANKS_OF_TYPE(VT),"number of vrank el does not match nvranks times the number of el");}
+  
+  /////////////////////////////////// automatic vectorization of types ////////////////////////////
+  
+  //! vectorize a simple type
+  template <typename _Tp> struct vectorize_type
+  {typedef _Tp type[NVRANKS_OF_TYPE(_Tp)];};
+#define VECTORIZED_TYPE(TP) typename vectorize_type<TP>::type
+  
+  //! chain-vectorize arrays
+  template <typename _Tp,std::size_t _Size> struct vectorize_type<_Tp[_Size]>
+  {typedef VECTORIZED_TYPE(_Tp) type[_Size];};
+  
+  //! automatize the definition
+#define DEFINE_VECTORIZED_TYPE(TP)	\
+  typedef VECTORIZED_TYPE(TP) NAME2(vd,TP)
+  
+  DEFINE_VECTORIZED_TYPE(complex);
+  DEFINE_VECTORIZED_TYPE(color);
+  DEFINE_VECTORIZED_TYPE(su3);
+  DEFINE_VECTORIZED_TYPE(halfspincolor);
+  DEFINE_VECTORIZED_TYPE(color_halfspincolor);
+  DEFINE_VECTORIZED_TYPE(halfspincolor_halfspincolor);
+  DEFINE_VECTORIZED_TYPE(quad_su3);
+  DEFINE_VECTORIZED_TYPE(oct_su3);
+  DEFINE_VECTORIZED_TYPE(spincolor);
+  DEFINE_VECTORIZED_TYPE(halfspin);
+  DEFINE_VECTORIZED_TYPE(clover_term_t); //matches quad_su3
+  DEFINE_VECTORIZED_TYPE(inv_clover_term_t);
+  
+  //////////////////// other scalar type version ////////////////////
+  
+  //! convert to something "any" scalar type
+  template <typename _BTp,typename _Tp> struct casted_type
+  {typedef _BTp type;};
+#define CASTED_TYPE(BTP,TP) typename casted_type<BTP,TP>::type
+  
+  //! chain-vectorize conversion of arrays to other scalar
+  template <typename _BTp,typename _Tp,std::size_t _Size> struct casted_type<_BTp,_Tp[_Size]>
+  {typedef CASTED_TYPE(_BTp,_Tp) type[_Size];};
+#define VECTORIZED_CASTED_TYPE(BTp,TP) VECTORIZED_TYPE(CASTED_TYPE(BTp,TP))
+#define DEFINE_VECTORIZED_CASTED_TYPE(BTp,TP)		\
+  typedef VECTORIZED_CASTED_TYPE(BTp,TP) NAME2(vf,TP)
+  
+  //! float
+#define DEFINE_VECTORIZED_FLOATED_TYPE(TP) DEFINE_VECTORIZED_CASTED_TYPE(float,TP)
+  
+  
+  DEFINE_VECTORIZED_FLOATED_TYPE(complex);
+  DEFINE_VECTORIZED_FLOATED_TYPE(color);
+  DEFINE_VECTORIZED_FLOATED_TYPE(su3);
+  DEFINE_VECTORIZED_FLOATED_TYPE(halfspincolor);
+  DEFINE_VECTORIZED_FLOATED_TYPE(color_halfspincolor);
+  DEFINE_VECTORIZED_FLOATED_TYPE(halfspincolor_halfspincolor);
+  DEFINE_VECTORIZED_FLOATED_TYPE(quad_su3);
+  DEFINE_VECTORIZED_FLOATED_TYPE(oct_su3);
+  DEFINE_VECTORIZED_FLOATED_TYPE(spincolor);
+  DEFINE_VECTORIZED_FLOATED_TYPE(halfspin);
+  DEFINE_VECTORIZED_FLOATED_TYPE(clover_term_t);
+  DEFINE_VECTORIZED_FLOATED_TYPE(inv_clover_term_t);
+  
+  //////////////////// grids ///////////////////
+  
+  EXTERN_GEOMETRY_VIR vranks_grid_t<double> vdouble_grid;
+  EXTERN_GEOMETRY_VIR vranks_grid_t<float> vfloat_grid;
+  
+  EXTERN_GEOMETRY_VIR int &vd_loc_vol INIT_TO(vdouble_grid.vloc_vol);
+  EXTERN_GEOMETRY_VIR int &vf_loc_vol INIT_TO(vfloat_grid.vloc_vol);
+  EXTERN_GEOMETRY_VIR int &vd_loc_volh INIT_TO(vdouble_grid.vloc_volh);
+  EXTERN_GEOMETRY_VIR int &vf_loc_volh INIT_TO(vfloat_grid.vloc_volh);
+  
+  //!remap a vir[some] to something layout
+  template <class VT,class T> THREADABLE_FUNCTION_5ARG(virsome_remap_to_something, T*,out, VT*,in, int,vol, int*,vrank_locsite_offset, int*,idx_out)
+  {
+    check_matching_size_vec<T,VT>();
+    GET_THREAD_ID();
+    START_TIMING(remap_time,nremap);
+    
+    if(out==(T*)in) CRASH("cannot use with out==in");
+    master_printf("nbase_el: %d, %s\n",NBASE_EL(T),typeid(FLATTENED_TYPE(T)).name());
+    master_printf("nbase_el v: %d, %s\n",NBASE_EL(VT),typeid(FLATTENED_VEC_TYPE(VT)).name());
+    
+    //split the virtual ranks
+    master_printf("nvranks: %d, flattened_type out: %s, flattened_typ_in: %s\n",NVRANKS_OF_TYPE(VT),typeid(FLATTENED_TYPE(T)).name(),typeid(FLATTENED_VEC_TYPE(VT)).name());
+    NISSA_PARALLEL_LOOP(virsome,0,vol/NVRANKS_OF_TYPE(VT))
+      for(int iel=0;iel<NBASE_EL(T);iel++)
+	for(int vrank=0;vrank<NVRANKS_OF_TYPE(VT);vrank++)
+	  ((FLATTENED_TYPE(T)*)out)[idx_out[virsome]+vrank_locsite_offset[vrank]][iel]=
+	    ((FLATTENED_VEC_TYPE(VT)*)in)[virsome][iel][vrank];
+    
+    //wait filling
+    set_borders_invalid(out);
+    
+    STOP_TIMING(remap_time);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //!remap an lx vector to vir[some] layout
+  template <class VT,class T> THREADABLE_FUNCTION_5ARG(something_remap_to_virsome, VT*,out, T*,in, int,vol, int*,vrank_of_locsite, int*,idx_out)
+  {
+    check_matching_size_vec<T,VT>();
+    GET_THREAD_ID();
+    START_TIMING(remap_time,nremap);
+    
+    if((T*)out==in) CRASH("cannot use with out==in");
+    master_printf("nbase_el: %d, %s\n",NBASE_EL(T),typeid(FLATTENED_TYPE(T)).name());
+    master_printf("nbase_el v: %d, %s\n",NBASE_EL(VT),typeid(FLATTENED_VEC_TYPE(VT)).name());
+    
+    //copy the various virtual ranks
+    NISSA_PARALLEL_LOOP(isite,0,vol)
+      for(int iel=0;iel<NBASE_EL(T);iel++)
+	((FLATTENED_VEC_TYPE(VT)*)out)[idx_out[isite]][iel][vrank_of_locsite[isite]]=
+	  ((FLATTENED_TYPE(T)*)in)[isite][iel];
+    
+    //wait filling
+    set_borders_invalid(out);
+    
+    STOP_TIMING(remap_time);
+  }
+  THREADABLE_FUNCTION_END
+  
+  ///////////
   
   //! structure to hold ordering
   template <class base_type> struct vranks_ord_t
@@ -242,92 +367,6 @@ namespace nissa
     //! return the vn=0 equivalent
     int vn0lx_of_loclx(int loclx)
     {return loclx_of_vloc[vloc_of_loclx[loclx]];}
-    
-    //! crash if not matching
-    template <class T,class VT> void check_matching_size()
-    {static_assert(NBASE_EL(VT)==NBASE_EL(T)*vg->nvranks,"number of vrank el does not match nvranks times the number of el");}
-    
-    //////
-    
-    //!remap a vir[some] to something layout
-    template <class VT,class T> THREADABLE_FUNCTION_5ARG(virsome_remap_to_something, T*,out, VT*,in, int,vol, int*,vrank_locsite_offset, int*,idx_out)
-    {
-      check_matching_size<T,VT>();
-      GET_THREAD_ID();
-      START_TIMING(remap_time,nremap);
-      
-      if(out==(T*)in) CRASH("cannot use with out==in");
-      master_printf("nbase_el: %d, %s\n",NBASE_EL(T),typeid(FLATTENED_TYPE(T)).name());
-      master_printf("nbase_el v: %d, %s\n",NBASE_EL(VT),typeid(FLATTENED_TYPE(VT)).name());
-      
-      //split the virtual ranks
-      int nvranks=sizeof(VT)/sizeof(T);
-      NISSA_PARALLEL_LOOP(virsome,0,vol/nvranks)
-	for(int iel=0;iel<NBASE_EL(T);iel++)
-  	for(int vrank=0;vrank<nvranks;vrank++)
-	  ((FLATTENED_TYPE(T)*)out)[idx_out[virsome]+vrank_locsite_offset[vrank]][iel]=
-	    ((FLATTENED_VEC_TYPE(VT)*)in)[virsome][iel][vrank];
-	   
-      //wait filling
-      set_borders_invalid(out);
-      
-      STOP_TIMING(remap_time);
-    }
-    THREADABLE_FUNCTION_END
-    
-    //!remap an lx vector to vir[some] layout
-    template <class VT,class T> THREADABLE_FUNCTION_5ARG(something_remap_to_virsome, VT*,out, T*,in, int,vol, int*,vrank_of_locsite, int*,idx_out)
-    {
-      check_matching_size<T,VT>();
-      GET_THREAD_ID();
-      START_TIMING(remap_time,nremap);
-      
-      if((T*)out==in) CRASH("cannot use with out==in");
-      master_printf("nbase_el: %d, %s\n",NBASE_EL(T),typeid(FLATTENED_TYPE(T)).name());
-      master_printf("nbase_el v: %d, %s\n",NBASE_EL(VT),typeid(FLATTENED_TYPE(VT)).name());
-      
-      //copy the various virtual ranks
-      NISSA_PARALLEL_LOOP(isite,0,vol)
-	for(int iel=0;iel<NBASE_EL(T);iel++)
-	  ((FLATTENED_VEC_TYPE(VT)*)out)[idx_out[isite]][iel][vrank_of_locsite[isite]]=
-	    ((FLATTENED_TYPE(T)*)in)[isite][iel];
-	   
-      //wait filling
-      set_borders_invalid(out);
-      
-      STOP_TIMING(remap_time);
-    }
-    THREADABLE_FUNCTION_END
-    
-    ///////////
-    
-    //! remap from vir to lx
-    template <class VT,class T> void virsome_remap_to_lx(T *out,VT *in)
-    {virsome_remap_to_something(out,in,loc_vol,vg->vrank_loclx_offset,loclx_of_vloc);}
-    
-    //! remap from lx to vir
-    template <class VT,class T> void lx_remap_to_virsome(VT *out,T *in)
-    {something_remap_to_virsome(out,in,loc_vol,vg->vrank_of_loclx,vloc_of_loclx);}
-    
-    ///////
-    
-    //! remap from vir to evn or odd
-    template <class T,class VT> void virsome_remap_to_evn_or_odd(T *out,VT *in,int par)
-    {virsome_remap_to_something(out,in,loc_volh,vg->vrank_loceo_offset,loceo_of_veos[par]);}
-    
-    //! remap from evn or odd to vir
-    template <class VT,class T> void evn_or_odd_remap_to_virsome(VT *out,T *in,int par)
-    {something_remap_to_virsome(out,in,loc_volh,vg->vrank_of_loceo[par],veos_of_loceo[par]);}
-    
-    ////////
-    
-    //! remap from vir to eo
-    template <class T,class VT> void virsome_remap_to_eo(T *out[2],VT *in[2]){for(int par=0;par<2;par++) virsome_remap_to_evn_or_odd(out[par],in[par],par);}
-    
-    //! remap from eo to vir
-    template <class VT,class T> void eo_remap_to_virsome(VT *out[2],T *in[2]){for(int par=0;par<2;par++) evn_or_odd_remap_to_virsome(out[par],in[par],par);}
-    
-    ////////
     
     //! init the geometry
     void init(vranks_grid_t<base_type> &ext_vg,std::function<void(vranks_ord_t*)>fill_vloc_of_loclx)
@@ -396,7 +435,37 @@ namespace nissa
     //! unset
     vranks_ord_t() : inited(false),vg(NULL) {}
     ~vranks_ord_t() {destroy();}
+    
+    //! remap from vir to lx
+    template <class T> void virsome_remap_to_lx(T *out,VECTORIZED_CASTED_TYPE(base_type,T) *in)
+    {virsome_remap_to_something(out,in,loc_vol,vg->vrank_loclx_offset,loclx_of_vloc);}
+    
+    //! remap from lx to vir
+    template <class T> void lx_remap_to_virsome(VECTORIZED_CASTED_TYPE(base_type,T) *out,T *in)
+    {something_remap_to_virsome(out,in,loc_vol,vg->vrank_of_loclx,vloc_of_loclx);}
+    
+    ///////
+    
+    //! remap from vir to evn or odd
+    template <class T> void virsome_remap_to_evn_or_odd(T *out,VECTORIZED_CASTED_TYPE(base_type,T) *in,int par)
+    {virsome_remap_to_something(out,in,loc_volh,vg->vrank_loceo_offset,loceo_of_veos[par]);}
+    
+    //! remap from evn or odd to vir
+    template <class T> void evn_or_odd_remap_to_virsome(VECTORIZED_CASTED_TYPE(base_type,T) *out,T *in,int par)
+    {something_remap_to_virsome(out,in,loc_volh,vg->vrank_of_loceo[par],veos_of_loceo[par]);}
+    
+    ////////
+    
+    //! remap from vir to eo
+    template <class T> void virsome_remap_to_eo(T *out[2],VECTORIZED_CASTED_TYPE(base_type,T) *in[2])
+    {for(int par=0;par<2;par++) virsome_remap_to_evn_or_odd(out[par],in[par],par);}
+    
+    //! remap from eo to vir
+    template <class T> void eo_remap_to_virsome(VECTORIZED_CASTED_TYPE(base_type,T) *out[2],T *in[2])
+    {for(int par=0;par<2;par++) evn_or_odd_remap_to_virsome(out[par],in[par],par);}
   };
+  
+  ////////
   
   // void lx_conf_remap_to_virlx(vir_oct_su3 *out,quad_su3 *in);
   // void lx_conf_remap_to_virlx_blocked(vir_su3 *out,quad_su3 *in);
@@ -445,73 +514,8 @@ namespace nissa
   void set_vranks_geometry();
   void unset_vranks_geometry();
   
-  EXTERN_GEOMETRY_VIR vranks_grid_t<double> vdouble_grid;
-  EXTERN_GEOMETRY_VIR vranks_grid_t<float> vfloat_grid;
-  
   EXTERN_GEOMETRY_VIR vranks_ord_t<double> vlx_double_geom,vsf_double_geom;
   EXTERN_GEOMETRY_VIR vranks_ord_t<float> vlx_float_geom,vsf_float_geom;
-  
-  /////////////////////////////////// automatic vectorization of type ///////////////////
-  
-  //! vectorize a simple type
-  template <typename _Tp> struct vectorize_type
-  {typedef _Tp type[vranks_grid_t<_Tp>::nvranks];};
-#define VECTORIZED_TYPE(TP) vectorize_type<TP>::type
-  
-  //! chain-vectorize arrays
-  template <typename _Tp,std::size_t _Size> struct vectorize_type<_Tp[_Size]>
-  {typedef typename VECTORIZED_TYPE(_Tp) type[_Size];};
-  
-  //! automatize the definition
-#define DEFINE_VECTORIZED_TYPE(TP)	\
-  typedef VECTORIZED_TYPE(TP) NAME2(vd,TP)
-  
-  DEFINE_VECTORIZED_TYPE(complex);
-  DEFINE_VECTORIZED_TYPE(color);
-  DEFINE_VECTORIZED_TYPE(su3);
-  DEFINE_VECTORIZED_TYPE(halfspincolor);
-  DEFINE_VECTORIZED_TYPE(color_halfspincolor);
-  DEFINE_VECTORIZED_TYPE(halfspincolor_halfspincolor);
-  DEFINE_VECTORIZED_TYPE(quad_su3);
-  DEFINE_VECTORIZED_TYPE(oct_su3);
-  DEFINE_VECTORIZED_TYPE(spincolor);
-  DEFINE_VECTORIZED_TYPE(halfspin);
-  DEFINE_VECTORIZED_TYPE(clover_term_t); //matches quad_su3
-  DEFINE_VECTORIZED_TYPE(inv_clover_term_t);
-  
-  //////////////////// single version ////////////////////
-  
-  //! convert to single "any" (e.g. double) scalar type
-  template <typename _Tp> struct float_type
-  {typedef float type;};
-#define FLOATED_TYPE(TP) float_type<TP>::type
-  
-  //! chain-vectorize conversion of arrays to float
-  template <typename _Tp,std::size_t _Size> struct float_type<_Tp[_Size]>
-  {typedef typename FLOATED_TYPE(_Tp) type[_Size];};
-#define VECTORIZED_FLOATED_TYPE(TP) VECTORIZED_TYPE(FLOATED_TYPE(TP))
-#define DEFINE_VECTORIZED_FLOATED_TYPE(TP)		\
-  typedef VECTORIZED_FLOATED_TYPE(TP) NAME2(vf,TP)
-  
-  DEFINE_VECTORIZED_FLOATED_TYPE(complex);
-  DEFINE_VECTORIZED_FLOATED_TYPE(color);
-  DEFINE_VECTORIZED_FLOATED_TYPE(su3);
-  DEFINE_VECTORIZED_FLOATED_TYPE(halfspincolor);
-  DEFINE_VECTORIZED_FLOATED_TYPE(color_halfspincolor);
-  DEFINE_VECTORIZED_FLOATED_TYPE(halfspincolor_halfspincolor);
-  DEFINE_VECTORIZED_FLOATED_TYPE(quad_su3);
-  DEFINE_VECTORIZED_FLOATED_TYPE(oct_su3);
-  DEFINE_VECTORIZED_FLOATED_TYPE(spincolor);
-  DEFINE_VECTORIZED_FLOATED_TYPE(halfspin);
-  DEFINE_VECTORIZED_FLOATED_TYPE(clover_term_t);
-  DEFINE_VECTORIZED_FLOATED_TYPE(inv_clover_term_t);
-  
-  //////////////////// grids ///////////////////
-  
-  EXTERN_GEOMETRY_VIR int &vd_loc_vol INIT_TO(vdouble_grid.vloc_vol);
-  EXTERN_GEOMETRY_VIR int &vf_loc_vol INIT_TO(vfloat_grid.vloc_vol);
-  EXTERN_GEOMETRY_VIR int &vd_loc_volh INIT_TO(vdouble_grid.vloc_volh);
-  EXTERN_GEOMETRY_VIR int &vf_loc_volh INIT_TO(vfloat_grid.vloc_volh);
 }
 
 #undef EXTERN_GEOMETRY_VIR

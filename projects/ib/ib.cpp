@@ -247,9 +247,16 @@ void in_main(int narg,char **arg)
       
       //check transformation
       vd_quad_su3 *vconf=nissa_malloc("vconf",vd_loc_vol,vd_quad_su3);
-      quad_su3 *conf_reco=nissa_malloc("conf_reco",loc_vol,quad_su3);
+      single_quad_su3 *conf_reco=nissa_malloc("conf_reco",loc_vol,single_quad_su3);
       quad_su3 *conf_eo[2]={nissa_malloc("conf_e",loc_volh,quad_su3),nissa_malloc("conf_o",loc_volh,quad_su3)};
       vd_quad_su3 *vconf_eo[2]={nissa_malloc("vconf_e",vd_loc_volh,vd_quad_su3),nissa_malloc("conf_o",vd_loc_volh,vd_quad_su3)};
+      
+      // GET_THREAD_ID();
+      // vector_reset(conf_reco);
+      // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      // 	for(int mu=0;mu<NDIM;mu++)
+      // 	  su3_put_to_diag(conf[ivol][mu],ivol*NDIM+mu);
+      // set_borders_invalid(conf);
       
       for(int itest=0;itest<2;itest++)
 	{
@@ -269,9 +276,24 @@ void in_main(int narg,char **arg)
 	    break;
 	  }
 	  
+	  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  //   for(int mu=0;mu<NDIM;mu++)
+	  //     {
+	  // 	int x=(int)conf_reco[ivol][mu][0][0][RE];
+	  // 	int mu_reco=x%NDIM;
+	  // 	int ivol_reco=x/NDIM;
+	  // 	master_printf("%d %d , %d %d\n",ivol,ivol_reco,mu,mu_reco);
+	  //     }
 	  //test
-	  for(int i=0;i<(int)(loc_vol*sizeof(quad_su3)/sizeof(double));i++)
-	  if(((double*)conf_reco)[i]!=((double*)conf)[i]) CRASH("test %d %lg %lg",itest,((double*)conf_reco)[i],((double*)conf[i]));
+	  for(int ivol=0;ivol<loc_vol;ivol++)
+	    for(int iel=0;iel<NBASE_EL(decltype(conf_reco));iel++)
+	      {
+		auto *fconf_reco=(FLATTENED_TYPE(decltype(conf_reco))*)conf_reco;
+		auto *fconf=(FLATTENED_TYPE(decltype(conf))*)conf;
+		if((int)fconf_reco[ivol][iel]!=(int)fconf[ivol][iel]) CRASH("test %d, %s %s, ivol %d iel %d/%d, %d %d",itest,typeid(FLATTENED_TYPE(decltype(conf_reco))).name(),typeid(FLATTENED_TYPE(decltype(conf))).name(),ivol,iel,NBASE_EL(decltype(conf_reco)),(int)fconf_reco[ivol][iel],(int)fconf[ivol][iel]);
+	      }
+	  master_printf("Congratulations, test %d passed\n",itest);
+	  
 	}
       //free
       nissa_free(conf_reco);

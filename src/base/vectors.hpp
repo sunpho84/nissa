@@ -99,20 +99,24 @@ namespace nissa
   void unset_vect_flag_non_blocking(void *v,unsigned int flag);
   void vect_content_fprintf(FILE *f,void *vec);
   void vect_content_printf(void *vec);
-
-  //! remove all brackets
-#define BASE_TYPE(T) typename std::remove_all_extents<T>::type
-
+  
+  //! remove all brackets and pointers
+  template<typename _Tp> struct base_type{typedef _Tp type;};
+  template<typename _Tp,std::size_t _Size> struct base_type<_Tp[_Size]>{typedef typename base_type<_Tp>::type type;};
+  template<typename _Tp> struct base_type<_Tp[]> {typedef typename base_type<_Tp>::type type;};
+  template<typename _Tp> struct base_type<_Tp*> {typedef typename base_type<_Tp>::type type;};
+#define BASE_TYPE(T) typename base_type<T>::type
+  template<typename _Tp> struct remove_all_pointers{typedef _Tp type;};
+  template<typename _Tp> struct remove_all_pointers<_Tp*> {typedef typename remove_all_pointers<_Tp>::type type;};
+#define REMOVE_ALL_POINTERS(T) typename remove_all_pointers<T>::type
+  
   //! number of elements of the base type
-  template <typename T> constexpr int nbase_el(){return sizeof(T)/sizeof(BASE_TYPE(T));}
+  template <typename T> constexpr int nbase_el(){return sizeof(REMOVE_ALL_POINTERS(T))/sizeof(BASE_TYPE(T));}
 #define NBASE_EL(T) nbase_el<T>()
-
+  
   //! flatten a vector type: T[2][2] -> T[4]
   template <typename T> struct flattened_type
-  {
-    typedef BASE_TYPE(T) base_type;
-    typedef base_type type[NBASE_EL(T)];
-  };
+  {typedef BASE_TYPE(T) type[NBASE_EL(T)];};
 #define FLATTENED_TYPE(T) typename flattened_type<T>::type
 }
 
