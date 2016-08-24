@@ -67,6 +67,7 @@ void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
     {
       read_str_double("HmcTrajLength",&pars.traj_length);
       read_str_int("NmdSteps",&pars.nmd_steps);
+      read_str_int("SkipMTestNTraj",&pars.skip_mtest_ntraj);
       read_str_int("UseFacc",&pars.use_Facc);
       if(pars.use_Facc)
 	{
@@ -179,7 +180,7 @@ void write_conf(const char *path)
   ILDG_string_message_append_to_last(&mess,"ConfID",text);
   
   //skip 10 random numbers
-  for(int iskip=0;iskip<10;iskip++) rnd_get_unif(&glb_rnd_gen,0,1);
+  //for(int iskip=0;iskip<10;iskip++) rnd_get_unif(&glb_rnd_gen,0,1);
   
   //glb_rnd_gen status
   convert_rnd_gen_to_text(text,&glb_rnd_gen,1024);
@@ -639,7 +640,7 @@ THREADABLE_FUNCTION_1ARG(impose_open_boundary_cond, quad_su3*,conf)
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     if(glb_coord_of_loclx[ivol][0]==glb_size[0]-1)
       su3_put_to_zero(conf[ivol][0]);
-
+  
   set_borders_invalid(conf);
 }
 THREADABLE_FUNCTION_END
@@ -684,7 +685,7 @@ void generate_new_conf(quad_su3 *conf,int check=0)
 {
   if(evol_pars.use_hmc)
     {
-      int perform_test=true;
+      int perform_test=(iconf>=evol_pars.skip_mtest_ntraj);
       double diff_act=pure_gauge_hmc_step(temp_conf,conf,theory_pars,evol_pars,&rat_exp_H,iconf);
       
       //perform the test in any case

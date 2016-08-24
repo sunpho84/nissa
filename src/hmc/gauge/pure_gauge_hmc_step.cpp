@@ -6,7 +6,6 @@
 #include "base/vectors.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/MFACC_fields.hpp"
-#include "hmc/gauge/MFACC_fields.hpp"
 #include "hmc/momenta/momenta_action.hpp"
 #include "hmc/momenta/momenta_generation.hpp"
 #include "hmc/gauge/pure_gauge_Omelyan_integrator.hpp"
