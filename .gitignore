@@ -30,3 +30,4 @@ build_clang
 /doc/deflation-notes.pdf
 build_vir
 /.dir-locals.el
+/src/config.hpp.in~

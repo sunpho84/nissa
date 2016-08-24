@@ -48,12 +48,15 @@ double x_corr_mass;
 double x_corr_residue;
 
 //bench
+double initial_time;
 double base_init_time=0;
 double topo_time=0;
 double meas_time=0;
 double read_time=0;
 double write_time=0;
 double x_corr_time=0;
+double walltime=0;
+double max_traj_time=0;
 
 //read the parameters relevant for pure gauge evolution
 void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
@@ -469,7 +472,8 @@ double compute_Iwasaki_action_per_timeslice(double *paths,double *paths_per_time
 //initialize the simulation
 void init_simulation(char *path)
 {
-  base_init_time-=take_time();
+  initial_time=take_time();
+  base_init_time-=initial_time;
   
   //////////////////////////// read the input /////////////////////////
   
@@ -485,6 +489,7 @@ void init_simulation(char *path)
   read_str_int("GaugeObsFlag",&gauge_obs_flag); //number of updates between each action measurement
   read_str_str("GaugeObsPath",gauge_obs_path,1024); //gauge observables path
   read_str_int("MaxNConfs",&max_nconfs); //number of confs to produce
+  if(max_nconfs==-1)  read_str_double("WallTime",&walltime); //time to run
   read_str_int("Seed",&seed); //seed
   
   //kind of action
@@ -646,6 +651,7 @@ void close_simulation()
   if(boundary_cond==OPEN_BOUNDARY_COND) close_file(file_obs_per_timeslice);
   
   master_printf("========== Performance report ===========\n");
+  master_printf("Total time: %lg sec for %d confs\n",take_time()-initial_time,nprod_confs);
   master_printf("Basic initialization time: %lg sec\n",base_init_time);
   if(!evol_pars.use_hmc)
     {
@@ -718,7 +724,7 @@ void generate_new_conf(quad_su3 *conf,int check=0)
 			2*(action_post-action_pre)/(action_post+action_pre));
 	}
     }
-
+  
   GET_THREAD_ID();
   START_TIMING(unitarize_time,nunitarize);
   unitarize_lx_conf_maximal_trace_projecting(conf);
@@ -777,6 +783,73 @@ void store_conf_if_necessary()
     }
 }
 
+//increase total time used to generate configurations
+void increase_max_time_per_traj(double init_traj_time)
+{
+  //increase the traj time
+  double single_traj_time=broadcast(take_time()-init_traj_time);
+  max_traj_time=std::max(max_traj_time,single_traj_time);
+}
+
+//check if we have enough time to make another conf
+bool enough_time()
+{
+  //if no traj performed assume yes
+  if(nprod_confs==0) return true;
+  
+  //if no walltime given assume yes
+  if(walltime==0) return true;
+  
+  //compute the number of trajectory that can be run
+  double remaining_time=broadcast(walltime-(take_time()-initial_time));
+  verbosity_lv2_master_printf("Remaining time: %2.2lg s, max time per trajectory, needed so far: %2.2lg s\n",remaining_time,max_traj_time);
+  int ntraj_poss=floor(remaining_time/max_traj_time);
+  int nmin_traj_req=2;
+  verbosity_lv2_master_printf("Would allow to produce: %d trajectories in the worst case (stopping when <=%d)\n",ntraj_poss,nmin_traj_req);
+  
+  //check if we have enough time to make another traj
+  return (ntraj_poss>=nmin_traj_req);
+}
+
+//check that we fulfill all condition to go on
+bool check_if_continue()
+{
+  //check if to stop because stop present
+  bool stop_present=file_exists("stop");
+  if(stop_present)
+    {
+      verbosity_lv1_master_printf("'Stop' file present, closing\n");
+      return false;
+    }
+  
+  //check if to stop because stop or restart present
+  bool restart_present=file_exists("restart");
+  if(restart_present)
+    {
+      verbosity_lv1_master_printf("'Restart' file present, closing\n");
+      return false;
+    }
+  
+  //check time
+  bool have_enough_time=enough_time();
+  if(!have_enough_time)
+    {
+      verbosity_lv1_master_printf("Running out of time, closing\n");
+      return false;
+    }
+  
+  //check all confs produced
+  bool produced_all_confs=false;
+  if(max_nconfs>0) produced_all_confs=(nprod_confs<max_nconfs);
+  if(produced_all_confs)
+    {
+      verbosity_lv1_master_printf("Produced all %d confs, closing\n",max_nconfs);
+      return false;
+    }
+  
+  return true;
+}
+
 void in_main(int narg,char **arg)
 {
   //check argument
@@ -799,6 +872,7 @@ void in_main(int narg,char **arg)
   do
     {
       master_printf("--------Configuration %d--------\n",iconf);
+      double init_conf_time=take_time();
       
       // 1) produce new conf
       if(max_nconfs!=0)
@@ -830,9 +904,10 @@ void in_main(int narg,char **arg)
       store_conf_if_necessary();
       
       // 5) spacing between output
+      increase_max_time_per_traj(init_conf_time);
       master_printf("\n");
     }
-  while(nprod_confs<max_nconfs && !file_exists("stop") && !file_exists("restart"));
+  while(check_if_continue());
   
   /////////////////////////////////////// timings /////////////////////////////////
   
