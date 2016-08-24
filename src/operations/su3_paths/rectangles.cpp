@@ -28,8 +28,8 @@ namespace nissa
     vector_reset(point_shapes);
     
     for(int par=0;par<2;par++)
-      for(int mu=0;mu<4;mu++) //link dir
-	for(int nu=0;nu<4;nu++) //staple dir
+      for(int mu=0;mu<NDIM;mu++) //link dir
+	for(int nu=0;nu<NDIM;nu++) //staple dir
 	  if(nu!=mu)
 	    NISSA_PARALLEL_LOOP(A,0,loc_volh)
 	      {
@@ -65,7 +65,7 @@ namespace nissa
     glb_shapes[IM]=coll_shapes[IM]/(36*glb_vol);
   }
   THREADABLE_FUNCTION_END
-
+  
   //compute plaquettes and rectangles
   THREADABLE_FUNCTION_2ARG(point_plaquette_and_rectangles_lx_conf, complex*,point_shapes, quad_su3*,conf)
   {
@@ -103,7 +103,7 @@ namespace nissa
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-
+  
   //compute plaquettes and rectangles
   THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_lx_conf, double*,glb_shapes, quad_su3*,conf)
   {
@@ -121,7 +121,7 @@ namespace nissa
     glb_shapes[IM]=coll_shapes[IM]/(36*glb_vol);
   }
   THREADABLE_FUNCTION_END
-
+  
   //compute plaquettes and rectangles
   THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_lx_conf_per_timeslice, double*,glb_shapes, quad_su3*,conf)
   {
@@ -145,14 +145,14 @@ namespace nissa
     complex *coll_shapes=nissa_malloc("coll_shapes",glb_size[0],complex);
     if(IS_MASTER_THREAD) MPI_Reduce(loc_shapes,coll_shapes,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
     nissa_free(loc_shapes);
-
-    //normalize 
+    
+    //normalize
     for(int t=0;t<glb_size[0];t++)
       {
 	glb_shapes[2*t+0]=coll_shapes[t][RE]/(18*glb_vol/glb_size[0]);
 	glb_shapes[2*t+1]=coll_shapes[t][IM]/(36*glb_vol/glb_size[0]);
       }
-    nissa_free(coll_shapes);    
+    nissa_free(coll_shapes);
   }
   THREADABLE_FUNCTION_END
 }
