@@ -265,6 +265,7 @@ void in_main(int narg,char **arg)
 	    //lx confersion
 	  case 0:
 	    vlx_double_geom.lx_remap_to_virsome(vconf,conf);
+	    vlx_double_geom.communicate_vborders(vconf);
 	    vlx_double_geom.virsome_remap_to_lx(conf_reco,vconf);
 	    break;
 	    //e/o conversion

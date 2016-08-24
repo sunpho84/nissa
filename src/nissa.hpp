@@ -20,6 +20,7 @@
 #include "communicate/borders.hpp"
 #include "communicate/communicate.hpp"
 #include "communicate/edges.hpp"
+#include "communicate/vborders.hpp"
 
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"

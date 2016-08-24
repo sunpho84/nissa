@@ -90,7 +90,6 @@ double read_conf_time=0;
 void read_conf(quad_su3 **conf,const char *path)
 {
   GET_THREAD_ID();
-  
   START_TIMING(read_conf_time,nread_conf);
   
   master_printf("Reading conf from file: %s\n",path);
@@ -179,7 +178,7 @@ void init_program_to_analyze()
   //start the random generator using passed seed
   start_loc_rnd_gen(drv->seed);
   
-  //we always append...
+  //we always append to measurement
   conf_created=false;
   
   //check conf list
@@ -216,10 +215,10 @@ void init_simulation(char *path)
   
   //////////////////////// initialize stuff ////////////////////
   
-  //initialize the theory_pars theory to simulate
+  //initialize the theory_pars containing theory to simulate
   for(size_t itheory=0;itheory<drv->theories.size();itheory++) drv->theories[itheory].allocinit_backfield();
   
-  //initialize sweeper to cool
+  //initialize sweeper to cool (used to measure topological charge)
   for(size_t i=0;i<drv->top_meas.size();i++)
     if(drv->top_meas[i].each && drv->top_meas[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(drv->top_meas[i].smooth_pars.cool.gauge_action);
   
@@ -443,7 +442,7 @@ bool enough_time()
 //check that we fulfill all condition to go on
 bool check_if_continue()
 {
-  //check if to stop because stop present
+  //check if to stop because stop file present
   bool stop_present=file_exists("stop");
   if(stop_present)
     {
@@ -451,7 +450,7 @@ bool check_if_continue()
       return false;
     }
   
-  //check if to stop because stop or restart present
+  //check if to stop because restart file present
   bool restart_present=file_exists("restart");
   if(restart_present)
     {

@@ -463,6 +463,9 @@ namespace nissa
     //! remap from eo to vir
     template <class T> void eo_remap_to_virsome(VECTORIZED_CASTED_TYPE(base_type,T) *out[2],T *in[2])
     {for(int par=0;par<2;par++) evn_or_odd_remap_to_virsome(out[par],in[par],par);}
+    
+    //! communicate virtual borders - defined in communicate/vborders.hpp
+    template <class T> void communicate_vborders(T *v);
   };
   
   ////////
