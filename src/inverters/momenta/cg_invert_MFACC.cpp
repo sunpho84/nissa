@@ -45,7 +45,7 @@ namespace nissa
     
     //temporary allocate
     su3 *temp_source=nissa_malloc("temp_source",loc_vol,su3);
-    su3 *temp_sol=nissa_malloc("temp_sol",loc_vol,su3);
+    su3 *temp_sol=nissa_malloc("temp_sol",loc_vol+bord_vol,su3);
     
     //do the four links
     for(int mu=0;mu<NDIM;mu++)
