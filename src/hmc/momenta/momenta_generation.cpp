@@ -91,17 +91,17 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //generate momenta needed for Fourier acceleration
-  THREADABLE_FUNCTION_4ARG(generate_MFACC_momenta, su3**,pi, quad_su3*,conf, double,kappa, double,residue)
+  THREADABLE_FUNCTION_5ARG(generate_MFACC_momenta, su3**,pi, int,naux_fields, quad_su3*,conf, double,kappa, double,residue)
   {
     verbosity_lv1_master_printf("Generating Fourier acceleration momenta\n");
     
     //allocate gaussian field
     su3 *V=nissa_malloc("V",loc_vol+bord_vol,su3);
     
-    for(int id=0;id<n_FACC_fields;id++)
+    for(int id=0;id<naux_fields;id++)
       {
         //generate gaussianly V and then invert on it
-        generate_MFACC_fields(V);
+        generate_MFACC_field(V);
         inv_MFACC_cg(pi[id],NULL,conf,kappa,10000000,residue,V);
       }
     verbosity_lv1_master_printf("\n");

@@ -30,7 +30,7 @@ namespace
 namespace nissa
 {
   //generate Fourier acceleration-related fields
-  THREADABLE_FUNCTION_1ARG(generate_MFACC_fields, su3*,pi)
+  THREADABLE_FUNCTION_1ARG(generate_MFACC_field, su3*,pi)
   {
     GET_THREAD_ID();
     
@@ -41,21 +41,21 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the action for the Fourier acceleration-related fields - last bit of eq.4
-  double MFACC_fields_action(su3 **phi)
+  double MFACC_fields_action(su3 **phi,int naux_fields)
   {
     //summ the square of pi
-    double glb_action_lx[n_FACC_fields];
-    for(int ifield=0;ifield<n_FACC_fields;ifield++)
+    double glb_action_lx[naux_fields];
+    for(int ifield=0;ifield<naux_fields;ifield++)
       double_vector_glb_scalar_prod(&(glb_action_lx[ifield]),(double*)(phi[ifield]),(double*)(phi[ifield]),sizeof(su3)/sizeof(double)*loc_vol);
     
     double act=0;
-    for(int id=0;id<n_FACC_fields;id++) act+=glb_action_lx[id];
+    for(int id=0;id<naux_fields;id++) act+=glb_action_lx[id];
     
     return act/2;
   }
   
   //Evolve Fourier acceleration related fields - eq.5
-  THREADABLE_FUNCTION_5ARG(evolve_MFACC_fields, su3**,phi, quad_su3*,conf, double,kappa, su3**,pi, double,dt)
+  THREADABLE_FUNCTION_6ARG(evolve_MFACC_fields, su3**,phi, int,naux_fields, quad_su3*,conf, double,kappa, su3**,pi, double,dt)
   {
     verbosity_lv2_master_printf("Evolving Fourier fields, dt=%lg\n",dt);
     
@@ -63,7 +63,7 @@ namespace nissa
     su3 *F=nissa_malloc("temp",loc_vol+bord_vol,su3);
     su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
     
-    for(int ifield=0;ifield<n_FACC_fields;ifield++)
+    for(int ifield=0;ifield<naux_fields;ifield++)
       {
 #ifdef DEBUG
 	//store initial link and compute action
@@ -130,17 +130,17 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //Evolve Fourier acceleration related momenta - eq.6
-  THREADABLE_FUNCTION_3ARG(evolve_MFACC_momenta, su3**,pi, su3**,phi, double,dt)
+  THREADABLE_FUNCTION_4ARG(evolve_MFACC_momenta, su3**,pi, su3**,phi, int,naux_fields, double,dt)
   {
     verbosity_lv2_master_printf("Evolving Fourier momenta, dt=%lg\n",dt);
     
-    for(int ifield=0;ifield<n_FACC_fields;ifield++)
+    for(int ifield=0;ifield<naux_fields;ifield++)
       double_vector_summ_double_vector_prod_double((double*)(pi[ifield]),(double*)(pi[ifield]),(double*)(phi[ifield]),-dt,loc_vol*sizeof(su3)/sizeof(double));
   }
   THREADABLE_FUNCTION_END
   
   //compute the QCD force originated from MFACC momenta (derivative of \pi^\dag MM \pi/2) w.r.t U
-  THREADABLE_FUNCTION_4ARG(summ_the_MFACC_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, su3**,pi)
+  THREADABLE_FUNCTION_5ARG(summ_the_MFACC_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, su3**,pi, int,naux_fields)
   {
     GET_THREAD_ID();
     
@@ -193,7 +193,7 @@ namespace nissa
     vector_reset(F);
 #endif
     
-    for(int ifield=0;ifield<n_FACC_fields;ifield++)
+    for(int ifield=0;ifield<naux_fields;ifield++)
       {
 	//apply
 	apply_MFACC(temp,conf,kappa,pi[ifield]);

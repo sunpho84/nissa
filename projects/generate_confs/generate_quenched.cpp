@@ -73,6 +73,7 @@ void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
 	{
 	  read_str_double("Kappa",&pars.kappa);
 	  read_str_double("Residue",&pars.residue);
+	  read_str_int("NAux",&pars.naux_fields);
 	}
     }
   else

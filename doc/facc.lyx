@@ -92,8 +92,43 @@ G=M^{-1}
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathcal{H}=\mathcal{H}_{YM}+\mathcal{H}_{MOM}+\mathcal{H}_{AUX\,PH}+\mathcal{H}_{AUX\,MOM}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\mathcal{H}_{MOM}=\frac{1}{2}{\rm Tr}\left[P_{\mu}^{\dagger}GP_{\mu}\right]
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\mathcal{H}_{AUX\,PH}=\frac{1}{2}{\rm Tr}\left[\phi^{\dagger}\phi\right]
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\mathcal{H}_{AUX\,MOM}=\frac{1}{2}{\rm Tr}\left[\pi^{\dagger}M^{2}\pi\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
-FACC field-momenta
+Equation of motion for FACC field-momenta
 \end_layout
 
 \begin_layout Standard
@@ -109,25 +144,14 @@ FACC field-momenta
 \end_layout
 
 \begin_layout Section
-Ordinary field-momenta
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\mathcal{H}_{mom}=\frac{1}{2}{\rm Tr}\left[P_{\mu}^{\dagger}GP_{\mu}\right]
-\]
-
-\end_inset
-
-
+Equation of motion for ordinary field-momenta
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-\dot{U}_{\mu} & = & GH_{\mu}\cdot U_{\mu}\\
-\dot{H} & _{\mu}= & -\partial\mathcal{H}/\partial U_{\mu}
+\dot{U}_{\mu} & = & GP_{\mu}\cdot U_{\mu}\to U_{\mu}^{\prime}=e^{iGP_{\mu}\Delta t}U_{\mu}\\
+\dot{P} & _{\mu}= & -\partial\mathcal{H}/\partial U_{\mu}=-\partial\mathcal{H}_{YM}/\partial U_{\mu}-\partial\mathcal{H}/\partial U_{\mu}
 \end{eqnarray*}
 
 \end_inset
@@ -135,19 +159,14 @@ Ordinary field-momenta
 
 \end_layout
 
+\begin_layout Section
+How to generate the momenta?
+\end_layout
+
 \begin_layout Standard
-How to generate?
 \begin_inset Formula 
 \[
-\mathcal{H}_{mom}=\frac{1}{2}{\rm Tr}\left[x_{\mu}^{\dagger}x_{\mu}\right]
-\]
-
-\end_inset
-
-
-\begin_inset Formula 
-\[
-x_{\mu}=M^{-1/2}P_{\mu}
+\mathcal{H}_{mom}=\frac{1}{2}{\rm Tr}\left[x_{\mu}^{\dagger}x_{\mu}\right],\qquad x_{\mu}=M^{-1/2}P_{\mu}
 \]
 
 \end_inset

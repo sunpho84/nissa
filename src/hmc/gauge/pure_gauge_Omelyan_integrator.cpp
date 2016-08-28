@@ -116,7 +116,7 @@ namespace nissa
 	//compute without TA
 	vector_reset(F);
 	compute_gluonic_force_lx_conf_do_not_finish(F,conf,theory_pars);
-	summ_the_MFACC_momenta_QCD_force(F,conf,simul->kappa,pi);
+	summ_the_MFACC_momenta_QCD_force(F,conf,simul->kappa,pi,simul->naux_fields);
 	summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
 	
 	//finish the calculation
@@ -139,16 +139,16 @@ namespace nissa
 #endif
     
     //evolve FACC momenta
-    if(evolve_FACC) evolve_MFACC_momenta(pi,phi,dt);
+    if(evolve_FACC) evolve_MFACC_momenta(pi,phi,simul->naux_fields,dt);
     
     if(ext_F==NULL) nissa_free(F);
   }
   THREADABLE_FUNCTION_END
   
   //combine the two fields evolution
-  void evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(quad_su3 *conf,su3 **phi,quad_su3 *H,su3 **pi,double kappa,int niter,double residue,double dt)
+  void evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(quad_su3 *conf,su3 **phi,quad_su3 *H,su3 **pi,int naux_fields,double kappa,int niter,double residue,double dt)
   {
-    if(evolve_FACC) evolve_MFACC_fields(phi,conf,kappa,pi,dt);
+    if(evolve_FACC) evolve_MFACC_fields(phi,naux_fields,conf,kappa,pi,dt);
     if(evolve_SU3) evolve_lx_conf_with_accelerated_momenta(conf,H,kappa,niter,residue,dt);
   }
   
@@ -174,10 +174,10 @@ namespace nissa
 	//decide if last step is final or not
 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
-	evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(conf,phi,H,pi,simul->kappa,niter_max,simul->residue,dth);
+	evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(conf,phi,H,pi,simul->naux_fields,simul->kappa,niter_max,simul->residue,dth);
 	evolve_momenta_and_FACC_momenta(H,pi,conf,phi,theory_pars,simul,uml2dt,F);
 	
-	evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(conf,phi,H,pi,simul->kappa,niter_max,simul->residue,dth);
+	evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(conf,phi,H,pi,simul->naux_fields,simul->kappa,niter_max,simul->residue,dth);
 	evolve_momenta_and_FACC_momenta(H,pi,conf,phi,theory_pars,simul,last_dt,F);
 	
 	//normalize the configuration

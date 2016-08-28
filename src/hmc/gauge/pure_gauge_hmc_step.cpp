@@ -14,7 +14,7 @@
 
 namespace nissa
 {
-  double pure_gauge_action(quad_su3 *conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,quad_su3 *H,su3 **phi,su3 **pi)
+  double pure_gauge_action(quad_su3 *conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,quad_su3 *H,su3 **phi,su3 **pi,int naux_fields)
   {
     //compute action for momenta
     double action_H=0;
@@ -26,9 +26,9 @@ namespace nissa
     double action_phi=0,action_pi=0;
     if(evol_pars.use_Facc)
       {
-	action_phi=MFACC_fields_action(phi);
+	action_phi=MFACC_fields_action(phi,naux_fields);
 	verbosity_lv1_master_printf("Fourier acceleration fields action: %lg\n",action_phi);
-	action_pi=MFACC_momenta_action(pi,conf,evol_pars.kappa);
+	action_pi=MFACC_momenta_action(pi,naux_fields,conf,evol_pars.kappa);
 	verbosity_lv1_master_printf("Fourier acceleration momenta action: %lg\n",action_pi);
       }
     
@@ -56,23 +56,25 @@ namespace nissa
     vector_copy(out_conf,in_conf);
     
     //if we accelerate draw also momenta and position
-    static su3 *phi[n_FACC_fields],*pi[n_FACC_fields];
+    static su3 **phi,**pi;
     if(evol_pars.use_Facc)
       {
 	
 	if(init)
 	  {
 	    init=0;
+	    phi=new su3*[evol_pars.naux_fields];
+	    pi=new su3*[evol_pars.naux_fields];
 	    //if we need to accelerate allocate auxiliary fields
-	    for(int id=0;id<n_FACC_fields;id++)
+	    for(int id=0;id<evol_pars.naux_fields;id++)
 	      {
 		phi[id]=nissa_malloc("phi",loc_vol+bord_vol,su3);
 		pi[id]=nissa_malloc("pi",loc_vol+bord_vol,su3);
 	      }
 	    
 	    //generate FACC fields and momenta
-	    for(int id=0;id<n_FACC_fields;id++) generate_MFACC_fields(phi[id]);
-	    generate_MFACC_momenta(pi,out_conf,evol_pars.kappa,evol_pars.residue);
+	    for(int id=0;id<evol_pars.naux_fields;id++) generate_MFACC_field(phi[id]);
+	    generate_MFACC_momenta(pi,evol_pars.naux_fields,out_conf,evol_pars.kappa,evol_pars.residue);
 	  }
 	
 	//create the momenta
@@ -81,7 +83,7 @@ namespace nissa
     else generate_hmc_momenta(H);
     
     //compute the action
-    double init_action=pure_gauge_action(out_conf,theory_pars,evol_pars,H,phi,pi);
+    double init_action=pure_gauge_action(out_conf,theory_pars,evol_pars,H,phi,pi,evol_pars.naux_fields);
     verbosity_lv2_master_printf("Init action: %lg\n",init_action);
     
     //evolve forward
@@ -89,7 +91,7 @@ namespace nissa
     else                   Omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);
     
     //compute the action
-    double final_action=pure_gauge_action(out_conf,theory_pars,evol_pars,H,phi,pi);
+    double final_action=pure_gauge_action(out_conf,theory_pars,evol_pars,H,phi,pi,evol_pars.naux_fields);
     verbosity_lv2_master_printf("Final action: %lg\n",final_action);
     
     //compute the diff
@@ -104,7 +106,7 @@ namespace nissa
     
     //if accelerated, free everything
     if(evol_pars.use_Facc)
-      for(int id=0;id<n_FACC_fields;id++)
+      for(int id=0;id<evol_pars.naux_fields;id++)
 	{
 	  //nissa_free(phi[id]);
 	  //nissa_free(pi[id]);
