@@ -76,7 +76,7 @@ namespace nissa
 	//try to compute the norm*D
 	apply_MFACC(tmp,conf,kappa,0,out);
 	double norm_reco;
-	double_vector_glb_scalar_prod(&norm_reco,(double*)out,(double*)tmp,loc_vol*sizeof(su3)/sizeof(double));
+	double_vector_glb_scalar_prod(&norm_reco,(double*)in,(double*)tmp,loc_vol*sizeof(su3)/sizeof(double));
 	master_printf("Norm: %16.16lg, norm_reco: %16.16lg, relative error: %lg\n",sqrt(norm),sqrt(norm_reco),sqrt(norm/norm_reco)-1);
 	
 	//store the vector
