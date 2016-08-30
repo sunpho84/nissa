@@ -213,7 +213,7 @@ namespace nissa
 	      unsafe_su3_dag_prod_su3_dag(t,temp[up],conf[ivol][mu]);
 	      su3_summ_the_prod_su3(E,t,pi[ifield][ivol]);
 	      
-	      //factor of 2*kappa/4NDIM
+	      //common factor
 	      su3_summ_the_prod_double(F[ivol][mu],E,-2*kappa/(4*NDIM));
 	    }
 	THREAD_BARRIER();
