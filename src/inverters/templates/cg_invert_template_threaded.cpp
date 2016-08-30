@@ -119,6 +119,8 @@ namespace nissa
       master_printf("WARNING: true residue %lg much larger than required and expected one %lg\n",
 		    lambda/source_norm,residue);
     
+    verbosity_lv1_master_printf(" Total cg iterations: %d\n",final_iter);
+    
     //check if not converged
     if(final_iter==niter) crash("exit without converging");
     
