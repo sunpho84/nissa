@@ -32,3 +32,4 @@ build_vir
 /.dir-locals.el
 /src/config.hpp.in~
 /doc/facc.lyx~
+/doc/facc.pdf

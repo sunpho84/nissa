@@ -3,6 +3,10 @@
 \begin_document
 \begin_header
 \textclass article
+\begin_preamble
+\renewcommand\[{\begin{equation}}
+\renewcommand\]{\end{equation}} 
+\end_preamble
 \use_default_options true
 \maintain_unincluded_children false
 \language british
@@ -28,7 +32,7 @@
 \spacing single
 \use_hyperref false
 \papersize default
-\use_geometry false
+\use_geometry true
 \use_package amsmath 1
 \use_package amssymb 1
 \use_package cancel 1
@@ -52,6 +56,8 @@
 \shortcut idx
 \color #008000
 \end_index
+\topmargin 3cm
+\bottommargin 3cm
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
@@ -74,17 +80,31 @@ FACC!
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
-M=\left(1-\kappa\right)-\frac{k}{4d}D_{\mu}^{\dagger}D_{\mu}
-\]
+\align center
+A Note on Fourier ACCeleration, by F.S
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100col%"
+height "1pt"
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Definitions
+\end_layout
+
+\begin_layout Standard
+We define the accelerating kernel as
 \begin_inset Formula 
 \[
-G=M^{-1}
+M=\left(1-\kappa\right)-\frac{k}{4d}D_{\mu}^{\dagger}D_{\mu}\,.
 \]
 
 \end_inset
@@ -93,9 +113,60 @@ G=M^{-1}
 \end_layout
 
 \begin_layout Standard
+Actually this is a 
+\series bold
+silly
+\series default
+ way to mean something else, that is:
 \begin_inset Formula 
 \[
-\mathcal{H}=\mathcal{H}_{YM}+\mathcal{H}_{MOM}+\mathcal{H}_{AUX\,PH}+\mathcal{H}_{AUX\,MOM}
+Y_{i}\equiv D_{\mu}^{\dagger}D_{\mu}X_{i}=\sum_{\mu}\left(U_{i;\mu}X_{i+\hat{\mu}}U_{i;\mu}^{\dagger}+U_{i-\hat{\mu};\mu}^{\dagger}X_{i-\hat{\mu}}U_{i-\hat{\mu};\mu}\right)\,.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We define also the inverse:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+G=M^{-1}\,.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The accelerated action is given by:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathcal{H}=\mathcal{H}_{YM}+\mathcal{H}_{MOM}+\mathcal{H}_{AUX\,PH}+\mathcal{H}_{AUX\,MOM}\,,
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $\mathcal{H}_{YM}$
+\end_inset
+
+ is the ordinary gluon action (e.g.
+ plaquette action) and 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathcal{H}_{MOM}=\frac{1}{2}{\rm Tr}\left[P_{\mu}^{\dagger}GP_{\mu}\right]\,,
 \]
 
 \end_inset
@@ -103,7 +174,7 @@ G=M^{-1}
 
 \begin_inset Formula 
 \[
-\mathcal{H}_{MOM}=\frac{1}{2}{\rm Tr}\left[P_{\mu}^{\dagger}GP_{\mu}\right]
+\mathcal{H}_{AUX\,PH}=\frac{1}{2}\sum_{a=1}^{D/2}{\rm Tr}\left[\phi_{a}^{\dagger}\phi_{a}\right]\,,
 \]
 
 \end_inset
@@ -111,15 +182,7 @@ G=M^{-1}
 
 \begin_inset Formula 
 \[
-\mathcal{H}_{AUX\,PH}=\frac{1}{2}{\rm Tr}\left[\phi^{\dagger}\phi\right]
-\]
-
-\end_inset
-
-
-\begin_inset Formula 
-\[
-\mathcal{H}_{AUX\,MOM}=\frac{1}{2}{\rm Tr}\left[\pi^{\dagger}M^{2}\pi\right]
+\mathcal{H}_{AUX\,MOM}=\frac{1}{2}\sum_{a=1}^{D/2}{\rm Tr}\left[\pi_{a}^{\dagger}M^{2}\pi_{a}\right]\,.
 \]
 
 \end_inset
@@ -132,10 +195,26 @@ Equation of motion for FACC field-momenta
 \end_layout
 
 \begin_layout Standard
+We neglect the index 
+\begin_inset Formula $a$
+\end_inset
+
+ running on the auxiliary field and momenta from 
+\begin_inset Formula $1$
+\end_inset
+
+ to 
+\begin_inset Formula $D$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-\dot{\phi} & = & M^{2}\pi\\
-\dot{\pi} & = & -\phi
+\dot{\phi} & = & M^{2}\pi\,,\\
+\dot{\pi} & = & -\phi\,.
 \end{eqnarray*}
 
 \end_inset
@@ -150,9 +229,47 @@ Equation of motion for ordinary field-momenta
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-\dot{U}_{\mu} & = & GP_{\mu}\cdot U_{\mu}\to U_{\mu}^{\prime}=e^{iGP_{\mu}\Delta t}U_{\mu}\\
-\dot{P} & _{\mu}= & -\partial\mathcal{H}/\partial U_{\mu}=-\partial\mathcal{H}_{YM}/\partial U_{\mu}-\partial\mathcal{H}/\partial U_{\mu}
+\dot{U}_{\mu} & = & GP_{\mu}\cdot U_{\mu}\to U_{\mu}^{\prime}=e^{iGP_{\mu}\Delta t}U_{\mu}\,,\\
+\dot{P} & _{\mu}= & -\frac{\partial\mathcal{H}}{\partial U_{\mu}}=-\frac{\partial\mathcal{H}^{YM}}{\partial U_{\mu}}-\frac{\partial\mathcal{H}^{MOM}}{\partial U_{\mu}}-\frac{\partial\mathcal{H}^{AUX\,MOM}}{\partial U_{\mu}}\,.
 \end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout LyX-Code
+The 
+\begin_inset Formula $YM$
+\end_inset
+
+ part is the ordinary staple force, whereas:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+-\frac{\partial\mathcal{H}^{MOM}}{\partial U_{\mu}}=\frac{\kappa}{16}{\rm TA}\left[U_{i;\mu}\left(GP_{\nu}\right)_{i+\hat{\mu}}U_{i;\mu}^{\dagger}\left(GP_{\nu}\right)_{i}^{\dagger}+U_{i;\mu}\left(GP_{\nu}\right)_{i+\hat{\mu}}^{\dagger}U_{i;\mu}^{\dagger}\left(GP_{\nu}\right)_{i}\right]\,,
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+-\frac{\partial\mathcal{H}^{AUX\,MOM}}{\partial U_{\mu}}=\frac{2\kappa}{16}{\rm TA}\left[U_{i;\mu}\pi_{i+\hat{\mu}}U_{i;\mu}^{\dagger}\left(M\pi\right)_{i}^{\dagger}+U_{i;\mu}\left(M\pi\right)_{i+\hat{\mu}}^{\dagger}U_{i;\mu}^{\dagger}\pi_{i}\right]\,,
+\]
+
+\end_inset
+
+where we defined the Traceless Antihermitian part as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+{\rm TA}\left[X\right]=\frac{1}{2}\left(X-X^{\dagger}\right)-\frac{1}{6}Tr\left(X-X^{\dagger}\right)\,.
+\]
 
 \end_inset
 
@@ -164,17 +281,30 @@ How to generate the momenta?
 \end_layout
 
 \begin_layout Standard
+We make the change of variables 
+\begin_inset Formula $x_{\mu}=M^{-1/2}P_{\mu}$
+\end_inset
+
+ which allows us to write: 
 \begin_inset Formula 
 \[
-\mathcal{H}_{mom}=\frac{1}{2}{\rm Tr}\left[x_{\mu}^{\dagger}x_{\mu}\right],\qquad x_{\mu}=M^{-1/2}P_{\mu}
+\mathcal{H}^{MOM}=\frac{1}{2}{\rm Tr}\left[x_{\mu}^{\dagger}x_{\mu}\right]\,,
 \]
 
 \end_inset
 
+and from this we 
+\begin_inset Quotes eld
+\end_inset
 
+easily
+\begin_inset Quotes erd
+\end_inset
+
+ obtain the momenta as:
 \begin_inset Formula 
 \[
-P_{\mu}=M^{1/2}x_{\mu}
+P_{\mu}=M^{1/2}x_{\mu}\,.
 \]
 
 \end_inset
