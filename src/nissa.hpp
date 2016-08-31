@@ -35,6 +35,7 @@
 #include "communicate/communicate.hpp"
 #include "communicate/edges.hpp"
 
+#include "dirac_operators/momenta/MFACC.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"

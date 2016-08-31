@@ -238,7 +238,7 @@ Equation of motion for ordinary field-momenta
 
 \end_layout
 
-\begin_layout LyX-Code
+\begin_layout Standard
 The 
 \begin_inset Formula $YM$
 \end_inset
@@ -249,7 +249,7 @@ The
 \begin_layout Standard
 \begin_inset Formula 
 \[
--\frac{\partial\mathcal{H}^{MOM}}{\partial U_{\mu}}=\frac{\kappa}{16}{\rm TA}\left[U_{i;\mu}\left(GP_{\nu}\right)_{i+\hat{\mu}}U_{i;\mu}^{\dagger}\left(GP_{\nu}\right)_{i}^{\dagger}+U_{i;\mu}\left(GP_{\nu}\right)_{i+\hat{\mu}}^{\dagger}U_{i;\mu}^{\dagger}\left(GP_{\nu}\right)_{i}\right]\,,
+-\frac{\partial\mathcal{H}^{MOM}}{\partial U_{\mu}}=i\frac{\kappa}{16}{\rm TA}\left[U_{i;\mu}\left(GP_{\nu}\right)_{i+\hat{\mu}}U_{i;\mu}^{\dagger}\left(GP_{\nu}\right)_{i}^{\dagger}+U_{i;\mu}\left(GP_{\nu}\right)_{i+\hat{\mu}}^{\dagger}U_{i;\mu}^{\dagger}\left(GP_{\nu}\right)_{i}\right]\,,
 \]
 
 \end_inset
@@ -257,7 +257,7 @@ The
 
 \begin_inset Formula 
 \[
--\frac{\partial\mathcal{H}^{AUX\,MOM}}{\partial U_{\mu}}=\frac{2\kappa}{16}{\rm TA}\left[U_{i;\mu}\pi_{i+\hat{\mu}}U_{i;\mu}^{\dagger}\left(M\pi\right)_{i}^{\dagger}+U_{i;\mu}\left(M\pi\right)_{i+\hat{\mu}}^{\dagger}U_{i;\mu}^{\dagger}\pi_{i}\right]\,,
+-\frac{\partial\mathcal{H}^{AUX\,MOM}}{\partial U_{\mu}}=-i\frac{2\kappa}{16}{\rm TA}\left[U_{i;\mu}\pi_{i+\hat{\mu}}U_{i;\mu}^{\dagger}\left(M\pi\right)_{i}^{\dagger}+U_{i;\mu}\left(M\pi\right)_{i+\hat{\mu}}^{\dagger}U_{i;\mu}^{\dagger}\pi_{i}\right]\,,
 \]
 
 \end_inset

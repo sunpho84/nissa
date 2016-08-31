@@ -862,6 +862,19 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////
   
+  // su3 *u=nissa_malloc("u",loc_vol+bord_vol,su3);
+  // NISSA_LOC_VOL_LOOP(ivol)
+  //   su3_put_to_id(u[ivol]);
+  // set_borders_invalid(u);
+  // su3 *v=nissa_malloc("v",loc_vol+bord_vol,su3);
+  // generate_cold_lx_conf(conf);
+  // evol_pars.kappa=1;
+  // apply_MFACC(v,conf,evol_pars.kappa,0,u);
+  // master_printf("%lg %lg\n",double_vector_glb_norm2(u,loc_vol),double_vector_glb_norm2(v,loc_vol));
+  // nissa_free(u);
+  // nissa_free(v);
+  // crash("ciccio");
+  
   if(evol_pars.use_hmc)
     {
       generate_approx_of_maxerr(rat_exp_H,1e-6,10,sqrt(evol_pars.residue),1,2);
