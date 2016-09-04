@@ -46,8 +46,8 @@ namespace nissa
 	//add normalization and similar
 	for(int nu=0;nu<NDIM;nu++)
 	  {
-	    su3_prod_double(out[ivol][nu],out[ivol][nu],-kappa/(2*NDIM));
-	    su3_summ_the_prod_double(out[ivol][nu],in[ivol][nu],1-kappa+offset);
+	    su3_prod_double(out[ivol][nu],out[ivol][nu],-kappa/(4*NDIM));
+	    su3_summ_the_prod_double(out[ivol][nu],in[ivol][nu],1-kappa/2+offset);
 	  }
       }
     
@@ -82,8 +82,8 @@ namespace nissa
 	  }
 	
 	//add normalization and similar
-	su3_prod_double(out[ivol],out[ivol],-kappa/(2*NDIM));
-	su3_summ_the_prod_double(out[ivol],in[ivol],1-kappa+offset);
+	su3_prod_double(out[ivol],out[ivol],-kappa/(4*NDIM));
+	su3_summ_the_prod_double(out[ivol],in[ivol],1-kappa/2+offset);
       }
     
     set_borders_invalid(out);
