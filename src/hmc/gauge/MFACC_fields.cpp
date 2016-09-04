@@ -214,7 +214,7 @@ namespace nissa
 	      su3_summ_the_prod_su3(E,t,pi[ifield][ivol]);
 	      
 	      //common factor
-	      su3_summ_the_prod_double(F[ivol][mu],E,-2*kappa/(2*NDIM));
+	      su3_summ_the_prod_double(F[ivol][mu],E,-2*kappa/(4*NDIM));
 	    }
 	THREAD_BARRIER();
       }
@@ -321,7 +321,7 @@ namespace nissa
 		unsafe_su3_dag_prod_su3_dag(t,temp[up],conf[ivol][mu]);
 		su3_summ_the_prod_su3(E,t,temp[ivol]);
 		
-		su3_summ_the_prod_double(F[ivol][mu],E,kappa/(2*NDIM));
+		su3_summ_the_prod_double(F[ivol][mu],E,kappa/(4*NDIM));
 	      }
 	  }
 	THREAD_BARRIER();
