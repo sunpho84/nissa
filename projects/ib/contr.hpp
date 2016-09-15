@@ -50,7 +50,7 @@ namespace nissa
   
   EXTERN_CONTR int nmeslep_contr INIT_TO(0);
   EXTERN_CONTR double meslep_contr_time INIT_TO(0);
-
+  
   //list the 8 matrices to insert for the weak current
   const int nmeslep_weak_ins=17;
   const int nindep_meslep_weak=9;
@@ -97,12 +97,11 @@ namespace nissa
   void print_bar2pts_contr();
   void free_bar2pts_contr();
   
-  inline int ind_bar2pts_contr(int ism_sink,int icombo,int dir_exc,int t)
+  inline int ind_bar2pts_contr(int icombo,int dir_exc,int t)
   {return
       (t+glb_size[0]*
        (dir_exc+2*
-	(icombo+bar2pts_contr_map.size()*
-	 ism_sink)));
+	(icombo+bar2pts_contr_map.size())));
   }
   EXTERN_CONTR int bar2pts_contr_size;
   
@@ -116,7 +115,7 @@ namespace nissa
   {
     compute_mes2pts_contr();
     //compute_meslep_contr();
-    //compute_bar2pts_contr();
+    compute_bar2pts_contr();
   }
   
   //print out all contractions
@@ -124,7 +123,7 @@ namespace nissa
   {
     print_mes2pts_contr();
     //print_meslep_contr();
-    //print_bar2pts_contr();
+    print_bar2pts_contr();
   }
 }
 

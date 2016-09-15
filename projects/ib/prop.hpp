@@ -26,10 +26,12 @@ namespace nissa
     double mass;
     int r;
     double theta;
+    
     insertion_t insertion;
     std::string source_name;
     int tins;
     double residue;
+    int sme;
     bool store;
     
     rnd_t noise_type;
@@ -46,7 +48,7 @@ namespace nissa
     }
     
     //initialize as a propagator
-    void init_as_propagator(insertion_t _insertion,std::string _source_name,int _tins,double _residue,double _kappa,double _mass,int _r,double _theta,bool _store)
+    void init_as_propagator(insertion_t _insertion,std::string _source_name,int _tins,double _residue,double _kappa,double _mass,int _r,double _theta,int _sme,bool _store)
     {
       is_source=false;
       
@@ -58,25 +60,27 @@ namespace nissa
       source_name=_source_name;
       tins=_tins;
       residue=_residue;
+      sme=_sme;
       store=_store;
       
       alloc_spincolor();
     }
     
     //initialize as a source
-    void init_as_source(rnd_t _noise_type,int _tins,bool _store)
+    void init_as_source(rnd_t _noise_type,int _tins,int _sme,bool _store)
     {
       is_source=true;
       
       noise_type=_noise_type;
       tins=_tins;
+      sme=_sme;
       store=_store;
       alloc_spincolor();
     }
     
-    qprop_t(insertion_t insertion,std::string source_name,int tins,double residue,double kappa,double mass,int r,double theta,bool store)
-    {init_as_propagator(insertion,source_name,tins,residue,kappa,mass,r,theta,store);}
-    qprop_t(rnd_t noise_type,int tins,bool store) {init_as_source(noise_type,tins,store);}
+    qprop_t(insertion_t insertion,std::string source_name,int tins,double residue,double kappa,double mass,int r,double theta,int sme,bool store)
+    {init_as_propagator(insertion,source_name,tins,residue,kappa,mass,r,theta,sme,store);}
+    qprop_t(rnd_t noise_type,int tins,int sme,bool store) {init_as_source(noise_type,tins,sme,store);}
     qprop_t() {is_source=0;}
     ~qprop_t() {for(size_t i=0;i<sp.size();i++) nissa_free(sp[i]);}
   };

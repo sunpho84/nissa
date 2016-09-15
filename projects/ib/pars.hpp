@@ -19,9 +19,6 @@ namespace nissa
   EXTERN_PARS int diluted_spi_source,diluted_col_source;
   EXTERN_PARS int nso_spi,nso_col;
   
-  //for baryons
-  const int nsm_sink=2;
-  
   //convention on gospel
   const int follow_chris=0,follow_nazario=1;
   
@@ -156,6 +153,13 @@ namespace nissa
   {  
     read_str_double("GaussianSmearingKappa",&gaussian_smearing_kappa);
     read_str_int("GaussianSmearingNiters",&gaussian_smearing_niters);
+  }
+  
+  //read all smearing pars
+  inline void read_smearing_pars()
+  {
+    read_ape_smearing_pars();
+    read_gaussian_smearing_pars();
   }
 }
 

@@ -117,7 +117,7 @@ namespace nissa
       {
 	FILE *fout=open_file(combine("%s/mes_contr_%s",outfolder,mes2pts_contr_map[icombo].name.c_str()),"w");
 	
-	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",1.0);
+	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",1.0/nhits);
 	master_fprintf(fout,"\n");
 	
 	//close the file
@@ -380,7 +380,7 @@ namespace nissa
   //allocate baryionic contr
   void allocate_bar2pts_contr()
   {
-    bar2pts_contr_size=ind_bar2pts_contr(nsm_sink-1,bar2pts_contr_map.size()-1,2-1,glb_size[0]-1)+1;
+    bar2pts_contr_size=ind_bar2pts_contr(bar2pts_contr_map.size()-1,2-1,glb_size[0]-1)+1;
     bar2pts_contr=nissa_malloc("bar2pts_contr",bar2pts_contr_size,complex);
   }
   
@@ -391,142 +391,110 @@ namespace nissa
   //compute all contractions
   THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr)
   {
-    crash("to be reviewd");
+    GET_THREAD_ID();
+    master_printf("Computing baryon 2pts contractions\n");
     
-    // GET_THREAD_ID();
-    // master_printf("Computing baryon 2pts contractions\n");
+    //allocate loc storage
+    complex *loc_contr=new complex[bar2pts_contr_size];
+    memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
     
-    // //local thread/node contractions
-    // complex *loc_contr=new complex[bar2pts_contr_size];
-    // memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
+    const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
     
-    // for(int ism_sink=0;ism_sink<nsm_sink;ism_sink++)
-    //   {
-    // 	//smear all sinks
-    // 	START_TIMING(smear_oper_time,nsmear_oper);
-    // 	if(ism_sink)
-    // 	  for(int ip=0;ip<nqprop;ip++)
-    // 	    gaussian_smearing(Q[ip],Q[ip],ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
-    // 	STOP_TIMING(smear_oper_time);
+    void (*list_fun[2])(complex,complex,complex)={complex_summ_the_prod,complex_subt_the_prod};
+    UNPAUSE_TIMING(bar2pts_contr_time);
+    for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
+      {
+	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
+	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
+	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
+	double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
 	
-    // 	const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
-	
-    // 	void (*list_fun[2])(complex,complex,complex)={complex_summ_the_prod,complex_subt_the_prod};
-    // 	UNPAUSE_TIMING(bar2pts_contr_time);
-    // 	for(size_t ins_combo=0;ins_combo<bar2pts_contr_ins_map.size();ins_combo++)
-    // 	for(size_t iqcombo=0;iqcombo<bar2pts_contr_quark_map.size();iqcombo++)
-    // 	  {
-    // 	    if(IS_MASTER_THREAD) nbar2pts_contr++;
-	    
-    // 	    int iqa=bar2pts_contr_quark_map[iqcombo].a;
-    // 	    int iqb=bar2pts_contr_quark_map[iqcombo].b;
-    // 	    int iqc=bar2pts_contr_quark_map[iqcombo].c;
-	    
-    // 	    for(int al=0;al<NDIRAC;al++)
-    // 	      for(int ga=0;ga<NDIRAC;ga++)
-    // 		for(int b=0;b<NCOL;b++)
-    // 		  for(int iperm=0;iperm<2;iperm++)
-    // 		    {
-    // 		      int c=eps[b][iperm],a=eps[b][!iperm];
-    // 		      int be=Cg5.pos[al];
+	for(int al=0;al<NDIRAC;al++)
+	  for(int ga=0;ga<NDIRAC;ga++)
+	    for(int b=0;b<NCOL;b++)
+	      for(int iperm=0;iperm<2;iperm++)
+		{
+		  int c=eps[b][iperm],a=eps[b][!iperm];
+		  int be=Cg5.pos[al];
+		  
+		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+		    {
+		      int t=glb_coord_of_loclx[ivol][0];
 		      
-    // 		      int ipa_al_a=iqprop(iqa,bar2pts_contr_ins_map[ins_combo].a,al,a);
-    // 		      int ipa_ga_c=iqprop(iqa,bar2pts_contr_ins_map[ins_combo].a,ga,c);
-    // 		      int ipb=iqprop(iqb,bar2pts_contr_ins_map[ins_combo].b,be,b);
-    // 		      int ipc_ga_c=iqprop(iqc,bar2pts_contr_ins_map[ins_combo].c,ga,c);
-    // 		      int ipc_al_a=iqprop(iqc,bar2pts_contr_ins_map[ins_combo].c,al,a);
-		      
-    // 		      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    // 			{
-    // 			  int t=glb_coord_of_loclx[ivol][0];
-			  
-    // 			  int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
-    // 			  int sign_idg0[2]={(t<(glb_size[0]/2))?1:-1,-1}; //gamma0 is -1 always
-    // 			  for(int al1=0;al1<NDIRAC;al1++)
-    // 			    for(int b1=0;b1<NCOL;b1++)
-    // 			      {
-    // 				complex diquark_dir={0,0},diquark_exc={0,0};
+		      int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
+    			  int sign_idg0[2]={(t<(glb_size[0]/2))?1:-1,-1}; //gamma0 is -1 always
+    			  for(int al1=0;al1<NDIRAC;al1++)
+    			    for(int b1=0;b1<NCOL;b1++)
+    			      {
+    				complex diquark_dir={0,0},diquark_exc={0,0};
 				
-    // 				//build the diquark
-    // 				for(int iperm1=0;iperm1<2;iperm1++)
-    // 				  {
-    // 				    int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
+    				//build the diquark
+    				for(int iperm1=0;iperm1<2;iperm1++)
+    				  {
+    				    int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
 				    
-    // 				    for(int idg0=0;idg0<2;idg0++)
-    // 				      {
-    // 					int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
-    // 					int ga1=ga1_l[idg0][ga];
-					      
-    // 					list_fun[isign](diquark_dir,Q[ipa_al_a][ivol][al1][a1],Q[ipc_ga_c][ivol][ga1][c1]); //direct
-    // 					list_fun[isign](diquark_exc,Q[ipa_ga_c][ivol][al1][a1],Q[ipc_al_a][ivol][ga1][c1]); //exchange
-    // 				      }
-    // 				  }
+    				    for(int idg0=0;idg0<2;idg0++)
+    				      {
+    					int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
+    					int ga1=ga1_l[idg0][ga];
+					
+    					list_fun[isign](diquark_dir,Q1[so_sp_col_ind(al,a)][ivol][al1][a1],Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1]); //direct
+    					list_fun[isign](diquark_exc,Q1[so_sp_col_ind(ga,c)][ivol][al1][a1],Q3[so_sp_col_ind(al,a)][ivol][ga1][c1]); //exchange
+    				      }
+    				  }
 				
-    // 				//close it
-    // 				complex w;
-    // 				unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
-    // 				int be1=Cg5.pos[al1];
-    // 				complex_prodassign_double(diquark_dir,w[RE]);
-    // 				complex_prodassign_double(diquark_exc,w[RE]);
-    // 				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(ins_combo,ism_sink,iqcombo,0,t)],Q[ipb][ivol][be1][b1],diquark_dir);
-    // 				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(ins_combo,ism_sink,iqcombo,1,t)],Q[ipb][ivol][be1][b1],diquark_exc);
-    // 			      }
-    // 			}
-    // 		    }
-    // 	  }
-    // 	STOP_TIMING(bar2pts_contr_time);
-    //   }
+    				//close it
+    				complex w;
+    				unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
+    				int be1=Cg5.pos[al1];
+    				complex_prodassign_double(diquark_dir,w[RE]*norm);
+    				complex_prodassign_double(diquark_exc,w[RE]*norm);
+    				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
+    				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
+    			      }
+		    }
+		}
+      }
+    STOP_TIMING(bar2pts_contr_time);
     
-    // //reduce
-    // complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
-    // NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size) complex_summassign(bar2pts_contr[i],master_reduced_contr[i]);
-    // THREAD_BARRIER();
-    // delete[] loc_contr;
+    //reduce
+    complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
+    NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size) complex_summassign(bar2pts_contr[i],master_reduced_contr[i]);
+    THREAD_BARRIER();
+    delete[] loc_contr;
+    
+    //stats
+    if(IS_MASTER_THREAD) nbar2pts_contr+=bar2pts_contr_map.size();
   }
   THREADABLE_FUNCTION_END
   
   //print all contractions
   void print_bar2pts_contr()
   {
-    crash("to be reviewed");
+    //reduce
+    glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
-    // //reduce
-    // glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
-    
-    // //open output
-    // FILE *fout=open_file(combine("%s/bar_contr",outfolder),"w");
-    
-    // for(size_t ins_combo=0;ins_combo<bar2pts_contr_ins_map.size();ins_combo++)
-    //   for(int ism_sink=0;ism_sink<nsm_sink;ism_sink++)
-    // 	for(size_t iqcombo=0;iqcombo<bar2pts_contr_quark_map.size();iqcombo++)
-    // 	  for(int dir_exc=0;dir_exc<2;dir_exc++)
-    // 	    {
-    // 	      int iqa=bar2pts_contr_quark_map[iqcombo].a,ra=qr[iqa];
-    // 	      int iqb=bar2pts_contr_quark_map[iqcombo].b,rb=qr[iqb];
-    // 	      int iqc=bar2pts_contr_quark_map[iqcombo].c,rc=qr[iqc];
+    for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
+      for(int dir_exc=0;dir_exc<2;dir_exc++)
+	{
+	  //open output
+	  FILE *fout=open_file(combine("%s/bar_contr_%s_%s",outfolder,(dir_exc==0)?"dir":"exc",bar2pts_contr_map[icombo].name.c_str()),"w");
+	  for(int t=0;t<glb_size[0];t++)
+	    {
+	      //remove border phase
+	      double arg=3*QUARK_BOUND_COND*M_PI*t/glb_size[0];
+	      complex phase={cos(arg),sin(arg)};
 	      
-    // 	      master_fprintf(fout,"\n # ins_combo %c%c%c , sink_smeared %d , ma %lg , mb %lg , mc %lg , ra %d , rb %d , rc %d , dir_exc %d\n\n",
-    // 			     qprop_list[bar2pts_contr_ins_map[ins_combo].a].shortname,
-    // 			     qprop_list[bar2pts_contr_ins_map[ins_combo].b].shortname,
-    // 			     qprop_list[bar2pts_contr_ins_map[ins_combo].c].shortname,
-    // 			     ism_sink,qmass[iqa],qmass[iqb],qmass[iqc],ra,rb,rc,dir_exc);
-    // 	      for(int t=0;t<glb_size[0];t++)
-    // 		{
-    // 		  //remove border phase
-    // 		  double arg=3*QUARK_BOUND_COND*M_PI*t/glb_size[0];
-    // 		  complex phase={cos(arg),sin(arg)};
-		  
-    // 		  //normalize for nsources and 1+g0
-    // 		  complex c;
-    // 		  complex_prod_double(c,bar2pts_contr[ind_bar2pts_contr(ins_combo,ism_sink,iqcombo,dir_exc,t)],1.0/(2*nsources));
-		  
-    // 		  //put the phase and print
-    // 		  safe_complex_prod(c,c,phase);
-    // 		  master_fprintf(fout,"%+16.016lg %+16.016lg\n",c[RE],c[IM]);
-    // 		}
-    // 	      master_fprintf(fout,"\n");
-    // 	    }
-    
-    // close_file(fout);
+	      //normalize for nsources and 1+g0
+	      complex c;
+	      complex_prod_double(c,bar2pts_contr[ind_bar2pts_contr(icombo,dir_exc,t)],1.0/(2*nhits));
+	      
+	      //put the phase and print
+	      safe_complex_prod(c,c,phase);
+	      master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
+	    }
+	  
+	  close_file(fout);
+	}
   }
 }

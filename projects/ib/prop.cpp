@@ -63,13 +63,16 @@ namespace nissa
 		  if((!diluted_spi_source||(id_so==id_si))&&(!diluted_col_source||(ic_so==ic_si)))
 		    complex_copy(sou->sp[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
-    //compute the norm2 and set borders invalid
+    
+    //compute the norm2, set borders invalid and if required, smear the conf
     double loc_ori_source_norm2=0;
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
-	  set_borders_invalid(sou->sp[so_sp_col_ind(id_so,ic_so)]);
-	  loc_ori_source_norm2+=double_vector_glb_norm2(sou->sp[so_sp_col_ind(id_so,ic_so)],loc_vol);
+	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
+	  set_borders_invalid(s);
+	  loc_ori_source_norm2+=double_vector_glb_norm2(s,loc_vol);
+	  if(sou->sme) gaussian_smearing(s,s,ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
 	}
     if(IS_MASTER_THREAD) sou->ori_source_norm2=loc_ori_source_norm2;
   }
@@ -180,6 +183,8 @@ namespace nissa
 		{
 		  //otherwise compute it and possibly store it
 		  get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.residue,q.theta);
+		  if(q.sme) gaussian_smearing(sol,sol,ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
+		  
 		  if(q.store)
 		    {
 		      START_TIMING(store_prop_time,nstore_prop);

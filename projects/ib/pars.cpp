@@ -198,11 +198,5 @@ namespace nissa
 	  }
 	bar2pts_contr_map.push_back(bar_triplet_t(name,q_name[0],q_name[1],q_name[2]));
       }
-    
-    if(nbar_2pts_contr)
-      {
-	read_ape_smearing_pars();
-	read_gaussian_smearing_pars();
-      }
   }
 }
