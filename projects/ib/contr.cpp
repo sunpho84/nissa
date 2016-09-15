@@ -407,7 +407,7 @@ namespace nissa
 	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
 	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
 	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
-	double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
+	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
 	
 	for(int al=0;al<NDIRAC;al++)
 	  for(int ga=0;ga<NDIRAC;ga++)
