@@ -176,6 +176,9 @@ void init_simulation(char *path)
   set_Cg5();
   read_bar2pts_contr_pars();
   
+  //smearing
+  read_smearing_pars();
+  
   read_ngauge_conf();
   
   ///////////////////// finished reading apart from conf list ///////////////

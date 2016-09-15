@@ -160,7 +160,7 @@ namespace nissa
 	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
 	
 	insertion_t insertion=q.insertion;
-	master_printf("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],ins_name[(int)insertion],source_name.c_str());
+	master_printf("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],source_name.c_str());
 	for(int id_so=0;id_so<nso_spi;id_so++)
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
