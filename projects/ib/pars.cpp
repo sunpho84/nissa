@@ -111,7 +111,7 @@ namespace nissa
     
     //compute the tadpole summing all momentum
     compute_tadpole(tadpole,photon);
-    master_printf("Tadpole: {%lg, %lg, %lg, %lg}\n",tadpole[0],tadpole[1],tadpole[2],tadpole[3]);
+    //master_printf("Tadpole: {%lg, %lg, %lg, %lg}\n",tadpole[0],tadpole[1],tadpole[2],tadpole[3]);
   }
   
   //meson tags

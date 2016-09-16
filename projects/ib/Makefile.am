@@ -5,7 +5,8 @@ AUTOMAKE_OPTIONS=subdir-objects
 LDADD=$(top_builddir)/lib/libnissa.a
 
 bin_PROGRAMS= \
-	$(top_builddir)/bin/ib
+	$(top_builddir)/bin/ib \
+	$(top_builddir)/bin/checks_ib
 
 #	$(top_builddir)/bin/test_prop
 #	$(top_builddir)/bin/disco
@@ -28,6 +29,6 @@ __top_builddir__bin_ib_LDFLAGS=$(LDFLAGS)
 # __top_builddir__bin_test_prop_LDADD=$(LDADD)
 # __top_builddir__bin_test_prop_LDFLAGS=$(LDFLAGS)
 
-# __top_builddir__bin_checks_SOURCES=checks.cpp $(common_sources)
-# __top_builddir__bin_checks_LDADD=$(LDADD)
-# __top_builddir__bin_checks_LDFLAGS=$(LDFLAGS)
+ __top_builddir__bin_checks_ib_SOURCES=checks.cpp
+ __top_builddir__bin_checks_ib_LDADD=$(LDADD)
+ __top_builddir__bin_checks_ib_LDFLAGS=$(LDFLAGS)

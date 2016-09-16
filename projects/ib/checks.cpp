@@ -1,11 +1,13 @@
 #include <nissa.hpp>
 
-#include "conf.hpp"
-#include "contr.hpp"
-#include "pars.hpp"
-#include "prop.hpp"
-
 using namespace nissa;
+
+int T=8,L=4;
+double qkappa=0.125;
+double qmass=0.4;
+double qr=0;
+
+gauge_info photon;
 
 double M_of_mom(tm_quark_info qu,double sin2_momh)
 {
@@ -61,7 +63,7 @@ void bar_transf(complex *co,tm_quark_info qu)
   //master_printf("\n");
   
   tm_quark_info ba=qu;
-  ba.bc[0]=QUARK_BOUND_COND*3;
+  ba.bc[0]=1*3; //aperiodic
   
   complex c[glb_size[0]];
   for(int x=0;x<glb_size[0];x++)
@@ -118,11 +120,11 @@ void bar_contr_free(complex *mess,tm_quark_info qu)
 void check_bar()
 {
   tm_quark_info qu;
-  qu.bc[0]=QUARK_BOUND_COND;
+  qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa[0];
-  qu.mass=qmass[0];
-  qu.r=qr[0];
+  qu.kappa=qkappa;
+  qu.mass=qmass;
+  qu.r=qr;
   
   master_printf(" -----------------baryon direct -------------------- \n");
   
@@ -145,11 +147,11 @@ void check_bar()
 void check_bar2()
 {
   tm_quark_info qu;
-  qu.bc[0]=QUARK_BOUND_COND;
+  qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa[0];
-  qu.mass=qmass[0];
-  qu.r=qr[0];
+  qu.kappa=qkappa;
+  qu.mass=qmass;
+  qu.r=qr;
   
   master_printf(" -----------------baryon direct ins on outdiquark -------------------- \n");
   
@@ -206,11 +208,11 @@ double Si(int p,int q,tm_quark_info qu,int mu)
 void check_bar3()
 {
   tm_quark_info qu;
-  qu.bc[0]=QUARK_BOUND_COND;
+  qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa[0];
-  qu.mass=qmass[0];
-  qu.r=qr[0];
+  qu.kappa=qkappa;
+  qu.mass=qmass;
+  qu.r=qr;
   
   master_printf(" -----------------baryon direct cons ins on outdiquark -------------------- \n");
   
@@ -304,11 +306,11 @@ void mes_transf(complex *co,tm_quark_info qu)
 void check_mes()
 {
   tm_quark_info qu;
-  qu.bc[0]=QUARK_BOUND_COND;
+  qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa[0];
-  qu.mass=qmass[0];
-  qu.r=qr[0];
+  qu.kappa=qkappa;
+  qu.mass=qmass;
+  qu.r=qr;
   
   master_printf(" ------------------ meson------------------ \n");
   
@@ -348,11 +350,11 @@ void check_mes()
 void check_mes2()
 {
   tm_quark_info qu;
-  qu.bc[0]=QUARK_BOUND_COND;
+  qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa[0];
-  qu.mass=qmass[0];
-  qu.r=qr[0];
+  qu.kappa=qkappa;
+  qu.mass=qmass;
+  qu.r=qr;
   
   master_printf(" ------------------ meson with self energy ------------------ \n");
   
@@ -415,11 +417,11 @@ void check_mes2()
 void check_mes3()
 {
   tm_quark_info qu;
-  qu.bc[0]=QUARK_BOUND_COND;
+  qu.bc[0]=1;
   for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa[0];
-  qu.mass=qmass[0];
-  qu.r=qr[0];
+  qu.kappa=qkappa;
+  qu.mass=qmass;
+  qu.r=qr;
   
   master_printf(" ------------------ meson with self energy conservata ------------------ \n");
   
@@ -522,24 +524,20 @@ void check_gen()
 }
 
 //init everything
-void init_simulation(char *path)
+void init_simulation()
 {
-  //open input file and read it
-  open_input(path);
-  read_input_preamble();
-  read_photon_pars();
+  init_grid(T,L);
+  
+  photon.alpha=FEYNMAN_ALPHA;
+  photon.bc[0]=photon.bc[1]=photon.bc[2]=photon.bc[3]=0;
+  photon.c1=WILSON_C1;
+  photon.zms=PECIONA;
 }
 
 void in_main(int narg,char **arg)
 {
-  //Basic mpi initialization
-  tot_prog_time-=take_time();
-  
-  //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
-  
   //init simulation according to input file
-  init_simulation(arg[1]);
+  init_simulation();
   
   check_mes();
   master_printf("\n\n");
@@ -554,8 +552,6 @@ void in_main(int narg,char **arg)
   check_bar3();
   master_printf("\n\n");
   for(int i=0;i<2000;i++) check_gen();
-  MPI_Finalize();
-  exit(0);
 }
 
 int main(int narg,char **arg)
