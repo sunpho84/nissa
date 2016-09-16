@@ -43,7 +43,7 @@ namespace nissa
       {
 	qprop_t &Q1=Q[mes2pts_contr_map[icombo].a];
 	qprop_t &Q2=Q[mes2pts_contr_map[icombo].b];
-	double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 is even in case of a point source
+	double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 in case of a point source
 	for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
 	  {
 	    int ig1=mes_gamma_list[ihadr_contr].so;

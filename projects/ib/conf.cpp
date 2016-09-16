@@ -91,7 +91,7 @@ namespace nissa
     if(ape_smeared_conf!=NULL) shifter.remap(ape_smeared_conf,ape_smeared_conf,sizeof(quad_su3));
     shift_time+=take_time();
     if(clover_run) shifter.remap(Cl,Cl,sizeof(clover_term_t));
-    master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+016.016lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
+    master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+16.16lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
     
     //put back the phase
     put_theta[0]=QUARK_BOUND_COND;put_theta[1]=put_theta[2]=put_theta[3]=0;
