@@ -261,7 +261,6 @@ void in_main(int narg,char **arg)
 	  generate_propagators(ihit);
 	  compute_contractions();
 	}
-      
       print_contractions();
       
       mark_finished();

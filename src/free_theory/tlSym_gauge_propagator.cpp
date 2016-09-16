@@ -52,7 +52,7 @@ namespace nissa
     bool m=zero_mode_subtraction_mask(gl,imom);
     //if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
     //if(gl.zms==ONLY_100 &&m==1) printf("leaving mode %d=(%d,%d,%d,%d)\n",glblx_of_loclx[imom],glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
-    for(int mu=0;mu<4;mu++) for(int reim=0;reim<2;reim++) prop[mu][reim]*=m;
+    for(int mu=0;mu<NDIM;mu++) for(int reim=0;reim<2;reim++) prop[mu][reim]*=m;
     return !m;
   }
   
@@ -80,8 +80,8 @@ namespace nissa
       }
     
     //product and sums of kt2 over direction differents from mu and nu
-    for(int mu=0;mu<4;mu++)
-      for(int nu=0;nu<4;nu++)
+    for(int mu=0;mu<NDIM;mu++)
+      for(int nu=0;nu<NDIM;nu++)
 	{
 	  ktpo2[mu][nu]=1;
 	  ktso2[mu][nu]=0;
@@ -224,7 +224,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
 	spin_prodassign_double(phi[imom],glb_vol);
-	cancel_if_zero_mode(phi[imom],gl,imom);
+	//cancel_if_zero_mode(phi[imom],gl,imom);
       }
     set_borders_invalid(phi);
     
@@ -233,9 +233,8 @@ namespace nissa
     pass_spin1field_from_mom_to_x_space(phi,phi,gl.bc,true);
     
     //finally takes the dagger of eta, in case 100 only selected
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) for(int id=0;id<4;id++) complex_conj(eta[ivol][id],eta[ivol][id]);
-    set_borders_invalid(eta);
-    
+    //NISSA_PARALLEL_LOOP(ivol,0,loc_vol) for(int id=0;id<4;id++) complex_conj(eta[ivol][id],eta[ivol][id]);
+    //set_borders_invalid(eta);
   }
   THREADABLE_FUNCTION_END
   
