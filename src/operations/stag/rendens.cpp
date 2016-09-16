@@ -126,6 +126,11 @@ namespace nissa
     NEW_RENDE_T(d2M_M_dM_M);
     NEW_RENDE_T(M_dM_M_dM_M);
     NEW_RENDE_T(dM_M_dM_M_dM_M);
+    NEW_RENDE_T(M_d2M_M);
+    NEW_RENDE_T(d2M_M_d2M_M);
+    NEW_RENDE_T(d2M_M_dM_M_dM_M);
+    NEW_RENDE_T(M_dM_M_dM_M_dM_M);
+    NEW_RENDE_T(dM_M_dM_M_dM_M_dM_M);
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
@@ -144,7 +149,10 @@ namespace nissa
 	    NEW_TRACE_RES(Tr_M_d3M);
 	    NEW_TRACE_RES(Tr_M_dM_M_d2M);
 	    NEW_TRACE_RES(Tr_M_dM_M_dM_M_dM);
-	    
+	    NEW_TRACE_RES(Tr_d2M_M_d2M_M);
+	    NEW_TRACE_RES(Tr_d2M_M_dM_M_dM_M);
+	    NEW_TRACE_RES(Tr_dM_M_dM_M_dM_M_dM_M);
+
 	    //loop over hits
 	    for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 	      {
@@ -195,6 +203,29 @@ namespace nissa
 		    DM(dM_M_dM_M_dM_M,iflav,1,M_dM_M_dM_M);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM_M_dM_M_dM,source,dM_M_dM_M_dM_M);
 		  }
+		
+		//compute d2M*M^-1*d2M*M^-1
+		AT_ORDER(4)
+		  {
+		    MINV(M_d2M_M,iflav, d2M_M);
+		    DM(d2M_M_d2M_M,iflav,2,M_d2M_M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_d2M_M_d2M_M,source,d2M_M_d2M_M);
+		  }
+		
+		//compute dM*M^-1*dM*M^-1*dM*M^-1 and d2M*M^-1*dM*M^-1*dM*M^-1
+		AT_ORDER(4)
+		  {
+		    DM(d2M_M_dM_M_dM_M,iflav,2,M_dM_M_dM_M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_d2M_M_dM_M_dM_M,source,d2M_M_dM_M_dM_M);
+		  }
+		
+		//compute dM*M^-1*dM*M^-1*dM*M^-1*dM*M^-1
+		AT_ORDER(4)
+		  {
+		    MINV(M_dM_M_dM_M_dM_M,iflav,dM_M_dM_M_dM_M);
+		    DM(dM_M_dM_M_dM_M_dM_M,iflav,1,M_dM_M_dM_M_dM_M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_dM_M_dM_M_dM_M_dM_M,source,dM_M_dM_M_dM_M_dM_M);
+		  }		
 	      }
 	  }
 	
@@ -202,14 +233,19 @@ namespace nissa
       }
     
     DELETE_RENDE_T(M);
-    DELETE_RENDE_T(d2M_M);
     DELETE_RENDE_T(dM_M);
+    DELETE_RENDE_T(d2M_M);
     DELETE_RENDE_T(d3M_M);
     DELETE_RENDE_T(M_dM_M);
     DELETE_RENDE_T(dM_M_dM_M);
     DELETE_RENDE_T(d2M_M_dM_M);
     DELETE_RENDE_T(M_dM_M_dM_M);
     DELETE_RENDE_T(dM_M_dM_M_dM_M);
+    DELETE_RENDE_T(M_d2M_M);
+    DELETE_RENDE_T(d2M_M_d2M_M);
+    DELETE_RENDE_T(d2M_M_dM_M_dM_M);
+    DELETE_RENDE_T(M_dM_M_dM_M_dM_M);
+    DELETE_RENDE_T(dM_M_dM_M_dM_M_dM_M);
     
     //close and deallocate
     close_file(file);
