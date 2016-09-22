@@ -33,7 +33,7 @@ LX_FIND_MPI
 CXXFLAGS="$AM_CXXFLAGS $MPI_CXXFLAGS $CXXFLAGS"
 CFLAGS="$AM_CFLAGS $MPI_CXXFLAGS $CFLAGS"
 LDFLAGS="$AM_LDFLAGS $MPI_CXXLDFLAGS $LDFLAGS"
-LIBS="$LIBS $MPI_CXXLDFLAGS"
+LIBS="$MPI_CXXLDFLAGS $LIBS"
 
 #checks for headers
 AC_CHECK_HEADERS([fftw3.h],[fftw_found_headers=yes])
@@ -61,14 +61,45 @@ AC_DEFINE([FFTW_FFT],[1],["FFTW library"])
 AC_ARG_WITH(fft,
 	AS_HELP_STRING([--with-fft],[Select the Fast Fourier transform implementation (native, fftw [NOT default if found])]),
 	with_fft="${withval}",
-	if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "no" -a x"$fftw_found_headers" == "xyes"; then with_fft="fftw";else with_fft="native";fi)
-	case "$with_fft" in
-     	     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
-     	     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "" -a x"$fftw_found_headers" == "xyes"; then AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW]) AM_LDFLAGS="-lfftw3 -lfftw3_threads";else AC_MSG_ERROR(["Unable to find fftw3 lib"]);fi ;;
-	     *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
-	esac
+	if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "no" -a x"$fftw_found_headers" == "xyes"
+	then
+		with_fft="fftw"
+	else
+		with_fft="native"
+	fi)
+case "$with_fft" in
+     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
+     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "" -a x"$fftw_found_headers" == "xyes"
+     then
+	AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
+	LDFLAGS="-lfftw3 -lfftw3_threads $LD_FLAGS";else AC_MSG_ERROR(["Unable to find fftw3 lib"])
+	fi ;;
+     *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
+esac
 AC_MSG_RESULT([with Fast Fourier type... $with_fft])
 
+#lime
+AC_ARG_WITH(lime-path,
+	AS_HELP_STRING([--with-lime-path[=dir]], [Specify where to find lime]),
+	with_lime_path="${withval}"
+	LDFLAGS="-L${with_lime_path}/lib/ $LDFLAGS")
+AC_MSG_RESULT(with lime-path ... "${with_lime_path}")
+AC_SEARCH_LIBS(limeReaderNextRecord,lime)
+
+#tmLQCD
+AC_ARG_WITH(tmLQCD-path,
+	AS_HELP_STRING([--with-tmLQCD-path[=dir]],[Specify where to find tmLQCD]),
+	with_tmlqcd_path="${withval}",
+	with_tmlqcd_path="none")
+AC_MSG_RESULT([with tmLQCD-path ... "${with_tmlqcd_path}"])
+if test "${with_tmlqcd_path}" != "none"
+then
+	if test "$ac_cv_search_limeReaderNextRecord" == "no";then AC_MSG_ERROR(["Need lime to compile"]);fi
+	AC_DEFINE_UNQUOTED([USE_TMLQCD],[1],[Enable tmLQCD usage])
+	LDFLAGS="-L${with_tmlqcd_path}/lib $LDFLAGS"
+	LIBS="-lwrapper -lhmc -lmeas -lmonomial -loperator -lsolver -linit -llinalg -lhmc -lxchange -lrational -lio -lblas -llapack -llime $LIBS"
+	CXXFLAGS="-I${with_tmlqcd_path}/include -I${with_tmlqcd_path} $CXXFLAGS"
+fi
 
 #high-prec arithmetic
 AC_DEFINE([NATIVE_HIGH_PREC],[0],["Native implementation"])
