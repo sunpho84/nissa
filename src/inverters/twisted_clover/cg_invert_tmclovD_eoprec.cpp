@@ -2,9 +2,13 @@
  #include "config.hpp"
 #endif
 
+#include <string>
 #include <string.h>
 
 #include "base/thread_macros.hpp"
+#ifdef USE_TMLQCD
+ #include "base/tmLQCD_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
 #include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
@@ -31,7 +35,7 @@ namespace nissa
   }
   
   //Invert twisted clover operator using e/o preconditioning.
-  THREADABLE_FUNCTION_10ARG(inv_tmclovD_cg_eoprec, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, clover_term_t*,Cl_lx, inv_clover_term_t*,ext_invCl_lx, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
+  THREADABLE_FUNCTION_10ARG(inv_tmclovD_cg_eoprec_native, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, clover_term_t*,Cl_lx, inv_clover_term_t*,ext_invCl_lx, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
   {
     GET_THREAD_ID();
     
@@ -128,4 +132,62 @@ namespace nissa
     if(ext_invCl_lx==NULL) nissa_free(invCl_lx);
   }
   THREADABLE_FUNCTION_END
+  
+  void inv_tmclovD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,clover_term_t *Cl_lx,inv_clover_term_t *ext_invCl_lx,double mass,int nitermax,double residue,spincolor *source_lx)
+  {
+    
+#ifdef USE_TMLQCD
+    // //open the file
+    // std::string temp_path="temp_input";
+    // FILE *ftemp;
+    // master_get_temp_file(ftemp,temp_path);
+    
+    // //preprare the parameters
+    // int argc=3,verbose=1,external_id=0;
+    // char *argv[3]={(char*)malloc(10),(char*)malloc(10),(char*)malloc(temp_path.length()+1)};
+    // sprintf(argv[0],"-");
+    // sprintf(argv[1],"-f");
+    // sprintf(argv[2],"%s",temp_path.c_str());
+    
+    //prepare the input file
+    
+    //initializing
+    FILE *ftemp=open_prepare_input_file_for_tmLQCD();
+    master_fprintf(ftemp,"\n");
+    master_fprintf(ftemp,"BeginOperator TMWILSON\n");
+    master_fprintf(ftemp,"  2kappamu = %lg\n",2*kappa*mass);
+    master_fprintf(ftemp,"  kappa = %lg\n",kappa);
+    master_fprintf(ftemp,"  UseEvenOdd = yes\n");
+    master_fprintf(ftemp,"  Solver = CG\n");
+    master_fprintf(ftemp,"  SolverPrecision = %lg\n",residue);
+    master_fprintf(ftemp,"  MaxSolverIterations = %d\n",nitermax);
+    master_fprintf(ftemp,"  AddDownPropagator = no\n");
+    master_fprintf(ftemp,"EndOperator\n");
+    
+    close_file(ftemp);
+    
+    tmLQCD_init();
+    export_gauge_conf_to_tmLQCD(conf_lx);
+    tmLQCD::tmLQCD_invert((double*)solution_lx,(double*)(source_lx),0,0);
+ 
+    tmLQCD_finalise();
+    
+    // for(int i=0;i<argc;i++) free(argv[i]);
+    
+    //if(rank==0) unlink("invert.input");
+    
+    // //close the temporary file and remove it
+    // if(rank==0)
+    //   {
+    // 	fclose(ftemp);
+    // 	unlink(temp_path.c_str());
+    //   }
+    
+    #else
+    
+    //fallback to naive implementation
+    inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,Cl_lx,ext_invCl_lx,mass,nitermax,residue,source_lx);
+    
+    #endif
+  }
 }

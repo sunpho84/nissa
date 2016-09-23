@@ -6,6 +6,7 @@
 #include "tmLQCD_bridge.hpp"
 
 #include "routines/ios.hpp"
+#include "routines/thread.hpp"
 
 namespace nissa
 {
@@ -28,5 +29,28 @@ namespace nissa
   {
     external_conf_to_tmLQCD_handle=conf_lx;
     tmLQCD_import_gauge(nissa_feed_conf_to_tmLQCD);
+  }
+  
+  //write the input file
+  FILE* open_prepare_input_file_for_tmLQCD()
+  {
+    FILE *ftemp=open_file("invert.input","w");
+    master_fprintf(ftemp,"L=%d\n",glb_size[1]);
+    master_fprintf(ftemp,"T=%d\n",glb_size[0]);
+    master_fprintf(ftemp,"NrXProcs=%d\n",nrank_dir[1]);
+    master_fprintf(ftemp,"NrYProcs=%d\n",nrank_dir[2]);
+    master_fprintf(ftemp,"NrZProcs=%d\n",nrank_dir[3]);
+    master_fprintf(ftemp,"OMPNumThreads=%d\n",nthreads);
+    
+    // DisableIOChecks = yes
+    // DebugLevel = 1
+    // InitialStoreCounter = 1000
+    // Measurements = 1
+    // 2kappamu = 0.177
+    // kappa = 0.177
+    // GaugeConfigInputFile = conf
+    // UseEvenOdd = yes
+    
+    return ftemp;
   }
 }
