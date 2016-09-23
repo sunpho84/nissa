@@ -111,7 +111,11 @@ namespace nissa
   int glblx_of_summ(int b,int c);
   int glblx_opp(int b);
   int loclx_of_coord(coords x);
-  int loclx_of_coord_list(int x0,int x1,int x2,int x3);
+  inline int loclx_of_coord_list(int x0,int x1,int x2,int x3)
+  {
+    coords c={x0,x1,x2,x3};
+    return loclx_of_coord(c);
+  }
   int lx_of_coord(coords x,coords s);
   int rank_hosting_glblx(int gx);
   int rank_hosting_site_of_coord(coords x);
