@@ -52,6 +52,7 @@ namespace nissa
   int master_fprintf(FILE *stream,const char *format,...);
   //int rm(const char *path);
   std::string combine(const char *format,...);
+  void master_get_temp_file(FILE *&fout,std::string &prefix);
   void close_file(FILE *file);
   void fprintf_friendly_filesize(FILE *fout,uint64_t quant);
   void fprintf_friendly_units(FILE *fout,uint64_t quant,uint64_t orders,const char *units);

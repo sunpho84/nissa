@@ -36,6 +36,28 @@ namespace nissa
     return rc;
   }
   
+  //get a unique temporary filename
+  void master_get_temp_file(FILE *&fout,std::string &prefix)
+  {
+    //prepare the full name
+    char *buffer=strdup((prefix+"XXXXXX").c_str());
+    
+    //open on the master
+    int fd=-1;
+    if(rank==0)
+      {
+	fd=mkstemp(buffer);
+	if(fd==-1) crash("failed to open a temporary file with prefix %s",prefix.c_str());
+	fout=fdopen(fd,"w");
+      }
+    
+    //broadcast name and copy in prefix
+    MPI_Bcast(buffer,strlen(buffer),MPI_CHAR,0,MPI_COMM_WORLD);
+    prefix=buffer;
+    
+    free(buffer);
+  }
+  
   //only master rank and thread print
   int master_fprintf(FILE *stream,const char *format,...)
   {
