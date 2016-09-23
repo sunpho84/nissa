@@ -91,6 +91,7 @@ AC_ARG_WITH(tmLQCD-path,
 	AS_HELP_STRING([--with-tmLQCD-path[=dir]],[Specify where to find tmLQCD]),
 	with_tmlqcd_path="${withval}",
 	with_tmlqcd_path="none")
+AM_CONDITIONAL([USE_TMLQCD],[test "$with_tmlqcd_path" != "none" ],[true],[false])
 AC_MSG_RESULT([with tmLQCD-path ... "${with_tmlqcd_path}"])
 if test "${with_tmlqcd_path}" != "none"
 then
@@ -98,7 +99,7 @@ then
 	AC_DEFINE_UNQUOTED([USE_TMLQCD],[1],[Enable tmLQCD usage])
 	LDFLAGS="-L${with_tmlqcd_path}/lib $LDFLAGS"
 	LIBS="-lwrapper -lhmc -lmeas -lmonomial -loperator -lsolver -linit -llinalg -lhmc -lxchange -lrational -lio -lblas -llapack -llime $LIBS"
-	CXXFLAGS="-I${with_tmlqcd_path}/include -I${with_tmlqcd_path} $CXXFLAGS"
+	CXXFLAGS="-I${with_tmlqcd_path}/include $CXXFLAGS"
 fi
 
 #high-prec arithmetic
