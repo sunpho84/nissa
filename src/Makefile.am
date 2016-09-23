@@ -27,6 +27,13 @@ include_HEADERS+= \
 	base/thread_macros.hpp \
 	base/vectors.hpp
 
+if USE_TMLQCD
+__top_builddir__lib_libnissa_a_SOURCES+= \
+	base/tmLQCD_bridge.cpp
+include_HEADERS+= \
+	base/tmLQCD_bridge.hpp
+endif
+
 #add BGQ if needed
 if BGQ
 include_HEADERS+=base/bgq_instructions.hpp
