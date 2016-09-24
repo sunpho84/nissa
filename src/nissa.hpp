@@ -12,7 +12,9 @@
 #include "base/init.hpp"
 #include "base/random.hpp"
 #include "base/thread_macros.hpp"
-#include "base/tmLQCD_bridge.hpp"
+#ifdef USE_TMLQCD
+ #include "base/tmLQCD_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 
 //include bg/q specifics
