@@ -142,9 +142,9 @@ namespace nissa
   //read the list of mesons in terms of quarks
   void read_mes2pts_contr_pars()
   {
-    int nmes_2pts_contr;
-    read_str_int("NMes2PtsContr",&nmes_2pts_contr);
-    for(int i=0;i<nmes_2pts_contr;i++)
+    int nmes2pts_contr;
+    read_str_int("NMes2PtsContr",&nmes2pts_contr);
+    for(int i=0;i<nmes2pts_contr;i++)
       {
 	char name[1024];
 	read_str(name,1024);
@@ -157,7 +157,7 @@ namespace nissa
 	mes2pts_contr_map.push_back(mes_contr_map_t(name,q_name[0],q_name[1]));
       }
     
-    if(nmes_2pts_contr) read_mes2pts_contr_gamma_list();
+    if(nmes2pts_contr) read_mes2pts_contr_gamma_list();
   }
   
   //read the list of meson contraction asked
@@ -185,9 +185,10 @@ namespace nissa
   //read the list of baryons in terms of quarks
   void read_bar2pts_contr_pars()
   {
-    int nbar_2pts_contr;
-    read_str_int("NBar2PtsContr",&nbar_2pts_contr);
-    for(int i=0;i<nbar_2pts_contr;i++)
+    int nbar2pts_contr;
+    read_str_int("NBar2PtsContr",&nbar2pts_contr);
+    if(nbar2pts_contr&&((!diluted_col_source)||(!diluted_spi_source))) crash("to make baryon contractions you need diluted color and spin");
+    for(int i=0;i<nbar2pts_contr;i++)
       {
 	char name[1024];
 	read_str(name,1024);
