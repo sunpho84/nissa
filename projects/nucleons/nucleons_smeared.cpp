@@ -47,10 +47,10 @@ int Gauss_niter,ape_niter;
 int tseparation;
 int tsink;
 
-spinspin Proj[3]; //projectors over N and N*, and 00 compont of N (in the spinorial representation)
-int Proj_ind1[8]={0,0,1,1,2,2,3,3},Proj_ind2[8]={0,2,1,3,0,2,1,3}; //indices different from 0
-int Proj_couples[4][2]={{0,5},{2,7},{1,4},{3,6}}; //independent couples
-int Proj_entr[3][4]={{1,1,-1,-1},{1,1,1,1},{1,0,-1,0}};
+spinspin proj[3]; //projectors over N and N*, and 00 compont of N (in the spinorial representation)
+int proj_ind1[8]={0,0,1,1,2,2,3,3},proj_ind2[8]={0,2,1,3,0,2,1,3}; //indices different from 0
+int proj_couples[4][2]={{0,5},{2,7},{1,4},{3,6}}; //independent couples
+int proj_entr[3][4]={{1,1,-1,-1},{1,1,1,1},{1,0,-1,0}};
 spinspin C5; //C*gamma5
 
 //two points contractions
@@ -106,19 +106,19 @@ void initialize_nucleons(char *input_path)
   
   put_dirac_matr_into_spinspin(C5,&gC5);
   
-  //Proj[0] and Proj[1]
-  for(int nns=0;nns<3;nns++) memset(Proj[nns],0,sizeof(spinspin));
+  //proj[0] and proj[1]
+  for(int nns=0;nns<3;nns++) memset(proj[nns],0,sizeof(spinspin));
   for(int id1=0;id1<4;id1++)
     {
       int id2=base_gamma[4].pos[id1];
       
-      Proj[0][id1][id1][0]=Proj[1][id1][id1][0]=0.5;
-      complex_prod_double(Proj[0][id1][id2],base_gamma[4].entr[id1],+0.5);
-      complex_prod_double(Proj[1][id1][id2],base_gamma[4].entr[id1],-0.5);
+      proj[0][id1][id1][0]=proj[1][id1][id1][0]=0.5;
+      complex_prod_double(proj[0][id1][id2],base_gamma[4].entr[id1],+0.5);
+      complex_prod_double(proj[1][id1][id2],base_gamma[4].entr[id1],-0.5);
     }
   
-  for(int id1=0;id1<4;id1++) if(id1==0||id1==2) Proj[2][id1][id1][0]=0.5;
-  Proj[2][0][2][0]=Proj[2][2][0][0]=-0.5;
+  for(int id1=0;id1<4;id1++) if(id1==0||id1==2) proj[2][id1][id1][0]=0.5;
+  proj[2][0][2][0]=proj[2][2][0][0]=-0.5;
   
   open_input(input_path);
   
@@ -452,10 +452,10 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 			for(int ind_p=0;ind_p<4;ind_p++)
 			  for(int ico=0;ico<2;ico++)
 			    {
-			      int ip=Proj_couples[ind_p][ico];
+			      int ip=proj_couples[ind_p][ico];
 			      
-			      int ga=Proj_ind1[ip];
-			      int ga1=Proj_ind2[ip];
+			      int ga=proj_ind1[ip];
+			      int ga1=proj_ind2[ip];
 			      
 			      for(int al=0;al<4;al++)
 				{
@@ -481,8 +481,8 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 			      complex contr={0,0};
 			      for(int ind_p=0;ind_p<4;ind_p++)
 				{
-				  if(Proj_entr[nns][ind_p]==+1) complex_summ(contr,contr,prot[t][ind_p]);
-				  if(Proj_entr[nns][ind_p]==-1) complex_subt(contr,contr,prot[t][ind_p]);
+				  if(proj_entr[nns][ind_p]==+1) complex_summ(contr,contr,prot[t][ind_p]);
+				  if(proj_entr[nns][ind_p]==-1) complex_subt(contr,contr,prot[t][ind_p]);
 				}
 			      master_fprintf(output," %+016.16g\t%+016.16g\n",contr[0]/2,contr[1]/2);
 			    }
@@ -541,7 +541,7 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 				
 				safe_complex_prod(ter,C5[be1][mu1],ter);
 				safe_complex_prod(ter,C5[be2][mu2],ter);
-				safe_complex_prod(ter,Proj[2][al2][al1],ter); //create z+ polarized proton
+				safe_complex_prod(ter,proj[2][al2][al1],ter); //create z+ polarized proton
 				
 				for(int ri=0;ri<2;ri++)
 				  if(se==1) temp[a2][a1][mu2][mu1][ri]+=ter[ri];
@@ -575,7 +575,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 		  for(int ga1=0;ga1<4;ga1++)
 		    for(int ga2=0;ga2<4;ga2++)
 		      {
-			if(Proj[2][ga2][ga1][0]||Proj[2][ga2][ga1][1])
+			if(proj[2][ga2][ga1][0]||proj[2][ga2][ga1][1])
 			  for(int a1=0;a1<3;a1++)
 			    for(int b1=0;b1<3;b1++)
 			      for(int c1=0;c1<3;c1++)
@@ -599,7 +599,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 						      safe_complex_prod(part,C5[rho][be2],part);
 						      complex_prod_double(part,part,epsilon[x][b2][c2]);
 						      safe_complex_prod(part,S0_SL[im_3pts][rdislike][ivol][b1][b2][be1][be2],part);
-						      safe_complex_prod(part,Proj[2][ga2][ga1],part); //spin z+ polarized proton
+						      safe_complex_prod(part,proj[2][ga2][ga1],part); //spin z+ polarized proton
 						      
 						      if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
 						      else complex_subt_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
@@ -620,7 +620,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 							safe_complex_prod(part,C5[al2][be2],part);
 							complex_prod_double(part,part,epsilon[a2][b2][x]);
 							safe_complex_prod(part,S0_SL[im_3pts][rdislike][ivol][b1][b2][be1][be2],part);
-							safe_complex_prod(part,Proj[2][ga2][ga1],part);
+							safe_complex_prod(part,proj[2][ga2][ga1],part);
 							
 							if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
 							else complex_subt_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
