@@ -28,7 +28,7 @@ namespace nissa
     mes_contr_map_t(std::string name,std::string a,std::string b) : name(name),a(a),b(b) {}
   };
   EXTERN_CONTR std::vector<mes_contr_map_t> mes2pts_contr_map;
-  EXTERN_CONTR int nmes2pts_contr INIT_TO(0);
+  EXTERN_CONTR int nmes2pts_contr_made INIT_TO(0);
   EXTERN_CONTR double mes2pts_contr_time INIT_TO(0);
   EXTERN_CONTR complex *mes2pts_contr INIT_TO(NULL);
   EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
@@ -48,7 +48,7 @@ namespace nissa
   
   ////////////////////////////////////  mesoleptonic contraction /////////////////////////////////////////////////////
   
-  EXTERN_CONTR int nmeslep_contr INIT_TO(0);
+  EXTERN_CONTR int nmeslep_contr_made INIT_TO(0);
   EXTERN_CONTR double meslep_contr_time INIT_TO(0);
   
   //list the 8 matrices to insert for the weak current
@@ -88,7 +88,7 @@ namespace nissa
   void set_Cg5();
   
   EXTERN_CONTR std::vector<bar_triplet_t> bar2pts_contr_map;
-  EXTERN_CONTR int nbar2pts_contr INIT_TO(0);
+  EXTERN_CONTR int nbar2pts_contr_made INIT_TO(0);
   EXTERN_CONTR double bar2pts_contr_time INIT_TO(0);
   EXTERN_CONTR complex *bar2pts_contr INIT_TO(NULL);
   void set_bar2pts_contr_ins_map();

@@ -98,7 +98,7 @@ namespace nissa
     //stats
     if(IS_MASTER_THREAD)
       {
-	nmes2pts_contr+=mes2pts_contr_map.size()*mes_gamma_list.size();
+	nmes2pts_contr_made+=mes2pts_contr_map.size()*mes_gamma_list.size();
 	mes2pts_contr_time+=take_time();
       }
   }
@@ -256,7 +256,7 @@ namespace nissa
 	      int i=glb_t+glb_size[0]*(ig_proj+nmeslep_proj*(list_weak_ind_contr[ins]+nindep_meslep_weak*ext_ind));
 	      complex_summ_the_prod_double(meslep_contr[i],mesolep,1.0/glb_spat_vol); //here to remove the statistical average on xw
 	    }
-	if(IS_MASTER_THREAD) nmeslep_contr+=nmeslep_proj;
+	if(IS_MASTER_THREAD) nmeslep_contr_made+=nmeslep_proj;
 	THREAD_BARRIER();
       }
     
@@ -464,7 +464,7 @@ namespace nissa
     delete[] loc_contr;
     
     //stats
-    if(IS_MASTER_THREAD) nbar2pts_contr+=bar2pts_contr_map.size();
+    if(IS_MASTER_THREAD) nbar2pts_contr_made+=bar2pts_contr_map.size();
   }
   THREADABLE_FUNCTION_END
   

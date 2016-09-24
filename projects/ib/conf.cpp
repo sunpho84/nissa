@@ -235,10 +235,10 @@ namespace nissa
 				   cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
 	print_single_statistic(store_prop_time,tot_prog_time,nstore_prop,"storing propagators");
 	print_single_statistic(read_prop_time,tot_prog_time,nread_prop,"reading propagators");
-	print_single_statistic(mes2pts_contr_time,tot_prog_time,nmes2pts_contr,"calculation of mesonic 2pts_contractions");
-	print_single_statistic(bar2pts_contr_time,tot_prog_time,nbar2pts_contr,"calculation of baryonic 2pts contractions");
-	print_single_statistic(meslep_contr_time,tot_prog_time,nmeslep_contr,"calculation of hadro-leptonic contractions");
-	print_single_statistic(contr_print_time,tot_prog_time,nmeslep_contr,"printing contractions");
+	print_single_statistic(mes2pts_contr_time,tot_prog_time,nmes2pts_contr_made,"calculation of mesonic 2pts_contractions");
+	print_single_statistic(bar2pts_contr_time,tot_prog_time,nbar2pts_contr_made,"calculation of baryonic 2pts contractions");
+	print_single_statistic(meslep_contr_time,tot_prog_time,nmeslep_contr_made,"calculation of hadro-leptonic contractions");
+	print_single_statistic(contr_print_time,tot_prog_time,nmeslep_contr_made,"printing contractions");
       }
   }
 }
