@@ -3,6 +3,9 @@
 
 #ifndef EXTERN_BRIDGE
  #define EXTERN_BRIDGE extern
+ #define INIT_TO(var)
+#else
+ #define INIT_TO(var) =var
 #endif
 
 //include tmLQCD inside a clean namespace
@@ -17,6 +20,8 @@ namespace tmLQCD
 namespace nissa
 {
   EXTERN_BRIDGE quad_su3 *external_conf_to_tmLQCD_handle;
+  EXTERN_BRIDGE int use_tmLQCD INIT_TO(1);
+  EXTERN_BRIDGE int tmLQCD_initialized INIT_TO(0);
   
   //importing the finalizer
   using tmLQCD::tmLQCD_finalise;
@@ -29,5 +34,6 @@ namespace nissa
 }
 
 #undef EXTERN_BRIDGE
+#undef INIT_TO
 
 #endif
