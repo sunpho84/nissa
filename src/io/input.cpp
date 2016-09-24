@@ -10,6 +10,9 @@
 #include <dirent.h>
 
 #include "base/debug.hpp"
+#ifdef USE_TMLQCD
+ #include "base/tmLQCD_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -326,42 +329,50 @@ namespace nissa
     verbosity_lv1_master_printf("\n");
   }
   
+  namespace
+  {
+    //hold the type tag
+    struct triple_tag
+    {
+      std::string name;
+      std::string type;
+      size_t size;
+      void *pointer;
+      
+      void read(){read_var((char*)pointer,type.c_str(),size);}
+      void write()
+      {
+	if(type=="%d"){verbosity_lv1_master_printf("%d",*((int*)pointer));return;}
+	crash("unkwnon how to print %s",type.c_str());
+      }
+      const std::string get_tag(int &a){return "%d";}
+      
+      template <class T> triple_tag(std::string name,T &val) : name(name),type(get_tag(val)),size(sizeof(T)),pointer(&val) {}
+    };
+  }
+  
   //read the nissa configuration file
   void read_nissa_config_file()
   {
     char path[1024]="nissa_config";
     
-    const int navail_tag=11;
-#ifndef USE_VNODES
-    int vnode_paral_dir=0;
+    std::vector<triple_tag> tags;
+    tags.push_back(triple_tag("verbosity_lv",                  verbosity_lv));
+    tags.push_back(triple_tag("use_128_bit_precision",         use_128_bit_precision));
+    tags.push_back(triple_tag("use_eo_geom",		       use_eo_geom));
+    tags.push_back(triple_tag("use_async_communications",      use_async_communications));
+    tags.push_back(triple_tag("warn_if_not_disallocated",      warn_if_not_disallocated));
+    tags.push_back(triple_tag("warn_if_not_communicated",      warn_if_not_communicated));
+    tags.push_back(triple_tag("set_t_nranks",		       fix_nranks[0]));
+    tags.push_back(triple_tag("set_x_nranks",		       fix_nranks[1]));
+    tags.push_back(triple_tag("set_y_nranks",		       fix_nranks[2]));
+    tags.push_back(triple_tag("set_z_nranks",		       fix_nranks[3]));
+#ifdef USE_VNODES
+    tags.push_back(triple_tag("vnode_paral_dir",	       vnode_paral_dir));
 #endif
-    
-    char tag_name[navail_tag][100]={
-      "verbosity_lv",
-      "use_128_bit_precision",
-      "use_eo_geom",
-      "use_async_communications",
-      "warn_if_not_disallocated",
-      "warn_if_not_communicated",
-      "set_t_nranks",
-      "set_x_nranks",
-      "set_y_nranks",
-      "set_z_nranks",
-      "vnode_paral_dir"};
-    char *tag_addr[navail_tag]={
-      (char*)&verbosity_lv,
-      (char*)&use_128_bit_precision,
-      (char*)&use_eo_geom,
-      (char*)&use_async_communications,
-      (char*)&warn_if_not_disallocated,
-      (char*)&warn_if_not_communicated,
-      (char*)(fix_nranks+0),
-      (char*)(fix_nranks+1),
-      (char*)(fix_nranks+2),
-      (char*)(fix_nranks+3),
-      (char*)(&vnode_paral_dir)};
-    char tag_type[navail_tag][3]={"%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d"};
-    char tag_size[navail_tag]={4,4,4,4,4,4,4,4,4,4,4};
+#ifdef USE_TMLQCD
+    tags.push_back(triple_tag("use_tmLQCD",		       use_tmLQCD));
+#endif
     
     if(file_exists(path))
       {
@@ -376,16 +387,16 @@ namespace nissa
 	    if(nr>=1)
 	      {
 		//find the tag
-		int itag=0;
-		while(itag<navail_tag && strcasecmp(tag,tag_name[itag])!=0) itag++;
+		size_t itag=0;
+		while(itag<tags.size() && tag!=tags[itag].name) itag++;
 		
 		//check if tag found
-		if(itag==navail_tag) crash("unkwnown parameter '%s'",tag);
+		if(itag==tags.size()) crash("unkwnown parameter '%s'",tag);
 		
 		//read the tag
-		read_var(tag_addr[itag],tag_type[itag],tag_size[itag]);
+		tags[itag].read();
 		verbosity_lv1_master_printf("Read parameter '%s' with value ",tag);
-		verbosity_lv1_master_printf(tag_type[itag],*((int*)tag_addr[itag]));
+		tags[itag].write();
 		verbosity_lv1_master_printf("\n");
 	      }
 	    else master_printf("Finished reading the file '%s'\n",path);
@@ -397,7 +408,11 @@ namespace nissa
     else master_printf("No 'nissa_config' file present, using standard configuration\n");
     
     verbosity_lv1_master_printf("Configuration:\n");
-    for(int itag=0;itag<navail_tag;itag++)
-      verbosity_lv1_master_printf(" %s=%d\n",tag_name[itag],*((int*)tag_addr[itag]));
+    for(size_t itag=0;itag<tags.size();itag++)
+      {
+	verbosity_lv1_master_printf(" %s=",tags[itag].name.c_str());
+	tags[itag].write();
+	verbosity_lv1_master_printf("\n");
+      }
   }
 }
