@@ -148,6 +148,7 @@
 #include "operations/stag/mesons.hpp"
 #include "operations/stag/nucleon.hpp"
 #include "operations/stag/putpourri.hpp"
+#include "operations/stag/qed_corr.hpp"
 #include "operations/stag/rendens.hpp"
 #include "operations/stag/spinpol.hpp"
 #include "operations/stag/stag.hpp"

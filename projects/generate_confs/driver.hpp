@@ -43,6 +43,7 @@ namespace nissa
     std::vector<nucleon_corr_meas_pars_t> nucleon_corr_meas;
     std::vector<fermionic_putpourri_meas_pars_t> fermionic_putpourri_meas;
     std::vector<quark_rendens_meas_pars_t> quark_rendens_meas;
+    std::vector<qed_corr_meas_pars_t> qed_corr_meas;
     std::vector<magnetization_meas_pars_t> magnetization_meas;
     
     //check if any measure is due
@@ -59,7 +60,8 @@ namespace nissa
 	measure_is_due(magnetization_meas,itheory,iconf)||
 	measure_is_due(nucleon_corr_meas,itheory,iconf)||
 	measure_is_due(meson_corr_meas,itheory,iconf)||
-	measure_is_due(quark_rendens_meas,itheory,iconf);
+	measure_is_due(quark_rendens_meas,itheory,iconf)||
+	measure_is_due(qed_corr_meas,itheory,iconf);
     }
     //print a message if a measure is due
     template <class T> bool if_meas_is_due_print(T &obj,int itheory,int iconf,const char *text)
@@ -79,6 +81,7 @@ namespace nissa
     void add_nucleon_corr_meas(nucleon_corr_meas_pars_t &m){nucleon_corr_meas.push_back(m);nucleon_corr_meas.back().itheory=ntheories()-1;}
     void add_fermionic_putpourri_meas(fermionic_putpourri_meas_pars_t &m){fermionic_putpourri_meas.push_back(m);fermionic_putpourri_meas.back().itheory=ntheories()-1;}
     void add_quark_rendens_meas(quark_rendens_meas_pars_t &m){quark_rendens_meas.push_back(m);quark_rendens_meas.back().itheory=ntheories()-1;}
+    void add_qed_corr_meas(qed_corr_meas_pars_t &m){qed_corr_meas.push_back(m);qed_corr_meas.back().itheory=ntheories()-1;}
     void add_magnetization_meas(magnetization_meas_pars_t &m){magnetization_meas.push_back(m);magnetization_meas.back().itheory=ntheories()-1;}
     
     //gauge measures
@@ -164,6 +167,7 @@ namespace nissa
       os<<vector_get_str(nucleon_corr_meas,full);
       os<<vector_get_str(fermionic_putpourri_meas,full);
       os<<vector_get_str(quark_rendens_meas,full);
+      os<<vector_get_str(qed_corr_meas,full);
       os<<vector_get_str(magnetization_meas,full);
       //gauge masures
       os<<vector_get_str(plaq_pol_meas,full);

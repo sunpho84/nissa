@@ -228,7 +228,8 @@ MeasNucleonCorrs DEBUG_PRINTF("Found MeasNucleonCorrs\n");return TK_MEAS_NUCLEON
 MeasMesonCorrs DEBUG_PRINTF("Found MeasMesonCorrs\n");return TK_MEAS_MESON_CORRS;
 MeasPutpourri DEBUG_PRINTF("Found MeasPutpourri\n");return TK_MEAS_PUTPOURRI;
 MeasRendens DEBUG_PRINTF("Found MeasRendens\n");return TK_MEAS_RENDENS;
-MeasMagnetiz DEBUG_PRINTF("Found MeasMagnetiz\n");return TK_MEAS_MAGNETIZ;
+MeasQedCorr DEBUG_PRINTF("Found MeasQedCorr\n");return TK_MEAS_RENDENS;
+easMagnetiz DEBUG_PRINTF("Found MeasMagnetiz\n");return TK_MEAS_MAGNETIZ;
 
  /* parameters for PutPourri */
 ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;

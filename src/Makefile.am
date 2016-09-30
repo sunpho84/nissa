@@ -446,6 +446,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/stag/magnetization.cpp \
 	operations/stag/nucleon.cpp \
 	operations/stag/putpourri.cpp \
+	operations/stag/qed_corr.cpp \
 	operations/stag/rendens.cpp \
 	operations/stag/spinpol.cpp \
 	operations/stag/stag.cpp \
@@ -486,6 +487,7 @@ include_HEADERS+= \
 	operations/stag/magnetization.hpp \
 	operations/stag/nucleon.hpp \
 	operations/stag/putpourri.hpp \
+	operations/stag/qed_corr.hpp \
 	operations/stag/rendens.hpp \
 	operations/stag/spinpol.hpp \
 	operations/stag/stag.hpp \
