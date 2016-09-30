@@ -9,6 +9,7 @@
 #include "hmc/momenta/momenta_action.hpp"
 #include "hmc/momenta/momenta_generation.hpp"
 #include "hmc/gauge/pure_gauge_Omelyan_integrator.hpp"
+#include "hmc/gauge/pure_gauge_implicit_integrator.hpp"
 #include "new_types/rat_approx.hpp"
 #include "routines/ios.hpp"
 
@@ -87,7 +88,7 @@ namespace nissa
     verbosity_lv2_master_printf("Init action: %lg\n",init_action);
     
     //evolve forward
-    if(evol_pars.use_Facc) Omelyan_pure_gauge_FACC_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
+    if(evol_pars.use_Facc) implicit_pure_gauge_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
     else                   Omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);
     
     //compute the action

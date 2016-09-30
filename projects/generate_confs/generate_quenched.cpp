@@ -875,7 +875,7 @@ void in_main(int narg,char **arg)
   // nissa_free(v);
   // crash("ciccio");
   
-  if(evol_pars.use_hmc)
+  if(evol_pars.use_Facc)
     {
       generate_approx_of_maxerr(rat_exp_H,1e-6,10,sqrt(evol_pars.residue),1,2);
       rat_exp_H.master_fprintf(stdout);
