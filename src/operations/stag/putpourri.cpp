@@ -21,6 +21,8 @@
 
 namespace nissa
 {
+  using namespace stag;
+  
   //holds the putpourri in a clean way
   struct fermionic_putpourri_t
   {

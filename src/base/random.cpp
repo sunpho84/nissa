@@ -357,7 +357,7 @@ namespace nissa
     set_borders_invalid(source);
   }
   THREADABLE_FUNCTION_END
-  void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall,int dir)
+  void generate_fully_undiluted_eo_source(color *source[2],enum rnd_t rtype,int twall,int dir)
   {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
   
   //same for spincolor

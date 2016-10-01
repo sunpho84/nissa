@@ -20,6 +20,8 @@
 
 namespace nissa
 {
+  using namespace stag;
+  
   THREADABLE_FUNCTION_5ARG(measure_nucleon_corr, quad_su3**,conf, theory_pars_t,theory_pars, nucleon_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
   {
     GET_THREAD_ID();
