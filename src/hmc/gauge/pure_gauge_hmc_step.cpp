@@ -88,8 +88,20 @@ namespace nissa
     verbosity_lv2_master_printf("Init action: %lg\n",init_action);
     
     //evolve forward
-    if(evol_pars.use_Facc) implicit_pure_gauge_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
-    else                   Omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);
+    switch(evol_pars.use_Facc)
+      {
+      case 0:
+	Omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);
+	break;
+      case 1:
+	Omelyan_pure_gauge_FACC_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
+	break;
+      case 2:
+	implicit_pure_gauge_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
+	break;
+      default:
+	crash("unknown case %d for FACC",evol_pars.use_Facc);
+      }
     
     //compute the action
     double final_action=pure_gauge_action(out_conf,theory_pars,evol_pars,H,phi,pi,evol_pars.naux_fields);
