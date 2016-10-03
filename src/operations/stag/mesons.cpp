@@ -262,7 +262,7 @@ namespace nissa
 	  for(int t=0;t<glb_size[0];t++)
 	    {
 	      int ic=icombo(iflav,iop,t);
-	      master_fprintf(file,"%d %+016.16lg %+016.016lg\n",t,corr[ic][RE]*norm,corr[ic][IM]*norm);
+	      master_fprintf(file,"%d %+16.16lg %+16.016lg\n",t,corr[ic][RE]*norm,corr[ic][IM]*norm);
 	    }
 	    master_fprintf(file,"\n");
 	  }
