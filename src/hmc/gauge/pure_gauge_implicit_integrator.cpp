@@ -24,21 +24,6 @@
 
 namespace nissa
 {
-  //same but with acceleration
-  THREADABLE_FUNCTION_8ARG(evolve_all_momenta, quad_su3*,H, su3**,pi, quad_su3*,conf, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul, double,dt, quad_su3*,ext_F)
-  {
-    verbosity_lv2_master_printf("Evolving momenta and FACC momenta, dt=%lg\n",dt);
-    
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",loc_vol,quad_su3):ext_F;
-    
-    evolve_lx_momenta_with_force(H,F,dt);
-    
-    //evolve FACC momenta
-    
-    if(ext_F==NULL) nissa_free(F);
-  }
-  THREADABLE_FUNCTION_END
-  
   //compute the gluon force
   namespace
   {
@@ -76,37 +61,40 @@ namespace nissa
     int nsteps=simul->nmd_steps;
     
     //allocate forces
-    quad_su3 *F_final=nissa_malloc("F_final",loc_vol,quad_su3);
-    quad_su3 *F_init=nissa_malloc("F_finit",loc_vol,quad_su3);
     quad_su3 *F_middle=nissa_malloc("F_middle",loc_vol,quad_su3);
-    su3 *FACC_F_final[naux_fields];
-    su3 *FACC_F_init[naux_fields];
     su3 *FACC_F_middle[naux_fields];
     for(int ifield=0;ifield<naux_fields;ifield++)
-      {
-	FACC_F_final[ifield]=nissa_malloc("FACC_F_final",loc_vol+bord_vol,su3);
-	FACC_F_init[ifield]=nissa_malloc("FACC_F_init",loc_vol+bord_vol,su3);
-	FACC_F_middle[ifield]=nissa_malloc("FACC_F_middle",loc_vol+bord_vol,su3);
-      }
+      FACC_F_middle[ifield]=nissa_malloc("FACC_F_middle",loc_vol+bord_vol,su3);
     
     //allocate a copy of all fields
     quad_su3 *conf_init=nissa_malloc("conf_init",loc_vol+bord_vol,quad_su3);
-    quad_su3 *conf_final=nissa_malloc("conf_final",loc_vol+bord_vol,quad_su3);
+    quad_su3 *conf_middle_old=nissa_malloc("conf_middle_old",loc_vol+bord_vol,quad_su3);
+    quad_su3 *conf_middle_new=nissa_malloc("conf_middle_new",loc_vol+bord_vol,quad_su3);
+    quad_su3 *conf_final_old=nissa_malloc("conf_final_old",loc_vol+bord_vol,quad_su3);
+    quad_su3 *conf_final_new=nissa_malloc("conf_final_new",loc_vol+bord_vol,quad_su3);
     su3 *phi_init[naux_fields];
-    su3 *phi_final[naux_fields];
+    su3 *phi_middle[naux_fields];
+    su3 *phi_final_old[naux_fields];
+    su3 *phi_final_new[naux_fields];
     quad_su3 *H_init=nissa_malloc("H_init",loc_vol+bord_vol,quad_su3);
-    quad_su3 *H_final=nissa_malloc("H_final",loc_vol+bord_vol,quad_su3);
     quad_su3 *H_middle=nissa_malloc("H_middle",loc_vol+bord_vol,quad_su3);
+    quad_su3 *H_final_old=nissa_malloc("H_final_old",loc_vol+bord_vol,quad_su3);
+    quad_su3 *H_final_new=nissa_malloc("H_final_new",loc_vol+bord_vol,quad_su3);
     su3 *pi_init[naux_fields];
-    su3 *pi_final[naux_fields];
     su3 *pi_middle[naux_fields];
+    su3 *pi_final_old[naux_fields];
+    su3 *pi_final_new[naux_fields];
     for(int ifield=0;ifield<naux_fields;ifield++)
       {
 	phi_init[ifield]=nissa_malloc("phi_init",loc_vol+bord_vol,su3);
-	phi_final[ifield]=nissa_malloc("phi_final",loc_vol+bord_vol,su3);
+	phi_middle[ifield]=nissa_malloc("phi_middle",loc_vol+bord_vol,su3);
+	phi_final_old[ifield]=nissa_malloc("phi_final_old",loc_vol+bord_vol,su3);
+	phi_final_new[ifield]=nissa_malloc("phi_final_new",loc_vol+bord_vol,su3);
+	
 	pi_init[ifield]=nissa_malloc("pi_init",loc_vol+bord_vol,su3);
-	pi_final[ifield]=nissa_malloc("pi_final",loc_vol+bord_vol,su3);
 	pi_middle[ifield]=nissa_malloc("pi_middle",loc_vol+bord_vol,su3);
+	pi_final_old[ifield]=nissa_malloc("pi_final_old",loc_vol+bord_vol,su3);
+	pi_final_new[ifield]=nissa_malloc("pi_final_new",loc_vol+bord_vol,su3);
       }
     
     //         Main loop
@@ -116,16 +104,19 @@ namespace nissa
 	
 	//take the initial copy
 	vector_copy(conf_init,conf);
+	vector_copy(conf_middle_new,conf);
+	vector_copy(conf_final_new,conf);
+	//
 	vector_copy(H_init,H);
+	vector_copy(H_final_new,H);
 	for(int ifield=0;ifield<naux_fields;ifield++)
 	  {
 	    vector_copy(phi_init[ifield],phi[ifield]);
+	    vector_copy(phi_final_new[ifield],phi[ifield]);
+	    //
 	    vector_copy(pi_init[ifield],pi[ifield]);
+	    vector_copy(pi_final_new[ifield],pi[ifield]);
 	  }
-	
-	//compute all forces according to init point
-	compute_full_gluon_force(F_init,conf_init,H_init,pi_init,naux_fields,kappa,niter_max,residue,theory_pars);
-	compute_MFACC_force(FACC_F_init,phi_init,naux_fields);
 	
 	int iloop=0;
 	double rel_diff=0;
@@ -133,75 +124,76 @@ namespace nissa
 	  {
 	    master_printf("Here we are, loop %d\n",iloop);
 	    
-	    //take the final copy
-	    vector_copy(conf_final,conf);
-	    vector_copy(H_final,H);
+	    //take the backup
+	    vector_copy(conf_middle_old,conf_middle_new);
+	    vector_copy(conf_final_old,conf_final_new);
+	    vector_copy(H_final_old,H_final_new);
 	    for(int ifield=0;ifield<naux_fields;ifield++)
 	      {
-		vector_copy(phi_final[ifield],phi[ifield]);
-		vector_copy(pi_final[ifield],pi[ifield]);
+		vector_copy(phi_final_old[ifield],phi_final_new[ifield]);
+		vector_copy(pi_final_old[ifield],pi_final_new[ifield]);
 	      }
 	    
-	    //put the conf at initial point
-	    vector_copy(conf,conf_init);
-	    vector_copy(H,H_init);
+	    //compute pi, phi and H up to the middle
 	    for(int ifield=0;ifield<naux_fields;ifield++)
 	      {
-		vector_copy(phi[ifield],phi_init[ifield]);
-		vector_copy(pi[ifield],pi_init[ifield]);
+		double_vector_summ((double*)(pi_middle[ifield]),(double*)(pi_init[ifield]),(double*)(pi_final_old[ifield]),loc_vol*sizeof(su3)/sizeof(double));
+		double_vector_prod_double((double*)(pi_middle[ifield]),(double*)(pi_middle[ifield]),0.5,loc_vol*sizeof(su3)/sizeof(double));
+		double_vector_summ((double*)(phi_middle[ifield]),(double*)(phi_init[ifield]),(double*)(phi_final_old[ifield]),loc_vol*sizeof(su3)/sizeof(double));
+		double_vector_prod_double((double*)(phi_middle[ifield]),(double*)(phi_middle[ifield]),0.5,loc_vol*sizeof(su3)/sizeof(double));
 	      }
+	    double_vector_summ((double*)(H_middle),(double*)(H_init),(double*)(H_final_old),loc_vol*sizeof(quad_su3)/sizeof(double));
+	    double_vector_prod_double((double*)(H_middle),(double*)(H_middle),0.5,loc_vol*sizeof(quad_su3)/sizeof(double));
+	    //compute conf up to the middle
+	    vector_copy(conf_middle_new,conf_init);
+	    evolve_lx_conf_with_accelerated_momenta(conf_middle_new,conf_middle_old,H_middle,kappa,niter_max,residue,dth);
 	    
-	    //summ initial and final momentum
+	    //compute all forces according to middle point
+	    compute_full_gluon_force(F_middle,conf_middle_new,H_middle,pi_middle,naux_fields,kappa,niter_max,residue,theory_pars);
+	    compute_MFACC_force(FACC_F_middle,phi_middle,naux_fields);
+	    
+	    //compute everything up to the end
 	    for(int ifield=0;ifield<naux_fields;ifield++)
-	      double_vector_summ((double*)(pi_middle[ifield]),(double*)(pi_init[ifield]),(double*)(pi_final[ifield]),loc_vol*sizeof(su3)/sizeof(double));
-	    double_vector_summ((double*)(H_middle),(double*)(H_init),(double*)(H_final),loc_vol*sizeof(quad_su3)/sizeof(double));
-	    
-	    //compute all forces according to final point
-	    compute_full_gluon_force(F_final,conf_final,H_final,pi_final,naux_fields,kappa,niter_max,residue,theory_pars);
-	    compute_MFACC_force(FACC_F_final,phi_final,naux_fields);
-	    
-	    //evolve according to average H
-	    evolve_MFACC_fields(phi,naux_fields,conf_final,kappa,pi_final,dth);
-	    evolve_lx_conf_with_accelerated_momenta(conf,H_final,kappa,niter_max,residue,dth);
-	    
-	    //summ initial and final force
-	    for(int ifield=0;ifield<naux_fields;ifield++)
-	      double_vector_summ((double*)(FACC_F_middle[ifield]),(double*)(FACC_F_init[ifield]),(double*)(FACC_F_final[ifield]),loc_vol*sizeof(su3)/sizeof(double));
-	    double_vector_summ((double*)(F_middle),(double*)(F_init),(double*)(F_final),loc_vol*sizeof(quad_su3)/sizeof(double));
-	    
-	    //evolve with the average
-	    evolve_lx_momenta_with_force(H,F_middle,dth);
-	    evolve_MFACC_momenta_with_force(pi,FACC_F_middle,naux_fields,dth);
+	      {
+		vector_copy(phi_final_new[ifield],phi_init[ifield]);
+		vector_copy(pi_final_new[ifield],pi_init[ifield]);
+	      }
+	    evolve_MFACC_fields(phi_final_new,naux_fields,conf_middle_new,kappa,pi_middle,dt);
+	    evolve_MFACC_momenta_with_force(pi_final_new,FACC_F_middle,naux_fields,dt);
+	    vector_copy(H_final_new,H_init);
+	    evolve_lx_momenta_with_force(H_final_new,F_middle,dt);
+	    vector_copy(conf_final_new,conf_init);
+	    evolve_lx_conf_with_accelerated_momenta(conf_final_new,conf_middle_old,H_middle,kappa,niter_max,residue,dt);
 	    
 	    //compute norm
 	    double H_norm2;
-	    double_vector_glb_scalar_prod(&H_norm2,(double*)H_final,(double*)H,loc_vol*sizeof(quad_su3)/sizeof(double));
+	    double_vector_glb_scalar_prod(&H_norm2,(double*)H_final_new,(double*)H_final_old,loc_vol*sizeof(quad_su3)/sizeof(double));
 	    double conf_norm2;
-	    double_vector_glb_scalar_prod(&conf_norm2,(double*)conf_final,(double*)conf,loc_vol*sizeof(quad_su3)/sizeof(double));
+	    double_vector_glb_scalar_prod(&conf_norm2,(double*)conf_final_new,(double*)conf_final_old,loc_vol*sizeof(quad_su3)/sizeof(double));
 	    double phi_norm2[naux_fields];
 	    double pi_norm2[naux_fields];
 	    for(int ifield=0;ifield<naux_fields;ifield++)
 	      {
-		double_vector_glb_scalar_prod(&phi_norm2[ifield],(double*)phi_final[ifield],(double*)phi[ifield],loc_vol*sizeof(su3)/sizeof(double));
-		double_vector_glb_scalar_prod(&pi_norm2[ifield],(double*)pi_final[ifield],(double*)pi[ifield],loc_vol*sizeof(su3)/sizeof(double));
+		double_vector_glb_scalar_prod(&phi_norm2[ifield],(double*)phi_final_new[ifield],(double*)phi_final_old[ifield],loc_vol*sizeof(su3)/sizeof(double));
+		double_vector_glb_scalar_prod(&pi_norm2[ifield],(double*)pi_final_new[ifield],(double*)pi_final_old[ifield],loc_vol*sizeof(su3)/sizeof(double));
 	      }
 	    
 	    //compute difference between final and previous round
-	    double_vector_subtassign((double*)H_final,(double*)H,loc_vol*sizeof(quad_su3)/sizeof(double));
-	    double H_rel_diff_norm=sqrt(double_vector_glb_norm2(H_final,loc_vol)/H_norm2);
+	    double_vector_subtassign((double*)H_final_old,(double*)H_final_new,loc_vol*sizeof(quad_su3)/sizeof(double));
+	    double H_rel_diff_norm=sqrt(double_vector_glb_norm2(H_final_old,loc_vol)/H_norm2);
 	    master_printf("H_rel_diff_norm: %lg\n",H_rel_diff_norm);
-	    double_vector_subtassign((double*)conf_final,(double*)conf,loc_vol*sizeof(quad_su3)/sizeof(double));
-	    double conf_rel_diff_norm=sqrt(double_vector_glb_norm2(conf_final,loc_vol)/conf_norm2);
+	    double_vector_subtassign((double*)conf_final_old,(double*)conf_final_new,loc_vol*sizeof(quad_su3)/sizeof(double));
+	    double conf_rel_diff_norm=sqrt(double_vector_glb_norm2(conf_final_old,loc_vol)/conf_norm2);
 	    master_printf("conf_rel_diff_norm: %lg\n",conf_rel_diff_norm);
 	    
 	    double phi_rel_diff_norm=0;
 	    double pi_rel_diff_norm=0;
 	    for(int ifield=0;ifield<naux_fields;ifield++)
 	      {
-		double_vector_subtassign((double*)(phi_final[ifield]),(double*)(phi[ifield]),loc_vol*sizeof(su3)/sizeof(double));
-		phi_rel_diff_norm+=sqrt(double_vector_glb_norm2(phi_final[ifield],loc_vol)/phi_norm2[ifield]);
-		double_vector_subtassign((double*)(pi_final[ifield]),(double*)(pi[ifield]),loc_vol*sizeof(su3)/sizeof(double));
-		pi_rel_diff_norm+=sqrt(double_vector_glb_norm2(pi_final[ifield],loc_vol)/pi_norm2[ifield]);
+		double_vector_subtassign((double*)(phi_final_old[ifield]),(double*)(phi_final_new[ifield]),loc_vol*sizeof(su3)/sizeof(double));
+		phi_rel_diff_norm+=sqrt(double_vector_glb_norm2(phi_final_old[ifield],loc_vol)/phi_norm2[ifield]);
+		double_vector_subtassign((double*)(pi_final_old[ifield]),(double*)(pi_final_new[ifield]),loc_vol*sizeof(su3)/sizeof(double));
+		pi_rel_diff_norm+=sqrt(double_vector_glb_norm2(pi_final_old[ifield],loc_vol)/pi_norm2[ifield]);
 	      }
 	    master_printf("phi_rel_diff_norm: %lg\n",phi_rel_diff_norm);
 	    master_printf("pi_rel_diff_norm: %lg\n",pi_rel_diff_norm);
@@ -211,6 +203,15 @@ namespace nissa
 	    iloop++;
 	  }
 	while(rel_diff>1e-15);
+	
+	//take the backup
+	vector_copy(conf,conf_final_new);
+	vector_copy(H,H_final_new);
+	for(int ifield=0;ifield<naux_fields;ifield++)
+	  {
+	    vector_copy(phi[ifield],phi_final_new[ifield]);
+	    vector_copy(pi[ifield],pi_final_new[ifield]);
+	  }
       }
     
     //normalize the configuration
@@ -220,22 +221,25 @@ namespace nissa
     for(int ifield=0;ifield<naux_fields;ifield++)
       {
 	nissa_free(phi_init[ifield]);
-	nissa_free(phi_final[ifield]);
+	nissa_free(phi_middle[ifield]);
+	nissa_free(phi_final_old[ifield]);
+	nissa_free(phi_final_new[ifield]);
 	nissa_free(pi_init[ifield]);
-	nissa_free(pi_final[ifield]);
 	nissa_free(pi_middle[ifield]);
-	nissa_free(FACC_F_init[ifield]);
-	nissa_free(FACC_F_final[ifield]);
+	nissa_free(pi_final_old[ifield]);
+	nissa_free(pi_final_new[ifield]);
 	nissa_free(FACC_F_middle[ifield]);
       }
-    nissa_free(F_init);
-    nissa_free(F_final);
     nissa_free(F_middle);
     nissa_free(H_init);
-    nissa_free(H_final);
     nissa_free(H_middle);
+    nissa_free(H_final_old);
+    nissa_free(H_final_new);
     nissa_free(conf_init);
-    nissa_free(conf_final);
+    nissa_free(conf_middle_old);
+    nissa_free(conf_middle_new);
+    nissa_free(conf_final_old);
+    nissa_free(conf_final_new);
   }
   THREADABLE_FUNCTION_END
 }
