@@ -82,7 +82,7 @@ namespace nissa
     }
     THREADABLE_FUNCTION_END
     
-    //multpiply by the derivative of M w.r.t mu
+    //multiply by the derivative of M w.r.t mu
     THREADABLE_FUNCTION_6ARG(mult_dMdmu, color**,out, theory_pars_t*,theory_pars, quad_su3**,conf, int,iflav, int,ord, color**,in)
     {
       GET_THREAD_ID();
@@ -110,6 +110,47 @@ namespace nissa
       rem_backfield_from_conf(conf,theory_pars->backfield[iflav]);
     }
     THREADABLE_FUNCTION_END
+  
+    void insert_external_source_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars)
+    {if(aux) complex_copy(out,aux[par][ieo][mu]);else complex_put_to_real(out,1);}
+    //insert an external current
+    void insert_vector_vertex(color **out,quad_su3 **conf,theory_pars_t *theory_pars,int iflav,spin1field **curr,color **in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,spin1field **curr,int par,int ieo,int mu,void *pars),int t,void *pars)
+    {
+      GET_THREAD_ID();
+      
+      add_backfield_to_conf(conf,theory_pars->backfield[iflav]);
+      communicate_ev_and_od_quad_su3_borders(conf);
+      communicate_ev_and_od_color_borders(in);
+      
+      for(int par=0;par<2;par++)
+	{
+	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	    {
+	      color_put_to_zero(out[par][ieo]);
+	      for(int mu=0;mu<NDIM;mu++)
+		{
+		  color temp;
+		  
+		  int iup=loceo_neighup[par][ieo][mu];
+		  complex cf;
+		  get_curr(cf,curr,par,ieo,mu,pars);
+		  complex_prodassign(cf,fact_fw);
+		  unsafe_su3_prod_color(temp,conf[par][ieo][mu],in[!par][iup]);
+		  color_summ_the_prod_complex(out[par][ieo],temp,cf);
+		  
+		  int idw=loceo_neighdw[par][ieo][mu];
+		  complex cb;
+		  get_curr(cb,curr,!par,idw,mu,pars);
+		  complex_prodassign(cb,fact_bw);
+		  unsafe_su3_dag_prod_color(temp,conf[!par][idw][mu],in[!par][idw]);
+		  color_summ_the_prod_complex(out[par][ieo],temp,cb);
+		}
+	    }
+	  set_borders_invalid(out[par]);
+	}
+      
+      rem_backfield_from_conf(conf,theory_pars->backfield[iflav]);
+    }
   }
   
   std::string base_fermionic_meas_t::get_str(bool full)

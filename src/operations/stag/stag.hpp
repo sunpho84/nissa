@@ -73,6 +73,14 @@ namespace nissa
     DM(out,iflav,ord,in)
 #define NEW_TRACE_RES(o)			\
     complex o={0,0}
+#define NEW_TIME_CORR(o)			\
+      double *NAME2(glb,o)=nissa_malloc("glb"#o,glb_size[0],double);	\
+      double *NAME2(loc,o)=new double[glb_size[0]];			\
+      vector_reset(NAME2(glb,o));					\
+      memset(NAME2(loc,o),0,sizeof(double)*glb_size[0]
+#define DELETE_TIME_CORR(o)			\
+    nissa_free(NAME2(glb,o));			\
+    delete[] NAME2(loc,o)
 #define PRINT(A)							\
       master_fprintf(file,"%+16.16lg %+16.16lg\t",A[0]/meas_pars.nhits,A[1]/meas_pars.nhits)
 #define SUMM_THE_TRACE_PRINT_AT_LAST_HIT(A,B,C)				\
@@ -84,6 +92,8 @@ namespace nissa
     void mult_Minv(color **prop,quad_su3 **conf,quad_u1 **u1b,double m,double residue,color **source);
     void mult_Minv(color **prop,quad_su3 **conf,theory_pars_t *pars,int iflav,double residue,color **source);
     void mult_dMdmu(color **out,theory_pars_t *theory_pars,quad_su3 **conf,int iflav,int ord,color **in);
+    void insert_external_source_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars);
+    void insert_vector_vertex(color **out,quad_su3 **conf,theory_pars_t *theory_pars,int iflav,spin1field **curr,color **in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,spin1field **curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
     void summ_the_trace(double *out,complex *point_result,color **A,color **B);
   }
 }
