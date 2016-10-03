@@ -2,6 +2,7 @@
 #define _TLSYM_GAUGE_PROPAGATOR_HPP
 
 #include "free_theory_types.hpp"
+#include "new_types/spin.hpp"
 
 namespace nissa
 {
