@@ -149,7 +149,7 @@ namespace nissa
   void evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(quad_su3 *conf,su3 **phi,quad_su3 *H,su3 **pi,int naux_fields,double kappa,int niter,double residue,double dt)
   {
     if(evolve_FACC) evolve_MFACC_fields(phi,naux_fields,conf,kappa,pi,dt);
-    if(evolve_SU3) evolve_lx_conf_with_accelerated_momenta(conf,H,kappa,niter,residue,dt);
+    if(evolve_SU3) evolve_lx_conf_with_accelerated_momenta(conf,conf,H,kappa,niter,residue,dt);
   }
   
   //integrator for pure gauge
