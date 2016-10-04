@@ -24,8 +24,11 @@ namespace nissa
     {path=def_path();}
     virtual ~qed_corr_meas_pars_t(){}
   };
-  
-  void measure_qed_corr(quad_su3 **conf,theory_pars_t &theory_pars,qed_corr_meas_pars_t &meas_pars,int iconf,int conf_created);
+
+  namespace stag
+  {
+    void measure_qed_corr(quad_su3 **conf,theory_pars_t theory_pars,qed_corr_meas_pars_t meas_pars,int iconf,int conf_created);
+  }
 }
 
 #endif
