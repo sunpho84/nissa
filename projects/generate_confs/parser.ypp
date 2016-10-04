@@ -208,7 +208,7 @@
 %token TK_MEAS_RENDENS
 //qed corr
 %type <qed_corr_meas> qed_corr_meas
-%token TK_MEAS_QED_CORR
+%token TK_MEAS_QED_CORRS
 //magnetization
 %type <magnetization_meas> magnetization_meas
 %token TK_MEAS_MAGNETIZ
@@ -509,7 +509,7 @@ quark_rendens_meas: TK_MEAS_RENDENS {$$=new quark_rendens_meas_pars_t();}
 
 ////////////////////////////////////////////////// QED CORR //////////////////////////////////////////////////
 
-qed_corr_meas: TK_MEAS_QED_CORR {$$=new qed_corr_meas_pars_t();}
+qed_corr_meas: TK_MEAS_QED_CORRS {$$=new qed_corr_meas_pars_t();}
                   | qed_corr_meas each {$$->each=$2;}
                   | qed_corr_meas after {$$->after=$2;}
                   | qed_corr_meas path {$$->path=(*$2);delete $2;}
