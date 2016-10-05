@@ -10,7 +10,7 @@ namespace nissa
   {
     std::vector<std::pair<int,int> > mesons;
     
-    std::string def_path(){return "nucleon_corr";}
+    std::string def_path(){return "meson_corr";}
     
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
