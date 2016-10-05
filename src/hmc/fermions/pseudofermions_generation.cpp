@@ -79,7 +79,7 @@ namespace nissa
 	  {
 	    verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs());
 	    double pf_action_flav;
-	    master_printf("Cl_odd: %lg invCl_evn: %lg\n",Cl[ODD][0][0][0][0][0],invCl_evn[0][0][0][0][0][0][0]);
+	    if(invCl_evn) master_printf("Cl_odd: %lg invCl_evn: %lg\n",Cl[ODD][0][0][0][0][0],invCl_evn[0][0][0][0][0][0][0]);
 	    generate_pseudo_fermion(&pf_action_flav,&(pf[iflav][ipf]),conf,Cl[ODD],invCl_evn,theory_pars.backfield[iflav],&rat_appr[nappr_per_quark*iflav+RAT_APPR_PF_GEN],simul_pars.pf_action_residue,q);
 	    pf_action+=pf_action_flav;
 	  }
