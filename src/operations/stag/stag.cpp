@@ -59,8 +59,8 @@ namespace nissa
     }
     
     //fill a source
-    void fill_source(color **src)
-    {generate_fully_undiluted_eo_source(src,RND_GAUSS,-1);}
+    void fill_source(color **src,int twall)
+    {generate_fully_undiluted_eo_source(src,RND_GAUSS,twall);}
     
     //take the trace between A^dag and B
     THREADABLE_FUNCTION_4ARG(summ_the_trace, double*,out, complex*,point_result, color**, A, color**, B)
@@ -121,6 +121,7 @@ namespace nissa
       add_backfield_to_conf(conf,theory_pars->backfield[iflav]);
       communicate_ev_and_od_quad_su3_borders(conf);
       communicate_ev_and_od_color_borders(in);
+      if(curr) communicate_ev_and_od_spin1field_borders(curr);
       
       for(int par=0;par<2;par++)
 	{
