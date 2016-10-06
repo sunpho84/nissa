@@ -27,7 +27,7 @@ parser_fixed.cpp: $(top_srcdir)/config/fix_bison.sh Makefile parser.cpp
 	@echo "Fixing the parser"
 	@bash $(top_srcdir)/config/fix_bison.sh parser.cpp > $@
 	@cp parser_fixed.cpp parser.cpp
-	@touch parser_fixed.cpp
+	@touch parser_fixed.cpp parser.hpp
 
 tokenizer_fixed.cpp: $(top_srcdir)/config/fix_flex.sh Makefile tokenizer.cpp
 	@echo "Fixing the parser"
