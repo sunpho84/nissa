@@ -110,7 +110,7 @@ namespace nissa
       rem_backfield_from_conf(conf,theory_pars->backfield[iflav]);
     }
     THREADABLE_FUNCTION_END
-  
+    
     void insert_external_source_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars)
     {if(aux) complex_copy(out,aux[par][ieo][mu]);else complex_put_to_real(out,1);}
     //insert an external current
