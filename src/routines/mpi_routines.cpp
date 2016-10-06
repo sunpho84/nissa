@@ -219,7 +219,9 @@ namespace nissa
   //broadcast an int
   double broadcast(double in,int rank_from)
   {
-    MPI_Bcast(&in,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    GET_THREAD_ID();
+    if(IS_MASTER_THREAD) MPI_Bcast(&in,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    THREAD_BROADCAST(in,in);
     return in;
   }
   
