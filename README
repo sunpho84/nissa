@@ -58,13 +58,14 @@ Compilation procede as in normal autotools way:
 The program have to be compiled with C++ including all the libraries and header necessary 
 for MPI. Typically you can use some wrapper of the system compiler to avoid having to pass
 all the paths and flags needed by MPI. Pass the name of such compiler wrapper through "MPICXX" 
-parameter, e.g: "MPICXX=mpicxx".
+parameter, e.g: "MPICXX=mpicxx". Optionally, pass the flag needed to activate OpenMP through
+CXXFLAGS: if none are passed, they will be guessed.
 
 On a typical PC therefore you should type something like:
  ../configure MPICXX=mpicxx CXXFLAGS="-fopenmp"
 
 On BGQ machine (Turing and Fermi) use:
- ../configure MPICC=mpixlc_r MPICXX=mpixlcxx_r CXXFLAGS="-qsmp=omp -O3 -qstrict=all" --enable-bgq
+ ../configure MPICC=mpixlc_r MPICXX=mpixlcxx_r CXXFLAGS="-O3 -qstrict=all" --enable-bgq
 
 When compiling using mpi intel compiler please set the flag: "CXXFLAGS=-DMPICH_IGNORE_CXX_SEEK"
 

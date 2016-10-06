@@ -157,7 +157,13 @@ AC_ARG_ENABLE(threads,
 	AS_HELP_STRING([--disable-threads],[Enable threads]),
 	enable_threads="${enableval}",
 	enable_threads="yes")
-if test "$enable_threads" == "yes";then AC_DEFINE([USE_THREADS],1,[Enable threads]) fi
+	if test "$enable_threads" == "yes"
+	then
+		#check openmp
+		AC_OPENMP
+		CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+		AC_DEFINE([USE_THREADS],1,[Enable threads])
+	fi
 AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling threads... $enable_threads])
 
