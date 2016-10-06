@@ -19,7 +19,7 @@ namespace nissa
   {
     std::ostringstream os;
     
-    os<<"MeasQedCorr\n";
+    os<<"MeasQedCorrs\n";
     os<<base_fermionic_meas_t::get_str(full);
     
     return os.str();

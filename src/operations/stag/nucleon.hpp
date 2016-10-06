@@ -9,7 +9,7 @@ namespace nissa
   //parameters to compute time nucleon correlator
   struct nucleon_corr_meas_pars_t : base_fermionic_meas_t
   {
-    std::string def_path(){return "nucleon_corr";}
+    std::string def_path(){return "nucleon_corrs";}
     
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
