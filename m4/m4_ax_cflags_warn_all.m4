@@ -67,7 +67,8 @@ AC_CACHE_CHECK([m4_ifval($1,$1,FLAGS) for maximum warnings],
 VAR,[VAR="no, unknown"
 ac_save_[]FLAGS="$[]FLAGS"
 for ac_arg dnl
-in "-warn all  % -warn all"   dnl Intel
+in "-qflag=i:i % -qflag=i:i"  dnl IBM
+   "-warn all  % -warn all"   dnl Intel
    "-pedantic  % -Wall"       dnl GCC
    "-xstrconst % -v"          dnl Solaris C
    "-std1      % -verbose -w0 -warnprotos" dnl Digital Unix
