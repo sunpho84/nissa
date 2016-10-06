@@ -27,15 +27,6 @@ namespace nissa
   
   namespace stag
   {
-    //hold the map
-    struct contr_t
-    {
-      std::string name;
-      color **A;
-      color **B;
-      contr_t(std::string name,color **A,color **B) : name(name),A(A),B(B) {}
-    };
-    
     //return directly a eosplit photon field
     void get_eo_photon(spin1field **out,gauge_info photon)
     {
@@ -78,6 +69,25 @@ namespace nissa
   
   using namespace stag;
   
+  namespace
+  {
+    const int nop_t=3;
+    enum ins_t{S,T,F};
+    char op_name[nop_t][2]={"S","T","F"};
+    const int nprop_t=5;
+    enum prop_t{P0,PS,PT,P1,P2};
+    char prop_name[nprop_t][2]={"0","S","T","1","2"};
+    
+    struct ins_map_t
+    {
+      int sou;
+      int op;
+      ins_map_t(int sou,int op) : sou(sou),op(op) {}
+      ins_map_t(){};
+    };
+    
+  }
+  
   //compute and print
   THREADABLE_FUNCTION_5ARG(measure_qed_corr, quad_su3**,conf, theory_pars_t,theory_pars, qed_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
   {
@@ -85,7 +95,8 @@ namespace nissa
     
     //open the file, allocate point result and source
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    NEW_FIELD_T(source);
+    NEW_FIELD_T(ori_source);
+    NEW_FIELD_T(temp_source);
     
     //set photon
     gauge_info photon;
@@ -99,85 +110,127 @@ namespace nissa
     compute_tadpole(tadpole,photon);
     
     //allocate
+    const int nflavs=theory_pars.nflavs();
     spin1field *photon_field[2]={nissa_malloc("photon_phi_ev",loc_volh+bord_volh,spin1field),nissa_malloc("photon_phi_od",loc_volh+bord_volh,spin1field)};
-    NEW_FIELD_T(S);
-    NEW_FIELD_T(SS);
-    NEW_FIELD_T(AS);
-    NEW_FIELD_T(SAS);
-    NEW_FIELD_T(ASAS);
-    NEW_FIELD_T(SASAS);
-    NEW_FIELD_T(TS);
-    NEW_FIELD_T(STS);
+    color *M[nprop_t*nflavs][2];
+    for(int i=0;i<nprop_t*nflavs;i++)
+      for(int par=0;par<2;par++)
+	M[i][par]=nissa_malloc(combine("M_%d_%d",i,par).c_str(),loc_volh+bord_volh,color);
     
-    //write the map
-    std::vector<contr_t> contr_map;
-    contr_map.push_back(contr_t("00",S,S));
-    contr_map.push_back(contr_t("0S",S,SS));
-    contr_map.push_back(contr_t("0T",S,STS));
-    contr_map.push_back(contr_t("0M",S,SASAS));
-    contr_map.push_back(contr_t("LL",SAS,SAS));
+    //write the map of how to build props
+    std::vector<ins_map_t> prop_build(nprop_t);
+    prop_build[P0]=ins_map_t(-1,S);
+    prop_build[P1]=ins_map_t(P0,F);
+    prop_build[P2]=ins_map_t(P1,F);
+    prop_build[PS]=ins_map_t(P0,S);
+    prop_build[PT]=ins_map_t(P0,T);
+    
+    //write how to meake the contractions
+    std::vector<std::pair<int,int> > contr_map;
+    contr_map.push_back(std::make_pair(P0,P0));
+    contr_map.push_back(std::make_pair(P0,PS));
+    contr_map.push_back(std::make_pair(P0,PT));
+    contr_map.push_back(std::make_pair(P1,P1));
+    contr_map.push_back(std::make_pair(P0,P2));
     
     //init the contr
-    double *glb_contr=nissa_malloc("glb_contr",nthreads*glb_size[0]*contr_map.size(),double);
-    double *loc_contr=glb_contr+thread_id*glb_size[0]*contr_map.size();
+    complex *glb_contr=nissa_malloc("glb_contr",nthreads*glb_size[0]*contr_map.size()*nflavs*nflavs,complex);
+    complex *loc_contr=glb_contr+thread_id*glb_size[0]*contr_map.size();
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
-	get_eo_photon(photon_field,photon);
-	fill_source(source,0);
+	vector_reset(glb_contr);
 	
-	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
+	for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 	  {
-	    //base
-	    MINV(S,iflav,source);
-	    //scalar insertion
-	    MINV(SS,iflav,S);
-	    //photon insertion
-	    insert_external_source(AS,conf,&theory_pars,iflav,photon_field,S,-1);
-	    MINV(SAS,iflav,AS);
-	    //photon insertion
-	    insert_external_source(ASAS,conf,&theory_pars,iflav,photon_field,SAS,-1);
-	    MINV(SASAS,iflav,ASAS);
-	    //tadpole insertion
-	    insert_tadpole(TS,conf,&theory_pars,iflav,S,tadpole,-1);
-	    MINV(STS,iflav,TS);
+	    verbosity_lv2_master_printf("Computing hit %d/%d\n",ihit,meas_pars.nhits);
 	    
-	    vector_reset(glb_contr);
-	    for(size_t icontr=0;icontr<contr_map.size();icontr++)
-	      for(int par=0;par<2;par++)
-		NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	    //get global time
+	    int tso;
+	    if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glb_size[0]);
+	    THREAD_BROADCAST(tso,tso);
+	    verbosity_lv2_master_printf("tsource: %d\n",tso);
+	    
+	    //generate sources
+	    get_eo_photon(photon_field,photon);
+	    fill_source(ori_source,tso);
+	    
+	    for(int iflav=0;iflav<nflavs;iflav++)
+	      for(size_t iprop=0;iprop<prop_build.size();iprop++)
+		{
+		  //select the source
+		  color **so;
+		  if(prop_build[iprop].sou==-1) so=ori_source;
+		  else so=M[prop_build[iprop].sou+nprop_t*iflav];
+		  
+		  //make the insertion
+		  verbosity_lv1_master_printf("Producing prop for flav %d, type %s, inserting operator %s on top of %s\n",
+					      iflav,prop_name[iprop],op_name[prop_build[iprop].op],
+					      (prop_build[iprop].sou==-1)?"so":prop_name[prop_build[iprop].sou]);
+		  
+		  switch(prop_build[iprop].op)
+		    {
+		    case S:for(int par=0;par<2;par++) vector_copy(temp_source[par],so[par]);break;
+		    case T:insert_tadpole(temp_source,conf,&theory_pars,iflav,so,tadpole,-1);break;
+		    case F:insert_external_source(temp_source,conf,&theory_pars,iflav,photon_field,so,-1);break;
+		    }
+		  
+		  //invert
+		  MINV(M[iprop+nprop_t*iflav],iflav,temp_source);
+		}
+	    
+	    for(int iflav=0;iflav<nflavs;iflav++)
+	      for(int jflav=0;jflav<nflavs;jflav++)
+		for(size_t icontr=0;icontr<contr_map.size();icontr++)
 		  {
-		    int ivol=loclx_of_loceo[par][ieo];
-		    int t=glb_coord_of_loclx[ivol][0];
-		    for(int ic=0;ic<NCOL;ic++)
-		      loc_contr[t+glb_size[0]*icontr]+=real_part_of_complex_scalar_prod(contr_map[icontr].A[par][ieo][ic],contr_map[icontr].B[par][ieo][ic]);
+		    color **A=(contr_map[icontr].first==-1)?ori_source:M[contr_map[icontr].first+nprop_t*iflav];
+		    color **B=(contr_map[icontr].second==-1)?ori_source:M[contr_map[icontr].second+nprop_t*jflav];
+		    
+		    for(int par=0;par<2;par++)
+		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+			{
+			  int ivol=loclx_of_loceo[par][ieo];
+			  int t=glb_coord_of_loclx[ivol][0];
+			  for(int ic=0;ic<NCOL;ic++)
+			    complex_summ_the_conj1_prod(loc_contr[(t+glb_size[0]-tso)%glb_size[0]+glb_size[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav))],
+							A[par][ieo][ic],B[par][ieo][ic]);
+			}
 		  }
 	  }
 	
 	//reduce
-	glb_threads_reduce_double_vect(loc_contr,glb_size[0]*contr_map.size());
-	if(IS_MASTER_THREAD) glb_nodes_reduce_double_vect(glb_contr,glb_size[0]*contr_map.size());
+	glb_threads_reduce_complex_vect(loc_contr,glb_size[0]*contr_map.size()*nflavs*nflavs);
+	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,glb_size[0]*contr_map.size()*nflavs*nflavs);
 	
 	//print
 	double norm=1.0/(meas_pars.nhits*glb_spat_vol);
-	for(size_t icontr=0;icontr<contr_map.size();icontr++)
-	  {
-	    master_fprintf(file,"\n%s\n",contr_map[icontr].name.c_str());
-	    for(int t=0;t<glb_size[0];t++) master_fprintf(file, "%+16.16lg\n",glb_contr[t+glb_size[0]*icontr]*norm);
-	  }
+	for(int iflav=0;iflav<nflavs;iflav++)
+	  for(int jflav=0;jflav<nflavs;jflav++)
+	    {
+	      master_fprintf(file,"\n # conf %d , iq_rev = %d , mq_rev = %lg , iq_ins = %d , mq_ins = %lg\n",
+			     iconf,iflav,theory_pars.quarks[iflav].mass,jflav,theory_pars.quarks[jflav].mass);
+	      for(size_t icontr=0;icontr<contr_map.size();icontr++)
+		{
+		  master_fprintf(file,"\n%s%s\n",prop_name[contr_map[icontr].first],prop_name[contr_map[icontr].second]);
+		  for(int t=0;t<glb_size[0];t++)
+		    {
+		      int i=t+glb_size[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav));
+		      master_fprintf(file, "%+16.16lg %+16.16lg\n",glb_contr[i][RE]*norm,glb_contr[i][IM]*norm);
+		    }
+		}
+	    }
       }
     
     //free
-    DELETE_FIELD_T(STS);
-    DELETE_FIELD_T(TS);
-    DELETE_FIELD_T(SASAS);
-    DELETE_FIELD_T(ASAS);
-    DELETE_FIELD_T(SAS);
-    DELETE_FIELD_T(AS);
-    DELETE_FIELD_T(SS);
-    DELETE_FIELD_T(S);
-    DELETE_FIELD_T(source);
-    for(int par=0;par<2;par++) nissa_free(photon_field[par]);
+    for(int par=0;par<2;par++)
+      {
+	nissa_free(photon_field[par]);
+	nissa_free(temp_source[par]);
+	nissa_free(ori_source[par]);
+      }
+    for(int i=0;i<nprop_t*nflavs;i++)
+      for(int par=0;par<2;par++)
+	nissa_free(M[i][par]);
     nissa_free(glb_contr);
     
     close_file(file);
