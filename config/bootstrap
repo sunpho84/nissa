@@ -7,4 +7,5 @@ rm -fr \
     config/{compile,config.guess,config.sub,depcomp,install-sh,missing,ylwrap} \
     configure
 
+aclocal
 autoreconf --verbose --install --force
