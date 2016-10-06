@@ -135,8 +135,11 @@ namespace nissa
     
     //init the contr
     int ncontr_tot=contr_map.size()*nflavs*nflavs,contr_tot_size=ncontr_tot*glb_size[0];
-    complex *glb_contr=nissa_malloc("glb_contr",contr_tot_size,complex);
+    complex *glb_contr=nissa_malloc("glb_contr",contr_tot_size*nthreads,complex);
     complex *loc_contr=glb_contr+thread_id*contr_tot_size;
+    complex *temp_contr=nissa_malloc("glb_contr",contr_tot_size*nthreads,complex);
+    vector_reset(temp_contr);
+    //	master_printf("%p %p %lld\n",glb_contr,loc_contr,get_vect(glb_contr)->nel);
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
@@ -191,9 +194,9 @@ namespace nissa
 		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 			{
 			  int ivol=loclx_of_loceo[par][ieo];
-			  int t=glb_coord_of_loclx[ivol][0];
+			  int t=(glb_coord_of_loclx[ivol][0]+glb_size[0]-tso)%glb_size[0];
 			  for(int ic=0;ic<NCOL;ic++)
-			    complex_summ_the_conj1_prod(loc_contr[(t+glb_size[0]-tso)%glb_size[0]+glb_size[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav))],
+			    complex_summ_the_conj1_prod(loc_contr[t+glb_size[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav))],
 							A[par][ieo][ic],B[par][ieo][ic]);
 			}
 		  }
