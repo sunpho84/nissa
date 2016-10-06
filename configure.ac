@@ -145,7 +145,10 @@ AC_ARG_ENABLE(mpi-io,
 	AS_HELP_STRING([--disable-mpi-io],[Enable MPI I/O]),
 	enable_mpi_io="${enableval}",
 	enable_mpi_io="yes")
-if test "$enable_mpi_io" == "yes";then AC_DEFINE([USE_MPI_IO],1,[Enable MPI I/O]) fi
+	if test "$enable_mpi_io" == "yes"
+	then
+		AC_DEFINE([USE_MPI_IO],1,[Enable MPI I/O])
+	fi
 AM_CONDITIONAL([USE_MPI_IO],[test "$enable_mpi_io" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling MPI I/O... $enable_mpi_io])
 
@@ -163,7 +166,10 @@ AC_ARG_ENABLE(MPI,
 	AS_HELP_STRING([--disable-MPI],[Enable MPI]),
 	enable_MPI="${enableval}",
 	enable_MPI="yes")
-if test "$enable_MPI" == "yes";then AC_DEFINE([USE_MPI],1,[Enable MPI]) fi
+	if test "$enable_MPI" == "yes"
+	then
+		AC_DEFINE([USE_MPI],1,[Enable MPI])
+	fi
 AM_CONDITIONAL([USE_MPI],[test "$enable_MPI" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling MPI... $enable_MPI])
 
