@@ -27,11 +27,13 @@ parse_corr_fixed.cpp: $(top_srcdir)/config/fix_bison.sh Makefile parse_corr.cpp
 	@echo "Fixing the parser"
 	@bash $(top_srcdir)/config/fix_bison.sh parse_corr.cpp > $@
 	@cp parse_corr_fixed.cpp parse_corr.cpp
+	@touch parser_fixed.cpp parser.hpp
 
 tokenize_corr_fixed.cpp: $(top_srcdir)/config/fix_flex.sh Makefile tokenize_corr.cpp
 	@echo "Fixing the parser"
 	@bash $(top_srcdir)/config/fix_flex.sh tokenize_corr.cpp > $@
 	@cp tokenize_corr_fixed.cpp tokenize_corr.cpp
+	@touch tokenizer_fixed.cpp
 
 AM_YFLAGS=-d
 BUILT_SOURCES=$(semileptonic_smeared_parser_built_sources)
