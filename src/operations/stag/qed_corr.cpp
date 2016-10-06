@@ -134,8 +134,9 @@ namespace nissa
     contr_map.push_back(std::make_pair(P0,P2));
     
     //init the contr
-    complex *glb_contr=nissa_malloc("glb_contr",nthreads*glb_size[0]*contr_map.size()*nflavs*nflavs,complex);
-    complex *loc_contr=glb_contr+thread_id*glb_size[0]*contr_map.size();
+    int ncontr_tot=contr_map.size()*nflavs*nflavs,contr_tot_size=ncontr_tot*glb_size[0];
+    complex *glb_contr=nissa_malloc("glb_contr",contr_tot_size,complex);
+    complex *loc_contr=glb_contr+thread_id*contr_tot_size;
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
@@ -199,8 +200,8 @@ namespace nissa
 	  }
 	
 	//reduce
-	glb_threads_reduce_complex_vect(loc_contr,glb_size[0]*contr_map.size()*nflavs*nflavs);
-	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,glb_size[0]*contr_map.size()*nflavs*nflavs);
+	glb_threads_reduce_complex_vect(loc_contr,contr_tot_size);
+	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);
 	
 	//print
 	double norm=1.0/(meas_pars.nhits*glb_spat_vol);
