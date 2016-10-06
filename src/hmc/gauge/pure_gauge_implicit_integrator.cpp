@@ -134,7 +134,7 @@ namespace nissa
 		vector_copy(pi_final_old[ifield],pi_final_new[ifield]);
 	      }
 	    
-	    //compute pi, phi and H up to the middle
+	    //compute pi, phi and H up to the middle with old configuration at dt/2
 	    for(int ifield=0;ifield<naux_fields;ifield++)
 	      {
 		double_vector_summ((double*)(pi_middle[ifield]),(double*)(pi_init[ifield]),(double*)(pi_final_old[ifield]),loc_vol*sizeof(su3)/sizeof(double));
