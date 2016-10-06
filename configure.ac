@@ -74,7 +74,7 @@ case "$with_fft" in
      fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "" -a x"$fftw_found_headers" == "xyes"
      then
 	AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
-	LDFLAGS="-lfftw3 -lfftw3_threads $LD_FLAGS";else AC_MSG_ERROR(["Unable to find fftw3 lib"])
+	LDFLAGS="-lfftw3 -lfftw3_threads $LDFLAGS";else AC_MSG_ERROR(["Unable to find fftw3 lib"])
 	fi ;;
      *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
 esac
