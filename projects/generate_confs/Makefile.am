@@ -27,11 +27,13 @@ parser_fixed.cpp: $(top_srcdir)/config/fix_bison.sh Makefile parser.cpp
 	@echo "Fixing the parser"
 	@bash $(top_srcdir)/config/fix_bison.sh parser.cpp > $@
 	@cp parser_fixed.cpp parser.cpp
+	@touch parser_fixed.cpp
 
 tokenizer_fixed.cpp: $(top_srcdir)/config/fix_flex.sh Makefile tokenizer.cpp
 	@echo "Fixing the parser"
 	@bash $(top_srcdir)/config/fix_flex.sh tokenizer.cpp > $@
 	@cp tokenizer_fixed.cpp tokenizer.cpp
+	@touch tokenizer_fixed.cpp
 
 AM_YFLAGS=-d
 BUILT_SOURCES=$(generate_parser_built_sources)
