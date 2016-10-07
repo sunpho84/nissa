@@ -144,13 +144,13 @@ namespace nissa
 	
 	for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 	  {
-	    verbosity_lv1_master_printf("Computing hit %d/%d\n",ihit,meas_pars.nhits);
+	    verbosity_lv2_master_printf("Computing hit %d/%d\n",ihit,meas_pars.nhits);
 	    
 	    //get global time
 	    int tso;
 	    if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glb_size[0]);
 	    THREAD_BROADCAST(tso,tso);
-	    verbosity_lv1_master_printf("tsource: %d\n",tso);
+	    verbosity_lv2_master_printf("tsource: %d\n",tso);
 	    
 	    //generate sources
 	    get_eo_photon(photon_field,photon);
