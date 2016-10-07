@@ -1,6 +1,9 @@
 #ifndef _FOURIER_TRANSFORM_HPP
 #define _FOURIER_TRANSFORM_HPP
 
+#include "geometry/geometry_lx.hpp"
+#include "new_types/su3.hpp"
+
 namespace nissa
 {
   void pass_spinspin_from_mom_to_x_space_source_or_sink(spinspin *out,spinspin *in,int *all_dirs,double *bc,int source_or_sink);
