@@ -144,13 +144,13 @@ namespace nissa
 	
 	for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 	  {
-	    verbosity_lv2_master_printf("Computing hit %d/%d\n",ihit,meas_pars.nhits);
+	    verbosity_lv1_master_printf("Computing hit %d/%d\n",ihit,meas_pars.nhits);
 	    
 	    //get global time
 	    int tso;
 	    if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glb_size[0]);
 	    THREAD_BROADCAST(tso,tso);
-	    verbosity_lv2_master_printf("tsource: %d\n",tso);
+	    verbosity_lv1_master_printf("tsource: %d\n",tso);
 	    
 	    //generate sources
 	    get_eo_photon(photon_field,photon);
@@ -212,7 +212,7 @@ namespace nissa
 			     iconf,iflav,theory_pars.quarks[iflav].mass,jflav,theory_pars.quarks[jflav].mass);
 	      for(size_t icontr=0;icontr<contr_map.size();icontr++)
 		{
-		  master_fprintf(file,"\n%s%s\n",prop_name[contr_map[icontr].first],prop_name[contr_map[icontr].second]);
+ 		  master_fprintf(file,"\n # %s%s\n\n",prop_name[contr_map[icontr].first],prop_name[contr_map[icontr].second]);
 		  for(int t=0;t<glb_size[0];t++)
 		    {
 		      int i=t+glb_size[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav));
