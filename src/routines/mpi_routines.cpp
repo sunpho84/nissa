@@ -209,21 +209,23 @@ namespace nissa
   MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos)
   {return pos+diff_with_next_eight_multiple(pos);}
   
-  //broadcast an int
-  int broadcast(int in,int rank_from)
+  //internal version
+  template <class T> T broadcast_internal(T in,int rank_from,MPI_Datatype type)
   {
-    MPI_Bcast(&in,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    return in;
+    T out;
+    GET_THREAD_ID();
+    if(IS_MASTER_THREAD) MPI_Bcast(&in,1,type,rank_from,MPI_COMM_WORLD);
+    THREAD_BROADCAST(out,in);
+    return out;
   }
   
   //broadcast an int
+  int broadcast(int in,int rank_from)
+  {return broadcast_internal(in,rank_from,MPI_INT);}
+  
+  //broadcast an int
   double broadcast(double in,int rank_from)
-  {
-    GET_THREAD_ID();
-    if(IS_MASTER_THREAD) MPI_Bcast(&in,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    THREAD_BROADCAST(in,in);
-    return in;
-  }
+  {return broadcast_internal(in,rank_from,MPI_DOUBLE);}
   
   //broadcast a whole rational approximation
   void broadcast(rat_approx_t *rat,int rank_from)
