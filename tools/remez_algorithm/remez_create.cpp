@@ -8,7 +8,8 @@ int main(int narg,char **arg)
   
   rat_approx_t rat;
   generate_approx_of_maxerr(rat,2.3273336186266341e-07,1,7.418800292288640e-09,1,8);
-  master_printf_rat_approx(&rat);
+  
+  rat.master_fprintf(stdout);
   close_nissa();
   
   return 0;
