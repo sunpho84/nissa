@@ -11,7 +11,10 @@
 
 #ifndef EXTERN_THREAD
  #define EXTERN_THREAD extern
+ #define INIT_TO(A)
  #define ONLY_INSTANTIATION
+#else
+#define INIT_TO(A) =A
 #endif
 
 namespace nissa
@@ -24,14 +27,9 @@ namespace nissa
     EXTERN_THREAD int *delayed_thread_barrier;
   #endif
  #endif
-
- #ifndef ONLY_INSTANTIATION
-  bool thread_pool_locked=true;
-  unsigned int nthreads=1;
- #else
-  EXTERN_THREAD bool thread_pool_locked;
-  EXTERN_THREAD unsigned int nthreads;
- #endif
+  
+  EXTERN_THREAD bool thread_pool_locked INIT_TO(true);
+  EXTERN_THREAD unsigned int nthreads INIT_TO(1);
   
   EXTERN_THREAD void *broadcast_ptr;
   EXTERN_THREAD float *glb_single_reduction_buf;
@@ -54,5 +52,7 @@ namespace nissa
   inline complex *glb_threads_reduce_complex_vect(complex *vect,int nel)
   {return (complex*)glb_threads_reduce_double_vect((double*)vect,2*nel);}
 }
+
+#undef INIT_TO
 
 #endif
