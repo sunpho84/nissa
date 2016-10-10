@@ -170,10 +170,10 @@ namespace nissa
 	    get_eo_photon(photon_field,photon);
 	    fill_source(ori_source,tso);
 	    
-	    tso=0;
-	    vector_reset(ori_source[EVN]);
-	    vector_reset(ori_source[ODD]);
-	    for(int icol=0;icol<3;icol++) ori_source[EVN][0][icol][RE]=1;
+	    // tso=0;
+	    // vector_reset(ori_source[EVN]);
+	    // vector_reset(ori_source[ODD]);
+	    // for(int icol=0;icol<3;icol++) ori_source[EVN][0][icol][RE]=1;
 	    
 	    for(int iflav=0;iflav<nflavs;iflav++)
 	      for(size_t iprop=0;iprop<prop_build.size();iprop++)
