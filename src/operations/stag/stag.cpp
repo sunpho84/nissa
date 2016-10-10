@@ -147,7 +147,7 @@ namespace nissa
 		    get_curr(cb,curr,!par,idw,mu,pars);
 		    complex_prodassign(cb,fact_bw);
 		    unsafe_su3_dag_prod_color(temp,conf[!par][idw][mu],in[!par][idw]);
-		    color_summ_the_prod_complex(out[par][ieo],temp,cb);
+		    color_subt_the_prod_complex(out[par][ieo],temp,cb);
 		  }
 	    }
 	  set_borders_invalid(out[par]);
