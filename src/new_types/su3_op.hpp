@@ -101,6 +101,7 @@ namespace nissa
   inline void color_summ_the_prod_idouble(color a,color b,double c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod_idouble(a[ic],b[ic],c);}
   
   inline void color_summ_the_prod_complex(color a,color b,complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod(a[ic],b[ic],c);}
+  inline void color_subt_the_prod_complex(color a,color b,complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_subt_the_prod(a[ic],b[ic],c);}
   
   inline void color_linear_comb(color a,color b,double cb,color c,double cc) {for(size_t ic=0;ic<NCOL;ic++) complex_linear_comb(a[ic],b[ic],cb,c[ic],cc);}
   
@@ -110,7 +111,7 @@ namespace nissa
     for(size_t ic=1;ic<NCOL;ic++) complex_summ_the_conj1_prod(out,a[ic],b[ic]);
   }
   inline double color_norm2(color c)
-  {double out=complex_norm2(c[0]);for(size_t ic=1;ic<NCOL;ic++) out+=complex_norm2(c[ic]);return out;}  
+  {double out=complex_norm2(c[0]);for(size_t ic=1;ic<NCOL;ic++) out+=complex_norm2(c[ic]);return out;}
   
   //////////////////////////////////// Color and complex //////////////////////////////
   
