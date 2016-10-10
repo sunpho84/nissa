@@ -47,6 +47,7 @@ namespace nissa
     
     void insert_tadpole_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
     void insert_conserved_current_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars){out[RE]=((int*)pars)[mu];out[IM]=0;}
+    void insert_time_conserved_vector_current_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars){out[RE]=(mu==0);out[IM]=0;}
     
     //insert the tadpol
     THREADABLE_FUNCTION_7ARG(insert_tadpole, color**,out, quad_su3**,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, double*,tad, int,t)
@@ -65,18 +66,27 @@ namespace nissa
       insert_vector_vertex(out,conf,theory_pars,iflav,curr,in,fw_factor,bw_factor,insert_external_source_handle,t);
     }
     THREADABLE_FUNCTION_END
+    
+    //insert the external source, that is one of the two extrema of the stoch prop
+    THREADABLE_FUNCTION_6ARG(insert_time_conserved_vector_current, color**,out, quad_su3**,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, int,t)
+    {
+      //call with source insertion, minus between fw and bw, and a global i*0.5
+      complex fw_factor={0,+0.5},bw_factor={0,-0.5};
+      insert_vector_vertex(out,conf,theory_pars,iflav,NULL,in,fw_factor,bw_factor,insert_time_conserved_vector_current_handle,t);
+    }
+    THREADABLE_FUNCTION_END
   }
   
   using namespace stag;
   
   namespace
   {
-    const int nop_t=3;
-    enum ins_t{S,T,F};
-    char op_name[nop_t][2]={"S","T","F"};
-    const int nprop_t=5;
-    enum prop_t{P0,PS,PT,P1,P2};
-    char prop_name[nprop_t][2]={"0","S","T","1","2"};
+    const int nop_t=4;
+    enum ins_t{S,T,F,V};
+    char op_name[nop_t][2]={"S","T","F","V"};
+    const int nprop_t=6;
+    enum prop_t{P0,PS,PT,P1,P2,PV};
+    char prop_name[nprop_t][2]={"0","S","T","1","2","V"};
     
     struct ins_map_t
     {
@@ -124,6 +134,7 @@ namespace nissa
     prop_build[P2]=ins_map_t(P1,F);
     prop_build[PS]=ins_map_t(P0,S);
     prop_build[PT]=ins_map_t(P0,T);
+    prop_build[PV]=ins_map_t(P0,V);
     
     //write how to meake the contractions
     std::vector<std::pair<int,int> > contr_map;
@@ -132,6 +143,7 @@ namespace nissa
     contr_map.push_back(std::make_pair(P0,PT));
     contr_map.push_back(std::make_pair(P1,P1));
     contr_map.push_back(std::make_pair(P0,P2));
+    contr_map.push_back(std::make_pair(P0,PV));
     
     //init the contr
     int ncontr_tot=contr_map.size()*nflavs*nflavs,contr_tot_size=ncontr_tot*glb_size[0];
@@ -144,13 +156,13 @@ namespace nissa
 	
 	for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 	  {
-	    verbosity_lv2_master_printf("Computing hit %d/%d\n",ihit,meas_pars.nhits);
+	    verbosity_lv1_master_printf("Computing hit %d/%d\n",ihit,meas_pars.nhits);
 	    
 	    //get global time
 	    int tso;
 	    if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glb_size[0]);
 	    THREAD_BROADCAST(tso,tso);
-	    verbosity_lv2_master_printf("tsource: %d\n",tso);
+	    verbosity_lv1_master_printf("tsource: %d\n",tso);
 	    
 	    //generate sources
 	    get_eo_photon(photon_field,photon);
@@ -174,6 +186,7 @@ namespace nissa
 		    case S:for(int par=0;par<2;par++) vector_copy(temp_source[par],so[par]);break;
 		    case T:insert_tadpole(temp_source,conf,&theory_pars,iflav,so,tadpole,-1);break;
 		    case F:insert_external_source(temp_source,conf,&theory_pars,iflav,photon_field,so,-1);break;
+		    case V:insert_time_conserved_vector_current(temp_source,conf,&theory_pars,iflav,so,(tso+glb_size[0]/4)%glb_size[0]);break;
 		    }
 		  
 		  //invert
