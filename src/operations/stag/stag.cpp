@@ -127,25 +127,28 @@ namespace nissa
 	{
 	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	    {
+	      int ivol=loclx_of_loceo[par][ieo];
+	      
 	      color_put_to_zero(out[par][ieo]);
-	      for(int mu=0;mu<NDIM;mu++)
-		{
-		  color temp;
-		  
-		  int iup=loceo_neighup[par][ieo][mu];
-		  complex cf;
-		  get_curr(cf,curr,par,ieo,mu,pars);
-		  complex_prodassign(cf,fact_fw);
-		  unsafe_su3_prod_color(temp,conf[par][ieo][mu],in[!par][iup]);
-		  color_summ_the_prod_complex(out[par][ieo],temp,cf);
-		  
-		  int idw=loceo_neighdw[par][ieo][mu];
-		  complex cb;
-		  get_curr(cb,curr,!par,idw,mu,pars);
-		  complex_prodassign(cb,fact_bw);
-		  unsafe_su3_dag_prod_color(temp,conf[!par][idw][mu],in[!par][idw]);
-		  color_summ_the_prod_complex(out[par][ieo],temp,cb);
-		}
+	      if(t<0 || t>=glb_size[0] || glb_coord_of_loclx[ivol][0]==t)
+		for(int mu=0;mu<NDIM;mu++)
+		  {
+		    color temp;
+		    
+		    int iup=loceo_neighup[par][ieo][mu];
+		    complex cf;
+		    get_curr(cf,curr,par,ieo,mu,pars);
+		    complex_prodassign(cf,fact_fw);
+		    unsafe_su3_prod_color(temp,conf[par][ieo][mu],in[!par][iup]);
+		    color_summ_the_prod_complex(out[par][ieo],temp,cf);
+		    
+		    int idw=loceo_neighdw[par][ieo][mu];
+		    complex cb;
+		    get_curr(cb,curr,!par,idw,mu,pars);
+		    complex_prodassign(cb,fact_bw);
+		    unsafe_su3_dag_prod_color(temp,conf[!par][idw][mu],in[!par][idw]);
+		    color_summ_the_prod_complex(out[par][ieo],temp,cb);
+		  }
 	    }
 	  set_borders_invalid(out[par]);
 	}

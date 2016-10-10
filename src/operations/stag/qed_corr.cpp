@@ -12,6 +12,8 @@
 #include "routines/mpi_routines.hpp"
 #include "routines/thread.hpp"
 
+#include "mesons.hpp"
+
 namespace nissa
 {
   //print
@@ -168,6 +170,11 @@ namespace nissa
 	    get_eo_photon(photon_field,photon);
 	    fill_source(ori_source,tso);
 	    
+	    tso=0;
+	    vector_reset(ori_source[EVN]);
+	    vector_reset(ori_source[ODD]);
+	    for(int icol=0;icol<3;icol++) ori_source[EVN][0][icol][RE]=1;
+	    
 	    for(int iflav=0;iflav<nflavs;iflav++)
 	      for(size_t iprop=0;iprop<prop_build.size();iprop++)
 		{
@@ -190,7 +197,9 @@ namespace nissa
 		    }
 		  
 		  //invert
-		  MINV(M[iprop+nprop_t*iflav],iflav,temp_source);
+		  // if(prop_build[iprop].op!=V)
+		    MINV(M[iprop+nprop_t*iflav],iflav,temp_source);
+		    //else for(int par=0;par<2;par++) vector_copy(M[iprop+nprop_t*iflav][par],temp_source[par]);
 		}
 	    
 	    for(int iflav=0;iflav<nflavs;iflav++)
@@ -234,6 +243,50 @@ namespace nissa
 		}
 	    }
       }
+    
+    vector_reset(ori_source[EVN]);
+    vector_reset(ori_source[ODD]);
+    for(int icol=0;icol<3;icol++) ori_source[EVN][0][icol][RE]=1;
+    for(int par=0;par<2;par++) vector_copy(temp_source[par],ori_source[par]);
+    MINV(M[0],0,temp_source);
+    vector_reset(temp_source[EVN]);
+    vector_reset(temp_source[ODD]);
+    for(int par=0;par<2;par++)
+      {
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  {
+	    int ivol=loclx_of_loceo[par][ieo];
+	    if(glb_coord_of_loclx[ivol][0]==glb_size[0]/2)
+	      color_copy(temp_source[par][ieo],M[0][par][ieo]);
+	  }
+	set_borders_invalid(temp_source[par]);
+      }
+    
+    put_stag_phases(temp_source,form_stag_op_pattern(15,15));
+    put_stag_phases(M[0],form_stag_op_pattern(15,15));
+    MINV(M[1],0,temp_source);
+    
+    add_backfield_to_conf(conf,theory_pars.backfield[0]);
+    vector_reset(loc_contr);
+    for(int par=0;par<2;par++)
+      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	{
+	  int ivol=loclx_of_loceo[par][ieo];
+	  color f;
+	  unsafe_su3_prod_color(f,conf[par][ieo][0],M[1][!par][loceo_neighup[par][ieo][0]]);
+	  color b;
+	  unsafe_su3_dag_prod_color(f,conf[!par][loclx_neighdw[par][ieo]][0],M[1][!par][loceo_neighdw[par][ieo][0]]);
+	  
+	  complex temp;
+	  color_scalar_prod(temp,M[0][par][ieo],f);
+	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol][0]],temp);
+	  color_scalar_prod(temp,M[0][par][ieo],b);
+	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol][0]],temp);
+	  }
+    rem_backfield_from_conf(conf,theory_pars.backfield[0]);
+    
+    for(int t=0;t<glb_size[0];t++)
+      master_printf("%d %lg %lg\n",t,loc_contr[t][RE],loc_contr[t][IM]);
     
     //free
     for(int par=0;par<2;par++)

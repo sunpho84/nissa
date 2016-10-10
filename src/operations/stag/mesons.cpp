@@ -31,26 +31,6 @@ namespace nissa
     int ncombo;
     int nflavs;
   }
-  //form the mask for x (-1)^[x*(s^<+n^>)]
-  inline int form_meson_pattern(int ispin,int itaste)
-  {
-    //add g5*g5
-    ispin^=15;
-    itaste^=15;
-    
-    int res=0;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	int p=0;
-	for(int nu=0;nu<mu;nu++) p+=(itaste>>nu)&1;
-	for(int nu=mu+1;nu<NDIM;nu++) p+=(ispin>>nu)&1;
-	p&=1;
-	
-	res+=(p<<mu);
-      }
-    
-    return res;
-  }
   
   //compute the index where to store
   inline int icombo(int iflav,int iop,int t)
@@ -133,7 +113,7 @@ namespace nissa
   }
   
   //add the phases
-  inline void put_phases(color **source,int mask)
+  THREADABLE_FUNCTION_2ARG(put_stag_phases, color**,source, int,mask)
   {
     GET_THREAD_ID();
     
@@ -150,6 +130,7 @@ namespace nissa
 	set_borders_invalid(source[eo]);
       }
   }
+  THREADABLE_FUNCTION_END
   
   //compute correlation functions for staggered mesons, arbitary taste and spin
   THREADABLE_FUNCTION_4ARG(compute_meson_corr, complex*,corr, quad_su3**,conf, theory_pars_t*,tp, meson_corr_meas_pars_t*,meas_pars)
@@ -177,7 +158,7 @@ namespace nissa
 	int spin=meas_pars->mesons[iop].first;
 	int taste=meas_pars->mesons[iop].second;
 	shift[iop]=(spin^taste);
-	mask[iop]=form_meson_pattern(spin,taste);
+	mask[iop]=form_stag_meson_pattern_with_g5g5(spin,taste);
 	//if((shift[iop])&1) crash("operator %d (%d %d) has unmarched number of g0",iop,spin,taste);
 	verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
       }
@@ -200,10 +181,10 @@ namespace nissa
 	    for(int iop=0;iop<nop;iop++)
 	      {
 		apply_op(source,temp[0],temp[1],conf,shift[iop],ori_source);
-		put_phases(source,mask[iop]);
+		put_stag_phases(source,mask[iop]);
 		mult_Minv(sol,conf,tp,iflav,meas_pars->residue,source);
 		apply_op(quark[iop],temp[0],temp[1],conf,shift[iop],sol);
-		put_phases(quark[iop],mask[iop]);
+		put_stag_phases(quark[iop],mask[iop]);
 	      }
 	    
 	    for(int iop=0;iop<nop;iop++)
@@ -285,8 +266,8 @@ namespace nissa
 	  {
 	    os<<"("<<mesons[i].first<<","<<mesons[i].second<<")";
 	    if(i!=mesons.size()-1) os<<",";
-	    else                   os<<"}\n";
 	  }
+	os<<"}\n";
       }
     
     return os.str();
