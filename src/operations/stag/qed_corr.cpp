@@ -69,10 +69,10 @@ namespace nissa
     }
     THREADABLE_FUNCTION_END
     
-    //insert the external source, that is one of the two extrema of the stoch prop
+    //insert the time componente of the vectorial current
     THREADABLE_FUNCTION_6ARG(insert_time_conserved_vector_current, color**,out, quad_su3**,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, int,t)
     {
-      //call with source insertion, minus between fw and bw, and a global i*0.5
+      //call with no source insertion, minus between fw and bw, and a global i*0.5
       complex fw_factor={0,+0.5},bw_factor={0,-0.5};
       insert_vector_vertex(out,conf,theory_pars,iflav,NULL,in,fw_factor,bw_factor,insert_time_conserved_vector_current_handle,t);
     }
@@ -244,49 +244,49 @@ namespace nissa
 	    }
       }
     
-    vector_reset(ori_source[EVN]);
-    vector_reset(ori_source[ODD]);
-    for(int icol=0;icol<3;icol++) ori_source[EVN][0][icol][RE]=1;
-    for(int par=0;par<2;par++) vector_copy(temp_source[par],ori_source[par]);
-    MINV(M[0],0,temp_source);
-    vector_reset(temp_source[EVN]);
-    vector_reset(temp_source[ODD]);
-    for(int par=0;par<2;par++)
-      {
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	  {
-	    int ivol=loclx_of_loceo[par][ieo];
-	    if(glb_coord_of_loclx[ivol][0]==glb_size[0]/2)
-	      color_copy(temp_source[par][ieo],M[0][par][ieo]);
-	  }
-	set_borders_invalid(temp_source[par]);
-      }
+    // vector_reset(ori_source[EVN]);
+    // vector_reset(ori_source[ODD]);
+    // for(int icol=0;icol<3;icol++) ori_source[EVN][0][icol][RE]=1;
+    // for(int par=0;par<2;par++) vector_copy(temp_source[par],ori_source[par]);
+    // MINV(M[0],0,temp_source);
+    // vector_reset(temp_source[EVN]);
+    // vector_reset(temp_source[ODD]);
+    // for(int par=0;par<2;par++)
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+    // 	  {
+    // 	    int ivol=loclx_of_loceo[par][ieo];
+    // 	    if(glb_coord_of_loclx[ivol][0]==glb_size[0]/2)
+    // 	      color_copy(temp_source[par][ieo],M[0][par][ieo]);
+    // 	  }
+    // 	set_borders_invalid(temp_source[par]);
+    //   }
     
-    put_stag_phases(temp_source,form_stag_op_pattern(15,15));
-    put_stag_phases(M[0],form_stag_op_pattern(15,15));
-    MINV(M[1],0,temp_source);
+    // put_stag_phases(temp_source,form_stag_op_pattern(15,15));
+    // put_stag_phases(M[0],form_stag_op_pattern(15,15));
+    // MINV(M[1],0,temp_source);
     
-    add_backfield_to_conf(conf,theory_pars.backfield[0]);
-    vector_reset(loc_contr);
-    for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	{
-	  int ivol=loclx_of_loceo[par][ieo];
-	  color f;
-	  unsafe_su3_prod_color(f,conf[par][ieo][0],M[1][!par][loceo_neighup[par][ieo][0]]);
-	  color b;
-	  unsafe_su3_dag_prod_color(f,conf[!par][loclx_neighdw[par][ieo]][0],M[1][!par][loceo_neighdw[par][ieo][0]]);
+    // add_backfield_to_conf(conf,theory_pars.backfield[0]);
+    // vector_reset(loc_contr);
+    // for(int par=0;par<2;par++)
+    //   NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+    // 	{
+    // 	  int ivol=loclx_of_loceo[par][ieo];
+    // 	  color f;
+    // 	  unsafe_su3_prod_color(f,conf[par][ieo][0],M[1][!par][loceo_neighup[par][ieo][0]]);
+    // 	  color b;
+    // 	  unsafe_su3_dag_prod_color(b,conf[par][ieo][0],M[1][!par][loceo_neighup[par][ieo][0]]);
 	  
-	  complex temp;
-	  color_scalar_prod(temp,M[0][par][ieo],f);
-	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol][0]],temp);
-	  color_scalar_prod(temp,M[0][par][ieo],b);
-	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol][0]],temp);
-	  }
-    rem_backfield_from_conf(conf,theory_pars.backfield[0]);
+    // 	  complex temp;
+    // 	  color_scalar_prod(temp,M[0][par][ieo],f);
+    // 	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol][0]],temp);
+    // 	  color_scalar_prod(temp,M[0][par][ieo],b);
+    // 	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol][0]],temp);
+    // 	}
+    // rem_backfield_from_conf(conf,theory_pars.backfield[0]);
     
-    for(int t=0;t<glb_size[0];t++)
-      master_printf("%d %lg %lg\n",t,loc_contr[t][RE],loc_contr[t][IM]);
+    // for(int t=0;t<glb_size[0];t++)
+    //   master_printf("%d %lg %lg\n",t,loc_contr[t][RE],loc_contr[t][IM]);
     
     //free
     for(int par=0;par<2;par++)
