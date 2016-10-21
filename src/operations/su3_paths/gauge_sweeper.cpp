@@ -916,8 +916,7 @@ namespace nissa
       {
       case WILSON_GAUGE_ACTION:if(!Wilson_sweeper->staples_inited) init_Wilson_sweeper();break;
       case TLSYM_GAUGE_ACTION:
-      case IWASAKI_GAUGE_ACTION:
-	if(!Symanzik_sweeper->staples_inited) init_Symanzik_sweeper();break;
+      case IWASAKI_GAUGE_ACTION:if(!Symanzik_sweeper->staples_inited) init_Symanzik_sweeper();break;
       case UNSPEC_GAUGE_ACTION:crash("unspecified action");break;
       default: crash("not implemented action");break;
       }
