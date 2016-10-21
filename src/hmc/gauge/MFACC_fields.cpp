@@ -69,12 +69,13 @@ namespace nissa
 	//store initial link and compute action
 	su3 sto;
 	su3_copy(sto,pi[ifield][0]);
-	double act_ori=MFACC_momenta_action(pi,conf,kappa);
+	double act_ori=MFACC_momenta_action(pi,naux_fields,conf,kappa);
 	
 	//store derivative
-	su3 nu_plus,nu_minus;
+	su3 nu_plus,nu_minus,nu;
 	su3_put_to_zero(nu_plus);
 	su3_put_to_zero(nu_minus);
+	su3_put_to_zero(nu);
 	
 	for(int igen=0;igen<NCOL*NCOL-1;igen++)
 	  {
@@ -84,26 +85,24 @@ namespace nissa
 	    
 	    //change -, compute action
 	    su3_subt(pi[ifield][0],sto,ba);
-	    double act_minus=MFACC_momenta_action(pi,conf,kappa);
+	    double act_minus=MFACC_momenta_action(pi,naux_fields,conf,kappa);
 	    
 	    //change +, compute action
 	    su3_summ(pi[ifield][0],sto,ba);
-	    double act_plus=MFACC_momenta_action(pi,conf,kappa);
+	    double act_plus=MFACC_momenta_action(pi,naux_fields,conf,kappa);
 	    
-	    //set back everything
-	    su3_copy(phi[ifield][0],sto);
-	    
-	    printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
 	    double gr_plus=(act_plus-act_ori)/eps;
 	    double gr_minus=(act_ori-act_minus)/eps;
+	    double gr=(gr_plus+gr_minus)/2;
+	    printf("plus: %+16.16le, ori: %+16.16le, minus: %+16.16le, eps: %lg, gr_plus: %16.16lg, gr_minus: %16.16lg\n",act_plus,act_ori,act_minus,eps,gr_plus,gr_minus);
 	    su3_summ_the_prod_double(nu_plus,gell_mann_matr[igen],gr_plus);
 	    su3_summ_the_prod_double(nu_minus,gell_mann_matr[igen],gr_minus);
+	    su3_summ_the_prod_double(nu,gell_mann_matr[igen],gr);
 	  }
 	
-	//take the average
-	su3 nu;
-	su3_summ(nu,nu_plus,nu_minus);
-	su3_prodassign_double(nu,0.5);
+	//set back everything
+	su3_copy(pi[ifield][0],sto);
+	
 #endif
 	
         //compute
@@ -114,11 +113,20 @@ namespace nissa
 	master_printf("Comparing MFACC fields derivative (apply M twice)\n");
 	master_printf("an\n");
 	su3_print(F[0]);
+	master_printf("nu+\n");
+	su3_print(nu_plus);
+	master_printf("nu-\n");
+	su3_print(nu_minus);
 	master_printf("nu\n");
 	su3_print(nu);
 	su3 diff;
+	su3_subt(diff,F[0],nu_plus);
+	master_printf("Norm of the difference+: %lg\n",sqrt(su3_norm2(diff)));
+	su3_subt(diff,F[0],nu_minus);
+	master_printf("Norm of the difference-: %lg\n",sqrt(su3_norm2(diff)));
 	su3_subt(diff,F[0],nu);
 	master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
+	crash("pui");
 #endif
 	//evolve
         double_vector_summ_double_vector_prod_double((double*)(phi[ifield]),(double*)(phi[ifield]),(double*)F,dt,loc_vol*sizeof(su3)/sizeof(double));
@@ -152,7 +160,7 @@ namespace nissa
     //store initial link and compute action
     su3 sto;
     su3_copy(sto,conf[0][0]);
-    double act_ori=MFACC_momenta_action(pi,conf,kappa);
+    double act_ori=MFACC_momenta_action(pi,naux_fields,conf,kappa);
     
     //store derivative
     su3 nu_plus,nu_minus;
@@ -169,16 +177,16 @@ namespace nissa
 	
 	//change -, compute action
 	unsafe_su3_dag_prod_su3(conf[0][0],exp_mod,sto);
-	double act_minus=MFACC_momenta_action(pi,conf,kappa);
+	double act_minus=MFACC_momenta_action(pi,naux_fields,conf,kappa);
 	
 	//change +, compute action
 	unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
-	double act_plus=MFACC_momenta_action(pi,conf,kappa);
+	double act_plus=MFACC_momenta_action(pi,naux_fields,conf,kappa);
 	
 	//set back everything
 	su3_copy(conf[0][0],sto);
 	
-	//printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
+	//printf("plus: %+016.016le, ori: %+16.16le, minus: %+16.16le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
 	double gr_plus=-(act_plus-act_ori)/eps;
 	double gr_minus=-(act_ori-act_minus)/eps;
 	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus);
