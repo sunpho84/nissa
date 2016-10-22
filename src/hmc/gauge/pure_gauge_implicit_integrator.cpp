@@ -294,7 +294,7 @@ namespace nissa
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
       {
-	verbosity_lv1_master_printf("Implicit step %d/%d\n",istep+1,nsteps);
+	verbosity_lv1_master_printf("Implicit leapfrog step %d/%d\n",istep+1,nsteps);
 	
 	//take the initial copy
 	vector_copy(conf_init,conf);
