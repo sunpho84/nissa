@@ -31,9 +31,9 @@ namespace nissa
     GET_THREAD_ID();
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	  for(int mu=0;mu<NDIM;mu++)
-	    herm_put_to_gauss(H[par][ivol][mu],&(loc_rnd_gen[loclx_of_loceo[par][ivol]]),1);
+	    herm_put_to_gauss(H[par][ieo][mu],&(loc_rnd_gen[loclx_of_loceo[par][ieo]]),1);
 	set_borders_invalid(H[par]);
       }
   }
@@ -46,6 +46,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
 	herm_put_to_gauss(H[ivol][mu],&(loc_rnd_gen[ivol]),1);
+    
     set_borders_invalid(H);
   }
   THREADABLE_FUNCTION_END
