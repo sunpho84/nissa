@@ -5,6 +5,7 @@
 #include <vector>
 #include <string.h>
 
+#include "base/debug.hpp"
 #include "io/buffer.hpp"
 #include "routines/ios.hpp"
 
@@ -35,6 +36,50 @@ namespace nissa
     int master_fprintf(FILE *fout,int full=false) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     void shift_all_poles(double sh) {for(int iterm=0;iterm<degree();iterm++) poles[iterm]+=sh;}
   };
+  
+  //read from buffer
+  inline buffer_t& operator>>(buffer_t &s,rat_approx_t &appr)
+  {
+    //read name and degree
+    int degree;
+    if(!(s>>degree)) crash("reading degree");
+    s.read(appr.name,20);
+    
+    //create the appr and read it
+    if(!(s>>appr.minimum)) crash("reading minimum");
+    if(!(s>>appr.maximum)) crash("reading maximum");
+    if(!(s>>appr.maxerr)) crash("reading maxerr");
+    if(!(s>>appr.num)) crash("reading num");
+    if(!(s>>appr.den)) crash("reading den");
+    if(!(s>>appr.cons)) crash("reading cons");
+    for(int j=0;j<degree;j++)
+      {
+	double pole,weight;
+	if(!(s>>pole)) crash("reading pole %d",j);
+	if(!(s>>weight)) crash("reading weight %d",j);
+	appr.poles.push_back(pole);
+	appr.weights.push_back(weight);
+      }
+    
+    return s;
+  }
+  
+  //write to buffer
+  inline buffer_t& operator<<(buffer_t &s,rat_approx_t appr)
+  {
+    s<<appr.degree();
+    s.write(appr.name,20);
+    s<<appr.minimum;
+    s<<appr.maximum;
+    s<<appr.maxerr;
+    s<<appr.num;
+    s<<appr.den;
+    s<<appr.cons;
+    for(int j=0;j<appr.degree();j++)
+      s<<appr.poles[j]<<appr.weights[j];
+    
+    return s;
+  }
   
   void convert_rat_approx(char *&data,int &data_length,std::vector<rat_approx_t> &appr);
   std::vector<rat_approx_t> convert_rat_approx(const char *data,size_t len);

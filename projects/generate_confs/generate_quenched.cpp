@@ -877,7 +877,33 @@ void in_main(int narg,char **arg)
   
   if(evol_pars.use_Facc)
     {
-      generate_approx_of_maxerr(rat_exp_H,1e-6,10,sqrt(evol_pars.residue),1,2);
+      FILE *file;
+      char *data;
+      buffer_t buf;
+      
+      if(file_exists("H_exp"))
+	{
+	  size_t data_length=get_file_size("H_exp");
+	  data=nissa_malloc("data",data_length,char);
+	  file=open_file("H_exp","r");
+	  if(fread(data,1,data_length,file)!=data_length) crash("reading H_exp");
+	  buf.write(data,data_length);
+	  buf>>rat_exp_H;
+	}
+      else
+	{
+	  generate_approx_of_maxerr(rat_exp_H,1e-6,10,sqrt(evol_pars.residue),1,2);
+	  
+	  buf<<rat_exp_H;
+	  size_t data_length=buf.size();
+	  data=nissa_malloc("data",data_length,char);
+	  buf.read(data,data_length);
+	  file=open_file("H_exp","w");
+	  if(fwrite(data,1,data_length,file)!=data_length) crash("writing H_exp");
+	}
+      close_file(file);
+      nissa_free(data);
+      
       rat_exp_H.master_fprintf(stdout);
     }
   
