@@ -60,6 +60,10 @@ namespace nissa
     static su3 **phi,**pi;
     if(evol_pars.use_Facc)
       {
+	//create the momenta
+	//for(int i=0;i<256;i++)
+	//crash("");
+	generate_hmc_momenta_with_FACC(H,in_conf,rat_exp_H,evol_pars.kappa,evol_pars.residue);
 	
 	if(init)
 	  {
@@ -77,9 +81,6 @@ namespace nissa
 	    for(int id=0;id<evol_pars.naux_fields;id++) generate_MFACC_field(phi[id]);
 	    generate_MFACC_momenta(pi,evol_pars.naux_fields,out_conf,evol_pars.kappa,evol_pars.residue);
 	  }
-	
-	//create the momenta
-	generate_hmc_momenta_with_FACC(H,in_conf,rat_exp_H,evol_pars.kappa,evol_pars.residue);
       }
     else generate_hmc_momenta(H);
     
@@ -98,6 +99,9 @@ namespace nissa
 	break;
       case 2:
 	implicit_pure_gauge_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
+	break;
+      case 3:
+	implicit_pure_gauge_leapfrog_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
 	break;
       default:
 	crash("unknown case %d for FACC",evol_pars.use_Facc);
