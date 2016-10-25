@@ -20,20 +20,11 @@ semileptonic_smeared_parser_built_sources= \
 	tokenize_corr.cpp \
 	parse_corr.hpp \
 	parse_corr.cpp \
-	tokenize_corr_fixed.cpp \
-	parse_corr_fixed.cpp
-
-parse_corr_fixed.cpp: $(top_srcdir)/config/fix_bison.sh Makefile parse_corr.cpp
-	@echo "Fixing the parser"
-	@bash $(top_srcdir)/config/fix_bison.sh parse_corr.cpp > $@
-	@cp parse_corr_fixed.cpp parse_corr.cpp
-
-tokenize_corr_fixed.cpp: $(top_srcdir)/config/fix_flex.sh Makefile tokenize_corr.cpp
-	@echo "Fixing the parser"
-	@bash $(top_srcdir)/config/fix_flex.sh tokenize_corr.cpp > $@
-	@cp tokenize_corr_fixed.cpp tokenize_corr.cpp
+	tokenize_corr.cpp \
+	parse_corr.cpp
 
 AM_YFLAGS=-d
+AM_LFLAGS=-Wnosign-compare
 BUILT_SOURCES=$(semileptonic_smeared_parser_built_sources)
 CLEANFILES=$(semileptonic_smeared_parser_built_sources) 
 

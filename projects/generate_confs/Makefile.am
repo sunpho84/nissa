@@ -20,20 +20,11 @@ generate_parser_built_sources= \
         tokenizer.cpp \
         parser.hpp \
         parser.cpp \
-	parser_fixed.cpp \
-	tokenizer_fixed.cpp
-
-parser_fixed.cpp: $(top_srcdir)/config/fix_bison.sh Makefile parser.cpp
-	@echo "Fixing the parser"
-	@bash $(top_srcdir)/config/fix_bison.sh parser.cpp > $@
-	@cp parser_fixed.cpp parser.cpp
-
-tokenizer_fixed.cpp: $(top_srcdir)/config/fix_flex.sh Makefile tokenizer.cpp
-	@echo "Fixing the parser"
-	@bash $(top_srcdir)/config/fix_flex.sh tokenizer.cpp > $@
-	@cp tokenizer_fixed.cpp tokenizer.cpp
+	parser.cpp \
+	tokenizer.cpp
 
 AM_YFLAGS=-d
+AM_LFLAGS=-Wnosign-compare
 BUILT_SOURCES=$(generate_parser_built_sources)
 CLEANFILES=$(generate_parser_built_sources)
 
