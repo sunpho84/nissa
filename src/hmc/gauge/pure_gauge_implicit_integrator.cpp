@@ -29,17 +29,41 @@ namespace nissa
   {
     void compute_full_gluon_force(quad_su3 *F,quad_su3 *conf,quad_su3 *H,su3 **pi,int naux_fields,double kappa,int niter,double residue,theory_pars_t *theory_pars)
     {
+      quad_su3 *temp=nissa_malloc("temp",loc_vol,quad_su3);
+      
       //compute the various contribution to the QCD force
-      vector_reset(F);
-      compute_gluonic_force_lx_conf_do_not_finish(F,conf,theory_pars);
-      summ_the_MFACC_momenta_QCD_force(F,conf,kappa,pi,naux_fields);
-      summ_the_MFACC_QCD_momenta_QCD_force(F,conf,kappa,niter,residue,H);
-      gluonic_force_finish_computation(F,conf);
+      vector_reset(temp);
+      compute_gluonic_force_lx_conf_do_not_finish(temp,conf,theory_pars);
+      gluonic_force_finish_computation(temp,conf);
+      master_printf("gluonic force norm: %lg\n",double_vector_glb_norm2(temp,loc_vol));
+      double_vector_summassign((double*)F,(double*)temp,loc_vol*sizeof(quad_su3)/sizeof(double));
+      
+      vector_reset(temp);
+      summ_the_MFACC_momenta_QCD_force(temp,conf,kappa,pi,naux_fields);
+      gluonic_force_finish_computation(temp,conf);
+      master_printf("MFACC momenta QCD force norm2: %lg\n",double_vector_glb_norm2(temp,loc_vol));
+      double_vector_summassign((double*)F,(double*)temp,loc_vol*sizeof(quad_su3)/sizeof(double));
+      
+      vector_reset(temp);
+      summ_the_MFACC_QCD_momenta_QCD_force(temp,conf,kappa,niter,residue,H);
+      gluonic_force_finish_computation(temp,conf);
+      master_printf("MFACC QCD momenta QCD force norm2: %lg\n",double_vector_glb_norm2(temp,loc_vol));
+      double_vector_summassign((double*)F,(double*)temp,loc_vol*sizeof(quad_su3)/sizeof(double));
+      
+      nissa_free(temp);
     }
     
     //compute Fourier acceleration momenta force
     void compute_MFACC_force(su3 **FACC_F,su3 **phi,int naux_fields)
-    {for(int ifield=0;ifield<naux_fields;ifield++) double_vector_prod_double((double*)(FACC_F[ifield]),(double*)(phi[ifield]),-1,loc_vol*sizeof(su3)/sizeof(double));}
+    {
+      double n=0;
+      for(int ifield=0;ifield<naux_fields;ifield++)
+	{
+	  double_vector_prod_double((double*)(FACC_F[ifield]),(double*)(phi[ifield]),-1,loc_vol*sizeof(su3)/sizeof(double));
+	  n+=double_vector_glb_norm2(FACC_F[ifield],loc_vol);
+	}
+      master_printf("FACC force norm2: %lg\n",n);
+    }
     
     void evolve_MFACC_momenta_with_force(su3 **pi,su3 **FACC_F,int naux_fields,double dt)
     {

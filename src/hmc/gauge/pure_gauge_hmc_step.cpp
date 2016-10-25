@@ -46,8 +46,6 @@ namespace nissa
   {
     if(in_conf==out_conf) crash("in==out");
     
-    static int init=1;
-    
     //header
     double hmc_time=-take_time();
     master_printf("Trajectory %d (nmd: %d)\n",itraj,evol_pars.nmd_steps);
@@ -57,7 +55,7 @@ namespace nissa
     vector_copy(out_conf,in_conf);
     
     //if we accelerate draw also momenta and position
-    static su3 **phi,**pi;
+    su3 **phi=NULL,**pi=NULL;
     if(evol_pars.use_Facc)
       {
 	//create the momenta
@@ -65,22 +63,18 @@ namespace nissa
 	//crash("");
 	generate_hmc_momenta_with_FACC(H,in_conf,rat_exp_H,evol_pars.kappa,evol_pars.residue);
 	
-	if(init)
+	phi=new su3*[evol_pars.naux_fields];
+	pi=new su3*[evol_pars.naux_fields];
+	//if we need to accelerate allocate auxiliary fields
+	for(int id=0;id<evol_pars.naux_fields;id++)
 	  {
-	    init=0;
-	    phi=new su3*[evol_pars.naux_fields];
-	    pi=new su3*[evol_pars.naux_fields];
-	    //if we need to accelerate allocate auxiliary fields
-	    for(int id=0;id<evol_pars.naux_fields;id++)
-	      {
-		phi[id]=nissa_malloc("phi",loc_vol+bord_vol,su3);
-		pi[id]=nissa_malloc("pi",loc_vol+bord_vol,su3);
-	      }
-	    
-	    //generate FACC fields and momenta
-	    for(int id=0;id<evol_pars.naux_fields;id++) generate_MFACC_field(phi[id]);
-	    generate_MFACC_momenta(pi,evol_pars.naux_fields,out_conf,evol_pars.kappa,evol_pars.residue);
+	    phi[id]=nissa_malloc("phi",loc_vol+bord_vol,su3);
+	    pi[id]=nissa_malloc("pi",loc_vol+bord_vol,su3);
 	  }
+	
+	//generate FACC fields and momenta
+	for(int id=0;id<evol_pars.naux_fields;id++) generate_MFACC_field(phi[id]);
+	generate_MFACC_momenta(pi,evol_pars.naux_fields,out_conf,evol_pars.kappa,evol_pars.residue);
       }
     else generate_hmc_momenta(H);
     
@@ -125,8 +119,8 @@ namespace nissa
     if(evol_pars.use_Facc)
       for(int id=0;id<evol_pars.naux_fields;id++)
 	{
-	  //nissa_free(phi[id]);
-	  //nissa_free(pi[id]);
+	  nissa_free(phi[id]);
+	  nissa_free(pi[id]);
 	}
     
     return diff_action;
