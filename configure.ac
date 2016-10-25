@@ -32,7 +32,8 @@ AX_CXXFLAGS_WARN_ALL
 
 #set mpi
 LX_FIND_MPI
-CXXFLAGS="$AM_CXXFLAGS $MPI_CXXFLAGS $CXXFLAGS"
+CPPFLAGS="$AM_CPPFLAGS $MPI_CXXFLAGS $CPPFLAGS"
+CXXFLAGS="$AM_CXXFLAGS $CXXFLAGS"
 CFLAGS="$AM_CFLAGS $MPI_CXXFLAGS $CFLAGS"
 LDFLAGS="$AM_LDFLAGS $MPI_CXXLDFLAGS $LDFLAGS"
 LIBS="$MPI_CXXLDFLAGS $LIBS"
@@ -69,39 +70,90 @@ AC_ARG_WITH(fft,
 	else
 		with_fft="native"
 	fi)
-case "$with_fft" in
-     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
-     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "" -a x"$fftw_found_headers" == "xyes"
-     then
-	AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
-	LDFLAGS="-lfftw3 -lfftw3_threads $LDFLAGS";else AC_MSG_ERROR(["Unable to find fftw3 lib"])
-	fi ;;
-     *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
-esac
-AC_MSG_RESULT([with Fast Fourier type... $with_fft])
+	case "$with_fft" in
+     	     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
+	     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "" -a x"$fftw_found_headers" == "xyes"
+	     	   then
+			AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
+			LDFLAGS="-lfftw3 -lfftw3_threads $LDFLAGS";else AC_MSG_ERROR(["Unable to find fftw3 lib"])
+	     	   fi ;;
+     	     *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
+	esac
+AC_MSG_RESULT([with Fast Fourier type... ${with_fft}])
 
 #lime
-AC_ARG_WITH(lime-path,
-	AS_HELP_STRING([--with-lime-path[=dir]], [Specify where to find lime]),
-	with_lime_path="${withval}"
-	LDFLAGS="-L${with_lime_path}/lib/ $LDFLAGS")
-AC_MSG_RESULT(with lime-path ... "${with_lime_path}")
+AC_ARG_WITH(lime,
+	AS_HELP_STRING([--with-lime[=dir]], [Specify where to find lime]),
+	with_lime="${withval}"
+	LDFLAGS="-L${with_lime}/lib/ $LDFLAGS")
+AC_MSG_RESULT(with lime ... "${with_lime}")
 AC_SEARCH_LIBS(limeReaderNextRecord,lime)
 
+#threads
+AC_ARG_ENABLE(threads,
+	AS_HELP_STRING([--disable-threads],[Enable threads]),
+	enable_threads="${enableval}",
+	enable_threads="yes")
+	if test "$enable_threads" == "yes"
+	then
+		#check openmp
+		AC_OPENMP
+		CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
+		CXX		    FLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+		AC_DEFINE([USE_THREADS],1,[Enable threads])
+	fi
+AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling threads... $enable_threads])
+
+#MPI
+AC_ARG_ENABLE(MPI,
+	AS_HELP_STRING([--disable-MPI],[Enable MPI]),
+	enable_MPI="${enableval}",
+	enable_MPI="yes")
+	if test "$enable_MPI" == "yes"
+	then
+		AC_DEFINE([USE_MPI],1,[Enable MPI])
+	fi
+AM_CONDITIONAL([USE_MPI],[test "$enable_MPI" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling MPI... $enable_MPI])
+
 #tmLQCD
-AC_ARG_WITH(tmLQCD-path,
-	AS_HELP_STRING([--with-tmLQCD-path[=dir]],[Specify where to find tmLQCD]),
-	with_tmlqcd_path="${withval}",
-	with_tmlqcd_path="none")
-AM_CONDITIONAL([USE_TMLQCD],[test "$with_tmlqcd_path" != "none" ],[true],[false])
-AC_MSG_RESULT([with tmLQCD-path ... "${with_tmlqcd_path}"])
-if test "${with_tmlqcd_path}" != "none"
+AC_ARG_WITH(tmLQCD,
+	AS_HELP_STRING([--with-tmLQCD[=dir]],[Specify where to find tmLQCD]),
+	with_tmlqcd="${withval}",
+	with_tmlqcd="")
+AM_CONDITIONAL([USE_TMLQCD],[test "x${with_tmlqcd}" != "x" ],[true],[false])
+AC_MSG_RESULT([with tmLQCD ... "${with_tmlqcd}"])
+if test "x${with_tmlqcd}" != "x"
 then
-	if test "$ac_cv_search_limeReaderNextRecord" == "no";then AC_MSG_ERROR(["Need lime to compile"]);fi
+	if test "$ac_cv_search_limeReaderNextRecord" == "no"
+	then
+		AC_MSG_ERROR(["Need lime to compile"])
+	fi
 	AC_DEFINE_UNQUOTED([USE_TMLQCD],[1],[Enable tmLQCD usage])
-	LDFLAGS="-L${with_tmlqcd_path}/lib $LDFLAGS"
+	LDFLAGS="-L${with_tmlqcd}/lib $LDFLAGS"
 	LIBS="-lwrapper -lhmc -lmeas -lmonomial -loperator -lsolver -linit -llinalg -lhmc -lxchange -lrational -lio -lblas -llapack -llime $LIBS"
-	CXXFLAGS="-I${with_tmlqcd_path}/include $CXXFLAGS"
+	CPPFLAGS="-I${with_tmlqcd}/include $CPPFLAGS"
+fi
+
+#DDalphaAMG
+AC_ARG_WITH(DDalphaAMG,
+	AS_HELP_STRING([--with-DDalphaAMG[=dir]],[Specify where to find DDalphaAMG]),
+	with_ddalphaamg="${withval}",
+	with_ddalphaamg="")
+AM_CONDITIONAL([USE_DDALPHAAMG],[test "x${with_ddalphaamg}" != "x" ],[true],[false])
+AC_MSG_RESULT([with DDalphaAMG ... "${with_ddalphaamg}"])
+if test "x${with_ddalphaamg}" != "x"
+then
+	if test "$ac_cv_search_limeReaderNextRecord" == "no"
+	then
+		AC_MSG_ERROR(["Need lime to compile"])
+	fi
+	LDFLAGS="-L${with_ddalphaamg}/lib $LDFLAGS"
+	CPPFLAGS="-I${with_ddalphaamg}/include $CPPFLAGS"
+	AC_SEARCH_LIBS(DDalphaAMG_get_communicator,DDalphaAMG,,AC_MSG_ERROR(["Unable to find libDDalphaAMG.a"]))
+	AC_CHECK_HEADERS([DDalphaAMG.h],,AC_MSG_ERROR(["Unable to find DDalphaAMG.h"]))
+	AC_DEFINE_UNQUOTED([USE_DDALPHAAMG],[1],[Enable DDalphaAMG usage])
 fi
 
 #high-prec arithmetic
@@ -151,33 +203,6 @@ AC_ARG_ENABLE(mpi-io,
 	fi
 AM_CONDITIONAL([USE_MPI_IO],[test "$enable_mpi_io" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling MPI I/O... $enable_mpi_io])
-
-#threads
-AC_ARG_ENABLE(threads,
-	AS_HELP_STRING([--disable-threads],[Enable threads]),
-	enable_threads="${enableval}",
-	enable_threads="yes")
-	if test "$enable_threads" == "yes"
-	then
-		#check openmp
-		AC_OPENMP
-		CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
-		AC_DEFINE([USE_THREADS],1,[Enable threads])
-	fi
-AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling threads... $enable_threads])
-
-#MPI
-AC_ARG_ENABLE(MPI,
-	AS_HELP_STRING([--disable-MPI],[Enable MPI]),
-	enable_MPI="${enableval}",
-	enable_MPI="yes")
-	if test "$enable_MPI" == "yes"
-	then
-		AC_DEFINE([USE_MPI],1,[Enable MPI])
-	fi
-AM_CONDITIONAL([USE_MPI],[test "$enable_MPI" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling MPI... $enable_MPI])
 
 #bgq
 AC_ARG_ENABLE(bgq,
