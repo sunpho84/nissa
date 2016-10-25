@@ -54,7 +54,10 @@ AC_ARG_ENABLE(spi,
 	AS_HELP_STRING([--enable-spi],[Enable spi stuff (ony for BG/Q)]),
 	enable_spi="${enableval}",
 	enable_spi="no")
-if test "$enable_spi" == "yes";then AC_DEFINE([SPI],1,[Enable spi]) fi
+if test "$enable_spi" == "yes"
+then
+	AC_DEFINE([SPI],1,[Enable spi])
+fi
 AM_CONDITIONAL([SPI],[test "$enable_spi" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling spi... $enable_spi])
 
@@ -94,14 +97,14 @@ AC_ARG_ENABLE(threads,
 	AS_HELP_STRING([--disable-threads],[Enable threads]),
 	enable_threads="${enableval}",
 	enable_threads="yes")
-	if test "$enable_threads" == "yes"
-	then
-		#check openmp
-		AC_OPENMP
-		CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
-		CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
-		AC_DEFINE([USE_THREADS],1,[Enable threads])
-	fi
+if test "$enable_threads" == "yes"
+then
+	#check openmp
+	AC_OPENMP
+	CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
+	CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+	AC_DEFINE([USE_THREADS],1,[Enable threads])
+fi
 AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling threads... $enable_threads])
 
@@ -110,10 +113,10 @@ AC_ARG_ENABLE(MPI,
 	AS_HELP_STRING([--disable-MPI],[Enable MPI]),
 	enable_MPI="${enableval}",
 	enable_MPI="yes")
-	if test "$enable_MPI" == "yes"
-	then
-		AC_DEFINE([USE_MPI],1,[Enable MPI])
-	fi
+if test "$enable_MPI" == "yes"
+then
+	AC_DEFINE([USE_MPI],1,[Enable MPI])
+fi
 AM_CONDITIONAL([USE_MPI],[test "$enable_MPI" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling MPI... $enable_MPI])
 
@@ -175,7 +178,10 @@ AC_ARG_ENABLE(cgm-debug,
 	AS_HELP_STRING([--enable-cgm-debug],[Enable extremely verbose cgm inverter]),
 	enable_cgm_debug="${enableval}",
 	enable_cgm_debug="no")
-if test "$enable_cgm_debug" == "yes";then AC_DEFINE([CGM_DEBUG],1,[Enable debugging cgm inverter]) fi
+if test "$enable_cgm_debug" == "yes"
+then
+	AC_DEFINE([CGM_DEBUG],1,[Enable debugging cgm inverter])
+fi
 AC_MSG_RESULT([enabling cgm debug... $enable_cgm_debug])
 
 #parser generation
@@ -197,10 +203,10 @@ AC_ARG_ENABLE(mpi-io,
 	AS_HELP_STRING([--disable-mpi-io],[Enable MPI I/O]),
 	enable_mpi_io="${enableval}",
 	enable_mpi_io="yes")
-	if test "$enable_mpi_io" == "yes"
-	then
-		AC_DEFINE([USE_MPI_IO],1,[Enable MPI I/O])
-	fi
+if test "$enable_mpi_io" == "yes"
+then
+	AC_DEFINE([USE_MPI_IO],1,[Enable MPI I/O])
+fi
 AM_CONDITIONAL([USE_MPI_IO],[test "$enable_mpi_io" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling MPI I/O... $enable_mpi_io])
 
@@ -209,11 +215,11 @@ AC_ARG_ENABLE(bgq,
 	AS_HELP_STRING([--enable-bgq],[Enable bgq stuff (ony for BG/Q)]),
 	enable_bgq="${enableval}",
 	enable_bgq="no")
-	if test "$enable_bgq" == "yes"
-	then
-		AC_DEFINE([BGQ],1,[Enable bgq])
-		AC_DEFINE([USE_VNODES],1,[Enable virtual node parallelization])
-	fi
+if test "$enable_bgq" == "yes"
+then
+	AC_DEFINE([BGQ],1,[Enable bgq])
+	AC_DEFINE([USE_VNODES],1,[Enable virtual node parallelization])
+fi
 AM_CONDITIONAL([BGQ],[test "$enable_bgq" == "yes" ],[true],[false])
 AM_CONDITIONAL([USE_VNODES],[test "$enable_bgq" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq... $enable_bgq])
@@ -222,11 +228,16 @@ AC_MSG_RESULT([enabling bgq... $enable_bgq])
 AC_ARG_ENABLE(bgq-emu,
 	AS_HELP_STRING([--enable-bgq_emu],[Enable bgq_emu stuff (ony for BG/Q)]),
 	enable_bgq_emu="${enableval}",
-	if test "$enable_bgq" == "yes";then enable_bgq_emu="no";else enable_bgq_emu="yes";fi)
-	if test "$enable_bgq_emu" == "yes"
+	if test "$enable_bgq" == "yes"
 	then
-		AC_DEFINE([BGQ_EMU],1,[Enable bgq emulation])
-	fi
+		enable_bgq_emu="no"
+	else
+	enable_bgq_emu="yes"
+	fi)
+if test "$enable_bgq_emu" == "yes"
+then
+	AC_DEFINE([BGQ_EMU],1,[Enable bgq emulation])
+fi
 AM_CONDITIONAL([BGQ_EMU],[test "$enable_bgq_emu" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq emulation... $enable_bgq_emu])
 
@@ -235,7 +246,8 @@ AC_ARG_ENABLE(reproducible-run,
 	AS_HELP_STRING([--enable-reproducible-run],[Enable reproducibilty of runs (default: no)]),
 	enable_reproducible_run="${enableval}",
 	enable_reproducible_run="no")
-if test "$enable_reproducible_run" == "yes";then
+if test "$enable_reproducible_run" == "yes"
+then
    	AC_DEFINE([REPRODUCIBLE_RUN],1,[Enable reproducible run])
 fi
 AM_CONDITIONAL([REPRODUCIBLE_RUN],[test "$enable_reproducible_run" == "yes" ],[true],[false])
@@ -246,8 +258,14 @@ AC_ARG_ENABLE(thread-debug,
 	AS_HELP_STRING([--enable-thread-debug],[Enable thread debugging]),
 	enable_thread_debug="${enableval}",
 	enable_thread_debug="no")
-if test "$enable_thread_debug" = "yes";then AC_DEFINE([THREAD_DEBUG],1,[Enable thread_debug]) fi
-if test "$enable_thread_debug" = "2";then AC_DEFINE([THREAD_DEBUG],2,[Enable thread_debug]) fi
+if test "$enable_thread_debug" = "yes"
+then
+	AC_DEFINE([THREAD_DEBUG],1,[Enable thread_debug])
+	fi
+if test "$enable_thread_debug" = "2"
+then
+	AC_DEFINE([THREAD_DEBUG],2,[Enable thread_debug])
+fi
 AM_CONDITIONAL([THREAD_DEBUG],[test "$enable_thread_debug" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling thread debug... $enable_thread_debug])
 

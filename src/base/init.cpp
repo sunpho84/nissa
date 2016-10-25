@@ -209,6 +209,11 @@ namespace nissa
 #ifdef USE_VNODES
     vnode_paral_dir=NISSA_DEFAULT_VNODE_PARAL_DIR;
 #endif
+
+#ifdef USE_DDALPHAAMG
+    master_printf("Linked with DDalphaAMG\n");
+#endif
+    
     //put 0 as minimal request
     recv_buf_size=0;
     send_buf_size=0;
