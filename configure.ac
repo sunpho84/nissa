@@ -99,7 +99,7 @@ AC_ARG_ENABLE(threads,
 		#check openmp
 		AC_OPENMP
 		CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
-		CXX		    FLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+		CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
 		AC_DEFINE([USE_THREADS],1,[Enable threads])
 	fi
 AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
