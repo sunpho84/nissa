@@ -29,6 +29,7 @@ namespace nissa
   {
     void compute_full_gluon_force(quad_su3 *F,quad_su3 *conf,quad_su3 *H,su3 **pi,int naux_fields,double kappa,int niter,double residue,theory_pars_t *theory_pars)
     {
+      vector_reset(F);
       quad_su3 *temp=nissa_malloc("temp",loc_vol,quad_su3);
       
       //compute the various contribution to the QCD force
