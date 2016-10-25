@@ -24,7 +24,8 @@ semileptonic_smeared_parser_built_sources= \
 	parse_corr.cpp
 
 AM_YFLAGS=-d
-AM_LFLAGS=-Wnosign-compare
+tokenize_corr.$(OBJEXT) : CXXFLAGS+=-Wno-sign-compare
+__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.$(OBJEXT) : CXXFLAGS+=-Wno-sign-compare
 BUILT_SOURCES=$(semileptonic_smeared_parser_built_sources)
 CLEANFILES=$(semileptonic_smeared_parser_built_sources) 
 

@@ -24,7 +24,7 @@ generate_parser_built_sources= \
 	tokenizer.cpp
 
 AM_YFLAGS=-d
-AM_LFLAGS=-Wnosign-compare
+tokenizer.$(OBJEXT) : CXXFLAGS+=-Wno-sign-compare
 BUILT_SOURCES=$(generate_parser_built_sources)
 CLEANFILES=$(generate_parser_built_sources)
 
