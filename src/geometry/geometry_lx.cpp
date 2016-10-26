@@ -21,6 +21,10 @@
  #include "routines/thread.hpp"
 #endif
 
+#ifdef USE_DDALPHAAMG
+ #include "base/DDalphaAMG_bridge.hpp"
+#endif
+
 #ifdef SPI
  #include <malloc.h>
  #include <stdlib.h>
@@ -380,7 +384,7 @@ namespace nissa
     if(inon_bw_surf!=non_bw_surf_vol) crash("mismatch in non_bw_surf id");
     if(ifw_surf!=fw_surf_vol) crash("mismatch in fw_surf id");
     if(ibw_surf!=bw_surf_vol) crash("mismatch in bw_surf id");
-  }  
+  }
   
   //indexes run as t,x,y,z (faster:z)
   void set_lx_geometry()
@@ -441,6 +445,10 @@ namespace nissa
     //create the sweepers but do not fully initialize
     Wilson_sweeper=new gauge_sweeper_t;
     Symanzik_sweeper=new gauge_sweeper_t;
+    
+#ifdef USE_DDALPHAAMG
+    init_DDalphaAMG();
+#endif
     
     //set locd geom (one of the dimension local and fastest running, the other as usual)
     max_locd_size=0;

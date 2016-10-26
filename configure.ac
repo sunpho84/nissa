@@ -154,7 +154,7 @@ then
 	fi
 	LDFLAGS="-L${with_ddalphaamg}/lib $LDFLAGS"
 	CPPFLAGS="-I${with_ddalphaamg}/include $CPPFLAGS"
-	AC_SEARCH_LIBS(DDalphaAMG_get_communicator,DDalphaAMG,,AC_MSG_ERROR(["Unable to find libDDalphaAMG.a"]))
+	AC_CHECK_LIB(DDalphaAMG,DDalphaAMG_get_communicator,,AC_MSG_ERROR(["Unable to find libDDalphaAMG.a"]))
 	AC_CHECK_HEADERS([DDalphaAMG.h],,AC_MSG_ERROR(["Unable to find DDalphaAMG.h"]))
 	AC_DEFINE_UNQUOTED([USE_DDALPHAAMG],[1],[Enable DDalphaAMG usage])
 fi

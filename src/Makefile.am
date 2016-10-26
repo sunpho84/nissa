@@ -34,6 +34,13 @@ include_HEADERS+= \
 	base/tmLQCD_bridge.hpp
 endif
 
+if USE_DDALPHAAMG
+__top_builddir__lib_libnissa_a_SOURCES+= \
+	base/DDalphaAMG_bridge.cpp
+include_HEADERS+= \
+	base/DDalphaAMG_bridge.hpp
+endif
+
 #add BGQ if needed
 if BGQ
 include_HEADERS+=base/bgq_instructions.hpp

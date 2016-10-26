@@ -15,6 +15,9 @@
 #ifdef USE_TMLQCD
  #include "base/tmLQCD_bridge.hpp"
 #endif
+#ifdef USE_DDALPHAAMG
+ #include "base/DDalphaAMG_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 
 //include bg/q specifics
