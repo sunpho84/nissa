@@ -721,8 +721,8 @@ void generate_new_conf(quad_su3 *conf,int check=0)
 	  if(evol_pars.use_Facc)
 	    for(int id=0;id<evol_pars.naux_fields;id++)
 	      {
-		vector_copy(aux::phi_old[id],aux::phi[id]);
-		vector_copy(aux::pi_old[id],aux::pi[id]);
+		vector_copy(aux::phi[id],aux::phi_old[id]);
+		vector_copy(aux::pi[id],aux::pi_old[id]);
 	      }
 	}
     }
