@@ -12,6 +12,7 @@
 #include "new_types/su3.hpp"
 #include "operations/gaugeconf.hpp"
 #include "routines/ios.hpp"
+#include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -122,6 +123,9 @@ namespace nissa
 	pi_final_new[ifield]=nissa_malloc("pi_final_new",loc_vol+bord_vol,su3);
       }
     
+    double phi_norm2[naux_fields];
+    double pi_norm2[naux_fields];
+    
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
       {
@@ -195,8 +199,6 @@ namespace nissa
 	    double_vector_glb_scalar_prod(&H_norm2,(double*)H_final_new,(double*)H_final_old,loc_vol*sizeof(quad_su3)/sizeof(double));
 	    double conf_norm2;
 	    double_vector_glb_scalar_prod(&conf_norm2,(double*)conf_final_new,(double*)conf_final_old,loc_vol*sizeof(quad_su3)/sizeof(double));
-	    double phi_norm2[naux_fields];
-	    double pi_norm2[naux_fields];
 	    for(int ifield=0;ifield<naux_fields;ifield++)
 	      {
 		double_vector_glb_scalar_prod(&phi_norm2[ifield],(double*)phi_final_new[ifield],(double*)phi_final_old[ifield],loc_vol*sizeof(su3)/sizeof(double));
@@ -241,6 +243,30 @@ namespace nissa
     
     //normalize the configuration
     unitarize_lx_conf_maximal_trace_projecting(conf);
+    
+    GET_THREAD_ID();
+    double phi_rel_herm_norm=0;
+    double pi_rel_herm_norm=0;
+    for(int ifield=0;ifield<naux_fields;ifield++)
+      {
+	double phi_herm_norm2=0;
+	double pi_herm_norm2=0;
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  {
+	    su3 temp;
+	    unsafe_su3_hermitian(temp,phi[ifield][ivol]);
+	    su3_subtassign(temp,phi[ifield][ivol]);
+	    phi_herm_norm2+=su3_norm2(temp);
+	    unsafe_su3_hermitian(temp,pi[ifield][ivol]);
+	    su3_subtassign(temp,pi[ifield][ivol]);
+	    pi_herm_norm2+=su3_norm2(temp);
+	  }
+	phi_rel_herm_norm+=sqrt(glb_reduce_double(phi_rel_herm_norm)/phi_norm2[ifield]);
+	pi_rel_herm_norm+=sqrt(glb_reduce_double(pi_rel_herm_norm)/pi_norm2[ifield]);
+      }
+    
+    master_printf("phi_rel_herm_norm: %lg\n",phi_rel_herm_norm);
+    master_printf("pi_rel_herm_norm: %lg\n",pi_rel_herm_norm);
     
     //free everything
     for(int ifield=0;ifield<naux_fields;ifield++)
