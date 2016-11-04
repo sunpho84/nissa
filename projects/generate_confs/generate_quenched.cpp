@@ -58,6 +58,15 @@ double x_corr_time=0;
 double walltime=0;
 double max_traj_time=0;
 
+namespace nissa
+{
+  namespace aux
+  {
+    extern su3 **phi,**pi;
+    extern su3 **phi_old,**pi_old;
+  }
+}
+
 //read the parameters relevant for pure gauge evolution
 void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
 {
@@ -706,7 +715,16 @@ void generate_new_conf(quad_su3 *conf,int check=0)
           master_printf("accepted.\n");
           vector_copy(conf,temp_conf);
         }
-      else master_printf("rejected.\n");
+      else
+	{
+	  master_printf("rejected.\n");
+	  if(evol_pars.use_Facc)
+	    for(int id=0;id<evol_pars.naux_fields;id++)
+	      {
+		vector_copy(aux::phi_old[id],aux::phi[id]);
+		vector_copy(aux::pi_old[id],aux::pi[id]);
+	      }
+	}
     }
   else
     {
