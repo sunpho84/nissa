@@ -9,9 +9,9 @@ AM_SILENT_RULES([yes])
 
 #get configuration time
 AC_MSG_CHECKING([configuration date and time])
-CONFIG_DATE=`date`
+CONFIG_TIME=`date`
 AC_DEFINE_UNQUOTED([CONFIG_TIME], "$CONFIG_TIME", [time when configured])
-AC_MSG_RESULT([$CONFIG_DATE])
+AC_MSG_RESULT([$CONFIG_TIME])
 
 #parameters definition
 AC_CONFIG_SRCDIR([src])
