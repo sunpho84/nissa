@@ -2,10 +2,10 @@
 
 mkdir comp
 cd comp
-wget http://valgrind.org/downloads/valgrind-3.11.0.tar.bz2 -O -|tar jxf -
-wget http://www.linuxfromscratch.org/patches/blfs/svn/valgrind-3.11.0-upstream_fixes-1.patch
+wget http://valgrind.org/downloads/valgrind-3.12.0.tar.bz2 -O -|tar jxf -
+#wget http://www.linuxfromscratch.org/patches/blfs/svn/valgrind-3.11.0-upstream_fixes-1.patch
 cd val*
-patch -Np1 -i ../valgrind-3.11.0-upstream_fixes-1.patch
+#patch -Np1 -i ../valgrind-3.11.0-upstream_fixes-1.patch
 ./configure --prefix=$HOME
 make -j 4
 make install
