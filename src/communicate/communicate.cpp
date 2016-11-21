@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-
 #define EXTERN_COMMUNICATE
 #include "communicate.hpp"
 

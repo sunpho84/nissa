@@ -53,13 +53,13 @@ namespace nissa
 	    MPI_Request request[NDIM*(NDIM-1)*4];
 	    MPI_Status status[NDIM*(NDIM-1)*4];
 	    int send,rece;
-	    int imessage=4532543;
+	    int imessage=0;
 	    coords x;
 	    memset(x,0,sizeof(coords));
 	    
 	    for(int idir=0;idir<NDIM;idir++)
 	      for(int jdir=idir+1;jdir<NDIM;jdir++)
-		if(paral_dir[idir] && paral_dir[jdir])
+		if(paral_dir[idir] and paral_dir[jdir])
 		  {
 		    int iedge=edge_numb[idir][jdir];
 		    int pos_edge_offset;

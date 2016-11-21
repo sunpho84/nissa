@@ -1,6 +1,10 @@
 #ifndef COMMUNICATE_HPP
 #define COMMUNICATE_HPP
 
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #include <mpi.h>
 #include <stdio.h>
 #include <stdint.h>

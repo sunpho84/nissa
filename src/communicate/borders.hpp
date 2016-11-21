@@ -1,6 +1,10 @@
 #ifndef _BORDERS_HPP
 #define _BORDERS_HPP
 
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/float_128.hpp"
