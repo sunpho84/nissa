@@ -17,10 +17,11 @@
  #include <malloc.h>
 #endif
 
-#include "bench.hpp"
-#include "debug.hpp"
-#include "random.hpp"
-#include "vectors.hpp"
+#include "base/bench.hpp"
+#include "base/debug.hpp"
+#include "base/git_info.hpp"
+#include "base/random.hpp"
+#include "base/vectors.hpp"
 
 #include "communicate/borders.hpp"
 #include "communicate/communicate.hpp"
@@ -52,8 +53,6 @@
 
 namespace nissa
 {
-  extern const char *git_version;
-  
   //print the banner
   void print_banner()
   {
@@ -110,7 +109,7 @@ namespace nissa
     print_banner();
     
     //print version and configuration and compilation time
-    master_printf("\nInitializing NISSA, version: %s\n",git_version);
+    master_printf("\nInitializing NISSA, git hash: " GIT_HASH ", last commit at " GIT_TIME " with message: \"" GIT_LOG "\"\n");
     master_printf("Configured at %s with flags: %s\n",compile_info[0],compile_info[1]);
     master_printf("Compiled at %s of %s\n",compile_info[2],compile_info[3]);
     

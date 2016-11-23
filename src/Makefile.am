@@ -3,15 +3,15 @@ include_HEADERS=nissa.hpp
 #add nissa library
 lib_LIBRARIES=$(top_builddir)/lib/libnissa.a
 
-git_version.cpp: $(top_srcdir)/.git/HEAD $(top_srcdir)/.git/index Makefile
+base/git_info.hpp: $(top_srcdir)/.git/HEAD $(top_srcdir)/.git/index $(top_srcdir)/config/get_git_info.sh Makefile
 	@echo "Reading git version"
-	@echo "namespace nissa{const char *git_version=\"$(shell git rev-parse HEAD)\";}" > $@
-__top_builddir__lib_libnissa_a_SOURCES=git_version.cpp
-BUILT_SOURCES=git_version.cpp
+	@$(top_srcdir)/config/get_git_info.sh > $@
+
+BUILT_SOURCES=base/git_info.hpp
 
 ########################################### base sources ##################################
 
-__top_builddir__lib_libnissa_a_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES= \
 	base/bench.cpp \
 	base/close.cpp \
 	base/debug.cpp \
@@ -22,6 +22,7 @@ include_HEADERS+= \
 	base/bench.hpp \
 	base/close.hpp \
 	base/debug.hpp \
+	base/git_info.hpp \
 	base/init.hpp \
 	base/random.hpp \
 	base/thread_macros.hpp \
