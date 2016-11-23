@@ -5,7 +5,10 @@ lib_LIBRARIES=$(top_builddir)/lib/libnissa.a
 
 base/git_info.hpp: $(top_srcdir)/.git/HEAD $(top_srcdir)/.git/index $(top_srcdir)/config/get_git_info.sh Makefile
 	@echo "Reading git version"
-	@$(top_srcdir)/config/get_git_info.sh > $@
+	@$(top_srcdir)/config/get_git_info.sh $(top_srcdir) > $@
+$(top_srcdir)/.git/HEAD:
+$(top_srcdir)/.git/index:
+
 
 BUILT_SOURCES=base/git_info.hpp
 
@@ -168,6 +171,7 @@ include_HEADERS+= \
 endif
 
 EXTRA_DIST= \
+	base/git_info.hpp \
 	dirac_operators/WclovQ/dirac_operator_WclovQ_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_32_portable.cpp \
