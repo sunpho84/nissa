@@ -33,8 +33,8 @@ AX_CXXFLAGS_WARN_ALL
 #set mpi
 LX_FIND_MPI
 CPPFLAGS="$AM_CPPFLAGS $MPI_CXXFLAGS $CPPFLAGS"
-CXXFLAGS="$AM_CXXFLAGS $CXXFLAGS"
-CFLAGS="$AM_CFLAGS $MPI_CXXFLAGS $CFLAGS"
+CXXFLAGS="$AM_CXXFLAGS $MPI_CXXFLAGS $CXXFLAGS"
+CFLAGS="$AM_CFLAGS $MPI_CFLAGS $CFLAGS"
 LDFLAGS="$AM_LDFLAGS $MPI_CXXLDFLAGS $LDFLAGS"
 LIBS="$MPI_CXXLDFLAGS $LIBS"
 
@@ -101,6 +101,7 @@ if test "$enable_threads" == "yes"
 then
 	#check openmp
 	AC_OPENMP
+	CFLAGS="$CXXFLAGS $OPENMP_CFLAGS"
 	CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
 	CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
 	AC_DEFINE([USE_THREADS],1,[Enable threads])
@@ -314,16 +315,11 @@ AC_CONFIG_FILES(
 	Makefile
 	src/Makefile
 	projects/Makefile
-	projects/cosmhol/Makefile
 	projects/cpn/Makefile
-	projects/eight_BK/Makefile
-	projects/g/Makefile
 	projects/generate_confs/Makefile
 	projects/ib/Makefile
 	projects/nucleons/Makefile
-	projects/reno_const/Makefile
 	projects/semileptonic/Makefile
-	projects/static_potential/Makefile
 	tools/Makefile)
 
 AC_OUTPUT
