@@ -12,6 +12,7 @@
 #include "communicate/borders.hpp"
 #include "communicate/edges.hpp"
 #include "geometry/geometry_mix.hpp"
+#include "io/input.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/float_128.hpp"
@@ -207,7 +208,6 @@ namespace nissa
   //finding the index to put only 1/16 of the data
   int index_to_topo_corr_remapping(int iloc_lx)
   {
-    printf("%d\n",iloc_lx);
     int subcube=0,subcube_el=0;
     int subcube_size[NDIM][2],subcube_coord[NDIM],subcube_el_coord[NDIM];
     for(int mu=0;mu<NDIM;mu++)
@@ -224,8 +224,6 @@ namespace nissa
 	subcube_el_coord[mu]=glx_mu-subcube_coord[mu]*subcube_size[mu][0];
 	subcube_el=subcube_el*subcube_size[mu][subcube_coord[mu]]+subcube_el_coord[mu];
       }
-    printf(" subcube: %d\n",subcube);
-    printf(" subcube_el: %d\n",subcube_el);
     
     //summ the smaller-index cubes
     coords nsubcubes_per_dir;
@@ -241,8 +239,6 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++) subcube_vol*=subcube_size[mu][c[mu]];
 	minind_cube_vol+=subcube_vol;
       }
-    
-    printf(" finally %d %d\n",glblx_of_loclx[iloc_lx],subcube_el+minind_cube_vol);
     
     return subcube_el+minind_cube_vol;
   }
@@ -274,8 +270,8 @@ namespace nissa
       }
     
     //offset to mantain 16 byte alignement
-    //if(fseek(file,3*sizeof(int),SEEK_CUR)) crash("seeking to align");
-    //MPI_Barrier(MPI_COMM_WORLD);
+    if(fseek(file,3*sizeof(int),SEEK_CUR)) crash("seeking to align");
+    MPI_Barrier(MPI_COMM_WORLD);
     
     //write conf id and polyakov
     if(rank==0)
@@ -309,7 +305,6 @@ namespace nissa
     if(loc_data!=0)
       {
 	int nbytes_to_write=loc_data*sizeof(double);
-	master_printf("nbytesto: %d %d\n",nbytes_to_write,loc_vol*sizeof(double));
 	off_t nbytes_wrote=fwrite(corr,1,nbytes_to_write,file);
 	if(nbytes_wrote!=nbytes_to_write) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_to_write);
       }
@@ -321,11 +316,14 @@ namespace nissa
   //measure the topological charge
   void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *unsmoothed_conf,int iconf,bool conf_created,bool preserve_unsmoothed)
   {
+    //open the file and allocate remapper
     FILE *file=open_file(pars.path,conf_created?"w":"a"),*corr_file=NULL;
     vector_remap_t *topo_corr_rem;
     if(pars.meas_corr)
       {
-	corr_file=open_file(pars.corr_path,conf_created?"w":"a");
+	corr_file=fopen(pars.corr_path.c_str(),(conf_created or !file_exists(pars.corr_path))?"w":"r+");
+	if(corr_file==NULL) crash("opening %s",pars.corr_path.c_str());
+	if(fseek(corr_file,0,SEEK_END)) crash("seeking to the end");
 	topo_corr_rem=new vector_remap_t(loc_vol,index_to_topo_corr_remapping,NULL);
       }
     
@@ -368,7 +366,7 @@ namespace nissa
     close_file(file);
     if(pars.meas_corr)
       {
-	close_file(corr_file);
+	fclose(corr_file);
 	delete topo_corr_rem;
       }
   }
