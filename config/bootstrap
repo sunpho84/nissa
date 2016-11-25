@@ -9,3 +9,5 @@ rm -fr \
 
 aclocal
 autoreconf --verbose --install --force
+#fix ylwrap
+patch -p1 config/ylwrap < config/patch_ylwrap

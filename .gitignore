@@ -35,3 +35,4 @@ build_vir
 /doc/facc.pdf
 /.dir-locals.el~
 /doc/autovalori.pdf
+build*
