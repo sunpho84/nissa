@@ -12,10 +12,12 @@
 #include "communicate/borders.hpp"
 #include "communicate/edges.hpp"
 #include "geometry/geometry_mix.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
+#include "operations/fft.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "operations/smearing/stout.hpp"
@@ -156,30 +158,9 @@ namespace nissa
   //total topological charge
   THREADABLE_FUNCTION_2ARG(total_topological_charge_lx_conf, double*,tot_charge, quad_su3*,conf)
   {
-    GET_THREAD_ID();
     double *charge=nissa_malloc("charge",loc_vol,double);
-    
-    //compute local charge
     local_topological_charge(charge,conf);
-    
-    //summ over local volume
-#ifndef REPRODUCIBLE_RUN
-    double temp=0;
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      temp+=charge[ivol];
-    
-    *tot_charge=glb_reduce_double(temp);
-#else
-    //perform thread summ
-    float_128 loc_thread_res={0,0};
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      float_128_summassign_64(loc_thread_res,charge[ivol]);
-    
-    float_128 temp;
-    glb_reduce_float_128(temp,loc_thread_res);
-    (*tot_charge)=temp[0];
-#endif
-    
+    double_vector_glb_collapse(tot_charge,charge,loc_vol);
     nissa_free(charge);
   }
   THREADABLE_FUNCTION_END
@@ -197,12 +178,159 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //compute the correlator between topological charge
+  THREADABLE_FUNCTION_1ARG(compute_topo_corr, double*,charge)
+  {
+    GET_THREAD_ID();
+    
+    //pass to complex
+    complex *ccharge=nissa_malloc("ccharge",loc_vol,complex);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_put_to_real(ccharge[ivol],charge[ivol]);
+    THREAD_BARRIER();
+    
+    //transform
+    fft4d(ccharge,ccharge,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
+    
+    //multiply to build correlators
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) safe_complex_prod(ccharge[ivol],ccharge[ivol],ccharge[ivol]);
+    THREAD_BARRIER();
+    
+    //transform back
+    fft4d(ccharge,ccharge,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+    
+    //return to double
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) charge[ivol]=ccharge[ivol][RE];
+    nissa_free(ccharge);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //finding the index to put only 1/16 of the data
+  int index_to_topo_corr_remapping(int iloc_lx)
+  {
+    printf("%d\n",iloc_lx);
+    int subcube=0,subcube_el=0;
+    int subcube_size[NDIM][2],subcube_coord[NDIM],subcube_el_coord[NDIM];
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	subcube_size[mu][0]=glb_size[mu]/2+1;
+	subcube_size[mu][1]=glb_size[mu]/2-1;
+	
+	//take global coord and identify subcube
+	int glx_mu=glb_coord_of_loclx[iloc_lx][mu];
+	subcube_coord[mu]=(glx_mu>=subcube_size[mu][0]);
+	subcube=subcube*2+subcube_coord[mu];
+	
+	//identify also the local coord
+	subcube_el_coord[mu]=glx_mu-subcube_coord[mu]*subcube_size[mu][0];
+	subcube_el=subcube_el*subcube_size[mu][subcube_coord[mu]]+subcube_el_coord[mu];
+      }
+    printf(" subcube: %d\n",subcube);
+    printf(" subcube_el: %d\n",subcube_el);
+    
+    //summ the smaller-index cubes
+    coords nsubcubes_per_dir;
+    for(int mu=0;mu<NDIM;mu++) nsubcubes_per_dir[mu]=2;
+    int minind_cube_vol=0;
+    for(int isubcube=0;isubcube<subcube;isubcube++)
+      {
+	//get coords
+	coords c;
+	coord_of_lx(c,isubcube,nsubcubes_per_dir);
+	//compute vol
+	int subcube_vol=1;
+	for(int mu=0;mu<NDIM;mu++) subcube_vol*=subcube_size[mu][c[mu]];
+	minind_cube_vol+=subcube_vol;
+      }
+    
+    printf(" finally %d %d\n",glblx_of_loclx[iloc_lx],subcube_el+minind_cube_vol);
+    
+    return subcube_el+minind_cube_vol;
+  }
+  
+  //wrapper
+  void index_to_topo_corr_remapping(int &irank,int &iloc,int iloc_lx,void *pars)
+  {
+    int iglb=index_to_topo_corr_remapping(iloc_lx);
+    
+    //find rank and loclx
+    irank=iglb/loc_vol;
+    iloc=iglb%loc_vol;
+  }
+  
+  //store only 1/16 of the file
+  void store_topo_corr(FILE *file,double *corr,int itraj,double top,vector_remap_t *topo_corr_rem)
+  {
+    if(IS_PARALLEL) crash("cannot work threaded!");
+    
+    //remap
+    topo_corr_rem->remap(corr,corr,sizeof(double));
+    
+    //change endianness to little
+    if(!little_endian)
+      {
+	change_endianness((int*)&itraj,(int*)&itraj,1);
+	change_endianness(corr,corr,loc_vol);
+	change_endianness(&top,&top,1);
+      }
+    
+    //offset to mantain 16 byte alignement
+    //if(fseek(file,3*sizeof(int),SEEK_CUR)) crash("seeking to align");
+    //MPI_Barrier(MPI_COMM_WORLD);
+    
+    //write conf id and polyakov
+    if(rank==0)
+      {
+	off_t nwr=fwrite(&itraj,sizeof(int),1,file);
+	if(nwr!=1) crash("wrote %d int instead of 1",nwr);
+	nwr=fwrite(&top,sizeof(double),1,file);
+	if(nwr!=1) crash("wrote %d doubles instead of 1",nwr);
+      }
+    else
+      if(fseek(file,sizeof(int)+sizeof(double),SEEK_CUR)) crash("seeking");
+    MPI_Barrier(MPI_COMM_WORLD);
+    
+    //find which piece has to write data
+    int64_t tot_data=1;
+    for(int mu=0;mu<NDIM;mu++) tot_data*=glb_size[mu]/2+1;
+    
+    //fix possible exceding boundary
+    int64_t istart=std::min(tot_data,loc_vol*rank);
+    int64_t iend=std::min(tot_data,istart+loc_vol);
+    int64_t loc_data=iend-istart;
+    
+    //take original position of the file
+    off_t ori=ftell(file);
+    
+    //jump to the correct point in the file
+    if(fseek(file,ori+istart*sizeof(double),SEEK_SET)) crash("seeking");
+    MPI_Barrier(MPI_COMM_WORLD);
+    
+    //write if something has to be written
+    if(loc_data!=0)
+      {
+	int nbytes_to_write=loc_data*sizeof(double);
+	master_printf("nbytesto: %d %d\n",nbytes_to_write,loc_vol*sizeof(double));
+	off_t nbytes_wrote=fwrite(corr,1,nbytes_to_write,file);
+	if(nbytes_wrote!=nbytes_to_write) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_to_write);
+      }
+    
+    //point to after the data
+    fseek(file,ori+tot_data*sizeof(double),SEEK_SET);
+  }
+  
   //measure the topological charge
   void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *unsmoothed_conf,int iconf,bool conf_created,bool preserve_unsmoothed)
   {
-    FILE *file=open_file(pars.path,conf_created?"w":"a");
+    FILE *file=open_file(pars.path,conf_created?"w":"a"),*corr_file=NULL;
+    vector_remap_t *topo_corr_rem;
+    if(pars.meas_corr)
+      {
+	corr_file=open_file(pars.corr_path,conf_created?"w":"a");
+	topo_corr_rem=new vector_remap_t(loc_vol,index_to_topo_corr_remapping,NULL);
+      }
     
     //allocate a temorary conf to be smoothed
+    double *charge=nissa_malloc("charge",loc_vol,double);
     quad_su3 *smoothed_conf;
     if(preserve_unsmoothed)
       {
@@ -215,19 +343,36 @@ namespace nissa
     bool finished;
     do
       {
+	//plaquette and local charge
 	double plaq=global_plaquette_lx_conf(smoothed_conf);
+	local_topological_charge(charge,smoothed_conf);
+	//total charge
 	double tot_charge;
+	double_vector_glb_collapse(&tot_charge,charge,loc_vol);
 	total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-	master_fprintf(file,"%d %lg %+16.016lg %16.16lg\n",iconf,t,tot_charge,plaq);
+	master_fprintf(file,"%d %lg %+16.16lg %16.16lg\n",iconf,t,tot_charge,plaq);
 	finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,t,tnext_meas);
+	//correlators if asked
+	if(pars.meas_corr)
+	  {
+	    compute_topo_corr(charge);
+	    store_topo_corr(corr_file,charge,iconf,tot_charge,topo_corr_rem);
+	  }
       }
     while(!finished);
     
     //discard smoothed conf
     if(preserve_unsmoothed) nissa_free(smoothed_conf);
+    nissa_free(charge);
     
     close_file(file);
+    if(pars.meas_corr)
+      {
+	close_file(corr_file);
+	delete topo_corr_rem;
+      }
   }
+  
   void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **unsmoothed_conf_eo,int iconf,bool conf_created)
   {
     quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -362,9 +507,11 @@ namespace nissa
       std::ostringstream os;
       
       os<<"MeasTop\n";
-      if(each!=def_each()||full) os<<" Each\t\t=\t"<<each<<"\n";
-      if(after!=def_after()||full) os<<" After\t\t=\t"<<after<<"\n";
-      if(path!=def_path()||full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+      if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
+      if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
+      if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+      if(meas_corr!=def_meas_corr() or full) os<<" MeasCorr\t=\t\""<<meas_corr<<"\"\n";
+      if(corr_path!=def_corr_path() or full) os<<" CorrPath\t=\t\""<<corr_path<<"\"\n";
       os<<smooth_pars.get_str(full);
       
       return os.str();

@@ -12,19 +12,24 @@ namespace nissa
   {
     int each;
     int after;
+    int meas_corr;
     std::string path;
+    std::string corr_path;
     smooth_pars_t smooth_pars;
     
     int def_each(){return 1;}
     int def_after(){return 0;}
+    int def_meas_corr(){return 0;}
     std::string def_path(){return "Topo";}
+    std::string def_corr_path(){return "TopoCorr";}
     
     int is_nonstandard()
     {
       return
-	each!=def_each()||
-	after!=def_after()||
-	path!=def_path()||
+	each!=def_each() or
+	after!=def_after() or
+	path!=def_path() or
+	corr_path!=def_corr_path() or
 	smooth_pars.is_nonstandard();
     }
     
@@ -34,7 +39,10 @@ namespace nissa
     top_meas_pars_t() :
       each(def_each()),
       after(def_after()),
-      path(def_path()) {}
+      meas_corr(def_meas_corr()),
+      path(def_path()),
+      corr_path(def_corr_path())
+    {}
   };
   
   void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X);

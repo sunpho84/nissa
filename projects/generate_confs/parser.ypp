@@ -144,8 +144,12 @@
 %token TK_ELEC_CHARGE
 //smooth method
 %token TK_SMOOTH_METHOD
-%token TK_MEAS_EACH
 %type <smooth_pars> smooth_pars
+//meas ach
+%token TK_MEAS_EACH
+//topo measure
+%token TK_MEAS_CORR
+%token TK_MEAS_CORR_PATH
 //stout pars
 %token TK_STOUT
 %type <stout_pars> stout_pars
@@ -585,6 +589,8 @@ top_meas: TK_MEAS_TOP {$$=new top_meas_pars_t();}
         | top_meas after {$$->after=$2;}
         | top_meas path {$$->path=(*$2);delete $2;}
         | top_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
+        | top_meas TK_MEAS_CORR '=' int_numb {$$->meas_corr=$4;}
+        | top_meas TK_MEAS_CORR_PATH '=' text  {$$->corr_path=(*$4);}
         | top_meas TK_MEAS_EACH '=' double_numb {$$->smooth_pars.meas_each=$4;}
 ;
 

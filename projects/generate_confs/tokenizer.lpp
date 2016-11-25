@@ -181,7 +181,13 @@ ElecCharge  DEBUG_PRINTF("Found ElecCharge\n");return TK_ELEC_CHARGE;
 
  /* smooth method */
 SmoothMethod DEBUG_PRINTF("Found SmoothMethod\n");return TK_SMOOTH_METHOD;
+
+ /* meas each */
 MeasEach DEBUG_PRINTF("Found MeasEach\n");return TK_MEAS_EACH;
+
+ /* topo corr */
+MeasCorr DEBUG_PRINTF("Found MeasCorr\n");return TK_MEAS_CORR;
+MeasCorrPath DEBUG_PRINTF("Found MeasCorrPath\n");return TK_MEAS_CORR_PATH;
 
  /* spatial or temporal */
 Spatial DEBUG_PRINTF("Found Spatial\n");return TK_SPATIAL;
