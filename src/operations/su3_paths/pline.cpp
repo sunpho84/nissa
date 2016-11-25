@@ -39,7 +39,7 @@ namespace nissa
     for(int i=0;i<glb_size[mu];i++)
       {
 	//take the product
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) 
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][mu]);
 	set_borders_invalid(u);
 	
@@ -216,7 +216,7 @@ namespace nissa
 	nwr=fwrite(tra,sizeof(double),2,file);
 	if(nwr!=2) crash("wrote %d doubles instead of 2",nwr);
       }
-    else 
+    else
       if(fseek(file,sizeof(int)+sizeof(complex),SEEK_CUR)) crash("seeking");
     MPI_Barrier(MPI_COMM_WORLD);
     
