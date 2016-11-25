@@ -1,8 +1,8 @@
-210c210,228
+210c210,226
 <         "$from" >"$target" || ret=$?
 ---
 >           "$from" |                             \
-> 	sed 's/YYERROR_VERBOSE_ARGS_MAXIMUM = [0-9]*/YYERROR_VERBOSE_ARGS_MAXIMUM = 100/
+>       sed -e 's/YYERROR_VERBOSE_ARGS_MAXIMUM = [0-9]*/YYERROR_VERBOSE_ARGS_MAXIMUM = 100/
 > /switch (yycount).*/,/}/c\
 > #define YY_BASE_ERROR_STRING "syntax error, unexpected %s, expecting %s"\
 > #define YY_EXTEND_ERROR_STRING " or %s"\
@@ -17,6 +17,4 @@
 >     yyformat += sizeof(YY_EXTEND_ERROR_STRING) - 1;\
 >   }\
 >   yyformat = yyformatbuf;\
-> }' $1
-> 
->  >"$target"|| ret=$?
+> }'  >"$target"|| ret=$?
