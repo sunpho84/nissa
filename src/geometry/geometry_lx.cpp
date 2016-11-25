@@ -447,7 +447,7 @@ namespace nissa
     Symanzik_sweeper=new gauge_sweeper_t;
     
 #ifdef USE_DDALPHAAMG
-    init_DDalphaAMG();
+    DD::init_DDalphaAMG();
 #endif
     
     //set locd geom (one of the dimension local and fastest running, the other as usual)

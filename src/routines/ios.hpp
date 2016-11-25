@@ -16,17 +16,17 @@
 
 //add verbosity macro
 #if MAX_VERBOSITY_LV>=1
-#define VERBOSITY_LV1 (verbosity_lv>=1)
+ #define VERBOSITY_LV1 (nissa::verbosity_lv>=1)
 #else
  #define VERBOSITY_LV1 0
 #endif
 #if MAX_VERBOSITY_LV>=2
- #define VERBOSITY_LV2 (verbosity_lv>=2)
+ #define VERBOSITY_LV2 (nissa::verbosity_lv>=2)
 #else
  #define VERBOSITY_LV2 0
 #endif
 #if MAX_VERBOSITY_LV>=3
- #define VERBOSITY_LV3 (verbosity_lv>=3)
+ #define VERBOSITY_LV3 (nissa::verbosity_lv>=3)
 #else
  #define VERBOSITY_LV3 0
 #endif
