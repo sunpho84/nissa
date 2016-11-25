@@ -68,7 +68,7 @@ namespace nissa
 	vsprintf(mess,templ,ap);
 	va_end(ap);
 	
-	fprintf(stderr,"ERROR on line %d of file \"%s\", message error: \"%s\".\n",line,file,mess);
+	fprintf(stderr,"\x1b[31m" "ERROR on line %d of file \"%s\", message error: \"%s\".\n\x1b[0m",line,file,mess);
 	print_backtrace_list();
 	ranks_abort(0);
       }
