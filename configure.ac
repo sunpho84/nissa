@@ -125,10 +125,10 @@ AC_MSG_RESULT([enabling MPI... $enable_MPI])
 AC_ARG_WITH(tmLQCD,
 	AS_HELP_STRING([--with-tmLQCD[=dir]],[Specify where to find tmLQCD]),
 	with_tmlqcd="${withval}",
-	with_tmlqcd="")
-AM_CONDITIONAL([USE_TMLQCD],[test "x${with_tmlqcd}" != "x" ],[true],[false])
-AC_MSG_RESULT([with tmLQCD ... "${with_tmlqcd}"])
-if test "x${with_tmlqcd}" != "x"
+	with_tmlqcd="no")
+AM_CONDITIONAL([USE_TMLQCD],[test "x${with_tmlqcd}" != "xno" ],[true],[false])
+AC_MSG_RESULT([with tmLQCD ... ${with_tmlqcd}])
+if test "x${with_tmlqcd}" != "xno"
 then
 	if test "$ac_cv_search_limeReaderNextRecord" == "no"
 	then
@@ -144,10 +144,10 @@ fi
 AC_ARG_WITH(DDalphaAMG,
 	AS_HELP_STRING([--with-DDalphaAMG[=dir]],[Specify where to find DDalphaAMG]),
 	with_ddalphaamg="${withval}",
-	with_ddalphaamg="")
-AM_CONDITIONAL([USE_DDALPHAAMG],[test "x${with_ddalphaamg}" != "x" ],[true],[false])
-AC_MSG_RESULT([with DDalphaAMG ... "${with_ddalphaamg}"])
-if test "x${with_ddalphaamg}" != "x"
+	with_ddalphaamg="no")
+AM_CONDITIONAL([USE_DDALPHAAMG],[test "x${with_ddalphaamg}" != "xno" ],[true],[false])
+AC_MSG_RESULT([with DDalphaAMG ... ${with_ddalphaamg}])
+if test "x${with_ddalphaamg}" != "xno"
 then
 	if test "$ac_cv_search_limeReaderNextRecord" == "no"
 	then

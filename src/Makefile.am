@@ -176,6 +176,7 @@ EXTRA_DIST= \
 	dirac_operators/stD/dirac_operator_stD_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_32_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_bgq_template.cpp \
+	dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_portable.cpp \
 	dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_portable.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_portable.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left_portable.cpp
@@ -246,6 +247,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 include_HEADERS+= \
 	hmc/backfield.hpp \
 	hmc/hmc.hpp \
+	hmc/quark_pars.hpp \
 	hmc/theory_pars.hpp \
 	hmc/fermions/rootst_eoimpr_quark_force.hpp \
 	hmc/fermions/pseudofermions_generation.hpp \
@@ -328,6 +330,7 @@ include_HEADERS+= \
 	inverters/Wclov/cg_invert_WclovQ2.hpp \
 	inverters/twisted_clover/cg_invert_tmclovQ.hpp \
 	inverters/twisted_clover/cg_invert_tmclovQ2.hpp \
+	inverters/twisted_clover/cg_64_invert_tmclovQ2_portable.hpp \
 	inverters/twisted_clover/cg_64_invert_tmclovQ2.hpp \
 	inverters/twisted_clover/cg_64_invert_tmclovD_eoprec.hpp \
 	inverters/twisted_clover/cg_128_invert_tmclovQ2.hpp \
@@ -361,10 +364,11 @@ include_HEADERS+= \
 	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.hpp \
 	inverters/twisted_mass/cg_64_invert_tmD_eoprec_bgq.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2_bgq.hpp \
-	inverters/twisted_clover/cgm_invert_tmclovQ2_bgq.hpp \
 	inverters/twisted_clover/cg_64_invert_tmclovQ2_bgq.hpp \
 	inverters/twisted_clover/cg_64_invert_tmclovD_eoprec_bgq.hpp \
-	inverters/twisted_clover/cg_128_invert_tmclovQ2_bgq.hpp
+	inverters/twisted_clover/cg_128_invert_tmclovQ2_bgq.hpp \
+	inverters/twisted_clover/cgm_invert_tmclovQ2_bgq.hpp \
+	inverters/twisted_clover/cgm_invert_tmclovDkern_eoprec_square_portable.hpp
 endif
 
 EXTRA_DIST+= \
@@ -490,6 +494,7 @@ include_HEADERS+= \
 	operations/contract/optimized_mesons_2pts.hpp \
 	operations/contract/site_contract.hpp \
 	operations/smearing/APE.hpp \
+	operations/smearing/cooling.hpp \
 	operations/smearing/gaussian.hpp \
 	operations/smearing/HYP.hpp \
 	operations/smearing/smooth.hpp \
