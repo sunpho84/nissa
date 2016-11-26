@@ -4,11 +4,14 @@
 
 #include <DDalphaAMG.h>
 
+#include "base/debug.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 #include "routines/thread.hpp"
 #include "routines/mpi_routines.hpp"
 
+
+#define EXTERN_DD_BRIDGE
 #include "DDalphaAMG_bridge.hpp"
 
 namespace DD
@@ -51,7 +54,18 @@ namespace DD
   {
     DDalphaAMG_set_configuration((double*)conf,&status);
     if(status.success) verbosity_lv1_master_printf("DDalphaAMG conf set, plaquette %e\n",status.info);
-    else nissa::crash("configuration updating did not run correctly");
+    else crash("configuration updating did not run correctly");
+  }
+  
+  //set the value of the mass
+  void set_mass(double mass)
+  {
+    DDalphaAMG_get_parameters(&params);
+    if(params.mu!=mass)
+      {
+	params.mu=mass;
+	DDalphaAMG_update_parameters(&params,&status);
+      }
   }
   
   //initialize the bridge with DDalphaAMG
@@ -103,7 +117,27 @@ namespace DD
       }
     
     //set transposer
+    params.print=1;
     params.conf_index_fct=conf_index_fct;
     params.vector_index_fct=vector_index_fct;
+  }
+  
+  //finalize
+  void finalize_DDalphaAMG()
+  {DDalphaAMG_finalize();}
+  
+  //solve
+  int solve(nissa::spincolor *out,nissa::spincolor *in,double mu,double precision)
+  {
+    set_mass(mu);
+    DDalphaAMG_setup(&status);
+    DDalphaAMG_solve((double*)out,(double*)in,precision,&status);
+    master_printf("Solving time %.2f sec (%.1f %% on coarse grid)\n",status.time,100.0*(status.coarse_time/status.time));
+    master_printf("Total iterations on fine grid %d\n", status.iter_count);
+    master_printf("Total iterations on coarse grids %d\n", status.coarse_iter_count);
+    if(!status.success) crash("the solver did not converge!\n");
+    //mul_r(phi_new ,mg_scale, phi_new, N);
+    
+    return status.success;
   }
 }

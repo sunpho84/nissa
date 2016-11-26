@@ -13,6 +13,9 @@
 #ifdef USE_TMLQCD
  #include "base/tmLQCD_bridge.hpp"
 #endif
+#ifdef USE_DDALPHAAMG
+ #include "base/DDalphaAMG_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -372,6 +375,9 @@ namespace nissa
 #endif
 #ifdef USE_TMLQCD
     tags.push_back(triple_tag("use_tmLQCD",		       use_tmLQCD));
+#endif
+#ifdef USE_DDALPHAAMG
+    tags.push_back(triple_tag("use_DDalphaAMG",		       use_DD));
 #endif
     
     if(file_exists(path))

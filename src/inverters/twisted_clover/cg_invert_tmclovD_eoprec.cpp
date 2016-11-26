@@ -9,6 +9,9 @@
 #ifdef USE_TMLQCD
  #include "base/tmLQCD_bridge.hpp"
 #endif
+#ifdef USE_DDALPHAAMG
+ #include "base/DDalphaAMG_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
 #include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
@@ -194,7 +197,17 @@ namespace nissa
       }
     else
 #endif
-      //fallback to naive implementation
-      inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,Cl_lx,ext_invCl_lx,mass,nitermax,residue,source_lx);
+      //DD case
+#ifdef USE_DDALPHAAMG
+      if(use_DD)
+	{
+	  DD::import_gauge_conf(conf_lx);
+	  DD::solve(solution_lx,source_lx,mass,residue);
+	}
+      else
+#endif
+	
+	//fallback to naive implementation
+	inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,Cl_lx,ext_invCl_lx,mass,nitermax,residue,source_lx);
   }
 }
