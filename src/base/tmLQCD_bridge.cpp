@@ -2,7 +2,7 @@
  #include "config.hpp"
 #endif
 
-#define EXTERN_BRIDGE
+#define EXTERN_TMLQCD_BRIDGE
 #include "tmLQCD_bridge.hpp"
 
 #include "routines/ios.hpp"

@@ -1,13 +1,6 @@
 #ifndef _TMLQCD_BRIDGE_HPP
 #define _TMLQCD_BRIDGE_HPP
 
-#ifndef EXTERN_BRIDGE
- #define EXTERN_BRIDGE extern
- #define INIT_TO(var)
-#else
- #define INIT_TO(var) =var
-#endif
-
 //include tmLQCD inside a clean namespace
 namespace tmLQCD
 {
@@ -17,11 +10,18 @@ namespace tmLQCD
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3_op.hpp"
 
+#ifndef EXTERN_TMLQCD_BRIDGE
+ #define EXTERN_TMLQCD_BRIDGE extern
+ #define INIT_TO(var)
+#else
+ #define INIT_TO(var) =var
+#endif
+
 namespace nissa
 {
-  EXTERN_BRIDGE quad_su3 *external_conf_to_tmLQCD_handle;
-  EXTERN_BRIDGE int use_tmLQCD INIT_TO(1);
-  EXTERN_BRIDGE int tmLQCD_initialized INIT_TO(0);
+  EXTERN_TMLQCD_BRIDGE quad_su3 *external_conf_to_tmLQCD_handle;
+  EXTERN_TMLQCD_BRIDGE int use_tmLQCD INIT_TO(1);
+  EXTERN_TMLQCD_BRIDGE int tmLQCD_initialized INIT_TO(0);
   
   //importing the finalizer
   using tmLQCD::tmLQCD_finalise;
@@ -33,7 +33,7 @@ namespace nissa
   FILE* open_prepare_input_file_for_tmLQCD();
 }
 
-#undef EXTERN_BRIDGE
+#undef EXTERN_TMLQCD_BRIDGE
 #undef INIT_TO
 
 #endif
