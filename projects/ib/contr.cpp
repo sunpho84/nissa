@@ -46,44 +46,42 @@ namespace nissa
 	double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 in case of a point source
 	for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
 	  {
-	    int ig_so=mes_gamma_list[ihadr_contr].so;
-	    int ig_si=mes_gamma_list[ihadr_contr].si;
-	    if(nso_spi==1 and ig_so!=5) crash("implemented only g5 contraction on the source for non-diluted source");
+	    int ig1=mes_gamma_list[ihadr_contr].so;
+	    int ig2=mes_gamma_list[ihadr_contr].si;
+	    if(nso_spi==1 && ig1!=5) crash("implemented only g5 contraction on the source for non-diluted source");
 	    
 	    for(int i=0;i<nso_spi;i++)
 	      {
-		//source index is "i", after gamma_so comes "j", then gamma_5 is diagonal
-		int j=(base_gamma+ig_so)->pos[i];
+		int j=(base_gamma+ig1)->pos[i];
+		
 		complex A;
-		unsafe_complex_prod(A,(base_gamma+ig_so)->entr[i],(base_gamma+5)->entr[j]);
+		unsafe_complex_prod(A,(base_gamma+ig1)->entr[i],(base_gamma+5)->entr[j]);
 		
 		for(int b=0;b<nso_col;b++)
-		  for(int k=0;k<NDIRAC;k++)
-		    {
-		      //sink index of non-reversed quark (2) is "k", after gamma_si comes "l"
-		      int l=(base_gamma+ig_si)->pos[k];
-		      
-		      //compute AB*norm
-		      complex B;
-		      unsafe_complex_prod(B,(base_gamma+ig_si)->entr[k],(base_gamma+5)->entr[l]);
-		      complex AB;
-		      unsafe_complex_prod(AB,A,B);
-		      complex_prodassign_double(AB,norm);
-		      
-		      //things get messier: iq1 is reversed so we take "l" for him on the source
-		      int isou1=so_sp_col_ind(l,b);
-		      int isou2=so_sp_col_ind(i,b);
-		      spincolor *q1=Q1[isou1];
-		      spincolor *q2=Q2[isou2];
-		      
-		      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-			{
-			  complex c={0,0};
-			  for(int a=0;a<NCOL;a++)
-			    complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][j][a]);
+		  {
+		    spincolor *q1=Q1[so_sp_col_ind(j,b)];
+		    spincolor *q2=Q2[so_sp_col_ind(i,b)];
+		    
+		    for(int k=0;k<NDIRAC;k++)
+		      {
+			int l=(base_gamma+ig2)->pos[k];
+			
+			//compute AB*norm
+			complex B;
+			unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig2)->entr[k]);
+			complex AB;
+			unsafe_complex_prod(AB,A,B);
+			complex_prodassign_double(AB,norm);
+			
+			NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+			  {
+			    complex c={0,0};
+			    for(int a=0;a<NCOL;a++)
+			      complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
 			    complex_summ_the_prod(loc_contr[ind_mes2pts_contr(icombo,ihadr_contr,glb_coord_of_loclx[ivol][0])],c,AB);
-			}
-		    }
+			  }
+		      }
+		  }
 	      }
 	  }
       }
