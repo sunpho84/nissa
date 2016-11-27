@@ -4,7 +4,7 @@ using namespace nissa;
 
 int T=8,L=4;
 double qkappa=0.125;
-double qmass=0.;
+double qmass=0.4;
 double qr=0;
 
 gauge_info photon;
