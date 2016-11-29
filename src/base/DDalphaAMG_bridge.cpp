@@ -22,28 +22,29 @@ namespace DD
   
   //remap swapping x and z
   void remap_coord(nissa::coords out,const nissa::coords in)
-  {for(int mu=0;mu<NDIM;mu++) out[mu]=in[nissa::map_mu[mu]];}
+  {for(int mu=0;mu<NDIM;mu++) out[mu]=in[nissa::scidac_mapping[mu]];}
   
   //return the coordinate transposed
-  static int cart_coords(MPI_Comm comm,int rank,int maxdims,int c[])
+  static int cart_coords(MPI_Comm comm,int ext_rank,int maxdims,int c[])
   {
     nissa::coords int_c;
-    int stat=MPI_Cart_coords(comm,rank,maxdims,int_c);
+    int stat=MPI_Cart_coords(comm,ext_rank,maxdims,int_c);
     remap_coord(c,int_c);
     return stat;
   }
   
   //return the rank of remapped coordinate
-  static int cart_rank(MPI_Comm comm,const int ext_c[],int *rank)
+  static int cart_rank(MPI_Comm comm,const int ext_c[],int *ext_rank)
   {
     nissa::coords c;
     remap_coord(c,ext_c);
-    return MPI_Cart_rank(comm,c,rank);
+    for(int mu=0;mu<NDIM;mu++) c[mu]=(c[mu]+nissa::nrank_dir[mu])%nissa::nrank_dir[mu];
+    return MPI_Cart_rank(comm,c,ext_rank);
   }
   
   //return the index of the configuration
   static int conf_index_fct(int t,int z,int y,int x,int mu)
-  {return sizeof(nissa::su3)/sizeof(double)*(nissa::map_mu[mu]+NDIM*nissa::loclx_of_coord_list(t,x,y,z));}
+  {return sizeof(nissa::su3)/sizeof(double)*(nissa::scidac_mapping[mu]+NDIM*nissa::loclx_of_coord_list(t,x,y,z));}
   
   //return the index inside a spincolor
   static int vector_index_fct(int t, int z, int y, int x )
@@ -82,7 +83,7 @@ namespace DD
     remap_coord(init.global_lattice,nissa::glb_size);
     remap_coord(init.procs,nissa::nrank_dir);
     
-    //block size
+    //block size and theta
     for(int mu=0;mu<NDIM;mu++)
       {
 	init.block_lattice[mu]=
@@ -91,6 +92,7 @@ namespace DD
 	   (((nissa::glb_size[1]/nissa::nrank_dir[1])%3==0)?3:1));
 	init.theta[mu]=0;
       }
+    init.bc=0;
     
     //set the number of levels
     init.number_of_levels=nlvl;
@@ -120,6 +122,7 @@ namespace DD
     params.print=1;
     params.conf_index_fct=conf_index_fct;
     params.vector_index_fct=vector_index_fct;
+    DDalphaAMG_update_parameters(&params,&status);
   }
   
   //finalize
@@ -130,8 +133,15 @@ namespace DD
   int solve(nissa::spincolor *out,nissa::spincolor *in,double mu,double precision)
   {
     set_mass(mu);
-    DDalphaAMG_setup(&status);
+    static int setup=1;
+    if(setup)
+      {
+	DDalphaAMG_setup(&status);
+	setup=0;
+      }
+    //else DDalphaAMG_update_setup(int iterations, DDalphaAMG_status *mg_status)
     DDalphaAMG_solve((double*)out,(double*)in,precision,&status);
+    
     master_printf("Solving time %.2f sec (%.1f %% on coarse grid)\n",status.time,100.0*(status.coarse_time/status.time));
     master_printf("Total iterations on fine grid %d\n", status.iter_count);
     master_printf("Total iterations on coarse grids %d\n", status.coarse_iter_count);

@@ -185,7 +185,7 @@ namespace nissa
     else naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,-1);
     if(follow_chris_or_nazario==follow_chris)
       for(int i=0;i<2;i++)
-	safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+map_mu[0]);
+	safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+igamma_of_mu[0]);
     
     //compute the right part of the leptonic loop: G0 G^dag
     dirac_matr meslep_proj_gamma[nmeslep_proj];
@@ -194,7 +194,7 @@ namespace nissa
 	int ig=meslep_projs[ig_proj];
 	dirac_matr temp_gamma;
 	dirac_herm(&temp_gamma,base_gamma+ig);
-	dirac_prod(meslep_proj_gamma+ig_proj,base_gamma+map_mu[0],&temp_gamma);
+	dirac_prod(meslep_proj_gamma+ig_proj,base_gamma+igamma_of_mu[0],&temp_gamma);
       }
     //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - no dagger, no commutator because it's on the LO leptonic part
     dirac_matr weak_ins_hadr_gamma[nmeslep_weak_ins];

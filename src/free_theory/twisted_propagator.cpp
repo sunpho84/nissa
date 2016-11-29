@@ -88,7 +88,7 @@ namespace nissa
     
     //fill the pieces
     spinspin_put_to_diag(out,c0[base]);
-    for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(out,base_gamma+map_mu[mu],sin_mom[mu]);
+    for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(out,base_gamma+igamma_of_mu[mu],sin_mom[mu]);
     spinspin_dirac_summ_the_prod_idouble(out,&base_gamma[5],c5[base]);
   }
   
@@ -115,7 +115,7 @@ namespace nissa
 	double c5[2]; c5[MAX_TWIST_BASE]=M*tau3[qu.r]; c5[WILSON_BASE]=-qu.mass*tau3[qu.r];
 	
 	spinspin_dirac_summ_the_prod_double(prop,&base_gamma[0],c0[base]*rep_den);
-	for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(prop,base_gamma+map_mu[mu],-sin_mom[mu]*rep_den);
+	for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(prop,base_gamma+igamma_of_mu[mu],-sin_mom[mu]*rep_den);
 	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[5],c5[base]*rep_den);
       }
     else
@@ -150,8 +150,8 @@ namespace nissa
     
     spinspin_put_to_diag(proj,c0[base]);
     int se[2]={-1,+1},sp[2]={+1,-1},s5[2]={-1,+1}; //we put here implicitly the difference of g5 with Nazario
-    spinspin_dirac_summ_the_prod_double(proj,base_gamma+map_mu[0],se[tilded]*sinh(e));
-    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+map_mu[mu],sp[tilded]*sin_mom[mu]);
+    spinspin_dirac_summ_the_prod_double(proj,base_gamma+igamma_of_mu[0],se[tilded]*sinh(e));
+    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+igamma_of_mu[mu],sp[tilded]*sin_mom[mu]);
     spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+5,s5[tilded]*c5[base]);
     
     return abse;
@@ -164,10 +164,10 @@ namespace nissa
     double abse=naive_massless_quark_energy(bc,imom);
     double e=esign*abse;
     
-    spinspin_dirac_prod_double(proj,base_gamma+map_mu[0],-sinh(e));
+    spinspin_dirac_prod_double(proj,base_gamma+igamma_of_mu[0],-sinh(e));
     coords c;
     glb_coord_of_glblx(c,imom);
-    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+map_mu[mu],sin(M_PI*(2*c[mu]+bc[mu])/glb_size[mu]));
+    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+igamma_of_mu[mu],sin(M_PI*(2*c[mu]+bc[mu])/glb_size[mu]));
     
     return abse;
   }
@@ -192,7 +192,7 @@ namespace nissa
     double e=twisted_on_shell_operator_of_imom(osp,qu,imom,tilde[par_apar],1,base);
     unsafe_spinspin_prod_spin(wf,osp,ompg0_eig[!par_apar][s]);
     spin_prodassign_double(wf,1/sqrt(qu.mass+sinh(e)));
-    int ig[2]={0,map_mu[0]};
+    int ig[2]={0,igamma_of_mu[0]};
     safe_dirac_prod_spin(wf,base_gamma+ig[par_apar],wf);
   }
   

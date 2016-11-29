@@ -384,7 +384,7 @@ namespace nissa
     vector_reset(prop);
     
     //take the gamma
-    dirac_matr *gamma_mu=base_gamma+map_mu[mu];
+    dirac_matr *gamma_mu=base_gamma+igamma_of_mu[mu];
     
     NISSA_LOC_VOL_LOOP(x)
     {
@@ -446,7 +446,7 @@ namespace nissa
     vector_reset(prop);
     
     //take the gamma
-    dirac_matr *gamma_mu=base_gamma+map_mu[mu];
+    dirac_matr *gamma_mu=base_gamma+igamma_of_mu[mu];
     
     NISSA_LOC_VOL_LOOP(x)
     {

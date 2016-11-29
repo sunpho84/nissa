@@ -89,7 +89,7 @@ namespace nissa
 #if NDIM >= 4
   EXTERN_GEOMETRY_LX int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];
 #endif
-  EXTERN_GEOMETRY_LX int map_mu[4]
+  EXTERN_GEOMETRY_LX int igamma_of_mu[4]
 #ifndef ONLY_INSTANTIATION
   ={4,1,2,3}
 #endif

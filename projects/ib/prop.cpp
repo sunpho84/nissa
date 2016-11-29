@@ -93,7 +93,7 @@ namespace nissa
 	  if(t==-1||glb_coord_of_loclx[ivol][0]==t)
 	    {
 	      spincolor temp1,temp2;
-	      unsafe_dirac_prod_spincolor(temp1,base_gamma+map_mu[mu],in[ivol]);
+	      unsafe_dirac_prod_spincolor(temp1,base_gamma+igamma_of_mu[mu],in[ivol]);
 	      unsafe_spincolor_prod_complex(temp2,temp1,curr[ivol][mu]);
 	      spincolor_summ_the_prod_idouble(out[ivol],temp2,1);
 	    }
@@ -350,7 +350,7 @@ namespace nissa
 		  
 		  //put gmu on the diff
 		  spinspin temp_M;
-		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma+map_mu[mu]);
+		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma+igamma_of_mu[mu]);
 		  spinspin_summassign(prop[ivol],temp_M);
 		}
       }
@@ -362,7 +362,7 @@ namespace nissa
 	      if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
 		{
 		  spinspin temp1,temp2;
-		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+map_mu[mu]);
+		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+igamma_of_mu[mu]);
 		  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
 		  spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
 		}
