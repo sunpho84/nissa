@@ -21,10 +21,6 @@
  #include "routines/thread.hpp"
 #endif
 
-#ifdef USE_DDALPHAAMG
- #include "base/DDalphaAMG_bridge.hpp"
-#endif
-
 #ifdef SPI
  #include <malloc.h>
  #include <stdlib.h>
@@ -445,10 +441,6 @@ namespace nissa
     //create the sweepers but do not fully initialize
     Wilson_sweeper=new gauge_sweeper_t;
     Symanzik_sweeper=new gauge_sweeper_t;
-    
-#ifdef USE_DDALPHAAMG
-    DD::init_DDalphaAMG();
-#endif
     
     //set locd geom (one of the dimension local and fastest running, the other as usual)
     max_locd_size=0;

@@ -26,6 +26,8 @@
 #include "cg_64_invert_tmclovD_eoprec.hpp"
 #include "cg_128_invert_tmclovD_eoprec.hpp"
 
+#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
+
 namespace nissa
 {
   //Refers to the tmD_eoprec
@@ -201,8 +203,29 @@ namespace nissa
 #ifdef USE_DDALPHAAMG
       if(use_DD)
 	{
-	  DD::import_gauge_conf(conf_lx);
-	  DD::solve(solution_lx,source_lx,mass,residue);
+	  DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
+	  
+	  //check solution
+	  spincolor *temp_lx=nissa_malloc("temp",loc_vol,spincolor);
+	  apply_tmQ(temp_lx,conf_lx,kappa,mass,solution_lx);
+	  
+	  GET_THREAD_ID();
+	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	     for(int id=0;id<NDIRAC;id++)
+	       for(int ic=0;ic<NCOL;ic++)
+		 for(int ri=0;ri<2;ri++)
+		     temp_lx[ivol][id][ic][ri]-=source_lx[ivol][id][ic][ri]*(id<2?+1:-1);
+	  THREAD_BARRIER();
+	  
+	  //compute the norm and print it
+	  double norm2=double_vector_glb_norm2(temp_lx,loc_vol);
+	  master_printf("check solution: %lg\n",norm2);
+	  nissa_free(temp_lx);
+	   // for(int ivol=0;ivol<loc_vol;ivol++)
+	  //   for(int id=0;id<4;id++)
+	  //     for(int ic=0;ic<3;ic++)
+	  // 	for(int ri=0;ri<2;ri++)
+	  // 	  printf("anna %d %d %d %d %16.16lg\n",ivol,id,ic,ri,solution_lx[ivol][id][ic][ri]);
 	}
       else
 #endif

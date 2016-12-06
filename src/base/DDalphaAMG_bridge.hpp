@@ -13,15 +13,12 @@
 namespace nissa
 {
   EXTERN_DD_BRIDGE int use_DD INIT_TO(1);
-  EXTERN_DD_BRIDGE int DD_initialized INIT_TO(0);
 }
 
 namespace DD
 {
-  void init_DDalphaAMG();
-  void import_gauge_conf(nissa::quad_su3 *conf);
-  void finalize_DDalphaAMG();
-  int solve(nissa::spincolor *out,nissa::spincolor *in,double mu,double precision);
+  void finalize();
+  int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision,nissa::spincolor *in);
 }
 
 #undef EXTERN_DD_BRIDGE
