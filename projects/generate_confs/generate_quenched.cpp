@@ -860,7 +860,7 @@ bool check_if_continue()
   
   //check all confs produced
   bool produced_all_confs=false;
-  if(max_nconfs>0) produced_all_confs=(nprod_confs<max_nconfs);
+  if(max_nconfs>0) produced_all_confs=(nprod_confs>=max_nconfs);
   if(produced_all_confs)
     {
       verbosity_lv1_master_printf("Produced all %d confs, closing\n",max_nconfs);
