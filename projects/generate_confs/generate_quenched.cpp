@@ -167,7 +167,7 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
 //read parameters to study topology
 void read_top_meas_pars(top_meas_pars_t &pars,int flag=false)
 {
-  if(!flag) read_str_int("MeasureTopology",&flag);
+  if(!flag) read_str_int("MeasureTopology",&pars.each);
   if(flag)
     {
       pars.path=read_path();
