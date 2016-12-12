@@ -20,7 +20,8 @@ namespace DD
 {
   int nlvl=2;
   DDalphaAMG_status status;
-  int setup_status=0;
+  bool setup_valid=false;
+  bool inited=false;
   
   //remap swapping x and z
   void remap_coord(nissa::coords out,const nissa::coords in)
@@ -67,7 +68,7 @@ namespace DD
 	if(!import and import_as_new) master_printf("DD: Old checksum 0, need to import the conf\n");
 	import|=import_as_new;
 	//check diff
-	bool import_as_diff=(check_old[i]==check_cur[i]);
+	bool import_as_diff=(check_old[i]!=check_cur[i]);
 	if(!import and import_as_diff) master_printf("DD: Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
 	import|=import_as_diff;
 	//save
@@ -79,6 +80,7 @@ namespace DD
 	DDalphaAMG_set_configuration((double*)conf,&status);
 	if(status.success) verbosity_lv1_master_printf("DD: conf set, plaquette %e\n",status.info);
 	else crash("configuration updating did not run correctly");
+	setup_valid=false;
       }
     else master_printf("DD: No import needed\n");
   }
@@ -86,8 +88,6 @@ namespace DD
   //initialize the bridge with DDalphaAMG
   void initialize(double kappa,double cSW,double mu)
   {
-    static int inited=0;
-    
     static DDalphaAMG_init init_params;
     static DDalphaAMG_parameters params;
     
@@ -96,7 +96,6 @@ namespace DD
       {
 	master_printf("DD: cSW changed from %lg to %lg, reinitializing\n",init_params.csw,cSW);
 	finalize();
-	inited=0;
       }
     
     if(!inited)
@@ -138,6 +137,7 @@ namespace DD
 	
 	//initialization
 	DDalphaAMG_initialize(&init_params,&params,&status);
+	inited=true;
 	
 	//parse success
 	if(status.success!=nlvl)
@@ -169,7 +169,7 @@ namespace DD
       {
 	master_printf("DD: kappa changed from %lg to %lg\n",params.kappa,kappa);
 	init_params.kappa=params.kappa=kappa;
-	setup_status=0;
+	setup_valid=false;
       }
     
     //update pars
@@ -180,13 +180,13 @@ namespace DD
   void update_setup()
   {
         //full setup
-    if(setup_status==0)
+    if(!setup_valid)
       {
 	master_printf("DD: Starting a new setup\n");
 	DDalphaAMG_setup(&status);
       }
     
-    setup_status=1;
+    setup_valid=true;
   }
   
   //finalize
@@ -195,6 +195,7 @@ namespace DD
     master_printf("DD: finalizing\n");
     
     DDalphaAMG_finalize();
+    inited=false;
   }
   
   //solve
