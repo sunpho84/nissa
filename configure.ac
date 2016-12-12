@@ -89,7 +89,7 @@ AC_ARG_WITH(lime,
 	AS_HELP_STRING([--with-lime[=dir]], [Specify where to find lime]),
 	with_lime="${withval}"
 	LDFLAGS="-L${with_lime}/lib/ $LDFLAGS",
-	with_lime="no")
+	with_lime=no)
 AC_SEARCH_LIBS(limeReaderNextRecord,lime)
 AC_MSG_RESULT(with lime ... "${with_lime}")
 
@@ -128,7 +128,6 @@ AC_ARG_WITH(tmLQCD,
 	with_tmlqcd="${withval}",
 	with_tmlqcd="no")
 AM_CONDITIONAL([USE_TMLQCD],[test "x${with_tmlqcd}" != "xno" ],[true],[false])
-AC_MSG_RESULT([with tmLQCD ... ${with_tmlqcd}])
 if test "x${with_tmlqcd}" != "xno"
 then
 	if test "$ac_cv_search_limeReaderNextRecord" == "no"
@@ -140,6 +139,7 @@ then
 	LIBS="-lwrapper -lhmc -lmeas -lmonomial -loperator -lsolver -linit -llinalg -lhmc -lxchange -lrational -lio -lblas -llapack -llime $LIBS"
 	CPPFLAGS="-I${with_tmlqcd}/include $CPPFLAGS"
 fi
+AC_MSG_RESULT([with tmLQCD ... ${with_tmlqcd}])
 
 #DDalphaAMG
 AC_ARG_WITH(DDalphaAMG,
@@ -147,7 +147,6 @@ AC_ARG_WITH(DDalphaAMG,
 	with_ddalphaamg="${withval}",
 	with_ddalphaamg="no")
 AM_CONDITIONAL([USE_DDALPHAAMG],[test "x${with_ddalphaamg}" != "xno" ],[true],[false])
-AC_MSG_RESULT([with DDalphaAMG ... ${with_ddalphaamg}])
 if test "x${with_ddalphaamg}" != "xno"
 then
 	if test "$ac_cv_search_limeReaderNextRecord" == "no"
@@ -160,6 +159,7 @@ then
 	AC_CHECK_HEADERS([DDalphaAMG.h],,AC_MSG_ERROR(["Unable to find DDalphaAMG.h"]))
 	AC_DEFINE_UNQUOTED([USE_DDALPHAAMG],[1],[Enable DDalphaAMG usage])
 fi
+AC_MSG_RESULT([with DDalphaAMG ... ${with_ddalphaamg}])
 
 #high-prec arithmetic
 AC_DEFINE([NATIVE_HIGH_PREC],[0],["Native implementation"])
@@ -277,8 +277,8 @@ AC_ARG_ENABLE(max-verbosity-lv,
         max_verbosity_lv="${enableval}",
         max_verbosity_lv=2)
 if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then AC_MSG_ERROR([String $max_verbosity_lv is not a number]); fi
-AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
+AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 
 #number of dimension
 AC_ARG_ENABLE(ndim,
@@ -286,9 +286,9 @@ AC_ARG_ENABLE(ndim,
         ndim="${enableval}",
         ndim=4)
 if ! printf "%f" "$ndim" >/dev/null 2>&1; then AC_MSG_ERROR([String $ndim is not a number]); fi
-AC_MSG_RESULT([enabling number of dimension... $ndim])
 AM_CONDITIONAL([NDIM2], [test x$ndim = x2])
 AC_DEFINE_UNQUOTED([NDIM],$ndim,[Number of dimensions])
+AC_MSG_RESULT([enabling number of dimension... $ndim])
 
 #number of colors
 AC_ARG_ENABLE(ncol,
@@ -296,9 +296,9 @@ AC_ARG_ENABLE(ncol,
         ncol="${enableval}",
         ncol=3)
 if ! printf "%f" "$col" >/dev/null 2>&1; then AC_MSG_ERROR([String $ncol is not a number]); fi
-AC_MSG_RESULT([enabling number of colors... $ncol])
 AM_CONDITIONAL([NCOL3], [test x$ncol = x3])
 AC_DEFINE_UNQUOTED([NCOL],$ncol,[Number of colors])
+AC_MSG_RESULT([enabling number of colors... $ncol])
 
 #macros to concatenate
 AC_DEFINE([_CONCAT(X,Y)],[X##Y],[Internally concatenation])
