@@ -36,11 +36,11 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	beta!=def_beta()||
-	gauge_action_name!=def_gauge_action_name()||
-	quarks.size()||
-	topotential_pars.is_nonstandard()||
-	stout_pars.is_nonstandard()||
+	beta!=def_beta() or
+	gauge_action_name!=def_gauge_action_name() or
+	quarks.size() or
+	topotential_pars.is_nonstandard() or
+	stout_pars.is_nonstandard() or
 	em_field_pars.is_nonstandard();
     }
     

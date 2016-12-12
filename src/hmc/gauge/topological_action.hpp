@@ -14,7 +14,7 @@ namespace nissa
     double theta;
     stout_pars_t stout_pars;
     int def_flag(){return 0;}
-    double def_theta(){return 0;}
+    double def_theta(){return 0.0;}
     
     //methods inside opearations/su3_paths/topological_charge.cpp
     void store_if_needed(quad_su3 **conf,int iconf);
@@ -25,8 +25,10 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	flag!=def_flag()||
-	theta!=def_theta();
+	meta_pars_t::is_nonstandard() or
+	flag!=def_flag() or
+	theta!=def_theta() or
+	stout_pars.is_nonstandard();
     }
     
     topotential_pars_t() :

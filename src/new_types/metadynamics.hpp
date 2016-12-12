@@ -22,6 +22,16 @@ namespace nissa
     double well_tempering;
     double bend;
     
+    int def_after() {return 30;}
+    int def_each() {return 1;}
+    double def_coeff() {return 1.0;}
+    double def_width() {return 1.0;}
+    double def_barr() {return 10.0;}
+    double def_force_out() {return 100.0;}
+    double def_well_tempering() {return 0.0;}
+    double def_bend() {return 0.0;}
+    int def_ngrid() {return 0;}
+    
     int ngrid;
     storable_vector_t<double> grid;
     
@@ -37,7 +47,30 @@ namespace nissa
     int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
     
-    meta_pars_t() : after(30),each(1),coeff(1.0),width(1.0),barr(10.0),force_out(100.0),well_tempering(0.0),bend(0.0),ngrid(0){}
+    int is_nonstandard()
+    {
+      return
+	after!=def_after() or
+	each!=def_each() or
+	coeff!=def_coeff() or
+	width!=def_width() or
+	barr!=def_barr() or
+	force_out!=def_force_out() or
+	well_tempering!=def_well_tempering() or
+	bend!=def_bend() or
+	ngrid!=def_ngrid();
+    }
+    
+    meta_pars_t() :
+      after(def_after()),
+      each(def_each()),
+      coeff(def_coeff()),
+      width(def_width()),
+      barr(def_barr()),
+      force_out(def_force_out()),
+      well_tempering(def_well_tempering()),
+      bend(def_bend()),
+      ngrid(def_ngrid()){}
   };
 }
 

@@ -165,6 +165,12 @@ Iwasaki DEBUG_PRINTF("Found Iwasaki\n");return TK_IWASAKI;
 Meta DEBUG_PRINTF("Found Meta\n");return TK_META;
 Ordinary DEBUG_PRINTF("Found Ordinary\n");return TK_ORDINARY;
 TopoPotential DEBUG_PRINTF("Found TopoPotential\n");return TK_TOPO_POTENTIAL;
+Coeff DEBUG_PRINTF("Fount Coeff\n"); return TK_COEFF;
+Width DEBUG_PRINTF("Fount Width\n"); return TK_WIDTH;
+Barr DEBUG_PRINTF("Found Barr\n"); return TK_BARR;
+ForceOut DEBUG_PRINTF("Found ForceOut\n"); return TK_FORCE_OUT;
+WellTempering DEBUG_PRINTF("Found WellTempering\n"); return TK_WELL_TEMPERING;
+Bend DEBUG_PRINTF("Found Bend\n"); return TK_BEND;
 
  /* quark content */
 Quark DEBUG_PRINTF("Found Quark\n");return TK_QUARK;
