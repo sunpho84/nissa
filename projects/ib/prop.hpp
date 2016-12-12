@@ -92,7 +92,7 @@ namespace nissa
   
   EXTERN_PROP int nstore_prop INIT_TO(0);
   EXTERN_PROP double store_prop_time INIT_TO(0);
-  
+
   EXTERN_PROP int nread_prop INIT_TO(0);
   EXTERN_PROP double read_prop_time INIT_TO(0);
   
@@ -143,7 +143,7 @@ namespace nissa
   inline void start_hit(int ihit)
   {
     master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
-    random_shift_gauge_conf(conf,old_theta,put_theta);
+    generate_random_coord(source_coord);
   }
   
   inline void generate_propagators(int ihit)

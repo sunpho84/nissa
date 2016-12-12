@@ -64,40 +64,6 @@ namespace nissa
     adapt_theta(conf,old_theta,put_theta,0,0);
   }
   
-  //used to shift the configuration
-  void index_shift(int &irank_out,int &ivol_out,int ivol_in,void *pars)
-  {
-    int *source_coord=(int*)pars;
-    coords co;
-    for(int nu=0;nu<NDIM;nu++) co[nu]=(glb_coord_of_loclx[ivol_in][nu]+source_coord[nu])%glb_size[nu];
-    get_loclx_and_rank_of_coord(&ivol_out,&irank_out,co);
-  }
-  
-  //perform a random shift
-  void random_shift_gauge_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta)
-  {
-    //remove phase
-    put_theta[0]=0;put_theta[1]=put_theta[2]=put_theta[3]=0;
-    adapt_theta(conf,old_theta,put_theta,0,0);
-    
-    //source coord
-    coords shift_coord;
-    generate_random_coord(shift_coord);
-    
-    //shift the configuration and clover term if needed
-    double shift_time=-take_time();
-    vector_remap_t shifter(loc_vol,index_shift,(void*)shift_coord);
-    shifter.remap(conf,conf,sizeof(quad_su3));
-    if(ape_smeared_conf!=NULL) shifter.remap(ape_smeared_conf,ape_smeared_conf,sizeof(quad_su3));
-    shift_time+=take_time();
-    if(clover_run) shifter.remap(Cl,Cl,sizeof(clover_term_t));
-    master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+16.16lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
-    
-    //put back the phase
-    put_theta[0]=QUARK_BOUND_COND;put_theta[1]=put_theta[2]=put_theta[3]=0;
-    adapt_theta(conf,old_theta,put_theta,0,0);
-  }
-  
   //check if the time is enough
   int check_remaining_time()
   {

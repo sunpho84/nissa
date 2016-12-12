@@ -37,7 +37,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //consistency check
-    if(!stoch_source&&(!diluted_spi_source||!diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
+    if(!stoch_source&&(!diluted_spi_source or !diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
     
     //reset all to begin
     for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
@@ -47,12 +47,21 @@ namespace nissa
 	spincolor c;
 	spincolor_put_to_zero(c);
 	
+	//compute relative coords
+	bool is_orig=true;
+	coords rel_c;
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    rel_c[mu]=rel_coord_of_loclx(ivol,mu);
+	    is_orig&=(rel_c[mu]==0);
+	  }
+	
 	//fill colour and spin index 0
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
-	      if(stoch_source && (sou->tins==-1||glb_coord_of_loclx[ivol][0]==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),sou->noise_type);
-	      else if(glblx_of_loclx[ivol]==0) complex_put_to_real(c[id_si][ic_si],1);
+	      if(stoch_source and (sou->tins==-1 or rel_c[0]==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),sou->noise_type);
+	      else if(is_orig) complex_put_to_real(c[id_si][ic_si],1);
 	  }
 	
 	//fill other spin indices
@@ -60,7 +69,7 @@ namespace nissa
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    for(int id_si=0;id_si<NDIRAC;id_si++)
 	      for(int ic_si=0;ic_si<NCOL;ic_si++)
-		  if((!diluted_spi_source||(id_so==id_si))&&(!diluted_col_source||(ic_so==ic_si)))
+		  if((!diluted_spi_source or (id_so==id_si)) and (!diluted_col_source or (ic_so==ic_si)))
 		    complex_copy(sou->sp[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
     
@@ -90,7 +99,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       if(dirs[mu])
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  if(t==-1||glb_coord_of_loclx[ivol][0]==t)
+	  if(t==-1 or glb_coord_of_loclx[ivol][0]==t)
 	    {
 	      spincolor temp1,temp2;
 	      unsafe_dirac_prod_spincolor(temp1,base_gamma+igamma_of_mu[mu],in[ivol]);
@@ -233,7 +242,7 @@ namespace nissa
     for(int mu=1;mu<NDIM;mu++)
       {
 	double step=bc[mu]*M_PI/glb_size[mu];
-	arg+=step*glb_coord_of_loclx[ivol][mu];
+	arg+=step*rel_coord_of_loclx(ivol,mu);
       }
     return arg;
   }
@@ -243,7 +252,7 @@ namespace nissa
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,le.bc);
-    int t=glb_coord_of_loclx[ivol][0];
+    int t=rel_time_of_loclx(ivol);
     if(follow_chris_or_nazario==follow_nazario && t>=glb_size[0]/2) t=glb_size[0]-t;
     double ext=exp(t*lep_energy[ilepton]);
     
@@ -257,7 +266,7 @@ namespace nissa
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,bc);
-    int t=glb_coord_of_loclx[ivol][0];
+    int t=rel_time_of_loclx(ivol);
     if(follow_chris_or_nazario==follow_nazario && t>=glb_size[0]/2) t=glb_size[0]-t;
     double ext=exp(t*neu_energy[ilepton]);
     
@@ -314,7 +323,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  if(dirs[mu])
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	      if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
+	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
 		{
 		  //find neighbors
 		  int ifw=loclx_neighup[ivol][mu];
@@ -324,9 +333,9 @@ namespace nissa
 		  spinspin ph_bw,ph_fw;
 		  
 		  //transport down and up
-		  if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
+		  if(rel_coord_of_loclx(ivol,mu)==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
 		  else spinspin_copy(ph_fw,temp_lep[ifw]);
-		  if(glb_coord_of_loclx[ivol][mu]==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
+		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
 		  else spinspin_copy(ph_bw,temp_lep[ibw]);
 		  
 		  //fix coefficients - i is inserted here!
@@ -359,7 +368,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  if(dirs[mu])
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	      if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
+	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
 		{
 		  spinspin temp1,temp2;
 		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+igamma_of_mu[mu]);

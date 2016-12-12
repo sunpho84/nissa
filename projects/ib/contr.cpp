@@ -76,9 +76,10 @@ namespace nissa
 			NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 			  {
 			    complex c={0,0};
+			    int t=rel_time_of_loclx(ivol);
 			    for(int a=0;a<NCOL;a++)
 			      complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			    complex_summ_the_prod(loc_contr[ind_mes2pts_contr(icombo,ihadr_contr,glb_coord_of_loclx[ivol][0])],c,AB);
+			    complex_summ_the_prod(loc_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
 			  }
 		      }
 		  }
@@ -418,7 +419,7 @@ namespace nissa
 		  
 		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		    {
-		      int t=glb_coord_of_loclx[ivol][0];
+		      int t=rel_time_of_loclx(ivol);
 		      
 		      int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
     			  int sign_idg0[2]={(t<(glb_size[0]/2))?1:-1,-1}; //gamma0 is -1 always
@@ -458,7 +459,14 @@ namespace nissa
     
     //reduce
     complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
-    NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size) complex_summassign(bar2pts_contr[i],master_reduced_contr[i]);
+    NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
+      {
+	//remove border phase
+	int t=i%glb_size[0];
+	double arg=3*QUARK_BOUND_COND*M_PI*t/glb_size[0];
+	complex phase={cos(arg),sin(arg)};
+	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
+      }
     THREAD_BARRIER();
     delete[] loc_contr;
     
@@ -480,16 +488,9 @@ namespace nissa
 	  FILE *fout=open_file(combine("%s/bar_contr_%s_%s",outfolder,(dir_exc==0)?"dir":"exc",bar2pts_contr_map[icombo].name.c_str()),"w");
 	  for(int t=0;t<glb_size[0];t++)
 	    {
-	      //remove border phase
-	      double arg=3*QUARK_BOUND_COND*M_PI*t/glb_size[0];
-	      complex phase={cos(arg),sin(arg)};
-	      
 	      //normalize for nsources and 1+g0
 	      complex c;
 	      complex_prod_double(c,bar2pts_contr[ind_bar2pts_contr(icombo,dir_exc,t)],1.0/(2*nhits));
-	      
-	      //put the phase and print
-	      safe_complex_prod(c,c,phase);
 	      master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
 	    }
 	  

@@ -18,6 +18,15 @@ namespace nissa
 {
   EXTERN_PARS int diluted_spi_source,diluted_col_source;
   EXTERN_PARS int nso_spi,nso_col;
+  EXTERN_PARS coords source_coord;
+  inline int rel_coord_of_glb_coord(int c,int  mu)
+  {return (glb_size[mu]+c-source_coord[mu])%glb_size[mu];}
+  inline int rel_time_of_glb_time(int t)
+  {return rel_coord_of_glb_coord(t,0);}
+  inline int rel_coord_of_loclx(int loclx,int  mu)
+  {return rel_coord_of_glb_coord(glb_coord_of_loclx[loclx][mu],mu);}
+  inline int rel_time_of_loclx(int loclx)
+  {return rel_coord_of_loclx(loclx,0);}
   
   //convention on gospel
   const int follow_chris=0,follow_nazario=1;

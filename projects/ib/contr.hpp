@@ -18,7 +18,7 @@
 namespace nissa
 {
   EXTERN_CONTR double contr_print_time INIT_TO(0);
-  
+
   ///////////////////////////////////////// meson contractions ///////////////////////////////////////////////////////
   
   struct mes_contr_map_t
@@ -98,7 +98,8 @@ namespace nissa
   void free_bar2pts_contr();
   
   inline int ind_bar2pts_contr(int icombo,int dir_exc,int t)
-  {return
+  {
+    return
       (t+glb_size[0]*
        (dir_exc+2*
 	(icombo+bar2pts_contr_map.size())));
