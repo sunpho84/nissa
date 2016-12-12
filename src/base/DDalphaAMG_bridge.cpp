@@ -20,6 +20,7 @@ namespace DD
 {
   int nlvl=2;
   DDalphaAMG_status status;
+  int setup_status=0;
   
   //remap swapping x and z
   void remap_coord(nissa::coords out,const nissa::coords in)
@@ -86,7 +87,6 @@ namespace DD
   void initialize(double kappa,double cSW,double mu)
   {
     static int inited=0;
-    static int setup_status=0;
     
     static DDalphaAMG_init init_params;
     static DDalphaAMG_parameters params;
@@ -174,8 +174,12 @@ namespace DD
     
     //update pars
     DDalphaAMG_update_parameters(&params,&status);
-    
-    //full setup
+  }
+  
+  //setup DD if needed
+  void update_setup()
+  {
+        //full setup
     if(setup_status==0)
       {
 	master_printf("DD: Starting a new setup\n");
@@ -189,7 +193,6 @@ namespace DD
   void finalize()
   {
     master_printf("DD: finalizing\n");
-    cerca la routine con "initial definition"
     
     DDalphaAMG_finalize();
   }
@@ -199,6 +202,7 @@ namespace DD
   {
     initialize(kappa,cSW,mu);
     import_gauge_conf(conf);
+    update_setup();
     
     //else DDalphaAMG_update_setup(int iterations, DDalphaAMG_status *mg_status)
     DDalphaAMG_solve((double*)out,(double*)in,precision,&status);
