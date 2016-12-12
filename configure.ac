@@ -88,9 +88,10 @@ AC_MSG_RESULT([with Fast Fourier type... ${with_fft}])
 AC_ARG_WITH(lime,
 	AS_HELP_STRING([--with-lime[=dir]], [Specify where to find lime]),
 	with_lime="${withval}"
-	LDFLAGS="-L${with_lime}/lib/ $LDFLAGS")
-AC_MSG_RESULT(with lime ... "${with_lime}")
+	LDFLAGS="-L${with_lime}/lib/ $LDFLAGS",
+	with_lime="no")
 AC_SEARCH_LIBS(limeReaderNextRecord,lime)
+AC_MSG_RESULT(with lime ... "${with_lime}")
 
 #threads
 AC_ARG_ENABLE(threads,
