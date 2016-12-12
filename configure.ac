@@ -91,7 +91,7 @@ AC_ARG_WITH(lime,
 	LDFLAGS="-L${with_lime}/lib/ $LDFLAGS",
 	with_lime=no)
 AC_SEARCH_LIBS(limeReaderNextRecord,lime)
-AC_MSG_RESULT(with lime ... "${with_lime}")
+AC_MSG_RESULT(with lime ... ${with_lime})
 
 #threads
 AC_ARG_ENABLE(threads,
