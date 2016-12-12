@@ -369,14 +369,14 @@ run_pars: TK_RUN {}
 topo_potential_pars: TK_TOPO_POTENTIAL '=' TK_META {$$=new topotential_pars_t;$$->flag=2;}
                    | TK_TOPO_POTENTIAL '=' TK_ORDINARY {$$=new topotential_pars_t;$$->flag=1;}
                    | TK_TOPO_POTENTIAL '=' TK_NONE {$$=new topotential_pars_t;$$->flag=0;}
-                   | after {$$->after=$1;}
-                   | each {$$->each=$1;}
-                   | TK_COEFF '=' double_numb {$$->coeff=$3;}
-                   | TK_WIDTH '=' double_numb {$$->width=$3;}
-                   | TK_BARR '=' double_numb {$$->barr=$3;}
-                   | TK_FORCE_OUT '=' double_numb {$$->force_out=$3;}
-                   | TK_WELL_TEMPERING '=' double_numb {$$->well_tempering=$3;}
-                   | TK_BEND '=' double_numb {$$->bend=$3;}
+                   | topo_potential_pars after {$$->after=$2;}
+                   | topo_potential_pars each {$$->each=$2;}
+                   | topo_potential_pars TK_COEFF '=' double_numb {$$->coeff=$4;}
+                   | topo_potential_pars TK_WIDTH '=' double_numb {$$->width=$4;}
+                   | topo_potential_pars TK_BARR '=' double_numb {$$->barr=$4;}
+                   | topo_potential_pars TK_FORCE_OUT '=' double_numb {$$->force_out=$4;}
+                   | topo_potential_pars TK_WELL_TEMPERING '=' double_numb {$$->well_tempering=$4;}
+                   | topo_potential_pars TK_BEND '=' double_numb {$$->bend=$4;}
 ;
 
 ////////////////////////////////////////////////// SMOOTH PARS /////////////////////////////////////////////////
