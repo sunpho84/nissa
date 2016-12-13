@@ -297,10 +297,10 @@ namespace nissa
 	int ireq=0;
 	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
 	  MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
-		    list_ranks_fr[irank_fr],909+list_ranks_fr[irank_fr]*nranks+rank,cart_comm,&req_list[ireq++]);
+		    list_ranks_fr[irank_fr],MPI_ANY_TAG,cart_comm,&req_list[ireq++]);
 	for(int irank_to=0;irank_to<nranks_to;irank_to++)
 	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
-		    list_ranks_to[irank_to],909+rank*nranks+list_ranks_to[irank_to],cart_comm,&req_list[ireq++]);
+		    list_ranks_to[irank_to],MPI_ANY_TAG,cart_comm,&req_list[ireq++]);
       	if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
