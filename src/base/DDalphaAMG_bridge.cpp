@@ -18,7 +18,7 @@
 
 namespace DD
 {
-  int nlvl=2;
+  int nlvl=3;
   DDalphaAMG_status status;
   bool setup_valid=false;
   bool inited=false;
