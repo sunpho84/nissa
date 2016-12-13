@@ -112,13 +112,13 @@ namespace DD
 	remap_coord(init_params.procs,nissa::nrank_dir);
 	
 	//block size and theta
-	for(int mu=0;mu<NDIM;mu++)
+	for(int dir=0;dir<NDIM;dir++)
 	  {
-	    init_params.block_lattice[mu]=
+	    init_params.block_lattice[dir]=
 	      (((nissa::glb_size[1]/nissa::nrank_dir[1])%2==0)?
 	       (((nissa::glb_size[1]/nissa::nrank_dir[1])%4==0)?4:2):
 	       (((nissa::glb_size[1]/nissa::nrank_dir[1])%3==0)?3:1));
-	    init_params.theta[mu]=0;
+	    init_params.theta[dir]=0;
 	  }
 	init_params.bc=0;
 	
