@@ -1,6 +1,9 @@
 #ifndef _FFT_HPP
 #define _FFT_HPP
 
+#include "geometry/geometry_lx.hpp"
+#include "new_types/complex.hpp"
+
 namespace nissa
 {
   int bitrev(int in,int l2n);
