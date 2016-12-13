@@ -64,7 +64,7 @@ namespace nissa
 	    double der=(tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass-err)/eps;
 	    for(int i=1;i<NDIM;i++) leps[il].bc[i]-=eps+err/der;
 	    
-	    master_printf("  lep_e: %+010.10lg, neu_e: %+010.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
+	    master_printf("  lep_e: %+10.10lg, neu_e: %+10.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
 	  }
 	while(fabs(err)>1e-14);
 	
@@ -73,7 +73,7 @@ namespace nissa
 	neu_energy[il]=naive_massless_quark_energy(leps[il].bc,0);
 	master_printf(" ilepton %d, lepton energy: %lg, neutrino energy: %lg\n",il,lep_energy[il],neu_energy[il]);
 	master_printf(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
-	master_printf(" bc: %+016.016lg\n\n",leps[il].bc[1]);
+	master_printf(" bc: %+16.16lg\n\n",leps[il].bc[1]);
       }
   }
   
