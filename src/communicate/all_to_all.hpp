@@ -14,7 +14,7 @@ namespace nissa
   struct all_to_all_scattering_list_t : std::vector<std::pair<int,int> > {};
   struct temp_build_t
   {
-    uint64_t *nper_rank_to_temp,*nper_rank_fr_temp;
+    int *nper_rank_to_temp,*nper_rank_fr_temp;
     int *out_buf_cur_per_rank,*in_buf_cur_per_rank;
     std::map<int,int> rank_to_map_list_ranks_to,rank_fr_map_list_ranks_fr;
     temp_build_t();
@@ -25,9 +25,8 @@ namespace nissa
   struct all_to_all_comm_t
   {
     int nel_out,nel_in;
-    int nranks_fr,*list_ranks_fr,*in_buf_dest,*in_buf_off_per_rank;
-    int nranks_to,*list_ranks_to,*out_buf_source,*out_buf_off_per_rank;
-    uint64_t *nper_rank_fr,*nper_rank_to;
+    int nranks_fr,*list_ranks_fr,*in_buf_dest,*nper_rank_fr,*in_buf_off_per_rank;
+    int nranks_to,*list_ranks_to,*out_buf_source,*nper_rank_to,*out_buf_off_per_rank;
     
     all_to_all_comm_t(all_to_all_gathering_list_t &gl);
     all_to_all_comm_t(all_to_all_scattering_list_t &sl);
@@ -36,9 +35,9 @@ namespace nissa
     
     void setup_knowing_where_to_send(all_to_all_scattering_list_t &sl);
     void setup_knowing_what_to_ask(all_to_all_gathering_list_t &gl);
-    void setup_nper_rank_other_temp(uint64_t *nper_rank_other_temp,uint64_t *nper_rank_temp);
+    void setup_nper_rank_other_temp(int *nper_rank_other_temp,int *nper_rank_temp);
     void common_setup_part1(temp_build_t &build);
-    void common_setup_part2(int nel_note,int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,uint64_t *nper_rank_note,int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,uint64_t *nper_rank_expl);
+    void common_setup_part2(int nel_note,int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,int *nper_rank_note,int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,int *nper_rank_expl);
     all_to_all_comm_t() {};
   };
   
