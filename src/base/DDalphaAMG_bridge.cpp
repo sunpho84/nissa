@@ -114,10 +114,12 @@ namespace DD
 	//block size and theta
 	for(int dir=0;dir<NDIM;dir++)
 	  {
+	    int jdir=nissa::scidac_mapping[dir];
 	    init_params.block_lattice[dir]=
-	      (((nissa::glb_size[1]/nissa::nrank_dir[1])%2==0)?
-	       (((nissa::glb_size[1]/nissa::nrank_dir[1])%4==0)?4:2):
-	       (((nissa::glb_size[1]/nissa::nrank_dir[1])%3==0)?3:1));
+	      (((nissa::glb_size[jdir]/nissa::nrank_dir[jdir])%2==0)?
+	       (((nissa::glb_size[jdir]/nissa::nrank_dir[jdir])%4==0)?4:2):
+	       (((nissa::glb_size[jdir]/nissa::nrank_dir[jdir])%3==0)?3:1));
+	    master_printf("Dir %d block size: %d\n",dir,init_params.block_lattice[dir]);
 	    init_params.theta[dir]=0;
 	  }
 	init_params.bc=0;
