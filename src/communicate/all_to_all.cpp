@@ -22,8 +22,8 @@ namespace nissa
 {
   temp_build_t::temp_build_t()
   {
-    nper_rank_to_temp=nissa_malloc("nper_rank_to_temp",nranks,int);
-    nper_rank_fr_temp=nissa_malloc("nper_rank_fr_temp",nranks,int);
+    nper_rank_to_temp=nissa_malloc("nper_rank_to_temp",nranks,uint64_t);
+    nper_rank_fr_temp=nissa_malloc("nper_rank_fr_temp",nranks,uint64_t);
   }
   temp_build_t::~temp_build_t()
   {
@@ -46,7 +46,7 @@ namespace nissa
   }
   
   //find (communicating) the complementary info
-  void all_to_all_comm_t::setup_nper_rank_other_temp(int *nper_rank_other_temp,int *nper_rank_temp)
+  void all_to_all_comm_t::setup_nper_rank_other_temp(uint64_t *nper_rank_other_temp,uint64_t *nper_rank_temp)
   {
     GET_THREAD_ID();
     
@@ -82,8 +82,8 @@ namespace nissa
     list_ranks_fr=nissa_malloc("list_ranks_fr",nranks_fr,int);
     
     //store the true list of ranks to communicate with and the number of elements to send to each rank
-    nper_rank_to=nissa_malloc("nper_rank_to",nranks_to,int);
-    nper_rank_fr=nissa_malloc("nper_rank_fr",nranks_fr,int);
+    nper_rank_to=nissa_malloc("nper_rank_to",nranks_to,uint64_t);
+    nper_rank_fr=nissa_malloc("nper_rank_fr",nranks_fr,uint64_t);
     int irank_to=0,irank_fr=0;
     for(int irank=0;irank<nranks;irank++)
       {
@@ -143,8 +143,8 @@ namespace nissa
   //"expl" target the ranks to instruct
   //"note" means the ranks from which learning
   void all_to_all_comm_t::common_setup_part2(int nel_note,
-    int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,int *nper_rank_note, 
-    int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,int *nper_rank_expl)
+    int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,uint64_t *nper_rank_note, 
+    int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,uint64_t *nper_rank_expl)
   {
     GET_THREAD_ID();
     
