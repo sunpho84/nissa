@@ -8,6 +8,7 @@
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "io/checksum.hpp"
+#include "io/input.hpp"
 #include "new_types/su3.hpp"
 #include "routines/thread.hpp"
 #include "routines/mpi_routines.hpp"
@@ -18,7 +19,11 @@
 
 namespace DD
 {
-  int nlvl=3;
+  DDalphaAMG_init init_params;
+  int &nlevels=init_params.number_of_levels;
+  DDalphaAMG_parameters params;
+  int *nsetups=params.setup_iterations;
+  double *mu_factor=params.mu_factor;
   DDalphaAMG_status status;
   bool setup_valid=false;
   bool inited=false;
@@ -51,6 +56,44 @@ namespace DD
   //return the index inside a spincolor
   static int vector_index_fct(int t,int z,int y,int x)
   {return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclx_of_coord_list(t,x,y,z);}
+  
+  //read the nissa configuration file
+  void read_DDalphaAMG_pars()
+  {
+    char path[]="DDalphaAMG_pars";
+    
+    nlevels=3;
+    for(int ilev=0;ilev<nlevels;ilev++) nsetups[ilev]=4;
+    for(int ilev=0;ilev<nlevels;ilev++) mu_factor[ilev]=1;
+    
+    if(nissa::file_exists(path))
+      {
+	nissa::open_input(path);
+	int nr;
+	
+	do
+	  {
+	    char tag[100];
+	    nr=nissa::read_var_catcherr(tag,"%s",100);
+	    
+	    if(nr>=1)
+	      {
+		if(strcasecmp(tag,"nlevels")==0) nissa::read_int(&nlevels);
+		if(strcasecmp(tag,"nsetups")==0)
+		  for(int ilev=0;ilev<nlevels;ilev++)
+		    nissa::read_int(&nsetups[ilev]);
+		if(strcasecmp(tag,"mu_factor")==0)
+		  for(int ilev=0;ilev<nlevels;ilev++)
+		    nissa::read_double(&mu_factor[ilev]);
+	      }
+	    else master_printf("Finished reading the file '%s'\n",path);
+	  }
+	while(nr==1);
+	
+	nissa::close_input();
+      }
+    else master_printf("No '%s' file present, using standard configuration\n",path);
+  }
   
   //import a gauge configuration
   void import_gauge_conf(nissa::quad_su3 *conf)
@@ -88,9 +131,6 @@ namespace DD
   //initialize the bridge with DDalphaAMG
   void initialize(double kappa,double cSW,double mu)
   {
-    static DDalphaAMG_init init_params;
-    static DDalphaAMG_parameters params;
-    
     //check if cSW agreeing, when inited already
     if(inited and cSW!=init_params.csw)
       {
@@ -101,6 +141,7 @@ namespace DD
     if(!inited)
       {
 	master_printf("DD: Not initialized, initializing\n");
+	read_DDalphaAMG_pars();
 	
 	//communicator and transposers
 	init_params.comm_cart=nissa::cart_comm;
@@ -124,8 +165,6 @@ namespace DD
 	  }
 	init_params.bc=0;
 	
-	//set the number of levels
-	init_params.number_of_levels=nlvl;
 	//set threads
 	init_params.number_openmp_threads=nissa::nthreads;
 	//values for kappa, mu and csw
@@ -140,14 +179,6 @@ namespace DD
 	//initialization
 	DDalphaAMG_initialize(&init_params,&params,&status);
 	inited=true;
-	
-	//parse success
-	if(status.success!=nlvl)
-	  {
-	    nissa::master_fprintf(stderr,"WARNING: %d level initialized instead of %d\n",status.success,nlvl);
-	    printf("DD WARNING: parameter: mg_lvl is changed to %d\n\n",status.success);
-	    nlvl=status.success;
-	  }
       }
     
     //to recheck
