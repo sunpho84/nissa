@@ -18,7 +18,7 @@ namespace nissa
 namespace DD
 {
   void finalize();
-  int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision,nissa::spincolor *in);
+  int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in);
 }
 
 #undef EXTERN_DD_BRIDGE
