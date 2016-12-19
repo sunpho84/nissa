@@ -264,11 +264,11 @@ void generate_sequential_source(int ispec)
 	{
 	  //avoid to put g5, beacuse commute with (i+-g5)/sqrt(2) and cancel with those of the QQ
 	  memcpy(sequential_source[ivol],S0[r][ipropS0(ith_spec[ispec],imass_spec[ispec],0)][ivol],sizeof(PROP_TYPE));
-	  if(Wclov_tm && rotate_to_phys_basis) //if doing tm and want to rotate
-	    for(int c=0;c<3;c++) //rotate as r because it's D^-1
+	  if(Wclov_tm and rotate_to_phys_basis) //if doing tm and want to rotate
+	    for(int c=0;c<NCOL;c++) //rotate as r because it's D^-1
 	      {
 #ifdef POINT_SOURCE_VERSION
-		for(int c1=0;c1<3;c1++) rotate_spinspin_to_physical_basis(sequential_source[ivol][c][c1],r,r);
+		for(int c1=0;c1<NCOL;c1++) rotate_spinspin_to_physical_basis(sequential_source[ivol][c][c1],r,r);
 #else
 		rotate_spinspin_to_physical_basis(sequential_source[ivol][c],r,r);
 #endif
@@ -338,12 +338,7 @@ void initialize_semileptonic(char *input_path)
   //the number or fr can be chosen only if tm, otherwise use 0
   if(Wclov_tm==1) read_str_int("WhichRS0",&which_r_S0);
   else which_r_S0=0;
-  
-  //the cgm can be (for the time being) used only for both r, therefore also only for tm
-  if(Wclov_tm==0) use_cgm_S0=0;
-  else
-    if(which_r_S0!=2) read_str_int("UseCgmS0",&use_cgm_S0);
-    else use_cgm_S0=1;
+  read_str_int("UseCgmS0",&use_cgm_S0);
   
   read_list_of_double_pairs("MassResiduesS0",&nmassS0,&massS0,&stop_res_S0);
   read_list_of_doubles("NThetaS0",&nthetaS0,&thetaS0);
@@ -428,10 +423,10 @@ void initialize_semileptonic(char *input_path)
       read_int(&(imass_spec[ispec]));
       read_int(&(r_spec[ispec]));
       
-      if(ith_spec[ispec]<0||ith_spec[ispec]>=nthetaS0)    crash("theta for ispec %d out of bounds",ispec);
-      if(imass_spec[ispec]<0||imass_spec[ispec]>=nmassS0) crash("mass for ispec %d out of bounds",ispec);
-      if(r_spec[ispec]<0||r_spec[ispec]>=2)               crash("r for ispec %d out of bounds",ispec);
-      if(which_r_S0!=2&&r_spec[ispec]!=which_r_S0)        crash("r for ispec %d uncomputed",ispec);
+      if(ith_spec[ispec]<0 or ith_spec[ispec]>=nthetaS0)    crash("theta for ispec %d out of bounds",ispec);
+      if(imass_spec[ispec]<0 or imass_spec[ispec]>=nmassS0) crash("mass for ispec %d out of bounds",ispec);
+      if(r_spec[ispec]<0 or r_spec[ispec]>=2)               crash("r for ispec %d out of bounds",ispec);
+      if(which_r_S0!=2 and r_spec[ispec]!=which_r_S0)        crash("r for ispec %d uncomputed",ispec);
       
       master_printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,thetaS0[ith_spec[ispec]],massS0[imass_spec[ispec]],r_spec[ispec]);
     }
@@ -477,7 +472,7 @@ void initialize_semileptonic(char *input_path)
 	  master_printf(" ch-contr.%d %d %d\n",icontr,ch_op_sour_3pts[icontr],ch_op_sink_3pts[icontr]);
 	}
     }
-  if(ncontr_3pts!=0 || nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,PROP_TYPE);
+  if(ncontr_3pts!=0 or nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,PROP_TYPE);
   
   read_str_int("NGaugeConf",&ngauge_conf);
   
@@ -498,7 +493,7 @@ void initialize_semileptonic(char *input_path)
   S0[1]=nissa_malloc("S0[1]",npropS0,PROP_TYPE*);
   for(int iprop=0;iprop<npropS0;iprop++)
     for(int r=0;r<2;r++)
-      if(which_r_S0==2||which_r_S0==r)
+      if(which_r_S0==2 or which_r_S0==r)
 	S0[r][iprop]=nissa_malloc("S0[r]",loc_vol+bord_vol,PROP_TYPE);
   
   //Allocate nmass spincolors, for the cgm solutions
@@ -513,7 +508,7 @@ void initialize_semileptonic(char *input_path)
   original_source=nissa_malloc("original_source",loc_vol,PROP_TYPE);
   
   //Allocate one PROP_TYPE for the chromo-contractions
-  if(nch_contr_2pts!=0 || nch_contr_3pts!=0) ch_prop=nissa_malloc("chromo-prop",loc_vol,PROP_TYPE);
+  if(nch_contr_2pts!=0 or nch_contr_3pts!=0) ch_prop=nissa_malloc("chromo-prop",loc_vol,PROP_TYPE);
   
   //Allocate all the S1 PROP_TYPE vectors
   npropS1=nthetaS1*nmassS1;
@@ -547,7 +542,7 @@ int read_conf_parameters(int *iconf)
       char fin_file[1024],run_file[1024];
       sprintf(fin_file,"%s/finished",outfolder);
       sprintf(run_file,"%s/running",outfolder);
-      ok_conf=!(file_exists(fin_file)) && !(file_exists(run_file));
+      ok_conf=!(file_exists(fin_file)) and !(file_exists(run_file));
       
       //if not finished
       if(ok_conf)
@@ -566,7 +561,7 @@ int read_conf_parameters(int *iconf)
 	master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
       (*iconf)++;
     }
-  while(!ok_conf && (*iconf)<ngauge_conf);
+  while(!ok_conf and (*iconf)<ngauge_conf);
   
   master_printf("\n");
   
@@ -642,12 +637,12 @@ void close_semileptonic()
   nissa_free(Cl);nissa_free(conf);if(conf_smearing!=no_conf_smearing) nissa_free(sme_conf);
   for(int iprop=0;iprop<npropS0;iprop++)
     for(int r=0;r<2;r++)
-      if(which_r_S0==2||which_r_S0==r) nissa_free(S0[r][iprop]);
+      if(which_r_S0==2 or which_r_S0==r) nissa_free(S0[r][iprop]);
   for(int iprop=0;iprop<npropS1;iprop++) nissa_free(S1[iprop]);
   nissa_free(S0[0]);nissa_free(S0[1]);nissa_free(S1);
   nissa_free(temp_vec[0]);nissa_free(temp_vec[1]);
-  if(nch_contr_2pts!=0 || nch_contr_3pts!=0) nissa_free(ch_prop);
-  if(ncontr_3pts!=0 || nch_contr_3pts!=0) nissa_free(sequential_source);
+  if(nch_contr_2pts!=0 or nch_contr_3pts!=0) nissa_free(ch_prop);
+  if(ncontr_3pts!=0 or nch_contr_3pts!=0) nissa_free(sequential_source);
   if(!use_new_contraction_layout)
     {
       nissa_free(contr_2pts);nissa_free(ch_contr_2pts);
@@ -678,7 +673,7 @@ void smear_additive_propagator(PROP_TYPE *out,PROP_TYPE *in,int ism_lev,int *gau
   
   //loop over dirac index
 #ifdef POINT_SOURCE_VERSION
-  for(int ic=0;ic<3;ic++)
+  for(int ic=0;ic<NCOL;ic++)
 #endif
     for(int id=0;id<4;id++)
       {
@@ -716,29 +711,29 @@ void calculate_all_S0(int ism_lev_so)
       int nmass=(muS==0)?nmassS0:nmassS0der;
       double *stop_res=(muS==0)?stop_res_S0:stop_res_S0+start_massS0der;
       
-      //loop over the source dirac index
+      for(int itheta=0;itheta<nthetaS0;itheta++)
+	{
+	  //adapt the border condition
+	  put_theta[1]=put_theta[2]=put_theta[3]=thetaS0[itheta];
+	  adapt_theta(conf,old_theta,put_theta,1,1);
+	  
+	  //loop over the source dirac index
 #ifdef POINT_SOURCE_VERSION
-      for(int ic=0;ic<NCOL;ic++)
+	  for(int ic=0;ic<NCOL;ic++)
 #endif
-	for(int id=0;id<NDIRAC;id++)
-	  { 
-	    //put the g5
+	    for(int id=0;id<NDIRAC;id++)
+	      { 
+		//put the g5
 #ifdef POINT_SOURCE_VERSION
-	    get_spincolor_from_su3spinspin(source,original_source,id,ic);
+		get_spincolor_from_su3spinspin(source,original_source,id,ic);
 #else
-	    get_spincolor_from_colorspinspin(source,original_source,id);
+		get_spincolor_from_colorspinspin(source,original_source,id);
 #endif
-	    //add gamma5 apart if using cg or tm
-	    if(!Wclov_tm||use_cgm_S0||(Wclov_tm&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma+5,source);
-	    
-	    //if needed apply nabla
-	    if(muS>0) apply_nabla_i(source,source,sme_conf,muS);
-	    
-	    for(int itheta=0;itheta<nthetaS0;itheta++)
-	      {
-		//adapt the border condition
-		put_theta[1]=put_theta[2]=put_theta[3]=thetaS0[itheta];
-		adapt_theta(conf,old_theta,put_theta,1,1);
+		//add gamma5 apart if using cg or tm
+		if(!Wclov_tm or use_cgm_S0 or (Wclov_tm and cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma+5,source);
+		
+		//if needed apply nabla
+		if(muS>0) apply_nabla_i(source,source,sme_conf,muS);
 		
 		//invert
 		if(!load_S0)
@@ -749,7 +744,7 @@ void calculate_all_S0(int ism_lev_so)
 		    if(use_cgm_S0)
 		      {
 			if(cSW==0) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stop_res,source);
-			else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,Cl,mass,nmass,niter_max,stop_res,source);
+			else       inv_tmclovQ2_cgm(cgm_solution,conf,kappa,Cl,mass,nmass,niter_max,stop_res,source);
 		      }
 		    else
 		      for(int imass=0;imass<nmass;imass++)
@@ -758,9 +753,7 @@ void calculate_all_S0(int ism_lev_so)
 			  double m=mass[imass];
 			  if(Wclov_tm)
 			    {
-			      master_printf("Ma no!\n");
 			      if(which_r_S0==0) m*=-1;
-			      
 			      if(cSW==0) inv_tmD_cg_eoprec(cgm_solution[imass],NULL,conf,kappa,m,niter_max,stop_res[imass],source);
 			      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,Cl,m,niter_max,stop_res[imass],source);
 			    }
@@ -784,7 +777,7 @@ void calculate_all_S0(int ism_lev_so)
 		  }
 		
 		//read or write, if needed
-		if(save_S0||load_S0)
+		if(save_S0 or load_S0)
 		  for(int imass=0;imass<nmass;imass++)
 		    {
 		      int ip=ipropS0(itheta,imass,muS);
@@ -808,7 +801,7 @@ void calculate_all_S0(int ism_lev_so)
 		//reconstruct the doublet
 		for(int imass=0;imass<nmass;imass++)
 		  {
-		    if(Wclov_tm&&use_cgm_S0)
+		    if(Wclov_tm and use_cgm_S0)
 		      {
 			if(cSW==0) reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
 			else       reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,Cl,mass[imass],cgm_solution[imass]);
@@ -816,7 +809,7 @@ void calculate_all_S0(int ism_lev_so)
 		      }
 		    else memcpy(temp_vec[which_r_S0],cgm_solution[imass],sizeof(spincolor)*loc_vol);
 		    for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
-		      if(which_r_S0==r||which_r_S0==2)
+		      if(which_r_S0==r or which_r_S0==2)
 			{
 #ifdef POINT_SOURCE_VERSION
 			  put_spincolor_into_su3spinspin(S0[r][ipropS0(itheta,imass,muS)],temp_vec[r],id,ic);
@@ -830,10 +823,10 @@ void calculate_all_S0(int ism_lev_so)
     }
   
   //rotate to physical basis if doing tm
-  if(Wclov_tm && rotate_to_phys_basis)
+  if(Wclov_tm and rotate_to_phys_basis)
     {
       for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-	if(which_r_S0==r||which_r_S0==2)
+	if(which_r_S0==r or which_r_S0==2)
 	  for(int ipropS0=0;ipropS0<npropS0;ipropS0++) //put the (1+ig5)/sqrt(2) factor
 	    {
 #ifdef POINT_SOURCE_VERSION
@@ -857,27 +850,27 @@ void calculate_all_S1(int ispec,int ism_lev_se)
   smear_additive_propagator(sequential_source,sequential_source,ism_lev_se,gaussian_niter_se);
   master_printf("\n");
   
-  //loop over seq
+  for(int itheta=0;itheta<nthetaS1;itheta++)
+    {
+      //adapt the border condition
+      put_theta[1]=put_theta[2]=put_theta[3]=thetaS1[itheta];
+      adapt_theta(conf,old_theta,put_theta,1,1);
+      
+      //loop over seq
 #ifdef POINT_SOURCE_VERSION
-  for(int ic=0;ic<3;ic++)
+      for(int ic=0;ic<NCOL;ic++)
 #endif
-    for(int id=0;id<4;id++)
-      { 
+	for(int id=0;id<NDIRAC;id++)
+	  { 
 #ifdef POINT_SOURCE_VERSION
-	get_spincolor_from_su3spinspin(source,sequential_source,id,ic);
+	    get_spincolor_from_su3spinspin(source,sequential_source,id,ic);
 #else
-	get_spincolor_from_colorspinspin(source,sequential_source,id);
+	    get_spincolor_from_colorspinspin(source,sequential_source,id);
 #endif
-	safe_dirac_prod_spincolor(source,base_gamma+5,source);
-	
-	//if inverting Q
-	if(!Wclov_tm||use_cgm_S1||(Wclov_tm&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma+5,source); 
-	
-	for(int itheta=0;itheta<nthetaS1;itheta++)
-	  {
-	    //adapt the border condition
-	    put_theta[1]=put_theta[2]=put_theta[3]=thetaS1[itheta];
-	    adapt_theta(conf,old_theta,put_theta,1,1);
+	    safe_dirac_prod_spincolor(source,base_gamma+5,source);
+	    
+	    //if inverting Q
+	    if(!Wclov_tm or use_cgm_S1 or (Wclov_tm and cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma+5,source); 
 	    
 	    double part_time=-take_time();
 	    
@@ -917,7 +910,7 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 		double reco_mass=-massS1[imass];
 		if(r_spec[ispec]==1) reco_mass=-reco_mass;
 		//use temp_vec[0] as temporary storage
-		if(Wclov_tm&&use_cgm_S1)
+		if(Wclov_tm and use_cgm_S1)
 		  {
 		    if(cSW==0) apply_tmQ(temp_vec[0],conf,kappa,reco_mass,cgm_solution[imass]);
 		    else       apply_tmclovQ(temp_vec[0],conf,kappa,Cl,reco_mass,cgm_solution[imass]);
@@ -935,7 +928,7 @@ void calculate_all_S1(int ispec,int ism_lev_se)
       }
   
   //put the (1+-ig5)/sqrt(2) factor if tm. On the source rotate as r_spec, on the sink as !r_spec
-  if(Wclov_tm && rotate_to_phys_basis)
+  if(Wclov_tm and rotate_to_phys_basis)
     {
       for(int ipropS1=0;ipropS1<npropS1;ipropS1++) //but, being D^-1, everything is swapped
 	{
@@ -1022,7 +1015,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
   smear_time-=take_time();
   
   for(int r=0;r<2;r++)
-    if(which_r_S0==2||which_r_S0==r)
+    if(which_r_S0==2 or which_r_S0==r)
       for(int iprop=0;iprop<npropS0;iprop++)
 	smear_additive_propagator(S0[r][iprop],S0[r][iprop],ism_lev_si,gaussian_niter_si);
   
@@ -1043,7 +1036,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
   //change to new layout
   if(use_new_contraction_layout)
     for(int r=0;r<2;r++)
-      if(which_r_S0==2||which_r_S0==r)
+      if(which_r_S0==2 or which_r_S0==r)
 	for(int iprop=0;iprop<npropS0;iprop++)
 	  prepare_prop_for_new_contraction(S0[r][iprop],temp_transp);
   
@@ -1059,7 +1052,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 	    for(int muS_sink1=0;muS_sink1<nmuS1;muS_sink1++)
 	      //loop on theta of second propagator
 	      for(int ith2=0;ith2<nthetaS0;ith2++)
-		if(!only_standing_2pts||ith2==ith1)
+		if(!only_standing_2pts or ith2==ith1)
 		  {
 		    //decide parameters of mass 2
 		    double *mass2=(muS_source2==0)?massS0:massS0der;
@@ -1072,7 +1065,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 			int ip2=ipropS0(ith2,im2,muS_source2);
 			//loop on r of second propagator
 			for(int r2=0;r2<2;r2++)
-			  if(which_r_S0==2||which_r_S0==r2)
+			  if(which_r_S0==2 or which_r_S0==r2)
 			    {
 			      //if no derivative on the sink use S0, else derive the sink
 			      PROP_TYPE *S0_2=(muS_sink2==0)?S0[r2][ip2]:temp_der2;
@@ -1125,7 +1118,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 				  int ip1=ipropS0(ith1,im1,muS_source1);
 				  //loop on r of first propagator
 				  for(int r1=0;r1<2;r1++)
-				    if((which_r_S0==2&&(!only_charged_2pts||r2==r1))||which_r_S0==r1)
+				    if((which_r_S0==2 and(!only_charged_2pts or r2==r1)) or which_r_S0==r1)
 				      {
 					//if no derivative on the sink use S0, else derive the sink
 					PROP_TYPE *S0_1=(muS_sink1==0)?S0[r1][ip1]:temp_der1;
@@ -1206,7 +1199,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
   //return to non new layout
   if(use_new_contraction_layout)
     for(int r=0;r<2;r++)
-      if(which_r_S0==2||which_r_S0==r)
+      if(which_r_S0==2 or which_r_S0==r)
 	for(int iprop=0;iprop<npropS0;iprop++)
 	  revert_prop_from_new_contraction(S0[r][iprop],temp_transp);
     
@@ -1417,7 +1410,7 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(&iconf))
+  while(iconf<ngauge_conf and enough_time and !file_exists("stop") and read_conf_parameters(&iconf))
     {
       //smear the conf and generate the source
       setup_conf();
@@ -1464,7 +1457,7 @@ void in_main(int narg,char **arg)
 	  */
 	  
 	  //loop on spectator
-	  if(ncontr_3pts!=0 || nch_contr_3pts!=0)
+	  if(ncontr_3pts!=0 or nch_contr_3pts!=0)
 	    for(int ispec=0;ispec<nspec;ispec++)
 	      {
 		//select a timeslice and multiply by gamma5

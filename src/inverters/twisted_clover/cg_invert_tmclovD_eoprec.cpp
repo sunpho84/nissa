@@ -207,7 +207,7 @@ namespace nissa
 	  
 	  //check solution
 	  spincolor *temp_lx=nissa_malloc("temp",loc_vol,spincolor);
-	  apply_tmQ(temp_lx,conf_lx,kappa,mass,solution_lx);
+	  apply_tmclovQ(temp_lx,conf_lx,kappa,Cl_lx,mass,solution_lx);
 	  
 	  GET_THREAD_ID();
 	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)

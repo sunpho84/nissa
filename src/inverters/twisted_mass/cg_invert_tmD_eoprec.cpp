@@ -5,10 +5,18 @@
 #include <string.h>
 
 #include "base/thread_macros.hpp"
+#ifdef USE_TMLQCD
+ #include "base/tmLQCD_bridge.hpp"
+#endif
+#ifdef USE_DDALPHAAMG
+ #include "base/DDalphaAMG_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
+#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
+#include "linalgs/linalgs.hpp"
 #include "routines/ios.hpp"
 
 #include "cg_64_invert_tmD_eoprec.hpp"
@@ -57,7 +65,7 @@ namespace nissa
   }
   
   //Invert twisted mass operator using e/o preconditioning.
-  THREADABLE_FUNCTION_8ARG(inv_tmD_cg_eoprec, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
+  THREADABLE_FUNCTION_8ARG(inv_tmD_cg_eoprec_native, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
   {
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
@@ -113,4 +121,52 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
+
+  
+  void inv_tmD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mass,int nitermax,double residue,spincolor *source_lx)
+  {
+    
+#ifdef USE_TMLQCD
+    if(use_tmLQCD)
+      {
+	crash("Not yet");
+      }
+    else
+#endif
+      //DD case
+#ifdef USE_DDALPHAAMG
+      if(use_DD)
+	{
+	  double cSW=0;
+	  DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
+	  
+	  //check solution
+	  spincolor *temp_lx=nissa_malloc("temp",loc_vol,spincolor);
+	  apply_tmQ(temp_lx,conf_lx,kappa,mass,solution_lx);
+	  
+	  GET_THREAD_ID();
+	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	     for(int id=0;id<NDIRAC;id++)
+	       for(int ic=0;ic<NCOL;ic++)
+		 for(int ri=0;ri<2;ri++)
+		     temp_lx[ivol][id][ic][ri]-=source_lx[ivol][id][ic][ri]*(id<2?+1:-1);
+	  THREAD_BARRIER();
+	  
+	  //compute the norm and print it
+	  double norm2=double_vector_glb_norm2(temp_lx,loc_vol);
+	  master_printf("check solution: %lg\n",norm2);
+	  nissa_free(temp_lx);
+	   // for(int ivol=0;ivol<loc_vol;ivol++)
+	  //   for(int id=0;id<4;id++)
+	  //     for(int ic=0;ic<3;ic++)
+	  // 	for(int ri=0;ri<2;ri++)
+	  // 	  printf("anna %d %d %d %d %16.16lg\n",ivol,id,ic,ri,solution_lx[ivol][id][ic][ri]);
+	}
+      else
+#endif
+	
+	//fallback to naive implementation
+	inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);
+  }
 }
+
