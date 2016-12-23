@@ -23,7 +23,7 @@ namespace DD
   int &nlevels=init_params.number_of_levels;
   DDalphaAMG_parameters params;
   int *nsetups=params.setup_iterations;
-  double *mu_factor=params.mu_factor;
+  double mu_factor[MAX_MG_LEVELS];
   DDalphaAMG_status status;
   bool setup_valid=false;
   bool inited=false;
@@ -189,6 +189,13 @@ namespace DD
     //set transposer
     params.conf_index_fct=conf_index_fct;
     params.vector_index_fct=vector_index_fct;
+    
+    for(int ilev=0;ilev<nlevels;ilev++)
+      if(mu_factor[ilev]!=params.mu_factor[ilev])
+	{
+	  master_printf("DD: Mu_factor for lev %d changed from %lg to %lg\n",ilev,params.mu_factor[ilev],mu_factor[ilev]);
+	  params.mu_factor[ilev]=mu_factor[ilev];
+	}
     
     //check mass
     if(params.mu!=mu)
