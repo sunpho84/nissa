@@ -22,7 +22,7 @@ namespace DD
   DDalphaAMG_init init_params;
   int &nlevels=init_params.number_of_levels;
   DDalphaAMG_parameters params;
-  int *nsetups=params.setup_iterations;
+  int nsetups[MAX_MG_LEVELS];
   double mu_factor[MAX_MG_LEVELS];
   DDalphaAMG_status status;
   bool setup_valid=false;
@@ -81,7 +81,10 @@ namespace DD
 		if(strcasecmp(tag,"nlevels")==0) nissa::read_int(&nlevels);
 		if(strcasecmp(tag,"nsetups")==0)
 		  for(int ilev=0;ilev<nlevels;ilev++)
-		    nissa::read_int(&nsetups[ilev]);
+		    {
+		      nissa::read_int(&nsetups[ilev]);
+		      master_printf("DD: read nsetups[%d]=%lg\n",ilev,nsetups[ilev]);
+		    }
 		if(strcasecmp(tag,"mu_factor")==0)
 		  for(int ilev=0;ilev<nlevels;ilev++)
 		    {
@@ -193,11 +196,20 @@ namespace DD
     params.conf_index_fct=conf_index_fct;
     params.vector_index_fct=vector_index_fct;
     
+    //check mu_factor
     for(int ilev=0;ilev<nlevels;ilev++)
       if(mu_factor[ilev]!=params.mu_factor[ilev])
 	{
 	  master_printf("DD: Mu_factor for lev %d changed from %lg to %lg\n",ilev,params.mu_factor[ilev],mu_factor[ilev]);
 	  params.mu_factor[ilev]=mu_factor[ilev];
+	}
+    
+    //check nsetups
+    for(int ilev=0;ilev<nlevels;ilev++)
+      if(nsetups[ilev]!=params.setup_iterations[ilev])
+	{
+	  master_printf("DD: nsetups for lev %d changed from %lg to %lg\n",ilev,params.setup_iterations[ilev],nsetups[ilev]);
+	  params.setup_iterations[ilev]=nsetups[ilev];
 	}
     
     //check mass
