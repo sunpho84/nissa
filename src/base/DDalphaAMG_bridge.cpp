@@ -84,7 +84,10 @@ namespace DD
 		    nissa::read_int(&nsetups[ilev]);
 		if(strcasecmp(tag,"mu_factor")==0)
 		  for(int ilev=0;ilev<nlevels;ilev++)
-		    nissa::read_double(&mu_factor[ilev]);
+		    {
+		      nissa::read_double(&mu_factor[ilev]);
+		      master_printf("DD: read mu_factor[%d]=%lg\n",ilev,mu_factor[ilev]);
+		    }
 	      }
 	    else master_printf("Finished reading the file '%s'\n",path);
 	  }
