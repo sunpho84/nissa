@@ -27,15 +27,15 @@ namespace nissa
   int max_locd_size;
   
   //constructor
-  vector_remap_t::vector_remap_t(int nel_out,void (*index)(int &irank_to,int &iel_to,int iel_fr,void *pars),void *pars)
+  vector_remap_t::vector_remap_t(int nel_in,void (*index)(int &irank_to,int &iel_to,int iel_fr,void *pars),void *pars)
   {
     all_to_all_scattering_list_t sl;
-    for(int iel_out=0;iel_out<nel_out;iel_out++)
+    for(int iel_in=0;iel_in<nel_in;iel_in++)
       {
 	int rank_to,iel_to;
-	index(rank_to,iel_to,iel_out,pars);
-	if(rank_to>=nranks||rank_to<0) crash("destination rank %d does not exist!",rank_to);
-	sl.push_back(std::make_pair(iel_out,iel_to*nranks+rank_to));
+	index(rank_to,iel_to,iel_in,pars);
+	if(rank_to>=nranks or rank_to<0) crash("destination rank %d does not exist!",rank_to);
+	sl.push_back(std::make_pair(iel_in,iel_to*nranks+rank_to));
       }
     setup_knowing_where_to_send(sl);
   }
@@ -78,7 +78,7 @@ namespace nissa
   void remap_locd_vector_to_lx(void *out,void *in,int nbytes,int mu)
   {
     int pars[2]={mu,max_locd_perp_size_per_dir[mu]};
-    if(remap_locd_to_lx[mu]==NULL) remap_locd_to_lx[mu]=new vector_remap_t(loc_vol,index_unmake_loc_dir,pars);
+    if(remap_locd_to_lx[mu]==NULL) remap_locd_to_lx[mu]=new vector_remap_t(locd_perp_size_per_dir[mu],index_unmake_loc_dir,pars);
     remap_locd_to_lx[mu]->remap(out,in,nbytes);
   }
 }
