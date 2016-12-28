@@ -40,12 +40,6 @@ namespace nissa
     void common_setup_part2(int nel_note,int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,int *nper_rank_note,int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,int *nper_rank_expl);
     all_to_all_comm_t() {};
   };
-  
-  struct vector_remap_t : all_to_all_comm_t
-  {
-    vector_remap_t(int nel_out,void (*index)(int &irank_to,int &iel_to,int iel_fr,void *pars),void *pars);
-    void remap(void *out,void *in,size_t bps){communicate(out,in,bps);}
-  };
 }
 
 #endif
