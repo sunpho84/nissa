@@ -27,15 +27,15 @@ namespace nissa
   int max_locd_size;
   
   //constructor
-  vector_remap_t::vector_remap_t(int nel_in,void (*index)(int &irank_to,int &iel_to,int iel_fr,void *pars),void *pars)
+  vector_remap_t::vector_remap_t(int nel_fr,void (*index)(int &irank_to,int &iel_to,int iel_fr,void *pars),void *pars)
   {
     all_to_all_scattering_list_t sl;
-    for(int iel_in=0;iel_in<nel_in;iel_in++)
+    for(int iel_fr=0;iel_fr<nel_fr;iel_fr++)
       {
 	int rank_to,iel_to;
-	index(rank_to,iel_to,iel_in,pars);
+	index(rank_to,iel_to,iel_fr,pars);
 	if(rank_to>=nranks or rank_to<0) crash("destination rank %d does not exist!",rank_to);
-	sl.push_back(std::make_pair(iel_in,iel_to*nranks+rank_to));
+	sl.push_back(std::make_pair(iel_fr,iel_to*nranks+rank_to));
       }
     setup_knowing_where_to_send(sl);
   }

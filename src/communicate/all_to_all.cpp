@@ -165,20 +165,17 @@ namespace nissa
     THREAD_BARRIER();
     
     //check
-    /*
     int *in_buf_dest_check=nissa_malloc("in_buf_dest_check",nel_in,int);
     vector_reset(in_buf_dest_check);
     if(IS_MASTER_THREAD)
       for(int iel_in=0;iel_in<nel_in;iel_in++)
 	{
 	  int idest=in_buf_dest[iel_in];
-	  if(idest<0||idest>=nel_in) crash("in_buf_dest[%d] point to %d not in the range [0,nel_in=%d)",
-					   iel_in,idest,nel_in);
+	  if(idest<0 or idest>=nel_in) crash("in_buf_dest[%d] point to %d not in the range [0,nel_in=%d)",iel_in,idest,nel_in);
 	  if(in_buf_dest_check[idest]++==1) crash("multiple assignement of %d",idest);
 	}
     THREAD_BARRIER();
     nissa_free(in_buf_dest_check);
-    */
   }
   
   //build knowing where to send
@@ -193,7 +190,8 @@ namespace nissa
     //count the nu,ber of elements to send
     temp_build_t build;
     nel_out=sl.size();
-    verbosity_lv3_master_printf("nel_out: %d\n",nel_out);
+    // verbosity_lv3_
+      master_printf("nel to be scattered out: %d\n",nel_out);
     
     //count how many elements to send to each rank
     vector_reset(build.nper_rank_to_temp);
