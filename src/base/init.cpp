@@ -551,7 +551,7 @@ namespace nissa
     grid_inited=1;
     
     //set the volume
-    if(T!=0 && L!=0)
+    if(T>0 and L>0)
       {
 	glb_size[0]=T;
 	for(int mu=1;mu<NDIM;mu++) glb_size[mu]=L;
