@@ -203,7 +203,7 @@ namespace nissa
       for(int iel_out=0;iel_out<nel_out;iel_out++)
 	{
 	  int rank_to=sl[iel_out].second%nranks;
-	  if(rank_to>=nranks||rank_to<0) crash("destination rank %d does not exist!",rank_to);
+	  if(rank_to>=nranks or rank_to<0) crash("destination rank %d does not exist!",rank_to);
 	  build.nper_rank_to_temp[rank_to]++;
 	}
     THREAD_BARRIER();
@@ -250,7 +250,7 @@ namespace nissa
       for(all_to_all_gathering_list_t::iterator it=gl.begin();it!=gl.end();it++)
 	{
 	  int rank_fr=it->first%nranks;
-	  if(rank_fr>=nranks||rank_fr<0) crash("source rank %d does not exist!",rank_fr);
+	  if(rank_fr>=nranks or rank_fr<0) crash("source rank %d does not exist!",rank_fr);
 	  build.nper_rank_fr_temp[rank_fr]++;
 	}
     THREAD_BARRIER();
