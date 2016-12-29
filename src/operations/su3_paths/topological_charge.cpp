@@ -20,6 +20,7 @@
 #include "new_types/su3.hpp"
 #include "operations/fft.hpp"
 #include "operations/gaugeconf.hpp"
+#include "operations/remap_vector.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "operations/smearing/stout.hpp"
 #include "operations/smearing/Wflow.hpp"
