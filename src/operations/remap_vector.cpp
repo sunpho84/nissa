@@ -74,7 +74,7 @@ namespace nissa
   void remap_locd_vector_to_lx(void *out,void *in,int nbytes,int mu)
   {
     int pars[2]={mu,max_locd_perp_size_per_dir[mu]};
-    if(remap_locd_to_lx[mu]==NULL) remap_locd_to_lx[mu]=new vector_remap_t(locd_perp_size_per_dir[mu],index_unmake_loc_dir,pars);
+    if(remap_locd_to_lx[mu]==NULL) remap_locd_to_lx[mu]=new vector_remap_t(locd_size_per_dir[mu],index_unmake_loc_dir,pars);
     remap_locd_to_lx[mu]->remap(out,in,nbytes);
   }
 }
