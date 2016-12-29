@@ -448,9 +448,10 @@ namespace nissa
       {
 	remap_lx_to_locd[mu]=remap_locd_to_lx[mu]=NULL;
 	max_locd_perp_size_per_dir[mu]=(glb_vol/glb_size[mu]+nranks-1)/nranks;
-	locd_size_per_dir[mu]=max_locd_perp_size_per_dir[mu]*glb_size[mu];
+	locd_perp_size_per_dir[mu]=(int)std::min((int64_t)max_locd_perp_size_per_dir[mu],glb_vol/glb_size[mu]-max_locd_perp_size_per_dir[mu]*rank);
+	printf("rank %d locd_perp_size_per_dir[%d]: %d\n",rank,mu,locd_perp_size_per_dir[mu]);
+	locd_size_per_dir[mu]=locd_perp_size_per_dir[mu]*glb_size[mu];
 	max_locd_size=std::max(max_locd_size,locd_size_per_dir[mu]);
-	locd_perp_size_per_dir[mu]=(int)std::min((int64_t)max_locd_perp_size_per_dir[mu],glb_vol-max_locd_perp_size_per_dir[mu]*rank);
       }
     
     master_printf("Cartesian geometry intialized\n");
