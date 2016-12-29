@@ -4,6 +4,9 @@
 
 #include <string.h>
 
+#define EXTERN_REMAP
+#include "remap_vector.hpp"
+
 #include "base/debug.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
@@ -17,15 +20,8 @@
  #include "routines/thread.hpp"
 #endif
 
-#include "remap_vector.hpp"
-
 namespace nissa
 {
-  vector_remap_t *remap_lx_to_locd[NDIM];
-  vector_remap_t *remap_locd_to_lx[NDIM];
-  int max_locd_perp_size_per_dir[NDIM],locd_perp_size_per_dir[NDIM];
-  int max_locd_size;
-  
   //constructor
   vector_remap_t::vector_remap_t(int nel_fr,void (*index)(int &irank_to,int &iel_to,int iel_fr,void *pars),void *pars)
   {
