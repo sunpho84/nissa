@@ -165,13 +165,18 @@ namespace nissa
     THREAD_BARRIER();
     
     //check
-    int *in_buf_dest_check=nissa_malloc("in_buf_dest_check",nel_in,int);
+    int max_nel_in=0;
+    for(int iel_in=0;iel_in<nel_in;iel_in++) max_nel_in=std::max(max_nel_in,in_buf_dest[iel_in]);
+
+    
+    int *in_buf_dest_check=nissa_malloc("in_buf_dest_check",max_nel_in+1,int);
     vector_reset(in_buf_dest_check);
     if(IS_MASTER_THREAD)
       for(int iel_in=0;iel_in<nel_in;iel_in++)
 	{
 	  int idest=in_buf_dest[iel_in];
-	  if(idest<0 or idest>=nel_in) crash("in_buf_dest[%d] point to %d not in the range [0,nel_in=%d)",iel_in,idest,nel_in);
+	  
+	  //if(idest<0 or idest>=nel_in) crash("in_buf_dest[%d] point to %d not in the range [0,nel_in=%d)",iel_in,idest,nel_in);
 	  if(in_buf_dest_check[idest]++==1) crash("multiple assignement of %d",idest);
 	}
     THREAD_BARRIER();
