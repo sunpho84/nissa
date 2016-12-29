@@ -192,11 +192,10 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    //count the nu,ber of elements to send
+    //count the number of elements to send
     temp_build_t build;
     nel_out=sl.size();
-    // verbosity_lv3_
-      master_printf("nel to be scattered out: %d\n",nel_out);
+    verbosity_lv3_master_printf("nel to be scattered out: %d\n",nel_out);
     
     //count how many elements to send to each rank
     vector_reset(build.nper_rank_to_temp);
