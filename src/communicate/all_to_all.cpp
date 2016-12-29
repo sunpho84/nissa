@@ -143,7 +143,7 @@ namespace nissa
   //"expl" target the ranks to instruct
   //"note" means the ranks from which learning
   void all_to_all_comm_t::common_setup_part2(int nel_note,
-    int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,int *nper_rank_note, 
+    int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,int *nper_rank_note,
     int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,int *nper_rank_expl)
   {
     GET_THREAD_ID();
