@@ -127,17 +127,20 @@ namespace nissa
   {
     source_time-=take_time();
     
+    master_printf("source norm: %lg\n",double_vector_glb_norm2(ori,loc_vol));
+    int rel_t=rel_time_of_glb_time(t);
+    
     switch(inser)
       {
-      case ORI_SOU:prop_multiply_with_gamma(loop_source,0,ori,t);break;
-      case SCALAR:prop_multiply_with_gamma(loop_source,0,ori,t);break;
-      case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,t);break;
-      case PHOTON:insert_external_source(loop_source,photon_field,ori,t,r,loc_hadr_curr);break;
-      case PHOTON_PHI:insert_external_source(loop_source,photon_phi,ori,t,r,loc_hadr_curr);break;
-      case PHOTON_ETA:insert_external_source(loop_source,photon_eta,ori,t,r,loc_hadr_curr);break;
+      case PROP:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
+      case SCALAR:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
+      case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,rel_t);break;
+      case PHOTON:insert_external_source(loop_source,photon_field,ori,rel_t,r,loc_hadr_curr);break;
+      case PHOTON_PHI:insert_external_source(loop_source,photon_phi,ori,rel_t,r,loc_hadr_curr);break;
+      case PHOTON_ETA:insert_external_source(loop_source,photon_eta,ori,rel_t,r,loc_hadr_curr);break;
       case TADPOLE:
-	if(twisted_run) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,t);
-	else            insert_Wilson_tadpole(loop_source,conf,ori,tadpole,t);
+	if(twisted_run) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,rel_t);
+	else            insert_Wilson_tadpole(loop_source,conf,ori,tadpole,rel_t);
 	break;
 	//case VECTOR:insert_external_source(source,NULL,ori,t,r,loc_pion_curr);break;
       }
@@ -190,10 +193,14 @@ namespace nissa
 		}
 	      else
 		{
-		  //otherwise compute it and possibly store it
-		  get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.residue,q.theta);
+		  //otherwise compute it
+		  if(q.insertion==PROP) get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.residue,q.theta);
+		  else                  vector_copy(sol,loop_source);
+		  
+		  //smear
 		  if(q.sme) gaussian_smearing(sol,sol,ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
 		  
+		  //and store if needed
 		  if(q.store)
 		    {
 		      START_TIMING(store_prop_time,nstore_prop);

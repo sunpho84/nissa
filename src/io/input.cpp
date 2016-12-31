@@ -173,7 +173,7 @@ namespace nissa
   }
   
   void read_var(char *out,const char *par,int size_of)
-  {if(!read_var_catcherr(out,par,size_of)) crash("Couldn't read from input file!!!");}
+  {if(!read_var_catcherr(out,par,size_of)) crash("Couldn't read type %s from input file!!!",par);}
   
   //Read an integer from the file
   void read_int(int *out)

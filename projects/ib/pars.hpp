@@ -33,14 +33,14 @@ namespace nissa
   
   //define types of quark propagator used
   const int nins_kind=8;
-  enum insertion_t{                       ORI_SOU,  SCALAR,  PSEUDO,  PHOTON,  PHOTON_ETA,  PHOTON_PHI,  TADPOLE };//,  VECTOR};
-  const insertion_t ins_list[nins_kind]={ ORI_SOU , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE };//,  VECTOR };
-  const char ins_name[nins_kind][20]=   {"ORI_SOU","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE"};//, "VECTOR"};
-  const char ins_tag[nins_kind]=        {'O'      ,'S'     ,'P'     ,'F'     ,'A'         ,'C'         ,'T'      };//, 'V'};
+  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE };//,  VECTOR};
+  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE };//,  VECTOR };
+  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE"};//, "VECTOR"};
+  const char ins_tag[nins_kind]=        {'-'   ,'S'     ,'P'     ,'F'     ,'A'         ,'C'         ,'T'      };//, 'V'};
   inline insertion_t ins_from_tag(const char tag)
   {
     int i=0;
-    while(i<nins_kind && ins_tag[i]!=tag) i++;
+    while(i<nins_kind and ins_tag[i]!=tag) i++;
     if(i>=nins_kind) crash("unable to find tag %c",tag);
     return ins_list[i];
   }

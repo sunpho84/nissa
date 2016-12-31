@@ -129,7 +129,10 @@ namespace nissa
   inline void generate_original_sources()
   {
     for(size_t i=0;i<ori_source_name_list.size();i++)
-      generate_original_source(&Q[ori_source_name_list[i]]);
+      {
+	master_printf("Generating source \"%s\"\n",ori_source_name_list[i].c_str());
+	generate_original_source(&Q[ori_source_name_list[i]]);
+      }
   }
   void insert_external_loc_source(spincolor *out,spin1field *curr,coords dirs,spincolor *in,int t);
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t);

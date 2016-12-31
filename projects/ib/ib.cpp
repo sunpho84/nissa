@@ -126,30 +126,34 @@ void init_simulation(char *path)
       read_int(&tins);
       master_printf("Read variable 'Tins' with value: %d\n",tins);
       
-      double kappa,mass,theta,residue;
-      int r,sme,store_prop;
-      if(!twisted_run)
+      double kappa=0.125,mass=0.5,theta=0,residue=1e-16;
+      int r=0,sme=0,store_prop=0;
+      if(ins[0]==ins_tag[PROP])
 	{
-	  mass=0;
-	  read_double(&kappa);
-	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
-	  r=0;
+	  if(!twisted_run)
+	    {
+	      mass=0;
+	      read_double(&kappa);
+	      master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
+	      r=0;
+	    }
+	  else
+	    {
+	      read_double(&mass);
+	      master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	      read_int(&r);
+	      master_printf("Read variable 'R' with value: %d\n",r);
+	      kappa=glb_kappa;
+	      
+	      //include tau in the mass
+	      mass*=tau3[r];
+	    }
+	  read_double(&theta);
+	  master_printf("Read variable 'Theta' with value: %lg\n",theta);
+	  read_double(&residue);
+	  master_printf("Read variable 'Residue' with value: %lg\n",residue);
 	}
-      else
-	{
-	  read_double(&mass);
-	  master_printf("Read variable 'Mass' with value: %lg\n",mass);
-	  read_int(&r);
-	  master_printf("Read variable 'R' with value: %d\n",r);
-	  kappa=glb_kappa;
-	  
-	  //include tau in the mass
-	  mass*=tau3[r];
-	}
-      read_double(&theta);
-      master_printf("Read variable 'Theta' with value: %lg\n",theta);
-      read_double(&residue);
-      master_printf("Read variable 'Residue' with value: %lg\n",residue);
+      
       read_int(&sme);
       master_printf("Read variable 'Sme' with value: %d\n",sme);
       read_int(&store_prop);
