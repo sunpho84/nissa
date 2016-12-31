@@ -127,8 +127,7 @@ namespace nissa
   {
     source_time-=take_time();
     
-    master_printf("source norm: %lg\n",double_vector_glb_norm2(ori,loc_vol));
-    int rel_t=rel_time_of_glb_time(t);
+    int rel_t=(t+source_coord[0])%glb_size[0];
     
     switch(inser)
       {
