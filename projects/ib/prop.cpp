@@ -142,7 +142,7 @@ namespace nissa
 	if(twisted_run) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,rel_t);
 	else            insert_Wilson_tadpole(loop_source,conf,ori,tadpole,rel_t);
 	break;
-	//case VECTOR:insert_external_source(source,NULL,ori,t,r,loc_pion_curr);break;
+	//case VECTOR:insert_external_source(source,NULL,ori,rel_t,r,loc_pion_curr);break;
       }
     
     source_time+=take_time();
