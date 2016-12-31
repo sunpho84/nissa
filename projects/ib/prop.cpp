@@ -37,7 +37,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //consistency check
-    if(!stoch_source&&(!diluted_spi_source or !diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
+    if(!stoch_source and (!diluted_spi_source or !diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
     
     //reset all to begin
     for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
@@ -253,7 +253,7 @@ namespace nissa
     //compute space and time factor
     double arg=get_space_arg(ivol,le.bc);
     int t=rel_time_of_loclx(ivol);
-    if(follow_chris_or_nazario==follow_nazario && t>=glb_size[0]/2) t=glb_size[0]-t;
+    if(follow_chris_or_nazario==follow_nazario and t>=glb_size[0]/2) t=glb_size[0]-t;
     double ext=exp(t*lep_energy[ilepton]);
     
     //compute full exponential (notice the factor -1)
@@ -267,7 +267,7 @@ namespace nissa
     //compute space and time factor
     double arg=get_space_arg(ivol,bc);
     int t=rel_time_of_loclx(ivol);
-    if(follow_chris_or_nazario==follow_nazario && t>=glb_size[0]/2) t=glb_size[0]-t;
+    if(follow_chris_or_nazario==follow_nazario and t>=glb_size[0]/2) t=glb_size[0]-t;
     double ext=exp(t*neu_energy[ilepton]);
     
     //compute full exponential (notice the factor +1)

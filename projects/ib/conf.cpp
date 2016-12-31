@@ -118,7 +118,7 @@ namespace nissa
     int enough_time=check_remaining_time();
     
     int ok_conf=false;
-    if(!asked_stop && !asked_restart && enough_time && iconf<ngauge_conf)
+    if(!asked_stop && !asked_restart and enough_time and iconf<ngauge_conf)
       do
 	{
 	  //Gauge path

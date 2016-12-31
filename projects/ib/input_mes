@@ -1,0 +1,87 @@
+L 4
+T 8
+WallTime 3600
+
+Seed 1623342
+StochSource 1
+DilutedSpin 0
+DilutedColor 0
+NHits 1
+
+NSources 1
+Name	 NoiseType	Tins	Sme	Store
+SOURCE 	 Z2	   	0	0	0
+
+TwistedRun 1
+Kappa 0.125
+
+CloverRun 1
+cSW 0.2
+
+NProps 6
+Name	    Ins	    SourceName	    Tins    Mass    R	     Theta	Residue	Sme Store
+S0	    O	    SOURCE	    0	    0.4	    0	     0.0	1e-20	0   0
+SS	    S	    S0		    -1	    0.4	    0	     0.0	1e-20	0   0
+SP	    P	    S0		    -1	    0.4	    0	     0.0	1e-20	0   0
+ST	    T	    S0		    -1	    0.4	    0	     0.0	1e-20	0   0
+SL	    F	    S0		    -1	    0.4	    0	     0.0	1e-20	0   0
+SM	    F	    SL		    -1	    0.4	    0	     0.0	1e-20	0   0
+
+ZeroModeSubtraction PECIONA
+PhotonGauge FEYNMAN
+PhotonDiscretization WILSON
+
+FreeTheory 0
+RandomGaugeTransform 0
+
+LocHadrCurr 0
+LocMuonCurr 0
+
+NMes2PtsContr 6
+00  S0 S0
+
+0P  S0 SP
+0S  S0 SS
+0M  S0 SM
+0T  S0 ST
+LL  SL SL
+
+NGammaContr 1
+P5GI
+
+NMesLepQ1Q2LepmassMesMass 0
+
+NBar2PtsContr 0
+/*
+ 000  S0 S0 S0
+
+ P00  SP S0 S0
+ 0P0  S0 SP S0
+ 00P  S0 S0 SP
+
+ S00  SS S0 S0
+ 0S0  S0 SS S0
+ 00S  S0 S0 SS
+
+ M00  SM S0 S0
+ 0M0  S0 SM S0
+ 00M  S0 S0 SM
+
+ T00  ST S0 S0
+ 0T0  S0 ST S0
+ 00T  S0 S0 ST
+
+ 0LL  S0 SL SL
+ L0L  SL S0 SL
+ LL0  SL SL S0
+*/
+
+ApeSmearingAlpha 0
+ApeSmearingNiters 0
+
+GaussianSmearingKappa 0
+GaussianSmearingNiters 0
+
+NGaugeConf 1
+../../../../test/data/L4T8conf  out
+

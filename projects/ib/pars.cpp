@@ -111,7 +111,6 @@ namespace nissa
     
     //compute the tadpole summing all momentum
     compute_tadpole(tadpole,photon);
-    //master_printf("Tadpole: {%lg, %lg, %lg, %lg}\n",tadpole[0],tadpole[1],tadpole[2],tadpole[3]);
   }
   
   //meson tags
@@ -189,7 +188,7 @@ namespace nissa
   {
     int nbar2pts_contr;
     read_str_int("NBar2PtsContr",&nbar2pts_contr);
-    if(nbar2pts_contr&&((!diluted_col_source)||(!diluted_spi_source))) crash("to make baryon contractions you need diluted color and spin");
+    if(nbar2pts_contr and (!diluted_col_source or !diluted_spi_source)) crash("to make baryon contractions you need diluted color and spin");
     for(int i=0;i<nbar2pts_contr;i++)
       {
 	char name[1024];
