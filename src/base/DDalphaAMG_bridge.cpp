@@ -83,7 +83,7 @@ namespace DD
 		  for(int ilev=0;ilev<nlevels;ilev++)
 		    {
 		      nissa::read_int(&nsetups[ilev]);
-		      master_printf("DD: read nsetups[%d]=%lg\n",ilev,nsetups[ilev]);
+		      master_printf("DD: read nsetups[%d]=%d\n",ilev,nsetups[ilev]);
 		    }
 		if(strcasecmp(tag,"mu_factor")==0)
 		  for(int ilev=0;ilev<nlevels;ilev++)
@@ -208,7 +208,7 @@ namespace DD
     for(int ilev=0;ilev<nlevels;ilev++)
       if(nsetups[ilev]!=params.setup_iterations[ilev])
 	{
-	  master_printf("DD: nsetups for lev %d changed from %lg to %lg\n",ilev,params.setup_iterations[ilev],nsetups[ilev]);
+	  master_printf("DD: nsetups for lev %d changed from %d to %d\n",ilev,params.setup_iterations[ilev],nsetups[ilev]);
 	  params.setup_iterations[ilev]=nsetups[ilev];
 	}
     
