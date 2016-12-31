@@ -127,7 +127,8 @@ namespace nissa
   {
     source_time-=take_time();
     
-    int rel_t=(t+source_coord[0])%glb_size[0];
+    int rel_t=t;
+    if(rel_t!=-1) rel_t=(t+source_coord[0])%glb_size[0];
     
     switch(inser)
       {
