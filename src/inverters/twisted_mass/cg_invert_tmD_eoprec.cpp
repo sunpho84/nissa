@@ -121,7 +121,6 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
-
   
   void inv_tmD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mass,int nitermax,double residue,spincolor *source_lx)
   {
