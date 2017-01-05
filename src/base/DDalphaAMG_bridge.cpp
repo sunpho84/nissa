@@ -27,6 +27,8 @@ namespace DD
   DDalphaAMG_status status;
   bool setup_valid=false;
   bool inited=false;
+  bool block_size_set=false;
+  nissa::coords block_size[MAX_MG_LEVELS];
   
   //remap swapping x and z
   void remap_coord(nissa::coords out,const nissa::coords in)
@@ -90,6 +92,17 @@ namespace DD
 		    {
 		      nissa::read_double(&mu_factor[ilev]);
 		      master_printf("DD: read mu_factor[%d]=%lg\n",ilev,mu_factor[ilev]);
+		    }
+		if(strcasecmp(tag,"block_size")==0)
+		  {
+		    block_size_set=true;
+		    for(int ilev=0;ilev<nlevels;ilev++)
+		      for(int idir=0;idir<4;idir++)
+			{
+			  int jdir=nissa::scidac_mapping[idir];
+			  nissa::read_int(&block_size[ilev][jdir]);
+			  master_printf("DD: block_size[%d][%d*]=%d\n",ilev,jdir,block_size[ilev][jdir]);
+			}
 		    }
 	      }
 	    else master_printf("Finished reading the file '%s'\n",path);
@@ -166,6 +179,7 @@ namespace DD
 	      (((nissa::glb_size[jdir]/nissa::nrank_dir[jdir])%2==0)?
 	       (((nissa::glb_size[jdir]/nissa::nrank_dir[jdir])%4==0)?4:2):
 	       (((nissa::glb_size[jdir]/nissa::nrank_dir[jdir])%3==0)?3:1));
+	    if(block_size_set) init_params.block_lattice[dir]=block_size[0][dir];
 	    master_printf("Dir %d block size: %d\n",dir,init_params.block_lattice[dir]);
 	    init_params.theta[dir]=0;
 	  }
@@ -189,6 +203,16 @@ namespace DD
     
     //to recheck
     DDalphaAMG_get_parameters(&params);
+    
+    //block_size
+    if(block_size_set)
+      {
+	block_size_set=false;
+	
+	for(int ilev=0;ilev<nlevels;ilev++)
+	  for(int idir=0;idir<4;idir++)
+	    params.block_lattice[ilev][idir]=block_size[ilev][idir];
+      }
     
     //overwrite pars in any case
     params.print=1;
