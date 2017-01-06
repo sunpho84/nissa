@@ -132,4 +132,18 @@ namespace nissa
     va_end(ap);
   }
 #endif
+
+  //perform a simple check on 128 bit precision
+  void check_128_bit_prec()
+  {
+    float_128 a;
+    float_128_from_64(a,1);
+    float_128_summassign_64(a,1e-20);
+    float_128_summassign_64(a,-1);
+    
+    double res=a[0]+a[1];
+    if(fabs(res-1e-20)>1e-30) crash("float_128, 1+1e-20-1=%lg, difference with 1e-20: %lg",res,res-1e-20);
+    verbosity_lv2_master_printf("128 bit precision is working, 1+1e-20-1=%lg where %lg expected in double prec\n",res,1+1e-20-1);
+    
+  }
 }

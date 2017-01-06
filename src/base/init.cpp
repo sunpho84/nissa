@@ -249,13 +249,16 @@ namespace nissa
 #endif
       
       //define delayed thread behavior (also this needed before sanity check, otherwise barrier would fail)
-      #if THREAD_DEBUG>=2
+#if THREAD_DEBUG>=2
       delayed_thread_barrier=(int*)malloc(nthreads*sizeof(int));
       memset(delayed_thread_barrier,0,nthreads*sizeof(int));
       delay_rnd_gen=(rnd_gen*)malloc(nthreads*sizeof(rnd_gen));
       int delay_base_seed=time(0);
       for(unsigned int i=0;i<nthreads;i++) start_rnd_gen(delay_rnd_gen+i,delay_base_seed+i);
-      #endif
+#endif
+      
+      //perform a sanity check on float 128
+      check_128_bit_prec();
       
       //distinguish master thread from the others
       GET_THREAD_ID();
