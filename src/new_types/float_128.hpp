@@ -68,12 +68,12 @@ namespace nissa
   inline void float_128_summ(float_128 c,float_128 a,float_128 b)
   {
 #ifndef fake_128
-    double t1=a[0]+b[0];
-    double e=t1-a[0];
-    double t2=((b[0]-e)+(a[0]-(t1-e)))+a[1]+b[1];
-    
-    c[0]=t1+t2;
-    c[1]=t2-(c[0]-t1);
+    double t1=a[0]+b[0];                           REORDER_BARRIER();
+    double e=t1-a[0];                              REORDER_BARRIER();
+    double t2=((b[0]-e)+(a[0]-(t1-e)))+a[1]+b[1];  REORDER_BARRIER();
+    c[0]=t1+t2;                                    REORDER_BARRIER();
+    REORDER_BARRIER();				   REORDER_BARRIER();
+    c[1]=t2-(c[0]-t1);				   REORDER_BARRIER();
 #else
     c[0]=a[0]+b[0];
     c[1]=0;
@@ -94,12 +94,12 @@ namespace nissa
   inline void float_128_summ_64(float_128 c,float_128 a,double b)
   {
 #ifndef fake_128
-    double t1=a[0]+b;
-    double e=t1-a[0];
-    double t2=((b-e)+(a[0]-(t1-e)))+a[1];
-    
-    c[0]=t1+t2;
-    c[1]=t2-(c[0]-t1);
+    double t1=a[0]+b;                      REORDER_BARRIER();
+    double e=t1-a[0];			   REORDER_BARRIER();
+    double t2=((b-e)+(a[0]-(t1-e)))+a[1];  REORDER_BARRIER();
+    					   REORDER_BARRIER();
+    c[0]=t1+t2;				   REORDER_BARRIER();
+    c[1]=t2-(c[0]-t1);			   REORDER_BARRIER();
 #else
     c[0]=a[0]+b;
     c[1]=0;
@@ -110,12 +110,12 @@ namespace nissa
   inline void float_128_64_summ_64(float_128 c,double a,double b)
   {
 #ifndef fake_128
-    double t1=a+b;
-    double e=t1-a;
-    double t2=((b-e)+(a-(t1-e)));
-    
-    c[0]=t1+t2;
-    c[1]=t2-(c[0]-t1);
+    double t1=a+b;                 REORDER_BARRIER();
+    double e=t1-a;		   REORDER_BARRIER();
+    double t2=((b-e)+(a-(t1-e)));  REORDER_BARRIER();
+    				   REORDER_BARRIER();
+    c[0]=t1+t2;			   REORDER_BARRIER();
+    c[1]=t2-(c[0]-t1);		   REORDER_BARRIER();
 #else
     c[0]=a+b;
     c[1]=0;
@@ -134,27 +134,27 @@ namespace nissa
   inline void float_128_prod(float_128 c,float_128 a,float_128 b)
   {
 #ifndef fake_128
-    const double split=134217729;
-    
-    double cona=a[0]*split;
-    double conb=b[0]*split;
-    
-    double a1=cona-(cona-a[0]);
-    double b1=conb-(conb-b[0]);
-    double a2=a[0]-a1;
-    double b2=b[0]-b1;
-    
-    double c11=a[0]*b[0];
-    double c21=a2*b2+(a2*b1+(a1*b2+(a1*b1-c11)));
-    
-    double c2=a[0]*b[1]+a[1]*b[0];
-    
-    double t1=c11+c2;
-    double e=t1-c11;
-    double t2=a[1]*b[1]+((c2-e)+(c11-(t1-e)))+c21;
-    
-    c[0]=t1+t2;
-    c[1]=t2-(c[0]-t1);
+    const double split=134217729;                    REORDER_BARRIER();
+    						     REORDER_BARRIER();
+    double cona=a[0]*split;			     REORDER_BARRIER();
+    double conb=b[0]*split;			     REORDER_BARRIER();
+    						     REORDER_BARRIER();
+    double a1=cona-(cona-a[0]);			     REORDER_BARRIER();
+    double b1=conb-(conb-b[0]);                      REORDER_BARRIER();
+    double a2=a[0]-a1;				     REORDER_BARRIER();
+    double b2=b[0]-b1;				     REORDER_BARRIER();
+    						     REORDER_BARRIER();
+    double c11=a[0]*b[0];			     REORDER_BARRIER();
+    double c21=a2*b2+(a2*b1+(a1*b2+(a1*b1-c11)));    REORDER_BARRIER();
+                                                     REORDER_BARRIER();
+    double c2=a[0]*b[1]+a[1]*b[0];		     REORDER_BARRIER();
+    						     REORDER_BARRIER();
+    double t1=c11+c2;				     REORDER_BARRIER();
+    double e=t1-c11;				     REORDER_BARRIER();
+    double t2=a[1]*b[1]+((c2-e)+(c11-(t1-e)))+c21;   REORDER_BARRIER();
+                                                     REORDER_BARRIER();
+    c[0]=t1+t2;					     REORDER_BARRIER();
+    c[1]=t2-(c[0]-t1);				     REORDER_BARRIER();
 #else
     c[0]=a[0]*b[0];
     c[1]=0;
@@ -180,27 +180,27 @@ namespace nissa
   inline void float_128_prod_64(float_128 c,float_128 a,double b)
   {
 #ifndef fake_128
-    const double split=134217729;
-    
-    double cona=a[0]*split;
-    double conb=b*split;
-    
-    double a1=cona-(cona-a[0]);
-    double b1=conb-(conb-b);
-    double a2=a[0]-a1;
-    double b2=b-b1;
-    
-    double c11=a[0]*b;
-    double c21=a2*b2+(a2*b1+(a1*b2+(a1*b1-c11)));
-    
-    double c2=a[1]*b;
-    
-    double t1=c11+c2;
-    double e=t1-c11;
-    double t2=((c2-e)+(c11-(t1-e)))+c21;
-    
-    c[0]=t1+t2;
-    c[1]=t2-(c[0]-t1);
+    const double split=134217729;                  REORDER_BARRIER();
+    						   REORDER_BARRIER();
+    double cona=a[0]*split;			   REORDER_BARRIER();
+    double conb=b*split;			   REORDER_BARRIER();
+    						   REORDER_BARRIER();
+    double a1=cona-(cona-a[0]);			   REORDER_BARRIER();
+    double b1=conb-(conb-b);                       REORDER_BARRIER();
+    double a2=a[0]-a1;				   REORDER_BARRIER();
+    double b2=b-b1;				   REORDER_BARRIER();
+    						   REORDER_BARRIER();
+    double c11=a[0]*b;				   REORDER_BARRIER();
+    double c21=a2*b2+(a2*b1+(a1*b2+(a1*b1-c11)));  REORDER_BARRIER();
+                                                   REORDER_BARRIER();
+    double c2=a[1]*b;				   REORDER_BARRIER();
+    						   REORDER_BARRIER();
+    double t1=c11+c2;				   REORDER_BARRIER();
+    double e=t1-c11;				   REORDER_BARRIER();
+    double t2=((c2-e)+(c11-(t1-e)))+c21;	   REORDER_BARRIER();
+                                                   REORDER_BARRIER();
+    c[0]=t1+t2;					   REORDER_BARRIER();
+    c[1]=t2-(c[0]-t1);				   REORDER_BARRIER();
 #else
     c[0]=a[0]*b;
     c[1]=0;
@@ -223,21 +223,21 @@ namespace nissa
   inline void float_128_64_prod_64(float_128 c,double a,double b)
   {
 #ifndef fake_128
-    const double split=134217729;
-    
-    double cona=a*split;
-    double conb=b*split;
-    
-    double a1=cona-(cona-a);
-    double b1=conb-(conb-b);
-    double a2=a-a1;
-    double b2=b-b1;
-    
-    double c11=a*b;
-    double c21=a2*b2+(a2*b1+(a1*b2+(a1*b1-c11)));
-    
-    c[0]=c11+c21;
-    c[1]=c21-(c[0]-c11);
+    const double split=134217729;                   REORDER_BARRIER();
+    						    REORDER_BARRIER();
+    double cona=a*split;			    REORDER_BARRIER();
+    double conb=b*split;			    REORDER_BARRIER();
+    						    REORDER_BARRIER();
+    double a1=cona-(cona-a);			    REORDER_BARRIER();
+    double b1=conb-(conb-b);                        REORDER_BARRIER();
+    double a2=a-a1;				    REORDER_BARRIER();
+    double b2=b-b1;				    REORDER_BARRIER();
+    						    REORDER_BARRIER();
+    double c11=a*b;				    REORDER_BARRIER();
+    double c21=a2*b2+(a2*b1+(a1*b2+(a1*b1-c11)));   REORDER_BARRIER();
+                                                    REORDER_BARRIER();
+    c[0]=c11+c21;                                   REORDER_BARRIER();
+    c[1]=c21-(c[0]-c11);                            REORDER_BARRIER();
 #else
     c[0]=a*b;
     c[1]=0;
@@ -248,7 +248,7 @@ namespace nissa
   
   //divide two float_128
   inline void float_128_div(float_128 div,float_128 a,float_128 b)
-  {
+  {                                                
     //compute dividing factor
     double c=1/(b[0]+b[1]);
     //compute approx div
