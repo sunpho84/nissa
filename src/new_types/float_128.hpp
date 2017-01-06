@@ -12,6 +12,8 @@
 
 #define NISSA_DEFAULT_USE_128_BIT_PRECISION 0
 
+#pragma optimize("", off)
+
 namespace nissa
 {
   EXTERN_FLOAT_128 int use_128_bit_precision;
@@ -579,5 +581,7 @@ namespace nissa
 }
 
 #undef EXTERN_FLOAT_128
+
+#pragma optimize("", on)
 
 #endif
