@@ -80,19 +80,33 @@ namespace DD
 	    
 	    if(nr>=1)
 	      {
-		if(strcasecmp(tag,"nlevels")==0) nissa::read_int(&nlevels);
+		//number of levels
+		if(strcasecmp(tag,"nlevels")==0)
+		  {
+		    nissa::read_int(&nlevels);
+		    master_printf("DD: read nlevels=%d\n",nlevels);
+		  }
+		//maximal mass
+		if(strcasecmp(tag,"max_mass")==0)
+		  {
+		    nissa::read_double(&max_mass);
+		    master_printf("DD: read max_mass=%d\n",max_mass);
+		  }
+		//number of setups
 		if(strcasecmp(tag,"nsetups")==0)
 		  for(int ilev=0;ilev<nlevels;ilev++)
 		    {
 		      nissa::read_int(&nsetups[ilev]);
 		      master_printf("DD: read nsetups[%d]=%d\n",ilev,nsetups[ilev]);
 		    }
+		//factor to increase mass in setup
 		if(strcasecmp(tag,"mu_factor")==0)
 		  for(int ilev=0;ilev<nlevels;ilev++)
 		    {
 		      nissa::read_double(&mu_factor[ilev]);
 		      master_printf("DD: read mu_factor[%d]=%lg\n",ilev,mu_factor[ilev]);
 		    }
+		//size of the blocks
 		if(strcasecmp(tag,"block_size")==0)
 		  {
 		    block_size_set=true;
@@ -258,7 +272,7 @@ namespace DD
   //setup DD if needed
   void update_setup()
   {
-        //full setup
+    //full setup
     if(!setup_valid)
       {
 	master_printf("DD: Starting a new setup\n");
