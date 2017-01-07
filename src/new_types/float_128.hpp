@@ -12,7 +12,9 @@
 
 #define NISSA_DEFAULT_USE_128_BIT_PRECISION 0
 
+#if defined(__ICC)
 #pragma optimize("", off)
+#endif
 
 namespace nissa
 {
@@ -582,6 +584,8 @@ namespace nissa
 
 #undef EXTERN_FLOAT_128
 
+#if defined(__ICC)
 #pragma optimize("", on)
+#endif
 
 #endif
