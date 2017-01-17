@@ -94,7 +94,7 @@ namespace nissa
 	    master_fprintf(fout," ### APE = ( %lg , %d ) , nu = %d , mu = %d , 1/3<trU> = %+016.016lg %+016.016lg\n\n",smear_pars->ape_spat_alpha,this_niters,nu,mu,small_trace[RE]/glb_vol/NCOL,small_trace[IM]/glb_vol/NCOL);
 	    
 	    //elong on both sides the small
-	    int prev_sizeh=0;
+	    //int prev_sizeh=0;
 	    
 	    for(int size=pars->size_min;size<=pars->size_max;size+=std::max(1,pars->size_step))
 	      {
@@ -122,8 +122,7 @@ namespace nissa
 		
 		//elong the big of what needed
 		//ANNA MOVE the big to the center
-		for(int d=prev_sizeh;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,nu,+1,true);
-		prev_sizeh=sizeh;
+		for(int d=0;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,nu,+1,true);
 		
 		master_fprintf(fout," ## size = %d , 1/3<trW> = %+016.016lg %+016.016lg\n\n",size,big_trace[RE]/glb_vol/3,big_trace[IM]/glb_vol/3);
 		
