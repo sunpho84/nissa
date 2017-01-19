@@ -53,7 +53,7 @@ namespace nissa
 	    MPI_Request request[NDIM*(NDIM-1)*4];
 	    MPI_Status status[NDIM*(NDIM-1)*4];
 	    int send,rece;
-	    int imessage=4532543;
+	    int imessage=0;
 	    coords x;
 	    memset(x,0,sizeof(coords));
 	    
