@@ -16,7 +16,7 @@
 
 namespace nissa
 {
-  EXTERN_PARS int diluted_spi_source,diluted_col_source;
+  EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
   EXTERN_PARS int nso_spi,nso_col;
   EXTERN_PARS coords source_coord;
   inline int rel_coord_of_glb_coord(int c,int  mu)
@@ -88,17 +88,23 @@ namespace nissa
     else nso_col=1;
   }
   
+  //set the dilution in space
+  inline void set_diluted_spat(int s)
+  {diluted_spat_source=s;}
+  
   //initialize the dilutions
   inline void read_set_dilutions_if_stoch_source(int stoch_source)
   {
-    int dil_spin=1,dil_col=1;
+    int dil_spin=1,dil_col=1,dil_spa=1;
     if(stoch_source)
       {
 	read_str_int("DilutedSpin",&dil_spin);
 	read_str_int("DilutedColor",&dil_col);
+	read_str_int("DilutedSpat",&dil_spa);
       }
     set_diluted_spin(dil_spin);
     set_diluted_color(dil_col);
+    set_diluted_spat(dil_spa);
   }
   
   //initialize the random generator with the read seed

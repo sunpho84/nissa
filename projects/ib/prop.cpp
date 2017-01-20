@@ -56,11 +56,15 @@ namespace nissa
 	    is_orig&=(rel_c[mu]==0);
 	  }
 	
+	//dilute in space
+	int mask=1;
+	for(int mu=0;mu<NDIM;mu++) mask&=(glb_coord_of_loclx[ivol][mu]%diluted_spat_source==0);
+	
 	//fill colour and spin index 0
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
-	      if(stoch_source and (sou->tins==-1 or rel_c[0]==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),sou->noise_type);
+	      if(stoch_source and mask and (sou->tins==-1 or rel_c[0]==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),sou->noise_type);
 	      else if(is_orig) complex_put_to_real(c[id_si][ic_si],1);
 	  }
 	
