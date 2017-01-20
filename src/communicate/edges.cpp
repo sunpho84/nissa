@@ -136,7 +136,7 @@ namespace nissa
 	    
 	    MPI_Request request[nrequest_tot];
 	    MPI_Status status[nrequest_tot];
-	    int imessage=8534240;
+	    int imessage=0;
 	    
 	    verbosity_lv3_master_printf("Communicating edges of %s\n",get_vect_name(data[EVN]));
 	    
