@@ -143,11 +143,11 @@ namespace nissa
 	int exch[n];
 	
 	//find the max of the row (Linf norm)
-	for(int i=0;i<n;i++) 
+	for(int i=0;i<n;i++)
 	  {
 	    exch[i]=i;
 	    float_high_prec_t row_norm=0.0;
-	    for(int j=0;j<n;j++) 
+	    for(int j=0;j<n;j++)
 	      {
 		float_high_prec_t q;
 		q=abs(A[i*n+j]);
@@ -163,7 +163,7 @@ namespace nissa
 	    //find the pivot
 	    float_high_prec_t big=0.0;
 	    int ipiv=0;
-	    for(int i=k;i<n;i++) 
+	    for(int i=k;i<n;i++)
 	      {
 		int ip=exch[i];
 		int ipk=n*ip+k;
@@ -180,7 +180,7 @@ namespace nissa
 	    
 	    //pivotize
 	    float_high_prec_t pivot=A[n*exch[k]+k];
-	    for(int i=k+1;i<n;i++) 
+	    for(int i=k+1;i<n;i++)
 	      {
 		A[n*exch[i]+k]/=pivot; //compute x to normalize other rows
 		for(int j=k+1;j<n;j++) //subtract from the other rows
@@ -197,7 +197,7 @@ namespace nissa
 	  }
 	
 	//normalize with stored x
-	for(int i=n-1;i>=0;i--) 
+	for(int i=n-1;i>=0;i--)
 	  {
 	    for(int j=i+1;j<n;j++) x[i]-=A[n*exch[i]+j]*x[j];
 	    x[i]/=A[n*exch[i]+i];
@@ -356,15 +356,15 @@ namespace nissa
 	  }
       }
     THREAD_BARRIER();
-
+    
     if(IS_MASTER_THREAD) delete[] yy;
   }
-
+  
   //set the linear system to be solved
   void rat_approx_finder_t::set_linear_system(float_high_prec_t *matr,float_high_prec_t *vec)
   {
     GET_THREAD_ID();
-
+    
     NISSA_PARALLEL_LOOP(i,0,nzero_err_points)
       {
 	float_high_prec_t y;

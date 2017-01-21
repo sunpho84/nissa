@@ -80,7 +80,7 @@ namespace nissa
 	verbosity_lv2_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark->mass,iter,*eig_max);
       }
     while(iter<niters&&is_increasing);
-
+    
     //remove the background field
     rem_backfield_from_conf(eo_conf,backfield);
     
@@ -275,7 +275,7 @@ namespace nissa
     for(int ito=0;ito<nto_recreate;ito++)
       if(rank_recreating[ito]==rank)
 	{
-	  if(IS_MASTER_THREAD && VERBOSITY_LV2) printf("Rank %d recreating approx %d\n",rank,ito);
+	  if(IS_MASTER_THREAD and VERBOSITY_LV2) printf("Rank %d recreating approx %d\n",rank,ito);
 	  rat_approx_t *rat=&(*rat_appr)[iappr_to_recreate[ito]];
 	  generate_approx_of_maxerr(*rat,min_to_recreate[ito],max_to_recreate[ito],maxerr_to_recreate[ito],rat->num,rat->den);
 	}

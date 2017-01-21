@@ -236,16 +236,17 @@ namespace nissa
     THREAD_BARRIER(); //need to barrier to avoid race condition when later "rat-degree" is update through mpi_bcast
     
     //get degree
-    int degree=rat->degree();
-    if(IS_MASTER_THREAD) MPI_Bcast(&degree,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    THREAD_BARRIER(); //need to barrier because "create" is collective call
-    
-    //allocate if not generated here
-    if(rank_from!=rank)	rat->resize(degree);
-    
-    //and now broadcast the remaining part
     if(IS_MASTER_THREAD)
       {
+	int degree=0;
+	
+	if(rank_from==rank) degree=rat->degree();
+	MPI_Bcast(&degree,1,MPI_INT,rank_from,MPI_COMM_WORLD);
+	
+	//allocate if not generated here
+	if(rank_from!=rank)	rat->resize(degree);
+	
+	//and now broadcast the remaining part
 	MPI_Bcast(rat->name,20,MPI_CHAR,rank_from,MPI_COMM_WORLD);
 	MPI_Bcast(&rat->minimum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
 	MPI_Bcast(&rat->maximum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
