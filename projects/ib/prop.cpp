@@ -134,6 +134,7 @@ namespace nissa
     int rel_t=t;
     if(rel_t!=-1) rel_t=(t+source_coord[0])%glb_size[0];
     
+    master_printf("Inserting r: %d\n",r);
     switch(inser)
       {
       case PROP:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;

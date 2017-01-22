@@ -392,7 +392,7 @@ namespace nissa
   THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr)
   {
     GET_THREAD_ID();
-    master_printf("Computing baryon 2pts contractions\n");
+    master_printf("Computing barion 2pts contractions\n");
     
     //allocate loc storage
     complex *loc_contr=new complex[bar2pts_contr_size];

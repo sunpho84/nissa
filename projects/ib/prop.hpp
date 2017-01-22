@@ -67,12 +67,13 @@ namespace nissa
     }
     
     //initialize as a source
-    void init_as_source(rnd_t _noise_type,int _tins,int _sme,bool _store)
+    void init_as_source(rnd_t _noise_type,int _tins,int _r,int _sme,bool _store)
     {
       is_source=true;
       
       noise_type=_noise_type;
       tins=_tins;
+      r=_r;
       sme=_sme;
       store=_store;
       alloc_spincolor();
@@ -80,7 +81,7 @@ namespace nissa
     
     qprop_t(insertion_t insertion,std::string source_name,int tins,double residue,double kappa,double mass,int r,double theta,int sme,bool store)
     {init_as_propagator(insertion,source_name,tins,residue,kappa,mass,r,theta,sme,store);}
-    qprop_t(rnd_t noise_type,int tins,int sme,bool store) {init_as_source(noise_type,tins,sme,store);}
+    qprop_t(rnd_t noise_type,int tins,int r,int sme,bool store) {init_as_source(noise_type,tins,r,sme,store);}
     qprop_t() {is_source=0;}
     ~qprop_t() {for(size_t i=0;i<sp.size();i++) nissa_free(sp[i]);}
   };

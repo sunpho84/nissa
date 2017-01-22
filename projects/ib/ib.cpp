@@ -53,6 +53,9 @@ void init_simulation(char *path)
 	  noise_type=convert_str_to_rnd_t(str_noise_type);
 	  read_int(&tins);
 	}
+      //r
+      int r;
+      read_int(&r);
       //smear
       int sme;
       read_int(&sme);
@@ -61,7 +64,7 @@ void init_simulation(char *path)
       read_int(&store_source);
       //add
       ori_source_name_list[isource]=name;
-      Q[name].init_as_source(noise_type,tins,sme,store_source);
+      Q[name].init_as_source(noise_type,tins,r,sme,store_source);
     }
   
   //Twisted run
