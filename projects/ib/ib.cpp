@@ -135,8 +135,7 @@ void init_simulation(char *path)
 	      mass=0;
 	      read_double(&kappa);
 	      master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
-	      read_int(&r);
-	      master_printf("Read variable 'R' with value: %d\n",r);
+	      r=0;
 	    }
 	  else
 	    {
@@ -154,6 +153,12 @@ void init_simulation(char *path)
 	  read_double(&residue);
 	  master_printf("Read variable 'Residue' with value: %lg\n",residue);
 	}
+      else
+	if(twisted_run)
+	  {
+	    read_int(&r);
+	    master_printf("Read variable 'R' with value: %d\n",r);
+	  }
       
       read_int(&sme);
       master_printf("Read variable 'Sme' with value: %d\n",sme);
