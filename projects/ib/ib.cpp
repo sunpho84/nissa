@@ -53,9 +53,6 @@ void init_simulation(char *path)
 	  noise_type=convert_str_to_rnd_t(str_noise_type);
 	  read_int(&tins);
 	}
-      //r
-      int r;
-      read_int(&r);
       //smear
       int sme;
       read_int(&sme);
@@ -64,7 +61,7 @@ void init_simulation(char *path)
       read_int(&store_source);
       //add
       ori_source_name_list[isource]=name;
-      Q[name].init_as_source(noise_type,tins,r,sme,store_source);
+      Q[name].init_as_source(noise_type,tins,0,sme,store_source);
     }
   
   //Twisted run
@@ -138,7 +135,8 @@ void init_simulation(char *path)
 	      mass=0;
 	      read_double(&kappa);
 	      master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
-	      r=0;
+	      read_int(&r);
+	      master_printf("Read variable 'R' with value: %d\n",r);
 	    }
 	  else
 	    {
