@@ -1000,6 +1000,12 @@ namespace nissa
   inline void unsafe_dirac_prod_spincolor(spincolor out,dirac_matr *m,spincolor in)
   {for(size_t id1=0;id1<NDIRAC;id1++) unsafe_color_prod_complex(out[id1],in[m->pos[id1]],m->entr[id1]);}
   
+  inline void dirac_summ_the_prod_spincolor(spincolor out,dirac_matr *m,spincolor in)
+  {for(size_t id1=0;id1<NDIRAC;id1++) color_summ_the_prod_complex(out[id1],in[m->pos[id1]],m->entr[id1]);}
+  
+  inline void dirac_subt_the_prod_spincolor(spincolor out,dirac_matr *m,spincolor in)
+  {for(size_t id1=0;id1<NDIRAC;id1++) color_subt_the_prod_complex(out[id1],in[m->pos[id1]],m->entr[id1]);}
+  
   //spincolor*dirac
   inline void unsafe_spincolor_prod_dirac(spincolor out,spincolor in,dirac_matr *m)
   {spincolor_put_to_zero(out);for(size_t id1=0;id1<NDIRAC;id1++) color_summ_the_prod_complex(out[m->pos[id1]],in[id1],m->entr[id1]);}
@@ -1070,6 +1076,16 @@ namespace nissa
       {
 	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
 	su3_subt_the_prod_color(out[id1],U,tmp);
+      }
+  }
+  
+  inline void unsafe_su3_dirac_summ_the_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in)
+  {
+    color tmp;
+    for(size_t id1=0;id1<NDIRAC;id1++)
+      {
+	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
+	su3_summ_the_prod_color(out[id1],U,tmp);
       }
   }
   
