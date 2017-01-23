@@ -70,6 +70,7 @@ namespace nissa
   void read_mes2pts_contr_gamma_list();
   void read_meslep_contr_pars();
   void read_bar2pts_contr_pars();
+  void read_handcuffs_contr_pars();
   void read_photon_pars();
   
   //set or not diluted the spin

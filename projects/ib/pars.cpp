@@ -202,4 +202,44 @@ namespace nissa
 	bar2pts_contr_map.push_back(bar_triplet_t(name,q_name[0],q_name[1],q_name[2]));
       }
   }
+  
+  //read the list of "handcuffs" contraction
+  void read_handcuffs_contr_pars()
+  {
+    int nhand_contr;
+    read_str_int("NHandcuffsContr",&nhand_contr);
+    
+    if(nhand_contr)
+      {
+	int nhand_sides;
+	read_str_int("NHandcuffsSides",&nhand_sides);
+	
+	//read the sides
+	for(int i=0;i<nhand_sides;i++)
+	  {
+	    char name[1024];
+	    read_str(name,1024);
+	    int igamma;
+	    read_int(&igamma);
+	    char bw[1024];
+	    char fw[1024];
+	    read_str(bw,1024);
+	    read_str(fw,1024);
+	    
+	    handcuffs_side_map.push_back(handcuffs_side_map_t(name,igamma,bw,fw));
+	  }
+	
+	//read the sides combo
+	char name[1024];
+	read_str(name,1024);
+	char left[1024];
+	char right[1024];
+	read_str(left,1024);
+	read_str(right,1024);
+	
+	handcuffs_map.push_back(handcuffs_map_t(name,left,right));
+      }
+  }
+  
+
 }

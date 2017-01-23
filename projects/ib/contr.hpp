@@ -18,7 +18,7 @@
 namespace nissa
 {
   EXTERN_CONTR double contr_print_time INIT_TO(0);
-
+  
   ///////////////////////////////////////// meson contractions ///////////////////////////////////////////////////////
   
   struct mes_contr_map_t
@@ -73,9 +73,40 @@ namespace nissa
   void compute_meslep_contr();
   void print_meslep_contr();
   
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////// handcuffs contractions ///////////////////////////////////////////////////////
   
-  //barion contractions
+  struct handcuffs_side_map_t
+  {
+    std::string name;
+    int igamma;
+    std::string bw,fw;
+    handcuffs_side_map_t(std::string name,int igamma,std::string bw,std::string fw) : name(name),igamma(igamma),bw(bw),fw(fw) {}
+  };
+  EXTERN_CONTR std::vector<handcuffs_side_map_t> handcuffs_side_map;
+  
+  struct handcuffs_map_t
+  {
+    std::string name;
+    std::string left,right;
+    handcuffs_map_t(std::string name,std::string left,std::string right) : name(name),left(left),right(right) {}
+  };
+  EXTERN_CONTR std::vector<handcuffs_map_t> handcuffs_map;
+  
+  EXTERN_CONTR std::vector<mes_contr_map_t> handcuffs_contr_map;
+  EXTERN_CONTR int nhandcuffs_contr_made INIT_TO(0);
+  EXTERN_CONTR double handcuffs_contr_time INIT_TO(0);
+  EXTERN_CONTR complex *handcuffs_contr INIT_TO(NULL);
+  void allocate_handcuffs_contr();
+  void compute_handcuffs_contr();
+  void print_handcuffs_contr();
+  void free_handcuffs_contr();
+  
+  inline int ind_handcuffs_contr(int ihand,int t)
+  {return t+glb_size[0]*ihand;}
+  EXTERN_CONTR int handcuffs_contr_size;
+  
+  //////////////////////////////////////////////// barion contractions //////////////////////////////////////////////////
+  
   struct bar_triplet_t
   {
     std::string name;
@@ -115,6 +146,7 @@ namespace nissa
   inline void compute_contractions()
   {
     compute_mes2pts_contr();
+    compute_handcuffs_contr();
     //compute_meslep_contr();
     compute_bar2pts_contr();
   }
@@ -123,6 +155,7 @@ namespace nissa
   inline void print_contractions()
   {
     print_mes2pts_contr();
+    print_handcuffs_contr();
     //print_meslep_contr();
     print_bar2pts_contr();
   }

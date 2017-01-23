@@ -203,6 +203,7 @@ void init_simulation(char *path)
   allocate_photon_fields();
   
   allocate_mes2pts_contr();
+  allocate_handcuffs_contr();
   
   nmeslep_corr=nquark_lep_combos*nindep_meslep_weak*norie*nins;
   meslep_hadr_part=nissa_malloc("hadr",loc_vol,spinspin);
@@ -230,6 +231,7 @@ void close()
   nissa_free(ape_smeared_conf);
   
   free_mes2pts_contr();
+  free_handcuffs_contr();
   
   nissa_free(meslep_hadr_part);
   nissa_free(meslep_contr);

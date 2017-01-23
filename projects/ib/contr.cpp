@@ -497,4 +497,162 @@ namespace nissa
 	  close_file(fout);
 	}
   }
+  
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  //                                                          handcuffs
+  
+  THREADABLE_FUNCTION_0ARG(compute_handcuffs_contr)
+  {
+    GET_THREAD_ID();
+    master_printf("Computing handcuffs contractions\n");
+    
+    //allocate all sides
+    std::map<std::string,spin1field*> sides;
+    
+    //loop over sides
+    for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
+      {
+	//allocate
+	handcuffs_side_map_t &h=handcuffs_side_map[iside];
+	std::string side_name=h.name;
+	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),loc_vol,spin1field);
+	vector_reset(sides[side_name]);
+	
+	//check r are the same (that is, opposite!)
+	if(twisted_run and Q[h.fw].r==Q[h.bw].r)
+	  crash("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fw.c_str(),h.bw.c_str());
+	
+	//compute dirac combo
+	dirac_matr g;
+	int ig=handcuffs_side_map[iside].igamma;
+	if(ig!=5 and nso_spi!=NDIRAC) crash("ig %d not available if not diluting in spin",ig);
+	dirac_prod(&g,base_gamma+5,base_gamma+ig);
+	
+	//compute the gammas
+	dirac_matr GAMMA[5],temp_gamma;
+	if(twisted_run)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[Q[h.fw].r]);
+	else temp_gamma=base_gamma[0];
+	dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
+	for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+mu);
+	
+	for(int iso_spi_fw=0;iso_spi_fw<nso_spi;iso_spi_fw++)
+	  for(int iso_col=0;iso_col<nso_col;iso_col++)
+	    {
+	      int ifw=so_sp_col_ind(iso_spi_fw,iso_col);
+	      int iso_spi_bw=g.pos[iso_spi_fw];
+	      int ibw=so_sp_col_ind(iso_spi_bw,iso_col);
+	      
+	      //get componentes
+	      spincolor *Qfw=Q[h.fw][ifw];
+	      spincolor *Qbw=Q[h.bw][ibw];
+	      
+	      communicate_lx_spincolor_borders(Qfw);
+	      communicate_lx_quad_su3_borders(conf);
+	      
+	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+		for(int mu=0;mu<NDIM;mu++)
+		  {
+		    int ifw=loclx_neighup[ivol][mu];
+		    
+		    //piece psi_ivol U_ivol psi_fw
+		    spincolor f1;
+		    unsafe_su3_prod_spincolor(f1,conf[ivol][mu],Qfw[ifw]);
+		    spincolor Gf1;
+		    unsafe_dirac_prod_spincolor(Gf1,GAMMA+4,f1);
+		    dirac_subt_the_prod_spincolor(Gf1,GAMMA+mu,f1);
+		    complex c1;
+		    spincolor_scalar_prod(c1,Qbw[ivol],Gf1);
+		    complex_summ_the_prod_idouble(si[ivol][mu],c1,-0.5);
+		    
+		    //piece psi_fw U_ivol^dag psi_ivol
+		    spincolor f2;
+		    unsafe_su3_dag_prod_spincolor(f2,conf[ivol][mu],Qfw[ivol]);
+		    spincolor Gf2;
+		    unsafe_dirac_prod_spincolor(Gf2,GAMMA+4,f2);
+		    dirac_summ_the_prod_spincolor(Gf2,GAMMA+mu,f2);
+		    complex c2;
+		    spincolor_scalar_prod(c2,Qbw[ifw],Gf2);
+		    complex_summ_the_prod_idouble(si[ivol][mu],c2,+0.5);
+		  }
+	    }
+      }
+    
+    //add the photon
+    for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
+      {
+	handcuffs_map_t &h=handcuffs_map[ihand];
+	std::string right_with_photon=h.right+"_photon";
+	
+	spin1field *rp;
+	if(sides.find(right_with_photon)!=sides.end()) rp=sides[right_with_photon];
+	else
+	  {
+	    sides[right_with_photon]=rp=nissa_malloc(right_with_photon.c_str(),loc_vol,spin1field);
+	    fft4d((complex*)rp,(complex*)sides[h.right],all_dirs,sizeof(spin1field)/sizeof(complex),-1,1);
+	    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+	      {
+		spin1prop prop;
+		mom_space_tlSym_gauge_propagator_of_imom(prop,photon,imom);
+		safe_spinspin_prod_spin(rp[imom],prop,rp[imom]);
+	      }
+	    set_borders_invalid(rp);
+	    fft4d((complex*)rp,(complex*)rp,all_dirs,sizeof(spin1field)/sizeof(complex),+1,0);
+	  }
+      }
+    
+    //compute the hands
+    for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	for(int mu=0;mu<NDIM;mu++)
+	  complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand,glb_coord_of_loclx[ivol][0])],
+				sides[handcuffs_map[ihand].left][ivol][mu],
+				sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
+    
+    //free
+    for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)
+      nissa_free(it->second);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //allocate handcuff contractions
+  void allocate_handcuffs_contr()
+  {
+    handcuffs_contr_size=glb_size[0]*handcuffs_map.size();
+    handcuffs_contr=nissa_malloc("handcuffs_contr",handcuffs_contr_size,complex);
+  }
+  
+  //free handcuff contractions
+  void free_handcuffs_contr()
+  {nissa_free(handcuffs_contr);}
+  
+  //print handcuffs contractions
+  void print_handcuffs_contr()
+  {
+    contr_print_time-=take_time();
+    
+    //reduce and normalise
+    glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);
+    
+    for(size_t icombo=0;icombo<handcuffs_contr_map.size();icombo++)
+      {
+	FILE *fout=open_file(combine("%s/handcuffs_contr_%s",outfolder,handcuffs_contr_map[icombo].name.c_str()),"w");
+	
+	  for(int t=0;t<glb_size[0];t++)
+	    {
+	      //normalize for nsources and 1+g0
+	      complex c;
+	      complex_prod_double(c,bar2pts_contr[ind_handcuffs_contr(icombo,t)],1.0/nhits);
+	      master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
+	    }
+	  
+	
+	master_fprintf(fout,"\n");
+	
+	//close the file
+	close_file(fout);
+      }
+    
+    contr_print_time+=take_time();
+  }
 }
