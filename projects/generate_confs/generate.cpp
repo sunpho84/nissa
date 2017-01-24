@@ -26,6 +26,7 @@ double init_time,max_traj_time=0;
 int ntraj_prod;
 int itraj;
 int conf_created;
+int stored_last_conf=0;
 
 //write a conf adding info
 int nwrite_conf=0;
@@ -233,7 +234,7 @@ void init_simulation(char *path)
 //finalize everything
 void close_simulation()
 {
-  if(!drv->conf_pars.store_running && ntraj_prod>0) write_conf(drv->conf_pars.path,conf);
+  if(!stored_last_conf and ntraj_prod>0) write_conf(drv->conf_pars.path,conf);
   
   //destroy topo pars
   nissa_free(top_meas_time);
@@ -408,12 +409,14 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 //store conf when appropriate
 void store_conf_if_necessary()
 {
-  if(drv->conf_pars.store_each!=0 && itraj%drv->conf_pars.store_each==0)
+  if(drv->conf_pars.store_each!=0 and itraj%drv->conf_pars.store_each==0)
     {
       char path[1024];
       sprintf(path,drv->conf_pars.store_path.c_str(),itraj);
       write_conf(path,conf);
+      stored_last_conf=1;
     }
+  else stored_last_conf=false;
 }
 
 //increase total time used to generate configurations
