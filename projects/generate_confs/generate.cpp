@@ -234,6 +234,7 @@ void init_simulation(char *path)
 //finalize everything
 void close_simulation()
 {
+  master_printf("store: %d %d\n",stored_last_conf,ntraj_prod);
   if(!stored_last_conf and ntraj_prod>0) write_conf(drv->conf_pars.path,conf);
   
   //destroy topo pars
@@ -414,7 +415,7 @@ void store_conf_if_necessary()
       char path[1024];
       sprintf(path,drv->conf_pars.store_path.c_str(),itraj);
       write_conf(path,conf);
-      stored_last_conf=1;
+      stored_last_conf=true;
     }
   else stored_last_conf=false;
 }
