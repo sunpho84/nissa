@@ -555,33 +555,24 @@ namespace nissa
 		for(int mu=0;mu<NDIM;mu++)
 		  {
 		    int ifw=loclx_neighup[ivol][mu];
+		    spincolor f,Gf;
+		    complex c;
 		    
 		    //piece psi_ivol U_ivol psi_fw
-		    spincolor f1;
-		    unsafe_su3_prod_spincolor(f1,conf[ivol][mu],Qfw[ifw]);
-		    spincolor Gf1;
-		    unsafe_dirac_prod_spincolor(Gf1,GAMMA+4,f1);
-		    dirac_subt_the_prod_spincolor(Gf1,GAMMA+mu,f1);
-		    complex c1;
-		    spincolor_scalar_prod(c1,Qbw[ivol],Gf1);
-		    complex_prodassign(c1,g.entr[iso_spi_bw]);
-		    //complex_summ_the_prod_idouble(si[ivol][mu],c1,-0.5);
+		    unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ifw]);
+		    unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
+		    dirac_subt_the_prod_spincolor(Gf,GAMMA+mu,f);
+		    spincolor_scalar_prod(c,Qbw[ivol],Gf);
+		    complex_prodassign(c,g.entr[iso_spi_bw]);
+		    complex_summ_the_prod_idouble(si[ivol][mu],c,-0.5);
 		    
 		    //piece psi_fw U_ivol^dag psi_ivol
-		    spincolor f2;
-		    unsafe_su3_dag_prod_spincolor(f2,conf[ivol][mu],Qfw[ivol]);
-		    spincolor Gf2;
-		    unsafe_dirac_prod_spincolor(Gf2,GAMMA+4,f2);
-		    dirac_summ_the_prod_spincolor(Gf2,GAMMA+mu,f2);
-		    complex c2;
-		    spincolor_scalar_prod(c2,Qbw[ifw],Gf2);
-		    complex_prodassign(c1,g.entr[iso_spi_bw]);
-		    //complex_summ_the_prod_idouble(si[ivol][mu],c2,+0.5);
-
-		    spincolor temp;
-		    unsafe_dirac_prod_spincolor(temp,GAMMA+0,Qfw[ivol]);
-		    spincolor_scalar_prod(c2,Qbw[ivol],temp);
-		    complex_summ_the_prod(si[ivol][mu],c2,g.entr[iso_spi_bw]);
+		    unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],Qfw[ivol]);
+		    unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
+		    dirac_summ_the_prod_spincolor(Gf,GAMMA+mu,f);
+		    spincolor_scalar_prod(c,Qbw[ifw],Gf);
+		    complex_prodassign(c,g.entr[iso_spi_bw]);
+		    complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
 		  }
 	    }
       }
