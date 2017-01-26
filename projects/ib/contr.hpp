@@ -91,8 +91,6 @@ namespace nissa
     handcuffs_map_t(std::string name,std::string left,std::string right) : name(name),left(left),right(right) {}
   };
   EXTERN_CONTR std::vector<handcuffs_map_t> handcuffs_map;
-  
-  EXTERN_CONTR std::vector<mes_contr_map_t> handcuffs_contr_map;
   EXTERN_CONTR int nhandcuffs_contr_made INIT_TO(0);
   EXTERN_CONTR double handcuffs_contr_time INIT_TO(0);
   EXTERN_CONTR complex *handcuffs_contr INIT_TO(NULL);

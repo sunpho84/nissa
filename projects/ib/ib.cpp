@@ -186,6 +186,9 @@ void init_simulation(char *path)
   set_Cg5();
   read_bar2pts_contr_pars();
   
+  //meson handcuffs
+  read_handcuffs_contr_pars();
+  
   //smearing
   read_smearing_pars();
   

@@ -520,13 +520,13 @@ void check_mes3()
 		  double p1=sin_p[nu];
 		  double q1=sin_q[nu];
 		  double t1=sin_t[nu];
-		  num+=-4*(-2*((Mpp*Mt - Mt*(mu2 + pp) + 2*Mp*(mu2 + pt))*q1 + 
-			       Mq*(2*p1*(Mp*Mt + mu2 + pt) - (Mpp + mu2 + pp)*t1))*Co(p,q,qu,nu)*Si(p,q,qu,nu) + 
-			   (mu4 - mu2*pp - Mq*Mt*(mu2 + pp) + 2*mu2*pq + 2*mu2*pt + 2*pq*pt + 
-			    2*Mp*(Mt*(mu2 + pq) + Mq*(mu2 + pt)) - (mu2 + pp)*qt - 
+		  num+=-4*(-2*((Mpp*Mt - Mt*(mu2 + pp) + 2*Mp*(mu2 + pt))*q1 +
+			       Mq*(2*p1*(Mp*Mt + mu2 + pt) - (Mpp + mu2 + pp)*t1))*Co(p,q,qu,nu)*Si(p,q,qu,nu) +
+			   (mu4 - mu2*pp - Mq*Mt*(mu2 + pp) + 2*mu2*pq + 2*mu2*pt + 2*pq*pt +
+			    2*Mp*(Mt*(mu2 + pq) + Mq*(mu2 + pt)) - (mu2 + pp)*qt -
 			    Mpp*(-(Mq*Mt) + mu2 + qt) + 
 			    2*q1*(-2*p1*(Mp*Mt + mu2 + pt) + (Mpp + mu2 + pp)*t1))*sqr(Co(p,q,qu,nu))+
-			   (mu4 - mu2*pp + Mq*Mt*(mu2 + pp) + 2*mu2*pq + 2*mu2*pt + 2*pq*pt + 
+			   (mu4 - mu2*pp + Mq*Mt*(mu2 + pp) + 2*mu2*pq + 2*mu2*pt + 2*pq*pt +
 			    2*Mp*(Mt*(mu2 + pq) - Mq*(mu2 + pt)) - (mu2 + pp)*qt - Mpp*(Mq*Mt + mu2 + qt))*
 			   sqr(Si(p,q,qu,nu)));
 		}
@@ -538,6 +538,69 @@ void check_mes3()
   mes_transf(co,qu);
   
   nissa_free(pho_pro);
+}
+
+void check_handcuffs()
+{
+  tm_quark_info qu;
+  qu.bc[0]=1;
+  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  qu.kappa=qkappa;
+  qu.mass=qmass;
+  qu.r=qr;
+  double r=(qr==0)?1:-1;
+  
+  master_printf(" ------------------ handcuffs ------------------ \n");
+  
+  double mu2=qu.mass*qu.mass;
+  quad_u1 co[glb_size[0]];
+  memset(co,0,sizeof(quad_u1)*glb_size[0]);
+  NISSA_LOC_VOL_LOOP(p)
+    {
+      momentum_t sin_p;
+      sin_mom(sin_p,p,qu);
+      double dp=den_of_mom(p,qu);
+      double Mp=M_of_mom(qu,p);
+      
+      for(int q0=0;q0<glb_size[0];q0++)
+	{
+	  coords cq;
+	  cq[0]=q0;
+	  for(int mu=1;mu<NDIM;mu++) cq[mu]=glb_coord_of_loclx[p][mu];
+	  int q=loclx_of_coord(cq);
+	  
+	  momentum_t sin_q;
+	  sin_mom(sin_q,q,qu);
+	  double dq=den_of_mom(q,qu);
+	  double Mq=M_of_mom(qu,q);
+	  double pq=mom_prod(sin_p,sin_q);
+	
+	int pmq0=(glb_size[0]+glb_coord_of_loclx[p][0]-glb_coord_of_loclx[q][0])%glb_size[0];
+	
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    double contr=4*r*((Mq*sin_p[mu]+Mp*sin_q[mu])*Co(p,q,qu,mu)-Si(p,q,qu,mu)*(mu2+pq-Mp*Mq*sqr(r)));
+	    //contr=4*(Mq*sin_p[mu] + Mp*sin_q[mu])*r;
+	    double p0=sin_p[0],q0=sin_q[0];
+	    contr=4*(-((Mq*p0 + Mp*q0)*Si(p,q,qu,0)*sqr(r)) + Co(p,q,qu,0)*(mu2 + pq - 2*p0*q0 + Mp*Mq*sqr(r)));
+	    co[pmq0][mu][RE]+=NCOL*contr/(glb_size[0]*glb_vol*dp*dq);
+	  }
+      }
+    }
+  
+  complex co_f_co[glb_size[0]];
+  memset(co_f_co,0,sizeof(complex)*glb_size[0]);
+  for(int q0=0;q0<glb_size[0];q0++)
+    {
+      //spin1prop prop;
+      //mom_space_tlSym_gauge_propagator_of_imom(prop,photon,q0*glb_spat_vol);
+      // for(int mu=0;mu<NDIM;mu++)
+      // 	for(int nu=0;nu<NDIM;nu++)
+      // 	  co_f_co[q0][RE]+=co[q0][mu][RE]*prop[mu][nu][RE]*co[q0][nu][RE];
+      co_f_co[q0][RE]+=co[q0][0][RE];
+    }
+  
+  mes_transf(co_f_co,qu);
 }
 
 void check_gen()
@@ -583,6 +646,8 @@ void in_main(int narg,char **arg)
   //init simulation according to input file
   init_simulation();
   
+  check_handcuffs();
+  master_printf("\n\n");
   check_mes();
   master_printf("\n\n");
   check_mes2();

@@ -534,13 +534,13 @@ namespace nissa
 	if(twisted_run)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[Q[h.fw].r]);
 	else temp_gamma=base_gamma[0];
 	dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
-	for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+mu);
+	for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
 	
-	for(int iso_spi_fw=0;iso_spi_fw<nso_spi;iso_spi_fw++)
+	for(int iso_spi_bw=0;iso_spi_bw<nso_spi;iso_spi_bw++)
 	  for(int iso_col=0;iso_col<nso_col;iso_col++)
 	    {
+	      int iso_spi_fw=g.pos[iso_spi_bw];
 	      int ifw=so_sp_col_ind(iso_spi_fw,iso_col);
-	      int iso_spi_bw=g.pos[iso_spi_fw];
 	      int ibw=so_sp_col_ind(iso_spi_bw,iso_col);
 	      
 	      //get componentes
@@ -548,6 +548,7 @@ namespace nissa
 	      spincolor *Qbw=Q[h.bw][ibw];
 	      
 	      communicate_lx_spincolor_borders(Qfw);
+	      communicate_lx_spincolor_borders(Qbw);
 	      communicate_lx_quad_su3_borders(conf);
 	      
 	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -563,7 +564,8 @@ namespace nissa
 		    dirac_subt_the_prod_spincolor(Gf1,GAMMA+mu,f1);
 		    complex c1;
 		    spincolor_scalar_prod(c1,Qbw[ivol],Gf1);
-		    complex_summ_the_prod_idouble(si[ivol][mu],c1,-0.5);
+		    complex_prodassign(c1,g.entr[iso_spi_bw]);
+		    //complex_summ_the_prod_idouble(si[ivol][mu],c1,-0.5);
 		    
 		    //piece psi_fw U_ivol^dag psi_ivol
 		    spincolor f2;
@@ -573,7 +575,13 @@ namespace nissa
 		    dirac_summ_the_prod_spincolor(Gf2,GAMMA+mu,f2);
 		    complex c2;
 		    spincolor_scalar_prod(c2,Qbw[ifw],Gf2);
-		    complex_summ_the_prod_idouble(si[ivol][mu],c2,+0.5);
+		    complex_prodassign(c1,g.entr[iso_spi_bw]);
+		    //complex_summ_the_prod_idouble(si[ivol][mu],c2,+0.5);
+
+		    spincolor temp;
+		    unsafe_dirac_prod_spincolor(temp,GAMMA+0,Qfw[ivol]);
+		    spincolor_scalar_prod(c2,Qbw[ivol],temp);
+		    complex_summ_the_prod(si[ivol][mu],c2,g.entr[iso_spi_bw]);
 		  }
 	    }
       }
@@ -604,10 +612,17 @@ namespace nissa
     //compute the hands
     for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	for(int mu=0;mu<NDIM;mu++)
-	  complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand,glb_coord_of_loclx[ivol][0])],
-				sides[handcuffs_map[ihand].left][ivol][mu],
-				sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
+	{
+	  int t=rel_time_of_loclx(ivol);
+	  
+	  // for(int mu=0;mu<NDIM;mu++)
+	  //   complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand,t)],
+	  // 			sides[handcuffs_map[ihand].left][ivol][mu],
+	  // 			sides[handcuffs_map[ihand].right+"_photon"
+	  // 			      ][ivol][mu]);
+	    complex_summassign(handcuffs_contr[ind_handcuffs_contr(ihand,t)],
+			       sides[handcuffs_map[ihand].left][ivol][0]);
+	}
     
     //free
     for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)
@@ -634,15 +649,15 @@ namespace nissa
     //reduce and normalise
     glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);
     
-    for(size_t icombo=0;icombo<handcuffs_contr_map.size();icombo++)
+    for(size_t icombo=0;icombo<handcuffs_map.size();icombo++)
       {
-	FILE *fout=open_file(combine("%s/handcuffs_contr_%s",outfolder,handcuffs_contr_map[icombo].name.c_str()),"w");
+	FILE *fout=open_file(combine("%s/handcuffs_contr_%s",outfolder,handcuffs_map[icombo].name.c_str()),"w");
 	
 	  for(int t=0;t<glb_size[0];t++)
 	    {
 	      //normalize for nsources and 1+g0
 	      complex c;
-	      complex_prod_double(c,bar2pts_contr[ind_handcuffs_contr(icombo,t)],1.0/nhits);
+	      complex_prod_double(c,handcuffs_contr[ind_handcuffs_contr(icombo,t)],1.0/nhits);
 	      master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
 	    }
 	  

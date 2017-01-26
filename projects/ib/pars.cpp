@@ -240,6 +240,4 @@ namespace nissa
 	handcuffs_map.push_back(handcuffs_map_t(name,left,right));
       }
   }
-  
-
 }
