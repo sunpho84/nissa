@@ -133,6 +133,7 @@ namespace nissa
     
     int rel_t=t;
     if(rel_t!=-1) rel_t=(t+source_coord[0])%glb_size[0];
+    coords temp_dir={1,0,0,0};
     
     master_printf("Inserting r: %d\n",r);
     switch(inser)
@@ -147,7 +148,9 @@ namespace nissa
 	if(twisted_run) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,rel_t);
 	else            insert_Wilson_tadpole(loop_source,conf,ori,tadpole,rel_t);
 	break;
-	//case VECTOR:insert_external_source(source,NULL,ori,rel_t,r,loc_pion_curr);break;
+      case CVEC0:
+	if(twisted_run) insert_tm_conserved_current(loop_source,conf,ori,r,temp_dir,rel_t);
+	else            insert_Wilson_conserved_current(loop_source,conf,ori,temp_dir,rel_t);
       }
     
     source_time+=take_time();

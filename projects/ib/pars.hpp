@@ -32,11 +32,11 @@ namespace nissa
   const int follow_chris=0,follow_nazario=1;
   
   //define types of quark propagator used
-  const int nins_kind=8;
-  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE };//,  VECTOR};
-  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE };//,  VECTOR };
-  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE"};//, "VECTOR"};
-  const char ins_tag[nins_kind]=        {'-'   ,'S'     ,'P'     ,'F'     ,'A'         ,'C'         ,'T'      };//, 'V'};
+  const int nins_kind=9;
+  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE ,  CVEC0};
+  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE ,  CVEC0 };
+  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE", "CVEC0"};
+  const char ins_tag[nins_kind]=        {'-'   ,'S'     ,'P'     ,'F'     ,'A'         ,'C'         ,'T'      , 'V'};
   inline insertion_t ins_from_tag(const char tag)
   {
     int i=0;
