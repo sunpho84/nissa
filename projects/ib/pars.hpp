@@ -19,11 +19,11 @@ namespace nissa
   EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
   EXTERN_PARS int nso_spi,nso_col;
   EXTERN_PARS coords source_coord;
-  inline int rel_coord_of_glb_coord(int c,int  mu)
+  inline int rel_coord_of_glb_coord(int c,int mu)
   {return (glb_size[mu]+c-source_coord[mu])%glb_size[mu];}
   inline int rel_time_of_glb_time(int t)
   {return rel_coord_of_glb_coord(t,0);}
-  inline int rel_coord_of_loclx(int loclx,int  mu)
+  inline int rel_coord_of_loclx(int loclx,int mu)
   {return rel_coord_of_glb_coord(glb_coord_of_loclx[loclx][mu],mu);}
   inline int rel_time_of_loclx(int loclx)
   {return rel_coord_of_loclx(loclx,0);}
@@ -130,6 +130,15 @@ namespace nissa
   EXTERN_PARS int rnd_gauge_transform INIT_TO(0);
   inline void read_random_gauge_transform()
   {read_str_int("RandomGaugeTransform",&rnd_gauge_transform);}
+  
+  //perform a Landau gauge fixing
+  EXTERN_PARS int Landau_gauge_fix_flag INIT_TO(0);
+  EXTERN_PARS double gauge_fixing_precision INIT_TO(0);
+  inline void read_Landau_gauge_fix()
+  {
+    read_str_int("LandauGaugeFix",&Landau_gauge_fix_flag);
+    if(Landau_gauge_fix_flag) read_str_double("GaugeFixingPrecision",&gauge_fixing_precision);
+  }
   
   //local pion or muon current?
   EXTERN_PARS int loc_hadr_curr INIT_TO(false);

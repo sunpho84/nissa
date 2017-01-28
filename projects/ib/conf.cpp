@@ -47,6 +47,7 @@ namespace nissa
     
     //if asked, randomly transform the configurations
     if(rnd_gauge_transform) perform_random_gauge_transform(conf,conf);
+    if(Landau_gauge_fix_flag) Landau_gauge_fix(conf,conf,gauge_fixing_precision);
     
     //if clover term is included, compute it
     if(clover_run) clover_term(Cl,glb_cSW,conf);

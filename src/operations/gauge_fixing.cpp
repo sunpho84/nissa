@@ -153,10 +153,10 @@ namespace nissa
     if(nrank_dir[0]>1) nissa_free(buf);
   }
   
-  ////////////////////////////////////// landau or coulomb gauges ///////////////////////////////////////////////////////
+  ////////////////////////////////////// Landau or Coulomb gauges ///////////////////////////////////////////////////////
   
   //compute the functional on a single point
-  double compute_landau_or_coulomb_functional(quad_su3 *conf,int ivol,int start_mu)
+  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int ivol,int start_mu)
   {
     double F=0;
     
@@ -170,7 +170,7 @@ namespace nissa
   }
   
   //derivative of the fucntional
-  void compute_landau_or_coulomb_functional_der(su3 out,quad_su3 *conf,int ivol,int start_mu)
+  void compute_Landau_or_Coulomb_functional_der(su3 out,quad_su3 *conf,int ivol,int start_mu)
   {
     su3_put_to_zero(out);
     
@@ -182,7 +182,7 @@ namespace nissa
   }
   
   //compute the functional that gets minimised
-  double compute_landau_or_coulomb_functional(quad_su3 *conf,int start_mu)
+  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int start_mu)
   {
     GET_THREAD_ID();
     
@@ -194,8 +194,8 @@ namespace nissa
     return glb_reduce_double(F);
   }
   
-  //compute the quality of the landau or coulomb gauge fixing
-  double compute_landau_or_coulomb_gauge_fixing_quality(quad_su3 *conf,int start_mu)
+  //compute the quality of the Landau or Coulomb gauge fixing
+  double compute_Landau_or_Coulomb_gauge_fixing_quality(quad_su3 *conf,int start_mu)
   {
     GET_THREAD_ID();
     
@@ -223,7 +223,7 @@ namespace nissa
   }
   
   //do all the fixing
-  void landau_or_coulomb_gauge_fix(quad_su3 *conf,int start_mu,double over_relax_prob)
+  void Landau_or_Coulomb_gauge_fix(quad_su3 *conf,int start_mu,double over_relax_prob)
   {
     GET_THREAD_ID();
     
@@ -235,7 +235,7 @@ namespace nissa
 	    
 	    //compute the derivative
 	    su3 temp;
-	    compute_landau_or_coulomb_functional_der(temp,conf,ivol,start_mu);
+	    compute_Landau_or_Coulomb_functional_der(temp,conf,ivol,start_mu);
 	    
 	    //dagger
 	    su3 ref;
@@ -287,7 +287,7 @@ namespace nissa
     set_borders_invalid(conf);
   }
   
-  THREADABLE_FUNCTION_4ARG(landau_or_coulomb_gauge_fix, quad_su3*,fix_conf, quad_su3*,conf, int,start_mu, double,target_prec)
+  THREADABLE_FUNCTION_4ARG(Landau_or_Coulomb_gauge_fix, quad_su3*,fix_conf, quad_su3*,conf, int,start_mu, double,target_prec)
   {
     double time=-take_time();
     
@@ -303,15 +303,15 @@ namespace nissa
       {
 	if(iter%10==0)
 	  {
-	    double prec=compute_landau_or_coulomb_gauge_fixing_quality(fix_conf,start_mu);
-	    double func=compute_landau_or_coulomb_functional(fix_conf,start_mu);
+	    double prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fix_conf,start_mu);
+	    double func=compute_Landau_or_Coulomb_functional(fix_conf,start_mu);
 	    get_out=(prec<=target_prec);
 	    master_printf("quality: %d %16.16lg %16.16lg\n",iter,func,prec);
 	  }
 	
 	if(!get_out)
 	  {
-	    landau_or_coulomb_gauge_fix(fix_conf,start_mu,over_relax_prob);
+	    Landau_or_Coulomb_gauge_fix(fix_conf,start_mu,over_relax_prob);
 	    iter++;
 	  }
       }
@@ -322,10 +322,10 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //wrappers
-  void landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
-  {landau_or_coulomb_gauge_fix(conf_out,conf_in,0,precision);}
-  void coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
-  {landau_or_coulomb_gauge_fix(conf_out,conf_in,1,precision);}
+  void Landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
+  {Landau_or_Coulomb_gauge_fix(conf_out,conf_in,0,precision);}
+  void Coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
+  {Landau_or_Coulomb_gauge_fix(conf_out,conf_in,1,precision);}
   
   //perform a random gauge transformation
   THREADABLE_FUNCTION_2ARG(perform_random_gauge_transform, quad_su3*,conf_out, quad_su3*,conf_in)
