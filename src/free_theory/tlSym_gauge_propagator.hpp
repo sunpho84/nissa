@@ -15,6 +15,7 @@ namespace nissa
   void multiply_mom_space_tlSym_gauge_propagator(spin1field *out,spin1field *in,gauge_info gl);
   void multiply_x_space_tlSym_gauge_propagator_by_fft(spin1prop *out,spin1prop *in,gauge_info gl);
   void multiply_by_sqrt_tlSym_gauge_propagator(spin1field *out,spin1field *in,gauge_info gl);
+  void multiply_by_tlSym_gauge_propagator(spin1field *out,spin1field *in,gauge_info gl);
   void compute_tadpole(double *tadpole,gauge_info photon);
 }
 

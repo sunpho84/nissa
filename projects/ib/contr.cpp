@@ -588,32 +588,17 @@ namespace nissa
 	else
 	  {
 	    sides[right_with_photon]=rp=nissa_malloc(right_with_photon.c_str(),loc_vol,spin1field);
-	    fft4d((complex*)rp,(complex*)sides[h.right],all_dirs,sizeof(spin1field)/sizeof(complex),-1,1);
-	    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
-	      {
-		spin1prop prop;
-		mom_space_tlSym_gauge_propagator_of_imom(prop,photon,imom);
-		safe_spinspin_prod_spin(rp[imom],prop,rp[imom]);
-	      }
-	    set_borders_invalid(rp);
-	    fft4d((complex*)rp,(complex*)rp,all_dirs,sizeof(spin1field)/sizeof(complex),+1,0);
+	    multiply_by_tlSym_gauge_propagator(rp,sides[h.right],photon);
 	  }
       }
     
     //compute the hands
     for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	{
-	  int t=rel_time_of_loclx(ivol);
-	  
-	  // for(int mu=0;mu<NDIM;mu++)
-	  //   complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand,t)],
-	  // 			sides[handcuffs_map[ihand].left][ivol][mu],
-	  // 			sides[handcuffs_map[ihand].right+"_photon"
-	  // 			      ][ivol][mu]);
-	    complex_summassign(handcuffs_contr[ind_handcuffs_contr(ihand,t)],
-			       sides[handcuffs_map[ihand].left][ivol][0]);
-	}
+	for(int mu=0;mu<NDIM;mu++)
+	   complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
+				 sides[handcuffs_map[ihand].left][ivol][mu],
+				 sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
     
     //free
     for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)
@@ -624,7 +609,7 @@ namespace nissa
   //allocate handcuff contractions
   void allocate_handcuffs_contr()
   {
-    handcuffs_contr_size=glb_size[0]*handcuffs_map.size();
+    handcuffs_contr_size=ind_handcuffs_contr(handcuffs_map.size()-1)+1;
     handcuffs_contr=nissa_malloc("handcuffs_contr",handcuffs_contr_size,complex);
   }
   
@@ -644,14 +629,10 @@ namespace nissa
       {
 	FILE *fout=open_file(combine("%s/handcuffs_contr_%s",outfolder,handcuffs_map[icombo].name.c_str()),"w");
 	
-	  for(int t=0;t<glb_size[0];t++)
-	    {
-	      //normalize for nsources and 1+g0
-	      complex c;
-	      complex_prod_double(c,handcuffs_contr[ind_handcuffs_contr(icombo,t)],1.0/nhits);
-	      master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
-	    }
-	  
+	//normalize for nsources
+	complex c;
+	complex_prod_double(c,handcuffs_contr[ind_handcuffs_contr(icombo)],1.0/nhits);
+	master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
 	
 	master_fprintf(fout,"\n");
 	

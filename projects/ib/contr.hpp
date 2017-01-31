@@ -99,8 +99,8 @@ namespace nissa
   void print_handcuffs_contr();
   void free_handcuffs_contr();
   
-  inline int ind_handcuffs_contr(int ihand,int t)
-  {return t+glb_size[0]*ihand;}
+  inline int ind_handcuffs_contr(int ihand)
+  {return ihand;}
   EXTERN_CONTR int handcuffs_contr_size;
   
   //////////////////////////////////////////////// barion contractions //////////////////////////////////////////////////

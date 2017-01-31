@@ -209,36 +209,6 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //generate a stochastic gauge propagator
-  THREADABLE_FUNCTION_3ARG(generate_stochastic_tlSym_gauge_propagator, spin1field*,phi, spin1field*,eta, gauge_info,gl)
-  {
-    GET_THREAD_ID();
-    
-    //generate the source and pass to mom space
-    generate_stochastic_tlSym_gauge_propagator_source(eta);
-    pass_spin1field_from_x_to_mom_space(eta,eta,gl.bc,true);
-    
-    //multiply by prop
-    //put volume normalization due to convolution
-    //cancel zero modes
-    multiply_mom_space_tlSym_gauge_propagator(phi,eta,gl);
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
-      {
-	spin_prodassign_double(phi[imom],glb_vol);
-	//cancel_if_zero_mode(phi[imom],gl,imom);
-      }
-    set_borders_invalid(phi);
-    
-    //go back to x space
-    pass_spin1field_from_mom_to_x_space(eta,eta,gl.bc,true);
-    pass_spin1field_from_mom_to_x_space(phi,phi,gl.bc,true);
-    
-    //finally takes the dagger of eta, in case 100 only selected
-    //NISSA_PARALLEL_LOOP(ivol,0,loc_vol) for(int id=0;id<4;id++) complex_conj(eta[ivol][id],eta[ivol][id]);
-    //set_borders_invalid(eta);
-  }
-  THREADABLE_FUNCTION_END
-  
-  //generate a stochastic gauge propagator
   THREADABLE_FUNCTION_3ARG(multiply_by_sqrt_tlSym_gauge_propagator, spin1field*,photon, spin1field*,eta, gauge_info,gl)
   {
     GET_THREAD_ID();
@@ -263,6 +233,37 @@ namespace nissa
     
   }
   THREADABLE_FUNCTION_END
+  
+  //multiply by gauge prop passing to mom space
+  THREADABLE_FUNCTION_3ARG(multiply_by_tlSym_gauge_propagator, spin1field*,out, spin1field*,in, gauge_info,gl)
+  {
+    GET_THREAD_ID();
+    
+    pass_spin1field_from_x_to_mom_space(out,in,gl.bc,true);
+    
+    //multiply by prop
+    //put volume normalization due to convolution
+    //cancel zero modes
+    multiply_mom_space_tlSym_gauge_propagator(out,out,gl);
+    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+      {
+	spin_prodassign_double(out[imom],glb_vol);
+	cancel_if_zero_mode(out[imom],gl,imom);
+      }
+    set_borders_invalid(out);
+    
+    //go back to x space
+    pass_spin1field_from_mom_to_x_space(out,out,gl.bc,true);
+    
+  }
+  THREADABLE_FUNCTION_END
+  
+  //generate a stochastic gauge propagator
+  void generate_stochastic_tlSym_gauge_propagator(spin1field *phi,spin1field *eta, gauge_info gl)
+  {
+    generate_stochastic_tlSym_gauge_propagator_source(eta);
+    multiply_by_tlSym_gauge_propagator(phi,eta,gl);
+  }
   
   //compute the tadpole by taking the zero momentum ft of momentum prop
   void compute_tadpole(double *tadpole,gauge_info photon)
