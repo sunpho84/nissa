@@ -303,7 +303,7 @@ void mes_transf(complex *co,tm_quark_info qu)
     }
 }
 
-void check_mes()
+void check_mes_2pts()
 {
   tm_quark_info qu;
   qu.bc[0]=1;
@@ -391,7 +391,7 @@ void check_mes_V1V1()
   mes_transf(co,qu);
 }
 
-void check_mes2()
+void check_mes_self_en()
 {
   tm_quark_info qu;
   qu.bc[0]=1;
@@ -458,7 +458,7 @@ void check_mes2()
   nissa_free(pho_pro);
 }
 
-void check_mes3()
+void check_mes_cons_self_en()
 {
   tm_quark_info qu;
   qu.bc[0]=1;
@@ -548,7 +548,6 @@ void check_handcuffs()
   qu.kappa=qkappa;
   qu.mass=qmass;
   qu.r=qr;
-  double r=(qr==0)?1:-1;
   
   master_printf(" ------------------ handcuffs ------------------ \n");
   
@@ -574,18 +573,25 @@ void check_handcuffs()
 	  double dq=den_of_mom(q,qu);
 	  double Mq=M_of_mom(qu,q);
 	  double pq=mom_prod(sin_p,sin_q);
+	  //double qq=mom_prod(sin_q,sin_q);
 	
-	int pmq0=(glb_size[0]+glb_coord_of_loclx[p][0]-glb_coord_of_loclx[q][0])%glb_size[0];
-	
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    double contr=4*r*((Mq*sin_p[mu]+Mp*sin_q[mu])*Co(p,q,qu,mu)-Si(p,q,qu,mu)*(mu2+pq-Mp*Mq*sqr(r)));
-	    //contr=4*(Mq*sin_p[mu] + Mp*sin_q[mu])*r;
-	    double p0=sin_p[0],q0=sin_q[0];
-	    contr=4*(-((Mq*p0 + Mp*q0)*Si(p,q,qu,0)*sqr(r)) + Co(p,q,qu,0)*(mu2 + pq - 2*p0*q0 + Mp*Mq*sqr(r)));
-	    co[pmq0][mu][RE]+=NCOL*contr/(glb_size[0]*glb_vol*dp*dq);
-	  }
-      }
+	  int pmq0=(glb_size[0]+glb_coord_of_loclx[p][0]-glb_coord_of_loclx[q][0])%glb_size[0];
+	  
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      double contr=4*(-((Mq*sin_p[mu] + Mp*sin_q[mu])*Si(p,q,qu,mu)) + Co(p,q,qu,mu)*(mu2 + pq - 2*sin_p[mu]*sin_q[mu] + Mp*Mq));
+	      //not conserved
+	      //contr=4*(mu2 + pq - 2*p0*q0 + Mp*Mq*sqr(r));
+	      
+	      //insertion of conserved vector current on a line, integrated
+	      // contr=4*(Si(q,q,qu,0)*sqr(r)*(-2*Mq*(mu2 + pq) - Mp*(mu2 + qq - sqr(Mq)*sqr(r))) +
+	      // 	     Co(q,q,qu,0)*(-2*sin_q[0]*(mu2 + pq - Mp*Mq*sqr(r)) + sin_p[0]*(mu2 + qq + sqr(Mq)*sqr(r))));
+	      // co[pmq0][mu][RE]+=NCOL*contr/(glb_size[0]*glb_vol*dp*dq*dq);
+	      double a=2*M_PI*pmq0/glb_size[0]/2;
+	      complex f={cos(a),sin(a)};
+	      complex_summ_the_prod_double(co[pmq0][mu],f,NCOL*contr/(glb_size[0]*glb_vol*dp*dq));
+	    }
+	}
     }
   
   complex co_f_co[glb_size[0]];
@@ -597,7 +603,8 @@ void check_handcuffs()
       // for(int mu=0;mu<NDIM;mu++)
       // 	for(int nu=0;nu<NDIM;nu++)
       // 	  co_f_co[q0][RE]+=co[q0][mu][RE]*prop[mu][nu][RE]*co[q0][nu][RE];
-      co_f_co[q0][RE]+=co[q0][0][RE];
+
+      complex_summassign(co_f_co[q0],co[q0][0]);
     }
   
   mes_transf(co_f_co,qu);
@@ -630,6 +637,30 @@ void check_gen()
     
 }
 
+//print the propagator on a particular momentum
+void print_ref_prop()
+{
+  tm_quark_info qu;
+  qu.bc[0]=1;
+  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  qu.kappa=qkappa;
+  qu.mass=qmass;
+  qu.r=qr;
+  
+  spinspin p;
+  mom_space_twisted_propagator_of_imom(p,qu,loclx_of_coord_list(5,1,3,2),MAX_TWIST_BASE);
+  
+  master_printf("propagator at site 5,1,3,2:\n");
+  spinspin_print(p);
+  
+  spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
+  compute_x_space_twisted_propagator_by_fft(prop,qu,MAX_TWIST_BASE);
+  master_printf("x space propagator at site 5,1,3,2:\n");
+  spinspin_print(prop[loclx_of_coord_list(5,1,3,2)]);
+  
+  nissa_free(prop);
+}
+
 //init everything
 void init_simulation()
 {
@@ -646,13 +677,15 @@ void in_main(int narg,char **arg)
   //init simulation according to input file
   init_simulation();
   
+  //print_ref_prop();
+  
   check_handcuffs();
   master_printf("\n\n");
-  check_mes();
+  check_mes_2pts();
   master_printf("\n\n");
-  check_mes2();
+  check_mes_self_en();
   master_printf("\n\n");
-  check_mes3();
+  check_mes_cons_self_en();
   master_printf("\n\n");
   check_mes_V1V1();
   master_printf("\n\n");
