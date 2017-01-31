@@ -120,7 +120,7 @@ namespace nissa
     int enough_time=check_remaining_time();
     
     int ok_conf=false;
-    if(!asked_stop && !asked_restart and enough_time and iconf<ngauge_conf)
+    if(!asked_stop and !asked_restart and enough_time and iconf<ngauge_conf)
       do
 	{
 	  //Gauge path
@@ -156,7 +156,7 @@ namespace nissa
 	    }
 	  iconf++;
 	}
-      while(!ok_conf && iconf<ngauge_conf);
+      while(!ok_conf and iconf<ngauge_conf);
     
     master_printf("\n");
     
@@ -165,7 +165,7 @@ namespace nissa
     if(asked_restart) master_printf("Asked to restart\n");
     
     //writing that all confs have been measured and write it
-    if(!ok_conf && iconf>=ngauge_conf)
+    if(!ok_conf and iconf>=ngauge_conf)
       {
 	master_printf("Analyzed all confs, exiting\n\n");
 	file_touch("stop");
