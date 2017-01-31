@@ -48,25 +48,25 @@ namespace nissa
 	spincolor_put_to_zero(c);
 	
 	//compute relative coords
-	bool is_orig=true;
+	bool is_spat_orig=true;
 	coords rel_c;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    rel_c[mu]=rel_coord_of_loclx(ivol,mu);
-	    is_orig&=(rel_c[mu]==0);
+	    if(mu) is_spat_orig&=(rel_c[mu]==0);
 	  }
 	
 	//dilute in space
 	int mask=1;
-	for(int mu=0;mu<NDIM;mu++) mask&=(glb_coord_of_loclx[ivol][mu]%diluted_spat_source==0);
+	for(int mu=0;mu<NDIM;mu++) mask&=(rel_c[mu]%diluted_spat_source==0);
 	
 	//fill colour and spin index 0
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
 	      if(stoch_source and mask and (sou->tins==-1 or rel_c[0]==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),sou->noise_type);
-	      else if(is_orig) complex_put_to_real(c[id_si][ic_si],1);
-	  }
+	      if(!stoch_source and is_spat_orig and (sou->tins==-1 or rel_c[0]==sou->tins)) complex_put_to_real(c[id_si][ic_si],1);
+	    }
 	
 	//fill other spin indices
 	for(int id_so=0;id_so<nso_spi;id_so++)
@@ -78,16 +78,16 @@ namespace nissa
       }
     
     //compute the norm2, set borders invalid and if required, smear the conf
-    double loc_ori_source_norm2=0;
+    double ori_source_norm2=0;
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
 	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
 	  set_borders_invalid(s);
-	  loc_ori_source_norm2+=double_vector_glb_norm2(s,loc_vol);
+	  ori_source_norm2+=double_vector_glb_norm2(s,loc_vol);
 	  if(sou->sme) gaussian_smearing(s,s,ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
 	}
-    if(IS_MASTER_THREAD) sou->ori_source_norm2=loc_ori_source_norm2;
+    if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
   }
   THREADABLE_FUNCTION_END
   

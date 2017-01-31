@@ -230,14 +230,17 @@ namespace nissa
 	  }
 	
 	//read the sides combo
-	char name[1024];
-	read_str(name,1024);
-	char left[1024];
-	char right[1024];
-	read_str(left,1024);
-	read_str(right,1024);
-	
-	handcuffs_map.push_back(handcuffs_map_t(name,left,right));
+	for(int i=0;i<nhand_contr;i++)
+	  {
+	    char name[1024];
+	    read_str(name,1024);
+	    char left[1024];
+	    char right[1024];
+	    read_str(left,1024);
+	    read_str(right,1024);
+	    
+	    handcuffs_map.push_back(handcuffs_map_t(name,left,right));
+	  }
       }
   }
 }

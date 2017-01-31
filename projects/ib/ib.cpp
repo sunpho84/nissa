@@ -30,11 +30,8 @@ void init_simulation(char *path)
   ori_source_name_list.resize(nsources);
   //discard header
   expect_str("Name");
-  if(stoch_source)
-    {
-      expect_str("NoiseType");
-      expect_str("Tins");
-    }
+  if(stoch_source) expect_str("NoiseType");
+  expect_str("Tins");
   expect_str("Sme");
   expect_str("Store");
   //loop over sources
@@ -51,8 +48,8 @@ void init_simulation(char *path)
 	  char str_noise_type[20];
 	  read_str(str_noise_type,20);
 	  noise_type=convert_str_to_rnd_t(str_noise_type);
-	  read_int(&tins);
 	}
+      read_int(&tins);
       //smear
       int sme;
       read_int(&sme);
