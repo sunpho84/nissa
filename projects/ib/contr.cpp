@@ -500,6 +500,92 @@ namespace nissa
   
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
+  //compute the matrix element of the conserved current between two propagators
+  THREADABLE_FUNCTION_5ARG(conserved_vector_current_mel, spin1field*,si, dirac_matr*,g, int,r, const char*,id_Qbw, const char*,id_Qfw)
+  {
+    GET_THREAD_ID();
+    
+    //compute the gammas
+    dirac_matr GAMMA[5],temp_gamma;
+    if(twisted_run)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[r]);
+    else                temp_gamma=base_gamma[0];
+    dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
+    
+    for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
+    
+    for(int iso_spi_bw=0;iso_spi_bw<nso_spi;iso_spi_bw++)
+      for(int iso_col=0;iso_col<nso_col;iso_col++)
+	{
+	  int iso_spi_fw=g->pos[iso_spi_bw];
+	  int ifw=so_sp_col_ind(iso_spi_fw,iso_col);
+	  int ibw=so_sp_col_ind(iso_spi_bw,iso_col);
+	  
+	  //get componentes
+	  spincolor *Qfw=Q[id_Qfw][ifw];
+	  spincolor *Qbw=Q[id_Qbw][ibw];
+	  
+	  communicate_lx_spincolor_borders(Qfw);
+	  communicate_lx_spincolor_borders(Qbw);
+	  communicate_lx_quad_su3_borders(conf);
+	  
+	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		int ifw=loclx_neighup[ivol][mu];
+		spincolor f,Gf;
+		complex c;
+		
+		//piece psi_ivol U_ivol psi_fw
+		unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ifw]);
+		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
+		dirac_subt_the_prod_spincolor(Gf,GAMMA+mu,f);
+		spincolor_scalar_prod(c,Qbw[ivol],Gf);
+		complex_prodassign(c,g->entr[iso_spi_bw]);
+		complex_summ_the_prod_idouble(si[ivol][mu],c,-0.5);
+		
+		//piece psi_fw U_ivol^dag psi_ivol
+		unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],Qfw[ivol]);
+		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
+		dirac_summ_the_prod_spincolor(Gf,GAMMA+mu,f);
+		spincolor_scalar_prod(c,Qbw[ifw],Gf);
+		complex_prodassign(c,g->entr[iso_spi_bw]);
+		complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
+	      }
+	}
+  }
+  THREADABLE_FUNCTION_END
+  
+  //compute the matrix element of the current between two propagators
+  THREADABLE_FUNCTION_5ARG(vector_current_mel, spin1field*,si, dirac_matr*,g, int,r, const char*,id_Qbw, const char*,id_Qfw)
+  {
+    GET_THREAD_ID();
+    
+    dirac_matr GAMMA[NDIM];
+    for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
+    
+    for(int iso_spi_fw=0;iso_spi_fw<nso_spi;iso_spi_fw++)
+      for(int iso_col=0;iso_col<nso_col;iso_col++)
+	{
+	  int iso_spi_bw=g->pos[iso_spi_fw];
+	  
+	  //get componentes
+	  spincolor *Qbw=Q[id_Qbw][so_sp_col_ind(iso_spi_bw,iso_col)];
+	  spincolor *Qfw=Q[id_Qfw][so_sp_col_ind(iso_spi_fw,iso_col)];
+	  
+	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		spincolor temp;
+		complex c;
+		
+		unsafe_dirac_prod_spincolor(temp,GAMMA+mu,Qfw[ivol]);
+		spincolor_scalar_prod(c,Qbw[ivol],temp);
+		complex_summ_the_prod(si[ivol][mu],c,g->entr[iso_spi_fw]);
+	      }
+	}
+  }
+  THREADABLE_FUNCTION_END
+  
   //                                                          handcuffs
   
   THREADABLE_FUNCTION_0ARG(compute_handcuffs_contr)
@@ -526,55 +612,12 @@ namespace nissa
 	//compute dirac combo
 	dirac_matr g;
 	int ig=handcuffs_side_map[iside].igamma;
-	if(ig!=5 and nso_spi!=NDIRAC) crash("ig %d not available if not diluting in spin",ig);
+	if(ig!=5 and !diluted_spi_source) crash("ig %d not available if not diluting in spin",ig);
 	dirac_prod(&g,base_gamma+5,base_gamma+ig);
 	
-	//compute the gammas
-	dirac_matr GAMMA[5],temp_gamma;
-	if(twisted_run)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[Q[h.fw].r]);
-	else temp_gamma=base_gamma[0];
-	dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
-	for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
-	
-	for(int iso_spi_bw=0;iso_spi_bw<nso_spi;iso_spi_bw++)
-	  for(int iso_col=0;iso_col<nso_col;iso_col++)
-	    {
-	      int iso_spi_fw=g.pos[iso_spi_bw];
-	      int ifw=so_sp_col_ind(iso_spi_fw,iso_col);
-	      int ibw=so_sp_col_ind(iso_spi_bw,iso_col);
-	      
-	      //get componentes
-	      spincolor *Qfw=Q[h.fw][ifw];
-	      spincolor *Qbw=Q[h.bw][ibw];
-	      
-	      communicate_lx_spincolor_borders(Qfw);
-	      communicate_lx_spincolor_borders(Qbw);
-	      communicate_lx_quad_su3_borders(conf);
-	      
-	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-		for(int mu=0;mu<NDIM;mu++)
-		  {
-		    int ifw=loclx_neighup[ivol][mu];
-		    spincolor f,Gf;
-		    complex c;
-		    
-		    //piece psi_ivol U_ivol psi_fw
-		    unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ifw]);
-		    unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
-		    dirac_subt_the_prod_spincolor(Gf,GAMMA+mu,f);
-		    spincolor_scalar_prod(c,Qbw[ivol],Gf);
-		    complex_prodassign(c,g.entr[iso_spi_bw]);
-		    complex_summ_the_prod_idouble(si[ivol][mu],c,-0.5);
-		    
-		    //piece psi_fw U_ivol^dag psi_ivol
-		    unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],Qfw[ivol]);
-		    unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
-		    dirac_summ_the_prod_spincolor(Gf,GAMMA+mu,f);
-		    spincolor_scalar_prod(c,Qbw[ifw],Gf);
-		    complex_prodassign(c,g.entr[iso_spi_bw]);
-		    complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
-		  }
-	    }
+	//compute the matrix element
+	if(loc_hadr_curr) vector_current_mel(si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str());
+	else              conserved_vector_current_mel(si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str());
       }
     
     //add the photon
