@@ -193,6 +193,7 @@ namespace nissa
 	    eig_min=pow(q.mass,2); //possibly understimate, that's why this is separate
 	    break;
 	  default: crash("unknown");
+	    eig_min=0;
 	  }
 	
 	//take the pointer to the rational approximations for current flavor and mark down degeneracy

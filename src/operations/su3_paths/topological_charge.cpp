@@ -319,7 +319,7 @@ namespace nissa
   {
     //open the file and allocate remapper
     FILE *file=open_file(pars.path,conf_created?"w":"a"),*corr_file=NULL;
-    vector_remap_t *topo_corr_rem;
+    vector_remap_t *topo_corr_rem=NULL;
     if(pars.meas_corr)
       {
 	corr_file=fopen(pars.corr_path.c_str(),(conf_created or !file_exists(pars.corr_path))?"w":"r+");
