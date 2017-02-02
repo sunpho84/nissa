@@ -114,9 +114,9 @@ namespace nissa
   }
   
   //meson tags
-  const int nmes2pts_known=10;
-  enum mes2pts_known_t                      { P5P5 , GIP5 , P5GI , V0V0 , AKAK , VKVK , VKTK , TKVK , TKTK , BKBK };
-  const char mes2pts_tag[nmes2pts_known][5]={"P5P5","GIP5","P5GI","V0V0","AKAK","VKVK","VKTK","TKVK","TKTK","BKBK"};
+  const int nmes2pts_known=12;
+  enum mes2pts_known_t                      { P5P5 , GIP5 , P5GI , V0V0 , AKAK , VKVK , VKTK , TKVK , TKTK , BKBK , S0V1 , V1S0};
+  const char mes2pts_tag[nmes2pts_known][5]={"P5P5","GIP5","P5GI","V0V0","AKAK","VKVK","VKTK","TKVK","TKTK","BKBK","S0V1","V1S0"};
   mes2pts_known_t read_2pts_tag()
   {
     //read the tag
@@ -125,7 +125,7 @@ namespace nissa
     
     //convert to int
     int out=0;
-    while(strcasecmp(tag,mes2pts_tag[out]) && out<nmes2pts_known) out++;
+    while(strcasecmp(tag,mes2pts_tag[out]) and out<nmes2pts_known) out++;
     
     //check out
     if(out==nmes2pts_known)
@@ -168,6 +168,8 @@ namespace nissa
       {
 	switch(read_2pts_tag())
 	  {
+	  case S0V1: mes_gamma_list.push_back(idirac_pair_t(0,1));                                break;
+	  case V1S0: mes_gamma_list.push_back(idirac_pair_t(1,0));                                break;
 	  case P5P5: mes_gamma_list.push_back(idirac_pair_t(5,5));                                break;
 	  case P5GI: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(5,ig));      break;
 	  case GIP5: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,5));      break;

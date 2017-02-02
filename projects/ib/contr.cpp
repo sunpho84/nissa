@@ -46,16 +46,16 @@ namespace nissa
 	double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 in case of a point source
 	for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
 	  {
-	    int ig1=mes_gamma_list[ihadr_contr].so;
-	    int ig2=mes_gamma_list[ihadr_contr].si;
-	    if(nso_spi==1 && ig1!=5) crash("implemented only g5 contraction on the source for non-diluted source");
+	    int ig_so=mes_gamma_list[ihadr_contr].so;
+	    int ig_si=mes_gamma_list[ihadr_contr].si;
+	    if(nso_spi==1 and ig_so!=5) crash("implemented only g5 contraction on the source for non-diluted source");
 	    
 	    for(int i=0;i<nso_spi;i++)
 	      {
-		int j=(base_gamma+ig1)->pos[i];
+		int j=(base_gamma+ig_si)->pos[i];
 		
 		complex A;
-		unsafe_complex_prod(A,(base_gamma+ig1)->entr[i],(base_gamma+5)->entr[j]);
+		unsafe_complex_prod(A,(base_gamma+ig_so)->entr[i],(base_gamma+5)->entr[j]);
 		
 		for(int b=0;b<nso_col;b++)
 		  {
@@ -64,11 +64,11 @@ namespace nissa
 		    
 		    for(int k=0;k<NDIRAC;k++)
 		      {
-			int l=(base_gamma+ig2)->pos[k];
+			int l=(base_gamma+ig_si)->pos[k];
 			
 			//compute AB*norm
 			complex B;
-			unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig2)->entr[k]);
+			unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
 			complex AB;
 			unsafe_complex_prod(AB,A,B);
 			complex_prodassign_double(AB,norm);
