@@ -1,9 +1,7 @@
 .gitignore
 aclocal.m4
 autom4te.cache/
-build_bgq_emu/
-build_opt/
-build_pc
+build*
 compile_commands.json
 config/compile
 config/config.guess
