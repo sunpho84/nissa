@@ -287,6 +287,7 @@ void init_simulation(char *path)
   //read if we want to measure topological charge
   read_str_int("NTopMeas",&ntop_meas);
   top_meas_pars=nissa_malloc("top_meas_pars",ntop_meas,top_meas_pars_t);
+  for(int itop_meas=0;itop_meas<ntop_meas;itop_meas++) new(top_meas_pars+itop_meas) top_meas_pars_t;
   top_meas_time=nissa_malloc("top_meas_time",ntop_meas,double);
   vector_reset(top_meas_time);
   for(int itop=0;itop<ntop_meas;itop++) read_top_meas_pars(top_meas_pars[itop]);
