@@ -25,11 +25,11 @@ namespace nissa
     
     master_printf("Computing meson 2pts_contractions\n");
     
-    // Tr [ G1 G5 S1^+ G5 G2 S2 ]      G2 is on the sink
-    // (G1)_{ij(i)} (G5)_{j(i)} (S1*)^{ab}_{kj(i)} (G5)_k (G2)_{kl(k)} (S2)^{ab}_{l(k)i}
+    // Tr [ GSO G5 S1^+ G5 GSI S2 ]      GSI is on the sink
+    // (GSO)_{ij(i)} (G5)_{j(i)} (S1*)^{ab}_{kj(i)} (G5)_k (GSI)_{kl(k)} (S2)^{ab}_{l(k)i}
     //
-    // A(i)=(G1)_{ij(i)} (G5)_{j(i)}
-    // B(k)=(G5)_k (G2)_{kl(k)}
+    // A(i)=(GSO)_{ij(i)} (G5)_{j(i)}
+    // B(k)=(G5)_k (GSI)_{kl(k)}
     //
     // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
     
@@ -52,7 +52,7 @@ namespace nissa
 	    
 	    for(int i=0;i<nso_spi;i++)
 	      {
-		int j=(base_gamma+ig_si)->pos[i];
+		int j=(base_gamma+ig_so)->pos[i];
 		
 		complex A;
 		unsafe_complex_prod(A,(base_gamma+ig_so)->entr[i],(base_gamma+5)->entr[j]);
