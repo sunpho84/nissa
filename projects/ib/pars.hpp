@@ -90,7 +90,7 @@ namespace nissa
   }
   
   //set the dilution in space
-  inline void set_diluted_spat(int s)
+  inline void set_diluted_space(int s)
   {diluted_spat_source=s;}
   
   //initialize the dilutions
@@ -101,11 +101,11 @@ namespace nissa
       {
 	read_str_int("DilutedSpin",&dil_spin);
 	read_str_int("DilutedColor",&dil_col);
-	read_str_int("DilutedSpat",&dil_spa);
+	read_str_int("DilutedSpace",&dil_spa);
       }
     set_diluted_spin(dil_spin);
     set_diluted_color(dil_col);
-    set_diluted_spat(dil_spa);
+    set_diluted_space(dil_spa);
   }
   
   //initialize the random generator with the read seed
