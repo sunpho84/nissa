@@ -11,7 +11,7 @@ namespace nissa
   //smooth a configuration until measure is due
   bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,double &t,double &tnext_meas,int *dirs,int staple_min_dir)
   {
-    if(sp.method==smooth_pars_t::COOLING && dirs!=all_dirs) crash("not implemented");
+    if(sp.method==smooth_pars_t::COOLING  and  dirs!=all_dirs) crash("not implemented");
     
     bool finished=1;
     while(t+1e-10<tnext_meas)
@@ -31,7 +31,7 @@ namespace nissa
   //smooth a configuration as imposed
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs,int staple_min_dir)
   {
-    if(sp.method==smooth_pars_t::COOLING && dirs!=all_dirs) crash("not implemented");
+    if(sp.method==smooth_pars_t::COOLING  and  dirs!=all_dirs) crash("not implemented");
     
     switch(sp.method)
       {
@@ -47,14 +47,14 @@ namespace nissa
   {
     std::ostringstream os;
     
-    if(full||is_nonstandard())
+    if(full or is_nonstandard())
       {
-	if(full||method!=def_method()||
-	   (method==COOLING&&cool.is_nonstandard())||
-	   (method==STOUT&&stout.is_nonstandard())||
-	   (method==WFLOW&&Wflow.is_nonstandard())||
-	   (method==APE&&ape.is_nonstandard())||
-	   (method==HYP&&hyp.is_nonstandard()))
+	if(full or method!=def_method() or
+	   (method==COOLING and cool.is_nonstandard()) or
+	   (method==STOUT and stout.is_nonstandard()) or
+	   (method==WFLOW and Wflow.is_nonstandard()) or
+	   (method==APE and ape.is_nonstandard()) or
+	   (method==HYP and hyp.is_nonstandard()))
 	  {
 	    os<<" SmoothMethod\t=\t";
 	    switch(method)
@@ -67,7 +67,7 @@ namespace nissa
 	      }
 	    //os<<" /* alternatives: Cooling, Stout, WFlow, Ape, Hyp */\n";
 	  }
-	if(full||meas_each!=def_meas_each()) os<<" MeasEach\t=\t"<<def_meas_each()<<"\n";
+	if(full or meas_each!=def_meas_each()) os<<" MeasEach\t=\t"<<meas_each<<"\n";
       }
     
     return os.str();
