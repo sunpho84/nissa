@@ -411,7 +411,7 @@ namespace nissa
     //loop on the three different combinations of plans
     vector_reset(staples);
     NISSA_PARALLEL_LOOP(A,0,loc_vol)
-      for(int mu=0;mu<NDIM-1;mu++) //link direction
+      for(int mu=0;mu<NDIM;mu++) //link direction
 	for(int inu=0;inu<NDIM-1;inu++)              //  E---F---C
 	  {                                          //  |   |   | mu
 	    int nu=perp_dir[mu][inu];                //  D---A---B
