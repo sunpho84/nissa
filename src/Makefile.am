@@ -251,7 +251,6 @@ include_HEADERS+= \
 	hmc/fermions/rootst_eoimpr_quark_force.hpp \
 	hmc/fermions/pseudofermions_generation.hpp \
 	hmc/gauge/MFACC_fields.hpp \
-	hmc/gauge/MFACC_fields.hpp \
 	hmc/gauge/gluonic_action.hpp \
 	hmc/gauge/gluonic_force.hpp \
 	hmc/gauge/pure_gauge_hmc_step.hpp \
