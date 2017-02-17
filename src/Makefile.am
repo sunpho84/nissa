@@ -224,7 +224,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/fermions/rootst_eoimpr_quark_force.cpp \
 	hmc/fermions/pseudofermions_generation.cpp \
 	hmc/gauge/MFACC_fields.cpp \
-	hmc/gauge/MFACC_fields.cpp \
 	hmc/gauge/gluonic_force.cpp \
 	hmc/gauge/pure_gauge_hmc_step.cpp \
 	hmc/gauge/pure_gauge_implicit_integrator.cpp \
