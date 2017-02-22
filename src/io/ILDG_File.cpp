@@ -384,7 +384,12 @@ namespace nissa
     
     //control the magic number magic number
     if(header.magic_no!=ILDG_MAGIC_NO)
-      crash("wrong magic number, expected %x and obtained %x",ILDG_MAGIC_NO,header.magic_no);
+      {
+	char buf[1024];
+	snprintf(buf,1024,"wrong magic number, expected %x and obtained %x",ILDG_MAGIC_NO,header.magic_no);
+	if(ignore_ILDG_magic_number) master_printf("Warning, %s",buf);
+	else crash(buf);
+      }
     
     return header;
   }

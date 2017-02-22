@@ -21,6 +21,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_vir.hpp"
+#include "io/ILDG_File.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 
@@ -370,6 +371,7 @@ namespace nissa
     tags.push_back(triple_tag("set_x_nranks",		       fix_nranks[1]));
     tags.push_back(triple_tag("set_y_nranks",		       fix_nranks[2]));
     tags.push_back(triple_tag("set_z_nranks",		       fix_nranks[3]));
+    tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
 #ifdef USE_VNODES
     tags.push_back(triple_tag("vnode_paral_dir",	       vnode_paral_dir));
 #endif

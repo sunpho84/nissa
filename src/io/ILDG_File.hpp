@@ -16,6 +16,13 @@
 #include "checksum.hpp"
 #include "base/debug.hpp"
 
+#ifndef EXTERN_ILDG
+ #define EXTERN_ILDG extern
+ #define INIT_TO(A)
+#else
+ #define INIT_TO(A) =A
+#endif
+
 namespace nissa
 {
 #ifdef USE_MPI
@@ -27,6 +34,8 @@ namespace nissa
   typedef FILE* ILDG_File;
 #endif
 #endif
+  
+  EXTERN_ILDG int ignore_ILDG_magic_number INIT_TO(false);
   
   //ILDG header
   struct ILDG_header
@@ -139,5 +148,8 @@ namespace nissa
     }
   };
 }
+
+#undef EXTERN_ILDG
+#undef INIT_TO
 
 #endif
