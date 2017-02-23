@@ -45,7 +45,7 @@ namespace nissa
       switch(method)
 	{
 	case COOLING:return cool.nsteps/(int)meas_each;break;
-	case STOUT:return stout.nlevels/(int)meas_each; break;
+	case STOUT:return stout.nlevels/(int)meas_each;break;
 	case WFLOW:return Wflow.T/meas_each;break;
 	case APE:return ape.nlevels/(int)meas_each;break;
 	case HYP:return hyp.nlevels/(int)meas_each;break;

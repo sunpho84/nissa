@@ -8,6 +8,7 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "operations/gaugeconf.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 #include "operations/su3_paths/topological_charge.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
@@ -20,7 +21,7 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_7ARG(compute_tensorial_density, complex*,dens, complex**,loc_dens, theory_pars_t*,tp, quad_su3 **,conf, int,dir, int,nhits, double,residue)
+  THREADABLE_FUNCTION_7ARG(compute_tensorial_density, complex*,dens, complex**,loc_dens, theory_pars_t*,tp, quad_su3 **,conf, std::vector<int>,dirs, int,nhits, double,residue)
   {
     //allocate noise and solution
     color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
@@ -29,7 +30,7 @@ namespace nissa
     for(int iflav=0;iflav<tp->nflavs();iflav++)
       {
 	if(tp->quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
-	    
+	
 	//reset the local density
 	vector_reset(loc_dens[iflav]);
 	for(int ihit=0;ihit<nhits;ihit++)
@@ -50,91 +51,80 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the spin-polarization for all flavors
-  void measure_spinpol(quad_su3 **ferm_conf,quad_su3 **glu_conf,theory_pars_t &theory_pars,spinpol_meas_pars_t &meas_pars,int iconf,int conf_created)
+  void measure_spinpol(quad_su3 **ferm_conf,quad_su3 **glu_conf,theory_pars_t &tp,spinpol_meas_pars_t &mp,int iconf,int conf_created)
   {
-    if(meas_pars.use_ferm_conf_for_gluons) glu_conf=ferm_conf;
+    if(mp.use_ferm_conf_for_gluons) glu_conf=ferm_conf;
     
-    /*
-    //count the number of cooled levels
-    cool_pars_t *sp=&sp->smooth_pars;
-    int ncool_meas=cp->nsteps/sp->meas_each+1;
-    verbosity_lv3_master_printf("ncool_meas: %d\n",ncool_meas);
+    smooth_pars_t &sp=mp.smooth_pars;
+    int nflavs=tp.nflavs();
+    int ndirs=mp.ndirs();
+    
+    //open the file
+    FILE *fout=open_file(mp.path,conf_created?"w":"a");
     
     //allocate point and local results
     double *topo_dens=nissa_malloc("topo_dens",loc_vol,double);
-    complex tens[tp.nflavs()];
-    complex *tens_dens[tp.nflavs()];
     complex *spinpol_dens=nissa_malloc("spinpol_dens",loc_vol,complex);
-    for(int iflav=0;iflav<tp.nflavs();iflav++) tens_dens[iflav]=nissa_malloc("tens_dens_loc",loc_vol+bord_vol,complex);
+    complex tens[nflavs*ndirs];
+    complex *tens_dens[nflavs*ndirs];
+    for(int iflav_dir=0;iflav_dir<nflavs*ndirs;iflav_dir++) tens_dens[iflav_dir]=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
     
     //evaluate the tensorial density for all quarks
-    compute_tensorial_density(tens,tens_dens,&tp,ferm_conf,sp->dir,sp->nhits,sp->residue);
+    compute_tensorial_density(tens,tens_dens,&tp,ferm_conf,mp.dirs,mp.nhits,mp.residue);
     
     //compute the topological charge and the product of topological and tensorial density
-    quad_su3 *cooled_conf=nissa_malloc("cooled_conf",loc_vol+bord_vol,quad_su3);
-    paste_eo_parts_into_lx_conf(cooled_conf,glu_conf);
-    double topo[ncool_meas];
-    complex spinpol[ncool_meas][tp.nflavs()];
-    for(int icool=0;icool<=cp->nsteps;icool++)
+    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
+    paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
+     double t=0,tnext_meas=sp.meas_each;
+    bool finished;
+    do
       {
-	if(icool%cp->meas_each)
-	  {
-	    int imeas=icool/cp->meas_each;
-	    
-	    //topological charge
-	    local_topological_charge(topo_dens,cooled_conf);
-	    double_vector_glb_collapse(topo+imeas,topo_dens,loc_vol);
-	    
-	    //topo-tens
-	    for(int iflav=0;iflav<tp.nflavs();iflav++)
-	      {
-		GET_THREAD_ID();
-		NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_prod_double(spinpol_dens[ivol],tens_dens[iflav][ivol],topo_dens[ivol]);
-		THREAD_BARRIER();
-		
-		complex_vector_glb_collapse(spinpol[imeas][iflav],spinpol_dens,loc_vol);
-	      }
-	  }
+	//plaquette and local charge
+	double plaq=global_plaquette_lx_conf(smoothed_conf);
+	local_topological_charge(topo_dens,smoothed_conf);
+	//total charge
+	double tot_charge;
+	double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
 	
-	//cool if needed
-	if(icool!=cp->nsteps) cool_lx_conf(cooled_conf,cp->gauge_action,cp->overrelax_flag,cp->overrelax_exp);
+	//topo-tens
+	for(int idir=0;idir<mp.ndirs();idir++)
+	  for(int iflav=0;iflav<tp.nflavs();iflav++)
+	    {
+	      GET_THREAD_ID();
+	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_prod_double(spinpol_dens[ivol],tens_dens[idir+ndirs*iflav][ivol],topo_dens[ivol]);
+	      THREAD_BARRIER();
+	      
+	      complex spinpol;
+	      complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
+	      master_fprintf(fout, "%d\t%lg\t%d\t%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,t,iflav,idir,plaq,tot_charge,spinpol[RE],spinpol[IM]);
+	    }
+	finished=smooth_lx_conf_until_next_meas(smoothed_conf,sp,t,tnext_meas);
       }
+    while(!finished);
     
     //free
-    for(int icool=0;icool<ncool_meas;icool++) nissa_free(topo_dens);
-    for(int iflav=0;iflav<tp.nflavs();iflav++) nissa_free(tens_dens[iflav]);
+    nissa_free(topo_dens);
+    for(int iflav_dir=0;iflav_dir<nflavs*ndirs;iflav_dir++) nissa_free(tens_dens[iflav_dir]);
     nissa_free(spinpol_dens);
-    nissa_free(cooled_conf);
-    
-    //////////////////////////////////// output //////////////////////////////////
-    
-    //open the file and write header
-    FILE *fout=open_file(tp.spinpol_meas_pars.path,conf_created?"w":"a");
-    master_fprintf(fout," # conf %d, nhits %d, dir %d, residue %lg\n\n",iconf,sp->nhits,sp->dir,sp->residue);
-    
-    //write tensorial density alone
-    for(int iflav=0;iflav<tp.nflavs();iflav++) master_fprintf(fout," tdens flav %d:\t%+016.016lg\t%+016.016lg\n",iflav,tens[iflav][RE],tens[iflav][IM]);
-    master_fprintf(fout,"\n");
-    
-    //write topological charge density
-    for(int imeas=0;imeas<ncool_meas;imeas++) master_fprintf(fout," topocharge ncool %d:\t%+016.016lg\n",imeas*cp->meas_each,topo[imeas]);
-    master_fprintf(fout,"\n");
-    
-    //write tensorial*topo density
-    for(int imeas=0;imeas<ncool_meas;imeas++)
-      for(int iflav=0;iflav<tp.nflavs();iflav++)
-	master_fprintf(fout," spinpol flav %d cool %d:\t%+016.016lg\t%+016.016lg\n",iflav,imeas*cp->meas_each,spinpol[imeas][iflav][RE],spinpol[imeas][iflav][IM]);
-    master_fprintf(fout,"\n\n\n");
+    nissa_free(smoothed_conf);
     
     //close
     close_file(fout);
-    */
   }
   
   std::string spinpol_meas_pars_t::get_str(bool full)
   {
     std::ostringstream os;
-    crash("");
+    
+    os<<"MeasTop\n";
+    os<<base_fermionic_meas_t::get_str(full);
+    if(dirs.size())
+      {
+	os<<"Dirs\t=\t{"<<dirs[0];
+	for(size_t idir=1;idir<dirs.size();idir++) os<<","<<dirs[idir];
+	os<<"}";
+      }
+    os<<smooth_pars.get_str(full);
     
     return os.str();
   }

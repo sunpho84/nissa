@@ -471,7 +471,7 @@ namespace nissa
   //store the topological charge if needed
   void topotential_pars_t::store_if_needed(quad_su3 **ext_conf,int iconf)
   {
-    if(flag==2 && iconf%each==0 && iconf>=after)
+    if(flag==2 and iconf%each==0 and iconf>=after)
       {
 	double charge;
 	quad_su3 *conf[2];
