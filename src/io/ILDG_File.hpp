@@ -23,6 +23,10 @@
  #define INIT_TO(A) =A
 #endif
 
+#define ILDG_MAGIC_NO                   0x456789ab
+#define ILDG_MB_MASK                    ((uint16_t)0x80)
+#define ILDG_ME_MASK                    ((uint16_t)0x40)
+
 namespace nissa
 {
 #ifdef USE_MPI

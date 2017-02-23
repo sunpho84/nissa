@@ -17,16 +17,14 @@
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 
-#include "ILDG_File.hpp"
 #include "endianness.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
 
-#define ILDG_MAGIC_NO                   0x456789ab
-#define ILDG_MB_MASK                    ((uint16_t)0x80)
-#define ILDG_ME_MASK                    ((uint16_t)0x40)
+#define EXTERN extern
+#include "ILDG_File.hpp"
 
 namespace nissa
 {
