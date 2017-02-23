@@ -123,7 +123,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	  {
 	    int sign=1,ivol=loclx_of_loceo[eo][ieo];
-	    for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1)&&(glb_coord_of_loclx[ivol][mu]&0x1));
+	    for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1) and (glb_coord_of_loclx[ivol][mu]&0x1));
 	    if(abs(sign)!=1) crash("unexpected sign %d",sign);
 	    color_prod_double(source[eo][ieo],source[eo][ieo],sign);
 	  }
@@ -259,7 +259,7 @@ namespace nissa
     
     os<<"MeasMesonCorrs\n";
     os<<base_fermionic_meas_t::get_str(full);
-    if(mesons.size()||full)
+    if(mesons.size() or full)
       {
 	os<<" MesonList\t=\t{";
 	for(size_t i=0;i<mesons.size();i++)
