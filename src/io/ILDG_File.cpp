@@ -23,7 +23,7 @@
  #include "routines/thread.hpp"
 #endif
 
-#define EXTERN extern
+#define EXTERN_ILDG
 #include "ILDG_File.hpp"
 
 namespace nissa

@@ -251,7 +251,7 @@ void read_spinpol_meas_pars(std::vector<spinpol_meas_pars_t> &pars,int itheory)
       pars.back().itheory=itheory;
       pars.back().path=read_path();
       read_str_double("InvResidue",&pars.back().residue);
-      read_str_int("Dir",&pars.back().dir);
+      //read_str_int("Dir",&pars.back().dir);
       read_str_int("NHits",&pars.back().nhits);
       read_str_int("UseFermConfForGluons",&pars.back().use_ferm_conf_for_gluons);
       read_smooth_pars(pars.back().smooth_pars);
