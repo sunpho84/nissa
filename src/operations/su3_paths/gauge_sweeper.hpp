@@ -185,13 +185,16 @@ namespace nissa
     switch(gauge_action_name)
       {
       case WILSON_GAUGE_ACTION:
+	init_Wilson_sweeper();
 	Wilson_sweeper->C1=0;
 	return Wilson_sweeper;
 	break;
       case TLSYM_GAUGE_ACTION:
+	init_Symanzik_sweeper();
 	Symanzik_sweeper->C1=C1_TLSYM;
 	return Symanzik_sweeper;
       case IWASAKI_GAUGE_ACTION:
+	init_Symanzik_sweeper();
 	Symanzik_sweeper->C1=C1_IWASAKI;
 	return Symanzik_sweeper;
 	break;
