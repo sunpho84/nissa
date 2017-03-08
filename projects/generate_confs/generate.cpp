@@ -387,20 +387,20 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   for(int itheory=0;itheory<drv->ntheories();itheory++)
     if(drv->any_fermionic_measure_is_due(itheory,iconf))
       {
-	  //if needed stout
-	  quad_su3 **sme_conf=(drv->theories[itheory].stout_pars.nlevels==0)?conf:new_conf;
-	  
-	  //it is pointless to smear if there is no fermionic measurement
-	  stout_smear(sme_conf,conf,&(drv->theories[itheory].stout_pars));
-	  
-	  RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
-	  RANGE_FERMIONIC_MEAS(drv,quark_rendens);
-	  RANGE_FERMIONIC_MEAS(drv,chir_zumba);
-	  RANGE_FERMIONIC_MEAS(drv,qed_corr);
-	  //RANGE_FERMIONIC_MEAS(drv,spinpol);
-	  RANGE_FERMIONIC_MEAS(drv,magnetization);
-	  RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
-	  RANGE_FERMIONIC_MEAS(drv,meson_corr);
+	//if needed stout
+	quad_su3 **sme_conf=(drv->theories[itheory].stout_pars.nlevels==0)?conf:new_conf;
+	
+	//it is pointless to smear if there is no fermionic measurement
+	stout_smear(sme_conf,conf,&(drv->theories[itheory].stout_pars));
+	
+	RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
+	RANGE_FERMIONIC_MEAS(drv,quark_rendens);
+	RANGE_FERMIONIC_MEAS(drv,chir_zumba);
+	RANGE_FERMIONIC_MEAS(drv,qed_corr);
+	RANGE_FERMIONIC_MEAS_EXTENDED(drv,spinpol,conf);
+	RANGE_FERMIONIC_MEAS(drv,magnetization);
+	RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
+	RANGE_FERMIONIC_MEAS(drv,meson_corr);
       }
   
   meas_time+=take_time();

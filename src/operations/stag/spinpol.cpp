@@ -23,6 +23,8 @@ namespace nissa
 {
   THREADABLE_FUNCTION_7ARG(compute_tensorial_density, complex*,dens, complex**,loc_dens, theory_pars_t*,tp, quad_su3 **,conf, std::vector<int>,dirs, int,nhits, double,residue)
   {
+    int ndirs=dirs.size();
+    
     //allocate noise and solution
     color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
     color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
@@ -32,13 +34,18 @@ namespace nissa
 	if(tp->quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
 	
 	//reset the local density
-	vector_reset(loc_dens[iflav]);
+	for(int idir=0;idir<ndirs;idir++) vector_reset(loc_dens[idir+ndirs*iflav]);
 	for(int ihit=0;ihit<nhits;ihit++)
 	  {
+	    //AOH QUA C'E' DA SCRIVERE
+	    
 	  }
 	//final normalization and collapse
-	double_vector_prod_double((double*)(loc_dens[iflav]),(double*)(loc_dens[iflav]),1.0/nhits,loc_vol*2);
-	complex_vector_glb_collapse(dens[iflav],loc_dens[iflav],loc_vol);
+	for(int idir=0;idir<ndirs;idir++)
+	  {
+	    double_vector_prod_double((double*)(loc_dens[idir+ndirs*iflav]),(double*)(loc_dens[idir+ndirs*iflav]),1.0/nhits,loc_vol*2);
+	    complex_vector_glb_collapse(dens[idir+ndirs*iflav],loc_dens[idir+ndirs*iflav],loc_vol);
+	  }
       }
     
     //free
@@ -51,9 +58,9 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the spin-polarization for all flavors
-  void measure_spinpol(quad_su3 **ferm_conf,quad_su3 **glu_conf,theory_pars_t &tp,spinpol_meas_pars_t &mp,int iconf,int conf_created)
+  void measure_spinpol(quad_su3 **ferm_conf,theory_pars_t &tp,spinpol_meas_pars_t &mp,int iconf,int conf_created,quad_su3 **glu_conf)
   {
-    if(mp.use_ferm_conf_for_gluons) glu_conf=ferm_conf;
+    if(mp.use_ferm_conf_for_gluons or glu_conf==NULL) glu_conf=ferm_conf;
     
     smooth_pars_t &sp=mp.smooth_pars;
     int nflavs=tp.nflavs();
@@ -116,13 +123,13 @@ namespace nissa
   {
     std::ostringstream os;
     
-    os<<"MeasTop\n";
+    os<<"MeasSpinPol\n";
     os<<base_fermionic_meas_t::get_str(full);
     if(dirs.size())
       {
-	os<<"Dirs\t=\t{"<<dirs[0];
+	os<<" Dirs\t\t=\t{"<<dirs[0];
 	for(size_t idir=1;idir<dirs.size();idir++) os<<","<<dirs[idir];
-	os<<"}";
+	os<<"}"<<std::endl;
       }
     os<<smooth_pars.get_str(full);
     

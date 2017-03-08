@@ -44,6 +44,7 @@ namespace nissa
     std::vector<fermionic_putpourri_meas_pars_t> fermionic_putpourri_meas;
     std::vector<quark_rendens_meas_pars_t> quark_rendens_meas;
     std::vector<chir_zumba_meas_pars_t> chir_zumba_meas;
+    std::vector<spinpol_meas_pars_t> spinpol_meas;
     std::vector<qed_corr_meas_pars_t> qed_corr_meas;
     std::vector<magnetization_meas_pars_t> magnetization_meas;
     
@@ -63,6 +64,7 @@ namespace nissa
 	measure_is_due(meson_corr_meas,itheory,iconf) or
 	measure_is_due(quark_rendens_meas,itheory,iconf) or
 	measure_is_due(chir_zumba_meas,itheory,iconf) or
+	measure_is_due(spinpol_meas,itheory,iconf) or
 	measure_is_due(qed_corr_meas,itheory,iconf);
     }
     //print a message if a measure is due
@@ -73,10 +75,16 @@ namespace nissa
       return a;
     }
     
-#define RANGE_FERMIONIC_MEAS(DRV,OBS)					\
-    for(size_t imeas=0;imeas<DRV->NAME2(OBS,meas).size();imeas++)	\
-      if(DRV->if_meas_is_due_print(DRV->NAME2(OBS,meas)[imeas],itheory,iconf,#OBS)) \
-	NAME2(measure,OBS)(sme_conf,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created);
+#define RANGE_FERMIONIC_MEAS_IF(DRV,OBS)				\
+    for(size_t imeas=0;imeas<DRV->NAME2(OBS,meas).size();imeas++)
+    
+#define RANGE_FERMIONIC_MEAS(DRV,OBS)				\
+    RANGE_FERMIONIC_MEAS_IF(DRV,OBS)					\
+    NAME2(measure,OBS)(sme_conf,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created);
+    
+#define RANGE_FERMIONIC_MEAS_EXTENDED(DRV,OBS,...)			\
+    RANGE_FERMIONIC_MEAS_IF(DRV,OBS)					\
+    NAME2(measure,OBS)(sme_conf,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created,__VA_ARGS__);
     
     //add
     void add_meson_corr_meas(meson_corr_meas_pars_t &m){meson_corr_meas.push_back(m);meson_corr_meas.back().itheory=ntheories()-1;}
@@ -84,6 +92,7 @@ namespace nissa
     void add_fermionic_putpourri_meas(fermionic_putpourri_meas_pars_t &m){fermionic_putpourri_meas.push_back(m);fermionic_putpourri_meas.back().itheory=ntheories()-1;}
     void add_quark_rendens_meas(quark_rendens_meas_pars_t &m){quark_rendens_meas.push_back(m);quark_rendens_meas.back().itheory=ntheories()-1;}
     void add_chir_zumba_meas(chir_zumba_meas_pars_t &m){chir_zumba_meas.push_back(m);chir_zumba_meas.back().itheory=ntheories()-1;}
+    void add_spinpol_meas(spinpol_meas_pars_t &m){spinpol_meas.push_back(m);spinpol_meas.back().itheory=ntheories()-1;}
     void add_qed_corr_meas(qed_corr_meas_pars_t &m){qed_corr_meas.push_back(m);qed_corr_meas.back().itheory=ntheories()-1;}
     void add_magnetization_meas(magnetization_meas_pars_t &m){magnetization_meas.push_back(m);magnetization_meas.back().itheory=ntheories()-1;}
     
@@ -171,6 +180,7 @@ namespace nissa
       os<<vector_get_str(fermionic_putpourri_meas,full);
       os<<vector_get_str(quark_rendens_meas,full);
       os<<vector_get_str(chir_zumba_meas,full);
+      os<<vector_get_str(spinpol_meas,full);
       os<<vector_get_str(qed_corr_meas,full);
       os<<vector_get_str(magnetization_meas,full);
       //gauge masures

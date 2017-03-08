@@ -120,6 +120,9 @@ Itheory DEBUG_PRINTF("Found Itheory\n");return TK_ITHEORY;
 NCopies DEBUG_PRINTF("Found NCopies\n");return TK_NCOPIES;
 NHits DEBUG_PRINTF("Found NHits\n");return TK_NHITS;
 
+ /* dirs */
+Dirs DEBUG_PRINTF("Found Dirs\n");return TK_DIRS;
+
  /* path */
 Path DEBUG_PRINTF("Found Path\n");return TK_PATH;
 
@@ -193,7 +196,7 @@ MeasEach DEBUG_PRINTF("Found MeasEach\n");return TK_MEAS_EACH;
 
  /* topo corr */
 MeasCorr DEBUG_PRINTF("Found MeasCorr\n");return TK_MEAS_CORR;
-MeasCorrPath DEBUG_PRINTF("Found MeasCorrPath\n");return TK_MEAS_CORR_PATH;
+4CorrPath DEBUG_PRINTF("Found CorrPath\n");return TK_CORR_PATH;
 
  /* spatial or temporal */
 Spatial DEBUG_PRINTF("Found Spatial\n");return TK_SPATIAL;
@@ -243,6 +246,7 @@ MeasRendens DEBUG_PRINTF("Found MeasRendens\n");return TK_MEAS_RENDENS;
 MeasQedCorrs DEBUG_PRINTF("Found MeasQedCorrs\n");return TK_MEAS_QED_CORRS;
 MeasMagnetiz DEBUG_PRINTF("Found MeasMagnetiz\n");return TK_MEAS_MAGNETIZ;
 MeasZumba DEBUG_PRINTF("Found MeasZumba\n");return TK_MEAS_ZUMBA;
+MeasSpinPol DEBUG_PRINTF("Found MeasSpinPol\n");return TK_MEAS_SPINPOL;
 
  /* parameters for PutPourri */
 ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;

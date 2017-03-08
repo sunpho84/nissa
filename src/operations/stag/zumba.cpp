@@ -61,7 +61,6 @@ namespace nissa
       }
     
     DELETE_FIELD_T(M);
-
   }
   
   //print

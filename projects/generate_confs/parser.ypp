@@ -52,6 +52,7 @@
     nissa::magnetization_meas_pars_t *magnetization_meas;
     nissa::quark_rendens_meas_pars_t *quark_rendens_meas;
     nissa::chir_zumba_meas_pars_t *chir_zumba_meas;
+    nissa::spinpol_meas_pars_t *spinpol_meas;
     nissa::qed_corr_meas_pars_t *qed_corr_meas;
     nissa::fermionic_putpourri_meas_pars_t *fermionic_putpourri_meas;
     nissa::gauge_obs_meas_pars_t *plaq_pol_meas;
@@ -108,8 +109,9 @@
 %type <text_list> text_list
 %type <text_list> internal_text_list
 //each
-%token <int_numb> TK_EACH
-%type <int_numb> each
+%token TK_EACH
+%token TK_MEAS_EACH
+%type <int_numb> each meas_each
 //after
 %token <int_numb> TK_AFTER
 %type <int_numb> after
@@ -152,11 +154,9 @@
 //smooth method
 %token TK_SMOOTH_METHOD
 %type <smooth_pars> smooth_pars
-//meas ach
-%token TK_MEAS_EACH
 //topo measure
 %token TK_MEAS_CORR
-%token TK_MEAS_CORR_PATH
+%token TK_CORR_PATH
 //stout pars
 %token TK_STOUT
 %type <stout_pars> stout_pars
@@ -200,6 +200,9 @@
 //index of theory, number of copies and hits
 %token TK_ITHEORY TK_NCOPIES TK_NHITS
 %type <int_numb> itheory ncopies nhits
+//directions
+%token TK_DIRS
+%type <int_list> dirs
 //meson corr
 %type <meson_corr_meas> meson_corr_meas
 %token TK_MEAS_MESON_CORRS
@@ -220,6 +223,9 @@
 //zumba
 %type <chir_zumba_meas> chir_zumba_meas
 %token TK_MEAS_ZUMBA
+//spinpol
+%type <spinpol_meas> spinpol_meas
+%token TK_MEAS_SPINPOL
 //qed corr
 %type <qed_corr_meas> qed_corr_meas
 %token TK_MEAS_QED_CORRS
@@ -291,6 +297,7 @@ global_specify: geometry
               | fermionic_putpourri_meas {driver->add_fermionic_putpourri_meas(*$1);delete $1;}
               | quark_rendens_meas {driver->add_quark_rendens_meas(*$1);delete $1;}
               | chir_zumba_meas {driver->add_chir_zumba_meas(*$1);delete $1;}
+              | spinpol_meas {driver->add_spinpol_meas(*$1);delete $1;}
               | qed_corr_meas {driver->add_qed_corr_meas(*$1);delete $1;}
               | magnetization_meas {driver->add_magnetization_meas(*$1);delete $1;}
 /////////////// gauge measures ////////////////////
@@ -321,6 +328,8 @@ gauge_action: TK_GAUGE_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
 
 each: TK_EACH '=' int_numb {$$=$3;};
 
+meas_each: TK_MEAS_EACH '=' int_numb {$$=$3;};
+
 after: TK_AFTER '=' int_numb {$$=$3;};
 
 residue: TK_RESIDUE '=' double_numb {$$=$3;};
@@ -330,6 +339,8 @@ itheory: TK_ITHEORY '=' int_numb {$$=$3;};
 ncopies: TK_NCOPIES '=' int_numb {$$=$3;};
 
 nhits: TK_NHITS '=' int_numb {$$=$3;};
+
+dirs: TK_DIRS '=' int_list {$$=$3;};
 
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 
@@ -543,6 +554,21 @@ chir_zumba_meas: TK_MEAS_ZUMBA {$$=new chir_zumba_meas_pars_t();}
                   | chir_zumba_meas max_order {$$->max_order=$2;}
 ;
 
+////////////////////////////////////////////////// ZUMBA //////////////////////////////////////////////////
+
+spinpol_meas: TK_MEAS_SPINPOL {$$=new spinpol_meas_pars_t();}
+                  | spinpol_meas each {$$->each=$2;}
+                  | spinpol_meas after {$$->after=$2;}
+                  | spinpol_meas path {$$->path=(*$2);delete $2;}
+                  | spinpol_meas residue {$$->residue=$2;}
+                  | spinpol_meas itheory {$$->itheory=$2;}
+                  | spinpol_meas ncopies {$$->ncopies=$2;}
+                  | spinpol_meas nhits {$$->nhits=$2;}
+                  | spinpol_meas dirs {$$->dirs=*$2;delete $2;}
+                  | spinpol_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
+                  | spinpol_meas meas_each {$$->smooth_pars.meas_each=$2;}
+;
+
 ////////////////////////////////////////////////// QED CORR //////////////////////////////////////////////////
 
 qed_corr_meas: TK_MEAS_QED_CORRS {$$=new qed_corr_meas_pars_t();}
@@ -622,8 +648,8 @@ top_meas: TK_MEAS_TOP {$$=new top_meas_pars_t();}
         | top_meas path {$$->path=(*$2);delete $2;}
         | top_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
         | top_meas TK_MEAS_CORR '=' int_numb {$$->meas_corr=$4;}
-        | top_meas TK_MEAS_CORR_PATH '=' text  {$$->corr_path=(*$4);}
-        | top_meas TK_MEAS_EACH '=' double_numb {$$->smooth_pars.meas_each=$4;}
+        | top_meas TK_CORR_PATH '=' text  {$$->corr_path=(*$4);}
+        | top_meas meas_each {$$->smooth_pars.meas_each=$2;}
 ;
 
 //////////////////////////////////////////// POLYAKOV LOOP CORRELATORS /////////////////////////////////////////////

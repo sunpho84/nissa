@@ -34,9 +34,11 @@ namespace nissa
       base_fermionic_meas_t(),
       use_ferm_conf_for_gluons(def_use_ferm_conf_for_gluons())
     {path=def_path();}
+    
+    virtual ~spinpol_meas_pars_t(){}
   };
   
-  void measure_spinpol(quad_su3 **ferm_conf,quad_su3 **glu_conf,theory_pars_t &theory_pars,spinpol_meas_pars_t &meas_pars,int iconf,int conf_created);
+  void measure_spinpol(quad_su3 **ferm_conf,theory_pars_t &theory_pars,spinpol_meas_pars_t &meas_pars,int iconf,int conf_created,quad_su3 **glu_conf=NULL);
 }
 
 #endif
