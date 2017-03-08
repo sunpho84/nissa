@@ -73,14 +73,14 @@ namespace nissa
 		AT_ORDER(1)
 		  {
 		    MINV(M,iflav,source);
-		    DM(dM_M,iflav,1,M);
+		    DMDMU(dM_M,iflav,1,M);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM,source,dM_M);
 		  }
 		
 		//compute d2M*M^-1
 		AT_ORDER(2)
 		  {
-		    DM(d2M_M,iflav,2,M);
+		    DMDMU(d2M_M,iflav,2,M);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_d2M,source,d2M_M);
 		  }
 		
@@ -88,21 +88,21 @@ namespace nissa
 		AT_ORDER(2)
 		  {
 		    MINV(M_dM_M,iflav,dM_M);
-		    DM(dM_M_dM_M,iflav,1,M_dM_M);
+		    DMDMU(dM_M_dM_M,iflav,1,M_dM_M);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM_M_dM,source,dM_M_dM_M);
 		  }
 		
 		//compute d3M*M^-1
 		AT_ORDER(3)
 		  {
-		    DM(d3M_M,iflav,3,M);
+		    DMDMU(d3M_M,iflav,3,M);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_d3M,source,d3M_M);
 		  }
 		
 		//compute d2M*M^-1*dM*M^-1
 		AT_ORDER(3)
 		  {
-		    DM(d2M_M_dM_M,iflav,2,M_dM_M);
+		    DMDMU(d2M_M_dM_M,iflav,2,M_dM_M);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM_M_d2M,source,d2M_M_dM_M);
 		  }
 		
@@ -110,7 +110,7 @@ namespace nissa
 		AT_ORDER(3)
 		  {
 		    MINV(M_dM_M_dM_M,iflav,dM_M_dM_M);
-		    DM(dM_M_dM_M_dM_M,iflav,1,M_dM_M_dM_M);
+		    DMDMU(dM_M_dM_M_dM_M,iflav,1,M_dM_M_dM_M);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM_M_dM_M_dM,source,dM_M_dM_M_dM_M);
 		  }
 	      }
@@ -142,7 +142,7 @@ namespace nissa
     
     os<<"MeasRendens\n";
     os<<base_fermionic_meas_t::get_str(full);
-    if(max_order!=def_max_order()||full) os<<" MaxOrder\t=\t"<<max_order<<"\n";
+    if(max_order!=def_max_order() or full) os<<" MaxOrder\t=\t"<<max_order<<"\n";
     
     return os.str();
   }

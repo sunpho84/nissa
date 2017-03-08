@@ -395,6 +395,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	  
 	  RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
 	  RANGE_FERMIONIC_MEAS(drv,quark_rendens);
+	  RANGE_FERMIONIC_MEAS(drv,chir_zumba);
 	  RANGE_FERMIONIC_MEAS(drv,qed_corr);
 	  //RANGE_FERMIONIC_MEAS(drv,spinpol);
 	  RANGE_FERMIONIC_MEAS(drv,magnetization);

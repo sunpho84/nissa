@@ -51,6 +51,7 @@
     nissa::nucleon_corr_meas_pars_t *nucleon_corr_meas;
     nissa::magnetization_meas_pars_t *magnetization_meas;
     nissa::quark_rendens_meas_pars_t *quark_rendens_meas;
+    nissa::chir_zumba_meas_pars_t *chir_zumba_meas;
     nissa::qed_corr_meas_pars_t *qed_corr_meas;
     nissa::fermionic_putpourri_meas_pars_t *fermionic_putpourri_meas;
     nissa::gauge_obs_meas_pars_t *plaq_pol_meas;
@@ -216,6 +217,9 @@
 //rendens
 %type <quark_rendens_meas> quark_rendens_meas
 %token TK_MEAS_RENDENS
+//zumba
+%type <chir_zumba_meas> chir_zumba_meas
+%token TK_MEAS_ZUMBA
 //qed corr
 %type <qed_corr_meas> qed_corr_meas
 %token TK_MEAS_QED_CORRS
@@ -286,6 +290,7 @@ global_specify: geometry
               | nucleon_corr_meas {driver->add_nucleon_corr_meas(*$1);delete $1;}
               | fermionic_putpourri_meas {driver->add_fermionic_putpourri_meas(*$1);delete $1;}
               | quark_rendens_meas {driver->add_quark_rendens_meas(*$1);delete $1;}
+              | chir_zumba_meas {driver->add_chir_zumba_meas(*$1);delete $1;}
               | qed_corr_meas {driver->add_qed_corr_meas(*$1);delete $1;}
               | magnetization_meas {driver->add_magnetization_meas(*$1);delete $1;}
 /////////////// gauge measures ////////////////////
@@ -523,6 +528,19 @@ quark_rendens_meas: TK_MEAS_RENDENS {$$=new quark_rendens_meas_pars_t();}
                   | quark_rendens_meas ncopies {$$->ncopies=$2;}
                   | quark_rendens_meas nhits {$$->nhits=$2;}
                   | quark_rendens_meas max_order {$$->max_order=$2;}
+;
+
+////////////////////////////////////////////////// ZUMBA //////////////////////////////////////////////////
+
+chir_zumba_meas: TK_MEAS_ZUMBA {$$=new chir_zumba_meas_pars_t();}
+                  | chir_zumba_meas each {$$->each=$2;}
+                  | chir_zumba_meas after {$$->after=$2;}
+                  | chir_zumba_meas path {$$->path=(*$2);delete $2;}
+                  | chir_zumba_meas residue {$$->residue=$2;}
+                  | chir_zumba_meas itheory {$$->itheory=$2;}
+                  | chir_zumba_meas ncopies {$$->ncopies=$2;}
+                  | chir_zumba_meas nhits {$$->nhits=$2;}
+                  | chir_zumba_meas max_order {$$->max_order=$2;}
 ;
 
 ////////////////////////////////////////////////// QED CORR //////////////////////////////////////////////////

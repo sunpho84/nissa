@@ -155,6 +155,7 @@
 #include "operations/stag/rendens.hpp"
 #include "operations/stag/spinpol.hpp"
 #include "operations/stag/stag.hpp"
+#include "operations/stag/zumba.hpp"
 
 #include "operations/su3_paths/all_rectangles.hpp"
 #include "operations/su3_paths/arbitrary.hpp"

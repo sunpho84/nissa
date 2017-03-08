@@ -242,6 +242,7 @@ MeasPutpourri DEBUG_PRINTF("Found MeasPutpourri\n");return TK_MEAS_PUTPOURRI;
 MeasRendens DEBUG_PRINTF("Found MeasRendens\n");return TK_MEAS_RENDENS;
 MeasQedCorrs DEBUG_PRINTF("Found MeasQedCorrs\n");return TK_MEAS_QED_CORRS;
 MeasMagnetiz DEBUG_PRINTF("Found MeasMagnetiz\n");return TK_MEAS_MAGNETIZ;
+MeasZumba DEBUG_PRINTF("Found MeasZumba\n");return TK_MEAS_ZUMBA;
 
  /* parameters for PutPourri */
 ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;

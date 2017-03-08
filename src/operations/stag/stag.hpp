@@ -32,11 +32,11 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	each!=def_each()||
-	after!=def_after()||
-	residue!=def_residue()||
-	itheory!=def_itheory()||
-	ncopies!=def_ncopies()||
+	each!=def_each() or
+	after!=def_after() or
+	residue!=def_residue() or
+	itheory!=def_itheory() or
+	ncopies!=def_ncopies() or
 	nhits!=def_nhits();
     }
     
@@ -66,13 +66,15 @@ namespace nissa
 #define NEW_MINV(out,iflav,in)			\
     NEW_FIELD_T(out);				\
     MINV(out,iflav,in)
-#define DM(out,iflav,ord,in)				\
+#define DMDMU(out,iflav,ord,in)				\
     mult_dMdmu(out,&theory_pars,conf,iflav,ord,in)
 #define NEW_DM(out,iflav,ord,in)		\
     NEW_FIELD_T(out);				\
     DM(out,iflav,ord,in)
 #define NEW_TRACE_RES(o)			\
     complex o={0,0}
+#define NEW_TRACE_RES_VEC(o,n)			\
+    complex o[n];memset(o,0,sizeof(complex)*n)
 #define NEW_TIME_CORR(o)			\
       double *NAME2(glb,o)=nissa_malloc("glb"#o,glb_size[0],double);	\
       double *NAME2(loc,o)=new double[glb_size[0]];			\
