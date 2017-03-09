@@ -200,14 +200,11 @@
 //index of theory, number of copies and hits
 %token TK_ITHEORY TK_NCOPIES TK_NHITS
 %type <int_numb> itheory ncopies nhits
-//directions
-%token TK_DIRS
-%type <int_list> dirs
 //meson corr
 %type <meson_corr_meas> meson_corr_meas
 %token TK_MEAS_MESON_CORRS
-%token TK_MESON_LIST
-%type <int_pair_list> meson_list
+%token TK_OPERATORS
+%type <int_pair_list> operators
 //nucleon corr
 %type <nucleon_corr_meas> nucleon_corr_meas
 %token TK_MEAS_NUCLEON_CORRS
@@ -339,8 +336,6 @@ itheory: TK_ITHEORY '=' int_numb {$$=$3;};
 ncopies: TK_NCOPIES '=' int_numb {$$=$3;};
 
 nhits: TK_NHITS '=' int_numb {$$=$3;};
-
-dirs: TK_DIRS '=' int_list {$$=$3;};
 
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 
@@ -499,11 +494,12 @@ meson_corr_meas: TK_MEAS_MESON_CORRS {$$=new meson_corr_meas_pars_t();}
                | meson_corr_meas itheory {$$->itheory=$2;}
                | meson_corr_meas ncopies {$$->ncopies=$2;}
                | meson_corr_meas nhits {$$->nhits=$2;}
-               | meson_corr_meas meson_list {$$->mesons=(*$2);delete $2;}
+               | meson_corr_meas operators {
+		   if((*$2)[0]!=std::make_pair(15,15)) crash("first entry of the meson list must be 15,15, instead it is: %d %d",(*$2)[0].first,(*$2)[0].second);
+		   $$->mesons=(*$2);delete $2;}
 ;
 
-meson_list: TK_MESON_LIST '=' int_pair_list {
-    if((*$3)[0]!=std::make_pair(15,15)) crash("first entry of the meson list must be 15,15, instead it is: %d %d",(*$$)[0].first,(*$$)[0].second);
+operators: TK_OPERATORS '=' int_pair_list {
     for(size_t i=0;i<$3->size();i++)
 	{
 	    int f=(*$3)[i].first;
@@ -564,7 +560,7 @@ spinpol_meas: TK_MEAS_SPINPOL {$$=new spinpol_meas_pars_t();}
                   | spinpol_meas itheory {$$->itheory=$2;}
                   | spinpol_meas ncopies {$$->ncopies=$2;}
                   | spinpol_meas nhits {$$->nhits=$2;}
-                  | spinpol_meas dirs {$$->dirs=*$2;delete $2;}
+                  | spinpol_meas operators {$$->operators=*$2;delete $2;}
                   | spinpol_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
                   | spinpol_meas meas_each {$$->smooth_pars.meas_each=$2;}
 ;

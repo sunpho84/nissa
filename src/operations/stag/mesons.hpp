@@ -44,8 +44,8 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	base_fermionic_meas_t::is_nonstandard()||
-	mesons.size()||
+	base_fermionic_meas_t::is_nonstandard() or
+	mesons.size() or
 	path!=def_path();
     }
     

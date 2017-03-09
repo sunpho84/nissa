@@ -8,8 +8,8 @@ namespace nissa
 {
   struct spinpol_meas_pars_t : base_fermionic_meas_t
   {
-    std::vector<int> dirs;
-    int ndirs(){return dirs.size();}
+    std::vector<std::pair<int,int> > operators;
+    int nops(){return operators.size();}
     
     int use_ferm_conf_for_gluons;
     smooth_pars_t smooth_pars;
@@ -24,7 +24,7 @@ namespace nissa
     {
       return
 	base_fermionic_meas_t::is_nonstandard() or
-	ndirs() or
+	nops() or
 	use_ferm_conf_for_gluons!=def_use_ferm_conf_for_gluons() or
 	path!=def_path() or
 	smooth_pars.is_nonstandard();

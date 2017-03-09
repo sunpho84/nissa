@@ -120,14 +120,11 @@ Itheory DEBUG_PRINTF("Found Itheory\n");return TK_ITHEORY;
 NCopies DEBUG_PRINTF("Found NCopies\n");return TK_NCOPIES;
 NHits DEBUG_PRINTF("Found NHits\n");return TK_NHITS;
 
- /* dirs */
-Dirs DEBUG_PRINTF("Found Dirs\n");return TK_DIRS;
-
  /* path */
 Path DEBUG_PRINTF("Found Path\n");return TK_PATH;
 
- /* meson list */
-MesonList DEBUG_PRINTF("Found MesonList\n");return TK_MESON_LIST;
+ /* operator list */
+Operators DEBUG_PRINTF("Found Operators\n");return TK_OPERATORS;
 
  /* rendens pars */
 MaxOrder  DEBUG_PRINTF("Found MaxOrder\n");return TK_MAX_ORDER;
@@ -196,7 +193,7 @@ MeasEach DEBUG_PRINTF("Found MeasEach\n");return TK_MEAS_EACH;
 
  /* topo corr */
 MeasCorr DEBUG_PRINTF("Found MeasCorr\n");return TK_MEAS_CORR;
-4CorrPath DEBUG_PRINTF("Found CorrPath\n");return TK_CORR_PATH;
+CorrPath DEBUG_PRINTF("Found CorrPath\n");return TK_CORR_PATH;
 
  /* spatial or temporal */
 Spatial DEBUG_PRINTF("Found Spatial\n");return TK_SPATIAL;

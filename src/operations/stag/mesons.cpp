@@ -261,7 +261,7 @@ namespace nissa
     os<<base_fermionic_meas_t::get_str(full);
     if(mesons.size() or full)
       {
-	os<<" MesonList\t=\t{";
+	os<<" Operators\t=\t{";
 	for(size_t i=0;i<mesons.size();i++)
 	  {
 	    os<<"("<<mesons[i].first<<","<<mesons[i].second<<")";
