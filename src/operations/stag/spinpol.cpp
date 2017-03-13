@@ -116,6 +116,7 @@ namespace nissa
 	  //total charge
 	  double tot_charge;
 	  double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
+	  double tot_charge2=double_vector_glb_norm2(topo_dens,1);
 	  
 	  //evaluate the tensorial density for all quarks
 	  compute_tensorial_density(tens,tens_dens,&tp,ferm_conf[imeas],mp.operators,mp.nhits,mp.residue);
@@ -130,7 +131,7 @@ namespace nissa
 		
 		complex spinpol;
 		complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
-		master_fprintf(fout, "%d\t%lg\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,t,iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,spinpol[RE],spinpol[IM]);
+		master_fprintf(fout, "%d\t%lg\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,t,iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,tot_charge2,spinpol[RE],spinpol[IM]);
 	      }
 	}
     
