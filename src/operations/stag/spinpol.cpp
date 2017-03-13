@@ -131,7 +131,7 @@ namespace nissa
 		
 		complex spinpol;
 		complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
-		master_fprintf(fout, "%d\t%lg\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,t,iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,tot_charge2,spinpol[RE],spinpol[IM]);
+		master_fprintf(fout, "%d\t%lg\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,t,iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,tot_charge2,spinpol[RE],spinpol[IM],tens[iop+nops*iflav][RE],tens[iop+nops*iflav][IM]);
 	      }
 	}
     
