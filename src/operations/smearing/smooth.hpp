@@ -39,7 +39,8 @@ namespace nissa
 	default: crash("not meant to be reached");return "";
 	}
     }
-    
+
+    //! returns the number of measurement, without 0
     int nmeas()
     {
       switch(method)

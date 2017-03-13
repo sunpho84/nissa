@@ -67,46 +67,51 @@ namespace nissa
 	verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
       }
     
-    for(int ihit=0;ihit<meas_pars->nhits;ihit++)
+    //measure the putpourri for each quark
+    int ncopies=meas_pars->ncopies;
+    for(int icopy=0;icopy<ncopies;icopy++)
       {
-	verbosity_lv2_master_printf("Computing hit %d/%d\n",ihit,meas_pars->nhits);
-	
-	//generate tso
-	int tso;
-	if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glb_size[0]);
-	THREAD_BROADCAST(tso,tso);
-	verbosity_lv2_master_printf("tsource: %d\n",tso);
-	
-	//generate source
-	generate_fully_undiluted_eo_source(ori_source,RND_Z4,tso);
-	
-	for(int iflav=0;iflav<nflavs;iflav++)
+	for(int ihit=0;ihit<meas_pars->nhits;ihit++)
 	  {
-	    for(int iop=0;iop<nop;iop++)
-	      {
-		apply_op(source,temp[0],temp[1],conf,shift[iop],ori_source);
-		put_stag_phases(source,mask[iop]);
-		mult_Minv(sol,conf,tp,iflav,meas_pars->residue,source);
-		apply_op(quark[iop],temp[0],temp[1],conf,shift[iop],sol);
-		put_stag_phases(quark[iop],mask[iop]);
-	      }
+	    verbosity_lv2_master_printf("Computing copy %d/%d hit %d/%d\n",icopy,ncopies,ihit,meas_pars->nhits);
 	    
-	    for(int iop=0;iop<nop;iop++)
-	      for(int eo=0;eo<2;eo++)
-		NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	    //generate tso
+	    int tso;
+	    if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glb_size[0]);
+	    THREAD_BROADCAST(tso,tso);
+	    verbosity_lv2_master_printf("tsource: %d\n",tso);
+	    
+	    //generate source
+	    generate_fully_undiluted_eo_source(ori_source,RND_Z4,tso);
+	    
+	    for(int iflav=0;iflav<nflavs;iflav++)
+	      {
+		for(int iop=0;iop<nop;iop++)
 		  {
-		    int ivol=loclx_of_loceo[eo][ieo];
-		    int t=(glb_coord_of_loclx[ivol][0]-tso+glb_size[0])%glb_size[0];
-		    for(int ic=0;ic<NCOL;ic++)
-		      complex_summ_the_conj1_prod(loc_corr[icombo(iflav,iop,t)],quark[0][eo][ieo][ic],quark[iop][eo][ieo][ic]);
+		    apply_op(source,temp[0],temp[1],conf,shift[iop],ori_source);
+		    put_stag_phases(source,mask[iop]);
+		    mult_Minv(sol,conf,tp,iflav,meas_pars->residue,source);
+		    apply_op(quark[iop],temp[0],temp[1],conf,shift[iop],sol);
+		    put_stag_phases(quark[iop],mask[iop]);
 		  }
-	    THREAD_BARRIER();
+		
+		for(int iop=0;iop<nop;iop++)
+		  for(int eo=0;eo<2;eo++)
+		    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		      {
+			int ivol=loclx_of_loceo[eo][ieo];
+			int t=(glb_coord_of_loclx[ivol][0]-tso+glb_size[0])%glb_size[0];
+			for(int ic=0;ic<NCOL;ic++)
+			  complex_summ_the_conj1_prod(loc_corr[icombo(iflav,iop,t)],quark[0][eo][ieo][ic],quark[iop][eo][ieo][ic]);
+		      }
+		THREAD_BARRIER();
+	      }
 	  }
+	
+	//reduce
+	glb_threads_reduce_double_vect((double*)loc_corr,2*ncombo);
+	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(corr,loc_corr,ncombo);
       }
-    
-    //reduce
-    glb_threads_reduce_double_vect((double*)loc_corr,2*ncombo);
-    if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(corr,loc_corr,ncombo);
     
     for(int eo=0;eo<2;eo++)
       {

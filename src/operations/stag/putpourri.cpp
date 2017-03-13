@@ -224,14 +224,14 @@ namespace nissa
 	      }
 	    
 	   //write results
-	   master_fprintf(file,"\t\t%+016.16lg\t%+016.16lg",putpourri.chiral_cond[RE]/nhits,putpourri.chiral_cond[IM]/nhits);
-	   if(comp_susc) master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.chiral_cond_susc[RE]/nhits,
+	   master_fprintf(file,"\t\t%+16.16lg\t%+16.16lg",putpourri.chiral_cond[RE]/nhits,putpourri.chiral_cond[IM]/nhits);
+	   if(comp_susc) master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.chiral_cond_susc[RE]/nhits,
 				 putpourri.chiral_cond_susc[IM]/nhits);
-	   master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.energy_dens[RE]/nhits,putpourri.energy_dens[IM]/nhits);
-	   master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.quark_dens[RE]/nhits,putpourri.quark_dens[IM]/nhits);
-	   if(comp_susc) master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.quark_dens_susc[RE]/nhits,
+	   master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.energy_dens[RE]/nhits,putpourri.energy_dens[IM]/nhits);
+	   master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.quark_dens[RE]/nhits,putpourri.quark_dens[IM]/nhits);
+	   if(comp_susc) master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.quark_dens_susc[RE]/nhits,
 				 putpourri.quark_dens_susc[IM]/nhits);
-	   master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.pressure_dens[RE]/nhits,
+	   master_fprintf(file,"\t%+16.16lg\t%+16.16lg",putpourri.pressure_dens[RE]/nhits,
 			  putpourri.pressure_dens[IM]/nhits);
 	  }
 	

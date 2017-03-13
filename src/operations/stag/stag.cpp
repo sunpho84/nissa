@@ -44,7 +44,7 @@ namespace nissa
     }
     
     //apply the operator
-    inline void apply_op_single_perm(color **out,color **temp,quad_su3 **conf,std::vector<int> &list_dir,color **in)
+    void apply_op_single_perm(color **out,color **temp,quad_su3 **conf,std::vector<int> &list_dir,color **in)
     {
       //make a temporary copy
       for(int eo=0;eo<2;eo++) vector_copy(temp[eo],in[eo]);
@@ -63,7 +63,7 @@ namespace nissa
     }
     
     //apply the operator summing all permutations
-    inline void apply_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,int shift,color **in)
+    void apply_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,int shift,color **in)
     {
       //make a list that can be easily permuted
       std::vector<int> list_dir;

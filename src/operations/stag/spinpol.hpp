@@ -38,7 +38,7 @@ namespace nissa
     virtual ~spinpol_meas_pars_t(){}
   };
   
-  void measure_spinpol(quad_su3 **ferm_conf,theory_pars_t &theory_pars,spinpol_meas_pars_t &meas_pars,int iconf,int conf_created,quad_su3 **glu_conf=NULL);
+  void measure_spinpol(quad_su3 **ferm_conf,theory_pars_t &theory_pars,spinpol_meas_pars_t &meas_pars,int iconf,int conf_created,stout_pars_t &stout_pars,quad_su3 **glu_conf);
 }
 
 #endif

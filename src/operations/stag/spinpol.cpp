@@ -60,10 +60,8 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the spin-polarization for all flavors
-  void measure_spinpol(quad_su3 **ferm_conf,theory_pars_t &tp,spinpol_meas_pars_t &mp,int iconf,int conf_created,quad_su3 **glu_conf)
+  void measure_spinpol(quad_su3 **ignore_ferm_conf,theory_pars_t &tp,spinpol_meas_pars_t &mp,int iconf,int conf_created,stout_pars_t &stout_pars,quad_su3 **glu_conf)
   {
-    if(mp.use_ferm_conf_for_gluons or glu_conf==NULL) glu_conf=ferm_conf;
-    
     smooth_pars_t &sp=mp.smooth_pars;
     int nflavs=tp.nflavs();
     int nops=mp.nops();
@@ -78,44 +76,74 @@ namespace nissa
     complex *tens_dens[nflavs*nops];
     for(int iflav_op=0;iflav_op<nflavs*nops;iflav_op++) tens_dens[iflav_op]=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
     
-    //evaluate the tensorial density for all quarks
-    compute_tensorial_density(tens,tens_dens,&tp,ferm_conf,mp.operators,mp.nhits,mp.residue);
+    //allocate the smoothed confs
+    int nmeas=mp.smooth_pars.nmeas();
+    quad_su3 *smoothed_conf[nmeas+1];
+    quad_su3 *ferm_conf[nmeas+1][2];
+    for(int imeas=0;imeas<=nmeas;imeas++)
+      {
+	smoothed_conf[imeas]=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
+	for(int eo=0;eo<2;eo++) ferm_conf[imeas][eo]=nissa_malloc("ferm_conf",loc_volh+bord_volh,quad_su3);
+      }
+    paste_eo_parts_into_lx_vector(smoothed_conf[0],glu_conf);
+    if(nmeas==0) crash("nmeas cannot be 0");
     
-    //compute the topological charge and the product of topological and tensorial density
-    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
-    paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
-    double t=0,tnext_meas=sp.meas_each;
+    //smooth
+    int imeas=0;
     bool finished;
+    double t=0,tnext_meas=sp.meas_each;
     do
       {
-	//plaquette and local charge
-	double plaq=global_plaquette_lx_conf(smoothed_conf);
-	local_topological_charge(topo_dens,smoothed_conf);
-	//total charge
-	double tot_charge;
-	double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
+	vector_copy(smoothed_conf[imeas],smoothed_conf[imeas-1]);
+    	finished=smooth_lx_conf_until_next_meas(smoothed_conf[imeas],sp,t,tnext_meas);
 	
-	//topo-tens
-	for(int iop=0;iop<mp.nops();iop++)
-	  for(int iflav=0;iflav<tp.nflavs();iflav++)
-	    {
-	      GET_THREAD_ID();
-	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_prod_double(spinpol_dens[ivol],tens_dens[iop+nops*iflav][ivol],topo_dens[ivol]);
-	      THREAD_BARRIER();
-	      
-	      complex spinpol;
-	      complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
-	      master_fprintf(fout, "%d\t%lg\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,t,iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,spinpol[RE],spinpol[IM]);
-	    }
-	finished=smooth_lx_conf_until_next_meas(smoothed_conf,sp,t,tnext_meas);
+	split_lx_vector_into_eo_parts(ferm_conf[imeas],smoothed_conf[imeas]);
+	stout_smear(ferm_conf[imeas],ferm_conf[imeas],&stout_pars);
+	
+	imeas++;
       }
-    while(!finished);
+    while(not finished);
+    
+    //compute the topological charge and the product of topological and tensorial density
+    int ncopies=mp.ncopies;
+    for(int icopy=0;icopy<ncopies;icopy++)
+      for(int imeas=0;imeas<=nmeas;imeas++)
+	{
+	  verbosity_lv2_master_printf("Computing copy %d/%d smooth %d/%d\n",icopy,ncopies,imeas,nmeas);
+	  //plaquette and local charge
+	  double plaq=global_plaquette_lx_conf(smoothed_conf[imeas]);
+	  local_topological_charge(topo_dens,smoothed_conf[imeas]);
+	  //total charge
+	  double tot_charge;
+	  double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
+	  
+	  //evaluate the tensorial density for all quarks
+	  compute_tensorial_density(tens,tens_dens,&tp,ferm_conf[imeas],mp.operators,mp.nhits,mp.residue);
+	  
+	  //topo-tens
+	  for(int iop=0;iop<mp.nops();iop++)
+	    for(int iflav=0;iflav<tp.nflavs();iflav++)
+	      {
+		GET_THREAD_ID();
+		NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_prod_double(spinpol_dens[ivol],tens_dens[iop+nops*iflav][ivol],topo_dens[ivol]);
+		THREAD_BARRIER();
+		
+		complex spinpol;
+		complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
+		master_fprintf(fout, "%d\t%lg\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,t,iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,spinpol[RE],spinpol[IM]);
+	      }
+	}
     
     //free
     nissa_free(topo_dens);
     for(int iflav_op=0;iflav_op<nflavs*nops;iflav_op++) nissa_free(tens_dens[iflav_op]);
     nissa_free(spinpol_dens);
     nissa_free(smoothed_conf);
+    for(int imeas=0;imeas<=nmeas;imeas++)
+      {
+	nissa_free(smoothed_conf[imeas]);
+	for(int eo=0;eo<2;eo++) nissa_free(ferm_conf[imeas][eo]);
+      }
     
     //close
     close_file(fout);
