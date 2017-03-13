@@ -5,6 +5,32 @@
 
 namespace nissa
 {
+  //form the mask for x (-1)^[x*(s^<+n^>)]
+  inline int form_stag_op_pattern(int ispin,int itaste)
+  {
+    int res=0;
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	int p=0;
+	for(int nu=0;nu<mu;nu++) p+=(itaste>>nu)&1;
+	for(int nu=mu+1;nu<NDIM;nu++) p+=(ispin>>nu)&1;
+	p&=1;
+	
+	res+=(p<<mu);
+      }
+    
+    return res;
+  }
+  inline int form_stag_meson_pattern_with_g5g5(int ispin,int itaste)
+  {
+    //add g5*g5
+    ispin^=15;
+    itaste^=15;
+    return form_stag_op_pattern(ispin,itaste);
+  }
+  
+  void put_stag_phases(color **source,int mask);
+  
   struct base_fermionic_meas_t
   {
     int each;
