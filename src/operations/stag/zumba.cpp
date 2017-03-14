@@ -11,67 +11,113 @@
 
 namespace nissa
 {
-  using namespace stag;
+    using namespace stag;
   
-  //measure the quark number and its derivative w.r.t mu
-  void measure_chir_zumba(quad_su3 **conf,theory_pars_t &theory_pars,chir_zumba_meas_pars_t &meas_pars,int iconf,int conf_created)
-  {
-    int nflavs=theory_pars.nflavs();
-    
-    //open the file, allocate point result and source
-    FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    complex *point_result=nissa_malloc("point_result",loc_vol,complex);
-    NEW_FIELD_T(source);
-    
-    //vectors for calculation
-    NEW_FIELD_T(M);
-    NEW_FIELD_T(dM_M);
-    
-    for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
-      {
-	//print conf id
-	master_fprintf(file,"%d\t",iconf);
+    // measure the chiral condensate and its derivative w.r.t mu
+    void measure_chir_zumba(quad_su3 **conf,theory_pars_t &theory_pars,chir_zumba_meas_pars_t &meas_pars,int iconf,int conf_created)
+    {
+        int nflavs=theory_pars.nflavs();
 	
-	//loop over flavor
-	for(int iflav=0;iflav<nflavs;iflav++)
+        //open the file, allocate point result and source
+        FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
+        complex *point_result=nissa_malloc("point_result",loc_vol,complex);
+        NEW_FIELD_T(source);
+	
+        //vectors for calculation
+        NEW_FIELD_T(M);           // M^-1
+        NEW_FIELD_T(dM_M);        // M' M^-1
+        NEW_FIELD_T(d2M_M);       // M'' M^-1
+        NEW_FIELD_T(M_M);         // M^-2
+        NEW_FIELD_T(dM_M_M);      // M' M^-2
+        NEW_FIELD_T(d2M_M_M);     // M'' M^-2
+        NEW_FIELD_T(dM_M_dM_M);   // (M' M^-1)^2
+        NEW_FIELD_T(M_dM_M_dM_M); // M^-1 (M' M^-1)^2
+        NEW_FIELD_T(TMP);         // parking variable
+	
+        for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
 	  {
-	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
+            //print conf id and copy id
+            master_fprintf(file,"%d\t%d\t",iconf,icopy);
 	    
-	    //vectors for output
-	    NEW_TRACE_RES_VEC(Tr_M_dM,2);
-	    
-	    //loop over hits
-	    for(int ihit=0;ihit<meas_pars.nhits;ihit++)
+            //loop over flavors
+            for(int iflav=0;iflav<nflavs;iflav++)
 	      {
-		//fill the source
-		fill_source(source);
+                if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
 		
-		//compute dM[iflav]*M[jflav]^-1
-		MINV(M,iflav,source);
+                //vectors for output
+                NEW_TRACE_RES(Tr_M);
+                NEW_TRACE_RES(Tr_dM_M);
+                NEW_TRACE_RES(Tr_d2M_M);
+                NEW_TRACE_RES(Tr_M_M);
+                NEW_TRACE_RES(Tr_dM_M_M);
+                NEW_TRACE_RES(Tr_d2M_M_M);
+                NEW_TRACE_RES(Tr_dM_M_dM_M);
+                NEW_TRACE_RES(Tr_M_dM_M_dM_M);
 		
-		for(int jflav=0;jflav<nflavs;jflav++)
+                //loop over hits
+                for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 		  {
-		    DMDMU(dM_M,iflav,1,M);
-		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM[jflav],source,dM_M);
+                    //fill the source
+                    fill_source(source);
+		    
+                    //compute M^-1, M' M^-1, M'' M^-1
+                    MINV(M,iflav,source);
+                    DMDMU(dM_M,iflav,1,M);
+                    DMDMU(d2M_M,iflav,2,M);
+		    
+                    //compute M^-2, M' M^-2, M'' M^-2
+                    MINV(M_M,iflav,M);
+                    DMDMU(dM_M_M,iflav,1,M_M);
+                    DMDMU(d2M_M_M,iflav,2,M_M);
+		    
+                    //compute (M' M^-1)^2
+                    DMDMU(dM_M_dM_M,iflav,1,M); // M' M^-1
+                    MINV(TMP,iflav,dM_M_dM_M); // M^-1 M' M^-1
+                    DMDMU(dM_M_dM_M,iflav,1,TMP);
+		    
+                    //compute M^-1 (M' M^-1)^2
+                    MINV(M_dM_M_dM_M,iflav,dM_M_dM_M);
+		    
+                    //print traces
+                    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M,source,M);
+                    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_dM_M,source,dM_M);
+                    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_d2M_M,source,d2M_M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_M,source,M_M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_dM_M_M,source,dM_M_M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_d2M_M_M,source,d2M_M_M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_dM_M_dM_M,source,dM_M_dM_M);
+                    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM_M_dM_M,source,M_dM_M_dM_M);
+		    
 		  }
 	      }
+	    
+            master_fprintf(file,"\n");
 	  }
 	
-	master_fprintf(file,"\n");
-      }
-    
-    DELETE_FIELD_T(M);
-  }
+        //deallocate and close file
+        DELETE_FIELD_T(M);
+        DELETE_FIELD_T(dM_M);
+        DELETE_FIELD_T(d2M_M);
+        DELETE_FIELD_T(M_M);
+        DELETE_FIELD_T(dM_M_M);
+        DELETE_FIELD_T(d2M_M_M);
+        DELETE_FIELD_T(dM_M_dM_M);
+        DELETE_FIELD_T(M_dM_M_dM_M);
+        DELETE_FIELD_T(TMP);
+	
+        close_file(file);
+        nissa_free(point_result);
+        DELETE_FIELD_T(source);
+    }
   
-  //print
-  std::string chir_zumba_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasZumba\n";
-    os<<base_fermionic_meas_t::get_str(full);
-    
-    return os.str();
-  }
-
+    //print
+    std::string chir_zumba_meas_pars_t::get_str(bool full)
+    {
+        std::ostringstream os;
+	
+        os<<"MeasZumba\n";
+        os<<base_fermionic_meas_t::get_str(full);
+	
+        return os.str();
+    }
 }
