@@ -87,14 +87,8 @@ namespace nissa
     nissa_free(A[1]);
 #define MINV(out,iflav,in)					\
     mult_Minv(out,conf,&theory_pars,iflav,meas_pars.residue,in)
-#define NEW_MINV(out,iflav,in)			\
-    NEW_FIELD_T(out);				\
-    MINV(out,iflav,in)
 #define DMDMU(out,iflav,ord,in)				\
     mult_dMdmu(out,&theory_pars,conf,iflav,ord,in)
-#define NEW_DM(out,iflav,ord,in)		\
-    NEW_FIELD_T(out);				\
-    DM(out,iflav,ord,in)
 #define NEW_TRACE_RES(o)			\
     complex o={0,0}
 #define NEW_TRACE_RES_VEC(o,n)			\
