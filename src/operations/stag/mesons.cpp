@@ -24,7 +24,7 @@
 namespace nissa
 {
   using namespace stag;
-
+  
   namespace
   {
     int nop;
