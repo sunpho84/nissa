@@ -171,7 +171,7 @@ namespace nissa
 	    vector_copy(smoothed_conf[imeas],smoothed_conf[imeas-1]);
 	    finished=smooth_lx_conf_until_next_meas(smoothed_conf[imeas],sp,t,tnext_meas);
 	  }
-	verbosity_lv1_master_printf("Meas: %d/%d, %lg\n",imeas,nmeas,t);
+	verbosity_lv2_master_printf("Meas: %d/%d, %lg\n",imeas,nmeas,t);
 	
 	split_lx_vector_into_eo_parts(ferm_conf[imeas],smoothed_conf[imeas]);
 	stout_smear(ferm_conf[imeas],ferm_conf[imeas],&stout_pars);
