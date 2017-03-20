@@ -93,7 +93,7 @@ namespace nissa
     verbosity_lv1_master_printf("Computing all rectangular paths\n");
     
     //remapping
-    int nspat_sme=pars->spat_smear_pars.nmeas(),ntot_sme=1+nspat_sme;
+    int nspat_sme=pars->spat_smear_pars.nsmooth(),ntot_sme=1+nspat_sme;
     int prp_vol[12],cmp_vol[12],imu01=0,mu0_l[12],mu1_l[12],cmp_vol_max=0;
     vector_remap_t *remap[12];
     su3 *transp_conf[12];
