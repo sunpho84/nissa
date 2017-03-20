@@ -18,7 +18,7 @@ SPACE [[:blank:]]
 SIGN \+|\-
 QUOTE \"|\'
 ANY .
-NEWLINE \n
+NEWLINE \n|\r
 DOT \.
 
  /* more complicated */
