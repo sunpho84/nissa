@@ -12,7 +12,7 @@ cd ../../
 #rm -fr gmp-5.1.2
 
 #mpfr
-wget http://www.mpfr.org/mpfr-current/mpfr-3.1.4.tar.gz -O -|tar xzvf -
+wget http://www.mpfr.org/mpfr-current/mpfr-3.1.5.tar.gz -O -|tar xzvf -
 cd mpfr*/
 mkdir build
 cd build
@@ -34,7 +34,7 @@ cd ../../
 #rm -fr mpc*
 
 #gcc
-wget ftp://ftp.uvsq.fr/pub/gcc/releases/gcc-4.8.1/gcc-4.8.1.tar.gz -O -|tar xzf -
+wget ftp://ftp.uvsq.fr/pub/gcc/releases/gcc-6.3.0/gcc-6.3.0.tar.bz2 -O -|tar xjf -
 cd gcc*/
 mkdir build
 cd build
