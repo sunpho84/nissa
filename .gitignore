@@ -36,3 +36,5 @@ build_vir
 /.dir-locals.el~
 /doc/autovalori.pdf
 build*
+/doc/stoch_photon.pdf
+/doc/stoch_photon.tex

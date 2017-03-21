@@ -5,6 +5,11 @@
 \save_transient_properties true
 \origin unavailable
 \textclass article
+\begin_preamble
+\usepackage{bbold}
+\renewcommand\[{\begin{equation}}
+\renewcommand\]{\end{equation}} 
+\end_preamble
 \use_default_options true
 \maintain_unincluded_children false
 \language english
@@ -27,9 +32,10 @@
 \bibtex_command default
 \index_command default
 \paperfontsize default
+\spacing single
 \use_hyperref false
 \papersize default
-\use_geometry false
+\use_geometry true
 \use_package amsmath 1
 \use_package amssymb 1
 \use_package cancel 1
@@ -53,6 +59,10 @@
 \shortcut idx
 \color #008000
 \end_index
+\leftmargin 3cm
+\topmargin 3cm
+\rightmargin 3cm
+\bottommargin 3cm
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
@@ -70,8 +80,280 @@
 
 \begin_body
 
+\begin_layout Section
+\start_of_appendix
+Generation of Photon field
+\end_layout
+
 \begin_layout Standard
-The calculation of diagram with a photon line exchanged between 
+In this paper we consider QED at 1 loop, evaluating explicitly the fermionic-con
+nected diagrams contributing to 
+\begin_inset Formula $g-2$
+\end_inset
+
+ at 
+\begin_inset Formula $\mathcal{O}\left(\alpha^{3}\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+For diagram in which both ends of the photon propagator are attached to
+ the same fermionic line, the numerical cost scales badly with the volume.
+ Therefore, stochastic approaches are needed to avoid computing explicitly
+ the integrals over the beginning and end of the photon propagator, whose
+ cost would be exceedingly too large for realistic volumes.
+ Here we adopt a variation of the technique adopted in our past papers,
+ which we will briefly recall.
+ For the sake of simplicity let us discuss the case of the 
+\begin_inset Quotes eld
+\end_inset
+
+exchange
+\begin_inset Quotes erd
+\end_inset
+
+ diagram for a bilinear 
+\begin_inset Formula $\bar{\psi}\Gamma\psi$
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+C^{exc}\left(t\right)\equiv\sum_{\vec{x},y,z}\left\langle S\left(0;y\right)V_{\mu}\left(y\right)S\left(y;\vec{x},t\right)\Gamma S\left(\vec{x},t;z\right)V_{\nu}\left(z\right)S\left(z;0\right)\Gamma\right\rangle G_{\mu\nu}\left(y,z\right).
+\]
+
+\end_inset
+
+The nested summation over 
+\begin_inset Formula $y$
+\end_inset
+
+ and 
+\begin_inset Formula $z$
+\end_inset
+
+ is prohibitively costly and scales as 
+\begin_inset Formula $V^{2}$
+\end_inset
+
+.
+ The nested evaluation can be split in two summation, each scaling as 
+\begin_inset Formula $V$
+\end_inset
+
+, by introducing a set of real stochastic field 
+\begin_inset Formula $\eta_{\mu}\left(x\right)=\pm1\ \forall\mu,x\,$
+\end_inset
+
+.
+ With these we can define the stochastic identity operator: 
+\begin_inset Formula 
+\[
+\lim_{n\to\infty}\eta_{\mu}\left(x\right)\eta_{\nu}\left(y\right)=\delta_{\mu\nu}\delta\left(x,y\right),
+\]
+
+\end_inset
+
+from which we can rewrite the photon propagator as: 
+\begin_inset Formula 
+\[
+G_{\mu\nu}\left(x,y\right)=\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\phi_{\mu}^{i}\left(x\right)\eta_{\nu}^{i}\left(y\right),
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $\phi_{\mu}^{i}\left(x\right)=G_{\mu\rho}\left(x,z\right)\eta_{\rho}^{i}\left(z\right)$
+\end_inset
+
+.
+ Taking advantage of the 
+\begin_inset Formula $\gamma_{5}$
+\end_inset
+
+-hermiticity of the propagator, the correlation function can be obtained
+ by evaluating:
+\begin_inset Formula 
+\[
+C^{exc}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\vec{x}}\left\langle \left.S^{\phi_{i}}\right.^{\dagger}\left(\vec{x},t;0\right)\gamma_{5}\Gamma S^{\eta_{i}}\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle ,
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $S^{\varphi}\left(\vec{x},t;0\right)\equiv S\left(\vec{x},t;z\right)V_{\mu}\left(z\right)S\left(z;0\right)\varphi_{\mu}\left(z\right)$
+\end_inset
+
+ is a 
+\emph on
+sequential propagator
+\emph default
+, in which the (conserved) vector current coupled to the external field
+ 
+\begin_inset Formula $\varphi$
+\end_inset
+
+ has been inserted over all possible points of the quark line.
+ For the case of interest, in which 
+\begin_inset Formula $\varphi\in\left[\eta,\,\phi\right]$
+\end_inset
+
+, this can computed by solving an appropriate Dirac equation, with a numerical
+ cost similar to that of computing 
+\begin_inset Formula $S\left(z;0\right)$
+\end_inset
+
+.
+ In short, the calculation of 
+\begin_inset Formula $C^{exc}$
+\end_inset
+
+ with this framework requires to compute 
+\begin_inset Formula $3$
+\end_inset
+
+ propagators, and average over several (ideally infinite) stochastic sources
+ 
+\begin_inset Formula $\eta$
+\end_inset
+
+.
+ The set of fermionic-connected diagrams needed for 
+\begin_inset Formula $g-2$
+\end_inset
+
+ requires the calculation of 
+\begin_inset Formula $7$
+\end_inset
+
+ quark propagators.
+\end_layout
+
+\begin_layout Standard
+In this work we have adopted a slightly different approach.
+ Instead of introducing the stochastic operator, we use the definition of
+ the photon propagator in terms of expectation value of product of photon
+ field:
+\begin_inset Formula 
+\[
+G_{\mu\nu}\left(x,y\right)=\left\langle A_{\mu}\left(x\right)A_{\nu}\left(y\right)\right\rangle .
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In this way the correlation function can be computed as:
+\begin_inset Formula 
+\[
+C^{exc}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\vec{x}}\left\langle \left.S^{A_{i}}\left(\vec{x},t;0\right)\right.^{\dagger}\gamma_{5}\Gamma S^{A_{i}}\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle ,
+\]
+
+\end_inset
+
+with a clear benefit: this time only two quark propagators are required
+ for the exchange diagram, and a total of 6 are enough to compute the whole
+ set of corrections.
+ The case of the pseudoscalar channel is of special interest, since in this
+ case the correlation function is obtained by computing:
+\begin_inset Formula 
+\[
+C_{PP}^{exc}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\vec{x}}\left\langle \left|S^{A_{i}}\left(\vec{x},t;0\right)\right|\right\rangle ,
+\]
+
+\end_inset
+
+and the results is a factor 
+\begin_inset Formula $50\%$
+\end_inset
+
+ more precise than the equivalent one computed with 
+\begin_inset Formula $\eta-\phi$
+\end_inset
+
+ representation of the propagator.
+\end_layout
+
+\begin_layout Standard
+As a last point, we remark that the photon field 
+\begin_inset Formula $A_{\mu}\left(x\right)$
+\end_inset
+
+ must be generated from the distribution of probability:
+\begin_inset Formula 
+\[
+P\left(A\right)dA\propto\exp\left[-A_{\mu}\left(x\right)G_{\mu\nu}^{-1}\left(x,y\right)A_{\nu}\left(y\right)\right].
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This can be obtained easily drawing each mode of the photon field in momentum
+ space, where the distribution is local in spacetime:
+\begin_inset Formula 
+\[
+P\left(\tilde{A}\right)d\tilde{A}\propto\exp\left[-\tilde{A}_{\mu}\left(k\right)\tilde{G}_{\mu\nu}^{-1}\left(k\right)\tilde{A}_{\nu}\left(k\right)\right].
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+After the local change of variable 
+\begin_inset Formula $\tilde{B}_{\rho}\left(k\right)=\sqrt{G_{\rho\nu}^{-1}\left(k\right)}\tilde{A}_{\nu}\left(k\right)$
+\end_inset
+
+ each component of 
+\begin_inset Formula $\tilde{B}$
+\end_inset
+
+ can drawn independently: 
+\begin_inset Formula 
+\[
+P\left(\tilde{B}\right)d\tilde{B}\propto\exp\left[-\tilde{B}_{\mu}^{2}\left(k\right)\right],
+\]
+
+\end_inset
+
+and the value of 
+\begin_inset Formula $\tilde{A}_{\mu}\left(k\right)$
+\end_inset
+
+ can be constructed via 
+\begin_inset Formula 
+\[
+\tilde{A}_{\nu}\left(k\right)=\sqrt{\tilde{G}_{\rho\nu}\left(k\right)}\tilde{B}_{\rho}\left(k\right).
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The matrix 
+\begin_inset Formula $\sqrt{\tilde{G}_{\rho\nu}\left(k\right)}$
+\end_inset
+
+ can be easily computed, and for the Wilson action in the Feynman gauge
+ amounts simply to
+\begin_inset Formula 
+\[
+\sqrt{\tilde{G}_{\rho\nu}\left(k\right)}=\sqrt{\frac{1}{\hat{k}^{2}}}.
+\]
+
+\end_inset
+
+
 \end_layout
 
 \end_body
