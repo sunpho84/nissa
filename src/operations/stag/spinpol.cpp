@@ -37,7 +37,10 @@ namespace nissa
     
     //At the beginning define and alloc some quantity that I'll use later (L)
     int mask[nop],shift[nop];
-    //Sol is the output of mult_Minv. temp is an internal variable of apply_op, an input of apply_cov_shift. quark is the output of apply_op (maybe I should chanche it). Source is eta (?). Then allocate memory for all these variables. (L)
+    //Sol is the output of mult_Minv. temp is an internal variable of
+    //apply_op, an input of apply_cov_shift. quark is the output of
+    //apply_op (maybe I should chanche it). Source is eta (?). Then
+    //allocate memory for all these variables. (L)
     color *source[2], *sol[2], *temp[2][2],*quark[nop][2];
     for(int eo=0;eo<2;eo++) source[eo]=nissa_malloc("source",loc_volh+bord_volh,color);
     for(int eo=0;eo<2;eo++) sol[eo]=nissa_malloc("sol",loc_volh+bord_volh,color);
@@ -47,7 +50,7 @@ namespace nissa
     for(int iop=0;iop<nop;iop++)
       for(int eo=0;eo<2;eo++)
 	quark[iop][eo]=nissa_malloc("quark",loc_volh+bord_volh,color);
-
+    
     //Create the mask before the hit loop. (L)
     for(int iop=0;iop<nop;iop++) {
       int spin=ops.at(iop).first;	//spin is index a of my note. Ops is an input vector of pair <a,b>. Same for taste (b). (L)
@@ -57,43 +60,45 @@ namespace nissa
       //if((shift[iop])&1) crash("operator %d (%d %d) has unmarched number of g0",iop,spin,taste);
       verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
     }
-
+    
     for(int iflav=0;iflav<tp->nflavs();iflav++)
       {
 	if(tp->quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
 	
 	//reset the local density
 	for(int iop=0;iop<nop;iop++) vector_reset(loc_dens[iop+nop*iflav]);
-
+	
 	for(int ihit=0;ihit<nhits;ihit++) {
-	    //AOH QUA C'E' DA SCRIVERE
-
 	    //We need this part to generate source eta (L)
-	    //We don't need tso, see my notebook (L)	  
+	    //We don't need tso, see my notebook (L)
 	    generate_fully_undiluted_eo_source(source,RND_Z4,-1);  //I called ori_source simply source, because I need only one (later) (L)
 	   
 	    //calculate sol (L)
 	    mult_Minv(sol,conf,tp,iflav,residue,source);  //I modified residue (because of the input). (L)
-
-	    //Start with flav and op loop, calculate spinpol.(L) 
+	    
+	    //Start with flav and op loop, calculate spinpol.(L)
 	    for(int iop=0;iop<nop;iop++)
 	    {
 	      //calculate quark
-	      apply_op(quark[iop],temp[0],temp[1],conf,shift[iop],sol);  
+	      apply_op(quark[iop],temp[0],temp[1],conf,shift[iop],sol);
 	      put_stag_phases(quark[iop],mask[iop]);  //From now use quark, but I have to link at loc_dens (L)
 	    }
-	    //Here, I have to put a routine that performs the sum on ihit. The result is put in loc_dens. DOn't know if this is the correct way to call complex_summassign (?). There's the problem of knowing how call quark, if with one or two indeces.(?) (L)
+	    //Here, I have to put a routine that performs the sum on
+	    //ihit. The result is put in loc_dens. DOn't know if this
+	    //is the correct way to call complex_summassign
+	    //(?). There's the problem of knowing how call quark, if
+	    //with one or two indeces.(?) (L)
 	    for(int iop=0;iop<nop;iop++)
 	      for(int eo=0;eo<2;eo++)
 		NISSA_PARALLEL_LOOP(ieo,0,loc_volh)	//loop on ieo and eo, i.e. on all eo-lattice (L)
 		{
 		  int ivol=loclx_of_loceo[eo][ieo];	//convert [eo][ieo] in lexicographically index ivol (L)
 		  for(int ic=0;ic<NCOL;ic++)
-		    //perform sum and scalar-product, see above (L) 
+		    //perform sum and scalar-product, see above (L)
 		    //loc_dens every nop components changes flavour (L)
 		    complex_summ_the_conj1_prod(loc_dens[iop+nop*iflav][ivol],source[eo][ieo][ic],quark[iop][eo][ieo][ic]);
 		}
-
+	    
 	}
 	//final normalization and collapse
 	for(int iop=0;iop<nop;iop++)
@@ -118,7 +123,6 @@ namespace nissa
     for(int iop=0;iop<nop;iop++)
       for(int eo=0;eo<2;eo++)
 	nissa_free(quark[iop][eo]);
-
   }
   THREADABLE_FUNCTION_END
   
@@ -127,7 +131,7 @@ namespace nissa
   {
     verbosity_lv1_master_printf("Evaluating spinpol\n");
     
-//    if(mp.use_ferm_conf_for_gluons or glu_conf==NULL) glu_conf=ferm_conf;	//We don't use ferm_conf anymore (L)
+    //    if(mp.use_ferm_conf_for_gluons or glu_conf==NULL) glu_conf=ferm_conf;	//We don't use ferm_conf anymore (L)
     
     smooth_pars_t &sp=mp.smooth_pars;
     int nflavs=tp.nflavs();
@@ -147,6 +151,7 @@ namespace nissa
     int nmeas=mp.smooth_pars.nsmooth()+1;
     quad_su3 *smoothed_conf[nmeas];
     quad_su3 *ferm_conf[nmeas][2];
+    quad_su3 *gauge_conf=nissa_malloc("gauge_conf",loc_vol+bord_vol,quad_su3);
     for(int imeas=0;imeas<nmeas;imeas++)
       {
 	smoothed_conf[imeas]=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
@@ -187,31 +192,39 @@ namespace nissa
       for(int imeas=0;imeas<nmeas;imeas++)
 	{
 	  verbosity_lv1_master_printf("Computing copy %d/%d smooth %d/%d, t %lg/%lg\n",icopy,ncopies,imeas,nmeas,tmeas[imeas],t);
-	  //plaquette and local charge
-	  double plaq=global_plaquette_lx_conf(smoothed_conf[imeas]);
-	  local_topological_charge(topo_dens,smoothed_conf[imeas]);
-	  //total charge
-	  double tot_charge;
-	  double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
-	  double tot_charge2=double_vector_glb_norm2(topo_dens,1);
 	  
 	  //evaluate the tensorial density for all quarks
 	  compute_tensorial_density(tens,tens_dens,&tp,ferm_conf[imeas],mp.operators,mp.nhits,mp.residue);
 	  
-	  //topo-tens
-	  for(int iop=0;iop<mp.nops();iop++)
-	    for(int iflav=0;iflav<tp.nflavs();iflav++)
-	      {
-		GET_THREAD_ID();
-		NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_prod_double(spinpol_dens[ivol],tens_dens[iop+nop*iflav][ivol],topo_dens[ivol]);
-		THREAD_BARRIER();
-		
-		complex spinpol;
-		complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
-		master_fprintf(fout, "%d\t%lg\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",
-			       iconf,tmeas[imeas],iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,tot_charge2,
-			       spinpol[RE],spinpol[IM],tens[iop+nop*iflav][RE],tens[iop+nop*iflav][IM]);
-	      }
+	  for(int igauge_conf=0;igauge_conf<2;igauge_conf++)
+	    {
+	      //take the gauge conf, either the smoothed conf or the fermionic conf
+	      if(igauge_conf==0) vector_copy(gauge_conf,smoothed_conf[imeas]);
+	      else               paste_eo_parts_into_lx_vector(gauge_conf,ferm_conf[imeas]);
+	      
+	      //plaquette and local charge
+	      double plaq=global_plaquette_lx_conf(gauge_conf);
+	      local_topological_charge(topo_dens,gauge_conf);
+	      //total charge
+	      double tot_charge;
+	      double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
+	      double tot_charge2=double_vector_glb_norm2(topo_dens,1);
+	      
+	      //topo-tens
+	      for(int iop=0;iop<mp.nops();iop++)
+		for(int iflav=0;iflav<tp.nflavs();iflav++)
+		  {
+		    GET_THREAD_ID();
+		    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_prod_double(spinpol_dens[ivol],tens_dens[iop+nop*iflav][ivol],topo_dens[ivol]);
+		    THREAD_BARRIER();
+		    
+		    complex spinpol;
+		    complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
+		    master_fprintf(fout, "%d\t%lg\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",
+				   iconf,tmeas[imeas],iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,tot_charge2,
+				   spinpol[RE],spinpol[IM],tens[iop+nop*iflav][RE],tens[iop+nop*iflav][IM]);
+		  }
+	    }
 	}
     
     //free
@@ -223,6 +236,7 @@ namespace nissa
 	nissa_free(smoothed_conf[imeas]);
 	for(int eo=0;eo<2;eo++) nissa_free(ferm_conf[imeas][eo]);
       }
+    nissa_free(gauge_conf);
     
     //close
     close_file(fout);
