@@ -92,7 +92,7 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 \^ return TK_POW;
 
  /* quoted text */
-{QUOTE}{ANY}*{QUOTE} yylval->text=new std::string(yytext,1,strlen(yytext)-2);DEBUG_PRINTF("found string \"%s\", length=%d, copied: \"%s\"\n",yytext,(int)strlen(yytext),yylval->text->c_str()); return TK_QUOTED_TEXT;
+{QUOTE}[^\"\']*{QUOTE} yylval->text=new std::string(yytext,1,strlen(yytext)-2);DEBUG_PRINTF("found string \"%s\", length=%d, copied: \"%s\"\n",yytext,(int)strlen(yytext),yylval->text->c_str()); return TK_QUOTED_TEXT;
 
  /* equal */
 \= DEBUG_PRINTF("Found =\n");return '=';
