@@ -220,8 +220,8 @@ namespace nissa
 		    
 		    complex spinpol;
 		    complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
-		    master_fprintf(fout, "%d\t%lg\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",
-				   iconf,tmeas[imeas],iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,tot_charge2,
+		    master_fprintf(fout, "%d\t%d\t%lg\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",
+				   iconf,icopy,tmeas[imeas],iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,tot_charge2,
 				   spinpol[RE],spinpol[IM],tens[iop+nop*iflav][RE],tens[iop+nop*iflav][IM]);
 		  }
 	    }
