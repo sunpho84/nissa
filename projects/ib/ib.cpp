@@ -125,7 +125,7 @@ void init_simulation(char *path)
       
       double kappa=0.125,mass=0.5,theta=0,residue=1e-16;
       int r=0,sme=0,store_prop=0;
-      if(ins[0]==ins_tag[PROP])
+      if(strcasecmp(ins,ins_tag[PROP])==0)
 	{
 	  if(!twisted_run)
 	    {
@@ -161,7 +161,7 @@ void init_simulation(char *path)
       master_printf("Read variable 'Sme' with value: %d\n",sme);
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
-      Q[name].init_as_propagator(ins_from_tag(ins[0]),source_name,tins,residue,kappa,mass,r,theta,sme,store_prop);
+      Q[name].init_as_propagator(ins_from_tag(ins),source_name,tins,residue,kappa,mass,r,theta,sme,store_prop);
       qprop_name_list[iq]=name;
     }
   

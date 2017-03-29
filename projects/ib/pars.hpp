@@ -32,16 +32,16 @@ namespace nissa
   const int follow_chris=0,follow_nazario=1;
   
   //define types of quark propagator used
-  const int nins_kind=9;
-  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE ,  CVEC0};
-  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE ,  CVEC0 };
-  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE", "CVEC0"};
-  const char ins_tag[nins_kind]=        {'-'   ,'S'     ,'P'     ,'F'     ,'A'         ,'C'         ,'T'      , 'V'};
-  inline insertion_t ins_from_tag(const char tag)
+  const int nins_kind=12;
+  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC0 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 };
+  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC0 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 };
+  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC0","PHOTON0","PHOTON1","PHOTON2","PHOTON3"};
+  const char ins_tag[nins_kind][10]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V0"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     };
+  inline insertion_t ins_from_tag(const char *tag)
   {
     int i=0;
-    while(i<nins_kind and ins_tag[i]!=tag) i++;
-    if(i>=nins_kind) crash("unable to find tag %c",tag);
+    while(i<nins_kind and strcasecmp(ins_tag[i],tag)) i++;
+    if(i>=nins_kind) crash("unable to find tag %s",tag);
     return ins_list[i];
   }
   //sign of the lepton momentum

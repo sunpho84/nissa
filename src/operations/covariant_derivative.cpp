@@ -49,7 +49,7 @@ namespace nissa
   APPLY_NABLA_I(su3spinspin)
   
   void insert_external_source_handle(complex out,spin1field *aux,int ivol,int mu,void *pars)
-  {if(aux) complex_copy(out,aux[ivol][mu]);else complex_put_to_real(out,1);}
+  {int *dirs=(int*)pars;if(dirs[mu]==0) complex_put_to_zero(out);else {if(aux) complex_copy(out,aux[ivol][mu]);else complex_put_to_real(out,1);}}
   void insert_tadpole_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
   void insert_conserved_current_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){out[RE]=((int*)pars)[mu];out[IM]=0;}
   
@@ -124,15 +124,15 @@ namespace nissa
   void insert_tm_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,int r,double *tad,int t){DEF_TM_GAMMA(r); insert_tadpole(out,conf,in,&GAMMA,tad,t);} \
   									\
   /*insert the external source, that is one of the two extrema of the stoch prop*/ \
-  THREADABLE_FUNCTION_6ARG(insert_external_source, TYPE*,out, quad_su3*,conf, spin1field*,curr, TYPE*,in, dirac_matr*,GAMMA, int,t) \
+  THREADABLE_FUNCTION_7ARG(insert_external_source, TYPE*,out, quad_su3*,conf, spin1field*,curr, TYPE*,in, dirac_matr*,GAMMA, int*,dirs, int,t) \
   {									\
     /*call with source insertion, minus between fw and bw, and a global -i*0.5 - the minus comes from definition in eq.11 of 1303.4896*/ \
     complex fw_factor={0,-0.5},bw_factor={0,+0.5};			\
-    insert_vector_vertex(out,conf,curr,in,fw_factor,bw_factor,GAMMA,insert_external_source_handle,t); \
+    insert_vector_vertex(out,conf,curr,in,fw_factor,bw_factor,GAMMA,insert_external_source_handle,t,dirs); \
   }									\
   THREADABLE_FUNCTION_END						\
-  void insert_Wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int t){insert_external_source(out,conf,curr,in,base_gamma+0,t);} \
-  void insert_tm_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int r,int t){DEF_TM_GAMMA(r);insert_external_source(out,conf,curr,in,&GAMMA,t);} \
+  void insert_Wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int * dirs,int t){insert_external_source(out,conf,curr,in,base_gamma+0,dirs,t);} \
+  void insert_tm_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int r,int *dirs,int t){DEF_TM_GAMMA(r);insert_external_source(out,conf,curr,in,&GAMMA,dirs,t);} \
 									\
   /*insert the conserved time current*/ \
   THREADABLE_FUNCTION_6ARG(insert_conserved_current, TYPE*,out, quad_su3*,conf, TYPE*,in, dirac_matr*,GAMMA, int*,dirs, int,t) \

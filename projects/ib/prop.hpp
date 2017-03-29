@@ -135,9 +135,8 @@ namespace nissa
 	generate_original_source(&Q[ori_source_name_list[i]]);
       }
   }
-  void insert_external_loc_source(spincolor *out,spin1field *curr,coords dirs,spincolor *in,int t);
-  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t);
-  void insert_external_source(spincolor *out,spin1field *curr,spincolor *ori,int t,int r,int loc);
+  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,coords dirs);
+  void insert_external_source(spincolor *out,spin1field *curr,spincolor *ori,int t,int r,coords  dirs,int loc);
   void generate_source(insertion_t inser,int r,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator();

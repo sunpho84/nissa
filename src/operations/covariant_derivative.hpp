@@ -23,12 +23,12 @@ namespace nissa
   void insert_Wilson_conserved_current(colorspinspin *out,quad_su3 *conf,colorspinspin *in,int *dirs,int t);
   void insert_Wilson_conserved_current(su3spinspin *out,quad_su3 *conf,su3spinspin *in,int *dirs,int t);
   
-  void insert_tm_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *in,int r,int t);
-  void insert_tm_external_source(colorspinspin *out,quad_su3 *conf,spin1field *curr,colorspinspin *in,int r,int t);
-  void insert_tm_external_source(su3spinspin *out,quad_su3 *conf,spin1field *curr,su3spinspin *in,int r,int t);
-  void insert_Wilson_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *in,int t);
-  void insert_Wilson_external_source(colorspinspin *out,quad_su3 *conf,spin1field *curr,colorspinspin *in,int t);
-  void insert_Wilson_external_source(su3spinspin *out,quad_su3 *conf,spin1field *curr,su3spinspin *in,int t);
+  void insert_tm_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *in,int r,int *dirs,int t);
+  void insert_tm_external_source(colorspinspin *out,quad_su3 *conf,spin1field *curr,colorspinspin *in,int r,int *dirs,int t);
+  void insert_tm_external_source(su3spinspin *out,quad_su3 *conf,spin1field *curr,su3spinspin *in,int r,int *dirs,int t);
+  void insert_Wilson_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *in,int *dirs,int t);
+  void insert_Wilson_external_source(colorspinspin *out,quad_su3 *conf,spin1field *curr,colorspinspin *in,int *dirs,int t);
+  void insert_Wilson_external_source(su3spinspin *out,quad_su3 *conf,spin1field *curr,su3spinspin *in,int *dirs,int t);
   
   void prop_multiply_with_gamma(spincolor *out,int ig,spincolor *in,int it=-1);
   void prop_multiply_with_gamma(colorspinspin *out,int ig,colorspinspin *in,int it=-1);
