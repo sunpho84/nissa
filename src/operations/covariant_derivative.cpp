@@ -131,8 +131,8 @@ namespace nissa
     insert_vector_vertex(out,conf,curr,in,fw_factor,bw_factor,GAMMA,insert_external_source_handle,t,dirs); \
   }									\
   THREADABLE_FUNCTION_END						\
-  void insert_Wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int * dirs,int t){insert_external_source(out,conf,curr,in,base_gamma+0,dirs,t);} \
-  void insert_tm_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int r,int *dirs,int t){DEF_TM_GAMMA(r);insert_external_source(out,conf,curr,in,&GAMMA,dirs,t);} \
+  void insert_Wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,coords dirs,int t){insert_external_source(out,conf,curr,in,base_gamma+0,dirs,t);} \
+  void insert_tm_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int r,coords dirs,int t){DEF_TM_GAMMA(r);insert_external_source(out,conf,curr,in,&GAMMA,dirs,t);} \
 									\
   /*insert the conserved time current*/ \
   THREADABLE_FUNCTION_6ARG(insert_conserved_current, TYPE*,out, quad_su3*,conf, TYPE*,in, dirac_matr*,GAMMA, int*,dirs, int,t) \
