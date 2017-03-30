@@ -256,13 +256,13 @@ void init_simulation(char *path)
   int nvalence_theories;
   read_str_int("NValenceTheories",&nvalence_theories);
   ntheories=nvalence_theories+1;
-  theory_pars=nissa_malloc("theory_pars",ntheories,theory_pars_t);
-  fermionic_putpourri_meas_pars=nissa_malloc("fermionic_putpourri_meas_pars",ntheories,fermionic_putpourri_meas_pars_t);
-  quark_rendens_meas_pars=nissa_malloc("quark_rendens_meas_pars",ntheories,quark_rendens_meas_pars_t);
-  spinpol_meas_pars=nissa_malloc("spinpol_meas_pars",ntheories,spinpol_meas_pars_t);
-  magnetization_meas_pars=nissa_malloc("magnetization_meas_pars",ntheories,magnetization_meas_pars_t);
-  pseudo_corr_meas_pars=nissa_malloc("pseudo_corr_meas_pars",ntheories,pseudo_corr_meas_pars_t);
-  nucleon_corr_meas_pars=nissa_malloc("nucleon_corr_meas_pars",ntheories,nucleon_corr_meas_pars_t);
+  theory_pars=new(nissa_malloc("theory_pars",ntheories,theory_pars_t)) theory_pars_t[ntheories];
+  fermionic_putpourri_meas_pars=new(nissa_malloc("fermionic_putpourri_meas_pars",ntheories,fermionic_putpourri_meas_pars_t)) fermionic_putpourri_meas_pars_t[ntheories];
+  quark_rendens_meas_pars=new(nissa_malloc("quark_rendens_meas_pars",ntheories,quark_rendens_meas_pars_t)) quark_rendens_meas_pars_t[ntheories];
+  spinpol_meas_pars=new(nissa_malloc("spinpol_meas_pars",ntheories,spinpol_meas_pars_t)) spinpol_meas_pars_t[ntheories];
+  magnetization_meas_pars=new(nissa_malloc("magnetization_meas_pars",ntheories,magnetization_meas_pars_t)) magnetization_meas_pars_t[ntheories];
+  pseudo_corr_meas_pars=new(nissa_malloc("pseudo_corr_meas_pars",ntheories,pseudo_corr_meas_pars_t)) pseudo_corr_meas_pars_t[ntheories];
+  nucleon_corr_meas_pars=new(nissa_malloc("nucleon_corr_meas_pars",ntheories,nucleon_corr_meas_pars_t)) nucleon_corr_meas_pars_t[ntheories];
   
   //read physical theory: theory 0 is the sea (simulated one)
   for(int itheory=0;itheory<ntheories;itheory++)
