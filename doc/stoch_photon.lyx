@@ -356,5 +356,159 @@ The matrix
 
 \end_layout
 
+\begin_layout Section
+Numerical cost
+\end_layout
+
+\begin_layout Standard
+In ref [cazzoni] the cost of the stochastic and perturbative approach has
+ been compared, and a factor of 2-2.5 of reduction of the error has been
+ found with the usage in the first case.
+ Here we will show that in ref.
+ [cagacazzi] the computational cost of the perturbative approach has been
+ overstimated, and a number of 
+\begin_inset Quotes eld
+\end_inset
+
+inversion
+\begin_inset Quotes erd
+\end_inset
+
+ smaller than the 17 used in ref [rompipalle] is actually needed for the
+ perturbative approach.
+ 
+\end_layout
+
+\begin_layout Standard
+To begin with, we note again that photon field can be used to define the
+ stochastic propagator of the photon in place of the stochastic trace, this
+ save 4 inversions, as explained in previous Appendix.
+\end_layout
+
+\begin_layout Standard
+From the counting of the inversions used in ref.
+ [antonini] it is clear that a dilution of the Lorentz index has been used
+ for both conserved current and tadpole insertions.
+ However, the sum of the diagram in which one of the four components of
+ the tadpole 
+\begin_inset Formula $T_{\mu}$
+\end_inset
+
+ are inserted each time is analytically equal to the diagram in which the
+ sum of the four components 
+\begin_inset Formula $T=\sum_{\mu}T_{\mu}$
+\end_inset
+
+is inserted together
+\begin_inset Formula 
+\[
+\sum_{\mu}\left\langle S^{T_{\mu}}\left(0,x\right)\Gamma S\left(x,0\right)\Gamma\right\rangle =\sum_{\mu}\left\langle \Gamma S\left(0,x\right)T_{\mu}\left(x\right)S\left(x,y\right)S\left(y,0\right)\right\rangle =
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+=\left\langle \Gamma S\left(0,x\right)\left(\sum_{\mu}T_{\mu}\left(x\right)\right)\left(x\right)S\left(x,y\right)\Gamma S\left(y,0\right)\right\rangle =\left\langle S^{T}\left(0,x\right)\Gamma S\left(x,0\right)\Gamma\right\rangle .
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This saves another 3 inversions, bringing the overall cost to 10 without
+ any increase of the statistical error, and with a 50% improvement on the
+ error of the 
+\begin_inset Quotes eld
+\end_inset
+
+exchange
+\begin_inset Quotes erd
+\end_inset
+
+ diagram thanks to the use of the photon field instead of stochastic trace.
+\end_layout
+
+\begin_layout Standard
+It can also be noted that the dilution over the Lorentz index is not strictly
+ needed even for the insertion of the four components of the conserved vector
+ current.
+ In facts, taking as an example the diagram in which a photon is exchanged
+ between the two quark lines, we can obtained the desired diagram
+\begin_inset Formula 
+\[
+\sum_{\mu}\left\langle S^{\left(VA\right)_{\mu}}\left(0,y\right)\Gamma S^{\left(VA\right)_{\mu}}\left(y,0\right)\Gamma\right\rangle =\sum_{\mu}\left\langle S\left(0,x\right)V_{\mu}\left(x\right)A_{\mu}\left(x\right)S\left(x,y\right)\Gamma S\left(y,z\right)V_{\mu}\left(z\right)A_{\mu}\left(z\right)S\left(z,0\right)\Gamma\right\rangle 
+\]
+
+\end_inset
+
+by computing
+\begin_inset Formula 
+\[
+\left\langle S^{VA}\left(0,y\right)\Gamma S^{VA}\left(y,0\right)\Gamma\right\rangle =\left\langle S\left(0,x\right)\left(\sum_{\mu}V_{\mu}\left(x\right)A_{\mu}\left(x\right)\right)S\left(x,y\right)\Gamma S\left(y,z\right)\left(\sum_{\nu}V_{\nu}\left(z\right)A_{\nu}\left(z\right)\right)S\left(z,0\right)\Gamma\right\rangle \,.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In facts, the spurious terms
+\begin_inset Formula 
+\[
+\sum_{\mu\neq\nu}\left\langle S^{\left(VA\right)_{\mu}}\left(0,y\right)\Gamma S^{\left(VA\right)_{\nu}}\left(y,0\right)\Gamma\right\rangle 
+\]
+
+\end_inset
+
+average to zero due to the fact that 
+\begin_inset Formula 
+\[
+\left\langle A_{\mu}\left(x\right)A_{\nu}\left(y\right)\right\rangle =G_{\mu\nu}\left(x-y\right)\propto\delta_{\mu\nu}
+\]
+
+\end_inset
+
+in Feynamn gauge.
+ We checked that in the pseudoscalar channel, analyzed in this paper, this
+ terms are of negligible entity for a strange-strange correlation function,
+ so another 6 inversions can be saved, reducing the total number of inversion
+ to 4 and largely improving the effectiveness of the method as it was used
+ in this study compared to the way it was used in [veraveranda].
+ A deeper check is of course needed to verify if the same holds true in
+ the case of the light sector, and for other channels as the ones analyzed
+ in ref [rompiminchia].
+ This will be subject of future studies.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+CI SAREBBE DA DISCUTERE ANCHE IL CASO VETTORE...
+\end_layout
+
+\begin_layout Plain Layout
+For the case of the vector channel, these terms amount to 
+\begin_inset Formula $40\div100\%$
+\end_inset
+
+ of those obtained in the Lorentz-diluted correlation, depending on the
+ diagram considered (self-energy or exchange respectively).
+ This indicates that at the same cost a better reduction of the stochastic
+ error is achieved by using a larger number of source position.
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \end_body
 \end_document
