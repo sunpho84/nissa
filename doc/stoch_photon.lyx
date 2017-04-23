@@ -82,31 +82,39 @@
 
 \begin_layout Section
 \start_of_appendix
-Generation of Photon field
+Numerical cost
 \end_layout
 
 \begin_layout Standard
-In this paper we consider QED at 1 loop, evaluating explicitly the fermionic-con
-nected diagrams contributing to 
-\begin_inset Formula $g-2$
+In this paper we consider QED at 
+\begin_inset Formula $\mathcal{O}\left(\alpha_{em}\right)$
 \end_inset
 
- at 
-\begin_inset Formula $\mathcal{O}\left(\alpha^{3}\right)$
-\end_inset
-
-.
+, evaluating explicitly the fermionic-connected diagrams contributing to
+ meson masses.
 \end_layout
 
 \begin_layout Standard
-For diagram in which both ends of the photon propagator are attached to
- the same fermionic line, the numerical cost scales badly with the volume.
+For diagrams (1.a) and (1.b) the numerical cost scales badly with the volume.
  Therefore, stochastic approaches are needed to avoid computing explicitly
- the integrals over the beginning and end of the photon propagator, whose
- cost would be exceedingly too large for realistic volumes.
- Here we adopt a variation of the technique adopted in our past papers,
- which we will briefly recall.
- For the sake of simplicity let us discuss the case of the 
+ the integrals over the beginning and end of the photon propagator, the
+ cost of which would be exceedingly too large for realistic volumes.
+ Here we adopt a variation of the technique used in our previous papers
+ ([refs]).
+ 
+\end_layout
+
+\begin_layout Standard
+Let us first recall the technique used in the past.
+ 
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For the sake of simplicity let us discuss the case of the 
 \begin_inset Quotes eld
 \end_inset
 
@@ -114,14 +122,14 @@ exchange
 \begin_inset Quotes erd
 \end_inset
 
- diagram for a bilinear 
+ diagram (1.a) for a bilinear 
 \begin_inset Formula $\bar{\psi}\Gamma\psi$
 \end_inset
 
 :
 \begin_inset Formula 
 \[
-C^{exc}\left(t\right)\equiv\sum_{\vec{x},y,z}\left\langle S\left(0;y\right)V_{\mu}\left(y\right)S\left(y;\vec{x},t\right)\Gamma S\left(\vec{x},t;z\right)V_{\nu}\left(z\right)S\left(z;0\right)\Gamma\right\rangle G_{\mu\nu}\left(y,z\right).
+\delta C^{exch}\left(t\right)\equiv\sum_{\vec{x},y_{1},y_{2}}\left\langle S\left(0;y_{1}\right)V_{\mu}\left(y_{1}\right)S\left(y_{1};\vec{x},t\right)\Gamma S\left(\vec{x},t;y_{2}\right)V_{\nu}\left(y_{2}\right)S\left(y_{2};0\right)\Gamma\right\rangle G_{\mu\nu}\left(y_{1},y_{2}\right).
 \]
 
 \end_inset
@@ -134,38 +142,38 @@ The nested summation over
 \begin_inset Formula $z$
 \end_inset
 
- is prohibitively costly and scales as 
+ is prohibitively costly and scales like 
 \begin_inset Formula $V^{2}$
 \end_inset
 
 .
- The nested evaluation can be split in two summation, each scaling as 
+ We can be split them into two separate summations, each scaling as 
 \begin_inset Formula $V$
 \end_inset
 
-, by introducing a set of real stochastic field 
+, by introducing a set of real stochastic fields 
 \begin_inset Formula $\eta_{\mu}\left(x\right)=\pm1\ \forall\mu,x\,$
 \end_inset
 
 .
- With these we can define the stochastic identity operator: 
+ The expectation value of the product of two fields is given by: 
 \begin_inset Formula 
-\[
-\lim_{n\to\infty}\eta_{\mu}\left(x\right)\eta_{\nu}\left(y\right)=\delta_{\mu\nu}\delta\left(x,y\right),
-\]
+\begin{equation}
+\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\eta_{\mu}^{i}\left(x\right)\eta_{\nu}^{i}\left(y\right)=\delta_{\mu\nu}\delta\left(x,y\right),\label{eq:stoch-exp}
+\end{equation}
 
 \end_inset
 
-from which we can rewrite the photon propagator as: 
+from which we can write the photon propagator as: 
 \begin_inset Formula 
 \[
-G_{\mu\nu}\left(x,y\right)=\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\phi_{\mu}^{i}\left(x\right)\eta_{\nu}^{i}\left(y\right),
+G_{\mu\nu}\left(y_{1},y_{2}\right)=\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\phi_{\mu}^{i}\left(y_{1}\right)\eta_{\nu}^{i}\left(y_{2}\right),
 \]
 
 \end_inset
 
 where 
-\begin_inset Formula $\phi_{\mu}^{i}\left(x\right)=G_{\mu\rho}\left(x,z\right)\eta_{\rho}^{i}\left(z\right)$
+\begin_inset Formula $\phi_{\mu}^{i}\left(y_{1}\right)=G_{\mu\rho}\left(y_{1},y_{3}\right)\eta_{\rho}^{i}\left(y_{3}\right)$
 \end_inset
 
 .
@@ -174,24 +182,31 @@ where
 \end_inset
 
 -hermiticity of the propagator, the correlation function can be obtained
- by evaluating:
+ in the Feynman gauge by evaluating:
 \begin_inset Formula 
-\[
-C^{exc}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\vec{x}}\left\langle \left.S^{\phi_{i}}\right.^{\dagger}\left(\vec{x},t;0\right)\gamma_{5}\Gamma S^{\eta_{i}}\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle ,
-\]
+\begin{equation}
+\delta C^{exch}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\mu,\vec{x}}\left\langle \left.S^{V_{\mu}\phi_{\mu}^{i}}\right.^{\dagger}\left(\vec{x},t;0\right)\gamma_{5}\Gamma S^{V_{\mu}\eta_{\mu}^{i}}\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle ,\label{eq:diluted}
+\end{equation}
 
 \end_inset
 
 where 
-\begin_inset Formula $S^{\varphi}\left(\vec{x},t;0\right)\equiv S\left(\vec{x},t;z\right)V_{\mu}\left(z\right)S\left(z;0\right)\varphi_{\mu}\left(z\right)$
+\begin_inset Formula 
+\[
+S^{V_{\mu}\varphi_{\mu}}\left(\vec{x},t;0\right)\equiv S\left(\vec{x},t;y\right)V_{\mu}\left(y\right)\varphi_{\mu}\left(y\right)S\left(y;0\right)
+\]
+
 \end_inset
 
- is a 
+is a 
 \emph on
 sequential propagator
 \emph default
-, in which the (conserved) vector current coupled to the external field
- 
+, in which the component 
+\begin_inset Formula $\mu$
+\end_inset
+
+ of the (conserved) vector current coupled to the external field 
 \begin_inset Formula $\varphi$
 \end_inset
 
@@ -206,87 +221,132 @@ sequential propagator
 \end_inset
 
 .
+ It is actually possible to obtain the same correlation function by considering
+\begin_inset Formula 
+\begin{equation}
+\delta C^{exch}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\vec{x}}\left\langle \left.S^{V\phi^{i}}\right.^{\dagger}\left(\vec{x},t;0\right)\gamma_{5}\Gamma S^{V\eta^{i}}\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle ,\label{eq:undiluted}
+\end{equation}
+
+\end_inset
+
+where the sum over the Lorentz index 
+\begin_inset Formula $\mu$
+\end_inset
+
+ has been absorbed inside a single sequential propagator:
+\begin_inset Formula 
+\[
+S^{V\varphi}\left(\vec{x},t;0\right)\equiv S\left(\vec{x},t;y\right)\left[\sum_{\mu}V_{\mu}\left(y\right)\varphi_{\mu}\left(y\right)\right]S\left(y;0\right).
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The difference between Eq.
+\begin_inset space ~
+\end_inset
+
+(
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:diluted"
+
+\end_inset
+
+) and Eq.
+\begin_inset space ~
+\end_inset
+
+(
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:undiluted"
+
+\end_inset
+
+) corresponds to the terms 
+\begin_inset Formula 
+\[
+\left\langle \left.S^{V\phi_{\mu}^{i}}\right.^{\dagger}\left(\vec{x},t;0\right)\gamma_{5}\Gamma S^{V\eta_{\nu}^{i}}\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle \quad\mu\neq\nu,
+\]
+
+\end_inset
+
+which average to zero by gauge invariance.
+ We checked that in the pseudoscalar channel, this terms are of negligible
+ entity, so that Eq.
+\begin_inset space ~
+\end_inset
+
+(
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:undiluted"
+
+\end_inset
+
+) is four time more efficient than Eq.
+\begin_inset space ~
+\end_inset
+
+(
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:diluted"
+
+\end_inset
+
+).
  In short, the calculation of 
-\begin_inset Formula $C^{exc}$
+\begin_inset Formula $\delta C^{exch}$
 \end_inset
 
- with this framework requires to compute 
-\begin_inset Formula $3$
-\end_inset
-
- propagators, and average over several (ideally infinite) stochastic sources
- 
+ with this framework requires to compute three propagators, and average
+ over several (ideally infinite) stochastic sources 
 \begin_inset Formula $\eta$
 \end_inset
 
 .
- The set of fermionic-connected diagrams needed for 
-\begin_inset Formula $g-2$
+ This is the method adopted in our previous papers.
+\begin_inset Newline newline
 \end_inset
 
- requires the calculation of 
-\begin_inset Formula $7$
-\end_inset
 
- quark propagators.
 \end_layout
 
 \begin_layout Standard
 In this work we have adopted a slightly different approach.
- Instead of introducing the stochastic operator, we use the definition of
- the photon propagator in terms of expectation value of product of photon
- field:
+ Instead of using Eq.
+\begin_inset space ~
+\end_inset
+
+(
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:stoch-exp"
+
+\end_inset
+
+), we define the photon propagator in terms of expectation value of the
+ time-orderd product of photon fields:
 \begin_inset Formula 
 \[
-G_{\mu\nu}\left(x,y\right)=\left\langle A_{\mu}\left(x\right)A_{\nu}\left(y\right)\right\rangle .
+G_{\mu\nu}\left(y_{1},y_{2}\right)=\left\langle A_{\mu}\left(y_{1}\right)A_{\nu}\left(y_{2}\right)\right\rangle ,
 \]
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-In this way the correlation function can be computed as:
-\begin_inset Formula 
-\[
-C^{exc}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\vec{x}}\left\langle \left.S^{A_{i}}\left(\vec{x},t;0\right)\right.^{\dagger}\gamma_{5}\Gamma S^{A_{i}}\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle ,
-\]
-
-\end_inset
-
-with a clear benefit: this time only two quark propagators are required
- for the exchange diagram, and a total of 6 are enough to compute the whole
- set of corrections.
- The case of the pseudoscalar channel is of special interest, since in this
- case the correlation function is obtained by computing:
-\begin_inset Formula 
-\[
-C_{PP}^{exc}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\vec{x}}\left\langle \left|S^{A_{i}}\left(\vec{x},t;0\right)\right|\right\rangle ,
-\]
-
-\end_inset
-
-and the results is a factor 
-\begin_inset Formula $50\%$
-\end_inset
-
- more precise than the equivalent one computed with 
-\begin_inset Formula $\eta-\phi$
-\end_inset
-
- representation of the propagator.
-\end_layout
-
-\begin_layout Standard
-As a last point, we remark that the photon field 
-\begin_inset Formula $A_{\mu}\left(x\right)$
+where the photon field 
+\begin_inset Formula $A_{\mu}\left(y\right)$
 \end_inset
 
  must be generated from the distribution of probability:
 \begin_inset Formula 
 \[
-P\left(A\right)dA\propto\exp\left[-A_{\mu}\left(x\right)G_{\mu\nu}^{-1}\left(x,y\right)A_{\nu}\left(y\right)\right].
+P\left(A\right)dA\propto\exp\left[-A_{\mu}\left(y_{1}\right)G_{\mu\nu}^{-1}\left(y_{1},y_{2}\right)A_{\nu}\left(y_{2}\right)\right].
 \]
 
 \end_inset
@@ -295,8 +355,16 @@ P\left(A\right)dA\propto\exp\left[-A_{\mu}\left(x\right)G_{\mu\nu}^{-1}\left(x,y
 \end_layout
 
 \begin_layout Standard
-This can be obtained easily drawing each mode of the photon field in momentum
- space, where the distribution is local in spacetime:
+This can be readily obtained drawing each mode of the photon field in momentum
+ space in which the probability distribution is local in 
+\begin_inset Formula $k$
+\end_inset
+
+, as was first noted in ref.
+\begin_inset space ~
+\end_inset
+
+[Duncan]:
 \begin_inset Formula 
 \[
 P\left(\tilde{A}\right)d\tilde{A}\propto\exp\left[-\tilde{A}_{\mu}\left(k\right)\tilde{G}_{\mu\nu}^{-1}\left(k\right)\tilde{A}_{\nu}\left(k\right)\right].
@@ -348,7 +416,7 @@ The matrix
  amounts simply to
 \begin_inset Formula 
 \[
-\sqrt{\tilde{G}_{\rho\nu}\left(k\right)}=\sqrt{\frac{1}{\hat{k}^{2}}}.
+\sqrt{\tilde{G}_{\rho\nu}\left(k\right)}=\delta_{\rho\nu}\sqrt{\frac{1}{\hat{k}^{2}}}.
 \]
 
 \end_inset
@@ -356,158 +424,230 @@ The matrix
 
 \end_layout
 
-\begin_layout Section
-Numerical cost
+\begin_layout Standard
+In this way the correlation function can be computed as:
+\begin_inset Formula 
+\[
+\delta C^{exch}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\mu,\vec{x}}\left\langle \left.S^{VA_{\mu}^{i}}\left(\vec{x},t;0\right)\right.^{\dagger}\gamma_{5}\Gamma S^{VA_{\mu}^{i}}\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle ,
+\]
+
+\end_inset
+
+or through a single sequential propagator 
+\begin_inset Formula $S^{A^{i}}$
+\end_inset
+
+, in a way similar to Eq.
+\begin_inset space ~
+\end_inset
+
+(
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:undiluted"
+
+\end_inset
+
+).
+ This has a clear benefit: only two quark inversions are required to compute
+ the exchange diagram.
+ The case of the pseudoscalar channel is of special interest, since in this
+ case the correlation function is obtained by computing:
+\begin_inset Formula 
+\[
+\delta C_{PP}^{exch}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\vec{x}}\left\langle \left|S^{A_{i}}\left(\vec{x},t;0\right)\right|^{2}\right\rangle ,
+\]
+
+\end_inset
+
+and the results is a factor 
+\begin_inset Formula $50\%$
+\end_inset
+
+ more precise than the equivalent one computed with 
+\begin_inset Formula $\eta-\phi$
+\end_inset
+
+ representation of the propagator.
+\begin_inset Newline newline
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-In ref [cazzoni] the cost of the stochastic and perturbative approach has
- been compared, and a factor of 2-2.5 of reduction of the error has been
- found with the usage in the first case.
- Here we will show that in ref.
- [cagacazzi] the computational cost of the perturbative approach has been
- overstimated, and a number of 
+A similar reasoning suggests that diagram 
 \begin_inset Quotes eld
 \end_inset
 
-inversion
+self-energy
 \begin_inset Quotes erd
 \end_inset
 
- smaller than the 17 used in ref [rompipalle] is actually needed for the
- perturbative approach.
- 
-\end_layout
-
-\begin_layout Standard
-To begin with, we note again that photon field can be used to define the
- stochastic propagator of the photon in place of the stochastic trace, this
- save 4 inversions, as explained in previous Appendix.
-\end_layout
-
-\begin_layout Standard
-From the counting of the inversions used in ref.
- [antonini] it is clear that a dilution of the Lorentz index has been used
- for both conserved current and tadpole insertions.
- However, the sum of the diagram in which one of the four components of
- the tadpole 
-\begin_inset Formula $T_{\mu}$
-\end_inset
-
- are inserted each time is analytically equal to the diagram in which the
- sum of the four components 
-\begin_inset Formula $T=\sum_{\mu}T_{\mu}$
-\end_inset
-
-is inserted together
+ (1.b) can be obtained by computing 
 \begin_inset Formula 
 \[
-\sum_{\mu}\left\langle S^{T_{\mu}}\left(0,x\right)\Gamma S\left(x,0\right)\Gamma\right\rangle =\sum_{\mu}\left\langle \Gamma S\left(0,x\right)T_{\mu}\left(x\right)S\left(x,y\right)S\left(y,0\right)\right\rangle =
+\delta C^{self}\left(t\right)\equiv\lim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\sum_{\vec{x}}\left\langle \left.S^{VA^{i}\,VA^{i}}\left(\vec{x},t;0\right)\right.^{\dagger}\gamma_{5}\Gamma S\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle ,
+\]
+
+\end_inset
+
+with the sequential propagator defined recursively as 
+\begin_inset Formula 
+\[
+S^{VA^{i}\,VA^{i}}\left(\vec{x},t;0\right)\equiv S\left(\vec{x},t;y\right)\left[\sum_{\mu}V_{\mu}\left(y\right)A_{\mu}^{i}\left(y\right)\right]S^{VA^{i}}\left(y;0\right).
 \]
 
 \end_inset
 
 
-\begin_inset Formula 
-\[
-=\left\langle \Gamma S\left(0,x\right)\left(\sum_{\mu}T_{\mu}\left(x\right)\right)\left(x\right)S\left(x,y\right)\Gamma S\left(y,0\right)\right\rangle =\left\langle S^{T}\left(0,x\right)\Gamma S\left(x,0\right)\Gamma\right\rangle .
-\]
-
+\begin_inset Newline newline
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-This saves another 3 inversions, bringing the overall cost to 10 without
- any increase of the statistical error, and with a 50% improvement on the
- error of the 
+The 
 \begin_inset Quotes eld
 \end_inset
 
-exchange
+tadpole
 \begin_inset Quotes erd
 \end_inset
 
- diagram thanks to the use of the photon field instead of stochastic trace.
-\end_layout
-
-\begin_layout Standard
-It can also be noted that the dilution over the Lorentz index is not strictly
- needed even for the insertion of the four components of the conserved vector
- current.
- In facts, taking as an example the diagram in which a photon is exchanged
- between the two quark lines, we can obtained the desired diagram
+ diagram (1.c) instead can be obtained immediately at the cost of a single
+ sequential propagator, without introducing any additional stochastic noise
+ at all, by noting that the relation
 \begin_inset Formula 
 \[
-\sum_{\mu}\left\langle S^{\left(VA\right)_{\mu}}\left(0,y\right)\Gamma S^{\left(VA\right)_{\mu}}\left(y,0\right)\Gamma\right\rangle =\sum_{\mu}\left\langle S\left(0,x\right)V_{\mu}\left(x\right)A_{\mu}\left(x\right)S\left(x,y\right)\Gamma S\left(y,z\right)V_{\mu}\left(z\right)A_{\mu}\left(z\right)S\left(z,0\right)\Gamma\right\rangle 
+\delta C^{T}\left(t\right)\equiv\sum_{\mu,\vec{x}}\left\langle \left.S^{T_{\mu}}\left(\vec{x},t;0\right)\right.^{\dagger}\gamma_{5}\Gamma S\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle =\sum_{\vec{x}}\left\langle \left.S^{T}\left(\vec{x},t;0\right)\right.^{\dagger}\gamma_{5}\Gamma S\left(\vec{x},t;0\right)\Gamma\gamma_{5}\right\rangle ,
 \]
 
 \end_inset
 
-by computing
-\begin_inset Formula 
-\[
-\left\langle S^{VA}\left(0,y\right)\Gamma S^{VA}\left(y,0\right)\Gamma\right\rangle =\left\langle S\left(0,x\right)\left(\sum_{\mu}V_{\mu}\left(x\right)A_{\mu}\left(x\right)\right)S\left(x,y\right)\Gamma S\left(y,z\right)\left(\sum_{\nu}V_{\nu}\left(z\right)A_{\nu}\left(z\right)\right)S\left(z,0\right)\Gamma\right\rangle \,.
-\]
-
+holds exactly, i.e without relying on gauge symmetry.
+\begin_inset Newline newline
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-In facts, the spurious terms
-\begin_inset Formula 
-\[
-\sum_{\mu\neq\nu}\left\langle S^{\left(VA\right)_{\mu}}\left(0,y\right)\Gamma S^{\left(VA\right)_{\nu}}\left(y,0\right)\Gamma\right\rangle 
-\]
-
+In summary, the QED corrections to meson mass can be computed through four
+ inversions, namely those required to obtain the propagators 
+\begin_inset Formula $S$
 \end_inset
 
-average to zero due to the fact that 
-\begin_inset Formula 
-\[
-\left\langle A_{\mu}\left(x\right)A_{\nu}\left(y\right)\right\rangle =G_{\mu\nu}\left(x-y\right)\propto\delta_{\mu\nu}
-\]
-
+, 
+\begin_inset Formula $S^{VA^{i}}$
 \end_inset
 
-in Feynamn gauge.
- We checked that in the pseudoscalar channel, analyzed in this paper, this
- terms are of negligible entity for a strange-strange correlation function,
- so another 6 inversions can be saved, reducing the total number of inversion
- to 4 and largely improving the effectiveness of the method as it was used
- in this study compared to the way it was used in [veraveranda].
- A deeper check is of course needed to verify if the same holds true in
- the case of the light sector, and for other channels as the ones analyzed
- in ref [rompiminchia].
- This will be subject of future studies.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-CI SAREBBE DA DISCUTERE ANCHE IL CASO VETTORE...
-\end_layout
-
-\begin_layout Plain Layout
-For the case of the vector channel, these terms amount to 
-\begin_inset Formula $40\div100\%$
+, 
+\begin_inset Formula $S^{VA^{i}\,VA^{i}}$
 \end_inset
 
- of those obtained in the Lorentz-diluted correlation, depending on the
- diagram considered (self-energy or exchange respectively).
- This indicates that at the same cost a better reduction of the stochastic
- error is achieved by using a larger number of source position.
+ and 
+\begin_inset Formula $S^{T}$
+\end_inset
+
+.
+ An additional propagator 
+\begin_inset Formula $S^{P}$
+\end_inset
+
+, corresponding to the pseudoscalar insertion, is needed to compute the
+ correction due to the shift of the critical mass, diagram (1.d), which arises
+ specifically in our Twisted-Mass setup.
+ Moreover, in order to take into account the difference of mass between
  
+\begin_inset Formula $u$
+\end_inset
+
+ and 
+\begin_inset Formula $d$
+\end_inset
+
+ quarks an additional inversion is needed to compute the sequential propagator
+ 
+\begin_inset Formula $S^{S}$
+\end_inset
+
+ in which the scalar density is inserted, as depicted in diagram (1.e).
+\end_layout
+
+\begin_layout Standard
+We note that working in the isosymmetric theory, there is no need to compute
+ this diagrams for 
+\begin_inset Formula $u$
+\end_inset
+
+ or 
+\begin_inset Formula $d$
+\end_inset
+
+ quark separately
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+More specifically in the Twisted Mass regularization and for the correlators
+ analyzed in this work, we can obtain the 
+\begin_inset Formula $d$
+\end_inset
+
+ propagator (regularized with an 
+\begin_inset Formula $r$
+\end_inset
+
+ opposed to 
+\begin_inset Formula $u$
+\end_inset
+
+) by employing the r-
+\begin_inset Formula $\gamma_{5}$
+\end_inset
+
+ symmetry of the propagator: 
+\begin_inset Formula $S_{u}=\gamma_{5}S_{d}^{\dagger}\gamma_{5}$
+\end_inset
+
+.
 \end_layout
 
 \end_inset
 
+.
+\end_layout
 
+\begin_layout Standard
+Therefore, the number of light inversions, which dominates the numerical
+ cost, is given by 
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $\#_{INV}=4_{QED}+1_{TM}+1_{MASS}=6$
+\end_inset
+
+.
+ Finally, we remark that in order to improve the quality of the signal,
+ we employed sixteen different time source positions, using a different
+ realization of the photon field 
+\begin_inset Formula $A$
+\end_inset
+
+ per source position.
+ As a stochastic source for the quark interpolator we used 
+\begin_inset Formula $Z_{2}$
+\end_inset
+
+ noise, diluted in spin but not in color.
+ Hence a total number of 
+\begin_inset Formula $4_{spin}\times6_{prop}\times16_{time}=384$
+\end_inset
+
+ Dirac equations has been solved for each gauge configuration.
 \end_layout
 
 \end_body
