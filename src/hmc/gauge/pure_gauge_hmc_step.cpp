@@ -89,7 +89,7 @@ namespace nissa
 	    
 	    //generate FACC fields and momenta
 	    for(int id=0;id<evol_pars.naux_fields;id++) generate_MFACC_field(phi[id]);
-	    generate_MFACC_momenta(pi,evol_pars.naux_fields,out_conf,evol_pars.kappa,evol_pars.residue);
+	    generate_MFACC_momenta(pi,evol_pars.naux_fields,out_conf,rat_exp_H,evol_pars.kappa,evol_pars.residue);
 	  }
 	
 	for(int id=0;id<evol_pars.naux_fields;id++)

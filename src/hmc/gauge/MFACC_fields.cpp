@@ -61,7 +61,6 @@ namespace nissa
     
     //allocate
     su3 *F=nissa_malloc("temp",loc_vol+bord_vol,su3);
-    su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
     
     for(int ifield=0;ifield<naux_fields;ifield++)
       {
@@ -102,12 +101,9 @@ namespace nissa
 	
 	//set back everything
 	su3_copy(pi[ifield][0],sto);
-	
 #endif
-	
-        //compute
-        apply_MFACC(temp,conf,kappa,pi[ifield]);
-        apply_MFACC(F,conf,kappa,temp);
+	//compute
+        apply_MFACC(F,conf,kappa,pi[ifield]);
         
 #ifdef DEBUG
 	master_printf("Comparing MFACC fields derivative (apply M twice)\n");
@@ -126,14 +122,13 @@ namespace nissa
 	master_printf("Norm of the difference-: %lg\n",sqrt(su3_norm2(diff)));
 	su3_subt(diff,F[0],nu);
 	master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
-	crash("pui");
+	//crash("pui");
 #endif
 	//evolve
         double_vector_summ_double_vector_prod_double((double*)(phi[ifield]),(double*)(phi[ifield]),(double*)F,dt,loc_vol*sizeof(su3)/sizeof(double));
       }
     
     nissa_free(F);
-    nissa_free(temp);
   }
   THREADABLE_FUNCTION_END
   
@@ -153,8 +148,6 @@ namespace nissa
     GET_THREAD_ID();
     
     verbosity_lv2_master_printf("Computing QCD force originated by MFACC momenta (derivative of \\pi^\\dag MM \\pi/2) w.r.t U\n");
-    
-    su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
     
 #ifdef DEBUG
     //store initial link and compute action
@@ -203,9 +196,6 @@ namespace nissa
     
     for(int ifield=0;ifield<naux_fields;ifield++)
       {
-	//apply
-	apply_MFACC(temp,conf,kappa,pi[ifield]);
-	
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
@@ -214,21 +204,19 @@ namespace nissa
 	      int up=loclx_neighup[ivol][mu];
 	      
 	      //forward piece
-	      unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],temp[ivol]);
+	      unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],pi[ifield][ivol]);
 	      unsafe_su3_prod_su3(E,pi[ifield][up],t);
 	      
 	      //backward piece
-	      unsafe_su3_dag_prod_su3_dag(t,temp[up],conf[ivol][mu]);
+	      unsafe_su3_dag_prod_su3_dag(t,pi[ifield][up],conf[ivol][mu]);
 	      su3_summ_the_prod_su3(E,t,pi[ifield][ivol]);
 	      
 	      //common factor
-	      su3_summ_the_prod_double(F[ivol][mu],E,-2*kappa/(4*NDIM));
+	      su3_summ_the_prod_double(F[ivol][mu],E,-kappa/(4*NDIM));
 	    }
 	THREAD_BARRIER();
       }
     set_borders_invalid(F);
-    
-    nissa_free(temp);
     
 #ifdef DEBUG
     su3 r1,r2;
@@ -349,7 +337,7 @@ namespace nissa
     su3 diff;
     su3_subt(diff,r2,nu);
     master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
-    //crash("ciccio");
+    //crash("ciaccio");
 #endif
     
     nissa_free(temp);
