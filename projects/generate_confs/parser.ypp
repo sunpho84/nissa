@@ -111,7 +111,7 @@
 //each
 %token TK_EACH
 %token TK_MEAS_EACH
-%type <int_numb> each meas_each
+%type <double_numb> each meas_each
 //after
 %token <int_numb> TK_AFTER
 %type <int_numb> after
@@ -325,7 +325,7 @@ gauge_action: TK_GAUGE_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
 
 each: TK_EACH '=' int_numb {$$=$3;};
 
-meas_each: TK_MEAS_EACH '=' int_numb {$$=$3;};
+meas_each: TK_MEAS_EACH '=' double_numb {$$=$3;};
 
 after: TK_AFTER '=' int_numb {$$=$3;};
 
