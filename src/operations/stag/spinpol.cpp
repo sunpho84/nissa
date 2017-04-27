@@ -155,7 +155,7 @@ namespace nissa
     for(int imeas=0;imeas<nmeas;imeas++)
       {
 	smoothed_conf[imeas]=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
-	for(int eo=0;eo<2;eo++) ferm_conf[imeas][eo]=nissa_malloc("ferm_conf",loc_volh+bord_volh,quad_su3);
+	for(int eo=0;eo<2;eo++) ferm_conf[imeas][eo]=nissa_malloc("ferm_conf",loc_volh+bord_volh+edge_volh,quad_su3);
       }
     if(nmeas==0) crash("nmeas cannot be 0");
     
