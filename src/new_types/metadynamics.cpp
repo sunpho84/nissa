@@ -67,7 +67,7 @@ namespace nissa
     int igrid=floor((x+barr)/width);
     
     //inside the barriers
-    if(igrid>=0 && igrid<ngrid)
+    if(igrid>=0 and igrid<ngrid)
       {
 	//interpolate
 	double x0=igrid*width-barr;
@@ -148,6 +148,7 @@ namespace nissa
   void meta_pars_t::init()
   {
     ngrid=(2*barr+width/2)/width;
+    master_printf("Initializing metagrid, size: %d\n",ngrid);
     grid.resize(ngrid+1);
     for(int igrid=0;igrid<=ngrid+1;igrid++) grid[igrid]=0;
   }
