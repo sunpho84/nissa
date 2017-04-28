@@ -355,7 +355,7 @@ geometry: TK_GEOMETRY
 
 theory: TK_THEORY {$$=new theory_pars_t;}
       | theory stout_pars {$$->stout_pars=(*$2);delete $2;};
-      | theory topo_potential_pars {$$->topotential_pars=(*$2);delete $2;$$->topotential_pars.init();}
+      | theory topo_potential_pars {$2->init();$$->topotential_pars=(*$2);delete $2;}
       | theory quark {$$->quarks.push_back(*$2);delete $2;}
       | theory em_field_pars {$$->em_field_pars=(*$2);delete $2;}
       | theory TK_BETA '=' double_numb {$$->beta=$4;}
