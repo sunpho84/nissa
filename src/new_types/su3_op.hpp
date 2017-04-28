@@ -11,6 +11,20 @@
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 
+#ifdef HAVE_EIGEN_DENSE
+ #include <Eigen/Dense>
+ 
+ using namespace Eigen;
+
+ typedef std::complex<double> scomplex_t;
+ typedef scomplex_t emw_t[NCOL*NCOL];
+ typedef Map<Matrix<scomplex_t,NCOL,NCOL> > esu3_t;
+
+#define SU3_ECAST(A) (esu3_t(*(emw_t*)(A)))
+#define CCAST(A) (*(scomplex_t*)(A))
+
+#endif
+
 namespace nissa
 {
 #if NCOL == 3
@@ -49,7 +63,14 @@ namespace nissa
   //////////////////////////////////////// Copy /////////////////////////////////////
   
   inline void color_copy(color b,color a) {for(size_t ic=0;ic<NCOL;ic++) complex_copy(b[ic],a[ic]);}
-  inline void su3_copy(su3 b,su3 a) {for(size_t ic=0;ic<NCOL;ic++) color_copy(b[ic],a[ic]);}
+  inline void su3_copy(su3 b,su3 a)
+  {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(b)=SU3_ECAST(a);
+#else
+    for(size_t ic=0;ic<NCOL;ic++) color_copy(b[ic],a[ic]);
+#endif
+  }
   inline void quad_su3_copy(quad_su3 b,quad_su3 a) {for(size_t i=0;i<NDIM;i++) su3_copy(b[i],a[i]);}
   inline void spincolor_copy(spincolor b,spincolor a) {for(size_t i=0;i<NDIRAC;i++) color_copy(b[i],a[i]);}
   inline void colorspinspin_copy(colorspinspin b,colorspinspin a) {for(size_t i=0;i<NCOL;i++) spinspin_copy(b[i],a[i]);}
@@ -298,6 +319,10 @@ namespace nissa
   //calculate the determinant of an su3 matrix
   inline void su3_det(complex d,su3 U)
   {
+#ifdef HAVE_EIGEN_DENSE
+    CCAST(d)=SU3_ECAST(U).determinant();
+#else
+    
 #if NCOL == 3
     complex a;
     
@@ -314,6 +339,8 @@ namespace nissa
     complex_summ_the_prod(d,U[0][2],a);
 #else
     matrix_determinant(d,(complex*)U,NCOL);
+#endif
+    
 #endif
   }
   
@@ -364,20 +391,56 @@ namespace nissa
   }
   
   //summ two su3 matrixes
-  inline void su3_summ(su3 a,su3 b,su3 c) {for(size_t ic=0;ic<NCOL;ic++) color_summ(a[ic],b[ic],c[ic]);}
-  inline void unsafe_su3_summ_su3_dag(su3 a,su3 b,su3 c) {for(size_t i=0;i<NCOL;i++) for(size_t j=0;j<NCOL;j++) complex_summ_conj2(a[i][j],b[i][j],c[j][i]);}
+  inline void su3_summ(su3 a,su3 b,su3 c)
+  {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)=SU3_ECAST(b)+SU3_ECAST(c);
+#else
+    for(size_t ic=0;ic<NCOL;ic++) color_summ(a[ic],b[ic],c[ic]);
+#endif
+  }
+  inline void unsafe_su3_summ_su3_dag(su3 a,su3 b,su3 c)
+  {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)=SU3_ECAST(b)+SU3_ECAST(c).adjoint();
+#else
+    for(size_t i=0;i<NCOL;i++)
+      for(size_t j=0;j<NCOL;j++)
+	complex_summ_conj2(a[i][j],b[i][j],c[j][i]);
+#endif
+  }
   inline void su3_summassign_su3_dag(su3 a,su3 b) {unsafe_su3_summ_su3_dag(a,a,b);}
   inline void su3_summassign(su3 a,su3 b){su3_summ(a,a,b);}
-  inline void su3_summ_real(su3 a,su3 b,double c) {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) a[i][i][0]=b[i][i][0]+c;}
-  inline void su3_subt(su3 a,su3 b,su3 c) {for(size_t ic=0;ic<NCOL;ic++) color_subt(a[ic],b[ic],c[ic]);}
+  inline void su3_summ_real(su3 a,su3 b,double c)
+  {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) a[i][i][0]=b[i][i][0]+c;}
+  inline void su3_subt(su3 a,su3 b,su3 c)
+  {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)=SU3_ECAST(b)-SU3_ECAST(c);
+#else
+    for(size_t ic=0;ic<NCOL;ic++) color_subt(a[ic],b[ic],c[ic]);
+#endif
+  }
   inline void su3_subtassign(su3 a,su3 b) {su3_subt(a,a,b);}
   inline void su3_subt_complex(su3 a,su3 b,complex c) {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) complex_subt(a[i][i],b[i][i],c);}
-  inline void unsafe_su3_subt_su3_dag(su3 a,su3 b,su3 c) {for(size_t i=0;i<NCOL;i++) for(size_t j=0;j<NCOL;j++) complex_subt_conj2(a[i][j],b[i][j],c[j][i]);}
+  inline void unsafe_su3_subt_su3_dag(su3 a,su3 b,su3 c)
+  {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)=SU3_ECAST(b)-SU3_ECAST(c).adjoint();
+#else
+    for(size_t i=0;i<NCOL;i++)
+      for(size_t j=0;j<NCOL;j++)
+	complex_subt_conj2(a[i][j],b[i][j],c[j][i]);
+#endif
+  }
   inline void su3_subtassign_su3_dag(su3 a,su3 b) {unsafe_su3_subt_su3_dag(a,a,b);}
   
   //Product of two su3 matrixes
   inline void unsafe_su3_prod_su3(su3 a,su3 b,su3 c,const size_t nr_max=NCOL)
   {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)=SU3_ECAST(b)*SU3_ECAST(c);
+#else
     for(size_t ir_out=0;ir_out<nr_max;ir_out++)
       for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	{
@@ -385,34 +448,41 @@ namespace nissa
 	  for(size_t itemp=1;itemp<NCOL;itemp++)
 	    complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
 	}
+#endif
   }
   inline void safe_su3_prod_su3(su3 a,su3 b,su3 c) {su3 d;unsafe_su3_prod_su3(d,b,c);su3_copy(a,d);}
   inline void su3_prodassign_su3(su3 a,su3 b) {safe_su3_prod_su3(a,a,b);}
   inline void su3_summ_the_prod_su3(su3 a,su3 b,su3 c)
   {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)+=SU3_ECAST(b)*SU3_ECAST(c);
+#else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
       for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	for(size_t itemp=0;itemp<NCOL;itemp++)
 	  complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
+#endif
   }
   inline void su3_summ_the_prod_su3_dag(su3 a,su3 b,su3 c)
   {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)+=SU3_ECAST(b)*SU3_ECAST(c).adjoint();
+#else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
       for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	for(size_t itemp=0;itemp<NCOL;itemp++)
 	  complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][itemp],c[ic_out][itemp]);
+#endif
   }
   inline void su3_summ_the_dag_prod_su3(su3 a,su3 b,su3 c)
-  {
-    for(size_t ir_out=0;ir_out<NCOL;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
-	for(size_t itemp=0;itemp<NCOL;itemp++)
-	  complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
-  }
+  {su3_summ_the_prod_su3_dag(a,c,b);}
   
   //Product of two su3 matrixes
   inline void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c,const size_t nr_max=NCOL)
   {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)=SU3_ECAST(b).adjoint()*SU3_ECAST(c);
+#else
     for(size_t ir_out=0;ir_out<nr_max;ir_out++)
       for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	{
@@ -420,40 +490,56 @@ namespace nissa
 	  for(size_t itemp=1;itemp<NCOL;itemp++)
 	    complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
 	}
+#endif
   }
   inline void safe_su3_dag_prod_su3(su3 a,su3 b,su3 c) {su3 d;unsafe_su3_dag_prod_su3(d,b,c);su3_copy(a,d);}
   inline void su3_dag_summ_the_prod_su3(su3 a,su3 b,su3 c)
   {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)+=SU3_ECAST(b).adjoint()*SU3_ECAST(c);
+#else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
       for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	for(size_t itemp=0;itemp<NCOL;itemp++)
 	  complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
+#endif
   }
   
   //Product of two su3 matrixes
   inline void unsafe_su3_prod_su3_dag(su3 a,su3 b,su3 c,const size_t nr_max=NCOL)
   {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)=SU3_ECAST(b)*SU3_ECAST(c).adjoint();
+#else
     for(size_t ir_out=0;ir_out<nr_max;ir_out++)
       for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	{
 	  unsafe_complex_conj2_prod(a[ir_out][ic_out],b[ir_out][0],c[ic_out][0]);
 	  for(size_t jc=1;jc<NCOL;jc++) complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][jc],c[ic_out][jc]);
 	}
+#endif
   }
   inline void safe_su3_prod_su3_dag(su3 a,su3 b,su3 c) {su3 d;unsafe_su3_prod_su3_dag(d,b,c);su3_copy(a,d);}
   
   //subtract the product
   inline void su3_subt_the_prod_su3_dag(su3 a,su3 b,su3 c)
   {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)-=SU3_ECAST(b)*SU3_ECAST(c).adjoint();
+#else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
       for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	for(size_t jc=0;jc<NCOL;jc++)
 	  complex_subt_the_conj2_prod(a[ir_out][ic_out],b[ir_out][jc],c[ic_out][jc]);
+#endif
   }
   
   //Trace of the product of two su3 matrices
   inline double real_part_of_trace_su3_prod_su3_dag(su3 a,su3 b)
   {
+#ifdef HAVE_EIGEN_DENSE
+    return (SU3_ECAST(a)*SU3_ECAST(b).adjoint()).trace().real();
+#else
     double t=0;
     
     for(size_t ic1=0;ic1<NCOL;ic1++)
@@ -461,20 +547,28 @@ namespace nissa
 	t+=real_part_of_complex_scalar_prod(a[ic1][ic2],b[ic1][ic2]);
     
     return t;
+#endif
   }
   
   //Trace of the product of two su3 matrices
   inline void trace_su3_prod_su3(complex t,su3 a,su3 b)
   {
+#ifdef HAVE_EIGEN_DENSE
+    CCAST(t)=(SU3_ECAST(a)*SU3_ECAST(b)).trace();
+#else
     complex_put_to_zero(t);
     for(size_t ic1=0;ic1<NCOL;ic1++)
       for(size_t ic2=0;ic2<NCOL;ic2++)
 	complex_summ_the_prod(t,a[ic1][ic2],b[ic2][ic1]);
+#endif
   }
   
   //Product of two su3 matrixes
   inline void unsafe_su3_dag_prod_su3_dag(su3 a,su3 b,su3 c,const size_t nr_max=NCOL)
   {
+#ifdef HAVE_EIGEN_DENSE
+    SU3_ECAST(a)=SU3_ECAST(b).adjoint()*SU3_ECAST(c).adjoint();
+#else
     for(size_t ir_out=0;ir_out<nr_max;ir_out++)
       for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	{
@@ -482,6 +576,7 @@ namespace nissa
 	  for(size_t itemp=1;itemp<NCOL;itemp++)
 	    complex_summ_the_conj_conj_prod(a[ir_out][ic_out],b[itemp][ir_out],c[ic_out][itemp]);
 	}
+#endif
   }
   inline void safe_su3_dag_prod_su3_dag(su3 a,su3 b,su3 c)
   {su3 d;unsafe_su3_dag_prod_su3_dag(d,b,c);su3_copy(a,d);}

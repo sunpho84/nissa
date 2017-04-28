@@ -84,6 +84,17 @@ AC_ARG_WITH(fft,
 	esac
 AC_MSG_RESULT([with Fast Fourier type... ${with_fft}])
 
+#add Eigen path and search it
+AC_ARG_WITH(eigen,
+	AS_HELP_STRING([--with-eigen],[Specify where to find Eigen/Dense]),
+	with_eigen=${withval}
+	CPPFLAGS="$CPPFLAGS -I$with_eigen",
+	with_eigen=no)
+AC_MSG_RESULT([with Eigen... ${with_eigen}])
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADERS([Eigen/Dense])
+AC_LANG_POP([C++])
+
 #lime
 AC_ARG_WITH(lime,
 	AS_HELP_STRING([--with-lime[=dir]], [Specify where to find lime]),
