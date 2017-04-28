@@ -76,9 +76,10 @@ namespace nissa
     }
     
 #define RANGE_FERMIONIC_MEAS_IF(DRV,OBS)				\
-    for(size_t imeas=0;imeas<DRV->NAME2(OBS,meas).size();imeas++)
+    for(size_t imeas=0;imeas<DRV->NAME2(OBS,meas).size();imeas++)	\
+      if(DRV->if_meas_is_due_print(DRV->NAME2(OBS,meas)[imeas],itheory,iconf,#OBS))
     
-#define RANGE_FERMIONIC_MEAS(DRV,OBS)				\
+#define RANGE_FERMIONIC_MEAS(DRV,OBS)					\
     RANGE_FERMIONIC_MEAS_IF(DRV,OBS)					\
     NAME2(measure,OBS)(sme_conf,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created);
     
