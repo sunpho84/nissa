@@ -148,7 +148,7 @@ namespace nissa
   void meta_pars_t::init()
   {
     ngrid=(2*barr+width/2)/width;
-    master_printf("Initializing metagrid, size: %d\n",ngrid);
+    master_printf("Initializing metagrid, barr=%lg, width=%lg, size=%d\n",barr,width,ngrid);
     grid.resize(ngrid+1);
     for(int igrid=0;igrid<=ngrid+1;igrid++) grid[igrid]=0;
   }
