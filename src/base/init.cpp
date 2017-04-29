@@ -213,6 +213,10 @@ namespace nissa
     master_printf("Linked with DDalphaAMG\n");
 #endif
     
+#ifdef HAVE_EIGEN_DENSE
+    master_printf("Using Eigen\n");
+#endif
+    
     //put 0 as minimal request
     recv_buf_size=0;
     send_buf_size=0;
