@@ -213,7 +213,7 @@ namespace nissa
     master_printf("Linked with DDalphaAMG\n");
 #endif
     
-#ifdef HAVE_EIGEN_DENSE
+#ifdef USE_EIGEN
     master_printf("Using Eigen\n");
 #endif
     

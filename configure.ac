@@ -73,18 +73,20 @@ AC_ARG_WITH(fft,
 	else
 		with_fft="native"
 	fi)
-	case "$with_fft" in
-     	     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
-	     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "" -a x"$fftw_found_headers" == "xyes"
-	     	   then
-			AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
-			LDFLAGS="-lfftw3 -lfftw3_threads $LDFLAGS";else AC_MSG_ERROR(["Unable to find fftw3 lib"])
-	     	   fi ;;
-     	     *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
-	esac
+case "$with_fft" in
+     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
+     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "" -a x"$fftw_found_headers" == "xyes"
+    	   then
+		AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
+		LDFLAGS="-lfftw3 -lfftw3_threads $LDFLAGS"
+	   else
+		AC_MSG_ERROR(["Unable to find fftw3 lib"])
+     	   fi ;;
+     *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
+esac
 AC_MSG_RESULT([with Fast Fourier type... ${with_fft}])
 
-#add Eigen path and search it
+#add Eigen path, search it and enable
 AC_ARG_WITH(eigen,
 	AS_HELP_STRING([--with-eigen],[Specify where to find Eigen/Dense]),
 	with_eigen=${withval}
@@ -94,6 +96,25 @@ AC_MSG_RESULT([with Eigen... ${with_eigen}])
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADERS([Eigen/Dense])
 AC_LANG_POP([C++])
+AC_ARG_ENABLE(eigen,
+	AS_HELP_STRING([--enable-eigen],[Enable Eigen]),
+	enable_eigen="${enableval}",
+	if test "$ac_cv_header_Eigen_Dense" == "no"
+	then
+		enable_eigen="no"
+	else
+		enable_eigen="yes"
+	fi)
+if test "$enable_eigen" == "yes"
+then
+	if test "$ac_cv_header_Eigen_Dense" == "no"
+	then
+		AC_MSG_ERROR(["Unable to find Eigen"])
+	else
+		AC_DEFINE_UNQUOTED([USE_EIGEN],[1],[Enable Eigen])
+	fi
+fi
+AC_MSG_RESULT(enabling Eigen ... ${enable_eigen})
 
 #lime
 AC_ARG_WITH(lime,
