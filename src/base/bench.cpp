@@ -72,7 +72,7 @@ namespace nissa
   void bench_net_speed()
   {
     if(nranks>1)
-      for(int ipow=10;ipow<20;ipow+=2)
+      for(int ipow=14;ipow<=20;ipow+=2)
 	{
 	  //allocate a buffer
 	  int size=1<<ipow;
@@ -111,7 +111,7 @@ namespace nissa
 	  nissa_free(in);
 	  nissa_free(out);
 	  
-	  master_printf("Communication benchmark, packet size %d (%lg+-%lg) Mb/s\n",size,speed_ave,speed_err);
+	  master_printf("Communication benchmark, packet size %d (%lg+-%lg) Mb/s (%lg s total)\n",size,speed_ave,speed_err);
 	}
   }
 }
