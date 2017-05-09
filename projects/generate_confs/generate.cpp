@@ -260,7 +260,7 @@ int generate_new_conf(int itraj)
   int acc;
   
   //if not quenched
-  if(drv->sea_theory().nflavs()!=0||drv->sea_theory().topotential_pars.flag!=0)
+  if(drv->sea_theory().nflavs()!=0 or drv->sea_theory().topotential_pars.flag!=0)
     {
       //find if needed to perform test
       int perform_test=(itraj>=drv->evol_pars.skip_mtest_ntraj);
@@ -273,7 +273,7 @@ int generate_new_conf(int itraj)
       acc=metro_test(diff_act);
       
       //if not needed override
-      if(!perform_test)
+      if(not perform_test)
 	{
 	  acc=1;
 	  master_printf("(no test performed) ");
@@ -508,7 +508,7 @@ void run_program_for_production()
       measurements(new_conf,conf,itraj,acc,drv->sea_theory().gauge_action_name);
       
       // 3) increment id and write conf
-      if(drv->conf_pars.store_running && (itraj%drv->conf_pars.store_running==0)) write_conf(drv->conf_pars.path,conf);
+      if(drv->conf_pars.store_running and (itraj%drv->conf_pars.store_running==0)) write_conf(drv->conf_pars.path,conf);
       
       // 4) if conf is multiple of drv->conf_pars.store_each copy it
       store_conf_if_necessary();
@@ -538,7 +538,7 @@ void run_program_for_analysis()
       nconf_analyzed++;
       it++;
     }
-  while(it!=drv->an_conf_list.end() && !file_exists("stop") && enough_time());
+  while(it!=drv->an_conf_list.end() and !file_exists("stop") and enough_time());
   
   master_printf("Analyzed %d configurations\n\n",nconf_analyzed);
 }
