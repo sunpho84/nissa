@@ -72,45 +72,46 @@ namespace nissa
   void bench_net_speed()
   {
     if(nranks>1)
-      {
-	//allocate a buffer
-	int size=10*1024;
-	char *out=nissa_malloc("out",size,char);
-	char *in=nissa_malloc("in",size,char);
-	
-	//speeds
-	double speed_ave=0,speed_err=0;
-	int ntests=10,n=0;
-	for(int itest=0;itest<ntests;itest++)
-	  for(int drank=1;drank<nranks;drank++)
-	    {
-	      double time=-take_time();
-	      int tag=9;
-	      MPI_Sendrecv(out,size,MPI_CHAR,(rank+drank)%nranks,tag,in,size,MPI_CHAR,(rank-drank+nranks)%nranks,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-	      time+=take_time();
-	      double speed=size/time/1e6;
-	      
-	      //increase
-	      n++;
-	      speed_ave+=speed;
-	      speed_err+=speed*speed;
-	    }
-	
-	//reduce
-	MPI_Allreduce(MPI_IN_PLACE,&n,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-	MPI_Allreduce(MPI_IN_PLACE,&speed_ave,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	MPI_Allreduce(MPI_IN_PLACE,&speed_err,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	
-	//compute
-	speed_ave/=n;
-	speed_err/=n;
-	speed_err-=speed_ave*speed_ave;
-	speed_err=sqrt(speed_ave/(n-1));
-	
-	nissa_free(in);
-	nissa_free(out);
-	
-	master_printf("Communication benchmark, (%lg+-%lg) Mb/s\n",speed_ave,speed_err);
-      }
+      for(int ipow=10;ipow<20;ipow+=2)
+	{
+	  //allocate a buffer
+	  int size=1<<ipow;
+	  char *out=nissa_malloc("out",size,char);
+	  char *in=nissa_malloc("in",size,char);
+	  
+	  //speeds
+	  double speed_ave=0,speed_err=0;
+	  int ntests=10,n=0;
+	  for(int itest=0;itest<ntests;itest++)
+	    for(int drank=1;drank<nranks;drank++)
+	      {
+		double time=-take_time();
+		int tag=9;
+		MPI_Sendrecv(out,size,MPI_CHAR,(rank+drank)%nranks,tag,in,size,MPI_CHAR,(rank-drank+nranks)%nranks,tag,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+		time+=take_time();
+		double speed=size/time/1e6;
+		
+		//increase
+		n++;
+		speed_ave+=speed;
+		speed_err+=speed*speed;
+	      }
+	  
+	  //reduce
+	  MPI_Allreduce(MPI_IN_PLACE,&n,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+	  MPI_Allreduce(MPI_IN_PLACE,&speed_ave,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	  MPI_Allreduce(MPI_IN_PLACE,&speed_err,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	  
+	  //compute
+	  speed_ave/=n;
+	  speed_err/=n;
+	  speed_err-=speed_ave*speed_ave;
+	  speed_err=sqrt(speed_ave/(n-1));
+	  
+	  nissa_free(in);
+	  nissa_free(out);
+	  
+	  master_printf("Communication benchmark, packet size %d (%lg+-%lg) Mb/s\n",size,speed_ave,speed_err);
+	}
   }
 }
