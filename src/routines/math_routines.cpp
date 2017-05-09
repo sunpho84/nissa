@@ -75,7 +75,7 @@ namespace nissa
 	int div=N/fatt;
 	int res=N-div*fatt;
 	if(res!=0) fatt++;
-	else 
+	else
 	  {
 	    N=div;
 	    list[nfatt]=fatt;
@@ -85,7 +85,7 @@ namespace nissa
     
     return nfatt;
   }
-
+  
   //recursive call - see below
   void determinant(complex d,complex *m,int *s,int n,int N)
   {
