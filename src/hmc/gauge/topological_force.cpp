@@ -34,6 +34,8 @@ namespace nissa
     GET_THREAD_ID();
     
     //compute the staples
+    master_printf("conf:\n");
+    su3_print(conf[0][0]);
     topological_staples(F,conf);
     
     //compute the potential
@@ -87,6 +89,10 @@ namespace nissa
     
     //take TA
     gluonic_force_finish_computation(F,conf,phase_pres);
+    
+    master_printf("an\n");
+    su3_print(F[0][0]);
+    crash("anna");
   }
   THREADABLE_FUNCTION_END
 }
