@@ -79,6 +79,8 @@ namespace nissa
 	  char *out=nissa_malloc("out",size,char);
 	  char *in=nissa_malloc("in",size,char);
 	  
+	  //total time
+	  double tot_time=0;
 	  //speeds
 	  double speed_ave=0,speed_err=0;
 	  int ntests=10,n=0;
@@ -95,6 +97,8 @@ namespace nissa
 		n++;
 		speed_ave+=speed;
 		speed_err+=speed*speed;
+		
+		tot_time+=time;
 	      }
 	  
 	  //reduce
@@ -111,7 +115,7 @@ namespace nissa
 	  nissa_free(in);
 	  nissa_free(out);
 	  
-	  master_printf("Communication benchmark, packet size %d (%lg+-%lg) Mb/s (%lg s total)\n",size,speed_ave,speed_err);
+	  master_printf("Communication benchmark, packet size %d (%lg+-%lg) Mb/s (%lg s total)\n",size,speed_ave,speed_err,tot_time);
 	}
   }
 }
