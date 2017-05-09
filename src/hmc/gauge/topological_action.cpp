@@ -7,6 +7,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
+#include "geometry/geometry_mix.hpp"
 #include "io/input.hpp"
 #include "new_types/su3.hpp"
 #include "operations/smearing/stout.hpp"
@@ -56,7 +57,7 @@ namespace nissa
     //compute topocharge
     double Q;
     total_topological_charge_eo_conf(&Q,conf);
-    
+        master_printf(" charge: %lg\n",Q);
     //compute according to flag
     double topo_action=0;
     switch(pars.flag)
