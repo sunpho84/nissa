@@ -41,6 +41,8 @@ namespace nissa
   void save_topodynamical_potential(topotential_pars_t &pars);
   void load_topodynamical_potential(topotential_pars_t &pars,bool mandatory);
   double topotential_action(quad_su3 **ext_conf,topotential_pars_t &pars);
+  double topotential_action(quad_su3 *lx_conf,topotential_pars_t &pars);
 }
+
 
 #endif
