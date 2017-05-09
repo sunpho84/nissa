@@ -489,6 +489,7 @@ namespace nissa
 	
 	//compute topocharge
 	total_topological_charge_eo_conf(&charge,conf);
+	master_printf("Topological charge to be stored: %lg\n",charge);
 	update(iconf,charge);
 	
 	//free if needed
