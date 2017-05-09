@@ -125,6 +125,7 @@
 %token TK_ORDINARY
 %token TK_TOPO_POTENTIAL
 %type<topotential_pars> topo_potential_pars
+%token TK_THETA
 %token TK_COEFF
 %token TK_WIDTH
 %token TK_BARR
@@ -383,6 +384,7 @@ topo_potential_pars: TK_TOPO_POTENTIAL '=' TK_META {$$=new topotential_pars_t;$$
                    | topo_potential_pars stout_pars {$$->stout_pars=(*$2);delete $2;};
                    | topo_potential_pars after {$$->after=$2;}
                    | topo_potential_pars each {$$->each=$2;}
+                   | topo_potential_pars TK_THETA '=' double_numb {$$->theta=$4;}
                    | topo_potential_pars TK_COEFF '=' double_numb {$$->coeff=$4;}
                    | topo_potential_pars TK_WIDTH '=' double_numb {$$->width=$4;}
                    | topo_potential_pars TK_BARR '=' double_numb {$$->barr=$4;}

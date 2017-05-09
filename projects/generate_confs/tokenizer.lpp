@@ -162,6 +162,7 @@ tlSym DEBUG_PRINTF("Found tlSym\n");return TK_TLSYM;
 Iwasaki DEBUG_PRINTF("Found Iwasaki\n");return TK_IWASAKI;
 
  /* topo potential */
+Theta DEBUG_PRINTF("Found Theta\n");return TK_THETA;
 Meta DEBUG_PRINTF("Found Meta\n");return TK_META;
 Ordinary DEBUG_PRINTF("Found Ordinary\n");return TK_ORDINARY;
 TopoPotential DEBUG_PRINTF("Found TopoPotential\n");return TK_TOPO_POTENTIAL;

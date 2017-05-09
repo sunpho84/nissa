@@ -72,15 +72,31 @@ namespace nissa
     return topo_action;
   }
   
+  //lx version
+  double topotential_action(quad_su3 *lx_conf,topotential_pars_t &pars)
+  {
+    //allocate
+    quad_su3 *eo_conf[2];
+    for(int eo=0;eo<2;eo++) eo_conf[eo]=nissa_malloc("stout_conf",loc_volh+bord_volh+edge_volh,quad_su3);
+    
+    //split and compute
+    split_lx_vector_into_eo_parts(eo_conf,lx_conf);
+    double out=topotential_action(eo_conf,pars);
+    
+    //free and return
+    for(int eo=0;eo<2;eo++) nissa_free(eo_conf[eo]);
+    return out;
+  }
+  
   std::string topotential_pars_t::get_str(bool full)
   {
     std::ostringstream os;
-    const char name_known[3][10]={"None","","Meta"};
+    const char name_known[3][10]={"NONE","ORDINARY","META"};
     if(full||flag!=def_flag()) os<<"TopoPotential\t=\t"<<name_known[flag]<<"\n";
     switch(flag)
       {
       case 0:break;
-      case 1:os<<"Theta\t\t"<<theta<<"\n";break;
+      case 1:os<<" Theta\t\t=\t"<<theta<<"\n";break;
       case 2:
 	os<<meta_pars_t::get_str(full);
 	os<<stout_pars.get_str(full);
