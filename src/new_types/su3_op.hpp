@@ -475,7 +475,16 @@ namespace nissa
 #endif
   }
   inline void su3_summ_the_dag_prod_su3(su3 a,su3 b,su3 c)
-  {su3_summ_the_prod_su3_dag(a,c,b);}
+  {
+#ifdef USE_EIGEN
+    SU3_ECAST(a)+=SU3_ECAST(b).adjoint()*SU3_ECAST(c);
+#else
+    for(size_t ir_out=0;ir_out<NCOL;ir_out++)
+      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
+	for(size_t itemp=0;itemp<NCOL;itemp++)
+	  complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
+#endif
+  }
   
   //Product of two su3 matrixes
   inline void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c,const size_t nr_max=NCOL)
