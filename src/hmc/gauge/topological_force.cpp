@@ -16,7 +16,7 @@
 
 #include "gluonic_force.hpp"
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
  #include "topological_action.hpp"
