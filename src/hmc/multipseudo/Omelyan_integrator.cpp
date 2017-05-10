@@ -75,7 +75,7 @@ namespace nissa
     
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
     evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
-    if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
+    if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
     
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
@@ -89,12 +89,12 @@ namespace nissa
 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
 	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
-	if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
+	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
 	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
 	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
-	if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
+	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
 	
 	//normalize the configuration
 	//unitarize_lx_conf_maximal_trace_projecting(lx_conf);
@@ -236,7 +236,7 @@ namespace nissa
 	
 	//     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
 	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,ldt);
-	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,ldt);
+	if(tp.flag and TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,ldt);
 	
 	//         Main loop
 	for(int istep=0;istep<nsteps;istep++)
@@ -248,11 +248,11 @@ namespace nissa
 	    
 	    Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	    evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,uml2dt);
-	    if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,uml2dt);
+	    if(tp.flag and TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,uml2dt);
 	    
 	    Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	    evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,rat_appr,last_dt);
-	    if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt);
+	    if(tp.flag and TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt);
 	  }
 	
 	//normalize the configuration
