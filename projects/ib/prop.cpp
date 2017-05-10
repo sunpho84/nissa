@@ -5,13 +5,39 @@
 
 namespace nissa
 {
+  //multiply the configuration for an additional u(1) field, defined as exp(-i e q A /3)
+  THREADABLE_FUNCTION_2ARG(add_photon_field_to_conf, quad_su3*,conf, double,charge)
+  {
+    const double alpha_em=1/137.04;
+    const double e2=4*M_PI*alpha_em;
+    const double e=sqrt(e2);
+    verbosity_lv2_master_printf("Adding backfield, for a quark of charge q=e*%lg/3\n",charge);
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int mu=0;mu<NDIM;mu++)
+	{
+	  complex ph;
+	  complex_iexp(ph,-e*photon_field[ivol][mu][RE]*charge/3.0);
+	  safe_su3_prod_complex(conf[ivol][mu],conf[ivol][mu],ph);
+	}
+    set_borders_invalid(conf);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //remove the field
+  void rem_photon_field_to_conf(quad_su3 *conf,double q)
+  {add_photon_field_to_conf(conf,-q);}
+  
   //get a propagator inverting on "in"
-  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double residue,double theta)
+  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,double residue,double theta)
   {
     GET_THREAD_ID();
     
     //put theta on the boundaries
     adapt_spatial_theta(conf,theta);
+    
+    //include the photon field, with correct charge
+    if(charge) add_photon_field_to_conf(conf,charge);
     
     //rotate the source index - the propagator rotate AS the sign of mass term
     if(twisted_run) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
@@ -26,6 +52,9 @@ namespace nissa
     
     //rotate the sink index
     if(twisted_run) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
+    
+    //remove the photon field, with correct charge
+    if(charge) rem_photon_field_to_conf(conf,charge);
     
     //put back no theta on the boundaries
     put_spatial_theta_periodic(conf);
@@ -202,7 +231,7 @@ namespace nissa
 	      else
 		{
 		  //otherwise compute it
-		  if(q.insertion==PROP) get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.residue,q.theta);
+		  if(q.insertion==PROP) get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
 		  else                  vector_copy(sol,loop_source);
 		  
 		  //smear

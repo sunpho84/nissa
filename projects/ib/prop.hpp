@@ -25,6 +25,7 @@ namespace nissa
     double kappa;
     double mass;
     int r;
+    double charge;
     double theta;
     
     insertion_t insertion;
@@ -48,13 +49,14 @@ namespace nissa
     }
     
     //initialize as a propagator
-    void init_as_propagator(insertion_t _insertion,std::string _source_name,int _tins,double _residue,double _kappa,double _mass,int _r,double _theta,int _sme,bool _store)
+    void init_as_propagator(insertion_t _insertion,std::string _source_name,int _tins,double _residue,double _kappa,double _mass,int _r,double _charge,double _theta,int _sme,bool _store)
     {
       is_source=false;
       
       kappa=_kappa;
       mass=_mass;
       r=_r;
+      charge=_charge;
       theta=_theta;
       insertion=_insertion;
       source_name=_source_name;
@@ -79,8 +81,8 @@ namespace nissa
       alloc_spincolor();
     }
     
-    qprop_t(insertion_t insertion,std::string source_name,int tins,double residue,double kappa,double mass,int r,double theta,int sme,bool store)
-    {init_as_propagator(insertion,source_name,tins,residue,kappa,mass,r,theta,sme,store);}
+    qprop_t(insertion_t insertion,std::string source_name,int tins,double residue,double kappa,double mass,int r,double charge,double theta,int sme,bool store)
+    {init_as_propagator(insertion,source_name,tins,residue,kappa,mass,r,charge,theta,sme,store);}
     qprop_t(rnd_t noise_type,int tins,int r,int sme,bool store) {init_as_source(noise_type,tins,r,sme,store);}
     qprop_t() {is_source=0;}
     ~qprop_t() {for(size_t i=0;i<sp.size();i++) nissa_free(sp[i]);}
@@ -125,7 +127,7 @@ namespace nissa
   void free_L_prop();
   tm_quark_info get_lepton_info(int ilepton,int orie,int r);
   
-  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double residue,double theta);
+  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,double theta);
   void generate_original_source(qprop_t *sou);
   inline void generate_original_sources()
   {

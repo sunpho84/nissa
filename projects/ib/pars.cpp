@@ -30,15 +30,15 @@ namespace nissa
 	read_int(lep_contr_iq2+il);
 	
 	//if not pure wilson read mass
-	if(!twisted_run) leps[il].mass=0;
-	else             read_double(&leps[il].mass);
+	if(not twisted_run) leps[il].mass=0;
+	else                read_double(&leps[il].mass);
 	
 	//antiperiodic or periodic
 	leps[il].bc[0]=QUARK_BOUND_COND;
 	
 	//maximal twist (if tm), otherwise read kappa
-	if(!twisted_run) read_double(&leps[il].kappa);
-	else             leps[il].kappa=0.125;
+	if(not twisted_run) read_double(&leps[il].kappa);
+	else                leps[il].kappa=0.125;
 	leps[il].r=0;
 	
 	//read the mass of the meson (that must have been determined outside)

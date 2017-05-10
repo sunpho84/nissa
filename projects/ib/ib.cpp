@@ -95,6 +95,7 @@ void init_simulation(char *path)
       expect_str("Mass");
       expect_str("R");
     }
+  expect_str("Charge");
   expect_str("Theta");
   expect_str("Residue");
   expect_str("Sme");
@@ -123,7 +124,7 @@ void init_simulation(char *path)
       read_int(&tins);
       master_printf("Read variable 'Tins' with value: %d\n",tins);
       
-      double kappa=0.125,mass=0.5,theta=0,residue=1e-16;
+      double kappa=0.125,mass=0.5,charge=0,theta=0,residue=1e-16;
       int r=0,sme=0,store_prop=0;
       if(strcasecmp(ins,ins_tag[PROP])==0)
 	{
@@ -145,6 +146,8 @@ void init_simulation(char *path)
 	      //include tau in the mass
 	      mass*=tau3[r];
 	    }
+	  read_double(&charge);
+	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
 	  read_double(&theta);
 	  master_printf("Read variable 'Theta' with value: %lg\n",theta);
 	  read_double(&residue);
@@ -161,7 +164,7 @@ void init_simulation(char *path)
       master_printf("Read variable 'Sme' with value: %d\n",sme);
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
-      Q[name].init_as_propagator(ins_from_tag(ins),source_name,tins,residue,kappa,mass,r,theta,sme,store_prop);
+      Q[name].init_as_propagator(ins_from_tag(ins),source_name,tins,residue,kappa,mass,r,charge,theta,sme,store_prop);
       qprop_name_list[iq]=name;
     }
   
