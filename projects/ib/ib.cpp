@@ -73,9 +73,6 @@ void init_simulation(char *path)
       nr_lep=2;
       base=MAX_TWIST_BASE;
     }
-  //kappa for twisted run
-  double glb_kappa;
-  if(twisted_run) read_str_double("Kappa",&glb_kappa);
   //Clover run
   read_str_int("CloverRun",&clover_run);
   //cSW for clover run
@@ -89,8 +86,8 @@ void init_simulation(char *path)
   expect_str("Ins");
   expect_str("SourceName");
   expect_str("Tins");
-  if(!twisted_run) expect_str("Kappa");
-  else
+  expect_str("Kappa");
+  if(twisted_run)
     {
       expect_str("Mass");
       expect_str("R");
@@ -128,20 +125,14 @@ void init_simulation(char *path)
       int r=0,sme=0,store_prop=0;
       if(strcasecmp(ins,ins_tag[PROP])==0)
 	{
-	  if(!twisted_run)
-	    {
-	      mass=0;
-	      read_double(&kappa);
-	      master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
-	      r=0;
-	    }
-	  else
+	  read_double(&kappa);
+	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
+	  if(twisted_run)
 	    {
 	      read_double(&mass);
 	      master_printf("Read variable 'Mass' with value: %lg\n",mass);
 	      read_int(&r);
 	      master_printf("Read variable 'R' with value: %d\n",r);
-	      kappa=glb_kappa;
 	      
 	      //include tau in the mass
 	      mass*=tau3[r];
@@ -159,7 +150,6 @@ void init_simulation(char *path)
 	    read_int(&r);
 	    master_printf("Read variable 'R' with value: %d\n",r);
 	  }
-      
       read_int(&sme);
       master_printf("Read variable 'Sme' with value: %d\n",sme);
       read_int(&store_prop);
