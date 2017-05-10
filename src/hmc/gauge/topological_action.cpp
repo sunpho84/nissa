@@ -57,7 +57,7 @@ namespace nissa
     //compute topocharge
     double Q;
     total_topological_charge_eo_conf(&Q,conf);
-        master_printf(" charge: %lg\n",Q);
+    
     //compute according to flag
     double topo_action=0;
     switch(pars.flag)
