@@ -138,12 +138,14 @@ namespace nissa
       }
   }
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,coords dirs);
-  void insert_external_source(spincolor *out,spin1field *curr,spincolor *ori,int t,int r,coords  dirs,int loc);
-  void generate_source(insertion_t inser,int r,spincolor *ori,int t);
+  void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,coords dirs,int loc);
+  void generate_source(insertion_t inser,int r,double charge,double theta,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator();
   void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc);
   void generate_lepton_propagators();
+
+  void add_photon_field_to_conf(quad_su3 *conf,double charge);
   
   inline void start_hit(int ihit)
   {

@@ -23,19 +23,16 @@ namespace nissa
   
   EXTERN_CONF char conf_path[1024],outfolder[1024];
   EXTERN_CONF int ngauge_conf;
-  EXTERN_CONF quad_su3 *conf INIT_TO(NULL);
+  EXTERN_CONF int inner_conf_valid;
+  EXTERN_CONF quad_su3 *glb_conf INIT_TO(NULL);
+  EXTERN_CONF quad_su3 *inner_conf INIT_TO(NULL);
   EXTERN_CONF quad_su3 *ape_smeared_conf INIT_TO(NULL);
-  
-  EXTERN_CONF momentum_t put_theta,old_theta;
-  
-  void adapt_spatial_theta(quad_su3 *c,double th);
-  inline void put_spatial_theta_periodic(quad_su3 *c)
-  {adapt_spatial_theta(c,0);}
   
   void read_init_grid();
   void generate_random_coord(coords);
+  quad_su3* get_updated_conf(double charge,double th0,double th_spat);
   void start_new_conf();
-  void setup_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta,const char *conf_path,int rnd_gauge_transform,int free_theory);
+  void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory);
   int check_remaining_time();
   int read_conf_parameters(int &iconf,bool(*external_condition)());
   bool finish_file_present();

@@ -145,11 +145,15 @@ void init_simulation(char *path)
 	  master_printf("Read variable 'Residue' with value: %lg\n",residue);
 	}
       else
-	if(twisted_run)
-	  {
-	    read_int(&r);
-	    master_printf("Read variable 'R' with value: %d\n",r);
-	  }
+	{
+	  if(twisted_run)
+	    {
+	      read_int(&r);
+	      master_printf("Read variable 'R' with value: %d\n",r);
+	    }
+	  read_double(&charge);
+	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
+	}
       read_int(&sme);
       master_printf("Read variable 'Sme' with value: %d\n",sme);
       read_int(&store_prop);
@@ -207,7 +211,8 @@ void init_simulation(char *path)
   
   allocate_L_prop();
   temp_lep=nissa_malloc("temp_lep",loc_vol+bord_vol,spinspin);
-  conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol,quad_su3);
 }
 
@@ -221,7 +226,8 @@ void close()
   free_photon_fields();
   free_loop_source();
   free_L_prop();
-  nissa_free(conf);
+  nissa_free(glb_conf);
+  nissa_free(inner_conf);
   nissa_free(ape_smeared_conf);
   
   free_mes2pts_contr();

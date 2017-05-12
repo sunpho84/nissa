@@ -21,22 +21,15 @@ namespace nissa
   
   //needed to avoid any check
   bool finish_file_present()
-  {return !file_exists(combine("%s/finished",outfolder).c_str());}
-  
-  //adapt spatial conditions
-  void adapt_spatial_theta(quad_su3 *c,double th)
-  {
-    put_theta[1]=put_theta[2]=put_theta[3]=th;
-    adapt_theta(c,old_theta,put_theta,0,0);
-  }
+  {return not file_exists(combine("%s/finished",outfolder).c_str());}
   
   //read the conf and setup it
-  void setup_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta,const char *conf_path,int rnd_gauge_transform,int free_theory)
+  void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {
     GET_THREAD_ID();
     
     //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-    if(!free_theory)
+    if(not free_theory)
       {
 	START_TIMING(conf_load_time,nconf_load);
 	read_ildg_gauge_conf(conf,conf_path);
@@ -59,10 +52,60 @@ namespace nissa
 	master_printf("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
       }
     
-    //put anti-periodic boundary condition for the fermionic propagator
-    old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
-    put_theta[0]=QUARK_BOUND_COND;put_theta[1]=put_theta[2]=put_theta[3]=0;
-    adapt_theta(conf,old_theta,put_theta,0,0);
+    //invalidate internal conf
+    inner_conf_valid=false;
+  }
+  
+  //take a set of theta, charge and photon field, and update the conf
+  quad_su3* get_updated_conf(double charge,double th0,double th_spat)
+  {
+    //check if the inner conf is valid or not
+    static double stored_charge=0,stored_th0=0,stored_th_spat=0;
+    if(not inner_conf_valid) master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
+    else
+      {
+	//check charge
+	if(charge!=stored_charge)
+	  {
+	    master_printf("Inner conf is invalid (charge changed from %lg to %lg)\n",stored_charge,charge);
+	    inner_conf_valid=false;
+	  }
+	//th0
+	if(th0!=stored_th0)
+	  {
+	    master_printf("Inner conf is invalid (th0 changed from %lg to %lg)\n",stored_th0,th0);
+	    inner_conf_valid=false;
+	  }
+	//th_spat
+	if(th_spat!=stored_th_spat)
+	  {
+	    master_printf("Inner conf is invalid (th_spat changed from %lg to %lg)\n",stored_th_spat,th_spat);
+	    inner_conf_valid=false;
+	  }
+      }
+    
+    if(not inner_conf_valid)
+      {
+	//copy
+	vector_copy(inner_conf,glb_conf);
+	
+	//put momentum
+	momentum_t put_theta,old_theta;
+	old_theta[0]=stored_th0;old_theta[1]=old_theta[2]=old_theta[3]=stored_th_spat;
+	put_theta[0]=th0;put_theta[1]=put_theta[2]=put_theta[3]=th_spat;
+	adapt_theta(inner_conf,old_theta,put_theta,0,0);
+	
+	//include the photon field, with correct charge
+	if(charge) add_photon_field_to_conf(inner_conf,charge);
+      }
+    
+    //update value and set valid
+    stored_charge=charge;
+    stored_th0=th0;
+    stored_th_spat=th_spat;
+    inner_conf_valid=true;
+    
+    return inner_conf;
   }
   
   //check if the time is enough
@@ -89,7 +132,7 @@ namespace nissa
   //init a new conf
   void start_new_conf()
   {
-    setup_conf(conf,old_theta,put_theta,conf_path,rnd_gauge_transform,free_theory);
+    setup_conf(glb_conf,conf_path,rnd_gauge_transform,free_theory);
     
     //reset contractions
     vector_reset(mes2pts_contr);
@@ -133,7 +176,7 @@ namespace nissa
 	  master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	  char run_file[1024];
 	  sprintf(run_file,"%s/running",outfolder);
-	  ok_conf=!(file_exists(run_file)) && external_condition();
+	  ok_conf=!(file_exists(run_file)) and external_condition();
 	  
 	  //if not finished
 	  if(ok_conf)

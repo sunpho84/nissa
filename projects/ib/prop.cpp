@@ -33,17 +33,13 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    //put theta on the boundaries
-    adapt_spatial_theta(conf,theta);
-    
-    //include the photon field, with correct charge
-    if(charge) add_photon_field_to_conf(conf,charge);
-    
     //rotate the source index - the propagator rotate AS the sign of mass term
     if(twisted_run) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
     
     //invert
     START_TIMING(inv_time,ninv_tot);
+    
+    quad_su3 *conf=get_updated_conf(charge,QUARK_BOUND_COND,theta);
     
     if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
     else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
@@ -52,12 +48,6 @@ namespace nissa
     
     //rotate the sink index
     if(twisted_run) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
-    
-    //remove the photon field, with correct charge
-    if(charge) rem_photon_field_to_conf(conf,charge);
-    
-    //put back no theta on the boundaries
-    put_spatial_theta_periodic(conf);
   }
   
   //generate a source, wither a wall or a point in the origin
@@ -143,7 +133,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  void insert_external_source(spincolor *out,spin1field *curr,spincolor *ori,int t,int r,coords dirs,int loc)
+  void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,coords dirs,int loc)
   {
     if(loc) insert_external_loc_source(loop_source,curr,ori,t,dirs);
     else
@@ -152,7 +142,7 @@ namespace nissa
   }
   
   //generate a sequential source
-  void generate_source(insertion_t inser,int r,spincolor *ori,int t)
+  void generate_source(insertion_t inser,int r,double charge,double theta,spincolor *ori,int t)
   {
     source_time-=take_time();
     
@@ -160,19 +150,21 @@ namespace nissa
     if(rel_t!=-1) rel_t=(t+source_coord[0])%glb_size[0];
     coords dirs[NDIM]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
     
+    quad_su3 *conf=get_updated_conf(charge,QUARK_BOUND_COND,theta);
+    
     master_printf("Inserting r: %d\n",r);
     switch(inser)
       {
       case PROP:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
       case SCALAR:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
       case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,rel_t);break;
-      case PHOTON:insert_external_source(loop_source,photon_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
-      case PHOTON0:insert_external_source(loop_source,photon_field,ori,rel_t,r,dirs[0],loc_hadr_curr);break;
-      case PHOTON1:insert_external_source(loop_source,photon_field,ori,rel_t,r,dirs[1],loc_hadr_curr);break;
-      case PHOTON2:insert_external_source(loop_source,photon_field,ori,rel_t,r,dirs[2],loc_hadr_curr);break;
-      case PHOTON3:insert_external_source(loop_source,photon_field,ori,rel_t,r,dirs[3],loc_hadr_curr);break;
-      case PHOTON_PHI:insert_external_source(loop_source,photon_phi,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
-      case PHOTON_ETA:insert_external_source(loop_source,photon_eta,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
+      case PHOTON:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
+      case PHOTON0:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,dirs[0],loc_hadr_curr);break;
+      case PHOTON1:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,dirs[1],loc_hadr_curr);break;
+      case PHOTON2:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,dirs[2],loc_hadr_curr);break;
+      case PHOTON3:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,dirs[3],loc_hadr_curr);break;
+      case PHOTON_PHI:insert_external_source(loop_source,conf,photon_phi,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
+      case PHOTON_ETA:insert_external_source(loop_source,conf,photon_eta,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case TADPOLE:
 	if(twisted_run) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,rel_t);
 	else            insert_Wilson_tadpole(loop_source,conf,ori,tadpole,rel_t);
@@ -214,7 +206,7 @@ namespace nissa
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
 	      int isou=so_sp_col_ind(id_so,ic_so);
-	      generate_source(insertion,q.r,qsource[isou],q.tins);
+	      generate_source(insertion,q.r,q.charge,q.theta,qsource[isou],q.tins);
 	      spincolor *sol=q[isou];
 	      
 	      //combine the filename
@@ -505,6 +497,9 @@ namespace nissa
     
     //generate the photon field
     multiply_by_sqrt_tlSym_gauge_propagator(photon_field,photon_eta,photon);
+    
+    //invalidate internal conf
+    inner_conf_valid=false;
     
     photon_prop_time+=take_time();
     nphoton_prop_tot++;
