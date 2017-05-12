@@ -62,36 +62,36 @@ namespace nissa
     //check if the inner conf is valid or not
     static double stored_charge=0,stored_th0=0,stored_th_spat=0;
     if(not inner_conf_valid) master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
-    else
+    
+    //check charge
+    if(charge!=stored_charge)
       {
-	//check charge
-	if(charge!=stored_charge)
-	  {
-	    master_printf("Inner conf is invalid (charge changed from %lg to %lg)\n",stored_charge,charge);
-	    inner_conf_valid=false;
-	  }
-	//th0
-	if(th0!=stored_th0)
-	  {
-	    master_printf("Inner conf is invalid (th0 changed from %lg to %lg)\n",stored_th0,th0);
-	    inner_conf_valid=false;
-	  }
-	//th_spat
-	if(th_spat!=stored_th_spat)
-	  {
-	    master_printf("Inner conf is invalid (th_spat changed from %lg to %lg)\n",stored_th_spat,th_spat);
-	    inner_conf_valid=false;
-	  }
+	master_printf("Inner conf is invalid (charge changed from %lg to %lg)\n",stored_charge,charge);
+	inner_conf_valid=false;
+      }
+    //th0
+    if(th0!=stored_th0)
+      {
+	master_printf("Inner conf is invalid (th0 changed from %lg to %lg)\n",stored_th0,th0);
+	inner_conf_valid=false;
+      }
+    //th_spat
+    if(th_spat!=stored_th_spat)
+      {
+	master_printf("Inner conf is invalid (th_spat changed from %lg to %lg)\n",stored_th_spat,th_spat);
+	inner_conf_valid=false;
       }
     
     if(not inner_conf_valid)
       {
+	master_printf("Inner conf not valid: updating it\n");
+	
 	//copy
 	vector_copy(inner_conf,glb_conf);
 	
 	//put momentum
 	momentum_t put_theta,old_theta;
-	old_theta[0]=stored_th0;old_theta[1]=old_theta[2]=old_theta[3]=stored_th_spat;
+	old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
 	put_theta[0]=th0;put_theta[1]=put_theta[2]=put_theta[3]=th_spat;
 	adapt_theta(inner_conf,old_theta,put_theta,0,0);
 	
