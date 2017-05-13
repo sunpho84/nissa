@@ -96,7 +96,7 @@ namespace nissa
 	adapt_theta(inner_conf,old_theta,put_theta,0,0);
 	
 	//include the photon field, with correct charge
-	if(charge) add_photon_field_to_conf(inner_conf,charge);
+	add_photon_field_to_conf(inner_conf,charge);
       }
     
     //update value and set valid

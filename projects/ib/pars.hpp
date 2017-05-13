@@ -41,7 +41,12 @@ namespace nissa
   {
     int i=0;
     while(i<nins_kind and strcasecmp(ins_tag[i],tag)) i++;
-    if(i>=nins_kind) crash("unable to find tag %s",tag);
+    if(i>=nins_kind)
+      {
+	master_fprintf(stderr,"unable to find tag %s, use one in the list:\n",tag);
+	for(i=0;i<nins_kind;i++) master_fprintf(stderr," %s\n",ins_tag[i]);
+	crash("see previous error");
+      }
     return ins_list[i];
   }
   //sign of the lepton momentum
