@@ -13,7 +13,7 @@
 namespace nissa
 {
   //return the loclx coordinate of a Leblx
-  int loclx_coord_of_Leblx(coords c,const Leb_factors_t &factors,int Leblx)
+  void loclx_coord_of_Leblx(coords c,const Leb_factors_t &factors,int Leblx)
   {
     int nfactors=factors.size();
     coords t1,t2,t3;
@@ -47,8 +47,6 @@ namespace nissa
 	  c[mu]=x_mixed_base[mu][j]+factors[t3[mu]][mu]*c[mu];
 	  t3[mu]=(t3[mu]+nfactors-1)%nfactors;
 	}
-    
-    return 0;
   }
   
   //init the Lebesgue geometry
@@ -83,6 +81,7 @@ namespace nissa
 	for(int ifact=0;ifact<nfacts;ifact++) factors[nfacts1+ifact][mu]=list_fact_mu[ifact];
       }
     
+    //print the factors
     verbosity_lv3_master_printf("Leb factors\n");
     for(int mu=0;mu<NDIM;mu++)
       {
