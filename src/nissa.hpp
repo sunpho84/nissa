@@ -67,6 +67,7 @@
 
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_Leb.hpp"
 #include "geometry/geometry_mix.hpp"
 
 #include "hmc/backfield.hpp"
