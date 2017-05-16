@@ -20,6 +20,7 @@
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_Leb.hpp"
 #include "geometry/geometry_vir.hpp"
 #include "io/ILDG_File.hpp"
 #include "new_types/su3.hpp"
@@ -364,6 +365,7 @@ namespace nissa
     tags.push_back(triple_tag("verbosity_lv",                  verbosity_lv));
     tags.push_back(triple_tag("use_128_bit_precision",         use_128_bit_precision));
     tags.push_back(triple_tag("use_eo_geom",		       use_eo_geom));
+    tags.push_back(triple_tag("use_Leb_geom",		       use_Leb_geom));
     tags.push_back(triple_tag("use_async_communications",      use_async_communications));
     tags.push_back(triple_tag("warn_if_not_disallocated",      warn_if_not_disallocated));
     tags.push_back(triple_tag("warn_if_not_communicated",      warn_if_not_communicated));

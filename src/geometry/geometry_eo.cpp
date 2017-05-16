@@ -44,7 +44,7 @@ namespace nissa
   //set the eo geometry
   void set_eo_geometry()
   {
-    if(!use_eo_geom) crash("E/O Geometry was not to be used!");
+    if(not use_eo_geom) crash("E/O Geometry was not to be used!");
     if(eo_geom_inited) crash("E/O Geometry already initialized!");
     
     //check that all local sizes are multiples of 2
@@ -94,12 +94,12 @@ namespace nissa
 	  
 	  //up movements
 	  int loclx_up=loclx_neighup[loclx][mu];
-	  if(loclx_up>=0 && loclx_up<loc_vol+bord_vol+edge_vol)
+	  if(loclx_up>=0 and loclx_up<loc_vol+bord_vol+edge_vol)
 	    loceo_neighup[par][loceo][mu]=loceo_of_loclx[loclx_up];
 	  
 	  //dw movements
 	  int loclx_dw=loclx_neighdw[loclx][mu];
-	  if(loclx_dw>=0 && loclx_dw<loc_vol+bord_vol+edge_vol)
+	  if(loclx_dw>=0 and loclx_dw<loc_vol+bord_vol+edge_vol)
 	    loceo_neighdw[par][loceo][mu]=loceo_of_loclx[loclx_dw];
 	}
     
@@ -123,7 +123,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  for(int vnu=0;vnu<2;vnu++)
 	    for(int nu=mu+1;nu<NDIM;nu++)
-	      if(paral_dir[mu] && paral_dir[nu])
+	      if(paral_dir[mu] and paral_dir[nu])
 		{
 		  int iedge=edge_numb[mu][nu];
 		  int icomm=((par*2+vmu)*2+vnu)*NDIM*(NDIM-1)/2+iedge;
@@ -138,7 +138,7 @@ namespace nissa
 		  for(int b_eo=0;b_eo<bord_volh;b_eo++)
 		    {
 		      int ivol=loclx_of_loceo[par][loc_volh+b_eo];
-		      if(loclx_neigh[!vmu][ivol][mu]>=0 && loclx_neigh[!vmu][ivol][mu]<loc_vol && loclx_neigh[vnu][ivol][nu]>=loc_vol+bord_vol) edge_pos_disp[iedge_site++]=b_eo;
+		      if(loclx_neigh[!vmu][ivol][mu]>=0 and loclx_neigh[!vmu][ivol][mu]<loc_vol and loclx_neigh[vnu][ivol][nu]>=loc_vol+bord_vol) edge_pos_disp[iedge_site++]=b_eo;
 		    }
 		  if(iedge_site!=eo_edge_size) crash("iedge_site=%d did not arrive to eo_edge_size=%d",iedge_site,eo_edge_size);
 		  
@@ -149,7 +149,6 @@ namespace nissa
 		  nissa_free(single);
 		  nissa_free(edge_pos_disp);
 		}
-    
   }
   
   //definitions of e/o split receivers for edges
@@ -176,7 +175,7 @@ namespace nissa
   //unset the eo geometry
   void unset_eo_geometry()
   {
-    if(!eo_geom_inited)
+    if(not eo_geom_inited)
       crash("asking to unset never initialized E/O Geometry!");
     
     master_printf("Unsetting E/O Geometry\n");

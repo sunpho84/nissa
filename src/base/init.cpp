@@ -29,6 +29,7 @@
 #include "io/endianness.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_Leb.hpp"
 #ifdef USE_VNODES
  #include "geometry/geometry_vir.hpp"
 #endif
@@ -201,6 +202,7 @@ namespace nissa
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
     use_128_bit_precision=NISSA_DEFAULT_USE_128_BIT_PRECISION;
     use_eo_geom=NISSA_DEFAULT_USE_EO_GEOM;
+    use_Leb_geom=NISSA_DEFAULT_USE_LEB_GEOM;
     warn_if_not_disallocated=NISSA_DEFAULT_WARN_IF_NOT_DISALLOCATED;
     warn_if_not_communicated=NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
@@ -745,6 +747,7 @@ namespace nissa
     set_lx_geometry();
     
     if(use_eo_geom) set_eo_geometry();
+    if(use_Leb_geom) set_Leb_geometry();
     
 #ifdef USE_VNODES
     set_vir_geometry();
