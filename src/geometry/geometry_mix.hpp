@@ -19,17 +19,15 @@ namespace nissa
   template <class T> void get_evn_or_odd_part_of_lx_vector(T *out_eo,T *in_lx,int par)
   {get_evn_or_odd_part_of_lx_vector_internal((char*)out_eo,(char*)in_lx,sizeof(T),par);}
   
-  void remap_eo_vector_internal(char **out,char **in,size_t bps,int **remap);
-  template <class T> void remap_loceo_to_Lebeo_vector(T **out,T **in)
-  {remap_eo_vector_internal((char**)out,(char**)in,sizeof(T),Lebeo_of_loceo);}
+  void remap_vector_internal(char *out,char *in,size_t bps,int *dest_of_source,int length);
+  template <class T> void remap_Leb_ev_or_od_to_loc_vector(T *out,T *in,int par)
+  {remap_vector_internal((char*)out,(char*)in,sizeof(T),loceo_of_Lebeo[par],loc_volh);}
   template <class T> void remap_Lebeo_to_loceo_vector(T **out,T **in)
-  {remap_eo_vector_internal((char**)out,(char**)in,sizeof(T),loceo_of_Lebeo);}
-  
-  void remap_lx_vector_internal(char *out,char *in,size_t bps,int *remap);
-  template <class T> void remap_loclx_to_Leblx_vector(T *out,T *in)
-  {remap_lx_vector_internal((char*)out,(char*)in,sizeof(T),Leblx_of_loclx);}
-  template <class T> void remap_Leblx_to_loclx_vector(T *out,T *in)
-  {remap_lx_vector_internal((char*)out,(char*)in,sizeof(T),loclx_of_Leblx);}
+  {for(int eo=0;eo<2;eo++) remap_Leb_ev_or_od_to_loc_vector(out[eo],in[eo],eo);}
+  template <class T> void remap_loc_ev_or_od_to_Leb_vector(T *out,T *in,int par)
+  {remap_vector_internal((char*)out,(char*)in,sizeof(T),Lebeo_of_loceo[par],loc_volh);}
+  template <class T> void remap_loceo_to_Lebeo_vector(T **out,T **in)
+  {for(int eo=0;eo<2;eo++) remap_loc_ev_or_od_to_Leb_vector(out[eo],in[eo],eo);}
 }
 
 #endif

@@ -73,36 +73,18 @@ namespace nissa
   /////////////////////
   
   //remap using a certain local remapper
-  THREADABLE_FUNCTION_4ARG(remap_lx_vector_internal, char*,out, char*,in, size_t,bps, int*,remap)
+  THREADABLE_FUNCTION_5ARG(remap_vector_internal, char*,out, char*,in, size_t,bps, int*,dest_of_source, int,length)
   {
     GET_THREAD_ID();
     
     START_TIMING(remap_time,nremap);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      memcpy(out+bps*remap[ivol],in+bps*ivol,bps);
+    NISSA_PARALLEL_LOOP(i,0,length)
+      memcpy(out+bps*dest_of_source[i],in+bps*i,bps);
     
     STOP_TIMING(remap_time);
     
     set_borders_invalid(out);
-  }
-  THREADABLE_FUNCTION_END
-  
-  //remap eo using a certain remapper
-  THREADABLE_FUNCTION_4ARG(remap_eo_vector_internal, char**,out, char**,in, size_t,bps, int**,remap)
-  {
-    GET_THREAD_ID();
-    
-    START_TIMING(remap_time,nremap);
-    
-    for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ivolh,0,loc_volh)
-	memcpy(out[par]+bps*remap[par][ivolh],in[par]+bps*ivolh,bps);
-    
-    STOP_TIMING(remap_time);
-    
-    set_borders_invalid(out[0]);
-    set_borders_invalid(out[1]);
   }
   THREADABLE_FUNCTION_END
 }
