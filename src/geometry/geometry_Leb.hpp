@@ -28,7 +28,7 @@ namespace nissa
   EXTERN_GEOMETRY_LEB int use_Leb_geom;
   
   typedef std::vector<coords> Leb_factors_t;
-
+  
   void set_Leb_geometry();
   void unset_Leb_geometry();
 }
