@@ -3,7 +3,9 @@
 #endif
 
 #define EXTERN_GEOMETRY_LEB
-#include "geometry_Leb.hpp"
+ #include "geometry_Leb.hpp"
+
+#include "geometry_eo.hpp"
 
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
@@ -55,10 +57,19 @@ namespace nissa
     if(not use_Leb_geom) crash("Lebesgue Geometry was not to be used!");
     if(Leb_geom_inited) crash("Lebesgue Geometry already initialized!");
     
-    loclx_of_Leblx=nissa_malloc("loclx_of_Leblx_of",loc_vol+bord_vol+edge_vol,int);
+    loclx_of_Leblx=nissa_malloc("loclx_of_Leblx",loc_vol+bord_vol+edge_vol,int);
     Leblx_of_loclx=nissa_malloc("Leblx_of_loclx",loc_vol+bord_vol+edge_vol,int);
     Leblx_neighup=nissa_malloc("Leblx_neighup",loc_vol,coords);
     Leblx_neighdw=nissa_malloc("Leblx_neighdw",loc_vol,coords);
+    Leblx_parity=nissa_malloc("Leblx_parity",loc_vol,int);
+    
+    for(int eo=0;eo<2;eo++)
+      {
+	loceo_of_Lebeo[eo]=nissa_malloc("loceo_of_Lebeo",loc_volh,int);
+	Lebeo_of_loceo[eo]=nissa_malloc("Lebeo_of_loceo",loc_volh,int);
+	Lebeo_neighup[eo]=nissa_malloc("Lebeo_neighup",loc_volh,coords);
+	Lebeo_neighdw[eo]=nissa_malloc("Lebeo_neighdw",loc_volh,coords);
+      }
     
     //get nmax_fact
     int nmax_facts=0;
@@ -105,15 +116,35 @@ namespace nissa
 	verbosity_lv3_master_printf("%d %d\n",Leblx_of_loclx[loclx],loclx_of_Leblx[Leblx]);
       }
     
+    //set e/o
+    int iLebeo[2]={0,0};
+    for(int Leblx=0;Leblx<loc_vol;Leblx++)
+      {
+	int loclx=loclx_of_Leblx[Leblx];
+	int par=loclx_parity[loclx];
+	Leblx_parity[Leblx]=par;
+	int loceo=loceo_of_loclx[loclx];
+	
+	//set Lebeo of loceo and opposite
+	int Lebeo=iLebeo[par]++;
+	Lebeo_of_loceo[par][loceo]=Lebeo;
+	loceo_of_Lebeo[par][Lebeo]=loceo;
+      }
+    
     //set movements
     for(int Leblx=0;Leblx<loc_vol;Leblx++)
       {
 	int loclx=loclx_of_Leblx[Leblx];
+	int par=loclx_parity[loclx];
+	int loceo=loceo_of_loclx[loclx];
 	
 	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    Leblx_neighup[Leblx][mu]=Leblx_of_loclx[loclx_neighup[loclx][mu]];
 	    Leblx_neighdw[Leblx][mu]=Leblx_of_loclx[loclx_neighdw[loclx][mu]];
+	    
+	    Lebeo_neighup[par][loceo][mu]=Lebeo_of_loceo[!par][loceo_neighup[par][loceo][mu]];
+	    Lebeo_neighdw[par][loceo][mu]=Lebeo_of_loceo[!par][loceo_neighdw[par][loceo][mu]];
 	  }
       }
   }
@@ -127,5 +158,14 @@ namespace nissa
     nissa_free(Leblx_of_loclx);
     nissa_free(Leblx_neighup);
     nissa_free(Leblx_neighdw);
+    nissa_free(Leblx_parity);
+    
+    for(int eo=0;eo<2;eo++)
+      {
+	nissa_free(loceo_of_Lebeo[eo]);
+	nissa_free(Lebeo_of_loceo[eo]);
+	nissa_free(Lebeo_neighup[eo]);
+	nissa_free(Lebeo_neighdw[eo]);
+      }
   }
 }
