@@ -56,6 +56,7 @@ namespace nissa
   {
     if(not use_Leb_geom) crash("Lebesgue Geometry was not to be used!");
     if(Leb_geom_inited) crash("Lebesgue Geometry already initialized!");
+    Leb_geom_inited=true;
     
     loclx_of_Leblx=nissa_malloc("loclx_of_Leblx",loc_vol+bord_vol+edge_vol,int);
     Leblx_of_loclx=nissa_malloc("Leblx_of_loclx",loc_vol+bord_vol+edge_vol,int);

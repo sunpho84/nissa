@@ -282,6 +282,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	inverters/staggered/cgm_32_invert_stD2ee_m2.cpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
 	inverters/staggered/cg_invert_stD2ee_m2_portable.cpp \
+	inverters/staggered/cg_invert_stD2Leb_ee_m2_portable.cpp \
 	inverters/staggered/cgm_invert_stD2ee_m2.cpp \
 	inverters/staggered/cg_invert_stD2ee_m2.cpp \
 	inverters/staggered/cg_invert_stD.cpp \
@@ -326,6 +327,7 @@ include_HEADERS+= \
 	inverters/staggered/cgm_invert_stD2ee_m2_portable.hpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2_portable.hpp \
 	inverters/staggered/cg_invert_stD2ee_m2_portable.hpp \
+	inverters/staggered/cg_invert_stD2Leb_ee_m2_portable.hpp \
 	inverters/Wclov/cg_invert_WclovQ.hpp \
 	inverters/Wclov/cg_invert_WclovQ2.hpp \
 	inverters/twisted_clover/cg_invert_tmclovQ.hpp \

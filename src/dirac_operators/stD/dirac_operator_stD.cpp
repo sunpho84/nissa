@@ -11,6 +11,7 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3_op.hpp"
 
+#include "dirac_operator_stDLeb_portable.cpp"
 #include "dirac_operator_stD_portable.cpp"
 #include "dirac_operator_stD_32_portable.cpp"
 

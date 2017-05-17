@@ -12,6 +12,7 @@
 #include "vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_Leb.hpp"
 #ifdef USE_VNODES
  #include "geometry/geometry_vir.hpp"
 #endif
@@ -44,6 +45,9 @@ namespace nissa
     //unset eo geometry
     if(eo_geom_inited) unset_eo_geometry();
     
+    //unset Leb geometry
+    if(Leb_geom_inited) unset_Leb_geometry();
+    
     //unset the virtual node parallelization geometry
 #ifdef USE_VNODES
     unset_vir_geometry();
@@ -72,10 +76,10 @@ namespace nissa
 #endif
     
     //free thread delays pattern
-    #if THREAD_DEBUG>=2
+#if THREAD_DEBUG>=2
     free(delayed_thread_barrier);
     free(delay_rnd_gen);
-    #endif
+#endif
     
     MPI_Barrier(MPI_COMM_WORLD);
     master_printf("   Ciao!\n\n");
