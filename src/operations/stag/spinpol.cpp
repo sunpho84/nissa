@@ -154,7 +154,7 @@ namespace nissa
     quad_su3 *gauge_conf=nissa_malloc("gauge_conf",loc_vol+bord_vol,quad_su3);
     for(int imeas=0;imeas<nmeas;imeas++)
       {
-	smoothed_conf[imeas]=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
+	smoothed_conf[imeas]=nissa_malloc(combine("smoothed_conf_%d",imeas).c_str(),loc_vol+bord_vol,quad_su3);
 	for(int eo=0;eo<2;eo++) ferm_conf[imeas][eo]=nissa_malloc("ferm_conf",loc_volh+bord_volh+edge_volh,quad_su3);
       }
     if(nmeas==0) crash("nmeas cannot be 0");
@@ -166,6 +166,8 @@ namespace nissa
     bool finished;
     do
       {
+	verbosity_lv2_master_printf("Meas: %d/%d, %lg\n",imeas,nmeas,t);
+	
 	if(imeas==0)
 	  {
 	    paste_eo_parts_into_lx_vector(smoothed_conf[0],glu_conf);
@@ -176,7 +178,6 @@ namespace nissa
 	    vector_copy(smoothed_conf[imeas],smoothed_conf[imeas-1]);
 	    finished=smooth_lx_conf_until_next_meas(smoothed_conf[imeas],sp,t,tnext_meas);
 	  }
-	verbosity_lv2_master_printf("Meas: %d/%d, %lg\n",imeas,nmeas,t);
 	
 	split_lx_vector_into_eo_parts(ferm_conf[imeas],smoothed_conf[imeas]);
 	stout_smear(ferm_conf[imeas],ferm_conf[imeas],&stout_pars);

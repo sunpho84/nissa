@@ -60,7 +60,7 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	method!=def_method()||
+	method!=def_method() or
 	meas_each!=def_meas_each();
     }
     

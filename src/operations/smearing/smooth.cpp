@@ -11,17 +11,17 @@ namespace nissa
   //smooth a configuration until measure is due
   bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,double &t,double &tnext_meas,int *dirs,int staple_min_dir)
   {
-    if(sp.method==smooth_pars_t::COOLING  and  dirs!=all_dirs) crash("not implemented");
+    if(sp.method==smooth_pars_t::COOLING and dirs!=all_dirs) crash("not implemented");
     
     bool finished=1;
     while(t+1e-10<tnext_meas)
       switch(sp.method)
 	{
-	case smooth_pars_t::COOLING: cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));t++;finished=(t>sp.cool.nsteps);break;
-	case smooth_pars_t::STOUT: stout_smear_single_level(smoothed_conf,smoothed_conf,sp.stout.rho);t++;finished=(t>sp.stout.nlevels);break;
+	case smooth_pars_t::COOLING: cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));t++;finished=(t+1e-10>sp.cool.nsteps);break;
+	case smooth_pars_t::STOUT: stout_smear_single_level(smoothed_conf,smoothed_conf,sp.stout.rho);t++;finished=(t+1e-10>sp.stout.nlevels);break;
 	case smooth_pars_t::WFLOW: Wflow_lx_conf(smoothed_conf,sp.Wflow.dt,dirs);t+=sp.Wflow.dt;finished=(t+1e-10>sp.Wflow.T);break;
-	case smooth_pars_t::HYP: hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);t+=1;finished=(t>sp.hyp.nlevels);break;
-	case smooth_pars_t::APE: ape_smear_conf(smoothed_conf,smoothed_conf,sp.ape.alpha,1,dirs,staple_min_dir);t+=1;finished=(t>sp.ape.nlevels);break;
+	case smooth_pars_t::HYP: hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);t+=1;finished=(t+1e-10>sp.hyp.nlevels);break;
+	case smooth_pars_t::APE: ape_smear_conf(smoothed_conf,smoothed_conf,sp.ape.alpha,1,dirs,staple_min_dir);t+=1;finished=(t+1e-10>sp.ape.nlevels);break;
 	}
     if(not finished) tnext_meas+=sp.meas_each;
     
@@ -31,7 +31,7 @@ namespace nissa
   //smooth a configuration as imposed
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs,int staple_min_dir)
   {
-    if(sp.method==smooth_pars_t::COOLING  and  dirs!=all_dirs) crash("not implemented");
+    if(sp.method==smooth_pars_t::COOLING and dirs!=all_dirs) crash("not implemented");
     
     switch(sp.method)
       {
