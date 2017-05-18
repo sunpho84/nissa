@@ -4,6 +4,7 @@ SUBDIRS= \
 	generate_confs \
 	ib \
 	nucleons \
+	reno_const \
 	semileptonic
 
 if NDIM2

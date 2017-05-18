@@ -352,6 +352,7 @@ AC_CONFIG_FILES(
 	projects/generate_confs/Makefile
 	projects/ib/Makefile
 	projects/nucleons/Makefile
+	projects/reno_const/Makefile
 	projects/semileptonic/Makefile
 	tools/Makefile)
 

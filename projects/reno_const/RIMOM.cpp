@@ -2,7 +2,7 @@
 #include <math.h>
 #include <sys/stat.h>
 
-#include "nissa.hpp"
+#include <nissa.hpp>
 
 using namespace nissa;
 
@@ -13,8 +13,8 @@ typedef int2 interv[2];
 int ngauge_conf,nanalized_conf;
 char conf_path[1024];
 quad_su3 *conf,*unfix_conf;
-double kappa,csw;
-as2t_su3 *Pmunu;
+double kappa,cSW;
+clover_term_t *Cl;
 
 //gauge fixing
 double fixing_precision;
@@ -108,7 +108,7 @@ void meson_two_points(complex *corr,complex *loc_corr,int *list_op1,su3spinspin 
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];
-
+  
   for(int icontr=0;icontr<ncontr;icontr++)
     {
       //Put the two gamma5 needed for the revert of the first spinor
@@ -124,7 +124,7 @@ void meson_two_points(complex *corr,complex *loc_corr,int *list_op1,su3spinspin 
 void initialize_Zcomputation(char *input_path)
 {
   open_input(input_path);
-
+  
   // 1) Read information about the gauge conf
   
   //Read the volume
@@ -135,7 +135,7 @@ void initialize_Zcomputation(char *input_path)
   init_grid(T,L); 
   //Wall_time
   read_str_int("WallTime",&wall_time);
-
+  
   // 2) Gauge fixing
   read_str_double("FixingPrecision",&fixing_precision);
   
@@ -143,8 +143,8 @@ void initialize_Zcomputation(char *input_path)
   
   //Kappa
   read_str_double("Kappa",&kappa);
-  //csw
-  read_str_double("csw",&csw);
+  //cSW
+  read_str_double("cSW",&cSW);
   //Read the masses
   read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
   
@@ -160,7 +160,7 @@ void initialize_Zcomputation(char *input_path)
       //Read the operator pairs
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
-
+      
       master_printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
   
@@ -175,14 +175,14 @@ void initialize_Zcomputation(char *input_path)
   //precision in which to save the X and P prop (0, 32, 64)
   full_X_space_prop_prec=read_prop_prec("FullXSpacePropPrec");
   full_P_space_prop_prec=read_prop_prec("FullPSpacePropPrec");
-    
+  
   //read subsets of X and P space props to save
   X_interv[0]=read_subset_list(&n_X_interv[0],"NXSpacePropIntervRome","XInterv");
   P_interv[0]=read_subset_list(&n_P_interv[0],"NPSpacePropIntervRome","PInterv");
   X_interv[1]=read_subset_list(&n_X_interv[1],"NXSpacePropIntervOrsay","XInterv");
   P_interv[1]=read_subset_list(&n_P_interv[1],"NPSpacePropIntervOrsay","PInterv");
-    
-  read_str_int("NGaugeConf",&ngauge_conf);  
+  
+  read_str_int("NGaugeConf",&ngauge_conf);
   
   ///////////////////////////////// end of input reading/////////////////////////////////
   
@@ -200,7 +200,7 @@ void initialize_Zcomputation(char *input_path)
       S0[1][iprop]=nissa_malloc("S0[1][iprop]",loc_vol,su3spinspin);
     }
   
-  if(csw!=0) Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
+  if(cSW!=0) Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
   
   //Allocate one su3spinspsin for the source
   original_source=nissa_malloc("orig_source",loc_vol,su3spinspin);
@@ -216,13 +216,13 @@ void load_gauge_conf()
   
   //prepare the fixed version and calculate plaquette
   double elaps_time=-take_time();
-  landau_gauge_fix(conf,unfix_conf,fixing_precision);
+  Landau_gauge_fix(conf,unfix_conf,fixing_precision);
   elaps_time+=take_time();
   fix_time+=elaps_time;
   master_printf("Fixed conf in %lg sec\n",elaps_time);
   
   //compute Pmunu
-  if(csw!=0) Pmunu_term(Pmunu,conf);
+  if(cSW!=0) clover_term(Cl,cSW,conf);
   
   //write conf is asked
   if(write_fixed_conf)
@@ -261,7 +261,7 @@ void close_Zcomputation()
   nissa_free(P_interv[0]);
   nissa_free(X_interv[1]);
   nissa_free(P_interv[1]);
-  if(csw!=0) nissa_free(Pmunu);
+  if(cSW!=0) nissa_free(Cl);
   
   master_printf("\n");
   master_printf("Total time: %lg sec (%lg average per conf), of which:\n",tot_prog_time,tot_prog_time/nanalized_conf);
@@ -279,8 +279,8 @@ void close_Zcomputation()
 void calculate_S0()
 {
   inv_time-=take_time();
-  if(csw==0) compute_su3spinspin_tm_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residues,original_source);
-  else compute_su3spinspin_tmclov_propagators_multi_mass(S0,conf,kappa,csw,Pmunu,mass,nmass,niter_max,stopping_residues,original_source);
+  if(cSW==0) compute_su3spinspin_tm_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residues,original_source);
+  else compute_su3spinspin_tmclov_propagators_multi_mass(S0,conf,kappa,Cl,mass,nmass,niter_max,stopping_residues,original_source);
   inv_time+=take_time();
   ninv_tot+=12;
   
