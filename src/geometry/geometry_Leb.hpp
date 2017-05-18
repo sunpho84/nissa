@@ -18,6 +18,7 @@ namespace nissa
   EXTERN_GEOMETRY_LEB int *Leblx_parity;
   EXTERN_GEOMETRY_LEB coords *Leblx_neighup;
   EXTERN_GEOMETRY_LEB coords *Leblx_neighdw;
+  EXTERN_GEOMETRY_LEB int *surfLeblx_of_bordLeblx;
   
   EXTERN_GEOMETRY_LEB int *Lebeo_of_loceo[2];
   EXTERN_GEOMETRY_LEB int *loceo_of_Lebeo[2];
@@ -27,7 +28,7 @@ namespace nissa
   EXTERN_GEOMETRY_LEB int Leb_geom_inited;
   EXTERN_GEOMETRY_LEB int use_Leb_geom;
   
-  typedef std::vector<coords> Leb_factors_t;
+  typedef std::vector<std::vector<int> > Leb_factors_t;
   
   void set_Leb_geometry();
   void unset_Leb_geometry();

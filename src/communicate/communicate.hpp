@@ -1,6 +1,10 @@
 #ifndef COMMUNICATE_HPP
 #define COMMUNICATE_HPP
 
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #include <mpi.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -113,21 +117,23 @@ namespace nissa
   EXTERN_COMMUNICATE uint64_t recv_buf_size,send_buf_size;
   EXTERN_COMMUNICATE char *recv_buf,*send_buf;
   
-  EXTERN_COMMUNICATE comm_t lx_spin_comm,eo_spin_comm;
-  EXTERN_COMMUNICATE comm_t lx_spin1field_comm,eo_spin1field_comm;
-  EXTERN_COMMUNICATE comm_t lx_color_comm,eo_color_comm;
-  EXTERN_COMMUNICATE comm_t lx_spincolor_comm,eo_spincolor_comm;
-  EXTERN_COMMUNICATE comm_t lx_spincolor_128_comm,eo_spincolor_128_comm;
-  EXTERN_COMMUNICATE comm_t lx_halfspincolor_comm,eo_halfspincolor_comm;
-  EXTERN_COMMUNICATE comm_t lx_colorspinspin_comm,eo_colorspinspin_comm;
-  EXTERN_COMMUNICATE comm_t lx_spinspin_comm,eo_spinspin_comm;
-  EXTERN_COMMUNICATE comm_t lx_su3spinspin_comm,eo_su3spinspin_comm;
-  EXTERN_COMMUNICATE comm_t lx_su3_comm,eo_su3_comm;
-  EXTERN_COMMUNICATE comm_t lx_as2t_su3_comm,eo_as2t_su3_comm;
-  EXTERN_COMMUNICATE comm_t lx_quad_su3_comm,eo_quad_su3_comm;
-  EXTERN_COMMUNICATE comm_t lx_single_color_comm,eo_single_color_comm;
-  EXTERN_COMMUNICATE comm_t lx_single_halfspincolor_comm,eo_single_halfspincolor_comm;
-  EXTERN_COMMUNICATE comm_t lx_single_quad_su3_comm,eo_single_quad_su3_comm;
+#define DEFINE_COMM(T) EXTERN_COMMUNICATE comm_t NAME3(lx,T,comm),NAME3(eo,T,comm),NAME3(Leblx,T,comm),NAME3(Lebeo,T,comm)
+  
+  DEFINE_COMM(spin);
+  DEFINE_COMM(spin1field);
+  DEFINE_COMM(color);
+  DEFINE_COMM(spincolor);
+  DEFINE_COMM(spincolor_128);
+  DEFINE_COMM(halfspincolor);
+  DEFINE_COMM(colorspinspin);
+  DEFINE_COMM(spinspin);
+  DEFINE_COMM(su3spinspin);
+  DEFINE_COMM(su3);
+  DEFINE_COMM(as2t_su3);
+  DEFINE_COMM(quad_su3);
+  DEFINE_COMM(single_color);
+  DEFINE_COMM(single_halfspincolor);
+  DEFINE_COMM(single_quad_su3);
 }
 
 #undef EXTERN_COMMUNICATE

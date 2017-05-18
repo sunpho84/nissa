@@ -63,6 +63,7 @@ namespace nissa
     Leblx_neighup=nissa_malloc("Leblx_neighup",loc_vol,coords);
     Leblx_neighdw=nissa_malloc("Leblx_neighdw",loc_vol,coords);
     Leblx_parity=nissa_malloc("Leblx_parity",loc_vol,int);
+    surfLeblx_of_bordLeblx=nissa_malloc("surfLeblx_of_Bordlx",bord_vol,int);
     
     //get nmax_fact
     int nmax_facts=0;
@@ -73,7 +74,7 @@ namespace nissa
       }
     
     //set all factors to 1
-    Leb_factors_t factors(nmax_facts);
+    Leb_factors_t factors(nmax_facts,std::vector<int>(NDIM));
     for(int i=0;i<nmax_facts;i++) for(int mu=0;mu<NDIM;mu++) factors[i][mu]=1;
     
     //put all the non-1 factors
@@ -119,6 +120,9 @@ namespace nissa
 	    Leblx_neighdw[Leblx][mu]=Leblx_of_loclx[loclx_neighdw[loclx][mu]];
 	  }
       }
+    
+    //set surf filler
+    for(int ibord=0;ibord<bord_vol;ibord++) surfLeblx_of_bordLeblx[ibord]=Leblx_of_loclx[surflx_of_bordlx[ibord]];
     
     //set e/o
     if(use_eo_geom)
@@ -172,6 +176,7 @@ namespace nissa
     nissa_free(Leblx_neighup);
     nissa_free(Leblx_neighdw);
     nissa_free(Leblx_parity);
+    nissa_free(surfLeblx_of_bordLeblx);
     
     if(use_eo_geom)
       for(int eo=0;eo<2;eo++)
