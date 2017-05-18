@@ -17,7 +17,7 @@ namespace nissa
   {
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
       communicate_ev_and_od_quad_su3_borders(conf);
-    if(!check_borders_valid(in)) communicate_ev_color_borders(in);
+    if(!check_borders_valid(in)) communicate_Leb_ev_color_borders(in);
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(io,0,loc_volh)
@@ -63,8 +63,8 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(apply_stDLeb_eo_half, color*,out, quad_su3**,conf, color*,in)
   {
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
-      communicate_ev_and_od_quad_su3_borders(conf);
-    if(!check_borders_valid(in)) communicate_od_color_borders(in);
+      communicate_Leb_ev_and_od_quad_su3_borders(conf);
+    if(!check_borders_valid(in)) communicate_Leb_od_color_borders(in);
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ie,0,loc_volh)
@@ -108,8 +108,8 @@ namespace nissa
     START_TIMING(portable_stD_app_time,nportable_stD_app);
     
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
-      communicate_ev_and_od_quad_su3_borders(conf);
-    if(!check_borders_valid(in)) communicate_ev_color_borders(in);
+      communicate_Leb_ev_and_od_quad_su3_borders(conf);
+    if(!check_borders_valid(in)) communicate_Leb_ev_color_borders(in);
     
     NISSA_PARALLEL_LOOP(io,0,loc_volh)
       {
@@ -133,7 +133,7 @@ namespace nissa
       }
     
     set_borders_invalid(temp);
-    communicate_od_color_borders(temp);
+    communicate_Leb_od_color_borders(temp);
     
     //we still apply Deo, but then we put a - because we should apply Doe^+=-Deo
     NISSA_PARALLEL_LOOP(ie,0,loc_volh)
