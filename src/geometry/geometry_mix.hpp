@@ -5,6 +5,8 @@
 
 #include "geometry_Leb.hpp"
 
+#include "new_types/su3.hpp"
+
 namespace nissa
 {
   void paste_eo_parts_into_lx_vector_internal(char *out_lx,char **in_eo,size_t bps);
@@ -28,6 +30,8 @@ namespace nissa
   {remap_vector_internal((char*)out,(char*)in,sizeof(T),Lebeo_of_loceo[par],loc_volh);}
   template <class T> void remap_loceo_to_Lebeo_vector(T **out,T **in)
   {for(int eo=0;eo<2;eo++) remap_loc_ev_or_od_to_Leb_vector(out[eo],in[eo],eo);}
+  
+  void remap_loceo_conf_to_Lebeo_oct(oct_su3 *out,quad_su3 **in,int par);
 }
 
 #endif

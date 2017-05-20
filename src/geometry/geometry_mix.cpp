@@ -7,9 +7,11 @@
 #include "base/bench.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "communicate/borders.hpp"
 #include "geometry_eo.hpp"
 #include "geometry_lx.hpp"
 #include "geometry_Leb.hpp"
+#include "new_types/su3_op.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -85,6 +87,30 @@ namespace nissa
     STOP_TIMING(remap_time);
     
     set_borders_invalid(out);
+  }
+  THREADABLE_FUNCTION_END
+  
+  ///////////////////////
+  
+  //pack the 8 links attached to a given site
+  THREADABLE_FUNCTION_3ARG(remap_loceo_conf_to_Lebeo_oct, oct_su3*,out, quad_su3**,in, int,par)
+  {
+    GET_THREAD_ID();
+    
+    START_TIMING(remap_time,nremap);
+    
+    communicate_ev_and_od_quad_su3_borders(in);
+    
+    NISSA_PARALLEL_LOOP(Lebdest,0,loc_volh)
+      for(int mu=0;mu<NDIM;mu++)
+	{
+	  su3_copy(out[Lebdest][NDIM+mu],in[par][loceo_of_Lebeo[par][Lebdest]][mu]);
+	  su3_copy(out[Lebdest][mu],in[!par][loceo_of_Lebeo[!par][Lebeo_neighdw[par][Lebdest][mu]]][mu]);
+	}
+    
+    set_borders_invalid(out);
+    
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
 }

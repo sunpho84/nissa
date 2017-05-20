@@ -25,11 +25,12 @@ namespace nissa
 	//allocate
 	color *Leb_sol=nissa_malloc("Leb_sol",loc_volh+bord_volh,color);
 	color *Leb_source=nissa_malloc("Leb_source",loc_volh+bord_volh,color);
-	quad_su3 *Lebeo_conf[2];
-	for(int eo=0;eo<2;eo++) Lebeo_conf[eo]=nissa_malloc("Leb_source",loc_volh+bord_volh,quad_su3);
+	oct_su3 *Lebeo_conf[2];
+	for(int eo=0;eo<2;eo++) Lebeo_conf[eo]=nissa_malloc("Leb_conf",loc_volh+bord_volh,oct_su3);
+	
 	
 	//map
-	remap_loceo_to_Lebeo_vector(Lebeo_conf,eo_conf);
+	for(int eo=0;eo<2;eo++) remap_loceo_conf_to_Lebeo_oct(Lebeo_conf[eo],eo_conf,eo);
 	remap_loc_ev_or_od_to_Leb_vector(Leb_source,source,EVN);
 	
 	//solve
