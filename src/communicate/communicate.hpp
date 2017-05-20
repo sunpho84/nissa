@@ -131,6 +131,7 @@ namespace nissa
   DEFINE_COMM(su3);
   DEFINE_COMM(as2t_su3);
   DEFINE_COMM(quad_su3);
+  DEFINE_COMM(oct_su3);
   DEFINE_COMM(single_color);
   DEFINE_COMM(single_halfspincolor);
   DEFINE_COMM(single_quad_su3);

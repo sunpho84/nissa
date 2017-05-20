@@ -166,7 +166,7 @@ namespace nissa
     bool finished;
     do
       {
-	verbosity_lv2_master_printf("Meas: %d/%d, %lg\n",imeas,nmeas,t);
+	verbosity_lv2_master_printf("Meas: %d/%d, %.16lg\n",imeas,nmeas,t);
 	
 	if(imeas==0)
 	  {
