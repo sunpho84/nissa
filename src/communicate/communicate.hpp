@@ -117,7 +117,7 @@ namespace nissa
   EXTERN_COMMUNICATE uint64_t recv_buf_size,send_buf_size;
   EXTERN_COMMUNICATE char *recv_buf,*send_buf;
   
-#define DEFINE_COMM(T) EXTERN_COMMUNICATE comm_t NAME3(lx,T,comm),NAME3(eo,T,comm),NAME3(Leblx,T,comm),NAME3(Lebeo,T,comm)
+#define DEFINE_COMM(T) EXTERN_COMMUNICATE comm_t NAME3(lx,T,comm),NAME3(eo,T,comm)
   
   DEFINE_COMM(spin);
   DEFINE_COMM(spin1field);

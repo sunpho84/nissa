@@ -69,25 +69,25 @@ namespace nissa
   
 #define DEFINE_LEBEO_BORDERS_ROUTINES(TYPE)				\
   inline void NAME3(communicate_Leb_ev_and_od,TYPE,borders)(TYPE **s)	\
-  {communicate_Leb_ev_and_od_borders((void**)s,NAME3(Leblx,TYPE,comm));} \
+  {communicate_Leb_ev_and_od_borders((void**)s,NAME3(lx,TYPE,comm));} \
   inline void NAME3(communicate_Leb_ev_or_od,TYPE,borders)(TYPE *s,int eo) \
-  {communicate_Leb_ev_or_od_borders(s,NAME3(Lebeo,TYPE,comm),eo);}	\
+  {communicate_Leb_ev_or_od_borders(s,NAME3(eo,TYPE,comm),eo);}	\
   inline void NAME3(start_communicating_Leb_ev_or_od,TYPE,borders)(TYPE *s,int eo) \
-  {start_communicating_Leb_ev_or_od_borders(NAME3(Lebeo,TYPE,comm),s,eo);} \
+  {start_communicating_Leb_ev_or_od_borders(NAME3(eo,TYPE,comm),s,eo);} \
   inline void NAME3(finish_communicating_Leb_ev_or_od,TYPE,borders)(TYPE *s) \
-  {finish_communicating_Leb_ev_or_od_borders(s,NAME3(Lebeo,TYPE,comm));} \
+  {finish_communicating_Leb_ev_or_od_borders(s,NAME3(eo,TYPE,comm));} \
   inline void NAME3(communicate_Leb_ev,TYPE,borders)(TYPE *s)		\
-  {communicate_Leb_ev_or_od_borders(s,NAME3(Lebeo,TYPE,comm),EVN);}	\
+  {communicate_Leb_ev_or_od_borders(s,NAME3(eo,TYPE,comm),EVN);}	\
   inline void NAME3(communicate_Leb_od,TYPE,borders)(TYPE *s)		\
-  {communicate_Leb_ev_or_od_borders(s,NAME3(Lebeo,TYPE,comm),ODD);}
+  {communicate_Leb_ev_or_od_borders(s,NAME3(eo,TYPE,comm),ODD);}
   
 #define DEFINE_LEBLX_BORDERS_ROUTINES(TYPE)				\
   inline void NAME3(communicate_Leblx,TYPE,borders)(TYPE *s)		\
-  {communicate_Leblx_borders(s,NAME3(Leblx,TYPE,comm));}		\
+  {communicate_Leblx_borders(s,NAME3(lx,TYPE,comm));}		\
   inline void NAME3(start_communicating_Leblx,TYPE,borders)(TYPE *s)	\
-  {start_communicating_Leblx_borders(NAME3(Leblx,TYPE,comm),s);}	\
+  {start_communicating_Leblx_borders(NAME3(lx,TYPE,comm),s);}	\
   inline void NAME3(finish_communicating_Leblx,TYPE,borders)(TYPE *s)	\
-  {finish_communicating_Leblx_borders(s,NAME3(Leblx,TYPE,comm));}
+  {finish_communicating_Leblx_borders(s,NAME3(lx,TYPE,comm));}
 
 #define DEFINE_BORDERS_ROUTINES(TYPE)		\
   DEFINE_LX_BORDERS_ROUTINES(TYPE)		\

@@ -62,7 +62,7 @@ namespace nissa
     Leblx_of_loclx=nissa_malloc("Leblx_of_loclx",loc_vol+bord_vol+edge_vol,int);
     Leblx_neighup=nissa_malloc("Leblx_neighup",loc_vol,coords);
     Leblx_neighdw=nissa_malloc("Leblx_neighdw",loc_vol,coords);
-    Leblx_parity=nissa_malloc("Leblx_parity",loc_vol,int);
+    Leblx_parity=nissa_malloc("Leblx_parity",loc_vol+bord_vol+edge_vol,int);
     surfLeblx_of_bordLeblx=nissa_malloc("surfLeblx_of_Bordlx",bord_vol,int);
     
     //get nmax_fact
@@ -136,7 +136,7 @@ namespace nissa
 	  }
 	
 	int iLebeo[2]={0,0};
-	for(int Leblx=0;Leblx<loc_vol;Leblx++)
+	for(int Leblx=0;Leblx<loc_vol+bord_vol+edge_vol;Leblx++)
 	  {
 	    int loclx=loclx_of_Leblx[Leblx];
 	    int par=loclx_parity[loclx];

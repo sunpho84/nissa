@@ -786,6 +786,7 @@ namespace nissa
     set_lx_comm(lx_halfspincolor_comm,sizeof(halfspincolor));
     set_lx_comm(lx_colorspinspin_comm,sizeof(colorspinspin));
     set_lx_comm(lx_su3spinspin_comm,sizeof(su3spinspin));
+    set_lx_comm(lx_oct_su3_comm,sizeof(oct_su3));
     
     //setup all lx edges communicators
 #ifdef USE_MPI
@@ -805,6 +806,8 @@ namespace nissa
 	set_eo_comm(eo_single_halfspincolor_comm,sizeof(single_halfspincolor));
 	set_eo_comm(eo_quad_su3_comm,sizeof(quad_su3));
 	set_eo_comm(eo_su3_comm,sizeof(su3));
+	
+	set_eo_comm(eo_oct_su3_comm,sizeof(oct_su3));
 	
 #ifdef USE_MPI
 	set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);

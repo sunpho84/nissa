@@ -76,7 +76,7 @@ namespace nissa
     comm.tot_mess_size=comm.nbytes_per_site*bord_vol/div_coeff;
     
     //direction of the halo in receiving node: surface is ordered opposite of halo
-    for(int bf=0;bf<2;bf++) 
+    for(int bf=0;bf<2;bf++)
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  int idir=bf*NDIM+mu;
@@ -547,7 +547,7 @@ namespace nissa
     //copy one by one the surface of vec inside the sending buffer
     NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
       memcpy(send_buf+ibord*comm.nbytes_per_site,
-	     (char*)vec+surfeo_of_bordeo[eo][ibord]*comm.nbytes_per_site,comm.nbytes_per_site);
+	     (char*)vec+Lebeo_of_loceo[eo][surfeo_of_bordeo[eo][ibord]]*comm.nbytes_per_site,comm.nbytes_per_site);
     
     //wait that all threads filled their portion
     THREAD_BARRIER();
