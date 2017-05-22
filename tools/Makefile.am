@@ -3,6 +3,7 @@ LDADD=$(top_builddir)/lib/libnissa.a
 AUTOMAKE_OPTIONS=subdir-objects
 
 bin_PROGRAMS= \
+	$(top_builddir)/tools/benchmarks/stag \
 	$(top_builddir)/tools/conf_measure/topo \
 	$(top_builddir)/tools/conf_transform/convert/eo_to_ildg \
 	$(top_builddir)/tools/conf_transform/convert/gpu_to_ildg \
@@ -26,6 +27,7 @@ bin_PROGRAMS= \
 
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES=find_best_vir_partitioning/find.cpp
 __top_builddir__tools_remez_algorithm_remez_create_SOURCES=remez_algorithm/remez_create.cpp
+__top_builddir__tools_benchmarks_stag_SOURCES=benchmarks/stag.cpp
 __top_builddir__tools_conf_measure_topo_SOURCES=conf_measure/topo.cpp
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES=conf_transform/convert/gpu_to_ildg.cpp conf_transform/convert/gpu_stagphase.cpp
 __top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES=conf_transform/convert/ildg_to_eo.cpp
