@@ -131,13 +131,16 @@ void initialize_Zcomputation(char *input_path)
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  //Init the MPI grid 
-  init_grid(T,L); 
+  //Init the MPI grid
+  init_grid(T,L);
   //Wall_time
   read_str_int("WallTime",&wall_time);
   
   // 2) Gauge fixing
   read_str_double("FixingPrecision",&fixing_precision);
+  int seed;
+  read_str_int("Seed",&seed);
+  start_loc_rnd_gen(seed);
   
   // 3) Read information about the masses
   
