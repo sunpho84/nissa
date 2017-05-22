@@ -392,7 +392,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 	    sprintf(outfile_fft,"%s/%s/s%dft%d.out",outfolder,setname,iparr,r);
 	    
 	    //open oputput file for concurent access from different ranks
-	    int rc=MPI_File_open(cart_comm,outfile_fft,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&(fout[r]));
+	    int rc=MPI_File_open(MPI_COMM_WORLD,outfile_fft,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&(fout[r]));
 	    if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_fft);
 	  }
 	
