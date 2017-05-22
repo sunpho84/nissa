@@ -22,7 +22,7 @@ double fixing_precision;
 //mass list
 int nmass;
 double *mass;
-double put_theta[4],old_theta[4]={0,0,0,0};
+momentum_t put_theta,old_theta={0,0,0,0};
 
 //output parameters
 int write_fixed_conf;
@@ -34,7 +34,7 @@ int do_rome[16]= {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 int do_orsay[16]={1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 
 //source data
-int source_coord[4]={0,0,0,0};
+coords source_coord={0,0,0,0};
 su3spinspin *original_source;
 
 //vectors for the spinor data
@@ -443,8 +443,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 					       sizeof(complex));
 				
 				//if required change endianess in order to stick with APE
-				if(!little_endian)
-				    change_endianness((double*)buf,(double*)buf,18*16);
+				if(not little_endian) change_endianness((double*)buf,(double*)buf,18*16);
 				
 				//write
 				MPI_File_write_at(fout[r],offset,buf,16,MPI_SU3,MPI_STATUS_IGNORE);
@@ -485,17 +484,13 @@ void calculate_all_2pts()
 	    master_fprintf(fout,"\n");
 	  }
   
-  if(rank==0)
-    {
-      fflush(fout);
-      fclose(fout);
-    }
+  close_file(fout);
   
   contr_time+=take_time();
 }
 
 //read the conf parameters
-int read_conf_parameters(int *iconf)
+int read_conf_parameters(int &iconf)
 {
   int ok_conf;
   
@@ -516,34 +511,23 @@ int read_conf_parameters(int *iconf)
       ok_conf=!(dir_exists(outfolder));
       if(ok_conf)
 	{
-	  if(rank==0)
-	    {
-	      char temp[1024];
-	      mkdir(outfolder,S_IRWXU);
-	      sprintf(temp,"%s/FullPprop",outfolder);
-	      mkdir(temp,S_IRWXU);
-	      sprintf(temp,"%s/FullXprop",outfolder);
-	      mkdir(temp,S_IRWXU);
-	      sprintf(temp,"%s/SubsXprop",outfolder);
-	      mkdir(temp,S_IRWXU);
-	      sprintf(temp,"%s/SubsPprop",outfolder);
-	      mkdir(temp,S_IRWXU);
-	      sprintf(temp,"%s/SubsXprop/Rome",outfolder);
-	      mkdir(temp,S_IRWXU);
-	      sprintf(temp,"%s/SubsPprop/Rome",outfolder);
-	      mkdir(temp,S_IRWXU);
-	      sprintf(temp,"%s/SubsXprop/Orsay",outfolder);
-	      mkdir(temp,S_IRWXU);
-	      sprintf(temp,"%s/SubsPprop/Orsay",outfolder);
-	      mkdir(temp,S_IRWXU);
-	    }
+	  create_dir(outfolder);
+	  create_dir(combine("%s/FullPprop",outfolder));
+	  create_dir(combine("%s/FullXprop",outfolder));
+	  create_dir(combine("%s/SubsXprop",outfolder));
+	  create_dir(combine("%s/SubsPprop",outfolder));
+	  create_dir(combine("%s/SubsXprop/Rome",outfolder));
+	  create_dir(combine("%s/SubsPprop/Rome",outfolder));
+	  create_dir(combine("%s/SubsXprop/Orsay",outfolder));
+	  create_dir(combine("%s/SubsPprop/Orsay",outfolder));
+	  
 	  master_printf("Configuration not already analized, starting.\n");
 	}
       else
 	master_printf("Configuration already analized, skipping.\n");
-      (*iconf)++;
+      iconf++;
     }
-  while(!ok_conf && (*iconf)<ngauge_conf);
+  while(!ok_conf and iconf<ngauge_conf);
   
   return ok_conf;
 }
@@ -575,7 +559,7 @@ void in_main(int narg,char **arg)
   initialize_Zcomputation(arg[1]);
   
   int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf && enough_time && read_conf_parameters(&iconf))
+  while(iconf<ngauge_conf and enough_time and read_conf_parameters(iconf))
     {
       load_gauge_conf();
       generate_delta_source(original_source,source_coord);
