@@ -291,7 +291,7 @@ void calculate_S0()
       	rotate_vol_su3spinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
   
   //save full propagators if asked
-  if(full_X_space_prop_prec!=0) write_all_propagators("FullX",full_X_space_prop_prec);  
+  if(full_X_space_prop_prec!=0) write_all_propagators("FullX",full_X_space_prop_prec);
 }
 
 //print the momentum propagator traced over color and with (1+g0)
@@ -299,7 +299,7 @@ void print_time_momentum_propagator()
 {
   char outfile_time_mom[1024];
   sprintf(outfile_time_mom,"%s/time_momentum_prop",outfolder);
-  FILE *fout=open_text_file_for_output(outfile_time_mom);  
+  FILE *fout=open_text_file_for_output(outfile_time_mom);
   
   for(int r=0;r<2;r++)
     for(int imass=0;imass<nmass;imass++)
@@ -313,13 +313,13 @@ void print_time_momentum_propagator()
 	    //go to point of coords t,0,0,0
 	    int ivol=t*(loc_vol/loc_size[0]);
 	    int glb_t=glb_coord_of_loclx[ivol][0];
-
+	    
 	    //trace over col and with 1+g0
 	    complex c={0,0};
 	    if(glb_coord_of_loclx[ivol][1]==0 &&
 	       glb_coord_of_loclx[ivol][2]==0 &&
 	       glb_coord_of_loclx[ivol][3]==0)
-	      for(int ic=0;ic<3;ic++)
+	      for(int ic=0;ic<NCOL;ic++)
 		{
 		  summ_the_trace_dirac_prod_spinspin(c,base_gamma+0,S0[r][imass][ivol][ic][ic]);
 		  summ_the_trace_dirac_prod_spinspin(c,base_gamma+4,S0[r][imass][ivol][ic][ic]);
@@ -334,9 +334,9 @@ void print_time_momentum_propagator()
 	//write out
 	master_fprintf(fout,"\n # r=%d, mass=%lg\n\n",r,mass[imass]);
 	for(int t=0;t<glb_size[0];t++)
-	  master_fprintf(fout,"%+016.016lg %+016.016lg\n",p[2*t+0],p[2*t+1]);
+	  master_fprintf(fout,"%+16.16lg %+16.16lg\n",p[2*t+0],p[2*t+1]);
       }
-
+  
   close_file(fout);
 }
 
@@ -352,14 +352,14 @@ void compute_fft(double sign)
 	NISSA_LOC_VOL_LOOP(imom)
 	  {
 	    double arg=0;
-	    for(int mu=0;mu<4;mu++) arg+=((double)glb_coord_of_loclx[imom][mu]*source_coord[mu])/glb_size[mu];
+	    for(int mu=0;mu<NDIM;mu++) arg+=((double)glb_coord_of_loclx[imom][mu]*source_coord[mu])/glb_size[mu];
 	    arg*=-sign*2*M_PI;
 	    complex f={cos(arg),sin(arg)};
 	    
-	    for(int ic_si=0;ic_si<3;ic_si++)
-	      for(int ic_so=0;ic_so<3;ic_so++)
-		for(int id_si=0;id_si<4;id_si++)
-		  for(int id_so=0;id_so<4;id_so++)
+	    for(int ic_si=0;ic_si<NCOL;ic_si++)
+	      for(int ic_so=0;ic_so<NCOL;ic_so++)
+		for(int id_si=0;id_si<NDIRAC;id_si++)
+		  for(int id_so=0;id_so<NDIRAC;id_so++)
 		    safe_complex_prod(S0[r][imass][imom][ic_si][ic_so][id_si][id_so],
 				      S0[r][imass][imom][ic_si][ic_so][id_si][id_so],
 				      f);
@@ -394,8 +394,8 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 	  }
 	
 	//deciding sign for parities
-	int sig[4];
-	for(int mu=0;mu<4;mu++)
+	coords sig;
+	for(int mu=0;mu<NDIM;mu++)
 	  sig[mu]=1-((iparr>>mu)&1)*2;
 	
 	//loop over momenta subsets
@@ -404,14 +404,14 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 	  for(int isub=0;isub<nsubset;isub++)
 	    {
 	      //loop over momenta in each set
-	      int glb_ip[4],sht_ip[4];
+	      coords glb_ip,sht_ip;
 	      
 	      for(sht_ip[0]=inte[isub][0][0];sht_ip[0]<=inte[isub][0][1];sht_ip[0]++)
 		for(sht_ip[2]=inte[isub][1][0];sht_ip[2]<=inte[isub][1][1];sht_ip[2]++)
 		  for(sht_ip[3]=inte[isub][1][0];sht_ip[3]<=inte[isub][1][1];sht_ip[3]++)
 		    for(sht_ip[1]=inte[isub][1][0];sht_ip[1]<=inte[isub][1][1];sht_ip[1]++)
 		      {
-			for(int mu=0;mu<4;mu++)
+			for(int mu=0;mu<NDIM;mu++)
 			  {
 			    glb_ip[mu]=(glb_size[mu]+sig[mu]*sht_ip[mu])%glb_size[mu];
 			    //master_printf("%d %d\n",mu,glb_ip[mu]);
@@ -423,18 +423,18 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 			if(hosting==cart_rank)
 			  {
 			    //find local index
-			    int loc_ip[4];
-			    for(int mu=0;mu<4;mu++) loc_ip[mu]=glb_ip[mu]%loc_size[mu];
+			    coords loc_ip;
+			    for(int mu=0;mu<NDIM;mu++) loc_ip[mu]=glb_ip[mu]%loc_size[mu];
 			    int ilp=loclx_of_coord(loc_ip);
 			    
 			    //bufferize data
 			    for(int r=0;r<2;r++)
 			      {
 				colorspincolorspin buf;
-				for(int ic_so=0;ic_so<3;ic_so++)
-				  for(int id_so=0;id_so<4;id_so++)
-				    for(int ic_si=0;ic_si<3;ic_si++)
-				      for(int id_si=0;id_si<4;id_si++)
+				for(int ic_so=0;ic_so<NCOL;ic_so++)
+				  for(int id_so=0;id_so<NDIRAC;id_so++)
+				    for(int ic_si=0;ic_si<NCOL;ic_si++)
+				      for(int id_si=0;id_si<NDIRAC;id_si++)
 					memcpy(buf[ic_so][id_so][ic_si][id_si],
 					       S0[r][imass][ilp][ic_si][ic_so][id_si][id_so],
 					       sizeof(complex));
@@ -467,7 +467,7 @@ void calculate_all_2pts()
   FILE *fout=open_text_file_for_output(outfile_2pts);
   
   //perform the contractions
-  contr_time-=take_time();      
+  contr_time-=take_time();
   for(int im2=0;im2<nmass;im2++)
     for(int r2=0;r2<2;r2++)
       for(int im1=0;im1<nmass;im1++)
@@ -573,7 +573,7 @@ void in_main(int narg,char **arg)
   
   int iconf=0,enough_time=1;
   while(iconf<ngauge_conf && enough_time && read_conf_parameters(&iconf))
-    {    
+    {
       load_gauge_conf();
       generate_delta_source(original_source,source_coord);
       
@@ -587,7 +587,7 @@ void in_main(int narg,char **arg)
       compute_fft(-1);
       if(n_P_interv[0]) print_propagator_subsets(n_P_interv[0],P_interv[0],"SubsPprop/Rome",do_rome);
       if(n_P_interv[1]) print_propagator_subsets(n_P_interv[1],P_interv[1],"SubsPprop/Orsay",do_orsay);
-
+      
       print_time_momentum_propagator();
       
       nanalized_conf++;
@@ -596,7 +596,7 @@ void in_main(int narg,char **arg)
     }
   
   if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
-
+  
   tot_prog_time+=take_time();
   close_Zcomputation();
 }

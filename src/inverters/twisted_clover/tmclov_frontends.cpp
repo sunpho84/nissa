@@ -30,8 +30,8 @@ namespace nissa
     for(int imass=0;imass<nmass;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution[imass]",loc_vol+bord_vol,spincolor);
     
     //loop over the source dirac and color index
-    for(int id=0;id<4;id++)
-      for(int ic=0;ic<3;ic++)
+    for(int id=0;id<NDIRAC;id++)
+      for(int ic=0;ic<NCOL;ic++)
 	{
 	  NISSA_LOC_VOL_LOOP(ivol)
 	    get_spincolor_from_su3spinspin(temp_source[ivol],source[ivol],id,ic);
