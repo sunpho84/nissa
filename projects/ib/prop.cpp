@@ -133,12 +133,27 @@ namespace nissa
     set_borders_invalid(out);
   }
   
+  //insert the external source
   void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,coords dirs,int loc)
   {
-    if(loc) insert_external_loc_source(loop_source,curr,ori,t,dirs);
+    if(loc) insert_external_loc_source(out,curr,ori,t,dirs);
     else
-      if(twisted_run) insert_tm_external_source(loop_source,conf,curr,ori,r,dirs,t);
-      else            insert_Wilson_external_source(loop_source,conf,curr,ori,dirs,t);
+      if(twisted_run) insert_tm_external_source(out,conf,curr,ori,r,dirs,t);
+      else            insert_Wilson_external_source(out,conf,curr,ori,dirs,t);
+  }
+  
+  //insert the tadpole
+  void insert_tadpole(spincolor *out,quad_su3 *conf,spincolor *ori,int t,int r)
+  {
+    if(twisted_run) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,t);
+    else            insert_Wilson_tadpole(loop_source,conf,ori,tadpole,t);
+  }
+  
+  //insert the conserved current
+  void insert_conserved_current(spincolor *out,quad_su3 *conf,spincolor *ori,int t,int r,coords dirs)
+  {
+    if(twisted_run) insert_tm_conserved_current(loop_source,conf,ori,r,dirs,t);
+    else            insert_Wilson_conserved_current(loop_source,conf,ori,dirs,t);
   }
   
   //generate a sequential source
@@ -165,13 +180,11 @@ namespace nissa
       case PHOTON3:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,dirs[3],loc_hadr_curr);break;
       case PHOTON_PHI:insert_external_source(loop_source,conf,photon_phi,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case PHOTON_ETA:insert_external_source(loop_source,conf,photon_eta,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
-      case TADPOLE:
-	if(twisted_run) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,rel_t);
-	else            insert_Wilson_tadpole(loop_source,conf,ori,tadpole,rel_t);
-	break;
-      case CVEC0:
-	if(twisted_run) insert_tm_conserved_current(loop_source,conf,ori,r,dirs[0],rel_t);
-	else            insert_Wilson_conserved_current(loop_source,conf,ori,dirs[0],rel_t);
+      case TADPOLE:insert_tadpole(loop_source,conf,ori,rel_t,r);break;
+      case CVEC0:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[0]);break;
+      case CVEC1:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[1]);break;
+      case CVEC2:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[2]);break;
+      case CVEC3:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[3]);break;
       }
     
     source_time+=take_time();
