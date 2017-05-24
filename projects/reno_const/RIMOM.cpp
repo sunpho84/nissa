@@ -15,6 +15,7 @@ char conf_path[1024];
 quad_su3 *conf,*unfix_conf;
 double kappa,cSW;
 clover_term_t *Cl;
+inv_clover_term_t *invCl;
 
 //gauge fixing
 double fixing_precision;
@@ -38,10 +39,10 @@ coords source_coord={0,0,0,0};
 su3spinspin *original_source;
 
 //vectors for the spinor data
-int npropS0;
 su3spinspin **S0[2];
 
 //cgm inverter parameters
+int use_cgm;
 double *stopping_residues;
 int niter_max=1000000;
 
@@ -150,6 +151,7 @@ void initialize_Zcomputation(char *input_path)
   read_str_double("cSW",&cSW);
   //Read the masses
   read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
+  read_str_int("UseCGM",&use_cgm);
   
   // 4) contraction list for two points
   
@@ -194,16 +196,19 @@ void initialize_Zcomputation(char *input_path)
   unfix_conf=nissa_malloc("unfix_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   //Allocate all the S0 su3spinspin vectors
-  npropS0=nmass;
-  S0[0]=nissa_malloc("S0[0]",npropS0,su3spinspin*);
-  S0[1]=nissa_malloc("S0[1]",npropS0,su3spinspin*);
-  for(int iprop=0;iprop<npropS0;iprop++)
+  S0[0]=nissa_malloc("S0[0]",nmass,su3spinspin*);
+  S0[1]=nissa_malloc("S0[1]",nmass,su3spinspin*);
+  for(int iprop=0;iprop<nmass;iprop++)
     {
       S0[0][iprop]=nissa_malloc("S0[0][iprop]",loc_vol,su3spinspin);
       S0[1][iprop]=nissa_malloc("S0[1][iprop]",loc_vol,su3spinspin);
     }
   
-  if(cSW!=0) Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
+  if(cSW!=0)
+    {
+      Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
+      invCl=nissa_malloc("invCl",loc_vol,inv_clover_term_t);
+    }
   
   //Allocate one su3spinspsin for the source
   original_source=nissa_malloc("orig_source",loc_vol,su3spinspin);
@@ -250,7 +255,7 @@ void close_Zcomputation()
   nissa_free(original_source);
   for(int r=0;r<2;r++)
     {
-      for(int iprop=0;iprop<npropS0;iprop++)
+      for(int iprop=0;iprop<nmass;iprop++)
 	nissa_free(S0[r][iprop]);
       nissa_free(S0[r]);
     }
@@ -264,7 +269,11 @@ void close_Zcomputation()
   nissa_free(P_interv[0]);
   nissa_free(X_interv[1]);
   nissa_free(P_interv[1]);
-  if(cSW!=0) nissa_free(Cl);
+  if(cSW!=0)
+    {
+      nissa_free(Cl);
+      nissa_free(invCl);
+    }
   
   master_printf("\n");
   master_printf("Total time: %lg sec (%lg average per conf), of which:\n",tot_prog_time,tot_prog_time/nanalized_conf);
@@ -282,15 +291,41 @@ void close_Zcomputation()
 void calculate_S0()
 {
   inv_time-=take_time();
-  if(cSW==0) compute_su3spinspin_tm_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residues,original_source);
-  else compute_su3spinspin_tmclov_propagators_multi_mass(S0,conf,kappa,Cl,mass,nmass,niter_max,stopping_residues,original_source);
+  if(not use_cgm)
+    {
+      spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
+      spincolor *temp_sol=nissa_malloc("temp_sol",loc_vol+bord_vol,spincolor);
+      for(int id=0;id<NDIRAC;id++)
+	for(int ic=0;ic<NCOL;ic++)
+	  {
+	    get_spincolor_from_su3spinspin(temp_source,original_source,id,ic);
+	    for(int im=0;im<nmass;im++)
+	      for(int r=0;r<2;r++)
+		{
+		  double m=mass[im]*tau3[r];
+		  if(cSW) invert_twisted_clover_term(invCl,m,kappa,Cl);
+		  
+		  double res=stopping_residues[im];
+		  if(cSW==0) inv_tmD_cg_eoprec(temp_sol,NULL,conf,kappa,m,1000000,res,temp_source);
+		  else       inv_tmclovD_cg_eoprec(temp_sol,NULL,conf,kappa,Cl,invCl,cSW,m,1000000,res,temp_source);
+		  
+		  put_spincolor_into_su3spinspin(S0[r][im],temp_sol,id,ic);
+		}
+	  }
+    }
+  else
+    {
+      if(cSW==0) compute_su3spinspin_tm_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residues,original_source);
+      else compute_su3spinspin_tmclov_propagators_multi_mass(S0,conf,kappa,Cl,mass,nmass,niter_max,stopping_residues,original_source);
+    }
+  
   inv_time+=take_time();
   ninv_tot+=12;
   
   //rotate only if working in the physical base asked
   if(work_in_physical_base)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-      for(int ipropS0=0;ipropS0<npropS0;ipropS0++) //put the (1+ig5)/sqrt(2) factor
+      for(int ipropS0=0;ipropS0<nmass;ipropS0++) //put the (1+ig5)/sqrt(2) factor
       	rotate_vol_su3spinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
   
   //save full propagators if asked
