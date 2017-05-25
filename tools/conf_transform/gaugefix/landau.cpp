@@ -32,7 +32,7 @@ void in_main(int narg,char **arg)
   read_ildg_gauge_conf(conf,conf_in_path);
   communicate_lx_quad_su3_borders(conf);
   
-  landau_gauge_fix(fix_conf,conf,precision);
+  Landau_gauge_fix(fix_conf,conf,precision);
   
   write_ildg_gauge_conf(conf_out_path,fix_conf,64);
   
