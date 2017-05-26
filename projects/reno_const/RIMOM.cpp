@@ -238,10 +238,10 @@ void load_gauge_conf()
       char temp[1024];
       sprintf(temp,"%s/fixed_conf",outfolder);
       write_ildg_gauge_conf(temp,conf,64);
-    }    
+    } 
   
-  master_printf("Unfixed conf plaquette: %.18g\n",global_plaquette_lx_conf(unfix_conf));
-  master_printf("Fixed conf plaquette: %.18g\n",global_plaquette_lx_conf(conf));
+  master_printf("Unfixed conf plaquette: %16.16lg\n",global_plaquette_lx_conf(unfix_conf));
+  master_printf("Fixed conf plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
   
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;

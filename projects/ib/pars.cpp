@@ -247,7 +247,7 @@ namespace nissa
   }
   
   //read the parameters of the propagators to Fourier transform
-  void read_fftprop_pars()
+  void read_fft_prop_pars()
   {
     //read the number of props to fft
     int nfft_props;

@@ -517,4 +517,79 @@ namespace nissa
     photon_prop_time+=take_time();
     nphoton_prop_tot++;
   }
+  
+  THREADABLE_FUNCTION_2ARG(put_fft_source_phase, spincolor*,qtilde, double,fft_sign)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+      {
+	//<sum_mu -sign*2*pi*p_mu*y_mu/L_mu
+	double arg=0;
+	for(int mu=0;mu<NDIM;mu++) arg+=-fft_sign*2*M_PI*glb_coord_of_loclx[imom][mu]*source_coord[mu]/glb_size[mu];
+	
+	complex f={cos(arg),sin(arg)};
+	spincolor_prodassign_complex(qtilde[imom],f);
+      }
+    
+    set_borders_invalid(qtilde);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //perform fft and store the propagators
+  void propagators_fft()
+  {
+    spincolor *qtilde=nissa_malloc("qtilde",loc_vol,spincolor);
+    double fft_sign=-1;
+    for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
+      {
+	std::string tag=fft_prop_list[iprop];
+	
+	FILE *fout=open_file(combine("%s/fft_%s",outfolder,tag.c_str()),"w");
+	
+	for(int id_so=0;id_so<nso_spi;id_so++)
+	  for(int ic_so=0;ic_so<nso_col;ic_so++)
+	    {
+	      //perform fft
+	      spincolor *q=Q[tag][so_sp_col_ind(id_so,ic_so)];
+	      fft4d((complex*)qtilde,(complex*)q,sizeof(spincolor)/sizeof(complex),fft_sign,0);
+	      put_fft_source_phase(qtilde,fft_sign);
+	      
+	      //print props
+	      for(size_t irange=0;irange<fft_mom_range_list.size();irange++)
+		{
+		  coords c;
+		  int *L=fft_mom_range_list[irange].L;
+		  int *T=fft_mom_range_list[irange].T;
+		  for(c[0]=T[0];c[0]<=T[1];c[0]++)
+		    for(c[1]=L[0];c[1]<=L[1];c[1]++)
+		      for(c[2]=L[0];c[2]<=L[1];c[2]++)
+			for(c[3]=L[0];c[3]<=L[1];c[3]++)
+			  for(int imir=0;imir<16;imir++)
+			    {
+			      //get mirrorized
+			      coords cmir;
+			      for(int mu=0;mu<NDIM;mu++)
+				cmir[mu]=(glb_size[mu]+(1-2*(imir>>mu)&1)*c[mu])%glb_size[mu];
+			      
+			      //search where data is stored
+			      int wrank,iloc;
+			      get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
+			      
+			      //send to master node
+			      spincolor buf;
+			      spincolor_copy(buf,qtilde[iloc]);
+			      MPI_Bcast(buf,1,MPI_SPINCOLOR,wrank,MPI_COMM_WORLD);
+			      
+			      //write
+			      if(rank==0) fwrite(buf,sizeof(spincolor),1,fout);
+			    }
+		}
+	    }
+	
+	close_file(fout);
+      }
+    
+    nissa_free(qtilde);
+  }
 }

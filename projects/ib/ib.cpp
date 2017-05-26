@@ -185,7 +185,7 @@ void init_simulation(char *path)
   read_handcuffs_contr_pars();
   
   //read the fast Fourier transform parameters
-  read_fftprop_pars();
+  read_fft_prop_pars();
   
   //smearing
   read_smearing_pars();
@@ -275,6 +275,7 @@ void in_main(int narg,char **arg)
 	  start_hit(ihit);
 	  generate_propagators(ihit);
 	  compute_contractions();
+	  propagators_fft();
 	}
       print_contractions();
       
