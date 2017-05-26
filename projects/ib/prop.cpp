@@ -532,8 +532,8 @@ namespace nissa
 	complex f={cos(arg),sin(arg)};
 	spincolor_prodassign_complex(qtilde[imom],f);
 	
-	spincolor_put_to_zero(qtilde[imom]);
-	for(int mu=0;mu<4;mu++) qtilde[imom][mu][0][0]=glb_coord_of_loclx[imom][mu];
+	// spincolor_put_to_zero(qtilde[imom]);
+	// for(int mu=0;mu<4;mu++) qtilde[imom][mu][0][0]=glb_coord_of_loclx[imom][mu];
       }
     
     set_borders_invalid(qtilde);
@@ -550,7 +550,7 @@ namespace nissa
     for(std::vector<fft_mom_range_t>::iterator f=fft_mom_range_list.begin();f!=fft_mom_range_list.end();f++)
       for(int vol=vol_of_lx(f->width),ifilt=0;ifilt<vol;ifilt++)
 	{
-	  master_printf(" %d/%d %d %p ",ifilt,vol,nfft_filtered,&*f);
+	  // master_printf(" %d/%d %d %p ",ifilt,vol,nfft_filtered,&*f);
 	  
 	  //gets the coordinate in the filtering volume
 	  coords c;
@@ -563,11 +563,11 @@ namespace nissa
 	      coords cmir;
 	      get_mirrorized_site_coords(cmir,c,imir);
 	      
-	      master_printf(" ");
-	      for(int mu=0;mu<4;mu++) master_printf("%d ",c[mu]);
-	      master_printf(" - %d - ",imir);
-	      for(int mu=0;mu<4;mu++) master_printf("%d ",cmir[mu]);
-	      master_printf("\n");
+	      // master_printf(" ");
+	      // for(int mu=0;mu<4;mu++) master_printf("%d ",c[mu]);
+	      // master_printf(" - %d - ",imir);
+	      // for(int mu=0;mu<4;mu++) master_printf("%d ",cmir[mu]);
+	      // master_printf("\n");
 	      
 	      //search where data is stored
 	      int wrank,iloc;
@@ -578,7 +578,7 @@ namespace nissa
 	    }
 	}
     
-    //setup and save the number of filtered
+    //setup
     fft_filter_remap.setup_knowing_where_to_send(sl);
   }
   

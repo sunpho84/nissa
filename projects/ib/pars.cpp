@@ -281,11 +281,11 @@ namespace nissa
 	    
 	    //init the offset and width from range interval
 	    fft_mom_range.offs[0]=T[0];
-	    fft_mom_range.width[0]=T[1]-T[0];
+	    fft_mom_range.width[0]=T[1]-T[0]+1;
 	    for(int i=1;i<NDIM;i++)
 	      {
 		fft_mom_range.offs[i]=L[0];
-		fft_mom_range.width[i]=L[1]-L[0];
+		fft_mom_range.width[i]=L[1]-L[0]+1;
 	      }
 	    
 	    fft_mom_range_list.push_back(fft_mom_range);
