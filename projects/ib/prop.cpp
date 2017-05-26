@@ -605,7 +605,7 @@ namespace nissa
 	      
 	      //perform fft
 	      spincolor *q=Q[tag][so_sp_col_ind(id_so,ic_so)];
-	      fft4d((complex*)qtilde,(complex*)q,sizeof(spincolor)/sizeof(complex),fft_sign,0);
+	      fft4d((complex*)qtilde,(complex*)q,sizeof(spincolor)/sizeof(complex),fft_sign,1);
 	      put_fft_source_phase(qtilde,fft_sign);
 	      
 	      //gather and write
