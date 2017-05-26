@@ -33,18 +33,6 @@ namespace nissa
     nissa_free(in_buf_cur_per_rank);
   }
   
-  all_to_all_comm_t::~all_to_all_comm_t()
-  {
-    nissa_free(list_ranks_to);
-    nissa_free(list_ranks_fr);
-    nissa_free(in_buf_dest);
-    nissa_free(out_buf_source);
-    nissa_free(nper_rank_fr);
-    nissa_free(nper_rank_to);
-    nissa_free(out_buf_off_per_rank);
-    nissa_free(in_buf_off_per_rank);
-  }
-  
   //find (communicating) the complementary info
   void all_to_all_comm_t::setup_nper_rank_other_temp(int *nper_rank_other_temp,int *nper_rank_temp)
   {
@@ -76,6 +64,7 @@ namespace nissa
 	if(build.nper_rank_to_temp[irank]!=0) nranks_to_loc++;
 	if(build.nper_rank_fr_temp[irank]!=0) nranks_fr_loc++;
       }
+    inited=true;
     nranks_to=nranks_to_loc;
     nranks_fr=nranks_fr_loc;
     list_ranks_to=nissa_malloc("list_ranks_to",nranks_to,int);
