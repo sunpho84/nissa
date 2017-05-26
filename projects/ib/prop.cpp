@@ -539,12 +539,12 @@ namespace nissa
   //perform fft and store the propagators
   void propagators_fft()
   {
-    spincolor *qtilde=nissa_malloc("qtilde",loc_vol,spincolor);
+    spincolor *qtilde=nissa_malloc("qtilde",loc_vol+bord_vol,spincolor);
     double fft_sign=-1;
     for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
       {
 	std::string tag=fft_prop_list[iprop];
-	
+	master_printf("Fourier transforming propagator %s\n",tag.c_str());
 	FILE *fout=open_file(combine("%s/fft_%s",outfolder,tag.c_str()),"w");
 	
 	for(int id_so=0;id_so<nso_spi;id_so++)
@@ -570,8 +570,8 @@ namespace nissa
 			      //get mirrorized
 			      coords cmir;
 			      for(int mu=0;mu<NDIM;mu++)
-				cmir[mu]=(glb_size[mu]+(1-2*(imir>>mu)&1)*c[mu])%glb_size[mu];
-			      
+				cmir[mu]=(glb_size[mu]+(1-2*((imir>>mu)&1))*c[mu])%glb_size[mu];
+			      	
 			      //search where data is stored
 			      int wrank,iloc;
 			      get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
