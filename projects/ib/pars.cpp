@@ -269,17 +269,30 @@ namespace nissa
 	int nfft_ranges;
 	read_str_int("NFftRanges",&nfft_ranges);
 	
+	//read all the ranges
 	for(int irange=0;irange<nfft_ranges;irange++)
 	  {
 	    fft_mom_range_t fft_mom_range;
-	    read_str_int("L",&fft_mom_range.L[0]);
-	    read_int(&fft_mom_range.L[1]);
-	    read_str_int("T",&fft_mom_range.T[0]);
-	    read_int(&fft_mom_range.T[1]);
+	    int L[2],T[2];
+	    read_str_int("L",&L[0]);
+	    read_int(&L[1]);
+	    read_str_int("T",&T[0]);
+	    read_int(&T[1]);
+	    
+	    //init the offset and width from range interval
+	    fft_mom_range.offs[0]=T[0];
+	    fft_mom_range.width[0]=T[1]-T[0];
+	    for(int i=1;i<NDIM;i++)
+	      {
+		fft_mom_range.offs[i]=L[0];
+		fft_mom_range.width[i]=L[1]-L[0];
+	      }
 	    
 	    fft_mom_range_list.push_back(fft_mom_range);
 	  }
+	
+	//initialize the filters
+	init_fft_filter();
       }
-    
   }
 }

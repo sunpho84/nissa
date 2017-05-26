@@ -244,6 +244,8 @@ void close()
   nissa_free(lep_energy);
   nissa_free(neu_energy);
   
+  if(nfft_filtered) fft_filter_remap.destroy();
+  
   if(clover_run)
     {
       nissa_free(Cl);

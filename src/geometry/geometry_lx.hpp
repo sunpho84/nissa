@@ -100,6 +100,8 @@ namespace nissa
   int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
   void coord_of_lx(coords x,int ilx,coords s);
   void coord_of_rank(coords c,int irank);
+  inline void coord_summ(coords s,coords a1,coords a2,coords l){for(int mu=0;mu<NDIM;mu++) s[mu]=(a1[mu]+a2[mu])%l[mu];}
+  inline void coord_summassign(coords s,coords a,coords l){coord_summ(s,s,a,l);}
   int edgelx_of_coord(int *x,int mu,int nu);
   int full_lx_of_coords_list(const int t,const int x,const int y,const int z);
   int glblx_neighdw(int gx,int mu);
@@ -117,6 +119,7 @@ namespace nissa
     return loclx_of_coord(c);
   }
   int lx_of_coord(coords x,coords s);
+  int vol_of_lx(coords size);
   int rank_hosting_glblx(int gx);
   int rank_hosting_site_of_coord(coords x);
   int rank_of_coord(coords x);
@@ -130,6 +133,7 @@ namespace nissa
   void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
   void set_lx_geometry();
   void unset_lx_geometry();
+  void get_mirrorized_site_coords(coords cmir,coords c,int imir);
   void red_coords_of_hypercubic_red_point(coords h,int hyp_red);
   void lx_coords_of_hypercube_vertex(coords lx,int hyp_cube);
   int hypercubic_red_point_of_red_coords(coords h);

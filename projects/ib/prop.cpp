@@ -518,28 +518,78 @@ namespace nissa
     nphoton_prop_tot++;
   }
   
+  //put the phase of the source due to missing e(iky)
   THREADABLE_FUNCTION_2ARG(put_fft_source_phase, spincolor*,qtilde, double,fft_sign)
   {
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
-	//<sum_mu -sign*2*pi*p_mu*y_mu/L_mu
+	//sum_mu -sign*2*pi*p_mu*y_mu/L_mu
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++) arg+=-fft_sign*2*M_PI*glb_coord_of_loclx[imom][mu]*source_coord[mu]/glb_size[mu];
 	
 	complex f={cos(arg),sin(arg)};
 	spincolor_prodassign_complex(qtilde[imom],f);
+	
+	spincolor_put_to_zero(qtilde[imom]);
+	for(int mu=0;mu<4;mu++) qtilde[imom][mu][0][0]=glb_coord_of_loclx[imom][mu];
       }
     
     set_borders_invalid(qtilde);
   }
   THREADABLE_FUNCTION_END
   
+  //initialize the fft filter, once forever
+  void init_fft_filter()
+  {
+    master_printf("Initializing fft filter\n");
+    
+    all_to_all_scattering_list_t sl;
+    nfft_filtered=0;
+    for(std::vector<fft_mom_range_t>::iterator f=fft_mom_range_list.begin();f!=fft_mom_range_list.end();f++)
+      for(int vol=vol_of_lx(f->width),ifilt=0;ifilt<vol;ifilt++)
+	{
+	  master_printf(" %d/%d %d %p ",ifilt,vol,nfft_filtered,&*f);
+	  
+	  //gets the coordinate in the filtering volume
+	  coords c;
+	  coord_of_lx(c,ifilt,f->width);
+	  coord_summassign(c,f->offs,f->width);
+	  
+	  for(int imir=0;imir<pow(2,NDIM);imir++)
+	    {
+	      //get mirrorized
+	      coords cmir;
+	      get_mirrorized_site_coords(cmir,c,imir);
+	      
+	      master_printf(" ");
+	      for(int mu=0;mu<4;mu++) master_printf("%d ",c[mu]);
+	      master_printf(" - %d - ",imir);
+	      for(int mu=0;mu<4;mu++) master_printf("%d ",cmir[mu]);
+	      master_printf("\n");
+	      
+	      //search where data is stored
+	      int wrank,iloc;
+	      get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
+	      if(rank==wrank) sl.push_back(std::make_pair(iloc,nfft_filtered*nranks+0));
+	      
+	      nfft_filtered++;
+	    }
+	}
+    
+    //setup and save the number of filtered
+    fft_filter_remap.setup_knowing_where_to_send(sl);
+  }
+  
   //perform fft and store the propagators
   void propagators_fft()
   {
+    GET_THREAD_ID();
+    
     spincolor *qtilde=nissa_malloc("qtilde",loc_vol+bord_vol,spincolor);
+    spincolor *qfilt=nissa_malloc("qfilt",nfft_filtered,spincolor);
+    
     double fft_sign=-1;
     for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
       {
@@ -547,49 +597,28 @@ namespace nissa
 	master_printf("Fourier transforming propagator %s\n",tag.c_str());
 	FILE *fout=open_file(combine("%s/fft_%s",outfolder,tag.c_str()),"w");
 	
+	//loop on dirac and color source index
 	for(int id_so=0;id_so<nso_spi;id_so++)
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
+	      START_TIMING(fft_time,nfft_tot);
+	      
 	      //perform fft
 	      spincolor *q=Q[tag][so_sp_col_ind(id_so,ic_so)];
 	      fft4d((complex*)qtilde,(complex*)q,sizeof(spincolor)/sizeof(complex),fft_sign,0);
 	      put_fft_source_phase(qtilde,fft_sign);
 	      
-	      //print props
-	      for(size_t irange=0;irange<fft_mom_range_list.size();irange++)
-		{
-		  coords c;
-		  int *L=fft_mom_range_list[irange].L;
-		  int *T=fft_mom_range_list[irange].T;
-		  for(c[0]=T[0];c[0]<=T[1];c[0]++)
-		    for(c[1]=L[0];c[1]<=L[1];c[1]++)
-		      for(c[2]=L[0];c[2]<=L[1];c[2]++)
-			for(c[3]=L[0];c[3]<=L[1];c[3]++)
-			  for(int imir=0;imir<16;imir++)
-			    {
-			      //get mirrorized
-			      coords cmir;
-			      for(int mu=0;mu<NDIM;mu++)
-				cmir[mu]=(glb_size[mu]+(1-2*((imir>>mu)&1))*c[mu])%glb_size[mu];
-			      	
-			      //search where data is stored
-			      int wrank,iloc;
-			      get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
-			      
-			      //send to master node
-			      spincolor buf;
-			      spincolor_copy(buf,qtilde[iloc]);
-			      MPI_Bcast(buf,1,MPI_SPINCOLOR,wrank,MPI_COMM_WORLD);
-			      
-			      //write
-			      if(rank==0) fwrite(buf,sizeof(spincolor),1,fout);
-			    }
-		}
+	      //gather and write
+	      fft_filter_remap.communicate(qfilt,qtilde,sizeof(spincolor));
+	      if(rank==0) fwrite(qfilt,sizeof(spincolor),nfft_filtered,fout);
+	      
+	      STOP_TIMING(fft_time);
 	    }
 	
 	close_file(fout);
       }
     
     nissa_free(qtilde);
+    nissa_free(qfilt);
   }
 }

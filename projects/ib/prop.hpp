@@ -93,6 +93,10 @@ namespace nissa
   EXTERN_PROP int ninv_tot INIT_TO(0);
   EXTERN_PROP double inv_time INIT_TO(0);
   
+  EXTERN_PROP int nfft_tot INIT_TO(0);
+  EXTERN_PROP double fft_time INIT_TO(0);
+  void init_fft_filter();
+
   EXTERN_PROP int nstore_prop INIT_TO(0);
   EXTERN_PROP double store_prop_time INIT_TO(0);
 
@@ -147,6 +151,9 @@ namespace nissa
   void propagators_fft();
   
   void add_photon_field_to_conf(quad_su3 *conf,double charge);
+  
+  EXTERN_PROP all_to_all_comm_t fft_filter_remap;
+  EXTERN_PROP int nfft_filtered;
   
   inline void start_hit(int ihit)
   {

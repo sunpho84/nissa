@@ -73,8 +73,8 @@ namespace nissa
   //holds the range of FFT moms
   struct fft_mom_range_t
   {
-    int L[2];
-    int T[2];
+    coords offs;
+    coords width;
   };
   //list of range of momenta for fft
   EXTERN_PARS std::vector<fft_mom_range_t> fft_mom_range_list;
