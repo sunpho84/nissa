@@ -70,12 +70,24 @@ namespace nissa
   EXTERN_PARS int nquark_lep_combos;
   EXTERN_PARS double *lep_energy,*neu_energy;
   
+  //holds the range of FFT moms
+  struct fft_mom_range_t
+  {
+    int L[2];
+    int T[2];
+  };
+  //list of range of momenta for fft
+  EXTERN_PARS std::vector<fft_mom_range_t> fft_mom_range_list;
+  //list of propagators to fft
+  EXTERN_PARS std::vector<std::string> fft_prop_list;
+  
   void read_input_preamble();
   void read_mes2pts_contr_pars();
   void read_mes2pts_contr_gamma_list();
   void read_meslep_contr_pars();
   void read_bar2pts_contr_pars();
   void read_handcuffs_contr_pars();
+  void read_fftprop_pars();
   void read_photon_pars();
   
   //set or not diluted the spin
@@ -180,7 +192,7 @@ namespace nissa
   EXTERN_PARS int gaussian_smearing_niters;
   EXTERN_PARS double gaussian_smearing_kappa;
   inline void read_gaussian_smearing_pars()
-  {  
+  {
     read_str_double("GaussianSmearingKappa",&gaussian_smearing_kappa);
     read_str_int("GaussianSmearingNiters",&gaussian_smearing_niters);
   }

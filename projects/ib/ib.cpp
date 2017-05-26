@@ -177,12 +177,15 @@ void init_simulation(char *path)
   //meslept
   read_meslep_contr_pars();
   
-  //baryons
+  //barions
   set_Cg5();
   read_bar2pts_contr_pars();
   
   //meson handcuffs
   read_handcuffs_contr_pars();
+  
+  //read the fast Fourier transform parameters
+  read_fftprop_pars();
   
   //smearing
   read_smearing_pars();

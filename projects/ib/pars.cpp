@@ -245,4 +245,41 @@ namespace nissa
 	  }
       }
   }
+  
+  //read the parameters of the propagators to Fourier transform
+  void read_fftprop_pars()
+  {
+    //read the number of props to fft
+    int nfft_props;
+    read_str_int("NFftProps",&nfft_props);
+    
+    if(nfft_props)
+      {
+	//read the list of propagators
+	for(int ifft_prop=0;ifft_prop<nfft_props;ifft_prop++)
+	  {
+	    char tag[1024];
+	    read_str(tag,1024);
+	    
+	    if(Q.find(tag)==Q.end()) crash("unable to find %s",tag);
+	    fft_prop_list.push_back(tag);
+	  }
+	
+	//read the number of ranges
+	int nfft_ranges;
+	read_str_int("NFftRanges",&nfft_ranges);
+	
+	for(int irange=0;irange<nfft_ranges;irange++)
+	  {
+	    fft_mom_range_t fft_mom_range;
+	    read_str_int("L",&fft_mom_range.L[0]);
+	    read_int(&fft_mom_range.L[1]);
+	    read_str_int("T",&fft_mom_range.T[0]);
+	    read_int(&fft_mom_range.T[1]);
+	    
+	    fft_mom_range_list.push_back(fft_mom_range);
+	  }
+      }
+    
+  }
 }
