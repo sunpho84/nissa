@@ -63,7 +63,7 @@ namespace nissa
     }
     
     //apply the operator summing all permutations
-    void apply_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,int shift,color **in)
+    void apply_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,quad_u1 **u1b,int shift,color **in)
     {
       //make a list that can be easily permuted
       std::vector<int> list_dir;
@@ -74,6 +74,8 @@ namespace nissa
       
       if(list_dir.size())
 	{
+	  add_backfield_to_conf(conf,u1b);
+	  
 	  //summ all perms
 	  int nperm=0;
 	  for(int eo=0;eo<2;eo++) vector_reset(out[eo]);
@@ -93,6 +95,8 @@ namespace nissa
 	  
 	  //final normalization
 	  for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(out[eo]),(double*)(out[eo]),1.0/nperm,loc_volh*sizeof(color)/sizeof(double));
+	  
+	  rem_backfield_from_conf(conf,u1b);
 	}
       else for(int eo=0;eo<2;eo++) vector_copy(out[eo],in[eo]);
     }

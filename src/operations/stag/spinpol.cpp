@@ -80,7 +80,7 @@ namespace nissa
 	    for(int iop=0;iop<nop;iop++)
 	    {
 	      //calculate quark
-	      apply_op(quark[iop],temp[0],temp[1],conf,shift[iop],sol);
+	      apply_op(quark[iop],temp[0],temp[1],conf,tp->backfield[iflav],shift[iop],sol);
 	      put_stag_phases(quark[iop],mask[iop]);  //From now use quark, but I have to link at loc_dens (L)
 	    }
 	    //Here, I have to put a routine that performs the sum on

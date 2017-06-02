@@ -88,10 +88,10 @@ namespace nissa
 	      {
 		for(int iop=0;iop<nop;iop++)
 		  {
-		    apply_op(source,temp[0],temp[1],conf,shift[iop],ori_source);
+		    apply_op(source,temp[0],temp[1],conf,tp->backfield[iflav],shift[iop],ori_source);
 		    put_stag_phases(source,mask[iop]);
 		    mult_Minv(sol,conf,tp,iflav,meas_pars->residue,source);
-		    apply_op(quark[iop],temp[0],temp[1],conf,shift[iop],sol);
+		    apply_op(quark[iop],temp[0],temp[1],conf,tp->backfield[iflav],shift[iop],sol);
 		    put_stag_phases(quark[iop],mask[iop]);
 		  }
 		
