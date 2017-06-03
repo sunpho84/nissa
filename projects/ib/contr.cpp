@@ -668,7 +668,8 @@ namespace nissa
     //reduce and normalise
     glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);
     
-    FILE *fout=open_file(combine("%s/handcuffs",outfolder),"w");
+    FILE *fout=NULL;
+    if(handcuffs_map.size()) fout=open_file(combine("%s/handcuffs",outfolder),"w");
     
     for(size_t icombo=0;icombo<handcuffs_map.size();icombo++)
       {
@@ -678,7 +679,7 @@ namespace nissa
 	master_fprintf(fout,"%s %+16.16lg %+16.16lg\n",handcuffs_map[icombo].name.c_str(),c[RE],c[IM]);
       }
     //close the file
-    close_file(fout);
+    if(fout) close_file(fout);
     
     contr_print_time+=take_time();
   }
