@@ -154,7 +154,23 @@ namespace nissa
 	  }
 	set_borders_invalid(S);
       }
+  }
+  THREADABLE_FUNCTION_END
   
+  //add staggered phases to conf(or remove them!)
+  THREADABLE_FUNCTION_1ARG(add_stagphases_to_su3_conf, quad_su3**,S)
+  {
+    GET_THREAD_ID();
+    for(int par=0;par<2;par++)
+      {
+	NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
+	  {
+	    coords ph;
+	    get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol_eo]);
+	    for(int mu=0;mu<NDIM;mu++) su3_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
+	  }
+	set_borders_invalid(S);
+      }
   }
   THREADABLE_FUNCTION_END
   
