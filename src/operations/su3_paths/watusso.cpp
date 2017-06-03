@@ -17,14 +17,17 @@
 #endif
 
 /*
-   ___________
-  |           |
-  |     _     |      |
-  |____|_|    |     /|\
-  |           |      |        | sizeh
-  |___________|      mu       |
-   
-  |szeh|
+     |   ___________
+    /|\ |           |
+     |  |     _     |
+     |  |____|_|    |
+ nu  |  |           |   sizeh
+time |  |___________|
+     |
+     |   sizeh
+     |-------------->
+         mu  space
+
  */
 
 namespace nissa
@@ -75,10 +78,10 @@ namespace nissa
 	    //compute the small
 	    const int nsmall_steps=4;
 	    int small_steps[2*nsmall_steps]={
-	      nu,1,
 	      mu,1,
-	      nu,-1,
-	      mu,-1};
+	      nu,1,
+	      mu,-1,
+	      nu,-1};
 	    path_drawing_t s;
 	    compute_su3_path(&s,small_su3,lx_conf,small_steps,nsmall_steps);
 	    //trace it
@@ -87,7 +90,8 @@ namespace nissa
 	    complex small_trace;
 	    complex_vector_glb_collapse(small_trace,loc_res,loc_vol);
 	    
-	    master_fprintf(fout," ### APE = ( %lg , %d ) , nu = %d , mu = %d , 1/3<trU> = %+016.016lg %+016.016lg\n\n",smear_pars->ape_spat_alpha,this_niters,nu,mu,small_trace[RE]/glb_vol/NCOL,small_trace[IM]/glb_vol/NCOL);
+	    master_fprintf(fout," ### APE = ( %lg , %d ) , nu = %d , mu = %d , 1/3<trU> = %+016.016lg %+016.016lg\n\n",
+			   smear_pars->ape_spat_alpha,this_niters,nu,mu,small_trace[RE]/glb_vol/NCOL,small_trace[IM]/glb_vol/NCOL);
 	    
 	    //elong on both sides the small
 	    //int prev_sizeh=0;
@@ -103,11 +107,11 @@ namespace nissa
 		//compute the big
 		const int nbig_steps=5;
 		int big_steps[2*nbig_steps]={
-		  mu,size-sizeh,
-		  nu,size,
-		  mu,-size,
+		  nu,size-sizeh,
+		  mu,size,
 		  nu,-size,
-		  mu,sizeh};
+		  mu,-size,
+		  nu,sizeh};
 		path_drawing_t b;
 		compute_su3_path(&b,big_su3,lx_conf,big_steps,nbig_steps);
 		//trace it
@@ -118,7 +122,7 @@ namespace nissa
 		
 		//elong the big of what needed
 		//ANNA MOVE the big to the center
-		for(int d=0;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,nu,+1,true);
+		for(int d=0;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,mu,+1,true);
 		//prev_sizeh=sizeh;
 		
 		master_fprintf(fout," ## size = %d , 1/3<trW> = %+016.016lg %+016.016lg\n\n",size,big_trace[RE]/glb_vol/3,big_trace[IM]/glb_vol/3);
