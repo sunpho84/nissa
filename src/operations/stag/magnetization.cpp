@@ -116,7 +116,7 @@ namespace nissa
     complex *point_magn=nissa_malloc("app",loc_vol,complex);
     
     //we add backfield externally because we need them for derivative
-    add_backfield_to_conf(conf,u1b);
+    add_backfield_with_stagphases_to_conf(conf,u1b);
     
     //invert
     inv_stD_cg(chi,conf,quark->mass,1000000,residue,rnd);
@@ -125,7 +125,7 @@ namespace nissa
     magnetization(magn,magn_proj_x,conf,quark,rnd,chi,point_magn,arg,mu,nu);
     
     //remove backfield
-    rem_backfield_from_conf(conf,u1b);
+    rem_backfield_with_stagphases_from_conf(conf,u1b);
     
     //free
     for(int par=0;par<2;par++) nissa_free(chi[par]);

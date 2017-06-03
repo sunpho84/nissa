@@ -33,7 +33,7 @@ namespace nissa
       }
     
     //add the background fields
-    add_backfield_to_conf(eo_conf,u1b);
+    add_backfield_with_stagphases_to_conf(eo_conf,u1b);
     
     //invert the various terms
     STOP_TIMING(quark_force_over_time);
@@ -47,7 +47,7 @@ namespace nissa
     for(int iterm=0;iterm<appr->degree();iterm++) apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
     
     //remove the background fields
-    rem_backfield_from_conf(eo_conf,u1b);
+    rem_backfield_with_stagphases_from_conf(eo_conf,u1b);
     
     //communicate borders of v_o (could be improved...)
     for(int iterm=0;iterm<appr->degree();iterm++) communicate_od_color_borders(v_o[iterm]);

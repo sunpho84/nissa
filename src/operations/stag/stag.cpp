@@ -74,8 +74,7 @@ namespace nissa
       
       if(list_dir.size())
 	{
-	  add_backfield_to_conf(conf,u1b);
-	  rem_stagphases_from_su3_conf(conf);
+	  add_backfield_without_stagphases_to_conf(conf,u1b);
 	  
 	  //summ all perms
 	  int nperm=0;
@@ -97,8 +96,7 @@ namespace nissa
 	  //final normalization
 	  for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(out[eo]),(double*)(out[eo]),1.0/nperm,loc_volh*sizeof(color)/sizeof(double));
 	  
-	  add_stagphases_to_su3_conf(conf);
-	  rem_backfield_from_conf(conf,u1b);
+	  rem_backfield_without_stagphases_from_conf(conf,u1b);
 	}
       else for(int eo=0;eo<2;eo++) vector_copy(out[eo],in[eo]);
     }
@@ -126,9 +124,9 @@ namespace nissa
     //multiply by M^-1
     THREADABLE_FUNCTION_6ARG(mult_Minv, color**,prop, quad_su3**,conf, quad_u1**,u1b, double,m, double,residue, color**,source)
     {
-      add_backfield_to_conf(conf,u1b);
+      add_backfield_with_stagphases_to_conf(conf,u1b);
       inv_stD_cg(prop,conf,m,100000,residue,source);
-      rem_backfield_from_conf(conf,u1b);
+      rem_backfield_with_stagphases_from_conf(conf,u1b);
     }
     THREADABLE_FUNCTION_END
     void mult_Minv(color **prop,quad_su3 **conf,theory_pars_t *pars,int iflav,double residue,color **source)
@@ -191,7 +189,7 @@ namespace nissa
       
       if(ord==0) crash("makes no sense to call with order zero");
       
-      add_backfield_to_conf(conf,theory_pars->backfield[iflav]);
+      add_backfield_with_stagphases_to_conf(conf,theory_pars->backfield[iflav]);
       communicate_ev_and_od_quad_su3_borders(conf);
       communicate_ev_and_od_color_borders(in);
       
@@ -209,7 +207,7 @@ namespace nissa
 	  set_borders_invalid(out[par]);
 	}
       
-      rem_backfield_from_conf(conf,theory_pars->backfield[iflav]);
+      rem_backfield_with_stagphases_from_conf(conf,theory_pars->backfield[iflav]);
     }
     THREADABLE_FUNCTION_END
     
@@ -220,7 +218,7 @@ namespace nissa
     {
       GET_THREAD_ID();
       
-      add_backfield_to_conf(conf,theory_pars->backfield[iflav]);
+      add_backfield_with_stagphases_to_conf(conf,theory_pars->backfield[iflav]);
       communicate_ev_and_od_quad_su3_borders(conf);
       communicate_ev_and_od_color_borders(in);
       if(curr) communicate_ev_and_od_spin1field_borders(curr);
@@ -232,7 +230,7 @@ namespace nissa
 	      int ivol=loclx_of_loceo[par][ieo];
 	      
 	      color_put_to_zero(out[par][ieo]);
-	      if(t<0 || t>=glb_size[0] || glb_coord_of_loclx[ivol][0]==t)
+	      if(t<0  or  t>=glb_size[0]  or  glb_coord_of_loclx[ivol][0]==t)
 		for(int mu=0;mu<NDIM;mu++)
 		  {
 		    color temp;
@@ -255,7 +253,7 @@ namespace nissa
 	  set_borders_invalid(out[par]);
 	}
       
-      rem_backfield_from_conf(conf,theory_pars->backfield[iflav]);
+      rem_backfield_with_stagphases_from_conf(conf,theory_pars->backfield[iflav]);
     }
   }
   
@@ -263,13 +261,13 @@ namespace nissa
   {
     std::ostringstream os;
     
-    if(each!=def_each()||full) os<<" Each\t\t=\t"<<each<<"\n";
-    if(after!=def_after()||full) os<<" After\t\t=\t"<<after<<"\n";
-    if(path!=def_path()||full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
-    if(residue!=def_residue()||full) os<<" Residue\t=\t"<<residue<<"\n";
-    if(ncopies!=def_ncopies()||full) os<<" NCopies\t=\t"<<ncopies<<"\n";
-    if(itheory!=def_itheory()||full) os<<" ITheory\t=\t"<<itheory<<"\n";
-    if(nhits!=def_nhits()||full) os<<" NHits\t\t=\t"<<nhits<<"\n";
+    if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
+    if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
+    if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+    if(residue!=def_residue() or full) os<<" Residue\t=\t"<<residue<<"\n";
+    if(ncopies!=def_ncopies() or full) os<<" NCopies\t=\t"<<ncopies<<"\n";
+    if(itheory!=def_itheory() or full) os<<" ITheory\t=\t"<<itheory<<"\n";
+    if(nhits!=def_nhits() or full) os<<" NHits\t\t=\t"<<nhits<<"\n";
     
     return os.str();
   }

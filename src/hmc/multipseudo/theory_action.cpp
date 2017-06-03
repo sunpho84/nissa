@@ -49,7 +49,7 @@ namespace nissa
 	pseudofermion_t chi_e(q.discretiz,"chi_e");
 	
 	//add background field
-	add_backfield_to_conf(eo_conf,u1b[ifl]);
+	add_backfield_with_stagphases_to_conf(eo_conf,u1b[ifl]);
 	
 	//if clover is included, compute it
 	if(clover_to_be_computed)
@@ -84,7 +84,7 @@ namespace nissa
 	if(clover_to_be_computed) chromo_operator_remove_cSW(Cl,q.cSW);
 	
 	//remove background field
-	rem_backfield_from_conf(eo_conf,u1b[ifl]);
+	rem_backfield_with_stagphases_from_conf(eo_conf,u1b[ifl]);
       }
     
     //free clover term if ever allocated

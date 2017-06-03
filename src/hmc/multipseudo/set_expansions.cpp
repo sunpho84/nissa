@@ -46,7 +46,7 @@ namespace nissa
     verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
     
     //prepare the ingredients
-    add_backfield_to_conf(eo_conf,backfield);
+    add_backfield_with_stagphases_to_conf(eo_conf,backfield);
     inv_clover_term_t *invCl_evn=NULL;
     if(ferm_discretiz::include_clover(quark->discretiz))
       {
@@ -82,7 +82,7 @@ namespace nissa
     while(iter<niters&&is_increasing);
     
     //remove the background field
-    rem_backfield_from_conf(eo_conf,backfield);
+    rem_backfield_with_stagphases_from_conf(eo_conf,backfield);
     
     //assume a 10% excess
     (*eig_max)*=1.1;

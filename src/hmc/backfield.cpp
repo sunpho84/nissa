@@ -149,7 +149,6 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
 	  {
 	    coords ph;
-	    get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol_eo]);
 	    for(int mu=0;mu<NDIM;mu++) complex_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
 	  }
 	set_borders_invalid(S);
@@ -188,31 +187,32 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //multiply the configuration for an additional u(1) field
-  THREADABLE_FUNCTION_2ARG(add_backfield_to_conf, quad_su3**,conf, quad_u1**,u1)
+  //multiply the configuration for an additional U(1) field and possibly stagphases
+  THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3**,conf, bool,add_rem, quad_u1**,u1, bool,include_stagphases)
   {
     verbosity_lv2_master_printf("Adding backfield\n");
     GET_THREAD_ID();
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	  for(int mu=0;mu<NDIM;mu++)
-	    safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
-	set_borders_invalid(conf[par]);
-      }
-  }
-  THREADABLE_FUNCTION_END
-  
-  //multiply the configuration for an the conjugate of an u(1) field
-  THREADABLE_FUNCTION_2ARG(rem_backfield_from_conf, quad_su3**,conf, quad_u1**,u1)
-  {
-    verbosity_lv2_master_printf("Removing backfield\n");
-    GET_THREAD_ID();
-    for(int par=0;par<2;par++)
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	  for(int mu=0;mu<NDIM;mu++)
-	    safe_su3_prod_complex_conj(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
+	  {
+	    coords ph;
+	    if(include_stagphases) get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
+	    
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		//switch add/rem
+		complex f;
+		if(add_rem==0) complex_copy(f,u1[par][ivol][mu]);
+		else           complex_conj(f,u1[par][ivol][mu]);
+		
+		//switch phase
+		if(include_stagphases) complex_prodassign_double(f,ph[mu]);
+		
+		//put the coeff
+		safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],f);
+	      }
+	  }
 	set_borders_invalid(conf[par]);
       }
   }

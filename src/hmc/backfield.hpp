@@ -47,15 +47,24 @@ namespace nissa
     em_field_pars_t() : flag(0) {for(int i=0;i<3;i++) E[i]=B[i]=0;}
   };
   
-  void add_backfield_to_conf(quad_su3 **conf,quad_u1 **u1);
+  void add_or_rem_backfield_with_or_without_stagphases_to_conf(quad_su3 **conf,bool add_rem,quad_u1 **u1,bool include_stagphases);
+  
+  //include or remove with stagphases
+  inline void add_backfield_with_stagphases_to_conf(quad_su3 **conf,quad_u1 **u1)
+  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,0,u1,true);}
+  inline void rem_backfield_with_stagphases_from_conf(quad_su3 **conf,quad_u1 **u1)
+  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,true);}
+  
+  //include or remove without stagphases
+  inline void add_backfield_without_stagphases_to_conf(quad_su3 **conf,quad_u1 **u1)
+  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,0,u1,false);}
+  inline void rem_backfield_without_stagphases_from_conf(quad_su3 **conf,quad_u1 **u1)
+  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,false);}
+  
   void init_backfield_to_id(quad_u1 **S);
-  void rem_backfield_from_conf(quad_su3 **conf,quad_u1 **u1);
   void add_im_pot_to_backfield(quad_u1 **S,quark_content_t *quark_content);
   void add_em_field_to_backfield(quad_u1 **S,quark_content_t *quark_content,double em_str,int q,int mu,int nu);
   void add_em_field_to_backfield(quad_u1 **S,quark_content_t *quark_content,em_field_pars_t &em_field_pars);
-  void add_stagphases_to_su3_conf(quad_su3 **S);
-  inline void rem_stagphases_from_su3_conf(quad_su3 **S)
-  {add_stagphases_to_su3_conf(S);}
   
   extern void (*get_args_of_quantization[3])(coords,int,int,int);
 }

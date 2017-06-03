@@ -30,7 +30,7 @@ namespace nissa
     (*action)=pf_hb_vec.norm2();
     
     //invert to perform hv
-    add_backfield_to_conf(conf,u1b);
+    add_backfield_with_stagphases_to_conf(conf,u1b);
     switch(q.discretiz)
       {
       case ferm_discretiz::ROOT_STAG:
@@ -41,7 +41,7 @@ namespace nissa
 	break;
       default:crash("not supported");break;
       }
-    rem_backfield_from_conf(conf,u1b);
+    rem_backfield_with_stagphases_from_conf(conf,u1b);
   }
   THREADABLE_FUNCTION_END
   
