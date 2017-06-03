@@ -157,7 +157,9 @@ namespace nissa
   //multiply the configuration for an additional U(1) field and possibly stagphases
   THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3**,conf, bool,add_rem, quad_u1**,u1, bool,include_stagphases)
   {
-    verbosity_lv2_master_printf("Adding backfield\n");
+    // verbosity_lv2_
+    master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(include_stagphases==0)?"with":"without");
+    
     GET_THREAD_ID();
     for(int par=0;par<2;par++)
       {
