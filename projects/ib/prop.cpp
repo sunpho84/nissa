@@ -563,7 +563,7 @@ namespace nissa
 	  //gets the coordinate in the filtering volume
 	  coords c;
 	  coord_of_lx(c,ifilt,f->width);
-	  coord_summassign(c,f->offs,f->width);
+	  coord_summassign(c,f->offs,glb_size);
 	  
 	  for(int imir=0;imir<pow(2,NDIM);imir++)
 	    {
@@ -609,16 +609,6 @@ namespace nissa
     
     spincolor *qtilde=nissa_malloc("qtilde",loc_vol+bord_vol,spincolor);
     spincolor *qfilt=nissa_malloc("qfilt",nfft_filtered,spincolor);
-    
-    tm_quark_info tm;
-    tm.kappa=0.125;
-    tm.mass=0.4;
-    tm.r=0;
-    tm.bc[0]=1;
-    spinspin prop;
-    int imom=glblx_of_coord_list(0,0,0,0);
-    mom_space_twisted_propagator_of_imom(prop,tm,imom,MAX_TWIST_BASE);
-    spinspin_print(prop);
     
     double fft_sign=-1;
     for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
