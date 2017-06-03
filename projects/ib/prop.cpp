@@ -575,7 +575,7 @@ namespace nissa
 	      int iglb=glblx_of_coord(cmir);
 	      if(list_of_filtered.find(iglb)==list_of_filtered.end())
 		{
-		  list_of_filtered.insert(iglb);
+		  master_printf("Adding: %d\n",iglb);
 		  
 		  //print momentum coordinates
 		  if(fout)
@@ -590,6 +590,8 @@ namespace nissa
 		  int wrank,iloc;
 		  get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
 		  if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks+0));
+		  
+		  list_of_filtered.insert(iglb);
 		}
 	    }
 	}
