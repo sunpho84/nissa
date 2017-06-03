@@ -3,6 +3,8 @@
 #define EXTERN_PROP
  #include "prop.hpp"
 
+#include <set>
+
 namespace nissa
 {
   //multiply the configuration for an additional u(1) field, defined as exp(-i e q A /3)
@@ -545,13 +547,19 @@ namespace nissa
   {
     master_printf("Initializing fft filter\n");
     
+    //file where to store output
+    FILE *fout=NULL;
+    const char path_list[]="mom_list.txt";
+    if(not file_exists("mom_list.txt")) fout=open_file(path_list,"w");
+    
+    //store the list of filtered
+    std::set<int> list_of_filtered;;
+    
+    //scattering list
     all_to_all_scattering_list_t sl;
-    nfft_filtered=0;
     for(std::vector<fft_mom_range_t>::iterator f=fft_mom_range_list.begin();f!=fft_mom_range_list.end();f++)
       for(int vol=vol_of_lx(f->width),ifilt=0;ifilt<vol;ifilt++)
 	{
-	  // master_printf(" %d/%d %d %p ",ifilt,vol,nfft_filtered,&*f);
-	  
 	  //gets the coordinate in the filtering volume
 	  coords c;
 	  coord_of_lx(c,ifilt,f->width);
@@ -563,22 +571,31 @@ namespace nissa
 	      coords cmir;
 	      get_mirrorized_site_coords(cmir,c,imir);
 	      
-	      // master_printf(" ");
-	      // for(int mu=0;mu<4;mu++) master_printf("%d ",c[mu]);
-	      // master_printf(" - %d - ",imir);
-	      // for(int mu=0;mu<4;mu++) master_printf("%d ",cmir[mu]);
-	      // master_printf("\n");
-	      
-	      //search where data is stored
-	      int wrank,iloc;
-	      get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
-	      if(rank==wrank) sl.push_back(std::make_pair(iloc,nfft_filtered*nranks+0));
-	      
-	      nfft_filtered++;
+	      //check if not already collected
+	      int iglb=glblx_of_coord(cmir);
+	      if(list_of_filtered.find(iglb)!=list_of_filtered.end())
+		{
+		  list_of_filtered.insert(iglb);
+		  
+		  //print momentum coordinates
+		  if(fout)
+		    {
+		      for(int mu=0;mu<NDIM;mu++)
+			if(cmir[mu]<glb_size[mu]/2) master_fprintf(fout,"%d ",cmir[mu]);
+			else                        master_fprintf(fout,"%d ",cmir[mu]-glb_size[mu]);
+		      master_fprintf(fout,"\n");
+		    }
+		  
+		  //search where data is stored
+		  int wrank,iloc;
+		  get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
+		  if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks+0));
+		}
 	    }
 	}
     
     //setup
+    nfft_filtered=list_of_filtered.size();
     fft_filter_remap.setup_knowing_where_to_send(sl);
   }
   
@@ -589,6 +606,16 @@ namespace nissa
     
     spincolor *qtilde=nissa_malloc("qtilde",loc_vol+bord_vol,spincolor);
     spincolor *qfilt=nissa_malloc("qfilt",nfft_filtered,spincolor);
+    
+    tm_quark_info tm;
+    tm.kappa=0.125;
+    tm.mass=0.4;
+    tm.r=0;
+    tm.bc[0]=1;
+    spinspin prop;
+    int imom=glblx_of_coord_list(0,0,0,0);
+    mom_space_twisted_propagator_of_imom(prop,tm,imom,MAX_TWIST_BASE);
+    spinspin_print(prop);
     
     double fft_sign=-1;
     for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
