@@ -573,7 +573,7 @@ namespace nissa
 	      
 	      //check if not already collected
 	      int iglb=glblx_of_coord(cmir);
-	      if(list_of_filtered.find(iglb)!=list_of_filtered.end())
+	      if(list_of_filtered.find(iglb)==list_of_filtered.end())
 		{
 		  list_of_filtered.insert(iglb);
 		  
