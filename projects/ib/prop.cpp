@@ -575,8 +575,6 @@ namespace nissa
 	      int iglb=glblx_of_coord(cmir);
 	      if(list_of_filtered.find(iglb)==list_of_filtered.end())
 		{
-		  master_printf("Adding: %d\n",iglb);
-		  
 		  //print momentum coordinates
 		  if(fout)
 		    {
@@ -595,6 +593,9 @@ namespace nissa
 		}
 	    }
 	}
+    
+    //close file if opened
+    if(fout) close_file(fout);
     
     //setup
     nfft_filtered=list_of_filtered.size();
