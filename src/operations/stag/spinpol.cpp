@@ -154,7 +154,7 @@ namespace nissa
     quad_su3 *gauge_conf=nissa_malloc("gauge_conf",loc_vol+bord_vol,quad_su3);
     for(int imeas=0;imeas<nmeas;imeas++)
       {
-	smoothed_conf[imeas]=nissa_malloc(combine("smoothed_conf_%d",imeas).c_str(),loc_vol+bord_vol,quad_su3);
+	smoothed_conf[imeas]=nissa_malloc(combine("smoothed_conf_%d",imeas).c_str(),loc_vol+bord_vol+edge_vol,quad_su3);
 	for(int eo=0;eo<2;eo++) ferm_conf[imeas][eo]=nissa_malloc("ferm_conf",loc_volh+bord_volh+edge_volh,quad_su3);
       }
     if(nmeas==0) crash("nmeas cannot be 0");
