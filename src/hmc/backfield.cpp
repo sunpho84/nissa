@@ -183,7 +183,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	  {
 	    coords ph;
-	    if(include_stagphases) get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
+	    //if(include_stagphases) get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
@@ -193,7 +193,7 @@ namespace nissa
 		else           complex_conj(f,u1[par][ivol][mu]);
 		
 		//switch phase
-		if(include_stagphases) complex_prodassign_double(f,ph[mu]);
+		//if(include_stagphases) complex_prodassign_double(f,ph[mu]);
 		
 		//put the coeff
 		safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],f);
