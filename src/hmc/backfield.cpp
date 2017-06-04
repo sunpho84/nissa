@@ -175,7 +175,7 @@ namespace nissa
   THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3**,conf, bool,add_rem, quad_u1**,u1, bool,include_stagphases)
   {
     // verbosity_lv2_
-    master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(include_stagphases==0)?"with":"without");
+    master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(include_stagphases)?"with":"without");
     
     GET_THREAD_ID();
     for(int par=0;par<2;par++)
@@ -183,7 +183,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	  {
 	    coords ph;
-	    //if(include_stagphases) get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
+	    if(not include_stagphases) get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
@@ -193,7 +193,7 @@ namespace nissa
 		else           complex_conj(f,u1[par][ivol][mu]);
 		
 		//switch phase
-		//if(include_stagphases) complex_prodassign_double(f,ph[mu]);
+		if(not include_stagphases) complex_prodassign_double(f,ph[mu]);
 		
 		//put the coeff
 		safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],f);
