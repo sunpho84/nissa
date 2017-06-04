@@ -140,6 +140,23 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //add staggered phases (or remove them!)
+  THREADABLE_FUNCTION_1ARG(add_stagphases_to_backfield, quad_u1**,S)
+  {
+    GET_THREAD_ID();
+    for(int par=0;par<2;par++)
+      {
+       NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
+         {
+           coords ph;
+           get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol_eo]);
+           for(int mu=0;mu<NDIM;mu++) complex_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
+         }
+       set_borders_invalid(S);
+      }
+  }
+  THREADABLE_FUNCTION_END
+  
   //add the antiperiodic condition on the on dir mu
   THREADABLE_FUNCTION_2ARG(add_antiperiodic_condition_to_backfield, quad_u1**,S, int,mu)
   {
@@ -207,6 +224,7 @@ namespace nissa
 	init_backfield_to_id(backfield[iflav]);
 	add_im_pot_to_backfield(backfield[iflav],&(quarks[iflav]));
 	add_em_field_to_backfield(backfield[iflav],&(quarks[iflav]),&(em_field_pars));
+	if(quarks[iflav].discretiz==ferm_discretiz::ROOT_STAG) add_stagphases_to_backfield(backfield[iflav]);
 	add_antiperiodic_condition_to_backfield(backfield[iflav],0);
       }
   }
