@@ -569,7 +569,8 @@ namespace nissa
 	    {
 	      //get mirrorized
 	      coords cmir;
-	      get_mirrorized_site_coords(cmir,c,imir);
+	      for(int mu=0;mu<NDIM;mu++)
+		cmir[mu]=get_mirrorized_site_coord(c[mu]+(mu==0 and get_bit(imir,0) and QUARK_BOUND_COND==1),mu,get_bit(imir,mu));
 	      
 	      //check if not already collected
 	      int iglb=glblx_of_coord(cmir);

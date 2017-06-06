@@ -10,6 +10,7 @@
 #endif
 
 #include <stdint.h>
+#include <routines/math_routines.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
  #define EXTERN_GEOMETRY_LX extern
@@ -100,6 +101,7 @@ namespace nissa
   int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
   void coord_of_lx(coords x,int ilx,coords s);
   void coord_of_rank(coords c,int irank);
+  inline void coord_copy(coords out,coords in){for(int mu=0;mu<NDIM;mu++) out[mu]=in[mu];};
   inline void coord_summ(coords s,coords a1,coords a2,coords l){for(int mu=0;mu<NDIM;mu++) s[mu]=(a1[mu]+a2[mu])%l[mu];}
   inline void coord_summassign(coords s,coords a,coords l){coord_summ(s,s,a,l);}
   int edgelx_of_coord(int *x,int mu,int nu);
@@ -137,6 +139,17 @@ namespace nissa
   void red_coords_of_hypercubic_red_point(coords h,int hyp_red);
   void lx_coords_of_hypercube_vertex(coords lx,int hyp_cube);
   int hypercubic_red_point_of_red_coords(coords h);
+  
+  //get mirrorized coord
+  inline int get_mirrorized_site_coord(int c,int mu,bool flip)
+  {return (glb_size[mu]+(1-2*flip)*c)%glb_size[mu];}
+  
+  //get mirrorized coords according to a bit decomposition of imir
+  inline void get_mirrorized_site_coords(coords cmir,coords c,int imir)
+  {
+    for(int mu=0;mu<NDIM;mu++)
+      cmir[mu]=get_mirrorized_site_coord(c[mu],mu,get_bit(imir,mu));
+  }
 }
 
 #undef EXTERN_GEOMETRY_LX

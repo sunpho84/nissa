@@ -23,6 +23,10 @@ namespace nissa
   int bitrev(int in,int l2n);
   int find_max_pow2(int a);
   
+  //return a bit
+  inline bool get_bit(int i,int ibit)
+  {return (i>>ibit)&1;}
+  
   template <class T> T summ(T a,T b){return a+b;}
   template <class T> T nissa_max(T a,T b){return std::max(a,b);}
   template <class T> T sqr(T a){return a*a;}

@@ -617,13 +617,6 @@ namespace nissa
       }
   }
   
-  //get mirrorized coords according to a bit decomposition of imir
-  void get_mirrorized_site_coords(coords cmir,coords c,int imir)
-  {
-    for(int mu=0;mu<NDIM;mu++)
-      cmir[mu]=(glb_size[mu]+(1-2*((imir>>mu)&1))*c[mu])%glb_size[mu];
-  }
-  
   //takes the NDIM coordinates of the hypercube vertex one by one
   void lx_coords_of_hypercube_vertex(coords lx,int hyp_cube)
   {
