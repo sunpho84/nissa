@@ -26,7 +26,7 @@ namespace nissa
 	  case smooth_pars_t::HYP: hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);t+=1;tcheck=sp.hyp.nlevels;break;
 	  case smooth_pars_t::APE: ape_smear_conf(smoothed_conf,smoothed_conf,sp.ape.alpha,1,dirs,staple_min_dir);t+=1;tcheck=sp.ape.nlevels;break;
 	  }
-
+	
 	finished=(t+1e-10>tcheck);
       }
     if(not finished) tnext_meas+=sp.meas_each;
