@@ -292,7 +292,7 @@ namespace nissa
 	  }
 	
 	//read the democratic filter
-	if(nfft_ranges) read_str_int("P4FrP22Max",&p4_fr_p22_max);
+	if(nfft_ranges) read_str_double("P4FrP22Max",&p4_fr_p22_max);
 	
 	//initialize the filters
 	init_fft_filter();
