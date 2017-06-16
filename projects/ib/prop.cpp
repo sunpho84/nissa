@@ -565,34 +565,45 @@ namespace nissa
 	  coord_of_lx(c,ifilt,f->width);
 	  coord_summassign(c,f->offs,glb_size);
 	  
-	  for(int imir=0;imir<pow(2,NDIM);imir++)
+	  //compute p~4/p~2^2
+	  double pt2=0,pt4=0;
+	  for(int mu=0;mu<NDIM;mu++)
 	    {
-	      //get mirrorized
-	      coords cmir;
-	      for(int mu=0;mu<NDIM;mu++)
-		cmir[mu]=get_mirrorized_site_coord(c[mu]+(mu==0 and get_bit(imir,0) and QUARK_BOUND_COND==1),mu,get_bit(imir,mu));
-	      
-	      //check if not already collected
-	      int iglb=glblx_of_coord(cmir);
-	      if(list_of_filtered.find(iglb)==list_of_filtered.end())
-		{
-		  //print momentum coordinates
-		  if(fout)
-		    {
-		      for(int mu=0;mu<NDIM;mu++)
-			if(cmir[mu]<glb_size[mu]/2) master_fprintf(fout,"%d ",cmir[mu]);
-			else                        master_fprintf(fout,"%d ",cmir[mu]-glb_size[mu]);
-		      master_fprintf(fout,"\n");
-		    }
-		  
-		  //search where data is stored
-		  int wrank,iloc;
-		  get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
-		  if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks+0));
-		  
-		  list_of_filtered.insert(iglb);
-		}
+	      double pmu=M_PI*(2*c[mu]+(mu==0)*QUARK_BOUND_COND)/glb_size[mu];
+	      double ptmu=sin(pmu);
+	      pt2+=sqr(ptmu);
+	      pt4+=pow(ptmu,4.0);
 	    }
+
+	  if(pt4/sqr(pt2)<p4_fr_p22_max)
+	    for(int imir=0;imir<pow(2,NDIM);imir++)
+	      {
+		//get mirrorized
+		coords cmir;
+		for(int mu=0;mu<NDIM;mu++)
+		cmir[mu]=get_mirrorized_site_coord(c[mu]+(mu==0 and get_bit(imir,0) and QUARK_BOUND_COND==1),mu,get_bit(imir,mu));
+		
+		//check if not already collected
+		int iglb=glblx_of_coord(cmir);
+		if(list_of_filtered.find(iglb)==list_of_filtered.end())
+		  {
+		    //print momentum coordinates
+		    if(fout)
+		      {
+			for(int mu=0;mu<NDIM;mu++)
+			  if(cmir[mu]<glb_size[mu]/2) master_fprintf(fout,"%d ",cmir[mu]);
+			  else                        master_fprintf(fout,"%d ",cmir[mu]-glb_size[mu]);
+			master_fprintf(fout,"\n");
+		      }
+		    
+		    //search where data is stored
+		    int wrank,iloc;
+		    get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
+		    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks+0));
+		  
+		    list_of_filtered.insert(iglb);
+		  }
+	      }
 	}
     
     //close file if opened
