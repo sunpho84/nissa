@@ -625,10 +625,12 @@ namespace nissa
     double fft_sign=-1;
     for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
       {
-	std::string tag=fft_prop_list[iprop];
+	const std::string tag=fft_prop_list[iprop];
 	master_printf("Fourier transforming propagator %s\n",tag.c_str());
-	if(nhits>1) tag+=combine("_hit_%d",ihit);
-	FILE *fout=open_file(combine("%s/fft_%s",outfolder,tag.c_str()),"w");
+	
+	std::string filename=combine("%s/fft_%s",outfolder,tag.c_str());
+	if(nhits>1) filename+=combine("_hit_%d",ihit);
+	FILE *fout=open_file(filename,"w");
 	
 	//loop on dirac and color source index
 	for(int id_so=0;id_so<nso_spi;id_so++)
