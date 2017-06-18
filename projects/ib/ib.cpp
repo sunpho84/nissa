@@ -277,7 +277,7 @@ void in_main(int narg,char **arg)
 	  start_hit(ihit);
 	  generate_propagators(ihit);
 	  compute_contractions();
-	  propagators_fft();
+	  propagators_fft(ihit);
 	}
       print_contractions();
       

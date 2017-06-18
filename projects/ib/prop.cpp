@@ -574,7 +574,7 @@ namespace nissa
 	      pt2+=sqr(ptmu);
 	      pt4+=pow(ptmu,4.0);
 	    }
-
+	  
 	  if(pt4/sqr(pt2)<p4_fr_p22_max)
 	    for(int imir=0;imir<pow(2,NDIM);imir++)
 	      {
@@ -600,7 +600,7 @@ namespace nissa
 		    int wrank,iloc;
 		    get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
 		    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks+0));
-		  
+		    
 		    list_of_filtered.insert(iglb);
 		  }
 	      }
@@ -615,7 +615,7 @@ namespace nissa
   }
   
   //perform fft and store the propagators
-  void propagators_fft()
+  void propagators_fft(int ihit)
   {
     GET_THREAD_ID();
     
@@ -627,6 +627,7 @@ namespace nissa
       {
 	std::string tag=fft_prop_list[iprop];
 	master_printf("Fourier transforming propagator %s\n",tag.c_str());
+	if(nhits>1) tag+=combine("_hit_%d",ihit);
 	FILE *fout=open_file(combine("%s/fft_%s",outfolder,tag.c_str()),"w");
 	
 	//loop on dirac and color source index

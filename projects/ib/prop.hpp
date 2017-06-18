@@ -148,7 +148,7 @@ namespace nissa
   void generate_photon_stochastic_propagator();
   void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc);
   void generate_lepton_propagators();
-  void propagators_fft();
+  void propagators_fft(int ihit);
   
   void add_photon_field_to_conf(quad_su3 *conf,double charge);
   
