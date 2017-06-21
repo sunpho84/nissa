@@ -599,7 +599,7 @@ namespace nissa
 		    //search where data is stored
 		    int wrank,iloc;
 		    get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
-		    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks+0));
+		    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks*nso_spi*nso_col+0));
 		    
 		    list_of_filtered.insert(iglb);
 		  }
@@ -628,10 +628,6 @@ namespace nissa
 	const std::string tag=fft_prop_list[iprop];
 	master_printf("Fourier transforming propagator %s\n",tag.c_str());
 	
-	std::string filename=combine("%s/fft_%s",outfolder,tag.c_str());
-	if(nhits>1) filename+=combine("_hit_%d",ihit);
-	FILE *fout=open_file(filename,"w");
-	
 	//loop on dirac and color source index
 	for(int id_so=0;id_so<nso_spi;id_so++)
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
@@ -643,13 +639,19 @@ namespace nissa
 	      fft4d((complex*)qtilde,(complex*)q,sizeof(spincolor)/sizeof(complex),fft_sign,1);
 	      put_fft_source_phase(qtilde,fft_sign);
 	      
-	      //gather and write
-	      fft_filter_remap.communicate(qfilt,qtilde,sizeof(spincolor));
-	      if(rank==0) fwrite(qfilt,sizeof(spincolor),nfft_filtered,fout);
+	      //gather
+	      fft_filter_remap.communicate(qfilt+so_sp_col_ind(id_so,ic_so),qtilde,sizeof(spincolor)); //the remapper will leave holes
 	      
 	      STOP_TIMING(fft_time);
 	    }
 	
+	//create filename
+	std::string filename=combine("%s/fft_%s",outfolder,tag.c_str());
+	if(nhits>1) filename+=combine("_hit_%d",ihit);
+	
+	//open and write
+	FILE *fout=open_file(filename,"w");
+	if(rank==0) fwrite(qfilt,sizeof(spincolor)*nso_spi*nso_col,nfft_filtered,fout);
 	close_file(fout);
       }
     
