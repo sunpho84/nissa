@@ -620,7 +620,7 @@ namespace nissa
     GET_THREAD_ID();
     
     spincolor *qtilde=nissa_malloc("qtilde",loc_vol+bord_vol,spincolor);
-    spincolor *qfilt=nissa_malloc("qfilt",nfft_filtered,spincolor);
+    spincolor *qfilt=nissa_malloc("qfilt",nfft_filtered*nso_spi*nso_col,spincolor);
     
     double fft_sign=-1;
     for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
