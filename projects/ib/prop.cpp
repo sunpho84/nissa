@@ -598,7 +598,7 @@ namespace nissa
 		    
 		    //search where data is stored
 		    int wrank,iloc;
-		    get_loclx_and_rank_of_coord(&iloc,&wrank,cmir);
+		    get_loclx_and_rank_of_coord(&iloc,&wrank,cmir); //the remapper will leave holes
 		    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks*nso_spi*nso_col+0));
 		    
 		    list_of_filtered.insert(iglb);
@@ -639,8 +639,8 @@ namespace nissa
 	      fft4d((complex*)qtilde,(complex*)q,sizeof(spincolor)/sizeof(complex),fft_sign,1);
 	      put_fft_source_phase(qtilde,fft_sign);
 	      
-	      //gather
-	      fft_filter_remap.communicate(qfilt+so_sp_col_ind(id_so,ic_so),qtilde,sizeof(spincolor)); //the remapper will leave holes
+	      //gather - check the rewriting pattern above!
+	      fft_filter_remap.communicate(qfilt+so_sp_col_ind(id_so,ic_so),qtilde,sizeof(spincolor));
 	      
 	      STOP_TIMING(fft_time);
 	    }
