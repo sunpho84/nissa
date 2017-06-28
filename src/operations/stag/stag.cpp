@@ -21,10 +21,12 @@ namespace nissa
 {
   namespace stag
   {
-    //apply a single shift
-    void apply_covariant_shift(color **out,quad_su3 **conf,int mu,color **in)
+    //summ a single shift
+    void summ_covariant_shift(color **out,quad_su3 **conf,int mu,color **in,shift_orie_t side)
     {
       GET_THREAD_ID();
+      
+      if(in==out) crash("in==out");
       
       communicate_ev_and_od_color_borders(in);
       communicate_ev_and_od_quad_su3_borders(conf);
@@ -35,13 +37,57 @@ namespace nissa
 	    {
 	      int up=loceo_neighup[eo][ieo][mu];
 	      int dw=loceo_neighdw[eo][ieo][mu];
-	      unsafe_su3_prod_color(out[eo][ieo],conf[eo][ieo][mu],in[!eo][up]);
-	      su3_dag_summ_the_prod_color(out[eo][ieo],conf[!eo][dw][mu],in[!eo][dw]);
-	      color_prod_double(out[eo][ieo],out[eo][ieo],0.5);
+	      color_put_to_zero(out[eo][ieo]);
+	      if(side==BOTH or side==UP) su3_summ_the_prod_color(out[eo][ieo],conf[eo][ieo][mu],in[!eo][up]);
+	      if(side==BOTH or side==DW) su3_dag_summ_the_prod_color(out[eo][ieo],conf[!eo][dw][mu],in[!eo][dw]);
+	      
+	      if(side==BOTH) color_prod_double(out[eo][ieo],out[eo][ieo],0.5);
 	    }
 	  set_borders_invalid(out[eo]);
 	}
     }
+    
+    //apply a single shift
+    void apply_covariant_shift(color **out,quad_su3 **conf,int mu,color **in,shift_orie_t side)
+    {
+      for(int eo=0;eo<2;eo++) vector_reset(out[eo]);
+      summ_covariant_shift(out,conf,mu,in,side);
+    }
+    
+    //apply two-links laplacian, as per 1302.5246
+    THREADABLE_FUNCTION_3ARG(two_links_laplacian, color**,out, quad_su3**,conf, color**,in)
+    {
+      crash("NOT USABLE YET");
+      //allocate temp
+      color *temp[2];
+      for(int par=0;par<2;par++)
+	temp[par]=nissa_malloc("temp",loc_volh+bord_volh,color);
+      
+      //reset out
+      for(int par=0;par<2;par++) vector_reset(out[par]);
+      
+      //shift and summ in both orientation
+      shift_orie_t orie_list[2]={UP,DW};
+      for(int iorie=0;iorie<2;iorie++)
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    apply_covariant_shift(temp,conf,mu,in,orie_list[iorie]);
+	    summ_covariant_shift(out,conf,mu,temp,orie_list[iorie]);
+	  }
+      
+      //summ diagonal and normalize
+      for(int par=0;par<2;par++)
+	{
+	  double_vector_summassign_double_vector_prod_double((double*)(out[par]),(double*)(in[par]),-2*NDIM,loc_volh);
+	  double_vector_prodassign_double((double*)(out[par]),0.5,loc_volh);
+	}
+      
+      //free
+      for(int icopy=0;icopy<2;icopy++)
+	for(int par=0;par<2;par++)
+	  nissa_free(temp[icopy][par]);
+    }
+    THREADABLE_FUNCTION_END
     
     //apply the operator
     void apply_op_single_perm(color **out,color **temp,quad_su3 **conf,std::vector<int> &list_dir,color **in)
@@ -58,7 +104,7 @@ namespace nissa
 	      vector_copy(temp[eo],out[eo]);
 	  
 	  //make the shift
-	  apply_covariant_shift(out,conf,*mu_it,temp);
+	  apply_covariant_shift(out,conf,*mu_it,temp,BOTH);
 	}
     }
     

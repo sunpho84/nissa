@@ -115,7 +115,10 @@ namespace nissa
     void insert_external_source_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars);
     void insert_vector_vertex(color **out,quad_su3 **conf,theory_pars_t *theory_pars,int iflav,spin1field **curr,color **in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,spin1field **curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
     void summ_the_trace(double *out,complex *point_result,color **A,color **B);
-    void apply_covariant_shift(color **out,quad_su3 **conf,int mu,color **in);
+    
+    enum shift_orie_t{UP,DW,BOTH};
+    void apply_covariant_shift(color **out,quad_su3 **conf,int mu,color **in,shift_orie_t side=BOTH);
+    void summ_covariant_shift(color **out,quad_su3 **conf,int mu,color **in,shift_orie_t side);
     void apply_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,quad_u1 **u1b,int shift,color **in);
     void put_stag_phases(color **source,int mask);
   }

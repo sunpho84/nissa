@@ -41,8 +41,9 @@ namespace nissa
       if(ns<0 or ns>m) crash("ns=%d must be in the range [%d,%d]",0,m);
       
       //set the optimal number of blocks
-      double nb=pow(m,1.0/(ns+1.0));
-      verbosity_lv3_master_printf("nb: %lg\n",nb);
+      double nb=pow(m,1.0/ns);
+      //verbosity_lv3_
+	master_printf("nb: %lg\n",nb);
       
       //resize
       levs.resize(ns+1);
@@ -51,8 +52,9 @@ namespace nissa
       //set units of smooth
       for(int il=0;il<nl();il++)
 	{
-	  levs[il].units=std::max(1.0,m/pow(nb,il+1)+1e-10);
-	  verbosity_lv3_master_printf("%d %.16lg,%d\n",il,std::max(1.0,m/pow(nb,il+1)),levs[il].units);
+	  levs[il].units=std::max(1.0,m/pow(nb,il)+1e-10);
+	  // verbosity_lv3_
+	    master_printf("unit %d: %d\n",il,levs[il].units);
 	}
     }
     
@@ -67,6 +69,7 @@ namespace nissa
 	  vector_copy(levs[i].conf,ori_conf);
 	  levs[i].nsmooth=-1;
 	}
+      levs.front().nsmooth=0;
     }
     
     //find the level which has the closest smaller nsmooth
@@ -96,15 +99,20 @@ namespace nissa
     }
     
     //evolve until nsmooth
-    void update_level(int is,int nsmooth,int *dirs=all_dirs,int staple_min_dir=0)
+    int update_level(int is,int nsmooth,int *dirs=all_dirs,int staple_min_dir=0)
     {
+      int nevol=0;
+      
       //verbosity_lv3_
 	master_printf("levs[%d].nsmooth: %d nsmooth: %d\n",is,levs[is].nsmooth,nsmooth);
       while(levs[is].nsmooth<nsmooth)
 	{
 	  smooth_lx_conf_one_step(levs[is].conf,smoother,dirs,staple_min_dir);
 	  levs[is].nsmooth++;
+	  nevol++;
 	}
+      
+      return nevol;
     }
     
     //return the smallest viable nsmooth rounded to the level
@@ -116,8 +124,10 @@ namespace nissa
     }
     
     //update the lowest conf using in chain the superior ones
-    quad_su3* update(int nsmooth,int *dirs=all_dirs,int staple_min_dir=0)
+    int update(int nsmooth,int *dirs=all_dirs,int staple_min_dir=0)
     {
+      int nevol=0;
+      
       //store the path
       std::vector<std::pair<int,int> > order_path;
       
@@ -138,21 +148,25 @@ namespace nissa
       std::sort(order_path.begin(),order_path.end());
       for(int ip=0;ip<(int)order_path.size();ip++) verbosity_lv3_master_printf("ip=%d targ=%d is=%d\n",ip,order_path[ip].first,order_path[ip].second);
       
-      // //if not on correct number of smooth, search for the closest and extend it
-      // if(lev_ncur_smooth!=lev_ntarg_smooth and lev_ntarg_smooth<nsmooth)
-      // 	    {
-      // 	      //find
-      // 	      int iclosest_smooth=find_closest_smaller_nsmooth(lev_ntarg_smooth);
-      // 	      //verbosity_lv3_
-      // 		master_printf("Closest level: %d, nsmooth: %d\n",iclosest_smooth,levs[iclosest_smooth].nsmooth);
-	      
-      // 	      //copy and extend if needed
-      // 	      copy_level(is,iclosest_smooth);
-      // 	      update_level(is,nsmooth,dirs,staple_min_dir);
-      // 	    }
-      // 	}
+      //if not on correct number of smooth, search for the closest and extend it
+      for(int ip=0;ip<(int)order_path.size();ip++)
+	{
+	  int lev_ntarg_smooth=order_path[ip].first;
+	  int il=order_path[ip].second;
+	  
+	  int iclosest_smooth=find_closest_smaller_nsmooth(lev_ntarg_smooth);
+	  //verbosity_lv3_
+	  master_printf("Targetting %d for lev %d, closest level: %d, nsmooth: %d\n",lev_ntarg_smooth,il,iclosest_smooth,levs[iclosest_smooth].nsmooth);
+	  
+	  if(iclosest_smooth!=il)
+	    {
+	      //copy and extend if needed
+       	      copy_level(il,iclosest_smooth);
+	      nevol+=update_level(il,lev_ntarg_smooth,dirs,staple_min_dir);
+       	    }
+       	}
       
-      return levs.back().conf;
+      return nevol;
     }
   };
 }

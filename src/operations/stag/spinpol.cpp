@@ -187,6 +187,20 @@ namespace nissa
       }
     while(not finished);
     
+    int ns=5;
+    recursive_smoother_t recu(ns,sp);
+    recu.set_conf(smoothed_conf[0]);
+    //quad_su3 *test=
+    int nevol=0;
+    for(int i=sp.nsmooth();i>=0;i--)
+      {
+	master_printf("\n");
+	nevol+=recu.update(i);
+      }
+    master_printf("nevol: %d\n",nevol);
+	//recu.update(11);
+    
+    
     //compute the topological charge and the product of topological and tensorial density
     int ncopies=mp.ncopies;
     for(int icopy=0;icopy<ncopies;icopy++)
