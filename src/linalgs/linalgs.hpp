@@ -25,6 +25,8 @@ namespace nissa
   void double_vector_linear_comb(double *a,double *b,double c,double *d,double e,int n,int OPT=0);
   void single_vector_linear_comb(float *a,float *b,float c,float *d,float e,int n,int OPT=0);
   void double_vector_prod_double(double *out,double *in,double r,int n);
+  inline void double_vector_prodassign_double(double *v,double r,int n)
+  {double_vector_prod_double(v,v,r,n);}
   void double_vector_normalize(double *rat,double *out,double *in,double fact,int n);
   void double_vector_prod_the_summ_double(double *out,double r,double *in1,double *in2,int n);
   void double_vector_subt(double *out,double *in1,double *i2,int n);
@@ -32,6 +34,8 @@ namespace nissa
   inline void double_vector_summassign(double *out,double *in,int n){double_vector_summ(out,out,in,n);}
   inline void double_vector_subtassign(double *out,double *in,int n){double_vector_subt(out,out,in,n);}
   void double_vector_summ_double_vector_prod_double(double *a,double *b,double *c,double d,int n,int OPT=0);
+  inline void double_vector_summassign_double_vector_prod_double(double *a,double *b,double c,int n,int OPT=0)
+  {double_vector_summ_double_vector_prod_double(a,a,b,c,n,OPT);}
   void float_128_vector_prod_double(float_128 *out,float_128 *in,double r,int n);
   void single_vector_summ_single_vector_prod_single(float *a,float *b,float *c,float d,int n,int OPT=0);
   void get_color_from_colorspinspin(color *out,colorspinspin *in,int id1,int id2);
