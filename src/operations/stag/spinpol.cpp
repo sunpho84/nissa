@@ -161,12 +161,12 @@ namespace nissa
     
     //smooth
     int imeas=0;
-    int nsmooth=0,nsmooth_next_meas=sp.meas_each_nsmooth;
+    int nsmooth=0;
     std::vector<int> nsmooth_meas(nmeas);
     bool finished;
     do
       {
-	verbosity_lv2_master_printf("Meas: %d/%d, %d\n",imeas,nmeas,nsmooth);
+	verbosity_lv2_master_printf("Meas: %d/%d, nsmooth: %d\n",imeas,nmeas,nsmooth);
 	
 	if(imeas==0)
 	  {
@@ -176,7 +176,7 @@ namespace nissa
 	else
 	  {
 	    vector_copy(smoothed_conf[imeas],smoothed_conf[imeas-1]);
-	    finished=smooth_lx_conf_until_next_meas(smoothed_conf[imeas],sp,nsmooth,nsmooth_next_meas);
+	    finished=smooth_lx_conf_until_next_meas(smoothed_conf[imeas],sp,nsmooth);
 	  }
 	
 	split_lx_vector_into_eo_parts(ferm_conf[imeas],smoothed_conf[imeas]);

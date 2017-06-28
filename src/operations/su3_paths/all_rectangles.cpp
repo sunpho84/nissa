@@ -149,14 +149,14 @@ namespace nissa
 	  }
 	
 	//spatial smearing
-	int nsmooth=0,nsmooth_next_meas=0;
+	int nsmooth=0;
 	bool finished;
 	int imeas=0;
 	do
 	  {
-	    finished=smooth_lx_conf_until_next_meas(sme_conf,pars->spat_smear_pars,nsmooth,nsmooth_next_meas,all_other_dirs[mu0]);
+	    finished=smooth_lx_conf_until_next_meas(sme_conf,pars->spat_smear_pars,nsmooth,all_other_dirs[mu0]);
 	    verbosity_lv1_master_printf("Plaquette after %d perp to dir nsmooth %d: %16.16lg\n",
-					imeas,mu0,nsmooth_next_meas,global_plaquette_lx_conf(sme_conf));
+					imeas,mu0,nsmooth,global_plaquette_lx_conf(sme_conf));
 	    
 	    //store "spatial" links and send them
 	    for(int imu1=0;imu1<3;imu1++)

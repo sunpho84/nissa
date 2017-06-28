@@ -40,7 +40,11 @@ namespace nissa
 	}
     }
     
-    //! returns the number of smooth
+    //return the next measure
+    int next_nsmooth_meas(int nsmooth)
+    {return (nsmooth+meas_each_nsmooth)/meas_each_nsmooth*meas_each_nsmooth;}
+    
+    //returns the number of smooth
     int nsmooth()
     {
       switch(method)
@@ -73,8 +77,8 @@ namespace nissa
       meas_each_nsmooth(def_meas_each_nsmooth()) {}
   };
   
-  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs,int staple_min_dir);
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const int nsmooth_next,int *dirs=all_dirs,int staple_min_dir=0);
+  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs=all_dirs,int staple_min_dir=0);
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,int *dirs=all_dirs,int staple_min_dir=0);
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs=all_dirs,int staple_min_dir=0);
 }
 

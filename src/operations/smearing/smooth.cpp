@@ -22,17 +22,18 @@ namespace nissa
   }
   
   //smooth a configuration until measure is due
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const int nsmooth_next,int *dirs,int staple_min_dir)
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,int *dirs,int staple_min_dir)
   {
     if(sp.method==smooth_pars_t::COOLING and dirs!=all_dirs) crash("not implemented");
     
     bool finished=1;
-    while(nsmooth<nsmooth_next)
+    int next_nsmooth_meas=sp.next_nsmooth_meas(nsmooth);
+    while(nsmooth<next_nsmooth_meas)
       {
 	smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);
-	finished=(nsmooth>sp.nsmooth());
+	nsmooth++;
+	finished=(nsmooth>=sp.nsmooth());
       }
-    if(not finished) nsmooth+=sp.meas_each_nsmooth;
     
     return finished;
   }
@@ -40,9 +41,8 @@ namespace nissa
   //smooth a configuration as imposed
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs,int staple_min_dir)
   {
-    int nsmooth=0;
-    int nsmooth_next=sp.nsmooth();
-    smooth_lx_conf_until_next_meas(smoothed_conf,sp,nsmooth,nsmooth_next);
+    for(int ismooth=0;ismooth<sp.nsmooth();ismooth++)
+      smooth_lx_conf_one_step(smoothed_conf,sp);
   }
   
   std::string smooth_pars_t::get_str(bool full)
