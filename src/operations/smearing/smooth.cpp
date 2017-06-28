@@ -11,6 +11,7 @@ namespace nissa
   //smooth a configuration for one step
   void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs,int staple_min_dir)
   {
+    verbosity_lv3_master_printf("smoothing one step\n");
     switch(sp.method)
       {
       case smooth_pars_t::COOLING: cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));break;
@@ -30,6 +31,7 @@ namespace nissa
     int next_nsmooth_meas=sp.next_nsmooth_meas(nsmooth);
     while(nsmooth<next_nsmooth_meas)
       {
+	verbosity_lv3_master_printf("smoothing %d to %d %d\n",nsmooth,next_nsmooth_meas,(int)(nsmooth>sp.nsmooth()));
 	smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);
 	nsmooth++;
 	finished=(nsmooth>=sp.nsmooth());

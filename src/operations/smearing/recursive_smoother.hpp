@@ -31,7 +31,7 @@ namespace nissa
     int nl()
     {return levs.size();}
     
-    recursive_smoother_t(quad_su3 **ori_conf,int ns,smooth_pars_t &smoother) : smoother(smoother)
+    recursive_smoother_t(int ns,smooth_pars_t &smoother) : smoother(smoother)
     {
       //take the number of smooth levels
       int m=smoother.nsmooth();
@@ -44,34 +44,39 @@ namespace nissa
       
       //resize
       levs.resize(ns+1);
-      for(int i=0;i<=ns;i++)
-	{
-	  //allocate
-	  levs[i].conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
-	  //take the first
-	  vector_copy(levs[i].conf,ori_conf);
-	  //set smooth to 0
-	  levs[i].nsmooth=0;
-	}
+      for(int i=0;i<nl();i++) levs[i].conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
       
       //set units of smooth, recursively
       levs.back().epsb=1;
-      for(int is=ns-1;is>=0;is++)
+      for(int is=ns-1;is>=0;is--)
 	levs[is].epsb=levs[is+1].epsb*mb;
+    }
+    
+    ~recursive_smoother_t()
+    {for(int is=0;is<nl();is++) nissa_free(levs[is].conf);}
+    
+    //set the external conf
+    void set_conf(quad_su3 *ori_conf)
+    {
+      for(int i=0;i<nl();i++)
+	{
+	  vector_copy(levs[i].conf,ori_conf);
+	  levs[i].nsmooth=0;
+	}
     }
     
     //find the level which has the closest smaller nsmooth
     int find_closest_smaller_nsmooth(int nsmooth)
     {
-      master_printf(" searching the level closest to %d\n",nsmooth);
+      verbosity_lv3_master_printf(" searching the level closest to %d\n",nsmooth);
       
       int iclosest_smooth=0;
       for(int is=1;is<nl();is++)
 	{
 	  int nclosest_smooth=levs[iclosest_smooth].nsmooth;
 	  int lev_ncur_smooth=levs[is].nsmooth;
-	  master_printf(" level %d: %d, current closest: %d, ncloses_smooth: %d\n",is,lev_ncur_smooth,iclosest_smooth,nclosest_smooth);
-	  if(lev_ncur_smooth<nsmooth and lev_ncur_smooth>nclosest_smooth) iclosest_smooth=is;
+	  verbosity_lv3_master_printf(" level %d: %d, current closest: %d, nclosest_smooth: %d\n",is,lev_ncur_smooth,iclosest_smooth,nclosest_smooth);
+	  if(lev_ncur_smooth<=nsmooth and lev_ncur_smooth>nclosest_smooth) iclosest_smooth=is;
 	}
       
       return iclosest_smooth;
@@ -85,8 +90,9 @@ namespace nissa
     }
     
     //evolve until nsmooth
-    void update_level(int is,int nsmooth,int *dirs,int staple_min_dir)
+    void update_level(int is,int nsmooth,int *dirs=all_dirs,int staple_min_dir=0)
     {
+      verbosity_lv3_master_printf("levs[%d].nsmooth: %d nsmooth: %d\n",is,levs[is].nsmooth,nsmooth);
       while(levs[is].nsmooth<nsmooth)
 	{
 	  smooth_lx_conf_one_step(levs[is].conf,smoother,dirs,staple_min_dir);
@@ -95,20 +101,21 @@ namespace nissa
     }
     
     //update the lowest conf using in chain the superior ones
-    void update(int nsmooth,int *dirs,int staple_min_dir)
+    void update(int nsmooth,int *dirs=all_dirs,int staple_min_dir=0)
     {
       for(int is=1;is<nl();is++)
 	{
 	  int lev_ncur_smooth=levs[is].nsmooth;
-	  int lev_ntarg_smooth=nsmooth%levs[is].epsb;
-	  master_printf("Targeting at nsmooth=%d, current smooth at level %d: %d, this should be %d\n",nsmooth,is,lev_ncur_smooth,lev_ntarg_smooth);
+	  int units=levs[is].epsb;
+	  int lev_ntarg_smooth=nsmooth/units*units;
+	  verbosity_lv3_master_printf("Targeting at nsmooth=%d, current smooth at level %d units of %d: %d, this should be %d\n",nsmooth,is,units,lev_ncur_smooth,lev_ntarg_smooth);
 	  
 	  //if not on top, search the closest and extend it
 	  if(lev_ncur_smooth!=lev_ntarg_smooth)
 	    {
 	      //find
 	      int iclosest_smooth=find_closest_smaller_nsmooth(lev_ntarg_smooth);
-	      master_printf("Closest level: %d, nsmooth: %d\n",iclosest_smooth,levs[iclosest_smooth].nsmooth);
+	      verbosity_lv3_master_printf("Closest level: %d, nsmooth: %d\n",iclosest_smooth,levs[iclosest_smooth].nsmooth);
 	      
 	      //copy and extend if needed
 	      copy_level(is,iclosest_smooth);

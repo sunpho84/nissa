@@ -2,6 +2,7 @@
 #define _SPINPOL_HPP
 
 #include "stag.hpp"
+#include "operations/smearing/recursive_smoother.hpp"
 #include "operations/smearing/smooth.hpp"
 
 namespace nissa
