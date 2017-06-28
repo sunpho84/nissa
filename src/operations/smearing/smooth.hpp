@@ -16,9 +16,9 @@ namespace nissa
     
     //basic
     method_t method;
-    double meas_each;
+    int meas_each_nsmooth;
     method_t def_method(){return COOLING;}
-    double def_meas_each(){return 1;}
+    int def_meas_each_nsmooth(){return 1;}
     
     //pars
     cool_pars_t cool;
@@ -40,19 +40,23 @@ namespace nissa
 	}
     }
     
-    //! returns the number of measurement, without 0
+    //! returns the number of smooth
     int nsmooth()
     {
       switch(method)
 	{
-	case COOLING:return cool.nsteps/(int)meas_each;break;
-	case STOUT:return stout.nlevels/(int)meas_each;break;
-	case WFLOW:return Wflow.T/meas_each;break;
-	case APE:return ape.nlevels/(int)meas_each;break;
-	case HYP:return hyp.nlevels/(int)meas_each;break;
+	case COOLING:return cool.nsteps;break;
+	case STOUT:return stout.nlevels;break;
+	case WFLOW:return Wflow.nflows;break;
+	case APE:return ape.nlevels;break;
+	case HYP:return hyp.nlevels;break;
 	default:crash("not meant to be reached");return 0;
 	}
     }
+    
+    //! returns the number of measurement, without 0
+    int nmeas_nonzero()
+    {return nsmooth()/meas_each_nsmooth;}
     
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
@@ -61,15 +65,16 @@ namespace nissa
     {
       return
 	method!=def_method() or
-	meas_each!=def_meas_each();
+	meas_each_nsmooth!=def_meas_each_nsmooth();
     }
     
     smooth_pars_t() :
       method(def_method()),
-      meas_each(def_meas_each()) {}
+      meas_each_nsmooth(def_meas_each_nsmooth()) {}
   };
   
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,double &t,double &tnext_meas,int *dirs=all_dirs,int staple_min_dir=0);
+  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs,int staple_min_dir);
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const int nsmooth_next,int *dirs=all_dirs,int staple_min_dir=0);
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs=all_dirs,int staple_min_dir=0);
 }
 

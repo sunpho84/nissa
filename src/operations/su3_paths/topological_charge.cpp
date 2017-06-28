@@ -338,7 +338,7 @@ namespace nissa
       }
     else smoothed_conf=unsmoothed_conf;
     
-    double t=0,tnext_meas=pars.smooth_pars.meas_each;
+    int nsmooth=0,nsmooth_next_meas=pars.smooth_pars.meas_each_nsmooth;
     bool finished;
     do
       {
@@ -349,8 +349,8 @@ namespace nissa
 	double tot_charge;
 	double_vector_glb_collapse(&tot_charge,charge,loc_vol);
 	total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-	master_fprintf(file,"%d %lg %+16.16lg %16.16lg\n",iconf,t,tot_charge,plaq);
-	finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,t,tnext_meas);
+	master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,nsmooth,tot_charge,plaq);
+	finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,nsmooth,nsmooth_next_meas);
 	//correlators if asked
 	if(pars.meas_corr)
 	  {

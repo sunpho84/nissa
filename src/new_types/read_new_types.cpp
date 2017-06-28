@@ -47,8 +47,8 @@ namespace nissa
   //read parameters to flow
   void read_Wflow_pars(Wflow_pars_t &pars)
   {
-    read_str_double("FlowTime",&pars.T);
-    read_str_double("InteStep",&pars.dt);
+    read_str_int("NFlows",&pars.nflows);
+    read_str_double("FlowStep",&pars.dt);
   }
   
   //read and return path

@@ -118,12 +118,6 @@ void read_cool_pars(cool_pars_t &cool_pars)
   if(cool_pars.overrelax_flag==1) read_str_double("CoolOverrelaxExp",&cool_pars.overrelax_exp);
 }
 
-//read parameters to flow
-void read_Wflow_pars(Wflow_pars_t &pars)
-{
-  read_str_double("FlowTime",&pars.T);
-  read_str_double("InteStep",&pars.dt);
-}
 
 //convert a string into smoothing method
 smooth_pars_t::method_t smooth_method_name_from_str(const char *name)
@@ -158,9 +152,7 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
 	case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow);break;
 	default: crash("should not arrive here");break;
 	}
-      read_str_double("MeasEach",&smooth_pars.meas_each);
-      if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUT)&&fabs(smooth_pars.meas_each-int(smooth_pars.meas_each))>=1.e-14)
-	crash("MeasEach must be integer if Cooling or Stouting method selected");
+      read_str_int("MeasEachNSmooth",&smooth_pars.meas_each_nsmooth);
     }
 }
 
@@ -543,7 +535,7 @@ void init_simulation(char *path)
   
   //read the topology measures info
   read_top_meas_pars(top_meas_pars);
-  if(top_meas_pars.smooth_pars.method==smooth_pars_t::COOLING && top_meas_pars.smooth_pars.meas_each) init_sweeper(top_meas_pars.smooth_pars.cool.gauge_action);
+  if(top_meas_pars.smooth_pars.method==smooth_pars_t::COOLING && top_meas_pars.smooth_pars.meas_each_nsmooth) init_sweeper(top_meas_pars.smooth_pars.cool.gauge_action);
   
   //read X space correlation measurement
   read_str_int("MeasXCorr",&x_corr_flag);

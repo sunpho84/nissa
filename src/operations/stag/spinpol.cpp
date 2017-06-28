@@ -148,7 +148,7 @@ namespace nissa
     for(int iflav_op=0;iflav_op<nflavs*nop;iflav_op++) tens_dens[iflav_op]=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
     
     //allocate the smoothed confs
-    int nmeas=mp.smooth_pars.nsmooth()+1;
+    int nmeas=mp.smooth_pars.nmeas_nonzero()+1;
     quad_su3 *smoothed_conf[nmeas];
     quad_su3 *ferm_conf[nmeas][2];
     quad_su3 *gauge_conf=nissa_malloc("gauge_conf",loc_vol+bord_vol,quad_su3);
@@ -161,12 +161,12 @@ namespace nissa
     
     //smooth
     int imeas=0;
-    double t=0,tnext_meas=sp.meas_each;
-    std::vector<double> tmeas(nmeas);
+    int nsmooth=0,nsmooth_next_meas=sp.meas_each_nsmooth;
+    std::vector<int> nsmooth_meas(nmeas);
     bool finished;
     do
       {
-	verbosity_lv2_master_printf("Meas: %d/%d, %lg\n",imeas,nmeas,t);
+	verbosity_lv2_master_printf("Meas: %d/%d, %d\n",imeas,nmeas,nsmooth);
 	
 	if(imeas==0)
 	  {
@@ -176,13 +176,13 @@ namespace nissa
 	else
 	  {
 	    vector_copy(smoothed_conf[imeas],smoothed_conf[imeas-1]);
-	    finished=smooth_lx_conf_until_next_meas(smoothed_conf[imeas],sp,t,tnext_meas);
+	    finished=smooth_lx_conf_until_next_meas(smoothed_conf[imeas],sp,nsmooth,nsmooth_next_meas);
 	  }
 	
 	split_lx_vector_into_eo_parts(ferm_conf[imeas],smoothed_conf[imeas]);
 	stout_smear(ferm_conf[imeas],ferm_conf[imeas],&stout_pars);
 	
-	tmeas[imeas]=t;
+	nsmooth_meas[imeas]=nsmooth;
 	imeas++;
       }
     while(not finished);
@@ -192,7 +192,7 @@ namespace nissa
     for(int icopy=0;icopy<ncopies;icopy++)
       for(int imeas=0;imeas<nmeas;imeas++)
 	{
-	  verbosity_lv1_master_printf("Computing copy %d/%d smooth %d/%d, t %lg/%lg\n",icopy,ncopies,imeas,nmeas,tmeas[imeas],t);
+	  verbosity_lv1_master_printf("Computing copy %d/%d smooth %d/%d, t %d/%d\n",icopy,ncopies,imeas,nmeas,nsmooth_meas[imeas],nsmooth);
 	  
 	  //evaluate the tensorial density for all quarks
 	  compute_tensorial_density(tens,tens_dens,&tp,ferm_conf[imeas],mp.operators,mp.nhits,mp.residue);
@@ -221,8 +221,8 @@ namespace nissa
 		    
 		    complex spinpol;
 		    complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
-		    master_fprintf(fout, "%d\t%d\t%lg\t%d\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",
-				   iconf,icopy,tmeas[imeas],igauge_conf,iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,tot_charge2,
+		    master_fprintf(fout, "%d\t%d\t%d\t%d\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",
+				   iconf,icopy,nsmooth_meas[imeas],igauge_conf,iflav,mp.operators[iop].first,mp.operators[iop].second,plaq,tot_charge,tot_charge2,
 				   spinpol[RE],spinpol[IM],tens[iop+nop*iflav][RE],tens[iop+nop*iflav][IM]);
 		  }
 	    }

@@ -110,8 +110,8 @@
 %type <text_list> internal_text_list
 //each
 %token TK_EACH
-%token TK_MEAS_EACH
-%type <double_numb> each meas_each
+%token TK_MEAS_EACH_NSMOOTH
+%type <double_numb> each meas_each_nsmooth
 //after
 %token <int_numb> TK_AFTER
 %type <int_numb> after
@@ -183,10 +183,10 @@
 //Wflow pars
 %token TK_WFLOW
 %type <Wflow_pars> Wflow_pars
-%token TK_FLOW_TIME
-%type <double_numb> flow_time
-%token TK_INTE_STEP
-%type <double_numb> inte_step
+%token TK_NFLOWS
+%type <int_numb> nflows
+%token TK_FLOW_STEP
+%type <double_numb> flow_step
 //gauge action
 %token TK_GAUGE_ACTION
 %token TK_WILSON
@@ -326,7 +326,7 @@ gauge_action: TK_GAUGE_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
 
 each: TK_EACH '=' int_numb {$$=$3;};
 
-meas_each: TK_MEAS_EACH '=' double_numb {$$=$3;};
+meas_each_nsmooth: TK_MEAS_EACH_NSMOOTH '=' double_numb {$$=$3;};
 
 after: TK_AFTER '=' int_numb {$$=$3;};
 
@@ -400,6 +400,7 @@ smooth_pars: TK_SMOOTH_METHOD '=' stout_pars {$$=new smooth_pars_t;$$->method=sm
            | TK_SMOOTH_METHOD '=' Wflow_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::WFLOW;$$->Wflow=(*$3);delete $3;}
            | TK_SMOOTH_METHOD '=' ape_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::APE;$$->ape=(*$3);delete $3;}
            | TK_SMOOTH_METHOD '=' hyp_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::HYP;$$->hyp=(*$3);delete $3;}
+           | smooth_pars meas_each_nsmooth {$1->meas_each_nsmooth=$2;}
 ;
 
 ////////////////////////////////////////////////// STOUT PARS //////////////////////////////////////////////////
@@ -449,12 +450,12 @@ alphas: TK_ALPHAS '=' double_list {$$=$3;};
 ////////////////////////////////////////////////// WFLOW PARS //////////////////////////////////////////////////
 
 Wflow_pars: TK_WFLOW {$$=new Wflow_pars_t;}
-          | Wflow_pars flow_time {$$=$1;$$->T=$2;}
-          | Wflow_pars inte_step {$$=$1;$$->dt=$2;}
+          | Wflow_pars nflows {$$=$1;$$->nflows=$2;}
+          | Wflow_pars flow_step {$$=$1;$$->dt=$2;}
 ;
 
-flow_time: TK_FLOW_TIME '=' double_numb {$$=$3;};
-inte_step: TK_INTE_STEP '=' double_numb {$$=$3;};
+nflows: TK_NFLOWS '=' int_numb {$$=$3;};
+flow_step: TK_FLOW_STEP '=' double_numb {$$=$3;};
 
 ////////////////////////////////////////////////// QUARK CONTENT //////////////////////////////////////////////////
 
@@ -565,7 +566,6 @@ spinpol_meas: TK_MEAS_SPINPOL {$$=new spinpol_meas_pars_t();}
                   | spinpol_meas nhits {$$->nhits=$2;}
                   | spinpol_meas operators {$$->operators=*$2;delete $2;}
                   | spinpol_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
-                  | spinpol_meas meas_each {$$->smooth_pars.meas_each=$2;}
 ;
 
 ////////////////////////////////////////////////// QED CORR //////////////////////////////////////////////////
@@ -648,7 +648,6 @@ top_meas: TK_MEAS_TOP {$$=new top_meas_pars_t();}
         | top_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
         | top_meas TK_MEAS_CORR '=' int_numb {$$->meas_corr=$4;}
         | top_meas TK_CORR_PATH '=' text  {$$->corr_path=(*$4);}
-        | top_meas meas_each {$$->smooth_pars.meas_each=$2;}
 ;
 
 //////////////////////////////////////////// POLYAKOV LOOP CORRELATORS /////////////////////////////////////////////

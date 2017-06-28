@@ -83,7 +83,7 @@ namespace nissa
     crash("not implemented");
 #endif
   }
-
+  
   //compute all possible rectangular paths among a defined interval
   THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rects_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
@@ -93,7 +93,7 @@ namespace nissa
     verbosity_lv1_master_printf("Computing all rectangular paths\n");
     
     //remapping
-    int nspat_sme=pars->spat_smear_pars.nsmooth(),ntot_sme=1+nspat_sme;
+    int nspat_sme=pars->spat_smear_pars.nmeas_nonzero(),ntot_sme=1+nspat_sme;
     int prp_vol[12],cmp_vol[12],imu01=0,mu0_l[12],mu1_l[12],cmp_vol_max=0;
     vector_remap_t *remap[12];
     su3 *transp_conf[12];
@@ -149,14 +149,14 @@ namespace nissa
 	  }
 	
 	//spatial smearing
-	double t=0,tnext_meas=0;
+	int nsmooth=0,nsmooth_next_meas=0;
 	bool finished;
 	int imeas=0;
 	do
 	  {
-	    finished=smooth_lx_conf_until_next_meas(sme_conf,pars->spat_smear_pars,t,tnext_meas,all_other_dirs[mu0]);
-	    verbosity_lv1_master_printf("Plaquette after %d perp to dir time %lg smooth: %16.16lg\n",
-					imeas,mu0,tnext_meas,global_plaquette_lx_conf(sme_conf));
+	    finished=smooth_lx_conf_until_next_meas(sme_conf,pars->spat_smear_pars,nsmooth,nsmooth_next_meas,all_other_dirs[mu0]);
+	    verbosity_lv1_master_printf("Plaquette after %d perp to dir nsmooth %d: %16.16lg\n",
+					imeas,mu0,nsmooth_next_meas,global_plaquette_lx_conf(sme_conf));
 	    
 	    //store "spatial" links and send them
 	    for(int imu1=0;imu1<3;imu1++)
@@ -301,9 +301,9 @@ namespace nissa
 		for(int dd=0;dd<dD;dd++)
 		  for(int dt=0;dt<dT;dt++)
 		    {
-		      fprintf(fout,"cnf=%d %c_spatsme_%lg=%d %c_hyp=%d %16.16lg\n",
+		      fprintf(fout,"cnf=%d %c_spatsme_%d=%d %c_hyp=%d %16.16lg\n",
 			      iconf,
-			      dir_name[mu1_l[imu01]],isme*pars->spat_smear_pars.meas_each,dd+pars->Dmin,
+			      dir_name[mu1_l[imu01]],isme*pars->spat_smear_pars.meas_each_nsmooth,dd+pars->Dmin,
 			      dir_name[mu0_l[imu01]],dt+pars->Tmin,
 			      all_rectangles_glb[irect++]/(3*glb_vol));
 		    }

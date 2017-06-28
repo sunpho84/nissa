@@ -8,28 +8,31 @@
 
 namespace nissa
 {
+  //smooth a configuration for one step
+  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs,int staple_min_dir)
+  {
+    switch(sp.method)
+      {
+      case smooth_pars_t::COOLING: cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));break;
+      case smooth_pars_t::STOUT: stout_smear_single_level(smoothed_conf,smoothed_conf,sp.stout.rho);;break;
+      case smooth_pars_t::WFLOW: Wflow_lx_conf(smoothed_conf,sp.Wflow.dt,dirs);break;
+      case smooth_pars_t::HYP: hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);break;
+      case smooth_pars_t::APE: ape_smear_conf(smoothed_conf,smoothed_conf,sp.ape.alpha,1,dirs,staple_min_dir);break;
+      }
+  }
+  
   //smooth a configuration until measure is due
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,double &t,double &tnext_meas,int *dirs,int staple_min_dir)
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const int nsmooth_next,int *dirs,int staple_min_dir)
   {
     if(sp.method==smooth_pars_t::COOLING and dirs!=all_dirs) crash("not implemented");
     
     bool finished=1;
-    while(t+1e-10<tnext_meas)
+    while(nsmooth<nsmooth_next)
       {
-	double tcheck=0;
-	
-	switch(sp.method)
-	  {
-	  case smooth_pars_t::COOLING: cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));t++;tcheck=sp.cool.nsteps;break;
-	  case smooth_pars_t::STOUT: stout_smear_single_level(smoothed_conf,smoothed_conf,sp.stout.rho);t++;tcheck=sp.stout.nlevels;break;
-	  case smooth_pars_t::WFLOW: Wflow_lx_conf(smoothed_conf,sp.Wflow.dt,dirs);t+=sp.Wflow.dt;tcheck=sp.Wflow.T;break;
-	  case smooth_pars_t::HYP: hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);t+=1;tcheck=sp.hyp.nlevels;break;
-	  case smooth_pars_t::APE: ape_smear_conf(smoothed_conf,smoothed_conf,sp.ape.alpha,1,dirs,staple_min_dir);t+=1;tcheck=sp.ape.nlevels;break;
-	  }
-	
-	finished=(t+1e-10>tcheck);
+	smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);
+	finished=(nsmooth>sp.nsmooth());
       }
-    if(not finished) tnext_meas+=sp.meas_each;
+    if(not finished) nsmooth+=sp.meas_each_nsmooth;
     
     return finished;
   }
@@ -37,16 +40,9 @@ namespace nissa
   //smooth a configuration as imposed
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs,int staple_min_dir)
   {
-    if(sp.method==smooth_pars_t::COOLING and dirs!=all_dirs) crash("not implemented");
-    
-    switch(sp.method)
-      {
-      case smooth_pars_t::COOLING: for(int icool=0;icool<sp.cool.nsteps;icool++) cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));break;
-      case smooth_pars_t::STOUT: for(int istout=0;istout<sp.stout.nlevels;istout++) stout_smear(smoothed_conf,smoothed_conf,&sp.stout,dirs);break;
-      case smooth_pars_t::WFLOW: for(double t=0;t<sp.Wflow.T;t+=sp.Wflow.dt) Wflow_lx_conf(smoothed_conf,sp.Wflow.dt,dirs);break;
-      case smooth_pars_t::HYP: for(int ihyp=0;ihyp<sp.hyp.nlevels;ihyp++) hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);break;
-      case smooth_pars_t::APE: for(int iape=0;iape<sp.ape.nlevels;iape++) ape_smear_conf(smoothed_conf,smoothed_conf,sp.ape.alpha,1,dirs,staple_min_dir);break;
-      }
+    int nsmooth=0;
+    int nsmooth_next=sp.nsmooth();
+    smooth_lx_conf_until_next_meas(smoothed_conf,sp,nsmooth,nsmooth_next);
   }
   
   std::string smooth_pars_t::get_str(bool full)
@@ -73,7 +69,7 @@ namespace nissa
 	      }
 	    //os<<" /* alternatives: Cooling, Stout, WFlow, Ape, Hyp */\n";
 	  }
-	if(full or meas_each!=def_meas_each()) os<<" MeasEach\t=\t"<<meas_each<<"\n";
+	if(full or meas_each_nsmooth!=def_meas_each_nsmooth()) os<<" MeasEachNSmooth\t=\t"<<meas_each_nsmooth<<"\n";
       }
     
     return os.str();

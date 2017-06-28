@@ -36,10 +36,12 @@ void read_cool_pars(cool_pars_t &cool_pars)
 }
 
 //read parameters to flow
-void read_Wflow_pars(Wflow_pars_t &pars)
+void legacy_read_Wflow_pars(Wflow_pars_t &pars)
 {
-  read_str_double("FlowTime",&pars.T);
+  double T;
+  read_str_double("T",&T);
   read_str_double("InteStep",&pars.dt);
+  pars.nflows=T/pars.dt+0.5;
 }
 
 //read parameters to smooth
@@ -55,12 +57,13 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
 	{
 	case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool);break;
 	case smooth_pars_t::STOUT: read_stout_pars(smooth_pars.stout);break;
-	case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow);break;
+	case smooth_pars_t::WFLOW: legacy_read_Wflow_pars(smooth_pars.Wflow);break;
 	default: crash("should not arrive here");break;
 	}
-      read_str_double("MeasEach",&smooth_pars.meas_each);
-      if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUT)&&fabs(smooth_pars.meas_each-int(smooth_pars.meas_each))>=1.e-14)
-	crash("MeasEach must be integer if Cooling or Stouting method selected");
+      double each;
+      read_str_double("MeasEach",&each);
+      if(smooth_pars.method==smooth_pars_t::WFLOW) smooth_pars.meas_each_nsmooth=each/smooth_pars.Wflow.dt+0.5;
+      else smooth_pars.meas_each_nsmooth=each;
     }
 }
 

@@ -189,8 +189,8 @@ ElecCharge  DEBUG_PRINTF("Found ElecCharge\n");return TK_ELEC_CHARGE;
  /* smooth method */
 SmoothMethod DEBUG_PRINTF("Found SmoothMethod\n");return TK_SMOOTH_METHOD;
 
- /* meas each */
-MeasEach DEBUG_PRINTF("Found MeasEach\n");return TK_MEAS_EACH;
+ /* meas each nsmooth */
+MeasEachNSmooth DEBUG_PRINTF("Found MeasEachNSmooth\n");return TK_MEAS_EACH_NSMOOTH;
 
  /* topo corr */
 MeasCorr DEBUG_PRINTF("Found MeasCorr\n");return TK_MEAS_CORR;
@@ -224,8 +224,8 @@ Alpha DEBUG_PRINTF("Found Alpha\n");return TK_ALPHA;
 
  /* Wflow parameters */
 WFlow DEBUG_PRINTF("Found WFlow\n");return TK_WFLOW;
-InteStep DEBUG_PRINTF("Found InteStep\n");return TK_INTE_STEP;
-FlowTime DEBUG_PRINTF("Found FlowTime\n");return TK_FLOW_TIME;
+FlowStep DEBUG_PRINTF("Found FlowStep\n");return TK_FLOW_STEP;
+NFlows DEBUG_PRINTF("Found NFlows\n");return TK_NFLOWS;
 
  /* background field parameters */
 BkgrdEMField DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
