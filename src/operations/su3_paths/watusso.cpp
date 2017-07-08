@@ -10,6 +10,7 @@
 #include "new_types/su3.hpp"
 #include "operations/shift.hpp"
 #include "operations/su3_paths/arbitrary.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 #include "operations/smearing/APE.hpp"
 #include "operations/smearing/HYP.hpp"
 #include "watusso.hpp"
@@ -33,9 +34,6 @@ namespace nissa
   //compute the flux tube
   THREADABLE_FUNCTION_4ARG(measure_watusso, watusso_meas_pars_t*,pars, quad_su3**,eo_conf, int,iconf, int,create_output_file)
   {
-    crash("to be fixed");
-
-    /*
     GET_THREAD_ID();
     
     //open output file
@@ -52,26 +50,23 @@ namespace nissa
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     
     //make local copy of pars
-    gauge_obs_temp_spat_smear_pars_t *smear_pars=&pars->smear_pars;
-    gauge_obs_temp_smear_pars_t *tsm=&smear_pars->gauge_temp_smear_pars;
     int dmax=pars->dmax;
     
     //temporal smear the conf
-    if(tsm->use_hyp_or_ape_temp)
-      ape_temporal_smear_conf(lx_conf,lx_conf,tsm->ape_temp_alpha,tsm->nape_temp_iters);
-    else
-      hyp_smear_conf_dir(lx_conf,lx_conf,tsm->hyp_temp_alpha0,tsm->hyp_temp_alpha1,tsm->hyp_temp_alpha2,0);
+    smooth_lx_conf(lx_conf,pars->temp_smear_pars,only_dir[0],1);
     
-    for(int ispat_sme=0;ispat_sme<smear_pars->nape_spat_levls;ispat_sme++)
+    //spatial smearing
+    int nu=0;
+    int nsmooth=0;
+    bool finished;
+    int imeas=0;
+    do
       {
-	//spatial smearing
-	int this_niters=smear_pars->nape_spat_iters[ispat_sme];
-	int nadd_iters=this_niters;
-	if(ispat_sme!=0) nadd_iters-=smear_pars->nape_spat_iters[ispat_sme-1];
-	ape_spatial_smear_conf(lx_conf,lx_conf,smear_pars->ape_spat_alpha,nadd_iters);
+	finished=smooth_lx_conf_until_next_meas(lx_conf,pars->spat_smear_pars,nsmooth,all_other_dirs[nu]);
+	verbosity_lv1_master_printf("Plaquette after %d perp to dir nsmooth %d: %16.16lg\n",
+					imeas,nu,nsmooth,global_plaquette_lx_conf(lx_conf));
 	
 	//compute the watusso
-	int nu=0;
 	for(int imu=0;imu<NDIM-1;imu++)
 	  {
 	    int mu=perp_dir[nu][imu];
@@ -91,13 +86,16 @@ namespace nissa
 	    complex small_trace;
 	    complex_vector_glb_collapse(small_trace,loc_res,loc_vol);
 	    
-	    master_fprintf(fout," ### APE = ( %lg , %d ) , nu = %d , mu = %d , 1/3<trU> = %+016.016lg %+016.016lg\n\n",smear_pars->ape_spat_alpha,this_niters,nu,mu,small_trace[RE]/glb_vol/NCOL,small_trace[IM]/glb_vol/NCOL);
+	    master_fprintf(fout," ### SMOOTH = ( %d ) , nu = %d , mu = %d , 1/3<trU> = %+16.16lg %+16.16lg\n\n",
+			   imeas,nu,mu,small_trace[RE]/glb_vol/NCOL,small_trace[IM]/glb_vol/NCOL);
 	    
 	    //elong on both sides the small
 	    //int prev_sizeh=0;
 	    
-	    for(int size=pars->size_min;size<=pars->size_max;size+=std::max(1,pars->size_step))
+	    for(size_t isize=0;isize<pars->sizes.size();isize++)
 	      {
+		int size=pars->sizes[isize];
+		
 		//elong the small of what needed
 		//ANNA MOVE the plaquette in the plan first
 		int sizeh=size/2;
@@ -177,16 +175,16 @@ namespace nissa
 	      }
 	  }
       }
+    while(not finished);
     
     //close file
-    if(rank==0 && IS_MASTER_THREAD) fclose(fout);
+    close_file(fout);
     
     nissa_free(lx_conf);
     nissa_free(loc_res);
     nissa_free(periscoped);
     nissa_free(big_su3);
     nissa_free(small_su3);
-    */
   }
   THREADABLE_FUNCTION_END
 }

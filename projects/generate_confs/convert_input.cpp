@@ -340,7 +340,9 @@ void read_watusso_meas_pars(std::vector<watusso_meas_pars_t> &pars,int flag=fals
     {
       pars.push_back(watusso_meas_pars_t());
       pars.back().path=read_path();
-      read_gauge_obs_temp_smear_pars(pars.back().smear_pars);
+      read_gauge_obs_temp_smear_pars(pars.back().temp_smear_pars);
+      pars.back().spat_smear_pars.method=smooth_pars_t::APE;
+      read_ape_pars(pars.back().spat_smear_pars.ape);
       int size_min,size_step,size_max;
       read_str_int("SizeMin",&size_min);
       read_str_int("SizeStep",&size_step);

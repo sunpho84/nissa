@@ -663,6 +663,8 @@ luppoli_meas: TK_MEAS_LUPPOLI {$$=new poly_corr_meas_pars_t();}
 watusso_meas: TK_MEAS_WATUSSO {$$=new watusso_meas_pars_t();}
             | watusso_meas each {$$->each=$2;}
             | watusso_meas after {$$->after=$2;}
+            | watusso_meas TK_SPATIAL smooth_pars {$$->spat_smear_pars=(*$3);delete $3;}
+            | watusso_meas TK_TEMPORAL smooth_pars {$$->temp_smear_pars=(*$3);delete $3;}
             | watusso_meas path {$$->path=(*$2);delete $2;}
 ;
 

@@ -13,7 +13,8 @@ namespace nissa
     int each;
     int after;
     std::string path;
-    smooth_pars_t smear_pars;
+    smooth_pars_t temp_smear_pars;
+    smooth_pars_t spat_smear_pars;
     std::vector<int> sizes;
     int dmax;
     
@@ -29,12 +30,13 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	each!=def_each()||
-	after!=def_after()||
-	path!=def_path()||
-	sizes.size()||
-	dmax!=def_dmax()||
-	smear_pars.is_nonstandard();
+	each!=def_each() or
+	after!=def_after() or
+	path!=def_path() or
+	sizes.size() or
+	dmax!=def_dmax() or
+	temp_smear_pars.is_nonstandard() or
+	spat_smear_pars.is_nonstandard();
     }
     
     watusso_meas_pars_t() :
