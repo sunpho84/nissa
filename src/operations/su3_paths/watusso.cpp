@@ -19,14 +19,17 @@
 #endif
 
 /*
-   ___________
-  |           |
-  |     _     |      |
-  |____|_|    |     /|\
-  |           |      |        | sizeh
-  |___________|      mu       |
-   
-  |szeh|
+     |   ___________
+    /|\ |           |
+     |  |     _     |
+     |  |____|_|    |
+ nu  |  |           |   sizeh
+time |  |___________|
+     |
+     |   sizeh
+     |-------------->
+         mu  space
+
  */
 
 namespace nissa
@@ -49,7 +52,6 @@ namespace nissa
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     
-    //make local copy of pars
     int dmax=pars->dmax;
     
     //temporal smear the conf
@@ -105,11 +107,11 @@ namespace nissa
 		//compute the big
 		const int nbig_steps=5;
 		int big_steps[2*nbig_steps]={
-		  mu,size-sizeh,
-		  nu,size,
-		  mu,-size,
+		  nu,size-sizeh,
+		  mu,size,
 		  nu,-size,
-		  mu,sizeh};
+		  mu,-size,
+		  nu,sizeh};
 		path_drawing_t b;
 		compute_su3_path(&b,big_su3,lx_conf,big_steps,nbig_steps);
 		//trace it
@@ -120,7 +122,8 @@ namespace nissa
 		
 		//elong the big of what needed
 		//ANNA MOVE the big to the center
-		for(int d=0;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,nu,+1,true);
+		for(int d=0;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,mu,+1,true);
+		//prev_sizeh=sizeh;
 		
 		master_fprintf(fout," ## size = %d , 1/3<trW> = %+016.016lg %+016.016lg\n\n",size,big_trace[RE]/glb_vol/3,big_trace[IM]/glb_vol/3);
 		
