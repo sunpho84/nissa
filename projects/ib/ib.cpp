@@ -231,7 +231,7 @@ void init_simulation(char *path)
   temp_lep=nissa_malloc("temp_lep",loc_vol+bord_vol,spinspin);
   glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol,quad_su3);
+  ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol+edge_vol,quad_su3);
 }
 
 //close deallocating everything
