@@ -74,14 +74,13 @@ namespace nissa
 	    int mu=perp_dir[nu][imu];
 	    
 	    //compute the small
-	    const int nsmall_steps=4;
-	    int small_steps[2*nsmall_steps]={
-	      nu,1,
-	      mu,1,
-	      nu,-1,
-	      mu,-1};
+	    path_list_steps_t small_steps;
+	    small_steps.push_back(std::make_pair(nu,+1));
+	    small_steps.push_back(std::make_pair(mu,+1));
+	    small_steps.push_back(std::make_pair(nu,-1));
+	    small_steps.push_back(std::make_pair(mu,-1));
 	    path_drawing_t s;
-	    compute_su3_path(&s,small_su3,lx_conf,small_steps,nsmall_steps);
+	    compute_su3_path(&s,small_su3,lx_conf,small_steps);
 	    //trace it
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_trace(loc_res[ivol],small_su3[ivol]);
 	    THREAD_BARRIER();
@@ -105,15 +104,14 @@ namespace nissa
 		//prev_sizeh=sizeh;
 		
 		//compute the big
-		const int nbig_steps=5;
-		int big_steps[2*nbig_steps]={
-		  nu,size-sizeh,
-		  mu,size,
-		  nu,-size,
-		  mu,-size,
-		  nu,sizeh};
+		path_list_steps_t big_steps;
+		big_steps.push_back(std::make_pair(nu,size-sizeh));
+		big_steps.push_back(std::make_pair(mu,size));
+		big_steps.push_back(std::make_pair(nu,-size));
+		big_steps.push_back(std::make_pair(mu,-size));
+		big_steps.push_back(std::make_pair(nu,sizeh));
 		path_drawing_t b;
-		compute_su3_path(&b,big_su3,lx_conf,big_steps,nbig_steps);
+		compute_su3_path(&b,big_su3,lx_conf,big_steps);
 		//trace it
 		NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_trace(loc_res[ivol],big_su3[ivol]);
 		THREAD_BARRIER();
@@ -125,7 +123,7 @@ namespace nissa
 		for(int d=0;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,mu,+1,true);
 		//prev_sizeh=sizeh;
 		
-		master_fprintf(fout," ## size = %d , 1/3<trW> = %+016.016lg %+016.016lg\n\n",size,big_trace[RE]/glb_vol/3,big_trace[IM]/glb_vol/3);
+		master_fprintf(fout," ## size = %d , 1/3<trW> = %+16.16lg %+16.16lg\n\n",size,big_trace[RE]/glb_vol/3,big_trace[IM]/glb_vol/3);
 		
 		//compute the periscope
 		int irho=0;
@@ -167,7 +165,7 @@ namespace nissa
 			}
 		      
 		      //print the output
-		      for(int d=0;d<2*dmax+1;d++) master_fprintf(fout,"%+d %+016.16lg %+016.16lg %+016.016lg %+016.016lg\n",d-dmax,
+		      for(int d=0;d<2*dmax+1;d++) master_fprintf(fout,"%+d %+16.16lg %+16.16lg %+16.16lg %+16.16lg\n",d-dmax,
 								 conn[d][RE]/(NCOL*glb_vol),conn[d][IM]/(NCOL*glb_vol),
 								 disc[d][RE]/(NCOL*glb_vol),disc[d][IM]/(NCOL*glb_vol));
 		      master_fprintf(fout,"\n");

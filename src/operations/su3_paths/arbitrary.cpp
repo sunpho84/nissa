@@ -512,7 +512,9 @@ namespace nissa
   
   //elong a path following a number of macro-steps
   //each step is a pairs consisting of a direction, and length with an orientation
-  THREADABLE_FUNCTION_5ARG(elong_su3_path, path_drawing_t*,c, su3*,out, quad_su3*,conf, int*,steps, int,nmacro_steps)
-  {for(int i=0;i<nmacro_steps;i++) elong_su3_path(c,out,conf,steps+i*2);}
+  THREADABLE_FUNCTION_4ARG(elong_su3_path, path_drawing_t*,c, su3*,out, quad_su3*,conf, path_list_steps_t,steps)
+  {
+    for(int i=0;i<(int)steps.size();i++) elong_su3_path(c,out,conf,steps[i]);
+  }
   THREADABLE_FUNCTION_END;
 }

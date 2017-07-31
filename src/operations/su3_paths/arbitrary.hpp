@@ -5,6 +5,7 @@
 #include <deque>
 
 #include "base/debug.hpp"
+#include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
 
@@ -147,12 +148,22 @@ namespace nissa
   void elong_su3_path_BW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,bool both_sides=false);
   void elong_su3_path_FW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,bool both_sides=false);
   void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,int len,bool both_sides=false);
+  
+  //direction and length
+  typedef std::pair<int,int> path_step_pars_t;
+  //list of direction,lengths
+  typedef std::vector<path_step_pars_t> path_list_steps_t;
+  
   //wrapper
-  inline void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int *pars)
-  {elong_su3_path(c,out,conf,pars[0],pars[1]);}
-  void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int *steps,int nmacro_steps);
-  inline void compute_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int *steps,int nmacro_steps)
-  {init_su3_path(c,out);elong_su3_path(c,out,conf,steps,nmacro_steps);}
+  inline void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,path_step_pars_t pars)
+  {elong_su3_path(c,out,conf,pars.first,pars.second);}
+  void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,path_list_steps_t steps);
+  inline void compute_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,path_list_steps_t steps)
+  {
+    init_su3_path(c,out);
+    elong_su3_path(c,out,conf,steps);
+    
+  }
 }
 
 #endif
