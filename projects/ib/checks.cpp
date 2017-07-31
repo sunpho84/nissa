@@ -117,6 +117,36 @@ void bar_contr_free(complex *mess,tm_quark_info qu)
   bar_transf(co,qu);
 }
 
+void check_fw_vacuum_curr()
+{
+  tm_quark_info qu;
+  qu.bc[0]=1;
+  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  qu.kappa=0.177;
+  qu.mass=0.4;
+  qu.r=1;
+  
+  momentum_t res;
+  memset(res,0,sizeof(momentum_t));
+  
+  NISSA_LOC_VOL_LOOP(ip)
+    {
+      double dp=den_of_mom(ip,qu);
+      momentum_t sin_p;
+      sin_mom(sin_p,ip,qu);
+      double Mp=M_of_mom(qu,ip);
+      for(int mu=0;mu<NDIM;mu++)
+	{
+	  double pmu=mom_comp_of_site(ip,qu,mu);
+	  res[mu]+=6.0/glb_vol*(-Mp*cos(pmu)+sqr(sin_p[mu]))/dp;
+	}
+    }
+  
+  master_printf("Result of Marcus comparison\n");
+  for(int mu=0;mu<NDIM;mu++)
+    master_printf("%16.16lg\n",res[mu]);
+}
+
 void check_bar()
 {
   tm_quark_info qu;
@@ -679,6 +709,8 @@ void in_main(int narg,char **arg)
   
   //print_ref_prop();
   
+  check_fw_vacuum_curr();
+  master_printf("\n\n");
   check_handcuffs();
   master_printf("\n\n");
   check_mes_2pts();
