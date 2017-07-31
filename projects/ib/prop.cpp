@@ -41,7 +41,7 @@ namespace nissa
     //invert
     START_TIMING(inv_time,ninv_tot);
     
-    quad_su3 *conf=get_updated_conf(charge,QUARK_BOUND_COND,theta);
+    quad_su3 *conf=get_updated_conf(charge,QUARK_BOUND_COND,theta,glb_conf);
     
     if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
     else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
@@ -98,7 +98,7 @@ namespace nissa
 		    complex_copy(sou->sp[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
     
-    //compute the norm2, set borders invalid and if required, smear the conf
+    //compute the norm2, set borders invalid
     double ori_source_norm2=0;
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
@@ -106,7 +106,6 @@ namespace nissa
 	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
 	  set_borders_invalid(s);
 	  ori_source_norm2+=double_vector_glb_norm2(s,loc_vol);
-	  if(sou->sme) gaussian_smearing(s,s,ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
 	}
     if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
   }
@@ -158,8 +157,15 @@ namespace nissa
     else            insert_Wilson_conserved_current(loop_source,conf,ori,dirs,t);
   }
   
+  //smear the propagator
+  void smear_prop(spincolor *out,quad_su3 *conf,spincolor *ori,int t,double kappa,int nlevels)
+  {
+    gaussian_smearing(out,ori,conf,kappa,nlevels);
+    select_propagator_timeslice(out,out,t);
+  }
+  
   //generate a sequential source
-  void generate_source(insertion_t inser,int r,double charge,double theta,spincolor *ori,int t)
+  void generate_source(insertion_t inser,int r,double charge,double kappa,double theta,spincolor *ori,int t)
   {
     source_time-=take_time();
     
@@ -167,7 +173,15 @@ namespace nissa
     if(rel_t!=-1) rel_t=(t+source_coord[0])%glb_size[0];
     coords dirs[NDIM]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
     
-    quad_su3 *conf=get_updated_conf(charge,QUARK_BOUND_COND,theta);
+    quad_su3 *conf;
+    if(inser!=SMEARING) conf=get_updated_conf(charge,QUARK_BOUND_COND,theta,glb_conf);
+    else
+      {
+	quad_su3 *ext_conf;
+	if(ape_smeared_conf) ext_conf=ape_smeared_conf;
+	else                 ext_conf=glb_conf;
+	conf=get_updated_conf(0.0,PERIODIC,theta,ext_conf);
+      }
     
     master_printf("Inserting r: %d\n",r);
     switch(inser)
@@ -187,6 +201,7 @@ namespace nissa
       case CVEC1:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[1]);break;
       case CVEC2:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[2]);break;
       case CVEC3:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[3]);break;
+      case SMEARING:smear_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       }
     
     source_time+=take_time();
@@ -221,7 +236,7 @@ namespace nissa
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
 	      int isou=so_sp_col_ind(id_so,ic_so);
-	      generate_source(insertion,q.r,q.charge,q.theta,qsource[isou],q.tins);
+	      generate_source(insertion,q.r,q.charge,q.kappa,q.theta,qsource[isou],q.tins);
 	      spincolor *sol=q[isou];
 	      
 	      //combine the filename
@@ -240,9 +255,6 @@ namespace nissa
 		  //otherwise compute it
 		  if(q.insertion==PROP) get_qprop(sol,loop_source,q.kappa,q.mass,q.r,q.charge,q.residue,q.theta);
 		  else                  vector_copy(sol,loop_source);
-		  
-		  //smear
-		  if(q.sme) gaussian_smearing(sol,sol,ape_smeared_conf,gaussian_smearing_kappa,gaussian_smearing_niters);
 		  
 		  //and store if needed
 		  if(q.store)

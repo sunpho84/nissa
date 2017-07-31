@@ -617,7 +617,7 @@ namespace nissa
 	
 	//compute the matrix element
 	if(loc_hadr_curr) vector_current_mel(si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str());
-	else              conserved_vector_current_mel(get_updated_conf(Q[h.fw].charge,QUARK_BOUND_COND,0),si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str());
+	else              conserved_vector_current_mel(get_updated_conf(Q[h.fw].charge,QUARK_BOUND_COND,0,glb_conf),si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str());
       }
     
     //add the photon

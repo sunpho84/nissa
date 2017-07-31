@@ -1,6 +1,8 @@
 #ifndef _SOURCE_HPP
 #define _SOURCE_HPP
 
+#include <base/thread_macros.hpp>
+
 namespace nissa
 {
   //select a timeslice
@@ -11,10 +13,13 @@ namespace nissa
     if(prop_out!=prop_in) vector_copy(prop_out,prop_in);
     
     //put to zero everywhere but on the slice
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      if(timeslice>=0 && timeslice<glb_size[0] && glb_coord_of_loclx[ivol][0]!=timeslice)
-	memset(prop_out[ivol],0,sizeof(prop_type));
-    set_borders_invalid(prop_out);
+    if(timeslice>=0 and timeslice<glb_size[0])
+      {
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  if(glb_coord_of_loclx[ivol][0]!=timeslice)
+	    memset(prop_out[ivol],0,sizeof(prop_type));
+	set_borders_invalid(prop_out);
+      }
   }
 }
 

@@ -57,11 +57,19 @@ namespace nissa
   }
   
   //take a set of theta, charge and photon field, and update the conf
-  quad_su3* get_updated_conf(double charge,double th0,double th_spat)
+  quad_su3* get_updated_conf(double charge,double th0,double th_spat,quad_su3 *in_conf)
   {
     //check if the inner conf is valid or not
+    static quad_su3 *stored_conf=NULL;
     static double stored_charge=0,stored_th0=0,stored_th_spat=0;
     if(not inner_conf_valid) master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
+    
+    //check ref conf
+    if(stored_conf!=in_conf)
+      {
+	master_printf("Inner conf is invalid (ref conf from %p to %p)\n",stored_conf,in_conf);
+	inner_conf_valid=false;
+      }
     
     //check charge
     if(charge!=stored_charge)
@@ -87,7 +95,7 @@ namespace nissa
 	master_printf("Inner conf not valid: updating it\n");
 	
 	//copy
-	vector_copy(inner_conf,glb_conf);
+	vector_copy(inner_conf,in_conf);
 	
 	//put momentum
 	momentum_t put_theta,old_theta;
@@ -100,6 +108,7 @@ namespace nissa
       }
     
     //update value and set valid
+    stored_conf=in_conf;
     stored_charge=charge;
     stored_th0=th0;
     stored_th_spat=th_spat;

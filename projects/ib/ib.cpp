@@ -32,7 +32,6 @@ void init_simulation(char *path)
   expect_str("Name");
   if(stoch_source) expect_str("NoiseType");
   expect_str("Tins");
-  expect_str("Sme");
   expect_str("Store");
   //loop over sources
   for(int isource=0;isource<nsources;isource++)
@@ -50,15 +49,12 @@ void init_simulation(char *path)
 	  noise_type=convert_str_to_rnd_t(str_noise_type);
 	}
       read_int(&tins);
-      //smear
-      int sme;
-      read_int(&sme);
       //store
       int store_source;
       read_int(&store_source);
       //add
       ori_source_name_list[isource]=name;
-      Q[name].init_as_source(noise_type,tins,0,sme,store_source);
+      Q[name].init_as_source(noise_type,tins,0,store_source);
     }
   
   //Twisted run
@@ -95,7 +91,6 @@ void init_simulation(char *path)
   expect_str("Charge");
   expect_str("Theta");
   expect_str("Residue");
-  expect_str("Sme");
   expect_str("Store");
   for(int iq=0;iq<nprops;iq++)
     {
@@ -122,9 +117,14 @@ void init_simulation(char *path)
       master_printf("Read variable 'Tins' with value: %d\n",tins);
       
       double kappa=0.125,mass=0.5,charge=0,theta=0,residue=1e-16;
-      int r=0,sme=0,store_prop=0;
+      int r=0,store_prop=0;
+      
+      bool decripted=false;
+      
       if(strcasecmp(ins,ins_tag[PROP])==0)
 	{
+	  decripted=true;
+	  
 	  read_double(&kappa);
 	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
 	  if(twisted_run)
@@ -144,7 +144,24 @@ void init_simulation(char *path)
 	  read_double(&residue);
 	  master_printf("Read variable 'Residue' with value: %lg\n",residue);
 	}
-      else
+      
+      //read smearing
+      if(strcasecmp(ins,ins_tag[SMEARING])==0)
+	{
+	  decripted=true;
+	  
+	  read_double(&kappa);
+	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
+	  
+	  read_int(&r);
+	  master_printf("Read variable 'R' with value: %d\n",r);
+	  
+	  read_double(&theta);
+	  master_printf("Read variable 'Theta' with value: %lg\n",theta);
+	}
+      
+      //everything else
+      if(not decripted)
 	{
 	  if(twisted_run)
 	    {
@@ -154,11 +171,9 @@ void init_simulation(char *path)
 	  read_double(&charge);
 	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
 	}
-      read_int(&sme);
-      master_printf("Read variable 'Sme' with value: %d\n",sme);
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
-      Q[name].init_as_propagator(ins_from_tag(ins),source_name,tins,residue,kappa,mass,r,charge,theta,sme,store_prop);
+      Q[name].init_as_propagator(ins_from_tag(ins),source_name,tins,residue,kappa,mass,r,charge,theta,store_prop);
       qprop_name_list[iq]=name;
     }
   
@@ -188,7 +203,7 @@ void init_simulation(char *path)
   read_fft_prop_pars();
   
   //smearing
-  read_smearing_pars();
+  read_ape_smearing_pars();
   
   read_ngauge_conf();
   

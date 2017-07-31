@@ -30,7 +30,7 @@ namespace nissa
   
   void read_init_grid();
   void generate_random_coord(coords);
-  quad_su3* get_updated_conf(double charge,double th0,double th_spat);
+  quad_su3* get_updated_conf(double charge,double th0,double th_spat,quad_su3 *in_conf);
   void start_new_conf();
   void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory);
   int check_remaining_time();

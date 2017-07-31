@@ -12,7 +12,9 @@
  #define INIT_TO(VAL) =VAL
 #endif
 
-#define QUARK_BOUND_COND 1
+#define PERIODIC 0
+#define ANTIPERIODIC 1
+#define QUARK_BOUND_COND ANTIPERIODIC
 
 namespace nissa
 {
@@ -32,11 +34,11 @@ namespace nissa
   const int follow_chris=0,follow_nazario=1;
   
   //define types of quark propagator used
-  const int nins_kind=15;
-  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 };
-  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 };
-  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC0","CVEC1","CVEC2","CVEC3","PHOTON0","PHOTON1","PHOTON2","PHOTON3"};
-  const char ins_tag[nins_kind][10]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V0"   ,"V1"   ,"V2"   ,"V3"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     };
+  const int nins_kind=16;
+  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , SMEARING };
+  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , SMEARING};
+  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC0","CVEC1","CVEC2","CVEC3","PHOTON0","PHOTON1","PHOTON2","PHOTON3","SMEARING"};
+  const char ins_tag[nins_kind][10]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V0"   ,"V1"   ,"V2"   ,"V3"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     ,"SM"     };
   inline insertion_t ins_from_tag(const char *tag)
   {
     int i=0;
@@ -188,22 +190,6 @@ namespace nissa
   {
     read_str_double("ApeSmearingAlpha",&ape_smearing_alpha);
     read_str_int("ApeSmearingNiters",&ape_smearing_niters);
-  }
-  
-  //gaussian smearing pars
-  EXTERN_PARS int gaussian_smearing_niters;
-  EXTERN_PARS double gaussian_smearing_kappa;
-  inline void read_gaussian_smearing_pars()
-  {
-    read_str_double("GaussianSmearingKappa",&gaussian_smearing_kappa);
-    read_str_int("GaussianSmearingNiters",&gaussian_smearing_niters);
-  }
-  
-  //read all smearing pars
-  inline void read_smearing_pars()
-  {
-    read_ape_smearing_pars();
-    read_gaussian_smearing_pars();
   }
 }
 
