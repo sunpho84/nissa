@@ -61,7 +61,7 @@ void in_main(int narg,char **arg)
   
   //read conf
   char conf_path[1024];
-  read_str(conf_path,1024);
+  read_str_str("Conf",conf_path,1024);
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   read_ildg_gauge_conf(conf,conf_path);
   
