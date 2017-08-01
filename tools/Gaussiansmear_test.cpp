@@ -2,7 +2,7 @@
 
 using namespace nissa;
 
-THREADABLE_FUNCTION_4ARG(compute_gaussianity, double*,x, color*,source, int,maxpow, coords*,source_pos)
+THREADABLE_FUNCTION_4ARG(compute_gaussianity_pars, double*,x, color*,source, int,maxpow, coords*,source_pos)
 {
   GET_THREAD_ID();
   
@@ -46,6 +46,41 @@ THREADABLE_FUNCTION_4ARG(compute_gaussianity, double*,x, color*,source, int,maxp
 }
 THREADABLE_FUNCTION_END
 
+//get average and error of gaussianity pars
+void process_gaussianity(double *a,double *e,double *x,int maxpow)
+{
+  //reset summ and errors
+  for(int ipow=0;ipow<maxpow;ipow++)
+    a[ipow]=e[ipow]=0.0;
+  
+  for(int t=0;t<glb_size[0];t++)
+    for(int ipow=0;ipow<maxpow;ipow++)
+      {
+	double s=0;
+	if(ipow==0) s=x[t*maxpow+0];
+	if(ipow==1) s=sqrt(x[t*maxpow+1]/x[t*maxpow+0]);
+	
+	//increment
+	a[ipow]+=s;
+	e[ipow]+=s*s;
+      }
+  
+  //build averages and errors
+  for(int ipow=0;ipow<maxpow;ipow++)
+    {
+      a[ipow]/=glb_size[0];
+      e[ipow]/=glb_size[0];
+      e[ipow]-=sqr(a[ipow]);
+      e[ipow]=sqrt(fabs(e[ipow]));
+    }
+}
+
+//according to Bali
+double expected_radius(double kappa,int nlevels,double plaq)
+{
+  return sqrt(nlevels*kappa/(1+2*(NDIM-1)*kappa)*pow(plaq,0.25));
+}
+
 void in_main(int narg,char **arg)
 {
   //check argument
@@ -76,7 +111,7 @@ void in_main(int narg,char **arg)
   //print spatial plaquette
   double plaqs[2];
   global_plaquette_lx_conf(plaqs,conf);
-  master_printf("plaquettes: %16.16lg, %16.16lg\n",plaqs[0],plaqs[1]);
+  master_printf("Plaquettes: %16.16lg, %16.16lg\n",plaqs[0],plaqs[1]);
   
   //read Gaussian smearing pars
   int nlevels;
@@ -105,18 +140,19 @@ void in_main(int narg,char **arg)
   for(int ilev=0;ilev<=nlevels;ilev++)
     {
       //compute gaussianity
-      int maxpow=4;
+      int maxpow=2;
       double x[maxpow*glb_size[0]];
-      compute_gaussianity(x,source,maxpow,source_pos);
+      compute_gaussianity_pars(x,source,maxpow,source_pos);
+      
+      //take averages
+      double a[maxpow],e[maxpow];
+      process_gaussianity(a,e,x,maxpow);
       
       //write
-      master_printf("smear %d \n",ilev);
-      for(int t=0;t<glb_size[0];t++)
-	{
-	  master_printf("%d\t%lg\t",t,x[t*maxpow+0]);
-	  for(int ipow=1;ipow<maxpow;ipow++) master_printf("%lg\t",x[t*maxpow+ipow]/x[t*maxpow+0]);
-	  master_printf("\n");
-	}
+      master_printf("Smearing level %d\n",ilev);
+      master_printf(" - average norm: %lg +- %lg\n",a[0],e[0]);
+      master_printf(" - average radius: %lg +- %lg\n",a[1],e[1]);
+      master_printf("   expected:       %lg\n",expected_radius(kappa,nlevels,plaqs[1]));
       master_printf("\n");
       
       //smear
