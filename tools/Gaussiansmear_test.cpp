@@ -152,7 +152,7 @@ void in_main(int narg,char **arg)
       master_printf("Smearing level %d\n",ilev);
       master_printf(" - average norm: %lg +- %lg\n",a[0],e[0]);
       master_printf(" - average radius: %lg +- %lg\n",a[1],e[1]);
-      master_printf("   expected:       %lg\n",expected_radius(kappa,nlevels,plaqs[1]));
+      master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
       master_printf("\n");
       
       //smear
