@@ -12,7 +12,7 @@ THREADABLE_FUNCTION_4ARG(compute_gaussianity, double*,x, color*,source, int,maxp
     for(int ipow=0;ipow<maxpow;ipow++)
       locx[t][ipow]=0.0;
   
-  NISSA_PARALLEL_LOOP(ivol,0,loc_spat_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
       int t=glb_coord_of_loclx[ivol][0];
       
@@ -39,6 +39,7 @@ THREADABLE_FUNCTION_4ARG(compute_gaussianity, double*,x, color*,source, int,maxp
     }
   THREAD_BARRIER();
   
+  //reduce
   for(int t=0;t<glb_size[0];t++)
     for(int ipow=0;ipow<maxpow;ipow++)
       x[t*maxpow+ipow]=glb_reduce_double(locx[t][ipow]);
@@ -103,7 +104,7 @@ void in_main(int narg,char **arg)
       double x[maxpow*glb_size[0]];
       compute_gaussianity(x,source,maxpow,source_pos);
       
-      master_printf("smear %d \n");
+      master_printf("smear %d \n",ilev);
       for(int t=0;t<glb_size[0];t++)
 	{
 	  master_printf("%d\t%lg\t",t,x[t*maxpow+0]);
