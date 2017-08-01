@@ -93,16 +93,18 @@ void in_main(int narg,char **arg)
       int l,r;
       get_loclx_and_rank_of_coord(&l,&r,source_pos[t]);
       
+      //put the source only if on correct rank
       if(rank==r) source[l][0][0]=1;
     }
     
   for(int ilev=0;ilev<=nlevels;ilev++)
     {
-      compute_gaussianity(x,source,maxpow,source_pos);
-      
+      //compute gaussianity
       int maxpow=4;
       double x[maxpow*glb_size[0]];
+      compute_gaussianity(x,source,maxpow,source_pos);
       
+      //write
       master_printf("smear %d \n",ilev);
       for(int t=0;t<glb_size[0];t++)
 	{
@@ -112,6 +114,7 @@ void in_main(int narg,char **arg)
 	}
       master_printf("\n");
       
+      //smear
       if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,1);
     }
   
