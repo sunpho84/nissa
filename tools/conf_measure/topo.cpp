@@ -41,13 +41,6 @@ void read_cool_pars(cool_pars_t &cool_pars)
   if(cool_pars.overrelax_flag==1) read_str_double("CoolOverrelaxExp",&cool_pars.overrelax_exp);
 }
 
-//read parameters to flow
-void read_Wflow_pars(Wflow_pars_t &pars)
-{
-  read_str_double("FlowTime",&pars.T);
-  read_str_double("InteStep",&pars.dt);
-}
-
 //read parameters to smooth
 void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
 {
@@ -64,8 +57,8 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
         case smooth_pars_t::WFLOW: read_Wflow_pars(smooth_pars.Wflow);break;
         default: crash("should not arrive here");break;
         }
-      read_str_double("MeasEach",&smooth_pars.meas_each);
-      if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUT)&&fabs(smooth_pars.meas_each-int(smooth_pars.meas_each))>=1.e-14)
+      read_str_int("MeasEach",&smooth_pars.meas_each_nsmooth);
+      if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUT)&&fabs(smooth_pars.meas_each_nsmooth-int(smooth_pars.meas_each_nsmooth))>=1.e-14)
         crash("MeasEach must be integer if Cooling or Stouting method selected");
     }
 }
