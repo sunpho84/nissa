@@ -31,7 +31,7 @@ THREADABLE_FUNCTION_4ARG(compute_gaussianity, double*,x, color*,source, int,maxp
 	    {
 	      int xmu=(glb_coord_of_loclx[ivol][mu]-source_pos[t][mu]+glb_size[mu])%glb_size[mu];
 	      if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
-	      xpow+=pow(xmu,ipow);
+	      xpow+=pow(xmu,ipow*2);
 	    }
 	  
 	  locx[t][ipow]+=n*xpow;
@@ -96,13 +96,12 @@ void in_main(int narg,char **arg)
       if(rank==r) source[l][0][0]=1;
     }
     
-  for(int ilev=1;ilev<=nlevels;ilev++)
+  for(int ilev=0;ilev<=nlevels;ilev++)
     {
       gaussian_smearing(source,source,conf,kappa,1);
       
       int maxpow=4;
       double x[maxpow*glb_size[0]];
-      compute_gaussianity(x,source,maxpow,source_pos);
       
       master_printf("smear %d \n",ilev);
       for(int t=0;t<glb_size[0];t++)
@@ -112,6 +111,8 @@ void in_main(int narg,char **arg)
 	  master_printf("\n");
 	}
       master_printf("\n");
+      
+      if(ilev<nlevels) compute_gaussianity(x,source,maxpow,source_pos);
     }
   
   nissa_free(source);
