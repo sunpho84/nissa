@@ -98,7 +98,7 @@ void in_main(int narg,char **arg)
     
   for(int ilev=0;ilev<=nlevels;ilev++)
     {
-      gaussian_smearing(source,source,conf,kappa,1);
+      compute_gaussianity(x,source,maxpow,source_pos);
       
       int maxpow=4;
       double x[maxpow*glb_size[0]];
@@ -112,7 +112,7 @@ void in_main(int narg,char **arg)
 	}
       master_printf("\n");
       
-      if(ilev<nlevels) compute_gaussianity(x,source,maxpow,source_pos);
+      if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,1);
     }
   
   nissa_free(source);
