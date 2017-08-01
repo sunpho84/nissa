@@ -73,6 +73,11 @@ void in_main(int narg,char **arg)
   read_str_int("ApeSmearingNiters",&ape_smearing_niters);
   ape_spatial_smear_conf(conf,conf,ape_smearing_alpha,ape_smearing_niters);
   
+  //print spatial plaquette
+  double plaqs[2];
+  global_plaquette_lx_conf(plaqs,conf);
+  master_printf("plaquettes: %16.16lg, %16.16lg\n",plaqs[0],plaqs[1]);
+  
   //read Gaussian smearing pars
   int nlevels;
   double kappa;
