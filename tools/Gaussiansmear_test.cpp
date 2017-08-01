@@ -78,7 +78,8 @@ void process_gaussianity(double *a,double *e,double *x,int maxpow)
 //according to Bali
 double expected_radius(double kappa,int nlevels,double plaq)
 {
-  return sqrt(nlevels*kappa/(1+2*(NDIM-1)*kappa)*pow(plaq,0.25));
+  kappa*=pow(plaq,0.25);
+  return sqrt(nlevels*kappa/(1+2*(NDIM-1)*kappa));
 }
 
 void in_main(int narg,char **arg)
