@@ -114,10 +114,11 @@ void in_main(int narg,char **arg)
   master_printf("Plaquettes: %16.16lg, %16.16lg\n",plaqs[0],plaqs[1]);
   
   //read Gaussian smearing pars
-  int nlevels;
+  int nlevels,meas_each;
   double kappa;
   read_str_double("Kappa",&kappa);
   read_str_int("NLevels",&nlevels);
+  read_str_int("MeasEach",&meas_each);
   
   //set the source
   color *source=nissa_malloc("source",loc_vol+bord_vol,color);
@@ -137,7 +138,7 @@ void in_main(int narg,char **arg)
       if(rank==r) source[l][0][0]=1;
     }
     
-  for(int ilev=0;ilev<=nlevels;ilev++)
+  for(int ilev=0;ilev<=nlevels;ilev+=meas_each)
     {
       //compute gaussianity
       int maxpow=2;
@@ -150,13 +151,13 @@ void in_main(int narg,char **arg)
       
       //write
       master_printf("Smearing level %d\n",ilev);
-      master_printf(" - average norm: %lg +- %lg\n",a[0],e[0]);
+      master_printf(" - average norm:   %lg +- %lg\n",a[0],e[0]);
       master_printf(" - average radius: %lg +- %lg\n",a[1],e[1]);
       master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
       master_printf("\n");
       
       //smear
-      if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,1);
+      if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,meas_each);
     }
   
   nissa_free(source);
