@@ -122,8 +122,8 @@ THREADABLE_FUNCTION_2ARG(compute_density, color*,source, coords*,source_pos)
       //increment
       dens_t &it=density[rho];
       it.n++;
-      it.a+=rho;
-      it.e+=sqr(rho);
+      it.a+=n;
+      it.e+=sqr(n);
     }
   THREAD_BARRIER();
   
@@ -132,7 +132,7 @@ THREADABLE_FUNCTION_2ARG(compute_density, color*,source, coords*,source_pos)
   for(mapdens_t::iterator it=density.begin();it!=density.end();it++)
     {
       int r2=it->first;
-      dens_t &d=it->second;
+      dens_t d=it->second;
       double n=glb_reduce_double(d.n);
       double a=glb_reduce_double(d.a)/n;
       double e=sqrt((glb_reduce_double(d.e)/n-a*a)/(n-1));
