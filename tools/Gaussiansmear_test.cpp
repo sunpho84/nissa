@@ -94,9 +94,11 @@ struct dens_t
 typedef std::map<int,dens_t> mapdens_t;
 
 //compute the density distribution
-THREADABLE_FUNCTION_4ARG(compute_density, mapdens_t*,density, color*,source, int,maxpow, coords*,source_pos)
+THREADABLE_FUNCTION_2ARG(compute_density, color*,source, coords*,source_pos)
 {
   GET_THREAD_ID();
+  
+  mapdens_t density;
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
@@ -118,7 +120,7 @@ THREADABLE_FUNCTION_4ARG(compute_density, mapdens_t*,density, color*,source, int
 	}
       
       //increment
-      dens_t &it=(*density)[rho];
+      dens_t &it=density[rho];
       it.n++;
       it.a+=rho;
       it.e+=sqr(rho);
@@ -127,7 +129,7 @@ THREADABLE_FUNCTION_4ARG(compute_density, mapdens_t*,density, color*,source, int
   
   //reduce and print
   master_printf("Density\n");
-  for(mapdens_t::iterator it=density->begin();it!=density->end();it++)
+  for(mapdens_t::iterator it=density.begin();it!=density.end();it++)
     {
       int r2=it->first;
       dens_t &d=it->second;
@@ -215,7 +217,7 @@ void in_main(int narg,char **arg)
       master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
       master_printf("\n");
       
-      compute_density();
+      compute_density(source,source_pos);
       
       //smear
       if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,meas_each);
