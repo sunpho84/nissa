@@ -71,7 +71,7 @@ void process_gaussianity(double *a,double *e,double *x,int maxpow)
       a[ipow]/=glb_size[0];
       e[ipow]/=glb_size[0];
       e[ipow]-=sqr(a[ipow]);
-      e[ipow]=sqrt(fabs(e[ipow]));
+      e[ipow]=sqrt(fabs(e[ipow])/glb_size[0]);
     }
 }
 
@@ -81,6 +81,64 @@ double expected_radius(double kappa,int nlevels,double plaq)
   kappa*=pow(plaq,0.25);
   return sqrt(nlevels*kappa/(1+2*(NDIM-1)*kappa));
 }
+
+//hold a tern to keep density
+struct dens_t
+{
+  int n;
+  double a;
+  double e;
+  dens_t() : n(0),a(0.0),e(0.0) {}
+};
+
+typedef std::map<int,dens_t> mapdens_t;
+
+//compute the density distribution
+THREADABLE_FUNCTION_4ARG(compute_density, mapdens_t*,density, color*,source, int,maxpow, coords*,source_pos)
+{
+  GET_THREAD_ID();
+  
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    {
+      int t=glb_coord_of_loclx[ivol][0];
+      
+      //get site norm
+      double n=0.0;
+      for(int ic=0;ic<NCOL;ic++)
+	for(int ri=0;ri<2;ri++)
+	  n+=sqr(source[ivol][ic][ri]);
+      
+      //compute distance
+      int rho=0.0;
+      for(int mu=1;mu<NDIM;mu++)
+	{
+	  int xmu=(glb_coord_of_loclx[ivol][mu]-source_pos[t][mu]+glb_size[mu])%glb_size[mu];
+	  if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
+	  rho+=sqr(xmu);
+	}
+      
+      //increment
+      dens_t &it=(*density)[rho];
+      it.n++;
+      it.a+=rho;
+      it.e+=sqr(rho);
+    }
+  THREAD_BARRIER();
+  
+  //reduce and print
+  master_printf("Density\n");
+  for(mapdens_t::iterator it=density->begin();it!=density->end();it++)
+    {
+      int r2=it->first;
+      dens_t &d=it->second;
+      double n=glb_reduce_double(d.n);
+      double a=glb_reduce_double(d.a)/n;
+      double e=sqrt((glb_reduce_double(d.e)/n-a*a)/(n-1));
+      
+      master_printf("%d %lg %lg\n",r2,a,e);
+    }
+}
+THREADABLE_FUNCTION_END
 
 void in_main(int narg,char **arg)
 {
