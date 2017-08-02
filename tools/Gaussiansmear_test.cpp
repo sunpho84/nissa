@@ -215,6 +215,8 @@ void in_main(int narg,char **arg)
       master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
       master_printf("\n");
       
+      compute_density();
+      
       //smear
       if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,meas_each);
     }
