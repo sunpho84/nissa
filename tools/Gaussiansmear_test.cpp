@@ -226,7 +226,7 @@ void in_main(int narg,char **arg)
       master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
       master_printf("\n");
       
-      master_fprintf(fout," # Smearing level %d\n",ilev);
+      master_fprintf(fout," Smearlevel %d\n",ilev);
       compute_density(fout,source,source_pos);
       
       //smear
