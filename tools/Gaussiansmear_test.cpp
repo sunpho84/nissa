@@ -86,19 +86,18 @@ double expected_radius(double kappa,int nlevels,double plaq)
 struct dens_t
 {
   int n;
-  double a;
-  double e;
-  dens_t() : n(0),a(0.0),e(0.0) {}
+  double s;
+  dens_t() : n(0),s(0.0) {}
 };
 
 typedef std::map<int,dens_t> mapdens_t;
 
 //compute the density distribution
-THREADABLE_FUNCTION_2ARG(compute_density, color*,source, coords*,source_pos)
+THREADABLE_FUNCTION_3ARG(compute_density, FILE*,fout, color*,source, coords*,source_pos)
 {
   GET_THREAD_ID();
   
-  mapdens_t density;
+  mapdens_t density[glb_size[0]];
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
@@ -120,25 +119,24 @@ THREADABLE_FUNCTION_2ARG(compute_density, color*,source, coords*,source_pos)
 	}
       
       //increment
-      dens_t &it=density[rho];
+      dens_t &it=density[glb_coord_of_loclx[ivol][0]][rho];
       it.n++;
-      it.a+=n;
-      it.e+=sqr(n);
+      it.s+=n;
     }
   THREAD_BARRIER();
   
   //reduce and print
   master_printf("Density\n");
-  for(mapdens_t::iterator it=density.begin();it!=density.end();it++)
-    {
-      int r2=it->first;
-      dens_t d=it->second;
-      double n=glb_reduce_double(d.n);
-      double a=glb_reduce_double(d.a)/n;
-      double e=sqrt((glb_reduce_double(d.e)/n-a*a)/(n-1));
-      
-      master_printf("%d %lg %lg\n",r2,a,e);
-    }
+  for(int t=0;t<glb_size[0];t++)
+    for(mapdens_t::iterator it=density[t].begin();it!=density[t].end();it++)
+      {
+	int r2=it->first;
+	dens_t d=it->second;
+	double n=glb_reduce_double(d.n);
+	double s=glb_reduce_double(d.s)/n;
+	
+	master_fprintf(fout,"%d %lg\n",r2,s);
+      }
 }
 THREADABLE_FUNCTION_END
 
@@ -181,6 +179,11 @@ void in_main(int narg,char **arg)
   read_str_int("NLevels",&nlevels);
   read_str_int("MeasEach",&meas_each);
   
+  //output file
+  char out_path[1024];
+  read_str_str("Output",out_path,1024);
+  FILE *fout=open_file(out_path,"w");
+  
   //set the source
   color *source=nissa_malloc("source",loc_vol+bord_vol,color);
   vector_reset(source);
@@ -217,11 +220,14 @@ void in_main(int narg,char **arg)
       master_printf("   expected:       %lg\n",expected_radius(kappa,ilev,plaqs[1]));
       master_printf("\n");
       
-      compute_density(source,source_pos);
+      master_fprintf(fout," # Smearing level %d\n",ilev);
+      compute_density(fout,source,source_pos);
       
       //smear
       if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,meas_each);
     }
+  
+  close_file(fout);
   
   nissa_free(source);
   nissa_free(conf);
