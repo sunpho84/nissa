@@ -126,11 +126,11 @@ THREADABLE_FUNCTION_3ARG(compute_density, FILE*,fout, color*,source, coords*,sou
   THREAD_BARRIER();
   
   //reduce and print
-  master_fprintf(fout," %d # distances\n",(int)density[0].size());
+  master_fprintf(fout," NDists %d\n",(int)density[0].size());
   
   for(int t=0;t<glb_size[0];t++)
     {
-      master_fprintf(fout," # t %d\n",t);
+      master_fprintf(fout," t %d\n",t);
       
       for(mapdens_t::iterator it=density[t].begin();it!=density[t].end();it++)
 	{
