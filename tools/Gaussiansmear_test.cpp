@@ -173,11 +173,6 @@ void in_main(int narg,char **arg)
   read_str_int("ApeSmearingNiters",&ape_smearing_niters);
   ape_spatial_smear_conf(conf,conf,ape_smearing_alpha,ape_smearing_niters);
   
-  //print spatial plaquette
-  double plaqs[2];
-  global_plaquette_lx_conf(plaqs,conf);
-  master_printf("Plaquettes: %16.16lg, %16.16lg\n",plaqs[0],plaqs[1]);
-  
   //read Gaussian smearing pars
   int nlevels,meas_each;
   double kappa;
@@ -193,6 +188,11 @@ void in_main(int narg,char **arg)
   master_fprintf(fout,"Kappa %d\n",kappa);
   master_fprintf(fout,"NLevels %d\n",nlevels);
   master_fprintf(fout,"MeasEach %d\n",meas_each);
+  
+  //print spatial plaquette
+  double plaqs[2];
+  global_plaquette_lx_conf(plaqs,conf);
+  master_fprintf(fout,"Plaquettes: %16.16lg, %16.16lg\n",plaqs[0],plaqs[1]);
   
   //set the source
   color *source=nissa_malloc("source",loc_vol+bord_vol,color);
