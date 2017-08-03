@@ -189,6 +189,10 @@ void in_main(int narg,char **arg)
   char out_path[1024];
   read_str_str("Output",out_path,1024);
   FILE *fout=open_file(out_path,"w");
+  master_fprintf(fout,"T %d\n",glb_size[0]);
+  master_fprintf(fout,"Kappa %d\n",kappa);
+  master_fprintf(fout,"NLevels %d\n",nlevels);
+  master_fprintf(fout,"MeasEach %d\n",meas_each);
   
   //set the source
   color *source=nissa_malloc("source",loc_vol+bord_vol,color);
