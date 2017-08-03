@@ -93,13 +93,11 @@ struct dens_t
 typedef std::map<int,dens_t> mapdens_t;
 
 //compute the density distribution
-THREADABLE_FUNCTION_3ARG(compute_density, FILE*,fout, color*,source, coords*,source_pos)
+void compute_density(FILE *fout,color *source,coords *source_pos)
 {
-  GET_THREAD_ID();
-  
   mapdens_t density[glb_size[0]];
   
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       int t=glb_coord_of_loclx[ivol][0];
       
@@ -119,11 +117,10 @@ THREADABLE_FUNCTION_3ARG(compute_density, FILE*,fout, color*,source, coords*,sou
 	}
       
       //increment
-      dens_t &it=density[glb_coord_of_loclx[ivol][0]][rho];
+      dens_t &it=density[t][rho];
       it.n++;
       it.s+=n;
     }
-  THREAD_BARRIER();
   
   //reduce and print
   master_fprintf(fout," NDists %d\n",(int)density[0].size());
@@ -144,7 +141,6 @@ THREADABLE_FUNCTION_3ARG(compute_density, FILE*,fout, color*,source, coords*,sou
       master_fprintf(fout,"\n");
     }
 }
-THREADABLE_FUNCTION_END
 
 void in_main(int narg,char **arg)
 {
