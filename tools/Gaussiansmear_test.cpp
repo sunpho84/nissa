@@ -126,17 +126,21 @@ THREADABLE_FUNCTION_3ARG(compute_density, FILE*,fout, color*,source, coords*,sou
   THREAD_BARRIER();
   
   //reduce and print
-  master_printf("Density\n");
   for(int t=0;t<glb_size[0];t++)
-    for(mapdens_t::iterator it=density[t].begin();it!=density[t].end();it++)
-      {
-	int r2=it->first;
-	dens_t d=it->second;
-	double n=glb_reduce_double(d.n);
-	double s=glb_reduce_double(d.s)/n;
-	
-	master_fprintf(fout,"%d %lg\n",r2,s);
-      }
+    {
+      master_fprintf(fout," # t %d\n",t);
+      
+      for(mapdens_t::iterator it=density[t].begin();it!=density[t].end();it++)
+	{
+	  int r2=it->first;
+	  dens_t d=it->second;
+	  double n=glb_reduce_double(d.n);
+	  double s=glb_reduce_double(d.s)/n;
+	  
+	  master_fprintf(fout,"%d %lg\n",r2,s);
+	}
+      master_fprintf(fout,"\n");
+    }
 }
 THREADABLE_FUNCTION_END
 
