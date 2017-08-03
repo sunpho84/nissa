@@ -192,7 +192,9 @@ void in_main(int narg,char **arg)
   //print spatial plaquette
   double plaqs[2];
   global_plaquette_lx_conf(plaqs,conf);
-  master_fprintf(fout,"Plaquettes: %16.16lg, %16.16lg\n",plaqs[0],plaqs[1]);
+  master_fprintf(fout,"TimePlaquette %16.16lg\n",plaqs[0]);
+  master_fprintf(fout,"SpatPlaquette %16.16lg\n",plaqs[1]);
+  master_fprintf(fout,"\n");
   
   //set the source
   color *source=nissa_malloc("source",loc_vol+bord_vol,color);
