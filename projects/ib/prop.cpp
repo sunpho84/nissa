@@ -160,9 +160,37 @@ namespace nissa
   //smear the propagator
   void smear_prop(spincolor *out,quad_su3 *conf,spincolor *ori,int t,double kappa,int nlevels)
   {
+    //nb: the smearing radius is given by
+    //a*sqrt(2*n*kappa/(1+6*kappa))
+    
     gaussian_smearing(out,ori,conf,kappa,nlevels);
     select_propagator_timeslice(out,out,t);
   }
+  
+  //phase the propagator
+  THREADABLE_FUNCTION_4ARG(phase_prop, spincolor*,out, spincolor*,ori, int,t, double,th)
+  {
+    GET_THREAD_ID();
+    
+    vector_reset(out);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	//compute x*p
+	double arg=0.0;
+	for(int mu=1;mu<NDIM;mu++) arg+=M_PI*th*glb_coord_of_loclx[ivol][mu]/glb_size[mu]; //N.B: valid only if source is on origin...
+	
+	//compute exp(ip)
+	complex factor;
+	complex_iexp(factor,arg);
+	
+	//put the phase
+	if(t==-1 or glb_coord_of_loclx[ivol][0]==t)
+	  unsafe_spincolor_prod_complex(out[ivol],ori[ivol],factor);
+      }
+    
+    set_borders_invalid(out);
+  }
+  THREADABLE_FUNCTION_END
   
   //generate a sequential source
   void generate_source(insertion_t inser,int r,double charge,double kappa,double theta,spincolor *ori,int t)
@@ -202,6 +230,7 @@ namespace nissa
       case CVEC2:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[2]);break;
       case CVEC3:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[3]);break;
       case SMEARING:smear_prop(loop_source,conf,ori,rel_t,kappa,r);break;
+      case PHASING:phase_prop(loop_source,ori,rel_t,theta);break;
       }
     
     source_time+=take_time();

@@ -145,6 +145,15 @@ void init_simulation(char *path)
 	  master_printf("Read variable 'Residue' with value: %lg\n",residue);
 	}
       
+      //read phasing
+      if(strcasecmp(ins,ins_tag[PHASING])==0)
+	{
+	  decripted=true;
+	  
+	  read_double(&theta);
+	  master_printf("Read variable 'Theta' with value: %lg\n",theta);
+	}
+      
       //read smearing
       if(strcasecmp(ins,ins_tag[SMEARING])==0)
 	{
