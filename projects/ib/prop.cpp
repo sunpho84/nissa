@@ -179,7 +179,7 @@ namespace nissa
       {
 	//compute x*p
 	double arg=0.0;
-	for(int mu=1;mu<NDIM;mu++) arg+=2*M_PI*th*glb_coord_of_loclx[ivol][mu]/glb_size[mu]; //N.B: valid only if source is on origin...
+	for(int mu=1;mu<NDIM;mu++) arg+=M_PI*th*glb_coord_of_loclx[ivol][mu]/glb_size[mu]; //N.B: valid only if source is on origin...
 	
 	//compute exp(ip)
 	complex factor;
