@@ -134,7 +134,7 @@ namespace nissa
 #endif
       //DD case
 #ifdef USE_DDALPHAAMG
-      if(use_DD and mass<=DD::max_mass)
+      if(use_DD and fabs(mass)<=DD::max_mass)
 	{
 	  double cSW=0;
 	  DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
