@@ -202,7 +202,7 @@ namespace nissa
 		      skip_conf();
 		    }
 		}
-	      if(ok_conf) lock_fd=file_lock(run_file);
+	      if(ok_conf) file_touch(run_file);
 	    }
 	  else
 	    {
@@ -212,7 +212,7 @@ namespace nissa
 	    }
 	  iconf++;
 	}
-      while((!ok_conf or lock_fd==0) and iconf<ngauge_conf);
+      while(!ok_conf and iconf<ngauge_conf);
     
     master_printf("\n");
     
