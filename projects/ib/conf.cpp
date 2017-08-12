@@ -212,7 +212,7 @@ namespace nissa
 	    }
 	  iconf++;
 	}
-      while(!ok_conf and lock_fd==0 and iconf<ngauge_conf);
+      while((!ok_conf or lock_fd==0) and iconf<ngauge_conf);
     
     master_printf("\n");
     
