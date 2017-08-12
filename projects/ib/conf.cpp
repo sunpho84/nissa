@@ -202,7 +202,7 @@ namespace nissa
 		      skip_conf();
 		    }
 		}
-	      if(ok_conf) file_touch(run_file);
+	      if(ok_conf) lock_fd=file_lock(run_file);
 	    }
 	  else
 	    {
@@ -212,7 +212,7 @@ namespace nissa
 	    }
 	  iconf++;
 	}
-      while(!ok_conf and iconf<ngauge_conf);
+      while(!ok_conf and lock_fd==0 and iconf<ngauge_conf);
     
     master_printf("\n");
     
@@ -234,6 +234,7 @@ namespace nissa
   void mark_finished()
   {
     char fin_file[1024];
+    file_unlock(lock_fd);
     sprintf(fin_file,"%s/finished",outfolder);
     file_touch(fin_file);
     nanalyzed_conf++;

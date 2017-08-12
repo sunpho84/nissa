@@ -15,6 +15,8 @@ namespace nissa
   //global input file handle
   EXTERN_INPUT FILE *input_global;
   
+  int file_lock(std::string path);
+  int file_unlock(int f);
   int dir_exists(std::string path);
   int file_exists(std::string path);
   int read_var_catcherr(char *out,const char *par,int size_of);

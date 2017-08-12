@@ -29,6 +29,9 @@
 #define EXTERN_INPUT
 #include "input.hpp"
 
+#include <fcntl.h>
+#include <unistd.h>
+
 namespace nissa
 {
   //touch a file
@@ -45,6 +48,48 @@ namespace nissa
 	else
 	  crash("Unable to touch file: %s",path.c_str());
       }
+  }
+  
+  //lock a file
+  int file_lock(std::string path)
+  {
+    int f=0;
+    if(rank==0)
+      {
+	//open the file descriptor
+	f=open(path.c_str(),O_RDWR);
+	if(f) master_printf("File %s opened\n",path.c_str());
+	
+	//set a lock and check it
+	int status=lockf(f,F_TLOCK,0);
+	if(not status)
+	  {
+	    close(f);
+	    f=0;
+	    master_printf("Unable to set the lock on %s\n",path.c_str());
+	  }
+      }
+    
+    //broadcast
+    MPI_Bcast(&f,1,MPI_INT,0,MPI_COMM_WORLD);
+    
+    return f;
+  }
+  
+  //unlock a file
+  int file_unlock(int f)
+  {
+    if(rank==0)
+      {
+	int status=lockf(f,F_ULOCK,0);
+	if(not status) master_printf("Unable to unset the lock on file descriptor %d\n",f);
+	else close(f);
+      }
+    
+    //broadcast
+    MPI_Bcast(&f,1,MPI_INT,0,MPI_COMM_WORLD);
+    
+    return f;
   }
   
   //check if a file exists

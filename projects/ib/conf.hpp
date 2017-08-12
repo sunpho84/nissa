@@ -28,6 +28,8 @@ namespace nissa
   EXTERN_CONF quad_su3 *inner_conf INIT_TO(NULL);
   EXTERN_CONF quad_su3 *ape_smeared_conf INIT_TO(NULL);
   
+  EXTERN_CONF int lock_fd;
+  
   void read_init_grid();
   void generate_random_coord(coords);
   quad_su3* get_updated_conf(double charge,double th0,double th_spat,quad_su3 *in_conf);
