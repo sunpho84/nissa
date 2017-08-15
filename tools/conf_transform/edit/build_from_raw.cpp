@@ -9,7 +9,7 @@ FILE* find_conf_beginning(std::string path)
   FILE *fin=open_file(path,"r");
   su3 link;
   
-  off64_t off=0;
+  long long int off=0;
   int rc=0,link_found=0;
   double non_su3=0;
   do
@@ -18,7 +18,7 @@ FILE* find_conf_beginning(std::string path)
       //seek
       rc=fseeko64(fin,off,SEEK_SET);
       
-      if(rc) master_printf("Error seeking to %" PRId64 "\n",off);
+      if(rc) master_printf("Error seeking to %lld\n",off);
       else
 	{
 	  //check feof
@@ -42,11 +42,11 @@ FILE* find_conf_beginning(std::string path)
 	      if(fabs(non_su3)<1e-13)
 		{
 		  link_found=1;
-		  verbosity_lv2_master_printf("Link found at %" PRId64 ", non-su3ness: %lg\n",off,non_su3);
+		  verbosity_lv2_master_printf("Link found at %lld, non-su3ness: %lg\n",off,non_su3);
 		}
 	      else
 		{
-		  verbosity_lv3_master_printf("Link not yet found, deviation: %lg at %" PRId64 "\n",non_su3,off);
+		  verbosity_lv3_master_printf("Link not yet found, deviation: %lg at %lld\n",non_su3,off);
 		  off++;
 		}
 	    }
@@ -59,7 +59,7 @@ FILE* find_conf_beginning(std::string path)
   //set to the position
   if(link_found)
     {
-      verbosity_lv2_master_printf("Putting offset to beginning of found link: %" PRId64 "\n",off);
+      verbosity_lv2_master_printf("Putting offset to beginning of found link: %lld\n",off);
       rc=fseeko64(fin,off,SEEK_SET);
     }
   
