@@ -13,6 +13,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/gaugefix/landau \
 	$(top_builddir)/tools/conf_transform/gaugefix/random \
 	$(top_builddir)/tools/conf_transform/smear/stout \
+	$(top_builddir)/tools/conf_transform/edit/build_from_raw \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data \
 	$(top_builddir)/tools/conf_transform/edit/skip_random \
 	$(top_builddir)/tools/conf_transform/edit/rewind_random \
@@ -44,6 +45,7 @@ __top_builddir__tools_conf_transform_create_create_hot_SOURCES=conf_transform/cr
 __top_builddir__tools_conf_transform_gaugefix_landau_SOURCES=conf_transform/gaugefix/landau.cpp
 __top_builddir__tools_conf_transform_gaugefix_random_SOURCES=conf_transform/gaugefix/random.cpp
 __top_builddir__tools_conf_transform_smear_stout_SOURCES=conf_transform/smear/stout.cpp
+__top_builddir__tools_conf_transform_edit_build_from_raw_SOURCES=conf_transform/edit/build_from_raw.cpp
 __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES=conf_transform/edit/grab_ildg_data.cpp
 __top_builddir__tools_conf_transform_edit_skip_random_SOURCES=conf_transform/edit/skip_random.cpp
 __top_builddir__tools_conf_transform_edit_rewind_random_SOURCES=conf_transform/edit/rewind_random.cpp

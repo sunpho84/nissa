@@ -295,7 +295,7 @@ namespace nissa
     return view;
   }
   
-#else
+#endif
   
   //define the reampping from lx in order to have in each rank a consecutive block of data
   //holding a consecutive piece of ildg data
@@ -332,8 +332,6 @@ namespace nissa
     //convert to rank and loclx
     get_loclx_and_rank_of_coord(&iloc_lx,&irank_lx,xto);
   }
-  
-#endif
   
   ////////////////////////////////////////////////// read and write ////////////////////////////////////////
   

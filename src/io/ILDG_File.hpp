@@ -113,6 +113,8 @@ namespace nissa
   void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write);
   void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
   void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
+  void index_to_ILDG_remapping(int &irank_ILDG,int &iloc_ILDG,int iloc_lx,void *pars);
+  void index_from_ILDG_remapping(int &irank_lx,int &iloc_lx,int iloc_ILDG,void *pars);
   
   //storable vector
   ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data);

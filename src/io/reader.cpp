@@ -37,6 +37,9 @@ namespace nissa
       crash("Opsss! The file contain %d bytes per site and it is supposed to contain not more than %d!",
 	    nbytes_per_site_read,nreals_per_site*sizeof(double));
     
+    //read
+    ILDG_File_read_ildg_data_all(out,file,header);
+    
     //check read size
     uint64_t nbytes_per_site_float=nreals_per_site*sizeof(float);
     uint64_t nbytes_per_site_double=nreals_per_site*sizeof(double);
@@ -51,30 +54,20 @@ namespace nissa
     if(nbytes_per_site_read==nbytes_per_site_float) single_double_flag=0;
     if(nbytes_per_site_read==nbytes_per_site_double) single_double_flag=1;
     if(single_double_flag==-1)
-      {
-	if(ignore_ILDG_magic_number)
-	  {
-	    header.data_length=nbytes_per_site_double*glb_vol;
-	    master_printf("Ignoring message header and overriding header size to %d (double)\n",header.data_length);
-	    single_double_flag=1;
-	  }
-	else crash("Opsss! The file contain %d bytes per site and it is supposed to contain: %d (single) or %d (double)",
-		   nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);
-      }
+      crash("Opsss! The file contain %d bytes per site and it is supposed to contain: %d (single) or %d (double)",
+	    nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);
     verbosity_lv3_master_printf("Vector is stored in %s precision\n",single_double_str[single_double_flag]);
-    
-    //read
-    ILDG_File_read_ildg_data_all(out,file,header);
     
     //change endianess
     if(little_endian)
       {
+	verbosity_lv1_master_printf("Needs to change endianness!\n");
 	if(single_double_flag==0) change_endianness((float*)out,(float*)out,loc_nreals_tot);
 	else change_endianness(out,out,loc_nreals_tot);
       }
     
     //check the checksum
-    if(read_check[0]!=0 or read_check[1]!=0)
+    if(read_check[0]!=0||read_check[1]!=0)
       {
 	master_printf("Checksums read:      %#010x %#010x\n",read_check[0],read_check[1]);
 	
@@ -84,7 +77,7 @@ namespace nissa
 	
 	//print the comparison between checksums
 	master_printf("Checksums computed:  %#010x %#010x\n",comp_check[0],comp_check[1]);
-	if((read_check[0]!=comp_check[0]) or (read_check[1]!=comp_check[1]))
+	if((read_check[0]!=comp_check[0])||(read_check[1]!=comp_check[1]))
 	  master_printf("Warning, checksums do not agree!\n");
       }
     else master_printf("Data checksum not found.\n");

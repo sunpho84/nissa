@@ -1,7 +1,7 @@
 .gitignore
 aclocal.m4
 autom4te.cache/
-build*
+build*/
 compile_commands.json
 config/compile
 config/config.guess
@@ -22,16 +22,13 @@ Makefile.in
 src/config.hpp.in
 tools/Makefile.in
 tools/Makefile.in
-build_clang
 /doc/deflation-notes.pdf
-build_vir
 /.dir-locals.el
 /src/config.hpp.in~
 /doc/facc.lyx~
 /doc/facc.pdf
 /.dir-locals.el~
 /doc/autovalori.pdf
-build*
 /doc/stoch_photon.pdf
 /doc/stoch_photon.tex
 /doc/smearing_bali.pdf
