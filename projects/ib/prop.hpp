@@ -26,7 +26,7 @@ namespace nissa
     double mass;
     int r;
     double charge;
-    double theta;
+    double theta[NDIM];
     
     insertion_t insertion;
     std::string source_name;
@@ -48,7 +48,7 @@ namespace nissa
     }
     
     //initialize as a propagator
-    void init_as_propagator(insertion_t _insertion,std::string _source_name,int _tins,double _residue,double _kappa,double _mass,int _r,double _charge,double _theta,bool _store)
+    void init_as_propagator(insertion_t _insertion,std::string _source_name,int _tins,double _residue,double _kappa,double _mass,int _r,double _charge,double *_theta,bool _store)
     {
       is_source=false;
       
@@ -56,7 +56,7 @@ namespace nissa
       mass=_mass;
       r=_r;
       charge=_charge;
-      theta=_theta;
+      for(int mu=0;mu<NDIM;mu++) theta[mu]=_theta[mu];
       insertion=_insertion;
       source_name=_source_name;
       tins=_tins;
@@ -78,7 +78,7 @@ namespace nissa
       alloc_spincolor();
     }
     
-    qprop_t(insertion_t insertion,std::string source_name,int tins,double residue,double kappa,double mass,int r,double charge,double theta,bool store)
+    qprop_t(insertion_t insertion,std::string source_name,int tins,double residue,double kappa,double mass,int r,double charge,double *theta,bool store)
     {init_as_propagator(insertion,source_name,tins,residue,kappa,mass,r,charge,theta,store);}
     qprop_t(rnd_t noise_type,int tins,int r,bool store) {init_as_source(noise_type,tins,r,store);}
     qprop_t() {is_source=0;}
@@ -128,7 +128,7 @@ namespace nissa
   void free_L_prop();
   tm_quark_info get_lepton_info(int ilepton,int orie,int r);
   
-  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,double theta);
+  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,double *theta);
   void generate_original_source(qprop_t *sou);
   inline void generate_original_sources()
   {
@@ -140,7 +140,7 @@ namespace nissa
   }
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,coords dirs);
   void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,coords dirs,int loc);
-  void generate_source(insertion_t inser,int r,double charge,double kappa,double theta,spincolor *ori,int t);
+  void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator();
   void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc);

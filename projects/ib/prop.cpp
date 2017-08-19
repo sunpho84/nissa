@@ -31,7 +31,7 @@ namespace nissa
   {add_photon_field_to_conf(conf,-q);}
   
   //get a propagator inverting on "in"
-  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,double residue,double theta)
+  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,double residue,double *theta)
   {
     GET_THREAD_ID();
     
@@ -41,7 +41,7 @@ namespace nissa
     //invert
     START_TIMING(inv_time,ninv_tot);
     
-    quad_su3 *conf=get_updated_conf(charge,QUARK_BOUND_COND,theta,glb_conf);
+    quad_su3 *conf=get_updated_conf(charge,theta,glb_conf);
     
     if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
     else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
@@ -168,18 +168,18 @@ namespace nissa
   }
   
   //phase the propagator
-  THREADABLE_FUNCTION_4ARG(phase_prop, spincolor*,out, spincolor*,ori, int,t, double,th)
+  THREADABLE_FUNCTION_4ARG(phase_prop, spincolor*,out, spincolor*,ori, int,t, double*,th)
   {
     GET_THREAD_ID();
     
-    if(fabs((int)(th/2)-th/2)>1e-10) crash("Error: phase %lg must be an even integer",th);
+    for(int mu=1;mu<NDIM;mu++) if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10) crash("Error: phase %lg must be an even integer",th);
     
     vector_reset(out);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	//compute x*p
 	double arg=0.0;
-	for(int mu=1;mu<NDIM;mu++) arg+=M_PI*th*rel_coord_of_loclx(ivol,mu)/glb_size[mu]; //N.B: valid only if source is on origin...
+	for(int mu=1;mu<NDIM;mu++) arg+=M_PI*th[mu]*rel_coord_of_loclx(ivol,mu)/glb_size[mu]; //N.B: valid only if source is on origin...
 	
 	//compute exp(ip)
 	complex factor;
@@ -195,7 +195,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //generate a sequential source
-  void generate_source(insertion_t inser,int r,double charge,double kappa,double theta,spincolor *ori,int t)
+  void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,spincolor *ori,int t)
   {
     source_time-=take_time();
     
@@ -204,13 +204,13 @@ namespace nissa
     coords dirs[NDIM]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
     
     quad_su3 *conf;
-    if(inser!=SMEARING) conf=get_updated_conf(charge,QUARK_BOUND_COND,theta,glb_conf);
+    if(inser!=SMEARING) conf=get_updated_conf(charge,theta,glb_conf);
     else
       {
 	quad_su3 *ext_conf;
 	if(ape_smeared_conf) ext_conf=ape_smeared_conf;
 	else                 ext_conf=glb_conf;
-	conf=get_updated_conf(0.0,PERIODIC,theta,ext_conf);
+	conf=get_updated_conf(0.0,theta,ext_conf);
       }
     
     master_printf("Inserting r: %d\n",r);
@@ -255,8 +255,8 @@ namespace nissa
 	q.ori_source_norm2=qsource.ori_source_norm2;
 	
 	//write info on mass and r
-	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta=%lg\n",i,q.mass,q.r,q.theta);
-	else            master_printf(" kappa[%d]=%lg, theta=%lg\n",i,q.kappa,q.theta);
+	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
+	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta[1],q.theta[2],q.theta[3]);
 	
 	//compute the inverse clover term, if needed
 	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);

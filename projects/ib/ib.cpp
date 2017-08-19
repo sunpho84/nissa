@@ -89,7 +89,7 @@ void init_simulation(char *path)
       expect_str("R");
     }
   expect_str("Charge");
-  expect_str("Theta");
+  read_iso_theta();
   expect_str("Residue");
   expect_str("Store");
   for(int iq=0;iq<nprops;iq++)
@@ -116,7 +116,9 @@ void init_simulation(char *path)
       read_int(&tins);
       master_printf("Read variable 'Tins' with value: %d\n",tins);
       
-      double kappa=0.125,mass=0.5,charge=0,theta=0,residue=1e-16;
+      double kappa=0.125,mass=0.5,charge=0,theta[NDIM],residue=1e-16;
+      theta[0]=QUARK_BOUND_COND;
+      for(int mu=1;mu<NDIM;mu++) theta[mu]=0;
       int r=0,store_prop=0;
       
       bool decripted=false;
@@ -139,8 +141,7 @@ void init_simulation(char *path)
 	    }
 	  read_double(&charge);
 	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
-	  read_double(&theta);
-	  master_printf("Read variable 'Theta' with value: %lg\n",theta);
+	  read_theta(theta);
 	  read_double(&residue);
 	  master_printf("Read variable 'Residue' with value: %lg\n",residue);
 	}
@@ -150,8 +151,7 @@ void init_simulation(char *path)
 	{
 	  decripted=true;
 	  
-	  read_double(&theta);
-	  master_printf("Read variable 'Theta' with value: %lg\n",theta);
+	  read_theta(theta);
 	}
       
       //read smearing
@@ -165,8 +165,7 @@ void init_simulation(char *path)
 	  read_int(&r);
 	  master_printf("Read variable 'R' with value: %d\n",r);
 	  
-	  read_double(&theta);
-	  master_printf("Read variable 'Theta' with value: %lg\n",theta);
+	  read_theta(theta);
 	}
       
       //everything else

@@ -57,11 +57,11 @@ namespace nissa
   }
   
   //take a set of theta, charge and photon field, and update the conf
-  quad_su3* get_updated_conf(double charge,double th0,double th_spat,quad_su3 *in_conf)
+  quad_su3* get_updated_conf(double charge,double *theta,quad_su3 *in_conf)
   {
     //check if the inner conf is valid or not
     static quad_su3 *stored_conf=NULL;
-    static double stored_charge=0,stored_th0=0,stored_th_spat=0;
+    static double stored_charge=0,stored_theta[NDIM];
     if(not inner_conf_valid) master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
     
     //check ref conf
@@ -77,16 +77,13 @@ namespace nissa
 	master_printf("Inner conf is invalid (charge changed from %lg to %lg)\n",stored_charge,charge);
 	inner_conf_valid=false;
       }
-    //th0
-    if(th0!=stored_th0)
+    //check theta
+    bool same_theta=true;
+    for(int mu=0;mu<NDIM;mu++) same_theta&=(theta[mu]==stored_theta[mu]);
+    if(not same_theta)
       {
-	master_printf("Inner conf is invalid (th0 changed from %lg to %lg)\n",stored_th0,th0);
-	inner_conf_valid=false;
-      }
-    //th_spat
-    if(th_spat!=stored_th_spat)
-      {
-	master_printf("Inner conf is invalid (th_spat changed from %lg to %lg)\n",stored_th_spat,th_spat);
+	master_printf("Inner conf is invalid (theta changed from {%lg,%lg,%lg,%lg} to {%lg,%lg,%lg,%lg}\n",
+		      stored_theta[0],stored_theta[1],stored_theta[2],stored_theta[3],theta[0],theta[1],theta[2],theta[3]);
 	inner_conf_valid=false;
       }
     
@@ -98,10 +95,9 @@ namespace nissa
 	vector_copy(inner_conf,in_conf);
 	
 	//put momentum
-	momentum_t put_theta,old_theta;
+	momentum_t old_theta;
 	old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
-	put_theta[0]=th0;put_theta[1]=put_theta[2]=put_theta[3]=th_spat;
-	adapt_theta(inner_conf,old_theta,put_theta,0,0);
+	adapt_theta(inner_conf,old_theta,theta,0,0);
 	
 	//include the photon field, with correct charge
 	add_photon_field_to_conf(inner_conf,charge);
@@ -110,8 +106,7 @@ namespace nissa
     //update value and set valid
     stored_conf=in_conf;
     stored_charge=charge;
-    stored_th0=th0;
-    stored_th_spat=th_spat;
+    for(int mu=0;mu<NDIM;mu++) stored_theta[mu]=theta[mu];
     inner_conf_valid=true;
     
     return inner_conf;

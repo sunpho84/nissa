@@ -191,6 +191,41 @@ namespace nissa
     read_str_double("ApeSmearingAlpha",&ape_smearing_alpha);
     read_str_int("ApeSmearingNiters",&ape_smearing_niters);
   }
+  
+  //read if isothrope theta or not
+  EXTERN_PARS bool iso_theta INIT_TO(false);
+  inline void read_iso_theta()
+  {
+    char theta_tag[1024];
+    read_str(theta_tag,1024);
+    
+    if(strcasecmp(theta_tag,"Theta")==0) iso_theta=true;
+    else
+      if(strcasecmp(theta_tag,"ThetaX")==0)
+	{
+	  iso_theta=false;
+	  expect_str("ThetaY");
+	  expect_str("ThetaZ");
+	}
+      else crash("Unknown theta tag: %s",theta_tag);
+  }
+  
+  //read the theta, iso or not
+  inline void read_theta(double *theta)
+  {
+    if(iso_theta)
+      {
+	read_double(&theta[1]);
+	for(int mu=2;mu<NDIM;mu++) theta[mu]=theta[1];
+	master_printf("Read variable 'Theta' with value: %lg\n",theta[1]);
+      }
+    else
+      for(int mu=1;mu<NDIM;mu++)
+	{
+	  read_double(&theta[mu]);
+	  master_printf("Read variable 'Theta[%d]' with value: %lg\n",mu,theta[mu]);
+	}
+  }
 }
 
 #undef EXTERN_PARS
