@@ -32,7 +32,7 @@ namespace nissa
     int nl()
     {return levs.size();}
     
-    recursive_Wflower_t(const Wflow_pars_t &Wflower) : Wflower(Wflower)
+    recursive_Wflower_t(const Wflow_pars_t &Wflower,quad_su3 *ori_conf) : Wflower(Wflower)
     {
       int ns=Wflower.nrecu;
       
@@ -57,6 +57,8 @@ namespace nissa
 	  // verbosity_lv3_
 	    master_printf("unit %d: %d\n",il,levs[il].units);
 	}
+      
+      set_conf(ori_conf);
     }
     
     ~recursive_Wflower_t()
