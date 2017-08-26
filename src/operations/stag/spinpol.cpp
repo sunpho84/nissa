@@ -131,9 +131,13 @@ namespace nissa
   {
     verbosity_lv1_master_printf("Evaluating spinpol\n");
     
+    //set-up the smoother
+    smooth_pars_t &sp=mp.smooth_pars;
+    if(sp.method!=smooth_pars_t::WFLOW) crash("spinpol makes sense only with Wflow");
+    int nmeas=mp.smooth_pars.nmeas_nonzero()+1;
+    
     //    if(mp.use_ferm_conf_for_gluons or glu_conf==NULL) glu_conf=ferm_conf;	//We don't use ferm_conf anymore (L)
     
-    smooth_pars_t &sp=mp.smooth_pars;
     int nflavs=tp.nflavs();
     int nop=mp.nops();
     
@@ -148,7 +152,6 @@ namespace nissa
     for(int iflav_op=0;iflav_op<nflavs*nop;iflav_op++) tens_dens[iflav_op]=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
     
     //allocate the smoothed confs
-    int nmeas=mp.smooth_pars.nmeas_nonzero()+1;
     quad_su3 *smoothed_conf[nmeas];
     quad_su3 *ferm_conf[nmeas][2];
     quad_su3 *gauge_conf=nissa_malloc("gauge_conf",loc_vol+bord_vol,quad_su3);

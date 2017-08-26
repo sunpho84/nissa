@@ -11,32 +11,33 @@
 
 namespace nissa
 {
-  //holds the data to recursive smooth, generalizing  from 1302.5246
-  struct recursive_smoother_t
+  //holds the data to recursive Wflow, generalizing  from 1302.5246
+  struct recursive_Wflower_t
   {
-    struct smooth_lev_t
+    struct Wflow_lev_t
     {
       quad_su3 *conf; //stored configuration
-      int nsmooth; //current smooth in terms of the fundamental
-      int units; //length of the smoothing in units of the fundamental, for this level
+      int nWflow; //current Wflow in terms of the fundamental
+      int units; //length of the Wflowing in units of the fundamental, for this level
       int off() //offset of the level
       {return units/2;}
     };
     
-    smooth_pars_t &smoother; //smoother embedded
+    const Wflow_pars_t &Wflower;
     
-    //level of smoothed conf
-    std::vector<smooth_lev_t> levs;
+    //level of Wflowed conf
+    std::vector<Wflow_lev_t> levs;
     
     //number of levels
     int nl()
     {return levs.size();}
     
-    recursive_smoother_t(int ns,smooth_pars_t &smoother) : smoother(smoother)
+    recursive_Wflower_t(const Wflow_pars_t &Wflower) : Wflower(Wflower)
     {
-      //take the number of smooth levels
-      int m=smoother.nsmooth();
+      int ns=Wflower.nrecu;
       
+      //take the number of Wflow levels
+      int m=Wflower.nflows;
       //check
       if(ns<0 or ns>m) crash("ns=%d must be in the range [%d,%d]",0,m);
       
@@ -49,7 +50,7 @@ namespace nissa
       levs.resize(ns+1);
       for(int i=0;i<nl();i++) levs[i].conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
       
-      //set units of smooth
+      //set units of Wflow
       for(int il=0;il<nl();il++)
 	{
 	  levs[il].units=std::max(1.0,m/pow(nb,il)+1e-10);
@@ -58,7 +59,7 @@ namespace nissa
 	}
     }
     
-    ~recursive_smoother_t()
+    ~recursive_Wflower_t()
     {for(int is=0;is<nl();is++) nissa_free(levs[is].conf);}
     
     //set the external conf
@@ -67,64 +68,64 @@ namespace nissa
       for(int i=0;i<nl();i++)
 	{
 	  vector_copy(levs[i].conf,ori_conf);
-	  levs[i].nsmooth=-1;
+	  levs[i].nWflow=-1;
 	}
-      levs.front().nsmooth=0;
+      levs.front().nWflow=0;
     }
     
-    //find the level which has the closest smaller nsmooth
-    int find_closest_smaller_nsmooth(int nsmooth)
+    //find the level which has the closest smaller nWflow
+    int find_closest_smaller_nWflow(int nWflow)
     {
       //verbosity_lv3_
-	master_printf(" searching the level closest to %d\n",nsmooth);
+	master_printf(" searching the level closest to %d\n",nWflow);
       
-      int iclosest_smooth=0;
+      int iclosest_Wflow=0;
       for(int is=1;is<nl();is++)
 	{
-	  int nclosest_smooth=levs[iclosest_smooth].nsmooth;
-	  int lev_ncur_smooth=levs[is].nsmooth;
+	  int nclosest_Wflow=levs[iclosest_Wflow].nWflow;
+	  int lev_ncur_Wflow=levs[is].nWflow;
 	  //verbosity_lv3_
-	    master_printf(" level %d: %d, current closest: %d, nclosest_smooth: %d\n",is,lev_ncur_smooth,iclosest_smooth,nclosest_smooth);
-	  if(lev_ncur_smooth<=nsmooth and lev_ncur_smooth>nclosest_smooth) iclosest_smooth=is;
+	    master_printf(" level %d: %d, current closest: %d, nclosest_Wflow: %d\n",is,lev_ncur_Wflow,iclosest_Wflow,nclosest_Wflow);
+	  if(lev_ncur_Wflow<=nWflow and lev_ncur_Wflow>nclosest_Wflow) iclosest_Wflow=is;
 	}
       
-      return iclosest_smooth;
+      return iclosest_Wflow;
     }
     
     //copy level
     void copy_level(int idest,int isou)
     {
       vector_copy(levs[idest].conf,levs[isou].conf);
-      levs[idest].nsmooth=levs[isou].nsmooth;
+      levs[idest].nWflow=levs[isou].nWflow;
     }
     
-    //evolve until nsmooth
-    int update_level(int is,int nsmooth,int *dirs=all_dirs,int staple_min_dir=0)
+    //evolve until nWflow
+    int update_level(int is,int nWflow,int *dirs=all_dirs)
     {
       int nevol=0;
       
       //verbosity_lv3_
-	master_printf("levs[%d].nsmooth: %d nsmooth: %d\n",is,levs[is].nsmooth,nsmooth);
-      while(levs[is].nsmooth<nsmooth)
+	master_printf("levs[%d].nWflow: %d nWflow: %d\n",is,levs[is].nWflow,nWflow);
+      while(levs[is].nWflow<nWflow)
 	{
-	  smooth_lx_conf_one_step(levs[is].conf,smoother,dirs,staple_min_dir);
-	  levs[is].nsmooth++;
+	  Wflow_lx_conf(levs[is].conf,Wflower.dt,dirs);
+	  levs[is].nWflow++;
 	  nevol++;
 	}
       
       return nevol;
     }
     
-    //return the smallest viable nsmooth rounded to the level
-    int get_smallest_nsmooth_rounded(int nsmooth,int is)
+    //return the smallest viable nWflow rounded to the level
+    int get_smallest_nWflow_rounded(int nWflow,int is)
     {
       int units=levs[is].units;
       int off=levs[is].off();
-      return ((nsmooth+units-off)/units-1)*units+off;
+      return ((nWflow+units-off)/units-1)*units+off;
     }
     
     //update the lowest conf using in chain the superior ones
-    int update(int nsmooth,int *dirs=all_dirs,int staple_min_dir=0)
+    int update(int nWflow,int *dirs=all_dirs,int staple_min_dir=0)
     {
       int nevol=0;
       
@@ -133,36 +134,36 @@ namespace nissa
       
       for(int is=1;is<nl();is++)
 	{
-	  int lev_ncur_smooth=levs[is].nsmooth;
-	  int lev_ntarg_smooth=get_smallest_nsmooth_rounded(nsmooth,is);
+	  int lev_ncur_Wflow=levs[is].nWflow;
+	  int lev_ntarg_Wflow=get_smallest_nWflow_rounded(nWflow,is);
 	  int units=levs[is].units;
 	  //verbosity_lv3_
-	    master_printf("Targeting at nsmooth=%d, current smooth at level %d units of %d: %d, this should be %d\n",nsmooth,is,units,lev_ncur_smooth,lev_ntarg_smooth);
+	    master_printf("Targeting at nWflow=%d, current Wflow at level %d units of %d: %d, this should be %d\n",nWflow,is,units,lev_ncur_Wflow,lev_ntarg_Wflow);
 	    
-	    //store in the path the current level, using the target nsmooth for current level as a key
-	    if(lev_ntarg_smooth>0 and lev_ntarg_smooth<=nsmooth)
-	      order_path.push_back(std::make_pair(lev_ntarg_smooth,is));
+	    //store in the path the current level, using the target nWflow for current level as a key
+	    if(lev_ntarg_Wflow>0 and lev_ntarg_Wflow<=nWflow)
+	      order_path.push_back(std::make_pair(lev_ntarg_Wflow,is));
 	}
       
       //sort the path
       std::sort(order_path.begin(),order_path.end());
       for(int ip=0;ip<(int)order_path.size();ip++) verbosity_lv3_master_printf("ip=%d targ=%d is=%d\n",ip,order_path[ip].first,order_path[ip].second);
       
-      //if not on correct number of smooth, search for the closest and extend it
+      //if not on correct number of Wflow, search for the closest and extend it
       for(int ip=0;ip<(int)order_path.size();ip++)
 	{
-	  int lev_ntarg_smooth=order_path[ip].first;
+	  int lev_ntarg_Wflow=order_path[ip].first;
 	  int il=order_path[ip].second;
 	  
-	  int iclosest_smooth=find_closest_smaller_nsmooth(lev_ntarg_smooth);
+	  int iclosest_Wflow=find_closest_smaller_nWflow(lev_ntarg_Wflow);
 	  //verbosity_lv3_
-	  master_printf("Targetting %d for lev %d, closest level: %d, nsmooth: %d\n",lev_ntarg_smooth,il,iclosest_smooth,levs[iclosest_smooth].nsmooth);
+	  master_printf("Targetting %d for lev %d, closest level: %d, nWflow: %d\n",lev_ntarg_Wflow,il,iclosest_Wflow,levs[iclosest_Wflow].nWflow);
 	  
-	  if(iclosest_smooth!=il)
+	  if(iclosest_Wflow!=il)
 	    {
 	      //copy and extend if needed
-       	      copy_level(il,iclosest_smooth);
-	      nevol+=update_level(il,lev_ntarg_smooth,dirs,staple_min_dir);
+       	      copy_level(il,iclosest_Wflow);
+	      nevol+=update_level(il,lev_ntarg_Wflow,dirs);
        	    }
        	}
       
