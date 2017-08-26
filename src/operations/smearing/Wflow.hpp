@@ -14,8 +14,10 @@ namespace nissa
   {
     int nflows;
     double dt;
+    int nrecu;
     double def_nflows(){return 50;}
     double def_dt(){return 0.2;}
+    int def_nrecu(){return 5;}
     
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false)
@@ -27,6 +29,7 @@ namespace nissa
 	{
 	  if(full or nflows!=def_nflows()) os<<" NFlows\t=\t"<<nflows<<"\n";
 	  if(full or dt!=def_dt()) os<<" FlowStep\t=\t"<<dt<<"\n";
+	  if(full or nrecu!=def_nrecu()) os<<" NRecu\t=\t"<<nrecu<<"\n";
 	}
       
       return os.str();
@@ -36,12 +39,14 @@ namespace nissa
     {
       return
 	nflows!=def_nflows() or
-	dt!=def_dt();
+	dt!=def_dt() or
+	nrecu!=def_nrecu();
     }
     
     Wflow_pars_t() :
       nflows(def_nflows()),
-      dt(def_dt()) {}
+      dt(def_dt()),
+      nrecu(def_nrecu()) {}
   };
   
   void Wflow_lx_conf(quad_su3 *conf,double dt,int *dirs=all_dirs);

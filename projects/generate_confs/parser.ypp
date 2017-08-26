@@ -185,6 +185,8 @@
 %type <Wflow_pars> Wflow_pars
 %token TK_NFLOWS
 %type <int_numb> nflows
+%token TK_NRECU
+%type <int_numb> nrecu
 %token TK_FLOW_STEP
 %type <double_numb> flow_step
 //gauge action
@@ -451,10 +453,12 @@ alphas: TK_ALPHAS '=' double_list {$$=$3;};
 
 Wflow_pars: TK_WFLOW {$$=new Wflow_pars_t;}
           | Wflow_pars nflows {$$=$1;$$->nflows=$2;}
+          | Wflow_pars nrecu {$$=$1;$$->nrecu=$2;}
           | Wflow_pars flow_step {$$=$1;$$->dt=$2;}
 ;
 
 nflows: TK_NFLOWS '=' int_numb {$$=$3;};
+nrecu: TK_NRECU '=' int_numb {$$=$3;};
 flow_step: TK_FLOW_STEP '=' double_numb {$$=$3;};
 
 ////////////////////////////////////////////////// QUARK CONTENT //////////////////////////////////////////////////

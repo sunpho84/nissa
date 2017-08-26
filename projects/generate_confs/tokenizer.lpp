@@ -226,6 +226,7 @@ Alpha DEBUG_PRINTF("Found Alpha\n");return TK_ALPHA;
 WFlow DEBUG_PRINTF("Found WFlow\n");return TK_WFLOW;
 FlowStep DEBUG_PRINTF("Found FlowStep\n");return TK_FLOW_STEP;
 NFlows DEBUG_PRINTF("Found NFlows\n");return TK_NFLOWS;
+NRecu DEBUG_PRINTF("Found NRecu\n");return TK_NRECU;
 
  /* background field parameters */
 BkgrdEMField DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
