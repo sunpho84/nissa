@@ -14,6 +14,7 @@
 #include "routines/mpi_routines.hpp"
 #include "geometry/geometry_eo.hpp"
 
+#include "operations/smearing/recursive_Wflower.hpp"
 #include "spinpol.hpp"
 
 #ifdef USE_THREADS

@@ -336,8 +336,11 @@ namespace nissa
 	  {
 	    //print out the precision reached and the functional every
 	    //10 iterations, and check if to exit
-	    if(iter%10==0) get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
-	    master_printf("iter %d, quality: %16.16lg, functional: %16.16lg\n",iter,prec,func);
+	    if(iter%10==0)
+	      {
+		get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
+		master_printf("iter %d, quality: %16.16lg, functional: %16.16lg\n",iter,prec,func);
+	      }
 	    
 	    //if not reached the precision, go on
 	    if(not get_out)
