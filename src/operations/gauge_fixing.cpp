@@ -323,14 +323,14 @@ namespace nissa
       su3_put_to_id(fixer[ivol]);
     set_borders_invalid(fixer);
     
-    int macro_iter=0,nmax_macro_iter=10;
+    int macro_iter=0,nmax_macro_iter=100;
     bool really_get_out=false;
     double prec,func;
     do
       {
 	//go on fixing until reaching precision, or exceeding the
 	//iteration count
-        int iter=0,nmax_iter=1000;
+        int iter=0,nmax_iter=100;
 	bool get_out=false;
 	do
 	  {
