@@ -26,7 +26,7 @@ namespace nissa
   void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
   {
     // for each dir...
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
         int b=loclx_neighdw[ivol][mu];
         
@@ -225,7 +225,7 @@ namespace nissa
   }
   
   //do all the fixing
-  void Landau_or_Coulomb_gauge_fix(quad_su3 *conf,int start_mu,double over_relax_prob)
+  void Landau_or_Coulomb_gauge_fix(quad_su3 *conf,su3 *fixer,int start_mu,double over_relax_prob)
   {
     GET_THREAD_ID();
     
@@ -253,6 +253,9 @@ namespace nissa
 	    
 	    //transform
 	    local_gauge_transform(conf,g,ivol);
+	    
+	    //store the change
+	    safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
 	    
 	    //lower external border must be sync.ed with upper internal border of lower node
 	    //  upper internal border with same parity must be sent using buf_up[mu][par]
@@ -289,35 +292,78 @@ namespace nissa
     set_borders_invalid(conf);
   }
   
-  THREADABLE_FUNCTION_4ARG(Landau_or_Coulomb_gauge_fix, quad_su3*,fix_conf, quad_su3*,conf, int,start_mu, double,target_prec)
+  //check if gauge fixed or not
+  bool check_Landau_or_Coulomb_gauge_fixed(double &prec,double &func,quad_su3 *fixed_conf,int start_mu,double target_prec)
   {
+    prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fixed_conf,start_mu);
+    func=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu);
+    bool get_out=(prec<=target_prec);
+    return get_out;
+  }
+  
+  THREADABLE_FUNCTION_4ARG(Landau_or_Coulomb_gauge_fix, quad_su3*,fixed_conf, quad_su3*,ext_conf, int,start_mu, double,target_prec)
+  {
+    GET_THREAD_ID();
     double time=-take_time();
     
-    //copy the conf to output if not equal
-    if(fix_conf!=conf) vector_copy(fix_conf,conf);
+    //store input conf if equal
+    quad_su3 *ori_conf=ext_conf;
+    if(fixed_conf==ori_conf)
+      {
+	ori_conf=nissa_malloc("ori_conf",loc_vol+bord_vol,quad_su3);
+	vector_copy(ori_conf,ext_conf);
+      }
     
     //fix overrelax probability
     const double over_relax_prob=0.9;
     
-    int iter=0;
-    bool get_out=false;
+    //fixing transformation
+    su3 *fixer=nissa_malloc("fixer",loc_vol+bord_vol,su3);
+    NISSA_LOC_VOL_LOOP(ivol)
+      su3_put_to_id(fixer[ivol]);
+    set_borders_invalid(fixer);
+    
+    int macro_iter=0,nmax_macro_iter=10;
+    bool really_get_out=false;
+    double prec,func;
     do
       {
-	if(iter%10==0)
+	//go on fixing until reaching precision, or exceeding the
+	//iteration count
+        int iter=0,nmax_iter=1000;
+	bool get_out=false;
+	do
 	  {
-	    double prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fix_conf,start_mu);
-	    double func=compute_Landau_or_Coulomb_functional(fix_conf,start_mu);
-	    get_out=(prec<=target_prec);
-	    master_printf("quality: %d %16.16lg %16.16lg\n",iter,func,prec);
+	    //print out the precision reached and the functional every
+	    //10 iterations, and check if to exit
+	    if(iter%10==0) get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
+	    master_printf("iter %d, quality: %16.16lg, functional: %16.16lg\n",iter,prec,func);
+	    
+	    //if not reached the precision, go on
+	    if(not get_out)
+	      {
+		Landau_or_Coulomb_gauge_fix(fixed_conf,fixer,start_mu,over_relax_prob);
+		iter++;
+	      }
 	  }
+	while(iter<nmax_iter and not get_out);
 	
-	if(!get_out)
-	  {
-	    Landau_or_Coulomb_gauge_fix(fix_conf,start_mu,over_relax_prob);
-	    iter++;
-	  }
+	//now we put the fixer on su3, and make a real transformation
+	//on the basis of what we managed to fix
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  su3_unitarize_maximal_trace_projecting(fixer[ivol]);
+	set_borders_invalid(fixer);
+	gauge_transform_conf(fixed_conf,fixer,ori_conf);
+	
+	//check if really get out
+	really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
+	master_printf("macro-iter %d, quality: %16.16lg, functional: %16.16lg\n",macro_iter,prec,func);
+	macro_iter++;
       }
-    while(!get_out);
+    while(macro_iter<nmax_macro_iter and not really_get_out);
+    
+    //crash if this did not work
+    if(not really_get_out) crash("unable to fix to precision %16.16lg in %d macro-iterations",target_prec,macro_iter);
     
     master_printf("Gauge fix time: %lg\n",time+take_time());
   }
