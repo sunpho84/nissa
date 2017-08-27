@@ -3,6 +3,7 @@
 #endif
 
 #include "base/thread_macros.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "hmc/theory_pars.hpp"
 #include "linalgs/linalgs.hpp"
@@ -12,8 +13,6 @@
 #include "operations/su3_paths/topological_charge.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
-#include "geometry/geometry_eo.hpp"
-
 #include "operations/smearing/recursive_Wflower.hpp"
 #include "spinpol.hpp"
 
@@ -130,12 +129,12 @@ namespace nissa
   //compute the spin-polarization for all flavors
   void measure_spinpol(quad_su3 **ignore_ferm_conf,theory_pars_t &tp,spinpol_meas_pars_t &mp,int iconf,int conf_created,stout_pars_t &stout_pars,quad_su3 **glu_conf)
   {
+    /*
     verbosity_lv1_master_printf("Evaluating spinpol\n");
     
     //set-up the smoother
     smooth_pars_t &sp=mp.smooth_pars;
     if(sp.method!=smooth_pars_t::WFLOW) crash("spinpol makes sense only with Wflow");
-    int nmeas=mp.smooth_pars.nmeas_nonzero()+1;
     
     //    if(mp.use_ferm_conf_for_gluons or glu_conf==NULL) glu_conf=ferm_conf;	//We don't use ferm_conf anymore (L)
     
@@ -153,47 +152,37 @@ namespace nissa
     for(int iflav_op=0;iflav_op<nflavs*nop;iflav_op++) tens_dens[iflav_op]=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
     
     //allocate the smoothed confs
-    quad_su3 *smoothed_conf[nmeas];
-    quad_su3 *ferm_conf[nmeas][2];
-    quad_su3 *gauge_conf=nissa_malloc("gauge_conf",loc_vol+bord_vol,quad_su3);
-    for(int imeas=0;imeas<nmeas;imeas++)
-      {
-	smoothed_conf[imeas]=nissa_malloc(combine("smoothed_conf_%d",imeas).c_str(),loc_vol+bord_vol,quad_su3);
-	for(int eo=0;eo<2;eo++) ferm_conf[imeas][eo]=nissa_malloc("ferm_conf",loc_volh+bord_volh+edge_volh,quad_su3);
-      }
+    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
+    quad_su3 *ferm_conf[2];
+    for(int eo=0;eo<2;eo++) ferm_conf[eo]=nissa_malloc("ferm_conf",loc_volh+bord_volh+edge_volh,quad_su3);
+    
+    int nmeas=mp.smooth_pars.nmeas_nonzero()+1;
     if(nmeas==0) crash("nmeas cannot be 0");
+    */
     
-    //smooth
-    int imeas=0;
-    int nsmooth=0;
-    std::vector<int> nsmooth_meas(nmeas);
-    bool finished;
-    do
-      {
-	verbosity_lv2_master_printf("Meas: %d/%d, nsmooth: %d\n",imeas,nmeas,nsmooth);
+    // //smooth
+    // std::vector<int> nsmooth_meas;
+    // 	if(imeas==0)
+    // 	  {
+    // 	    paste_eo_parts_into_lx_vector(smoothed_conf[0],glu_conf);
+    // 	    finished=(nmeas==1);
+    // 	  }
+    // 	else
+    // 	  {
+    // 	    vector_copy(smoothed_conf[imeas],smoothed_conf[imeas-1]);
+    // 	    finished=smooth_lx_conf_until_next_meas(smoothed_conf[imeas],sp,nsmooth);
+    // 	  }
 	
-	if(imeas==0)
-	  {
-	    paste_eo_parts_into_lx_vector(smoothed_conf[0],glu_conf);
-	    finished=(nmeas==1);
-	  }
-	else
-	  {
-	    vector_copy(smoothed_conf[imeas],smoothed_conf[imeas-1]);
-	    finished=smooth_lx_conf_until_next_meas(smoothed_conf[imeas],sp,nsmooth);
-	  }
+    // 	split_lx_vector_into_eo_parts(ferm_conf[imeas],smoothed_conf[imeas]);
+    // 	stout_smear(ferm_conf[imeas],ferm_conf[imeas],&stout_pars);
 	
-	split_lx_vector_into_eo_parts(ferm_conf[imeas],smoothed_conf[imeas]);
-	stout_smear(ferm_conf[imeas],ferm_conf[imeas],&stout_pars);
-	
-	nsmooth_meas[imeas]=nsmooth;
-	imeas++;
-      }
-    while(not finished);
-    
-    int ns=5;
-    recursive_smoother_t recu(ns,sp);
-    recu.set_conf(smoothed_conf[0]);
+    // 	nsmooth_meas[imeas]=nsmooth;
+    // 	imeas++;
+    //   }
+    // while(not finished);
+
+    /*
+    recursive_Wflower_t recu(sp.Wflow,smoothed_conf[0]);
     //quad_su3 *test=
     int nevol=0;
     for(int i=sp.nsmooth();i>=0;i--)
@@ -208,6 +197,13 @@ namespace nissa
     //compute the topological charge and the product of topological and tensorial density
     int ncopies=mp.ncopies;
     for(int icopy=0;icopy<ncopies;icopy++)
+      {
+	bool finished;
+	do
+	  {
+	    verbosity_lv2_master_printf("Meas: %d/%d, nsmooth: %d\n",imeas,nmeas,nsmooth);
+	
+	
       for(int imeas=0;imeas<nmeas;imeas++)
 	{
 	  verbosity_lv1_master_printf("Computing copy %d/%d smooth %d/%d, t %d/%d\n",icopy,ncopies,imeas,nmeas,nsmooth_meas[imeas],nsmooth);
@@ -280,5 +276,6 @@ namespace nissa
     os<<smooth_pars.get_str(full);
     
     return os.str();
+    */
   }
 }
