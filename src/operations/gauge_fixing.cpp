@@ -310,7 +310,7 @@ namespace nissa
     quad_su3 *ori_conf=ext_conf;
     if(fixed_conf==ori_conf)
       {
-	ori_conf=nissa_malloc("ori_conf",loc_vol+bord_vol,quad_su3);
+	ori_conf=nissa_malloc("ori_conf",loc_vol+bord_vol+edge_vol,quad_su3);
 	vector_copy(ori_conf,ext_conf);
       }
     
