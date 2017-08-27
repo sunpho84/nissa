@@ -144,7 +144,7 @@
 #include "operations/smearing/APE.hpp"
 #include "operations/smearing/HYP.hpp"
 #include "operations/smearing/gaussian.hpp"
-#include "operations/smearing/recursive_smoother.hpp"
+#include "operations/smearing/recursive_Wflower.hpp"
 #include "operations/smearing/stout.hpp"
 #include "operations/smearing/smooth.hpp"
 #include "operations/smearing/Wflow.hpp"
