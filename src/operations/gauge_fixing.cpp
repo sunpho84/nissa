@@ -12,6 +12,7 @@
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
@@ -201,7 +202,8 @@ namespace nissa
     
     communicate_lx_quad_su3_borders(conf);
     
-    double loc_omega=0;
+    double *loc_omega=nissa_malloc("loc_omega",loc_vol,double);
+    
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	su3 delta;
@@ -216,12 +218,14 @@ namespace nissa
 	//take 2 the traceless anti-hermitian part
 	su3 delta_TA;
 	unsafe_su3_traceless_anti_hermitian_part(delta_TA,delta);
-	double c=4*su3_norm2(delta_TA);
-	if(ivol==0) master_printf("c: %.16lg\n",c);
-	loc_omega+=c;
+	loc_omega[ivol]=4*su3_norm2(delta_TA);
       }
+    THREAD_BARRIER();
     
-    return glb_reduce_double(loc_omega)/glb_vol/NCOL;
+    //global reduction
+    double omega;
+    double_vector_glb_collapse(&omega,loc_omega,loc_vol);
+    return omega/glb_vol/NCOL;
   }
   
   //do all the fixing
