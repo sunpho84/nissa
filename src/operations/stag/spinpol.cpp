@@ -255,6 +255,7 @@ namespace nissa
     
     //close
     close_file(fout);
+    */
   }
   
   std::string spinpol_meas_pars_t::get_str(bool full)
@@ -276,6 +277,5 @@ namespace nissa
     os<<smooth_pars.get_str(full);
     
     return os.str();
-    */
   }
 }
