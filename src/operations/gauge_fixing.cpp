@@ -216,7 +216,9 @@ namespace nissa
 	//take 2 the traceless anti-hermitian part
 	su3 delta_TA;
 	unsafe_su3_traceless_anti_hermitian_part(delta_TA,delta);
-	loc_omega+=4*su3_norm2(delta_TA);
+	double c=4*su3_norm2(delta_TA);
+	if(ivol==0) master_printf("c: %.16lg\n",c);
+	loc_omega+=c;
       }
     
     return glb_reduce_double(loc_omega)/glb_vol/NCOL;
