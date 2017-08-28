@@ -170,7 +170,7 @@ namespace nissa
     if(nbytes)
       {
 #ifdef USE_MPI_IO
-	decript_MPI_error(MPI_File_seek(file,nbytes,MPI_SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
+	decript_MPI_error(MPI_File_seek(file,ILDG_File_get_position(file)+nbytes,MPI_SEEK_SET),"while seeking ahead %d bytes from current position",nbytes);
 #else
 	crash_printing_error(fseek(file,nbytes,SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
 #endif
@@ -383,7 +383,7 @@ namespace nissa
       {
 	char buf[1024];
 	snprintf(buf,1024,"wrong magic number, expected %x and obtained %x",ILDG_MAGIC_NO,header.magic_no);
-	if(ignore_ILDG_magic_number) master_printf("Warning, %s",buf);
+	if(ignore_ILDG_magic_number) master_printf("Warning, %s\n",buf);
 	else crash(buf);
       }
     
