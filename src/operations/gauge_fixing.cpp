@@ -12,6 +12,7 @@
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
@@ -186,12 +187,22 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    double F=0;
+    double *loc_F=nissa_malloc("loc_F",loc_vol,double);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=start_mu;mu<NDIM;mu++) F-=su3_real_trace(conf[ivol][mu]);
+      {
+	loc_F[ivol]=0;
+      for(int mu=start_mu;mu<NDIM;mu++)
+	loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
+      }
+    THREAD_BARRIER();
     
-    return glb_reduce_double(F);
+    //collapse
+    double F;
+    double_vector_glb_collapse(&F,loc_F,loc_vol);
+    nissa_free(loc_F);
+    
+    return F;
   }
   
   //compute the quality of the Landau or Coulomb gauge fixing
@@ -201,7 +212,8 @@ namespace nissa
     
     communicate_lx_quad_su3_borders(conf);
     
-    double loc_omega=0;
+    double *loc_omega=nissa_malloc("loc_omega",loc_vol,double);
+    
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	su3 delta;
@@ -216,12 +228,17 @@ namespace nissa
 	//take 2 the traceless anti-hermitian part
 	su3 delta_TA;
 	unsafe_su3_traceless_anti_hermitian_part(delta_TA,delta);
-	double c=4*su3_norm2(delta_TA);
-	if(ivol==0) master_printf("c: %.16lg\n",c);
-	loc_omega+=c;
+	loc_omega[ivol]=4*su3_norm2(delta_TA);
+	if(ivol==0) master_printf("c: %.16lg\n",loc_omega[ivol]);
       }
+    THREAD_BARRIER();
     
-    return glb_reduce_double(loc_omega)/glb_vol/NCOL;
+    //global reduction
+    double omega;
+    double_vector_glb_collapse(&omega,loc_omega,loc_vol);
+    nissa_free(loc_omega);
+    
+    return omega/glb_vol/NCOL;
   }
   
   //do all the fixing
@@ -325,7 +342,7 @@ namespace nissa
       }
     
     //fix overrelax probability
-    const double over_relax_prob=0.9;
+    double over_relax_prob=0.9;
     
     //fixing transformation
     su3 *fixer=nissa_malloc("fixer",loc_vol+bord_vol,su3);
@@ -370,13 +387,14 @@ namespace nissa
 	    safe_su3_prod_su3_dag(test,fixer[0],fixer[0]);
 	    master_printf("test:\n");
 	    su3_print(test);
-	    master_printf(" unitarity before: %.16lg\n",su3_get_non_unitariness(fixer[0]));
+	    su3_summ_real(test,test,-1);
+	    master_printf(" unitarity before: %.16lg\n",sqrt(su3_norm2(test)));
 	    master_printf("g %d:\n",0);
 	    su3_print(fixer[0]);
 	  }
 	THREAD_BARRIER();
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  su3_unitarize_maximal_trace_projecting(fixer[ivol]);
+	  su3_unitarize_maximal_trace_projecting(fixer[ivol],1e-1);
 	set_borders_invalid(fixer);
 	THREAD_BARRIER();
 	if(rank==0 && thread_id==0)
@@ -385,12 +403,16 @@ namespace nissa
 	    safe_su3_prod_su3_dag(test,fixer[0],fixer[0]);
 	    master_printf("test:\n");
 	    su3_print(test);
-	    master_printf(" unitarity after: %.16lg\n",su3_get_non_unitariness(fixer[0]));
+	    su3_summ_real(test,test,-1);
+	    master_printf(" unitarity after: %.16lg\n",sqrt(su3_norm2(test)));
 	    master_printf("g %d:\n",0);
 	    su3_print(fixer[0]);
 	  }
 	THREAD_BARRIER();
 	gauge_transform_conf(fixed_conf,fixer,ori_conf);
+	
+	if(prec<1e-11) over_relax_prob=0.0;
+	master_printf("prob: %lg\n",over_relax_prob);
 	
 	//check if really get out
 	really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
