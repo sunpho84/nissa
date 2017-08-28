@@ -339,6 +339,7 @@ namespace nissa
       {
 	ori_conf=nissa_malloc("ori_conf",loc_vol+bord_vol+edge_vol,quad_su3);
 	vector_copy(ori_conf,ext_conf);
+ 	vector_copy(fixed_conf,ext_conf);
       }
     
     //fix overrelax probability
@@ -394,7 +395,7 @@ namespace nissa
 	  }
 	THREAD_BARRIER();
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  su3_unitarize_maximal_trace_projecting(fixer[ivol],1e-1);
+	  su3_unitarize_maximal_trace_projecting(fixer[ivol]);
 	set_borders_invalid(fixer);
 	THREAD_BARRIER();
 	if(rank==0 && thread_id==0)
@@ -423,6 +424,8 @@ namespace nissa
     
     //crash if this did not work
     if(not really_get_out) crash("unable to fix to precision %16.16lg in %d macro-iterations",target_prec,macro_iter);
+    
+    if(fixed_conf==ori_conf) nissa_free(ori_conf);
     
     master_printf("Gauge fix time: %lg\n",time+take_time());
   }
