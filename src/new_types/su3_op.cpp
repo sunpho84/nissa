@@ -78,7 +78,7 @@ namespace nissa
 	      
 	      //condition to exit
 	      if(!overrelax) rotating_norm=sqrt(su2_nonunitarity(x0,x1,x2,x3));
-	      converged=(rotating_norm<precision);
+	      converged=(iter>=3 and rotating_norm<precision);
 	    }
 	iter++;
 	
