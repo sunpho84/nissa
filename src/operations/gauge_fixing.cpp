@@ -12,7 +12,6 @@
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
@@ -202,8 +201,7 @@ namespace nissa
     
     communicate_lx_quad_su3_borders(conf);
     
-    double *loc_omega=nissa_malloc("loc_omega",loc_vol,double);
-    
+    double loc_omega=0;
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	su3 delta;
@@ -218,14 +216,12 @@ namespace nissa
 	//take 2 the traceless anti-hermitian part
 	su3 delta_TA;
 	unsafe_su3_traceless_anti_hermitian_part(delta_TA,delta);
-	loc_omega[ivol]=4*su3_norm2(delta_TA);
+	double c=4*su3_norm2(delta_TA);
+	if(ivol==0) master_printf("c: %.16lg\n",c);
+	loc_omega+=c;
       }
-    THREAD_BARRIER();
     
-    //global reduction
-    double omega;
-    double_vector_glb_collapse(&omega,loc_omega,loc_vol);
-    return omega/glb_vol/NCOL;
+    return glb_reduce_double(loc_omega)/glb_vol/NCOL;
   }
   
   //do all the fixing
@@ -261,6 +257,16 @@ namespace nissa
 	    //store the change
 	    safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
 	    
+	    if(rank==0 and eo==0 and ieo==0)
+	      {
+		su3 test;
+		unsafe_su3_prod_su3_dag(test,fixer[ivol],fixer[ivol]);
+		master_printf("test:\n");
+		su3_print(test);
+		master_printf("g %d:\n",ivol);
+		su3_print(fixer[ivol]);
+	      }
+
 	    //lower external border must be sync.ed with upper internal border of lower node
 	    //  upper internal border with same parity must be sent using buf_up[mu][par]
 	    //    ""     ""      ""   ""   opp.    "     "  "  recv using buf_up[mu][!par]
@@ -340,7 +346,7 @@ namespace nissa
 	  {
 	    //print out the precision reached and the functional every
 	    //10 iterations, and check if to exit
-	    if(iter%10==0)
+	    if(iter%1==0)
 	      {
 		get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
 		master_printf("iter %d, quality: %16.16lg, functional: %16.16lg\n",iter,prec,func);
@@ -357,9 +363,33 @@ namespace nissa
 	
 	//now we put the fixer on su3, and make a real transformation
 	//on the basis of what we managed to fix
+	THREAD_BARRIER();
+	if(rank==0 && thread_id==0)
+	  {
+	    su3 test;
+	    safe_su3_prod_su3_dag(test,fixer[0],fixer[0]);
+	    master_printf("test:\n");
+	    su3_print(test);
+	    master_printf(" unitarity before: %.16lg\n",su3_get_non_unitariness(fixer[0]));
+	    master_printf("g %d:\n",0);
+	    su3_print(fixer[0]);
+	  }
+	THREAD_BARRIER();
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  su3_unitarize_maximal_trace_projecting(fixer[ivol]);
 	set_borders_invalid(fixer);
+	THREAD_BARRIER();
+	if(rank==0 && thread_id==0)
+	  {
+	    su3 test;
+	    safe_su3_prod_su3_dag(test,fixer[0],fixer[0]);
+	    master_printf("test:\n");
+	    su3_print(test);
+	    master_printf(" unitarity after: %.16lg\n",su3_get_non_unitariness(fixer[0]));
+	    master_printf("g %d:\n",0);
+	    su3_print(fixer[0]);
+	  }
+	THREAD_BARRIER();
 	gauge_transform_conf(fixed_conf,fixer,ori_conf);
 	
 	//check if really get out
