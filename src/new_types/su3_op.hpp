@@ -818,7 +818,7 @@ namespace nissa
   }
   
   //unitarize an su3 matrix by taking explicitely the inverse and averaging with it
-  inline void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link)
+  inline void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link,double tol=1e-15)
   {
     su3 inv,temp_link;
     double gamma,residue;
@@ -848,7 +848,7 @@ namespace nissa
 	
 	residue=sqrt(residue);
       }
-    while(residue>1.e-15);
+    while(residue>tol);
     
     //divide by third root of det
     complex det,fact;

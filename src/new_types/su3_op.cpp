@@ -57,11 +57,13 @@ namespace nissa
     
     int iter=0;
     double rotating_norm=1e300;
-    int converged=false;
+    int converged;
     do
       {
-	for(int overrelax=0;((overrelax<3) && (!converged));overrelax++)
-	  for(int isub_gr=0;((isub_gr<NCOL) && (!converged));isub_gr++)
+	converged=true;
+	
+	for(int overrelax=0;overrelax<3;overrelax++)
+	  for(int isub_gr=0;isub_gr<NCOL;isub_gr++)
 	    {
 	      //take the subgroup isub_gr
 	      double r0,r1,r2,r3;
@@ -78,12 +80,14 @@ namespace nissa
 	      
 	      //condition to exit
 	      if(!overrelax) rotating_norm=sqrt(su2_nonunitarity(x0,x1,x2,x3));
-	      converged=(iter>=3 and rotating_norm<precision);
+	      converged&=(iter>=3 and rotating_norm<precision);
 	    }
 	iter++;
 	
-	//refix
-	if(iter%100==0)
+	//refix halfway to the end
+	double non_un_tol=1e-15;
+	double non_un=su3_get_non_unitariness(U);
+	if(rotating_norm<sqrt(precision) and non_un>non_un_tol)
 	  {
 	    su3_unitarize_explicitly_inverting(U,U);
 	    unsafe_su3_prod_su3_dag(prod,U,M);
@@ -102,7 +106,7 @@ namespace nissa
 	    if(iter>niter_max) crash("%lg",rotating_norm);
 	  }
       }
-    while(!converged);
+    while(not converged);
     
     su3_copy(out,U);
   }
