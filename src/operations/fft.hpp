@@ -12,6 +12,14 @@ namespace nissa
   void fft4d(complex *out,complex *in,int *dirs,int ncpp,double sign,int normalize);
   inline void fft4d(complex *out,complex *in,int ncpp,double sign,int normalize)
   {fft4d(out,in,all_dirs,ncpp,sign,normalize);}
+  
+  template <class T>
+  void fft4d(T *out,T *in,double sign,int normalize)
+  {fft4d((complex*)out,(complex*)in,all_dirs,sizeof(T)/sizeof(complex),sign,normalize);}
+  
+  template <class T>
+  void fft4d(T *x,double sign,int normalize)
+  {fft4d(x,x,sign,normalize);}
 }
 
 #endif
