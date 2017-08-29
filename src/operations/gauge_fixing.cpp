@@ -400,7 +400,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    su3_print(der[0]);
+    //su3_print(der[0]);
     
     //Fourier Transform
     fft4d(der,-1,1);
@@ -411,31 +411,28 @@ namespace nissa
     //put the kernel and the prefactor
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
-	//get coords
-	coords c;
-	glb_coord_of_glblx(c,imom);
-	
 	//compute 4*\sum_mu sin^2(2*pi*ip_mu)
 	double den=0;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    double p=2*M_PI*c[mu]/glb_size[mu];
+	    double p=2*M_PI*glb_coord_of_loclx[imom][mu]/glb_size[mu];
 	    den+=sqr(sin(0.5*p));
 	  }
 	den*=4;
-
+	
 	//master_printf("%lg %lg rt\n",den,num);
 	// master_printf("%lg %lg re\n",den,su3_norm2(der[imom]));
 	
 	//build the factor
 	double fact=num;
 	if(fabs(den)>1e-10) fact/=den;
-
+	
 	//master_printf("fact %d %lg\n",imom,fact);
 	
 	//put the factor
 	su3_prodassign_double(der[imom],fact);
       }
+    THREAD_BARRIER();
     
     //Anti-Fourier Transform
     fft4d(der,+1,0);
@@ -446,16 +443,18 @@ namespace nissa
   }
   
   //do all the fixing with Fourier acceleration
-  void Landau_or_Coulomb_gauge_fix_FACC(quad_su3 *conf,su3 *fixer,int start_mu,double alpha)
+  void Landau_or_Coulomb_gauge_fix_FACC(quad_su3 *fixed_conf,su3 *fixer,int start_mu,double alpha,quad_su3 *ori_conf)
   {
     GET_THREAD_ID();
     
     su3 *der=nissa_malloc("der",loc_vol,su3);
     
+    //take the derivative
+    communicate_lx_quad_su3_borders(fixed_conf);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	su3 temp;
-	compute_Landau_or_Coulomb_functional_der(temp,conf,ivol,start_mu);
+	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,start_mu);
 	unsafe_su3_traceless_anti_hermitian_part(der[ivol],temp);
 	
 	su3_prodassign_double(der[ivol],-0.5*alpha);
@@ -463,22 +462,24 @@ namespace nissa
     THREAD_BARRIER();
     
     //put the kernel
-     Fourier_accelerate_derivative(der);
+    Fourier_accelerate_derivative(der);
     
+    //take the exponent
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
-	//take the exponent
-	su3 g;
-	safe_anti_hermitian_exact_exponentiate(g,der[ivol]);
+	su3 temp;
+	safe_anti_hermitian_exact_exponentiate(temp,der[ivol]);
 	
 	// su3_print(der[ivol]);
 	// master_printf("\n");
 	
 	//transform and update the fixer
-	local_gauge_transform(conf,g,ivol);
-	safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
+	safe_su3_prod_su3(fixer[ivol],temp,fixer[ivol]);
       }
-    set_borders_invalid(conf);
+    set_borders_invalid(fixer);
+    
+    //transform
+    gauge_transform_conf(fixed_conf,fixer,ori_conf);
     
     nissa_free(der);
   }
@@ -538,7 +539,7 @@ namespace nissa
 	    if(not get_out)
 	      {
 		double alpha=0.08;
-		Landau_or_Coulomb_gauge_fix_FACC(fixed_conf, fixer, start_mu,alpha);
+		Landau_or_Coulomb_gauge_fix_FACC(fixed_conf,fixer,start_mu,alpha,ori_conf);
 		
 		//Landau_or_Coulomb_gauge_fix(fixed_conf,fixer,start_mu,over_relax_prob);
 		iter++;
