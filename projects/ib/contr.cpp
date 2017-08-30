@@ -400,7 +400,7 @@ namespace nissa
     
     const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
     
-    void (*list_fun[2])(complex,complex,complex)={complex_summ_the_prod,complex_subt_the_prod};
+    void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
     UNPAUSE_TIMING(bar2pts_contr_time);
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
       {
