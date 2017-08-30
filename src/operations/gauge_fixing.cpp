@@ -588,7 +588,7 @@ namespace nissa
 	
 	//numerator
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  if(den>1e-12)
+	  if(den>1e-6) //means that |DA|<1e-12
 	    {
 	      su3 temp;
 	      su3_subt(temp,der[ivol],prev_der[ivol]);
@@ -634,6 +634,7 @@ namespace nissa
     //put the kernel
     if(use_FACC) Fourier_accelerate_derivative(der);
     
+    //make the CG improvement
     if(use_GF_CG) GF_FACG_process(der);
     
     //decides what to use
