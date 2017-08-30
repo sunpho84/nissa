@@ -112,7 +112,7 @@ namespace nissa
 	    determinant(in_det,m+N,l,n-1,N);
 	    
 	    //summ or subtract the product
-	    void (*fun[2])(complex,complex,complex)={complex_summ_the_prod,complex_subt_the_prod};
+	    void (*fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
 	    fun[p%2](d,m[s[p]],in_det);
 	  }
       }

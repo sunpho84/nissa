@@ -297,7 +297,9 @@ namespace nissa
   
   //overrelax an lx configuration
   void overrelax_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
-  {su3_find_overrelaxed(out,out,staple,((int*)pars)[0]);}
+  {
+    su3_find_overrelaxed(color *out, color *in, color *staple, int nov_hits)
+    su3_find_overrelaxed(out,out,staple,((int*)pars)[0]);}
   THREADABLE_FUNCTION_3ARG(overrelax_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper, int,nhits)
   {sweeper->sweep_conf(conf,overrelax_lx_conf_handle,(void*)&nhits);}
   THREADABLE_FUNCTION_END

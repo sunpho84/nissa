@@ -44,7 +44,7 @@ namespace nissa
        {{0,0},{0,0},{-2/sqrt(3),0}}}};
   
   //make unitary maximazing Trace(out*M^dag)
-  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M,double precision,int niter_max)
+  void su3_unitarize_maximal_trace_projecting(su3 out,const su3 M,const double precision,const int niter_max)
   {
     //initialize the guess with the identity - proved to be faster than any good guess,
     //because iterations are so good
@@ -112,7 +112,7 @@ namespace nissa
   }
   
   //return a single link after the overrelaxation procedure
-  void su3_find_overrelaxed(su3 out,su3 in,su3 staple,int nov_hits)
+  void su3_find_overrelaxed(su3 out,const su3 in,const su3 staple,int nov_hits)
   {
     //compute the original contribution to the action due to the given link
     su3 prod;
@@ -141,7 +141,7 @@ namespace nissa
   }
   
   //overrelax the link
-  void su3_overrelax(su3 out,su3 in,double w,double *coeff,const int ord)
+  void su3_overrelax(su3 out,const su3 in,const double w,const double *coeff,int ord)
   {
     su3 t[ord];
     
@@ -170,7 +170,7 @@ namespace nissa
   //exact exponential of i times the *****passed hermitian matrix Q*****
   //algorithm taken from hep­lat/0311018
   //the stored f are relative to c0
-  void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,su3 Q)
+  void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q)
   {
     //copy Q
     su3_copy(out.Q,Q);
