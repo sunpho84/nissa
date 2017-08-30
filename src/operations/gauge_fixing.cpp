@@ -40,7 +40,7 @@ namespace nissa
   }
   
   //apply a gauge transformation to the conf
-  THREADABLE_FUNCTION_3ARG(gauge_transform_conf, quad_su3*,uout, su3*,g, quad_su3*,uin)
+  THREADABLE_FUNCTION_3ARG(gauge_transform_conf, quad_su3*,uout, su3*,g, const quad_su3*,uin)
   {
     GET_THREAD_ID();
     
@@ -441,42 +441,214 @@ namespace nissa
     
     //crash("");
   }
+
+  //take exp(-0.5*alpha*der)
+  void exp_der_alpha_half(su3 *g,su3 *der,double alpha)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	su3 temp;
+	su3_prod_double(temp,der[ivol],-0.5*alpha);
+	safe_anti_hermitian_exact_exponentiate(g[ivol],temp);
+      }
+    set_borders_invalid(g);
+  }
   
-  //do all the fixing with Fourier acceleration
-  void Landau_or_Coulomb_gauge_fix_FACC(quad_su3 *fixed_conf,su3 *fixer,int start_mu,double alpha,quad_su3 *ori_conf)
+  //add the current fixer to previous one
+  void add_current_transformation(su3 *fixer_out,const su3 *g,const su3 *fixer_in)
   {
     GET_THREAD_ID();
     
-    su3 *der=nissa_malloc("der",loc_vol,su3);
+    //add current transformation
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      safe_su3_prod_su3(fixer_out[ivol],g[ivol],fixer_in[ivol]);
+    set_borders_invalid(fixer_out);
+  }
+  
+  //adapt the value of alpha to minimize the functional
+  void adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,double &alpha,quad_su3 *ori_conf,const double func_0)
+  {
+    //store original fixer
+    su3 *ori_fixer=nissa_malloc("ori_fixer",loc_vol+bord_vol,su3);
+    vector_copy(ori_fixer,fixer);
+    
+    //current transform
+    su3 *g=nissa_malloc("g",loc_vol,su3);
+    
+    int pos_curv,pos_vert,brack_vert;
+    int iter=0;
+    do
+      {
+	master_printf("---iter %d---\n",iter);
+	//take the exponent
+	exp_der_alpha_half(g,der,alpha);
+	
+	//compute three points at 0,alpha and 2alpha
+	double F[3];
+	F[0]=func_0;
+	vector_copy(fixer,ori_fixer);
+	// master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
+	
+	for(int i=1;i<=2;i++)
+	  {
+	    add_current_transformation(fixer,g,fixer);
+	    
+	    //transform and compute potential
+	    gauge_transform_conf(fixed_conf,fixer,ori_conf);
+	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu);
+	  }
+	
+	double c=F[0];
+	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
+	double a=(F[2]-2*F[1]+F[0])/(2*sqr(alpha));
+	
+	master_printf("F:   %lg %lg %lg\n",F[0],F[1],F[2]);
+	master_printf("abc: %lg %lg %lg\n",a,b,c);
+	
+	double vert=-b/(2*a);
+	pos_vert=(vert>0);
+	pos_curv=(a>0);
+	brack_vert=(2*alpha>vert);
+	
+	master_printf("Vertex position: %lg\n",vert);
+	master_printf("Curvature is positive: %d\n",pos_curv);
+	master_printf("Bracketing the vertex: %d\n",brack_vert);
+	if(not pos_vert or not pos_curv)
+	  {
+	    alpha/=2.0;
+	    master_printf("Decreasing alpha to %lg\n",alpha);
+	  }
+	else
+	  {
+	    if(not brack_vert)
+	      {
+		alpha*=2.0;
+		master_printf("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
+	      }
+	    else
+	      {
+		master_printf("Good, jumping to %lg\n",vert);
+		alpha=vert;
+	      }
+	  }
+	iter++;
+      }
+    while(not (pos_curv and pos_vert and brack_vert));
+    
+    //put back the fixer
+    vector_copy(fixer,ori_fixer);
+    nissa_free(ori_fixer);
+    nissa_free(g);
+  }
+  
+  namespace
+  {
+    su3 *prev_der;
+    su3 *s;
+    double *accum;
+  }
+  
+  //allocate the stuff for GF_CG
+  void allocate_GF_CG_stuff()
+  {
+    prev_der=nissa_malloc("prev_der",loc_vol,su3);
+    s=nissa_malloc("s",loc_vol,su3);
+    accum=nissa_malloc("accum",loc_vol,double);
+    
+    vector_reset(prev_der);
+    vector_reset(s);
+  }
+  
+  //free the stuff for GF_CG
+  void free_GF_CG_stuff()
+  {
+    nissa_free(prev_der);
+    nissa_free(s);
+    nissa_free(accum);
+  }
+  
+  //apply CG acceleration
+  void GF_FACG_process(su3 *der)
+  {
+    GET_THREAD_ID();
+    
+    static int iter=0;
+    
+    double beta;
+    if(iter>0)
+      {
+	//numerator
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  {
+	    su3 temp;
+	    su3_subt(temp,der[ivol],prev_der[ivol]);
+	    accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],temp);
+	  }
+	THREAD_BARRIER();
+	double num;
+	double_vector_glb_collapse(&num,accum,loc_vol);
+	master_printf("num: %lg\n",num);
+	
+	//denominator
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  accum[ivol]=real_part_of_trace_su3_prod_su3_dag(prev_der[ivol],prev_der[ivol]);
+	THREAD_BARRIER();
+	double den;
+	double_vector_glb_collapse(&den,accum,loc_vol);
+	master_printf("den: %lg\n",den);
+	
+	//compute beta
+	beta=num/den;
+	if(beta<0) beta=0;
+      }
+    else beta=0;
+    master_printf("beta: %lg\n",beta);
+    
+    //store prev_der, increase s (der) and store prev_s
+    vector_copy(prev_der,der);
+    if(iter==0) vector_copy(s,der);
+    else        double_vector_summ_double_vector_prod_double((double*)s,(double*)der,(double*)s,beta,loc_vol*sizeof(su3)/sizeof(double));
+    
+    iter++;
+  }
+  
+  //do all the fixing with Fourier acceleration
+  void Landau_or_Coulomb_gauge_fix_FACC(quad_su3 *fixed_conf,su3 *fixer,int start_mu,double &alpha,quad_su3 *ori_conf,const double func_0,bool use_GF_CG)
+  {
+    GET_THREAD_ID();
     
     //take the derivative
+    su3 *der=nissa_malloc("der",loc_vol,su3);
     communicate_lx_quad_su3_borders(fixed_conf);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	su3 temp;
 	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,start_mu);
 	unsafe_su3_traceless_anti_hermitian_part(der[ivol],temp);
-	
-	su3_prodassign_double(der[ivol],-0.5*alpha);
       }
     THREAD_BARRIER();
     
     //put the kernel
     Fourier_accelerate_derivative(der);
     
-    //take the exponent
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      {
-	su3 temp;
-	safe_anti_hermitian_exact_exponentiate(temp,der[ivol]);
-	safe_su3_prod_su3(fixer[ivol],temp,fixer[ivol]);
-      }
-    set_borders_invalid(fixer);
+    if(use_GF_CG) GF_FACG_process(der);
     
-    //transform
+    //decides what to use
+    su3 *v;
+    if(use_GF_CG) v=s;
+    else          v=der;
+    
+    //take the exponent with alpha
+    su3 *g=nissa_malloc("g",loc_vol,su3);
+    adapt_alpha(fixed_conf,fixer,start_mu,v,alpha,ori_conf,func_0);
+    exp_der_alpha_half(g,v,alpha);
+    
+    add_current_transformation(fixer,g,fixer);
     gauge_transform_conf(fixed_conf,fixer,ori_conf);
     
     nissa_free(der);
+    nissa_free(g);
   }
   
   //check if gauge fixed or not
@@ -492,6 +664,9 @@ namespace nissa
   {
     GET_THREAD_ID();
     double time=-take_time();
+    
+    bool use_GF_CG=1;
+    if(use_GF_CG) allocate_GF_CG_stuff();
     
     //store input conf if equal
     quad_su3 *ori_conf=ext_conf;
@@ -513,7 +688,7 @@ namespace nissa
     
     int macro_iter=0,nmax_macro_iter=100;
     double prec,func,old_func;
-    double alpha=0.08,retuning_fact=1.2;
+    double alpha=0.16;//,retuning_fact=1.2;
     bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
     do
       {
@@ -529,7 +704,7 @@ namespace nissa
 	    //old_prec=prec;
 	    old_func=func;
 	    
-	    Landau_or_Coulomb_gauge_fix_FACC(fixed_conf,fixer,start_mu,alpha,ori_conf);
+	    Landau_or_Coulomb_gauge_fix_FACC(fixed_conf,fixer,start_mu,alpha,ori_conf,old_func,use_GF_CG);
 	    
 	    //Landau_or_Coulomb_gauge_fix(fixed_conf,fixer,start_mu,over_relax_prob);
 	    iter++;
@@ -538,9 +713,9 @@ namespace nissa
 	    get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
 	    
 	    //retune alpha
-	    if(func>old_func) alpha/=sqr(retuning_fact);
-	    else              alpha*=retuning_fact;
-	    master_printf("Changing alpha to %lg\n",alpha);
+	    // if(func>old_func) alpha/=sqr(retuning_fact);
+	    // else              alpha*=retuning_fact;
+	    // master_printf("Changing alpha to %lg\n",alpha);
 	  }
 	while(iter<nmax_iter and not get_out);
 	
@@ -588,6 +763,8 @@ namespace nissa
     if(not really_get_out) crash("unable to fix to precision %16.16lg in %d macro-iterations",target_prec,macro_iter);
     
     if(fixed_conf==ori_conf) nissa_free(ori_conf);
+    
+    if(use_GF_CG) free_GF_CG_stuff();
     
     master_printf("Gauge fix time: %lg\n",time+take_time());
   }

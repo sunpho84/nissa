@@ -13,7 +13,7 @@ namespace nissa
   void find_Landau_or_Coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double required_precision,int nmu);
   void find_local_Landau_or_Coulomb_gauge_fixing_transformation(su3 g,quad_su3 *conf,int ivol,int nmu);
   void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u);
-  void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin);
+  void gauge_transform_conf(quad_su3 *uout,su3 *g,const quad_su3 *uin);
   void gauge_transform_conf(quad_su3 **uout,su3 **g,quad_su3 **uin);
   void gauge_transform_color(color **out,su3 **g,color **in);
   void Landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision);
