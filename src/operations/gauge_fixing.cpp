@@ -718,7 +718,7 @@ namespace nissa
 	    get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
 	    
 	    //switch off adaptative search if precision is too small
-	    if(use_adapt and prec<1e-12)
+	    if(use_adapt and prec<1e-14)
 	      {
 		master_printf("Switching off adaptative search\n");
 		use_adapt=false;
