@@ -469,11 +469,6 @@ namespace nissa
       {
 	su3 temp;
 	safe_anti_hermitian_exact_exponentiate(temp,der[ivol]);
-	
-	// su3_print(der[ivol]);
-	// master_printf("\n");
-	
-	//transform and update the fixer
 	safe_su3_prod_su3(fixer[ivol],temp,fixer[ivol]);
       }
     set_borders_invalid(fixer);
@@ -517,8 +512,9 @@ namespace nissa
     set_borders_invalid(fixer);
     
     int macro_iter=0,nmax_macro_iter=100;
-    bool really_get_out=false;
-    double prec,func;
+    double prec,func,old_func;
+    double alpha=0.08,retuning_fact=1.2;
+    bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
     do
       {
 	//go on fixing until reaching precision, or exceeding the
@@ -527,23 +523,24 @@ namespace nissa
 	bool get_out=false;
 	do
 	  {
-	    //print out the precision reached and the functional every
-	    //10 iterations, and check if to exit
-	    if(iter%1==0)
-	      {
-		get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
-		master_printf("iter %d, quality: %16.16lg, functional: %16.16lg\n",iter,prec,func);
-	      }
+	    master_printf("iter %d, quality: %16.16lg, functional: %16.16lg\n",iter,prec,func);
 	    
-	    //if not reached the precision, go on
-	    if(not get_out)
-	      {
-		double alpha=0.08;
-		Landau_or_Coulomb_gauge_fix_FACC(fixed_conf,fixer,start_mu,alpha,ori_conf);
-		
-		//Landau_or_Coulomb_gauge_fix(fixed_conf,fixer,start_mu,over_relax_prob);
-		iter++;
-	      }
+	    //store
+	    //old_prec=prec;
+	    old_func=func;
+	    
+	    Landau_or_Coulomb_gauge_fix_FACC(fixed_conf,fixer,start_mu,alpha,ori_conf);
+	    
+	    //Landau_or_Coulomb_gauge_fix(fixed_conf,fixer,start_mu,over_relax_prob);
+	    iter++;
+	    
+	    //print out the precision reached and the functional
+	    get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
+	    
+	    //retune alpha
+	    if(func>old_func) alpha/=sqr(retuning_fact);
+	    else              alpha*=retuning_fact;
+	    master_printf("Changing alpha to %lg\n",alpha);
 	  }
 	while(iter<nmax_iter and not get_out);
 	
