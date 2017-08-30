@@ -578,18 +578,6 @@ namespace nissa
     double beta;
     if(iter>0)
       {
-	//numerator
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  {
-	    su3 temp;
-	    su3_subt(temp,der[ivol],prev_der[ivol]);
-	    accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],temp);
-	  }
-	THREAD_BARRIER();
-	double num;
-	double_vector_glb_collapse(&num,accum,loc_vol);
-	master_printf("num: %lg\n",num);
-	
 	//denominator
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  accum[ivol]=real_part_of_trace_su3_prod_su3_dag(prev_der[ivol],prev_der[ivol]);
@@ -597,6 +585,20 @@ namespace nissa
 	double den;
 	double_vector_glb_collapse(&den,accum,loc_vol);
 	master_printf("den: %lg\n",den);
+	
+	//numerator
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  if(den>1e-12)
+	    {
+	      su3 temp;
+	      su3_subt(temp,der[ivol],prev_der[ivol]);
+	      accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],temp);
+	    }
+	  else accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],der[ivol]);
+	THREAD_BARRIER();
+	double num;
+	double_vector_glb_collapse(&num,accum,loc_vol);
+	master_printf("num: %lg\n",num);
 	
 	//compute beta
 	beta=num/den;
@@ -614,7 +616,7 @@ namespace nissa
   }
   
   //do all the fixing with Fourier acceleration
-  void Landau_or_Coulomb_gauge_fix_FACC(quad_su3 *fixed_conf,su3 *fixer,int start_mu,double &alpha,quad_su3 *ori_conf,const double func_0,bool use_GF_CG)
+  void Landau_or_Coulomb_gauge_fix_FACC(quad_su3 *fixed_conf,su3 *fixer,int start_mu,double &alpha,quad_su3 *ori_conf,const double func_0,bool use_adapt,bool use_GF_CG)
   {
     GET_THREAD_ID();
     
@@ -664,8 +666,9 @@ namespace nissa
   {
     GET_THREAD_ID();
     double time=-take_time();
-    
-    bool use_GF_CG=1;
+
+    bool use_adapt=true;
+    bool use_GF_CG=true;
     if(use_GF_CG) allocate_GF_CG_stuff();
     
     //store input conf if equal
@@ -704,7 +707,7 @@ namespace nissa
 	    //old_prec=prec;
 	    old_func=func;
 	    
-	    Landau_or_Coulomb_gauge_fix_FACC(fixed_conf,fixer,start_mu,alpha,ori_conf,old_func,use_GF_CG);
+	    Landau_or_Coulomb_gauge_fix_FACC(fixed_conf,fixer,start_mu,alpha,ori_conf,old_func,use_adapt,use_GF_CG);
 	    
 	    //Landau_or_Coulomb_gauge_fix(fixed_conf,fixer,start_mu,over_relax_prob);
 	    iter++;
@@ -712,10 +715,12 @@ namespace nissa
 	    //print out the precision reached and the functional
 	    get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
 	    
-	    //retune alpha
-	    // if(func>old_func) alpha/=sqr(retuning_fact);
-	    // else              alpha*=retuning_fact;
-	    // master_printf("Changing alpha to %lg\n",alpha);
+	    //switch off adaptative search if precision is too small
+	    if(use_adapt and prec<1e-12)
+	      {
+		master_printf("Switching off adaptative search\n");
+		use_adapt=false;
+	      }
 	  }
 	while(iter<nmax_iter and not get_out);
 	
