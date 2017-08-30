@@ -616,7 +616,7 @@ namespace nissa
   }
   
   //do all the fixing with Fourier acceleration
-  void Landau_or_Coulomb_gauge_fix_FACC(quad_su3 *fixed_conf,su3 *fixer,int start_mu,double &alpha,quad_su3 *ori_conf,const double func_0,bool use_adapt,bool use_GF_CG)
+  void Landau_or_Coulomb_gauge_fix_FACC(quad_su3 *fixed_conf,su3 *fixer,int start_mu,double &alpha,quad_su3 *ori_conf,const double func_0,bool use_FACC,bool use_adapt,bool use_GF_CG)
   {
     GET_THREAD_ID();
     
@@ -632,7 +632,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //put the kernel
-    Fourier_accelerate_derivative(der);
+    if(use_FACC) Fourier_accelerate_derivative(der);
     
     if(use_GF_CG) GF_FACG_process(der);
     
@@ -643,7 +643,7 @@ namespace nissa
     
     //take the exponent with alpha
     su3 *g=nissa_malloc("g",loc_vol,su3);
-    adapt_alpha(fixed_conf,fixer,start_mu,v,alpha,ori_conf,func_0);
+    if(use_adapt) adapt_alpha(fixed_conf,fixer,start_mu,v,alpha,ori_conf,func_0);
     exp_der_alpha_half(g,v,alpha);
     
     add_current_transformation(fixer,g,fixer);
@@ -666,7 +666,8 @@ namespace nissa
   {
     GET_THREAD_ID();
     double time=-take_time();
-
+    
+    bool use_FACC=true;
     bool use_adapt=true;
     bool use_GF_CG=true;
     if(use_GF_CG) allocate_GF_CG_stuff();
@@ -707,7 +708,7 @@ namespace nissa
 	    //old_prec=prec;
 	    old_func=func;
 	    
-	    Landau_or_Coulomb_gauge_fix_FACC(fixed_conf,fixer,start_mu,alpha,ori_conf,old_func,use_adapt,use_GF_CG);
+	    Landau_or_Coulomb_gauge_fix_FACC(fixed_conf,fixer,start_mu,alpha,ori_conf,old_func,use_FACC,use_adapt,use_GF_CG);
 	    
 	    //Landau_or_Coulomb_gauge_fix(fixed_conf,fixer,start_mu,over_relax_prob);
 	    iter++;
