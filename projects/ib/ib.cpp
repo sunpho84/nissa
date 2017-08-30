@@ -190,6 +190,7 @@ void init_simulation(char *path)
   read_free_theory_flag();
   read_random_gauge_transform();
   read_Landau_gauge_fix();
+  read_store_conf();
   
   read_loc_hadr_curr();
   read_loc_muon_curr();

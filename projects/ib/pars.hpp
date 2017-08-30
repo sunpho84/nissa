@@ -161,6 +161,11 @@ namespace nissa
     if(Landau_gauge_fix_flag) read_str_double("GaugeFixingPrecision",&gauge_fixing_precision);
   }
   
+  //store the conf?
+  EXTERN_PARS int store_conf INIT_TO(0);
+  inline void read_store_conf()
+  {read_str_int("StoreConf",&store_conf);}
+  
   //local pion or muon current?
   EXTERN_PARS int loc_hadr_curr INIT_TO(false);
   inline void read_loc_hadr_curr()
