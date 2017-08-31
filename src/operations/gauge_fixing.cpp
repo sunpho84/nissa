@@ -23,6 +23,8 @@
  #include "routines/thread.hpp"
 #endif
 
+#include "gauge_fixing.hpp"
+
 namespace nissa
 {
   //apply the passed transformation to the point
@@ -244,83 +246,9 @@ namespace nissa
   }
   
   //do all the fixing
-  void Landau_or_Coulomb_gauge_fix(quad_su3 *conf,su3 *fixer,int start_mu,double over_relax_prob)
+  void Landau_or_Coulomb_gauge_fixing_overrelax(quad_su3 *fixed_conf,LC_gauge_fixing_pars_t::gauge_t gauge,double overrelax_prob,su3 *fixer,quad_su3 *ori_conf)
   {
     GET_THREAD_ID();
-    
-    //#define DEBUG
-    
-#ifdef DEBUG
-
-    double eps=1e-4;
-    
-    quad_su3 *ori_conf=nissa_malloc("ori_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-    vector_copy(ori_conf,conf);
-    double act_ori=compute_Landau_or_Coulomb_functional(conf,start_mu);
-    
-    //store derivative
-    su3 nu_plus,nu_minus;
-    su3_put_to_zero(nu_plus);
-    su3_put_to_zero(nu_minus);
-    
-    for(int igen=0;igen<NCOL*NCOL-1;igen++)
-      {
-	//prepare increment and change
-	su3 ba;
-	su3_prod_double(ba,gell_mann_matr[igen],eps/2);
-	su3 exp_mod;
-	safe_hermitian_exact_i_exponentiate(exp_mod,ba);
-	
-	//change -, compute action
-	vector_copy(conf,ori_conf);
-	local_gauge_transform(conf,exp_mod,0);
-	double act_minus=compute_Landau_or_Coulomb_functional(conf,start_mu);
-	
-	//change +, compute action
-	vector_copy(conf,ori_conf);
-	safe_su3_hermitian(exp_mod,exp_mod);
-	local_gauge_transform(conf,exp_mod,0);
-	double act_plus=compute_Landau_or_Coulomb_functional(conf,start_mu);
-	
-	//set back everything
-	vector_copy(conf,ori_conf);
-	
-	//printf("plus: %+016.016le, ori: %+16.16le, minus: %+16.16le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
-	double gr_plus=-(act_plus-act_ori)/eps;
-	double gr_minus=-(act_ori-act_minus)/eps;
-	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus);
-	su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus);
-      }
-    
-    //take the average
-    su3 nu;
-    su3_summ(nu,nu_plus,nu_minus);
-    su3_prodassign_double(nu,0.5);
-    
-    su3 an_temp;
-    compute_Landau_or_Coulomb_functional_der(an_temp,conf,0,start_mu);
-    su3 an;
-    unsafe_su3_traceless_anti_hermitian_part(an,an_temp);
-    
-    master_printf("Comparing\n");
-    master_printf("an\n");
-    su3_print(an);
-    master_printf("nu+\n");
-    su3_print(nu_plus);
-    master_printf("nu-\n");
-    su3_print(nu_minus);
-    master_printf("nu\n");
-    su3_print(nu);
-    su3 diff;
-    su3_subt(diff,an,nu_plus);
-    master_printf("Norm of the difference+: %lg\n",sqrt(su3_norm2(diff)));
-    su3_subt(diff,an,nu_minus);
-    master_printf("Norm of the difference-: %lg\n",sqrt(su3_norm2(diff)));
-    su3_subt(diff,an,nu);
-    master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
-    crash("pui");
-#endif
-    
     
     for(int eo=0;eo<2;eo++)
       {
@@ -330,7 +258,7 @@ namespace nissa
 	    
 	    //compute the derivative
 	    su3 temp;
-	    compute_Landau_or_Coulomb_functional_der(temp,conf,ivol,start_mu);
+	    compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
 	    
 	    //dagger
 	    su3 ref;
@@ -342,24 +270,14 @@ namespace nissa
 	    
 	    //square probabilistically
 	    double p=rnd_get_unif(loc_rnd_gen+ivol,0,1);
-	    if(p<over_relax_prob) safe_su3_prod_su3(g,g,g);
+	    if(p<overrelax_prob) safe_su3_prod_su3(g,g,g);
 	    
 	    //transform
-	    local_gauge_transform(conf,g,ivol);
+	    local_gauge_transform(fixed_conf,g,ivol);
 	    
 	    //store the change
 	    safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
 	    
-	    if(rank==0 and eo==0 and ieo==0)
-	      {
-		su3 test;
-		unsafe_su3_prod_su3_dag(test,fixer[ivol],fixer[ivol]);
-		master_printf("test:\n");
-		su3_print(test);
-		master_printf("g %d:\n",ivol);
-		su3_print(fixer[ivol]);
-	      }
-
 	    //lower external border must be sync.ed with upper internal border of lower node
 	    //  upper internal border with same parity must be sent using buf_up[mu][par]
 	    //    ""     ""      ""   ""   opp.    "     "  "  recv using buf_up[mu][!par]
@@ -369,9 +287,12 @@ namespace nissa
 	      {
 		int f=loclx_neighup[ivol][mu];
 		int b=loclx_neighdw[ivol][mu];
-		if(f>=loc_vol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-loc_volh],conf[ivol][mu]);
-		if(b>=loc_vol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-loc_volh],conf[b][mu]);
+		if(f>=loc_vol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-loc_volh],fixed_conf[ivol][mu]);
+		if(b>=loc_vol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-loc_volh],fixed_conf[b][mu]);
 	      }
+	    
+	    //store current step
+	    safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
 	  }
 	THREAD_BARRIER();
 	
@@ -386,21 +307,19 @@ namespace nissa
 	      {
 		int f=loclx_neighup[ivol][mu];
 		int b=loclx_neighdw[ivol][mu];
-		if(f>=loc_vol) su3_copy(conf[ivol][mu],((su3*)recv_buf)[loceo_of_loclx[f]-loc_volh]);
-		if(b>=loc_vol) su3_copy(conf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-loc_volh]);
+		if(f>=loc_vol) su3_copy(fixed_conf[ivol][mu],((su3*)recv_buf)[loceo_of_loclx[f]-loc_volh]);
+		if(b>=loc_vol) su3_copy(fixed_conf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-loc_volh]);
 	      }
 	THREAD_BARRIER();
       }
     
-    set_borders_invalid(conf);
+    set_borders_invalid(fixed_conf);
   }
   
   //put the Fourier Acceleration kernel of eq.3.6 of C.Davies paper
   void Fourier_accelerate_derivative(su3 *der)
   {
     GET_THREAD_ID();
-    
-    //su3_print(der[0]);
     
     //Fourier Transform
     fft4d(der,-1,1);
@@ -420,14 +339,9 @@ namespace nissa
 	  }
 	den*=4;
 	
-	//master_printf("%lg %lg rt\n",den,num);
-	// master_printf("%lg %lg re\n",den,su3_norm2(der[imom]));
-	
 	//build the factor
 	double fact=num;
 	if(fabs(den)>1e-10) fact/=den;
-	
-	//master_printf("fact %d %lg\n",imom,fact);
 	
 	//put the factor
 	su3_prodassign_double(der[imom],fact);
@@ -436,12 +350,8 @@ namespace nissa
     
     //Anti-Fourier Transform
     fft4d(der,+1,0);
-    
-    // su3_print(der[0]);
-    
-    //crash("");
   }
-
+  
   //take exp(-0.5*alpha*der)
   void exp_der_alpha_half(su3 *g,su3 *der,double alpha)
   {
@@ -480,7 +390,7 @@ namespace nissa
     int iter=0;
     do
       {
-	master_printf("---iter %d---\n",iter);
+	verbosity_lv3_master_printf("---iter %d---\n",iter);
 	//take the exponent
 	exp_der_alpha_half(g,der,alpha);
 	
@@ -503,35 +413,34 @@ namespace nissa
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
 	double a=(F[2]-2*F[1]+F[0])/(2*sqr(alpha));
 	
-	master_printf("F:   %lg %lg %lg\n",F[0],F[1],F[2]);
-	master_printf("abc: %lg %lg %lg\n",a,b,c);
+	verbosity_lv3_master_printf("F:   %lg %lg %lg\n",F[0],F[1],F[2]);
+	verbosity_lv3_master_printf("abc: %lg %lg %lg\n",a,b,c);
 	
 	double vert=-b/(2*a);
 	pos_vert=(vert>0);
 	pos_curv=(a>0);
 	brack_vert=(2*alpha>vert);
 	
-	master_printf("Vertex position: %lg\n",vert);
-	master_printf("Curvature is positive: %d\n",pos_curv);
-	master_printf("Bracketing the vertex: %d\n",brack_vert);
+	verbosity_lv3_master_printf("Vertex position: %lg\n",vert);
+	verbosity_lv3_master_printf("Curvature is positive: %d\n",pos_curv);
+	verbosity_lv3_master_printf("Bracketing the vertex: %d\n",brack_vert);
 	if(not pos_vert or not pos_curv)
 	  {
 	    alpha/=2.0;
-	    master_printf("Decreasing alpha to %lg\n",alpha);
+	    verbosity_lv3_master_printf("Decreasing alpha to %lg\n",alpha);
 	  }
 	else
-	  {
-	    if(not brack_vert)
-	      {
-		alpha*=2.0;
-		master_printf("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
-	      }
-	    else
-	      {
-		master_printf("Good, jumping to %lg\n",vert);
-		alpha=vert;
-	      }
-	  }
+	  if(not brack_vert)
+	    {
+	      alpha*=2.0;
+	      verbosity_lv3_master_printf("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
+	    }
+	  else
+	    {
+	      verbosity_lv3_master_printf("Good, jumping to %lg\n",vert);
+	      alpha=vert;
+	    }
+	
 	iter++;
       }
     while(not (pos_curv and pos_vert and brack_vert));
@@ -542,16 +451,19 @@ namespace nissa
     nissa_free(g);
   }
   
-  namespace
+  //GCG stuff
+  namespace GCG
   {
     su3 *prev_der;
     su3 *s;
     double *accum;
   }
   
-  //allocate the stuff for GF_CG
-  void allocate_GF_CG_stuff()
+  //allocate the stuff for GCG
+  void allocate_GCG_stuff()
   {
+    using namespace GCG;
+    
     prev_der=nissa_malloc("prev_der",loc_vol,su3);
     s=nissa_malloc("s",loc_vol,su3);
     accum=nissa_malloc("accum",loc_vol,double);
@@ -560,17 +472,21 @@ namespace nissa
     vector_reset(s);
   }
   
-  //free the stuff for GF_CG
-  void free_GF_CG_stuff()
+  //free the stuff for GCG
+  void free_GCG_stuff()
   {
+    using namespace GCG;
+    
     nissa_free(prev_der);
     nissa_free(s);
     nissa_free(accum);
   }
   
-  //apply CG acceleration
-  void GF_FACG_process(su3 *der)
+  //apply GCG acceleration
+  void GCG_improve_gauge_fixer(su3 *der)
   {
+    using namespace GCG;
+    
     GET_THREAD_ID();
     
     static int iter=0;
@@ -584,7 +500,7 @@ namespace nissa
 	THREAD_BARRIER();
 	double den;
 	double_vector_glb_collapse(&den,accum,loc_vol);
-	master_printf("den: %lg\n",den);
+	verbosity_lv3_master_printf("den: %lg\n",den);
 	
 	//numerator
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -598,14 +514,14 @@ namespace nissa
 	THREAD_BARRIER();
 	double num;
 	double_vector_glb_collapse(&num,accum,loc_vol);
-	master_printf("num: %lg\n",num);
+	verbosity_lv3_master_printf("num: %lg\n",num);
 	
 	//compute beta
 	beta=num/den;
 	if(beta<0) beta=0;
       }
     else beta=0;
-    master_printf("beta: %lg\n",beta);
+    verbosity_lv3_master_printf("beta: %lg\n",beta);
     
     //store prev_der, increase s (der) and store prev_s
     vector_copy(prev_der,der);
@@ -615,9 +531,12 @@ namespace nissa
     iter++;
   }
   
-  //do all the fixing with Fourier acceleration
-  void Landau_or_Coulomb_gauge_fix_FACC(quad_su3 *fixed_conf,su3 *fixer,int start_mu,double &alpha,quad_su3 *ori_conf,const double func_0,bool use_FACC,bool use_adapt,bool use_GF_CG)
+  //do all the fixing exponentiating
+  void Landau_or_Coulomb_gauge_fixing_exponentiate(quad_su3 *fixed_conf,su3 *fixer,LC_gauge_fixing_pars_t::gauge_t gauge,
+						double &alpha,quad_su3 *ori_conf,const double func_0,bool use_FACC,bool use_adapt,bool use_GCG)
   {
+    using namespace GCG;
+    
     GET_THREAD_ID();
     
     //take the derivative
@@ -626,7 +545,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	su3 temp;
-	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,start_mu);
+	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
 	unsafe_su3_traceless_anti_hermitian_part(der[ivol],temp);
       }
     THREAD_BARRIER();
@@ -635,18 +554,17 @@ namespace nissa
     if(use_FACC) Fourier_accelerate_derivative(der);
     
     //make the CG improvement
-    if(use_GF_CG) GF_FACG_process(der);
+    if(use_GCG) GCG_improve_gauge_fixer(der);
     
     //decides what to use
-    su3 *v;
-    if(use_GF_CG) v=s;
-    else          v=der;
+    su3 *v=(use_GCG?s:der);
     
     //take the exponent with alpha
     su3 *g=nissa_malloc("g",loc_vol,su3);
-    if(use_adapt) adapt_alpha(fixed_conf,fixer,start_mu,v,alpha,ori_conf,func_0);
+    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,ori_conf,func_0);
     exp_der_alpha_half(g,v,alpha);
     
+    //put the transformation
     add_current_transformation(fixer,g,fixer);
     gauge_transform_conf(fixed_conf,fixer,ori_conf);
     
@@ -655,23 +573,23 @@ namespace nissa
   }
   
   //check if gauge fixed or not
-  bool check_Landau_or_Coulomb_gauge_fixed(double &prec,double &func,quad_su3 *fixed_conf,int start_mu,double target_prec)
+  bool check_Landau_or_Coulomb_gauge_fixed(double &prec,double &func,quad_su3 *fixed_conf,LC_gauge_fixing_pars_t::gauge_t gauge,double target_prec)
   {
-    prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fixed_conf,start_mu);
-    func=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu);
+    prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fixed_conf,gauge);
+    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge);
     bool get_out=(prec<=target_prec);
     return get_out;
   }
   
-  THREADABLE_FUNCTION_4ARG(Landau_or_Coulomb_gauge_fix, quad_su3*,fixed_conf, quad_su3*,ext_conf, int,start_mu, double,target_prec)
+  THREADABLE_FUNCTION_3ARG(Landau_or_Coulomb_gauge_fix, quad_su3*,fixed_conf, LC_gauge_fixing_pars_t*,pars, quad_su3*,ext_conf)
   {
     GET_THREAD_ID();
     double time=-take_time();
     
-    bool use_FACC=true;
-    bool use_adapt=true;
-    bool use_GF_CG=true;
-    if(use_GF_CG) allocate_GF_CG_stuff();
+    const bool use_fft_acc=pars->use_fft_acc;
+    bool use_adapt=pars->use_adaptative_search;
+    bool use_GCG=pars->use_generalized_cg;
+    if(pars->use_generalized_cg) allocate_GCG_stuff();
     
     //store input conf if equal
     quad_su3 *ori_conf=ext_conf;
@@ -682,9 +600,6 @@ namespace nissa
  	vector_copy(fixed_conf,ext_conf);
       }
     
-    //fix overrelax probability
-    //const double over_relax_prob=0.9;
-    
     //fixing transformation
     su3 *fixer=nissa_malloc("fixer",loc_vol+bord_vol,su3);
     NISSA_LOC_VOL_LOOP(ivol)
@@ -693,8 +608,8 @@ namespace nissa
     
     int macro_iter=0,nmax_macro_iter=100;
     double prec,func,old_func;
-    double alpha=0.16;//,retuning_fact=1.2;
-    bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
+    double alpha=pars->alpha_exp;
+    bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
     do
       {
 	//go on fixing until reaching precision, or exceeding the
@@ -706,16 +621,21 @@ namespace nissa
 	    master_printf("iter %d, quality: %16.16lg, functional: %16.16lg\n",iter,prec,func);
 	    
 	    //store
-	    //old_prec=prec;
 	    old_func=func;
 	    
-	    Landau_or_Coulomb_gauge_fix_FACC(fixed_conf,fixer,start_mu,alpha,ori_conf,old_func,use_FACC,use_adapt,use_GF_CG);
-	    
-	    //Landau_or_Coulomb_gauge_fix(fixed_conf,fixer,start_mu,over_relax_prob);
+	    switch(pars->method)
+	      {
+	      case LC_gauge_fixing_pars_t::exponentiate:
+		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,ori_conf,old_func,use_fft_acc,use_adapt,use_GCG);break;
+	      case LC_gauge_fixing_pars_t::overrelax:
+		Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars->gauge,pars->overrelax_prob,fixer,ori_conf);break;
+	      default:
+		crash("unknown method %d",pars->method);
+	      }
 	    iter++;
 	    
 	    //print out the precision reached and the functional
-	    get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
+	    get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
 	    
 	    //switch off adaptative search if precision is too small
 	    if(use_adapt and prec<1e-14)
@@ -729,59 +649,53 @@ namespace nissa
 	//now we put the fixer on su3, and make a real transformation
 	//on the basis of what we managed to fix
 	THREAD_BARRIER();
-	if(rank==0 && thread_id==0)
-	  {
-	    su3 test;
-	    safe_su3_prod_su3_dag(test,fixer[0],fixer[0]);
-	    master_printf("test:\n");
-	    su3_print(test);
-	    su3_summ_real(test,test,-1);
-	    master_printf(" unitarity before: %.16lg\n",sqrt(su3_norm2(test)));
-	    master_printf("g %d:\n",0);
-	    su3_print(fixer[0]);
-	  }
-	THREAD_BARRIER();
+	// if(rank==0 && thread_id==0)
+	//   {
+	//     su3 test;
+	//     safe_su3_prod_su3_dag(test,fixer[0],fixer[0]);
+	//     master_printf("test:\n");
+	//     su3_print(test);
+	//     su3_summ_real(test,test,-1);
+	//     master_printf(" unitarity before: %.16lg\n",sqrt(su3_norm2(test)));
+	//     master_printf("g %d:\n",0);
+	//     su3_print(fixer[0]);
+	//   }
+	// THREAD_BARRIER();
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  su3_unitarize_maximal_trace_projecting(fixer[ivol]);
 	set_borders_invalid(fixer);
-	THREAD_BARRIER();
-	if(rank==0 && thread_id==0)
-	  {
-	    su3 test;
-	    safe_su3_prod_su3_dag(test,fixer[0],fixer[0]);
-	    master_printf("test:\n");
-	    su3_print(test);
-	    su3_summ_real(test,test,-1);
-	    master_printf(" unitarity after: %.16lg\n",sqrt(su3_norm2(test)));
-	    master_printf("g %d:\n",0);
-	    su3_print(fixer[0]);
-	  }
-	THREAD_BARRIER();
+	// THREAD_BARRIER();
+	// if(rank==0 && thread_id==0)
+	//   {
+	//     su3 test;
+	//     safe_su3_prod_su3_dag(test,fixer[0],fixer[0]);
+	//     master_printf("test:\n");
+	//     su3_print(test);
+	//     su3_summ_real(test,test,-1);
+	//     master_printf(" unitarity after: %.16lg\n",sqrt(su3_norm2(test)));
+	//     master_printf("g %d:\n",0);
+	//     su3_print(fixer[0]);
+	//   }
+	// THREAD_BARRIER();
 	gauge_transform_conf(fixed_conf,fixer,ori_conf);
 	
 	//check if really get out
-	really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,start_mu,target_prec);
+	really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
 	master_printf("macro-iter %d, quality: %16.16lg, functional: %16.16lg\n",macro_iter,prec,func);
 	macro_iter++;
       }
     while(macro_iter<nmax_macro_iter and not really_get_out);
     
     //crash if this did not work
-    if(not really_get_out) crash("unable to fix to precision %16.16lg in %d macro-iterations",target_prec,macro_iter);
+    if(not really_get_out) crash("unable to fix to precision %16.16lg in %d macro-iterations",pars->target_precision,macro_iter);
     
     if(fixed_conf==ori_conf) nissa_free(ori_conf);
     
-    if(use_GF_CG) free_GF_CG_stuff();
+    if(pars->use_generalized_cg) free_GCG_stuff();
     
     master_printf("Gauge fix time: %lg\n",time+take_time());
   }
   THREADABLE_FUNCTION_END
-  
-  //wrappers
-  void Landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
-  {Landau_or_Coulomb_gauge_fix(conf_out,conf_in,0,precision);}
-  void Coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
-  {Landau_or_Coulomb_gauge_fix(conf_out,conf_in,1,precision);}
   
   //perform a random gauge transformation
   THREADABLE_FUNCTION_2ARG(perform_random_gauge_transform, quad_su3*,conf_out, quad_su3*,conf_in)

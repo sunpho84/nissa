@@ -30,11 +30,11 @@ namespace nissa
     std::string get_str(int full=false)
     {
       std::ostringstream os;
-      if(full||is_nonstandard())
+      if(full or is_nonstandard())
 	{
 	  os<<"Stout\n";
-	  if(full||nlevels!=def_nlevels()) os<<" NLevels\t=\t"<<nlevels<<"\n";
-	  if(full||rho!=def_rho()) os<<" Rho\t\t=\t"<<rho<<"\n";
+	  if(full or nlevels!=def_nlevels()) os<<" NLevels\t=\t"<<nlevels<<"\n";
+	  if(full or rho!=def_rho()) os<<" Rho\t\t=\t"<<rho<<"\n";
 	}
       return os.str();
     }
@@ -42,7 +42,7 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	nlevels!=def_nlevels()||
+	nlevels!=def_nlevels() or
 	rho!=def_rho();
     }
     

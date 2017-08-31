@@ -154,11 +154,11 @@ namespace nissa
   
   //perform a Landau gauge fixing
   EXTERN_PARS int Landau_gauge_fix_flag INIT_TO(0);
-  EXTERN_PARS double gauge_fixing_precision INIT_TO(0);
+  EXTERN_PARS LC_gauge_fixing_pars_t gauge_fixing_pars;
   inline void read_Landau_gauge_fix()
   {
     read_str_int("LandauGaugeFix",&Landau_gauge_fix_flag);
-    if(Landau_gauge_fix_flag) read_str_double("GaugeFixingPrecision",&gauge_fixing_precision);
+    if(Landau_gauge_fix_flag) read_LC_gauge_fixing_pars(gauge_fixing_pars);
   }
   
   //store the conf?

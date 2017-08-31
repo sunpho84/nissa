@@ -18,7 +18,7 @@ clover_term_t *Cl;
 inv_clover_term_t *invCl;
 
 //gauge fixing
-double fixing_precision;
+LC_gauge_fixing_pars_t gauge_fixing_pars;
 
 //mass list
 int nmass;
@@ -138,7 +138,7 @@ void initialize_Zcomputation(char *input_path)
   read_str_int("WallTime",&wall_time);
   
   // 2) Gauge fixing
-  read_str_double("FixingPrecision",&fixing_precision);
+  read_LC_gauge_fixing_pars(gauge_fixing_pars);
   int seed;
   read_str_int("Seed",&seed);
   start_loc_rnd_gen(seed);
@@ -224,7 +224,7 @@ void load_gauge_conf()
   
   //prepare the fixed version and calculate plaquette
   double elaps_time=-take_time();
-  Landau_gauge_fix(conf,unfix_conf,fixing_precision);
+  Landau_or_Coulomb_gauge_fix(conf,&gauge_fixing_pars,unfix_conf);
   elaps_time+=take_time();
   fix_time+=elaps_time;
   master_printf("Fixed conf in %lg sec\n",elaps_time);

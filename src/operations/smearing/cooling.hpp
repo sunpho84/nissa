@@ -26,10 +26,10 @@ namespace nissa
     {
       std::ostringstream os;
       os<<"Cooling\n";
-      if(full||is_nonstandard())
+      if(full or is_nonstandard())
 	{
-	  if(full||gauge_action!=def_gauge_action()) os<<" GaugeAction\t=\t"<<gauge_action_str_from_name(gauge_action).c_str()<<"\n";
-	  if(full||nsteps!=def_nsteps()) os<<" NSteps\t\t=\t"<<nsteps<<"\n";
+	  if(full or gauge_action!=def_gauge_action()) os<<" GaugeAction\t=\t"<<gauge_action_str_from_name(gauge_action).c_str()<<"\n";
+	  if(full or nsteps!=def_nsteps()) os<<" NSteps\t\t=\t"<<nsteps<<"\n";
 	}
       
       return os.str();
@@ -38,9 +38,9 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	gauge_action!=def_gauge_action()||
-	nsteps!=def_nsteps()||
-	overrelax_flag!=def_overrelax_flag()||
+	gauge_action!=def_gauge_action() or
+	nsteps!=def_nsteps() or
+	overrelax_flag!=def_overrelax_flag() or
 	overrelax_exp!=def_overrelax_exp();
     }
     
