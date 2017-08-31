@@ -233,7 +233,6 @@ namespace nissa
 	su3 delta_TA;
 	unsafe_su3_traceless_anti_hermitian_part(delta_TA,delta);
 	loc_omega[ivol]=4*su3_norm2(delta_TA);
-	if(ivol==0) master_printf("c: %.16lg\n",loc_omega[ivol]);
       }
     THREAD_BARRIER();
     
