@@ -482,7 +482,7 @@ namespace nissa
   }
   
   //apply GCG acceleration
-  void GCG_improve_gauge_fixer(su3 *der)
+  void GCG_improve_gauge_fixer(su3 *der,bool &use_GCG)
   {
     using namespace GCG;
     
@@ -518,6 +518,14 @@ namespace nissa
 	//compute beta
 	beta=num/den;
 	if(beta<0) beta=0;
+	
+	//switch off beta if even smaller
+	if(fabs(num)<1e-12 or fabs(den)<1e-12)
+	  {
+	    beta=0;
+	    use_GCG=false;
+	    verbosity_lv3_master_printf("switching off GCG\n");
+	  }
       }
     else beta=0;
     verbosity_lv3_master_printf("beta: %lg\n",beta);
@@ -553,7 +561,7 @@ namespace nissa
     if(use_FACC) Fourier_accelerate_derivative(der);
     
     //make the CG improvement
-    if(use_GCG) GCG_improve_gauge_fixer(der);
+    if(use_GCG) GCG_improve_gauge_fixer(der,use_GCG);
     
     //decides what to use
     su3 *v=(use_GCG?s:der);
