@@ -641,9 +641,10 @@ namespace nissa
 	    iter++;
 	    
 	    //print out the precision reached and the functional
-	    get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
-	    get_out=(not (iter<pars->nmax_iterations));
-	    get_out=(not (iter%pars->unitarize_each==0));
+	    get_out=false;
+	    get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
+	    get_out|=(not (iter<pars->nmax_iterations));
+	    get_out|=(not (iter%pars->unitarize_each==0));
 	    
 	    //switch off adaptative search if precision is too small
 	    if(use_adapt and prec<1e-14)
@@ -688,8 +689,9 @@ namespace nissa
 	gauge_transform_conf(fixed_conf,fixer,ori_conf);
 	
 	//check if really get out
-	really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
-	really_get_out=(not (iter<pars->nmax_iterations));
+	really_get_out=false;
+	really_get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
+	really_get_out|=(not (iter<pars->nmax_iterations));
       }
     while(not really_get_out);
     
