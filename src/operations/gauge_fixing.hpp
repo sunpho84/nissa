@@ -37,6 +37,14 @@ namespace nissa
     double def_target_precision() const {return 1e-14;}
     double target_precision;
     
+    //max number of iterations
+    int def_nmax_iterations() const {return 100000;}
+    int nmax_iterations;
+    
+    //iterations between reunitarization
+    int def_unitarize_each() const {return 100;}
+    int unitarize_each;
+    
     //minimization method
     enum method_t{overrelax,exponentiate};
     static inline std::string method_tag(method_t method)
@@ -88,6 +96,8 @@ namespace nissa
 	  os<<"GaugeFix\n";
 	  if(full or gauge!=def_gauge()) os<<" Gauge\t=\t"<<gauge_tag(gauge)<<"\n";
 	  if(full or target_precision!=def_target_precision()) os<<" TargetPrecision\t=\t"<<target_precision<<"\n";
+	  if(full or nmax_iterations!=def_nmax_iterations()) os<<" TargetPrecision\t=\t"<<nmax_iterations<<"\n";
+	  if(full or unitarize_each!=def_unitarize_each()) os<<" TargetPrecision\t=\t"<<unitarize_each<<"\n";
 	  if(full or method!=def_method()) os<<" Method\t=\t"<<method_tag(method)<<"\n";
 	  if(full or overrelax_prob!=def_overrelax_prob()) os<<" OverrelaxProb\t=\t"<<overrelax_prob<<"\n";
 	  if(full or alpha_exp!=def_alpha_exp()) os<<" AlphaExp\t=\t"<<alpha_exp<<"\n";
@@ -103,6 +113,8 @@ namespace nissa
       return
 	gauge!=def_gauge() or
 	target_precision!=def_target_precision() or
+	nmax_iterations!=def_nmax_iterations() or
+	unitarize_each!=def_unitarize_each() or
 	method!=def_method() or
 	overrelax_prob!=def_overrelax_prob() or
 	alpha_exp!=def_alpha_exp() or
@@ -114,6 +126,8 @@ namespace nissa
     LC_gauge_fixing_pars_t() :
       gauge(def_gauge()),
       target_precision(def_target_precision()),
+      nmax_iterations(def_nmax_iterations()),
+      unitarize_each(def_unitarize_each()),
       method(def_method()),
       overrelax_prob(def_overrelax_prob()),
       alpha_exp(def_alpha_exp()),
@@ -130,6 +144,7 @@ namespace nissa
     read_str_str("Gauge",gauge_tag,200);
     pars.gauge=LC_gauge_fixing_pars_t::gauge_from_tag(gauge_tag);
     read_str_double("TargetPrecision",&pars.target_precision);
+    read_str_int("MaxIterations",&pars.nmax_iterations);
     char method_tag[200];
     read_str_str("Method",method_tag,200);
     pars.method=LC_gauge_fixing_pars_t::method_from_tag(method_tag);

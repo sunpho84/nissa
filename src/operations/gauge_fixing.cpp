@@ -322,7 +322,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //Fourier Transform
-    fft4d(der,-1,1);
+    fft4d(der,FFT_MINUS,FFT_NORMALIZE);
     
     //compute 4*\sum_mu sin^2(2*pi*(L_mu-1))
     double num=16;
@@ -349,7 +349,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //Anti-Fourier Transform
-    fft4d(der,+1,0);
+    fft4d(der,FFT_PLUS,FFT_NO_NORMALIZE);
   }
   
   //take exp(-0.5*alpha*der)
@@ -451,7 +451,7 @@ namespace nissa
     nissa_free(g);
   }
   
-  //GCG stuff
+  //GCG stuff - taken from 1405.5812
   namespace GCG
   {
     su3 *prev_der;
@@ -606,15 +606,13 @@ namespace nissa
       su3_put_to_id(fixer[ivol]);
     set_borders_invalid(fixer);
     
-    int macro_iter=0,nmax_macro_iter=100;
     double prec,func,old_func;
     double alpha=pars->alpha_exp;
     bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
+    int iter=0;
     do
       {
-	//go on fixing until reaching precision, or exceeding the
-	//iteration count
-        int iter=0,nmax_iter=100;
+	//go on fixing until reaching precision, or exceeding the iteration count
 	bool get_out=false;
 	do
 	  {
@@ -636,6 +634,8 @@ namespace nissa
 	    
 	    //print out the precision reached and the functional
 	    get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
+	    get_out=(not (iter<pars->nmax_iterations));
+	    get_out=(not (iter%pars->unitarize_each==0));
 	    
 	    //switch off adaptative search if precision is too small
 	    if(use_adapt and prec<1e-14)
@@ -644,7 +644,7 @@ namespace nissa
 		use_adapt=false;
 	      }
 	  }
-	while(iter<nmax_iter and not get_out);
+	while(not get_out);
 	
 	//now we put the fixer on su3, and make a real transformation
 	//on the basis of what we managed to fix
@@ -681,13 +681,12 @@ namespace nissa
 	
 	//check if really get out
 	really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
-	master_printf("macro-iter %d, quality: %16.16lg, functional: %16.16lg\n",macro_iter,prec,func);
-	macro_iter++;
+	really_get_out=(not (iter<pars->nmax_iterations));
       }
-    while(macro_iter<nmax_macro_iter and not really_get_out);
+    while(not really_get_out);
     
     //crash if this did not work
-    if(not really_get_out) crash("unable to fix to precision %16.16lg in %d macro-iterations",pars->target_precision,macro_iter);
+    if(not really_get_out) crash("unable to fix to precision %16.16lg in %d iterations",pars->target_precision,pars->nmax_iterations);
     
     if(fixed_conf==ori_conf) nissa_free(ori_conf);
     
