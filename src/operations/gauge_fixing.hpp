@@ -30,11 +30,11 @@ namespace nissa
       crash("Unknown gauge %s, use \"Landau\" or \"Coulomb\"",tag);
       return Landau;
     }
-    const gauge_t def_gauge() const {return Landau;}
+    gauge_t def_gauge() const {return Landau;}
     gauge_t gauge;
     
     //precision for minimization
-    const double def_target_precision() const {return 1e-14;}
+    double def_target_precision() const {return 1e-14;}
     double target_precision;
     
     //minimization method
@@ -56,27 +56,27 @@ namespace nissa
       crash("Unknown method %s, use \"Overrelax\" or \"Exponentiate\"",tag);
       return overrelax;
     }
-    const method_t def_method() const {return exponentiate;}
+    method_t def_method() const {return exponentiate;}
     method_t method;
     
     //probability to overrelax
-    const double def_overrelax_prob() const {return 0.9;}
+    double def_overrelax_prob() const {return 0.9;}
     double overrelax_prob;
     
     //parameter for alpha in exp(-i alpha der /2)
-    const double def_alpha_exp() const {return 1.6;}
+    double def_alpha_exp() const {return 1.6;}
     double alpha_exp;
     
     //use or not the adaptative search of 1405.5812
-    const int def_use_adaptative_search() const {return 1;}
+    int def_use_adaptative_search() const {return 1;}
     int use_adaptative_search;
     
     //use or not the generalized cg
-    const int def_use_generalized_cg() const {return 1;}
+    int def_use_generalized_cg() const {return 1;}
     int use_generalized_cg;
     
     //use or not fft to accelerate
-    const int def_use_fft_acc() const {return 1;}
+    int def_use_fft_acc() const {return 1;}
     int use_fft_acc;
     
     int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
