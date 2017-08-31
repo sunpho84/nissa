@@ -289,9 +289,6 @@ namespace nissa
 		if(f>=loc_vol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-loc_volh],fixed_conf[ivol][mu]);
 		if(b>=loc_vol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-loc_volh],fixed_conf[b][mu]);
 	      }
-	    
-	    //store current step
-	    safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
 	  }
 	THREAD_BARRIER();
 	
@@ -658,7 +655,7 @@ namespace nissa
 	
 	//now we put the fixer on su3, and make a real transformation
 	//on the basis of what we managed to fix
-	THREAD_BARRIER();
+	//THREAD_BARRIER();
 	// if(rank==0 && thread_id==0)
 	//   {
 	//     su3 test;
