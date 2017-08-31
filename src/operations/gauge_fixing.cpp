@@ -647,7 +647,8 @@ namespace nissa
 	    get_out|=(not (iter%pars->unitarize_each==0));
 	    
 	    //switch off adaptative search if precision is too small
-	    if(use_adapt and prec<1e-14)
+	    const double adapt_tol=1e-13;
+	    if(use_adapt and prec<adapt_tol)
 	      {
 		master_printf("Switching off adaptative search\n");
 		use_adapt=false;
