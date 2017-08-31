@@ -615,7 +615,7 @@ namespace nissa
 	bool get_out=false;
 	do
 	  {
-	    master_printf("iter %d, quality: %16.16lg, functional: %16.16lg\n",iter,prec,func);
+	    master_printf("iter: %d quality: %16.16lg functional: %16.16lg\n",iter,prec,func);
 	    
 	    //store
 	    old_func=func;
