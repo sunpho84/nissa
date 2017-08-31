@@ -144,7 +144,8 @@ namespace nissa
     read_str_str("Gauge",gauge_tag,200);
     pars.gauge=LC_gauge_fixing_pars_t::gauge_from_tag(gauge_tag);
     read_str_double("TargetPrecision",&pars.target_precision);
-    read_str_int("MaxIterations",&pars.nmax_iterations);
+    read_str_int("MNaxIterations",&pars.nmax_iterations);
+    read_str_int("UnitarizeEach",&pars.unitarize_each);
     char method_tag[200];
     read_str_str("Method",method_tag,200);
     pars.method=LC_gauge_fixing_pars_t::method_from_tag(method_tag);
