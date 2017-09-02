@@ -58,7 +58,7 @@ namespace nissa
 	}
     }
     
-    //! returns the number of measurement, without 0
+    //returns the number of measurement, without 0
     int nmeas_nonzero()
     {return nsmooth()/meas_each_nsmooth;}
     
