@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void laplace_operator_2_links(color *out,quad_su3 *conf,color *in);
+  void Laplace_operator_2_links(color *out,quad_su3 *conf,color *in);
 }
 
 #endif

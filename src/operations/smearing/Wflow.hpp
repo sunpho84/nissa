@@ -120,14 +120,14 @@ namespace nissa
       color *f0=field;
       
       //zero step: phi1 = phi0 + de0/4
-      laplace_operator_2_links(df0,conf[0],f0);
+      Laplace_operator_2_links(df0,conf[0],f0);
       double_vector_summ_double_vector_prod_double((double*)f1,(double*)f0,(double*)df0,dt/4,nd);
       //first step: phi2 = phi0 + de1*8/9 - df0*2/9
-      laplace_operator_2_links(df1,conf[1],f1);
+      Laplace_operator_2_links(df1,conf[1],f1);
       double_vector_summ_double_vector_prod_double((double*)f2,(double*)f0,(double*)df1,8.0*dt/9,nd);
       double_vector_summassign_double_vector_prod_double((double*)f2,(double*)df0,-2.0*dt/9,nd);
       //second step: f = phi3 = phi1 + df2*3/4
-      laplace_operator_2_links(df2,conf[2],f2);
+      Laplace_operator_2_links(df2,conf[2],f2);
       double_vector_summ_double_vector_prod_double((double*)f0,(double*)f1,(double*)df2,3.0*dt/4,nd);
     }
     
@@ -193,15 +193,15 @@ namespace nissa
       color *l3=field,*l0=l3;
       
       //zero step: l2 = d2l3*3/4
-      laplace_operator_2_links(l2,conf[2],l3);
+      Laplace_operator_2_links(l2,conf[2],l3);
       double_vector_prodassign_double((double*)l2,3.0*dt/4,nd);
       //first step: l1 = l3 + d1l2*8/9
-      laplace_operator_2_links(l1,conf[1],l2);
+      Laplace_operator_2_links(l1,conf[1],l2);
       double_vector_summ_double_vector_prod_double((double*)l1,(double*)l3,(double*)l1,8.0*dt/9,nd);
       //second step: l0 = l1 + l2 + d0 (l1 - l2*8/9)/4
       double_vector_summ((double*)l0,(double*)l1,(double*)l2,nd);                               //l0 = l1 + l2
       double_vector_summassign_double_vector_prod_double((double*)l1,(double*)l2,-8.0*dt/9,nd); //l1 = l1 - l2*8/9
-      laplace_operator_2_links(l2,conf[0],l1);                                                  //l2 = d0 (l1 - l2*8/9)
+      Laplace_operator_2_links(l2,conf[0],l1);                                                  //l2 = d0 (l1 - l2*8/9)
       double_vector_summassign_double_vector_prod_double((double*)l0,(double*)l2,dt/4,nd);      //l0+= d0 (l1 - l2*8/9)/4
     }
     
