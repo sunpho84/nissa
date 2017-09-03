@@ -11,7 +11,7 @@
 
 namespace nissa
 {
-  //holds the data to recursive Wflow, generalizing  from 1302.5246
+  //holds the data to recursive Wflow, generalizing from 1302.5246
   struct recursive_Wflower_t
   {
     struct Wflow_lev_t
@@ -32,6 +32,7 @@ namespace nissa
     int nl()
     {return levs.size();}
     
+    //initialize with given flower and conf
     recursive_Wflower_t(const Wflow_pars_t &Wflower,quad_su3 *ori_conf) : Wflower(Wflower)
     {
       int ns=Wflower.nrecu;
