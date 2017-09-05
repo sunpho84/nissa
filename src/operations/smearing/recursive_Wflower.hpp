@@ -66,7 +66,7 @@ namespace nissa
     
     //destroyer
     ~recursive_Wflower_t()
-    {for(int is=0;is<nl();is++) nissa_free(levs[is].conf);}
+    {for(int is=0;is<nl()-1;is++) nissa_free(levs[is].conf);}
     
     //set the external conf
     void bind_conf(quad_su3 *ori_conf)
