@@ -66,6 +66,8 @@ namespace nissa
       }
     double_vector_prodassign_double((double*)out,0.25,nentries);
     double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,-NDIM/2.0,nentries);
+    
+    nissa_free(temp);
   }
   THREADABLE_FUNCTION_END
 }
