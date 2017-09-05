@@ -81,7 +81,7 @@ namespace nissa
   void ignore_borders_communications_warning(void *data);
   void initialize_main_vect();
   void internal_nissa_free(char **arr,const char *file,int line);
-  void vector_copy(void *a,void *b);
+  void vector_copy(void *a,const void *b);
   void vector_reset(void *a);
   void last_vect_content_printf();
   void vect_content_fprintf(FILE *fout,nissa_vect *vect);

@@ -278,7 +278,7 @@ namespace nissa
   }
   
   //copy one vector into another
-  void vector_copy(void *a,void *b)
+  void vector_copy(void *a,const void *b)
   {
     GET_THREAD_ID();
     
