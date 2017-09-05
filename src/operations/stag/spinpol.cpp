@@ -110,6 +110,7 @@ namespace nissa
     
     //allocate the smoothed conf
     quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
+    paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
     //allocate the fermion (possibly stouted) conf
     quad_su3 *ferm_conf[2];
     for(int eo=0;eo<2;eo++) ferm_conf[eo]=nissa_malloc("ferm_conf",loc_volh+bord_volh+edge_volh,quad_su3);
@@ -171,7 +172,8 @@ namespace nissa
 		ferm_flower.flow_fermion(source[ind_meas_hit(imeas,ihit)]);
 	    
 	    //check if this is a meas_each
-	    int imeas=iflow%meas_each;
+	    int imeas=iflow/meas_each;
+	    printf(" iflow: %d meas_each: %d imeas: %d imeas*meas_each==iflow: %d\n",iflow,meas_each,imeas,imeas*meas_each==iflow);
 	    if(imeas*meas_each==iflow)
 	      {
 		//build fermionic conf

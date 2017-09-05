@@ -36,9 +36,11 @@ namespace nissa
     recursive_Wflower_t(const Wflow_pars_t &Wflower,quad_su3 *ori_conf) : Wflower(Wflower)
     {
       int ns=Wflower.nrecu;
+      master_printf("ns: %d\n",ns);
       
       //take the number of Wflow levels
       int m=Wflower.nflows;
+      master_printf("m: %d\n",m);
       //check
       if(ns<0 or ns>m) crash("ns=%d must be in the range [%d,%d]",0,m);
       
@@ -49,7 +51,7 @@ namespace nissa
       
       //resize
       levs.resize(ns+1);
-      for(int i=0;i<nl();i++) levs[i].conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+      for(int i=0;i<ns;i++) levs[i].conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
       
       //set units of Wflow
       for(int il=0;il<nl();il++)
@@ -59,21 +61,27 @@ namespace nissa
 	    master_printf("unit %d: %d\n",il,levs[il].units);
 	}
       
-      set_conf(ori_conf);
+      bind_conf(ori_conf);
     }
     
+    //destroyer
     ~recursive_Wflower_t()
     {for(int is=0;is<nl();is++) nissa_free(levs[is].conf);}
     
     //set the external conf
-    void set_conf(quad_su3 *ori_conf)
+    void bind_conf(quad_su3 *ori_conf)
     {
+      master_printf("binding\n");
+      //set the pointer of the lowest level to the external (to be evolved) conf
+      levs.back().conf=ori_conf;
+      //set units of toppest to a very large number so it's never evolved
+      levs.front().units=200000;
       for(int i=0;i<nl();i++)
 	{
+	  master_printf("copying i %d\n",i);
 	  vector_copy(levs[i].conf,ori_conf);
-	  levs[i].nWflow=-1;
+	  levs[i].nWflow=0;
 	}
-      levs.front().nWflow=0;
     }
     
     //find the level which has the closest smaller nWflow
@@ -83,7 +91,7 @@ namespace nissa
 	master_printf(" searching the level closest to %d\n",nWflow);
       
       int iclosest_Wflow=0;
-      for(int is=1;is<nl();is++)
+      for(int is=0;is<nl();is++)
 	{
 	  int nclosest_Wflow=levs[iclosest_Wflow].nWflow;
 	  int lev_ncur_Wflow=levs[is].nWflow;
@@ -124,7 +132,9 @@ namespace nissa
     {
       int units=levs[is].units;
       int off=levs[is].off();
-      return ((nWflow+units-off)/units-1)*units+off;
+      int targ=((nWflow+units-off)/units-1)*units+off;
+      if(targ<0) targ=0;
+      return targ;
     }
     
     //update the lowest conf using in chain the superior ones
@@ -144,7 +154,7 @@ namespace nissa
 	    master_printf("Targeting at nWflow=%d, current Wflow at level %d units of %d: %d, this should be %d\n",nWflow,is,units,lev_ncur_Wflow,lev_ntarg_Wflow);
 	    
 	    //store in the path the current level, using the target nWflow for current level as a key
-	    if(lev_ntarg_Wflow>0 and lev_ntarg_Wflow<=nWflow)
+	    if(lev_ncur_Wflow!=lev_ntarg_Wflow and lev_ntarg_Wflow>=0 and lev_ntarg_Wflow<=nWflow)
 	      order_path.push_back(std::make_pair(lev_ntarg_Wflow,is));
 	}
       
@@ -164,10 +174,12 @@ namespace nissa
 	  
 	  if(iclosest_Wflow!=il)
 	    {
+	      master_printf("Copying and/or updating from %d\n",iclosest_Wflow);
 	      //copy and extend if needed
        	      copy_level(il,iclosest_Wflow);
 	      nevol+=update_level(il,lev_ntarg_Wflow,dirs);
        	    }
+	  else master_printf("Level %d alright\n",il);
        	}
       
       return nevol;
