@@ -2,7 +2,6 @@
 
 using namespace nissa;
 
-
 void in_main(int narg,char **arg)
 {
   open_input(arg[1]);
@@ -32,12 +31,17 @@ void in_main(int narg,char **arg)
   read_ildg_gauge_conf(conf,conf_in_path);
   communicate_lx_quad_su3_borders(conf);
   
-  Landau_gauge_fix(fix_conf,conf,precision);
+  //set pars
+  LC_gauge_fixing_pars_t pars;
+  pars.gauge=LC_gauge_fixing_pars_t::Landau;
+  pars.target_precision=precision;
+  
+  Landau_or_Coulomb_gauge_fix(fix_conf,&pars,conf);
   
   write_ildg_gauge_conf(conf_out_path,fix_conf,64);
   
-  master_printf("plaq: %16.16lg\n",global_plaquette_lx_conf(conf));
-  master_printf("plaq: %16.16lg\n",global_plaquette_lx_conf(fix_conf));
+  master_printf("plaq before: %16.16lg\n",global_plaquette_lx_conf(conf));
+  master_printf("plaq after: %16.16lg\n",global_plaquette_lx_conf(fix_conf));
   
   ///////////////////////////////////////////
   
