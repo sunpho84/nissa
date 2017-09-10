@@ -23,6 +23,8 @@
 #endif
 #include "stout.hpp"
 
+#include <unsupported/Eigen/MatrixFunctions>
+
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
@@ -99,6 +101,10 @@ namespace nissa
 	      //exp(iQ)*U (eq. 3)
 	      su3 expiQ;
 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
+	    // su3_print(expiQ);
+	    SU3_ECAST(expiQ)=(SU3_ECAST(sto_ste.Q)*std::complex<double>(0,1)).exp();
+	    // su3_print(expiQ);
+	    // crash("");
 	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
 	    }
     
