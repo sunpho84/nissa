@@ -54,13 +54,13 @@ void in_main(int narg,char **arg)
   sscanf(arg[4],"%lg",&rho);
   for(int i=0;i<4;i++) for(int j=0;j<4;j++) stout_pars.rho=rho;
   stout_pars.nlevels=atoi(arg[5]);
-  //char *pathout=arg[6];
+  char *pathout=arg[6];
   
-  //Init the MPI grid 
+  //Init the MPI grid
   init_grid(T,L);
-
+  
   //////////////////////////// read the conf /////////////////////////////
-
+  
   quad_su3 *conf[2]={nissa_malloc("conf_e",loc_volh+bord_volh+edge_volh,quad_su3),
 			nissa_malloc("conf_o",loc_volh+bord_volh+edge_volh,quad_su3)};
   
@@ -98,8 +98,8 @@ void in_main(int narg,char **arg)
   master_printf("Cooling time: %lg\n",cool_time);
   
   //write the conf
-  //paste_eo_parts_and_write_ildg_gauge_conf(pathout,conf,64);
-
+  paste_eo_parts_and_write_ildg_gauge_conf(pathout,conf,64);
+  
   for(int eo=0;eo<2;eo++) nissa_free(conf[eo]);
   ILDG_message_free_all(&mess);
 }
