@@ -215,6 +215,9 @@ namespace nissa
       else crash("Unknown theta tag: %s",theta_tag);
   }
   
+  //handle to stop
+  EXTERN_PARS std::string stop_path INIT_TO("stop");
+  
   //read the theta, iso or not
   inline void read_theta(double *theta)
   {

@@ -162,7 +162,7 @@ namespace nissa
   int read_conf_parameters(int &iconf,bool(*external_condition)())
   {
     //Check if asked to stop or restart
-    int asked_stop=file_exists("stop");
+    int asked_stop=file_exists(stop_path);
     int asked_restart=file_exists("restart");
     //check if enough time
     int enough_time=check_remaining_time();
@@ -220,7 +220,7 @@ namespace nissa
     if(!ok_conf and iconf>=ngauge_conf)
       {
 	master_printf("Analyzed all confs, exiting\n\n");
-	file_touch("stop");
+	file_touch(stop_path);
       }
     
     return ok_conf;

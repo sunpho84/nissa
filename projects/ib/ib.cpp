@@ -284,10 +284,11 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
+  if(narg<2) crash("Use: %s input_file [stop_path]",arg[0]);
   
   //init simulation according to input file
   init_simulation(arg[1]);
+  if(narg>=3) stop_path=arg[2];
   
   //loop over the configs
   int iconf=0;

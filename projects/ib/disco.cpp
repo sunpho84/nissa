@@ -340,7 +340,7 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf,sources_missing))
+  while(iconf<ngauge_conf && enough_time && !file_exists(stop_path) && read_conf_parameters(iconf,sources_missing))
     {
       //setup the conf and generate the source
       start_new_conf();
