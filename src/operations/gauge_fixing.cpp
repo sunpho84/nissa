@@ -530,7 +530,7 @@ namespace nissa
 	if(beta<0) beta=0;
 	
 	//switch off beta if even smaller
-	const double gcg_tol=1e-28;
+	const double gcg_tol=1e-27;
 	if(fabs(num)<gcg_tol or fabs(den)<gcg_tol)
 	  {
 	    beta=0;
