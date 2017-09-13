@@ -187,19 +187,24 @@ namespace nissa
   }
   
   //compute the functional that gets minimised
-  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int start_mu,double offset=0)
+  void compute_Landau_or_Coulomb_functional(double *loc_F,quad_su3 *conf,int start_mu)
   {
     GET_THREAD_ID();
-    
-    double *loc_F=nissa_malloc("loc_F",loc_vol,double);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	loc_F[ivol]=0;
 	for(int mu=start_mu;mu<NDIM;mu++)
-	  loc_F[ivol]+=-su3_real_trace(conf[ivol][mu])-offset;
+	  loc_F[ivol]+=-su3_real_trace(conf[ivol][mu]);
       }
     THREAD_BARRIER();
+  }
+  
+  //compute the functional that gets minimised
+  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int start_mu)
+  {
+    double *loc_F=nissa_malloc("loc_F",loc_vol,double);
+    compute_Landau_or_Coulomb_functional(loc_F,conf,start_mu);
     
     //collapse
     double F;
@@ -385,6 +390,8 @@ namespace nissa
     
     //current transform
     su3 *g=nissa_malloc("g",loc_vol,su3);
+    double *loc_f0=nissa_malloc("loc_f0",loc_vol,double);
+    double *loc_f=nissa_malloc("loc_f",loc_vol,double);
     
     int pos_curv,pos_vert,brack_vert;
     int iter=0;
@@ -396,17 +403,24 @@ namespace nissa
 	
 	//compute three points at 0,alpha and 2alpha
 	double F[3];
+	F[0]=0;
 	vector_copy(fixer,ori_fixer);
+	
+	//compute f0 point by point
+	gauge_transform_conf(fixed_conf,fixer,ori_conf);
+	compute_Landau_or_Coulomb_functional(loc_f0,fixed_conf,start_mu);
 	// master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
 	
-	//subtract an offset
-	double offset=func_0/glb_vol/(NDIM-start_mu);
-	for(int i=0;i<3;i++)
+	for(int i=1;i<=2;i++)
 	  {
+	    add_current_transformation(fixer,g,fixer);
+	    
 	    //transform and compute potential
 	    gauge_transform_conf(fixed_conf,fixer,ori_conf);
-	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,offset);
-	    if(i!=2) add_current_transformation(fixer,g,fixer);
+	    compute_Landau_or_Coulomb_functional(loc_f,fixed_conf,start_mu);
+	    
+	    double_vector_subtassign(loc_f,loc_f0,loc_vol);
+	    double_vector_glb_collapse(&(F[i]),loc_f,loc_vol);
 	  }
 	
 	double c=F[0];
