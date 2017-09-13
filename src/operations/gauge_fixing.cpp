@@ -375,6 +375,10 @@ namespace nissa
   //adapt the value of alpha to minimize the functional
   void adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,double &alpha,quad_su3 *ori_conf,const double func_0)
   {
+#ifndef REPRODUCIBLE_RUN
+    crash("need reproducible run to enable adaptative search");
+#endif
+    
     //store original fixer
     su3 *ori_fixer=nissa_malloc("ori_fixer",loc_vol+bord_vol,su3);
     vector_copy(ori_fixer,fixer);
@@ -696,8 +700,9 @@ namespace nissa
     //crash if this did not work
     if(not really_get_out) crash("unable to fix to precision %16.16lg in %d iterations",pars->target_precision,pars->nmax_iterations);
     
-    if(fixed_conf==ori_conf) nissa_free(ori_conf);
-    
+    //free
+    if(ori_conf!=ext_conf) nissa_free(ori_conf);
+    nissa_free(fixer);
     if(pars->use_generalized_cg) free_GCG_stuff();
     
     master_printf("Gauge fix time: %lg\n",time+take_time());
