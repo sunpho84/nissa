@@ -197,7 +197,7 @@ namespace nissa
       {
 	loc_F[ivol]=0;
 	for(int mu=start_mu;mu<NDIM;mu++)
-	  loc_F[ivol]=-su3_real_trace(conf[ivol][mu])-offset;
+	  loc_F[ivol]+=-su3_real_trace(conf[ivol][mu])-offset;
       }
     THREAD_BARRIER();
     
