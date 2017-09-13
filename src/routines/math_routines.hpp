@@ -27,10 +27,37 @@ namespace nissa
   inline bool get_bit(int i,int ibit)
   {return (i>>ibit)&1;}
   
-  template <class T> T summ(T a,T b){return a+b;}
-  template <class T> T nissa_max(T a,T b){return std::max(a,b);}
-  template <class T> T sqr(T a){return a*a;}
-  template <class T> T cube(T a){return a*a*a;};
+  template <class T>
+  T summ(T a,T b)
+  {return a+b;}
+  
+  template <class T>
+  T nissa_max(T a,T b)
+  {return std::max(a,b);}
+  
+  template <class T>
+  T sqr(T a)
+  {return a*a;}
+  
+  template <class T>
+  T cube(T a)
+  {return a*a*a;};
+  
+  template <class T>
+  void ave_dev(T &ave,T &dev,const T *v,const int n)
+  {
+    ave=dev=0;
+    for(int i=0;i<n;i++)
+      {
+	ave+=v[i];
+	dev+=sqr(v[i]);
+      }
+    
+    ave/=n;
+    dev/=n;
+    dev-=ave*ave;
+    dev=sqrt(dev*n/(n-1));
+  }
 }
 
 #endif
