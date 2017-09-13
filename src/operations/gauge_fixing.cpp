@@ -409,16 +409,6 @@ namespace nissa
 	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu);
 	  }
 	
-	//compute average and stddev
-	double ave,dev;
-	ave_dev(ave,dev,F,3);
-	if(dev<ave*1e-15)
-	  {
-	    master_printf("Switching off adaptative search\n");
-	    use_adapt=false;
-	  }
-	
-	
 	double c=F[0];
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
 	double a=(F[2]-2*F[1]+F[0])/(2*sqr(alpha));
@@ -450,6 +440,15 @@ namespace nissa
 	      verbosity_lv3_master_printf("Good, jumping to %lg\n",vert);
 	      alpha=vert;
 	    }
+	
+	//compute average and stddev
+	double ave,dev;
+	ave_dev(ave,dev,F,3);
+	if(dev<ave*1e-15)
+	  {
+	    master_printf("Switching off adaptative search\n");
+	    use_adapt=false;
+	  }
 	
 	iter++;
       }
@@ -580,7 +579,7 @@ namespace nissa
     
     //take the exponent with alpha
     su3 *g=nissa_malloc("g",loc_vol,su3);
-    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,ori_conf,func_0);
+    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,ori_conf);
     exp_der_alpha_half(g,v,alpha);
     
     //put the transformation
