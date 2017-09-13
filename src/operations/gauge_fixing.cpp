@@ -415,7 +415,8 @@ namespace nissa
 	
 	//verbosity_lv3_
 	  master_printf("F:   %lg %lg %lg\n",F[0],F[1],F[2]);
-	verbosity_lv3_master_printf("abc: %lg %lg %lg\n",a,b,c);
+	  //verbosity_lv3_
+	  master_printf("abc: %lg %lg %lg\n",a,b,c);
 	
 	double vert=-b/(2*a);
 	pos_vert=(vert>0);
@@ -648,14 +649,6 @@ namespace nissa
 	    get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
 	    get_out|=(not (iter<pars->nmax_iterations));
 	    get_out|=(not (iter%pars->unitarize_each==0));
-	    
-	    //switch off adaptative search if precision is too small
-	    const double adapt_tol=1e-26;
-	    if(use_adapt and prec<adapt_tol)
-	      {
-		master_printf("Switching off adaptative search\n");
-		use_adapt=false;
-	      }
 	  }
 	while(not get_out);
 	
