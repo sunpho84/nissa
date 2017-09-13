@@ -530,12 +530,13 @@ namespace nissa
 	if(beta<0) beta=0;
 	
 	//switch off beta if even smaller
-	const double gcg_tol=1e-10;
+	const double gcg_tol=1e-28;
 	if(fabs(num)<gcg_tol or fabs(den)<gcg_tol)
 	  {
 	    beta=0;
 	    use_GCG=false;
-	    verbosity_lv3_master_printf("switching off GCG\n");
+	    //verbosity_lv3_
+	      master_printf("Switching off GCG\n");
 	  }
       }
     else beta=0;
