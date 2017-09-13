@@ -579,7 +579,8 @@ namespace nissa
     
     //take the exponent with alpha
     su3 *g=nissa_malloc("g",loc_vol,su3);
-    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,ori_conf);
+    
+    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,ori_conf,func_0,use_adapt);
     exp_der_alpha_half(g,v,alpha);
     
     //put the transformation
