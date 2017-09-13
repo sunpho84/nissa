@@ -111,6 +111,17 @@ namespace nissa
     su3_copy(out,U);
   }
   
+  //unitarize returning (VV^\dagger)^(-1/2)*V hep-lat/0610092
+  void su3_unitarize_with_sqrt(su3 out,const su3 in)
+  {
+#ifdef USE_EIGEN
+    esu3_t ein=SU3_ECAST(in);
+    SU3_ECAST(out)=SelfAdjointEigenSolver<esu3_t>(ein*ein.adjoint()).operatorInverseSqrt()*ein;
+#else
+    crash("need eigen");
+#endif
+  }
+  
   //return a single link after the overrelaxation procedure
   void su3_find_overrelaxed(su3 out,const su3 in,const su3 staple,int nov_hits)
   {

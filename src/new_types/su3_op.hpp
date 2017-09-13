@@ -13,14 +13,16 @@
 
 #ifdef USE_EIGEN
  #include <Eigen/Dense>
+ #include <Eigen/Eigenvalues>
  
  using namespace Eigen;
 
  typedef std::complex<double> scomplex_t;
  typedef scomplex_t emw_t[NCOL*NCOL];
- typedef Map<Matrix<scomplex_t,NCOL,NCOL,RowMajor> > esu3_t;
+ typedef Matrix<scomplex_t,NCOL,NCOL,RowMajor> esu3_t;
+ typedef Map<esu3_t> mesu3_t;
 
-#define SU3_ECAST(A) (esu3_t(*(emw_t*)(A)))
+#define SU3_ECAST(A) (mesu3_t(*(emw_t*)(A)))
 #define CCAST(A) (*(scomplex_t*)(A))
 
 #endif
@@ -928,6 +930,8 @@ namespace nissa
 	for(size_t c2=1;c2<NCOL;c2++) complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);
       }
   }
+  
+  void su3_unitarize_with_sqrt(su3 out,const su3 in);
   
   //product of an su3 matrix by a color vector
   inline void unsafe_single_su3_prod_single_color(single_color a,const single_su3 b,const single_color c)
