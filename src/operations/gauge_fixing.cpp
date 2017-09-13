@@ -396,20 +396,17 @@ namespace nissa
 	
 	//compute three points at 0,alpha and 2alpha
 	double F[3];
-	F[0]=func_0;
 	vector_copy(fixer,ori_fixer);
 	// master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
 	
 	//subtract an offset
 	double offset=func_0/glb_vol/(NDIM-start_mu);
-	F[0]=compute_Landau_or_Coulomb_functional(ori_conf,start_mu,offset);
-	for(int i=1;i<=2;i++)
+	for(int i=0;i<3;i++)
 	  {
-	    add_current_transformation(fixer,g,fixer);
-	    
 	    //transform and compute potential
 	    gauge_transform_conf(fixed_conf,fixer,ori_conf);
 	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,offset);
+	    if(i!=2) add_current_transformation(fixer,g,fixer);
 	  }
 	
 	double c=F[0];
@@ -530,7 +527,8 @@ namespace nissa
 	  {
 	    beta=0;
 	    use_GCG=false;
-	    verbosity_lv3_master_printf("switching off GCG\n");
+	    //verbosity_lv3_
+	      master_printf("switching off GCG\n");
 	  }
       }
     else beta=0;
