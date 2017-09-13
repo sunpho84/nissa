@@ -669,7 +669,7 @@ namespace nissa
 	//   }
 	// THREAD_BARRIER();
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  su3_unitarize_with_sqrt(fixer[ivol],fixer[ivol]);
+	  su3_unitarize_explicitly_inverting(fixer[ivol],fixer[ivol]);
 	set_borders_invalid(fixer);
 	// THREAD_BARRIER();
 	// if(rank==0 && thread_id==0)
