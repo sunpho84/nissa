@@ -187,7 +187,7 @@ namespace nissa
   }
   
   //compute the functional that gets minimised
-  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int start_mu)
+  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int start_mu,double offset=0)
   {
     GET_THREAD_ID();
     
@@ -197,7 +197,7 @@ namespace nissa
       {
 	loc_F[ivol]=0;
 	for(int mu=start_mu;mu<NDIM;mu++)
-	  loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
+	  loc_F[ivol]=-su3_real_trace(conf[ivol][mu])-offset;
       }
     THREAD_BARRIER();
     
@@ -400,20 +400,24 @@ namespace nissa
 	vector_copy(fixer,ori_fixer);
 	// master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
 	
+	//subtract an offset
+	double offset=func_0/glb_vol/(NDIM-start_mu);
+	F[0]=compute_Landau_or_Coulomb_functional(ori_conf,start_mu,offset);
 	for(int i=1;i<=2;i++)
 	  {
 	    add_current_transformation(fixer,g,fixer);
 	    
 	    //transform and compute potential
 	    gauge_transform_conf(fixed_conf,fixer,ori_conf);
-	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu);
+	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,offset);
 	  }
 	
 	double c=F[0];
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
 	double a=(F[2]-2*F[1]+F[0])/(2*sqr(alpha));
 	
-	verbosity_lv3_master_printf("F:   %lg %lg %lg\n",F[0],F[1],F[2]);
+	//verbosity_lv3_
+	  master_printf("F:   %lg %lg %lg\n",F[0],F[1],F[2]);
 	verbosity_lv3_master_printf("abc: %lg %lg %lg\n",a,b,c);
 	
 	double vert=-b/(2*a);
