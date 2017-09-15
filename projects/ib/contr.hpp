@@ -46,33 +46,6 @@ namespace nissa
   }
   EXTERN_CONTR int mes2pts_contr_size;
   
-  ////////////////////////////////////  mesoleptonic contraction /////////////////////////////////////////////////////
-  
-  EXTERN_CONTR int nmeslep_contr_made INIT_TO(0);
-  EXTERN_CONTR double meslep_contr_time INIT_TO(0);
-  
-  //list the 8 matrices to insert for the weak current
-  const int nmeslep_weak_ins=17;
-  const int nindep_meslep_weak=9;
-  EXTERN_CONTR int nmeslep_corr;
-  EXTERN_CONTR spinspin *meslep_hadr_part;
-  EXTERN_CONTR complex *meslep_contr;
-  
-  //parameters of the leptons
-  EXTERN_CONTR int *lep_contr_iq1;
-  EXTERN_CONTR int *lep_contr_iq2;
-  
-  //const int nmeslep_proj=4,meslep_projs[nmeslep_proj]={9,4,5,0};
-  const int nmeslep_proj=1,meslep_projs[nmeslep_proj]={4};
-  const int list_weak_insq[nmeslep_weak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9, 5};
-  const int list_weak_insl[nmeslep_weak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4, 5};
-  const int list_weak_ind_contr[nmeslep_weak_ins]={0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7, 8};
-  const char list_weak_ind_nameq[nindep_meslep_weak][3]={"VK","V0","AK","A0","VK","V0","AK","A0","P5"};
-  const char list_weak_ind_namel[nindep_meslep_weak][3]={"VK","V0","AK","A0","AK","A0","VK","V0","V0"};
-  
-  void compute_meslep_contr();
-  void print_meslep_contr();
-  
   ///////////////////////////////////////// handcuffs contractions ///////////////////////////////////////////////////////
   
   struct handcuffs_side_map_t

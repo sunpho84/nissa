@@ -13,9 +13,9 @@ bin_PROGRAMS= \
 #	$(top_builddir)/bin/checks
 #	$(top_builddir)/bin/check_fftw
 
-common_sources=conf.cpp contr.cpp pars.cpp prop.cpp
+common_sources=conf.cpp contr.cpp meslep.cpp pars.cpp prop.cpp
 
-include_HEADERS=conf.hpp contr.hpp pars.hpp prop.hpp
+include_HEADERS=conf.hpp contr.hpp meslep.hpp pars.hpp prop.hpp
 
 
 __top_builddir__bin_ib_SOURCES=ib.cpp $(common_sources)
