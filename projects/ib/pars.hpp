@@ -18,6 +18,10 @@
 
 namespace nissa
 {
+  EXTERN_PARS tm_basis_t base;
+  EXTERN_PARS double glb_cSW;
+  EXTERN_PARS int twisted_run,clover_run;
+  
   EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
   EXTERN_PARS int nso_spi,nso_col;
   EXTERN_PARS coords source_coord;
@@ -51,26 +55,8 @@ namespace nissa
       }
     return ins_list[i];
   }
-  //sign of the lepton momentum
-  const int norie=2;
-  const int sign_orie[2]={-1,+1};
-  
-  EXTERN_PARS int nr_lep;
-  const int nins=3;
-  const int nlins=2;
-  const int nrev=2;
-  
-  EXTERN_PARS int twisted_run,clover_run;
-  EXTERN_PARS tm_basis_t base;
-  EXTERN_PARS double glb_cSW;
-  
-  EXTERN_PARS tm_quark_info *leps;
-  
   EXTERN_PARS gauge_info photon;
   EXTERN_PARS double tadpole[NDIM];
-  
-  EXTERN_PARS int nquark_lep_combos;
-  EXTERN_PARS double *lep_energy,*neu_energy;
   
   //holds the range of FFT moms
   struct fft_mom_range_t
@@ -88,7 +74,6 @@ namespace nissa
   void read_input_preamble();
   void read_mes2pts_contr_pars();
   void read_mes2pts_contr_gamma_list();
-  void read_meslep_contr_pars();
   void read_bar2pts_contr_pars();
   void read_handcuffs_contr_pars();
   void read_fft_prop_pars();

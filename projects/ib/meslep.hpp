@@ -12,9 +12,16 @@
 
 namespace nissa
 {
-////////////////////////////////////  mesoleptonic contraction /////////////////////////////////////////////////////
+  EXTERN_MESLEP int nquark_lep_combos;
+  EXTERN_MESLEP double *lep_energy,*neu_energy;
+  
   EXTERN_MESLEP int nmeslep_contr_made INIT_TO(0);
   EXTERN_MESLEP double meslep_contr_time INIT_TO(0);
+  
+  //sign of the lepton momentum
+  const int sign_orie[2]={-1,+1};
+  
+  EXTERN_MESLEP tm_quark_info *leps;
   
   //list the 8 matrices to insert for the weak current
   const int nmeslep_weak_ins=17;
@@ -35,6 +42,11 @@ namespace nissa
   const char list_weak_ind_nameq[nindep_meslep_weak][3]={"VK","V0","AK","A0","VK","V0","AK","A0","P5"};
   const char list_weak_ind_namel[nindep_meslep_weak][3]={"VK","V0","AK","A0","AK","A0","VK","V0","V0"};
   
+  void allocate_L_prop();
+  void free_L_prop();
+  tm_quark_info get_lepton_info(int ilepton,int orie,int r);
+  
+  void read_meslep_contr_pars();
   void compute_meslep_contr();
   void print_meslep_contr();
 }

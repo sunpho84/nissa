@@ -59,16 +59,9 @@ void init_simulation(char *path)
   
   //Twisted run
   read_str_int("TwistedRun",&twisted_run);
-  if(!twisted_run)
-    {
-      nr_lep=1;
-      base=WILSON_BASE;
-    }
-  else
-    {
-      nr_lep=2;
-      base=MAX_TWIST_BASE;
-    }
+  if(!twisted_run) base=WILSON_BASE;
+  else             base=MAX_TWIST_BASE;
+  
   //Clover run
   read_str_int("CloverRun",&clover_run);
   //cSW for clover run
@@ -230,7 +223,7 @@ void init_simulation(char *path)
   allocate_mes2pts_contr();
   allocate_handcuffs_contr();
   
-  nmeslep_corr=nquark_lep_combos*nindep_meslep_weak*norie*nins;
+  nmeslep_corr=nquark_lep_combos*nindep_meslep_weak;
   meslep_hadr_part=nissa_malloc("hadr",loc_vol,spinspin);
   meslep_contr=nissa_malloc("meslep_contr",glb_size[0]*nindep_meslep_weak*nmeslep_proj*nmeslep_corr,complex);
   

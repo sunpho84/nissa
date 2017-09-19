@@ -121,13 +121,6 @@ namespace nissa
   void free_photon_fields();
   EXTERN_PROP spinspin *temp_lep;
   
-  inline int ilprop(int ilepton,int ilins,int orie,int r)
-  {return r+nr_lep*(ilins+nlins*(orie+norie*ilepton));}
-  
-  void allocate_L_prop();
-  void free_L_prop();
-  tm_quark_info get_lepton_info(int ilepton,int orie,int r);
-  
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,double *theta);
   void generate_original_source(qprop_t *sou);
   inline void generate_original_sources()

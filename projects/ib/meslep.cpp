@@ -7,7 +7,298 @@
 
 namespace nissa
 {
-  /////////////////////////////////////////////// mesoleptonic contractions //////////////////////////////////////////
+  //read all the parameters to contract with leptons
+  void read_meslep_contr_pars()
+  {
+    //Leptons
+    if(twisted_run) read_str_int("NMesLepQ1Q2LepmassMesMass",&nquark_lep_combos);
+    else            read_str_int("NMesLepQ1Q2LepkappaMesMass",&nquark_lep_combos);
+    
+    if(nquark_lep_combos)  read_gospel_convention();
+    
+    lep_contr_iq1=nissa_malloc("lep_contr_iq1",nquark_lep_combos,int);
+    lep_contr_iq2=nissa_malloc("lep_contr_iq2",nquark_lep_combos,int);
+    leps=nissa_malloc("leps",nquark_lep_combos,tm_quark_info);
+    lep_energy=nissa_malloc("lep_energy",nquark_lep_combos,double);
+    neu_energy=nissa_malloc("neu_energy",nquark_lep_combos,double);
+    for(int il=0;il<nquark_lep_combos;il++)
+      {
+	//read quarks identfiying the mesons
+	read_int(lep_contr_iq1+il);
+	read_int(lep_contr_iq2+il);
+	
+	//if not pure wilson read mass
+	if(not twisted_run) leps[il].mass=0;
+	else                read_double(&leps[il].mass);
+	
+	//antiperiodic or periodic
+	leps[il].bc[0]=QUARK_BOUND_COND;
+	
+	//maximal twist (if tm), otherwise read kappa
+	if(not twisted_run) read_double(&leps[il].kappa);
+	else                leps[il].kappa=0.125;
+	leps[il].r=0;
+	
+	//read the mass of the meson (that must have been determined outside)
+	double mes_mass;
+	read_double(&mes_mass);
+	
+	//set initial value of bc and check kinematic
+	for(int i=1;i<NDIM;i++) leps[il].bc[i]=0;
+	if(tm_quark_energy(leps[il],0)>=mes_mass) crash("initial state is lighter (%lg) than final state at rest (%lg)!",mes_mass,tm_quark_energy(leps[il],0));
+	
+	//compute meson momentum and bc
+	double err;
+	master_printf("Resolving kinematical condition for combination of quarks %d/%d\n",il+1,nquark_lep_combos);
+	do
+	  {
+	    //compute the error
+	    double lep_energy=tm_quark_energy(leps[il],0);
+	    double neu_energy=naive_massless_quark_energy(leps[il].bc,0);
+	    err=lep_energy+neu_energy-mes_mass;
+	    //compute the derivative
+	    double eps=1e-8;
+	    for(int i=1;i<NDIM;i++) leps[il].bc[i]+=eps;
+	    double der=(tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass-err)/eps;
+	    for(int i=1;i<NDIM;i++) leps[il].bc[i]-=eps+err/der;
+	    
+	    master_printf("  lep_e: %+10.10lg, neu_e: %+10.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
+	  }
+	while(fabs(err)>1e-14);
+	
+	//write down energy
+	lep_energy[il]=tm_quark_energy(leps[il],0);
+	neu_energy[il]=naive_massless_quark_energy(leps[il].bc,0);
+	master_printf(" ilepton %d, lepton energy: %lg, neutrino energy: %lg\n",il,lep_energy[il],neu_energy[il]);
+	master_printf(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
+	master_printf(" bc: %+16.16lg\n\n",leps[il].bc[1]);
+      }
+  }
+  
+  //allocate all leptonic propagators
+  void allocate_L_prop()
+  {
+    // nlprop=ilprop(nquark_lep_combos-1,nlins-1,norie-1,nr_lep-1)+1;
+    // L=nissa_malloc("L*",nlprop,spinspin*);
+    // for(int iprop=0;iprop<nlprop;iprop++) L[iprop]=nissa_malloc("L",loc_vol+bord_vol,spinspin);
+  }
+  
+  //free all leptonic propagators
+  void free_L_prop()
+  {
+    for(int iprop=0;iprop<nlprop;iprop++) nissa_free(L[iprop]);
+    nissa_free(L);
+    nissa_free(temp_lep);
+  }
+  
+  //return appropriately modified info
+  tm_quark_info get_lepton_info(int ilepton,int orie,int r)
+  {
+    tm_quark_info le=leps[ilepton];
+    le.r=r;
+    le.bc[0]=QUARK_BOUND_COND;
+    for(int i=1;i<NDIM;i++) le.bc[i]*=sign_orie[orie];
+    
+    return le;
+  }
+  
+  //compute phase exponent for space part: vec{p}*\vec{x}
+  double get_space_arg(int ivol,momentum_t bc)
+  {
+    double arg=0;
+    for(int mu=1;mu<NDIM;mu++)
+      {
+	double step=bc[mu]*M_PI/glb_size[mu];
+	arg+=step*rel_coord_of_loclx(ivol,mu);
+      }
+    return arg;
+  }
+  
+  //compute the phase for lepton on its sink
+  void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info le)
+  {
+    //compute space and time factor
+    double arg=get_space_arg(ivol,le.bc);
+    int t=rel_time_of_loclx(ivol);
+    if(follow_chris_or_nazario==follow_nazario and t>=glb_size[0]/2) t=glb_size[0]-t;
+    double ext=exp(t*lep_energy[ilepton]);
+    
+    //compute full exponential (notice the factor -1)
+    out[RE]=cos(-arg)*ext;
+    out[IM]=sin(-arg)*ext;
+  }
+  
+  //compute the phase for antineutrino - the orientation is that of the muon (as above)
+  void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc)
+  {
+    //compute space and time factor
+    double arg=get_space_arg(ivol,bc);
+    int t=rel_time_of_loclx(ivol);
+    if(follow_chris_or_nazario==follow_nazario and t>=glb_size[0]/2) t=glb_size[0]-t;
+    double ext=exp(t*neu_energy[ilepton]);
+    
+    //compute full exponential (notice the factor +1)
+    out[RE]=cos(+arg)*ext;
+    out[IM]=sin(+arg)*ext;
+  }
+  
+  //set everything to a phase factor
+  void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &le)
+  {
+    GET_THREAD_ID();
+    
+    vector_reset(prop);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	complex ph;
+	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
+	spinspin_put_to_diag(prop[ivol],ph);
+      }
+    set_borders_invalid(prop);
+  }
+  
+  //insert the photon on the source side
+  THREADABLE_FUNCTION_5ARG(insert_photon_on_the_source, spinspin*,prop, spin1field*,A, int*,dirs, tm_quark_info,le, int,twall)
+  {
+    GET_THREAD_ID();
+    
+    //select A
+    communicate_lx_spin1field_borders(A);
+    
+    //copy on the temporary and communicate borders
+    vector_copy(temp_lep,prop);
+    communicate_lx_spinspin_borders(temp_lep);
+    vector_reset(prop);
+    
+    if(!loc_muon_curr)
+      {
+	dirac_matr GAMMA;
+	if(twisted_run) dirac_prod_double(&GAMMA,base_gamma+0,1);
+	else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
+	
+	//phases
+	quad_u1 phases;
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    phases[mu][0]=cos(le.bc[mu]*M_PI);
+	    phases[mu][1]=sin(le.bc[mu]*M_PI);
+	  }
+	
+	//prepare each propagator for a single lepton
+	//by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
+	//(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
+	for(int mu=0;mu<NDIM;mu++)
+	  if(dirs[mu])
+	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
+		{
+		  //find neighbors
+		  int ifw=loclx_neighup[ivol][mu];
+		  int ibw=loclx_neighdw[ivol][mu];
+		  
+		  //compute phase factor
+		  spinspin ph_bw,ph_fw;
+		  
+		  //transport down and up
+		  if(rel_coord_of_loclx(ivol,mu)==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
+		  else spinspin_copy(ph_fw,temp_lep[ifw]);
+		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
+		  else spinspin_copy(ph_bw,temp_lep[ibw]);
+		  
+		  //fix coefficients - i is inserted here!
+		  //also dir selection is made here
+		  spinspin_prodassign_idouble(ph_fw,-0.5*dirs[mu]);
+		  spinspin_prodassign_idouble(ph_bw,+0.5*dirs[mu]);
+		  
+		  //fix insertion of the current
+		  safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
+		  safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
+		  
+		  //summ and subtract the two
+		  spinspin fw_M_bw,fw_P_bw;
+		  spinspin_subt(fw_M_bw,ph_fw,ph_bw);
+		  spinspin_summ(fw_P_bw,ph_fw,ph_bw);
+		  
+		  //put GAMMA on the summ
+		  spinspin temp_P;
+		  unsafe_spinspin_prod_dirac(temp_P,fw_P_bw,&GAMMA);
+		  spinspin_summassign(prop[ivol],temp_P);
+		  
+		  //put gmu on the diff
+		  spinspin temp_M;
+		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma+igamma_of_mu[mu]);
+		  spinspin_summassign(prop[ivol],temp_M);
+		}
+      }
+    else
+      {
+	for(int mu=0;mu<NDIM;mu++)
+	  if(dirs[mu])
+	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
+		{
+		  spinspin temp1,temp2;
+		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+igamma_of_mu[mu]);
+		  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
+		  spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
+		}
+	
+      }
+    
+    set_borders_invalid(prop);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //generate all the lepton propagators, pointing outward
+  //the computations is done by:
+  // 1)putting the correct phase in x space, given by exp(E_mu*t-i*vec(p)*vec(x))
+  // 2)multiplying it by the conserved current inserting eta or phi
+  // 3)going to momentum space
+  // 4)multiplying by the lepton propagator in momentum space
+  // 5)coming back to x space
+  THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
+  {
+    // GET_THREAD_ID();
+    
+    // if(IS_MASTER_THREAD) lepton_prop_time-=take_time();
+    
+    // for(int ilepton=0;ilepton<nquark_lep_combos;ilepton++)
+    //   for(int ilins=0;ilins<nlins;ilins++)
+    // 	for(int ori=0;ori<norie;ori++)
+    // 	  for(int r=0;r<nr_lep;r++)
+    // 	    {
+    // 	      //set the properties of the meson
+    // 	      //time boundaries are anti-periodic, space are as for external line
+    // 	      tm_quark_info le=get_lepton_info(ilepton,ori,r);
+	      
+    // 	      //select the propagator
+    // 	      int iprop=ilprop(ilepton,ilins,ori,r);
+    // 	      spinspin *prop=L[iprop];
+	      
+    // 	      //put it to a phase
+    // 	      set_to_lepton_sink_phase_factor(prop,ilepton,le);
+	      
+    // 	      //if we are doing Nazario's way (with the external line) add it
+    // 	      if(follow_chris_or_nazario==follow_nazario)
+    // 		{
+    // 		  //select only the wall
+    // 		  int tmiddle=glb_size[0]/2;
+    // 		  select_propagator_timeslice(prop,prop,tmiddle);
+    // 		  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+    // 		}
+	      
+    // 	      //insert or not photon
+    // 	      if(ilins)
+    // 		{
+    // 		  //insert photon and prolong
+    // 		  insert_photon_on_the_source(prop,photon_field,all_dirs,le,-1); //all times
+    // 		  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+    // 		}
+    // 	    }
+    
+    // if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
+  }
+  THREADABLE_FUNCTION_END
   
   /*
     the loop is normalised such that the physical rate at leading order
@@ -20,8 +311,6 @@ namespace nissa
   //as usual, FIRST propagator is reverted
   THREADABLE_FUNCTION_6ARG(meson_part_leptonic_contr, spinspin*,hadr, int,iq1, int,prop1_type, int,iq2, int,prop2_type, int,irev)
   {
-    crash("to be reviewed");
-    
     // GET_THREAD_ID();
     
     // vector_reset(hadr);
@@ -143,15 +432,11 @@ namespace nissa
     nissa_free(loc_contr);
   }
   THREADABLE_FUNCTION_END
-  
-  //return the index of the combination of r, orientation, etc
-  int meslep_contrpack_ind(int rl,int orie,int irev,int qins,int ilepton)
-  {return rl+nr_lep*(orie+norie*(irev+nrev*(qins+nins*ilepton)));}
-  
+    
   //compute the total meslep contraction functions
   void compute_meslep_contr()
   {
-    crash("to be revirewd");
+    crash("to be reviewed");
     // master_printf("Computing leptonic contraction functions\n");
     // meslep_contr_time-=take_time();
     
