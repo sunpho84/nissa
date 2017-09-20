@@ -67,8 +67,8 @@ namespace nissa
     
     //time step
     double dt;
-    //the four steps, not necessarily all needed
-    quad_su3 *conf[4];
+    //the steps
+    quad_su3 *conf[3];
     //dirs to smear
     int dirs[NDIM];
     //storage for staples
@@ -87,6 +87,21 @@ namespace nissa
       arg=nissa_malloc("arg",loc_vol,quad_su3);
       
       nd=loc_vol*sizeof(color)/sizeof(double);
+    }
+    
+    //setup from a given conf - nb: the conf is always evolved forward
+    void generate_intermediate_steps(quad_su3 *ori_conf)
+    {
+      //store the original conf in conf[0]
+      vector_copy(conf[0],ori_conf);
+      
+      //first two steps of the gluon R.K
+      for(int iter=0;iter<2;iter++)
+	{
+	  vector_copy(conf[iter+1],conf[iter]);
+	  Wflow::update_arg(arg,conf[iter+1],dt,dirs,iter);
+	  Wflow::update_conf(arg,conf[iter+1],dirs);
+	}
     }
     
     //destroyer
@@ -131,21 +146,6 @@ namespace nissa
       double_vector_summ_double_vector_prod_double((double*)f0,(double*)f1,(double*)df2,3.0*dt/4,nd);
     }
     
-    //setup from a given conf
-    void generate_intermediate_steps(quad_su3 *ori_conf)
-    {
-      //store the original conf in conf[0]
-      vector_copy(conf[0],ori_conf);
-      
-      //first two steps of the gluon R.K
-      for(int iter=0;iter<2;iter++)
-	{
-	  vector_copy(conf[iter+1],conf[iter]);
-	  Wflow::update_arg(arg,conf[iter+1],dt,dirs,iter);
-	  Wflow::update_conf(arg,conf[iter+1],dirs);
-	}
-    }
-    
     //destroyer
     ~fermion_flower_t()
     {
@@ -168,23 +168,6 @@ namespace nissa
     {
       l2=nissa_malloc("l2",loc_vol+bord_vol,color);
       l1=nissa_malloc("l1",loc_vol+bord_vol,color);
-    }
-    
-    //setup from a given conf
-    void generate_intermediate_steps(quad_su3 *ori_conf)
-    {
-      vector_reset(arg);
-      
-      //link the original conf to conf[3]
-      conf[3]=ori_conf;
-      
-      //first two steps of the gluon R.K
-      for(int iter=2;iter>=0;iter--)
-	{
-	  vector_copy(conf[iter],conf[iter+1]);
-	  Wflow::update_arg(arg,conf[iter],-dt,dirs,iter+1);
-	  Wflow::update_conf(arg,conf[iter],dirs);
-	}
     }
     
     //flow a field

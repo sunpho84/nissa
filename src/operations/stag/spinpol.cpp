@@ -132,7 +132,7 @@ namespace nissa
     //the reecursive flower, need to cache backward integration
     recursive_Wflower_t recu(Wf,smoothed_conf);
     //the afjoint flower needed for fermionic source
-    fermion_adjoint_flower_t ferm_flower(dt,all_dirs,true);
+    fermion_adjoint_flower_t adj_ferm_flower(dt,all_dirs,true);
     
     // int nevol=0;
     // for(int i=sp.nsmooth();i>=0;i--)
@@ -150,82 +150,86 @@ namespace nissa
     //4) take the trace with the hits
     //5) compute topocharge at all intermediate times
     
+    //build fermionic conf from gluonic one
+    split_lx_vector_into_eo_parts(ferm_conf,smoothed_conf);
+    if(tp->stout_pars.nlevels)
+      stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
+    
     int ncopies=mp->ncopies;
     for(int icopy=0;icopy<ncopies;icopy++)
       {
 	verbosity_lv2_master_printf("Copy: %d/%d\n",icopy,ncopies);
 	
-	for(int iflow=nflows;iflow>=0;iflow--)
+	//at each step it goes from iflow to iflow-1
+	for(int iflow=nflows;iflow>0;iflow--)
 	  {
-	    //update conf
+	    //update conf to iflow-1
 	    double t=dt*iflow;
 	    verbosity_lv2_master_printf(" iflow %d/%d, t %lg\n",iflow,nflows,t);
-	    recu.update(iflow);
+	    recu.update(iflow-1);
 	    
-	    //make the flower generate the intermediate step
-	    ferm_flower.generate_intermediate_steps(smoothed_conf);
+	    //make the flower generate the intermediate step between iflow-1 and iflow
+	    adj_ferm_flower.generate_intermediate_steps(smoothed_conf);
 	    
 	    //have to flow back all sources for which iflow is smaller than meas_each*imeas
-	    int imeas_min=nflows/meas_each;
+	    int imeas_min=iflow/meas_each;
 	    for(int imeas=imeas_min;imeas<nmeas;imeas++)
 	      for(int ihit=0;ihit<nhits;ihit++)
-		ferm_flower.flow_fermion(source[ind_meas_hit(imeas,ihit)]);
+		adj_ferm_flower.flow_fermion(source[ind_meas_hit(imeas,ihit)]);
+	  }
+	
+	//measure all
+	for(int imeas=0;imeas<nmeas;imeas++)
+	  {
+	    int iflow=imeas*meas_each;
+	    master_printf(" imeas: %d, t-back-fluxed: %d\n",imeas,iflow);
+	    recu.update(iflow);
 	    
-	    //check if this is a meas_each
-	    int imeas=iflow/meas_each;
-	    printf(" iflow: %d meas_each: %d imeas: %d imeas*meas_each==iflow: %d\n",iflow,meas_each,imeas,imeas*meas_each==iflow);
-	    if(imeas*meas_each==iflow)
+	    //plaquette and local charge
+	    double plaq=global_plaquette_lx_conf(smoothed_conf);
+	    local_topological_charge(topo_dens,smoothed_conf);
+	    
+	    //total topological charge
+	    double tot_charge;
+	    double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
+	    double tot_charge2=double_vector_glb_norm2(topo_dens,1);
+	    
+	    //reset the local density of tensorial density
+	    for(int iflav=0;iflav<nflavs;iflav++)
+	      for(int iop=0;iop<nops;iop++)
+		vector_reset(tens_dens[ind_op_flav(iop,iflav)]);
+	    
+	    //evaluate the tensorial density for all quarks
+	    for(int ihit=0;ihit<nhits;ihit++)
 	      {
-		//build fermionic conf
-		split_lx_vector_into_eo_parts(ferm_conf,smoothed_conf);
-		if(tp->stout_pars.nlevels)
-		  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
-		
-		//reset the local density of topological charge
+		int iso=ind_meas_hit(imeas,ihit);
+		split_lx_vector_into_eo_parts(eta,source[iso]);
 		for(int iflav=0;iflav<nflavs;iflav++)
-		  for(int iop=0;iop<nops;iop++)
-		    vector_reset(tens_dens[ind_op_flav(iop,iflav)]);
-		
-		//evaluate the tensorial density for all quarks
-		for(int ihit=0;ihit<nhits;ihit++)
 		  {
-		    int iso=ind_meas_hit(imeas,ihit);
-		    split_lx_vector_into_eo_parts(eta,source[iso]);
-		    for(int iflav=0;iflav<nflavs;iflav++)
-		      {
-			mult_Minv(chi,ferm_conf,tp,iflav,mp->residue,eta);
-			
-			for(int iop=0;iop<nops;iop++)
-			  summ_tens_dens(tens_dens[ind_op_flav(iop,iflav)],chiop,temp,ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],eta);
-		      }
+		    mult_Minv(chi,ferm_conf,tp,iflav,mp->residue,eta);
+		    
+		    for(int iop=0;iop<nops;iop++)
+		      summ_tens_dens(tens_dens[ind_op_flav(iop,iflav)],chiop,temp,ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],eta);
 		  }
-		
-		//plaquette and local charge
-		double plaq=global_plaquette_lx_conf(smoothed_conf);
-		local_topological_charge(topo_dens,smoothed_conf);
-		
-		for(int iop=0;iop<nops;iop++)
-		  for(int iflav=0;iflav<nflavs;iflav++)
-		    {
-		      int iop_flav=ind_op_flav(iop,iflav);
-		      
-		      //final normalization and collapse
-		      double_vector_prod_double((double*)(tens_dens[iop_flav]),(double*)(tens_dens[iop_flav]),1.0/nhits,loc_vol*2);
-		      complex_vector_glb_collapse(tens[iop_flav],tens_dens[iop_flav],loc_vol);
-		      //compute correlation with topocharge
-		      compute_tens_dens_topo_correlation(spinpol_dens[iop_flav],tens_dens[iop_flav],topo_dens);
-		      complex_vector_glb_collapse(spinpol[iop_flav],spinpol_dens[iop_flav],loc_vol);
-		      
-		      //total charge
-		      double tot_charge;
-		      double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
-		      double tot_charge2=double_vector_glb_norm2(topo_dens,1);
-		      
-		      fprintf(fout, "%d\t%d\t%d\t%d\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",
-			      iconf,icopy,imeas*meas_each,iconf,iflav,mp->operators[iop].first,mp->operators[iop].second,plaq,tot_charge,tot_charge2,
-			      spinpol[iop_flav][RE],spinpol[iop_flav][IM],tens[iop_flav][RE],tens[iop_flav][IM]);
-		    }
 	      }
+	    
+	    //print
+	    for(int iop=0;iop<nops;iop++)
+	      for(int iflav=0;iflav<nflavs;iflav++)
+		{
+		  int iop_flav=ind_op_flav(iop,iflav);
+		  
+		  //final normalization and collapse
+		  double_vector_prod_double((double*)(tens_dens[iop_flav]),(double*)(tens_dens[iop_flav]),1.0/nhits,loc_vol*2);
+		  complex_vector_glb_collapse(tens[iop_flav],tens_dens[iop_flav],loc_vol);
+		  //compute correlation with topocharge
+		  compute_tens_dens_topo_correlation(spinpol_dens[iop_flav],tens_dens[iop_flav],topo_dens);
+		  complex_vector_glb_collapse(spinpol[iop_flav],spinpol_dens[iop_flav],loc_vol);
+		  
+		  fprintf(fout, "%d\t%d\t%d\t%d\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",
+			  iconf,icopy,imeas*meas_each,iconf,iflav,mp->operators[iop].first,mp->operators[iop].second,plaq,tot_charge,tot_charge2,
+			  spinpol[iop_flav][RE],spinpol[iop_flav][IM],tens[iop_flav][RE],tens[iop_flav][IM]);
+		}
 	  }
       }
   
