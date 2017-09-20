@@ -19,6 +19,8 @@ int main(int narg,char **arg)
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   read_ildg_gauge_conf(conf,arg[3]);
   
+  /////////////////////////////// unitarize //////////////////////////////
+  
   NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<NDIM;mu++)
       su3_unitarize_explicitly_inverting(conf[ivol][mu],conf[ivol][mu]);
