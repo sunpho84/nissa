@@ -15,8 +15,9 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/smear/stout \
 	$(top_builddir)/tools/conf_transform/edit/build_from_raw \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data \
-	$(top_builddir)/tools/conf_transform/edit/skip_random \
 	$(top_builddir)/tools/conf_transform/edit/rewind_random \
+	$(top_builddir)/tools/conf_transform/edit/skip_random \
+	$(top_builddir)/tools/conf_transform/edit/unitarize \
 	$(top_builddir)/tools/find_best_vir_partitioning/find \
 	$(top_builddir)/tools/Gaussiansmear_test \
 	$(top_builddir)/tools/print_gamma/gamma_test \
@@ -47,8 +48,9 @@ __top_builddir__tools_conf_transform_gaugefix_random_SOURCES=conf_transform/gaug
 __top_builddir__tools_conf_transform_smear_stout_SOURCES=conf_transform/smear/stout.cpp
 __top_builddir__tools_conf_transform_edit_build_from_raw_SOURCES=conf_transform/edit/build_from_raw.cpp
 __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES=conf_transform/edit/grab_ildg_data.cpp
-__top_builddir__tools_conf_transform_edit_skip_random_SOURCES=conf_transform/edit/skip_random.cpp
 __top_builddir__tools_conf_transform_edit_rewind_random_SOURCES=conf_transform/edit/rewind_random.cpp
+__top_builddir__tools_conf_transform_edit_skip_random_SOURCES=conf_transform/edit/skip_random.cpp
+__top_builddir__tools_conf_transform_edit_unitarize_SOURCES=conf_transform/edit/unitarize.cpp
 __top_builddir__tools_Gaussiansmear_test_SOURCES=Gaussiansmear_test.cpp
 __top_builddir__tools_spinors_ildg_to_txt_SOURCES=spinors/ildg_to_txt.cpp
 __top_builddir__tools_print_gamma_gamma_test_SOURCES=print_gamma/gamma_test.cpp
