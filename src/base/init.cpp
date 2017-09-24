@@ -106,6 +106,7 @@ namespace nissa
     signal(SIGFPE,signal_handler);
     signal(SIGXCPU,signal_handler);
     signal(SIGABRT,signal_handler);
+    signal(SIGINT,signal_handler);
     
     print_banner();
     

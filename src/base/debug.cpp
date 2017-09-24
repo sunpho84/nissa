@@ -104,6 +104,7 @@ namespace nissa
       case SIGSEGV: sprintf(name,"segmentation violation");break;
       case SIGFPE: sprintf(name,"floating-point exception");break;
       case SIGXCPU: sprintf(name,"cpu time limit exceeded");break;
+      case SIGINT: sprintf(name," program interrupted");break;
       case SIGABRT: sprintf(name,"abort signal");break;
       default: sprintf(name,"unassociated");break;
       }
