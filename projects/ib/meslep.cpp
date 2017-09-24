@@ -205,10 +205,10 @@ namespace nissa
 		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
 		  else spinspin_copy(ph_bw,temp_lep[ibw]);
 		  
-		  //fix coefficients - i is inserted here!
+		  //fix coefficients, i is inserted here!
 		  //also dir selection is made here
-		  spinspin_prodassign_idouble(ph_fw,-0.5*dirs[mu]);
-		  spinspin_prodassign_idouble(ph_bw,+0.5*dirs[mu]);
+		  spinspin_prodassign_idouble(ph_fw,+0.5*dirs[mu]);
+		  spinspin_prodassign_idouble(ph_bw,-0.5*dirs[mu]);
 		  
 		  //fix insertion of the current
 		  safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
