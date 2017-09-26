@@ -33,11 +33,11 @@ namespace nissa
   }
   
   //compute the tensorial density
-  void summ_tens_dens(complex *spinpol_dens,color *quark[2],color *temp[2][2],quad_su3 *ferm_conf[2],quad_u1 *backfield[2],int shift,int mask,color *eta[2])
+  void summ_tens_dens(complex *spinpol_dens,color *quark[2],color *temp[2][2],quad_su3 *ferm_conf[2],quad_u1 *backfield[2],int shift,int mask,color *chi[2],color *eta[2])
   {
     GET_THREAD_ID();
     
-    apply_op(quark,temp[0],temp[1],ferm_conf,backfield,shift,eta);
+    apply_op(quark,temp[0],temp[1],ferm_conf,backfield,shift,chi);
     put_stag_phases(quark,mask);
     
     for(int eo=0;eo<2;eo++)
@@ -157,19 +157,19 @@ namespace nissa
     if(tp->stout_pars.nlevels)
       stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
     
-    //at each step it goes from iflow to iflow-1
-    for(int iflow=nflows;iflow>0;iflow--)
+    //at each step it goes from iflow+1 to iflow
+    for(int iflow=nflows-1;iflow>=0;iflow--)
       {
-	//update conf to iflow-1
+	//update conf to iflow
 	double t=dt*iflow;
-	verbosity_lv2_master_printf(" iflow %d/%d, t %lg\n",iflow,nflows,t);
-	recu.update(iflow-1);
+	verbosity_lv2_master_printf(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
+	recu.update(iflow);
 	
-	//make the flower generate the intermediate step between iflow-1 and iflow
+	//make the flower generate the intermediate step between iflow and iflow+1
 	adj_ferm_flower.generate_intermediate_steps(smoothed_conf);
 	
 	//have to flow back all sources for which iflow is smaller than meas_each*imeas
-	int imeas_min=iflow/meas_each;
+	int imeas_min=iflow/meas_each+1;
 	for(int icopy=0;icopy<ncopies;icopy++)
 	  for(int imeas=imeas_min;imeas<nmeas;imeas++)
 	    for(int ihit=0;ihit<nhits;ihit++)
@@ -208,7 +208,7 @@ namespace nissa
 		  mult_Minv(chi,ferm_conf,tp,iflav,mp->residue,eta);
 		  
 		  for(int iop=0;iop<nops;iop++)
-		    summ_tens_dens(tens_dens[ind_op_flav(iop,iflav)],chiop,temp,ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],eta);
+		    summ_tens_dens(tens_dens[ind_op_flav(iop,iflav)],chiop,temp,ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],chi,eta);
 		}
 	    }
 	  
