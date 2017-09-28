@@ -23,15 +23,15 @@ namespace nissa
     std::string get_str(bool full=false)
     {
       std::ostringstream os;
-      if(full||flag||is_nonstandard())
+      if(full or flag or is_nonstandard())
 	{
 	  os<<"BkgrdEMField\n";
-	  if(full||fabs(E[0])>1e-14) os<<" Ex\t\t=\t"<<E[0]<<"\n";
-	  if(full||fabs(E[1])>1e-14) os<<" Ey\t\t=\t"<<E[1]<<"\n";
-	  if(full||fabs(E[2])>1e-14) os<<" Ez\t\t=\t"<<E[2]<<"\n";
-	  if(full||fabs(B[0])>1e-14) os<<" Bx\t\t=\t"<<B[0]<<"\n";
-	  if(full||fabs(B[1])>1e-14) os<<" By\t\t=\t"<<B[1]<<"\n";
-	  if(full||fabs(B[2])>1e-14) os<<" Bz\t\t=\t"<<B[2]<<"\n";
+	  if(full or fabs(E[0])>1e-14) os<<" Ex\t\t=\t"<<E[0]<<"\n";
+	  if(full or fabs(E[1])>1e-14) os<<" Ey\t\t=\t"<<E[1]<<"\n";
+	  if(full or fabs(E[2])>1e-14) os<<" Ez\t\t=\t"<<E[2]<<"\n";
+	  if(full or fabs(B[0])>1e-14) os<<" Bx\t\t=\t"<<B[0]<<"\n";
+	  if(full or fabs(B[1])>1e-14) os<<" By\t\t=\t"<<B[1]<<"\n";
+	  if(full or fabs(B[2])>1e-14) os<<" Bz\t\t=\t"<<B[2]<<"\n";
 	}
       
       return os.str();
@@ -39,26 +39,31 @@ namespace nissa
     
     int is_nonstandard()
     {
-      return flag||
-	(fabs(E[0])>1e-14)||(fabs(E[1])>1e-14)||(fabs(E[2])>1e-14)||
-	(fabs(B[0])>1e-14)||(fabs(B[1])>1e-14)||(fabs(B[2])>1e-14);
+      return flag or 
+	(fabs(E[0])>1e-14) or (fabs(E[1])>1e-14) or (fabs(E[2])>1e-14) or 
+	(fabs(B[0])>1e-14) or (fabs(B[1])>1e-14) or (fabs(B[2])>1e-14);
     }
     
     em_field_pars_t() : flag(0) {for(int i=0;i<3;i++) E[i]=B[i]=0;}
   };
   
   void add_or_rem_backfield_with_or_without_stagphases_to_conf(quad_su3 **conf,bool add_rem,quad_u1 **u1,bool include_stagphases);
+  void add_or_rem_backfield_with_or_without_stagphases_to_conf(quad_su3 *conf,bool add_rem,quad_u1 **u1,bool include_stagphases);
   
   //include or remove with stagphases
-  inline void add_backfield_with_stagphases_to_conf(quad_su3 **conf,quad_u1 **u1)
+  template <class T3,class T1>
+  void add_backfield_with_stagphases_to_conf(T3 **conf,T1 **u1)
   {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,0,u1,true);}
-  inline void rem_backfield_with_stagphases_from_conf(quad_su3 **conf,quad_u1 **u1)
+  template <class T3,class T1>
+  void rem_backfield_with_stagphases_from_conf(T3 **conf,T1 **u1)
   {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,true);}
   
   //include or remove without stagphases
-  inline void add_backfield_without_stagphases_to_conf(quad_su3 **conf,quad_u1 **u1)
+  template <class T3,class T1>
+  void add_backfield_without_stagphases_to_conf(T3 **conf,T1 **u1)
   {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,0,u1,false);}
-  inline void rem_backfield_without_stagphases_from_conf(quad_su3 **conf,quad_u1 **u1)
+  template <class T3,class T1>
+  void rem_backfield_without_stagphases_from_conf(T3 **conf,T1 **u1)
   {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,false);}
   
   void init_backfield_to_id(quad_u1 **S);

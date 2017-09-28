@@ -27,8 +27,8 @@ namespace nissa
   
   namespace
   {
-    int ncopies,nhits,nmeas,nops;
-    int ind_copy_meas_hit(int icopy,int ihit,int imeas){return imeas+nmeas*(ihit+nhits*icopy);}
+    int ncopies,nflavs,nhits,nmeas,nops;
+    int ind_copy_flav_meas_hit(int icopy,int iflav,int ihit,int imeas){return imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy));}
     int ind_op_flav(int iop,int iflav){return iop+nops*iflav;}
   }
   
@@ -73,7 +73,7 @@ namespace nissa
     int meas_each=sp.meas_each_nsmooth;
     
     //take number of flavors and operators
-    int nflavs=tp->nflavs();
+    nflavs=tp->nflavs();
     nops=mp->nops();
     
     //open the file
@@ -119,17 +119,21 @@ namespace nissa
     ncopies=mp->ncopies;
     nmeas=mp->smooth_pars.nmeas_nonzero()+1;
     nhits=mp->nhits;
-    color *source[nmeas*nhits*ncopies];
-    for(int is=0;is<nmeas*nhits*ncopies;is++) source[is]=nissa_malloc("source",loc_vol+bord_vol,color);
+    int ntot_sources=ind_copy_flav_meas_hit(ncopies-1,nflavs-1,nhits-1,nmeas-1)+1;
+    color *source[ntot_sources];
+    for(int is=0;is<ntot_sources;is++) source[is]=nissa_malloc("source",loc_vol+bord_vol,color);
     
     //fill all the sources, putting for all measures the same hit
     for(int icopy=0;icopy<ncopies;icopy++)
-    for(int ihit=0;ihit<nhits;ihit++)
-      {
-	color *source0=source[ind_copy_meas_hit(icopy,ihit,0 /*imeas*/)];
-	generate_fully_undiluted_lx_source(source0,RND_Z4,-1);
-	for(int imeas=1;imeas<nmeas;imeas++) vector_copy(source[ind_copy_meas_hit(icopy,ihit,imeas)],source0);
-      }
+      for(int iflav=0;iflav<nflavs;iflav++)
+	for(int ihit=0;ihit<nhits;ihit++)
+	  for(int imeas=0;imeas<nmeas;imeas++)
+	    {
+	      color *s =source[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)];
+	      color *s0=source[ind_copy_flav_meas_hit(icopy,0/*flav*/,ihit,0 /*imeas*/)];	      
+	      if(iflav==0 and imeas==0) generate_fully_undiluted_lx_source(s0,RND_Z4,-1);
+	      else vector_copy(s,s0);
+	    }
     
     //the reecursive flower, need to cache backward integration
     recursive_Wflower_t recu(Wf,smoothed_conf);
@@ -171,9 +175,14 @@ namespace nissa
 	//have to flow back all sources for which iflow is smaller than meas_each*imeas
 	int imeas_min=iflow/meas_each+1;
 	for(int icopy=0;icopy<ncopies;icopy++)
-	  for(int imeas=imeas_min;imeas<nmeas;imeas++)
-	    for(int ihit=0;ihit<nhits;ihit++)
-	      adj_ferm_flower.flow_fermion(source[ind_copy_meas_hit(icopy,ihit,imeas)]);
+	  for(int iflav=0;iflav<nflavs;iflav++)
+	    {
+	      adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
+	      for(int imeas=imeas_min;imeas<nmeas;imeas++)
+		for(int ihit=0;ihit<nhits;ihit++)
+		  adj_ferm_flower.flow_fermion(source[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)]);
+	      adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
+	    }
       }
     
     //measure all
@@ -200,17 +209,15 @@ namespace nissa
 	  
 	  //evaluate the tensorial density for all quarks
 	  for(int ihit=0;ihit<nhits;ihit++)
-	    {
-	      int iso=ind_copy_meas_hit(icopy,ihit,imeas);
-	      split_lx_vector_into_eo_parts(eta,source[iso]);
-	      for(int iflav=0;iflav<nflavs;iflav++)
-		{
-		  mult_Minv(chi,ferm_conf,tp,iflav,mp->residue,eta);
-		  
-		  for(int iop=0;iop<nops;iop++)
-		    summ_tens_dens(tens_dens[ind_op_flav(iop,iflav)],chiop,temp,ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],chi,eta);
-		}
-	    }
+	    for(int iflav=0;iflav<nflavs;iflav++)
+	      {
+		int iso=ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas);
+		split_lx_vector_into_eo_parts(eta,source[iso]);
+		mult_Minv(chi,ferm_conf,tp,iflav,mp->residue,eta);
+		
+		for(int iop=0;iop<nops;iop++)
+		  summ_tens_dens(tens_dens[ind_op_flav(iop,iflav)],chiop,temp,ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],chi,eta);
+	      }
 	  
 	  //print
 	  for(int iop=0;iop<nops;iop++)
@@ -219,7 +226,7 @@ namespace nissa
 		int iop_flav=ind_op_flav(iop,iflav);
 		
 		//final normalization and collapse
-		double_vector_prod_double((double*)(tens_dens[iop_flav]),(double*)(tens_dens[iop_flav]),1.0/nhits,loc_vol*2);
+		double_vector_prodassign_double((double*)(tens_dens[iop_flav]),1.0/(glb_vol*nhits),loc_vol*2);
 		complex_vector_glb_collapse(tens[iop_flav],tens_dens[iop_flav],loc_vol);
 		//compute correlation with topocharge
 		compute_tens_dens_topo_correlation(spinpol_dens[iop_flav],tens_dens[iop_flav],topo_dens);
@@ -248,7 +255,7 @@ namespace nissa
 	nissa_free(ferm_conf[eo]);
       }
     nissa_free(smoothed_conf);
-    for(int is=0;is<nmeas*nhits;is++) nissa_free(source[is]);
+    for(int is=0;is<ntot_sources;is++) nissa_free(source[is]);
     
     //close
     close_file(fout);

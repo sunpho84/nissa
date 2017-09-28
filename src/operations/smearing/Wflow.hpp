@@ -5,6 +5,7 @@
 
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "hmc/backfield.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "operations/stag/Laplace_op_2links.hpp"
@@ -88,6 +89,10 @@ namespace nissa
       
       nd=loc_vol*sizeof(color)/sizeof(double);
     }
+    
+    //add or remove backfield
+    void add_or_rem_backfield_to_confs(bool add_rem,quad_u1 **u1)
+    {for(int i=0;i<3;i++) add_or_rem_backfield_with_or_without_stagphases_to_conf(conf[i],add_rem,u1,false);}
     
     //setup from a given conf - nb: the conf is always evolved forward
     void generate_intermediate_steps(quad_su3 *ori_conf)

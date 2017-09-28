@@ -174,8 +174,7 @@ namespace nissa
   //multiply the configuration for an additional U(1) field and possibly stagphases
   THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3**,conf, bool,add_rem, quad_u1**,u1, bool,include_stagphases)
   {
-    // verbosity_lv2_
-    master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(include_stagphases)?"with":"without");
+    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(include_stagphases)?"with":"without");
     
     GET_THREAD_ID();
     for(int par=0;par<2;par++)
@@ -201,6 +200,39 @@ namespace nissa
 	  }
 	set_borders_invalid(conf[par]);
       }
+  }
+  THREADABLE_FUNCTION_END
+  
+  //multiply the configuration for an additional U(1) field and possibly stagphases
+  THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3*,conf, bool,add_rem, quad_u1**,u1, bool,include_stagphases)
+  {
+    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(include_stagphases)?"with":"without");
+    
+    GET_THREAD_ID();
+    for(int par=0;par<2;par++)
+      {
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  {
+	    int ilx=loclx_of_loceo[par][ieo];
+	    coords ph;
+	    if(not include_stagphases) get_stagphase_of_lx(ph,ilx);
+	    
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		//switch add/rem
+		complex f;
+		if(add_rem==0) complex_copy(f,u1[par][ieo][mu]);
+		else           complex_conj(f,u1[par][ieo][mu]);
+		
+		//switch phase
+		if(not include_stagphases) complex_prodassign_double(f,ph[mu]);
+		
+		//put the coeff
+		safe_su3_prod_complex(conf[ilx][mu],conf[ilx][mu],f);
+	      }
+	  }
+      }
+    set_borders_invalid(conf);
   }
   THREADABLE_FUNCTION_END
   
