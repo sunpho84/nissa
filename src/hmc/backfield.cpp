@@ -141,21 +141,21 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //add staggered phases (or remove them!)
-  THREADABLE_FUNCTION_1ARG(add_stagphases_to_backfield, quad_u1**,S)
-  {
-    GET_THREAD_ID();
-    for(int par=0;par<2;par++)
-      {
-       NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
-         {
-           coords ph;
-           get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol_eo]);
-           for(int mu=0;mu<NDIM;mu++) complex_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
-         }
-       set_borders_invalid(S);
-      }
-  }
-  THREADABLE_FUNCTION_END
+  // THREADABLE_FUNCTION_1ARG(add_stagphases_to_backfield, quad_u1**,S)
+  // {
+  //   GET_THREAD_ID();
+  //   for(int par=0;par<2;par++)
+  //     {
+  //      NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
+  //        {
+  //          coords ph;
+  //          get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol_eo]);
+  //          for(int mu=0;mu<NDIM;mu++) complex_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
+  //        }
+  //      set_borders_invalid(S);
+  //     }
+  // }
+  // THREADABLE_FUNCTION_END
   
   //add the antiperiodic condition on the on dir mu
   THREADABLE_FUNCTION_2ARG(add_antiperiodic_condition_to_backfield, quad_u1**,S, int,mu)
@@ -172,9 +172,9 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //multiply the configuration for an additional U(1) field and possibly stagphases
-  THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3**,conf, bool,add_rem, quad_u1**,u1, bool,include_stagphases)
+  THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3**,conf, bool,add_rem, quad_u1**,u1, bool,with_without)
   {
-    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(include_stagphases)?"with":"without");
+    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
     
     GET_THREAD_ID();
     for(int par=0;par<2;par++)
@@ -182,7 +182,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	  {
 	    coords ph;
-	    if(not include_stagphases) get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
+	    if(with_without==0) get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
@@ -192,7 +192,7 @@ namespace nissa
 		else           complex_conj(f,u1[par][ivol][mu]);
 		
 		//switch phase
-		if(not include_stagphases) complex_prodassign_double(f,ph[mu]);
+		if(with_without==0) complex_prodassign_double(f,ph[mu]);
 		
 		//put the coeff
 		safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],f);
@@ -204,9 +204,9 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //multiply the configuration for an additional U(1) field and possibly stagphases
-  THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3*,conf, bool,add_rem, quad_u1**,u1, bool,include_stagphases)
+  THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3*,conf, bool,add_rem, quad_u1**,u1, bool,with_without)
   {
-    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(include_stagphases)?"with":"without");
+    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
     
     GET_THREAD_ID();
     for(int par=0;par<2;par++)
@@ -215,7 +215,7 @@ namespace nissa
 	  {
 	    int ilx=loclx_of_loceo[par][ieo];
 	    coords ph;
-	    if(not include_stagphases) get_stagphase_of_lx(ph,ilx);
+	    if(with_without==0) get_stagphase_of_lx(ph,ilx);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
@@ -225,7 +225,7 @@ namespace nissa
 		else           complex_conj(f,u1[par][ieo][mu]);
 		
 		//switch phase
-		if(not include_stagphases) complex_prodassign_double(f,ph[mu]);
+		if(with_without==0) complex_prodassign_double(f,ph[mu]);
 		
 		//put the coeff
 		safe_su3_prod_complex(conf[ilx][mu],conf[ilx][mu],f);
@@ -256,7 +256,7 @@ namespace nissa
 	init_backfield_to_id(backfield[iflav]);
 	add_im_pot_to_backfield(backfield[iflav],&(quarks[iflav]));
 	add_em_field_to_backfield(backfield[iflav],&(quarks[iflav]),&(em_field_pars));
-	if(quarks[iflav].discretiz==ferm_discretiz::ROOT_STAG) add_stagphases_to_backfield(backfield[iflav]);
+	// if(quarks[iflav].discretiz==ferm_discretiz::ROOT_STAG) add_stagphases_to_backfield(backfield[iflav]);
 	add_antiperiodic_condition_to_backfield(backfield[iflav],0);
       }
   }

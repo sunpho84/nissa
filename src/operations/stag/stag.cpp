@@ -120,7 +120,7 @@ namespace nissa
       
       if(list_dir.size())
 	{
-	  add_backfield_without_stagphases_to_conf(conf,u1b);
+	  add_backfield_with_stagphases_to_conf(conf,u1b);
 	  
 	  //summ all perms
 	  int nperm=0;
@@ -142,7 +142,7 @@ namespace nissa
 	  //final normalization
 	  for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(out[eo]),(double*)(out[eo]),1.0/nperm,loc_volh*sizeof(color)/sizeof(double));
 	  
-	  rem_backfield_without_stagphases_from_conf(conf,u1b);
+	  rem_backfield_with_stagphases_from_conf(conf,u1b);
 	}
       else for(int eo=0;eo<2;eo++) vector_copy(out[eo],in[eo]);
     }

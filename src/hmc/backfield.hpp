@@ -39,32 +39,32 @@ namespace nissa
     
     int is_nonstandard()
     {
-      return flag or 
-	(fabs(E[0])>1e-14) or (fabs(E[1])>1e-14) or (fabs(E[2])>1e-14) or 
+      return flag or
+	(fabs(E[0])>1e-14) or (fabs(E[1])>1e-14) or (fabs(E[2])>1e-14) or
 	(fabs(B[0])>1e-14) or (fabs(B[1])>1e-14) or (fabs(B[2])>1e-14);
     }
     
     em_field_pars_t() : flag(0) {for(int i=0;i<3;i++) E[i]=B[i]=0;}
   };
   
-  void add_or_rem_backfield_with_or_without_stagphases_to_conf(quad_su3 **conf,bool add_rem,quad_u1 **u1,bool include_stagphases);
-  void add_or_rem_backfield_with_or_without_stagphases_to_conf(quad_su3 *conf,bool add_rem,quad_u1 **u1,bool include_stagphases);
+  void add_or_rem_backfield_with_or_without_stagphases_to_conf(quad_su3 **conf,bool add_rem,quad_u1 **u1,bool with_without);
+  void add_or_rem_backfield_with_or_without_stagphases_to_conf(quad_su3 *conf,bool add_rem,quad_u1 **u1,bool with_without);
   
   //include or remove with stagphases
   template <class T3,class T1>
-  void add_backfield_with_stagphases_to_conf(T3 **conf,T1 **u1)
-  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,0,u1,true);}
+  void add_backfield_with_stagphases_to_conf(T3 conf,T1 u1)
+  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,0,u1,0);}
   template <class T3,class T1>
-  void rem_backfield_with_stagphases_from_conf(T3 **conf,T1 **u1)
-  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,true);}
+  void rem_backfield_with_stagphases_from_conf(T3 conf,T1 u1)
+  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,0);}
   
   //include or remove without stagphases
   template <class T3,class T1>
-  void add_backfield_without_stagphases_to_conf(T3 **conf,T1 **u1)
-  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,0,u1,false);}
+  void add_backfield_without_stagphases_to_conf(T3 conf,T1 u1)
+  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,0,u1,1);}
   template <class T3,class T1>
-  void rem_backfield_without_stagphases_from_conf(T3 **conf,T1 **u1)
-  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,false);}
+  void rem_backfield_without_stagphases_from_conf(T3 conf,T1 u1)
+  {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,1);}
   
   void init_backfield_to_id(quad_u1 **S);
   void add_im_pot_to_backfield(quad_u1 **S,quark_content_t *quark_content);
