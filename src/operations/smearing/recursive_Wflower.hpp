@@ -60,6 +60,7 @@ namespace nissa
 	  // verbosity_lv3_
 	    master_printf("unit %d: %d\n",il,levs[il].units);
 	}
+      if(levs.back().units!=1) crash("units of the lowest level has to be 1, instead it is %d",levs.back().units);
       
       bind_conf(ori_conf);
     }
