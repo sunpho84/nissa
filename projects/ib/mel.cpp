@@ -139,8 +139,9 @@ int seed,noise_type;
 
 int nqmass,nr,nsources;
 double *qmass,*qkappa,*residue;
-PROP_TYPE **Q;
-
+namespace{
+  PROP_TYPE **Q;
+}
 spincolor *temp_source;
 spincolor *temp_solution;
 
@@ -368,7 +369,7 @@ void init_simulation(char *path)
   
   //allocate temporary vectors
   temp_source=nissa_malloc("temp_source",loc_vol,spincolor);
-  temp_solution=nissa_malloc("temp_solution",loc_vol,spincolor);
+  temp_solution=nissa_malloc("temp_solution",loc_vol+bord_vol,spincolor);
   hadr_corr_length=glb_size[0]*nhadr_contr*ncombo_hadr_corr*nqmass*nqmass*nr;
   hadr_corr=nissa_malloc("hadr_corr",hadr_corr_length,complex);
   glb_corr=nissa_malloc("glb_corr",glb_size[0]*nhadr_contr,complex);
