@@ -27,11 +27,11 @@ __top_builddir__bin_ib_SOURCES=ib.cpp $(common_sources)
 __top_builddir__bin_ib_LDADD=$(LDADD)
 __top_builddir__bin_ib_LDFLAGS=$(LDFLAGS)
 
-__top_builddir__bin_mel_SOURCES=mel.cpp $(common_sources)
+__top_builddir__bin_mel_SOURCES=mel.cpp
 __top_builddir__bin_mel_LDADD=$(LDADD)
 __top_builddir__bin_mel_LDFLAGS=$(LDFLAGS)
 
-__top_builddir__bin_mel_point_source_SOURCES=mel.cpp $(common_sources)
+__top_builddir__bin_mel_point_source_SOURCES=mel.cpp
 __top_builddir__bin_mel_point_source_LDADD=$(LDADD)
 __top_builddir__bin_mel_point_source_CXXFLAGS="-DPOINT_SOURCE_VERSION"
 __top_builddir__bin_mel_point_source_LDFLAGS=$(LDFLAGS)
