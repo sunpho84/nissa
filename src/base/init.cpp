@@ -102,6 +102,7 @@ namespace nissa
     get_MPI_rank();
     
     //associate signals
+    signal(SIGBUS,signal_handler);
     signal(SIGSEGV,signal_handler);
     signal(SIGFPE,signal_handler);
     signal(SIGXCPU,signal_handler);
