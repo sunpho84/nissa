@@ -154,7 +154,7 @@ namespace nissa
     //compute action before
     double act_ori;
     stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
-    rootst_eoimpr_quark_action(&act_ori,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,simul_pars);
+    compute_quark_action(&act_ori,sme_conf,theory_pars->backfield,pf,theory_pars->quarks,simul_pars,rat_appr);
     
     //store derivative
     su3 nu_plus,nu_minus;
@@ -174,13 +174,13 @@ namespace nissa
 	unsafe_su3_dag_prod_su3(conf[par][ieo][mu],exp_mod,sto);
 	double act_minus;
 	stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
-	rootst_eoimpr_quark_action(&act_minus,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,simul_pars);
+	compute_quark_action(&act_minus,sme_conf,theory_pars->backfield,pf,theory_pars->quarks,simul_pars,rat_appr);
 	
 	//change +, compute action
 	unsafe_su3_prod_su3(conf[par][ieo][mu],exp_mod,sto);
 	double act_plus;
 	stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
-	rootst_eoimpr_quark_action(&act_plus,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,simul_pars);
+	compute_quark_action(&act_plus,sme_conf,theory_pars->backfield,pf,theory_pars->quarks,simul_pars,rat_appr);
 	
 	//set back everything
 	su3_copy(conf[par][ieo][mu],sto);

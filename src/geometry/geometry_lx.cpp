@@ -613,7 +613,7 @@ namespace nissa
   
   //check that passed argument is between 0 and 15
   inline void crash_if_not_hypercubic_red(int hyp_red)
-  {if(hyp_red<0||hyp_red>=16) crash("%d not a hyperucbic reduced point",hyp_red);}
+  {if(hyp_red<0 or hyp_red>=16) crash("%d not a hyperucbic reduced point",hyp_red);}
   
   //return the coordinates inside the hypercube
   void red_coords_of_hypercubic_red_point(coords h,int hyp_red)
