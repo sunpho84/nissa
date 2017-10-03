@@ -65,6 +65,10 @@ namespace nissa
 		unsafe_complex_conj2_prod(temp1,v_o[iterm][loceo_neighup[EVN][ieo][mu]][ic1],chi_e[iterm][ieo][ic2]);
 		unsafe_complex_prod(temp2,temp1,u1b[EVN][ieo][mu]);
 		complex_summ_the_prod_double(F[EVN][ieo][mu][ic1][ic2],temp2,appr->weights[iterm]*get_stagphase_of_lx(loclx_of_loceo[EVN][ieo],mu));
+
+		coords ph;
+		get_stagphase_of_lx(ph,loclx_of_loceo[EVN][ieo]);
+		if(ph[mu]!=get_stagphase_of_lx(loclx_of_loceo[EVN][ieo],mu)) crash("");
 		
 		//this is for ieo=ODD
 		unsafe_complex_conj2_prod(temp1,chi_e[iterm][loceo_neighup[ODD][ieo][mu]][ic1],v_o[iterm][ieo][ic2]);
