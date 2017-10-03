@@ -606,7 +606,7 @@ namespace nissa
   int get_stagphase_of_lx(int ivol,int mu)
   {
     int ph=1;
-    for(int nu=1;nu<mu;nu++)
+    for(int nu=1;nu<=mu;nu++)
       ph*=(1-2*(glb_coord_of_loclx[ivol][nu-1]%2));
     return ph;
   }
