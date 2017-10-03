@@ -232,9 +232,16 @@ namespace nissa
 		compute_tens_dens_topo_correlation(spinpol_dens[iop_flav],tens_dens[iop_flav],topo_dens);
 		complex_vector_glb_collapse(spinpol[iop_flav],spinpol_dens[iop_flav],loc_vol);
 		
-		fprintf(fout, "%d\t%d\t%d\t%d\t%d\t%d,%d\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\t%+16.16lg\n",
-			iconf,icopy,imeas*meas_each,iconf,iflav,mp->operators[iop].first,mp->operators[iop].second,plaq,tot_charge,tot_charge2,
-			spinpol[iop_flav][RE],spinpol[iop_flav][IM],tens[iop_flav][RE],tens[iop_flav][IM]);
+		master_fprintf(fout,"%d\t",iconf);
+		master_fprintf(fout,"%d\t",icopy);
+		master_fprintf(fout,"%d\t",imeas*meas_each);
+		master_fprintf(fout,"%d\t",iflav);
+		master_fprintf(fout,"%d,%d\t",mp->operators[iop].first,mp->operators[iop].second);
+		master_fprintf(fout,"%+16.16lg\t",plaq);
+		master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tot_charge,tot_charge2);
+		master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",spinpol[iop_flav][RE],spinpol[iop_flav][IM]);
+		master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tens[iop_flav][RE],tens[iop_flav][IM]);
+		master_fprintf(fout,"\n");
 	      }
 	}
     
