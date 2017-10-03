@@ -598,7 +598,17 @@ namespace nissa
   void get_stagphase_of_lx(coords ph,int ivol)
   {
     ph[0]=1;
-    for(int mu=1;mu<NDIM;mu++) ph[mu]=ph[mu-1]*(1-2*(glb_coord_of_loclx[ivol][mu-1]%2));
+    for(int mu=1;mu<NDIM;mu++)
+      ph[mu]=ph[mu-1]*(1-2*(glb_coord_of_loclx[ivol][mu-1]%2));
+  }
+  
+  //return the staggered phases for a given site
+  int get_stagphase_of_lx(int ivol,int mu)
+  {
+    int ph=1;
+    for(int nu=1;nu<mu;nu++)
+      ph*=(1-2*(glb_coord_of_loclx[ivol][nu-1]%2));
+    return ph;
   }
   
   //check that passed argument is between 0 and 15
