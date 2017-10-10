@@ -143,7 +143,9 @@ namespace nissa
     //test
     fermion_flower_t ferm_flower(dt,all_dirs,true);
     generate_fully_undiluted_lx_source(source[0],RND_Z4,-1);
+    generate_fully_undiluted_lx_source(source[2],RND_Z4,-1);
     vector_copy(source[1],source[0]);
+    vector_copy(source[3],source[2]);
     for(int iflow=1;iflow<=nflows;iflow++)
       {
 	//update conf to iflow
@@ -158,7 +160,7 @@ namespace nissa
 	ferm_flower.flow_fermion(source[0]);
 	ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
 	
-	master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
+	// master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
       }
       
     //at each step it goes from iflow+1 to iflow
@@ -174,13 +176,17 @@ namespace nissa
 	
 	//have to flow back all sources for which iflow is smaller than meas_each*imeas
 	adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
-	adj_ferm_flower.flow_fermion(source[0]);
+	adj_ferm_flower.flow_fermion(source[2]);
 	adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
 	
-	master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
+	// master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
       }
     
-    crash("");
+    double s12,s03;
+    double_vector_glb_scalar_prod(&s12,(double*)(source[1]),(double*)(source[2]),loc_vol*sizeof(color)/sizeof(double));
+    double_vector_glb_scalar_prod(&s03,(double*)(source[0]),(double*)(source[3]),loc_vol*sizeof(color)/sizeof(double));
+    
+    crash(" %lg %lg",s12,s03);
     
     // int nevol=0;
     // for(int i=sp.nsmooth();i>=0;i--)
