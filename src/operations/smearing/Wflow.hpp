@@ -75,7 +75,7 @@ namespace nissa
     //storage for staples
     quad_su3 *arg;
     //creator
-    internal_fermion_flower_t(double dt,int *ext_dirs,bool stag)
+    internal_fermion_flower_t(double dt,int *ext_dirs,bool stag) : dt(dt)
     {
       if(not stag) crash("non-staggered case not implemented yet");
       
