@@ -130,15 +130,57 @@ namespace nissa
 	  for(int imeas=0;imeas<nmeas;imeas++)
 	    {
 	      color *s =source[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)];
-	      color *s0=source[ind_copy_flav_meas_hit(icopy,0/*flav*/,ihit,0 /*imeas*/)];	      
+	      color *s0=source[ind_copy_flav_meas_hit(icopy,0/*flav*/,ihit,0 /*imeas*/)];
 	      if(iflav==0 and imeas==0) generate_fully_undiluted_lx_source(s0,RND_Z4,-1);
 	      else vector_copy(s,s0);
 	    }
     
     //the reecursive flower, need to cache backward integration
     recursive_Wflower_t recu(Wf,smoothed_conf);
-    //the afjoint flower needed for fermionic source
+    //the adjoint flower needed for fermionic source
     fermion_adjoint_flower_t adj_ferm_flower(dt,all_dirs,true);
+    
+    //test
+    fermion_flower_t ferm_flower(dt,all_dirs,true);
+    generate_fully_undiluted_lx_source(source[0],RND_Z4,-1);
+    vector_copy(source[1],source[0]);
+    for(int iflow=1;iflow<=nflows;iflow++)
+      {
+	//update conf to iflow
+	double t=dt*iflow;
+	verbosity_lv2_master_printf(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
+	recu.update(iflow-1);
+	
+	//make the flower generate the intermediate step between iflow-1 and iflow
+	ferm_flower.generate_intermediate_steps(smoothed_conf);
+	
+	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
+	ferm_flower.flow_fermion(source[0]);
+	ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
+	
+	master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
+      }
+      
+    //at each step it goes from iflow+1 to iflow
+    for(int iflow=nflows-1;iflow>=0;iflow--)
+      {
+	//update conf to iflow
+	double t=dt*iflow;
+	verbosity_lv2_master_printf(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
+	recu.update(iflow);
+	
+	//make the flower generate the intermediate step between iflow and iflow+1
+	adj_ferm_flower.generate_intermediate_steps(smoothed_conf);
+	
+	//have to flow back all sources for which iflow is smaller than meas_each*imeas
+	adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
+	adj_ferm_flower.flow_fermion(source[0]);
+	adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
+	
+	master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
+      }
+    
+    crash("");
     
     // int nevol=0;
     // for(int i=sp.nsmooth();i>=0;i--)
@@ -246,7 +288,7 @@ namespace nissa
 		  master_fprintf(fout,"\n");
 		}
 	  }
-	}
+      }
     
     //free
     nissa_free(topo_dens);
