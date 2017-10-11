@@ -150,8 +150,8 @@ namespace nissa
       {
 	//update conf to iflow
 	double t=dt*iflow;
-	verbosity_lv2_master_printf(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
 	recu.update(iflow-1);
+	verbosity_lv2_master_printf(" flow forward to %d/%d, t %lg, plaquette: %lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
 	
 	//make the flower generate the intermediate step between iflow-1 and iflow
 	ferm_flower.generate_intermediate_steps(smoothed_conf);
@@ -168,8 +168,8 @@ namespace nissa
       {
 	//update conf to iflow
 	double t=dt*iflow;
-	verbosity_lv2_master_printf(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
 	recu.update(iflow);
+	verbosity_lv2_master_printf(" flow back to %d/%d, t %lg, plaquette: %lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
 	
 	//make the flower generate the intermediate step between iflow and iflow+1
 	adj_ferm_flower.generate_intermediate_steps(smoothed_conf);
