@@ -171,7 +171,7 @@ namespace nissa
     // 	double t=dt*iflow;
     // 	recu.update(iflow);
     // 	//verbosity_lv2_
-    // 	  master_printf(" flow back to %d/%d, t %lg, plaquette: %lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
+    // 	  master_printf(" flow back to %d/%d, t %lg, plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
 	
 	//make the flower generate the intermediate step between iflow and iflow+1
 	adj_ferm_flower.generate_intermediate_steps(smoothed_conf);
