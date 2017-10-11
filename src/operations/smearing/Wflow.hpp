@@ -109,8 +109,8 @@ namespace nissa
 	  Wflow::update_conf(arg,conf[iter+1],dirs);
 	}
       
-      for(int iter=0;iter<2;iter++)
-	master_printf("plaquette %d: %.16lg\n",global_plaquette_lx_conf(conf[iter]));
+      for(int iter=0;iter<3;iter++)
+	master_printf("plaquette %d: %.16lg\n",iter,global_plaquette_lx_conf(conf[iter]));
     }
     
     //destroyer
