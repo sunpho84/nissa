@@ -146,15 +146,15 @@ namespace nissa
     generate_fully_undiluted_lx_source(source[2],RND_Z4,-1);
     vector_copy(source[1],source[0]);
     vector_copy(source[3],source[2]);
-    for(int iflow=1;iflow<=nflows;iflow++)
-      {
-	//update conf to iflow
-	double t=dt*(iflow-1);
-	recu.update(iflow-1);
-	//verbosity_lv2_
-	master_printf(" flow forward to %d/%d, t %lg, plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
+    // for(int iflow=1;iflow<=nflows;iflow++)
+    //   {
+    // 	//update conf to iflow
+    // 	double t=dt*(iflow-1);
+    // 	recu.update(iflow-1);
+    // 	//verbosity_lv2_
+    // 	master_printf(" flow forward to %d/%d, t %lg, plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
 	
-	//make the flower generate the intermediate step between iflow-1 and iflow
+    // 	//make the flower generate the intermediate step between iflow-1 and iflow
 	ferm_flower.generate_intermediate_steps(smoothed_conf);
 	
 	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
@@ -162,33 +162,33 @@ namespace nissa
 	ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
 	
 	// master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
-      }
+      // }
       
     //at each step it goes from iflow+1 to iflow
-    for(int iflow=nflows-1;iflow>=0;iflow--)
-      {
-	//update conf to iflow
-	double t=dt*iflow;
-	recu.update(iflow);
-	//verbosity_lv2_
-	  master_printf(" flow back to %d/%d, t %lg, plaquette: %lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
+    // for(int iflow=nflows-1;iflow>=0;iflow--)
+    //   {
+    // 	//update conf to iflow
+    // 	double t=dt*iflow;
+    // 	recu.update(iflow);
+    // 	//verbosity_lv2_
+    // 	  master_printf(" flow back to %d/%d, t %lg, plaquette: %lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
 	
 	//make the flower generate the intermediate step between iflow and iflow+1
 	adj_ferm_flower.generate_intermediate_steps(smoothed_conf);
 	
 	//have to flow back all sources for which iflow is smaller than meas_each*imeas
-	adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
-	adj_ferm_flower.flow_fermion(source[2]);
-	adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
+      // 	adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
+      // 	adj_ferm_flower.flow_fermion(source[2]);
+      // 	adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
 	
-	// master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
-      }
+      // 	// master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
+      // }
     
     double s12,s03;
     double_vector_glb_scalar_prod(&s12,(double*)(source[1]),(double*)(source[2]),loc_vol*sizeof(color)/sizeof(double));
     double_vector_glb_scalar_prod(&s03,(double*)(source[0]),(double*)(source[3]),loc_vol*sizeof(color)/sizeof(double));
     
-    crash(" %lg %lg",s12,s03);
+    crash(" %.16lg %.16lg",s12,s03);
     
     // int nevol=0;
     // for(int i=sp.nsmooth();i>=0;i--)
