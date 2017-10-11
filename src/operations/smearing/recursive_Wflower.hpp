@@ -175,11 +175,12 @@ namespace nissa
 	  
 	  if(iclosest_Wflow!=il)
 	    {
-	      master_printf("Copying and/or updating from %d\n",iclosest_Wflow);
-	      //copy and extend if needed
+	      master_printf("Copying from %d\n",iclosest_Wflow);
        	      copy_level(il,iclosest_Wflow);
-	      nevol+=update_level(il,lev_ntarg_Wflow,dirs);
-       	    }
+	    }
+	  
+	  //extend if needed
+	  if(levs[il].nWflow!=lev_ntarg_Wflow) nevol+=update_level(il,lev_ntarg_Wflow,dirs);
 	  else master_printf("Level %d alright\n",il);
        	}
       
