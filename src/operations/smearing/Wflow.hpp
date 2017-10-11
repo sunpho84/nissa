@@ -70,7 +70,7 @@ namespace nissa
     //time step
     double dt;
     //the steps
-    quad_su3 *conf[4];
+    quad_su3 *conf[3];
     //dirs to smear
     int dirs[NDIM];
     //storage for staples
@@ -83,7 +83,7 @@ namespace nissa
       //copy dirs
       for(int mu=0;mu<NDIM;mu++) dirs[mu]=ext_dirs[mu];
       //allocate confs
-      for(int iter=0;iter<4;iter++)
+      for(int iter=0;iter<3;iter++)
 	conf[iter]=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
       //alllocate staple
       arg=nissa_malloc("arg",loc_vol,quad_su3);
@@ -93,7 +93,7 @@ namespace nissa
     
     //add or remove backfield
     void add_or_rem_backfield_to_confs(bool add_rem,quad_u1 **u1)
-    {for(int i=0;i<4;i++) add_or_rem_backfield_with_or_without_stagphases_to_conf(conf[i],add_rem,u1,true);}
+    {for(int i=0;i<3;i++) add_or_rem_backfield_with_or_without_stagphases_to_conf(conf[i],add_rem,u1,true);}
     
     //setup from a given conf - nb: the conf is always evolved forward
     void generate_intermediate_steps(quad_su3 *ori_conf)
@@ -102,21 +102,21 @@ namespace nissa
       vector_copy(conf[0],ori_conf);
       
       //first two steps of the gluon R.K
-      for(int iter=0;iter<3;iter++)
+      for(int iter=0;iter<2;iter++)
 	{
 	  vector_copy(conf[iter+1],conf[iter]);
 	  Wflow::update_arg(arg,conf[iter+1],dt,dirs,iter);
 	  Wflow::update_conf(arg,conf[iter+1],dirs);
 	}
       
-      for(int iter=0;iter<4;iter++)
-	master_printf("plaquette %d: %.16lg\n",iter,global_plaquette_lx_conf(conf[iter]));
+      for(int iter=0;iter<3;iter++)
+	master_printf("plaquette %d: %.16lg\n",global_plaquette_lx_conf(conf[iter]));
     }
     
     //destroyer
     ~internal_fermion_flower_t()
     {
-      for(int i=0;i<4;i++)
+      for(int i=0;i<3;i++)
 	nissa_free(conf[i]);
       nissa_free(arg);
     }
@@ -185,16 +185,17 @@ namespace nissa
       color *l3=field,*l0=l3;
       
       //zero step: l2 = d2l3*3/4
-      Laplace_operator_2_links(l2,conf[3],l3);
-      double_vector_prodassign_double((double*)l2,3.0*dt/4,nd);
-      //first step: l1 = l3 + d1l2*8/9
-      Laplace_operator_2_links(l1,conf[2],l2);
-      double_vector_summ_double_vector_prod_double((double*)l1,(double*)l3,(double*)l1,8.0*dt/9,nd);
-      //second step: l0 = l1 + l2 + d0 (l1 - l2*8/9)/4
-      double_vector_summ((double*)l0,(double*)l1,(double*)l2,nd);                               //l0 = l1 + l2
-      double_vector_summassign_double_vector_prod_double((double*)l1,(double*)l2,-8.0*dt/9,nd); //l1 = l1 - l2*8/9
-      Laplace_operator_2_links(l2,conf[1],l1);                                                  //l2 = d0 (l1 - l2*8/9)
-      double_vector_summassign_double_vector_prod_double((double*)l0,(double*)l2,dt/4,nd);      //l0+= d0 (l1 - l2*8/9)/4
+      Laplace_operator_2_links(l2,conf[2],l3);
+      // double_vector_prodassign_double((double*)l2,3.0*dt/4,nd);
+      // //first step: l1 = l3 + d1l2*8/9
+      // Laplace_operator_2_links(l1,conf[1],l2);
+      // double_vector_summ_double_vector_prod_double((double*)l1,(double*)l3,(double*)l1,8.0*dt/9,nd);
+      // //second step: l0 = l1 + l2 + d0 (l1 - l2*8/9)/4
+      // double_vector_summ((double*)l0,(double*)l1,(double*)l2,nd);                               //l0 = l1 + l2
+      // double_vector_summassign_double_vector_prod_double((double*)l1,(double*)l2,-8.0*dt/9,nd); //l1 = l1 - l2*8/9
+      // Laplace_operator_2_links(l2,conf[0],l1);                                                  //l2 = d0 (l1 - l2*8/9)
+      //double_vector_summassign_double_vector_prod_double((double*)l0,(double*)l2,dt/4,nd);      //l0+= d0 (l1 - l2*8/9)/4
+      double_vector_summassign_double_vector_prod_double((double*)l0,(double*)l2,dt,nd);      //l0+= d0 (l1 - l2*8/9)/4
     }
     
     //destroyer
