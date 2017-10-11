@@ -142,10 +142,12 @@ namespace nissa
     
     //test
     fermion_flower_t ferm_flower(dt,all_dirs,true);
-    generate_fully_undiluted_lx_source(source[0],RND_Z4,-1);
-    generate_fully_undiluted_lx_source(source[2],RND_Z4,-1);
-    vector_copy(source[1],source[0]);
-    vector_copy(source[3],source[2]);
+    color *ori_0=source[1];
+    generate_fully_undiluted_lx_source(ori_0,RND_Z4,-1);
+    color *ori_t=source[3];
+    generate_fully_undiluted_lx_source(ori_t,RND_Z4,-1);
+    color *evo_0_to_t=source[0];
+    vector_copy(evo_0_to_t,ori_0);
     // for(int iflow=1;iflow<=nflows;iflow++)
     //   {
     // 	//update conf to iflow
@@ -158,12 +160,14 @@ namespace nissa
 	ferm_flower.generate_intermediate_steps(smoothed_conf);
 	
 	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
-	ferm_flower.flow_fermion(source[0]);
+	ferm_flower.flow_fermion(evo_0_to_t);
 	ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
 	
 	// master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
       // }
       
+    color *evo_t_to_0=source[2];
+    vector_copy(evo_t_to_0,ori_t);
     //at each step it goes from iflow+1 to iflow
     // for(int iflow=nflows-1;iflow>=0;iflow--)
     //   {
@@ -176,19 +180,20 @@ namespace nissa
 	//make the flower generate the intermediate step between iflow and iflow+1
 	adj_ferm_flower.generate_intermediate_steps(smoothed_conf);
 	
-	//have to flow back all sources for which iflow is smaller than meas_each*imeas
-      // 	adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
-      // 	adj_ferm_flower.flow_fermion(source[2]);
-      // 	adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
+      	adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
+      	adj_ferm_flower.flow_fermion(evo_t_to_0);
+      	adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
 	
       // 	// master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
       // }
     
-    double s12,s03;
-    double_vector_glb_scalar_prod(&s12,(double*)(source[1]),(double*)(source[2]),loc_vol*sizeof(color)/sizeof(double));
-    double_vector_glb_scalar_prod(&s03,(double*)(source[0]),(double*)(source[3]),loc_vol*sizeof(color)/sizeof(double));
-    
-    crash(" %.16lg %.16lg",s12,s03);
+	
+	double flown_back;
+	double_vector_glb_scalar_prod(&flown_back,(double*)evo_t_to_0,(double*)ori_0,loc_vol*sizeof(color)/sizeof(double));
+	double flown_forw;
+	double_vector_glb_scalar_prod(&flown_forw,(double*)ori_t,(double*)evo_0_to_t,loc_vol*sizeof(color)/sizeof(double));
+	
+	crash(" back: %.16lg , forw: %.16lg",flown_back,flown_forw);
     
     // int nevol=0;
     // for(int i=sp.nsmooth();i>=0;i--)
