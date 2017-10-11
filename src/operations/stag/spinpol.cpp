@@ -152,7 +152,7 @@ namespace nissa
 	double t=dt*(iflow-1);
 	recu.update(iflow-1);
 	//verbosity_lv2_
-	  master_printf(" flow forward to %d/%d, t %lg, plaquette: %lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
+	master_printf(" flow forward to %d/%d, t %lg, plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
 	
 	//make the flower generate the intermediate step between iflow-1 and iflow
 	ferm_flower.generate_intermediate_steps(smoothed_conf);

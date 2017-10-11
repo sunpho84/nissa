@@ -8,6 +8,7 @@
 #include "hmc/backfield.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 #include "operations/stag/Laplace_op_2links.hpp"
 #include "routines/ios.hpp"
 
@@ -107,6 +108,9 @@ namespace nissa
 	  Wflow::update_arg(arg,conf[iter+1],dt,dirs,iter);
 	  Wflow::update_conf(arg,conf[iter+1],dirs);
 	}
+      
+      for(int iter=0;iter<2;iter++)
+	master_printf("plaquette %d: %.16lg\n",global_plaquette_lx_conf(conf[iter]));
     }
     
     //destroyer
