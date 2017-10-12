@@ -22,7 +22,7 @@
 
 namespace nissa
 {
-  using namespace stag;	//In namespace stag there are all functions of mesons.cpp (L)
+  using namespace stag;
   typedef std::vector<std::pair<int,int> > op_list_t;
   
   namespace
@@ -32,7 +32,6 @@ namespace nissa
     int ind_copy_flav_meas_hit(int icopy,int iflav,int ihit,int imeas){return imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy));}
     int ind_copy_flav_meas_hit_op(int icopy,int iflav,int ihit,int imeas,int iop){return iop+nops*(imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy)));}
     int ind_copy_flav_hit_phieta(int icopy,int iflav,int ihit,int iphieta){return iphieta+nphieta*(ihit+nhits*(iflav+nflavs*icopy));}
-    //int ind_copy_hit(int icopy,int ihit){return ihit+nhits*icopy;}
     int ind_op_flav(int iop,int iflav){return iop+nops*iflav;}
   }
   
@@ -137,9 +136,14 @@ namespace nissa
 		    
 		    for(int iop=0;iop<nops;iop++)
 		      {
+			//temp_eta=eta^\dag
 			split_lx_vector_into_eo_parts(temp_eta,source[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)]);
+			for(int eo=0;eo<2;eo++) complex_vector_self_conj((complex*)(temp_eta[eo]),loc_volh*sizeof(color)/sizeof(complex));
+			//temp_phi=op \eta^\dag
 			apply_op(temp_phi,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],temp_eta);
 			put_stag_phases(temp_phi,mask[iop]);
+			//phi=(op \eta^\dag)^\dag
+			for(int eo=0;eo<2;eo++) complex_vector_self_conj((complex*)(temp_phi[eo]),loc_volh*sizeof(color)/sizeof(complex));
 			paste_eo_parts_into_lx_vector(source_op[ind_copy_flav_meas_hit_op(icopy,iflav,ihit,imeas,iop)],temp_phi);
 		      }
 		  }
@@ -331,7 +335,6 @@ namespace nissa
 	//free
 	for(int is=0;is<ntot_sources;is++) nissa_free(source[is]);
 	for(int is=0;is<ntot_sources_op;is++) nissa_free(source_op[is]);
-	nissa_free(topo_dens);
 	for(int iflav_op=0;iflav_op<nflavs*nops;iflav_op++)
 	  {
 	    nissa_free(spinpol_dens[iflav_op]);
@@ -434,15 +437,15 @@ namespace nissa
 	    
 	    //make the flower generate the intermediate step between iflow-1 and iflow
 	    ferm_flower.generate_intermediate_steps(smoothed_conf);
-	    for(int iflav=0;iflav<nflavs;iflav++)
-	      {
-		ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
-		for(int icopy=0;icopy<ncopies;icopy++)
-		  for(int ihit=0;ihit<nhits;ihit++)
-		    for(int iphieta=0;iphieta<nphieta;iphieta++)
-		      ferm_flower.flow_fermion(fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphieta)]);
-		ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
-	      }
+	    // for(int iflav=0;iflav<nflavs;iflav++)
+	    //   {
+	    // 	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
+	    // 	for(int icopy=0;icopy<ncopies;icopy++)
+	    // 	  for(int ihit=0;ihit<nhits;ihit++)
+	    // 	    for(int iphieta=0;iphieta<nphieta;iphieta++)
+	    // 	      ferm_flower.flow_fermion(fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphieta)]);
+	    // 	ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
+	    //   }
 	    ferm_flower.prepare_for_next_flow(smoothed_conf);
 	  }
 	
@@ -461,6 +464,7 @@ namespace nissa
 	nissa_free(ferm_conf[eo]);
       }
     nissa_free(smoothed_conf);
+    nissa_free(topo_dens);
     
     //close
     close_file(fout);
