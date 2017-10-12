@@ -103,12 +103,11 @@ namespace nissa
       vector_copy(conf[0],ori_conf);
       
       //first two steps of the gluon R.K
-      master_printf("nint_steps: %d\n",nint_steps);
-      for(int iter=1;iter<nint_steps;iter++)
+      for(int iter=0;iter<nint_steps-1;iter++)
 	{
-	  vector_copy(conf[iter],conf[iter-1]);
-	  Wflow::update_arg(arg,conf[iter],dt,dirs,iter);
-	  Wflow::update_conf(arg,conf[iter],dirs);
+	  vector_copy(conf[iter+1],conf[iter]);
+	  Wflow::update_arg(arg,conf[iter+1],dt,dirs,iter);
+	  Wflow::update_conf(arg,conf[iter+1],dirs);
 	}
       
       // for(int iter=0;iter<nint_steps;iter++)
@@ -134,7 +133,6 @@ namespace nissa
     //creator
     fermion_flower_t(double dt,int *ext_dirs,bool stag) : internal_fermion_flower_t<nint_steps>(dt,ext_dirs,stag)
     {
-      crash("%d",nint_steps);
       df0=nissa_malloc("df0",loc_vol+bord_vol,color);
       df1=nissa_malloc("df1",loc_vol+bord_vol,color);
       df2=nissa_malloc("df2",loc_vol+bord_vol,color);
