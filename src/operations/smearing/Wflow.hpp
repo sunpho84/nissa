@@ -186,16 +186,15 @@ namespace nissa
       
       //zero step: l2 = d2l3*3/4
       Laplace_operator_2_links(l2,conf[2],l3);
-      // double_vector_prodassign_double((double*)l2,3.0*dt/4,nd);
-      // //first step: l1 = l3 + d1l2*8/9
-      // Laplace_operator_2_links(l1,conf[1],l2);
-      // double_vector_summ_double_vector_prod_double((double*)l1,(double*)l3,(double*)l1,8.0*dt/9,nd);
-      // //second step: l0 = l1 + l2 + d0 (l1 - l2*8/9)/4
-      // double_vector_summ((double*)l0,(double*)l1,(double*)l2,nd);                               //l0 = l1 + l2
-      // double_vector_summassign_double_vector_prod_double((double*)l1,(double*)l2,-8.0*dt/9,nd); //l1 = l1 - l2*8/9
-      // Laplace_operator_2_links(l2,conf[0],l1);                                                  //l2 = d0 (l1 - l2*8/9)
-      //double_vector_summassign_double_vector_prod_double((double*)l0,(double*)l2,dt/4,nd);      //l0+= d0 (l1 - l2*8/9)/4
-      double_vector_summassign_double_vector_prod_double((double*)l0,(double*)l2,dt,nd);      //l0+= d0 (l1 - l2*8/9)/4
+      double_vector_prodassign_double((double*)l2,3.0*dt/4,nd);
+      //first step: l1 = l3 + d1l2*8/9
+      Laplace_operator_2_links(l1,conf[1],l2);
+      double_vector_summ_double_vector_prod_double((double*)l1,(double*)l3,(double*)l1,8.0*dt/9,nd);
+      //second step: l0 = l1 + l2 + d0 (l1 - l2*8/9)/4
+      double_vector_summ((double*)l0,(double*)l1,(double*)l2,nd);                               //l0 = l1 + l2
+      double_vector_summassign_double_vector_prod_double((double*)l1,(double*)l2,-8.0*dt/9,nd); //l1 = l1 - l2*8/9
+      Laplace_operator_2_links(l2,conf[0],l1);                                                  //l2 = d0 (l1 - l2*8/9)
+      double_vector_summassign_double_vector_prod_double((double*)l0,(double*)l2,dt/4,nd);      //l0+= d0 (l1 - l2*8/9)/4
     }
     
     //destroyer
