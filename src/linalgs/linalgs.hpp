@@ -8,6 +8,9 @@
 namespace nissa
 {
   void complex_vector_glb_collapse(double *res,complex *a,int n);
+  void complex_vector_conj(complex *res,complex *in,int n);
+  inline void complex_vector_self_conj(complex *v,int n)
+  {complex_vector_conj(v,v,n);}
   void single_vector_init_to_zero(float *a,int n);
   void single_vector_copy(float *a,float *b,int n);
   void double_conv_quadruple_vector_glb_scalar_prod(double *out,float_128 *a,float_128 *b,int n);

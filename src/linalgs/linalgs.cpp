@@ -213,6 +213,16 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //put a vector of complex equal to its conjugate
+  THREADABLE_FUNCTION_3ARG(complex_vector_conj, complex*,res, complex*,in, int,n)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(i,0,n) complex_conj(res[i],in[i]);
+    set_borders_invalid(res);
+  }
+  THREADABLE_FUNCTION_END
+  
   //put the passed vector to the new norm, returning the reciprocal of normalizating factor
   THREADABLE_FUNCTION_5ARG(double_vector_normalize, double*,ratio, double*,out, double*,in, double,norm, int,n)
   {
