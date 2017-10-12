@@ -226,6 +226,9 @@
 //spinpol
 %type <spinpol_meas> spinpol_meas
 %token TK_MEAS_SPINPOL
+%type <int_numb> use_ferm_conf_for_gluons use_adjoint_flow
+%token TK_USE_FERM_CONF_FOR_GLUONS
+%token TK_USE_ADJOINT_FLOW
 //qed corr
 %type <qed_corr_meas> qed_corr_meas
 %token TK_MEAS_QED_CORRS
@@ -569,8 +572,13 @@ spinpol_meas: TK_MEAS_SPINPOL {$$=new spinpol_meas_pars_t();}
                   | spinpol_meas ncopies {$$->ncopies=$2;}
                   | spinpol_meas nhits {$$->nhits=$2;}
                   | spinpol_meas operators {$$->operators=*$2;delete $2;}
+                  | spinpol_meas use_ferm_conf_for_gluons {$$->use_ferm_conf_for_gluons=$2;}
+                  | spinpol_meas use_adjoint_flow {$$->use_adjoint_flow=$2;}
                   | spinpol_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
 ;
+
+use_ferm_conf_for_gluons: TK_USE_FERM_CONF_FOR_GLUONS '=' int_numb {$$=$3;};
+use_adjoint_flow: TK_USE_ADJOINT_FLOW '=' int_numb {$$=$3;};
 
 ////////////////////////////////////////////////// QED CORR //////////////////////////////////////////////////
 

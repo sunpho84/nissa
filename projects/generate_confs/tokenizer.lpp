@@ -127,7 +127,11 @@ Path DEBUG_PRINTF("Found Path\n");return TK_PATH;
 Operators DEBUG_PRINTF("Found Operators\n");return TK_OPERATORS;
 
  /* rendens pars */
-MaxOrder  DEBUG_PRINTF("Found MaxOrder\n");return TK_MAX_ORDER;
+MaxOrder DEBUG_PRINTF("Found MaxOrder\n");return TK_MAX_ORDER;
+
+ /* spinpol pars */
+UseFermConfForGluons DEBUG_PRINTF("Found UseFermConfForGluons\n");return TK_USE_FERM_CONF_FOR_GLUONS;
+UseAdjointFlow DEBUG_PRINTF("Found AdjointFlow\n");return TK_USE_ADJOINT_FLOW;
 
  /* meta commands */
 \#PrintScannedInput DEBUG_PRINTF("Found #PrintScannedInput\n");return TK_META_PRINT_SCANNED_INPUT;

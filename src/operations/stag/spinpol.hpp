@@ -13,9 +13,11 @@ namespace nissa
     int nops(){return operators.size();}
     
     int use_ferm_conf_for_gluons;
+    int use_adjoint_flow;
     smooth_pars_t smooth_pars;
     
     std::string def_path(){return "pollo";}
+    int def_use_adjoint_flow(){return 1;}
     int def_use_ferm_conf_for_gluons(){return 0;}
     
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
@@ -27,13 +29,15 @@ namespace nissa
 	base_fermionic_meas_t::is_nonstandard() or
 	nops() or
 	use_ferm_conf_for_gluons!=def_use_ferm_conf_for_gluons() or
+	use_adjoint_flow!=def_use_adjoint_flow() or
 	path!=def_path() or
 	smooth_pars.is_nonstandard();
     }
     
     spinpol_meas_pars_t() :
       base_fermionic_meas_t(),
-      use_ferm_conf_for_gluons(def_use_ferm_conf_for_gluons())
+      use_ferm_conf_for_gluons(def_use_ferm_conf_for_gluons()),
+      use_adjoint_flow(def_use_adjoint_flow())
     {path=def_path();}
     
     virtual ~spinpol_meas_pars_t(){}

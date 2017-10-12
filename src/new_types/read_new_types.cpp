@@ -7,6 +7,7 @@
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
 #include "io/input.hpp"
+
 #include "operations/stag/mesons.hpp"
 #include "operations/stag/magnetization.hpp"
 #include "operations/stag/nucleon.hpp"

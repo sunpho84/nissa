@@ -257,6 +257,26 @@ namespace nissa
     }
     THREADABLE_FUNCTION_END
     
+    //compute a density
+    THREADABLE_FUNCTION_10ARG(summ_dens, complex*,dens, color**,quark, color**,temp0, color**,temp1, quad_su3**,conf, quad_u1**,backfield, int,shift, int,mask, color**,chi, color**,eta)
+    {
+      GET_THREAD_ID();
+      
+      apply_op(quark,temp0,temp1,conf,backfield,shift,chi);
+      put_stag_phases(quark,mask);
+      
+      for(int eo=0;eo<2;eo++)
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  {
+	    int ivol=loclx_of_loceo[eo][ieo];
+	    complex prod;
+	    color_scalar_prod(prod,eta[eo][ieo],quark[eo][ieo]);
+	    complex_summassign(dens[ivol],prod);
+	  }
+      THREAD_BARRIER();
+    }
+    THREADABLE_FUNCTION_END
+    
     void insert_external_source_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars)
     {if(aux) complex_copy(out,aux[par][ieo][mu]);else complex_put_to_real(out,1);}
     //insert an external current

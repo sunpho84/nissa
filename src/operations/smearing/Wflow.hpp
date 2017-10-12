@@ -63,6 +63,7 @@ namespace nissa
   /////////////////////////////////////////////////// fermions /////////////////////////////////////////////////////////
   
   //store conf used to perform fermionic flow
+  template <int nint_steps=3>
   struct internal_fermion_flower_t
   {
     int nd;
@@ -70,7 +71,7 @@ namespace nissa
     //time step
     double dt;
     //the steps
-    quad_su3 *conf[3];
+    quad_su3 *conf[nint_steps];
     //dirs to smear
     int dirs[NDIM];
     //storage for staples
@@ -83,7 +84,7 @@ namespace nissa
       //copy dirs
       for(int mu=0;mu<NDIM;mu++) dirs[mu]=ext_dirs[mu];
       //allocate confs
-      for(int iter=0;iter<3;iter++)
+      for(int iter=0;iter<nint_steps;iter++)
 	conf[iter]=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
       //alllocate staple
       arg=nissa_malloc("arg",loc_vol,quad_su3);
@@ -93,7 +94,7 @@ namespace nissa
     
     //add or remove backfield
     void add_or_rem_backfield_to_confs(bool add_rem,quad_u1 **u1)
-    {for(int i=0;i<3;i++) add_or_rem_backfield_with_or_without_stagphases_to_conf(conf[i],add_rem,u1,true);}
+    {for(int i=0;i<nint_steps;i++) add_or_rem_backfield_with_or_without_stagphases_to_conf(conf[i],add_rem,u1,true);}
     
     //setup from a given conf - nb: the conf is always evolved forward
     void generate_intermediate_steps(quad_su3 *ori_conf)
@@ -102,35 +103,38 @@ namespace nissa
       vector_copy(conf[0],ori_conf);
       
       //first two steps of the gluon R.K
-      for(int iter=0;iter<2;iter++)
+      master_printf("nint_steps: %d\n",nint_steps);
+      for(int iter=1;iter<nint_steps;iter++)
 	{
-	  vector_copy(conf[iter+1],conf[iter]);
-	  Wflow::update_arg(arg,conf[iter+1],dt,dirs,iter);
-	  Wflow::update_conf(arg,conf[iter+1],dirs);
+	  vector_copy(conf[iter],conf[iter-1]);
+	  Wflow::update_arg(arg,conf[iter],dt,dirs,iter);
+	  Wflow::update_conf(arg,conf[iter],dirs);
 	}
       
-      for(int iter=0;iter<3;iter++)
-	master_printf("plaquette %d: %.16lg\n",global_plaquette_lx_conf(conf[iter]));
+      // for(int iter=0;iter<nint_steps;iter++)
+      // 	master_printf("plaquette internal steo %d: %.16lg\n",iter,global_plaquette_lx_conf(conf[iter]));
     }
     
     //destroyer
     ~internal_fermion_flower_t()
     {
-      for(int i=0;i<3;i++)
+      for(int i=0;i<nint_steps;i++)
 	nissa_free(conf[i]);
       nissa_free(arg);
     }
   };
   
   //forward fermion flower
-  struct fermion_flower_t : public internal_fermion_flower_t
+  template <int nint_steps=3>
+  struct fermion_flower_t : public internal_fermion_flower_t<nint_steps>
   {
     //aux fields
     color *df0,*df1,*df2,*f1,*f2;
     
     //creator
-    fermion_flower_t(double dt,int *ext_dirs,bool stag) : internal_fermion_flower_t(dt,ext_dirs,stag)
+    fermion_flower_t(double dt,int *ext_dirs,bool stag) : internal_fermion_flower_t<nint_steps>(dt,ext_dirs,stag)
     {
+      crash("%d",nint_steps);
       df0=nissa_malloc("df0",loc_vol+bord_vol,color);
       df1=nissa_malloc("df1",loc_vol+bord_vol,color);
       df2=nissa_malloc("df2",loc_vol+bord_vol,color);
@@ -141,6 +145,10 @@ namespace nissa
     //flow a field
     void flow_fermion(color *field)
     {
+      quad_su3 **conf=this->conf;
+      double &dt=this->dt;
+      int &nd=this->nd;
+      
       color *f0=field;
       
       //zero step: phi1 = phi0 + de0/4
@@ -155,6 +163,13 @@ namespace nissa
       double_vector_summ_double_vector_prod_double((double*)f0,(double*)f1,(double*)df2,3.0*dt/4,nd);
     }
     
+    //make the tail of the flow the head for next step
+    void prepare_for_next_flow(quad_su3 *ext_conf)
+    {
+      if(nint_steps!=4) crash("not flown to last step!");
+      vector_copy(ext_conf,this->conf[3]);
+    }
+    
     //destroyer
     ~fermion_flower_t()
     {
@@ -167,13 +182,14 @@ namespace nissa
   };
   
   //adjoint fermion flower
-  struct fermion_adjoint_flower_t : public internal_fermion_flower_t
+  template <int nint_steps=3>
+  struct fermion_adjoint_flower_t : public internal_fermion_flower_t<nint_steps>
   {
     //aux fields
     color *l1,*l2;
     
     //creator
-    fermion_adjoint_flower_t(double dt,int *ext_dirs,bool stag) : internal_fermion_flower_t(dt,ext_dirs,stag)
+    fermion_adjoint_flower_t(double dt,int *ext_dirs,bool stag) : internal_fermion_flower_t<nint_steps>(dt,ext_dirs,stag)
     {
       l2=nissa_malloc("l2",loc_vol+bord_vol,color);
       l1=nissa_malloc("l1",loc_vol+bord_vol,color);
@@ -182,6 +198,10 @@ namespace nissa
     //flow a field
     void flow_fermion(color *field)
     {
+      quad_su3 **conf=this->conf;
+      double &dt=this->dt;
+      int &nd=this->nd;
+      
       color *l3=field,*l0=l3;
       
       //zero step: l2 = d2l3*3/4

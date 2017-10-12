@@ -1,6 +1,7 @@
 #ifndef _STAG_HPP
 #define _STAG_HPP
 
+#include "base/vectors.hpp"
 #include "hmc/theory_pars.hpp"
 
 namespace nissa
@@ -121,6 +122,12 @@ namespace nissa
     void summ_covariant_shift(color **out,quad_su3 **conf,int mu,color **in,shift_orie_t side);
     void apply_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,quad_u1 **u1b,int shift,color **in);
     void put_stag_phases(color **source,int mask);
+    void summ_dens(complex *dens,color **quark,color **temp0,color **temp1,quad_su3 **conf,quad_u1 **backfield,int shift,int mask,color **chi,color **eta);
+    inline void compute_dens(complex *dens,color **quark,color **temp0,color **temp1,quad_su3 **conf,quad_u1 **backfield,int shift,int mask,color **chi,color **eta)
+    {
+      vector_reset(dens);
+      summ_dens(dens,quark,temp0,temp1,conf,backfield,shift,mask,chi,eta);
+    }
   }
 }
 
