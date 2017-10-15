@@ -257,6 +257,11 @@ namespace nissa
 	      }
 	  }
 	
+	//build fermionic conf from gluonic one
+	for(int eo=0;eo<2;eo++) vector_copy(ferm_conf[eo],glu_conf[eo]);
+	if(tp->stout_pars.nlevels)
+	  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
+	
 	//measure all
 	for(int imeas=0;imeas<nmeas;imeas++)
 	  {
@@ -272,11 +277,6 @@ namespace nissa
 	    double tot_charge;
 	    double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
 	    double tot_charge2=double_vector_glb_norm2(topo_dens,1);
-	    
-	    //build fermionic conf from gluonic one
-	    split_lx_vector_into_eo_parts(ferm_conf,smoothed_conf);
-	    if(tp->stout_pars.nlevels)
-	      stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
 	    
 	    for(int icopy=0;icopy<ncopies;icopy++)
 	      {
@@ -354,7 +354,7 @@ namespace nissa
 	  fields[ifield]=nissa_malloc("field",loc_vol+bord_vol,color);
 	
 	//create the fermionic conf
-	split_lx_vector_into_eo_parts(ferm_conf,smoothed_conf);
+	for(int eo=0;eo<2;eo++) vector_copy(ferm_conf[eo],glu_conf[eo]);
 	if(tp->stout_pars.nlevels)
 	  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
 	
