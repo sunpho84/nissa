@@ -74,8 +74,6 @@ namespace nissa
     for(int itemp=0;itemp<2;itemp++)
       for(int eo=0;eo<2;eo++)
 	temp[itemp][eo]=nissa_malloc("temp",loc_volh+bord_volh,color);
-    color *temp_eta[2]={nissa_malloc("eta_EVN",loc_volh+bord_volh,color),nissa_malloc("eta_ODD",loc_volh+bord_volh,color)};
-    color *temp_phi[2]={nissa_malloc("phi_EVN",loc_volh+bord_volh,color),nissa_malloc("phi_ODD",loc_volh+bord_volh,color)};
     
     //Create the mask
     int mask[nops],shift[nops];
@@ -102,6 +100,8 @@ namespace nissa
     
     if(mp->use_adjoint_flow)
       {
+	color *temp_eta[2]={nissa_malloc("eta_EVN",loc_volh+bord_volh,color),nissa_malloc("eta_ODD",loc_volh+bord_volh,color)};
+	color *temp_phi[2]={nissa_malloc("phi_EVN",loc_volh+bord_volh,color),nissa_malloc("phi_ODD",loc_volh+bord_volh,color)};
 	complex tens[nflavs*nops];
 	//tens density
 	complex *tens_dens[nflavs*nops];
@@ -340,6 +340,11 @@ namespace nissa
 	    nissa_free(spinpol_dens[iflav_op]);
 	    nissa_free(tens_dens[iflav_op]);
 	  }
+	for(int eo=0;eo<2;eo++)
+	  {
+	    nissa_free(temp_eta[eo]);
+	    nissa_free(temp_phi[eo]);
+	  }
       }
     else
       {
@@ -347,11 +352,15 @@ namespace nissa
 	complex *tens_dens=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
 	complex *spinpol_dens=nissa_malloc("spinpol_dens",loc_vol,complex);
 	
-	//allocate and create all fields
+	//Allocate and create all fields, sources and prop*source.
+	//fields must be accessed though the index, the last component
+	//decides wheter the field is a source (when using value
+	//"ieta") or the result
 	int nfields=ind_copy_flav_hit_phieta(ncopies-1,nflavs-1,nhits-1,nphieta-1)+1;
-	color *fields[nfields];
+	color *fields[nfields][2];
 	for(int ifield=0;ifield<nfields;ifield++)
-	  fields[ifield]=nissa_malloc("field",loc_vol+bord_vol,color);
+	  for(int eo=0;eo<2;eo++)
+	    fields[ifield][eo]=nissa_malloc("field",loc_volh+bord_volh,color);
 	
 	//create the fermionic conf
 	for(int eo=0;eo<2;eo++) vector_copy(ferm_conf[eo],glu_conf[eo]);
@@ -361,19 +370,17 @@ namespace nissa
 	for(int icopy=0;icopy<ncopies;icopy++)
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    {
-	      int isource=ind_copy_flav_hit_phieta(icopy,0,ihit, ieta);
-	      generate_fully_undiluted_lx_source(fields[isource],RND_Z4,-1);
+	      int isource=ind_copy_flav_hit_phieta(icopy,0,ihit,ieta);
+	      generate_fully_undiluted_eo_source(fields[isource],RND_Z4,-1);
 	      
 	      for(int iflav=0;iflav<nflavs;iflav++)
 		{
-		  color *eta=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,ieta)];
-		  color *phi=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphi)];
+		  color **eta=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,ieta)];
+		  color **phi=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphi)];
 		  
 		  //if not first flavour, copy the source, and split it
 		  if(iflav!=0) vector_copy(eta,fields[isource]);
-		  split_lx_vector_into_eo_parts(temp_eta,eta);
-		  mult_Minv(temp_phi,ferm_conf,tp,iflav,mp->residue,temp_eta);
-		  paste_eo_parts_into_lx_vector(phi,temp_phi);
+		  mult_Minv(phi,ferm_conf,tp,iflav,mp->residue,eta);
 		}
 	    }
 	
@@ -402,9 +409,9 @@ namespace nissa
 			vector_reset(tens_dens);
 			for(int ihit=0;ihit<nhits;ihit++)
 			  {
-			    split_lx_vector_into_eo_parts(temp_eta,fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,ieta)]);
-			    split_lx_vector_into_eo_parts(temp_phi,fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphi)]);
-			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],temp_phi,temp_eta);
+			    color **eta=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,ieta)];
+			    color **phi=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphi)];
+			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],phi,eta);
 			  }
 			
 			//compute the average tensorial density
@@ -457,8 +464,6 @@ namespace nissa
     for(int eo=0;eo<2;eo++)
       {
 	nissa_free(chiop[eo]);
-	nissa_free(temp_eta[eo]);
-	nissa_free(temp_phi[eo]);
 	for(int itemp=0;itemp<2;itemp++)
 	  nissa_free(temp[itemp][eo]);
 	nissa_free(ferm_conf[eo]);
