@@ -29,10 +29,11 @@ namespace nissa
   {
     const int nphieta=2,iphi=0,ieta=1;
     int ncopies,nflavs,nhits,nmeas,nops;
+    int ind_copy_hit(int icopy,int ihit){return ihit+nhits*icopy;}
     int ind_copy_flav_meas_hit(int icopy,int iflav,int ihit,int imeas){return imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy));}
-    int ind_copy_flav_meas_hit_op(int icopy,int iflav,int ihit,int imeas,int iop){return iop+nops*(imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy)));}
+    //int ind_copy_flav_meas_hit_op(int icopy,int iflav,int ihit,int imeas,int iop){return iop+nops*(imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy)));}
     int ind_copy_flav_hit_phieta(int icopy,int iflav,int ihit,int iphieta){return iphieta+nphieta*(ihit+nhits*(iflav+nflavs*icopy));}
-    int ind_op_flav(int iop,int iflav){return iop+nops*iflav;}
+    //int ind_op_flav(int iop,int iflav){return iop+nops*iflav;}
   }
   
   //make the complex-double product
@@ -46,8 +47,6 @@ namespace nissa
   //compute the spin-polarization for all flavors
   THREADABLE_FUNCTION_5ARG(measure_spinpol, theory_pars_t*,tp, spinpol_meas_pars_t*,mp,int,iconf, int,conf_created, quad_su3**,glu_conf)
   {
-    GET_THREAD_ID();
-    
     verbosity_lv1_master_printf("Evaluating spinpol\n");
     
     //set-up the smoother
@@ -65,6 +64,9 @@ namespace nissa
     //open the file
     FILE *fout=open_file(mp->path,conf_created?"w":"a");
     
+    //allocate tens and spinpol
+    complex *tens_dens=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
+    complex *spinpol_dens=nissa_malloc("spinpol_dens",loc_vol,complex);
     //allocate point and local results
     double *topo_dens=nissa_malloc("topo_dens",loc_vol,double);
     //operator applied to a field
@@ -102,53 +104,22 @@ namespace nissa
       {
 	color *temp_eta[2]={nissa_malloc("eta_EVN",loc_volh+bord_volh,color),nissa_malloc("eta_ODD",loc_volh+bord_volh,color)};
 	color *temp_phi[2]={nissa_malloc("phi_EVN",loc_volh+bord_volh,color),nissa_malloc("phi_ODD",loc_volh+bord_volh,color)};
-	complex tens[nflavs*nops];
-	//tens density
-	complex *tens_dens[nflavs*nops];
-	for(int iflav_op=0;iflav_op<nflavs*nops;iflav_op++) tens_dens[iflav_op]=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
-	//spinpol
-	complex *spinpol_dens[nflavs*nops],spinpol[nflavs*nops];
-	for(int iflav_op=0;iflav_op<nflavs*nops;iflav_op++) spinpol_dens[iflav_op]=nissa_malloc("spinpol_dens",loc_vol,complex);
 	
-	int ntot_sources=ind_copy_flav_meas_hit(ncopies-1,nflavs-1,nhits-1,nmeas-1)+1;
-	color *source[ntot_sources];
-	for(int is=0;is<ntot_sources;is++) source[is]=nissa_malloc("source",loc_vol+bord_vol,color);
-	int ntot_sources_op=ind_copy_flav_meas_hit(ncopies-1,nflavs-1,nhits-1,nmeas-1)+1;
-	color *source_op[ntot_sources_op];
-	for(int is=0;is<ntot_sources_op;is++) source_op[is]=nissa_malloc("source_op",loc_vol+bord_vol,color);
+	int ntot_eta=ind_copy_hit(ncopies-1,nhits-1)+1;
+	int ntot_phi=ind_copy_flav_meas_hit(ncopies-1,nflavs-1,nmeas-1,nhits-1)+1;
+	color *eta[ntot_eta];
+	color *phi[ntot_phi];
+	for(int is=0;is<ntot_eta;is++) eta[is]=nissa_malloc("eta",loc_vol+bord_vol,color);
+	for(int is=0;is<ntot_phi;is++) phi[is]=nissa_malloc("phi",loc_vol+bord_vol,color);
 	
-	//fill all the sources, putting for all measures the same hit
-	for(int imeas=0;imeas<nmeas;imeas++)
-	  {
-	    for(int icopy=0;icopy<ncopies;icopy++)
-	      for(int ihit=0;ihit<nhits;ihit++)
-		for(int iflav=0;iflav<nflavs;iflav++)
-		  {
-		    color *s =source[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)];
-		    color *s0=source[ind_copy_flav_meas_hit(icopy,0/*flav*/,ihit,0 /*imeas*/)];
-		    if(iflav==0 and imeas==0) generate_fully_undiluted_lx_source(s0,RND_Z4,-1);
-		    else vector_copy(s,s0);
-		    
-		    //prepare the fermionic conf
-		    split_lx_vector_into_eo_parts(ferm_conf,smoothed_conf);
-		    if(tp->stout_pars.nlevels)
-		      stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
-		    
-		    for(int iop=0;iop<nops;iop++)
-		      {
-			//temp_eta=eta^\dag
-			split_lx_vector_into_eo_parts(temp_eta,source[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)]);
-			for(int eo=0;eo<2;eo++) complex_vector_self_conj((complex*)(temp_eta[eo]),loc_volh*sizeof(color)/sizeof(complex));
-			//temp_phi=op \eta^\dag
-			apply_op(temp_phi,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],temp_eta);
-			put_stag_phases(temp_phi,mask[iop]);
-			//phi=(op \eta^\dag)^\dag
-			for(int eo=0;eo<2;eo++) complex_vector_self_conj((complex*)(temp_phi[eo]),loc_volh*sizeof(color)/sizeof(complex));
-			paste_eo_parts_into_lx_vector(source_op[ind_copy_flav_meas_hit_op(icopy,iflav,ihit,imeas,iop)],temp_phi);
-		      }
-		  }
-	    for(int iflow=0;iflow<meas_each;iflow++) Wflow_lx_conf(smoothed_conf,dt);
-	  }
+	//fill all the sources
+	for(int icopy=0;icopy<ncopies;icopy++)
+	  for(int ihit=0;ihit<nhits;ihit++)
+	    {
+	      generate_fully_undiluted_lx_source(eta[ind_copy_hit(icopy,ihit)],RND_Z4,-1);
+	      for(int imeas=0;imeas<nmeas;imeas++)
+		vector_copy(phi[ind_copy_flav_meas_hit(icopy,0/*iflav*/,ihit,imeas)],eta[ind_copy_hit(icopy,ihit)]);
+	    }
 	
 	//the reecursive flower, need to cache backward integration
 	paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
@@ -243,18 +214,13 @@ namespace nissa
 	    
 	    //have to flow back all sources for which iflow is smaller than meas_each*imeas
 	    int imeas_min=iflow/meas_each+1;
-	    for(int iflav=0;iflav<nflavs;iflav++)
-	      {
-		adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
-		for(int imeas=imeas_min;imeas<nmeas;imeas++)
-		  for(int icopy=0;icopy<ncopies;icopy++)
-		    for(int ihit=0;ihit<nhits;ihit++)
-		      {
-			adj_ferm_flower.flow_fermion(source[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)]);
-			for(int iop=0;iop<nops;iop++) adj_ferm_flower.flow_fermion(source_op[ind_copy_flav_meas_hit_op(icopy,iflav,ihit,imeas,iop)]);
-		      }
-		adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
-	      }
+	    int iflav=0; //only flav 0
+	    adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
+	    for(int imeas=imeas_min;imeas<nmeas;imeas++)
+	      for(int icopy=0;icopy<ncopies;icopy++)
+		for(int ihit=0;ihit<nhits;ihit++)
+		  adj_ferm_flower.flow_fermion(phi[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)]);
+	    adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
 	  }
 	
 	//build fermionic conf from gluonic one
@@ -262,84 +228,96 @@ namespace nissa
 	if(tp->stout_pars.nlevels)
 	  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
 	
-	//measure all
+	//put the operator
 	for(int imeas=0;imeas<nmeas;imeas++)
+	  for(int icopy=0;icopy<ncopies;icopy++)
+	    for(int ihit=0;ihit<nhits;ihit++)
+	      for(int iflav=0;iflav<nflavs;iflav++)
+		{
+		  split_lx_vector_into_eo_parts(temp_eta,phi[ind_copy_flav_meas_hit(icopy,0/*read always iflav*/,ihit,imeas)]);
+		  mult_Minv(temp_phi,ferm_conf,tp,iflav,mp->residue,temp_eta);
+		  paste_eo_parts_into_lx_vector(phi[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)],temp_phi);
+		}
+      	
+	fermion_flower_t<4> ferm_flower(dt,all_dirs,true);
+	for(int iflow=0;iflow<=nflows;iflow++)
 	  {
-	    int iflow=imeas*meas_each;
-	    master_printf(" imeas: %d, t-back-fluxed: %d\n",imeas,iflow);
-	    recu.update(iflow);
+	    //take current meas index
+	    int imeas=iflow/meas_each;
 	    
-	    //plaquette and local charge
-	    double plaq=global_plaquette_lx_conf(smoothed_conf);
-	    local_topological_charge(topo_dens,smoothed_conf);
-	    
-	    //total topological charge
-	    double tot_charge;
-	    double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
-	    double tot_charge2=double_vector_glb_norm2(topo_dens,1);
-	    
-	    for(int icopy=0;icopy<ncopies;icopy++)
+	    if(imeas*meas_each==iflow)
 	      {
-		//reset the local density of tensorial density
-		for(int iflav=0;iflav<nflavs;iflav++)
-		  for(int iop=0;iop<nops;iop++)
-		    vector_reset(tens_dens[ind_op_flav(iop,iflav)]);
+		//create the fermionic conf
+		split_lx_vector_into_eo_parts(ferm_conf,smoothed_conf);
+		if(tp->stout_pars.nlevels)
+		  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
 		
-		//evaluate the tensorial density for all quarks
-		for(int ihit=0;ihit<nhits;ihit++)
-		  for(int iflav=0;iflav<nflavs;iflav++)
-		    {
-		      int iso=ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas);
-		      split_lx_vector_into_eo_parts(temp_eta,source[iso]);
-		      mult_Minv(temp_phi,ferm_conf,tp,iflav,mp->residue,temp_eta);
-		      
-		      for(int iop=0;iop<nops;iop++)
-			for(int eo=0;eo<2;eo++)
-			  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-			    {
-			      int ivol=loclx_of_loceo[eo][ieo];
-			      complex prod;
-			      color_scalar_prod(prod,source_op[ind_copy_flav_meas_hit_op(icopy,iflav,ihit,imeas,iop)][ivol],temp_phi[eo][ieo]);
-			      complex_summassign(tens_dens[ind_op_flav(iop,iflav)][ivol],prod);
-			    }
-		      THREAD_BARRIER();
-		    }
+		//plaquette and local charge
+		double plaq=global_plaquette_lx_conf(smoothed_conf);
+		local_topological_charge(topo_dens,smoothed_conf);
 		
-		//print
-		for(int iop=0;iop<nops;iop++)
+		//total topological charge
+		double tot_charge;
+		double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
+		double tot_charge2=double_vector_glb_norm2(topo_dens,1);
+		
+		for(int icopy=0;icopy<ncopies;icopy++)
 		  for(int iflav=0;iflav<nflavs;iflav++)
-		    {
-		      int iop_flav=ind_op_flav(iop,iflav);
-		      
-		      //final normalization and collapse
-		      double_vector_prodassign_double((double*)(tens_dens[iop_flav]),1.0/(glb_vol*nhits),loc_vol*2);
-		      complex_vector_glb_collapse(tens[iop_flav],tens_dens[iop_flav],loc_vol);
-		      //compute correlation with topocharge
-		      compute_tens_dens_topo_correlation(spinpol_dens[iop_flav],tens_dens[iop_flav],topo_dens);
-		      complex_vector_glb_collapse(spinpol[iop_flav],spinpol_dens[iop_flav],loc_vol);
-		      
-		      master_fprintf(fout,"%d\t",iconf);
-		      master_fprintf(fout,"%d\t",icopy);
-		      master_fprintf(fout,"%d\t",imeas*meas_each);
-		      master_fprintf(fout,"%d\t",iflav);
-		      master_fprintf(fout,"%d,%d\t",mp->operators[iop].first,mp->operators[iop].second);
-		      master_fprintf(fout,"%+16.16lg\t",plaq);
-		      master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tot_charge,tot_charge2);
-		      master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",spinpol[iop_flav][RE],spinpol[iop_flav][IM]);
-		      master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tens[iop_flav][RE],tens[iop_flav][IM]);
-		      master_fprintf(fout,"\n");
-		    }
+		    for(int iop=0;iop<nops;iop++)
+		      {
+			//compute the local tensorial density
+			vector_reset(tens_dens);
+			for(int ihit=0;ihit<nhits;ihit++)
+			  {
+			    split_lx_vector_into_eo_parts(temp_phi,phi[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)]);
+			    split_lx_vector_into_eo_parts(temp_eta,eta[ind_copy_hit(icopy,ihit)]);
+			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],temp_phi,temp_eta);
+			  }
+			
+			//compute the average tensorial density
+			complex tens;
+			double_vector_prodassign_double((double*)tens_dens,1.0/(glb_vol*nhits),loc_vol*2);
+			complex_vector_glb_collapse(tens,tens_dens,loc_vol);
+			
+			//compute correlation with topocharge
+			complex spinpol;
+			compute_tens_dens_topo_correlation(spinpol_dens,tens_dens,topo_dens);
+			complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
+			
+			master_fprintf(fout,"%d\t",iconf);
+			master_fprintf(fout,"%d\t",icopy);
+			master_fprintf(fout,"%d\t",imeas*meas_each);
+			master_fprintf(fout,"%d\t",iflav);
+			master_fprintf(fout,"%d,%d\t",mp->operators[iop].first,mp->operators[iop].second);
+			master_fprintf(fout,"%+16.16lg\t",plaq);
+			master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tot_charge,tot_charge2);
+			master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",spinpol[RE],spinpol[IM]);
+			master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tens[RE],tens[IM]);
+			master_fprintf(fout,"\n");
+		      }
 	      }
+	    
+	    //update conf to iflow
+	    double t=dt*iflow;
+	    //verbosity_lv2_
+	    master_printf(" flow forward to %d/%d, t %lg, initial plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
+	    
+	    //make the flower generate the intermediate step between iflow-1 and iflow
+	    ferm_flower.generate_intermediate_steps(smoothed_conf);
+	    for(int iflav=0;iflav<nflavs;iflav++)
+	      {
+	    	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
+	    	for(int icopy=0;icopy<ncopies;icopy++)
+	    	  for(int ihit=0;ihit<nhits;ihit++)
+		    ferm_flower.flow_fermion(phi[ind_copy_flav_meas_hit(icopy,iflav,imeas,ihit)]);
+		ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
+	      }
+	    ferm_flower.prepare_for_next_flow(smoothed_conf);
 	  }
 	
 	//free
-	for(int is=0;is<ntot_sources;is++) nissa_free(source[is]);
-	for(int is=0;is<ntot_sources_op;is++) nissa_free(source_op[is]);
-	for(int iflav_op=0;iflav_op<nflavs*nops;iflav_op++)
-	  {
-	    nissa_free(spinpol_dens[iflav_op]);
-	    nissa_free(tens_dens[iflav_op]);
-	  }
+	for(int i=0;i<ntot_phi;i++) nissa_free(phi[i]);
+	for(int i=0;i<ntot_eta;i++) nissa_free(eta[i]);
 	for(int eo=0;eo<2;eo++)
 	  {
 	    nissa_free(temp_eta[eo]);
@@ -348,10 +326,6 @@ namespace nissa
       }
     else
       {
-	//allocate tens and spinpol
-	complex *tens_dens=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
-	complex *spinpol_dens=nissa_malloc("spinpol_dens",loc_vol,complex);
-	
 	//Allocate and create all fields, sources and prop*source.
 	//fields must be accessed though the index, the last component
 	//decides wheter the field is a source (when using value
@@ -367,6 +341,8 @@ namespace nissa
 	if(tp->stout_pars.nlevels)
 	  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
 	
+	color *temp_flow=nissa_malloc("temp_flow",loc_vol,color);
+	
 	for(int icopy=0;icopy<ncopies;icopy++)
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    {
@@ -379,7 +355,9 @@ namespace nissa
 		  color **phi=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphi)];
 		  
 		  //if not first flavour, copy the source, and split it
-		  if(iflav!=0) vector_copy(eta,fields[isource]);
+		  if(iflav!=0)
+		    for(int eo=0;eo<2;eo++)
+		      vector_copy(eta[eo],fields[isource][eo]);
 		  mult_Minv(phi,ferm_conf,tp,iflav,mp->residue,eta);
 		}
 	    }
@@ -392,6 +370,11 @@ namespace nissa
 	    
 	    if(imeas*meas_each==iflow)
 	      {
+		//create the fermionic conf
+		split_lx_vector_into_eo_parts(ferm_conf,smoothed_conf);
+		if(tp->stout_pars.nlevels)
+		  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
+		
 		//plaquette and local charge
 		double plaq=global_plaquette_lx_conf(smoothed_conf);
 		local_topological_charge(topo_dens,smoothed_conf);
@@ -444,21 +427,26 @@ namespace nissa
 	    
 	    //make the flower generate the intermediate step between iflow-1 and iflow
 	    ferm_flower.generate_intermediate_steps(smoothed_conf);
-	    // for(int iflav=0;iflav<nflavs;iflav++)
-	    //   {
-	    // 	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
-	    // 	for(int icopy=0;icopy<ncopies;icopy++)
-	    // 	  for(int ihit=0;ihit<nhits;ihit++)
-	    // 	    for(int iphieta=0;iphieta<nphieta;iphieta++)
-	    // 	      ferm_flower.flow_fermion(fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphieta)]);
-	    // 	ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
-	    //   }
+	    for(int iflav=0;iflav<nflavs;iflav++)
+	      {
+	    	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
+	    	for(int icopy=0;icopy<ncopies;icopy++)
+	    	  for(int ihit=0;ihit<nhits;ihit++)
+	    	    for(int iphieta=0;iphieta<nphieta;iphieta++)
+		      {
+			paste_eo_parts_into_lx_vector(temp_flow,fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphieta)]);
+			ferm_flower.flow_fermion(temp_flow);
+			split_lx_vector_into_eo_parts(fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphieta)],temp_flow);
+		      }
+	    	ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
+	      }
 	    ferm_flower.prepare_for_next_flow(smoothed_conf);
 	  }
 	
-	for(int ifield=0;ifield<nfields;ifield++) nissa_free(fields[ifield]);
-	nissa_free(spinpol_dens);
-	nissa_free(tens_dens);
+	for(int ifield=0;ifield<nfields;ifield++)
+	  for(int eo=0;eo<2;eo++)
+	    nissa_free(fields[ifield][eo]);
+	nissa_free(temp_flow);
       }
     
     for(int eo=0;eo<2;eo++)
@@ -468,6 +456,8 @@ namespace nissa
 	  nissa_free(temp[itemp][eo]);
 	nissa_free(ferm_conf[eo]);
       }
+    nissa_free(spinpol_dens);
+    nissa_free(tens_dens);
     nissa_free(smoothed_conf);
     nissa_free(topo_dens);
     
