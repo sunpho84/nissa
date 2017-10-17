@@ -301,8 +301,8 @@ namespace nissa
 	int64_t size_per_el_b=nissa_b->size_per_el;
 	
 	//check size agreement
-	if(nel_a!=nel_b) crash("while copying, vector %s contains %d and vector %s contains %d",
-			       nissa_a->tag,nel_a,nissa_b->tag,nel_b);
+	if(nel_a!=nel_b) crash("while copying, vector %s allocated at line %d of file %s contains %d and vector %s allocated at line %d of file %s contains %d",
+			       nissa_a->tag,nissa_a->line,nissa_a->file,nel_a,nissa_b->tag,nissa_b->line,nissa_b->file,nel_b);
 	
 	//check type agreement
 	if(size_per_el_a!=size_per_el_b)
