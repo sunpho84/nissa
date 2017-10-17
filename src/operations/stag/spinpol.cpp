@@ -30,8 +30,7 @@ namespace nissa
     const int nPHIETA=2,PHI=0,ETA=1;
     int ncopies,nflavs,nhits,nmeas,nops;
     int ind_copy_hit(int icopy,int ihit){return ihit+nhits*icopy;}
-    int ind_copy_flav_meas_hit(int icopy,int iflav,int ihit,int imeas){return imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy));}
-    //int ind_copy_flav_meas_hit_op(int icopy,int iflav,int ihit,int imeas,int iop){return iop+nops*(imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy)));}
+    int ind_copy_flav_hit_meas(int icopy,int iflav,int ihit,int imeas){return imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy));}
     int ind_copy_flav_hit_phieta(int icopy,int iflav,int ihit,int iPHIETA){return iPHIETA+nPHIETA*(ihit+nhits*(iflav+nflavs*icopy));}
     //int ind_op_flav(int iop,int iflav){return iop+nops*iflav;}
   }
@@ -106,7 +105,7 @@ namespace nissa
 	color *temp_phi[2]={nissa_malloc("phi_EVN",loc_volh+bord_volh,color),nissa_malloc("phi_ODD",loc_volh+bord_volh,color)};
 	
 	int ntot_eta=ind_copy_hit(ncopies-1,nhits-1)+1;
-	int ntot_phi=ind_copy_flav_meas_hit(ncopies-1,nflavs-1,nmeas-1,nhits-1)+1;
+	int ntot_phi=ind_copy_flav_hit_meas(ncopies-1,nflavs-1,nhits-1,nmeas-1)+1;
 	color *eta[ntot_eta];
 	color *phi[ntot_phi];
 	for(int is=0;is<ntot_eta;is++) eta[is]=nissa_malloc("eta",loc_vol+bord_vol,color);
@@ -118,7 +117,7 @@ namespace nissa
 	    {
 	      generate_fully_undiluted_lx_source(eta[ind_copy_hit(icopy,ihit)],RND_Z4,-1);
 	      for(int imeas=0;imeas<nmeas;imeas++)
-		vector_copy(phi[ind_copy_flav_meas_hit(icopy,0/*iflav*/,ihit,imeas)],eta[ind_copy_hit(icopy,ihit)]);
+		vector_copy(phi[ind_copy_flav_hit_meas(icopy,0/*iflav*/,ihit,imeas)],eta[ind_copy_hit(icopy,ihit)]);
 	    }
 	
 	//the reecursive flower, need to cache backward integration
@@ -219,7 +218,7 @@ namespace nissa
 	    for(int imeas=imeas_min;imeas<nmeas;imeas++)
 	      for(int icopy=0;icopy<ncopies;icopy++)
 		for(int ihit=0;ihit<nhits;ihit++)
-		  adj_ferm_flower.flow_fermion(phi[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)]);
+		  adj_ferm_flower.flow_fermion(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
 	    adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
 	  }
 	
@@ -234,9 +233,9 @@ namespace nissa
 	    for(int ihit=0;ihit<nhits;ihit++)
 	      for(int iflav=0;iflav<nflavs;iflav++)
 		{
-		  split_lx_vector_into_eo_parts(temp_eta,phi[ind_copy_flav_meas_hit(icopy,0/*read always iflav*/,ihit,imeas)]);
+		  split_lx_vector_into_eo_parts(temp_eta,phi[ind_copy_flav_hit_meas(icopy,0/*read always iflav*/,ihit,imeas)]);
 		  mult_Minv(temp_phi,ferm_conf,tp,iflav,mp->residue,temp_eta);
-		  paste_eo_parts_into_lx_vector(phi[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)],temp_phi);
+		  paste_eo_parts_into_lx_vector(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)],temp_phi);
 		}
       	
 	fermion_flower_t<4> ferm_flower(dt,all_dirs,true);
@@ -269,7 +268,7 @@ namespace nissa
 			vector_reset(tens_dens);
 			for(int ihit=0;ihit<nhits;ihit++)
 			  {
-			    split_lx_vector_into_eo_parts(temp_phi,phi[ind_copy_flav_meas_hit(icopy,iflav,ihit,imeas)]);
+			    split_lx_vector_into_eo_parts(temp_phi,phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
 			    split_lx_vector_into_eo_parts(temp_eta,eta[ind_copy_hit(icopy,ihit)]);
 			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],temp_phi,temp_eta);
 			  }
@@ -309,7 +308,7 @@ namespace nissa
 	    	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
 	    	for(int icopy=0;icopy<ncopies;icopy++)
 	    	  for(int ihit=0;ihit<nhits;ihit++)
-		    ferm_flower.flow_fermion(phi[ind_copy_flav_meas_hit(icopy,iflav,imeas,ihit)]);
+		    ferm_flower.flow_fermion(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
 		ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
 	      }
 	    ferm_flower.prepare_for_next_flow(smoothed_conf);
