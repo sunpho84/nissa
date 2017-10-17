@@ -27,12 +27,12 @@ namespace nissa
   
   namespace
   {
-    const int nphieta=2,iphi=0,ieta=1;
+    const int nPHIETA=2,PHI=0,ETA=1;
     int ncopies,nflavs,nhits,nmeas,nops;
     int ind_copy_hit(int icopy,int ihit){return ihit+nhits*icopy;}
     int ind_copy_flav_meas_hit(int icopy,int iflav,int ihit,int imeas){return imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy));}
     //int ind_copy_flav_meas_hit_op(int icopy,int iflav,int ihit,int imeas,int iop){return iop+nops*(imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy)));}
-    int ind_copy_flav_hit_phieta(int icopy,int iflav,int ihit,int iphieta){return iphieta+nphieta*(ihit+nhits*(iflav+nflavs*icopy));}
+    int ind_copy_flav_hit_phieta(int icopy,int iflav,int ihit,int iPHIETA){return iPHIETA+nPHIETA*(ihit+nhits*(iflav+nflavs*icopy));}
     //int ind_op_flav(int iop,int iflav){return iop+nops*iflav;}
   }
   
@@ -330,7 +330,7 @@ namespace nissa
 	//fields must be accessed though the index, the last component
 	//decides wheter the field is a source (when using value
 	//"ieta") or the result
-	int nfields=ind_copy_flav_hit_phieta(ncopies-1,nflavs-1,nhits-1,nphieta-1)+1;
+	int nfields=ind_copy_flav_hit_phieta(ncopies-1,nflavs-1,nhits-1,nPHIETA-1)+1;
 	color *fields[nfields][2];
 	for(int ifield=0;ifield<nfields;ifield++)
 	  for(int eo=0;eo<2;eo++)
@@ -346,19 +346,19 @@ namespace nissa
 	for(int icopy=0;icopy<ncopies;icopy++)
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    {
-	      int isource=ind_copy_flav_hit_phieta(icopy,0,ihit,ieta);
+	      int isource=ind_copy_flav_hit_phieta(icopy,0,ihit,ETA);
 	      generate_fully_undiluted_eo_source(fields[isource],RND_Z4,-1);
 	      
 	      for(int iflav=0;iflav<nflavs;iflav++)
 		{
-		  color **eta=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,ieta)];
-		  color **phi=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphi)];
+		  int ieta=ind_copy_flav_hit_phieta(icopy,iflav,ihit,ETA);
+		  int iphi=ind_copy_flav_hit_phieta(icopy,iflav,ihit,PHI);
 		  
 		  //if not first flavour, copy the source, and split it
 		  if(iflav!=0)
 		    for(int eo=0;eo<2;eo++)
-		      vector_copy(eta[eo],fields[isource][eo]);
-		  mult_Minv(phi,ferm_conf,tp,iflav,mp->residue,eta);
+		      vector_copy(fields[ieta][eo],fields[isource][eo]);
+		  mult_Minv(fields[iphi],ferm_conf,tp,iflav,mp->residue,fields[ieta]);
 		}
 	    }
 	
@@ -392,9 +392,9 @@ namespace nissa
 			vector_reset(tens_dens);
 			for(int ihit=0;ihit<nhits;ihit++)
 			  {
-			    color **eta=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,ieta)];
-			    color **phi=fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphi)];
-			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],phi,eta);
+			    int ieta=ind_copy_flav_hit_phieta(icopy,iflav,ihit,ETA);
+			    int iphi=ind_copy_flav_hit_phieta(icopy,iflav,ihit,PHI);
+			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],fields[iphi],fields[ieta]);
 			  }
 			
 			//compute the average tensorial density
@@ -432,11 +432,11 @@ namespace nissa
 	    	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
 	    	for(int icopy=0;icopy<ncopies;icopy++)
 	    	  for(int ihit=0;ihit<nhits;ihit++)
-	    	    for(int iphieta=0;iphieta<nphieta;iphieta++)
+	    	    for(int iPHIETA=0;iPHIETA<nPHIETA;iPHIETA++)
 		      {
-			paste_eo_parts_into_lx_vector(temp_flow,fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphieta)]);
+			paste_eo_parts_into_lx_vector(temp_flow,fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iPHIETA)]);
 			ferm_flower.flow_fermion(temp_flow);
-			split_lx_vector_into_eo_parts(fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iphieta)],temp_flow);
+			split_lx_vector_into_eo_parts(fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iPHIETA)],temp_flow);
 		      }
 	    	ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
 	      }
