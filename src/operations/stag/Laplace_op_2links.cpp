@@ -52,7 +52,7 @@ namespace nissa
   //multiply by the 2-links Laplace operator
   THREADABLE_FUNCTION_3ARG(Laplace_operator_2_links, color*,out, quad_su3*,conf, color*,in)
   {
-    color *temp=nissa_malloc("temp",loc_vol,color);
+    color *temp=nissa_malloc("temp",loc_vol+bord_vol,color);
     int nentries=loc_vol*sizeof(color)/sizeof(double);
     
     vector_reset(out);
