@@ -341,7 +341,7 @@ namespace nissa
 	if(tp->stout_pars.nlevels)
 	  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
 	
-	color *temp_flow=nissa_malloc("temp_flow",loc_vol,color);
+	color *temp_flow=nissa_malloc("temp_flow",loc_vol+bord_vol,color);
 	
 	for(int icopy=0;icopy<ncopies;icopy++)
 	  for(int ihit=0;ihit<nhits;ihit++)
