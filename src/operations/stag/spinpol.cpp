@@ -89,7 +89,7 @@ namespace nissa
       }
     
     //allocate the smoothed conf
-    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
+    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
     //allocate the fermion (possibly stouted) conf
     quad_su3 *ferm_conf[2];
