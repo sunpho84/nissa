@@ -118,7 +118,7 @@ namespace nissa
 	      int ieta=ind_copy_hit(icopy,ihit);
 	      generate_fully_undiluted_lx_source(eta[ieta],RND_Z4,-1);
 	      
-	      //DEBUG
+	      //DEBUG -- before Kadj
 	      GET_THREAD_ID();
 	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		for(int ic=0;ic<NCOL;ic++)
@@ -243,15 +243,19 @@ namespace nissa
 	      for(int iflav=0;iflav<nflavs;iflav++)
 		{
 		  split_lx_vector_into_eo_parts(temp_eta,phi[ind_copy_flav_hit_meas(icopy,0/*read always iflav*/,ihit,imeas)]);
+		  
+		  //DEBUG -- at the end of kadj
+		  GET_THREAD_ID();
+		  for(int eo=0;eo<2;eo++)
+		    {
+		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+			for(int ic=0;ic<NCOL;ic++)
+			  complex_put_to_real(temp_eta[eo][ieo][ic],glblx_of_loclx[loclx_of_loceo[eo][ieo]]==0);
+		      set_borders_invalid(temp_eta[eo]);
+		    }
+		  
 		  mult_Minv(temp_phi,ferm_conf,tp,iflav,mp->residue,temp_eta);
 		  paste_eo_parts_into_lx_vector(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)],temp_phi);
-		  
-		  //DEBUG
-		  GET_THREAD_ID();
-		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-		    for(int ic=0;ic<NCOL;ic++)
-		      complex_put_to_real(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)][ivol][ic],glblx_of_loclx[ivol]==0);
-		  set_borders_invalid(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
 		}
       	
 	fermion_flower_t<4> ferm_flower(dt,all_dirs,true);
@@ -286,6 +290,7 @@ namespace nissa
 			  {
 			    split_lx_vector_into_eo_parts(temp_phi,phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
 			    split_lx_vector_into_eo_parts(temp_eta,eta[ind_copy_hit(icopy,ihit)]);
+			    
 			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],temp_phi,temp_eta);
 			  }
 			
@@ -364,7 +369,7 @@ namespace nissa
 	      int isource=ind_copy_flav_hit_phieta(icopy,0,ihit,ETA);
 	      generate_fully_undiluted_eo_source(fields[isource],RND_Z4,-1);
 	      
-	      //DEBUG
+	      //DEBUG -- at the beginning of K
 	      GET_THREAD_ID();
 	      for(int eo=0;eo<2;eo++)
 		{
@@ -384,16 +389,6 @@ namespace nissa
 		    for(int eo=0;eo<2;eo++)
 		      vector_copy(fields[ieta][eo],fields[isource][eo]);
 		  mult_Minv(fields[iphi],ferm_conf,tp,iflav,mp->residue,fields[ieta]);
-		  
-		  //DEBUG
-		  GET_THREAD_ID();
-		  for(int eo=0;eo<2;eo++)
-		    {
-		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-			for(int ic=0;ic<NCOL;ic++)
-			  complex_put_to_real(fields[iphi][eo][ieo][ic],glblx_of_loclx[loclx_of_loceo[eo][ieo]]==0);
-		      set_borders_invalid(fields[iphi][eo]);
-		    }
 		}
 	    }
 	
@@ -429,7 +424,21 @@ namespace nissa
 			  {
 			    int ieta=ind_copy_flav_hit_phieta(icopy,iflav,ihit,ETA);
 			    int iphi=ind_copy_flav_hit_phieta(icopy,iflav,ihit,PHI);
-			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],fields[iphi],fields[ieta]);
+			    
+			    //summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],fields[iphi],fields[ieta]);
+			    //DEBUG -- at the end of kadj
+			    color *temp_loc[2]={nissa_malloc("eta",loc_volh+bord_volh,color),nissa_malloc("eta",loc_volh+bord_volh,color)};
+			    
+			    GET_THREAD_ID();
+			    for(int eo=0;eo<2;eo++)
+			      {
+				NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+				  for(int ic=0;ic<NCOL;ic++)
+				    complex_prod_double(temp_loc[eo][ieo][ic],fields[ieta][eo][ieo][ic],glblx_of_loclx[loclx_of_loceo[eo][ieo]]==0);
+				set_borders_invalid(temp[eo]);
+			      }
+			    
+			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],fields[iphi],temp_loc);
 			  }
 			
 			//compute the average tensorial density
