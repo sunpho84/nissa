@@ -32,7 +32,6 @@ namespace nissa
     int ind_copy_hit(int icopy,int ihit){return ihit+nhits*icopy;}
     int ind_copy_flav_hit_meas(int icopy,int iflav,int ihit,int imeas){return imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy));}
     int ind_copy_flav_hit_phieta(int icopy,int iflav,int ihit,int iPHIETA){return iPHIETA+nPHIETA*(ihit+nhits*(iflav+nflavs*icopy));}
-    //int ind_op_flav(int iop,int iflav){return iop+nops*iflav;}
   }
   
   //make the complex-double product
@@ -119,11 +118,11 @@ namespace nissa
 	      generate_fully_undiluted_lx_source(eta[ieta],RND_Z4,-1);
 	      
 	      //DEBUG -- before Kadj
-	      GET_THREAD_ID();
-	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-		for(int ic=0;ic<NCOL;ic++)
-		  complex_put_to_real(eta[ieta][ivol][ic],glblx_of_loclx[ivol]==0);
-	      set_borders_invalid(eta[ieta]);
+	      // GET_THREAD_ID();
+	      // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	      // 	for(int ic=0;ic<NCOL;ic++)
+	      // 	  complex_put_to_real(eta[ieta][ivol][ic],glblx_of_loclx[ivol]==0);
+	      // set_borders_invalid(eta[ieta]);
 	      
 	      for(int imeas=0;imeas<nmeas;imeas++)
 		vector_copy(phi[ind_copy_flav_hit_meas(icopy,0/*iflav*/,ihit,imeas)],eta[ieta]);
@@ -227,7 +226,10 @@ namespace nissa
 	    for(int imeas=imeas_min;imeas<nmeas;imeas++)
 	      for(int icopy=0;icopy<ncopies;icopy++)
 		for(int ihit=0;ihit<nhits;ihit++)
-		  adj_ferm_flower.flow_fermion(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
+		  {
+		  //debug2
+		  //adj_ferm_flower.flow_fermion(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
+		  }
 	    adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
 	  }
 	
@@ -245,14 +247,14 @@ namespace nissa
 		  split_lx_vector_into_eo_parts(temp_eta,phi[ind_copy_flav_hit_meas(icopy,0/*read always iflav*/,ihit,imeas)]);
 		  
 		  //DEBUG -- at the end of kadj
-		  GET_THREAD_ID();
-		  for(int eo=0;eo<2;eo++)
-		    {
-		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-			for(int ic=0;ic<NCOL;ic++)
-			  complex_put_to_real(temp_eta[eo][ieo][ic],glblx_of_loclx[loclx_of_loceo[eo][ieo]]==0);
-		      set_borders_invalid(temp_eta[eo]);
-		    }
+		  // GET_THREAD_ID();
+		  // for(int eo=0;eo<2;eo++)
+		  //   {
+		  //     NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		  // 	for(int ic=0;ic<NCOL;ic++)
+		  // 	  complex_put_to_real(temp_eta[eo][ieo][ic],glblx_of_loclx[loclx_of_loceo[eo][ieo]]==0);
+		  //     set_borders_invalid(temp_eta[eo]);
+		  //   }
 		  
 		  mult_Minv(temp_phi,ferm_conf,tp,iflav,mp->residue,temp_eta);
 		  paste_eo_parts_into_lx_vector(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)],temp_phi);
@@ -329,7 +331,10 @@ namespace nissa
 	    	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
 	    	for(int icopy=0;icopy<ncopies;icopy++)
 	    	  for(int ihit=0;ihit<nhits;ihit++)
-		    ferm_flower.flow_fermion(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
+		    //debug2
+		    //ferm_flower.flow_fermion(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
+		    {
+		    }
 		ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
 	      }
 	    ferm_flower.prepare_for_next_flow(smoothed_conf);
@@ -370,14 +375,14 @@ namespace nissa
 	      generate_fully_undiluted_eo_source(fields[isource],RND_Z4,-1);
 	      
 	      //DEBUG -- at the beginning of K
-	      GET_THREAD_ID();
-	      for(int eo=0;eo<2;eo++)
-		{
-		  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-		    for(int ic=0;ic<NCOL;ic++)
-		      complex_put_to_real(fields[isource][eo][ieo][ic],glblx_of_loclx[loclx_of_loceo[eo][ieo]]==0);
-		  set_borders_invalid(fields[isource][eo]);
-		}
+	      // GET_THREAD_ID();
+	      // for(int eo=0;eo<2;eo++)
+	      // 	{
+	      // 	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	      // 	    for(int ic=0;ic<NCOL;ic++)
+	      // 	      complex_put_to_real(fields[isource][eo][ieo][ic],glblx_of_loclx[loclx_of_loceo[eo][ieo]]==0);
+	      // 	  set_borders_invalid(fields[isource][eo]);
+	      // 	}
 	      
 	      for(int iflav=0;iflav<nflavs;iflav++)
 		{
@@ -425,20 +430,20 @@ namespace nissa
 			    int ieta=ind_copy_flav_hit_phieta(icopy,iflav,ihit,ETA);
 			    int iphi=ind_copy_flav_hit_phieta(icopy,iflav,ihit,PHI);
 			    
-			    //summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],fields[iphi],fields[ieta]);
+			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],fields[iphi],fields[ieta]);
 			    //DEBUG -- at the end of kadj
-			    color *temp_loc[2]={nissa_malloc("eta",loc_volh+bord_volh,color),nissa_malloc("eta",loc_volh+bord_volh,color)};
+			    // color *temp_loc[2]={nissa_malloc("eta",loc_volh+bord_volh,color),nissa_malloc("eta",loc_volh+bord_volh,color)};
 			    
-			    GET_THREAD_ID();
-			    for(int eo=0;eo<2;eo++)
-			      {
-				NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-				  for(int ic=0;ic<NCOL;ic++)
-				    complex_prod_double(temp_loc[eo][ieo][ic],fields[ieta][eo][ieo][ic],glblx_of_loclx[loclx_of_loceo[eo][ieo]]==0);
-				set_borders_invalid(temp[eo]);
-			      }
+			    // GET_THREAD_ID();
+			    // for(int eo=0;eo<2;eo++)
+			    //   {
+			    // 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+			    // 	  for(int ic=0;ic<NCOL;ic++)
+			    // 	    complex_prod_double(temp_loc[eo][ieo][ic],fields[ieta][eo][ieo][ic],glblx_of_loclx[loclx_of_loceo[eo][ieo]]==0);
+			    // 	set_borders_invalid(temp[eo]);
+			    //   }
 			    
-			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],fields[iphi],temp_loc);
+			    // summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],fields[iphi],temp_loc);
 			  }
 			
 			//compute the average tensorial density
@@ -479,7 +484,8 @@ namespace nissa
 	    	    for(int iPHIETA=0;iPHIETA<nPHIETA;iPHIETA++)
 		      {
 			paste_eo_parts_into_lx_vector(temp_flow,fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iPHIETA)]);
-			ferm_flower.flow_fermion(temp_flow);
+			//debug2
+			//ferm_flower.flow_fermion(temp_flow);
 			split_lx_vector_into_eo_parts(fields[ind_copy_flav_hit_phieta(icopy,iflav,ihit,iPHIETA)],temp_flow);
 		      }
 	    	ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
