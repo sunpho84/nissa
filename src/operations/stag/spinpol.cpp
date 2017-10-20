@@ -128,64 +128,6 @@ namespace nissa
 	//the adjoint flower needed for fermionic source
 	fermion_adjoint_flower_t<> adj_ferm_flower(dt,all_dirs,true);
 	
-#if 0
-	//test
-	fermion_flower_t ferm_flower(dt,all_dirs,true);
-	color *ori_0=source[1];
-	generate_fully_undiluted_lx_source(ori_0,RND_Z4,-1);
-	color *ori_t=source[3];
-	generate_fully_undiluted_lx_source(ori_t,RND_Z4,-1);
-	color *evo_0_to_t=source[0];
-	vector_copy(evo_0_to_t,ori_0);
-	for(int iflow=1;iflow<=nflows;iflow++)
-	  {
-	    //update conf to iflow
-	    double t=dt*(iflow-1);
-	    recu.update(iflow-1);
-	    //verbosity_lv2_
-	    master_printf(" flow forward to %d/%d, t %lg, plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
-	    
-	    //make the flower generate the intermediate step between iflow-1 and iflow
-	    ferm_flower.generate_intermediate_steps(smoothed_conf);
-	    
-	    ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
-	    ferm_flower.flow_fermion(evo_0_to_t);
-	    ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
-	    
-	    // master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
-	  }
-	
-	color *evo_t_to_0=source[2];
-	vector_copy(evo_t_to_0,ori_t);
-	//at each step it goes from iflow+1 to iflow
-	for(int iflow=nflows-1;iflow>=0;iflow--)
-	  {
-	    //update conf to iflow
-	    double t=dt*iflow;
-	    recu.update(iflow);
-	    //verbosity_lv2_
-	    master_printf(" flow back to %d/%d, t %lg, plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(smoothed_conf));
-	    
-	    //make the flower generate the intermediate step between iflow and iflow+1
-	    adj_ferm_flower.generate_intermediate_steps(smoothed_conf);
-	    
-	    adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[0]);
-	    adj_ferm_flower.flow_fermion(evo_t_to_0);
-	    adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[0]);
-	    
-	    // master_printf("t %lg, entry %lg, norm2 %lg\n",t,source[0][0][0][0],double_vector_glb_norm2(source[0],loc_vol));
-	  }
-	
-	
-	double flown_back;
-	double_vector_glb_scalar_prod(&flown_back,(double*)evo_t_to_0,(double*)ori_0,loc_vol*sizeof(color)/sizeof(double));
-	double flown_forw;
-	double_vector_glb_scalar_prod(&flown_forw,(double*)ori_t,(double*)evo_0_to_t,loc_vol*sizeof(color)/sizeof(double));
-	
-	crash(" back: %.16lg , forw: %.16lg",flown_back,flown_forw);
-	
-#endif
-	
 	// int nevol=0;
 	// for(int i=sp.nsmooth();i>=0;i--)
 	//   {
@@ -215,13 +157,15 @@ namespace nissa
 	    
 	    //have to flow back all sources for which iflow is smaller than meas_each*imeas
 	    int imeas_min=iflow/meas_each+1;
-	    int iflav=0; //only flav 0
-	    adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
-	    for(int imeas=imeas_min;imeas<nmeas;imeas++)
-	      for(int icopy=0;icopy<ncopies;icopy++)
-		for(int ihit=0;ihit<nhits;ihit++)
-		  adj_ferm_flower.flow_fermion(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
-	    adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
+	    for(int iflav=0;iflav<nflavs;iflav++)
+	      {
+		adj_ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
+		for(int imeas=imeas_min;imeas<nmeas;imeas++)
+		  for(int icopy=0;icopy<ncopies;icopy++)
+		    for(int ihit=0;ihit<nhits;ihit++)
+		      adj_ferm_flower.flow_fermion(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
+		adj_ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
+	      }
 	  }
 	
 	//build fermionic conf from gluonic one
