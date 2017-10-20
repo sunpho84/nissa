@@ -1,4 +1,4 @@
-#include <string.h>
+/#include <string.h>
 #include <math.h>
 #include <sys/stat.h>
 
@@ -23,6 +23,10 @@ LC_gauge_fixing_pars_t gauge_fixing_pars;
 //mass list
 int nmass;
 double *mass;
+
+//boundary condition
+enum time_bc_t{PERIODIC,ANTIPERIODIC};
+time_bc_t time_bc;
 momentum_t put_theta,old_theta={0,0,0,0};
 
 //output parameters
@@ -153,7 +157,15 @@ void initialize_Zcomputation(char *input_path)
   read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
   read_str_int("UseCGM",&use_cgm);
   
-  // 4) contraction list for two points
+  // 4) Boundary condition
+  char time_bc_tag[1024];
+  read_str_str("TimeBoundaryCond",time_bc_tag,1024);
+  if(strcasecmp(time_bc_tag,"PERIODIC")==0) time_bc=PERIODIC;
+  else
+    if(strcasecmp(time_bc_tag,"ANTIPERIODIC")==0) time_bc=ANTIPERIODIC;
+    else crash("Unknown time boundary condition, use \"PERIODIC\" or \"ANTIPERIODIC\"");
+    
+  // 5) Contraction list for two points
   
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
@@ -169,7 +181,7 @@ void initialize_Zcomputation(char *input_path)
       master_printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
   
-  // 5) Information on output
+  // 6) Information on output
   
   //save fixed conf?
   read_str_int("WriteFixedConf",&write_fixed_conf);
@@ -245,7 +257,11 @@ void load_gauge_conf()
   
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;
-  put_theta[0]=1;
+  switch(time_bc)
+    {
+    case PERIODIC: put_theta[0]=0;break;
+    case ANTIPERIODIC: put_theta[0]=1;break;
+    }
   adapt_theta(conf,old_theta,put_theta,1,0);
 }
 
