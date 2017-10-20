@@ -424,7 +424,7 @@ namespace nissa
 			  {
 			    int ieta=ind_copy_flav_hit_phieta(icopy,iflav,ihit,ETA);
 			    int iphi=ind_copy_flav_hit_phieta(icopy,iflav,ihit,PHI);
-
+			    
 			    summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],fields[iphi],fields[ieta]);
 			    //DEBUG -- at the end of kadj
 			    // color *temp_loc[2]={nissa_malloc("eta",loc_volh+bord_volh,color),nissa_malloc("eta",loc_volh+bord_volh,color)};
@@ -439,7 +439,7 @@ namespace nissa
 			    //   }
 			    
 			    // summ_dens(tens_dens,chiop,temp[0],temp[1],ferm_conf,tp->backfield[iflav],shift[iop],mask[iop],fields[iphi],temp_loc);
-
+			    
 			    // for(int eo=0;eo<2;eo++) nissa_free(temp_loc[eo]);
 			  }
 			
