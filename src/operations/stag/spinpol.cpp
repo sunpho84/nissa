@@ -190,6 +190,7 @@ namespace nissa
 	    //take current meas index
 	    int imeas=iflow/meas_each;
 	    
+	    //measure only if flow is a measure time
 	    if(imeas*meas_each==iflow)
 	      {
 		//create the fermionic conf
@@ -255,7 +256,8 @@ namespace nissa
 	    	ferm_flower.add_or_rem_backfield_to_confs(0,tp->backfield[iflav]);
 	    	for(int icopy=0;icopy<ncopies;icopy++)
 	    	  for(int ihit=0;ihit<nhits;ihit++)
-		    ferm_flower.flow_fermion(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)]);
+		    for(int jmeas=imeas;jmeas<nmeas;jmeas++)
+		      ferm_flower.flow_fermion(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,jmeas)]);
 		ferm_flower.add_or_rem_backfield_to_confs(1,tp->backfield[iflav]);
 	      }
 	    ferm_flower.prepare_for_next_flow(smoothed_conf);
