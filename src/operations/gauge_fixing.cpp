@@ -499,7 +499,7 @@ namespace nissa
     GET_THREAD_ID();
     
     double beta;
-    if(iter>0)
+    if(iter>1)
       {
 	//denominator
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
