@@ -536,7 +536,7 @@ namespace nissa
 	    beta=0;
 	    use_GCG=false;
 	    //verbosity_lv3_
-	      master_printf("Switching off GCG\n");
+	    master_printf("Switching off GCG, fabs(num)[%lg]<gcg_tol[%lg] or fabs(den)[%lg]<gcg_tol[%lg]\n",fabs(num),gcg_tol,fabs(den),gcg_tol);
 	  }
       }
     else beta=0;
