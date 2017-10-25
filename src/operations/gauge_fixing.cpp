@@ -492,13 +492,11 @@ namespace nissa
   }
   
   //apply GCG acceleration
-  void GCG_improve_gauge_fixer(su3 *der,bool &use_GCG)
+  void GCG_improve_gauge_fixer(su3 *der,bool &use_GCG,int iter)
   {
     using namespace GCG;
     
     GET_THREAD_ID();
-    
-    static int iter=0;
     
     double beta;
     if(iter>0)
@@ -509,7 +507,8 @@ namespace nissa
 	THREAD_BARRIER();
 	double den;
 	double_vector_glb_collapse(&den,accum,loc_vol);
-	verbosity_lv3_master_printf("den: %lg\n",den);
+	//verbosity_lv3_
+	  master_printf("den: %lg\n",den);
 	
 	//numerator
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -523,7 +522,8 @@ namespace nissa
 	THREAD_BARRIER();
 	double num;
 	double_vector_glb_collapse(&num,accum,loc_vol);
-	verbosity_lv3_master_printf("num: %lg\n",num);
+	//verbosity_lv3_
+	  master_printf("num: %lg\n",num);
 	
 	//compute beta
 	beta=num/den;
@@ -536,7 +536,7 @@ namespace nissa
 	    beta=0;
 	    use_GCG=false;
 	    //verbosity_lv3_
-	    master_printf("Switching off GCG, fabs(num)[%lg]<gcg_tol[%lg] or fabs(den)[%lg]<gcg_tol[%lg]\n",fabs(num),gcg_tol,fabs(den),gcg_tol);
+	    master_printf("Switching off GCG at iter %d, fabs(num)[%lg]<gcg_tol[%lg] or fabs(den)[%lg]<gcg_tol[%lg]\n",iter,fabs(num),gcg_tol,fabs(den),gcg_tol);
 	  }
       }
     else beta=0;
@@ -546,13 +546,11 @@ namespace nissa
     vector_copy(prev_der,der);
     if(iter==0) vector_copy(s,der);
     else        double_vector_summ_double_vector_prod_double((double*)s,(double*)der,(double*)s,beta,loc_vol*sizeof(su3)/sizeof(double));
-    
-    iter++;
   }
   
   //do all the fixing exponentiating
   void Landau_or_Coulomb_gauge_fixing_exponentiate(quad_su3 *fixed_conf,su3 *fixer,LC_gauge_fixing_pars_t::gauge_t gauge,
-						double &alpha,quad_su3 *ori_conf,const double func_0,const bool &use_FACC,bool &use_adapt,bool &use_GCG)
+						   double &alpha,quad_su3 *ori_conf,const double func_0,const bool &use_FACC,bool &use_adapt,bool &use_GCG,int iter)
   {
     using namespace GCG;
     
@@ -573,7 +571,7 @@ namespace nissa
     if(use_FACC) Fourier_accelerate_derivative(der);
     
     //make the CG improvement
-    if(use_GCG) GCG_improve_gauge_fixer(der,use_GCG);
+    if(use_GCG) GCG_improve_gauge_fixer(der,use_GCG,iter);
     
     //decides what to use
     su3 *v=(use_GCG?s:der);
@@ -644,7 +642,7 @@ namespace nissa
 	    switch(pars->method)
 	      {
 	      case LC_gauge_fixing_pars_t::exponentiate:
-		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,ori_conf,old_func,use_fft_acc,use_adapt,use_GCG);break;
+		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,ori_conf,old_func,use_fft_acc,use_adapt,use_GCG,iter);break;
 	      case LC_gauge_fixing_pars_t::overrelax:
 		Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars->gauge,pars->overrelax_prob,fixer,ori_conf);break;
 	      default:
