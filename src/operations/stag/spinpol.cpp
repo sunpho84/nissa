@@ -205,7 +205,7 @@ namespace nissa
 		//total topological charge
 		double tot_charge;
 		double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
-		double tot_charge2=double_vector_glb_norm2(topo_dens,1);
+		double tot_charge2=double_vector_glb_norm2(topo_dens,loc_vol);
 		
 		for(int icopy=0;icopy<ncopies;icopy++)
 		  for(int iflav=0;iflav<nflavs;iflav++)
@@ -330,7 +330,7 @@ namespace nissa
 		//total topological charge
 		double tot_charge;
 		double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
-		double tot_charge2=double_vector_glb_norm2(topo_dens,1);
+		double tot_charge2=double_vector_glb_norm2(topo_dens,loc_vol);
 		
 		for(int icopy=0;icopy<ncopies;icopy++)
 		  for(int iflav=0;iflav<nflavs;iflav++)
