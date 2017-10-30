@@ -36,7 +36,9 @@ int full_X_space_prop_prec,full_P_space_prop_prec;
 int n_X_interv[2],n_P_interv[2];
 interv *X_interv[2],*P_interv[2];
 int do_rome[16]= {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-int do_orsay[16]={1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+int do_orsay[16]={1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+coords mu_rome= {0,2,3,1};
+coords mu_orsay={0,1,2,3};
 
 //source data
 coords source_coord={0,0,0,0};
@@ -426,7 +428,7 @@ void compute_fft(double sign)
 }
 
 //filter the propagators
-void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *do_iparr)
+void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *do_iparr,coords mul)
 {
   filter_prop_time-=take_time();
   
@@ -460,10 +462,10 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 	      //loop over momenta in each set
 	      coords glb_ip,sht_ip;
 	      
-	      for(sht_ip[0]=inte[isub][0][0];sht_ip[0]<=inte[isub][0][1];sht_ip[0]++)
-		for(sht_ip[2]=inte[isub][1][0];sht_ip[2]<=inte[isub][1][1];sht_ip[2]++)
-		  for(sht_ip[3]=inte[isub][1][0];sht_ip[3]<=inte[isub][1][1];sht_ip[3]++)
-		    for(sht_ip[1]=inte[isub][1][0];sht_ip[1]<=inte[isub][1][1];sht_ip[1]++)
+	      for(sht_ip[mul[0]]=inte[isub][(mul[0]!=0)][0];sht_ip[mul[0]]<=inte[isub][(mul[0]!=0)][1];sht_ip[mul[0]]++)
+		for(sht_ip[mul[1]]=inte[isub][(mul[1]!=0)][0];sht_ip[mul[1]]<=inte[isub][(mul[1]!=0)][1];sht_ip[mul[1]]++)
+		  for(sht_ip[mul[2]]=inte[isub][(mul[2]!=0)][0];sht_ip[mul[2]]<=inte[isub][(mul[2]!=0)][1];sht_ip[mul[2]]++)
+		    for(sht_ip[mul[3]]=inte[isub][(mul[3]!=0)][0];sht_ip[mul[3]]<=inte[isub][(mul[3]!=0)][1];sht_ip[mul[3]]++)
 		      {
 			for(int mu=0;mu<NDIM;mu++)
 			  {
@@ -618,13 +620,13 @@ void in_main(int narg,char **arg)
       //X space
       calculate_S0();
       calculate_all_2pts();
-      if(n_X_interv[0]) print_propagator_subsets(n_X_interv[0],X_interv[0],"SubsXprop/Rome",do_rome);
-      if(n_X_interv[1]) print_propagator_subsets(n_X_interv[1],X_interv[1],"SubsXprop/Orsay",do_orsay);
+      if(n_X_interv[0]) print_propagator_subsets(n_X_interv[0],X_interv[0],"SubsXprop/Rome",do_rome,mu_rome);
+      if(n_X_interv[1]) print_propagator_subsets(n_X_interv[1],X_interv[1],"SubsXprop/Orsay",do_orsay,mu_orsay);
       
       //P space
       compute_fft(-1);
-      if(n_P_interv[0]) print_propagator_subsets(n_P_interv[0],P_interv[0],"SubsPprop/Rome",do_rome);
-      if(n_P_interv[1]) print_propagator_subsets(n_P_interv[1],P_interv[1],"SubsPprop/Orsay",do_orsay);
+      if(n_P_interv[0]) print_propagator_subsets(n_P_interv[0],P_interv[0],"SubsPprop/Rome",do_rome,mu_rome);
+      if(n_P_interv[1]) print_propagator_subsets(n_P_interv[1],P_interv[1],"SubsPprop/Orsay",do_orsay,mu_orsay);
       
       print_time_momentum_propagator();
       
