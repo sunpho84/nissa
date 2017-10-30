@@ -88,8 +88,8 @@ interv* read_subset_list(int *n_subset,const char *name,const char *tag)
       for(int iext=0;iext<2;iext++)
 	{
 	  read_int(inte[isub][mu]+iext);
-	  if((*inte[isub][mu])<0||(*inte[isub][mu])>=glb_size[mu])
-	    crash("error in loading %s interval, exceeds borders!",name);
+	  // if((*inte[isub][mu])<0||(*inte[isub][mu])>=glb_size[mu])
+	  //   crash("error in loading %s interval, exceeds borders!",name);
 	}
   
   return inte;
