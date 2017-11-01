@@ -25,6 +25,9 @@
 
 #include "gauge_fixing.hpp"
 
+//#define VERBOSITY_MASTER_PRINTF verbosity_lv1_master_printf
+#define VERBOSITY_MASTER_PRINTF verbosity_lv3_master_printf
+
 namespace nissa
 {
   //apply the passed transformation to the point
@@ -390,7 +393,7 @@ namespace nissa
     int iter=0;
     do
       {
-	verbosity_lv3_master_printf("---iter %d---\n",iter);
+	VERBOSITY_MASTER_PRINTF("---iter %d---\n",iter);
 	//take the exponent
 	exp_der_alpha_half(g,der,alpha);
 	
@@ -413,31 +416,31 @@ namespace nissa
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
 	double a=(F[2]-2*F[1]+F[0])/(2*sqr(alpha));
 	
-	verbosity_lv3_master_printf("F:   %lg %lg %lg\n",F[0],F[1],F[2]);
-	verbosity_lv3_master_printf("abc: %lg %lg %lg\n",a,b,c);
+	VERBOSITY_MASTER_PRINTF("F:   %lg %lg %lg\n",F[0],F[1],F[2]);
+	VERBOSITY_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
 	
 	double vert=-b/(2*a);
 	pos_vert=(vert>0);
 	pos_curv=(a>0);
 	brack_vert=(2*alpha>vert);
 	
-	verbosity_lv3_master_printf("Vertex position: %lg\n",vert);
-	verbosity_lv3_master_printf("Curvature is positive: %d\n",pos_curv);
-	verbosity_lv3_master_printf("Bracketing the vertex: %d\n",brack_vert);
+	VERBOSITY_MASTER_PRINTF("Vertex position: %lg\n",vert);
+	VERBOSITY_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
+	VERBOSITY_MASTER_PRINTF("Bracketing the vertex: %d\n",brack_vert);
 	if(not pos_vert or not pos_curv)
 	  {
 	    alpha/=2.0;
-	    verbosity_lv3_master_printf("Decreasing alpha to %lg\n",alpha);
+	    VERBOSITY_MASTER_PRINTF("Decreasing alpha to %lg\n",alpha);
 	  }
 	else
 	  if(not brack_vert)
 	    {
 	      alpha*=2.0;
-	      verbosity_lv3_master_printf("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
+	      VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
 	    }
 	  else
 	    {
-	      verbosity_lv3_master_printf("Good, jumping to %lg\n",vert);
+	      VERBOSITY_MASTER_PRINTF("Good, jumping to %lg\n",vert);
 	      alpha=vert;
 	    }
 	
@@ -507,8 +510,7 @@ namespace nissa
 	THREAD_BARRIER();
 	double den;
 	double_vector_glb_collapse(&den,accum,loc_vol);
-	//verbosity_lv3_
-	  master_printf("den: %lg\n",den);
+	VERBOSITY_MASTER_PRINTF("den: %lg\n",den);
 	
 	//numerator
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -522,8 +524,7 @@ namespace nissa
 	THREAD_BARRIER();
 	double num;
 	double_vector_glb_collapse(&num,accum,loc_vol);
-	//verbosity_lv3_
-	  master_printf("num: %lg\n",num);
+	VERBOSITY_MASTER_PRINTF("num: %lg\n",num);
 	
 	//compute beta
 	beta=num/den;
@@ -535,12 +536,11 @@ namespace nissa
 	  {
 	    beta=0;
 	    use_GCG=false;
-	    //verbosity_lv3_
-	    master_printf("Switching off GCG at iter %d, fabs(num)[%lg]<gcg_tol[%lg] or fabs(den)[%lg]<gcg_tol[%lg]\n",iter,fabs(num),gcg_tol,fabs(den),gcg_tol);
+	    VERBOSITY_MASTER_PRINTF("Switching off GCG at iter %d, fabs(num)[%lg]<gcg_tol[%lg] or fabs(den)[%lg]<gcg_tol[%lg]\n",iter,fabs(num),gcg_tol,fabs(den),gcg_tol);
 	  }
       }
     else beta=0;
-    verbosity_lv3_master_printf("beta: %lg\n",beta);
+    VERBOSITY_MASTER_PRINTF("beta: %lg\n",beta);
     
     //store prev_der, increase s (der) and store prev_s
     vector_copy(prev_der,der);
