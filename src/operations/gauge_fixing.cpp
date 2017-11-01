@@ -390,6 +390,7 @@ namespace nissa
     su3 *g=nissa_malloc("g",loc_vol,su3);
     
     int pos_curv,pos_vert,brack_vert;
+    int nneg_pos_vert=0;
     int iter=0;
     do
       {
@@ -416,13 +417,8 @@ namespace nissa
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
 	double a=(F[2]-2*F[1]+F[0])/(2*sqr(alpha));
 	
-	VERBOSITY_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
-	
 	VERBOSITY_MASTER_PRINTF("F:   %.16lg %.16lg %.16lg\n",F[0],F[1],F[2]);
 	VERBOSITY_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
-	
-	double err=fabs((F[2]+F[0])/(2*F[1]))-1.0;
-	VERBOSITY_MASTER_PRINTF("abc: %.16lg\n",err);
 	
 	double vert=-b/(2*a);
 	pos_vert=(vert>0);
@@ -452,7 +448,8 @@ namespace nissa
 	//compute average and stddev
 	double ave,dev;
 	ave_dev(ave,dev,F,3);
-	if(dev<ave*1e-15)
+	VERBOSITY_MASTER_PRINTF("F ave, dev: %lg %lg\n",ave,dev);
+	if(dev<fabs(ave)*1e-15)
 	  {
 	    master_printf("Switching off adaptative search\n");
 	    use_adapt=false;
