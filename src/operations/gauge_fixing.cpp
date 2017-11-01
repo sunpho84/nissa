@@ -416,8 +416,13 @@ namespace nissa
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
 	double a=(F[2]-2*F[1]+F[0])/(2*sqr(alpha));
 	
-	VERBOSITY_MASTER_PRINTF("F:   %lg %lg %lg\n",F[0],F[1],F[2]);
 	VERBOSITY_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
+	
+	VERBOSITY_MASTER_PRINTF("F:   %.16lg %.16lg %.16lg\n",F[0],F[1],F[2]);
+	VERBOSITY_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
+	
+	double err=fabs((F[2]+F[0])/(2*F[1]))-1.0;
+	VERBOSITY_MASTER_PRINTF("abc: %.16lg\n",err);
 	
 	double vert=-b/(2*a);
 	pos_vert=(vert>0);
