@@ -25,8 +25,8 @@
 
 #include "gauge_fixing.hpp"
 
-//#define VERBOSITY_MASTER_PRINTF verbosity_lv1_master_printf
-#define VERBOSITY_MASTER_PRINTF verbosity_lv3_master_printf
+#define VERBOSITY_MASTER_PRINTF verbosity_lv1_master_printf
+//#define VERBOSITY_MASTER_PRINTF verbosity_lv3_master_printf
 
 namespace nissa
 {
