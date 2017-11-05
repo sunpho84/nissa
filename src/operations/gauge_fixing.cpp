@@ -454,7 +454,7 @@ namespace nissa
 	      VERBOSITY_MASTER_PRINTF("Good, jumping to %lg\n",vert);
 	      alpha=vert;
 	    }
-	if(iter>nadapt_iter_max)
+	if(iter>=nadapt_iter_max)
 	  {
 	    VERBOSITY_MASTER_PRINTF("%d adaptative searches performed, switching temporarily off the adaptative search\n",iter);
 	    alpha=alpha_def;
