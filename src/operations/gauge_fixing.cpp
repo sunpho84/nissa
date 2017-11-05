@@ -392,6 +392,7 @@ namespace nissa
     int zero_curv,pos_curv,pos_vert,brack_vert;
     //int nneg_pos_vert=0;
     int iter=0;
+    const int nadapt_iter_max=5;
     do
       {
 	VERBOSITY_MASTER_PRINTF("---iter %d---\n",iter);
@@ -453,6 +454,11 @@ namespace nissa
 	      VERBOSITY_MASTER_PRINTF("Good, jumping to %lg\n",vert);
 	      alpha=vert;
 	    }
+	if(iter>nadapt_iter_max)
+	  {
+	    VERBOSITY_MASTER_PRINTF("%d adaptative searches performed, switching temporarily off the adaptative search\n",iter);
+	    alpha=alpha_def;
+	  }
 	
 	// //compute average and stddev
 	// double ave,dev;
@@ -466,7 +472,7 @@ namespace nissa
 	
 	iter++;
       }
-    while(use_adapt and not (zero_curv or (pos_curv and pos_vert and brack_vert)));
+    while(use_adapt and (iter<nadapt_iter_max) and not (zero_curv or (pos_curv and pos_vert and brack_vert)));
     
     //put back the fixer
     vector_copy(fixer,ori_fixer);
