@@ -389,8 +389,8 @@ namespace nissa
     //current transform
     su3 *g=nissa_malloc("g",loc_vol,su3);
     
-    int pos_curv,pos_vert,brack_vert;
-    int nneg_pos_vert=0;
+    int zero_curv,pos_curv,pos_vert,brack_vert;
+    //int nneg_pos_vert=0;
     int iter=0;
     do
       {
@@ -414,7 +414,7 @@ namespace nissa
 	  }
 	
 	//subtract 0
-	for(int i=3;i>=0;i--) F[i]-=F[0];
+	for(int i=2;i>=0;i--) F[i]-=F[0];
 	
 	double c=F[0];
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
@@ -426,10 +426,12 @@ namespace nissa
 	double vert=-b/(2*a);
 	pos_vert=(vert>0);
 	pos_curv=(a>0);
+	zero_curv=(fabs(a)<1e-14);
 	brack_vert=(2*alpha>vert);
 	
 	VERBOSITY_MASTER_PRINTF("Vertex position: %lg\n",vert);
 	VERBOSITY_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
+	if(zero_curv) VERBOSITY_MASTER_PRINTF("Curvature is compatible with zero (%lg), switching off temporarily the adaptative search\n",a);
 	VERBOSITY_MASTER_PRINTF("Bracketing the vertex: %d\n",brack_vert);
 	if(not pos_vert or not pos_curv)
 	  {
@@ -448,19 +450,19 @@ namespace nissa
 	      alpha=vert;
 	    }
 	
-	//compute average and stddev
-	double ave,dev;
-	ave_dev(ave,dev,F,3);
-	VERBOSITY_MASTER_PRINTF("F ave, dev: %lg %lg\n",ave,dev);
-	if(dev<fabs(ave)*1e-15)
-	  {
-	    master_printf("Switching off adaptative search\n");
-	    use_adapt=false;
-	  }
+	// //compute average and stddev
+	// double ave,dev;
+	// ave_dev(ave,dev,F,3);
+	// VERBOSITY_MASTER_PRINTF("F ave, dev: %lg %lg\n",ave,dev);
+	// if(dev<fabs(ave)*1e-15)
+	//   {
+	//     master_printf("Switching off adaptative search\n");
+	//     use_adapt=false;
+	//   }
 	
 	iter++;
       }
-    while(use_adapt and not (pos_curv and pos_vert and brack_vert));
+    while(use_adapt and not (zero_curv or (pos_curv and pos_vert and brack_vert)));
     
     //put back the fixer
     vector_copy(fixer,ori_fixer);
