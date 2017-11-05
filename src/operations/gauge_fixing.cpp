@@ -430,13 +430,13 @@ namespace nissa
 	VERBOSITY_MASTER_PRINTF("Bracketing the vertex: %d\n",brack_vert);
 	if(not pos_vert or not pos_curv)
 	  {
-	    alpha/=2.0;
+	    alpha/=2.05897683269763;
 	    VERBOSITY_MASTER_PRINTF("Decreasing alpha to %lg\n",alpha);
 	  }
 	else
 	  if(not brack_vert)
 	    {
-	      alpha*=2.0;
+	      alpha*=2.023564352435;
 	      VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
 	    }
 	  else
