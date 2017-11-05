@@ -376,7 +376,7 @@ namespace nissa
   }
   
   //adapt the value of alpha to minimize the functional
-  void adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,double &alpha,quad_su3 *ori_conf,const double func_0,bool &use_adapt)
+  void adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,double &alpha,double alpha_def,quad_su3 *ori_conf,const double func_0,bool &use_adapt)
   {
 #ifndef REPRODUCIBLE_RUN
     crash("need reproducible run to enable adaptative search");
@@ -431,7 +431,11 @@ namespace nissa
 	
 	VERBOSITY_MASTER_PRINTF("Vertex position: %lg\n",vert);
 	VERBOSITY_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
-	if(zero_curv) VERBOSITY_MASTER_PRINTF("Curvature is compatible with zero (%lg), switching off temporarily the adaptative search\n",a);
+	if(zero_curv)
+	  {
+	    VERBOSITY_MASTER_PRINTF("Curvature is compatible with zero (%lg), switching off temporarily the adaptative search\n",a);
+	    alpha=alpha_def;
+	  }
 	VERBOSITY_MASTER_PRINTF("Bracketing the vertex: %d\n",brack_vert);
 	if(not pos_vert or not pos_curv)
 	  {
@@ -557,7 +561,7 @@ namespace nissa
   
   //do all the fixing exponentiating
   void Landau_or_Coulomb_gauge_fixing_exponentiate(quad_su3 *fixed_conf,su3 *fixer,LC_gauge_fixing_pars_t::gauge_t gauge,
-						   double &alpha,quad_su3 *ori_conf,const double func_0,const bool &use_FACC,bool &use_adapt,bool &use_GCG,int iter)
+						   double &alpha,double alpha_def,quad_su3 *ori_conf,const double func_0,const bool &use_FACC,bool &use_adapt,bool &use_GCG,int iter)
   {
     using namespace GCG;
     
@@ -586,7 +590,7 @@ namespace nissa
     //take the exponent with alpha
     su3 *g=nissa_malloc("g",loc_vol,su3);
     
-    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,ori_conf,func_0,use_adapt);
+    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,alpha_def,ori_conf,func_0,use_adapt);
     exp_der_alpha_half(g,v,alpha);
     
     //put the transformation
@@ -649,7 +653,7 @@ namespace nissa
 	    switch(pars->method)
 	      {
 	      case LC_gauge_fixing_pars_t::exponentiate:
-		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,ori_conf,old_func,use_fft_acc,use_adapt,use_GCG,iter);break;
+		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,pars->alpha_exp,ori_conf,old_func,use_fft_acc,use_adapt,use_GCG,iter);break;
 	      case LC_gauge_fixing_pars_t::overrelax:
 		Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars->gauge,pars->overrelax_prob,fixer,ori_conf);break;
 	      default:
