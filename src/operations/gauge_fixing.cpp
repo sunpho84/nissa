@@ -400,7 +400,7 @@ namespace nissa
 	
 	//compute three points at 0,alpha and 2alpha
 	double F[3];
-	F[0]=0.0;
+	F[0]=func_0;
 	vector_copy(fixer,ori_fixer);
 	// master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
 	
@@ -410,8 +410,11 @@ namespace nissa
 	    
 	    //transform and compute potential
 	    gauge_transform_conf(fixed_conf,fixer,ori_conf);
-	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu)-func_0;
+	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu);
 	  }
+	
+	//subtract 0
+	for(int i=3;i>=0;i--) F[i]-=F[0];
 	
 	double c=F[0];
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
