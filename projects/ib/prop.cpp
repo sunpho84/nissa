@@ -265,7 +265,7 @@ namespace nissa
 		{
 		  master_printf("  loading the source dirac index %d, color %d\n",id_so,ic_so);
 		  START_TIMING(read_prop_time,nread_prop);
-		  read_real_vector(q,path,"prop");
+		  read_real_vector(q,path,"scidac-binary-data");
 		  STOP_TIMING(read_prop_time);
 		}
 	      else master_printf("  file %s not available, skipping loading\n",path.c_str());
@@ -275,7 +275,7 @@ namespace nissa
 		{
 		  master_printf("  writing the source dirac index %d, color %d\n",id_so,ic_so);
 		  START_TIMING(store_prop_time,nstore_prop);
-		  write_double_vector(path,sol,64,"prop");
+		  write_double_vector(path,sol,64,"scidac-binary-data");
 		  STOP_TIMING(store_prop_time);
 		}
 	    }
@@ -320,7 +320,7 @@ namespace nissa
 		{
 		  master_printf("  loading the inversion dirac index %d, color %d\n",id_so,ic_so);
 		  START_TIMING(read_prop_time,nread_prop);
-		  read_real_vector(sol,path,"prop");
+		  read_real_vector(sol,path,"scidac-binary-data");
 		  STOP_TIMING(read_prop_time);
 		}
 	      else
@@ -333,7 +333,7 @@ namespace nissa
 		  if(q.store)
 		    {
 		      START_TIMING(store_prop_time,nstore_prop);
-		      write_double_vector(path,sol,64,"prop");
+		      write_double_vector(path,sol,64,"scidac-binary-data");
 		      STOP_TIMING(store_prop_time);
 		    }
 		  master_printf("  finished the inversion dirac index %d, color %d\n",id_so,ic_so);
