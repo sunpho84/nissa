@@ -123,12 +123,43 @@ namespace nissa
   
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,double *theta);
   void generate_original_source(qprop_t *sou);
-  inline void generate_original_sources()
+  inline void generate_original_sources(int ihit)
   {
+    GET_THREAD_ID();
+    
     for(size_t i=0;i<ori_source_name_list.size();i++)
       {
-	master_printf("Generating source \"%s\"\n",ori_source_name_list[i].c_str());
-	generate_original_source(&Q[ori_source_name_list[i]]);
+	std::string &name=ori_source_name_list[i];
+	master_printf("Generating source \"%s\"\n",name.c_str());
+	qprop_t *q=&Q[name];
+	generate_original_source(q);
+	
+	for(int id_so=0;id_so<nso_spi;id_so++)
+	  for(int ic_so=0;ic_so<nso_col;ic_so++)
+	    {
+	      //combine the filename
+	      std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	      
+	      int isou=so_sp_col_ind(id_so,ic_so);
+	      spincolor *sol=(*q)[isou];
+	      
+	      //if the prop exists read it
+	      if(file_exists(path))
+		{
+		  master_printf("  loading the source dirac index %d, color %d\n",id_so,ic_so);
+		  START_TIMING(read_prop_time,nread_prop);
+		  read_real_vector(q,path,"prop");
+		  STOP_TIMING(read_prop_time);
+		}
+	      
+	      //and store if needed
+	      if(q->store)
+		{
+		  START_TIMING(store_prop_time,nstore_prop);
+		  write_double_vector(path,sol,64,"prop");
+		  STOP_TIMING(store_prop_time);
+		}
+	    }
       }
   }
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,coords dirs);
@@ -156,7 +187,7 @@ namespace nissa
   inline void generate_propagators(int ihit)
   {
     generate_photon_stochastic_propagator();
-    generate_original_sources();
+    generate_original_sources(ihit);
     generate_lepton_propagators();
     generate_quark_propagators(ihit);
   }
