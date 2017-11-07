@@ -138,7 +138,7 @@ namespace nissa
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
 	      //combine the filename
-	      std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	      std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
 	      
 	      int isou=so_sp_col_ind(id_so,ic_so);
 	      spincolor *sol=(*q)[isou];
@@ -151,6 +151,7 @@ namespace nissa
 		  read_real_vector(q,path,"prop");
 		  STOP_TIMING(read_prop_time);
 		}
+	      else master_printf("  file %s not available, skipping loading\n",path.c_str());
 	      
 	      //and store if needed
 	      if(q->store)
