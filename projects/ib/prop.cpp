@@ -239,6 +239,48 @@ namespace nissa
     nsource_tot++;
   }
   
+  //Generate all the original sources
+  void generate_original_sources(int ihit)
+  {
+    GET_THREAD_ID();
+    
+    for(size_t i=0;i<ori_source_name_list.size();i++)
+      {
+	std::string &name=ori_source_name_list[i];
+	master_printf("Generating source \"%s\"\n",name.c_str());
+	qprop_t *q=&Q[name];
+	generate_original_source(q);
+	
+	for(int id_so=0;id_so<nso_spi;id_so++)
+	  for(int ic_so=0;ic_so<nso_col;ic_so++)
+	    {
+	      //combine the filename
+	      std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	      
+	      int isou=so_sp_col_ind(id_so,ic_so);
+	      spincolor *sol=(*q)[isou];
+	      
+	      //if the prop exists read it
+	      if(file_exists(path))
+		{
+		  master_printf("  loading the source dirac index %d, color %d\n",id_so,ic_so);
+		  START_TIMING(read_prop_time,nread_prop);
+		  read_real_vector(q,path,"prop");
+		  STOP_TIMING(read_prop_time);
+		}
+	      else master_printf("  file %s not available, skipping loading\n",path.c_str());
+	      
+	      //and store if needed
+	      if(q->store)
+		{
+		  master_printf("  writing the source dirac index %d, color %d\n",id_so,ic_so);
+		  START_TIMING(store_prop_time,nstore_prop);
+		  write_double_vector(path,sol,64,"prop");
+		  STOP_TIMING(store_prop_time);
+		}
+	    }
+      }
+  }
   //generate all the quark propagators
   void generate_quark_propagators(int ihit)
   {
