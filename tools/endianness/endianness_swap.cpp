@@ -5,10 +5,11 @@ using namespace nissa;
 int main()
 {
   double d;
+  fre
   while(fread(&d,sizeof(double),1,stdin)==1)
     {
       change_endianness(d);
-      fwrite(&d,sizeof(double),1,stdin);
+      if(fwrite(&d,sizeof(double),1,stdout)!=1) crash("writing to stdout");
     }
   
   return 0;
