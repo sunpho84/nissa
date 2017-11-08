@@ -78,6 +78,7 @@ namespace nissa
   //allocate all leptonic propagators
   void allocate_L_prop()
   {
+    // temp_lep=nissa_malloc("temp_lep",loc_vol+bord_vol,spinspin);
     // nlprop=ilprop(nquark_lep_combos-1,nlins-1,norie-1,nr_lep-1)+1;
     // L=nissa_malloc("L*",nlprop,spinspin*);
     // for(int iprop=0;iprop<nlprop;iprop++) L[iprop]=nissa_malloc("L",loc_vol+bord_vol,spinspin);
