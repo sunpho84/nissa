@@ -389,7 +389,7 @@ namespace nissa
     //current transform
     su3 *g=nissa_malloc("g",loc_vol,su3);
     
-    int zero_curv,pos_curv,pos_vert,brack_vert;
+    int zero_curv,pos_curv,brack_vert;
     //int nneg_pos_vert=0;
     int iter=0;
     const int nadapt_iter_max=5;
@@ -425,7 +425,6 @@ namespace nissa
 	VERBOSITY_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
 	
 	double vert=-b/(2*a);
-	pos_vert=(vert>0);
 	pos_curv=(a>0);
 	zero_curv=(fabs(a)<1e-14);
 	brack_vert=(2*alpha>vert);
@@ -438,22 +437,18 @@ namespace nissa
 	    alpha=alpha_def;
 	  }
 	VERBOSITY_MASTER_PRINTF("Bracketing the vertex: %d\n",brack_vert);
-	if(not pos_vert or not pos_curv)
+	if(not pos_curv)
 	  {
 	    alpha/=2.05897683269763;
 	    VERBOSITY_MASTER_PRINTF("Decreasing alpha to %lg\n",alpha);
 	  }
 	else
-	  if(not brack_vert)
-	    {
-	      alpha*=2.023564352435;
-	      VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
-	    }
-	  else
-	    {
-	      VERBOSITY_MASTER_PRINTF("Good, jumping to %lg\n",vert);
-	      alpha=vert;
-	    }
+	  {
+	    if(not brack_vert) VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
+	    else               VERBOSITY_MASTER_PRINTF("Good, jumping to %lg\n",vert);
+	  }
+	alpha=vert;
+	
 	if(iter>=nadapt_iter_max)
 	  {
 	    VERBOSITY_MASTER_PRINTF("%d adaptative searches performed, switching temporarily off the adaptative search\n",iter);
@@ -472,7 +467,7 @@ namespace nissa
 	
 	iter++;
       }
-    while(use_adapt and (iter<nadapt_iter_max) and not (zero_curv or (pos_curv and pos_vert and brack_vert)));
+    while(use_adapt and (iter<nadapt_iter_max) and not (zero_curv or (pos_curv and brack_vert)));
     
     //put back the fixer
     vector_copy(fixer,ori_fixer);
@@ -632,8 +627,8 @@ namespace nissa
       {
 	ori_conf=nissa_malloc("ori_conf",loc_vol+bord_vol+edge_vol,quad_su3);
 	vector_copy(ori_conf,ext_conf);
- 	vector_copy(fixed_conf,ext_conf);
       }
+    vector_copy(fixed_conf,ext_conf);
     
     //fixing transformation
     su3 *fixer=nissa_malloc("fixer",loc_vol+bord_vol,su3);
