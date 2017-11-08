@@ -19,6 +19,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/edit/skip_random \
 	$(top_builddir)/tools/conf_transform/edit/unitarize \
 	$(top_builddir)/tools/find_best_vir_partitioning/find \
+	$(top_builddir)/tools/endianness/endianness_check \
 	$(top_builddir)/tools/Gaussiansmear_test \
 	$(top_builddir)/tools/print_gamma/gamma_test \
 	$(top_builddir)/tools/remez_algorithm/remez_create \
@@ -41,6 +42,8 @@ __top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES=conf_transform/c
 __top_builddir__tools_conf_transform_convert_eo_to_ildg_SOURCES=conf_transform/convert/eo_to_ildg.cpp
 __top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES=conf_transform/convert/ildg_to_gpu.cpp conf_transform/convert/gpu_stagphase.cpp
 __top_builddir__tools_conf_transform_create_create_cold_SOURCES=conf_transform/create/create_cold.cpp
+__top_builddir__tools_endianness_endianness_check_SOURCES=endianness/endianness_check.cpp
+__top_builddir__tools_endianness_endianness_swap_SOURCES=endianness/endianness_swap.cpp
 __top_builddir__tools_read_ildg_read_ildg_SOURCES=read_ildg/read_ildg.cpp
 __top_builddir__tools_conf_transform_create_create_hot_SOURCES=conf_transform/create/create_hot.cpp
 __top_builddir__tools_conf_transform_gaugefix_landau_SOURCES=conf_transform/gaugefix/landau.cpp
