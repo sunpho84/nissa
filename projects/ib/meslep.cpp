@@ -86,9 +86,9 @@ namespace nissa
   //free all leptonic propagators
   void free_L_prop()
   {
-    for(int iprop=0;iprop<nlprop;iprop++) nissa_free(L[iprop]);
-    nissa_free(L);
-    nissa_free(temp_lep);
+    // for(int iprop=0;iprop<nlprop;iprop++) nissa_free(L[iprop]);
+    // nissa_free(L);
+    // nissa_free(temp_lep);
   }
   
   //return appropriately modified info
