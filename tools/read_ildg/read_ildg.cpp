@@ -3,14 +3,16 @@
 using namespace nissa;
 
 uint64_t max_length=16*1024;
+char *file_pattern=NULL;
 
 int main(int narg,char **arg)
 {
   init_nissa(narg,arg);
   
   //check arguments
-  if(narg<2) crash("Use %s file [max_size_to_print=%d]",arg[0],max_length);
+  if(narg<2) crash("Use %s file [max_size_to_print=%d] [file_pattern]",arg[0],max_length);
   if(narg>=3) max_length=atoi(arg[2]);
+  if(narg>=4) file_pattern=arg[3];
   
   //open
   ILDG_File fin=ILDG_File_open_for_read(arg[1]);
@@ -31,11 +33,20 @@ int main(int narg,char **arg)
 	  char *data=new char[size+1];
 	  ILDG_File_read_all(data,fin,size);
 	  
-	  //force terminate
-	  data[size]='\0';
-	  
-	  //print and free
-	  master_printf("%s\n\n",data);
+	  if(file_pattern==NULL)
+	    {
+	      //force terminate
+	      data[size]='\0';
+	      
+	      //print
+	      master_printf("%s\n\n",data);
+	    }
+	  else
+	    {
+	      FILE *fout=open_file(combine("%s_%s",file_pattern,head.type),"w");
+	      if(fwrite(data, sizeof(char),size,fout)!=size) crash("writing record %s",head.type);
+	      close_file(fout);
+	    }
 	  delete[] data;
 	}
       else
