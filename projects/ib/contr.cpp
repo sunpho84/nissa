@@ -425,6 +425,7 @@ namespace nissa
 	    nissa_free(temp);
 	    
 	    ILDG_File_close(file);
+	  }
       }
     
     //add the photon
