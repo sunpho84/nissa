@@ -16,7 +16,8 @@ int main(int narg,char **arg)
   
   //open
   ILDG_File fin=ILDG_File_open_for_read(arg[1]);
-  
+
+  int irec=0;
   while(!ILDG_File_reached_EOF(fin))
     {
       //get header
@@ -43,7 +44,7 @@ int main(int narg,char **arg)
 	    }
 	  else
 	    {
-	      FILE *fout=open_file(combine("%s_%s",file_pattern,head.type),"w");
+	      FILE *fout=open_file(combine("%s_rec_%d_%s",file_pattern,irec,head.type),"w");
 	      if(fwrite(data, sizeof(char),size,fout)!=size) crash("writing record %s",head.type);
 	      close_file(fout);
 	    }
@@ -54,6 +55,8 @@ int main(int narg,char **arg)
 	  master_printf("skipping the record\n");
 	  ILDG_File_skip_record(fin,head);
 	}
+      
+      irec++;
     }
   
   //close
