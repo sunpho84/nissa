@@ -66,7 +66,8 @@ namespace nissa
     complex *tens_dens=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
     complex *spinpol_dens=nissa_malloc("spinpol_dens",loc_vol,complex);
     //allocate point and local results
-    double *topo_dens=nissa_malloc("topo_dens",loc_vol,double);
+    double *topo_dens[2];
+    for(int i=0;i<2;i++) topo_dens[i]=nissa_malloc("topo_dens",loc_vol,double);
     //operator applied to a field
     color *chiop[2]={nissa_malloc("chiop_EVN",loc_volh+bord_volh,color),nissa_malloc("chiop_ODD",loc_volh+bord_volh,color)};
     //temporary vectors
@@ -199,13 +200,28 @@ namespace nissa
 		  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
 		
 		//plaquette and local charge
-		double plaq=global_plaquette_lx_conf(smoothed_conf);
-		local_topological_charge(topo_dens,smoothed_conf);
+		double plaq[2];
+		double tot_charge[2];
+		double tot_charge2[2];
 		
-		//total topological charge
-		double tot_charge;
-		double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
-		double tot_charge2=double_vector_glb_norm2(topo_dens,loc_vol);
+		//use gauge or ferm_conf in alternartive
+		for(int gauge_ferm_conf=0;gauge_ferm_conf<2;gauge_ferm_conf++)
+		  {
+		    quad_su3 *topo_conf;
+		    if(gauge_ferm_conf==0) topo_conf=smoothed_conf;
+		    else
+		      {
+			topo_conf=nissa_malloc("TempConf",loc_vol+bord_vol+edge_vol,quad_su3);
+			paste_eo_parts_into_lx_vector(topo_conf,ferm_conf);
+		      }
+		    plaq[gauge_ferm_conf]=global_plaquette_lx_conf(topo_conf);
+		    local_topological_charge(topo_dens[gauge_ferm_conf],topo_conf);
+		    if(gauge_ferm_conf) nissa_free(topo_conf);
+		    
+		    //total topological charge
+		    double_vector_glb_collapse(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],loc_vol);
+		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens,loc_vol);
+		  }
 		
 		for(int icopy=0;icopy<ncopies;icopy++)
 		  for(int iflav=0;iflav<nflavs;iflav++)
@@ -228,19 +244,23 @@ namespace nissa
 			
 			//compute correlation with topocharge
 			complex spinpol;
-			compute_tens_dens_topo_correlation(spinpol_dens,tens_dens,topo_dens);
-			complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
-			
-			master_fprintf(fout,"%d\t",iconf);
-			master_fprintf(fout,"%d\t",icopy);
-			master_fprintf(fout,"%d\t",imeas*meas_each);
-			master_fprintf(fout,"%d\t",iflav);
-			master_fprintf(fout,"%d,%d\t",mp->operators[iop].first,mp->operators[iop].second);
-			master_fprintf(fout,"%+16.16lg\t",plaq);
-			master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tot_charge,tot_charge2);
-			master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",spinpol[RE],spinpol[IM]);
-			master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tens[RE],tens[IM]);
-			master_fprintf(fout,"\n");
+			for(int gauge_ferm_conf=0;gauge_ferm_conf<2;gauge_ferm_conf++)
+			  {
+			    compute_tens_dens_topo_correlation(spinpol_dens,tens_dens,topo_dens[gauge_ferm_conf]);
+			    complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
+			    
+			    master_fprintf(fout,"%d\t",iconf);
+			    master_fprintf(fout,"%d\t",icopy);
+			    master_fprintf(fout,"%d\t",imeas*meas_each);
+			    master_fprintf(fout,"%d\t",iflav);
+			    master_fprintf(fout,"%d,%d\t",mp->operators[iop].first,mp->operators[iop].second);
+			    master_fprintf(fout,"%d\t",gauge_ferm_conf);
+			    master_fprintf(fout,"%+16.16lg\t",plaq[gauge_ferm_conf]);
+			    master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tot_charge[gauge_ferm_conf],tot_charge2[gauge_ferm_conf]);
+			    master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",spinpol[RE],spinpol[IM]);
+			    master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tens[RE],tens[IM]);
+			    master_fprintf(fout,"\n");
+			  }
 		      }
 	      }
 	    
@@ -324,13 +344,29 @@ namespace nissa
 		  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
 		
 		//plaquette and local charge
-		double plaq=global_plaquette_lx_conf(smoothed_conf);
-		local_topological_charge(topo_dens,smoothed_conf);
+		//plaquette and local charge
+		double plaq[2];
+		double tot_charge[2];
+		double tot_charge2[2];
 		
-		//total topological charge
-		double tot_charge;
-		double_vector_glb_collapse(&tot_charge,topo_dens,loc_vol);
-		double tot_charge2=double_vector_glb_norm2(topo_dens,loc_vol);
+		//use gauge or ferm_conf in alternartive
+		for(int gauge_ferm_conf=0;gauge_ferm_conf<2;gauge_ferm_conf++)
+		  {
+		    quad_su3 *topo_conf;
+		    if(gauge_ferm_conf==0) topo_conf=smoothed_conf;
+		    else
+		      {
+			topo_conf=nissa_malloc("TempConf",loc_vol+bord_vol+edge_vol,quad_su3);
+			paste_eo_parts_into_lx_vector(topo_conf,ferm_conf);
+		      }
+		    plaq[gauge_ferm_conf]=global_plaquette_lx_conf(topo_conf);
+		    local_topological_charge(topo_dens[gauge_ferm_conf],topo_conf);
+		    if(gauge_ferm_conf) nissa_free(topo_conf);
+		    
+		    //total topological charge
+		    double_vector_glb_collapse(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],loc_vol);
+		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens,loc_vol);
+		  }
 		
 		for(int icopy=0;icopy<ncopies;icopy++)
 		  for(int iflav=0;iflav<nflavs;iflav++)
@@ -353,19 +389,23 @@ namespace nissa
 			
 			//compute correlation with topocharge
 			complex spinpol;
-			compute_tens_dens_topo_correlation(spinpol_dens,tens_dens,topo_dens);
-			complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
-			
-			master_fprintf(fout,"%d\t",iconf);
-			master_fprintf(fout,"%d\t",icopy);
-			master_fprintf(fout,"%d\t",imeas*meas_each);
-			master_fprintf(fout,"%d\t",iflav);
-			master_fprintf(fout,"%d,%d\t",mp->operators[iop].first,mp->operators[iop].second);
-			master_fprintf(fout,"%+16.16lg\t",plaq);
-			master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tot_charge,tot_charge2);
-			master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",spinpol[RE],spinpol[IM]);
-			master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tens[RE],tens[IM]);
-			master_fprintf(fout,"\n");
+			for(int gauge_ferm_conf=0;gauge_ferm_conf<2;gauge_ferm_conf++)
+			  {
+			    compute_tens_dens_topo_correlation(spinpol_dens,tens_dens,topo_dens[gauge_ferm_conf]);
+			    complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
+			    
+			    master_fprintf(fout,"%d\t",iconf);
+			    master_fprintf(fout,"%d\t",icopy);
+			    master_fprintf(fout,"%d\t",imeas*meas_each);
+			    master_fprintf(fout,"%d\t",iflav);
+			    master_fprintf(fout,"%d,%d\t",mp->operators[iop].first,mp->operators[iop].second);
+			    master_fprintf(fout,"%d\t",gauge_ferm_conf);
+			    master_fprintf(fout,"%+16.16lg\t",plaq[gauge_ferm_conf]);
+			    master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tot_charge[gauge_ferm_conf],tot_charge2[gauge_ferm_conf]);
+			    master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",spinpol[RE],spinpol[IM]);
+			    master_fprintf(fout,"%+16.16lg" "\t" "%+16.16lg\t",tens[RE],tens[IM]);
+			    master_fprintf(fout,"\n");
+			  }
 		      }
 	      }
 	    
@@ -408,7 +448,8 @@ namespace nissa
     nissa_free(spinpol_dens);
     nissa_free(tens_dens);
     nissa_free(smoothed_conf);
-    nissa_free(topo_dens);
+    for(int gauge_ferm_conf=0;gauge_ferm_conf<2;gauge_ferm_conf++)
+      nissa_free(topo_dens[gauge_ferm_conf]);
     
     //close
     close_file(fout);
