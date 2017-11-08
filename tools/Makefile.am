@@ -20,6 +20,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/edit/unitarize \
 	$(top_builddir)/tools/find_best_vir_partitioning/find \
 	$(top_builddir)/tools/endianness/endianness_check \
+	$(top_builddir)/tools/endianness/endianness_swap \
 	$(top_builddir)/tools/Gaussiansmear_test \
 	$(top_builddir)/tools/print_gamma/gamma_test \
 	$(top_builddir)/tools/remez_algorithm/remez_create \
