@@ -404,6 +404,27 @@ namespace nissa
 	    for(int mu=1;mu<NDIM;mu++) plain_bc[mu]=0.0;
 	    conserved_vector_current_mel(get_updated_conf(Q[h.fw].charge,plain_bc,glb_conf),si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str());
 	  }
+	
+	//store the file for future read
+	if(h.store)
+	  {
+	    //open the file
+	    std::string path=combine("%s/handcuff_side_%s",outfolder,h.name.c_str());
+	    ILDG_File file=ILDG_File_open_for_write(path);
+	    
+	    complex *temp=nissa_malloc("temp",loc_vol,complex);
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		//extract component mu
+		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+		  complex_copy(temp[ivol],si[ivol][mu]);
+		THREAD_BARRIER();
+		//write the component
+		write_double_vector(file,temp,64,combine("handcuff_mu_%d",mu).c_str());
+	      }
+	    nissa_free(temp);
+	    
+	    ILDG_File_close(file);
       }
     
     //add the photon

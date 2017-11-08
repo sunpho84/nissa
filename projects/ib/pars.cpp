@@ -160,8 +160,10 @@ namespace nissa
 	    char fw[1024];
 	    read_str(bw,1024);
 	    read_str(fw,1024);
+	    int store;
+	    read_int(&store);
 	    
-	    handcuffs_side_map.push_back(handcuffs_side_map_t(name,igamma,bw,fw));
+	    handcuffs_side_map.push_back(handcuffs_side_map_t(name,igamma,bw,fw,store));
 	  }
 	
 	//read the sides combo
