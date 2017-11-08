@@ -5,7 +5,6 @@ using namespace nissa;
 int main()
 {
   double d;
-  fre
   while(fread(&d,sizeof(double),1,stdin)==1)
     {
       change_endianness(d);
