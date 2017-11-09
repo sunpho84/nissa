@@ -220,7 +220,7 @@ namespace nissa
 		    
 		    //total topological charge
 		    double_vector_glb_collapse(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],loc_vol);
-		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens,loc_vol);
+		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens[gauge_ferm_conf],loc_vol);
 		  }
 		
 		for(int icopy=0;icopy<ncopies;icopy++)
@@ -365,7 +365,7 @@ namespace nissa
 		    
 		    //total topological charge
 		    double_vector_glb_collapse(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],loc_vol);
-		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens,loc_vol);
+		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens[gauge_ferm_conf],loc_vol);
 		  }
 		
 		for(int icopy=0;icopy<ncopies;icopy++)
