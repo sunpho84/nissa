@@ -48,22 +48,20 @@ void in_main(int narg,char **arg)
   
   //print
   FILE *fout=open_file(pathout,"w");
-  for(int iflav=0;iflav<2;iflav++)
+  for(int i=0;i<nspinors;i++)
     for(int ivol=0;ivol<loc_vol;ivol++)
-      for(int id_so=0;id_so<4;id_so++)
-	for(int id_si=0;id_si<4;id_si++)
-	  for(int ic_si=0;ic_si<3;ic_si++)
-	    fprintf(fout,"%d  % 2d % 2d % 2d % 2d  %d %d %d  %+016.016le %+016.016le\n",
-		    iflav,
-		    glb_coord_of_loclx[ivol][0],
-		    glb_coord_of_loclx[ivol][1],
-		    glb_coord_of_loclx[ivol][2],
-		    glb_coord_of_loclx[ivol][3],
-		    id_so,
-		    id_si,
-		    ic_si,
-		    in[id_so*2+iflav][ivol][id_si][ic_si][RE],
-		    in[id_so*2+iflav][ivol][id_si][ic_si][IM]);
+      for(int id_si=0;id_si<4;id_si++)
+	for(int ic_si=0;ic_si<3;ic_si++)
+	  fprintf(fout,"%d  %d %d %d %d  %d %d  %+16.16lg %+16.16lg\n",
+		  i,
+		  glb_coord_of_loclx[ivol][0],
+		  glb_coord_of_loclx[ivol][1],
+		  glb_coord_of_loclx[ivol][2],
+		  glb_coord_of_loclx[ivol][3],
+		  id_si,
+		  ic_si,
+		  in[i][ivol][id_si][ic_si][RE],
+		  in[i][ivol][id_si][ic_si][IM]);
   
   close_file(fout);
   
