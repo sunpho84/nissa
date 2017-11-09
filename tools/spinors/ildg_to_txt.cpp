@@ -6,24 +6,27 @@ void in_main(int narg,char **arg)
 {
   if(nranks>1) crash("cannot run in parallel");
   
-  if(narg<5) crash("use: %s L T file_in file_out",arg[0]);
+  if(narg<6) crash("use: %s L T file_in file_out nspinors",arg[0]);
   
   int L=atoi(arg[1]);
   int T=atoi(arg[2]);
+  char *pathin=arg[3];
+  char *pathout=arg[4];
+  int nspinors=atoi(arg[5]);
   
   //Init the MPI grid
   init_grid(T,L);
   
   ///////////////////////////////////////////
   
-  spincolor *in[8];
-  for(int i=0;i<8;i++)
+  spincolor *in[nspinors];
+  for(int i=0;i<nspinors;i++)
     {
       in[i]=nissa_malloc("in",loc_vol,spincolor);
       for(int j=0;j<loc_vol*4*3*2;j++) ((double*)(in[i]))[j]=9;
     }
   int i=0;
-  ILDG_File fin=ILDG_File_open_for_read(arg[3]);
+  ILDG_File fin=ILDG_File_open_for_read(pathin);
   do
     {
       ILDG_header head=ILDG_File_get_next_record_header(fin);
@@ -39,12 +42,12 @@ void in_main(int narg,char **arg)
 	  free(mess);
 	}
     }
-  while(i<8);
+  while(i<nspinors);
   
   ILDG_File_close(fin);
   
   //print
-  FILE *fout=open_file(arg[4],"w");
+  FILE *fout=open_file(pathout,"w");
   for(int iflav=0;iflav<2;iflav++)
     for(int ivol=0;ivol<loc_vol;ivol++)
       for(int id_so=0;id_so<4;id_so++)
@@ -66,7 +69,7 @@ void in_main(int narg,char **arg)
   
   //read_real_vector(in,arg[3],"scidac-binary-data");
   
-  for(int i=0;i<8;i++) nissa_free(in[i]);
+  for(int i=0;i<nspinors;i++) nissa_free(in[i]);
   
   ///////////////////////////////////////////
 }
