@@ -140,7 +140,7 @@ namespace nissa
   {
     ILDG_File file;
 #ifdef USE_MPI_IO
-    file=ILDG_File_open(path.c_str(),MPI_MODE_WRONLY|MPI_MODE_CREATE);
+    file=ILDG_File_open(path,MPI_MODE_WRONLY|MPI_MODE_CREATE);
     decript_MPI_error(MPI_File_set_size(file,0),"while resizing to 0 the file %s",path.c_str());
 #else
     file=ILDG_File_open(path.c_str(),"w");
