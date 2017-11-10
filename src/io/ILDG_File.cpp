@@ -116,12 +116,15 @@ namespace nissa
   ILDG_File ILDG_File_open(const std::string &path,const char *mode)
 #endif
   {
+    char path_str[1024];
+    snprintf(path_str,1024,"%s",path.c_str());
+    
     ILDG_File file;
 #ifdef USE_MPI_IO
-    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,path.c_str(),amode,MPI_INFO_NULL,&file),"while opening file %s",path.c_str());
+    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,path_str,amode,MPI_INFO_NULL,&file),"while opening file %s",path_str);
 #else
-    file=fopen(path.c_str(),mode);
-    if(file==NULL) crash("while opening file %s",path.c_str());
+    file=fopen(path_str,mode);
+    if(file==NULL) crash("while opening file %s",path_str);
 #endif
     
     return file;
