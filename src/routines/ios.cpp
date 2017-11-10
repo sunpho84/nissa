@@ -217,7 +217,7 @@ namespace nissa
     va_list args;
     
     va_start(args,format);
-    vsprintf(buffer,format,args);
+    vsnprintf(buffer,1024,format,args);
     va_end(args);
     
     return std::string(buffer);

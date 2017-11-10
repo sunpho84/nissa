@@ -122,7 +122,7 @@ namespace nissa
     
     ILDG_File file;
 #ifdef USE_MPI_IO
-    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,path_str,amode,MPI_INFO_NULL,&file),"while opening file %s",path_str);
+    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,path_str,amode,MPI_INFO_NULL,&file),combine("while opening file %s",path_str).c_str());
 #else
     file=fopen(path_str,mode);
     if(file==NULL) crash("while opening file %s",path_str);
