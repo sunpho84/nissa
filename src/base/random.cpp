@@ -175,10 +175,11 @@ namespace nissa
   void generate_random_coord(coords c)
   {
     GET_THREAD_ID();
+    coords temp;
     for(int mu=0;mu<NDIM;mu++)
       {
-	if(IS_MASTER_THREAD) c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));
-	THREAD_BROADCAST(c[mu],c[mu]);
+	if(IS_MASTER_THREAD) temp[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));
+	THREAD_BROADCAST(c[mu],temp[mu]);
       }
   }
   
