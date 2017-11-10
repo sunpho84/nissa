@@ -416,11 +416,18 @@ namespace nissa
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
 		//extract component mu
+		complex loc_summ={0,0};
 		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-		  complex_copy(temp[ivol],si[ivol][mu]);
+		  {
+		    complex_copy(temp[ivol],si[ivol][mu]);
+		    complex_summassign(loc_summ,temp[ivol]);
+		  }
 		THREAD_BARRIER();
+		complex glb_summ;
+		glb_reduce_complex(glb_summ,loc_summ);
 		//write the component
 		write_double_vector(file,temp,64,combine("handcuff_mu_%d",mu).c_str());
+		master_printf("handcuff side %s, component %d, value on site 0: (%.16lg,%.16lg), summ: (%.16lg,%.16lg)\n",h.name.c_str(),mu,temp[0][RE],temp[0][IM],glb_summ[RE],glb_summ[IM]);
 	      }
 	    nissa_free(temp);
 	    
