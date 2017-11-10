@@ -409,7 +409,8 @@ namespace nissa
 	if(h.store)
 	  {
 	    //open the file
-	    std::string path=combine("%s/handcuff_side_%s",outfolder,h.name.c_str());
+	    const std::string path=combine("%s/handcuff_side_%s",outfolder,h.name.c_str());
+	    master_printf("Opening file: %s\n",path.c_str());
 	    ILDG_File file=ILDG_File_open_for_write(path);
 	    
 	    complex *temp=nissa_malloc("temp",loc_vol,complex);

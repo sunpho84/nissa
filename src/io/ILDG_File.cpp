@@ -111,14 +111,14 @@ namespace nissa
   
   //open a file
 #ifdef USE_MPI_IO
-  ILDG_File ILDG_File_open(std::string path,int amode)
+  ILDG_File ILDG_File_open(const std::string &path,int amode)
 #else
-    ILDG_File ILDG_File_open(std::string path,const char *mode)
+  ILDG_File ILDG_File_open(const std::string &path,const char *mode)
 #endif
   {
     ILDG_File file;
 #ifdef USE_MPI_IO
-    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,(char*)path.c_str(),amode,MPI_INFO_NULL,&file),"while opening file %s",path.c_str());
+    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,path.c_str(),amode,MPI_INFO_NULL,&file),"while opening file %s",path.c_str());
 #else
     file=fopen(path.c_str(),mode);
     if(file==NULL) crash("while opening file %s",path.c_str());
@@ -127,7 +127,7 @@ namespace nissa
     return file;
   }
   
-  ILDG_File ILDG_File_open_for_read(std::string path)
+  ILDG_File ILDG_File_open_for_read(const std::string &path)
   {
 #ifdef USE_MPI_IO
     return ILDG_File_open(path,MPI_MODE_RDONLY);
@@ -136,7 +136,7 @@ namespace nissa
 #endif
   }
   
-  ILDG_File ILDG_File_open_for_write(std::string path)
+  ILDG_File ILDG_File_open_for_write(const std::string &path)
   {
     ILDG_File file;
 #ifdef USE_MPI_IO
