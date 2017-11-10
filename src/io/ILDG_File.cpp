@@ -118,6 +118,7 @@ namespace nissa
   {
     char path_str[1024];
     snprintf(path_str,1024,"%s",path.c_str());
+    master_printf("Opening file: %s\n",path_str);
     
     ILDG_File file;
 #ifdef USE_MPI_IO
