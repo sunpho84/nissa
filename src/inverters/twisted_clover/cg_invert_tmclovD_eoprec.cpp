@@ -218,8 +218,9 @@ namespace nissa
 	  THREAD_BARRIER();
 	  
 	  //compute the norm and print it
+	  double sonorm2=double_vector_glb_norm2(source_lx,loc_vol);
 	  double norm2=double_vector_glb_norm2(temp_lx,loc_vol);
-	  master_printf("check solution: %lg\n",norm2);
+	  master_printf("check solution: %lg\n",norm2/sonorm2);
 	  nissa_free(temp_lx);
 	   // for(int ivol=0;ivol<loc_vol;ivol++)
 	  //   for(int id=0;id<4;id++)
