@@ -160,7 +160,7 @@ void read_smooth_pars(smooth_pars_t &smooth_pars,int flag=false)
 void read_top_meas_pars(top_meas_pars_t &pars,int flag=false)
 {
   if(!flag) read_str_int("MeasureTopology",&pars.each);
-  if(flag)
+  if(pars.each)
     {
       pars.path=read_path();
       read_smooth_pars(pars.smooth_pars,true);
