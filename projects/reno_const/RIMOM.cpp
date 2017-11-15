@@ -330,6 +330,8 @@ void calculate_S0()
 		  put_spincolor_into_su3spinspin(S0[r][im],temp_sol,id,ic);
 		}
 	  }
+      nissa_free(temp_source);
+      nissa_free(temp_sol);
     }
   else
     {
