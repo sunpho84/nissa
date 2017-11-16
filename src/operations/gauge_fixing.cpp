@@ -376,7 +376,7 @@ namespace nissa
   }
   
   //adapt the value of alpha to minimize the functional
-  void adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,double &alpha,double alpha_def,quad_su3 *ori_conf,const double func_0,bool &use_adapt)
+  void adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,double &alpha,double alpha_def,quad_su3 *ori_conf,const double func_0,bool &use_adapt,int &nskipped_adapt)
   {
 #ifndef REPRODUCIBLE_RUN
     crash("need reproducible run to enable adaptative search");
@@ -424,21 +424,23 @@ namespace nissa
 	VERBOSITY_MASTER_PRINTF("F:   %.16lg %.16lg %.16lg\n",F[0],F[1],F[2]);
 	VERBOSITY_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
 	
-	double vert=-b/(2*a);
-	pos_curv=(a>0);
 	zero_curv=(fabs(a)<1e-14);
-	brack_vert=(2*alpha>vert);
-	
-	VERBOSITY_MASTER_PRINTF("Vertex position: %lg\n",vert);
-	VERBOSITY_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
 	if(zero_curv)
 	  {
 	    VERBOSITY_MASTER_PRINTF("Curvature is compatible with zero (%lg), switching off temporarily the adaptative search\n",a);
+	    nskipped_adapt++; //increase the counting of temporarily switched off
 	    alpha=alpha_def;
 	  }
 	else
 	  {
-	    VERBOSITY_MASTER_PRINTF("Bracketing the vertex: %d\n",brack_vert);
+	    nskipped_adapt=0; //resetting count of temporarily switched off
+	    double vert=-b/(2*a);
+	    pos_curv=(a>0);
+	    brack_vert=(2*alpha>vert);
+	    
+	    VERBOSITY_MASTER_PRINTF("Vertex position: %lg\n",vert);
+	    VERBOSITY_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
+	    
 	    if(not pos_curv)
 	      {
 		alpha/=2.05897683269763;
@@ -447,7 +449,7 @@ namespace nissa
 	    else
 	      {
 		if(not brack_vert) VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
-		else               VERBOSITY_MASTER_PRINTF("Good, jumping to %lg\n",vert);
+		else               VERBOSITY_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",vert);
 	      }
 	    alpha=vert;
 	  }
@@ -565,7 +567,7 @@ namespace nissa
   
   //do all the fixing exponentiating
   void Landau_or_Coulomb_gauge_fixing_exponentiate(quad_su3 *fixed_conf,su3 *fixer,LC_gauge_fixing_pars_t::gauge_t gauge,
-						   double &alpha,double alpha_def,quad_su3 *ori_conf,const double func_0,const bool &use_FACC,bool &use_adapt,bool &use_GCG,int iter)
+						   double &alpha,double alpha_def,quad_su3 *ori_conf,const double func_0,const bool &use_FACC,bool &use_adapt,int &nskipped_adapt,bool &use_GCG,int iter)
   {
     using namespace GCG;
     
@@ -594,7 +596,7 @@ namespace nissa
     //take the exponent with alpha
     su3 *g=nissa_malloc("g",loc_vol,su3);
     
-    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,alpha_def,ori_conf,func_0,use_adapt);
+    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,alpha_def,ori_conf,func_0,use_adapt,nskipped_adapt);
     exp_der_alpha_half(g,v,alpha);
     
     //put the transformation
@@ -642,7 +644,7 @@ namespace nissa
     double prec,func,old_func;
     double alpha=pars->alpha_exp;
     bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
-    int iter=0;
+    int iter=0,nskipped_adapt=0;
     do
       {
 	//go on fixing until reaching precision, or exceeding the iteration count
@@ -657,7 +659,7 @@ namespace nissa
 	    switch(pars->method)
 	      {
 	      case LC_gauge_fixing_pars_t::exponentiate:
-		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,pars->alpha_exp,ori_conf,old_func,use_fft_acc,use_adapt,use_GCG,iter);break;
+		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,pars->alpha_exp,ori_conf,old_func,use_fft_acc,use_adapt,nskipped_adapt,use_GCG,iter);break;
 	      case LC_gauge_fixing_pars_t::overrelax:
 		Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars->gauge,pars->overrelax_prob,fixer,ori_conf);break;
 	      default:
@@ -671,13 +673,13 @@ namespace nissa
 	    get_out|=(not (iter<pars->nmax_iterations));
 	    get_out|=(not (iter%pars->unitarize_each==0));
 	    
-	    //switch off adaptative search if precision is too small
-	    const double adapt_tol=1e-13;
-	    // if(use_adapt and prec<adapt_tol)
-	    //   {
-	    // 	master_printf("Switching off adaptative search\n");
-	    // 	use_adapt=false;
-	    //   }
+	    //switch off adaptative search if skipped too many times
+	    int nskipped_adapt_tol=5;
+	    if(use_adapt and nskipped_adapt>=nskipped_adapt_tol)
+	      {
+	    	master_printf("Reached tolerance of skipping %d, switching off adaptative search\n",nskipped_adapt);
+	    	use_adapt=false;
+	      }
 	  }
 	while(not get_out);
 	
