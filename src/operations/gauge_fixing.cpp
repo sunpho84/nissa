@@ -436,18 +436,21 @@ namespace nissa
 	    VERBOSITY_MASTER_PRINTF("Curvature is compatible with zero (%lg), switching off temporarily the adaptative search\n",a);
 	    alpha=alpha_def;
 	  }
-	VERBOSITY_MASTER_PRINTF("Bracketing the vertex: %d\n",brack_vert);
-	if(not pos_curv)
-	  {
-	    alpha/=2.05897683269763;
-	    VERBOSITY_MASTER_PRINTF("Decreasing alpha to %lg\n",alpha);
-	  }
 	else
 	  {
-	    if(not brack_vert) VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
-	    else               VERBOSITY_MASTER_PRINTF("Good, jumping to %lg\n",vert);
+	    VERBOSITY_MASTER_PRINTF("Bracketing the vertex: %d\n",brack_vert);
+	    if(not pos_curv)
+	      {
+		alpha/=2.05897683269763;
+		VERBOSITY_MASTER_PRINTF("Decreasing alpha to %lg\n",alpha);
+	      }
+	    else
+	      {
+		if(not brack_vert) VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
+		else               VERBOSITY_MASTER_PRINTF("Good, jumping to %lg\n",vert);
+	      }
+	    alpha=vert;
 	  }
-	alpha=vert;
 	
 	if(iter>=nadapt_iter_max)
 	  {
