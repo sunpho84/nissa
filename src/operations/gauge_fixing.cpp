@@ -670,11 +670,11 @@ namespace nissa
 	    
 	    //switch off adaptative search if precision is too small
 	    const double adapt_tol=1e-13;
-	    if(use_adapt and prec<adapt_tol)
-	      {
-		master_printf("Switching off adaptative search\n");
-		use_adapt=false;
-	      }
+	    // if(use_adapt and prec<adapt_tol)
+	    //   {
+	    // 	master_printf("Switching off adaptative search\n");
+	    // 	use_adapt=false;
+	    //   }
 	  }
 	while(not get_out);
 	
