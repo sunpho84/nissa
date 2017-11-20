@@ -426,7 +426,7 @@ namespace nissa
 		complex glb_summ;
 		glb_reduce_complex(glb_summ,loc_summ);
 		//write the component
-		write_double_vector(file,temp,64,combine("handcuff_mu_%d",mu).c_str());
+		write_real_vector(file,temp,64,combine("handcuff_mu_%d",mu).c_str());
 		master_printf("handcuff side %s, component %d, value on site 0: (%.16lg,%.16lg), summ: (%.16lg,%.16lg)\n",h.name.c_str(),mu,temp[0][RE],temp[0][IM],glb_summ[RE],glb_summ[IM]);
 	      }
 	    nissa_free(temp);

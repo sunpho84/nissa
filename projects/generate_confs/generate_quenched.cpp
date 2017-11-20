@@ -285,7 +285,7 @@ void append_corr(const char *path,double *corr,int r,bool conf_created)
   //write data
   char header[30];
   sprintf(header,"%d_%d",iconf,r);
-  write_double_vector(file,corr,1,64,header);
+  write_real_vector(file,corr,1,64,header);
   
   //close
   ILDG_File_close(file);

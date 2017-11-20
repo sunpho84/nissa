@@ -21,7 +21,7 @@
 namespace nissa
 {
   //Write a vector of double, in 32 or 64 bits according to the argument
-  void write_double_vector(ILDG_File &file,double *data,size_t nreals_per_site,size_t nbits,const char *header_message,ILDG_message *mess=NULL)
+  void write_real_vector(ILDG_File &file,double *data,size_t nreals_per_site,size_t nbits,const char *header_message,ILDG_message *mess=NULL)
   {
     if(nbits!=32 && nbits!=64) crash("Error, asking %u precision, use instead 32 or 64\n",nbits);
     
@@ -95,7 +95,7 @@ namespace nissa
 #endif
     
     //Write the binary data
-    write_double_vector(file,(double*)spinor,4*NCOL*2,prec,"scidac-binary-data");
+    write_real_vector(file,(double*)spinor,4*NCOL*2,prec,"scidac-binary-data");
     
     //Close the file
     ILDG_File_close(file);
@@ -134,7 +134,7 @@ namespace nissa
     quad_su3_nissa_to_ildg_reord_in_place(in);
     
     //write the lattice part
-    write_double_vector(file,(double*)in,NDIM*NCOL*NCOL*2,prec,"ildg-binary-data",mess);
+    write_real_vector(file,(double*)in,NDIM*NCOL*NCOL*2,prec,"ildg-binary-data",mess);
     
     //reorder back
     quad_su3_ildg_to_nissa_reord_in_place(in);

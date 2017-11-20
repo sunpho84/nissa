@@ -244,7 +244,7 @@ void generate_source()
     {
       char outpath[1024];
       sprintf(outpath,"%s/source",outfolder);
-      write_double_vector(outpath,original_source,64,"source");
+      write_real_vector(outpath,original_source,64,"source");
     }
 #endif
 }
@@ -792,7 +792,7 @@ void calculate_all_S0(int ism_lev_so)
 		      
 		      load_save_S0_time-=take_time();
 		      
-		      if(save_S0) write_double_vector(path,cgm_solution[imass],64,"S0");
+		      if(save_S0) write_real_vector(path,cgm_solution[imass],64,"S0");
 		      else        read_real_vector(cgm_solution[imass],path,"S0");
 		      
 		      load_save_S0_time+=take_time();

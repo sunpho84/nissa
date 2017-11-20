@@ -275,7 +275,7 @@ namespace nissa
 		{
 		  master_printf("  writing the source dirac index %d, color %d\n",id_so,ic_so);
 		  START_TIMING(store_prop_time,nstore_prop);
-		  write_double_vector(path,sou,64,"scidac-binary-data");
+		  write_real_vector(path,sou,64,"scidac-binary-data");
 		  STOP_TIMING(store_prop_time);
 		}
 	    }
@@ -333,7 +333,7 @@ namespace nissa
 		  if(q.store)
 		    {
 		      START_TIMING(store_prop_time,nstore_prop);
-		      write_double_vector(path,sol,64,"scidac-binary-data");
+		      write_real_vector(path,sol,64,"scidac-binary-data");
 		      STOP_TIMING(store_prop_time);
 		    }
 		  master_printf("  finished the inversion dirac index %d, color %d\n",id_so,ic_so);

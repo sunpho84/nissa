@@ -104,7 +104,7 @@ void write_all_propagators(const char *name,int prec)
 	char path[1024];
 	sprintf(path,"%s/%sprop/r%1d_im%02d",outfolder,name,r,imass);
 	save_prop_time-=take_time();
-	write_double_vector(path,S0[r][imass],prec,"tm_prop");
+	write_real_vector(path,S0[r][imass],prec,"tm_prop");
 	save_prop_time+=take_time();
 	nsaved_prop_tot++;
       }
