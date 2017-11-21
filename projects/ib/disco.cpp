@@ -29,18 +29,17 @@ THREADABLE_FUNCTION_4ARG(calc_cur, spin1field*,cur, spincolor*,source, quad_su3*
 	
 	//piece psi_ivol U_ivol psi_fw
 	unsafe_su3_prod_spincolor(f,conf[ivol][mu],prop[ifw]);
-	spincolor_print(prop[ivol]);
 	spincolor_copy(Gf,f);
 	dirac_subt_the_prod_spincolor(Gf,base_gamma+igamma_of_mu[mu],f);
 	spincolor_scalar_prod(c,source[ivol],Gf);
 	complex_summ_the_prod_idouble(cur[ivol][mu],c,-0.5);
 	
-	// //piece psi_fw U_ivol^dag psi_ivol
-	// unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],prop[ivol]);
-	// spincolor_copy(Gf,f);
-	// dirac_summ_the_prod_spincolor(Gf,base_gamma+igamma_of_mu[mu],f);
-	// spincolor_scalar_prod(c,source[ifw],Gf);
-	// complex_summ_the_prod_idouble(cur[ivol][mu],c,+0.5);
+	//piece psi_fw U_ivol^dag psi_ivol
+	unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],prop[ivol]);
+	spincolor_copy(Gf,f);
+	dirac_summ_the_prod_spincolor(Gf,base_gamma+igamma_of_mu[mu],f);
+	spincolor_scalar_prod(c,source[ifw],Gf);
+	complex_summ_the_prod_idouble(cur[ivol][mu],c,+0.5);
       }
   set_borders_invalid(cur);
 }
