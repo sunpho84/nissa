@@ -280,23 +280,36 @@ namespace nissa
   
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  //compute the matrix element of the conserved current between two propagators
-  THREADABLE_FUNCTION_6ARG(conserved_vector_current_mel, quad_su3*,conf, spin1field*,si, dirac_matr*,g, int,r, const char*,id_Qbw, const char*,id_Qfw)
+  //compute the matrix element of the conserved current between two propagators. If asking to revert, g5 is inserted between the two propagators
+  THREADABLE_FUNCTION_7ARG(conserved_vector_current_mel, quad_su3*,conf, spin1field*,si, dirac_matr*,ext_g, int,r, const char*,id_Qbw, const char*,id_Qfw, bool,revert)
   {
     GET_THREAD_ID();
     
     //compute the gammas
     dirac_matr GAMMA[5],temp_gamma;
-    if(twisted_run)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[r]);
+    if(twisted_run>0)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[r]);
     else                temp_gamma=base_gamma[0];
-    dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
     
-    for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
+    //Add g5 on the gamma, only if asked to revert
+    if(revert)
+      {
+	dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
+	for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
+      }
+    else
+      {
+	GAMMA[4]=temp_gamma;
+	for(int mu=0;mu<NDIM;mu++) GAMMA[mu]=base_gamma[igamma_of_mu[mu]];
+      }
+    
+    dirac_matr g;
+    if(revert) dirac_prod(&g,ext_g,base_gamma+5);
+    else       g=*ext_g;
     
     for(int iso_spi_bw=0;iso_spi_bw<nso_spi;iso_spi_bw++)
       for(int iso_col=0;iso_col<nso_col;iso_col++)
 	{
-	  int iso_spi_fw=g->pos[iso_spi_bw];
+	  int iso_spi_fw=g.pos[iso_spi_bw];
 	  int ifw=so_sp_col_ind(iso_spi_fw,iso_col);
 	  int ibw=so_sp_col_ind(iso_spi_bw,iso_col);
 	  
@@ -320,7 +333,7 @@ namespace nissa
 		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
 		dirac_subt_the_prod_spincolor(Gf,GAMMA+mu,f);
 		spincolor_scalar_prod(c,Qbw[ivol],Gf);
-		complex_prodassign(c,g->entr[iso_spi_bw]);
+		complex_prodassign(c,g.entr[iso_spi_bw]);
 		complex_summ_the_prod_idouble(si[ivol][mu],c,-0.5);
 		
 		//piece psi_fw U_ivol^dag psi_ivol
@@ -328,7 +341,7 @@ namespace nissa
 		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
 		dirac_summ_the_prod_spincolor(Gf,GAMMA+mu,f);
 		spincolor_scalar_prod(c,Qbw[ifw],Gf);
-		complex_prodassign(c,g->entr[iso_spi_bw]);
+		complex_prodassign(c,g.entr[iso_spi_bw]);
 		complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
 	      }
 	}
@@ -336,17 +349,23 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the matrix element of the current between two propagators
-  THREADABLE_FUNCTION_5ARG(vector_current_mel, spin1field*,si, dirac_matr*,g, int,r, const char*,id_Qbw, const char*,id_Qfw)
+  THREADABLE_FUNCTION_6ARG(vector_current_mel, spin1field*,si, dirac_matr*,ext_g, int,r, const char*,id_Qbw, const char*,id_Qfw, bool,revert)
   {
     GET_THREAD_ID();
     
     dirac_matr GAMMA[NDIM];
-    for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
+    for(int mu=0;mu<NDIM;mu++)
+      if(revert) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
+      else       GAMMA[mu]=base_gamma[igamma_of_mu[mu]];
+    
+    dirac_matr g;
+    if(revert) dirac_prod(&g,ext_g,base_gamma+5);
+    else       g=*ext_g;
     
     for(int iso_spi_fw=0;iso_spi_fw<nso_spi;iso_spi_fw++)
       for(int iso_col=0;iso_col<nso_col;iso_col++)
 	{
-	  int iso_spi_bw=g->pos[iso_spi_fw];
+	  int iso_spi_bw=g.pos[iso_spi_fw];
 	  
 	  //get componentes
 	  spincolor *Qbw=Q[id_Qbw][so_sp_col_ind(iso_spi_bw,iso_col)];
@@ -360,7 +379,7 @@ namespace nissa
 		
 		unsafe_dirac_prod_spincolor(temp,GAMMA+mu,Qfw[ivol]);
 		spincolor_scalar_prod(c,Qbw[ivol],temp);
-		complex_summ_the_prod(si[ivol][mu],c,g->entr[iso_spi_fw]);
+		complex_summ_the_prod(si[ivol][mu],c,g.entr[iso_spi_fw]);
 	      }
 	}
   }
@@ -391,18 +410,19 @@ namespace nissa
 	
 	//compute dirac combo
 	dirac_matr g;
-	int ig=handcuffs_side_map[iside].igamma;
+	int ig=::abs(handcuffs_side_map[iside].igamma);
+	int revert=(handcuffs_side_map[iside].igamma>=0); //reverting only if positive ig asked
 	if(ig!=5 and !diluted_spi_source) crash("ig %d not available if not diluting in spin",ig);
 	dirac_prod(&g,base_gamma+5,base_gamma+ig);
 	
 	//compute the matrix element
-	if(loc_hadr_curr) vector_current_mel(si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str());
+	if(loc_hadr_curr) vector_current_mel(si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str(),revert);
 	else
 	  {
 	    double plain_bc[NDIM];
 	    plain_bc[0]=QUARK_BOUND_COND;
 	    for(int mu=1;mu<NDIM;mu++) plain_bc[mu]=0.0;
-	    conserved_vector_current_mel(get_updated_conf(Q[h.fw].charge,plain_bc,glb_conf),si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str());
+	    conserved_vector_current_mel(get_updated_conf(Q[h.fw].charge,plain_bc,glb_conf),si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str(),revert);
 	  }
 	
 	//store the file for future read

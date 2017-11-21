@@ -174,7 +174,7 @@ namespace nissa
     if(!loc_muon_curr)
       {
 	dirac_matr GAMMA;
-	if(twisted_run) dirac_prod_double(&GAMMA,base_gamma+0,1);
+	if(twisted_run>0) dirac_prod_double(&GAMMA,base_gamma+0,1);
 	else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
 	
 	//phases

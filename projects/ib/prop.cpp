@@ -36,7 +36,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //rotate the source index - the propagator rotate AS the sign of mass term
-    if(twisted_run) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
+    if(twisted_run>0) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
     
     //invert
     START_TIMING(inv_time,ninv_tot);
@@ -49,7 +49,7 @@ namespace nissa
     STOP_TIMING(inv_time);
     
     //rotate the sink index
-    if(twisted_run) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
+    if(twisted_run>0) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
   }
   
   //generate a source, wither a wall or a point in the origin
@@ -139,22 +139,22 @@ namespace nissa
   {
     if(loc) insert_external_loc_source(out,curr,ori,t,dirs);
     else
-      if(twisted_run) insert_tm_external_source(out,conf,curr,ori,r,dirs,t);
-      else            insert_Wilson_external_source(out,conf,curr,ori,dirs,t);
+      if(twisted_run>0) insert_tm_external_source(out,conf,curr,ori,r,dirs,t);
+      else              insert_Wilson_external_source(out,conf,curr,ori,dirs,t);
   }
   
   //insert the tadpole
   void insert_tadpole(spincolor *out,quad_su3 *conf,spincolor *ori,int t,int r)
   {
-    if(twisted_run) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,t);
-    else            insert_Wilson_tadpole(loop_source,conf,ori,tadpole,t);
+    if(twisted_run>0) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,t);
+    else              insert_Wilson_tadpole(loop_source,conf,ori,tadpole,t);
   }
   
   //insert the conserved current
   void insert_conserved_current(spincolor *out,quad_su3 *conf,spincolor *ori,int t,int r,coords dirs)
   {
-    if(twisted_run) insert_tm_conserved_current(loop_source,conf,ori,r,dirs,t);
-    else            insert_Wilson_conserved_current(loop_source,conf,ori,dirs,t);
+    if(twisted_run>0) insert_tm_conserved_current(loop_source,conf,ori,r,dirs,t);
+    else              insert_Wilson_conserved_current(loop_source,conf,ori,dirs,t);
   }
   
   //smear the propagator
