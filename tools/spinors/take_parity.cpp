@@ -4,6 +4,8 @@ using namespace nissa;
 
 int main(int narg,char **arg)
 {
+  init_nissa(narg,arg);
+  
   if(nranks>1) crash("cannot run in parallel");
   
   if(narg<7) crash("use: %s L T file_in file_out parity nspinors",arg[0]);
@@ -21,11 +23,13 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
   
   spincolor *sp=nissa_malloc("sp",loc_vol,spincolor);
-  int i=0;
+  int ispinor=0;
   ILDG_File fin=ILDG_File_open_for_read(pathin);
   ILDG_File fout=ILDG_File_open_for_write(pathout);
   do
     {
+      master_printf("Searching for spinor: %d/%d\n",ispinor,nspinors);
+      
       ILDG_header head=ILDG_File_get_next_record_header(fin);
       master_printf("%s %lld\n",head.type,head.data_length);
       
@@ -36,6 +40,7 @@ int main(int narg,char **arg)
 	    if(loclx_parity[ivol]!=parity)
 	      spincolor_put_to_zero(sp[ivol]);
 	  write_real_vector(fout,sp,64,head.type);
+	  ispinor++;
 	}
       else
 	{
@@ -49,7 +54,7 @@ int main(int narg,char **arg)
 	  free(mess);
 	}
     }
-  while(i<nspinors);
+  while(ispinor<nspinors);
   
   ILDG_File_close(fin);
   ILDG_File_close(fout);
