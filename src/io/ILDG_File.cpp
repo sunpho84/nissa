@@ -378,8 +378,8 @@ namespace nissa
       {
 	change_endianness(&header.data_length,&header.data_length,1);
 	verbosity_lv3_master_printf("record %s contains: %lld bytes\n",header.type,header.data_length);
-	change_endianness(&header.magic_no,&header.magic_no,1);
-	change_endianness(&header.version,&header.version,1);
+	change_endianness(header.magic_no);
+	change_endianness(header.version);
       }
     
     //control the magic number magic number
