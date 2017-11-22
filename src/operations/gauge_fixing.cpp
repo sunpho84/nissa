@@ -190,15 +190,18 @@ namespace nissa
   }
   
   //compute the functional that gets minimised
-  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int start_mu)
+  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int start_mu,const double *F_offset=NULL,double *ext_loc_F=NULL)
   {
     GET_THREAD_ID();
     
-    double *loc_F=nissa_malloc("loc_F",loc_vol,double);
+    double *loc_F=ext_loc_F;
+    if(ext_loc_F==NULL) loc_F=nissa_malloc("loc_F",loc_vol,double);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
-	loc_F[ivol]=0;
+	if(F_offset) loc_F[ivol]=-F_offset[ivol];
+	else         loc_F[ivol]=0;
+	
 	for(int mu=start_mu;mu<NDIM;mu++)
 	  loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
       }
@@ -207,7 +210,7 @@ namespace nissa
     //collapse
     double F;
     double_vector_glb_collapse(&F,loc_F,loc_vol);
-    nissa_free(loc_F);
+    if(ext_loc_F==NULL) nissa_free(loc_F);
     
     return F;
   }
@@ -376,7 +379,7 @@ namespace nissa
   }
   
   //adapt the value of alpha to minimize the functional
-  void adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,double &alpha,double alpha_def,quad_su3 *ori_conf,const double func_0,bool &use_adapt,int &nskipped_adapt)
+  void adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,double &alpha,double alpha_def,quad_su3 *ori_conf,const double *F_offset,bool &use_adapt,int &nskipped_adapt)
   {
 #ifndef REPRODUCIBLE_RUN
     crash("need reproducible run to enable adaptative search");
@@ -401,7 +404,7 @@ namespace nissa
 	
 	//compute three points at 0,alpha and 2alpha
 	double F[3];
-	F[0]=func_0;
+	F[0]=0;
 	vector_copy(fixer,ori_fixer);
 	// master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
 	
@@ -411,11 +414,8 @@ namespace nissa
 	    
 	    //transform and compute potential
 	    gauge_transform_conf(fixed_conf,fixer,ori_conf);
-	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu);
+	    F[i]=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,F_offset);
 	  }
-	
-	//subtract 0
-	for(int i=2;i>=0;i--) F[i]-=F[0];
 	
 	double c=F[0];
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
@@ -567,7 +567,7 @@ namespace nissa
   
   //do all the fixing exponentiating
   void Landau_or_Coulomb_gauge_fixing_exponentiate(quad_su3 *fixed_conf,su3 *fixer,LC_gauge_fixing_pars_t::gauge_t gauge,
-						   double &alpha,double alpha_def,quad_su3 *ori_conf,const double func_0,const bool &use_FACC,bool &use_adapt,int &nskipped_adapt,bool &use_GCG,int iter)
+						   double &alpha,double alpha_def,quad_su3 *ori_conf,const double *F_offset,const bool &use_FACC,bool &use_adapt,int &nskipped_adapt,bool &use_GCG,int iter)
   {
     using namespace GCG;
     
@@ -596,7 +596,7 @@ namespace nissa
     //take the exponent with alpha
     su3 *g=nissa_malloc("g",loc_vol,su3);
     
-    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,alpha_def,ori_conf,func_0,use_adapt,nskipped_adapt);
+    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,alpha_def,ori_conf,F_offset,use_adapt,nskipped_adapt);
     exp_der_alpha_half(g,v,alpha);
     
     //put the transformation
@@ -608,10 +608,10 @@ namespace nissa
   }
   
   //check if gauge fixed or not
-  bool check_Landau_or_Coulomb_gauge_fixed(double &prec,double &func,quad_su3 *fixed_conf,LC_gauge_fixing_pars_t::gauge_t gauge,double target_prec)
+  bool check_Landau_or_Coulomb_gauge_fixed(double &prec,double &func,quad_su3 *fixed_conf,LC_gauge_fixing_pars_t::gauge_t gauge,double target_prec,double *loc_F)
   {
     prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fixed_conf,gauge);
-    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge);
+    func=compute_Landau_or_Coulomb_functional(fixed_conf,gauge,NULL,loc_F);
     bool get_out=(prec<=target_prec);
     return get_out;
   }
@@ -641,9 +641,10 @@ namespace nissa
       su3_put_to_id(fixer[ivol]);
     set_borders_invalid(fixer);
     
-    double prec,func,old_func;
+    double *F_offset=nissa_malloc("F_offset",loc_vol,double);
+    double prec,func;
     double alpha=pars->alpha_exp;
-    bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
+    bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision,F_offset);
     int iter=0,nskipped_adapt=0;
     do
       {
@@ -653,13 +654,10 @@ namespace nissa
 	  {
 	    master_printf("iter: %d quality: %16.16lg functional: %16.16lg\n",iter,prec,func);
 	    
-	    //store
-	    old_func=func;
-	    
 	    switch(pars->method)
 	      {
 	      case LC_gauge_fixing_pars_t::exponentiate:
-		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,pars->alpha_exp,ori_conf,old_func,use_fft_acc,use_adapt,nskipped_adapt,use_GCG,iter);break;
+		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,pars->alpha_exp,ori_conf,F_offset,use_fft_acc,use_adapt,nskipped_adapt,use_GCG,iter);break;
 	      case LC_gauge_fixing_pars_t::overrelax:
 		Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars->gauge,pars->overrelax_prob,fixer,ori_conf);break;
 	      default:
@@ -669,7 +667,7 @@ namespace nissa
 	    
 	    //print out the precision reached and the functional
 	    get_out=false;
-	    get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
+	    get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision,F_offset);
 	    get_out|=(not (iter<pars->nmax_iterations));
 	    get_out|=(not (iter%pars->unitarize_each==0));
 	    
@@ -718,7 +716,7 @@ namespace nissa
 	
 	//check if really get out
 	really_get_out=false;
-	really_get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision);
+	really_get_out|=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision,F_offset);
 	really_get_out|=(not (iter<pars->nmax_iterations));
       }
     while(not really_get_out);
@@ -727,6 +725,7 @@ namespace nissa
     if(not really_get_out) crash("unable to fix to precision %16.16lg in %d iterations",pars->target_precision,pars->nmax_iterations);
     
     //free
+    nissa_free(F_offset);
     if(ori_conf!=ext_conf) nissa_free(ori_conf);
     nissa_free(fixer);
     if(pars->use_generalized_cg) free_GCG_stuff();
