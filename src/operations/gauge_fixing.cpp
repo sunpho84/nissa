@@ -472,9 +472,9 @@ namespace nissa
 	const double alpha_low_tol=0.01,alpha_high_tol=2;
 	if(fabs(alpha)<alpha_low_tol or fabs(alpha)>alpha_high_tol)
 	  {
-	    VERBOSITY_MASTER_PRINTF("alpha=%.16lg smaller than low tol=%.16lg or larger than high_tol=%.16lg, switching temporarily off adaptative search\n",
+	    VERBOSITY_MASTER_PRINTF("alpha=%.16lg smaller than low tol=%.16lg or larger than high_tol=%.16lg, switching off adaptative search\n",
 				    alpha,alpha_low_tol,alpha_high_tol);
-	    nskipped_adapt++;
+	    use_adapt=false;
 	    alpha=alpha_def;
 	    stay_in=false;
 	  }
