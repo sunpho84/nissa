@@ -379,7 +379,7 @@ namespace nissa
   }
   
   //adapt the value of alpha to minimize the functional
-  void adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,double &alpha,double alpha_def,quad_su3 *ori_conf,const double *F_offset,bool &use_adapt,int &nskipped_adapt)
+  void adapt_alpha(quad_su3 *fixed_conf,su3 *fixer,int start_mu,su3 *der,double &alpha,double alpha_def,quad_su3 *ori_conf,const double *F_offset,const double func,bool &use_adapt,int &nskipped_adapt)
   {
 #ifndef REPRODUCIBLE_RUN
     crash("need reproducible run to enable adaptative search");
@@ -461,6 +461,13 @@ namespace nissa
 	    alpha=alpha_def;
 	  }
 	
+	const double rel_F_tol=1e-14;
+	if(fabs(F[1]/func)<rel_F_tol or fabs(F[2]/func)<rel_F_tol)
+	  {
+	    VERBOSITY_MASTER_PRINTF("F[1]/func=%.16lg, F[2]/func=%.16lg smaller than rel_F_tol=%.16lg, switching temporarily off adaptative search\n",
+				    F[1]/func,F[2]/func,rel_F_tol);
+	    alpha=alpha_def;
+	  }
 	// //compute average and stddev
 	// double ave,dev;
 	// ave_dev(ave,dev,F,3);
@@ -568,7 +575,8 @@ namespace nissa
   
   //do all the fixing exponentiating
   void Landau_or_Coulomb_gauge_fixing_exponentiate(quad_su3 *fixed_conf,su3 *fixer,LC_gauge_fixing_pars_t::gauge_t gauge,
-						   double &alpha,double alpha_def,quad_su3 *ori_conf,const double *F_offset,const bool &use_FACC,bool &use_adapt,int &nskipped_adapt,bool &use_GCG,int iter)
+						   double &alpha,double alpha_def,quad_su3 *ori_conf,const double *F_offset,const double func,
+						   const bool &use_FACC,bool &use_adapt,int &nskipped_adapt,bool &use_GCG,int iter)
   {
     using namespace GCG;
     
@@ -597,7 +605,7 @@ namespace nissa
     //take the exponent with alpha
     su3 *g=nissa_malloc("g",loc_vol,su3);
     
-    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,alpha_def,ori_conf,F_offset,use_adapt,nskipped_adapt);
+    if(use_adapt) adapt_alpha(fixed_conf,fixer,gauge,v,alpha,alpha_def,ori_conf,F_offset,func,use_adapt,nskipped_adapt);
     exp_der_alpha_half(g,v,alpha);
     
     //put the transformation
@@ -658,7 +666,7 @@ namespace nissa
 	    switch(pars->method)
 	      {
 	      case LC_gauge_fixing_pars_t::exponentiate:
-		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,pars->alpha_exp,ori_conf,F_offset,use_fft_acc,use_adapt,nskipped_adapt,use_GCG,iter);break;
+		Landau_or_Coulomb_gauge_fixing_exponentiate(fixed_conf,fixer,pars->gauge,alpha,pars->alpha_exp,ori_conf,F_offset,func,use_fft_acc,use_adapt,nskipped_adapt,use_GCG,iter);break;
 	      case LC_gauge_fixing_pars_t::overrelax:
 		Landau_or_Coulomb_gauge_fixing_overrelax(fixed_conf,pars->gauge,pars->overrelax_prob,fixer,ori_conf);break;
 	      default:
@@ -677,13 +685,6 @@ namespace nissa
 	    if(use_adapt and nskipped_adapt>=nskipped_adapt_tol)
 	      {
 	    	master_printf("Reached tolerance of skipping %d, switching off adaptative search\n",nskipped_adapt);
-	    	use_adapt=false;
-	      }
-	    
-	    //switch off adaptative search if quality is too small
-	    if(use_adapt and prec<1e-14)
-	      {
-	    	master_printf("Fixing quality %.16lg, switching off adaptative search\n",prec);
 	    	use_adapt=false;
 	      }
 	  }
