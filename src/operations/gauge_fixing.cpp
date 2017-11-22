@@ -421,6 +421,7 @@ namespace nissa
 	double b=(4*F[1]-F[2]-3*F[0])/(2*alpha);
 	double a=(F[2]-2*F[1]+F[0])/(2*sqr(alpha));
 	
+	VERBOSITY_MASTER_PRINTF("x:   %.16lg %.16lg %.16lg\n",0,alpha,2*alpha);
 	VERBOSITY_MASTER_PRINTF("F:   %.16lg %.16lg %.16lg\n",F[0],F[1],F[2]);
 	VERBOSITY_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
 	
@@ -676,6 +677,13 @@ namespace nissa
 	    if(use_adapt and nskipped_adapt>=nskipped_adapt_tol)
 	      {
 	    	master_printf("Reached tolerance of skipping %d, switching off adaptative search\n",nskipped_adapt);
+	    	use_adapt=false;
+	      }
+	    
+	    //switch off adaptative search if quality is too small
+	    if(use_adapt and prec<1e-14)
+	      {
+	    	master_printf("Fixing quality %.16lg, switching off adaptative search\n",prec);
 	    	use_adapt=false;
 	      }
 	  }
