@@ -450,17 +450,14 @@ namespace nissa
 	      }
 	    else
 	      {
-		if(not brack_vert)
-		  {
-		    alpha=vert;
-		    VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
-		  }
+		if(not brack_vert) VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, changing alpha to %lg\n",alpha);
 		else
 		  {
 		    stay_in=false;
 		    VERBOSITY_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",vert);
 		    nskipped_adapt=0;
 		  }
+		alpha=vert;
 	      }
 	  }
 	
