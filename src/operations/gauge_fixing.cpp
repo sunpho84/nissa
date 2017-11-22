@@ -396,6 +396,7 @@ namespace nissa
     //int nneg_pos_vert=0;
     int iter=0;
     const int nadapt_iter_max=5;
+    bool stay_in=true;
     do
       {
 	VERBOSITY_MASTER_PRINTF("---iter %d---\n",iter);
@@ -429,12 +430,12 @@ namespace nissa
 	if(zero_curv)
 	  {
 	    VERBOSITY_MASTER_PRINTF("Curvature is compatible with zero (%lg), switching off temporarily the adaptative search\n",a);
-	    nskipped_adapt++; //increase the counting of temporarily switched off
+	    nskipped_adapt++;
 	    alpha=alpha_def;
+	    stay_in=false;
 	  }
 	else
 	  {
-	    nskipped_adapt=0; //resetting count of temporarily switched off
 	    double vert=-b/(2*a);
 	    pos_curv=(a>0);
 	    brack_vert=(2*alpha>vert);
@@ -450,7 +451,12 @@ namespace nissa
 	    else
 	      {
 		if(not brack_vert) VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, increasing alpha to %lg\n",alpha);
-		else               VERBOSITY_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",vert);
+		else
+		  {
+		    stay_in=false;
+		    VERBOSITY_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",vert);
+		    nskipped_adapt=0;
+		  }
 	      }
 	    alpha=vert;
 	  }
@@ -458,7 +464,9 @@ namespace nissa
 	if(iter>=nadapt_iter_max)
 	  {
 	    VERBOSITY_MASTER_PRINTF("%d adaptative searches performed, switching temporarily off the adaptative search\n",iter);
+	    nskipped_adapt++;
 	    alpha=alpha_def;
+	    stay_in=false;
 	  }
 	
 	const double rel_F_tol=1e-14;
@@ -466,7 +474,9 @@ namespace nissa
 	  {
 	    VERBOSITY_MASTER_PRINTF("F[1]/func=%.16lg, F[2]/func=%.16lg smaller than rel_F_tol=%.16lg, switching temporarily off adaptative search\n",
 				    F[1]/func,F[2]/func,rel_F_tol);
+	    nskipped_adapt++;
 	    alpha=alpha_def;
+	    stay_in=false;
 	  }
 	// //compute average and stddev
 	// double ave,dev;
@@ -479,8 +489,9 @@ namespace nissa
 	//   }
 	
 	iter++;
+	stay_in&=(iter<nadapt_iter_max);
       }
-    while(use_adapt and (iter<nadapt_iter_max) and not (zero_curv or (pos_curv and brack_vert)));
+    while(stay_in);
     
     //put back the fixer
     vector_copy(fixer,ori_fixer);
