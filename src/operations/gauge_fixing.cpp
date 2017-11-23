@@ -402,12 +402,10 @@ namespace nissa
 	{
 	  // master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
 	  
-	  vector_copy(fixed_conf,ori_conf);
-	  
 	  for(int i=0;i<=30;i++)
 	    {
 	      //take the exponent
-	      exp_der_alpha_half(g,der,i*alpha/10.0);
+	      exp_der_alpha_half(g,der,i*alpha/30.0);
 	      
 	      vector_copy(fixer,ori_fixer);
 	      add_current_transformation(fixer,g,fixer);
@@ -416,7 +414,7 @@ namespace nissa
 	      gauge_transform_conf(fixed_conf,fixer,ori_conf);
 	      
 	      double F=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,F_offset);
-	      master_printf("%.16lg %.16lg\n",alpha*i/10.0,F);
+	      master_printf("%.16lg %.16lg\n",alpha*i/30.0,F);
 	    }
 	}
 	
@@ -491,6 +489,7 @@ namespace nissa
 	  }
 	
 	const double alpha_low_tol=0.01,alpha_high_tol=2;
+	if(0)
 	if(fabs(alpha)<alpha_low_tol or fabs(alpha)>alpha_high_tol)
 	  {
 	    VERBOSITY_MASTER_PRINTF("alpha=%.16lg smaller than low tol=%.16lg or larger than high_tol=%.16lg, switching off adaptative search\n",
