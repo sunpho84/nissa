@@ -406,20 +406,17 @@ namespace nissa
 	  
 	  for(int i=0;i<=30;i++)
 	    {
+	      //take the exponent
+	      exp_der_alpha_half(g,der,i*alpha/10.0);
+	      
+	      vector_copy(fixer,ori_fixer);
+	      add_current_transformation(fixer,g,fixer);
+	      
+	      //transform and compute potential
+	      gauge_transform_conf(fixed_conf,fixer,ori_conf);
+	      
 	      double F=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,F_offset);
 	      master_printf("%.16lg %.16lg\n",alpha*i/10.0,F);
-	      
-	      if(i!=30)
-		{
-		  //take the exponent
-		  exp_der_alpha_half(g,der,i*alpha/10.0);
-		  
-		  vector_copy(fixer,ori_fixer);
-		  add_current_transformation(fixer,g,fixer);
-		  
-		  //transform and compute potential
-		  gauge_transform_conf(fixed_conf,fixer,ori_conf);
-		}
 	    }
 	}
 	
