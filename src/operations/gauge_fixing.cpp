@@ -399,6 +399,24 @@ namespace nissa
     bool stay_in=true;
     do
       {
+	{
+	  //take the exponent
+	  exp_der_alpha_half(g,der,alpha/10);
+	  
+	  vector_copy(fixer,ori_fixer);
+	  // master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
+	  
+	  for(int i=0;i<=30;i++)
+	    {
+	      double F=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,F_offset);
+	      master_printf("%.16lg %.16 lg\n",alpha*i,F);
+	      add_current_transformation(fixer,g,fixer);
+	      
+	      //transform and compute potential
+	      if(i!=30) gauge_transform_conf(fixed_conf,fixer,ori_conf);
+	    }
+	}
+	
 	VERBOSITY_MASTER_PRINTF("---iter %d---\n",iter);
 	//take the exponent
 	exp_der_alpha_half(g,der,alpha);
