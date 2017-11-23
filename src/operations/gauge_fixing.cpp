@@ -450,20 +450,20 @@ namespace nissa
 	      }
 	    else
 	      {
+		alpha=vert;
 		if(not brack_vert) VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, changing alpha to %lg\n",alpha);
 		else
 		  {
 		    stay_in=false;
-		    VERBOSITY_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",vert);
+		    VERBOSITY_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",alpha);
 		    nskipped_adapt=0;
 		  }
-		alpha=vert;
 	      }
 	  }
 	
 	if(iter>=nadapt_iter_max)
 	  {
-	    VERBOSITY_MASTER_PRINTF("%d adaptative searches performed, switching temporarily off the adaptative search\n",iter);
+	    VERBOSITY_MASTER_PRINTF("%d adaptative searches performed, switching off temporarily the adaptative search\n",iter);
 	    nskipped_adapt++;
 	    alpha=alpha_def;
 	    stay_in=false;
