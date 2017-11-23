@@ -409,7 +409,7 @@ namespace nissa
 	  for(int i=0;i<=30;i++)
 	    {
 	      double F=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,F_offset);
-	      master_printf("%.16lg %.16 lg\n",alpha*i,F);
+	      master_printf("%.16lg %.16lg\n",alpha*i,F);
 	      add_current_transformation(fixer,g,fixer);
 	      
 	      //transform and compute potential
