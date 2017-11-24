@@ -392,11 +392,10 @@ namespace nissa
     //current transform
     su3 *g=nissa_malloc("g",loc_vol,su3);
     
-    int zero_curv,pos_curv,brack_vert;
     //int nneg_pos_vert=0;
     int iter=0;
     const int nadapt_iter_max=5;
-    bool stay_in=true;
+    bool found=false,give_up=false;
     do
       {
 	{
@@ -445,47 +444,29 @@ namespace nissa
 	VERBOSITY_MASTER_PRINTF("F:   %.16lg %.16lg %.16lg\n",F[0],F[1],F[2]);
 	VERBOSITY_MASTER_PRINTF("abc: %lg %lg %lg\n",a,b,c);
 	
-	zero_curv=(fabs(a)<1e-14);
-	if(zero_curv)
+	const double a_tol=1e-14;
+	bool pos_curv=(a>a_tol);
+	if(not pos_curv)
 	  {
-	    VERBOSITY_MASTER_PRINTF("Curvature is compatible with zero (%lg), switching off temporarily the adaptative search\n",a);
-	    nskipped_adapt++;
-	    alpha=alpha_def;
-	    stay_in=false;
+	    VERBOSITY_MASTER_PRINTF("Curvature %lg is not positive within tolerance (%lg), switching off temporarily the adaptative search\n",a,a_tol);
+	    give_up=true;
 	  }
 	else
 	  {
 	    double vert=-b/(2*a);
 	    pos_curv=(a>0);
-	    brack_vert=(fabs(2*alpha)>fabs(vert));
+	    bool brack_vert=(fabs(2*alpha)>fabs(vert));
 	    
 	    VERBOSITY_MASTER_PRINTF("Vertex position: %lg\n",vert);
 	    VERBOSITY_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
 	    
-	    if(not pos_curv)
-	      {
-		alpha*=2.05897683269763;
-		VERBOSITY_MASTER_PRINTF("Increasing alpha to %lg\n",alpha);
-	      }
+	    alpha=vert;
+	    if(not brack_vert) VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, changing alpha to %lg\n",alpha);
 	    else
 	      {
-		alpha=vert;
-		if(not brack_vert) VERBOSITY_MASTER_PRINTF("Not bracketing the vertex, changing alpha to %lg\n",alpha);
-		else
-		  {
-		    stay_in=false;
-		    VERBOSITY_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",alpha);
-		    nskipped_adapt=0;
-		  }
+		found=true;
+		VERBOSITY_MASTER_PRINTF("Bracketting the vertex, jumping to %lg\n",alpha);
 	      }
-	  }
-	
-	if(iter>=nadapt_iter_max)
-	  {
-	    VERBOSITY_MASTER_PRINTF("%d adaptative searches performed, switching off temporarily the adaptative search\n",iter);
-	    nskipped_adapt++;
-	    alpha=alpha_def;
-	    stay_in=false;
 	  }
 	
 	const double alpha_low_tol=0.01,alpha_high_tol=2;
@@ -494,9 +475,8 @@ namespace nissa
 	  {
 	    VERBOSITY_MASTER_PRINTF("alpha=%.16lg smaller than low tol=%.16lg or larger than high_tol=%.16lg, switching off adaptative search\n",
 				    alpha,alpha_low_tol,alpha_high_tol);
+	    give_up=true;
 	    use_adapt=false;
-	    alpha=alpha_def;
-	    stay_in=false;
 	  }
 	// //compute average and stddev
 	// double ave,dev;
@@ -509,9 +489,22 @@ namespace nissa
 	//   }
 	
 	iter++;
-	stay_in&=(iter<nadapt_iter_max);
+
+	//check that not too many iterations have been performed
+	if(iter>=nadapt_iter_max)
+	  {
+	    VERBOSITY_MASTER_PRINTF("%d adaptative searches performed, switching off temporarily the adaptative search\n",iter);
+	    give_up=true;
+	  }
       }
-    while(stay_in);
+    while((not found) and (not give_up));
+    
+    if(found) nskipped_adapt=0;
+    else
+      {
+	nskipped_adapt++;
+	alpha=alpha_def;
+      }
     
     //put back the fixer
     vector_copy(fixer,ori_fixer);
