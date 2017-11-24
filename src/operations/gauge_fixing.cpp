@@ -401,25 +401,6 @@ namespace nissa
     bool found=false,give_up=false;
     do
       {
-	{
-	  // master_printf("Check: %lg %lg\n",func_0,compute_Landau_or_Coulomb_functional(fixed_conf,start_mu));
-	  
-	  for(int i=0;i<=30;i++)
-	    {
-	      //take the exponent
-	      exp_der_alpha_half(g,der,i*alpha/30.0);
-	      
-	      vector_copy(fixer,ori_fixer);
-	      add_current_transformation(fixer,g,fixer);
-	      
-	      //transform and compute potential
-	      gauge_transform_conf(fixed_conf,fixer,ori_conf);
-	      
-	      double F=compute_Landau_or_Coulomb_functional(fixed_conf,start_mu,F_offset);
-	      master_printf("%.16lg %.16lg\n",alpha*i/30.0,F);
-	    }
-	}
-	
 	VERBOSITY_MASTER_PRINTF("---iter %d---\n",iter);
 	//take the exponent
 	exp_der_alpha_half(g,der,alpha);
@@ -451,7 +432,7 @@ namespace nissa
 	bool pos_curv=(a>a_tol);
 	if(not pos_curv)
 	  {
-	    VERBOSITY_MASTER_PRINTF("Curvature %lg is not positive within tolerance (%lg), switching temporarily the adaptative search\n",a,a_tol);
+	    VERBOSITY_MASTER_PRINTF("Curvature %lg is not positive within tolerance (%lg), switching off the adaptative search\n",a,a_tol);
 	    use_adapt=false;
 	    give_up=true;
 	  }
@@ -473,27 +454,8 @@ namespace nissa
 	      }
 	  }
 	
-	const double alpha_low_tol=0.01,alpha_high_tol=2;
-	if(0)
-	if(fabs(alpha)<alpha_low_tol or fabs(alpha)>alpha_high_tol)
-	  {
-	    VERBOSITY_MASTER_PRINTF("alpha=%.16lg smaller than low tol=%.16lg or larger than high_tol=%.16lg, switching off adaptative search\n",
-				    alpha,alpha_low_tol,alpha_high_tol);
-	    give_up=true;
-	    use_adapt=false;
-	  }
-	// //compute average and stddev
-	// double ave,dev;
-	// ave_dev(ave,dev,F,3);
-	// VERBOSITY_MASTER_PRINTF("F ave, dev: %lg %lg\n",ave,dev);
-	// if(dev<fabs(ave)*1e-15)
-	//   {
-	//     master_printf("Switching off adaptative search\n");
-	//     use_adapt=false;
-	//   }
-	
 	iter++;
-
+	
 	//check that not too many iterations have been performed
 	if(iter>=nadapt_iter_max)
 	  {
@@ -720,40 +682,22 @@ namespace nissa
 	    	master_printf("Reached tolerance of skipping %d, switching off adaptative search\n",nskipped_adapt);
 	    	use_adapt=false;
 	      }
-	  }
+	    
+	    //switch off adaptative search if reached use_adapt_prec_tol
+	    double use_adapt_prec_tol=1e-14;
+	    if(use_adapt and prec<=use_adapt_prec_tol)
+	      {
+	    	master_printf("Reached precision %lg, smaller than tolerance (%lg), switching off adaptative search\n",prec,use_adapt_prec_tol);
+	    	use_adapt=false;
+	      }
+}
 	while(not get_out);
 	
 	//now we put the fixer on su3, and make a real transformation
 	//on the basis of what we managed to fix
-	//THREAD_BARRIER();
-	// if(rank==0 && thread_id==0)
-	//   {
-	//     su3 test;
-	//     safe_su3_prod_su3_dag(test,fixer[0],fixer[0]);
-	//     master_printf("test:\n");
-	//     su3_print(test);
-	//     su3_summ_real(test,test,-1);
-	//     master_printf(" unitarity before: %.16lg\n",sqrt(su3_norm2(test)));
-	//     master_printf("g %d:\n",0);
-	//     su3_print(fixer[0]);
-	//   }
-	// THREAD_BARRIER();
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  su3_unitarize_explicitly_inverting(fixer[ivol],fixer[ivol]);
 	set_borders_invalid(fixer);
-	// THREAD_BARRIER();
-	// if(rank==0 && thread_id==0)
-	//   {
-	//     su3 test;
-	//     safe_su3_prod_su3_dag(test,fixer[0],fixer[0]);
-	//     master_printf("test:\n");
-	//     su3_print(test);
-	//     su3_summ_real(test,test,-1);
-	//     master_printf(" unitarity after: %.16lg\n",sqrt(su3_norm2(test)));
-	//     master_printf("g %d:\n",0);
-	//     su3_print(fixer[0]);
-	//   }
-	// THREAD_BARRIER();
 	gauge_transform_conf(fixed_conf,fixer,ori_conf);
 	
 	//check if really get out
