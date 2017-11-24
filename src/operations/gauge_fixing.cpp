@@ -448,7 +448,8 @@ namespace nissa
 	bool pos_curv=(a>a_tol);
 	if(not pos_curv)
 	  {
-	    VERBOSITY_MASTER_PRINTF("Curvature %lg is not positive within tolerance (%lg), switching off temporarily the adaptative search\n",a,a_tol);
+	    VERBOSITY_MASTER_PRINTF("Curvature %lg is not positive within tolerance (%lg), switching temporarily the adaptative search\n",a,a_tol);
+	    use_adapt=false;
 	    give_up=true;
 	  }
 	else
