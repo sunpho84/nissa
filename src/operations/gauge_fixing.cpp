@@ -464,8 +464,8 @@ namespace nissa
 	    
 	    if(not pos_curv)
 	      {
-		alpha/=2.05897683269763;
-		VERBOSITY_MASTER_PRINTF("Decreasing alpha to %lg\n",alpha);
+		alpha*=2.05897683269763;
+		VERBOSITY_MASTER_PRINTF("Increasing alpha to %lg\n",alpha);
 	      }
 	    else
 	      {
