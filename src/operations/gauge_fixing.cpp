@@ -599,8 +599,8 @@ namespace nissa
     
     //store prev_der, increase s (der) and store prev_s
     vector_copy(prev_der,der);
-    if(iter==0) vector_copy(s,der);
-    else        double_vector_summ_double_vector_prod_double((double*)s,(double*)der,(double*)s,beta,loc_vol*sizeof(su3)/sizeof(double));
+    if(iter%10==0) vector_copy(s,der);
+    else           double_vector_summ_double_vector_prod_double((double*)s,(double*)der,(double*)s,beta,loc_vol*sizeof(su3)/sizeof(double));
   }
   
   //do all the fixing exponentiating
