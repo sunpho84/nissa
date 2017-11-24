@@ -457,7 +457,7 @@ namespace nissa
 	  {
 	    double vert=-b/(2*a);
 	    pos_curv=(a>0);
-	    brack_vert=(2*alpha>vert);
+	    brack_vert=(fabs(2*alpha)>fabs(vert));
 	    
 	    VERBOSITY_MASTER_PRINTF("Vertex position: %lg\n",vert);
 	    VERBOSITY_MASTER_PRINTF("Curvature is positive: %d\n",pos_curv);
