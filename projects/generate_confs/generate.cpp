@@ -310,23 +310,53 @@ int generate_new_conf(int itraj)
 }
 
 //measure plaquette and polyakov loop, writing also acceptance
-void measure_gauge_obs(std::string path,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
+void measure_gauge_obs(gauge_obs_meas_pars_t &pars ,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
+  const std::string path=pars.path;
+  
   //open creating or appending
   FILE *file=open_file(path,conf_created?"w":"a");
   
   //paths
   double paths[2];
   
-  //Wilson case: temporal and spatial plaquette
-  if(gauge_action_name==WILSON_GAUGE_ACTION) global_plaquette_eo_conf(paths,conf);
-  else global_plaquette_and_rectangles_eo_conf(paths,conf);
-  
-  //polyakov loop
-  complex pol;
-  average_polyakov_loop_eo_conf(pol,conf,0);
-  
-  master_fprintf(file,"%d\t%d\t%16.16lg\t%16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,acc,paths[0],paths[1],pol[0],pol[1]);
+  if(not pars.use_smooth)
+    {
+      //Wilson case: temporal and spatial plaquette
+      if(gauge_action_name==WILSON_GAUGE_ACTION) global_plaquette_eo_conf(paths,conf);
+      else global_plaquette_and_rectangles_eo_conf(paths,conf);
+      
+      //polyakov loop
+      complex pol;
+      average_polyakov_loop_eo_conf(pol,conf,0);
+      
+      master_fprintf(file,"%d\t%d\t%16.16lg\t%16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,acc,paths[0],paths[1],pol[0],pol[1]);
+    }
+  else
+    {
+    int nsmooth=0;
+    bool finished;
+
+    //paste into a temporary
+    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
+    paste_eo_parts_into_lx_vector(smoothed_conf,conf);
+    
+    do
+      {
+	if(gauge_action_name==WILSON_GAUGE_ACTION) global_plaquette_lx_conf(paths,smoothed_conf);
+	else global_plaquette_and_rectangles_lx_conf(paths,smoothed_conf);
+	
+	//polyakov loop
+	complex pol;
+	average_polyakov_loop_lx_conf(pol,smoothed_conf,0);
+	
+	master_fprintf(file,"%d\t%d\t%d\t%16.16lg\t%16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,acc,nsmooth,paths[0],paths[1],pol[0],pol[1]);
+	finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,nsmooth);
+      }
+    while(!finished);
+    
+    nissa_free(smoothed_conf);  
+    }
   
   if(rank==0) fclose(file);
 }
@@ -371,7 +401,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 {
   double meas_time=-take_time();
   
-  RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i].path,conf,iconf,acc,gauge_action_name);
+  RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i],conf,iconf,acc,gauge_action_name);
   RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],conf,conf_created);
   RANGE_GAUGE_MEAS(top_meas,i)
     if(measure_is_due(drv->top_meas[i],iconf))

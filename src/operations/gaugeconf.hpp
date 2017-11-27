@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "operations/su3_paths/gauge_sweeper.hpp"
+#include "operations/smearing/smooth.hpp"
 
 namespace nissa
 {
@@ -29,42 +30,37 @@ namespace nissa
     int each;
     int after;
     std::string path;
+    int use_smooth;
+    smooth_pars_t smooth_pars;
     
-    int def_itheory(){return 0;}
     int def_each(){return 1;}
     int def_after(){return 0;}
+    int def_use_smooth(){return 0;}
     std::string def_path(){return "gauge_obs";}
     
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false)
-    {
-      std::ostringstream os;
+    std::string get_str(bool full=false);
       
-      os<<"MeasPlaqPol\n";
-      if(each!=def_each()||full) os<<" Each\t\t=\t"<<each<<"\n";
-      if(after!=def_after()||full) os<<" After\t\t=\t"<<after<<"\n";
-      if(path!=def_path()||full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
-      
-      return os.str();
-    }
-    
     int is_nonstandard()
     {
       return
 	each!=def_each()||
 	after!=def_after()||
-	path!=def_path();
+	path!=def_path()||
+	use_smooth!=def_use_smooth()||
+	smooth_pars.is_nonstandard();
     }
     
     gauge_obs_meas_pars_t() :
       each(def_each()),
       after(def_after()),
-      path(def_path()) {}
+      path(def_path()),
+      use_smooth(def_use_smooth())
+    {}
   };
   
   /////////////////////////////////////////////////////////////
   
-  inline int check_add_square_staple(int *isquare_staples_to_ask,int &nsquare_staple_to_ask,int ivol,int dir,int verse,int iter);
   void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis);
   void ac_rotate_vector(void *out,void *in,int axis,size_t bps);
   void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbords,int putonedges);

@@ -324,4 +324,18 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(cool_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper)
   {sweeper->sweep_conf(conf,cool_lx_conf_handle,NULL);}
   THREADABLE_FUNCTION_END
+  
+  std::string gauge_obs_meas_pars_t::get_str(bool full)
+  {
+    std::ostringstream os;
+    
+    os<<"MeasPlaqPol\n";
+    if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
+    if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
+    if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+    if(def_use_smooth() or full) os<<" UseSmooth\t\t=\t"<<use_smooth<<"\n";
+    os<<smooth_pars.get_str(full);
+    
+    return os.str();
+  }
 }

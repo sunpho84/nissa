@@ -236,6 +236,7 @@
 %type <magnetization_meas> magnetization_meas
 %token TK_MEAS_MAGNETIZ
 //gauge measures
+%token TK_USE_SMOOTH
 %token TK_MEAS_PLAQ_POL
 %token TK_MEAS_TOP
 %token TK_MEAS_LUPPOLI
@@ -649,6 +650,8 @@ plaq_pol_meas: TK_MEAS_PLAQ_POL {$$=new gauge_obs_meas_pars_t();}
              | plaq_pol_meas each {$$->each=$2;}
              | plaq_pol_meas after {$$->after=$2;}
              | plaq_pol_meas path {$$->path=(*$2);delete $2;}
+             | plaq_pol_meas TK_USE_SMOOTH '=' int_numb {$$->use_smooth=$4;}
+             | plaq_pol_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
 ;
 
 //////////////////////////////////////////////// TOPO CHARGE ////////////////////////////////////////////////////////

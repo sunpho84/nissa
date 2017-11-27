@@ -255,6 +255,7 @@ MeasSpinPol DEBUG_PRINTF("Found MeasSpinPol\n");return TK_MEAS_SPINPOL;
 ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
 
  /* gauge measures */
+UseSmooth DEBUG_PRINTF("Found UseSmooth\n");return TK_USE_SMOOTH;
 MeasPlaqPol DEBUG_PRINTF("Found MeasPlaqPol\n");return TK_MEAS_PLAQ_POL;
 MeasTop DEBUG_PRINTF("Found MeasTop\n");return TK_MEAS_TOP;
 MeasLuppoli DEBUG_PRINTF("Found MeasLuppoli\n");return TK_MEAS_LUPPOLI;
