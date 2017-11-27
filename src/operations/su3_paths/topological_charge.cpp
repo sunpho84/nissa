@@ -504,17 +504,17 @@ namespace nissa
   
   //print pars
   std::string top_meas_pars_t::get_str(bool full)
-    {
-      std::ostringstream os;
-      
-      os<<"MeasTop\n";
-      if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
-      if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
-      if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
-      if(meas_corr!=def_meas_corr() or full) os<<" MeasCorr\t=\t"<<meas_corr<<"\n";
-      if(corr_path!=def_corr_path() or full) os<<" CorrPath\t=\t\""<<corr_path<<"\"\n";
-      os<<smooth_pars.get_str(full);
-      
-      return os.str();
-    }
+  {
+    std::ostringstream os;
+    
+    os<<"MeasTop\n";
+    if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
+    if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
+    if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+    if(meas_corr!=def_meas_corr() or full) os<<" MeasCorr\t=\t"<<meas_corr<<"\n";
+    if(corr_path!=def_corr_path() or full) os<<" CorrPath\t=\t\""<<corr_path<<"\"\n";
+    os<<smooth_pars.get_str(full);
+    
+    return os.str();
+  }
 }
