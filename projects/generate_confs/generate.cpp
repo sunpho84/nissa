@@ -338,7 +338,7 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars ,quad_su3 **conf,int iconf,in
       bool finished;
       
       //paste into a temporary
-      quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
+      quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol+edge_vol,quad_su3);
       paste_eo_parts_into_lx_vector(smoothed_conf,conf);
       
       do
@@ -354,9 +354,9 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars ,quad_su3 **conf,int iconf,in
 	  master_fprintf(file,"%d\t%d\t%d\t%16.16lg\t%16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,acc,nsmooth,paths[0],paths[1],pol[0],pol[1]);
 	  finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,nsmooth);
 	}
-    while(!finished);
-    
-    nissa_free(smoothed_conf);  
+      while(!finished);
+      
+      nissa_free(smoothed_conf);
     }
   
   if(rank==0) fclose(file);
