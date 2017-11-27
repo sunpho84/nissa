@@ -334,25 +334,26 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars ,quad_su3 **conf,int iconf,in
     }
   else
     {
-    int nsmooth=0;
-    bool finished;
-
-    //paste into a temporary
-    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
-    paste_eo_parts_into_lx_vector(smoothed_conf,conf);
-    
-    do
-      {
-	if(gauge_action_name==WILSON_GAUGE_ACTION) global_plaquette_lx_conf(paths,smoothed_conf);
-	else global_plaquette_and_rectangles_lx_conf(paths,smoothed_conf);
-	
-	//polyakov loop
-	complex pol;
-	average_polyakov_loop_lx_conf(pol,smoothed_conf,0);
-	
-	master_fprintf(file,"%d\t%d\t%d\t%16.16lg\t%16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,acc,nsmooth,paths[0],paths[1],pol[0],pol[1]);
-	finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,nsmooth);
-      }
+      int nsmooth=0;
+      bool finished;
+      
+      //paste into a temporary
+      quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol,quad_su3);
+      paste_eo_parts_into_lx_vector(smoothed_conf,conf);
+      
+      do
+	{
+	  verbosity_lv1_master_printf("Measuring plaq pol meas, nsmooth=%d/%d\n",nsmooth,pars.smooth_pars.nsmooth());
+	  if(gauge_action_name==WILSON_GAUGE_ACTION) global_plaquette_lx_conf(paths,smoothed_conf);
+	  else global_plaquette_and_rectangles_lx_conf(paths,smoothed_conf);
+	  
+	  //polyakov loop
+	  complex pol;
+	  average_polyakov_loop_lx_conf(pol,smoothed_conf,0);
+	  
+	  master_fprintf(file,"%d\t%d\t%d\t%16.16lg\t%16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,acc,nsmooth,paths[0],paths[1],pol[0],pol[1]);
+	  finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,nsmooth);
+	}
     while(!finished);
     
     nissa_free(smoothed_conf);  
