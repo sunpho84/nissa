@@ -334,6 +334,8 @@ void measure_gauge_obs_internal(FILE *file,quad_su3 *conf,gauge_obs_meas_pars_t 
       average_polyakov_loop_lx_conf(poly,conf,0);
       master_fprintf(file,"\t%+16.16lg\t%+16.16lg",poly[0],poly[1]);
     }
+
+  master_fprintf(file,"\n");
 }
 
 //measure plaquette and polyakov loop, writing also acceptance
