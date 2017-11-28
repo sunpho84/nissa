@@ -350,6 +350,7 @@ namespace nissa
 	    trace_su3_prod_su3(temp,A,A);
 	    loc_energy[ivol]-=temp[RE];
 	  }
+	loc_energy[ivol]/=glb_vol;
       }
     THREAD_BARRIER();
     
