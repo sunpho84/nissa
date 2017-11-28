@@ -5,10 +5,12 @@
 #include "base/bench.hpp"
 #include "base/random.hpp"
 #include "communicate/borders.hpp"
+#include "communicate/edges.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
+#include "operations/su3_paths/topological_charge.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -325,6 +327,36 @@ namespace nissa
   {sweeper->sweep_conf(conf,cool_lx_conf_handle,NULL);}
   THREADABLE_FUNCTION_END
   
+  //measure the average gauge energy
+  THREADABLE_FUNCTION_2ARG(average_gauge_energy, double*,energy, quad_su3*,conf)
+  {
+    communicate_lx_quad_su3_edges(conf);
+    double *loc_energy=nissa_malloc("energy",loc_vol,double);
+    
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	//compute the clover-shape paths
+	as2t_su3 leaves;
+	four_leaves_point(leaves,conf,ivol);
+	
+	loc_energy[ivol]=0.0;
+	for(int i=0;i<NDIM*(NDIM-1)/2;i++)
+	  {
+	    su3 A;
+	    unsafe_su3_subt_su3_dag(A,leaves[i],leaves[i]);
+	    su3_prodassign_double(A,1.0/8.0);
+	    loc_energy[ivol]-=su3_norm2(A);
+	  }
+      }
+    THREAD_BARRIER();
+    
+    double_vector_glb_collapse(energy,loc_energy,loc_vol);
+    
+    nissa_free(loc_energy);
+  }
+  THREADABLE_FUNCTION_END
+  
   std::string gauge_obs_meas_pars_t::get_str(bool full)
   {
     std::ostringstream os;
@@ -333,6 +365,9 @@ namespace nissa
     if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
     if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
     if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+    if(def_meas_plaq() or full) os<<" MeasPlaq\t\t=\t"<<meas_plaq<<"\n";
+    if(def_meas_energy() or full) os<<" MeasEnergy\t\t=\t"<<meas_energy<<"\n";
+    if(def_meas_poly() or full) os<<" MeasPoly\t\t=\t"<<meas_poly<<"\n";
     if(def_use_smooth() or full) os<<" UseSmooth\t\t=\t"<<use_smooth<<"\n";
     os<<smooth_pars.get_str(full);
     

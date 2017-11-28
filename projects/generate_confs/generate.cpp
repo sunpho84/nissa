@@ -309,57 +309,73 @@ int generate_new_conf(int itraj)
   return acc;
 }
 
+void measure_gauge_obs_internal(FILE *file,quad_su3 *conf,gauge_obs_meas_pars_t &pars,gauge_action_name_t gauge_action_name)
+{
+  //plaq
+  if(pars.meas_plaq)
+    {
+      double paths[2];
+      if(gauge_action_name==WILSON_GAUGE_ACTION) global_plaquette_lx_conf(paths,conf);
+      else global_plaquette_and_rectangles_lx_conf(paths,conf);
+      master_fprintf(file,"\t%16.16lg\t%16.16lg",paths[0],paths[1]);
+    }
+  
+  //energy
+  if(pars.meas_energy)
+    {
+      double energy=average_gauge_energy(conf);
+      master_fprintf(file,"\t%16.16lg",energy);
+    }
+  
+  //polyakov loop
+  if(pars.meas_poly)
+    {
+      complex poly;
+      average_polyakov_loop_lx_conf(poly,conf,0);
+      master_fprintf(file,"\t%+16.16lg\t%+16.16lg",poly[0],poly[1]);
+    }
+}
+
 //measure plaquette and polyakov loop, writing also acceptance
-void measure_gauge_obs(gauge_obs_meas_pars_t &pars ,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
+void measure_gauge_obs(gauge_obs_meas_pars_t &pars,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   const std::string path=pars.path;
   
   //open creating or appending
   FILE *file=open_file(path,conf_created?"w":"a");
   
-  //paths
-  double paths[2];
-  
+  //paste into a temporary
+  quad_su3 *temp_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  paste_eo_parts_into_lx_vector(temp_conf,conf);
+      
   if(not pars.use_smooth)
     {
-      //Wilson case: temporal and spatial plaquette
-      if(gauge_action_name==WILSON_GAUGE_ACTION) global_plaquette_eo_conf(paths,conf);
-      else global_plaquette_and_rectangles_eo_conf(paths,conf);
-      
-      //polyakov loop
-      complex pol;
-      average_polyakov_loop_eo_conf(pol,conf,0);
-      
-      master_fprintf(file,"%d\t%d\t%16.16lg\t%16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,acc,paths[0],paths[1],pol[0],pol[1]);
+      //header
+      verbosity_lv1_master_printf("Measuring gauge obs\n");
+      master_fprintf(file,"%d\t%d",iconf,acc);
+
+      measure_gauge_obs_internal(file,temp_conf,pars,gauge_action_name);
     }
   else
     {
       int nsmooth=0;
       bool finished;
       
-      //paste into a temporary
-      quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-      paste_eo_parts_into_lx_vector(smoothed_conf,conf);
-      
       do
 	{
-	  verbosity_lv1_master_printf("Measuring plaq pol meas, nsmooth=%d/%d\n",nsmooth,pars.smooth_pars.nsmooth());
-	  if(gauge_action_name==WILSON_GAUGE_ACTION) global_plaquette_lx_conf(paths,smoothed_conf);
-	  else global_plaquette_and_rectangles_lx_conf(paths,smoothed_conf);
+	  //header
+	  verbosity_lv1_master_printf("Measuring gauge obs, nsmooth=%d/%d\n",nsmooth,pars.smooth_pars.nsmooth());
+	  master_fprintf(file,"%d\t%d\t%d",iconf,acc,nsmooth);
 	  
-	  //polyakov loop
-	  complex pol;
-	  average_polyakov_loop_lx_conf(pol,smoothed_conf,0);
-	  
-	  master_fprintf(file,"%d\t%d\t%d\t%16.16lg\t%16.16lg\t%+16.16lg\t%+16.16lg\n",iconf,acc,nsmooth,paths[0],paths[1],pol[0],pol[1]);
-	  finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,nsmooth);
+	  measure_gauge_obs_internal(file,temp_conf,pars,gauge_action_name);	  
+	  finished=smooth_lx_conf_until_next_meas(temp_conf,pars.smooth_pars,nsmooth);
 	}
-      while(!finished);
+      while(not finished);
       
-      nissa_free(smoothed_conf);
+      nissa_free(temp_conf);
     }
   
-  if(rank==0) fclose(file);
+  close_file(file);
 }
 
 //measure the polyakov correlators

@@ -30,13 +30,19 @@ namespace nissa
     int each;
     int after;
     std::string path;
+    int meas_plaq;
+    int meas_energy;
+    int meas_poly;
     int use_smooth;
     smooth_pars_t smooth_pars;
     
     int def_each(){return 1;}
     int def_after(){return 0;}
-    int def_use_smooth(){return 0;}
     std::string def_path(){return "gauge_obs";}
+    int def_meas_plaq(){return 1;}
+    int def_meas_energy(){return 0;}
+    int def_meas_poly(){return 1;}
+    int def_use_smooth(){return 0;}
     
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
@@ -44,10 +50,13 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	each!=def_each()||
-	after!=def_after()||
-	path!=def_path()||
-	use_smooth!=def_use_smooth()||
+	each!=def_each() or
+	after!=def_after() or
+	path!=def_path() or
+	meas_plaq!=def_meas_plaq() or
+	meas_energy!=def_meas_energy() or
+	meas_poly!=def_meas_poly() or
+	use_smooth!=def_use_smooth() or
 	smooth_pars.is_nonstandard();
     }
     
@@ -55,12 +64,22 @@ namespace nissa
       each(def_each()),
       after(def_after()),
       path(def_path()),
+      meas_plaq(def_meas_plaq()),
+      meas_energy(def_meas_energy()),
+      meas_poly(def_meas_poly()),
       use_smooth(def_use_smooth())
     {}
   };
   
   /////////////////////////////////////////////////////////////
   
+  void average_gauge_energy(double *energy,quad_su3 *conf);
+  inline double average_gauge_energy(quad_su3 *conf)
+  {
+    double energy;
+    average_gauge_energy(&energy,conf);
+    return energy;
+  }
   void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis);
   void ac_rotate_vector(void *out,void *in,int axis,size_t bps);
   void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbords,int putonedges);

@@ -257,6 +257,9 @@ ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
  /* gauge measures */
 UseSmooth DEBUG_PRINTF("Found UseSmooth\n");return TK_USE_SMOOTH;
 MeasPlaqPol DEBUG_PRINTF("Found MeasPlaqPol\n");return TK_MEAS_PLAQ_POL;
+MeasPlaq DEBUG_PRINTF("Found MeasPlaq\n");return TK_MEAS_PLAQ;
+MeasEnergy DEBUG_PRINTF("Found MeasEnergy\n");return TK_MEAS_ENERGY;
+MeasPoly DEBUG_PRINTF("Found MeasPoly\n");return TK_MEAS_POLY;
 MeasTop DEBUG_PRINTF("Found MeasTop\n");return TK_MEAS_TOP;
 MeasLuppoli DEBUG_PRINTF("Found MeasLuppoli\n");return TK_MEAS_LUPPOLI;
 MeasWatusso DEBUG_PRINTF("Found MeasWatusso\n");return TK_MEAS_WATUSSO;
