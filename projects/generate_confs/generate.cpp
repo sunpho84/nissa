@@ -349,13 +349,13 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars,quad_su3 **conf,int iconf,int
   //paste into a temporary
   quad_su3 *temp_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   paste_eo_parts_into_lx_vector(temp_conf,conf);
-      
+  
   if(not pars.use_smooth)
     {
       //header
       verbosity_lv1_master_printf("Measuring gauge obs\n");
       master_fprintf(file,"%d\t%d",iconf,acc);
-
+      
       measure_gauge_obs_internal(file,temp_conf,pars,gauge_action_name);
     }
   else
@@ -369,7 +369,7 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars,quad_su3 **conf,int iconf,int
 	  verbosity_lv1_master_printf("Measuring gauge obs, nsmooth=%d/%d\n",nsmooth,pars.smooth_pars.nsmooth());
 	  master_fprintf(file,"%d\t%d\t%d",iconf,acc,nsmooth);
 	  
-	  measure_gauge_obs_internal(file,temp_conf,pars,gauge_action_name);	  
+	  measure_gauge_obs_internal(file,temp_conf,pars,gauge_action_name);
 	  finished=smooth_lx_conf_until_next_meas(temp_conf,pars.smooth_pars,nsmooth);
 	}
       while(not finished);
