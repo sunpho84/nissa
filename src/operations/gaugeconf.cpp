@@ -345,8 +345,10 @@ namespace nissa
 	  {
 	    su3 A;
 	    unsafe_su3_subt_su3_dag(A,leaves[i],leaves[i]);
-	    su3_prodassign_double(A,1.0/8.0);
-	    loc_energy[ivol]-=su3_norm2(A);
+	    su3_prodassign_double(A,1.0/8.0); //factor 1/2 for the antihermitian, 1/4 for average leave
+	    complex temp;
+	    trace_su3_prod_su3(temp,A,A);
+	    loc_energy[ivol]-=temp[RE];
 	  }
       }
     THREAD_BARRIER();
