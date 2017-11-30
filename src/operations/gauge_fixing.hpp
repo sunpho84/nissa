@@ -72,7 +72,7 @@ namespace nissa
     double overrelax_prob;
     
     //parameter for alpha in exp(-i alpha der /2)
-    double def_alpha_exp() const {return 1.6;}
+    double def_alpha_exp() const {return 0.16;}
     double alpha_exp;
     
     //use or not the adaptative search of 1405.5812
