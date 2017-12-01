@@ -133,7 +133,7 @@ namespace nissa
       {
 	vector_copy(sme_conf,ori_conf);
 	smooth_lx_conf(sme_conf,pars->temp_smear_pars,only_dir[mu0]);
-	verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
+	verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
 	
 	//store temporal links and send them
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -496,15 +496,15 @@ namespace nissa
       std::ostringstream os;
       
       os<<"MeasAllRects\n";
-      if(each!=def_each()||full) os<<" Each\t\t=\t"<<each<<"\n";
-      if(after!=def_after()||full) os<<" After\t\t=\t"<<after<<"\n";
-      if(path!=def_path()||full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
-      if(Dmin!=def_Dmin()||full) os<<" Dmin\t\t=\t"<<Dmin<<"\n";
-      if(Dmax!=def_Dmax()||full) os<<" Dmax\t\t=\t"<<Dmax<<"\n";
-      if(Tmin!=def_Tmin()||full) os<<" Tmin\t\t=\t"<<Tmin<<"\n";
-      if(Tmax!=def_Tmax()||full) os<<" Tmax\t\t=\t"<<Tmax<<"\n";
-      if(spat_smear_pars.is_nonstandard()||full) os<<" Spatial "<<spat_smear_pars.get_str(full);
-      if(temp_smear_pars.is_nonstandard()||full) os<<" Temporal "<<temp_smear_pars.get_str(full);
+      if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
+      if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
+      if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+      if(Dmin!=def_Dmin() or full) os<<" Dmin\t\t=\t"<<Dmin<<"\n";
+      if(Dmax!=def_Dmax() or full) os<<" Dmax\t\t=\t"<<Dmax<<"\n";
+      if(Tmin!=def_Tmin() or full) os<<" Tmin\t\t=\t"<<Tmin<<"\n";
+      if(Tmax!=def_Tmax() or full) os<<" Tmax\t\t=\t"<<Tmax<<"\n";
+      if(spat_smear_pars.is_nonstandard() or full) os<<" Spatial "<<spat_smear_pars.get_str(full);
+      if(temp_smear_pars.is_nonstandard() or full) os<<" Temporal "<<temp_smear_pars.get_str(full);
       
       return os.str();
     }

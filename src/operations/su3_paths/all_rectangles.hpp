@@ -19,7 +19,7 @@ namespace nissa
     int def_each(){return 1;}
     int def_after(){return 0;}
     std::string def_path(){return "rectangles";}
-    int def_Tmin(){return 3;}
+    int def_Tmin(){return 1;}
     int def_Tmax(){return 9;}
     int def_Dmin(){return 1;}
     int def_Dmax(){return 9;}
@@ -30,14 +30,14 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	each!=def_each()||
-	after!=def_after()||
-	path!=def_path()||
-	Tmin!=def_Tmin()||
-	Tmax!=def_Tmax()||
-	Dmin!=def_Dmin()||
-	Dmax!=def_Dmax()||
-	temp_smear_pars.is_nonstandard()||
+	each!=def_each() or
+	after!=def_after() or
+	path!=def_path() or
+	Tmin!=def_Tmin() or
+	Tmax!=def_Tmax() or
+	Dmin!=def_Dmin() or
+	Dmax!=def_Dmax() or
+	temp_smear_pars.is_nonstandard() or
 	spat_smear_pars.is_nonstandard();
     }
     
