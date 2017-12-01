@@ -470,7 +470,7 @@ void generate_original_source()
 //////////////////////////////////////// quark propagators /////////////////////////////////////////////////
 
 //insert the photon on the source side
-void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,coords dirs,PROP_TYPE *in,int t)
+void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,bool *dirs,PROP_TYPE *in,int t)
 { 
   GET_THREAD_ID();
   
@@ -654,7 +654,7 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
 }
 
 //insert the photon on the source side
-THREADABLE_FUNCTION_5ARG(insert_photon_on_the_source, spinspin*,prop, spin1field*,A, int*,dirs, tm_quark_info,le, int,twall)
+THREADABLE_FUNCTION_5ARG(insert_photon_on_the_source, spinspin*,prop, spin1field*,A, bool*,dirs, tm_quark_info,le, int,twall)
 {
   GET_THREAD_ID();
   
@@ -745,7 +745,7 @@ THREADABLE_FUNCTION_5ARG(insert_photon_on_the_source, spinspin*,prop, spin1field
 }
 THREADABLE_FUNCTION_END
 
-void insert_photon_on_the_source(spinspin *prop,int *dirs,tm_quark_info le,int twall)
+void insert_photon_on_the_source(spinspin *prop,bool *dirs,tm_quark_info le,int twall)
 {
   if(!loc_muon_curr) master_printf("Inserting photon point-split on time %d\n",twall);
   else master_printf("Inserting photon locally on time %d\n");

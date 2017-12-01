@@ -16,8 +16,8 @@ namespace nissa
 {
   namespace Wflow
   {
-    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,int *dirs,int iter);
-    void update_conf(quad_su3 *arg,quad_su3 *conf,int *dirs);
+    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,bool *dirs,int iter);
+    void update_conf(quad_su3 *arg,quad_su3 *conf,bool *dirs);
   }
   
   //structure to Wilson flow
@@ -73,11 +73,11 @@ namespace nissa
     //the steps
     quad_su3 *conf[nint_steps];
     //dirs to smear
-    int dirs[NDIM];
+    bool dirs[NDIM];
     //storage for staples
     quad_su3 *arg;
     //creator
-    internal_fermion_flower_t(double dt,int *ext_dirs,bool stag) : dt(dt)
+    internal_fermion_flower_t(double dt,bool *ext_dirs,bool stag) : dt(dt)
     {
       if(not stag) crash("non-staggered case not implemented yet");
       
@@ -131,7 +131,7 @@ namespace nissa
     color *df0,*df1,*df2,*f1,*f2;
     
     //creator
-    fermion_flower_t(double dt,int *ext_dirs,bool stag) : internal_fermion_flower_t<nint_steps>(dt,ext_dirs,stag)
+    fermion_flower_t(double dt,bool *ext_dirs,bool stag) : internal_fermion_flower_t<nint_steps>(dt,ext_dirs,stag)
     {
       df0=nissa_malloc("df0",loc_vol+bord_vol,color);
       df1=nissa_malloc("df1",loc_vol+bord_vol,color);
@@ -187,7 +187,7 @@ namespace nissa
     color *l1,*l2;
     
     //creator
-    fermion_adjoint_flower_t(double dt,int *ext_dirs,bool stag) : internal_fermion_flower_t<nint_steps>(dt,ext_dirs,stag)
+    fermion_adjoint_flower_t(double dt,bool *ext_dirs,bool stag) : internal_fermion_flower_t<nint_steps>(dt,ext_dirs,stag)
     {
       l2=nissa_malloc("l2",loc_vol+bord_vol,color);
       l1=nissa_malloc("l1",loc_vol+bord_vol,color);
@@ -223,9 +223,9 @@ namespace nissa
     }
   };
   
-  void Wflow_lx_conf(quad_su3 *conf,double dt,int *dirs=all_dirs);
-  void Wflow_fermion_fields(quad_su3 *ori_conf,double dt,int *dirs,int nfields,color **ferm,bool stag);
-  void Wflow_fermion_fields_adjoint(quad_su3 *ori_conf,double dt,int *dirs,int nfields,color **ferm,bool stag);
+  void Wflow_lx_conf(quad_su3 *conf,double dt,bool *dirs=all_dirs);
+  void Wflow_fermion_fields(quad_su3 *ori_conf,double dt,bool *dirs,int nfields,color **ferm,bool stag);
+  void Wflow_fermion_fields_adjoint(quad_su3 *ori_conf,double dt,bool *dirs,int nfields,color **ferm,bool stag);
 }
 
 #endif

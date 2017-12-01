@@ -24,10 +24,10 @@ namespace nissa
       std::ostringstream os;
       
       os<<"Ape\n";
-      if(full||is_nonstandard())
+      if(full or is_nonstandard())
 	{
-	  if(full||alpha!=def_alpha()) os<<" Alpha\t\t=\t"<<alpha<<"\n";
-	  if(full||nlevels!=def_nlevels()) os<<" NLevels\t=\t"<<nlevels<<"\n";
+	  if(full or alpha!=def_alpha()) os<<" Alpha\t\t=\t"<<alpha<<"\n";
+	  if(full or nlevels!=def_nlevels()) os<<" NLevels\t=\t"<<nlevels<<"\n";
 	}
       
       return os.str();
@@ -36,7 +36,7 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	nlevels!=def_nlevels()||
+	nlevels!=def_nlevels() or
 	alpha!=def_alpha();
     }
     
@@ -45,7 +45,7 @@ namespace nissa
       alpha(def_alpha()) {}
   };
   
-  void ape_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int *dir=all_dirs,int min_staple_dir=0);
+  void ape_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,bool *dir=all_dirs,int min_staple_dir=0);
   inline void ape_single_dir_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int mu,int min_staple_dir=0)
   {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,only_dir[mu],min_staple_dir);}
   inline void ape_perp_dir_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int mu,int min_staple_dir=0)

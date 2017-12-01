@@ -28,10 +28,10 @@ namespace nissa
       std::ostringstream os;
       
       os<<"Hyp\n";
-      if(full||is_nonstandard())
+      if(full or is_nonstandard())
 	{
-	  if(full||alpha0!=def_alpha0()||alpha1!=def_alpha1()||alpha2!=def_alpha2()) os<<" Alphas\t\t=\t{"<<alpha0<<","<<alpha1<<","<<alpha2<<"}\n";
-	  if(full||nlevels!=def_nlevels()) os<<" NLevels\t=\t"<<nlevels<<"\n";
+	  if(full or alpha0!=def_alpha0() or alpha1!=def_alpha1() or alpha2!=def_alpha2()) os<<" Alphas\t\t=\t{"<<alpha0<<","<<alpha1<<","<<alpha2<<"}\n";
+	  if(full or nlevels!=def_nlevels()) os<<" NLevels\t=\t"<<nlevels<<"\n";
 	}
       
       return os.str();
@@ -40,9 +40,9 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	alpha0!=def_alpha0()||
-	alpha1!=def_alpha1()||
-	alpha2!=def_alpha2()||
+	alpha0!=def_alpha0() or
+	alpha1!=def_alpha1() or
+	alpha2!=def_alpha2() or
 	nlevels!=def_nlevels();
     }
     hyp_pars_t() :
@@ -52,7 +52,7 @@ namespace nissa
       nlevels(def_nlevels()) {}
   };
   
-  void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2,int *dirs=all_dirs);
+  void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2,bool *dirs=all_dirs);
 }
 
 #endif

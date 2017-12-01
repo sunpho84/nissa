@@ -18,7 +18,7 @@ namespace nissa
 {
   //perform ape smearing
   //be sure not to have border condition added
-  THREADABLE_FUNCTION_6ARG(ape_smear_conf, quad_su3*,smear_conf, quad_su3*,origi_conf, double,alpha, int,nstep, int*,dirs, int,min_staple_dir)
+  THREADABLE_FUNCTION_6ARG(ape_smear_conf, quad_su3*,smear_conf, quad_su3*,origi_conf, double,alpha, int,nstep, bool*,dirs, int,min_staple_dir)
   {
     GET_THREAD_ID();
     

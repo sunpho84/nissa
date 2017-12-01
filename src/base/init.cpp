@@ -151,7 +151,7 @@ namespace nissa
 	{
 	  only_dir[mu][nu]=(mu==nu);
 	  all_other_dirs[mu][nu]=(mu!=nu);
-	  all_other_spat_dirs[mu][nu]=(mu!=nu && nu!=0);
+	  all_other_spat_dirs[mu][nu]=(mu!=nu and nu!=0);
 	}
     //perpendicular dir
 #if NDIM >= 2
