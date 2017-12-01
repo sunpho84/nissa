@@ -13,6 +13,7 @@ double read_double(FILE *in)
 {
   double out;
   if(fscanf(in,"%lg",&out)!=1) crash("reading double");
+  return out;
 }
 
 void read_su3(su3 out,FILE *in)
