@@ -425,34 +425,7 @@ namespace nissa
 	    conserved_vector_current_mel(get_updated_conf(Q[h.fw].charge,plain_bc,glb_conf),si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str(),revert);
 	  }
 	
-	//store the file for future read
-	if(h.store)
-	  {
-	    //open the file
-	    const std::string path=combine("%s/handcuff_side_%s",outfolder,h.name.c_str());
-	    ILDG_File file=ILDG_File_open_for_write(path);
-	    
-	    complex *temp=nissa_malloc("temp",loc_vol,complex);
-	    for(int mu=0;mu<NDIM;mu++)
-	      {
-		//extract component mu
-		complex loc_summ={0,0};
-		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-		  {
-		    complex_copy(temp[ivol],si[ivol][mu]);
-		    complex_summassign(loc_summ,temp[ivol]);
-		  }
-		THREAD_BARRIER();
-		complex glb_summ;
-		glb_reduce_complex(glb_summ,loc_summ);
-		//write the component
-		write_real_vector(file,temp,64,combine("handcuff_mu_%d",mu).c_str());
-		master_printf("handcuff side %s, component %d, value on site 0: (%.16lg,%.16lg), summ: (%.16lg,%.16lg)\n",h.name.c_str(),mu,temp[0][RE],temp[0][IM],glb_summ[RE],glb_summ[IM]);
-	      }
-	    nissa_free(temp);
-	    
-	    ILDG_File_close(file);
-	  }
+	if(h.store) store_spin1field(combine("%s/handcuff_side_%s",outfolder,h.name.c_str()),si);
       }
     
     //add the photon
@@ -460,6 +433,7 @@ namespace nissa
       {
 	handcuffs_map_t &h=handcuffs_map[ihand];
 	std::string right_with_photon=h.right+"_photon";
+	master_printf("Inserting photon to compute %s\n",right_with_photon.c_str());
 	
 	spin1field *rp;
 	if(sides.find(right_with_photon)!=sides.end()) rp=sides[right_with_photon];
