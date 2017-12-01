@@ -95,27 +95,27 @@ int main(int narg,char **arg)
   
   ////////////////////////////// check everything /////////////////////////////
   
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	//check U(3)
-	double t=real_part_of_trace_su3_prod_su3_dag(out_conf[ivol][mu],out_conf[ivol][mu]);
-	if(fabs(t-3)>3.e-15)
-	  //if(fabs(t-3)>3.e-7)
-	  {
-	    master_printf("%d %d, %lg\n",ivol,mu,t-3.0);
-	    su3_print(out_conf[ivol][mu]);
-	  }
-	
-	//check SU(3)
-	complex c;
-	su3_det(c,out_conf[ivol][mu]);
-	if(fabs(c[RE]-1)>3.e-15 or fabs(c[IM])>3.e-15)
-	  {
-	    master_printf("%d %d, %lg %lg\n",ivol,mu,c[RE]-1.0,c[IM]);
-	    su3_print(out_conf[ivol][mu]);
-	  }
-      }
+  // for(int ivol=0;ivol<loc_vol;ivol++)
+  //   for(int mu=0;mu<NDIM;mu++)
+  //     {
+  // 	//check U(3)
+  // 	double t=real_part_of_trace_su3_prod_su3_dag(out_conf[ivol][mu],out_conf[ivol][mu]);
+  // 	if(fabs(t-3)>3.e-15)
+  // 	  //if(fabs(t-3)>3.e-7)
+  // 	  {
+  // 	    master_printf("%d %d, %lg\n",ivol,mu,t-3.0);
+  // 	    su3_print(out_conf[ivol][mu]);
+  // 	  }
+  //	
+  //check SU(3)
+  // complex c;
+  // su3_det(c,out_conf[ivol][mu]);
+  // if(fabs(c[RE]-1)>3.e-15 or fabs(c[IM])>3.e-15)
+  //   {
+  //     master_printf("%d %d, %lg %lg\n",ivol,mu,c[RE]-1.0,c[IM]);
+  //     su3_print(out_conf[ivol][mu]);
+  //   }
+  // }
   
   //print the plaquette and write the conf
   master_printf("Global plaquette: %.16lg\n",global_plaquette_lx_conf(out_conf));
