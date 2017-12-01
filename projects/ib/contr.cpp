@@ -425,7 +425,7 @@ namespace nissa
 	    conserved_vector_current_mel(get_updated_conf(Q[h.fw].charge,plain_bc,glb_conf),si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str(),revert);
 	  }
 	
-	if(h.store) store_spin1field(combine("%s/handcuff_side_%s",outfolder,h.name.c_str()),si);
+	//if(h.store) store_spin1field(combine("%s/handcuff_side_%s",outfolder,h.name.c_str()),si);
       }
     
     //add the photon
