@@ -77,10 +77,10 @@ namespace nissa
   //mapping of ILDG data
   EXTERN_GEOMETRY_LX coords scidac_mapping;
   //perpendicular dir
-  EXTERN_GEOMETRY_LX coords all_dirs;
-  EXTERN_GEOMETRY_LX coords only_dir[NDIM];
-  EXTERN_GEOMETRY_LX coords all_other_dirs[NDIM];
-  EXTERN_GEOMETRY_LX coords all_other_spat_dirs[NDIM];
+  EXTERN_GEOMETRY_LX bool all_dirs[NDIM];
+  EXTERN_GEOMETRY_LX bool only_dir[NDIM][NDIM];
+  EXTERN_GEOMETRY_LX bool all_other_dirs[NDIM][NDIM];
+  EXTERN_GEOMETRY_LX bool all_other_spat_dirs[NDIM][NDIM];
 #if NDIM >= 2
   EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
 #endif

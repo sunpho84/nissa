@@ -221,9 +221,6 @@ THREADABLE_FUNCTION_3ARG(compute_corr_stoch, double*,corr, su3spinspin**,phi, su
   
   vector_reset(corr);
   
-  //used for fft
-  int dirs[4]={1,1,1,1};
-  
   //temporary vectors
   su3spinspin *phieta[2];
   for(int iso=0;iso<2;iso++) phieta[iso]=nissa_malloc("phieta",loc_vol,su3spinspin);
@@ -242,7 +239,7 @@ THREADABLE_FUNCTION_3ARG(compute_corr_stoch, double*,corr, su3spinspin**,phi, su
   THREAD_BARRIER();
   
   //take fft
-  for(int iso=0;iso<2;iso++) fft4d((complex*)(phieta[iso]),(complex*)(phieta[iso]),dirs,sizeof(su3spinspin)/sizeof(complex),+1,true/*normalize*/);
+  for(int iso=0;iso<2;iso++) fft4d((complex*)(phieta[iso]),(complex*)(phieta[iso]),all_dirs,sizeof(su3spinspin)/sizeof(complex),+1,true/*normalize*/);
   
   vector_reset(corr_tilde);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -259,7 +256,7 @@ THREADABLE_FUNCTION_3ARG(compute_corr_stoch, double*,corr, su3spinspin**,phi, su
   THREAD_BARRIER();
 
   //transform back
-  fft4d(corr_tilde,corr_tilde,dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+  fft4d(corr_tilde,corr_tilde,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
   
   //copy only the real part
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)

@@ -159,10 +159,10 @@ namespace nissa
 					imeas,mu0,nsmooth,global_plaquette_lx_conf(sme_conf));
 	    
 	    //store "spatial" links and send them
-	    for(int imu1=0;imu1<3;imu1++)
+	    for(int imu1=0;imu1<NDIM-1;imu1++)
 	      {
 		int mu1=perp_dir[mu0][imu1];
-		int imu01=mu0*3+imu1;
+		int imu01=mu0*(NDIM-1)+imu1;
 		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		  su3_copy(pre_transp_conf_holder[ivol],sme_conf[ivol][mu1]);
 		THREAD_BARRIER();

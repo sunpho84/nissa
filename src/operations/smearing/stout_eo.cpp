@@ -69,7 +69,7 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, double,rho, int*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, double,rho, bool*,dirs)
   {
     GET_THREAD_ID();
     
@@ -114,7 +114,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   //smear n times, using only one additional vectors
-  THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars, int*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
     switch(stout_pars->nlevels)
@@ -177,7 +177,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //smear iteratively retainig all the stack
-  THREADABLE_FUNCTION_4ARG(stout_smear_whole_stack, quad_su3***,out, quad_su3**,in, stout_pars_t*,stout_pars, int*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear_whole_stack, quad_su3***,out, quad_su3**,in, stout_pars_t*,stout_pars, bool*,dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)

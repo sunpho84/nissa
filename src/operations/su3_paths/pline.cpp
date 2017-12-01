@@ -137,15 +137,11 @@ namespace nissa
     complex_vector_glb_collapse(temp_trace,point_loop,loc_vol);
     complex_prod_double(loop_trace,temp_trace,1.0/(3*glb_vol));
     
-    //used for fft
-    int dirs[4]={1,1,1,1};
-    dirs[mu]=0;
-    
     //if an appropriate array passed compute correlators of polyakov loop
     if(ll_dag_corr!=NULL)
       {
 	//take fftw in the perp plane
-	fft4d(point_loop,point_loop,dirs,1/*complex per site*/,+1,true/*normalize*/);
+	fft4d(point_loop,point_loop,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
 	
 	//multiply to build correlators
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -156,7 +152,7 @@ namespace nissa
 	THREAD_BARRIER();
 	
 	//transform back
-	fft4d(ll_dag_corr,ll_dag_corr,dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+	fft4d(ll_dag_corr,ll_dag_corr,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
       }
     
     //compute also the transform of the dagger if needed
@@ -168,7 +164,7 @@ namespace nissa
 	complex_prod_double(loop_dag_trace,temp_dag_trace,1.0/(3*glb_vol));
 	
 	//transform
-	fft4d(point_loop_dag,point_loop_dag,dirs,1/*complex per site*/,+1,true/*normalize*/);
+	fft4d(point_loop_dag,point_loop_dag,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
 	
 	//build l*l
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -178,7 +174,7 @@ namespace nissa
 	  }
 	THREAD_BARRIER();
 	
-	fft4d(ll_corr,ll_corr,dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+	fft4d(ll_corr,ll_corr,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
       }
     
     nissa_free(point_loop);

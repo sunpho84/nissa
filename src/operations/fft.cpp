@@ -311,7 +311,7 @@ namespace nissa
   }
   
   //perform the fft in all directions
-  void fft4d(complex *out,complex *in,int *dirs,int ncpp,double sign,int normalize)
+  void fft4d(complex *out,complex *in,bool *dirs,int ncpp,double sign,int normalize)
   {
     //copy input in the output (if they differ!)
     if(out!=in) vector_copy(out,in);
@@ -329,7 +329,7 @@ namespace nissa
   
 #else
   
-  THREADABLE_FUNCTION_6ARG(fft4d, complex*,out, complex*,in, int*,ext_dirs, int,ncpp, double,sign, int,normalize)
+  THREADABLE_FUNCTION_6ARG(fft4d, complex*,out, complex*,in, bool*,ext_dirs, int,ncpp, double,sign, int,normalize)
   {
     GET_THREAD_ID();
     
@@ -337,8 +337,8 @@ namespace nissa
     if(out!=in) vector_copy(out,in);
     
     //list all dirs
-    int dirs[NDIM],ndirs=0;
-    for(int mu=0;mu<NDIM;mu++) if(ext_dirs[mu]) dirs[ndirs++]=mu;
+    int list_dirs[NDIM],ndirs=0;
+    for(int mu=0;mu<NDIM;mu++) if(ext_dirs[mu]) list_dirs[ndirs++]=mu;
     verbosity_lv2_master_printf("Going to FFT: %d dimensions in total\n",ndirs);
     
     if(ndirs)
@@ -350,13 +350,13 @@ namespace nissa
 	fftw_plan *plans=nissa_malloc("plans",ndirs,fftw_plan);
 	if(IS_MASTER_THREAD)
 	  for(int idir=0;idir<ndirs;idir++)
-	    plans[idir]=fftw_plan_many_dft(1,glb_size+dirs[idir],ncpp,buf,NULL,ncpp,1,buf,NULL,ncpp,1,sign,FFTW_ESTIMATE);
+	    plans[idir]=fftw_plan_many_dft(1,glb_size+list_dirs[idir],ncpp,buf,NULL,ncpp,1,buf,NULL,ncpp,1,sign,FFTW_ESTIMATE);
 	THREAD_BARRIER();
 	
 	//transpose each dir in turn and take fft
 	for(int idir=0;idir<ndirs;idir++)
 	  {
-	    int mu=dirs[idir];
+	    int mu=list_dirs[idir];
 	    verbosity_lv2_master_printf("FFT-ing dimension %d/%d=%d\n",idir+1,ndirs,mu);
 	    remap_lx_vector_to_locd(buf,out,ncpp*sizeof(complex),mu);
 	    
@@ -374,7 +374,7 @@ namespace nissa
 	//put normaliisation
 	if(normalize)
 	  {
-	    double norm=glb_size[dirs[0]];
+	    double norm=glb_size[list_dirs[0]];
 	    for(int idir=1;idir<ndirs;idir++) norm*=glb_size[idir];
 	    double_vector_prod_double((double*)out,(double*)out,1/norm,2*ncpp*loc_vol);
 	  }

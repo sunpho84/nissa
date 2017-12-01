@@ -112,7 +112,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //insert the photon on the source side
-  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,coords dirs)
+  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool* dirs)
   {
     GET_THREAD_ID();
     
@@ -135,7 +135,7 @@ namespace nissa
   }
   
   //insert the external source
-  void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,coords dirs,int loc)
+  void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc)
   {
     if(loc) insert_external_loc_source(out,curr,ori,t,dirs);
     else
@@ -151,7 +151,7 @@ namespace nissa
   }
   
   //insert the conserved current
-  void insert_conserved_current(spincolor *out,quad_su3 *conf,spincolor *ori,int t,int r,coords dirs)
+  void insert_conserved_current(spincolor *out,quad_su3 *conf,spincolor *ori,int t,int r,bool *dirs)
   {
     if(twisted_run>0) insert_tm_conserved_current(loop_source,conf,ori,r,dirs,t);
     else              insert_Wilson_conserved_current(loop_source,conf,ori,dirs,t);
@@ -201,7 +201,6 @@ namespace nissa
     
     int rel_t=t;
     if(rel_t!=-1) rel_t=(t+source_coord[0])%glb_size[0];
-    coords dirs[NDIM]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
     
     quad_su3 *conf;
     if(inser!=SMEARING) conf=get_updated_conf(charge,theta,glb_conf);
@@ -220,17 +219,17 @@ namespace nissa
       case SCALAR:prop_multiply_with_gamma(loop_source,0,ori,rel_t);break;
       case PSEUDO:prop_multiply_with_gamma(loop_source,5,ori,rel_t);break;
       case PHOTON:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
-      case PHOTON0:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,dirs[0],loc_hadr_curr);break;
-      case PHOTON1:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,dirs[1],loc_hadr_curr);break;
-      case PHOTON2:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,dirs[2],loc_hadr_curr);break;
-      case PHOTON3:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,dirs[3],loc_hadr_curr);break;
+      case PHOTON0:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[0],loc_hadr_curr);break;
+      case PHOTON1:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[1],loc_hadr_curr);break;
+      case PHOTON2:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[2],loc_hadr_curr);break;
+      case PHOTON3:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[3],loc_hadr_curr);break;
       case PHOTON_PHI:insert_external_source(loop_source,conf,photon_phi,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case PHOTON_ETA:insert_external_source(loop_source,conf,photon_eta,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case TADPOLE:insert_tadpole(loop_source,conf,ori,rel_t,r);break;
-      case CVEC0:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[0]);break;
-      case CVEC1:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[1]);break;
-      case CVEC2:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[2]);break;
-      case CVEC3:insert_conserved_current(loop_source,conf,ori,rel_t,r,dirs[3]);break;
+      case CVEC0:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[0]);break;
+      case CVEC1:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[1]);break;
+      case CVEC2:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[2]);break;
+      case CVEC3:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[3]);break;
       case SMEARING:smear_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       case PHASING:phase_prop(loop_source,ori,rel_t,theta);break;
       }

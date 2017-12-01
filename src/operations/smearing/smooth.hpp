@@ -77,9 +77,9 @@ namespace nissa
       meas_each_nsmooth(def_meas_each_nsmooth()) {}
   };
   
-  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs=all_dirs,int staple_min_dir=0);
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,int *dirs=all_dirs,int staple_min_dir=0);
-  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs=all_dirs,int staple_min_dir=0);
+  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,bool *dirs=all_dirs,int staple_min_dir=0);
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,bool *dirs=all_dirs,int staple_min_dir=0);
+  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,bool *dirs=all_dirs,int staple_min_dir=0);
 }
 
 #endif

@@ -19,7 +19,7 @@
 namespace nissa
 {
   //interpret free index as source or sink
-  THREADABLE_FUNCTION_5ARG(pass_spinspin_from_mom_to_x_space_source_or_sink, spinspin*,out, spinspin*,in, int*,dirs, double*,bc, int,source_or_sink)
+  THREADABLE_FUNCTION_5ARG(pass_spinspin_from_mom_to_x_space_source_or_sink, spinspin*,out, spinspin*,in, bool*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
@@ -52,7 +52,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //interprets free index as source or sink (see above)
-  THREADABLE_FUNCTION_5ARG(pass_spinspin_from_x_to_mom_space_source_or_sink, spinspin*,out, spinspin*,in, int*,dirs, double*,bc, int,source_or_sink)
+  THREADABLE_FUNCTION_5ARG(pass_spinspin_from_x_to_mom_space_source_or_sink, spinspin*,out, spinspin*,in, bool*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
@@ -86,7 +86,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //see above
-  THREADABLE_FUNCTION_5ARG(pass_spin1prop_from_mom_to_x_space, spin1prop*,out, spin1prop*,in, int*,dirs, double*,bc, int,source_or_sink)
+  THREADABLE_FUNCTION_5ARG(pass_spin1prop_from_mom_to_x_space, spin1prop*,out, spin1prop*,in, bool*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
@@ -143,7 +143,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //see previous note
-  THREADABLE_FUNCTION_5ARG(pass_spin1prop_from_x_to_mom_space, spin1prop*,out, spin1prop*,in, int*,dirs, double*,bc, int,source_or_sink)
+  THREADABLE_FUNCTION_5ARG(pass_spin1prop_from_x_to_mom_space, spin1prop*,out, spin1prop*,in, bool*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
@@ -199,7 +199,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_5ARG(pass_spin1field_from_mom_to_x_space, spin1field*,out, spin1field*,in, int*,dirs, double*,bc, int,source_or_sink)
+  THREADABLE_FUNCTION_5ARG(pass_spin1field_from_mom_to_x_space, spin1field*,out, spin1field*,in, bool*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
@@ -250,7 +250,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_5ARG(pass_spin1field_from_x_to_mom_space, spin1field*,out, spin1field*,in, int*,dirs, double*,bc, int,source_or_sink)
+  THREADABLE_FUNCTION_5ARG(pass_spin1field_from_x_to_mom_space, spin1field*,out, spin1field*,in, bool*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
@@ -301,7 +301,7 @@ namespace nissa
   }  
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_5ARG(pass_spin_from_mom_to_x_space_source_or_sink, spin*,out, spin*,in, int*,dirs, double*,bc, int,source_or_sink)
+  THREADABLE_FUNCTION_5ARG(pass_spin_from_mom_to_x_space_source_or_sink, spin*,out, spin*,in, bool*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
@@ -335,7 +335,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_5ARG(pass_spin_from_x_to_mom_space_source_or_sink, spin*,out, spin*,in, int*,dirs, double*,bc, int,source_or_sink)
+  THREADABLE_FUNCTION_5ARG(pass_spin_from_x_to_mom_space_source_or_sink, spin*,out, spin*,in, bool*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     

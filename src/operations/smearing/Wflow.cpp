@@ -19,7 +19,7 @@ namespace nissa
   namespace Wflow
   {
     //we add with the new weight the previous one multiplied by the old weight
-    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,int *dirs,int iter)
+    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,bool *dirs,int iter)
     {
       GET_THREAD_ID();
       
@@ -64,7 +64,7 @@ namespace nissa
     }
     
     //update the conf according to exp(i arg) conf_
-    void update_conf(quad_su3 *arg,quad_su3 *conf,int *dirs)
+    void update_conf(quad_su3 *arg,quad_su3 *conf,bool *dirs)
     {
       GET_THREAD_ID();
       
@@ -82,7 +82,7 @@ namespace nissa
   }
   
   //flow for the given time for a dt using 1006.4518 appendix C
-  THREADABLE_FUNCTION_3ARG(Wflow_lx_conf, quad_su3*,conf, double,dt, int*,dirs)
+  THREADABLE_FUNCTION_3ARG(Wflow_lx_conf, quad_su3*,conf, double,dt, bool*,dirs)
   {
     //storage for staples
     quad_su3 *arg=nissa_malloc("arg",loc_vol,quad_su3);
