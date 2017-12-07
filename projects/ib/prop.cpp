@@ -426,7 +426,7 @@ namespace nissa
 	  double pt2=0,pt4=0;
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
-	      double pmu=M_PI*(2*c[mu]+(mu==0)*QUARK_BOUND_COND)/glb_size[mu];
+	      double pmu=M_PI*(2*c[mu]+(mu==0)*temporal_bc)/glb_size[mu];
 	      double ptmu=sin(pmu);
 	      pt2+=sqr(ptmu);
 	      pt4+=pow(ptmu,4.0);
@@ -438,7 +438,7 @@ namespace nissa
 		//get mirrorized
 		coords cmir;
 		for(int mu=0;mu<NDIM;mu++)
-		cmir[mu]=get_mirrorized_site_coord(c[mu]+(mu==0 and get_bit(imir,0) and QUARK_BOUND_COND==1),mu,get_bit(imir,mu));
+		cmir[mu]=get_mirrorized_site_coord(c[mu]+(mu==0 and get_bit(imir,0) and temporal_bc==ANTIPERIODIC_BC),mu,get_bit(imir,mu));
 		
 		//check if not already collected
 		int iglb=glblx_of_coord(cmir);

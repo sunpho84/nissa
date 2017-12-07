@@ -32,7 +32,7 @@ namespace nissa
 	else                read_double(&leps[il].mass);
 	
 	//antiperiodic or periodic
-	leps[il].bc[0]=QUARK_BOUND_COND;
+	leps[il].bc[0]=temporal_bc;
 	
 	//maximal twist (if tm), otherwise read kappa
 	if(not twisted_run) read_double(&leps[il].kappa);
@@ -97,7 +97,7 @@ namespace nissa
   {
     tm_quark_info le=leps[ilepton];
     le.r=r;
-    le.bc[0]=QUARK_BOUND_COND;
+    le.bc[0]=temporal_bc;
     for(int i=1;i<NDIM;i++) le.bc[i]*=sign_orie[orie];
     
     return le;

@@ -12,15 +12,15 @@
  #define INIT_TO(VAL) =VAL
 #endif
 
-#define PERIODIC 0
-#define ANTIPERIODIC 1
-#define QUARK_BOUND_COND ANTIPERIODIC
-
 namespace nissa
 {
+#define PERIODIC_BC 0
+#define ANTIPERIODIC_BC 1
+  
   EXTERN_PARS tm_basis_t base;
   EXTERN_PARS double glb_cSW;
   EXTERN_PARS int twisted_run,clover_run;
+  EXTERN_PARS double temporal_bc INIT_TO(ANTIPERIODIC_BC);
   
   EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
   EXTERN_PARS int nso_spi,nso_col;
