@@ -110,7 +110,7 @@ void init_simulation(char *path)
       master_printf("Read variable 'Tins' with value: %d\n",tins);
       
       double kappa=0.125,mass=0.5,charge=0,theta[NDIM],residue=1e-16;
-      theta[0]=QUARK_BOUND_COND;
+      theta[0]=temporal_bc;
       for(int mu=1;mu<NDIM;mu++) theta[mu]=0;
       int r=0,store_prop=0;
       
@@ -276,11 +276,37 @@ void in_main(int narg,char **arg)
   tot_prog_time-=take_time();
   
   //check argument
-  if(narg<2) crash("Use: %s input_file [stop_path]",arg[0]);
+  if(narg<2) crash("Use: %s input_file [stop_path]|periodic/antiperiodic",arg[0]);
   
   //init simulation according to input file
   init_simulation(arg[1]);
-  if(narg>=3) stop_path=arg[2];
+  
+  //parse the rest of the args
+  for(int iarg=2;iarg<narg;iarg++)
+    {
+      bool parsed=false;
+      //check if we passed "periodic"
+      if(not parsed and strcasecmp(arg[iarg],"periodic"))
+	{
+	  master_printf("Setting temporal bc to tiperiodic folowing argument %d\n",iarg);
+	  temporal_bc=ANTIPERIODIC_BC;
+	  parsed=true;
+	}
+      //check if we passed "antiperiodic"
+      if(not parsed and strcasecmp(arg[iarg],"periodic"))
+	{
+	  master_printf("Setting temporal bc to antiperiodic folowing argument %d\n",iarg);
+	  temporal_bc=ANTIPERIODIC_BC;
+	  parsed=true;
+	}
+      //otherwise take this as stop file path
+      if(not parsed)
+	{
+	  master_printf("Setting stopping path to %s folowing argument %d\n",arg[iarg],iarg);
+	  stop_path=arg[iarg];
+	  parsed=true;
+	}
+    }
   
   //loop over the configs
   int iconf=0;

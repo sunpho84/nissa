@@ -243,7 +243,7 @@ namespace nissa
       {
 	//remove border phase
 	int t=i%glb_size[0];
-	double arg=3*QUARK_BOUND_COND*M_PI*t/glb_size[0];
+	double arg=3*temporal_bc*M_PI*t/glb_size[0];
 	complex phase={cos(arg),sin(arg)};
 	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
       }
@@ -420,7 +420,7 @@ namespace nissa
 	else
 	  {
 	    double plain_bc[NDIM];
-	    plain_bc[0]=QUARK_BOUND_COND;
+	    plain_bc[0]=temporal_bc;
 	    for(int mu=1;mu<NDIM;mu++) plain_bc[mu]=0.0;
 	    conserved_vector_current_mel(get_updated_conf(Q[h.fw].charge,plain_bc,glb_conf),si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str(),revert);
 	  }
