@@ -9,8 +9,42 @@ using namespace nissa;
 
 ///////////////////////////////// initialise the library, read input file, allocate /////////////////////////////////////
 
-void init_simulation(char *path)
+void init_simulation(int narg,char **arg)
 {
+  //check argument
+  if(narg<2) crash("Use: %s input_file [stop_path]|periodic/antiperiodic",arg[0]);
+  
+  const char *path=arg[1];
+  
+  //parse the rest of the args
+  for(int iarg=2;iarg<narg;iarg++)
+    {
+      bool parsed=false;
+      master_printf("parsing argument %d: '%s'\n",iarg,arg[iarg]);
+      
+      //check if we passed "periodic"
+      if(not parsed and not strcasecmp(arg[iarg],"periodic"))
+	{
+	  temporal_bc=PERIODIC_BC;
+	  master_printf(" Setting temporal bc to %lg = 'periodic'\n",temporal_bc);
+	  parsed=true;
+	}
+      //check if we passed "antiperiodic"
+      if(not parsed and not strcasecmp(arg[iarg],"periodic"))
+	{
+	  temporal_bc=ANTIPERIODIC_BC;
+	  master_printf(" Setting temporal bc to %lg = 'antiperiodic'\n",temporal_bc);
+	  parsed=true;
+	}
+      //otherwise take this as stop file path
+      if(not parsed)
+	{
+	  stop_path=arg[iarg];
+	  master_printf(" Setting stopping path to '%s'\n",stop_path.c_str());
+	  parsed=true;
+	}
+    }
+  
   //open input file
   open_input(path);
   
@@ -275,38 +309,8 @@ void in_main(int narg,char **arg)
   //Basic mpi initialization
   tot_prog_time-=take_time();
   
-  //check argument
-  if(narg<2) crash("Use: %s input_file [stop_path]|periodic/antiperiodic",arg[0]);
-  
   //init simulation according to input file
-  init_simulation(arg[1]);
-  
-  //parse the rest of the args
-  for(int iarg=2;iarg<narg;iarg++)
-    {
-      bool parsed=false;
-      //check if we passed "periodic"
-      if(not parsed and strcasecmp(arg[iarg],"periodic"))
-	{
-	  master_printf("Setting temporal bc to tiperiodic folowing argument %d\n",iarg);
-	  temporal_bc=ANTIPERIODIC_BC;
-	  parsed=true;
-	}
-      //check if we passed "antiperiodic"
-      if(not parsed and strcasecmp(arg[iarg],"periodic"))
-	{
-	  master_printf("Setting temporal bc to antiperiodic folowing argument %d\n",iarg);
-	  temporal_bc=ANTIPERIODIC_BC;
-	  parsed=true;
-	}
-      //otherwise take this as stop file path
-      if(not parsed)
-	{
-	  master_printf("Setting stopping path to %s folowing argument %d\n",arg[iarg],iarg);
-	  stop_path=arg[iarg];
-	  parsed=true;
-	}
-    }
+  init_simulation(narg,arg);
   
   //loop over the configs
   int iconf=0;
