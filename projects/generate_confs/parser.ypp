@@ -154,6 +154,10 @@
 %token TK_ELEC_CHARGE
 //smooth method
 %token TK_SMOOTH_METHOD
+%token TK_SPACE_OR_TIME
+%token TK_SPACE
+%token TK_TIME
+%token TK_SPACETIME
 %type <smooth_pars> smooth_pars
 //topo measure
 %token TK_MEAS_CORR
@@ -410,6 +414,9 @@ smooth_pars: TK_SMOOTH_METHOD '=' stout_pars {$$=new smooth_pars_t;$$->method=sm
            | TK_SMOOTH_METHOD '=' ape_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::APE;$$->ape=(*$3);delete $3;}
            | TK_SMOOTH_METHOD '=' hyp_pars {$$=new smooth_pars_t;$$->method=smooth_pars_t::HYP;$$->hyp=(*$3);delete $3;}
            | smooth_pars meas_each_nsmooth {$1->meas_each_nsmooth=$2;}
+           | smooth_pars TK_SPACE_OR_TIME '=' TK_SPACE {$$->space_or_time=smooth_pars_t::SPACE;}
+           | smooth_pars TK_SPACE_OR_TIME '=' TK_TIME {$$->space_or_time=smooth_pars_t::TIME;}
+           | smooth_pars TK_SPACE_OR_TIME '=' TK_SPACETIME {$$->space_or_time=smooth_pars_t::SPACETIME;}
 ;
 
 ////////////////////////////////////////////////// STOUT PARS //////////////////////////////////////////////////

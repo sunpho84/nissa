@@ -334,7 +334,7 @@ void measure_gauge_obs_internal(FILE *file,quad_su3 *conf,gauge_obs_meas_pars_t 
       average_polyakov_loop_lx_conf(poly,conf,0);
       master_fprintf(file,"\t%+16.16lg\t%+16.16lg",poly[0],poly[1]);
     }
-
+  
   master_fprintf(file,"\n");
 }
 
@@ -370,7 +370,13 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars,quad_su3 **conf,int iconf,int
 	  master_fprintf(file,"%d\t%d\t%d",iconf,acc,nsmooth);
 	  
 	  measure_gauge_obs_internal(file,temp_conf,pars,gauge_action_name);
-	  finished=smooth_lx_conf_until_next_meas(temp_conf,pars.smooth_pars,nsmooth);
+	  
+	  //get internal parameters
+	  smooth_pars_t::space_or_time_t &space_or_time=pars.smooth_pars.space_or_time;
+	  bool* dirs=smooth_pars_t::get_dirs(space_or_time);
+	  int staple_min_dir=smooth_pars_t::get_staple_min_dir(space_or_time);
+	  
+	  finished=smooth_lx_conf_until_next_meas(temp_conf,pars.smooth_pars,nsmooth,dirs,staple_min_dir);
 	}
       while(not finished);
       
