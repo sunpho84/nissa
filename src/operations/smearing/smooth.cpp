@@ -71,6 +71,7 @@ namespace nissa
 	      }
 	    //os<<" /* alternatives: Cooling, Stout, WFlow, Ape, Hyp */\n";
 	  }
+	if(full or space_or_time!=def_space_or_time()) os<<" SpaceOrTime\t=\t"<<space_or_time_str_from_name(space_or_time)<<"\n";
 	if(full or meas_each_nsmooth!=def_meas_each_nsmooth()) os<<" MeasEachNSmooth\t=\t"<<meas_each_nsmooth<<"\n";
       }
     
