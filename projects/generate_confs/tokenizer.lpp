@@ -192,6 +192,10 @@ ElecCharge  DEBUG_PRINTF("Found ElecCharge\n");return TK_ELEC_CHARGE;
 
  /* smooth method */
 SmoothMethod DEBUG_PRINTF("Found SmoothMethod\n");return TK_SMOOTH_METHOD;
+SpaceOrTime  DEBUG_PRINTF("Found SpaceOrTime\n");return TK_SPACE_OR_TIME;
+Space  DEBUG_PRINTF("Found Space\n");return TK_SPACE;
+Time  DEBUG_PRINTF("Found Time\n");return TK_TIME;
+SpaceTime  DEBUG_PRINTF("Found SpaceTime\n");return TK_SPACETIME;
 
  /* meas each nsmooth */
 MeasEachNSmooth DEBUG_PRINTF("Found MeasEachNSmooth\n");return TK_MEAS_EACH_NSMOOTH;
