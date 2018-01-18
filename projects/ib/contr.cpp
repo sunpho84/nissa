@@ -3,10 +3,39 @@
 #define EXTERN_CONTR
  #include "contr.hpp"
 
+#include <set>
+
 #include "prop.hpp"
 
 namespace nissa
 {
+  //class to open or append a path, depending if it was already used
+  class open_or_append_t
+  {
+    //list of already opened file
+    std::set<std::string> opened;
+    
+  public:
+    //open for write or append, depending
+    FILE *open(const std::string &path)
+    {
+      //detect the mode
+      std::string mode;
+      if(opened.find(path)==opened.end())
+	{
+	  mode="w";
+	  opened.insert(path);
+	}
+      else
+	mode="a";
+      
+      //open
+      FILE *fout=open_file(path.c_str(),mode.c_str());
+      
+      return fout;
+    }
+  };
+  
   //allocate mesonic contractions
   void allocate_mes2pts_contr()
   {
@@ -113,9 +142,13 @@ namespace nissa
     glb_nodes_reduce_complex_vect(mes2pts_contr,mes2pts_contr_size);
     for(int i=0;i<mes2pts_contr_size;i++) complex_prodassign_double(mes2pts_contr[i],1.0);
     
+    //list to open or append
+    open_or_append_t list;
+    
     for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
       {
-	FILE *fout=open_file(combine("%s/mes_contr_%s",outfolder,mes2pts_contr_map[icombo].name.c_str()),"w");
+	//path to use
+	FILE *fout=list.open(combine("%s/mes_contr_%s",outfolder,mes2pts_contr_map[icombo].name.c_str()));
 	
 	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",1.0/nhits);
 	master_fprintf(fout,"\n");
@@ -258,6 +291,9 @@ namespace nissa
   //print all contractions
   void print_bar2pts_contr()
   {
+    //list to open or append
+    open_or_append_t list;
+    
     //reduce
     glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
@@ -265,7 +301,7 @@ namespace nissa
       for(int dir_exc=0;dir_exc<2;dir_exc++)
 	{
 	  //open output
-	  FILE *fout=open_file(combine("%s/bar_contr_%s_%s",outfolder,(dir_exc==0)?"dir":"exc",bar2pts_contr_map[icombo].name.c_str()),"w");
+	  FILE *fout=list.open(combine("%s/bar_contr_%s_%s",outfolder,(dir_exc==0)?"dir":"exc",bar2pts_contr_map[icombo].name.c_str()));
 	  for(int t=0;t<glb_size[0];t++)
 	    {
 	      //normalize for nsources and 1+g0
@@ -476,13 +512,17 @@ namespace nissa
   //print handcuffs contractions
   void print_handcuffs_contr()
   {
+    //list to open or append
+    open_or_append_t list;
+    
     contr_print_time-=take_time();
     
     //reduce and normalise
     glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);
     
+    //Open if size different from zero
     FILE *fout=NULL;
-    if(handcuffs_map.size()) fout=open_file(combine("%s/handcuffs",outfolder),"w");
+    if(handcuffs_map.size()) fout=list.open(combine("%s/handcuffs",outfolder));
     
     for(size_t icombo=0;icombo<handcuffs_map.size();icombo++)
       {
