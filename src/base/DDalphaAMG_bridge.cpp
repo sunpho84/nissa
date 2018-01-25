@@ -23,6 +23,7 @@ namespace DD
   int &nlevels=init_params.number_of_levels;
   DDalphaAMG_parameters params;
   int nsetups[MAX_MG_LEVELS];
+  int smoother_iterations;
   double mu_factor[MAX_MG_LEVELS];
   DDalphaAMG_status status;
   bool setup_valid=false;
@@ -64,7 +65,10 @@ namespace DD
   {
     char path[]="DDalphaAMG_pars";
     
+    smoother_iterations=4;
+    
     nlevels=3;
+    
     for(int ilev=0;ilev<nlevels;ilev++) nsetups[ilev]=4;
     for(int ilev=0;ilev<nlevels;ilev++) mu_factor[ilev]=1;
     
@@ -85,6 +89,12 @@ namespace DD
 		  {
 		    nissa::read_int(&nlevels);
 		    master_printf("DD: read nlevels=%d\n",nlevels);
+		  }
+		//number of smoother iterations
+		if(strcasecmp(tag,"smoother_iterations")==0)
+		  {
+		    nissa::read_int(&smoother_iterations);
+		    master_printf("DD: read smoother_iterations=%d\n",smoother_iterations);
 		  }
 		//maximal mass
 		if(strcasecmp(tag,"max_mass")==0)
@@ -233,6 +243,10 @@ namespace DD
     //set transposer
     params.conf_index_fct=conf_index_fct;
     params.vector_index_fct=vector_index_fct;
+    
+    //check smoother_iterations
+    master_printf("DD: Smoother iterations changed from %d to %d\n",params.smoother_iterations,smoother_iterations);
+    params.smoother_iterations=smoother_iterations;
     
     //check mu_factor
     for(int ilev=0;ilev<nlevels;ilev++)
