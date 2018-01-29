@@ -67,7 +67,7 @@ namespace nissa
 	    for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 	      {
 		//fill the source
-		fill_source(source);
+		fill_source(source,-1,meas_pars.rnd_type);
 		
 		//compute dM*M^-1
 		AT_ORDER(1)

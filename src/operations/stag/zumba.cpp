@@ -58,7 +58,7 @@ namespace nissa
 	    for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 	      {
 		//fill the source
-		fill_source(source);
+		fill_source(source,-1,meas_pars.rnd_type);
 		
 		//compute M^-1, M' M^-1, M'' M^-1
 		MINV(M,iflav,source);

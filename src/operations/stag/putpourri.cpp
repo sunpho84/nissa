@@ -46,7 +46,7 @@ namespace nissa
   };
   
   //compute the fermionic putpourri for a single conf and hit
-  THREADABLE_FUNCTION_6ARG(fermionic_putpourri, fermionic_putpourri_t*,putpourri, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue, int,comp_susc)
+  THREADABLE_FUNCTION_7ARG(fermionic_putpourri, fermionic_putpourri_t*,putpourri, rnd_t,rnd_type,quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue, int,comp_susc)
   {
     GET_THREAD_ID();
     
@@ -64,7 +64,7 @@ namespace nissa
 	}
     
     //generate the source
-    generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
+    generate_fully_undiluted_eo_source(rnd,rnd_type,-1);
     
     //we add backfield externally because we need them for derivative
     add_backfield_with_stagphases_to_conf(conf,u1b);
@@ -214,7 +214,7 @@ namespace nissa
 		
 		//compute and summ
 		fermionic_putpourri_t temp;
-		fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue,comp_susc);
+		fermionic_putpourri(&temp,meas_pars.rnd_type,conf,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue,comp_susc);
 		complex_summassign(putpourri.chiral_cond,temp.chiral_cond);
 		if(comp_susc) complex_summassign(putpourri.chiral_cond_susc,temp.chiral_cond_susc);
 		complex_summassign(putpourri.energy_dens,temp.energy_dens);

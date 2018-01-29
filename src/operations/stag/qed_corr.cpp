@@ -168,7 +168,7 @@ namespace nissa
 	    
 	    //generate sources
 	    get_eo_photon(photon_field,photon);
-	    fill_source(ori_source,tso);
+	    fill_source(ori_source,tso,meas_pars.rnd_type);
 	    
 	    // tso=0;
 	    // vector_reset(ori_source[EVN]);

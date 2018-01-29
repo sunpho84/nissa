@@ -135,11 +135,11 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the magnetization
-  void magnetization(complex *magn,complex *magn_proj_x,quad_su3 **conf,int quantization,quad_u1 **u1b,quark_content_t *quark,double residue)
+  void magnetization(complex *magn,complex *magn_proj_x,rnd_t rnd_type,quad_su3 **conf,int quantization,quad_u1 **u1b,quark_content_t *quark,double residue)
   {
     //allocate source and generate it
     color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
-    generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
+    generate_fully_undiluted_eo_source(rnd,rnd_type,-1);
     
     //call inner function
     magnetization(magn,magn_proj_x,conf,quantization,u1b,quark,residue,rnd);
@@ -176,7 +176,7 @@ namespace nissa
             
                 //compute and summ
                 complex temp,temp_magn_proj_x[glb_size[1]];
-                magnetization(&temp,temp_magn_proj_x,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue); //flag holds quantization
+                magnetization(&temp,temp_magn_proj_x,meas_pars.rnd_type,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue); //flag holds quantization
                 
                 //normalize
                 complex_summ_the_prod_double(magn,temp,1.0/nhits);
