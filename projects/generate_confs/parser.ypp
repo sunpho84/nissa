@@ -61,6 +61,8 @@
     nissa::watusso_meas_pars_t *watusso_meas;
     nissa::all_rects_meas_pars_t *all_rects_meas;
     
+    nissa::rnd_t rnd_type;
+    
     std::vector<int> *int_list;
     std::vector<double> *double_list;
     std::vector<std::string> *text_list;
@@ -162,6 +164,10 @@
 //topo measure
 %token TK_MEAS_CORR
 %token TK_CORR_PATH
+//noise type
+%token TK_NOISE_TYPE
+%token <rnd_type> TK_RND_T
+%type <rnd_type> noise_type
 //stout pars
 %token TK_STOUT
 %type <stout_pars> stout_pars
@@ -351,6 +357,8 @@ ncopies: TK_NCOPIES '=' int_numb {$$=$3;};
 
 nhits: TK_NHITS '=' int_numb {$$=$3;};
 
+noise_type: TK_NOISE_TYPE '=' TK_RND_T {$$=$3;};
+
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 
 max_order: TK_MAX_ORDER '=' int_numb {$$=$3;};
@@ -503,6 +511,7 @@ nucleon_corr_meas: TK_MEAS_NUCLEON_CORRS {$$=new nucleon_corr_meas_pars_t();}
                  | nucleon_corr_meas residue {$$->residue=$2;}
                  | nucleon_corr_meas itheory {$$->itheory=$2;}
                  | nucleon_corr_meas ncopies {$$->ncopies=$2;}
+                 | nucleon_corr_meas noise_type {$$->rnd_type=$2;}
                  | nucleon_corr_meas nhits {$$->nhits=$2;}
 ;
 
@@ -515,6 +524,7 @@ meson_corr_meas: TK_MEAS_MESON_CORRS {$$=new meson_corr_meas_pars_t();}
                | meson_corr_meas residue {$$->residue=$2;}
                | meson_corr_meas itheory {$$->itheory=$2;}
                | meson_corr_meas ncopies {$$->ncopies=$2;}
+               | meson_corr_meas noise_type {$$->rnd_type=$2;}
                | meson_corr_meas nhits {$$->nhits=$2;}
                | meson_corr_meas operators {
 		   if((*$2)[0]!=std::make_pair(15,15)) crash("first entry of the meson list must be 15,15, instead it is: %d %d",(*$2)[0].first,(*$2)[0].second);
@@ -543,6 +553,7 @@ fermionic_putpourri_meas: TK_MEAS_PUTPOURRI {$$=new fermionic_putpourri_meas_par
                         | fermionic_putpourri_meas compute_susc {$$->compute_susc=$2;}
                         | fermionic_putpourri_meas itheory {$$->itheory=$2;}
                         | fermionic_putpourri_meas ncopies {$$->ncopies=$2;}
+                        | fermionic_putpourri_meas noise_type {$$->rnd_type=$2;}
                         | fermionic_putpourri_meas nhits {$$->nhits=$2;}
 ;
 
@@ -555,6 +566,7 @@ quark_rendens_meas: TK_MEAS_RENDENS {$$=new quark_rendens_meas_pars_t();}
                   | quark_rendens_meas residue {$$->residue=$2;}
                   | quark_rendens_meas itheory {$$->itheory=$2;}
                   | quark_rendens_meas ncopies {$$->ncopies=$2;}
+                  | quark_rendens_meas noise_type {$$->rnd_type=$2;}
                   | quark_rendens_meas nhits {$$->nhits=$2;}
                   | quark_rendens_meas max_order {$$->max_order=$2;}
 ;
@@ -568,6 +580,7 @@ chir_zumba_meas: TK_MEAS_ZUMBA {$$=new chir_zumba_meas_pars_t();}
                   | chir_zumba_meas residue {$$->residue=$2;}
                   | chir_zumba_meas itheory {$$->itheory=$2;}
                   | chir_zumba_meas ncopies {$$->ncopies=$2;}
+                  | chir_zumba_meas noise_type {$$->rnd_type=$2;}
                   | chir_zumba_meas nhits {$$->nhits=$2;}
                   | chir_zumba_meas max_order {$$->max_order=$2;}
 ;
@@ -581,6 +594,7 @@ spinpol_meas: TK_MEAS_SPINPOL {$$=new spinpol_meas_pars_t();}
                   | spinpol_meas residue {$$->residue=$2;}
                   | spinpol_meas itheory {$$->itheory=$2;}
                   | spinpol_meas ncopies {$$->ncopies=$2;}
+                  | spinpol_meas noise_type {$$->rnd_type=$2;}
                   | spinpol_meas nhits {$$->nhits=$2;}
                   | spinpol_meas operators {$$->operators=*$2;delete $2;}
                   | spinpol_meas use_ferm_conf_for_gluons {$$->use_ferm_conf_for_gluons=$2;}
@@ -600,6 +614,7 @@ qed_corr_meas: TK_MEAS_QED_CORRS {$$=new qed_corr_meas_pars_t();}
                   | qed_corr_meas residue {$$->residue=$2;}
                   | qed_corr_meas itheory {$$->itheory=$2;}
                   | qed_corr_meas ncopies {$$->ncopies=$2;}
+                  | qed_corr_meas noise_type {$$->rnd_type=$2;}
                   | qed_corr_meas nhits {$$->nhits=$2;}
 ;
 
@@ -612,6 +627,7 @@ magnetization_meas: TK_MEAS_MAGNETIZ {$$=new magnetization_meas_pars_t();}
                   | magnetization_meas residue {$$->residue=$2;}
                   | magnetization_meas itheory {$$->itheory=$2;}
                   | magnetization_meas ncopies {$$->ncopies=$2;}
+                  | magnetization_meas noise_type {$$->rnd_type=$2;}
                   | magnetization_meas nhits {$$->nhits=$2;}
 ;
 

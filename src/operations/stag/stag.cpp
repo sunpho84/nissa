@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -205,8 +206,10 @@ namespace nissa
     }
     
     //fill a source
-    void fill_source(color **src,int twall)
-    {generate_fully_undiluted_eo_source(src,RND_GAUSS,twall);}
+    void fill_source(color **src,int twall,rnd_t noise_type)
+    {
+      generate_fully_undiluted_eo_source(src,noise_type,twall);
+    }
     
     //take the trace between A^dag and B
     THREADABLE_FUNCTION_4ARG(summ_the_trace, double*,out, complex*,point_result, color**, A, color**, B)
@@ -333,6 +336,7 @@ namespace nissa
     if(residue!=def_residue() or full) os<<" Residue\t=\t"<<residue<<"\n";
     if(ncopies!=def_ncopies() or full) os<<" NCopies\t=\t"<<ncopies<<"\n";
     if(itheory!=def_itheory() or full) os<<" ITheory\t=\t"<<itheory<<"\n";
+    if(rnd_type!=def_rnd_type() or full) os<<" NoiseType\t\t=\t"<<rnd_t_str[rnd_type]<<"\n";
     if(nhits!=def_nhits() or full) os<<" NHits\t\t=\t"<<nhits<<"\n";
     
     return os.str();

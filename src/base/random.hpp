@@ -1,7 +1,6 @@
 #ifndef _RANDOM_HPP
 #define _RANDOM_HPP
 
-#include "base/random.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 
@@ -14,6 +13,7 @@ namespace nissa
   const int nrnd_type=7;
   enum rnd_t{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z3,RND_Z4,RND_GAUSS};
   const char rnd_t_str[nrnd_type][20]={"AllPlusOne","AllMinusOne","Unif","Z2","Z3","Z4","Gauss"};
+  
   //Source type
   enum source_t{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
   

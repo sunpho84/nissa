@@ -82,7 +82,7 @@ namespace nissa
 	    verbosity_lv2_master_printf("tsource: %d\n",tso);
 	    
 	    //generate source
-	    generate_fully_undiluted_eo_source(ori_source,RND_Z4,tso);
+	    generate_fully_undiluted_eo_source(ori_source,meas_pars->rnd_type,tso);
 	    
 	    for(int iflav=0;iflav<nflavs;iflav++)
 	      {

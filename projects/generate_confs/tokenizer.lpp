@@ -299,6 +299,16 @@ Run DEBUG_PRINTF("Found Run\n");return TK_RUN;
 Walltime DEBUG_PRINTF("Found Walltime\n");return TK_WALLTIME;
 Seed DEBUG_PRINTF("Found Seed\n");return TK_SEED;
 
+ /* noise type */
+NoiseType DEBUG_PRINTF("Found NoiseType\n");return TK_NOISE_TYPE;
+AllPlusOne DEBUG_PRINTF("Found AllPlusOne\n");yylval->rnd_type=nissa::RND_ALL_PLUS_ONE;return TK_RND_T;
+AllMinusOne DEBUG_PRINTF("Found AllMinusOne\n");yylval->rnd_type=nissa::RND_ALL_MINUS_ONE;return TK_RND_T;
+Unif DEBUG_PRINTF("Found Unif\n");yylval->rnd_type=nissa::RND_UNIF;return TK_RND_T;
+Z2 DEBUG_PRINTF("Found Z2\n");yylval->rnd_type=nissa::RND_Z2;return TK_RND_T;
+Z3 DEBUG_PRINTF("Found Z3\n");yylval->rnd_type=nissa::RND_Z3;return TK_RND_T;
+Z4 DEBUG_PRINTF("Found Z4\n");yylval->rnd_type=nissa::RND_Z4;return TK_RND_T;
+Gauss DEBUG_PRINTF("Found Gauss\n");yylval->rnd_type=nissa::RND_GAUSS;return TK_RND_T;
+
  /* punctuation */
 \, return ',';
 \( return '(';

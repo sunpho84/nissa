@@ -116,7 +116,7 @@ namespace nissa
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    {
 	      int ieta=ind_copy_hit(icopy,ihit);
-	      generate_fully_undiluted_lx_source(eta[ieta],RND_Z4,-1);
+	      generate_fully_undiluted_lx_source(eta[ieta],mp->rnd_type,-1);
 	      
 	      for(int iflav=0;iflav<nflavs;iflav++)
 		for(int imeas=0;imeas<nmeas;imeas++)
@@ -315,7 +315,7 @@ namespace nissa
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    {
 	      int isource=ind_copy_flav_hit_phieta(icopy,0,ihit,ETA);
-	      generate_fully_undiluted_eo_source(fields[isource],RND_Z4,-1);
+	      generate_fully_undiluted_eo_source(fields[isource],mp->rnd_type,-1);
 	      
 	      for(int iflav=0;iflav<nflavs;iflav++)
 		{

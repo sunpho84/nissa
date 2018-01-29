@@ -1,6 +1,7 @@
 #ifndef _STAG_HPP
 #define _STAG_HPP
 
+#include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "hmc/theory_pars.hpp"
 
@@ -39,6 +40,7 @@ namespace nissa
     int itheory;
     int ncopies;
     int nhits;
+    rnd_t rnd_type;
     
     int def_each(){return 1;}
     int def_after(){return 0;}
@@ -47,9 +49,16 @@ namespace nissa
     int def_itheory(){return 0;}
     int def_ncopies(){return 1;}
     int def_nhits(){return 1;}
+    rnd_t def_rnd_type(){return RND_Z2;}
     
     int measure_is_due(int ext_itheory,int iconf)
-    {return (itheory==ext_itheory)&&(each>0)&&(iconf%each==0)&&(iconf>=after);}
+    {
+      return
+	(itheory==ext_itheory) and
+	(each>0) and
+	(iconf%each==0) and
+	(iconf>=after);
+    }
     
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
@@ -62,6 +71,7 @@ namespace nissa
 	residue!=def_residue() or
 	itheory!=def_itheory() or
 	ncopies!=def_ncopies() or
+	rnd_type!=def_rnd_type() or
 	nhits!=def_nhits();
     }
     
@@ -71,7 +81,9 @@ namespace nissa
       residue(def_residue()),
       itheory(def_itheory()),
       ncopies(def_ncopies()),
-      nhits(def_nhits()) {}
+      nhits(def_nhits()),
+      rnd_type(def_rnd_type())
+    {}
     
     ~base_fermionic_meas_t(){};
   };
@@ -108,7 +120,7 @@ namespace nissa
       summ_the_trace((double*)A,point_result,B,C);			\
       if(ihit==meas_pars.nhits-1) PRINT(A)
       
-    void fill_source(color **src,int twall=-1);
+    void fill_source(color **src,int twall,rnd_t noise_type);
     void compute_fw_bw_der_mel(complex *res_fw_bw,color **left,quad_su3 **conf,int mu,color **right,complex *point_result);
     void mult_Minv(color **prop,quad_su3 **conf,quad_u1 **u1b,double m,double residue,color **source);
     void mult_Minv(color **prop,quad_su3 **conf,theory_pars_t *pars,int iflav,double residue,color **source);
