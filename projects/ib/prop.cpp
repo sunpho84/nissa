@@ -360,8 +360,10 @@ namespace nissa
   }
   
   //wrapper to generate a stochastic propagator
-  void generate_photon_stochastic_propagator()
+  void generate_photon_stochastic_propagator(int ihit)
   {
+    GET_THREAD_ID();
+    
     photon_prop_time-=take_time();
     
     //generate source and stochastich propagator
@@ -369,6 +371,38 @@ namespace nissa
     
     //generate the photon field
     multiply_by_sqrt_tlSym_gauge_propagator(photon_field,photon_eta,photon);
+    
+    std::vector<std::pair<std::string,spin1field*>> name_field;
+    for(auto &nf : name_field)
+      {
+	std::string &name=nf.first;
+	spin1field *ph=nf.second;
+	
+	//combine the filename
+	std::string path=combine("%s/hit%d_field%s",outfolder,ihit,name.c_str());
+	
+	//if asked and the file exists read it
+	if(load_photons)
+	  {
+	    if(file_exists(path))
+	      {
+		master_printf("  loading the photon field %s\n",name.c_str());
+		START_TIMING(read_prop_time,nread_prop);
+		read_real_vector(ph,path,"scidac-binary-data");
+		STOP_TIMING(read_prop_time);
+	      }
+	    else master_printf("  file %s not available, skipping loading\n",path.c_str());
+	  }
+	
+	//if asked, write it
+	if(store_photons)
+	  {
+	    master_printf("  storing the photon field %s\n",name.c_str());
+	    START_TIMING(store_prop_time,nstore_prop);
+	    write_real_vector(path,ph,64,"scidac-binary-data");
+	    STOP_TIMING(store_prop_time);
+	  }
+      }
     
     //invalidate internal conf
     inner_conf_valid=false;

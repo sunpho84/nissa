@@ -113,7 +113,9 @@ namespace nissa
   
   EXTERN_PROP int nsource_tot INIT_TO(0),nphoton_prop_tot INIT_TO(0);
   EXTERN_PROP double source_time INIT_TO(0),photon_prop_time INIT_TO(0),lepton_prop_time INIT_TO(0);
-  
+
+  EXTERN_PROP int load_photons INIT_TO(false);
+  EXTERN_PROP int store_photons INIT_TO(false);
   EXTERN_PROP spin1field *photon_field;
   EXTERN_PROP spin1field *photon_phi;
   EXTERN_PROP spin1field *photon_eta;
@@ -128,7 +130,7 @@ namespace nissa
   void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc);
   void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
-  void generate_photon_stochastic_propagator();
+  void generate_photon_stochastic_propagator(int ihit);
   void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc);
   void generate_lepton_propagators();
   void propagators_fft(int ihit);
@@ -148,7 +150,7 @@ namespace nissa
   
   inline void generate_propagators(int ihit)
   {
-    generate_photon_stochastic_propagator();
+    generate_photon_stochastic_propagator(ihit);
     generate_original_sources(ihit);
     generate_lepton_propagators();
     generate_quark_propagators(ihit);
