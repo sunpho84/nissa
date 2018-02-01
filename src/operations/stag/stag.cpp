@@ -336,7 +336,7 @@ namespace nissa
     if(residue!=def_residue() or full) os<<" Residue\t=\t"<<residue<<"\n";
     if(ncopies!=def_ncopies() or full) os<<" NCopies\t=\t"<<ncopies<<"\n";
     if(itheory!=def_itheory() or full) os<<" ITheory\t=\t"<<itheory<<"\n";
-    if(rnd_type!=def_rnd_type() or full) os<<" NoiseType\t\t=\t"<<rnd_t_str[rnd_type]<<"\n";
+    if(rnd_type!=def_rnd_type() or full) os<<" NoiseType\t=\t"<<rnd_t_str[rnd_type]<<"\n";
     if(nhits!=def_nhits() or full) os<<" NHits\t\t=\t"<<nhits<<"\n";
     
     return os.str();
