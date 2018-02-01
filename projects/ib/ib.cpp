@@ -12,7 +12,7 @@ using namespace nissa;
 void init_simulation(int narg,char **arg)
 {
   //check argument
-  if(narg<2) crash("Use: %s input_file [stop_path]|periodic/antiperiodic",arg[0]);
+  if(narg<2) crash("Use: %s input_file [stop_path]|periodic/antiperiodic|store/load_photons",arg[0]);
   
   const char *path=arg[1];
   
@@ -29,6 +29,7 @@ void init_simulation(int narg,char **arg)
 	  master_printf(" Setting temporal bc to %lg = 'periodic'\n",temporal_bc);
 	  parsed=true;
 	}
+      
       //check if we passed "antiperiodic"
       if(not parsed and not strcasecmp(arg[iarg],"periodic"))
 	{
@@ -36,6 +37,23 @@ void init_simulation(int narg,char **arg)
 	  master_printf(" Setting temporal bc to %lg = 'antiperiodic'\n",temporal_bc);
 	  parsed=true;
 	}
+      
+      //check if we passed "store_photons"
+      if(not parsed and not strcasecmp(arg[iarg],"store_photons"))
+	{
+	  master_printf(" Store the photon fields\n");
+	  store_photons=true;
+	  parsed=true;
+	}
+      
+      //check if we passed "load_photons"
+      if(not parsed and not strcasecmp(arg[iarg],"load_photons"))
+	{
+	  master_printf(" Load (if present) the photon fields\n");
+	  load_photons=true;
+	  parsed=true;
+	}
+      
       //otherwise take this as stop file path
       if(not parsed)
 	{
