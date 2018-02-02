@@ -372,9 +372,8 @@ namespace nissa
     //generate the photon field
     multiply_by_sqrt_tlSym_gauge_propagator(photon_field,photon_eta,photon);
     
-    using vnf_t=std::vector<std::pair<std::string,spin1field*> >;
-    vnf_t name_field;
-    for(vnf_t::iterator nf=name_field.begin();nf!=name_field.end();nf++)
+    std::vector<std::pair<std::string,spin1field*> > name_field;
+    for(std::vector<std::pair<std::string,spin1field*> >::iterator nf=name_field.begin();nf!=name_field.end();nf++)
       {
 	std::string &name=(*nf).first;
 	spin1field *ph=(*nf).second;
