@@ -373,6 +373,9 @@ namespace nissa
     multiply_by_sqrt_tlSym_gauge_propagator(photon_field,photon_eta,photon);
     
     std::vector<std::pair<std::string,spin1field*> > name_field;
+    name_field.push_back(std::make_pair("eta",photon_eta));
+    name_field.push_back(std::make_pair("phi",photon_phi));
+    name_field.push_back(std::make_pair("A",photon_field));
     for(std::vector<std::pair<std::string,spin1field*> >::iterator nf=name_field.begin();nf!=name_field.end();nf++)
       {
 	std::string &name=(*nf).first;
