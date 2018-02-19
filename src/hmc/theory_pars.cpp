@@ -21,7 +21,7 @@ namespace nissa
     //quarks
     for(size_t i=0;i<quarks.size();i++)	os<<quarks[i].get_str(full)<<"\n";
     //stout pars
-    os<<stout_pars.get_str()<<"\n";
+    os<<stout_pars.get_str(full)<<"\n";
     //global em field pars
     os<<em_field_pars.get_str(full)<<"\n";
     
