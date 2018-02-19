@@ -88,14 +88,14 @@ namespace nissa
     NAME2(measure,OBS)(sme_conf,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created,__VA_ARGS__);
     
     //add
-    void add_meson_corr_meas(meson_corr_meas_pars_t &m){meson_corr_meas.push_back(m);meson_corr_meas.back().itheory=ntheories()-1;}
-    void add_nucleon_corr_meas(nucleon_corr_meas_pars_t &m){nucleon_corr_meas.push_back(m);nucleon_corr_meas.back().itheory=ntheories()-1;}
-    void add_fermionic_putpourri_meas(fermionic_putpourri_meas_pars_t &m){fermionic_putpourri_meas.push_back(m);fermionic_putpourri_meas.back().itheory=ntheories()-1;}
-    void add_quark_rendens_meas(quark_rendens_meas_pars_t &m){quark_rendens_meas.push_back(m);quark_rendens_meas.back().itheory=ntheories()-1;}
-    void add_chir_zumba_meas(chir_zumba_meas_pars_t &m){chir_zumba_meas.push_back(m);chir_zumba_meas.back().itheory=ntheories()-1;}
-    void add_spinpol_meas(spinpol_meas_pars_t &m){spinpol_meas.push_back(m);spinpol_meas.back().itheory=ntheories()-1;}
-    void add_qed_corr_meas(qed_corr_meas_pars_t &m){qed_corr_meas.push_back(m);qed_corr_meas.back().itheory=ntheories()-1;}
-    void add_magnetization_meas(magnetization_meas_pars_t &m){magnetization_meas.push_back(m);magnetization_meas.back().itheory=ntheories()-1;}
+    void add_meson_corr_meas(meson_corr_meas_pars_t &m){meson_corr_meas.push_back(m);}
+    void add_nucleon_corr_meas(nucleon_corr_meas_pars_t &m){nucleon_corr_meas.push_back(m);}
+    void add_fermionic_putpourri_meas(fermionic_putpourri_meas_pars_t &m){fermionic_putpourri_meas.push_back(m);}
+    void add_quark_rendens_meas(quark_rendens_meas_pars_t &m){quark_rendens_meas.push_back(m);}
+    void add_chir_zumba_meas(chir_zumba_meas_pars_t &m){chir_zumba_meas.push_back(m);}
+    void add_spinpol_meas(spinpol_meas_pars_t &m){spinpol_meas.push_back(m);}
+    void add_qed_corr_meas(qed_corr_meas_pars_t &m){qed_corr_meas.push_back(m);}
+    void add_magnetization_meas(magnetization_meas_pars_t &m){magnetization_meas.push_back(m);}
     
     //gauge measures
     std::vector<gauge_obs_meas_pars_t> plaq_pol_meas;
