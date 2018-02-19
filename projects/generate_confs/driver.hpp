@@ -71,7 +71,8 @@ namespace nissa
     template <class T> bool if_meas_is_due_print(T &obj,int itheory,int iconf,const char *text)
     {
       bool a=nissa::measure_is_due(obj,iconf);
-      if(a) verbosity_lv1_master_printf("Measuring %s for theory %d/%d\n",text,itheory+1,ntheories());
+      bool b=obj.itheory==itheory;
+      if(a and b) verbosity_lv1_master_printf("Measuring %s for theory %d/%d\n",text,itheory+1,ntheories());
       return a;
     }
     
