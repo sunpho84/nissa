@@ -429,12 +429,11 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i],conf,iconf,acc,gauge_action_name);
   RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],conf,conf_created);
   RANGE_GAUGE_MEAS(top_meas,i)
-    if(measure_is_due(drv->top_meas[i],iconf))
-      {
-	top_meas_time[i]-=take_time();
-	measure_topology_eo_conf(drv->top_meas[i],conf,iconf,conf_created);
-	top_meas_time[i]+=take_time();
-      }
+    {
+      top_meas_time[i]-=take_time();
+      measure_topology_eo_conf(drv->top_meas[i],conf,iconf,conf_created);
+      top_meas_time[i]+=take_time();
+    }
   
   RANGE_GAUGE_MEAS(all_rects_meas,i) measure_all_rectangular_paths(&drv->all_rects_meas[i],conf,iconf,conf_created);
   RANGE_GAUGE_MEAS(watusso_meas,i) measure_watusso(&drv->watusso_meas[i],conf,iconf,conf_created);
