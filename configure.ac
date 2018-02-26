@@ -348,12 +348,6 @@ AC_CONFIG_FILES(
 	Makefile
 	src/Makefile
 	projects/Makefile
-	projects/cpn/Makefile
-	projects/generate_confs/Makefile
-	projects/ib/Makefile
-	projects/nucleons/Makefile
-	projects/reno_const/Makefile
-	projects/semileptonic/Makefile
 	tools/Makefile)
 
 AC_OUTPUT

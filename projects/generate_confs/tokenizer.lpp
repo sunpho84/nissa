@@ -1,8 +1,6 @@
 %option case-insensitive
 %option nounput
 %option noyywrap
-%option prefix="parser_"
-%option outfile="tokenizer.cpp"
 %option reentrant
 %option bison-bridge
 %option bison-locations
@@ -40,7 +38,7 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 #include <stdio.h>
 #include <string.h>
 #include "nissa.hpp"
-#include "driver.hpp"
+#include "generate_confs/driver.hpp"
 
 #define YY_EXTRA_TYPE nissa::driver_t*
 

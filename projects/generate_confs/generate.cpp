@@ -6,7 +6,7 @@
 
 #include <math.h>
 
-#include "nissa.hpp"
+#include <nissa.hpp>
 #include "driver.hpp"
 
 using namespace nissa;

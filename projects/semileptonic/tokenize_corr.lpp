@@ -1,7 +1,5 @@
 %option nounput
 %option noyywrap
-%option prefix="two_pts_corr_parser_"
-%option outfile="tokenize_corr.cpp"
 %option reentrant
 %option bison-bridge
 %option bison-locations
@@ -9,10 +7,10 @@
 %{
 #include <stdio.h>
 #include <string.h>
-#include "../../src/nissa.hpp"
-#include "driver_corr.hpp"
+#include "nissa.hpp"
+#include "semileptonic/driver_corr.hpp"
 
-#define CORR_NAME yyextra->corr_name[yyextra->ncorr]   
+#define CORR_NAME yyextra->corr_name[yyextra->ncorr]
 #define YY_EXTRA_TYPE two_pts_parser_driver*
 
 #define CORR_NAME_ADD(in) if(!yyextra->curr_corr_named) CORR_NAME+=in
@@ -118,7 +116,7 @@ void two_pts_parser_driver::destroy_scanner()
 two_pts_comp_t read_two_pts_sink_source_corr_from_file(const char *path)
 {
   two_pts_parser_driver driver(path);
-  two_pts_corr_parser_parse(&driver);
+  parse_corr_parse(&driver);
   
   //internal ncorr is wrong
   driver.output.corr_name=driver.corr_name;
