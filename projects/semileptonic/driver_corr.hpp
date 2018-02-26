@@ -21,7 +21,7 @@ protected:
   void destroy_scanner();
 };
 
-int two_pts_corr_parser_parse(two_pts_parser_driver *driver);
+int parse_corr_parse(two_pts_parser_driver *driver);
 two_pts_comp_t read_two_pts_sink_source_corr_from_file(const char *path);
 
 #endif

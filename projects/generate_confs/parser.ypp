@@ -14,15 +14,16 @@
 #include <string.h>
 #include <math.h>
 #include "nissa.hpp"
-#include "driver.hpp"
-#include "parser.hpp"
-#include "redefine_yy.hpp"
+#include "generate_confs/driver.hpp"
+#include "generate_confs/parser.hpp"
 
   using namespace nissa;
 
   const int debug_parser=0;
   
-  int parser_lex(YYSTYPE *lvalp,YYLTYPE *llocp,void *scanner);
+  int tokenizer_lex(YYSTYPE *lvalp,YYLTYPE *llocp,void *scanner);
+#define parser_lex tokenizer_lex
+
   void parser_error(YYLTYPE *locp,driver_t *driver,const char *err)
   {crash("exception at line %d columns [%d-%d] %s",locp->first_line,locp->first_column,locp->last_column,err);}
 

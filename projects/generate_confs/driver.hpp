@@ -219,9 +219,9 @@ namespace nissa
     void init_scanner();
     void destroy_scanner();
   };
-  
-  int parser_parse(driver_t *driver);
 }
+
+int parser_parse(nissa::driver_t *driver);
 
 #endif
 
