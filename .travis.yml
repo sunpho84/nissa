@@ -8,6 +8,7 @@ branches:
 # Environment variables
 env:
   global:
+    - MAKEFLAGS="-j 2"
     - CC=gcc-7
     - CXX=g++-7
     - GH_REPO_NAME: nissa
