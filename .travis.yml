@@ -1,0 +1,33 @@
+sudo: false
+
+# Blacklist
+branches:
+  except:
+    - gh-pages
+
+#compiler: clang
+
+# Environment variables
+env:
+global:
+  - CC=gcc-7
+  - CXX=g++-7
+  - GH_REPO_NAME: nissa
+  - GH_REPO_REF: github.com/sunpho84/nissa.git
+
+# Install dependencies
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main'
+        key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+    packages:
+      - g++-7
+
+script:
+  - bash config/bootstrap
+  - mkdir build
+  - cd build
+  - ../configure
+  - make
