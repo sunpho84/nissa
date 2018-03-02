@@ -227,7 +227,7 @@ namespace nissa
   void compute_x_space_twisted_propagator_by_fft(spinspin *prop,tm_quark_info qu,tm_basis_t base)
   {
     compute_mom_space_twisted_propagator(prop,qu,base);
-    pass_spinspin_from_mom_to_x_space(prop,prop,qu.bc,true);
+    pass_spinspin_from_mom_to_x_space(prop,prop,qu.bc,true,true);
   }
   
   //squared (scalar insertion)
@@ -245,7 +245,7 @@ namespace nissa
       }
     THREAD_BARRIER();
     
-    pass_spinspin_from_mom_to_x_space(sq_prop,sq_prop,qu.bc,true);
+    pass_spinspin_from_mom_to_x_space(sq_prop,sq_prop,qu.bc,true,true);
   }
   THREADABLE_FUNCTION_END
   

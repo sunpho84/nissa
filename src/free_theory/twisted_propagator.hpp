@@ -54,27 +54,29 @@ namespace nissa
   
   //////////////////////////////////////// multiply in x space by fft ///////////////////////////////////////////////
   
-  //multiply the source for the twisted propagator in the mom space
+  //multiply the source or sink for the twisted propagator in the mom space
 #define DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(TYPE) \
-  inline void multiply_from_left_or_right_by_x_space_twisted_propagator_by_fft(TYPE *out,TYPE *in,tm_quark_info qu,bool lr,tm_basis_t base) \
+  inline void multiply_from_left_or_right_by_x_space_twisted_propagator_by_fft(TYPE *out,TYPE *in,tm_quark_info qu,bool lr,tm_basis_t base,bool include_phases) \
   {									\
     /*convert to p space*/						\
-    NAME3(pass,TYPE,from_x_to_mom_space)(out,in,qu.bc,!lr); \
+    NAME3(pass,TYPE,from_x_to_mom_space)(out,in,qu.bc,!lr,include_phases);		\
     multiply_from_left_or_right_by_mom_space_twisted_propagator(out,out,qu,lr,base); \
     									\
     /*add normalization and go back*/					\
     double_vector_prod_double((double*)out,(double*)out,glb_vol,loc_vol*sizeof(TYPE)/sizeof(double)); \
-    NAME3(pass,TYPE,from_mom_to_x_space)(out,out,qu.bc,!lr); \
+    NAME3(pass,TYPE,from_mom_to_x_space)(out,out,qu.bc,!lr,include_phases);		\
   }
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(spinspin);
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(spin);
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(spincolor);
   
   //antiwrapper
-  template <class T> void multiply_from_left_by_x_space_twisted_propagator_by_fft(T *out,T *in,tm_quark_info qu,tm_basis_t base)
-  {multiply_from_left_or_right_by_x_space_twisted_propagator_by_fft(out,in,qu,0,base);}
-  template <class T> void multiply_from_right_by_x_space_twisted_propagator_by_fft(T *out,T *in,tm_quark_info qu,tm_basis_t base)
-  {multiply_from_left_or_right_by_x_space_twisted_propagator_by_fft(out,in,qu,1,base);}
+  template <class T>
+  void multiply_from_left_by_x_space_twisted_propagator_by_fft(T *out,T *in,tm_quark_info qu,tm_basis_t base,bool include_phases)
+  {multiply_from_left_or_right_by_x_space_twisted_propagator_by_fft(out,in,qu,0,base,include_phases);}
+  template <class T>
+  void multiply_from_right_by_x_space_twisted_propagator_by_fft(T *out,T *in,tm_quark_info qu,tm_basis_t base,bool include_phases)
+  {multiply_from_left_or_right_by_x_space_twisted_propagator_by_fft(out,in,qu,1,base,include_phases);}
 }
 
 #endif

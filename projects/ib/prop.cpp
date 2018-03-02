@@ -47,7 +47,7 @@ namespace nissa
 	
 	tm_quark_info qu(kappa,mass,r,theta);
 	tm_basis_t basis=WILSON_BASE;
-	multiply_from_left_by_x_space_twisted_propagator_by_fft(out,in,qu,basis);
+	multiply_from_left_by_x_space_twisted_propagator_by_fft(out,in,qu,basis,false);
       }
     else
       {

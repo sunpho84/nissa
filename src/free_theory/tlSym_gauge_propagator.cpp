@@ -176,7 +176,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    pass_spin1prop_from_x_to_mom_space(out,in,gl.bc,true);
+    pass_spin1prop_from_x_to_mom_space(out,in,gl.bc,true,true);
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
 	spin1prop prop;
@@ -184,7 +184,7 @@ namespace nissa
 	safe_spinspin_prod_spinspin(out[imom],prop,out[imom]);
       }
     set_borders_invalid(out);
-    pass_spin1prop_from_mom_to_x_space(out,in,gl.bc,true);
+    pass_spin1prop_from_mom_to_x_space(out,in,gl.bc,true,true);
   }
   THREADABLE_FUNCTION_END
   
@@ -192,7 +192,7 @@ namespace nissa
   void compute_x_space_tlSym_gauge_propagator_by_fft(spin1prop *prop,gauge_info gl)
   {
     compute_mom_space_tlSym_gauge_propagator(prop,gl);
-    pass_spin1prop_from_mom_to_x_space(prop,prop,gl.bc,true);
+    pass_spin1prop_from_mom_to_x_space(prop,prop,gl.bc,true,true);
   }
   
   //generate a stochastic gauge propagator source
@@ -215,7 +215,7 @@ namespace nissa
     
     if(photon!=eta) vector_copy(photon,eta);
     
-    pass_spin1field_from_x_to_mom_space(photon,photon,gl.bc,true);
+    pass_spin1field_from_x_to_mom_space(photon,photon,gl.bc,true,true);
     
     //multiply by prop
     //put volume normalization due to convolution
@@ -229,7 +229,7 @@ namespace nissa
     set_borders_invalid(photon);
     
     //go back to x space
-    pass_spin1field_from_mom_to_x_space(photon,photon,gl.bc,true);
+    pass_spin1field_from_mom_to_x_space(photon,photon,gl.bc,true,true);
     
   }
   THREADABLE_FUNCTION_END
@@ -239,7 +239,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    pass_spin1field_from_x_to_mom_space(out,in,gl.bc,true);
+    pass_spin1field_from_x_to_mom_space(out,in,gl.bc,true,true);
     
     //multiply by prop
     //put volume normalization due to convolution
@@ -253,7 +253,7 @@ namespace nissa
     set_borders_invalid(out);
     
     //go back to x space
-    pass_spin1field_from_mom_to_x_space(out,out,gl.bc,true);
+    pass_spin1field_from_mom_to_x_space(out,out,gl.bc,true,true);
     
   }
   THREADABLE_FUNCTION_END

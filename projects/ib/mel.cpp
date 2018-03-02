@@ -791,7 +791,7 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 		//select only the wall
 		int tmiddle=glb_size[0]/2;
 		select_propagator_timeslice(prop,prop,tmiddle);
-		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base,true);
 	      }
 	    
 	    //insert or not photon
@@ -799,7 +799,7 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	      {
 		//insert photon and prolong
 		insert_photon_on_the_source(prop,le,-1); //all times
-		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base,true);
 	      }
 	  }
   
