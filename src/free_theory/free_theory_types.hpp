@@ -22,7 +22,9 @@ namespace nissa
     double zmp;
     int r;
     tm_quark_info(double kappa,double mass,int r,double theta) :
-      kappa(kappa),mass(mass),r(r) {bc[0]=1;for(int mu=1;mu<NDIM;mu++) bc[mu]=theta;}
+      kappa(kappa),mass(mass),zmp(0),r(r) {bc[0]=1;for(int mu=1;mu<NDIM;mu++) bc[mu]=theta;}
+    tm_quark_info(double kappa,double mass,int r,momentum_t _bc) :
+      kappa(kappa),mass(mass),zmp(0),r(r) {for(int mu=0;mu<NDIM;mu++) bc[mu]=_bc[mu];}
     tm_quark_info() {}
   };
   
