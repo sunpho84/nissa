@@ -43,6 +43,8 @@ namespace nissa
     
     if(free_theory and charge==0)
       {
+	master_printf("   working in FT\n");
+	
 	tm_quark_info qu(kappa,mass,r,theta);
 	tm_basis_t basis=(twisted_run?MAX_TWIST_BASE:WILSON_BASE);
 	multiply_from_left_by_x_space_twisted_propagator_by_fft(out,in,qu,basis);
@@ -51,6 +53,7 @@ namespace nissa
       {
 	quad_su3 *conf=get_updated_conf(charge,theta,glb_conf);
 	
+	master_printf("   inverting explicitly\n");
 	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
 	else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
       }
@@ -326,7 +329,7 @@ namespace nissa
 	      //if the prop exists read it
 	      if(file_exists(path))
 		{
-		  master_printf("  loading the inversion dirac index %d, color %d\n",id_so,ic_so);
+		  master_printf("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
 		  START_TIMING(read_prop_time,nread_prop);
 		  read_real_vector(sol,path,"scidac-binary-data");
 		  STOP_TIMING(read_prop_time);
@@ -344,7 +347,7 @@ namespace nissa
 		      write_real_vector(path,sol,64,"scidac-binary-data");
 		      STOP_TIMING(store_prop_time);
 		    }
-		  master_printf("  finished the inversion dirac index %d, color %d\n",id_so,ic_so);
+		  master_printf("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
 		}
 	    }
       }
