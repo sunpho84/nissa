@@ -41,10 +41,19 @@ namespace nissa
     //invert
     START_TIMING(inv_time,ninv_tot);
     
-    quad_su3 *conf=get_updated_conf(charge,theta,glb_conf);
-    
-    if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
-    else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
+    if(free_theory and charge==0)
+      {
+	tm_quark_info qu(kappa,mass,r,theta);
+	tm_basis_t basis=(twisted_run?MAX_TWIST_BASE:WILSON_BASE);
+	multiply_from_left_by_x_space_twisted_propagator_by_fft(out,in,qu,basis);
+      }
+    else
+      {
+	quad_su3 *conf=get_updated_conf(charge,theta,glb_conf);
+	
+	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
+	else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
+      }
     
     STOP_TIMING(inv_time);
     
