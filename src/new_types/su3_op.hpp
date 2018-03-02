@@ -1147,6 +1147,38 @@ namespace nissa
   inline void su3_dag_subt_the_prod_spincolor(spincolor out,const su3 U,const spincolor in)
   {for(size_t is=0;is<NDIRAC;is++) su3_dag_subt_the_prod_color(out[is],U,in[is]);}
   
+  //prouduct of spincolor and spinspin
+  inline void unsafe_spincolor_prod_spinspin(spincolor out,const spincolor a,const spinspin b)
+  {
+    memset(out,0,sizeof(spin));
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
+	for(int ic=0;ic<NCOL;ic++)
+	  complex_summ_the_prod(out[id1][ic],a[id2][ic],b[id2][id1]);
+  }
+  inline void safe_spincolor_prod_spinspin(spincolor out,const spincolor a,const spinspin b)
+  {
+    spincolor c;
+    unsafe_spincolor_prod_spinspin(c,a,b);
+    memcpy(out,c,sizeof(spin));
+  }
+  
+  //prouduct of spinspin and spin
+  inline void unsafe_spinspin_prod_spincolor(spincolor out,const spinspin a,spincolor b)
+  {
+    memset(out,0,sizeof(spincolor));
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
+	for(int ic=0;ic<NCOL;ic++)
+	  complex_summ_the_prod(out[id1][ic],a[id1][id2],b[id2][ic]);
+  }
+  inline void safe_spinspin_prod_spincolor(spincolor out,const spinspin a,spincolor b)
+  {
+    spincolor c;
+    unsafe_spinspin_prod_spincolor(c,a,b);
+    memcpy(out,c,sizeof(spincolor));
+  }
+  
   //su3^*gamma*spincolor
   inline void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,const su3 U,const dirac_matr *m,const spincolor in)
   {
