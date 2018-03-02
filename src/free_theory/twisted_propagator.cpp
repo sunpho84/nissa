@@ -12,6 +12,7 @@
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/spin.hpp"
+#include "new_types/su3_op.hpp"
 #include "operations/fourier_transform.hpp"
 #include "routines/ios.hpp"
 
@@ -226,7 +227,7 @@ namespace nissa
   void compute_x_space_twisted_propagator_by_fft(spinspin *prop,tm_quark_info qu,tm_basis_t base)
   {
     compute_mom_space_twisted_propagator(prop,qu,base);
-    pass_spinspin_from_mom_to_x_space_source_or_sink(prop,prop,qu.bc,true);
+    pass_spinspin_from_mom_to_x_space(prop,prop,qu.bc,true);
   }
   
   //squared (scalar insertion)
@@ -244,7 +245,7 @@ namespace nissa
       }
     THREAD_BARRIER();
     
-    pass_spinspin_from_mom_to_x_space_source_or_sink(sq_prop,sq_prop,qu.bc,true);
+    pass_spinspin_from_mom_to_x_space(sq_prop,sq_prop,qu.bc,true);
   }
   THREADABLE_FUNCTION_END
   
@@ -284,6 +285,7 @@ namespace nissa
   THREADABLE_FUNCTION_END						\
   
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spin);
+  DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spincolor);
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spinspin);
   
   ////////////////////////////////////////////// by inversion /////////////////////////////////////////////
