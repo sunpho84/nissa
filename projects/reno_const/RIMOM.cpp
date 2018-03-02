@@ -429,6 +429,31 @@ void compute_fft(double sign)
   if(full_P_space_prop_prec!=0) write_all_propagators("FullP",full_P_space_prop_prec);
 }
 
+THREADABLE_FUNCTION_4ARG(write_data, MPI_File*,fout, int,imass, int,ilp, int,offset)
+{
+  GET_THREAD_ID();
+  
+  //bufferize data
+  NISSA_PARALLEL_LOOP(r,0,2)
+    {
+      colorspincolorspin buf;
+      for(int ic_so=0;ic_so<NCOL;ic_so++)
+	for(int id_so=0;id_so<NDIRAC;id_so++)
+	  for(int ic_si=0;ic_si<NCOL;ic_si++)
+	    for(int id_si=0;id_si<NDIRAC;id_si++)
+	      memcpy(buf[ic_so][id_so][ic_si][id_si],
+		     S0[r][imass][ilp][ic_si][ic_so][id_si][id_so],
+		     sizeof(complex));
+      
+      //if required change endianess in order to stick with APE
+      if(not little_endian) change_endianness((double*)buf,(double*)buf,18*16);
+      
+      //write
+      MPI_File_write_at(fout[r],offset,buf,16,MPI_SU3,MPI_STATUS_IGNORE);
+    }
+}
+THREADABLE_FUNCTION_END
+
 //filter the propagators
 void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *do_iparr,coords mul)
 {
@@ -485,24 +510,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 			    for(int mu=0;mu<NDIM;mu++) loc_ip[mu]=glb_ip[mu]%loc_size[mu];
 			    int ilp=loclx_of_coord(loc_ip);
 			    
-			    //bufferize data
-			    for(int r=0;r<2;r++)
-			      {
-				colorspincolorspin buf;
-				for(int ic_so=0;ic_so<NCOL;ic_so++)
-				  for(int id_so=0;id_so<NDIRAC;id_so++)
-				    for(int ic_si=0;ic_si<NCOL;ic_si++)
-				      for(int id_si=0;id_si<NDIRAC;id_si++)
-					memcpy(buf[ic_so][id_so][ic_si][id_si],
-					       S0[r][imass][ilp][ic_si][ic_so][id_si][id_so],
-					       sizeof(complex));
-				
-				//if required change endianess in order to stick with APE
-				if(not little_endian) change_endianness((double*)buf,(double*)buf,18*16);
-				
-				//write
-				MPI_File_write_at(fout[r],offset,buf,16,MPI_SU3,MPI_STATUS_IGNORE);
-			      }
+			    write_data(fout,imass,ilp,offset);
 			  }
 			
 			//increment the position in the file where to write data
