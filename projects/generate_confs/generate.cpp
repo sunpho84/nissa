@@ -118,6 +118,7 @@ void read_conf(quad_su3 **conf,const char *path)
 	  rat_appr=convert_rat_approx(cur_mess->data,cur_mess->data_length);
 	}
     }
+  
   //if message with string not found start from input seed
   const char seed_new_path[]="seed_new";
   if(file_exists(seed_new_path))
