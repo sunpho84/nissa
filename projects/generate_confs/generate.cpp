@@ -118,6 +118,28 @@ void read_conf(quad_su3 **conf,const char *path)
 	  rat_appr=convert_rat_approx(cur_mess->data,cur_mess->data_length);
 	}
     }
+  //if message with string not found start from input seed
+  const char seed_new_path[]="seed_new";
+  if(file_exists(seed_new_path))
+    {
+      open_input(seed_new_path);
+      
+      //read the seed
+      int seed_new;
+      read_int(&seed_new);
+      
+      //initializ
+      master_printf("Overriding with seed %d\n",seed_new);
+      start_loc_rnd_gen(seed_new);
+      
+      //close and destroy
+      close_input();
+      if(rank==0)
+	{
+	  int rc=system(combine("rm %s",seed_new_path).c_str());
+	  if(rc!=0) crash("Unable to eliminate the file %s",seed_new_path);
+	}
+    }
   
   //if message with string not found start from input seed
   if(glb_rnd_gen_inited==0)
