@@ -128,7 +128,7 @@ void read_conf(quad_su3 **conf,const char *path)
       int seed_new;
       read_int(&seed_new);
       
-      //initializ
+      //initialize
       master_printf("Overriding with seed %d\n",seed_new);
       start_loc_rnd_gen(seed_new);
       
