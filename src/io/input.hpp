@@ -10,13 +10,15 @@
 
 #include <stdio.h>
 #include <string>
+#include <vector>
 
 #include "geometry/geometry_lx.hpp"
 
 namespace nissa
 {
   //global input file handle
-  EXTERN_INPUT FILE *input_global INIT_EXTERN_TO(NULL);
+  EXTERN_INPUT std::vector<FILE*> input_global_stack;
+  EXTERN_INPUT FILE* input_global INIT_EXTERN_TO(NULL);
   
   int file_lock(std::string path);
   int file_unlock(int f);
