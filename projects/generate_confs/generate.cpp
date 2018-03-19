@@ -88,6 +88,7 @@ void write_conf(std::string path,quad_su3 **conf)
 //read conf
 int nread_conf=0;
 double read_conf_time=0;
+std::string rnd_gen_mess;
 void read_conf(quad_su3 **conf,const char *path)
 {
   GET_THREAD_ID();
@@ -104,7 +105,6 @@ void read_conf(quad_su3 **conf,const char *path)
   read_ildg_gauge_conf_and_split_into_eo_parts(conf,path,&mess);
   
   //scan messages
-  char *rnd_gen_mess=NULL;
   for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
     {
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
@@ -120,12 +120,25 @@ void read_conf(quad_su3 **conf,const char *path)
 	}
     }
   
+  //load metapotential if needed and possible
+  if(drv->sea_theory().topotential_pars.flag==2)
+    load_topodynamical_potential(drv->sea_theory().topotential_pars,false);
+  
+  ILDG_message_free_all(&mess);
+  
+  //mark time
+  STOP_TIMING(read_conf_time);
+}
+
+//central random generator initializer
+void init_rnd_gen()
+{
   //if seed_new file found, load it
   const char seed_new_path[]="seed_new";
   if(file_exists(seed_new_path))
     {
-      if(rnd_gen_mess) master_printf("Ignoring loaded rnd_gen status\n");
-      rnd_gen_mess=NULL;
+      if(rnd_gen_mess=="") master_printf("Ignoring loaded rnd_gen status\n");
+      rnd_gen_mess="";
       
       open_input(seed_new_path);
       
@@ -133,7 +146,7 @@ void read_conf(quad_su3 **conf,const char *path)
       read_int(&drv->seed);
       
       //initialize
-      master_printf("Overriding with seed %d\n",drv->seed);
+      master_printf("Overriding with seed from file %s\n",seed_new_path);
       
       //close and destroy
       close_input();
@@ -145,25 +158,16 @@ void read_conf(quad_su3 **conf,const char *path)
     }
   
   //if message with string not found start from input seed
-  if(rnd_gen_mess)
+  if(rnd_gen_mess!="")
     {
       master_printf("Random gnerator status found inside conf, starting from it\n");
-      start_loc_rnd_gen(rnd_gen_mess);
+      start_loc_rnd_gen(rnd_gen_mess.c_str());
     }
   else
     {
       master_printf("Starting random generator from input seed %d\n",drv->seed);
       start_loc_rnd_gen(drv->seed);
     }
-  
-  //load metapotential if needed and possible
-  if(drv->sea_theory().topotential_pars.flag==2)
-    load_topodynamical_potential(drv->sea_theory().topotential_pars,false);
-  
-  ILDG_message_free_all(&mess);
-  
-  //mark time
-  STOP_TIMING(read_conf_time);
 }
 
 //initialize the program in "production" mode
@@ -179,13 +183,15 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
       master_printf("File %s found, loading\n",drv->conf_pars.path.c_str());
       read_conf(conf,drv->conf_pars.path.c_str());
       conf_created=false;
+      
+      init_rnd_gen();
     }
   else
     {
       conf_created=true;
       
       //start the random generator using passed seed
-      start_loc_rnd_gen(drv->seed);
+      init_rnd_gen();
       
       //generate hot or cold conf
       if(start_conf_cond==HOT_START_COND)
@@ -208,7 +214,7 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
 void init_program_to_analyze()
 {
   //start the random generator using passed seed
-  start_loc_rnd_gen(drv->seed);
+  init_rnd_gen();
   
   //we always append...
   conf_created=false;

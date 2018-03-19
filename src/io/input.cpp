@@ -144,11 +144,17 @@ namespace nissa
   
   //open an input file
   void open_input(std::string input_path)
-  {input_global=open_file(input_path.c_str(),"r");}
+  {
+    if(input_global) crash("Opening again input_path to file %s",input_path.c_str());
+    input_global=open_file(input_path.c_str(),"r");
+  }
   
   //close the input file
   void close_input()
-  {if(rank==0) fclose(input_global);}
+  {
+    if(rank==0) fclose(input_global);
+    input_global=NULL;
+  }
   
   //read a token from file
   int read_next_token(char *tok)
