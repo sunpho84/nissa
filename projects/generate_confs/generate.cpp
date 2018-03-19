@@ -104,11 +104,12 @@ void read_conf(quad_su3 **conf,const char *path)
   read_ildg_gauge_conf_and_split_into_eo_parts(conf,path,&mess);
   
   //scan messages
+  char *rnd_gen_mess=NULL;
   for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
     {
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
-      if(glb_rnd_gen_inited==0 && strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
-      if(drv->sea_theory().topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TopoGrid")==0)
+      if(glb_rnd_gen_inited==0 and strcasecmp(cur_mess->name,"RND_gen_status")==0) rnd_gen_mess=cur_mess->data;
+      if(drv->sea_theory().topotential_pars.flag==2 and strcasecmp(cur_mess->name,"TopoGrid")==0)
 	drv->sea_theory().topotential_pars.grid.convert_from_message(*cur_mess);
       
       //check for rational approximation
@@ -119,19 +120,20 @@ void read_conf(quad_su3 **conf,const char *path)
 	}
     }
   
-  //if message with string not found start from input seed
+  //if seed_new file found, load it
   const char seed_new_path[]="seed_new";
   if(file_exists(seed_new_path))
     {
+      if(rnd_gen_mess) master_printf("Ignoring loaded rnd_gen status");
+      rnd_gen_mess=NULL;
+      
       open_input(seed_new_path);
       
       //read the seed
-      int seed_new;
-      read_int(&seed_new);
+      read_int(&drv->seed);
       
       //initialize
-      master_printf("Overriding with seed %d\n",seed_new);
-      start_loc_rnd_gen(seed_new);
+      master_printf("Overriding with seed %d\n",drv->seed);
       
       //close and destroy
       close_input();
@@ -143,9 +145,14 @@ void read_conf(quad_su3 **conf,const char *path)
     }
   
   //if message with string not found start from input seed
-  if(glb_rnd_gen_inited==0)
+  if(rnd_gen_mess==NULL)
     {
-      master_printf("RND_gen status not found inside conf, starting from input passed seed\n");
+      master_printf("Random gnerator status found inside conf, starting from it\n");
+      start_loc_rnd_gen(rnd_gen_mess);
+    }
+  else
+    {
+      master_printf("Starting random generator from input seed %d\n",drv->seed);
       start_loc_rnd_gen(drv->seed);
     }
   
