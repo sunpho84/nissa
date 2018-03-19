@@ -70,7 +70,7 @@ namespace nissa
   }
   
   //read all the entries of the random generator from a string
-  void convert_text_to_rnd_gen(rnd_gen *gen,char *text)
+  void convert_text_to_rnd_gen(rnd_gen *gen,const char *text)
   {
     int *ptr=(int*)gen;
     
@@ -94,7 +94,7 @@ namespace nissa
   }
   
   //init from text
-  void start_glb_rnd_gen(char *text)
+  void start_glb_rnd_gen(const char *text)
   {
     if(glb_rnd_gen_inited==1) crash("global random generator already initialized");
     convert_text_to_rnd_gen(&(glb_rnd_gen),text);
@@ -128,7 +128,7 @@ namespace nissa
   }
   
   //init from text
-  void start_loc_rnd_gen(char *text)
+  void start_loc_rnd_gen(const char *text)
   {
     start_glb_rnd_gen(text);
     start_loc_rnd_gen(0); //glb grid already started so does not matter

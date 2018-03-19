@@ -3,6 +3,9 @@
 
 #ifndef EXTERN_INPUT
  #define EXTERN_INPUT extern
+ #define INIT_EXTERN_TO(A)
+#else
+ #define INIT_EXTERN_TO(A) =A
 #endif
 
 #include <stdio.h>
@@ -13,7 +16,7 @@
 namespace nissa
 {
   //global input file handle
-  EXTERN_INPUT FILE *input_global;
+  EXTERN_INPUT FILE *input_global INIT_EXTERN_TO(NULL);
   
   int file_lock(std::string path);
   int file_unlock(int f);

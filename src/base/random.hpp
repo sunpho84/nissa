@@ -34,7 +34,7 @@ namespace nissa
   
   rnd_t convert_str_to_rnd_t(const char *str);
   void color_put_to_gauss(color H,rnd_gen *gen,double sigma);
-  void convert_text_to_rnd_gen(rnd_gen *gen,char *text);
+  void convert_text_to_rnd_gen(rnd_gen *gen,const char *text);
   void convert_rnd_gen_to_text(char *text,rnd_gen *gen,int size);
   double rnd_get_unif(rnd_gen *gen,double min,double max);
   int rnd_get_pm_one(rnd_gen *gen);
@@ -62,10 +62,10 @@ namespace nissa
   {rnd_get_ZN(out,gen,3);}
   double rnd_get_gauss_double(rnd_gen *gen,double ave=0,double sig=1);
   void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig);
-  void start_glb_rnd_gen(char *text);
+  void start_glb_rnd_gen(const char *text);
   void start_glb_rnd_gen(int seed);
   void start_loc_rnd_gen(int seed);
-  void start_loc_rnd_gen(char *mess);
+  void start_loc_rnd_gen(const char *mess);
   void start_rnd_gen(rnd_gen *out,int seed);
   void stop_loc_rnd_gen();
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
