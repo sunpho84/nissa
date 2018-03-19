@@ -124,7 +124,7 @@ void read_conf(quad_su3 **conf,const char *path)
   const char seed_new_path[]="seed_new";
   if(file_exists(seed_new_path))
     {
-      if(rnd_gen_mess) master_printf("Ignoring loaded rnd_gen status");
+      if(rnd_gen_mess) master_printf("Ignoring loaded rnd_gen status\n");
       rnd_gen_mess=NULL;
       
       open_input(seed_new_path);
@@ -145,7 +145,7 @@ void read_conf(quad_su3 **conf,const char *path)
     }
   
   //if message with string not found start from input seed
-  if(rnd_gen_mess==NULL)
+  if(rnd_gen_mess)
     {
       master_printf("Random gnerator status found inside conf, starting from it\n");
       start_loc_rnd_gen(rnd_gen_mess);
