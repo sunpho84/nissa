@@ -415,9 +415,9 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars,quad_su3 **conf,int iconf,int
 	  finished=smooth_lx_conf_until_next_meas(temp_conf,pars.smooth_pars,nsmooth,dirs,staple_min_dir);
 	}
       while(not finished);
-      
-      nissa_free(temp_conf);
     }
+  
+  nissa_free(temp_conf);
   
   close_file(file);
 }
