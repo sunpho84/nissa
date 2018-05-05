@@ -34,6 +34,7 @@
  #include "geometry/geometry_vir.hpp"
 #endif
 #include "new_types/dirac.hpp"
+#include "new_types/high_prec.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #include "routines/mpi_routines.hpp"
@@ -185,19 +186,15 @@ namespace nissa
 #endif
       } //mu
     
-#if HIGH_PREC==GMP_HIGH_PREC
-    //init default precision for gmp
-    mpf_set_default_prec(256);
-    master_printf("Support for >128 bit precision: GMP\n");
-#else
-    master_printf("Support for >128 bit precision: NATIVE\n");
-#endif
-    
     //print fft implementation
 #if FFT_TYPE == FFTW_FFT
     master_printf("Fast Fourier Transform: FFTW3\n");
 #else
     master_printf("Fast Fourier Transform: NATIVE\n");
+#endif
+    
+#if HIGH_PREC==GMP_HIGH_PREC
+    mpf_precision=NISSA_DEFAULT_MPF_PRECISION;
 #endif
     
     //set default value for parameters
@@ -227,6 +224,9 @@ namespace nissa
     
     //read the configuration file, if present
     read_nissa_config_file();
+    
+    //setup the high precision
+    init_high_precision();
     
     //initialize the base of the gamma matrices
     init_base_gamma();
@@ -267,9 +267,6 @@ namespace nissa
       int delay_base_seed=time(0);
       for(unsigned int i=0;i<nthreads;i++) start_rnd_gen(delay_rnd_gen+i,delay_base_seed+i);
 #endif
-      
-      //perform a sanity check on float 128
-      check_128_bit_prec();
       
       //distinguish master thread from the others
       GET_THREAD_ID();
