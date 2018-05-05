@@ -134,7 +134,7 @@ namespace nissa
     va_end(ap);
   }
 #endif
-
+  
   //perform a simple check on 128 bit precision
   void check_128_bit_prec()
   {

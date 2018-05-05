@@ -23,6 +23,7 @@
 #include "geometry/geometry_Leb.hpp"
 #include "geometry/geometry_vir.hpp"
 #include "io/ILDG_File.hpp"
+#include "new_types/high_prec.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 
@@ -439,6 +440,9 @@ namespace nissa
 #ifdef USE_VNODES
     tags.push_back(triple_tag("vnode_paral_dir",	       vnode_paral_dir));
 #endif
+#if HIGH_PREC==GMP_HIGH_PREC
+    tags.push_back(triple_tag("mpf_precision",                 mpf_precision));
+#endif
 #ifdef USE_TMLQCD
     tags.push_back(triple_tag("use_tmLQCD",		       use_tmLQCD));
 #endif
@@ -463,7 +467,14 @@ namespace nissa
 		while(itag<tags.size() && tag!=tags[itag].name) itag++;
 		
 		//check if tag found
-		if(itag==tags.size()) crash("unkwnown parameter '%s'",tag);
+		if(itag==tags.size())
+		  {
+		    master_printf("Available parameters:\n");
+		    for(size_t itag=0;itag<tags.size();itag++)
+		      master_printf(" %s\n",tags[itag].name.c_str());
+		    
+		    crash("unkwnown parameter '%s'",tag);
+		  }
 		
 		//read the tag
 		tags[itag].read();
