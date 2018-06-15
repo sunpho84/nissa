@@ -368,10 +368,10 @@ namespace nissa
     if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
     if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
     if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
-    if(def_meas_plaq() or full) os<<" MeasPlaq\t\t=\t"<<meas_plaq<<"\n";
-    if(def_meas_energy() or full) os<<" MeasEnergy\t\t=\t"<<meas_energy<<"\n";
-    if(def_meas_poly() or full) os<<" MeasPoly\t\t=\t"<<meas_poly<<"\n";
-    if(def_use_smooth() or full) os<<" UseSmooth\t\t=\t"<<use_smooth<<"\n";
+    if(meas_plaq!=def_meas_plaq() or full) os<<" MeasPlaq\t\t=\t"<<meas_plaq<<"\n";
+    if(meas_energy!=def_meas_energy() or full) os<<" MeasEnergy\t\t=\t"<<meas_energy<<"\n";
+    if(meas_poly!=def_meas_poly() or full) os<<" MeasPoly\t\t=\t"<<meas_poly<<"\n";
+    if(use_smooth!=def_use_smooth() or full) os<<" UseSmooth\t\t=\t"<<use_smooth<<"\n";
     os<<smooth_pars.get_str(full);
     
     return os.str();
