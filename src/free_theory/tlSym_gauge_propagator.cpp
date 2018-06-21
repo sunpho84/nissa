@@ -14,6 +14,11 @@
 
 #include "free_theory_types.hpp"
 
+#ifdef HAVE_EIGEN_DENSE
+ #include <Eigen/Dense>
+ #include <unsupported/Eigen/MatrixFunctions>
+#endif
+
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -161,12 +166,38 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    if(gl.alpha!=FEYNMAN_ALPHA && gl.c1!=0) crash("doesn't make sense out of Wilson regularisation in the Feynaman gauge");
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
 	spin1prop prop;
 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
-	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
+	if(gl.alpha!=FEYNMAN_ALPHA && gl.c1!=0)
+	  {
+#if HAVE_EIGEN_DENSE
+	    using namespace Eigen;
+	    
+	    Vector4d ein;
+	    Matrix4d eprop;
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		ein(mu)=in[imom][mu][RE];
+		for(int nu=0;nu<NDIM;nu++)
+		  eprop(mu,nu)=prop[mu][nu][RE];
+	      }
+	    
+	    Matrix4d sqrt_eprop=eprop.sqrt();
+	    Vector4d eout=sqrt_eprop*ein;
+	    
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		out[imom][mu][RE]=eout(mu);
+		out[imom][mu][IM]=0.0;
+	      }
+#else
+	    crash("doesn't make sense out of Wilson regularisation in the Feynaman gauge");
+#endif
+	  }
+	else
+	  spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
       }
     set_borders_invalid(out);
   }

@@ -86,7 +86,7 @@ case "$with_fft" in
 esac
 AC_MSG_RESULT([with Fast Fourier type... ${with_fft}])
 
-#add Eigen path, search it and enable
+#add Eigen path, search it
 AC_ARG_WITH(eigen,
 	AS_HELP_STRING([--with-eigen],[Specify where to find Eigen/Dense]),
 	with_eigen=${withval}
@@ -96,25 +96,22 @@ AC_MSG_RESULT([with Eigen... ${with_eigen}])
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADERS([Eigen/Dense])
 AC_LANG_POP([C++])
-AC_ARG_ENABLE(eigen,
-	AS_HELP_STRING([--enable-eigen],[Enable Eigen]),
-	enable_eigen="${enableval}",
-	if test "$ac_cv_header_Eigen_Dense" == "no"
-	then
-		enable_eigen="no"
-	else
-		enable_eigen="yes"
-	fi)
-if test "$enable_eigen" == "yes"
+
+#enable eigen for linear algebra
+AC_ARG_ENABLE(eigen_everywhere,
+	AS_HELP_STRING([--enable-eigen-everywhere],[Enable Eigen Everywhere (default: no)]),
+	enable_eigen_everywhere="${enableval}",
+	enable_eigen_everywhere="no")
+if test "$enable_eigen_everywhere" == "yes"
 then
 	if test "$ac_cv_header_Eigen_Dense" == "no"
 	then
 		AC_MSG_ERROR(["Unable to find Eigen"])
 	else
-		AC_DEFINE_UNQUOTED([USE_EIGEN],[1],[Enable Eigen])
+		AC_DEFINE_UNQUOTED([USE_EIGEN_EVERYWHERE],[1],[Enable Eigen everywhere])
 	fi
 fi
-AC_MSG_RESULT(enabling Eigen ... ${enable_eigen})
+AC_MSG_RESULT(enabling Eigen everywhere ... ${enable_eigen_everywhere})
 
 #lime
 AC_ARG_WITH(lime,
