@@ -214,8 +214,8 @@ namespace nissa
     master_printf("Linked with DDalphaAMG\n");
 #endif
     
-#ifdef USE_EIGEN
-    master_printf("Using Eigen\n");
+#ifdef USE_EIGEN_EVERYWHERE
+    master_printf("Using Eigen everywhere\n");
 #endif
     
     //put 0 as minimal request

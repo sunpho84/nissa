@@ -11,7 +11,7 @@
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
  #include <Eigen/Dense>
  #include <Eigen/Eigenvalues>
  
@@ -67,7 +67,7 @@ namespace nissa
   inline void color_copy(color b,const color a) {for(size_t ic=0;ic<NCOL;ic++) complex_copy(b[ic],a[ic]);}
   inline void su3_copy(su3 b,const su3 a)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(b)=SU3_ECAST(a);
 #else
     for(size_t ic=0;ic<NCOL;ic++) color_copy(b[ic],a[ic]);
@@ -321,7 +321,7 @@ namespace nissa
   //calculate the determinant of an su3 matrix
   inline void su3_det(complex d,const su3 U)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     CCAST(d)=SU3_ECAST(U).determinant();
 #else
     
@@ -395,7 +395,7 @@ namespace nissa
   //summ two su3 matrixes
   inline void su3_summ(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)=SU3_ECAST(b)+SU3_ECAST(c);
 #else
     for(size_t ic=0;ic<NCOL;ic++) color_summ(a[ic],b[ic],c[ic]);
@@ -403,7 +403,7 @@ namespace nissa
   }
   inline void unsafe_su3_summ_su3_dag(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)=SU3_ECAST(b)+SU3_ECAST(c).adjoint();
 #else
     for(size_t i=0;i<NCOL;i++)
@@ -417,7 +417,7 @@ namespace nissa
   {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) a[i][i][0]=b[i][i][0]+c;}
   inline void su3_subt(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)=SU3_ECAST(b)-SU3_ECAST(c);
 #else
     for(size_t ic=0;ic<NCOL;ic++) color_subt(a[ic],b[ic],c[ic]);
@@ -427,7 +427,7 @@ namespace nissa
   inline void su3_subt_complex(su3 a,const su3 b,const complex c) {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) complex_subt(a[i][i],b[i][i],c);}
   inline void unsafe_su3_subt_su3_dag(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)=SU3_ECAST(b)-SU3_ECAST(c).adjoint();
 #else
     for(size_t i=0;i<NCOL;i++)
@@ -440,7 +440,7 @@ namespace nissa
   //Product of two su3 matrixes
   inline void unsafe_su3_prod_su3(su3 a,const su3 b,const su3 c,const size_t nr_max=NCOL)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)=SU3_ECAST(b)*SU3_ECAST(c);
 #else
     for(size_t ir_out=0;ir_out<nr_max;ir_out++)
@@ -456,7 +456,7 @@ namespace nissa
   inline void su3_prodassign_su3(su3 a,const su3 b) {safe_su3_prod_su3(a,a,b);}
   inline void su3_summ_the_prod_su3(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)+=SU3_ECAST(b)*SU3_ECAST(c);
 #else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
@@ -467,7 +467,7 @@ namespace nissa
   }
   inline void su3_summ_the_prod_su3_dag(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)+=SU3_ECAST(b)*SU3_ECAST(c).adjoint();
 #else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
@@ -478,7 +478,7 @@ namespace nissa
   }
   inline void su3_summ_the_dag_prod_su3(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)+=SU3_ECAST(b).adjoint()*SU3_ECAST(c);
 #else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
@@ -491,7 +491,7 @@ namespace nissa
   //Product of two su3 matrixes
   inline void unsafe_su3_dag_prod_su3(su3 a,const su3 b,const su3 c,const size_t nr_max=NCOL)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)=SU3_ECAST(b).adjoint()*SU3_ECAST(c);
 #else
     for(size_t ir_out=0;ir_out<nr_max;ir_out++)
@@ -506,7 +506,7 @@ namespace nissa
   inline void safe_su3_dag_prod_su3(su3 a,const su3 b,const su3 c) {su3 d;unsafe_su3_dag_prod_su3(d,b,c);su3_copy(a,d);}
   inline void su3_dag_summ_the_prod_su3(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)+=SU3_ECAST(b).adjoint()*SU3_ECAST(c);
 #else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
@@ -519,7 +519,7 @@ namespace nissa
   //Product of two su3 matrixes
   inline void unsafe_su3_prod_su3_dag(su3 a,const su3 b,const su3 c,const size_t nr_max=NCOL)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)=SU3_ECAST(b)*SU3_ECAST(c).adjoint();
 #else
     for(size_t ir_out=0;ir_out<nr_max;ir_out++)
@@ -535,7 +535,7 @@ namespace nissa
   //subtract the product
   inline void su3_subt_the_prod_su3_dag(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)-=SU3_ECAST(b)*SU3_ECAST(c).adjoint();
 #else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
@@ -548,7 +548,7 @@ namespace nissa
   //Trace of the product of two su3 matrices
   inline double real_part_of_trace_su3_prod_su3_dag(su3 a,const su3 b)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     return (SU3_ECAST(a)*SU3_ECAST(b).adjoint()).trace().real();
 #else
     double t=0;
@@ -564,7 +564,7 @@ namespace nissa
   //Trace of the product of two su3 matrices
   inline void trace_su3_prod_su3(complex t,const su3 a,const su3 b)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     CCAST(t)=(SU3_ECAST(a)*SU3_ECAST(b)).trace();
 #else
     complex_put_to_zero(t);
@@ -577,7 +577,7 @@ namespace nissa
   //Product of two su3 matrixes
   inline void unsafe_su3_dag_prod_su3_dag(su3 a,const su3 b,const su3 c,const size_t nr_max=NCOL)
   {
-#ifdef USE_EIGEN
+#ifdef USE_EIGEN_EVERYWHERE
     SU3_ECAST(a)=SU3_ECAST(b).adjoint()*SU3_ECAST(c).adjoint();
 #else
     for(size_t ir_out=0;ir_out<nr_max;ir_out++)
