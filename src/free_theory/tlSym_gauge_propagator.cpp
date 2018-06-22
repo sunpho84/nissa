@@ -26,7 +26,6 @@
 
 namespace nissa
 {
-  
   //if the momentum has to be removed return 0, otherwise return 1
   //cancel the zero modes for all spatial when UNNO_ALEMANNA prescription asked
   //or if PECIONA prescription and full zero mode
@@ -169,13 +168,16 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
+	//take the propagator
 	spin1prop prop;
 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
+	
 	if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
 	  {
 #if HAVE_EIGEN_DENSE
 	    using namespace Eigen;
 	    
+	    //copy in the eigen strucures
 	    Vector4d ein;
 	    Matrix4d eprop;
 	    for(int mu=0;mu<NDIM;mu++)
@@ -186,8 +188,8 @@ namespace nissa
 	      }
 	    
 	    Matrix4d sqrt_eprop;
-	    // master_printf("Computing sqrt for mode: %d\n",imom);
-	    //std::cout<<eprop<<std::endl;
+	    master_printf("Computing sqrt for mode: %d\n",imom);
+	    std::cout<<eprop<<std::endl;
 	    
 	    //compute eigenthings
 	    SelfAdjointEigenSolver<Matrix4d> solver;
@@ -206,6 +208,7 @@ namespace nissa
 	    for(int mu=0;mu<NDIM;mu++) sqrt_eva(mu)=sqrt(fabs(eva(mu)));
 	    sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
 	    
+	    //performing check on the result
 	    const Matrix4d err=sqrt_eprop*sqrt_eprop-eprop;
 	    const double err_norm=err.norm();
 	    const double prop_norm=eprop.norm();
@@ -213,15 +216,15 @@ namespace nissa
 	    // std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
 	    if(prop_norm>tol and err_norm>tol) crash("Error! Relative error on sqrt for mode %d (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
 	    
+	    //product with in, store
 	    Vector4d eout=sqrt_eprop*ein;
-	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
 		out[imom][mu][RE]=eout(mu);
 		out[imom][mu][IM]=0.0;
 	      }
 #else
-	    crash("Eigen requited when out of Wilson regularisation in the Feynaman gauge");
+	    crash("Eigen required when out of Wilson regularisation in the Feynaman gauge");
 #endif
 	  }
 	else
