@@ -210,7 +210,7 @@ namespace nissa
 	    const double err_norm=err.norm();
 	    const double prop_norm=eprop.norm();
 	    const double rel_err=err_norm/prop_norm;
-	    std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
+	    // std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
 	    if(prop_norm>tol and err_norm>tol) crash("Error! Relative error on sqrt for mode %d (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
 	    
 	    Vector4d eout=sqrt_eprop*ein;
