@@ -202,15 +202,15 @@ namespace nissa
 		solver.compute(eprop);
 		
 		//get eigenthings
-		const auto& eve=solver.eigenvectors();
-		const auto& eva=solver.eigenvalues();
+		const Matrix4d eve=solver.eigenvectors();
+		const Vector4d eva=solver.eigenvalues().transpose();
 		
 		//check positivity
 		const double tol=1e-14,min_coef=eva.minCoeff();
 		if(min_coef<-tol) crash("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
 		
 		//compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
-		const auto sqrt_eva=(eva*eva).pow(0.25);
+		const Vector4d sqrt_eva=(eva*eva).pow(0.25);
 		sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
 		std::cout<<"Testing sqrt:          "<<std::endl<<sqrt_eprop;
 		
