@@ -170,7 +170,7 @@ namespace nissa
       {
 	spin1prop prop;
 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
-	if(gl.alpha!=FEYNMAN_ALPHA && gl.c1!=0)
+	if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
 	  {
 #if HAVE_EIGEN_DENSE
 	    using namespace Eigen;
@@ -193,7 +193,7 @@ namespace nissa
 		out[imom][mu][IM]=0.0;
 	      }
 #else
-	    crash("doesn't make sense out of Wilson regularisation in the Feynaman gauge");
+	    crash("Eigen requited when out of Wilson regularisation in the Feynaman gauge");
 #endif
 	  }
 	else
