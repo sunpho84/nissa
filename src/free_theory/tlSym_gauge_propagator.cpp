@@ -184,7 +184,15 @@ namespace nissa
 		  eprop(mu,nu)=prop[mu][nu][RE];
 	      }
 	    
-	    Matrix4d sqrt_eprop=eprop.sqrt();
+	    Matrix4d sqrt_eprop;
+	    if(eprop.norm()<1e-10)
+	      {
+		master_printf("Skipping zero mode: %d\n",imom);
+		sqrt_eprop*=0.0;
+	      }
+	    else
+	      sqrt_eprop=eprop.sqrt();
+	    
 	    Vector4d eout=sqrt_eprop*ein;
 	    
 	    for(int mu=0;mu<NDIM;mu++)
