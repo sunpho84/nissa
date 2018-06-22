@@ -197,12 +197,25 @@ namespace nissa
 		master_printf("Computing sqrt for mode: %d\n",imom);
 		std::cout<<eprop<<std::endl;
 		
+		//compute eigenthings
 		SelfAdjointEigenSolver<Matrix4d> solver;
 		solver.compute(eprop);
-		std::cout<<"Eigenvalues: "<<solver.eigenvalues().transpose()<<std::endl;
 		
-		std::cout<<solver.eigenvectors()*solver.eigenvalues().asDiagonal()*solver.eigenvectors().transpose()<<std::endl;
+		//get eigenthings
+		const auto& eve=solver.eigenvectors();
+		const auto& eva=solver.eigenvalues();
+		
+		//check positivity
+		const double tol=1e-14,min_coef=eva.minCoeff();
+		if(min_coef<-tol) crash("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
+		
+		//compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
+		const auto sqrt_eva=(eva*eva).pow(0.25);
+		sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve;
+		std::cout<<"Testing sqrt:          "<<std::endl<<sqrt_eprop;
+		
 		sqrt_eprop=eprop.sqrt();
+		std::cout<<"Testing sqrt straight: "<<std::endl<<sqrt_eprop;
 	      }
 	    Vector4d eout=sqrt_eprop*ein;
 	    
