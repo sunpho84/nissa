@@ -17,7 +17,6 @@
 #ifdef HAVE_EIGEN_DENSE
  #include <Eigen/Dense>
  #include <Eigen/Eigenvalues>
- #include <unsupported/Eigen/MatrixFunctions>
  #include <iostream>
 #endif
 
@@ -213,10 +212,8 @@ namespace nissa
 		Vector4d sqrt_eva;
 		for(int mu=0;mu<NDIM;mu++) sqrt_eva(mu)=sqrt(fabs(eva(mu)));
 		sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
-		std::cout<<"Testing sqrt:          "<<std::endl<<sqrt_eprop;
 		
-		sqrt_eprop=eprop.sqrt();
-		std::cout<<"Testing sqrt straight: "<<std::endl<<sqrt_eprop;
+		std::cout<<"Testing sqrt:          "<<std::endl<<sqrt_eprop*sqrt_eprop-eprop<<std::endl;
 	      }
 	    Vector4d eout=sqrt_eprop*ein;
 	    
