@@ -200,8 +200,8 @@ namespace nissa
 		SelfAdjointEigenSolver<Matrix4d> solver;
 		solver.compute(eprop);
 		std::cout<<"Eigenvalues: "<<solver.eigenvalues().transpose()<<std::endl;
-
-		std::cout<<solver.eigenvectors()*solver.eigenvectors().transpose()<<std::endl;
+		
+		std::cout<<solver.eigenvectors()*solver.eigenvalues().asDiagonal()*solver.eigenvectors().transpose()<<std::endl;
 		sqrt_eprop=eprop.sqrt();
 	      }
 	    Vector4d eout=sqrt_eprop*ein;
