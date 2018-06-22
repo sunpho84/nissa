@@ -186,35 +186,33 @@ namespace nissa
 	      }
 	    
 	    Matrix4d sqrt_eprop;
-	    if(eprop.norm()<1e-10)
-	      {
-		master_printf("Skipping zero mode: %d\n",imom);
-		sqrt_eprop*=0.0;
-	      }
-	    else
-	      {
-		master_printf("Computing sqrt for mode: %d\n",imom);
-		std::cout<<eprop<<std::endl;
-		
-		//compute eigenthings
-		SelfAdjointEigenSolver<Matrix4d> solver;
-		solver.compute(eprop);
-		
-		//get eigenthings
-		const Matrix4d eve=solver.eigenvectors();
-		const Vector4d eva=solver.eigenvalues().transpose();
-		
-		//check positivity
-		const double tol=1e-14,min_coef=eva.minCoeff();
-		if(min_coef<-tol) crash("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
-		
-		// //compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
-		Vector4d sqrt_eva;
-		for(int mu=0;mu<NDIM;mu++) sqrt_eva(mu)=sqrt(fabs(eva(mu)));
-		sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
-		
-		std::cout<<"Testing sqrt:          "<<std::endl<<sqrt_eprop*sqrt_eprop-eprop<<std::endl;
-	      }
+	    // master_printf("Computing sqrt for mode: %d\n",imom);
+	    //std::cout<<eprop<<std::endl;
+	    
+	    //compute eigenthings
+	    SelfAdjointEigenSolver<Matrix4d> solver;
+	    solver.compute(eprop);
+	    
+	    //get eigenthings
+	    const Matrix4d eve=solver.eigenvectors();
+	    const Vector4d eva=solver.eigenvalues().transpose();
+	    
+	    //check positivity
+	    const double tol=1e-14,min_coef=eva.minCoeff();
+	    if(min_coef<-tol) crash("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
+	    
+	    // //compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
+	    Vector4d sqrt_eva;
+	    for(int mu=0;mu<NDIM;mu++) sqrt_eva(mu)=sqrt(fabs(eva(mu)));
+	    sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
+	    
+	    const Matrix4d err=sqrt_eprop*sqrt_eprop-eprop;
+	    const double err_norm=err.norm();
+	    const double prop_norm=eprop.norm();
+	    const double rel_err=err_norm/prop_norm;
+	    std::cout<<"Testing sqrt:          "<<err<<std::endl;
+	    if(prop_norm>tol and err_norm>tol) crash("Error! Relative error on sqrt for mode %d (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
+	    
 	    Vector4d eout=sqrt_eprop*ein;
 	    
 	    for(int mu=0;mu<NDIM;mu++)
