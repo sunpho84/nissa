@@ -16,6 +16,7 @@
 
 #ifdef HAVE_EIGEN_DENSE
  #include <Eigen/Dense>
+ #include <Eigen/Eigenvalues>
  #include <unsupported/Eigen/MatrixFunctions>
  #include <iostream>
 #endif
@@ -195,6 +196,11 @@ namespace nissa
 	      {
 		master_printf("Computing sqrt for mode: %d\n",imom);
 		std::cout<<eprop<<std::endl;
+		
+		SelfAdjointEigenSolver<Matrix4d> solver;
+		solver.compute(eprop);
+		std::cout<<"Eigenvalues: "<<solver.eigenvalues()<<std::endl;
+		
 		sqrt_eprop=eprop.sqrt();
 	      }
 	    Vector4d eout=sqrt_eprop*ein;
