@@ -211,7 +211,7 @@ namespace nissa
 		
 		//compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
 		const auto sqrt_eva=(eva*eva).pow(0.25);
-		sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve;
+		sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
 		std::cout<<"Testing sqrt:          "<<std::endl<<sqrt_eprop;
 		
 		sqrt_eprop=eprop.sqrt();
