@@ -191,8 +191,11 @@ namespace nissa
 		sqrt_eprop*=0.0;
 	      }
 	    else
-	      sqrt_eprop=eprop.sqrt();
-	    
+	      {
+		master_printf("Computing sqrt for mode: %d\n",imom);
+		std::cout<<eprop<<std::endl;
+		sqrt_eprop=eprop.sqrt();
+	      }
 	    Vector4d eout=sqrt_eprop*ein;
 	    
 	    for(int mu=0;mu<NDIM;mu++)
