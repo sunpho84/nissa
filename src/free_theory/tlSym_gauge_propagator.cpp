@@ -17,6 +17,7 @@
 #ifdef HAVE_EIGEN_DENSE
  #include <Eigen/Dense>
  #include <unsupported/Eigen/MatrixFunctions>
+ #include <iostream>
 #endif
 
 #ifdef USE_THREADS
