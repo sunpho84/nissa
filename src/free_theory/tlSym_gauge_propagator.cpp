@@ -209,8 +209,9 @@ namespace nissa
 		const double tol=1e-14,min_coef=eva.minCoeff();
 		if(min_coef<-tol) crash("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
 		
-		//compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
-		const Vector4d sqrt_eva=(eva*eva).pow(0.25);
+		// //compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
+		Vector4d sqrt_eva;
+		for(int mu=0;mu<NDIM;mu++) sqrt_eva(mu)=sqrt(fabs(eva(mu)));
 		sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
 		std::cout<<"Testing sqrt:          "<<std::endl<<sqrt_eprop;
 		
