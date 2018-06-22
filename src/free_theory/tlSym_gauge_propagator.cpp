@@ -188,7 +188,7 @@ namespace nissa
 	      }
 	    
 	    Matrix4d sqrt_eprop;
-	    master_printf("Computing sqrt for mode: %d\n",imom);
+	    master_printf("Computing sqrt for mode: %d (%d %d %d %d)\n",imom,glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
 	    std::cout<<eprop<<std::endl;
 	    
 	    //compute eigenthings
