@@ -163,15 +163,15 @@ namespace nissa
   {
     //Check if asked to stop or restart
     int asked_stop=file_exists(stop_path);
-    master_printf("Asked to stop: %d\n",asked_stop);
+    verbosity_lv2_master_printf("Asked to stop: %d\n",asked_stop);
     int asked_restart=file_exists("restart");
-    master_printf("Asked to restart: %d\n",asked_restart);
+    verbosity_lv2_master_printf("Asked to restart: %d\n",asked_restart);
     //check if enough time
     int enough_time=check_remaining_time();
-    master_printf("Enough time: %d\n",enough_time);
+    verbosity_lv2_master_printf("Enough time: %d\n",enough_time);
     //check that there are still conf to go
     int still_conf=iconf<ngauge_conf;
-    master_printf("Still conf: %d\n",still_conf);
+    verbosity_lv2_master_printf("Still conf: %d\n",still_conf);
     
     int ok_conf=false;
     if(!asked_stop and !asked_restart and enough_time and still_conf)
