@@ -163,12 +163,18 @@ namespace nissa
   {
     //Check if asked to stop or restart
     int asked_stop=file_exists(stop_path);
+    master_printf("Asked to stop: %d\n",asked_stop);
     int asked_restart=file_exists("restart");
+    master_printf("Asked to restart: %d\n",asked_restart);
     //check if enough time
     int enough_time=check_remaining_time();
+    master_printf("Enough time: %d\n",enough_time);
+    //check that there are still conf to go
+    int still_conf=iconf<ngauge_conf;
+    master_printf("Still conf: %d\n",still_conf);
     
     int ok_conf=false;
-    if(!asked_stop and !asked_restart and enough_time and iconf<ngauge_conf)
+    if(!asked_stop and !asked_restart and enough_time and still_conf)
       do
 	{
 	  //Gauge path
@@ -207,8 +213,10 @@ namespace nissa
 	      skip_conf();
 	    }
 	  iconf++;
+	  
+	  still_conf=(iconf<ngauge_conf);
 	}
-      while(!ok_conf and iconf<ngauge_conf);
+      while(!ok_conf and still_conf);
     
     master_printf("\n");
     
