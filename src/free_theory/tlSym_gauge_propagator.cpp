@@ -224,8 +224,8 @@ namespace nissa
 #else
 	if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
 	  crash("Eigen required when out of Wilson regularisation in the Feynaman gauge");
-#endif
 	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
+#endif
       }
     set_borders_invalid(out);
   }
