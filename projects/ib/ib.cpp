@@ -31,6 +31,14 @@ void init_simulation(int narg,char **arg)
 	}
       
       //check if we passed "antiperiodic"
+      if(not parsed and not strcasecmp(arg[iarg],"antiperiodic"))
+	{
+	  temporal_bc=ANTIPERIODIC_BC;
+	  master_printf(" Setting temporal bc to %lg = 'antiperiodic'\n",temporal_bc);
+	  parsed=true;
+	}
+      
+      //check if we passed "antiperiodic"
       if(not parsed and not strcasecmp(arg[iarg],"periodic"))
 	{
 	  temporal_bc=ANTIPERIODIC_BC;
