@@ -176,13 +176,16 @@ namespace nissa
 	using namespace Eigen;
 	
 	//copy in the eigen strucures
-	Vector4d ein;
+	Vector4cd ein;
 	Matrix4d eprop;
 	for(int mu=0;mu<NDIM;mu++)
+	  for(int nu=0;nu<NDIM;nu++)
+	    eprop(mu,nu)=prop[mu][nu][RE];
+	
+	for(int id=0;id<NDIRAC;id++)
 	  {
-	    ein(mu)=in[imom][mu][RE];
-	    for(int nu=0;nu<NDIM;nu++)
-	      eprop(mu,nu)=prop[mu][nu][RE];
+	    ein(id).real(in[imom][id][RE]);
+	    ein(id).imag(in[imom][id][IM]);
 	  }
 	
 	Matrix4d sqrt_eprop;
@@ -215,11 +218,11 @@ namespace nissa
 	if(prop_norm>tol and err_norm>tol) crash("Error! Relative error on sqrt for mode %d (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
 	
 	//product with in, store
-	Vector4d eout=sqrt_eprop*ein;
+	Vector4cd eout=sqrt_eprop*ein;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    out[imom][mu][RE]=eout(mu);
-	    out[imom][mu][IM]=0.0;
+	    out[imom][mu][RE]=eout(mu).real();
+	    out[imom][mu][IM]=eout(mu).imag();
 	  }
 #else
 	if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
