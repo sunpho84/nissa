@@ -117,7 +117,7 @@ namespace nissa
     for(int mu=1;mu<NDIM;mu++)
       zm_spat&=(glb_coord_of_loclx[imom][mu]==0);
     
-    bool ONLY_4D=false; /* false= UNNO_ALEMANNA, true=PECIONA*/
+    bool ONLY_4D=true; /* false= UNNO_ALEMANNA, true=PECIONA*/
     bool zm_sub;
     if(zmp)
       if(ONLY_4D)
