@@ -230,17 +230,18 @@ namespace nissa
 	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
 #endif
 	
-	double tr=0.0,nim=0.0;
+	double tr=0.0,nre=0.0,nim=0.0;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    double kmu=M_PI*(2*glb_coord_of_loclx[imom][mu]+gl.bc[mu])/glb_size[mu];
 	    double ktmu=2*sin(kmu/2);
 	    
 	    tr+=out[imom][mu][RE]*ktmu;
+	    nre+=sqr(out[imom][mu][RE]);
 	    nim+=sqr(out[imom][mu][IM]);
 	  }
 	
-	master_printf("Site %d , tr %lg , nim %lg\n",imom,tr,nim);
+	master_printf("Site %d , tr %lg , nre %lg , nim %lg\n",imom,tr,nre,nim);
       }
     set_borders_invalid(out);
   }
