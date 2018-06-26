@@ -107,7 +107,30 @@ namespace nissa
     
     //fill the pieces
     spinspin_put_to_zero(prop);
-    if(fabs(den)>=1.e-14)
+    
+    double tol=1e-14;
+    bool zmp=((fabs(qu.mass)<tol) /* null twisted mass*/ and (fabs(qu.kappa-1.0/8)<tol)) /* null Wilson mass */;
+    for(int mu=0;mu<NDIM;mu++) zmp&=(fabs(qu.bc[mu])<tol);  //fully periodic
+    
+    bool zm_time=(glb_coord_of_loclx[imom][0]==0);
+    bool zm_spat=true;
+    for(int mu=1;mu<NDIM;mu++)
+      zm_spat&=(glb_coord_of_loclx[imom][mu]==0);
+    
+    bool ONLY_4D=false; /* false= UNNO_ALEMANNA, true=PECIONA*/
+    bool zm_sub;
+    if(zmp)
+      if(ONLY_4D)
+	zm_sub=(zm_time and zm_spat);
+      else
+	zm_sub=zm_spat;
+    else
+      zm_sub=false;
+    
+    if(zm_sub)
+      for(int ig=0;ig<NDIRAC;ig++)
+	complex_prod_double(prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],qu.zmp);
+    else
       {
 	//for efficiency
 	double rep_den=1/den/glb_vol;
@@ -119,9 +142,6 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(prop,base_gamma+igamma_of_mu[mu],-sin_mom[mu]*rep_den);
 	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[5],c5[base]*rep_den);
       }
-    else
-      for(int ig=0;ig<NDIRAC;ig++)
-	complex_prod_double(prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],qu.zmp);
   }
   
   //replace p0 with on shell in the tilded (conjugated) or non-tilded dirac operator
