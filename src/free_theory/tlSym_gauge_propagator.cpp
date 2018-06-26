@@ -241,7 +241,7 @@ namespace nissa
 	    nim+=sqr(out[imom][mu][IM]);
 	  }
 	
-	master_printf("Site %d , tr %lg , nre %lg , nim %lg\n",imom,tr,nre,nim);
+	master_lv3_printf("Site %d , tr %lg , nre %lg , nim %lg\n",imom,tr,nre,nim);
       }
     set_borders_invalid(out);
   }
