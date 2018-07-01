@@ -5,6 +5,9 @@
 #include "pars.hpp"
 #include "prop.hpp"
 
+#include <sstream>
+#include <complex>
+
 using namespace nissa;
 
 ///////////////////////////////// initialise the library, read input file, allocate /////////////////////////////////////
@@ -159,10 +162,44 @@ void init_simulation(int narg,char **arg)
       master_printf("Read variable 'Ins' with value: %s\n",ins);
       
       //source_name
+      std::vector<source_term_t> source_terms;
       char source_name[1024];
       read_str(source_name,1024);
-      if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
-      master_printf("Read variable 'Sourcename' with value: %s\n",source_name);
+      
+      bool multi_source=(strcasecmp(source_name,"LINCOMB")==0);
+      
+      int nsources;
+      if(multi_source)
+	read_int(&nsources);
+      else
+	nsources=1;
+      
+      
+      for(int isource=0;isource<nsources;isource++)
+	{
+	  std::pair<double,double> weight={1.0,0.0};
+	  if(multi_source)
+	    {
+	      read_str(source_name,1024);
+	      if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
+	      
+	      master_printf("Read variable 'Sourcename' with value: %s\n",source_name);
+	      
+	      //read weight as string
+	      char sweight[128];
+	      read_str(sweight,128);
+	      
+	      //convert to double
+	      std::istringstream is(sweight);
+	      std::complex<double> cweight;
+	      is>>cweight;
+	      
+	      weight.first=cweight.real();
+	      weight.second=cweight.imag();
+	    }
+	  
+	  source_terms.push_back(std::make_pair(source_name,weight));
+	}
       
       //insertion time
       int tins;
@@ -234,7 +271,7 @@ void init_simulation(int narg,char **arg)
 	}
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
-      Q[name].init_as_propagator(ins_from_tag(ins),source_name,tins,residue,kappa,mass,r,charge,theta,store_prop);
+      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,mass,r,charge,theta,store_prop);
       qprop_name_list[iq]=name;
     }
   

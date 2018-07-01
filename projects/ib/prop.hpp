@@ -17,6 +17,8 @@ namespace nissa
 {
   inline int so_sp_col_ind(int sp,int col){return col+nso_col*sp;}
   
+  typedef std::pair<std::string,std::pair<double,double>> source_term_t;
+  
   //hold name and information on how to build a propagator
   struct qprop_t
   {
@@ -29,7 +31,7 @@ namespace nissa
     double theta[NDIM];
     
     insertion_t insertion;
-    std::string source_name;
+    std::vector<source_term_t> source_terms;
     int tins;
     double residue;
     bool store;
@@ -48,7 +50,7 @@ namespace nissa
     }
     
     //initialize as a propagator
-    void init_as_propagator(insertion_t _insertion,std::string _source_name,int _tins,double _residue,double _kappa,double _mass,int _r,double _charge,double *_theta,bool _store)
+    void init_as_propagator(insertion_t _insertion,const std::vector<source_term_t>& _source_terms,int _tins,double _residue,double _kappa,double _mass,int _r,double _charge,double *_theta,bool _store)
     {
       is_source=false;
       
@@ -58,7 +60,7 @@ namespace nissa
       charge=_charge;
       for(int mu=0;mu<NDIM;mu++) theta[mu]=_theta[mu];
       insertion=_insertion;
-      source_name=_source_name;
+      source_terms=_source_terms;
       tins=_tins;
       residue=_residue;
       store=_store;
@@ -78,8 +80,8 @@ namespace nissa
       alloc_spincolor();
     }
     
-    qprop_t(insertion_t insertion,std::string source_name,int tins,double residue,double kappa,double mass,int r,double charge,double *theta,bool store)
-    {init_as_propagator(insertion,source_name,tins,residue,kappa,mass,r,charge,theta,store);}
+    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double mass,int r,double charge,double *theta,bool store)
+    {init_as_propagator(insertion,source_terms,tins,residue,kappa,mass,r,charge,theta,store);}
     qprop_t(rnd_t noise_type,int tins,int r,bool store) {init_as_source(noise_type,tins,r,store);}
     qprop_t() {is_source=0;}
     ~qprop_t() {for(size_t i=0;i<sp.size();i++) nissa_free(sp[i]);}
