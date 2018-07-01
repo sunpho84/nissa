@@ -206,8 +206,25 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  THREADABLE_FUNCTION_3ARG(build_source, spincolor*,out, std::vector<source_term_t>*,source_terms, int,isou)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      spincolor_put_to_zero(out[ivol]);
+    
+    for(auto& c : *source_terms)
+      {
+	complex coef={c.second.first,c.second.second};
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  spincolor_summ_the_prod_complex(out[ivol],Q[c.first][isou][ivol],coef);
+      }
+    set_borders_invalid(out);
+  }
+  THREADABLE_FUNCTION_END
+  
   //generate a sequential source
-  void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,spincolor *ori,int t)
+  void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,std::vector<source_term_t>& source_terms,int isou,int t)
   {
     source_time-=take_time();
     
@@ -223,6 +240,9 @@ namespace nissa
 	else                 ext_conf=glb_conf;
 	conf=get_updated_conf(0.0,theta,ext_conf);
       }
+    
+    spincolor* ori=nissa_malloc("ori",loc_vol+bord_vol,spincolor);
+    build_source(ori,&source_terms,isou);
     
     master_printf("Inserting r: %d\n",r);
     switch(inser)
@@ -301,11 +321,16 @@ namespace nissa
 	//get names
 	std::string name=qprop_name_list[i];
 	qprop_t &q=Q[name];
-	std::string source_name=q.source_name;
-	qprop_t &qsource=Q[source_name];
 	
-	//copy norm
-	q.ori_source_norm2=qsource.ori_source_norm2;
+	//get ori_source norm2
+	const std::string& first_source=q.source_terms.front().first;
+	const double ori_source_norm2=q.ori_source_norm2=Q[first_source].ori_source_norm2;
+	for(auto& n : q.source_terms)
+	  {
+	    double this_source_norm2=Q[n.first].ori_source_norm2;
+	    if(ori_source_norm2!=this_source_norm2)
+	      crash("first source %s has different norm2 %lg than %s, %lg",first_source.c_str(),ori_source_norm2,n.first.c_str(),this_source_norm2);
+	  }
 	
 	//write info on mass and r
 	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
@@ -314,13 +339,29 @@ namespace nissa
 	//compute the inverse clover term, if needed
 	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
 	
+	std::string source_descr;
+	if(q.source_terms.size()==1)
+	  source_descr=first_source;
+	else
+	  {
+	    source_descr="(";
+	    for(int i=0;i<(int)q.source_terms.size();i++)
+	      {
+		source_term_t& this_source=q.source_terms[i];
+		complex c={this_source.second.first,this_source.second.second};
+		source_descr+=this_source.first+"*("+std::to_string(c[RE])+","+std::to_string(c[IM])+")";
+		if(i>0) source_descr+="+";
+	      }
+	    source_descr+=")";
+	  }
+	
 	insertion_t insertion=q.insertion;
-	master_printf("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],source_name.c_str());
+	master_printf("Generating propagator %s inserting %s on source %s\n",name.c_str(),ins_name[insertion],source_descr.c_str());
 	for(int id_so=0;id_so<nso_spi;id_so++)
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
 	      int isou=so_sp_col_ind(id_so,ic_so);
-	      generate_source(insertion,q.r,q.charge,q.kappa,q.theta,qsource[isou],q.tins);
+	      generate_source(insertion,q.r,q.charge,q.kappa,q.theta,q.source_terms,isou,q.tins);
 	      spincolor *sol=q[isou];
 	      
 	      //combine the filename
