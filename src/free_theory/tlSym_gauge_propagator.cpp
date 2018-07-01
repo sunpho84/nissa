@@ -230,6 +230,7 @@ namespace nissa
 	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
 #endif
 	
+	//verify g.f condition
 	double tr=0.0,nre=0.0,nim=0.0;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
@@ -241,6 +242,7 @@ namespace nissa
 	    nim+=sqr(out[imom][mu][IM]);
 	  }
 	
+	//check
 	verbosity_lv3_master_printf("Site %d , tr %lg , nre %lg , nim %lg\n",imom,tr,nre,nim);
       }
     set_borders_invalid(out);
