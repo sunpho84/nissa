@@ -266,6 +266,8 @@ namespace nissa
       case PHASING:phase_prop(loop_source,ori,rel_t,theta);break;
       }
     
+    nissa_free(ori);
+    
     source_time+=take_time();
     nsource_tot++;
   }
@@ -312,6 +314,7 @@ namespace nissa
 	    }
       }
   }
+  
   //generate all the quark propagators
   void generate_quark_propagators(int ihit)
   {
