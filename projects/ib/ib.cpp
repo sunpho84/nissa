@@ -165,12 +165,16 @@ void init_simulation(int narg,char **arg)
       std::vector<source_term_t> source_terms;
       char source_name[1024];
       read_str(source_name,1024);
+      master_printf("Read variable 'SourceName' with value: %s\n",source_name);
       
       bool multi_source=(strcasecmp(source_name,"LINCOMB")==0);
       
       int nsources;
       if(multi_source)
-	read_int(&nsources);
+	{
+	  read_int(&nsources);
+	  master_printf("Read variable 'NSources' with value: %d\n",nsources);
+	}
       else
 	nsources=1;
       

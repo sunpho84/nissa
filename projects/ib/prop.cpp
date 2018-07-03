@@ -258,6 +258,7 @@ namespace nissa
       case PHOTON_PHI:insert_external_source(loop_source,conf,photon_phi,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case PHOTON_ETA:insert_external_source(loop_source,conf,photon_eta,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case TADPOLE:insert_tadpole(loop_source,conf,ori,rel_t,r);break;
+      case CVEC:insert_conserved_current(loop_source,conf,ori,rel_t,r,all_dirs);break;
       case CVEC0:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[0]);break;
       case CVEC1:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[1]);break;
       case CVEC2:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[2]);break;
