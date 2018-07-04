@@ -210,8 +210,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      spincolor_put_to_zero(out[ivol]);
+    vector_reset(out);
     
     for(auto& c : *source_terms)
       {
@@ -343,6 +342,7 @@ namespace nissa
 	//compute the inverse clover term, if needed
 	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
 	
+	//create the description of the source
 	std::string source_descr;
 	if(q.source_terms.size()==1)
 	  source_descr=first_source;
