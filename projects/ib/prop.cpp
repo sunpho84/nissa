@@ -353,8 +353,8 @@ namespace nissa
 	      {
 		source_term_t& this_source=q.source_terms[i];
 		complex c={this_source.second.first,this_source.second.second};
-		source_descr+=this_source.first+"*("+std::to_string(c[RE])+","+std::to_string(c[IM])+")";
 		if(i>0) source_descr+="+";
+		source_descr+=this_source.first+"*("+std::to_string(c[RE])+","+std::to_string(c[IM])+")";
 	      }
 	    source_descr+=")";
 	  }
