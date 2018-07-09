@@ -508,13 +508,13 @@ namespace nissa
     
     //scattering list
     all_to_all_scattering_list_t sl;
-    for(std::vector<fft_mom_range_t>::iterator f=fft_mom_range_list.begin();f!=fft_mom_range_list.end();f++)
-      for(int vol=vol_of_lx(f->width),ifilt=0;ifilt<vol;ifilt++)
+    for(auto &f : fft_mom_range_list)
+      for(int vol=vol_of_lx(f.first.width),ifilt=0;ifilt<vol;ifilt++)
 	{
 	  //gets the coordinate in the filtering volume
 	  coords c;
-	  coord_of_lx(c,ifilt,f->width);
-	  coord_summassign(c,f->offs,glb_size);
+	  coord_of_lx(c,ifilt,f.first.width);
+	  coord_summassign(c,f.first.offs,glb_size);
 	  
 	  //compute p~4/p~2^2
 	  double pt2=0,pt4=0;
@@ -526,6 +526,7 @@ namespace nissa
 	      pt4+=pow(ptmu,4.0);
 	    }
 	  
+	  double p4_fr_p22_max=f.second;
 	  if(pt4/sqr(pt2)<p4_fr_p22_max)
 	    for(int imir=0;imir<pow(2,NDIM);imir++)
 	      {
