@@ -65,9 +65,7 @@ namespace nissa
     coords width;
   };
   //list of range of momenta for fft
-  EXTERN_PARS std::vector<fft_mom_range_t> fft_mom_range_list;
-  //democratic filter
-  EXTERN_PARS double p4_fr_p22_max;
+  EXTERN_PARS std::vector<std::pair<fft_mom_range_t,double>> fft_mom_range_list;
   //list of propagators to fft
   EXTERN_PARS std::vector<std::string> fft_prop_list;
   

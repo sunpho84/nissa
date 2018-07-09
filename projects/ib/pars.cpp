@@ -224,11 +224,12 @@ namespace nissa
 		fft_mom_range.width[i]=L[1]-L[0]+1;
 	      }
 	    
-	    fft_mom_range_list.push_back(fft_mom_range);
+	    //read the democratic filter
+	    double p4_fr_p22_max;
+	    read_str_double("P4FrP22Max",&p4_fr_p22_max);
+	    
+	    fft_mom_range_list.push_back(std::make_pair(fft_mom_range,p4_fr_p22_max));
 	  }
-	
-	//read the democratic filter
-	if(nfft_ranges) read_str_double("P4FrP22Max",&p4_fr_p22_max);
 	
 	//initialize the filters
 	init_fft_filter();
