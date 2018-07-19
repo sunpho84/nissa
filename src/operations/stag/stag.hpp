@@ -5,7 +5,7 @@
 #include "base/vectors.hpp"
 #include "hmc/theory_pars.hpp"
 
-#define DEB_STAG master_printf
+//#define DEB_STAG master_printf
 
 namespace nissa
 {
