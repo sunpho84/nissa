@@ -147,9 +147,12 @@ namespace nissa
     
     for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
       {
-	//path to use
-	FILE *fout=list.open(combine("%s/mes_contr_%s",outfolder,mes2pts_contr_map[icombo].name.c_str()));
+	auto& combo=mes2pts_contr_map[icombo];
 	
+	//path to use
+	FILE *fout=list.open(combine("%s/mes_contr_%s",outfolder,combo.name.c_str()));
+	
+	master_fprintf(fout,"\n # Contraction of %s ^ \\dag and %s\n\n",combo.a.c_str(),combo.b.c_str());
 	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",1.0/nhits);
 	master_fprintf(fout,"\n");
 	
