@@ -206,6 +206,9 @@ namespace nissa
 	      }
 	  THREAD_BARRIER();
 	  complex_vector_glb_collapse(res_fw_bw[fw_bw],point_result,loc_vol);
+	  
+	  DEB_STAG("fw_bw=%d mu=%d, RE=%lg IM=%lg\n",fw_bw,mu,res_fw_bw[fw_bw][RE],res_fw_bw[fw_bw][IM]);
+	  
 	}
     }
     

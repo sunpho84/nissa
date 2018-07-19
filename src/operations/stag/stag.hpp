@@ -5,6 +5,8 @@
 #include "base/vectors.hpp"
 #include "hmc/theory_pars.hpp"
 
+#define DEB_STAG master_printf
+
 namespace nissa
 {
   //form the mask for x (-1)^[x*(s^<+n^>)]

@@ -101,6 +101,8 @@ namespace nissa
 	//chir cond: deg/4vol
 	complex temp;
 	complex_vector_glb_collapse(temp,point_result,loc_vol);
+	DEB_STAG("ichi=%d temp=(%lg %lg)\n",ichi,temp[RE],temp[IM]);
+	
 	if(IS_MASTER_THREAD) //normalization: <\bar{\psi}\psi>=Nf/4glb_vol <Tr M^-1>
 	  { //susceptivity disconnected: \chi_\psi\psi=-Nf/4glb_vol <Tr M^-2>
 	    if(ichi==1) complex_prod_double(putpourri->chiral_cond,temp,quark->deg/(4.0*glb_vol));
