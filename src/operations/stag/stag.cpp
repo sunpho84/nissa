@@ -185,6 +185,10 @@ namespace nissa
     {
       GET_THREAD_ID();
       
+      communicate_ev_and_od_color_borders(left);
+      communicate_ev_and_od_quad_su3_borders(conf);
+      communicate_ev_and_od_color_borders(right);
+      
       color **right_fw_bw[2]={right,left};
       
       for(int fw_bw=0;fw_bw<2;fw_bw++)
