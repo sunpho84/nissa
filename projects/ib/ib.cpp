@@ -41,14 +41,6 @@ void init_simulation(int narg,char **arg)
 	  parsed=true;
 	}
       
-      //check if we passed "antiperiodic"
-      if(not parsed and not strcasecmp(arg[iarg],"periodic"))
-	{
-	  temporal_bc=ANTIPERIODIC_BC;
-	  master_printf(" Setting temporal bc to %lg = 'antiperiodic'\n",temporal_bc);
-	  parsed=true;
-	}
-      
       //check if we passed "store_photons"
       if(not parsed and not strcasecmp(arg[iarg],"store_photons"))
 	{
