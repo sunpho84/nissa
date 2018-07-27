@@ -111,8 +111,10 @@ namespace nissa
     double tol=1e-14;
     bool zmp=((fabs(qu.mass)<tol) /* null twisted mass*/ and (fabs(qu.kappa-1.0/8)<tol)) /* null Wilson mass */;
     for(int mu=0;mu<NDIM;mu++) zmp&=(fabs(qu.bc[mu])<tol);  //fully periodic
+    zmp=1;
     
     bool zm_time=(glb_coord_of_loclx[imom][0]==0);
+    zm_time=(glb_coord_of_loclx[imom][0]==0)||(glb_coord_of_loclx[imom][0]==glb_size[0]-1);
     bool zm_spat=true;
     for(int mu=1;mu<NDIM;mu++)
       zm_spat&=(glb_coord_of_loclx[imom][mu]==0);
