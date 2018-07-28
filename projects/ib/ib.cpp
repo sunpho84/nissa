@@ -112,15 +112,9 @@ void init_simulation(int narg,char **arg)
       Q[name].init_as_source(noise_type,tins,0,store_source);
     }
   
-  //Twisted run
-  read_str_int("TwistedRun",&twisted_run);
-  if(!twisted_run) base=WILSON_BASE;
-  else             base=MAX_TWIST_BASE;
+  read_twisted_run();
+  read_clover_run();
   
-  //Clover run
-  read_str_int("CloverRun",&clover_run);
-  //cSW for clover run
-  if(clover_run) read_str_double("cSW",&glb_cSW);
   //NProps
   int nprops;
   read_str_int("NProps",&nprops);
