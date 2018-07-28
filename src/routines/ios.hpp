@@ -59,9 +59,9 @@ namespace nissa
   void take_last_characters(char *out,const char *in,int size);
   int count_file_lines(std::string path);
   int get_file_size(std::string path);
-  void print_contraction_to_file(FILE *fout,int gso,int gsi,complex *contr,int twall,const char *tag,double norm);
-  void print_contractions_to_file(FILE *fout,int ncontr,const int *gso,const int *gsi,complex *contr,int twall,const char *tag,double norm);
-  inline void print_contractions_to_file(FILE *fout,std::vector<idirac_pair_t> &list,complex *contr,int twall,const char *tag,double norm)
+  void print_contraction_to_file(FILE *fout,int gso,int gsi,complex *contr,int twall,const char *tag,double norm,int skip_header=false);
+  void print_contractions_to_file(FILE *fout,int ncontr,const int *gso,const int *gsi,complex *contr,int twall,const char *tag,double norm,int skip_header=false);
+  inline void print_contractions_to_file(FILE *fout,std::vector<idirac_pair_t> &list,complex *contr,int twall,const char *tag,double norm,int skip_header=false)
   {
     int ncontr=list.size();
     int gso[ncontr],gsi[ncontr];
@@ -70,7 +70,7 @@ namespace nissa
 	gso[i]=list[i].so;
 	gsi[i]=list[i].si;
       }
-    print_contractions_to_file(fout,ncontr,gso,gsi,contr,twall,tag,norm);
+    print_contractions_to_file(fout,ncontr,gso,gsi,contr,twall,tag,norm,skip_header);
   }
 }
 
