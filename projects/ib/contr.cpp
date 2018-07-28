@@ -134,8 +134,13 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //print all mesonic 2pts contractions
-  void print_mes2pts_contr()
+  void print_mes2pts_contr(int n,int force_append,int skip_inner_header,const std::string &alternative_header_template)
   {
+    //set the header template
+    std::string header_template;
+    if(alternative_header_template=="") header_template="\n # Contraction of %s ^ \\dag and %s\n\n";
+    else header_template=alternative_header_template;
+    
     contr_print_time-=take_time();
     
     //reduce and normalise
@@ -150,10 +155,11 @@ namespace nissa
 	auto& combo=mes2pts_contr_map[icombo];
 	
 	//path to use
-	FILE *fout=list.open(combine("%s/mes_contr_%s",outfolder,combo.name.c_str()));
+	FILE *fout=list.open(combine("%s/%s_%s",outfolder,mes2pts_prefix.c_str(),combo.name.c_str()),force_append);
 	
-	master_fprintf(fout,"\n # Contraction of %s ^ \\dag and %s\n\n",combo.a.c_str(),combo.b.c_str());
-	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",1.0/nhits);
+	master_fprintf(fout,header_template.c_str(),combo.a.c_str(),combo.b.c_str());
+	
+	print_contractions_to_file(fout,mes_gamma_list,mes2pts_contr+ind_mes2pts_contr(icombo,0,0),0,"",1.0/n,skip_inner_header);
 	master_fprintf(fout,"\n");
 	
 	//close the file
