@@ -71,6 +71,15 @@ namespace nissa
       }
     return ins_list[i];
   }
+  
+  inline int is_photon_ins(const char *ins)
+  {
+    return
+      (strcasecmp(ins,ins_tag[PHOTON])==0) or
+      (strcasecmp(ins,ins_tag[PHOTON_ETA])==0) or
+      (strcasecmp(ins,ins_tag[PHOTON_PHI])==0);
+  }
+  
   EXTERN_PARS gauge_info photon;
   EXTERN_PARS double tadpole[NDIM];
   
