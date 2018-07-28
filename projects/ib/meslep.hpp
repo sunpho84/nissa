@@ -12,7 +12,7 @@
 
 namespace nissa
 {
-  EXTERN_MESLEP int nquark_lep_combos;
+  EXTERN_MESLEP int nquark_lep_combos INIT_TO(0);
   EXTERN_MESLEP double *lep_energy,*neu_energy;
   
   EXTERN_MESLEP int nmeslep_contr_made INIT_TO(0);
