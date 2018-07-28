@@ -17,11 +17,11 @@ namespace nissa
     
   public:
     //open for write or append, depending
-    FILE *open(const std::string &path)
+    FILE *open(const std::string &path,int force_append=false)
     {
       //detect the mode
       std::string mode;
-      if(opened.find(path)==opened.end())
+      if((not force_append) and opened.find(path)==opened.end())
 	{
 	  mode="w";
 	  opened.insert(path);
