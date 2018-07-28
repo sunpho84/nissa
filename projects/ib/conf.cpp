@@ -101,7 +101,7 @@ namespace nissa
 	adapt_theta(inner_conf,old_theta,theta,0,0);
 	
 	//include the photon field, with correct charge
-	add_photon_field_to_conf(inner_conf,charge);
+	if(charge) add_photon_field_to_conf(inner_conf,charge);
       }
     
     //update value and set valid
@@ -140,10 +140,10 @@ namespace nissa
     setup_conf(glb_conf,conf_path,rnd_gauge_transform,free_theory);
     
     //reset contractions
-    vector_reset(mes2pts_contr);
-    vector_reset(handcuffs_contr);
-    vector_reset(bar2pts_contr);
-    vector_reset(meslep_contr);
+    if(mes2pts_contr_size) vector_reset(mes2pts_contr);
+    if(handcuffs_contr_size) vector_reset(handcuffs_contr);
+    if(bar2pts_contr_size) vector_reset(bar2pts_contr);
+    if(nmeslep_corr) vector_reset(meslep_contr);
   }
   
   //handle to discard the source
