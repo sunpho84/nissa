@@ -40,6 +40,7 @@ namespace nissa
   bool finish_file_present();
   void mark_finished();
   void print_statistics();
+  void skip_nhits(int a,int b);
 }
 
 #undef EXTERN_CONF
