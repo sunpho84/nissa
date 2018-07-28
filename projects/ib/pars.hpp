@@ -17,9 +17,25 @@ namespace nissa
 #define PERIODIC_BC 0
 #define ANTIPERIODIC_BC 1
   
+  //Twisted run
+  EXTERN_PARS int twisted_run;
   EXTERN_PARS tm_basis_t base;
+  inline void read_twisted_run()
+  {
+    read_str_int("TwistedRun",&twisted_run);
+    if(!twisted_run) base=WILSON_BASE;
+    else             base=MAX_TWIST_BASE;
+  }
+  
+  //Clover run
+  EXTERN_PARS int clover_run;
   EXTERN_PARS double glb_cSW;
-  EXTERN_PARS int twisted_run,clover_run;
+  inline void read_clover_run()
+  {
+    read_str_int("CloverRun",&clover_run);
+    if(clover_run) read_str_double("cSW",&glb_cSW);
+  }
+  
   EXTERN_PARS double temporal_bc INIT_TO(ANTIPERIODIC_BC);
   
   EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
