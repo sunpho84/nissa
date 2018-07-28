@@ -24,6 +24,8 @@ namespace nissa
   
   ///////////////////////////////////////// meson contractions ///////////////////////////////////////////////////////
   
+  EXTERN_CONTR std::string mes2pts_prefix INIT_TO("mes_contr");
+  
   struct mes_contr_map_t
   {
     std::string name;
@@ -37,7 +39,7 @@ namespace nissa
   EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
   void allocate_mes2pts_contr();
   void compute_mes2pts_contr();
-  void print_mes2pts_contr();
+  void print_mes2pts_contr(int n=nhits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
   void free_mes2pts_contr();
   
   inline int ind_mes2pts_contr(int iquark_combo,int ihadr_contr,int t)
