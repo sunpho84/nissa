@@ -4,6 +4,7 @@
 #include "nissa.hpp"
 
 #include "conf.hpp"
+#include "meslep.hpp"
 #include "pars.hpp"
 
 #ifndef EXTERN_PROP
@@ -155,7 +156,7 @@ namespace nissa
   {
     if(need_photon) generate_photon_stochastic_propagator(ihit);
     generate_original_sources(ihit);
-    generate_lepton_propagators();
+    if(nquark_lep_combos) generate_lepton_propagators();
     generate_quark_propagators(ihit);
   }
 }
