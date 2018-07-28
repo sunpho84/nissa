@@ -224,12 +224,12 @@ namespace nissa
   }
   
   //print a single contraction to the passed file
-  void print_contraction_to_file(FILE *fout,int op_sour,int op_sink,complex *contr,int twall,const char *tag,double norm)
+  void print_contraction_to_file(FILE *fout,int op_sour,int op_sink,complex *contr,int twall,const char *tag,double norm,int skip_header)
   {
     if(rank==0)
       {
 	//header
-	if(op_sour>=0 && op_sink>=0) fprintf(fout," # %s%s%s\n",tag,gtag[op_sink],gtag[op_sour]);
+	if(op_sour>=0 && op_sink>=0 && (!skip_header)) fprintf(fout," # %s%s%s\n",tag,gtag[op_sink],gtag[op_sour]);
 	for(int tempt=0;tempt<glb_size[0];tempt++)
 	  {
 	    //shift
@@ -242,13 +242,13 @@ namespace nissa
   }
   
   //print all the passed contractions
-  void print_contractions_to_file(FILE *fout,int ncontr,const int *op_sour,const int *op_sink,complex *contr,int twall,const char *tag,double norm)
+  void print_contractions_to_file(FILE *fout,int ncontr,const int *op_sour,const int *op_sink,complex *contr,int twall,const char *tag,double norm,int skip_header)
   {
     if(rank==0)
       for(int icontr=0;icontr<ncontr;icontr++)
 	{
 	  fprintf(fout,"\n");
-	  print_contraction_to_file(fout,op_sour[icontr],op_sink[icontr],contr+icontr*glb_size[0],twall,tag,norm);
+	  print_contraction_to_file(fout,op_sour[icontr],op_sink[icontr],contr+icontr*glb_size[0],twall,tag,norm,skip_header);
 	}
   }
 }
