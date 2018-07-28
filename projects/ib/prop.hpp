@@ -150,9 +150,10 @@ namespace nissa
     else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
   }
   
+  EXTERN_PROP int need_photon INIT_TO(0);
   inline void generate_propagators(int ihit)
   {
-    generate_photon_stochastic_propagator(ihit);
+    if(need_photon) generate_photon_stochastic_propagator(ihit);
     generate_original_sources(ihit);
     generate_lepton_propagators();
     generate_quark_propagators(ihit);
