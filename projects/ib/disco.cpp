@@ -1,6 +1,12 @@
 #include "nissa.hpp"
 
+#include "conf.hpp"
+#include "pars.hpp"
+#include "prop.hpp"
+
 using namespace nissa;
+
+qprop_t q;
 
 //compute the matrix element of the conserved current between two propagators
 THREADABLE_FUNCTION_4ARG(calc_cur, spin1field*,cur, spincolor*,source, quad_su3*,conf, spincolor*,prop)
@@ -45,7 +51,7 @@ THREADABLE_FUNCTION_4ARG(calc_cur, spin1field*,cur, spincolor*,source, quad_su3*
 }
 THREADABLE_FUNCTION_END
 
-void in_main(int narg,char **arg)
+void in_main_Marcus(int narg,char **arg)
 {
   init_grid(16,8);
   
@@ -80,6 +86,114 @@ void in_main(int narg,char **arg)
   nissa_free(conf);
   nissa_free(prop);
   nissa_free(source);
+}
+
+void init_simulation(int narg,char **arg)
+{
+  std::string input_path="";
+  
+  //parse opts
+  int c;
+  while((c=getopt(narg,arg,"i:"))!= -1)
+    switch (c)
+      {
+      case 'i': input_path=optarg; break;
+      default: crash("Unknown option -%c",optopt);
+      }
+  
+  if(input_path=="") crash("Please specify -i");
+  open_input(input_path);
+  
+    //init the grid
+  read_init_grid();
+  
+  //Wall time
+  read_str_double("WallTime",&wall_time);
+  
+  //Sources
+  read_seed_start_random();
+  read_stoch_source();
+  set_diluted_spin(1);
+  set_diluted_color(1);
+  set_diluted_space(1);
+  read_nhits();
+
+  read_twisted_run();
+  read_clover_run();
+  
+  /////////////////////////////////////////////////////////////////
+
+  int tins=-1;
+  double kappa=0.125,mass=0.0,charge=0,theta[NDIM],residue=1e-16;
+  theta[0]=temporal_bc;
+  for(int mu=1;mu<NDIM;mu++) theta[mu]=0;
+  int r=0,store_prop=0;
+      
+  read_str_double("Kappa",&kappa);
+  if(twisted_run)
+    {
+      read_str_double("Mass",&mass);
+      master_printf("Read variable 'Mass' with value: %lg\n",mass);
+      read_int(&r);
+      master_printf("Read variable 'R' with value: %d\n",r);
+      
+      //include tau in the mass
+      mass*=tau3[r];
+    }
+  
+  read_str_int("StoreProp",&store_prop);
+  master_printf("Read variable 'Store' with value: %d\n",store_prop);
+  q.init_as_propagator(ins_from_tag("-"),{{"source",{1.0,0.0}}},tins,residue,kappa,mass,r,charge,theta,store_prop);
+  read_double(&residue);
+  master_printf("Read variable 'Residue' with value: %lg\n",residue);
+  
+  read_photon_pars();
+  
+  read_free_theory_flag();
+  read_random_gauge_transform();
+  read_Landau_gauge_fix();
+  read_store_conf();
+  
+  read_loc_hadr_curr();
+  
+  read_ngauge_conf(); 
+}
+
+void close()
+{
+  close_input();
+}
+
+void in_main(int narg,char **arg)
+{
+  //Basic mpi initialization
+  tot_prog_time-=take_time();
+  
+  //init simulation according to input file
+  init_simulation(narg,arg);
+  
+  //loop over the configs
+  int iconf=0;
+  while(read_conf_parameters(iconf,finish_file_present))
+    {
+      //setup the conf and generate the source
+      start_new_conf();
+      
+      for(int ihit=0;ihit<nhits;ihit++)
+	{
+	  start_hit(ihit);
+	  generate_propagators(ihit);
+	  compute_contractions();
+	  propagators_fft(ihit);
+	}
+      print_contractions();
+      
+      mark_finished();
+    }
+  
+  //close the simulation
+  tot_prog_time+=take_time();
+  close();
 }
 
 int main(int narg,char **arg)
