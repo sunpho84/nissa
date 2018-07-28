@@ -147,6 +147,8 @@ void init_simulation(int narg,char **arg)
       read_str(ins,2);
       master_printf("Read variable 'Ins' with value: %s\n",ins);
       
+      if(is_photon_ins(ins)) need_photon=true;
+      
       //source_name
       std::vector<source_term_t> source_terms;
       char source_name[1024];
