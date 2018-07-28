@@ -156,7 +156,7 @@ void init_simulation(int narg,char **arg)
   
   read_loc_hadr_curr();
   
-  read_ngauge_conf(); 
+  read_ngauge_conf();
 }
 
 void close()
@@ -183,10 +183,10 @@ void in_main(int narg,char **arg)
 	{
 	  start_hit(ihit);
 	  generate_propagators(ihit);
-	  compute_contractions();
+	  //compute_contractions();
 	  propagators_fft(ihit);
 	}
-      print_contractions();
+      //print_contractions();
       
       mark_finished();
     }
