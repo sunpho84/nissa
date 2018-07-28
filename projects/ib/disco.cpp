@@ -7,6 +7,24 @@
 
 using namespace nissa;
 
+int hits_done_so_far;
+const char hits_done_so_far_path[]="hits_done_so_far";
+
+//gets the number of hits done
+void get_hits_done_so_far()
+{
+  if(file_exists(hits_done_so_far_path)) crash("Unable to read");
+  hits_done_so_far=0;
+}
+
+//skip the first hits
+void skip_hits_done_so_far()
+{
+  get_hits_done_so_far();
+  skip_nhits(0,hits_done_so_far);
+}
+
+//give a name to the propagator
 std::string get_prop_name(int iquark,int r,insertion_t ins)
 {
   return combine("Q%d_R%d_%s",iquark,r,ins_name[ins]);
@@ -266,7 +284,9 @@ void in_main(int narg,char **arg)
       //setup the conf and generate the source
       start_new_conf();
       
-      for(int ihit=0;ihit<nhits;ihit++)
+      skip_hits_done_so_far();
+      
+      for(int ihit=hits_done_so_far;ihit<nhits;ihit++)
 	{
 	  start_hit(ihit);
 	  generate_propagators(ihit);

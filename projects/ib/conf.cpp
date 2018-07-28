@@ -146,16 +146,22 @@ namespace nissa
     if(nmeslep_corr) vector_reset(meslep_contr);
   }
   
-  //handle to discard the source
-  void skip_conf()
+  //skip a number of hits [a,b)
+  void skip_nhits(int a,int b)
   {
-    for(int ihit=0;ihit<nhits;ihit++)
+    for(int ihit=a;ihit<b;ihit++)
       {
 	coords coord;
 	generate_random_coord(coord);
 	if(need_photon) generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
 	generate_original_sources(ihit);
       }
+  }
+  
+  //handle to discard the source
+  void skip_conf()
+  {
+    skip_nhits(0,nhits);
   }
   
   //find a new conf
