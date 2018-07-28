@@ -1,12 +1,16 @@
 #include "nissa.hpp"
 
 #include "conf.hpp"
+#include "contr.hpp"
 #include "pars.hpp"
 #include "prop.hpp"
 
 using namespace nissa;
 
-qprop_t q;
+std::string get_prop_name(int iquark,int r,insertion_t ins)
+{
+  return combine("Q%d_R%d_%s",iquark,r,ins_name[ins]);
+}
 
 //compute the matrix element of the conserved current between two propagators
 THREADABLE_FUNCTION_4ARG(calc_cur, spin1field*,cur, spincolor*,source, quad_su3*,conf, spincolor*,prop)
@@ -90,6 +94,9 @@ void in_main_Marcus(int narg,char **arg)
 
 void init_simulation(int narg,char **arg)
 {
+  //set the prefix for contr file
+  mes2pts_prefix="disco";
+  
   std::string input_path="";
   
   //parse opts
@@ -104,48 +111,106 @@ void init_simulation(int narg,char **arg)
   if(input_path=="") crash("Please specify -i");
   open_input(input_path);
   
-    //init the grid
+  //init the grid
   read_init_grid();
   
   //Wall time
   read_str_double("WallTime",&wall_time);
   
-  //Sources
+  //Seed
   read_seed_start_random();
-  read_stoch_source();
+  
+  //Set stochastic source
+  stoch_source=true;
+  
+  //Read the noise type
+  char str_noise_type[20];
+  read_str_str("NoiseType",str_noise_type,20);
+  rnd_t noise_type=convert_str_to_rnd_t(str_noise_type);
+  
+  //Everything diluted so far
   set_diluted_spin(1);
   set_diluted_color(1);
   set_diluted_space(1);
+  
+  //Number of hits
   read_nhits();
-
+  
+  //put the source in the list
+  std::string source_name="source";
+  int store_source=false;
+  ori_source_name_list.push_back(source_name);
+  Q[source_name].init_as_source(noise_type,ALL_TIMES,0,store_source);
+  
+  //Read whether this is a twisted and/or clover run
   read_twisted_run();
   read_clover_run();
   
   /////////////////////////////////////////////////////////////////
-
-  int tins=-1;
-  double kappa=0.125,mass=0.0,charge=0,theta[NDIM],residue=1e-16;
+  
+  //Boundary conditions
+  momentum_t theta;
   theta[0]=temporal_bc;
   for(int mu=1;mu<NDIM;mu++) theta[mu]=0;
-  int r=0,store_prop=0;
-      
-  read_str_double("Kappa",&kappa);
-  if(twisted_run)
+  int store_prop=false;
+  
+  //Read kappa
+  double kappa=0.125;
+  if(twisted_run) read_str_double("Kappa",&kappa);
+  
+  //Read the number of quarks
+  int nquarks;
+  read_str_int("NQuarks",&nquarks);
+  
+  //Placeholder for mass, kappa and resiude
+  if(twisted_run) expect_str("MassRResidue");
+  else            expect_str("KappaResidue");
+  
+  for(int iquark=0;iquark<nquarks;iquark++)
     {
-      read_str_double("Mass",&mass);
-      master_printf("Read variable 'Mass' with value: %lg\n",mass);
-      read_int(&r);
-      master_printf("Read variable 'R' with value: %d\n",r);
+      //Read mass and r
+      double mass=0.0;
+      int r=0;
+      if(twisted_run)
+	{
+	  read_double(&mass);
+	  master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	  read_int(&r);
+	  master_printf("Read variable 'R' with value: %d\n",r);
+	  
+	  //include tau in the mass
+	  mass*=tau3[r];
+	}
+      else
+	read_double(&kappa);
       
-      //include tau in the mass
-      mass*=tau3[r];
+      //Residue for solver
+      double residue;
+      read_double(&residue);
+      master_printf("Read variable 'Residue' with value: %lg\n",residue);
+      
+      //Set charge to zero
+      double charge=0.0;
+      
+      //Put the propagator in the list
+      std::string prop_name=get_prop_name(iquark,r,PROP);
+      qprop_name_list.push_back(prop_name);
+      Q[prop_name].init_as_propagator(PROP,{{source_name,{1.0,0.0}}},ALL_TIMES,residue,kappa,mass,r,charge,theta,store_prop);
+      
+      //Add insertion of S, P and T
+      for(auto ins : {SCALAR,PSEUDO,TADPOLE})
+	{
+	  std::string prop_name_ins=get_prop_name(iquark,r,ins);
+	  qprop_name_list.push_back(prop_name_ins);
+	  Q[prop_name_ins].init_as_propagator(ins,{{prop_name,{1.0,0.0}}},ALL_TIMES,residue,kappa,mass,r,charge,theta,store_prop);
+	  
+	  mes2pts_contr_map.push_back(mes_contr_map_t(prop_name_ins,source_name,prop_name_ins));
+	}
     }
   
-  read_str_int("StoreProp",&store_prop);
-  master_printf("Read variable 'Store' with value: %d\n",store_prop);
-  q.init_as_propagator(ins_from_tag("-"),{{"source",{1.0,0.0}}},tins,residue,kappa,mass,r,charge,theta,store_prop);
-  read_double(&residue);
-  master_printf("Read variable 'Residue' with value: %lg\n",residue);
+  //set g5 on the source if not diluted
+  int id_so=(nso_spi==NDIRAC ? 0 : 5);
+  mes_gamma_list.push_back(idirac_pair_t(id_so,0));
   
   read_photon_pars();
   
@@ -157,11 +222,33 @@ void init_simulation(int narg,char **arg)
   read_loc_hadr_curr();
   
   read_ngauge_conf();
+  
+  /////////////////////////////////////////////////////////////////
+  
+  allocate_loop_source();
+  allocate_mes2pts_contr();
+  glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
 }
 
 void close()
 {
   close_input();
+  
+  print_statistics();
+  
+  Q.clear();
+  
+  free_loop_source();
+  free_mes2pts_contr();
+  nissa_free(glb_conf);
+  nissa_free(inner_conf);
+  
+  if(clover_run)
+    {
+      nissa_free(Cl);
+      nissa_free(invCl);
+    }
 }
 
 void in_main(int narg,char **arg)
@@ -183,10 +270,17 @@ void in_main(int narg,char **arg)
 	{
 	  start_hit(ihit);
 	  generate_propagators(ihit);
-	  //compute_contractions();
-	  propagators_fft(ihit);
+	  
+	  //compute "2pts"
+	  vector_reset(mes2pts_contr);
+	  compute_mes2pts_contr();
+	  
+	  //print correlators
+	  int force_append(ihit>0);
+	  int skip_inner_header=true;
+	  std::string hit_header=combine("\n # hit %d\n\n",ihit);
+	  print_mes2pts_contr(1.0,force_append,skip_inner_header,hit_header);
 	}
-      //print_contractions();
       
       mark_finished();
     }
