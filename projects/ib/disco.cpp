@@ -44,9 +44,9 @@ namespace curr
   }
   
   //form the path of the current
-  std::string path(int iquark)
+  std::string path(int iquark,int nhits)
   {
-    return combine("%s/%s_current_%d_hits",outfolder,qprop_name_list[iquark].c_str(),iquark);
+    return combine("%s/%s_current_%d_hits",outfolder,qprop_name_list[iquark].c_str(),nhits);
   }
   
   //read all currents
@@ -55,7 +55,7 @@ namespace curr
     for(int iquark=0;iquark<(int)qprop_name_list.size();iquark++)
       {
 	spin1field *c=fields[ifield_idx(iquark,J)];
-	if(hits_done_so_far) read_real_vector(c,path(hits_done_so_far),"ildg-binary-data");
+	if(hits_done_so_far) read_real_vector(c,path(iquark,hits_done_so_far),"ildg-binary-data");
 	else vector_reset(c);
       }
   }
@@ -64,7 +64,7 @@ namespace curr
   void store_all()
   {
     for(int iquark=0;iquark<(int)qprop_name_list.size();iquark++)
-      write_real_vector(path(hits_done_so_far),fields[ifield_idx(iquark,J)],64,"ildg-binary-data");
+      write_real_vector(path(iquark,hits_done_so_far),fields[ifield_idx(iquark,J)],64,"ildg-binary-data");
   }
 }
 
