@@ -10,11 +10,84 @@ using namespace nissa;
 int hits_done_so_far;
 const char hits_done_so_far_path[]="hits_done_so_far";
 
+/////////////////////////////////////////////////////////////////
+
+namespace curr
+{
+  //fileds J,j and xi
+  spin1field **fields;
+  
+  //fields to store the average, to get stoch estimate of the current, or to convolve it
+  enum field_t{J,j,xi};
+  int nfields_type=3;
+  
+  //get the index of the field
+  int ifield_idx(int iquark,int f)
+  {
+    return f+nfields_type*iquark;
+  }
+  
+  //allocate all currents
+  int ntot_fields;
+  void allocate_all_fields()
+  {
+    ntot_fields=ifield_idx(qprop_name_list.size()-1,nfields_type-1)+1;
+    
+    fields=nissa_malloc("fields",ntot_fields,spin1field*);
+    for(int ifield=0;ifield<ntot_fields;ifield++) fields[ifield]=nissa_malloc("field",loc_vol+bord_vol, spin1field);
+  }
+  
+  //free all currents
+  void free_all_fields()
+  {
+    for(int ifield=0;ifield<ntot_fields;ifield++) nissa_free(fields[ifield]);
+    nissa_free(fields);
+  }
+  
+  //form the path of the current
+  std::string path(int iquark)
+  {
+    return combine("%s/%s_current_%d_hits",conf_path,qprop_name_list[iquark].c_str(),iquark);
+  }
+  
+  //read all currents
+  void load_all_or_reset(int nhits_expected)
+  {
+    for(int iquark=0;iquark<(int)qprop_name_list.size();iquark++)
+      {
+	spin1field *c=fields[ifield_idx(iquark,J)];
+	if(nhits_expected) read_real_vector(c,path(nhits_expected),"ildg-binary-data");
+	else vector_reset(c);
+      }
+  }
+  
+  //write all currents
+  void store_all(int nhits_expected)
+  {
+    for(int iquark=0;iquark<(int)qprop_name_list.size();iquark++)
+      write_real_vector(path(nhits_expected),fields[ifield_idx(iquark,J)],64,"ildg-binary-data");
+  }
+}
+
+/////////////////////////////////////////////////////////////////
+
 //gets the number of hits done
 void get_hits_done_so_far()
 {
-  if(file_exists(hits_done_so_far_path)) crash("Unable to read");
-  hits_done_so_far=0;
+  hits_done_so_far=
+    file_exists(hits_done_so_far_path)
+    ?
+    master_fscan_int(hits_done_so_far_path)
+    :
+    0;
+}
+
+//write the number of hits done so far
+void write_hits_done_so_far()
+{
+  FILE *fout=open_file(hits_done_so_far_path,"w");
+  master_fprintf(fout,"%d\n",hits_done_so_far);
+  close_file(fout);
 }
 
 //skip the first hits
@@ -25,9 +98,9 @@ void skip_hits_done_so_far()
 }
 
 //give a name to the propagator
-std::string get_prop_name(int iquark,int r,insertion_t ins)
+std::string get_prop_name(int iquark,insertion_t ins)
 {
-  return combine("Q%d_R%d_%s",iquark,r,ins_name[ins]);
+  return combine("Q%d_%s",iquark,ins_name[ins]);
 }
 
 //compute the matrix element of the conserved current between two propagators
@@ -211,14 +284,14 @@ void init_simulation(int narg,char **arg)
       double charge=0.0;
       
       //Put the propagator in the list
-      std::string prop_name=get_prop_name(iquark,r,PROP);
+      std::string prop_name=get_prop_name(iquark,PROP);
       qprop_name_list.push_back(prop_name);
       Q[prop_name].init_as_propagator(PROP,{{source_name,{1.0,0.0}}},ALL_TIMES,residue,kappa,mass,r,charge,theta,store_prop);
       
       //Add insertion of S, P and T
       for(auto ins : {SCALAR,PSEUDO,TADPOLE})
 	{
-	  std::string prop_name_ins=get_prop_name(iquark,r,ins);
+	  std::string prop_name_ins=get_prop_name(iquark,ins);
 	  qprop_name_list.push_back(prop_name_ins);
 	  Q[prop_name_ins].init_as_propagator(ins,{{prop_name,{1.0,0.0}}},ALL_TIMES,residue,kappa,mass,r,charge,theta,store_prop);
 	  
@@ -269,6 +342,19 @@ void close()
     }
 }
 
+void compute_disco_PST(int ihit)
+{
+  //compute "2pts"
+  vector_reset(mes2pts_contr);
+  compute_mes2pts_contr();
+  
+  //print correlators
+  int force_append(ihit>0);
+  int skip_inner_header=true;
+  std::string hit_header=combine("\n # hit %d\n\n",ihit);
+  print_mes2pts_contr(1.0,force_append,skip_inner_header,hit_header);
+}
+
 void in_main(int narg,char **arg)
 {
   //Basic mpi initialization
@@ -284,24 +370,18 @@ void in_main(int narg,char **arg)
       //setup the conf and generate the source
       start_new_conf();
       
+      //start at hits_done_so_far
       skip_hits_done_so_far();
+      curr::load_all_or_reset(hits_done_so_far);
       
       for(int ihit=hits_done_so_far;ihit<nhits;ihit++)
 	{
 	  start_hit(ihit);
 	  generate_propagators(ihit);
-	  
-	  //compute "2pts"
-	  vector_reset(mes2pts_contr);
-	  compute_mes2pts_contr();
-	  
-	  //print correlators
-	  int force_append(ihit>0);
-	  int skip_inner_header=true;
-	  std::string hit_header=combine("\n # hit %d\n\n",ihit);
-	  print_mes2pts_contr(1.0,force_append,skip_inner_header,hit_header);
+	  compute_disco_PST(ihit);
 	}
       
+      write_hits_done_so_far();
       mark_finished();
     }
   
