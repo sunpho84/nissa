@@ -363,23 +363,45 @@ void compute_disco_PST(int ihit)
   print_mes2pts_contr(1.0,force_append,skip_inner_header,hit_header);
 }
 
+
+
 //compute j_{f,mu}^i
-void compute_all_quark_currents()
+THREADABLE_FUNCTION_0ARG(compute_all_quark_currents)
 {
+  GET_THREAD_ID();
+  
+  complex *E=nissa_malloc("E",loc_vol,complex);
+  
   for(int iquark=0;iquark<nquarks;iquark++)
     {
-      using namespace curr;
-      
       //select name and field
       std::string quark_name=get_prop_name(iquark,PROP);
-      spin1field *c=fields[ifield_idx(iquark,j)];
-      spin1field *C=fields[ifield_idx(iquark,J)];
+      spin1field *j=curr::fields[ifield_idx(iquark,curr::j)];
+      spin1field *J=curr::fields[ifield_idx(iquark,curr::J)];
+      spin1field *xi=curr::fields[ifield_idx(iquark,curr::xi)];
       
       //compute and summ
-      local_or_conserved_vector_current_mel(c,base_gamma[0],source_name,quark_name,false);
-      double_vector_summassign((double*)C,(double*)c,loc_vol*sizeof(spin1field)/sizeof(double));
+      local_or_conserved_vector_current_mel(j,base_gamma[0],source_name,quark_name,false);
+      double_vector_summassign((double*)J,(double*)j,loc_vol*sizeof(spin1field)/sizeof(double));
+      
+      //convolve
+      multiply_by_tlSym_gauge_propagator(xi,j,photon);
+      
+      //take the scalar propduct
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	{
+	  complex_put_to_zero(E[ivol]);
+	  for(int mu=0;mu<NDIM;mu++) complex_summ_the_prod(E[ivol],j[ivol][mu],xi[ivol][mu]);
+	}
+      THREAD_BARRIER();
+      
+      //collapse
+      complex glb_E;
+      complex_vector_glb_collapse(glb_E,E,loc_vol);
+      master_printf("iquark %d, E=(%lg,%lg)\n",iquark,glb_E[RE],glb_E[IM]);
     }
 }
+THREADABLE_FUNCTION_END
 
 void in_main(int narg,char **arg)
 {

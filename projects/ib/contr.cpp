@@ -501,11 +501,14 @@ namespace nissa
 	 sides.find(handcuffs_map[ihand].right)==sides.end())
 	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
       else
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  for(int mu=0;mu<NDIM;mu++)
-	    complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
-				  sides[handcuffs_map[ihand].left][ivol][mu],
-				  sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
+	{
+	  crash("check race");
+	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    for(int mu=0;mu<NDIM;mu++)
+	      complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
+				    sides[handcuffs_map[ihand].left][ivol][mu],
+				    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
+	}
     
     //free
     for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)
