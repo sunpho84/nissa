@@ -7,6 +7,7 @@
 
 using namespace nissa;
 
+int nquarks;
 int hits_done_so_far;
 std::string source_name="source";
 
@@ -31,7 +32,7 @@ namespace curr
   int ntot_fields;
   void allocate_all_fields()
   {
-    ntot_fields=ifield_idx(qprop_name_list.size()-1,nfields_type-1)+1;
+    ntot_fields=ifield_idx(nquarks-1,nfields_type-1)+1;
     
     fields=nissa_malloc("fields",ntot_fields,spin1field*);
     for(int ifield=0;ifield<ntot_fields;ifield++) fields[ifield]=nissa_malloc("field",loc_vol+bord_vol, spin1field);
@@ -47,13 +48,13 @@ namespace curr
   //form the path of the current
   std::string path(int iquark,int nhits)
   {
-    return combine("%s/%s_current_%d_hits",outfolder,qprop_name_list[iquark].c_str(),nhits);
+    return combine("%s/current_%d_hits_quark_%d",outfolder,nhits,iquark);
   }
   
   //read all currents
   void load_all_or_reset()
   {
-    for(int iquark=0;iquark<(int)qprop_name_list.size();iquark++)
+    for(int iquark=0;iquark<nquarks;iquark++)
       {
 	spin1field *c=fields[ifield_idx(iquark,J)];
 	if(hits_done_so_far) read_real_vector(c,path(iquark,hits_done_so_far),"ildg-binary-data");
@@ -64,7 +65,7 @@ namespace curr
   //write all currents
   void store_all()
   {
-    for(int iquark=0;iquark<(int)qprop_name_list.size();iquark++)
+    for(int iquark=0;iquark<nquarks;iquark++)
       write_real_vector(path(iquark,hits_done_so_far),fields[ifield_idx(iquark,J)],64,"ildg-binary-data");
   }
 }
@@ -255,7 +256,6 @@ void init_simulation(int narg,char **arg)
   if(twisted_run) read_str_double("Kappa",&kappa);
   
   //Read the number of quarks
-  int nquarks;
   read_str_int("NQuarks",&nquarks);
   
   //Placeholder for mass, kappa and resiude
@@ -366,13 +366,18 @@ void compute_disco_PST(int ihit)
 //compute j_{f,mu}^i
 void compute_all_quark_currents()
 {
-  for(int iquark=0;iquark<(int)qprop_name_list.size();iquark++)
+  for(int iquark=0;iquark<nquarks;iquark++)
     {
       using namespace curr;
       
-      std::string quark_name=qprop_name_list[iquark];
+      //select name and field
+      std::string quark_name=get_prop_name(iquark,PROP);
       spin1field *c=fields[ifield_idx(iquark,j)];
+      spin1field *C=fields[ifield_idx(iquark,J)];
+      
+      //compute and summ
       local_or_conserved_vector_current_mel(c,base_gamma[0],source_name,quark_name,false);
+      double_vector_summassign((double*)C,(double*)c,loc_vol*sizeof(spin1field)/sizeof(double));
     }
 }
 
