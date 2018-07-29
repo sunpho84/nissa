@@ -29,7 +29,7 @@ namespace nissa
     
     //Close the file
     ILDG_File_close(file);
-
+    
   }
   void write_ildg_gauge_conf(std::string path,quad_su3 *in,size_t prec,ILDG_message *mess=NULL);
   void write_spincolor(std::string path,spincolor *spinor,size_t prec);
