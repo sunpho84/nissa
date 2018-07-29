@@ -141,10 +141,10 @@ namespace nissa
       {
 	if(outfile=="-") fout=stdout;
 	else
-	{
-	  fout=fopen(outfile.c_str(),mode);
-	  if(fout==NULL) crash("Couldn't open file: \"%s\" with mode: \"%s\"",outfile.c_str(),mode);
-	}
+	  {
+	    fout=fopen(outfile.c_str(),mode);
+	    if(fout==NULL) crash("Couldn't open file: \"%s\" with mode: \"%s\"",outfile.c_str(),mode);
+	  }
       }
     
     return fout;

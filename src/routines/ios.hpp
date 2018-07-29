@@ -5,8 +5,14 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <vector>
+
+
 #include "new_types/complex.hpp"
 #include "operations/contract/mesons_2pts.hpp"
+
+#ifdef USE_THREADS
+ #include <omp.h>
+#endif
 
 #ifndef EXTERN_IOS
  #define EXTERN_IOS extern
@@ -40,6 +46,8 @@
 
 namespace nissa
 {
+  extern int rank;
+  
   EXTERN_IOS int verb_call;
   EXTERN_IOS int verbosity_lv;
   
@@ -71,6 +79,41 @@ namespace nissa
 	gsi[i]=list[i].si;
       }
     print_contractions_to_file(fout,ncontr,gso,gsi,contr,twall,tag,norm,skip_header);
+  }
+  
+  //read from a file, opened only on master rank
+  template <class T> T master_fscan(FILE *stream,const char *tag)
+  {
+    int thread_id=
+#ifdef USE_THREADS
+      omp_get_thread_num()
+#else
+      0
+#endif
+      ;
+    
+    //scan in a temporary variable
+    T tmp=0;
+    if(rank==0 and thread_id==0)
+      if(fscanf(stream,tag,&tmp)!=1)
+	crash("Unable to read!");
+    
+    //broadcast
+    return broadcast(tmp);
+  }
+  
+  //read using a path
+  template <class T> T master_fscan(std::string path,const char *tag)
+  {
+    FILE *stream=open_file(path,"r");
+    master_fscan<T>(stream,tag);
+    close_file(stream);
+  }
+  
+  //read an integer with either a path or a file
+  template <class T> int master_fscan_int(T par)
+  {
+    return master_fscan<int>(par,"%d");
   }
 }
 
