@@ -430,6 +430,19 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //compute local or conserved vector current matrix element
+  void local_or_conserved_vector_current_mel(spin1field *si,dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert)
+  {
+    if(loc_hadr_curr) vector_current_mel(si,&g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
+    else
+      {
+	double plain_bc[NDIM];
+	plain_bc[0]=temporal_bc;
+	for(int mu=1;mu<NDIM;mu++) plain_bc[mu]=0.0;
+	conserved_vector_current_mel(get_updated_conf(Q[prop_name_fw].charge,plain_bc,glb_conf),si,&g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
+      }
+  }
+  
   //                                                          handcuffs
   
   THREADABLE_FUNCTION_0ARG(compute_handcuffs_contr)
@@ -461,14 +474,7 @@ namespace nissa
 	dirac_prod(&g,base_gamma+5,base_gamma+ig);
 	
 	//compute the matrix element
-	if(loc_hadr_curr) vector_current_mel(si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str(),revert);
-	else
-	  {
-	    double plain_bc[NDIM];
-	    plain_bc[0]=temporal_bc;
-	    for(int mu=1;mu<NDIM;mu++) plain_bc[mu]=0.0;
-	    conserved_vector_current_mel(get_updated_conf(Q[h.fw].charge,plain_bc,glb_conf),si,&g,Q[h.fw].r,h.bw.c_str(),h.fw.c_str(),revert);
-	  }
+	local_or_conserved_vector_current_mel(si,g,h.bw,h.fw,revert);
 	
 	//if(h.store) store_spin1field(combine("%s/handcuff_side_%s",outfolder,h.name.c_str()),si);
       }
