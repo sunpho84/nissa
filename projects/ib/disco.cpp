@@ -8,6 +8,7 @@
 using namespace nissa;
 
 int hits_done_so_far;
+std::string source_name="source";
 
 /////////////////////////////////////////////////////////////////
 
@@ -233,7 +234,6 @@ void init_simulation(int narg,char **arg)
   read_nhits();
   
   //put the source in the list
-  std::string source_name="source";
   int store_source=false;
   ori_source_name_list.push_back(source_name);
   Q[source_name].init_as_source(noise_type,ALL_TIMES,0,store_source);
@@ -335,7 +335,7 @@ void close()
   print_statistics();
   
   Q.clear();
-
+  
   curr::free_all_fields();
   free_loop_source();
   free_mes2pts_contr();
@@ -349,6 +349,7 @@ void close()
     }
 }
 
+//compute pseudoscalar, scalar and tadpoles (EU1, EU2, EU4)
 void compute_disco_PST(int ihit)
 {
   //compute "2pts"
@@ -360,6 +361,19 @@ void compute_disco_PST(int ihit)
   int skip_inner_header=true;
   std::string hit_header=combine("\n # hit %d\n\n",ihit);
   print_mes2pts_contr(1.0,force_append,skip_inner_header,hit_header);
+}
+
+//compute j_{f,mu}^i
+void compute_all_quark_currents()
+{
+  for(int iquark=0;iquark<(int)qprop_name_list.size();iquark++)
+    {
+      using namespace curr;
+      
+      std::string quark_name=qprop_name_list[iquark];
+      spin1field *c=fields[ifield_idx(iquark,j)];
+      local_or_conserved_vector_current_mel(c,base_gamma[0],source_name,quark_name,false);
+    }
 }
 
 void in_main(int narg,char **arg)
@@ -386,6 +400,8 @@ void in_main(int narg,char **arg)
 	  start_hit(hits_done_so_far);
 	  generate_propagators(hits_done_so_far);
 	  compute_disco_PST(hits_done_so_far);
+	  
+	  compute_all_quark_currents();
 	  
 	  hits_done_so_far++;
 	}
