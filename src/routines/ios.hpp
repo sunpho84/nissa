@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <vector>
-
+#include <mpi.h>
 
 #include "new_types/complex.hpp"
 #include "operations/contract/mesons_2pts.hpp"
@@ -92,22 +92,25 @@ namespace nissa
 #endif
       ;
     
-    //scan in a temporary variable
-    T tmp=0;
+    //scan
+    T out=0;
     if(rank==0 and thread_id==0)
-      if(fscanf(stream,tag,&tmp)!=1)
+      if(fscanf(stream,tag,&out)!=1)
 	crash("Unable to read!");
     
     //broadcast
-    return broadcast(tmp);
+    MPI_Bcast(&out,sizeof(T),MPI_CHAR,0,MPI_COMM_WORLD);
+    
+    return out;
   }
   
   //read using a path
   template <class T> T master_fscan(std::string path,const char *tag)
   {
     FILE *stream=open_file(path,"r");
-    master_fscan<T>(stream,tag);
+    T out=master_fscan<T>(stream,tag);
     close_file(stream);
+    return out;
   }
   
   //read an integer with either a path or a file
