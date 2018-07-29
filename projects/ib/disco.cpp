@@ -8,7 +8,6 @@
 using namespace nissa;
 
 int hits_done_so_far;
-const char hits_done_so_far_path[]="hits_done_so_far";
 
 /////////////////////////////////////////////////////////////////
 
@@ -47,37 +46,43 @@ namespace curr
   //form the path of the current
   std::string path(int iquark)
   {
-    return combine("%s/%s_current_%d_hits",conf_path,qprop_name_list[iquark].c_str(),iquark);
+    return combine("%s/%s_current_%d_hits",outfolder,qprop_name_list[iquark].c_str(),iquark);
   }
   
   //read all currents
-  void load_all_or_reset(int nhits_expected)
+  void load_all_or_reset()
   {
     for(int iquark=0;iquark<(int)qprop_name_list.size();iquark++)
       {
 	spin1field *c=fields[ifield_idx(iquark,J)];
-	if(nhits_expected) read_real_vector(c,path(nhits_expected),"ildg-binary-data");
+	if(hits_done_so_far) read_real_vector(c,path(hits_done_so_far),"ildg-binary-data");
 	else vector_reset(c);
       }
   }
   
   //write all currents
-  void store_all(int nhits_expected)
+  void store_all()
   {
     for(int iquark=0;iquark<(int)qprop_name_list.size();iquark++)
-      write_real_vector(path(nhits_expected),fields[ifield_idx(iquark,J)],64,"ildg-binary-data");
+      write_real_vector(path(hits_done_so_far),fields[ifield_idx(iquark,J)],64,"ildg-binary-data");
   }
 }
 
 /////////////////////////////////////////////////////////////////
 
+//path of the number of hits
+std::string hits_done_so_far_path()
+{
+  return combine("%s/hits_done_so_far",outfolder);
+}
+
 //gets the number of hits done
 void get_hits_done_so_far()
 {
   hits_done_so_far=
-    file_exists(hits_done_so_far_path)
+    file_exists(hits_done_so_far_path())
     ?
-    master_fscan_int(hits_done_so_far_path)
+    master_fscan_int(hits_done_so_far_path())
     :
     0;
 }
@@ -85,7 +90,7 @@ void get_hits_done_so_far()
 //write the number of hits done so far
 void write_hits_done_so_far()
 {
-  FILE *fout=open_file(hits_done_so_far_path,"w");
+  FILE *fout=open_file(hits_done_so_far_path(),"w");
   master_fprintf(fout,"%d\n",hits_done_so_far);
   close_file(fout);
 }
@@ -317,6 +322,7 @@ void init_simulation(int narg,char **arg)
   /////////////////////////////////////////////////////////////////
   
   allocate_loop_source();
+  curr::allocate_all_fields();
   allocate_mes2pts_contr();
   glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -329,7 +335,8 @@ void close()
   print_statistics();
   
   Q.clear();
-  
+
+  curr::free_all_fields();
   free_loop_source();
   free_mes2pts_contr();
   nissa_free(glb_conf);
@@ -372,15 +379,18 @@ void in_main(int narg,char **arg)
       
       //start at hits_done_so_far
       skip_hits_done_so_far();
-      curr::load_all_or_reset(hits_done_so_far);
+      curr::load_all_or_reset();
       
-      for(int ihit=hits_done_so_far;ihit<nhits;ihit++)
+      while(hits_done_so_far<nhits)
 	{
-	  start_hit(ihit);
-	  generate_propagators(ihit);
-	  compute_disco_PST(ihit);
+	  start_hit(hits_done_so_far);
+	  generate_propagators(hits_done_so_far);
+	  compute_disco_PST(hits_done_so_far);
+	  
+	  hits_done_so_far++;
 	}
       
+      curr::store_all();
       write_hits_done_so_far();
       mark_finished();
     }
