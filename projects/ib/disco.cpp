@@ -378,7 +378,8 @@ THREADABLE_FUNCTION_0ARG(compute_all_quark_currents)
       spin1field *J=curr::fields[ifield_idx(iquark,curr::J)];
       
       //compute and summ
-      local_or_conserved_vector_current_mel(j,base_gamma[0],source_name,quark_name,false);
+      int revert=false;
+      local_or_conserved_vector_current_mel(j,base_gamma[0],source_name,quark_name,revert);
       double_vector_summassign((double*)J,(double*)j,loc_vol*sizeof(spin1field)/sizeof(double));
     }
 }
