@@ -330,6 +330,8 @@ namespace nissa
   {
     GET_THREAD_ID();
     
+    vector_reset(si);
+    
     //compute the gammas
     dirac_matr GAMMA[5],temp_gamma;
     if(twisted_run>0)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[r]);

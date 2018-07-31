@@ -10,6 +10,7 @@ using namespace nissa;
 int nquarks;
 int hits_done_so_far;
 std::string source_name="source";
+complex *E_f1_f2;
 
 /////////////////////////////////////////////////////////////////
 
@@ -326,6 +327,7 @@ void init_simulation(int narg,char **arg)
   allocate_mes2pts_contr();
   glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  E_f1_f2=nissa_malloc("Eff",loc_vol,complex);
 }
 
 void close()
@@ -341,6 +343,8 @@ void close()
   free_mes2pts_contr();
   nissa_free(glb_conf);
   nissa_free(inner_conf);
+  
+  nissa_free(E_f1_f2);
   
   if(clover_run)
     {
@@ -363,14 +367,10 @@ void compute_disco_PST(int ihit)
   print_mes2pts_contr(1.0,force_append,skip_inner_header,hit_header);
 }
 
-
-
 //compute j_{f,mu}^i
 THREADABLE_FUNCTION_0ARG(compute_all_quark_currents)
 {
   GET_THREAD_ID();
-  
-  complex *E=nissa_malloc("E",loc_vol,complex);
   
   for(int iquark=0;iquark<nquarks;iquark++)
     {
@@ -386,19 +386,26 @@ THREADABLE_FUNCTION_0ARG(compute_all_quark_currents)
       
       //convolve
       multiply_by_tlSym_gauge_propagator(xi,j,photon);
-      
-      //take the scalar propduct
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	{
-	  complex_put_to_zero(E[ivol]);
-	  for(int mu=0;mu<NDIM;mu++) complex_summ_the_prod(E[ivol],j[ivol][mu],xi[ivol][mu]);
-	}
-      THREAD_BARRIER();
-      
-      //collapse
-      complex glb_E;
-      complex_vector_glb_collapse(glb_E,E,loc_vol);
-      master_printf("iquark %d, E=(%lg,%lg)\n",iquark,glb_E[RE],glb_E[IM]);
+    }
+  
+  for(int iquark=0;iquark<nquarks;iquark++)
+    for(int jquark=iquark;jquark<nquarks;jquark++)
+      {
+	spin1field *j=curr::fields[ifield_idx(iquark,curr::j)];
+	spin1field *xi=curr::fields[ifield_idx(jquark,curr::xi)];
+	
+      //take the scalar propduct with j to get E_f,f
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  {
+	    complex_put_to_zero(E_f1_f2[ivol]);
+	    for(int mu=0;mu<NDIM;mu++) complex_summ_the_prod(E_f1_f2[ivol],j[ivol][mu],xi[ivol][mu]);
+	  }
+	THREAD_BARRIER();
+	
+	//collapse
+	complex glb_E_f1_f2;
+	complex_vector_glb_collapse(glb_E_f1_f2,E_f1_f2,loc_vol);
+	master_printf("E_%d_%d=( %lg , %lg )\n",iquark,jquark,glb_E_f1_f2[RE],glb_E_f1_f2[IM]);
     }
 }
 THREADABLE_FUNCTION_END
