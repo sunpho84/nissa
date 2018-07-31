@@ -400,6 +400,8 @@ namespace nissa
   {
     GET_THREAD_ID();
     
+    vector_reset(si);
+    
     dirac_matr GAMMA[NDIM];
     for(int mu=0;mu<NDIM;mu++)
       if(revert) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
