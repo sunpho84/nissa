@@ -307,7 +307,7 @@ void init_simulation(int narg,char **arg)
   
   //set g5 on the source if not diluted
   int id_so=(nso_spi==NDIRAC ? 0 : 5);
-  mes_gamma_list.push_back(idirac_pair_t(id_so,0));
+  mes_gamma_list.push_back(idirac_pair_t(0,id_so));
   
   read_photon_pars();
   
