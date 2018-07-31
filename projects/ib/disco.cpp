@@ -370,35 +370,44 @@ void compute_disco_PST(int ihit)
 //compute j_{f,mu}^i
 THREADABLE_FUNCTION_0ARG(compute_all_quark_currents)
 {
-  GET_THREAD_ID();
-  
   for(int iquark=0;iquark<nquarks;iquark++)
     {
       //select name and field
       std::string quark_name=get_prop_name(iquark,PROP);
       spin1field *j=curr::fields[ifield_idx(iquark,curr::j)];
       spin1field *J=curr::fields[ifield_idx(iquark,curr::J)];
-      spin1field *xi=curr::fields[ifield_idx(iquark,curr::xi)];
       
       //compute and summ
       local_or_conserved_vector_current_mel(j,base_gamma[0],source_name,quark_name,false);
       double_vector_summassign((double*)J,(double*)j,loc_vol*sizeof(spin1field)/sizeof(double));
+    }
+}
+THREADABLE_FUNCTION_END
+
+//take the scalar propduct of j or J with xi to get E_f,f
+THREADABLE_FUNCTION_1ARG(compute_all_E_f1_f2, curr::field_t,ic)
+{
+  GET_THREAD_ID();
+  
+  for(int iquark=0;iquark<nquarks;iquark++)
+    {
+      spin1field *c=curr::fields[ifield_idx(iquark,ic)];
+      spin1field *xi=curr::fields[ifield_idx(iquark,curr::xi)];
       
       //convolve
-      multiply_by_tlSym_gauge_propagator(xi,j,photon);
+      multiply_by_tlSym_gauge_propagator(xi,c,photon);
     }
   
   for(int iquark=0;iquark<nquarks;iquark++)
     for(int jquark=iquark;jquark<nquarks;jquark++)
       {
-	spin1field *j=curr::fields[ifield_idx(iquark,curr::j)];
+	spin1field *c=curr::fields[ifield_idx(iquark,ic)];
 	spin1field *xi=curr::fields[ifield_idx(jquark,curr::xi)];
 	
-      //take the scalar propduct with j to get E_f,f
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
 	    complex_put_to_zero(E_f1_f2[ivol]);
-	    for(int mu=0;mu<NDIM;mu++) complex_summ_the_prod(E_f1_f2[ivol],j[ivol][mu],xi[ivol][mu]);
+	    for(int mu=0;mu<NDIM;mu++) complex_summ_the_prod(E_f1_f2[ivol],c[ivol][mu],xi[ivol][mu]);
 	  }
 	THREAD_BARRIER();
 	
@@ -436,9 +445,13 @@ void in_main(int narg,char **arg)
 	  compute_disco_PST(hits_done_so_far);
 	  
 	  compute_all_quark_currents();
+	  compute_all_E_f1_f2(curr::j);
 	  
 	  hits_done_so_far++;
 	}
+      
+      //compute E with averages current, to get EU5 and EU6
+      compute_all_E_f1_f2(curr::J);
       
       curr::store_all();
       write_hits_done_so_far();
