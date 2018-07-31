@@ -441,7 +441,9 @@ namespace nissa
 	double plain_bc[NDIM];
 	plain_bc[0]=temporal_bc;
 	for(int mu=1;mu<NDIM;mu++) plain_bc[mu]=0.0;
-	conserved_vector_current_mel(get_updated_conf(Q[prop_name_fw].charge,plain_bc,glb_conf),si,&g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
+	quad_su3 *conf=get_updated_conf(Q[prop_name_fw].charge,plain_bc,glb_conf);
+	int r=Q[prop_name_fw].r;
+	conserved_vector_current_mel(conf,si,&g,r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
       }
   }
   
