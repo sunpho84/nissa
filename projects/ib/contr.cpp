@@ -353,10 +353,10 @@ namespace nissa
     if(revert) dirac_prod(&g,ext_g,base_gamma+5);
     else       g=*ext_g;
     
-    for(int iso_spi_bw=0;iso_spi_bw<nso_spi;iso_spi_bw++)
+    for(int iso_spi_fw=0;iso_spi_fw<nso_spi;iso_spi_fw++)
       for(int iso_col=0;iso_col<nso_col;iso_col++)
 	{
-	  int iso_spi_fw=g.pos[iso_spi_bw];
+	  int iso_spi_bw=g.pos[iso_spi_fw];
 	  int ifw=so_sp_col_ind(iso_spi_fw,iso_col);
 	  int ibw=so_sp_col_ind(iso_spi_bw,iso_col);
 	  
