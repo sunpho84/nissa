@@ -118,6 +118,12 @@ namespace nissa
   {
     return master_fscan<int>(par,"%d");
   }
+  
+  //read a double with either a path or a file
+  template <class T> int master_fscan_double(T par)
+  {
+    return master_fscan<int>(par,"%lg");
+  }
 }
 
 #undef EXTERN_IOS
