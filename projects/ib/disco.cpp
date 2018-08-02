@@ -314,8 +314,6 @@ void init_simulation(int narg,char **arg)
   read_Landau_gauge_fix();
   read_store_conf();
   
-  read_loc_hadr_curr();
-  
   read_ngauge_conf();
   
   /////////////////////////////////////////////////////////////////
