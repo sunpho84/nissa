@@ -118,7 +118,7 @@ namespace hits
 	      complex &c=f1_f2[idx(f1,f2,ihit,single_or_all)];
 	      for(int RI=0;RI<2;RI++)
 		if(store_or_load==STORE) master_fprintf(file,"%.16lg%s",c[RI],RI?"\n":" ");
-		else  		         master_fscan_double(file);
+		else  		         c[RI]=master_fscan_double(file);
 	    }
     
     close_file(file);
