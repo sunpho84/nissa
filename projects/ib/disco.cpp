@@ -228,8 +228,8 @@ void init_simulation(int narg,char **arg)
   rnd_t noise_type=convert_str_to_rnd_t(str_noise_type);
   
   //Everything diluted so far
-  set_diluted_spin(1);
-  set_diluted_color(1);
+  set_diluted_spin(0);
+  set_diluted_color(0);
   set_diluted_space(1);
   
   //Number of hits
@@ -305,9 +305,7 @@ void init_simulation(int narg,char **arg)
 	}
     }
   
-  //set g5 on the source if not diluted
-  int id_so=(nso_spi==NDIRAC ? 0 : 5);
-  mes_gamma_list.push_back(idirac_pair_t(0,id_so));
+  mes_gamma_list.push_back(idirac_pair_t(5,5));
   
   read_photon_pars();
   
