@@ -458,9 +458,9 @@ THREADABLE_FUNCTION_0ARG(compute_all_E_f1_f2)
       {
 	complex EU5;
 	complex_copy(EU5,E::f1_f2_hits[E::idx(iquark,jquark,hits_done_so_far,1)]);
-	for(int ih=0;ih<hits_done_so_far;ih++)
+	for(int ih=0;ih<=hits_done_so_far;ih++)
 	  complex_subtassign(EU5,E::f1_f2_hits[E::idx(iquark,jquark,ih,0)]);
-	complex_prodassign_double(EU5, 1.0/((hits_done_so_far-1)*hits_done_so_far));
+	complex_prodassign_double(EU5, 1.0/((hits_done_so_far+1)*hits_done_so_far));
 	master_printf("EU5: %lg %lg\n",EU5[RE],EU5[IM]);
       }
 }
