@@ -140,12 +140,17 @@ namespace hits
 
 /////////////////////////////////////////////////////////////////
 
-//Compute EU5
-void compute_EU5()
+//Compute EU5 and EU6
+void compute_EU5_EU6()
 {
+  //tag to access files and data
+  enum{iEU5,iEU6};
+  int eu_tag[2]={5,6};
+  
   //open the file
-  std::string path=combine("%s/EU5",outfolder);
-  FILE *fout=open_file(path,"w");
+  FILE *fout_EU[2];
+  for(int ieu=0;ieu<2;ieu++)
+    fout_EU[ieu]=open_file(combine("%s/EU%d",outfolder,eu_tag[ieu]),"w");
   
   //store the summ
   complex E_f1_f2[nquarks*nquarks];
@@ -161,22 +166,38 @@ void compute_EU5()
 	    complex_summassign(E_f1_f2[i],hits::f1_f2[hits::idx(iquark,jquark,ih,hits::SINGLE)]);
 	    
 	    //compute the difference of J*Xi with E
-	    complex EU5;
-	    complex_subt(EU5,hits::f1_f2[hits::idx(iquark,jquark,ih,hits::ALL)],E_f1_f2[i]);
+	    complex H_f1_f2;
+	    complex &JXi_f1_f2=hits::f1_f2[hits::idx(iquark,jquark,ih,hits::ALL)];
+	    complex_subt(H_f1_f2,JXi_f1_f2,E_f1_f2[i]);
 	    
 	    //normalize: aovoid dividing by 0, replacing 0 with 1
 	    int norm=(ih+1)*std::max(1,ih);
-	    complex_prodassign_double(EU5,1.0/norm);
+	    complex_prodassign_double(H_f1_f2,1.0/norm);
 	    
 	    //print
-	    master_fprintf(fout,"%.16lg %.16lg\t",EU5[RE],EU5[IM]);
+	    master_fprintf(fout_EU[iEU5],"%.16lg %.16lg\t",H_f1_f2[RE],H_f1_f2[IM]);
+	    
+	    //compute EU6
+	    if(iquark==jquark)
+	      {
+		complex F_f;
+		complex_prod_double(F_f,E_f1_f2[jquark+nquarks*iquark],1.0/sqr(std::max(1,ih)));
+		complex_subtassign(F_f,H_f1_f2);
+		
+		//print
+		master_fprintf(fout_EU[iEU6],"%.16lg %.16lg\t",F_f[RE],F_f[IM]);
+	      }
+	    
 	  }
       
       //send to new line
-      master_fprintf(fout,"\n");
+      for(int ieu=0;ieu<2;ieu++)
+	master_fprintf(fout_EU[ieu],"\n");
     }
   
-  close_file(fout);
+  //close both
+  for(int ieu=0;ieu<2;ieu++)
+    close_file(fout_EU[ieu]);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -569,7 +590,7 @@ void in_main(int narg,char **arg)
       curr::store_all();
       hits::store(nhits_done_so_far);
       write_nhits_done_so_far();
-      compute_EU5();
+      compute_EU5_EU6();
       
       mark_finished();
     }
