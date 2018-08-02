@@ -8,7 +8,7 @@
 using namespace nissa;
 
 int nquarks;
-int hits_done_so_far;
+int nhits_done_so_far;
 std::string source_name="source";
 
 /////////////////////////////////////////////////////////////////
@@ -57,7 +57,7 @@ namespace curr
     for(int iquark=0;iquark<nquarks;iquark++)
       {
 	spin1field *c=fields[ifield_idx(iquark,J)];
-	if(hits_done_so_far) read_real_vector(c,path(iquark,hits_done_so_far),"ildg-binary-data");
+	if(nhits_done_so_far) read_real_vector(c,path(iquark,nhits_done_so_far),"ildg-binary-data");
 	else vector_reset(c);
       }
   }
@@ -66,71 +66,109 @@ namespace curr
   void store_all()
   {
     for(int iquark=0;iquark<nquarks;iquark++)
-      write_real_vector(path(iquark,hits_done_so_far),fields[ifield_idx(iquark,J)],64,"ildg-binary-data");
+      write_real_vector(path(iquark,nhits_done_so_far),fields[ifield_idx(iquark,J)],64,"ildg-binary-data");
   }
 }
 
 /////////////////////////////////////////////////////////////////
 
-namespace E
+namespace hits
 {
   complex *field;
-  complex *f1_f2_hits;
+  complex *f1_f2;
   int nsingle_or_all=2;
   
   //index to access the correct combo
-  int idx(int f1,int f2,int ihit,int all_single)
+  int idx(int f1,int f2,int ihit,int single_or_all)
   {
-    return f1+nquarks*(f2+nquarks*(ihit+nhits*all_single));
+    return f1+nquarks*(f2+nquarks*(ihit+nhits*single_or_all));
   }
   
   //allocate all fields
   void allocate()
   {
     field=nissa_malloc("Eff",loc_vol,complex);
-    f1_f2_hits=nissa_malloc("f1_f2_hits",idx(nquarks-1,nquarks-1,nhits-1,nsingle_or_all-1)+1,complex);
+    f1_f2=nissa_malloc("f1_f2",idx(nquarks-1,nquarks-1,nhits-1,nsingle_or_all-1)+1,complex);
   }
   
   //free all fields
   void free()
   {
     nissa_free(field);
-    nissa_free(f1_f2_hits);
+    nissa_free(f1_f2);
+  }
+  
+  //forms the path to all hits
+  std::string path()
+  {
+    return combine("%s/f1_f2",outfolder);
+  }
+  
+  //store or load the hits
+  void store_or_load(int nh,int store_or_load)
+  {
+    FILE *file=open_file(path(),store_or_load?"r":"w");
+    for(int f1=0;f1<nquarks;f1++)
+      for(int f2=0;f2<nquarks;f2++)
+	for(int ihit=0;ihit<nh;ihit++)
+	  for(int single_or_all=0;single_or_all<nsingle_or_all;single_or_all++)
+	    {
+	      complex &c=f1_f2[idx(f1,f2,ihit,single_or_all)];
+	      for(int RI=0;RI<2;RI++)
+		if(store_or_load==0) master_fprintf(file,"%.16lg%s",c[RI],RI?"\n":" ");
+		else  		     master_fscan_double(file);
+	    }
+    
+    close_file(file);
+  }
+  
+  //store the hits
+  void store(int nh)
+  {
+    store_or_load(nh,0);
+  }
+  
+  //load the hits if non zero
+  void load(int nh)
+  {
+    if(nh)
+      store_or_load(nh,1);
   }
 }
+
 
 /////////////////////////////////////////////////////////////////
 
 //path of the number of hits
-std::string hits_done_so_far_path()
+std::string nhits_done_so_far_path()
 {
-  return combine("%s/hits_done_so_far",outfolder);
+  return combine("%s/nhits_done_so_far",outfolder);
 }
 
 //gets the number of hits done
-void get_hits_done_so_far()
+void get_nhits_done_so_far()
 {
-  hits_done_so_far=
-    file_exists(hits_done_so_far_path())
+  nhits_done_so_far=
+    file_exists(nhits_done_so_far_path())
     ?
-    master_fscan_int(hits_done_so_far_path())
+    master_fscan_int(nhits_done_so_far_path())
     :
     0;
 }
 
 //write the number of hits done so far
-void write_hits_done_so_far()
+void write_nhits_done_so_far()
 {
-  FILE *fout=open_file(hits_done_so_far_path(),"w");
-  master_fprintf(fout,"%d\n",hits_done_so_far);
+  FILE *fout=open_file(nhits_done_so_far_path(),"w");
+  master_fprintf(fout,"%d\n",nhits_done_so_far);
   close_file(fout);
 }
 
 //skip the first hits
 void skip_hits_done_so_far()
 {
-  get_hits_done_so_far();
-  skip_nhits(0,hits_done_so_far);
+  get_nhits_done_so_far();
+  skip_nhits(0,nhits_done_so_far);
 }
 
 //give a name to the propagator
@@ -348,7 +386,7 @@ void init_simulation(int narg,char **arg)
   
   allocate_loop_source();
   curr::allocate_all_fields();
-  E::allocate();
+  hits::allocate();
   allocate_mes2pts_contr();
   glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -368,7 +406,7 @@ void close()
   nissa_free(glb_conf);
   nissa_free(inner_conf);
   
-  E::free();
+  hits::free();
   
   if(clover_run)
     {
@@ -409,12 +447,12 @@ THREADABLE_FUNCTION_0ARG(compute_all_quark_currents)
 }
 THREADABLE_FUNCTION_END
 
-//take the scalar propduct of j or J with xi to get E::f,f
+//take the scalar propduct of j or J with xi to get hits::f,f
 THREADABLE_FUNCTION_0ARG(compute_all_E_f1_f2)
 {
   GET_THREAD_ID();
   
-  for(int isingle_or_all=0;isingle_or_all<E::nsingle_or_all;isingle_or_all++)
+  for(int isingle_or_all=0;isingle_or_all<hits::nsingle_or_all;isingle_or_all++)
     {
       curr::field_t ic=(isingle_or_all?curr::J:curr::j);
       
@@ -436,31 +474,31 @@ THREADABLE_FUNCTION_0ARG(compute_all_E_f1_f2)
 	    
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	      {
-		complex_put_to_zero(E::field[ivol]);
-		for(int mu=0;mu<NDIM;mu++) complex_summ_the_prod(E::field[ivol],c[ivol][mu],xi[ivol][mu]);
+		complex_put_to_zero(hits::field[ivol]);
+		for(int mu=0;mu<NDIM;mu++) complex_summ_the_prod(hits::field[ivol],c[ivol][mu],xi[ivol][mu]);
 	      }
 	    THREAD_BARRIER();
 	    
 	    //collapse
 	    complex glb_E_f1_f2;
-	    complex_vector_glb_collapse(glb_E_f1_f2,E::field,loc_vol);
+	    complex_vector_glb_collapse(glb_E_f1_f2,hits::field,loc_vol);
 	    for(int isw=0;isw<2;isw++)
-	      complex_copy(E::f1_f2_hits[E::idx(isw?iquark:jquark,
+	      complex_copy(hits::f1_f2[hits::idx(isw?iquark:jquark,
 						isw?jquark:iquark,
-						hits_done_so_far,isingle_or_all)],glb_E_f1_f2);
-	    master_printf("E_%d_%d single_or_all %d= ( %lg , %lg )\n",iquark,jquark,isingle_or_all,glb_E_f1_f2[RE],glb_E_f1_f2[IM]);
+						nhits_done_so_far,isingle_or_all)],glb_E_f1_f2);
+	    //master_printf("E_%d_%d single_or_all %d= ( %lg , %lg )\n",iquark,jquark,isingle_or_all,glb_E_f1_f2[RE],glb_E_f1_f2[IM]);
 	  }
     }
-
+  
   //Compute EU5
   for(int iquark=0;iquark<nquarks;iquark++)
     for(int jquark=iquark;jquark<nquarks;jquark++)
       {
 	complex EU5;
-	complex_copy(EU5,E::f1_f2_hits[E::idx(iquark,jquark,hits_done_so_far,1)]);
-	for(int ih=0;ih<=hits_done_so_far;ih++)
-	  complex_subtassign(EU5,E::f1_f2_hits[E::idx(iquark,jquark,ih,0)]);
-	complex_prodassign_double(EU5, 1.0/((hits_done_so_far+1)*hits_done_so_far));
+	complex_copy(EU5,hits::f1_f2[hits::idx(iquark,jquark,nhits_done_so_far,1)]);
+	for(int ih=0;ih<=nhits_done_so_far;ih++)
+	  complex_subtassign(EU5,hits::f1_f2[hits::idx(iquark,jquark,ih,0)]);
+	complex_prodassign_double(EU5, 1.0/((nhits_done_so_far+1)*nhits_done_so_far));
 	master_printf("EU5: %lg %lg\n",EU5[RE],EU5[IM]);
       }
 }
@@ -481,24 +519,26 @@ void in_main(int narg,char **arg)
       //setup the conf and generate the source
       start_new_conf();
       
-      //start at hits_done_so_far
+      //start at nhits_done_so_far
       skip_hits_done_so_far();
       curr::load_all_or_reset();
+      hits::load(nhits_done_so_far);
       
-      while(hits_done_so_far<nhits)
+      while(nhits_done_so_far<nhits)
 	{
-	  start_hit(hits_done_so_far);
-	  generate_propagators(hits_done_so_far);
-	  compute_disco_PST(hits_done_so_far);
+	  start_hit(nhits_done_so_far);
+	  generate_propagators(nhits_done_so_far);
+	  compute_disco_PST(nhits_done_so_far);
 	  
 	  compute_all_quark_currents();
 	  compute_all_E_f1_f2();
 	  
-	  hits_done_so_far++;
+	  nhits_done_so_far++;
 	}
       
       curr::store_all();
-      write_hits_done_so_far();
+      hits::store(nhits_done_so_far);
+      write_nhits_done_so_far();
       mark_finished();
     }
   
