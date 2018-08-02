@@ -10,13 +10,12 @@ using namespace nissa;
 int nquarks;
 int hits_done_so_far;
 std::string source_name="source";
-complex *E_f1_f2;
 
 /////////////////////////////////////////////////////////////////
 
 namespace curr
 {
-  //fileds J,j and xi
+  //fields J,j and xi
   spin1field **fields;
   
   //fields to store the average, to get stoch estimate of the current, or to convolve it
@@ -68,6 +67,35 @@ namespace curr
   {
     for(int iquark=0;iquark<nquarks;iquark++)
       write_real_vector(path(iquark,hits_done_so_far),fields[ifield_idx(iquark,J)],64,"ildg-binary-data");
+  }
+}
+
+/////////////////////////////////////////////////////////////////
+
+namespace E
+{
+  complex *field;
+  complex *f1_f2_hits;
+  int nsingle_or_all=2;
+  
+  //index to access the correct combo
+  int idx(int f1,int f2,int ihit,int all_single)
+  {
+    return f1+nquarks*(f2+nquarks*(ihit+nhits*all_single));
+  }
+  
+  //allocate all fields
+  void allocate()
+  {
+    field=nissa_malloc("Eff",loc_vol,complex);
+    f1_f2_hits=nissa_malloc("f1_f2_hits",idx(nquarks-1,nquarks-1,nhits-1,nsingle_or_all-1)+1,complex);
+  }
+  
+  //free all fields
+  void free()
+  {
+    nissa_free(field);
+    nissa_free(f1_f2_hits);
   }
 }
 
@@ -320,10 +348,10 @@ void init_simulation(int narg,char **arg)
   
   allocate_loop_source();
   curr::allocate_all_fields();
+  E::allocate();
   allocate_mes2pts_contr();
   glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  E_f1_f2=nissa_malloc("Eff",loc_vol,complex);
 }
 
 void close()
@@ -340,7 +368,7 @@ void close()
   nissa_free(glb_conf);
   nissa_free(inner_conf);
   
-  nissa_free(E_f1_f2);
+  E::free();
   
   if(clover_run)
     {
@@ -381,38 +409,60 @@ THREADABLE_FUNCTION_0ARG(compute_all_quark_currents)
 }
 THREADABLE_FUNCTION_END
 
-//take the scalar propduct of j or J with xi to get E_f,f
-THREADABLE_FUNCTION_1ARG(compute_all_E_f1_f2, curr::field_t,ic)
+//take the scalar propduct of j or J with xi to get E::f,f
+THREADABLE_FUNCTION_0ARG(compute_all_E_f1_f2)
 {
   GET_THREAD_ID();
   
-  for(int iquark=0;iquark<nquarks;iquark++)
+  for(int isingle_or_all=0;isingle_or_all<E::nsingle_or_all;isingle_or_all++)
     {
-      spin1field *c=curr::fields[ifield_idx(iquark,ic)];
-      spin1field *xi=curr::fields[ifield_idx(iquark,curr::xi)];
+      curr::field_t ic=(isingle_or_all?curr::J:curr::j);
       
       //convolve
-      multiply_by_tlSym_gauge_propagator(xi,c,photon);
+      for(int iquark=0;iquark<nquarks;iquark++)
+	{
+	  spin1field *c=curr::fields[ifield_idx(iquark,ic)];
+	  spin1field *xi=curr::fields[ifield_idx(iquark,curr::xi)];
+	  
+	  multiply_by_tlSym_gauge_propagator(xi,c,photon);
+	}
+      
+      //scalar product
+      for(int iquark=0;iquark<nquarks;iquark++)
+	for(int jquark=iquark;jquark<nquarks;jquark++)
+	  {
+	    spin1field *c=curr::fields[ifield_idx(iquark,ic)];
+	    spin1field *xi=curr::fields[ifield_idx(jquark,curr::xi)];
+	    
+	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	      {
+		complex_put_to_zero(E::field[ivol]);
+		for(int mu=0;mu<NDIM;mu++) complex_summ_the_prod(E::field[ivol],c[ivol][mu],xi[ivol][mu]);
+	      }
+	    THREAD_BARRIER();
+	    
+	    //collapse
+	    complex glb_E_f1_f2;
+	    complex_vector_glb_collapse(glb_E_f1_f2,E::field,loc_vol);
+	    for(int isw=0;isw<2;isw++)
+	      complex_copy(E::f1_f2_hits[E::idx(isw?iquark:jquark,
+						isw?jquark:iquark,
+						hits_done_so_far,isingle_or_all)],glb_E_f1_f2);
+	    master_printf("E_%d_%d single_or_all %d= ( %lg , %lg )\n",iquark,jquark,isingle_or_all,glb_E_f1_f2[RE],glb_E_f1_f2[IM]);
+	  }
     }
-  
+
+  //Compute EU5
   for(int iquark=0;iquark<nquarks;iquark++)
     for(int jquark=iquark;jquark<nquarks;jquark++)
       {
-	spin1field *c=curr::fields[ifield_idx(iquark,ic)];
-	spin1field *xi=curr::fields[ifield_idx(jquark,curr::xi)];
-	
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  {
-	    complex_put_to_zero(E_f1_f2[ivol]);
-	    for(int mu=0;mu<NDIM;mu++) complex_summ_the_prod(E_f1_f2[ivol],c[ivol][mu],xi[ivol][mu]);
-	  }
-	THREAD_BARRIER();
-	
-	//collapse
-	complex glb_E_f1_f2;
-	complex_vector_glb_collapse(glb_E_f1_f2,E_f1_f2,loc_vol);
-	master_printf("E_%d_%d=( %lg , %lg )\n",iquark,jquark,glb_E_f1_f2[RE],glb_E_f1_f2[IM]);
-    }
+	complex EU5;
+	complex_copy(EU5,E::f1_f2_hits[E::idx(iquark,jquark,hits_done_so_far,1)]);
+	for(int ih=0;ih<hits_done_so_far;ih++)
+	  complex_subtassign(EU5,E::f1_f2_hits[E::idx(iquark,jquark,ih,0)]);
+	complex_prodassign_double(EU5, 1.0/((hits_done_so_far-1)*hits_done_so_far));
+	master_printf("EU5: %lg %lg\n",EU5[RE],EU5[IM]);
+      }
 }
 THREADABLE_FUNCTION_END
 
@@ -442,13 +492,10 @@ void in_main(int narg,char **arg)
 	  compute_disco_PST(hits_done_so_far);
 	  
 	  compute_all_quark_currents();
-	  compute_all_E_f1_f2(curr::j);
+	  compute_all_E_f1_f2();
 	  
 	  hits_done_so_far++;
 	}
-      
-      //compute E with averages current, to get EU5 and EU6
-      compute_all_E_f1_f2(curr::J);
       
       curr::store_all();
       write_hits_done_so_far();
