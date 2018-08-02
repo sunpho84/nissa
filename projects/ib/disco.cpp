@@ -77,6 +77,7 @@ namespace hits
   complex *field;
   complex *f1_f2;
   int nsingle_or_all=2;
+  enum{SINGLE,ALL};
   
   //index to access the correct combo
   int idx(int f1,int f2,int ihit,int single_or_all)
@@ -105,9 +106,10 @@ namespace hits
   }
   
   //store or load the hits
+  enum{STORE,LOAD};
   void store_or_load(int nh,int store_or_load)
   {
-    FILE *file=open_file(path(),store_or_load?"r":"w");
+    FILE *file=open_file(path(),store_or_load==STORE?"w":"r");
     for(int f1=0;f1<nquarks;f1++)
       for(int f2=0;f2<nquarks;f2++)
 	for(int ihit=0;ihit<nh;ihit++)
@@ -115,8 +117,8 @@ namespace hits
 	    {
 	      complex &c=f1_f2[idx(f1,f2,ihit,single_or_all)];
 	      for(int RI=0;RI<2;RI++)
-		if(store_or_load==0) master_fprintf(file,"%.16lg%s",c[RI],RI?"\n":" ");
-		else  		     master_fscan_double(file);
+		if(store_or_load==STORE) master_fprintf(file,"%.16lg%s",c[RI],RI?"\n":" ");
+		else  		         master_fscan_double(file);
 	    }
     
     close_file(file);
@@ -125,17 +127,57 @@ namespace hits
   //store the hits
   void store(int nh)
   {
-    store_or_load(nh,0);
+    store_or_load(nh,STORE);
   }
   
   //load the hits if non zero
   void load(int nh)
   {
     if(nh)
-      store_or_load(nh,1);
+      store_or_load(nh,LOAD);
   }
 }
 
+/////////////////////////////////////////////////////////////////
+
+//Compute EU5
+void compute_EU5()
+{
+  //open the file
+  std::string path=combine("%s/EU5",outfolder);
+  FILE *fout=open_file(path,"w");
+  
+  //store the summ
+  complex E_f1_f2[nquarks*nquarks];
+  memset(E_f1_f2,0,sizeof(nquarks*nquarks));
+  
+  for(int ih=0;ih<nhits_done_so_far;ih++)
+    {
+      for(int iquark=0;iquark<nquarks;iquark++)
+	for(int jquark=0;jquark<nquarks;jquark++)
+	  {
+	    //update the sum of single hit, E, up to ih
+	    int i=jquark+nquarks*iquark;
+	    complex_summassign(E_f1_f2[i],hits::f1_f2[hits::idx(iquark,jquark,ih,hits::SINGLE)]);
+	    
+	    //compute the difference of J*Xi with E
+	    complex EU5;
+	    complex_subt(EU5,hits::f1_f2[hits::idx(iquark,jquark,ih,hits::ALL)],E_f1_f2[i]);
+	    
+	    //normalize: aovoid dividing by 0, replacing 0 with 1
+	    int norm=(ih+1)*std::max(1,ih);
+	    complex_prodassign_double(EU5,1.0/norm);
+	    
+	    //print
+	    master_fprintf(fout,"%.16lg %.16lg\t",EU5[RE],EU5[IM]);
+	  }
+      
+      //send to new line
+      master_fprintf(fout,"\n");
+    }
+  
+  close_file(fout);
+}
 
 /////////////////////////////////////////////////////////////////
 
@@ -489,18 +531,6 @@ THREADABLE_FUNCTION_0ARG(compute_all_E_f1_f2)
 	    //master_printf("E_%d_%d single_or_all %d= ( %lg , %lg )\n",iquark,jquark,isingle_or_all,glb_E_f1_f2[RE],glb_E_f1_f2[IM]);
 	  }
     }
-  
-  //Compute EU5
-  for(int iquark=0;iquark<nquarks;iquark++)
-    for(int jquark=iquark;jquark<nquarks;jquark++)
-      {
-	complex EU5;
-	complex_copy(EU5,hits::f1_f2[hits::idx(iquark,jquark,nhits_done_so_far,1)]);
-	for(int ih=0;ih<=nhits_done_so_far;ih++)
-	  complex_subtassign(EU5,hits::f1_f2[hits::idx(iquark,jquark,ih,0)]);
-	complex_prodassign_double(EU5, 1.0/((nhits_done_so_far+1)*nhits_done_so_far));
-	master_printf("EU5: %lg %lg\n",EU5[RE],EU5[IM]);
-      }
 }
 THREADABLE_FUNCTION_END
 
@@ -539,6 +569,8 @@ void in_main(int narg,char **arg)
       curr::store_all();
       hits::store(nhits_done_so_far);
       write_nhits_done_so_far();
+      compute_EU5();
+      
       mark_finished();
     }
   
