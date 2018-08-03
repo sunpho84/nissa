@@ -10,6 +10,7 @@ using namespace nissa;
 int nquarks;
 int nhits_done_so_far;
 std::string source_name="source";
+int compute_EU6_alt;
 
 /////////////////////////////////////////////////////////////////
 
@@ -140,6 +141,40 @@ namespace hits
 
 /////////////////////////////////////////////////////////////////
 
+//Compute diagrams 1,2,4,and 6alt
+THREADABLE_FUNCTION_0ARG(compute_EU1_EU2_EU4_EU6alt)
+{
+  //suffix and complex weight for EU1,2,4,6alt
+  std::vector<std::tuple<std::string,double,double,std::string>> suff_weight_id={{"PSEUDO",0.0,1.0,"1"},{"SCALAR",1.0,0.0,"2"},{"TADPOLE",1.0,0.0,"4"}};
+  if(compute_EU6_alt) suff_weight_id.push_back({"PROP_F_PROP_F",1.0,0.0,"6alt"});
+  
+  for(auto &i : suff_weight_id)
+    {
+      //decompose pars
+      std::string suff=std::get<0>(i);
+      complex w={std::get<1>(i),std::get<2>(i)};
+      std::string id=std::get<3>(i);
+      
+      //open the file
+      FILE *fout=open_file(combine("%s/EU%s",outfolder,id.c_str()),nhits_done_so_far?"a":"w");
+      
+      for(int iquark=0;iquark<nquarks;iquark++)
+	{
+	  //takes the scalar product
+	  complex p;
+	  compute_prop_scalprod(p,source_name,combine("Q%d_%s",iquark,suff.c_str()));
+	  
+	  //put the weight and write
+	  complex_prodassign(p,w);
+	  master_fprintf(fout,"%.16lg %.16lg\t",p[RE],p[IM]);
+	}
+      
+      master_fprintf(fout,"\n");
+      close_file(fout);
+    }
+}
+THREADABLE_FUNCTION_END
+
 //Compute EU5 and EU6
 void compute_EU5_EU6()
 {
@@ -181,13 +216,15 @@ void compute_EU5_EU6()
 	    if(iquark==jquark)
 	      {
 		complex F_f;
-		complex_prod_double(F_f,E_f1_f2[jquark+nquarks*iquark],1.0/sqr(std::max(1,ih)));
+		complex_prod_double(F_f,E_f1_f2[jquark+nquarks*iquark],1.0/(ih+1));
 		complex_subtassign(F_f,H_f1_f2);
+		
+		//include obscure nomralization
+		complex_prodassign_double(F_f,glb_vol/6.0);
 		
 		//print
 		master_fprintf(fout_EU[iEU6],"%.16lg %.16lg\t",F_f[RE],F_f[IM]);
 	      }
-	    
 	  }
       
       //send to new line
@@ -373,6 +410,9 @@ void init_simulation(int narg,char **arg)
   read_twisted_run();
   read_clover_run();
   
+  //Read if to compute EU6 with two inversions
+  read_str_int("ComputeEU6Alt",&compute_EU6_alt);
+  
   /////////////////////////////////////////////////////////////////
   
   //Boundary conditions
@@ -432,6 +472,26 @@ void init_simulation(int narg,char **arg)
 	  
 	  mes2pts_contr_map.push_back(mes_contr_map_t(prop_name_ins,source_name,prop_name_ins));
 	}
+      
+      //includes the propagators needed to compute EU6 with two inversions
+      if(compute_EU6_alt)
+	{
+	  std::string prop_name_F=combine("Q%d_PROP_F",iquark);
+	  std::string prop_name_F_PROP=combine("Q%d_PROP_F_PROP",iquark);
+	  std::string prop_name_F_PROP_F=combine("Q%d_PROP_F_PROP_F",iquark);
+	  for(auto& i : std::vector<std::tuple<std::string,std::string,insertion_t>>{
+	      {prop_name_F,prop_name,PHOTON},
+	      {prop_name_F_PROP,prop_name_F,PROP},
+	      {prop_name_F_PROP_F,prop_name_F_PROP,PHOTON}})
+	    {
+	      std::string out=std::get<0>(i);
+	      std::string in=std::get<1>(i);
+	      insertion_t ins=std::get<2>(i);
+	      qprop_name_list.push_back(out);
+	      Q[out].init_as_propagator(ins,{{in,{1.0,0.0}}},ALL_TIMES,residue,kappa,mass,r,charge,theta,store_prop);
+	    }
+	  mes2pts_contr_map.push_back(mes_contr_map_t("EU6",source_name,prop_name_F_PROP_F));
+	}
     }
   
   mes_gamma_list.push_back(idirac_pair_t(5,5));
@@ -478,12 +538,12 @@ void close()
     }
 }
 
-//compute pseudoscalar, scalar and tadpoles (EU1, EU2, EU4)
+//compute pseudoscalar, scalar and tadpoles (which can be used for EU1, EU2, EU4)
 void compute_disco_PST(int ihit)
 {
   //compute "2pts"
   vector_reset(mes2pts_contr);
-  compute_mes2pts_contr();
+  compute_mes2pts_contr(false);
   
   //print correlators
   int force_append(ihit>0);
@@ -583,6 +643,8 @@ void in_main(int narg,char **arg)
 	  
 	  compute_all_quark_currents();
 	  compute_all_E_f1_f2();
+	  
+	  compute_EU1_EU2_EU4_EU6alt();
 	  
 	  nhits_done_so_far++;
 	}
