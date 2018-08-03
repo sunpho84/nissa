@@ -12,6 +12,65 @@ int nhits_done_so_far;
 std::string source_name="source";
 int compute_EU6_alt;
 
+namespace EU1_EU2_EU4_EU6alt
+{
+  //id and tags
+  int nEU;
+  enum{_EU1,_EU2,_EU4,_EU6alt};
+  const char tag[4][10]={"1","2","4","6alt"};
+  
+  //data computed
+  complex *data;
+  
+  //access to id
+  int idx(int iEU,int iquark)
+  {
+    return iquark+nquarks*iEU;
+  }
+  
+  //allocate all EU
+  void allocate_all()
+  {
+    if(compute_EU6_alt) nEU=4;
+    else                nEU=3;
+    
+    data=nissa_malloc("EU",idx(nEU-1,nquarks-1)+1,complex);
+  }
+  
+  //free
+  void free_all()
+  {
+    nissa_free(data);
+  }
+  
+  //form the path
+  std::string path(int iEU)
+  {
+    return combine("%s/EU%s",outfolder,tag[iEU]);
+  }
+  
+  //read all
+  void load_all_or_reset(int nh)
+  {
+    for(int iEU=0;iEU<nEU;iEU++)
+      if(nh)
+	{
+	  FILE *fin=open_file(path(iEU),"r");
+	  for(int ih=0;ih<nh;ih++)
+	    for(int iquark=0;iquark<nquarks;iquark++)
+	      {
+		double *c=data[idx(iEU,iquark)];
+		//read and normalize
+		for(int ri=0;ri<2;ri++) c[ri]=master_fscan_double(fin)*(ih+1);
+	      }
+	  close_file(fin);
+	}
+    else
+      for(int iquark=0;iquark<nquarks;iquark++)
+	complex_put_to_zero(data[idx(iEU,iquark)]);
+  }
+}
+
 /////////////////////////////////////////////////////////////////
 
 namespace curr
@@ -141,22 +200,30 @@ namespace hits
 
 /////////////////////////////////////////////////////////////////
 
+//suffix and complex weight for EU1,2,4,6alt
+typedef std::tuple<std::string,double,double,int> EU_descr_t;
+enum{_SUFF,_WRE,_WIM,_ID};
+std::vector<EU_descr_t> get_EU_to_compute()
+{
+  using namespace EU1_EU2_EU4_EU6alt;
+  std::vector<EU_descr_t>  suff_weight_id={{"PSEUDO",0.0,1.0,_EU1},{"SCALAR",1.0,0.0,_EU2},{"TADPOLE",1.0,0.0,_EU4}};
+  if(compute_EU6_alt) suff_weight_id.push_back({"PROP_F_PROP_F",1.0,0.0,_EU6alt});
+  
+  return suff_weight_id;
+}
+
 //Compute diagrams 1,2,4,and 6alt
 THREADABLE_FUNCTION_0ARG(compute_EU1_EU2_EU4_EU6alt)
 {
-  //suffix and complex weight for EU1,2,4,6alt
-  std::vector<std::tuple<std::string,double,double,std::string>> suff_weight_id={{"PSEUDO",0.0,1.0,"1"},{"SCALAR",1.0,0.0,"2"},{"TADPOLE",1.0,0.0,"4"}};
-  if(compute_EU6_alt) suff_weight_id.push_back({"PROP_F_PROP_F",1.0,0.0,"6alt"});
-  
-  for(auto &i : suff_weight_id)
+  for(auto &i : get_EU_to_compute())
     {
       //decompose pars
-      std::string suff=std::get<0>(i);
-      complex w={std::get<1>(i),std::get<2>(i)};
-      std::string id=std::get<3>(i);
+      std::string suff=std::get<_SUFF>(i);
+      complex w={std::get<_WRE>(i),std::get<_WIM>(i)};
+      int id=std::get<_ID>(i);
       
       //open the file
-      FILE *fout=open_file(combine("%s/EU%s",outfolder,id.c_str()),nhits_done_so_far?"a":"w");
+      FILE *fout=open_file(combine("%s/EU%s",outfolder,EU1_EU2_EU4_EU6alt::tag[id]),nhits_done_so_far?"a":"w");
       
       for(int iquark=0;iquark<nquarks;iquark++)
 	{
@@ -164,9 +231,14 @@ THREADABLE_FUNCTION_0ARG(compute_EU1_EU2_EU4_EU6alt)
 	  complex p;
 	  compute_prop_scalprod(p,source_name,combine("Q%d_%s",iquark,suff.c_str()));
 	  
-	  //put the weight and write
-	  complex_prodassign(p,w);
-	  master_fprintf(fout,"%.16lg %.16lg\t",p[RE],p[IM]);
+	  //put the weight and add
+	  complex &c=EU1_EU2_EU4_EU6alt::data[EU1_EU2_EU4_EU6alt::idx(id,iquark)];
+	  complex_summ_the_prod(c,p,w);
+	  
+	  //write output
+	  complex out;
+	  complex_prod_double(out,c,1.0/(nhits_done_so_far+1));
+	  master_fprintf(fout,"%.16lg %.16lg\t",out[RE],out[IM]);
 	}
       
       master_fprintf(fout,"\n");
@@ -508,6 +580,7 @@ void init_simulation(int narg,char **arg)
   /////////////////////////////////////////////////////////////////
   
   allocate_loop_source();
+  EU1_EU2_EU4_EU6alt::allocate_all();
   curr::allocate_all_fields();
   hits::allocate();
   allocate_mes2pts_contr();
@@ -523,6 +596,7 @@ void close()
   
   Q.clear();
   
+  EU1_EU2_EU4_EU6alt::free_all();
   curr::free_all_fields();
   free_loop_source();
   free_mes2pts_contr();
@@ -632,6 +706,7 @@ void in_main(int narg,char **arg)
       
       //start at nhits_done_so_far
       skip_hits_done_so_far();
+      EU1_EU2_EU4_EU6alt::load_all_or_reset(nhits_done_so_far);
       curr::load_all_or_reset();
       hits::load(nhits_done_so_far);
       
