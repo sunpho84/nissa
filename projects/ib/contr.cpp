@@ -130,7 +130,7 @@ namespace nissa
 			unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
 			complex AB;
 			unsafe_complex_prod(AB,A,B);
-			complex_prodassign_double(AB,norm);
+			if(normalize) complex_prodassign_double(AB,norm);
 			
 			NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 			  {
