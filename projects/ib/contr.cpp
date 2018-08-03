@@ -47,8 +47,38 @@ namespace nissa
   void free_mes2pts_contr()
   {nissa_free(mes2pts_contr);}
   
+  //compute a single scalar product
+  THREADABLE_FUNCTION_3ARG(compute_prop_scalprod, double*,res, std::string,pr_dag, std::string, pr)
+  {
+    GET_THREAD_ID();
+    
+    master_printf("Computing the scalar product between %s and %s\n",pr_dag.c_str(),pr.c_str());
+    
+    complex *loc=nissa_malloc("loc",loc_vol,complex);
+    vector_reset(loc);
+    
+    for(int idc_so=0;idc_so<nso_spi*nso_col;idc_so++)
+      {
+	spincolor *q_dag=Q[pr_dag][idc_so];
+	spincolor *q=Q[pr][idc_so];
+	
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  {
+	    complex t;
+	    spincolor_scalar_prod(t,q_dag[ivol],q[ivol]);
+	    complex_summassign(loc[ivol],t);
+	  }
+      }
+    THREAD_BARRIER();
+    
+    complex_vector_glb_collapse(res,loc,loc_vol);
+    
+    nissa_free(loc);
+  }
+  THREADABLE_FUNCTION_END
+  
   //compute all the meson contractions
-  THREADABLE_FUNCTION_0ARG(compute_mes2pts_contr)
+  THREADABLE_FUNCTION_1ARG(compute_mes2pts_contr, int,normalize)
   {
     GET_THREAD_ID();
     

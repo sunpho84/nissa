@@ -22,6 +22,10 @@ namespace nissa
 {
   EXTERN_CONTR double contr_print_time INIT_TO(0);
   
+  /////////////////////////////////////////////////////////////////
+  
+  void compute_prop_scalprod(double *res,std::string pr_dag,std::string pr);
+  
   ///////////////////////////////////////// meson contractions ///////////////////////////////////////////////////////
   
   EXTERN_CONTR std::string mes2pts_prefix INIT_TO("mes_contr");
