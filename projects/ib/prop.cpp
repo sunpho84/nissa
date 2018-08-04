@@ -424,6 +424,7 @@ namespace nissa
     photon_prop_time-=take_time();
     
     //generate source and stochastich propagator
+    master_printf("Generating photon stochastic propagator\n");
     generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
     
     //generate the photon field

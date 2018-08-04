@@ -72,12 +72,12 @@ namespace nissa
     return ins_list[i];
   }
   
-  inline int is_photon_ins(const char *ins)
+  inline int is_photon_ins(insertion_t ins)
   {
     return
-      (strcasecmp(ins,ins_tag[PHOTON])==0) or
-      (strcasecmp(ins,ins_tag[PHOTON_ETA])==0) or
-      (strcasecmp(ins,ins_tag[PHOTON_PHI])==0);
+      (ins==PHOTON) or
+      (ins==PHOTON_ETA) or
+      (ins==PHOTON_PHI);
   }
   
   EXTERN_PARS gauge_info photon;

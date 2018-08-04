@@ -579,6 +579,7 @@ void init_simulation(int narg,char **arg)
   
   /////////////////////////////////////////////////////////////////
   
+  if(need_photon) allocate_photon_fields();
   allocate_loop_source();
   EU1_EU2_EU4_EU6alt::allocate_all();
   curr::allocate_all_fields();
@@ -598,6 +599,7 @@ void close()
   
   EU1_EU2_EU4_EU6alt::free_all();
   curr::free_all_fields();
+  if(need_photon) free_photon_fields();
   free_loop_source();
   free_mes2pts_contr();
   nissa_free(glb_conf);
