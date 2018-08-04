@@ -16,6 +16,9 @@
 
 namespace nissa
 {
+  //keep trace if generating photon is needed
+  EXTERN_PROP int need_photon INIT_TO(0);
+  
   inline int so_sp_col_ind(int sp,int col){return col+nso_col*sp;}
   
   typedef std::pair<std::string,std::pair<double,double>> source_term_t;
@@ -65,6 +68,8 @@ namespace nissa
       tins=_tins;
       residue=_residue;
       store=_store;
+      
+      if(is_photon_ins(insertion)) need_photon=true;
       
       alloc_spincolor();
     }
@@ -151,7 +156,6 @@ namespace nissa
     else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
   }
   
-  EXTERN_PROP int need_photon INIT_TO(0);
   inline void generate_propagators(int ihit)
   {
     if(need_photon) generate_photon_stochastic_propagator(ihit);
