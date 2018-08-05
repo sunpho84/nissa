@@ -3,8 +3,8 @@
 using namespace nissa;
 
 int T=8,L=4;
-double qkappa=0.125;
-double qmass=0.4;
+double qkappa=0.177;
+double qmass=0.01;
 double qr=0;
 
 gauge_info photon;
@@ -699,7 +699,72 @@ void init_simulation()
   photon.alpha=FEYNMAN_ALPHA;
   photon.bc[0]=photon.bc[1]=photon.bc[2]=photon.bc[3]=0;
   photon.c1=WILSON_C1;
-  photon.zms=PECIONA;
+  photon.zms=UNNO_ALEMANNA;
+}
+
+void check_scalar_EU()
+{
+   tm_quark_info qu;
+  qu.bc[0]=1;
+  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  qu.kappa=qkappa;
+  qu.mass=qmass;
+  qu.r=qr;
+  
+  spin1prop *pho_pro=nissa_malloc("pho_pro",loc_vol,spin1prop);
+  double tad=0.0;
+  NISSA_LOC_VOL_LOOP(p)
+  {
+    mom_space_tlSym_gauge_propagator_of_imom(pho_pro[p],photon,p);
+    tad+=pho_pro[p][0][0][RE];
+  }
+  master_printf("Tadpole: %lg\n",tad);
+  
+  double eu4=0;
+  NISSA_LOC_VOL_LOOP(imom)
+  {
+    //e+=12*M_of_mom(qu,imom)/den_of_mom(imom,qu); //pseudo
+    momentum_t sin_p;
+    sin_mom(sin_p,imom,qu);
+    double c=0;
+    for(int mu=0;mu<4;mu++)
+	c+=3*(-4*Si(imom,imom,qu,mu)*sin_p[mu] + 4*M_of_mom(qu,imom)*Co(imom,imom,qu,mu))*tad/2.0;
+    eu4+=c/den_of_mom(imom,qu);
+  }
+  master_printf("eu4: %.16lg\n",eu4);
+  
+  double eu6=0;
+  double mu2=qu.mass*qu.mass;
+  NISSA_LOC_VOL_LOOP(p)
+    NISSA_LOC_VOL_LOOP(q)
+    {
+      momentum_t sin_p;
+      sin_mom(sin_p,p,qu);
+      momentum_t sin_q;
+      sin_mom(sin_q,q,qu);
+      double Mp=M_of_mom(qu,p);
+      double Mq=M_of_mom(qu,q);
+      double pq=mom_prod(sin_p,sin_q);
+      
+      coords cpmq;
+      for(int mu=0;mu<NDIM;mu++) cpmq[mu]=(glb_size[mu]+glb_coord_of_loclx[p][mu]-glb_coord_of_loclx[q][mu])%glb_size[mu];
+      int pmq=glblx_of_coord(cpmq);
+      
+      double c=0;
+      for(int mu=0;mu<4;mu++)
+	{
+	  double r=4*(Mp*Mq + mu2 + pq)*Co(p,q,qu,mu)*Co(p,q,qu,mu) + 4*(-(Mp*Mq) + mu2 + pq)*Si(p,q,qu,mu)*Si(p,q,qu,mu) - 
+   4*Mq*Co(p,q,qu,mu)*Si(p,q,qu,mu)*sin_p[mu] - 4*Mq*Co(p,q,qu,mu)*Si(p,q,qu,mu)*sin_p[mu] - 4*Mp*Co(p,q,qu,mu)*Si(p,q,qu,mu)*sin_q[mu] - 
+	  4*Co(p,q,qu,mu)*Co(p,q,qu,mu)*sin_p[mu]*sin_q[mu] - 4*Mp*Co(p,q,qu,mu)*Si(p,q,qu,mu)*sin_q[mu] - 4*Co(p,q,qu,mu)*Co(p,q,qu,mu)*sin_p[mu]*sin_q[mu];
+	  c+=r*pho_pro[pmq][mu][mu][RE];
+	}
+      eu6+=3*c/(den_of_mom(p, qu)*den_of_mom(q, qu));
+    }
+  
+  nissa_free(pho_pro);
+  
+  master_printf("eu6: %.16lg\n",eu6);
+  crash("");
 }
 
 void in_main(int narg,char **arg)
@@ -708,6 +773,8 @@ void in_main(int narg,char **arg)
   init_simulation();
   
   //print_ref_prop();
+  
+  check_scalar_EU();
   
   check_fw_vacuum_curr();
   master_printf("\n\n");
