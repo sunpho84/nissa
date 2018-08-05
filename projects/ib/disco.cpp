@@ -291,9 +291,6 @@ void compute_EU5_EU6()
 		complex_prod_double(F_f,E_f1_f2[jquark+nquarks*iquark],1.0/(ih+1));
 		complex_subtassign(F_f,H_f1_f2);
 		
-		//include obscure nomralization
-		complex_prodassign_double(F_f,glb_vol/6.0);
-		
 		//print
 		master_fprintf(fout_EU[iEU6],"%.16lg %.16lg\t",F_f[RE],F_f[IM]);
 	      }
