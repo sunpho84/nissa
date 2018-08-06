@@ -215,6 +215,7 @@ std::vector<EU_descr_t> get_EU_to_compute()
 //Compute diagrams 1,2,4,and 6alt
 THREADABLE_FUNCTION_0ARG(compute_EU1_EU2_EU4_EU6alt)
 {
+  GET_THREAD_ID();
   for(auto &i : get_EU_to_compute())
     {
       //decompose pars
@@ -233,7 +234,7 @@ THREADABLE_FUNCTION_0ARG(compute_EU1_EU2_EU4_EU6alt)
 	  
 	  //put the weight and add
 	  complex &c=EU1_EU2_EU4_EU6alt::data[EU1_EU2_EU4_EU6alt::idx(id,iquark)];
-	  complex_summ_the_prod(c,p,w);
+	  THREAD_ATOMIC_EXEC(if(IS_MASTER_THREAD) complex_summ_the_prod(c,p,w));
 	  
 	  //write output
 	  complex out;
