@@ -68,8 +68,6 @@ namespace nissa
     
     bi_su3 *path=nissa_malloc("path",loc_vol/NVNODES+,su3);
     
-    NISSA_LOC_VOL_LOOP(ivol,0,loc_vol)
-		       
     double r=-beta/NCOL;
     compute_summed_squared_staples_lx_conf(F,conf);
     
