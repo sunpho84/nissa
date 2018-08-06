@@ -347,49 +347,6 @@ std::string get_prop_name(int iquark,insertion_t ins)
   return combine("Q%d_%s",iquark,ins_name[ins]);
 }
 
-// //compute the matrix element of the conserved current between two propagators
-// THREADABLE_FUNCTION_4ARG(calc_cur, spin1field*,cur, spincolor*,source, quad_su3*,conf, spincolor*,prop)
-// {
-//   GET_THREAD_ID();
-  
-//   vector_reset(cur);
-  
-//   communicate_lx_spincolor_borders(source);
-//   communicate_lx_spincolor_borders(prop);
-//   communicate_lx_quad_su3_borders(conf);
-  
-//   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-//     for(int mu=0;mu<NDIM;mu++)
-//       {
-// 	// int ifw=loclx_neighup[ivol][mu];
-// 	// spincolor f;
-	
-// 	// //piece psi_ivol U_ivol psi_fw
-// 	// unsafe_su3_prod_spincolor(f,conf[ivol][mu],prop[ifw]);
-// 	// spincolor_scalar_prod(cur[ivol][mu],source[ivol],f);
-	
-// 	int ifw=loclx_neighup[ivol][mu];
-// 	spincolor f,Gf;
-// 	complex c;
-	
-// 	//piece psi_ivol U_ivol psi_fw
-// 	unsafe_su3_prod_spincolor(f,conf[ivol][mu],prop[ifw]);
-// 	spincolor_copy(Gf,f);
-// 	dirac_subt_the_prod_spincolor(Gf,base_gamma+igamma_of_mu[mu],f);
-// 	spincolor_scalar_prod(c,source[ivol],Gf);
-// 	complex_summ_the_prod_idouble(cur[ivol][mu],c,-0.5);
-	
-// 	//piece psi_fw U_ivol^dag psi_ivol
-// 	unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],prop[ivol]);
-// 	spincolor_copy(Gf,f);
-// 	dirac_summ_the_prod_spincolor(Gf,base_gamma+igamma_of_mu[mu],f);
-// 	spincolor_scalar_prod(c,source[ifw],Gf);
-// 	complex_summ_the_prod_idouble(cur[ivol][mu],c,+0.5);
-//       }
-//   set_borders_invalid(cur);
-// }
-// THREADABLE_FUNCTION_END
-
 // void in_main_Marcus(int narg,char **arg)
 // {
 //   init_grid(16,8);
