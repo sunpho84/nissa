@@ -412,9 +412,10 @@ void init_simulation(int narg,char **arg)
   //Seed
   read_seed_start_random();
   
-  //Set the noise type
+  //Set stochastic source
+  stoch_source=true;
   
-  //Everything diluted so far
+  //Everything undiluted so far
   set_diluted_spin(0);
   set_diluted_color(0);
   set_diluted_space(1);
