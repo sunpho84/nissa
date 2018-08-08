@@ -356,7 +356,7 @@ namespace nissa
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //compute the matrix element of the conserved current between two propagators. If asking to revert, g5 is inserted between the two propagators
-  THREADABLE_FUNCTION_7ARG(conserved_vector_current_mel, quad_su3*,conf, spin1field*,si, dirac_matr*,ext_g, int,r, const char*,id_Qbw, const char*,id_Qfw, bool,revert)
+  THREADABLE_FUNCTION_7ARG(conserved_vector_current_mel, quad_su3*,conf, spin1field*,si, dirac_matr*,ext_g, int,r, const char*,name_bw, const char*,name_fw, bool,revert)
   {
     GET_THREAD_ID();
     
@@ -383,16 +383,16 @@ namespace nissa
     if(revert) dirac_prod(&g,ext_g,base_gamma+5);
     else       g=*ext_g;
     
-    for(int iso_spi_fw=0;iso_spi_fw<nso_spi;iso_spi_fw++)
+    for(int iso_spi_bw=0;iso_spi_bw<nso_spi;iso_spi_bw++)
       for(int iso_col=0;iso_col<nso_col;iso_col++)
 	{
-	  int iso_spi_bw=g.pos[iso_spi_fw];
-	  int ifw=so_sp_col_ind(iso_spi_fw,iso_col);
-	  int ibw=so_sp_col_ind(iso_spi_bw,iso_col);
+	  int iso_spi_fw=g.pos[iso_spi_bw];
+	  int idc_fw=so_sp_col_ind(iso_spi_fw,iso_col);
+	  int idc_bw=so_sp_col_ind(iso_spi_bw,iso_col);
 	  
 	  //get componentes
-	  spincolor *Qfw=Q[id_Qfw][ifw];
-	  spincolor *Qbw=Q[id_Qbw][ibw];
+	  spincolor *Qfw=Q[name_fw][idc_fw];
+	  spincolor *Qbw=Q[name_bw][idc_bw];
 	  
 	  communicate_lx_spincolor_borders(Qfw);
 	  communicate_lx_spincolor_borders(Qbw);
@@ -401,12 +401,12 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
-		int ifw=loclx_neighup[ivol][mu];
+		int ivol_fw=loclx_neighup[ivol][mu];
 		spincolor f,Gf;
 		complex c;
 		
 		//piece psi_ivol U_ivol psi_fw
-		unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ifw]);
+		unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ivol_fw]);
 		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
 		dirac_subt_the_prod_spincolor(Gf,GAMMA+mu,f);
 		spincolor_scalar_prod(c,Qbw[ivol],Gf);
@@ -417,7 +417,7 @@ namespace nissa
 		unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],Qfw[ivol]);
 		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
 		dirac_summ_the_prod_spincolor(Gf,GAMMA+mu,f);
-		spincolor_scalar_prod(c,Qbw[ifw],Gf);
+		spincolor_scalar_prod(c,Qbw[ivol_fw],Gf);
 		complex_prodassign(c,g.entr[iso_spi_bw]);
 		complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
 	      }
