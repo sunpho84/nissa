@@ -412,13 +412,7 @@ void init_simulation(int narg,char **arg)
   //Seed
   read_seed_start_random();
   
-  //Set stochastic source
-  stoch_source=true;
-  
-  //Read the noise type
-  char str_noise_type[20];
-  read_str_str("NoiseType",str_noise_type,20);
-  rnd_t noise_type=convert_str_to_rnd_t(str_noise_type);
+  //Set the noise type
   
   //Everything diluted so far
   set_diluted_spin(0);
@@ -430,6 +424,7 @@ void init_simulation(int narg,char **arg)
   
   //put the source in the list
   int store_source=false;
+  rnd_t noise_type=RND_GAUSS;
   ori_source_name_list.push_back(source_name);
   Q[source_name].init_as_source(noise_type,ALL_TIMES,0,store_source);
   
