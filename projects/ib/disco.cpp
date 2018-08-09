@@ -540,6 +540,7 @@ void init_simulation(int narg,char **arg)
   inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
 }
 
+//close the program
 void close()
 {
   close_input();
