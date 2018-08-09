@@ -10,7 +10,12 @@ using namespace nissa;
 int nquarks;
 int nhits_done_so_far;
 std::string source_name="source";
-int compute_EU6_alt;
+
+//only if EU6alt2
+std::string source_name_tot="source_tot";
+
+int flag_compute_EU6_alt;
+int flag_compute_EU6_alt2=true;
 
 namespace EU1_EU2_EU4_EU6alt
 {
@@ -31,7 +36,7 @@ namespace EU1_EU2_EU4_EU6alt
   //allocate all EU
   void allocate_all()
   {
-    if(compute_EU6_alt) nEU=4;
+    if(flag_compute_EU6_alt) nEU=4;
     else                nEU=3;
     
     data=nissa_malloc("EU",idx(nEU-1,nquarks-1)+1,complex);
@@ -79,8 +84,8 @@ namespace curr
   spin1field **fields;
   
   //fields to store the average, to get stoch estimate of the current, or to convolve it
-  enum field_t{J,j,xi};
-  int nfields_type=3;
+  enum field_t{J,j,xi,J_tot};
+  int nfields_type=4;
   
   //get the index of the field
   int ifield_idx(int iquark,int f)
@@ -207,7 +212,7 @@ std::vector<EU_descr_t> get_EU_to_compute()
 {
   using namespace EU1_EU2_EU4_EU6alt;
   std::vector<EU_descr_t>  suff_weight_id={{"PSEUDO",0.0,1.0,_EU1},{"SCALAR",1.0,0.0,_EU2},{"TADPOLE",1.0,0.0,_EU4}};
-  if(compute_EU6_alt) suff_weight_id.push_back({"PROP_F_PROP_F",1.0,0.0,_EU6alt});
+  if(flag_compute_EU6_alt) suff_weight_id.push_back({"PROP_F_PROP_F",1.0,0.0,_EU6alt});
   
   return suff_weight_id;
 }
@@ -245,6 +250,40 @@ THREADABLE_FUNCTION_0ARG(compute_EU1_EU2_EU4_EU6alt)
       master_fprintf(fout,"\n");
       close_file(fout);
     }
+}
+THREADABLE_FUNCTION_END
+
+THREADABLE_FUNCTION_0ARG(compute_EU6_alt2)
+{
+  GET_THREAD_ID();
+  
+  FILE *fout=open_file(combine("%s/EU6alt2",outfolder),nhits_done_so_far?"a":"w");
+  
+  for(int iquark=0;iquark<nquarks;iquark++)
+    {
+      spin1field *J_tot=curr::fields[ifield_idx(iquark,curr::J_tot)];
+      spin1field *xi=curr::fields[ifield_idx(iquark,curr::xi)];
+      
+      multiply_by_tlSym_gauge_propagator(xi,J_tot,photon);
+      
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	{
+	  complex_put_to_zero(hits::field[ivol]);
+	  for(int mu=0;mu<NDIM;mu++) complex_summ_the_prod(hits::field[ivol],J_tot[ivol][mu],xi[ivol][mu]);
+	}
+      THREAD_BARRIER();
+      
+      //collapse
+      complex glb;
+      complex_vector_glb_collapse(glb,hits::field,loc_vol);
+      
+      //print after normalizing
+      double norm=1.0/((nhits_done_so_far+1)*std::max(1,nhits_done_so_far));
+      master_fprintf(fout,"%.16lg %.16lg\t",glb[RE]*norm,glb[IM]*norm);
+    }
+  master_fprintf(fout,"\n");
+  
+  close_file(fout);
 }
 THREADABLE_FUNCTION_END
 
@@ -428,13 +467,14 @@ void init_simulation(int narg,char **arg)
   rnd_t noise_type=RND_GAUSS;
   ori_source_name_list.push_back(source_name);
   Q[source_name].init_as_source(noise_type,ALL_TIMES,0,store_source);
+  if(flag_compute_EU6_alt2) Q[source_name_tot].init_as_source(noise_type,ALL_TIMES,0,store_source);
   
   //Read whether this is a twisted and/or clover run
   read_twisted_run();
   read_clover_run();
   
   //Read if to compute EU6 with two inversions
-  read_str_int("ComputeEU6Alt",&compute_EU6_alt);
+  read_str_int("ComputeEU6Alt",&flag_compute_EU6_alt);
   
   /////////////////////////////////////////////////////////////////
   
@@ -486,6 +526,13 @@ void init_simulation(int narg,char **arg)
       qprop_name_list.push_back(prop_name);
       Q[prop_name].init_as_propagator(PROP,{{source_name,{1.0,0.0}}},ALL_TIMES,residue,kappa,mass,r,charge,theta,store_prop);
       
+      //Add the sum of all hit for this quark_content_t
+      if(flag_compute_EU6_alt2)
+	{
+	  std::string prop_name_tot=prop_name+"_tot";
+	  Q[prop_name_tot].init_as_propagator(PROP,{},ALL_TIMES,residue,kappa,mass,r,charge,theta,store_prop);
+	}
+      
       //Add insertion of S, P and T
       for(auto ins : {SCALAR,PSEUDO,TADPOLE})
 	{
@@ -497,7 +544,7 @@ void init_simulation(int narg,char **arg)
 	}
       
       //includes the propagators needed to compute EU6 with two inversions
-      if(compute_EU6_alt)
+      if(flag_compute_EU6_alt)
 	{
 	  std::string prop_name_F=combine("Q%d_PROP_F",iquark);
 	  std::string prop_name_F_PROP=combine("Q%d_PROP_F_PROP",iquark);
@@ -566,6 +613,25 @@ void close()
     }
 }
 
+void summ_all_propagators()
+{
+  if(not flag_compute_EU6_alt2) crash("impossible");
+  
+  //summ the source
+  for(int iso_spi_col=0;iso_spi_col<nso_spi*nso_col;iso_spi_col++)
+    double_vector_summassign((double*)(Q[source_name_tot][iso_spi_col]),(double*)(Q[source_name][iso_spi_col]),loc_vol*sizeof(spincolor)/sizeof(double));
+  
+  //summ the propagators
+  for(int iquark=0;iquark<nquarks;iquark++)
+    {
+      std::string prop_name=qprop_name_list[iquark];
+      std::string prop_name_tot=prop_name+"_tot";
+      
+      for(int iso_spi_col=0;iso_spi_col<nso_spi*nso_col;iso_spi_col++)
+	double_vector_summassign((double*)(Q[prop_name_tot][iso_spi_col]),(double*)(Q[prop_name][iso_spi_col]),loc_vol*sizeof(spincolor)/sizeof(double));
+    }
+}
+
 //compute pseudoscalar, scalar and tadpoles (which can be used for EU1, EU2, EU4)
 void compute_disco_PST(int ihit)
 {
@@ -586,14 +652,23 @@ THREADABLE_FUNCTION_0ARG(compute_all_quark_currents)
   for(int iquark=0;iquark<nquarks;iquark++)
     {
       //select name and field
-      std::string quark_name=get_prop_name(iquark,PROP);
+      std::string prop_name=get_prop_name(iquark,PROP);
       spin1field *j=curr::fields[ifield_idx(iquark,curr::j)];
       spin1field *J=curr::fields[ifield_idx(iquark,curr::J)];
       
       //compute and summ
       int revert=false;
-      local_or_conserved_vector_current_mel(j,base_gamma[0],source_name,quark_name,revert);
+      local_or_conserved_vector_current_mel(j,base_gamma[0],source_name,prop_name,revert);
       double_vector_summassign((double*)J,(double*)j,loc_vol*sizeof(spin1field)/sizeof(double));
+      
+      if(flag_compute_EU6_alt2)
+	{
+	  std::string prop_name_tot=prop_name+"_tot";
+	  spin1field *J_tot=curr::fields[ifield_idx(iquark,curr::J_tot)];
+	  local_or_conserved_vector_current_mel(J_tot,base_gamma[0],source_name_tot,prop_name_tot,revert);
+	  
+	  double_vector_subtassign((double*)J_tot,(double*)J,loc_vol*sizeof(spin1field)/sizeof(double));
+	}
     }
 }
 THREADABLE_FUNCTION_END
@@ -658,6 +733,17 @@ void in_main(int narg,char **arg)
       //setup the conf and generate the source
       start_new_conf();
       
+      if(flag_compute_EU6_alt2)
+	for(int iso_spi_col=0;iso_spi_col<nso_spi*nso_col;iso_spi_col++)
+	  {
+	    vector_reset(Q[source_name_tot][iso_spi_col]);
+	    for(int iquark=0;iquark<nquarks;iquark++)
+	      {
+		std::string prop_name_tot=qprop_name_list[iquark]+"_tot";
+		vector_reset(Q[prop_name_tot][iso_spi_col]);
+	      }
+	  }
+      
       //start at nhits_done_so_far
       skip_hits_done_so_far();
       EU1_EU2_EU4_EU6alt::load_all_or_reset(nhits_done_so_far);
@@ -668,12 +754,16 @@ void in_main(int narg,char **arg)
 	{
 	  start_hit(nhits_done_so_far);
 	  generate_propagators(nhits_done_so_far);
+	  
+	  if(flag_compute_EU6_alt2) summ_all_propagators();
+	  
 	  compute_disco_PST(nhits_done_so_far);
 	  
 	  compute_all_quark_currents();
 	  compute_all_E_f1_f2();
 	  
 	  compute_EU1_EU2_EU4_EU6alt();
+	  if(flag_compute_EU6_alt2) compute_EU6_alt2();
 	  
 	  nhits_done_so_far++;
 	}
