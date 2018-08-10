@@ -87,23 +87,48 @@ namespace mel
 
 void in_main(int narg,char **arg)
 {
+  std::string input_path;
+  
+  //parse opts
+  int c;
+  while((c=getopt(narg,arg,"i:"))!= -1)
+    switch (c)
+      {
+      case 'i': input_path=optarg; break;
+      default: crash("Unknown option -%c",optopt);
+      }
+  
+  if(input_path=="") crash("Please specify -i");
+  open_input(input_path);
+  
   //geometry
-  int L=24;
-  int T=48;
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
   init_grid(T,L);
   
+  //Wall time
+  double wall_time;
+  read_str_double("WallTime",&wall_time);
+  
   //local random generator
-  int seed=1234;
+  int seed;
+  read_str_int("Seed",&seed);
   start_loc_rnd_gen(seed);
   
   //fermion
-  double kappa=0.163265;
-  double am=0.0060;
   int r=0;
-  double residue=1e-16;
+  //Read kappa
+  double kappa;
+  read_str_double("Kappa",&kappa);
+  double am;
+  read_str_double("Mass",&am);
+  double residue;
+  read_str_double("Residue",&residue);
   
   //allocate the source and prop
-  int nhits=256;
+  int nhits;
+  read_str_int("NHits",&nhits);
   spincolor *eta[nhits];
   spincolor *phi[nhits];
   for(int ihit=0;ihit<nhits;ihit++)
@@ -122,8 +147,13 @@ void in_main(int narg,char **arg)
   momentum_t tadpole_coeff;
   compute_tadpole(tadpole_coeff,photon_pars);
   
+  //free theory
+  int free_theory;
+  read_str_int("FreeTheory",&free_theory);
+  
   //conf
-  std::string conf_path="conf";
+  int nconfs;
+  read_str_int("NGaugeConfs",&nconfs);
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   
   //currents
@@ -143,106 +173,144 @@ void in_main(int narg,char **arg)
   
   /////////////////////////////////////////////////////////////////
   
-  //read the configuration and put phases
-  read_ildg_gauge_conf(conf,conf_path);
-  momentum_t old_theta;
-  old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
-  adapt_theta(conf,old_theta,theta,0,0);
-  
-  //generate the source
-  for(int ihit=0;ihit<nhits;ihit++)
-    generate_undiluted_source(eta[ihit],RND_Z4,ALL_TIMES);
-  
-  //compute all propagators
-  for(int ihit=0;ihit<nhits;ihit++)
+  int iconf=0;
+  do
     {
-      safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,eta[ihit]);
-      inv_tmD_cg_eoprec(solution,NULL,conf,kappa,am*tau3[r],1000000,residue,source);
-      safe_dirac_prod_spincolor(phi[ihit],(tau3[r]==-1)?&Pminus:&Pplus,solution);
-    }
-  
-  //compute all currents
-  for(int ihit=0;ihit<nhits;ihit++)
-    mel::conserved_vector_current_mel(J[ihit],eta[ihit],conf,r,phi[ihit]);
-  
-  //compute diagrams EU1, EU2 and EU4
-  complex EU1={0.0,0.0},EU2={0.0,0.0},EU4={0.0,0.0};
-  
-  FILE *fout_EU1=open_file("EU1","w");
-  FILE *fout_EU2=open_file("EU2","w");
-  FILE *fout_EU4=open_file("EU4","w");
-  FILE *fout_EU5=open_file("EU5","w");
-  FILE *fout_EU6=open_file("EU6","w");
-  
-  for(int ihit=0;ihit<nhits;ihit++)
-    {
-      complex temp;
+      //input conf and output dir
+      char conf_path[1024];
+      read_str(conf_path,1024);
+      char outfolder[1024];
+      read_str(outfolder,1024);
       
-      //Pseudo
-      mel::local_mel(temp,eta[ihit],5,phi[ihit]);
-      complex_summassign(EU1,temp);
-      master_fprintf(fout_EU1,"%.16lg %.16lg\n",EU1[RE]/(ihit+1),EU1[IM]/(ihit+1));
+      //generate the source
+      for(int ihit=0;ihit<nhits;ihit++)
+	generate_undiluted_source(eta[ihit],RND_Z4,ALL_TIMES);
       
-      //Scalar
-      mel::local_mel(temp,eta[ihit],0,phi[ihit]);
-      complex_summassign(EU2,temp);
-      master_fprintf(fout_EU2,"%.16lg %.16lg\n",EU2[RE]/(ihit+1),EU2[IM]/(ihit+1));
-      
-      //Tadpole
-      insert_tm_tadpole(tadpole_prop,conf,phi[ihit],r,tadpole_coeff,ALL_TIMES);
-      mel::local_mel(temp,eta[ihit],0,tadpole_prop);
-      complex_summassign(EU4,temp);
-      master_fprintf(fout_EU4,"%.16lg %.16lg\n",EU4[RE]/(ihit+1),EU4[IM]/(ihit+1));
-    }
-  
-  //Compute diagram EU5
-  complex EU5={0.0,0.0};
-  int nEU5=0;
-  for(int ihit=0;ihit<nhits;ihit++)
-    {
-      multiply_by_tlSym_gauge_propagator(xi,J[ihit],photon_pars);
-      
-      for(int jhit=0;jhit<ihit;jhit++)
+      if(file_exists(combine("%s/running",outfolder))) master_printf(" Skipping %s\n",conf_path);
+      else
 	{
-	  complex temp;
-	  mel::global_product(temp,xi,J[jhit]);
-	  complex_summassign(EU5,temp);
-	  nEU5++;
+	  int ris=create_dir(outfolder);
+	  if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+	  else       crash(" Failed to create the output \"%s\" for conf \"%s\".",outfolder,conf_path);
+	  
+	  //read the configuration and put phases
+	  if(free_theory) generate_cold_lx_conf(conf);
+	  else            read_ildg_gauge_conf(conf,conf_path);
+	  
+	  momentum_t old_theta;
+	  old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
+	  adapt_theta(conf,old_theta,theta,0,0);
+	  
+	  //compute all propagators
+	  for(int ihit=0;ihit<nhits;ihit++)
+	    {
+	      master_printf("Prop Hit %d\n",ihit);
+	      
+	      safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,eta[ihit]);
+	      
+	      if(free_theory)
+		{
+		  tm_quark_info qu(kappa,am,r,theta);
+		  tm_basis_t basis=WILSON_BASE;
+		  multiply_from_left_by_x_space_twisted_propagator_by_fft(solution,source,qu,basis,false);
+		}
+	      else
+		inv_tmD_cg_eoprec(solution,NULL,conf,kappa,am*tau3[r],1000000,residue,source);
+	      
+	      safe_dirac_prod_spincolor(phi[ihit],(tau3[r]==-1)?&Pminus:&Pplus,solution);
+	    }
+	  
+	  //compute all currents
+	  for(int ihit=0;ihit<nhits;ihit++)
+	    {
+	      master_printf("Cur Hit %d\n",ihit);
+	      mel::conserved_vector_current_mel(J[ihit],eta[ihit],conf,r,phi[ihit]);
+	    }
+	  
+	  //compute diagrams EU1, EU2 and EU4
+	  complex EU1={0.0,0.0},EU2={0.0,0.0},EU4={0.0,0.0};
+	  
+	  FILE *fout_EU1=open_file(combine("%s/EU1",outfolder),"w");
+	  FILE *fout_EU2=open_file(combine("%s/EU2",outfolder),"w");
+	  FILE *fout_EU4=open_file(combine("%s/EU4",outfolder),"w");
+	  FILE *fout_EU5=open_file(combine("%s/EU5",outfolder),"w");
+	  FILE *fout_EU6=open_file(combine("%s/EU6",outfolder),"w");
+	  
+	  for(int ihit=0;ihit<nhits;ihit++)
+	    {
+	      complex temp;
+	      
+	      //Pseudo
+	      mel::local_mel(temp,eta[ihit],5,phi[ihit]);
+	      complex_summ_the_prod_idouble(EU1,temp,-1.0);
+	      master_fprintf(fout_EU1,"%.16lg %.16lg\n",EU1[RE]/(ihit+1),EU1[IM]/(ihit+1));
+	      
+	      //Scalar
+	      mel::local_mel(temp,eta[ihit],0,phi[ihit]);
+	      complex_summassign(EU2,temp);
+	      master_fprintf(fout_EU2,"%.16lg %.16lg\n",EU2[RE]/(ihit+1),EU2[IM]/(ihit+1));
+	      
+	      //Tadpole
+	      insert_tm_tadpole(tadpole_prop,conf,phi[ihit],r,tadpole_coeff,ALL_TIMES);
+	      mel::local_mel(temp,eta[ihit],0,tadpole_prop);
+	      complex_summassign(EU4,temp);
+	      master_fprintf(fout_EU4,"%.16lg %.16lg\n",EU4[RE]/(ihit+1),EU4[IM]/(ihit+1));
+	    }
+	  
+	  //Compute diagram EU5
+	  complex EU5={0.0,0.0};
+	  int nEU5=0;
+	  for(int ihit=0;ihit<nhits;ihit++)
+	    {
+	      multiply_by_tlSym_gauge_propagator(xi,J[ihit],photon_pars);
+	      
+	      for(int jhit=0;jhit<ihit;jhit++)
+		{
+		  complex temp;
+		  mel::global_product(temp,xi,J[jhit]);
+		  complex_summassign(EU5,temp);
+		  nEU5++;
+		}
+	      master_fprintf(fout_EU5,"%.16lg %.16lg %d %d\n",EU5[RE]/nEU5,EU5[IM]/nEU5,ihit,nEU5);
+	    }
+	  
+	  //Compute diagram EU6
+	  complex EU6={0.0,0.0};
+	  int nEU6=0;
+	  for(int ihit=0;ihit<nhits;ihit++)
+	    {
+	      for(int jhit=0;jhit<ihit;jhit++)
+		{
+		  mel::conserved_vector_current_mel(J[ihit],eta[ihit],conf,r,phi[jhit]);
+		  mel::conserved_vector_current_mel(J[jhit],eta[jhit],conf,r,phi[ihit]);
+		  multiply_by_tlSym_gauge_propagator(xi,J[ihit],photon_pars);
+		  complex temp;
+		  mel::global_product(temp,J[jhit],xi);
+		  complex_summassign(EU6,temp);
+		  nEU6++;
+		}
+	      master_fprintf(fout_EU6,"%.16lg %.16lg %d %d\n",EU6[RE]/nEU6,EU6[IM]/nEU6,ihit,nEU6);
+	    }
+	  
+	  close_file(fout_EU1);
+	  close_file(fout_EU2);
+	  close_file(fout_EU4);
+	  close_file(fout_EU5);
+	  close_file(fout_EU6);
 	}
-      master_fprintf(fout_EU5,"%.16lg %.16lg %d %d\n",EU5[RE]/nEU5,EU5[IM]/nEU5,ihit,nEU5);
+      
+      iconf++;
     }
-  
-  //Compute diagram EU6
-  complex EU6={0.0,0.0};
-  int nEU6=0;
-  for(int ihit=0;ihit<nhits;ihit++)
-    {
-      for(int jhit=0;jhit<ihit;jhit++)
-	{
-	  mel::conserved_vector_current_mel(J[ihit],eta[ihit],conf,r,phi[jhit]);
-	  multiply_by_tlSym_gauge_propagator(J[jhit],J[ihit],photon_pars);
-	  complex temp;
-	  mel::global_product(temp,J[jhit],J[ihit]);
-	  complex_summassign(EU6,temp);
-	  nEU6++;
-	}
-      master_fprintf(fout_EU6,"%.16lg %.16lg %d %d\n",EU6[RE]/nEU6,EU6[IM]/nEU6,ihit,nEU6);
-    }
-  
-  close_file(fout_EU1);
-  close_file(fout_EU2);
-  close_file(fout_EU4);
-  close_file(fout_EU5);
-  close_file(fout_EU6);
+  while(iconf<nconfs);
   
   /////////////////////////////////////////////////////////////////
   
   nissa_free(tadpole_prop);
-  
+  nissa_free(xi);
+  nissa_free(solution);
+  nissa_free(source);
   nissa_free(mel::buffer);
-  
   for(int ihit=0;ihit<nhits;ihit++) nissa_free(J[ihit]);
-  
   nissa_free(conf);
   
   //free the source and prop
