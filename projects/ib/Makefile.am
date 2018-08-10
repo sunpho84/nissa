@@ -1,6 +1,7 @@
 bin_PROGRAMS+= \
 	$(top_builddir)/bin/checks_ib \
 	$(top_builddir)/bin/disco \
+	$(top_builddir)/bin/disco2 \
 	$(top_builddir)/bin/ib \
 	$(top_builddir)/bin/mel \
         $(top_builddir)/bin/mel_point_source
@@ -43,6 +44,10 @@ __top_builddir__bin_mel_point_source_LDFLAGS=$(LDFLAGS)
 __top_builddir__bin_disco_SOURCES=%D%/disco.cpp $(common_sources)
 __top_builddir__bin_disco_LDADD=$(LDADD)
 __top_builddir__bin_disco_LDFLAGS=$(LDFLAGS)
+
+__top_builddir__bin_disco2_SOURCES=%D%/disco2.cpp
+__top_builddir__bin_disco2_LDADD=$(LDADD)
+__top_builddir__bin_disco2_LDFLAGS=$(LDFLAGS)
 
 # __top_builddir__bin_test_prop_SOURCES=%D%/test_prop.cpp $(common_sources)
 # __top_builddir__bin_test_prop_LDADD=$(LDADD)
