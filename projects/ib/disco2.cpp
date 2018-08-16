@@ -5,6 +5,45 @@ using namespace nissa;
 const int ALL_TIMES=-1;
 momentum_t theta={-1,0,0,0};
 
+//photon
+gauge_info photon_pars;
+
+namespace free_th
+{
+  spinspin *qu;
+  spin1prop *ph;
+  
+  //allocate the free quark and photon props
+  void allocate_props()
+  {
+    qu=nissa_malloc("qu",loc_vol+bord_vol,spinspin);
+    ph=nissa_malloc("ph",loc_vol+bord_vol,spin1prop);
+  }
+  
+  //compute quark and photon props
+  void precompute_propagators()
+  {
+    tm_quark_info qu_pars;
+    qu_pars.bc[0]=-1;
+    qu_pars.kappa=0.125;
+    qu_pars.mass=0.0;
+    qu_pars.r=0;
+    
+    compute_x_space_twisted_propagator_by_fft(qu,qu_pars,MAX_TWIST_BASE);
+    
+    /////////////////////////////////////////////////////////////////
+    
+    compute_x_space_tlSym_gauge_propagator_by_fft(ph,photon_pars);
+  }
+  
+  //free the free quark and photon props
+  void free_props()
+  {
+    nissa_free(qu);
+    nissa_free(ph);
+  }
+}
+
 namespace mel
 {
   //buffer for reduction
@@ -56,7 +95,7 @@ namespace mel
 	  dirac_subt_the_prod_spincolor(Gf,GAMMA+mu,f);
 	  spincolor_scalar_prod(c,source[ivol],Gf);
 	  complex_summ_the_prod_idouble(out[ivol][mu],c,-0.5);
-		
+	  
 	  //piece psi_fw U_ivol^dag psi_ivol
 	  unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],prop[ivol]);
 	  unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
@@ -87,6 +126,11 @@ namespace mel
 
 void in_main(int narg,char **arg)
 {
+  //to be read
+  photon_pars.alpha=FEYNMAN_ALPHA;
+  photon_pars.c1=WILSON_C1;
+  photon_pars.zms=UNNO_ALEMANNA;
+  
   std::string input_path;
   
   //parse opts
@@ -137,12 +181,6 @@ void in_main(int narg,char **arg)
       phi[ihit]=nissa_malloc("phi",loc_vol+bord_vol,spincolor);
     }
   
-  //photon
-  gauge_info photon_pars;
-  photon_pars.alpha=FEYNMAN_ALPHA;
-  photon_pars.c1=WILSON_C1;
-  photon_pars.zms=UNNO_ALEMANNA;
-  
   //compute the tadpole coefficient
   momentum_t tadpole_coeff;
   compute_tadpole(tadpole_coeff,photon_pars);
@@ -150,6 +188,15 @@ void in_main(int narg,char **arg)
   //free theory
   int free_theory;
   read_str_int("FreeTheory",&free_theory);
+  
+  //divert if we are doing only the free theory
+  if(free_theory)
+    {
+      free_th::allocate_props();
+      free_th::precompute_propagators();
+      
+      free_th::free_props();
+    }
   
   //conf
   int nconfs;
