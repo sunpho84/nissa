@@ -223,13 +223,14 @@ void in_main(int narg,char **arg)
 	  //compute all currents
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    {
-	      master_printf("Cur Hit %d\n",ihit);
+	      //master_printf("Cur Hit %d\n",ihit);
 	      mel::conserved_vector_current_mel(J[ihit],eta[ihit],conf,r,phi[ihit]);
 	    }
 	  
 	  //compute diagrams EU1, EU2 and EU4
 	  complex EU1={0.0,0.0},EU2={0.0,0.0},EU4={0.0,0.0};
 	  
+	  //open the output files
 	  FILE *fout_EU1=open_file(combine("%s/EU1",outfolder),"w");
 	  FILE *fout_EU2=open_file(combine("%s/EU2",outfolder),"w");
 	  FILE *fout_EU4=open_file(combine("%s/EU4",outfolder),"w");
