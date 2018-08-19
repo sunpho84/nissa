@@ -21,11 +21,21 @@ namespace nissa
     //operator implementing the hermitian matrix to be solved
     const F2 &op;
     
+    //max number ofiterations
+    int nmax_iter{100000};
+    
   public:
+    
     //constructor
     eigenvalues_herm_finder_t<T,F1,F2>(int mat_size,double tol,bool min_max,const F1 &fill,const F2 &op) : mat_size(mat_size),tol(tol),min_max(min_max),fill(fill),op(op)
     {
       
+    }
+    
+    //set the maximal number of iterations
+    void set_nmax_iter(int n)
+    {
+      nmax_iter=n;
     }
     
     //compute eigenvectors
