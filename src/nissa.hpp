@@ -94,6 +94,7 @@
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 
 #include "inverters/staggered/cg_invert_stD.hpp"
+#include "inverters/templates/eigenvalues.hpp"
 #include "inverters/twisted_mass/cg_128_invert_tmQ2.hpp"
 #include "inverters/twisted_mass/cg_invert_tmD_eoprec.hpp"
 #include "inverters/twisted_mass/cg_invert_tmQ2.hpp"
