@@ -3,6 +3,7 @@
 
 namespace nissa
 {
+  //class to get eigenvalues from a matrix op
   template <class T,class F1,class F2>
   class eigenvalues_herm_finder_t
   {
@@ -32,6 +33,11 @@ namespace nissa
       
     }
     
+    //destructor
+    ~eigenvalues_herm_finder_t()
+    {
+    }
+    
     //set the maximal number of iterations
     void set_nmax_iter(int n)
     {
@@ -43,6 +49,13 @@ namespace nissa
     {
     }
   };
+  
+  //helper function to avoid explicitating the types
+  template <class T,class F1,class F2>
+  auto get_eigenvalues_herm_finder(int mat_size,double tol,bool min_max,const F1 &fill,const F2 &op)
+  {
+    return eigenvalues_herm_finder_t<T,decltype(fill),decltype(op)>(mat_size,tol,min_max,fill,op);
+  }
 }
 
 #endif
