@@ -284,7 +284,7 @@ namespace nissa
     if(!(OPT&DO_NOT_SET_FLAGS)) set_borders_invalid(a);
   }
   THREADABLE_FUNCTION_END
-
+  
   //a[]=b[]*c+d[]*e
   THREADABLE_FUNCTION_7ARG(double_vector_linear_comb, double*,a, double*,b, double,c, double*,d, double,e, int,n, int,OPT)
   {
@@ -321,7 +321,7 @@ namespace nissa
     if(!(OPT&DO_NOT_SET_FLAGS)) set_borders_invalid(a);
   }
   THREADABLE_FUNCTION_END
-
+  
   //a[]=b[]*c+d[]*e
   THREADABLE_FUNCTION_7ARG(single_vector_linear_comb, float*,a, float*,b, float,c, float*,d, float,e, int,n, int,OPT)
   {
@@ -331,7 +331,7 @@ namespace nissa
     if(!(OPT&DO_NOT_SET_FLAGS)) set_borders_invalid(a);
   }
   THREADABLE_FUNCTION_END
-
+  
   ////////////////////////////////////////////////////// quadruple precision ///////////////////////////////////////////
   
   //a=b
@@ -353,7 +353,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   /////////////////// scalar prodcut in quadruple /////////////////
-
+  
   //(a,b)
   THREADABLE_FUNCTION_4ARG(quadruple_vector_glb_scalar_prod, float_128*,glb_res, float_128*,a, float_128*,b, int,n)
   {
@@ -366,7 +366,7 @@ namespace nissa
     glb_reduce_float_128(*glb_res,loc_thread_res);
   }
   THREADABLE_FUNCTION_END
-
+  
   //(a,b)
   void double_conv_quadruple_vector_glb_scalar_prod(double *out,float_128 *a,float_128 *b,int n)
   {

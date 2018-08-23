@@ -30,7 +30,7 @@ namespace nissa
   void double_vector_prod_double(double *out,double *in,double r,int n);
   inline void double_vector_prodassign_double(double *v,double r,int n)
   {double_vector_prod_double(v,v,r,n);}
-  void double_vector_normalize(double *rat,double *out,double *in,double fact,int n);
+  void double_vector_normalize(double *ratio,double *out,double *in,double norm,int n);
   void double_vector_prod_the_summ_double(double *out,double r,double *in1,double *in2,int n);
   void double_vector_subt(double *out,double *in1,double *i2,int n);
   void double_vector_summ(double *out,double *in1,double *i2,int n);
