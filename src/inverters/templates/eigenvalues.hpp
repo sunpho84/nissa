@@ -1,60 +1,77 @@
 #ifndef _EIGENVALUES_HPP
 #define _EIGENVALUES_HPP
 
+#include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
+#include "linalgs/linalgs.hpp"
+#include "new_types/complex.hpp"
+
 namespace nissa
 {
-  //class to get eigenvalues from a matrix op
-  template <class T,class F1,class F2>
-  class eigenvalues_herm_finder_t
+  namespace internal_eigenvalues
   {
-    //matrix size
-    int mat_size;
-    
-    //stopping criterion
-    double tol;
-    
-    //minimum or maximum
-    bool min_max;
-    
-    //function to fill the random source
-    const F1 &fill;
-    
-    //operator implementing the hermitian matrix to be solved
-    const F2 &op;
-    
-    //max number ofiterations
-    int nmax_iter{100000};
-    
-  public:
-    
-    //constructor
-    eigenvalues_herm_finder_t<T,F1,F2>(int mat_size,double tol,bool min_max,const F1 &fill,const F2 &op) : mat_size(mat_size),tol(tol),min_max(min_max),fill(fill),op(op)
+    //scalar product of (in1,in2)
+    void scalar_prod(complex out,complex *in1,complex *in2,complex *buffer,int loc_size)
     {
+      GET_THREAD_ID();
       
+      //local scalar product
+      NISSA_PARALLEL_LOOP(i,0,loc_size)
+	unsafe_complex_conj1_prod(buffer[i],in1[i],in2[i]);
+      THREAD_BARRIER();
+      
+      //reduction
+      complex_vector_glb_collapse(out,buffer,loc_size);
     }
     
-    //destructor
-    ~eigenvalues_herm_finder_t()
+    //Ai=Ai-Bi*c
+    void complex_vector_subtssign_complex_vector_prod_complex(complex *a,complex *b,complex c,int n)
     {
+      GET_THREAD_ID();
+      
+      NISSA_PARALLEL_LOOP(i,0,n)
+	complex_subt_the_prod(a[i],b[i],c);
+      set_borders_invalid(a);
     }
     
-    //set the maximal number of iterations
-    void set_nmax_iter(int n)
+    //orthogonalize v with respect to the nvec of V
+    void modified_GS(complex *v,complex **V,complex *buffer,int nvec,int vec_size)
     {
-      nmax_iter=n;
+      for(int i=0;i<nvec;i++)
+	{
+	  complex s;
+	  scalar_prod(s,V[i],v,buffer,vec_size);
+	  complex_vector_subtssign_complex_vector_prod_complex(v,V[i],s,vec_size);
+	}
     }
-    
-    //compute eigenvectors
-    void get(T **eig_vec,double *eig_val,int neig)
-    {
-    }
-  };
+  }
   
-  //helper function to avoid explicitating the types
-  template <class T,class F1,class F2>
-  auto get_eigenvalues_herm_finder(int mat_size,double tol,bool min_max,const F1 &fill,const F2 &op)
+  //find the neig eigenvalues closest to the target
+  template <class Fmat,class Filler>
+  void eigenvalues_herm_find(complex **eig_vec,double *eig_val,int neig,bool min_max,
+			     const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
+			     const double tol,const int niter_max,
+			     const int wspace_min_size,const int wspace_max_size,
+			     const Filler &filler)
   {
-    return eigenvalues_herm_finder_t<T,decltype(fill),decltype(op)>(mat_size,tol,min_max,fill,op);
+    using namespace internal_eigenvalues;
+    
+    //allocate workspace
+    complex *V[wspace_max_size];
+    for(int i=0;i<wspace_max_size;i++) V[i]=nissa_malloc("Vi",mat_size_to_allocate,complex);
+    complex *buffer=nissa_malloc("buffer",mat_size, complex);
+    
+    //fill V and orthonormalize
+    for(int i=0;i<wspace_max_size;i++)
+      {
+	filler(V[i]);
+	modified_GS(V[i],V,buffer,i,mat_size);
+	double rat;
+	double_vector_normalize(&rat,(double*)(V[i]),(double*)(V[i]),1.0,2*mat_size);
+      }
+    
+    //free workspace
+    for(int i=0;i<wspace_max_size;i++) nissa_free(V[i]);
   }
 }
 
