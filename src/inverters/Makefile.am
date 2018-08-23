@@ -12,6 +12,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	inverters/staggered/cg_invert_stD2ee_m2.cpp \
 	inverters/staggered/cg_invert_stD.cpp \
 	inverters/staggered/cg_invert_evn_stD.cpp \
+	inverters/templates/eigenvalues.cpp \
 	inverters/twisted_mass/cg_invert_tmD_eoprec.cpp \
 	inverters/twisted_mass/cg_invert_tmQ2.cpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
@@ -36,6 +37,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 include_HEADERS+= \
 	inverters/momenta/cg_invert_MFACC.hpp \
 	inverters/momenta/cgm_invert_MFACC.hpp \
+	inverters/templates/eigenvalues.hpp \
 	inverters/twisted_mass/cg_invert_tmD_eoprec.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.hpp \
