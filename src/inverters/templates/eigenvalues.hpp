@@ -28,7 +28,8 @@ namespace nissa
     //allocate workspace
     complex *V[wspace_max_size];
     for(int i=0;i<wspace_max_size;i++) V[i]=nissa_malloc("Vi",mat_size_to_allocate,complex);
-    complex *buffer=nissa_malloc("buffer",mat_size, complex);
+    complex *buffer=nissa_malloc("buffer",mat_size,complex);
+    complex *temp=nissa_malloc("temp",mat_size,complex);
     
     //fill V and orthonormalize
     double useless_rat;
@@ -39,8 +40,24 @@ namespace nissa
 	double_vector_normalize(&useless_rat,(double*)(V[i]),(double*)(V[i]),1.0,2*mat_size);
       }
     
+    //generate interaction matrix
+    int wspace_size=neig;
+    complex M[wspace_size*wspace_size];
+    for(int i=0;i<wspace_size;i++)
+      {
+	imp_mat(temp,V[i]);
+	for(int j=0;j<=i;j++)
+	  {
+	    scalar_prod(M[i*wspace_size+j],V[j],temp,buffer,mat_size);
+	    master_printf("(%lg,%lg)\t",M[i*wspace_size+j][RE],M[i*wspace_size+j][IM]);
+	  }
+	master_printf("\n");
+      }
+    
     //free workspace
     for(int i=0;i<wspace_max_size;i++) nissa_free(V[i]);
+    nissa_free(buffer);
+    nissa_free(temp);
   }
 }
 
