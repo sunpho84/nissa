@@ -39,42 +39,48 @@ namespace nissa
     }
     
     //orthogonalize v with respect to the nvec of V
-    void modified_GS(complex *v,complex **V,complex *buffer,int nvec,int vec_size)
+    void modified_GS(complex *v,complex **V,complex *buffer,int nvec,int vec_length)
     {
       for(int i=0;i<nvec;i++)
 	{
 	  complex s;
-	  scalar_prod(s,V[i],v,buffer,vec_size);
-	  complex_vector_subtassign_complex_vector_prod_complex(v,V[i],s,vec_size);
+	  scalar_prod(s,V[i],v,buffer,vec_length);
+	  complex_vector_subtassign_complex_vector_prod_complex(v,V[i],s,vec_length);
 	}
     }
     
     //find eigenvalues of M and sort them according to |\lambda_i-\tau|
-    void eigenvalues_of_hermatr_find_all_and_sort(double *lambda,complex *M,int size,double tau)
+    //NB: M is larger than neig
+    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,double *lambda,const complex *M,const int M_size,const int neig,const double tau)
     {
       //structure to diagonalize
       using namespace Eigen;
       SelfAdjointEigenSolver<MatrixXcd> solver;
       
       //fill the matrix to be diagonalized
-      MatrixXcd matr(size,size);
-      for(int i=0;i<size;i++)
-	for(int j=0;j<=i;j++)
-	  matr(i,j)=std::complex<double>(M[j+size*i][RE],+M[j+size*i][IM]);
+      master_printf("//////////////////////////// matr //////////////////////////\n");
+      MatrixXcd matr(neig,neig);
+      for(int i=0;i<neig;i++)
+	{
+	  for(int j=0;j<=i;j++)
+	    {
+	      matr(i,j)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
+	      master_printf("(%+4.4g,%+4.4g)\t",M[j+M_size*i][RE],M[j+M_size*i][IM]);
+	    }
+	  master_printf("\n");
+	}
       
       //diagonalize
       solver.compute(matr);
-      // std::cout<<"//////////////////////////// matr //////////////////////////"<<std::endl;
-      // std::cout<<matr<<std::endl;
-      std::cout<<"/////////////////////////// eigve //////////////////////////"<<std::endl;
-      std::cout<<solver.eigenvectors()<<std::endl;
+      std::cout<<"/////////////////////////// first eigvec //////////////////////////"<<std::endl;
+      std::cout<<solver.eigenvectors().col(0)<<std::endl;
       std::cout<<"/////////////////////////// eigva //////////////////////////"<<std::endl;
       std::cout<<solver.eigenvalues()<<std::endl;
       std::cout<<"/////////////////////////////////////////////////////////////////"<<std::endl;
       
       //sort the eigenvalues and eigenvectors
       std::vector<std::tuple<double,double,int>> ei;
-      for(int i=0;i<size;i++)
+      for(int i=0;i<neig;i++)
 	{
 	  double lambda=solver.eigenvalues()(i);
 	  ei.push_back(std::make_tuple(fabs(lambda-tau),lambda,i));
@@ -82,7 +88,7 @@ namespace nissa
       std::sort(ei.begin(),ei.end());
       
       //fill output
-      for(int ieig=0;ieig<size;ieig++)
+      for(int ieig=0;ieig<neig;ieig++)
 	{
 	  //fill eigvalue
 	  using std::get;
@@ -92,17 +98,64 @@ namespace nissa
 	  int ori=get<2>(ei[ieig]);
 	  
 	  //fill eigvec
-	  for(int j=0;j<size;j++)
+	  for(int j=0;j<neig;j++)
 	    {
-	      M[ieig+size*j][RE]=solver.eigenvectors()(j,ori).real();
-	      M[ieig+size*j][IM]=solver.eigenvectors()(j,ori).imag();
-	      
-	      master_printf("%lg,%lg\t",M[ieig+size*j][RE],M[ieig+size*j][IM]);
+	      eig_vec[ieig+neig*j][RE]=solver.eigenvectors()(j,ori).real();
+	      eig_vec[ieig+neig*j][IM]=solver.eigenvectors()(j,ori).imag();
 	    }
-	  master_printf("\n");
-	  
-	  //master_printf("%d   %lg %lg  %d\n",ieig,get<0>(ei[ieig]),get<1>(ei[ieig]),get<2>(ei[ieig]));
 	}
+    }
+    
+    double iterated_classical_GS(complex *v,int vec_length,int nvec,complex **A,complex *buffer,const int max_cgs_it)
+    {
+      const double alpha=0.5;
+      bool isorth=0;
+      double v_norm=0.0;
+      double v_norm_old=sqrt(double_vector_glb_norm2(v,vec_length));
+      
+      for(int i=0;i<max_cgs_it and not isorth;i++)
+	{
+	  for(int j=0;j<nvec;j++)
+	    {
+	      complex p;
+	      scalar_prod(p,A[j],v,buffer,vec_length);
+	      complex_vector_subtassign_complex_vector_prod_complex(v,A[j],p,vec_length);
+	    }
+	  v_norm=sqrt(double_vector_glb_norm2(v,vec_length));
+	  
+	  isorth=(v_norm>alpha*v_norm_old);
+	  v_norm_old=v_norm;
+	}
+      
+      return v_norm;
+    }
+    
+    //form v[0:nout]=v[0:nin]*coeffs[0:nin,0:nout], using v itself
+    void combine_basis_to_restart(int nout,int nin,complex *coeffs,complex **vect,int vec_length)
+    {
+      GET_THREAD_ID();
+      
+      NISSA_PARALLEL_LOOP(iel,0,vec_length)
+	{
+	  //store the linear combo at fixed i
+	  complex tmp[nout];
+	  
+	  //combine
+	  for(int j=0;j<nout;j++)
+	    {
+	      complex_put_to_zero(tmp[j]);
+	      for(int k=0;k<nin;k++)
+		complex_summ_the_conj2_prod(tmp[j],vect[k][iel],coeffs[j+nin*k]);
+	    }
+	  
+	  //overwrite
+	  for(int j=0;j<nout;j++)
+	    complex_copy(vect[j][iel],tmp[j]);
+	}
+      
+      //barrier and mark as modified
+      for(int j=0;j<nout;j++)
+	set_borders_invalid(vect[j]);
     }
   }
 }
