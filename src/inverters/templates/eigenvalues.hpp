@@ -8,6 +8,11 @@
 
 #include "modern_cg.hpp"
 
+// #ifdef HAVE_EIGEN_DENSE
+ #include "eigen3/Eigen/Dense"
+// #endif
+
+
 namespace nissa
 {
   namespace internal_eigenvalues
@@ -24,6 +29,37 @@ namespace nissa
     double iterated_classical_GS(complex *v,int vec_size,int nvec,complex **A,complex* buffer,const int max_cgs_it);
     void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,double *lambda,const complex *M,const int M_size,const int neig,const double tau);
     void combine_basis_to_restart(int nout,int nin,complex *coeffs,complex **vect,int vec_length);
+    
+    template <class Fmat>
+    void all_eigenvalues_finder(const int mat_size,const Fmat &imp_mat)
+    {
+      using namespace Eigen;
+      SelfAdjointEigenSolver<MatrixXcd> solver;
+      
+      complex *out=nissa_malloc("out",mat_size,complex);
+      complex *in=nissa_malloc("in",mat_size,complex);
+      
+      //fill the matrix to be diagonalized
+      MatrixXcd matr(mat_size,mat_size);
+      for(int j=0;j<mat_size;j++)
+	{
+	  vector_reset(in);
+	  in[j][RE]=1.0;
+	  imp_mat(out,in);
+	  for(int i=0;i<mat_size;i++)
+	    matr(i,j)=std::complex<double>(out[i][RE],out[i][IM]);
+	}
+      
+      std::cout<<matr.topLeftCorner(12,12)<<std::endl;
+      
+      //diagonalize
+      solver.compute(matr);
+      
+      std::cout<<solver.eigenvalues()<<std::endl;
+      
+      nissa_free(out);
+      nissa_free(in);
+    }
   }
   
   //find the neig eigenvalues closest to the target
