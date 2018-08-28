@@ -145,7 +145,7 @@ namespace nissa
 	    {
 	      complex_put_to_zero(tmp[j]);
 	      for(int k=0;k<nin;k++)
-		complex_summ_the_conj2_prod(tmp[j],vect[k][iel],coeffs[j+nin*k]);
+		complex_summ_the_prod(tmp[j],vect[k][iel],coeffs[j+nin*k]);
 	    }
 	  
 	  //overwrite
