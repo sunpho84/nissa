@@ -24,6 +24,7 @@ addons:
     packages:
       - g++-7
       - libopenmpi-dev
+      - libeigen3-dev
 
 script:
   - bash config/bootstrap
