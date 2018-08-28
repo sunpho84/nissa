@@ -56,23 +56,23 @@ namespace nissa
 	double_vector_normalize(&useless_rat,(double*)(V[i]),(double*)(V[i]),1.0,2*mat_size);
       }
     
+    //generate interaction matrix
+    int wspace_size=wspace_min_size;
+    complex M[wspace_max_size*wspace_max_size];
+    for(int j=0;j<wspace_size;j++)
+      {
+	imp_mat(temp,V[j]);
+	for(int i=j;i<wspace_size;i++)
+	  scalar_prod(M[j+wspace_max_size*i],V[i],temp,buffer,mat_size);
+      }
+    
     //main loop
     int neig_to_find=neig;
     int solvestep=1;
     int iter=0;
-    int wspace_size=wspace_min_size;
     do
       {
 	master_printf("Iteration %d, wspace size: %d [%d:%d)\n",iter,wspace_size,wspace_min_size,wspace_max_size);
-	
-	//generate interaction matrix
-	complex M[wspace_max_size*wspace_max_size];
-	for(int j=0;j<wspace_size;j++)
-	  {
-	    imp_mat(temp,V[j]);
-	    for(int i=j;i<wspace_size;i++)
-	      scalar_prod(M[j+wspace_max_size*i],V[i],temp,buffer,mat_size);
-	  }
 	
 	//reset residue norm
 	double residue_norm[neig_to_find];
@@ -239,8 +239,8 @@ namespace nissa
 	
 	//update interaction matrix
 	imp_mat(temp,v);
-	for(int i=0;i<wspace_size+1;i++)
-	  scalar_prod(M[i+wspace_max_size*wspace_size],V[i],temp,buffer,mat_size);
+	for(int i=0;i<wspace_size+1;i++) //putting operator on the left
+	  scalar_prod(M[i+wspace_max_size*wspace_size],temp,V[i],buffer,mat_size);
 	
 	wspace_size++;
 	
