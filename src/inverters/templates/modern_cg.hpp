@@ -8,7 +8,7 @@
 namespace nissa
 {
   //solve using conjugate gradient algorithm
-  template <class Fmat> void cg_solve(complex *x,const Fmat& mat_impl,complex *b,int mat_size,int mat_size_to_allocate,double target_residue,int nmax_iters)
+  template <class Fmat> void cg_solve(complex *x,const Fmat& mat_impl,complex *b,int mat_size,int mat_size_to_allocate,double target_residue,int nmax_iters,int print_each)
   {
     master_printf("Starting cg, target_residue: %lg, niter_max: %d\n",target_residue,nmax_iters);
     
@@ -38,10 +38,10 @@ namespace nissa
 	double alpha=rr/pap;
 	double roro=rr;
 	
-	//adjust new solution and residual,
-	//compute new residual norm
+	//adjust new solution and residual
 	double_vector_summassign_double_vector_prod_double((double*)x,(double*)p,alpha,2*mat_size);
 	double_vector_summassign_double_vector_prod_double((double*)r,(double*)ap,-alpha,2*mat_size);
+	//compute new residual norm
 	rr=double_vector_glb_norm2(r,mat_size);
 	
 	//adjust new krylov vector
@@ -51,7 +51,7 @@ namespace nissa
 	//compute relative residue
 	rel_res=sqrt((double)rr)/source_norm;
 	
-	master_printf("it: %d, res: %lg\n",iter,rel_res);
+	if(iter%print_each==0) master_printf("it: %d, res: %lg\n",iter,rel_res);
 	
 	iter++;
       }
