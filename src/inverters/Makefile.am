@@ -38,6 +38,7 @@ include_HEADERS+= \
 	inverters/momenta/cg_invert_MFACC.hpp \
 	inverters/momenta/cgm_invert_MFACC.hpp \
 	inverters/templates/eigenvalues.hpp \
+	inverters/templates/modern_cg.hpp \
 	inverters/twisted_mass/cg_invert_tmD_eoprec.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.hpp \
