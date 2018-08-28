@@ -118,11 +118,11 @@ namespace nissa
 	
 	//generate interaction matrix
 	complex M[wspace_max_size*wspace_max_size];
-	for(int i=0;i<wspace_size;i++)
+	for(int j=0;j<wspace_size;j++)
 	  {
-	    imp_mat(temp,V[i]);
-	    for(int j=0;j<=i;j++)
-	      scalar_prod(M[j+wspace_max_size*i],V[j],temp,buffer,mat_size);
+	    imp_mat(temp,V[j]);
+	    for(int i=j;i<wspace_size;i++)
+	      scalar_prod(M[j+wspace_max_size*i],V[i],temp,buffer,mat_size);
 	  }
 	
 	//reset residue norm
@@ -181,7 +181,7 @@ namespace nissa
 	  {
 	    imp_mat(temp,V[i]);
 	    for(int j=0;j<wspace_size;j++)
-	      scalar_prod(M[j+wspace_max_size*i],V[j],temp,buffer,mat_size);
+	      scalar_prod(M[i+wspace_max_size*j],V[j],temp,buffer,mat_size);
 	  }
 
       master_printf("//////////////////////////// true bef matr //////////////////////////\n");
@@ -213,7 +213,7 @@ namespace nissa
       //combine the basis vector to get the best eigenvectors approximations
       wspace_size=wspace_min_size;
       combine_basis_to_restart(wspace_min_size,wspace_max_size,red_eig_vec,V,mat_size);
-		
+      
       //set M to be diagonal
       memset(M,0,sizeof(complex)*wspace_max_size*wspace_max_size);
       for(int i=0;i<wspace_size;i++)
@@ -226,12 +226,12 @@ namespace nissa
       // 	      master_printf("(%+4.4g,%+4.4g)\t",M[j+wspace_max_size*i][RE],M[j+wspace_max_size*i][IM]);
       // 	  master_printf("\n");
       // 	}
-      // 		    	for(int i=0;i<wspace_size;i++)
-      // 	  {
-      // 	    imp_mat(temp,V[i]);
-      // 	    for(int j=0;j<=i;j++)
-      // 	      scalar_prod(M[j+wspace_max_size*i],V[j],temp,buffer,mat_size);
-      // 	  }
+	// for(int j=0;j<wspace_size;j++)
+	//   {
+	//     imp_mat(temp,V[j]);
+	//     for(int i=j;i<wspace_size;i++)
+	//       scalar_prod(M[j+wspace_max_size*i],V[i],temp,buffer,mat_size);
+	//   }
 
       // master_printf("//////////////////////////// true matr //////////////////////////\n");
       // for(int i=0;i<wspace_size;i++)
