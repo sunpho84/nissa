@@ -129,12 +129,12 @@ THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   const auto imp_mat=[conf,kappa,mu=am,temp](complex *out,complex *in){apply_tmQ2((spincolor*)out,conf,kappa,temp,mu,(spincolor*)in);};
   
-  const int neig=5;
+  const int neig=100;
   const double tau[2]={0.0,50.0};
   const bool min_max=0;
   const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
   const int mat_size_to_allocate=(loc_vol+bord_vol)*sizeof(spincolor)/sizeof(complex);
-  const double tol=1.e-16;
+  const double tol=1e-11;
   const int niter_max=1000;
   const int linit_max=200;
   const double toldecay[2]={1.7,1.5};
@@ -145,7 +145,52 @@ THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
   for(int i=0;i<neig;i++) eig_vec[i]=nissa_malloc("eig_vec",loc_vol+bord_vol,spincolor);
   double eig_val[neig];
   const auto filler=[](complex *a){generate_undiluted_source((spincolor*)a,RND_GAUSS,ALL_TIMES);};
+  
+  /////////////////////////////////////////////////////////////////
+  
+  internal_eigenvalues::all_eigenvalues_finder(mat_size,imp_mat);
+  
   eigenvalues_of_hermatr_find((complex**)eig_vec,eig_val,neig,tau[min_max],min_max,mat_size,mat_size_to_allocate,imp_mat,tol,niter_max,linit_max,toldecay[min_max],eps_tr[min_max],wspace_min_size,wspace_max_size,filler);
+  
+  master_printf("Eigenvalues:\n");
+  for(int ieig=0;ieig<neig;ieig++)
+    master_printf("%d %lg\n",ieig,eig_val[ieig]);
+  master_printf("\n");
+  
+  if(0)
+    {
+      master_printf("Eigenvectors:\n");
+      for(int ivol=0;ivol<10;ivol++)
+	{
+	  for(int ieig=0;ieig<neig;ieig++)
+	    {
+	      complex *e=(complex*)(eig_vec[ieig]);
+	      master_printf("(%lg,%lg)\t",e[ivol][RE],e[ivol][IM]);
+	    }
+	  master_printf("\n");
+	}
+      master_printf("\n");
+    }
+  
+  if(0)
+    {
+        master_printf("Orthogonality:\n");
+	complex *buffer=nissa_malloc("buffer",mat_size,complex);
+	for(int ieig=0;ieig<neig;ieig++)
+	  {
+	    for(int jeig=0;jeig<neig;jeig++)
+	      {
+		complex out;
+		internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(eig_vec[jeig]),buffer,mat_size);
+		master_printf("(%lg,%lg)\t",out[RE],out[IM]);
+	      }
+	    master_printf("\n");
+	  }
+	nissa_free(buffer);
+    }
+  
+  /////////////////////////////////////////////////////////////////
+  
   for(int i=0;i<neig;i++) nissa_free(eig_vec[i]);
   
   nissa_free(temp);
