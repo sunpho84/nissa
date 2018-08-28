@@ -124,6 +124,34 @@ namespace mel
   THREADABLE_FUNCTION_END
 }
 
+THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
+{
+  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+  const auto imp_mat=[conf,kappa,mu=am,temp](complex *out,complex *in){apply_tmQ2((spincolor*)out,conf,kappa,temp,mu,(spincolor*)in);};
+  
+  const int neig=5;
+  const double tau[2]={0.0,50.0};
+  const bool min_max=0;
+  const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
+  const int mat_size_to_allocate=(loc_vol+bord_vol)*sizeof(spincolor)/sizeof(complex);
+  const double tol=1.e-16;
+  const int niter_max=1000;
+  const int linit_max=200;
+  const double toldecay[2]={1.7,1.5};
+  const double eps_tr[2]={1e-3,5e-2};
+  const int wspace_min_size=std::max(8,neig);
+  const int wspace_max_size=2*wspace_min_size;
+  spincolor *eig_vec[neig];
+  for(int i=0;i<neig;i++) eig_vec[i]=nissa_malloc("eig_vec",loc_vol+bord_vol,spincolor);
+  double eig_val[neig];
+  const auto filler=[](complex *a){generate_undiluted_source((spincolor*)a,RND_GAUSS,ALL_TIMES);};
+  eigenvalues_of_hermatr_find((complex**)eig_vec,eig_val,neig,tau[min_max],min_max,mat_size,mat_size_to_allocate,imp_mat,tol,niter_max,linit_max,toldecay[min_max],eps_tr[min_max],wspace_min_size,wspace_max_size,filler);
+  for(int i=0;i<neig;i++) nissa_free(eig_vec[i]);
+  
+  nissa_free(temp);
+}
+THREADABLE_FUNCTION_END
+
 void in_main(int narg,char **arg)
 {
   //to be read
@@ -247,6 +275,12 @@ void in_main(int narg,char **arg)
 	  momentum_t old_theta;
 	  old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
 	  adapt_theta(conf,old_theta,theta,0,0);
+	  
+	  /////////////////////////////////////////////////////////////////
+	  
+	  eig_test(conf,kappa,am);
+	  
+	  /////////////////////////////////////////////////////////////////
 	  
 	  //compute all propagators
 	  for(int ihit=0;ihit<nhits;ihit++)
