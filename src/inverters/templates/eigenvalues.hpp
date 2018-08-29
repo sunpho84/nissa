@@ -77,7 +77,7 @@ namespace nissa
     complex *V[wspace_max_size];
     for(int i=0;i<wspace_max_size;i++) V[i]=nissa_malloc("Vi",mat_size_to_allocate,complex);
     complex *buffer=nissa_malloc("buffer",mat_size,complex);
-    complex *residue=nissa_malloc("residue",mat_size,complex);
+    complex *residue=nissa_malloc("residue",mat_size_to_allocate,complex);
     complex *temp=nissa_malloc("temp",mat_size,complex);
     
     //fill V and orthonormalize
