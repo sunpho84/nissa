@@ -129,7 +129,7 @@ THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   const auto imp_mat=[conf,kappa,mu=am,temp](complex *out,complex *in){apply_tmQ2((spincolor*)out,conf,kappa,temp,mu,(spincolor*)in);};
   
-  const int neig=20;
+  const int neig=40;
   const double tau[2]={0.0,50.0};
   const bool min_max=0;
   const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
@@ -201,10 +201,7 @@ THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
       master_printf("%d: (%.16lg,%.16lg)\n",ieig,out[RE],out[IM]);
       
       //prepare the guess
-      complex inv_eig_val;
-      complex_reciprocal(inv_eig_val,out);
-      vector_reset(temp);
-      internal_eigenvalues::complex_vector_summassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),inv_eig_val,mat_size);
+      double_vector_prod_double((double*)temp,(double*)(eig_vec[ieig]),1/eig_val[ieig],2*mat_size);
       
       //compute inverse eigenvalue of Q
       inv_tmQ2_RL_cg(temp1,temp,conf,kappa,0,am,10000,1e-16,eig_vec[ieig]);
