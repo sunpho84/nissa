@@ -113,6 +113,52 @@ then
 fi
 AC_MSG_RESULT(enabling Eigen everywhere ... ${enable_eigen_everywhere})
 
+#introduce parpack flags
+AC_ARG_WITH(parpack,
+	AS_HELP_STRING([--with-parpack[=dir]], [Specify the whole set of parameters needed to link against parpack]),
+	with_parpack="${withval}"
+	PARPACK_FLAGS="${with_parpack}",
+	with_parpack=no)
+AC_MSG_RESULT(with parpack ... ${with_parpack})
+
+#check parpack usability
+AC_MSG_CHECKING([for parpack])
+SAVED_LIBS=$LIBS
+LIBS="$LIBS $PARPACK_FLAGS"
+AC_LINK_IFELSE(
+                [AC_LANG_PROGRAM([[
+		#include <complex.h>
+		extern "C" int pznaupd_();
+		]],
+                   [[pznaupd_();]])],
+               [AC_MSG_RESULT([yes]);parpack_found=true],
+               [AC_MSG_RESULT([no]);parpack_found=false])
+LIBS="$SAVED_LIBS"
+
+#activate parpack
+AC_ARG_ENABLE(parpack,
+	AS_HELP_STRING([--enable-parpack],[Enable parpack (automatically enabled if found)]),
+	enable_parpack="${enableval}",
+	if test "$parpack_found" == "true"
+	then
+		enable_parpack="yes"
+	else
+		enable_parpack="no"
+	fi
+)
+if test "$enable_parpack" == "yes"
+then
+	if test "$parpack_found" == "no"
+	then
+		AC_MSG_ERROR(["Cannot activate parpack, please provide a better set of flags"])
+	fi
+	
+	LIBS="$LIBS $PARPACK_FLAGS"
+	AC_DEFINE([USE_PARPACK],1,[Enable parpack])
+fi
+AM_CONDITIONAL([USE_PARPACK],[test "$enable_parpack" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling parpack... $enable_parpack])
+
 #lime
 AC_ARG_WITH(lime,
 	AS_HELP_STRING([--with-lime[=dir]], [Specify where to find lime]),
