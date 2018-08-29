@@ -129,7 +129,7 @@ THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   const auto imp_mat=[conf,kappa,mu=am,temp](complex *out,complex *in){apply_tmQ2((spincolor*)out,conf,kappa,temp,mu,(spincolor*)in);};
   
-  const int neig=30;
+  const int neig=20;
   const double tau[2]={0.0,50.0};
   const bool min_max=0;
   const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
@@ -191,24 +191,33 @@ THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
   
   master_printf("Eigenvalues of Q:\n");
   complex *buffer=nissa_malloc("buffer",mat_size,complex);
+  spincolor *temp1=nissa_malloc("temp1",loc_vol+bord_vol,spincolor);
   for(int ieig=0;ieig<neig;ieig++)
     {
+      //compute eigenvalue of Q
       apply_tmQ(temp,conf,kappa,am,eig_vec[ieig]);
       complex out;
       internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp),buffer,mat_size);
       master_printf("%d: (%.16lg,%.16lg)\n",ieig,out[RE],out[IM]);
-
-      spincolor *temp1=nissa_malloc("temp1",loc_vol+bord_vol,spincolor);
-      inv_tmQ2_RL_cg(temp1, NULL, conf, kappa, 0,am, 10000, 1e-16, eig_vec[ieig]);
+      
+      //prepare the guess
+      complex inv_eig_val;
+      complex_reciprocal(inv_eig_val,out);
+      vector_reset(temp);
+      internal_eigenvalues::complex_vector_summassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),inv_eig_val,mat_size);
+      
+      //compute inverse eigenvalue of Q
+      inv_tmQ2_RL_cg(temp1,temp,conf,kappa,0,am,10000,1e-16,eig_vec[ieig]);
       apply_tmQ(temp,conf,kappa,-am,temp1);
-      nissa_free(temp1);
       internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp),buffer,mat_size);
       master_printf(" %d: (%.16lg,%.16lg)\n",ieig,out[RE],out[IM]);
       
+      //compute residue
       internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
       double res=double_vector_glb_norm2(temp,loc_vol);
       master_printf("  res: %lg\n",res);
     }
+  nissa_free(temp1);
   nissa_free(buffer);
   
   /////////////////////////////////////////////////////////////////
