@@ -219,7 +219,7 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	crash_if_borders_not_allocated(vec);
+	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol+loc_vol));
 	
 	//check buffer size matching
 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
@@ -310,7 +310,7 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	crash_if_borders_not_allocated(vec);
+	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_volh+loc_volh));
 	
 	//check buffer size matching
 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
@@ -406,8 +406,9 @@ namespace nissa
     GET_THREAD_ID();
     
     //check border allocation
-    crash_if_borders_not_allocated(vec[EVN]);
-    crash_if_borders_not_allocated(vec[ODD]);
+    int min_size=comm.nbytes_per_site*(bord_volh+loc_volh);
+    crash_if_borders_not_allocated(vec[EVN],min_size);
+    crash_if_borders_not_allocated(vec[ODD],min_size);
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
@@ -560,7 +561,8 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	crash_if_borders_not_allocated(vec);
+	int min_size=comm.nbytes_per_site*(bord_volh+loc_volh);
+	crash_if_borders_not_allocated(vec,min_size);
 	
 	//check buffer size matching
 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)

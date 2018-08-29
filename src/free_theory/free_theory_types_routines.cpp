@@ -38,7 +38,7 @@ namespace nissa
   
   void get_spin_from_spinspin(spin *out,spinspin *in,int id_so)
   {
-    int all=check_borders_allocated((void*)in);
+    int all=check_borders_allocated((void*)in,0);
     
     int ending;
     if(all)

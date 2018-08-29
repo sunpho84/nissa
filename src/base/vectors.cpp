@@ -104,16 +104,22 @@ namespace nissa
   {return get_vect_flag(data,EDGES_VALID);}
   
   //check if edges have been allocated
-  int check_edges_allocated(void *data)
-  {return get_vect_flag(data,EDGES_ALLOCATED);}
+  int check_edges_allocated(void *data,int min_size)
+  {
+    return ((get_vect(data)->nel*get_vect(data)->size_per_el)>=min_size) or
+      get_vect_flag(data,EDGES_ALLOCATED);
+  }
   
   //check if borders are valid
   int check_borders_valid(void *data)
   {return get_vect_flag(data,BORDERS_VALID);}
   
   //check if borders have been allocated
-  int check_borders_allocated(void *data)
-  {return get_vect_flag(data,BORDERS_ALLOCATED);}
+  int check_borders_allocated(void *data,int min_size)
+  {
+    return ((get_vect(data)->nel*get_vect(data)->size_per_el)>=min_size) or
+      get_vect_flag(data,BORDERS_ALLOCATED);
+  }
   
   //check if borders have been communicated at least once
   int check_borders_communicated_at_least_once(void *data)
@@ -144,7 +150,7 @@ namespace nissa
   {
     nissa_vect *curr=&(main_vect);
     do
-      {  
+      {
 	vect_content_printf(curr);
 	curr=curr->next;
       }
@@ -152,9 +158,9 @@ namespace nissa
   }
   
   //check if the borders are allocated
-  void crash_if_borders_not_allocated(void *v)
+  void crash_if_borders_not_allocated(void *v,int min_size)
   {
-    if(!check_borders_allocated(v))
+    if(!check_borders_allocated(v,min_size))
       if(rank==0)
 	{
 	  fprintf(stderr,"borders not allocated in ");
@@ -164,9 +170,9 @@ namespace nissa
   }
   
   //check if the edges are allocated
-  void crash_if_edges_not_allocated(void *v)
+  void crash_if_edges_not_allocated(void *v,int min_size)
   {
-    if(!check_edges_allocated(v))
+    if(!check_edges_allocated(v,min_size))
       if(rank==0)
 	{
 	  fprintf(stderr,"edges not allocated in ");
@@ -362,7 +368,7 @@ namespace nissa
 	      }
 	    
 	    if(warn_if_not_communicated)
-	      if(nranks>1 && check_borders_allocated(*arr) && !check_borders_communicated_at_least_once(*arr))
+	      if(nranks>1 && check_borders_allocated(*arr,0) && !check_borders_communicated_at_least_once(*arr))
 		master_printf("Warning, you allocated borders for vector: %s on line %d of file %s, but never communicated them!\n",vect->tag,vect->line,vect->file);
 	    
 	    //detach from previous
