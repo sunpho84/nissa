@@ -29,37 +29,6 @@ namespace nissa
     double iterated_classical_GS(complex *v,int vec_size,int nvec,complex **A,complex* buffer,const int max_cgs_it);
     void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,double *lambda,const complex *M,const int M_size,const int neig,const double tau);
     void combine_basis_to_restart(int nout,int nin,complex *coeffs,complex **vect,int vec_length);
-    
-    template <class Fmat>
-    void all_eigenvalues_finder(const int mat_size,const Fmat &imp_mat)
-    {
-      using namespace Eigen;
-      SelfAdjointEigenSolver<MatrixXcd> solver;
-      
-      complex *out=nissa_malloc("out",mat_size,complex);
-      complex *in=nissa_malloc("in",mat_size,complex);
-      
-      //fill the matrix to be diagonalized
-      MatrixXcd matr(mat_size,mat_size);
-      for(int j=0;j<mat_size;j++)
-	{
-	  vector_reset(in);
-	  in[j][RE]=1.0;
-	  imp_mat(out,in);
-	  for(int i=0;i<mat_size;i++)
-	    matr(i,j)=std::complex<double>(out[i][RE],out[i][IM]);
-	}
-      
-      std::cout<<matr.topLeftCorner(12,12)<<std::endl;
-      
-      //diagonalize
-      solver.compute(matr);
-      
-      std::cout<<solver.eigenvalues()<<std::endl;
-      
-      nissa_free(out);
-      nissa_free(in);
-    }
   }
   
   //find the neig eigenvalues closest to the target
@@ -173,32 +142,6 @@ namespace nissa
 	  {
 	    master_printf("Resetting\n");
 	    
-	    // master_printf("//////////////////////////// bef matr //////////////////////////\n");
-	    // for(int i=0;i<wspace_size;i++)
-	    // 	{
-	    // 	  for(int j=0;j<=i;j++)
-	    // 	      master_printf("(%+4.4g,%+4.4g)\t",M[j+wspace_max_size*i][RE],M[j+wspace_max_size*i][IM]);
-	    // 	  master_printf("\n");
-	    // 	}
-	    
-	    // master_printf("//////////////////////////// diag matr //////////////////////////\n");
-	    // for(int i=0;i<wspace_size;i++)
-	    // 	{
-	    // 	  for(int j=0;j<=i;j++)
-	    // 	    {
-	    // 	      complex a={0,0};
-	    // 	      for(int k=0;k<wspace_size;k++)
-	    // 		for(int l=0;l<wspace_size;l++)
-	    // 		  {
-	    // 		    complex t;
-	    // 		    unsafe_complex_conj1_prod(t,red_eig_vec[i+k*wspace_size],M[l+wspace_size*k]);
-	    // 		    complex_summ_the_prod(a,t,red_eig_vec[j+l*wspace_size]);
-	    // 		  }
-	    // 	      master_printf("(%+4.4g,%+4.4g)\t",a[RE],a[IM]);
-	    // 	    }
-	    // 	  master_printf("\n");
-	    // 	}
-	    
 	    //combine the basis vector to get the best eigenvectors approximations
 	    wspace_size=wspace_min_size;
 	    combine_basis_to_restart(wspace_min_size,wspace_max_size,red_eig_vec,V,mat_size);
@@ -207,32 +150,6 @@ namespace nissa
 	    memset(M,0,sizeof(complex)*wspace_max_size*wspace_max_size);
 	    for(int i=0;i<wspace_size;i++)
 	      complex_put_to_real(M[i+i*wspace_max_size],red_eig_val[i]);
-	    
-	    // master_printf("//////////////////////////// matr //////////////////////////\n");
-	    // for(int i=0;i<wspace_size;i++)
-	    // 	{
-	    // 	  for(int j=0;j<=i;j++)
-	    // 	      master_printf("(%+4.4g,%+4.4g)\t",M[j+wspace_max_size*i][RE],M[j+wspace_max_size*i][IM]);
-	    // 	  master_printf("\n");
-	    // 	}
-	    // for(int j=0;j<wspace_size;j++)
-	    //   {
-	    //     imp_mat(temp,V[j]);
-	    //     for(int i=j;i<wspace_size;i++)
-	    //       {
-	    //         scalar_prod(M[j+wspace_max_size*i],V[i],temp,buffer,mat_size);
-	    //         complex_conj(M[i+wspace_max_size*j],M[j+wspace_max_size*i]);
-	    //       }
-	    //   }
-	    
-	    // master_printf("//////////////////////////// true matr //////////////////////////\n");
-	    // for(int i=0;i<wspace_size;i++)
-	    // 	{
-	    // 	  for(int j=0;j<=i;j++)
-	    // 	      master_printf("(%+4.4g,%+4.4g)\t",M[j+wspace_max_size*i][RE],M[j+wspace_max_size*i][IM]);
-	    // 	  master_printf("\n");
-	    // 	}
-	    // 	    crash("");
 	  }
 	
 	//if not all eigenvectors have converged

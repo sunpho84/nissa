@@ -61,22 +61,12 @@ namespace nissa
       // master_printf("//////////////////////////// matr //////////////////////////\n");
       MatrixXcd matr(neig,neig);
       for(int i=0;i<neig;i++)
-	{
-	  for(int j=0;j<=i;j++)
-	    {
-	      matr(i,j)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
-	      // master_printf("(%+4.4g,%+4.4g)\t",M[j+M_size*i][RE],M[j+M_size*i][IM]);
-	    }
-	  // master_printf("\n");
-	}
+	for(int j=0;j<=i;j++)
+	  matr(i,j)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
+      
       
       //diagonalize
       solver.compute(matr);
-      // std::cout<<"/////////////////////////// first eigvec //////////////////////////"<<std::endl;
-      // std::cout<<solver.eigenvectors().col(0)<<std::endl;
-      // std::cout<<"/////////////////////////// eigva //////////////////////////"<<std::endl;
-      // std::cout<<solver.eigenvalues()<<std::endl;
-      // std::cout<<"/////////////////////////////////////////////////////////////////"<<std::endl;
       
       //sort the eigenvalues and eigenvectors
       std::vector<std::tuple<double,double,int>> ei;
