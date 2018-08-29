@@ -40,7 +40,8 @@ namespace nissa
   //Send the edges of lx vector
   void communicate_lx_edges(char *data,comm_t &bord_comm,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
   {
-    crash_if_edges_not_allocated(data);
+    int min_size=nbytes_per_site*(edge_vol+bord_vol+loc_vol);
+    crash_if_edges_not_allocated(data,min_size);
     communicate_lx_borders(data,bord_comm);
     
     if(!check_edges_valid(data))
@@ -140,10 +141,11 @@ namespace nissa
 	    
 	    verbosity_lv3_master_printf("Communicating edges of %s\n",get_vect_name(data[EVN]));
 	    
-	    //check_edges_allocated(data);
 	    for(int par=0;par<2;par++)
 	      {
-		crash_if_edges_not_allocated(data[par]);
+		//check_edges_allocated(data);
+		int min_size=nbytes_per_site*(edge_volh+bord_volh+loc_volh);
+		crash_if_edges_not_allocated(data[par],min_size);
 		
 		//"v" refer to the verse of the dir
 		for(int vmu=0;vmu<2;vmu++)
@@ -154,7 +156,7 @@ namespace nissa
 			  {
 			    int iedge=edge_numb[mu][nu];
 			    
-			    //communicators verse refers to the internal edge 
+			    //communicators verse refers to the internal edge
 			    int icomm_send=((par*2+vmu)*2+vnu)*6+iedge;
 			    int icomm_recv=iedge;
 			    

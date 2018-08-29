@@ -67,7 +67,7 @@ namespace nissa
   EXTERN_VECTORS void *return_malloc_ptr;
   
   char *get_vect_name(void *v);
-  int check_borders_allocated(void *data);
+  int check_borders_allocated(void *data,int min_size);
   int check_borders_communicated_at_least_once(void *data);
   int check_borders_valid(void *data);
   int check_edges_allocated(void *data);
@@ -76,8 +76,8 @@ namespace nissa
   int get_vect_flag(void *v,unsigned int flag);
   nissa_vect* get_vect(void *v);
   void *internal_nissa_malloc(const char *tag,int64_t nel,int64_t size_per_el,const char *type,const char *file,int line);
-  void crash_if_borders_not_allocated(void *v);
-  void crash_if_edges_not_allocated(void *v);
+  void crash_if_borders_not_allocated(void *v,int min_size);
+  void crash_if_edges_not_allocated(void *v,int min_size);
   void ignore_borders_communications_warning(void *data);
   void initialize_main_vect();
   void internal_nissa_free(char **arr,const char *file,int line);
