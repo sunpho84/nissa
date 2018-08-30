@@ -205,7 +205,7 @@ THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
       
       //compute inverse eigenvalue of Q
       inv_tmQ2_RL_cg(temp1,temp,conf,kappa,0,am,10000,1e-16,eig_vec[ieig]);
-      master_printf("res (%lg,%lg), guess: (%lg,%lg)\n",temp1[0][RE],temp1[0][IM],temp[0][RE],temp[0][IM]);
+      master_printf("res (%lg,%lg), guess: (%lg,%lg)\n",temp1[0][0][0][RE],temp1[0][0][0][IM],temp[0][0][0][RE],temp[0][0][0][IM]);
       
       apply_tmQ(temp,conf,kappa,-am,temp1);
       internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp),buffer,mat_size);
