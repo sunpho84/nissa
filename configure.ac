@@ -21,17 +21,24 @@ AM_CONFIG_HEADER(src/config.hpp)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 
-AC_LANG([C++])
-
 #checks for programs
 AC_PROG_CC
+AC_PROG_FC
 AC_PROG_CXX
 AC_PROG_RANLIB
 
 AX_CXXFLAGS_WARN_ALL
 
 #set mpi
+AC_LANG([Fortran])
 LX_FIND_MPI
+AC_MSG_RESULT([with Fortran MPI link options... $MPI_FLDFLAGS])
+LDFLAGS="$MPI_FLDFLAGS $LDFLAGS"
+LIBS="$MPI_FLDFLAGS $LIBS"
+
+AC_LANG([C++])
+LX_FIND_MPI
+AC_MSG_RESULT([with C++ MPI link options... $MPI_CXXLDFLAGS])
 CPPFLAGS="$AM_CPPFLAGS $MPI_CXXFLAGS $CPPFLAGS"
 CXXFLAGS="$AM_CXXFLAGS $MPI_CXXFLAGS $CXXFLAGS"
 CFLAGS="$AM_CFLAGS $MPI_CFLAGS $CFLAGS"
@@ -115,31 +122,20 @@ AC_MSG_RESULT(enabling Eigen everywhere ... ${enable_eigen_everywhere})
 
 #introduce parpack flags
 AC_ARG_WITH(parpack,
-	AS_HELP_STRING([--with-parpack[=dir]], [Specify the whole set of parameters needed to link against parpack]),
+	AS_HELP_STRING([--with-parpack[=dir]], [Specify where to find parpack]),
 	with_parpack="${withval}"
-	PARPACK_FLAGS="${with_parpack}",
+	CPPFLAGS="-I${with_parpack}/include/ $CPPFLAGS"
+	LDFLAGS="-L${with_parpack}/lib/ $LDFLAGS",
 	with_parpack=no)
+AC_CHECK_HEADERS([arpack/parpack.h],[parpack_found_headers=yes])
+AC_SEARCH_LIBS(pcnaupd_c,parpack)
 AC_MSG_RESULT(with parpack ... ${with_parpack})
-
-#check parpack usability
-AC_MSG_CHECKING([for parpack])
-SAVED_LIBS=$LIBS
-LIBS="$LIBS $PARPACK_FLAGS"
-AC_LINK_IFELSE(
-                [AC_LANG_PROGRAM([[
-		#include <complex.h>
-		extern "C" int pznaupd_();
-		]],
-                   [[pznaupd_();]])],
-               [AC_MSG_RESULT([yes]);parpack_found=true],
-               [AC_MSG_RESULT([no]);parpack_found=false])
-LIBS="$SAVED_LIBS"
 
 #activate parpack
 AC_ARG_ENABLE(parpack,
 	AS_HELP_STRING([--enable-parpack],[Enable parpack (automatically enabled if found)]),
 	enable_parpack="${enableval}",
-	if test "$parpack_found" == "true"
+	if test "$parpack_found_headers" == "yes"
 	then
 		enable_parpack="yes"
 	else
@@ -153,7 +149,6 @@ then
 		AC_MSG_ERROR(["Cannot activate parpack, please provide a better set of flags"])
 	fi
 	
-	LIBS="$LIBS $PARPACK_FLAGS"
 	AC_DEFINE([USE_PARPACK],1,[Enable parpack])
 fi
 AM_CONDITIONAL([USE_PARPACK],[test "$enable_parpack" == "yes" ],[true],[false])
