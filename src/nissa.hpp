@@ -58,6 +58,8 @@
 #include "dirac_operators/tmclovQ/reconstruct_tmclov_doublet.hpp"
 #include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp"
 
+#include "eigenvalues/eigenvalues.hpp"
+
 #include "free_theory/cg_eoprec_twisted_free_operator.hpp"
 #include "free_theory/free_theory_types.hpp"
 #include "free_theory/free_theory_types_routines.hpp"
@@ -94,7 +96,6 @@
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 
 #include "inverters/staggered/cg_invert_stD.hpp"
-#include "inverters/templates/eigenvalues.hpp"
 #include "inverters/twisted_mass/cg_128_invert_tmQ2.hpp"
 #include "inverters/twisted_mass/cg_invert_tmD_eoprec.hpp"
 #include "inverters/twisted_mass/cg_invert_tmQ2.hpp"
