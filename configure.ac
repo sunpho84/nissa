@@ -29,6 +29,10 @@ AC_PROG_RANLIB
 
 AX_CXXFLAGS_WARN_ALL
 
+#blas and lapack
+AX_BLAS([])
+AX_LAPACK([])
+
 #set mpi
 AC_LANG([Fortran])
 LX_FIND_MPI
