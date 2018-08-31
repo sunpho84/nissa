@@ -30,8 +30,9 @@ AC_PROG_RANLIB
 AX_CXXFLAGS_WARN_ALL
 
 #blas and lapack
-AX_BLAS([])
-AX_LAPACK([])
+AX_BLAS([AC_MSG_RESULT([BLAS libraries found: $BLAS_LIBS])],[AC_MSG_RESULT([BLAS libraries not found])])
+AX_LAPACK([AC_MSG_RESULT([LAPACK libraries found: $LAPACK_LIBS])],[AC_MSG_RESULT([LAPACK libraries not found])])
+LDFLAGS="$LDFLAGS $LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
 
 #set mpi
 AC_LANG([Fortran])
