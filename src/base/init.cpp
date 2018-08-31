@@ -222,7 +222,7 @@ namespace nissa
     master_printf("Using Eigen everywhere\n");
 #endif
     
-#ifdef HAVE_ARPACK_PARPACK_H
+#ifdef USE_PARPACK
     use_arpack=NISSA_DEFAULT_USE_ARPACK;
 #endif
     

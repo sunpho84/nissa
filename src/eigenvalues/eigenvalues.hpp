@@ -5,7 +5,7 @@
  #include "config.hpp"
 #endif
 
-#ifdef HAVE_ARPACK_PARPACK_H
+#ifdef USE_PARPACK
  #include "eigenvalues_autarchic.hpp"
 #endif
 #include "eigenvalues_arpack.hpp"
@@ -27,7 +27,7 @@ namespace nissa
     master_printf("Solving eigenproblem for %d %s eigenvalues,\n",neig,min_max?"max":"min");
     master_printf(" target precision: %lg\n",target_precision);
     
-#ifdef HAVE_ARPACK_PARPACK_H
+#ifdef USE_PARPACK
     if(use_arpack)
       {
 	master_printf("Using arpack\n");
@@ -40,7 +40,7 @@ namespace nissa
 	eigenvalues_of_hermatr_find_autarchic(eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
 	
 	//close the scope
-#ifdef HAVE_ARPACK_PARPACK_H
+#ifdef USE_PARPACK
       }
 #endif
   }

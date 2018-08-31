@@ -451,7 +451,7 @@ namespace nissa
 #ifdef USE_DDALPHAAMG
     tags.push_back(triple_tag("use_DDalphaAMG",		       use_DD));
 #endif
-#ifdef HAVE_ARPACK_PARPACK_H
+#ifdef USE_PARPACK
     tags.push_back(triple_tag("use_arpack",		       use_arpack));
 #endif
     
