@@ -56,6 +56,10 @@ namespace nissa
     iparam[3]=1;
     iparam[6]=1;
     
+    //temporary vectors
+    complex *temp_x=nissa_malloc("temp_x",mat_size_to_allocate,complex);
+    complex *temp_y=nissa_malloc("temp_y",mat_size_to_allocate,complex);
+    
     //main loop to find Ritz basis
     int info=0;
     int ido=0;
@@ -69,11 +73,19 @@ namespace nissa
 	//reverse communication
 	complex *x=workd+ipntr[0]-1;
 	complex *y=workd+ipntr[1]-1;
+	
+	memcpy(temp_x,x,sizeof(complex)*mat_size);
+	set_borders_invalid(temp_x);
 	imp_mat(y,x);
+	memcpy(y,temp_y,sizeof(complex)*mat_size);
 	
 	iter++;
       }
     while(ido==1);
+    
+    //free temporary vectors
+    nissa_free(temp_x);
+    nissa_free(temp_y);
     
     //parameters for eigenvector calculation
     const int rvec=1;
