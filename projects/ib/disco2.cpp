@@ -124,23 +124,17 @@ namespace mel
   THREADABLE_FUNCTION_END
 }
 
-THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
+void eig_test(quad_su3 *conf,double kappa,double am)
 {
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   const auto imp_mat=[conf,kappa,mu=am,temp](complex *out,complex *in){apply_tmQ2((spincolor*)out,conf,kappa,temp,mu,(spincolor*)in);};
   
   const int neig=20;
-  const double tau[2]={0.0,50.0};
   const bool min_max=0;
   const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
   const int mat_size_to_allocate=(loc_vol+bord_vol)*sizeof(spincolor)/sizeof(complex);
-  const double tol=1e-11;
+  const double target_precision=1e-11;
   const int niter_max=1000;
-  const int linit_max=200;
-  const double toldecay[2]={1.7,1.5};
-  const double eps_tr[2]={1e-3,5e-2};
-  const int wspace_min_size=std::max(8,neig);
-  const int wspace_max_size=2*wspace_min_size;
   spincolor *eig_vec[neig];
   for(int i=0;i<neig;i++) eig_vec[i]=nissa_malloc("eig_vec",loc_vol+bord_vol,spincolor);
   double eig_val[neig];
@@ -150,7 +144,7 @@ THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
   
   //internal_eigenvalues::all_eigenvalues_finder(mat_size,imp_mat);
   
-  eigenvalues_of_hermatr_find((complex**)eig_vec,eig_val,neig,tau[min_max],min_max,mat_size,mat_size_to_allocate,imp_mat,tol,niter_max,linit_max,toldecay[min_max],eps_tr[min_max],wspace_min_size,wspace_max_size,filler);
+  eigenvalues_of_hermatr_find((complex**)eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
   
   master_printf("Eigenvalues:\n");
   for(int ieig=0;ieig<neig;ieig++)
@@ -225,7 +219,6 @@ THREADABLE_FUNCTION_3ARG(eig_test, quad_su3*,conf, double,kappa, double,am)
   
   nissa_free(temp);
 }
-THREADABLE_FUNCTION_END
 
 void in_main(int narg,char **arg)
 {

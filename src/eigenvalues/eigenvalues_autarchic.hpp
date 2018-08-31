@@ -1,17 +1,12 @@
-#ifndef _EIGENVALUES_HPP
-#define _EIGENVALUES_HPP
+#ifndef _EIGENVALUES_AUTARCHIC_HPP
+#define _EIGENVALUES_AUTARCHIC_HPP
 
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 
-#include "modern_cg.hpp"
-
-// #ifdef HAVE_EIGEN_DENSE
- #include "eigen3/Eigen/Dense"
-// #endif
-
+#include "inverters/templates/modern_cg.hpp"
 
 namespace nissa
 {
@@ -33,14 +28,23 @@ namespace nissa
   
   //find the neig eigenvalues closest to the target
   template <class Fmat,class Filler>
-  void eigenvalues_of_hermatr_find(complex **eig_vec,double *eig_val,int neig,double tau,bool min_max,
-				   const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
-				   const double target_precision,const int niter_max,const int linit_max,
-				   const double toldecay,const double eps_tr,
-				   const int wspace_min_size,const int wspace_max_size,
-				   const Filler &filler)
+  void eigenvalues_of_hermatr_find_autarchic(complex **eig_vec,double *eig_val,int neig,bool min_max,
+					     const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
+					     const double target_precision,const int niter_max,
+					     const Filler &filler)
   {
     using namespace internal_eigenvalues;
+    
+    //set pars
+    const double tau_list[2]={0.0,50.0};
+    double tau=tau_list[min_max];
+    const int linit_max=200;
+    const double toldecay_list[2]={1.7,1.5};
+    const double toldecay=toldecay_list[min_max];
+    const double eps_tr_list[2]={1e-3,5e-2};
+    const double eps_tr=eps_tr_list[min_max];
+    const int wspace_min_size=std::max(8,neig);
+    const int wspace_max_size=2*wspace_min_size;
     
     //allocate workspace
     complex *V[wspace_max_size];
