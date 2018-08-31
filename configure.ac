@@ -135,16 +135,18 @@ AC_MSG_RESULT(with parpack ... ${with_parpack})
 AC_ARG_ENABLE(parpack,
 	AS_HELP_STRING([--enable-parpack],[Enable parpack (automatically enabled if found)]),
 	enable_parpack="${enableval}",
-	if test "$parpack_found_headers" == "yes" -a $ac_cv_search_pcnaupd_c" == "yes"
+	if test "$parpack_found_headers" == "yes" -a "$ac_cv_search_pcnaupd_c" == "yes"
 	then
 		enable_parpack="yes"
 	else
 		enable_parpack="no"
-	fi
-)
+	fi)
+AC_MSG_RESULT([enabling parpack ... ${enable_parpack}])
+
+#conditionl
 if test "$enable_parpack" == "yes"
 then
-	if test "$parpack_found_headers" == "no" -o $ac_cv_search_pcnaupd_c" == "no"
+	if test "$parpack_found_headers" == "no" -o "$ac_cv_search_pcnaupd_c" == "no"
 	then
 		AC_MSG_ERROR(["Cannot activate parpack, please provide a better set of flags"])
 	fi
@@ -152,7 +154,6 @@ then
 	AC_DEFINE([USE_PARPACK],1,[Enable parpack])
 fi
 AM_CONDITIONAL([USE_PARPACK],[test "$enable_parpack" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling parpack... $enable_parpack])
 
 #lime
 AC_ARG_WITH(lime,
