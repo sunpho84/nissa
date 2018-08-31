@@ -4,16 +4,18 @@
 
 #include "eigenvalues.hpp"
 
-// #ifdef HAVE_EIGEN_DENSE
+#ifdef HAVE_EIGEN_DENSE
  #include "eigen3/Eigen/Dense"
-// #endif
+#endif
 
-//part of this should be moved to linalgs?
+//reimplementation of the adaptation made by Carsten Urbach of Jacobi-Davidson algorithm by R. Geus and O. Chinellato
 
 namespace nissa
 {
   namespace internal_eigenvalues
   {
+    //part of this should be moved to linalgs?
+    
     //scalar product of (in1,in2)
     void scalar_prod(complex out,complex *in1,complex *in2,complex *buffer,int loc_size)
     {

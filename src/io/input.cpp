@@ -18,6 +18,7 @@
 #endif
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
+#include "eigenvalues/eigenvalues.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_Leb.hpp"
@@ -437,6 +438,7 @@ namespace nissa
     tags.push_back(triple_tag("set_y_nranks",		       fix_nranks[2]));
     tags.push_back(triple_tag("set_z_nranks",		       fix_nranks[3]));
     tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
+    tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
 #ifdef USE_VNODES
     tags.push_back(triple_tag("vnode_paral_dir",	       vnode_paral_dir));
 #endif
@@ -448,6 +450,9 @@ namespace nissa
 #endif
 #ifdef USE_DDALPHAAMG
     tags.push_back(triple_tag("use_DDalphaAMG",		       use_DD));
+#endif
+#ifdef HAVE_ARPACK_PARPACK_H
+    tags.push_back(triple_tag("use_arpack",		       use_arpack));
 #endif
     
     if(file_exists(path))
