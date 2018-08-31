@@ -135,7 +135,7 @@ AC_MSG_RESULT(with parpack ... ${with_parpack})
 AC_ARG_ENABLE(parpack,
 	AS_HELP_STRING([--enable-parpack],[Enable parpack (automatically enabled if found)]),
 	enable_parpack="${enableval}",
-	if test "$parpack_found_headers" == "yes"
+	if test "$parpack_found_headers" == "yes" -a $ac_cv_search_pcnaupd_c" == "yes"
 	then
 		enable_parpack="yes"
 	else
@@ -144,7 +144,7 @@ AC_ARG_ENABLE(parpack,
 )
 if test "$enable_parpack" == "yes"
 then
-	if test "$parpack_found" == "no"
+	if test "$parpack_found_headers" == "no" -o $ac_cv_search_pcnaupd_c" == "no"
 	then
 		AC_MSG_ERROR(["Cannot activate parpack, please provide a better set of flags"])
 	fi
