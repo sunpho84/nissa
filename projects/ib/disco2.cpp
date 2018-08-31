@@ -142,8 +142,6 @@ void eig_test(quad_su3 *conf,double kappa,double am)
   
   /////////////////////////////////////////////////////////////////
   
-  //internal_eigenvalues::all_eigenvalues_finder(mat_size,imp_mat);
-  
   eigenvalues_of_hermatr_find((complex**)eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
   
   master_printf("Eigenvalues:\n");

@@ -6,13 +6,13 @@
 #endif
 
 #ifdef USE_PARPACK
- #include "eigenvalues_autarchic.hpp"
+ #include "eigenvalues_arpack.hpp"
 #endif
-#include "eigenvalues_arpack.hpp"
+#include "eigenvalues_autarchic.hpp"
 
 namespace nissa
 {
-#ifdef HAVE_ARPACK_PARPACK_H
+#ifdef USE_PARPACK
 #define NISSA_DEFAULT_USE_ARPACK 1
   extern int use_arpack;
 #endif
