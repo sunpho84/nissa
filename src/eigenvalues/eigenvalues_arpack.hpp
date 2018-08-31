@@ -76,7 +76,7 @@ namespace nissa
 	
 	memcpy(temp_x,x,sizeof(complex)*mat_size);
 	set_borders_invalid(temp_x);
-	imp_mat(y,x);
+	imp_mat(temp_y,temp_x);
 	memcpy(y,temp_y,sizeof(complex)*mat_size);
 	
 	iter++;
