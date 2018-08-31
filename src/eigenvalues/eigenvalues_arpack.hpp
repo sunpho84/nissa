@@ -15,6 +15,9 @@
 
 namespace nissa
 {
+  //type for cast
+  typedef _Complex double c_t;
+  
   //use arpack
   template <class Fmat,class Filler>
   void eigenvalues_of_hermatr_find_arpack(complex **eig_vec,double *eig_val,int neig,bool min_max,
@@ -28,7 +31,7 @@ namespace nissa
     //normal eigenvalue problem
     const char bmat[]="I";
     //largest or smallest
-    const char which[2][3]={"LM","SM"};
+    const char which[2][3]={"SM","LM"};
     //vector of residue
     complex *residue=nissa_malloc("residue",mat_size_to_allocate,complex);
     //base for eigenvectors
@@ -53,22 +56,22 @@ namespace nissa
     iparam[3]=1;
     iparam[6]=1;
     
-    //type for cast
-    typedef _Complex double c_t;
-    
     //main loop to find Ritz basis
     int info=0;
     int ido=0;
+    int iter=0;
     do
       {
 	//invoke the step
 	arpack::internal::pznaupd_c(comm,&ido,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
-	verbosity_lv1_master_printf("ido: %d, info: %d, ipntr[0]: %d, ipntr[1]: %d\n",ido,info,ipntr[0],ipntr[1]);
+	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d\n",iter,ido,info,ipntr[0],ipntr[1]);
 	
 	//reverse communication
 	complex *x=workd+ipntr[0]-1;
 	complex *y=workd+ipntr[1]-1;
 	imp_mat(y,x);
+	
+	iter++;
       }
     while(ido==1);
     
@@ -88,6 +91,7 @@ namespace nissa
 	memcpy(eig_vec[i],temp_vec+mat_size*i,sizeof(complex)*mat_size);
 	eig_val[i]=ceig_val[i][RE];
       }
+    
     
     nissa_free(temp_vec);
     nissa_free(workev);

@@ -25,8 +25,12 @@
 
 #include "communicate/borders.hpp"
 #include "communicate/communicate.hpp"
+
+#include "eigenvalues/eigenvalues.hpp"
+
 #include "io/input.hpp"
 #include "io/endianness.hpp"
+
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_Leb.hpp"
@@ -216,6 +220,10 @@ namespace nissa
     
 #ifdef USE_EIGEN_EVERYWHERE
     master_printf("Using Eigen everywhere\n");
+#endif
+    
+#ifdef HAVE_ARPACK_PARPACK_H
+    use_arpack=NISSA_DEFAULT_USE_ARPACK;
 #endif
     
     //put 0 as minimal request
