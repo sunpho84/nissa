@@ -27,6 +27,8 @@ addons:
       - libeigen3-dev
 
 script:
+  - bash config/install_parpack.sh
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/arpack-ng/install/lib
   - bash config/bootstrap
   - mkdir build
   - cd build
