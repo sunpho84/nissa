@@ -218,6 +218,10 @@ namespace nissa
     master_printf("Linked with DDalphaAMG\n");
 #endif
     
+#ifdef USE_PARPACK
+    master_printf("Linked with Parpack\n");
+#endif
+    
 #ifdef USE_EIGEN_EVERYWHERE
     master_printf("Using Eigen everywhere\n");
 #endif
