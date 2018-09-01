@@ -68,7 +68,7 @@ namespace nissa
       {
 	//invoke the step
 	arpack::internal::pznaupd_c(comm,&ido,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
-	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d\n",iter,ido,info,ipntr[0],ipntr[1]);
+	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d, nconv: %d/%d\n",iter,ido,info,ipntr[0],ipntr[1],iparam[4],neig);
 	
 	//reverse communication
 	complex *x=workd+ipntr[0]-1;
@@ -82,6 +82,30 @@ namespace nissa
 	iter++;
       }
     while(ido==1);
+    
+    //decrypt info
+    switch(info)
+      {
+      case 0: master_printf("Normal exit.\n");break;
+      case 1: crash("Maximum number of iterations taken.");break;
+      case 3: crash("No shifts could be applied during a cycle of the "
+			    "Implicitly restarted Arnoldi iteration. One possibility "
+			    "is to increase the size of NCV relative to NEV.");break;
+      case-1: crash("N must be positive.");break;
+      case-2: crash("NEV must be positive.");break;
+      case-3: crash("NCV-NEV >= 2 and less than or equal to N.");break;
+      case-4: crash("The maximum number of Arnoldi update iteration must be greater than zero.");break;
+      case-5: crash("WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI'");break;
+      case-6: crash("BMAT must be one of 'I' or 'G'.");break;
+      case-7: crash("Length of private work array is not sufficient.");break;
+      case-8: crash("Error return from LAPACK eigenvalue calculation;");break;
+      case-9: crash("Starting vector is zero.");break;
+      case-10: crash("IPARAM(7) must be 1,2,3.");break;
+      case-11: crash("IPARAM(7) = 1 and BMAT = 'G' are incompatable.");break;
+      case-12: crash("IPARAM(1) must be equal to 0 or 1.");break;
+      case-9999: crash("Could not build an Arnoldi factorization.");break;
+      default:crash("Unknown error code");break;
+      }
     
     //free temporary vectors
     nissa_free(temp_x);
