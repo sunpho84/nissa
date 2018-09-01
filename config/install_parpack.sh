@@ -1,5 +1,5 @@
 #!/bin/bash
-git clone git@github.com:opencollab/arpack-ng.git
+git clone https://github.com/opencollab/arpack-ng.git
 cd arpack-ng
 bash bootstrap
 mkdir build
