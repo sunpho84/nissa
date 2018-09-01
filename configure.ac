@@ -141,8 +141,7 @@ AC_MSG_RESULT(with parpack ... ${with_parpack})
 AC_ARG_ENABLE(parpack,
 	AS_HELP_STRING([--enable-parpack],[Enable parpack (automatically enabled if found)]),
 	enable_parpack="${enableval}",
-	echo "$parpack_found_headers and $ac_cv_search_pcnaupd_c"
-	if test "$parpack_found_headers" == "yes" -a "$ac_cv_search_pcnaupd_c" == "yes"
+	if test "$parpack_found_headers" != "no" -a "$ac_cv_search_pcnaupd_c" != "no"
 	then
 		enable_parpack="yes"
 	else
