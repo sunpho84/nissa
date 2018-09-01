@@ -11,7 +11,6 @@ env:
     - MAKEFLAGS="-j 2"
     - CC=gcc-7
     - CXX=g++-7
-    - FC=gfortran-7
     - GH_REPO_NAME: nissa
     - GH_REPO_REF: github.com/sunpho84/nissa.git
 
@@ -24,7 +23,7 @@ addons:
         key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
     packages:
       - g++-7
-      - gfortran-7
+      - gfortran
       - libopenmpi-dev
       - libeigen3-dev
 
