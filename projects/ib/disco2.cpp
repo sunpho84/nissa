@@ -134,7 +134,7 @@ void eig_test(quad_su3 *conf,double kappa,double am)
   const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
   const int mat_size_to_allocate=(loc_vol+bord_vol)*sizeof(spincolor)/sizeof(complex);
   const double target_precision=1e-11;
-  const int niter_max=1000;
+  const int niter_max=100000;
   spincolor *eig_vec[neig];
   for(int i=0;i<neig;i++) eig_vec[i]=nissa_malloc("eig_vec",loc_vol+bord_vol,spincolor);
   double eig_val[neig];
