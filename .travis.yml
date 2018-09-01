@@ -23,6 +23,7 @@ addons:
         key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
     packages:
       - g++-7
+      - gfortran-7
       - libopenmpi-dev
       - libeigen3-dev
 
