@@ -149,7 +149,7 @@ AC_ARG_ENABLE(parpack,
 	fi)
 AC_MSG_RESULT([enabling parpack ... ${enable_parpack}])
 
-#conditionl
+#conditional
 if test "$enable_parpack" == "yes"
 then
 	if test "$parpack_found_headers" == "no" -o "$ac_cv_search_pcnaupd_c" == "no"
