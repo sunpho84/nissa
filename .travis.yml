@@ -31,9 +31,10 @@ addons:
 
 script:
   - bash config/install_parpack.sh
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/arpack-ng/install/lib
+  - export PARPACK_PATH=$PWD/arpack-ng/install
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PARPACK_PATH/lib
   - bash config/bootstrap
   - mkdir build
   - cd build
-  - ../configure --with-parpack=../arpack-ng/install/
+  - ../configure --with-parpack=$PARPACK_PATH
   - make V=1
