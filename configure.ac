@@ -132,10 +132,10 @@ AC_ARG_WITH(parpack,
 	CPPFLAGS="-I${with_parpack}/include/ $CPPFLAGS"
 	LDFLAGS="-L${with_parpack}/lib/ $LDFLAGS",
 	with_parpack=no)
+AC_MSG_RESULT(with parpack ... ${with_parpack})
 AC_CHECK_HEADERS([arpack/parpack.h],[parpack_found_headers=yes])
 AC_SEARCH_LIBS(cnaupd_c,arpack)
 AC_SEARCH_LIBS(pcnaupd_c,parpack)
-AC_MSG_RESULT(with parpack ... ${with_parpack})
 
 #activate parpack
 AC_ARG_ENABLE(parpack,
