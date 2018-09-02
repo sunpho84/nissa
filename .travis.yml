@@ -35,5 +35,5 @@ script:
   - bash config/bootstrap
   - mkdir build
   - cd build
-  - ../configure
+  - ../configure --with-parpack=/home/francesco/QCD/SORGENTI/arpack-ng/install/
   - make
