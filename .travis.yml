@@ -26,6 +26,7 @@ addons:
       - gfortran
       - libopenmpi-dev
       - libblas-dev
+      - liblapack-dev
       - libeigen3-dev
 
 script:
