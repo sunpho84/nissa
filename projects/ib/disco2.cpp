@@ -124,16 +124,14 @@ namespace mel
   THREADABLE_FUNCTION_END
 }
 
-void eig_test(quad_su3 *conf,double kappa,double am)
+void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,const double target_precision)
 {
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   const auto imp_mat=[conf,kappa,mu=am,temp](complex *out,complex *in){apply_tmQ2((spincolor*)out,conf,kappa,temp,mu,(spincolor*)in);};
   
-  const int neig=20;
   const bool min_max=0;
   const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
   const int mat_size_to_allocate=(loc_vol+bord_vol)*sizeof(spincolor)/sizeof(complex);
-  const double target_precision=1e-11;
   const int niter_max=100000;
   spincolor *eig_vec[neig];
   for(int i=0;i<neig;i++) eig_vec[i]=nissa_malloc("eig_vec",loc_vol+bord_vol,spincolor);
@@ -142,7 +140,10 @@ void eig_test(quad_su3 *conf,double kappa,double am)
   
   /////////////////////////////////////////////////////////////////
   
+  double eig_time=-take_time();
   eigenvalues_of_hermatr_find((complex**)eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
+  eig_time+=take_time();
+  master_printf("Eigenvalues time: %lg\n",eig_time);
   
   master_printf("Eigenvalues:\n");
   for(int ieig=0;ieig<neig;ieig++)
@@ -197,7 +198,11 @@ void eig_test(quad_su3 *conf,double kappa,double am)
       
       //compute inverse eigenvalue of Q
       inv_tmQ2_RL_cg(temp1,temp,conf,kappa,0,am,10000,1e-16,eig_vec[ieig]);
-      master_printf("res (%lg,%lg), guess: (%lg,%lg)\n",temp1[0][0][0][RE],temp1[0][0][0][IM],temp[0][0][0][RE],temp[0][0][0][IM]);
+      master_printf("result: (%.16lg,%.16lg), guess: (%.16lg,%.16lg)\n",temp1[0][0][0][RE],temp1[0][0][0][IM],temp[0][0][0][RE],temp[0][0][0][IM]);
+      
+      double_vector_subtassign((double*)temp,(double*)temp1,mat_size*2);
+      double diff=sqrt(double_vector_glb_norm2(temp,loc_vol));
+      master_printf("Total difference: %.16lg\n",diff);
       
       apply_tmQ(temp,conf,kappa,-am,temp1);
       internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp),buffer,mat_size);
@@ -205,7 +210,7 @@ void eig_test(quad_su3 *conf,double kappa,double am)
       
       //compute residue
       internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
-      double res=double_vector_glb_norm2(temp,loc_vol);
+      double res=sqrt(double_vector_glb_norm2(temp,loc_vol));
       master_printf("  res: %lg\n",res);
     }
   nissa_free(temp1);
@@ -263,6 +268,12 @@ void in_main(int narg,char **arg)
   read_str_double("Mass",&am);
   double residue;
   read_str_double("Residue",&residue);
+  
+  //allocate the source and prop
+  int neig;
+  read_str_int("Neig",&neig);
+  double eig_precision;
+  read_str_double("EigPrecision",&eig_precision);
   
   //allocate the source and prop
   int nhits;
@@ -344,7 +355,7 @@ void in_main(int narg,char **arg)
 	  
 	  /////////////////////////////////////////////////////////////////
 	  
-	  eig_test(conf,kappa,am);
+	  eig_test(conf,kappa,am,neig,eig_precision);
 	  
 	  /////////////////////////////////////////////////////////////////
 	  
