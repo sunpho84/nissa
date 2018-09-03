@@ -27,28 +27,39 @@ AC_PROG_FC
 AC_PROG_CXX
 AC_PROG_RANLIB
 
-AX_CXXFLAGS_WARN_ALL
+AC_LANG([C++])
+
+#AX_CXXFLAGS_WARN_ALL
+AC_MSG_CHECKING(whether compiler understands -Wall)
+OLD_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wall"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
+  AC_MSG_RESULT(yes),
+  AC_MSG_RESULT(no)
+  CXXFLAGS="$OLD_CXXFLAGS")
 
 #blas and lapack
+link_lablas=false
 AX_BLAS([AC_MSG_RESULT([BLAS libraries found: $BLAS_LIBS])],
         [AC_MSG_RESULT([BLAS libraries not found])])
 AX_LAPACK([AC_MSG_RESULT([LAPACK libraries found: $LAPACK_LIBS])],
           [AC_MSG_RESULT([LAPACK libraries not found])])
-LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
 
 #set mpi for fortran
-AC_LANG([Fortran])
+AC_LANG_PUSH([Fortran])
 LX_FIND_MPI
+AC_LANG_POP([Fortran])
 AC_MSG_RESULT([with Fortran MPI link options... $MPI_FLDFLAGS])
+LIBS="$MPI_FLIBS $LIBS"
 LDFLAGS="$MPI_FLDFLAGS $LDFLAGS"
 
 #set mpi for c++
-AC_LANG([C++])
+AC_LANG_PUSH([C++])
 LX_FIND_MPI
+AC_LANG_POP([C++])
 AC_MSG_RESULT([with C++ MPI link options... $MPI_CXXLDFLAGS])
 CPPFLAGS="$MPI_CXXFLAGS $CPPFLAGS"
-CXXFLAGS="$MPI_CXXFLAGS $CXXFLAGS"
-CFLAGS="$MPI_CFLAGS $CFLAGS"
+LIBS="$MPI_CXXLIBS $LIBS"
 LDFLAGS="$MPI_CXXLDFLAGS $LDFLAGS"
 
 #checks for headers
@@ -91,7 +102,7 @@ case "$with_fft" in
      fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "" -a x"$fftw_found_headers" == "xyes"
     	   then
 		AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
-		LDFLAGS="-lfftw3 -lfftw3_threads $LDFLAGS"
+		LIBS="-lfftw3 -lfftw3_threads $LIBS"
 	   else
 		AC_MSG_ERROR(["Unable to find fftw3 lib"])
      	   fi ;;
@@ -135,8 +146,11 @@ AC_ARG_WITH(parpack,
 	with_parpack=no)
 AC_MSG_RESULT(with parpack ... ${with_parpack})
 AC_CHECK_HEADERS([arpack/parpack.h],[parpack_found_headers=yes])
+SAVED_LIBS=$LIBS
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
 AC_SEARCH_LIBS(cnaupd_c,arpack)
 AC_SEARCH_LIBS(pcnaupd_c,parpack)
+LIBS=$SAVED_LIBS
 
 #activate parpack
 AC_ARG_ENABLE(parpack,
@@ -158,6 +172,7 @@ then
 		AC_MSG_ERROR(["Cannot activate parpack, please provide a better set of flags"])
 	fi
 	
+	link_lablas=true
 	AC_DEFINE([USE_PARPACK],1,[Enable parpack])
 fi
 AM_CONDITIONAL([USE_PARPACK],[test "$enable_parpack" == "yes" ],[true],[false])
@@ -251,7 +266,7 @@ AC_ARG_WITH(high-prec,
      	     gmp) if test "$ac_cv_search___gmpz_init" != "" -a  x"$gmp_found_headers" == "xyes"
 	          then
 		     AC_DEFINE_UNQUOTED([HIGH_PREC],[GMP_HIGH_PREC],[Enable gmp high-precision])
-		     LDFLAGS="-lgmp -lgmpxx $LDFLAGS"
+		     LIBS="-lgmp -lgmpxx $LIBS"
 		  else
 		     AC_MSG_ERROR(["Unable to find gmp lib"]);
 		     fi ;;
@@ -384,6 +399,13 @@ AM_CONDITIONAL([NCOL3], [test x$ncol = x3])
 AC_DEFINE_UNQUOTED([NCOL],$ncol,[Number of colors])
 AC_MSG_RESULT([enabling number of colors... $ncol])
 
+#check whether we link blas
+if test "$link_lablas" == true
+then
+	LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
+fi
+AC_MSG_RESULT([linking lapack and blas... $link_lablas])
+
 #macros to concatenate
 AC_DEFINE([_CONCAT(X,Y)],[X##Y],[Internally concatenation])
 AC_DEFINE([CONCAT(X,Y)],[_CONCAT(X,Y)],[Concatenate two pieces to produce a new token])
@@ -394,6 +416,31 @@ AC_DEFINE([NAME3(s1,s2,s3)],[NAME2(CONCAT3(s1,_,s2),s3)],[Name with two _])
 AC_DEFINE([NAME4(s1,s2,s3,s4)],[NAME3(CONCAT3(s1,_,s2),s3,s4)],[Name with four _])
 AC_DEFINE([REORDER_BARRIER()],[__asm volatile ("")],[Avoid spilling])
 AC_DEFINE([MACRO_GUARD(...)],[do{__VA_ARGS__}while(0)],[Guard semicolon])
+
+#result of conf to screen
+AC_MSG_RESULT([
+--------------------------------------------------
+Configuration summary for $PACKAGE_NAME ($VERSION)
+--------------------------------------------------
+Installation prefix : $prefix
+Number of colors    : $ncol
+FC                  : $FC
+FCFLAGS             : $FCFLAGS
+CC                  : $CC
+CFLAGS              : $CFLAGS
+CXX                 : $CXX
+MPI_CXXFLAGS        : $MPI_CXXFLAGS
+MPI_CXXLIBS         : $MPI_CXXLIBS
+MPI_CXXLDFLAGS      : $MPI_CXXLDFLAGS
+CXXFLAGS            : $CXXFLAGS
+LDFLAGS             : $LDFLAGS
+LIBS                : $LIBS
+BLAS                : $BLAS_LIBS
+LAPACK              : $LAPACK_LIBS
+--------------------------------------------------
+Configuration OK
+--------------------------------------------------
+])
 
 #create config.hpp
 AC_CONFIG_FILES(
