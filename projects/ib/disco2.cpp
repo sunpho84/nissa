@@ -193,6 +193,11 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
       internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp),buffer,mat_size);
       master_printf("%d: (%.16lg,%.16lg)\n",ieig,out[RE],out[IM]);
       
+      //compute residue
+      internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
+      double res=sqrt(double_vector_glb_norm2(temp,loc_vol));
+      master_printf("  res: %lg\n",res);
+      
       //prepare the guess
       double_vector_prod_double((double*)temp,(double*)(eig_vec[ieig]),1/eig_val[ieig],2*mat_size);
       
@@ -210,7 +215,7 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
       
       //compute residue
       internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
-      double res=sqrt(double_vector_glb_norm2(temp,loc_vol));
+      res=sqrt(double_vector_glb_norm2(temp,loc_vol));
       master_printf("  res: %lg\n",res);
     }
   nissa_free(temp1);
