@@ -206,7 +206,7 @@ namespace nissa
     NISSA_LOC_VOL_LOOP(ivol)
       for(int mu=0;mu<NDIM;mu++)
 	su3_put_to_id(conf[ivol][mu]);
-	
+    
     set_borders_invalid(conf);
   }
   
@@ -218,7 +218,7 @@ namespace nissa
     NISSA_LOC_VOL_LOOP(ivol)
       for(int mu=0;mu<NDIM;mu++)
 	su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
-	
+    
     set_borders_invalid(conf);
   }
   
@@ -238,7 +238,7 @@ namespace nissa
 	  loc_max=std::max(err,loc_max);
 	  if(err>1e-13) loc_nbroken+=1;
 	}
-        
+    
     //take global average and print
     result.average_diff=glb_reduce_double(loc_avg)/glb_vol/NDIM;
     result.max_diff=glb_max_double(loc_max);
