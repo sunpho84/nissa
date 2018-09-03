@@ -146,11 +146,9 @@ AC_ARG_WITH(parpack,
 	with_parpack=no)
 AC_MSG_RESULT(with parpack ... ${with_parpack})
 AC_CHECK_HEADERS([arpack/parpack.h],[parpack_found_headers=yes])
-SAVED_LIBS=$LIBS
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
 AC_SEARCH_LIBS(cnaupd_c,arpack)
 AC_SEARCH_LIBS(pcnaupd_c,parpack)
-LIBS=$SAVED_LIBS
 
 #activate parpack
 AC_ARG_ENABLE(parpack,
