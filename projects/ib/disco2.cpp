@@ -269,15 +269,17 @@ void in_main(int narg,char **arg)
   double residue;
   read_str_double("Residue",&residue);
   
-  //allocate the source and prop
+  //read about nhits
+  int nhits;
+  read_str_int("NHits",&nhits);
+  
+  //read the calculation of eigenvalues
   int neig;
   read_str_int("Neig",&neig);
   double eig_precision;
   read_str_double("EigPrecision",&eig_precision);
   
   //allocate the source and prop
-  int nhits;
-  read_str_int("NHits",&nhits);
   spincolor *eta[nhits];
   spincolor *phi[nhits];
   for(int ihit=0;ihit<nhits;ihit++)
