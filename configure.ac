@@ -34,7 +34,7 @@ AX_BLAS([AC_MSG_RESULT([BLAS libraries found: $BLAS_LIBS])],
         [AC_MSG_RESULT([BLAS libraries not found])])
 AX_LAPACK([AC_MSG_RESULT([LAPACK libraries found: $LAPACK_LIBS])],
           [AC_MSG_RESULT([LAPACK libraries not found])])
-LDFLAGS="$LDFLAGS $LAPACK_LIBS $BLAS_LIBS"
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
 
 #set mpi for fortran
 AC_LANG([Fortran])
