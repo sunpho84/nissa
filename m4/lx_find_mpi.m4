@@ -4,6 +4,8 @@
 # Written by Todd Gamblin, tgamblin@llnl.gov.
 # LLNL-CODE-417602
 # All rights reserved.  
+#
+# Copyright (c) 2018, Francesco Sanfilippo
 # 
 # This file is part of Libra. For details, see http://github.com/tgamblin/libra.
 # Please also read the LICENSE file for further information.
@@ -42,19 +44,23 @@
 # AC_SUBST variables:
 #     MPICC            Name of MPI compiler
 #     MPI_CFLAGS       Includes and defines for MPI C compilation
-#     MPI_CLDFLAGS     Libraries and library paths for linking MPI C programs
+#     MPI_CLIBS        Libraries for linking MPI C programs
+#     MPI_CLDFLAGS     Librariy paths for linking MPI C programs
 #
 #     MPICXX           Name of MPI C++ compiler
 #     MPI_CXXFLAGS     Includes and defines for MPI C++ compilation
-#     MPI_CXXLDFLAGS   Libraries and library paths for linking MPI C++ programs
+#     MPI_CXXLIBS      Libraries for linking MPI C++ programs
+#     MPI_CXXLDFLAGS   Library paths for linking MPI C++ programs
 #
 #     MPIF77           Name of MPI Fortran 77 compiler
 #     MPI_F77FLAGS     Includes and defines for MPI Fortran 77 compilation
-#     MPI_F77LDFLAGS   Libraries and library paths for linking MPI Fortran 77 programs
+#     MPI_F77LDFLAGS   Libraries for linking MPI Fortran 77 programs
+#     MPI_F77LDFLAGS   Library paths for linking MPI Fortran 77 programs
 # 
 #     MPIFC            Name of MPI Fortran compiler
 #     MPI_FFLAGS       Includes and defines for MPI Fortran compilation
-#     MPI_FLDFLAGS     Libraries and library paths for linking MPI Fortran programs
+#     MPI_FLIBS        Libraries for linking MPI Fortran programs
+#     MPI_FLDFLAGS     Librariey paths for linking MPI Fortran programs
 # 
 # Shell variables output by this macro:
 #     have_C_mpi       'yes' if we found MPI for C, 'no' otherwise
@@ -167,36 +173,20 @@ AC_DEFUN([LX_QUERY_MPI_COMPILER],
          
          # Create variables and clean up newlines and multiple spaces
          MPI_$3FLAGS="$lx_mpi_defines $lx_mpi_includes"
-         MPI_$3LDFLAGS="$lx_mpi_link_paths $lx_mpi_libs $lx_mpi_link_args"
+         MPI_$3LIBS="$lx_mpi_libs"
+         MPI_$3LDFLAGS="$lx_mpi_link_paths $lx_mpi_link_args"
          MPI_$3FLAGS=`  echo "$MPI_$3FLAGS"   | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
+         MPI_$3LIBS=`echo "$MPI_$3LIBS" | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
          MPI_$3LDFLAGS=`echo "$MPI_$3LDFLAGS" | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
-
-         OLD_CPPFLAGS=$CPPFLAGS
-         OLD_LIBS=$LIBS
-         CPPFLAGS=$MPI_$3FLAGS
-         LIBS=$MPI_$3LDFLAGS
 
          AC_DEFINE([HAVE_MPI], [1], [Define to 1 if you have MPI libs and headers.])
          have_$3_mpi='yes'
 	 
-	 # AC_TRY_LINK([#include <mpi.h>],
-         #             [int rank, size;
-         #              MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-         #              MPI_Comm_size(MPI_COMM_WORLD, &size);],
-         #             [# Add a define for testing at compile time.
-         #              have_$3_mpi='yes'],
-         #             [# zero out mpi flags so we don't link against the faulty library.
-         #              MPI_$3FLAGS=""
-         #              MPI_$3LDFLAGS=""
-         #              have_$3_mpi='no'])
-
          # AC_SUBST everything.
          AC_SUBST($1)
          AC_SUBST(MPI_$3FLAGS)
+         AC_SUBST(MPI_$3LIBS)
          AC_SUBST(MPI_$3LDFLAGS)
-
-         LIBS=$OLD_LIBS
-         CPPFLAGS=$OLD_CPPFLAGS
      else
          Echo Unable to find suitable MPI Compiler. Try setting $1.
          have_$3_mpi='no'         
