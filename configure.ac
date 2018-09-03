@@ -30,25 +30,26 @@ AC_PROG_RANLIB
 AX_CXXFLAGS_WARN_ALL
 
 #blas and lapack
-AX_BLAS([AC_MSG_RESULT([BLAS libraries found: $BLAS_LIBS])],[AC_MSG_RESULT([BLAS libraries not found])])
-AX_LAPACK([AC_MSG_RESULT([LAPACK libraries found: $LAPACK_LIBS])],[AC_MSG_RESULT([LAPACK libraries not found])])
-LDFLAGS="$LDFLAGS $LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
+AX_BLAS([AC_MSG_RESULT([BLAS libraries found: $BLAS_LIBS])],
+        [AC_MSG_RESULT([BLAS libraries not found])])
+AX_LAPACK([AC_MSG_RESULT([LAPACK libraries found: $LAPACK_LIBS])],
+          [AC_MSG_RESULT([LAPACK libraries not found])])
+LDFLAGS="$LDFLAGS $LAPACK_LIBS $BLAS_LIBS"
 
-#set mpi
+#set mpi for fortran
 AC_LANG([Fortran])
 LX_FIND_MPI
 AC_MSG_RESULT([with Fortran MPI link options... $MPI_FLDFLAGS])
 LDFLAGS="$MPI_FLDFLAGS $LDFLAGS"
-LIBS="$MPI_FLDFLAGS $LIBS"
 
+#set mpi for c++
 AC_LANG([C++])
 LX_FIND_MPI
 AC_MSG_RESULT([with C++ MPI link options... $MPI_CXXLDFLAGS])
-CPPFLAGS="$AM_CPPFLAGS $MPI_CXXFLAGS $CPPFLAGS"
-CXXFLAGS="$AM_CXXFLAGS $MPI_CXXFLAGS $CXXFLAGS"
-CFLAGS="$AM_CFLAGS $MPI_CFLAGS $CFLAGS"
-LDFLAGS="$AM_LDFLAGS $MPI_CXXLDFLAGS $LDFLAGS"
-LIBS="$MPI_CXXLDFLAGS $LIBS"
+CPPFLAGS="$MPI_CXXFLAGS $CPPFLAGS"
+CXXFLAGS="$MPI_CXXFLAGS $CXXFLAGS"
+CFLAGS="$MPI_CFLAGS $CFLAGS"
+LDFLAGS="$MPI_CXXLDFLAGS $LDFLAGS"
 
 #checks for headers
 AC_CHECK_HEADERS([fftw3.h],[fftw_found_headers=yes])
@@ -247,7 +248,13 @@ AC_ARG_WITH(high-prec,
 	if test "$ac_cv_search___gmpz_init" != "no"; then with_high_prec="gmp";else with_high_prec="native";fi)
 	case "$with_high_prec" in
      	     native) AC_DEFINE_UNQUOTED([HIGH_PREC],[NATIVE_HIGH_PREC],[Enable native high-precision]) ;;
-     	     gmp) if test "$ac_cv_search___gmpz_init" != "" -a  x"$gmp_found_headers" == "xyes"; then AC_DEFINE_UNQUOTED([HIGH_PREC],[GMP_HIGH_PREC],[Enable gmp high-precision]) AM_LDFLAGS="-lgmp -lgmpxx";else AC_MSG_ERROR(["Unable to find gmp lib"]);fi ;;
+     	     gmp) if test "$ac_cv_search___gmpz_init" != "" -a  x"$gmp_found_headers" == "xyes"
+	          then
+		     AC_DEFINE_UNQUOTED([HIGH_PREC],[GMP_HIGH_PREC],[Enable gmp high-precision])
+		     LDFLAGS="-lgmp -lgmpxx $LDFLAGS"
+		  else
+		     AC_MSG_ERROR(["Unable to find gmp lib"]);
+		     fi ;;
 	     *) AC_MSG_ERROR(["Unkwnown high precision type ${withval}"])
 	esac
 AC_MSG_RESULT([with high precision type... $with_high_prec])
