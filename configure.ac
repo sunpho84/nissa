@@ -121,10 +121,10 @@ AC_ARG_WITH(fft-type,
 		with_fft_type="native"
 	fi)
 case "$with_fft_type" in
-     native) AC_DEFINE_UNQUOTED([WITH_FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
+     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
      fftw) if test "$fftw_found" != "no"
     	   then
-		AC_DEFINE_UNQUOTED([WITH_FFT_TYPE],[FFTW_FFT],[Enable FFTW])
+		AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
 	   else
 		AC_MSG_ERROR(["Unable to find fftw3 lib"])
      	   fi ;;
