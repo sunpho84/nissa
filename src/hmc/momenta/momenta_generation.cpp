@@ -2,10 +2,6 @@
  #include "config.hpp"
 #endif
 
-#if HIGH_PREC == GMP_HIGH_PREC
- #include <gmpxx.h>
-#endif
-
 #include "base/random.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"

@@ -26,8 +26,18 @@ AC_PROG_CC
 AC_PROG_FC
 AC_PROG_CXX
 AC_PROG_RANLIB
-
 AC_LANG([C++])
+
+LIBRARY_RESULT="---"
+SUMMARY_RESULT="---"
+
+#split fortran flags into LDFLAGS and LIBS
+AC_F77_LIBRARY_LDFLAGS
+fortran_ldflags=` echo "$FLIBS" | grep -o -- '\(^\| \)-L\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)' | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
+fortran_libs=`       echo "$FLIBS" | grep -o -- '\(^\| \)-l\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)' | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
+LDFLAGS="$fortran_ldflags $LDFLAGS"
+LIBS="$fortran_libs $LIBS"
+FLIBS=""
 
 #AX_CXXFLAGS_WARN_ALL
 AC_MSG_CHECKING(whether compiler understands -Wall)
@@ -39,11 +49,12 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
   CXXFLAGS="$OLD_CXXFLAGS")
 
 #blas and lapack
-link_lablas=false
-AX_BLAS([AC_MSG_RESULT([BLAS libraries found: $BLAS_LIBS])],
-        [AC_MSG_RESULT([BLAS libraries not found])])
-AX_LAPACK([AC_MSG_RESULT([LAPACK libraries found: $LAPACK_LIBS])],
-          [AC_MSG_RESULT([LAPACK libraries not found])])
+AX_BLAS([AC_MSG_RESULT([BLAS libraries found: $BLAS_LIBS])])
+AX_LAPACK([AC_MSG_RESULT([LAPACK libraries found: $LAPACK_LIBS])])
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
+LIBRARY_RESULT="$LIBRARY_RESULT
+BLAS                : $BLAS_LIBS
+LAPACK              : $LAPACK_LIBS"
 
 #set mpi for fortran
 AC_LANG_PUSH([Fortran])
@@ -62,14 +73,6 @@ CPPFLAGS="$MPI_CXXFLAGS $CPPFLAGS"
 LIBS="$MPI_CXXLIBS $LIBS"
 LDFLAGS="$MPI_CXXLDFLAGS $LDFLAGS"
 
-#checks for headers
-AC_CHECK_HEADERS([fftw3.h],[fftw_found_headers=yes])
-AC_CHECK_HEADERS([gmpxx.h],[gmp_found_headers=yes])
-
-#checks for libraries
-AC_SEARCH_LIBS(__gmpz_init,gmp)
-AC_SEARCH_LIBS(fftw_plan_dft_r2c_2d,fftw3)
-
 #check ntl library
 #LB_CHECK_NTL(,,AC_MSG_ERROR(["Unable to find NTL library"]))
 
@@ -85,57 +88,107 @@ fi
 AM_CONDITIONAL([SPI],[test "$enable_spi" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling spi... $enable_spi])
 
-#fast fourier
+#################### fftw ####################
+
+#fftw parameters
+AC_ARG_WITH(fftw,
+	AS_HELP_STRING([--with-fftw],[Specify where to find installation of fftw]),
+	with_fftw=${withval}
+	CPPFLAGS="$CPPFLAGS -I$with_fftw/include"
+	LFFLAGS="$LDFLAGS -I$with_fftw/lib",
+	with_fftw=no)
+AC_CHECK_HEADERS([fftw3.h],[fftw_found_header=yes],[fftw_found_header=no])
+AC_SEARCH_LIBS([fftw_plan_dft_r2c_2d],[fftw3],[fftw_found_library=yes],[fftw_found_library=no])
+if test "$fftw_found_header" != "no"  -a "$fftw_found_library" != "no"
+then
+	fftw_found=yes
+else
+	fftw_found=no
+fi
+LIBRARY_RESULT="$LIBRARY_RESULT
+FFTW                : $ac_cv_search_fftw_plan_dft_r2c_2d"
+
+#fast fourier type
 AC_DEFINE([NATIVE_FFT],[0],["Native implementation"])
 AC_DEFINE([FFTW_FFT],[1],["FFTW library"])
-AC_ARG_WITH(fft,
-	AS_HELP_STRING([--with-fft],[Select the Fast Fourier transform implementation (native, fftw [NOT default if found])]),
-	with_fft="${withval}",
-	if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "no" -a x"$fftw_found_headers" == "xyes"
+AC_ARG_WITH(fft-type,
+	AS_HELP_STRING([--with-fft-type],[Select the Fast Fourier transform implementation (native, fftw [NOT default if found])]),
+	with_fft_type="${withval}",
+	if test "$fftw_found" != "no"
 	then
-		with_fft="fftw"
+		with_fft_type="fftw"
 	else
-		with_fft="native"
+		with_fft_type="native"
 	fi)
-case "$with_fft" in
-     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
-     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "" -a x"$fftw_found_headers" == "xyes"
+case "$with_fft_type" in
+     native) AC_DEFINE_UNQUOTED([WITH_FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
+     fftw) if test "$fftw_found" != "no"
     	   then
-		AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW])
-		LIBS="-lfftw3 -lfftw3_threads $LIBS"
+		AC_DEFINE_UNQUOTED([WITH_FFT_TYPE],[FFTW_FFT],[Enable FFTW])
 	   else
 		AC_MSG_ERROR(["Unable to find fftw3 lib"])
      	   fi ;;
      *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
 esac
-AC_MSG_RESULT([with Fast Fourier type... ${with_fft}])
+AC_MSG_RESULT([with Fast Fourier type... ${with_fft_type}])
+SUMMARY_RESULT="$SUMMARY_RESULT
+FFT type            : $with_fft_type"
 
-#add Eigen path, search it
+#################### eigen ####################
+
+#introduce eigen flags
 AC_ARG_WITH(eigen,
 	AS_HELP_STRING([--with-eigen],[Specify where to find Eigen/Dense]),
 	with_eigen=${withval}
 	CPPFLAGS="$CPPFLAGS -I$with_eigen",
 	with_eigen=no)
 AC_MSG_RESULT([with Eigen... ${with_eigen}])
+
+#search eigen header
 AC_LANG_PUSH([C++])
-AC_CHECK_HEADERS([Eigen/Dense])
+AC_CHECK_HEADERS([Eigen/Dense],[eigen_header_found=yes],[eigen_header_found=no])
 AC_LANG_POP([C++])
+eigen_found=$eigen_header_found
+
+#introdue enable eigen
+AC_ARG_ENABLE(eigen,
+	AS_HELP_STRING([--enable-eigen],[Enable Eigen (automatically enabled if found)]),
+	enable_eigen="${enableval}",
+	enable_eigen="${eigen_found}")
+AC_MSG_RESULT([enabling eigen ... ${enable_eigen}])
+
+#check activability for eigen
+if test "$enable_eigen" == "yes"
+then
+	if test "$eigen_found" == "no"
+	then
+		AC_MSG_ERROR(["Cannot enable eigen, library not found, please provide/improve hint using --with-eigen flag"])
+	fi
+	AC_DEFINE([USE_EIGEN],1,[Enable eigen])
+fi
+AM_CONDITIONAL([USE_EIGEN],[test "$enable_eigen" == "yes" ],[true],[false])
+SUMMARY_RESULT="$SUMMARY_RESULT
+Eigen enabled       : $enable_eigen"
 
 #enable eigen for linear algebra
 AC_ARG_ENABLE(eigen_everywhere,
 	AS_HELP_STRING([--enable-eigen-everywhere],[Enable Eigen Everywhere (default: no)]),
 	enable_eigen_everywhere="${enableval}",
 	enable_eigen_everywhere="no")
+AC_MSG_RESULT(enabling Eigen everywhere ... ${enable_eigen_everywhere})
+
+#check activability
 if test "$enable_eigen_everywhere" == "yes"
 then
-	if test "$ac_cv_header_Eigen_Dense" == "no"
+	if test "$eigen_found" == "no"
 	then
 		AC_MSG_ERROR(["Unable to find Eigen"])
 	else
 		AC_DEFINE_UNQUOTED([USE_EIGEN_EVERYWHERE],[1],[Enable Eigen everywhere])
 	fi
 fi
-AC_MSG_RESULT(enabling Eigen everywhere ... ${enable_eigen_everywhere})
+
+#################### parpack ####################
 
 #introduce parpack flags
 AC_ARG_WITH(parpack,
@@ -145,44 +198,87 @@ AC_ARG_WITH(parpack,
 	LDFLAGS="-L${with_parpack}/lib/ $LDFLAGS",
 	with_parpack=no)
 AC_MSG_RESULT(with parpack ... ${with_parpack})
-AC_CHECK_HEADERS([arpack/parpack.h],[parpack_found_headers=yes])
-LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
-AC_SEARCH_LIBS(cnaupd_c,arpack)
-AC_SEARCH_LIBS(pcnaupd_c,parpack)
 
-#activate parpack
+#search for arpack and parpack library
+AC_CHECK_HEADERS([arpack/parpack.h],[parpack_found_headers=yes],[parpack_found_headers=no])
+AC_SEARCH_LIBS([cnaupd_c],[arpack],[arpack_found_library=yes],[arpack_found_library=no])
+AC_SEARCH_LIBS([pcnaupd_c],[parpack],[parpack_found_library=yes],[parpack_found_library=no])
+if test "$parpack_found_headers" != "no" -a "$arpack_found_library" != "no" -a "$parpack_found_library" != "no"
+then
+	parpack_found=yes
+else
+	parpack_found=no
+fi
+
+#result of the search
+LIBRARY_RESULT="$LIBRARY_RESULT
+ARPACK              : $ac_cv_search_cnaupd_c
+PARPACK             : $ac_cv_search_pcnaupd_c"
+
+#introduce enable parpack
 AC_ARG_ENABLE(parpack,
 	AS_HELP_STRING([--enable-parpack],[Enable parpack (automatically enabled if found)]),
 	enable_parpack="${enableval}",
-	if test "$parpack_found_headers" != "no" -a "$ac_cv_search_pcnaupd_c" != "no"
-	then
-		enable_parpack="yes"
-	else
-		enable_parpack="no"
-	fi)
+	enable_parpack="${parpack_found}")
 AC_MSG_RESULT([enabling parpack ... ${enable_parpack}])
 
-#conditional
+#check activability for parpack
 if test "$enable_parpack" == "yes"
 then
-	if test "$parpack_found_headers" == "no" -o "$ac_cv_search_pcnaupd_c" == "no"
+	if test "$parpack_found" == "no"
 	then
-		AC_MSG_ERROR(["Cannot activate parpack, please provide a better set of flags"])
+		AC_MSG_ERROR(["Cannot enable parpack, library not found, please provide/improve hint using --with-parpack flag"])
 	fi
-	
-	link_lablas=true
 	AC_DEFINE([USE_PARPACK],1,[Enable parpack])
 fi
 AM_CONDITIONAL([USE_PARPACK],[test "$enable_parpack" == "yes" ],[true],[false])
+SUMMARY_RESULT="$SUMMARY_RESULT
+Parpack enabled     : $enable_parpack"
 
-#lime
+#################### lime ####################
+
+#introduce lime flags
 AC_ARG_WITH(lime,
 	AS_HELP_STRING([--with-lime[=dir]], [Specify where to find lime]),
 	with_lime="${withval}"
+	CPPFLAGS="-I${with_lime}/include/ $CPPFLAGS"
 	LDFLAGS="-L${with_lime}/lib/ $LDFLAGS",
 	with_lime=no)
-AC_SEARCH_LIBS(limeReaderNextRecord,lime)
 AC_MSG_RESULT(with lime ... ${with_lime})
+	
+#search for lime header and library
+AC_CHECK_HEADERS([lime.h],[lime_found_headers=yes],[lime_found_header=no])
+AC_SEARCH_LIBS([limeReaderNextRecord],[lime],[lime_found_library=yes],[lime_found_library=no])
+if test "$lime_found_header" != "no"  -a "$lime_found_library" != "no"
+then
+	lime_found=yes
+else
+	lime_found=no
+fi
+LIBRARY_RESULT="$LIBRARY_RESULT
+LIME                : $ac_cv_search_limeReaderNextRecord"
+
+#introduce enable lime
+AC_ARG_ENABLE(lime,
+	AS_HELP_STRING([--enable-lime],[Enable lime (automatically enabled if found)]),
+	enable_lime="${enableval}",
+	enable_lime="${lime_found}")
+AC_MSG_RESULT([enabling lime ... ${enable_lime}])
+
+#check activability for lime
+if test "$enable_lime" == "yes"
+then
+	if test "$lime_found" == "no"
+	then
+		AC_MSG_ERROR(["Cannot enable lime, library not found, please provide/improve hint using --with-lime flag"])
+	fi
+	AC_DEFINE([USE_LIME],1,[Enable lime])
+fi
+AM_CONDITIONAL([USE_LIME],[test "$enable_lime" == "yes" ],[true],[false])
+SUMMARY_RESULT="$SUMMARY_RESULT
+Lime enabled        : $enable_lime"
+
+#################### threads ####################
 
 #threads
 AC_ARG_ENABLE(threads,
@@ -200,6 +296,8 @@ then
 fi
 AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling threads... $enable_threads])
+SUMMARY_RESULT="$SUMMARY_RESULT
+Threads enabled     : $enable_threads"
 
 #MPI
 AC_ARG_ENABLE(MPI,
@@ -212,65 +310,166 @@ then
 fi
 AM_CONDITIONAL([USE_MPI],[test "$enable_MPI" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling MPI... $enable_MPI])
+SUMMARY_RESULT="$SUMMARY_RESULT
+MPI enabled         : $enable_threads"
 
-#tmLQCD
+#################### tmLQCD ####################
+
+#introduce tmLQCD flags
 AC_ARG_WITH(tmLQCD,
 	AS_HELP_STRING([--with-tmLQCD[=dir]],[Specify where to find tmLQCD]),
-	with_tmlqcd="${withval}",
-	with_tmlqcd="no")
-AM_CONDITIONAL([USE_TMLQCD],[test "x${with_tmlqcd}" != "xno" ],[true],[false])
-if test "x${with_tmlqcd}" != "xno"
-then
-	if test "$ac_cv_search_limeReaderNextRecord" == "no"
-	then
-		AC_MSG_ERROR(["Need lime to compile"])
-	fi
-	AC_DEFINE_UNQUOTED([USE_TMLQCD],[1],[Enable tmLQCD usage])
-	LDFLAGS="-L${with_tmlqcd}/lib $LDFLAGS"
-	LIBS="-lwrapper -lhmc -lmeas -lmonomial -loperator -lsolver -linit -llinalg -lhmc -lxchange -lrational -lio -lblas -llapack -llime $LIBS"
-	CPPFLAGS="-I${with_tmlqcd}/include $CPPFLAGS"
-fi
-AC_MSG_RESULT([with tmLQCD ... ${with_tmlqcd}])
+	with_tmLQCD="${withval}"
+	CPPFLAGS="-I${with_tmLQCD}/include $CPPFLAGS"
+	LDFLAGS="-L${with_tmLQCD}/lib $LDFLAGS",
+	with_tmLQCD="no")
 
-#DDalphaAMG
-AC_ARG_WITH(DDalphaAMG,
-	AS_HELP_STRING([--with-DDalphaAMG[=dir]],[Specify where to find DDalphaAMG]),
-	with_ddalphaamg="${withval}",
-	with_ddalphaamg="no")
-AM_CONDITIONAL([USE_DDALPHAAMG],[test "x${with_ddalphaamg}" != "xno" ],[true],[false])
-if test "x${with_ddalphaamg}" != "xno"
+#search for the library
+TMLQCD_LIBS="-lwrapper -lhmc -lmeas -lmonomial -loperator -lsolver -linit -llinalg -lhmc -lxchange -lrational -lio"
+OLD_LIBS=$LIBS
+LIBS="$TMLQCD_LIBS $LIBS"
+AC_SEARCH_LIBS(tmLQCD_invert_init)
+LIBS=$OLD_LIBS
+if test "$ac_cv_search_tmLQCD_invert_init" != "no"
 then
-	if test "$ac_cv_search_limeReaderNextRecord" == "no"
-	then
-		AC_MSG_ERROR(["Need lime to compile"])
-	fi
-	LDFLAGS="-L${with_ddalphaamg}/lib $LDFLAGS"
-	CPPFLAGS="-I${with_ddalphaamg}/include $CPPFLAGS"
-	AC_CHECK_LIB(DDalphaAMG,DDalphaAMG_get_communicator,,AC_MSG_ERROR(["Unable to find libDDalphaAMG.a"]))
-	AC_CHECK_HEADERS([DDalphaAMG.h],,AC_MSG_ERROR(["Unable to find DDalphaAMG.h"]))
-	AC_DEFINE_UNQUOTED([USE_DDALPHAAMG],[1],[Enable DDalphaAMG usage])
+	tmLQCD_found=yes
+else
+	tmLQCD_found=no
 fi
-AC_MSG_RESULT([with DDalphaAMG ... ${with_ddalphaamg}])
+
+#introduce enable tmLQCD
+AC_ARG_ENABLE(tmLQCD,
+	AS_HELP_STRING([--enable-tmLQCD],[Enable tmLQCD (automatically enabled if found)]),
+	enable_tmLQCD="${enableval}",
+	enable_tmLQCD="${tmLQCD_found}")
+AC_MSG_RESULT([enabling tmLQCD ... ${enable_tmLQCD}])
+
+#check activability for tmLQCD
+if test enable_tmLQCD == "yes"
+then
+	if test "$tmLQCD_found" == "no"
+	then
+		AC_MSG_ERROR(["Cannot enable tmLQCD, library not found, please provide/improve hint using --with-tmLQCD flag"])
+	fi
+	LIBS="$LIBS $TMLQCD_LIBS"
+	AC_DEFINE([USE_TMLQCD],1,[Enable tmLQCD])
+fi
+AM_CONDITIONAL([USE_TMLQCD],[test "$enable_tmLQCD" == "yes" ],[true],[false])
+SUMMARY_RESULT="$SUMMARY_RESULT
+tmLQCD enabled      : $enable_tmLQCD"
+
+#################### DDalphaAMG ####################
+
+#introduce DDalphaAMG flags
+AC_ARG_WITH(DDalphaAMG,
+	AS_HELP_STRING([--with-DDalphaAMG[=dir]], [Specify where to find DDalphaAMG]),
+	with_DDalphaAMG="${withval}"
+	CPPFLAGS="-I${with_DDalphaAMG}/include/ $CPPFLAGS"
+	LDFLAGS="-L${with_DDalphaAMG}/lib/ $LDFLAGS",
+	with_DDalphaAMG=no)
+AC_MSG_RESULT(with DDalphaAMG ... ${with_DDalphaAMG})
+	
+#search for DDalphaAMG header and library
+AC_CHECK_HEADERS([DDalphaAMG.h],[DDalphaAMG_found_headers=yes],[DDalphaAMG_found_headers=no])
+AC_SEARCH_LIBS([DDalphaAMG_get_communicator],[DDalphaAMG],[DDalphaAMG_found_library=yes],[DDalphaAMG_found_library=no])
+if test "$DDalphaAMG_found_headers" != "no"  -a "$DDalphaAMG_found_library" != "no"
+then
+	DDalphaAMG_found=yes
+else
+	DDalphaAMG_found=no
+fi
+LIBRARY_RESULT="$LIBRARY_RESULT
+DDALPHAAMG          : $ac_cv_search_DDalphaAMG_get_communicator"
+
+#introduce enable DDalphaAMG
+AC_ARG_ENABLE(DDalphaAMG,
+	AS_HELP_STRING([--enable-DDalphaAMG],[Enable DDalphaAMG (automatically enabled if found)]),
+	enable_DDalphaAMG="${enableval}",
+	enable_DDalphaAMG="${DDalphaAMG_found}")
+AC_MSG_RESULT([enabling DDalphaAMG ... ${enable_DDalphaAMG}])
+
+#check activability for DDalphaAMG
+if test "$enable_DDalphaAMG" == "yes"
+then
+	if test "$DDalphaAMG_found" == "no"
+	then
+		AC_MSG_ERROR(["Cannot enable DDalphaAMG, library not found, please provide/improve hint using --with-DDalphaAMG flag"])
+	fi
+	AC_DEFINE([USE_DDALPHAAMG],1,[Enable DDalphaAMG])
+fi
+AM_CONDITIONAL([USE_DDALPHAAMG],[test "$enable_DDalphaAMG" == "yes" ],[true],[false])
+SUMMARY_RESULT="$SUMMARY_RESULT
+DDalphaAMG enabled  : $enable_DDalphaAMG"
+
+#################### gmp ####################
+
+#introduce gmp flags
+AC_ARG_WITH(gmp,
+	AS_HELP_STRING([--with-gmp[=dir]], [Specify where to find gmp]),
+	with_gmp="${withval}"
+	CPPFLAGS="-I${with_gmp}/include/ $CPPFLAGS"
+	LDFLAGS="-L${with_gmp}/lib/ $LDFLAGS",
+	with_gmp=no)
+AC_MSG_RESULT(with gmp ... ${with_gmp})
+	
+#search for gmp header and library
+AC_CHECK_HEADERS([gmpxx.h],[gmp_found_headers=yes],[gmp_found_headers=no])
+AC_SEARCH_LIBS([__gmpz_init],[gmp],[gmp_found_library=yes],[gmp_found_library=no])
+if test "$gmp_found_headers" != "no"  -a "$gmp_found_library" != "no"
+then
+	gmp_found=yes
+else
+	gmp_found=no
+fi
+LIBRARY_RESULT="$LIBRARY_RESULT
+GMP                 : $ac_cv_search___gmpz_init"
+
+#introduce enable gmp
+AC_ARG_ENABLE(gmp,
+	AS_HELP_STRING([--enable-gmp],[Enable gmp (automatically enabled if found)]),
+	enable_gmp="${enableval}",
+	enable_gmp="${gmp_found}")
+AC_MSG_RESULT([enabling gmp ... ${enable_gmp}])
+
+#check activability for gmp
+if test "$enable_gmp" == "yes"
+then
+	if test "$gmp_found" == "no"
+	then
+		AC_MSG_ERROR(["Cannot enable gmp, library not found, please provide/improve hint using --with-gmp flag"])
+	fi
+	AC_DEFINE([USE_GMP],1,[Enable gmp])
+fi
+AM_CONDITIONAL([USE_GMP],[test "$enable_gmp" == "yes" ],[true],[false])
+SUMMARY_RESULT="$SUMMARY_RESULT
+Gmp enabled         : $enable_gmp"
 
 #high-prec arithmetic
 AC_DEFINE([NATIVE_HIGH_PREC],[0],["Native implementation"])
 AC_DEFINE([GMP_HIGH_PREC],[1],["GMP library"])
 AC_ARG_WITH(high-prec,
 	AS_HELP_STRING([--with-high-prec],[Select the high precision type (native=256 bit float, gmp [default if found])]),
-	with_high_prec="${withval}",
-	if test "$ac_cv_search___gmpz_init" != "no"; then with_high_prec="gmp";else with_high_prec="native";fi)
-	case "$with_high_prec" in
-     	     native) AC_DEFINE_UNQUOTED([HIGH_PREC],[NATIVE_HIGH_PREC],[Enable native high-precision]) ;;
-     	     gmp) if test "$ac_cv_search___gmpz_init" != "" -a  x"$gmp_found_headers" == "xyes"
-	          then
-		     AC_DEFINE_UNQUOTED([HIGH_PREC],[GMP_HIGH_PREC],[Enable gmp high-precision])
-		     LIBS="-lgmp -lgmpxx $LIBS"
-		  else
-		     AC_MSG_ERROR(["Unable to find gmp lib"]);
-		     fi ;;
-	     *) AC_MSG_ERROR(["Unkwnown high precision type ${withval}"])
-	esac
-AC_MSG_RESULT([with high precision type... $with_high_prec])
+	with_high_prec_type="${withval}",
+	if test "gmp_found" != "no"
+	then
+		with_high_prec_type="gmp"
+	else
+		with_high_prec_type="native"
+	fi)
+case "$with_high_prec_type" in
+     native) AC_DEFINE_UNQUOTED([HIGH_PREC_TYPE],[NATIVE_HIGH_PREC],[Enable native high-precision]) ;;
+     gmp) if test "gmp_found" != "no"
+	  then
+		AC_DEFINE_UNQUOTED([HIGH_PREC_TYPE],[GMP_HIGH_PREC],[Enable gmp high-precision])
+	  else
+		AC_MSG_ERROR(["Unable to find gmp lib"]);
+	  fi ;;
+     *) AC_MSG_ERROR(["Unkwnown high precision type ${withval}"])
+esac
+AC_MSG_RESULT([with high precision type... $with_high_prec_type])
+SUMMARY_RESULT="$SUMMARY_RESULT
+High prec type      : $with_high_prec_type"
+
+#################### ####################
 
 #cgm-debug
 AC_ARG_ENABLE(cgm-debug,
@@ -396,13 +595,8 @@ if ! printf "%f" "$col" >/dev/null 2>&1; then AC_MSG_ERROR([String $ncol is not 
 AM_CONDITIONAL([NCOL3], [test x$ncol = x3])
 AC_DEFINE_UNQUOTED([NCOL],$ncol,[Number of colors])
 AC_MSG_RESULT([enabling number of colors... $ncol])
-
-#check whether we link blas
-if test "$link_lablas" == true
-then
-	LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
-fi
-AC_MSG_RESULT([linking lapack and blas... $link_lablas])
+SUMMARY_RESULT="$SUMMARY_RESULT
+Number of colors    : $ncol"
 
 #macros to concatenate
 AC_DEFINE([_CONCAT(X,Y)],[X##Y],[Internally concatenation])
@@ -420,21 +614,17 @@ AC_MSG_RESULT([
 --------------------------------------------------
 Configuration summary for $PACKAGE_NAME ($VERSION)
 --------------------------------------------------
-Installation prefix : $prefix
-Number of colors    : $ncol
-FC                  : $FC
-FCFLAGS             : $FCFLAGS
 CC                  : $CC
-CFLAGS              : $CFLAGS
-CXX                 : $CXX
-MPI_CXXFLAGS        : $MPI_CXXFLAGS
-MPI_CXXLIBS         : $MPI_CXXLIBS
-MPI_CXXLDFLAGS      : $MPI_CXXLDFLAGS
+CPPFLAGS            : $CPPFLAGS
 CXXFLAGS            : $CXXFLAGS
+CXX                 : $CXX
+---
 LDFLAGS             : $LDFLAGS
 LIBS                : $LIBS
-BLAS                : $BLAS_LIBS
-LAPACK              : $LAPACK_LIBS
+---
+Installation prefix : $prefix
+$LIBRARY_RESULT
+$SUMMARY_RESULT
 --------------------------------------------------
 Configuration OK
 --------------------------------------------------

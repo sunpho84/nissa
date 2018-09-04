@@ -1,17 +1,17 @@
 #ifndef _HIGH_PREC_HPP
 #define _HIGH_PREC_HPP
 
-#if HIGH_PREC == GMP_HIGH_PREC
+#if HIGH_PREC_TYPE == GMP_HIGH_PREC
  #include <gmpxx.h>
 #endif
 
-#if HIGH_PREC == NATIVE
+#if HIGH_PREC_TYPE == NATIVE
  #include "new_types/float_256.hpp"
 #endif
 
 namespace nissa
 {
-#if HIGH_PREC == GMP_HIGH_PREC
+#if HIGH_PREC_TYPE == GMP_HIGH_PREC
   
   //uses mpf for high precision
   typedef mpf_class float_high_prec_t;
@@ -22,13 +22,13 @@ namespace nissa
   //default number of bits
   #define NISSA_DEFAULT_MPF_PRECISION 256
   
-#elif HIGH_PREC == NATIVE_HIGH_PREC
+#elif HIGH_PREC_TYPE == NATIVE_HIGH_PREC
   
   //revert to native implementation
   typedef float_256_class float_high_prec_t;
   
 #else
- #error Unknwon high_prec: HIGH_PREC
+ #error Unknwon high_prec: HIGH_PREC_TYPE
 #endif
   
   void init_high_precision();

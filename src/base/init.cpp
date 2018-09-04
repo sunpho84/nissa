@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if HIGH_PREC == GMP_HIGH_PREC
+#if HIGH_PREC_TYPE == GMP_HIGH_PREC
  #include <gmpxx.h>
 #endif
 
@@ -197,7 +197,7 @@ namespace nissa
     master_printf("Fast Fourier Transform: NATIVE\n");
 #endif
     
-#if HIGH_PREC==GMP_HIGH_PREC
+#if HIGH_PREC_TYPE == GMP_HIGH_PREC
     mpf_precision=NISSA_DEFAULT_MPF_PRECISION;
 #endif
     

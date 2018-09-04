@@ -442,7 +442,7 @@ namespace nissa
 #ifdef USE_VNODES
     tags.push_back(triple_tag("vnode_paral_dir",	       vnode_paral_dir));
 #endif
-#if HIGH_PREC==GMP_HIGH_PREC
+#if HIGH_PREC_TYPE==GMP_HIGH_PREC
     tags.push_back(triple_tag("mpf_precision",                 mpf_precision));
 #endif
 #ifdef USE_TMLQCD

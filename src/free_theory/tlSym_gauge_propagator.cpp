@@ -14,7 +14,7 @@
 
 #include "free_theory_types.hpp"
 
-#ifdef HAVE_EIGEN_DENSE
+#ifdef USE_EIGEN
  #include <Eigen/Dense>
  #include <Eigen/Eigenvalues>
  #include <iostream>
@@ -172,7 +172,7 @@ namespace nissa
 	spin1prop prop;
 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
 	
-#if HAVE_EIGEN_DENSE
+#ifdef USE_EIGEN
 	using namespace Eigen;
 	
 	//copy in the eigen strucures
