@@ -49,8 +49,8 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
   CXXFLAGS="$OLD_CXXFLAGS")
 
 #blas and lapack
-AX_BLAS([blas_found=yes],[blas_found=no])])
-AX_LAPACK([lapack_found=yes],[lapack_found=no])])
+AX_BLAS([blas_found=yes],[blas_found=no])
+AX_LAPACK([lapack_found=yes],[lapack_found=no])
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
 LIBRARY_RESULT="$LIBRARY_RESULT
 BLAS                : $BLAS_LIBS
