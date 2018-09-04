@@ -58,8 +58,9 @@ namespace nissa
     
     //vector of residue: we fill it
     complex *residue=nissa_malloc("residue",mat_size_to_allocate,complex);
-    filler(residue);
-    int info=1; //do not use arpack random generator
+    // filler(residue);
+    // int info=1; //do not use arpack random generator
+    int info=0; //use arpack random generator
     
     //base for eigenvectors
     const int wspace_size=2*neig;
