@@ -633,7 +633,7 @@ namespace nissa
 	      printf("WARNING, reached precision %lg while computing %d terms approximation of x^(%d/%d) with tolerance %lg\n",
 			  spread.get_d(),degree,num,den,approx_tolerance);
 	    master_printf("precision not enough to reach %lg precision requested!!!\n",approx_tolerance);
-#if HIGH_PREC==NATIVE_HIGH_PREC
+#if HIGH_PREC_TYPE==NATIVE_HIGH_PREC
 	    master_printf("use GMP if possible!\n");
 #else
 	    master_printf("compile with higher precision!\n");

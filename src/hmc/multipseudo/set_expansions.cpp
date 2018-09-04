@@ -4,10 +4,6 @@
 
 #include <math.h>
 
-#if HIGH_PREC == GMP_HIGH_PREC
- #include <gmpxx.h>
-#endif
-
 #include "base/random.hpp"
 #include "communicate/communicate.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"

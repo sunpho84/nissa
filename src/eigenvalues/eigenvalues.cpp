@@ -4,7 +4,7 @@
 
 #include "eigenvalues.hpp"
 
-#ifdef HAVE_EIGEN_DENSE
+#ifdef USE_EIGEN
  #include "eigen3/Eigen/Dense"
 #endif
 

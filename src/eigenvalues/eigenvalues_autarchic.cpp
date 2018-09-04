@@ -4,7 +4,7 @@
 
 #include "eigenvalues_autarchic.hpp"
 
-#ifdef HAVE_EIGEN_DENSE
+#ifdef USE_EIGEN
  #include "eigen3/Eigen/Dense"
 #endif
 
@@ -53,7 +53,7 @@ namespace nissa
     //NB: M is larger than neig
     void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,double *lambda,const complex *M,const int M_size,const int neig,const double tau)
     {
-#ifndef HAVE_EIGEN_DENSE
+#if !USE_DENSE
       crash("need Eigen");
 #else
       //structure to diagonalize

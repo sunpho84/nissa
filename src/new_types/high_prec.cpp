@@ -2,7 +2,7 @@
  #include "config.hpp"
 #endif
 
-#if HIGH_PREC==GMP_HIGH_PREC
+#if HIGH_PREC_TYPE==GMP_HIGH_PREC
  #include <gmpxx.h>
 #endif
 
@@ -15,7 +15,7 @@ namespace nissa
   //initialize the high precision
   void init_high_precision()
   {
-#if HIGH_PREC==GMP_HIGH_PREC
+#if HIGH_PREC_TYPE==GMP_HIGH_PREC
     //init default precision for gmp
     mpf_set_default_prec(mpf_precision);
     master_printf("Support for >128 bit precision: GMP\n");
@@ -27,11 +27,11 @@ namespace nissa
     check_128_bit_prec();
   }
   
-#if (HIGH_PREC==NATIVE_HIGH_PREC)
+#if (HIGH_PREC_TYPE==NATIVE_HIGH_PREC)
   int high_prec_nbits() {return 209;}
   void float_high_prec_t_print(float_high_prec_t a){master_printf("%lg %lg %lg %lg\n",a[0],a[1],a[2],a[3]);}
 #endif
-#if (HIGH_PREC==GMP_HIGH_PREC)
+#if (HIGH_PREC_TYPE==GMP_HIGH_PREC)
   int mpf_precision;
   int high_prec_nbits(){return mpf_get_default_prec();}
   void float_high_prec_t_print(float_high_prec_t a){master_printf("workaround high_prec %lg\n",a.get_d());}
