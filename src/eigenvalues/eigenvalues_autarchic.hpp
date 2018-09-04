@@ -110,6 +110,8 @@ namespace nissa
 	//if converged
 	if(residue_norm<target_precision)
 	  {
+	    set_borders_invalid(e);
+	    
 	    //store eigenvalue
 	    eig_val[neig_conv]=red_eig_val[0];
 	    master_printf("Eigenvalue %d/%d, %lg converged!\n",neig_conv,neig,eig_val[neig_conv]);
