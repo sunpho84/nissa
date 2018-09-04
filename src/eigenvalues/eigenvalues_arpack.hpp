@@ -82,28 +82,40 @@ namespace nissa
     complex *temp_y=nissa_malloc("temp_y",mat_size_to_allocate,complex);
     
     //main loop to find Ritz basis
-    int ido=0;
+    bool goon=true;
     int iter=0;
     do
       {
 	//invoke the step
+	int ido;
 	arpack::internal::pznaupd_c(comm,&ido,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
 	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d\n",iter,ido,info);
 	
-	//reverse communication
-	complex *x=workd+ipntr[0]-1;
-	complex *y=workd+ipntr[1]-1;
-	
-	memcpy(temp_x,x,sizeof(complex)*mat_size);
-	set_borders_invalid(temp_x);
-	imp_mat(temp_y,temp_x);
-	memcpy(y,temp_y,sizeof(complex)*mat_size);
-	
-	if(ido!=99 and ido!=1) crash("ido %d not contemplated",ido);
+	switch(ido)
+	  {
+	    complex *x,*y;
+	  case 1:
+	    goon=true;
+	    
+	    //reverse communication
+	    x=workd+ipntr[0]-1;
+	    y=workd+ipntr[1]-1;
+	    
+	    memcpy(temp_x,x,sizeof(complex)*mat_size);
+	    set_borders_invalid(temp_x);
+	    imp_mat(temp_y,temp_x);
+	    memcpy(y,temp_y,sizeof(complex)*mat_size);
+	    break;
+	  case 99:
+	    goon=false;
+	    master_printf("Finished!\n");
+	  default:
+	    crash("ido %d not contemplated",ido);
+	  }
 	
 	iter++;
       }
-    while(ido!=99);
+    while(goon);
     
     //check that the the routine exited correctly
     check_exit_status_arpack(info);
