@@ -145,46 +145,43 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
   eig_time+=take_time();
   master_printf("Eigenvalues time: %lg\n",eig_time);
   
-  master_printf("Eigenvalues:\n");
+  master_printf("Eigenvalues of QQ:\n");
   for(int ieig=0;ieig<neig;ieig++)
-    master_printf("%d %lg\n",ieig,eig_val[ieig]);
+    master_printf("%d %.16lg\n",ieig,eig_val[ieig]);
   master_printf("\n");
   
-  if(0)
+  // if(0)
+  //   {
+  //     master_printf("Eigenvectors:\n");
+  //     for(int ivol=0;ivol<10;ivol++)
+  // 	{
+  // 	  for(int ieig=0;ieig<neig;ieig++)
+  // 	    {
+  // 	      complex *e=(complex*)(eig_vec[ieig]);
+  // 	      master_printf("(%lg,%lg)\t",e[ivol][RE],e[ivol][IM]);
+  // 	    }
+  // 	  master_printf("\n");
+  // 	}
+  //     master_printf("\n");
+  //   }
+  
+  master_printf("Orthogonality:\n");
+  complex *buffer=nissa_malloc("buffer",mat_size,complex);
+  for(int ieig=0;ieig<neig;ieig++)
     {
-      master_printf("Eigenvectors:\n");
-      for(int ivol=0;ivol<10;ivol++)
+      for(int jeig=0;jeig<neig;jeig++)
 	{
-	  for(int ieig=0;ieig<neig;ieig++)
-	    {
-	      complex *e=(complex*)(eig_vec[ieig]);
-	      master_printf("(%lg,%lg)\t",e[ivol][RE],e[ivol][IM]);
-	    }
-	  master_printf("\n");
+	  complex out;
+	  internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(eig_vec[jeig]),buffer,mat_size);
+	  master_printf("(%lg,%lg)\t",out[RE],out[IM]);
 	}
       master_printf("\n");
     }
-  
-  if(0)
-    {
-      master_printf("Orthogonality:\n");
-      complex *buffer=nissa_malloc("buffer",mat_size,complex);
-      for(int ieig=0;ieig<neig;ieig++)
-	{
-	  for(int jeig=0;jeig<neig;jeig++)
-	    {
-	      complex out;
-	      internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(eig_vec[jeig]),buffer,mat_size);
-	      master_printf("(%lg,%lg)\t",out[RE],out[IM]);
-	    }
-	  master_printf("\n");
-	}
-      nissa_free(buffer);
-    }
+  nissa_free(buffer);
   
   master_printf("Eigenvalues of Q:\n");
-  complex *buffer=nissa_malloc("buffer",mat_size,complex);
   spincolor *temp1=nissa_malloc("temp1",loc_vol+bord_vol,spincolor);
+  spincolor *guess=nissa_malloc("guess",loc_vol+bord_vol,spincolor);
   for(int ieig=0;ieig<neig;ieig++)
     {
       //compute eigenvalue of Q
@@ -196,27 +193,32 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
       //compute residue
       internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
       double res=sqrt(double_vector_glb_norm2(temp,loc_vol));
-      master_printf("  res: %lg\n",res);
+      master_printf("  residue of eigenvalues of Q: %lg\n",res);
       
-      //prepare the guess
-      double_vector_prod_double((double*)temp,(double*)(eig_vec[ieig]),1/eig_val[ieig],2*mat_size);
+      //prepare the guess for Q^-1
+      double_vector_prod_double((double*)guess,(double*)(eig_vec[ieig]),1.0/eig_val[ieig],2*mat_size);
       
-      //compute inverse eigenvalue of Q
-      inv_tmQ2_RL_cg(temp1,temp,conf,kappa,0,am,10000,1e-16,eig_vec[ieig]);
-      master_printf("result: (%.16lg,%.16lg), guess: (%.16lg,%.16lg)\n",temp1[0][0][0][RE],temp1[0][0][0][IM],temp[0][0][0][RE],temp[0][0][0][IM]);
+      //compute inverse eigenvalue of QQ
+      inv_tmQ2_RL_cg(temp1,guess,conf,kappa,0,am,100000,1e-22,eig_vec[ieig]);
+      master_printf("result:\n");
+      for(int ic=0;ic<NCOL;ic++)
+	master_printf("result ic %d: (%.16lg,%.16lg), guess: (%.16lg,%.16lg)\n",ic,temp1[0][0][ic][RE],temp1[0][0][ic][IM],guess[0][0][ic][RE],guess[0][0][ic][IM]);
       
-      double_vector_subtassign((double*)temp,(double*)temp1,mat_size*2);
+      internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp1),buffer,mat_size);
+      master_printf("eigenvalue of QQ^-1: (%.16lg,%.16lg)\n",out[RE],out[IM]);
+      
+      double_vector_subtassign((double*)temp,(double*)guess,mat_size*2);
       double diff=sqrt(double_vector_glb_norm2(temp,loc_vol));
-      master_printf("Total difference: %.16lg\n",diff);
+      master_printf("Total difference of result and guess: %.16lg\n",diff);
       
       apply_tmQ(temp,conf,kappa,-am,temp1);
       internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp),buffer,mat_size);
-      master_printf(" %d: (%.16lg,%.16lg)\n",ieig,out[RE],out[IM]);
+      master_printf(" Eigenvalue of Q^-1: %d: (%.16lg,%.16lg)\n",ieig,out[RE],out[IM]);
       
       //compute residue
       internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
       res=sqrt(double_vector_glb_norm2(temp,loc_vol));
-      master_printf("  res: %lg\n",res);
+      master_printf("  residue of Q^-1: %lg\n",res);
     }
   nissa_free(temp1);
   nissa_free(buffer);
