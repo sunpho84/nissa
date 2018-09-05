@@ -190,6 +190,7 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
       master_printf("%d: (%.16lg,%.16lg)\n",ieig,out[RE],out[IM]);
       
       //compute residue
+      double norm=sqrt(double_vector_glb_norm2(temp,loc_vol));
       internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
       double res=sqrt(double_vector_glb_norm2(temp,loc_vol));
       master_printf("  residue of eigenvalues of Q: %lg\n",res);
@@ -207,7 +208,7 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
       master_printf("eigenvalue of QQ^-1: (%.16lg,%.16lg)\n",out[RE],out[IM]);
       
       //compute residue
-      double norm=sqrt(double_vector_glb_norm2(temp1,loc_vol));
+      norm=sqrt(double_vector_glb_norm2(temp1,loc_vol));
       internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp1,(complex*)(eig_vec[ieig]),out,mat_size);
       res=sqrt(double_vector_glb_norm2(temp1,loc_vol))/norm;
       master_printf("  residue of eigenvalues of QQ^-1: %lg\n",res);
@@ -223,7 +224,7 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
       //compute residue
       norm=sqrt(double_vector_glb_norm2(temp,loc_vol));
       internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
-      res=sqrt(double_vector_glb_norm2(temp,loc_vol));
+      res=sqrt(double_vector_glb_norm2(temp,loc_vol))/norm;
       master_printf("  residue of Q^-1: %lg\n",res);
     }
   nissa_free(temp1);
