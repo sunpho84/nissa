@@ -177,7 +177,6 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
 	}
       master_printf("\n");
     }
-  nissa_free(buffer);
   
   master_printf("Eigenvalues of Q:\n");
   spincolor *temp1=nissa_malloc("temp1",loc_vol+bord_vol,spincolor);
