@@ -26,7 +26,9 @@ namespace nissa
     void combine_basis_to_restart(int nout,int nin,complex *coeffs,complex **vect,int vec_length);
   }
   
-  //find the neig eigenvalues closest to the target
+//reimplementation of the adaptation made by Carsten Urbach of Jacobi-Davidson algorithm by R. Geus and O. Chinellato
+
+//find the neig eigenvalues closest to the target
   template <class Fmat,class Filler>
   void eigenvalues_of_hermatr_find_autarchic(complex **eig_vec,double *eig_val,int neig,bool min_max,
 					     const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
