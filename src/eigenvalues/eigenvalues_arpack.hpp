@@ -81,6 +81,7 @@ namespace nissa
     complex *temp_x=nissa_malloc("temp_x",mat_size_to_allocate,complex);
     complex *temp_y=nissa_malloc("temp_y",mat_size_to_allocate,complex);
     
+    //print some debug info
     verbosity_lv2_master_printf("bmat: %s\n",bmat);
     verbosity_lv2_master_printf("mat_size: %d\n",mat_size);
     verbosity_lv2_master_printf("which[min_max]: %s\n",which[min_max]);
