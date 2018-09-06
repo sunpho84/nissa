@@ -219,19 +219,21 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
       
       //compute eigenvalue of D
       master_printf("Eigenvalue of D:\n");
-      apply_tmQ(temp,conf,kappa,am,eig_vec[ieig]);
+      gamma5(temp1,eig_vec[ieig]);
+      double_vector_summassign((double*)temp1,(double*)(eig_vec[ieig]),mat_size*2);
+      apply_tmQ(temp,conf,kappa,am,temp1);
       GET_THREAD_ID();
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	for(int id=NDIRAC/2;id<NDIRAC;id++)
 	  color_prod_double(temp[ivol][id],temp[ivol][id],-1.0);
       set_borders_invalid(temp);
       
-      internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp),buffer,mat_size);
+      internal_eigenvalues::scalar_prod(out,(complex*)temp1,(complex*)temp,buffer,mat_size);
       master_printf("%d: (%.16lg,%.16lg)\n",ieig,out[RE],out[IM]);
       
       //compute residue
       norm=sqrt(double_vector_glb_norm2(temp,loc_vol));
-      internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
+      internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)temp1,out,mat_size);
       res=sqrt(double_vector_glb_norm2(temp,loc_vol));
       master_printf("  residue of eigenvalues of D: %lg\n",res);
       
