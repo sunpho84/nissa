@@ -124,10 +124,30 @@ namespace mel
   THREADABLE_FUNCTION_END
 }
 
+THREADABLE_FUNCTION_2ARG(gamma5,spincolor*,out, spincolor*,in)
+{
+  GET_THREAD_ID();
+  
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int id=0;id<NDIRAC;id++)
+      color_prod_double(out[ivol][id],in[ivol][id],(id<NDIRAC/2)?1.0:-1.0);
+  set_borders_invalid(out);
+}
+THREADABLE_FUNCTION_END
+
 void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,const double target_precision)
 {
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
-  const auto imp_mat=[conf,kappa,mu=am,temp](complex *out,complex *in){apply_tmQ2((spincolor*)out,conf,kappa,temp,mu,(spincolor*)in);};
+  const auto imp_mat=[conf,kappa,mu=am,temp](complex *out,complex *in)
+    {
+      //apply_tmQ2((spincolor*)out,conf,kappa,temp,mu,(spincolor*)in);
+      
+      apply_tmQ(temp,conf,kappa,mu,(spincolor*)in);
+      gamma5(temp,temp);
+      
+      apply_tmQ((spincolor*)out,conf,kappa,-mu,temp);
+      gamma5((spincolor*)out,(spincolor*)out);
+    };
   
   const bool min_max=0;
   const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
