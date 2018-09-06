@@ -183,7 +183,7 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
   for(int ieig=0;ieig<neig;ieig++)
     {
       //compute eigenvalue of Q
-      master_printf("Eigenvalues of Q:\n");
+      master_printf("Eigenvalue of Q:\n");
       apply_tmQ(temp,conf,kappa,am,eig_vec[ieig]);
       complex out;
       internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp),buffer,mat_size);
@@ -194,6 +194,28 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
       internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
       double res=sqrt(double_vector_glb_norm2(temp,loc_vol));
       master_printf("  residue of eigenvalues of Q: %lg\n",res);
+      
+      /////////////////////////////////////////////////////////////////
+      
+      //compute eigenvalue of D
+      master_printf("Eigenvalue of D:\n");
+      apply_tmQ(temp,conf,kappa,am,eig_vec[ieig]);
+      GET_THREAD_ID();
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	for(int id=NDIRAC/2;id<NDIRAC;id++)
+	  color_prod_double(temp[ivol][id],temp[ivol][id],-1.0);
+      set_borders_invalid(temp);
+      
+      internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp),buffer,mat_size);
+      master_printf("%d: (%.16lg,%.16lg)\n",ieig,out[RE],out[IM]);
+      
+      //compute residue
+      norm=sqrt(double_vector_glb_norm2(temp,loc_vol));
+      internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eig_vec[ieig]),out,mat_size);
+      res=sqrt(double_vector_glb_norm2(temp,loc_vol));
+      master_printf("  residue of eigenvalues of D: %lg\n",res);
+      
+      /////////////////////////////////////////////////////////////////
       
       //prepare the guess for QQ^-1
       double_vector_prod_double((double*)guess,(double*)(eig_vec[ieig]),1.0/eig_val[ieig],2*mat_size);
@@ -216,6 +238,8 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
       double_vector_subtassign((double*)temp1,(double*)guess,mat_size*2);
       double diff=sqrt(double_vector_glb_norm2(temp,loc_vol));
       master_printf("Total difference of result and guess: %.16lg\n",diff);
+      
+      /////////////////////////////////////////////////////////////////
       
       apply_tmQ(temp,conf,kappa,-am,temp1);
       internal_eigenvalues::scalar_prod(out,(complex*)(eig_vec[ieig]),(complex*)(temp),buffer,mat_size);
