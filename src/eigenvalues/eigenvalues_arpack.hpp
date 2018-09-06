@@ -81,7 +81,7 @@ namespace nissa
     complex *temp_x=nissa_malloc("temp_x",mat_size_to_allocate,complex);
     complex *temp_y=nissa_malloc("temp_y",mat_size_to_allocate,complex);
     
-    master_printf("bmat: %d\n",bmat);
+    master_printf("bmat: %s\n",bmat);
     master_printf("mat_size: %d\n",mat_size);
     master_printf("which[min_max]: %s\n",which[min_max]);
     master_printf("neig: %d\n",neig);
@@ -92,8 +92,8 @@ namespace nissa
       master_printf("iparam[%d]: %d\n",i,iparam[i]);
     for(int i=0;i<14;i++)
       master_printf("ipntr[%d]: %d\n",i,ipntr[i]);
-    master_printf("lworkl: %\n",lworkl);
-    master_printf("info: %\n",info);
+    master_printf("lworkl: %d\n",lworkl);
+    master_printf("info: %d\n",info);
     
     //main loop to find Ritz basis
     bool goon=true;
