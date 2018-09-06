@@ -81,19 +81,19 @@ namespace nissa
     complex *temp_x=nissa_malloc("temp_x",mat_size_to_allocate,complex);
     complex *temp_y=nissa_malloc("temp_y",mat_size_to_allocate,complex);
     
-    master_printf("bmat: %s\n",bmat);
-    master_printf("mat_size: %d\n",mat_size);
-    master_printf("which[min_max]: %s\n",which[min_max]);
-    master_printf("neig: %d\n",neig);
-    master_printf("target_precision: %lg\n",target_precision);
-    master_printf("wspace_size: %d\n",wspace_size);
-    master_printf("ldv: %d\n",ldv);
+    verbosity_lv2_master_printf("bmat: %s\n",bmat);
+    verbosity_lv2_master_printf("mat_size: %d\n",mat_size);
+    verbosity_lv2_master_printf("which[min_max]: %s\n",which[min_max]);
+    verbosity_lv2_master_printf("neig: %d\n",neig);
+    verbosity_lv2_master_printf("target_precision: %lg\n",target_precision);
+    verbosity_lv2_master_printf("wspace_size: %d\n",wspace_size);
+    verbosity_lv2_master_printf("ldv: %d\n",ldv);
     for(int i=0;i<11;i++)
-      master_printf("iparam[%d]: %d\n",i,iparam[i]);
+      verbosity_lv2_master_printf("iparam[%d]: %d\n",i,iparam[i]);
     for(int i=0;i<14;i++)
-      master_printf("ipntr[%d]: %d\n",i,ipntr[i]);
-    master_printf("lworkl: %d\n",lworkl);
-    master_printf("info: %d\n",info);
+      verbosity_lv2_master_printf("ipntr[%d]: %d\n",i,ipntr[i]);
+    verbosity_lv2_master_printf("lworkl: %d\n",lworkl);
+    verbosity_lv2_master_printf("info: %d\n",info);
     
     //main loop to find Ritz basis
     bool goon=true;
