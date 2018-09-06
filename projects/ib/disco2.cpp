@@ -140,13 +140,7 @@ void eig_test(quad_su3 *conf,const double kappa,const double am,const int neig,c
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   const auto imp_mat=[conf,kappa,mu=am,temp](complex *out,complex *in)
     {
-      //apply_tmQ2((spincolor*)out,conf,kappa,temp,mu,(spincolor*)in);
-      
-      apply_tmQ(temp,conf,kappa,mu,(spincolor*)in);
-      gamma5(temp,temp);
-      
-      apply_tmQ((spincolor*)out,conf,kappa,-mu,temp);
-      gamma5((spincolor*)out,(spincolor*)out);
+      apply_tmQ2((spincolor*)out,conf,kappa,temp,mu,(spincolor*)in);
     };
   
   const bool min_max=0;
