@@ -8,7 +8,6 @@
 #include <mpi.h>
 
 #include <arpack/parpack.hpp>
-#include <arpack/debug_c.hpp>
 
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
@@ -56,8 +55,6 @@ namespace nissa
     
     //convert the communicator
     MPI_Fint comm=MPI_Comm_c2f(MPI_COMM_WORLD);
-    
-    debug_c(7, 132, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2);
     
     //vector of residue: we fill it
     complex *residue=nissa_malloc("residue",mat_size_to_allocate,complex);
