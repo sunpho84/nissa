@@ -38,7 +38,7 @@ namespace nissa
     
     void check_exit_status_arpack(const int info);
     void init_params(int *iparam,int niter_max);
-    void eigenvalues_of_hermatr_find_arpack_compute(MPI_Fint &comm,complex **eig_vec,double *eig_val,int neig,bool min_max,
+    void eigenvalues_of_hermatr_find_arpack_compute(MPI_Fint &comm,complex **eig_vec,complex *eig_val,int neig,bool min_max,
 						    const int mat_size,const double target_precision,const int wspace_size,
 						    complex *residue,complex *workd,complex *workl,const int lworkl,complex *rwork,int &info,
 						    complex *v,const int ldv);
@@ -46,7 +46,7 @@ namespace nissa
   
   //use arpack
   template <class Fmat,class Filler>
-  void eigenvalues_of_hermatr_find_arpack(complex **eig_vec,double *eig_val,int neig,bool min_max,
+  void eigenvalues_of_hermatr_find_arpack(complex **eig_vec,complex *eig_val,int neig,bool min_max,
 					  const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
 					  const double target_precision,const int niter_max,
 					  const Filler &filler)
