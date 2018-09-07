@@ -8,6 +8,7 @@
 #include <mpi.h>
 
 #include <arpack/parpack.hpp>
+#include <arpack/debug_c.hpp>
 
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
@@ -56,6 +57,8 @@ namespace nissa
     //convert the communicator
     MPI_Fint comm=MPI_Comm_c2f(MPI_COMM_WORLD);
     
+    debug_c(7, 132, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2);
+    
     //vector of residue: we fill it
     complex *residue=nissa_malloc("residue",mat_size_to_allocate,complex);
     // filler(residue);
@@ -99,10 +102,10 @@ namespace nissa
     //main loop to find Ritz basis
     bool goon=true;
     int iter=0;
+    int ido=0;
     do
       {
 	//invoke the step
-	int ido;
 	arpack::internal::pznaupd_c(comm,&ido,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
 	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d\n",iter,ido,info);
 	
