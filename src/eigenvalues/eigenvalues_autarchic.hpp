@@ -30,7 +30,7 @@ namespace nissa
 
 //find the neig eigenvalues closest to the target
   template <class Fmat,class Filler>
-  void eigenvalues_of_hermatr_find_autarchic(complex **eig_vec,double *eig_val,int neig,bool min_max,
+  void eigenvalues_of_hermatr_find_autarchic(complex **eig_vec,complex *eig_val,int neig,bool min_max,
 					     const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
 					     const double target_precision,const int niter_max,
 					     const Filler &filler)
@@ -115,8 +115,8 @@ namespace nissa
 	    set_borders_invalid(e);
 	    
 	    //store eigenvalue
-	    eig_val[neig_conv]=red_eig_val[0];
-	    master_printf("Eigenvalue %d/%d, %lg converged!\n",neig_conv,neig,eig_val[neig_conv]);
+	    complex_put_to_real(eig_val[neig_conv],red_eig_val[0]);
+	    master_printf("Eigenvalue %d/%d, %lg converged!\n",neig_conv,neig,eig_val[neig_conv][RE]);
 	    
 	    //shift the others back
 	    for(int i=0;i<wspace_size-1;i++)
@@ -135,9 +135,9 @@ namespace nissa
 	    
 	    //set tau closer to the minimal eig_val
 	    if(min_max==0)
-	      tau=std::max(eig_val[neig_conv],tau);
+	      tau=std::max(eig_val[neig_conv][RE],tau);
 	    else
-	      tau=std::min(eig_val[neig_conv],tau);
+	      tau=std::min(eig_val[neig_conv][RE],tau);
 	    
 	    //reset the stopping criterion
 	    solvestep=1;

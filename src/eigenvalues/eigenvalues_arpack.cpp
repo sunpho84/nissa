@@ -51,7 +51,7 @@ namespace nissa
     }
     
     //common chunk to compute eigenvalues on the basis of Ritz vectors
-    void eigenvalues_of_hermatr_find_arpack_compute(MPI_Fint &comm,complex **eig_vec,double *eig_val,int neig,bool min_max,
+    void eigenvalues_of_hermatr_find_arpack_compute(MPI_Fint &comm,complex **eig_vec,complex *eig_val,int neig,bool min_max,
 						    const int mat_size,const double target_precision,const int wspace_size,
 						    complex *residue,complex *workd,complex *workl,const int lworkl,complex *rwork,int &info,
 						    complex *v,const int ldv)
@@ -68,11 +68,18 @@ namespace nissa
       complex *temp_vec=nissa_malloc("temp_vec",neig*mat_size,complex);
       arpack::internal::pzneupd_c(comm,rvec,howmny,select,(c_t*)ceig_val,(c_t*)temp_vec,mat_size,sigma,(c_t*)workev,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
       
+      //find the ordering
+      std::vector<std::pair<double,int>> ord;
+      for(int i=0;i<neig;i++)
+	ord.push_back({complex_norm2(ceig_val[i]),i});
+      std::sort(ord.begin(),ord.end());
+      
       //store result
       for(int i=0;i<neig;i++)
 	{
-	  memcpy(eig_vec[i],temp_vec+mat_size*i,sizeof(complex)*mat_size);
-	  eig_val[i]=ceig_val[i][RE];
+	  int iin=ord[i].second;
+	  memcpy(eig_vec[i],temp_vec+mat_size*iin,sizeof(complex)*mat_size);
+	  complex_copy(eig_val[i],ceig_val[iin]);
 	}
       
       nissa_free(temp_vec);
