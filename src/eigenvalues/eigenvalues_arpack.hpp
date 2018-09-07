@@ -124,6 +124,7 @@ namespace nissa
 	  case 99:
 	    goon=false;
 	    master_printf("Finished!\n");
+	    break;
 	  default:
 	    crash("ido %d not contemplated",ido);
 	  }
