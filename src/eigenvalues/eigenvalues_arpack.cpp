@@ -60,7 +60,7 @@ namespace nissa
       
       //parameters for eigenvector calculation
       const int rvec=1;
-      const char howmny[]="P";
+      const char howmny[]="A";
       complex ceig_val[neig];
       const c_t sigma=0.0;
       int select[wspace_size];
