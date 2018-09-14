@@ -12,13 +12,6 @@ namespace nissa
 {
   namespace internal_eigenvalues
   {
-    void complex_vector_summassign_complex_vector_prod_complex(complex *a,complex *b,complex c,int n);
-    inline void complex_vector_subtassign_complex_vector_prod_complex(complex *a,complex *b,complex c,int n)
-    {
-      complex d={-c[RE],-c[IM]};
-      complex_vector_summassign_complex_vector_prod_complex(a,b,d,n);
-    }
-    
     void modified_GS(complex *v,complex **V,int nvec,int vec_size);
     double iterated_classical_GS(complex *v,int vec_size,int nvec,complex **A,const int max_cgs_it);
     void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,double *lambda,const complex *M,const int M_size,const int neig,const double tau);

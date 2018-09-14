@@ -211,7 +211,7 @@ THREADABLE_FUNCTION_8ARG(fill_eigenpart, spincolor**,eigvec_conv, spincolor**,ei
       master_printf(" g5story: (%.16lg,%.16lg)\n",c[RE],c[IM]);
       
       //compute residue
-      internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)temp_imp_mat,(complex*)(eigvec[ieig]),lambda[ieig],mat_size);
+      complex_vector_subtassign_complex_vector_prod_complex((complex*)temp_imp_mat,(complex*)(eigvec[ieig]),lambda[ieig],mat_size);
       master_printf("%d (%.16lg,%.16lg), residue: %lg\n",ieig,lambda[ieig][RE],lambda[ieig][IM],sqrt(double_vector_glb_norm2(temp_imp_mat,loc_vol)));
     }
   master_printf("\n");
@@ -263,7 +263,7 @@ THREADABLE_FUNCTION_10ARG(compute_orthogonal_part, spincolor**,phi, spincolor**,
 	  int s=loc_vol*sizeof(spincolor)/sizeof(complex);
 	  complex n;
 	  complex_vector_glb_scalar_prod(n,(complex*)(eigvec[ieig]),(complex*)(source),s);
-	  internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)(source),(complex*)(eigvec[ieig]),n,s);
+	  complex_vector_subtassign_complex_vector_prod_complex((complex*)(source),(complex*)(eigvec[ieig]),n,s);
 	  set_borders_invalid(source);
 	}
       safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,source);

@@ -256,6 +256,17 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //Ai=Ai+Bi*c
+  THREADABLE_FUNCTION_4ARG(complex_vector_summassign_complex_vector_prod_complex, complex*,a, complex*,b, double*,c, int,n)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(i,0,n)
+      complex_summ_the_prod(a[i],b[i],c);
+    set_borders_invalid(a);
+  }
+  THREADABLE_FUNCTION_END
+  
   //put the passed vector to the new norm, returning the reciprocal of normalizating factor
   THREADABLE_FUNCTION_5ARG(double_vector_normalize, double*,ratio, double*,out, double*,in, double,norm, int,n)
   {
