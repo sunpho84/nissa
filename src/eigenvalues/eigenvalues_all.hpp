@@ -1,11 +1,19 @@
 #ifndef _EIGENVALUES_ALL_HPP
 #define _EIGENVALUES_ALL_HPP
 
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #ifdef USE_EIGEN
  #include <eigen3/Eigen/Dense>
 #endif
 
 #include "base/debug.hpp"
+#include "base/vectors.hpp"
+#include "linalgs/linalgs.hpp"
+#include "new_types/complex.hpp"
+#include "routines/thread.hpp"
 
 namespace nissa
 {
@@ -64,7 +72,7 @@ namespace nissa
 	complex e;
 	complex_vector_glb_scalar_prod(e,(complex*)test,(complex*)out,mat_size);
 	
-	internal_eigenvalues::complex_vector_subtassign_complex_vector_prod_complex((complex*)out,(complex*)test,e,mat_size);
+	complex_vector_subtassign_complex_vector_prod_complex((complex*)out,(complex*)test,e,mat_size);
 	master_printf(" (%.16lg,%.16lg), residue: %lg\n",ieig,e[RE],e[IM],sqrt(double_vector_glb_norm2(out,mat_size)));
       }
 #endif
