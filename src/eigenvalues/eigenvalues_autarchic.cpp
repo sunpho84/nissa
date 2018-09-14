@@ -14,20 +14,6 @@ namespace nissa
 {
   namespace internal_eigenvalues
   {
-    //scalar product of (in1,in2)
-    void scalar_prod(complex out,complex *in1,complex *in2,complex *buffer,int loc_size)
-    {
-      GET_THREAD_ID();
-      
-      //local scalar product
-      NISSA_PARALLEL_LOOP(i,0,loc_size)
-	unsafe_complex_conj1_prod(buffer[i],in1[i],in2[i]);
-      THREAD_BARRIER();
-      
-      //reduction
-      complex_vector_glb_collapse(out,buffer,loc_size);
-    }
-    
     //Ai=Ai+Bi*c
     void complex_vector_summassign_complex_vector_prod_complex(complex *a,complex *b,complex c,int n)
     {
@@ -39,12 +25,12 @@ namespace nissa
     }
     
     //orthogonalize v with respect to the nvec of V
-    void modified_GS(complex *v,complex **V,complex *buffer,int nvec,int vec_length)
+    void modified_GS(complex *v,complex **V,int nvec,int vec_length)
     {
       for(int i=0;i<nvec;i++)
 	{
 	  complex s;
-	  scalar_prod(s,V[i],v,buffer,vec_length);
+	  complex_vector_glb_scalar_prod(s,V[i],v,vec_length);
 	  complex_vector_subtassign_complex_vector_prod_complex(v,V[i],s,vec_length);
 	}
     }
@@ -99,7 +85,7 @@ namespace nissa
 #endif
     }
     
-    double iterated_classical_GS(complex *v,int vec_length,int nvec,complex **A,complex *buffer,const int max_cgs_it)
+    double iterated_classical_GS(complex *v,int vec_length,int nvec,complex **A,const int max_cgs_it)
     {
       const double alpha=0.5;
       bool isorth=0;
@@ -111,7 +97,7 @@ namespace nissa
 	  for(int j=0;j<nvec;j++)
 	    {
 	      complex p;
-	      scalar_prod(p,A[j],v,buffer,vec_length);
+	      complex_vector_glb_scalar_prod(p,A[j],v,vec_length);
 	      complex_vector_subtassign_complex_vector_prod_complex(v,A[j],p,vec_length);
 	    }
 	  v_norm=sqrt(double_vector_glb_norm2(v,vec_length));

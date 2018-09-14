@@ -12,7 +12,6 @@ namespace nissa
 {
   namespace internal_eigenvalues
   {
-    void scalar_prod(complex out,complex *in1,complex *in2,complex *buffer,int loc_size);
     void complex_vector_summassign_complex_vector_prod_complex(complex *a,complex *b,complex c,int n);
     inline void complex_vector_subtassign_complex_vector_prod_complex(complex *a,complex *b,complex c,int n)
     {
@@ -20,8 +19,8 @@ namespace nissa
       complex_vector_summassign_complex_vector_prod_complex(a,b,d,n);
     }
     
-    void modified_GS(complex *v,complex **V,complex *buffer,int nvec,int vec_size);
-    double iterated_classical_GS(complex *v,int vec_size,int nvec,complex **A,complex* buffer,const int max_cgs_it);
+    void modified_GS(complex *v,complex **V,int nvec,int vec_size);
+    double iterated_classical_GS(complex *v,int vec_size,int nvec,complex **A,const int max_cgs_it);
     void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,double *lambda,const complex *M,const int M_size,const int neig,const double tau);
     void combine_basis_to_restart(int nout,int nin,complex *coeffs,complex **vect,int vec_length);
   }
@@ -51,7 +50,6 @@ namespace nissa
     //allocate workspace
     complex *V[wspace_max_size];
     for(int i=0;i<wspace_max_size;i++) V[i]=nissa_malloc("Vi",mat_size_to_allocate,complex);
-    complex *buffer=nissa_malloc("buffer",mat_size,complex);
     complex *residue=nissa_malloc("residue",mat_size_to_allocate,complex);
     complex *temp=nissa_malloc("temp",mat_size,complex);
     
@@ -61,7 +59,7 @@ namespace nissa
 	//fill
 	filler(V[i]);
 	//orthogonalize
-	modified_GS(V[i],V,buffer,i,mat_size);
+	modified_GS(V[i],V,i,mat_size);
 	//normalize
 	double useless_rat;
 	double_vector_normalize(&useless_rat,(double*)(V[i]),(double*)(V[i]),1.0,2*mat_size);
@@ -75,7 +73,7 @@ namespace nissa
 	imp_mat(temp,V[j]);
 	for(int i=j;i<wspace_size;i++)
 	  {
-	    scalar_prod(M[j+wspace_max_size*i],V[i],temp,buffer,mat_size);
+	    complex_vector_glb_scalar_prod(M[j+wspace_max_size*i],V[i],temp,mat_size);
 	    complex_conj(M[i+wspace_max_size*j],M[j+wspace_max_size*i]);
 	  }
       }
@@ -171,10 +169,10 @@ namespace nissa
 	      (residue_norm<eps_tr and residue_norm<red_eig_val[0] and residue_norm_old>residue_norm)?
 	      red_eig_val[0]:
 	      tau;
-	    modified_GS(residue,eig_vec,buffer,neig_conv+1,mat_size);
+	    modified_GS(residue,eig_vec,neig_conv+1,mat_size);
 	    
 	    //projected matrix operator
-	    auto proj_imp_mat=[p_theta,imp_mat,mat_size,buffer,eig_vec,neig_conv](complex *y,complex *x)
+	    auto proj_imp_mat=[p_theta,imp_mat,mat_size,eig_vec,neig_conv](complex *y,complex *x)
 	      {
 		//y=(A-theta)*x
 		imp_mat(y,x);
@@ -184,7 +182,7 @@ namespace nissa
 		for(int i=0;i<neig_conv+1;i++)
 		  {
 		    complex p;
-		    scalar_prod(p,eig_vec[i],y,buffer,mat_size);
+		    complex_vector_glb_scalar_prod(p,eig_vec[i],y,mat_size);
 		    complex_vector_subtassign_complex_vector_prod_complex(y,eig_vec[i],p,mat_size);
 		  }
 	      };
@@ -196,17 +194,17 @@ namespace nissa
 	    cg_solve(v,proj_imp_mat,residue,mat_size,mat_size_to_allocate,it_tol*it_tol,linit_max,10000000);
 	    
 	    //orthonormalize v to eig_vec
-	    modified_GS(v,eig_vec,buffer,neig_conv+1,mat_size);
+	    modified_GS(v,eig_vec,neig_conv+1,mat_size);
 	    const int max_cgs_it=5;
 	    //orthogonalize v to V
-	    double alpha=iterated_classical_GS(v,mat_size,wspace_size,V,buffer,max_cgs_it);
+	    double alpha=iterated_classical_GS(v,mat_size,wspace_size,V,max_cgs_it);
 	    double_vector_prodassign_double((double*)v,1.0/alpha,2*mat_size);
 	    
 	    //update interaction matrix
 	    imp_mat(temp,v);
 	    for(int i=0;i<wspace_size+1;i++)
 	      {
-		scalar_prod(M[wspace_size+wspace_max_size*i],V[i],temp,buffer,mat_size);
+		complex_vector_glb_scalar_prod(M[wspace_size+wspace_max_size*i],V[i],temp,mat_size);
 		complex_conj(M[i+wspace_max_size*wspace_size],M[wspace_size+wspace_max_size*i]);
 	      }
 	    
@@ -219,7 +217,6 @@ namespace nissa
     
     //free workspace
     for(int i=0;i<wspace_max_size;i++) nissa_free(V[i]);
-    nissa_free(buffer);
     nissa_free(residue);
     nissa_free(temp);
   }
