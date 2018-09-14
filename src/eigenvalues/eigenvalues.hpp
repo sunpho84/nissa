@@ -5,12 +5,12 @@
  #include "config.hpp"
 #endif
 
+#include "eigenvalues_all.hpp"
+
 #ifdef USE_PARPACK
  #include "eigenvalues_arpack.hpp"
 #endif
 #include "eigenvalues_autarchic.hpp"
-
-#include "eigenvalues_all.hpp"
 
 namespace nissa
 {
