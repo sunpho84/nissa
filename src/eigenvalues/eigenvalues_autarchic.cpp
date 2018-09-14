@@ -8,22 +8,10 @@
  #include <eigen3/Eigen/Dense>
 #endif
 
-//part of this should be moved to linalgs?
-
 namespace nissa
 {
   namespace internal_eigenvalues
   {
-    //Ai=Ai+Bi*c
-    void complex_vector_summassign_complex_vector_prod_complex(complex *a,complex *b,complex c,int n)
-    {
-      GET_THREAD_ID();
-      
-      NISSA_PARALLEL_LOOP(i,0,n)
-	complex_summ_the_prod(a[i],b[i],c);
-      set_borders_invalid(a);
-    }
-    
     //orthogonalize v with respect to the nvec of V
     void modified_GS(complex *v,complex **V,int nvec,int vec_length)
     {
