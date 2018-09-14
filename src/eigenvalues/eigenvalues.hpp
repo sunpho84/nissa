@@ -10,6 +10,8 @@
 #endif
 #include "eigenvalues_autarchic.hpp"
 
+#include "eigenvalues_all.hpp"
+
 namespace nissa
 {
 #ifdef USE_PARPACK
