@@ -203,6 +203,8 @@ namespace nissa
 #ifdef USE_DDALPHAAMG
       if(use_DD and fabs(mass)<=DD::max_mass)
 	{
+	  master_printf("max_mass: %lg<= mass: %lg, using DD\n",DD::max_mass,mass);
+	  
 	  DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
 	  
 	  //check solution

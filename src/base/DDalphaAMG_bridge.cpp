@@ -100,7 +100,7 @@ namespace DD
 		if(strcasecmp(tag,"max_mass")==0)
 		  {
 		    nissa::read_double(&max_mass);
-		    master_printf("DD: read max_mass=%d\n",max_mass);
+		    master_printf("DD: read max_mass=%lg\n",max_mass);
 		  }
 		//number of setups
 		if(strcasecmp(tag,"nsetups")==0)
