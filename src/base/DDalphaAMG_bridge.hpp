@@ -20,6 +20,7 @@ namespace DD
   EXTERN_DD_BRIDGE double max_mass INIT_TO(1e300);
   
   void finalize();
+  void read_DDalphaAMG_pars();
   int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in);
 }
 
