@@ -184,7 +184,6 @@ namespace DD
     if(!inited)
       {
 	master_printf("DD: Not initialized, initializing\n");
-	read_DDalphaAMG_pars();
 	
 	//communicator and transposers
 	init_params.comm_cart=nissa::cart_comm;

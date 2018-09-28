@@ -17,6 +17,7 @@
  #include <malloc.h>
 #endif
 
+#include "base/DDalphaAMG_bridge.hpp"
 #include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/git_info.hpp"
@@ -243,6 +244,10 @@ namespace nissa
     
     //setup the high precision
     init_high_precision();
+    
+#ifdef USE_DDALPHAAMG
+    DD:read_DDalphaAMG_pars();
+#endif
     
     //initialize the base of the gamma matrices
     init_base_gamma();
