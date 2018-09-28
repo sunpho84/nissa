@@ -246,7 +246,7 @@ namespace nissa
     init_high_precision();
     
 #ifdef USE_DDALPHAAMG
-    DD:read_DDalphaAMG_pars();
+    DD::read_DDalphaAMG_pars();
 #endif
     
     //initialize the base of the gamma matrices
