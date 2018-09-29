@@ -274,8 +274,9 @@ namespace nissa
 	    
 	    //count iterations
 	    int iter=1;
-	    const int niter_max=20;
+	    const int niter_max=200,niter_for_verbosity=20;
 	    const double target_res=1e-32;
+	    double res;
 	    do
 	      {
 		//compute (p,Ap)
@@ -297,12 +298,15 @@ namespace nissa
 		double beta=rr/roro;
 		halfspincolor_summ_the_prod_double(p,r,p,beta);
 		
+		//compute resiude
+		res=rr/ori_rr;
+		
 		//write residual
-		//master_printf("iter %d rel residue: %lg\n",iter,rr/ori_rr);
+		if(iter>=niter_for_verbosity) master_printf("iter %d rel residue: %lg\n",iter,res);
 		iter++;
 	      }
-	    while(rr/ori_rr>=target_res && iter<niter_max);
-	    if(iter>=niter_max) crash("exceeded maximal number of iterations %d, arrived to %d",niter_max,iter);
+	    while(res>=target_res && iter<niter_max);
+	    if(iter>=niter_max) crash("exceeded maximal number of iterations %d, arrived to %d with residue %lg, target %lg",niter_max,iter,res,target_res);
 	    
 	    //halfspincolor ap;
 	    //apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,x);
