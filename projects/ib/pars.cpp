@@ -46,9 +46,9 @@ namespace nissa
   }
   
   //meson tags
-  const int nmes2pts_known=14;
-  enum mes2pts_known_t                      { P5P5 , GIP5 , P5GI , V0V0 , AKAK , VKVK , VKTK , TKVK , TKTK , BKBK , GIS0 , S0GI , V0P5 , VKP5};
-  const char mes2pts_tag[nmes2pts_known][5]={"P5P5","GIP5","P5GI","V0V0","AKAK","VKVK","VKTK","TKVK","TKTK","BKBK","GIS0","S0GI","V0P5","VKP5"};
+  const int nmes2pts_known=20;
+  enum mes2pts_known_t                      { P5P5 , GIP5 , P5GI , V0V0 , AKAK , VKVK , VKTK , TKVK , TKTK , BKBK , GIS0 , S0GI , V0P5 , VKP5 , S0S0 , A0A0 , AKBK , BKAK , V0S0 , S0V0};
+  const char mes2pts_tag[nmes2pts_known][5]={"P5P5","GIP5","P5GI","V0V0","AKAK","VKVK","VKTK","TKVK","TKTK","BKBK","GIS0","S0GI","V0P5","VKP5","S0S0","A0A0","AKBK","BKAK","V0S0","S0V0"};
   mes2pts_known_t read_2pts_tag()
   {
     //read the tag
@@ -100,20 +100,26 @@ namespace nissa
       {
 	switch(read_2pts_tag())
 	  {
-	  case P5P5: mes_gamma_list.push_back(idirac_pair_t(5,5));                                break;
-	  case P5GI: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(5,ig));      break;
-	  case GIP5: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,5));      break;
-	  case S0GI: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(0,ig));      break;
-	  case GIS0: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,0));      break;
-	  case V0V0: mes_gamma_list.push_back(idirac_pair_t(4,4));                                break;
-	  case AKAK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+5,mu+5)); break;
-	  case VKVK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,mu));     break;
-	  case VKTK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,mu+9));   break;
-	  case TKVK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+9,mu));   break;
-	  case TKTK: for(int ig=10;ig<=12;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,ig));   break;
-	  case BKBK: for(int ig=13;ig<=15;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,ig));   break;
-	  case V0P5: mes_gamma_list.push_back(idirac_pair_t(4,5));                                break;
-	  case VKP5: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,5));      break;
+	  case P5P5: mes_gamma_list.push_back(idirac_pair_t(5,5));                                 break;
+	  case P5GI: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(5,ig));       break;
+	  case GIP5: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,5));       break;
+	  case S0GI: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(0,ig));       break;
+	  case GIS0: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,0));       break;
+	  case V0V0: mes_gamma_list.push_back(idirac_pair_t(4,4));                                 break;
+	  case AKAK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+5,mu+5));  break;
+	  case VKVK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,mu));      break;
+	  case VKTK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,mu+9));    break;
+	  case TKVK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+9,mu));    break;
+	  case TKTK: for(int ig=10;ig<=12;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,ig));    break;
+	  case BKBK: for(int ig=13;ig<=15;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,ig));    break;
+	  case V0P5: mes_gamma_list.push_back(idirac_pair_t(4,5));                                 break;
+	  case VKP5: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,5));       break;
+	  case S0S0: mes_gamma_list.push_back(idirac_pair_t(0,0));                                 break;
+	  case A0A0: mes_gamma_list.push_back(idirac_pair_t(9,9));                                 break;
+	  case AKBK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+5,mu+12)); break;
+	  case BKAK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+12,mu+5)); break;
+	  case S0V0: mes_gamma_list.push_back(idirac_pair_t(0,4));                                 break;
+	  case V0S0: mes_gamma_list.push_back(idirac_pair_t(4,0));                                 break;
 	  default: crash("unknown meson_contr");
 	  }
       }
