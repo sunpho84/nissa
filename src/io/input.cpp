@@ -279,7 +279,7 @@ namespace nissa
     for(int i=0;i<4;i++)
       read_double(in+i);
     
-    verbosity_lv1_master_printf("Read variable '%s' with value: %lg %lg %lg %lg\n",exp_str,in[0],in[1],in[2],in[3]);
+    verbosity_lv1_master_printf("Read variable '%s' with value: %.16lg %.16lg %.16lg %.16lg\n",exp_str,in[0],in[1],in[2],in[3]);
   }
   
   //Read a double checking the tag
@@ -288,7 +288,7 @@ namespace nissa
     expect_str(exp_str);
     read_double(in);
     
-    verbosity_lv1_master_printf("Read variable '%s' with value: %lg\n",exp_str,(*in));
+    verbosity_lv1_master_printf("Read variable '%s' with value: %.16lg\n",exp_str,(*in));
   }
   
   //Read a string checking the tag
@@ -351,7 +351,7 @@ namespace nissa
     read_list_of_var(tag,nentries,(char**)list,sizeof(double),"%lg");
     
     verbosity_lv1_master_printf("List of %s:\t",tag);
-    for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%lg\t",(*list)[ientr]);
+    for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%.16lg\t",(*list)[ientr]);
     verbosity_lv1_master_printf("\n");
   }
   void read_list_of_double_pairs(const char *tag,int *nentries,double **list1,double **list2)
@@ -359,7 +359,7 @@ namespace nissa
     read_list_of_var_pairs(tag,nentries,(char**)list1,(char**)list2,sizeof(double),"%lg");
     
     verbosity_lv1_master_printf("List of pairs of %s:\t",tag);
-    for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%lg %lg\t",(*list1)[ientr],(*list2)[ientr]);
+    for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%.16lg %.16lg\t",(*list1)[ientr],(*list2)[ientr]);
     verbosity_lv1_master_printf("\n");
   }
   void read_list_of_double_triples(const char *tag,int *nentries,double **list1,double **list2,double **list3)
@@ -368,7 +368,7 @@ namespace nissa
     
     verbosity_lv1_master_printf("List of triples of %s:\t",tag);
     for(int ientr=0;ientr<(*nentries);ientr++)
-      verbosity_lv1_master_printf("%lg %lg %lg\t",(*list1)[ientr],(*list2)[ientr],(*list3)[ientr]);
+      verbosity_lv1_master_printf("%.16lg %.16lg %.16lg\t",(*list1)[ientr],(*list2)[ientr],(*list3)[ientr]);
     verbosity_lv1_master_printf("\n");
   }
   
