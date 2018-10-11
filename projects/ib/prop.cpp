@@ -41,6 +41,9 @@ namespace nissa
     //invert
     START_TIMING(inv_time,ninv_tot);
     
+    //get an intenral time
+    double tin=take_time();
+    
     if(free_theory and charge==0)
       {
 	master_printf("   working in FT\n");
@@ -57,6 +60,8 @@ namespace nissa
 	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
 	else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
       }
+    
+    verbosity_lv1_master_printf("Solving time: %lg\n",take_time()-tin);
     
     STOP_TIMING(inv_time);
     
