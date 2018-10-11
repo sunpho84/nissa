@@ -61,7 +61,7 @@ namespace nissa
 	else inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
       }
     
-    verbosity_lv1_master_printf("Solving time: %lg\n",take_time()-tin);
+    verbosity_lv1_master_printf("Solving time: %lg s\n",take_time()-tin);
     
     STOP_TIMING(inv_time);
     
