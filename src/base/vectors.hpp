@@ -70,7 +70,7 @@ namespace nissa
   int check_borders_allocated(void *data,int min_size);
   int check_borders_communicated_at_least_once(void *data);
   int check_borders_valid(void *data);
-  int check_edges_allocated(void *data);
+  int check_edges_allocated(void *data,int min_size);
   int check_edges_valid(void *data);
   int64_t compute_vect_memory_usage();
   int get_vect_flag(void *v,unsigned int flag);
