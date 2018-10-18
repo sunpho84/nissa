@@ -107,7 +107,10 @@ void in_main(int narg,char **arg)
       read_str(in,1024);
       read_str(out,1024);
       
-      conf_convert(out,in);
+      if(not file_exists(out)
+	 conf_convert(out,in);
+      else
+	master_printf("Skupping conf %s\n",input);
   }
   
   close_input();
