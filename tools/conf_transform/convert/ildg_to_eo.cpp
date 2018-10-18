@@ -110,7 +110,7 @@ void in_main(int narg,char **arg)
       if(not file_exists(out))
 	 conf_convert(out,in);
       else
-	master_printf("Skupping conf %s\n",input);
+	master_printf("Skipping conf %s\n",in);
   }
   
   close_input();
