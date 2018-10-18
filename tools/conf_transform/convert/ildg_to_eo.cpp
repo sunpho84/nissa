@@ -59,12 +59,12 @@ void conf_convert(char *outpath,char *inpath)
   //seek to the correct point
   fseek(fout,24+rank*sizeof(quad_su3)*loc_vol,SEEK_SET);
   MPI_Barrier(MPI_COMM_WORLD);
-
+  
   //write
   int nw=fwrite(buf,sizeof(quad_su3),loc_vol,fout);
   if(nw!=loc_vol) crash("did not success in writing");
   MPI_Barrier(MPI_COMM_WORLD);
- 
+  
   //flush
   fflush(fout);
   MPI_Barrier(MPI_COMM_WORLD);
@@ -72,7 +72,7 @@ void conf_convert(char *outpath,char *inpath)
   //close
   fclose(fout);
   MPI_Barrier(MPI_COMM_WORLD);
-
+  
   nissa_free(buf);
   nissa_free(conf);
 }
@@ -89,7 +89,7 @@ void in_main(int narg,char **arg)
   read_str_int("L",&L);
   read_str_int("T",&T);
   
-  //Init the MPI grid 
+  //Init the MPI grid
   init_grid(T,L);
   
   //init the remapper
