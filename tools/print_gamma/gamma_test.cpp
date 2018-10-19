@@ -130,9 +130,9 @@ int main(int narg,char **arg)
       complex one_over_rad2={1/sqrt(2),0};
       
       //check of Pplus
-      complex I={0,1};
+      complex c={0,1};
       dirac_matr gamma_Pplus;
-      safe_dirac_compl_prod(&gamma_Pplus,&(base_gamma[5]),I);
+      safe_dirac_compl_prod(&gamma_Pplus,&(base_gamma[5]),c);
       dirac_summ(&gamma_Pplus,&gamma_Pplus,&(base_gamma[0]));
       safe_dirac_compl_prod(&gamma_Pplus,&gamma_Pplus,one_over_rad2);
       printf("Pminus=(1+iGamma5)/sqrt(2) as:\n");
