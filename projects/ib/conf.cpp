@@ -192,7 +192,7 @@ namespace nissa
 	  //Check if the conf has been finished or is already running
 	  master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	  char run_file[1024];
-	  sprintf(run_file,"%s/running",outfolder);
+	  if(snprintf(run_file,1024,"%s/running",outfolder)<0) crash("witing %s",run_file);
 	  ok_conf=!(file_exists(run_file)) and external_condition();
 	  
 	  //if not finished
@@ -245,7 +245,7 @@ namespace nissa
   {
     char fin_file[1024];
     file_unlock(lock_fd);
-    sprintf(fin_file,"%s/finished",outfolder);
+    if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("writing %s",fin_file);
     file_touch(fin_file);
     nanalyzed_conf++;
   }
