@@ -195,6 +195,12 @@ namespace nissa
     }
   };
   
+  //avoid c++ warning
+  template <typename...Args>
+  void safe_snprintf(char *buf,int n,const char *pattern,const Args&...args)
+  {
+    if(snprintf(buf,n,pattern,args...)<0) crash("witing to %d long array",n);
+  }
 }
 
 #undef EXTERN_IOS
