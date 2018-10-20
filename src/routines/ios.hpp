@@ -151,7 +151,7 @@ namespace nissa
     void init()
     {
       master_printf("Initializing the tag for a %zu bytes lock-file\n",sizeof(T));
-      get_truly_random(tag);
+      get_system_random(tag);
       
       inited=true;
     }
