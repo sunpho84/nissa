@@ -102,7 +102,7 @@ void write_all_propagators(const char *name,int prec)
     for(int imass=0;imass<nmass;imass++)
       {
 	char path[1024];
-	sprintf(path,"%s/%sprop/r%1d_im%02d",outfolder,name,r,imass);
+	safe_snprintf(path,1024,"%s/%sprop/r%1d_im%02d",outfolder,name,r,imass);
 	save_prop_time-=take_time();
 	write_real_vector(path,S0[r][imass],prec,"tm_prop");
 	save_prop_time+=take_time();
@@ -250,7 +250,7 @@ void load_gauge_conf()
   if(write_fixed_conf)
     {
       char temp[1024];
-      sprintf(temp,"%s/fixed_conf",outfolder);
+      safe_snprintf(temp,1024,"%s/fixed_conf",outfolder);
       write_ildg_gauge_conf(temp,conf,64);
     } 
   
