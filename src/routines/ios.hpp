@@ -126,6 +126,75 @@ namespace nissa
   {
     return master_fscan<double>(par,"%lg");
   }
+  
+  //create and check lock files
+  template <class T=uint64_t>
+  class lock_file_t
+  {
+    //store whether is inited
+    bool inited{false};
+    
+    //variable containing the lock word
+    T tag;
+    
+    //path to lock
+    std::string path;
+    
+    void assert_inited()
+    {
+      if(not inited) crash("Needs to be inited");
+    }
+    
+  public:
+    
+    //create the tag
+    void init()
+    {
+      master_printf("Initializing the tag for a %zu bytes lock-file\n",sizeof(T));
+      get_truly_random(tag);
+      
+      inited=true;
+    }
+    
+    //try to open and write the tag
+    void try_lock(const std::string &ext_path)
+    {
+      assert_inited();
+      
+      //store the lock path
+      path=ext_path;
+      
+      //create the lock on master
+      if(rank==0)
+	{
+	  if(std::ofstream(path)<<tag<<std::endl) master_printf("Created lock file %s\n",path.c_str());
+	  else master_printf("Failed to create the lock file %s\n",path.c_str());
+	}
+      
+      //barrier
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+    
+    //try to open and read the tag
+    bool check_lock()
+    {
+      
+      assert_inited();
+      //temporary tag read
+      T test_tag;
+      memset(&test_tag,0,sizeof(T));
+      
+      //read on master
+      if(rank==0) std::ifstream(path)>>test_tag;
+      
+      //broadcast
+      MPI_Bcast(&test_tag,1,MPI_CHAR,0,MPI_COMM_WORLD);
+      
+      //return the comparison
+      return (test_tag==tag);
+    }
+  };
+  
 }
 
 #undef EXTERN_IOS
