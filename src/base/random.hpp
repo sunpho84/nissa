@@ -82,7 +82,7 @@ namespace nissa
     
     if(rank==0)
       {
-	const char path[]="/dev/random";
+	const char path[]="/dev/urandom";
 	int fd=open(path,O_RDONLY);
 	if(fd==-1) crash("Opening %s",path);
 	
