@@ -243,7 +243,7 @@ void generate_source()
   if(save_source)
     {
       char outpath[1024];
-      sprintf(outpath,"%s/source",outfolder);
+      safe_snprintf(outpath,1024,"%s/source",outfolder);
       write_real_vector(outpath,original_source,64,"source");
     }
 #endif
@@ -540,8 +540,8 @@ int read_conf_parameters(int *iconf)
       //Check if the conf has been finished or is already running
       master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
       char fin_file[1024],run_file[1024];
-      sprintf(fin_file,"%s/finished",outfolder);
-      sprintf(run_file,"%s/running",outfolder);
+      safe_snprintf(fin_file,1024,"%s/finished",outfolder);
+      safe_snprintf(run_file,1024,"%s/running",outfolder);
       ok_conf=!(file_exists(fin_file)) and !(file_exists(run_file));
       
       //if not finished
@@ -785,9 +785,9 @@ void calculate_all_S0(int ism_lev_so)
 		      //path for S0
 		      char path[1024];
 #ifdef POINT_SOURCE_VERSION
-		      sprintf(path,"%s/S0_QD_sosm%02d_iprop%d.id%02d.ic%02d",outfolder,ism_lev_so,ip,id,ic);
+		      safe_snprintf(path,1024,"%s/S0_QD_sosm%02d_iprop%d.id%02d.ic%02d",outfolder,ism_lev_so,ip,id,ic);
 #else
-		      sprintf(path,"%s/S0_QD_sosm%02d_iprop%d.id%02d",outfolder,ism_lev_so,ip,id);
+		      safe_snprintf(path,1024,"%s/S0_QD_sosm%02d_iprop%d.id%02d",outfolder,ism_lev_so,ip,id);
 #endif
 		      
 		      load_save_S0_time-=take_time();
@@ -1026,7 +1026,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
   
   //open output file
   char path[1024];
-  sprintf(path,"%s/2pts_%02d_%02d",outfolder,gaussian_niter_so[ism_lev_so],gaussian_niter_si[ism_lev_si]);
+  safe_snprintf(path,1024,"%s/2pts_%02d_%02d",outfolder,gaussian_niter_so[ism_lev_so],gaussian_niter_si[ism_lev_si]);
   FILE *fout=open_text_file_for_output(path);
   
   //choose if to derive or not
@@ -1229,7 +1229,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
   else new_loc_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glb_size[0],double);
   
   //open output file and take time
-  sprintf(path,"%s/3pts_sp%d_%02d_%02d",outfolder,ispec,gaussian_niter_so[ism_lev_so],gaussian_niter_se[ism_lev_se]);  
+  safe_snprintf(path,1024,"%s/3pts_sp%d_%02d_%02d",outfolder,ispec,gaussian_niter_so[ism_lev_so],gaussian_niter_se[ism_lev_se]);
   FILE *fout=open_text_file_for_output(path);
   
   contr_3pts_time-=take_time();
@@ -1357,7 +1357,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
 {
   char path[1024];
-  sprintf(path,"%s/2pts_check_sp%d_%02d_%02d",outfolder,ispec,gaussian_niter_so[ism_lev_so],gaussian_niter_se[ism_lev_se]);
+  safe_snprintf(path,1024,"%s/2pts_check_sp%d_%02d_%02d",outfolder,ispec,gaussian_niter_so[ism_lev_so],gaussian_niter_se[ism_lev_se]);
   FILE *fout=open_text_file_for_output(path);
 
   for(int ith2=0;ith2<nthetaS1;ith2++)
@@ -1478,8 +1478,8 @@ void in_main(int narg,char **arg)
       
       //pass to the next conf if there is enough time
       char fin_file[1024],run_file[1024];
-      sprintf(fin_file,"%s/finished",outfolder);
-      sprintf(run_file,"%s/running",outfolder);
+      safe_snprintf(fin_file,1024,"%s/finished",outfolder);
+      safe_snprintf(run_file,1024,"%s/running",outfolder);
       file_touch(fin_file);
       
       nanalyzed_conf++;

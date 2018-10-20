@@ -356,7 +356,7 @@ void calculate_S0()
 void print_time_momentum_propagator()
 {
   char outfile_time_mom[1024];
-  sprintf(outfile_time_mom,"%s/time_momentum_prop",outfolder);
+  safe_snprintf(outfile_time_mom,1024,"%s/time_momentum_prop",outfolder);
   FILE *fout=open_text_file_for_output(outfile_time_mom);
   
   for(int r=0;r<2;r++)
@@ -469,7 +469,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 	  {
 	    //build oputput file name
 	    char outfile_fft[1024];
-	    sprintf(outfile_fft,"%s/%s/s%dft%d.out",outfolder,setname,iparr,r);
+	    safe_snprintf(outfile_fft,1024,"%s/%s/s%dft%d.out",outfolder,setname,iparr,r);
 	    
 	    //open oputput file for concurent access from different ranks
 	    int rc=MPI_File_open(MPI_COMM_WORLD,outfile_fft,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&(fout[r]));
@@ -528,7 +528,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 void calculate_all_2pts()
 {
   char outfile_2pts[1024];
-  sprintf(outfile_2pts,"%s/2pts",outfolder);
+  safe_snprintf(outfile_2pts,1024,"%s/2pts",outfolder);
   FILE *fout=open_text_file_for_output(outfile_2pts);
   
   //perform the contractions
