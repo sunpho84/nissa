@@ -242,6 +242,9 @@ namespace nissa
 	  master_printf("Read variable 'Theta[%d]' with value: %lg\n",mu,theta[mu]);
 	}
   }
+  
+  //lock the file to ensure single disk access
+  EXTERN_PARS lock_file_t<uint64_t> lock_file;
 }
 
 #undef EXTERN_PARS

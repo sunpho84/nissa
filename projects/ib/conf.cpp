@@ -210,7 +210,21 @@ namespace nissa
 		      skip_conf();
 		    }
 		}
-	      if(ok_conf) file_touch(run_file);
+	      if(ok_conf)
+		{
+		  //try to lock the running file
+		  lock_file.try_lock(run_file);
+		  
+		  //setup the conf and generate the source
+		  start_new_conf();
+		  
+		  //verify that nobody took the lock
+		  if(not lock_file.check_lock())
+		    {
+		      ok_conf=false;
+		      master_printf("Somebody acquired the lock on %s\n",run_file);
+		    }
+		}
 	    }
 	  else
 	    {
@@ -244,7 +258,6 @@ namespace nissa
   void mark_finished()
   {
     char fin_file[1024];
-    file_unlock(lock_fd);
     if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("writing %s",fin_file);
     file_touch(fin_file);
     nanalyzed_conf++;

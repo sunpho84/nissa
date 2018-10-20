@@ -320,6 +320,8 @@ void init_simulation(int narg,char **arg)
   glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  
+  lock_file.init();
 }
 
 //close deallocating everything
@@ -369,9 +371,6 @@ void in_main(int narg,char **arg)
   int iconf=0;
   while(read_conf_parameters(iconf,finish_file_present))
     {
-      //setup the conf and generate the source
-      start_new_conf();
-      
       for(int ihit=0;ihit<nhits;ihit++)
 	{
 	  start_hit(ihit);
