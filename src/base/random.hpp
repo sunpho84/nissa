@@ -86,7 +86,8 @@ namespace nissa
 	int fd=open(path,O_RDONLY);
 	if(fd==-1) crash("Opening %s",path);
 	
-        if(read(fd,&t,size)!=size) crash("reading %zu bytes from %s",size);
+	int rc=read(fd,&t,size);
+        if(rc!=size) crash("reading %zu bytes from %s",size,path);
 	if(close(fd)==-1) crash("Closing %s",path);
     }
     MPI_Bcast(&t,size,MPI_CHAR,0,MPI_COMM_WORLD);
