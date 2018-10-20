@@ -1,6 +1,9 @@
 #ifndef _RANDOM_HPP
 #define _RANDOM_HPP
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 
@@ -70,5 +73,23 @@ namespace nissa
   void stop_loc_rnd_gen();
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
   void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd);
+  
+  //read from /dev/random
+  template <typename T>
+  void get_truly_random(T &t)
+  {
+    const int size=sizeof(T);
+    
+    if(rank==0)
+      {
+	const char path[]="/dev/random";
+	int fd=open(path,O_RDONLY);
+	if(fd==-1) crash("Opening %s",path);
+	
+        if(read(fd,&t,size)!=size) crash("reading %zu bytes from %s",size);
+	if(close(fd)==-1) crash("Closing %s",path);
+    }
+    MPI_Bcast(&t,size,MPI_CHAR,0,MPI_COMM_WORLD);
+  }
 }
 #endif
