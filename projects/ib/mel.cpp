@@ -404,8 +404,8 @@ int read_conf_parameters(int &iconf)
       //Check if the conf has been finished or is already running
       master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
       char fin_file[1024],run_file[1024];
-      sprintf(fin_file,"%s/finished",outfolder);
-      sprintf(run_file,"%s/running",outfolder);
+      safe_snprintf(fin_file,1024,"%s/finished",outfolder);
+      safe_snprintf(run_file,1024,"%s/running",outfolder);
       ok_conf=!(file_exists(fin_file)) && !(file_exists(run_file));
       
       //if not finished
@@ -1162,7 +1162,7 @@ void in_main(int narg,char **arg)
       
       //pass to the next conf if there is enough time
       char fin_file[1024];
-      sprintf(fin_file,"%s/finished",outfolder);
+      if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("creating path for finished file");
       file_touch(fin_file);
       
       nanalyzed_conf++;
