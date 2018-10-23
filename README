@@ -40,19 +40,19 @@ Requirements
 
 -MPI distribution (at the moment also when running on scalar machine).
 -Support for threads in the compiler.
--Autotools to generate configure and Makefile.
-
+-Autotools >= 1.14 to generate configure and Makefile.
+-Bison >=3.0 and flex (see scripts in the  config folder).
 
 Compiling
 ---------
 
-Compilation procede as in normal autotools way:
+Compilation proceeds as customary in autotools:
 
 	    bash config/bootstrap
 	    mkdir build
 	    cd build
 	    ../configure --help
-	    ../configure  CXXFLAGS=... [flags]
+	    ../configure CXXFLAGS=... [flags]
 	    make
 
 The program have to be compiled with C++ including all the libraries and header necessary 
