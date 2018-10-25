@@ -287,16 +287,23 @@ namespace nissa
 	std::string &name=ori_source_name_list[i];
 	master_printf("Generating source \"%s\"\n",name.c_str());
 	qprop_t *q=&Q[name];
+	master_printf("%p found\n",q);
+	master_printf("Checking deadlock\n");
+	MPI_Barrier(MPI_COMM_WORLD);
+	master_printf("Passed\n");
 	generate_original_source(q);
+	master_printf("Original source generated\n");
 	
 	for(int id_so=0;id_so<nso_spi;id_so++)
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
 	      //combine the filename
 	      std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	master_printf("arrived to  \"%s\"\n",path.c_str());
 	      
 	      int isou=so_sp_col_ind(id_so,ic_so);
 	      spincolor *sou=(*q)[isou];
+	master_printf("%p found\n",sou);
 	      
 	      //if the prop exists read it
 	      if(file_exists(path))
