@@ -158,6 +158,10 @@ namespace nissa
   
   inline void generate_propagators(int ihit)
   {
+    master_printf("Checking deadlock %s\n",__PRETTY_FUNCTION__);
+    MPI_Barrier(MPI_COMM_WORLD);
+    master_printf("Checked deadlock\n",__PRETTY_FUNCTION__);
+    
     if(need_photon) generate_photon_stochastic_propagator(ihit);
     generate_original_sources(ihit);
     if(nquark_lep_combos) generate_lepton_propagators();

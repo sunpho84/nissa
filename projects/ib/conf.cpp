@@ -222,8 +222,10 @@ namespace nissa
 		  if(not lock_file.check_lock())
 		    {
 		      ok_conf=false;
-		      master_printf("Somebody acquired the lock on %s\n",run_file);
+		      printf("%d rank , somebody acquired the lock on %s\n",rank,run_file);
 		    }
+		  else
+		    printf("%d rank, lock %s valid\n",rank,run_file);
 		}
 	    }
 	  else
