@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "base/debug.hpp"
 #include "new_types/complex.hpp"
