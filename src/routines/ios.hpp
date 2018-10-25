@@ -152,7 +152,7 @@ namespace nissa
     {
       master_printf("Initializing the tag for a %zu bytes lock-file\n",sizeof(T));
       get_system_random(tag);
-      
+      std::cout<<"rank "<<rank<<", tag: "<<tag<<std::endl;
       inited=true;
     }
     
