@@ -178,7 +178,6 @@ namespace nissa
     //try to open and read the tag
     bool check_lock()
     {
-      
       assert_inited();
       //temporary tag read
       T test_tag;
@@ -188,7 +187,7 @@ namespace nissa
       if(rank==0) std::ifstream(path)>>test_tag;
       
       //broadcast
-      MPI_Bcast(&test_tag,1,MPI_CHAR,0,MPI_COMM_WORLD);
+      MPI_Bcast(&test_tag,sizeof(T),MPI_CHAR,0,MPI_COMM_WORLD);
       
       //return the comparison
       return (test_tag==tag);
