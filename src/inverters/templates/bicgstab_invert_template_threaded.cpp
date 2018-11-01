@@ -76,7 +76,7 @@ namespace nissa
     
     //print source info and check it
     if(riter==0) verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
-    if(source_norm==0 || isnan(source_norm)) crash("invalid norm: %lg",source_norm);
+    if(source_norm==0 || std::isnan(source_norm)) crash("invalid norm: %lg",source_norm);
     verbosity_lv2_master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
     
     int final_iter;

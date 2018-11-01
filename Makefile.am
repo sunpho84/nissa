@@ -19,4 +19,9 @@ EXTRA_DIST= \
 	tools/clusterize2.cpp \
 	tools/pack.c
 
-DIST_SUBDIRS=${SUBDIRS} tools
+DIST_SUBDIRS=${SUBDIRS}
+	
+
+#bin_PROGRAM = sproj
+#sproj_SOURCES = \
+#	test/work_in_prog/spectral_project/spectral_projectors.cpp

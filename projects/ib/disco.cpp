@@ -211,7 +211,7 @@ enum{_SUFF,_WRE,_WIM,_ID};
 std::vector<EU_descr_t> get_EU_to_compute()
 {
   using namespace EU1_EU2_EU4_EU6alt;
-  std::vector<EU_descr_t>  suff_weight_id={{"PSEUDO",0.0,1.0,_EU1},{"SCALAR",1.0,0.0,_EU2},{"TADPOLE",1.0,0.0,_EU4}};
+  std::vector<EU_descr_t>  suff_weight_id = {{"PSEUDO",0.0,1.0,_EU1},{"SCALAR",1.0,0.0,_EU2},{"TADPOLE",1.0,0.0,_EU4}};
   if(flag_compute_EU6_alt) suff_weight_id.push_back({"PROP_F_PROP_F",1.0,0.0,_EU6alt});
   
   return suff_weight_id;

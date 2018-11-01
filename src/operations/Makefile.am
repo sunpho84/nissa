@@ -42,6 +42,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/su3_paths/rectangular_staples.cpp \
 	operations/su3_paths/squared_staples.cpp \
 	operations/su3_paths/topological_charge.cpp \
+	operations/su3_paths/spectral_projectors.cpp \
 	operations/su3_paths/watusso.cpp \
 	operations/vector_gather.cpp
 
@@ -86,5 +87,6 @@ include_HEADERS+= \
 	operations/su3_paths/rectangular_staples.hpp \
 	operations/su3_paths/squared_staples.hpp \
 	operations/su3_paths/topological_charge.hpp \
+	operations/su3_paths/spectral_projectors.hpp \
 	operations/su3_paths/watusso.hpp \
 	operations/vector_gather.hpp

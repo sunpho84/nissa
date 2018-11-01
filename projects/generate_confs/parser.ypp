@@ -61,6 +61,7 @@
     nissa::poly_corr_meas_pars_t *luppoli_meas;
     nissa::watusso_meas_pars_t *watusso_meas;
     nissa::all_rects_meas_pars_t *all_rects_meas;
+    nissa::spectral_proj_meas_pars_t *spectral_proj_meas;
     
     nissa::rnd_t rnd_type;
     
@@ -253,11 +254,13 @@
 %token TK_MEAS_ENERGY
 %token TK_MEAS_POLY
 %token TK_MEAS_TOP
+%token TK_MEAS_SPECTPROJ
 %token TK_MEAS_LUPPOLI
 %token TK_MEAS_WATUSSO
 %token TK_MEAS_ALL_RECTS
 %type <plaq_pol_meas> plaq_pol_meas
 %type <top_meas> top_meas
+%type <spectral_proj_meas> spectral_proj_meas
 %type <luppoli_meas> luppoli_meas
 %type <watusso_meas> watusso_meas
 %type <all_rects_meas> all_rects_meas
@@ -321,6 +324,7 @@ global_specify: geometry
 /////////////// gauge measures ////////////////////
               | plaq_pol_meas {driver->add_plaq_pol_meas(*$1);delete $1;}
               | top_meas {driver->add_top_meas(*$1);delete $1;}
+              | spectral_proj_meas {driver->add_spectral_proj_meas(*$1);delete $1;}
               | luppoli_meas {driver->add_luppoli_meas(*$1);delete $1;}
               | watusso_meas {driver->add_watusso_meas(*$1);delete $1;}
               | all_rects_meas {driver->add_all_rects_meas(*$1);delete $1;}
@@ -695,6 +699,17 @@ top_meas: TK_MEAS_TOP {$$=new top_meas_pars_t();}
         | top_meas TK_CORR_PATH '=' text  {$$->corr_path=(*$4);}
 ;
 
+////////////////////////////////////////////////// SPECTRAL PROJECTORS //////////////////////////////////////////////////
+
+spectral_proj_meas: TK_MEAS_SPECTPROJ {$$=new spectral_proj_meas_pars_t();}
+        | spectral_proj_meas each {$$->each=$2;}
+        | spectral_proj_meas after {$$->after=$2;}
+        | spectral_proj_meas path {$$->path=(*$2);delete $2;}
+        | spectral_proj_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
+        | spectral_proj_meas TK_MEAS_CORR '=' int_numb {$$->meas_corr=$4;}
+        | spectral_proj_meas TK_CORR_PATH '=' text  {$$->corr_path=(*$4);}
+;
+
 //////////////////////////////////////////// POLYAKOV LOOP CORRELATORS /////////////////////////////////////////////
 
 luppoli_meas: TK_MEAS_LUPPOLI {$$=new poly_corr_meas_pars_t();}
@@ -726,6 +741,7 @@ all_rects_meas: TK_MEAS_ALL_RECTS {$$=new all_rects_meas_pars_t();}
               | all_rects_meas TK_TEMPORAL smooth_pars {$$->temp_smear_pars=(*$3);delete $3;}
               | all_rects_meas path {$$->path=(*$2);delete $2;}
 ;
+
 
 /////////////////////////////////////////////// LIST OF INTEGERS ///////////////////////////////////////////////////
 

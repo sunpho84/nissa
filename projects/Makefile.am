@@ -17,6 +17,7 @@ include $(srcdir)/ib/Makefile.am
 include $(srcdir)/nucleons/Makefile.am
 include $(srcdir)/reno_const/Makefile.am
 include $(srcdir)/semileptonic/Makefile.am
+include $(srcdir)/spectral_projectors/Makefile.am
 
 if NDIM2
 include $(srcdir)/cpn/Makefile.am

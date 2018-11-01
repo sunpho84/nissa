@@ -12,6 +12,7 @@
 using namespace nissa;
 
 double *top_meas_time;
+double *spectral_proj_meas_time;
 
 //new and old conf
 quad_su3 *new_conf[2];
@@ -160,7 +161,7 @@ void init_rnd_gen()
   //if message with string not found start from input seed
   if(rnd_gen_mess!="")
     {
-      master_printf("Random gnerator status found inside conf, starting from it\n");
+      master_printf("Random generator status found inside conf, starting from it\n");
       start_loc_rnd_gen(rnd_gen_mess.c_str());
     }
   else
@@ -231,7 +232,7 @@ void init_simulation(char *path)
   open_input(path);
   drv=new driver_t(input_global);
   parser_parse(drv);
-  if(drv->theories.size()==0) crash("need to sepcify a theory");
+  if(drv->theories.size()==0) crash("need to specify a theory");
   
   //geometry
   glb_size[0]=drv->T;
@@ -243,6 +244,8 @@ void init_simulation(char *path)
   top_meas_time=nissa_malloc("top_meas_time",drv->top_meas.size(),double);
   vector_reset(top_meas_time);
   
+  spectral_proj_meas_time=nissa_malloc("spectral_proj_meas_time",drv->spectral_proj_meas.size(),double);
+  vector_reset(spectral_proj_meas_time);
   ////////////////////////// allocate stuff ////////////////////////
   
   //allocate the conf
@@ -260,6 +263,9 @@ void init_simulation(char *path)
   for(size_t i=0;i<drv->top_meas.size();i++)
     if(drv->top_meas[i].each && drv->top_meas[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(drv->top_meas[i].smooth_pars.cool.gauge_action);
   
+  for(size_t i=0;i<drv->spectral_proj_meas.size();i++)
+    if(drv->spectral_proj_meas[i].each && drv->spectral_proj_meas[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(drv->spectral_proj_meas[i].smooth_pars.cool.gauge_action);
+
   //init the program in "evolution" or "analysis" mode
   if(drv->run_mode==driver_t::EVOLUTION_MODE) init_program_to_run(drv->conf_pars.start_cond);
   else                                        init_program_to_analyze();
@@ -275,6 +281,7 @@ void close_simulation()
   
   //destroy topo pars
   nissa_free(top_meas_time);
+  nissa_free(spectral_proj_meas_time);
   
   //deallocate backfield
   for(size_t itheory=0;itheory<drv->theories.size();itheory++)
@@ -325,6 +332,9 @@ int generate_new_conf(int itraj)
       
       //store the topological charge if needed
       drv->sea_theory().topotential_pars.store_if_needed(conf,itraj);
+      
+      //store the topological charge if needed
+      drv->sea_theory().topotential_pars.store_if_needed_sp(conf,itraj);
     }
   else
     {
@@ -469,6 +479,12 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       top_meas_time[i]-=take_time();
       measure_topology_eo_conf(drv->top_meas[i],conf,iconf,conf_created);
       top_meas_time[i]+=take_time();
+    }
+  RANGE_GAUGE_MEAS(spectral_proj_meas,i)
+    {
+      spectral_proj_meas_time[i]-=take_time();
+      measure_topology_eo_conf_sp(drv->spectral_proj_meas[i],conf,iconf,conf_created);
+      spectral_proj_meas_time[i]+=take_time();
     }
   
   RANGE_GAUGE_MEAS(all_rects_meas,i) measure_all_rectangular_paths(&drv->all_rects_meas[i],conf,iconf,conf_created);
@@ -676,6 +692,9 @@ void in_main(int narg,char **arg)
   for(size_t i=0;i<drv->top_meas.size();i++)
     master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,drv->top_meas[i].path.c_str(),top_meas_time[i],
 		  top_meas_time[i]*100/(take_time()-init_time),'%');
+  for(size_t i=0;i<drv->spectral_proj_meas.size();i++)
+    master_printf("time to perform the %d sptopo meas (%s): %lg (%2.2g %c tot)\n",i,drv->spectral_proj_meas[i].path.c_str(),spectral_proj_meas_time[i],
+		  spectral_proj_meas_time[i]*100/(take_time()-init_time),'%');
   
   close_simulation();
 }

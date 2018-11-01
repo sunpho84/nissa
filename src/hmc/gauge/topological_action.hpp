@@ -16,9 +16,12 @@ namespace nissa
     int def_flag(){return 0;}
     double def_theta(){return 0.0;}
     
-    //methods inside opearations/su3_paths/topological_charge.cpp
+    //methods inside operations/su3_paths/topological_charge.cpp
     void store_if_needed(quad_su3 **conf,int iconf);
     
+    //methods inside operations/su3_paths/spectral_projectors.cpp
+    void store_if_needed_sp(quad_su3 **conf,int iconf);
+
     int master_fprintf(FILE *fout,bool full=false);
     std::string get_str(bool full=false);
     

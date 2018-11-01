@@ -37,11 +37,11 @@ This project is host at: https://github.com/sunpho84/nissa/
 
 Requirements
 ------------
-
 -MPI distribution (at the moment also when running on scalar machine).
 -Support for threads in the compiler.
--Autotools to generate configure and Makefile.
-
+-gcc >= 6 or intel compiler
+-Autotools >= 1.14 to generate configure and Makefile.
+-Bison >=3.0 and flex (see scripts in the  config folder).
 
 Compiling
 ---------
