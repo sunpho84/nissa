@@ -17,6 +17,10 @@
  #include <malloc.h>
 #endif
 
+#ifdef USE_HUGEPAGES
+ #include <sys/mman.h>
+#endif
+
 #include "base/DDalphaAMG_bridge.hpp"
 #include "base/bench.hpp"
 #include "base/debug.hpp"
@@ -779,11 +783,23 @@ namespace nissa
     
     //allocate only now buffers, so we should have finalized its size
 #if defined BGQ && defined SPI
+    
     recv_buf=(char*)memalign(64,recv_buf_size);
     send_buf=(char*)memalign(64,send_buf_size);
+    
+#elif defined USE_HUGEPAGES
+    
+    const int prot=PROT_READ|PROT_WRITE;
+    const int flags=MAP_SHARED|MAP_POPULATE|MAP_HUGETLB;
+    
+    recv_buf=(char*)mmap(NULL,recv_buf_size,prot,flags,-1,0);
+    send_buf=(char*)mmap(NULL,send_buf_size,prot,flags,-1,0);
+    
 #else
+    
     recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
     send_buf=nissa_malloc("send_buf",send_buf_size,char);
+    
 #endif
     
 #ifdef SPI

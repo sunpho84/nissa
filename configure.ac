@@ -301,6 +301,20 @@ fi
 AM_CONDITIONAL([BGQ_EMU],[test "$enable_bgq_emu" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq emulation... $enable_bgq_emu])
 
+#huepages
+AC_ARG_ENABLE(hugepages,
+	AS_HELP_STRING([--enable-hugepages],[Enable usage of hugepages]),
+	enable_hugepages="${enableval}",
+	enable_hugepages="no")
+if test "$enable_hugepages" == "yes"
+then
+	AC_DEFINE([USE_HUGEPAGES],1,[Enable hugepages])
+fi
+AM_CONDITIONAL([USE_HUGEPAGES],[test "$enable_hugepags" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling hugepags... $enable_hugepages])
+SUMMARY_RESULT="$SUMMARY_RESULT
+Enable hugepages    : $enable_hugepages"
+
 #repropducible run
 AC_ARG_ENABLE(reproducible-run,
 	AS_HELP_STRING([--enable-reproducible-run],[Enable reproducibilty of runs (default: no)]),
