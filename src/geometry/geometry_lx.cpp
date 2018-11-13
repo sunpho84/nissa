@@ -507,8 +507,22 @@ namespace nissa
     free(recv_buf);
     free(send_buf);
 #elif defined USE_HUGEPAGES
-    if(munmap(recv_buf,recv_buf_size)!=0) crash("Freeing recv_buf");
-    if(munmap(send_buf,send_buf_size)!=0) crash("Freeing send_buf");
+    
+    // auto unall=[](char *&ptr,uint64_t size,const char *tag)
+    //   {
+    // 	if(size>0 and ptr!=NULL)
+    // 	  if(munmap(ptr,size)!=0)
+    // 	    {
+    // 	      perror("Unmapping error: ");
+    // 	      crash("Freeing %s",tag);
+    // 	    }
+	
+    // 	ptr=NULL;
+    //   };
+    
+    // unall(recv_buf,recv_buf_size,"recv_buf");
+    // unall(send_buf,send_buf_size,"send_buf");
+    
 #else
     nissa_free(recv_buf);
     nissa_free(send_buf);

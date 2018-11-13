@@ -790,12 +790,22 @@ namespace nissa
 #elif defined USE_HUGEPAGES
     
     const int prot=PROT_READ|PROT_WRITE;
-    const int flags=MAP_SHARED|MAP_POPULATE|MAP_HUGETLB;
+    const int flags=MAP_SHARED|MAP_ANONYMOUS|MAP_HUGETLB;
     
     auto all=[](uint64_t size)
       {
-	char *ret=(char*)mmap(NULL,size,prot,flags,-1,0);
-	if(ret==MAP_FAILED) crash("Allocating with mmap");
+	char *ret=NULL;
+	
+	if(size>0)
+	  {
+	    ret=(char*)mmap(NULL,size,prot,flags,-1,0);
+	    if(ret==MAP_FAILED)
+	      {
+		perror("error allocating: ");
+		crash("Allocating with mmap");
+	      }
+	  }
+	
 	return ret;
       };
     
