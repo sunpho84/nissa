@@ -792,8 +792,15 @@ namespace nissa
     const int prot=PROT_READ|PROT_WRITE;
     const int flags=MAP_SHARED|MAP_POPULATE|MAP_HUGETLB;
     
-    recv_buf=(char*)mmap(NULL,recv_buf_size,prot,flags,-1,0);
-    send_buf=(char*)mmap(NULL,send_buf_size,prot,flags,-1,0);
+    auto all=[](uint64_t size)
+      {
+	char *ret=(char*)mmap(NULL,size,prot,flags,-1,0);
+	if(ret==MAP_FAILED) crash("Allocating with mmap");
+	return ret;
+      };
+    
+    recv_buf=all(recv_buf_size);
+    send_buf=all(send_buf_size);
     
 #else
     
