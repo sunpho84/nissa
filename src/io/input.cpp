@@ -454,6 +454,9 @@ namespace nissa
 #ifdef USE_PARPACK
     tags.push_back(triple_tag("use_arpack",		       use_arpack));
 #endif
+#ifdef USE_HUGEPAGES
+    tags.push_back(triple_tag("use_hugepages",		       use_hugepages));
+#endif
     
     if(file_exists(path))
       {

@@ -206,6 +206,10 @@ namespace nissa
     mpf_precision=NISSA_DEFAULT_MPF_PRECISION;
 #endif
     
+#ifdef USE_HUGEPAGES
+    use_hugepages=NISSA_DEFAULT_USE_HUGEPAGES;
+#endif
+    
     //set default value for parameters
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
     use_128_bit_precision=NISSA_DEFAULT_USE_128_BIT_PRECISION;
@@ -789,34 +793,38 @@ namespace nissa
     
 #elif defined USE_HUGEPAGES
     
-    const int prot=PROT_READ|PROT_WRITE;
-    const int flags=MAP_SHARED|MAP_ANONYMOUS|MAP_HUGETLB;
-    
-    auto all=[](uint64_t size)
+    if(use_hugepages)
       {
-	char *ret=NULL;
+	const int prot=PROT_READ|PROT_WRITE;
+	const int flags=MAP_SHARED|MAP_ANONYMOUS|MAP_HUGETLB;
 	
-	if(size>0)
+	auto all=[](uint64_t size)
 	  {
-	    ret=(char*)mmap(NULL,size,prot,flags,-1,0);
-	    if(ret==MAP_FAILED)
+	    char *ret=NULL;
+	    
+	    if(size>0)
 	      {
-		perror("error allocating: ");
-		crash("Allocating with mmap");
+		ret=(char*)mmap(NULL,size,prot,flags,-1,0);
+		if(ret==MAP_FAILED)
+		  {
+		    perror("error allocating: ");
+		    crash("Allocating with mmap");
+		  }
 	      }
-	  }
+	    
+	    return ret;
+	  };
 	
-	return ret;
-      };
-    
-    recv_buf=all(recv_buf_size);
-    send_buf=all(send_buf_size);
-    
-#else
-    
-    recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
-    send_buf=nissa_malloc("send_buf",send_buf_size,char);
-    
+	recv_buf=all(recv_buf_size);
+	send_buf=all(send_buf_size);
+      }
+    else
+      {
+#endif
+	recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
+	send_buf=nissa_malloc("send_buf",send_buf_size,char);
+#if defined USE_HUGEPAGES
+      }
 #endif
     
 #ifdef SPI

@@ -75,6 +75,10 @@
 
 namespace nissa
 {
+#ifdef USE_HUGEPAGES
+  EXTERN_COMMUNICATE int use_hugepages;
+  #define NISSA_DEFAULT_USE_HUGEPAGES 0
+#endif
   
 #ifdef USE_MPI
   //out and in buffer

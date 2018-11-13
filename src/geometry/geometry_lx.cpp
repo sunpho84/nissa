@@ -508,24 +508,30 @@ namespace nissa
     free(send_buf);
 #elif defined USE_HUGEPAGES
     
-    // auto unall=[](char *&ptr,uint64_t size,const char *tag)
-    //   {
-    // 	if(size>0 and ptr!=NULL)
-    // 	  if(munmap(ptr,size)!=0)
-    // 	    {
-    // 	      perror("Unmapping error: ");
-    // 	      crash("Freeing %s",tag);
-    // 	    }
+    if(use_hugepages)
+      {
+	// auto unall=[](char *&ptr,uint64_t size,const char *tag)
+	//   {
+	// 	if(size>0 and ptr!=NULL)
+	// 	  if(munmap(ptr,size)!=0)
+	// 	    {
+	// 	      perror("Unmapping error: ");
+	// 	      crash("Freeing %s",tag);
+	// 	    }
 	
-    // 	ptr=NULL;
-    //   };
-    
-    // unall(recv_buf,recv_buf_size,"recv_buf");
-    // unall(send_buf,send_buf_size,"send_buf");
-    
-#else
-    nissa_free(recv_buf);
-    nissa_free(send_buf);
+	// 	ptr=NULL;
+	//   };
+	
+	// unall(recv_buf,recv_buf_size,"recv_buf");
+	// unall(send_buf,send_buf_size,"send_buf");
+      }
+    else
+      {
+#endif
+	nissa_free(recv_buf);
+	nissa_free(send_buf);
+#if defined USE_HUGEPAGES
+      }
 #endif
     
     nissa_free(loc_coord_of_loclx);
