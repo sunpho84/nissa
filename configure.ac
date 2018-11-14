@@ -31,13 +31,23 @@ AC_LANG([C++])
 LIBRARY_RESULT="---"
 SUMMARY_RESULT="---"
 
+#check if we enable fortran
+AC_ARG_ENABLE(fortran,
+	AS_HELP_STRING([--enable-fortran],[Enable fortran support]),
+	enable_fortran="${enableval}",
+	enable_fortran="no")
+AC_MSG_RESULT([enabling fortran... $enable_fortran])
+
 #split fortran flags into LDFLAGS and LIBS
 AC_F77_LIBRARY_LDFLAGS
-fortran_ldflags=` echo "$FLIBS" | grep -o -- '\(^\| \)-L\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)' | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
-fortran_libs=`       echo "$FLIBS" | grep -o -- '\(^\| \)-l\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)' | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
-LDFLAGS="$fortran_ldflags $LDFLAGS"
-LIBS="$fortran_libs $LIBS"
-FLIBS=""
+if test "$enable_fortran" == "yes"
+then
+	fortran_ldflags=` echo "$FLIBS" | grep -o -- '\(^\| \)-L\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)' | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
+	fortran_libs=`       echo "$FLIBS" | grep -o -- '\(^\| \)-l\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)' | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
+	LDFLAGS="$fortran_ldflags $LDFLAGS"
+	LIBS="$fortran_libs $LIBS"
+	FLIBS=""
+fi
 
 #AX_CXXFLAGS_WARN_ALL
 AC_MSG_CHECKING(whether compiler understands -Wall)
@@ -49,20 +59,26 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
   CXXFLAGS="$OLD_CXXFLAGS")
 
 #blas and lapack
-AX_BLAS([blas_found=yes],[blas_found=no])
-AX_LAPACK([lapack_found=yes],[lapack_found=no])
-LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
-LIBRARY_RESULT="$LIBRARY_RESULT
-blas                : $BLAS_LIBS
-lapack              : $LAPACK_LIBS"
+if test "$enable_fortran" == "yes"
+then
+	AX_BLAS([blas_found=yes],[blas_found=no])
+	AX_LAPACK([lapack_found=yes],[lapack_found=no])
+	LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
+	LIBRARY_RESULT="$LIBRARY_RESULT
+	blas                : $BLAS_LIBS
+	lapack              : $LAPACK_LIBS"
+fi
 
 #set mpi for fortran
-AC_LANG_PUSH([Fortran])
-LX_FIND_MPI
-AC_LANG_POP([Fortran])
-AC_MSG_RESULT([with Fortran MPI link options... $MPI_FLDFLAGS])
-LIBS="$MPI_FLIBS $LIBS"
-LDFLAGS="$MPI_FLDFLAGS $LDFLAGS"
+if test "$enable_fortran" == "yes"
+then
+	AC_LANG_PUSH([Fortran])
+	LX_FIND_MPI
+	AC_LANG_POP([Fortran])
+	AC_MSG_RESULT([with Fortran MPI link options... $MPI_FLDFLAGS])
+	LIBS="$MPI_FLIBS $LIBS"
+	LDFLAGS="$MPI_FLDFLAGS $LDFLAGS"
+fi
 
 #set mpi for c++
 AC_LANG_PUSH([C++])
