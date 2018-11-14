@@ -48,23 +48,9 @@ namespace nissa
   //benchmark memory
   THREADABLE_FUNCTION_1ARG(bench_memory_bandwidth, int,mem_size)
   {
-    double *a,*b;
-    
-#if defined USE_HUGEPAGES
-    if(use_hugepages)
-      {
-	a=(double*)mmap_allocate(mem_size);
-	b=(double*)mmap_allocate(mem_size);
-      }
-    else
-      {
-#endif
-	int size=mem_size/sizeof(double);
-	a=nissa_malloc("a",size,double);
-	b=nissa_malloc("b",size,double);
-#if defined USE_HUGEPAGES
-      }
-#endif
+    //allocate double
+    double *a=nissa_malloc("a",mem_size/sizeof(double),double);
+    double *b=nissa_malloc("b",mem_size/sizeof(double),double);
     
     //first call to warm up
     bench_memory_copy(a,b,mem_size);
@@ -76,15 +62,8 @@ namespace nissa
     bench_time+=take_time();
     bench_time/=ntests;
     
-#if defined USE_HUGEPAGES
-    if(not use_hugepages)
-      {
-#endif
-	nissa_free(a);
-	nissa_free(b);
-#if defined USE_HUGEPAGES
-      }
-#endif
+    nissa_free(a);
+    nissa_free(b);
     
     master_printf("time to copy %d Mbytes: %lg, %lg Mbs\n",mem_size/1024/1024,
 		  bench_time,mem_size/1024/1024/bench_time);
@@ -99,8 +78,23 @@ namespace nissa
 	{
 	  //allocate a buffer
 	  int size=1<<ipow;
-	  char *out=nissa_malloc("out",size,char);
-	  char *in=nissa_malloc("in",size,char);
+	  char *out,*in;
+	  
+#ifdef USE_HUGEPAGES
+	  if(use_hugepages and size<send_buf_size)
+	    {
+	      out=send_buf;
+	      in=recv_buf;
+	    }
+	  else
+	    {
+	      master_printf("Not using hugepages\n");
+#endif
+	      out=nissa_malloc("out",size,char);
+	      in=nissa_malloc("in",size,char);
+#ifdef USE_HUGEPAGES
+	    }
+#endif
 	  
 	  //total time
 	  double tot_time=0;
@@ -135,9 +129,16 @@ namespace nissa
 	  speed_err-=speed_ave*speed_ave;
 	  speed_err=sqrt(speed_ave/(n-1));
 	  
-	  nissa_free(in);
-	  nissa_free(out);
-	  
+#ifdef USE_HUGEPAGES
+	  if(use_hugepages and size<send_buf_size)
+	  {
+#endif
+	    
+	    nissa_free(in);
+	    nissa_free(out);
+#ifdef USE_HUGEPAGES
+	  }
+#endif	  
 	  master_printf("Communication benchmark, packet size %d (%lg+-%lg) Mb/s (%lg s total)\n",size,speed_ave,speed_err,tot_time);
 	}
   }
