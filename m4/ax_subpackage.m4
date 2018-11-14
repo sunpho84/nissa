@@ -22,19 +22,19 @@ do
 done
 
 #search for library
-OLD_LIBS=$LIBS
-lib_to_link=""
+AX_SUBPACKAGE_OLD_LIBS=$LIBS
+libs_to_link=""
 $1_found_library=yes
 for function in $4
 do
 	if test "$1_found_library" != "no" -a "$3" != "" -a  "$function" != ""
 	then
 		AC_SEARCH_LIBS([$function],[$3],[$1_found_library=yes],[$1_found_library=no])
-		lib_to_link="$(eval echo \$ac_cv_search_$function) $lib_to_link"
+		libs_to_link="$(eval echo \$ac_cv_search_$function) $libs_to_link"
 	fi
 done
 NEW_LIBS=$LIBS
-LIBS=$OLD_LIBS
+LIBS=$AX_SUBPACKAGE_OLD_LIBS
 
 #check availability
 if test "$$1_found_header" != "no"  -a "$$1_found_library" != "no"
@@ -68,7 +68,7 @@ then
 
 	LIBS=$NEW_LIBS
 	LIBRARY_RESULT="$LIBRARY_RESULT
-$1                : $EXTRA_LIBS"
+$1                : $libs_to_link"
 
 fi
 
