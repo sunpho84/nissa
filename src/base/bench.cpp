@@ -130,7 +130,7 @@ namespace nissa
 	  speed_err=sqrt(speed_ave/(n-1));
 	  
 #ifdef USE_HUGEPAGES
-	  if(use_hugepages and size<send_buf_size)
+	  if(not (use_hugepages and size<send_buf_size))
 	    {
 #endif
 	      

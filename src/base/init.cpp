@@ -256,9 +256,6 @@ namespace nissa
     //initialize the base of the gamma matrices
     init_base_gamma();
     
-    //benchmark the net
-    bench_net_speed();
-    
     master_printf("Nissa initialized!\n");
   }
   
@@ -852,5 +849,8 @@ namespace nissa
     
     //take final time
     master_printf("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
+    
+    //benchmark the net
+    bench_net_speed();
   }
 }
