@@ -74,7 +74,7 @@ namespace nissa
   void bench_net_speed()
   {
     if(nranks>1)
-      for(int ipow=14;ipow<=20;ipow+=2)
+      for(int ipow=14;ipow<=22;ipow+=2)
 	{
 	  //allocate a buffer
 	  int size=1<<ipow;
