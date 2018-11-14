@@ -38,6 +38,13 @@ AC_ARG_ENABLE(fortran,
 	enable_fortran="no")
 AC_MSG_RESULT([enabling fortran... $enable_fortran])
 
+#check if we enable splitting MPI autosearch
+AC_ARG_ENABLE(MPI-autosearch,
+	AS_HELP_STRING([--enable-MPI-autosearch],[Enable MPI autosearch]),
+	enable_MPI_autosearch="${enableval}",
+	enable_MPI_autosearch="yes")
+AC_MSG_RESULT([enabling MPI-autosearch... $enable_MPI_autosearch])
+
 #split fortran flags into LDFLAGS and LIBS
 AC_F77_LIBRARY_LDFLAGS
 if test "$enable_fortran" == "yes"
