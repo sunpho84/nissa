@@ -80,7 +80,7 @@ namespace nissa
     if(not use_hugepages)
       {
 #endif
-	4nissa_free(a);
+	nissa_free(a);
 	nissa_free(b);
 #if defined USE_HUGEPAGES
       }
