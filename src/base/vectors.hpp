@@ -1,8 +1,16 @@
 #ifndef _VECTORS_HPP
 #define _VECTORS_HPP
 
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #include <stdio.h>
 #include <stdint.h>
+
+#ifdef USE_HUGEPAGES
+ #include <sys/mman.h>
+#endif
 
 #ifndef EXTERN_VECTORS
  #define EXTERN_VECTORS extern
@@ -35,6 +43,10 @@
 
 namespace nissa
 {
+#ifdef USE_HUGEPAGES
+  void* mmap_allocate(uint64_t size);
+#endif
+  
   //nissa vector
   struct nissa_vect
   {

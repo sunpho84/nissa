@@ -17,10 +17,6 @@
  #include <malloc.h>
 #endif
 
-#ifdef USE_HUGEPAGES
- #include <sys/mman.h>
-#endif
-
 #include "base/DDalphaAMG_bridge.hpp"
 #include "base/bench.hpp"
 #include "base/debug.hpp"
@@ -792,31 +788,10 @@ namespace nissa
     send_buf=(char*)memalign(64,send_buf_size);
     
 #elif defined USE_HUGEPAGES
-    
     if(use_hugepages)
       {
-	const int prot=PROT_READ|PROT_WRITE;
-	const int flags=MAP_SHARED|MAP_ANONYMOUS|MAP_HUGETLB;
-	
-	auto all=[](uint64_t size)
-	  {
-	    char *ret=NULL;
-	    
-	    if(size>0)
-	      {
-		ret=(char*)mmap(NULL,size,prot,flags,-1,0);
-		if(ret==MAP_FAILED)
-		  {
-		    perror("error allocating: ");
-		    crash("Allocating with mmap");
-		  }
-	      }
-	    
-	    return ret;
-	  };
-	
-	recv_buf=all(recv_buf_size);
-	send_buf=all(send_buf_size);
+	recv_buf=(char*)mmap_allocate(recv_buf_size);
+	send_buf=(char*)mmap_allocate(send_buf_size);
       }
     else
       {

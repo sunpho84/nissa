@@ -17,7 +17,9 @@
 #include "thread_macros.hpp"
 
 #define EXTERN
-#include "bench.hpp"
+ #include "bench.hpp"
+
+#include "communicate/communicate.hpp"
 
 namespace nissa
 {
@@ -46,9 +48,23 @@ namespace nissa
   //benchmark memory
   THREADABLE_FUNCTION_1ARG(bench_memory_bandwidth, int,mem_size)
   {
-    //allocate double
-    double *a=nissa_malloc("a",mem_size/sizeof(double),double);
-    double *b=nissa_malloc("b",mem_size/sizeof(double),double);
+    double *a,*b;
+    
+#if defined USE_HUGEPAGES
+    if(use_hugepages)
+      {
+	a=(double*)mmap_allocate(mem_size);
+	b=(double*)mmap_allocate(mem_size);
+      }
+    else
+      {
+#endif
+	int size=mem_size/sizeof(double);
+	a=nissa_malloc("a",size,double);
+	b=nissa_malloc("b",size,double);
+#if defined USE_HUGEPAGES
+      }
+#endif
     
     //first call to warm up
     bench_memory_copy(a,b,mem_size);
@@ -60,8 +76,15 @@ namespace nissa
     bench_time+=take_time();
     bench_time/=ntests;
     
-    nissa_free(a);
-    nissa_free(b);
+#if defined USE_HUGEPAGES
+    if(not use_hugepages)
+      {
+#endif
+	4nissa_free(a);
+	nissa_free(b);
+#if defined USE_HUGEPAGES
+      }
+#endif
     
     master_printf("time to copy %d Mbytes: %lg, %lg Mbs\n",mem_size/1024/1024,
 		  bench_time,mem_size/1024/1024/bench_time);
