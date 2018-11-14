@@ -66,7 +66,7 @@ then
 		AC_DEFINE([USE_$5],1,[Enable $1])
 	fi
 
-	LIBS=NEW_LIBS
+	LIBS=$NEW_LIBS
 	LIBRARY_RESULT="$LIBRARY_RESULT
 $1                : $EXTRA_LIBS"
 
