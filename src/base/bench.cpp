@@ -131,14 +131,16 @@ namespace nissa
 	  
 #ifdef USE_HUGEPAGES
 	  if(use_hugepages and size<send_buf_size)
-	  {
+	    {
 #endif
-	    
-	    nissa_free(in);
-	    nissa_free(out);
+	      
+	      nissa_free(in);
+	      nissa_free(out);
+	      
 #ifdef USE_HUGEPAGES
-	  }
-#endif	  
+	    }
+#endif
+	  
 	  master_printf("Communication benchmark, packet size %d (%lg+-%lg) Mb/s (%lg s total)\n",size,speed_ave,speed_err,tot_time);
 	}
   }
