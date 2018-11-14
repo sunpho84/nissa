@@ -124,7 +124,7 @@ AC_DEFINE([FFTW_FFT],[1],["FFTW library"])
 AC_ARG_WITH(fft-type,
 	AS_HELP_STRING([--with-fft-type],[Select the Fast Fourier transform implementation (native, fftw [NOT default if found])]),
 	with_fft_type="${withval}",
-	if test "$fftw_found" != "no"
+	if test "$enable_fftw" != "no"
 	then
 		with_fft_type="fftw"
 	else
