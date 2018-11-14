@@ -24,17 +24,8 @@ void print_stat(const char *what,double time,int n,int flops)
   master_printf(", %lg MFlop/s\n",flops*1e-6*n/(time?time:1));
 }
 
-void in_main(int narg,char **arg)
+THREADABLE_FUNCTION_0ARG(bench)
 {
-  if(narg<3) crash("Use %s L T",arg[0]);
-  
-  use_Leb_geom=1;
-  
-  //grid
-  int L=atoi(arg[1]),T=atoi(arg[2]);
-  init_grid(T,L);
-  start_loc_rnd_gen(1234);
-  
   //conf
   quad_su3 *conf[2];
   for(int eo=0;eo<2;eo++) conf[eo]=nissa_malloc("conf",loc_volh+bord_volh,quad_su3);
@@ -62,12 +53,24 @@ void in_main(int narg,char **arg)
   double mass2=1;
   
   master_printf("\n");
-  for(int ibench=0;ibench<nbench;ibench++) apply_stD2ee_m2(out,conf,temp,mass2,in);
-  print_stat("apply staggered operator",portable_stD_app_time,nportable_stD_app,1158*loc_volh);
+  double t=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    {
+      set_borders_invalid(in);
+      apply_stD2ee_m2(out,conf,temp,mass2,in);
+    }
+  t+=take_time();
+  print_stat("apply staggered operator",t,nbench,1158*loc_volh);
   
-  portable_stD_app_time=nportable_stD_app=0;
-  for(int ibench=0;ibench<nbench;ibench++) apply_stD2Leb_ee_m2(Lebout,Lebconf,temp,mass2,Lebin);
-  print_stat("apply Leb staggered operator",portable_stD_app_time,nportable_stD_app,1158*loc_volh);
+  t=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    {
+      set_borders_invalid(Lebin);
+      apply_stD2Leb_ee_m2(Lebout,Lebconf,temp,mass2,Lebin);
+    }
+  t+=take_time();
+  
+  print_stat("apply Leb staggered operator",t,nbench,1158*loc_volh);
   master_printf("\n");
   
   remap_Leb_ev_or_od_to_loc_vector(outrec,Lebout,EVN);
@@ -88,6 +91,20 @@ void in_main(int narg,char **arg)
   nissa_free(out);
   nissa_free(Lebout);
   nissa_free(outrec);
+}
+THREADABLE_FUNCTION_END
+
+void in_main(int narg,char **arg)
+{
+  if(narg<3) crash("Use %s L T",arg[0]);
+  
+  use_Leb_geom=1;
+  
+  //grid
+  int L=atoi(arg[1]),T=atoi(arg[2]);
+  init_grid(T,L);
+  start_loc_rnd_gen(1234);
+  
 }
 
 int main(int narg,char **arg)
