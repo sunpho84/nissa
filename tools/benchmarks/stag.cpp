@@ -105,6 +105,7 @@ void in_main(int narg,char **arg)
   init_grid(T,L);
   start_loc_rnd_gen(1234);
   
+  bench();
 }
 
 int main(int narg,char **arg)
