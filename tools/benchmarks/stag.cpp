@@ -1,4 +1,4 @@
-#include "nissa.hpp"
+#include <nissa.hpp>
 
 using namespace nissa;
 
@@ -26,6 +26,8 @@ void print_stat(const char *what,double time,int n,int flops)
 
 THREADABLE_FUNCTION_0ARG(bench)
 {
+  GET_THREAD_ID();
+  
   //conf
   quad_su3 *conf[2];
   for(int eo=0;eo<2;eo++) conf[eo]=nissa_malloc("conf",loc_volh+bord_volh,quad_su3);
@@ -52,8 +54,12 @@ THREADABLE_FUNCTION_0ARG(bench)
   int nbench=500;
   double mass2=1;
   
+  double t;
+  
+  RESET_TIMING(tot_comm_time,ntot_comm);
+  
   master_printf("\n");
-  double t=-take_time();
+  t=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
     {
       set_borders_invalid(in);
@@ -78,6 +84,8 @@ THREADABLE_FUNCTION_0ARG(bench)
   double n2diff=double_vector_glb_norm2(outrec,loc_volh);
   double n2=double_vector_glb_norm2(out,loc_volh);
   master_printf("Rel norm of the diff: %lg\n",sqrt(n2diff/n2));
+  
+  master_printf("Timing to do %d communications: %lg s, %lg each\n",ntot_comm,tot_comm_time,tot_comm_time/ntot_comm);
   
   //free
   for(int eo=0;eo<2;eo++)
