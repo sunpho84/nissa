@@ -76,8 +76,8 @@ then
 	lapack              : $LAPACK_LIBS"
 fi
 
-#set mpi for fortran
-if test "$enable_fortran" == "yes"
+#set MPI for fortran
+if test "$enable_fortran" == "yes" -a "$enable_MPI_autoseach" == "yes"
 then
 	AC_LANG_PUSH([Fortran])
 	LX_FIND_MPI
@@ -87,14 +87,17 @@ then
 	LDFLAGS="$MPI_FLDFLAGS $LDFLAGS"
 fi
 
-#set mpi for c++
-AC_LANG_PUSH([C++])
-LX_FIND_MPI
-AC_LANG_POP([C++])
-AC_MSG_RESULT([with C++ MPI link options... $MPI_CXXLDFLAGS])
-CPPFLAGS="$MPI_CXXFLAGS $CPPFLAGS"
-LIBS="$MPI_CXXLIBS $LIBS"
-LDFLAGS="$MPI_CXXLDFLAGS $LDFLAGS"
+#set MPI for c++
+if test "$enable_MPI_autoseach" == "yes"
+then
+	AC_LANG_PUSH([C++])
+	LX_FIND_MPI
+	AC_LANG_POP([C++])
+	AC_MSG_RESULT([with C++ MPI link options... $MPI_CXXLDFLAGS])
+	CPPFLAGS="$MPI_CXXFLAGS $CPPFLAGS"
+	LIBS="$MPI_CXXLIBS $LIBS"
+	LDFLAGS="$MPI_CXXLDFLAGS $LDFLAGS"
+fi
 
 #check ntl library
 #LB_CHECK_NTL(,,AC_MSG_ERROR(["Unable to find NTL library"]))
