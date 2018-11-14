@@ -43,12 +43,12 @@ AC_ARG_ENABLE(MPI-autosearch,
 	AS_HELP_STRING([--enable-MPI-autosearch],[Enable MPI autosearch]),
 	enable_MPI_autosearch="${enableval}",
 	enable_MPI_autosearch="yes")
-AC_MSG_RESULT([enabling MPI-autosearch... $enable_MPI_autosearch])
+AC_MSG_RESULT([enabling MPI autosearch... $enable_MPI_autosearch])
 
 #split fortran flags into LDFLAGS and LIBS
-AC_F77_LIBRARY_LDFLAGS
 if test "$enable_fortran" == "yes"
 then
+	AC_F77_LIBRARY_LDFLAGS
 	fortran_ldflags=` echo "$FLIBS" | grep -o -- '\(^\| \)-L\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)' | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
 	fortran_libs=`       echo "$FLIBS" | grep -o -- '\(^\| \)-l\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)' | tr '\n' ' ' | sed 's/^[[ \t]]*//;s/[[ \t]]*$//' | sed 's/  +/ /g'`
 	LDFLAGS="$fortran_ldflags $LDFLAGS"
@@ -77,7 +77,7 @@ then
 fi
 
 #set MPI for fortran
-if test "$enable_fortran" == "yes" -a "$enable_MPI_autoseach" == "yes"
+if test "$enable_fortran" == "yes" -a "$enable_MPI_autosearch" == "yes"
 then
 	AC_LANG_PUSH([Fortran])
 	LX_FIND_MPI
@@ -88,7 +88,7 @@ then
 fi
 
 #set MPI for c++
-if test "$enable_MPI_autoseach" == "yes"
+if test "$enable_MPI_autosearch" == "yes"
 then
 	AC_LANG_PUSH([C++])
 	LX_FIND_MPI
