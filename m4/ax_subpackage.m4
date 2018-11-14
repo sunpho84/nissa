@@ -22,6 +22,7 @@ do
 done
 
 #search for library
+OLD_LIBS=$LIBS
 lib_to_link=""
 $1_found_library=yes
 for function in $4
@@ -32,8 +33,8 @@ do
 		lib_to_link="$(eval echo \$ac_cv_search_$function) $lib_to_link"
 	fi
 done
-LIBRARY_RESULT="$LIBRARY_RESULT
-$1                : $lib_to_link"
+NEW_LIBS=$LIBS
+LIBS=$OLD_LIBS
 
 #check availability
 if test "$$1_found_header" != "no"  -a "$$1_found_library" != "no"
@@ -64,6 +65,11 @@ then
 	then
 		AC_DEFINE([USE_$5],1,[Enable $1])
 	fi
+
+	LIBS=NEW_LIBS
+	LIBRARY_RESULT="$LIBRARY_RESULT
+$1                : $EXTRA_LIBS"
+
 fi
 
 AM_CONDITIONAL([USE_$5],[test "$enable_$1" == "yes" ],[true],[false])
