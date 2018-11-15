@@ -102,7 +102,6 @@ namespace nissa
     void add_magnetization_meas(magnetization_meas_pars_t &m){magnetization_meas.push_back(m);}
     void add_spectral_proj_meas(spectral_proj_meas_pars_t &m){spectral_proj_meas.push_back(m);}
     
-    
     //gauge measures
     std::vector<gauge_obs_meas_pars_t> plaq_pol_meas;
     std::vector<top_meas_pars_t> top_meas;

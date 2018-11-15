@@ -65,6 +65,8 @@
     
     nissa::rnd_t rnd_type;
     
+    nissa::rnd_t rnd_type;
+    
     std::vector<int> *int_list;
     std::vector<double> *double_list;
     std::vector<std::string> *text_list;
