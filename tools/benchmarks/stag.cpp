@@ -24,7 +24,7 @@ void print_stat(const char *what,double time,int n,int flops)
   master_printf(", %lg MFlop/s\n",flops*1e-6*n/(time?time:1));
 }
 
-THREADABLE_FUNCTION_0ARG(bench)
+THREADABLE_FUNCTION_0ARG(bench_stag)
 {
   GET_THREAD_ID();
   
@@ -102,6 +102,51 @@ THREADABLE_FUNCTION_0ARG(bench)
 }
 THREADABLE_FUNCTION_END
 
+THREADABLE_FUNCTION_0ARG(bench_Wils)
+{
+  GET_THREAD_ID();
+  
+  //conf
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  generate_hot_lx_conf(conf);
+  
+  //in
+  spincolor *in=nissa_malloc("in",loc_vol+bord_vol,spincolor);
+  generate_fully_undiluted_eo_source(in, RND_GAUSS,-1,EVN);
+  
+  //temp and out
+  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+  spincolor *out=nissa_malloc("out",loc_vol+bord_vol,spincolor);
+  spincolor *outrec=nissa_malloc("outrec",loc_vol+bord_vol,spincolor);
+  
+  int nbench=500;
+  double mu=1,kappa=0.2;
+  
+  double t;
+  
+  RESET_TIMING(tot_comm_time,ntot_comm);
+  
+  master_printf("\n");
+  t=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    {
+      set_borders_invalid(in);
+      apply_tmQ2(out,conf,kappa,temp,mu,in);
+    }
+  t+=take_time();
+  print_stat("apply tm operator",t,nbench,1158*2*loc_vol);
+  
+  master_printf("Timing to do %d communications: %lg s, %lg each\n",ntot_comm,tot_comm_time,tot_comm_time/ntot_comm);
+  
+  //free
+  nissa_free(conf);
+  nissa_free(in);
+  nissa_free(temp);
+  nissa_free(out);
+  nissa_free(outrec);
+}
+THREADABLE_FUNCTION_END
+
 void in_main(int narg,char **arg)
 {
   if(narg<3) crash("Use %s L T",arg[0]);
@@ -113,7 +158,8 @@ void in_main(int narg,char **arg)
   init_grid(T,L);
   start_loc_rnd_gen(1234);
   
-  bench();
+  bench_stag();
+  bench_Wils();
 }
 
 int main(int narg,char **arg)
