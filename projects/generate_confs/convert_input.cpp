@@ -243,6 +243,24 @@ void read_magnetization_meas_pars(std::vector<magnetization_meas_pars_t> &pars,i
     }
 }
 
+//read parameters to measure spectral projectors
+void read_spectral_proj_meas_pars(std::vector<spectral_proj_meas_pars_t> &pars,int itheory)
+{
+  int flag;
+  read_str_int("MeasureSpectralProj",&flag);
+  if(flag)
+    {
+      pars.push_back(spectral_proj_meas_pars_t());
+      pars.back().itheory=itheory;
+      pars.back().path=read_path();
+      read_str_double("InvResidue",&pars.back().residue);
+      read_str_int("NCopies",&pars.back().ncopies);
+      read_str_int("NHits",&pars.back().nhits);
+      read_str_int("Neigs",&pars.back().neigs);
+      read_str_double("EigPrecision",&pars.back().eig_precision);
+    }
+}
+
 //read parameters to measure the spin polarization
 void read_spinpol_meas_pars(std::vector<spinpol_meas_pars_t> &pars,int itheory)
 {
@@ -411,6 +429,7 @@ void in_main(int narg,char **arg)
       read_quark_rendens_meas_pars(driver->quark_rendens_meas,itheory);
       read_spinpol_meas_pars(spinpol_meas,itheory);
       read_magnetization_meas_pars(driver->magnetization_meas,itheory);
+      read_spectral_proj_meas_pars(driver->spectral_proj_meas,itheory);
     }
   
   //read if we want to measure gauge obs

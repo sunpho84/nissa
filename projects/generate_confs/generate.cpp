@@ -12,7 +12,6 @@
 using namespace nissa;
 
 double *top_meas_time;
-double *spectral_proj_meas_time;
 
 //new and old conf
 quad_su3 *new_conf[2];
@@ -244,8 +243,6 @@ void init_simulation(char *path)
   top_meas_time=nissa_malloc("top_meas_time",drv->top_meas.size(),double);
   vector_reset(top_meas_time);
   
-  spectral_proj_meas_time=nissa_malloc("spectral_proj_meas_time",drv->spectral_proj_meas.size(),double);
-  vector_reset(spectral_proj_meas_time);
   ////////////////////////// allocate stuff ////////////////////////
   
   //allocate the conf
@@ -263,9 +260,6 @@ void init_simulation(char *path)
   for(size_t i=0;i<drv->top_meas.size();i++)
     if(drv->top_meas[i].each && drv->top_meas[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(drv->top_meas[i].smooth_pars.cool.gauge_action);
   
-  for(size_t i=0;i<drv->spectral_proj_meas.size();i++)
-    if(drv->spectral_proj_meas[i].each && drv->spectral_proj_meas[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(drv->spectral_proj_meas[i].smooth_pars.cool.gauge_action);
-
   //init the program in "evolution" or "analysis" mode
   if(drv->run_mode==driver_t::EVOLUTION_MODE) init_program_to_run(drv->conf_pars.start_cond);
   else                                        init_program_to_analyze();
@@ -281,7 +275,6 @@ void close_simulation()
   
   //destroy topo pars
   nissa_free(top_meas_time);
-  nissa_free(spectral_proj_meas_time);
   
   //deallocate backfield
   for(size_t itheory=0;itheory<drv->theories.size();itheory++)
@@ -333,8 +326,8 @@ int generate_new_conf(int itraj)
       //store the topological charge if needed
       drv->sea_theory().topotential_pars.store_if_needed(conf,itraj);
       
-      //store the topological charge if needed
-      drv->sea_theory().topotential_pars.store_if_needed_sp(conf,itraj);
+//      //store the topological charge if needed
+//      drv->sea_theory().topotential_pars.store_if_needed_sp(conf,itraj);
     }
   else
     {
@@ -471,7 +464,6 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
 void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   double meas_time=-take_time();
-  
   RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i],conf,iconf,acc,gauge_action_name);
   RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],conf,conf_created);
   RANGE_GAUGE_MEAS(top_meas,i)
@@ -479,12 +471,6 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       top_meas_time[i]-=take_time();
       measure_topology_eo_conf(drv->top_meas[i],conf,iconf,conf_created);
       top_meas_time[i]+=take_time();
-    }
-  RANGE_GAUGE_MEAS(spectral_proj_meas,i)
-    {
-      spectral_proj_meas_time[i]-=take_time();
-      measure_topology_eo_conf_sp(drv->spectral_proj_meas[i],conf,iconf,conf_created);
-      spectral_proj_meas_time[i]+=take_time();
     }
   
   RANGE_GAUGE_MEAS(all_rects_meas,i) measure_all_rectangular_paths(&drv->all_rects_meas[i],conf,iconf,conf_created);
@@ -507,6 +493,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	RANGE_FERMIONIC_MEAS(drv,magnetization);
 	RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
 	RANGE_FERMIONIC_MEAS(drv,meson_corr);
+	RANGE_FERMIONIC_MEAS(drv,spectral_proj);
       }
   
   meas_time+=take_time();
@@ -692,9 +679,6 @@ void in_main(int narg,char **arg)
   for(size_t i=0;i<drv->top_meas.size();i++)
     master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,drv->top_meas[i].path.c_str(),top_meas_time[i],
 		  top_meas_time[i]*100/(take_time()-init_time),'%');
-  for(size_t i=0;i<drv->spectral_proj_meas.size();i++)
-    master_printf("time to perform the %d sptopo meas (%s): %lg (%2.2g %c tot)\n",i,drv->spectral_proj_meas[i].path.c_str(),spectral_proj_meas_time[i],
-		  spectral_proj_meas_time[i]*100/(take_time()-init_time),'%');
   
   close_simulation();
 }

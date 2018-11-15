@@ -186,7 +186,7 @@ namespace nissa
       }
   }
   
-  //Print the dirac marix passed as argument only on node 0
+  //Print the dirac matrix passed as argument only on node 0
   inline void print_dirac(dirac_matr *in)
   {
     for(int ir=0;ir<NDIRAC;ir++)

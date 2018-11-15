@@ -32,6 +32,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/stag/spinpol.cpp \
 	operations/stag/stag.cpp \
 	operations/stag/zumba.cpp \
+	operations/stag/spectral_projectors.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
 	operations/su3_paths/clover_term.cpp \
@@ -42,7 +43,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/su3_paths/rectangular_staples.cpp \
 	operations/su3_paths/squared_staples.cpp \
 	operations/su3_paths/topological_charge.cpp \
-	operations/su3_paths/spectral_projectors.cpp \
 	operations/su3_paths/watusso.cpp \
 	operations/vector_gather.cpp
 
@@ -77,6 +77,7 @@ include_HEADERS+= \
 	operations/stag/spinpol.hpp \
 	operations/stag/stag.hpp \
 	operations/stag/zumba.hpp \
+	operations/stag/spectral_projectors.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
 	operations/su3_paths/clover_term.hpp \
@@ -87,6 +88,5 @@ include_HEADERS+= \
 	operations/su3_paths/rectangular_staples.hpp \
 	operations/su3_paths/squared_staples.hpp \
 	operations/su3_paths/topological_charge.hpp \
-	operations/su3_paths/spectral_projectors.hpp \
 	operations/su3_paths/watusso.hpp \
 	operations/vector_gather.hpp

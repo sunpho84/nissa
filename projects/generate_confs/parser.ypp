@@ -247,6 +247,13 @@
 //magnetization
 %type <magnetization_meas> magnetization_meas
 %token TK_MEAS_MAGNETIZ
+//spectral proj meas
+%type <spectral_proj_meas> spectral_proj_meas
+%token TK_SPECT_PROJ
+%token TK_NEIGS
+%type <int_numb> neigs
+%token TK_EIG_PRECISION
+%type <double_numb> eig_precision
 //gauge measures
 %token TK_USE_SMOOTH
 %token TK_MEAS_PLAQ_POL
@@ -260,7 +267,6 @@
 %token TK_MEAS_ALL_RECTS
 %type <plaq_pol_meas> plaq_pol_meas
 %type <top_meas> top_meas
-%type <spectral_proj_meas> spectral_proj_meas
 %type <luppoli_meas> luppoli_meas
 %type <watusso_meas> watusso_meas
 %type <all_rects_meas> all_rects_meas
@@ -365,6 +371,10 @@ nhits: TK_NHITS '=' int_numb {$$=$3;};
 noise_type: TK_NOISE_TYPE '=' TK_RND_T {$$=$3;};
 
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
+
+neigs: TK_NEIGS '=' int_numb {$$=$3;};
+
+eig_precision: TK_EIG_PRECISION '=' double_numb {$$=$3;};
 
 max_order: TK_MAX_ORDER '=' int_numb {$$=$3;};
 
@@ -590,7 +600,7 @@ chir_zumba_meas: TK_MEAS_ZUMBA {$$=new chir_zumba_meas_pars_t();}
                   | chir_zumba_meas max_order {$$->max_order=$2;}
 ;
 
-////////////////////////////////////////////////// ZUMBA //////////////////////////////////////////////////
+////////////////////////////////////////////////// SPINPOL //////////////////////////////////////////////////
 
 spinpol_meas: TK_MEAS_SPINPOL {$$=new spinpol_meas_pars_t();}
                   | spinpol_meas each {$$->each=$2;}
@@ -670,6 +680,21 @@ global_conf_pars: TK_GAUGE_CONF {driver->run_mode=driver_t::EVOLUTION_MODE;}
                 | global_conf_pars TK_START_COND '=' TK_COLD {driver->conf_pars.start_cond=COLD_START_COND;}
 ;
 
+////////////////////////////////////////////////// SPECTRAL PROJECTORS //////////////////////////////////////////////////
+
+spectral_proj_meas: TK_SPECT_PROJ {$$=new spectral_proj_meas_pars_t();}
+                  | spectral_proj_meas each {$$->each=$2;}
+                  | spectral_proj_meas after {$$->after=$2;}
+                  | spectral_proj_meas path {$$->path=(*$2);delete $2;}
+                  | spectral_proj_meas residue {$$->residue=$2;}
+                  | spectral_proj_meas itheory {$$->itheory=$2;}
+                  | spectral_proj_meas ncopies {$$->ncopies=$2;}
+                  | spectral_proj_meas noise_type {$$->rnd_type=$2;}
+                  | spectral_proj_meas nhits {$$->nhits=$2;}
+                  | spectral_proj_meas neigs {$$->neigs=$2;}
+                  | spectral_proj_meas eig_precision {$$->eig_precision=$2;}
+;
+
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////
 
 global_analysis_pars: TK_ANALYSIS TK_CONF_LIST '=' text_list {driver->run_mode=driver_t::ANALYSIS_MODE;driver->an_conf_list=(*$4);delete $4;}
@@ -697,17 +722,6 @@ top_meas: TK_MEAS_TOP {$$=new top_meas_pars_t();}
         | top_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
         | top_meas TK_MEAS_CORR '=' int_numb {$$->meas_corr=$4;}
         | top_meas TK_CORR_PATH '=' text  {$$->corr_path=(*$4);}
-;
-
-////////////////////////////////////////////////// SPECTRAL PROJECTORS //////////////////////////////////////////////////
-
-spectral_proj_meas: TK_MEAS_SPECTPROJ {$$=new spectral_proj_meas_pars_t();}
-        | spectral_proj_meas each {$$->each=$2;}
-        | spectral_proj_meas after {$$->after=$2;}
-        | spectral_proj_meas path {$$->path=(*$2);delete $2;}
-        | spectral_proj_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
-        | spectral_proj_meas TK_MEAS_CORR '=' int_numb {$$->meas_corr=$4;}
-        | spectral_proj_meas TK_CORR_PATH '=' text  {$$->corr_path=(*$4);}
 ;
 
 //////////////////////////////////////////// POLYAKOV LOOP CORRELATORS /////////////////////////////////////////////

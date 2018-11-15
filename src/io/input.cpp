@@ -260,7 +260,7 @@ namespace nissa
     
     read_str(obt_str,1024);
     
-    if(strcasecmp(exp_str,obt_str)!=0) crash("Error, expexcted '%s' in input file, obtained: '%s'",exp_str,obt_str);
+    if(strcasecmp(exp_str,obt_str)!=0) crash("Error, expected '%s' in input file, obtained: '%s'",exp_str,obt_str);
   }
   
   //Read an integer checking the tag
