@@ -99,7 +99,7 @@ namespace nissa
 	  //total time
 	  double tot_time=0;
 	  //speeds
-	  double speed_ave=0,speed_err=0;
+	  double speed_ave=0,speed_var=0;
 	  int ntests=10,n=0;
 	  for(int itest=0;itest<ntests;itest++)
 	    for(int drank=1;drank<nranks;drank++)
@@ -113,7 +113,7 @@ namespace nissa
 		//increase
 		n++;
 		speed_ave+=speed;
-		speed_err+=speed*speed;
+		speed_var+=speed*speed;
 		
 		tot_time+=time;
 	      }
@@ -121,13 +121,12 @@ namespace nissa
 	  //reduce
 	  MPI_Allreduce(MPI_IN_PLACE,&n,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
 	  MPI_Allreduce(MPI_IN_PLACE,&speed_ave,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	  MPI_Allreduce(MPI_IN_PLACE,&speed_err,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	  MPI_Allreduce(MPI_IN_PLACE,&speed_var,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	  
 	  //compute
 	  speed_ave/=n;
-	  speed_err/=n;
-	  speed_err-=speed_ave*speed_ave;
-	  speed_err=sqrt(speed_ave/(n-1));
+	  speed_var/=n;
+	  speed_var-=speed_ave*speed_ave;
 	  
 #ifdef USE_HUGEPAGES
 	  if(not (use_hugepages and size<send_buf_size))
@@ -141,7 +140,7 @@ namespace nissa
 	    }
 #endif
 	  
-	  master_printf("Communication benchmark, packet size %d (%lg+-%lg) Mb/s (%lg s total)\n",size,speed_ave,speed_err,tot_time);
+	  master_printf("Communication benchmark, packet size %d (%lg, var %lg) Mb/s (%lg s total)\n",size,speed_ave,speed_var,tot_time);
 	}
   }
 }
