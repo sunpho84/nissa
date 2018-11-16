@@ -185,8 +185,8 @@ namespace nissa{
     }
     master_printf("\n\n\n");
 
-//    eig_time+=take_time();
-//    master_printf("Eigenvalues time: %lg\n",eig_time);
+    eig_time+=take_time();
+    master_printf("Eigenvalues time: %lg\n",eig_time);
 //    
 //    //prints eigenvalues of QQ for check
 //    master_printf("Eigenvalues of QQ:\n");
@@ -281,7 +281,7 @@ namespace nissa{
 //    start_glb_rnd_gen(1020419);
 //    start_loc_rnd_gen(1292024);
     int neigs = meas_pars.neigs;
-    int ncopies=meas_pars.ncopies;
+//    int ncopies=meas_pars.ncopies;
     
     
 //    double *charge=nissa_malloc("charge",loc_vol,double);
