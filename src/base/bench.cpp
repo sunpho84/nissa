@@ -127,6 +127,7 @@ namespace nissa
 	  speed_ave/=n;
 	  speed_var/=n;
 	  speed_var-=speed_ave*speed_ave;
+	  double speed_stddev=sqrt(speed_var);
 	  
 #ifdef USE_HUGEPAGES
 	  if(not (use_hugepages and size<send_buf_size))
@@ -140,7 +141,7 @@ namespace nissa
 	    }
 #endif
 	  
-	  master_printf("Communication benchmark, packet size %d (%lg, var %lg) Mb/s (%lg s total)\n",size,speed_ave,speed_var,tot_time);
+	  master_printf("Communication benchmark, packet size %d (%lg, stddev %lg) Mb/s (%lg s total)\n",size,speed_ave,speed_stddev,tot_time);
 	}
   }
 }
