@@ -201,7 +201,7 @@ void load_demo_averaged_text_corr(double *out,char *path)
 	    if(nr!=8) crash("Read %d instead than 8",nr);
 	    for(int mu=0;mu<4;mu++) if(y[mu]!=x[mu]) crash("Read %d instead than %d for dir %d",y[mu],x[mu],mu);
 	    if(int(sqrt(yd2))!=int(sqrt(dist2[ivol]))) crash("Distance read %lg does not coincide with expected %lg",yd2,dist2[ivol]);
-	    if(!isnan(angle)&&fabs(angle-yangle)>1.e-4) crash("Angle expected: %lg, read: %lg",angle,yangle);
+	    if(!std::isnan(angle)&&fabs(angle-yangle)>1.e-4) crash("Angle expected: %lg, read: %lg",angle,yangle);
 	    
 	    //check democracy
 	    int idemo=demo_of_loclx[ivol];
@@ -346,7 +346,7 @@ void write_demo(const char *path,double *c)
       int ivol=loclx_of_demo[idemo];
       if(dist2[ivol]<=plot_d2_max)
 	if(glb_coord_of_loclx[ivol][3]>=glb_coord_of_loclx[ivol][2]&&glb_coord_of_loclx[ivol][2]>=glb_coord_of_loclx[ivol][1])
-	  if(!isnan(c[idemo]))
+	  if(!std::isnan(c[idemo]))
 	    fprintf(fout,"%lg %lg\n",(double)(dist2[ivol]),c[idemo]);
     }
 
@@ -376,7 +376,7 @@ void write_allaveraged_demo(const char *path,double *c)
   //print
   for(int d2=0;d2<=plot_d2_max;d2++)
     if(npoints_dist2[d2]!=0)
-      if(!isnan(cave[d2]))
+      if(!std::isnan(cave[d2]))
 	fprintf(fout,"%d %lg\n",d2,cave[d2]);  
 
   fclose(fout);
