@@ -29,6 +29,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/stag/putpourri.cpp \
 	operations/stag/qed_corr.cpp \
 	operations/stag/rendens.cpp \
+	operations/stag/spectral_projectors.cpp \
 	operations/stag/spinpol.cpp \
 	operations/stag/stag.cpp \
 	operations/stag/zumba.cpp \
@@ -73,6 +74,7 @@ include_HEADERS+= \
 	operations/stag/putpourri.hpp \
 	operations/stag/qed_corr.hpp \
 	operations/stag/rendens.hpp \
+	operations/stag/spectral_projectors.hpp \
 	operations/stag/spinpol.hpp \
 	operations/stag/stag.hpp \
 	operations/stag/zumba.hpp \

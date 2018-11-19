@@ -158,6 +158,7 @@
 #include "operations/stag/putpourri.hpp"
 #include "operations/stag/qed_corr.hpp"
 #include "operations/stag/rendens.hpp"
+#include "operations/stag/spectral_projectors.hpp"
 #include "operations/stag/spinpol.hpp"
 #include "operations/stag/stag.hpp"
 #include "operations/stag/zumba.hpp"
