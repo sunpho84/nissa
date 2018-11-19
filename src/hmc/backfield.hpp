@@ -58,7 +58,7 @@ namespace nissa
   void rem_backfield_with_stagphases_from_conf(T3 conf,T1 u1)
   {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,0);}
   
-  //include or remove without stagphases
+  void add_or_rem_stagphases_to_conf(quad_su3 **conf);
   template <class T3,class T1>
   void add_backfield_without_stagphases_to_conf(T3 conf,T1 u1)
   {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,0,u1,1);}
