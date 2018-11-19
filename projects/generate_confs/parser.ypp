@@ -61,7 +61,7 @@
     nissa::poly_corr_meas_pars_t *luppoli_meas;
     nissa::watusso_meas_pars_t *watusso_meas;
     nissa::all_rects_meas_pars_t *all_rects_meas;
-    nissa::spectral_proj_meas_pars_t *spectral_proj_meas;
+    nissa::spectr_proj_meas_pars_t *spectr_proj_meas;
     
     nissa::rnd_t rnd_type;
     

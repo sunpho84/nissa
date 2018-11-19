@@ -244,13 +244,13 @@ void read_magnetization_meas_pars(std::vector<magnetization_meas_pars_t> &pars,i
 }
 
 //read parameters to measure spectral projectors
-void read_spectral_proj_meas_pars(std::vector<spectral_proj_meas_pars_t> &pars,int itheory)
+void read_spectral_proj_meas_pars(std::vector<spectr_proj_meas_pars_t> &pars,int itheory)
 {
   int flag;
-  read_str_int("MeasureSpectralProj",&flag);
+  read_str_int("MeasSpectrlProj",&flag);
   if(flag)
     {
-      pars.push_back(spectral_proj_meas_pars_t());
+      pars.push_back(spectr_proj_meas_pars_t());
       pars.back().itheory=itheory;
       pars.back().path=read_path();
       read_str_double("InvResidue",&pars.back().residue);

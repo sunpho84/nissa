@@ -47,7 +47,7 @@ namespace nissa
     std::vector<spinpol_meas_pars_t> spinpol_meas;
     std::vector<qed_corr_meas_pars_t> qed_corr_meas;
     std::vector<magnetization_meas_pars_t> magnetization_meas;
-    std::vector<spectral_proj_meas_pars_t> spectral_proj_meas;
+    std::vector<spectr_proj_meas_pars_t> spectral_proj_meas;
     
     //check if any measure is due
     template <class T> int measure_is_due(std::vector<T> &pars,int itheory,int iconf)
@@ -100,7 +100,7 @@ namespace nissa
     void add_spinpol_meas(spinpol_meas_pars_t &m){spinpol_meas.push_back(m);}
     void add_qed_corr_meas(qed_corr_meas_pars_t &m){qed_corr_meas.push_back(m);}
     void add_magnetization_meas(magnetization_meas_pars_t &m){magnetization_meas.push_back(m);}
-    void add_spectral_proj_meas(spectral_proj_meas_pars_t &m){spectral_proj_meas.push_back(m);}
+    void add_spectr_proj_meas(spectr_proj_meas_pars_t &m){spectral_proj_meas.push_back(m);}
     
     //gauge measures
     std::vector<gauge_obs_meas_pars_t> plaq_pol_meas;
