@@ -252,9 +252,14 @@ MeasQedCorrs DEBUG_PRINTF("Found MeasQedCorrs\n");return TK_MEAS_QED_CORRS;
 MeasMagnetiz DEBUG_PRINTF("Found MeasMagnetiz\n");return TK_MEAS_MAGNETIZ;
 MeasZumba DEBUG_PRINTF("Found MeasZumba\n");return TK_MEAS_ZUMBA;
 MeasSpinPol DEBUG_PRINTF("Found MeasSpinPol\n");return TK_MEAS_SPINPOL;
+MeasSpectrProj DEBUG_PRINTF("Found MeasSpectrProj\n");return TK_SPECTR_PROJ;
 
  /* parameters for PutPourri */
 ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
+
+ /* parameters for SpectrProj */
+Neigs  DEBUG_PRINTF("Found Neigs\n");return TK_NEIGS;
+EigPrecision  DEBUG_PRINTF("Found EigPrecision\n");return TK_EIG_PRECISION;
 
  /* gauge measures */
 UseSmooth DEBUG_PRINTF("Found UseSmooth\n");return TK_USE_SMOOTH;

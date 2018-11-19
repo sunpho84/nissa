@@ -160,7 +160,7 @@ void init_rnd_gen()
   //if message with string not found start from input seed
   if(rnd_gen_mess!="")
     {
-      master_printf("Random gnerator status found inside conf, starting from it\n");
+      master_printf("Random generator status found inside conf, starting from it\n");
       start_loc_rnd_gen(rnd_gen_mess.c_str());
     }
   else
@@ -231,7 +231,7 @@ void init_simulation(char *path)
   open_input(path);
   drv=new driver_t(input_global);
   parser_parse(drv);
-  if(drv->theories.size()==0) crash("need to sepcify a theory");
+  if(drv->theories.size()==0) crash("need to specify a theory");
   
   //geometry
   glb_size[0]=drv->T;
@@ -491,6 +491,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	RANGE_FERMIONIC_MEAS(drv,magnetization);
 	RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
 	RANGE_FERMIONIC_MEAS(drv,meson_corr);
+	RANGE_FERMIONIC_MEAS(drv,spectral_proj);
       }
   
   meas_time+=take_time();

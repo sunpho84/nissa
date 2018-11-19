@@ -61,6 +61,7 @@
     nissa::poly_corr_meas_pars_t *luppoli_meas;
     nissa::watusso_meas_pars_t *watusso_meas;
     nissa::all_rects_meas_pars_t *all_rects_meas;
+    nissa::spectral_proj_meas_pars_t *spectral_proj_meas;
     
     nissa::rnd_t rnd_type;
     
@@ -246,6 +247,13 @@
 //magnetization
 %type <magnetization_meas> magnetization_meas
 %token TK_MEAS_MAGNETIZ
+//spectral proj meas
+%type <spectr_proj_meas> spectr_proj_meas
+%token TK_SPECTR_PROJ
+%token TK_NEIGS
+%type <int_numb> neigs
+%token TK_EIG_PRECISION
+%type <double_numb> eig_precision
 //gauge measures
 %token TK_USE_SMOOTH
 %token TK_MEAS_PLAQ_POL
@@ -321,6 +329,7 @@ global_specify: geometry
 /////////////// gauge measures ////////////////////
               | plaq_pol_meas {driver->add_plaq_pol_meas(*$1);delete $1;}
               | top_meas {driver->add_top_meas(*$1);delete $1;}
+              | spectr_proj_meas {driver->add_spectr_proj_meas(*$1);delete $1;}
               | luppoli_meas {driver->add_luppoli_meas(*$1);delete $1;}
               | watusso_meas {driver->add_watusso_meas(*$1);delete $1;}
               | all_rects_meas {driver->add_all_rects_meas(*$1);delete $1;}
@@ -361,6 +370,10 @@ nhits: TK_NHITS '=' int_numb {$$=$3;};
 noise_type: TK_NOISE_TYPE '=' TK_RND_T {$$=$3;};
 
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
+
+neigs: TK_NEIGS '=' int_numb {$$=$3;};
+
+eig_precision: TK_EIG_PRECISION '=' double_numb {$$=$3;};
 
 max_order: TK_MAX_ORDER '=' int_numb {$$=$3;};
 
@@ -586,7 +599,7 @@ chir_zumba_meas: TK_MEAS_ZUMBA {$$=new chir_zumba_meas_pars_t();}
                   | chir_zumba_meas max_order {$$->max_order=$2;}
 ;
 
-////////////////////////////////////////////////// ZUMBA //////////////////////////////////////////////////
+////////////////////////////////////////////////// SPINPOL //////////////////////////////////////////////////
 
 spinpol_meas: TK_MEAS_SPINPOL {$$=new spinpol_meas_pars_t();}
                   | spinpol_meas each {$$->each=$2;}
@@ -664,6 +677,21 @@ global_conf_pars: TK_GAUGE_CONF {driver->run_mode=driver_t::EVOLUTION_MODE;}
                 | global_conf_pars TK_STORE_RUNNING '=' int_numb {driver->conf_pars.store_running=$4;}
                 | global_conf_pars TK_START_COND '=' TK_HOT {driver->conf_pars.start_cond=HOT_START_COND;}
                 | global_conf_pars TK_START_COND '=' TK_COLD {driver->conf_pars.start_cond=COLD_START_COND;}
+;
+
+////////////////////////////////////////////////// SPECTRAL PROJECTORS //////////////////////////////////////////////////
+
+spectr_proj_meas: TK_SPECTR_PROJ {$$=new spectr_proj_meas_pars_t();}
+                | spectr_proj_meas each {$$->each=$2;}
+                | spectr_proj_meas after {$$->after=$2;}
+                | spectr_proj_meas path {$$->path=(*$2);delete $2;}
+                | spectr_proj_meas residue {$$->residue=$2;}
+                | spectr_proj_meas itheory {$$->itheory=$2;}
+                | spectr_proj_meas ncopies {$$->ncopies=$2;}
+                | spectr_proj_meas noise_type {$$->rnd_type=$2;}
+                | spectr_proj_meas nhits {$$->nhits=$2;}
+                | spectr_proj_meas neigs {$$->neigs=$2;}
+                | spectr_proj_meas eig_precision {$$->eig_precision=$2;}
 ;
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////
