@@ -91,7 +91,7 @@ namespace nissa
     THREADABLE_FUNCTION_END
     
     //apply the operator
-    void apply_op_single_perm(color **out,color **temp,quad_su3 **conf,std::vector<int> &list_dir,color **in)
+    void apply_shift_op_single_perm(color **out,color **temp,quad_su3 **conf,std::vector<int> &list_dir,color **in)
     {
       //make a temporary copy
       for(int eo=0;eo<2;eo++) vector_copy(temp[eo],in[eo]);
@@ -110,7 +110,7 @@ namespace nissa
     }
     
     //apply the operator summing all permutations
-    void apply_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,quad_u1 **u1b,int shift,color **in)
+    void apply_shift_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,quad_u1 **u1b,int shift,color **in)
     {
       //make a list that can be easily permuted
       std::vector<int> list_dir;
@@ -135,7 +135,7 @@ namespace nissa
 	      nperm++;
 	      
 	      //apply and summ
-	      apply_op_single_perm(single_perm,internal_temp,conf,list_dir,in);
+	      apply_shift_op_single_perm(single_perm,internal_temp,conf,list_dir,in);
 	      for(int eo=0;eo<2;eo++) double_vector_summassign((double*)(out[eo]),(double*)(single_perm[eo]),loc_volh*sizeof(color)/sizeof(double));
 	    }
 	  while(std::next_permutation(list_dir.begin(),list_dir.end()));
@@ -272,7 +272,7 @@ namespace nissa
     {
       GET_THREAD_ID();
       
-      apply_op(quark,temp0,temp1,conf,backfield,shift,chi);
+      apply_shift_op(quark,temp0,temp1,conf,backfield,shift,chi);
       put_stag_phases(quark,mask);
       
       for(int eo=0;eo<2;eo++)
