@@ -216,14 +216,13 @@ namespace nissa{
 
     eig_time+=take_time();
     master_printf("Eigenvalues time: %lg\n",eig_time);
-      
     
-      nissa_free(out_tmp_eo[EVN]);
-      nissa_free(out_tmp_eo[ODD]);
-      nissa_free(in_tmp_eo[EVN]);
-      nissa_free(in_tmp_eo[ODD]);
-      nissa_free(fill_tmp_eo[EVN]);
-      nissa_free(fill_tmp_eo[ODD]);
+    nissa_free(out_tmp_eo[EVN]);
+    nissa_free(out_tmp_eo[ODD]);
+    nissa_free(in_tmp_eo[EVN]);
+    nissa_free(in_tmp_eo[ODD]);
+    nissa_free(fill_tmp_eo[EVN]);
+    nissa_free(fill_tmp_eo[ODD]);
   }
   THREADABLE_FUNCTION_END
 

@@ -325,6 +325,9 @@ int generate_new_conf(int itraj)
       
       //store the topological charge if needed
       drv->sea_theory().topotential_pars.store_if_needed(conf,itraj);
+      
+//      //store the topological charge if needed
+//      drv->sea_theory().topotential_pars.store_if_needed_sp(conf,itraj);
     }
   else
     {
@@ -461,7 +464,6 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
 void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   double meas_time=-take_time();
-  
   RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i],conf,iconf,acc,gauge_action_name);
   RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],conf,conf_created);
   RANGE_GAUGE_MEAS(top_meas,i)

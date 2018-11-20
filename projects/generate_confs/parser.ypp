@@ -261,6 +261,7 @@
 %token TK_MEAS_ENERGY
 %token TK_MEAS_POLY
 %token TK_MEAS_TOP
+%token TK_MEAS_SPECTPROJ
 %token TK_MEAS_LUPPOLI
 %token TK_MEAS_WATUSSO
 %token TK_MEAS_ALL_RECTS
@@ -754,6 +755,7 @@ all_rects_meas: TK_MEAS_ALL_RECTS {$$=new all_rects_meas_pars_t();}
               | all_rects_meas TK_TEMPORAL smooth_pars {$$->temp_smear_pars=(*$3);delete $3;}
               | all_rects_meas path {$$->path=(*$2);delete $2;}
 ;
+
 
 /////////////////////////////////////////////// LIST OF INTEGERS ///////////////////////////////////////////////////
 
