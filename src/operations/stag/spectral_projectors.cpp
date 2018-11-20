@@ -35,10 +35,10 @@
 #include "eigenvalues/eigenvalues_autarchic.hpp"
 #include "inverters/twisted_mass/cg_invert_tmQ2.hpp"
 
-
 //FIXME clean includes
 #include "base/random.hpp"
 #include "base/vectors.hpp"
+#include "operations/stag/stag.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "hmc/backfield.hpp"
@@ -189,6 +189,7 @@ namespace nissa{
       // will be the hermitian product between 'fill_tmp_eo' and 'in_tmp_eo'  
 
       // 'complex*' to 'color**' conversion (TODO: industrialize)
+      GET_THREAD_ID();
       NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
       {
         fill_tmp_eo[EVN][ivol][0][RE]=eigvec[ieig][ivol*3][RE];
@@ -207,7 +208,9 @@ namespace nissa{
       }
 
       //multiply by gamma5
+//      apply_stag_op(out_tmp_eo,conf,u1b,GAMMA_5,IDENTITY,fill_tmp_eo);
 
+      //take hermitian product (TODO) 
     }
     master_printf("\n\n\n");
 
