@@ -171,6 +171,25 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //multiply the configuration for stagphases
+  THREADABLE_FUNCTION_1ARG(add_or_rem_stagphases_to_conf, quad_su3**,conf)
+  {
+    GET_THREAD_ID();
+    for(int par=0;par<2;par++)
+      {
+	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	  {
+	    coords ph;
+	    get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
+	    
+	    for(int mu=0;mu<NDIM;mu++)
+	      su3_prodassign_double(conf[par][ivol][mu],ph[mu]);
+	  }
+	set_borders_invalid(conf[par]);
+      }
+  }
+  THREADABLE_FUNCTION_END
+
   //multiply the configuration for an additional U(1) field and possibly stagphases
   THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3**,conf, bool,add_rem, quad_u1**,u1, bool,with_without)
   {
