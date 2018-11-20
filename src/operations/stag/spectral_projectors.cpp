@@ -171,96 +171,48 @@ namespace nissa{
         }
       };
     
-//    // master_printf("EigenFinding\n");
-//    // print_all_eigenstuff(imp_mat,mat_size);
-//    
     //launch the eigenfinder
     double eig_time=-take_time();
     complex DD_eig_val[neigs];
     eigenvalues_of_hermatr_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler);
 
+    double charge_cut[neigs];
+
     master_printf("\n\nEigenvalues of Id:\n");
     for(int ieig=0; ieig<neigs; ++ieig){
       master_printf("%d (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE],DD_eig_val[ieig][IM]);
+      
+      // compute partial sum of tr(g5)      
+      // save 'eigvec[ieigs]' in staggered format (i.e., 'fill_tmp_eo'),
+      // then multiply it with gamma5 and save the result in 
+      // 'in_tmp_eo'. The term contributing to the partial sum of tr(g5)
+      // will be the hermitian product between 'fill_tmp_eo' and 'in_tmp_eo'  
+
+      // 'complex*' to 'color**' conversion (TODO: industrialize)
+      NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+      {
+        fill_tmp_eo[EVN][ivol][0][RE]=eigvec[ieig][ivol*3][RE];
+        fill_tmp_eo[EVN][ivol][0][IM]=eigvec[ieig][ivol*3][IM];
+        fill_tmp_eo[EVN][ivol][1][RE]=eigvec[ieig][ivol*3+1][RE];
+        fill_tmp_eo[EVN][ivol][1][IM]=eigvec[ieig][ivol*3+1][IM];
+        fill_tmp_eo[EVN][ivol][2][RE]=eigvec[ieig][ivol*3+2][RE];
+        fill_tmp_eo[EVN][ivol][2][IM]=eigvec[ieig][ivol*3+2][IM];
+
+        fill_tmp_eo[ODD][ivol][0][RE]=eigvec[ieig][(ivol+loc_volh)*3][RE];
+        fill_tmp_eo[ODD][ivol][0][IM]=eigvec[ieig][(ivol+loc_volh)*3][IM];
+        fill_tmp_eo[ODD][ivol][1][RE]=eigvec[ieig][(ivol+loc_volh)*3+1][RE];
+        fill_tmp_eo[ODD][ivol][1][IM]=eigvec[ieig][(ivol+loc_volh)*3+1][IM];
+        fill_tmp_eo[ODD][ivol][2][RE]=eigvec[ieig][(ivol+loc_volh)*3+2][RE];
+        fill_tmp_eo[ODD][ivol][2][IM]=eigvec[ieig][(ivol+loc_volh)*3+2][IM];
+      }
+
+      //multiply by gamma5
+
     }
     master_printf("\n\n\n");
 
     eig_time+=take_time();
     master_printf("Eigenvalues time: %lg\n",eig_time);
-//    
-//    //prints eigenvalues of QQ for check
-//    master_printf("Eigenvalues of QQ:\n");
-//    for(int ieig=0;ieig<neig;ieig++)
-//      master_printf("%d (%.16lg,%.16lg)\n",ieig,Q2_eig_val[ieig][RE],Q2_eig_val[ieig][IM]);
-//    master_printf("\n");
-//    
-//    //find the eigenvalues of Q
-//    master_printf("Eigenvalues of D:\n");
-//    for(int ieig=0;ieig<neig;ieig++)
-//      {
-//        master_printf(" (norm of vec: %lg)\n",sqrt(double_vector_glb_norm2(eigvec[ieig],loc_vol)));
-//        
-//        //apply the matrix
-//        apply_tmQ(temp_imp_mat,conf,kappa,am*tau3[r],eigvec[ieig]);
-//              GET_THREAD_ID();
-//        NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-//          safe_dirac_prod_spincolor(((spincolor*)temp_imp_mat)[ivol],base_gamma+5,temp_imp_mat[ivol]);
-//        set_borders_invalid(temp_imp_mat);
-//        
-//        //compute eigenvalue
-//        complex_vector_glb_scalar_prod(lambda[ieig],(complex*)(eigvec[ieig]),(complex*)temp_imp_mat,mat_size);
-//        
-//        complex c={0,0};
-//        for(int ivol=0;ivol<loc_vol;ivol++)
-//    {
-//      spincolor temp;
-//      safe_dirac_prod_spincolor(temp,base_gamma+5,eigvec[ieig][ivol]);
-//      complex a;
-//      spincolor_scalar_prod(a,eigvec[ieig][ivol],temp);
-//      complex_summassign(c,a);
-//      
-//      if(ivol<2)
-//      for(int id=0;id<NDIRAC;id++)
-//        for(int ic=0;ic<NCOL;ic++)
-//          {
-//      complex &c=eigvec[ieig][ivol][id][ic];
-//      master_printf("ivol %d id %d ic %d, %.16lg %.16lg\n",ivol,id,ic,c[RE],c[IM]);
-//          }
-//    }
-//        master_printf(" g5story: (%.16lg,%.16lg)\n",c[RE],c[IM]);
-//        
-//        //compute residue
-//        complex_vector_subtassign_complex_vector_prod_complex((complex*)temp_imp_mat,(complex*)(eigvec[ieig]),lambda[ieig],mat_size);
-//        master_printf("%d (%.16lg,%.16lg), residue: %lg\n",ieig,lambda[ieig][RE],lambda[ieig][IM],sqrt(double_vector_glb_norm2(temp_imp_mat,loc_vol)));
-//      }
-//    master_printf("\n");
-//    
-//    //close vectors
-//    for(int ieig=0;ieig<neig;ieig++)
-//      {
-//        apply_tmQ(temp_imp_mat,conf,kappa,-am*tau3[r],eigvec[ieig]);
-//        inv_tmQ2_RL_cg(eigvec_conv[ieig],NULL,conf, kappa,0,am*tau3[r],1000000,1e-11,temp_imp_mat);
-//        NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-//          safe_dirac_prod_spincolor(eigvec_conv[ieig][ivol],base_gamma+5,eigvec_conv[ieig][ivol]);
-//        
-//        // complex one_over_lambda;
-//        // complex_reciprocal(one_over_lambda,lambda[ieig]);
-//        // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-//        // 	{
-//        // 	  unsafe_dirac_prod_spincolor(temp_imp_mat[ivol],base_gamma+5,eigvec[ieig][ivol]);
-//        // 	  spincolor_prodassign_complex(temp_imp_mat[ivol],one_over_lambda);
-//    // }
-//        set_borders_invalid(eigvec_conv[ieig]);
-//      }
-//    
-//    //rotate the opposite way, to compensate for the missing rotation
-//    for(int ieig=0;ieig<neig;ieig++)
-//      {
-//        safe_dirac_prod_spincolor(eigvec[ieig],(tau3[!r]==-1)?&Pminus:&Pplus,eigvec[ieig]);
-//        safe_dirac_prod_spincolor(eigvec_conv[ieig],(tau3[!r]==-1)?&Pminus:&Pplus,eigvec_conv[ieig]);
-//      }
-//    
-//    nissa_free(temp_imp_mat);
       
     
       nissa_free(out_tmp_eo[EVN]);
@@ -286,16 +238,6 @@ namespace nissa{
     
 //    double *charge=nissa_malloc("charge",loc_vol,double);
     
-    //store eigenvectors and their convolution with eigenvalue
-//    color **eigvec[neigs];
-//    color **eigvec_conv[neigs];
-//    for(int ieig=0;ieig<neigs;ieig++){
-//		  eigvec[ieig]=nissa_malloc("eigvec",2,color*);
-//		  eigvec[ieig][EVN]=nissa_malloc("eigvec_EVN",loc_volh+bord_volh,color);
-//      eigvec[ieig][ODD]=nissa_malloc("eigvec_ODD",loc_volh+bord_volh,color);
-////		  eigvec_conv[ieig][EVN]=nissa_malloc("eigvec_conv_EVN",loc_volh+bord_volh,color);
-////      eigvec_conv[ieig][ODD]=nissa_malloc("eigvec_conv_ODD",loc_volh+bord_volh,color);
-//    }
 
     complex *eigvec[neigs];
     master_printf("loc_vol*3=%d, ",loc_vol*3);
