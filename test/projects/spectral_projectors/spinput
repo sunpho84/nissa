@@ -21,17 +21,7 @@ BkgrdEMField
  By             =       0
  Bz             =       0
 
-MeasPutpourri
- Each           =       1
- After          =       0
- Path           =       "fermion"
- Residue        =       1e-12
- NCopies        =       1
- ITheory        =       0
- NHits          =       1
- ComputeSusc    =       1
-
-MeasSpectProj
+MeasSpectrProj
  Each = 1
  After = 0
  Path = "sptop"
@@ -39,8 +29,8 @@ MeasSpectProj
  NCopies = 1
  ITheory = 0
  NHits = 1
- Neigs = 5
- EigPrecision = 1e-3
+ Neigs = 20
+ EigPrecision = 1e-8
 
 Analysis
  ConfList       =       {"conf"} 
