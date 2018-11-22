@@ -160,7 +160,8 @@ THREADABLE_FUNCTION_8ARG(fill_eigenpart, spincolor**,eigvec_conv, spincolor**,ei
     };
   
   // master_printf("EigenFinding\n");
-  // print_all_eigenstuff(imp_mat,mat_size);
+  print_all_eigenstuff(imp_mat,mat_size);
+  crash("test");
   
   //launch the eigenfinder
   double eig_time=-take_time();
