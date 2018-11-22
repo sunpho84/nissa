@@ -77,11 +77,11 @@ namespace nissa{
     const auto imp_mat=[conf,in_tmp_eo,out_tmp_eo](complex *out_lx,complex *in_lx){
       split_lx_vector_into_eo_parts((color**)in_tmp_eo,(color*)in_lx);
 
-      evn_apply_stD(out_tmp_eo[EVN],conf,0.0,(color**)in_tmp_eo);
-      odd_apply_stD(out_tmp_eo[ODD],conf,0.0,(color**)in_tmp_eo);
+      evn_apply_stD(out_tmp_eo[EVN],conf,0.01,(color**)in_tmp_eo);
+      odd_apply_stD(out_tmp_eo[ODD],conf,0.01,(color**)in_tmp_eo);
       
-      evn_apply_stD_dag(in_tmp_eo[EVN],conf,0.0,(color**)out_tmp_eo);
-      odd_apply_stD_dag(in_tmp_eo[ODD],conf,0.0,(color**)out_tmp_eo);
+      evn_apply_stD_dag(in_tmp_eo[EVN],conf,0.01,(color**)out_tmp_eo);
+      odd_apply_stD_dag(in_tmp_eo[ODD],conf,0.01,(color**)out_tmp_eo);
       
       paste_eo_parts_into_lx_vector((color*)out_lx,(color**)in_tmp_eo);
 				
@@ -179,7 +179,7 @@ namespace nissa{
     }
     master_fprintf(file,"%d\t",neigs); 
     for(int ieig=0; ieig<neigs; ++ieig){
-      master_fprintf(file,"%.16lg\t%.16lg\t",DD_reigs[ieig],charge_cut[ieig]);
+      master_fprintf(file,"%.16lg\t%.16lg\t",DD_reigs[ieig]-0.0001,charge_cut[ieig]);
     }
     master_fprintf(file,"\n");
 
