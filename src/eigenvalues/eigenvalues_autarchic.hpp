@@ -101,10 +101,10 @@ namespace nissa
 	master_printf("eig: %lg, res: %lg\n",red_eig_val[0],residue_norm);
 	
 	//if converged
-	if(residue_norm<target_precision)
+	bool this_converged=(residue_norm<target_precision);
+	
+	if(this_converged)
 	  {
-	    set_borders_invalid(e);
-	    
 	    //store eigenvalue
 	    complex_put_to_real(eig_val[neig_conv],red_eig_val[0]);
 	    master_printf("Eigenvalue %d/%d, %lg converged!\n",neig_conv,neig,eig_val[neig_conv][RE]);
@@ -133,7 +133,7 @@ namespace nissa
 	    //reset the stopping criterion
 	    solvestep=1;
 	    
-	    neig_conv++;
+	    //number converged incremented at the end of the loop
 	  }
 	
 	//reset if exceeded the workspace size
@@ -204,6 +204,10 @@ namespace nissa
 	    wspace_size++;
 	    
 	    iter++;
+	    
+	    //increment only here not to scramble the counting
+	    if(this_converged)
+	      neig_conv++;
 	  }
       }
     while(iter<niter_max and neig_conv<neig);
