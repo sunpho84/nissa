@@ -162,6 +162,7 @@
 #include "operations/stag/spinpol.hpp"
 #include "operations/stag/stag.hpp"
 #include "operations/stag/zumba.hpp"
+#include "operations/stag/spectral_projectors.hpp"
 
 #include "operations/su3_paths/all_rectangles.hpp"
 #include "operations/su3_paths/arbitrary.hpp"
