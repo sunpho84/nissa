@@ -14,6 +14,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	dirac_operators/WclovQ/dirac_operator_WclovQ.cpp \
 	dirac_operators/WclovQ2/dirac_operator_WclovQ2.cpp \
 	dirac_operators/tmclovQ/dirac_operator_tmclovQ.cpp \
+        dirac_operators/overlap/dirac_H_overlap.cpp \
 	dirac_operators/tmclovQ/dirac_operator_tmclovQ_128.cpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.cpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.cpp \
@@ -42,8 +43,8 @@ include_HEADERS+= \
 	dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp \
 	dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_128.hpp \
-	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.hpp
-
+	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.hpp \
+        dirac_operators/overlap/dirac_H_overlap.hpp 
 #compile or not bgq source
 if BGQ
 __top_builddir__lib_libnissa_a_SOURCES+= \
