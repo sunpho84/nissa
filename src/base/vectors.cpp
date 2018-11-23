@@ -221,7 +221,7 @@ namespace nissa
   //initialize the first vector
   void initialize_main_vect()
   {
-    IF_VECT_NOT_INITIALIZED()
+    IF_MAIN_VECT_NOT_INITIALIZED()
       {
 	required_memory=0;
 	max_required_memory=0;
@@ -245,7 +245,7 @@ namespace nissa
     GET_THREAD_ID();
     if(IS_MASTER_THREAD)
       {
-	IF_VECT_NOT_INITIALIZED() initialize_main_vect();
+	IF_MAIN_VECT_NOT_INITIALIZED() initialize_main_vect();
 	
 	if(VERBOSITY_LV3)
 	  {
