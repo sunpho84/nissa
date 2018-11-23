@@ -14,7 +14,8 @@ EXTRA_DIST= \
 	src/nissa.hpp \
 	src/create_headers.sh \
 	tools/ave.cpp \
-	tools/common_tools.cpp \
+	tools/common_tools.cpp \ 
+        tools/conf_transform \
 	tools/clusterize.cpp \
 	tools/clusterize2.cpp \
 	tools/pack.c
