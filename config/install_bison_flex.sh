@@ -1,5 +1,5 @@
 #bison
-wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz -O -|tar xzvf -
+wget http://ftp.gnu.org/gnu/bison/bison-3.2.tar.gz -O -|tar xzvf -
 cd bison*
 ./configure --prefix=$HOME
 make -j 8
@@ -8,7 +8,7 @@ cd ..
 rm -fr bison*
 
 #flex
-wget http://prdownloads.sourceforge.net/flex/flex-2.5.37.tar.gz?download -O -|tar xzvf -
+git clone git@github.com:westes/flex.git
 cd flex*
 ./configure --prefix=$HOME
 make -j8
