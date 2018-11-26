@@ -29,8 +29,8 @@ MeasSpectrProj
  NCopies = 1
  ITheory = 0
  NHits = 1
- Neigs = 20
- EigPrecision = 1e-8
+ Neigs = 200
+ EigPrecision = 1e-10
 
 Analysis
  ConfList       =       {"conf"} 
