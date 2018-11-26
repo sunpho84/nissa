@@ -13,10 +13,10 @@ namespace nissa
 {
   namespace ferm_discretiz
   {
-    const int nknown=2;
-    enum name_t{ROOT_STAG,ROOT_TM_CLOV};
-    const name_t list[nknown]={ROOT_STAG,ROOT_TM_CLOV};
-    const char text[nknown][20]={"RootStag","RootTmClov"};
+    const int nknown=3;
+    enum name_t{ROOT_STAG,ROOT_TM_CLOV,OVERLAP};
+    const name_t list[nknown]={ROOT_STAG,ROOT_TM_CLOV,OVERLAP};
+    const char text[nknown][20]={"RootStag","RootTmClov","Overlap"};
     
     //change from name to string
     inline std::string str_from_name(name_t name)
@@ -25,6 +25,7 @@ namespace nissa
 	{
 	case ROOT_STAG:return "RootStag";break;
 	case ROOT_TM_CLOV:return "RootTMClov";break;
+	case OVERLAP;return "Overlap";break;
 	default: crash("should not happen"); return "unkwnonw";
 	}
     }
@@ -49,6 +50,7 @@ namespace nissa
 	{
 	case ROOT_STAG: return true;
 	case ROOT_TM_CLOV: return false;
+	case OVERLAP: return false;
 	default: crash("unkwnown");return false;
 	}
     }
@@ -60,6 +62,7 @@ namespace nissa
 	{
 	case ROOT_STAG: return false;
 	case ROOT_TM_CLOV: return true;
+	case OVERLAP: return false;
 	default: crash("unkwnown");return false;
 	}
     }
@@ -71,6 +74,7 @@ namespace nissa
 	{
 	case ROOT_STAG:return 4;break;
 	case ROOT_TM_CLOV:return 2;break;
+	case OVERLAP:return 1;break;
 	default: crash("unkwnown");return false;
 	}
     }

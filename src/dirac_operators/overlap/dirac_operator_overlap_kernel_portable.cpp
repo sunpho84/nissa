@@ -11,15 +11,15 @@
 
 namespace nissa
 {
-  //Apply the Q=g5*(Dwilson + A*Id)  operator to a spincolor.
-  //Modified from tmQ_portable by C.Bonanno and M.Cardinali
+  // Apply the Q=g5*D_wilson + M*Id  operator to a spincolor.
+  // Modified from tmQ_portable by C.Bonanno and M.Cardinali
   //
   // D_{x,y}=[1/(2k)] \delta_{x,y}-1/2*
   //          \sum_mu{[1-gmu]U_x,mu\delta_{x+\hat{mu},y}+(1+gmu)U^+_{x-\hat{\mu},\mu}\delta_{x-\hat{\mu}}}
   //
-  // In this case 1/(2k) = 4 + A. We are considering a massless Wilson-Dirac operator. A is used to define H in the Overlap
+  // For overlap fermions k = 1/8 because kernel is massless.
   //
-  THREADABLE_FUNCTION_4ARG(apply_overlap_kernel, spincolor*,out, quad_su3*,conf, double,kappa, spincolor*,in)
+  THREADABLE_FUNCTION_4ARG(apply_overlap_kernel, spincolor*,out, quad_su3*,conf, double,kappa, double,M, spincolor*,in)
   {
     if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_lx_spincolor_borders(in);
@@ -122,14 +122,14 @@ namespace nissa
 	//ok this is horrible, but fast
 	for(int c=0;c<3;c++)
 	  {
-	    out[X][0][c][0]=-0.5*out[X][0][c][0]+kcf*in[X][0][c][0];
-	    out[X][0][c][1]=-0.5*out[X][0][c][1]+kcf*in[X][0][c][1];
-	    out[X][1][c][0]=-0.5*out[X][1][c][0]+kcf*in[X][1][c][0];
-	    out[X][1][c][1]=-0.5*out[X][1][c][1]+kcf*in[X][1][c][1];
-	    out[X][2][c][0]=+0.5*out[X][2][c][0]-kcf*in[X][2][c][0];
-	    out[X][2][c][1]=+0.5*out[X][2][c][1]-kcf*in[X][2][c][1];
-	    out[X][3][c][0]=+0.5*out[X][3][c][0]-kcf*in[X][3][c][0];
-	    out[X][3][c][1]=+0.5*out[X][3][c][1]-kcf*in[X][3][c][1];
+	    out[X][0][c][0]=-0.5*out[X][0][c][0]+kcf*in[X][0][c][0]; out[X][0][c][0]*=(1+M);
+	    out[X][0][c][1]=-0.5*out[X][0][c][1]+kcf*in[X][0][c][1]; out[X][0][c][1]*=(1+M);
+	    out[X][1][c][0]=-0.5*out[X][1][c][0]+kcf*in[X][1][c][0]; out[X][1][c][0]*=(1+M);
+	    out[X][1][c][1]=-0.5*out[X][1][c][1]+kcf*in[X][1][c][1]; out[X][1][c][1]*=(1+M);
+	    out[X][2][c][0]=+0.5*out[X][2][c][0]-kcf*in[X][2][c][0]; out[X][2][c][0]*=(1+M);
+	    out[X][2][c][1]=+0.5*out[X][2][c][1]-kcf*in[X][2][c][1]; out[X][2][c][1]*=(1+M);
+	    out[X][3][c][0]=+0.5*out[X][3][c][0]-kcf*in[X][3][c][0]; out[X][3][c][0]*=(1+M);
+	    out[X][3][c][1]=+0.5*out[X][3][c][1]-kcf*in[X][3][c][1]; out[X][3][c][1]*=(1+M);
 	  }
       }
     
