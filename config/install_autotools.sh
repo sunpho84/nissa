@@ -21,8 +21,8 @@ cd ..
 rm -fr auto*
 
 #automake
-wget http://ftp.gnu.org/gnu/automake/automake-1.14.tar.gz
-tar xzvf automake-1.14.tar.gz
+wget http://ftp.gnu.org/gnu/automake/automake-1.16.1.tar.gz
+tar xzvf automake-1.16.1.tar.gz
 cd automa*/
 ./configure --prefix=$HOME
 make -j 8
