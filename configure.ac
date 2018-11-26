@@ -16,7 +16,7 @@ AC_MSG_RESULT([$CONFIG_TIME])
 #parameters definition
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR([config])
-AM_INIT_AUTOMAKE([1.0 no-define foreign subdir-objects])
+AM_INIT_AUTOMAKE([1.14 no-define foreign subdir-objects])
 AM_CONFIG_HEADER(src/config.hpp)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST

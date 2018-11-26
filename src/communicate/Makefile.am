@@ -1,14 +1,14 @@
 ######################################### communicate ######################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	communicate/all_to_all.cpp \
-	communicate/borders.cpp \
-	communicate/communicate.cpp \
-	communicate/edges.cpp
+	%D%/all_to_all.cpp \
+	%D%/borders.cpp \
+	%D%/communicate.cpp \
+	%D%/edges.cpp
 
 include_HEADERS+= \
-	communicate/all_to_all.hpp \
-	communicate/borders.hpp \
-	communicate/communicate.hpp \
-	communicate/edges.hpp
+	%D%/all_to_all.hpp \
+	%D%/borders.hpp \
+	%D%/communicate.hpp \
+	%D%/edges.hpp
 
