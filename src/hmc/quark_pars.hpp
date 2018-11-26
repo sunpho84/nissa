@@ -25,7 +25,7 @@ namespace nissa
 	{
 	case ROOT_STAG:return "RootStag";break;
 	case ROOT_TM_CLOV:return "RootTMClov";break;
-	case OVERLAP;return "Overlap";break;
+	case OVERLAP:return "Overlap";break;
 	default: crash("should not happen"); return "unkwnonw";
 	}
     }
