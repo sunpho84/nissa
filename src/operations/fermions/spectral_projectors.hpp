@@ -1,10 +1,10 @@
 #ifndef _SPECTRAL_PROJECTORS_HPP
 #define _SPECTRAL_PROJECTORS_HPP
 
-#include "operations/smearing/smooth.hpp"
+#include "fermionic_meas.hpp"
 #include "hmc/gauge/topological_action.hpp"
-#include "stag.hpp"
 #include "hmc/theory_pars.hpp"
+#include "operations/smearing/smooth.hpp"
 
 namespace nissa
 {

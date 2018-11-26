@@ -6,6 +6,18 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/contract/optimized_mesons_2pts.cpp \
 	%D%/contract/site_contract.cpp \
 	%D%/covariant_derivative.cpp \
+	%D%/fermions/Laplace_op_2links.cpp \
+	%D%/fermions/mesons.cpp \
+	%D%/fermions/magnetization.cpp \
+	%D%/fermions/nucleon.cpp \
+	%D%/fermions/putpourri.cpp \
+	%D%/fermions/qed_corr.cpp \
+	%D%/fermions/rendens.cpp \
+	%D%/fermions/spectral_projectors.cpp \
+	%D%/fermions/spinpol.cpp \
+	%D%/fermions/stag.cpp \
+	%D%/fermions/zumba.cpp \
+	%D%/fermions/spectral_projectors.cpp \
 	%D%/fft.cpp \
 	%D%/fourier_transform.cpp \
 	%D%/gauge_fixing.cpp \
@@ -22,18 +34,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/smearing/stout_eo.cpp \
 	%D%/smearing/stout_lx.cpp \
 	%D%/smearing/Wflow.cpp \
-	%D%/stag/Laplace_op_2links.cpp \
-	%D%/stag/mesons.cpp \
-	%D%/stag/magnetization.cpp \
-	%D%/stag/nucleon.cpp \
-	%D%/stag/putpourri.cpp \
-	%D%/stag/qed_corr.cpp \
-	%D%/stag/rendens.cpp \
-	%D%/stag/spectral_projectors.cpp \
-	%D%/stag/spinpol.cpp \
-	%D%/stag/stag.cpp \
-	%D%/stag/zumba.cpp \
-	%D%/stag/spectral_projectors.cpp \
 	%D%/su3_paths/all_rectangles.cpp \
 	%D%/su3_paths/arbitrary.cpp \
 	%D%/su3_paths/clover_term.cpp \
@@ -49,6 +49,18 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 
 include_HEADERS+= \
 	%D%/covariant_derivative.hpp \
+	%D%/fermions/Laplace_op_2links.hpp \
+	%D%/fermions/mesons.hpp \
+	%D%/fermions/magnetization.hpp \
+	%D%/fermions/nucleon.hpp \
+	%D%/fermions/putpourri.hpp \
+	%D%/fermions/qed_corr.hpp \
+	%D%/fermions/rendens.hpp \
+	%D%/fermions/spectral_projectors.hpp \
+	%D%/fermions/spinpol.hpp \
+	%D%/fermions/stag.hpp \
+	%D%/fermions/zumba.hpp \
+	%D%/fermions/spectral_projectors.hpp \
 	%D%/fft.hpp \
 	%D%/fourier_transform.hpp \
 	%D%/gauge_fixing.hpp \
@@ -68,18 +80,6 @@ include_HEADERS+= \
 	%D%/smearing/smooth.hpp \
 	%D%/smearing/stout.hpp \
 	%D%/smearing/Wflow.hpp \
-	%D%/stag/Laplace_op_2links.hpp \
-	%D%/stag/mesons.hpp \
-	%D%/stag/magnetization.hpp \
-	%D%/stag/nucleon.hpp \
-	%D%/stag/putpourri.hpp \
-	%D%/stag/qed_corr.hpp \
-	%D%/stag/rendens.hpp \
-	%D%/stag/spectral_projectors.hpp \
-	%D%/stag/spinpol.hpp \
-	%D%/stag/stag.hpp \
-	%D%/stag/zumba.hpp \
-	%D%/stag/spectral_projectors.hpp \
 	%D%/su3_paths/all_rectangles.hpp \
 	%D%/su3_paths/arbitrary.hpp \
 	%D%/su3_paths/clover_term.hpp \

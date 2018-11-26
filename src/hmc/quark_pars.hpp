@@ -27,6 +27,8 @@ namespace nissa
 	case ROOT_TM_CLOV:return "RootTMClov";break;
 	case OVERLAP:return "Overlap";break;
 	}
+      
+      return "";
     }
     
     //string into name
@@ -51,6 +53,8 @@ namespace nissa
 	case ROOT_TM_CLOV: return false;break;
 	case OVERLAP: return false;break;
 	}
+      
+      return false;
     }
     
     //determine if clover or not
@@ -62,6 +66,8 @@ namespace nissa
 	case ROOT_TM_CLOV: return true;break;
 	case OVERLAP: return false;break;
 	}
+      
+      return false;
     }
     
     //root needed to have 1 quarks
@@ -73,6 +79,8 @@ namespace nissa
 	case ROOT_TM_CLOV:return 2;break;
 	case OVERLAP:return 1;break;
 	}
+      
+      return 1;
     }
   }
   

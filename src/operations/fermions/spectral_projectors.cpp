@@ -38,7 +38,7 @@
 //FIXME clean includes
 #include "base/random.hpp"
 #include "base/vectors.hpp"
-#include "operations/stag/stag.hpp"
+#include "operations/fermions/stag.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "hmc/backfield.hpp"

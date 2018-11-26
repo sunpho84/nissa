@@ -1,7 +1,7 @@
 #ifndef _NUCLEON_HPP
 #define _NUCLEON_HPP
 
-#include "stag.hpp"
+#include "fermionic_meas.hpp"
 #include "hmc/theory_pars.hpp"
 
 namespace nissa

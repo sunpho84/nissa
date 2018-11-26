@@ -3,7 +3,7 @@
 
 #include "hmc/theory_pars.hpp"
 
-#include "stag.hpp"
+#include "fermionic_meas.hpp"
 
 namespace nissa
 {

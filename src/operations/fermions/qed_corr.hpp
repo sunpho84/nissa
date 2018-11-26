@@ -1,7 +1,8 @@
 #ifndef _QED_CORR_HPP
 #define _QED_CORR_HPP
 
-#include "stag.hpp"
+#include "hmc/theory_pars.hpp"
+#include "fermionic_meas.hpp"
 
 namespace nissa
 {

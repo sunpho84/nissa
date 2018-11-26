@@ -8,6 +8,7 @@
 #include "hmc/theory_pars.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
+#include "operations/fermions/stag.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "operations/su3_paths/topological_charge.hpp"

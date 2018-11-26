@@ -1,7 +1,8 @@
 #ifndef _SPINPOL_HPP
 #define _SPINPOL_HPP
 
-#include "stag.hpp"
+#include "fermionic_meas.hpp"
+#include "hmc/theory_pars.hpp"
 #include "operations/smearing/recursive_Wflower.hpp"
 #include "operations/smearing/smooth.hpp"
 

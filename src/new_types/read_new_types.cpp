@@ -8,12 +8,12 @@
 #include "base/vectors.hpp"
 #include "io/input.hpp"
 
-#include "operations/stag/mesons.hpp"
-#include "operations/stag/magnetization.hpp"
-#include "operations/stag/nucleon.hpp"
-#include "operations/stag/putpourri.hpp"
-#include "operations/stag/rendens.hpp"
-#include "operations/stag/spinpol.hpp"
+#include "operations/fermions/mesons.hpp"
+#include "operations/fermions/magnetization.hpp"
+#include "operations/fermions/nucleon.hpp"
+#include "operations/fermions/putpourri.hpp"
+#include "operations/fermions/rendens.hpp"
+#include "operations/fermions/spinpol.hpp"
 #include "operations/su3_paths/topological_charge.hpp"
 
 namespace nissa

@@ -11,6 +11,7 @@
 #include "inverters/staggered/cg_invert_stD.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
+#include "operations/fermions/fermionic_meas.hpp"
 
 #include "stag.hpp"
 

@@ -1,7 +1,7 @@
 #ifndef _MESONS_HPP
 #define _MESONS_HPP
 
-#include "stag.hpp"
+#include "fermionic_meas.hpp"
 #include "hmc/theory_pars.hpp"
 
 namespace nissa
