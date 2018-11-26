@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void apply_overlap_kernel(spincolor *out,quad_su3 *conf,double kappa, double M, spincolor *in);
+  void apply_overlap_kernel(spincolor *out,quad_su3 *conf, double M, spincolor *in);
 }
 
 #endif

@@ -19,12 +19,12 @@ namespace nissa
   //
   // For overlap fermions k = 1/8 because kernel is massless.
   //
-  THREADABLE_FUNCTION_4ARG(apply_overlap_kernel, spincolor*,out, quad_su3*,conf, double,kappa, double,M, spincolor*,in)
+  THREADABLE_FUNCTION_4ARG(apply_overlap_kernel, spincolor*,out, quad_su3*,conf, double,M, spincolor*,in)
   {
     if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_lx_spincolor_borders(in);
     
-    double kcf=1/(2*kappa);
+    double kcf=4;
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
@@ -122,14 +122,14 @@ namespace nissa
 	//ok this is horrible, but fast
 	for(int c=0;c<3;c++)
 	  {
-	    out[X][0][c][0]=-0.5*out[X][0][c][0]+kcf*in[X][0][c][0]; out[X][0][c][0]*=(1+M);
-	    out[X][0][c][1]=-0.5*out[X][0][c][1]+kcf*in[X][0][c][1]; out[X][0][c][1]*=(1+M);
-	    out[X][1][c][0]=-0.5*out[X][1][c][0]+kcf*in[X][1][c][0]; out[X][1][c][0]*=(1+M);
-	    out[X][1][c][1]=-0.5*out[X][1][c][1]+kcf*in[X][1][c][1]; out[X][1][c][1]*=(1+M);
-	    out[X][2][c][0]=+0.5*out[X][2][c][0]-kcf*in[X][2][c][0]; out[X][2][c][0]*=(1+M);
-	    out[X][2][c][1]=+0.5*out[X][2][c][1]-kcf*in[X][2][c][1]; out[X][2][c][1]*=(1+M);
-	    out[X][3][c][0]=+0.5*out[X][3][c][0]-kcf*in[X][3][c][0]; out[X][3][c][0]*=(1+M);
-	    out[X][3][c][1]=+0.5*out[X][3][c][1]-kcf*in[X][3][c][1]; out[X][3][c][1]*=(1+M);
+	    out[X][0][c][0]=-0.5*out[X][0][c][0]+kcf*in[X][0][c][0]; out[X][0][c][0]+=M*in[X][0][c][0];
+	    out[X][0][c][1]=-0.5*out[X][0][c][1]+kcf*in[X][0][c][1]; out[X][0][c][1]+=M*in[X][0][c][1];
+	    out[X][1][c][0]=-0.5*out[X][1][c][0]+kcf*in[X][1][c][0]; out[X][1][c][0]+=M*in[X][1][c][0];
+	    out[X][1][c][1]=-0.5*out[X][1][c][1]+kcf*in[X][1][c][1]; out[X][1][c][1]+=M*in[X][1][c][1];
+	    out[X][2][c][0]=+0.5*out[X][2][c][0]-kcf*in[X][2][c][0]; out[X][2][c][0]+=M*in[X][2][c][0];
+	    out[X][2][c][1]=+0.5*out[X][2][c][1]-kcf*in[X][2][c][1]; out[X][2][c][1]+=M*in[X][2][c][1];
+	    out[X][3][c][0]=+0.5*out[X][3][c][0]-kcf*in[X][3][c][0]; out[X][3][c][0]+=M*in[X][3][c][0];
+	    out[X][3][c][1]=+0.5*out[X][3][c][1]-kcf*in[X][3][c][1]; out[X][3][c][1]+=M*in[X][3][c][1];
 	  }
       }
     
