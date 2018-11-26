@@ -23,7 +23,7 @@ namespace nissa
   {
     std::ostringstream os;
     
-    os<<"MeasMagnetiz\n";
+    os<<"MeasMinMaxEigenval\n";
     os<<base_fermionic_meas_t::get_str(full);
     
     return os.str();
