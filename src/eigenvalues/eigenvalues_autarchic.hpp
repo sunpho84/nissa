@@ -60,7 +60,7 @@ namespace nissa
     
     //generate interaction matrix
     int wspace_size=wspace_min_size;
-    complex M[wspace_max_size*wspace_max_size];
+    complex *M=nissa_malloc("M",wspace_max_size*wspace_max_size,complex);
     for(int j=0;j<wspace_size;j++)
       {
 	imp_mat(temp,V[j]);
@@ -146,7 +146,7 @@ namespace nissa
 	    combine_basis_to_restart(wspace_min_size,wspace_max_size,red_eig_vec,V,mat_size);
 	    
 	    //set M to be diagonal
-	    memset(M,0,sizeof(complex)*wspace_max_size*wspace_max_size);
+	    vector_reset(M);
 	    for(int i=0;i<wspace_size;i++)
 	      complex_put_to_real(M[i+i*wspace_max_size],red_eig_val[i]);
 	  }
@@ -213,6 +213,7 @@ namespace nissa
     while(iter<niter_max and neig_conv<neig);
     
     //free workspace
+    nissa_free(M);
     for(int i=0;i<wspace_max_size;i++) nissa_free(V[i]);
     nissa_free(residue);
     nissa_free(temp);
