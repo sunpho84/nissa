@@ -1,8 +1,8 @@
 Tag           =       ""
 
 Geometry
- T              =       4
- L              =       4
+ T              =       8
+ L              =       32
 
 Theory
  GaugeAction    =       tlSym
@@ -29,11 +29,11 @@ MeasSpectrProj
  NCopies = 1
  ITheory = 0
  NHits = 1
- Neigs = 100
+ Neigs = 200
  EigPrecision = 1e-10
 
 Analysis
- ConfList       =       {"conf4"} 
+ ConfList       =       {"conf"} 
 
 
 
