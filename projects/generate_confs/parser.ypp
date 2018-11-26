@@ -149,6 +149,7 @@
 %token TK_DEGENERACY
 %token TK_DISCRETIZ
 %token TK_ROOT_STAG
+%token TK_OVERLAP
 %token TK_ROOT_TM_CLOV
 %token TK_KAPPA
 %token TK_CSW

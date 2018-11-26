@@ -180,6 +180,7 @@ Quark DEBUG_PRINTF("Found Quark\n");return TK_QUARK;
 Degeneracy DEBUG_PRINTF("Found Degeneracy\n");return TK_DEGENERACY;
 Discretiz DEBUG_PRINTF("Found Discretiz\n");return TK_DISCRETIZ;
 RootStag DEBUG_PRINTF("Found RootStag\n");return TK_ROOT_STAG;
+Overlap DEBUG_PRINTF("Found Overlap\n");return TK_OVERLAP;
 RootTMClov DEBUG_PRINTF("Found RootTMClov\n");return TK_ROOT_TM_CLOV;
 Mass DEBUG_PRINTF("Found Mass\n");return TK_MASS;
 Kappa DEBUG_PRINTF("Found Kappa\n");return TK_KAPPA;
