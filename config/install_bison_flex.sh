@@ -10,6 +10,7 @@ rm -fr bison*
 #flex
 git clone git@github.com:westes/flex.git
 cd flex*
+./autogen.sh
 ./configure --prefix=$HOME
 make -j8
 make install

@@ -51,6 +51,7 @@
     nissa::meson_corr_meas_pars_t *meson_corr_meas;
     nissa::nucleon_corr_meas_pars_t *nucleon_corr_meas;
     nissa::magnetization_meas_pars_t *magnetization_meas;
+    nissa::minmax_eigenvalues_meas_pars_t *minmax_eigenvalues_meas;
     nissa::quark_rendens_meas_pars_t *quark_rendens_meas;
     nissa::chir_zumba_meas_pars_t *chir_zumba_meas;
     nissa::spinpol_meas_pars_t *spinpol_meas;
@@ -149,10 +150,12 @@
 %token TK_DEGENERACY
 %token TK_DISCRETIZ
 %token TK_ROOT_STAG
+%token TK_OVERLAP
 %token TK_ROOT_TM_CLOV
 %token TK_KAPPA
 %token TK_CSW
 %token TK_MASS
+%token TK_MASS_OVERLAP
 %token TK_RE_POT_CH
 %token TK_IM_POT_CH
 %token TK_ELEC_CHARGE
@@ -247,6 +250,9 @@
 //magnetization
 %type <magnetization_meas> magnetization_meas
 %token TK_MEAS_MAGNETIZ
+//minmax_eigenvalues
+%type <minmax_eigenvalues_meas> minmax_eigenvalues_meas
+%token TK_MEAS_MIN_MAX_EIGENVAL
 //spectral proj meas
 %type <spectr_proj_meas> spectr_proj_meas
 %token TK_SPECTR_PROJ
@@ -326,6 +332,7 @@ global_specify: geometry
               | spinpol_meas {driver->add_spinpol_meas(*$1);delete $1;}
               | qed_corr_meas {driver->add_qed_corr_meas(*$1);delete $1;}
               | magnetization_meas {driver->add_magnetization_meas(*$1);delete $1;}
+              | minmax_eigenvalues_meas {driver->add_minmax_eigenvalues_meas(*$1);delete $1;}
 /////////////// gauge measures ////////////////////
               | plaq_pol_meas {driver->add_plaq_pol_meas(*$1);delete $1;}
               | top_meas {driver->add_top_meas(*$1);delete $1;}
@@ -643,6 +650,19 @@ magnetization_meas: TK_MEAS_MAGNETIZ {$$=new magnetization_meas_pars_t();}
                   | magnetization_meas ncopies {$$->ncopies=$2;}
                   | magnetization_meas noise_type {$$->rnd_type=$2;}
                   | magnetization_meas nhits {$$->nhits=$2;}
+;
+
+////////////////////////////////////////////////// MINMAX_EIGENVALUES //////////////////////////////////////////////////
+
+minmax_eigenvalues_meas: TK_MEAS_MIN_MAX_EIGENVAL {$$=new minmax_eigenvalues_meas_pars_t();}
+                  | minmax_eigenvalues_meas each {$$->each=$2;}
+                  | minmax_eigenvalues_meas after {$$->after=$2;}
+                  | minmax_eigenvalues_meas path {$$->path=(*$2);delete $2;}
+                  | minmax_eigenvalues_meas residue {$$->residue=$2;}
+                  | minmax_eigenvalues_meas itheory {$$->itheory=$2;}
+                  | minmax_eigenvalues_meas ncopies {$$->ncopies=$2;}
+                  | minmax_eigenvalues_meas noise_type {$$->rnd_type=$2;}
+                  | minmax_eigenvalues_meas nhits {$$->nhits=$2;}
 ;
 
 ////////////////////////////////////////////////// EVOLUTION //////////////////////////////////////////////////

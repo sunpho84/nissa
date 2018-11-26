@@ -8,7 +8,8 @@
 #include "free_theory/free_theory_types.hpp"
 #include "free_theory/tlSym_gauge_propagator.hpp"
 #include "geometry/geometry_mix.hpp"
-#include "operations/stag/qed_corr.hpp"
+#include "operations/fermions/qed_corr.hpp"
+#include "operations/fermions/stag.hpp"
 #include "routines/mpi_routines.hpp"
 #include "routines/thread.hpp"
 
