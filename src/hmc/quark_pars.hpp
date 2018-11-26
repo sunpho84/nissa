@@ -91,6 +91,7 @@ namespace nissa
     int deg;
     ferm_discretiz::name_t discretiz;
     double mass;
+		double massOverlap;
     double kappa;
     double cSW;
     double re_pot;
