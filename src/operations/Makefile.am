@@ -9,6 +9,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/fermions/Laplace_op_2links.cpp \
 	%D%/fermions/mesons.cpp \
 	%D%/fermions/magnetization.cpp \
+	%D%/fermions/minmax_eigenvalues.cpp \
 	%D%/fermions/nucleon.cpp \
 	%D%/fermions/putpourri.cpp \
 	%D%/fermions/qed_corr.cpp \
@@ -52,6 +53,7 @@ include_HEADERS+= \
 	%D%/fermions/Laplace_op_2links.hpp \
 	%D%/fermions/mesons.hpp \
 	%D%/fermions/magnetization.hpp \
+	%D%/fermions/minmax_eigenvalues.hpp \
 	%D%/fermions/nucleon.hpp \
 	%D%/fermions/putpourri.hpp \
 	%D%/fermions/qed_corr.hpp \

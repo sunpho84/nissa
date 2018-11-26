@@ -154,6 +154,7 @@
 
 #include "operations/fermions/magnetization.hpp"
 #include "operations/fermions/mesons.hpp"
+#include "operations/fermions/minmax_eigenvalues.hpp"
 #include "operations/fermions/nucleon.hpp"
 #include "operations/fermions/putpourri.hpp"
 #include "operations/fermions/qed_corr.hpp"
@@ -162,7 +163,6 @@
 #include "operations/fermions/spinpol.hpp"
 #include "operations/fermions/stag.hpp"
 #include "operations/fermions/zumba.hpp"
-#include "operations/fermions/spectral_projectors.hpp"
 
 #include "operations/su3_paths/all_rectangles.hpp"
 #include "operations/su3_paths/arbitrary.hpp"
