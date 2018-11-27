@@ -25,7 +25,7 @@ namespace nissa
     
     //find eigenvalues of M and sort them according to |\lambda_i-\tau|
     //NB: M is larger than neig
-    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,double *lambda,const complex *M,const int M_size,const int neig,const double tau)
+    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,int eig_vec_row_size,double *lambda,const complex *M,const int M_size,const int neig,const double tau)
     {
 #if !USE_EIGEN
       crash("need Eigen");
@@ -66,8 +66,8 @@ namespace nissa
 	  //fill eigvec
 	  for(int j=0;j<neig;j++)
 	    {
-	      eig_vec[ieig+neig*j][RE]=solver.eigenvectors()(j,ori).real();
-	      eig_vec[ieig+neig*j][IM]=solver.eigenvectors()(j,ori).imag();
+	      eig_vec[ieig+eig_vec_row_size*j][RE]=solver.eigenvectors()(j,ori).real();
+	      eig_vec[ieig+eig_vec_row_size*j][IM]=solver.eigenvectors()(j,ori).imag();
 	    }
 	}
 #endif
@@ -98,7 +98,7 @@ namespace nissa
     }
     
     //form v[0:nout]=v[0:nin]*coeffs[0:nin,0:nout], using v itself
-    void combine_basis_to_restart(int nout,int nin,complex *coeffs,complex **vect,int vec_length)
+    void combine_basis_to_restart(int nout,int nin,complex *coeffs,int coeffs_row_length,complex **vect,int vec_length)
     {
       GET_THREAD_ID();
       
@@ -112,7 +112,7 @@ namespace nissa
 	    {
 	      complex_put_to_zero(tmp[j]);
 	      for(int k=0;k<nin;k++)
-		complex_summ_the_prod(tmp[j],vect[k][iel],coeffs[j+nin*k]);
+		complex_summ_the_prod(tmp[j],vect[k][iel],coeffs[j+coeffs_row_length*k]);
 	    }
 	  
 	  //overwrite
