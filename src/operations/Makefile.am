@@ -1,24 +1,7 @@
 ####################################### operations ##################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/contract/mesons_2pts.cpp \
-	%D%/contract/mesons_eight.cpp \
-	%D%/contract/optimized_mesons_2pts.cpp \
-	%D%/contract/site_contract.cpp \
 	%D%/covariant_derivative.cpp \
-	%D%/fermions/Laplace_op_2links.cpp \
-	%D%/fermions/mesons.cpp \
-	%D%/fermions/magnetization.cpp \
-	%D%/fermions/minmax_eigenvalues.cpp \
-	%D%/fermions/nucleon.cpp \
-	%D%/fermions/putpourri.cpp \
-	%D%/fermions/qed_corr.cpp \
-	%D%/fermions/rendens.cpp \
-	%D%/fermions/spectral_projectors.cpp \
-	%D%/fermions/spinpol.cpp \
-	%D%/fermions/stag.cpp \
-	%D%/fermions/zumba.cpp \
-	%D%/fermions/spectral_projectors.cpp \
 	%D%/fft.cpp \
 	%D%/fourier_transform.cpp \
 	%D%/gauge_fixing.cpp \
@@ -35,34 +18,17 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/smearing/stout_eo.cpp \
 	%D%/smearing/stout_lx.cpp \
 	%D%/smearing/Wflow.cpp \
-	%D%/su3_paths/all_rectangles.cpp \
 	%D%/su3_paths/arbitrary.cpp \
 	%D%/su3_paths/clover_term.cpp \
 	%D%/su3_paths/gauge_sweeper.cpp \
 	%D%/su3_paths/plaquette.cpp \
-	%D%/su3_paths/pline.cpp \
 	%D%/su3_paths/rectangles.cpp \
 	%D%/su3_paths/rectangular_staples.cpp \
 	%D%/su3_paths/squared_staples.cpp \
-	%D%/su3_paths/topological_charge.cpp \
-	%D%/su3_paths/watusso.cpp \
 	%D%/vector_gather.cpp
 
 include_HEADERS+= \
 	%D%/covariant_derivative.hpp \
-	%D%/fermions/Laplace_op_2links.hpp \
-	%D%/fermions/mesons.hpp \
-	%D%/fermions/magnetization.hpp \
-	%D%/fermions/minmax_eigenvalues.hpp \
-	%D%/fermions/nucleon.hpp \
-	%D%/fermions/putpourri.hpp \
-	%D%/fermions/qed_corr.hpp \
-	%D%/fermions/rendens.hpp \
-	%D%/fermions/spectral_projectors.hpp \
-	%D%/fermions/spinpol.hpp \
-	%D%/fermions/stag.hpp \
-	%D%/fermions/zumba.hpp \
-	%D%/fermions/spectral_projectors.hpp \
 	%D%/fft.hpp \
 	%D%/fourier_transform.hpp \
 	%D%/gauge_fixing.hpp \
@@ -71,10 +37,6 @@ include_HEADERS+= \
 	%D%/shift.hpp \
 	%D%/source.hpp \
 	%D%/remez/remez_algorithm.hpp \
-	%D%/contract/mesons_2pts.hpp \
-	%D%/contract/mesons_eight.hpp \
-	%D%/contract/optimized_mesons_2pts.hpp \
-	%D%/contract/site_contract.hpp \
 	%D%/smearing/APE.hpp \
 	%D%/smearing/cooling.hpp \
 	%D%/smearing/gaussian.hpp \
@@ -82,15 +44,11 @@ include_HEADERS+= \
 	%D%/smearing/smooth.hpp \
 	%D%/smearing/stout.hpp \
 	%D%/smearing/Wflow.hpp \
-	%D%/su3_paths/all_rectangles.hpp \
 	%D%/su3_paths/arbitrary.hpp \
 	%D%/su3_paths/clover_term.hpp \
 	%D%/su3_paths/gauge_sweeper.hpp \
 	%D%/su3_paths/plaquette.hpp \
-	%D%/su3_paths/pline.hpp \
 	%D%/su3_paths/rectangles.hpp \
 	%D%/su3_paths/rectangular_staples.hpp \
 	%D%/su3_paths/squared_staples.hpp \
-	%D%/su3_paths/topological_charge.hpp \
-	%D%/su3_paths/watusso.hpp \
 	%D%/vector_gather.hpp

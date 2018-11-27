@@ -10,7 +10,7 @@
 
 #include "base/debug.hpp"
 #include "new_types/complex.hpp"
-#include "operations/contract/mesons_2pts.hpp"
+#include "measures/contract/mesons_2pts.hpp"
 
 #ifdef USE_THREADS
  #include <omp.h>

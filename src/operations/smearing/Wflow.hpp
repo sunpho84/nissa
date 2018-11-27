@@ -8,8 +8,8 @@
 #include "hmc/backfield.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
+#include "operations/covariant_derivative.hpp"
 #include "operations/su3_paths/plaquette.hpp"
-#include "operations/fermions/Laplace_op_2links.hpp"
 #include "routines/ios.hpp"
 
 namespace nissa

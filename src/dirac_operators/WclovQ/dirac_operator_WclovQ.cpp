@@ -7,7 +7,7 @@
 #include "base/vectors.hpp"
 #include "base/thread_macros.hpp"
 #include "linalgs/linalgs.hpp"
-#include "operations/su3_paths/topological_charge.hpp"
+#include "measures/gauge/topological_charge.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

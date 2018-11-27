@@ -7,7 +7,7 @@
 #include "geometry/geometry_lx.hpp"
 #include "hmc/theory_pars.hpp"
 #include "new_types/su3.hpp"
-#include "operations/su3_paths/topological_charge.hpp"
+#include "measures/gauge/topological_charge.hpp"
 #include "operations/smearing/stout.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

@@ -11,7 +11,7 @@
 #include "io/input.hpp"
 #include "new_types/su3.hpp"
 #include "operations/smearing/stout.hpp"
-#include "operations/su3_paths/topological_charge.hpp"
+#include "measures/gauge/topological_charge.hpp"
 #include "routines/ios.hpp"
 
 #ifdef USE_THREADS

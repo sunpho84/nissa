@@ -11,11 +11,11 @@
 #include "base/vectors.hpp"
 #include "communicate/edges.hpp"
 #include "linalgs/linalgs.hpp"
+#include "measures/gauge/topological_charge.hpp"
 #include "new_types/float_128.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
-#include "topological_charge.hpp"
 
 #include "clover_term.hpp"
 

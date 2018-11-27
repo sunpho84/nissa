@@ -10,7 +10,7 @@
 #include "new_types/su3_op.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
-#include "operations/su3_paths/topological_charge.hpp"
+#include "measures/gauge/topological_charge.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
