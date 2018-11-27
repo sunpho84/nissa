@@ -1,8 +1,8 @@
 Tag           =       ""
 
 Geometry
- T              =       8
- L              =       32
+ T              =       2
+ L              =       2
 
 Theory
  GaugeAction    =       tlSym
@@ -29,7 +29,7 @@ MeasSpectrProj
  NCopies = 1
  ITheory = 0
  NHits = 1
- Neigs = 200
+ Neigs = 165
  EigPrecision = 1e-10
 
 Analysis
