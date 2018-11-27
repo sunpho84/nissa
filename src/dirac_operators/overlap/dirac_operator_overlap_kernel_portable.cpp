@@ -122,10 +122,10 @@ namespace nissa
 	//ok this is horrible, but fast
 	for(int c=0;c<3;c++)
 	  {
-	    out[X][0][c][0]=-0.5*out[X][0][c][0]+(M+kcf)*in[X][0][c][0];
-	    out[X][0][c][1]=-0.5*out[X][0][c][1]+(M+kcf)*in[X][0][c][1];
-	    out[X][1][c][0]=-0.5*out[X][1][c][0]+(M+kcf)*in[X][1][c][0];
-	    out[X][1][c][1]=-0.5*out[X][1][c][1]+(M+kcf)*in[X][1][c][1];
+	    out[X][0][c][0]=-0.5*out[X][0][c][0]+(-M+kcf)*in[X][0][c][0];
+	    out[X][0][c][1]=-0.5*out[X][0][c][1]+(-M+kcf)*in[X][0][c][1];
+	    out[X][1][c][0]=-0.5*out[X][1][c][0]+(-M+kcf)*in[X][1][c][0];
+	    out[X][1][c][1]=-0.5*out[X][1][c][1]+(-M+kcf)*in[X][1][c][1];
 	    out[X][2][c][0]=+0.5*out[X][2][c][0]+(M-kcf)*in[X][2][c][0];
 	    out[X][2][c][1]=+0.5*out[X][2][c][1]+(M-kcf)*in[X][2][c][1];
 	    out[X][3][c][0]=+0.5*out[X][3][c][0]+(M-kcf)*in[X][3][c][0];
