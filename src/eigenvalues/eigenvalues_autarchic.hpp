@@ -120,7 +120,7 @@ namespace nissa
 	    wspace_size--;
 	    
 	    //make M diagonal
-	    memset(M,0,sizeof(complex)*wspace_max_size*wspace_max_size);
+	    vector_reset(M);
 	    for(int i=0;i<wspace_size;i++)
 	      complex_put_to_real(M[i+i*wspace_max_size],red_eig_val[i]);
 	    
