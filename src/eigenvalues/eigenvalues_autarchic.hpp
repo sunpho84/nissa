@@ -84,7 +84,7 @@ namespace nissa
 	
 	//find all eigenvalues of the reduced problem, sort them by distance with tau
 	double red_eig_val[wspace_size];
-	complex red_eig_vec[wspace_size*wspace_size];
+	complex *red_eig_vec=nissa_malloc("red_eig_vec",wspace_size*wspace_size,complex);
 	eigenvalues_of_hermatr_find_all_and_sort(red_eig_vec,red_eig_val,M,wspace_max_size,wspace_size,tau);
 	
 	//combine the vectors
@@ -214,6 +214,7 @@ namespace nissa
     
     //free workspace
     nissa_free(M);
+    nissa_free(red_eig_vec);
     for(int i=0;i<wspace_max_size;i++) nissa_free(V[i]);
     nissa_free(residue);
     nissa_free(temp);
