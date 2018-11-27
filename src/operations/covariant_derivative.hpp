@@ -33,6 +33,7 @@ namespace nissa
   void prop_multiply_with_gamma(spincolor *out,int ig,spincolor *in,int it=-1);
   void prop_multiply_with_gamma(colorspinspin *out,int ig,colorspinspin *in,int it=-1);
   void prop_multiply_with_gamma(su3spinspin *out,int ig,su3spinspin *in,int it=-1);
+  void Laplace_operator_2_links(color *out,quad_su3 *conf,color *in);
 }
 
 #endif

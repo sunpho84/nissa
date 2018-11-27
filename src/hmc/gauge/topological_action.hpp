@@ -16,7 +16,7 @@ namespace nissa
     int def_flag(){return 0;}
     double def_theta(){return 0.0;}
     
-    //methods inside operations/su3_paths/topological_charge.cpp
+    //methods inside measures/gauge/topological_charge.cpp
     void store_if_needed(quad_su3 **conf,int iconf);
     
     //methods inside operations/su3_paths/spectral_projectors.cpp
