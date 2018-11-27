@@ -14,8 +14,8 @@ namespace nissa
   {
     void modified_GS(complex *v,complex **V,int nvec,int vec_size);
     double iterated_classical_GS(complex *v,int vec_size,int nvec,complex **A,const int max_cgs_it);
-    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,double *lambda,const complex *M,const int M_size,const int neig,const double tau);
-    void combine_basis_to_restart(int nout,int nin,complex *coeffs,complex **vect,int vec_length);
+    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,int eig_vec_row_size,double *lambda,const complex *M,const int M_size,const int neig,const double tau);
+    void combine_basis_to_restart(int nout,int nin,complex *coeffs,int coeffs_row_length,complex **vect,int vec_length);
   }
   
 //reimplementation of the adaptation made by Carsten Urbach of Jacobi-Davidson algorithm by R. Geus and O. Chinellato
@@ -28,6 +28,8 @@ namespace nissa
 					     const Filler &filler)
   {
     using namespace internal_eigenvalues;
+
+    if(neig>mat_size) crash("Asking to find %d eigenvectors for a matrix of rank %d",neig,mat_size);
     
     //set pars
     const double tau_list[2]={0.0,50.0};
@@ -45,6 +47,8 @@ namespace nissa
     for(int i=0;i<wspace_max_size;i++) V[i]=nissa_malloc("Vi",mat_size_to_allocate,complex);
     complex *residue=nissa_malloc("residue",mat_size_to_allocate,complex);
     complex *temp=nissa_malloc("temp",mat_size,complex);
+    double *red_eig_val=nissa_malloc("red_eig_val",wspace_max_size,double);
+    complex *red_eig_vec=nissa_malloc("red_eig_vec",wspace_max_size*wspace_max_size,complex);
     
     //fill V and orthonormalize
     for(int i=0;i<wspace_max_size;i++)
@@ -83,15 +87,13 @@ namespace nissa
 	double residue_norm=0.0;
 	
 	//find all eigenvalues of the reduced problem, sort them by distance with tau
-	double red_eig_val[wspace_size];
-	complex *red_eig_vec=nissa_malloc("red_eig_vec",wspace_size*wspace_size,complex);
-	eigenvalues_of_hermatr_find_all_and_sort(red_eig_vec,red_eig_val,M,wspace_max_size,wspace_size,tau);
+	eigenvalues_of_hermatr_find_all_and_sort(red_eig_vec,wspace_max_size,red_eig_val,M,wspace_max_size,wspace_size,tau);
 	
 	//combine the vectors
 	complex *e=eig_vec[neig_conv];
 	vector_reset(e);
 	for(int j=0;j<wspace_size;j++)
-	  complex_vector_summassign_complex_vector_prod_complex(e,V[j],red_eig_vec[wspace_size*j],mat_size);
+	  complex_vector_summassign_complex_vector_prod_complex(e,V[j],red_eig_vec[wspace_max_size*j],mat_size);
 	
 	//compute the residue
 	double residue_norm_old=residue_norm;
@@ -114,13 +116,14 @@ namespace nissa
 	      red_eig_val[i]=red_eig_val[i+1];
 	    
 	    //restart using the remaining eigenvectors as basis
-	    combine_basis_to_restart(wspace_size-1,wspace_size,red_eig_vec+1,V,mat_size);
+	    complex *coeffs=red_eig_vec+1; //Set a shifted view on red_eig_vec
+	    combine_basis_to_restart(wspace_size-1,wspace_size,coeffs,wspace_max_size,V,mat_size);
 	    
 	    //update workspace size
 	    wspace_size--;
 	    
 	    //make M diagonal
-	    memset(M,0,sizeof(complex)*wspace_max_size*wspace_max_size);
+	    vector_reset(M);
 	    for(int i=0;i<wspace_size;i++)
 	      complex_put_to_real(M[i+i*wspace_max_size],red_eig_val[i]);
 	    
@@ -143,7 +146,7 @@ namespace nissa
 	    
 	    //combine the basis vector to get the best eigenvectors approximations
 	    wspace_size=wspace_min_size;
-	    combine_basis_to_restart(wspace_min_size,wspace_max_size,red_eig_vec,V,mat_size);
+	    combine_basis_to_restart(wspace_min_size,wspace_max_size,red_eig_vec,wspace_max_size,V,mat_size);
 	    
 	    //set M to be diagonal
 	    vector_reset(M);
@@ -213,6 +216,8 @@ namespace nissa
     while(iter<niter_max and neig_conv<neig);
     
     //free workspace
+    nissa_free(red_eig_val);
+    nissa_free(red_eig_vec);
     nissa_free(M);
     nissa_free(red_eig_vec);
     for(int i=0;i<wspace_max_size;i++) nissa_free(V[i]);
