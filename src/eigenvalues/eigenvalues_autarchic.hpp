@@ -195,7 +195,7 @@ namespace nissa
 	    complex *v=V[wspace_size];
 	    double it_tol=pow(toldecay,-solvestep);
 	    solvestep++;
-	    cg_solve(v,proj_imp_mat,residue,mat_size,mat_size_to_allocate,it_tol*it_tol,linit_max,10000000);
+	    cg_solve(v,proj_imp_mat,residue,mat_size,mat_size_to_allocate,it_tol*it_tol,linit_max,1/*10000000*/);
 	    
 	    //orthonormalize v to eig_vec
 	    modified_GS(v,eig_vec,neig_conv+1,mat_size);
@@ -203,6 +203,7 @@ namespace nissa
 	    //orthogonalize v to V
 	    double alpha=iterated_classical_GS(v,mat_size,wspace_size,V,max_cgs_it);
 	    double_vector_prodassign_double((double*)v,1.0/alpha,2*mat_size);
+	    master_printf("alpha: %.16lg\n",alpha);
 	    
 	    //update interaction matrix
 	    imp_mat(temp,v);
