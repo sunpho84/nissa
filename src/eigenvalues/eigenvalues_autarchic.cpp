@@ -32,42 +32,42 @@ namespace nissa
 #else
       //structure to diagonalize
       using namespace Eigen;
-      SelfAdjointEigenSolver<MatrixXcd> solver;
+      SelfAdjointEigenSolver<MatrixXcd> *solver=new SelfAdjointEigenSolver<MatrixXcd>;
       
       //fill the matrix to be diagonalized
       // master_printf("//////////////////////////// matr //////////////////////////\n");
-      MatrixXcd matr(neig,neig);
+      MatrixXcd *matr=new MatrixXcd(neig,neig);
       for(int i=0;i<neig;i++)
 	for(int j=0;j<=i;j++)
 	  {
 	    master_printf("M[%d,%d], %.16lg %.16lg\n",i,j,M[j+M_size*i][RE],M[j+M_size*i][IM]);
-	    matr(i,j)=matr(j,i)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
+	    (*matr)(i,j)=(*matr)(j,i)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
 	  }
-      master_printf("M norm: %.16lg\n",matr.norm());
+      master_printf("M norm: %.16lg\n",matr->norm());
       
       {
       //diagonalize
-      solver.compute(matr);
+      solver->compute(*matr);
       
       //sort the eigenvalues and eigenvectors
 	std::vector<std::tuple<double,double,int>> ei;
       master_printf("tau: %.16lg\n",tau);
       for(int i=0;i<neig;i++)
 	{
-	  double lambda=solver.eigenvalues()(i);
+	  double lambda=solver->eigenvalues()(i);
 	  ei.push_back(std::make_tuple(fabs(lambda-tau),lambda,i));
 	  master_printf("lambda[%d]: %.16lg\n",i,lambda);
 	}
       std::sort(ei.begin(),ei.end());
       }
-      solver.compute(matr);
+      solver->compute(*matr);
       
       //sort the eigenvalues and eigenvectors
       std::vector<std::tuple<double,double,int>> ei;
       master_printf("tau: %.16lg\n",tau);
       for(int i=0;i<neig;i++)
 	{
-	  double lambda=solver.eigenvalues()(i);
+	  double lambda=solver->eigenvalues()(i);
 	  ei.push_back(std::make_tuple(fabs(lambda-tau),lambda,i));
 	  master_printf("lambda[%d]: %.16lg\n",i,lambda);
 	}
@@ -87,10 +87,13 @@ namespace nissa
 	  //fill eigvec
 	  for(int j=0;j<neig;j++)
 	    {
-	      eig_vec[ieig+eig_vec_row_size*j][RE]=solver.eigenvectors()(j,ori).real();
-	      eig_vec[ieig+eig_vec_row_size*j][IM]=solver.eigenvectors()(j,ori).imag();
+	      eig_vec[ieig+eig_vec_row_size*j][RE]=solver->eigenvectors()(j,ori).real();
+	      eig_vec[ieig+eig_vec_row_size*j][IM]=solver->eigenvectors()(j,ori).imag();
 	    }
 	}
+      
+      delete matr;
+      delete solver;
 #endif
     }
     
