@@ -18,9 +18,17 @@ namespace nissa
     void combine_basis_to_restart(int nout,int nin,complex *coeffs,int coeffs_row_length,complex **vect,int vec_length);
   }
   
-//reimplementation of the adaptation made by Carsten Urbach of Jacobi-Davidson algorithm by R. Geus and O. Chinellato
-
-//find the neig eigenvalues closest to the target
+  template <class T> void check_all_the_same(const T& t)
+  {
+    T ref_t=t;
+    MPI_Bcast(&ref_t,sizeof(T),MPI_CHAR,0,MPI_COMM_WORLD);
+    if(t!=ref_t)
+      crash("Error, expected but not obtained\n");
+  }
+  
+  //reimplementation of the adaptation made by Carsten Urbach of Jacobi-Davidson algorithm by R. Geus and O. Chinellato
+  
+  //find the neig eigenvalues closest to the target
   template <class Fmat,class Filler>
   void eigenvalues_of_hermatr_find_autarchic(complex **eig_vec,complex *eig_val,int neig,bool min_max,
 					     const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
@@ -76,7 +84,6 @@ namespace nissa
 	  }
       }
     
-    
     //main loop
     int solvestep=1;
     int iter=0;
@@ -102,6 +109,7 @@ namespace nissa
 	imp_mat(residue,e);
 	double_vector_summassign_double_vector_prod_double((double*)residue,(double*)e,-red_eig_val[0],mat_size*2);
 	residue_norm=sqrt(double_vector_glb_norm2(residue,mat_size));
+	check_all_the_same(residue_norm);
 	master_printf("eig: %.16lg, res: %.16lg\n",red_eig_val[0],residue_norm);
 	
 	//if converged
@@ -173,6 +181,7 @@ namespace nissa
 	      (residue_norm<eps_tr and residue_norm<red_eig_val[0] and residue_norm_old>residue_norm)?
 	      red_eig_val[0]:
 	      tau;
+	    master_printf("p_theta: %.16lg\n",p_theta);
 	    modified_GS(residue,eig_vec,neig_conv+1,mat_size);
 	    
 	    //projected matrix operator
