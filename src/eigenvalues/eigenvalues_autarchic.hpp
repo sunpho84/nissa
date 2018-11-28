@@ -72,8 +72,10 @@ namespace nissa
 	  {
 	    complex_vector_glb_scalar_prod(M[j+wspace_max_size*i],V[i],temp,mat_size);
 	    complex_conj(M[i+wspace_max_size*j],M[j+wspace_max_size*i]);
+	    master_printf("M_(%d,%d)=%lg,%lg\n",j,i,M[i+wspace_max_size*j][RE],M[i+wspace_max_size*j][IM]);
 	  }
       }
+    
     
     //main loop
     int solvestep=1;

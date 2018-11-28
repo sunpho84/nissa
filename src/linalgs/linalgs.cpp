@@ -162,11 +162,11 @@ namespace nissa
     complex_128 r={{0.0,0.0},{0.0,0.0}};
     NISSA_PARALLEL_LOOP(i,0,n)
       {
-	float_128_summ_the_prod(r[RE],a[RE],b[RE]);
-	float_128_summ_the_prod(r[RE],a[IM],b[IM]);
+	float_128_summ_the_64_prod(r[RE],a[i][RE],b[i][RE]);
+	float_128_summ_the_64_prod(r[RE],a[i][IM],b[i][IM]);
 	
-	float_128_summ_the_prod(r[IM],a[RE],b[IM]);
-	float_128_subt_the_prod(r[IM],a[IM],b[RE]);
+	float_128_summ_the_64_prod(r[IM],a[i][RE],b[i][IM]);
+	float_128_subt_the_64_prod(r[IM],a[i][IM],b[i][RE]);
       }
     
     complex_128 temp;
