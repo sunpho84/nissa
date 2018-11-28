@@ -40,7 +40,7 @@ namespace nissa
       for(int i=0;i<neig;i++)
 	for(int j=0;j<=i;j++)
 	  {
-	    master_printf("M[%d,%d], %lg %lg\n",i,j,M[j+M_size*i][RE],M[j+M_size*i][IM]);
+	    master_printf("M[%d,%d], %.16lg %.16lg\n",i,j,M[j+M_size*i][RE],M[j+M_size*i][IM]);
 	    matr(i,j)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
 	  }
       
@@ -62,7 +62,7 @@ namespace nissa
 	  //fill eigvalue
 	  using std::get;
 	  lambda[ieig]=get<1>(ei[ieig]);
-	  master_printf("eig[%d]: %lg\n",ieig,lambda[ieig]);
+	  master_printf("eig[%d]: %.16lg\n",ieig,lambda[ieig]);
 	  
 	  //get index of what must be put in i
 	  int ori=get<2>(ei[ieig]);
