@@ -102,7 +102,7 @@ namespace nissa
 	imp_mat(residue,e);
 	double_vector_summassign_double_vector_prod_double((double*)residue,(double*)e,-red_eig_val[0],mat_size*2);
 	residue_norm=sqrt(double_vector_glb_norm2(residue,mat_size));
-	master_printf("eig: %lg, res: %lg\n",red_eig_val[0],residue_norm);
+	master_printf("eig: %.16lg, res: %.16lg\n",red_eig_val[0],residue_norm);
 	
 	//if converged
 	bool this_converged=(residue_norm<target_precision);

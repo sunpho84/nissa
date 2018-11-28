@@ -41,14 +41,16 @@ namespace nissa
 	for(int j=0;j<=i;j++)
 	  {
 	    master_printf("M[%d,%d], %.16lg %.16lg\n",i,j,M[j+M_size*i][RE],M[j+M_size*i][IM]);
-	    matr(i,j)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
+	    matr(i,j)=matr(j,i)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
 	  }
+      master_printf("M norm: %.16lg\n",matr.norm());
       
       //diagonalize
       solver.compute(matr);
       
       //sort the eigenvalues and eigenvectors
       std::vector<std::tuple<double,double,int>> ei;
+      master_printf("tau: %.16lg\n",tau);
       for(int i=0;i<neig;i++)
 	{
 	  double lambda=solver.eigenvalues()(i);
