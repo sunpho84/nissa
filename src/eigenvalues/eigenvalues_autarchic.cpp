@@ -80,7 +80,7 @@ namespace nissa
 	  using std::get;
 	  lambda[ieig]=get<1>(ei[ieig]);
 	  master_printf("eig[%d]: %.16lg\n",ieig,lambda[ieig]);
-	  
+	  check_all_the_same(lambda[ieig]);
 	  //get index of what must be put in i
 	  int ori=get<2>(ei[ieig]);
 	  
