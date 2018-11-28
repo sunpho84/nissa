@@ -28,7 +28,7 @@ namespace nissa
 					     const Filler &filler)
   {
     using namespace internal_eigenvalues;
-
+    
     if(neig>mat_size) crash("Asking to find %d eigenvectors for a matrix of rank %d",neig,mat_size);
     
     //set pars
@@ -47,8 +47,8 @@ namespace nissa
     for(int i=0;i<wspace_max_size;i++) V[i]=nissa_malloc("Vi",mat_size_to_allocate,complex);
     complex *residue=nissa_malloc("residue",mat_size_to_allocate,complex);
     complex *temp=nissa_malloc("temp",mat_size,complex);
-    double *red_eig_val=nissa_malloc("red_eig_val",wspace_max_size,double);
-    complex *red_eig_vec=nissa_malloc("red_eig_vec",wspace_max_size*wspace_max_size,complex);
+    double *red_eig_val=new double[wspace_max_size];
+    complex *red_eig_vec=new complex[wspace_max_size*wspace_max_size];
     
     //fill V and orthonormalize
     for(int i=0;i<wspace_max_size;i++)
@@ -64,7 +64,7 @@ namespace nissa
     
     //generate interaction matrix
     int wspace_size=wspace_min_size;
-    complex *M=nissa_malloc("M",wspace_max_size*wspace_max_size,complex);
+    complex *M=new complex[wspace_max_size*wspace_max_size];
     for(int j=0;j<wspace_size;j++)
       {
 	imp_mat(temp,V[j]);
@@ -72,7 +72,7 @@ namespace nissa
 	  {
 	    complex_vector_glb_scalar_prod(M[j+wspace_max_size*i],V[i],temp,mat_size);
 	    complex_conj(M[i+wspace_max_size*j],M[j+wspace_max_size*i]);
-	    master_printf("M_(%d,%d)=%lg,%lg\n",j,i,M[i+wspace_max_size*j][RE],M[i+wspace_max_size*j][IM]);
+	    verbosity_lv3_master_printf("M_(%d,%d)=%lg,%lg\n",j,i,M[i+wspace_max_size*j][RE],M[i+wspace_max_size*j][IM]);
 	  }
       }
     
@@ -125,9 +125,12 @@ namespace nissa
 	    wspace_size--;
 	    
 	    //make M diagonal
-	    vector_reset(M);
 	    for(int i=0;i<wspace_size;i++)
-	      complex_put_to_real(M[i+i*wspace_max_size],red_eig_val[i]);
+	      for(int j=0;j<wspace_size;j++)
+		{
+		  const double val=(i==j)?red_eig_val[i]:0.0;
+		  complex_put_to_real(M[j+i*wspace_max_size],val);
+		}
 	    
 	    //set tau closer to the minimal eig_val
 	    if(min_max==0)
@@ -151,9 +154,12 @@ namespace nissa
 	    combine_basis_to_restart(wspace_min_size,wspace_max_size,red_eig_vec,wspace_max_size,V,mat_size);
 	    
 	    //set M to be diagonal
-	    vector_reset(M);
 	    for(int i=0;i<wspace_size;i++)
-	      complex_put_to_real(M[i+i*wspace_max_size],red_eig_val[i]);
+	      for(int j=0;j<wspace_size;j++)
+		{
+		  const double val=(i==j)?red_eig_val[i]:0.0;
+		  complex_put_to_real(M[j+i*wspace_max_size],val);
+		}
 	  }
 	
 	//if not all eigenvectors have converged
@@ -218,9 +224,9 @@ namespace nissa
     while(iter<niter_max and neig_conv<neig);
     
     //free workspace
-    nissa_free(red_eig_val);
-    nissa_free(red_eig_vec);
-    nissa_free(M);
+    delete [] red_eig_val;
+    delete [] red_eig_vec;
+    delete [] M;
     for(int i=0;i<wspace_max_size;i++) nissa_free(V[i]);
     nissa_free(residue);
     nissa_free(temp);
