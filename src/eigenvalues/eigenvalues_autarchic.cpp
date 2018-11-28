@@ -45,7 +45,21 @@ namespace nissa
 	  }
       master_printf("M norm: %.16lg\n",matr.norm());
       
+      {
       //diagonalize
+      solver.compute(matr);
+      
+      //sort the eigenvalues and eigenvectors
+	std::vector<std::tuple<double,double,int>> ei;
+      master_printf("tau: %.16lg\n",tau);
+      for(int i=0;i<neig;i++)
+	{
+	  double lambda=solver.eigenvalues()(i);
+	  ei.push_back(std::make_tuple(fabs(lambda-tau),lambda,i));
+	  master_printf("lambda[%d]: %.16lg\n",i,lambda);
+	}
+      std::sort(ei.begin(),ei.end());
+      }
       solver.compute(matr);
       
       //sort the eigenvalues and eigenvectors
@@ -55,6 +69,7 @@ namespace nissa
 	{
 	  double lambda=solver.eigenvalues()(i);
 	  ei.push_back(std::make_tuple(fabs(lambda-tau),lambda,i));
+	  master_printf("lambda[%d]: %.16lg\n",i,lambda);
 	}
       std::sort(ei.begin(),ei.end());
       
