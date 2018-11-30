@@ -14,7 +14,7 @@ namespace nissa
   {
     void modified_GS(complex *v,complex **V,int nvec,int vec_size);
     double iterated_classical_GS(complex *v,int vec_size,int nvec,complex **A,const int max_cgs_it);
-    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,int eig_vec_row_size,double *lambda,const complex *M,const int M_size,const int neig,const double tau);
+    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,int eig_vec_row_size,double *lambda,const complex *M,const int M_size,const int neig,const double tau   ,const int iter);
     void combine_basis_to_restart(int nout,int nin,complex *coeffs,int coeffs_row_length,complex **vect,int vec_length);
   }
   
@@ -96,7 +96,7 @@ namespace nissa
 	double residue_norm=0.0;
 	
 	//find all eigenvalues of the reduced problem, sort them by distance with tau
-	eigenvalues_of_hermatr_find_all_and_sort(red_eig_vec,wspace_max_size,red_eig_val,M,wspace_max_size,wspace_size,tau);
+	eigenvalues_of_hermatr_find_all_and_sort(red_eig_vec,wspace_max_size,red_eig_val,M,wspace_max_size,wspace_size,tau     ,iter);
 	
 	//combine the vectors
 	complex *e=eig_vec[neig_conv];
