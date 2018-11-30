@@ -77,7 +77,7 @@ namespace nissa
 	}
       
       file=fopen(combine("lambda_iter%d_rank%d",iter,rank).c_str(),"w");
-      fwrite(lambda,neig,sizeof(complex),file);
+      fwrite(lambda,neig,sizeof(double),file);
       fclose(file);
       
       delete matr;
