@@ -27,7 +27,7 @@ namespace nissa
     //normal eigenvalue problem
     EXTERN_ARPACK char bmat[2] INIT_ARPACK_TO(="I");
     //largest or smallest
-    EXTERN_ARPACK char which[2][3] INIT_ARPACK_TO(={"SM","LM"});
+    EXTERN_ARPACK char which[2][3] INIT_ARPACK_TO(={"SR","LR"});
     //parameters
     EXTERN_ARPACK int iparam[11];
     //pointer to work
