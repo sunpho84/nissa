@@ -37,7 +37,7 @@ namespace nissa
       //fill the matrix to be diagonalized
       FILE *file;
       
-      file=fopen(combine("M_iter%d_rank%d",iter,rank).c_str(),"w");
+      file=fopen(combine("tau_iter%d_rank%d",iter,rank).c_str(),"w");
       fwrite(&tau,1,sizeof(double),file);
       fclose(file);
       
