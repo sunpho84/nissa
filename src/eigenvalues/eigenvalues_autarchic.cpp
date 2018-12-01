@@ -51,17 +51,21 @@ namespace nissa
       
       //diagonalize
       solver->compute(*matr);
-      
+      double *raw_output=new double[neig];
       //sort the eigenvalues and eigenvectors
       std::vector<std::tuple<double,double,int>> ei;
       master_printf("tau: %.16lg\n",tau);
       for(int i=0;i<neig;i++)
 	{
 	  double lambda=solver->eigenvalues()(i);
+	  raw_output[i]=lambda;
 	  ei.push_back(std::make_tuple(fabs(lambda-tau),lambda,i));
 	  master_printf("lambda[%d]: %.16lg\n",i,lambda);
 	}
       std::sort(ei.begin(),ei.end());
+      file=fopen(combine("raw_output_iter%d_rank%d",iter,rank).c_str(),"w");
+      fwrite(raw_output,neig,sizeof(double),file);
+      fclose(file);
       
       //fill output
       for(int ieig=0;ieig<neig;ieig++)
