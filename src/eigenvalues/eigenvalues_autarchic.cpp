@@ -33,6 +33,7 @@ namespace nissa
       //structure to diagonalize
       using namespace Eigen;
       SelfAdjointEigenSolver<MatrixXcd> *solver=new SelfAdjointEigenSolver<MatrixXcd>;
+      BDCSVD<MatrixXcd> *solver2=new BDCSVD<MatrixXcd>;
       
       //fill the matrix to be diagonalized
       FILE *file;
@@ -47,17 +48,20 @@ namespace nissa
       MatrixXcd *matr=new MatrixXcd(neig,neig);
       for(int i=0;i<neig;i++)
 	for(int j=0;j<=i;j++)
-	    (*matr)(i,j)=(*matr)(j,i)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
+	  (*matr)(i,j)=(*matr)(j,i)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
       
       //diagonalize
       solver->compute(*matr);
+      solver2->compute(*matr);
       double *raw_output=new double[neig];
       //sort the eigenvalues and eigenvectors
       std::vector<std::tuple<double,double,int>> ei;
       master_printf("tau: %.16lg\n",tau);
       for(int i=0;i<neig;i++)
 	{
-	  double lambda=solver->eigenvalues()(i);
+	  double lambda;
+	  lambda=solver->eigenvalues()(i);
+	  lambda=solver2->singularValues()(i);
 	  raw_output[i]=lambda;
 	  ei.push_back(std::make_tuple(fabs(lambda-tau),lambda,i));
 	  master_printf("lambda[%d]: %.16lg\n",i,lambda);
@@ -92,6 +96,7 @@ namespace nissa
       
       delete matr;
       delete solver;
+      delete solver2;
 #endif
     }
     
