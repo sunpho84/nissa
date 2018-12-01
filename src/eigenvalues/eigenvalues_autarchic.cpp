@@ -35,7 +35,13 @@ namespace nissa
       SelfAdjointEigenSolver<MatrixXcd> *solver=new SelfAdjointEigenSolver<MatrixXcd>;
       
       //fill the matrix to be diagonalized
-      FILE *file=fopen(combine("M_iter%d_rank%d",iter,rank).c_str(),"w");
+      FILE *file;
+      
+      file=fopen(combine("M_iter%d_rank%d",iter,rank).c_str(),"w");
+      fwrite(&tau,1,sizeof(double),file);
+      fclose(file);
+      
+      file=fopen(combine("M_iter%d_rank%d",iter,rank).c_str(),"w");
       fwrite(M, M_size*M_size, sizeof(complex),file);
       fclose(file);
       MatrixXcd *matr=new MatrixXcd(neig,neig);
