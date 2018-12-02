@@ -14,16 +14,8 @@ namespace nissa
   {
     void modified_GS(complex *v,complex **V,int nvec,int vec_size);
     double iterated_classical_GS(complex *v,int vec_size,int nvec,complex **A,const int max_cgs_it);
-    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,int eig_vec_row_size,double *lambda,const complex *M,const int M_size,const int neig,const double tau   ,const int iter);
+    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,int eig_vec_row_size,double *lambda,const complex *M,const int M_size,const int neig,const double tau);
     void combine_basis_to_restart(int nout,int nin,complex *coeffs,int coeffs_row_length,complex **vect,int vec_length);
-  }
-  
-  template <class T> void check_all_the_same(const T& t)
-  {
-    T ref_t=t;
-    MPI_Bcast(&ref_t,sizeof(T),MPI_CHAR,0,MPI_COMM_WORLD);
-    if(t!=ref_t)
-      crash("Error, expected but not obtained\n");
   }
   
   //reimplementation of the adaptation made by Carsten Urbach of Jacobi-Davidson algorithm by R. Geus and O. Chinellato
@@ -96,7 +88,7 @@ namespace nissa
 	double residue_norm=0.0;
 	
 	//find all eigenvalues of the reduced problem, sort them by distance with tau
-	eigenvalues_of_hermatr_find_all_and_sort(red_eig_vec,wspace_max_size,red_eig_val,M,wspace_max_size,wspace_size,tau     ,iter);
+	eigenvalues_of_hermatr_find_all_and_sort(red_eig_vec,wspace_max_size,red_eig_val,M,wspace_max_size,wspace_size,tau);
 	
 	//combine the vectors
 	complex *e=eig_vec[neig_conv];
@@ -109,7 +101,6 @@ namespace nissa
 	imp_mat(residue,e);
 	double_vector_summassign_double_vector_prod_double((double*)residue,(double*)e,-red_eig_val[0],mat_size*2);
 	residue_norm=sqrt(double_vector_glb_norm2(residue,mat_size));
-	check_all_the_same(residue_norm);
 	master_printf("eig: %.16lg, res: %.16lg\n",red_eig_val[0],residue_norm);
 	
 	//if converged
@@ -204,7 +195,7 @@ namespace nissa
 	    complex *v=V[wspace_size];
 	    double it_tol=pow(toldecay,-solvestep);
 	    solvestep++;
-	    cg_solve(v,proj_imp_mat,residue,mat_size,mat_size_to_allocate,it_tol*it_tol,linit_max,1/*10000000*/);
+	    cg_solve(v,proj_imp_mat,residue,mat_size,mat_size_to_allocate,it_tol*it_tol,linit_max,10000000);
 	    
 	    //orthonormalize v to eig_vec
 	    modified_GS(v,eig_vec,neig_conv+1,mat_size);

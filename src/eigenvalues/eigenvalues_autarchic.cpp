@@ -25,51 +25,32 @@ namespace nissa
     
     //find eigenvalues of M and sort them according to |\lambda_i-\tau|
     //NB: M is larger than neig
-    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,int eig_vec_row_size,double *lambda,const complex *M,const int M_size,const int neig,const double tau,const int iter)
+    void eigenvalues_of_hermatr_find_all_and_sort(complex *eig_vec,int eig_vec_row_size,double *lambda,const complex *M,const int M_size,const int neig,const double tau)
     {
 #if !USE_EIGEN
       crash("need Eigen");
 #else
       //structure to diagonalize
       using namespace Eigen;
-      SelfAdjointEigenSolver<MatrixXcd> *solver=new SelfAdjointEigenSolver<MatrixXcd>;
-      BDCSVD<MatrixXcd> *solver2=new BDCSVD<MatrixXcd>;
+      SelfAdjointEigenSolver<MatrixXcd> solver;
       
       //fill the matrix to be diagonalized
-      FILE *file;
-      
-      file=fopen(combine("tau_iter%d_rank%d",iter,rank).c_str(),"w");
-      fwrite(&tau,1,sizeof(double),file);
-      fclose(file);
-      
-      file=fopen(combine("M_iter%d_rank%d",iter,rank).c_str(),"w");
-      fwrite(M, M_size*M_size, sizeof(complex),file);
-      fclose(file);
-      MatrixXcd *matr=new MatrixXcd(neig,neig);
+      MatrixXcd matr(neig,neig);
       for(int i=0;i<neig;i++)
 	for(int j=0;j<=i;j++)
-	  (*matr)(i,j)=(*matr)(j,i)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
+	  matr(i,j)=std::complex<double>(M[j+M_size*i][RE],M[j+M_size*i][IM]);
       
       //diagonalize
-      solver->compute(*matr);
-      solver2->compute(*matr);
-      double *raw_output=new double[neig];
+      solver.compute(matr);
+      
       //sort the eigenvalues and eigenvectors
       std::vector<std::tuple<double,double,int>> ei;
-      master_printf("tau: %.16lg\n",tau);
       for(int i=0;i<neig;i++)
 	{
-	  double lambda;
-	  lambda=solver->eigenvalues()(i);
-	  lambda=solver2->singularValues()(i);
-	  raw_output[i]=lambda;
+	  double lambda=solver.eigenvalues()(i);
 	  ei.push_back(std::make_tuple(fabs(lambda-tau),lambda,i));
-	  master_printf("lambda[%d]: %.16lg\n",i,lambda);
 	}
       std::sort(ei.begin(),ei.end());
-      file=fopen(combine("raw_output_iter%d_rank%d",iter,rank).c_str(),"w");
-      fwrite(raw_output,neig,sizeof(double),file);
-      fclose(file);
       
       //fill output
       for(int ieig=0;ieig<neig;ieig++)
@@ -77,26 +58,17 @@ namespace nissa
 	  //fill eigvalue
 	  using std::get;
 	  lambda[ieig]=get<1>(ei[ieig]);
-	  master_printf("eig[%d]: %.16lg\n",ieig,lambda[ieig]);
-	  check_all_the_same(lambda[ieig]);
+	  
 	  //get index of what must be put in i
 	  int ori=get<2>(ei[ieig]);
 	  
 	  //fill eigvec
 	  for(int j=0;j<neig;j++)
 	    {
-	      eig_vec[ieig+eig_vec_row_size*j][RE]=solver->eigenvectors()(j,ori).real();
-	      eig_vec[ieig+eig_vec_row_size*j][IM]=solver->eigenvectors()(j,ori).imag();
+	      eig_vec[ieig+eig_vec_row_size*j][RE]=solver.eigenvectors()(j,ori).real();
+	      eig_vec[ieig+eig_vec_row_size*j][IM]=solver.eigenvectors()(j,ori).imag();
 	    }
 	}
-      
-      file=fopen(combine("lambda_iter%d_rank%d",iter,rank).c_str(),"w");
-      fwrite(lambda,neig,sizeof(double),file);
-      fclose(file);
-      
-      delete matr;
-      delete solver;
-      delete solver2;
 #endif
     }
     
