@@ -66,11 +66,7 @@ namespace nissa
       int select[wspace_size];
       complex *workev=nissa_malloc("workev",2*wspace_size,complex);
       complex *temp_vec=nissa_malloc("temp_vec",neig*mat_size,complex);
-      GET_THREAD_ID();
-      THREAD_BARRIER();
-      if(IS_MASTER_THREAD)
-	arpack::internal::pzneupd_c(comm,rvec,howmny,select,(c_t*)ceig_val,(c_t*)temp_vec,mat_size,sigma,(c_t*)workev,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
-      THREAD_BARRIER();
+      arpack::internal::pzneupd_c(comm,rvec,howmny,select,(c_t*)ceig_val,(c_t*)temp_vec,mat_size,sigma,(c_t*)workev,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
       
       //find the ordering
       std::vector<std::pair<double,int>> ord;

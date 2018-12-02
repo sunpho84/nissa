@@ -104,11 +104,7 @@ namespace nissa
     do
       {
 	//invoke the step
-	GET_THREAD_ID();
-	THREAD_BARRIER();
-	if(IS_MASTER_THREAD)
-	  arpack::internal::pznaupd_c(comm,&ido,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
-	THREAD_BARRIER();
+	arpack::internal::pznaupd_c(comm,&ido,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
 	
 	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d\n",iter,ido,info);
 	
