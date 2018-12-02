@@ -9,6 +9,7 @@
 
 #include <arpack/parpack.hpp>
 
+#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
 #include "routines/ios.hpp"
@@ -103,7 +104,12 @@ namespace nissa
     do
       {
 	//invoke the step
-	arpack::internal::pznaupd_c(comm,&ido,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
+	GET_THREAD_ID();
+	THREAD_BARRIER();
+	if(IS_MASTER_THREAD)
+	  arpack::internal::pznaupd_c(comm,&ido,bmat,mat_size,which[min_max],neig,target_precision,(c_t*)residue,wspace_size,(c_t*)v,ldv,iparam,ipntr,(c_t*)workd,(c_t*)workl,lworkl,(c_t*)rwork,&info);
+	THREAD_BARRIER();
+	
 	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d\n",iter,ido,info);
 	
 	switch(ido)

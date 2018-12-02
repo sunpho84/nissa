@@ -172,7 +172,6 @@ namespace nissa
 	      (residue_norm<eps_tr and residue_norm<red_eig_val[0] and residue_norm_old>residue_norm)?
 	      red_eig_val[0]:
 	      tau;
-	    master_printf("p_theta: %.16lg\n",p_theta);
 	    modified_GS(residue,eig_vec,neig_conv+1,mat_size);
 	    
 	    //projected matrix operator
