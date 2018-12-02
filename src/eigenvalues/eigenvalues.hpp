@@ -33,8 +33,7 @@ namespace nissa
     if(use_arpack)
       {
 	master_printf("Using arpack\n");
-	if(IS_MASTER_THREAD)
-	  eigenvalues_of_hermatr_find_arpack(eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
+	eigenvalues_of_hermatr_find_arpack(eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
       }
     else
       {
