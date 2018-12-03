@@ -170,6 +170,17 @@ fi
 
 AX_SUBPACKAGE(parpack,arpack/arpack.h arpack/parpack.h,arpack parpack,cnaupd_c pcnaupd_c,PARPACK)
 
+#parpack-debug
+AC_ARG_ENABLE(parpack-debug,
+	AS_HELP_STRING([--enable-parpack-debug],[Enable parpack debug]),
+	enable_parpack_debug="${enableval}",
+	enable_parpack_debug="no")
+if test "$enable_parpack_debug" == "yes"
+then
+	AC_DEFINE([ENABLE_PARPACK_DEBUG],1,[Enable debugging parpack])
+fi
+AC_MSG_RESULT([enabling parpack debug... $enable_parpack_debug])
+
 #################### lime ####################
 
 AX_SUBPACKAGE(lime,lime.h,lime,limeReaderNextRecord,LIME)

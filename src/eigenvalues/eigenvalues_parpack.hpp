@@ -8,6 +8,7 @@
 #include <mpi.h>
 
 #include <arpack/parpack.hpp>
+#include <arpack/debug_c.hpp>
 
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
@@ -39,7 +40,7 @@ namespace nissa
       const int neig;
       const bool min_max;
       const int mat_size;
-      const int target_precision;
+      const double target_precision;
       const MPI_Fint comm;
       int *glb_info;
       int *glb_ido;
@@ -87,6 +88,11 @@ namespace nissa
       {
 	info=0;
 	ido=0;
+
+#ifdef ENABLE_PARPACK_DEBUG
+	const int lv=2;
+	debug_c(rank+10,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv);
+#endif
 	
 	//init params
 	vector_reset(ipntr);
