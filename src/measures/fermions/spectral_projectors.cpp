@@ -99,7 +99,7 @@ namespace nissa{
     const bool min_max=0;
     const int mat_size=loc_vol*NCOL;
     const int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL;
-    const int niter_max=100000;
+    const int niter_max=100000000;
     master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     //wrap the generation of the test vector into an object that can be passed to the eigenfinder
     const auto filler=[&fill_tmp_eo](complex *out_lx)
