@@ -38,6 +38,7 @@ namespace nissa
       {
 #endif
 	master_printf("Using autarchic implementation\n");
+	crash("Fix the algorithm!");
 	eigenvalues_of_hermatr_find_autarchic(eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
 	
 	//close the scope
