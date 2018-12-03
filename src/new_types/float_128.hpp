@@ -125,8 +125,12 @@ namespace nissa
     c[1]=0;
 #endif
   }
+  
   inline void float_128_summassign_64(float_128 b,double a)
-  {float_128_summ_64(b,b,a);}
+  {
+    float_128_summ_64(b,b,a);
+  }
+  
   inline void float_128_subt_from_64(float_128 c,double a,float_128 b)
   {
     float_128 d;
@@ -134,6 +138,11 @@ namespace nissa
     float_128_summ_64(c,d,a);
   }
   
+  inline void float_128_subtassign_64(float_128 b,double a)
+  {
+    float_128_summassign_64(b,-a);
+  }
+
   //128 prod 128
   inline void float_128_prod(float_128 c,float_128 a,float_128 b)
   {
@@ -178,7 +187,14 @@ namespace nissa
   }
   
   inline void float_128_summ_the_64_prod(float_128 c,double a,double b)
-  {float_128_summassign_64(c,a*b);}
+  {
+    float_128_summassign_64(c,a*b);
+  }
+  
+  inline void float_128_subt_the_64_prod(float_128 c,double a,double b)
+  {
+    float_128_subtassign_64(c,a*b);
+  }
   
   //128 prod 64
   inline void float_128_prod_64(float_128 c,float_128 a,double b)

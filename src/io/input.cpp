@@ -452,7 +452,7 @@ namespace nissa
     tags.push_back(triple_tag("use_DDalphaAMG",		       use_DD));
 #endif
 #ifdef USE_PARPACK
-    tags.push_back(triple_tag("use_arpack",		       use_arpack));
+    tags.push_back(triple_tag("use_parpack",		       use_parpack));
 #endif
 #ifdef USE_HUGEPAGES
     tags.push_back(triple_tag("use_hugepages",		       use_hugepages));

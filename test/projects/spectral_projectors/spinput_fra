@@ -1,0 +1,40 @@
+Tag           =       ""
+
+Geometry
+ T              =       2
+ L              =       2
+
+Theory
+ GaugeAction    =       tlSym
+ Beta           =       3.6570
+
+
+Stout
+ NLevels        =       2
+ Rho            =       0.15
+
+BkgrdEMField
+ Ex             =       0
+ Ey             =       0
+ Ez             =       0
+ Bx             =       0
+ By             =       0
+ Bz             =       0
+
+MeasSpectrProj
+ Each = 1
+ After = 0
+ Path = "sptop"
+ Residue = 1e-12
+ NCopies = 1
+ ITheory = 0
+ NHits = 1
+ Neigs = 8
+ EigPrecision = 1e-10
+
+Analysis
+ ConfList       =       {"conf"} 
+
+
+
+#PrintFullInput("full_input")

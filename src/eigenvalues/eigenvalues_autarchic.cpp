@@ -35,7 +35,6 @@ namespace nissa
       SelfAdjointEigenSolver<MatrixXcd> solver;
       
       //fill the matrix to be diagonalized
-      // master_printf("//////////////////////////// matr //////////////////////////\n");
       MatrixXcd matr(neig,neig);
       for(int i=0;i<neig;i++)
 	for(int j=0;j<=i;j++)

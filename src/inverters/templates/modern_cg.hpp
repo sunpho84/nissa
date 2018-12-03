@@ -51,7 +51,7 @@ namespace nissa
 	//compute relative residue
 	rel_res=sqrt((double)rr)/source_norm;
 	
-	if(iter%print_each==0) master_printf("it: %d, res: %lg\n",iter,rel_res);
+	if(iter%print_each==0) master_printf("it: %d, res: %.16lg\n",iter,rel_res);
 	
 	iter++;
       }

@@ -6,6 +6,7 @@
 #endif
 
 #include "new_types/high_prec.hpp"
+#include "new_types/rat_approx.hpp"
 
 #include "base/vectors.hpp"
 

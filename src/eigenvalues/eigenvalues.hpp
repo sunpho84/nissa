@@ -8,15 +8,14 @@
 #include "eigenvalues_all.hpp"
 
 #ifdef USE_PARPACK
- #include "eigenvalues_arpack.hpp"
+ #include "eigenvalues_parpack.hpp"
 #endif
 #include "eigenvalues_autarchic.hpp"
 
 namespace nissa
 {
 #ifdef USE_PARPACK
-#define NISSA_DEFAULT_USE_ARPACK 1
-  extern int use_arpack;
+ #define NISSA_DEFAULT_USE_PARPACK 1
 #endif
   
   //use arpack or the autarchic implementation
@@ -30,15 +29,16 @@ namespace nissa
     master_printf(" target precision: %lg\n",target_precision);
     
 #ifdef USE_PARPACK
-    if(use_arpack)
+    if(use_parpack)
       {
-	master_printf("Using arpack\n");
-	eigenvalues_of_hermatr_find_arpack(eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
+	master_printf("Using parpack\n");
+	eigenvalues_of_hermatr_find_parpack(eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
       }
     else
       {
 #endif
 	master_printf("Using autarchic implementation\n");
+	crash("Fix the algorithm!");
 	eigenvalues_of_hermatr_find_autarchic(eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
 	
 	//close the scope
