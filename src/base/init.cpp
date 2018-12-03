@@ -236,7 +236,7 @@ namespace nissa
 #endif
     
 #ifdef USE_PARPACK
-    use_arpack=NISSA_DEFAULT_USE_ARPACK;
+    use_parpack=NISSA_DEFAULT_USE_PARPACK;
 #endif
     
     //put 0 as minimal request
