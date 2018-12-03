@@ -3,6 +3,8 @@
 #endif
 
 #include "minmax_eigenvalues.hpp"
+#include "../../operations/remez/remez_algorithm.hpp"
+#include "../../new_types/rat_approx.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -16,6 +18,12 @@ namespace nissa
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
     close_file(file);
+
+		rat_approx_t appr;
+		double minimum=0.003, maximum=1.0;
+		int num=-1, den=2;
+		double tollerance=0.01, minerr=0.002;
+		generate_approx(appr,minimum,maximum,num,den,minerr,tollerance);
   }
   
   //print
