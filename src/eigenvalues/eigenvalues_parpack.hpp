@@ -40,7 +40,7 @@ namespace nissa
       const int neig;
       const bool min_max;
       const int mat_size;
-      const int target_precision;
+      const double target_precision;
       const MPI_Fint comm;
       int *glb_info;
       int *glb_ido;
