@@ -8,6 +8,7 @@
 #include <mpi.h>
 
 #include <arpack/parpack.hpp>
+#include <arpack/debug_c.hpp>
 
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
@@ -87,6 +88,11 @@ namespace nissa
       {
 	info=0;
 	ido=0;
+
+#ifdef ENABLE_PARPACK_DEBUG
+	const int lv=2;
+	debug_c(rank+10,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv);
+#endif
 	
 	//init params
 	vector_reset(ipntr);

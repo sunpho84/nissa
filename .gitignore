@@ -35,3 +35,4 @@ tools/Makefile.in
 /doc/bissa.txt*
 /doc/description.txt
 /test/projects/spectral_projectors/conf*
+/test/projects/spectral_projectors/full_input
