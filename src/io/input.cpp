@@ -438,7 +438,6 @@ namespace nissa
     tags.push_back(triple_tag("set_y_nranks",		       fix_nranks[2]));
     tags.push_back(triple_tag("set_z_nranks",		       fix_nranks[3]));
     tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
-    tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
 #ifdef USE_VNODES
     tags.push_back(triple_tag("vnode_paral_dir",	       vnode_paral_dir));
 #endif

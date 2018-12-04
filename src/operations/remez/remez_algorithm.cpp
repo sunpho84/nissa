@@ -580,10 +580,15 @@ namespace nissa
       }
   }
   
-  //generate the rational approximation
+  //generate the rational approximation with a given number of poles,
+  //checking that min and max err are within a factor of 1+toll, and
+  //giving up if min comes out to be larger than target_err
   double rat_approx_finder_t::generate_approx(float_high_prec_t *weights,float_high_prec_t *poles,float_high_prec_t &cons,double ext_minimum,double ext_maximum,int ext_degree,int ext_num,int ext_den,double target_err,double toll)
   {
     GET_THREAD_ID();
+
+    //if target_err is not positive, it is ignored
+    bool consider_err=(target_err>0);
     
     //copy from out the degree and expo
     minimum=ext_minimum;
@@ -626,7 +631,7 @@ namespace nissa
 	linear_system_solve(matr,coeff,vec,nzero_err_points);
 	
 	// 3) find maxima and minima
-	if(iter==0 || (spread>approx_tolerance && farther>target_err)) new_step(iter);
+	if(iter==0 || (spread>approx_tolerance && (farther>target_err || not consider_err))) new_step(iter);
 	
 	if(delta<approx_tolerance)
 	  {
@@ -642,11 +647,11 @@ namespace nissa
 	iter++;
       }
     //while(float_high_prec_t_is_greater(spread,approx_tolerance));
-    while(spread>approx_tolerance && delta>=approx_tolerance && eclose.get_d()<=target_err && farther.get_d()>target_err);
+    while(spread>approx_tolerance && delta>=approx_tolerance && ((not consider_err) || (eclose.get_d()<=target_err && farther.get_d()>target_err)));
     
     //write some info
     if(spread<=approx_tolerance) verbosity_lv3_master_printf("Spread %lg reduced below %lg\n",spread.get_d(),approx_tolerance);
-    if(eclose>target_err)  verbosity_lv3_master_printf("Accuracy cannot be better than %lg when %lg asked\n",eclose.get_d(),target_err);
+    if(consider_err && eclose>target_err)  verbosity_lv3_master_printf("Accuracy cannot be better than %lg when %lg asked\n",eclose.get_d(),target_err);
     
     if(IS_MASTER_THREAD)
       {
@@ -655,7 +660,7 @@ namespace nissa
       }
     
     //get err at max and check
-    if(farther.get_d()<=target_err)
+    if((consider_err and farther.get_d()<=target_err) or ((not consider_err) and (spread<=approx_tolerance)))
       {
 	verbosity_lv2_master_printf("Converged with %d zeroes in %d iters, maxerr %lg when asked %lg\n",nzero_err_points,iter,farther.get_d(),target_err);
 	

@@ -151,7 +151,7 @@ THREADABLE_FUNCTION_8ARG(fill_eigenpart, spincolor**,eigvec_conv, spincolor**,ei
   const bool min_max=0;
   const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
   const int mat_size_to_allocate=(loc_vol+bord_vol)*sizeof(spincolor)/sizeof(complex);
-  const int niter_max=100000;
+  const int niter_max=10000000;
   
   //wrap the generation of the test vector into an object that can be passed to the eigenfinder
   const auto filler=[](complex *a)

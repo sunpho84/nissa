@@ -239,6 +239,10 @@ namespace nissa
     use_parpack=NISSA_DEFAULT_USE_PARPACK;
 #endif
     
+#ifdef USE_GMP
+    master_printf("Linked with GMP\n");
+#endif
+    
     //put 0 as minimal request
     recv_buf_size=0;
     send_buf_size=0;
