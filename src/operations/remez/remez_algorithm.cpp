@@ -692,6 +692,7 @@ namespace nissa
   //generate an approximation
   double generate_approx(rat_approx_t &appr,double minimum,double maximum,int num,int den,double minerr,double tollerance)
   {
+		double t_in=take_time();
     GET_THREAD_ID();
     
     appr.minimum=minimum;
@@ -724,7 +725,8 @@ namespace nissa
 	delete[] weights;
       }
     THREAD_BARRIER();
-    
+		appr.master_fprintf(stdout);
+		printf("time required= %.10e secs\n",take_time()-t_in); 
     return ans;
   }
   
