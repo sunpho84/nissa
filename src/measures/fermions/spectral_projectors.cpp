@@ -2,50 +2,11 @@
  #include "config.hpp"
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include <algorithm>
-
-#include "base/thread_macros.hpp"
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
-#include "communicate/edges.hpp"
-#include "geometry/geometry_mix.hpp"
-#include "io/input.hpp"
-#include "linalgs/linalgs.hpp"
-#include "new_types/complex.hpp"
-#include "new_types/float_128.hpp"
-#include "new_types/spin.hpp"
-#include "new_types/su3.hpp"
-#include "operations/fft.hpp"
-#include "operations/gaugeconf.hpp"
-#include "operations/remap_vector.hpp"
-#include "operations/su3_paths/gauge_sweeper.hpp"
-#include "operations/smearing/stout.hpp"
-#include "operations/smearing/Wflow.hpp"
-#include "operations/su3_paths/plaquette.hpp"
-#include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
-#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
-#include "dirac_operators/tmQ2/dirac_operator_tmQ2.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
-#include "eigenvalues/eigenvalues_all.hpp"
 #include "eigenvalues/eigenvalues.hpp"
-#include "eigenvalues/eigenvalues_autarchic.hpp"
-#include "inverters/twisted_mass/cg_invert_tmQ2.hpp"
-
-//FIXME clean includes
-#include "base/random.hpp"
-#include "base/vectors.hpp"
-#include "measures/fermions/stag.hpp"
-#include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
-#include "hmc/backfield.hpp"
-#include "inverters/staggered/cg_invert_stD.hpp"
-#include "linalgs/linalgs.hpp"
-#include "new_types/su3.hpp"
-#include "routines/mpi_routines.hpp"
+#include "geometry/geometry_mix.hpp"
+#include "measures/fermions/stag.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -53,33 +14,26 @@
 
 #include "spectral_projectors.hpp"
 
-namespace nissa{
-  // This measure will compute the first 'n' eigenvalues (parameter) 
-  // and eigenvectors of DD^+ in staggered formulation, in order to build an estimate
-  // of the topological charge as Q = \sum_i \bar(u)_i gamma5 u_i,
-  // where {u_i} are the first n eigenvectors.
-  
-  THREADABLE_FUNCTION_6ARG(fill_eigenpart, complex**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, DD_eig_val, int,neigs, double,eig_precision)
+namespace nissa
+{
+  //This measure will compute the first 'n' eigenvalues (parameter)
+  //and eigenvectors of DD^+ in staggered formulation, in order to
+  //build an estimate of the topological charge as Q=\sum_i
+  //\bar(u)_i gamma5 u_i, where {u_i} are the first n eigenvectors.
+  THREADABLE_FUNCTION_6ARG(measure_spectral_proj, complex**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, DD_eig_val, int,neigs, double,eig_precision)
   {
-    //    GET_THREAD_ID();
-    master_fprintf(stdout,"neigs = %d, eig_precision = %.2e\n", neigs, eig_precision);
-    
+    master_printf("neigs=%d, eig_precision=%.2e\n",neigs,eig_precision);
     
     //wrap the application of DD^+ into an object that can be passed to the eigenfinder
     color *out_tmp_eo[2]={nissa_malloc("out_tmp_EVN",loc_volh+bord_volh,color),nissa_malloc("out_tmp_ODD",loc_volh+bord_volh,color)};
     color *in_tmp_eo[2]={nissa_malloc("in_tmp_EVN",loc_volh+bord_volh,color),nissa_malloc("in_tmp_ODD",loc_volh+bord_volh,color)};
     color *fill_tmp_eo[2]={nissa_malloc("fill_tmp_EVN",loc_volh+bord_volh,color),nissa_malloc("fill_tmp_ODD",loc_volh+bord_volh,color)};
-    vector_reset(out_tmp_eo[EVN]);
-    vector_reset(out_tmp_eo[ODD]);
-    vector_reset(in_tmp_eo[EVN]);
-    vector_reset(in_tmp_eo[ODD]);
-    vector_reset(fill_tmp_eo[EVN]);
-    vector_reset(fill_tmp_eo[ODD]);
     
-    quad_u1 *u1b[2];
-    u1b[0]=nissa_malloc("u1b",loc_volh+bord_volh,quad_u1);
-    u1b[1]=nissa_malloc("u1b",loc_volh+bord_volh,quad_u1);
+    //identity backfield
+    quad_u1 *u1b[2]={nissa_malloc("u1b",loc_volh+bord_volh,quad_u1),nissa_malloc("u1b",loc_volh+bord_volh,quad_u1)};
     init_backfield_to_id(u1b);
+    
+    //Matrix application
     const auto imp_mat=[conf,&in_tmp_eo,&out_tmp_eo](complex *out_lx,complex *in_lx)
       {
 	split_lx_vector_into_eo_parts(in_tmp_eo,(color*)in_lx);
@@ -101,6 +55,7 @@ namespace nissa{
     const int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL;
     const int niter_max=100000000;
     master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
+    
     //wrap the generation of the test vector into an object that can be passed to the eigenfinder
     const auto filler=[&fill_tmp_eo](complex *out_lx)
       {
@@ -110,8 +65,9 @@ namespace nissa{
     
     //launch the eigenfinder
     double eig_time=-take_time();
-    
+    add_backfield_with_stagphases_to_conf(conf,u1b);
     eigenvalues_of_hermatr_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler);
+    rem_backfield_with_stagphases_from_conf(conf,u1b);
     
     //double norm_cut[neigs];
     complex *point_vec = nissa_malloc("point_vec",(loc_vol+bord_vol)*NCOL,complex);
@@ -157,25 +113,25 @@ namespace nissa{
   
   //measure the topological charge
   //TODO: add option to save eigenvectors
-  void measure_spectral_proj(quad_su3 **conf,theory_pars_t &theory_pars,spectr_proj_meas_pars_t &meas_pars, int iconf,bool conf_created)
+  void measure_spectral_proj(quad_su3 **conf,theory_pars_t &theory_pars,spectr_proj_meas_pars_t &meas_pars,int iconf,bool conf_created)
   {
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    int neigs = meas_pars.neigs;
+    int neigs=meas_pars.neigs;
     
     complex *charge_cut=nissa_malloc("charge_cut",neigs,complex);
+    complex *DD_eig_val=nissa_malloc("DD_eig_Val",neigs,complex);
     vector_reset(charge_cut);
-    complex *DD_eig_val =nissa_malloc("DD_eig_Val",neigs,complex);
     vector_reset(DD_eig_val);
+    
     //    double charge_cut[neigs];
     //    double DD_reigs[neigs];
     
-    add_or_rem_stagphases_to_conf(conf);
-    
     complex **eigvec= nissa_malloc("eigvec",neigs,complex*);
-    for(int ieig=0;ieig<neigs;ieig++){
-      eigvec[ieig]=nissa_malloc("eigvec_ieig",(loc_vol+bord_vol)*NCOL,complex);
-      vector_reset(eigvec[ieig]);
-    }
+    for(int ieig=0;ieig<neigs;ieig++)
+      {
+	eigvec[ieig]=nissa_malloc("eigvec_ieig",(loc_vol+bord_vol)*NCOL,complex);
+	vector_reset(eigvec[ieig]);
+      }
     
     //loop over hits
     int nhits=meas_pars.nhits;
@@ -183,23 +139,23 @@ namespace nissa{
       {
 	verbosity_lv2_master_printf("Evaluating spectral topological charge nhits %d/%d\n",hit+1,nhits);
 	
-	fill_eigenpart(eigvec,conf,charge_cut,DD_eig_val,meas_pars.neigs,meas_pars.eig_precision);
+	measure_spectral_proj(eigvec,conf,charge_cut,DD_eig_val,meas_pars.neigs,meas_pars.eig_precision);
       }
     
+    //print the result
     master_fprintf(file,"%d\t",neigs);
     for(int ieig=0;ieig<neigs;++ieig)
       master_fprintf(file,"%.16lg\t%.16lg\t",DD_eig_val[ieig][RE]-0.0001,charge_cut[ieig][RE]);
     
     master_fprintf(file,"\n");
     
-    add_or_rem_stagphases_to_conf(conf);
+    close_file(file);
     
     for(int ieig=0;ieig<neigs;ieig++)
       nissa_free(eigvec[ieig]);
     nissa_free(eigvec);
     nissa_free(charge_cut);
     nissa_free(DD_eig_val);
-    close_file(file);
   }
   
   //print pars
