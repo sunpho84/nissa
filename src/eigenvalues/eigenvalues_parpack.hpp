@@ -90,8 +90,23 @@ namespace nissa
 	ido=0;
 
 #ifdef ENABLE_PARPACK_DEBUG
-	const int lv=2;
-	debug_c(rank+10,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv);
+  // see debug.doc in the arpack documentation for the mcXYZ parameters
+  const int logfil = 5; // standard output
+  const int ndigit = -3; // 3 digits and 72 columns (positive would print on 132 columns)
+  const int mgetv0 = 0; // do not print residual vector
+  const int nocplx = 0; 
+  const int mcaupd = 1; 
+  const int mcaupd2 = 1; 
+  const int mcaitr = 1; 
+  const int mceigh = 0; 
+  const int mcgets = 0; 
+  const int mcapps = 0; 
+  const int mceupd = 1; 
+
+	debug_c(logfil,ndigit,mgetv0,
+          0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,
+          mcaupd,mcaupd2,mcaitr,mceigh,mcgets,mcapps,mceupd);
 #endif
 	
 	//init params
