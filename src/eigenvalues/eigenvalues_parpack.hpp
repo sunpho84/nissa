@@ -96,8 +96,8 @@ namespace nissa
 
 #ifdef ENABLE_PARPACK_DEBUG
   // see debug.doc in the arpack documentation for the mcXYZ parameters
-  const int logfil = 5; // standard output
-  const int ndigit = -3; // 3 digits and 72 columns (positive would print on 132 columns)
+  const int logfil = 6; // standard output
+  const int ndigit = -6; // 3 digits and 72 columns (positive would print on 132 columns)
   const int mgetv0 = 0; // do not print residual vector
   const int nocplx = 0; 
   const int mcaupd = 1; 
