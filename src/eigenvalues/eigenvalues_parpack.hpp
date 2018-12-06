@@ -79,7 +79,7 @@ namespace nissa
 	glb_info(nissa_malloc("info",1,int)),
 	glb_ido(nissa_malloc("ido",1,int)),
 	residue(nissa_malloc("residue",mat_size_to_allocate,complex)),
-	wspace_size(std::max(2*neig,8)),
+	wspace_size(std::max(2*neig,20)),
 	v(nissa_malloc("v",wspace_size*mat_size_to_allocate,complex)),
 	ldv(mat_size_to_allocate),
 	iparam(nissa_malloc("iparam",11,int)),
@@ -97,7 +97,7 @@ namespace nissa
 #ifdef ENABLE_PARPACK_DEBUG
   // see debug.doc in the arpack documentation for the mcXYZ parameters
   const int logfil = 6; // standard output
-  const int ndigit = -6; // 3 digits and 72 columns (positive would print on 132 columns)
+  const int ndigit = -10; // 3 digits and 72 columns (positive would print on 132 columns)
   const int mgetv0 = 0; // do not print residual vector
   const int nocplx = 0; 
   const int mcaupd = 1; 
@@ -236,7 +236,6 @@ namespace nissa
 	  int *select=new int[wspace_size];
 	  complex *workev=new complex[2*wspace_size];
 	  complex *temp_vec=new complex[neig*mat_size];
-	  
 	  arpack::internal::pzneupd_c(comm,             //Reverse communicator
 				      1,                //1: Compute Ritz vectors or Schur vectors. 0: Ritz values only
 				      "A",		//'A': Compute NEV Ritz vectors; 'P': Compute NEV Schur vectors; 'S': compute some of the Ritz vectors
@@ -331,7 +330,7 @@ namespace nissa
       {
 	//invoke the step
 	goon=caller.iteration();
-	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d, nconv: %d\n",iter,caller.ido,caller.info,caller.nconv());
+//	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d, nconv: %d\n",iter,caller.ido,caller.info,caller.nconv());
 	
 	if(goon)
 	  imp_mat(caller.applied,caller.to_be_applied);
