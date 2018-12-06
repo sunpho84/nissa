@@ -70,7 +70,7 @@ namespace nissa
     rem_backfield_with_stagphases_from_conf(conf,u1b);
     
     //double norm_cut[neigs];
-    complex *point_vec = nissa_malloc("point_vec",(loc_vol+bord_vol)*NCOL,complex);
+    complex *point_vec=nissa_malloc("point_vec",(loc_vol+bord_vol)*NCOL,complex);
     master_printf("\n\nEigenvalues of D^+D:\n");
     for(int ieig=0;ieig<neigs;++ieig)
       {
@@ -126,7 +126,7 @@ namespace nissa
     //    double charge_cut[neigs];
     //    double DD_reigs[neigs];
     
-    complex **eigvec= nissa_malloc("eigvec",neigs,complex*);
+    complex **eigvec=nissa_malloc("eigvec",neigs,complex*);
     for(int ieig=0;ieig<neigs;ieig++)
       {
 	eigvec[ieig]=nissa_malloc("eigvec_ieig",(loc_vol+bord_vol)*NCOL,complex);
