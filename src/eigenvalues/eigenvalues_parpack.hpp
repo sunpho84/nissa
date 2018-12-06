@@ -65,6 +65,11 @@ namespace nissa
       complex *to_be_applied;
       complex *applied;
       
+      int nconv() const
+      {
+	return iparam[4];
+      }
+      
       parpack_caller_t(const int neig,const bool min_max,const int mat_size,const int mat_size_to_allocate,const double target_precision,const int niter_max) :
 	neig(neig),
 	min_max(min_max),
@@ -326,7 +331,7 @@ namespace nissa
       {
 	//invoke the step
 	goon=caller.iteration();
-	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d\n",iter,caller.ido,caller.info);
+	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d, nconv: %d\n",iter,caller.ido,caller.info,caller.nconv());
 	
 	if(goon)
 	  imp_mat(caller.applied,caller.to_be_applied);
