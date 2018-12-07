@@ -5,8 +5,8 @@
  #include "config.hpp"
 #endif
 
-#ifndef EXTERN
- #define EXTERN extern
+#ifndef EXTERN_BENCH
+ #define EXTERN_BENCH extern
  #define EQUAL_ZERO
 #else
  #define EQUAL_ZERO =0
@@ -15,31 +15,33 @@
 namespace nissa
 {
   //timings
-  EXTERN double tot_time EQUAL_ZERO;
+  EXTERN_BENCH double tot_time EQUAL_ZERO;
   
-  EXTERN double tot_comm_time EQUAL_ZERO;
-  EXTERN int ntot_comm EQUAL_ZERO;
-  EXTERN double cgm_inv_over_time,cg_inv_over_time EQUAL_ZERO;
-  EXTERN int ncgm_inv,ncg_inv EQUAL_ZERO;
-  EXTERN double portable_stD_app_time EQUAL_ZERO;
-  EXTERN int nportable_stD_app EQUAL_ZERO;
-  EXTERN int nsto EQUAL_ZERO;
-  EXTERN double sto_time EQUAL_ZERO;
-  EXTERN int nsto_remap EQUAL_ZERO;
-  EXTERN double sto_remap_time EQUAL_ZERO;
-  EXTERN int ngluon_force EQUAL_ZERO;
-  EXTERN double gluon_force_time EQUAL_ZERO;
-  EXTERN double remap_time EQUAL_ZERO;
-  EXTERN int nremap EQUAL_ZERO;
-  EXTERN double conf_evolve_time EQUAL_ZERO;
-  EXTERN int nconf_evolve EQUAL_ZERO;
-  EXTERN double quark_force_over_time EQUAL_ZERO;
-  EXTERN int nquark_force_over EQUAL_ZERO;
-  EXTERN double unitarize_time EQUAL_ZERO;
-  EXTERN int nunitarize EQUAL_ZERO;
+  EXTERN_BENCH double tot_comm_time EQUAL_ZERO;
+  EXTERN_BENCH int ntot_comm EQUAL_ZERO;
+  EXTERN_BENCH double cgm_inv_over_time,cg_inv_over_time EQUAL_ZERO;
+  EXTERN_BENCH int ncgm_inv,ncg_inv EQUAL_ZERO;
+  EXTERN_BENCH double portable_stD_app_time EQUAL_ZERO;
+  EXTERN_BENCH int nportable_stD_app EQUAL_ZERO;
+  EXTERN_BENCH int nsto EQUAL_ZERO;
+  EXTERN_BENCH double sto_time EQUAL_ZERO;
+  EXTERN_BENCH int nsto_remap EQUAL_ZERO;
+  EXTERN_BENCH double sto_remap_time EQUAL_ZERO;
+  EXTERN_BENCH int ngluon_force EQUAL_ZERO;
+  EXTERN_BENCH double gluon_force_time EQUAL_ZERO;
+  EXTERN_BENCH double remap_time EQUAL_ZERO;
+  EXTERN_BENCH int nremap EQUAL_ZERO;
+  EXTERN_BENCH double conf_evolve_time EQUAL_ZERO;
+  EXTERN_BENCH int nconf_evolve EQUAL_ZERO;
+  EXTERN_BENCH double quark_force_over_time EQUAL_ZERO;
+  EXTERN_BENCH int nquark_force_over EQUAL_ZERO;
+  EXTERN_BENCH double unitarize_time EQUAL_ZERO;
+  EXTERN_BENCH int nunitarize EQUAL_ZERO;
+  EXTERN_BENCH int perform_benchmark;
+ #define NISSA_DEFAULT_PERFORM_BENCHMARK 0
 #ifdef BGQ
-  EXTERN double bgq_stdD_app_time EQUAL_ZERO;
-  EXTERN int nbgq_stdD_app EQUAL_ZERO;
+  EXTERN_BENCH double bgq_stdD_app_time EQUAL_ZERO;
+  EXTERN_BENCH int nbgq_stdD_app EQUAL_ZERO;
 #endif
   
 #define UNPAUSE_TIMING(TIME) if(IS_MASTER_THREAD) TIME-=take_time()
@@ -59,7 +61,7 @@ namespace nissa
   const int flops_per_link_gauge_Wilson=((6*(NDIM-1)+1/*close*/)*flops_per_su3_prod+(2+1/*TA*/)*flops_per_su3_summ);
 }
 
-#undef EXTERN
+#undef EXTERN_BENCH
 #undef EQUAL_ZERO
 
 #endif
