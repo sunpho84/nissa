@@ -96,21 +96,26 @@ namespace nissa
     complex *loc_contr=new complex[mes2pts_contr_size];
     memset(loc_contr,0,sizeof(complex)*mes2pts_contr_size);
     
+    master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
+    
     if(IS_MASTER_THREAD) mes2pts_contr_time-=take_time();
     
     for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
       {
+	master_printf("icombo %d/%d\n",icombo,mes2pts_contr_map.size());
 	qprop_t &Q1=Q[mes2pts_contr_map[icombo].a];
 	qprop_t &Q2=Q[mes2pts_contr_map[icombo].b];
 	double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 in case of a point source
 	for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
 	  {
+	master_printf("icontr %d/%d\n",ihadr_contr,mes_gamma_list.size());
 	    int ig_so=mes_gamma_list[ihadr_contr].so;
 	    int ig_si=mes_gamma_list[ihadr_contr].si;
 	    if(nso_spi==1 and ig_so!=5) crash("implemented only g5 contraction on the source for non-diluted source");
 	    
 	    for(int i=0;i<nso_spi;i++)
 	      {
+	master_printf("i %d/%d\n",i,nso_spi);
 		int j=(base_gamma+ig_so)->pos[i];
 		
 		complex A;
@@ -118,11 +123,13 @@ namespace nissa
 		
 		for(int b=0;b<nso_col;b++)
 		  {
+	master_printf("b %d/%d\n",b,nso_col);
 		    spincolor *q1=Q1[so_sp_col_ind(j,b)];
 		    spincolor *q2=Q2[so_sp_col_ind(i,b)];
 		    
 		    for(int k=0;k<NDIRAC;k++)
 		      {
+	master_printf("k %d/%d\n",k,NDIRAC);
 			int l=(base_gamma+ig_si)->pos[k];
 			
 			//compute AB*norm
@@ -147,6 +154,8 @@ namespace nissa
       }
     THREAD_BARRIER();
     
+    master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
+    
     //reduce between threads and summ
     complex *red_contr=glb_threads_reduce_complex_vect(loc_contr,mes2pts_contr_size);
     NISSA_PARALLEL_LOOP(i,0,mes2pts_contr_size) complex_summassign(mes2pts_contr[i],red_contr[i]);
@@ -154,12 +163,16 @@ namespace nissa
     THREAD_BARRIER();
     delete[] loc_contr;
     
+    master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
+    
     //stats
     if(IS_MASTER_THREAD)
       {
 	nmes2pts_contr_made+=mes2pts_contr_map.size()*mes_gamma_list.size();
 	mes2pts_contr_time+=take_time();
       }
+    
+    master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
   }
   THREADABLE_FUNCTION_END
   
