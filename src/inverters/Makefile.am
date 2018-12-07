@@ -12,6 +12,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/staggered/cg_invert_stD2ee_m2.cpp \
 	%D%/staggered/cg_invert_stD.cpp \
 	%D%/staggered/cg_invert_evn_stD.cpp \
+	%D%/overlap/cgm_invert_overlap_kernel2.cpp \
 	%D%/twisted_mass/cg_invert_tmD_eoprec.cpp \
 	%D%/twisted_mass/cg_invert_tmQ2.cpp \
 	%D%/twisted_mass/cg_64_invert_tmQ2.cpp \
@@ -45,6 +46,7 @@ include_HEADERS+= \
 	%D%/twisted_mass/cg_128_invert_tmQ2.hpp \
 	%D%/twisted_mass/cg_128_invert_tmD_eoprec.hpp \
 	%D%/twisted_mass/tm_frontends.hpp \
+	%D%/overlap/cgm_invert_overlap_kernel2.hpp \
 	%D%/staggered/cgm_invert_stD2ee_m2.hpp \
 	%D%/staggered/cg_invert_stD2ee_m2.hpp \
 	%D%/staggered/cg_invert_stD.hpp \
