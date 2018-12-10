@@ -126,7 +126,7 @@ namespace nissa
     //    double charge_cut[neigs];
     //    double DD_reigs[neigs];
     
-    complex **eigvec= nissa_malloc("eigvec",neigs,complex*);
+    complex **eigvec=nissa_malloc("eigvec",neigs,complex*);
     for(int ieig=0;ieig<neigs;ieig++)
     {
       eigvec[ieig]=nissa_malloc("eigvec_ieig",(loc_vol+bord_vol)*NCOL,complex);

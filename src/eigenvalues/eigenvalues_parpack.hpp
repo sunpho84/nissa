@@ -235,6 +235,7 @@ namespace nissa
 	  int *select=new int[wspace_size];
 	  complex *workev=new complex[2*wspace_size];
 	  complex *temp_vec=new complex[neig*mat_size];
+	  
 	  arpack::internal::pzneupd_c(comm,             //Reverse communicator
 				      1,                //1: Compute Ritz vectors or Schur vectors. 0: Ritz values only
 				      "A",		//'A': Compute NEV Ritz vectors; 'P': Compute NEV Schur vectors; 'S': compute some of the Ritz vectors
@@ -329,8 +330,9 @@ namespace nissa
       {
 	//invoke the step
 	goon=caller.iteration();
-//	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d, nconv: %d\n",iter,caller.ido,caller.info,caller.nconv());
-	
+#ifndef ENABLE_PARPACK_DEBUG
+	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d\n",iter,caller.ido,caller.info);
+#endif	
 	if(goon)
 	  imp_mat(caller.applied,caller.to_be_applied);
 	
