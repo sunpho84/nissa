@@ -35,19 +35,19 @@ namespace nissa
     
     //Matrix application
     const auto imp_mat=[conf,&in_tmp_eo,&out_tmp_eo](complex *out_lx,complex *in_lx)
-      {
-	split_lx_vector_into_eo_parts(in_tmp_eo,(color*)in_lx);
-	
-	evn_apply_stD(out_tmp_eo[EVN],conf,0.01,in_tmp_eo);
-	odd_apply_stD(out_tmp_eo[ODD],conf,0.01,in_tmp_eo);
-	
-	evn_apply_stD_dag(in_tmp_eo[EVN],conf,0.01,out_tmp_eo);
-	odd_apply_stD_dag(in_tmp_eo[ODD],conf,0.01,out_tmp_eo);
-	
-	paste_eo_parts_into_lx_vector((color*)out_lx,in_tmp_eo);
-	
-	set_borders_invalid(out_lx);
-      };
+    {
+      split_lx_vector_into_eo_parts(in_tmp_eo,(color*)in_lx);
+    
+      evn_apply_stD(out_tmp_eo[EVN],conf,0.01,in_tmp_eo);
+      odd_apply_stD(out_tmp_eo[ODD],conf,0.01,in_tmp_eo);
+      
+      evn_apply_stD_dag(in_tmp_eo[EVN],conf,0.01,out_tmp_eo);
+      odd_apply_stD_dag(in_tmp_eo[ODD],conf,0.01,out_tmp_eo);
+      
+      paste_eo_parts_into_lx_vector((color*)out_lx,in_tmp_eo);
+      
+      set_borders_invalid(out_lx);
+    };
     
     //parameters of the eigensolver
     const bool min_max=0;
@@ -58,10 +58,10 @@ namespace nissa
     
     //wrap the generation of the test vector into an object that can be passed to the eigenfinder
     const auto filler=[&fill_tmp_eo](complex *out_lx)
-      {
-        generate_fully_undiluted_eo_source(fill_tmp_eo,RND_GAUSS,-1,0);
-        paste_eo_parts_into_lx_vector((color*)out_lx,fill_tmp_eo);
-      };
+    {
+      generate_fully_undiluted_eo_source(fill_tmp_eo,RND_GAUSS,-1,0);
+      paste_eo_parts_into_lx_vector((color*)out_lx,fill_tmp_eo);
+    };
     
     //launch the eigenfinder
     double eig_time=-take_time();
@@ -71,29 +71,29 @@ namespace nissa
     
     //double norm_cut[neigs];
     complex *point_vec = nissa_malloc("point_vec",(loc_vol+bord_vol)*NCOL,complex);
-    master_printf("\n\nEigenvalues of D^+D:\n");
+    master_printf("\n\nEigenvalues of DD^+:\n");
     for(int ieig=0;ieig<neigs;++ieig)
-      {
-	master_printf("%d (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE],DD_eig_val[ieig][IM]);
+    {
+      master_printf("%d (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE]-0.0001,DD_eig_val[ieig][IM]);
+      
+      // compute partial sum terms of tr(g5)
+      // save 'eigvec[ieigs]' in staggered format (i.e., 'fill_tmp_eo'),
+      // then multiply it with gamma5 and save the result in
+      // 'out_tmp_eo'. The term contributing to the partial sum of tr(g5)
+      // will be stored in 'charge_cut[ieig]' as the hermitian product
+      // between 'fill_tmp_eo' and 'out_tmp_eo'.
+      
+      split_lx_vector_into_eo_parts((color**)fill_tmp_eo,(color*)eigvec[ieig]);
+      
+      //multiply by gamma5
+      apply_stag_op(out_tmp_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,fill_tmp_eo);
+      
+      //take hermitian product
+      stag::summ_the_trace((double*)&charge_cut[ieig],(complex*)point_vec,out_tmp_eo,fill_tmp_eo);
+      //      stag::summ_the_trace((double*)&norm_cut[ieig],point_vec,fill_tmp_eo,fill_tmp_eo);
+      //      master_printf("charge_cut[%d] = %.10f, norm_cut[%d] = %.10f\n",ieig,charge_cut[ieig],ieig,norm_cut[ieig]);
 	
-	// compute partial sum terms of tr(g5)
-	// save 'eigvec[ieigs]' in staggered format (i.e., 'fill_tmp_eo'),
-	// then multiply it with gamma5 and save the result in
-	// 'out_tmp_eo'. The term contributing to the partial sum of tr(g5)
-	// will be stored in 'charge_cut[ieig]' as the hermitian product
-	// between 'fill_tmp_eo' and 'out_tmp_eo'.
-	
-	split_lx_vector_into_eo_parts((color**)fill_tmp_eo,(color*)eigvec[ieig]);
-	
-	//multiply by gamma5
-	apply_stag_op(out_tmp_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,fill_tmp_eo);
-	
-	//take hermitian product
-	stag::summ_the_trace((double*)&charge_cut[ieig],(complex*)point_vec,out_tmp_eo,fill_tmp_eo);
-	//      stag::summ_the_trace((double*)&norm_cut[ieig],point_vec,fill_tmp_eo,fill_tmp_eo);
-	//      master_printf("charge_cut[%d] = %.10f, norm_cut[%d] = %.10f\n",ieig,charge_cut[ieig],ieig,norm_cut[ieig]);
-	
-      }
+    }
     master_printf("\n\n\n");
     
     eig_time+=take_time();
@@ -128,19 +128,19 @@ namespace nissa
     
     complex **eigvec= nissa_malloc("eigvec",neigs,complex*);
     for(int ieig=0;ieig<neigs;ieig++)
-      {
-	eigvec[ieig]=nissa_malloc("eigvec_ieig",(loc_vol+bord_vol)*NCOL,complex);
-	vector_reset(eigvec[ieig]);
-      }
+    {
+      eigvec[ieig]=nissa_malloc("eigvec_ieig",(loc_vol+bord_vol)*NCOL,complex);
+      vector_reset(eigvec[ieig]);
+    }
     
     //loop over hits
     int nhits=meas_pars.nhits;
     for(int hit=0;hit<nhits;hit++)
-      {
-	verbosity_lv2_master_printf("Evaluating spectral topological charge nhits %d/%d\n",hit+1,nhits);
-	
-	measure_spectral_proj(eigvec,conf,charge_cut,DD_eig_val,meas_pars.neigs,meas_pars.eig_precision);
-      }
+    {
+      verbosity_lv2_master_printf("Evaluating spectral topological charge nhits %d/%d\n",hit+1,nhits);
+      
+      measure_spectral_proj(eigvec,conf,charge_cut,DD_eig_val,meas_pars.neigs,meas_pars.eig_precision);
+    }
     
     //print the result
     master_fprintf(file,"%d\t",neigs);
