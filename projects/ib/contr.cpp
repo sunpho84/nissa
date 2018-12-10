@@ -93,6 +93,7 @@ namespace nissa
     // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
     
     //allocate loc storage
+    master_printf("%d %zu\n",mes2pts_contr_size,sizeof(complex)*mes2pts_contr_size);
     complex *loc_contr=new complex[mes2pts_contr_size];
     memset(loc_contr,0,sizeof(complex)*mes2pts_contr_size);
     
