@@ -8,6 +8,7 @@
 
 #include <nissa.hpp>
 #include "driver.hpp"
+#include <glob.h>
 
 using namespace nissa;
 
@@ -621,13 +622,22 @@ void run_program_for_production()
 void run_program_for_analysis()
 {
   int nconf_analyzed=0;
+  glob_t globbuf;
   std::vector<std::string>::iterator it=drv->an_conf_list.begin();
   do
     {
-      read_conf(conf,it->c_str());
-      measurements(new_conf,conf,itraj,0,drv->sea_theory().gauge_action_name);
-      
-      nconf_analyzed++;
+      if(!glob(it->c_str(),0,NULL,&globbuf))
+      {
+        for(int j=0; j<globbuf.gl_pathc;j++)
+        {
+          read_conf(conf,globbuf.gl_pathv[j]);
+          measurements(new_conf,conf,itraj,0,drv->sea_theory().gauge_action_name);
+          nconf_analyzed++;
+        }
+        globfree(&globbuf);
+      }else
+        master_printf("WARNING: no configuration file found with name or pattern '%s'.\n",it->c_str());
+         
       it++;
     }
   while(it!=drv->an_conf_list.end() and !file_exists("stop") and enough_time());
