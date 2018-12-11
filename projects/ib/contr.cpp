@@ -95,7 +95,7 @@ namespace nissa
     
     if(IS_MASTER_THREAD) mes2pts_contr_time-=take_time();
     
-    //FILE *f=fopen(combine("test_%0d_%0d",rank,(int)thread_id).c_str(),"w");
+    FILE *f=fopen(combine("test_%0d_%0d",rank,(int)thread_id).c_str(),"w");
     
     for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
       {
@@ -138,7 +138,6 @@ namespace nissa
 			    {
 			      int ivol=loc_t*loc_spat_vol+ispat;
 			      int t=rel_time_of_loclx(ivol);
-			      //fprintf(f,"%d\n",t);
 			      
 			      complex c={0,0};
 			      for(int a=0;a<NCOL;a++)
@@ -152,6 +151,7 @@ namespace nissa
       }
     THREAD_BARRIER();
     
+    for(int t=0;t<glb_size[0];t++) fprintf(f,"%d %lg %lg\n",t,mes2pts_contr[t][RE],mes2pts_contr[t][IM]);
     //stats
     if(IS_MASTER_THREAD)
       {
