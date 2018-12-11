@@ -78,7 +78,8 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute all the meson contractions
-  THREADABLE_FUNCTION_1ARG(compute_mes2pts_contr, int,normalize)
+  //THREADABLE_FUNCTION_1ARG(compute_mes2pts_contr, int,normalize)
+  void compute_mes2pts_contr(int normalize)
   {
     GET_THREAD_ID();
     
@@ -93,7 +94,6 @@ namespace nissa
     // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
     
     //allocate loc storage
-    master_printf("%d %zu\n",mes2pts_contr_size,sizeof(complex)*mes2pts_contr_size);
     complex *loc_contr=new complex[mes2pts_contr_size];
     memset(loc_contr,0,sizeof(complex)*mes2pts_contr_size);
     
@@ -175,7 +175,7 @@ namespace nissa
     
     master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
   }
-  THREADABLE_FUNCTION_END
+  //  THREADABLE_FUNCTION_END
   
   //print all mesonic 2pts contractions
   void print_mes2pts_contr(int n,int force_append,int skip_inner_header,const std::string &alternative_header_template)
