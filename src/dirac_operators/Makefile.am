@@ -44,7 +44,7 @@ include_HEADERS+= \
 	%D%/WclovQ2/dirac_operator_WclovQ2.hpp \
 	%D%/tmclovQ2/dirac_operator_tmclovQ2.hpp \
 	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_128.hpp \
-	%D%/tmclovQ2/dirac_operator_tmclovQ2_128.hpp \i
+	%D%/tmclovQ2/dirac_operator_tmclovQ2_128.hpp \
 	%D%/overlap/dirac_operator_overlap_kernel2.hpp \
         %D%/overlap/dirac_operator_overlap_kernel_portable.hpp
 

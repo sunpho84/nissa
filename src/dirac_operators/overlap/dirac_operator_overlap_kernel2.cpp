@@ -18,11 +18,12 @@
 namespace nissa
 {
   //Apply the H^{\dagger}H operator to a spincolor
-  THREADABLE_FUNCTION_5ARG(apply_overlap_kernel2, spincolor*,out, quad_su3*,conf, double,M, spincolor*,ext_temp, spincolor*,in)
+  THREADABLE_FUNCTION_6ARG(apply_overlap_kernel2, spincolor*,out, quad_su3*,conf, double,M, spincolor*,ext_temp, double, M_aux, spincolor*,in)
   {
     spincolor *temp=ext_temp;
     if(temp==NULL) temp=nissa_malloc("tempQ",loc_vol+bord_vol,spincolor);
     
+    M_aux=0;
     apply_overlap_kernel(temp,conf, M, in);
     apply_overlap_kernel(out,conf, M, temp);
     

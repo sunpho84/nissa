@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void inv_overlap_kernel2_cgm(spincolor **sol,quad_su3 *conf,double M, int niter_max,double *req_res,spincolor *source);
+  void inv_overlap_kernel2_cgm(spincolor **sol,quad_su3 *conf,double M, double* M_aux, int nmass_aux, int niter_max,double *req_res,spincolor *source);
 }
 
 #endif

@@ -37,3 +37,4 @@
 #include "inverters/templates/cgm_invert_template_threaded.cpp"
 
 namespace nissa
+{}
