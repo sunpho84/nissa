@@ -78,8 +78,8 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute all the meson contractions
-  //THREADABLE_FUNCTION_1ARG(compute_mes2pts_contr, int,normalize)
-  void compute_mes2pts_contr(int normalize)
+  THREADABLE_FUNCTION_1ARG(compute_mes2pts_contr, int,normalize)
+  //void compute_mes2pts_contr(int normalize)
   {
     GET_THREAD_ID();
     
@@ -137,14 +137,17 @@ namespace nissa
 			unsafe_complex_prod(AB,A,B);
 			if(normalize) complex_prodassign_double(AB,norm);
 			
-			NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-			  {
-			    complex c={0,0};
-			    int t=rel_time_of_loclx(ivol);
-			    for(int a=0;a<NCOL;a++)
-			      complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			    complex_summ_the_prod(loc_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
-			  }
+			NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
+			  for(int ispat=0;ispat<loc_spat_vol;ispat++)
+			    {
+			      int ivol=loc_t*loc_spat_vol+ispat;
+			      int t=rel_time_of_loclx(ivol);
+			      
+			      complex c={0,0};
+			      for(int a=0;a<NCOL;a++)
+				complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
+			      complex_summ_the_prod(loc_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
+			    }
 		      }
 		  }
 	      }
@@ -152,15 +155,11 @@ namespace nissa
       }
     THREAD_BARRIER();
     
-    master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
-    
     //reduce between threads and summ
     NISSA_PARALLEL_LOOP(i,0,mes2pts_contr_size) complex_summassign(mes2pts_contr[i],loc_contr[i]);
     //disallocate after all threads finished
     THREAD_BARRIER();
     nissa_free(loc_contr);
-    
-    master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
     
     //stats
     if(IS_MASTER_THREAD)
@@ -168,10 +167,8 @@ namespace nissa
 	nmes2pts_contr_made+=mes2pts_contr_map.size()*mes_gamma_list.size();
 	mes2pts_contr_time+=take_time();
       }
-    
-    master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
   }
-  //THREADABLE_FUNCTION_END
+  THREADABLE_FUNCTION_END
   
   //print all mesonic 2pts contractions
   void print_mes2pts_contr(int n,int force_append,int skip_inner_header,const std::string &alternative_header_template)
