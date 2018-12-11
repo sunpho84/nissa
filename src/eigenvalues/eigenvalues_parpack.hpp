@@ -84,7 +84,7 @@ namespace nissa
 	ldv(mat_size_to_allocate),
 	iparam(nissa_malloc("iparam",11,int)),
 	ipntr(nissa_malloc("ipntr",14,int)),
-	workd(nissa_malloc("workd",3*mat_size,complex)),
+	workd(nissa_malloc("workd",5*mat_size,complex)),
 	lworkl((3*wspace_size+5)*wspace_size),
 	workl(nissa_malloc("workl",lworkl,complex)),
 	rwork(nissa_malloc("rwork",wspace_size,complex)),
@@ -99,7 +99,6 @@ namespace nissa
 	const int logfil=6;   // standard output
 	const int ndigit=-10; // 3 digits and 72 columns (positive would print on 132 columns)
 	const int mgetv0=0;   // do not print residual vector
-	const int nocplx=0;
 	const int mcaupd=1;
 	const int mcaupd2=1;
 	const int mcaitr=1;

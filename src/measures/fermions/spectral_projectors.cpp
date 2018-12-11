@@ -59,8 +59,8 @@ namespace nissa
     //wrap the generation of the test vector into an object that can be passed to the eigenfinder
     const auto filler=[&fill_tmp_eo](complex *out_lx)
       {
-        generate_fully_undiluted_eo_source(fill_tmp_eo,RND_GAUSS,-1,0);
-        paste_eo_parts_into_lx_vector((color*)out_lx,fill_tmp_eo);
+	generate_fully_undiluted_eo_source(fill_tmp_eo,RND_GAUSS,-1,0);
+	paste_eo_parts_into_lx_vector((color*)out_lx,fill_tmp_eo);
       };
     
     //launch the eigenfinder
@@ -71,10 +71,10 @@ namespace nissa
     
     //double norm_cut[neigs];
     complex *point_vec=nissa_malloc("point_vec",(loc_vol+bord_vol)*NCOL,complex);
-    master_printf("\n\nEigenvalues of D^+D:\n");
+    master_printf("\n\nEigenvalues of DD^+:\n");
     for(int ieig=0;ieig<neigs;++ieig)
       {
-	master_printf("%d (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE],DD_eig_val[ieig][IM]);
+	master_printf("%d (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE]-0.0001,DD_eig_val[ieig][IM]);
 	
 	// compute partial sum terms of tr(g5)
 	// save 'eigvec[ieigs]' in staggered format (i.e., 'fill_tmp_eo'),
@@ -92,7 +92,6 @@ namespace nissa
 	stag::summ_the_trace((double*)&charge_cut[ieig],(complex*)point_vec,out_tmp_eo,fill_tmp_eo);
 	//      stag::summ_the_trace((double*)&norm_cut[ieig],point_vec,fill_tmp_eo,fill_tmp_eo);
 	//      master_printf("charge_cut[%d] = %.10f, norm_cut[%d] = %.10f\n",ieig,charge_cut[ieig],ieig,norm_cut[ieig]);
-	
       }
     master_printf("\n\n\n");
     
