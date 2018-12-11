@@ -93,15 +93,9 @@ namespace nissa
     //
     // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
     
-    //allocate loc storage
-    complex *loc_contr=nissa_malloc("loc_contr",mes2pts_contr_size,complex);
-    vector_reset(loc_contr);
-    
-    master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
-    
     if(IS_MASTER_THREAD) mes2pts_contr_time-=take_time();
     
-    FILE *f=fopen(combine("test_%0d_%0d",rank,(int)thread_id).c_str(),"w");
+    //FILE *f=fopen(combine("test_%0d_%0d",rank,(int)thread_id).c_str(),"w");
     
     for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
       {
@@ -144,12 +138,12 @@ namespace nissa
 			    {
 			      int ivol=loc_t*loc_spat_vol+ispat;
 			      int t=rel_time_of_loclx(ivol);
-			      fprintf(f,"%d\n",t);
+			      //fprintf(f,"%d\n",t);
 			      
 			      complex c={0,0};
 			      for(int a=0;a<NCOL;a++)
 				complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			      complex_summ_the_prod(loc_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
+			      complex_summ_the_prod(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
 			    }
 		      }
 		  }
@@ -158,20 +152,12 @@ namespace nissa
       }
     THREAD_BARRIER();
     
-    //reduce between threads and summ
-    NISSA_PARALLEL_LOOP(i,0,mes2pts_contr_size) complex_summassign(mes2pts_contr[i],loc_contr[i]);
-    //disallocate after all threads finished
-    THREAD_BARRIER();
-    nissa_free(loc_contr);
-    
     //stats
     if(IS_MASTER_THREAD)
       {
 	nmes2pts_contr_made+=mes2pts_contr_map.size()*mes_gamma_list.size();
 	mes2pts_contr_time+=take_time();
       }
-    
-    fclose(f);
   }
   THREADABLE_FUNCTION_END
   
