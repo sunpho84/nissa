@@ -94,8 +94,8 @@ namespace nissa
     // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
     
     //allocate loc storage
-    complex *loc_contr=new complex[mes2pts_contr_size];
-    memset(loc_contr,0,sizeof(complex)*mes2pts_contr_size);
+    complex *loc_contr=nissa_malloc("loc_contr",mes2pts_contr_size,complex);
+    vector_reset(loc_contr);
     
     master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
     
@@ -116,7 +116,6 @@ namespace nissa
 	    
 	    for(int i=0;i<nso_spi;i++)
 	      {
-	master_printf("i %d/%d\n",i,nso_spi);
 		int j=(base_gamma+ig_so)->pos[i];
 		
 		complex A;
@@ -124,13 +123,11 @@ namespace nissa
 		
 		for(int b=0;b<nso_col;b++)
 		  {
-	master_printf("b %d/%d\n",b,nso_col);
 		    spincolor *q1=Q1[so_sp_col_ind(j,b)];
 		    spincolor *q2=Q2[so_sp_col_ind(i,b)];
 		    
 		    for(int k=0;k<NDIRAC;k++)
 		      {
-	master_printf("k %d/%d\n",k,NDIRAC);
 			int l=(base_gamma+ig_si)->pos[k];
 			
 			//compute AB*norm
@@ -158,11 +155,10 @@ namespace nissa
     master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
     
     //reduce between threads and summ
-    complex *red_contr=glb_threads_reduce_complex_vect(loc_contr,mes2pts_contr_size);
-    NISSA_PARALLEL_LOOP(i,0,mes2pts_contr_size) complex_summassign(mes2pts_contr[i],red_contr[i]);
+    NISSA_PARALLEL_LOOP(i,0,mes2pts_contr_size) complex_summassign(mes2pts_contr[i],loc_contr[i]);
     //disallocate after all threads finished
     THREAD_BARRIER();
-    delete[] loc_contr;
+    nissa_free(loc_contr);
     
     master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
     
@@ -175,7 +171,7 @@ namespace nissa
     
     master_printf("DEBUG %d %s\n",__LINE__,__FILE__);
   }
-  //  THREADABLE_FUNCTION_END
+  //THREADABLE_FUNCTION_END
   
   //print all mesonic 2pts contractions
   void print_mes2pts_contr(int n,int force_append,int skip_inner_header,const std::string &alternative_header_template)
