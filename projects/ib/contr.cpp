@@ -95,8 +95,6 @@ namespace nissa
     
     if(IS_MASTER_THREAD) mes2pts_contr_time-=take_time();
     
-    FILE *f=fopen(combine("test_%0d_%0d",rank,(int)thread_id).c_str(),"w");
-    
     for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
       {
 	master_printf("icombo %d/%d\n",icombo,mes2pts_contr_map.size());
@@ -105,7 +103,6 @@ namespace nissa
 	double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 in case of a point source
 	for(size_t ihadr_contr=0;ihadr_contr<mes_gamma_list.size();ihadr_contr++)
 	  {
-	master_printf("icontr %d/%d\n",ihadr_contr,mes_gamma_list.size());
 	    int ig_so=mes_gamma_list[ihadr_contr].so;
 	    int ig_si=mes_gamma_list[ihadr_contr].si;
 	    if(nso_spi==1 and ig_so!=5) crash("implemented only g5 contraction on the source for non-diluted source");
@@ -151,7 +148,6 @@ namespace nissa
       }
     THREAD_BARRIER();
     
-    for(int t=0;t<glb_size[0];t++) fprintf(f,"%d %lg %lg\n",t,mes2pts_contr[t][RE],mes2pts_contr[t][IM]);
     //stats
     if(IS_MASTER_THREAD)
       {
