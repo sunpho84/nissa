@@ -65,6 +65,11 @@ namespace nissa
       complex *to_be_applied;
       complex *applied;
       
+      int nconv() const
+      {
+	return iparam[4];
+      }
+      
       parpack_caller_t(const int neig,const bool min_max,const int mat_size,const int mat_size_to_allocate,const double target_precision,const int niter_max) :
 	neig(neig),
 	min_max(min_max),
@@ -74,12 +79,12 @@ namespace nissa
 	glb_info(nissa_malloc("info",1,int)),
 	glb_ido(nissa_malloc("ido",1,int)),
 	residue(nissa_malloc("residue",mat_size_to_allocate,complex)),
-	wspace_size(std::max(2*neig,8)),
+	wspace_size(std::max(2*neig,20)),
 	v(nissa_malloc("v",wspace_size*mat_size_to_allocate,complex)),
 	ldv(mat_size_to_allocate),
 	iparam(nissa_malloc("iparam",11,int)),
 	ipntr(nissa_malloc("ipntr",14,int)),
-	workd(nissa_malloc("workd",3*mat_size,complex)),
+	workd(nissa_malloc("workd",5*mat_size,complex)),
 	lworkl((3*wspace_size+5)*wspace_size),
 	workl(nissa_malloc("workl",lworkl,complex)),
 	rwork(nissa_malloc("rwork",wspace_size,complex)),
@@ -90,8 +95,22 @@ namespace nissa
 	ido=0;
 
 #ifdef ENABLE_PARPACK_DEBUG
-	const int lv=2;
-	debug_c(rank+10,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv,lv);
+	// see debug.doc in the arpack documentation for the mcXYZ parameters
+	const int logfil=6;   // standard output
+	const int ndigit=-10; // 3 digits and 72 columns (positive would print on 132 columns)
+	const int mgetv0=0;   // do not print residual vector
+	const int mcaupd=1;
+	const int mcaupd2=1;
+	const int mcaitr=1;
+	const int mceigh=0;
+	const int mcgets=0;
+	const int mcapps=0;
+	const int mceupd=1;
+	
+	debug_c(logfil,ndigit,mgetv0,
+          0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,
+          mcaupd,mcaupd2,mcaitr,mceigh,mcgets,mcapps,mceupd);
 #endif
 	
 	//init params
@@ -311,8 +330,9 @@ namespace nissa
       {
 	//invoke the step
 	goon=caller.iteration();
+#ifndef ENABLE_PARPACK_DEBUG
 	verbosity_lv1_master_printf("iteration %d, ido: %d, info: %d\n",iter,caller.ido,caller.info);
-	
+#endif	
 	if(goon)
 	  imp_mat(caller.applied,caller.to_be_applied);
 	

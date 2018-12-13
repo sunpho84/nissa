@@ -79,6 +79,7 @@ namespace nissa
   
   //compute all the meson contractions
   THREADABLE_FUNCTION_1ARG(compute_mes2pts_contr, int,normalize)
+  //void compute_mes2pts_contr(int normalize)
   {
     GET_THREAD_ID();
     
@@ -92,14 +93,11 @@ namespace nissa
     //
     // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
     
-    //allocate loc storage
-    complex *loc_contr=new complex[mes2pts_contr_size];
-    memset(loc_contr,0,sizeof(complex)*mes2pts_contr_size);
-    
     if(IS_MASTER_THREAD) mes2pts_contr_time-=take_time();
     
     for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
       {
+	master_printf("icombo %d/%d\n",icombo,mes2pts_contr_map.size());
 	qprop_t &Q1=Q[mes2pts_contr_map[icombo].a];
 	qprop_t &Q2=Q[mes2pts_contr_map[icombo].b];
 	double norm=12/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2); //12 in case of a point source
@@ -132,27 +130,23 @@ namespace nissa
 			unsafe_complex_prod(AB,A,B);
 			if(normalize) complex_prodassign_double(AB,norm);
 			
-			NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-			  {
-			    complex c={0,0};
-			    int t=rel_time_of_loclx(ivol);
-			    for(int a=0;a<NCOL;a++)
-			      complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			    complex_summ_the_prod(loc_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
-			  }
+			NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
+			  for(int ispat=0;ispat<loc_spat_vol;ispat++)
+			    {
+			      int ivol=loc_t*loc_spat_vol+ispat;
+			      int t=rel_time_of_loclx(ivol);
+			      
+			      complex c={0,0};
+			      for(int a=0;a<NCOL;a++)
+				complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
+			      complex_summ_the_prod(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
+			    }
 		      }
 		  }
 	      }
 	  }
       }
     THREAD_BARRIER();
-    
-    //reduce between threads and summ
-    complex *red_contr=glb_threads_reduce_complex_vect(loc_contr,mes2pts_contr_size);
-    NISSA_PARALLEL_LOOP(i,0,mes2pts_contr_size) complex_summassign(mes2pts_contr[i],red_contr[i]);
-    //disallocate after all threads finished
-    THREAD_BARRIER();
-    delete[] loc_contr;
     
     //stats
     if(IS_MASTER_THREAD)

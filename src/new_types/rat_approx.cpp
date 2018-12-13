@@ -33,6 +33,17 @@ namespace nissa
     
     return out.str();
   }
+
+  int rat_approx_t::master_fprintf_expr(FILE *fout)
+  {
+    int rc=0;
+    rc+=nissa::master_fprintf(fout,"%.16lg",cons);
+    for(int i=0;i<degree();i++)
+      rc+=nissa::master_fprintf(fout,"+%.16lg/(x+%.16lg)",weights[i],poles[i]);
+    rc+=nissa::master_fprintf(fout,"\n",cons);
+    
+    return rc;
+  }
   
   //convert from a stored approximation
   std::vector<rat_approx_t> convert_rat_approx(const char *data,size_t len)

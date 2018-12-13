@@ -14,11 +14,11 @@
 #define BORD_VOL bord_vol
 
 #define APPLY_OPERATOR apply_overlap_kernel2
-#define CGM_OPERATOR_PARAMETERS conf,M, t,
+#define CGM_OPERATOR_PARAMETERS conf,M,t,
 
 #define CGM_INVERT inv_overlap_kernel2_cgm
-#define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_overlap_kernel_2_cgm_run_hm_up_to_comm_prec  
-#define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_overlap_kernel2_cgm    
+#define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_overlap_kernel_2_cgm_run_hm_up_to_comm_prec
+#define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_overlap_kernel2_cgm
 
 #define CGM_START_COMMUNICATING_BORDERS(A) start_communicating_lx_spincolor_borders(A)
 #define CGM_FINISH_COMMUNICATING_BORDERS(A) finish_communicating_lx_spincolor_borders(A)
@@ -35,6 +35,9 @@
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,M,
 
 #include "inverters/templates/cgm_invert_template_threaded.cpp"
+<<<<<<< HEAD
 
 namespace nissa
 {}
+=======
+>>>>>>> upstream/master

@@ -16,7 +16,7 @@
 
 #include "thread_macros.hpp"
 
-#define EXTERN
+#define EXTERN_BENCH
  #include "bench.hpp"
 
 #include "communicate/communicate.hpp"

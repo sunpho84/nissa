@@ -34,6 +34,8 @@ namespace nissa
     
     std::string get_str();
     int master_fprintf(FILE *fout,int full=false) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
+    int master_fprintf_expr(FILE *fout);
+    
     void shift_all_poles(double sh) {for(int iterm=0;iterm<degree();iterm++) poles[iterm]+=sh;}
   };
   

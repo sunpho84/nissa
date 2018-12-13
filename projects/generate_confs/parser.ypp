@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <glob.h>
+
 #include "nissa.hpp"
 #include "generate_confs/driver.hpp"
 #include "generate_confs/parser.hpp"
@@ -716,7 +718,21 @@ spectr_proj_meas: TK_SPECTR_PROJ {$$=new spectr_proj_meas_pars_t();}
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////
 
-global_analysis_pars: TK_ANALYSIS TK_CONF_LIST '=' text_list {driver->run_mode=driver_t::ANALYSIS_MODE;driver->an_conf_list=(*$4);delete $4;}
+global_analysis_pars: TK_ANALYSIS TK_CONF_LIST '=' text_list
+{
+    driver->run_mode=driver_t::ANALYSIS_MODE;
+    for(auto& it : *$4)
+	{
+	    glob_t globbuf;
+	    if(glob(it.c_str(),0,NULL,&globbuf))
+		crash("Unable to find patterm %s for conf",it.c_str());
+	    else
+		for(int j=0;j<(int)globbuf.gl_pathc;j++)
+		    driver->an_conf_list.push_back(globbuf.gl_pathv[j]);
+	    globfree(&globbuf);
+	 }
+     delete $4;
+ }
 ;
 
 /////////////////////////////////////////// PLAQ AND POLYAKOV LOOP //////////////////////////////////////////////////

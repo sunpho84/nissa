@@ -26,9 +26,10 @@ namespace nissa
     
     apply_overlap_kernel(temp,conf, M, in);
     apply_overlap_kernel(out,conf, M, temp);
-   
-    if(diag_coeff!=0) complex_vector_summassign_complex_vector_prod_complex((complex*)out, (complex*)in,&diag_coeff,NCOL*(loc_vol+bord_vol)); 
- 
+    
+    if(diag_coeff!=0)
+      double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,diag_coeff,sizeof(spincolor)/sizeof(double)*loc_vol);
+    
     if(ext_temp==NULL) nissa_free(temp);
   }
   THREADABLE_FUNCTION_END

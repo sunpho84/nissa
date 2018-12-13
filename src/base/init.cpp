@@ -207,6 +207,7 @@ namespace nissa
 #endif
     
     //set default value for parameters
+    perform_benchmark=NISSA_DEFAULT_PERFORM_BENCHMARK;
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
     use_128_bit_precision=NISSA_DEFAULT_USE_128_BIT_PRECISION;
     use_eo_geom=NISSA_DEFAULT_USE_EO_GEOM;
@@ -237,6 +238,10 @@ namespace nissa
     
 #ifdef USE_PARPACK
     use_parpack=NISSA_DEFAULT_USE_PARPACK;
+#endif
+    
+#ifdef USE_GMP
+    master_printf("Linked with GMP\n");
 #endif
     
     //put 0 as minimal request
@@ -851,6 +856,6 @@ namespace nissa
     master_printf("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
     
     //benchmark the net
-    bench_net_speed();
+    if(perform_benchmark) bench_net_speed();
   }
 }
