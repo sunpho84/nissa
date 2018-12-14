@@ -21,9 +21,9 @@ namespace nissa
   //use arpack or the autarchic implementation
   template <class Fmat,class Filler>
   void eigenvalues_of_hermatr_find(complex **eig_vec,complex *eig_val,int neig,bool min_max,
-					     const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
-					     const double target_precision,const int niter_max,
-					     const Filler &filler)
+				   const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
+				   const double target_precision,const int niter_max,
+				   const Filler &filler)
   {
     master_printf("Solving eigenproblem for %d %s eigenvalues,\n",neig,min_max?"max":"min");
     master_printf(" target precision: %lg\n",target_precision);

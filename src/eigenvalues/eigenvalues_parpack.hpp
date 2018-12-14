@@ -79,7 +79,7 @@ namespace nissa
 	glb_info(nissa_malloc("info",1,int)),
 	glb_ido(nissa_malloc("ido",1,int)),
 	residue(nissa_malloc("residue",mat_size_to_allocate,complex)),
-	wspace_size(std::max(2*neig,20)),
+	wspace_size(std::max(2*neig,50)),
 	v(nissa_malloc("v",wspace_size*mat_size_to_allocate,complex)),
 	ldv(mat_size_to_allocate),
 	iparam(nissa_malloc("iparam",11,int)),
