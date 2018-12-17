@@ -126,128 +126,129 @@ namespace mel
   THREADABLE_FUNCTION_END
 }
 
-THREADABLE_FUNCTION_8ARG(fill_eigenpart, spincolor**,eigvec_conv, spincolor**,eigvec, int,neig, quad_su3*,conf, double,kappa, double,am, int,r, double,eig_precision)
-{
-  GET_THREAD_ID();
+// THREADABLE_FUNCTION_8ARG(fill_eigenpart, spincolor**,eigvec_conv, spincolor**,eigvec, int,neig, quad_su3*,conf, double,kappa, double,am, int,r, double,eig_precision)
+// {
+//   GET_THREAD_ID();
   
-  //compute all eigenvectors
-  complex lambda[neig];
-  //wrap the application of Q2 into an object that can be passed to the eigenfinder
-  spincolor *temp_imp_mat=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
-  const auto imp_mat=[conf,kappa,mu=am*tau3[r],temp_imp_mat](complex *out,complex *in)
-    {
-      // apply_tmQ2((spincolor*)out,conf,kappa,temp_imp_mat,mu,(spincolor*)in);
+//   //compute all eigenvectors
+//   complex lambda[neig];
+//   //wrap the application of Q2 into an object that can be passed to the eigenfinder
+//   spincolor *temp_imp_mat=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+//   const auto imp_mat=[conf,kappa,mu=am*tau3[r],temp_imp_mat](complex *out,complex *in)
+//     {
+//       // apply_tmQ2((spincolor*)out,conf,kappa,temp_imp_mat,mu,(spincolor*)in);
       
-      // apply_tmQ((spincolor*)out,conf,kappa,mu,(spincolor*)in);
+//       // apply_tmQ((spincolor*)out,conf,kappa,mu,(spincolor*)in);
       
-      apply_tmQ(temp_imp_mat,conf,kappa,mu,(spincolor*)in);
-      GET_THREAD_ID();
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-        unsafe_dirac_prod_spincolor(((spincolor*)out)[ivol],base_gamma+5,temp_imp_mat[ivol]);
-      set_borders_invalid(out);
-    };
+//       apply_tmQ(temp_imp_mat,conf,kappa,mu,(spincolor*)in);
+//       GET_THREAD_ID();
+//       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+//         unsafe_dirac_prod_spincolor(((spincolor*)out)[ivol],base_gamma+5,temp_imp_mat[ivol]);
+//       set_borders_invalid(out);
+//     };
   
-  //parameters of the eigensolver
-  const bool min_max=0;
-  const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
-  const int mat_size_to_allocate=(loc_vol+bord_vol)*sizeof(spincolor)/sizeof(complex);
-  const int niter_max=10000000;
+//   //parameters of the eigensolver
+//   const bool min_max=0;
+//   const int mat_size=loc_vol*sizeof(spincolor)/sizeof(complex);
+//   const int mat_size_to_allocate=(loc_vol+bord_vol)*sizeof(spincolor)/sizeof(complex);
+//   const int niter_max=10000000;
   
-  //wrap the generation of the test vector into an object that can be passed to the eigenfinder
-  const auto filler=[](complex *a)
-    {
-      generate_undiluted_source((spincolor*)a,RND_GAUSS,ALL_TIMES);
-    };
+//   //wrap the generation of the test vector into an object that can be passed to the eigenfinder
+//   const auto filler=[](complex *a)
+//     {
+//       generate_undiluted_source((spincolor*)a,RND_GAUSS,ALL_TIMES);
+//     };
   
-  // master_printf("EigenFinding\n");
-  print_all_eigenstuff(imp_mat,mat_size);
-  crash("test");
+//   // master_printf("EigenFinding\n");
+//   print_all_eigenstuff(imp_mat,mat_size);
+//   crash("test");
   
-  //launch the eigenfinder
-  double eig_time=-take_time();
-  complex Q2_eig_val[neig];
-  eigenvalues_of_hermatr_find((complex**)eigvec,Q2_eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler);
-  eig_time+=take_time();
-  master_printf("Eigenvalues time: %lg\n",eig_time);
+//   //launch the eigenfinder
+//   double eig_time=-take_time();
+//   complex Q2_eig_val[neig];
+//   eigenvalues_of_hermatr_find((complex**)eigvec,Q2_eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler);
+//   eig_time+=take_time();
+//   master_printf("Eigenvalues time: %lg\n",eig_time);
   
-  //prints eigenvalues of QQ for check
-  master_printf("Eigenvalues of QQ:\n");
-  for(int ieig=0;ieig<neig;ieig++)
-    master_printf("%d (%.16lg,%.16lg)\n",ieig,Q2_eig_val[ieig][RE],Q2_eig_val[ieig][IM]);
-  master_printf("\n");
+//   //prints eigenvalues of QQ for check
+//   master_printf("Eigenvalues of QQ:\n");
+//   for(int ieig=0;ieig<neig;ieig++)
+//     master_printf("%d (%.16lg,%.16lg)\n",ieig,Q2_eig_val[ieig][RE],Q2_eig_val[ieig][IM]);
+//   master_printf("\n");
   
-  //find the eigenvalues of Q
-  master_printf("Eigenvalues of D:\n");
-  for(int ieig=0;ieig<neig;ieig++)
-    {
-      master_printf(" (norm of vec: %lg)\n",sqrt(double_vector_glb_norm2(eigvec[ieig],loc_vol)));
+//   //find the eigenvalues of Q
+//   master_printf("Eigenvalues of D:\n");
+//   for(int ieig=0;ieig<neig;ieig++)
+//     {
+//       master_printf(" (norm of vec: %lg)\n",sqrt(double_vector_glb_norm2(eigvec[ieig],loc_vol)));
       
-      //apply the matrix
-      apply_tmQ(temp_imp_mat,conf,kappa,am*tau3[r],eigvec[ieig]);
-            GET_THREAD_ID();
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      	safe_dirac_prod_spincolor(((spincolor*)temp_imp_mat)[ivol],base_gamma+5,temp_imp_mat[ivol]);
-      set_borders_invalid(temp_imp_mat);
+//       //apply the matrix
+//       apply_tmQ(temp_imp_mat,conf,kappa,am*tau3[r],eigvec[ieig]);
+//             GET_THREAD_ID();
+//       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+//       	safe_dirac_prod_spincolor(((spincolor*)temp_imp_mat)[ivol],base_gamma+5,temp_imp_mat[ivol]);
+//       set_borders_invalid(temp_imp_mat);
       
-      //compute eigenvalue
-      complex_vector_glb_scalar_prod(lambda[ieig],(complex*)(eigvec[ieig]),(complex*)temp_imp_mat,mat_size);
+//       //compute eigenvalue
+//       complex_vector_glb_scalar_prod(lambda[ieig],(complex*)(eigvec[ieig]),(complex*)temp_imp_mat,mat_size);
       
-      complex c={0,0};
-      for(int ivol=0;ivol<loc_vol;ivol++)
-	{
-	  spincolor temp;
-	  safe_dirac_prod_spincolor(temp,base_gamma+5,eigvec[ieig][ivol]);
-	  complex a;
-	  spincolor_scalar_prod(a,eigvec[ieig][ivol],temp);
-	  complex_summassign(c,a);
+//       complex c={0,0};
+//       for(int ivol=0;ivol<loc_vol;ivol++)
+// 	{
+// 	  spincolor temp;
+// 	  safe_dirac_prod_spincolor(temp,base_gamma+5,eigvec[ieig][ivol]);
+// 	  complex a;
+// 	  spincolor_scalar_prod(a,eigvec[ieig][ivol],temp);
+// 	  complex_summassign(c,a);
 	  
-	  if(ivol<2)
-	  for(int id=0;id<NDIRAC;id++)
-	    for(int ic=0;ic<NCOL;ic++)
-	      {
-		complex &c=eigvec[ieig][ivol][id][ic];
-		master_printf("ivol %d id %d ic %d, %.16lg %.16lg\n",ivol,id,ic,c[RE],c[IM]);
-	      }
-	}
-      master_printf(" g5story: (%.16lg,%.16lg)\n",c[RE],c[IM]);
+// 	  if(ivol<2)
+// 	  for(int id=0;id<NDIRAC;id++)
+// 	    for(int ic=0;ic<NCOL;ic++)
+// 	      {
+// 		complex &c=eigvec[ieig][ivol][id][ic];
+// 		master_printf("ivol %d id %d ic %d, %.16lg %.16lg\n",ivol,id,ic,c[RE],c[IM]);
+// 	      }
+// 	}
+//       master_printf(" g5story: (%.16lg,%.16lg)\n",c[RE],c[IM]);
       
-      //compute residue
-      complex_vector_subtassign_complex_vector_prod_complex((complex*)temp_imp_mat,(complex*)(eigvec[ieig]),lambda[ieig],mat_size);
-      master_printf("%d (%.16lg,%.16lg), residue: %lg\n",ieig,lambda[ieig][RE],lambda[ieig][IM],sqrt(double_vector_glb_norm2(temp_imp_mat,loc_vol)));
-    }
-  master_printf("\n");
+//       //compute residue
+//       complex_vector_subtassign_complex_vector_prod_complex((complex*)temp_imp_mat,(complex*)(eigvec[ieig]),lambda[ieig],mat_size);
+//       master_printf("%d (%.16lg,%.16lg), residue: %lg\n",ieig,lambda[ieig][RE],lambda[ieig][IM],sqrt(double_vector_glb_norm2(temp_imp_mat,loc_vol)));
+//     }
+//   master_printf("\n");
   
-  //close vectors
-  for(int ieig=0;ieig<neig;ieig++)
-    {
-      apply_tmQ(temp_imp_mat,conf,kappa,-am*tau3[r],eigvec[ieig]);
-      inv_tmQ2_RL_cg(eigvec_conv[ieig],NULL,conf, kappa,0,am*tau3[r],1000000,1e-11,temp_imp_mat);
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      	safe_dirac_prod_spincolor(eigvec_conv[ieig][ivol],base_gamma+5,eigvec_conv[ieig][ivol]);
+//   //close vectors
+//   for(int ieig=0;ieig<neig;ieig++)
+//     {
+//       apply_tmQ(temp_imp_mat,conf,kappa,-am*tau3[r],eigvec[ieig]);
+//       inv_tmQ2_RL_cg(eigvec_conv[ieig],NULL,conf, kappa,0,am*tau3[r],1000000,1e-11,temp_imp_mat);
+//       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+//       	safe_dirac_prod_spincolor(eigvec_conv[ieig][ivol],base_gamma+5,eigvec_conv[ieig][ivol]);
       
-      // complex one_over_lambda;
-      // complex_reciprocal(one_over_lambda,lambda[ieig]);
-      // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      // 	{
-      // 	  unsafe_dirac_prod_spincolor(temp_imp_mat[ivol],base_gamma+5,eigvec[ieig][ivol]);
-      // 	  spincolor_prodassign_complex(temp_imp_mat[ivol],one_over_lambda);
-	// }
-      set_borders_invalid(eigvec_conv[ieig]);
-    }
+//       // complex one_over_lambda;
+//       // complex_reciprocal(one_over_lambda,lambda[ieig]);
+//       // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+//       // 	{
+//       // 	  unsafe_dirac_prod_spincolor(temp_imp_mat[ivol],base_gamma+5,eigvec[ieig][ivol]);
+//       // 	  spincolor_prodassign_complex(temp_imp_mat[ivol],one_over_lambda);
+// 	// }
+//       set_borders_invalid(eigvec_conv[ieig]);
+//     }
   
-  //rotate the opposite way, to compensate for the missing rotation
-  for(int ieig=0;ieig<neig;ieig++)
-    {
-      safe_dirac_prod_spincolor(eigvec[ieig],(tau3[!r]==-1)?&Pminus:&Pplus,eigvec[ieig]);
-      safe_dirac_prod_spincolor(eigvec_conv[ieig],(tau3[!r]==-1)?&Pminus:&Pplus,eigvec_conv[ieig]);
-    }
+//   //rotate the opposite way, to compensate for the missing rotation
+//   for(int ieig=0;ieig<neig;ieig++)
+//     {
+//       safe_dirac_prod_spincolor(eigvec[ieig],(tau3[!r]==-1)?&Pminus:&Pplus,eigvec[ieig]);
+//       safe_dirac_prod_spincolor(eigvec_conv[ieig],(tau3[!r]==-1)?&Pminus:&Pplus,eigvec_conv[ieig]);
+//     }
   
-  nissa_free(temp_imp_mat);
-}
-THREADABLE_FUNCTION_END
+//   nissa_free(temp_imp_mat);
+// }
+// THREADABLE_FUNCTION_END
 
 //compute all propagators
-THREADABLE_FUNCTION_10ARG(compute_orthogonal_part, spincolor**,phi, spincolor**,eta, int,nhits, spincolor**,eigvec, int,neig, quad_su3*,conf, double,kappa, double,am, int,r, double,solver_precision)
+//THREADABLE_FUNCTION_10ARG(compute_orthogonal_part, spincolor**,phi, spincolor**,eta, int,nhits, spincolor**,eigvec, int,neig, quad_su3*,conf, double,kappa, double,am, int,r, double,solver_precision)
+THREADABLE_FUNCTION_8ARG(compute_propagators, spincolor**,phi, spincolor**,eta, int,nhits, quad_su3*,conf, double,kappa, double,am, int,r, double,solver_precision)
 {
   //source and solution for the solver
   spincolor *source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
@@ -257,16 +258,20 @@ THREADABLE_FUNCTION_10ARG(compute_orthogonal_part, spincolor**,phi, spincolor**,
     {
       master_printf("Prop Hit %d\n",ihit);
       
-      //subtract longitudinal part
+      //prepare the source
       vector_copy(source,eta[ihit]);
-      for(int ieig=0;ieig<neig;ieig++)
-	{
-	  int s=loc_vol*sizeof(spincolor)/sizeof(complex);
-	  complex n;
-	  complex_vector_glb_scalar_prod(n,(complex*)(eigvec[ieig]),(complex*)(source),s);
-	  complex_vector_subtassign_complex_vector_prod_complex((complex*)(source),(complex*)(eigvec[ieig]),n,s);
-	  set_borders_invalid(source);
-	}
+      
+      //subtract longitudinal part
+      // for(int ieig=0;ieig<neig;ieig++)
+      // 	{
+      // 	  int s=loc_vol*sizeof(spincolor)/sizeof(complex);
+      // 	  complex n;
+      // 	  complex_vector_glb_scalar_prod(n,(complex*)(eigvec[ieig]),(complex*)(source),s);
+      // 	  complex_vector_subtassign_complex_vector_prod_complex((complex*)(source),(complex*)(eigvec[ieig]),n,s);
+      // 	  set_borders_invalid(source);
+      // 	}
+      
+      //rotate to twisted basis
       safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,source);
       
       if(free_theory)
@@ -278,6 +283,7 @@ THREADABLE_FUNCTION_10ARG(compute_orthogonal_part, spincolor**,phi, spincolor**,
       else
 	inv_tmD_cg_eoprec(solution,NULL,conf,kappa,am*tau3[r],1000000,solver_precision,source);
       
+      //ROTATE BACK
       safe_dirac_prod_spincolor(phi[ihit],(tau3[r]==-1)?&Pminus:&Pplus,solution);
     }
   
@@ -337,10 +343,10 @@ void in_main(int narg,char **arg)
   read_str_int("NHits",&nhits);
   
   //read the calculation of eigenvalues
-  int neig;
-  read_str_int("Neig",&neig);
-  double eig_precision;
-  read_str_double("EigPrecision",&eig_precision);
+  // int neig;
+  // read_str_int("Neig",&neig);
+  // double eig_precision;
+  // read_str_double("EigPrecision",&eig_precision);
   
   //allocate the source and prop
   spincolor *eta[nhits];
@@ -352,13 +358,13 @@ void in_main(int narg,char **arg)
     }
   
   //store eigenvectors and their convoution with eigenvalue
-  spincolor *eigvec[neig];
-  spincolor *eigvec_conv[neig];
-  for(int ieig=0;ieig<neig;ieig++)
-    {
-      eigvec[ieig]=nissa_malloc("eigvec",loc_vol+bord_vol,spincolor);
-      eigvec_conv[ieig]=nissa_malloc("eigvec_conv",loc_vol+bord_vol,spincolor);
-    }
+  // spincolor *eigvec[neig];
+  // spincolor *eigvec_conv[neig];
+  // for(int ieig=0;ieig<neig;ieig++)
+  //   {
+  //     eigvec[ieig]=nissa_malloc("eigvec",loc_vol+bord_vol,spincolor);
+  //     eigvec_conv[ieig]=nissa_malloc("eigvec_conv",loc_vol+bord_vol,spincolor);
+  //   }
   
   //compute the tadpole coefficient
   momentum_t tadpole_coeff;
@@ -386,11 +392,11 @@ void in_main(int narg,char **arg)
   
   //currents
   spin1field *J_stoch[nhits];
-  spin1field *J_eig[neig];
+  // spin1field *J_eig[neig];
   for(int ihit=0;ihit<nhits;ihit++)
     J_stoch[ihit]=nissa_malloc("J_stoch",loc_vol+bord_vol,spin1field);
-  for(int ieig=0;ieig<neig;ieig++)
-    J_eig[ieig]=nissa_malloc("J_eig",loc_vol+bord_vol,spin1field);
+  // for(int ieig=0;ieig<neig;ieig++)
+  //   J_eig[ieig]=nissa_malloc("J_eig",loc_vol+bord_vol,spin1field);
   spin1field *xi=nissa_malloc("xi",loc_vol+bord_vol,spin1field);
   
   //buffer for local matrix element
@@ -435,44 +441,45 @@ void in_main(int narg,char **arg)
 	  
 	  /////////////////////////////////////////////////////////////////
 	  
-	  if(neig)
-	    fill_eigenpart(eigvec_conv,eigvec,neig,conf,kappa,am,r,eig_precision);
+	  // if(neig)
+	  //   fill_eigenpart(eigvec_conv,eigvec,neig,conf,kappa,am,r,eig_precision);
 	  
-	  compute_orthogonal_part(phi,eta,nhits,eigvec,neig,conf,kappa,am,r,residue);
+	  //compute_orthogonal_part(phi,eta,nhits,eigvec,neig,conf,kappa,am,r,residue);
+	  compute_propagators(phi,eta,nhits,conf,kappa,am,r,residue);
 	  
 	  //compute all currents
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[ihit]);
-	  for(int ieig=0;ieig<neig;ieig++)
-	    mel::conserved_vector_current_mel(J_eig[ieig],eigvec[ieig],conf,r,eigvec_conv[ieig]);
+	  // for(int ieig=0;ieig<neig;ieig++)
+	  //   mel::conserved_vector_current_mel(J_eig[ieig],eigvec[ieig],conf,r,eigvec_conv[ieig]);
 	  
 	  //compute diagrams EU1, EU2 and EU4
 	  complex EU1_stoch={0.0,0.0},EU2_stoch={0.0,0.0},EU4_stoch={0.0,0.0};
 	  
 	  //open the output files
 	  FILE *fout_EU1_stoch=open_file(combine("%s/EU1_stoch",outfolder),"w");
-	  FILE *fout_EU1_eigvec=open_file(combine("%s/EU1_eigvec",outfolder),"w");
+	  // FILE *fout_EU1_eigvec=open_file(combine("%s/EU1_eigvec",outfolder),"w");
 	  FILE *fout_EU2_stoch=open_file(combine("%s/EU2_stoch",outfolder),"w");
-	  FILE *fout_EU2_eigvec=open_file(combine("%s/EU2_eigvec",outfolder),"w");
+	  // FILE *fout_EU2_eigvec=open_file(combine("%s/EU2_eigvec",outfolder),"w");
 	  FILE *fout_EU4_stoch=open_file(combine("%s/EU4_stoch",outfolder),"w");
 	  FILE *fout_EU5_stoch=open_file(combine("%s/EU5_stoch",outfolder),"w");
 	  FILE *fout_EU6_stoch=open_file(combine("%s/EU6_stoch",outfolder),"w");
 	  
-	  complex EU1_eigvec={0.0,0.0},EU2_eigvec={0.0,0.0};
-	  for(int ieig=0;ieig<neig;ieig++)
-	    {
-	      complex temp;
+	  // complex EU1_eigvec={0.0,0.0},EU2_eigvec={0.0,0.0};
+	  // for(int ieig=0;ieig<neig;ieig++)
+	  //   {
+	  //     complex temp;
 	      
-	      //Pseudo
-	      mel::local_mel(temp,eigvec[ieig],5,eigvec_conv[ieig]);
-	      complex_summ_the_prod_idouble(EU1_eigvec,temp,-1.0);
-	      master_fprintf(fout_EU1_eigvec,"%.16lg %.16lg\n",EU1_eigvec[RE],EU1_eigvec[IM]);
+	  //     //Pseudo
+	  //     mel::local_mel(temp,eigvec[ieig],5,eigvec_conv[ieig]);
+	  //     complex_summ_the_prod_idouble(EU1_eigvec,temp,-1.0);
+	  //     master_fprintf(fout_EU1_eigvec,"%.16lg %.16lg\n",EU1_eigvec[RE],EU1_eigvec[IM]);
 	      
-	      //Scalar
-	      mel::local_mel(temp,eigvec[ieig],0,eigvec_conv[ieig]);
-	      complex_summassign(EU2_eigvec,temp);
-	      master_fprintf(fout_EU2_eigvec,"%.16lg %.16lg\n",EU2_eigvec[RE],EU2_eigvec[IM]);
-	    }
+	  //     //Scalar
+	  //     mel::local_mel(temp,eigvec[ieig],0,eigvec_conv[ieig]);
+	  //     complex_summassign(EU2_eigvec,temp);
+	  //     master_fprintf(fout_EU2_eigvec,"%.16lg %.16lg\n",EU2_eigvec[RE],EU2_eigvec[IM]);
+	  //   }
 	  
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    {
@@ -531,9 +538,9 @@ void in_main(int narg,char **arg)
 	    }
 	  
 	  close_file(fout_EU1_stoch);
-	  close_file(fout_EU1_eigvec);
+	  // close_file(fout_EU1_eigvec);
 	  close_file(fout_EU2_stoch);
-	  close_file(fout_EU2_eigvec);
+	  // close_file(fout_EU2_eigvec);
 	  close_file(fout_EU4_stoch);
 	  close_file(fout_EU5_stoch);
 	  close_file(fout_EU6_stoch);
@@ -550,8 +557,8 @@ void in_main(int narg,char **arg)
   nissa_free(mel::buffer);
   for(int ihit=0;ihit<nhits;ihit++)
     nissa_free(J_stoch[ihit]);
-  for(int ieig=0;ieig<neig;ieig++)
-    nissa_free(J_eig[ieig]);
+  // for(int ieig=0;ieig<neig;ieig++)
+  //   nissa_free(J_eig[ieig]);
   nissa_free(conf);
   
   //free the source and prop
@@ -562,11 +569,11 @@ void in_main(int narg,char **arg)
     }
   
   //free eigvec and convolution
-  for(int ieig=0;ieig<neig;ieig++)
-    {
-      nissa_free(eigvec[ieig]);
-      nissa_free(eigvec_conv[ieig]);
-    }
+  // for(int ieig=0;ieig<neig;ieig++)
+  //   {
+  //     nissa_free(eigvec[ieig]);
+  //     nissa_free(eigvec_conv[ieig]);
+  //   }
 }
 
 int main(int narg,char **arg)
