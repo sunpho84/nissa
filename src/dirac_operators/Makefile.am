@@ -14,7 +14,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/WclovQ/dirac_operator_WclovQ.cpp \
 	%D%/WclovQ2/dirac_operator_WclovQ2.cpp \
 	%D%/tmclovQ/dirac_operator_tmclovQ.cpp \
-  %D%/overlap/dirac_operator_overlap_kernel_portable.cpp \
+	%D%/overlap/dirac_operator_overlap_kernel_portable.cpp \
 	%D%/overlap/dirac_operator_overlap_kernel2.cpp \
 	%D%/overlap/dirac_operator_overlap.cpp \
 	%D%/tmclovQ/dirac_operator_tmclovQ_128.cpp \
@@ -47,7 +47,7 @@ include_HEADERS+= \
 	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_128.hpp \
 	%D%/tmclovQ2/dirac_operator_tmclovQ2_128.hpp \
 	%D%/overlap/dirac_operator_overlap_kernel2.hpp \
-  %D%/overlap/dirac_operator_overlap_kernel_portable.hpp \
+	%D%/overlap/dirac_operator_overlap_kernel_portable.hpp \
 	%D%/overlap/dirac_operator_overlap.hpp
 
 #compile or not bgq source
