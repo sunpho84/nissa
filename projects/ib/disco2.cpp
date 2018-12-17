@@ -283,7 +283,7 @@ THREADABLE_FUNCTION_8ARG(compute_propagators, spincolor**,phi, spincolor**,eta, 
       else
 	inv_tmD_cg_eoprec(solution,NULL,conf,kappa,am*tau3[r],1000000,solver_precision,source);
       
-      //ROTATE BACK
+      //rotate back
       safe_dirac_prod_spincolor(phi[ihit],(tau3[r]==-1)?&Pminus:&Pplus,solution);
     }
   
