@@ -59,8 +59,8 @@ namespace nissa
     //wrap the generation of the test vector into an object that can be passed to the eigenfinder
     const auto filler=[&fill_tmp_eo](complex *out_lx)
       {
-	generate_fully_undiluted_eo_source(fill_tmp_eo,RND_GAUSS,-1,0);
-	paste_eo_parts_into_lx_vector((color*)out_lx,fill_tmp_eo);
+      generate_fully_undiluted_eo_source(fill_tmp_eo,RND_GAUSS,-1,0);
+      paste_eo_parts_into_lx_vector((color*)out_lx,fill_tmp_eo);
       };
     
     //launch the eigenfinder
@@ -69,30 +69,31 @@ namespace nissa
     eigenvalues_of_hermatr_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler);
     rem_backfield_with_stagphases_from_conf(conf,u1b);
     
-    //double norm_cut[neigs];
-    complex *point_vec=nissa_malloc("point_vec",(loc_vol+bord_vol)*NCOL,complex);
+//    complex norm_cut[neigs];
+    complex *g5eigvec_i=nissa_malloc("g5eigvec_j",(loc_vol+bord_vol)*NCOL,complex);
     master_printf("\n\nEigenvalues of DD^+:\n");
-    for(int ieig=0;ieig<neigs;++ieig)
+    for(int ieig=0; ieig<neigs; ++ieig)
       {
-	master_printf("%d (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE]-0.0001,DD_eig_val[ieig][IM]);
-	
-	// compute partial sum terms of tr(g5)
-	// save 'eigvec[ieigs]' in staggered format (i.e., 'fill_tmp_eo'),
-	// then multiply it with gamma5 and save the result in
-	// 'out_tmp_eo'. The term contributing to the partial sum of tr(g5)
-	// will be stored in 'charge_cut[ieig]' as the hermitian product
-	// between 'fill_tmp_eo' and 'out_tmp_eo'.
-	
-	split_lx_vector_into_eo_parts((color**)fill_tmp_eo,(color*)eigvec[ieig]);
-	
-	//multiply by gamma5
-	apply_stag_op(out_tmp_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,fill_tmp_eo);
-	
-	//take hermitian product
-	stag::summ_the_trace((double*)&charge_cut[ieig],(complex*)point_vec,out_tmp_eo,fill_tmp_eo);
-	//      stag::summ_the_trace((double*)&norm_cut[ieig],point_vec,fill_tmp_eo,fill_tmp_eo);
-	//      master_printf("charge_cut[%d] = %.10f, norm_cut[%d] = %.10f\n",ieig,charge_cut[ieig],ieig,norm_cut[ieig]);
-      }
+      master_printf("%d (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE]-0.0001,DD_eig_val[ieig][IM]);
+      
+      // compute partial sum terms of tr(g5)
+      // save 'eigvec[ieig]' in staggered format (i.e., 'fill_tmp_eo'),
+      // then multiply it with gamma5 and save the result in
+      // 'out_tmp_eo'. The term contributing to the partial sum of tr(g5)
+      // will be stored in 'charge_cut[ieig]' as the hermitian product
+      // between 'fill_tmp_eo' and 'out_tmp_eo'.
+      
+      split_lx_vector_into_eo_parts((color**)fill_tmp_eo,(color*)eigvec[ieig]);
+      
+      //multiply by gamma5
+      apply_stag_op(out_tmp_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,fill_tmp_eo);
+      
+      paste_eo_parts_into_lx_vector((color*)g5eigvec_i,out_tmp_eo);
+      
+      //take hermitian products
+      for(int jeig=ieig; jeig<neigs; ++jeig)
+        complex_vector_glb_scalar_prod((double*)&charge_cut[ieig*neigs+jeig],eigvec[jeig],g5eigvec_i,(loc_vol+bord_vol)*NCOL);
+    }
     master_printf("\n\n\n");
     
     eig_time+=take_time();
@@ -106,7 +107,7 @@ namespace nissa
     nissa_free(fill_tmp_eo[ODD]);
     nissa_free(u1b[0]);
     nissa_free(u1b[1]);
-    nissa_free(point_vec);
+    nissa_free(g5eigvec_i);
   }
   THREADABLE_FUNCTION_END
   
@@ -117,7 +118,7 @@ namespace nissa
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     int neigs=meas_pars.neigs;
     
-    complex *charge_cut=nissa_malloc("charge_cut",neigs,complex);
+    complex *charge_cut=nissa_malloc("charge_cut",neigs*neigs,complex);
     complex *DD_eig_val=nissa_malloc("DD_eig_Val",neigs,complex);
     vector_reset(charge_cut);
     vector_reset(DD_eig_val);
@@ -144,8 +145,9 @@ namespace nissa
     //print the result
     master_fprintf(file,"%d\t",neigs);
     for(int ieig=0;ieig<neigs;++ieig)
-      master_fprintf(file,"%.16lg\t%.16lg\t",DD_eig_val[ieig][RE]-0.0001,charge_cut[ieig][RE]);
-    
+      master_fprintf(file,"%.16lg\t%.16lg\t",DD_eig_val[ieig][RE]-0.0001,charge_cut[ieig*neigs+ieig][RE]);
+    for(int ieig=0; ieig<neigs-1; ++ieig) for(int jeig=ieig+1; jeig<neigs; ++jeig)
+        master_fprintf(file,"%.16lg\t",complex_norm2(charge_cut[ieig*neigs+jeig]));
     master_fprintf(file,"\n");
     
     close_file(file);
