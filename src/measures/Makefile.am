@@ -17,7 +17,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/fermions/stag.cpp \
 	%D%/fermions/zumba.cpp \
 	%D%/fermions/spectral_projectors.cpp \
-	%D%/fermions/eig_overlap_operator.cpp \
 	%D%/gauge/all_rectangles.cpp \
 	%D%/gauge/pline.cpp \
 	%D%/gauge/topological_charge.cpp \
@@ -36,7 +35,6 @@ include_HEADERS+= \
 	%D%/fermions/stag.hpp \
 	%D%/fermions/zumba.hpp \
 	%D%/fermions/spectral_projectors.hpp \
-	%D%/fermions/eig_overlap_operator.hpp \
 	%D%/contract/mesons_2pts.hpp \
 	%D%/contract/mesons_eight.hpp \
 	%D%/contract/optimized_mesons_2pts.hpp \

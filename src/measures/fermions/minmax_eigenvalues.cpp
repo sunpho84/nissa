@@ -37,23 +37,21 @@ namespace nissa
     appr.master_fprintf_expr(stdout);
     printf("time required= %.10e secs\n",take_time()-t_in);
    
-    ////////////////////////////////////////////////////
-    // FROM HERE C. BONANNO AND M.CARDINALI OVERLAP ////
-    ////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////
+    //// FROM HERE C. BONANNO AND M.CARDINALI OVERLAP ////
+    //////////////////////////////////////////////////////
 
-    complex* D_ov_eig_val=nissa_malloc("D_ov_eig_val",meas_pars.neig,complex)
-    spincolor** eigvec=nissa_malloc("eigvec",meas_pars.neig,spincolor*);
-    for(int ieig=0;ieig<meas_pars.neig;ieig++)
+    complex* D_ov_eig_val=nissa_malloc("D_ov_eig_val",meas_pars.neigs,complex);
+    spincolor** eigvec=nissa_malloc("eigvec",meas_pars.neigs,spincolor*);
+    for(int ieig=0;ieig<meas_pars.neigs;ieig++)
     eigvec[ieig]=nissa_malloc("eig", loc_vol+bord_vol, spincolor);
-
-    
 
     master_printf("neigs=%d, eig_precision=%.2e\n",meas_pars.neigs,meas_pars.eig_precision);
 
     //Application of the Overlap Operator
-    const auto imp_mat=[conf,M,minerr](complex* out_lx,complex *in_lx)
+    const auto imp_mat=[conf,&theory_pars.quarks[0].mass_overlap,&minerr](complex* out_lx,complex *in_lx)
 	{
-           apply_overlap((spincolor*)out_lx,conf, theory_pars[0].mass_overlap, minerr, (spincolor*)in_lx);
+           apply_overlap((spincolor*)out_lx,conf, theory_pars.quarks[0].mass_overlap, minerr, (spincolor*)in_lx);
       	};
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
  

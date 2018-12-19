@@ -15,7 +15,7 @@ namespace nissa
     int def_neigs(){return 5;}
     double def_eig_precision(){return 1e-5;}
     int min_max;
-    int def_neigs(){return 0;}
+    int def_min_max(){return 0;}
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);
     
@@ -30,7 +30,7 @@ namespace nissa
     }
     
     minmax_eigenvalues_meas_pars_t() :
-    base_fermionic_meas_t(), neigs(def_neigs()), eig_precision(def_eig_precision()), min_max(def_min_max());
+    base_fermionic_meas_t(), neigs(def_neigs()), eig_precision(def_eig_precision()), min_max(def_min_max())
     {path=def_path();}
     virtual ~minmax_eigenvalues_meas_pars_t(){}
   }; 
