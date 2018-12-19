@@ -49,7 +49,7 @@ namespace nissa
     master_printf("neigs=%d, eig_precision=%.2e\n",meas_pars.neigs,meas_pars.eig_precision);
 
     //Application of the Overlap Operator
-    const auto imp_mat=[conf,&theory_pars.quarks[0].mass_overlap,&minerr](complex* out_lx,complex *in_lx)
+    const auto imp_mat=[conf,theory_pars.quarks[0].mass_overlap,minerr](complex* out_lx,complex *in_lx)
 	{
            apply_overlap((spincolor*)out_lx,conf, theory_pars.quarks[0].mass_overlap, minerr, (spincolor*)in_lx);
       	};
