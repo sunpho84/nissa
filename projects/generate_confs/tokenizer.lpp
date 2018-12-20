@@ -263,6 +263,7 @@ ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
  /* parameters for SpectrProj */
 Neigs  DEBUG_PRINTF("Found Neigs\n");return TK_NEIGS;
 EigPrecision  DEBUG_PRINTF("Found EigPrecision\n");return TK_EIG_PRECISION;
+WSpaceSize  DEBUG_PRINTF("Found WSpaceSize\n");return TK_WSPACE_SIZE;
 
  /* gauge measures */
 UseSmooth DEBUG_PRINTF("Found UseSmooth\n");return TK_USE_SMOOTH;

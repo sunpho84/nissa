@@ -20,9 +20,9 @@ namespace nissa
   //and eigenvectors of DD^+ in staggered formulation, in order to
   //build an estimate of the topological charge as Q=\sum_i
   //\bar(u)_i gamma5 u_i, where {u_i} are the first n eigenvectors.
-  THREADABLE_FUNCTION_6ARG(measure_spectral_proj, complex**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, DD_eig_val, int,neigs, double,eig_precision)
+  THREADABLE_FUNCTION_7ARG(measure_spectral_proj, complex**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, DD_eig_val, int,neigs, double,eig_precision, int, wspace_size)
   {
-    master_printf("neigs=%d, eig_precision=%.2e\n",neigs,eig_precision);
+    master_printf("neigs=%d, eig_precision=%.2e, wspace_size=%d\n",neigs,eig_precision,wspace_size);
     
     //wrap the application of DD^+ into an object that can be passed to the eigenfinder
     color *out_tmp_eo[2]={nissa_malloc("out_tmp_EVN",loc_volh+bord_volh,color),nissa_malloc("out_tmp_ODD",loc_volh+bord_volh,color)};
@@ -66,7 +66,7 @@ namespace nissa
     //launch the eigenfinder
     double eig_time=-take_time();
     add_backfield_with_stagphases_to_conf(conf,u1b);
-    eigenvalues_of_hermatr_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler);
+    eigenvalues_of_hermatr_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler,wspace_size);
     rem_backfield_with_stagphases_from_conf(conf,u1b);
     
 //    complex norm_cut[neigs];
@@ -149,7 +149,7 @@ namespace nissa
       {
 	verbosity_lv2_master_printf("Evaluating spectral projections of gamma5, nhits %d/%d\n",hit+1,nhits);
 	
-	measure_spectral_proj(eigvec,conf,charge_cut,DD_eig_val,meas_pars.neigs,meas_pars.eig_precision);
+	measure_spectral_proj(eigvec,conf,charge_cut,DD_eig_val,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
       }
     
     //print the result on file
@@ -190,6 +190,7 @@ namespace nissa
     os<<base_fermionic_meas_t::get_str(full);
     if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
     if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
+    if(eig_precision!=def_eig_precision() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
     
     return os.str();
   }

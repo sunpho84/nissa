@@ -262,6 +262,8 @@
 %type <int_numb> neigs
 %token TK_EIG_PRECISION
 %type <double_numb> eig_precision
+%token TK_WSPACE_SIZE
+%type <int_numb> wspace_size
 //gauge measures
 %token TK_USE_SMOOTH
 %token TK_MEAS_PLAQ_POL
@@ -383,6 +385,8 @@ compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 neigs: TK_NEIGS '=' int_numb {$$=$3;};
 
 eig_precision: TK_EIG_PRECISION '=' double_numb {$$=$3;};
+
+wspace_size: TK_WSPACE_SIZE '=' int_numb {$$=$3;};
 
 max_order: TK_MAX_ORDER '=' int_numb {$$=$3;};
 
@@ -716,6 +720,7 @@ spectr_proj_meas: TK_SPECTR_PROJ {$$=new spectr_proj_meas_pars_t();}
                 | spectr_proj_meas nhits {$$->nhits=$2;}
                 | spectr_proj_meas neigs {$$->neigs=$2;}
                 | spectr_proj_meas eig_precision {$$->eig_precision=$2;}
+                | spectr_proj_meas wspace_size {$$->wspace_size=$2;}
 ;
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////
