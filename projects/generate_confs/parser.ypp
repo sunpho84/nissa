@@ -517,7 +517,9 @@ quark: TK_QUARK '=' text
      | quark TK_DEGENERACY '=' int_numb {$$->deg=$4;}
      | quark TK_DISCRETIZ '=' TK_ROOT_STAG {$$->discretiz=nissa::ferm_discretiz::ROOT_STAG;}
      | quark TK_DISCRETIZ '=' TK_ROOT_TM_CLOV {$$->discretiz=nissa::ferm_discretiz::ROOT_TM_CLOV;}
+     | quark TK_DISCRETIZ '=' TK_OVERLAP {$$->discretiz=nissa::ferm_discretiz::OVERLAP;}
      | quark TK_MASS '=' double_numb {$$->mass=$4;}
+     | quark TK_MASS_OVERLAP '=' double_numb {$$->mass_overlap=$4;}
      | quark TK_KAPPA '=' double_numb{$$->kappa=$4;}
      | quark TK_CSW '=' double_numb{$$->cSW=$4;}
      | quark TK_RE_POT_CH '=' double_numb {$$->re_pot=$4;}
