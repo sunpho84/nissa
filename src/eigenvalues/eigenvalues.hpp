@@ -23,7 +23,7 @@ namespace nissa
   void eigenvalues_of_hermatr_find(complex **eig_vec,complex *eig_val,int neig,bool min_max,
 				   const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
 				   const double target_precision,const int niter_max,
-				   const Filler &filler)
+				   const Filler &filler,int wspace_size=100)
   {
     master_printf("Solving eigenproblem for %d %s eigenvalues,\n",neig,min_max?"max":"min");
     master_printf(" target precision: %lg\n",target_precision);
@@ -32,7 +32,7 @@ namespace nissa
     if(use_parpack)
       {
 	master_printf("Using parpack\n");
-	eigenvalues_of_hermatr_find_parpack(eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler);
+	eigenvalues_of_hermatr_find_parpack(eig_vec,eig_val,neig,min_max,mat_size,mat_size_to_allocate,imp_mat,target_precision,niter_max,filler,wspace_size);
       }
     else
       {
