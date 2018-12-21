@@ -255,6 +255,8 @@
 //minmax_eigenvalues
 %type <minmax_eigenvalues_meas> minmax_eigenvalues_meas
 %token TK_MEAS_MIN_MAX_EIGENVAL
+%type <int_numb> min_max
+%token TK_MIN_MAX
 //spectral proj meas
 %type <spectr_proj_meas> spectr_proj_meas
 %token TK_SPECTR_PROJ
@@ -383,6 +385,8 @@ compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 neigs: TK_NEIGS '=' int_numb {$$=$3;};
 
 eig_precision: TK_EIG_PRECISION '=' double_numb {$$=$3;};
+
+min_max: TK_MIN_MAX '=' int_numb {$$=$3;};
 
 max_order: TK_MAX_ORDER '=' int_numb {$$=$3;};
 
@@ -517,7 +521,9 @@ quark: TK_QUARK '=' text
      | quark TK_DEGENERACY '=' int_numb {$$->deg=$4;}
      | quark TK_DISCRETIZ '=' TK_ROOT_STAG {$$->discretiz=nissa::ferm_discretiz::ROOT_STAG;}
      | quark TK_DISCRETIZ '=' TK_ROOT_TM_CLOV {$$->discretiz=nissa::ferm_discretiz::ROOT_TM_CLOV;}
+     | quark TK_DISCRETIZ '=' TK_OVERLAP {$$->discretiz=nissa::ferm_discretiz::OVERLAP;}
      | quark TK_MASS '=' double_numb {$$->mass=$4;}
+     | quark TK_MASS_OVERLAP '=' double_numb {$$->mass_overlap=$4;}
      | quark TK_KAPPA '=' double_numb{$$->kappa=$4;}
      | quark TK_CSW '=' double_numb{$$->cSW=$4;}
      | quark TK_RE_POT_CH '=' double_numb {$$->re_pot=$4;}
@@ -665,6 +671,7 @@ minmax_eigenvalues_meas: TK_MEAS_MIN_MAX_EIGENVAL {$$=new minmax_eigenvalues_mea
                   | minmax_eigenvalues_meas ncopies {$$->ncopies=$2;}
                   | minmax_eigenvalues_meas noise_type {$$->rnd_type=$2;}
                   | minmax_eigenvalues_meas nhits {$$->nhits=$2;}
+                  | minmax_eigenvalues_meas min_max {$$->min_max=$2;}
 ;
 
 ////////////////////////////////////////////////// EVOLUTION //////////////////////////////////////////////////

@@ -42,7 +42,7 @@ namespace nissa
   // and then we rescale the weights a_k by a factor 1/sqrt(lambda_max) to have an approximation valid in [lambda_min, lambda_max]
   //
   // Eventually, (H^2)^(-1/2) = a'_0 + sum_k=1^n a'_k (H^2 + b_k)^(-1) with a'_i = a_i / sqrt(lambda_max)
-  
+
   THREADABLE_FUNCTION_5ARG(apply_overlap, spincolor*,out, quad_su3*,conf, double,M, double,minerr, spincolor*,in)
   {
     GET_THREAD_ID();

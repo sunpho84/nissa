@@ -8,7 +8,7 @@ namespace nissa
 {
   struct minmax_eigenvalues_meas_pars_t : base_fermionic_meas_t
   {
-    std::string def_path(){return "plover_bird";}
+    std::string def_path(){return "plover";}
     
     int neigs;
     double eig_precision;
@@ -30,10 +30,15 @@ namespace nissa
     }
     
     minmax_eigenvalues_meas_pars_t() :
-    base_fermionic_meas_t(), neigs(def_neigs()), eig_precision(def_eig_precision()), min_max(def_min_max())
-    {path=def_path();}
+    base_fermionic_meas_t(),
+    neigs(def_neigs()),
+    eig_precision(def_eig_precision()),
+    min_max(def_min_max())
+    {
+      path=def_path();
+    }
     virtual ~minmax_eigenvalues_meas_pars_t(){}
-  }; 
+  };
   void measure_minmax_eigenvalues(quad_su3 **conf,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created);
 }
 
