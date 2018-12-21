@@ -255,6 +255,8 @@
 //minmax_eigenvalues
 %type <minmax_eigenvalues_meas> minmax_eigenvalues_meas
 %token TK_MEAS_MIN_MAX_EIGENVAL
+%type <int_numb> min_max
+%token TK_MIN_MAX
 //spectral proj meas
 %type <spectr_proj_meas> spectr_proj_meas
 %token TK_SPECTR_PROJ
@@ -383,6 +385,8 @@ compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 neigs: TK_NEIGS '=' int_numb {$$=$3;};
 
 eig_precision: TK_EIG_PRECISION '=' double_numb {$$=$3;};
+
+min_max: TK_MIN_MAX '=' int_numb {$$=$3;};
 
 max_order: TK_MAX_ORDER '=' int_numb {$$=$3;};
 
@@ -659,14 +663,16 @@ magnetization_meas: TK_MEAS_MAGNETIZ {$$=new magnetization_meas_pars_t();}
 ////////////////////////////////////////////////// MINMAX_EIGENVALUES //////////////////////////////////////////////////
 
 minmax_eigenvalues_meas: TK_MEAS_MIN_MAX_EIGENVAL {$$=new minmax_eigenvalues_meas_pars_t();}
-                  | minmax_eigenvalues_meas each {$$->each=$2;}
-                  | minmax_eigenvalues_meas after {$$->after=$2;}
-                  | minmax_eigenvalues_meas path {$$->path=(*$2);delete $2;}
-                  | minmax_eigenvalues_meas residue {$$->residue=$2;}
-                  | minmax_eigenvalues_meas itheory {$$->itheory=$2;}
-                  | minmax_eigenvalues_meas ncopies {$$->ncopies=$2;}
-                  | minmax_eigenvalues_meas noise_type {$$->rnd_type=$2;}
-                  | minmax_eigenvalues_meas nhits {$$->nhits=$2;}
+                       | minmax_eigenvalues_meas each {$$->each=$2;}
+                       | minmax_eigenvalues_meas after {$$->after=$2;}
+                       | minmax_eigenvalues_meas path {$$->path=(*$2);delete $2;}
+                       | minmax_eigenvalues_meas residue {$$->residue=$2;}
+                       | minmax_eigenvalues_meas itheory {$$->itheory=$2;}
+                       | minmax_eigenvalues_meas ncopies {$$->ncopies=$2;}
+                       | minmax_eigenvalues_meas noise_type {$$->rnd_type=$2;}
+                       | minmax_eigenvalues_meas nhits {$$->nhits=$2;}
+                       | minmax_eigenvalues_meas neigs {$$->neigs=$2;}
+                       | minmax_eigenvalues_meas min_max {$$->min_max=$2;}
 ;
 
 ////////////////////////////////////////////////// EVOLUTION //////////////////////////////////////////////////
