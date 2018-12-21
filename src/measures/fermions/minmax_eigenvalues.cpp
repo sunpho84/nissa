@@ -95,6 +95,10 @@ namespace nissa
     
     os<<"MeasMinMaxEigenval\n";
     os<<base_fermionic_meas_t::get_str(full);
+    if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
+    if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
+    if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
+    if(min_max!=def_min_max() or full) os<<" MinMax\t\t=\t"<<min_max<<"\n";
     
     return os.str();
   }

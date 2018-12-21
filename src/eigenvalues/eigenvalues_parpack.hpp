@@ -70,7 +70,7 @@ namespace nissa
 	return iparam[4];
       }
       
-      parpack_caller_t(const int neig,const bool min_max,const int mat_size,const int mat_size_to_allocate,const double target_precision,const int niter_max) :
+      parpack_caller_t(const int neig,const bool min_max,const int mat_size,const int mat_size_to_allocate,const double target_precision,const int niter_max,const int wspace_size) :
 	neig(neig),
 	min_max(min_max),
 	mat_size(mat_size),
@@ -79,7 +79,7 @@ namespace nissa
 	glb_info(nissa_malloc("info",1,int)),
 	glb_ido(nissa_malloc("ido",1,int)),
 	residue(nissa_malloc("residue",mat_size_to_allocate,complex)),
-	wspace_size(std::max(2*neig,50)),
+	wspace_size(wspace_size),
 	v(nissa_malloc("v",wspace_size*mat_size_to_allocate,complex)),
 	ldv(mat_size_to_allocate),
 	iparam(nissa_malloc("iparam",11,int)),
@@ -317,11 +317,11 @@ namespace nissa
   void eigenvalues_of_hermatr_find_parpack(complex **eig_vec,complex *eig_val,int neig,bool min_max,
 					  const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
 					  const double target_precision,const int niter_max,
-					  const Filler &filler)
+					  const Filler &filler,int wspace_size=100)
   {
     using namespace parpack_data;
-    
-    parpack_caller_t caller(neig,min_max,mat_size,mat_size_to_allocate,target_precision,niter_max);
+    wspace_size=std::min(std::max(2*neig,wspace_size),mat_size);
+    parpack_caller_t caller(neig,min_max,mat_size,mat_size_to_allocate,target_precision,niter_max,wspace_size);
     
     //main loop to find Ritz basis
     bool goon;
