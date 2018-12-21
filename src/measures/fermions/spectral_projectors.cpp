@@ -66,7 +66,7 @@ namespace nissa
     //launch the eigenfinder
     double eig_time=-take_time();
     add_backfield_with_stagphases_to_conf(conf,u1b);
-    eigenvalues_of_hermatr_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler,wspace_size);
+    eigenvalues_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler,wspace_size);
     rem_backfield_with_stagphases_from_conf(conf,u1b);
     
     //    complex norm_cut[neigs];

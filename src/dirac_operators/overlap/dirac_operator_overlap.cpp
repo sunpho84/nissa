@@ -72,10 +72,10 @@ namespace nissa
     const double min_max_prec=1e-5;
     const int MIN=0,MAX=1;
     const int neig=1;
-    eigenvalues_of_hermatr_find(&eigen_vector,&lambda_min,neig,MIN,mat_size,mat_size_to_allocate,imp_mat,min_max_prec,niter_max,filler); //find lambda_min (min eigenvalue of H^2)
+    eigenvalues_find(&eigen_vector,&lambda_min,neig,MIN,mat_size,mat_size_to_allocate,imp_mat,min_max_prec,niter_max,filler); //find lambda_min (min eigenvalue of H^2)
     
     //lambda_max = max eigenvalue of H^2
-    eigenvalues_of_hermatr_find(&eigen_vector,&lambda_max,neig,MAX,mat_size,mat_size_to_allocate,imp_mat,min_max_prec,niter_max,filler); //find lambda_max (max eigenvalue of H^2)
+    eigenvalues_find(&eigen_vector,&lambda_max,neig,MAX,mat_size,mat_size_to_allocate,imp_mat,min_max_prec,niter_max,filler); //find lambda_max (max eigenvalue of H^2)
     nissa_free(eigen_vector);
     
     // Since H is hermitian, H^2 has only real eigenvalues, so we check that their imaginary part is 0

@@ -314,10 +314,10 @@ namespace nissa
   
   //use parpack
   template <class Fmat,class Filler>
-  void eigenvalues_of_hermatr_find_parpack(complex **eig_vec,complex *eig_val,int neig,bool min_max,
-					  const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
-					  const double target_precision,const int niter_max,
-					  const Filler &filler,int wspace_size=100)
+  void eigenvalues_find_parpack(complex **eig_vec,complex *eig_val,int neig,bool min_max,
+				const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
+				const double target_precision,const int niter_max,
+				const Filler &filler,int wspace_size=100)
   {
     using namespace parpack_data;
     wspace_size=std::min(std::max(2*neig,wspace_size),mat_size);

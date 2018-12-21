@@ -74,7 +74,7 @@ namespace nissa
     double eig_time=-take_time();
     
     //Find eigenvalues and eigenvectors of the overlap
-    eigenvalues_of_hermatr_find((complex**)eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
+    eigenvalues_find((complex**)eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
     
     master_printf("\n\nEigenvalues of D Overlap:\n");
     for(int ieig=0;ieig<meas_pars.neigs;++ieig)
