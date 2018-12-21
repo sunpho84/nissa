@@ -69,8 +69,8 @@ namespace nissa
       for(int ic1=0;ic1<NCOL;ic1++)
 	for(int ic2=0;ic2<NCOL;ic2++)
 	  {
-	    P[i][ic1][ic2][0]=(leaves[i][ic1][ic2][0]-leaves[i][ic2][ic1][0])/4;
-	    P[i][ic1][ic2][1]=(leaves[i][ic1][ic2][1]+leaves[i][ic2][ic1][1])/4;
+	    P[i][ic1][ic2][RE]=(leaves[i][ic1][ic2][RE]-leaves[i][ic2][ic1][RE])/4;
+	    P[i][ic1][ic2][IM]=(leaves[i][ic1][ic2][IM]+leaves[i][ic2][ic1][IM])/4;
 	  }
     
     su3 A,B,C,D,E,F;

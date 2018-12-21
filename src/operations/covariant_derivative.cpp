@@ -104,9 +104,29 @@ namespace nissa
   APPLY_NABLA_I(su3spinspin)
   
   void insert_external_source_handle(complex out,spin1field *aux,int ivol,int mu,void *pars)
-  {bool *dirs=(bool*)pars;if(dirs[mu]==0) complex_put_to_zero(out);else {if(aux) complex_copy(out,aux[ivol][mu]);else complex_put_to_real(out,1);}}
-  void insert_tadpole_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
-  void insert_conserved_current_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){out[RE]=((bool*)pars)[mu];out[IM]=0;}
+  {
+    bool *dirs=(bool*)pars;
+    if(dirs[mu]==0)
+      complex_put_to_zero(out);
+    else
+      {
+	if(aux) complex_copy(out,aux[ivol][mu]);
+	else
+	  complex_put_to_real(out,1);
+      }
+  }
+  
+  void insert_tadpole_handle(complex out,spin1field *aux,int ivol,int mu,void *pars)
+  {
+    out[RE]=((double*)pars)[mu];
+    out[IM]=0;
+  }
+  
+  void insert_conserved_current_handle(complex out,spin1field *aux,int ivol,int mu,void *pars)
+  {
+    out[RE]=((bool*)pars)[mu];
+    out[IM]=0;
+  }
   
 #define DEF_TM_GAMMA(r) dirac_matr GAMMA;dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[r])
   
