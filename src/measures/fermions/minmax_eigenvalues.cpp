@@ -74,7 +74,7 @@ namespace nissa
     double eig_time=-take_time();
     
     //Find eigenvalues and eigenvectors of the overlap
-    eigenvalues_of_hermatr_find((complex**)eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
+    eigenvalues_find((complex**)eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
     
     master_printf("\n\nEigenvalues of D Overlap:\n");
     for(int ieig=0;ieig<meas_pars.neigs;++ieig)
@@ -95,6 +95,10 @@ namespace nissa
     
     os<<"MeasMinMaxEigenval\n";
     os<<base_fermionic_meas_t::get_str(full);
+    if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
+    if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
+    if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
+    if(min_max!=def_min_max() or full) os<<" MinMax\t\t=\t"<<min_max<<"\n";
     
     return os.str();
   }
