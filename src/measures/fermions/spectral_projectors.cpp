@@ -38,11 +38,11 @@ namespace nissa
       {
 	split_lx_vector_into_eo_parts(in_tmp_eo,(color*)in_lx);
 	
-	evn_apply_stD(out_tmp_eo[EVN],conf,0.01,in_tmp_eo);
-	odd_apply_stD(out_tmp_eo[ODD],conf,0.01,in_tmp_eo);
+	evn_apply_stD(out_tmp_eo[EVN],conf,0.00,in_tmp_eo);
+	odd_apply_stD(out_tmp_eo[ODD],conf,0.00,in_tmp_eo);
 	
-	evn_apply_stD_dag(in_tmp_eo[EVN],conf,0.01,out_tmp_eo);
-	odd_apply_stD_dag(in_tmp_eo[ODD],conf,0.01,out_tmp_eo);
+	evn_apply_stD_dag(in_tmp_eo[EVN],conf,0.00,out_tmp_eo);
+	odd_apply_stD_dag(in_tmp_eo[ODD],conf,0.00,out_tmp_eo);
 	
 	paste_eo_parts_into_lx_vector((color*)out_lx,in_tmp_eo);
 	
@@ -74,7 +74,7 @@ namespace nissa
     master_printf("\n\nEigenvalues of DD^+:\n");
     for(int ieig=0; ieig<neigs; ++ieig)
       {
-      master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE]-0.0001,DD_eig_val[ieig][IM]);
+      master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE],DD_eig_val[ieig][IM]);
       
       // compute partial sum terms of tr(g5)
       // save 'eigvec[ieig]' in staggered format (i.e., 'fill_tmp_eo'),
@@ -155,7 +155,7 @@ namespace nissa
     //print the result on file
     master_fprintf(file,"%d\t",neigs);
     for(int ieig=0;ieig<neigs;++ieig)
-      master_fprintf(file,"%.16lg\t",DD_eig_val[ieig][RE]-0.0001);
+      master_fprintf(file,"%.16lg\t",DD_eig_val[ieig][RE]);
 
     double tmp_cum_sum=0.;
     for(int ieig=0;ieig<neigs;++ieig){
