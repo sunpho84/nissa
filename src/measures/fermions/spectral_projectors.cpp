@@ -20,7 +20,7 @@ namespace nissa
   //and eigenvectors of DD^+ in staggered formulation, in order to
   //build an estimate of the topological charge as Q=\sum_i
   //\bar(u)_i gamma5 u_i, where {u_i} are the first n eigenvectors.
-  THREADABLE_FUNCTION_7ARG(measure_spectral_proj, complex**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, DD_eig_val, int,neigs, double,eig_precision, int, wspace_size)
+  THREADABLE_FUNCTION_7ARG(measure_spectral_proj, complex**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, DD_eig_val, int,neigs, double,eig_precision, int,wspace_size)
   {
     master_printf("neigs=%d, eig_precision=%.2e, wspace_size=%d\n",neigs,eig_precision,wspace_size);
     
@@ -59,20 +59,20 @@ namespace nissa
     //wrap the generation of the test vector into an object that can be passed to the eigenfinder
     const auto filler=[&fill_tmp_eo](complex *out_lx)
       {
-      generate_fully_undiluted_eo_source(fill_tmp_eo,RND_GAUSS,-1,0);
-      paste_eo_parts_into_lx_vector((color*)out_lx,fill_tmp_eo);
+	generate_fully_undiluted_eo_source(fill_tmp_eo,RND_GAUSS,-1,0);
+	paste_eo_parts_into_lx_vector((color*)out_lx,fill_tmp_eo);
       };
     
     //launch the eigenfinder
     double eig_time=-take_time();
     add_backfield_with_stagphases_to_conf(conf,u1b);
-    eigenvalues_of_hermatr_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler,wspace_size);
+    eigenvalues_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler,wspace_size);
     rem_backfield_with_stagphases_from_conf(conf,u1b);
     
-//    complex norm_cut[neigs];
+    //    complex norm_cut[neigs];
     complex *g5eigvec_i=nissa_malloc("g5eigvec_j",(loc_vol+bord_vol)*NCOL,complex);
     master_printf("\n\nEigenvalues of DD^+:\n");
-    for(int ieig=0; ieig<neigs; ++ieig)
+    for(int ieig=0;ieig<neigs;ieig++)
       {
       master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE],DD_eig_val[ieig][IM]);
       
@@ -96,7 +96,6 @@ namespace nissa
         complex_vector_glb_scalar_prod((double*)&charge_cut[ieig*neigs+jeig],eigvec[jeig],g5eigvec_i,(loc_vol+bord_vol)*NCOL);
         master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
       }
-    }
     master_printf("\n\n\n");
     
     eig_time+=take_time();
@@ -123,9 +122,9 @@ namespace nissa
      *
      * where:
      *  - 'n' is the number of required eigenvalues (integer)
-     *  - 'lam_i' is the i-th eigenvalue of DD^+ (real), 
+     *  - 'lam_i' is the i-th eigenvalue of DD^+ (real),
      *  - A_k = \sumt_{i<=k} u_i^+ g5 u_i (i.e., the k-th partial sum of spectral projections of gamma5; real),
-     *  - B_k = \sumt_{i,j<=k} |u_i^+ g5 u_j|^2  (used to estimate the renormalization constant due to 
+     *  - B_k = \sumt_{i,j<=k} |u_i^+ g5 u_j|^2  (used to estimate the renormalization constant due to
      *                                            the pseudoscalar current;real and positive)
      */
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
@@ -158,18 +157,20 @@ namespace nissa
       master_fprintf(file,"%.16lg\t",DD_eig_val[ieig][RE]);
 
     double tmp_cum_sum=0.;
-    for(int ieig=0;ieig<neigs;++ieig){
-      tmp_cum_sum+=charge_cut[ieig*neigs+ieig][RE];
-      master_fprintf(file,"%.16lg\t",tmp_cum_sum);
-    }
-    tmp_cum_sum=0.;
-    for(int kcutoff=0; kcutoff<neigs; ++kcutoff){
-      tmp_cum_sum+=complex_norm2(charge_cut[kcutoff*neigs+kcutoff]);
-      for(int ieig=0; ieig<kcutoff; ++ieig){
-        tmp_cum_sum+=2.*complex_norm2(charge_cut[ieig*neigs+kcutoff]);
+    for(int ieig=0;ieig<neigs;ieig++)
+      {
+	tmp_cum_sum+=charge_cut[ieig*neigs+ieig][RE];
+	master_fprintf(file,"%.16lg\t",tmp_cum_sum);
       }
-      master_fprintf(file,"%.16lg\t",tmp_cum_sum);
-    }
+    tmp_cum_sum=0.0;
+    for(int kcutoff=0;kcutoff<neigs;kcutoff++)
+      {
+	tmp_cum_sum+=complex_norm2(charge_cut[kcutoff*neigs+kcutoff]);
+	for(int ieig=0;ieig<kcutoff;ieig++)
+	  tmp_cum_sum+=2.0*complex_norm2(charge_cut[ieig*neigs+kcutoff]);
+	
+	master_fprintf(file,"%.16lg\t",tmp_cum_sum);
+      }
     master_fprintf(file,"\n");
     
     close_file(file);
@@ -190,7 +191,7 @@ namespace nissa
     os<<base_fermionic_meas_t::get_str(full);
     if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
     if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
-    if(eig_precision!=def_eig_precision() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
+    if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
     
     return os.str();
   }

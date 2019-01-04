@@ -11,9 +11,9 @@ namespace nissa
   //parameters to measure topology properties
   struct spectr_proj_meas_pars_t : base_fermionic_meas_t
   {
-    int neigs;            ///< number of eigenvalues required
-    double eig_precision; ///< relative precision between eigenvalues
-    int wspace_size;      ///< size of Krylov space for the Arnoldi algorithm (it would be clipped in [2*neigs,mat_size])
+    int neigs;            ///number of eigenvalues required
+    double eig_precision; ///relative precision between eigenvalues
+    int wspace_size;      ///size of Krylov space for the Arnoldi algorithm (it would be clipped in [2*neigs,mat_size])
     std::string def_path(){return "pettirosso";}
     int def_neigs(){return 5;}
     double def_eig_precision(){return 1e-5;}
@@ -25,7 +25,7 @@ namespace nissa
     int is_nonstandard()
     {
       return
-	base_fermionic_meas_t::is_nonstandard()||
+	base_fermionic_meas_t::is_nonstandard() or
 	path!=def_path() or
 	neigs!=def_neigs() or
 	eig_precision!=def_eig_precision() or
@@ -33,8 +33,13 @@ namespace nissa
     }
     
     spectr_proj_meas_pars_t() :
-      base_fermionic_meas_t(), neigs(def_neigs()), eig_precision(def_eig_precision()), wspace_size(def_wspace_size())
-    {path=def_path();}
+      base_fermionic_meas_t(),
+      neigs(def_neigs()),
+      eig_precision(def_eig_precision()),
+      wspace_size(def_wspace_size())
+    {
+      path=def_path();
+    }
     virtual ~spectr_proj_meas_pars_t(){}
   };
   
