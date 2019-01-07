@@ -36,26 +36,25 @@ namespace nissa
   // The sign function is defined as sign(H) = H * (H^2)^(-1/2)
   //
   // We use a rational approximation of (H^2)^(-1/2) to evaluate the sign function:
-  // x^(-1/2) = a_0 + sum_k=1^n a_k (x + b_k)^(-1) where x \in [epsilon,1]
+  // x^(-1/2) = a_0 + sum_k=1^n a_k (x + b_k)^(-1) where x \in [lambda_min,lambda_max] 
+  // where lm, lM are the lowest and highest eigenvalues of H^2. 
   //
-  // Since the spectrum of H^2 is [lambda_min, lambda_max] we evaluate the approximation in [lambda_min/lambda_max,1]
-  // and then we rescale the weights a_k by a factor 1/sqrt(lambda_max) to have an approximation valid in [lambda_min, lambda_max]
+  // 
+  // Eventually, (H^2)^(-1/2) = a_0 + sum_k=1^n a_k (H^2 + b_k)^(-1) 
   //
-  // Eventually, (H^2)^(-1/2) = a'_0 + sum_k=1^n a'_k (H^2 + b_k)^(-1) with a'_i = a_i / sqrt(lambda_max)
+  // We used two different routines because of an issue with arpack libraries that prevent innested calls
+  
 
-  THREADABLE_FUNCTION_5ARG(apply_overlap, spincolor*,out, quad_su3*,conf, double,M, double,minerr, spincolor*,in)
+  THREADABLE_FUNCTION_4ARG(rat_approx_for_overlap, quad_su3*,conf, rat_approx_t*, appr, double,M, double,maxerr)
   {
     GET_THREAD_ID();
     
     communicate_lx_quad_su3_borders(conf);
-    communicate_lx_spincolor_borders(in);
-    
+ 
     complex lambda_min,lambda_max;
-    rat_approx_t appr;
     int niter_max=1000000;
-    double req_res=minerr;
-    int mat_size=loc_vol*NCOL; //physical volume
-    int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL; //volume to allocate
+    int mat_size=loc_vol*NCOL*NDIRAC; //physical volume
+    int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL*NDIRAC; //volume to allocate
     
     complex *eigen_vector=nissa_malloc("eigen_vector",mat_size_to_allocate,complex); // here we save the eigen vector, although it is not used in this function
     
@@ -86,13 +85,32 @@ namespace nissa
     
     int num=-1,den=2;
     const double remez_minmax_err=0.01;
-    generate_approx(appr, minimum,maximum,num,den,minerr,remez_minmax_err); // we evaluate the rational approximation of 1/sqrt(x) in [epsilon,1]
+    char boh;
+    generate_approx_of_maxerr(*appr, minimum,maximum,maxerr, num,den, &boh); // we evaluate the rational approximation of 1/sqrt(x) in [epsilon,1]
+    nissa_free(temp);  
+  }
+  THREADABLE_FUNCTION_END
+
+
+
+
+  THREADABLE_FUNCTION_6ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr,  double, maxerr, double,M, spincolor*,in)
+  {
+    GET_THREAD_ID();
     
+    communicate_lx_quad_su3_borders(conf);
+    communicate_lx_spincolor_borders(in);
+    
+    double req_res=maxerr;
+    int niter_max=1000000;
+
+    spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+   
+ 
     // sum the constant and all the shifts
-    summ_src_and_all_inv_overlap_kernel2_cgm(temp,conf,M,&appr,niter_max,req_res,in);
-    // z = a'_0 in + sum_k=1^n a'_k (H^2+b_k)^(-1) in ( in is the input vector and n = appr.degree() )
-    
-    // here we apply H to z, out = H z, thus now out = sign(H) in
+    summ_src_and_all_inv_overlap_kernel2_cgm(temp,conf,M, appr,niter_max,req_res,in);
+    // temp = a_0 in + sum_k=1^n a_k (H^2+b_k)^(-1) in ( in is the input vector and n = appr.degree() )
+    // here we apply H to temp, out = H temp, thus now out = sign(H) in
     apply_overlap_kernel(out,conf,M,temp);
     
     // here we apply g5 to out and we add the input vector, thus now out = in + g_5 sign(H) in = ( Id + g5*sign(H) ) in = D_ov in

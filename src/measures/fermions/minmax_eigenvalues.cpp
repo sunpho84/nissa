@@ -26,36 +26,26 @@ namespace nissa
     
     close_file(file);
     
-    const double minimum=0.003;
-    const double maximum=1.0;
-    const int num=-1;
-    const int den=2;
-    const double tollerance=0.01;
-    const double minerr=0.0;
-    
     //lx version
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
-    const double t_in=take_time();
     rat_approx_t appr;
-    appr.resize(3);
-    double res=generate_approx(appr,minimum,maximum,num,den,minerr,tollerance);
-    master_printf("Result, res: %lg\n",res);
-    appr.master_fprintf_expr(stdout);
-    printf("time required=%.10e secs\n",take_time()-t_in);
-    
+    //double maxerr=meas_pars.residue;
+    double maxerr = 0.000000001;    
+
     //Parameters of the eigensolver
-    const int mat_size=loc_vol*NCOL;
-    const int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL;
+    const int mat_size=loc_vol*NCOL*NDIRAC;
+    const int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL*NDIRAC;
     const int niter_max=100000000;
     master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
     //allocate
     complex *D_ov_eig_val=nissa_malloc("D_ov_eig_val",meas_pars.neigs,complex);
-    spincolor **eigvec=nissa_malloc("eigvec",meas_pars.neigs,spincolor*);
-    for(int ieig=0;ieig<meas_pars.neigs;ieig++)
-    eigvec[ieig]=nissa_malloc("eig",loc_vol+bord_vol,spincolor);
+    complex **eigvec=nissa_malloc("eigvec",meas_pars.neigs,complex*);
+    for(int ieig=0;ieig<meas_pars.neigs;ieig++){
+    eigvec[ieig]=nissa_malloc("eig",(loc_vol+bord_vol)*NCOL,complex);
+    vector_reset(eigvec[ieig]);}
     
     master_printf("neigs=%d, eig_precision=%.2e\n",meas_pars.neigs,meas_pars.eig_precision);
     
@@ -63,11 +53,15 @@ namespace nissa
     int iquark=0;
     if(theory_pars.nflavs()!=1) crash("implemented only for 1 flavor");
     if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) crash("Implemented only for overlap");
+     
+    rat_approx_for_overlap(conf_lx, &appr, theory_pars.quarks[iquark].mass_overlap, maxerr);
     
+    appr.master_fprintf_expr(stdout);
+ 
     //Application of the Overlap Operator
-    const auto imp_mat=[conf_lx,&theory_pars,&minerr,iquark](complex* out_lx,complex *in_lx)
+    const auto imp_mat=[conf_lx,&theory_pars,&maxerr,iquark, &appr](complex* out_lx,complex *in_lx)
 	{
-	  apply_overlap((spincolor*)out_lx,conf_lx,theory_pars.quarks[iquark].mass_overlap,minerr,(spincolor*)in_lx);
+	  apply_overlap((spincolor*)out_lx,conf_lx, &appr, theory_pars.quarks[iquark].mass_overlap,maxerr,(spincolor*)in_lx);
       	};
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
     
@@ -86,6 +80,9 @@ namespace nissa
     master_printf("Eigenvalues time: %lg\n", eig_time);
     
     nissa_free(conf_lx);
+    nissa_free(D_ov_eig_val);
+    for(int ieig=0;ieig<meas_pars.neigs;ieig++) nissa_free(eigvec[ieig]);
+    nissa_free(eigvec);
   }
   
   //print
