@@ -35,9 +35,3 @@
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,M,
 
 #include "inverters/templates/cgm_invert_template_threaded.cpp"
-<<<<<<< HEAD
-
-namespace nissa
-{}
-=======
->>>>>>> upstream/master
