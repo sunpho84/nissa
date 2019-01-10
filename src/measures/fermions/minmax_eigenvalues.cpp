@@ -22,9 +22,7 @@ namespace nissa
   //measure minmax_eigenvalues
   void measure_minmax_eigenvalues(quad_su3 **conf_eo,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    
-    close_file(file);
+    FILE *fout=open_file(meas_pars.path,conf_created?"w":"a");
     
     //lx version
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol,quad_su3);
@@ -64,6 +62,7 @@ namespace nissa
       {
 	apply_overlap((spincolor*)out_lx,conf_lx,&appr,maxerr,theory_pars.quarks[iquark].mass_overlap,(spincolor*)in_lx);
       };
+    
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
     
     double eig_time=-take_time();
@@ -72,13 +71,10 @@ namespace nissa
     eigenvalues_find(eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
     
     master_printf("\n\nEigenvalues of D Overlap:\n");
-    FILE *fout=open_file(meas_pars.path,"w");
     for(int ieig=0;ieig<meas_pars.neigs;++ieig)
       master_fprintf(fout,"%.16lg %.16lg\n",D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
     close_file(fout);
-    
-    master_printf("\n\n\n");
-    
+        
     eig_time+=take_time();
     master_printf("Eigenvalues time: %lg\n", eig_time);
     
