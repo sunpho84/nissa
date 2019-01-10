@@ -13,9 +13,9 @@
  #include "routines/thread.hpp"
 #endif
 
-//////////////////////////////////////////////////////
-////      C. BONANNO AND M.CARDINALI OVERLAP      ////
-//////////////////////////////////////////////////////
+///////////////////////////////////////////////
+////      C. BONANNO AND M.CARDINALI       ////
+///////////////////////////////////////////////
 
 namespace nissa
 {
@@ -42,9 +42,11 @@ namespace nissa
     //allocate
     complex *D_ov_eig_val=nissa_malloc("D_ov_eig_val",meas_pars.neigs,complex);
     complex **eigvec=nissa_malloc("eigvec",meas_pars.neigs,complex*);
-    for(int ieig=0;ieig<meas_pars.neigs;ieig++){
-    eigvec[ieig]=nissa_malloc("eig",(loc_vol+bord_vol)*NCOL,complex);
-    vector_reset(eigvec[ieig]);}
+    for(int ieig=0;ieig<meas_pars.neigs;ieig++)
+      {
+	eigvec[ieig]=nissa_malloc("eig",(loc_vol+bord_vol)*NDIRAC*NCOL,complex);
+	vector_reset(eigvec[ieig]);
+      }
     
     master_printf("neigs=%d, eig_precision=%.2e\n",meas_pars.neigs,meas_pars.eig_precision);
     
@@ -52,26 +54,28 @@ namespace nissa
     int iquark=0;
     if(theory_pars.nflavs()!=1) crash("implemented only for 1 flavor");
     if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) crash("Implemented only for overlap");
-     
-    rat_approx_for_overlap(conf_lx, &appr, theory_pars.quarks[iquark].mass_overlap, maxerr);
+    
+    rat_approx_for_overlap(conf_lx,&appr,theory_pars.quarks[iquark].mass_overlap,maxerr);
     
     appr.master_fprintf_expr(stdout);
     
     //Application of the Overlap Operator
-    const auto imp_mat=[conf_lx,&theory_pars,&maxerr,iquark, &appr](complex* out_lx,complex *in_lx)
+    const auto imp_mat=[conf_lx,&theory_pars,&maxerr,iquark,&appr](complex *out_lx,complex *in_lx)
       {
-	apply_overlap((spincolor*)out_lx,conf_lx, &appr, theory_pars.quarks[iquark].mass_overlap,maxerr,(spincolor*)in_lx);
+	apply_overlap((spincolor*)out_lx,conf_lx,&appr,maxerr,theory_pars.quarks[iquark].mass_overlap,(spincolor*)in_lx);
       };
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
     
     double eig_time=-take_time();
     
     //Find eigenvalues and eigenvectors of the overlap
-    eigenvalues_find((complex**)eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
+    eigenvalues_find(eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
     
     master_printf("\n\nEigenvalues of D Overlap:\n");
+    FILE *fout=open_file(meas_pars.path,"w");
     for(int ieig=0;ieig<meas_pars.neigs;++ieig)
-      master_printf("%d(%.16lg,%.16lg)\n)",ieig,D_ov_eig_val[RE],D_ov_eig_val[IM]);
+      master_fprintf(fout,"%.16lg %.16lg\n",D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
+    close_file(fout);
     
     master_printf("\n\n\n");
     

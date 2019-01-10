@@ -86,7 +86,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_6ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr,  double,req_res, double,M, spincolor*,in)
+  THREADABLE_FUNCTION_6ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr, double,req_res, double,M, spincolor*,in)
   {
     GET_THREAD_ID();
     
