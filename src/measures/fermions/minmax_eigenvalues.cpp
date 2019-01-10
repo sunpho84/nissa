@@ -56,12 +56,14 @@ namespace nissa
     rat_approx_for_overlap(conf_lx, &appr, theory_pars.quarks[iquark].mass_overlap, maxerr);
     
     appr.master_fprintf_expr(stdout);
- 
+    
     //Application of the Overlap Operator
     const auto imp_mat=[conf_lx,&theory_pars,&maxerr,iquark, &appr](complex* out_lx,complex *in_lx)
-	{
-	  apply_overlap((spincolor*)out_lx,conf_lx, &appr, maxerr, theory_pars.quarks[iquark].mass_overlap,(spincolor*)in_lx);
-      	};
+
+      {
+	apply_overlap((spincolor*)out_lx,conf_lx, &appr, theory_pars.quarks[iquark].mass_overlap,maxerr,(spincolor*)in_lx);
+      };
+    
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
     
     double eig_time=-take_time();
