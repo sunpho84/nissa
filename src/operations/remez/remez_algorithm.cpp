@@ -155,7 +155,7 @@ namespace nissa
 	      }
 	    if(row_norm==0.0) crash("num row norm");
 	    x[i]=1/row_norm;
-	  }  
+	  }
 	
 	//loop over the rows
 	for(int k=0;k<n-1;k++)
@@ -214,7 +214,7 @@ namespace nissa
 	printf("DIFF %d %lg\n",i,d.get_d());
       }
     printf("Exp: %lg\n",pow(2.0,-high_prec_nbits()));
-    */    
+    */
 
     }
   
@@ -258,7 +258,7 @@ namespace nissa
 	//set left extrema
 	float_high_prec_t zero0=minimum;
 	
-	for(int i=0;i<nmax_err_points;i++) 
+	for(int i=0;i<nmax_err_points;i++)
 	  {
 	    //takes extrema
 	    float_high_prec_t zero1=zero[i],xm=xmax[i];
@@ -344,7 +344,7 @@ namespace nissa
 	
 	//insert new locations for the zeros
 	for(int i=0;i<nzero_err_points;i++)
-	  {	
+	  {
 	    float_high_prec_t xm=zero[i]-step[i];
 	    if(xm>minimum)
 	      if(xm<maximum)
@@ -586,7 +586,7 @@ namespace nissa
   double rat_approx_finder_t::generate_approx(float_high_prec_t *weights,float_high_prec_t *poles,float_high_prec_t &cons,double ext_minimum,double ext_maximum,int ext_degree,int ext_num,int ext_den,double target_err,double toll)
   {
     GET_THREAD_ID();
-
+    
     //if target_err is not positive, it is ignored
     bool consider_err=(target_err>0);
     

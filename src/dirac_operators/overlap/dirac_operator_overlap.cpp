@@ -47,7 +47,11 @@ namespace nissa
   {
     communicate_lx_quad_su3_borders(conf);
     
-    complex lambda_min,lambda_max;
+    complex *lambda=nissa_malloc("lambda",2,complex);
+    const int MIN=0,MAX=1;
+    complex &lambda_min=lambda[MIN];
+    complex &lambda_max=lambda[MAX];
+    
     int niter_max=1000000;
     int mat_size=loc_vol*NCOL*NDIRAC; //physical volume
     int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL*NDIRAC; //volume to allocate
@@ -65,7 +69,6 @@ namespace nissa
     
     //lambda_min = min eigenvalue of H^2
     const double min_max_prec=1e-5;
-    const int MIN=0,MAX=1;
     const int neig=1;
     eigenvalues_find(&eigen_vector,&lambda_min,neig,MIN,mat_size,mat_size_to_allocate,imp_mat,min_max_prec,niter_max,filler); //find lambda_min (min eigenvalue of H^2)
     
