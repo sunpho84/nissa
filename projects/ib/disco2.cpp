@@ -416,7 +416,7 @@ void in_main(int narg,char **arg)
       char outfolder[1024];
       read_str(outfolder,1024);
       
-      //generate the source
+      //generate the sources
       for(int ihit=0;ihit<nhits;ihit++)
 	generate_undiluted_source(eta[ihit],RND_GAUSS,ALL_TIMES);
       

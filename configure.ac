@@ -87,6 +87,25 @@ then
 	LDFLAGS="$MPI_FLDFLAGS $LDFLAGS"
 fi
 
+#threads
+AC_ARG_ENABLE(threads,
+	AS_HELP_STRING([--disable-threads],[Enable threads]),
+	enable_threads="${enableval}",
+	enable_threads="yes")
+if test "$enable_threads" == "yes"
+then
+	#check openmp
+	AC_OPENMP
+	CFLAGS="$CXXFLAGS $OPENMP_CFLAGS"
+	CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
+	CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+	AC_DEFINE([USE_THREADS],1,[Enable threads])
+fi
+AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling threads... $enable_threads])
+SUMMARY_RESULT="$SUMMARY_RESULT
+Threads enabled     : $enable_threads"
+
 #set MPI for c++
 if test "$enable_MPI_autosearch" == "yes"
 then
@@ -94,9 +113,30 @@ then
 	LX_FIND_MPI
 	AC_LANG_POP([C++])
 	AC_MSG_RESULT([with C++ MPI link options... $MPI_CXXLDFLAGS])
-	CPPFLAGS="$MPI_CXXFLAGS $CPPFLAGS"
-	LIBS="$MPI_CXXLIBS $LIBS"
-	LDFLAGS="$MPI_CXXLDFLAGS $LDFLAGS"
+fi
+
+#MPI
+AC_ARG_ENABLE(MPI,
+	AS_HELP_STRING([--disable-MPI],[Enable MPI]),
+	enable_MPI="${enableval}",
+	enable_MPI="yes")
+AM_CONDITIONAL([USE_MPI],[test "$enable_MPI" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling MPI... $enable_MPI])
+SUMMARY_RESULT="$SUMMARY_RESULT
+MPI enabled         : $enable_MPI"
+
+if test "$enable_MPI" == "yes"
+then
+	# Check if we have MPI
+	if test "$have_CXX_mpi" == "yes"
+	then
+		CPPFLAGS="$MPI_CXXFLAGS $CPPFLAGS"
+		LIBS="$MPI_CXXLIBS $LIBS"
+		LDFLAGS="$MPI_CXXLDFLAGS $LDFLAGS"
+		AC_DEFINE([USE_MPI],1,[Enable MPI])
+	else
+		AC_MSG_ERROR(["Unable to find MPI"])
+	fi
 fi
 
 #check ntl library
@@ -185,41 +225,6 @@ AC_MSG_RESULT([enabling parpack debug... $enable_parpack_debug])
 
 AX_SUBPACKAGE(lime,lime.h,lime,limeReaderNextRecord,LIME)
 
-#################### threads ####################
-
-#threads
-AC_ARG_ENABLE(threads,
-	AS_HELP_STRING([--disable-threads],[Enable threads]),
-	enable_threads="${enableval}",
-	enable_threads="yes")
-if test "$enable_threads" == "yes"
-then
-	#check openmp
-	AC_OPENMP
-	CFLAGS="$CXXFLAGS $OPENMP_CFLAGS"
-	CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
-	CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
-	AC_DEFINE([USE_THREADS],1,[Enable threads])
-fi
-AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling threads... $enable_threads])
-SUMMARY_RESULT="$SUMMARY_RESULT
-Threads enabled     : $enable_threads"
-
-#MPI
-AC_ARG_ENABLE(MPI,
-	AS_HELP_STRING([--disable-MPI],[Enable MPI]),
-	enable_MPI="${enableval}",
-	enable_MPI="yes")
-if test "$enable_MPI" == "yes"
-then
-	AC_DEFINE([USE_MPI],1,[Enable MPI])
-fi
-AM_CONDITIONAL([USE_MPI],[test "$enable_MPI" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling MPI... $enable_MPI])
-SUMMARY_RESULT="$SUMMARY_RESULT
-MPI enabled         : $enable_threads"
-
 #################### tmLQCD ####################
 
 #search for the library
@@ -248,7 +253,7 @@ AC_DEFINE([GMP_HIGH_PREC],[1],["GMP library"])
 AC_ARG_WITH(high-prec,
 	AS_HELP_STRING([--with-high-prec],[Select the high precision type (native=256 bit float, gmp [default if found])]),
 	with_high_prec_type="${withval}",
-	if test "gmp_found" != "no"
+	if test "$gmp_found" != "no"
 	then
 		with_high_prec_type="gmp"
 	else
@@ -256,7 +261,7 @@ AC_ARG_WITH(high-prec,
 	fi)
 case "$with_high_prec_type" in
      native) AC_DEFINE_UNQUOTED([HIGH_PREC_TYPE],[NATIVE_HIGH_PREC],[Enable native high-precision]) ;;
-     gmp) if test "gmp_found" != "no"
+     gmp) if test "$gmp_found" != "no"
 	  then
 		AC_DEFINE_UNQUOTED([HIGH_PREC_TYPE],[GMP_HIGH_PREC],[Enable gmp high-precision])
 	  else
