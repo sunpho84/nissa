@@ -36,21 +36,17 @@ namespace nissa
   // The sign function is defined as sign(H) = H * (H^2)^(-1/2)
   //
   // We use a rational approximation of (H^2)^(-1/2) to evaluate the sign function:
-  // x^(-1/2) = a_0 + sum_k=1^n a_k (x + b_k)^(-1) where x \in [lambda_min,lambda_max] 
-  // where lm, lM are the lowest and highest eigenvalues of H^2. 
+  // x^(-1/2) = a_0 + sum_k=1^n a_k (x + b_k)^(-1) where x \in [lambda_min,lambda_max]
+  // where lm, lM are the lowest and highest eigenvalues of H^2.
   //
-  // 
-  // Eventually, (H^2)^(-1/2) = a_0 + sum_k=1^n a_k (H^2 + b_k)^(-1) 
+  // Eventually, (H^2)^(-1/2) = a_0 + sum_k=1^n a_k (H^2 + b_k)^(-1)
   //
-  // We used two different routines because of an issue with arpack libraries that prevent innested calls
-  
-
+  // We used two different routines because parpack cannot support nested calls, and we can recycle the approximation
+  // libraries that prevent innested calls
   THREADABLE_FUNCTION_4ARG(rat_approx_for_overlap, quad_su3*,conf, rat_approx_t*, appr, double,M, double,maxerr)
   {
-    GET_THREAD_ID();
-    
     communicate_lx_quad_su3_borders(conf);
- 
+    
     complex lambda_min,lambda_max;
     int niter_max=1000000;
     int mat_size=loc_vol*NCOL*NDIRAC; //physical volume
@@ -75,6 +71,7 @@ namespace nissa
     
     //lambda_max = max eigenvalue of H^2
     eigenvalues_find(&eigen_vector,&lambda_max,neig,MAX,mat_size,mat_size_to_allocate,imp_mat,min_max_prec,niter_max,filler); //find lambda_max (max eigenvalue of H^2)
+    
     nissa_free(eigen_vector);
     
     // Since H is hermitian, H^2 has only real eigenvalues, so we check that their imaginary part is 0
@@ -84,31 +81,24 @@ namespace nissa
     master_printf("max eigenvalue (%lg,%lg)\n",lambda_max[RE],lambda_max[IM]);
     
     int num=-1,den=2;
-    const double remez_minmax_err=0.01;
-    char boh;
-    generate_approx_of_maxerr(*appr, minimum,maximum,maxerr, num,den, &boh); // we evaluate the rational approximation of 1/sqrt(x) in [epsilon,1]
-    nissa_free(temp);  
+    generate_approx_of_maxerr(*appr,minimum,maximum,maxerr,num,den); // we evaluate the rational approximation of 1/sqrt(x) in [epsilon,1]
+    nissa_free(temp);
   }
   THREADABLE_FUNCTION_END
-
-
-
-
-  THREADABLE_FUNCTION_6ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr,  double, maxerr, double,M, spincolor*,in)
+  
+  THREADABLE_FUNCTION_6ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr, double,req_res, double,M, spincolor*,in)
   {
     GET_THREAD_ID();
     
     communicate_lx_quad_su3_borders(conf);
     communicate_lx_spincolor_borders(in);
     
-    double req_res=maxerr;
     int niter_max=1000000;
-
+    
     spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
-   
- 
+    
     // sum the constant and all the shifts
-    summ_src_and_all_inv_overlap_kernel2_cgm(temp,conf,M, appr,niter_max,req_res,in);
+    summ_src_and_all_inv_overlap_kernel2_cgm(temp,conf,M,appr,niter_max,req_res,in);
     // temp = a_0 in + sum_k=1^n a_k (H^2+b_k)^(-1) in ( in is the input vector and n = appr.degree() )
     // here we apply H to temp, out = H temp, thus now out = sign(H) in
     apply_overlap_kernel(out,conf,M,temp);

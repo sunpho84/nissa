@@ -667,7 +667,6 @@ magnetization_meas: TK_MEAS_MAGNETIZ {$$=new magnetization_meas_pars_t();}
 ////////////////////////////////////////////////// MINMAX_EIGENVALUES //////////////////////////////////////////////////
 
 minmax_eigenvalues_meas: TK_MEAS_MIN_MAX_EIGENVAL {$$=new minmax_eigenvalues_meas_pars_t();}
-
                        | minmax_eigenvalues_meas each {$$->each=$2;}
                        | minmax_eigenvalues_meas after {$$->after=$2;}
                        | minmax_eigenvalues_meas path {$$->path=(*$2);delete $2;}
