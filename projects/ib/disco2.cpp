@@ -487,9 +487,9 @@ void in_main(int narg,char **arg)
 	      
 	      //Pseudo
 	      mel::local_mel(temp,eta[ihit],5,phi[ihit]);
-	      complex_summ_the_prod_idouble(EU1_stoch,temp,-1.0);
-	      master_fprintf(fout_EU1_stoch,"%.16lg %.16lg\n",EU1_stoch[RE]/(ihit+1),EU1_stoch[IM]/(ihit+1));
-	      
+	      complex_prod_idouble(EU1_stoch,temp,-1.0);
+	      master_fprintf(fout_EU1_stoch,"%.16lg %.16lg\n",EU1_stoch[RE],EU1_stoch[IM]);
+	      // adesso nel file di output dovrei avere, per ogni riga, i valori di EU1 corrispondeti ad una data configurazione dei campi eta.
 	      //Scalar
 	      mel::local_mel(temp,eta[ihit],0,phi[ihit]);
 	      complex_summassign(EU2_stoch,temp);
