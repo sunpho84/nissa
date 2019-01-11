@@ -13,49 +13,38 @@
  #include "routines/thread.hpp"
 #endif
 
-//////////////////////////////////////////////////////
-////      C. BONANNO AND M.CARDINALI OVERLAP      ////
-//////////////////////////////////////////////////////
+///////////////////////////////////////////////
+////      C. BONANNO AND M.CARDINALI       ////
+///////////////////////////////////////////////
 
 namespace nissa
 {
   //measure minmax_eigenvalues
   void measure_minmax_eigenvalues(quad_su3 **conf_eo,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    
-    close_file(file);
-    
-    const double minimum=0.003;
-    const double maximum=1.0;
-    const int num=-1;
-    const int den=2;
-    const double tollerance=0.01;
-    const double minerr=0.0;
+    FILE *fout=open_file(meas_pars.path,conf_created?"w":"a");
     
     //lx version
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
-    const double t_in=take_time();
     rat_approx_t appr;
-    appr.resize(3);
-    double res=generate_approx(appr,minimum,maximum,num,den,minerr,tollerance);
-    master_printf("Result, res: %lg\n",res);
-    appr.master_fprintf_expr(stdout);
-    printf("time required=%.10e secs\n",take_time()-t_in);
+    double maxerr=sqrt(meas_pars.residue);
     
     //Parameters of the eigensolver
-    const int mat_size=loc_vol*NCOL;
-    const int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL;
+    const int mat_size=loc_vol*NCOL*NDIRAC;
+    const int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL*NDIRAC;
     const int niter_max=100000000;
     master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
     //allocate
     complex *D_ov_eig_val=nissa_malloc("D_ov_eig_val",meas_pars.neigs,complex);
-    spincolor **eigvec=nissa_malloc("eigvec",meas_pars.neigs,spincolor*);
+    complex **eigvec=nissa_malloc("eigvec",meas_pars.neigs,complex*);
     for(int ieig=0;ieig<meas_pars.neigs;ieig++)
-    eigvec[ieig]=nissa_malloc("eig",loc_vol+bord_vol,spincolor);
+      {
+	eigvec[ieig]=nissa_malloc("eig",(loc_vol+bord_vol)*NDIRAC*NCOL,complex);
+	vector_reset(eigvec[ieig]);
+      }
     
     master_printf("neigs=%d, eig_precision=%.2e\n",meas_pars.neigs,meas_pars.eig_precision);
     
@@ -64,28 +53,36 @@ namespace nissa
     if(theory_pars.nflavs()!=1) crash("implemented only for 1 flavor");
     if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) crash("Implemented only for overlap");
     
+    rat_approx_for_overlap(conf_lx,&appr,theory_pars.quarks[iquark].mass_overlap,maxerr);
+    
+    appr.master_fprintf_expr(stdout);
+    
     //Application of the Overlap Operator
-    const auto imp_mat=[conf_lx,&theory_pars,&minerr,iquark](complex* out_lx,complex *in_lx)
-	{
-	  apply_overlap((spincolor*)out_lx,conf_lx,theory_pars.quarks[iquark].mass_overlap,minerr,(spincolor*)in_lx);
-      	};
+    const auto imp_mat=[conf_lx,&theory_pars,&maxerr,iquark,&appr](complex *out_lx,complex *in_lx)
+      {
+	apply_overlap((spincolor*)out_lx,conf_lx,&appr,maxerr,theory_pars.quarks[iquark].mass_overlap,(spincolor*)in_lx);
+      };
+    
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
     
     double eig_time=-take_time();
     
     //Find eigenvalues and eigenvectors of the overlap
-    eigenvalues_find((complex**)eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
+    eigenvalues_find(eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
     
     master_printf("\n\nEigenvalues of D Overlap:\n");
     for(int ieig=0;ieig<meas_pars.neigs;++ieig)
-      master_printf("%d(%.16lg,%.16lg)\n)",ieig,D_ov_eig_val[RE],D_ov_eig_val[IM]);
+      master_fprintf(fout,"%.16lg %.16lg\n",D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
     
-    master_printf("\n\n\n");
+    close_file(fout);
     
     eig_time+=take_time();
     master_printf("Eigenvalues time: %lg\n", eig_time);
     
     nissa_free(conf_lx);
+    nissa_free(D_ov_eig_val);
+    for(int ieig=0;ieig<meas_pars.neigs;ieig++) nissa_free(eigvec[ieig]);
+    nissa_free(eigvec);
   }
   
   //print
