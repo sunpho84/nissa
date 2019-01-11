@@ -224,75 +224,83 @@ namespace nissa
       
       void finalize(complex **eig_vec,complex *eig_val)
       {
-      GET_THREAD_ID();
-      
-      THREAD_BARRIER();
-      
-      if(IS_MASTER_THREAD)
-	{
-	  //parameters for eigenvector calculation
-	  complex *ceig_val=new complex[neig+1];
-	  int *select=new int[wspace_size];
-	  complex *workev=new complex[2*wspace_size];
-	  complex *temp_vec=new complex[neig*mat_size];
-	  
-	  arpack::internal::pzneupd_c(comm,             //Reverse communicator
-				      1,                //1: Compute Ritz vectors or Schur vectors. 0: Ritz values only
-				      "A",		//'A': Compute NEV Ritz vectors; 'P': Compute NEV Schur vectors; 'S': compute some of the Ritz vectors
-				      select,		//Logical array of dimension wspace_size
-				      (c_t*)ceig_val,	//Complex array of dimension neig+1.
-				      (c_t*)temp_vec,	//Complex mat_size by neig array
-				      mat_size,		//The leading dimension of the array temp_vec
-				      0.0,		//If IPARAM(7) = 3 then represents the shift
-				      (c_t*)workev,     //Complex*16 work array of dimension 2*NCV
-				      REST_OF_PARS);
-	  
+	GET_THREAD_ID();
+	
+	THREAD_BARRIER();
+	
+	if(IS_MASTER_THREAD)
+	  {
+	    //parameters for eigenvector calculation
+	    complex *ceig_val=new complex[neig+1];
+	    int *select=new int[wspace_size];
+	    complex *workev=new complex[2*wspace_size];
+	    complex *temp_vec=new complex[neig*mat_size];
+	    
+	    arpack::internal::pzneupd_c(comm,             //Reverse communicator
+					1,                //1: Compute Ritz vectors or Schur vectors. 0: Ritz values only
+					"A",		//'A': Compute NEV Ritz vectors; 'P': Compute NEV Schur vectors; 'S': compute some of the Ritz vectors
+					select,		//Logical array of dimension wspace_size
+					(c_t*)ceig_val,	//Complex array of dimension neig+1.
+					(c_t*)temp_vec,	//Complex mat_size by neig array
+					mat_size,		//The leading dimension of the array temp_vec
+					0.0,		//If IPARAM(7) = 3 then represents the shift
+					(c_t*)workev,     //Complex*16 work array of dimension 2*NCV
+					REST_OF_PARS);
+	    
 #undef REST_OF_PARS
-	  
-	  switch(info)
-	    {
-	    case 0: /* Normal exit */;break;
-	    case 1: crash("The Schur form computed by LAPACK routine csheqr could not be reordered by LAPACK routine ztrsen. "
-			  "Re-enter subroutine zneupd with IPARAM(5) = NCV and increase the size of the array D to have dimension at least dimension NCV and allocate at least NCV columns for Z."
-"NOTE: Not necessary if Z and V share the same space. Please notify the authors if this error occurs.");break;
-	    case -1: crash("N=mat_size=%d must be positive.",mat_size);break;
-	    case -2: crash("NEV=neig=%d must be positive.",neig);break;
-	    case -3: crash("NCV-NEV=wspace_size-neig=%d-%d=%d >= 1 and less than or equal to N=mat_size=%d.",wspace_size,neig,wspace_size-neig,mat_size);break;
-	    case -5: crash("WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI', is '%s'.",which[min_max]);break;
-	    case -6: crash("BMAT must be one of 'I' or 'G', is '%s'.",bmat);break;
-	    case -7: crash("Length of private work WORKL array=%d is not sufficient.",lworkl);break;
-	    case -8: crash("Error return from LAPACK eigenvalue calculation. This should never happened.");break;
-	    case -9: crash("Error return from calculation of eigenvectors. Informational error from LAPACK routine ztrevc.");break;
-	    case -10: crash("IPARAM(7) must be 1, 2, 3.");break;
-	    case -11: crash("IPARAM(7) = 1 and BMAT = 'G' are incompatible.");break;
-	    case -12: crash("HOWMANY = 'S' not yet implemented.");break;
-	    case -13: crash("HOWMANY must be one of 'A' or 'P' if RVEC = .true.");break;
-	    case -14: crash("ZNAUPD did not find any eigenvalues to sufficient accuracy.");break;
-	    case -15: crash("ZNEUPD got a different count of the number of converged Ritz values than ZNAUPD got."
-"This indicates the user probably made an error in passing data from ZNAUPD to ZNEUPD or that the data was modified before entering ZNEUPD.");break;
-	    }
-
-	  //find the ordering
-	  std::vector<std::pair<double,int>> ord;
+	    
+	    switch(info)
+	      {
+	      case 0: /* Normal exit */;break;
+	      case 1: crash("The Schur form computed by LAPACK routine csheqr could not be reordered by LAPACK routine ztrsen. "
+			    "Re-enter subroutine zneupd with IPARAM(5) = NCV and increase the size of the array D to have dimension at least dimension NCV and allocate at least NCV columns for Z."
+			    "NOTE: Not necessary if Z and V share the same space. Please notify the authors if this error occurs.");break;
+	      case -1: crash("N=mat_size=%d must be positive.",mat_size);break;
+	      case -2: crash("NEV=neig=%d must be positive.",neig);break;
+	      case -3: crash("NCV-NEV=wspace_size-neig=%d-%d=%d >= 1 and less than or equal to N=mat_size=%d.",wspace_size,neig,wspace_size-neig,mat_size);break;
+	      case -5: crash("WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI', is '%s'.",which[min_max]);break;
+	      case -6: crash("BMAT must be one of 'I' or 'G', is '%s'.",bmat);break;
+	      case -7: crash("Length of private work WORKL array=%d is not sufficient.",lworkl);break;
+	      case -8: crash("Error return from LAPACK eigenvalue calculation. This should never happened.");break;
+	      case -9: crash("Error return from calculation of eigenvectors. Informational error from LAPACK routine ztrevc.");break;
+	      case -10: crash("IPARAM(7) must be 1, 2, 3.");break;
+	      case -11: crash("IPARAM(7) = 1 and BMAT = 'G' are incompatible.");break;
+	      case -12: crash("HOWMANY = 'S' not yet implemented.");break;
+	      case -13: crash("HOWMANY must be one of 'A' or 'P' if RVEC = .true.");break;
+	      case -14: crash("ZNAUPD did not find any eigenvalues to sufficient accuracy.");break;
+	      case -15: crash("ZNEUPD got a different count of the number of converged Ritz values than ZNAUPD got."
+			      "This indicates the user probably made an error in passing data from ZNAUPD to ZNEUPD or that the data was modified before entering ZNEUPD.");break;
+	      }
+	    
+	    //find the ordering
+	    std::vector<std::pair<double,int>> ord;
+	    for(int i=0;i<neig;i++)
+	      ord.push_back({complex_norm2(ceig_val[i]),i});
+	    std::sort(ord.begin(),ord.end());
+	    
+	    //store result
+	    for(int i=0;i<neig;i++)
+	      {
+		int iin=ord[i].second;
+		memcpy(eig_vec[i],temp_vec+mat_size*iin,sizeof(complex)*mat_size);
+		complex_copy(eig_val[i],ceig_val[iin]);
+	      }
+	    
+	    delete[] temp_vec;
+	    delete[] workev;
+	    delete[] ceig_val;
+	    delete[] select;
+	  }
+	
+	THREAD_BARRIER();
+	
+	//Ensures that all threads have the same eig_vec
+	complex *master_eig_val;
+	THREAD_BROADCAST_PTR(master_eig_val,eig_val);
+	if(master_eig_val!=eig_val)
 	  for(int i=0;i<neig;i++)
-	    ord.push_back({complex_norm2(ceig_val[i]),i});
-	  std::sort(ord.begin(),ord.end());
-	  
-      	  //store result
-	  for(int i=0;i<neig;i++)
-	    {
-	      int iin=ord[i].second;
-	      memcpy(eig_vec[i],temp_vec+mat_size*iin,sizeof(complex)*mat_size);
-	      complex_copy(eig_val[i],ceig_val[iin]);
-	    }
-	  
-	  delete[] temp_vec;
-	  delete[] workev;
-	  delete[] ceig_val;
-	  delete[] select;
-	}
-      
-      THREAD_BARRIER();
+	    complex_copy(eig_val[i],master_eig_val[i]);
+	THREAD_BARRIER();
       }
       
       ~parpack_caller_t()

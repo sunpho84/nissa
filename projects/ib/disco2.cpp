@@ -416,7 +416,7 @@ void in_main(int narg,char **arg)
       char outfolder[1024];
       read_str(outfolder,1024);
       
-      //generate the source
+      //generate the sources
       for(int ihit=0;ihit<nhits;ihit++)
 	generate_undiluted_source(eta[ihit],RND_GAUSS,ALL_TIMES);
       
@@ -485,43 +485,38 @@ void in_main(int narg,char **arg)
 	    {
 	      complex temp;
 	      
+	      //in this way, in the output file, there are all the value of EU1 for each value of eta, not average values - Lorenzo.
+	      
 	      //Pseudo
 	      mel::local_mel(temp,eta[ihit],5,phi[ihit]);
-	      complex_summ_the_prod_idouble(EU1_stoch,temp,-1.0);
-	      master_fprintf(fout_EU1_stoch,"%.16lg %.16lg\n",EU1_stoch[RE]/(ihit+1),EU1_stoch[IM]/(ihit+1));
+	      complex_prod_idouble(EU1_stoch,temp,-1.0);
+	      master_fprintf(fout_EU1_stoch,"%.16lg %.16lg\n",EU1_stoch[RE],EU1_stoch[IM]);
 	      
 	      //Scalar
-	      mel::local_mel(temp,eta[ihit],0,phi[ihit]);
-	      complex_summassign(EU2_stoch,temp);
-	      master_fprintf(fout_EU2_stoch,"%.16lg %.16lg\n",EU2_stoch[RE]/(ihit+1),EU2_stoch[IM]/(ihit+1));
+	      mel::local_mel(EU2_stoch,eta[ihit],0,phi[ihit]);
+	      master_fprintf(fout_EU2_stoch,"%.16lg %.16lg\n",EU2_stoch[RE],EU2_stoch[IM]);
 	      
 	      //Tadpole
 	      insert_tm_tadpole(tadpole_prop,conf,phi[ihit],r,tadpole_coeff,ALL_TIMES);
-	      mel::local_mel(temp,eta[ihit],0,tadpole_prop);
-	      complex_summassign(EU4_stoch,temp);
-	      master_fprintf(fout_EU4_stoch,"%.16lg %.16lg\n",EU4_stoch[RE]/(ihit+1),EU4_stoch[IM]/(ihit+1));
+	      mel::local_mel(EU4_stoch,eta[ihit],0,tadpole_prop);
+	      master_fprintf(fout_EU4_stoch,"%.16lg %.16lg\n",EU4_stoch[RE],EU4_stoch[IM]);
 	    }
 	  
 	  //Compute diagram EU5
 	  complex EU5={0.0,0.0};
-	  int nEU5=0;
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    {
 	      multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
 	      
 	      for(int jhit=0;jhit<ihit;jhit++)
 		{
-		  complex temp;
-		  mel::global_product(temp,xi,J_stoch[jhit]);
-		  complex_summassign(EU5,temp);
-		  nEU5++;
+		  mel::global_product(EU5,xi,J_stoch[jhit]);
+		  master_fprintf(fout_EU5_stoch,"%.16lg %.16lg\n",EU5[RE],EU5[IM]);
 		}
-	      master_fprintf(fout_EU5_stoch,"%.16lg %.16lg %d %d\n",EU5[RE]/nEU5,EU5[IM]/nEU5,ihit,nEU5);
 	    }
 	  
 	  //Compute diagram EU6
 	  complex EU6={0.0,0.0};
-	  int nEU6=0;
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    {
 	      for(int jhit=0;jhit<ihit;jhit++)
@@ -529,12 +524,9 @@ void in_main(int narg,char **arg)
 		  mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[jhit]);
 		  mel::conserved_vector_current_mel(J_stoch[jhit],eta[jhit],conf,r,phi[ihit]);
 		  multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
-		  complex temp;
-		  mel::global_product(temp,J_stoch[jhit],xi);
-		  complex_summassign(EU6,temp);
-		  nEU6++;
+		  mel::global_product(EU6,J_stoch[jhit],xi);
+		  master_fprintf(fout_EU6_stoch,"%.16lg %.16lg\n",EU6[RE],EU6[IM]);
 		}
-	      master_fprintf(fout_EU6_stoch,"%.16lg %.16lg %d %d\n",EU6[RE]/nEU6,EU6[IM]/nEU6,ihit,nEU6);
 	    }
 	  
 	  close_file(fout_EU1_stoch);

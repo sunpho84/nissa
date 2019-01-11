@@ -73,8 +73,9 @@ namespace nissa
     master_printf("\n\nEigenvalues of D Overlap:\n");
     for(int ieig=0;ieig<meas_pars.neigs;++ieig)
       master_fprintf(fout,"%.16lg %.16lg\n",D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
+    
     close_file(fout);
-        
+    
     eig_time+=take_time();
     master_printf("Eigenvalues time: %lg\n", eig_time);
     
