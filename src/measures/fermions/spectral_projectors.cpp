@@ -38,11 +38,11 @@ namespace nissa
       {
 	split_lx_vector_into_eo_parts(in_tmp_eo,(color*)in_lx);
 	
-	evn_apply_stD(out_tmp_eo[EVN],conf,0.00,in_tmp_eo);
+//	evn_apply_stD(out_tmp_eo[EVN],conf,0.00,in_tmp_eo);
 	odd_apply_stD(out_tmp_eo[ODD],conf,0.00,in_tmp_eo);
 	
 	evn_apply_stD_dag(in_tmp_eo[EVN],conf,0.00,out_tmp_eo);
-	odd_apply_stD_dag(in_tmp_eo[ODD],conf,0.00,out_tmp_eo);
+//	odd_apply_stD_dag(in_tmp_eo[ODD],conf,0.00,out_tmp_eo);
 	
 	paste_eo_parts_into_lx_vector((color*)out_lx,in_tmp_eo);
 	
@@ -67,13 +67,20 @@ namespace nissa
     double eig_time=-take_time();
     add_backfield_with_stagphases_to_conf(conf,u1b);
     eigenvalues_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler,wspace_size);
-    rem_backfield_with_stagphases_from_conf(conf,u1b);
     
-    //    complex norm_cut[neigs];
-    complex *g5eigvec_i=nissa_malloc("g5eigvec_j",(loc_vol+bord_vol)*NCOL,complex);
-    master_printf("\n\nEigenvalues of DD^+:\n");
+    complex norm_cut[neigs];
+    complex norm_cut2[neigs];
+//    complex *g5eigvec_i=nissa_malloc("g5eigvec_j",mat_size_to_allocate,complex);
+    verbosity_lv1_master_printf("\n\nEigenvalues of DD^+ and debug info on spectral projectors:\n");
     for(int ieig=0;ieig<neigs;ieig++)
-      {
+    {
+      norm_cut[ieig][RE]=0.;
+      norm_cut[ieig][IM]=0.;
+      norm_cut2[ieig][RE]=0.;
+      norm_cut2[ieig][IM]=0.;
+    }
+    for(int ieig=0;ieig<neigs;ieig++)
+    {
       master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE],DD_eig_val[ieig][IM]);
       
       // compute partial sum terms of tr(g5)
@@ -84,22 +91,34 @@ namespace nissa
       // between 'fill_tmp_eo' and 'out_tmp_eo'.
       
       split_lx_vector_into_eo_parts((color**)fill_tmp_eo,(color*)eigvec[ieig]);
+      complex_vector_glb_scalar_prod((double*)&norm_cut[ieig],(complex*)fill_tmp_eo[EVN],(complex*)fill_tmp_eo[EVN],mat_size/2);
       
       //multiply by gamma5
       apply_stag_op(out_tmp_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,fill_tmp_eo);
       
-      paste_eo_parts_into_lx_vector((color*)g5eigvec_i,out_tmp_eo);
+      //paste_eo_parts_into_lx_vector((color*)g5eigvec_i,out_tmp_eo);
       
       //take hermitian products
       //for(int jeig=ieig; jeig<neigs; ++jeig)
       for(int jeig=ieig; jeig<neigs; ++jeig){
-        complex_vector_glb_scalar_prod((double*)&charge_cut[ieig*neigs+jeig],eigvec[jeig],g5eigvec_i,(loc_vol+bord_vol)*NCOL);
-        master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
+        split_lx_vector_into_eo_parts((color**)fill_tmp_eo,(color*)eigvec[jeig]);
+        norm_cut2[jeig][RE]=0.;
+        norm_cut2[jeig][IM]=0.;
+        complex_vector_glb_scalar_prod((double*)&norm_cut2[jeig],(complex*)fill_tmp_eo[EVN],(complex*)fill_tmp_eo[EVN],mat_size/2);
+        // projecting on the even part
+        complex_vector_glb_scalar_prod((double*)&charge_cut[ieig*neigs+jeig],(complex*)fill_tmp_eo[EVN],(complex*)out_tmp_eo[EVN],mat_size/2);
+        double totnorm=sqrt(norm_cut2[jeig][RE]*norm_cut[ieig][RE]); // jeig<=ieig, so it has been already computed in the previous steps
+        charge_cut[ieig*neigs+jeig][RE]/=totnorm;
+        charge_cut[ieig*neigs+jeig][IM]/=totnorm;
+        verbosity_lv1_master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg), normsq(u_%d)=%.16lg,normsq(u_%d)=%.16lg, totnorm = %.16lg\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM], ieig, norm_cut[ieig][RE], jeig, norm_cut2[jeig][RE],totnorm);
       }
-    master_printf("\n\n\n");
+
+    }
+    verbosity_lv2_master_printf("\n\n\n");
+    rem_backfield_with_stagphases_from_conf(conf,u1b);
     
     eig_time+=take_time();
-    master_printf("Eigenvalues time: %lg\n",eig_time);
+    verbosity_lv1_master_printf("Eigenvalues time: %lg\n",eig_time);
     
     nissa_free(out_tmp_eo[EVN]);
     nissa_free(out_tmp_eo[ODD]);
@@ -109,7 +128,7 @@ namespace nissa
     nissa_free(fill_tmp_eo[ODD]);
     nissa_free(u1b[0]);
     nissa_free(u1b[1]);
-    nissa_free(g5eigvec_i);
+//    nissa_free(g5eigvec_i);
   }
   THREADABLE_FUNCTION_END
   
@@ -151,29 +170,39 @@ namespace nissa
 	measure_spectral_proj(eigvec,conf,charge_cut,DD_eig_val,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
       }
     
-    //print the result on file
+    //print the result on file (and on screen, debug only)
+    double tmp_cum_sum[meas_pars.neigs+1]; // stores A_k partial sums, offset by 1
+    double tmp_cum_sum2[meas_pars.neigs+1]; // stores B_k partial sums, offset by 1 
+    tmp_cum_sum[0]=0.;
+    tmp_cum_sum2[0]=0.;
+    verbosity_lv1_master_printf("\n\nPartial sums for spectral projectors:\n\nk\t\t\teig\t\t\tA_k\t\t\tB_k\n");
     master_fprintf(file,"%d\t",neigs);
-    for(int ieig=0;ieig<neigs;++ieig)
+    for(int ieig=0;ieig<neigs;++ieig){
+      tmp_cum_sum[ieig+1]=0.;
+      tmp_cum_sum2[ieig+1]=0.;
       master_fprintf(file,"%.16lg\t",DD_eig_val[ieig][RE]);
-
-    double tmp_cum_sum=0.;
+    }
     for(int ieig=0;ieig<neigs;ieig++)
       {
-	tmp_cum_sum+=charge_cut[ieig*neigs+ieig][RE];
-	master_fprintf(file,"%.16lg\t",tmp_cum_sum);
+	tmp_cum_sum[ieig+1]=tmp_cum_sum[ieig]+charge_cut[ieig*neigs+ieig][RE];
+	master_fprintf(file,"%.16lg\t",tmp_cum_sum[ieig+1]);
       }
-    tmp_cum_sum=0.0;
     for(int kcutoff=0;kcutoff<neigs;kcutoff++)
       {
-	tmp_cum_sum+=complex_norm2(charge_cut[kcutoff*neigs+kcutoff]);
-	for(int ieig=0;ieig<kcutoff;ieig++)
-	  tmp_cum_sum+=2.0*complex_norm2(charge_cut[ieig*neigs+kcutoff]);
-	
-	master_fprintf(file,"%.16lg\t",tmp_cum_sum);
+	tmp_cum_sum2[kcutoff+1]=tmp_cum_sum2[kcutoff]+complex_norm2(charge_cut[kcutoff*neigs+kcutoff]); //diagonal part
+	for(int ieig=0;ieig<kcutoff;ieig++){
+	  tmp_cum_sum2[kcutoff+1]+=2.0*complex_norm2(charge_cut[ieig*neigs+kcutoff]); //offdiagonal part
+  }
+	master_fprintf(file,"%.16lg\t",tmp_cum_sum2[kcutoff+1]);
       }
     master_fprintf(file,"\n");
     
     close_file(file);
+
+    for(int ieig=0; ieig<neigs; ieig++){
+      verbosity_lv1_master_printf("%d\t%.16lg\t%.16lg\t%.16lg\n",ieig,DD_eig_val[ieig][RE],tmp_cum_sum[1+ieig],tmp_cum_sum2[1+ieig]);
+    }
+    verbosity_lv1_master_printf("\n\n");
     
     for(int ieig=0;ieig<neigs;ieig++)
       nissa_free(eigvec[ieig]);
