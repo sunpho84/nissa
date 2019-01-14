@@ -72,8 +72,6 @@ namespace nissa
       apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
       summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,out);
       apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
-      apply_overlap(tmp,conf_lx,&appr,residue,mass_overlap,-1.0,in);
-      apply_overlap(out,conf_lx,&appr,residue,mass_overlap,-1.0,tmp);
       
       double_vector_subtassign((double*)out,(double*)in,sizeof(spincolor)/sizeof(double)*loc_vol);
       
