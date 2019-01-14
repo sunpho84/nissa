@@ -31,7 +31,8 @@ namespace nissa
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     rat_approx_t appr;
-    double maxerr=sqrt(meas_pars.residue);
+    double residue=meas_pars.residue;
+    double maxerr=sqrt(residue);
     
     //Parameters of the eigensolver
     const int mat_size=loc_vol*NCOL*NDIRAC;
@@ -57,12 +58,31 @@ namespace nissa
     
     rat_approx_for_overlap(conf_lx,&appr,theory_pars.quarks[iquark].mass_overlap,maxerr);
     
+    //Verify the approxiation
+    {
+      spincolor *in=(spincolor*)(eigvec[0]);
+      generate_undiluted_source(in,RND_GAUSS,-1);
+      spincolor *tmp=(spincolor*)(eigvec[1]);
+      apply_overlap(tmp,conf_lx,&appr,residue,theory_pars.quarks[iquark].mass_overlap,-1.0,in);
+      spincolor *out=(spincolor*)(eigvec[2]);
+      apply_overlap(out,conf_lx,&appr,residue,theory_pars.quarks[iquark].mass_overlap,-1.0,tmp);
+      
+      double_vector_subtassign((double*)out,(double*)in,sizeof(spincolor)/sizeof(double)*loc_vol);
+      
+      double nout=double_vector_glb_norm2(out,loc_vol);
+      double nin=double_vector_glb_norm2(in,loc_vol);
+      
+      master_printf("Norm of the source: %.16lg\n",sqrt(nin));
+      master_printf("Norm of the difference: %.16lg\n",sqrt(nout));
+      master_printf("Relative norm of the difference: %.16lg\n",sqrt(nout/nin));
+    }
+    
     appr.master_fprintf_expr(stdout);
     
     //Application of the Overlap Operator
-    const auto imp_mat=[conf_lx,&theory_pars,&maxerr,iquark,&appr](complex *out_lx,complex *in_lx)
+    const auto imp_mat=[conf_lx,&theory_pars,&residue,iquark,&appr](complex *out_lx,complex *in_lx)
       {
-	apply_overlap((spincolor*)out_lx,conf_lx,&appr,maxerr,theory_pars.quarks[iquark].mass_overlap,theory_pars.quarks[iquark].mass,(spincolor*)in_lx);
+	apply_overlap((spincolor*)out_lx,conf_lx,&appr,residue,theory_pars.quarks[iquark].mass_overlap,theory_pars.quarks[iquark].mass,(spincolor*)in_lx);
       };
     
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
