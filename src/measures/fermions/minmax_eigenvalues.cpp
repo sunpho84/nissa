@@ -22,6 +22,8 @@ namespace nissa
   //measure minmax_eigenvalues
   void measure_minmax_eigenvalues(quad_su3 **conf_eo,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
+    double eig_time=-take_time();
+    
     FILE *fout=open_file(meas_pars.path,conf_created?"w":"a");
     
     //lx version
@@ -65,14 +67,13 @@ namespace nissa
     
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
     
-    double eig_time=-take_time();
-    
     //Find eigenvalues and eigenvectors of the overlap
     eigenvalues_find(eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
     
     master_printf("\n\nEigenvalues of D Overlap:\n");
-    for(int ieig=0;ieig<meas_pars.neigs;++ieig)
-      master_fprintf(fout,"%.16lg %.16lg\n",D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
+    for(int ieig=0;ieig<meas_pars.neigs;ieig++)
+      for(FILE* f : {fout,stdout})
+	master_fprintf(f,"%.16lg %.16lg\n",D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
     
     close_file(fout);
     
