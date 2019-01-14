@@ -60,7 +60,7 @@ namespace nissa
     //Application of the Overlap Operator
     const auto imp_mat=[conf_lx,&theory_pars,&maxerr,iquark,&appr](complex *out_lx,complex *in_lx)
       {
-	apply_overlap((spincolor*)out_lx,conf_lx,&appr,maxerr,theory_pars.quarks[iquark].mass_overlap,(spincolor*)in_lx);
+	apply_overlap((spincolor*)out_lx,conf_lx,&appr,maxerr,theory_pars.quarks[iquark].mass_overlap,theory_pars.quarks[iquark].mass,(spincolor*)in_lx);
       };
     
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
