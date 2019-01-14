@@ -85,7 +85,9 @@ namespace nissa
     
     int num=-1,den=2;
     generate_approx_of_maxerr(*appr,minimum,maximum,maxerr,num,den); // we evaluate the rational approximation of 1/sqrt(x) in [epsilon,1]
+    
     nissa_free(temp);
+    nissa_free(lambda);
   }
   THREADABLE_FUNCTION_END
   
