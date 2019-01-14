@@ -48,7 +48,7 @@ namespace nissa
 	vector_reset(eigvec[ieig]);
       }
     
-    master_printf("neigs=%d, eig_precision=%.2e\n",meas_pars.neigs,meas_pars.eig_precision);
+    master_printf("neigs=%d, eig_precision=%.2e\n",meas_pars.neigs,maxerr);
     
     //consider only the first quark
     int iquark=0;
@@ -68,7 +68,7 @@ namespace nissa
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
     
     //Find eigenvalues and eigenvectors of the overlap
-    eigenvalues_find(eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
+    eigenvalues_find(eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler);
     
     master_printf("\n\nEigenvalues of D Overlap:\n");
     for(int ieig=0;ieig<meas_pars.neigs;ieig++)
@@ -94,7 +94,6 @@ namespace nissa
     os<<"MeasMinMaxEigenval\n";
     os<<base_fermionic_meas_t::get_str(full);
     if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
-    if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
     if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
     if(min_max!=def_min_max() or full) os<<" MinMax\t\t=\t"<<min_max<<"\n";
     
