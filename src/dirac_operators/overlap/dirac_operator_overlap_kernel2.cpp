@@ -18,7 +18,7 @@
 
 namespace nissa
 {
-  //Apply the H^{\dagger}H operator to a spincolor
+  //Apply the H^{\dagger}H=H^2 operator to a spincolor
   THREADABLE_FUNCTION_6ARG(apply_overlap_kernel2, spincolor*,out, quad_su3*,conf, double,M, spincolor*,ext_temp, double, diag_coeff, spincolor*,in)
   {
     spincolor *temp=ext_temp;

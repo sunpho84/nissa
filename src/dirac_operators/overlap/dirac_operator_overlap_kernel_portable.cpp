@@ -11,7 +11,7 @@
 
 namespace nissa
 {
-  // Apply the Q=g5*D_wilson + M*Id  operator to a spincolor.
+  // Apply the Q=g5*(D_wilson - M*Id)  operator to a spincolor.
   // Modified from tmQ_portable by C.Bonanno and M.Cardinali
   //
   // D_{x,y}=[1/(2k)] \delta_{x,y}-1/2*
