@@ -9,6 +9,9 @@
 #include "new_types/rat_approx.hpp"
 #include "operations/remez/remez_algorithm.hpp"
 
+#include "dirac_operators/overlap/dirac_operator_overlap_kernel_portable.hpp"
+#include "inverters/overlap/cgm_invert_overlap_kernel2.hpp"
+
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -53,19 +56,24 @@ namespace nissa
     
     //consider only the first quark
     int iquark=0;
+    double mass_overlap=theory_pars.quarks[iquark].mass_overlap;
     if(theory_pars.nflavs()!=1) crash("implemented only for 1 flavor");
     if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) crash("Implemented only for overlap");
     
-    rat_approx_for_overlap(conf_lx,&appr,theory_pars.quarks[iquark].mass_overlap,maxerr);
+    rat_approx_for_overlap(conf_lx,&appr,mass_overlap,maxerr);
     
     //Verify the approxiation
     {
       spincolor *in=(spincolor*)(eigvec[0]);
       generate_undiluted_source(in,RND_GAUSS,-1);
       spincolor *tmp=(spincolor*)(eigvec[1]);
-      apply_overlap(tmp,conf_lx,&appr,residue,theory_pars.quarks[iquark].mass_overlap,-1.0,in);
       spincolor *out=(spincolor*)(eigvec[2]);
-      apply_overlap(out,conf_lx,&appr,residue,theory_pars.quarks[iquark].mass_overlap,-1.0,tmp);
+      summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,in);
+      apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
+      summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,out);
+      apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
+      apply_overlap(tmp,conf_lx,&appr,residue,mass_overlap,-1.0,in);
+      apply_overlap(out,conf_lx,&appr,residue,mass_overlap,-1.0,tmp);
       
       double_vector_subtassign((double*)out,(double*)in,sizeof(spincolor)/sizeof(double)*loc_vol);
       
@@ -92,7 +100,7 @@ namespace nissa
     
     master_printf("\n\nEigenvalues of D Overlap:\n");
     for(int ieig=0;ieig<meas_pars.neigs;ieig++)
-      for(FILE* f : {fout,stdout})
+      for(FILE *f : {fout,stdout})
 	master_fprintf(f,"%.16lg %.16lg\n",D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
     
     close_file(fout);
