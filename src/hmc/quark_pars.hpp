@@ -102,7 +102,7 @@ namespace nissa
     int def_deg(){return 1;}
     ferm_discretiz::name_t def_discretiz(){return ferm_discretiz::ROOT_STAG;}
     double def_mass(){return 0.1;}
-    double def_mass_overlap(){return 0;}
+    double def_mass_overlap(){return 1.0;}
     double def_kappa(){return 0.125;}
     double def_cSW(){return 0;}
     double def_re_pot(){return 0;}
