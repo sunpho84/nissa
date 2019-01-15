@@ -41,7 +41,7 @@ Requirements
 -Support for threads in the compiler.
 -gcc >= 6 or intel compiler
 -Autotools >= 1.14 to generate configure and Makefile.
--Bison >=3.0 and flex (see scripts in the  config folder).
+-Bison >=3.0 and flex (see scripts in the config folder).
 
 NB: use the scripts in the "config" folder to install the appropriate versions
 
