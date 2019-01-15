@@ -8,3 +8,5 @@ cd build
 ../configure '--enable-mpi' '--enable-icb' --prefix=$PWD/../install
 make
 make install
+cp -r $PWD/../install/lib/* $HOME/lib/
+rm -r arpack-ng

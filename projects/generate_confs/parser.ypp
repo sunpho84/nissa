@@ -739,7 +739,7 @@ global_analysis_pars: TK_ANALYSIS TK_CONF_LIST '=' text_list
 	{
 	    glob_t globbuf;
 	    if(glob(it.c_str(),0,NULL,&globbuf))
-		crash("Unable to find patterm %s for conf",it.c_str());
+		crash("Unable to find pattern %s for conf",it.c_str());
 	    else
 		for(int j=0;j<(int)globbuf.gl_pathc;j++)
 		    driver->an_conf_list.push_back(globbuf.gl_pathv[j]);
