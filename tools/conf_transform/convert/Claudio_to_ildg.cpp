@@ -16,6 +16,38 @@ double read_double(FILE *in)
   return out;
 }
 
+void read_from_binary_file_Su3(su3 A, FILE *fp)
+  {
+  size_t err;
+  int i, j;
+  double re, im;
+  double aux_re, aux_im;
+ 
+  err=0;
+
+  for(i=0; i<NCOL; i++)
+     {
+     for(j=0; j<NCOL; j++)
+        {
+        err+=fread(&re, sizeof(double), 1, fp);
+        err+=fread(&im, sizeof(double), 1, fp);
+        aux_re=re;
+        aux_im=im;
+
+        memcpy((void *)&(A[i][j][0]), (void *)&(aux_re), sizeof(double));
+				memcpy((void *)&(A[i][j][1]), (void *)&(aux_im), sizeof(double));
+        //equivalent to A[i][j]=re+im*I;
+        }
+      }
+        
+   if(err!=2*NCOL*NCOL)
+   {
+   		fprintf(stderr, "Problems in reading Su3 matrix\n");
+      exit(1);
+   }
+}
+
+
 void read_su3(su3 out,FILE *in)
 {
   for(int i=0;i<NCOL;i++)
@@ -54,7 +86,7 @@ int main(int narg,char **arg)
   {
     for(int mu=0;mu<NDIM;mu++)
       {
-	read_su3(in_conf[ivol*NDIM+mu],fin);
+	read_from_binary_file_Su3(in_conf[ivol*NDIM+mu],fin);
 	if(ivol==0)
 	  {
 	    double t=real_part_of_trace_su3_prod_su3_dag(in_conf[ivol*NDIM+mu],in_conf[ivol*NDIM+mu]);

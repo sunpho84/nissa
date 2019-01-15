@@ -9,6 +9,9 @@
 #include "new_types/rat_approx.hpp"
 #include "operations/remez/remez_algorithm.hpp"
 
+#include "dirac_operators/overlap/dirac_operator_overlap_kernel_portable.hpp"
+#include "inverters/overlap/cgm_invert_overlap_kernel2.hpp"
+
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -22,6 +25,8 @@ namespace nissa
   //measure minmax_eigenvalues
   void measure_minmax_eigenvalues(quad_su3 **conf_eo,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
+    double eig_time=-take_time();
+    
     FILE *fout=open_file(meas_pars.path,conf_created?"w":"a");
     
     //lx version
@@ -29,7 +34,8 @@ namespace nissa
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     rat_approx_t appr;
-    double maxerr=sqrt(meas_pars.residue);
+    double residue=meas_pars.residue;
+    double maxerr=sqrt(residue);
     
     //Parameters of the eigensolver
     const int mat_size=loc_vol*NCOL*NDIRAC;
@@ -46,33 +52,54 @@ namespace nissa
 	vector_reset(eigvec[ieig]);
       }
     
-    master_printf("neigs=%d, eig_precision=%.2e\n",meas_pars.neigs,meas_pars.eig_precision);
+    master_printf("neigs=%d, eig_precision=%.2e\n",meas_pars.neigs,maxerr);
     
     //consider only the first quark
     int iquark=0;
+    double mass_overlap=theory_pars.quarks[iquark].mass_overlap;
     if(theory_pars.nflavs()!=1) crash("implemented only for 1 flavor");
     if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) crash("Implemented only for overlap");
     
-    rat_approx_for_overlap(conf_lx,&appr,theory_pars.quarks[iquark].mass_overlap,maxerr);
+    rat_approx_for_overlap(conf_lx,&appr,mass_overlap,maxerr);
+    
+    //Verify the approxiation
+    {
+      spincolor *in=(spincolor*)(eigvec[0]);
+      generate_undiluted_source(in,RND_GAUSS,-1);
+      spincolor *tmp=(spincolor*)(eigvec[1]);
+      spincolor *out=(spincolor*)(eigvec[2]);
+      summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,in);
+      apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
+      summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,out);
+      apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
+      
+      double_vector_subtassign((double*)out,(double*)in,sizeof(spincolor)/sizeof(double)*loc_vol);
+      
+      double nout=double_vector_glb_norm2(out,loc_vol);
+      double nin=double_vector_glb_norm2(in,loc_vol);
+      
+      master_printf("Norm of the source: %.16lg\n",sqrt(nin));
+      master_printf("Norm of the difference: %.16lg\n",sqrt(nout));
+      master_printf("Relative norm of the difference: %.16lg\n",sqrt(nout/nin));
+    }
     
     appr.master_fprintf_expr(stdout);
     
     //Application of the Overlap Operator
-    const auto imp_mat=[conf_lx,&theory_pars,&maxerr,iquark,&appr](complex *out_lx,complex *in_lx)
+    const auto imp_mat=[conf_lx,&theory_pars,&residue,iquark,&appr](complex *out_lx,complex *in_lx)
       {
-	apply_overlap((spincolor*)out_lx,conf_lx,&appr,maxerr,theory_pars.quarks[iquark].mass_overlap,(spincolor*)in_lx);
+	apply_overlap((spincolor*)out_lx,conf_lx,&appr,residue,theory_pars.quarks[iquark].mass_overlap,theory_pars.quarks[iquark].mass,(spincolor*)in_lx);
       };
     
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
     
-    double eig_time=-take_time();
-    
     //Find eigenvalues and eigenvectors of the overlap
-    eigenvalues_find(eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
+    eigenvalues_find(eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler);
     
     master_printf("\n\nEigenvalues of D Overlap:\n");
-    for(int ieig=0;ieig<meas_pars.neigs;++ieig)
-      master_fprintf(fout,"%.16lg %.16lg\n",D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
+    for(int ieig=0;ieig<meas_pars.neigs;ieig++)
+      for(FILE *f : {fout,stdout})
+	master_fprintf(f,"%.16lg %.16lg\n",D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
     
     close_file(fout);
     
@@ -93,7 +120,6 @@ namespace nissa
     os<<"MeasMinMaxEigenval\n";
     os<<base_fermionic_meas_t::get_str(full);
     if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
-    if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
     if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
     if(min_max!=def_min_max() or full) os<<" MinMax\t\t=\t"<<min_max<<"\n";
     

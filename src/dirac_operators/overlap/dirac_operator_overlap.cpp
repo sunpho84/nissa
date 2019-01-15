@@ -43,7 +43,7 @@ namespace nissa
   //
   // We used two different routines because parpack cannot support nested calls, and we can recycle the approximation
   // libraries that prevent innested calls
-  THREADABLE_FUNCTION_4ARG(rat_approx_for_overlap, quad_su3*,conf, rat_approx_t*, appr, double,M, double,maxerr)
+  THREADABLE_FUNCTION_4ARG(rat_approx_for_overlap, quad_su3*,conf, rat_approx_t*, appr, double,mass_overlap, double,maxerr)
   {
     communicate_lx_quad_su3_borders(conf);
     
@@ -61,9 +61,9 @@ namespace nissa
     spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
     
     // Application of H^2 to a spincolor vector and then cast to a complex vector
-    const auto imp_mat=[conf,temp,M](complex *out_lx,complex *in_lx)
+    const auto imp_mat=[conf,temp,mass_overlap](complex *out_lx,complex *in_lx)
       {
-	apply_overlap_kernel2((spincolor*)out_lx,conf,M,(spincolor*)temp,0.0,(spincolor*)in_lx);
+	apply_overlap_kernel2((spincolor*)out_lx,conf,mass_overlap,(spincolor*)temp,0.0,(spincolor*)in_lx);
       };
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
     
@@ -85,11 +85,13 @@ namespace nissa
     
     int num=-1,den=2;
     generate_approx_of_maxerr(*appr,minimum,maximum,maxerr,num,den); // we evaluate the rational approximation of 1/sqrt(x) in [epsilon,1]
+    
     nissa_free(temp);
+    nissa_free(lambda);
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_6ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr, double,req_res, double,M, spincolor*,in)
+  THREADABLE_FUNCTION_7ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr, double,req_res, double,mass_overlap, double,mass, spincolor*,in)
   {
     GET_THREAD_ID();
     
@@ -101,24 +103,24 @@ namespace nissa
     spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
     
     // sum the constant and all the shifts
-    summ_src_and_all_inv_overlap_kernel2_cgm(temp,conf,M,appr,niter_max,req_res,in);
+    summ_src_and_all_inv_overlap_kernel2_cgm(temp,conf,mass_overlap,appr,niter_max,req_res,in);
     // temp = a_0 in + sum_k=1^n a_k (H^2+b_k)^(-1) in ( in is the input vector and n = appr.degree() )
     // here we apply H to temp, out = H temp, thus now out = sign(H) in
-    apply_overlap_kernel(out,conf,M,temp);
+    apply_overlap_kernel(out,conf,mass_overlap,temp);
     
     // here we apply g5 to out and we add the input vector, thus now out = in + g_5 sign(H) in = ( Id + g5*sign(H) ) in = D_ov in
     // this is horrible but fast (cit. Sunpho)
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
       for(int c=0;c<NCOL;c++)
 	{
-	  out[X][0][c][0]=+out[X][0][c][0]+in[X][0][c][0];
-	  out[X][0][c][1]=+out[X][0][c][1]+in[X][0][c][1];
-	  out[X][1][c][0]=+out[X][1][c][0]+in[X][1][c][0];
-	  out[X][1][c][1]=+out[X][1][c][1]+in[X][1][c][1];
-	  out[X][2][c][0]=-out[X][2][c][0]+in[X][2][c][0];
-	  out[X][2][c][1]=-out[X][2][c][1]+in[X][2][c][1];
-	  out[X][3][c][0]=-out[X][3][c][0]+in[X][3][c][0];
-	  out[X][3][c][1]=-out[X][3][c][1]+in[X][3][c][1];
+	  out[X][0][c][0]=+out[X][0][c][0]+(1.0+mass)*in[X][0][c][0];
+	  out[X][0][c][1]=+out[X][0][c][1]+(1.0+mass)*in[X][0][c][1];
+	  out[X][1][c][0]=+out[X][1][c][0]+(1.0+mass)*in[X][1][c][0];
+	  out[X][1][c][1]=+out[X][1][c][1]+(1.0+mass)*in[X][1][c][1];
+	  out[X][2][c][0]=-out[X][2][c][0]+(1.0+mass)*in[X][2][c][0];
+	  out[X][2][c][1]=-out[X][2][c][1]+(1.0+mass)*in[X][2][c][1];
+	  out[X][3][c][0]=-out[X][3][c][0]+(1.0+mass)*in[X][3][c][0];
+	  out[X][3][c][1]=-out[X][3][c][1]+(1.0+mass)*in[X][3][c][1];
 	}
     
     set_borders_invalid(out);
