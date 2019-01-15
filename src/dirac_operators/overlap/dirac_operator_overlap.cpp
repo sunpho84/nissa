@@ -68,12 +68,11 @@ namespace nissa
     const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
     
     //lambda_min = min eigenvalue of H^2
-    const double min_max_prec=1e-5;
     const int neig=1;
-    eigenvalues_find(&eigen_vector,&lambda_min,neig,MIN,mat_size,mat_size_to_allocate,imp_mat,min_max_prec,niter_max,filler); //find lambda_min (min eigenvalue of H^2)
+    eigenvalues_find(&eigen_vector,&lambda_min,neig,MIN,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler); //find lambda_min (min eigenvalue of H^2)
     
     //lambda_max = max eigenvalue of H^2
-    eigenvalues_find(&eigen_vector,&lambda_max,neig,MAX,mat_size,mat_size_to_allocate,imp_mat,min_max_prec,niter_max,filler); //find lambda_max (max eigenvalue of H^2)
+    eigenvalues_find(&eigen_vector,&lambda_max,neig,MAX,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler); //find lambda_max (max eigenvalue of H^2)
     
     nissa_free(eigen_vector);
     
@@ -122,6 +121,8 @@ namespace nissa
 	  out[X][3][c][0]=-out[X][3][c][0]+(1.0+mass)*in[X][3][c][0];
 	  out[X][3][c][1]=-out[X][3][c][1]+(1.0+mass)*in[X][3][c][1];
 	}
+    
+    master_printf("Diagonal parto of overlap operator: %lg\n",(1.0+mass));
     
     set_borders_invalid(out);
     
