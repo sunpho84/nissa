@@ -123,7 +123,7 @@ namespace nissa
     
     complex *buffer=nissa_malloc("buffer",loc_vol,complex);
     spincolor *op=nissa_malloc("op",loc_vol,spincolor);
-    spincolor *t=nissa_malloc("t",loc_vol,spincolor);
+    spincolor *t=nissa_malloc("t",loc_vol+bord_vol,spincolor);
     
     master_printf("Chirality of the eigenvectors:\n");
     for(int ieig=0;ieig<neigs;ieig++)
