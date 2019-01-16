@@ -59,6 +59,8 @@ namespace nissa
     double s=double_vector_glb_norm2(l,loc_vol);
     double n2=double_vector_glb_norm2(v,loc_vol);
     
+    nissa_free(l);
+    
     return sqr(n2)/(glb_vol*s);
   }
   
@@ -105,9 +107,7 @@ namespace nissa
     bool finished;
     do
       {
-	//plaquette and local charge
 	double plaq=global_plaquette_lx_conf(conf_lx);
-	finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
 	
 	rat_approx_for_overlap(conf_lx,&appr,mass_overlap,maxerr);
 	
@@ -213,12 +213,14 @@ namespace nissa
 	    double nop=double_vector_glb_norm2(t,loc_vol);
 	    double h=sqrt(nop/n);
 	    
-	    master_printf(" %d (h: %lg, internal: %lg actual: %lg, hand: %lg, res: %lg, failure of sign(H): %lg, of g5*sign(H): %lg)\n   %lg %lg  %lg %lg %lg %lg\n",
+	    master_printf(" %d (h: %lg, internal: %lg, actual: %lg, hand: %lg, res: %lg, failure of sign(H): %lg, of g5*sign(H): %lg)\n   %lg %lg  %lg %lg %lg %lg\n",
 			  ieig,i,D_ov_eig_val[ieig][RE],e,w,r,h,h5,c[RE],c[IM],((spincolor**)(eigvec))[ieig][0][0][0][RE],((spincolor**)eigvec)[ieig][0][1][0][RE],((spincolor**)eigvec)[ieig][0][2][0][RE],((spincolor**)eigvec)[ieig][0][3][0][RE]);
 	  }
 	nissa_free(op);
 	nissa_free(t);
 	nissa_free(buffer);
+	
+	finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);	
       }
     while(not finished);
     
