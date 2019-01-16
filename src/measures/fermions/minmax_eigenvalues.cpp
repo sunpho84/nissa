@@ -41,6 +41,27 @@ namespace nissa
     THREADABLE_FUNCTION_END
   }
   
+  //Computes the participation ratio
+  double participation_ratio(spincolor *v)
+  {
+    GET_THREAD_ID();
+    
+    double *l=nissa_malloc("l",loc_vol,double);
+    
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	complex t;
+	spincolor_scalar_prod(t,v[ivol],v[ivol]);
+	l[ivol]=t[RE];
+      }
+    THREAD_BARRIER();
+    
+    double s=double_vector_glb_norm2(l,loc_vol);
+    double n2=double_vector_glb_norm2(v,loc_vol);
+    
+    return sqr(n2)/(glb_vol*s);
+  }
+  
   //measure minmax_eigenvalues
   void measure_minmax_eigenvalues(quad_su3 **conf_eo,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
@@ -124,6 +145,11 @@ namespace nissa
     complex *buffer=nissa_malloc("buffer",loc_vol,complex);
     spincolor *op=nissa_malloc("op",loc_vol,spincolor);
     spincolor *t=nissa_malloc("t",loc_vol+bord_vol,spincolor);
+    
+    //participation ratio
+    master_printf("Participation ratio:\n");
+    for(int ieig=0;ieig<neigs;ieig++)
+      master_printf("%d: %.16lg\n",ieig,participation_ratio((spincolor*)(eigvec[ieig])));
     
     master_printf("Chirality of the eigenvectors:\n");
     for(int ieig=0;ieig<neigs;ieig++)
