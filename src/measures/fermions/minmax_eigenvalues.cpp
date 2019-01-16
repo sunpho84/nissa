@@ -110,27 +110,7 @@ namespace nissa
 	double plaq=global_plaquette_lx_conf(conf_lx);
 	
 	rat_approx_for_overlap(conf_lx,&appr,mass_overlap,maxerr);
-	
-	//Verify the approximation
-	{
-	  spincolor *in=(spincolor*)(eigvec[0]);
-	  generate_undiluted_source(in,RND_GAUSS,-1);
-	  spincolor *tmp=(spincolor*)(eigvec[1]);
-	  spincolor *out=(spincolor*)(eigvec[2]);
-	  summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,in);
-	  apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
-	  summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,out);
-	  apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
-	  
-	  double_vector_subtassign((double*)out,(double*)in,sizeof(spincolor)/sizeof(double)*loc_vol);
-	  
-	  double nout=double_vector_glb_norm2(out,loc_vol);
-	  double nin=double_vector_glb_norm2(in,loc_vol);
-	  
-	  master_printf("Norm of the source: %.16lg\n",sqrt(nin));
-	  master_printf("Norm of the difference: %.16lg\n",sqrt(nout));
-	  master_printf("Relative norm of the difference: %.16lg\n",sqrt(nout/nin));
-	}
+	verify_rat_approx_for_overlap(conf_lx,appr,mass_overlap,niter_max,residue);
 	
 	appr.master_fprintf_expr(stdout);
 	

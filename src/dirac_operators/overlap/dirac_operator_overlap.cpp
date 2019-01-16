@@ -90,6 +90,30 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //Verify the approximation
+  void verify_rat_approx_for_overlap(quad_su3 *conf_lx,rat_approx_t &appr,double mass_overlap,int niter_max,double residue)
+  {
+    spincolor *in=nissa_malloc("in",loc_vol+bord_vol,spincolor);
+    generate_undiluted_source(in,RND_GAUSS,-1);
+    
+    spincolor *tmp=nissa_malloc("tmp",loc_vol+bord_vol,spincolor);
+    spincolor *out=nissa_malloc("out",loc_vol+bord_vol,spincolor);
+    
+    summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,in);
+    apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
+    summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,out);
+    apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
+    
+    double_vector_subtassign((double*)out,(double*)in,sizeof(spincolor)/sizeof(double)*loc_vol);
+    
+    double nout=double_vector_glb_norm2(out,loc_vol);
+    double nin=double_vector_glb_norm2(in,loc_vol);
+    
+    master_printf("Norm of the source: %.16lg\n",sqrt(nin));
+    master_printf("Norm of the difference: %.16lg\n",sqrt(nout));
+    master_printf("Relative norm of the difference: %.16lg\n",sqrt(nout/nin));
+  }
+  
   THREADABLE_FUNCTION_7ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr, double,req_res, double,mass_overlap, double,mass, spincolor*,in)
   {
     GET_THREAD_ID();
@@ -122,7 +146,7 @@ namespace nissa
 	  out[X][3][c][1]=-out[X][3][c][1]+(1.0+mass)*in[X][3][c][1];
 	}
     
-    master_printf("Diagonal parto of overlap operator: %lg\n",(1.0+mass));
+    master_printf("Diagonal part of overlap operator: %lg\n",(1.0+mass));
     
     set_borders_invalid(out);
     

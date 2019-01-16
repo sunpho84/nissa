@@ -8,6 +8,7 @@ namespace nissa
 {
   void rat_approx_for_overlap(quad_su3 *conf, rat_approx_t *appr,double mass_overlap,double maxerr);
   void apply_overlap(spincolor* out,quad_su3 *conf, rat_approx_t *appr,double maxerr,double mass_overlap,double mass, spincolor *in);
+  void verify_rat_approx_for_overlap(quad_su3 *conf_lx,rat_approx_t &appr,double mass_overlap,int niter_max,double residue);
 }
 
 #endif
