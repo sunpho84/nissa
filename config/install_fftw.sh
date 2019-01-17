@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #fftw
 wget http://www.fftw.org/fftw-3.3.4.tar.gz -O -|tar xzvf -
@@ -9,5 +9,5 @@ cd build
 make -j 8
 make install
 cd ../../
-#rm -fr fftw*
+rm -fr fftw*
 
