@@ -1,3 +1,5 @@
+#!/bin/bash -e
+
 #bison
 wget http://ftp.gnu.org/gnu/bison/bison-3.1.tar.gz -O -|tar xzvf -
 cd bison*
