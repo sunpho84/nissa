@@ -3,6 +3,7 @@
 
 #include "fermionic_meas.hpp"
 #include "hmc/theory_pars.hpp"
+#include "operations/smearing/smooth.hpp"
 
 namespace nissa
 {
@@ -13,6 +14,8 @@ namespace nissa
     int neigs;
     int wspace_size;
     int min_max;
+    smooth_pars_t smooth_pars;
+    
     int def_neigs(){return 5;}
     int def_min_max(){return 0;}
     int def_wspace_size(){return 100;}
@@ -26,7 +29,8 @@ namespace nissa
 	path!=def_path() or
         neigs!=def_neigs() or
         wspace_size!=def_wspace_size() or
-        min_max!=def_min_max();
+        min_max!=def_min_max() or
+	smooth_pars.is_nonstandard();
     }
     
     minmax_eigenvalues_meas_pars_t() :

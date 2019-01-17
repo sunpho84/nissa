@@ -678,6 +678,7 @@ minmax_eigenvalues_meas: TK_MEAS_MIN_MAX_EIGENVAL {$$=new minmax_eigenvalues_mea
                        | minmax_eigenvalues_meas neigs {$$->neigs=$2;}
                        | minmax_eigenvalues_meas wspace_size {$$->wspace_size=$2;}
                        | minmax_eigenvalues_meas min_max {$$->min_max=$2;}
+                       | minmax_eigenvalues_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
 ;
 
 ////////////////////////////////////////////////// EVOLUTION //////////////////////////////////////////////////

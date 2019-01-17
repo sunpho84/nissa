@@ -43,7 +43,7 @@ namespace nissa
   //
   // We used two different routines because parpack cannot support nested calls, and we can recycle the approximation
   // libraries that prevent innested calls
-  THREADABLE_FUNCTION_4ARG(rat_approx_for_overlap, quad_su3*,conf, rat_approx_t*, appr, double,mass_overlap, double,maxerr)
+  THREADABLE_FUNCTION_4ARG(generate_rat_approx_for_overlap, quad_su3*,conf, rat_approx_t*, appr, double,mass_overlap, double,maxerr)
   {
     communicate_lx_quad_su3_borders(conf);
     
@@ -90,6 +90,34 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //Verify the approximation, by applying twice the sign function
+  void verify_rat_approx_for_overlap(quad_su3 *conf_lx,rat_approx_t &appr,double mass_overlap,double residue)
+  {
+    //generates the source and gets its norm
+    spincolor *in=nissa_malloc("in",loc_vol+bord_vol,spincolor);
+    generate_undiluted_source(in,RND_GAUSS,-1);
+    double nin=double_vector_glb_norm2(in,loc_vol);
+    
+    //temporary and output
+    spincolor *tmp=nissa_malloc("tmp",loc_vol+bord_vol,spincolor);
+    spincolor *out=nissa_malloc("out",loc_vol+bord_vol,spincolor);
+    
+    ///apply twice the sign operator
+    int niter_max=10000000;
+    summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,in);
+    apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
+    summ_src_and_all_inv_overlap_kernel2_cgm(tmp,conf_lx,mass_overlap,&appr,niter_max,residue,out);
+    apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
+    
+    //subtracts the results from the source and gets its norm
+    double_vector_subtassign((double*)out,(double*)in,sizeof(spincolor)/sizeof(double)*loc_vol);
+    double nout=double_vector_glb_norm2(out,loc_vol);
+    
+    master_printf("Norm of the source: %.16lg\n",sqrt(nin));
+    master_printf("Norm of the difference: %.16lg\n",sqrt(nout));
+    master_printf("Relative norm of the difference: %.16lg\n",sqrt(nout/nin));
+  }
+  
   THREADABLE_FUNCTION_7ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr, double,req_res, double,mass_overlap, double,mass, spincolor*,in)
   {
     GET_THREAD_ID();
@@ -122,7 +150,7 @@ namespace nissa
 	  out[X][3][c][1]=-out[X][3][c][1]+(1.0+mass)*in[X][3][c][1];
 	}
     
-    master_printf("Diagonal parto of overlap operator: %lg\n",(1.0+mass));
+    master_printf("Diagonal part of overlap operator: %lg\n",(1.0+mass));
     
     set_borders_invalid(out);
     
