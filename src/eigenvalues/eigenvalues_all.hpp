@@ -17,6 +17,9 @@
 
 namespace nissa
 {
+  //default value of the workspace size
+#define DEFAULT_EIGPROB_WSPACE_SIZE 100
+  
   //fill a matrix using an implicit function F, and use Eigen to diagonalize it
   template <class F>
   void print_all_eigenstuff(const F &f,int mat_size)

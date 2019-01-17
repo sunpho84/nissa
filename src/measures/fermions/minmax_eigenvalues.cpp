@@ -72,6 +72,7 @@ namespace nissa
     
     //Parameters of the eigensolver
     FILE *fout=open_file(meas_pars.path,conf_created?"w":"a");
+    master_fprintf(fout," # iconf: %d\n",iconf);
     
     //zero smooth time of the conf
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol,quad_su3);
@@ -81,6 +82,7 @@ namespace nissa
     bool min_max=meas_pars.min_max;
     int neigs=meas_pars.neigs;
     double residue=meas_pars.residue;
+    int wspace_size=meas_pars.wspace_size;
     double maxerr=sqrt(residue);
     
     //allocate
@@ -101,10 +103,13 @@ namespace nissa
 	
 	//plaquette for the current nsmooth
 	double plaq=global_plaquette_lx_conf(conf_lx);
+	master_fprintf(fout,"  # nsmooth: %d , plaq: %.16lg\n",nsmooth,plaq);
 	
 	//loop on the quarks
 	for(int iquark=0;iquark<theory_pars.nflavs();iquark++)
 	  {
+	    master_fprintf(fout,"   # iquark: %d\n",iquark);
+	    
 	    verbosity_lv1_master_printf("Measuring minmax_eigenvalues for quark %d/%d\n",iquark+1,(int)theory_pars.nflavs());
 	    
 	    double mass=theory_pars.quarks[iquark].mass;
@@ -118,7 +123,7 @@ namespace nissa
 	    verify_rat_approx_for_overlap(conf_lx,appr,mass_overlap,residue);
 	    
 	    //Find the eigenvalues
-	    find_eigenvalues_overlap(eigvec,eigval,neigs,min_max,conf_lx,appr,residue,mass_overlap,mass);
+	    find_eigenvalues_overlap(eigvec,eigval,neigs,min_max,conf_lx,appr,residue,mass_overlap,mass,wspace_size);
 	    
 	    //computes the participation ratio and chirality, recompute the eigenvalues and compute the residue
 	    for(int ieig=0;ieig<neigs;ieig++)
@@ -142,11 +147,11 @@ namespace nissa
 		eig_res[ieig]=sqrt(double_vector_glb_norm2(temp,loc_vol)/eigvec_norm2);
 		
 		//print the results
-		master_fprintf(fout," iconf: %d nsmooth: %d plaq: %.16lg iquark: %d eigval: %d",iconf,nsmooth,plaq,iquark,ieig);
-		master_fprintf(fout," eigval: %.16lg %.16lg",eigval[ieig][RE],eigval[ieig][IM]);
-		master_fprintf(fout," eigval_check: %.16lg %.16lg",eigval_check[RE],eigval_check[IM]);
-		master_fprintf(fout," residue %.16lg",residue);
-		master_fprintf(fout," partic_rat: %.16lg chirality: %.16lg %.16lg\n",pr,chir[RE],chir[IM]);
+		master_fprintf(fout," eigval: ( %.16lg , %.16lg )\t",eigval[ieig][RE],eigval[ieig][IM]);
+		master_fprintf(fout," eigval_check: ( %.16lg , %.16lg)\t",eigval_check[RE],eigval_check[IM]);
+		master_fprintf(fout," residue: %.16lg\t",residue);
+		master_fprintf(fout," partic_rat: %.16lg\t",pr);
+		master_fprintf(fout," chirality: %.16lg %.16lg\n",chir[RE],chir[IM]);
 	      }
 	  }
 	
