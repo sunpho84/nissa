@@ -10,4 +10,4 @@ cd build
 make
 make install
 cd ../..
-rm -r arpack-ng
+rm -fr arpack-ng
