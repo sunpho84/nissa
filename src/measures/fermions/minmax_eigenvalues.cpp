@@ -128,12 +128,8 @@ namespace nissa
 	    //computes the participation ratio and chirality, recompute the eigenvalues and compute the residue
 	    for(int ieig=0;ieig<neigs;ieig++)
 	      {
-		//participation ratio
-		double pr=participation_ratio(eigvec[ieig]);
-		
-		//chirality
-		complex chir;
-		minmax::matrix_element_with_gamma(chir,buffer,eigvec[ieig],5);
+		master_fprintf(fout,"   # ieig: %d\n",ieig);
+		master_fprintf(fout,"     eigval: ( %.16lg , %.16lg )\n",eigval[ieig][RE],eigval[ieig][IM]);
 		
 		//eigenvalue check
 		complex eigval_check;
@@ -141,17 +137,23 @@ namespace nissa
 		double eigvec_norm2=double_vector_glb_norm2(eigvec[ieig],loc_vol);
 		complex_vector_glb_scalar_prod(eigval_check,(complex*)(eigvec[ieig]),(complex*)temp,sizeof(spincolor)/sizeof(complex)*loc_vol);
 		complex_prodassign_double(eigval_check,1.0/eigvec_norm2);
+		master_fprintf(fout,"     eigval_check: ( %.16lg , %.16lg)\n",eigval_check[RE],eigval_check[IM]);
 		
 		//residue
 		complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eigvec[ieig]),eigval_check,sizeof(spincolor)/sizeof(complex)*loc_vol);
 		eig_res[ieig]=sqrt(double_vector_glb_norm2(temp,loc_vol)/eigvec_norm2);
+		master_fprintf(fout,"     residue: %.16lg\n",residue);
 		
-		//print the results
-		master_fprintf(fout," eigval: ( %.16lg , %.16lg )\t",eigval[ieig][RE],eigval[ieig][IM]);
-		master_fprintf(fout," eigval_check: ( %.16lg , %.16lg)\t",eigval_check[RE],eigval_check[IM]);
-		master_fprintf(fout," residue: %.16lg\t",residue);
-		master_fprintf(fout," partic_rat: %.16lg\t",pr);
-		master_fprintf(fout," chirality: %.16lg %.16lg\n",chir[RE],chir[IM]);
+		//participation ratio
+		double pr=participation_ratio(eigvec[ieig]);
+		master_fprintf(fout,"     partic_rat: %.16lg\n",pr);
+		
+		//chirality
+		complex chir;
+		minmax::matrix_element_with_gamma(chir,buffer,eigvec[ieig],5);
+		master_fprintf(fout,"     chirality: %.16lg %.16lg\n",chir[RE],chir[IM]);
+		
+		master_printf("\n");
 	      }
 	  }
 	
@@ -168,6 +170,7 @@ namespace nissa
     master_printf("Eigenvalues computation time: %lg\n", eig_time);
     
     //free
+    nissa_free(conf_lx);
     nissa_free(eigval);
     nissa_free(eig_res);
     nissa_free(temp);
