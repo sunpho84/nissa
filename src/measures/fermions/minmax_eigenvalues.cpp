@@ -97,7 +97,7 @@ namespace nissa
     bool finished;
     do
       {
-	verbosity_lv1_master_printf("Measuring for nsmooth %d/%d\n",nsmooth,meas_pars.smooth_pars.nsmooth());
+	verbosity_lv1_master_printf("Measuring minmax_eigenvalues for nsmooth %d/%d\n",nsmooth,meas_pars.smooth_pars.nsmooth());
 	
 	//plaquette for the current nsmooth
 	double plaq=global_plaquette_lx_conf(conf_lx);
@@ -105,7 +105,7 @@ namespace nissa
 	//loop on the quarks
 	for(int iquark=0;iquark<theory_pars.nflavs();iquark++)
 	  {
-	    verbosity_lv1_master_printf("Measuring for quark %d/%d\n",iquark,(int)theory_pars.nflavs());
+	    verbosity_lv1_master_printf("Measuring minmax_eigenvalues for quark %d/%d\n",iquark+1,(int)theory_pars.nflavs());
 	    
 	    double mass=theory_pars.quarks[iquark].mass;
 	    double mass_overlap=theory_pars.quarks[iquark].mass_overlap;
