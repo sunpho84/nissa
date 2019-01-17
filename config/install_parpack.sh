@@ -9,4 +9,5 @@ cd build
 ../configure '--enable-mpi' '--enable-icb' --prefix=$HOME
 make
 make install
+cd ../..
 rm -r arpack-ng
