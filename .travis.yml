@@ -36,5 +36,5 @@ script:
   - bash config/bootstrap
   - mkdir build
   - cd build
-  - ../configure --with-parpack=$PARPACK_PATH
+  - ../configure
   - make V=1
