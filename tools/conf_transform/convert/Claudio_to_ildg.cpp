@@ -7,7 +7,7 @@ using namespace nissa;
 int L,T;
 
 int snum(int x,int y,int z,int t)
-{return (t+x*T+y*L*T+z*L*L*T)/2;}
+{return (t+x*T+y*L*T+z*L*L*T);}
 
 double read_double(FILE *in)
 {
@@ -80,9 +80,7 @@ int main(int narg,char **arg)
       for(int y=0;y<L;y++)
 	for(int x=0;x<L;x++)
 	  {
-	    int sum=x+y+z+t;
-	    int even=sum%2;
-	    int num=even*loc_volh+snum(x,y,z,t);
+	    int num=snum(x,y,z,t);
 	    
 	    coords c={t,x,y,z};
 	    int ivol=loclx_of_coord(c);
