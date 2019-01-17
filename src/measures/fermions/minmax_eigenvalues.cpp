@@ -4,10 +4,14 @@
 
 #include "dirac_operators/overlap/dirac_operator_overlap.hpp"
 #include "eigenvalues/eigenvalues.hpp"
+#include "eigenvalues/eigenvalues_overlap.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "minmax_eigenvalues.hpp"
 #include "new_types/rat_approx.hpp"
 #include "operations/remez/remez_algorithm.hpp"
+
+#include "dirac_operators/overlap/dirac_operator_overlap_kernel_portable.hpp"
+#include "inverters/overlap/cgm_invert_overlap_kernel2.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -19,69 +23,148 @@
 
 namespace nissa
 {
+  namespace minmax
+  {
+    THREADABLE_FUNCTION_4ARG(matrix_element_with_gamma, double*,out, complex*,buffer, spincolor*,x, int,igamma)
+    {
+      GET_THREAD_ID();
+      
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	{
+	  spincolor t;
+	  unsafe_dirac_prod_spincolor(t,base_gamma+igamma,x[ivol]);
+	  spincolor_scalar_prod(buffer[ivol],x[ivol],t);
+	}
+      THREAD_BARRIER();
+      
+      complex_vector_glb_collapse(out,buffer,loc_vol);
+    }
+    THREADABLE_FUNCTION_END
+  }
+  
+  //Computes the participation ratio
+  double participation_ratio(spincolor *v)
+  {
+    GET_THREAD_ID();
+    
+    double *l=nissa_malloc("l",loc_vol,double);
+    
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	complex t;
+	spincolor_scalar_prod(t,v[ivol],v[ivol]);
+	l[ivol]=t[RE];
+      }
+    THREAD_BARRIER();
+    
+    double s=double_vector_glb_norm2(l,loc_vol);
+    double n2=double_vector_glb_norm2(v,loc_vol);
+    
+    nissa_free(l);
+    
+    return sqr(n2)/(glb_vol*s);
+  }
+  
   //measure minmax_eigenvalues
   void measure_minmax_eigenvalues(quad_su3 **conf_eo,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
+    double eig_time=-take_time();
+    
+    //Parameters of the eigensolver
     FILE *fout=open_file(meas_pars.path,conf_created?"w":"a");
     
-    //lx version
+    //zero smooth time of the conf
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
-    rat_approx_t appr;
-    double maxerr=sqrt(meas_pars.residue);
-    
-    //Parameters of the eigensolver
-    const int mat_size=loc_vol*NCOL*NDIRAC;
-    const int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL*NDIRAC;
-    const int niter_max=100000000;
-    master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
+    //parameters of the measure
+    bool min_max=meas_pars.min_max;
+    int neigs=meas_pars.neigs;
+    double residue=meas_pars.residue;
+    double maxerr=sqrt(residue);
     
     //allocate
-    complex *D_ov_eig_val=nissa_malloc("D_ov_eig_val",meas_pars.neigs,complex);
-    complex **eigvec=nissa_malloc("eigvec",meas_pars.neigs,complex*);
-    for(int ieig=0;ieig<meas_pars.neigs;ieig++)
+    complex *eigval=nissa_malloc("eigval",neigs,complex);
+    double *eig_res=nissa_malloc("eig_res",neigs,double);
+    spincolor **eigvec=nissa_malloc("eigvec",neigs,spincolor*);
+    spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
+    complex *buffer=nissa_malloc("buffer",loc_vol,complex);
+    for(int ieig=0;ieig<neigs;ieig++)
+      eigvec[ieig]=nissa_malloc("eig",loc_vol+bord_vol,spincolor);
+    
+    //loop on smooth
+    int nsmooth=0;
+    bool finished;
+    do
       {
-	eigvec[ieig]=nissa_malloc("eig",(loc_vol+bord_vol)*NDIRAC*NCOL,complex);
-	vector_reset(eigvec[ieig]);
+	//plaquette for the current nsmooth
+	double plaq=global_plaquette_lx_conf(conf_lx);
+	
+	//loop on the quarks
+	for(int iquark=0;iquark<theory_pars.nflavs();iquark++)
+	  {
+	    double mass=theory_pars.quarks[iquark].mass;
+	    double mass_overlap=theory_pars.quarks[iquark].mass_overlap;
+	    if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) crash("Implemented only for overlap");
+	    
+	    //Generate the approximation
+	    rat_approx_t appr;
+	    generate_rat_approx_for_overlap(conf_lx,&appr,mass_overlap,maxerr);
+	    appr.master_fprintf_expr(stdout);
+	    verify_rat_approx_for_overlap(conf_lx,appr,mass_overlap,residue);
+	    
+	    //Find the eigenvalues
+	    find_eigenvalues_overlap(eigvec,eigval,neigs,min_max,conf_lx,appr,residue,mass_overlap,mass);
+	    
+	    //computes the participation ratio and chirality, recompute the eigenvalues and compute the residue
+	    for(int ieig=0;ieig<neigs;ieig++)
+	      {
+		//participation ratio
+		double pr=participation_ratio(eigvec[ieig]);
+		
+		//chirality
+		complex chir;
+		minmax::matrix_element_with_gamma(chir,buffer,eigvec[ieig],5);
+		
+		//eigenvalue check
+		complex eigval_check;
+		apply_overlap(temp,conf_lx,&appr,residue,mass_overlap,mass,eigvec[ieig]);
+		double eigvec_norm2=double_vector_glb_norm2(eigvec[ieig],loc_vol);
+		complex_vector_glb_scalar_prod(eigval_check,(complex*)(eigvec[ieig]),(complex*)temp,sizeof(spincolor)/sizeof(complex)*loc_vol);
+		complex_prodassign_double(eigval_check,1.0/eigvec_norm2);
+		
+		//residue
+		complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eigvec[ieig]),eigval_check,sizeof(spincolor)/sizeof(complex)*loc_vol);
+		eig_res[ieig]=sqrt(double_vector_glb_norm2(temp,loc_vol)/eigvec_norm2);
+		
+		//print the results
+		master_fprintf(fout," iconf: %d nsmooth: %d plaq: %.16lg iquark: %d eigval: %d",iconf,nsmooth,plaq,iquark,ieig);
+		master_fprintf(fout," eigval: %.16lg %.16lg",eigval[ieig][RE],eigval[ieig][IM]);
+		master_fprintf(fout," eigval_check: %.16lg %.16lg",eigval_check[RE],eigval_check[IM]);
+		master_fprintf(fout," residue %.16lg",residue);
+		master_fprintf(fout," partic_rat: %.16lg chirality: %.16lg %.16lg\n",pr,chir[RE],chir[IM]);
+	      }
+	  }
+	
+	//proceeds with smoothing
+	finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
       }
+    while(not finished);
     
-    master_printf("neigs=%d, eig_precision=%.2e\n",meas_pars.neigs,meas_pars.eig_precision);
-    
-    //consider only the first quark
-    int iquark=0;
-    if(theory_pars.nflavs()!=1) crash("implemented only for 1 flavor");
-    if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) crash("Implemented only for overlap");
-    
-    rat_approx_for_overlap(conf_lx,&appr,theory_pars.quarks[iquark].mass_overlap,maxerr);
-    
-    appr.master_fprintf_expr(stdout);
-    
-    //Application of the Overlap Operator
-    const auto imp_mat=[conf_lx,&theory_pars,&maxerr,iquark,&appr](complex *out_lx,complex *in_lx)
-      {
-	apply_overlap((spincolor*)out_lx,conf_lx,&appr,maxerr,theory_pars.quarks[iquark].mass_overlap,(spincolor*)in_lx);
-      };
-    
-    const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
-    
-    double eig_time=-take_time();
-    
-    //Find eigenvalues and eigenvectors of the overlap
-    eigenvalues_find(eigvec,D_ov_eig_val,meas_pars.neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,meas_pars.eig_precision,niter_max,filler);
-    
-    master_printf("\n\nEigenvalues of D Overlap:\n");
-    for(int ieig=0;ieig<meas_pars.neigs;++ieig)
-      master_fprintf(fout,"%.16lg %.16lg\n",D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
-    
+    //close the file
     close_file(fout);
     
+    //print elapsed time
     eig_time+=take_time();
-    master_printf("Eigenvalues time: %lg\n", eig_time);
+    master_printf("Eigenvalues computation time: %lg\n", eig_time);
     
-    nissa_free(conf_lx);
-    nissa_free(D_ov_eig_val);
-    for(int ieig=0;ieig<meas_pars.neigs;ieig++) nissa_free(eigvec[ieig]);
+    //free
+    nissa_free(eigval);
+    nissa_free(eig_res);
+    nissa_free(temp);
+    nissa_free(buffer);
+    for(int ieig=0;ieig<neigs;ieig++)
+      nissa_free(eigvec[ieig]);
     nissa_free(eigvec);
   }
   
@@ -93,9 +176,9 @@ namespace nissa
     os<<"MeasMinMaxEigenval\n";
     os<<base_fermionic_meas_t::get_str(full);
     if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
-    if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
     if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
     if(min_max!=def_min_max() or full) os<<" MinMax\t\t=\t"<<min_max<<"\n";
+    os<<smooth_pars.get_str(full);
     
     return os.str();
   }

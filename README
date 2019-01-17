@@ -41,33 +41,28 @@ Requirements
 -Support for threads in the compiler.
 -gcc >= 6 or intel compiler
 -Autotools >= 1.14 to generate configure and Makefile.
--Bison >=3.0 and flex (see scripts in the  config folder).
+-Bison >=3.0 and flex (see scripts in the config folder).
 
-Compiling
----------
+NB: use the scripts in the "config" folder to install the appropriate versions
+
+
+Compiling and installing
+------------------------
 
 Compilation proceeds as customary in autotools:
 
 	    bash config/bootstrap
 	    mkdir build
 	    cd build
-	    ../configure --help
-	    ../configure CXXFLAGS=... [flags]
-	    make
+	    ../configure --help       # to see all flags
+	    ../configure              # appending all specific flags
+	    make                      # -j N to use N threads
 
 The program have to be compiled with C++ including all the libraries and header necessary 
 for MPI. Typically you can use some wrapper of the system compiler to avoid having to pass
 all the paths and flags needed by MPI. Pass the name of such compiler wrapper through "MPICXX" 
 parameter, e.g: "MPICXX=mpicxx". Optionally, pass the flag needed to activate OpenMP through
 CXXFLAGS: if none are passed, they will be guessed.
-
-On a typical PC therefore you should type something like:
- ../configure MPICXX=mpicxx CXXFLAGS="-fopenmp"
-
-On BGQ machine (Turing and Fermi) use:
- ../configure MPICC=mpixlc_r MPICXX=mpixlcxx_r CXXFLAGS="-O3 -qstrict=all" --enable-bgq
-
-When compiling using mpi intel compiler please set the flag: "CXXFLAGS=-DMPICH_IGNORE_CXX_SEEK"
 
 
 Structure
