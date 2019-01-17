@@ -4,6 +4,7 @@
 
 #include "dirac_operators/overlap/dirac_operator_overlap.hpp"
 #include "eigenvalues/eigenvalues.hpp"
+#include "eigenvalues/eigenvalues_overlap.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "minmax_eigenvalues.hpp"
 #include "new_types/rat_approx.hpp"
@@ -70,148 +71,100 @@ namespace nissa
     double eig_time=-take_time();
     
     //Parameters of the eigensolver
-    const int mat_size=loc_vol*NCOL*NDIRAC;
-    const int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL*NDIRAC;
-    const int niter_max=100000000;
-    master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
-    
     FILE *fout=open_file(meas_pars.path,conf_created?"w":"a");
     
-    //lx version
+    //zero smooth time of the conf
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
-    rat_approx_t appr;
+    //parameters of the measure
+    bool min_max=meas_pars.min_max;
     int neigs=meas_pars.neigs;
     double residue=meas_pars.residue;
     double maxerr=sqrt(residue);
     
     //allocate
-    complex *D_ov_eig_val=nissa_malloc("D_ov_eig_val",neigs,complex);
-    complex **eigvec=nissa_malloc("eigvec",neigs,complex*);
+    complex *eigval=nissa_malloc("eigval",neigs,complex);
+    double *eig_res=nissa_malloc("eig_res",neigs,double);
+    spincolor **eigvec=nissa_malloc("eigvec",neigs,spincolor*);
+    spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
+    complex *buffer=nissa_malloc("buffer",loc_vol,complex);
     for(int ieig=0;ieig<neigs;ieig++)
-      {
-	eigvec[ieig]=nissa_malloc("eig",(loc_vol+bord_vol)*NDIRAC*NCOL,complex);
-	vector_reset(eigvec[ieig]);
-      }
+      eigvec[ieig]=nissa_malloc("eig",loc_vol+bord_vol,spincolor);
     
-    master_printf("neigs=%d, eig_precision=%.2e\n",neigs,maxerr);
-    
-    //consider only the first quark
-    int iquark=0;
-    double mass_overlap=theory_pars.quarks[iquark].mass_overlap;
-    if(theory_pars.nflavs()!=1) crash("implemented only for 1 flavor");
-    if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) crash("Implemented only for overlap");
-    
+    //loop on smooth
     int nsmooth=0;
     bool finished;
     do
       {
+	//plaquette for the current nsmooth
 	double plaq=global_plaquette_lx_conf(conf_lx);
 	
-	rat_approx_for_overlap(conf_lx,&appr,mass_overlap,maxerr);
-	verify_rat_approx_for_overlap(conf_lx,appr,mass_overlap,niter_max,residue);
-	
-	appr.master_fprintf_expr(stdout);
-	
-	//Application of the Overlap Operator
-	const auto imp_mat=[conf_lx,&theory_pars,&residue,iquark,&appr](complex *out_lx,complex *in_lx)
+	//loop on the quarks
+	for(int iquark=0;iquark<theory_pars.nflavs();iquark++)
 	  {
-	    apply_overlap((spincolor*)out_lx,conf_lx,&appr,residue,theory_pars.quarks[iquark].mass_overlap,theory_pars.quarks[iquark].mass,(spincolor*)in_lx);
-	  };
-	
-	const auto filler=[](complex *out_lx){generate_undiluted_source((spincolor*)out_lx,RND_GAUSS,-1);};
-	
-	//Find eigenvalues and eigenvectors of the overlap
-	eigenvalues_find(eigvec,D_ov_eig_val,neigs,meas_pars.min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler);
-	
-	master_printf("\n\nEigenvalues of D Overlap:\n");
-	for(int ieig=0;ieig<neigs;ieig++)
-	  for(FILE *f : {fout,stdout})
-	    master_fprintf(f,"%d %d %.16lg %.16lg %.16lg\n",iconf,nsmooth,plaq,D_ov_eig_val[ieig][RE],D_ov_eig_val[ieig][IM]);
-	
-	complex *buffer=nissa_malloc("buffer",loc_vol,complex);
-	spincolor *op=nissa_malloc("op",loc_vol,spincolor);
-	spincolor *t=nissa_malloc("t",loc_vol+bord_vol,spincolor);
-	
-	//participation ratio
-	master_printf("Participation ratio:\n");
-	for(int ieig=0;ieig<neigs;ieig++)
-	  master_printf("%d: %.16lg\n",ieig,participation_ratio((spincolor*)(eigvec[ieig])));
-	
-	master_printf("Chirality of the eigenvectors:\n");
-	for(int ieig=0;ieig<neigs;ieig++)
-	  {
-	    apply_overlap(op,conf_lx,&appr,residue,theory_pars.quarks[iquark].mass_overlap,theory_pars.quarks[iquark].mass,(spincolor*)(eigvec[ieig]));
+	    double mass=theory_pars.quarks[iquark].mass;
+	    double mass_overlap=theory_pars.quarks[iquark].mass_overlap;
+	    if(theory_pars.quarks[0].discretiz!=ferm_discretiz::OVERLAP) crash("Implemented only for overlap");
 	    
-	    double n=double_vector_glb_norm2((spincolor*)(eigvec[ieig]),loc_vol);
-	    double e;
-	    double_vector_glb_scalar_prod(&e,(double*)(eigvec[ieig]),(double*)(op),sizeof(spincolor)/sizeof(double)*loc_vol);
-	    e/=n;
+	    //Generate the approximation
+	    rat_approx_t appr;
+	    generate_rat_approx_for_overlap(conf_lx,&appr,mass_overlap,maxerr);
+	    appr.master_fprintf_expr(stdout);
+	    verify_rat_approx_for_overlap(conf_lx,appr,mass_overlap,residue);
 	    
-	    //compute residue
-	    double_vector_summ_double_vector_prod_double((double*)op,(double*)op,(double*)(eigvec[ieig]),-e,sizeof(spincolor)/sizeof(double)*loc_vol);
-	    double r=sqrt(double_vector_glb_norm2(op,loc_vol)/n);
+	    //Find the eigenvalues
+	    find_eigenvalues_overlap(eigvec,eigval,neigs,min_max,conf_lx,appr,residue,mass_overlap,mass);
 	    
-	    //verify chirality
-	    complex c;
-	    minmax::matrix_element_with_gamma(c,buffer,(spincolor*)(eigvec[ieig]),5);
-	    
-	    //op=sign(H)*v
-	    spincolor *in=(spincolor*)(eigvec[ieig]);
-	    summ_src_and_all_inv_overlap_kernel2_cgm(t,conf_lx,mass_overlap,&appr,niter_max,residue,in);
-	    apply_overlap_kernel(op,conf_lx,mass_overlap,t);
-	    
-	    // i= (v, sign(H)*v) / |v|^2
-	    double i;
-	    double_vector_glb_scalar_prod(&i,(double*)(eigvec[ieig]),(double*)(op),sizeof(spincolor)/sizeof(double)*loc_vol);
-	    i/=n;
-	    
-	    // t=(1+g5 sign(H)) v
-	    GET_THREAD_ID();
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    //computes the participation ratio and chirality, recompute the eigenvalues and compute the residue
+	    for(int ieig=0;ieig<neigs;ieig++)
 	      {
-		unsafe_dirac_prod_spincolor(t[ivol],base_gamma+5,op[ivol]);
-		spincolor_summassign(t[ivol],op[ivol]);
+		//participation ratio
+		double pr=participation_ratio(eigvec[ieig]);
+		
+		//chirality
+		complex chir;
+		minmax::matrix_element_with_gamma(chir,buffer,eigvec[ieig],5);
+		
+		//eigenvalue check
+		complex eigval_check;
+		apply_overlap(temp,conf_lx,&appr,residue,mass_overlap,mass,eigvec[ieig]);
+		double eigvec_norm2=double_vector_glb_norm2(eigvec[ieig],loc_vol);
+		complex_vector_glb_scalar_prod(eigval_check,(complex*)(eigvec[ieig]),(complex*)temp,sizeof(spincolor)/sizeof(complex)*loc_vol);
+		complex_prodassign_double(eigval_check,1.0/eigvec_norm2);
+		
+		//residue
+		complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eigvec[ieig]),eigval_check,sizeof(spincolor)/sizeof(complex)*loc_vol);
+		eig_res[ieig]=sqrt(double_vector_glb_norm2(temp,loc_vol)/eigvec_norm2);
+		
+		//print the results
+		master_fprintf(fout," iconf: %d nsmooth: %d plaq: %.16lg iquark: %d eigval: %d",iconf,nsmooth,plaq,iquark,ieig);
+		master_fprintf(fout," eigval: %.16lg %.16lg",eigval[ieig][RE],eigval[ieig][IM]);
+		master_fprintf(fout," eigval_check: %.16lg %.16lg",eigval_check[RE],eigval_check[IM]);
+		master_fprintf(fout," residue %.16lg",residue);
+		master_fprintf(fout," partic_rat: %.16lg chirality: %.16lg %.16lg\n",pr,chir[RE],chir[IM]);
 	      }
-	    THREAD_BARRIER();
-	    
-	    // w= (v, (1+g5 sign(H))*v) / |v|^2
-	    double w;
-	    double_vector_glb_scalar_prod(&w,(double*)(eigvec[ieig]),(double*)(t),sizeof(spincolor)/sizeof(double)*loc_vol);
-	    w/=n;
-	    
-	    /// |(1+g5*sign(H))*v|^2
-	    double nop5=double_vector_glb_norm2(t,loc_vol);
-	    double h5=sqrt(nop5/n)-1;
-	    
-	    summ_src_and_all_inv_overlap_kernel2_cgm(t,conf_lx,mass_overlap,&appr,niter_max,residue,op);
-	    apply_overlap_kernel(op,conf_lx,mass_overlap,t);
-	    
-	    double_vector_subt((double*)t,(double*)op,(double*)in,sizeof(spincolor)/sizeof(double)*loc_vol);
-	    
-	    double nop=double_vector_glb_norm2(t,loc_vol);
-	    double h=sqrt(nop/n);
-	    
-	    master_printf(" %d (h: %lg, internal: %lg, actual: %lg, hand: %lg, res: %lg, failure of sign(H): %lg, of g5*sign(H): %lg)\n   %lg %lg  %lg %lg %lg %lg\n",
-			  ieig,i,D_ov_eig_val[ieig][RE],e,w,r,h,h5,c[RE],c[IM],((spincolor**)(eigvec))[ieig][0][0][0][RE],((spincolor**)eigvec)[ieig][0][1][0][RE],((spincolor**)eigvec)[ieig][0][2][0][RE],((spincolor**)eigvec)[ieig][0][3][0][RE]);
 	  }
-	nissa_free(op);
-	nissa_free(t);
-	nissa_free(buffer);
 	
-	finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);	
+	//proceeds with smoothing
+	finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
       }
     while(not finished);
     
+    //close the file
     close_file(fout);
     
+    //print elapsed time
     eig_time+=take_time();
-    master_printf("Eigenvalues time: %lg\n", eig_time);
+    master_printf("Eigenvalues computation time: %lg\n", eig_time);
     
-    nissa_free(conf_lx);
-    nissa_free(D_ov_eig_val);
-    for(int ieig=0;ieig<neigs;ieig++) nissa_free(eigvec[ieig]);
+    //free
+    nissa_free(eigval);
+    nissa_free(eig_res);
+    nissa_free(temp);
+    nissa_free(buffer);
+    for(int ieig=0;ieig<neigs;ieig++)
+      nissa_free(eigvec[ieig]);
     nissa_free(eigvec);
   }
   
