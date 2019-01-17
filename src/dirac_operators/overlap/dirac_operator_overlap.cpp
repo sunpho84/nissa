@@ -116,6 +116,10 @@ namespace nissa
     master_printf("Norm of the source: %.16lg\n",sqrt(nin));
     master_printf("Norm of the difference: %.16lg\n",sqrt(nout));
     master_printf("Relative norm of the difference: %.16lg\n",sqrt(nout/nin));
+    
+    nissa_free(in);
+    nissa_free(tmp);
+    nissa_free(out);
   }
   
   THREADABLE_FUNCTION_7ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr, double,req_res, double,mass_overlap, double,mass, spincolor*,in)
