@@ -1,6 +1,7 @@
 #ifndef _SPECTRAL_PROJECTORS_HPP
 #define _SPECTRAL_PROJECTORS_HPP
 
+#include "eigenvalues/eigenvalues.hpp"
 #include "fermionic_meas.hpp"
 #include "hmc/gauge/topological_action.hpp"
 #include "hmc/theory_pars.hpp"
@@ -17,7 +18,7 @@ namespace nissa
     std::string def_path(){return "pettirosso";}
     int def_neigs(){return 5;}
     double def_eig_precision(){return 1e-5;}
-    int def_wspace_size(){return 100;}
+    int def_wspace_size(){return DEFAULT_EIGPROB_WSPACE_SIZE;}
     
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
     std::string get_str(bool full=false);

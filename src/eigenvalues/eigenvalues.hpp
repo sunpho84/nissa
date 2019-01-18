@@ -17,13 +17,13 @@ namespace nissa
 #ifdef USE_PARPACK
  #define NISSA_DEFAULT_USE_PARPACK 1
 #endif
-  
+
   //use arpack or the autarchic implementation
   template <class Fmat,class Filler>
   void eigenvalues_find(complex **eig_vec,complex *eig_val,int neig,bool min_max,
 				   const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
 				   const double target_precision,const int niter_max,
-				   const Filler &filler,int wspace_size=100)
+				   const Filler &filler,int wspace_size=DEFAULT_EIGPROB_WSPACE_SIZE)
   {
     master_printf("Solving eigenproblem for %d %s eigenvalues,\n",neig,min_max?"max":"min");
     master_printf(" target precision: %lg\n",target_precision);

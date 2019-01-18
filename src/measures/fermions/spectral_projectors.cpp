@@ -4,6 +4,7 @@
 
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "eigenvalues/eigenvalues.hpp"
+#include "eigenvalues/eigenvalues_staggered.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "measures/fermions/stag.hpp"
@@ -20,97 +21,62 @@ namespace nissa
   //and eigenvectors of DD^+ in staggered formulation, in order to
   //build an estimate of the topological charge as Q=\sum_i
   //\bar(u)_i gamma5 u_i, where {u_i} are the first n eigenvectors.
-  THREADABLE_FUNCTION_7ARG(measure_spectral_proj, complex**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, DD_eig_val, int,neigs, double,eig_precision, int,wspace_size)
+  THREADABLE_FUNCTION_7ARG(measure_spectral_proj, color**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, eigval, int,neigs, double,eig_precision, int,wspace_size)
   {
-    master_printf("neigs=%d, eig_precision=%.2e, wspace_size=%d\n",neigs,eig_precision,wspace_size);
+    //parameters of the eigensolver
+    const bool min_max=0;
     
-    //wrap the application of DD^+ into an object that can be passed to the eigenfinder
-    color *out_tmp_eo[2]={nissa_malloc("out_tmp_EVN",loc_volh+bord_volh,color),nissa_malloc("out_tmp_ODD",loc_volh+bord_volh,color)};
-    color *in_tmp_eo[2]={nissa_malloc("in_tmp_EVN",loc_volh+bord_volh,color),nissa_malloc("in_tmp_ODD",loc_volh+bord_volh,color)};
-    color *fill_tmp_eo[2]={nissa_malloc("fill_tmp_EVN",loc_volh+bord_volh,color),nissa_malloc("fill_tmp_ODD",loc_volh+bord_volh,color)};
+    //results of the g5 application
+    color *eigvec_g5_eo[2]={nissa_malloc("eigvec_g5_EVN",loc_volh+bord_volh,color),nissa_malloc("eigvec_g5_ODD",loc_volh+bord_volh,color)};
     
     //identity backfield
     quad_u1 *u1b[2]={nissa_malloc("u1b",loc_volh+bord_volh,quad_u1),nissa_malloc("u1b",loc_volh+bord_volh,quad_u1)};
     init_backfield_to_id(u1b);
     
-    //Matrix application
-    const auto imp_mat=[conf,&in_tmp_eo,&out_tmp_eo](complex *out_lx,complex *in_lx)
-      {
-	split_lx_vector_into_eo_parts(in_tmp_eo,(color*)in_lx);
-	
-	evn_apply_stD(out_tmp_eo[EVN],conf,0.01,in_tmp_eo);
-	odd_apply_stD(out_tmp_eo[ODD],conf,0.01,in_tmp_eo);
-	
-	evn_apply_stD_dag(in_tmp_eo[EVN],conf,0.01,out_tmp_eo);
-	odd_apply_stD_dag(in_tmp_eo[ODD],conf,0.01,out_tmp_eo);
-	
-	paste_eo_parts_into_lx_vector((color*)out_lx,in_tmp_eo);
-	
-	set_borders_invalid(out_lx);
-      };
-    
-    //parameters of the eigensolver
-    const bool min_max=0;
-    const int mat_size=loc_vol*NCOL;
-    const int mat_size_to_allocate=(loc_vol+bord_vol)*NCOL;
-    const int niter_max=100000000;
-    master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
-    
-    //wrap the generation of the test vector into an object that can be passed to the eigenfinder
-    const auto filler=[&fill_tmp_eo](complex *out_lx)
-      {
-	generate_fully_undiluted_eo_source(fill_tmp_eo,RND_GAUSS,-1,0);
-	paste_eo_parts_into_lx_vector((color*)out_lx,fill_tmp_eo);
-      };
-    
     //launch the eigenfinder
     double eig_time=-take_time();
-    add_backfield_with_stagphases_to_conf(conf,u1b);
-    eigenvalues_find(eigvec,DD_eig_val,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,eig_precision,niter_max,filler,wspace_size);
-    rem_backfield_with_stagphases_from_conf(conf,u1b);
+    find_eigenvalues_staggered_D2ee(eigvec,eigval,neigs,min_max,conf,u1b,0.0,eig_precision,wspace_size);
     
-    //    complex norm_cut[neigs];
-    complex *g5eigvec_i=nissa_malloc("g5eigvec_j",(loc_vol+bord_vol)*NCOL,complex);
-    master_printf("\n\nEigenvalues of DD^+:\n");
+    //Buffer to apply the g5 operator
+    //The ODD part is set to zero
+    //The EVN part is linked with the eigenvector
+    color *eigvec_eo[2];
+    eigvec_eo[ODD]=nissa_malloc("eigvec_evn",loc_volh+bord_volh,color);
+    vector_reset(eigvec_eo[ODD]);
+    
+    verbosity_lv1_master_printf("\n\nEigenvalues of DD^+ and debug info on spectral projectors:\n");
     for(int ieig=0;ieig<neigs;ieig++)
-      {
-	master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,DD_eig_val[ieig][RE]-0.0001,DD_eig_val[ieig][IM]);
-	
-	// compute partial sum terms of tr(g5)
-	// save 'eigvec[ieig]' in staggered format (i.e., 'fill_tmp_eo'),
-	// then multiply it with gamma5 and save the result in
-	// 'out_tmp_eo'. The term contributing to the partial sum of tr(g5)
-	// will be stored in 'charge_cut[ieig]' as the hermitian product
-	// between 'fill_tmp_eo' and 'out_tmp_eo'.
-	
-	split_lx_vector_into_eo_parts((color**)fill_tmp_eo,(color*)eigvec[ieig]);
-	
-	//multiply by gamma5
-	apply_stag_op(out_tmp_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,fill_tmp_eo);
-	
-	paste_eo_parts_into_lx_vector((color*)g5eigvec_i,out_tmp_eo);
-	
-	//take hermitian products
-	//for(int jeig=ieig; jeig<neigs; ++jeig)
-	for(int jeig=ieig; jeig<neigs; ++jeig){
-	  complex_vector_glb_scalar_prod((double*)&charge_cut[ieig*neigs+jeig],eigvec[jeig],g5eigvec_i,(loc_vol+bord_vol)*NCOL);
-	  master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
+    {
+      master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
+      
+      // compute terms u_j^+ g5 u_i
+      // convert 'eigvec[ieig]' in staggered format ('in_tmp_eo'),
+      // then multiply it with gamma5 and save the result in
+      // 'out_tmp_eo'. The term corresponding to u_j^+ g5 u_i
+      // will be stored in 'charge_cut[ieig*neigs+jeigs]' as the hermitian product
+      // between 'eigvec[jeig]' and 'out_tmp_eo[EVN]'.
+      
+      //multiply by gamma5
+      eigvec_eo[EVN]=eigvec[ieig];
+      apply_stag_op(eigvec_g5_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,eigvec_eo);
+      
+      //take hermitian products of the even parts (unit norm checked for both vectors)
+      for(int jeig=ieig;jeig<neigs;jeig++)
+	{
+	  complex_vector_glb_scalar_prod(charge_cut[ieig*neigs+jeig],(complex*)eigvec[jeig],(complex*)eigvec_g5_eo[EVN],loc_volh*sizeof(color)/sizeof(complex));
+	  verbosity_lv1_master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
 	}
-      }
-    master_printf("\n\n\n");
+    }
+    verbosity_lv2_master_printf("\n\n\n");
     
     eig_time+=take_time();
-    master_printf("Eigenvalues time: %lg\n",eig_time);
+    verbosity_lv1_master_printf("Eigenvalues time: %lg\n",eig_time);
     
-    nissa_free(out_tmp_eo[EVN]);
-    nissa_free(out_tmp_eo[ODD]);
-    nissa_free(in_tmp_eo[EVN]);
-    nissa_free(in_tmp_eo[ODD]);
-    nissa_free(fill_tmp_eo[EVN]);
-    nissa_free(fill_tmp_eo[ODD]);
+    nissa_free(eigvec_g5_eo[EVN]);
+    nissa_free(eigvec_g5_eo[ODD]);
+    nissa_free(eigvec_eo[ODD]);
     nissa_free(u1b[0]);
     nissa_free(u1b[1]);
-    nissa_free(g5eigvec_i);
   }
   THREADABLE_FUNCTION_END
   
@@ -132,14 +98,14 @@ namespace nissa
     int neigs=meas_pars.neigs;
     
     complex *charge_cut=nissa_malloc("charge_cut",neigs*neigs,complex);
-    complex *DD_eig_val=nissa_malloc("DD_eig_Val",neigs,complex);
+    complex *eigval=nissa_malloc("DD_eig_Val",neigs,complex);
     vector_reset(charge_cut);
-    vector_reset(DD_eig_val);
+    vector_reset(eigval);
     
-    complex **eigvec=nissa_malloc("eigvec",neigs,complex*);
+    color **eigvec=nissa_malloc("eigvec",neigs,color*);
     for(int ieig=0;ieig<neigs;ieig++)
       {
-	eigvec[ieig]=nissa_malloc("eigvec_ieig",(loc_vol+bord_vol)*NCOL,complex);
+	eigvec[ieig]=nissa_malloc("eigvec_ieig",loc_volh+bord_volh,color);
 	vector_reset(eigvec[ieig]);
       }
     
@@ -147,40 +113,55 @@ namespace nissa
     int nhits=meas_pars.nhits;
     for(int hit=0;hit<nhits;hit++)
       {
-	verbosity_lv2_master_printf("Evaluating spectral projections of gamma5, nhits %d/%d\n",hit+1,nhits);
-	
-	measure_spectral_proj(eigvec,conf,charge_cut,DD_eig_val,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
+    verbosity_lv2_master_printf("Evaluating spectral projections of gamma5, nhits %d/%d\n",hit+1,nhits);
+    
+    measure_spectral_proj(eigvec,conf,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
       }
     
     //print the result on file
+    verbosity_lv1_master_printf("\n\nPartial sums for spectral projectors:\n\nk\t\t\teig\t\t\tA_k\t\t\tB_k\n");
+    // vectors storing A_k and B_k partial sums, offset by 1 for convenience 
+    double *cum_sumA=nissa_malloc("cum_sumA",meas_pars.neigs+1,double);
+    double *cum_sumB=nissa_malloc("cum_sumB",meas_pars.neigs+1,double);
+    vector_reset(cum_sumA);
+    vector_reset(cum_sumB);
+
     master_fprintf(file,"%d\t",neigs);
-    for(int ieig=0;ieig<neigs;ieig++)
-      master_fprintf(file,"%.16lg\t",DD_eig_val[ieig][RE]-0.0001);
+    for(int ieig=0;ieig<neigs;++ieig)
+      master_fprintf(file,"%.16lg\t",eigval[ieig][RE]);
     
-    double tmp_cum_sum=0.;
     for(int ieig=0;ieig<neigs;ieig++)
       {
-	tmp_cum_sum+=charge_cut[ieig*neigs+ieig][RE];
-	master_fprintf(file,"%.16lg\t",tmp_cum_sum);
+	cum_sumA[1+ieig]=cum_sumA[ieig]+charge_cut[ieig*neigs+ieig][RE];
+	master_fprintf(file,"%.16lg\t",cum_sumA[1+ieig]);
       }
-    tmp_cum_sum=0.0;
+
     for(int kcutoff=0;kcutoff<neigs;kcutoff++)
       {
-	tmp_cum_sum+=complex_norm2(charge_cut[kcutoff*neigs+kcutoff]);
-	for(int ieig=0;ieig<kcutoff;ieig++)
-	  tmp_cum_sum+=2.0*complex_norm2(charge_cut[ieig*neigs+kcutoff]);
-	
-	master_fprintf(file,"%.16lg\t",tmp_cum_sum);
+      cum_sumB[1+kcutoff]=cum_sumB[kcutoff]+complex_norm2(charge_cut[kcutoff*neigs+kcutoff]); //diagonal part
+      for(int ieig=0;ieig<kcutoff;ieig++)
+        cum_sumB[1+kcutoff]+=2.0*complex_norm2(charge_cut[ieig*neigs+kcutoff]); //offdiagonal part
+
+      master_fprintf(file,"%.16lg\t",cum_sumB[1+kcutoff]);
       }
     master_fprintf(file,"\n");
     
     close_file(file);
-    
+
+    for(int ieig=0; ieig<neigs; ieig++){
+      verbosity_lv1_master_printf("%d\t%.16lg\t%.16lg\t%.16lg\n",ieig,eigval[ieig][RE],cum_sumA[1+ieig],cum_sumB[1+ieig]);
+    }
+    verbosity_lv1_master_printf("\n\n");
+   
+    // deallocating vectors 
     for(int ieig=0;ieig<neigs;ieig++)
       nissa_free(eigvec[ieig]);
+
     nissa_free(eigvec);
     nissa_free(charge_cut);
-    nissa_free(DD_eig_val);
+    nissa_free(eigval);
+    nissa_free(cum_sumA);
+    nissa_free(cum_sumB);
   }
   
   //print pars

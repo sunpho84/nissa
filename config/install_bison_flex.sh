@@ -1,5 +1,7 @@
+#!/bin/bash -e
+
 #bison
-wget http://ftp.gnu.org/gnu/bison/bison-3.2.tar.gz -O -|tar xzvf -
+wget http://ftp.gnu.org/gnu/bison/bison-3.1.tar.gz -O -|tar xzvf -
 cd bison*
 ./configure --prefix=$HOME
 make -j 8

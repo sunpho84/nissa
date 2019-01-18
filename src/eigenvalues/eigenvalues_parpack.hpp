@@ -12,6 +12,7 @@
 
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "eigenvalues/eigenvalues_all.hpp"
 #include "new_types/complex.hpp"
 #include "routines/ios.hpp"
 
@@ -325,7 +326,7 @@ namespace nissa
   void eigenvalues_find_parpack(complex **eig_vec,complex *eig_val,int neig,bool min_max,
 				const int mat_size,const int mat_size_to_allocate,const Fmat &imp_mat,
 				const double target_precision,const int niter_max,
-				const Filler &filler,int wspace_size=100)
+				const Filler &filler,int wspace_size=DEFAULT_EIGPROB_WSPACE_SIZE)
   {
     using namespace parpack_data;
     wspace_size=std::min(std::max(2*neig,wspace_size),mat_size);

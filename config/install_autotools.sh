@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #m4
 wget http://ftp.gnu.org/gnu/m4/m4-latest.tar.gz
