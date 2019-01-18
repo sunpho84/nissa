@@ -155,7 +155,6 @@ namespace nissa
     set_borders_invalid(out);
     
     nissa_free(temp);
-    nissa_free(lambda);
   }
   THREADABLE_FUNCTION_END
 }
