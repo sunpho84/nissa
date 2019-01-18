@@ -23,6 +23,9 @@ double read_double(FILE *in)
 void read_from_binary_file_Su3(su3 A,FILE *fp)
 {
   if(fread(&A,sizeof(su3),1,fp)!=1) crash("Problems in reading Su3 matrix\n");
+  
+  if(little_endian)
+    change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
 }
 
 void read_su3(su3 out,FILE *in)
@@ -53,9 +56,20 @@ int main(int narg,char **arg)
   su3 *in_conf=nissa_malloc("in_conf",4*loc_vol,su3);
   
   //open the file
-  FILE *fin=fopen(arg[3],"r");
+  FILE *fin=fopen(arg[3],"rb");
   if(fin==NULL) crash("while opening %s",arg[3]);
   
+  //read the first line which contains the parameters of the lattice
+  for(int k=0;k<6;k++)
+    {
+      double parameters=read_double(fin);
+      printf("%lg ",parameters);
+    }
+  
+ char crypto[101];
+ fscanf(fin,"%s ",crypto);
+ printf("%s\n ",crypto);
+ 
   //read the data
   NISSA_LOC_VOL_LOOP(ivol)
   {
