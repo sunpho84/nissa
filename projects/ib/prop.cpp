@@ -4,6 +4,7 @@
  #include "prop.hpp"
 
 #include <set>
+#include <tuple>
 
 namespace nissa
 {
@@ -578,12 +579,12 @@ namespace nissa
   {
     using R=decltype(f(std::forward<Args>(args)...));
     
-    R res{0};
+    R res;
     
     if(rank==0)
       res=f(std::forward<Args>(args)...);
     MPI_Bcast(&res,sizeof(R),MPI_CHAR,0,MPI_COMM_WORLD);
-    
+    printf("Bcasted\n");
     return res;
   }
   
@@ -593,17 +594,14 @@ namespace nissa
     //file where to read the list
     FILE *fin=do_on_master(fopen,filein_name,"r");
     
-    auto read_int=[fin](bool &ended)
+    auto read_int=[fin]()
       {
 	int res;
+	bool eof;
 	
-	if(fscanf(fin,"%d",&res)!=1)
-	  {
-	    ended=true;
-	    res=0;
-	  }
+	eof=(fscanf(fin,"%d",&res)!=1);
 	
-	return res;
+	return std::make_tuple(res,eof);
       };
     
     std::set<int> list_of_filtered;;
@@ -614,7 +612,16 @@ namespace nissa
       {
 	coords c;
 	for(int mu=0;mu<NDIM;mu++)
-	  c[mu]=(do_on_master(read_int,ended)+glb_size[mu])%glb_size[mu];
+	  {
+	    int cmu;
+	    bool emu;
+	    
+	    std::tie(cmu,emu)=do_on_master(read_int);
+	    
+	    c[mu]=(cmu+glb_size[mu])%glb_size[mu];
+	    
+	    ended|=emu;
+	  }
 	
 	if(not ended)
 	  {
