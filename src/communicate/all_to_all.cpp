@@ -156,7 +156,6 @@ namespace nissa
     //check
     int max_nel_in=0;
     for(int iel_in=0;iel_in<nel_in;iel_in++) max_nel_in=std::max(max_nel_in,in_buf_dest[iel_in]);
-
     
     int *in_buf_dest_check=nissa_malloc("in_buf_dest_check",max_nel_in+1,int);
     vector_reset(in_buf_dest_check);
@@ -173,11 +172,11 @@ namespace nissa
   }
   
   //build knowing where to send
-  all_to_all_comm_t::all_to_all_comm_t(all_to_all_scattering_list_t &sl)
+  all_to_all_comm_t::all_to_all_comm_t(const all_to_all_scattering_list_t &sl)
   {
     setup_knowing_where_to_send(sl);
   }
-  void all_to_all_comm_t::setup_knowing_where_to_send(all_to_all_scattering_list_t &sl)
+  void all_to_all_comm_t::setup_knowing_where_to_send(const all_to_all_scattering_list_t &sl)
   {
     GET_THREAD_ID();
     
@@ -222,11 +221,11 @@ namespace nissa
   }
   
   //build knowing where to send
-  all_to_all_comm_t::all_to_all_comm_t(all_to_all_gathering_list_t &gl)
+  all_to_all_comm_t::all_to_all_comm_t(const all_to_all_gathering_list_t &gl)
   {
     setup_knowing_what_to_ask(gl);
   }
-  void all_to_all_comm_t::setup_knowing_what_to_ask(all_to_all_gathering_list_t &gl)
+  void all_to_all_comm_t::setup_knowing_what_to_ask(const all_to_all_gathering_list_t &gl)
   {
     GET_THREAD_ID();
     
@@ -236,7 +235,7 @@ namespace nissa
     //count how many elements to send to each rank
     vector_reset(build.nper_rank_fr_temp);
     if(IS_MASTER_THREAD)
-      for(all_to_all_gathering_list_t::iterator it=gl.begin();it!=gl.end();it++)
+      for(auto it=gl.begin();it!=gl.end();it++)
 	{
 	  int rank_fr=it->first%nranks;
 	  if(rank_fr>=nranks or rank_fr<0) crash("source rank %d does not exist!",rank_fr);
@@ -252,7 +251,7 @@ namespace nissa
     //save the explenations to each rank on how to fill outbuffers
     int *out_buf_source_expl=nissa_malloc("out_buf_source_expl",nel_in,int);
     if(IS_MASTER_THREAD)
-      for(all_to_all_gathering_list_t::iterator it=gl.begin();it!=gl.end();it++)
+      for(auto it=gl.begin();it!=gl.end();it++)
 	{
 	  int rank_iel_fr=it->first;
 	  int iel_fr=rank_iel_fr/nranks,rank_fr=rank_iel_fr-iel_fr*nranks;

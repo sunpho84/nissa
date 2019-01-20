@@ -211,34 +211,49 @@ namespace nissa
 	int nfft_ranges;
 	read_str_int("NFftRanges",&nfft_ranges);
 	
-	//read all the ranges
-	for(int irange=0;irange<nfft_ranges;irange++)
+	if(nfft_ranges>0)
 	  {
-	    fft_mom_range_t fft_mom_range;
-	    int L[2],T[2];
-	    read_str_int("L",&L[0]);
-	    read_int(&L[1]);
-	    read_str_int("T",&T[0]);
-	    read_int(&T[1]);
+	    std::vector<std::pair<fft_mom_range_t,double>> fft_mom_range_list;
 	    
-	    //init the offset and width from range interval
-	    fft_mom_range.offs[0]=T[0];
-	    fft_mom_range.width[0]=T[1]-T[0]+1;
-	    for(int i=1;i<NDIM;i++)
+	    //read all the ranges
+	    for(int irange=0;irange<nfft_ranges;irange++)
 	      {
-		fft_mom_range.offs[i]=L[0];
-		fft_mom_range.width[i]=L[1]-L[0]+1;
+		fft_mom_range_t fft_mom_range;
+		int L[2],T[2];
+		read_str_int("L",&L[0]);
+		read_int(&L[1]);
+		read_str_int("T",&T[0]);
+		read_int(&T[1]);
+		
+		//init the offset and width from range interval
+		fft_mom_range.offs[0]=T[0];
+		fft_mom_range.width[0]=T[1]-T[0]+1;
+		for(int i=1;i<NDIM;i++)
+		  {
+		    fft_mom_range.offs[i]=L[0];
+		    fft_mom_range.width[i]=L[1]-L[0]+1;
+		  }
+		
+		//read the democratic filter
+		double p4_fr_p22_max;
+		read_str_double("P4FrP22Max",&p4_fr_p22_max);
+		
+		fft_mom_range_list.push_back(std::make_pair(fft_mom_range,p4_fr_p22_max));
 	      }
 	    
-	    //read the democratic filter
-	    double p4_fr_p22_max;
-	    read_str_double("P4FrP22Max",&p4_fr_p22_max);
-	    
-	    fft_mom_range_list.push_back(std::make_pair(fft_mom_range,p4_fr_p22_max));
+	    //initialize the filters
+	    init_fft_filter_from_range(fft_mom_range_list);
 	  }
-	
-	//initialize the filters
-	init_fft_filter();
+	else
+	  for(int i=0;i<std::abs(nfft_props);i++)
+	    {
+	      char path[1024];
+	      read_str_str("MomentaListPath",path,1024);
+	      char suffix[1024];
+	      read_str_str("Suffix",suffix,1024);
+	      
+	      init_fft_filterer_from_file(suffix,path);
+	    }
       }
   }
 }

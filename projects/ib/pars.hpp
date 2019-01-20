@@ -89,8 +89,6 @@ namespace nissa
     coords offs;
     coords width;
   };
-  //list of range of momenta for fft
-  EXTERN_PARS std::vector<std::pair<fft_mom_range_t,double>> fft_mom_range_list;
   //list of propagators to fft
   EXTERN_PARS std::vector<std::string> fft_prop_list;
   
