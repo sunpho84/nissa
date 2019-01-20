@@ -581,10 +581,7 @@ namespace nissa
     R res{0};
     
     if(rank==0)
-      {
-	res=f(std::forward<Args>(args)...);
-	std::cout<<res<<std::endl;
-      }
+      res=f(std::forward<Args>(args)...);
     MPI_Bcast(&res,sizeof(R),MPI_CHAR,0,MPI_COMM_WORLD);
     
     return res;
@@ -677,7 +674,7 @@ namespace nissa
 	for(int i=0;i<nf;i++)
 	  {
 	    std::string filename=combine("%s/fft_%s",outfolder,tag.c_str());
-	    if(fft_filterer[i].file_suffix!="") filename+=combine("_",fft_filterer[i].file_suffix.c_str());
+	    if(fft_filterer[i].file_suffix!="") filename+=combine("_%s",fft_filterer[i].file_suffix.c_str());
 	    if(nhits>1) filename+=combine("_hit_%d",ihit);
 	    
 	    //open and write
