@@ -245,7 +245,7 @@ namespace nissa
 	    init_fft_filter_from_range(fft_mom_range_list);
 	  }
 	else
-	  for(int i=0;i<std::abs(nfft_props);i++)
+	  for(int i=0;i<std::abs(nfft_ranges);i++)
 	    {
 	      char path[1024];
 	      read_str_str("MomentaListPath",path,1024);
