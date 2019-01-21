@@ -1,6 +1,7 @@
 #ifndef _ALL_TO_ALL_COMM_HPP
 #define _ALL_TO_ALL_COMM_HPP
 
+#include <algorithm>
 #include <map>
 #include <vector>
 
@@ -32,14 +33,30 @@ namespace nissa
   private:
     all_to_all_comm_t(const all_to_all_comm_t&)=delete;
   public:
-    int inited;
-    int nel_out,nel_in;
-    int nranks_fr,*list_ranks_fr,*in_buf_dest,*nper_rank_fr,*in_buf_off_per_rank;
-    int nranks_to,*list_ranks_to,*out_buf_source,*nper_rank_to,*out_buf_off_per_rank;
+    int inited{false};
+    int nel_out{0},nel_in{0};
+    int nranks_fr{0},*list_ranks_fr{nullptr},*in_buf_dest{nullptr},*nper_rank_fr{nullptr},*in_buf_off_per_rank{nullptr};
+    int nranks_to{0},*list_ranks_to{nullptr},*out_buf_source{nullptr},*nper_rank_to{nullptr},*out_buf_off_per_rank{nullptr};
     
     all_to_all_comm_t(const all_to_all_gathering_list_t &gl);
     all_to_all_comm_t(const all_to_all_scattering_list_t &sl);
-    all_to_all_comm_t(all_to_all_comm_t&&)=default;
+    all_to_all_comm_t(all_to_all_comm_t &&oth)
+    {
+      std::swap(inited,oth.inited);
+      std::swap(nel_out,oth.nel_out);
+      std::swap(nel_in,oth.nel_in);
+      std::swap(nranks_fr,oth.nranks_fr);
+      std::swap(list_ranks_fr,oth.list_ranks_fr);
+      std::swap(in_buf_dest,oth.in_buf_dest);
+      std::swap(nper_rank_fr,oth.nper_rank_fr);
+      std::swap(in_buf_off_per_rank,oth.in_buf_off_per_rank);
+      std::swap(nranks_to,oth.nranks_to);
+      std::swap(list_ranks_to,oth.list_ranks_to);
+      std::swap(out_buf_source,oth.out_buf_source);
+      std::swap(nper_rank_to,oth.nper_rank_to);
+      std::swap(out_buf_off_per_rank,oth.out_buf_off_per_rank);
+    }
+    
     ~all_to_all_comm_t(){destroy();}
     void destroy()
     {

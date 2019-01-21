@@ -262,7 +262,7 @@ namespace nissa
 	}
     THREAD_BARRIER();
     
-    common_setup_part2(nel_out,out_buf_source,nranks_to,list_ranks_to,out_buf_off_per_rank,nper_rank_to, 
+    common_setup_part2(nel_out,out_buf_source,nranks_to,list_ranks_to,out_buf_off_per_rank,nper_rank_to,
 		       out_buf_source_expl,nranks_fr,list_ranks_fr,in_buf_off_per_rank,nper_rank_fr);
     nissa_free(out_buf_source_expl);
   }

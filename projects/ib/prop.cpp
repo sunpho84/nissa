@@ -558,7 +558,7 @@ namespace nissa
 		    //search where data is stored
 		    int wrank,iloc;
 		    get_loclx_and_rank_of_coord(&iloc,&wrank,cmir); //the remapper will leave holes
-		    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks*nso_spi*nso_col+0));
+		    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks));
 		    
 		    list_of_filtered.insert(iglb);
 		  }
@@ -580,6 +580,7 @@ namespace nissa
     using R=decltype(f(std::forward<Args>(args)...));
     
     R res;
+    memset((void*)&res,0,sizeof(R));
     
     if(rank==0)
       res=f(std::forward<Args>(args)...);
@@ -595,10 +596,12 @@ namespace nissa
     FILE *fin=open_file(filein_name,"r");
     auto read_int=[fin]()
       {
-	int res;
+	int res=0;
 	bool eof;
 	
 	eof=(fscanf(fin,"%d",&res)!=1);
+	
+	if(eof) res=0;
 	
 	return std::make_tuple(res,eof);
       };
@@ -627,7 +630,7 @@ namespace nissa
 	    //search where data is stored
 	    int wrank,iloc;
 	    get_loclx_and_rank_of_coord(&iloc,&wrank,c);
-	    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks*nso_spi*nso_col+0));
+	    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks));
 	    
 	    int iglb=glblx_of_coord(c);
 	    list_of_filtered.insert(iglb);
@@ -649,9 +652,12 @@ namespace nissa
     
     int nf=fft_filterer.size();
     spincolor *qfilt[nf];
+    spincolor *qfilt_temp[nf];
     for(int i=0;i<nf;i++)
-      qfilt[i]=nissa_malloc("qfilt",fft_filterer[i].nfft_filtered*nso_spi*nso_col,spincolor);
-	
+      {
+	qfilt[i]=nissa_malloc("qfilt",fft_filterer[i].nfft_filtered*nso_spi*nso_col,spincolor);
+	qfilt_temp[i]=nissa_malloc("qfilt_temp",fft_filterer[i].nfft_filtered,spincolor);
+      }
     double fft_sign=-1;
     for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
       {
@@ -673,7 +679,11 @@ namespace nissa
 	      for(int i=0;i<nf;i++)
 		{
 		  master_printf("Filtering %d/%d\n",i,nf);
-		  fft_filterer[i].fft_filter_remap.communicate(qfilt[i]+so_sp_col_ind(id_so,ic_so),qtilde,sizeof(spincolor));
+		  fft_filterer[i].fft_filter_remap.communicate(qfilt_temp[i],qtilde,sizeof(spincolor));
+		  
+		  NISSA_PARALLEL_LOOP(imom,0,fft_filterer[i].nfft_filtered)
+		    spincolor_copy(qfilt[i][imom*nso_spi*nso_col+so_sp_col_ind(id_so,ic_so)],qfilt_temp[i][imom]);
+		  set_borders_invalid(qfilt[i]);
 		}
 	      
 	      STOP_TIMING(fft_time);
@@ -693,7 +703,11 @@ namespace nissa
 	  }
       }
     
-    for(int i=0;i<nf;i++) nissa_free(qfilt[i]);
+    for(int i=0;i<nf;i++)
+      {
+	nissa_free(qfilt[i]);
+	nissa_free(qfilt_temp[i]);
+      }
     
     nissa_free(qtilde);
   }
