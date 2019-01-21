@@ -38,3 +38,5 @@ script:
   - cd build
   - ../configure
   - make V=1
+  - cd tools
+  - make V=1

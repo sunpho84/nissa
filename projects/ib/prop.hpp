@@ -100,7 +100,8 @@ namespace nissa
   
   EXTERN_PROP int nfft_tot INIT_TO(0);
   EXTERN_PROP double fft_time INIT_TO(0);
-  void init_fft_filter();
+  void init_fft_filter_from_range(std::vector<std::pair<fft_mom_range_t,double>>& fft_mom_range_list);
+  void init_fft_filterer_from_file(const char *fileout_suff,const char *filein_name);
 
   EXTERN_PROP int nstore_prop INIT_TO(0);
   EXTERN_PROP double store_prop_time INIT_TO(0);
@@ -145,8 +146,18 @@ namespace nissa
   
   void add_photon_field_to_conf(quad_su3 *conf,double charge);
   
-  EXTERN_PROP all_to_all_comm_t fft_filter_remap;
-  EXTERN_PROP int nfft_filtered;
+  struct fft_filterer_t
+  {
+    int nfft_filtered;
+    all_to_all_comm_t fft_filter_remap;
+    std::string file_suffix;
+    fft_filterer_t(int nfft_filtered,const all_to_all_scattering_list_t &sl,const std::string &file_suffix)
+      : nfft_filtered(nfft_filtered),fft_filter_remap(sl),file_suffix(file_suffix) {}
+    
+    fft_filterer_t(fft_filterer_t &&)=default;
+  };
+  
+  EXTERN_PROP std::vector<fft_filterer_t> fft_filterer;
   
   inline void start_hit(int ihit)
   {

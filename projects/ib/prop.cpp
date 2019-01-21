@@ -4,6 +4,7 @@
  #include "prop.hpp"
 
 #include <set>
+#include <tuple>
 
 namespace nissa
 {
@@ -500,7 +501,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //initialize the fft filter, once forever
-  void init_fft_filter()
+  void init_fft_filter_from_range(std::vector<std::pair<fft_mom_range_t,double>>& fft_mom_range_list)
   {
     master_printf("Initializing fft filter\n");
     
@@ -568,8 +569,76 @@ namespace nissa
     if(fout) close_file(fout);
     
     //setup
-    nfft_filtered=list_of_filtered.size();
-    fft_filter_remap.setup_knowing_where_to_send(sl);
+    fft_filterer.emplace_back((int)list_of_filtered.size(),sl,std::string(""));
+  }
+  
+  ///helper to do on master
+  template <typename F,
+	    typename...Args>
+  auto do_on_master(F f,Args&&...args)
+  {
+    using R=decltype(f(std::forward<Args>(args)...));
+    
+    R res;
+    
+    if(rank==0)
+      res=f(std::forward<Args>(args)...);
+    MPI_Bcast(&res,sizeof(R),MPI_CHAR,0,MPI_COMM_WORLD);
+    printf("Bcasted\n");
+    return res;
+  }
+  
+  //read the list of momenta to write
+  void init_fft_filterer_from_file(const char *fileout_suff,const char *filein_name)
+  {
+    //file where to read the list
+    FILE *fin=do_on_master(fopen,filein_name,"r");
+    
+    auto read_int=[fin]()
+      {
+	int res;
+	bool eof;
+	
+	eof=(fscanf(fin,"%d",&res)!=1);
+	
+	return std::make_tuple(res,eof);
+      };
+    
+    std::set<int> list_of_filtered;;
+    
+    all_to_all_scattering_list_t sl;
+    bool ended=false;
+    while(not ended)
+      {
+	coords c;
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    int cmu;
+	    bool emu;
+	    
+	    std::tie(cmu,emu)=do_on_master(read_int);
+	    
+	    c[mu]=(cmu+glb_size[mu])%glb_size[mu];
+	    
+	    ended|=emu;
+	  }
+	
+	if(not ended)
+	  {
+	    //search where data is stored
+	    int wrank,iloc;
+	    get_loclx_and_rank_of_coord(&iloc,&wrank,c);
+	    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks*nso_spi*nso_col+0));
+	    
+	    int iglb=glblx_of_coord(c);
+	    list_of_filtered.insert(iglb);
+	  }
+      }
+    
+    //close file if opened
+    do_on_master(fclose,fin);
+    
+    fft_filterer.emplace_back(list_of_filtered.size(),sl,fileout_suff);
   }
   
   //perform fft and store the propagators
@@ -578,8 +647,12 @@ namespace nissa
     GET_THREAD_ID();
     
     spincolor *qtilde=nissa_malloc("qtilde",loc_vol+bord_vol,spincolor);
-    spincolor *qfilt=nissa_malloc("qfilt",nfft_filtered*nso_spi*nso_col,spincolor);
     
+    int nf=fft_filterer.size();
+    spincolor *qfilt[nf];
+    for(int i=0;i<nf;i++)
+      qfilt[i]=nissa_malloc("qfilt",fft_filterer[i].nfft_filtered*nso_spi*nso_col,spincolor);
+	
     double fft_sign=-1;
     for(size_t iprop=0;iprop<fft_prop_list.size();iprop++)
       {
@@ -598,22 +671,28 @@ namespace nissa
 	      put_fft_source_phase(qtilde,fft_sign);
 	      
 	      //gather - check the rewriting pattern above!
-	      fft_filter_remap.communicate(qfilt+so_sp_col_ind(id_so,ic_so),qtilde,sizeof(spincolor));
+	      for(int i=0;i<nf;i++)
+		fft_filterer[i].fft_filter_remap.communicate(qfilt[i]+so_sp_col_ind(id_so,ic_so),qtilde,sizeof(spincolor));
 	      
 	      STOP_TIMING(fft_time);
 	    }
 	
 	//create filename
-	std::string filename=combine("%s/fft_%s",outfolder,tag.c_str());
-	if(nhits>1) filename+=combine("_hit_%d",ihit);
-	
-	//open and write
-	FILE *fout=open_file(filename,"w");
-	if(rank==0) fwrite(qfilt,sizeof(spincolor)*nso_spi*nso_col,nfft_filtered,fout);
-	close_file(fout);
+	for(int i=0;i<nf;i++)
+	  {
+	    std::string filename=combine("%s/fft_%s",outfolder,tag.c_str());
+	    if(fft_filterer[i].file_suffix!="") filename+=combine("_%s",fft_filterer[i].file_suffix.c_str());
+	    if(nhits>1) filename+=combine("_hit_%d",ihit);
+	    
+	    //open and write
+	    FILE *fout=open_file(filename,"w");
+	    if(rank==0) fwrite(qfilt[i],sizeof(spincolor)*nso_spi*nso_col,fft_filterer[i].nfft_filtered,fout);
+	    close_file(fout);
+	  }
       }
     
+    for(int i=0;i<nf;i++) nissa_free(qfilt[i]);
+    
     nissa_free(qtilde);
-    nissa_free(qfilt);
   }
 }
