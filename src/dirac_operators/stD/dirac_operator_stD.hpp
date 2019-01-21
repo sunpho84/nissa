@@ -16,6 +16,8 @@ namespace nissa
   void evn_apply_stD_dag(color *out,quad_su3 **conf,double m,color **in);
   void odd_apply_stD_dag(color *out,quad_su3 **conf,double m,color **in);
   void apply_stD(color **out,quad_su3 **conf,double m,color **in);
+
+  void apply_Adams(color **out,quad_su3 **conf,quad_u1 **u1b, double m, double m_twisted, color **temp, color **in); 
 }
 
 #endif
