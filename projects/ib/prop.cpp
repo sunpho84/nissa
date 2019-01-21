@@ -584,7 +584,7 @@ namespace nissa
     if(rank==0)
       res=f(std::forward<Args>(args)...);
     MPI_Bcast(&res,sizeof(R),MPI_CHAR,0,MPI_COMM_WORLD);
-    printf("Bcasted\n");
+    
     return res;
   }
   
@@ -592,8 +592,7 @@ namespace nissa
   void init_fft_filterer_from_file(const char *fileout_suff,const char *filein_name)
   {
     //file where to read the list
-    FILE *fin=do_on_master(fopen,filein_name,"r");
-    
+    FILE *fin=open_file(filein_name,"r");
     auto read_int=[fin]()
       {
 	int res;
@@ -636,7 +635,7 @@ namespace nissa
       }
     
     //close file if opened
-    do_on_master(fclose,fin);
+    close_file(fin);
     
     fft_filterer.emplace_back(list_of_filtered.size(),sl,fileout_suff);
   }
