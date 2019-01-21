@@ -671,7 +671,10 @@ namespace nissa
 	      
 	      //gather - check the rewriting pattern above!
 	      for(int i=0;i<nf;i++)
-		fft_filterer[i].fft_filter_remap.communicate(qfilt[i]+so_sp_col_ind(id_so,ic_so),qtilde,sizeof(spincolor));
+		{
+		  master_printf("Filtering %d/%d\n",i,nf);
+		  fft_filterer[i].fft_filter_remap.communicate(qfilt[i]+so_sp_col_ind(id_so,ic_so),qtilde,sizeof(spincolor));
+		}
 	      
 	      STOP_TIMING(fft_time);
 	    }
