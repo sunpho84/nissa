@@ -44,7 +44,7 @@ namespace nissa
   void odd_apply_stD_dag(color *out,quad_su3 **conf,double m,color **in)
   {odd_apply_stD(out,conf,m,in,-1);}
 
-  void apply_Adams(color **out, quad_su3 **conf, quad_u1 **u1b, double m, double m_twisted, color **temp, color **in){
+  void apply_Adams(color **out, quad_su3 **conf, quad_u1 **u1b, double m, double m_Adams, color **temp, color **in){
     
     apply_stD(temp,conf,m,in);
     
@@ -63,8 +63,8 @@ namespace nissa
 
     apply_stag_op(out,conf,u1b,stag::GAMMA_5,stag::IDENTITY,in);
 
-    double_vector_linear_comb((double*)out[EVN],(double*)temp[EVN],1.0,(double*)out[EVN],-m_twisted,2*NCOL*loc_volh);
-    double_vector_linear_comb((double*)out[ODD],(double*)temp[ODD],1.0,(double*)out[ODD],-m_twisted,2*NCOL*loc_volh);
+    double_vector_linear_comb((double*)out[EVN],(double*)temp[EVN],1.0,(double*)out[EVN],-m_Adams,2*NCOL*loc_volh);
+    double_vector_linear_comb((double*)out[ODD],(double*)temp[ODD],1.0,(double*)out[ODD],-m_Adams,2*NCOL*loc_volh);
 
   }
 }

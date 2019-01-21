@@ -48,8 +48,8 @@ namespace nissa
   }
 
 
-  //computes the spectrum of the staggered Adams operator (iD_st - Gamma5 m_twisted
-  void find_eigenvalues_staggered_Adams(color **eigvec,complex *eigval,int neigs,bool min_max,quad_su3 **conf,quad_u1 **u1b,double mass,double m_twisted,double residue,int wspace_size)
+  //computes the spectrum of the staggered Adams operator (iD_st - Gamma5 m_Adams
+  void find_eigenvalues_staggered_Adams(color **eigvec,complex *eigval,int neigs,bool min_max,quad_su3 **conf,quad_u1 **u1b,double mass,double m_Adams,double residue,int wspace_size)
   {
     add_backfield_with_stagphases_to_conf(conf,u1b);
     
@@ -58,11 +58,11 @@ namespace nissa
     color *temp_out_eo[2] = {nissa_malloc("temp_out_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_out_eo_ODD",loc_volh+bord_volh,color)};
 
     //Application of the staggered Operator
-    const auto imp_mat=[conf,u1b,&temp,&temp_in_eo,&temp_out_eo,mass,m_twisted](complex *out,complex *in)
+    const auto imp_mat=[conf,u1b,&temp,&temp_in_eo,&temp_out_eo,mass,m_Adams](complex *out,complex *in)
       {
         split_lx_vector_into_eo_parts(temp_in_eo,(color*)in);
           
-        apply_Adams(temp_out_eo,conf,u1b,mass,m_twisted,temp,temp_in_eo);
+        apply_Adams(temp_out_eo,conf,u1b,mass,m_Adams,temp,temp_in_eo);
 
         paste_eo_parts_into_lx_vector((color*)out,temp_out_eo);
 
