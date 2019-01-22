@@ -14,6 +14,7 @@
 #include "dirac_operator_stDLeb_portable.cpp"
 #include "dirac_operator_stD_portable.cpp"
 #include "dirac_operator_stD_32_portable.cpp"
+#include "measures/fermions/stag.hpp"
 
 namespace nissa
 {
@@ -42,4 +43,28 @@ namespace nissa
   {evn_apply_stD(out,conf,m,in,-1);}
   void odd_apply_stD_dag(color *out,quad_su3 **conf,double m,color **in)
   {odd_apply_stD(out,conf,m,in,-1);}
+  
+  //Adams operator https://arxiv.org/pdf/1103.6191.pdf
+  THREADABLE_FUNCTION_7ARG(apply_Adams, color**,out, quad_su3**,conf, quad_u1**,u1b, double,m, double,m_Adams, color**,temp, color**,in)
+  {
+    // out = g5 X id * in
+    apply_stag_op(out,conf,u1b,stag::GAMMA_5,stag::IDENTITY,in);
+    
+    // temp = D * in
+    apply_stD(temp,conf,m,in);
+    
+    for(int eo=0;eo<2;eo++)
+      {
+	GET_THREAD_ID();
+	
+	// temp = i * D * in
+	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	  for(int ic=0;ic<NCOL;ic++)
+	    assign_complex_prod_i(temp[eo][ivol][ic]);
+	
+	// out = (i * D - m * g5 X id) * in
+	double_vector_summ_double_vector_prod_double((double*)out[eo],(double*)temp[eo],(double*)out[eo],-m_Adams,2*NCOL*loc_volh);
+      }
+  }
+  THREADABLE_FUNCTION_END
 }

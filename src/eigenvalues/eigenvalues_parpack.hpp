@@ -31,7 +31,7 @@ namespace nissa
   {
     EXTERN_PARPACK char bmat[2] INIT_PARPACK_TO(="I"); //"I" -> standard eigenvalue problem A*x = lambda*x, "G" -> generalized eigenvalue problem A*x = lambda*M*x
     //largest or smallest
-    EXTERN_PARPACK char which[2][3] INIT_PARPACK_TO(={"SR","LR"});
+    EXTERN_PARPACK char which[2][3] INIT_PARPACK_TO(={"SM","LM"});
     
     //type for cast
     typedef _Complex double c_t;
