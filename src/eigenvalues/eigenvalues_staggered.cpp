@@ -51,7 +51,6 @@ namespace nissa
   //computes the spectrum of the staggered Adams operator (iD_st - Gamma5 m_Adams
   void find_eigenvalues_staggered_Adams(color **eigvec,complex *eigval,int neigs,bool min_max,quad_su3 **conf,quad_u1 **u1b,double mass,double m_Adams,double residue,int wspace_size)
   {
-    add_backfield_with_stagphases_to_conf(conf,u1b);
     
     color *temp[2]={nissa_malloc("temp_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_ODD",loc_volh+bord_volh,color)};
     color *temp_in_eo[2] = {nissa_malloc("temp_in_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_in_eo_ODD",loc_volh+bord_volh,color)};
@@ -86,7 +85,6 @@ namespace nissa
     //find eigenvalues and eigenvectors of the staggered
     eigenvalues_find((complex**)eigvec,eigval,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler,wspace_size);
     
-    rem_backfield_with_stagphases_from_conf(conf,u1b);
     
     nissa_free(temp[EVN]);
     nissa_free(temp[ODD]);

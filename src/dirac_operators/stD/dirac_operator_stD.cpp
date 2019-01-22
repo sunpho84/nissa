@@ -51,7 +51,9 @@ namespace nissa
     apply_stag_op(out,conf,u1b,stag::GAMMA_5,stag::IDENTITY,in);
     
     // temp = D * in
+    add_backfield_with_stagphases_to_conf(conf,u1b);
     apply_stD(temp,conf,m,in);
+    rem_backfield_with_stagphases_from_conf(conf,u1b);
     
     for(int eo=0;eo<2;eo++)
       {
