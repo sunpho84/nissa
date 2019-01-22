@@ -96,7 +96,7 @@ namespace nissa
     double eig_time=-take_time();
     find_eigenvalues_staggered_Adams(eigvec,eigval,neigs,min_max,conf,u1b,0.0,m_Adams,eig_precision,wspace_size);
     
-    verbosity_lv1_master_printf("\n\nEigenvalues of staggered Adams operator:\n");
+    verbosity_lv1_master_printf("\n\nEigenvalues of staggered Adams operator with m_Adams=%.16lg:\n",m_Adams);
     for(int ieig=0;ieig<neigs;ieig++)
     {
       master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
@@ -140,21 +140,21 @@ namespace nissa
     int nhits=meas_pars.nhits;
     for(int hit=0;hit<nhits;hit++)
       {
-    verbosity_lv2_master_printf("Evaluating Adams spectum, nhits %d/%d\n",hit+1,nhits);
+    verbosity_lv2_master_printf("Evaluating Adams spectrum for m_Adams = %.16lg, nhits %d/%d\n",meas_pars.m_Adams,hit+1,nhits);
     
     measure_Adams_spectrum(eigvec,conf,meas_pars.m_Adams,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
       }
     
 
-    master_fprintf(file,"%d\t",neigs);
+    master_fprintf(file,"%d\t%.16lg\t",neigs,meas_pars.m_Adams);
     for(int ieig=0;ieig<neigs;++ieig)
-      master_fprintf(file,"%.16lg\t%.16lg\t",eigval[ieig][RE],eigval[ieig][IM]);
+      master_fprintf(file,"%.16lg\t",eigval[ieig][RE]);
     master_fprintf(file,"\n");
     
     close_file(file);
 
     for(int ieig=0; ieig<neigs; ieig++)
-      verbosity_lv1_master_printf("%d\t%.16lg\t%.16lg\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
+      verbosity_lv1_master_printf("%d\t%.16lg\n",ieig,eigval[ieig][RE]);
 
     verbosity_lv1_master_printf("\n\n");
    
