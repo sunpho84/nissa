@@ -1243,6 +1243,9 @@ namespace nissa
       }
   }
   
+  inline double spincolor_norm2(const spincolor s)
+  {double out=color_norm2(s[0]);for(size_t id=1;id<NDIRAC;id++) out+=color_norm2(s[id]);return out;}
+  
   ///////////////////////////////// su3*colorspinspin ///////////////////////////////////
   
   inline void unsafe_su3_prod_colorspinspin(colorspinspin a,const su3 b,const colorspinspin c)
