@@ -213,6 +213,7 @@ namespace nissa
     nissa_free(eigval);
     nissa_free(cum_sumA);
     nissa_free(cum_sumB);
+    nissa_free(conf_lx);
   }
   
   //print pars
