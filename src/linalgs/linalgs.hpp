@@ -1,6 +1,7 @@
 #ifndef _LINALGS_HPP
 #define _LINALGS_HPP
 
+#include "base/thread_macros.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/su3.hpp"
@@ -23,8 +24,45 @@ namespace nissa
   void single_vector_copy(float *a,float *b,int n);
   void double_conv_quadruple_vector_glb_scalar_prod(double *out,float_128 *a,float_128 *b,int n);
   void double_vector_glb_scalar_prod(double *res,double *a,double *b,int n);
+  
   template <class T> double double_vector_glb_norm2(T *v,int n_per_class)
   {double res;double_vector_glb_scalar_prod(&res,(double*)v,(double*)v,n_per_class*sizeof(T)/sizeof(double));return res;}
+  
+  //Norm2 of a scalar
+  template <typename T>
+  T norm2(T &s)
+  {
+    return s*s;
+  }
+  
+  //Norm2 of an array
+  template <typename TIn,
+	    int N,
+	    typename TOut=std::remove_all_extents_t<TIn>>
+  TOut norm2(TIn (&v)[N])
+  {
+    TOut out=0;
+    
+    for(int i=0;i<N;i++)
+      out+=norm2(v[i]);
+    
+    return out;
+  }
+  
+  //Takes the trace of the square of the vector, on all internal T indices
+  template <typename TOut,
+	    typename TIn,
+	    typename=std::enable_if_t<std::is_same<TOut,typename std::remove_all_extents<TIn>::type>::value>>
+  void vector_loc_norm2(TOut *loc_norm2,TIn *v,int n_per_class)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(i,0,n_per_class)
+      loc_norm2[i]+=norm2(v[i]);
+    
+    THREAD_BARRIER();
+  }
+  
   void single_vector_glb_scalar_prod(float *res,float *a,float *b,int n);
   void double_vector_glb_collapse(double *res,double *a,int n);
   void double_vector_copy(double *a,double *b,int n);
