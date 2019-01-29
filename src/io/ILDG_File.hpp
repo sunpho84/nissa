@@ -118,13 +118,20 @@ namespace nissa
   void index_to_ILDG_remapping(int &irank_ILDG,int &iloc_ILDG,int iloc_lx,void *pars);
   void index_from_ILDG_remapping(int &irank_lx,int &iloc_lx,int iloc_ILDG,void *pars);
   
-  //Writes a field (data is a vector of loc_vol) with no frill
+  //Writes a field to a file (data is a vector of loc_vol) with no frill
+  template <typename T>
+  void write_lattice_field(ILDG_File &file,T *data)
+  {
+    ILDG_File_write_ildg_data_all_raw(file,data,loc_vol*sizeof(T));
+  }
+  
+  //Writes a field opening the file with given path (data is a vector of loc_vol) with no frill
   template <typename T>
   void write_lattice_field(const char *path,T *data)
   {
     ILDG_File file=ILDG_File_open_for_write(path);
     
-    ILDG_File_write_ildg_data_all_raw(file,data,loc_vol*sizeof(T));
+    write_lattice_field(file,data);
     
     ILDG_File_close(file);
   }
