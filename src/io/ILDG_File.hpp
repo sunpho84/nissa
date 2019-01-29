@@ -15,6 +15,7 @@
 
 #include "checksum.hpp"
 #include "base/debug.hpp"
+#include "geometry/geometry_lx.hpp"
 
 #ifndef EXTERN_ILDG
  #define EXTERN_ILDG extern
@@ -109,12 +110,24 @@ namespace nissa
   void ILDG_File_skip_nbytes(ILDG_File &file,ILDG_Offset nbytes);
   void ILDG_File_skip_record(ILDG_File &file,ILDG_header header);
   void ILDG_File_write_checksum(ILDG_File &file,checksum check);
+  void ILDG_File_write_ildg_data_all_raw(ILDG_File &file,void *data,uint64_t data_length);
   void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type);
   void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write);
   void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
   void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
   void index_to_ILDG_remapping(int &irank_ILDG,int &iloc_ILDG,int iloc_lx,void *pars);
   void index_from_ILDG_remapping(int &irank_lx,int &iloc_lx,int iloc_ILDG,void *pars);
+  
+  //Writes a field (data is a vector of loc_vol) with no frill
+  template <typename T>
+  void write_lattice_field(const char *path,T *data)
+  {
+    ILDG_File file=ILDG_File_open_for_write(path);
+    
+    ILDG_File_write_ildg_data_all_raw(file,data,loc_vol*sizeof(T));
+    
+    ILDG_File_close(file);
+  }
   
   //storable vector
   ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data);

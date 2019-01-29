@@ -613,15 +613,11 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //read the data according to ILDG mapping
-  void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type)
+  //bare write data in the ILDG order
+  void ILDG_File_write_ildg_data_all_raw(ILDG_File &file,void *data,uint64_t data_length)
   {
-    //prepare the header and write it
-    ILDG_header header=ILDG_File_build_record_header(0,0,type,(uint64_t)nbytes_per_site*glb_vol);
-    ILDG_File_write_record_header(file,header);
-    
     //allocate the buffer
-    ILDG_Offset nbytes_per_rank=header.data_length/nranks;
+    ILDG_Offset nbytes_per_rank=data_length/nranks;
     char *buf=nissa_malloc("buf",nbytes_per_rank,char);
     
 #ifdef USE_MPI_IO
@@ -629,11 +625,12 @@ namespace nissa
     ILDG_File_view normal_view=ILDG_File_get_current_view(file);
     
     //create scidac view and set it
+    int nbytes_per_site=data_length/loc_vol;
     ILDG_File_view scidac_view=ILDG_File_create_scidac_mapped_view(file,nbytes_per_site);
     ILDG_File_set_view(file,scidac_view);
     
     //reorder
-    remap_to_write_ildg_data(buf,(char*)data,header.data_length/glb_vol);
+    remap_to_write_ildg_data(buf,(char*)data,data_length/glb_vol);
     
     //write and free buf
     MPI_Status status;
@@ -642,15 +639,14 @@ namespace nissa
     //sync
     MPI_File_sync(file);
     MPI_Barrier(MPI_COMM_WORLD);
-    nissa_free(buf);
-    
-    //put the view to original state and place at the end of the record, including padding
-    normal_view.pos+=ceil_to_next_eight_multiple(header.data_length);
-    ILDG_File_set_view(file,normal_view);
     
     //count wrote bytes
     size_t nbytes_written=MPI_Get_count_size_t(status);
-    if((uint64_t)nbytes_written!=header.data_length/nranks) crash("written %u bytes instead than %u",nbytes_written,header.data_length/nranks);
+    if((uint64_t)nbytes_written!=data_length/nranks) crash("written %u bytes instead than %u",nbytes_written,data_length/nranks);
+    
+    //put the view to original state and place at the end of the record, including padding
+    normal_view.pos+=ceil_to_next_eight_multiple(data_length);
+    ILDG_File_set_view(file,normal_view);
     
     //reset mapped types
     unset_mapped_types(scidac_view.etype,scidac_view.ftype);
@@ -664,19 +660,30 @@ namespace nissa
     
     //reorder data to the appropriate place
     vector_remap_t *rem=new vector_remap_t(loc_vol,index_to_ILDG_remapping,NULL);
-    rem->remap(buf,data,header.data_length/glb_vol);
+    rem->remap(buf,data,data_length/glb_vol);
     delete rem;
     
     //write
     ILDG_Offset nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
     if(nbytes_wrote!=nbytes_per_rank) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank);
     
+    //place at the end of the record, including padding
+    ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(data_length),SEEK_SET);
+#endif
+    
     //free buf and ord
     nissa_free(buf);
+  }
+  
+  //read the data according to ILDG mapping
+  void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type)
+  {
+    //prepare the header and write it
+    const uint64_t data_length=nbytes_per_site*glb_vol;
+    ILDG_header header=ILDG_File_build_record_header(0,0,type,data_length);
+    ILDG_File_write_record_header(file,header);
     
-    //place at the end of the record, including padding
-    ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
-#endif
+    ILDG_File_write_ildg_data_all_raw(file, data,data_length);
     
     //pad if necessary
     size_t pad_diff=header.data_length%8;
