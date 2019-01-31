@@ -37,7 +37,6 @@ int main(int narg,char **arg)
 {
   //basic mpi initialization
   init_nissa(narg,arg);
-  
   if(nranks>1) crash("cannot run in parallel");
   
   if(narg<5) crash("use: %s L T file_in file_out",arg[0]);
