@@ -60,7 +60,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(i,0,n_per_class)
       loc_norm2[i]+=norm2(v[i]);
     
-    THREAD_BARRIER();
+    set_borders_invalid(loc_norm2);
   }
   
   void single_vector_glb_scalar_prod(float *res,float *a,float *b,int n);
