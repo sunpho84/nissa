@@ -29,8 +29,8 @@ double read_double(FILE *in)
 
 void read_from_binary_file(su3 A,FILE *fp)
 {
-  if(fread(&A,sizeof(su3),1,fp)!=1)
-    crash("Problems in reading Su3 matrix\n");
+  if(fread(A,sizeof(su3),1,fp)!=1)
+    crash("Problems in reading Su3 matrix");
   
   if(little_endian and not is_old)
     change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
