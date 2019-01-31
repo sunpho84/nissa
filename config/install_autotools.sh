@@ -40,7 +40,6 @@ rm -fr auto*
 wget http://ftp.gnu.org/pub/gnu/gettext/gettext-latest.tar.gz
 tar xzvf gettext-latest.tar.gz
 cd gettext*
-bash autogen.sh
 mkdir build
 cd build
 ./configure --prefix=$HOME

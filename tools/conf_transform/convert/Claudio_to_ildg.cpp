@@ -1,14 +1,21 @@
 #include "nissa.hpp"
-
 #include <math.h>
 
 using namespace nissa;
 
 int L,T;
+bool is_old;
 
 int snum(int x,int y,int z,int t)
 {
-  return (t+x*T+y*L*T+z*L*L*T);
+  int aux=(t+x*T+y*L*T+z*L*L*T);
+  if(not is_old)
+    return aux;
+  else
+    {
+      int eo=(x+y+z+t)%2;
+      return eo*loc_volh+aux/2;
+    }
 }
 
 double read_double(FILE *in)
@@ -20,9 +27,13 @@ double read_double(FILE *in)
   return out;
 }
 
-void read_from_binary_file_Su3(su3 A,FILE *fp)
+void read_from_binary_file(su3 A,FILE *fp)
 {
-  if(fread(&A,sizeof(su3),1,fp)!=1) crash("Problems in reading Su3 matrix\n");
+  if(fread(A,sizeof(su3),1,fp)!=1)
+    crash("Problems in reading Su3 matrix");
+  
+  if(little_endian and not is_old)
+    change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
 }
 
 void read_su3(su3 out,FILE *in)
@@ -35,14 +46,21 @@ void read_su3(su3 out,FILE *in)
 
 int main(int narg,char **arg)
 {
+  char *in_conf_name,*out_conf_name;
+  
   //basic mpi initialization
   init_nissa(narg,arg);
-  if(nranks>1) crash("cannot run in parallel");
   
-  if(narg<5) crash("use: %s L T file_in file_out",arg[0]);
+  if(nranks>1)
+    crash("cannot run in parallel");
+  
+  if(narg<5) crash("use: %s L T file_in file_out [--old] \n. Use --old for conf generated with previous versions of sun_topo",arg[0]);
   
   L=atoi(arg[1]);
   T=atoi(arg[2]);
+  in_conf_name=arg[3];
+  out_conf_name=arg[4];
+  is_old=(narg>5 and strcmp(arg[5],"--old")==0);
   
   //Init the MPI grid
   init_grid(T,L);
@@ -52,27 +70,37 @@ int main(int narg,char **arg)
   su3 *in_conf=nissa_malloc("in_conf",4*loc_vol,su3);
   
   //open the file
-  FILE *fin=fopen(arg[3],"r");
-  if(fin==NULL) crash("while opening %s",arg[3]);
+  FILE *fin=fopen(in_conf_name,"r");
+  if(fin==NULL) crash("while opening %s",in_conf_name);
   
-  //read the data
-  NISSA_LOC_VOL_LOOP(ivol)
-  {
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	read_from_binary_file_Su3(in_conf[ivol*NDIM+mu],fin);
-	if(ivol==0)
-	  {
-	    double t=real_part_of_trace_su3_prod_su3_dag(in_conf[ivol*NDIM+mu],in_conf[ivol*NDIM+mu]);
-	    complex c;
-	    su3_det(c,in_conf[ivol*NDIM+mu]);
-	    master_printf("Det-1 = %d %d, %lg %lg\n",ivol,mu,c[RE]-1,c[IM]);
-	    
-	    master_printf("Tr(U^dag U) - 3 = %d %d, %lg\n",ivol,mu,t-3);
-	    su3_print(in_conf[ivol*NDIM+mu]);
-	  }
+  //read the first line which contains the parameters of the lattice
+  for(int k=0;k<6;k++)
+    {
+      double parameters=read_double(fin);
+      printf("%lg ",parameters);
+    }
+  
+ char crypto[101];
+ fscanf(fin,"%s ",crypto);
+ printf("%s\n ",crypto);
+ 
+ //read the data
+ NISSA_LOC_VOL_LOOP(ivol)
+   for(int mu=0;mu<NDIM;mu++)
+     {
+       read_from_binary_file(in_conf[ivol*NDIM+mu],fin);
+       if(ivol==0)
+	 {
+	   double t=real_part_of_trace_su3_prod_su3_dag(in_conf[ivol*NDIM+mu],in_conf[ivol*NDIM+mu]);
+	   complex c;
+	   su3_det(c,in_conf[ivol*NDIM+mu]);
+	   master_printf("Det-1 = %d %d, %lg %lg\n",ivol,mu,c[RE]-1,c[IM]);
+	   
+	   master_printf("Tr(U^dag U) - 3 = %d %d, %lg\n",ivol,mu,t-3);
+	   su3_print(in_conf[ivol*NDIM+mu]);
+	 }
       }
-  }
+  
   //close the file
   fclose(fin);
   
@@ -91,8 +119,7 @@ int main(int narg,char **arg)
 	    coords c={t,x,y,z};
 	    int ivol=loclx_of_coord(c);
 	    
-	    for(int mu=0;mu<NDIM;mu++)
-	      su3_copy(out_conf[ivol][mu],in_conf[mu+NDIM*num]);
+	    for(int mu=0;mu<NDIM;mu++) su3_copy(out_conf[ivol][mu],in_conf[mu+NDIM*num]);
 	  }
   
   nissa_free(in_conf);
@@ -128,7 +155,7 @@ int main(int narg,char **arg)
   
   //print the plaquette and write the conf
   master_printf("Global plaquette: %.16lg\n",global_plaquette_lx_conf(out_conf));
-  write_ildg_gauge_conf(arg[4],out_conf,64);
+  write_ildg_gauge_conf(out_conf_name,out_conf,64);
   
   nissa_free(out_conf);
   
