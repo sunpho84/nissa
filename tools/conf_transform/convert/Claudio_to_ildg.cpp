@@ -120,7 +120,9 @@ int main(int narg,char **arg)
     }
   
  char crypto[101];
- int rc=fscanf(fin,"%s",crypto);
+ int rc=fscanf(fin,"%100s",crypto);
+ if(rc!=1 && strlen(crypto)!=32)
+   crash("error readying md5sum");
  printf("%s %d\n",crypto,rc);
  
  //read the data
