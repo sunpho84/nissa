@@ -77,17 +77,21 @@ int main(int narg,char **arg)
   for(int k=0;k<6;k++)
     {
       double parameters=read_double(fin);
-      printf("%lg ",parameters);
+      master_printf("%lg\n ",parameters);
     }
   
  char crypto[101];
- fscanf(fin,"%s ",crypto);
- printf("%s\n ",crypto);
+ read_str(crypto,101);
+ master_printf("crypto: %s\n",crypto);
+ if(strcasecmp(crypto,"da2e9945924b4568940669a4bc595ca")!=0)
+   crash("Unmatched crypto");
  
  //read the data
  NISSA_LOC_VOL_LOOP(ivol)
    for(int mu=0;mu<NDIM;mu++)
      {
+       master_printf("trying to read ivol %d mu %d, point in the file: %d\n",ivol,mu,ftell(fin));
+       
        read_from_binary_file(in_conf[ivol*NDIM+mu],fin);
        if(ivol==0)
 	 {
