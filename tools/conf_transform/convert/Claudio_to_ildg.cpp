@@ -107,11 +107,9 @@ int main(int narg,char **arg)
  fin=fopen(in_conf_name,"b");
  int header_size=file_size-glb_vol*sizeof(quad_su3);
  master_printf("Header size: %d\n",header_size);
- if(fseek(fin,SEEK_SET,header_size))
-   {
-     perror("Error:");
-     crash("seeking");
-   }
+ rc=fseek(fin,SEEK_SET,header_size);
+ if(rc)
+   crash("seeking, %d",rc);
  
 #ifdef USE_SSL
  
