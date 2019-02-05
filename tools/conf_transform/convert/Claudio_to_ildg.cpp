@@ -102,6 +102,7 @@ int main(int narg,char **arg)
  if(rc!=1 && strlen(crypto)!=32)
    crash("error readying md5sum");
  printf("%s %d\n",crypto,rc);
+ fclose(fin);
  
  //Skip the whole header
  fin=fopen(in_conf_name,"b");
