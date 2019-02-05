@@ -6,6 +6,45 @@ using namespace nissa;
 int L,T;
 bool is_old;
 
+// void compute_md5sum(char res, Gauge_Conf const  const GC, GParam const * const param)
+// {
+// MD5_CTX mdContext;
+// unsigned char c[MD5_DIGEST_LENGTH];
+// long r;
+// int j, k;
+
+// MD5_Init(&mdContext);
+// for(r=0; r<(param->d_volume); r++)
+//   {
+// for(j=0; j<4; j++)
+//   {
+// #if Ncolor==2
+// for(k=0; k<4; k++)
+//   {
+// MD5_Update(&mdContext, &((GC->lattice[r][j]).comp[k]), sizeof(double));
+// }
+// #else
+// for(k=0; k<Ncolor*Ncolor; k++)
+//   {
+// MD5_Update(&mdContext, &((GC->lattice[r][j]).comp[k]), sizeof(double complex));
+//                }
+//           #endif
+//           }
+//        }
+//     MD5_Final(c, &mdContext);
+
+//     for(r = 0; r < MD5_DIGEST_LENGTH; r++)
+//        {
+//        sprintf(&(res[2*r]), "%02x", c[r]);
+//        }
+//   #else
+//     // just to avoid warning at compile time
+//     (void) res;
+//     (void) GC;
+//     (void) param;
+//   #endif
+//   }
+
 int snum(int x,int y,int z,int t)
 {
   int aux=(t+x*T+y*L*T+z*L*L*T);
@@ -83,9 +122,9 @@ int main(int narg,char **arg)
  char crypto[101];
  fscanf(fin,"%100s",crypto);
  master_printf("crypto: %s\n",crypto);
- if(strcasecmp(crypto,"da2e9945924b4568940669a4bc595ca")!=0)
-   crash("Unmatched crypto");
- 
+ // if(strcasecmp(crypto,"da2e9945924b4568940669a4bc595ca")!=0)
+ //   crash("Unmatched crypto");
+x 
  //read the data
  NISSA_LOC_VOL_LOOP(ivol)
    for(int mu=0;mu<NDIM;mu++)
