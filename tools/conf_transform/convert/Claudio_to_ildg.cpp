@@ -6,44 +6,9 @@ using namespace nissa;
 int L,T;
 bool is_old;
 
-// void compute_md5sum(char res, Gauge_Conf const  const GC, GParam const * const param)
-// {
-// MD5_CTX mdContext;
-// unsigned char c[MD5_DIGEST_LENGTH];
-// long r;
-// int j, k;
-
-// MD5_Init(&mdContext);
-// for(r=0; r<(param->d_volume); r++)
-//   {
-// for(j=0; j<4; j++)
-//   {
-// #if Ncolor==2
-// for(k=0; k<4; k++)
-//   {
-// MD5_Update(&mdContext, &((GC->lattice[r][j]).comp[k]), sizeof(double));
-// }
-// #else
-// for(k=0; k<Ncolor*Ncolor; k++)
-//   {
-// MD5_Update(&mdContext, &((GC->lattice[r][j]).comp[k]), sizeof(double complex));
-//                }
-//           #endif
-//           }
-//        }
-//     MD5_Final(c, &mdContext);
-
-//     for(r = 0; r < MD5_DIGEST_LENGTH; r++)
-//        {
-//        sprintf(&(res[2*r]), "%02x", c[r]);
-//        }
-//   #else
-//     // just to avoid warning at compile time
-//     (void) res;
-//     (void) GC;
-//     (void) param;
-//   #endif
-//   }
+#ifdef USE_SSL
+ #include <openssl/md5.h>
+#endif
 
 int snum(int x,int y,int z,int t)
 {
@@ -125,13 +90,29 @@ int main(int narg,char **arg)
    crash("error readying md5sum");
  printf("%s %d\n",crypto,rc);
  
- //read the data
+#ifdef USE_SSL
+ 
+  MD5_CTX mdContext;
+  unsigned char c[MD5_DIGEST_LENGTH];
+  
+  MD5_Init(&mdContext);
+  
+#endif
+  
+  //read the data
  NISSA_LOC_VOL_LOOP(ivol)
    for(int mu=0;mu<NDIM;mu++)
      {
        // master_printf("trying to read ivol %d mu %d, point in the file: %d\n",ivol,mu,ftell(fin));
        
        read_from_binary_file(in_conf[ivol*NDIM+mu],fin);
+       
+#ifdef USE_SSL
+       for(int icol=0;icol<NCOL;icol++)
+	 for(int jcol=0;jcol<NCOL;jcol++)
+	   MD5_Update(&mdContext,in_conf[ivol*NDIM+mu][icol][jcol],sizeof(complex));
+#endif
+	      
        if(ivol==0)
 	 {
 	   double t=real_part_of_trace_su3_prod_su3_dag(in_conf[ivol*NDIM+mu],in_conf[ivol*NDIM+mu]);
@@ -146,6 +127,19 @@ int main(int narg,char **arg)
   
   //close the file
   fclose(fin);
+  
+#ifdef USE_SSL
+  
+  MD5_Final(c,&mdContext);
+  
+  char res[2*MD5_DIGEST_LENGTH+1];
+  for(int r=0;r<MD5_DIGEST_LENGTH;r++)
+    sprintf(&(res[2*r]), "%02x", c[r]);
+  res[2*MD5_DIGEST_LENGTH]='\0';
+  
+  master_printf("res: %s\n",res);
+  
+#endif
   
   ////////////////////////////// convert conf ////////////////////////////
   
