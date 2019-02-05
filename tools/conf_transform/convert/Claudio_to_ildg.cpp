@@ -120,8 +120,8 @@ int main(int narg,char **arg)
     }
   
  char crypto[101];
- fscanf(fin,"%s ",crypto);
- printf("%s\n ",crypto); 
+ int rc=fscanf(fin,"%s ",crypto);
+ printf("%s %d\n ",crypto,rc);
  
  //read the data
  NISSA_LOC_VOL_LOOP(ivol)
