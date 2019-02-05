@@ -8,6 +8,10 @@ bool is_old;
 
 #ifdef USE_SSL
  #include <openssl/md5.h>
+
+  MD5_CTX mdContext;
+  unsigned char c[MD5_DIGEST_LENGTH];
+
 #endif
 
 int snum(int x,int y,int z,int t)
@@ -35,7 +39,13 @@ void read_from_binary_file(su3 A,FILE *fp)
 {
   if(fread(A,sizeof(su3),1,fp)!=1)
     crash("Problems in reading Su3 matrix");
-  
+
+#ifdef USE_SSL
+       for(int icol=0;icol<NCOL;icol++)
+	 for(int jcol=0;jcol<NCOL;jcol++)
+	   MD5_Update(&mdContext,A[icol][jcol],sizeof(complex));
+#endif
+ 
   if(little_endian and not is_old)
     change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
 }
@@ -71,7 +81,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////// read the file /////////////////////////
   
-  su3 *in_conf=nissa_malloc("in_conf",4*loc_vol,su3);
+  quad_su3 *in_conf=nissa_malloc("in_conf",loc_vol,quad_su3);
   
   //open the file
   FILE *fin=fopen(in_conf_name,"r");
@@ -92,9 +102,6 @@ int main(int narg,char **arg)
  
 #ifdef USE_SSL
  
-  MD5_CTX mdContext;
-  unsigned char c[MD5_DIGEST_LENGTH];
-  
   MD5_Init(&mdContext);
   
 #endif
@@ -105,23 +112,17 @@ int main(int narg,char **arg)
      {
        // master_printf("trying to read ivol %d mu %d, point in the file: %d\n",ivol,mu,ftell(fin));
        
-       read_from_binary_file(in_conf[ivol*NDIM+mu],fin);
+       read_from_binary_file(in_conf[ivol][mu],fin);
        
-#ifdef USE_SSL
-       for(int icol=0;icol<NCOL;icol++)
-	 for(int jcol=0;jcol<NCOL;jcol++)
-	   MD5_Update(&mdContext,in_conf[ivol*NDIM+mu][icol][jcol],sizeof(complex));
-#endif
-	      
        if(ivol==0)
 	 {
-	   double t=real_part_of_trace_su3_prod_su3_dag(in_conf[ivol*NDIM+mu],in_conf[ivol*NDIM+mu]);
+	   double t=real_part_of_trace_su3_prod_su3_dag(in_conf[ivol][mu],in_conf[ivol][mu]);
 	   complex c;
-	   su3_det(c,in_conf[ivol*NDIM+mu]);
+	   su3_det(c,in_conf[ivol][mu]);
 	   master_printf("Det-1 = %d %d, %lg %lg\n",ivol,mu,c[RE]-1,c[IM]);
 	   
 	   master_printf("Tr(U^dag U) - 3 = %d %d, %lg\n",ivol,mu,t-3);
-	   su3_print(in_conf[ivol*NDIM+mu]);
+	   su3_print(in_conf[ivol][mu]);
 	 }
       }
   
@@ -156,7 +157,7 @@ int main(int narg,char **arg)
 	    coords c={t,x,y,z};
 	    int ivol=loclx_of_coord(c);
 	    
-	    for(int mu=0;mu<NDIM;mu++) su3_copy(out_conf[ivol][mu],in_conf[mu+NDIM*num]);
+	    for(int mu=0;mu<NDIM;mu++) su3_copy(out_conf[ivol][mu],in_conf[num][mu]);
 	  }
   
   nissa_free(in_conf);
