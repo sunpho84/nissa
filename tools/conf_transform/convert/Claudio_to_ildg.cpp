@@ -90,7 +90,7 @@ int main(int narg,char **arg)
  NISSA_LOC_VOL_LOOP(ivol)
    for(int mu=0;mu<NDIM;mu++)
      {
-       master_printf("trying to read ivol %d mu %d, point in the file: %d\n",ivol,mu,ftell(fin));
+       // master_printf("trying to read ivol %d mu %d, point in the file: %d\n",ivol,mu,ftell(fin));
        
        read_from_binary_file(in_conf[ivol*NDIM+mu],fin);
        if(ivol==0)
