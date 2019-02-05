@@ -87,7 +87,7 @@ int main(int narg,char **arg)
   master_printf("File size: %d\n",file_size);
   
   //open the file
-  FILE *fin=fopen(in_conf_name,"r");
+  FILE *fin=open_file(in_conf_name,"r");
   if(fin==NULL) crash("while opening %s",in_conf_name);
   
   //read the first line which contains the parameters of the lattice
@@ -105,7 +105,7 @@ int main(int narg,char **arg)
  fclose(fin);
  
  //Skip the whole header
- fin=fopen(in_conf_name,"b");
+ fin=open_file(in_conf_name,"rb");
  int header_size=file_size-glb_vol*sizeof(quad_su3);
  master_printf("Header size: %d\n",header_size);
  rc=fseek(fin,SEEK_SET,header_size);
@@ -140,9 +140,9 @@ int main(int narg,char **arg)
   
  if(ftell(fin)!=file_size)
    crash("not at EOF");
-
+ 
  //close the file
-  fclose(fin);
+ fclose(fin);
   
 #ifdef USE_SSL
   
