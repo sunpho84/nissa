@@ -87,7 +87,7 @@ int main(int narg,char **arg)
   master_printf("File size: %d\n",file_size);
   
   //open the file
-  FILE *fin=fopen(in_conf_name,"rb");
+  FILE *fin=fopen(in_conf_name,"r");
   if(fin==NULL) crash("while opening %s",in_conf_name);
   
   //read the first line which contains the parameters of the lattice
@@ -102,12 +102,13 @@ int main(int narg,char **arg)
  if(rc!=1 && strlen(crypto)!=32)
    crash("error readying md5sum");
  printf("%s %d\n",crypto,rc);
-
+ 
+ //Skip the whole header
+ fin=fopen(in_conf_name,"b");
  int header_size=file_size-glb_vol*sizeof(quad_su3);
  master_printf("Header size: %d\n",header_size);
  if(fseek(fin,SEEK_SET,header_size))
-   crash("seeking");
- 
+     crash("seeking, error: %s",strerror(errno));
  
 #ifdef USE_SSL
  
