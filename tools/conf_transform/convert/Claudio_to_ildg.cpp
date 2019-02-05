@@ -124,7 +124,7 @@ int main(int narg,char **arg)
  master_printf("crypto: %s\n",crypto);
  // if(strcasecmp(crypto,"da2e9945924b4568940669a4bc595ca")!=0)
  //   crash("Unmatched crypto");
-x 
+ 
  //read the data
  NISSA_LOC_VOL_LOOP(ivol)
    for(int mu=0;mu<NDIM;mu++)
