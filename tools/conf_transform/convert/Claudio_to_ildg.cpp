@@ -87,7 +87,7 @@ int main(int narg,char **arg)
   master_printf("File size: %d\n",file_size);
   
   //open the file
-  FILE *fin=fopen(in_conf_name,"r");
+  FILE *fin=fopen(in_conf_name,"rb");
   if(fin==NULL) crash("while opening %s",in_conf_name);
   
   //read the first line which contains the parameters of the lattice
