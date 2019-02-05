@@ -155,6 +155,9 @@ int main(int narg,char **arg)
   
   master_printf("res: %s\n",res);
   
+  if(strcasecmp(res, crypto)!=0)
+    master_printf("Warning, checksum not agreeing!\n");
+  
 #endif
   
   ////////////////////////////// convert conf ////////////////////////////
