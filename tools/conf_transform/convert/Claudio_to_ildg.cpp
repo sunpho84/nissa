@@ -83,6 +83,8 @@ int main(int narg,char **arg)
   
   quad_su3 *in_conf=nissa_malloc("in_conf",loc_vol,quad_su3);
   
+  int file_size=get_file_size(in_conf_name);
+  
   //open the file
   FILE *fin=fopen(in_conf_name,"r");
   if(fin==NULL) crash("while opening %s",in_conf_name);
@@ -99,6 +101,8 @@ int main(int narg,char **arg)
  if(rc!=1 && strlen(crypto)!=32)
    crash("error readying md5sum");
  printf("%s %d\n",crypto,rc);
+ 
+ fseek(fin, SEEK_SET, file_size-glb_vol*sizeof(quad_su3));
  
 #ifdef USE_SSL
  
