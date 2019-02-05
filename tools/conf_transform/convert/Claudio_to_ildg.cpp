@@ -110,7 +110,7 @@ int main(int narg,char **arg)
  master_printf("Header size: %d\n",header_size);
  rc=fseek(fin,SEEK_SET,header_size);
  if(rc)
-   crash("seeking, %d",rc);
+   crash("seeking, %s err %d",strerror(errno),rc);
  
 #ifdef USE_SSL
  
