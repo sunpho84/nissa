@@ -113,7 +113,7 @@ int main(int narg,char **arg)
   if(fin==NULL) crash("while opening %s",in_conf_name);
   
   //read the first line which contains the parameters of the lattice
-  for(int k=0;k<6;k++)
+  for(int k=0;k<5;k++)
     {
       double parameters=read_double(fin);
       master_printf("%lg\n ",parameters);
