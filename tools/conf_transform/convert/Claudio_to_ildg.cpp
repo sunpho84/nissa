@@ -120,10 +120,8 @@ int main(int narg,char **arg)
     }
   
  char crypto[101];
- fscanf(fin,"%100s",crypto);
- master_printf("crypto: %s\n",crypto);
- // if(strcasecmp(crypto,"da2e9945924b4568940669a4bc595ca")!=0)
- //   crash("Unmatched crypto");
+ fscanf(fin,"%s ",crypto);
+ printf("%s\n ",crypto); 
  
  //read the data
  NISSA_LOC_VOL_LOOP(ivol)
