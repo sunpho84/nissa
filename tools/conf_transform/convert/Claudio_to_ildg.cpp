@@ -116,12 +116,12 @@ int main(int narg,char **arg)
   for(int k=0;k<5;k++)
     {
       double parameters=read_double(fin);
-      master_printf("%lg\n ",parameters);
+      master_printf("%lg\n",parameters);
     }
   
  char crypto[101];
- int rc=fscanf(fin,"%s ",crypto);
- printf("%s %d\n ",crypto,rc);
+ int rc=fscanf(fin,"%s",crypto);
+ printf("%s %d\n",crypto,rc);
  
  //read the data
  NISSA_LOC_VOL_LOOP(ivol)
