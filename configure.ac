@@ -156,7 +156,7 @@ AC_MSG_RESULT([enabling spi... $enable_spi])
 
 ##############################################
 
-AX_SUBPACKAGE(ssl,openssl/ssl.h,ssl,SSL_library_init,SSL)
+AX_SUBPACKAGE(ssl,openssl/ssl.h,crypto ssl,MD5_Final,SSL)
 
 #################### fftw ####################
 
