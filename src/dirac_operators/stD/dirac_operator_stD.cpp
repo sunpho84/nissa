@@ -44,6 +44,7 @@ namespace nissa
   void odd_apply_stD_dag(color *out,quad_su3 **conf,double m,color **in)
   {odd_apply_stD(out,conf,m,in,-1);}
   
+
   //Adams operator https://arxiv.org/pdf/1103.6191.pdf
   THREADABLE_FUNCTION_7ARG(apply_Adams, color**,out, quad_su3**,conf, quad_u1**,u1b, double,m, double,m_Adams, color**,temp, color**,in)
   {

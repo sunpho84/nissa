@@ -260,8 +260,6 @@
 //spectral proj meas
 %type <spectr_proj_meas> spectr_proj_meas
 %token TK_SPECTR_PROJ
-%token TK_M_ADAMS
-%type <double_numb> m_Adams
 %token TK_NEIGS
 %type <int_numb> neigs
 %token TK_EIG_PRECISION
@@ -385,8 +383,6 @@ nhits: TK_NHITS '=' int_numb {$$=$3;};
 noise_type: TK_NOISE_TYPE '=' TK_RND_T {$$=$3;};
 
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
-
-m_Adams: TK_M_ADAMS '=' double_numb {$$=$3;};
 
 neigs: TK_NEIGS '=' int_numb {$$=$3;};
 
@@ -730,7 +726,6 @@ spectr_proj_meas: TK_SPECTR_PROJ {$$=new spectr_proj_meas_pars_t();}
                 | spectr_proj_meas ncopies {$$->ncopies=$2;}
                 | spectr_proj_meas noise_type {$$->rnd_type=$2;}
                 | spectr_proj_meas nhits {$$->nhits=$2;}
-                | spectr_proj_meas m_Adams {$$->m_Adams=$2;}
                 | spectr_proj_meas neigs {$$->neigs=$2;}
                 | spectr_proj_meas eig_precision {$$->eig_precision=$2;}
                 | spectr_proj_meas wspace_size {$$->wspace_size=$2;}

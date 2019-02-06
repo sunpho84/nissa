@@ -17,11 +17,13 @@
 
 namespace nissa
 {
-  //This measure will compute the first 'n' eigenvalues (parameter)
-  //and eigenvectors of the Adams operator in staggered formulation, in order to
-  //build an estimate of the topological charge as Q=\sum_i
-  //\bar(u)_i gamma5 u_i, where {u_i} are the first n eigenvectors.
-  THREADABLE_FUNCTION_8ARG(measure_Adams_spectrum, color**,eigvec, quad_su3**,conf,double,m_Adams,complex*, charge_cut, complex*, eigval, int,neigs, double,eig_precision, int,wspace_size)
+
+  // This measure will compute the first 'n' eigenvalues (parameter)
+  // and eigenvectors of the iD operator in staggered formulation, in order to
+  // build an estimate of the topological susceptibility.
+  // refs:  https://arxiv.org/pdf/1008.0732.pdf for the susceptibility formula,
+  //        https://arxiv.org/pdf/0912.2850.pdf for the 2^(d/2) overcounting.
+  THREADABLE_FUNCTION_7ARG(measure_iD_spectrum, color**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, eigval, int,neigs, double,eig_precision, int,wspace_size)
   {
     //parameters of the eigensolver
     const bool min_max=0;
@@ -39,9 +41,9 @@ namespace nissa
     
     //launch the eigenfinder
     double eig_time=-take_time();
-    find_eigenvalues_staggered_Adams(eigvec,eigval,neigs,min_max,conf,u1b,0.0,m_Adams,eig_precision,wspace_size);
+    find_eigenvalues_staggered_iD(eigvec,eigval,neigs,min_max,conf,u1b,eig_precision,wspace_size);
     
-    verbosity_lv1_master_printf("\n\nEigenvalues of staggered Adams operator with m_Adams=%.16lg:\n",m_Adams);
+    verbosity_lv1_master_printf("\n\nEigenvalues of staggered iD operator:\n");
     for(int ieig=0;ieig<neigs;ieig++)
     {
       master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
@@ -82,39 +84,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
 
-
-  //This measure will compute the first 'n' eigenvalues (parameter)
-  //and eigenvectors of the AdamsII operator (staggered).
-  THREADABLE_FUNCTION_8ARG(measure_AdamsII_spectrum, color**,eigvec, quad_su3**,conf,double,m_Adams,complex*, charge_cut, complex*, eigval, int,neigs, double,eig_precision, int,wspace_size)
-  {
-    //parameters of the eigensolver
-    const bool min_max=0;
-    
-    //identity backfield
-    quad_u1 *u1b[2]={nissa_malloc("u1b",loc_volh+bord_volh,quad_u1),nissa_malloc("u1b",loc_volh+bord_volh,quad_u1)};
-    init_backfield_to_id(u1b);
-    
-    //launch the eigenfinder
-    double eig_time=-take_time();
-    find_eigenvalues_staggered_AdamsII(eigvec,eigval,neigs,min_max,conf,u1b,0.0,m_Adams,eig_precision,wspace_size);
-    
-    verbosity_lv1_master_printf("\n\nEigenvalues of staggered AdamsII operator with m_Adams=%.16lg:\n",m_Adams);
-    for(int ieig=0;ieig<neigs;ieig++)
-    {
-      master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
-    }
-    verbosity_lv2_master_printf("\n\n\n");
-    
-    eig_time+=take_time();
-    verbosity_lv1_master_printf("Eigenvalues time: %lg\n",eig_time);
-    
-    nissa_free(u1b[0]);
-    nissa_free(u1b[1]);
-  }
-  THREADABLE_FUNCTION_END
-  
-
-  //measure of spectrally projected components of gamma5 in the staggered formulation using Adams operator
+  //measure of spectrally projected components of gamma5 in the staggered formulation using iD
   void measure_spectral_proj(quad_su3 **conf,theory_pars_t &theory_pars,spectr_proj_meas_pars_t &meas_pars,int iconf,bool conf_created)
   {
     /* The format of the file for a single measure is the following:
@@ -159,9 +129,9 @@ namespace nissa
       int nhits=meas_pars.nhits;
       for(int hit=0;hit<nhits;hit++)
         {
-      verbosity_lv2_master_printf("Evaluating Adams spectrum for m_Adams = %.16lg, nhits %d/%d\n",meas_pars.m_Adams,hit+1,nhits);
+      verbosity_lv2_master_printf("Evaluating iD spectrum, nhits %d/%d\n",hit+1,nhits);
       
-      measure_Adams_spectrum(eigvec,conf,meas_pars.m_Adams,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
+      measure_iD_spectrum(eigvec,conf,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
         }
     
     //print the result on file
@@ -170,7 +140,7 @@ namespace nissa
     
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
 
-    master_fprintf(file,"%d\t%d\t%.16lg\t",neigs,meas_pars.smooth_pars.nsmooth(),meas_pars.m_Adams);
+    master_fprintf(file,"%d\t%d\t",neigs,meas_pars.smooth_pars.nsmooth());
     for(int ieig=0;ieig<neigs;++ieig)
       master_fprintf(file,"%.16lg\t",eigval[ieig][RE]);
     
@@ -223,7 +193,6 @@ namespace nissa
     
     os<<"MeasSpectrProj\n";
     os<<base_fermionic_meas_t::get_str(full);
-    if(m_Adams!=def_m_Adams() or full) os<<" MAdams\t\t=\t"<<m_Adams<<"\n";
     if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
     if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
     if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
