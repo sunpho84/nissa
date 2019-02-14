@@ -292,8 +292,136 @@ THREADABLE_FUNCTION_8ARG(compute_propagators, spincolor**,phi, spincolor**,eta, 
 }
 THREADABLE_FUNCTION_END
 
+//check if the time is enough
+int check_remaining_time(const double& init_moment,const int& nanalyzed_confs,const double& wall_time)
+{
+  if(nanalyzed_confs)
+    {
+      //check remaining time
+      double temp_time=take_time()-init_moment;
+      double ave_time=temp_time/nanalyzed_confs;
+      double left_time=wall_time-temp_time;
+      int enough_time=left_time>(ave_time*1.1);
+      
+      master_printf("\nRemaining time: %lg sec\n",left_time);
+      master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+      if(enough_time) master_printf("Time is enough to go on!\n");
+      else master_printf("Not enough time, exiting!\n");
+      
+      return enough_time;
+    }
+  else return true;
+}
+
+//handle to discard the source
+void skip_conf(spincolor** eta,const int& nhits)
+{
+  for(int ihit=0;ihit<nhits;ihit++)
+      generate_undiluted_source(eta[ihit],RND_GAUSS,ALL_TIMES);
+}
+
+//find a new conf
+int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& nconfs,const double& init_moment,const int& nanalyzed_confs,const double& wall_time,spincolor **eta,const int& nhits)
+{
+  //Check if asked to stop or restart
+  int asked_stop=file_exists("stop");
+  verbosity_lv2_master_printf("Asked to stop: %d\n",asked_stop);
+  int asked_restart=file_exists("restart");
+  verbosity_lv2_master_printf("Asked to restart: %d\n",asked_restart);
+  //check if enough time
+  int enough_time=check_remaining_time(init_moment,nanalyzed_confs,wall_time);
+  verbosity_lv2_master_printf("Enough time: %d\n",enough_time);
+  //check that there are still conf to go
+  int still_conf=iconf<nconfs;
+  verbosity_lv2_master_printf("Still conf: %d\n",still_conf);
+  
+  int ok_conf=false;
+  if(!asked_stop and !asked_restart and enough_time and still_conf)
+    do
+      {
+	//Gauge path
+	read_str(conf_path,1024);
+	
+	//Out folder
+	read_str(outfolder,1024);
+	
+	//Check if the conf has been finished or is already running
+	master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+	char run_file[1024];
+	if(snprintf(run_file,1024,"%s/running",outfolder)<0) crash("witing %s",run_file);
+	char fin_file[1024];
+	if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("witing %s",run_file);
+	ok_conf=(not file_exists(run_file)) and (not file_exists(fin_file));
+	
+	//if not finished
+	if(ok_conf)
+	  {
+	    master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
+	    if(!dir_exists(outfolder))
+	      {
+		int ris=create_dir(outfolder);
+		if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+		else
+		  {
+		    master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+		    ok_conf=0;
+		    skip_conf(eta,nhits);
+		  }
+	      }
+	  }
+	else
+	  {
+	    //skipping conf
+	    master_printf("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
+	    skip_conf(eta,nhits);
+	  }
+	iconf++;
+	
+	still_conf=(iconf<nconfs);
+      }
+    while(!ok_conf and still_conf);
+  
+  master_printf("\n");
+  
+  //write if it was asked to stop or restart
+  if(asked_stop) master_printf("Asked to stop\n");
+  if(asked_restart) master_printf("Asked to restart\n");
+  
+  //writing that all confs have been measured and write it
+  if(!ok_conf and iconf>=nconfs)
+    {
+      master_printf("Analyzed all confs, exiting\n\n");
+      file_touch("stop");
+    }
+  
+  return ok_conf;
+}
+
+void write_J(const char* outfolder,spin1field **J_stoch,int nhits)
+{
+  spin1field *J=nissa_malloc("J",loc_vol,spin1field);
+  vector_reset(J);
+  for(int ihit=0;ihit<nhits;ihit++)
+    double_vector_summassign((double*)J,(double*)(J_stoch[ihit]),loc_vol*sizeof(spin1field)/sizeof(double));
+  
+  write_real_vector(combine("%s/J",outfolder),J,64,"Current");
+  
+  nissa_free(J);
+}
+
+//mark a conf as finished
+void mark_finished(int& nanalyzed_confs,const char* outfolder)
+{
+  char fin_file[1024];
+  if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("writing %s",fin_file);
+  file_touch(fin_file);
+  nanalyzed_confs++;
+}
+
 void in_main(int narg,char **arg)
 {
+  double init_moment=take_time();
+  
   //to be read
   photon_pars.alpha=FEYNMAN_ALPHA;
   photon_pars.c1=WILSON_C1;
@@ -386,7 +514,7 @@ void in_main(int narg,char **arg)
     read_str_int("RandomConf",&random_conf);
   
   //conf
-  int nconfs;
+  int nconfs,nanalyzed_confs=0;
   read_str_int("NGaugeConfs",&nconfs);
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   
@@ -408,14 +536,11 @@ void in_main(int narg,char **arg)
   /////////////////////////////////////////////////////////////////
   
   int iconf=0;
-  do
+  char conf_path[1024];
+  char outfolder[1024];
+  
+  while(read_conf_parameters(conf_path,outfolder,iconf,nconfs,init_moment,nanalyzed_confs,wall_time,eta,nhits))
     {
-      //input conf and output dir
-      char conf_path[1024];
-      read_str(conf_path,1024);
-      char outfolder[1024];
-      read_str(outfolder,1024);
-      
       //generate the sources
       for(int ihit=0;ihit<nhits;ihit++)
 	generate_undiluted_source(eta[ihit],RND_GAUSS,ALL_TIMES);
@@ -529,6 +654,8 @@ void in_main(int narg,char **arg)
 		}
 	    }
 	  
+	  write_J(outfolder,J_stoch,nhits);
+	  
 	  close_file(fout_EU1_stoch);
 	  // close_file(fout_EU1_eigvec);
 	  close_file(fout_EU2_stoch);
@@ -537,8 +664,6 @@ void in_main(int narg,char **arg)
 	  close_file(fout_EU5_stoch);
 	  close_file(fout_EU6_stoch);
 	}
-      
-      iconf++;
     }
   while(iconf<nconfs);
   
