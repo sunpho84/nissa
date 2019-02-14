@@ -324,7 +324,7 @@ void skip_conf(spincolor** eta,const int& nhits)
 int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& nconfs,const double& init_moment,const int& nanalyzed_confs,const double& wall_time,spincolor **eta,const int& nhits)
 {
   //Check if asked to stop or restart
-  int asked_stop=file_exists("stop");
+  int asked_stop=file_exists("stop_disco");
   verbosity_lv2_master_printf("Asked to stop: %d\n",asked_stop);
   int asked_restart=file_exists("restart");
   verbosity_lv2_master_printf("Asked to restart: %d\n",asked_restart);
@@ -348,9 +348,9 @@ int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& n
 	//Check if the conf has been finished or is already running
 	master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	char run_file[1024];
-	if(snprintf(run_file,1024,"%s/running",outfolder)<0) crash("witing %s",run_file);
+	if(snprintf(run_file,1024,"%s/running_disco",outfolder)<0) crash("witing %s",run_file);
 	char fin_file[1024];
-	if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("witing %s",run_file);
+	if(snprintf(fin_file,1024,"%s/finished_disco",outfolder)<0) crash("witing %s",run_file);
 	ok_conf=(not file_exists(run_file)) and (not file_exists(fin_file));
 	
 	//if not finished
@@ -391,7 +391,7 @@ int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& n
   if(!ok_conf and iconf>=nconfs)
     {
       master_printf("Analyzed all confs, exiting\n\n");
-      file_touch("stop");
+      file_touch("stop_disco");
     }
   
   return ok_conf;
@@ -545,127 +545,122 @@ void in_main(int narg,char **arg)
       for(int ihit=0;ihit<nhits;ihit++)
 	generate_undiluted_source(eta[ihit],RND_GAUSS,ALL_TIMES);
       
-      if(file_exists(combine("%s/running",outfolder))) master_printf(" Skipping %s\n",conf_path);
+      file_touch(combine("%s/running_disco",outfolder));
+      
+      //read the configuration and put phases
+      if(free_theory) generate_cold_lx_conf(conf);
       else
 	{
-	  int ris=create_dir(outfolder);
-	  if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
-	  else       crash(" Failed to create the output \"%s\" for conf \"%s\".",outfolder,conf_path);
-	  
-	  //read the configuration and put phases
-	  if(free_theory) generate_cold_lx_conf(conf);
-	  else
-	    {
-	      if(random_conf) generate_hot_lx_conf(conf);
-	      else read_ildg_gauge_conf(conf,conf_path);
-	    }
-	  
-	  momentum_t old_theta;
-	  old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
-	  adapt_theta(conf,old_theta,theta,0,0);
-	  
-	  /////////////////////////////////////////////////////////////////
-	  
-	  // if(neig)
-	  //   fill_eigenpart(eigvec_conv,eigvec,neig,conf,kappa,am,r,eig_precision);
-	  
-	  //compute_orthogonal_part(phi,eta,nhits,eigvec,neig,conf,kappa,am,r,residue);
-	  compute_propagators(phi,eta,nhits,conf,kappa,am,r,residue);
-	  
-	  //compute all currents
-	  for(int ihit=0;ihit<nhits;ihit++)
-	    mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[ihit]);
-	  // for(int ieig=0;ieig<neig;ieig++)
-	  //   mel::conserved_vector_current_mel(J_eig[ieig],eigvec[ieig],conf,r,eigvec_conv[ieig]);
-	  
-	  //compute diagrams EU1, EU2 and EU4
-	  complex EU1_stoch={0.0,0.0},EU2_stoch={0.0,0.0},EU4_stoch={0.0,0.0};
-	  
-	  //open the output files
-	  FILE *fout_EU1_stoch=open_file(combine("%s/EU1_stoch",outfolder),"w");
-	  // FILE *fout_EU1_eigvec=open_file(combine("%s/EU1_eigvec",outfolder),"w");
-	  FILE *fout_EU2_stoch=open_file(combine("%s/EU2_stoch",outfolder),"w");
-	  // FILE *fout_EU2_eigvec=open_file(combine("%s/EU2_eigvec",outfolder),"w");
-	  FILE *fout_EU4_stoch=open_file(combine("%s/EU4_stoch",outfolder),"w");
-	  FILE *fout_EU5_stoch=open_file(combine("%s/EU5_stoch",outfolder),"w");
-	  FILE *fout_EU6_stoch=open_file(combine("%s/EU6_stoch",outfolder),"w");
-	  
-	  // complex EU1_eigvec={0.0,0.0},EU2_eigvec={0.0,0.0};
-	  // for(int ieig=0;ieig<neig;ieig++)
-	  //   {
-	  //     complex temp;
-	      
-	  //     //Pseudo
-	  //     mel::local_mel(temp,eigvec[ieig],5,eigvec_conv[ieig]);
-	  //     complex_summ_the_prod_idouble(EU1_eigvec,temp,-1.0);
-	  //     master_fprintf(fout_EU1_eigvec,"%.16lg %.16lg\n",EU1_eigvec[RE],EU1_eigvec[IM]);
-	      
-	  //     //Scalar
-	  //     mel::local_mel(temp,eigvec[ieig],0,eigvec_conv[ieig]);
-	  //     complex_summassign(EU2_eigvec,temp);
-	  //     master_fprintf(fout_EU2_eigvec,"%.16lg %.16lg\n",EU2_eigvec[RE],EU2_eigvec[IM]);
-	  //   }
-	  
-	  for(int ihit=0;ihit<nhits;ihit++)
-	    {
-	      complex temp;
-	      
-	      //in this way, in the output file, there are all the value of EU1 for each value of eta, not average values - Lorenzo.
-	      
-	      //Pseudo
-	      mel::local_mel(temp,eta[ihit],5,phi[ihit]);
-	      complex_prod_idouble(EU1_stoch,temp,-1.0);
-	      master_fprintf(fout_EU1_stoch,"%.16lg %.16lg\n",EU1_stoch[RE],EU1_stoch[IM]);
-	      
-	      //Scalar
-	      mel::local_mel(EU2_stoch,eta[ihit],0,phi[ihit]);
-	      master_fprintf(fout_EU2_stoch,"%.16lg %.16lg\n",EU2_stoch[RE],EU2_stoch[IM]);
-	      
-	      //Tadpole
-	      insert_tm_tadpole(tadpole_prop,conf,phi[ihit],r,tadpole_coeff,ALL_TIMES);
-	      mel::local_mel(EU4_stoch,eta[ihit],0,tadpole_prop);
-	      master_fprintf(fout_EU4_stoch,"%.16lg %.16lg\n",EU4_stoch[RE],EU4_stoch[IM]);
-	    }
-	  
-	  //Compute diagram EU5
-	  complex EU5={0.0,0.0};
-	  for(int ihit=0;ihit<nhits;ihit++)
-	    {
-	      multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
-	      
-	      for(int jhit=0;jhit<ihit;jhit++)
-		{
-		  mel::global_product(EU5,xi,J_stoch[jhit]);
-		  master_fprintf(fout_EU5_stoch,"%.16lg %.16lg\n",EU5[RE],EU5[IM]);
-		}
-	    }
-	  
-	  //Compute diagram EU6
-	  complex EU6={0.0,0.0};
-	  for(int ihit=0;ihit<nhits;ihit++)
-	    {
-	      for(int jhit=0;jhit<ihit;jhit++)
-		{
-		  mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[jhit]);
-		  mel::conserved_vector_current_mel(J_stoch[jhit],eta[jhit],conf,r,phi[ihit]);
-		  multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
-		  mel::global_product(EU6,J_stoch[jhit],xi);
-		  master_fprintf(fout_EU6_stoch,"%.16lg %.16lg\n",EU6[RE],EU6[IM]);
-		}
-	    }
-	  
-	  write_J(outfolder,J_stoch,nhits);
-	  
-	  close_file(fout_EU1_stoch);
-	  // close_file(fout_EU1_eigvec);
-	  close_file(fout_EU2_stoch);
-	  // close_file(fout_EU2_eigvec);
-	  close_file(fout_EU4_stoch);
-	  close_file(fout_EU5_stoch);
-	  close_file(fout_EU6_stoch);
+	  if(random_conf) generate_hot_lx_conf(conf);
+	  else read_ildg_gauge_conf(conf,conf_path);
 	}
+      
+      momentum_t old_theta;
+      old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
+      adapt_theta(conf,old_theta,theta,0,0);
+      
+      /////////////////////////////////////////////////////////////////
+      
+      // if(neig)
+      //   fill_eigenpart(eigvec_conv,eigvec,neig,conf,kappa,am,r,eig_precision);
+      
+      //compute_orthogonal_part(phi,eta,nhits,eigvec,neig,conf,kappa,am,r,residue);
+      compute_propagators(phi,eta,nhits,conf,kappa,am,r,residue);
+      
+      //compute all currents
+      for(int ihit=0;ihit<nhits;ihit++)
+	mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[ihit]);
+      // for(int ieig=0;ieig<neig;ieig++)
+      //   mel::conserved_vector_current_mel(J_eig[ieig],eigvec[ieig],conf,r,eigvec_conv[ieig]);
+      
+      //compute diagrams EU1, EU2 and EU4
+      complex EU1_stoch={0.0,0.0},EU2_stoch={0.0,0.0},EU4_stoch={0.0,0.0};
+      
+      //open the output files
+      FILE *fout_EU1_stoch=open_file(combine("%s/EU1_stoch",outfolder),"w");
+      // FILE *fout_EU1_eigvec=open_file(combine("%s/EU1_eigvec",outfolder),"w");
+      FILE *fout_EU2_stoch=open_file(combine("%s/EU2_stoch",outfolder),"w");
+      // FILE *fout_EU2_eigvec=open_file(combine("%s/EU2_eigvec",outfolder),"w");
+      FILE *fout_EU4_stoch=open_file(combine("%s/EU4_stoch",outfolder),"w");
+      FILE *fout_EU5_stoch=open_file(combine("%s/EU5_stoch",outfolder),"w");
+      FILE *fout_EU6_stoch=open_file(combine("%s/EU6_stoch",outfolder),"w");
+      
+      // complex EU1_eigvec={0.0,0.0},EU2_eigvec={0.0,0.0};
+      // for(int ieig=0;ieig<neig;ieig++)
+      //   {
+      //     complex temp;
+      
+      //     //Pseudo
+      //     mel::local_mel(temp,eigvec[ieig],5,eigvec_conv[ieig]);
+      //     complex_summ_the_prod_idouble(EU1_eigvec,temp,-1.0);
+      //     master_fprintf(fout_EU1_eigvec,"%.16lg %.16lg\n",EU1_eigvec[RE],EU1_eigvec[IM]);
+      
+      //     //Scalar
+      //     mel::local_mel(temp,eigvec[ieig],0,eigvec_conv[ieig]);
+      //     complex_summassign(EU2_eigvec,temp);
+      //     master_fprintf(fout_EU2_eigvec,"%.16lg %.16lg\n",EU2_eigvec[RE],EU2_eigvec[IM]);
+      //   }
+      
+      for(int ihit=0;ihit<nhits;ihit++)
+	{
+	  complex temp;
+	  
+	  //in this way, in the output file, there are all the value of EU1 for each value of eta, not average values - Lorenzo.
+	  
+	  //Pseudo
+	  mel::local_mel(temp,eta[ihit],5,phi[ihit]);
+	  complex_prod_idouble(EU1_stoch,temp,-1.0);
+	  master_fprintf(fout_EU1_stoch,"%.16lg %.16lg\n",EU1_stoch[RE],EU1_stoch[IM]);
+	  
+	  //Scalar
+	  mel::local_mel(EU2_stoch,eta[ihit],0,phi[ihit]);
+	  master_fprintf(fout_EU2_stoch,"%.16lg %.16lg\n",EU2_stoch[RE],EU2_stoch[IM]);
+	  
+	  //Tadpole
+	  insert_tm_tadpole(tadpole_prop,conf,phi[ihit],r,tadpole_coeff,ALL_TIMES);
+	  mel::local_mel(EU4_stoch,eta[ihit],0,tadpole_prop);
+	  master_fprintf(fout_EU4_stoch,"%.16lg %.16lg\n",EU4_stoch[RE],EU4_stoch[IM]);
+	}
+      
+      //Compute diagram EU5
+      complex EU5={0.0,0.0};
+      for(int ihit=0;ihit<nhits;ihit++)
+	{
+	  multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+	  
+	  for(int jhit=0;jhit<ihit;jhit++)
+	    {
+	      mel::global_product(EU5,xi,J_stoch[jhit]);
+	      master_fprintf(fout_EU5_stoch,"%.16lg %.16lg\n",EU5[RE],EU5[IM]);
+	    }
+	}
+      
+      //Compute diagram EU6
+      complex EU6={0.0,0.0};
+      for(int ihit=0;ihit<nhits;ihit++)
+	{
+	  for(int jhit=0;jhit<ihit;jhit++)
+	    {
+	      mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[jhit]);
+	      mel::conserved_vector_current_mel(J_stoch[jhit],eta[jhit],conf,r,phi[ihit]);
+	      multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+	      mel::global_product(EU6,J_stoch[jhit],xi);
+	      master_fprintf(fout_EU6_stoch,"%.16lg %.16lg\n",EU6[RE],EU6[IM]);
+	    }
+	}
+      
+      write_J(outfolder,J_stoch,nhits);
+      
+      close_file(fout_EU1_stoch);
+      // close_file(fout_EU1_eigvec);
+      close_file(fout_EU2_stoch);
+      // close_file(fout_EU2_eigvec);
+      close_file(fout_EU4_stoch);
+      close_file(fout_EU5_stoch);
+      close_file(fout_EU6_stoch);
+      
+      file_touch(combine("%s/finished_disco",outfolder));
     }
-  while(iconf<nconfs);
   
   /////////////////////////////////////////////////////////////////
   
