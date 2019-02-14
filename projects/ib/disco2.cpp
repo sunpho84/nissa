@@ -397,23 +397,24 @@ int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& n
   return ok_conf;
 }
 
-void write_J(const char* outfolder,spin1field **J_stoch,int nhits)
+//writes the current
+void write_J(const char* outfolder,const char* name,spin1field **J,int nhits)
 {
-  spin1field *J=nissa_malloc("J",loc_vol,spin1field);
-  vector_reset(J);
+  spin1field *sum=nissa_malloc("sum",loc_vol,spin1field);
+  vector_reset(sum);
   for(int ihit=0;ihit<nhits;ihit++)
-    double_vector_summassign((double*)J,(double*)(J_stoch[ihit]),loc_vol*sizeof(spin1field)/sizeof(double));
+    double_vector_summassign((double*)sum,(double*)(J[ihit]),loc_vol*sizeof(spin1field)/sizeof(double));
   
-  write_real_vector(combine("%s/J",outfolder),J,64,"Current");
+  write_real_vector(combine("%s/%s",outfolder,name),sum,64,"Current");
   
-  nissa_free(J);
+  nissa_free(sum);
 }
 
 //mark a conf as finished
 void mark_finished(int& nanalyzed_confs,const char* outfolder)
 {
   char fin_file[1024];
-  if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("writing %s",fin_file);
+  if(snprintf(fin_file,1024,"%s/finished_disco",outfolder)<0) crash("writing %s",fin_file);
   file_touch(fin_file);
   nanalyzed_confs++;
 }
@@ -649,7 +650,7 @@ void in_main(int narg,char **arg)
 	    }
 	}
       
-      write_J(outfolder,J_stoch,nhits);
+      write_J(outfolder,"J_stoch",J_stoch,nhits);
       
       close_file(fout_EU1_stoch);
       // close_file(fout_EU1_eigvec);
@@ -659,7 +660,7 @@ void in_main(int narg,char **arg)
       close_file(fout_EU5_stoch);
       close_file(fout_EU6_stoch);
       
-      file_touch(combine("%s/finished_disco",outfolder));
+      mark_finished(nanalyzed_confs,outfolder);
     }
   
   /////////////////////////////////////////////////////////////////
