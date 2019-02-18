@@ -414,20 +414,6 @@ int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& n
   return ok_conf;
 }
 
-//writes the current
-void write_J(const char* outfolder,const char* name,spin1field **J,int nhits)
-{
-  spin1field *sum=nissa_malloc("sum",loc_vol,spin1field);
-  vector_reset(sum);
-  for(int ihit=0;ihit<nhits;ihit++)
-    double_vector_summassign((double*)sum,(double*)(J[ihit]),loc_vol*sizeof(spin1field)/sizeof(double));
-  double_vector_prodassign_double((double*)sum,1.0/nhits,sizeof(spincolor)*loc_vol/sizeof(double));
-  
-  write_real_vector(combine("%s/%s",outfolder,name),sum,64,"Current");
-  
-  nissa_free(sum);
-}
-
 //mark a conf as finished
 void mark_finished(int& nanalyzed_confs,const char* outfolder)
 {
@@ -510,6 +496,8 @@ void in_main(int narg,char **arg)
       eta[ihit]=nissa_malloc("eta",loc_vol+bord_vol,spincolor);
       phi[ihit]=nissa_malloc("phi",loc_vol+bord_vol,spincolor);
     }
+  spincolor *sum_eta=nissa_malloc("sum_eta",loc_vol+bord_vol,spincolor);
+  spincolor *sum_phi=nissa_malloc("sum_phi",loc_vol+bord_vol,spincolor);;
   
   //store eigenvectors and their convoution with eigenvalue
   // spincolor *eigvec[neig];
@@ -546,6 +534,8 @@ void in_main(int narg,char **arg)
   
   //currents
   spin1field *J_stoch[nhits];
+  spin1field *J_stoch_sum=nissa_malloc("J_stoch_sum",loc_vol+bord_vol,spin1field);
+  spin1field *J_stoch_of_sum=nissa_malloc("J_stoch_of_sum",loc_vol+bord_vol,spin1field);
   // spin1field *J_eig[neig];
   for(int ihit=0;ihit<nhits;ihit++)
     J_stoch[ihit]=nissa_malloc("J_stoch",loc_vol+bord_vol,spin1field);
@@ -599,6 +589,47 @@ void in_main(int narg,char **arg)
       // for(int ieig=0;ieig<neig;ieig++)
       //   mel::conserved_vector_current_mel(J_eig[ieig],eigvec[ieig],conf,r,eigvec_conv[ieig]);
       
+      vector_reset(sum_eta);
+      vector_reset(sum_phi);
+      vector_reset(J_stoch_sum);
+      complex EU5_bias={0.0,0.0};
+      for(int ihit=0;ihit<nhits;ihit++)
+	{
+	  //compute EU5 bias
+	  multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+	  complex temp;
+	  mel::global_product(temp,xi,J_stoch[ihit]);
+	  complex_summassign(EU5_bias,temp);
+	  
+	  //summ the J
+	  double_vector_summassign((double*)J_stoch_sum,(double*)(J_stoch[ihit]),loc_vol*sizeof(spin1field)/sizeof(double));
+	  //summ eta
+	  double_vector_summassign((double*)sum_eta,(double*)(eta[ihit]),loc_vol*sizeof(spincolor)/sizeof(double));
+	  //summ phi
+	  double_vector_summassign((double*)sum_phi,(double*)(phi[ihit]),loc_vol*sizeof(spincolor)/sizeof(double));
+	}
+      
+      //alternative calculation of EU5
+      complex EU5_alt;
+      multiply_by_tlSym_gauge_propagator(xi,J_stoch_sum,photon_pars);
+      mel::global_product(EU5_alt,xi,J_stoch_sum);
+      complex_subtassign(EU5_alt,EU5_bias);
+      complex_prodassign_double(EU5_alt,1.0/(nhits*(nhits-1)));
+      
+      //alternative calculation of EU5
+      // complex EU6_alt; sbagliato
+      // mel::conserved_vector_current_mel(J_stoch_of_sum,sum_eta,conf,r,sum_phi);
+      // double_vector_subtassign((double*)J_stoch_of_sum,(double*)(J_stoch_sum),loc_vol*sizeof(spin1field)/sizeof(double));
+      // multiply_by_tlSym_gauge_propagator(xi,J_stoch_of_sum,photon_pars);
+      // mel::global_product(EU6_alt,xi,J_stoch_of_sum);
+      // complex_prodassign_double(EU6_alt,1.0/(nhits*(nhits-1)));
+      
+      // double_vector_prodassign_double((double*)sum_phi,1.0/nhits,sizeof(sum_phi)*loc_vol/sizeof(double));
+      // double_vector_prodassign_double((double*)sum_eta,1.0/nhits,sizeof(sum_eta)*loc_vol/sizeof(double));
+      
+      double_vector_prodassign_double((double*)J_stoch_sum,1.0/nhits,sizeof(J_stoch_sum)*loc_vol/sizeof(double));
+      write_real_vector(combine("%s/%s",outfolder,"J_stoch"),J_stoch_sum,64,"Current");
+      
       //compute diagrams EU1, EU2 and EU4
       complex EU1_stoch={0.0,0.0},EU2_stoch={0.0,0.0},EU4_stoch={0.0,0.0};
       
@@ -609,6 +640,7 @@ void in_main(int narg,char **arg)
       // FILE *fout_EU2_eigvec=open_file(combine("%s/EU2_eigvec",outfolder),"w");
       FILE *fout_EU4_stoch=open_file(combine("%s/EU4_stoch",outfolder),"w");
       FILE *fout_EU5_stoch=open_file(combine("%s/EU5_stoch",outfolder),"w");
+      FILE *fout_EU5_stoch_alt=open_file(combine("%s/EU5_stoch_alt",outfolder),"w");
       FILE *fout_EU6_stoch=open_file(combine("%s/EU6_stoch",outfolder),"w");
       
       // complex EU1_eigvec={0.0,0.0},EU2_eigvec={0.0,0.0};
@@ -668,6 +700,8 @@ void in_main(int narg,char **arg)
 	    STOP_TIMING(EU_time_tot[iEU5]);
 	  }
       
+      master_fprintf(fout_EU5_stoch_alt,"%.16lg %.16lg\n",EU5_alt[RE],EU5_alt[IM]);
+      
       //Compute diagram EU6
       complex EU6={0.0,0.0};
       for(int ihit=0;ihit<nhits;ihit++)
@@ -684,14 +718,13 @@ void in_main(int narg,char **arg)
 	    STOP_TIMING(EU_time_tot[iEU6]);
 	  }
       
-      write_J(outfolder,"J_stoch",J_stoch,nhits);
-      
       close_file(fout_EU1_stoch);
       // close_file(fout_EU1_eigvec);
       close_file(fout_EU2_stoch);
       // close_file(fout_EU2_eigvec);
       close_file(fout_EU4_stoch);
       close_file(fout_EU5_stoch);
+      close_file(fout_EU5_stoch_alt);
       close_file(fout_EU6_stoch);
       
       mark_finished(nanalyzed_confs,outfolder);
@@ -706,6 +739,8 @@ void in_main(int narg,char **arg)
     nissa_free(J_stoch[ihit]);
   // for(int ieig=0;ieig<neig;ieig++)
   //   nissa_free(J_eig[ieig]);
+  nissa_free(J_stoch_of_sum);
+  nissa_free(J_stoch_sum);
   nissa_free(conf);
   
   //free the source and prop
@@ -714,6 +749,8 @@ void in_main(int narg,char **arg)
       nissa_free(eta[ihit]);
       nissa_free(phi[ihit]);
     }
+  nissa_free(sum_eta);
+  nissa_free(sum_phi);
   
   //free eigvec and convolution
   // for(int ieig=0;ieig<neig;ieig++)
