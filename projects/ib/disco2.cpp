@@ -10,15 +10,18 @@ gauge_info photon_pars;
 int free_theory;
 int random_conf;
 
+double init_moment;
 int ninv_tot=0;
 double inv_time=0;
 
 const int ndiag=5;
 enum {iEU1,iEU2,iEU4,iEU5,iEU6};
-  const int diag[ndiag]={1,2,4,5,6};
+const int diag[ndiag]={1,2,4,5,6};
 
 std::vector<int> nEU_tot(ndiag,0);
 std::vector<double> EU_time_tot(ndiag,0);
+double EU5_alt_time_tot;
+int nEU5_alt_tot;
 
 namespace free_th
 {
@@ -310,7 +313,7 @@ THREADABLE_FUNCTION_8ARG(compute_propagators, spincolor**,phi, spincolor**,eta, 
 THREADABLE_FUNCTION_END
 
 //check if the time is enough
-int check_remaining_time(const double& init_moment,const int& nanalyzed_confs,const double& wall_time)
+int check_remaining_time(const int& nanalyzed_confs,const double& wall_time)
 {
   if(nanalyzed_confs)
     {
@@ -338,7 +341,7 @@ void skip_conf(spincolor** eta,const int& nhits)
 }
 
 //find a new conf
-int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& nconfs,const double& init_moment,const int& nanalyzed_confs,const double& wall_time,spincolor **eta,const int& nhits)
+int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& nconfs,const int& nanalyzed_confs,const double& wall_time,spincolor **eta,const int& nhits)
 {
   //Check if asked to stop or restart
   int asked_stop=file_exists("stop_disco");
@@ -346,7 +349,7 @@ int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& n
   int asked_restart=file_exists("restart");
   verbosity_lv2_master_printf("Asked to restart: %d\n",asked_restart);
   //check if enough time
-  int enough_time=check_remaining_time(init_moment,nanalyzed_confs,wall_time);
+  int enough_time=check_remaining_time(nanalyzed_confs,wall_time);
   verbosity_lv2_master_printf("Enough time: %d\n",enough_time);
   //check that there are still conf to go
   int still_conf=iconf<nconfs;
@@ -432,7 +435,7 @@ void in_main(int narg,char **arg)
 {
   GET_THREAD_ID();
   
-  double init_moment=take_time();
+  init_moment=take_time();
   
   //to be read
   photon_pars.alpha=FEYNMAN_ALPHA;
@@ -555,7 +558,7 @@ void in_main(int narg,char **arg)
   char conf_path[1024];
   char outfolder[1024];
   
-  while(read_conf_parameters(conf_path,outfolder,iconf,nconfs,init_moment,nanalyzed_confs,wall_time,eta,nhits))
+  while(read_conf_parameters(conf_path,outfolder,iconf,nconfs,nanalyzed_confs,wall_time,eta,nhits))
     {
       //generate the sources
       for(int ihit=0;ihit<nhits;ihit++)
@@ -589,6 +592,7 @@ void in_main(int narg,char **arg)
       // for(int ieig=0;ieig<neig;ieig++)
       //   mel::conserved_vector_current_mel(J_eig[ieig],eigvec[ieig],conf,r,eigvec_conv[ieig]);
       
+      START_TIMING(EU5_alt_time_tot,nEU5_alt_tot);
       vector_reset(sum_eta);
       vector_reset(sum_phi);
       vector_reset(J_stoch_sum);
@@ -615,6 +619,7 @@ void in_main(int narg,char **arg)
       mel::global_product(EU5_alt,xi,J_stoch_sum);
       complex_subtassign(EU5_alt,EU5_bias);
       complex_prodassign_double(EU5_alt,1.0/(nhits*(nhits-1)));
+      STOP_TIMING(EU5_alt_time_tot);
       
       //alternative calculation of EU5
       // complex EU6_alt; sbagliato
@@ -759,10 +764,12 @@ void in_main(int narg,char **arg)
   //     nissa_free(eigvec_conv[ieig]);
   //   }
   
-  master_printf("Total time: %g, of which:\n",tot_time);
-  print_single_statistic(inv_time,tot_time,ninv_tot,"inversion");
+  const double tot_prog_time=take_time()-init_moment;
+  master_printf("Total time: %g, of which:\n",tot_prog_time);
+  print_single_statistic(inv_time,tot_prog_time,ninv_tot,"inversion");
   for(int idiag=0;idiag<ndiag;idiag++)
-    print_single_statistic(EU_time_tot[idiag],tot_time,nEU_tot[idiag],combine("diagram EU%d",diag[idiag]).c_str());
+    print_single_statistic(EU_time_tot[idiag],tot_prog_time,nEU_tot[idiag],combine("diagram EU%d",diag[idiag]).c_str());
+  print_single_statistic(EU5_alt_time_tot,tot_prog_time,nEU5_alt_tot,"diagram EU5_alt");
 }
 
 int main(int narg,char **arg)
