@@ -706,41 +706,41 @@ void in_main(int narg,char **arg)
 	  STOP_TIMING(EU_time_tot[iEU4]);
 	}
       
-      //Compute diagram EU5
-      complex EU5={0.0,0.0};
-      for(int ihit=0;ihit<nhits;ihit++)
-	for(int jhit=0;jhit<ihit;jhit++)
-	  {
-	    START_TIMING(EU_time_tot[iEU5],nEU_tot[iEU5]);
+      // //Compute diagram EU5
+      // complex EU5={0.0,0.0};
+      // for(int ihit=0;ihit<nhits;ihit++)
+      // 	for(int jhit=0;jhit<ihit;jhit++)
+      // 	  {
+      // 	    START_TIMING(EU_time_tot[iEU5],nEU_tot[iEU5]);
 	    
-	    START_TIMING(convolve_time,nconvolve_tot);
-	    multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
-	    STOP_TIMING(convolve_time);
-	    mel::global_product(EU5,xi,J_stoch[jhit]);
-	    master_fprintf(fout_EU5_stoch,"%.16lg %.16lg\n",EU5[RE],EU5[IM]);
+      // 	    START_TIMING(convolve_time,nconvolve_tot);
+      // 	    multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+      // 	    STOP_TIMING(convolve_time);
+      // 	    mel::global_product(EU5,xi,J_stoch[jhit]);
+      // 	    master_fprintf(fout_EU5_stoch,"%.16lg %.16lg\n",EU5[RE],EU5[IM]);
 	    
-	    STOP_TIMING(EU_time_tot[iEU5]);
-	  }
+      // 	    STOP_TIMING(EU_time_tot[iEU5]);
+      // 	  }
       
       master_fprintf(fout_EU5_stoch_alt,"%.16lg %.16lg\n",EU5_alt[RE],EU5_alt[IM]);
       
       //Compute diagram EU6
-      complex EU6={0.0,0.0};
-      for(int ihit=0;ihit<nhits;ihit++)
-	for(int jhit=0;jhit<ihit;jhit++)
-	  {
-	    START_TIMING(EU_time_tot[iEU6],nEU_tot[iEU6]);
+      // complex EU6={0.0,0.0};
+      // for(int ihit=0;ihit<nhits;ihit++)
+      // 	for(int jhit=0;jhit<ihit;jhit++)
+      // 	  {
+      // 	    START_TIMING(EU_time_tot[iEU6],nEU_tot[iEU6]);
 	    
-	    mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[jhit]);
-	    mel::conserved_vector_current_mel(J_stoch[jhit],eta[jhit],conf,r,phi[ihit]);
-	    START_TIMING(convolve_time,nconvolve_tot);
-	    multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
-	    STOP_TIMING(convolve_time);
-	    mel::global_product(EU6,J_stoch[jhit],xi);
-	    master_fprintf(fout_EU6_stoch,"%.16lg %.16lg\n",EU6[RE],EU6[IM]);
+      // 	    mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[jhit]);
+      // 	    mel::conserved_vector_current_mel(J_stoch[jhit],eta[jhit],conf,r,phi[ihit]);
+      // 	    START_TIMING(convolve_time,nconvolve_tot);
+      // 	    multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+      // 	    STOP_TIMING(convolve_time);
+      // 	    mel::global_product(EU6,J_stoch[jhit],xi);
+      // 	    master_fprintf(fout_EU6_stoch,"%.16lg %.16lg\n",EU6[RE],EU6[IM]);
 	    
-	    STOP_TIMING(EU_time_tot[iEU6]);
-	  }
+      // 	    STOP_TIMING(EU_time_tot[iEU6]);
+      // 	  }
       
       close_file(fout_EU1_stoch);
       // close_file(fout_EU1_eigvec);
