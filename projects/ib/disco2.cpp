@@ -10,6 +10,16 @@ gauge_info photon_pars;
 int free_theory;
 int random_conf;
 
+int ninv_tot=0;
+double inv_time=0;
+
+const int ndiag=5;
+enum {iEU1,iEU2,iEU4,iEU5,iEU6};
+  const int diag[ndiag]={1,2,4,5,6};
+
+std::vector<int> nEU_tot(ndiag,0);
+std::vector<double> EU_time_tot(ndiag,0);
+
 namespace free_th
 {
   spinspin *qu;
@@ -250,6 +260,8 @@ namespace mel
 //THREADABLE_FUNCTION_10ARG(compute_orthogonal_part, spincolor**,phi, spincolor**,eta, int,nhits, spincolor**,eigvec, int,neig, quad_su3*,conf, double,kappa, double,am, int,r, double,solver_precision)
 THREADABLE_FUNCTION_8ARG(compute_propagators, spincolor**,phi, spincolor**,eta, int,nhits, quad_su3*,conf, double,kappa, double,am, int,r, double,solver_precision)
 {
+  GET_THREAD_ID();
+  
   //source and solution for the solver
   spincolor *source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   spincolor *solution=nissa_malloc("solution",loc_vol+bord_vol,spincolor);
@@ -274,6 +286,9 @@ THREADABLE_FUNCTION_8ARG(compute_propagators, spincolor**,phi, spincolor**,eta, 
       //rotate to twisted basis
       safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,source);
       
+      //invert
+      START_TIMING(inv_time,ninv_tot);
+      
       if(free_theory)
 	{
 	  tm_quark_info qu(kappa,am,r,theta);
@@ -282,6 +297,8 @@ THREADABLE_FUNCTION_8ARG(compute_propagators, spincolor**,phi, spincolor**,eta, 
 	}
       else
 	inv_tmD_cg_eoprec(solution,NULL,conf,kappa,am*tau3[r],1000000,solver_precision,source);
+      
+      STOP_TIMING(inv_time);
       
       //rotate back
       safe_dirac_prod_spincolor(phi[ihit],(tau3[r]==-1)?&Pminus:&Pplus,solution);
@@ -404,6 +421,7 @@ void write_J(const char* outfolder,const char* name,spin1field **J,int nhits)
   vector_reset(sum);
   for(int ihit=0;ihit<nhits;ihit++)
     double_vector_summassign((double*)sum,(double*)(J[ihit]),loc_vol*sizeof(spin1field)/sizeof(double));
+  double_vector_prodassign_double((double*)sum,1.0/nhits,sizeof(spincolor)*loc_vol/sizeof(double));
   
   write_real_vector(combine("%s/%s",outfolder,name),sum,64,"Current");
   
@@ -419,8 +437,15 @@ void mark_finished(int& nanalyzed_confs,const char* outfolder)
   nanalyzed_confs++;
 }
 
+inline void print_single_statistic(double frac_time,double tot_time,int niter,const char *tag)
+{
+  if(niter) master_printf(" - %02.2f%% for %d %s (%2.2gs avg)\n",frac_time/tot_time*100,niter,tag,frac_time/niter);
+}
+
 void in_main(int narg,char **arg)
 {
+  GET_THREAD_ID();
+  
   double init_moment=take_time();
   
   //to be read
@@ -609,46 +634,55 @@ void in_main(int narg,char **arg)
 	  //in this way, in the output file, there are all the value of EU1 for each value of eta, not average values - Lorenzo.
 	  
 	  //Pseudo
+	  START_TIMING(EU_time_tot[iEU1],nEU_tot[iEU1]);
 	  mel::local_mel(temp,eta[ihit],5,phi[ihit]);
 	  complex_prod_idouble(EU1_stoch,temp,-1.0);
 	  master_fprintf(fout_EU1_stoch,"%.16lg %.16lg\n",EU1_stoch[RE],EU1_stoch[IM]);
+	  STOP_TIMING(EU_time_tot[iEU1]);
 	  
 	  //Scalar
+	  START_TIMING(EU_time_tot[iEU2],nEU_tot[iEU2]);
 	  mel::local_mel(EU2_stoch,eta[ihit],0,phi[ihit]);
 	  master_fprintf(fout_EU2_stoch,"%.16lg %.16lg\n",EU2_stoch[RE],EU2_stoch[IM]);
+	  STOP_TIMING(EU_time_tot[iEU2]);
 	  
 	  //Tadpole
+	  START_TIMING(EU_time_tot[iEU4],nEU_tot[iEU4]);
 	  insert_tm_tadpole(tadpole_prop,conf,phi[ihit],r,tadpole_coeff,ALL_TIMES);
 	  mel::local_mel(EU4_stoch,eta[ihit],0,tadpole_prop);
 	  master_fprintf(fout_EU4_stoch,"%.16lg %.16lg\n",EU4_stoch[RE],EU4_stoch[IM]);
+	  STOP_TIMING(EU_time_tot[iEU4]);
 	}
       
       //Compute diagram EU5
       complex EU5={0.0,0.0};
       for(int ihit=0;ihit<nhits;ihit++)
-	{
-	  multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
-	  
-	  for(int jhit=0;jhit<ihit;jhit++)
-	    {
-	      mel::global_product(EU5,xi,J_stoch[jhit]);
-	      master_fprintf(fout_EU5_stoch,"%.16lg %.16lg\n",EU5[RE],EU5[IM]);
-	    }
-	}
+	for(int jhit=0;jhit<ihit;jhit++)
+	  {
+	    START_TIMING(EU_time_tot[iEU5],nEU_tot[iEU5]);
+	    
+	    multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+	    mel::global_product(EU5,xi,J_stoch[jhit]);
+	    master_fprintf(fout_EU5_stoch,"%.16lg %.16lg\n",EU5[RE],EU5[IM]);
+	    
+	    STOP_TIMING(EU_time_tot[iEU5]);
+	  }
       
       //Compute diagram EU6
       complex EU6={0.0,0.0};
       for(int ihit=0;ihit<nhits;ihit++)
-	{
-	  for(int jhit=0;jhit<ihit;jhit++)
-	    {
-	      mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[jhit]);
-	      mel::conserved_vector_current_mel(J_stoch[jhit],eta[jhit],conf,r,phi[ihit]);
-	      multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
-	      mel::global_product(EU6,J_stoch[jhit],xi);
-	      master_fprintf(fout_EU6_stoch,"%.16lg %.16lg\n",EU6[RE],EU6[IM]);
-	    }
-	}
+	for(int jhit=0;jhit<ihit;jhit++)
+	  {
+	    START_TIMING(EU_time_tot[iEU6],nEU_tot[iEU6]);
+	    
+	    mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[jhit]);
+	    mel::conserved_vector_current_mel(J_stoch[jhit],eta[jhit],conf,r,phi[ihit]);
+	    multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+	    mel::global_product(EU6,J_stoch[jhit],xi);
+	    master_fprintf(fout_EU6_stoch,"%.16lg %.16lg\n",EU6[RE],EU6[IM]);
+	    
+	    STOP_TIMING(EU_time_tot[iEU6]);
+	  }
       
       write_J(outfolder,"J_stoch",J_stoch,nhits);
       
@@ -687,6 +721,11 @@ void in_main(int narg,char **arg)
   //     nissa_free(eigvec[ieig]);
   //     nissa_free(eigvec_conv[ieig]);
   //   }
+  
+  master_printf("Total time: %g, of which:\n",tot_time);
+  print_single_statistic(inv_time,tot_time,ninv_tot,"inversion");
+  for(int idiag=0;idiag<ndiag;idiag++)
+    print_single_statistic(EU_time_tot[idiag],tot_time,nEU_tot[idiag],combine("diagram EU%d",diag[idiag]).c_str());
 }
 
 int main(int narg,char **arg)
