@@ -20,8 +20,14 @@ const int diag[ndiag]={1,2,4,5,6};
 
 std::vector<int> nEU_tot(ndiag,0);
 std::vector<double> EU_time_tot(ndiag,0);
-double EU5_alt_time_tot;
-int nEU5_alt_tot;
+double EU5_alt_time_tot=0.0;
+int nEU5_alt_tot=0;
+
+double mel_time=0.0;
+int nmel_tot=0;
+
+double convolve_time=0.0;
+int nconvolve_tot=0;
 
 namespace free_th
 {
@@ -86,6 +92,8 @@ namespace mel
   {
     GET_THREAD_ID();
     
+    START_TIMING(mel_time,nmel_tot);
+    
     vector_reset(out);
     
     //compute the gammas
@@ -118,6 +126,9 @@ namespace mel
 	  spincolor_scalar_prod(c,source[ivol_fw],Gf);
 	  complex_summ_the_prod_idouble(out[ivol][mu],c,+0.5);
 	}
+    set_borders_invalid(out);
+    
+    STOP_TIMING(mel_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -600,7 +611,9 @@ void in_main(int narg,char **arg)
       for(int ihit=0;ihit<nhits;ihit++)
 	{
 	  //compute EU5 bias
+	  START_TIMING(convolve_time,nconvolve_tot);
 	  multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+	  STOP_TIMING(convolve_time);
 	  complex temp;
 	  mel::global_product(temp,xi,J_stoch[ihit]);
 	  complex_summassign(EU5_bias,temp);
@@ -615,7 +628,9 @@ void in_main(int narg,char **arg)
       
       //alternative calculation of EU5
       complex EU5_alt;
+      START_TIMING(convolve_time,nconvolve_tot);
       multiply_by_tlSym_gauge_propagator(xi,J_stoch_sum,photon_pars);
+      STOP_TIMING(convolve_time);
       mel::global_product(EU5_alt,xi,J_stoch_sum);
       complex_subtassign(EU5_alt,EU5_bias);
       complex_prodassign_double(EU5_alt,1.0/(nhits*(nhits-1)));
@@ -698,7 +713,9 @@ void in_main(int narg,char **arg)
 	  {
 	    START_TIMING(EU_time_tot[iEU5],nEU_tot[iEU5]);
 	    
+	    START_TIMING(convolve_time,nconvolve_tot);
 	    multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+	    STOP_TIMING(convolve_time);
 	    mel::global_product(EU5,xi,J_stoch[jhit]);
 	    master_fprintf(fout_EU5_stoch,"%.16lg %.16lg\n",EU5[RE],EU5[IM]);
 	    
@@ -716,7 +733,9 @@ void in_main(int narg,char **arg)
 	    
 	    mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[jhit]);
 	    mel::conserved_vector_current_mel(J_stoch[jhit],eta[jhit],conf,r,phi[ihit]);
+	    START_TIMING(convolve_time,nconvolve_tot);
 	    multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+	    STOP_TIMING(convolve_time);
 	    mel::global_product(EU6,J_stoch[jhit],xi);
 	    master_fprintf(fout_EU6_stoch,"%.16lg %.16lg\n",EU6[RE],EU6[IM]);
 	    
@@ -770,6 +789,8 @@ void in_main(int narg,char **arg)
   for(int idiag=0;idiag<ndiag;idiag++)
     print_single_statistic(EU_time_tot[idiag],tot_prog_time,nEU_tot[idiag],combine("diagram EU%d",diag[idiag]).c_str());
   print_single_statistic(EU5_alt_time_tot,tot_prog_time,nEU5_alt_tot,"diagram EU5_alt");
+  print_single_statistic(mel_time,tot_prog_time,nmel_tot,"mel calculation");
+  print_single_statistic(convolve_time,tot_prog_time,nconvolve_tot,"convolution");
 }
 
 int main(int narg,char **arg)
