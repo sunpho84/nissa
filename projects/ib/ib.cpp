@@ -164,7 +164,6 @@ void init_simulation(int narg,char **arg)
       else
 	nsources=1;
       
-      
       for(int isource=0;isource<nsources;isource++)
 	{
 	  std::pair<double,double> weight={1.0,0.0};
@@ -187,6 +186,8 @@ void init_simulation(int narg,char **arg)
 	      weight.first=cweight.real();
 	      weight.second=cweight.imag();
 	    }
+	  else
+	    if(Q.find(source_name)==Q.end()) crash("unable to find source %s",source_name);
 	  
 	  source_terms.push_back(std::make_pair(source_name,weight));
 	}
