@@ -27,13 +27,13 @@ namespace nissa
   {
     //compute action for momenta
     double action_H=0;
-    if(evol_pars.use_Facc) action_H=momenta_action_with_FACC(conf,evol_pars.kappa,100000,evol_pars.residue,H);
+    if(evol_pars.use_facc) action_H=momenta_action_with_FACC(conf,evol_pars.kappa,100000,evol_pars.residue,H);
     else action_H=momenta_action(H);
     verbosity_lv1_master_printf("Momenta action: %lg\n",action_H);
     
     //compute action for FACC
     double action_phi=0,action_pi=0;
-    if(evol_pars.use_Facc)
+    if(evol_pars.use_facc)
       {
 	action_phi=MFACC_fields_action(phi,naux_fields);
 	verbosity_lv1_master_printf("Fourier acceleration fields action: %lg\n",action_phi);
@@ -64,7 +64,7 @@ namespace nissa
     vector_copy(out_conf,in_conf);
     
     //if we accelerate draw also momenta and position
-    if(evol_pars.use_Facc)
+    if(evol_pars.use_facc)
       {
 	//create the momenta
 	//for(int i=0;i<256;i++)
@@ -105,7 +105,7 @@ namespace nissa
     verbosity_lv2_master_printf("Init action: %lg\n",init_action);
     
     //evolve forward
-    switch(evol_pars.use_Facc)
+    switch(evol_pars.use_facc)
       {
       case 0:
 	Omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);
@@ -120,7 +120,7 @@ namespace nissa
 	implicit_pure_gauge_leapfrog_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
 	break;
       default:
-	crash("unknown case %d for FACC",evol_pars.use_Facc);
+	crash("unknown case %d for FACC",evol_pars.use_facc);
       }
     
     //compute the action
@@ -138,7 +138,7 @@ namespace nissa
     verbosity_lv1_master_printf("Total time to perform pure gauge hmc step: %lg s\n",hmc_time);
     
     //if accelerated, free everything
-    if(evol_pars.use_Facc)
+    if(evol_pars.use_facc)
       for(int id=0;id<evol_pars.naux_fields;id++)
 	{
 	  //nissa_free(phi[id]);

@@ -77,8 +77,8 @@ void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
       read_str_double("HmcTrajLength",&pars.traj_length);
       read_str_int("NmdSteps",&pars.nmd_steps);
       read_str_int("SkipMTestNTraj",&pars.skip_mtest_ntraj);
-      read_str_int("UseFacc",&pars.use_Facc);
-      if(pars.use_Facc)
+      read_str_int("UseFacc",&pars.use_facc);
+      if(pars.use_facc)
 	{
 	  read_str_double("Kappa",&pars.kappa);
 	  read_str_double("Residue",&pars.residue);
@@ -707,7 +707,7 @@ void generate_new_conf(quad_su3 *conf,int check=0)
       else
 	{
 	  master_printf("rejected.\n");
-	  if(evol_pars.use_Facc)
+	  if(evol_pars.use_facc)
 	    for(int id=0;id<evol_pars.naux_fields;id++)
 	      {
 		vector_copy(aux::phi[id],aux::phi_old[id]);
@@ -882,7 +882,7 @@ void in_main(int narg,char **arg)
   // nissa_free(v);
   // crash("ciccio");
   
-  if(evol_pars.use_Facc)
+  if(evol_pars.use_facc)
     {
       FILE *file;
       char *data;

@@ -299,10 +299,10 @@ int generate_new_conf(int itraj)
   if(drv->sea_theory().nflavs()!=0 or drv->sea_theory().topotential_pars.flag!=0)
     {
       //find if needed to perform test
-      int perform_test=(itraj>=drv->evol_pars.skip_mtest_ntraj);
+      int perform_test=(itraj>=drv->hmc_evol_pars.skip_mtest_ntraj);
       
       //integrare and compute difference of action
-      double diff_act=multipseudo_rhmc_step(new_conf,conf,drv->sea_theory(),drv->evol_pars,rat_appr,itraj);
+      double diff_act=multipseudo_rhmc_step(new_conf,conf,drv->sea_theory(),drv->hmc_evol_pars,rat_appr,itraj);
       
       //perform the test in any case
       master_printf("Diff action: %lg, ",diff_act);
@@ -330,16 +330,21 @@ int generate_new_conf(int itraj)
     {
       //always new conf
       acc=true;
-      crash("implement lx AND CHECK");
       
-      /*
+      quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol,quad_su3);
+      paste_eo_parts_into_lx_vector(lx_conf,conf);
+      
+      gauge_sweeper_t *sweeper=get_sweeper(drv->sea_theory().gauge_action_name);
+      
       //number of hb sweeps
-      for(int ihb_sweep=0;ihb_sweep<drv->evol_pars.pure_gauge_drv->evol_pars.nhb_sweeps;ihb_sweep++)
-	heatbath_conf(conf,&theory_pars[SEA_THEORY],&drv->evol_pars.pure_gauge_drv->evol_pars);
+      for(int ihb_sweep=0;ihb_sweep<drv->quenched_evol_pars.nhb_sweeps;ihb_sweep++)
+	heatbath_lx_conf(lx_conf,sweeper,drv->sea_theory().beta,drv->quenched_evol_pars.nhb_hits);
       //numer of overrelax sweeps
-      for(int iov_sweep=0;iov_sweep<drv->evol_pars.pure_gauge_drv->evol_pars.nov_sweeps;iov_sweep++)
-	get_sweeper(theory_pars[SEA_THEORY].gauge_action_name)->sweep_conf(conf,[](su3 out,su3 staple,int ivol,int mu){su3_find_overrelaxed(out,out,staple,drv->evol_pars.pure_gauge_drv->evol_pars.nov_hits);});
-      */
+      for(int iov_sweep=0;iov_sweep<drv->quenched_evol_pars.nov_sweeps;iov_sweep++)
+      overrelax_lx_conf(lx_conf,sweeper,drv->quenched_evol_pars.nov_hits);
+      
+      split_lx_vector_into_eo_parts(conf,lx_conf);
+      nissa_free(lx_conf);
     }
   
   return acc;
@@ -558,10 +563,10 @@ bool check_if_continue()
     }
   
   //check if all traj performed
-  bool finished_all_traj=(itraj>=drv->evol_pars.ntraj_tot);
+  bool finished_all_traj=(itraj>=drv->hmc_evol_pars.ntraj_tot);
   if(finished_all_traj)
     {
-      verbosity_lv1_master_printf("Requested trajectory %d, perfomed %d, closing\n",drv->evol_pars.ntraj_tot,itraj);
+      verbosity_lv1_master_printf("Requested trajectory %d, perfomed %d, closing\n",drv->hmc_evol_pars.ntraj_tot,itraj);
       file_touch("stop");
       return false;
     }
@@ -589,7 +594,7 @@ void run_program_for_production()
       
       // 1) produce new conf
       int acc=1;
-      if(drv->evol_pars.ntraj_tot!=0)
+      if(drv->hmc_evol_pars.ntraj_tot!=0)
 	{
 	  acc=generate_new_conf(itraj);
 	  ntraj_prod++;
