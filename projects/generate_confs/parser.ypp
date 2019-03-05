@@ -290,6 +290,7 @@
 %token TK_TMAX
 //evolution parameters
 %token TK_EVOLUTION
+%token TK_QUENCHED_EVOLUTION
 %token TK_ID_SEA_THEORY
 %token TK_NTRAJ_TOT
 %token TK_SKIP_METRO
@@ -298,6 +299,13 @@
 %token TK_MD_RESIDUE
 %token TK_NSUBSTEPS
 %token TK_NPSEUDO_FERMS
+%token TK_NAUX_FIELDS
+%token TK_NHB_HITS
+%token TK_NHB_SWEEPS
+%token TK_NOV_HITS
+%token TK_NOV_SWEEPS
+%token TK_USE_FACC
+%token TK_USE_HMC
 //gauge conf parameters
 %token TK_GAUGE_CONF
 %token TK_STORE_PATH
@@ -348,6 +356,7 @@ global_specify: geometry
               | all_rects_meas {driver->add_all_rects_meas(*$1);delete $1;}
 /////////////// evolve and confpars /////////////////
               | global_evolve_pars
+              | global_quenched_evolve_pars
               | global_conf_pars
 //////////////////// analysis ///////////////////////
               | global_analysis_pars
@@ -684,15 +693,31 @@ minmax_eigenvalues_meas: TK_MEAS_MIN_MAX_EIGENVAL {$$=new minmax_eigenvalues_mea
 ////////////////////////////////////////////////// EVOLUTION //////////////////////////////////////////////////
 
 global_evolve_pars: TK_EVOLUTION {driver->run_mode=driver_t::EVOLUTION_MODE;}
-                  | global_evolve_pars TK_NTRAJ_TOT '=' int_numb {driver->evol_pars.ntraj_tot=$4;}
-                  | global_evolve_pars TK_ID_SEA_THEORY '=' int_numb {driver->evol_pars.id_sea_theory=$4;}
-                  | global_evolve_pars TK_SKIP_METRO '=' int_numb {driver->evol_pars.skip_mtest_ntraj=$4;}
-                  | global_evolve_pars TK_TRAJ_LENGTH '=' double_numb {driver->evol_pars.traj_length=$4;}
-                  | global_evolve_pars TK_ACT_RESIDUE '=' double_numb {driver->evol_pars.pf_action_residue=$4;}
-                  | global_evolve_pars TK_MD_RESIDUE '=' double_numb {driver->evol_pars.md_residue=$4;}
-                  | global_evolve_pars TK_NSTEPS '=' int_numb {driver->evol_pars.nmd_steps=$4;}
-                  | global_evolve_pars TK_NSUBSTEPS '=' int_numb {driver->evol_pars.ngauge_substeps=$4;}
-                  | global_evolve_pars TK_NPSEUDO_FERMS '=' int_list {driver->evol_pars.npseudo_fs=(*$4);delete $4;}
+                  | global_evolve_pars TK_NTRAJ_TOT '=' int_numb {driver->hmc_evol_pars.ntraj_tot=$4;}
+                  | global_evolve_pars TK_ID_SEA_THEORY '=' int_numb {driver->hmc_evol_pars.id_sea_theory=$4;}
+                  | global_evolve_pars TK_SKIP_METRO '=' int_numb {driver->hmc_evol_pars.skip_mtest_ntraj=$4;}
+                  | global_evolve_pars TK_TRAJ_LENGTH '=' double_numb {driver->hmc_evol_pars.traj_length=$4;}
+                  | global_evolve_pars TK_ACT_RESIDUE '=' double_numb {driver->hmc_evol_pars.pf_action_residue=$4;}
+                  | global_evolve_pars TK_MD_RESIDUE '=' double_numb {driver->hmc_evol_pars.md_residue=$4;}
+                  | global_evolve_pars TK_NSTEPS '=' int_numb {driver->hmc_evol_pars.nmd_steps=$4;}
+                  | global_evolve_pars TK_NSUBSTEPS '=' int_numb {driver->hmc_evol_pars.ngauge_substeps=$4;}
+                  | global_evolve_pars TK_NPSEUDO_FERMS '=' int_list {driver->hmc_evol_pars.npseudo_fs=(*$4);delete $4;}
+;
+
+global_quenched_evolve_pars: TK_QUENCHED_EVOLUTION {driver->run_mode=driver_t::EVOLUTION_MODE;}
+                  | global_quenched_evolve_pars TK_USE_HMC '=' int_numb {if($4) crash("not implemented");driver->quenched_evol_pars.use_hmc=$4;}
+                  | global_quenched_evolve_pars TK_TRAJ_LENGTH '=' double_numb {driver->quenched_evol_pars.traj_length=$4;}
+                  | global_quenched_evolve_pars TK_SKIP_METRO '=' int_numb {driver->quenched_evol_pars.skip_mtest_ntraj=$4;}
+                  | global_quenched_evolve_pars TK_NSTEPS '=' int_numb {driver->quenched_evol_pars.nmd_steps=$4;}
+                  | global_quenched_evolve_pars TK_USE_FACC '=' int_numb {driver->quenched_evol_pars.use_facc=$4;}
+                  | global_quenched_evolve_pars TK_KAPPA '=' double_numb {driver->quenched_evol_pars.kappa=$4;}
+                  | global_quenched_evolve_pars TK_RESIDUE '=' double_numb {driver->quenched_evol_pars.residue=$4;}
+                  | global_quenched_evolve_pars TK_NAUX_FIELDS '=' int_numb {driver->quenched_evol_pars.naux_fields=$4;}
+                  | global_quenched_evolve_pars TK_NHB_SWEEPS '=' int_numb {driver->quenched_evol_pars.nhb_sweeps=$4;}
+                  | global_quenched_evolve_pars TK_NHB_HITS '=' int_numb {driver->quenched_evol_pars.nhb_hits=$4;}
+                  | global_quenched_evolve_pars TK_NOV_SWEEPS '=' int_numb {driver->quenched_evol_pars.nov_sweeps=$4;}
+                  | global_quenched_evolve_pars TK_NOV_HITS '=' int_numb {driver->quenched_evol_pars.nov_hits=$4;}
+
 ;
 
 ////////////////////////////////////////////////// CONF PARS ///////////////////////////////////////////////////

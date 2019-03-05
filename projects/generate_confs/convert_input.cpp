@@ -452,20 +452,20 @@ void in_main(int narg,char **arg)
   read_watusso_meas_pars(driver->watusso_meas);
   
   //read the number of trajectory to evolve and the wall_time
-  read_str_int("NTrajTot",&driver->evol_pars.ntraj_tot);
+  read_str_int("NTrajTot",&driver->hmc_evol_pars.ntraj_tot);
   read_str_int("WallTime",&driver->walltime);
   
   //read the seed
   read_str_int("Seed",&driver->seed);
   
   //if we want to produce something, let's do it, otherwise load the list of configurations to analyze
-  if(driver->evol_pars.ntraj_tot>0)
+  if(driver->hmc_evol_pars.ntraj_tot>0)
     {
       driver->run_mode=driver_t::EVOLUTION_MODE;
       
       //load evolution info depending if is a quenched simulation or unquenched
       if(driver->theories[0].nflavs()!=0||driver->theories[0].topotential_pars.flag!=0)
-        read_hmc_evol_pars(driver->evol_pars,driver->theories[0]);
+        read_hmc_evol_pars(driver->hmc_evol_pars,driver->theories[0]);
       
       //read in and out conf path
       char temp[1024];

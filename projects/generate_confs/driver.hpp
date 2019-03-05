@@ -36,7 +36,7 @@ namespace nissa
     //parameters of actions
     std::vector<theory_pars_t> theories;
     int ntheories(){return theories.size();}
-    theory_pars_t &sea_theory(){return theories[evol_pars.id_sea_theory];}
+    theory_pars_t &sea_theory(){return theories[hmc_evol_pars.id_sea_theory];}
     
     //fermionic measures
     std::vector<meson_corr_meas_pars_t> meson_corr_meas;
@@ -70,7 +70,6 @@ namespace nissa
 	measure_is_due(spinpol_meas,itheory,iconf) or
 	measure_is_due(qed_corr_meas,itheory,iconf) or
 	measure_is_due(spectral_proj_meas,itheory,iconf);
-
     }
     //print a message if a measure is due
     template <class T> bool if_meas_is_due_print(T &obj,int itheory,int iconf,const char *text)
@@ -125,7 +124,8 @@ namespace nissa
     run_mode_t def_run_mode(){return EVOLUTION_MODE;}
     
     //evolution and conf
-    hmc_evol_pars_t evol_pars;
+    hmc_evol_pars_t hmc_evol_pars;
+    pure_gauge_evol_pars_t quenched_evol_pars;
     conf_pars_t conf_pars;
     std::vector<std::string> an_conf_list;
     
@@ -204,7 +204,8 @@ namespace nissa
       switch(run_mode)
 	{
 	case EVOLUTION_MODE:
-	  os<<evol_pars.get_str(full)<<"\n";
+	  os<<hmc_evol_pars.get_str(full)<<"\n";
+	  os<<quenched_evol_pars.get_str(full)<<"\n";
 	  os<<conf_pars.get_str(full)<<"\n";
 	  break;
 	case ANALYSIS_MODE:
