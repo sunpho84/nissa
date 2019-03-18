@@ -498,6 +498,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
 	RANGE_FERMIONIC_MEAS(drv,meson_corr);
 	RANGE_FERMIONIC_MEAS(drv,spectral_proj);
+	RANGE_FERMIONIC_MEAS(drv,spectral_props);
       }
   
   meas_time+=take_time();
