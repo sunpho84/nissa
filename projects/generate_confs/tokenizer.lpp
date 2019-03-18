@@ -256,11 +256,13 @@ MeasMinMaxEigenval DEBUG_PRINTF("Found MeasMinMaxEigenval\n");return TK_MEAS_MIN
 MeasZumba DEBUG_PRINTF("Found MeasZumba\n");return TK_MEAS_ZUMBA;
 MeasSpinPol DEBUG_PRINTF("Found MeasSpinPol\n");return TK_MEAS_SPINPOL;
 MeasSpectrProj DEBUG_PRINTF("Found MeasSpectrProj\n");return TK_SPECTR_PROJ;
+MeasSpectrProps DEBUG_PRINTF("Found MeasSpectrProps\n");return TK_SPECTR_PROPS;
 
  /* parameters for PutPourri */
 ComputeSusc DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
 
- /* parameters for SpectrProj */
+ /* parameters for SpectrProps */
+OPName DEBUG_PRINTF("Found OPName\n");return TK_OPNAME;
 Neigs DEBUG_PRINTF("Found Neigs\n");return TK_NEIGS;
 EigPrecision DEBUG_PRINTF("Found EigPrecision\n");return TK_EIG_PRECISION;
 

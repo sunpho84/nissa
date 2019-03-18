@@ -136,6 +136,7 @@
 #include "measures/fermions/qed_corr.hpp"
 #include "measures/fermions/rendens.hpp"
 #include "measures/fermions/spectral_projectors.hpp"
+#include "measures/fermions/spectral_measures.hpp"
 #include "measures/fermions/spinpol.hpp"
 #include "measures/fermions/stag.hpp"
 #include "measures/fermions/zumba.hpp"

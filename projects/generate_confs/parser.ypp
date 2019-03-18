@@ -65,6 +65,7 @@
     nissa::watusso_meas_pars_t *watusso_meas;
     nissa::all_rects_meas_pars_t *all_rects_meas;
     nissa::spectr_proj_meas_pars_t *spectr_proj_meas;
+    nissa::spectr_props_meas_pars_t *spectr_props_meas;
     
     nissa::rnd_t rnd_type;
     
@@ -257,8 +258,14 @@
 %token TK_MEAS_MIN_MAX_EIGENVAL
 %type <int_numb> min_max
 %token TK_MIN_MAX
+//spectral meas
+%type <spectr_props_meas> spectr_props_meas
+%token TK_SPECTR_PROPS
 //spectral proj meas
 %type <spectr_proj_meas> spectr_proj_meas
+//opname
+%token TK_OPNAME
+%type <text> opname
 %token TK_SPECTR_PROJ
 %token TK_NEIGS
 %type <int_numb> neigs
@@ -350,6 +357,7 @@ global_specify: geometry
 /////////////// gauge measures ////////////////////
               | plaq_pol_meas {driver->add_plaq_pol_meas(*$1);delete $1;}
               | top_meas {driver->add_top_meas(*$1);delete $1;}
+              | spectr_props_meas {driver->add_spectr_props_meas(*$1);delete $1;}
               | spectr_proj_meas {driver->add_spectr_proj_meas(*$1);delete $1;}
               | luppoli_meas {driver->add_luppoli_meas(*$1);delete $1;}
               | watusso_meas {driver->add_watusso_meas(*$1);delete $1;}
@@ -392,6 +400,8 @@ nhits: TK_NHITS '=' int_numb {$$=$3;};
 noise_type: TK_NOISE_TYPE '=' TK_RND_T {$$=$3;};
 
 compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
+
+opname: TK_OPNAME '=' text {$$=$3;};
 
 neigs: TK_NEIGS '=' int_numb {$$=$3;};
 
@@ -738,6 +748,25 @@ global_conf_pars: TK_GAUGE_CONF {driver->run_mode=driver_t::EVOLUTION_MODE;}
                 | global_conf_pars TK_STORE_RUNNING '=' int_numb {driver->conf_pars.store_running=$4;}
                 | global_conf_pars TK_START_COND '=' TK_HOT {driver->conf_pars.start_cond=HOT_START_COND;}
                 | global_conf_pars TK_START_COND '=' TK_COLD {driver->conf_pars.start_cond=COLD_START_COND;}
+;
+
+////////////////////////////////////////////////// SPECTRAL MEASURES //////////////////////////////////////////////////
+
+spectr_props_meas: TK_SPECTR_PROPS {$$=new spectr_props_meas_pars_t();}
+                | spectr_props_meas each {$$->each=$2;}
+                | spectr_props_meas after {$$->after=$2;}
+                | spectr_props_meas path {$$->path=(*$2);delete $2;}
+                | spectr_props_meas residue {$$->residue=$2;}
+                | spectr_props_meas itheory {$$->itheory=$2;}
+                | spectr_props_meas ncopies {$$->ncopies=$2;}
+                | spectr_props_meas noise_type {$$->rnd_type=$2;}
+                | spectr_props_meas nhits {$$->nhits=$2;}
+                | spectr_props_meas opname {$$->opname=(*$2);delete $2;}
+                | spectr_props_meas neigs {$$->neigs=$2;}
+                | spectr_props_meas min_max {$$->minmax=$2;}
+                | spectr_props_meas eig_precision {$$->eig_precision=$2;}
+                | spectr_props_meas wspace_size {$$->wspace_size=$2;}
+                | spectr_props_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
 ;
 
 ////////////////////////////////////////////////// SPECTRAL PROJECTORS //////////////////////////////////////////////////
