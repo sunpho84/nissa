@@ -40,6 +40,8 @@ namespace nissa
     double residue;
     bool store;
     
+    char ext_field_path[33];
+    
     rnd_t noise_type;
     double ori_source_norm2;
     
@@ -54,7 +56,7 @@ namespace nissa
     }
     
     //initialize as a propagator
-    void init_as_propagator(insertion_t _insertion,const std::vector<source_term_t>& _source_terms,int _tins,double _residue,double _kappa,double _mass,int _r,double _charge,double *_theta,bool _store)
+    void init_as_propagator(insertion_t _insertion,const std::vector<source_term_t>& _source_terms,int _tins,double _residue,double _kappa,double _mass,char *_ext_field_path,int _r,double _charge,double *_theta,bool _store)
     {
       is_source=false;
       
@@ -66,6 +68,7 @@ namespace nissa
       insertion=_insertion;
       source_terms=_source_terms;
       tins=_tins;
+      strncpy(ext_field_path,_ext_field_path,32);
       residue=_residue;
       store=_store;
       
@@ -86,8 +89,8 @@ namespace nissa
       alloc_spincolor();
     }
     
-    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double mass,int r,double charge,double *theta,bool store)
-    {init_as_propagator(insertion,source_terms,tins,residue,kappa,mass,r,charge,theta,store);}
+    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double mass,char *ext_field_path,int r,double charge,double *theta,bool store)
+    {init_as_propagator(insertion,source_terms,tins,residue,kappa,mass,ext_field_path,r,charge,theta,store);}
     qprop_t(rnd_t noise_type,int tins,int r,bool store) {init_as_source(noise_type,tins,r,store);}
     qprop_t() {is_source=0;}
     ~qprop_t() {for(size_t i=0;i<sp.size();i++) nissa_free(sp[i]);}

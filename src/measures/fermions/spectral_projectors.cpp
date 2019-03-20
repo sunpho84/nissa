@@ -139,11 +139,10 @@ namespace nissa
     int nhits=meas_pars.nhits;
     for(int hit=0;hit<nhits;hit++)
       {
-    verbosity_lv2_master_printf("Evaluating Adams spectrum for m_Adams = %.16lg, nhits %d/%d\n",meas_pars.m_Adams,hit+1,nhits);
-    
-    measure_Adams_spectrum(eigvec,conf,meas_pars.m_Adams,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
+	verbosity_lv2_master_printf("Evaluating Adams spectrum for m_Adams = %.16lg, nhits %d/%d\n",meas_pars.m_Adams,hit+1,nhits);
+	
+	measure_Adams_spectrum(eigvec,conf,meas_pars.m_Adams,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
       }
-    
     
     master_fprintf(file,"%d\t%.16lg\t",neigs,meas_pars.m_Adams);
     for(int ieig=0;ieig<neigs;++ieig)
