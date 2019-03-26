@@ -29,6 +29,8 @@ int nmel_tot=0;
 double convolve_time=0.0;
 int nconvolve_tot=0;
 
+lock_file_t<uint64_t> lock_file;
+
 namespace free_th
 {
   spinspin *qu;
@@ -358,8 +360,35 @@ void skip_conf(spincolor** eta,const int& nhits)
     generate_undiluted_source(eta[ind_im_ihit(0,ihit,nhits)],RND_GAUSS,ALL_TIMES);
 }
 
+void start_new_conf(quad_su3 *conf,const char *conf_path,spincolor **eta,const int& nm,const int& nhits)
+{
+  //generate the sources
+  for(int ihit=0;ihit<nhits;ihit++)
+    {
+      const int i0=ind_im_ihit(0,ihit,nhits);
+      generate_undiluted_source(eta[i0],RND_GAUSS,ALL_TIMES);
+      for(int im=1;im<nm;im++)
+	{
+	  const int i=ind_im_ihit(im,ihit,nhits);
+	  vector_copy(eta[i],eta[i0]);
+	}
+    }
+  
+  //read the configuration and put phases
+  if(free_theory) generate_cold_lx_conf(conf);
+  else
+    {
+      if(random_conf) generate_hot_lx_conf(conf);
+      else read_ildg_gauge_conf(conf,conf_path);
+    }
+  
+  momentum_t old_theta;
+  old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
+  adapt_theta(conf,old_theta,theta,0,0);
+}
+
 //find a new conf
-int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& nconfs,const int& nanalyzed_confs,const double& wall_time,spincolor **eta,const int& nm,const int& nhits)
+int read_conf_parameters(quad_su3 *conf,char *outfolder,int &iconf,const int& nconfs,const int& nanalyzed_confs,const double& wall_time,spincolor **eta,const int& nm,const int& nhits)
 {
   //Check if asked to stop or restart
   int asked_stop=file_exists("stop_disco");
@@ -378,6 +407,7 @@ int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& n
     do
       {
 	//Gauge path
+	char conf_path[1024];
 	read_str(conf_path,1024);
 	
 	//Out folder
@@ -398,7 +428,23 @@ int read_conf_parameters(char *conf_path,char *outfolder,int &iconf,const int& n
 	    if(!dir_exists(outfolder))
 	      {
 		int ris=create_dir(outfolder);
-		if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+		if(ris==0)
+		  {
+		    master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+		    
+		    //try to lock the running file
+		    lock_file.try_lock(run_file);
+		    
+		    //setup the conf and generate the source
+		    start_new_conf(conf,conf_path,eta,nm,nhits);
+		    
+		    //verify that nobody took the lock
+		    if(not lock_file.check_lock())
+		      {
+			ok_conf=false;
+			master_printf("Somebody acquired the lock on %s\n",run_file);
+		      }
+		  }
 		else
 		  {
 		    master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
@@ -581,38 +627,12 @@ void in_main(int narg,char **arg)
   /////////////////////////////////////////////////////////////////
   
   int iconf=0;
-  char conf_path[1024];
   char outfolder[1024];
   
-  while(read_conf_parameters(conf_path,outfolder,iconf,nconfs,nanalyzed_confs,wall_time,eta,nm,nhits))
+  lock_file.init();
+  
+  while(read_conf_parameters(conf,outfolder,iconf,nconfs,nanalyzed_confs,wall_time,eta,nm,nhits))
     {
-      const std::string run_file=combine("%s/running_disco",outfolder);
-      file_touch(run_file);
-      
-      //generate the sources
-      for(int ihit=0;ihit<nhits;ihit++)
-	{
-	  const int i0=ind_im_ihit(0,ihit,nhits);
-	  generate_undiluted_source(eta[i0],RND_GAUSS,ALL_TIMES);
-	  for(int im=1;im<nm;im++)
-	    {
-	      const int i=ind_im_ihit(im,ihit,nhits);
-	      vector_copy(eta[i],eta[i0]);
-	    }
-	}
-      
-      //read the configuration and put phases
-      if(free_theory) generate_cold_lx_conf(conf);
-      else
-	{
-	  if(random_conf) generate_hot_lx_conf(conf);
-	  else read_ildg_gauge_conf(conf,conf_path);
-	}
-      
-      momentum_t old_theta;
-      old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
-      adapt_theta(conf,old_theta,theta,0,0);
-      
       /////////////////////////////////////////////////////////////////
       
       // if(neig)
