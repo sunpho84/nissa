@@ -4,6 +4,13 @@ using namespace nissa;
 
 void in_main(int narg,char **arg)
 {
+  //check argument
+  if(narg<2) crash("Use: %s input_file",arg[0]);
+  
+  //open input file
+  const char *path=arg[1];
+  open_input(path);
+  
   //geometry
   int L,T;
   read_str_int("L",&L);
@@ -49,6 +56,8 @@ void in_main(int narg,char **arg)
       //write the sum
       write_real_vector(combine("%s/EU3_source",directory),external_source,64,"Current");
     }
+  
+  close_input();
   
   nissa_free(external_source);
   nissa_free(J_stoch_sum);
