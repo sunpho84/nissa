@@ -48,7 +48,7 @@ void in_main(int narg,char **arg)
       for(int im=0;im<nm;im++)
 	{
 	  read_real_vector(J_stoch_per_mass,combine("%s/J_stoch_m%d",directory,im),"Current");
-	  double_vector_summassign_double_vector_prod_double((double*)J_stoch_sum,(double*)J_stoch_per_mass,charge[im]/3.0,sizeof(spin1field)*loc_vol);
+	  double_vector_summassign_double_vector_prod_double((double*)J_stoch_sum,(double*)J_stoch_per_mass,charge[im]/3.0,sizeof(spin1field)*loc_vol/sizeof(double));
 	}
       
       //convolve with the photon propagator
