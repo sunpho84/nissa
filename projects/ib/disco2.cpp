@@ -804,7 +804,7 @@ void in_main(int narg,char **arg)
   nissa_free(conf);
   
   //free the source and prop
-  for(int im=0;im<nhits;im++)
+  for(int im=0;im<nm;im++)
     {
       for(int ihit=0;ihit<nhits;ihit++)
 	{
