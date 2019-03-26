@@ -677,7 +677,8 @@ void in_main(int narg,char **arg)
 	  // double_vector_prodassign_double((double*)sum_eta,1.0/nhits,sizeof(sum_eta)*loc_vol/sizeof(double));
 	  
 	  double_vector_prodassign_double((double*)(J_stoch_sum[im]),1.0/nhits,sizeof(spin1field)*loc_vol/sizeof(double));
-	  write_real_vector(combine("%s/%s_m%d",outfolder,"J_stoch",im),J_stoch_sum[im],64,"Current");
+	  const std::string path=combine("%s/J_stoch_m%d",outfolder,im);
+	  write_real_vector(path,J_stoch_sum[im],64,"Current");
 	  
 	  //compute diagrams EU1, EU2 and EU4
 	  complex EU1_stoch={0.0,0.0},EU2_stoch={0.0,0.0},EU4_stoch={0.0,0.0};
@@ -791,7 +792,7 @@ void in_main(int narg,char **arg)
   nissa_free(tadpole_prop);
   nissa_free(xi);
   nissa_free(mel::buffer);
-  for(int im=0;im<nhits;im++)
+  for(int im=0;im<nm;im++)
     {
       for(int ihit=0;ihit<nhits;ihit++)
 	nissa_free(J_stoch[ind_im_ihit(im,ihit,nhits)]);
