@@ -1,6 +1,7 @@
 bin_PROGRAMS+= \
 	$(top_builddir)/bin/checks_ib \
 	$(top_builddir)/bin/disco2 \
+	$(top_builddir)/bin/EU3_source.cpp \
 	$(top_builddir)/bin/ib \
 	$(top_builddir)/bin/mel \
         $(top_builddir)/bin/mel_point_source
@@ -31,6 +32,10 @@ include_HEADERS+= \
 __top_builddir__bin_ib_SOURCES=%D%/ib.cpp $(common_sources)
 __top_builddir__bin_ib_LDADD=$(LDADD)
 __top_builddir__bin_ib_LDFLAGS=$(LDFLAGS)
+
+__top_builddir__bin_EU3_source_SOURCES=%D%/EU3_source.cpp $(common_sources)
+__top_builddir__bin_EU3_source_LDADD=$(LDADD)
+__top_builddir__bin_EU3_source_LDFLAGS=$(LDFLAGS)
 
 __top_builddir__bin_mel_SOURCES=%D%/mel.cpp
 __top_builddir__bin_mel_LDADD=$(LDADD)
