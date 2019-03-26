@@ -253,7 +253,7 @@ namespace nissa
     if(inser==EXT_FIELD)
       {
 	ext_field=nissa_malloc("ext_field",loc_vol+bord_vol,spin1field);
-	read_real_vector(ext_field,ext_field_path,"Current");
+	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
       }
     
     master_printf("Inserting r: %d\n",r);
