@@ -586,6 +586,9 @@ void in_main(int narg,char **arg)
   
   while(read_conf_parameters(conf_path,outfolder,iconf,nconfs,nanalyzed_confs,wall_time,eta,nm,nhits))
     {
+      const std::string run_file=combine("%s/running_disco",outfolder);
+      file_touch(run_file);
+      
       //generate the sources
       for(int ihit=0;ihit<nhits;ihit++)
 	{
@@ -597,8 +600,6 @@ void in_main(int narg,char **arg)
 	      vector_copy(eta[i],eta[i0]);
 	    }
 	}
-      
-      file_touch(combine("%s/running_disco",outfolder));
       
       //read the configuration and put phases
       if(free_theory) generate_cold_lx_conf(conf);
