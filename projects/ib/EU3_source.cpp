@@ -17,9 +17,10 @@ void in_main(int narg,char **arg)
   read_str_int("T",&T);
   init_grid(T,L);
   
+  //read nmasses and charges
   int nm;
-  double *am,*charge;
-  read_list_of_double_pairs("MassesChargesTimes3",&nm,&am,&charge);
+  double *charge;
+  read_list_of_doubles("MassesChargesTimes3",&nm,&charge);
   
   //to be read
   gauge_info photon_pars;
