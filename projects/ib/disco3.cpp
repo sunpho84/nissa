@@ -581,54 +581,51 @@ void in_main(int narg,char **arg)
 	      master_fprintf(fout_EU4_stoch[im],"%.16lg %.16lg\n",temp[RE],temp[IM]);
 	      
 	      //EU5 bias
-	      for(int im=0;im<nm;im++)
+	      multiply_by_tlSym_gauge_propagator(xi,J_stoch[im],photon_pars);
+	      for(int jm=0;jm<nm;jm++)
 		{
-		  multiply_by_tlSym_gauge_propagator(xi,J_stoch[im],photon_pars);
-		  for(int jm=0;jm<nm;jm++)
-		    {
-		      mel::global_product(temp,xi,J_stoch[jm]);
-		      complex_summassign(EU5_bias[im],temp);
-		    }
+		  mel::global_product(temp,xi,J_stoch[jm]);
+		  complex_summassign(EU5_bias[im],temp);
 		}
-	      
-	      //EU3 (Quark current tadpole)
-	      if(is_power_of_2(ihit))
-		for(int im=0;im<nm;im++)
-		  {
-		    double_vector_prod_double((double*)xi,(double*)(J_stoch_sum[im]),1.0/ihit,sizeof(spin1field)*loc_vol/sizeof(double));
-		    const std::string path=combine("%s/J_stoch_m%d_nhits%d",outfolder,im,ihit);
-		    write_real_vector(path,xi,64,"Current");
-		  }
-	      
-	      //EU5 (Handcuff)
-	      complex EU5_stoch[nm*nm];
-	      for(int im=0;im<nm;im++)
+	    }
+	  
+	  //EU3 (Quark current tadpole)
+	  if(is_power_of_2(ihit))
+	    for(int im=0;im<nm;im++)
+	      {
+		double_vector_prod_double((double*)xi,(double*)(J_stoch_sum[im]),1.0/ihit,sizeof(spin1field)*loc_vol/sizeof(double));
+		const std::string path=combine("%s/J_stoch_m%d_nhits%d",outfolder,im,ihit);
+		write_real_vector(path,xi,64,"Current");
+	      }
+	  
+	  //EU5 (Handcuff)
+	  complex EU5_stoch[nm*nm];
+	  for(int im=0;im<nm;im++)
+	    {
+	      multiply_by_tlSym_gauge_propagator(xi,J_stoch_sum[im],photon_pars);
+	      for(int jm=0;jm<nm;jm++)
 		{
-		  multiply_by_tlSym_gauge_propagator(xi,J_stoch_sum[im],photon_pars);
-		  for(int jm=0;jm<nm;jm++)
-		    {
-		      const int i=jm+nm*im;
-		      mel::global_product(EU5_stoch[i],xi,J_stoch_sum[jm]);
-		      
-		      complex_subtassign(EU5_stoch[i],EU5_bias[i]);
-		      
-		      double f=0;
-		      if(ihit>1) f=1.0/(ihit*(ihit-1));
-		      complex_prodassign_double(EU5_stoch[i],f);
-		      
-		      master_fprintf(fout_EU5_stoch[i],"%.16lg %.16lg\n",EU5_stoch[i][RE],EU5_stoch[i][IM]);
-		    }
-		}
-	      
-	      //EU6 (Blinky)
-	      for(int im=0;im<nm;im++)
-		{
-		  complex EU6_stoch;
-		  complex_prod_double(EU6_stoch,EU5_bias[im],1.0/(ihit*ihit));
-		  complex_subtassign(EU6_stoch,EU5_stoch[im+nm*im]);
+		  const int i=jm+nm*im;
+		  mel::global_product(EU5_stoch[i],xi,J_stoch_sum[jm]);
 		  
-		  master_fprintf(fout_EU6_stoch[im],"%.16lg %.16lg\n",EU5_stoch[im][RE],EU5_stoch[im][IM]);
+		  complex_subtassign(EU5_stoch[i],EU5_bias[i]);
+		  
+		  double f=0;
+		  if(ihit>1) f=1.0/(ihit*(ihit-1));
+		  complex_prodassign_double(EU5_stoch[i],f);
+		  
+		  master_fprintf(fout_EU5_stoch[i],"%.16lg %.16lg\n",EU5_stoch[i][RE],EU5_stoch[i][IM]);
 		}
+	    }
+	  
+	  //EU6 (Blinky)
+	  for(int im=0;im<nm;im++)
+	    {
+	      complex EU6_stoch;
+	      complex_prod_double(EU6_stoch,EU5_bias[im],1.0/(ihit*ihit));
+	      complex_subtassign(EU6_stoch,EU5_stoch[im+nm*im]);
+	      
+	      master_fprintf(fout_EU6_stoch[im],"%.16lg %.16lg\n",EU5_stoch[im][RE],EU5_stoch[im][IM]);
 	    }
 	}
       
