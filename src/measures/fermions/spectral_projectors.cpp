@@ -140,7 +140,7 @@ namespace nissa
     
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
 
-    master_fprintf(file,"%d\t%d\t",neigs,meas_pars.smooth_pars.nsmooth());
+    master_fprintf(file,"%d\t%d\t%d\t",iconf,nsmooth,neigs);
     for(int ieig=0;ieig<neigs;++ieig)
       master_fprintf(file,"%.16lg\t",eigval[ieig][RE]);
     
