@@ -611,7 +611,10 @@ void in_main(int narg,char **arg)
 		      mel::global_product(EU5_stoch[i],xi,J_stoch_sum[jm]);
 		      
 		      complex_subtassign(EU5_stoch[i],EU5_bias[i]);
-		      complex_prodassign_double(EU5_stoch[i],1.0/(ihit*(ihit-1)));
+		      
+		      double f=0;
+		      if(ihit>1) f=1.0/(ihit*(ihit-1));
+		      complex_prodassign_double(EU5_stoch[i],f);
 		      
 		      master_fprintf(fout_EU5_stoch[i],"%.16lg %.16lg\n",EU5_stoch[i][RE],EU5_stoch[i][IM]);
 		    }
