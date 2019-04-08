@@ -29,7 +29,9 @@ namespace nissa
   
   //remove the field
   void rem_photon_field_to_conf(quad_su3 *conf,double q)
-  {add_photon_field_to_conf(conf,-q);}
+  {
+    add_photon_field_to_conf(conf,-q);
+  }
   
   //get a propagator inverting on "in"
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,double residue,double *theta)

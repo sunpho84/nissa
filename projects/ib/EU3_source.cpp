@@ -2,6 +2,20 @@
 
 using namespace nissa;
 
+THREADABLE_FUNCTION_1ARG(put_current_to_one_in_time, spin1field*,J)
+{
+  GET_THREAD_ID();
+  
+  master_printf("Putting to zero all spatial, 1 time\n");
+  
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int mu=0;mu<NDIM;mu++)
+      complex_put_to_real(J[ivol][mu],mu==0);
+  
+  set_borders_invalid(J);
+}
+THREADABLE_FUNCTION_END
+
 void in_main(int narg,char **arg)
 {
   //check argument
@@ -53,6 +67,10 @@ void in_main(int narg,char **arg)
       
       //convolve with the photon propagator
       multiply_by_tlSym_gauge_propagator(external_source,J_stoch_sum,photon_pars);
+      
+      //put the current to 1 everywhere
+      if(nm<0)
+	put_current_to_one_in_time(external_source);
       
       //write the sum
       write_real_vector(combine("%s/EU3_source",directory),external_source,64,"Current");
