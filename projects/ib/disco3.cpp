@@ -630,7 +630,7 @@ void in_main(int narg,char **arg)
 	      complex_prod_double(EU6_stoch,EU5_bias[im],1.0/(ihit*ihit));
 	      complex_subtassign(EU6_stoch,EU5_stoch[im+nm*im]);
 	      
-	      master_fprintf(fout_EU6_stoch[im],"%.16lg %.16lg\n",EU5_stoch[im][RE],EU5_stoch[im][IM]);
+	      master_fprintf(fout_EU6_stoch[im],"%.16lg %.16lg\n",EU6_stoch[RE],EU6_stoch[IM]);
 	    }
 	}
       
