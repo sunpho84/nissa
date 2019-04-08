@@ -419,51 +419,56 @@ int read_conf_parameters(quad_su3 *conf,char *outfolder,int &iconf,const int& nc
 	if(snprintf(run_file,1024,"%s/running_disco",outfolder)<0) crash("witing %s",run_file);
 	char fin_file[1024];
 	if(snprintf(fin_file,1024,"%s/finished_disco",outfolder)<0) crash("witing %s",run_file);
-	ok_conf=(not file_exists(run_file)) and (not file_exists(fin_file));
 	
-	//if not finished
-	if(ok_conf)
+	if(file_exists(run_file) or file_exists(fin_file))
+	  {
+	    ok_conf=false;
+	    master_printf("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
+	  }
+	else
 	  {
 	    master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
-	    if(!dir_exists(outfolder))
+	    ok_conf=true;
+	  }
+	
+	//create the dir
+	if(ok_conf and not dir_exists(outfolder))
+	  {
+	    if(create_dir(outfolder)==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+	    else
 	      {
-		int ris=create_dir(outfolder);
-		if(ris==0)
-		  {
-		    master_printf(" Output path \"%s\" not present, created.\n",outfolder);
-		    
-		    //try to lock the running file
-		    lock_file.try_lock(run_file);
-		    
-		    //setup the conf and generate the source
-		    start_new_conf(conf,conf_path,eta,nm,nhits);
-		    
-		    //verify that nobody took the lock
-		    if(not lock_file.check_lock())
-		      {
-			ok_conf=false;
-			master_printf("Somebody acquired the lock on %s\n",run_file);
-		      }
-		  }
-		else
-		  {
-		    master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
-		    ok_conf=0;
-		    skip_conf(eta,nhits);
-		  }
+		master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+		ok_conf=0;
+	      }
+	  }
+	
+	//load the conf
+	if(ok_conf)
+	  {
+	    //try to lock the running file
+	    lock_file.try_lock(run_file);
+	    
+	    //setup the conf and generate the source
+	    start_new_conf(conf,conf_path,eta,nm,nhits);
+	    
+	    //verify that nobody took the lock
+	    if(not lock_file.check_lock())
+	      {
+		ok_conf=false;
+		master_printf("Somebody acquired the lock on %s\n",run_file);
 	      }
 	  }
 	else
 	  {
-	    //skipping conf
-	    master_printf("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
+	    //skip if needed
 	    skip_conf(eta,nhits);
 	  }
+	
 	iconf++;
 	
 	still_conf=(iconf<nconfs);
       }
-    while(!ok_conf and still_conf);
+    while((not ok_conf) and still_conf);
   
   master_printf("\n");
   
