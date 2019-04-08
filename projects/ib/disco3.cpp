@@ -562,7 +562,7 @@ void in_main(int narg,char **arg)
 	      
 	      //compute all currents
 	      mel::conserved_vector_current_mel(J_stoch[im],eta,conf,r,phi[im]);
-	      double_vector_summassign((double*)(J_stoch_sum[im]),(double*)J_stoch,loc_vol*sizeof(spin1field)/sizeof(double));
+	      double_vector_summassign((double*)(J_stoch_sum[im]),(double*)(J_stoch[im]),loc_vol*sizeof(spin1field)/sizeof(double));
 	      
 	      complex temp;
 	      
