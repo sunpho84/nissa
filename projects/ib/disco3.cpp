@@ -228,11 +228,11 @@ THREADABLE_FUNCTION_8ARG(compute_propagators, spincolor**,phi, spincolor*,eta, i
   //prepare the source
   vector_copy(source,eta);
   
+  //rotate to twisted basis
+  safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,source);
+  
   for(int im=0;im<nm;im++)
     {
-      //rotate to twisted basis
-      safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,source);
-      
       //invert
       START_TIMING(inv_time,ninv_tot);
       
@@ -619,7 +619,6 @@ void in_main(int narg,char **arg)
 		  mel::global_product(EU5_stoch[i],xi,J_stoch_sum[jm]);
 		  
 		  complex_subtassign(EU5_stoch[i],EU5_bias[i]);
-		  master_printf("EU5_bias[%d]: %.16lg %.16lg\n",i,EU5_bias[i][RE],EU5_bias[i][IM]);
 		  
 		  if(ihit>1)
 		    complex_prodassign_double(EU5_stoch[i],1.0/(ihit*(ihit-1)));
