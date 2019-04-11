@@ -584,11 +584,16 @@ void in_main(int narg,char **arg)
 	      insert_tm_tadpole(tadpole_prop,conf,phi[im],r,tadpole_coeff,ALL_TIMES);
 	      mel::local_mel(temp,eta,0,tadpole_prop);
 	      master_fprintf(fout_EU4_stoch[im],"%.16lg %.16lg\n",temp[RE],temp[IM]);
-	      
-	      //EU5 bias
+	    }
+	  
+	  //EU5 bias
+	  for(int im=0;im<nm;im++)
+	    {
 	      multiply_by_tlSym_gauge_propagator(xi,J_stoch[im],photon_pars);
 	      for(int jm=0;jm<nm;jm++)
 		{
+		  complex temp;
+		  
 		  mel::global_product(temp,xi,J_stoch[jm]);
 		  complex_summassign(EU5_bias[jm+nm*im],temp);
 		}
