@@ -590,7 +590,7 @@ void in_main(int narg,char **arg)
 	      for(int jm=0;jm<nm;jm++)
 		{
 		  mel::global_product(temp,xi,J_stoch[jm]);
-		  complex_summassign(EU5_bias[im],temp);
+		  complex_summassign(EU5_bias[jm+nm*im],temp);
 		}
 	    }
 	  
