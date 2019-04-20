@@ -281,6 +281,7 @@ MeasWatusso DEBUG_PRINTF("Found MeasWatusso\n");return TK_MEAS_WATUSSO;
 MeasAllRects DEBUG_PRINTF("Found MeasAllRects\n");return TK_MEAS_ALL_RECTS;
 
  /* evol pars */
+ForceUnquenched DEBUG_PRINTF("Found ForceUnquenched\n");return TK_FORCE_UNQUENCHED;
 QuenchedEvolution DEBUG_PRINTF("Found QuenchedEvolution\n");return TK_QUENCHED_EVOLUTION;
 Evolution DEBUG_PRINTF("Found Evolution\n");return TK_EVOLUTION;
 IdSeaTheory DEBUG_PRINTF("Found IdSeaTheoryn");return TK_ID_SEA_THEORY;
@@ -357,7 +358,8 @@ nissa::driver_t::driver_t(FILE *ext) :
 			T(def_T()),
 			walltime(def_walltime()),
 			seed(def_seed()),
-			run_mode(def_run_mode()){
+		        run_mode(def_run_mode()),
+			force_unquenched(def_force_unquenched()){
   fin=ext;
   
   init_scanner();

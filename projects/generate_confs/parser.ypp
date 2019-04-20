@@ -292,6 +292,7 @@
 %token TK_TMAX
 //evolution parameters
 %token TK_EVOLUTION
+%token TK_FORCE_UNQUENCHED
 %token TK_QUENCHED_EVOLUTION
 %token TK_ID_SEA_THEORY
 %token TK_NTRAJ_TOT
@@ -357,6 +358,7 @@ global_specify: geometry
               | watusso_meas {driver->add_watusso_meas(*$1);delete $1;}
               | all_rects_meas {driver->add_all_rects_meas(*$1);delete $1;}
 /////////////// evolve and confpars /////////////////
+              | TK_FORCE_UNQUENCHED '=' int_numb {driver->force_unquenched=$3;}
               | global_evolve_pars
               | global_quenched_evolve_pars
               | global_conf_pars
