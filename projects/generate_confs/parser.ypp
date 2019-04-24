@@ -754,7 +754,6 @@ spectr_proj_meas: TK_SPECTR_PROJ {$$=new spectr_proj_meas_pars_t();}
                 | spectr_proj_meas neigs {$$->neigs=$2;}
                 | spectr_proj_meas eig_precision {$$->eig_precision=$2;}
                 | spectr_proj_meas wspace_size {$$->wspace_size=$2;}
-                | spectr_proj_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
 ;
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////

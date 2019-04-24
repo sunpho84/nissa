@@ -101,7 +101,6 @@ namespace nissa
     int neigs=meas_pars.neigs;
    
     // allocate auxiliary vectors 
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol,quad_su3);
     complex *charge_cut=nissa_malloc("charge_cut",neigs*neigs,complex);
     complex *eigval=nissa_malloc("DD_eig_Val",neigs,complex);
     double *cum_sumA=nissa_malloc("cum_sumA",meas_pars.neigs+1,double);
@@ -110,29 +109,18 @@ namespace nissa
     for(int ieig=0;ieig<neigs;ieig++)
       eigvec[ieig]=nissa_malloc("eigvec_ieig",loc_vol+bord_vol,color);
    
-    //loop on smooth
-    int nsmooth=0;
-    bool finished;
-    do
-    { 
-      verbosity_lv1_master_printf("Measuring spectral projectors for nsmooth %d/%d\n",nsmooth,meas_pars.smooth_pars.nsmooth());
+    verbosity_lv1_master_printf("Measuring spectral projectors \n");
 
-      // reset vectors
-      vector_reset(charge_cut);
-      vector_reset(eigval);
-      vector_reset(cum_sumA);
-      vector_reset(cum_sumB);
-      for(int ieig=0;ieig<neigs;ieig++)
-        vector_reset(eigvec[ieig]);
+    // reset vectors
+    vector_reset(charge_cut);
+    vector_reset(eigval);
+    vector_reset(cum_sumA);
+    vector_reset(cum_sumB);
+    for(int ieig=0;ieig<neigs;ieig++)
+      vector_reset(eigvec[ieig]);
 
-      //loop over hits
-      int nhits=meas_pars.nhits;
-      for(int hit=0;hit<nhits;hit++)
-        {
-      verbosity_lv2_master_printf("Evaluating iD spectrum, nhits %d/%d\n",hit+1,nhits);
-      
-      measure_iD_spectrum(eigvec,conf,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
-        }
+    //loop over hits
+    measure_iD_spectrum(eigvec,conf,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
     
     //print the result on file
     verbosity_lv1_master_printf("\n\nPartial sums for spectral projectors:\n\nk\t\t\teig\t\t\tA_k\t\t\tB_k\n");
@@ -140,7 +128,7 @@ namespace nissa
     
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
 
-    master_fprintf(file,"%d\t%d\t%d\t",iconf,nsmooth,neigs);
+    master_fprintf(file,"%d\t%d\t",iconf,neigs);
     for(int ieig=0;ieig<neigs;++ieig)
       master_fprintf(file,"%.16lg\t",eigval[ieig][RE]);
     
@@ -166,13 +154,6 @@ namespace nissa
       verbosity_lv1_master_printf("%d\t%.16lg\t%.16lg\t%.16lg\n",ieig,eigval[ieig][RE],cum_sumA[1+ieig],cum_sumB[1+ieig]);
     }
     verbosity_lv1_master_printf("\n\n");
-
-    //proceeds with smoothing
-    paste_eo_parts_into_lx_vector(conf_lx,conf);
-    finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
-    split_lx_vector_into_eo_parts(conf,conf_lx);
-      }
-    while(not finished);
    
     // deallocating vectors 
     for(int ieig=0;ieig<neigs;ieig++)
@@ -183,7 +164,6 @@ namespace nissa
     nissa_free(eigval);
     nissa_free(cum_sumA);
     nissa_free(cum_sumB);
-    nissa_free(conf_lx);
   }
   
   //print pars
@@ -196,7 +176,6 @@ namespace nissa
     if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
     if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
     if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
-    os<<smooth_pars.get_str(full);
     
     return os.str();
   }

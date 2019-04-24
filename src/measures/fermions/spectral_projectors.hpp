@@ -5,7 +5,6 @@
 #include "fermionic_meas.hpp"
 #include "hmc/gauge/topological_action.hpp"
 #include "hmc/theory_pars.hpp"
-#include "operations/smearing/smooth.hpp"
 
 namespace nissa
 {
@@ -15,7 +14,6 @@ namespace nissa
     int neigs;            //number of eigenvalues required
     double eig_precision; //relative precision between eigenvalues
     int wspace_size;      //size of Krylov space for the Arnoldi algorithm (it would be clipped in [2*neigs,mat_size])
-    smooth_pars_t smooth_pars;
 
     std::string def_path(){return "pettirosso";}
     int def_neigs(){return 5;}
@@ -32,8 +30,7 @@ namespace nissa
 	path!=def_path() or
 	neigs!=def_neigs() or
 	eig_precision!=def_eig_precision() or
-	wspace_size!=def_wspace_size() or
-	smooth_pars.is_nonstandard();
+	wspace_size!=def_wspace_size();
     }
     
     spectr_proj_meas_pars_t() :
