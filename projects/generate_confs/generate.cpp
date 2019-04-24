@@ -296,7 +296,7 @@ int generate_new_conf(int itraj)
   int acc;
   
   //if not quenched
-  if(drv->sea_theory().nflavs()!=0 or drv->sea_theory().topotential_pars.flag!=0)
+  if(drv->sea_theory().nflavs()!=0 or drv->sea_theory().topotential_pars.flag!=0 or drv->force_unquenched)
     {
       //find if needed to perform test
       int perform_test=(itraj>=drv->hmc_evol_pars.skip_mtest_ntraj);

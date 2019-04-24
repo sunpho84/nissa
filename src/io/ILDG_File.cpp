@@ -642,7 +642,7 @@ namespace nissa
     
     //count wrote bytes
     size_t nbytes_written=MPI_Get_count_size_t(status);
-    if((uint64_t)nbytes_written!=data_length/nranks) crash("written %u bytes instead than %u",nbytes_written,data_length/nranks);
+    if((uint64_t)nbytes_written!=data_length/nranks) crash("written %zu bytes instead than %zu",nbytes_written,data_length/nranks);
     
     //put the view to original state and place at the end of the record, including padding
     normal_view.pos+=ceil_to_next_eight_multiple(data_length);

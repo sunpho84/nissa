@@ -198,6 +198,7 @@ void init_simulation(int narg,char **arg)
       master_printf("Read variable 'Tins' with value: %d\n",tins);
       
       double kappa=0.125,mass=0.0,charge=0,theta[NDIM],residue=1e-16;
+      char ext_field_path[32]="";
       theta[0]=temporal_bc;
       for(int mu=1;mu<NDIM;mu++) theta[mu]=0;
       int r=0,store_prop=0;
@@ -252,6 +253,13 @@ void init_simulation(int narg,char **arg)
       //everything else
       if(not decripted)
 	{
+	  //external source
+	  if(strcasecmp(ins,ins_tag[EXT_FIELD])==0)
+	    {
+	      read_str(ext_field_path,32);
+	      master_printf("Read variable 'ext_field_path' with value: %s\n",ext_field_path);
+	    }
+	  
 	  if(twisted_run)
 	    {
 	      read_int(&r);
@@ -260,9 +268,10 @@ void init_simulation(int narg,char **arg)
 	  read_double(&charge);
 	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
 	}
+      
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
-      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,mass,r,charge,theta,store_prop);
+      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,mass,ext_field_path,r,charge,theta,store_prop);
       qprop_name_list[iq]=name;
     }
   

@@ -124,6 +124,9 @@ namespace nissa
     run_mode_t def_run_mode(){return EVOLUTION_MODE;}
     
     //evolution and conf
+    bool force_unquenched;
+    bool def_force_unquenched(){return false;}
+    
     hmc_evol_pars_t hmc_evol_pars;
     pure_gauge_evol_pars_t quenched_evol_pars;
     conf_pars_t conf_pars;
@@ -204,6 +207,7 @@ namespace nissa
       switch(run_mode)
 	{
 	case EVOLUTION_MODE:
+	  if(full||force_unquenched!=def_force_unquenched()) os<<"ForceUnquenched\t="<<force_unquenched<<"\n";
 	  os<<hmc_evol_pars.get_str(full)<<"\n";
 	  os<<quenched_evol_pars.get_str(full)<<"\n";
 	  os<<conf_pars.get_str(full)<<"\n";

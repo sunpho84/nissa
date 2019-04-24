@@ -1,6 +1,8 @@
 bin_PROGRAMS+= \
 	$(top_builddir)/bin/checks_ib \
 	$(top_builddir)/bin/disco2 \
+	$(top_builddir)/bin/disco3 \
+	$(top_builddir)/bin/EU3_source \
 	$(top_builddir)/bin/ib \
 	$(top_builddir)/bin/mel \
         $(top_builddir)/bin/mel_point_source
@@ -32,6 +34,10 @@ __top_builddir__bin_ib_SOURCES=%D%/ib.cpp $(common_sources)
 __top_builddir__bin_ib_LDADD=$(LDADD)
 __top_builddir__bin_ib_LDFLAGS=$(LDFLAGS)
 
+__top_builddir__bin_EU3_source_SOURCES=%D%/EU3_source.cpp $(common_sources)
+__top_builddir__bin_EU3_source_LDADD=$(LDADD)
+__top_builddir__bin_EU3_source_LDFLAGS=$(LDFLAGS)
+
 __top_builddir__bin_mel_SOURCES=%D%/mel.cpp
 __top_builddir__bin_mel_LDADD=$(LDADD)
 __top_builddir__bin_mel_LDFLAGS=$(LDFLAGS)
@@ -48,6 +54,10 @@ __top_builddir__bin_mel_point_source_LDFLAGS=$(LDFLAGS)
 __top_builddir__bin_disco2_SOURCES=%D%/disco2.cpp
 __top_builddir__bin_disco2_LDADD=$(LDADD)
 __top_builddir__bin_disco2_LDFLAGS=$(LDFLAGS)
+
+__top_builddir__bin_disco3_SOURCES=%D%/disco3.cpp
+__top_builddir__bin_disco3_LDADD=$(LDADD)
+__top_builddir__bin_disco3_LDFLAGS=$(LDFLAGS)
 
 # __top_builddir__bin_test_prop_SOURCES=%D%/test_prop.cpp $(common_sources)
 # __top_builddir__bin_test_prop_LDADD=$(LDADD)

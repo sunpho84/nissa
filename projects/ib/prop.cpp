@@ -29,7 +29,9 @@ namespace nissa
   
   //remove the field
   void rem_photon_field_to_conf(quad_su3 *conf,double q)
-  {add_photon_field_to_conf(conf,-q);}
+  {
+    add_photon_field_to_conf(conf,-q);
+  }
   
   //get a propagator inverting on "in"
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,double residue,double *theta)
@@ -229,7 +231,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //generate a sequential source
-  void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,std::vector<source_term_t>& source_terms,int isou,int t)
+  void generate_source(insertion_t inser,char *ext_field_path,int r,double charge,double kappa,double *theta,std::vector<source_term_t>& source_terms,int isou,int t)
   {
     source_time-=take_time();
     
@@ -248,6 +250,13 @@ namespace nissa
     
     spincolor* ori=nissa_malloc("ori",loc_vol+bord_vol,spincolor);
     build_source(ori,&source_terms,isou);
+    
+    spin1field *ext_field=nullptr;
+    if(inser==EXT_FIELD)
+      {
+	ext_field=nissa_malloc("ext_field",loc_vol+bord_vol,spin1field);
+	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
+      }
     
     master_printf("Inserting r: %d\n",r);
     switch(inser)
@@ -268,11 +277,14 @@ namespace nissa
       case CVEC1:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[1]);break;
       case CVEC2:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[2]);break;
       case CVEC3:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[3]);break;
+      case EXT_FIELD:insert_external_source(loop_source,conf,ext_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case SMEARING:smear_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       case PHASING:phase_prop(loop_source,ori,rel_t,theta);break;
       }
     
     nissa_free(ori);
+    if(ext_field)
+      nissa_free(ext_field);
     
     source_time+=take_time();
     nsource_tot++;
@@ -371,7 +383,7 @@ namespace nissa
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
 	      int isou=so_sp_col_ind(id_so,ic_so);
-	      generate_source(insertion,q.r,q.charge,q.kappa,q.theta,q.source_terms,isou,q.tins);
+	      generate_source(insertion,q.ext_field_path,q.r,q.charge,q.kappa,q.theta,q.source_terms,isou,q.tins);
 	      spincolor *sol=q[isou];
 	      
 	      //combine the filename
