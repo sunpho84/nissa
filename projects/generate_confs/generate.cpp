@@ -479,32 +479,32 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 {
   double meas_time=-take_time();
   
-  RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i],conf,iconf,acc,gauge_action_name);
-  RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],conf,conf_created);
+  for(int eo=0;eo<2;eo++)
+    vector_copy(temp[eo],conf[eo]);
+  
+  RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i],temp,iconf,acc,gauge_action_name);
+  RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],temp,conf_created);
   RANGE_GAUGE_MEAS(top_meas,i)
     {
       top_meas_time[i]-=take_time();
-      measure_topology_eo_conf(drv->top_meas[i],conf,iconf,conf_created);
+      measure_topology_eo_conf(drv->top_meas[i],temp,iconf,conf_created);
       top_meas_time[i]+=take_time();
     }
   
-  RANGE_GAUGE_MEAS(all_rects_meas,i) measure_all_rectangular_paths(&drv->all_rects_meas[i],conf,iconf,conf_created);
-  RANGE_GAUGE_MEAS(watusso_meas,i) measure_watusso(&drv->watusso_meas[i],conf,iconf,conf_created);
+  RANGE_GAUGE_MEAS(all_rects_meas,i) measure_all_rectangular_paths(&drv->all_rects_meas[i],temp,iconf,conf_created);
+  RANGE_GAUGE_MEAS(watusso_meas,i) measure_watusso(&drv->watusso_meas[i],temp,iconf,conf_created);
   
   for(int itheory=0;itheory<drv->ntheories();itheory++)
     if(drv->any_fermionic_measure_is_due(itheory,iconf))
       {
-	//if needed stout
-	quad_su3 **sme_conf=(drv->theories[itheory].stout_pars.nlevels==0)?conf:new_conf;
-	
-	//it is pointless to smear if there is no fermionic measurement
-	stout_smear(sme_conf,conf,&(drv->theories[itheory].stout_pars));
+	//smear
+	stout_smear(temp,conf,&(drv->theories[itheory].stout_pars));
 	
 	RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
 	RANGE_FERMIONIC_MEAS(drv,quark_rendens);
 	RANGE_FERMIONIC_MEAS(drv,chir_zumba);
 	RANGE_FERMIONIC_MEAS(drv,qed_corr);
-	RANGE_FERMIONIC_MEAS_EXTENDED(drv,spinpol,drv->theories[itheory].stout_pars,conf);
+	RANGE_FERMIONIC_MEAS_EXTENDED(drv,spinpol,drv->theories[itheory].stout_pars,temp);
 	RANGE_FERMIONIC_MEAS(drv,magnetization);
 	RANGE_FERMIONIC_MEAS(drv,minmax_eigenvalues);
 	RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
