@@ -46,7 +46,7 @@ namespace nissa
     verbosity_lv1_master_printf("\n\nEigenvalues of staggered iD operator:\n");
     for(int ieig=0;ieig<neigs;ieig++)
     {
-      master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
+      verbosity_lv1_master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
 
       // compute terms u_j^+ g5 u_i
       // convert 'eigvec[ieig]' in staggered format ('in_tmp_eo'),
@@ -64,7 +64,7 @@ namespace nissa
       for(int jeig=ieig;jeig<neigs;jeig++)
     {
       complex_vector_glb_scalar_prod(charge_cut[ieig*neigs+jeig],(complex*)eigvec[jeig],(complex*)eigvec_g5_lx,loc_vol*sizeof(color)/sizeof(complex));
-      verbosity_lv1_master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
+      verbosity_lv2_master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
     }
 
     }
