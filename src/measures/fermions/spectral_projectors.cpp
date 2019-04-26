@@ -101,10 +101,11 @@ namespace nissa
     int neigs=meas_pars.neigs;
    
     // allocate auxiliary vectors 
-		quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol,quad_su3);
+		quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
 		paste_eo_parts_into_lx_vector(conf_lx,conf);
-		quad_su3 *conf_eo[2]={nissa_malloc("conf_eo_EVN",loc_volh+bord_volh,quad_su3),nissa_malloc("conf_eo_ODD",loc_volh+bord_volh,quad_su3)};
+		quad_su3 *conf_eo[2]={nissa_malloc("conf_eo_EVN",loc_volh+bord_volh+edge_volh,quad_su3),nissa_malloc("conf_eo_ODD",loc_volh+bord_volh+edge_volh,quad_su3)};
 		split_lx_vector_into_eo_parts(conf_eo,conf_lx);
+    set_borders_invalid(conf_lx);
     complex *charge_cut=nissa_malloc("charge_cut",neigs*neigs,complex);
     complex *eigval=nissa_malloc("DD_eig_Val",neigs,complex);
     double *cum_sumA=nissa_malloc("cum_sumA",meas_pars.neigs+1,double);
@@ -168,6 +169,7 @@ namespace nissa
 			break;
 
 		finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
+    set_borders_invalid(conf_lx);
 		split_lx_vector_into_eo_parts(conf_eo,conf_lx);
       }
     while(not finished);
