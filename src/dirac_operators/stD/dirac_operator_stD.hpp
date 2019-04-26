@@ -18,6 +18,7 @@ namespace nissa
   void apply_stD(color **out,quad_su3 **conf,double m,color **in);
   
   void apply_Adams(color **out,quad_su3 **conf,quad_u1 **u1b,double m,double m_Adams,color **temp,color **in);
+  void apply_AdamsII(color **out,quad_su3 **conf,quad_u1 **u1b,double m,double m_Adams,color **temp,color **in);
 }
 
 #endif

@@ -261,7 +261,6 @@ MeasSpectrProj DEBUG_PRINTF("Found MeasSpectrProj\n");return TK_SPECTR_PROJ;
 ComputeSusc DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
 
  /* parameters for SpectrProj */
-MAdams DEBUG_PRINTF("Found MAdams\n");return TK_M_ADAMS;
 Neigs DEBUG_PRINTF("Found Neigs\n");return TK_NEIGS;
 EigPrecision DEBUG_PRINTF("Found EigPrecision\n");return TK_EIG_PRECISION;
 

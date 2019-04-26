@@ -40,9 +40,14 @@ namespace nissa
   }
   
   void evn_apply_stD_dag(color *out,quad_su3 **conf,double m,color **in)
-  {evn_apply_stD(out,conf,m,in,-1);}
+  {
+    evn_apply_stD(out,conf,m,in,-1);
+  }
+  
   void odd_apply_stD_dag(color *out,quad_su3 **conf,double m,color **in)
-  {odd_apply_stD(out,conf,m,in,-1);}
+  {
+    odd_apply_stD(out,conf,m,in,-1);
+  }
   
   //Adams operator https://arxiv.org/pdf/1103.6191.pdf
   THREADABLE_FUNCTION_7ARG(apply_Adams, color**,out, quad_su3**,conf, quad_u1**,u1b, double,m, double,m_Adams, color**,temp, color**,in)
@@ -67,6 +72,26 @@ namespace nissa
 	// out = (i * D - m * g5 X id) * in
 	double_vector_summ_double_vector_prod_double((double*)out[eo],(double*)temp[eo],(double*)out[eo],-m_Adams,2*NCOL*loc_volh);
       }
+  }
+  THREADABLE_FUNCTION_END
+  
+  //AdamsII operator https://arxiv.org/pdf/1008.2833.pdf
+  THREADABLE_FUNCTION_7ARG(apply_AdamsII, color**,out, quad_su3**,conf, quad_u1**,u1b, double,m, double,m_Adams, color**,temp, color**,in)
+  {
+    // out = D * in
+    add_backfield_with_stagphases_to_conf(conf,u1b);
+    apply_stD(out,conf,m,in);
+    rem_backfield_with_stagphases_from_conf(conf,u1b);
+    
+    // temp = (Gamma5 x Gamma5) * D * in
+    apply_stag_op(temp,conf,u1b,stag::GAMMA_5,stag::GAMMA_5,out);
+    
+    // out = g5 X id * in
+    apply_stag_op(out,conf,u1b,stag::GAMMA_5,stag::IDENTITY,in);
+    
+    // out = (g5 X g5 * D - m * g5 X id) * in
+    for(int eo=0;eo<2;eo++)
+      double_vector_summ_double_vector_prod_double((double*)out[eo],(double*)temp[eo],(double*)out[eo],-m_Adams,2*NCOL*loc_volh);
   }
   THREADABLE_FUNCTION_END
 }
