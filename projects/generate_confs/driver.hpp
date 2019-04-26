@@ -80,18 +80,6 @@ namespace nissa
       return a and b;
     }
     
-#define RANGE_FERMIONIC_MEAS_IF(DRV,OBS)				\
-    for(size_t imeas=0;imeas<DRV->NAME2(OBS,meas).size();imeas++)	\
-      if(DRV->if_meas_is_due_print(DRV->NAME2(OBS,meas)[imeas],itheory,iconf,#OBS))
-    
-#define RANGE_FERMIONIC_MEAS(DRV,OBS)					\
-    RANGE_FERMIONIC_MEAS_IF(DRV,OBS)					\
-    NAME2(measure,OBS)(sme_conf,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created);
-    
-#define RANGE_FERMIONIC_MEAS_EXTENDED(DRV,OBS,...)			\
-    RANGE_FERMIONIC_MEAS_IF(DRV,OBS)					\
-    NAME2(measure,OBS)(sme_conf,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created,__VA_ARGS__);
-    
     //add
     void add_meson_corr_meas(meson_corr_meas_pars_t &m){meson_corr_meas.push_back(m);}
     void add_nucleon_corr_meas(nucleon_corr_meas_pars_t &m){nucleon_corr_meas.push_back(m);}

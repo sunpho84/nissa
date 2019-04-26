@@ -462,6 +462,18 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   for(size_t B=0;B<drv->A.size();B++)			\
     if(measure_is_due(drv->A[B],iconf))
 
+#define RANGE_FERMIONIC_MEAS_IF(DRV,OBS)				\
+    for(size_t imeas=0;imeas<DRV->NAME2(OBS,meas).size();imeas++)	\
+      if(DRV->if_meas_is_due_print(DRV->NAME2(OBS,meas)[imeas],itheory,iconf,#OBS))
+
+#define RANGE_FERMIONIC_MEAS(DRV,OBS)					\
+    RANGE_FERMIONIC_MEAS_IF(DRV,OBS)					\
+    NAME2(measure,OBS)(temp,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created);
+
+#define RANGE_FERMIONIC_MEAS_EXTENDED(DRV,OBS,...)			\
+    RANGE_FERMIONIC_MEAS_IF(DRV,OBS)					\
+    NAME2(measure,OBS)(temp,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created,__VA_ARGS__);
+
 //measures
 void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
