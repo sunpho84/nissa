@@ -105,9 +105,11 @@ namespace nissa
 	}
     }
     
-    //return the next measure
+    //return the next measure strictly after nsmooth
     int next_nsmooth_meas(int nsmooth)
-    {return (nsmooth+meas_each_nsmooth)/meas_each_nsmooth*meas_each_nsmooth;}
+    {
+      return (nsmooth+meas_each_nsmooth)/meas_each_nsmooth*meas_each_nsmooth;
+    }
     
     //returns the number of smooth
     int nsmooth()

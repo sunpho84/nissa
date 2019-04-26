@@ -27,15 +27,16 @@ namespace nissa
   {
     if(sp.method==smooth_pars_t::COOLING and dirs!=all_dirs) crash("not implemented");
     
-    bool finished=false;
-    int next_nsmooth_meas=sp.next_nsmooth_meas(nsmooth);
-    while(nsmooth<next_nsmooth_meas and not finished)
-      {
-	verbosity_lv3_master_printf("smoothing %d to %d %d\n",nsmooth,next_nsmooth_meas,(int)(nsmooth>sp.nsmooth()));
-	smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);
-	nsmooth++;
-	finished=(nsmooth>sp.nsmooth());
-      }
+    const int next_nsmooth_meas=sp.next_nsmooth_meas(nsmooth);
+    const bool finished=(next_nsmooth_meas>sp.nsmooth());
+    
+    if(not finished)
+      while(nsmooth<next_nsmooth_meas)
+	{
+	  verbosity_lv3_master_printf("smoothing %d to %d\n",nsmooth,next_nsmooth_meas);
+	  smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);
+	  nsmooth++;
+	}
     
     return finished;
   }
