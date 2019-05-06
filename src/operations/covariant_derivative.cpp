@@ -48,6 +48,38 @@ namespace nissa
     set_borders_invalid(out);
   }
   
+  //covariant shift backward: i=i+mu
+  void cshift_bw(spincolor *out,quad_su3 *conf,int mu,spincolor *in,bool reset_first=true)
+  {
+    GET_THREAD_ID();
+    
+    communicate_lx_spincolor_borders(in);
+    communicate_lx_quad_su3_borders(conf);
+    
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	if(reset_first) spincolor_put_to_zero(out[ivol]);
+	su3_summ_the_prod_spincolor(out[ivol],conf[ivol][mu],in[loclx_neighup[ivol][mu]]);
+      }
+    set_borders_invalid(out);
+  }
+  
+  //covariant shift forward: i=i-mu
+  void cshift_fw(spincolor *out,quad_su3 *conf,int mu,spincolor *in,bool reset_first=true)
+  {
+    GET_THREAD_ID();
+    
+    communicate_lx_spincolor_borders(in);
+    communicate_lx_quad_su3_borders(conf);
+    
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	if(reset_first) spincolor_put_to_zero(out[ivol]);
+	su3_dag_summ_the_prod_spincolor(out[ivol],conf[loclx_neighdw[ivol][mu]][mu],in[loclx_neighdw[ivol][mu]]);
+      }
+    set_borders_invalid(out);
+  }
+  
   //multiply by the 2-links Laplace operator
   THREADABLE_FUNCTION_3ARG(Laplace_operator_2_links, color*,out, quad_su3*,conf, color*,in)
   {
@@ -67,6 +99,22 @@ namespace nissa
     double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,-NDIM/2.0,nentries);
     
     nissa_free(temp);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //multiply by the Laplace operator
+  THREADABLE_FUNCTION_3ARG(Laplace_operator, spincolor*,out, quad_su3*,conf, spincolor*,in)
+  {
+    int nentries=loc_vol*sizeof(spincolor)/sizeof(double);
+    
+    vector_reset(out);
+    
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	cshift_bw(out,conf,mu,in,false);
+	cshift_fw(out,conf,mu,in,false);
+      }
+    double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,-2.0*NDIM,nentries);
   }
   THREADABLE_FUNCTION_END
   
