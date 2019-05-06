@@ -236,7 +236,7 @@ namespace nissa
       {
 	//update conf to iflow
 	double t=dt*iflow;
-	verbosity_lv2_master_printf(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
+	master_printf(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
 	recu.update(iflow);
 	
 	//make the flower generate the intermediate step between iflow and iflow+1
