@@ -81,40 +81,49 @@ namespace nissa
   }
   
   //multiply by the 2-links Laplace operator
-  THREADABLE_FUNCTION_3ARG(Laplace_operator_2_links, color*,out, quad_su3*,conf, color*,in)
+  THREADABLE_FUNCTION_4ARG(Laplace_operator_2_links, color*,out, quad_su3*,conf, bool*,dirs, color*,in)
   {
     color *temp=nissa_malloc("temp",loc_vol+bord_vol,color);
     int nentries=loc_vol*sizeof(color)/sizeof(double);
     
     vector_reset(out);
     
+    int ndirs=0;
     for(int mu=0;mu<NDIM;mu++)
-      {
-	cshift_bw(temp,conf,mu,in);
-	cshift_bw(out,conf,mu,temp,false);
-	cshift_fw(temp,conf,mu,in);
-	cshift_fw(out,conf,mu,temp,false);
-      }
+      if(dirs[mu])
+	{
+	  ndirs++;
+	  
+	  cshift_bw(temp,conf,mu,in);
+	  cshift_bw(out,conf,mu,temp,false);
+	  cshift_fw(temp,conf,mu,in);
+	  cshift_fw(out,conf,mu,temp,false);
+	}
     double_vector_prodassign_double((double*)out,0.25,nentries);
-    double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,-NDIM/2.0,nentries);
+    double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,-ndirs/2.0,nentries);
     
     nissa_free(temp);
   }
   THREADABLE_FUNCTION_END
   
   //multiply by the Laplace operator
-  THREADABLE_FUNCTION_3ARG(Laplace_operator, spincolor*,out, quad_su3*,conf, spincolor*,in)
+  THREADABLE_FUNCTION_4ARG(Laplace_operator, spincolor*,out, quad_su3*,conf, bool*,dirs, spincolor*,in)
   {
     int nentries=loc_vol*sizeof(spincolor)/sizeof(double);
     
     vector_reset(out);
     
+    int ndirs=0;
     for(int mu=0;mu<NDIM;mu++)
-      {
-	cshift_bw(out,conf,mu,in,false);
-	cshift_fw(out,conf,mu,in,false);
-      }
-    double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,-2.0*NDIM,nentries);
+      if(dirs[mu])
+	{
+	  ndirs++;
+	  
+	  cshift_bw(out,conf,mu,in,false);
+	  cshift_fw(out,conf,mu,in,false);
+	}
+    
+    double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,-2.0*ndirs,nentries);
   }
   THREADABLE_FUNCTION_END
   

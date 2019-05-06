@@ -20,15 +20,15 @@ namespace nissa
     void update_conf(quad_su3 *arg,quad_su3 *conf,bool *dirs);
     
     //call the 2-links Laplace operator, for staggered fields
-    inline void Laplace_operator_switch(color *out,quad_su3 *c,color *in)
+    inline void Laplace_operator_switch(color *out,quad_su3 *c,bool *dirs,color *in)
     {
-      Laplace_operator_2_links(out,c,in);
+      Laplace_operator_2_links(out,c,dirs,in);
     }
     
     //call the 1-link Laplace operator, for non-staggered fields
-    inline void Laplace_operator_switch(spincolor *out,quad_su3 *c,spincolor *in)
+    inline void Laplace_operator_switch(spincolor *out,quad_su3 *c,bool *dirs,spincolor *in)
     {
-      Laplace_operator(out,c,in);
+      Laplace_operator(out,c,dirs,in);
     }
   }
   
@@ -164,14 +164,14 @@ namespace nissa
       T *f0=field;
       
       //zero step: phi1 = phi0 + de0/4
-      Wflow::Laplace_operator_switch(df0,conf[0],f0);
+      Wflow::Laplace_operator_switch(df0,conf[0],this->dirs,f0);
       double_vector_summ_double_vector_prod_double((double*)f1,(double*)f0,(double*)df0,dt/4,nd);
       //first step: phi2 = phi0 + de1*8/9 - df0*2/9
-      Wflow::Laplace_operator_switch(df1,conf[1],f1);
+      Wflow::Laplace_operator_switch(df1,conf[1],this->dirs,f1);
       double_vector_summ_double_vector_prod_double((double*)f2,(double*)f0,(double*)df1,8.0*dt/9,nd);
       double_vector_summassign_double_vector_prod_double((double*)f2,(double*)df0,-2.0*dt/9,nd);
       //second step: f = phi3 = phi1 + df2*3/4
-      Wflow::Laplace_operator_switch(df2,conf[2],f2);
+      Wflow::Laplace_operator_switch(df2,conf[2],this->dirs,f2);
       double_vector_summ_double_vector_prod_double((double*)f0,(double*)f1,(double*)df2,3.0*dt/4,nd);
     }
     
@@ -218,15 +218,15 @@ namespace nissa
       T *l3=field,*l0=l3;
       
       //zero step: l2 = d2l3*3/4
-      Wflow::Laplace_operator_switch(l2,conf[2],l3);
+      Wflow::Laplace_operator_switch(l2,conf[2],this->dirs,l3);
       double_vector_prodassign_double((double*)l2,3.0*dt/4,nd);
       //first step: l1 = l3 + d1l2*8/9
-      Wflow::Laplace_operator_switch(l1,conf[1],l2);
+      Wflow::Laplace_operator_switch(l1,conf[1],this->dirs,l2);
       double_vector_summ_double_vector_prod_double((double*)l1,(double*)l3,(double*)l1,8.0*dt/9,nd);
       //second step: l0 = l1 + l2 + d0 (l1 - l2*8/9)/4
       double_vector_summ((double*)l0,(double*)l1,(double*)l2,nd);                            //l0 = l1 + l2
       double_vector_summassign_double_vector_prod_double((double*)l1,(double*)l2,-8.0/9,nd); //l1 = l1 - l2*8/9
-      Wflow::Laplace_operator_switch(l2,conf[0],l1);                                         //l2 = d0 (l1 - l2*8/9)
+      Wflow::Laplace_operator_switch(l2,conf[0],this->dirs,l1);                              //l2 = d0 (l1 - l2*8/9)
       double_vector_summassign_double_vector_prod_double((double*)l0,(double*)l2,dt/4,nd);   //l0+= d0 (l1 - l2*8/9)/4
     }
     
