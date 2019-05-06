@@ -218,7 +218,7 @@ namespace nissa
   THREADABLE_FUNCTION_6ARG(back_flow_prop, spincolor*,out, quad_su3*,conf, spincolor*,ori, int,t, double,dt, int,nflows)
   {
     //the flown conf
-    quad_su3 *flown_conf=nissa_malloc("flown_conf",loc_vol+bord_vol,quad_su3);
+    quad_su3 *flown_conf=nissa_malloc("flown_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     vector_copy(flown_conf,conf);
     
     //the recursive flower, need to cache backward integration
@@ -253,7 +253,7 @@ namespace nissa
   THREADABLE_FUNCTION_6ARG(flow_prop, spincolor*,out, quad_su3*,conf, spincolor*,ori, int,t, double,dt, int,nflows)
   {
     //the flown conf
-    quad_su3 *flown_conf=nissa_malloc("flown_conf",loc_vol+bord_vol,quad_su3);
+    quad_su3 *flown_conf=nissa_malloc("flown_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     vector_copy(flown_conf,conf);
     
     //the flower, need to cache integration
