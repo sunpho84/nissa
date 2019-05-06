@@ -237,7 +237,7 @@ void init_simulation(int narg,char **arg)
 	}
       
       //read smearing
-      if(strcasecmp(ins,ins_tag[SMEARING])==0)
+      if(strcasecmp(ins,ins_tag[SMEARING])==0 or strcasecmp(ins,ins_tag[WFLOW])==0 or strcasecmp(ins,ins_tag[BACK_WFLOW])==0)
 	{
 	  decripted=true;
 	  

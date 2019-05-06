@@ -214,6 +214,68 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //backward flow the propagator
+  THREADABLE_FUNCTION_6ARG(back_flow_prop, spincolor*,out, quad_su3*,conf, spincolor*,ori, int,t, double,dt, int,nflows)
+  {
+    //the flown conf
+    quad_su3 *flown_conf=nissa_malloc("flown_conf",loc_vol+bord_vol,quad_su3);
+    vector_copy(flown_conf,conf);
+    
+    //the recursive flower, need to cache backward integration
+    Wflow_pars_t Wf;
+    Wf.nflows=nflows;
+    Wf.dt=dt;
+    recursive_Wflower_t recu(Wf,flown_conf);
+    
+    //the adjoint flower needed for fermionic source
+    fermion_adjoint_flower_t<spincolor> adj_ferm_flower(dt,all_other_dirs[0]);
+    
+    //at each step it goes from iflow+1 to iflow
+    select_propagator_timeslice(out,ori,t);
+    for(int iflow=nflows-1;iflow>=0;iflow--)
+      {
+	//update conf to iflow
+	double t=dt*iflow;
+	verbosity_lv2_master_printf(" flow back to %d/%d, t %lg\n",iflow,nflows,t);
+	recu.update(iflow);
+	
+	//make the flower generate the intermediate step between iflow and iflow+1
+	adj_ferm_flower.generate_intermediate_steps(flown_conf);
+	
+	adj_ferm_flower.flow_fermion(out);
+      }
+    
+    nissa_free(flown_conf);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //flow the propagator
+  THREADABLE_FUNCTION_6ARG(flow_prop, spincolor*,out, quad_su3*,conf, spincolor*,ori, int,t, double,dt, int,nflows)
+  {
+    //the flown conf
+    quad_su3 *flown_conf=nissa_malloc("flown_conf",loc_vol+bord_vol,quad_su3);
+    vector_copy(flown_conf,conf);
+    
+    //the flower, need to cache integration
+    fermion_flower_t<spincolor,4> ferm_flower(dt,all_other_dirs[0]);
+    
+    select_propagator_timeslice(out,ori,t);
+    for(int iflow=0;iflow<=nflows;iflow++)
+      {
+	//update conf to iflow
+	double t=dt*iflow;
+	master_printf(" flow forward to %d/%d, t %lg, initial plaquette: %.16lg\n",iflow,nflows,t,global_plaquette_lx_conf(flown_conf));
+	
+	//make the flower generate the intermediate step between iflow-1 and iflow
+	ferm_flower.generate_intermediate_steps(flown_conf);
+	ferm_flower.flow_fermion(out);
+	ferm_flower.prepare_for_next_flow(flown_conf);
+      }
+    
+    nissa_free(flown_conf);
+  }
+  THREADABLE_FUNCTION_END
+  
   THREADABLE_FUNCTION_3ARG(build_source, spincolor*,out, std::vector<source_term_t>*,source_terms, int,isou)
   {
     GET_THREAD_ID();
@@ -239,7 +301,7 @@ namespace nissa
     if(rel_t!=-1) rel_t=(t+source_coord[0])%glb_size[0];
     
     quad_su3 *conf;
-    if(inser!=SMEARING) conf=get_updated_conf(charge,theta,glb_conf);
+    if(inser!=SMEARING and inser!=WFLOW and inser!=BACK_WFLOW) conf=get_updated_conf(charge,theta,glb_conf);
     else
       {
 	quad_su3 *ext_conf;
@@ -279,6 +341,8 @@ namespace nissa
       case CVEC3:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[3]);break;
       case EXT_FIELD:insert_external_source(loop_source,conf,ext_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case SMEARING:smear_prop(loop_source,conf,ori,rel_t,kappa,r);break;
+      case WFLOW:flow_prop(loop_source,conf,ori,rel_t,kappa,r);break;
+      case BACK_WFLOW:back_flow_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       case PHASING:phase_prop(loop_source,ori,rel_t,theta);break;
       }
     
