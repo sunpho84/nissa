@@ -25,12 +25,14 @@ void in_main(int narg,char **arg)
   read_real_vector(source,source_path,tag);
   read_real_vector(smeared_source,smeared_source_path,tag);
   
-  int imax=0;
+  int iglb_max=0;
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     if(spincolor_norm2(source[ivol])>1e-10)
-      imax=glblx_of_loclx[ivol];
-  MPI_Allreduce(MPI_IN_PLACE,&imax,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-  master_printf("Source location: %d %d %d %d\n",glb_coord_of_loclx[imax][0],glb_coord_of_loclx[imax][1],glb_coord_of_loclx[imax][2],glb_coord_of_loclx[imax][3]);
+      iglb_max=glblx_of_loclx[ivol];
+  MPI_Allreduce(MPI_IN_PLACE,&iglb_max,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+  coords g;
+  glb_coord_of_glblx(g,iglb_max);
+  master_printf("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
   
   // fft4d(source,source,+1,false);
   // fft4d(smeared_source,smeared_source,+1,false);
@@ -49,7 +51,7 @@ void in_main(int narg,char **arg)
 	int r2=0;
 	for(int mu=1;mu<NDIM;mu++)
 	  {
-	    int c=abs(glb_coord_of_loclx[ivol][mu]-glb_coord_of_loclx[imax][mu]);
+	    int c=abs(glb_coord_of_loclx[ivol][mu]-g[mu]);
 	    r2+=sqr(std::min(c,glb_size[mu]-c));
 	  }
 	rho[r2].first+=spincolor_norm2(smeared_source[ivol]);//prod[ivol][RE]/glb_vol;
