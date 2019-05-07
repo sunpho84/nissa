@@ -38,7 +38,7 @@ void in_main(int narg,char **arg)
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
       int r2=0;
-      for(int mu=0;mu<NDIM;mu++)
+      for(int mu=1;mu<NDIM;mu++)
 	{
 	  int c=glb_coord_of_loclx[ivol][mu];
 	  r2+=sqr(std::min(c,glb_size[mu]/2-c));
