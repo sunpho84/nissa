@@ -30,6 +30,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/read_ildg/read_double_vector \
 	$(top_builddir)/tools/spinors/ildg_to_txt \
 	$(top_builddir)/tools/spinors/take_parity \
+	$(top_builddir)/tools/spinors/sources_compare \
 	$(top_builddir)/tools/unitarity_check/unitarity_check \
 	$(top_builddir)/tools/x_clusterize/x_clusterize
 
@@ -58,6 +59,7 @@ __top_builddir__tools_conf_transform_edit_skip_random_SOURCES=conf_transform/edi
 __top_builddir__tools_conf_transform_edit_unitarize_SOURCES=conf_transform/edit/unitarize.cpp
 __top_builddir__tools_Gaussiansmear_test_SOURCES=Gaussiansmear_test.cpp
 __top_builddir__tools_spinors_ildg_to_txt_SOURCES=spinors/ildg_to_txt.cpp
+__top_builddir__tools_spinors_sources_compare_SOURCES=spinors/sources_compare.cpp
 __top_builddir__tools_spinors_take_parity_SOURCES=spinors/take_parity.cpp
 __top_builddir__tools_print_gamma_gamma_test_SOURCES=print_gamma/gamma_test.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES=unitarity_check/unitarity_check.cpp
