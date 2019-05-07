@@ -10,7 +10,7 @@ void in_main(int narg,char **arg)
   
   int L=atoi(arg[1]);
   int T=atoi(arg[2]);
-  char *source_path=arg[3];
+  // char *source_path=arg[3];
   char *smeared_source_path=arg[4];
   char *output_path=arg[5];
   char *tag=arg[6];
@@ -20,31 +20,31 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  spincolor *source=nissa_malloc("source",loc_vol,spincolor);
+  // spincolor *source=nissa_malloc("source",loc_vol,spincolor);
   spincolor *smeared_source=nissa_malloc("smeared_source",loc_vol,spincolor);
-  read_real_vector(source,source_path,tag);
+  // read_real_vector(source,source_path,tag);
   read_real_vector(smeared_source,smeared_source_path,tag);
   
-  int t=0;
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    if(spincolor_norm2(source[ivol])>1e-10)
-      t=glb_coord_of_loclx[ivol][0];
-  MPI_Allreduce(MPI_IN_PLACE,&t,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-  master_printf("Source location: t=%d\n",t);
+  // int t=0;
+  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  //   if(spincolor_norm2(source[ivol])>1e-10)
+  //     t=glb_coord_of_loclx[ivol][0];
+  // MPI_Allreduce(MPI_IN_PLACE,&t,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+  // master_printf("Source location: t=%d\n",t);
   
-  fft4d(source,source,+1,false);
-  fft4d(smeared_source,smeared_source,+1,false);
+  // fft4d(source,source,+1,false);
+  // fft4d(smeared_source,smeared_source,+1,false);
   
-  complex *prod=nissa_malloc("prod",loc_vol,complex);
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    spincolor_scalar_prod(prod[ivol],source[ivol],smeared_source[ivol]);
+  // complex *prod=nissa_malloc("prod",loc_vol,complex);
+  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  //   spincolor_scalar_prod(prod[ivol],source[ivol],smeared_source[ivol]);
   
-  fft4d(prod,prod,-1,true);
+  // fft4d(prod,prod,-1,true);
   
   std::map<int,std::pair<double,int>> rho;
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    if(glb_coord_of_loclx[ivol][0]==0)
+    // if(glb_coord_of_loclx[ivol][0]==0)
       {
 	int r2=0;
 	for(int mu=1;mu<NDIM;mu++)
@@ -52,7 +52,7 @@ void in_main(int narg,char **arg)
 	    int c=glb_coord_of_loclx[ivol][mu];
 	    r2+=sqr(std::min(c,glb_size[mu]-c));
 	  }
-	rho[r2].first+=prod[ivol][RE]/glb_vol;
+	rho[r2].first+=spincolor_norm2(smeared_source[ivol]);//prod[ivol][RE]/glb_vol;
 	rho[r2].second++;
       }
   THREAD_BARRIER();
@@ -106,8 +106,8 @@ void in_main(int narg,char **arg)
     master_fprintf(fout,"%lg" "\t" "%lg" "\n",sqrt(r.first),r.second.first/r.second.second);
   close_file(fout);
   
-  nissa_free(prod);
-  nissa_free(source);
+  // nissa_free(prod);
+  // nissa_free(source);
   nissa_free(smeared_source);
 }
 
