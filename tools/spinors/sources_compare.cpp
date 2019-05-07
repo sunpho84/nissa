@@ -47,10 +47,10 @@ void in_main(int narg,char **arg)
       rho[r2].second++;
     }
   THREAD_BARRIER();
-
+  
   FILE *fout=open_file(output_path,"w");
   for(auto &r : rho)
-    master_fprintf(fout,"%.lg\t%lg\n",sqrt(r.first),r.second.first/r.second.second);
+    master_fprintf(fout,"%.lg\t%lg\n",(double)sqrt(r.first),r.second.first/r.second.second);
   close_file(fout);
   
   nissa_free(prod);
