@@ -52,7 +52,7 @@ void in_main(int narg,char **arg)
 	    int c=glb_coord_of_loclx[ivol][mu];
 	    r2+=sqr(std::min(c,glb_size[mu]-c));
 	  }
-	rho[r2].first+=prod[ivol][RE];
+	rho[r2].first+=prod[ivol][RE]/glb_vol;
 	rho[r2].second++;
       }
   THREAD_BARRIER();
