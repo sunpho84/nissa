@@ -63,15 +63,15 @@ void in_main(int narg,char **arg)
       
       if(rank==0)
 	{
-	  master_printf("Communicating with %d\n",i);
+	  verbosity_lv2_master_printf("Communicating with %d\n",i);
 	  
 	  int nel;
 	  MPI_Recv(&nel,1,MPI_INT,i,909,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 	  
-	  master_printf("Needs to receive %d elements from %d\n",nel,i);
+	  verbosity_lv2_master_printf("Needs to receive %d elements from %d\n",nel,i);
 	  for(int iel=0;iel<nel;iel++)
 	    {
-	      master_printf("Receiving element %d from %d\n",iel,i);
+	      verbosity_lv2_master_printf("Receiving element %d from %d\n",iel,i);
 	      
 	      int r2;
 	      double p;
