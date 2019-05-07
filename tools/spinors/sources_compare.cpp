@@ -48,17 +48,42 @@ void in_main(int narg,char **arg)
     }
   THREAD_BARRIER();
   
-  for(int i=0;i<nranks;i++)
+  for(int i=1;i<nranks;i++)
     {
       if(i==rank)
 	{
-	  FILE *fout=fopen(output_path,(i==0)?"w":"a");
+	  int nel=rho.size();
+	  MPI_Send(&nel,1,MPI_INT,0,909,MPI_COMM_WORLD);
 	  for(auto &r : rho)
-	    fprintf(fout,"%lg" "\t" "%lg" "\n",sqrt(r.first),r.second.first/r.second.second);
-	  fclose(fout);
+	    {
+	      MPI_Send(&r.first,1,MPI_INT,0,910,MPI_COMM_WORLD);
+	      MPI_Send(&r.second.first,1,MPI_DOUBLE,0,911,MPI_COMM_WORLD);
+	    }
 	}
+      
+      if(i==0)
+	{
+	  int nel;
+	  MPI_Recv(&nel,1,MPI_INT,1,909, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	  for(int i=0;i<nel;i++)
+	    {
+	      int r2;
+	      double p;
+	      MPI_Recv(&r2,1,MPI_INT,0,910,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+	      MPI_Recv(&p,1,MPI_DOUBLE,0,911,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+	      
+	      rho[r2].first+=p;
+	      rho[r2].second++;
+	    }
+	}
+      
       MPI_Barrier(MPI_COMM_WORLD);
     }
+  
+  FILE *fout=open_file(output_path,"w");
+  for(auto &r : rho)
+    master_fprintf(fout,"%lg" "\t" "%lg" "\n",sqrt(r.first),r.second.first/r.second.second);
+  close_file(fout);
   
   nissa_free(prod);
   nissa_free(source);
