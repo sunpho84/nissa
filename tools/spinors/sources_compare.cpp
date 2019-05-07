@@ -104,8 +104,21 @@ void in_main(int narg,char **arg)
     }
   
   FILE *fout=open_file(output_path,"w");
-  for(auto &r : rho)
-    master_fprintf(fout,"%lg" "\t" "%lg" "\n",sqrt(r.first),r.second.first/r.second.second);
+  double x2=0;
+  double n2=0;
+  for(auto &p : rho)
+    {
+      double r2=p.first;
+      double w=p.second.first;
+      int n=p.second.second;
+      master_fprintf(fout,"%lg" "\t" "%lg" "\t" "%d" "\n",sqrt(r2),w,n);
+      
+      x2+=r2*w;
+      n2+=w;
+    }
+  
+  master_printf("Radius: %lg\n",sqrt(x2/n2));
+  
   close_file(fout);
   
   // nissa_free(prod);
