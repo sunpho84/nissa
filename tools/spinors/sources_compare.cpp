@@ -2,6 +2,25 @@
 
 using namespace nissa;
 
+//! integrate
+double integrate_corr(const std::vector<double> &c,const std::vector<double> &d,double powd=0.0)
+{
+  double out;
+  out=0.0;
+  for(size_t iel=0;iel<c.size()-1;iel++)
+    {
+      double x1=d[iel+1];
+      double x0=d[iel];
+      double dx=x1-x0;
+      double y1=c[iel+1]*pow(x1,powd);
+      double y0=c[iel]*pow(x0,powd);
+      
+      out+=dx*(y1+y0)/2.0;
+    }
+  
+  return 2.0*out;
+}
+
 void in_main(int narg,char **arg)
 {
   GET_THREAD_ID();
@@ -104,8 +123,7 @@ void in_main(int narg,char **arg)
     }
   
   FILE *fout=open_file(output_path,"w");
-  double x2=0;
-  double n2=0;
+  std::vector<double> c,d;
   for(auto &p : rho)
     {
       double r2=p.first;
@@ -113,11 +131,13 @@ void in_main(int narg,char **arg)
       int n=p.second.second;
       master_fprintf(fout,"%lg" "\t" "%lg" "\t" "%d" "\n",sqrt(r2),w,n);
       
-      x2+=r2*w;
-      n2+=w;
+      d.push_back(sqrt(r2));
+      c.push_back(w);
     }
   
-  master_printf("Radius: %lg\n",sqrt(x2/n2));
+  double x2=integrate_corr(c,d,2);
+  double n=integrate_corr(c,d,2);
+  master_printf("Radius: %lg\n",sqrt(x2/n));
   
   close_file(fout);
   
