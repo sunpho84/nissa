@@ -63,7 +63,7 @@ void in_main(int narg,char **arg)
 	{
 	  int nel=rho.size();
 	  MPI_Send(&nel,1,MPI_INT,0,909,MPI_COMM_WORLD);
-	  for(auto &r : rho)
+	  for(auto r : rho)
 	    {
 	      MPI_Send(&r.first,1,MPI_INT,0,910,MPI_COMM_WORLD);
 	      MPI_Send(&r.second.first,1,MPI_DOUBLE,0,911,MPI_COMM_WORLD);
