@@ -51,7 +51,7 @@ void in_main(int narg,char **arg)
 	int r2=0;
 	for(int mu=1;mu<NDIM;mu++)
 	  {
-	    int c=abs(glb_coord_of_loclx[ivol][mu]-g[mu]);
+	    int c=(glb_size[mu]+glb_coord_of_loclx[ivol][mu]-g[mu])%glb_size[mu];
 	    r2+=sqr(std::min(c,glb_size[mu]-c));
 	  }
 	rho[r2].first+=spincolor_norm2(smeared_source[ivol]);//prod[ivol][RE]/glb_vol;
@@ -105,7 +105,7 @@ void in_main(int narg,char **arg)
   
   FILE *fout=open_file(output_path,"w");
   for(auto &r : rho)
-    master_fprintf(fout,"%lg" "\t" "%lg" "\n",sqrt(r.first),r.second.first/r.second.second);
+    master_fprintf(fout,"%lg" "\t" "%lg" "%lg" "\n",sqrt(r.first),r.second.first,r.second.second);
   close_file(fout);
   
   // nissa_free(prod);
