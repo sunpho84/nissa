@@ -301,7 +301,7 @@ namespace nissa
     if(rel_t!=-1) rel_t=(t+source_coord[0])%glb_size[0];
     
     quad_su3 *conf;
-    if(inser!=SMEARING and inser!=WFLOW and inser!=BACK_WFLOW) conf=get_updated_conf(charge,theta,glb_conf);
+    if(inser!=SMEARING) conf=get_updated_conf(charge,theta,glb_conf);
     else
       {
 	quad_su3 *ext_conf;
