@@ -28,7 +28,7 @@ void in_main(int narg,char **arg)
   int imax=0;
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     if(spincolor_norm2(source[ivol])>1e-10)
-      imax=glb_coord_of_loclx[ivol][0];
+      imax=glblx_of_loclx[ivol];
   MPI_Allreduce(MPI_IN_PLACE,&imax,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
   master_printf("Source location: %d %d %d %d\n",glb_coord_of_loclx[imax][0],glb_coord_of_loclx[imax][1],glb_coord_of_loclx[imax][2],glb_coord_of_loclx[imax][3]);
   
