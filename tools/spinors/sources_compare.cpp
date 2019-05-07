@@ -44,7 +44,7 @@ void in_main(int narg,char **arg)
   std::map<int,std::pair<double,int>> rho;
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    if(glb_coord_of_loclx[ivol][0]==t)
+    if(glb_coord_of_loclx[ivol][0]==0)
       {
 	int r2=0;
 	for(int mu=1;mu<NDIM;mu++)
