@@ -134,7 +134,7 @@ void in_main(int narg,char **arg)
 	  master_fprintf(fout,"%lg" "\t" "%lg" "\t" "%d" "\n",sqrt(r2),w,n);
 	  
 	  d.push_back(sqrt(r2));
-	  c.push_back(w);
+	  c.push_back(w/n);
 	}
       
       double x2=integrate_corr(c,d,2);
