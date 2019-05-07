@@ -56,7 +56,7 @@ void in_main(int narg,char **arg)
 	{
 	  FILE *fout=fopen(output_path,(i==0)?"w":"a");
 	  for(auto &r : rho)
-	    master_fprintf(fout,"%.lg\t%lg\n",(double)sqrt(r.first),r.second.first/r.second.second);
+	    fprintf(fout,"%lg" "\t" "%lg" "\n",sqrt(r.first),r.second.first/r.second.second);
 	  fclose(fout);
 	}
       MPI_Barrier(MPI_COMM_WORLD);
