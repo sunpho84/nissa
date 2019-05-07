@@ -6,8 +6,6 @@ void in_main(int narg,char **arg)
 {
   GET_THREAD_ID();
   
-  if(nranks>1) crash("cannot run in parallel");
-  
   if(narg<6) crash("use: %s L T file_in file_out output_path tag",arg[0]);
   
   int L=atoi(arg[1]);
