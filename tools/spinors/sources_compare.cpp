@@ -122,24 +122,27 @@ void in_main(int narg,char **arg)
       MPI_Barrier(MPI_COMM_WORLD);
     }
   
-  FILE *fout=open_file(output_path,"w");
-  std::vector<double> c,d;
-  for(auto &p : rho)
+  if(rank==0)
     {
-      double r2=p.first;
-      double w=p.second.first;
-      int n=p.second.second;
-      master_fprintf(fout,"%lg" "\t" "%lg" "\t" "%d" "\n",sqrt(r2),w,n);
+      FILE *fout=open_file(output_path,"w");
+      std::vector<double> c,d;
+      for(auto &p : rho)
+	{
+	  double r2=p.first;
+	  double w=p.second.first;
+	  int n=p.second.second;
+	  master_fprintf(fout,"%lg" "\t" "%lg" "\t" "%d" "\n",sqrt(r2),w,n);
+	  
+	  d.push_back(sqrt(r2));
+	  c.push_back(w);
+	}
       
-      d.push_back(sqrt(r2));
-      c.push_back(w);
+      double x2=integrate_corr(c,d,2);
+      double n=integrate_corr(c,d,0.0);
+      master_printf("Radius: %lg\n",sqrt(x2/n));
+      
+      close_file(fout);
     }
-  
-  double x2=integrate_corr(c,d,2);
-  double n=integrate_corr(c,d,2);
-  master_printf("Radius: %lg\n",sqrt(x2/n));
-  
-  close_file(fout);
   
   // nissa_free(prod);
   nissa_free(source);
