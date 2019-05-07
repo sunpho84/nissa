@@ -50,7 +50,7 @@ void in_main(int narg,char **arg)
   
   for(int i=1;i<nranks;i++)
     {
-      if(i==rank)
+      if(rank==i)
 	{
 	  int nel=rho.size();
 	  MPI_Send(&nel,1,MPI_INT,0,909,MPI_COMM_WORLD);
@@ -61,16 +61,16 @@ void in_main(int narg,char **arg)
 	    }
 	}
       
-      if(i==0)
+      if(rank==0)
 	{
 	  int nel;
-	  MPI_Recv(&nel,1,MPI_INT,1,909, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	  MPI_Recv(&nel,1,MPI_INT,i,909,MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	  for(int i=0;i<nel;i++)
 	    {
 	      int r2;
 	      double p;
-	      MPI_Recv(&r2,1,MPI_INT,0,910,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-	      MPI_Recv(&p,1,MPI_DOUBLE,0,911,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+	      MPI_Recv(&r2,1,MPI_INT,i,910,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+	      MPI_Recv(&p,1,MPI_DOUBLE,i,911,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 	      
 	      rho[r2].first+=p;
 	      rho[r2].second++;
