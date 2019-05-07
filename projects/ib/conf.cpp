@@ -154,7 +154,7 @@ namespace nissa
 	coords coord;
 	generate_random_coord(coord);
 	if(need_photon) generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
-	generate_original_sources(ihit);
+	generate_original_sources(ihit,true);
       }
   }
   
