@@ -4,6 +4,8 @@ using namespace nissa;
 
 void in_main(int narg,char **arg)
 {
+  GET_THREAD_ID();
+  
   if(nranks>1) crash("cannot run in parallel");
   
   if(narg<6) crash("use: %s L T file_in file_out output_path tag",arg[0]);
@@ -29,13 +31,13 @@ void in_main(int narg,char **arg)
   fft4d(smeared_source,smeared_source,+1,false);
   
   complex *prod=nissa_malloc("prod",loc_vol,complex);
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     spincolor_scalar_prod(prod[ivol],source[ivol],smeared_source[ivol]);
   
   fft4d(prod,prod,-1, true);
   
   std::map<int,std::pair<double,int>> rho;
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
       int r2=0;
       for(int mu=0;mu<NDIM;mu++)
@@ -48,10 +50,17 @@ void in_main(int narg,char **arg)
     }
   THREAD_BARRIER();
   
-  FILE *fout=open_file(output_path,"w");
-  for(auto &r : rho)
-    master_fprintf(fout,"%.lg\t%lg\n",(double)sqrt(r.first),r.second.first/r.second.second);
-  close_file(fout);
+  for(int i=0;i<nranks;i++)
+    {
+      if(i==rank)
+	{
+	  FILE *fout=fopen(output_path,(i==0)?"w":"a");
+	  for(auto &r : rho)
+	    master_fprintf(fout,"%.lg\t%lg\n",(double)sqrt(r.first),r.second.first/r.second.second);
+	  fclose(fout);
+	}
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
   
   nissa_free(prod);
   nissa_free(source);
