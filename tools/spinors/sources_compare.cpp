@@ -67,6 +67,7 @@ void in_main(int narg,char **arg)
 	    {
 	      MPI_Send(&r.first,1,MPI_INT,0,910,MPI_COMM_WORLD);
 	      MPI_Send(&r.second.first,1,MPI_DOUBLE,0,911,MPI_COMM_WORLD);
+	      MPI_Send(&r.second.second,1,MPI_INT,0,912,MPI_COMM_WORLD);
 	    }
 	}
       
@@ -84,11 +85,13 @@ void in_main(int narg,char **arg)
 	      
 	      int r2;
 	      double p;
+	      int n;
 	      MPI_Recv(&r2,1,MPI_INT,i,910,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 	      MPI_Recv(&p,1,MPI_DOUBLE,i,911,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+	      MPI_Recv(&n,1,MPI_INT,i,912,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 	      
 	      rho[r2].first+=p;
-	      rho[r2].second++;
+	      rho[r2].second+=n;
 	    }
 	}
       
