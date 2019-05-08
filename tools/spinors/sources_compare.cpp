@@ -53,20 +53,10 @@ void in_main(int narg,char **arg)
   glb_coord_of_glblx(g,iglb_max);
   master_printf("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
   
-  fft4d(source,source,+1,false);
-  fft4d(smeared_source,smeared_source,+1,false);
-  
-  typedef spincolorspin spincolorspincolor[NCOL];
-  
-  spincolorspincolor *prod=nissa_malloc("prod",loc_vol,spincolorspincolor);
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int id_si=0;id_si<NDIRAC;id_si++)
-      for(int ic_si=0;ic_si<NCOL;ic_si++)
-	for(int id_so=0;id_so<NDIRAC;id_so++)
-	  for(int ic_so=0;ic_so<NCOL;ic_so++)
-	    unsafe_complex_conj2_prod(prod[ivol][id_si][ic_si][id_so][ic_so],smeared_source[ivol][id_si][ic_si],source[ivol][id_so][ic_so]);
-  
-  fft4d(prod,prod,-1,true);
+  //check the norm
+  double source_norm=double_vector_glb_norm2(source,loc_vol);
+  if(fabs(source_norm-1.0)<1e-10)
+    crash("Norm %lg, needs to be 1, excess of %lg",source_norm,source_norm-1.0);
   
   std::map<int,std::pair<double,int>> rho;
   
@@ -79,12 +69,7 @@ void in_main(int narg,char **arg)
 	    int c=(glb_size[mu]+glb_coord_of_loclx[ivol][mu]-g[mu])%glb_size[mu];
 	    r2+=sqr(std::min(c,glb_size[mu]-c));
 	  }
-	
-    for(int id_si=0;id_si<NDIRAC;id_si++)
-      for(int ic_si=0;ic_si<NCOL;ic_si++)
-	for(int id_so=0;id_so<NDIRAC;id_so++)
-	  for(int ic_so=0;ic_so<NCOL;ic_so++)
-		rho[r2].first+=complex_norm2(prod[ivol][id_si][ic_si][id_so][ic_so]);
+	rho[r2].first+=spincolor_norm2(smeared_source[ivol]);
 	rho[r2].second++;
       }
   THREAD_BARRIER();
@@ -155,7 +140,6 @@ void in_main(int narg,char **arg)
       close_file(fout);
     }
   
-  nissa_free(prod);
   nissa_free(source);
   nissa_free(smeared_source);
 }
