@@ -384,15 +384,18 @@ namespace nissa
 		    read_real_vector(sou,path,"scidac-binary-data");
 		    STOP_TIMING(read_prop_time);
 		  }
-		else master_printf("  file %s not available, skipping loading\n",path.c_str());
-		
-		//and store if needed
-		if(q->store)
+		else
 		  {
-		    master_printf("  writing the source dirac index %d, color %d\n",id_so,ic_so);
-		    START_TIMING(store_prop_time,nstore_prop);
-		    write_real_vector(path,sou,64,"scidac-binary-data");
-		    STOP_TIMING(store_prop_time);
+		    master_printf("  file %s not available, skipping loading\n",path.c_str());
+		    
+		    //and store if needed
+		    if(q->store)
+		      {
+			master_printf("  writing the source dirac index %d, color %d\n",id_so,ic_so);
+			START_TIMING(store_prop_time,nstore_prop);
+			write_real_vector(path,sou,64,"scidac-binary-data");
+			STOP_TIMING(store_prop_time);
+		      }
 		  }
 	      }
       }
