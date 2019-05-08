@@ -55,7 +55,7 @@ void in_main(int narg,char **arg)
   
   //check the norm
   double source_norm=double_vector_glb_norm2(source,loc_vol);
-  if(fabs(source_norm-1.0)<1e-10)
+  if(fabs(source_norm-1.0)>1e-10)
     crash("Norm %lg, needs to be 1, excess of %lg",source_norm,source_norm-1.0);
   
   std::map<int,std::pair<double,int>> rho;
