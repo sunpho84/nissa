@@ -101,6 +101,15 @@ namespace nissa
   EXTERN_PROP int ninv_tot INIT_TO(0);
   EXTERN_PROP double inv_time INIT_TO(0);
   
+  EXTERN_PROP int nsme_tot INIT_TO(0);
+  EXTERN_PROP double sme_time INIT_TO(0);
+  
+  EXTERN_PROP int nflw_tot INIT_TO(0);
+  EXTERN_PROP double flw_time INIT_TO(0);
+  
+  EXTERN_PROP int nbflw_tot INIT_TO(0);
+  EXTERN_PROP double bflw_time INIT_TO(0);
+  
   EXTERN_PROP int nfft_tot INIT_TO(0);
   EXTERN_PROP double fft_time INIT_TO(0);
   void init_fft_filter_from_range(std::vector<std::pair<fft_mom_range_t,double>>& fft_mom_range_list);

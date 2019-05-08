@@ -288,7 +288,10 @@ namespace nissa
 	print_single_statistic(bar2pts_contr_time,tot_prog_time,nbar2pts_contr_made,"calculation of baryonic 2pts contractions");
 	print_single_statistic(meslep_contr_time,tot_prog_time,nmeslep_contr_made,"calculation of hadro-leptonic contractions");
 	print_single_statistic(contr_print_time,tot_prog_time,nmeslep_contr_made,"printing contractions");
-      	print_single_statistic(fft_time,tot_prog_time,nfft_tot,"Fourier transforming and printing propagators");
+      	print_single_statistic(fft_time,tot_prog_time,nfft_tot,"Fourier transforming and writing fft-propagators");
+      	print_single_statistic(sme_time,tot_prog_time,nsme_tot,"Gaussian smearing");
+      	print_single_statistic(flw_time,tot_prog_time,nflw_tot,"Flowing forward");
+      	print_single_statistic(bflw_time,tot_prog_time,nbflw_tot,"Flowing backward");
       }
   }
 }

@@ -180,11 +180,17 @@ namespace nissa
   //smear the propagator
   void smear_prop(spincolor *out,quad_su3 *conf,spincolor *ori,int t,double kappa,int nlevels)
   {
+    GET_THREAD_ID();
+    
     //nb: the smearing radius is given by
     //a*sqrt(2*n*kappa/(1+6*kappa))
     
+    START_TIMING(sme_time,nsme_tot);
+    
     gaussian_smearing(out,ori,conf,kappa,nlevels);
     select_propagator_timeslice(out,out,t);
+    
+    STOP_TIMING(sme_time);
   }
   
   //phase the propagator
@@ -217,6 +223,10 @@ namespace nissa
   //backward flow the propagator
   THREADABLE_FUNCTION_6ARG(back_flow_prop, spincolor*,out, quad_su3*,conf, spincolor*,ori, int,t, double,dt, int,nflows)
   {
+    GET_THREAD_ID();
+    
+    START_TIMING(bflw_time,nbflw_tot);
+    
     //the flown conf
     quad_su3 *flown_conf=nissa_malloc("flown_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     vector_copy(flown_conf,conf);
@@ -245,6 +255,8 @@ namespace nissa
 	adj_ferm_flower.flow_fermion(out);
       }
     
+    STOP_TIMING(bflw_time);
+    
     nissa_free(flown_conf);
   }
   THREADABLE_FUNCTION_END
@@ -252,6 +264,10 @@ namespace nissa
   //flow the propagator
   THREADABLE_FUNCTION_6ARG(flow_prop, spincolor*,out, quad_su3*,conf, spincolor*,ori, int,t, double,dt, int,nflows)
   {
+    GET_THREAD_ID();
+    
+    START_TIMING(flw_time,nflw_tot);
+    
     //the flown conf
     quad_su3 *flown_conf=nissa_malloc("flown_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     vector_copy(flown_conf,conf);
@@ -271,6 +287,8 @@ namespace nissa
 	ferm_flower.flow_fermion(out);
 	ferm_flower.prepare_for_next_flow(flown_conf);
       }
+    
+    STOP_TIMING(flw_time);
     
     nissa_free(flown_conf);
   }
