@@ -227,12 +227,110 @@ namespace nissa
   void allocate_bar2pts_contr()
   {
     bar2pts_contr_size=ind_bar2pts_contr(bar2pts_contr_map.size()-1,2-1,glb_size[0]-1)+1;
+    bar2pts_alt_contr_size=ind_bar2pts_alt_contr(bar2pts_contr_map.size()-1,3-1,glb_size[0]-1)+1;
     bar2pts_contr=nissa_malloc("bar2pts_contr",bar2pts_contr_size,complex);
+    bar2pts_alt_contr=nissa_malloc("bar2pts_alt_contr",bar2pts_alt_contr_size,complex);
   }
   
   //free them
   void free_bar2pts_contr()
-  {nissa_free(bar2pts_contr);}
+  {
+    nissa_free(bar2pts_contr);
+    nissa_free(bar2pts_alt_contr);
+  }
+  
+  //compute all contractions
+  THREADABLE_FUNCTION_0ARG(compute_bar2pts_alt_contr)
+  {
+    GET_THREAD_ID();
+    master_printf("Computing barion 2pts contractions alternative\n");
+    
+    //allocate loc storage
+    complex *loc_contr=new complex[bar2pts_alt_contr_size];
+    memset(loc_contr,0,sizeof(complex)*bar2pts_alt_contr_size);
+    
+    const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
+    
+    UNPAUSE_TIMING(bar2pts_contr_time);
+    for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
+      {
+	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
+	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
+	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
+	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
+	
+	int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
+	
+	//Dirac source
+	for(int al=0;al<NDIRAC;al++)
+	  for(int be=Cg5.pos[al],
+		ga=0;ga<NDIRAC;ga++)
+	    //Dirac sink
+	    for(int al0=0;al0<NDIRAC;al0++)
+	      for(int idg0=0;idg0<2;idg0++)
+		for(int be0=Cg5.pos[al0],
+		      ga0=ga1_l[idg0][ga],
+		      //Wick contraction
+		      iWick=0;iWick<2;iWick++)
+		  for(int o[3]={al0,be0,ga0},
+			al1=o[(al0+iWick)%3],
+			be1=o[(be0+iWick)%3],
+			ga1=o[(ga0+iWick)%3],
+			//Color source
+			iperm=0;iperm<2;iperm++)
+		    for(int a=0;a<NCOL;a++)
+		      for(int b=eps[a][iperm],
+			    c=eps[a][1-iperm],
+			    //Color sink
+			    iperm1=0;iperm1<2;iperm1++)
+			for(int a1=0;a1<NCOL;a1++)
+			  for(int b1=eps[a1][iperm1],
+				c1=eps[a1][1-iperm1],
+				//time
+				t=0;t<loc_size[0];t++)
+			    {
+			      int sign_idg0[2]={(t<(glb_size[0]/2))?1:-1,-1}; //gamma0 is -1 always
+			      
+			      complex w={0.0,0.0};
+			      NISSA_PARALLEL_LOOP(ispat,0,loc_spat_vol)
+				{
+				  int ivol=t*loc_spat_vol+ispat;
+				  
+				  complex &p1=Q1[so_sp_col_ind(al,a)][ivol][al1][a1];
+				  complex &p2=Q2[so_sp_col_ind(be,b)][ivol][be1][b1];
+				  complex &p3=Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1];
+				  
+				  complex temp;
+				  unsafe_complex_prod(temp,p1,p2);
+				  
+				  complex_summ_the_prod(w,temp,p3);
+    			      }
+			      
+			      safe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
+			      complex_prodassign_double(w,norm);
+
+			      complex_summ_the_prod_double(loc_contr[ind_bar2pts_alt_contr(icombo,iWick,t)],w,sign[iperm]*sign[iperm1]*sign_idg0[idg0]);
+			    }
+      }
+    STOP_TIMING(bar2pts_contr_time);
+    
+    //reduce
+    complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_alt_contr_size);
+    NISSA_PARALLEL_LOOP(i,0,bar2pts_alt_contr_size)
+      {
+	//remove border phase
+	int t=i%glb_size[0];
+	double arg=3*temporal_bc*M_PI*t/glb_size[0];
+	complex phase={cos(arg),sin(arg)};
+	complex_summ_the_prod(bar2pts_alt_contr[i],master_reduced_contr[i],phase);
+      }
+    THREAD_BARRIER();
+    delete[] loc_contr;
+    
+    //stats
+    if(IS_MASTER_THREAD) nbar2pts_contr_made+=bar2pts_contr_map.size();
+  }
+  THREADABLE_FUNCTION_END
   
   //compute all contractions
   THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr)
@@ -340,6 +438,32 @@ namespace nissa
 	      //normalize for nsources and 1+g0
 	      complex c;
 	      complex_prod_double(c,bar2pts_contr[ind_bar2pts_contr(icombo,dir_exc,t)],1.0/(2*nhits));
+	      master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
+	    }
+	  
+	  close_file(fout);
+	}
+  }
+  
+  //print all contractions
+  void print_bar2pts_alt_contr()
+  {
+    //list to open or append
+    open_or_append_t list;
+    
+    //reduce
+    glb_nodes_reduce_complex_vect(bar2pts_alt_contr,bar2pts_alt_contr_size);
+    
+    for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
+      for(int iWick=0;iWick<3;iWick++)
+	{
+	  //open output
+	  FILE *fout=list.open(combine("%s/bar_alt_contr_%s_Wick_%d",outfolder,bar2pts_contr_map[icombo].name.c_str(),iWick));
+	  for(int t=0;t<glb_size[0];t++)
+	    {
+	      //normalize for nsources and 1+g0
+	      complex c;
+	      complex_prod_double(c,bar2pts_alt_contr[ind_bar2pts_alt_contr(icombo,iWick,t)],1.0/(2*nhits));
 	      master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
 	    }
 	  

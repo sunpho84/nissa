@@ -122,6 +122,20 @@ namespace nissa
   }
   EXTERN_CONTR int bar2pts_contr_size;
   
+  EXTERN_CONTR complex *bar2pts_alt_contr INIT_TO(NULL);
+  void allocate_bar2pts_alt_contr();
+  void compute_bar2pts_alt_contr();
+  void print_bar2pts_alt_contr();
+  void free_bar2pts_alt_contr();
+  inline int ind_bar2pts_alt_contr(int icombo,int iWick,int t)
+  {
+    return
+      (t+glb_size[0]*
+       (iWick+3*
+	(icombo+bar2pts_contr_map.size())));
+  }
+  EXTERN_CONTR int bar2pts_alt_contr_size;
+  
   EXTERN_CONTR int nsmear_oper INIT_TO(0);
   EXTERN_CONTR double smear_oper_time INIT_TO(0);
   
@@ -134,6 +148,7 @@ namespace nissa
     compute_handcuffs_contr();
     //compute_meslep_contr();
     compute_bar2pts_contr();
+    compute_bar2pts_alt_contr();
   }
   
   //print out all contractions
@@ -143,6 +158,7 @@ namespace nissa
     print_handcuffs_contr();
     //print_meslep_contr();
     print_bar2pts_contr();
+    print_bar2pts_alt_contr();
   }
 }
 
