@@ -276,7 +276,6 @@ namespace nissa
 	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
 	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
 	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
-	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
 	
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
@@ -304,6 +303,14 @@ namespace nissa
 		  dirac_prod(&proj,&base_gamma[(idg0==0)?0:4],&CgA);
 		  dirac_prod(&proj,&proj,&CgB);
 		  if(t<=glb_size[0]/2 and idg0==1) dirac_prod_double(&proj, &proj,-1.0);
+		  
+		  spinspin f;
+		  for(int al=0;al<NDIRAC;al++)
+		  for(int al1=0;al1<NDIRAC;al1++)
+		    {
+		      unsafe_complex_prod(f[al1][al],CgA.entr[al],CgB.entr[al1]);
+		      complex_prodassign(f[al1][al],proj.entr[al1]);
+		    }
 		  
 		  for(int iperm=0;iperm<2;iperm++)
 		    for(int a=0;a<NCOL;a++)
@@ -335,10 +342,7 @@ namespace nissa
 				      unsafe_complex_prod(temp,p1[a1][a][al1][al],p2[b1][b][be1][be]);
 				      complex_prodassign(temp,p3[c1][c][ga1][ga]);
 				      
-				      complex_prodassign(temp,CgA.entr[al]);
-				      complex_prodassign(temp,CgB.entr[al1]);
-				      complex_prodassign_double(temp,norm);
-				      complex_prodassign(temp,proj.entr[al1]);
+				      complex_prodassign(temp,f[al1][al]);
 				      
 				      complex_summ_the_prod_double(loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)],temp,sign[iperm]*sign[iperm1]);
 				    }
