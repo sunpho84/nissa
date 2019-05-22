@@ -276,6 +276,7 @@ namespace nissa
 	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
 	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
 	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
+	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
 	
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
@@ -304,13 +305,15 @@ namespace nissa
 		  dirac_prod(&proj,&proj,&CgB);
 		  if(t<=glb_size[0]/2 and idg0==1) dirac_prod_double(&proj, &proj,-1.0);
 		  
+		  //Precompute the factor to be added
 		  spinspin f;
 		  for(int al=0;al<NDIRAC;al++)
-		  for(int al1=0;al1<NDIRAC;al1++)
-		    {
-		      unsafe_complex_prod(f[al1][al],CgA.entr[al],CgB.entr[al1]);
-		      complex_prodassign(f[al1][al],proj.entr[al1]);
-		    }
+		    for(int al1=0;al1<NDIRAC;al1++)
+		      {
+			unsafe_complex_prod(f[al1][al],CgA.entr[al],CgB.entr[al1]);
+			complex_prodassign(f[al1][al],proj.entr[al1]);
+			complex_prodassign_double(f[al1][al],norm);
+		      }
 		  
 		  for(int iperm=0;iperm<2;iperm++)
 		    for(int a=0;a<NCOL;a++)
