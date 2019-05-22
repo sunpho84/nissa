@@ -118,7 +118,7 @@ namespace nissa
     return
       (t+glb_size[0]*
        (dir_exc+2*
-	(icombo+bar2pts_contr_map.size())));
+	icombo));
   }
   EXTERN_CONTR int bar2pts_contr_size;
   
@@ -127,12 +127,13 @@ namespace nissa
   void compute_bar2pts_alt_contr();
   void print_bar2pts_alt_contr();
   void free_bar2pts_alt_contr();
-  inline int ind_bar2pts_alt_contr(int icombo,int iWick,int t)
+  inline int ind_bar2pts_alt_contr(int icombo,int iWick,int iProj,int t)
   {
     return
       (t+glb_size[0]*
-       (iWick+3*
-	(icombo+bar2pts_contr_map.size())));
+       (iProj+3*
+	(iWick+3*
+	 icombo)));
   }
   EXTERN_CONTR int bar2pts_alt_contr_size;
   
