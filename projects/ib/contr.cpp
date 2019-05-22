@@ -193,7 +193,7 @@ namespace nissa
     contr_print_time+=take_time();
   }
   
-  //////////////////////////////////////// baryonic contractions //////////////////////////////////////////////////////////
+  //////////////////////////////////////// barionic contractions //////////////////////////////////////////////////////////
   
   /*
     We follow eq.6.21 of Gattringer, pag 131 and compute the two Wick
@@ -251,7 +251,14 @@ namespace nissa
     nissa_free(bar2pts_alt_contr);
   }
   
-  //compute all contractions
+  //Compute all contractions for 1/2 and 3/2 barions.  The calculation
+  //is organized in three blocks, one corresponding to g5 g5 matrix
+  //elements, the two others to the gi gi combination, finally to the
+  //gi gj one.  The three possible Wick contractions are obtained by
+  //simply permutating the sink Dirac index of the three propagators,
+  //such that the "direct" contraction correspond to iWick=0, exchange
+  //to one of the two others (should they be simply related by time
+  //reversal?)
   THREADABLE_FUNCTION_0ARG(compute_bar2pts_alt_contr)
   {
     GET_THREAD_ID();
@@ -270,6 +277,8 @@ namespace nissa
 	dirac_prod_double(&opmg0_list[it][1],base_gamma+4,(it==0)?1:-1);
       }
     
+    void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
+    
     UNPAUSE_TIMING(bar2pts_contr_time);
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
       {
@@ -278,6 +287,39 @@ namespace nissa
 	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
 	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
 	
+	for(auto &iProjGroup : std::array<std::array<int,3>,10>
+	      {{{5,5,0},
+	      {1,1,1},{2,2,1},{3,3,1},
+	      {1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2}}})
+	  {
+	    const int i=iProjGroup[0];
+	    const int j=iProjGroup[1];
+	    
+	    const dirac_matr Cg_so=set_CgX(i);
+	    const dirac_matr Cg_si=set_CgX(j);
+	    
+	    //Compute the projector, gi*gj *(1+-g0)/2
+	    dirac_matr proj[2];
+	    for(int idg0=0;idg0<2;idg0++)
+	      {
+		dirac_matr& p=proj[idg0];
+		p=base_gamma[(idg0==0)?0:4];
+		dirac_prod(&p,&p,&Cg_si);
+		dirac_prod(&p,&p,&Cg_so);
+	      }
+	    
+	    //Precompute the factor to be added
+	    spinspin fact[2];
+	    for(int idg0=0;idg0<2;idg0++)
+	      for(int al_si=0;al_si<NDIRAC;al_si++)
+		for(int al_so=0;al_so<NDIRAC;al_so++)
+		  {
+		    complex& f=fact[idg0][al_si][al_so];
+		    unsafe_complex_prod(f,Cg_si.entr[al_si],Cg_so.entr[al_so]);
+		    complex_prodassign(f,proj[idg0].entr[al_si]);
+		    complex_prodassign_double(f,norm);
+		  }
+	    
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
 	    int t=rel_coord_of_loclx(ivol,0);
@@ -290,67 +332,48 @@ namespace nissa
 	    	    for(int a_si=0;a_si<NCOL;a_si++)
 	    	      complex_copy(k.first[a_si][a_so][al_si][al_so],k.second[so_sp_col_ind(al_so,a_so)][ivol][al_si][a_si]);
 	    
-	    //Color source
-	    for(auto &iProjGroup : std::array<std::array<int,3>,10>
-		  {{{5,5,0},
-		   {1,1,1},{2,2,1},{3,3,1},
-		   {1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2}}})
-	      for(int idg0=0;idg0<2;idg0++)
-		{
-		  const dirac_matr CgA=set_CgX(iProjGroup[0]);
-		  const dirac_matr CgB=set_CgX(iProjGroup[1]);
-		  
-		  dirac_matr proj;
-		  dirac_prod(&proj,&base_gamma[(idg0==0)?0:4],&CgA);
-		  dirac_prod(&proj,&proj,&CgB);
-		  if(t<=glb_size[0]/2 and idg0==1) dirac_prod_double(&proj, &proj,-1.0);
-		  
-		  //Precompute the factor to be added
-		  spinspin f;
-		  for(int al=0;al<NDIRAC;al++)
-		    for(int al1=0;al1<NDIRAC;al1++)
+		//Color source
+		  for(int b_so=0;b_so<NCOL;b_so++)
+		    //Color sink
+		    for(int b_si=0;b_si<NCOL;b_si++)
 		      {
-			unsafe_complex_prod(f[al1][al],CgA.entr[al],CgB.entr[al1]);
-			complex_prodassign(f[al1][al],proj.entr[al1]);
-			complex_prodassign_double(f[al1][al],norm);
-		      }
-		  
-		  for(int iperm=0;iperm<2;iperm++)
-		    for(int a=0;a<NCOL;a++)
-		      for(int b=eps[a][iperm],
-			    c=eps[a][1-iperm],
-			    //Color sink
-			    iperm1=0;iperm1<2;iperm1++)
-			for(int a1=0;a1<NCOL;a1++)
-			  {
-			    int b1=eps[a1][iperm1],
-			      c1=eps[a1][1-iperm1];
-			    //Dirac source
-			    for(int al=0;al<NDIRAC;al++)
-			      for(int be=CgA.pos[al],
-				    ga=0;ga<NDIRAC;ga++)
+			//Dirac source
+			for(int al_so=0;al_so<NDIRAC;al_so++)
+			  for(int be_so=Cg_so.pos[al_so],
 				//Dirac sink
-				for(int al0=0;al0<NDIRAC;al0++)
-				  for(int be0=CgB.pos[al0],
-					ga0=proj.pos[ga],
-					//Wick contraction
-					iWick=0;iWick<3;iWick++)
-				    {
-				      int o[3]={al0,be0,ga0},
-					al1=o[(iWick+0)%3],
-					be1=o[(iWick+1)%3],
-					ga1=o[(iWick+2)%3];
-				      
-				      complex temp;
-				      unsafe_complex_prod(temp,p1[a1][a][al1][al],p2[b1][b][be1][be]);
-				      complex_prodassign(temp,p3[c1][c][ga1][ga]);
-				      
-				      complex_prodassign(temp,f[al1][al]);
-				      
-				      complex_summ_the_prod_double(loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)],temp,sign[iperm]*sign[iperm1]);
-				    }
-			  }
-		}
+				al_si=0;al_si<NDIRAC;al_si++)
+			    {
+			      int be_si=Cg_si.pos[al_si];
+			      
+			      complex part[2]={};
+			      
+			      for(int iperm_so=0;iperm_so<2;iperm_so++)
+				for(int iperm_si=0;iperm_si<2;iperm_si++)
+				  {
+				    int c_so=eps[b_so][iperm_so],a_so=eps[b_so][1-iperm_so];
+				    int c_si=eps[b_si][iperm_si],a_si=eps[b_si][1-iperm_si];
+				    
+				    for(int ga_so=0;ga_so<NDIRAC;ga_so++)
+				      for(int idg0=0;idg0<2;idg0++)
+					{
+					  int ga_si=proj[idg0].pos[ga_so];
+					  
+					  int isign=((sign[iperm_so]*sign[iperm_si]*((t<=glb_size[0]/2 and idg0==1)?-1:1))==+1);
+					  
+					  for(int iWick=0;iWick<2;iWick++)
+					    {
+					      complex AC;
+					      unsafe_complex_prod(AC,p1[a_si][a_so][(iWick==0)?al_si:ga_si][al_so],p3[c_si][c_so][(iWick==0)?ga_si:al_si][ga_so]);
+					      list_fun[isign](part[iWick],AC,fact[idg0][al_si][al_so]);
+					    }
+					}
+				  }
+			      
+			      for(int iWick=0;iWick<2;iWick++)
+				complex_summ_the_prod(loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)],part[iWick],p2[b_si][b_so][be_si][be_so]);
+			    }
+		      }
+	      }
 	  }
       }
     STOP_TIMING(bar2pts_contr_time);
@@ -586,7 +609,7 @@ namespace nissa
 	      {
 		//normalize for nsources and 1+g0
 		complex c;
-		complex_prod_double(c,bar2pts_alt_contr[ind_bar2pts_alt_contr(icombo,iProj,iWick,t)],1.0/(2*nhits));
+		complex_prod_double(c,bar2pts_alt_contr[ind_bar2pts_alt_contr(icombo,iWick,iProj,t)],1.0/(2*nhits));
 		master_fprintf(fout,"%+16.16lg %+16.16lg\n",c[RE],c[IM]);
 	      }
 	    
