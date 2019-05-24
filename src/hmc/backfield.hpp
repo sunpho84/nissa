@@ -67,6 +67,7 @@ namespace nissa
   {add_or_rem_backfield_with_or_without_stagphases_to_conf(conf,1,u1,1);}
   
   void init_backfield_to_id(quad_u1 **S);
+  void add_antiperiodic_condition_to_backfield(quad_u1 **S, int mu);
   void add_im_pot_to_backfield(quad_u1 **S,quark_content_t *quark_content);
   void add_em_field_to_backfield(quad_u1 **S,quark_content_t *quark_content,double em_str,int q,int mu,int nu);
   void add_em_field_to_backfield(quad_u1 **S,quark_content_t *quark_content,em_field_pars_t &em_field_pars);

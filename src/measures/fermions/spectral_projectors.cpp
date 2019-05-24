@@ -30,6 +30,7 @@ namespace nissa
     //identity backfield
     quad_u1 *u1b[2]={nissa_malloc("u1b",loc_volh+bord_volh,quad_u1),nissa_malloc("u1b",loc_volh+bord_volh,quad_u1)};
     init_backfield_to_id(u1b);
+    add_antiperiodic_condition_to_backfield(u1b,0);
     
     //temporary vectors
     color *tmpvec_eo[2]={nissa_malloc("tmpvec_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("tmpvec_eo_ODD",loc_volh+bord_volh,color)};
