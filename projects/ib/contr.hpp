@@ -123,6 +123,8 @@ namespace nissa
   EXTERN_CONTR int bar2pts_contr_size;
   
   EXTERN_CONTR complex *bar2pts_alt_contr INIT_TO(NULL);
+  EXTERN_CONTR int nbar2pts_alt_contr_made INIT_TO(0);
+  EXTERN_CONTR double bar2pts_alt_contr_time INIT_TO(0);
   void allocate_bar2pts_alt_contr();
   void compute_bar2pts_alt_contr();
   void print_bar2pts_alt_contr();
@@ -131,8 +133,8 @@ namespace nissa
   {
     return
       (t+glb_size[0]*
-       (iProj+3*
-	(iWick+3*
+       (iProj+10*
+	(iWick+2*
 	 icombo)));
   }
   EXTERN_CONTR int bar2pts_alt_contr_size;

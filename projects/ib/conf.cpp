@@ -286,7 +286,8 @@ namespace nissa
 	print_single_statistic(read_prop_time,tot_prog_time,nread_prop,"reading propagators");
 	print_single_statistic(mes2pts_contr_time,tot_prog_time,nmes2pts_contr_made,"calculation of mesonic 2pts_contractions");
 	print_single_statistic(handcuffs_contr_time,tot_prog_time,nhandcuffs_contr_made,"calculation of handcuff 2pts_contractions");
-	print_single_statistic(bar2pts_contr_time,tot_prog_time,nbar2pts_contr_made,"calculation of baryonic 2pts contractions");
+	print_single_statistic(bar2pts_alt_contr_time,tot_prog_time,nbar2pts_alt_contr_made,"calculation of barionic 2pts alt contractions");
+	print_single_statistic(bar2pts_contr_time,tot_prog_time,nbar2pts_contr_made,"calculation of barionic 2pts contractions");
 	print_single_statistic(meslep_contr_time,tot_prog_time,nmeslep_contr_made,"calculation of hadro-leptonic contractions");
 	print_single_statistic(contr_print_time,tot_prog_time,nmeslep_contr_made,"printing contractions");
       	print_single_statistic(fft_time,tot_prog_time,nfft_tot,"Fourier transforming and writing fft-propagators");

@@ -234,12 +234,12 @@ namespace nissa
     
     return CgX;
   }
-
-  //allocate baryionic contr
+  
+  //allocate bariionic contr
   void allocate_bar2pts_contr()
   {
     bar2pts_contr_size=ind_bar2pts_contr(bar2pts_contr_map.size()-1,2-1,glb_size[0]-1)+1;
-    bar2pts_alt_contr_size=ind_bar2pts_alt_contr(bar2pts_contr_map.size()-1,3-1,3-1,glb_size[0]-1)+1;
+    bar2pts_alt_contr_size=ind_bar2pts_alt_contr(bar2pts_contr_map.size()-1,2-1,10-1,glb_size[0]-1)+1;
     bar2pts_contr=nissa_malloc("bar2pts_contr",bar2pts_contr_size,complex);
     bar2pts_alt_contr=nissa_malloc("bar2pts_alt_contr",bar2pts_alt_contr_size,complex);
   }
@@ -259,10 +259,25 @@ namespace nissa
   //such that the "direct" contraction correspond to iWick=0, exchange
   //to one of the two others (should they be simply related by time
   //reversal?)
+  //
+  // O_ga=          eps_{a,b,c} q1_{al,a}(CG)_{al,be}q2_{be,b}q3_{ga,c}
+  //
+  // O^\dagger_ga = eps_{a,b,c}} q3^*_{ga,c}q2^*_{be,b}(CG)^\dag_{al,be}q3_{ga,c}
   THREADABLE_FUNCTION_0ARG(compute_bar2pts_alt_contr)
   {
     GET_THREAD_ID();
     master_printf("Computing barion 2pts contractions alternative\n");
+    
+    //In practice, only in the second half and for the g0 we have a minus
+    auto sign_idg0=[](const int t,const int idg0)
+		   {
+		     const int second_half=(t>=glb_size[0]/2);
+		     
+		     if(second_half and idg0==1)
+		       return -1;
+		     else
+		       return +1;
+		   };
     
     //allocate loc storage
     complex *loc_contr=new complex[bar2pts_alt_contr_size];
@@ -270,16 +285,9 @@ namespace nissa
     
     const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
     
-    dirac_matr opmg0_list[2][2];
-    for(int it=0;it<2;it++)
-      {
-	opmg0_list[it][0]=base_gamma[0];
-	dirac_prod_double(&opmg0_list[it][1],base_gamma+4,(it==0)?1:-1);
-      }
-    
     void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
     
-    UNPAUSE_TIMING(bar2pts_contr_time);
+    UNPAUSE_TIMING(bar2pts_alt_contr_time);
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
       {
 	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
@@ -289,94 +297,115 @@ namespace nissa
 	
 	for(auto &iProjGroup : std::array<std::array<int,3>,10>
 	      {{{5,5,0},
-	      {1,1,1},{2,2,1},{3,3,1},
-	      {1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2}}})
+	      {1,1,1},{2,2,2},{3,3,3},
+	      {1,2,4},{1,3,5},{2,1,6},{2,3,7},{3,1,8},{3,2,9}}})
+	// for(auto &iProjGroup : std::array<std::array<int,3>,10>
+	//       {{{5,5,0},
+	//       {1,1,1},{2,2,1},{3,3,1},
+	//       {1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2}}})
 	  {
-	    const int i=iProjGroup[0];
-	    const int j=iProjGroup[1];
+	    const int igSo=iProjGroup[0];
+	    const int igSi=iProjGroup[1];
 	    
-	    const dirac_matr Cg_so=set_CgX(i);
-	    const dirac_matr Cg_si=set_CgX(j);
+	    //When taking the adjoint interpolating operator, we must
+	    //include the sign of g0 Cg^\dagger g0.
+	    dirac_matr temp=set_CgX(igSo);
+	    dirac_prod(&temp,&temp,base_gamma+4);
+	    dirac_prod(&temp,base_gamma+4,&temp);
+	    dirac_matr Cg_so;
+	    dirac_herm(&Cg_so,&temp);
+	    dirac_matr Cg_si=set_CgX(igSi);
 	    
-	    //Compute the projector, gi*gj *(1+-g0)/2
+	    //Compute the projector, gi*gj*(1 or g0)
 	    dirac_matr proj[2];
+	    const int g_of_id_g0[2]={0,4};
 	    for(int idg0=0;idg0<2;idg0++)
 	      {
 		dirac_matr& p=proj[idg0];
-		p=base_gamma[(idg0==0)?0:4];
-		dirac_prod(&p,&p,&Cg_si);
-		dirac_prod(&p,&p,&Cg_so);
+		p=base_gamma[igSi];
+		dirac_prod(&p,&p,&base_gamma[igSo]);
+		dirac_prod(&p,&p,&base_gamma[g_of_id_g0[idg0]]);
 	      }
 	    
 	    //Precompute the factor to be added
-	    spinspin fact[2];
-	    for(int idg0=0;idg0<2;idg0++)
-	      for(int al_si=0;al_si<NDIRAC;al_si++)
-		for(int al_so=0;al_so<NDIRAC;al_so++)
+	    spinspin fact;
+	      for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+		for(int sp_so=0;sp_so<NDIRAC;sp_so++)
 		  {
-		    complex& f=fact[idg0][al_si][al_so];
-		    unsafe_complex_prod(f,Cg_si.entr[al_si],Cg_so.entr[al_so]);
-		    complex_prodassign(f,proj[idg0].entr[al_si]);
+		    complex& f=fact[sp_si][sp_so];
+		    unsafe_complex_prod(f,Cg_si.entr[sp_si],Cg_so.entr[sp_so]);
 		    complex_prodassign_double(f,norm);
 		  }
 	    
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  {
-	    int t=rel_coord_of_loclx(ivol,0);
-	    su3spinspin p1,p2,p3;
-	    
-	    for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
-	      for(int al_so=0;al_so<NDIRAC;al_so++)
-	    	for(int al_si=0;al_si<NDIRAC;al_si++)
-	    	  for(int a_so=0;a_so<NCOL;a_so++)
-	    	    for(int a_si=0;a_si<NCOL;a_si++)
-	    	      complex_copy(k.first[a_si][a_so][al_si][al_so],k.second[so_sp_col_ind(al_so,a_so)][ivol][al_si][a_si]);
-	    
+	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	      {
+		int t=rel_coord_of_loclx(ivol,0);
+		su3spinspin p1,p2,p3;
+		
+		//Takes a slice
+		for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
+		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
+		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+		      for(int co_so=0;co_so<NCOL;co_so++)
+			for(int co_si=0;co_si<NCOL;co_si++)
+			  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
+		
 		//Color source
-		  for(int b_so=0;b_so<NCOL;b_so++)
-		    //Color sink
-		    for(int b_si=0;b_si<NCOL;b_si++)
-		      {
-			//Dirac source
-			for(int al_so=0;al_so<NDIRAC;al_so++)
-			  for(int be_so=Cg_so.pos[al_so],
-				//Dirac sink
-				al_si=0;al_si<NDIRAC;al_si++)
-			    {
-			      int be_si=Cg_si.pos[al_si];
-			      
-			      complex part[2]={};
-			      
-			      for(int iperm_so=0;iperm_so<2;iperm_so++)
-				for(int iperm_si=0;iperm_si<2;iperm_si++)
-				  {
-				    int c_so=eps[b_so][iperm_so],a_so=eps[b_so][1-iperm_so];
-				    int c_si=eps[b_si][iperm_si],a_si=eps[b_si][1-iperm_si];
-				    
-				    for(int ga_so=0;ga_so<NDIRAC;ga_so++)
-				      for(int idg0=0;idg0<2;idg0++)
-					{
-					  int ga_si=proj[idg0].pos[ga_so];
-					  
-					  int isign=((sign[iperm_so]*sign[iperm_si]*((t<=glb_size[0]/2 and idg0==1)?-1:1))==+1);
-					  
-					  for(int iWick=0;iWick<2;iWick++)
-					    {
-					      complex AC;
-					      unsafe_complex_prod(AC,p1[a_si][a_so][(iWick==0)?al_si:ga_si][al_so],p3[c_si][c_so][(iWick==0)?ga_si:al_si][ga_so]);
-					      list_fun[isign](part[iWick],AC,fact[idg0][al_si][al_so]);
-					    }
-					}
-				  }
-			      
+		for(int b_so=0;b_so<NCOL;b_so++)
+		  //Color sink
+		  for(int b_si=0;b_si<NCOL;b_si++)
+		    {
+		      //Dirac source
+		      for(int al_so=0;al_so<NDIRAC;al_so++)
+			for(int be_so=Cg_so.pos[al_so],
+			      //Dirac sink
+			      al_si=0;al_si<NDIRAC;al_si++)
+			  {
+			    int be_si=Cg_si.pos[al_si];
+			    
+			    complex AC_proj[2][2]={};
+			    
+			    for(int iperm_so=0;iperm_so<2;iperm_so++)
+			      for(int iperm_si=0;iperm_si<2;iperm_si++)
+				{
+				  int c_so=eps[b_so][1-iperm_so],a_so=eps[b_so][iperm_so];
+				  int c_si=eps[b_si][1-iperm_si],a_si=eps[b_si][iperm_si];
+				  
+				  for(int ga_so=0;ga_so<NDIRAC;ga_so++)
+				    for(int idg0=0;idg0<2;idg0++)
+				      {
+					int ga_si=proj[idg0].pos[ga_so];
+					
+					int isign=((sign[iperm_so]*sign[iperm_si]*sign_idg0(t,idg0))==+1);
+					
+					for(int iWick=0;iWick<2;iWick++)
+					  {
+					    const int sp1_si=(iWick==0)?al_si:ga_si;
+					    const int sp3_si=(iWick==0)?ga_si:al_si;
+					    
+					    const int co1_si=(iWick==0)?a_si:c_si;
+					    const int co3_si=(iWick==0)?c_si:a_si;
+					    
+					    complex AC;
+					    unsafe_complex_prod(AC,p1[co1_si][a_so][sp1_si][al_so],p3[co3_si][c_so][sp3_si][ga_so]);
+					    list_fun[isign](AC_proj[idg0][iWick],AC,proj[idg0].entr[ga_so]);
+					  }
+				      }
+				}
+			    
+			    for(int idg0=0;idg0<2;idg0++)
 			      for(int iWick=0;iWick<2;iWick++)
-				complex_summ_the_prod(loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)],part[iWick],p2[b_si][b_so][be_si][be_so]);
-			    }
-		      }
+				{
+				  complex term;
+				  unsafe_complex_prod(term,AC_proj[idg0][iWick],fact[al_si][al_so]);
+				  complex_summ_the_prod(loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)],term,p2[b_si][b_so][be_si][be_so]);
+				}
+			  }
+		    }
 	      }
 	  }
       }
-    STOP_TIMING(bar2pts_contr_time);
+    STOP_TIMING(bar2pts_alt_contr_time);
     
     //reduce
     complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_alt_contr_size);
@@ -392,16 +421,16 @@ namespace nissa
     delete[] loc_contr;
     
     //stats
-    if(IS_MASTER_THREAD) nbar2pts_contr_made+=bar2pts_contr_map.size();
+    if(IS_MASTER_THREAD) nbar2pts_alt_contr_made+=bar2pts_contr_map.size();
   }
   THREADABLE_FUNCTION_END
   
   //compute all contractions
-  THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr)
+  THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr_old)
   {
     GET_THREAD_ID();
     
-    master_printf("Computing baryon contractions\n");
+    master_printf("Computing barion contractions\n");
     
     //local thread/node contractions
     complex *loc_contr=new complex[bar2pts_contr_size];
@@ -478,7 +507,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute all contractions
-  THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr_odd)
+  THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr)
   {
     GET_THREAD_ID();
     master_printf("Computing barion 2pts contractions\n");
@@ -600,11 +629,17 @@ namespace nissa
     glb_nodes_reduce_complex_vect(bar2pts_alt_contr,bar2pts_alt_contr_size);
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
-      for(int iProj=0;iProj<3;iProj++)
-	for(int iWick=0;iWick<3;iWick++)
+      for(int iProj=0;iProj<10;iProj++)
+	for(int iWick=0;iWick<2;iWick++)
 	  {
 	    //open output
 	    FILE *fout=list.open(combine("%s/bar_alt_contr_%s_proj_%d_Wick_%d",outfolder,bar2pts_contr_map[icombo].name.c_str(),iProj,iWick));
+	    
+	    std::vector<std::array<int,3>> l
+	      {{{5,5,0},
+		{1,1,1},{2,2,2},{3,3,3},
+		{1,2,4},{1,3,5},{2,1,6},{2,3,7},{3,1,8},{3,2,9}}};
+	    master_fprintf(fout,"# %d %d\n",l[iProj][0],l[iProj][1]);
 	    for(int t=0;t<glb_size[0];t++)
 	      {
 		//normalize for nsources and 1+g0
