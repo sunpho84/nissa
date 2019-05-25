@@ -110,6 +110,19 @@ namespace nissa
     memcpy(out->entr,temp.entr,sizeof(complex)*NDIRAC);
   }
   
+  //Assign to the first dirac matrixes the product of the second and the third
+  inline dirac_matr dirac_prod(const dirac_matr& in1,const dirac_matr& in2)
+  {
+    dirac_matr out;
+    dirac_prod(&out,&in1, &in2);
+    return out;
+  }
+  
+  inline dirac_matr operator*(const dirac_matr& in1,const dirac_matr& in2)
+  {
+    return dirac_prod(in1,in2);
+  }
+  
   inline void dirac_prod_double(dirac_matr *out,dirac_matr *in1,double in2)
   {
     for(int id=0;id<NDIRAC;id++)
@@ -147,7 +160,7 @@ namespace nissa
   }
   
   //take the hermitian
-  inline void dirac_herm(dirac_matr *out,dirac_matr *in)
+  inline void dirac_herm(dirac_matr *out,const dirac_matr *in)
   {
     for(int id=0;id<NDIRAC;id++)
       {
@@ -158,6 +171,14 @@ namespace nissa
 	out->pos[od]=id;
 	complex_conj(out->entr[od],in->entr[id]);
       }
+  }
+  
+  //Assign to the first dirac matrixes the product of the second and the third
+  inline dirac_matr herm(const dirac_matr& in)
+  {
+    dirac_matr out;
+    dirac_herm(&out,&in);
+    return out;
   }
   
   //Assign to the first dirac the product of the second by the complex

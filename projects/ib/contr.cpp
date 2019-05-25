@@ -239,6 +239,7 @@ namespace nissa
   void allocate_bar2pts_contr()
   {
     bar2pts_contr_size=ind_bar2pts_contr(bar2pts_contr_map.size()-1,2-1,glb_size[0]-1)+1;
+    //bar2pts_contr_size=ind_bar2pts_contr(bar2pts_contr_map.size()-1,2-1,10-1,glb_size[0]-1)+1;
     bar2pts_alt_contr_size=ind_bar2pts_alt_contr(bar2pts_contr_map.size()-1,2-1,10-1,glb_size[0]-1)+1;
     bar2pts_contr=nissa_malloc("bar2pts_contr",bar2pts_contr_size,complex);
     bar2pts_alt_contr=nissa_malloc("bar2pts_alt_contr",bar2pts_alt_contr_size,complex);
@@ -269,14 +270,14 @@ namespace nissa
     master_printf("Computing barion 2pts contractions alternative\n");
     
     //In practice, only in the second half and for the g0 we have a minus
-    auto sign_idg0=[](const int t,const int idg0)
+    auto sign_idg0=[](const int t,const int idg0) -> int
 		   {
-		     const int second_half=(t>=glb_size[0]/2);
+		     const int first_half=1;//ANNA (t<=glb_size[0]/2);
 		     
-		     if(second_half and idg0==1)
-		       return -1;
-		     else
+		     if(first_half or idg0==0)
 		       return +1;
+		     else
+		       return -1;
 		   };
     
     //allocate loc storage
@@ -309,23 +310,16 @@ namespace nissa
 	    
 	    //When taking the adjoint interpolating operator, we must
 	    //include the sign of g0 Cg^\dagger g0.
-	    dirac_matr temp=set_CgX(igSo);
-	    dirac_prod(&temp,&temp,base_gamma+4);
-	    dirac_prod(&temp,base_gamma+4,&temp);
-	    dirac_matr Cg_so;
-	    dirac_herm(&Cg_so,&temp);
+	    const auto& g=base_gamma;
+	    
+	    dirac_matr Cg_so=herm(g[4]*set_CgX(igSo)*g[4]);
 	    dirac_matr Cg_si=set_CgX(igSi);
 	    
 	    //Compute the projector, gi*gj*(1 or g0)
 	    dirac_matr proj[2];
 	    const int g_of_id_g0[2]={0,4};
 	    for(int idg0=0;idg0<2;idg0++)
-	      {
-		dirac_matr& p=proj[idg0];
-		p=base_gamma[igSi];
-		dirac_prod(&p,&p,&base_gamma[igSo]);
-		dirac_prod(&p,&p,&base_gamma[g_of_id_g0[idg0]]);
-	      }
+	      proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
 	    
 	    //Precompute the factor to be added
 	    spinspin fact;
@@ -426,7 +420,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute all contractions
-  THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr_old)
+  THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr_free_theory)
   {
     GET_THREAD_ID();
     
@@ -436,58 +430,107 @@ namespace nissa
     complex *loc_contr=new complex[bar2pts_contr_size];
     memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
     
-    const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
-    
-    void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
-    
-    for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
+    int eps[3][3][3]={};
+    for(int i=0;i<3;i++)
       {
-	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
-	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
-	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
-	
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	eps[i][(i+1)%3][(i+2)%3]=+1;
+	eps[i][(i+2)%3][(i+1)%3]=-1;
+      }
+    
+    for(int i=0;i<3;i++)
+      for(int j=0;j<3;j++)
+	for(int k=0;k<3;k++)
+	  master_printf("%d %d %d %d\n",i,j,k,eps[i][j][k]);
+    
+    std::vector<std::array<int,3>> list({{{5,5,0},
+	  {1,1,1},{2,2,1},{3,3,1},
+					 {1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2}}});
+    for(int iP=0;iP<10;iP++)
+      {
+	int g_si=list[iP][0];
+	int g_so=list[iP][1];
+        
+	spinspin opg0[2];
+	for(int it=0;it<2;it++)
 	  {
-	    int t=rel_time_of_loclx(ivol);
+	    dirac_matr temp=base_gamma[g_si]*base_gamma[g_so];
+	    dirac_matr temp0=temp*base_gamma[4];
 	    
-	    int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
-	    int sign_idg0[2]={1,(t<(glb_size[0]/2))?1:-1}; //identity is 1 always
-	    for(int al1=0;al1<NDIRAC;al1++)
-	      for(int al=0;al<NDIRAC;al++)
-		for(int b1=0;b1<NCOL;b1++)
-		  for(int b=0;b<NCOL;b++)
-		    {
-		      complex diquark_dir={0,0},diquark_exc={0,0};
-		      
-		      //build the diquark
-		      for(int iperm1=0;iperm1<2;iperm1++)
-			for(int iperm=0;iperm<2;iperm++)
-			  {
-			    int c=eps[b][iperm],a=eps[b][!iperm];
-			    int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
-			    
-			    for(int ga=0;ga<NDIRAC;ga++)
-			      for(int idg0=0;idg0<2;idg0++)
-				{
-				  int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
-				  int ga1=ga1_l[idg0][ga];
-				  
-				  list_fun[isign](diquark_dir,Q1[so_sp_col_ind(al,a)][ivol][al1][a1],Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1]); //direct
-				  list_fun[isign](diquark_exc,Q1[so_sp_col_ind(ga,c)][ivol][al1][a1],Q3[so_sp_col_ind(al,a)][ivol][ga1][c1]); //exchange
-				}
-			  }
-		      
-		      //close it
-		      complex w;
-		      unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
-		      int be1=Cg5.pos[al1],be=Cg5.pos[al];
-		      complex_prodassign(diquark_dir,w);
-		      complex_prodassign(diquark_exc,w);
-		      complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],
-					    diquark_dir);
-		      complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],
-					    diquark_exc);
-		    }
+	    spinspin_dirac_prod_double(opg0[it],&temp,1.0);
+	    if(it==0)
+	      spinspin_dirac_summ_the_prod_double(opg0[it],&temp0,1.0);
+	    else
+	      spinspin_dirac_summ_the_prod_double(opg0[it],&temp0,-1.0);
+	  }
+	
+	spinspin Cg_so;
+	dirac_matr temp=base_gamma[4]*herm(set_CgX(g_so))*base_gamma[4];
+	spinspin_dirac_prod_double(Cg_so,&temp,1.0);
+	//
+	spinspin Cg_si;
+	temp=set_CgX(g_si);
+	spinspin_dirac_prod_double(Cg_si,&temp,1.0);
+	
+	for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
+	  {
+	    qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
+	    qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
+	    qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
+	    double norm=6*pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
+	    
+	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	      {
+		const int t=rel_time_of_loclx(ivol);
+		const int it=0;//ANNA (t<=glb_size[0]/2)?0:1;
+		
+		su3spinspin p1,p2,p3;
+		
+		//Takes a slice
+		for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
+		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
+		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+		      for(int co_so=0;co_so<NCOL;co_so++)
+			for(int co_si=0;co_si<NCOL;co_si++)
+			  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
+		
+		const int a_so=0,a_si=0,b_so=0,b_si=0,c_so=0,c_si=0;
+		// for(int a_so=0;a_so<NCOL;a_so++)
+		//   for(int b_so=0;b_so<NCOL;b_so++)
+		//     for(int c_so=0;c_so<NCOL;c_so++)
+		//       for(int a_si=0;a_si<NCOL;a_si++)
+		// 	for(int b_si=0;b_si<NCOL;b_si++)
+		// 	  for(int c_si=0;c_si<NCOL;c_si++)
+			    for(int al_so=0;al_so<NDIRAC;al_so++)
+			      for(int be_so=0;be_so<NDIRAC;be_so++)
+				for(int ga_so=0;ga_so<NDIRAC;ga_so++)
+				  for(int al_si=0;al_si<NDIRAC;al_si++)
+				    for(int be_si=0;be_si<NDIRAC;be_si++)
+				      for(int ga_si=0;ga_si<NDIRAC;ga_si++)
+					{
+					  complex temp={1,0};
+					  complex_prodassign(temp,p1[a_si][a_so][al_si][al_so]);
+					  complex_prodassign(temp,p2[b_si][b_so][be_si][be_so]);
+					  complex_prodassign(temp,p3[c_si][c_so][ga_si][ga_so]);
+					  complex_prodassign(temp,Cg_si[al_si][be_si]);
+					  complex_prodassign(temp,Cg_so[al_so][be_so]);
+					  complex_prodassign(temp,opg0[it][ga_so][ga_si]);
+					  
+					  complex_summ_the_prod_double(loc_contr[ind_bar2pts_contr(icombo,0,iP,t)],temp,-// eps[a_so][b_so][c_so]*eps[a_si][b_si][c_si]*
+								       norm);
+					  
+					  complex temp2={1,0};
+					  complex_prodassign(temp2,p1[a_si][c_so][al_si][ga_so]);
+					  complex_prodassign(temp2,p2[b_si][b_so][be_si][be_so]);
+					  complex_prodassign(temp2,p3[c_si][a_so][ga_si][al_so]);
+					  complex_prodassign(temp2,Cg_si[al_si][be_si]);
+					  complex_prodassign(temp2,Cg_so[al_so][be_so]);
+					  complex_prodassign(temp2,opg0[it][ga_so][ga_si]);
+					  
+					  complex_subt_the_prod_double(loc_contr[ind_bar2pts_contr(icombo,1,iP,t)],temp2,-// eps[a_so][b_so][c_so]*eps[a_si][b_si][c_si]*
+								       norm);
+					  
+					}
+	      }
 	  }
       }
     
@@ -540,7 +583,7 @@ namespace nissa
 		      int t=rel_time_of_loclx(ivol);
 		      
 		      int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
-    			  int sign_idg0[2]={(t<(glb_size[0]/2))?1:-1,-1}; //gamma0 is -1 always
+		      int sign_idg0[2]={1,(t<(glb_size[0]/2))?-1:+1}; //gamma0 is -1 always
     			  for(int al1=0;al1<NDIRAC;al1++)
     			    for(int b1=0;b1<NCOL;b1++)
     			      {
@@ -564,11 +607,11 @@ namespace nissa
     				//close it
     				complex w;
     				unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
-    				int be1=Cg5.pos[al1];
+				int be1=Cg5.pos[al1];
     				complex_prodassign_double(diquark_dir,w[RE]*norm);
     				complex_prodassign_double(diquark_exc,w[RE]*norm);
-    				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
-    				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
+				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
+				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
     			      }
 		    }
 		}
@@ -603,10 +646,12 @@ namespace nissa
     glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
-      for(int dir_exc=0;dir_exc<2;dir_exc++)
+      // for(int iProj=0;iProj<10;iProj++)
+	for(int dir_exc=0;dir_exc<2;dir_exc++)
 	{
 	  //open output
 	  FILE *fout=list.open(combine("%s/bar_contr_%s_%s",outfolder,(dir_exc==0)?"dir":"exc",bar2pts_contr_map[icombo].name.c_str()));
+	  //FILE *fout=list.open(combine("%s/bar_contr_%s_%d_%s",outfolder,(dir_exc==0)?"dir":"exc",iProj,bar2pts_contr_map[icombo].name.c_str()));
 	  for(int t=0;t<glb_size[0];t++)
 	    {
 	      //normalize for nsources and 1+g0
