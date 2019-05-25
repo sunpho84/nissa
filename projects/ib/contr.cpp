@@ -272,7 +272,7 @@ namespace nissa
     //In practice, only in the second half and for the g0 we have a minus
     auto sign_idg0=[](const int t,const int idg0) -> int
 		   {
-		     const int first_half=1;//ANNA (t<=glb_size[0]/2);
+		     const int first_half=(t<=glb_size[0]/2);
 		     
 		     if(first_half or idg0==0)
 		       return +1;
