@@ -419,135 +419,135 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //compute all contractions
-  THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr_free_theory)
-  {
-    GET_THREAD_ID();
+  // //compute all contractions
+  // THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr_free_theory)
+  // {
+  //   GET_THREAD_ID();
     
-    master_printf("Computing barion contractions\n");
+  //   master_printf("Computing barion contractions\n");
     
-    //local thread/node contractions
-    complex *loc_contr=new complex[bar2pts_contr_size];
-    memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
+  //   //local thread/node contractions
+  //   complex *loc_contr=new complex[bar2pts_contr_size];
+  //   memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
     
-    int eps[3][3][3]={};
-    for(int i=0;i<3;i++)
-      {
-	eps[i][(i+1)%3][(i+2)%3]=+1;
-	eps[i][(i+2)%3][(i+1)%3]=-1;
-      }
+  //   int eps[3][3][3]={};
+  //   for(int i=0;i<3;i++)
+  //     {
+  // 	eps[i][(i+1)%3][(i+2)%3]=+1;
+  // 	eps[i][(i+2)%3][(i+1)%3]=-1;
+  //     }
     
-    for(int i=0;i<3;i++)
-      for(int j=0;j<3;j++)
-	for(int k=0;k<3;k++)
-	  master_printf("%d %d %d %d\n",i,j,k,eps[i][j][k]);
+  //   for(int i=0;i<3;i++)
+  //     for(int j=0;j<3;j++)
+  // 	for(int k=0;k<3;k++)
+  // 	  master_printf("%d %d %d %d\n",i,j,k,eps[i][j][k]);
     
-    std::vector<std::array<int,3>> list({{{5,5,0},
-	  {1,1,1},{2,2,1},{3,3,1},
-					 {1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2}}});
-    for(int iP=0;iP<10;iP++)
-      {
-	int g_si=list[iP][0];
-	int g_so=list[iP][1];
+  //   std::vector<std::array<int,3>> list({{{5,5,0},
+  // 	  {1,1,1},{2,2,1},{3,3,1},
+  // 					 {1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2}}});
+  //   for(int iP=0;iP<10;iP++)
+  //     {
+  // 	int g_si=list[iP][0];
+  // 	int g_so=list[iP][1];
         
-	spinspin opg0[2];
-	for(int it=0;it<2;it++)
-	  {
-	    dirac_matr temp=base_gamma[g_si]*base_gamma[g_so];
-	    dirac_matr temp0=temp*base_gamma[4];
+  // 	spinspin opg0[2];
+  // 	for(int it=0;it<2;it++)
+  // 	  {
+  // 	    dirac_matr temp=base_gamma[g_si]*base_gamma[g_so];
+  // 	    dirac_matr temp0=temp*base_gamma[4];
 	    
-	    spinspin_dirac_prod_double(opg0[it],&temp,1.0);
-	    if(it==0)
-	      spinspin_dirac_summ_the_prod_double(opg0[it],&temp0,1.0);
-	    else
-	      spinspin_dirac_summ_the_prod_double(opg0[it],&temp0,-1.0);
-	  }
+  // 	    spinspin_dirac_prod_double(opg0[it],&temp,1.0);
+  // 	    if(it==0)
+  // 	      spinspin_dirac_summ_the_prod_double(opg0[it],&temp0,1.0);
+  // 	    else
+  // 	      spinspin_dirac_summ_the_prod_double(opg0[it],&temp0,-1.0);
+  // 	  }
 	
-	spinspin Cg_so;
-	dirac_matr temp=base_gamma[4]*herm(set_CgX(g_so))*base_gamma[4];
-	spinspin_dirac_prod_double(Cg_so,&temp,1.0);
-	//
-	spinspin Cg_si;
-	temp=set_CgX(g_si);
-	spinspin_dirac_prod_double(Cg_si,&temp,1.0);
+  // 	spinspin Cg_so;
+  // 	dirac_matr temp=base_gamma[4]*herm(set_CgX(g_so))*base_gamma[4];
+  // 	spinspin_dirac_prod_double(Cg_so,&temp,1.0);
+  // 	//
+  // 	spinspin Cg_si;
+  // 	temp=set_CgX(g_si);
+  // 	spinspin_dirac_prod_double(Cg_si,&temp,1.0);
 	
-	for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
-	  {
-	    qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
-	    qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
-	    qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
-	    double norm=6*pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
+  // 	for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
+  // 	  {
+  // 	    qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
+  // 	    qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
+  // 	    qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
+  // 	    double norm=6*pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
 	    
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	      {
-		const int t=rel_time_of_loclx(ivol);
-		const int it=0;//ANNA (t<=glb_size[0]/2)?0:1;
+  // 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  // 	      {
+  // 		const int t=rel_time_of_loclx(ivol);
+  // 		const int it=0;//ANNA (t<=glb_size[0]/2)?0:1;
 		
-		su3spinspin p1,p2,p3;
+  // 		su3spinspin p1,p2,p3;
 		
-		//Takes a slice
-		for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
-		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
-		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
-		      for(int co_so=0;co_so<NCOL;co_so++)
-			for(int co_si=0;co_si<NCOL;co_si++)
-			  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
+  // 		//Takes a slice
+  // 		for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
+  // 		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
+  // 		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+  // 		      for(int co_so=0;co_so<NCOL;co_so++)
+  // 			for(int co_si=0;co_si<NCOL;co_si++)
+  // 			  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
 		
-		const int a_so=0,a_si=0,b_so=0,b_si=0,c_so=0,c_si=0;
-		// for(int a_so=0;a_so<NCOL;a_so++)
-		//   for(int b_so=0;b_so<NCOL;b_so++)
-		//     for(int c_so=0;c_so<NCOL;c_so++)
-		//       for(int a_si=0;a_si<NCOL;a_si++)
-		// 	for(int b_si=0;b_si<NCOL;b_si++)
-		// 	  for(int c_si=0;c_si<NCOL;c_si++)
-			    for(int al_so=0;al_so<NDIRAC;al_so++)
-			      for(int be_so=0;be_so<NDIRAC;be_so++)
-				for(int ga_so=0;ga_so<NDIRAC;ga_so++)
-				  for(int al_si=0;al_si<NDIRAC;al_si++)
-				    for(int be_si=0;be_si<NDIRAC;be_si++)
-				      for(int ga_si=0;ga_si<NDIRAC;ga_si++)
-					{
-					  complex temp={1,0};
-					  complex_prodassign(temp,p1[a_si][a_so][al_si][al_so]);
-					  complex_prodassign(temp,p2[b_si][b_so][be_si][be_so]);
-					  complex_prodassign(temp,p3[c_si][c_so][ga_si][ga_so]);
-					  complex_prodassign(temp,Cg_si[al_si][be_si]);
-					  complex_prodassign(temp,Cg_so[al_so][be_so]);
-					  complex_prodassign(temp,opg0[it][ga_so][ga_si]);
+  // 		const int a_so=0,a_si=0,b_so=0,b_si=0,c_so=0,c_si=0;
+  // 		// for(int a_so=0;a_so<NCOL;a_so++)
+  // 		//   for(int b_so=0;b_so<NCOL;b_so++)
+  // 		//     for(int c_so=0;c_so<NCOL;c_so++)
+  // 		//       for(int a_si=0;a_si<NCOL;a_si++)
+  // 		// 	for(int b_si=0;b_si<NCOL;b_si++)
+  // 		// 	  for(int c_si=0;c_si<NCOL;c_si++)
+  // 			    for(int al_so=0;al_so<NDIRAC;al_so++)
+  // 			      for(int be_so=0;be_so<NDIRAC;be_so++)
+  // 				for(int ga_so=0;ga_so<NDIRAC;ga_so++)
+  // 				  for(int al_si=0;al_si<NDIRAC;al_si++)
+  // 				    for(int be_si=0;be_si<NDIRAC;be_si++)
+  // 				      for(int ga_si=0;ga_si<NDIRAC;ga_si++)
+  // 					{
+  // 					  complex temp={1,0};
+  // 					  complex_prodassign(temp,p1[a_si][a_so][al_si][al_so]);
+  // 					  complex_prodassign(temp,p2[b_si][b_so][be_si][be_so]);
+  // 					  complex_prodassign(temp,p3[c_si][c_so][ga_si][ga_so]);
+  // 					  complex_prodassign(temp,Cg_si[al_si][be_si]);
+  // 					  complex_prodassign(temp,Cg_so[al_so][be_so]);
+  // 					  complex_prodassign(temp,opg0[it][ga_so][ga_si]);
 					  
-					  complex_summ_the_prod_double(loc_contr[ind_bar2pts_contr(icombo,0,iP,t)],temp,-// eps[a_so][b_so][c_so]*eps[a_si][b_si][c_si]*
-								       norm);
+  // 					  complex_summ_the_prod_double(loc_contr[ind_bar2pts_contr(icombo,0,iP,t)],temp,-// eps[a_so][b_so][c_so]*eps[a_si][b_si][c_si]*
+  // 								       norm);
 					  
-					  complex temp2={1,0};
-					  complex_prodassign(temp2,p1[a_si][c_so][al_si][ga_so]);
-					  complex_prodassign(temp2,p2[b_si][b_so][be_si][be_so]);
-					  complex_prodassign(temp2,p3[c_si][a_so][ga_si][al_so]);
-					  complex_prodassign(temp2,Cg_si[al_si][be_si]);
-					  complex_prodassign(temp2,Cg_so[al_so][be_so]);
-					  complex_prodassign(temp2,opg0[it][ga_so][ga_si]);
+  // 					  complex temp2={1,0};
+  // 					  complex_prodassign(temp2,p1[a_si][c_so][al_si][ga_so]);
+  // 					  complex_prodassign(temp2,p2[b_si][b_so][be_si][be_so]);
+  // 					  complex_prodassign(temp2,p3[c_si][a_so][ga_si][al_so]);
+  // 					  complex_prodassign(temp2,Cg_si[al_si][be_si]);
+  // 					  complex_prodassign(temp2,Cg_so[al_so][be_so]);
+  // 					  complex_prodassign(temp2,opg0[it][ga_so][ga_si]);
 					  
-					  complex_subt_the_prod_double(loc_contr[ind_bar2pts_contr(icombo,1,iP,t)],temp2,-// eps[a_so][b_so][c_so]*eps[a_si][b_si][c_si]*
-								       norm);
+  // 					  complex_subt_the_prod_double(loc_contr[ind_bar2pts_contr(icombo,1,iP,t)],temp2,-// eps[a_so][b_so][c_so]*eps[a_si][b_si][c_si]*
+  // 								       norm);
 					  
-					}
-	      }
-	  }
-      }
+  // 					}
+  // 	      }
+  // 	  }
+  //     }
     
-    //reduce
-    complex *master_reduced_contr=(complex*)glb_threads_reduce_double_vect((double*)loc_contr,bar2pts_contr_size*2);
-    NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
-      {
-	//remove border phase
-	int t=i%glb_size[0];
-	double arg=3*temporal_bc*M_PI*t/glb_size[0];
-	complex phase={cos(arg),sin(arg)};
-	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
-      }
-    THREAD_BARRIER();
-    delete[] loc_contr;
-  }
-  THREADABLE_FUNCTION_END
+  //   //reduce
+  //   complex *master_reduced_contr=(complex*)glb_threads_reduce_double_vect((double*)loc_contr,bar2pts_contr_size*2);
+  //   NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
+  //     {
+  // 	//remove border phase
+  // 	int t=i%glb_size[0];
+  // 	double arg=3*temporal_bc*M_PI*t/glb_size[0];
+  // 	complex phase={cos(arg),sin(arg)};
+  // 	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
+  //     }
+  //   THREAD_BARRIER();
+  //   delete[] loc_contr;
+  // }
+  // THREADABLE_FUNCTION_END
   
   //compute all contractions
   THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr)
