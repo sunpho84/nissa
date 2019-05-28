@@ -288,6 +288,8 @@ namespace nissa
     
     void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
     
+    const int ncol=free_theory?1:NCOL;
+    
     UNPAUSE_TIMING(bar2pts_alt_contr_time);
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
       {
@@ -295,6 +297,7 @@ namespace nissa
 	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
 	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
 	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
+	if(free_theory) norm*=NCOL*(NCOL+1)/2;
 	
 	for(auto &iProjGroup : std::array<std::array<int,3>,10>
 	      {{{5,5,0},
@@ -345,9 +348,9 @@ namespace nissa
 			  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
 		
 		//Color source
-		for(int b_so=0;b_so<NCOL;b_so++)
+		for(int b_so=0;b_so<ncol;b_so++)
 		  //Color sink
-		  for(int b_si=0;b_si<NCOL;b_si++)
+		  for(int b_si=0;b_si<ncol;b_si++)
 		    {
 		      //Dirac source
 		      for(int al_so=0;al_so<NDIRAC;al_so++)
