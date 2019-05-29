@@ -103,6 +103,8 @@ namespace nissa
   EXTERN_CONTR dirac_matr Cg5;
   void set_Cg5();
   
+  EXTERN_CONTR int compute_octet INIT_TO(0);
+  EXTERN_CONTR int compute_decuplet INIT_TO(0);
   EXTERN_CONTR std::vector<bar_triplet_t> bar2pts_contr_map;
   EXTERN_CONTR int nbar2pts_contr_made INIT_TO(0);
   EXTERN_CONTR double bar2pts_contr_time INIT_TO(0);
@@ -150,8 +152,8 @@ namespace nissa
     compute_mes2pts_contr();
     compute_handcuffs_contr();
     //compute_meslep_contr();
-    compute_bar2pts_contr();
-    compute_bar2pts_alt_contr();
+    if(compute_octet) compute_bar2pts_contr();
+    if(compute_decuplet) compute_bar2pts_alt_contr();
   }
   
   //print out all contractions
@@ -160,8 +162,8 @@ namespace nissa
     print_mes2pts_contr();
     print_handcuffs_contr();
     //print_meslep_contr();
-    print_bar2pts_contr();
-    print_bar2pts_alt_contr();
+    if(compute_octet) print_bar2pts_contr();
+    if(compute_decuplet) print_bar2pts_alt_contr();
   }
 }
 
