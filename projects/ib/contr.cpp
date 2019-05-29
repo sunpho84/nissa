@@ -289,7 +289,6 @@ namespace nissa
     void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
     
     const int ncol=free_theory?1:NCOL;
-    const int nperm=free_theory?1:2;
     
     UNPAUSE_TIMING(bar2pts_alt_contr_time);
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
@@ -298,7 +297,7 @@ namespace nissa
 	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
 	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
 	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
-	if(free_theory) norm*=NCOL*(NCOL+1)/2;
+	if(free_theory) norm*=NCOL*(NCOL+1)/4;
 	
 	for(auto &iProjGroup : std::array<std::array<int,3>,10>
 	      {{{5,5,0},
@@ -363,8 +362,8 @@ namespace nissa
 			    
 			    complex AC_proj[2][2]={};
 			    
-			    for(int iperm_so=0;iperm_so<nperm;iperm_so++)
-			      for(int iperm_si=0;iperm_si<nperm;iperm_si++)
+			    for(int iperm_so=0;iperm_so<2;iperm_so++)
+			      for(int iperm_si=0;iperm_si<2;iperm_si++)
 				{
 				  int c_so=eps[b_so][1-iperm_so],a_so=eps[b_so][iperm_so];
 				  int c_si=eps[b_si][1-iperm_si],a_si=eps[b_si][iperm_si];
