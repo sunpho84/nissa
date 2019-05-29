@@ -240,15 +240,15 @@ namespace nissa
   {
     bar2pts_contr_size=ind_bar2pts_contr(bar2pts_contr_map.size()-1,2-1,glb_size[0]-1)+1;
     bar2pts_alt_contr_size=ind_bar2pts_alt_contr(bar2pts_contr_map.size()-1,2-1,10-1,glb_size[0]-1)+1;
-    if(compute_octet) bar2pts_contr=nissa_malloc("bar2pts_contr",bar2pts_contr_size,complex);
-    if(compute_decuplet) bar2pts_alt_contr=nissa_malloc("bar2pts_alt_contr",bar2pts_alt_contr_size,complex);
+    bar2pts_contr=nissa_malloc("bar2pts_contr",bar2pts_contr_size,complex);
+    bar2pts_alt_contr=nissa_malloc("bar2pts_alt_contr",bar2pts_alt_contr_size,complex);
   }
   
   //free them
   void free_bar2pts_contr()
   {
-    if(compute_octet) nissa_free(bar2pts_contr);
-    if(compute_decuplet) nissa_free(bar2pts_alt_contr);
+    nissa_free(bar2pts_contr);
+    nissa_free(bar2pts_alt_contr);
   }
   
   //Compute all contractions for 1/2 and 3/2 barions.  The calculation
