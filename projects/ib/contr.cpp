@@ -239,7 +239,7 @@ namespace nissa
   void allocate_bar2pts_contr()
   {
     bar2pts_contr_size=ind_bar2pts_contr(bar2pts_contr_map.size()-1,2-1,glb_size[0]-1)+1;
-    bar2pts_alt_contr_size=ind_bar2pts_alt_contr(bar2pts_contr_map.size()-1,2-1,10-1,glb_size[0]-1)+1;
+    bar2pts_alt_contr_size=ind_bar2pts_alt_contr(bar2pts_contr_map.size()-1,2-1,3-1,glb_size[0]-1)+1;
     bar2pts_contr=nissa_malloc("bar2pts_contr",bar2pts_contr_size,complex);
     bar2pts_alt_contr=nissa_malloc("bar2pts_alt_contr",bar2pts_alt_contr_size,complex);
   }
@@ -298,14 +298,14 @@ namespace nissa
 	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
 	if(free_theory) norm*=NCOL*(NCOL+1)/4;
 	
-	for(auto &iProjGroup : std::array<std::array<int,3>,10>
-	      {{{5,5,0},
-	      {1,1,1},{2,2,2},{3,3,3},
-	      {1,2,4},{1,3,5},{2,1,6},{2,3,7},{3,1,8},{3,2,9}}})
 	// for(auto &iProjGroup : std::array<std::array<int,3>,10>
 	//       {{{5,5,0},
-	//       {1,1,1},{2,2,1},{3,3,1},
-	//       {1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2}}})
+	//       {1,1,1},{2,2,2},{3,3,3},
+	//       {1,2,4},{1,3,5},{2,1,6},{2,3,7},{3,1,8},{3,2,9}}})
+	for(auto &iProjGroup : std::array<std::array<int,3>,10>
+	      {{{5,5,0},
+	      {1,1,1},{2,2,1},{3,3,1},
+	      {1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2}}})
 	  {
 	    const int igSo=iProjGroup[0];
 	    const int igSi=iProjGroup[1];
@@ -648,12 +648,10 @@ namespace nissa
     glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
-      // for(int iProj=0;iProj<10;iProj++)
 	for(int dir_exc=0;dir_exc<2;dir_exc++)
 	{
 	  //open output
 	  FILE *fout=list.open(combine("%s/bar_contr_%s_%s",outfolder,(dir_exc==0)?"dir":"exc",bar2pts_contr_map[icombo].name.c_str()));
-	  //FILE *fout=list.open(combine("%s/bar_contr_%s_%d_%s",outfolder,(dir_exc==0)?"dir":"exc",iProj,bar2pts_contr_map[icombo].name.c_str()));
 	  for(int t=0;t<glb_size[0];t++)
 	    {
 	      //normalize for nsources and 1+g0
@@ -676,7 +674,7 @@ namespace nissa
     glb_nodes_reduce_complex_vect(bar2pts_alt_contr,bar2pts_alt_contr_size);
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
-      for(int iProj=0;iProj<10;iProj++)
+      for(int iProj=0;iProj<3;iProj++)
 	for(int iWick=0;iWick<2;iWick++)
 	  {
 	    //open output
