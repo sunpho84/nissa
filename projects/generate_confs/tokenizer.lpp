@@ -262,6 +262,7 @@ ComputeSusc DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
 
  /* parameters for SpectrProj */
 Neigs DEBUG_PRINTF("Found Neigs\n");return TK_NEIGS;
+IsAntiperiodic DEBUG_PRINTF("Found IsAntiperiodic\n");return TK_IS_ANTIPERIODIC;
 EigPrecision DEBUG_PRINTF("Found EigPrecision\n");return TK_EIG_PRECISION;
 
  /* parameters for MinmaxEigenvalues */

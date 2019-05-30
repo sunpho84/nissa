@@ -22,7 +22,7 @@ namespace nissa
   // build an estimate of the topological susceptibility.
   // refs:  https://arxiv.org/pdf/1008.0732.pdf for the susceptibility formula,
   //        https://arxiv.org/pdf/0912.2850.pdf for the 2^(d/2) overcounting.
-  THREADABLE_FUNCTION_7ARG(measure_iD_spectrum, color**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, eigval, int,neigs, double,eig_precision, int,wspace_size)
+  THREADABLE_FUNCTION_8ARG(measure_iD_spectrum, color**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, eigval, int,neigs, double,eig_precision, int,wspace_size, int, is_antiperiodic)
   {
     //parameters of the eigensolver
     const bool min_max=0;
@@ -30,7 +30,8 @@ namespace nissa
     //identity backfield
     quad_u1 *u1b[2]={nissa_malloc("u1b",loc_volh+bord_volh,quad_u1),nissa_malloc("u1b",loc_volh+bord_volh,quad_u1)};
     init_backfield_to_id(u1b);
-    add_antiperiodic_condition_to_backfield(u1b,0);
+    if(is_antiperiodic)
+      add_antiperiodic_condition_to_backfield(u1b,0);
     
     //temporary vectors
     color *tmpvec_eo[2]={nissa_malloc("tmpvec_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("tmpvec_eo_ODD",loc_volh+bord_volh,color)};
@@ -109,13 +110,13 @@ namespace nissa
     for(int ieig=0;ieig<neigs;ieig++)
       vector_reset(eigvec[ieig]);
     
-    measure_iD_spectrum(eigvec,conf_eo,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
+    measure_iD_spectrum(eigvec,conf_eo,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size, meas_pars.is_antiperiodic);
     
     //print the result on file
     verbosity_lv2_master_printf("\n\nPartial sums for spectral projectors:\n\nk\t\t\teig\t\t\tA_k\t\t\tB_k\n");
     
     //vectors storing A_k and B_k partial sums, offset by 1 for convenience
-    master_fprintf(file,"%d\t%d\t%d\t",iconf,nsmooth,neigs);
+    master_fprintf(file,"%d\t%d\t%d\t%d\t",iconf,nsmooth,meas_pars.is_antiperiodic,neigs);
     for(int ieig=0;ieig<neigs;++ieig)
       master_fprintf(file,"%.16lg\t",eigval[ieig][RE]);
     
@@ -197,6 +198,7 @@ namespace nissa
     
     os<<"MeasSpectrProj\n";
     os<<base_fermionic_meas_t::get_str(full);
+    if(is_antiperiodic!=def_is_antiperiodic() or full) os<<" IsAntiperiodic\t\t=\t"<<is_antiperiodic<<"\n";
     if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
     if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
     if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
