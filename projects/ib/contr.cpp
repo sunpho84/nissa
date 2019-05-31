@@ -239,7 +239,7 @@ namespace nissa
   void allocate_bar2pts_contr()
   {
     bar2pts_contr_size=ind_bar2pts_contr(bar2pts_contr_map.size()-1,2-1,glb_size[0]-1)+1;
-    bar2pts_alt_contr_size=ind_bar2pts_alt_contr(bar2pts_contr_map.size()-1,2-1,3-1,glb_size[0]-1)+1;
+    bar2pts_alt_contr_size=ind_bar2pts_alt_contr(bar2pts_contr_map.size()-1,2-1,6-1,glb_size[0]-1)+1;
     bar2pts_contr=nissa_malloc("bar2pts_contr",bar2pts_contr_size,complex);
     bar2pts_alt_contr=nissa_malloc("bar2pts_alt_contr",bar2pts_alt_contr_size,complex);
   }
@@ -302,10 +302,13 @@ namespace nissa
 	//       {{{5,5,0},
 	//       {1,1,1},{2,2,2},{3,3,3},
 	//       {1,2,4},{1,3,5},{2,1,6},{2,3,7},{3,1,8},{3,2,9}}})
-	for(auto &iProjGroup : std::array<std::array<int,3>,10>
+	for(auto &iProjGroup : std::array<std::array<int,3>,17>
 	      {{{5,5,0},
-	      {1,1,1},{2,2,1},{3,3,1},
-	      {1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2}}})
+		{1,1,1},{2,2,1},{3,3,1},
+		{1,2,2},{1,3,2},{2,1,2},{2,3,2},{3,1,2},{3,2,2},
+		{0,0,3},
+		{0,1,4},{0,2,4},{0,3,4},
+		{1,0,5},{2,0,5},{3,0,5}}})
 	  {
 	    const int igSo=iProjGroup[0];
 	    const int igSi=iProjGroup[1];
@@ -674,7 +677,7 @@ namespace nissa
     glb_nodes_reduce_complex_vect(bar2pts_alt_contr,bar2pts_alt_contr_size);
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
-      for(int iProj=0;iProj<3;iProj++)
+      for(int iProj=0;iProj<6;iProj++)
 	for(int iWick=0;iWick<2;iWick++)
 	  {
 	    //open output
