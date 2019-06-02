@@ -252,17 +252,21 @@ namespace nissa
     nissa_free(bar2pts_alt_contr);
   }
   
-	      
+  
   using Vect=decltype(_mm256_set1_pd(1));
   using CV=std::complex<Vect>;
   using cV=Vect[2];
   
-  CV operator*(const CV& in1,const std::complex<double>& in2)
+  CV operator*(const CV& in1,const std::complex<double>& _in2)
   {
     CV out;
     
-    out.real(in1.real()*in2.real()-in1.imag()*in2.imag());
-    out.imag(in1.real()*in2.imag()+in1.imag()*in2.real());
+    const double* in2=reinterpret_cast<const double*>(&_in2);
+    auto r=_mm256_broadcast_sd(in2+0);
+    auto i=_mm256_broadcast_sd(in2+1);
+    
+    out.real(in1.real()*r-in1.imag()*i);
+    out.imag(in1.real()*i+in1.imag()*r);
     
     return out;
   }
