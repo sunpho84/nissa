@@ -352,9 +352,12 @@ namespace nissa
 	      
 	      const int simd_size=4;
 	      
-	      for(int t=0;t<loc_size[0];t++)
+	      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
 		NISSA_PARALLEL_LOOP(iloop,0,loc_spat_vol/simd_size)
 		  {
+		    const int glb_t=loc_t+glb_coord_of_loclx[0][0];
+		    const int t=rel_coord_of_glb_coord(glb_t,0);
+		    
 		    using su3spinspinV=CV[NCOL][NCOL][NDIRAC][NDIRAC];
 		    su3spinspinV p1,p2,p3;
 		    
@@ -363,7 +366,7 @@ namespace nissa
 		      for(int isimd=0;isimd<simd_size;isimd++)
 			{
 			  const int ispat_vol=isimd+simd_size*iloop;
-			  const int ivol=ispat_vol+loc_spat_vol*t;
+			  const int ivol=ispat_vol+loc_spat_vol*loc_t;
 			  
 			  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
 			    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
