@@ -3,6 +3,7 @@
 #define EXTERN_CONTR
  #include "contr.hpp"
 
+#include <immintrin.h>
 #include <set>
 
 #include "prop.hpp"
@@ -251,7 +252,22 @@ namespace nissa
     nissa_free(bar2pts_alt_contr);
   }
   
-  //Compute all contractions for 1/2 and 3/2 barions.  The calculation
+	      
+  using Vect=decltype(_mm256_set1_pd(1));
+  using CV=std::complex<Vect>;
+  using cV=Vect[2];
+  
+  CV operator*(const CV& in1,const std::complex<double>& in2)
+  {
+    CV out;
+    
+    out.real(in1.real()*in2.real()-in1.imag()*in2.imag());
+    out.imag(in1.real()*in2.imag()+in1.imag()*in2.real());
+    
+    return out;
+  }
+  
+//Compute all contractions for 1/2 and 3/2 barions.  The calculation
   //is organized in three blocks, one corresponding to g5 g5 matrix
   //elements, the two others to the gi gi combination, finally to the
   //gi gj one.  The three possible Wick contractions are obtained by
@@ -284,8 +300,6 @@ namespace nissa
     memset(loc_contr,0,sizeof(complex)*bar2pts_alt_contr_size);
     
     const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
-    
-    void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
     
     const int ncol=free_theory?1:NCOL;
     
@@ -335,73 +349,90 @@ namespace nissa
 		    unsafe_complex_prod(f,Cg_si.entr[sp_si],Cg_so.entr[sp_so]);
 		    complex_prodassign_double(f,norm);
 		  }
-	    
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	      {
-		int t=rel_coord_of_loclx(ivol,0);
-		su3spinspin p1,p2,p3;
-		
-		//Takes a slice
-		for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
-		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
-		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
-		      for(int co_so=0;co_so<NCOL;co_so++)
-			for(int co_si=0;co_si<NCOL;co_si++)
-			  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
-		
-		//Color source
-		for(int b_so=0;b_so<ncol;b_so++)
-		  //Color sink
-		  for(int b_si=0;b_si<ncol;b_si++)
-		    {
-		      //Dirac source
-		      for(int al_so=0;al_so<NDIRAC;al_so++)
-			for(int be_so=Cg_so.pos[al_so],
-			      //Dirac sink
-			      al_si=0;al_si<NDIRAC;al_si++)
-			  {
-			    int be_si=Cg_si.pos[al_si];
-			    
-			    complex AC_proj[2][2]={};
-			    
-			    for(int iperm_so=0;iperm_so<2;iperm_so++)
-			      for(int iperm_si=0;iperm_si<2;iperm_si++)
-				{
-				  int c_so=eps[b_so][1-iperm_so],a_so=eps[b_so][iperm_so];
-				  int c_si=eps[b_si][1-iperm_si],a_si=eps[b_si][iperm_si];
-				  
-				  for(int ga_so=0;ga_so<NDIRAC;ga_so++)
-				    for(int idg0=0;idg0<2;idg0++)
-				      {
-					int ga_si=proj[idg0].pos[ga_so];
-					
-					int isign=((sign[iperm_so]*sign[iperm_si]*sign_idg0(t,idg0))==+1);
-					
-					for(int iWick=0;iWick<2;iWick++)
+	      
+	      const int simd_size=4;
+	      
+	      for(int t=0;t<loc_size[0];t++)
+		NISSA_PARALLEL_LOOP(iloop,0,loc_spat_vol/simd_size)
+		  {
+		    using su3spinspinV=CV[NCOL][NCOL][NDIRAC][NDIRAC];
+		    su3spinspinV p1,p2,p3;
+		    
+		    //Takes a slice
+		    for(auto &k : std::vector<std::pair<su3spinspinV&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
+		      for(int isimd=0;isimd<simd_size;isimd++)
+			{
+			  const int ispat_vol=isimd+simd_size*iloop;
+			  const int ivol=ispat_vol+loc_spat_vol*t;
+			  
+			  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
+			    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+			      for(int co_so=0;co_so<NCOL;co_so++)
+				for(int co_si=0;co_si<NCOL;co_si++)
+				  for(int ri=0;ri<2;ri++)
+				    (*reinterpret_cast<cV*>(&k.first[co_si][co_so][sp_si][sp_so]))[ri][isimd]=k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si][ri];
+			}
+		    
+		    //Color source
+		    for(int b_so=0;b_so<ncol;b_so++)
+		      //Color sink
+		      for(int b_si=0;b_si<ncol;b_si++)
+			{
+			  //Dirac source
+			  for(int al_so=0;al_so<NDIRAC;al_so++)
+			    for(int be_so=Cg_so.pos[al_so],
+				  //Dirac sink
+				  al_si=0;al_si<NDIRAC;al_si++)
+			      {
+				int be_si=Cg_si.pos[al_si];
+				
+				CV AC_proj[2][2]={};
+				
+				for(int iperm_so=0;iperm_so<2;iperm_so++)
+				  for(int iperm_si=0;iperm_si<2;iperm_si++)
+				    {
+				      int c_so=eps[b_so][1-iperm_so],a_so=eps[b_so][iperm_so];
+				      int c_si=eps[b_si][1-iperm_si],a_si=eps[b_si][iperm_si];
+				      
+				      for(int ga_so=0;ga_so<NDIRAC;ga_so++)
+					for(int idg0=0;idg0<2;idg0++)
 					  {
-					    const int sp1_si=(iWick==0)?al_si:ga_si;
-					    const int sp3_si=(iWick==0)?ga_si:al_si;
+					    int ga_si=proj[idg0].pos[ga_so];
 					    
-					    const int co1_si=(iWick==0)?a_si:c_si;
-					    const int co3_si=(iWick==0)?c_si:a_si;
+					    int isign=((sign[iperm_so]*sign[iperm_si]*sign_idg0(t,idg0))==+1);
 					    
-					    complex AC;
-					    unsafe_complex_prod(AC,p1[co1_si][a_so][sp1_si][al_so],p3[co3_si][c_so][sp3_si][ga_so]);
-					    list_fun[isign](AC_proj[idg0][iWick],AC,proj[idg0].entr[ga_so]);
+					    for(int iWick=0;iWick<2;iWick++)
+					      {
+						const int sp1_si=(iWick==0)?al_si:ga_si;
+						const int sp3_si=(iWick==0)?ga_si:al_si;
+						
+						const int co1_si=(iWick==0)?a_si:c_si;
+						const int co3_si=(iWick==0)?c_si:a_si;
+						
+						const CV AC=p1[co1_si][a_so][sp1_si][al_so]*p3[co3_si][c_so][sp3_si][ga_so];
+						const std::complex<double>& f=(*reinterpret_cast<std::complex<double>*>(&proj[idg0].entr[ga_so]));
+						
+						if(isign==0)
+						  AC_proj[idg0][iWick]+=AC*f;
+						else
+						  AC_proj[idg0][iWick]-=AC*f;
+					      }
 					  }
-				      }
-				}
-			    
-			    for(int idg0=0;idg0<2;idg0++)
-			      for(int iWick=0;iWick<2;iWick++)
-				{
-				  complex term;
-				  unsafe_complex_prod(term,AC_proj[idg0][iWick],fact[al_si][al_so]);
-				  complex_summ_the_prod(loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)],term,p2[b_si][b_so][be_si][be_so]);
-				}
-			  }
-		    }
-	      }
+				    }
+				
+				for(int idg0=0;idg0<2;idg0++)
+				  for(int iWick=0;iWick<2;iWick++)
+				    {
+				      const std::complex<double>& f=(*reinterpret_cast<std::complex<double>*>(&fact[al_si][al_so]));
+				      
+				      const CV term=AC_proj[idg0][iWick]*f*p2[b_si][b_so][be_si][be_so];
+				      for(int isimd=0;isimd<simd_size;isimd++)
+					for(int ri=0;ri<2;ri++)
+					  loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)][ri]+=(*reinterpret_cast<const cV*>(&term))[ri][isimd];
+				    }
+			      }
+			}
+		  }
 	  }
       }
     STOP_TIMING(bar2pts_alt_contr_time);
