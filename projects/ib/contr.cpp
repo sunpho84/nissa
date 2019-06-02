@@ -253,7 +253,7 @@ namespace nissa
   }
   
   
-  using Vect=decltype(_mm256_set1_pd(1));
+  using Vect=decltype(_mm512_set1_pd(1));
   using CV=std::complex<Vect>;
   using cV=Vect[2];
   
@@ -262,8 +262,8 @@ namespace nissa
     CV out;
     
     const double* in2=reinterpret_cast<const double*>(&_in2);
-    auto r=_mm256_broadcast_sd(in2+0);
-    auto i=_mm256_broadcast_sd(in2+1);
+    auto r=_mm512_set1_pd(in2[0]);
+    auto i=_mm512_set1_pd(in2[1]);
     
     out.real(in1.real()*r-in1.imag()*i);
     out.imag(in1.real()*i+in1.imag()*r);
@@ -354,7 +354,7 @@ namespace nissa
 		    complex_prodassign_double(f,norm);
 		  }
 	      
-	      const int simd_size=4;
+	      const int simd_size=8;
 	      
 	      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
 		NISSA_PARALLEL_LOOP(iloop,0,loc_spat_vol/simd_size)
