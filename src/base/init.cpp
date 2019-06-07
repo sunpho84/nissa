@@ -203,7 +203,7 @@ namespace nissa
 #endif
     
 #ifdef HAVE_AVX512F_INSTRUCTIONS
-    master_printf("Support for AVX512 enabled\n")
+    master_printf("Support for AVX512 enabled\n");
 #else
 #ifdef HAVE_AVX2_INSTRUCTIONS
       master_printf("Support for AVX2 enabled\n");
