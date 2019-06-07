@@ -154,6 +154,7 @@
 #include "new_types/metadynamics.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/read_new_types.hpp"
+#include "new_types/simd.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
 

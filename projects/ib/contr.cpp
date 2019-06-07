@@ -252,26 +252,7 @@ namespace nissa
     nissa_free(bar2pts_alt_contr);
   }
   
-  
-  using Vect=decltype(_mm512_set1_pd(1));
-  using CV=std::complex<Vect>;
-  using cV=Vect[2];
-  
-  CV operator*(const CV& in1,const std::complex<double>& _in2)
-  {
-    CV out;
-    
-    const double* in2=reinterpret_cast<const double*>(&_in2);
-    auto r=_mm512_set1_pd(in2[0]);
-    auto i=_mm512_set1_pd(in2[1]);
-    
-    out.real(in1.real()*r-in1.imag()*i);
-    out.imag(in1.real()*i+in1.imag()*r);
-    
-    return out;
-  }
-  
-//Compute all contractions for 1/2 and 3/2 barions.  The calculation
+  //Compute all contractions for 1/2 and 3/2 barions.  The calculation
   //is organized in three blocks, one corresponding to g5 g5 matrix
   //elements, the two others to the gi gi combination, finally to the
   //gi gj one.  The three possible Wick contractions are obtained by
@@ -354,22 +335,19 @@ namespace nissa
 		    complex_prodassign_double(f,norm);
 		  }
 	      
-	      const int simd_size=8;
-	      
 	      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
-		NISSA_PARALLEL_LOOP(iloop,0,loc_spat_vol/simd_size)
+		NISSA_PARALLEL_LOOP(iloop,0,loc_spat_vol/ndouble_per_SIMD)
 		  {
 		    const int glb_t=loc_t+glb_coord_of_loclx[0][0];
 		    const int t=rel_coord_of_glb_coord(glb_t,0);
 		    
-		    using su3spinspinV=CV[NCOL][NCOL][NDIRAC][NDIRAC];
-		    su3spinspinV p1,p2,p3;
+		    SIMD_su3spinspin p1,p2,p3;
 		    
 		    //Takes a slice
-		    for(auto &k : std::vector<std::pair<su3spinspinV&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
-		      for(int isimd=0;isimd<simd_size;isimd++)
+		    for(auto &k : std::vector<std::pair<SIMD_su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
+		      for(int isimd=0;isimd<ndouble_per_SIMD;isimd++)
 			{
-			  const int ispat_vol=isimd+simd_size*iloop;
+			  const int ispat_vol=isimd+ndouble_per_SIMD*iloop;
 			  const int ivol=ispat_vol+loc_spat_vol*loc_t;
 			  
 			  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
@@ -377,7 +355,7 @@ namespace nissa
 			      for(int co_so=0;co_so<NCOL;co_so++)
 				for(int co_si=0;co_si<NCOL;co_si++)
 				  for(int ri=0;ri<2;ri++)
-				    (*reinterpret_cast<cV*>(&k.first[co_si][co_so][sp_si][sp_so]))[ri][isimd]=k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si][ri];
+				    (*reinterpret_cast<c_SIMD_complex<double>*>(&k.first[co_si][co_so][sp_si][sp_so]))[ri][isimd]=k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si][ri];
 			}
 		    
 		    //Color source
@@ -393,7 +371,7 @@ namespace nissa
 			      {
 				int be_si=Cg_si.pos[al_si];
 				
-				CV AC_proj[2][2]={};
+				cpp_SIMD_complex<double> AC_proj[2][2]={};
 				
 				for(int iperm_so=0;iperm_so<2;iperm_so++)
 				  for(int iperm_si=0;iperm_si<2;iperm_si++)
@@ -416,7 +394,7 @@ namespace nissa
 						const int co1_si=(iWick==0)?a_si:c_si;
 						const int co3_si=(iWick==0)?c_si:a_si;
 						
-						const CV AC=p1[co1_si][a_so][sp1_si][al_so]*p3[co3_si][c_so][sp3_si][ga_so];
+						const cpp_SIMD_complex<double> AC=p1[co1_si][a_so][sp1_si][al_so]*p3[co3_si][c_so][sp3_si][ga_so];
 						const std::complex<double>& f=(*reinterpret_cast<std::complex<double>*>(&proj[idg0].entr[ga_so]));
 						
 						if(isign==0)
@@ -432,10 +410,11 @@ namespace nissa
 				    {
 				      const std::complex<double>& f=(*reinterpret_cast<std::complex<double>*>(&fact[al_si][al_so]));
 				      
-				      const CV term=AC_proj[idg0][iWick]*f*p2[b_si][b_so][be_si][be_so];
-				      for(int isimd=0;isimd<simd_size;isimd++)
+				      const cpp_SIMD_complex<double> term=AC_proj[idg0][iWick]*f*p2[b_si][b_so][be_si][be_so];
+				      for(int isimd=0;isimd<ndouble_per_SIMD;isimd++)
 					for(int ri=0;ri<2;ri++)
-					  loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)][ri]+=(*reinterpret_cast<const cV*>(&term))[ri][isimd];
+					  loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)][ri]+=
+					    (*reinterpret_cast<const c_SIMD_complex<double>*>(&term))[ri][isimd];
 				    }
 			      }
 			}
