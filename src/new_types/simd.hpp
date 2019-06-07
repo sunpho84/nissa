@@ -80,7 +80,6 @@ namespace nissa
   static const int n_per_SIMD=SIMD_BYTE_SIZE/sizeof(T);
   
   //Number of doubles that can fill a SIMD vector
-  [[ maybe_unused ]]
   static const int ndouble_per_SIMD=n_per_SIMD<double>;
   
   //C++ version of complex SIMD vectors
