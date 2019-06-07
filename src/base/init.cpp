@@ -202,6 +202,18 @@ namespace nissa
     mpf_precision=NISSA_DEFAULT_MPF_PRECISION;
 #endif
     
+#ifdef HAVE_AVX512F_INSTRUCTIONS
+    master_printf("Support for AVX512 enabled\n")
+#else
+#ifdef HAVE_AVX2_INSTRUCTIONS
+      master_printf("Support for AVX2 enabled\n");
+#else
+#ifdef HAVE_SSE3_INSTRUCTIONS
+    master_printf("Support for SSE3 enabled\n");
+#endif
+#endif
+#endif
+      
 #ifdef USE_HUGEPAGES
     use_hugepages=NISSA_DEFAULT_USE_HUGEPAGES;
 #endif
