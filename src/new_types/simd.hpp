@@ -14,34 +14,42 @@ namespace nissa
  #define ALWAYS_INLINE  __attribute__((always_inline)) inline
 #endif
   
-#define PROVIDE_SIMD(SIMD_BIT_SIZE)			\
-							\
-  /* Reference SIMD_SIZE */				\
-  static const int SIMD_BYTE_SIZE=SIMD_BIT_SIZE/8;	\
-  /* Forward declaration of SIMD traits */		\
-  template <typename T>					\
-  struct SIMD_traits;					\
-							\
-  /* Specific case for double */			\
-  template <>						\
-  struct SIMD_traits<double>				\
-  {								\
-    /* Fundamental type */					\
-    using type=__m ## SIMD_BIT_SIZE ## d;			\
-    								\
-    /* Load a scalar into all components of a SIMD vector */	\
-    constexpr static auto broadcast=_mm ## SIMD_BIT_SIZE ## _set1_pd;	\
-  };								\
-  								\
-  /* Specific case for double */				\
-  template <>							\
-  struct SIMD_traits<float>					\
-  {								\
-    /* Fundamental type */					\
-    using type=__m ## SIMD_BIT_SIZE;				\
-    								\
+#define PROVIDE_SIMD(SIMD_BIT_SIZE)					\
+									\
+  /* Reference SIMD_SIZE */						\
+  static const int SIMD_BYTE_SIZE=SIMD_BIT_SIZE/8;			\
+  /* Forward declaration of SIMD traits */				\
+  template <typename T>							\
+  struct SIMD_traits;							\
+									\
+  /* Specific case for double */					\
+  template <>								\
+  struct SIMD_traits<double>						\
+  {									\
+    /* Fundamental type */						\
+    using type=__m ## SIMD_BIT_SIZE ## d;				\
+									\
     /* Load a scalar into all components of a SIMD vector */		\
-    constexpr static auto broadcast=_mm ## SIMD_BIT_SIZE ## _set1_ps;	\
+    ALWAYS_INLINE							\
+      static type broadcast(const double& x)				\
+    {									\
+      return _mm ## SIMD_BIT_SIZE ## _set1_pd(x);			\
+    }									\
+  };									\
+									\
+  /* Specific case for double */					\
+  template <>								\
+  struct SIMD_traits<float>						\
+  {									\
+    /* Fundamental type */						\
+    using type=__m ## SIMD_BIT_SIZE;					\
+									\
+    /* Load a scalar into all components of a SIMD vector */		\
+    ALWAYS_INLINE							\
+      static type broadcast(const float& x)				\
+    {									\
+      return _mm ## SIMD_BIT_SIZE ## _set1_ps(x);			\
+    }									\
   };									\
 									\
   /* Broadcast a value */						\
