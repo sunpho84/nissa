@@ -14,23 +14,23 @@ namespace nissa
  #define ALWAYS_INLINE  __attribute__((always_inline)) inline
 #endif
   
-#define PROVIDE_SIMD(_SIMD_SIZE)		\
-						\
-  /* Reference SIMD_SIZE */			\
-  static constexpr int SIMD_SIZE=_SIMD_SIZE;	\
-  /* Forward declaration of SIMD traits */	\
-  template <typename T>				\
-  struct SIMD_traits;				\
-  						\
-  /* Specific case for double */		\
-  template <>					\
-  struct SIMD_traits<double>			\
-  {						\
+#define PROVIDE_SIMD(SIMD_BIT_SIZE)			\
+							\
+  /* Reference SIMD_SIZE */				\
+  static const int SIMD_BYTE_SIZE=SIMD_BIT_SIZE/8;	\
+  /* Forward declaration of SIMD traits */		\
+  template <typename T>					\
+  struct SIMD_traits;					\
+							\
+  /* Specific case for double */			\
+  template <>						\
+  struct SIMD_traits<double>				\
+  {								\
     /* Fundamental type */					\
-    using type=__m ## _SIMD_SIZE ## d;				\
+    using type=__m ## SIMD_BIT_SIZE ## d;			\
     								\
     /* Load a scalar into all components of a SIMD vector */	\
-    constexpr static auto broadcast=_mm ## _SIMD_SIZE ## _set1_pd;	\
+    constexpr static auto broadcast=_mm ## SIMD_BIT_SIZE ## _set1_pd;	\
   };								\
   								\
   /* Specific case for double */				\
@@ -38,17 +38,17 @@ namespace nissa
   struct SIMD_traits<float>					\
   {								\
     /* Fundamental type */					\
-    using type=__m ## _SIMD_SIZE;				\
+    using type=__m ## SIMD_BIT_SIZE;				\
     								\
     /* Load a scalar into all components of a SIMD vector */		\
-    constexpr static auto broadcast=_mm ## _SIMD_SIZE ## _set1_ps;	\
+    constexpr static auto broadcast=_mm ## SIMD_BIT_SIZE ## _set1_ps;	\
   };									\
 									\
   /* Broadcast a value */						\
   template <typename T>							\
   ALWAYS_INLINE auto SIMD_broadcast(const T& in)			\
   {									\
-  return SIMD_traits<T>::broadcast(in);					\
+    return SIMD_traits<T>::broadcast(in);				\
   }									\
 
 #ifdef HAVE_AVX512F_INSTRUCTIONS
@@ -69,11 +69,11 @@ namespace nissa
   
   //Number of components in units of a given type
   template <typename T>
-  constexpr int n_per_SIMD=SIMD_SIZE/sizeof(T);
+  static const int n_per_SIMD=SIMD_BYTE_SIZE/sizeof(T);
   
   //Number of doubles that can fill a SIMD vector
   [[ maybe_unused ]]
-  constexpr int ndouble_per_SIMD=n_per_SIMD<double>;
+  static const int ndouble_per_SIMD=n_per_SIMD<double>;
   
   //C++ version of complex SIMD vectors
   template <typename T>
