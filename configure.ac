@@ -28,6 +28,12 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 AC_LANG([C++])
 
+# Check all x86 features supported
+AX_CHECK_X86_FEATURES
+
+# Add c++14
+AX_CXX_COMPILE_STDCXX(14,ext,mandatory)
+
 LIBRARY_RESULT="---"
 SUMMARY_RESULT="---"
 
