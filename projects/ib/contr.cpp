@@ -253,9 +253,13 @@ namespace nissa
   }
   
   //Compute all contractions for 1/2 and 3/2 barions.  The calculation
-  //is organized in three blocks, one corresponding to g5 g5 matrix
-  //elements, the two others to the gi gi combination, finally to the
-  //gi gj one.  The three possible Wick contractions are obtained by
+  //is organized in five blocks, corresponding to
+  //g5 g5
+  //gi gi
+  //gi gj
+  //gi g0
+  //g0 gi
+  //The three possible Wick contractions are obtained by
   //simply permutating the sink Dirac index of the three propagators,
   //such that the "direct" contraction correspond to iWick=0, exchange
   //to one of the two others (should they be simply related by time
@@ -422,6 +426,8 @@ namespace nissa
 	  }
       }
     STOP_TIMING(bar2pts_alt_contr_time);
+    
+    // const int nflops=17*loc_vol*ncol*ncol*NDIRAC*NDIRAC*(2*2*NDIRAC*2*2*3*6+2*2*3*6);
     
     //reduce
     complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_alt_contr_size);
