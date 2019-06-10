@@ -252,7 +252,7 @@ namespace nissa
     nissa_free(bar2pts_alt_contr);
   }
   
-  //Compute all contractions for 1/2 and 3/2 barions.  The calculation
+  //Compute all contractions for 1/2 and 3/2 barions. The calculation
   //is organized in five blocks, corresponding to
   //g5 g5
   //gi gi
@@ -298,13 +298,9 @@ namespace nissa
 	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
 	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
 	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
-	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
+	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2);
 	if(free_theory) norm*=NCOL*(NCOL+1)/4;
 	
-	// for(auto &iProjGroup : std::array<std::array<int,3>,10>
-	//       {{{5,5,0},
-	//       {1,1,1},{2,2,2},{3,3,3},
-	//       {1,2,4},{1,3,5},{2,1,6},{2,3,7},{3,1,8},{3,2,9}}})
 	for(auto &iProjGroup : std::array<std::array<int,3>,17>
 	      {{{5,5,0},
 		{1,1,1},{2,2,1},{3,3,1},
