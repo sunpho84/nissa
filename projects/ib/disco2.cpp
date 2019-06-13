@@ -652,7 +652,6 @@ void in_main(int narg,char **arg)
       // for(int ieig=0;ieig<neig;ieig++)
       //   mel::conserved_vector_current_mel(J_eig[ieig],eigvec[ieig],conf,r,eigvec_conv[ieig]);
       
-      START_TIMING(EU5_alt_time_tot,nEU5_alt_tot);
       for(int im=0;im<nm;im++)
 	{
 	  vector_reset(sum_eta[im]);
@@ -661,6 +660,7 @@ void in_main(int narg,char **arg)
 	  
 	  complex EU5_bias={0.0,0.0};
 	  
+	  START_TIMING(EU5_alt_time_tot,nEU5_alt_tot);
 	  for(int ihit=0;ihit<nhits;ihit++)
 	    {
 	      const int i=ind_im_ihit(im,ihit,nhits);
@@ -783,22 +783,23 @@ void in_main(int narg,char **arg)
 	  master_fprintf(fout_EU5_stoch_alt,"%.16lg %.16lg\n",EU5_alt[RE],EU5_alt[IM]);
 	  
 	  //Compute diagram EU6
-	  // complex EU6={0.0,0.0};
-	  // for(int ihit=0;ihit<nhits;ihit++)
-	  // 	for(int jhit=0;jhit<ihit;jhit++)
-	  // 	  {
-	  // 	    START_TIMING(EU_time_tot[iEU6],nEU_tot[iEU6]);
-	  
-	  // 	    mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[jhit]);
-	  // 	    mel::conserved_vector_current_mel(J_stoch[jhit],eta[jhit],conf,r,phi[ihit]);
-	  // 	    START_TIMING(convolve_time,nconvolve_tot);
-	  // 	    multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
-	  // 	    STOP_TIMING(convolve_time);
-	  // 	    mel::global_product(EU6,J_stoch[jhit],xi);
-	  // 	    master_fprintf(fout_EU6_stoch,"%.16lg %.16lg\n",EU6[RE],EU6[IM]);
-	  
-	  // 	    STOP_TIMING(EU_time_tot[iEU6]);
-	  // 	  }
+	  START_TIMING(EU_time_tot[iEU6],nEU_tot[iEU6]);
+	  complex EU6={0.0,0.0};
+	  const bool compute_EU6=true;
+	  if(compute_EU6)
+	    for(int ihit=0;ihit<nhits;ihit++)
+	      for(int jhit=0;jhit<ihit;jhit++)
+		{
+		  
+		  mel::conserved_vector_current_mel(J_stoch[ihit],eta[ihit],conf,r,phi[jhit]);
+		  mel::conserved_vector_current_mel(J_stoch[jhit],eta[jhit],conf,r,phi[ihit]);
+		  START_TIMING(convolve_time,nconvolve_tot);
+		  multiply_by_tlSym_gauge_propagator(xi,J_stoch[ihit],photon_pars);
+		  STOP_TIMING(convolve_time);
+		  mel::global_product(EU6,J_stoch[jhit],xi);
+		  master_fprintf(fout_EU6_stoch,"%.16lg %.16lg\n",EU6[RE],EU6[IM]);
+		}
+	  STOP_TIMING(EU_time_tot[iEU6]);
 	  
 	  close_file(fout_EU1_stoch);
 	  // close_file(fout_EU1_eigvec);
