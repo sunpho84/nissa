@@ -128,7 +128,7 @@ namespace nissa
 	paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
 	recursive_Wflower_t recu(Wf,smoothed_conf);
 	//the adjoint flower needed for fermionic source
-	fermion_adjoint_flower_t<> adj_ferm_flower(dt,all_dirs,true);
+	fermion_adjoint_flower_t<> adj_ferm_flower(dt,all_dirs);
 	
 	// int nevol=0;
 	// for(int i=sp.nsmooth();i>=0;i--)
@@ -186,7 +186,7 @@ namespace nissa
 		  paste_eo_parts_into_lx_vector(phi[ind_copy_flav_hit_meas(icopy,iflav,ihit,imeas)],temp_phi);
 		}
       	
-	fermion_flower_t<4> ferm_flower(dt,all_dirs,true);
+	fermion_flower_t<color,4> ferm_flower(dt,all_dirs);
 	for(int iflow=0;iflow<=nflows;iflow++)
 	  {
 	    //take current meas index
@@ -331,7 +331,7 @@ namespace nissa
 		}
 	    }
 	
-	fermion_flower_t<4> ferm_flower(dt,all_dirs,true);
+	fermion_flower_t<color,4> ferm_flower(dt,all_dirs);
 	for(int iflow=0;iflow<=nflows;iflow++)
 	  {
 	    //take current meas index

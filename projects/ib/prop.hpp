@@ -101,6 +101,15 @@ namespace nissa
   EXTERN_PROP int ninv_tot INIT_TO(0);
   EXTERN_PROP double inv_time INIT_TO(0);
   
+  EXTERN_PROP int nsme_tot INIT_TO(0);
+  EXTERN_PROP double sme_time INIT_TO(0);
+  
+  EXTERN_PROP int nflw_tot INIT_TO(0);
+  EXTERN_PROP double flw_time INIT_TO(0);
+  
+  EXTERN_PROP int nbflw_tot INIT_TO(0);
+  EXTERN_PROP double bflw_time INIT_TO(0);
+  
   EXTERN_PROP int nfft_tot INIT_TO(0);
   EXTERN_PROP double fft_time INIT_TO(0);
   void init_fft_filter_from_range(std::vector<std::pair<fft_mom_range_t,double>>& fft_mom_range_list);
@@ -137,7 +146,7 @@ namespace nissa
   
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,double *theta);
   void generate_original_source(qprop_t *sou);
-  void generate_original_sources(int ihit);
+  void generate_original_sources(int ihit,bool skip_io=false);
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool *dirs);
   void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc);
   void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,spincolor *ori,int t);
