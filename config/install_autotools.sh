@@ -6,7 +6,7 @@ tar xzvf m4-latest.tar.gz
 cd m4*/
 mkdir build
 cd build
-./configure --prefix=$HOME
+../configure --prefix=$HOME
 make -j 8
 make install
 cd ../..
@@ -18,7 +18,7 @@ tar xzvf autoconf-latest.tar.gz
 cd autoconf*/
 mkdir build
 cd build
-./configure --prefix=$HOME
+../configure --prefix=$HOME
 make -j 8
 make install
 cd ../..
@@ -30,7 +30,7 @@ tar xzvf automake-1.16.1.tar.gz
 cd automa*/
 mkdir build
 cd build
-./configure --prefix=$HOME
+../configure --prefix=$HOME
 make -j 8
 make install
 cd ../..
@@ -42,7 +42,7 @@ tar xzvf gettext-latest.tar.gz
 cd gettext*
 mkdir build
 cd build
-./configure --prefix=$HOME
+../configure --prefix=$HOME
 make -j 8
 cd ../..
 rm -fr gette*
@@ -53,7 +53,7 @@ tar xzvf libtoo*
 cd libtool*/
 mkdir build
 cd build
-./configure --prefix=$HOME
+../configure --prefix=$HOME
 make -j 8
 make install
 cd ../..
