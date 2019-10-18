@@ -444,7 +444,7 @@ namespace nissa
     header.data_length=data_length;
     header.version=1;
     header.magic_no=ILDG_MAGIC_NO;
-    strncpy(header.type,type,128); //max 128 chars
+    strncpy(header.type,type,127); //max 128 chars
     
     //return the header
     return header;

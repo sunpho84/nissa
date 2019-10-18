@@ -743,7 +743,7 @@ namespace nissa
     if(num==-den)
       {
 	verbosity_lv2_master_printf("Creating trivial approx for x^%d/%d\n",num,den);
-	strncpy(appr.name,name,20);
+	strncpy(appr.name,name,19);
 	appr.resize(1);
 	appr.num=num;
 	appr.den=den;
