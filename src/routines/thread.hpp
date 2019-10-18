@@ -5,7 +5,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "new_types/float_128.hpp"
 #include "base/random.hpp"
 

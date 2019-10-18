@@ -151,7 +151,7 @@ namespace nissa
     //init the contr
     int ncontr_tot=contr_map.size()*nflavs*nflavs,contr_tot_size=ncontr_tot*glb_size[0];
     complex *glb_contr=nissa_malloc("glb_contr",contr_tot_size*nthreads,complex);
-    complex *loc_contr=glb_contr+thread_id*contr_tot_size;
+    complex *loc_contr=glb_contr+THREAD_ID*contr_tot_size;
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {

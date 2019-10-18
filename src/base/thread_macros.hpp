@@ -8,8 +8,9 @@
 #include "debug.hpp"
 #ifdef USE_THREADS
  #include <omp.h>
- #include "routines/thread.hpp"
 #endif
+
+#include "routines/thread.hpp"
 
 #if defined BGQ && !defined BGQ_EMU
  #include <bgpm/include/bgpm.h>
@@ -534,6 +535,10 @@ inline void thread_barrier_internal()
 #define THREADABLE_FUNCTION_11ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8,AT9,A9,AT10,A10,AT11,A11) void FUNC_NAME(AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,AT6 A6,AT7 A7,AT8 A8,AT9 A9,AT10 A10,AT11 A11){
 
 #define cache_flush()
+
+inline void thread_barrier_internal()
+{
+}
 
 #endif //use_threads
 

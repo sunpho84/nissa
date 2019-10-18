@@ -83,7 +83,7 @@ namespace nissa
     
     if(VERBOSITY_LV3)
       printf("thread %d rank %d barrier call on line %d of file %s (thread_pool_locked: %d)\n",
-	     thread_id,rank,barr_line,barr_file,thread_pool_locked);
+	     THREAD_ID,rank,barr_line,barr_file,thread_pool_locked);
     
     //copy the barrier id to the global ref
     if(IS_MASTER_THREAD)
@@ -98,7 +98,7 @@ namespace nissa
     if(!IS_MASTER_THREAD)
       if(glb_barr_line!=barr_line||strcmp(glb_barr_file,barr_file))
 	crash("Thread %d found barrier on line %d of file %s when master thread invoked it at line %d of file %s)",
-	      thread_id,barr_line,barr_file,glb_barr_line,glb_barr_file);
+	      THREAD_ID,barr_line,barr_file,glb_barr_line,glb_barr_file);
   }
 #endif
 
@@ -137,7 +137,7 @@ namespace nissa
     GET_THREAD_ID();
     if(rank==0 && VERBOSITY_LV3)
       {
-	printf("thread %d unlocking the pool\n",thread_id);
+	printf("thread %d unlocking the pool\n",THREAD_ID);
 	fflush(stdout);
       }
 #endif
@@ -164,7 +164,7 @@ namespace nissa
 #ifdef THREAD_DEBUG
     if(rank==0 && VERBOSITY_LV3)
       {
-	printf("thread %d locking the pool\n",thread_id);
+	printf("thread %d locking the pool\n",THREAD_ID);
 	fflush(stdout);
       }
 #endif
@@ -176,7 +176,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //check that thread 0 is not inside the pool
-    if(thread_id==0) crash("thread 0 cannot enter the pool");
+    if(THREAD_ID==0) crash("thread 0 cannot enter the pool");
     
     //set the thread as locked
     thread_pool_locked=true;
@@ -199,7 +199,7 @@ namespace nissa
 #ifdef THREAD_DEBUG
     if(rank==0 && VERBOSITY_LV3)
       {
-	printf("thread %d exit pool\n",thread_id);
+	printf("thread %d exit pool\n",THREAD_ID);
 	fflush(stdout);
       }
 #endif
@@ -238,7 +238,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //check to be thread 0
-    if(thread_id!=0) crash("only thread 0 can stop the pool");
+    if(THREAD_ID!=0) crash("only thread 0 can stop the pool");
     
     //pass a NULL order
     start_threaded_function(NULL,"");
@@ -255,11 +255,11 @@ namespace nissa
     for(uint32_t i=0;i<NACTIVE_THREADS;i++)
       {
         //if it is current thread turn
-        if(thread_id==i)
+        if(THREAD_ID==i)
           {
             //check that previous state agree (if not on first iter)
-	    if(thread_id!=0 && *ptr!=thread_id-1)
-              crash("error, thread %u found the counter in wrong state %u",thread_id,*ptr);
+	    if(THREAD_ID!=0 && *ptr!=THREAD_ID-1)
+              crash("error, thread %u found the counter in wrong state %u",THREAD_ID,*ptr);
             //update the counter
             *ptr=i;
           }
@@ -268,7 +268,7 @@ namespace nissa
       }
     
     //chech final state
-    if(thread_id==0 && *ptr!=nthreads-1) crash("loop thread not closed: %u!",*ptr);
+    if(THREAD_ID==0 && *ptr!=nthreads-1) crash("loop thread not closed: %u!",*ptr);
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
@@ -307,7 +307,7 @@ namespace nissa
     
     //fill all the threads pointers
     double **ptr=nissa_malloc("ptr",NACTIVE_THREADS,double*);
-    ptr[thread_id]=vect;
+    ptr[THREAD_ID]=vect;
     THREAD_BARRIER();
     
     //reduce among threads on thread 0

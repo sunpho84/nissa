@@ -20,6 +20,7 @@
  #include "bench.hpp"
 
 #include "communicate/communicate.hpp"
+#include "geometry/geometry_lx.hpp"
 
 namespace nissa
 {

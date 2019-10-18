@@ -5,6 +5,7 @@
 #include "cgm_invert_tmQ2.hpp"
 
 #include "base/debug.hpp"
+#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmQ/reconstruct_tm_doublet.hpp"
 #include "geometry/geometry_lx.hpp"

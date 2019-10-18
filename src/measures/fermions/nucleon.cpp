@@ -7,16 +7,11 @@
 #include "geometry/geometry_eo.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
-#include "routines/mpi_routines.hpp"
-#include "operations/gauge_fixing.hpp"
-
-#include "stag.hpp"
-
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 #include "nucleon.hpp"
+#include "operations/gauge_fixing.hpp"
+#include "routines/mpi_routines.hpp"
+#include "routines/thread.hpp"
+#include "stag.hpp"
 
 namespace nissa
 {

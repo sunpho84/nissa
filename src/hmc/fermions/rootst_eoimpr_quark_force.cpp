@@ -3,6 +3,7 @@
 #endif
 
 #include "base/bench.hpp"
+#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
