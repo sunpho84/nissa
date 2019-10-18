@@ -56,15 +56,6 @@ then
 	FLIBS=""
 fi
 
-#AX_CXXFLAGS_WARN_ALL
-AC_MSG_CHECKING(whether compiler understands -Wall)
-OLD_CXXFLAGS="$CXXFLAGS"
-CXXFLAGS="$CXXFLAGS -Wall"
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
-  AC_MSG_RESULT(yes),
-  AC_MSG_RESULT(no)
-  CXXFLAGS="$OLD_CXXFLAGS")
-
 #blas and lapack
 if test "$enable_fortran" == "yes"
 then
@@ -138,6 +129,23 @@ then
 		AC_MSG_ERROR(["Unable to find MPI"])
 	fi
 fi
+
+#cuda
+AX_CHECK_CUDA
+AX_GET_ENABLE(cuda,no,"")
+if test "$enable_cuda" == "yes"
+then
+	CXX="nvcc"
+fi
+
+#AX_CXXFLAGS_WARN_ALL
+AC_MSG_CHECKING(whether compiler understands -Wall)
+OLD_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wall"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
+  AC_MSG_RESULT(yes),
+  AC_MSG_RESULT(no)
+  CXXFLAGS="$OLD_CXXFLAGS")
 
 #check ntl library
 #LB_CHECK_NTL(,,AC_MSG_ERROR(["Unable to find NTL library"]))
