@@ -9,27 +9,20 @@
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "linalgs/linalgs.hpp"
+#include "mesons.hpp"
 #include "new_types/su3.hpp"
-#include "routines/mpi_routines.hpp"
 #include "operations/gauge_fixing.hpp"
-
+#include "routines/mpi_routines.hpp"
+#include "routines/thread.hpp"
 #include "stag.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
+namespace nissa {
+using namespace stag;
 
-#include "mesons.hpp"
-
-namespace nissa
-{
-  using namespace stag;
-  
-  namespace
-  {
-    int nop;
-    int ncombo;
-    int nflavs;
+namespace {
+int nop;
+int ncombo;
+int nflavs;
   }
   
   //compute the index where to store
@@ -181,4 +174,4 @@ namespace nissa
     
     return os.str();
   }
-}
+  } // namespace nissa
