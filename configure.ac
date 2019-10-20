@@ -78,25 +78,6 @@ then
 	LDFLAGS="$MPI_FLDFLAGS $LDFLAGS"
 fi
 
-#threads
-AC_ARG_ENABLE(threads,
-	AS_HELP_STRING([--disable-threads],[Enable threads]),
-	enable_threads="${enableval}",
-	enable_threads="yes")
-if test "$enable_threads" == "yes"
-then
-	#check openmp
-	AC_OPENMP
-	CFLAGS="$CXXFLAGS $OPENMP_CFLAGS"
-	CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
-	CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
-	AC_DEFINE([USE_THREADS],1,[Enable threads])
-fi
-AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling threads... $enable_threads])
-SUMMARY_RESULT="$SUMMARY_RESULT
-Threads enabled     : $enable_threads"
-
 #set MPI for c++
 if test "$enable_MPI_autosearch" == "yes"
 then
@@ -130,13 +111,57 @@ then
 	fi
 fi
 
+#check openmp
+AC_OPENMP
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <omp.h>]], [[ return omp_get_num_threads (); ]])],[have_openmp="yes"],[have_openmp="no"])
+AC_MSG_RESULT([checking for OpenMP... ${have_openmp}])
+
 #cuda
 AX_CHECK_CUDA
-AX_GET_ENABLE(cuda,no,"")
-if test "$enable_cuda" == "yes"
-then
-	CXX="nvcc"
-fi
+
+#threads
+AC_DEFINE([NO_THREADS],[0],["No thread parallelization used"])
+AC_DEFINE([OPENMP_THREADS],[1],["OpenMP parallelization"])
+AC_DEFINE([CUDA_THREADS],[2],["Cuda parallelization"])
+AC_ARG_WITH(threads-type,
+	AS_HELP_STRING([--with-threads-type],[Select the kind of thread (none, cpu, gpu)]),
+	with_threads_type="${withval}",
+	if test "$have_openmp" == "yes"
+	then
+		with_threads_type="openmp"
+	else
+		if test "$have_cuda" == "yes"
+		then
+			with_threads_type="cuda"
+		else
+			with_threads_type="none"
+		fi
+	fi)
+case "$with_threads_type" in
+     none) THREADS_TYPE=NO_THREADS ;;
+     openmp) if test "$have_openmp" != "no"
+    	     then
+		THREADS_TYPE=OPENMP_THREADS
+		CFLAGS="$CXXFLAGS $OPENMP_CFLAGS"
+		CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
+		CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+	     else
+		AC_MSG_ERROR(["Asked to enable OpenMP when the compiler is not supporting it"])
+     	     fi ;;
+     cuda)  if test "$have_cuda" != "no"
+    	    then
+		THREADS_TYPE=CUDA_THREADS
+		CXX="nvcc"
+		CPPFLAGS="-x cu $CPPFLAGS"
+	     else
+		AC_MSG_ERROR(["Asked to enable Cuda when the framework has not been found"])
+	     fi;;
+      *) AC_MSG_ERROR(["Unkwnown threads type ${withval}"])
+esac
+AC_DEFINE_UNQUOTED([THREADS_TYPE],${THREADS_TYPE},[Kind of thread parallelization])
+AC_MSG_RESULT([with threads type... ${with_threads_type}])
+SUMMARY_RESULT="$SUMMARY_RESULT
+threads type            : $with_threads_type"
 
 #AX_CXXFLAGS_WARN_ALL
 AC_MSG_CHECKING(whether compiler understands -Wall)
@@ -166,7 +191,7 @@ AC_MSG_RESULT([enabling spi... $enable_spi])
 
 AX_SUBPACKAGE(ssl,openssl/ssl.h,crypto ssl,MD5_Final,SSL)
 
-#################### fftw ####################
+#################### ffw ####################
 
 AX_SUBPACKAGE(fftw,fftw3.h,fftw3,fftw_plan_dft_r2c_2d,FFTW)
 
