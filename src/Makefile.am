@@ -15,3 +15,4 @@ include $(top_srcdir)/src/measures/Makefile.am
 include $(top_srcdir)/src/new_types/Makefile.am
 include $(top_srcdir)/src/operations/Makefile.am
 include $(top_srcdir)/src/routines/Makefile.am
+include $(top_srcdir)/src/threads/Makefile.am

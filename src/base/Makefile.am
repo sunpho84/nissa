@@ -26,7 +26,6 @@ include_HEADERS+= \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
 	%D%/random.hpp \
-	%D%/thread_macros.hpp \
 	%D%/vectors.hpp
 
 if USE_TMLQCD
