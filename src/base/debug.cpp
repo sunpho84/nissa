@@ -12,11 +12,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/float_128.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
+#include "threads/threads.hpp"
 
 #include "vectors.hpp"
 

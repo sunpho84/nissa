@@ -3,7 +3,6 @@
 #endif
 
 #include "base/bench.hpp"
-#include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "hmc/gauge/Wilson_force.hpp"
 #include "hmc/gauge/Symanzik_force.hpp"
@@ -11,6 +10,7 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

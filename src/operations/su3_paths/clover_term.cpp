@@ -7,7 +7,6 @@
 #include <math.h>
 #include <algorithm>
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/edges.hpp"
 #include "linalgs/linalgs.hpp"

@@ -3,7 +3,6 @@
 #endif
 
 #include "base/random.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -11,6 +10,7 @@
 #include "io/input.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
+#include "threads/threads.hpp"
 
 #include "routines/ios.hpp"
 #ifdef USE_THREADS

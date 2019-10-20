@@ -8,11 +8,11 @@
 #include "remap_vector.hpp"
 
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/all_to_all.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
+#include "threads/threads.hpp"
 
 #include "remap_vector.hpp"
 

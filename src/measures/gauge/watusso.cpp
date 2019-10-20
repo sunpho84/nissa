@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_mix.hpp"

@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_mix.hpp"
@@ -11,6 +10,7 @@
 #include "operations/shift.hpp"
 #include "operations/remap_vector.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

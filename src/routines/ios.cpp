@@ -15,9 +15,9 @@
 #include <sys/stat.h>
 
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "io/input.hpp"
 #include "new_types/dirac.hpp"
+#include "threads/threads.hpp"
 
 #include "mpi_routines.hpp"
 

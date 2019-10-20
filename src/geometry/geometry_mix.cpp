@@ -5,13 +5,13 @@
 #include <string.h>
 
 #include "base/bench.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "geometry_eo.hpp"
 #include "geometry_lx.hpp"
 #include "geometry_Leb.hpp"
 #include "new_types/su3_op.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

@@ -3,7 +3,6 @@
 #endif
 
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_128.hpp"
@@ -12,6 +11,7 @@
 #include "new_types/su3_op.hpp"
 #include "new_types/float_128.hpp"
 #include "operations/su3_paths/clover_term.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

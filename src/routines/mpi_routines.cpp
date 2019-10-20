@@ -8,11 +8,11 @@
 
 #include "ios.hpp"
 
-#include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/rat_approx.hpp"
+#include "threads/threads.hpp"
 
 #define EXTERN_MPI
 #include "mpi_routines.hpp"

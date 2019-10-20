@@ -1,10 +1,10 @@
 #ifndef _LINALGS_HPP
 #define _LINALGS_HPP
 
-#include "base/thread_macros.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/su3.hpp"
+#include "threads/threads.hpp"
 
 namespace nissa
 {

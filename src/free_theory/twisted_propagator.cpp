@@ -6,7 +6,6 @@
 #include "free_theory_types_routines.hpp"
 #include "cg_eoprec_twisted_free_operator.hpp"
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
@@ -15,6 +14,7 @@
 #include "new_types/su3_op.hpp"
 #include "operations/fourier_transform.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

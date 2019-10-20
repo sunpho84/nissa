@@ -4,10 +4,10 @@
 
 #include "new_types/su3_op.hpp"
 #include "base/vectors.hpp"
-#include "base/thread_macros.hpp"
 #include "communicate/borders.hpp"
 #include "linalgs/linalgs.hpp"
 #include "operations/su3_paths/clover_term.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

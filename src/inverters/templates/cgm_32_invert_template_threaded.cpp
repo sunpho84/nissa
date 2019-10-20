@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include "config.hpp"
+ #include "config.hpp"
 #endif
 
 #include "base/bench.hpp"
@@ -9,7 +9,7 @@
  #include "routines/thread.hpp"
 #endif
 #include "routines/mpi_routines.hpp"
-#include "base/thread_macros.hpp"
+#include "threads/threads.hpp"
 
 namespace nissa
 {

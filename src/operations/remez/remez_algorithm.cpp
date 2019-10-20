@@ -7,12 +7,12 @@
 #include <stdlib.h>
 
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "new_types/high_prec.hpp"
 #include "new_types/rat_approx.hpp"
 #include "remez_algorithm.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

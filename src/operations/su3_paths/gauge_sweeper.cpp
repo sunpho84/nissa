@@ -3,7 +3,6 @@
 #endif
 
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "hmc/gauge/Symanzik_action.hpp"
 #include "new_types/su3_op.hpp"

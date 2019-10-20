@@ -2,13 +2,13 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "hmc/theory_pars.hpp"
 #include "new_types/su3.hpp"
 #include "measures/gauge/topological_charge.hpp"
 #include "operations/smearing/stout.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

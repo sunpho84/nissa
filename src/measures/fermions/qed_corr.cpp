@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "free_theory/free_theory_types.hpp"
@@ -12,6 +11,7 @@
 #include "measures/fermions/stag.hpp"
 #include "routines/mpi_routines.hpp"
 #include "routines/thread.hpp"
+#include "threads/threads.hpp"
 
 #include "mesons.hpp"
 

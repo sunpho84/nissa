@@ -3,7 +3,6 @@
 #endif
 
 #include "base/random.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/momenta/MFACC.hpp"
 #include "hmc/gauge/MFACC_fields.hpp"
@@ -11,6 +10,7 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

@@ -10,7 +10,6 @@
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "bgq/Wilson_hopping_matrix_lx_bgq.hpp"
 #include "communicate/borders.hpp"
@@ -22,6 +21,7 @@
 #include "new_types/su3.hpp"
 #include "new_types/two_stage_computation.hpp"
 #include "measures/gauge/topological_charge.hpp"
+#include "threads/threads.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

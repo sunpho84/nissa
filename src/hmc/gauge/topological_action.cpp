@@ -4,7 +4,6 @@
 
 #include <algorithm>
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
@@ -13,6 +12,7 @@
 #include "operations/smearing/stout.hpp"
 #include "measures/gauge/topological_charge.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

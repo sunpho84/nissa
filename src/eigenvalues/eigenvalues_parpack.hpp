@@ -10,11 +10,11 @@
 #include <arpack/parpack.hpp>
 #include <arpack/debug_c.hpp>
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "eigenvalues/eigenvalues_all.hpp"
 #include "new_types/complex.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 
 #ifndef EXTERN_PARPACK
  #define EXTERN_PARPACK extern

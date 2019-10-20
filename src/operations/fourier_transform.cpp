@@ -3,12 +3,12 @@
 #endif
 
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
+#include "threads/threads.hpp"
 
 #include "fft.hpp"
 

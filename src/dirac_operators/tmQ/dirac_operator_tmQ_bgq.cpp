@@ -2,12 +2,12 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "bgq/bgq_macros.hpp"
 #include "bgq/Wilson_hopping_matrix_lx_bgq.hpp"
 #include "communicate/communicate.hpp"
 #include "new_types/complex.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

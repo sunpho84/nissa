@@ -11,7 +11,6 @@
 #include "base/debug.hpp"
 #include "base/init.hpp"
 #include "base/random.hpp"
-#include "base/thread_macros.hpp"
 #ifdef USE_TMLQCD
  #include "base/tmLQCD_bridge.hpp"
 #endif
@@ -190,5 +189,7 @@
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
+
+#include "threads/threads.hpp"
 
 #endif

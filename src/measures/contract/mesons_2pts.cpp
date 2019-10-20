@@ -2,13 +2,13 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

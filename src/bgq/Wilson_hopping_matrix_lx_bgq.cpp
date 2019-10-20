@@ -5,11 +5,11 @@
 #define EXTERN_HOPPING_MATRIX_BGQ_LX
 #include "Wilson_hopping_matrix_lx_bgq.hpp"
 
-#include "base/thread_macros.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_vir.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/two_stage_computation.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

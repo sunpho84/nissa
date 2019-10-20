@@ -8,13 +8,13 @@
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "communicate/edges.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/su3_op.hpp"
 #include "squared_staples.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

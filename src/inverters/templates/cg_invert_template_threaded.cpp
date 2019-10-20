@@ -13,8 +13,8 @@
 #endif
 
 #include "base/bench.hpp"
-#include "base/thread_macros.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

@@ -14,7 +14,7 @@
  #include "bgq/intrinsic.hpp"
 #endif
 
-#include "thread_macros.hpp"
+#include "threads/threads.hpp"
 
 #define EXTERN_BENCH
  #include "bench.hpp"

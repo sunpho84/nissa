@@ -7,7 +7,6 @@
 #include <math.h>
 
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"

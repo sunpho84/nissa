@@ -3,7 +3,6 @@
 #endif
 
 #include "base/random.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/momenta/MFACC.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -15,6 +14,7 @@
 #include "new_types/su3_op.hpp"
 #include "operations/remez/remez_algorithm.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

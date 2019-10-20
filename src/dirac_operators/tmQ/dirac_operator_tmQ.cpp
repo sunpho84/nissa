@@ -4,8 +4,8 @@
 
 #include "new_types/su3_op.hpp"
 #include "communicate/borders.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

@@ -4,13 +4,13 @@
 
 #include "base/debug.hpp"
 #include "base/random.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/spin.hpp"
 #include "operations/fourier_transform.hpp"
 #include "routines/mpi_routines.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 
 #include "free_theory_types.hpp"
 

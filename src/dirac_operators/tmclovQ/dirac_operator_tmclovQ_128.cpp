@@ -2,13 +2,13 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/su3_paths/clover_term.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

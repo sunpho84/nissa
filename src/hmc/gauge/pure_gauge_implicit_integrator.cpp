@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "hmc/hmc.hpp"
@@ -13,6 +12,7 @@
 #include "operations/gaugeconf.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

@@ -5,11 +5,11 @@
 #include <string.h>
 
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 
 #define EXTERN_GEOMETRY_EO
 #include "geometry_eo.hpp"

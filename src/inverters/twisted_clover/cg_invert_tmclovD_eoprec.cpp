@@ -5,7 +5,6 @@
 #include <string>
 #include <string.h>
 
-#include "base/thread_macros.hpp"
 #ifdef USE_TMLQCD
  #include "base/tmLQCD_bridge.hpp"
 #endif
@@ -22,6 +21,7 @@
 #include "new_types/su3_op.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 
 #include "cg_64_invert_tmclovD_eoprec.hpp"
 #include "cg_128_invert_tmclovD_eoprec.hpp"

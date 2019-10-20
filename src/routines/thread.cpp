@@ -12,8 +12,8 @@
 
 #include "base/debug.hpp"
 #include "base/random.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "threads/threads.hpp"
 
 //put in the external bgq_barrier.c file, to avoid alignement problem
 #if defined BGQ && (! defined BGQ_EMU)

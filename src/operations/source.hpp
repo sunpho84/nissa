@@ -1,7 +1,7 @@
 #ifndef _SOURCE_HPP
 #define _SOURCE_HPP
 
-#include <base/thread_macros.hpp>
+#include "threads/threads.hpp"
 
 namespace nissa
 {

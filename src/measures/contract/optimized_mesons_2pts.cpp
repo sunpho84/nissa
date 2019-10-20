@@ -2,11 +2,11 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/dirac.hpp"
 #include "routines/thread.hpp"
+#include "threads/threads.hpp"
 
 #include "optimized_mesons_2pts.hpp"
 

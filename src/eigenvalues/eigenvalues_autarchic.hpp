@@ -1,12 +1,11 @@
 #ifndef _EIGENVALUES_AUTARCHIC_HPP
 #define _EIGENVALUES_AUTARCHIC_HPP
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
-
 #include "inverters/templates/modern_cg.hpp"
+#include "threads/threads.hpp"
 
 namespace nissa
 {

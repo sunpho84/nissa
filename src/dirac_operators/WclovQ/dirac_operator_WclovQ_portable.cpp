@@ -1,10 +1,10 @@
 #pragma once
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/su3_paths/clover_term.hpp"
+#include "threads/threads.hpp"
 
 namespace nissa
 {

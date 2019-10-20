@@ -7,9 +7,9 @@
 
 #include <string.h>
 
-#include "base/thread_macros.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

@@ -5,13 +5,13 @@
 #include "cgm_invert_tmQ2.hpp"
 
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmQ/reconstruct_tm_doublet.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

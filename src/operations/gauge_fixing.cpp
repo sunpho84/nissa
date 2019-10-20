@@ -7,7 +7,6 @@
 
 #include "base/debug.hpp"
 #include "base/random.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -18,6 +17,7 @@
 #include "operations/fft.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
+#include "threads/threads.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

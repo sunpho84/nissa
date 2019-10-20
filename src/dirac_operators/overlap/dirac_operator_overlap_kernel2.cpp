@@ -8,10 +8,10 @@
 #include "dirac_operator_overlap_kernel2.hpp"
 #include "linalgs/linalgs.hpp"
 
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

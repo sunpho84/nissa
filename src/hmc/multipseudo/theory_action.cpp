@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "hmc/backfield.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/topological_action.hpp"
@@ -14,6 +13,7 @@
 #include "inverters/twisted_clover/cgm_invert_tmclovDkern_eoprec_square_portable.hpp"
 #include "linalgs/linalgs.hpp"
 #include "operations/su3_paths/clover_term.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

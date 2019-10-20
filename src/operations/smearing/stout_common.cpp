@@ -9,11 +9,11 @@
 
 #include "communicate/communicate.hpp"
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

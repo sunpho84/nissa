@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "base/debug.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "io/buffer.hpp"
 #include "io/endianness.hpp"

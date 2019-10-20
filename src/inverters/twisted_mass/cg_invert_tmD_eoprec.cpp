@@ -4,7 +4,6 @@
 
 #include <string.h>
 
-#include "base/thread_macros.hpp"
 #ifdef USE_TMLQCD
  #include "base/tmLQCD_bridge.hpp"
 #endif
@@ -18,6 +17,7 @@
 #include "geometry/geometry_mix.hpp"
 #include "linalgs/linalgs.hpp"
 #include "routines/ios.hpp"
+#include "threads/threads.hpp"
 
 #include "cg_64_invert_tmD_eoprec.hpp"
 #include "cg_128_invert_tmD_eoprec.hpp"

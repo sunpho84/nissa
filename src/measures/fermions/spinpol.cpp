@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "hmc/theory_pars.hpp"
@@ -15,6 +14,7 @@
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "operations/smearing/recursive_Wflower.hpp"
+#include "threads/threads.hpp"
 #include "spinpol.hpp"
 
 #ifdef USE_THREADS

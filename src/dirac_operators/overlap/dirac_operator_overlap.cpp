@@ -9,7 +9,6 @@
 #include "linalgs/linalgs.hpp"
 
 #include "base/random.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "communicate/borders.hpp"
@@ -18,6 +17,7 @@
 #include "inverters/overlap/cgm_invert_overlap_kernel2.hpp"
 #include "new_types/rat_approx.hpp"
 #include "operations/remez/remez_algorithm.hpp"
+#include "threads/threads.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

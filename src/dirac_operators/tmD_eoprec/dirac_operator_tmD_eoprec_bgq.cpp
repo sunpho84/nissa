@@ -2,9 +2,9 @@
  #include "config.hpp"
 #endif
 
-#include "base/thread_macros.hpp"
 #include "bgq/bgq_macros.hpp"
 #include "bgq/intrinsic.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

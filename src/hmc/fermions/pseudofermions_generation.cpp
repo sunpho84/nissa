@@ -3,7 +3,6 @@
 #endif
 
 #include "base/random.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
@@ -11,6 +10,7 @@
 #include "inverters/twisted_clover/cgm_invert_tmclovDkern_eoprec_square_portable.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
+#include "threads/threads.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
