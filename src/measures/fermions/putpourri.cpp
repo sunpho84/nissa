@@ -96,6 +96,7 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh) //loop on sites
 	    for(int ic=0;ic<NCOL;ic++) //for every color takes the trace with conjugate of original source
 	      complex_summ_the_conj1_prod(point_result[loclx_of_loceo[par][ieo]],rnd[par][ieo][ic],chi[par][ieo][ic]);
+	  NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	
 	//chir cond: deg/4vol
@@ -125,6 +126,7 @@ namespace nissa
 		su3_dag_summ_the_prod_color(app[par][ieo],conf[!par][idw][0],chi1[!par][idw]);
 		color_prod_double(app[par][ieo],app[par][ieo],0.5);
 	      }
+	    NISSA_PARALLEL_LOOP_END;
 	    set_borders_invalid(app[par]);
 	  }
 	

@@ -62,6 +62,7 @@ namespace nissa
 	DIAG_TMQ(out[i],diag,in[i]);
 #endif
       }
+    NISSA_PARALLEL_LOOP_END;
     
     //final sync
     set_borders_invalid(out);
@@ -155,6 +156,7 @@ namespace nissa
 	VIR_SPINCOLOR_PROD_DOUBLE(out[i],out[i],-0.5);
 #endif
       }
+    NISSA_PARALLEL_LOOP_END;
     
     //final sync
     set_borders_invalid(out);

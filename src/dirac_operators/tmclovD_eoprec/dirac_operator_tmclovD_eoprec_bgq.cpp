@@ -23,17 +23,23 @@ namespace nissa
     
     GET_THREAD_ID();
     if(!dag)
-      NISSA_PARALLEL_LOOP(X,0,loc_volh/2)
-	{
-	  unsafe_vir_halfspincolor_halfspincolor_times_vir_halfspincolor(&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
-	  unsafe_vir_halfspincolor_halfspincolor_dag_times_vir_halfspincolor(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
-	}
+      {
+	NISSA_PARALLEL_LOOP(X,0,loc_volh/2)
+	  {
+	    unsafe_vir_halfspincolor_halfspincolor_times_vir_halfspincolor(&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
+	    unsafe_vir_halfspincolor_halfspincolor_dag_times_vir_halfspincolor(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
+	  }
+	NISSA_PARALLEL_LOOP_END;
+      }
     else
-      NISSA_PARALLEL_LOOP(X,0,loc_volh/2)
-	{
-	  unsafe_vir_halfspincolor_halfspincolor_dag_times_vir_halfspincolor(&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
-	  unsafe_vir_halfspincolor_halfspincolor_times_vir_halfspincolor(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
-	}
+      {
+	NISSA_PARALLEL_LOOP(X,0,loc_volh/2)
+	  {
+	    unsafe_vir_halfspincolor_halfspincolor_dag_times_vir_halfspincolor(&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
+	    unsafe_vir_halfspincolor_halfspincolor_times_vir_halfspincolor(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
+	  }
+	NISSA_PARALLEL_LOOP_END;
+      }
     
     set_borders_invalid(out);
   }
@@ -102,6 +108,8 @@ namespace nissa
 	  
 	  STORE_REG_VIR_HALFSPINCOLOR(out[ivol][2*high_low],VIR_REG_OUT);
       }
+    NISSA_PARALLEL_LOOP_END;
+    
     set_borders_invalid(out);
   }
   

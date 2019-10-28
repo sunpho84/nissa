@@ -36,6 +36,8 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       herm_put_to_gauss(pi[ivol],&(loc_rnd_gen[ivol]),1);
+    NISSA_PARALLEL_LOOP_END;
+    
     set_borders_invalid(pi);
   }
   THREADABLE_FUNCTION_END
@@ -214,6 +216,8 @@ namespace nissa
 	      //common factor
 	      su3_summ_the_prod_double(F[ivol][mu],E,-kappa/(4*NDIM));
 	    }
+	NISSA_PARALLEL_LOOP_END;
+	
 	THREAD_BARRIER();
       }
     set_borders_invalid(F);
@@ -294,8 +298,10 @@ namespace nissa
     for(int nu=0;nu<NDIM;nu++)
       {
 	//copy out
-        NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_copy(H_nu[ivol],H[ivol][nu]);
-        set_borders_invalid(H_nu);
+        NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  su3_copy(H_nu[ivol],H[ivol][nu]);
+	NISSA_PARALLEL_LOOP_END;
+	set_borders_invalid(H_nu);
 	
 	//invert
 	inv_MFACC_cg(temp,NULL,conf,kappa,niter,residue,H_nu);
@@ -320,6 +326,8 @@ namespace nissa
 		su3_summ_the_prod_double(F[ivol][mu],E,kappa/(4*NDIM));
 	      }
 	  }
+	NISSA_PARALLEL_LOOP_END;
+	
 	THREAD_BARRIER();
       }
     set_borders_invalid(F);

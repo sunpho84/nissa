@@ -29,7 +29,7 @@
 namespace nissa
 {
 #ifdef USE_MPI_IO
-
+  
   //unset the types to read mapped data
   void unset_mapped_types(MPI_Datatype &etype,MPI_Datatype &ftype)
   {
@@ -609,6 +609,7 @@ namespace nissa
 	  }
 	memcpy(buf+nbytes_per_site*idest,data+nbytes_per_site*isour,nbytes_per_site);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END

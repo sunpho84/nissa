@@ -340,6 +340,7 @@ namespace nissa
 	//perform the copy
 	NISSA_PARALLEL_LOOP(i,0,nel_a)
 	  memcpy((char*)a+i*size_per_el_a,(char*)b+i*size_per_el_a,size_per_el_a);
+	NISSA_PARALLEL_LOOP_END;
 	
 	//copy the flag
 	nissa_a->flag=nissa_b->flag;
@@ -423,9 +424,15 @@ namespace nissa
     char *buf=nissa_malloc("buf",(int64_t)sel*nel,char);
     
     //copy in the buffer
-    NISSA_PARALLEL_LOOP(sour,0,nel) memcpy(buf+order[sour]*sel,vect+sour*sel,sel);
+    NISSA_PARALLEL_LOOP(sour,0,nel)
+      memcpy(buf+order[sour]*sel,vect+sour*sel,sel);
+    NISSA_PARALLEL_LOOP_END;
+    
     THREAD_BARRIER();
-    NISSA_PARALLEL_LOOP(sour,0,nel) memcpy(vect+sour*sel,buf+sour*sel,sel);
+    
+    NISSA_PARALLEL_LOOP(sour,0,nel)
+      memcpy(vect+sour*sel,buf+sour*sel,sel);
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(vect);
     

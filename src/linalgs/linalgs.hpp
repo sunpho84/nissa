@@ -59,7 +59,8 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(i,0,n_per_class)
       loc_norm2[i]+=norm2(v[i]);
-    
+    NISSA_PARALLEL_LOOP_END;
+      
     set_borders_invalid(loc_norm2);
   }
   

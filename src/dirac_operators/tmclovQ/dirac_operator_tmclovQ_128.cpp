@@ -146,6 +146,7 @@ namespace nissa
 	    float_64_summ_the_iprod_complex_128(out[X][3][c],mu,in[X][3][c]);
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }

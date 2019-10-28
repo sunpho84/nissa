@@ -55,6 +55,8 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
 	safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],norm);
+    NISSA_PARALLEL_LOOP_END;
+    
     set_borders_invalid(F);
   }
   

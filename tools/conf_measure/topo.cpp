@@ -84,6 +84,7 @@ THREADABLE_FUNCTION_1ARG(unitarize_conf_max, quad_su3*,conf)
 	su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
 	su3_copy(conf[ivol][idir],t);
       }
+  NISSA_PARALLEL_LOOP_END;
   set_borders_invalid(conf);
 }
 THREADABLE_FUNCTION_END

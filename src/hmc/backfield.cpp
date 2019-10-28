@@ -27,11 +27,15 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	  for(int mu=0;mu<NDIM;mu++)
-	    {
-	      S[par][ivol][mu][0]=1;
-	      S[par][ivol][mu][1]=0;
-	    }
+	  {
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		S[par][ivol][mu][0]=1;
+		S[par][ivol][mu][1]=0;
+	      }
+	  }
+	NISSA_PARALLEL_LOOP_END;
+	
         set_borders_invalid(S[par]);
       }
   }
@@ -49,6 +53,8 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	  safe_complex_prod(S[par][ieo][0],S[par][ieo][0],ph);
+	NISSA_PARALLEL_LOOP_END;
+	
 	set_borders_invalid(S[par]);
       }
   }
@@ -117,6 +123,7 @@ namespace nissa
 		safe_complex_prod(S[par][ieo][rho],S[par][ieo][rho],u1phase);
 	      }
 	  }
+	NISSA_PARALLEL_LOOP_END;
 	
 	set_borders_invalid(S[par]);
       }
@@ -152,6 +159,7 @@ namespace nissa
   //          get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol_eo]);
   //          for(int mu=0;mu<NDIM;mu++) complex_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
   //        }
+  //      NISSA_PARALLEL_LOOP_END;
   //      set_borders_invalid(S);
   //     }
   // }
@@ -164,8 +172,12 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
-	  if(glb_coord_of_loclx[loclx_of_loceo[par][ivol_eo]][mu]==(glb_size[mu]-1))
-	    complex_prodassign_double(S[par][ivol_eo][mu],-1);
+	  {
+	    if(glb_coord_of_loclx[loclx_of_loceo[par][ivol_eo]][mu]==(glb_size[mu]-1))
+	      complex_prodassign_double(S[par][ivol_eo][mu],-1);
+	  }
+	NISSA_PARALLEL_LOOP_END;
+	
 	set_borders_invalid(S);
       }
   }
@@ -185,11 +197,13 @@ namespace nissa
 	    for(int mu=0;mu<NDIM;mu++)
 	      su3_prodassign_double(conf[par][ivol][mu],ph[mu]);
 	  }
+	NISSA_PARALLEL_LOOP_END;
+	
 	set_borders_invalid(conf[par]);
       }
   }
   THREADABLE_FUNCTION_END
-
+  
   //multiply the configuration for an additional U(1) field and possibly stagphases
   THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3**,conf, bool,add_rem, quad_u1**,u1, bool,with_without)
   {
@@ -217,6 +231,8 @@ namespace nissa
 		safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],f);
 	      }
 	  }
+	NISSA_PARALLEL_LOOP_END;
+	
 	set_borders_invalid(conf[par]);
       }
   }
@@ -250,6 +266,8 @@ namespace nissa
 		safe_su3_prod_complex(conf[ilx][mu],conf[ilx][mu],f);
 	      }
 	  }
+	NISSA_PARALLEL_LOOP_END;
+	
       }
     set_borders_invalid(conf);
   }

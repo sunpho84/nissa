@@ -247,6 +247,7 @@ namespace nissa
         REG_VIR_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
         REG_VIR_32_64_SU3_DAG_PROD_VIR_32_64_HALFSPINCOLOR_LOAD_STORE(out[iout[7]],links[7],reg_proj);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     THREAD_BARRIER();
   }

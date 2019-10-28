@@ -42,8 +42,9 @@
 #define IS_MASTER_THREAD (THREAD_ID==0)
 
 #define NISSA_PARALLEL_LOOP(INDEX,START,END)			\
-  NISSA_CHUNK_LOOP(INDEX,START,END,thread_id,NACTIVE_THREADS)
-
+  NISSA_CHUNK_LOOP(INDEX,START,END,thread_id,NACTIVE_THREADS){
+#define NISSA_PARALLEL_LOOP_END }
+  
 #define THREAD_ATOMIC_EXEC(inst) do{THREAD_BARRIER();inst;THREAD_BARRIER();}while(0)
 #define THREAD_BROADCAST(out,in)			\
   if(IS_MASTER_THREAD) broadcast_ptr=(void*)&in;		\
@@ -445,18 +446,21 @@
 #define THREADABLE_FUNCTION_11ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8,AT9,A9,AT10,A10,AT11,A11) \
   THREADABLE_FUNCTION_11ARG_INSIDE(FUNC_NAME,__LINE__,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8,AT9,A9,AT10,A10,AT11,A11)
 
-//flush the cache
-inline void cache_flush()
+namespace nissa
 {
+  //flush the cache
+  inline void cache_flush()
+  {
 #if defined BGQ
  #if ! defined BGQ_EMU
-  mbar();
+    mbar();
  #else
-  __sync_synchronize();
+    __sync_synchronize();
  #endif
 #else
- #pragma omp flush
+     #pragma omp flush
 #endif
+  }
 }
 
 #if defined BGQ && (! defined BGQ_EMU)
@@ -467,13 +471,16 @@ namespace nissa
 #endif
 
 //barrier without any possible checking
-inline void thread_barrier_internal()
+namespace nissa
 {
+  inline void thread_barrier_internal()
+  {
 #if defined BGQ && (! defined BGQ_EMU)
-  bgq_barrier(nissa::nthreads);
+    bgq_barrier(nissa::nthreads);
 #else
-  #pragma omp barrier
+    #pragma omp barrier
 #endif
+  }
 }
 
 #define FORM_TWO_THREAD_TEAMS()						\

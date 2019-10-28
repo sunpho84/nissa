@@ -120,9 +120,12 @@ namespace nissa
 		int box_dir_par_sizeh=box_dir_par_size/2;
 		if(box_dir_par_sizeh*2!=box_dir_par_size) box_dir_par_sizeh++;
 		if(packing_inited)
-		  NISSA_PARALLEL_LOOP(ibox_dir_par,0,box_dir_par_sizeh)
-		    compute_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+box_dir_par_sizeh],
-					       ((vir_su3*)packing_link_buf)+ibox_dir_par*nlinks_per_staples_of_link,C1);
+		  {
+		    NISSA_PARALLEL_LOOP(ibox_dir_par,0,box_dir_par_sizeh)
+		      compute_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+box_dir_par_sizeh],
+						 ((vir_su3*)packing_link_buf)+ibox_dir_par*nlinks_per_staples_of_link,C1);
+		    NISSA_PARALLEL_LOOP_END;
+		  }
 		THREAD_BARRIER();
 #endif
 		
@@ -146,6 +149,7 @@ namespace nissa
 		    int ivol=ivol_of_box_dir_par[ibox_dir_par];
 		    update_fun(conf[ivol][dir],staples,ivol,dir,pars);
 		  }
+		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
 		
 		//increment the box-dir-par subset

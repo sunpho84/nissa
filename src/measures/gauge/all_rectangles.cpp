@@ -138,6 +138,7 @@ namespace nissa
 	//store temporal links and send them
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  su3_copy(pre_transp_conf_holder[ivol],sme_conf[ivol][mu0]);
+	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	for(int imu1=0;imu1<NDIM-1;imu1++)
 	  {
@@ -145,6 +146,7 @@ namespace nissa
 	    remap[imu01]->remap(post_transp_conf_holder,pre_transp_conf_holder,sizeof(su3));
 	    NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 	      su3_copy(transp_conf[imu01][icmp+cmp_vol[imu01]*0],post_transp_conf_holder[icmp]);
+	    NISSA_PARALLEL_LOOP_END;
 	    THREAD_BARRIER();
 	  }
 	
@@ -166,10 +168,12 @@ namespace nissa
 		int imu01=mu0*(NDIM-1)+imu1;
 		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		  su3_copy(pre_transp_conf_holder[ivol],sme_conf[ivol][mu1]);
+		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
 		remap[imu01]->remap(post_transp_conf_holder,pre_transp_conf_holder,sizeof(su3));
 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 		  su3_copy(transp_conf[imu01][icmp+cmp_vol[imu01]*(1+imeas)],post_transp_conf_holder[icmp]);
+		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
 	      }
 	    imeas++;
@@ -222,6 +226,7 @@ namespace nissa
 		safe_su3_prod_su3(U,U,transp_conf[imu01][site_shift(icmp,L,1,dt+pars->Tmin)+cmp_vol[imu01]*0]);
 	      }
 	  }
+	NISSA_PARALLEL_LOOP_END;
 	
 	for(int ispat_sme=0;ispat_sme<nspat_sme;ispat_sme++)
 	  {
@@ -236,6 +241,7 @@ namespace nissa
 		  safe_su3_prod_su3(Dline[icmp],Dline[icmp],
 				    transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+ispat_sme)]);
 	      }
+	    NISSA_PARALLEL_LOOP_END;
 	    THREAD_BARRIER();
 	    
 	    //close all the rectangles
@@ -258,6 +264,8 @@ namespace nissa
 		      //add to local rectangles summ
 		      all_rectangles_loc_thread[irect+dt]+=real_part_of_trace_su3_prod_su3_dag(part1,part2);
 		    }
+		NISSA_PARALLEL_LOOP_END;
+		
 		//increase the index of rectangles
 		irect+=dT;
 		THREAD_BARRIER();
@@ -266,6 +274,7 @@ namespace nissa
 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 		  safe_su3_prod_su3(Dline[icmp],Dline[icmp],
 				    transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+ispat_sme)]);
+		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
 	      }
 	  }
@@ -359,6 +368,7 @@ namespace nissa
 	//reset the Tpath link product
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  su3_put_to_id(T_path[ivol]);
+	  NISSA_PARALLEL_LOOP_END;
 	
 	//move along T up to Tmax
 	for(int t=1;t<=pars->Tmax;t++)
@@ -366,6 +376,7 @@ namespace nissa
 	    //take the product
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	      safe_su3_prod_su3(T_path[ivol],T_path[ivol],sme_conf[ivol][0]);
+	      NISSA_PARALLEL_LOOP_END;
 	    set_borders_invalid(T_path);
 	    
 	    //push up the vector along T
@@ -384,6 +395,7 @@ namespace nissa
 		  //copy T_path
 		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		    su3_copy(TS_path[ivol],T_path[ivol]);
+		    NISSA_PARALLEL_LOOP_END;
 		  
 		  //move along i up to Dmax
 		  for(int d=1;d<=pars->Dmax;d++)
@@ -391,6 +403,7 @@ namespace nissa
 		      //take the product
 		      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 			safe_su3_prod_su3(TS_path[ivol],TS_path[ivol],sme_conf[ivol][i]);
+			NISSA_PARALLEL_LOOP_END;
 		      set_borders_invalid(TS_path);
 		      
 		      //push up the vector along i
@@ -402,6 +415,7 @@ namespace nissa
 			  //copy TS_path
 			  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 			    su3_copy(closed_path[ivol],TS_path[ivol]);
+			    NISSA_PARALLEL_LOOP_END;
 			  set_borders_invalid(closed_path);
 			  
 			  //move back along time
@@ -413,6 +427,7 @@ namespace nissa
 			      //take the product with dag
 			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 				safe_su3_prod_su3_dag(closed_path[ivol],closed_path[ivol],sme_conf[ivol][0]);
+				NISSA_PARALLEL_LOOP_END;
 			      set_borders_invalid(closed_path);
 			    }
 			  
@@ -425,6 +440,7 @@ namespace nissa
 			      //take the product with dag
 			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 				safe_su3_prod_su3_dag(closed_path[ivol],closed_path[ivol],sme_conf[ivol][i]);
+				NISSA_PARALLEL_LOOP_END;
 			      set_borders_invalid(closed_path);
 			    }
 			  
@@ -432,6 +448,7 @@ namespace nissa
 			  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 			    point_path[ivol]=
 			    closed_path[ivol][0][0][RE]+closed_path[ivol][1][1][RE]+closed_path[ivol][2][2][RE];
+			    NISSA_PARALLEL_LOOP_END;
 			  
 			  //reduce among all threads and ranks and summ it
 			  double temp;

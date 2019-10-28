@@ -229,6 +229,7 @@ namespace nissa
 	xmax[i]=minimum+(exp(0.5*(1-cos((M_PI*i)/nzero_err_points)))-1)*coeff;
 	zero[i]=minimum+(exp(0.5*(1-cos(M_PI*(2*i+1)/(2*nzero_err_points))))-1)*coeff;
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }
   
@@ -238,7 +239,9 @@ namespace nissa
     GET_THREAD_ID();
     
     step[0]=zero[0]-minimum;
-    NISSA_PARALLEL_LOOP(i,1,nmax_err_points) step[i]=zero[i]-zero[i-1];
+    NISSA_PARALLEL_LOOP(i,1,nmax_err_points)
+      step[i]=zero[i]-zero[i-1];
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }
   
@@ -384,6 +387,7 @@ namespace nissa
 	  }
 	vec[i]=z*y;
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }
   

@@ -236,6 +236,7 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       mom_space_twisted_propagator_of_imom(prop[imom],qu,imom,base);
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(prop);
   }
@@ -263,6 +264,8 @@ namespace nissa
 	safe_spinspin_prod_spinspin(sq_prop[imom],sq_prop[imom],sq_prop[imom]);
 	spinspin_prodassign_double(sq_prop[imom],glb_vol);
       }
+    NISSA_PARALLEL_LOOP_END;
+    
     THREAD_BARRIER();
     
     pass_spinspin_from_mom_to_x_space(sq_prop,sq_prop,qu.bc,true,true);
@@ -283,7 +286,8 @@ namespace nissa
 	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
 	NAME2(safe_spinspin_prod,TYPE)(out[imom],prop,in[imom]);	\
       }									\
-    									\
+    NISSA_PARALLEL_LOOP_END;						\
+									\
     set_borders_invalid(out);						\
   }									\
   THREADABLE_FUNCTION_END						\
@@ -299,7 +303,8 @@ namespace nissa
 	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
 	NAME3(safe,TYPE,prod_spinspin)(out[imom],in[imom],prop);	\
       }									\
-    									\
+    NISSA_PARALLEL_LOOP_END;						\
+									\
     set_borders_invalid(out);						\
   }									\
   THREADABLE_FUNCTION_END						\

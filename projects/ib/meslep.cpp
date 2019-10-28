@@ -155,6 +155,7 @@ namespace nissa
 	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
 	spinspin_put_to_diag(prop[ivol],ph);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(prop);
   }
   
@@ -230,6 +231,7 @@ namespace nissa
 		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma+igamma_of_mu[mu]);
 		  spinspin_summassign(prop[ivol],temp_M);
 		}
+	NISSA_PARALLEL_LOOP_END;
       }
     else
       {
@@ -243,7 +245,7 @@ namespace nissa
 		  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
 		  spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
 		}
-	
+	NISSA_PARALLEL_LOOP_END;
       }
     
     set_borders_invalid(prop);
@@ -329,6 +331,7 @@ namespace nissa
     // 		for(int id_si2=0;id_si2<NDIRAC;id_si2++)
     // 		  //this way when taking the trace with dirac matrix, that is acting on S2, as it should
     // 		  complex_summ_the_conj1_prod(hadr[ivol][id_si2][id_si1],Q[iq1][isou][ivol][id_si1][ic_si],Q[iq2][isou][ivol][id_si2][ic_si]);
+    //NISSA_PARALLEL_LOOP_END;
     // 	}
     // THREAD_BARRIER();
   }
@@ -406,6 +409,7 @@ namespace nissa
 	    complex_prodassign(h,ph);
 	    spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h);
 	  }
+	NISSA_PARALLEL_LOOP_END;
 	glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));
 	
 	//save projection on LO
@@ -426,6 +430,7 @@ namespace nissa
 	      int i=glb_t+glb_size[0]*(ig_proj+nmeslep_proj*(list_weak_ind_contr[ins]+nindep_meslep_weak*ext_ind));
 	      complex_summ_the_prod_double(meslep_contr[i],mesolep,1.0/glb_spat_vol); //here to remove the statistical average on xw
 	    }
+	NISSA_PARALLEL_LOOP_END;
 	if(IS_MASTER_THREAD) nmeslep_contr_made+=nmeslep_proj;
 	THREAD_BARRIER();
       }

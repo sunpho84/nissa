@@ -18,6 +18,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  if(glb_coord_of_loclx[ivol][0]!=timeslice)
 	    memset(prop_out[ivol],0,sizeof(prop_type));
+	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(prop_out);
       }
   }

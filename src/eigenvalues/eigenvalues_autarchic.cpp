@@ -118,6 +118,7 @@ namespace nissa
 	  for(int j=0;j<nout;j++)
 	    complex_copy(vect[j][iel],tmp[j]);
 	}
+      NISSA_PARALLEL_LOOP_END;
       
       //barrier and mark as modified
       for(int j=0;j<nout;j++)

@@ -68,6 +68,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	  for(int ic=0;ic<NCOL;ic++)
 	    assign_complex_prod_i(temp[eo][ivol][ic]);
+	NISSA_PARALLEL_LOOP_END;
 	
 	// out = (i * D - m * g5 X id) * in
 	double_vector_summ_double_vector_prod_double((double*)out[eo],(double*)temp[eo],(double*)out[eo],-m_Adams,2*NCOL*loc_volh);

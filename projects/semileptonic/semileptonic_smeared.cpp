@@ -958,6 +958,7 @@ THREADABLE_FUNCTION_2ARG(prepare_prop_for_new_contraction, PROP_TYPE*,prop, PROP
       for(int idirac_ri=0;idirac_ri<32;idirac_ri++)
 	((double*)aux)[ispat_color+spat_color_vol*(idirac_ri+32*t)]=
 	  ((double*)prop)[idirac_ri+32*(ispat_color+spat_color_vol*t)];
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
   
   //copy aux to prop
@@ -976,6 +977,7 @@ THREADABLE_FUNCTION_2ARG(revert_prop_from_new_contraction, PROP_TYPE*,prop, PROP
       NISSA_PARALLEL_LOOP(ispat_color,0,spat_color_vol)
 	((double*)aux)[idirac_ri+32*(ispat_color+spat_color_vol*t)]=
 	((double*)prop)[ispat_color+spat_color_vol*(idirac_ri+32*t)];
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
   
   //copy aux to prop

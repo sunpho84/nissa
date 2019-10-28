@@ -247,11 +247,12 @@ namespace nissa
 	HOP_HEADER(7); //Z forward scatter (backward derivative)
 	REG_VIR_32_64_SU3_DAG_PROD_VIR_32_64_COLOR_LOAD_STORE(out[iout[7]],links[7],reg_in);
       }
-
+    NISSA_PARALLEL_LOOP_END;
+    
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-
+  
   //if virtual parallelized dir is really parallelized, fill send buffers
   THREADABLE_FUNCTION_0ARG(BGQ_32_64_STAGGERED_HOPPING_MATRIX_OE_OR_EO_VDIR_VN_COMM_AND_BUFF_FILL)
   {

@@ -28,6 +28,7 @@ namespace nissa
     //split
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
       memcpy(out_eo[loclx_parity[loclx]]+bps*loceo_of_loclx[loclx],in_lx+bps*loclx,bps);
+    NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);
     
@@ -47,6 +48,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
       if(loclx_parity[loclx]==par)
       memcpy(out_ev_or_od+bps*loceo_of_loclx[loclx],in_lx+bps*loclx,bps);
+    NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);
     
@@ -65,6 +67,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(eo,0,loc_volh)
 	memcpy(out_lx+bps*loclx_of_loceo[par][eo],in_eo[par]+bps*eo,bps);
+    NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);
     
@@ -83,6 +86,7 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(i,0,length)
       memcpy(out+bps*dest_of_source[i],in+bps*i,bps);
+    NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);
     
@@ -107,6 +111,7 @@ namespace nissa
 	  su3_copy(out[Lebdest][NDIM+mu],in[par][loceo_of_Lebeo[par][Lebdest]][mu]);
 	  su3_copy(out[Lebdest][mu],in[!par][loceo_of_Lebeo[!par][Lebeo_neighdw[par][Lebdest][mu]]][mu]);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
     

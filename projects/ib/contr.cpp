@@ -68,6 +68,7 @@ namespace nissa
 	    spincolor_scalar_prod(t,q_dag[ivol],q[ivol]);
 	    complex_summassign(loc[ivol],t);
 	  }
+	NISSA_PARALLEL_LOOP_END;
       }
     THREAD_BARRIER();
     
@@ -141,6 +142,7 @@ namespace nissa
 				complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
 			      complex_summ_the_prod(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
 			    }
+			NISSA_PARALLEL_LOOP_END;
 		      }
 		  }
 	      }
@@ -402,6 +404,7 @@ namespace nissa
 			  }
 		    }
 	      }
+	    NISSA_PARALLEL_LOOP_END;
 	  }
       }
     STOP_TIMING(bar2pts_alt_contr_time);
@@ -416,6 +419,7 @@ namespace nissa
 	complex phase={cos(arg),sin(arg)};
 	complex_summ_the_prod(bar2pts_alt_contr[i],master_reduced_contr[i],phase);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     delete[] loc_contr;
     
@@ -536,6 +540,7 @@ namespace nissa
 					  
   // 					}
   // 	      }
+  //NISSA_PARALLEL_LOOP_END;
   // 	  }
   //     }
     
@@ -549,6 +554,7 @@ namespace nissa
   // 	complex phase={cos(arg),sin(arg)};
   // 	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
   //     }
+  //NISSA_PARALLEL_LOOP_END;
   //   THREAD_BARRIER();
   //   delete[] loc_contr;
   // }
@@ -619,6 +625,7 @@ namespace nissa
 				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
     			      }
 		    }
+		  NISSA_PARALLEL_LOOP_END;
 		}
       }
     STOP_TIMING(bar2pts_contr_time);
@@ -633,6 +640,7 @@ namespace nissa
 	complex phase={cos(arg),sin(arg)};
 	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     delete[] loc_contr;
     
@@ -768,6 +776,7 @@ namespace nissa
 		complex_prodassign(c,g.entr[iso_spi_bw]);
 		complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
 	      }
+	  NISSA_PARALLEL_LOOP_END;
 	}
   }
   THREADABLE_FUNCTION_END
@@ -807,6 +816,7 @@ namespace nissa
 		spincolor_scalar_prod(c,Qbw[ivol],temp);
 		complex_summ_the_prod(si[ivol][mu],c,g.entr[iso_spi_fw]);
 	      }
+	  NISSA_PARALLEL_LOOP_END;
 	}
   }
   THREADABLE_FUNCTION_END
@@ -891,6 +901,7 @@ namespace nissa
 	      complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
 				    sides[handcuffs_map[ihand].left][ivol][mu],
 				    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
+	  NISSA_PARALLEL_LOOP_END;
 	}
     
     //free

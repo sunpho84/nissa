@@ -45,6 +45,7 @@ namespace nissa
 	      
 	      if(side==BOTH) color_prod_double(out[eo][ieo],out[eo][ieo],0.5);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	  set_borders_invalid(out[eo]);
 	}
     }
@@ -164,6 +165,7 @@ namespace nissa
 	      if(abs(sign)!=1) crash("unexpected sign %d",sign);
 	      color_prod_double(source[eo][ieo],source[eo][ieo],sign);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	  set_borders_invalid(source[eo]);
 	}
     }
@@ -205,6 +207,7 @@ namespace nissa
 		else         color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo]);
 		complex_summassign(point_result[loclx_of_loceo[par][ieo]],t);
 	      }
+	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
 	  complex_vector_glb_collapse(res_fw_bw[fw_bw],point_result,loc_vol);
 	  
@@ -230,6 +233,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	  for(int ic=0;ic<3;ic++)
 	    complex_summ_the_conj1_prod(point_result[loclx_of_loceo[par][ieo]],A[par][ieo][ic],B[par][ieo][ic]);
+      NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
       
       //final reduction
@@ -261,6 +265,7 @@ namespace nissa
 	      else         su3_dag_summ_the_prod_color(temp,conf[!par][idw][0],in[!par][idw]);
 	      color_prod_double(out[par][ieo],temp,0.5);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	  set_borders_invalid(out[par]);
 	}
       
@@ -284,6 +289,7 @@ namespace nissa
 	    color_scalar_prod(prod,eta[eo][ieo],quark[eo][ieo]);
 	    complex_summassign(dens[ivol],prod);
 	  }
+      NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
     }
     THREADABLE_FUNCTION_END
@@ -327,6 +333,7 @@ namespace nissa
 		    color_subt_the_prod_complex(out[par][ieo],temp,cb);
 		  }
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	  set_borders_invalid(out[par]);
 	}
       

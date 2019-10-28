@@ -90,6 +90,7 @@ namespace nissa
 	
 	STORE_REG_VIR_HALFSPINCOLOR(out[i][2],reg_out);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     //final sync
     set_borders_invalid(out);

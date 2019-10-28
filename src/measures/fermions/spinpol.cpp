@@ -39,7 +39,9 @@ namespace nissa
   void compute_tens_dens_topo_correlation(complex *spinpol_dens,complex *tens_dens,double *topo_dens)
   {
     GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_prod_double(spinpol_dens[ivol],tens_dens[ivol],topo_dens[ivol]);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      complex_prod_double(spinpol_dens[ivol],tens_dens[ivol],topo_dens[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }
   

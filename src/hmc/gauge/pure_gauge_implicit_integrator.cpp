@@ -261,6 +261,8 @@ namespace nissa
 	    su3_subtassign(temp,pi[ifield][ivol]);
 	    pi_herm_norm2+=su3_norm2(temp);
 	  }
+	NISSA_PARALLEL_LOOP_END;
+	
 	phi_rel_herm_norm+=sqrt(glb_reduce_double(phi_herm_norm2)/phi_norm2[ifield]);
 	pi_rel_herm_norm+=sqrt(glb_reduce_double(pi_herm_norm2)/pi_norm2[ifield]);
       }
@@ -489,6 +491,8 @@ namespace nissa
 	    su3_subtassign(temp,pi[ifield][ivol]);
 	    pi_herm_norm2+=su3_norm2(temp);
 	  }
+	NISSA_PARALLEL_LOOP_END;
+	
 	phi_rel_herm_norm+=sqrt(glb_reduce_double(phi_herm_norm2)/phi_norm2[ifield]);
 	pi_rel_herm_norm+=sqrt(glb_reduce_double(pi_herm_norm2)/pi_norm2[ifield]);
       }

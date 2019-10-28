@@ -425,7 +425,9 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_put_to_id(out[ivol]);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      su3_put_to_id(out[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     coords_t t;
     c->push_back(t);
     
@@ -452,15 +454,21 @@ namespace nissa
     su3_vec_single_shift(out,mu,-1);
     
     if(both_sides)
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	{
-	  su3 temp;
-	  unsafe_su3_prod_su3_dag(temp,out[ivol],conf[ivol][mu]);
-	  unsafe_su3_prod_su3(out[ivol],conf[ivol][mu],temp);
-	}
+      {
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  {
+	    su3 temp;
+	    unsafe_su3_prod_su3_dag(temp,out[ivol],conf[ivol][mu]);
+	    unsafe_su3_prod_su3(out[ivol],conf[ivol][mu],temp);
+	  }
+	NISSA_PARALLEL_LOOP_END;
+      }
     else
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	safe_su3_prod_su3_dag(out[ivol],out[ivol],conf[ivol][mu]);
+      {
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  safe_su3_prod_su3_dag(out[ivol],out[ivol],conf[ivol][mu]);
+	NISSA_PARALLEL_LOOP_END;
+      }
     
     coords_t t(c->back());
     t[mu]--;
@@ -479,15 +487,21 @@ namespace nissa
     if(both_sides) crash_if_end_diff_from_start(c);
     
     if(both_sides)
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	{
-	  su3 temp;
-	  unsafe_su3_prod_su3(temp,out[ivol],conf[ivol][mu]);
-	  unsafe_su3_dag_prod_su3(out[ivol],conf[ivol][mu],temp);
-	}
+      {
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  {
+	    su3 temp;
+	    unsafe_su3_prod_su3(temp,out[ivol],conf[ivol][mu]);
+	    unsafe_su3_dag_prod_su3(out[ivol],conf[ivol][mu],temp);
+	  }
+	NISSA_PARALLEL_LOOP_END;
+      }
     else
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	safe_su3_prod_su3(out[ivol],out[ivol],conf[ivol][mu]);
+      {
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  safe_su3_prod_su3(out[ivol],out[ivol],conf[ivol][mu]);
+	NISSA_PARALLEL_LOOP_END;
+      }
     THREAD_BARRIER();
     
     coords_t t(c->back());

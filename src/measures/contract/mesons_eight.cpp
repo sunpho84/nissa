@@ -53,6 +53,7 @@ namespace nissa
 	    complex_summ_the_prod(loc_c[icontr*glb_size[0]+glb_t],ctempL,ctempR);
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads finished their piece
     THREAD_BARRIER();
@@ -68,7 +69,7 @@ namespace nissa
     nissa_free(loc_c);
   }
   THREADABLE_FUNCTION_END
-
+  
   //trace of the product
   THREADABLE_FUNCTION_10ARG(trace_g_css_dag_g_ss_g_css_dag_g_ss, complex**,glb_c, dirac_matr*,g1L, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, dirac_matr*,g1R,colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
   {
@@ -101,6 +102,7 @@ namespace nissa
 		}
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads finished their part
     THREAD_BARRIER();
@@ -116,7 +118,7 @@ namespace nissa
     nissa_free(loc_c);
   }
   THREADABLE_FUNCTION_END
-
+  
   THREADABLE_FUNCTION_8ARG(trace_id_css_dag_g_css_id_css_dag_g_css, complex*,glb_c, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
   {
     GET_THREAD_ID();
@@ -138,7 +140,7 @@ namespace nissa
 	    
 	    for(int icontr=0;icontr<ncontr;icontr++)
 	      {
-		spinspin ALg, ARg;		
+		spinspin ALg, ARg;
 		unsafe_dirac_prod_spinspin(ALg,g2R+icontr,AL);
 		unsafe_dirac_prod_spinspin(ARg,g2L+icontr,AR);
 		
@@ -147,6 +149,7 @@ namespace nissa
 		complex_summassign(loc_c[icontr*loc_size[0]+loc_coord_of_loclx[ivol][0]],ctemp);
 	      }
 	  }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //local reduction across threads
@@ -162,6 +165,7 @@ namespace nissa
 	    
 	    complex_summassign(loc_c_tot[icontr*glb_size[0]+glb_coord_of_loclx[0][0]+t],loc_c[icontr*loc_size[0]+t]);
 	  }
+	NISSA_PARALLEL_LOOP_END;
       }
     THREAD_BARRIER();
     
@@ -201,7 +205,7 @@ namespace nissa
 	    
 	    for(int icontr=0;icontr<ncontr;icontr++)
 	      {
-		complex ctempL_color,ctempR_color;		    
+		complex ctempL_color,ctempR_color;
 		trace_dirac_prod_spinspin(ctempL_color,g2R+icontr,AL);
 		trace_dirac_prod_spinspin(ctempR_color,g2L+icontr,AR);
 		
@@ -213,6 +217,7 @@ namespace nissa
 	for(int icontr=0;icontr<ncontr;icontr++)
 	  complex_summ_the_prod(loc_c[icontr*loc_size[0]+loc_coord_of_loclx[ivol][0]],ctempL[icontr],ctempR[icontr]);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //reduce across theeads
@@ -228,6 +233,7 @@ namespace nissa
 	    
 	    complex_summassign(loc_c_tot[icontr*glb_size[0]+glb_coord_of_loclx[0][0]+t],loc_c[icontr*loc_size[0]+t]);
 	  }
+	NISSA_PARALLEL_LOOP_END;
       }
     THREAD_BARRIER();
 

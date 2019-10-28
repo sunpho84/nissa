@@ -56,6 +56,7 @@ namespace nissa
 	//copy out
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  su3_copy(temp_source[ivol],source[ivol][mu]);
+	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(temp_source);
 	
 	//invert
@@ -64,6 +65,7 @@ namespace nissa
 	//copy in
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  su3_copy(sol[ivol][mu],temp_sol[ivol]);
+	NISSA_PARALLEL_LOOP_END;
       }
     set_borders_invalid(sol);
     

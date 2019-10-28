@@ -51,6 +51,7 @@ namespace nissa
 	  for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,rectangular_staples[ivol][mu][iterm]);
 	  su3_summ_the_hermitian_prod_double(out[ivol][mu],temp,w1);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     nissa_free(squared_staples);
     nissa_free(rectangular_staples);

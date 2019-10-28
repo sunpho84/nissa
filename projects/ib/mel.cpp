@@ -488,6 +488,7 @@ void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,bool *dirs,PROP_
 	    NAME3(unsafe,PROP_TYPE,prod_complex)(temp2,temp1,curr[ivol][mu]);
 	    NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,1);
 	  }
+  NISSA_PARALLEL_LOOP_END;
   
   set_borders_invalid(out);
 }
@@ -650,6 +651,7 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
       get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
       spinspin_put_to_diag(prop[ivol],ph);
     }
+  NISSA_PARALLEL_LOOP_END;
   set_borders_invalid(prop);
 }
 
@@ -725,6 +727,7 @@ THREADABLE_FUNCTION_5ARG(insert_photon_on_the_source, spinspin*,prop, spin1field
 		unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma+map_mu[mu]);
 		spinspin_summassign(prop[ivol],temp_M);
 	      }
+      NISSA_PARALLEL_LOOP_END;
     }
   else
     {
@@ -738,7 +741,7 @@ THREADABLE_FUNCTION_5ARG(insert_photon_on_the_source, spinspin*,prop, spin1field
 		unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
 		spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
 	      }
-      
+     NISSA_PARALLEL_LOOP_END; 
     }
   
   set_borders_invalid(prop);
@@ -866,7 +869,8 @@ THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PRO
                  S1[ivol][ic_si][id_si1][id_so],S2[ivol][ic_si][id_si2][id_so])
 #endif
 		 ;
-  THREAD_BARRIER();
+   NISSA_PARALLEL_LOOP_END;
+   THREAD_BARRIER();
 }
 THREADABLE_FUNCTION_END
 
@@ -941,6 +945,7 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  complex_prodassign(h,ph);
 	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
 	}
+      NISSA_PARALLEL_LOOP_END;
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
       //save projection on LO
@@ -961,6 +966,7 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	    int i=glb_t+glb_size[0]*(ig_proj+nhadrolept_proj*(list_weak_ind_contr[ins]+nweak_ind*ext_ind));
 	    complex_summ_the_prod_double(hadrolept_corr[i],hl,1.0/glb_spat_vol); //here to remove the statistical average on xw
 	  }
+      NISSA_PARALLEL_LOOP_END;
       if(IS_MASTER_THREAD) nlept_contr_tot+=nhadrolept_proj;
       THREAD_BARRIER();
     }

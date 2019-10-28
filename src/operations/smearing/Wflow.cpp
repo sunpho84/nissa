@@ -59,6 +59,7 @@ namespace nissa
 	      su3_prod_double(arg[ivol][mu],arg[ivol][mu],RK_wo[iter]);
 	      su3_summassign(arg[ivol][mu],Q);
 	    }
+      NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
     }
     
@@ -76,6 +77,7 @@ namespace nissa
 	      safe_hermitian_exact_i_exponentiate(expiQ,arg[ivol][mu]);
 	      safe_su3_prod_su3(conf[ivol][mu],expiQ,conf[ivol][mu]);
 	    }
+      NISSA_PARALLEL_LOOP_END;
       set_borders_invalid(conf);
     }
   }

@@ -31,6 +31,8 @@ namespace nissa
 	      unsafe_su3_prod_su3(temp,conf[eo][ivol][mu],F[eo][ivol][mu]);
 	      unsafe_su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
 	    }
+	NISSA_PARALLEL_LOOP_END;
+	
       }
   }
   THREADABLE_FUNCTION_END

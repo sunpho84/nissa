@@ -23,6 +23,7 @@ namespace nissa
 	  complex_iexp(ph,-e*photon_field[ivol][mu][RE]*charge/3.0);
 	  safe_su3_prod_complex(conf[ivol][mu],conf[ivol][mu],ph);
 	}
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(conf);
   }
   THREADABLE_FUNCTION_END
@@ -117,6 +118,7 @@ namespace nissa
 		  if((!diluted_spi_source or (id_so==id_si)) and (!diluted_col_source or (ic_so==ic_si)))
 		    complex_copy(sou->sp[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     //compute the norm2, set borders invalid
     double ori_source_norm2=0;
@@ -150,6 +152,7 @@ namespace nissa
 	      unsafe_spincolor_prod_complex(temp2,temp1,curr[ivol][mu]);
 	      spincolor_summ_the_prod_idouble(out[ivol],temp2,1);
 	    }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -215,6 +218,7 @@ namespace nissa
 	if(t==-1 or glb_coord_of_loclx[ivol][0]==t)
 	  unsafe_spincolor_prod_complex(out[ivol],ori[ivol],factor);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -305,6 +309,7 @@ namespace nissa
 	complex coef={c.second.first,c.second.second};
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  spincolor_summ_the_prod_complex(out[ivol],Q[c.first][isou][ivol],coef);
+	NISSA_PARALLEL_LOOP_END;
       }
     set_borders_invalid(out);
   }
@@ -593,6 +598,7 @@ namespace nissa
 	// spincolor_put_to_zero(qtilde[imom]);
 	// for(int mu=0;mu<4;mu++) qtilde[imom][mu][0][0]=glb_coord_of_loclx[imom][mu];
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(qtilde);
   }
@@ -781,6 +787,7 @@ namespace nissa
 		  
 		  NISSA_PARALLEL_LOOP(imom,0,fft_filterer[i].nfft_filtered)
 		    spincolor_copy(qfilt[i][imom*nso_spi*nso_col+so_sp_col_ind(id_so,ic_so)],qfilt_temp[i][imom]);
+		  NISSA_PARALLEL_LOOP_END;
 		  set_borders_invalid(qfilt[i]);
 		}
 	      

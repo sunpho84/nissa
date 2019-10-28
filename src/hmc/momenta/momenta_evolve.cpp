@@ -30,6 +30,8 @@ namespace nissa
         for(int ic1=0;ic1<NCOL;ic1++)
           for(int ic2=0;ic2<NCOL;ic2++)
             complex_subt_the_prod_idouble(H[ivol][mu][ic1][ic2],F[ivol][mu][ic1][ic2],dt);
+    NISSA_PARALLEL_LOOP_END;
+    
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
@@ -53,6 +55,7 @@ namespace nissa
           
 	  safe_su3_prod_su3(lx_conf[ivol][mu],t2,lx_conf[ivol][mu]);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(lx_conf);
     

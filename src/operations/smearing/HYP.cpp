@@ -87,6 +87,7 @@ namespace nissa
 		//project the resulting link onto su3
 		su3_unitarize_maximal_trace_projecting(dec2_conf[ire0][A],temp0);
 	      }
+	    NISSA_PARALLEL_LOOP_END;
 	    
 	    //communicate borders for future usage
 	    set_borders_invalid(dec2_conf[ire0]);
@@ -150,7 +151,8 @@ namespace nissa
 	      su3_summ_the_prod_double(temp0,stap,alpha1/4);
 	      su3_unitarize_maximal_trace_projecting(dec1_conf[ire0][A],temp0);
 	    }
-	    
+	  NISSA_PARALLEL_LOOP_END;
+	  
 	  //communicate borders for future usage
 	  set_borders_invalid(dec1_conf[ire0]);
 	  communicate_lx_su3_edges(dec1_conf[ire0]);
@@ -206,10 +208,12 @@ namespace nissa
 	    su3_summ_the_prod_double(temp0,stap,alpha0/6);
 	    su3_unitarize_maximal_trace_projecting(sm_conf[A][mu],temp0);
 	  }
+      NISSA_PARALLEL_LOOP_END
       else
-	if(sm_conf!=conf)
-	  NISSA_PARALLEL_LOOP(A,0,loc_vol)
-	    su3_copy(sm_conf[A][mu],conf[A][mu]);
+      if(sm_conf!=conf)
+	NISSA_PARALLEL_LOOP(A,0,loc_vol)
+	  su3_copy(sm_conf[A][mu],conf[A][mu]);
+    NISSA_PARALLEL_LOOP_END;
     
     //invalid borders
     set_borders_invalid(sm_conf);

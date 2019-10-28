@@ -31,6 +31,7 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
       for(int iterm=0;iterm<appr->degree();iterm++)
 	((double*)sol)[i]+=appr->weights[iterm]*((double*)(temp[iterm]))[i];
     }
+  NISSA_PARALLEL_LOOP_END;
   
   set_borders_invalid(sol);
   

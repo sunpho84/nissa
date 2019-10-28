@@ -21,6 +21,7 @@
 #elif THREADS_TYPE == OPENMP_THREADS
  #include "threads/openmp_threads.hpp"
 #elif THREADS_TYPE == CUDA_THREADS
+ #include "threads/cuda_threads.hpp"
 #else
  #error Unknown thread paralleization THREADS_TYPE !
 #endif

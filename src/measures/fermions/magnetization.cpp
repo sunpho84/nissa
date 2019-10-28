@@ -70,6 +70,7 @@ namespace nissa
               complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[idw_lx][rho]);
             }
         }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //reduce the projected magnetization
@@ -111,6 +112,7 @@ namespace nissa
     coords *arg=nissa_malloc("arg",loc_vol+bord_vol,coords);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol+bord_vol)
       get_args_of_quantization[quantization](arg[ivol],ivol,mu,nu);
+    NISSA_PARALLEL_LOOP_END;
     
     //array to store magnetization on single site (actually storing backward contrib at displaced site)
     complex *point_magn=nissa_malloc("app",loc_vol,complex);

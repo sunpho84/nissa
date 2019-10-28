@@ -207,6 +207,7 @@ namespace nissa
       memcpy(send_buf+comm.nbytes_per_site*ibord,
 	     (char*)vec+surflx_of_bordlx[ibord]*comm.nbytes_per_site,
 	     comm.nbytes_per_site);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads filled their portion
     THREAD_BARRIER();
@@ -298,6 +299,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
       memcpy(send_buf+ibord*comm.nbytes_per_site,
 	     (char*)vec+surfeo_of_bordeo[eo][ibord]*comm.nbytes_per_site,comm.nbytes_per_site);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads filled their portion
     THREAD_BARRIER();
@@ -395,6 +397,7 @@ namespace nissa
 	memcpy(send_buf+ibord_lx*comm.nbytes_per_site,(char*)(vec[par])+source_eo*comm.nbytes_per_site,
 	       comm.nbytes_per_site);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads filled their portion
     THREAD_BARRIER();
@@ -422,6 +425,7 @@ namespace nissa
 	int dest_eo=loceo_of_loclx[dest_lx];
 	memcpy((char*)(vec[par])+dest_eo*comm.nbytes_per_site,recv_buf+ibord_lx*comm.nbytes_per_site,comm.nbytes_per_site);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     //we do not sync, because typically we will set borders as valid
   }
@@ -491,6 +495,7 @@ namespace nissa
       memcpy(send_buf+comm.nbytes_per_site*ibord,
 	     (char*)vec+surfLeblx_of_bordLeblx[ibord]*comm.nbytes_per_site,
 	     comm.nbytes_per_site);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads filled their portion
     THREAD_BARRIER();
@@ -549,6 +554,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
       memcpy(send_buf+ibord*comm.nbytes_per_site,
 	     (char*)vec+Lebeo_of_loceo[eo][surfeo_of_bordeo[eo][ibord]]*comm.nbytes_per_site,comm.nbytes_per_site);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads filled their portion
     THREAD_BARRIER();
@@ -648,6 +654,7 @@ namespace nissa
 	memcpy(send_buf+ibord_loclx*comm.nbytes_per_site,(char*)(vec[par])+source_Lebeo*comm.nbytes_per_site,
 	       comm.nbytes_per_site);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads filled their portion
     THREAD_BARRIER();

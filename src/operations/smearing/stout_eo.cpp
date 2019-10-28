@@ -100,7 +100,8 @@ namespace nissa
 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
 	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
 	    }
-    
+        NISSA_PARALLEL_LOOP_END;
+	
     //invalid the border and free allocated memory, if any
     for(int eo=0;eo<2;eo++)
       {
@@ -227,6 +228,7 @@ namespace nissa
 	    //put together first and second piece
 	    su3_summ(F[p][A][mu],temp1,temp3);
 	  }
+    NISSA_PARALLEL_LOOP_END;
     
     for(int p=0;p<2;p++) set_borders_invalid(Lambda[p]);
     
@@ -242,8 +244,8 @@ namespace nissa
 		{                                      //    |        |       |
 		  int f1=loceo_neighup[ p][ A][mu];    //    V   B    |   F   V     ^
 		  int f2=loceo_neighup[ p][ A][nu];    //    |        |       |     m
-		  int f3=A;                            //  b23 -->-- f3 --<-- f2    u   	  
-		  int b1=loceo_neighdw[!p][f1][nu];    //             A             +  nu ->  
+		  int f3=A;                            //  b23 -->-- f3 --<-- f2    u
+		  int b1=loceo_neighdw[!p][f1][nu];    //             A             +  nu ->
 		  int b2=loceo_neighdw[ p][b1][mu];
 		  int b3=b2;
 		  
@@ -285,12 +287,13 @@ namespace nissa
 		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
 		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
 		}
+	      NISSA_PARALLEL_LOOP_END;
 	    }
     
     for(int eo=0;eo<2;eo++) nissa_free(Lambda[eo]);
   }
   THREADABLE_FUNCTION_END
-
+  
   //remap iteratively the force, adding the missing pieces of the chain rule derivation
   THREADABLE_FUNCTION_3ARG(stouted_force_remap, quad_su3**,F, quad_su3***,sme_conf, stout_pars_t*,stout_pars)
   {

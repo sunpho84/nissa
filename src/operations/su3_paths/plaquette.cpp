@@ -85,6 +85,7 @@ namespace nissa
     //loop over all the lattice
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       point_plaquette_lx_conf(point_plaq[ivol],conf,ivol);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait to have filled all the point array
     THREAD_BARRIER();
@@ -110,6 +111,7 @@ namespace nissa
     //loop over all the lattice
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       point_plaquette_lx_conf(point_plaq[ivol],conf,ivol);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait to have filled all the point array
     THREAD_BARRIER();
@@ -122,6 +124,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
       for(int ivol=loc_t*loc_spat_vol;ivol<(loc_t+1)*loc_spat_vol;ivol++)
 	loc_plaq[glb_coord_of_loclx[ivol][0]]+=point_plaq[ivol][RE]+point_plaq[ivol][IM];
+    NISSA_PARALLEL_LOOP_END;
     nissa_free(point_plaq);
     
     //reduce (passing throug additional var because of external unkwnon env)
@@ -147,8 +150,11 @@ namespace nissa
     
     //loop over all the lattice
     for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	point_plaquette_eo_conf(point_plaq[loclx_of_loceo[par][ieo]],conf,par,ieo);
+      {
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  point_plaquette_eo_conf(point_plaq[loclx_of_loceo[par][ieo]],conf,par,ieo);
+	NISSA_PARALLEL_LOOP_END;
+      }
     
     //wait to have filled all the point array
     THREAD_BARRIER();

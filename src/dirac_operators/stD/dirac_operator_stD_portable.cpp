@@ -40,6 +40,7 @@ namespace nissa
 	    su3_dag_subt_the_prod_color(out[io],conf[EVN][evdw][mu],in[evdw]);
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -55,6 +56,7 @@ namespace nissa
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
 	  out[io][ic][ri]*=0.5;
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -90,6 +92,7 @@ namespace nissa
 	//Doe contains 1/2, we put an additional one
 	color_prod_double(out[ie],out[ie],0.25);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -131,6 +134,7 @@ namespace nissa
 	    su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw][mu],in[evdw]);
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(temp);
     communicate_od_color_borders(temp);
@@ -153,18 +157,24 @@ namespace nissa
 	    su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw][mu],temp[oddw]);
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     if(mass2!=0)
-      NISSA_PARALLEL_LOOP(ie,0,loc_volh)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    out[ie][ic][ri]=mass2*in[ie][ic][ri]-out[ie][ic][ri]*0.25;
+      {
+	NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+	  for(int ic=0;ic<3;ic++)
+	    for(int ri=0;ri<2;ri++)
+	      out[ie][ic][ri]=mass2*in[ie][ic][ri]-out[ie][ic][ri]*0.25;
+	NISSA_PARALLEL_LOOP_END;
+      }
     else
-      NISSA_PARALLEL_LOOP(ie,0,loc_volh)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    out[ie][ic][ri]*=-0.25;
-    
+      {
+	NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+	  for(int ic=0;ic<3;ic++)
+	    for(int ri=0;ri<2;ri++)
+	      out[ie][ic][ri]*=-0.25;
+	NISSA_PARALLEL_LOOP_END;
+      }
     set_borders_invalid(out);
     
     STOP_TIMING(portable_stD_app_time);

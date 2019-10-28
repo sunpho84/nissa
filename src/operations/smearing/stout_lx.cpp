@@ -106,6 +106,7 @@ namespace nissa
 	    safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
 	    unsafe_su3_prod_su3(out[A][mu],expiQ,in[A][mu]);
 	  }
+    NISSA_PARALLEL_LOOP_END;
     
     //invalid the border and free allocated memory, if any
     set_borders_invalid(out);
@@ -219,6 +220,7 @@ namespace nissa
 	  //put together first and second piece
 	  su3_summ(F[A][mu],temp1,temp3);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(Lambda);
     
@@ -276,6 +278,7 @@ namespace nissa
 		unsafe_su3_prod_su3_dag(temp3,temp2,conf[f3][nu]);
 		su3_summ_the_prod_idouble(F[A][mu],temp3,-rho);
 	      }
+	    NISSA_PARALLEL_LOOP_END;
 	  }
     nissa_free(Lambda);
   }

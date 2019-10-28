@@ -56,7 +56,8 @@ namespace nissa
 		  p[ivol][id][ri]=r[ivol][id][ri]=c1;
 		  if(riter==0) loc_source_norm+=source[ivol][id][ri]*source[ivol][id][ri];
 		  loc_delta+=c1*c1;
-		}	
+		}
+	  NISSA_PARALLEL_LOOP_END;
 	  set_borders_invalid(p);
 	  delta=glb_reduce_double(loc_delta);
 	  
@@ -82,6 +83,7 @@ namespace nissa
 	      for(int id=0;id<4;id++)
 		for(int ri=0;ri<2;ri++)
 		  loc_alpha+=s[ivol][id][ri]*p[ivol][id][ri];
+	    NISSA_PARALLEL_LOOP_END;
 	    alpha=glb_reduce_double(loc_alpha);
 	    omega=delta/alpha;
 	    
@@ -95,6 +97,7 @@ namespace nissa
 		    r[ivol][id][ri]=c1;
 		    loc_lambda+=c1*c1;
 		  }
+	    NISSA_PARALLEL_LOOP_END;
 	    set_borders_invalid(sol);
 	    lambda=glb_reduce_double(loc_lambda);
 	    
@@ -106,6 +109,7 @@ namespace nissa
 	      for(int id=0;id<4;id++)
 		for(int ri=0;ri<2;ri++)
 		  p[ivol][id][ri]=r[ivol][id][ri]+gammag*p[ivol][id][ri];
+	    NISSA_PARALLEL_LOOP_END;
 	    set_borders_invalid(p);
 	    
 	    iter++;
@@ -125,6 +129,8 @@ namespace nissa
 		  double c1=source[ivol][id][ri]-s[ivol][id][ri];
 		  loc_lambda+=c1*c1;
 		}
+	  NISSA_PARALLEL_LOOP_END;
+	  
 	  lambda=glb_reduce_double(loc_lambda);
 	}
 	master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);
@@ -173,6 +179,7 @@ namespace nissa
 	    varphi[ivol][id  ][ri]=+source_eos[ODD][ivol][id  ][ri]+varphi[ivol][id  ][ri]*0.5;
 	    varphi[ivol][id+2][ri]=-source_eos[ODD][ivol][id+2][ri]-varphi[ivol][id+2][ri]*0.5;
 	  }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(varphi);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
@@ -189,6 +196,7 @@ namespace nissa
       for(int id=0;id<4;id++)
 	for(int ri=0;ri<2;ri++)
 	  varphi[ivol][id][ri]=source_eos[EVN][ivol][id][ri]+varphi[ivol][id][ri]*0.5;
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(varphi);
     inv_tmDee_or_oo_eos(solution_eos[EVN],qu,varphi);
     

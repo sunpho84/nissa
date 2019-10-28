@@ -30,8 +30,12 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	  for(int mu=0;mu<NDIM;mu++)
-	    safe_su3_hermitian_prod_double(F[par][ivol][mu],F[par][ivol][mu],r);
+	  {
+	    for(int mu=0;mu<NDIM;mu++)
+	      safe_su3_hermitian_prod_double(F[par][ivol][mu],F[par][ivol][mu],r);
+	  }
+	NISSA_PARALLEL_LOOP_END;
+	
 	set_borders_invalid(F[par]);
       }
   }
@@ -48,8 +52,11 @@ namespace nissa
     compute_summed_squared_staples_lx_conf(F,conf);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<NDIM;mu++)
-	safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);
+      {
+	for(int mu=0;mu<NDIM;mu++)
+	  safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);
+      }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(F);
   }
@@ -72,8 +79,11 @@ namespace nissa
     compute_summed_squared_staples_lx_conf(F,conf);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<NDIM;mu++)
-	safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);
+      {
+	for(int mu=0;mu<NDIM;mu++)
+	  safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);
+      }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(F);
   }

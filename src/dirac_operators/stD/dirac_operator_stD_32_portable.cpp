@@ -45,6 +45,7 @@ namespace nissa
 	    single_su3_dag_subt_the_prod_single_color(temp[io],conf[EVN][evdw][mu],in[evdw]);
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(temp);
     communicate_od_single_color_borders(temp);
@@ -71,6 +72,7 @@ namespace nissa
 	  for(int ri=0;ri<2;ri++)
 	    out[ie][ic][ri]=mass2*in[ie][ic][ri]-out[ie][ic][ri]*0.25;
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
     

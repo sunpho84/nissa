@@ -72,6 +72,7 @@ namespace nissa
 		unsafe_complex_prod(temp2,temp1,u1b[ODD][ieo][mu]);
 		complex_subt_the_prod_double(F[ODD][ieo][mu][ic1][ic2],temp2,appr->weights[iterm]*get_stagphase_of_lx(loclx_of_loceo[ODD][ieo],mu));
 	      }
+    NISSA_PARALLEL_LOOP_END;
     
     //free
     for(int iterm=0;iterm<appr->degree();iterm++)

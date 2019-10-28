@@ -36,6 +36,7 @@ namespace nissa
 	if(glb_coord_of_loclx[ivol][0]==glb_size[0]-1) d+=1;
 	if(d%2==1) su3_prod_double(lx_conf[ivol][0],lx_conf[ivol][0],-1);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     THREAD_BARRIER();
   }

@@ -30,6 +30,8 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	  for(int mu=0;mu<NDIM;mu++)
 	    herm_put_to_gauss(H[par][ieo][mu],&(loc_rnd_gen[loclx_of_loceo[par][ieo]]),1);
+	NISSA_PARALLEL_LOOP_END;
+	
 	set_borders_invalid(H[par]);
       }
   }
@@ -42,6 +44,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
 	herm_put_to_gauss(H[ivol][mu],&(loc_rnd_gen[ivol]),1);
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(H);
   }
@@ -60,7 +63,9 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	//fill the vector randomly
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) herm_put_to_gauss(in[ivol],&(loc_rnd_gen[ivol]),1);
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  herm_put_to_gauss(in[ivol],&(loc_rnd_gen[ivol]),1);
+	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(in);
 	
 	//compute the norm
@@ -77,7 +82,9 @@ namespace nissa
 	master_printf("Norm: %16.16lg, norm_reco: %16.16lg, relative error: %lg\n",sqrt(norm),sqrt(norm_reco),sqrt(norm/norm_reco)-1);
 	
 	//store the vector
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_copy(H[ivol][mu],out[ivol]);
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  su3_copy(H[ivol][mu],out[ivol]);
+	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(H);
       }
     

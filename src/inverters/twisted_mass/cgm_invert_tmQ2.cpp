@@ -91,10 +91,21 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int id1=2;id1<4;id1++)
+	for(int ic1=0;ic1<3;ic1++)
+	  for(int ri=0;ri<2;ri++)
+	    source[ivol][id1][ic1][ri]*=-1;
+    NISSA_PARALLEL_LOOP_END;
+    
     set_borders_invalid(source);
     inv_tmQ2_RL_cgm(sol,conf,kappa,RL,m,nmass,niter_max,req_res,source);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int id1=2;id1<4;id1++)
+	for(int ic1=0;ic1<3;ic1++)
+	  for(int ri=0;ri<2;ri++)
+	    source[ivol][id1][ic1][ri]*=-1;
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(source);
   }
   THREADABLE_FUNCTION_END

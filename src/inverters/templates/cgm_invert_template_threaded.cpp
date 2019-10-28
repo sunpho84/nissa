@@ -278,6 +278,7 @@ namespace nissa
 	    loc_weight+=point_weight;
 	    if(plain_res>locmax_res) locmax_res=plain_res;
 	  }
+	NISSA_PARALLEL_LOOP_END;
 	
 	res=glb_reduce_double(loc_res);
 	w_res=glb_reduce_double(locw_res);

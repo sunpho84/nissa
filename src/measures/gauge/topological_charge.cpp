@@ -104,7 +104,9 @@ namespace nissa
   {
     GET_THREAD_ID();
     communicate_lx_quad_su3_edges(conf);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) four_leaves_point(leaves_summ[ivol],conf,ivol);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      four_leaves_point(leaves_summ[ivol],conf,ivol);
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(leaves_summ);
   }
   THREADABLE_FUNCTION_END
@@ -148,6 +150,7 @@ namespace nissa
 	    //takes the combination with appropriate sign
 	    charge[ivol]+=sign[iperm]*(tclock[RE]-taclock[RE])*norm_fact;
 	  }
+	NISSA_PARALLEL_LOOP_END;
       }
     
     set_borders_invalid(charge);
@@ -186,21 +189,27 @@ namespace nissa
     
     //pass to complex
     complex *ccharge=nissa_malloc("ccharge",loc_vol,complex);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_put_to_real(ccharge[ivol],charge[ivol]);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      complex_put_to_real(ccharge[ivol],charge[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //transform
     fft4d(ccharge,ccharge,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
     
     //multiply to build correlators
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) safe_complex_prod(ccharge[ivol],ccharge[ivol],ccharge[ivol]);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      safe_complex_prod(ccharge[ivol],ccharge[ivol],ccharge[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //transform back
     fft4d(ccharge,ccharge,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
     
     //return to double
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) charge[ivol]=ccharge[ivol][RE];
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      charge[ivol]=ccharge[ivol][RE];
+    NISSA_PARALLEL_LOOP_END;
     nissa_free(ccharge);
   }
   THREADABLE_FUNCTION_END
@@ -400,6 +409,7 @@ namespace nissa
 		u[ic2][ic1][1]=+(u[ic1][ic2][1]=u[ic1][ic2][1]+u[ic2][ic1][1]);
 	      }
 	}
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     set_borders_invalid(leaves);
     communicate_lx_as2t_su3_edges(leaves);
@@ -461,6 +471,7 @@ namespace nissa
 	    if(plan_sign[mu][inu]==+1) su3_summassign(staples[A][mu],loc_staples);
 	    else                       su3_subtassign(staples[A][mu],loc_staples);
 	  }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(staples);
     

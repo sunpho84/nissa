@@ -58,6 +58,7 @@ namespace nissa
 		{
 		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		    put_spincolor_into_su3spinspin(prop[r][imass][ivol],temp_vec[r][ivol],id,ic);
+		  NISSA_PARALLEL_LOOP_END;
 		  set_borders_invalid(prop[r]);
 		}
 	      verbosity_lv2_master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);

@@ -132,6 +132,7 @@ namespace nissa
 	    out[X][3][c][1]=+0.5*out[X][3][c][1]-kcf*in[X][3][c][1];
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }

@@ -314,13 +314,16 @@ namespace nissa
     for(unsigned int jthread=1;jthread<NACTIVE_THREADS;jthread++)
       {
 	if(ptr[0]==ptr[jthread]) crash("overlapping vectors for threads %d and 0",jthread);
-	NISSA_PARALLEL_LOOP(iel,0,nel) ptr[0][iel]+=ptr[jthread][iel];
+	NISSA_PARALLEL_LOOP(iel,0,nel)
+	  ptr[0][iel]+=ptr[jthread][iel];
+	NISSA_PARALLEL_LOOP_END;
       }
     
     //copy to the output
     for(unsigned int jthread=1;jthread<NACTIVE_THREADS;jthread++)
       NISSA_PARALLEL_LOOP(iel,0,nel)
 	ptr[jthread][iel]=ptr[0][iel];
+    NISSA_PARALLEL_LOOP_END;
     
     //return ptr 0
     double *ret=ptr[0];

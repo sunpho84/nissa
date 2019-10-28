@@ -81,7 +81,9 @@ namespace nissa
 	    path_drawing_t s;
 	    compute_su3_path(&s,small_su3,lx_conf,small_steps);
 	    //trace it
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_trace(loc_res[ivol],small_su3[ivol]);
+	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	      su3_trace(loc_res[ivol],small_su3[ivol]);
+	    NISSA_PARALLEL_LOOP_END;
 	    THREAD_BARRIER();
 	    complex small_trace;
 	    complex_vector_glb_collapse(small_trace,loc_res,loc_vol);
@@ -112,7 +114,9 @@ namespace nissa
 		path_drawing_t b;
 		compute_su3_path(&b,big_su3,lx_conf,big_steps);
 		//trace it
-		NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_trace(loc_res[ivol],big_su3[ivol]);
+		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+		  su3_trace(loc_res[ivol],big_su3[ivol]);
+		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
 		complex big_trace;
 		complex_vector_glb_collapse(big_trace,loc_res,loc_vol);
@@ -141,7 +145,9 @@ namespace nissa
 			  for(int d=0;d<=dmax;d++)
 			    {
 			      //trace it
-			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol) trace_su3_prod_su3(loc_res[ivol],periscoped[ivol],big_su3[ivol]);
+			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+				trace_su3_prod_su3(loc_res[ivol],periscoped[ivol],big_su3[ivol]);
+			      NISSA_PARALLEL_LOOP_END;
 			      //wait and collapse
 			      THREAD_BARRIER();
 			      complex_vector_glb_collapse(conn[dmax+orie*d],loc_res,loc_vol);
@@ -154,6 +160,7 @@ namespace nissa
 				  su3_trace(b,big_su3[ivol]);
 				  unsafe_complex_prod(loc_res[ivol],p,b);
 				}
+			      NISSA_PARALLEL_LOOP_END;
 			      //wait and collapse
 			      THREAD_BARRIER();
 			      complex_vector_glb_collapse(disc[dmax+orie*d],loc_res,loc_vol);

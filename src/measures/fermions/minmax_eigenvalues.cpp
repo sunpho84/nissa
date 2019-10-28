@@ -35,6 +35,7 @@ namespace nissa
 	  unsafe_dirac_prod_spincolor(t,base_gamma+igamma,x[ivol]);
 	  spincolor_scalar_prod(buffer[ivol],x[ivol],t);
 	}
+      NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
       
       complex_vector_glb_collapse(out,buffer,loc_vol);
@@ -55,6 +56,7 @@ namespace nissa
 	spincolor_scalar_prod(t,v[ivol],v[ivol]);
 	l[ivol]=t[RE];
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     double s=double_vector_glb_norm2(l,loc_vol);

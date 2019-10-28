@@ -153,6 +153,7 @@ namespace nissa
 	  out[X][3][c][0]=-out[X][3][c][0]+(1.0+mass)*in[X][3][c][0];
 	  out[X][3][c][1]=-out[X][3][c][1]+(1.0+mass)*in[X][3][c][1];
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     master_printf("Diagonal part of overlap operator: %lg\n",(1.0+mass));
     

@@ -50,6 +50,7 @@ namespace nissa
 	    su3_summ_the_prod_double(out[ivol][nu],in[ivol][nu],1-kappa/2+offset);
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -85,6 +86,7 @@ namespace nissa
 	su3_prod_double(out[ivol],out[ivol],-kappa/(4*NDIM));
 	su3_summ_the_prod_double(out[ivol],in[ivol],1-kappa/2+offset);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }

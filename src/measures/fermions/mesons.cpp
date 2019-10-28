@@ -97,6 +97,7 @@ int nflavs;
 			for(int ic=0;ic<NCOL;ic++)
 			  complex_summ_the_conj1_prod(loc_corr[icombo(iflav,iop,t)],quark[0][eo][ieo][ic],quark[iop][eo][ieo][ic]);
 		      }
+		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
 	      }
 	  }

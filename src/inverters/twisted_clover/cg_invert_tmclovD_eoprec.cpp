@@ -119,6 +119,7 @@ namespace nissa
       for(int high_low=0;high_low<2;high_low++)
 	for(int id=high_low*NDIRAC/2;id<(high_low+1)*NDIRAC/2;id++)
 	    color_summ_the_prod_double(check_res[ivol][id],source_lx[ivol][id],mg5[high_low]);
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(check_res);
     //compute residual and print
     double real_residue=double_vector_glb_norm2(check_res,loc_vol)/double_vector_glb_norm2(source_lx,loc_vol);
@@ -217,6 +218,7 @@ namespace nissa
 	       for(int ic=0;ic<NCOL;ic++)
 		 for(int ri=0;ri<2;ri++)
 		     temp_lx[ivol][id][ic][ri]-=source_lx[ivol][id][ic][ri]*(id<2?+1:-1);
+	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
 	  
 	  //compute the norm and print it

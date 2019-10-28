@@ -79,6 +79,7 @@ namespace nissa
 			  //color_prod_double(temp_sol[eo][ieo],temp_sol[eo][ieo],(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]>=source_coord[0])?+1:-1);
 			  put_color_into_su3(prop[iflav][eo][ieo],temp_sol[eo][ieo],ic);
 			}
+		    NISSA_PARALLEL_LOOP_END;
 		  }
 	      }
 	    
@@ -110,6 +111,7 @@ namespace nissa
 				  }
 			    }
 			}
+		    NISSA_PARALLEL_LOOP_END;
 		    icombo++;
 		  }
 	  }

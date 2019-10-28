@@ -27,7 +27,7 @@ namespace nissa
 									\
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
       {									\
-	for(int mu=1;mu<NDIM;mu++)						\
+	for(int mu=1;mu<NDIM;mu++)					\
 	  {								\
 	    int ivup=loclx_neighup[ivol][mu];				\
 	    int ivdw=loclx_neighdw[ivol][mu];				\
@@ -37,7 +37,8 @@ namespace nissa
 	  }								\
 	NAME2(TYPE,prod_double)(H[ivol],H[ivol],kappa);			\
       }									\
-									\
+    NISSA_PARALLEL_LOOP_END;						\
+    									\
     set_borders_invalid(H);						\
   }									\
   THREADABLE_FUNCTION_END

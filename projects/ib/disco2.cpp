@@ -83,6 +83,7 @@ namespace mel
 	unsafe_dirac_prod_spincolor(t,base_gamma+igamma,prop[ivol]);
 	spincolor_scalar_prod(buffer[ivol],source[ivol],t);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     complex_vector_glb_collapse(out,buffer,loc_vol);
@@ -128,6 +129,7 @@ namespace mel
 	  spincolor_scalar_prod(c,source[ivol_fw],Gf);
 	  complex_summ_the_prod_idouble(out[ivol][mu],c,+0.5);
 	}
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
     
     STOP_TIMING(mel_time);
@@ -145,6 +147,7 @@ namespace mel
 	for(int mu=0;mu<NDIM;mu++)
 	  complex_summ_the_prod(buffer[ivol],a[ivol][mu],b[ivol][mu]);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     complex_vector_glb_collapse(out,buffer,loc_vol);
@@ -170,6 +173,7 @@ namespace mel
 //       GET_THREAD_ID();
 //       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 //         unsafe_dirac_prod_spincolor(((spincolor*)out)[ivol],base_gamma+5,temp_imp_mat[ivol]);
+//       NISSA_PARALLEL_LOOP_END;
 //       set_borders_invalid(out);
 //     };
   
@@ -213,6 +217,7 @@ namespace mel
 //             GET_THREAD_ID();
 //       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 //       	safe_dirac_prod_spincolor(((spincolor*)temp_imp_mat)[ivol],base_gamma+5,temp_imp_mat[ivol]);
+//       NISSA_PARALLEL_LOOP_END;
 //       set_borders_invalid(temp_imp_mat);
       
 //       //compute eigenvalue
@@ -250,7 +255,7 @@ namespace mel
 //       inv_tmQ2_RL_cg(eigvec_conv[ieig],NULL,conf, kappa,0,am*tau3[r],1000000,1e-11,temp_imp_mat);
 //       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 //       	safe_dirac_prod_spincolor(eigvec_conv[ieig][ivol],base_gamma+5,eigvec_conv[ieig][ivol]);
-      
+//       NISSA_PARALLEL_LOOP_END;
 //       // complex one_over_lambda;
 //       // complex_reciprocal(one_over_lambda,lambda[ieig]);
 //       // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -258,6 +263,7 @@ namespace mel
 //       // 	  unsafe_dirac_prod_spincolor(temp_imp_mat[ivol],base_gamma+5,eigvec[ieig][ivol]);
 //       // 	  spincolor_prodassign_complex(temp_imp_mat[ivol],one_over_lambda);
 // 	// }
+//       NISSA_PARALLEL_LOOP_END;
 //       set_borders_invalid(eigvec_conv[ieig]);
 //     }
   

@@ -97,10 +97,14 @@ namespace nissa
     GET_THREAD_ID();
     if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing Chromo operator\n");
     communicate_lx_quad_su3_edges(conf);
-    NISSA_PARALLEL_LOOP(X,0,loc_vol) point_chromo_operator(Cl[X],conf,X);
+    NISSA_PARALLEL_LOOP(X,0,loc_vol)
+      point_chromo_operator(Cl[X],conf,X);
+    NISSA_PARALLEL_LOOP_END;
+    
     set_borders_invalid(Cl);
   }
   THREADABLE_FUNCTION_END
+  
   THREADABLE_FUNCTION_2ARG(chromo_operator, clover_term_t**,Cl_eo, quad_su3**,conf_eo)
   {
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -131,6 +135,7 @@ namespace nissa
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Cl[ivol],in[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
@@ -153,6 +158,7 @@ namespace nissa
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       unsafe_apply_point_chromo_operator_to_spincolor_128(out[ivol],Cl[ivol],in[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
@@ -176,6 +182,7 @@ namespace nissa
 	  //Switch back the spincolor into the colorspinspin
 	  put_spincolor_into_colorspinspin(out[ivol],temp2,id_source);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     //invalidate borders
     set_borders_invalid(out);
@@ -202,6 +209,7 @@ namespace nissa
 	    //Switch back the spincolor into the colorspinspin
 	    put_spincolor_into_su3spinspin(out[ivol],temp2,id_source,ic_source);
 	  }
+    NISSA_PARALLEL_LOOP_END;
     
     //invalidate borders
     set_borders_invalid(out);
@@ -367,7 +375,10 @@ namespace nissa
    {
      GET_THREAD_ID();
      if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
-     NISSA_PARALLEL_LOOP(X,0,get_vect(invCl)->nel) invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
+     NISSA_PARALLEL_LOOP(X,0,get_vect(invCl)->nel)
+       invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
+     NISSA_PARALLEL_LOOP_END;
+     
      set_borders_invalid(invCl);
      
      // //check

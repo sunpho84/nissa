@@ -284,12 +284,14 @@ THREADABLE_FUNCTION_0ARG(calculate_S0)
 		    unsafe_spincolor_prod_complex(temp_source[ivol],sol_reco[r][ivol],phase);
 		    put_spincolor_into_su3spinspin(S0_SL[imass][r][ivol],temp_source[ivol],id_sour,ic_sour);
 		  }
+		NISSA_PARALLEL_LOOP_END;
 		set_borders_invalid(S0_SL[imass][r]);
 		
 		//smear the sink
 		gaussian_smearing(source,temp_source,smea_conf,Gauss_kappa,Gauss_niter);
 		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		  put_spincolor_into_su3spinspin(S0_SS[imass][r][ivol],source[ivol],id_sour,ic_sour);
+		NISSA_PARALLEL_LOOP_END;
 		set_borders_invalid(S0_SS[imass][r]);
 	      }
 	  }
@@ -305,6 +307,7 @@ THREADABLE_FUNCTION_0ARG(calculate_S0)
 	      rotate_spinspin_to_physical_basis(S0_SL[imass][r][ivol][ic1][ic2],!r,!r);
 	      rotate_spinspin_to_physical_basis(S0_SS[imass][r][ivol][ic1][ic2],!r,!r);
 	    }
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
   
   master_printf(" final rotations performed\n");
@@ -338,6 +341,7 @@ THREADABLE_FUNCTION_2ARG(local_diquark, diquark*,diq, su3spinspin*,S)
 		  complex_subt_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][c1][a][al1][al],S[ivol][a1][c][ga1][ga]);
 		  complex_summ_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][c1][c][al1][ga],S[ivol][a1][a][ga1][al]);
 		}
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
 }
 THREADABLE_FUNCTION_END
@@ -360,6 +364,7 @@ THREADABLE_FUNCTION_3ARG(close_diquark, ssssss*,prot6, diquark*,diq, su3spinspin
 		for(int b=0;b<NCOL;b++)
 		  for(int b1=0;b1<NCOL;b1++)
 		    complex_summ_the_prod(loc_prot6[glb_coord_of_loclx[ivol][0]][al][be][ga][al1][be1][ga1],S[ivol][b1][b][be1][be],diq[ivol][b][b1][al][ga][al1][ga1]);
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
   int ndoub=sizeof(ssssss)/sizeof(double)*glb_size[0];
   glb_threads_reduce_double_vect((double*)loc_prot6,ndoub);

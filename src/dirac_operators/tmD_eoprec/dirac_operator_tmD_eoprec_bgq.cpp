@@ -37,6 +37,7 @@ namespace nissa
 	REG_VIR_HALFSPINCOLOR_PROD_CONJ2_COMPLEX(VIR_REG_OUT,VIR_REG_IN,VIR_REG_Z);
 	STORE_REG_VIR_HALFSPINCOLOR(out[X][2],VIR_REG_OUT);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -86,6 +87,8 @@ namespace nissa
 	REG_VIR_HALFSPINCOLOR_SUMM_THE_PROD_COMPLEX(VIR_REG_OUT,VIR_REG_IN,VIR_REG_COEF_IN_23);
         STORE_REG_VIR_HALFSPINCOLOR(out[ivol][2],VIR_REG_OUT);
       }
+    NISSA_PARALLEL_LOOP_END;
+    
     set_borders_invalid(out);
   }
   

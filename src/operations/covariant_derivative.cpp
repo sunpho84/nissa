@@ -28,6 +28,7 @@ namespace nissa
 	if(reset_first) color_put_to_zero(out[ivol]);
 	su3_summ_the_prod_color(out[ivol],conf[ivol][mu],in[loclx_neighup[ivol][mu]]);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
@@ -44,6 +45,7 @@ namespace nissa
 	if(reset_first) color_put_to_zero(out[ivol]);
 	su3_dag_summ_the_prod_color(out[ivol],conf[loclx_neighdw[ivol][mu]][mu],in[loclx_neighdw[ivol][mu]]);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
@@ -60,6 +62,7 @@ namespace nissa
 	if(reset_first) spincolor_put_to_zero(out[ivol]);
 	su3_summ_the_prod_spincolor(out[ivol],conf[ivol][mu],in[loclx_neighup[ivol][mu]]);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
@@ -76,6 +79,7 @@ namespace nissa
 	if(reset_first) spincolor_put_to_zero(out[ivol]);
 	su3_dag_summ_the_prod_spincolor(out[ivol],conf[loclx_neighdw[ivol][mu]][mu],in[loclx_neighdw[ivol][mu]]);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
@@ -146,6 +150,7 @@ namespace nissa
         NAME2(unsafe_su3_prod,TYPE)(      temp[ix],conf[ix][mu] ,in[Xup]); \
         NAME2(su3_dag_subt_the_prod,TYPE)(temp[ix],conf[Xdw][mu],in[Xdw]); \
       }                                                                 \
+    NISSA_PARALLEL_LOOP_END;						\
     									\
     vector_copy(out,temp);                                              \
     nissa_free(temp);                                                   \
@@ -239,7 +244,8 @@ namespace nissa
 	NAME2(unsafe_dirac_prod,TYPE)(gmu_bw_M_fw,base_gamma+igamma_of_mu[mu],bw_M_fw); \
 	NAME2(TYPE,summassign)(out[ivol],gmu_bw_M_fw);			\
       }									\
-  									\
+  NISSA_PARALLEL_LOOP_END;						\
+									\
   set_borders_invalid(out);						\
   }									\
   									\
@@ -285,6 +291,7 @@ namespace nissa
 	NAME2(safe_dirac_prod,TYPE)(out[ivol],base_gamma+ig,in[ivol]); \
 	NAME2(TYPE,prodassign_double)(out[ivol],(twall==-1 or glb_coord_of_loclx[ivol][0]==twall)); \
       }									\
+    NISSA_PARALLEL_LOOP_END;						\
     set_borders_invalid(out);						\
   }									\
   THREADABLE_FUNCTION_END						\
@@ -295,6 +302,7 @@ namespace nissa
     GET_THREAD_ID();							\
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
       NAME2(TYPE,prodassign_idouble)(out[ivol],f);			\
+    NISSA_PARALLEL_LOOP_END;						\
     set_borders_invalid(out);						\
   }									\
   THREADABLE_FUNCTION_END

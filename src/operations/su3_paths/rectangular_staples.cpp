@@ -59,6 +59,7 @@ namespace nissa
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
 	      su3_copy(((quad_su3*)send_buf)[ibord][mu],sq_staples[surflx_of_bordlx[ibord]][mu][3+inu]); //one contribution per link in the border
+	    NISSA_PARALLEL_LOOP_END;
 	  }
     
     //finished filling
@@ -85,6 +86,7 @@ namespace nissa
 	      int A=loclx_of_non_fw_surflx[ibulk],B=loclx_neighup[A][nu],F=loclx_neighup[A][mu];
 	      COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	}
   }
   
@@ -104,6 +106,7 @@ namespace nissa
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
 	      su3_copy(sq_staples[loc_vol+ibord][mu][3+inu],((quad_su3*)recv_buf)[ibord][mu]); //one contribution per link in the border
+	    NISSA_PARALLEL_LOOP_END;
 	  }
     
     THREAD_BARRIER();
@@ -126,6 +129,7 @@ namespace nissa
 	      int D=loclx_of_fw_surflx[ifw_surf],A=loclx_neighup[D][nu],E=loclx_neighup[D][mu];
 	      COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	}
     
     //wait that everything is computed
@@ -142,6 +146,7 @@ namespace nissa
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
 	      su3_copy(((quad_su3*)send_buf)[ibord][mu],out[loc_vol+ibord][mu][inu]); //one contribution per link in the border
+	    NISSA_PARALLEL_LOOP_END;
 	  }
     
     //finished filling
@@ -169,6 +174,7 @@ namespace nissa
 	      int D=loclx_of_non_fw_surflx[inon_fw_surf],A=loclx_neighup[D][nu],E=loclx_neighup[D][mu];
 	      COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	}
   }
   
@@ -188,6 +194,7 @@ namespace nissa
 	      int A=loclx_of_fw_surflx[ifw_surf],B=loclx_neighup[A][nu],F=loclx_neighup[A][mu];
 	      COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	}
   }
   
@@ -207,6 +214,7 @@ namespace nissa
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
 	      su3_copy(out[surflx_of_bordlx[ibord]][mu][inu],((quad_su3*)recv_buf)[ibord][mu]);//one contribution per link in the border
+	    NISSA_PARALLEL_LOOP_END;
 	  }
     
     THREAD_BARRIER();
@@ -253,6 +261,7 @@ namespace nissa
 	  for(int iterm=1;iterm<6;iterm++)
 	    su3_summassign(out[ivol][mu],rectangular_staples[ivol][mu][iterm]);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     nissa_free(rectangular_staples);
   }

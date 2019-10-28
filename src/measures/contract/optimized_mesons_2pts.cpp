@@ -220,6 +220,7 @@ namespace nissa
 	    icontrib_t++;
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     nissa_free(temp);
   }

@@ -60,6 +60,7 @@ namespace nissa
 	  unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclx_neighup[ivol][mu]]);
 	  unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     //invalidate borders
     set_borders_invalid(uout);
@@ -82,6 +83,7 @@ namespace nissa
 	    unsafe_su3_prod_su3_dag(temp,uin[par][ivol][mu],g[!par][loceo_neighup[par][ivol][mu]]);
 	    unsafe_su3_prod_su3(uout[par][ivol][mu],g[par][ivol],temp);
 	  }
+    NISSA_PARALLEL_LOOP_END;
     
     //invalidate borders
     set_borders_invalid(uout[0]);
@@ -101,6 +103,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	safe_su3_prod_color(out[par][ivol],g[par][ivol],in[par][ivol]);
+    NISSA_PARALLEL_LOOP_END;
     
     //invalidate borders
     set_borders_invalid(out[0]);
@@ -205,6 +208,7 @@ namespace nissa
 	for(int mu=start_mu;mu<NDIM;mu++)
 	  loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //collapse
@@ -240,6 +244,7 @@ namespace nissa
 	unsafe_su3_traceless_anti_hermitian_part(delta_TA,delta);
 	loc_omega[ivol]=4*su3_norm2(delta_TA);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //global reduction
@@ -296,6 +301,7 @@ namespace nissa
 		if(b>=loc_vol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-loc_volh],fixed_conf[b][mu]);
 	      }
 	  }
+	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	
 	//communicate
@@ -312,6 +318,7 @@ namespace nissa
 		if(f>=loc_vol) su3_copy(fixed_conf[ivol][mu],((su3*)recv_buf)[loceo_of_loclx[f]-loc_volh]);
 		if(b>=loc_vol) su3_copy(fixed_conf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-loc_volh]);
 	      }
+	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
       }
     
@@ -348,6 +355,7 @@ namespace nissa
 	//put the factor
 	su3_prodassign_double(der[imom],fact);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //Anti-Fourier Transform
@@ -364,6 +372,7 @@ namespace nissa
 	su3_prod_double(temp,der[ivol],-0.5*alpha);
 	safe_anti_hermitian_exact_exponentiate(g[ivol],temp);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(g);
   }
   
@@ -375,6 +384,7 @@ namespace nissa
     //add current transformation
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       safe_su3_prod_su3(fixer_out[ivol],g[ivol],fixer_in[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(fixer_out);
   }
   
@@ -523,6 +533,7 @@ namespace nissa
 	//denominator
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  accum[ivol]=real_part_of_trace_su3_prod_su3_dag(prev_der[ivol],prev_der[ivol]);
+	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	double den;
 	double_vector_glb_collapse(&den,accum,loc_vol);
@@ -537,6 +548,7 @@ namespace nissa
 	      accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],temp);
 	    }
 	  else accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],der[ivol]);
+	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	double num;
 	double_vector_glb_collapse(&num,accum,loc_vol);
@@ -582,6 +594,7 @@ namespace nissa
 	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
 	unsafe_su3_traceless_anti_hermitian_part(der[ivol],temp);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //put the kernel
@@ -689,13 +702,14 @@ namespace nissa
 	    	master_printf("Reached precision %lg, smaller than tolerance (%lg), switching off adaptative search\n",prec,use_adapt_prec_tol);
 	    	use_adapt=false;
 	      }
-}
+	  }
 	while(not get_out);
 	
 	//now we put the fixer on su3, and make a real transformation
 	//on the basis of what we managed to fix
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  su3_unitarize_explicitly_inverting(fixer[ivol],fixer[ivol]);
+	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(fixer);
 	gauge_transform_conf(fixed_conf,fixer,ori_conf);
 	
@@ -730,6 +744,7 @@ namespace nissa
     //extract random SU(3) matrix
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(fixm);
     
     //apply the transformation
@@ -750,7 +765,9 @@ namespace nissa
     //extract random SU(3) matrix
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       su3_put_to_rnd(fixm[loclx_parity[ivol]][loceo_of_loclx[ivol]],loc_rnd_gen[ivol]);
-    for(int eo=0;eo<2;eo++) set_borders_invalid(fixm[eo]);
+    NISSA_PARALLEL_LOOP_END;
+    for(int eo=0;eo<2;eo++)
+      set_borders_invalid(fixm[eo]);
     
     //apply the transformation
     gauge_transform_conf(conf_out,fixm,conf_in);

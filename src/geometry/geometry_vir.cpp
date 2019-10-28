@@ -339,6 +339,7 @@ namespace nissa
 	  int idst_lx=loclx_neighup[isrc_lx][mu];
 	  if(idst_lx<loc_vol) SU3_TO_VIR_SU3(out[virlx_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vnode_of_loclx(idst_lx));
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward
     for(int mu=0;mu<NDIM;mu++) //border and link direction
@@ -351,6 +352,7 @@ namespace nissa
 	    
 	    SU3_TO_VIR_SU3(out[idst_virlx][mu],in[ibord][mu],vn_dst_virlx);
 	  }
+         NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
     STOP_TIMING(remap_time);
@@ -381,6 +383,7 @@ namespace nissa
 	  int idst_lx=loclx_neighup[isrc_lx][mu];
 	  if(idst_lx<loc_vol) SU3_TO_VIR_SU3_DAG(out[mu*loc_vol/NVNODES+virlx_of_loclx[idst_lx]],in[isrc_lx][mu],vnode_of_loclx(idst_lx));
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward
     for(int mu=0;mu<NDIM;mu++) //border and link direction
@@ -393,6 +396,7 @@ namespace nissa
 	    
 	    SU3_TO_VIR_SU3_DAG(out[idst_virlx],in[ibord][mu],vn_dst_virlx);
 	  }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
     STOP_TIMING(remap_time);
@@ -413,6 +417,7 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++)
 	VIR_SU3_TO_SU3(out[loclx_of_virlx[ivol_virlx]][mu],out[loclx_of_virlx[ivol_virlx]+vnode_lx_offset][mu],
 		      in[ivol_virlx][4+mu]);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -449,6 +454,7 @@ namespace nissa
 	  int idst_lx=loclx_neighup[isrc_lx][mu],vn=vnode_of_loclx(idst_lx);
 	  if(idst_lx<loc_vol) SU3_TO_VIR_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vn);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
     for(int mu=0;mu<4;mu++) //border and link direction
@@ -458,6 +464,7 @@ namespace nissa
 	    int idst_lx=loclx_neighup[ibord][mu],vn=vnode_of_loclx(idst_lx);
 	    SU3_TO_VIR_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[ibord][mu],vn);
 	  }
+        NISSA_PARALLEL_LOOP_END;
     
     for(int eo=0;eo<2;eo++) set_borders_invalid(out[eo]);
     STOP_TIMING(remap_time);
@@ -486,6 +493,7 @@ namespace nissa
 	  int idst_lx=loclx_neighup[isrc_lx][mu],vn=vnode_of_loclx(idst_lx);
 	  if(idst_lx<loc_vol) SU3_TO_VIR_SINGLE_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vn);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward
     for(int mu=0;mu<4;mu++) //border and link direction
@@ -495,6 +503,7 @@ namespace nissa
 	    int idst_lx=loclx_neighup[ibord][mu],vn=vnode_of_loclx(idst_lx);
 	    SU3_TO_VIR_SINGLE_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[ibord][mu],vn);
 	  }
+        NISSA_PARALLEL_LOOP_END;
     
     for(int eo=0;eo<2;eo++) set_borders_invalid(out[eo]);
     STOP_TIMING(remap_time);
@@ -526,7 +535,8 @@ namespace nissa
 	    vn=vnode_of_loceo(!par,idst_eo);
 	    if(idst_eo<loc_volh) SU3_TO_VIR_SU3(out[!par][vireo_of_loceo[!par][idst_eo]][mu],in[par][isrc_eo][mu],vn);
 	  }
-        
+     NISSA_PARALLEL_LOOP_END;
+    
     //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward
     for(int par=0;par<2;par++)
       for(int mu=0;mu<4;mu++) //border and link direction
@@ -536,6 +546,7 @@ namespace nissa
 	      int idst_eo=loceo_neighup[par][ibord][mu],vn=vnode_of_loceo(!par,idst_eo);
 	      SU3_TO_VIR_SU3(out[!par][vireo_of_loceo[!par][idst_eo]][mu],in[par][ibord][mu],vn);
 	    }
+          NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out[EVN]);
     set_borders_invalid(out[ODD]);
@@ -569,6 +580,7 @@ namespace nissa
 	    if(idst_eo<loc_volh) SU3_TO_VIR_SINGLE_SU3(out[!par][vireo_of_loceo[!par][idst_eo]][mu],
 						      in[par][isrc_eo][mu],vn);
 	  }
+      NISSA_PARALLEL_LOOP_END;
     
     //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward
     for(int par=0;par<2;par++)
@@ -579,6 +591,7 @@ namespace nissa
 	      int idst_eo=loceo_neighup[par][ibord][mu],vn=vnode_of_loceo(!par,idst_eo);
 	      SU3_TO_VIR_SINGLE_SU3(out[!par][vireo_of_loceo[!par][idst_eo]][mu],in[par][ibord][mu],vn);
 	    }
+          NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out[EVN]);
     set_borders_invalid(out[ODD]);
@@ -599,6 +612,7 @@ namespace nissa
     //copy the various VN
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
       SPINCOLOR_TO_VIR_SPINCOLOR(out[virlx_of_loclx[ivol_lx]],in[ivol_lx],vnode_of_loclx(ivol_lx));
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -626,6 +640,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol_virlx,0,loc_vol/NVNODES)
       VIR_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_virlx[ivol_virlx]],out[loclx_of_virlx[ivol_virlx]+vnode_lx_offset],
 				in[ivol_virlx]);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -649,6 +664,7 @@ namespace nissa
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
       SPINCOLOR_TO_VIR_SPINCOLOR(out[vireo_of_loceo[par][ivol_eo]],in[ivol_eo],vnode_of_loceo(EVN,ivol_eo));
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -665,6 +681,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
       VIR_SPINCOLOR_TO_SPINCOLOR(out[loceo_of_vireo[par][ivol_vireo]],out[loceo_of_vireo[par][ivol_vireo]+vnode_eo_offset],
 			in[ivol_vireo]);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -685,6 +702,7 @@ namespace nissa
     //copy the various VN
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
       SPINCOLOR_128_TO_VIR_SPINCOLOR_128(out[virlx_of_loclx[ivol_lx]],in[ivol_lx],vnode_of_loclx(ivol_lx));
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -712,6 +730,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol_virlx,0,loc_vol/NVNODES)
       VIR_SPINCOLOR_128_TO_SPINCOLOR_128(out[loclx_of_virlx[ivol_virlx]],out[loclx_of_virlx[ivol_virlx]+vnode_lx_offset],
 					in[ivol_virlx]);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -735,6 +754,7 @@ namespace nissa
     //copy the various VN
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
       SPINCOLOR_TO_VIR_SPINCOLOR(out[loclx_parity[ivol_lx]][vireo_of_loclx[ivol_lx]],in[ivol_lx],vnode_of_loclx(ivol_lx));
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out[EVN]);
@@ -754,6 +774,7 @@ namespace nissa
 	VIR_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_vireo[par][ivol_vireo]],
 				  out[loclx_of_vireo[par][ivol_vireo]+vnode_lx_offset],
 				  in[par][ivol_vireo]);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -772,6 +793,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
 	SU3_TO_VIR_SU3(out[virlx_of_loclx[ivol_lx]][mu],in[ivol_lx][mu],vnode_of_loclx(ivol_lx));
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
     STOP_TIMING(remap_time);
@@ -788,6 +810,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
       for(int mu=0;mu<NDIM;mu++)
 	SU3_TO_VIR_SU3(out[vireo_of_loceo[par][ivol_eo]][mu],in[ivol_eo][mu],vnode_of_loceo(EVN,ivol_eo));
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -805,6 +828,7 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++)
 	VIR_SU3_TO_SU3(out[loceo_of_vireo[par][ivol_vireo]][mu],out[loceo_of_vireo[par][ivol_vireo]+vnode_eo_offset][mu],
 			   in[ivol_vireo][mu]);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -825,6 +849,7 @@ namespace nissa
       for(int i=0;i<vl;i++)
 	COMPLEX_TO_VIR_COMPLEX(((vir_complex*)out)[i+vl*vireo_of_loceo[par][ivol_eo]],
 			       ((complex*)in)[i+vl*ivol_eo],vnode_of_loceo(EVN,ivol_eo));
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -843,6 +868,7 @@ namespace nissa
     //copy the various VN
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
       COLOR_TO_VIR_COLOR(out[loclx_parity[ivol_lx]][vireo_of_loclx[ivol_lx]],in[ivol_lx],vnode_of_loclx(ivol_lx));
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out[EVN]);
@@ -859,6 +885,7 @@ namespace nissa
     //copy the various VN
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
       COLOR_TO_VIR_SINGLE_COLOR(out[loclx_parity[ivol_lx]][vireo_of_loclx[ivol_lx]],in[ivol_lx],vnode_of_loclx(ivol_lx));
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out[EVN]);
@@ -877,6 +904,7 @@ namespace nissa
       NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
 	VIR_COLOR_TO_COLOR(out[loclx_of_vireo[par][ivol_vireo]],out[loclx_of_vireo[par][ivol_vireo]+vnode_lx_offset],
 			  in[par][ivol_vireo]);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -893,6 +921,7 @@ namespace nissa
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
       COLOR_TO_VIR_COLOR(out[vireo_of_loceo[par][ivol_eo]],in[ivol_eo],vnode_of_loceo(EVN,ivol_eo));
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -909,6 +938,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
       VIR_COLOR_TO_COLOR(out[loceo_of_vireo[par][ivol_vireo]],out[loceo_of_vireo[par][ivol_vireo]+vnode_eo_offset],
 			in[ivol_vireo]);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -925,6 +955,7 @@ namespace nissa
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
       COLOR_TO_VIR_SINGLE_COLOR(out[vireo_of_loceo[par][ivol_eo]],in[ivol_eo],vnode_of_loceo(EVN,ivol_eo));
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -941,6 +972,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
       VIR_SINGLE_COLOR_TO_COLOR(out[loceo_of_vireo[par][ivol_vireo]],out[loceo_of_vireo[par][ivol_vireo]+vnode_eo_offset],
 			       in[ivol_vireo]);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);
@@ -959,6 +991,7 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++)
 	VIR_SU3_TO_SU3(out[loclx_of_virlx[ivol_virlx]][mu],out[loclx_of_virlx[ivol_virlx]+vnode_lx_offset][mu],
 		      in[ivol_virlx][mu]);
+    NISSA_PARALLEL_LOOP_END;
     
     //wait filling
     set_borders_invalid(out);

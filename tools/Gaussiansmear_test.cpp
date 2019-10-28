@@ -37,6 +37,7 @@ THREADABLE_FUNCTION_4ARG(compute_gaussianity_pars, double*,x, color*,source, int
 	  locx[t][ipow]+=n*xpow;
 	}
     }
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
   
   //reduce

@@ -258,6 +258,7 @@ namespace nissa
 	  su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
 	  su3_copy(conf[ivol][idir],t);
 	}
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(conf);
     STOP_TIMING(unitarize_time);
   }
@@ -272,6 +273,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
         su3_unitarize_maximal_trace_projecting(conf[ivol][mu],conf[ivol][mu]);
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(conf);
     STOP_TIMING(unitarize_time);
@@ -289,6 +291,7 @@ namespace nissa
         NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
           for(int mu=0;mu<NDIM;mu++)
             su3_unitarize_maximal_trace_projecting(conf[par][ivol][mu],conf[par][ivol][mu]);
+	NISSA_PARALLEL_LOOP_END;
         
         set_borders_invalid(conf[par]);
       }
@@ -352,6 +355,7 @@ namespace nissa
 	  }
 	loc_energy[ivol]/=glb_vol;
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     double_vector_glb_collapse(energy,loc_energy,loc_vol);

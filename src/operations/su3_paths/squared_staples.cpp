@@ -85,13 +85,14 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       compute_point_summed_squared_staples_eo_conf(F[loclx_parity[ivol]][loceo_of_loclx[ivol]],eo_conf,ivol);
+    NISSA_PARALLEL_LOOP_END;
     
     for(int par=0;par<2;par++) set_borders_invalid(F[par]);
   }
   THREADABLE_FUNCTION_END
-
+  
   ///////////////////////////////// lx version ///////////////////////////////////////////
-
+  
   // 1) start communicating lower surface
   void squared_staples_lx_conf_start_communicating_lower_surface(quad_su3 *conf,int thread_id)
   {
@@ -100,6 +101,7 @@ namespace nissa
     //in the first half of sending buf
     NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
       quad_su3_copy(((quad_su3*)send_buf)[ibord],conf[surflx_of_bordlx[ibord]]);
+    NISSA_PARALLEL_LOOP_END;
     
     //filling finished
     THREAD_BARRIER();
@@ -124,6 +126,7 @@ namespace nissa
 	      unsafe_su3_prod_su3(    temp,conf[A][nu],conf[B][mu]);
 	      unsafe_su3_prod_su3_dag(out[A][mu][3+inu],temp,conf[F][nu]);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	}
   }
 
@@ -154,6 +157,7 @@ namespace nissa
 	      unsafe_su3_dag_prod_su3(temp,conf[D][nu],conf[D][mu]);
 	      unsafe_su3_prod_su3(out[A][mu][inu],temp,conf[E][nu]);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	}
     
     //wait that everything is computed
@@ -170,6 +174,7 @@ namespace nissa
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
 	      su3_copy(((quad_su3*)send_buf)[ibord][mu],out[loc_vol+ibord][mu][inu]); //one contribution per link in the border
+	    NISSA_PARALLEL_LOOP_END;
 	  }
     
     //filling finished
@@ -180,7 +185,7 @@ namespace nissa
     int dir_comm[8]={1,1,1,1,0,0,0,0},tot_size=bord_volh*sizeof(quad_su3);
     comm_start(lx_quad_su3_comm,dir_comm,tot_size);
   }
-
+  
   // 5) compute non_fw_surf bw staples
   void squared_staples_lx_conf_compute_non_fw_surf_bw_staples(squared_staples_t *out,quad_su3 *conf,int thread_id)
   {
@@ -197,9 +202,10 @@ namespace nissa
 	      unsafe_su3_dag_prod_su3(temp,conf[D][nu],conf[D][mu]);
 	      unsafe_su3_prod_su3(out[A][mu][inu],temp,conf[E][nu]);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	}
   }
-
+  
   // 6) compute fw_surf fw staples
   void squared_staples_lx_conf_compute_fw_surf_fw_staples(squared_staples_t *out,quad_su3 *conf,int thread_id)
   {
@@ -216,9 +222,10 @@ namespace nissa
 	      unsafe_su3_prod_su3(    temp,conf[A][nu],conf[B][mu]);
 	      unsafe_su3_prod_su3_dag(out[A][mu][3+inu],temp,conf[F][nu]);
 	    }
+	  NISSA_PARALLEL_LOOP_END;
 	}
   }
-
+  
   // 7) finish communication of fw_surf bw staples
   void squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(squared_staples_t *out,int thread_id)
   {
@@ -235,11 +242,12 @@ namespace nissa
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
 	      su3_copy(out[surflx_of_bordlx[ibord]][mu][inu],((quad_su3*)recv_buf)[ibord][mu]); //one contribution per link in the border
+	    NISSA_PARALLEL_LOOP_END;
 	  }
     
     THREAD_BARRIER();
   }
-
+  
   //compute squared staple overlapping computation and communications, and avoiding using edges
   THREADABLE_FUNCTION_2ARG(compute_squared_staples_lx_conf, squared_staples_t*,out, quad_su3*,conf)
   {
@@ -279,6 +287,7 @@ namespace nissa
 	  for(int iterm=1;iterm<6;iterm++)
 	    su3_summassign(out[ivol][mu],squared_staples[ivol][mu][iterm]);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     nissa_free(squared_staples);
   }

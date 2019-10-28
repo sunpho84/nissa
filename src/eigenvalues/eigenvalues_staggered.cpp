@@ -71,6 +71,7 @@ namespace nissa
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	      for(int ic=0;ic<NCOL;ic++)
 		assign_complex_prod_i(temp_out_eo[eo][ivol][ic]);
+	    NISSA_PARALLEL_LOOP_END;
 	  }
 	
         paste_eo_parts_into_lx_vector((color*)out,temp_out_eo);

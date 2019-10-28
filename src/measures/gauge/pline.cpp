@@ -32,7 +32,9 @@ namespace nissa
     communicate_lx_quad_su3_borders(conf);
     
     //reset the link product
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_put_to_id(u[ivol]);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      su3_put_to_id(u[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //move along +mu
@@ -41,6 +43,7 @@ namespace nissa
 	//take the product
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][mu]);
+	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(u);
 	
 	su3_vec_single_shift(u,mu,+1);
@@ -61,6 +64,7 @@ namespace nissa
     vector_reset(out);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       su3_trace(out[ivol],u[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     
     nissa_free(u);
   }
@@ -128,7 +132,9 @@ namespace nissa
     if(ll_corr)
       {
 	point_loop_dag=nissa_malloc("point_loop_dag",loc_vol,complex);
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_conj(point_loop_dag[ivol],point_loop[ivol]);
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  complex_conj(point_loop_dag[ivol],point_loop[ivol]);
+	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(point_loop_dag);
       }
       
@@ -149,6 +155,7 @@ namespace nissa
 	    unsafe_complex_conj2_prod(ll_dag_corr[ivol],point_loop[ivol],point_loop[ivol]); //counter-intuitive but true
 	    complex_prodassign_double(ll_dag_corr[ivol],1.0/9);
 	  }
+	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	
 	//transform back
@@ -172,6 +179,7 @@ namespace nissa
 	    unsafe_complex_conj2_prod(ll_corr[ivol],point_loop[ivol],point_loop_dag[ivol]); //because of convolution theorem
 	    complex_prodassign_double(ll_corr[ivol],1.0/9);
 	  }
+	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	
 	fft4d(ll_corr,ll_corr,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);

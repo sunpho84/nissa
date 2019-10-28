@@ -119,6 +119,7 @@ namespace nissa
 	color_128_isummassign(out[X][2],temp_c2);
 	color_128_isubtassign(out[X][3],temp_c3);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -139,6 +140,7 @@ namespace nissa
 	  for(int id=0;id<2;id++) unsafe_complex_64_prod_128(out[X][id][ic],z,in[X][id][ic]);
 	  for(int id=2;id<4;id++) unsafe_complex_64_prod_128(out[X][id][ic],z_conj,in[X][id][ic]);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -160,6 +162,7 @@ namespace nissa
 	  for(int id=0;id<2;id++) unsafe_complex_64_prod_128(out[X][id][ic],z,in[X][id][ic]);
 	  for(int id=2;id<4;id++) unsafe_complex_64_prod_128(out[X][id][ic],zconj,in[X][id][ic]);
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -182,6 +185,7 @@ namespace nissa
 	      float_64_prod_128(t,0.25,out[ivol][id+2][ic][ri]);
 	      float_128_subt(out[ivol][id+2][ic][ri],t,temp[ivol][id+2][ic][ri]);
 	    }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }

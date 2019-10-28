@@ -362,6 +362,7 @@ namespace nissa
 	    //makes all the fourier transform
 	    NISSA_PARALLEL_LOOP(ioff,0,locd_perp_size_per_dir[mu])
 	      fftw_execute_dft(plans[idir],buf+ioff*glb_size[mu]*ncpp,buf+ioff*glb_size[mu]*ncpp);
+	    NISSA_PARALLEL_LOOP_END;
 	    THREAD_BARRIER();
 	    
 	    remap_locd_vector_to_lx(out,buf,ncpp*sizeof(complex),mu);

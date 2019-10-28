@@ -1,5 +1,7 @@
-#ifndef _NO_THREADS_HPP
-#define _NO_THREADS_HPP
+#ifndef _CUDA_THREADS_HPP
+#define _CUDA_THREADS_HPP
+
+#define NUM_THREADS 128
 
 #define NACTIVE_THREADS 1
 #define MANDATORY_PARALLEL
@@ -10,8 +12,8 @@
 #define THREAD_BARRIER_FORCE()
 #define THREAD_BARRIER()
 #define IS_MASTER_THREAD (1)
-#define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) for(int INDEX=EXT_START;INDEX<EXT_END;INDEX++){
-#define NISSA_PARALLEL_LOOP_END }
+#define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) cuda_parallel_for(EXT_START,EXT_END,[&](const uint64_t& INDEX){
+#define NISSA_PARALLEL_LOOP_END })
 #define THREAD_ATOMIC_EXEC(inst) inst
 #define THREAD_BROADCAST(out,in) (out)=(in)
 #define THREAD_BROADCAST_PTR(out,in) THREAD_BROADCAST(out,in)
@@ -30,6 +32,31 @@
 
 namespace nissa
 {
+  template <typename IMin,
+	    typename IMax,
+	    typename F>
+  __global__
+  void cuda_generic_kernel(const IMin &min,
+			   const IMax &max,
+			   F f)
+  {
+    const auto i=min+blockIdx.x*blockDim.x+threadIdx.x;
+    if(i<max)
+      Lambda(i);
+  }
+  
+  template <typename IMin,
+	    typename IMax,
+	    typename F>
+  void cuda_parallel_for(const IMin &min,
+			 const IMax &max,
+			 F f)
+  {
+    const auto length=(max-min);
+    const dim3 block_dimension(NUM_THREADS);
+    const dim3 grid_dimension((length+block_dimension.x-1)/block_dimension.x);
+    cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,f);
+  }
   
   inline void cache_flush()
   {

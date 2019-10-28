@@ -42,6 +42,7 @@ namespace nissa
 	    complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);	\
 	  }								\
       }									\
+    NISSA_PARALLEL_LOOP_END;						\
     									\
     /*wait that all threads finish*/					\
     THREAD_BARRIER();							\
@@ -52,7 +53,6 @@ namespace nissa
 	MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD); \
 	verbosity_lv3_master_printf("Reduction done\n");		\
       }									\
-    									\
     THREAD_BARRIER();							\
   }									\
   THREADABLE_FUNCTION_END

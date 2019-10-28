@@ -451,6 +451,7 @@ THREADABLE_FUNCTION_4ARG(write_data, MPI_File*,fout, int,imass, int,ilp, int,off
       //write
       MPI_File_write_at(fout[r],offset,buf,16,MPI_SU3,MPI_STATUS_IGNORE);
     }
+  NISSA_PARALLEL_LOOP_END;
 }
 THREADABLE_FUNCTION_END
 

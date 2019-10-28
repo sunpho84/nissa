@@ -42,6 +42,7 @@ namespace nissa
 	      }
 	  }
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }

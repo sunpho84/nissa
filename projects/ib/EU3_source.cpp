@@ -11,6 +11,7 @@ THREADABLE_FUNCTION_1ARG(put_current_to_one_in_time, spin1field*,J)
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int mu=0;mu<NDIM;mu++)
       complex_put_to_real(J[ivol][mu],mu==0);
+  NISSA_PARALLEL_LOOP_END;
   
   set_borders_invalid(J);
 }

@@ -76,6 +76,7 @@ namespace nissa
 		
 		su3_unitarize_maximal_trace_projecting(smear_conf[ivol][mu],prop_link);
 	      }
+	NISSA_PARALLEL_LOOP_END;
 	
 	set_borders_invalid(smear_conf);
       }

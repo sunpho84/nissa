@@ -144,6 +144,7 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       mom_space_tlSym_gauge_propagator_of_imom(prop[imom],gl,imom);
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(prop);
   }
   THREADABLE_FUNCTION_END
@@ -158,6 +159,7 @@ namespace nissa
 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
 	safe_spinspin_prod_spin(out[imom],prop,in[imom]);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
@@ -245,6 +247,7 @@ namespace nissa
 	//check
 	verbosity_lv3_master_printf("Site %d , tr %lg , nre %lg , nim %lg\n",imom,tr,nre,nim);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
@@ -260,6 +263,7 @@ namespace nissa
 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
 	safe_spinspin_prod_spinspin(out[imom],prop,out[imom]);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
     pass_spin1prop_from_mom_to_x_space(out,in,gl.bc,true,true);
   }
@@ -281,6 +285,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
 	comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z2);
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(eta);
   }
   THREADABLE_FUNCTION_END
@@ -303,6 +308,7 @@ namespace nissa
 	spin_prodassign_double(photon[imom],sqrt(glb_vol));
 	cancel_if_zero_mode(photon[imom],gl,imom);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(photon);
     
     //go back to x space
@@ -327,6 +333,7 @@ namespace nissa
 	spin_prodassign_double(out[imom],glb_vol);
 	cancel_if_zero_mode(out[imom],gl,imom);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
     
     //go back to x space

@@ -74,6 +74,7 @@ namespace nissa
 	if(nrank_dir[mu]==1)
 	  su3_copy(u[isite],buf);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     //invalidate borders
     set_borders_invalid(u);

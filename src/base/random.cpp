@@ -267,6 +267,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int i=0;i<dps;i++)
 	v[ivol*dps+i]=rnd_get_unif(&(loc_rnd_gen[ivol]),min,max);
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(v);
   }
@@ -279,6 +280,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int i=0;i<nps;i++)
 	v[ivol*nps+i]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(v);
   }
@@ -300,6 +302,7 @@ namespace nissa
 	      if(c or d)
 		memcpy(source[ivol][c][c][d][d],source[ivol][0][0][0][0],sizeof(complex));
 	  }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
   }
@@ -320,6 +323,7 @@ namespace nissa
 	    for(int d=1;d<NDIRAC;d++)
 	      memcpy(source[ivol][ic][d][d],source[ivol][ic][0][0],sizeof(complex));
 	  }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
   }
@@ -336,6 +340,7 @@ namespace nissa
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
   }
@@ -351,6 +356,7 @@ namespace nissa
       if(twall<0 or glb_coord_of_loclx[ilx][dir]==twall)
 	for(int ic=0;ic<NCOL;ic++)
 	  comp_get_rnd(source[ilx][ic],&(loc_rnd_gen[ilx]),rtype);
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
   }
@@ -368,6 +374,7 @@ namespace nissa
 	  for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ieo][ic],&(loc_rnd_gen[ilx]),rtype);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
   }
@@ -389,6 +396,7 @@ namespace nissa
 	    for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ieo][id][ic],&(loc_rnd_gen[ilx]),rtype);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
   }

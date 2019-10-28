@@ -47,6 +47,7 @@ namespace nissa
 	      varphi[ivol][id  ][ic][ri]=+source_odd[ivol][id  ][ic][ri]+varphi[ivol][id  ][ic][ri]*0.5;
 	      varphi[ivol][id+2][ic][ri]=-source_odd[ivol][id+2][ic][ri]-varphi[ivol][id+2][ic][ri]*0.5;
 	    }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(varphi);
   }
   
@@ -61,6 +62,7 @@ namespace nissa
 	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
 	    varphi[ivol][id][ic][ri]=source_evn[ivol][id][ic][ri]+varphi[ivol][id][ic][ri]*0.5;
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(varphi);
   }
   
@@ -149,6 +151,7 @@ namespace nissa
 	       for(int ic=0;ic<NCOL;ic++)
 		 for(int ri=0;ri<2;ri++)
 		     temp_lx[ivol][id][ic][ri]-=source_lx[ivol][id][ic][ri]*(id<2?+1:-1);
+	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
 	  
 	  //compute the norm and print it

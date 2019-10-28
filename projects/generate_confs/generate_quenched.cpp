@@ -210,6 +210,7 @@ THREADABLE_FUNCTION_2ARG(compute_corr, double*,corr, su3spinspin*,Q)
 	for(int id=0;id<4;id++)
 	  for(int jd=0;jd<4;jd++)
 	    corr[ivol]+=real_part_of_complex_scalar_prod(Q[ivol][ic][jc][id][jd],Q[ivol][ic][jc][id][jd]);
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
 }
 THREADABLE_FUNCTION_END
@@ -236,6 +237,7 @@ THREADABLE_FUNCTION_3ARG(compute_corr_stoch, double*,corr, su3spinspin**,phi, su
 	      unsafe_complex_conj2_prod(phieta[0][ivol][ic][jc][id][jd],phi[0][ivol][ic][jc][id][jd],eta[1][ivol][ic][jc][id][jd]);
 	      unsafe_complex_conj1_prod(phieta[1][ivol][ic][jc][id][jd],phi[1][ivol][ic][jc][id][jd],eta[0][ivol][ic][jc][id][jd]);
 	    }
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
   
   //take fft
@@ -253,14 +255,16 @@ THREADABLE_FUNCTION_3ARG(compute_corr_stoch, double*,corr, su3spinspin**,phi, su
 	      complex_subt_the_conj2_prod(corr_tilde[ivol],phieta[0][ivol][ic][jc][id+2][jd+0],phieta[1][ivol][jc][ic][jd+0][id+2]);
 	      complex_summ_the_conj2_prod(corr_tilde[ivol],phieta[0][ivol][ic][jc][id+2][jd+2],phieta[1][ivol][jc][ic][jd+2][id+2]);
 	    }
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
-
+  
   //transform back
   fft4d(corr_tilde,corr_tilde,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
   
   //copy only the real part
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     corr[ivol]=corr_tilde[ivol][RE];
+  NISSA_PARALLEL_LOOP_END;
   
   //free
   for(int ico=0;ico<2;ico++) nissa_free(phieta[ico]);
@@ -639,7 +643,7 @@ THREADABLE_FUNCTION_1ARG(impose_open_boundary_cond, quad_su3*,conf)
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     if(glb_coord_of_loclx[ivol][0]==glb_size[0]-1)
       su3_put_to_zero(conf[ivol][0]);
-  
+  NISSA_PARALLEL_LOOP_END;
   set_borders_invalid(conf);
 }
 THREADABLE_FUNCTION_END

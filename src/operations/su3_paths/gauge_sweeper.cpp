@@ -343,6 +343,7 @@ namespace nissa
 	      ibase+=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+NDIM*ibox)];
 	    }
     }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
@@ -359,7 +360,6 @@ namespace nissa
     //prepare the chunk load
     NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,nlinks_per_staples_of_link*nbox_dir_par,THREAD_ID,NACTIVE_THREADS);
     int *source_dest=packing_link_source_dest+2*(nlinks_per_staples_of_link*ibase+start);
-    //NISSA_PARALLEL_LOOP(ilink_to_ship,0,nlinks_per_staples_of_link*nbox_dir_par)
     
     for(int ilink_to_ship=start;ilink_to_ship<end;ilink_to_ship++)
       {

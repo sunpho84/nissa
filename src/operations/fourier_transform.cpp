@@ -48,6 +48,7 @@ namespace nissa
 	//adapt the phase
 	safe_spinspin_prod_complex(out[ivol],out[ivol],ph);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
@@ -80,6 +81,7 @@ namespace nissa
 	//adapt the phase
 	safe_spinspin_prod_complex(out[ivol],in[ivol],ph);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
     
     //compute the main part of the fft
@@ -115,6 +117,7 @@ namespace nissa
 	      safe_complex_conj2_prod(out[imom][mu][nu],out[imom][mu][nu],ph[nu]);
 	    }
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
     
     //compute the main part of the fft
@@ -141,6 +144,7 @@ namespace nissa
 	  for(int nu=0;nu<NDIM;nu++)
 	    safe_complex_prod(out[ivol][mu][nu],out[ivol][mu][nu],ph);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
@@ -175,6 +179,7 @@ namespace nissa
 	  for(int nu=0;nu<NDIM;nu++)
 	    safe_complex_prod(out[ivol][mu][nu],in[ivol][mu][nu],ph);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
     
     //compute the main part of the fft
@@ -199,6 +204,7 @@ namespace nissa
 	      safe_complex_conj2_prod(out[imom][mu][nu],out[imom][mu][nu],ph[nu]);
 	    }
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
@@ -226,6 +232,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  safe_complex_prod(out[imom][mu],in[imom][mu],ph[mu]);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //compute the main part of the fft
@@ -251,6 +258,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  safe_complex_prod(out[ivol][mu],out[ivol][mu],ph);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
@@ -283,6 +291,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  safe_complex_prod(out[ivol][mu],in[ivol][mu],ph);
       }
+    NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //compute the main part of the fft
@@ -303,6 +312,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  safe_complex_prod(out[imom][mu],out[imom][mu],ph[mu]);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
@@ -337,7 +347,7 @@ namespace nissa
 	for(int id=0;id<NDIRAC;id++)
 	  safe_complex_prod(out[ivol][id],out[ivol][id],ph);
       }
-    
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
@@ -369,6 +379,7 @@ namespace nissa
 	for(int id=0;id<NDIRAC;id++)
 	  safe_complex_prod(out[ivol][id],in[ivol][id],ph);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
     
     //compute the main part of the fft
@@ -407,6 +418,7 @@ namespace nissa
 	  for(int ic=0;ic<NCOL;ic++)
 	    safe_complex_prod(out[ivol][id][ic],out[ivol][id][ic],ph);
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -440,6 +452,7 @@ namespace nissa
 	  for(int ic=0;ic<NCOL;ic++)
 	    safe_complex_prod(out[ivol][id][ic],in[ivol][id][ic],ph);
       }
+    NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
     
     //compute the main part of the fft

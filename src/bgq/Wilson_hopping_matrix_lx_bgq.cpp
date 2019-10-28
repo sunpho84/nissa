@@ -115,11 +115,12 @@ namespace nissa
 	REG_VIR_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
 	REG_VIR_SU3_DAG_PROD_VIR_HALFSPINCOLOR_LOAD_STORE(out[iout[7]],links[7],reg_proj);
       }
+    NISSA_PARALLEL_LOOP_END;
     
-    THREAD_BARRIER();    
+    THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-
+  
   //if virtual parallelized dir is really parallelized, fill send buffers
   THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_lx_vdir_VN_comm_and_buff_fill)
   {

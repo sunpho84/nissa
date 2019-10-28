@@ -24,6 +24,7 @@ namespace nissa
 	 apply_point_twisted_clover_term_to_halfspincolor(&(out[X][0*NDIRAC/2]),+mu,kappa,&(Cl[X][0*NDIRAC/2]),&(in[X][0*NDIRAC/2]));
 	 apply_point_twisted_clover_term_to_halfspincolor(&(out[X][1*NDIRAC/2]),-mu,kappa,&(Cl[X][1*NDIRAC/2]),&(in[X][1*NDIRAC/2]));
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
@@ -44,6 +45,7 @@ namespace nissa
     	unsafe_halfspincolor_halfspincolor_times_halfspincolor(&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
     	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
       }
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }

@@ -219,6 +219,7 @@ namespace nissa
 			    complex_summ_the_conj1_prod(loc_contr[t+glb_size[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav))],
 							A[par][ieo][ic],B[par][ieo][ic]);
 			}
+		    NISSA_PARALLEL_LOOP_END;
 		  }
 	  }
 	
@@ -260,6 +261,7 @@ namespace nissa
     // 	    if(glb_coord_of_loclx[ivol][0]==glb_size[0]/2)
     // 	      color_copy(temp_source[par][ieo],M[0][par][ieo]);
     // 	  }
+    //  NISSA_PARALLEL_LOOP_END;
     // 	set_borders_invalid(temp_source[par]);
     //   }
     
@@ -284,6 +286,7 @@ namespace nissa
     // 	  color_scalar_prod(temp,M[0][par][ieo],b);
     // 	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol][0]],temp);
     // 	}
+    // NISSA_PARALLEL_LOOP_END;
     // rem_backfield_from_conf(conf,theory_pars.backfield[0]);
     
     // for(int t=0;t<glb_size[0];t++)

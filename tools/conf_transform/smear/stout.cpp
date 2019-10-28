@@ -21,9 +21,11 @@ THREADABLE_FUNCTION_3ARG(new_cool_eo_conf, quad_su3**,eo_conf, int,over_flag, do
 	    //find the link that maximize the plaquette
 	    su3_unitarize_maximal_trace_projecting_iteration(eo_conf[par][ieo][mu],staple);
 	  }
+	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(eo_conf);
       }
-}}
+}
+THREADABLE_FUNCTION_END
 
 THREADABLE_FUNCTION_1ARG(unitarize_conf_max, quad_su3**,conf)
 {
@@ -37,10 +39,11 @@ THREADABLE_FUNCTION_1ARG(unitarize_conf_max, quad_su3**,conf)
 	      su3_unitarize_orthonormalizing(t,conf[par][ieo][idir]);
 	      su3_copy(conf[par][ieo][idir],t);
 	    }
+	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(conf[par]);
       }
-}}
-
+}
+THREADABLE_FUNCTION_END
 
 void in_main(int narg,char **arg)
 {
