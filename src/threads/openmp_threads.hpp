@@ -5,14 +5,23 @@
  #include "config.hpp"
 #endif
 
-#include "base/debug.hpp"
 #include <omp.h>
 
-#include "routines/thread.hpp"
+#include "base/debug.hpp"
+#include "base/random.hpp"
+#include "new_types/float_128.hpp"
 
 #if defined BGQ && !defined BGQ_EMU
  #include <bgpm/include/bgpm.h>
  #include "bgq/bgq_barrier.hpp"
+#endif
+
+#ifndef EXTERN_THREADS
+ #define EXTERN_THREADS extern
+ #define INIT_TO(A)
+ #define ONLY_INSTANTIATION
+#else
+ #define INIT_TO(A) =A
 #endif
 
 #define NACTIVE_THREADS ((thread_pool_locked)?1:nthreads)
@@ -507,5 +516,45 @@ namespace nissa
 	  thread_in_team_id=thread_id-nthreads/2;			\
 	}								\
     }
+
+namespace nissa
+{
+#ifdef THREAD_DEBUG
+   EXTERN_THREADS int glb_barr_line;
+   EXTERN_THREADS char glb_barr_file[1024];
+  #if THREAD_DEBUG >=2
+    EXTERN_THREADS rnd_gen *delay_rnd_gen;
+    EXTERN_THREADS int *delayed_thread_barrier;
+  #endif
+ #endif
+  
+  EXTERN_THREADS bool thread_pool_locked INIT_TO(true);
+  EXTERN_THREADS unsigned int nthreads INIT_TO(1);
+  
+  EXTERN_THREADS void *broadcast_ptr;
+  EXTERN_THREADS float *glb_single_reduction_buf;
+  EXTERN_THREADS double *glb_double_reduction_buf;
+  EXTERN_THREADS float_128 *glb_quadruple_reduction_buf;
+  
+  EXTERN_THREADS void(*threaded_function_ptr)();
+  
+#ifdef THREAD_DEBUG
+  void thread_barrier_with_check(const char*file,int line);
+#else
+  void thread_barrier_without_check();
+#endif
+  
+  void start_threaded_function(void(*function)(void),const char *name);
+  void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg));
+  void thread_pool();
+  void thread_pool_stop();
+  double *glb_threads_reduce_double_vect(double *vect,int nel);
+  inline complex *glb_threads_reduce_complex_vect(complex *vect,int nel)
+  {return (complex*)glb_threads_reduce_double_vect((double*)vect,2*nel);}
+}
+
+#undef EXTERN_THREADS
+#undef INIT_TO
+#undef ONLY_INSTANTIATION
 
 #endif

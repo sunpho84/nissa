@@ -12,7 +12,7 @@
 #define THREAD_BARRIER_FORCE()
 #define THREAD_BARRIER()
 #define IS_MASTER_THREAD (1)
-#define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) cuda_parallel_for(EXT_START,EXT_END,[&](const uint64_t& INDEX){
+#define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) cuda_parallel_for(EXT_START,EXT_END,[&] _global__(const uint64_t& INDEX){
 #define NISSA_PARALLEL_LOOP_END })
 #define THREAD_ATOMIC_EXEC(inst) inst
 #define THREAD_BROADCAST(out,in) (out)=(in)

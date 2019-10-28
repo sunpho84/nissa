@@ -48,6 +48,7 @@ void in_main(int narg,char **arg)
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     if(spincolor_norm2(source[ivol])>1e-10)
       iglb_max=glblx_of_loclx[ivol];
+  NISSA_PARALLEL_LOOP_END;
   MPI_Allreduce(MPI_IN_PLACE,&iglb_max,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
   coords g;
   glb_coord_of_glblx(g,iglb_max);
@@ -72,6 +73,7 @@ void in_main(int narg,char **arg)
 	rho[r2].first+=spincolor_norm2(smeared_source[ivol]);
 	rho[r2].second++;
       }
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
   
   for(int i=1;i<nranks;i++)

@@ -13,7 +13,6 @@
 #include "new_types/su3.hpp"
 #include "operations/gauge_fixing.hpp"
 #include "routines/mpi_routines.hpp"
-#include "routines/thread.hpp"
 #include "stag.hpp"
 
 namespace nissa {

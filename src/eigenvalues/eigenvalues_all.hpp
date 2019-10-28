@@ -13,7 +13,6 @@
 #include "base/vectors.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
-#include "routines/thread.hpp"
 
 namespace nissa
 {

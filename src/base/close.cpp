@@ -20,7 +20,6 @@
 #include "hmc/gauge/Symanzik_action.hpp"
 #include "operations/remap_vector.hpp"
 #include "routines/ios.hpp"
-#include "routines/thread.hpp"
 
 #if FFT_TYPE == FFTW_FFT
  #include <fftw3.h>

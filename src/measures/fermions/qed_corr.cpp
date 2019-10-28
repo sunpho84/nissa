@@ -10,7 +10,6 @@
 #include "measures/fermions/qed_corr.hpp"
 #include "measures/fermions/stag.hpp"
 #include "routines/mpi_routines.hpp"
-#include "routines/thread.hpp"
 #include "threads/threads.hpp"
 
 #include "mesons.hpp"

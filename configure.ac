@@ -158,6 +158,8 @@ case "$with_threads_type" in
 	     fi;;
       *) AC_MSG_ERROR(["Unkwnown threads type ${withval}"])
 esac
+AM_CONDITIONAL([USE_OPENMP_THREADS], [test x$with_threads_type = xopenmp])
+AM_CONDITIONAL([USE_CUDA_THREADS], [test x$with_threads_type = xcuda])
 AC_DEFINE_UNQUOTED([THREADS_TYPE],${THREADS_TYPE},[Kind of thread parallelization])
 AC_MSG_RESULT([with threads type... ${with_threads_type}])
 SUMMARY_RESULT="$SUMMARY_RESULT

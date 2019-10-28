@@ -5,10 +5,10 @@
 #include <omp.h>
 #include <stdlib.h>
 
-#include "ios.hpp"
+#include "routines/ios.hpp"
 
-#define EXTERN_THREAD
-#include "thread.hpp"
+#define EXTERN_THREADS
+ #include "openmp_threads.hpp"
 
 #include "base/debug.hpp"
 #include "base/random.hpp"
