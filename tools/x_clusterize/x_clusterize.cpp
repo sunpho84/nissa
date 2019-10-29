@@ -68,6 +68,7 @@ THREADABLE_FUNCTION_4ARG(add_cluster, double*,out_buffer, double*,in_buffer, int
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     out_buffer[iclust+(njacks+1)*(ivol+loc_vol*r)]+=in_buffer[ivol];
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
 }
 THREADABLE_FUNCTION_END
@@ -132,10 +133,11 @@ void clusterize(double *data)
 THREADABLE_FUNCTION_0ARG(clusterize)
 {
   GET_THREAD_ID();
-
+  
   for(int r=0;r<nr;r++)
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       clusterize(out_buffer+0+(njacks+1)*(ivol+loc_vol*r));
+  NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
 }
 THREADABLE_FUNCTION_END
