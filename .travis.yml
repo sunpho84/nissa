@@ -36,7 +36,8 @@ script:
   - bash config/bootstrap
   - mkdir build
   - cd build
-  - ../configure || cat config.log
+  - ../configure
+  - cat config.log
   - make V=1
   - cd tools
   - make V=1
