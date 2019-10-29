@@ -112,9 +112,7 @@ then
 fi
 
 #check openmp
-AC_OPENMP
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <omp.h>]], [[ return omp_get_num_threads (); ]])],[have_openmp="yes"],[have_openmp="no"])
-AC_MSG_RESULT([checking for OpenMP... ${have_openmp}])
+AX_OPENMP
 
 #cuda
 AX_CHECK_CUDA
@@ -142,7 +140,7 @@ case "$with_threads_type" in
      openmp) if test "$have_openmp" != "no"
     	     then
 		THREADS_TYPE=OPENMP_THREADS
-		CFLAGS="$CXXFLAGS $OPENMP_CFLAGS"
+		CFLAGS="$CFLAGS $OPENMP_CFLAGS"
 		CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
 		CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
 	     else
@@ -152,7 +150,7 @@ case "$with_threads_type" in
     	    then
 		THREADS_TYPE=CUDA_THREADS
 		CXX="nvcc"
-		CPPFLAGS="-x cu $CPPFLAGS"
+		CPPFLAGS="--expt-extended-lambda -x cu $CPPFLAGS"
 	     else
 		AC_MSG_ERROR(["Asked to enable Cuda when the framework has not been found"])
 	     fi;;
