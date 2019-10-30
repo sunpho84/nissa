@@ -1,0 +1,34 @@
+173a174,206
+> nvcc)
+> 
+>     generate=false
+>     for arg
+>     do
+> 	if [ "$arg" == "-c" ]
+> 	then
+> 	    generate=true
+> 	fi
+>     done
+>     
+>     if [ $generate == true ]
+>     then
+> 	command="$@ --generate-dependencies -Xcompiler -MD -Xcompiler -MP"
+> 	command=$(echo $command|sed 's|'$object'|'$tmpdepfile'|')
+> 	$command
+> 	
+> 	stat=$?
+> 	
+> 	if test $stat -eq 0; then :
+> 	else
+> 	    rm -f "$tmpdepfile"
+> 	    exit $stat
+> 	fi
+>     fi
+>     
+>     "$@"
+>     stat=$?
+>     if test $stat -ne 0
+>     then
+> 	exit $stat
+>     fi
+>    ;;
