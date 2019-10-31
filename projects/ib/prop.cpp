@@ -52,7 +52,7 @@ namespace nissa
       {
 	master_printf("   working in FT\n");
 	
-	tm_quark_info qu(kappa,mass,r,theta);
+	tm_quark_info qu(kappa,fabs(mass),r,theta);
 	tm_basis_t basis=WILSON_BASE;
 	multiply_from_left_by_x_space_twisted_propagator_by_fft(out,in,qu,basis,false);
       }
