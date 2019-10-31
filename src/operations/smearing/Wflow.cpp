@@ -7,9 +7,6 @@
 #include "new_types/su3_op.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "routines/mpi_routines.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "Wflow.hpp"
 

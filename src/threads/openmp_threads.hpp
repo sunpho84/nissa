@@ -551,6 +551,8 @@ namespace nissa
   double *glb_threads_reduce_double_vect(double *vect,int nel);
   inline complex *glb_threads_reduce_complex_vect(complex *vect,int nel)
   {return (complex*)glb_threads_reduce_double_vect((double*)vect,2*nel);}
+  
+  void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg),const char compile_info[5][1024]);
 }
 
 #undef EXTERN_THREADS

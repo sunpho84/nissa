@@ -8,9 +8,6 @@
 #include "measures/gauge/topological_charge.hpp"
 #include "new_types/su3_op.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "dirac_operator_WclovQ_portable.cpp"
 

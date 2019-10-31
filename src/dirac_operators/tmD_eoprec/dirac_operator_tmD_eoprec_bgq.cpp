@@ -5,9 +5,7 @@
 #include "bgq/bgq_macros.hpp"
 #include "bgq/intrinsic.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
+
 #include "dirac_operator_tmD_eoprec_bgq.hpp"
 
 namespace nissa

@@ -8,9 +8,6 @@
 #include "dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp"
 #include "new_types/complex.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

@@ -15,9 +15,6 @@
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 #ifdef BGQ
  #include "bgq/intrinsic.hpp"
 #endif
@@ -715,7 +712,7 @@ namespace nissa
   
   THREADABLE_FUNCTION_3ARG(parallel_memcpy,void*,out, void*,in, int,n)
   {
-#ifdef USE_THREADS
+#if THREADS_TYPE == OPENMP_THREADS
     GET_THREAD_ID();
     
     NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,n,thread_id,NACTIVE_THREADS);

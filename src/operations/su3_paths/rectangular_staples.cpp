@@ -14,9 +14,6 @@
 #include "new_types/su3_op.hpp"
 #include "rectangular_staples.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {
@@ -223,11 +220,7 @@ namespace nissa
   //compute rectangular staples overlapping computation and communications, and avoiding using edges
   THREADABLE_FUNCTION_3ARG(compute_rectangular_staples_lx_conf, rectangular_staples_t*,out, quad_su3*,conf, squared_staples_t*,sq_staples)
   {
-#ifdef USE_THREADS
     GET_THREAD_ID();
-#else
-    int thread_id=0;
-#endif
     
     //compute non_fw_surf fw staples
     rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(sq_staples,thread_id);

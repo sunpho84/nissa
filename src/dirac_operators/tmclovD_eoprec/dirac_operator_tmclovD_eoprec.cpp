@@ -8,8 +8,5 @@
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "dirac_operator_tmclovD_eoprec_portable.cpp"

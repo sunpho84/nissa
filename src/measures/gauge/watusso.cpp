@@ -13,9 +13,6 @@
 #include "operations/smearing/APE.hpp"
 #include "operations/smearing/HYP.hpp"
 #include "watusso.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 /*
      |   ___________

@@ -9,9 +9,6 @@
 #include "measures/gauge/topological_charge.hpp"
 #include "operations/smearing/stout.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 #include "routines/ios.hpp"
 
 #include "gluonic_force.hpp"

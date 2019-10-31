@@ -8,9 +8,6 @@
 #include "new_types/float_128.hpp"
 #include "new_types/su3_op.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 //Apply the Q=D*g5 operator to a spincolor
 namespace nissa

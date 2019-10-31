@@ -16,12 +16,29 @@
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {
+  // template <typename IMin,
+  // 	    typename IMax,
+  // 	    typename F>
+  // __global__
+  // void cudageneric_kernel(const IMin &min,
+  // 			   const IMax &max,
+  // 			   F f)
+  // {
+  //   const auto i=min+blockIdx.x*blockDim.x+threadIdx.x;
+  //   if(i<max)
+  //     f(loclx_neighdw[0][0]);
+  // }
+  
+  // void rrr()
+  // {
+  //   const dim3 block_dimension(NUM_THREADS);
+  //   const dim3 grid_dimension((1+block_dimension.x-1)/block_dimension.x);
+  //   cudageneric_kernel<<<grid_dimension,block_dimension>>>(0, 1, [=] __host__ __device__(int){});
+  // }
+  
   rnd_gen glb_rnd_gen;
   bool glb_rnd_gen_inited;
   rnd_gen *loc_rnd_gen;

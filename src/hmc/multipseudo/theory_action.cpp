@@ -14,9 +14,6 @@
 #include "linalgs/linalgs.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include <algorithm>
 

@@ -12,9 +12,6 @@
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "measures/gauge/topological_charge.hpp"
 #include "routines/mpi_routines.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 /*
   rotate a field anti-clockwise by 90 degrees

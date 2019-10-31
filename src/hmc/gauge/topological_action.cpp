@@ -14,10 +14,6 @@
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   const char topo_file_name[]="topo_potential";

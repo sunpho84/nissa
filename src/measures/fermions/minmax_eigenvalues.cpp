@@ -13,10 +13,6 @@
 #include "dirac_operators/overlap/dirac_operator_overlap_kernel_portable.hpp"
 #include "inverters/overlap/cgm_invert_overlap_kernel2.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 ///////////////////////////////////////////////
 ////      C. BONANNO AND M.CARDINALI       ////
 ///////////////////////////////////////////////

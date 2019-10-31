@@ -144,7 +144,7 @@ namespace nissa
     
     //define the workload (to be improved)
     int ncontrib=this->size();
-#ifndef USE_THREADS
+#if THREADS_TYPE != OPENMP_THREADS
     int start_contr_t=0,end_contr_t=loc_size[0]*ncontrib;
 #else
     NISSA_CHUNK_WORKLOAD(start_contr_t,chunk_load_contr_t,end_contr_t,0,loc_size[0]*ncontrib,thread_id,NACTIVE_THREADS);

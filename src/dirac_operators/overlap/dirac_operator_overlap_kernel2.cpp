@@ -12,9 +12,6 @@
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

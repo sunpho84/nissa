@@ -9,9 +9,6 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/su3_op.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

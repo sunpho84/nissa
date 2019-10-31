@@ -12,10 +12,6 @@
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 #include "all_to_all.hpp"
 
 namespace nissa

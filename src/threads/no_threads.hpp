@@ -1,6 +1,8 @@
 #ifndef _NO_THREADS_HPP
 #define _NO_THREADS_HPP
-USE_THREADS
+
+#include "base/init.hpp"
+
 #define NACTIVE_THREADS 1
 #define MANDATORY_PARALLEL
 #define MANDATORY_NOT_PARALLEL
@@ -37,6 +39,15 @@ namespace nissa
   
   inline void thread_barrier_internal()
   {
+  }
+  
+  //start nissa
+  inline void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg),const char compile_info[5][1024])
+  {
+    //initialize nissa (master thread only)
+    init_nissa(narg,arg,compile_info);
+    
+    main_function(narg,arg);
   }
 }
 

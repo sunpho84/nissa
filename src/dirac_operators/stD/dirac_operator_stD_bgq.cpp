@@ -8,9 +8,6 @@
 #include "bgq/staggered_hopping_matrix_eo_or_oe_bgq.hpp"
 #include "new_types/complex.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

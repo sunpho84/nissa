@@ -16,10 +16,6 @@
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 #include "twisted_propagator.hpp"
 
 namespace nissa

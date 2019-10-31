@@ -21,10 +21,6 @@
 
 #include "mpi_routines.hpp"
 
-#ifdef USE_THREADS
- #include "thread.hpp"
-#endif
-
 namespace nissa
 {
   //return the number of occurency of "sub" inside "str"

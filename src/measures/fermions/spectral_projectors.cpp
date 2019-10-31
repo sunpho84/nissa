@@ -9,10 +9,6 @@
 #include "geometry/geometry_mix.hpp"
 #include "measures/fermions/stag.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 #include "spectral_projectors.hpp"
 
 namespace nissa

@@ -12,10 +12,6 @@
 
 #include "fft.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   //interpret free index as source or sink

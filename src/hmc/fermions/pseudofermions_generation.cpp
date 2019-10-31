@@ -11,9 +11,6 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 #include "hmc/backfield.hpp"
 #include "hmc/hmc.hpp"
 

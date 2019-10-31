@@ -12,9 +12,6 @@
 #include "new_types/float_128.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

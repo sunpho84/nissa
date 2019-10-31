@@ -11,10 +11,6 @@
 #include "operations/remap_vector.hpp"
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 #include "operations/smearing/APE.hpp"
 #include "operations/smearing/HYP.hpp"
 #include "operations/su3_paths/plaquette.hpp"
@@ -282,7 +278,7 @@ namespace nissa
     if(nrect!=irect) crash("expected %d rects, obtained %d",nrect,irect);
     for(int imu01=0;imu01<12;imu01++) nissa_free(transp_conf[imu01]);
     
-#ifdef USE_THREADS
+#if THREADS_TYPE == OPENMP_THREADS
     if(nthreads>1)
       if(IS_MASTER_THREAD)
 	for(unsigned int other_thread=1;other_thread<nthreads;other_thread++)

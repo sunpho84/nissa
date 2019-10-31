@@ -11,6 +11,7 @@
  #include "openmp_threads.hpp"
 
 #include "base/debug.hpp"
+#include "base/init.hpp"
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "threads/threads.hpp"
@@ -329,5 +330,42 @@ namespace nissa
     double *ret=ptr[0];
     nissa_free(ptr);
     return ret;
-  } 
+  }
+  
+  //start nissa in a threaded environment, sending all threads but first in the
+  //thread pool and issuing the main function
+  void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg),const char compile_info[5][1024])
+  {
+    //initialize nissa (master thread only)
+    init_nissa(narg,arg,compile_info);
+    
+    thread_pool_locked=false;
+    cache_flush();
+    
+#pragma omp parallel
+    {
+      //get the number of threads and thread id
+      nthreads=omp_get_num_threads();
+      master_printf("Using %u threads\n",nthreads);
+      
+      //if BGQ, define appropriate barrier (to be done before sanity check, otherwise cannot barrier!)
+#if defined BGQ && (! defined BGQ_EMU)
+      bgq_barrier_define();
+#endif
+      
+      //define delayed thread behavior (also this needed before sanity check, otherwise barrier would fail)
+#if THREAD_DEBUG>=2
+      delayed_thread_barrier=(int*)malloc(nthreads*sizeof(int));
+      memset(delayed_thread_barrier,0,nthreads*sizeof(int));
+      delay_rnd_gen=(rnd_gen*)malloc(nthreads*sizeof(rnd_gen));
+      int delay_base_seed=time(0);
+      for(unsigned int i=0;i<nthreads;i++) start_rnd_gen(delay_rnd_gen+i,delay_base_seed+i);
+#endif
+      
+      //distinguish master thread from the others
+      GET_THREAD_ID();
+      if(thread_id!=0) thread_pool();
+      else thread_master_start(narg,arg,main_function);
+    }
+  }
 }

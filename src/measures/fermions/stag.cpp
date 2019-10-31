@@ -15,10 +15,6 @@
 
 #include "stag.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   namespace stag

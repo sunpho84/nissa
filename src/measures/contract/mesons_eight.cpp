@@ -12,9 +12,6 @@
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "site_contract.hpp"
 

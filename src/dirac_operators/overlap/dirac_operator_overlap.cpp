@@ -19,10 +19,6 @@
 #include "operations/remez/remez_algorithm.hpp"
 #include "threads/threads.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   // Written by C. Bonanno and M. Cardinali

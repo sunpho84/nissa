@@ -11,11 +11,7 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "threads/threads.hpp"
-
 #include "routines/ios.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "rendens.hpp"
 #include "stag.hpp"

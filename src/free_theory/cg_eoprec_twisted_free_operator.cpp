@@ -10,9 +10,6 @@
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 #include "free_theory_types.hpp"
 #include "twisted_free_Dirac_eoprec_operator.hpp"
 

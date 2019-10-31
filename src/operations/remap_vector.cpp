@@ -16,9 +16,6 @@
 
 #include "remap_vector.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

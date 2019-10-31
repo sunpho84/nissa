@@ -6,9 +6,6 @@
 #include "communicate/borders.hpp"
 #include "base/vectors.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "dirac_operator_tmQ_left_portable.cpp"
 

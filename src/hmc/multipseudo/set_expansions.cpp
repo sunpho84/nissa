@@ -17,9 +17,6 @@
 #include "operations/remez/remez_algorithm.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 #include "routines/mpi_routines.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

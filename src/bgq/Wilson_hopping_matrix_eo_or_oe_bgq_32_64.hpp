@@ -8,9 +8,6 @@
 #include "new_types/complex.hpp"
 #include "Wilson_hopping_matrix_lx_bgq.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "bgq_macros.hpp"
 

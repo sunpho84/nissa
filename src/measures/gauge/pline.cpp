@@ -18,10 +18,6 @@
 #include "operations/shift.hpp"
 #include "operations/remap_vector.hpp"
 
-#ifdef USE_THREADS
-  #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   //compute the polyakov loop, for each site of the lattice

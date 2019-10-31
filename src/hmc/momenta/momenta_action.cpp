@@ -10,9 +10,6 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "routines/mpi_routines.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

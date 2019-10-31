@@ -23,10 +23,6 @@
 #include "measures/gauge/topological_charge.hpp"
 #include "threads/threads.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   inline int vnode_of_loclx(int lx)

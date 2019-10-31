@@ -186,10 +186,6 @@
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #include "routines/mpi_routines.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 #include "threads/threads.hpp"
 
 #endif

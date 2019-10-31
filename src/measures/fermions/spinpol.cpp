@@ -17,10 +17,6 @@
 #include "threads/threads.hpp"
 #include "spinpol.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   using namespace stag;

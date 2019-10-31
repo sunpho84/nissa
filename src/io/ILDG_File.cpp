@@ -19,10 +19,6 @@
 
 #include "endianness.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 #define EXTERN_ILDG
 #include "ILDG_File.hpp"
 

@@ -20,10 +20,6 @@
  #include <iostream>
 #endif
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   //if the momentum has to be removed return 0, otherwise return 1

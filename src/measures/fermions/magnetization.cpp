@@ -14,10 +14,6 @@
 
 #include "magnetization.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   //compute the magnetization starting from chi and rnd

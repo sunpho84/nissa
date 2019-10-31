@@ -19,10 +19,6 @@
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 #include "gauge_fixing.hpp"
 
 #define VERBOSITY_MASTER_PRINTF verbosity_lv1_master_printf

@@ -11,9 +11,6 @@
 #include "operations/su3_paths/squared_staples.hpp"
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "Symanzik_action.hpp"
 

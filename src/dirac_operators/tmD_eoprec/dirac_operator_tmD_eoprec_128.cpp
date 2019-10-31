@@ -11,9 +11,6 @@
 #include "new_types/su3_op.hpp"
 #include "new_types/float_128.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

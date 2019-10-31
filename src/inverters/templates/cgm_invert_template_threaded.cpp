@@ -4,9 +4,6 @@
 
 #include "base/bench.hpp"
 #include "routines/ios.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 

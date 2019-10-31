@@ -11,9 +11,6 @@
 #include "new_types/su3.hpp"
 #include "new_types/su3_op.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #ifndef EXTERN
  #define EXTERN extern

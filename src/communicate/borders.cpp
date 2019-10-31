@@ -17,10 +17,6 @@
 
 #include "communicate.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 #ifdef SPI
  #include <stdlib.h>
  #include "bgq/spi.hpp"

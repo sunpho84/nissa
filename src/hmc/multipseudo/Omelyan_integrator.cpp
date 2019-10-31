@@ -7,9 +7,6 @@
 
 #include "geometry/geometry_mix.hpp"
 #include "operations/gaugeconf.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "hmc/hmc.hpp"
 #include "hmc/theory_pars.hpp"

@@ -13,10 +13,6 @@
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   //invert a set of propagators using the passed source

@@ -10,9 +10,6 @@
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "new_types/su3.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

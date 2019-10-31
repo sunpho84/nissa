@@ -17,10 +17,6 @@
 #define EXTERN_MPI
 #include "mpi_routines.hpp"
 
-#ifdef USE_THREADS
-  #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   //return  the count covnerted to size_t
@@ -50,8 +46,8 @@ namespace nissa
   void init_MPI_thread(int narg,char **arg)
   {
 #ifdef USE_MPI
-
- #ifdef USE_THREADS
+    
+ #if THREADS_TYPE != NO_THREADS
     int provided;
     MPI_Init_thread(&narg,&arg,MPI_THREAD_SERIALIZED,&provided);
  #else
@@ -265,7 +261,7 @@ namespace nissa
   {
     double out_glb;
     
-#ifdef USE_THREADS
+#if THREADS_TYPE == OPENMP_THREADS
     if(!thread_pool_locked)
       {
 	GET_THREAD_ID();
@@ -297,7 +293,7 @@ namespace nissa
   {
     float out_glb;
     
-#ifdef USE_THREADS
+#if THREADS_TYPE == OPENMP_THREADS
     if(!thread_pool_locked)
       {
 	GET_THREAD_ID();
@@ -327,7 +323,7 @@ namespace nissa
   //reduce an int
   void glb_reduce_int(int *out_glb,int in_loc)
   {
-#ifdef USE_THREADS
+#if THREADS_TYPE == OPENMP_THREADS
     if(!thread_pool_locked) crash("not threaded yet");
     else
 #endif
@@ -341,7 +337,7 @@ namespace nissa
   //reduce a float_128
   void glb_reduce_float_128(float_128 out_glb,float_128 in_loc)
   {
-#ifdef USE_THREADS
+#if THREADS_TYPE == OPENMP_THREADS
     if(!thread_pool_locked)
       {
 	GET_THREAD_ID();

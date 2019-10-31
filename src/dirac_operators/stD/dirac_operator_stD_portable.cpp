@@ -7,9 +7,6 @@
 #include "geometry/geometry_eo.hpp"
 #include "new_types/su3_op.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

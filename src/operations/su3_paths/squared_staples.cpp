@@ -15,9 +15,6 @@
 #include "new_types/su3_op.hpp"
 #include "squared_staples.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {
@@ -251,11 +248,7 @@ namespace nissa
   //compute squared staple overlapping computation and communications, and avoiding using edges
   THREADABLE_FUNCTION_2ARG(compute_squared_staples_lx_conf, squared_staples_t*,out, quad_su3*,conf)
   {
-#ifdef USE_THREADS
     GET_THREAD_ID();
-#else
-    int thread_id=0;
-#endif
     
     //compute non_fw_surf fw staples
     squared_staples_lx_conf_start_communicating_lower_surface(conf,thread_id);
@@ -269,7 +262,7 @@ namespace nissa
     squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,thread_id);
   }
   THREADABLE_FUNCTION_END
-
+  
   //summ everything together
   THREADABLE_FUNCTION_2ARG(compute_summed_squared_staples_lx_conf, quad_su3*,out, quad_su3*,conf)
   {

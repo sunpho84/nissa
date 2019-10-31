@@ -11,9 +11,6 @@
 #include "new_types/su3.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "hmc/theory_pars.hpp"
 #include "gluonic_action.hpp"

@@ -9,10 +9,6 @@
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_bgq.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 namespace nissa
 {
   void inv_tmclovDee_or_oo_eos(vir_spincolor *out,vir_inv_clover_term_t *invCl,bool dag,vir_spincolor *in)

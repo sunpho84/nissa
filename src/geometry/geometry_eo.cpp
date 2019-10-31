@@ -14,10 +14,6 @@
 #define EXTERN_GEOMETRY_EO
 #include "geometry_eo.hpp"
 
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 //add a check that loc_vol is a multiple of 2
 //#define REM_2 if(0)
 #define REM_2

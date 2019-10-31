@@ -12,9 +12,6 @@
 #include "operations/gaugeconf.hpp"
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "gluonic_action.hpp"
 #include "gluonic_force.hpp"

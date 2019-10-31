@@ -26,10 +26,6 @@
 #include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
-
 #include "topological_charge.hpp"
 
 namespace nissa

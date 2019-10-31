@@ -12,9 +12,6 @@
 #include "io/endianness.hpp"
 #include "rat_approx.hpp"
 #include "routines/ios.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 namespace nissa
 {

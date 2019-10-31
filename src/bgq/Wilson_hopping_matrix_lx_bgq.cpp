@@ -10,9 +10,6 @@
 #include "new_types/complex.hpp"
 #include "new_types/two_stage_computation.hpp"
 #include "threads/threads.hpp"
-#ifdef USE_THREADS
- #include "routines/thread.hpp"
-#endif
 
 #include "bgq_macros.hpp"
 
