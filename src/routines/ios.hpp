@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "base/debug.hpp"
+#include "base/random.hpp"
 #include "new_types/complex.hpp"
 #include "measures/contract/mesons_2pts.hpp"
 

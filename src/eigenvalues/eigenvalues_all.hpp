@@ -14,6 +14,7 @@
 #include "geometry/geometry_lx.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
+#include "routines/ios.hpp"
 
 namespace nissa
 {

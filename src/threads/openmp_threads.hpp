@@ -6,6 +6,7 @@
 #endif
 
 #include <omp.h>
+#include <cstdint>
 
 #include "base/debug.hpp"
 #ifdef THREAD_DEBUG
