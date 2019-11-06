@@ -52,7 +52,7 @@ namespace nissa
   //Takes the trace of the square of the vector, on all internal T indices
   template <typename TOut,
 	    typename TIn,
-	    typename=std::enable_if_t<std::is_same<TOut,typename std::remove_all_extents<TIn>::type>::value>>
+	    typename En=std::enable_if_t<std::is_same<TOut,typename std::remove_all_extents<TIn>::type>::value>>
   void vector_loc_norm2(TOut *loc_norm2,TIn *v,int n_per_class)
   {
     GET_THREAD_ID();

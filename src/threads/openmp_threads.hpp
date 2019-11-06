@@ -8,7 +8,9 @@
 #include <omp.h>
 
 #include "base/debug.hpp"
-#include "base/random.hpp"
+#ifdef THREAD_DEBUG
+ #include "base/random.hpp"
+#endif
 #include "new_types/float_128.hpp"
 
 #if defined BGQ && !defined BGQ_EMU
@@ -23,6 +25,8 @@
 #else
  #define INIT_TO(A) =A
 #endif
+
+#define CUDA_MANAGED
 
 #define NACTIVE_THREADS ((thread_pool_locked)?1:nthreads)
 #define MANDATORY_PARALLEL if(nthreads>1 && thread_pool_locked) crash("this cannot be called when threads are locked")

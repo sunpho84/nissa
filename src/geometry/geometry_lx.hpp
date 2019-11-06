@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include <routines/math_routines.hpp>
+#include <threads/threads.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
  #define EXTERN_GEOMETRY_LX extern
@@ -36,12 +37,12 @@ namespace nissa
   EXTERN_GEOMETRY_LX int64_t vdir_bord_vol,vdir_bord_volh;
   EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
   //-lx is lexicografic
-  EXTERN_GEOMETRY_LX coords *glb_coord_of_loclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *glb_coord_of_loclx;
   EXTERN_GEOMETRY_LX coords *loc_coord_of_loclx;
   EXTERN_GEOMETRY_LX int *glblx_of_loclx;
   EXTERN_GEOMETRY_LX int *glblx_of_bordlx;
   EXTERN_GEOMETRY_LX int *loclx_of_bordlx;
-  EXTERN_GEOMETRY_LX int *surflx_of_bordlx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflx_of_bordlx;
   EXTERN_GEOMETRY_LX int *glblx_of_edgelx;
   EXTERN_GEOMETRY_LX int *loclx_of_bulklx;
   EXTERN_GEOMETRY_LX int *loclx_of_surflx;

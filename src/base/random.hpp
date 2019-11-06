@@ -6,6 +6,11 @@
 
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
+#include "threads/threads.hpp"
+
+#ifndef EXTERN_RANDOM
+ #define EXTERN_RANDOM extern
+#endif
 
 //random number generator table length
 #define RAN2_NTAB 32
@@ -30,10 +35,10 @@ namespace nissa
   };
   
   //random generator stuff
-  extern rnd_gen glb_rnd_gen;
-  extern bool glb_rnd_gen_inited;
-  extern rnd_gen *loc_rnd_gen;
-  extern bool loc_rnd_gen_inited;
+  EXTERN_RANDOM rnd_gen glb_rnd_gen;
+  EXTERN_RANDOM bool glb_rnd_gen_inited;
+  CUDA_MANAGED EXTERN_RANDOM rnd_gen *loc_rnd_gen;
+  EXTERN_RANDOM bool loc_rnd_gen_inited;
   
   rnd_t convert_str_to_rnd_t(const char *str);
   void color_put_to_gauss(color H,rnd_gen *gen,double sigma);
@@ -93,4 +98,7 @@ namespace nissa
     MPI_Bcast(&t,size,MPI_CHAR,0,MPI_COMM_WORLD);
   }
 }
+
+#undef EXTERN_RANDOM
+
 #endif

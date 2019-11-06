@@ -7,7 +7,8 @@
 #include <stdlib.h>
 
 #include "base/debug.hpp"
-#include "base/random.hpp"
+#define EXTERN_RANDOM
+ #include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -15,7 +16,6 @@
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
-#include "threads/threads.hpp"
 
 namespace nissa
 {
@@ -38,11 +38,6 @@ namespace nissa
   //   const dim3 grid_dimension((1+block_dimension.x-1)/block_dimension.x);
   //   cudageneric_kernel<<<grid_dimension,block_dimension>>>(0, 1, [=] __host__ __device__(int){});
   // }
-  
-  rnd_gen glb_rnd_gen;
-  bool glb_rnd_gen_inited;
-  rnd_gen *loc_rnd_gen;
-  bool loc_rnd_gen_inited;
   
   double rnd_get_unif(rnd_gen *gen,double min,double max);
   
