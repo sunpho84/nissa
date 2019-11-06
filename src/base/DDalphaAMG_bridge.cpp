@@ -10,7 +10,6 @@
 #include "io/checksum.hpp"
 #include "io/input.hpp"
 #include "new_types/su3.hpp"
-#include "routines/thread.hpp"
 #include "routines/mpi_routines.hpp"
 
 
