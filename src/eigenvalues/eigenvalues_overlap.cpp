@@ -2,8 +2,9 @@
  #include "config.hpp"
 #endif
 
-#include <eigenvalues/eigenvalues.hpp>
+#include <base/random.hpp>
 #include <dirac_operators/overlap/dirac_operator_overlap.hpp>
+#include <eigenvalues/eigenvalues.hpp>
 
 namespace nissa
 {

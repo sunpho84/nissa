@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include <base/random.hpp>
 #include <dirac_operators/stD/dirac_operator_stD.hpp>
 #include <eigenvalues/eigenvalues.hpp>
 #include <geometry/geometry_eo.hpp>

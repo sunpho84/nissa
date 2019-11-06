@@ -11,6 +11,7 @@
 
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 
