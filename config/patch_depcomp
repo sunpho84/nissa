@@ -1,19 +1,19 @@
-173a174,206
+173a174,208
 > nvcc)
 > 
 >     generate=false
 >     for arg
 >     do
-> 	if [ "$arg" == "-c" ]
+> 	if test "$arg" = "-c"
 > 	then
 > 	    generate=true
 > 	fi
 >     done
 >     
->     if [ $generate == true ]
+>     if test $generate = true
 >     then
-> 	command="$@ --generate-dependencies -Xcompiler -MD -Xcompiler -MP"
-> 	command=$(echo $command|sed 's|'$object'|'$tmpdepfile'|')
+> 	command="$@ -x cu --generate-dependencies -MT $object -MF $tmpdepfile"
+> 	command=$(echo $command|sed 's|-o '$object'||;s|-x cu||')
 > 	$command
 > 	
 > 	stat=$?
@@ -24,7 +24,9 @@
 > 	    exit $stat
 > 	fi
 >     fi
->     
+> 
+>     mv "$tmpdepfile" "$depfile"
+> 
 >     "$@"
 >     stat=$?
 >     if test $stat -ne 0
