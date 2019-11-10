@@ -32,6 +32,8 @@
 
 #define CUDA_MANAGED
 
+#define CUDA_HOST_AND_DEVICE
+
 namespace nissa
 {
   
