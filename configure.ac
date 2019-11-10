@@ -150,8 +150,10 @@ case "$with_threads_type" in
     	    then
 		THREADS_TYPE=CUDA_THREADS
 		CXX="nvcc"
-		CPPFLAGS="--expt-extended-lambda -x cu $CPPFLAGS"
-	     else
+		CPPFLAGS="--expt-extended-lambda -x cu -Xcudafe --diag_suppress=extern_entity_treated_as_static $CPPFLAGS"
+		CUDA_MANAGED=__managed__
+		CUDA_HOST_AND_DEVICE="__host__ __device__"
+	    else
 		AC_MSG_ERROR(["Asked to enable Cuda when the framework has not been found"])
 	     fi;;
       *) AC_MSG_ERROR(["Unkwnown threads type ${withval}"])
@@ -159,6 +161,8 @@ esac
 AM_CONDITIONAL([USE_OPENMP_THREADS], [test x$with_threads_type = xopenmp])
 AM_CONDITIONAL([USE_CUDA_THREADS], [test x$with_threads_type = xcuda])
 AC_DEFINE_UNQUOTED([THREADS_TYPE],${THREADS_TYPE},[Kind of thread parallelization])
+AC_DEFINE_UNQUOTED([CUDA_MANAGED],${CUDA_MANAGED},[Whether to use managed memory])
+AC_DEFINE_UNQUOTED([CUDA_HOST_AND_DEVICE],${CUDA_HOST_AND_DEVICE},[Whether to duplicate functions for host and device])
 AC_MSG_RESULT([with threads type... ${with_threads_type}])
 SUMMARY_RESULT="$SUMMARY_RESULT
 threads type            : $with_threads_type"
