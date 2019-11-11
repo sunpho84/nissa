@@ -1,8 +1,8 @@
-%pure-parser
+%define api.pure
 %locations
 %defines
 %define parse.lac full
-%error-verbose
+%define parse.error verbose
 %parse-param {nissa::driver_t *driver}
 %lex-param {void *scanner}
 

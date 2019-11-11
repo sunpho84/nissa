@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS=subdir-objects
 
 AM_LFLAGS = -s -P`basename $* | sed 's,l$$,,'`_ -olex.yy.c
-AM_YFLAGS = -d -p `basename $* | sed 's,y$$,,'`_
+AM_YFLAGS = -Wno-yacc -d -p `basename $* | sed 's,y$$,,'`_
 
 LDADD=$(top_builddir)/lib/libnissa.a
 AM_CPPFLAGS=-I$(top_srcdir)/src
