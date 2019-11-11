@@ -19,12 +19,12 @@
 namespace nissa
 {
   //-eo is even-odd
-  EXTERN_GEOMETRY_EO int *loclx_parity;
-  EXTERN_GEOMETRY_EO int *loceo_of_loclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO int *loclx_parity;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO int *loceo_of_loclx;
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loclx_of_loceo[2];
-  EXTERN_GEOMETRY_EO int *surfeo_of_bordeo[2];
-  EXTERN_GEOMETRY_EO coords *loceo_neighup[2];
-  EXTERN_GEOMETRY_EO coords *loceo_neighdw[2];
+  CUDA_MANAGED EXTERN_GEOMETRY_EO int *surfeo_of_bordeo[2];
+  CUDA_MANAGED EXTERN_GEOMETRY_EO coords *loceo_neighup[2];
+  CUDA_MANAGED EXTERN_GEOMETRY_EO coords *loceo_neighdw[2];
   EXTERN_GEOMETRY_EO int eo_geom_inited;
   EXTERN_GEOMETRY_EO int use_eo_geom;
   

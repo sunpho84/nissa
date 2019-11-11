@@ -241,31 +241,33 @@ namespace nissa
     //normalize the configuration
     unitarize_lx_conf_maximal_trace_projecting(conf);
     
-    GET_THREAD_ID();
-    double phi_rel_herm_norm=0;
-    double pi_rel_herm_norm=0;
-    for(int ifield=0;ifield<naux_fields;ifield++)
-      {
-	double phi_herm_norm2=0;
-	double pi_herm_norm2=0;
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  {
-	    su3 temp;
-	    unsafe_su3_hermitian(temp,phi[ifield][ivol]);
-	    su3_subtassign(temp,phi[ifield][ivol]);
-	    phi_herm_norm2+=su3_norm2(temp);
-	    unsafe_su3_hermitian(temp,pi[ifield][ivol]);
-	    su3_subtassign(temp,pi[ifield][ivol]);
-	    pi_herm_norm2+=su3_norm2(temp);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	
-	phi_rel_herm_norm+=sqrt(glb_reduce_double(phi_herm_norm2)/phi_norm2[ifield]);
-	pi_rel_herm_norm+=sqrt(glb_reduce_double(pi_herm_norm2)/pi_norm2[ifield]);
-      }
+    crash("call linalgs in the future");
     
-    master_printf("phi_rel_herm_norm: %lg\n",phi_rel_herm_norm);
-    master_printf("pi_rel_herm_norm: %lg\n",pi_rel_herm_norm);
+    // GET_THREAD_ID();
+    // double phi_rel_herm_norm=0;
+    // double pi_rel_herm_norm=0;
+    // for(int ifield=0;ifield<naux_fields;ifield++)
+    //   {
+    // 	double phi_herm_norm2=0;
+    // 	double pi_herm_norm2=0;
+    // 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    // 	  {
+    // 	    su3 temp;
+    // 	    unsafe_su3_hermitian(temp,phi[ifield][ivol]);
+    // 	    su3_subtassign(temp,phi[ifield][ivol]);
+    // 	    phi_herm_norm2+=su3_norm2(temp);
+    // 	    unsafe_su3_hermitian(temp,pi[ifield][ivol]);
+    // 	    su3_subtassign(temp,pi[ifield][ivol]);
+    // 	    pi_herm_norm2+=su3_norm2(temp);
+    // 	  }
+    // 	NISSA_PARALLEL_LOOP_END;
+	
+    // 	phi_rel_herm_norm+=sqrt(glb_reduce_double(phi_herm_norm2)/phi_norm2[ifield]);
+    // 	pi_rel_herm_norm+=sqrt(glb_reduce_double(pi_herm_norm2)/pi_norm2[ifield]);
+    //   }
+    
+    // master_printf("phi_rel_herm_norm: %lg\n",phi_rel_herm_norm);
+    // master_printf("pi_rel_herm_norm: %lg\n",pi_rel_herm_norm);
     
     //free everything
     for(int ifield=0;ifield<naux_fields;ifield++)
@@ -471,31 +473,33 @@ namespace nissa
     //normalize the configuration
     unitarize_lx_conf_maximal_trace_projecting(conf);
     
-    GET_THREAD_ID();
-    double phi_rel_herm_norm=0;
-    double pi_rel_herm_norm=0;
-    for(int ifield=0;ifield<naux_fields;ifield++)
-      {
-	double phi_herm_norm2=0;
-	double pi_herm_norm2=0;
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  {
-	    su3 temp;
-	    unsafe_su3_hermitian(temp,phi[ifield][ivol]);
-	    su3_subtassign(temp,phi[ifield][ivol]);
-	    phi_herm_norm2+=su3_norm2(temp);
-	    unsafe_su3_hermitian(temp,pi[ifield][ivol]);
-	    su3_subtassign(temp,pi[ifield][ivol]);
-	    pi_herm_norm2+=su3_norm2(temp);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	
-	phi_rel_herm_norm+=sqrt(glb_reduce_double(phi_herm_norm2)/phi_norm2[ifield]);
-	pi_rel_herm_norm+=sqrt(glb_reduce_double(pi_herm_norm2)/pi_norm2[ifield]);
-      }
+    crash("call linalgs in the future");
     
-    master_printf("phi_rel_herm_norm: %lg\n",phi_rel_herm_norm);
-    master_printf("pi_rel_herm_norm: %lg\n",pi_rel_herm_norm);
+    // GET_THREAD_ID();
+    // double phi_rel_herm_norm=0;
+    // double pi_rel_herm_norm=0;
+    // for(int ifield=0;ifield<naux_fields;ifield++)
+    //   {
+    // 	double phi_herm_norm2=0;
+    // 	double pi_herm_norm2=0;
+    // 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    // 	  {
+    // 	    su3 temp;
+    // 	    unsafe_su3_hermitian(temp,phi[ifield][ivol]);
+    // 	    su3_subtassign(temp,phi[ifield][ivol]);
+    // 	    phi_herm_norm2+=su3_norm2(temp);
+    // 	    unsafe_su3_hermitian(temp,pi[ifield][ivol]);
+    // 	    su3_subtassign(temp,pi[ifield][ivol]);
+    // 	    pi_herm_norm2+=su3_norm2(temp);
+    // 	  }
+    // 	NISSA_PARALLEL_LOOP_END;
+	
+    // 	phi_rel_herm_norm+=sqrt(glb_reduce_double(phi_herm_norm2)/phi_norm2[ifield]);
+    // 	pi_rel_herm_norm+=sqrt(glb_reduce_double(pi_herm_norm2)/pi_norm2[ifield]);
+    //   }
+    
+    // master_printf("phi_rel_herm_norm: %lg\n",phi_rel_herm_norm);
+    // master_printf("pi_rel_herm_norm: %lg\n",pi_rel_herm_norm);
     
     //free everything
     for(int ifield=0;ifield<naux_fields;ifield++)

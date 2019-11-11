@@ -7,6 +7,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
+#include "linalgs/linalgs.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
@@ -34,37 +35,27 @@ namespace nissa
     if(guess==NULL) vector_reset(sol);
     else vector_copy(sol,guess);
     
+    const int n=loc_volh*sizeof(spin)/sizeof(double);
+    
     //external loop, used if the internal exceed the maximal number of iterations
     double lambda; //(r_(k+1),r_(k+1))
     double source_norm;
+    double_vector_glb_scalar_prod(&source_norm,(double*)source,(double*)source,n);
     do
       {
 	//calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
 	double delta;
-	{
-	  tmDkern_eoprec_square_eos(s,temp1,temp2,qu,sol);
-	  
-	  double loc_delta=0,loc_source_norm=0;
-	  NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	    for(int id=0;id<4;id++)
-	      for(int ri=0;ri<2;ri++)
-		{
-		  double c1=source[ivol][id][ri]-s[ivol][id][ri];
-		  p[ivol][id][ri]=r[ivol][id][ri]=c1;
-		  if(riter==0) loc_source_norm+=source[ivol][id][ri]*source[ivol][id][ri];
-		  loc_delta+=c1*c1;
-		}
-	  NISSA_PARALLEL_LOOP_END;
-	  set_borders_invalid(p);
-	  delta=glb_reduce_double(loc_delta);
-	  
-	  if(riter==0)
-	    {
-	      source_norm=glb_reduce_double(loc_source_norm);
-	      master_printf("\nSource norm: %lg\n",source_norm);
-	      master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
-	    }
-	}
+	tmDkern_eoprec_square_eos(s,temp1,temp2,qu,sol);
+	
+	double_vector_subt((double*)r,(double*)source,(double*)s,n);
+	double_vector_copy((double*)p,(double*)r,n);
+	double_vector_glb_scalar_prod(&delta,(double*)r,(double*)r,n);
+	
+	if(riter==0)
+	  {
+	    master_printf("\nSource norm: %lg\n",source_norm);
+	    master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
+	  }
 	
 	//main loop
 	int iter=0;
@@ -74,40 +65,18 @@ namespace nissa
 	    double alpha;
 	    
 	    tmDkern_eoprec_square_eos(s,temp1,temp2,qu,p);
-	    
-	    double loc_alpha=0; //real part of the scalar product
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	      for(int id=0;id<4;id++)
-		for(int ri=0;ri<2;ri++)
-		  loc_alpha+=s[ivol][id][ri]*p[ivol][id][ri];
-	    NISSA_PARALLEL_LOOP_END;
-	    alpha=glb_reduce_double(loc_alpha);
+	    double_vector_glb_scalar_prod(&alpha,(double*)s,(double*)p,n);
 	    omega=delta/alpha;
 	    
-	    double loc_lambda=0;
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	      for(int id=0;id<4;id++)
-		for(int ri=0;ri<2;ri++)
-		  {
-		    sol[ivol][id][ri]+=omega*p[ivol][id][ri];    //sol_(k+1)=x_k+omega*p_k
-		    double c1=r[ivol][id][ri]-omega*s[ivol][id][ri];//r_(k+1)=x_k-omega*pk
-		    r[ivol][id][ri]=c1;
-		    loc_lambda+=c1*c1;
-		  }
-	    NISSA_PARALLEL_LOOP_END;
-	    set_borders_invalid(sol);
-	    lambda=glb_reduce_double(loc_lambda);
+	    double_vector_summ_double_vector_prod_double((double*)sol,(double*)sol,(double*)p,omega,n);
+	    double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,-omega,n);
+	    double_vector_glb_scalar_prod(&lambda,(double*)r,(double*)r,n);
 	    
-	    double gammag=lambda/delta; //(r_(k+1),r_(k+1))/(r_k,r_k)
+	    double gammag=lambda/delta;
 	    delta=lambda;
 	    
 	    //p_(k+1)=r_(k+1)+gammag*p_k
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	      for(int id=0;id<4;id++)
-		for(int ri=0;ri<2;ri++)
-		  p[ivol][id][ri]=r[ivol][id][ri]+gammag*p[ivol][id][ri];
-	    NISSA_PARALLEL_LOOP_END;
-	    set_borders_invalid(p);
+	    double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,gammag,n);
 	    
 	    iter++;
 	    
@@ -117,19 +86,9 @@ namespace nissa
 	
 	//last calculation of residual, in the case iter>niter
 	tmDkern_eoprec_square_eos(s,temp1,temp2,qu,sol);
-	{
-	  double loc_lambda=0;
-	  NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	    for(int id=0;id<4;id++)
-	      for(int ri=0;ri<2;ri++)
-		{
-		  double c1=source[ivol][id][ri]-s[ivol][id][ri];
-		  loc_lambda+=c1*c1;
-		}
-	  NISSA_PARALLEL_LOOP_END;
-	  
-	  lambda=glb_reduce_double(loc_lambda);
-	}
+	double_vector_subt((double*)r,(double*)source,(double*)s,n);
+	double_vector_glb_scalar_prod(&lambda,(double*)r,(double*)r,n);
+	
 	master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);
 	
 	riter++;

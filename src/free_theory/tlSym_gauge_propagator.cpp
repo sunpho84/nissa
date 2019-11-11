@@ -25,7 +25,7 @@ namespace nissa
   //if the momentum has to be removed return 0, otherwise return 1
   //cancel the zero modes for all spatial when UNNO_ALEMANNA prescription asked
   //or if PECIONA prescription and full zero mode
-  bool zero_mode_subtraction_mask(gauge_info gl,int imom)
+  CUDA_HOST_AND_DEVICE bool zero_mode_subtraction_mask(gauge_info gl,int imom)
   {
     switch(gl.zms)
       {
@@ -35,20 +35,19 @@ namespace nissa
 	return !(glb_coord_of_loclx[imom][0]==0&&glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
       case ONLY_100:
 	return (glb_coord_of_loclx[imom][1]+glb_coord_of_loclx[imom][2]+glb_coord_of_loclx[imom][3]==1);break;
-      default: crash("unknown zms: %d\n",(int)gl.zms);
       }
     
     return 0;
   }
   
   //cancel the mode if it is zero according to the prescription
-  bool cancel_if_zero_mode(spin1prop prop,gauge_info gl,int imom)
+  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1prop prop,gauge_info gl,int imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
     for(int mu=0;mu<4;mu++) for(int nu=0;nu<4;nu++) for(int reim=0;reim<2;reim++) prop[mu][nu][reim]*=m;
     return !m;
   }
-  bool cancel_if_zero_mode(spin1field prop,gauge_info gl,int imom)
+  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1field prop,gauge_info gl,int imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
     //if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
@@ -58,7 +57,7 @@ namespace nissa
   }
   
   //compute the tree level Symanzik gauge propagator in the momentum space according to P.Weisz
-  void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,int imom)
+  CUDA_HOST_AND_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,int imom)
   {
     double c1=gl.c1,c12=c1*c1,c13=c12*c1;
     int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
@@ -164,6 +163,9 @@ namespace nissa
   {
     GET_THREAD_ID();
     
+    if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
+      crash("Eigen required when out of Wilson regularisation in the Feynaman gauge");
+    
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
 	//take the propagator
@@ -223,8 +225,6 @@ namespace nissa
 	    out[imom][mu][IM]=eout(mu).imag();
 	  }
 #else
-	if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
-	  crash("Eigen required when out of Wilson regularisation in the Feynaman gauge");
 	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
 #endif
 	
@@ -239,9 +239,6 @@ namespace nissa
 	    nre+=sqr(out[imom][mu][RE]);
 	    nim+=sqr(out[imom][mu][IM]);
 	  }
-	
-	//check
-	verbosity_lv3_master_printf("Site %d , tr %lg , nre %lg , nim %lg\n",imom,tr,nre,nim);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -301,7 +298,7 @@ namespace nissa
     multiply_mom_space_sqrt_tlSym_gauge_propagator(photon,photon,gl);
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
-	spin_prodassign_double(photon[imom],sqrt(glb_vol));
+	spin_prodassign_double(photon[imom],sqrtf(glb_vol));
 	cancel_if_zero_mode(photon[imom],gl,imom);
       }
     NISSA_PARALLEL_LOOP_END;

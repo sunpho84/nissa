@@ -23,17 +23,17 @@ namespace nissa
     if(eooe==0) communicate_od_spin_borders(in);
     else        communicate_ev_spin_borders(in);
     
-    int Xup,Xdw;
-    
     complex phases[4];
     for(int mu=0;mu<4;mu++)
-      {    
+      {
 	phases[mu][RE]=cos(M_PI*bc[mu]);
 	phases[mu][IM]=sin(M_PI*bc[mu]);
       }
     
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       {
+	int Xup,Xdw;
+	
 	complex temp_c0,temp_c1;
 	
 	//Forward 0

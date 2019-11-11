@@ -57,11 +57,11 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute args for non-present quantization
-  void get_args_of_null_quantization(coords phase,int ivol,int mu,int nu)
+  CUDA_HOST_AND_DEVICE void get_args_of_null_quantization(coords phase,int ivol,int mu,int nu)
   {phase[0]=phase[1]=phase[2]=phase[3]=0;}
   
   //compute args for 1/L2 quantization
-  void get_args_of_one_over_L2_quantization(coords phase,int ivol,int mu,int nu)
+  CUDA_HOST_AND_DEVICE void get_args_of_one_over_L2_quantization(coords phase,int ivol,int mu,int nu)
   {
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
@@ -78,11 +78,10 @@ namespace nissa
   }
   
   //compute args for half-half quantization
-  void get_args_of_half_half_quantization(coords phase,int ivol,int mu,int nu)
+  CUDA_HOST_AND_DEVICE void get_args_of_half_half_quantization(coords phase,int ivol,int mu,int nu)
   {
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
-    if(glb_size[mu]%4) crash("global size in %d direction must be multiple of 4, it is %d",mu,glb_size[mu]);
     
     //take absolute coords
     int xmu=glb_coord_of_loclx[ivol][mu];
@@ -93,7 +92,7 @@ namespace nissa
     phase[nu]=xmu;
   }
   
-  void (*get_args_of_quantization[3])(coords,int,int,int)=
+  CUDA_MANAGED void (*get_args_of_quantization[3])(coords,int,int,int)=
   {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
   
   //multiply a background field by a constant em field
@@ -103,6 +102,9 @@ namespace nissa
     GET_THREAD_ID();
     
     double phase=2*em_str*quark_content->charge*M_PI/glb_size[mu]/glb_size[nu];
+    
+    if(quantization==2 and glb_size[mu]%4!=0)
+      crash("for half-half quantization global size in %d direction must be multiple of 4, it is %d",mu,glb_size[mu]);
     
     for(int par=0;par<2;par++)
       {

@@ -48,7 +48,7 @@ namespace nissa
     float_128_copy(a,c);
   }
   
-  inline void float_128_uminus(float_128 b,float_128 a)
+  CUDA_HOST_AND_DEVICE inline void float_128_uminus(float_128 b,float_128 a)
   {
     b[0]=-a[0];
     b[1]=-a[1];
@@ -60,14 +60,14 @@ namespace nissa
     b[1]=0;
   }
   
-  inline void float_128_put_to_zero(float_128 a)
+  CUDA_HOST_AND_DEVICE inline void float_128_put_to_zero(float_128 a)
   {a[0]=a[1]=0;}
   
   inline double double_from_float_128(float_128 b)
   {return b[0]+b[1];}
   
   //128 summ 128
-  inline void float_128_summ(float_128 c,float_128 a,float_128 b)
+  CUDA_HOST_AND_DEVICE inline void float_128_summ(float_128 c,float_128 a,float_128 b)
   {
 #ifndef fake_128
     double t1=a[0]+b[0];
@@ -81,15 +81,15 @@ namespace nissa
     c[1]=0;
 #endif
   }
-  inline void float_128_summassign(float_128 b,float_128 a)
+  CUDA_HOST_AND_DEVICE inline void float_128_summassign(float_128 b,float_128 a)
   {float_128_summ(b,b,a);}
-  inline void float_128_subt(float_128 c,float_128 a,float_128 b)
+  CUDA_HOST_AND_DEVICE inline void float_128_subt(float_128 c,float_128 a,float_128 b)
   {
     float_128 d;
     float_128_uminus(d,b);
     float_128_summ(c,d,a);
   }
-  inline void float_128_subtassign(float_128 b,float_128 a)
+  CUDA_HOST_AND_DEVICE inline void float_128_subtassign(float_128 b,float_128 a)
   {float_128_subt(b,b,a);}
   
   //128 summ 64
@@ -195,7 +195,7 @@ namespace nissa
   }
   
   //128 prod 64
-  inline void float_128_prod_64(float_128 c,float_128 a,double b)
+  CUDA_HOST_AND_DEVICE inline void float_128_prod_64(float_128 c,const float_128 a,const double b)
   {
 #ifndef fake_128
     const double split=134217729;
@@ -224,15 +224,15 @@ namespace nissa
     c[1]=0;
 #endif
   }
-  inline void float_64_prod_128(float_128 c,double a,float_128 b)
+  CUDA_HOST_AND_DEVICE inline void float_64_prod_128(float_128 c,const double a,const float_128 b)
   {float_128_prod_64(c,b,a);}
-  inline void float_summ_the_64_prod_128(float_128 c,double a,float_128 b)
+  CUDA_HOST_AND_DEVICE inline void float_summ_the_64_prod_128(float_128 c,const double a,const float_128 b)
   {
     float_128 d;
     float_64_prod_128(d,a,b);
     float_128_summassign(c,d);
   }
-  inline void float_subt_the_64_prod_128(float_128 c,double a,float_128 b)
+  CUDA_HOST_AND_DEVICE inline void float_subt_the_64_prod_128(float_128 c,const double a,const float_128 b)
   {
     float_128 d;
     float_64_prod_128(d,a,b);
@@ -416,29 +416,29 @@ namespace nissa
   
   //////////////////////////////////////////////////////
   
-  inline void complex_128_put_to_zero(complex_128 a)
+  CUDA_HOST_AND_DEVICE inline void complex_128_put_to_zero(complex_128 a)
   {for(int ri=0;ri<2;ri++) float_128_put_to_zero(a[ri]);}
   
   //c128 summ c128
-  inline void complex_128_summ(complex_128 a,complex_128 b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void complex_128_summ(complex_128 a,complex_128 b,complex_128 c)
   {for(int ri=0;ri<2;ri++) float_128_summ(a[ri],b[ri],c[ri]);}
-  inline void complex_128_summassign(complex_128 a,complex_128 b)
+  CUDA_HOST_AND_DEVICE inline void complex_128_summassign(complex_128 a,complex_128 b)
   {complex_128_summ(a,a,b);}
   inline void complex_128_summassign_64(complex_128 a,complex b)
   {for(int ri=0;ri<2;ri++) float_128_summassign_64(a[ri],b[ri]);}
-  inline void complex_128_subt(complex_128 a,complex_128 b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void complex_128_subt(complex_128 a,complex_128 b,complex_128 c)
   {for(int ri=0;ri<2;ri++) float_128_subt(a[ri],b[ri],c[ri]);}
   inline void complex_128_subtassign(complex_128 a,complex_128 b)
   {complex_128_subt(a,a,b);}
   
   //c128 isumm c128
-  inline void complex_128_isumm(complex_128 a,complex_128 b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void complex_128_isumm(complex_128 a,complex_128 b,complex_128 c)
   {
     float_128 d={c[0][0],c[0][1]};
     float_128_subt(a[0],b[0],c[1]);
     float_128_summ(a[1],b[1],d);
   }
-  inline void complex_128_isubt(complex_128 a,complex_128 b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void complex_128_isubt(complex_128 a,complex_128 b,complex_128 c)
   {
     float_128 d={c[0][0],c[0][1]};
     float_128_summ(a[0],b[0],c[1]);
@@ -466,7 +466,7 @@ namespace nissa
   }
   
   //c64 prod c128
-  inline void unsafe_complex_64_prod_128(complex_128 a,complex b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void unsafe_complex_64_prod_128(complex_128 a,const complex b,const complex_128 c)
   {
     //real part
     float_64_prod_128(a[0],b[0],c[0]);
@@ -477,7 +477,7 @@ namespace nissa
   }
   inline void unsafe_complex_128_prod_64(complex_128 a,complex_128 b,complex c)
   {unsafe_complex_64_prod_128(a,c,b);}
-  inline void complex_summ_the_64_prod_128(complex_128 a,complex b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void complex_summ_the_64_prod_128(complex_128 a,complex b,complex_128 c)
   {
     complex_128 d;
     unsafe_complex_64_prod_128(d,b,c);
@@ -491,13 +491,13 @@ namespace nissa
   }
   
   //c64~ prod c128
-  inline void unsafe_complex_64_conj1_prod_128(complex_128 a,complex b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void unsafe_complex_64_conj1_prod_128(complex_128 a,complex b,complex_128 c)
   {
     complex d;
     complex_conj(d,b);
     unsafe_complex_64_prod_128(a,d,c);
   }
-  inline void complex_summ_the_64_conj1_prod_128(complex_128 a,complex b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void complex_summ_the_64_conj1_prod_128(complex_128 a,complex b,complex_128 c)
   {
     complex d;
     complex_conj(d,b);
@@ -509,30 +509,30 @@ namespace nissa
   inline void color_128_copy(color_128 a,color_128 b)
   {memcpy(a,b,sizeof(color_128));}
   
-  inline void color_128_summ(color_128 a,color_128 b,color_128 c)
+  CUDA_HOST_AND_DEVICE inline void color_128_summ(color_128 a,color_128 b,color_128 c)
   {for(int ic=0;ic<3;ic++) complex_128_summ(a[ic],b[ic],c[ic]);}
   inline void color_128_summassign(color_128 a,color_128 b)
   {color_128_summ(a,a,b);}
   
-  inline void color_128_isumm(color_128 a,color_128 b,color_128 c)
+  CUDA_HOST_AND_DEVICE inline void color_128_isumm(color_128 a,color_128 b,color_128 c)
   {for(int ic=0;ic<3;ic++) complex_128_isumm(a[ic],b[ic],c[ic]);}
   inline void color_128_isummassign(color_128 a,color_128 b)
   {color_128_isumm(a,a,b);}
   
-  inline void color_128_subt(color_128 a,color_128 b,color_128 c)
+  CUDA_HOST_AND_DEVICE inline void color_128_subt(color_128 a,color_128 b,color_128 c)
   {for(int ic=0;ic<3;ic++) complex_128_subt(a[ic],b[ic],c[ic]);}
   inline void color_128_subtassign(color_128 a,color_128 b)
   {color_128_subt(a,a,b);}
   
-  inline void color_128_isubt(color_128 a,color_128 b,color_128 c)
+  CUDA_HOST_AND_DEVICE inline void color_128_isubt(color_128 a,color_128 b,color_128 c)
   {for(int ic=0;ic<3;ic++) complex_128_isubt(a[ic],b[ic],c[ic]);}
-  inline void color_128_isubtassign(color_128 a,color_128 b)
+  CUDA_HOST_AND_DEVICE inline void color_128_isubtassign(color_128 a,color_128 b)
   {color_128_isubt(a,a,b);}
   
   inline void unsafe_color_128_prod_complex_64(color_128 out,color_128 in,complex factor)
   {for(size_t i=0;i<NCOL;i++) unsafe_complex_128_prod_64(((complex_128*)out)[i],((complex_128*)in)[i],factor);}
   
-  inline void unsafe_su3_prod_color_128(color_128 a,su3 b,color_128 c)
+  CUDA_HOST_AND_DEVICE inline void unsafe_su3_prod_color_128(color_128 a,su3 b,color_128 c)
   {
     for(int c1=0;c1<NCOL;c1++)
       {
@@ -541,7 +541,7 @@ namespace nissa
       }
   }
   
-  inline void unsafe_su3_dag_prod_color_128(color_128 a,su3 b,color_128 c)
+  CUDA_HOST_AND_DEVICE inline void unsafe_su3_dag_prod_color_128(color_128 a,su3 b,color_128 c)
   {
     for(int c1=0;c1<NCOL;c1++)
       {
@@ -571,7 +571,7 @@ namespace nissa
 	complex_summ_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
   }
   
-  inline void unsafe_halfspincolor_halfspincolor_times_halfspincolor_128(halfspincolor_128 a,halfspincolor_halfspincolor b,halfspincolor_128 c)
+  CUDA_HOST_AND_DEVICE inline void unsafe_halfspincolor_halfspincolor_times_halfspincolor_128(halfspincolor_128 a,halfspincolor_halfspincolor b,halfspincolor_128 c)
   {
     for(int id_out=0;id_out<NDIRAC/2;id_out++)
       for(int ic_out=0;ic_out<NCOL;ic_out++)
@@ -583,7 +583,7 @@ namespace nissa
 	}
   }
   
-  inline void unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor_128(halfspincolor_128 a,halfspincolor_halfspincolor b,halfspincolor_128 c)
+  CUDA_HOST_AND_DEVICE inline void unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor_128(halfspincolor_128 a,halfspincolor_halfspincolor b,halfspincolor_128 c)
   {
     for(int id_out=0;id_out<NDIRAC/2;id_out++)
       for(int ic_out=0;ic_out<NCOL;ic_out++)

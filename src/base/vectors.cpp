@@ -228,7 +228,8 @@ namespace nissa
 	main_vect.prev=main_vect.next=NULL;
 	main_vect.nel=0;
 	main_vect.size_per_el=0;
-	memcpy(main_vect.file,__FILE__+std::max(0,(int)strlen(__FILE__)-12),12);
+	const char file_name[]=__FILE__;
+	memcpy(main_vect.file,file_name+std::max(0,(int)strlen(file_name)-12),12);
 	main_vect.line=__LINE__;
 	main_arr=(char*)last_vect+sizeof(nissa_vect);
 	

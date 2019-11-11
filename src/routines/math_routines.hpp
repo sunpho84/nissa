@@ -33,9 +33,19 @@ namespace nissa
   
   template <class T>
   T nissa_max(T a,T b)
-  {return std::max(a,b);}
+  {
+    return std::max(a,b);
+  }
+  
+  template <class T1,class T2>
+  CUDA_HOST_AND_DEVICE
+  auto nissa_min(const T1& a,const T2& b)
+  {
+    return (a<b)?a:b;
+  }
   
   template <class T>
+  CUDA_HOST_AND_DEVICE
   T sqr(T a)
   {return a*a;}
   

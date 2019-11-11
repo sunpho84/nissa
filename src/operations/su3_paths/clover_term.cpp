@@ -115,7 +115,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //apply the chromo operator to the passed spincolor
-  void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,clover_term_t Cl,spincolor in)
+  CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,clover_term_t Cl,spincolor in)
   {
     unsafe_su3_prod_color(out[0],Cl[0],in[0]);
     su3_dag_summ_the_prod_color(out[0],Cl[1],in[1]);
@@ -138,7 +138,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //128 bit case
-  void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in)
+  CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in)
   {
     unsafe_su3_prod_color_128(out[0],Cl[0],in[0]);
     su3_dag_summ_the_prod_color_128(out[0],Cl[1],in[1]);
@@ -214,7 +214,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //apply a diagonal matrix plus clover term to up or low components
-  void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in)
+  CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in)
   {
     unsafe_color_prod_complex(out[0],in[0],diag);
     su3_summ_the_prod_color(out[0],Cl[0],in[0]);
@@ -224,7 +224,7 @@ namespace nissa
     su3_summ_the_prod_color(out[1],Cl[1],in[0]);
     su3_subt_the_prod_color(out[1],Cl[0],in[1]);
   }
-  void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex diag,clover_term_t Cl,halfspincolor_128 in)
+  CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex diag,clover_term_t Cl,halfspincolor_128 in)
   {
     unsafe_color_128_prod_complex_64(out[0],in[0],diag);
     su3_summ_the_prod_color_128(out[0],Cl[0],in[0]);

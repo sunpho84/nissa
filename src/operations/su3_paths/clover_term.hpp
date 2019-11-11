@@ -9,7 +9,7 @@
 
 namespace nissa
 {
-  void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,clover_term_t Cl,spincolor in);
+  CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,clover_term_t Cl,spincolor in);
   void unsafe_apply_chromo_operator_to_spincolor(spincolor *out,clover_term_t *Cl,spincolor *in);
   void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,clover_term_t *Cl,colorspinspin *in);
   void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,clover_term_t *Cl,su3spinspin *in);
@@ -37,9 +37,9 @@ namespace nissa
     chromo_operator_include_cSW(Cl,cSW);
   }
   
-  void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in);
-  void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex diag,clover_term_t Cl,halfspincolor_128 in);
-  void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in);
+  CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in);
+  CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex diag,clover_term_t Cl,halfspincolor_128 in);
+  CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in);
   inline void apply_point_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
   {
     complex z={1/(2*kappa),mass};
