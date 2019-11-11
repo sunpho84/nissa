@@ -150,7 +150,7 @@ case "$with_threads_type" in
     	    then
 		THREADS_TYPE=CUDA_THREADS
 		CXX="nvcc"
-		CPPFLAGS="--expt-extended-lambda -x cu -Xcudafe --diag_suppress=extern_entity_treated_as_static $CPPFLAGS"
+		CPPFLAGS="-dc --expt-extended-lambda -x cu -Xcudafe --diag_suppress=extern_entity_treated_as_static $CPPFLAGS"
 		CUDA_MANAGED=__managed__
 		CUDA_HOST_AND_DEVICE="__host__ __device__"
 	    else
