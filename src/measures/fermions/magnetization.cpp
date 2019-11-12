@@ -49,21 +49,21 @@ namespace nissa
               complex t;
               
               //mu component of x
-              int ix=glb_coord_of_loclx[ivol][1];
+              //int ix=glb_coord_of_loclx[ivol][1];
               
               //forward derivative
               unsafe_su3_prod_color(v,conf[par][ieo][rho],chi[!par][iup_eo]);
               color_scalar_prod(t,rnd[par][ieo],v);
               complex_summ_the_prod_double(point_magn[ivol],t,arg[ivol][rho]);
               //compute also the projected current
-              complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[ivol][rho]);
+              #warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[ivol][rho]);
               
               //backward derivative: note that we should multiply for -arg*(-U^+)
               unsafe_su3_dag_prod_color(v,conf[!par][idw_eo][rho],chi[!par][idw_eo]);
               color_scalar_prod(t,rnd[par][ieo],v);
 	      complex_summ_the_prod_double(point_magn[ivol],t,arg[idw_lx][rho]);
               //compute also the projected current
-              complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[idw_lx][rho]);
+              #warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[idw_lx][rho]);
             }
         }
     NISSA_PARALLEL_LOOP_END;

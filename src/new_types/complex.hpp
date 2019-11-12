@@ -26,7 +26,7 @@ namespace nissa
   
   inline double real_part_of_complex_prod(const complex a,const complex b)
   {return a[0]*b[0]-a[1]*b[1];};
-  inline double real_part_of_complex_scalar_prod(const complex a,const complex b)
+  CUDA_HOST_AND_DEVICE inline double real_part_of_complex_scalar_prod(const complex a,const complex b)
   {return a[0]*b[0]+a[1]*b[1];};
   //print
   inline void complex_print(const complex a)
@@ -86,7 +86,7 @@ namespace nissa
   }
   inline void complex_isummassign(complex a,const complex b)
   {complex_isumm(a,a,b);}
-  inline void complex_summ_conj2(complex a,const complex b,const complex c)
+  CUDA_HOST_AND_DEVICE inline void complex_summ_conj2(complex a,const complex b,const complex c)
   {
     a[0]=b[0]+c[0];
     a[1]=b[1]-c[1];
@@ -105,7 +105,7 @@ namespace nissa
   }
   inline void complex_isubtassign(complex a,const complex b)
   {complex_isubt(a,a,b);}
-  inline void complex_subt_conj2(complex a,const complex b,const complex c)
+  CUDA_HOST_AND_DEVICE inline void complex_subt_conj2(complex a,const complex b,const complex c)
   {
     a[0]=b[0]-c[0];
     a[1]=b[1]+c[1];
@@ -115,7 +115,7 @@ namespace nissa
     a[0]=+b[0]-c[0];
     a[1]=-b[1]-c[1];
   }
-  inline void complex_summassign(complex a,const complex b) {complex_summ(a,a,b);}
+  CUDA_HOST_AND_DEVICE inline void complex_summassign(complex a,const complex b) {complex_summ(a,a,b);}
   inline void complex_subtassign(complex a,const complex b) {complex_subt(a,a,b);}
   
   //put to exp
@@ -125,7 +125,7 @@ namespace nissa
   //prod with real
   CUDA_HOST_AND_DEVICE inline void complex_prod_double(complex a,const complex b,const double c) {a[RE]=b[RE]*c;a[IM]=b[IM]*c;}
   inline void complex_prodassign_double(complex a,const double c) {complex_prod_double(a,a,c);}
-  inline void complex_prod_idouble(complex a,const complex b,const double c) {const double d=-b[IM]*c;a[IM]=b[RE]*c;a[RE]=d;}
+  CUDA_HOST_AND_DEVICE inline void complex_prod_idouble(complex a,const complex b,const double c) {const double d=-b[IM]*c;a[IM]=b[RE]*c;a[RE]=d;}
   inline void complex_prodassign_idouble(complex a,const double b) {complex_prod_idouble(a,a,b);}
   
   //summ the prod with real
@@ -220,7 +220,7 @@ namespace nissa
   {complex_subt_the_conj2_prod(a,c,b);}
   CUDA_HOST_AND_DEVICE inline void single_complex_subt_the_conj1_prod(single_complex a,const single_complex b,const single_complex c)
   {single_complex_subt_the_conj2_prod(a,c,b);}
-  inline void complex_subt_the_conj_conj_prod(complex a,const complex b,const complex c)
+  CUDA_HOST_AND_DEVICE inline void complex_subt_the_conj_conj_prod(complex a,const complex b,const complex c)
   {
     const double t=+b[0]*c[0]-b[1]*c[1];
     a[1]-=-b[0]*c[1]-b[1]*c[0];
@@ -286,7 +286,7 @@ namespace nissa
   }
   
   //The product of two complex number
-  inline void safe_complex_prod(complex a,const complex b,const complex c)
+  CUDA_HOST_AND_DEVICE inline void safe_complex_prod(complex a,const complex b,const complex c)
   {
     const double tmp=b[0]*c[0]-b[1]*c[1];
     a[1]=b[0]*c[1]+b[1]*c[0];
@@ -326,23 +326,23 @@ namespace nissa
   {safe_complex_conj2_prod_minus(a,c,b);}
   
   //complex prod i
-  inline void safe_complex_prod_i(complex a,const complex b)
+  CUDA_HOST_AND_DEVICE inline void safe_complex_prod_i(complex a,const complex b)
   {
     const double tmp=b[0];
     a[0]=-b[1];
     a[1]=tmp;
   }
-  inline void assign_complex_prod_i(complex a)
+  CUDA_HOST_AND_DEVICE inline void assign_complex_prod_i(complex a)
   {safe_complex_prod_i(a,a);}
   
   //complex prod -i
-  inline void safe_complex_prod_minus_i(complex a,const complex b)
+  CUDA_HOST_AND_DEVICE inline void safe_complex_prod_minus_i(complex a,const complex b)
   {
     const double tmp=b[0];
     a[0]=b[1];
     a[1]=-tmp;
   }
-  inline void assign_complex_prod_minus_i(complex a)
+  CUDA_HOST_AND_DEVICE inline void assign_complex_prod_minus_i(complex a)
   {safe_complex_prod_minus_i(a,a);}
   inline void complex_summ_the_prod_i(complex a,const complex b,const complex c)
   {
@@ -379,11 +379,11 @@ namespace nissa
     a[0]+=-b[0]*c[1]-b[1]*c[0];
   }
   //squared norm
-  inline double complex_norm2(const complex c)
+  CUDA_HOST_AND_DEVICE inline double complex_norm2(const complex c)
   {return c[0]*c[0]+c[1]*c[1];}
   
   //reciprocal of a complex
-  inline void complex_reciprocal(complex rec,const complex c)
+  CUDA_HOST_AND_DEVICE inline void complex_reciprocal(complex rec,const complex c)
   {
     const double module=c[0]*c[0]+c[1]*c[1];
     
@@ -405,7 +405,7 @@ namespace nissa
   }
   
   //power of a complex
-  inline void complex_pow(complex res,const complex base,const double exp)
+  CUDA_HOST_AND_DEVICE inline void complex_pow(complex res,const complex base,const double exp)
   {
     const double module=pow(base[0]*base[0]+base[1]*base[1],exp/2);
     const double anomaly=atan2(base[1],base[0])*exp;

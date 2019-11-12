@@ -15,7 +15,7 @@ namespace nissa
   int float_256_is_greater(float_256 a,float_256 b);
   int float_256_is_smaller(float_256 a,double b);
   int float_256_is_smaller(float_256 a,float_256 b);
-  void float_128_print(float_128 a);
+  //void float_128_print(float_128 a);
   void float_256_abs(float_256 a,float_256 b);
   void float_256_copy(float_256 b,float_256 a);
   void float_256_div(float_256 c,float_256 a,float_256 b);

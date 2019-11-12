@@ -71,7 +71,7 @@ namespace nissa
     /*call the routine which perform the contraction*/			\
     NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE)(corr,loc_corr,tsource,s1,tsink,s2,ncontr); \
   }
-
+  
   DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(colorspinspin,css)
   DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(su3spinspin,ccss)
   

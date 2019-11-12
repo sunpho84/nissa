@@ -158,7 +158,6 @@ namespace nissa
 	    {
 	      int sign=1,ivol=loclx_of_loceo[eo][ieo];
 	      for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1) and (glb_coord_of_loclx[ivol][mu]&0x1));
-	      if(abs(sign)!=1) crash("unexpected sign %d",sign);
 	      color_prod_double(source[eo][ieo],source[eo][ieo],sign);
 	    }
 	  NISSA_PARALLEL_LOOP_END;

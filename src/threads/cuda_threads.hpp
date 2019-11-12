@@ -1,6 +1,8 @@
 #ifndef _CUDA_THREADS_HPP
 #define _CUDA_THREADS_HPP
 
+#include "base/init.hpp"
+
 #define NUM_THREADS 128
 
 #define NACTIVE_THREADS 1
@@ -64,6 +66,15 @@ namespace nissa
   
   inline void thread_barrier_internal()
   {
+  }
+  
+  //start nissa
+  inline void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg),const char compile_info[5][1024])
+  {
+    //initialize nissa (master thread only)
+    init_nissa(narg,arg,compile_info);
+    
+    main_function(narg,arg);
   }
 }
 

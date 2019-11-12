@@ -77,7 +77,7 @@ namespace nissa
   void start_rnd_gen(rnd_gen *out,int seed);
   void stop_loc_rnd_gen();
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
-  void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd);
+  CUDA_HOST_AND_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd);
   
   //read from /dev/urandom
   template <typename T>

@@ -47,14 +47,14 @@ namespace nissa
   EXTERN_GEOMETRY_LX int *loclx_of_bulklx;
   EXTERN_GEOMETRY_LX int *loclx_of_surflx;
   EXTERN_GEOMETRY_LX int *loclx_of_non_bw_surflx;
-  EXTERN_GEOMETRY_LX int *loclx_of_non_fw_surflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclx_of_non_fw_surflx;
   EXTERN_GEOMETRY_LX int *loclx_of_bw_surflx;
-  EXTERN_GEOMETRY_LX int *loclx_of_fw_surflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclx_of_fw_surflx;
   EXTERN_GEOMETRY_LX int lx_geom_inited;
   //box, division in 2^NDIM of the lattice
   EXTERN_GEOMETRY_LX coords box_coord[1<<NDIM];
   EXTERN_GEOMETRY_LX coords box_size[1<<NDIM];
-  EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
   //neighbours of local volume + borders
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords *loclx_neighdw,*loclx_neighup;
   EXTERN_GEOMETRY_LX coords *loclx_neigh[2];
@@ -64,7 +64,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX coords rank_coord;
   EXTERN_GEOMETRY_LX coords rank_neigh[2],rank_neighdw,rank_neighup;
   EXTERN_GEOMETRY_LX coords plan_rank,line_rank,line_coord_rank;
-  EXTERN_GEOMETRY_LX coords nrank_dir;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords nrank_dir;
   EXTERN_GEOMETRY_LX int grid_inited;
   EXTERN_GEOMETRY_LX int nparal_dir;
   EXTERN_GEOMETRY_LX coords paral_dir;
@@ -83,10 +83,10 @@ namespace nissa
   EXTERN_GEOMETRY_LX bool all_other_dirs[NDIM][NDIM];
   EXTERN_GEOMETRY_LX bool all_other_spat_dirs[NDIM][NDIM];
 #if NDIM >= 2
-  EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
 #endif
 #if NDIM >= 3
-  EXTERN_GEOMETRY_LX int perp2_dir[NDIM][NDIM-1][NDIM-2];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int perp2_dir[NDIM][NDIM-1][NDIM-2];
 #endif
 #if NDIM >= 4
   EXTERN_GEOMETRY_LX int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];
@@ -116,13 +116,13 @@ namespace nissa
   int glblx_of_diff(int b,int c);
   int glblx_of_summ(int b,int c);
   int glblx_opp(int b);
-  int loclx_of_coord(coords x);
+  CUDA_HOST_AND_DEVICE int loclx_of_coord(coords x);
   inline int loclx_of_coord_list(int x0,int x1,int x2,int x3)
   {
     coords c={x0,x1,x2,x3};
     return loclx_of_coord(c);
   }
-  int lx_of_coord(coords x,coords s);
+  CUDA_HOST_AND_DEVICE int lx_of_coord(coords x,coords s);
   int vol_of_lx(coords size);
   int rank_hosting_glblx(int gx);
   int rank_hosting_site_of_coord(coords x);

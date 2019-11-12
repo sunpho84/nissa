@@ -428,7 +428,7 @@ namespace nissa
   {for(int ri=0;ri<2;ri++) float_128_summassign_64(a[ri],b[ri]);}
   CUDA_HOST_AND_DEVICE inline void complex_128_subt(complex_128 a,complex_128 b,complex_128 c)
   {for(int ri=0;ri<2;ri++) float_128_subt(a[ri],b[ri],c[ri]);}
-  inline void complex_128_subtassign(complex_128 a,complex_128 b)
+  CUDA_HOST_AND_DEVICE inline void complex_128_subtassign(complex_128 a,complex_128 b)
   {complex_128_subt(a,a,b);}
   
   //c128 isumm c128
@@ -475,7 +475,7 @@ namespace nissa
     float_64_prod_128(a[1],b[0],c[1]);
     float_summ_the_64_prod_128(a[1],b[1],c[0]);
   }
-  inline void unsafe_complex_128_prod_64(complex_128 a,complex_128 b,complex c)
+  CUDA_HOST_AND_DEVICE inline void unsafe_complex_128_prod_64(complex_128 a,complex_128 b,complex c)
   {unsafe_complex_64_prod_128(a,c,b);}
   CUDA_HOST_AND_DEVICE inline void complex_summ_the_64_prod_128(complex_128 a,complex b,complex_128 c)
   {
@@ -483,7 +483,7 @@ namespace nissa
     unsafe_complex_64_prod_128(d,b,c);
     complex_128_summassign(a,d);
   }
-  inline void complex_subt_the_64_prod_128(complex_128 a,complex b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void complex_subt_the_64_prod_128(complex_128 a,complex b,complex_128 c)
   {
     complex_128 d;
     unsafe_complex_64_prod_128(d,b,c);
@@ -529,7 +529,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void color_128_isubtassign(color_128 a,color_128 b)
   {color_128_isubt(a,a,b);}
   
-  inline void unsafe_color_128_prod_complex_64(color_128 out,color_128 in,complex factor)
+  CUDA_HOST_AND_DEVICE inline void unsafe_color_128_prod_complex_64(color_128 out,color_128 in,complex factor)
   {for(size_t i=0;i<NCOL;i++) unsafe_complex_128_prod_64(((complex_128*)out)[i],((complex_128*)in)[i],factor);}
   
   CUDA_HOST_AND_DEVICE inline void unsafe_su3_prod_color_128(color_128 a,su3 b,color_128 c)
@@ -550,21 +550,21 @@ namespace nissa
       }
   }
   
-  inline void su3_dag_summ_the_prod_color_128(color_128 a,su3 b,color_128 c)
+  CUDA_HOST_AND_DEVICE inline void su3_dag_summ_the_prod_color_128(color_128 a,su3 b,color_128 c)
   {
     for(int c1=0;c1<NCOL;c1++)
       for(int c2=0;c2<NCOL;c2++)
 	complex_summ_the_64_conj1_prod_128(a[c1],b[c2][c1],c[c2]);
   }
   
-  inline void su3_subt_the_prod_color_128(color_128 a,su3 b,color_128 c)
+  CUDA_HOST_AND_DEVICE inline void su3_subt_the_prod_color_128(color_128 a,su3 b,color_128 c)
   {
     for(int c1=0;c1<NCOL;c1++)
       for(int c2=0;c2<NCOL;c2++)
 	complex_subt_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
   }
   
-  inline void su3_summ_the_prod_color_128(color_128 a,su3 b,color_128 c)
+  CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_color_128(color_128 a,su3 b,color_128 c)
   {
     for(int c1=0;c1<NCOL;c1++)
       for(int c2=0;c2<NCOL;c2++)

@@ -223,20 +223,20 @@ namespace nissa
     GET_THREAD_ID();
     
     //compute non_fw_surf fw staples
-    rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(sq_staples,thread_id);
-    rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,sq_staples,thread_id);
-    rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_staples(sq_staples,thread_id);
+    rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(sq_staples,THREAD_ID);
+    rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,sq_staples,THREAD_ID);
+    rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_staples(sq_staples,THREAD_ID);
     
     //compute fw_surf bw staples, non_fw_surf bw staples and fw_surf fw staples
-    rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,sq_staples,thread_id);
-    rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,sq_staples,thread_id);
-    rectangular_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,sq_staples,thread_id);
-    rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,thread_id);
+    rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,sq_staples,THREAD_ID);
+    rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,sq_staples,THREAD_ID);
+    rectangular_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,sq_staples,THREAD_ID);
+    rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,THREAD_ID);
     
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-
+  
   //summ everything together
   THREADABLE_FUNCTION_3ARG(compute_summed_rectangular_staples_lx_conf, quad_su3*,out, quad_su3*,conf, squared_staples_t*,squared_staples)
   {

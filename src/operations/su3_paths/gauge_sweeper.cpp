@@ -401,13 +401,13 @@ namespace nissa
   //add all links needed for a certain site
   void add_Symanzik_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
   {
-    int *A=glb_coord_of_loclx[ivol];                        //       P---O---N
-    coords B,C,D,E,F,G,H,I,J,K,L,M,N,O,P;                   //       |   |   |
-    //find coord mu                                         //   H---G---F---E---D
-    K[mu]=L[mu]=M[mu]=(A[mu]-1+glb_size[mu])%glb_size[mu];  //   |   |   |   |   |
-    I[mu]=J[mu]=B[mu]=C[mu]=A[mu];                          //   I---J---A---B---C
-    D[mu]=E[mu]=F[mu]=G[mu]=H[mu]=(A[mu]+1)%glb_size[mu];   //       |   |   |
-    N[mu]=O[mu]=P[mu]=(A[mu]+2)%glb_size[mu];               //       K---L---M
+    int *A=glb_coord_of_loclx[ivol];                            //       P---O---N
+    coords B,C,/*D,*/E,F,G,H,I,J,K,L,M,/*N,*/O,P;               //       |   |   |
+    //find coord mu                                             //   H---G---F---E---D
+    K[mu]=L[mu]=M[mu]=(A[mu]-1+glb_size[mu])%glb_size[mu];      //   |   |   |   |   |
+    I[mu]=J[mu]=B[mu]=C[mu]=A[mu];                              //   I---J---A---B---C
+    /*D[mu]=*/E[mu]=F[mu]=G[mu]=H[mu]=(A[mu]+1)%glb_size[mu];   //       |   |   |
+    /*N[mu]=*/O[mu]=P[mu]=(A[mu]+2)%glb_size[mu];               //       K---L---M
     for(int inu=0;inu<NDIM-1;inu++)
       {
 	int nu=perp_dir[mu][inu];
@@ -417,7 +417,7 @@ namespace nissa
 	for(int irh=0;irh<NDIM-2;irh++)
 	  {
 	    int rh=perp2_dir[mu][inu][irh];
-	    B[rh]=C[rh]=D[rh]=E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=N[rh]=O[rh]=P[rh]=A[rh];
+	    B[rh]=C[rh]=/*D[rh]=*/E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=/*N[rh]=*/O[rh]=P[rh]=A[rh];
 	  }
 #endif
 	
@@ -425,8 +425,8 @@ namespace nissa
 	H[nu]=I[nu]=(A[nu]-2+glb_size[nu])%glb_size[nu];
 	K[nu]=J[nu]=G[nu]=P[nu]=(I[nu]+1)%glb_size[nu];
 	L[nu]=F[nu]=O[nu]=A[nu];
-	M[nu]=B[nu]=E[nu]=N[nu]=(A[nu]+1)%glb_size[nu];
-	C[nu]=D[nu]=(A[nu]+2)%glb_size[nu];
+	M[nu]=B[nu]=E[nu]=/*N[nu]=*/(A[nu]+1)%glb_size[nu];
+	C[nu]=/*D[nu]=*/(A[nu]+2)%glb_size[nu];
 	
 	//backward square staple
 	*(ilink_to_be_used++)=gat.add_conf_link_for_paths(J,nu);

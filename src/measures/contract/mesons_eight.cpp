@@ -186,33 +186,34 @@ namespace nissa
     complex *loc_c_tot=nissa_malloc("loc_c",ncontr*(glb_size[0]+loc_size[0]*NACTIVE_THREADS),complex);
     vector_reset(loc_c_tot);
     complex *loc_c_base=loc_c_tot+ncontr*glb_size[0];
-    complex *loc_c=loc_c_base+loc_size[0]*ncontr*THREAD_ID;
+    // complex *loc_c=loc_c_base+loc_size[0]*ncontr*THREAD_ID;
     
     //loop over time and number of contractions
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
-	complex ctempL[ncontr],ctempR[ncontr];
-	memset(ctempL,0,sizeof(complex)*ncontr);
-	memset(ctempR,0,sizeof(complex)*ncontr);
-	for(int icol=0;icol<3;icol++)
-	  {
-	    spinspin AL,AR;
-	    unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol],s1L[ivol][icol]);
-	    unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol],s1R[ivol][icol]);
+	#warning not implemented
+	// complex ctempL[ncontr],ctempR[ncontr];
+	// memset(ctempL,0,sizeof(complex)*ncontr);
+	// memset(ctempR,0,sizeof(complex)*ncontr);
+	// for(int icol=0;icol<3;icol++)
+	//   {
+	//     spinspin AL,AR;
+	//     unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol],s1L[ivol][icol]);
+	//     unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol],s1R[ivol][icol]);
 	    
-	    for(int icontr=0;icontr<ncontr;icontr++)
-	      {
-		complex ctempL_color,ctempR_color;
-		trace_dirac_prod_spinspin(ctempL_color,g2R+icontr,AL);
-		trace_dirac_prod_spinspin(ctempR_color,g2L+icontr,AR);
+	//     for(int icontr=0;icontr<ncontr;icontr++)
+	//       {
+	// 	complex ctempL_color,ctempR_color;
+	// 	trace_dirac_prod_spinspin(ctempL_color,g2R+icontr,AL);
+	// 	trace_dirac_prod_spinspin(ctempR_color,g2L+icontr,AR);
 		
-		complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
-		complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
-	      }
-	  }
+	// 	complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
+	// 	complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
+	//       }
+	//   }
 	
-	for(int icontr=0;icontr<ncontr;icontr++)
-	  complex_summ_the_prod(loc_c[icontr*loc_size[0]+loc_coord_of_loclx[ivol][0]],ctempL[icontr],ctempR[icontr]);
+	// for(int icontr=0;icontr<ncontr;icontr++)
+	//   complex_summ_the_prod(loc_c[icontr*loc_size[0]+loc_coord_of_loclx[ivol][0]],ctempL[icontr],ctempR[icontr]);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();

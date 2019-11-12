@@ -510,7 +510,7 @@ namespace nissa
   }
   
   //put a matrix to random used passed random generator
-  void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
+  CUDA_HOST_AND_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
   {
     su3_put_to_id(u_ran);
     

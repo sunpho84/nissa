@@ -2,9 +2,9 @@
 
 using namespace nissa;
 
-int T=8,L=4;
-double qkappa=0.177;
-double qmass=0.01;
+int T=24,L=12;
+double qkappa=0.125;
+double qmass=.340264;
 double qr=0;
 
 gauge_info photon;
@@ -421,6 +421,51 @@ void check_mes_V1V1()
   mes_transf(co,qu);
 }
 
+void check_mes_A1A1()
+{
+  tm_quark_info qu;
+  qu.bc[0]=0;
+  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  qu.kappa=qkappa;
+  qu.mass=qmass;
+  qu.r=qr;
+  
+  master_printf(" ------------------ meson_v1v1------------------ \n");
+  
+  double mu2=qu.mass*qu.mass;
+  complex co[glb_size[0]];
+  memset(co,0,sizeof(complex)*glb_size[0]);
+  NISSA_LOC_VOL_LOOP(p)
+    {
+      momentum_t sin_p;
+      sin_mom(sin_p,p,qu);
+      double dp=den_of_mom(p,qu);
+      double Mp=M_of_mom(qu,p);
+      
+      for(int q0=0;q0<glb_size[0];q0++)
+	{
+	  coords cq;
+	  cq[0]=q0;
+	  for(int mu=1;mu<NDIM;mu++) cq[mu]=glb_coord_of_loclx[p][mu];
+	  int q=loclx_of_coord(cq);
+	  
+	  momentum_t sin_q;
+	  sin_mom(sin_q,q,qu);
+	  double dq=den_of_mom(q,qu);
+	  double Mq=M_of_mom(qu,q);
+	  double pq=mom_prod(sin_p,sin_q);
+	
+	int pmq0=(glb_size[0]+glb_coord_of_loclx[p][0]-glb_coord_of_loclx[q][0])%glb_size[0];
+	double contr=4*(-mu2+pq-Mp*Mq-2*sin_p[1]*sin_q[1]);
+	
+	co[pmq0][RE]+=NCOL*contr/(glb_size[0]*glb_vol*dp*dq);
+      }
+    }
+  
+  mes_transf(co,qu);
+}
+
+
 void check_mes_self_en()
 {
   tm_quark_info qu;
@@ -774,6 +819,11 @@ void in_main(int narg,char **arg)
   
   //print_ref_prop();
   
+  check_mes_V1V1();
+  check_mes_A1A1();
+  return;
+    master_printf("\n\n");
+
   check_scalar_EU();
   
   check_fw_vacuum_curr();
@@ -785,8 +835,6 @@ void in_main(int narg,char **arg)
   check_mes_self_en();
   master_printf("\n\n");
   check_mes_cons_self_en();
-  master_printf("\n\n");
-  check_mes_V1V1();
   master_printf("\n\n");
   check_bar();
   master_printf("\n\n");

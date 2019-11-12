@@ -53,7 +53,7 @@ namespace nissa
   }
   
   //Return the index of site of coord x in a box of sides s
-  int lx_of_coord(coords x,coords s)
+  CUDA_HOST_AND_DEVICE int lx_of_coord(coords x,coords s)
   {
     int ilx=0;
     
@@ -64,6 +64,7 @@ namespace nissa
   }
   void coord_of_lx(coords x,int ilx,coords s)
   {
+
     for(int mu=NDIM-1;mu>=0;mu--)
       {
 	x[mu]=ilx%s[mu];
@@ -80,7 +81,7 @@ namespace nissa
   }
   
   //wrappers
-  int loclx_of_coord(coords x)
+  CUDA_HOST_AND_DEVICE int loclx_of_coord(coords x)
   {return lx_of_coord(x,loc_size);}
   
   //wrappers

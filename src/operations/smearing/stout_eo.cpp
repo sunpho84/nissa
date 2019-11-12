@@ -22,9 +22,10 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *const*conf,int p,int A,int mu,double rho)
   {
-    if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("../communicate/communicate edges externally");
+#warning do something
+    //if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("../communicate/communicate edges externally");
     
     //put staples to zero
     su3_put_to_zero(staples);
@@ -48,9 +49,9 @@ namespace nissa
 	}
   }
   
-  //compute the parameters needed to smear a link, that can be used to smear it or to compute the 
+  //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   //partial derivative of the force
-  void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *const*conf,int p,int A,int mu,double rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,p,A,mu,rho);
@@ -109,7 +110,7 @@ namespace nissa
     STOP_TIMING(sto_time);
   }
   THREADABLE_FUNCTION_END
-
+  
   //smear n times, using only one additional vectors
   THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
   {
@@ -184,7 +185,7 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
-
+  
   //remap the force to one smearing level less
   THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf, double,rho)
   {

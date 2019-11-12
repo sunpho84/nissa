@@ -91,10 +91,11 @@ int nflavs;
 		  for(int eo=0;eo<2;eo++)
 		    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 		      {
-			int ivol=loclx_of_loceo[eo][ieo];
-			int t=(glb_coord_of_loclx[ivol][0]-tso+glb_size[0])%glb_size[0];
-			for(int ic=0;ic<NCOL;ic++)
-			  complex_summ_the_conj1_prod(loc_corr[icombo(iflav,iop,t)],quark[0][eo][ieo][ic],quark[iop][eo][ieo][ic]);
+			#warning not implemented
+			// int ivol=loclx_of_loceo[eo][ieo];
+			// int t=(glb_coord_of_loclx[ivol][0]-tso+glb_size[0])%glb_size[0];
+			// for(int ic=0;ic<NCOL;ic++)
+			//   complex_summ_the_conj1_prod(loc_corr[icombo(iflav,iop,t)],quark[0][eo][ieo][ic],quark[iop][eo][ieo][ic]);
 		      }
 		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
@@ -102,7 +103,7 @@ int nflavs;
 	  }
 	
 	//reduce
-	glb_threads_reduce_double_vect((double*)loc_corr,2*ncombo);
+	#warning reimplement glb_threads_reduce_double_vect((double*)loc_corr,2*ncombo);
 	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(corr,loc_corr,ncombo);
       }
     

@@ -19,9 +19,10 @@
 namespace nissa
 {
   //compute the staples along a particular dir, for a single site
-  void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
+  CUDA_HOST_AND_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
   {
-    if(!check_edges_valid(eo_conf[0])||!check_edges_valid(eo_conf[1])) crash("communicate edges externally");
+    #warning do something
+    //if(!check_edges_valid(eo_conf[0])||!check_edges_valid(eo_conf[1])) crash("communicate edges externally");
     
     su3_put_to_zero(staple);
     
@@ -251,15 +252,15 @@ namespace nissa
     GET_THREAD_ID();
     
     //compute non_fw_surf fw staples
-    squared_staples_lx_conf_start_communicating_lower_surface(conf,thread_id);
-    squared_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,thread_id);
-    squared_staples_lx_conf_finish_communicating_lower_surface(conf,thread_id);
+    squared_staples_lx_conf_start_communicating_lower_surface(conf,THREAD_ID);
+    squared_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,THREAD_ID);
+    squared_staples_lx_conf_finish_communicating_lower_surface(conf,THREAD_ID);
     
     //compute fw_surf bw staples, non_fw_surf bw staples and fw_surf fw staples
-    squared_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,thread_id);
-    squared_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,thread_id);
-    squared_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,thread_id);
-    squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,thread_id);
+    squared_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,THREAD_ID);
+    squared_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,THREAD_ID);
+    squared_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,THREAD_ID);
+    squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,THREAD_ID);
   }
   THREADABLE_FUNCTION_END
   

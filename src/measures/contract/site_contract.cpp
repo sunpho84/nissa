@@ -20,7 +20,7 @@ namespace nissa
     
     trace_prod_spinspins(c,t1,t2);
   }
-  void trace_g_css_dag_g_css(complex c,dirac_matr *g1,colorspinspin s1,dirac_matr *g2,colorspinspin s2)
+  CUDA_HOST_AND_DEVICE void trace_g_css_dag_g_css(complex c,dirac_matr *g1,colorspinspin s1,dirac_matr *g2,colorspinspin s2)
   {
     //reset out
     c[0]=c[1]=0;
@@ -36,7 +36,7 @@ namespace nissa
 	summ_the_trace_prod_spinspins(c,t1,t2);
       }
   }
-  void trace_g_ccss_dag_g_ccss(complex c,dirac_matr *g1,su3spinspin s1,dirac_matr *g2,su3spinspin s2)
+  CUDA_HOST_AND_DEVICE void trace_g_ccss_dag_g_ccss(complex c,dirac_matr *g1,su3spinspin s1,dirac_matr *g2,su3spinspin s2)
   {
     //reset out
     c[0]=c[1]=0;
@@ -56,7 +56,7 @@ namespace nissa
   
   ////////////////////////////////////////// BK contraction ///////////////////////////////////////
   
-  void trace_g_ss_dag_g_ss_g_ss_dag_g_ss(complex c,dirac_matr *g1,spinspin s1,dirac_matr *g2,spinspin s2, dirac_matr *g3,spinspin s3,dirac_matr *g4,spinspin s4)
+  CUDA_HOST_AND_DEVICE void trace_g_ss_dag_g_ss_g_ss_dag_g_ss(complex c,dirac_matr *g1,spinspin s1,dirac_matr *g2,spinspin s2, dirac_matr *g3,spinspin s3,dirac_matr *g4,spinspin s4)
   {
     spinspin t1,t2,t12,t3,t4,t34;
     
