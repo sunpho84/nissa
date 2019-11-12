@@ -37,8 +37,8 @@ cd ../..
 rm -fr auto*
 
 #gettext
-wget http://ftp.gnu.org/pub/gnu/gettext/gettext-latest.tar.gz
-tar xzvf gettext-latest.tar.gz
+wget https://ftp.gnu.org/pub/gnu/gettext/gettext-0.20.1.tar.gz
+tar xzvf gettext-0.20.1.tar.gz
 cd gettext*
 mkdir build
 cd build
