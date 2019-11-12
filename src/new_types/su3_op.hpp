@@ -59,9 +59,9 @@ namespace nissa
   inline void colorspinspin_put_to_zero(colorspinspin m) {for(size_t ic=0;ic<NCOL;ic++) spinspin_put_to_zero(m[ic]);}
   inline void su3spinspin_put_to_zero(su3spinspin m) {for(size_t ic=0;ic<NCOL;ic++) colorspinspin_put_to_zero(m[ic]);}
   inline void su3_put_to_id(su3 m) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) m[ic][ic][RE]=1;}
-  inline void su3_put_to_diag(su3 m,const color in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) complex_copy(m[ic][ic],in[ic]);}
-  inline void su3_put_to_diag(su3 m,const complex in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) complex_copy(m[ic][ic],in);}
-  inline void su3_put_to_diag(su3 m,const double in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) m[ic][ic][0]=in;}
+  CUDA_HOST_AND_DEVICE inline void su3_put_to_diag(su3 m,const color in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) complex_copy(m[ic][ic],in[ic]);}
+  CUDA_HOST_AND_DEVICE inline void su3_put_to_diag(su3 m,const complex in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) complex_copy(m[ic][ic],in);}
+  CUDA_HOST_AND_DEVICE inline void su3_put_to_diag(su3 m,const double in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) m[ic][ic][0]=in;}
   
   //////////////////////////////////////// Copy /////////////////////////////////////
   
@@ -124,7 +124,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void color_summ_the_prod_double(color a,const color b,const double c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod_double(a[ic],b[ic],c);}
   CUDA_HOST_AND_DEVICE inline void color_summ_the_prod_idouble(color a,const color b,const double c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod_idouble(a[ic],b[ic],c);}
   
-  inline void color_summ_the_prod_complex(color a,const color b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod(a[ic],b[ic],c);}
+  CUDA_HOST_AND_DEVICE inline void color_summ_the_prod_complex(color a,const color b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod(a[ic],b[ic],c);}
   inline void color_subt_the_prod_complex(color a,const color b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_subt_the_prod(a[ic],b[ic],c);}
   
   inline void color_linear_comb(color a,const color b,const double cb,const color c,const double cc) {for(size_t ic=0;ic<NCOL;ic++) complex_linear_comb(a[ic],b[ic],cb,c[ic],cc);}
@@ -621,7 +621,7 @@ namespace nissa
 	  a[i][j][IM]=-r*b[j][i][IM];
 	}
   }
-  inline void safe_su3_hermitian_prod_double(su3 a,const su3 b,const double r)
+  CUDA_HOST_AND_DEVICE inline void safe_su3_hermitian_prod_double(su3 a,const su3 b,const double r)
   {
     for(size_t i=0;i<NCOL;i++)
       {
@@ -638,7 +638,7 @@ namespace nissa
 	  }
       }
   }
-  inline void su3_summ_the_hermitian_prod_double(su3 a,const su3 b,const double r)
+  CUDA_HOST_AND_DEVICE inline void su3_summ_the_hermitian_prod_double(su3 a,const su3 b,const double r)
   {
     for(size_t i=0;i<NCOL;i++)
       for(size_t j=0;j<NCOL;j++)
@@ -669,7 +669,7 @@ namespace nissa
   //combine linearly two su3 elements
   inline void su3_linear_comb(su3 a,const su3 b,const double cb,su3 c,const double cc) {for(size_t ic=0;ic<NCOL;ic++) color_linear_comb(a[ic],b[ic],cb,c[ic],cc);}
   //summ the prod of su3 with complex
-  inline void su3_summ_the_prod_complex(su3 a,const su3 b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) color_summ_the_prod_complex(a[ic],b[ic],c);}
+  CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_complex(su3 a,const su3 b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) color_summ_the_prod_complex(a[ic],b[ic],c);}
   
   //calculate explicitely the inverse
   inline void unsafe_su3_explicit_inverse(su3 invU,const su3 U)
@@ -1356,7 +1356,7 @@ namespace nissa
   }
   
   //Put a spincolor into a su3spinspin
-  inline void put_spincolor_into_su3spinspin(su3spinspin out,const spincolor in,int id_source,int ic_source)
+  CUDA_HOST_AND_DEVICE inline void put_spincolor_into_su3spinspin(su3spinspin out,const spincolor in,int id_source,int ic_source)
   {
     for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
       for(int id_sink=0;id_sink<NDIRAC;id_sink++) //dirac index of sink
@@ -1496,19 +1496,17 @@ namespace nissa
 	      complex_summ_the_conj1_prod(a[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
   }
   
-  void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q);
+  CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q);
   
   //build the exponential from the ingredients
-  inline void safe_hermitian_exact_i_exponentiate(su3 out,hermitian_exp_ingredients &ing)
+  CUDA_HOST_AND_DEVICE inline void safe_hermitian_exact_i_exponentiate(su3 out,hermitian_exp_ingredients &ing)
   {
-    CRASH_IF_NOT_3COL();
-    
     //compute out according to (eq. 13)
     su3_put_to_diag(out,ing.f[0]);
     su3_summ_the_prod_complex(out,ing.Q,ing.f[1]);
     su3_summ_the_prod_complex(out,ing.Q2,ing.f[2]);
   }
-  inline void safe_hermitian_exact_i_exponentiate(su3 out,const su3 Q)
+  CUDA_HOST_AND_DEVICE inline void safe_hermitian_exact_i_exponentiate(su3 out,const su3 Q)
   {
     hermitian_exp_ingredients ing;
     hermitian_exact_i_exponentiate_ingredients(ing,Q);

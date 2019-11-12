@@ -38,7 +38,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
   //-lx is lexicografic
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords *glb_coord_of_loclx;
-  EXTERN_GEOMETRY_LX coords *loc_coord_of_loclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *loc_coord_of_loclx;
   EXTERN_GEOMETRY_LX int *glblx_of_loclx;
   EXTERN_GEOMETRY_LX int *glblx_of_bordlx;
   EXTERN_GEOMETRY_LX int *loclx_of_bordlx;
@@ -76,7 +76,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX int edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
   EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   //mapping of ILDG data
-  EXTERN_GEOMETRY_LX coords scidac_mapping;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords scidac_mapping;
   //perpendicular dir
   EXTERN_GEOMETRY_LX bool all_dirs[NDIM];
   EXTERN_GEOMETRY_LX bool only_dir[NDIM][NDIM];

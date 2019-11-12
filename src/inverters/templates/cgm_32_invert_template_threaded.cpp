@@ -56,6 +56,8 @@ namespace nissa
     //macro to be defined externally, allocating all the required additional vectors
     CGM_ADDITIONAL_VECTORS_ALLOCATION();
     
+    const int prob_size=BULK_VOL*NDOUBLES_PER_SITE;
+    
     BASETYPE *s=nissa_malloc("s",BULK_VOL,BASETYPE);
     BASETYPE *r=nissa_malloc("r",BULK_VOL,BASETYPE);
     BASETYPE *p=nissa_malloc("p",BULK_VOL+BORD_VOL,BASETYPE);
@@ -66,17 +68,17 @@ namespace nissa
     //     -ps[*]=source
     for(int ishift=0;ishift<nshift;ishift++)
       {
-	single_vector_copy((float*)(ps[ishift]),(float*)source,BULK_VOL*NDOUBLES_PER_SITE);
-	single_vector_init_to_zero((float*)(sol[ishift]),BULK_VOL*NDOUBLES_PER_SITE);
+	single_vector_copy((float*)(ps[ishift]),(float*)source,prob_size);
+	single_vector_init_to_zero((float*)(sol[ishift]),prob_size);
       }
     
     //     -p=source
     //     -r=source
     //     -calculate source_norm=(r,r)
-    single_vector_copy((float*)p,(float*)source,BULK_VOL*NDOUBLES_PER_SITE);
-    single_vector_copy((float*)r,(float*)source,BULK_VOL*NDOUBLES_PER_SITE);
+    single_vector_copy((float*)p,(float*)source,prob_size);
+    single_vector_copy((float*)r,(float*)source,prob_size);
     float source_norm;
-    single_vector_glb_scalar_prod(&source_norm,(float*)r,(float*)r,BULK_VOL*NDOUBLES_PER_SITE);
+    single_vector_glb_scalar_prod(&source_norm,(float*)r,(float*)r,prob_size);
     
     //writes source norm
     verbosity_lv2_master_printf(" Source norm: %lf\n",source_norm);
@@ -132,10 +134,10 @@ namespace nissa
 	if(IS_MASTER_THREAD) cgm_inv_over_time-=take_time();
 	
 	//     -pap=(p,s)=(p,Ap)
-	single_vector_glb_scalar_prod(&pap,(float*)p,(float*)s,BULK_VOL*NDOUBLES_PER_SITE);
+	single_vector_glb_scalar_prod(&pap,(float*)p,(float*)s,prob_size);
 #ifdef CGM_DEBUG
 	verbosity_lv3_master_printf("pap: %16.16lg\n",pap);
-	for(int i=0;i<BULK_VOL*NDOUBLES_PER_SITE;i++)
+	for(int i=0;i<prob_size;i++)
 	  verbosity_lv3_master_printf("%d %lg\n",i,((float*)s)[i]);
 #endif
 	//     calculate betaa=rr/pap=(r,r)/(p,Ap)
@@ -163,7 +165,7 @@ namespace nissa
 					    "zfs: %16.16lg, betas: %16.16lg\n",
 					    ishift,shift[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 #endif
-		single_vector_summ_single_vector_prod_single((float*)(sol[ishift]),(float*)(sol[ishift]),(float*)(ps[ishift]),-betas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
+		single_vector_summ_single_vector_prod_single((float*)(sol[ishift]),(float*)(sol[ishift]),(float*)(ps[ishift]),-betas[ishift],prob_size,DO_NOT_SET_FLAGS);
 	      }
 	    THREAD_BARRIER();
 	  }
@@ -171,8 +173,8 @@ namespace nissa
 	//     calculate
 	//     -r'=r+betaa*s=r+beta*Ap
 	//     -rfrf=(r',r')
-	single_vector_summ_single_vector_prod_single((float*)r,(float*)r,(float*)s,betaa,BULK_VOL*NDOUBLES_PER_SITE);
-	single_vector_glb_scalar_prod(&rfrf,(float*)r,(float*)r,BULK_VOL*NDOUBLES_PER_SITE);
+	single_vector_summ_single_vector_prod_single((float*)r,(float*)r,(float*)s,betaa,prob_size);
+	single_vector_glb_scalar_prod(&rfrf,(float*)r,(float*)r,prob_size);
 #ifdef CGM_DEBUG
 	verbosity_lv3_master_printf("rfrf: %16.16lg\n",rfrf);
 #endif
@@ -181,7 +183,7 @@ namespace nissa
 	alpha=rfrf/rr;
 	
 	//     calculate p'=r'+p*alpha
-	single_vector_summ_single_vector_prod_single((float*)p,(float*)r,(float*)p,alpha,BULK_VOL*NDOUBLES_PER_SITE);
+	single_vector_summ_single_vector_prod_single((float*)p,(float*)r,(float*)p,alpha,prob_size);
 	
 	//start the communications of the border
 	if(use_async_communications)  CGM_START_COMMUNICATING_BORDERS(p);
@@ -197,7 +199,7 @@ namespace nissa
 #ifdef CGM_DEBUG
 		verbosity_lv3_master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
-		single_vector_linear_comb((float*)(ps[ishift]),(float*)r,zfs[ishift],(float*)(ps[ishift]),alphas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
+		single_vector_linear_comb((float*)(ps[ishift]),(float*)r,zfs[ishift],(float*)(ps[ishift]),alphas[ishift],prob_size,DO_NOT_SET_FLAGS);
 		
 		// shift z
 		zps[ishift]=zas[ishift];
@@ -242,38 +244,18 @@ namespace nissa
     //print the final true residue
     for(int ishift=0;ishift<nshift;ishift++)
       {
-	double res,w_res,weight,max_res;
 	APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS IN_SHIFT[ishift],sol[ishift]);
 	
-	double loc_res=0,locw_res=0,locmax_res=0,loc_weight=0;
-	NISSA_PARALLEL_LOOP(i,0,BULK_VOL*NDOUBLES_PER_SITE)
-	  {
-	    double pdiff=((float*)s)[i]-((float*)source)[i];
-	    double psol=((float*)sol[ishift])[i];
-	    double plain_res=pdiff*pdiff;
-	    double point_weight=1/(psol*psol);
-	    
-	    loc_res+=plain_res;
-	    
-	    locw_res+=plain_res*point_weight;
-	    loc_weight+=point_weight;
-	    if(plain_res>locmax_res) locmax_res=plain_res;
-	  }
-	NISSA_PARALLEL_LOOP_END;
+	double res;
+	double_vector_subtassign((double*)s,(double*)source,prob_size);
+	double_vector_glb_scalar_prod(&res,(double*)s,(double*)s,prob_size);
 	
-	res=glb_reduce_double(loc_res);
-	w_res=glb_reduce_double(locw_res);
-	weight=glb_reduce_double(loc_weight);
-	max_res=glb_max_double(locmax_res);
-	
-	w_res=w_res/weight;
-	
-	verbosity_lv2_master_printf(" ishift %d, rel residue true=%lg approx=%lg commanded=%lg weighted=%lg max=%lg\n",
-				    ishift,res/source_norm,final_res[ishift],req_res[ishift],w_res,max_res);
+	verbosity_lv2_master_printf(" ishift %d, rel residue true=%lg approx=%lg commanded=%lg\n",
+				    ishift,res/source_norm,final_res[ishift],req_res[ishift]);
 	if(res/source_norm>=2*final_res[ishift])
 	  master_printf("WARNING: true residue for shift %d (%lg) much larger than expected one (%lg)\n",
 			ishift,res/source_norm,final_res[ishift]);
-      }  
+      }
     
     verbosity_lv1_master_printf(" Total cgm iterations: %d\n",final_iter);
     

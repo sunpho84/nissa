@@ -181,7 +181,7 @@ namespace nissa
   //exact exponential of i times the *****passed hermitian matrix Q*****
   //algorithm taken from hep­lat/0311018
   //the stored f are relative to c0
-  void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q)
+  CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q)
   {
     //copy Q
     su3_copy(out.Q,Q);
