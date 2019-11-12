@@ -66,6 +66,7 @@ namespace nissa
   
   inline void thread_barrier_internal()
   {
+    cudaDeviceSynchronize();
   }
   
   //start nissa
