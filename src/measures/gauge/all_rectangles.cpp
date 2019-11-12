@@ -192,7 +192,7 @@ namespace nissa
     int nrect=dD*dT*12*nspat_sme;
     double *all_rectangles=nissa_malloc("all_rectangles",nrect*NACTIVE_THREADS,double);
     vector_reset(all_rectangles);
-    // double *all_rectangles_loc_thread=all_rectangles+nrect*THREAD_ID;
+    double *all_rectangles_loc_thread=all_rectangles+nrect*THREAD_ID;
     
     //all time-lines for all distances dT, and running space-lines
     su3 *Tline=nissa_malloc("Tline",cmp_vol_max*dT,su3);
