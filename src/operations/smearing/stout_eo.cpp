@@ -75,7 +75,7 @@ namespace nissa
     communicate_eo_quad_su3_edges(ext_in);
     
     //allocate a temporary conf if going to smear iteratively or out==ext_in
-    quad_su3 *in[2];
+    quad_su3 *_in[2],**in=_in;
     for(int eo=0;eo<2;eo++)
       if(out==ext_in)
 	{
@@ -192,7 +192,7 @@ namespace nissa
     GET_THREAD_ID();
     communicate_eo_quad_su3_edges(conf);
     
-    quad_su3 *Lambda[2];
+    quad_su3 *_Lambda[2],**Lambda=_Lambda;
     for(int eo=0;eo<2;eo++)
       Lambda[eo]=nissa_malloc("Lambda",loc_volh+bord_volh+edge_volh,quad_su3);
     
