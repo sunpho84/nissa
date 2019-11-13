@@ -15,13 +15,17 @@ namespace nissa
     enum gauge_t{Landau=0,Coulomb=1};
     static inline std::string gauge_tag(gauge_t gauge)
     {
+      std::string res;
+      
       switch(gauge)
 	{
-	case Landau: return "Landau";break;
-	case Coulomb: return "Coulomb";break;
+	case Landau: res="Landau";break;
+	case Coulomb: res="Coulomb";break;
+	default:
+	  crash("unknown gauge %d",gauge);
 	}
-      crash("unknown gauge %d",gauge);
-      return "";
+      
+      return res;
     }
     static inline gauge_t gauge_from_tag(const char *tag)
     {
