@@ -330,7 +330,8 @@ namespace nissa
     fft4d((complex*)out,(complex*)in,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glb_size[mu];
     
