@@ -114,11 +114,13 @@ namespace nissa
     //multiply by g5*D
     apply_tmclovQ(check_res,conf_lx,kappa,Cl_lx,mass,solution_lx);
     //remove g5 and take the difference with source
-    const double mg5[2]={-1,1};
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int high_low=0;high_low<2;high_low++)
-	for(int id=high_low*NDIRAC/2;id<(high_low+1)*NDIRAC/2;id++)
+      {
+	const double mg5[2]={-1,1};
+	for(int high_low=0;high_low<2;high_low++)
+	  for(int id=high_low*NDIRAC/2;id<(high_low+1)*NDIRAC/2;id++)
 	    color_summ_the_prod_double(check_res[ivol][id],source_lx[ivol][id],mg5[high_low]);
+      }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(check_res);
     //compute residual and print
