@@ -154,7 +154,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //-1 if sink, +1 if source
-    int sign[2]={+1,-1};
+    int _sign[2]={+1,-1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
     
     //compute steps
@@ -323,7 +323,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    int sign[2]={-1,+1};
+    int _sign[2]={-1,+1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
     
     //compute the main part of the fft
