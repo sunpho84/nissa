@@ -756,7 +756,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //allocate fixing matrix
-    su3 *fixm[2]={nissa_malloc("fixm_e",loc_volh+bord_volh,su3),nissa_malloc("fixm_o",loc_volh+bord_volh,su3)};
+    su3 *_fixm[2]={nissa_malloc("fixm_e",loc_volh+bord_volh,su3),nissa_malloc("fixm_o",loc_volh+bord_volh,su3)},**fixm=_fixm;
     
     //extract random SU(3) matrix
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
