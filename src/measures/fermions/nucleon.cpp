@@ -28,12 +28,12 @@ namespace nissa
     int nflavs=theory_pars.nflavs();
     
     //allocate source
-    su3 *source[2]={nissa_malloc("source_e",loc_volh+bord_volh,su3),nissa_malloc("source_o",loc_volh+bord_volh,su3)};
-    color *temp_source[2]={nissa_malloc("temp_source_e",loc_volh+bord_volh,color),nissa_malloc("temp_source_o",loc_volh+bord_volh,color)};
-    color *temp_sol[2]={nissa_malloc("temp_sol_e",loc_volh+bord_volh,color),nissa_malloc("temp_sol_o",loc_volh+bord_volh,color)};
-    
+    su3 *_source[2]={nissa_malloc("source_e",loc_volh+bord_volh,su3),nissa_malloc("source_o",loc_volh+bord_volh,su3)},**source=_source;
+    color *_temp_source[2]={nissa_malloc("temp_source_e",loc_volh+bord_volh,color),nissa_malloc("temp_source_o",loc_volh+bord_volh,color)},**temp_source=_temp_source;
+    color *_temp_sol[2]={nissa_malloc("temp_sol_e",loc_volh+bord_volh,color),nissa_malloc("temp_sol_o",loc_volh+bord_volh,color)},**temp_sol=_temp_sol;
+
     //allocate propagators
-    su3 *prop[nflavs][2];
+    su3 *_prop[nflavs][2],***prop=(su3***)&_prop;
     for(int iflav=0;iflav<nflavs;iflav++)
       for(int EO=0;EO<2;EO++)
 	  prop[iflav][EO]=nissa_malloc("prop",loc_volh+bord_volh,su3);
