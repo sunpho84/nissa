@@ -49,13 +49,17 @@ namespace nissa
     enum method_t{overrelax,exponentiate};
     static inline std::string method_tag(method_t method)
     {
+      std::string res;
+      
       switch(method)
 	{
-	case overrelax: return "Overrelax";break;
-	case exponentiate: return "Exponentiate";break;
+	case overrelax: res="Overrelax";break;
+	case exponentiate: res="Exponentiate";break;
+	default:
+	  crash("unknwon method %d",method);
 	}
-      crash("unknwon method %d",method);
-      return "";
+      
+      return res;
     }
     static inline method_t method_from_tag(const char *tag)
     {
