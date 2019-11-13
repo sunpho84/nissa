@@ -253,7 +253,13 @@ namespace nissa
 	
 	int64_t size=nel*size_per_el;
 	//try to allocate the new vector
-	nissa_vect *nv=(nissa_vect*)malloc(size+sizeof(nissa_vect));
+	nissa_vect *nv;
+	int64_t tot_size=size+sizeof(nissa_vect);
+#if THREADS_TYPE==CUDA_THREADS
+	cudaMallocManaged(&nv,tot_size);
+#else
+	nv=(nissa_vect*)malloc(tot_size);
+#endif
 	if(nv==NULL)
 	  crash("could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) "
 		"request on line %d of file %s",tag,nel,type,size,line,file);
@@ -403,7 +409,11 @@ namespace nissa
 	    required_memory-=(vect->size_per_el*vect->nel);
 	    
 	    //really free
+#if USE_THREADS == CUDA_THREADS
+	    cudaFree(vect);
+#else
 	    free(vect);
+#endif
 	  }
 	else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
 	
