@@ -90,9 +90,10 @@ namespace nissa
     
     //remapping
     int nspat_sme=pars->spat_smear_pars.nmeas_nonzero(),ntot_sme=1+nspat_sme;
-    int prp_vol[12],cmp_vol[12],imu01=0,mu0_l[12],mu1_l[12],cmp_vol_max=0;
-    vector_remap_t *remap[12];
-    su3 *transp_conf[12];
+    std::array<int,12> prp_vol,cmp_vol,mu0_l,mu1_l;
+    int imu01=0,cmp_vol_max=0;
+    std::array<vector_remap_t*,12> remap;
+    std::array<su3*,12> transp_conf;
     su3 *pre_transp_conf_holder=nissa_malloc("pre_transp_conf_holder",loc_vol,su3);
     for(int mu0=0;mu0<4;mu0++)
       for(int imu1=0;imu1<3;imu1++)
