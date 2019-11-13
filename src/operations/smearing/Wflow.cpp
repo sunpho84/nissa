@@ -22,8 +22,8 @@ namespace nissa
       communicate_lx_quad_su3_edges(conf);
       
       //Runge-Kutta coefficients
-      double RK_wn[3]={1.0/4,8.0/9, 3.0/4};
-      double RK_wo[3]={0,    -17.0/9, -1};
+      constexpr double RK_wn[3]={1.0/4,8.0/9, 3.0/4};
+      constexpr double RK_wo[3]={0,    -17.0/9, -1};
       
       //add the new argument of the exponential to the old one
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
