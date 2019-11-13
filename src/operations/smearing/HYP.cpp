@@ -24,7 +24,8 @@ namespace nissa
     GET_THREAD_ID();
     
     //fill the dec2 and dec1 remapping table
-    int dec2_remap_index[4][4][4],dec1_remap_index[4][4];
+    int _dec2_remap_index[4][4][4],***dec2_remap_index=(int***)_dec2_remap_index;
+    int _dec1_remap_index[4][4],**dec1_remap_index=(int**)_dec1_remap_index;
     int idec2_remap=0,idec1_remap=0;
     for(int mu=0;mu<4;mu++)
       for(int inu=0;inu<3;inu++)
@@ -107,7 +108,7 @@ namespace nissa
 	  //find the remapped index
 	  int nu=perp_dir[mu][inu];
 	  int ire0=dec1_remap_index[mu][nu];
-	    
+	  
 	  //loop over local volume
 	  NISSA_PARALLEL_LOOP(A,0,loc_vol)
 	    {
