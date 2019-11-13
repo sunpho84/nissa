@@ -27,17 +27,19 @@ namespace nissa
   //or if PECIONA prescription and full zero mode
   CUDA_HOST_AND_DEVICE bool zero_mode_subtraction_mask(gauge_info gl,int imom)
   {
+    bool res=false;
+    
     switch(gl.zms)
       {
       case UNNO_ALEMANNA:
-	return !(glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
+	res=!(glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
       case PECIONA:
-	return !(glb_coord_of_loclx[imom][0]==0&&glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
+	res=!(glb_coord_of_loclx[imom][0]==0&&glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
       case ONLY_100:
-	return (glb_coord_of_loclx[imom][1]+glb_coord_of_loclx[imom][2]+glb_coord_of_loclx[imom][3]==1);break;
+	res=(glb_coord_of_loclx[imom][1]+glb_coord_of_loclx[imom][2]+glb_coord_of_loclx[imom][3]==1);break;
       }
     
-    return 0;
+    return res;
   }
   
   //cancel the mode if it is zero according to the prescription
