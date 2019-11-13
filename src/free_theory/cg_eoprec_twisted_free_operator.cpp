@@ -108,13 +108,13 @@ namespace nissa
     GET_THREAD_ID();
     
     //prepare the e/o split version of the source
-    spin *source_eos[2];
+    std::array<spin*,2> source_eos;
     source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spin);
     source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spin);
-    split_lx_vector_into_eo_parts(source_eos,source_lx);
+    split_lx_vector_into_eo_parts(&source_eos[0],source_lx);
     
     //prepare the e/o split version of the solution
-    spin *solution_eos[2];
+    std::array<spin*,2> solution_eos;
     solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spin);
     solution_eos[1]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spin);
     
@@ -160,7 +160,7 @@ namespace nissa
     
     /////////////////////////// paste the e/o parts of the solution together and free ///////////////////
     
-    paste_eo_parts_into_lx_vector(solution_lx,solution_eos);
+    paste_eo_parts_into_lx_vector(solution_lx,&solution_eos[0]);
     
     for(int par=0;par<2;par++)
       {

@@ -23,7 +23,7 @@ namespace nissa
     if(eooe==0) communicate_od_spin_borders(in);
     else        communicate_ev_spin_borders(in);
     
-    complex phases[4];
+    std::array<complex,4> phases;
     for(int mu=0;mu<4;mu++)
       {
 	phases[mu][RE]=cos(M_PI*bc[mu]);
@@ -163,10 +163,11 @@ namespace nissa
     GET_THREAD_ID();
     
     if(in==out) crash("in==out!");
-    complex z={1/(2*qu.kappa),qu.mass};
     
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       {
+	const complex z={1/(2*qu.kappa),qu.mass};
+	
 	for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id],in[X][id],z);
 	for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id],in[X][id],z);
       }
@@ -181,11 +182,11 @@ namespace nissa
     GET_THREAD_ID();
     
     if(in==out) crash("in==out!");
-    double a=1/(2*qu.kappa),b=qu.mass,nrm=a*a+b*b;
-    complex z={+a/nrm,-b/nrm};
+    const double a=1/(2*qu.kappa),b=qu.mass,nrm=1/(a*a+b*b);
     
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       {
+	const complex z={+a*nrm,-b*nrm};
 	for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id],in[X][id],z);
 	for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id],in[X][id],z);
       }

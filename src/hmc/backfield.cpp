@@ -43,12 +43,15 @@ namespace nissa
     GET_THREAD_ID();
     
     double im_pot=quark_content->im_pot*M_PI/glb_size[0];
-    complex ph={cos(im_pot),sin(im_pot)};
+    const double c=cos(im_pot),s=sin(im_pot);
     
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	  safe_complex_prod(S[par][ieo][0],S[par][ieo][0],ph);
+	  {
+	    const complex ph={c,s};
+	    safe_complex_prod(S[par][ieo][0],S[par][ieo][0],ph);
+	  }
 	NISSA_PARALLEL_LOOP_END;
 	
 	set_borders_invalid(S[par]);

@@ -122,14 +122,14 @@ namespace nissa
   //implement ee or oo part of Dirac operator, equation(3)
   THREADABLE_FUNCTION_4ARG(tmDee_or_oo_eos, spincolor*,out, double,kappa, double,mu, spincolor*,in)
   {
-    complex z={1/(2*kappa),mu};
-    
     if(in==out) crash("in==out!");
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       for(int ic=0;ic<NCOL;ic++)
 	{
+	  const complex z={1/(2*kappa),mu};
+	  
 	  for(int id=0;id<NDIRAC/2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
 	  for(int id=NDIRAC/2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
 	}
@@ -142,15 +142,15 @@ namespace nissa
   //inverse
   THREADABLE_FUNCTION_4ARG(inv_tmDee_or_oo_eos, spincolor*,out, double,kappa, double,mu, spincolor*,in)
   {
-    double a=1/(2*kappa),b=mu,nrm=a*a+b*b;
-    complex z={+a/nrm,-b/nrm};
-    
     if(in==out) crash("in==out!");
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       for(int ic=0;ic<NCOL;ic++)
 	{
+	  const double a=1/(2*kappa),b=mu,nrm=a*a+b*b;
+	  const complex z={+a/nrm,-b/nrm};
+	  
 	  for(int id=0;id<NDIRAC/2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
 	  for(int id=NDIRAC/2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
 	}

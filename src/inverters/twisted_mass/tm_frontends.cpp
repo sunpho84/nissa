@@ -24,7 +24,7 @@ namespace nissa
     //allocate temporary source
     spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
     //allocate temp_vec
-    spincolor *temp_vec[2];
+    std::array<spincolor*,2> temp_vec;
     temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol+bord_vol,spincolor);
     temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol+bord_vol,spincolor);
     //allocate nmass spincolors, for the cgm solutions

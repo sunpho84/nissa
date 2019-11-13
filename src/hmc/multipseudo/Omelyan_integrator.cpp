@@ -129,7 +129,8 @@ namespace nissa
     verbosity_lv2_master_printf("Evolving momenta with quark force, dt=%lg\n",dt);
     
     //allocate forces
-    quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
+    std::array<quad_su3*,2> _F={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
+    quad_su3** F=&_F[0];
     
     //compute the force
     compute_quark_force(F,conf,pf,theory_pars,rat_appr,simul_pars->md_residue);
@@ -145,7 +146,7 @@ namespace nissa
     su3_copy(sto,conf[par][ieo][mu]);
     
     //allocate smeared conf
-    quad_su3 *sme_conf[2];
+    std::array<quad_su3*,2> sme_conf;
     for(int eo=0;eo<2;eo++) sme_conf[eo]=nissa_malloc("sme_conf",loc_volh+bord_volh+edge_volh,quad_su3);
     
     //compute action before
