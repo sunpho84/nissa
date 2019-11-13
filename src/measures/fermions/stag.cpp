@@ -187,14 +187,14 @@ namespace nissa
       communicate_ev_and_od_quad_su3_borders(conf);
       communicate_ev_and_od_color_borders(right);
       
-      color **right_fw_bw[2]={right,left};
-      
       for(int fw_bw=0;fw_bw<2;fw_bw++)
 	{
 	  vector_reset(point_result);
 	  for(int par=0;par<2;par++)
 	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	      {
+		color **right_fw_bw[2]={right,left};
+		
 		color v;
 		unsafe_su3_prod_color(v,conf[par][ieo][mu],right_fw_bw[fw_bw][!par][loceo_neighup[par][ieo][mu]]);
 		complex t;
