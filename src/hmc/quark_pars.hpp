@@ -21,14 +21,16 @@ namespace nissa
     //change from name to string
     inline std::string str_from_name(name_t name)
     {
+      std::string res;
+      
       switch(name)
 	{
-	case ROOT_STAG:return "RootStag";break;
-	case ROOT_TM_CLOV:return "RootTMClov";break;
-	case OVERLAP:return "Overlap";break;
+	case ROOT_STAG:res="RootStag";break;
+	case ROOT_TM_CLOV:res="RootTMClov";break;
+	case OVERLAP:res="Overlap";break;
 	}
       
-      return "";
+      return res;
     }
     
     //string into name
@@ -47,40 +49,46 @@ namespace nissa
     //determine if staggered or not
     inline bool is_stag(name_t name)
     {
+      bool res=false;
+      
       switch(name)
 	{
-	case ROOT_STAG: return true;break;
-	case ROOT_TM_CLOV: return false;break;
-	case OVERLAP: return false;break;
+	case ROOT_STAG: res=true;break;
+	case ROOT_TM_CLOV: res=false;break;
+	case OVERLAP: res=false;break;
 	}
       
-      return false;
+      return res;
     }
     
     //determine if clover or not
     inline bool include_clover(name_t name)
     {
+      bool res=false;
+      
       switch(name)
 	{
-	case ROOT_STAG: return false;break;
-	case ROOT_TM_CLOV: return true;break;
-	case OVERLAP: return false;break;
+	case ROOT_STAG: res=false;break;
+	case ROOT_TM_CLOV: res=true;break;
+	case OVERLAP: res=false;break;
 	}
       
-      return false;
+      return res;
     }
     
     //root needed to have 1 quarks
     inline int root_needed(name_t name)
     {
+      int res=1;
+      
       switch(name)
 	{
-	case ROOT_STAG:return 4;break;
-	case ROOT_TM_CLOV:return 2;break;
-	case OVERLAP:return 1;break;
+	case ROOT_STAG:res=4;break;
+	case ROOT_TM_CLOV:res=2;break;
+	case OVERLAP:res=1;break;
 	}
       
-      return 1;
+      return res;
     }
   }
   
