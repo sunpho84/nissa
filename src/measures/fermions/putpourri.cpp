@@ -49,9 +49,10 @@ namespace nissa
     THREAD_BARRIER();
     
     //allocate
-    color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
-    color *chi1[2]={nissa_malloc("chi1_EVN",loc_volh+bord_volh,color),nissa_malloc("chi1_ODD",loc_volh+bord_volh,color)};
-    color *chi2[2],*app[2];
+    color *_rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
+    color *_chi1[2]={nissa_malloc("chi1_EVN",loc_volh+bord_volh,color),nissa_malloc("chi1_ODD",loc_volh+bord_volh,color)};
+    color *_chi2[2],*_app[2];
+    color **rnd=_rnd,**chi1=_chi1,**chi2=_chi2,**app=_app;
     if(comp_susc)
       for(int par=0;par<2;par++)
 	{
