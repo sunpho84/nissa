@@ -97,7 +97,7 @@ AC_MSG_RESULT([enabling MPI... $enable_MPI])
 SUMMARY_RESULT="$SUMMARY_RESULT
 MPI enabled         : $enable_MPI"
 
-if test "$enable_MPI" == "yes"
+if test "$enable_MPI" == "yes" -o  "$enable_MPI_autosearch" != "yes"
 then
 	# Check if we have MPI
 	if test "$have_CXX_mpi" == "yes"
