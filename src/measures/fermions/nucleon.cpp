@@ -20,7 +20,6 @@ namespace nissa
   {
     GET_THREAD_ID();
     // const int eps_i[6][3]={{0,1,2},{1,2,0},{2,0,1},{0,2,1},{2,1,0},{1,0,2}};
-    const int eps_s[6]={+1,+1,+1,-1,-1,-1};
     
     CRASH_IF_NOT_3COL();
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
@@ -31,7 +30,7 @@ namespace nissa
     su3 *_source[2]={nissa_malloc("source_e",loc_volh+bord_volh,su3),nissa_malloc("source_o",loc_volh+bord_volh,su3)},**source=_source;
     color *_temp_source[2]={nissa_malloc("temp_source_e",loc_volh+bord_volh,color),nissa_malloc("temp_source_o",loc_volh+bord_volh,color)},**temp_source=_temp_source;
     color *_temp_sol[2]={nissa_malloc("temp_sol_e",loc_volh+bord_volh,color),nissa_malloc("temp_sol_o",loc_volh+bord_volh,color)},**temp_sol=_temp_sol;
-
+    
     //allocate propagators
     su3 *_prop[nflavs][2],***prop=(su3***)&_prop;
     for(int iflav=0;iflav<nflavs;iflav++)
@@ -91,6 +90,8 @@ namespace nissa
 		    for(int eo=0;eo<2;eo++)
 		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 			{
+			  const int eps_s[6]={+1,+1,+1,-1,-1,-1};
+			  
 			  //find t
 			  int ilx=loclx_of_loceo[eo][ieo];
 			  int *c=glb_coord_of_loclx[ilx];
