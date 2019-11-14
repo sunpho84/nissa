@@ -24,7 +24,6 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	  {
-	    printf("%d/%ld\n",(int)ivol,(int)loc_volh);
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
 		S[par][ivol][mu][0]=1;

@@ -43,7 +43,6 @@ namespace nissa
 			   F f)
   {
     const auto i=min+blockIdx.x*blockDim.x+threadIdx.x;
-+    printf("hey %d %d\n",(int)i,(int)max);
     if(i<max)
       f(i);
   }
