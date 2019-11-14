@@ -237,14 +237,6 @@ namespace nissa
       }
   }
   
-  #define cudaCheckError() {                                          \
- cudaError_t e=cudaGetLastError();                                 \
- if(e!=cudaSuccess) {                                              \
-   master_printf("Cuda failure %s:%d: '%s'\n",__FILE__,__LINE__,cudaGetErrorString(e));           \
-   crash(""); \
- }                                                                 \
-}
-  
   //allocate an nissa vector
   void *internal_nissa_malloc(const char *tag,int64_t nel,int64_t size_per_el,const char *type,const char *file,int line)
   {
@@ -263,15 +255,17 @@ namespace nissa
 	//try to allocate the new vector
 	nissa_vect *nv;
 	int64_t tot_size=size+sizeof(nissa_vect);
+#define ALLOCATING_ERROR \
+	"could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) "\
+		"request on line %d of file %s",tag,nel,type,size,line,file
 #if THREADS_TYPE==CUDA_THREADS
-	auto rc=cudaMallocManaged(&nv,tot_size);
-	cudaCheckError("cudaMallocManaged");
+	decript_cuda_error(cudaMallocManaged(&nv,tot_size),ALLOCATING_ERROR);
 #else
 	nv=(nissa_vect*)malloc(tot_size);
-#endif
 	if(nv==NULL)
-	  crash("could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) "
-		"request on line %d of file %s",tag,nel,type,size,line,file);
+	  crash(ALLOCATING_ERROR);
+#endif
+#undef ALLOCATING_ERROR
 	
 	//fill the vector with information supplied
 	nv->line=line;
@@ -419,7 +413,7 @@ namespace nissa
 	    
 	    //really free
 #if THREADS_TYPE == CUDA_THREADS
-	    cudaFree(vect);
+	    decript_cuda_error(cudaFree(vect),"freeing the memory");
 #else
 	    free(vect);
 #endif
