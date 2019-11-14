@@ -409,7 +409,7 @@ namespace nissa
 	    required_memory-=(vect->size_per_el*vect->nel);
 	    
 	    //really free
-#if USE_THREADS == CUDA_THREADS
+#if THREADS_TYPE == CUDA_THREADS
 	    cudaFree(vect);
 #else
 	    free(vect);
