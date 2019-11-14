@@ -237,6 +237,14 @@ namespace nissa
       }
   }
   
+  #define cudaCheckError() {                                          \
+ cudaError_t e=cudaGetLastError();                                 \
+ if(e!=cudaSuccess) {                                              \
+   master_printf("Cuda failure %s:%d: '%s'\n",__FILE__,__LINE__,cudaGetErrorString(e));           \
+   crash(""); \
+ }                                                                 \
+}
+  
   //allocate an nissa vector
   void *internal_nissa_malloc(const char *tag,int64_t nel,int64_t size_per_el,const char *type,const char *file,int line)
   {
@@ -256,7 +264,8 @@ namespace nissa
 	nissa_vect *nv;
 	int64_t tot_size=size+sizeof(nissa_vect);
 #if THREADS_TYPE==CUDA_THREADS
-	cudaMallocManaged(&nv,tot_size);
+	auto rc=cudaMallocManaged(&nv,tot_size);
+	cudaCheckError("cudaMallocManaged");
 #else
 	nv=(nissa_vect*)malloc(tot_size);
 #endif
