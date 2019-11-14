@@ -135,7 +135,7 @@ namespace nissa
 #endif
   
 #if THREADS_TYPE == CUDA_THREADS
-  void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
+  void internal_decript_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...)
   {
     if(rc!=cudaSuccess && rank==0)
       {
@@ -145,7 +145,7 @@ namespace nissa
 	va_end(ap);
 	
 	vsprintf(mess,templ,ap);
-	internal_crash(line,file,"%s, cuda raised error: %s",mess,cudaGetErrorString(e));
+	internal_crash(line,file,"%s, cuda raised error: %s",mess,cudaGetErrorString(rc));
       }
   }
 #endif
