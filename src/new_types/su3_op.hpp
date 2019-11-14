@@ -424,7 +424,7 @@ namespace nissa
     for(size_t ic=0;ic<NCOL;ic++) color_subt(a[ic],b[ic],c[ic]);
 #endif
   }
-  inline void su3_subtassign(su3 a,const su3 b) {su3_subt(a,a,b);}
+  CUDA_HOST_AND_DEVICE inline void su3_subtassign(su3 a,const su3 b) {su3_subt(a,a,b);}
   inline void su3_subt_complex(su3 a,const su3 b,const complex c) {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) complex_subt(a[i][i],b[i][i],c);}
   CUDA_HOST_AND_DEVICE inline void unsafe_su3_subt_su3_dag(su3 a,const su3 b,const su3 c)
   {
@@ -1157,7 +1157,7 @@ namespace nissa
 	for(int ic=0;ic<NCOL;ic++)
 	  complex_summ_the_prod(out[id1][ic],a[id2][ic],b[id2][id1]);
   }
-  inline void safe_spincolor_prod_spinspin(spincolor out,const spincolor a,const spinspin b)
+  CUDA_HOST_AND_DEVICE inline void safe_spincolor_prod_spinspin(spincolor out,const spincolor a,const spinspin b)
   {
     spincolor c;
     unsafe_spincolor_prod_spinspin(c,a,b);
@@ -1173,7 +1173,7 @@ namespace nissa
 	for(int ic=0;ic<NCOL;ic++)
 	  complex_summ_the_prod(out[id1][ic],a[id1][id2],b[id2][ic]);
   }
-  inline void safe_spinspin_prod_spincolor(spincolor out,const spinspin a,spincolor b)
+  CUDA_HOST_AND_DEVICE inline void safe_spinspin_prod_spincolor(spincolor out,const spinspin a,spincolor b)
   {
     spincolor c;
     unsafe_spinspin_prod_spincolor(c,a,b);

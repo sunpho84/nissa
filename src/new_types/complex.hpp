@@ -84,7 +84,7 @@ namespace nissa
     a[0]=b[0]-c[1];
     a[1]=b[1]+c[0];
   }
-  inline void complex_isummassign(complex a,const complex b)
+  CUDA_HOST_AND_DEVICE inline void complex_isummassign(complex a,const complex b)
   {complex_isumm(a,a,b);}
   CUDA_HOST_AND_DEVICE inline void complex_summ_conj2(complex a,const complex b,const complex c)
   {
@@ -116,7 +116,7 @@ namespace nissa
     a[1]=-b[1]-c[1];
   }
   CUDA_HOST_AND_DEVICE inline void complex_summassign(complex a,const complex b) {complex_summ(a,a,b);}
-  inline void complex_subtassign(complex a,const complex b) {complex_subt(a,a,b);}
+  CUDA_HOST_AND_DEVICE inline void complex_subtassign(complex a,const complex b) {complex_subt(a,a,b);}
   
   //put to exp
   CUDA_HOST_AND_DEVICE inline void complex_iexp(complex out,const double arg)
@@ -292,7 +292,7 @@ namespace nissa
     a[1]=b[0]*c[1]+b[1]*c[0];
     a[0]=tmp;
   }
-  inline void complex_prodassign(complex a,const complex b)
+  CUDA_HOST_AND_DEVICE inline void complex_prodassign(complex a,const complex b)
   {safe_complex_prod(a,a,b);}
   
   //Minus version

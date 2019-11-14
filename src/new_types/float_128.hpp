@@ -54,7 +54,7 @@ namespace nissa
     b[1]=-a[1];
   }
   
-  inline void float_128_from_64(float_128 b,double a)
+  CUDA_HOST_AND_DEVICE inline void float_128_from_64(float_128 b,double a)
   {
     b[0]=a;
     b[1]=0;
@@ -63,7 +63,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void float_128_put_to_zero(float_128 a)
   {a[0]=a[1]=0;}
   
-  inline double double_from_float_128(float_128 b)
+  CUDA_HOST_AND_DEVICE inline double double_from_float_128(float_128 b)
   {return b[0]+b[1];}
   
   //128 summ 128
@@ -124,12 +124,12 @@ namespace nissa
 #endif
   }
   
-  inline void float_128_summassign_64(float_128 b,double a)
+  CUDA_HOST_AND_DEVICE inline void float_128_summassign_64(float_128 b,double a)
   {
     float_128_summ_64(b,b,a);
   }
   
-  inline void float_128_subt_from_64(float_128 c,double a,float_128 b)
+  CUDA_HOST_AND_DEVICE inline void float_128_subt_from_64(float_128 c,double a,float_128 b)
   {
     float_128 d;
     float_128_uminus(d,b);
