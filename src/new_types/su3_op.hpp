@@ -1095,7 +1095,7 @@ namespace nissa
   //spincolor*complex
   CUDA_HOST_AND_DEVICE inline void unsafe_spincolor_prod_complex(spincolor a,const spincolor b,const complex factor)
   {for(size_t i=0;i<NDIRAC;i++) unsafe_color_prod_complex(a[i],b[i],factor);}
-  inline void safe_spincolor_prod_complex(spincolor a,const spincolor b,const complex factor)
+  CUDA_HOST_AND_DEVICE inline void safe_spincolor_prod_complex(spincolor a,const spincolor b,const complex factor)
   {spincolor c;spincolor_copy(c,b);unsafe_spincolor_prod_complex(a,c,factor);}
   CUDA_HOST_AND_DEVICE inline void spincolor_prodassign_complex(spincolor a,const complex factor)
   {safe_spincolor_prod_complex(a,a,factor);}
