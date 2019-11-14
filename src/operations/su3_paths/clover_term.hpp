@@ -45,7 +45,7 @@ namespace nissa
     complex z={1/(2*kappa),mass};
     apply_point_diag_plus_clover_term_to_halfspincolor(out,z,Cl,in);
   }
-  inline void apply_point_twisted_clover_term_to_halfspincolor_128(halfspincolor_128 out,double mass,double kappa,clover_term_t Cl,halfspincolor_128 in)
+  CUDA_HOST_AND_DEVICE inline void apply_point_twisted_clover_term_to_halfspincolor_128(halfspincolor_128 out,double mass,double kappa,clover_term_t Cl,halfspincolor_128 in)
   {
     complex z={1/(2*kappa),mass};
     apply_point_diag_plus_clover_term_to_halfspincolor_128(out,z,Cl,in);
