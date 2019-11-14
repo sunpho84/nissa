@@ -60,7 +60,10 @@ namespace nissa
     const dim3 block_dimension(NUM_THREADS);
     const dim3 grid_dimension((length+block_dimension.x-1)/block_dimension.x);
     
-    master_printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
+    extern int rank;
+    
+    if(rank==0)
+      printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
 	   line,file,(int64_t)min,(int64_t)max,block_dimension.x,grid_dimension.x);
     
     cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,f);
