@@ -118,20 +118,35 @@ namespace nissa
   //decript the MPI error
   void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
   {
-    va_list ap;
-    va_start(ap,templ);
-    
     if(rc!=MPI_SUCCESS && rank==0)
       {
 	char err[1024];
 	int len=1024;
 	MPI_Error_string(rc,err,&len);
 	char mess[1024];
+	va_list ap;
+	va_start(ap,templ);
+	va_end(ap);
+	
 	vsprintf(mess,templ,ap);
-	internal_crash(line,file,"%s, raised error: %s",mess,err);
+	internal_crash(line,file,"%s, MPI raised error: %s",mess,err);
       }
-    
-    va_end(ap);
+  }
+#endif
+  
+#if THREADS_TYPE == CUDA_THREADS
+  void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
+  {
+    if(rc!=cudaSuccess && rank==0)
+      {
+	char mess[1024];
+	va_list ap;
+	va_start(ap,templ);
+	va_end(ap);
+	
+	vsprintf(mess,templ,ap);
+	internal_crash(line,file,"%s, cuda raised error: %s",mess,cudaGetErrorString(e));
+      }
   }
 #endif
   
