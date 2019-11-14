@@ -945,7 +945,7 @@ namespace nissa
   }
   
   //safe prod
-  inline void safe_su3_prod_color(color a,const su3 b,const color c) {color t;unsafe_su3_prod_color(t,b,c);color_copy(a,t);}
+  CUDA_HOST_AND_DEVICE inline void safe_su3_prod_color(color a,const su3 b,const color c) {color t;unsafe_su3_prod_color(t,b,c);color_copy(a,t);}
   
   //summ
   CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_color(color a,const su3 b,const color c)
@@ -1097,7 +1097,7 @@ namespace nissa
   {for(size_t i=0;i<NDIRAC;i++) unsafe_color_prod_complex(a[i],b[i],factor);}
   inline void safe_spincolor_prod_complex(spincolor a,const spincolor b,const complex factor)
   {spincolor c;spincolor_copy(c,b);unsafe_spincolor_prod_complex(a,c,factor);}
-  inline void spincolor_prodassign_complex(spincolor a,const complex factor)
+  CUDA_HOST_AND_DEVICE inline void spincolor_prodassign_complex(spincolor a,const complex factor)
   {safe_spincolor_prod_complex(a,a,factor);}
   
   //spincolor+spincolor*complex
@@ -1305,7 +1305,7 @@ namespace nissa
   {colorspinspin temp;unsafe_dirac_prod_colorspinspin(temp,m,in);colorspinspin_copy(out,temp);}
   CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_su3spinspin(su3spinspin out,const dirac_matr *m,const su3spinspin in)
   {for(int ic=0;ic<NCOL;ic++) unsafe_dirac_prod_colorspinspin(out[ic],m,in[ic]);}
-  inline void safe_dirac_prod_su3spinspin(su3spinspin out,const dirac_matr *m,const su3spinspin in)
+  CUDA_HOST_AND_DEVICE inline void safe_dirac_prod_su3spinspin(su3spinspin out,const dirac_matr *m,const su3spinspin in)
   {su3spinspin temp;unsafe_dirac_prod_su3spinspin(temp,m,in);su3spinspin_copy(out,temp);}
   
   //////////////////////////////// get and put ///////////////////////////////////
@@ -1378,14 +1378,14 @@ namespace nissa
   {for(size_t ic=0;ic<NCOL;ic++) for(size_t id=0;id<NDIRAC;id++)for(size_t jd=0;jd<NDIRAC;jd++)safe_complex_prod(out[ic][id][jd],in[ic][id][jd],factor);}
   inline void colorspinspin_prod_complex_conj(colorspinspin out,const colorspinspin in,const complex factor)
   {complex temp;complex_conj(temp,factor);colorspinspin_prod_complex(out,in,temp);}
-  inline void colorspinspin_prodassign_complex(colorspinspin c,const complex f)
+  CUDA_HOST_AND_DEVICE inline void colorspinspin_prodassign_complex(colorspinspin c,const complex f)
   {colorspinspin_prod_complex(c,c,f);}
   inline void colorspinspin_prodassign_complex_conj(colorspinspin c,const complex f)
   {colorspinspin_prod_complex_conj(c,c,f);}
   
   //colorspinspin summ
   CUDA_HOST_AND_DEVICE inline void colorspinspin_summ(colorspinspin out,const colorspinspin in1,const colorspinspin in2) {for(size_t i=0;i<NCOL;i++) spinspin_summ(out[i],in1[i],in2[i]);}
-  inline void colorspinspin_summassign(colorspinspin out,const colorspinspin in) {colorspinspin_summ(out,out,in);}
+  CUDA_HOST_AND_DEVICE inline void colorspinspin_summassign(colorspinspin out,const colorspinspin in) {colorspinspin_summ(out,out,in);}
   
   //colorspinspin subt
   CUDA_HOST_AND_DEVICE inline void colorspinspin_subt(colorspinspin out,const colorspinspin in1,const colorspinspin in2) {for(size_t i=0;i<NCOL;i++) spinspin_subt(out[i],in1[i],in2[i]);}
@@ -1421,7 +1421,7 @@ namespace nissa
   
   //su3spinspin summ
   CUDA_HOST_AND_DEVICE inline void su3spinspin_summ(su3spinspin out,const su3spinspin in1,const su3spinspin in2) {for(size_t i=0;i<NCOL;i++) colorspinspin_summ(out[i],in1[i],in2[i]);}
-  inline void su3spinspin_summassign(su3spinspin out,const su3spinspin in) {su3spinspin_summ(out,out,in);}
+  CUDA_HOST_AND_DEVICE inline void su3spinspin_summassign(su3spinspin out,const su3spinspin in) {su3spinspin_summ(out,out,in);}
   
   //su3spinspin subt
   CUDA_HOST_AND_DEVICE inline void su3spinspin_subt(su3spinspin out,const su3spinspin in1,const su3spinspin in2) {for(size_t i=0;i<NCOL;i++) colorspinspin_subt(out[i],in1[i],in2[i]);}
@@ -1514,7 +1514,7 @@ namespace nissa
   }
   
   //can be used directly from an anti-hermitian matrix, ie. it compute straight exp(iQ)
-  inline void safe_anti_hermitian_exact_exponentiate(su3 out,const su3 iQ)
+  CUDA_HOST_AND_DEVICE inline void safe_anti_hermitian_exact_exponentiate(su3 out,const su3 iQ)
   {
     su3 Q;
     su3_prod_idouble(Q,iQ,-1);
