@@ -103,7 +103,7 @@ namespace nissa
     a[0]=b[0]+c[1];
     a[1]=b[1]-c[0];
   }
-  inline void complex_isubtassign(complex a,const complex b)
+  CUDA_HOST_AND_DEVICE inline void complex_isubtassign(complex a,const complex b)
   {complex_isubt(a,a,b);}
   CUDA_HOST_AND_DEVICE inline void complex_subt_conj2(complex a,const complex b,const complex c)
   {

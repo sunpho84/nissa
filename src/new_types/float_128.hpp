@@ -93,7 +93,7 @@ namespace nissa
   {float_128_subt(b,b,a);}
   
   //128 summ 64
-  inline void float_128_summ_64(float_128 c,float_128 a,double b)
+  CUDA_HOST_AND_DEVICE inline void float_128_summ_64(float_128 c,float_128 a,double b)
   {
 #ifndef fake_128
     double t1=a[0]+b;
@@ -140,7 +140,7 @@ namespace nissa
   {
     float_128_summassign_64(b,-a);
   }
-
+  
   //128 prod 128
   inline void float_128_prod(float_128 c,float_128 a,float_128 b)
   {

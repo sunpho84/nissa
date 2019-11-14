@@ -38,8 +38,8 @@ namespace nissa
 	    typename IMax,
 	    typename F>
   __global__
-  void cuda_generic_kernel(const IMin &min,
-			   const IMax &max,
+  void cuda_generic_kernel(const IMin min,
+			   const IMax max,
 			   F f)
   {
     const auto i=min+blockIdx.x*blockDim.x+threadIdx.x;
