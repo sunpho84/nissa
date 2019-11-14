@@ -317,11 +317,9 @@ namespace nissa
   }
   
   //add all the links needed to compute staples separately for each box
-  THREADABLE_FUNCTION_2ARG(add_staples_required_links_to_gauge_sweep, gauge_sweeper_t*,gs, all_to_all_gathering_list_t**,gl)
+  void add_staples_required_links_to_gauge_sweep(gauge_sweeper_t *gs,all_to_all_gathering_list_t **gl)
   {
-    GET_THREAD_ID();
-    
-    NISSA_PARALLEL_LOOP(ibox,0,(1<<NDIM))
+    for(int ibox=0;ibox<(1<<NDIM);ibox++)
       {
 	//find base for curr box
 	int ibase=0;
@@ -340,10 +338,7 @@ namespace nissa
 	      ibase+=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+NDIM*ibox)];
 	    }
     }
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
   
   //wrapper to use threads
   void gauge_sweeper_t::add_staples_required_links(all_to_all_gathering_list_t **gl)
