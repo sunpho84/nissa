@@ -115,7 +115,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void color_summassign(color a,const color b) {color_summ(a,a,b);}
   CUDA_HOST_AND_DEVICE inline void color_subtassign(color a,const color b) {color_subt(a,a,b);}
   
-  inline void color_isummassign(color a,const color b) {color_isumm(a,a,b);}
+  CUDA_HOST_AND_DEVICE inline void color_isummassign(color a,const color b) {color_isumm(a,a,b);}
   CUDA_HOST_AND_DEVICE inline void color_isubtassign(color a,const color b) {color_isubt(a,a,b);}
   
   CUDA_HOST_AND_DEVICE inline void color_prod_double(color a,const color b,const double c) {for(size_t ic=0;ic<NCOL;ic++) complex_prod_double(a[ic],b[ic],c);}
@@ -608,7 +608,7 @@ namespace nissa
   //product of an su3 matrix by a real
   CUDA_HOST_AND_DEVICE inline void su3_prod_double(su3 a,const su3 b,const double r)
   {for(size_t ic=0;ic<NCOL;ic++) color_prod_double(a[ic],b[ic],r);}
-  inline void su3_prodassign_double(su3 a,const double r)
+  CUDA_HOST_AND_DEVICE inline void su3_prodassign_double(su3 a,const double r)
   {su3_prod_double(a,a,r);}
   
   //hermitian of su3 matrix times a real

@@ -24,6 +24,7 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	  {
+	    printf("%d/%ld\n",(int)ivol,(int)loc_volh);
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
 		S[par][ivol][mu][0]=1;
@@ -39,7 +40,7 @@ namespace nissa
   
   //multiply a background field by the imaginary chemical potential
   THREADABLE_FUNCTION_2ARG(add_im_pot_to_backfield, quad_u1**,S, quark_content_t*,quark_content)
-  {    
+  {
     GET_THREAD_ID();
     
     double im_pot=quark_content->im_pot*M_PI/glb_size[0];

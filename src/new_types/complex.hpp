@@ -124,7 +124,7 @@ namespace nissa
   
   //prod with real
   CUDA_HOST_AND_DEVICE inline void complex_prod_double(complex a,const complex b,const double c) {a[RE]=b[RE]*c;a[IM]=b[IM]*c;}
-  inline void complex_prodassign_double(complex a,const double c) {complex_prod_double(a,a,c);}
+  CUDA_HOST_AND_DEVICE inline void complex_prodassign_double(complex a,const double c) {complex_prod_double(a,a,c);}
   CUDA_HOST_AND_DEVICE inline void complex_prod_idouble(complex a,const complex b,const double c) {const double d=-b[IM]*c;a[IM]=b[RE]*c;a[RE]=d;}
   inline void complex_prodassign_idouble(complex a,const double b) {complex_prod_idouble(a,a,b);}
   
@@ -135,7 +135,7 @@ namespace nissa
     a[1]+=b[1]*c;
     a[0]+=t;
   }
-  inline void complex_subt_the_prod_double(complex a,const complex b,const double c)
+  CUDA_HOST_AND_DEVICE inline void complex_subt_the_prod_double(complex a,const complex b,const double c)
   {
     const double t=b[0]*c;
     a[1]-=b[1]*c;
@@ -149,7 +149,7 @@ namespace nissa
     a[1]+=b[0]*c;
     a[0]-=t;
   }
-  inline void complex_subt_the_prod_idouble(complex a,const complex b,double c)
+  CUDA_HOST_AND_DEVICE inline void complex_subt_the_prod_idouble(complex a,const complex b,double c)
   {
     const double t=b[1]*c;
     a[1]-=b[0]*c;
@@ -304,7 +304,7 @@ namespace nissa
   }
   
   //The product of a complex number by the conjugate of the second
-  inline void safe_complex_conj2_prod(complex a,const complex b,const complex c)
+  CUDA_HOST_AND_DEVICE inline void safe_complex_conj2_prod(complex a,const complex b,const complex c)
   {
     const double tmp=b[0]*c[0]+b[1]*c[1];
     a[1]=-b[0]*c[1]+b[1]*c[0];

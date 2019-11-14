@@ -446,19 +446,19 @@ namespace nissa
   }
   
   //64 prod c128
-  inline void float_64_prod_complex_128(complex_128 a,double b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void float_64_prod_complex_128(complex_128 a,double b,complex_128 c)
   {
     float_64_prod_128(a[0],b,c[0]);
     float_64_prod_128(a[1],b,c[1]);
   }
-  inline void float_64_summ_the_prod_complex_128(complex_128 a,double b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void float_64_summ_the_prod_complex_128(complex_128 a,double b,complex_128 c)
   {
     float_summ_the_64_prod_128(a[0],b,c[0]);
     float_summ_the_64_prod_128(a[1],b,c[1]);
   }
   
   //64 iprod c128
-  inline void float_64_summ_the_iprod_complex_128(complex_128 a,double b,complex_128 c)
+  CUDA_HOST_AND_DEVICE inline void float_64_summ_the_iprod_complex_128(complex_128 a,double b,complex_128 c)
   {
     float_128 d={c[0][0],c[0][1]};
     float_subt_the_64_prod_128(a[0],b,c[1]);
@@ -506,22 +506,22 @@ namespace nissa
   
   inline void color_128_put_to_zero(color_128 a)
   {memset(a,0,sizeof(color_128));}
-  inline void color_128_copy(color_128 a,color_128 b)
+  CUDA_HOST_AND_DEVICE inline void color_128_copy(color_128 a,color_128 b)
   {memcpy(a,b,sizeof(color_128));}
   
   CUDA_HOST_AND_DEVICE inline void color_128_summ(color_128 a,color_128 b,color_128 c)
   {for(int ic=0;ic<3;ic++) complex_128_summ(a[ic],b[ic],c[ic]);}
-  inline void color_128_summassign(color_128 a,color_128 b)
+  CUDA_HOST_AND_DEVICE inline void color_128_summassign(color_128 a,color_128 b)
   {color_128_summ(a,a,b);}
   
   CUDA_HOST_AND_DEVICE inline void color_128_isumm(color_128 a,color_128 b,color_128 c)
   {for(int ic=0;ic<3;ic++) complex_128_isumm(a[ic],b[ic],c[ic]);}
-  inline void color_128_isummassign(color_128 a,color_128 b)
+  CUDA_HOST_AND_DEVICE inline void color_128_isummassign(color_128 a,color_128 b)
   {color_128_isumm(a,a,b);}
   
   CUDA_HOST_AND_DEVICE inline void color_128_subt(color_128 a,color_128 b,color_128 c)
   {for(int ic=0;ic<3;ic++) complex_128_subt(a[ic],b[ic],c[ic]);}
-  inline void color_128_subtassign(color_128 a,color_128 b)
+  CUDA_HOST_AND_DEVICE inline void color_128_subtassign(color_128 a,color_128 b)
   {color_128_subt(a,a,b);}
   
   CUDA_HOST_AND_DEVICE inline void color_128_isubt(color_128 a,color_128 b,color_128 c)
