@@ -48,6 +48,11 @@ namespace nissa
       f(i);
   }
   
+  inline void thread_barrier_internal()
+  {
+    cudaDeviceSynchronize();
+  }
+  
   template <typename IMin,
 	    typename IMax,
 	    typename F>
@@ -68,15 +73,11 @@ namespace nissa
 	   line,file,(int64_t)min,(int64_t)max,block_dimension.x,grid_dimension.x);
     
     cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,f);
+    thread_barrier_internal();
   }
   
   inline void cache_flush()
   {
-  }
-  
-  inline void thread_barrier_internal()
-  {
-    cudaDeviceSynchronize();
   }
   
   //start nissa
