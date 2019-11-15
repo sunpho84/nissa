@@ -75,8 +75,8 @@ namespace nissa
     
     if(in==out) crash("in==out");
     cudaPointerAttributes attributes;
-    cudaPointerGetAttributes(&attributes,in[0]);
-    printf("isManaged: %d\n",attributes.isManaged);
+    cudaPointerGetAttributes(&attributes,out[0]);
+    printf("isManaged outside: %d\n",attributes.isManaged);
     communicate_eo_quad_su3_edges(in);
     
     //allocate a temporary conf if going to smear iteratively or out==ext_in
@@ -90,6 +90,9 @@ namespace nissa
 	      stout_link_staples sto_ste;
 	      stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
 	      
+    cudaPointerAttributes attributes;
+    cudaPointerGetAttributes(&attributes,out[0]);
+    printf("isManaged inside: %d\n",attributes.isManaged);
 	      //exp(iQ)*U (eq. 3)
 	      su3 expiQ;
 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
