@@ -66,8 +66,6 @@ namespace nissa
     su3_prod_idouble(out->Q,iQ,-1);
   }
   
-  typedef quad_su3* quad_su3_ptr_two[2];
-  
   //smear the configuration according to Peardon paper
   THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3_ptr_two*,out, quad_su3_ptr_two*,in, double,rho, bool*,dirs)
   {
