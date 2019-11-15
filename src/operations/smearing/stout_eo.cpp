@@ -105,11 +105,6 @@ namespace nissa
   //smear n times, using only one additional vectors
   THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
   {
-    //allocate temp
-    quad_su3 *in[2];
-    for(int eo=0;eo<2;eo++)
-      in[eo]=nissa_malloc("in",loc_volh+bord_volh,quad_su3);
-    
     verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
     switch(stout_pars->nlevels)
       {
@@ -119,7 +114,9 @@ namespace nissa
 	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(out));
 	break;
       default:
-	for(int eo=0;eo<2;eo++)
+	//allocate temp
+	quad_su3 *in[2];
+    	for(int eo=0;eo<2;eo++)
 	  {
 	    in[eo]=nissa_malloc("in",loc_volh+bord_volh+edge_volh,quad_su3);
 	    vector_copy(in[eo],ext_in[eo]);
