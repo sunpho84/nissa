@@ -226,7 +226,7 @@ namespace nissa
 	
 	//reduce
 	#warning reimplement glb_threads_reduce_complex_vect(loc_contr,contr_tot_size);
-	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);
+	#warning if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);
 	
 	//print
 	double norm=1.0/(meas_pars.nhits*glb_spat_vol);

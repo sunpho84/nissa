@@ -222,24 +222,25 @@ namespace nissa
   //perform a unitarity check on a lx conf
   void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
   {
-    //results
-    double loc_avg=0,loc_max=0,loc_nbroken=0;
+#warning reimplement
+    // //results
+    // double loc_avg=0,loc_max=0,loc_nbroken=0;
     
-    NISSA_LOC_VOL_LOOP(ivol)
-      for(int idir=0;idir<NDIM;idir++)
-	{
-	  double err=su3_get_non_unitariness(conf[ivol][idir]);
+    // NISSA_LOC_VOL_LOOP(ivol)
+    //   for(int idir=0;idir<NDIM;idir++)
+    // 	{
+    // 	  double err=su3_get_non_unitariness(conf[ivol][idir]);
 	  
-	  //compute average and max deviation
-	  loc_avg+=err;
-	  loc_max=std::max(err,loc_max);
-	  if(err>1e-13) loc_nbroken+=1;
-	}
+    // 	  //compute average and max deviation
+    // 	  loc_avg+=err;
+    // 	  loc_max=std::max(err,loc_max);
+    // 	  if(err>1e-13) loc_nbroken+=1;
+    // 	}
     
-    //take global average and print
-    result.average_diff=glb_reduce_double(loc_avg)/glb_vol/NDIM;
-    result.max_diff=glb_max_double(loc_max);
-    result.nbroken_links=(int)glb_max_double(loc_nbroken);
+    // //take global average and print
+    // result.average_diff=glb_reduce_double(loc_avg)/glb_vol/NDIM;
+    // result.max_diff=glb_max_double(loc_max);
+    // result.nbroken_links=(int)glb_max_double(loc_nbroken);
   }
   
   //unitarize an a lx conf

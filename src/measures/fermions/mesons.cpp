@@ -104,7 +104,7 @@ int nflavs;
 	
 	//reduce
 	#warning reimplement glb_threads_reduce_double_vect((double*)loc_corr,2*ncombo);
-	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(corr,loc_corr,ncombo);
+	#warning reimplement if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(corr,loc_corr,ncombo);
       }
     
     for(int eo=0;eo<2;eo++)

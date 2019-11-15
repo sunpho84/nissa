@@ -119,7 +119,7 @@ namespace nissa
 	
 	//reduce
 	#warning reimplement glb_threads_reduce_double_vect((double*)loc_contr,2*ncompl);
-	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,loc_contr,ncompl);
+	#warning if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,loc_contr,ncompl);
 	
 	//print
 	double norm=nhits;

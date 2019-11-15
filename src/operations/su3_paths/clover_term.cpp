@@ -229,7 +229,7 @@ namespace nissa
     su3_summ_the_prod_color(out[1],Cl[1],in[0]);
     su3_subt_the_prod_color(out[1],Cl[0],in[1]);
   }
-  CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex diag,clover_term_t Cl,halfspincolor_128 in)
+  CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex& diag,clover_term_t Cl,halfspincolor_128 in)
   {
     unsafe_color_128_prod_complex_64(out[0],in[0],diag);
     su3_summ_the_prod_color_128(out[0],Cl[0],in[0]);

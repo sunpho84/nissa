@@ -9,7 +9,6 @@ namespace nissa
   double global_plaquette_eo_conf(quad_su3 **conf);
   void global_plaquette_eo_conf(double *totplaq,quad_su3 **conf);
   void global_plaquette_lx_conf(double *totplaq,quad_su3 *conf);
-  void global_plaquette_lx_conf_per_timeslice(double *glb_plaq,quad_su3 *conf);
 }
 
 #endif
