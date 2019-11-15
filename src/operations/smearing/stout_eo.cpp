@@ -67,7 +67,7 @@ namespace nissa
   }
   
   namespace {
-    CUDA_MANAGED quad_su3 *_in[2],**in=_in;
+    CUDA_MANAGED quad_su3 *in[2];
   }
   
   //smear the configuration according to Peardon paper
