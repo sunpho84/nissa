@@ -14,8 +14,8 @@ using namespace nissa;
 double *top_meas_time;
 
 //new and old conf
-quad_su3 *new_conf[2];
-quad_su3 *conf[2];
+CUDA_MANAGED quad_su3 *new_conf[2];
+CUDA_MANAGED quad_su3 *conf[2];
 
 //all infos
 driver_t *drv;
