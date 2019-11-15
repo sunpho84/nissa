@@ -66,15 +66,17 @@ namespace nissa
     su3_prod_idouble(out->Q,iQ,-1);
   }
   
+  typedef quad_su3* quad_su3_ptr_two[2];
+  
   //smear the configuration according to Peardon paper
-  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,in, double,rho, bool*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3_ptr_two*,out, quad_su3_ptr_two*,in, double,rho, bool*,dirs)
   {
     GET_THREAD_ID();
     
     START_TIMING(sto_time,nsto);
     
     if(in==out) crash("in==out");
-    communicate_eo_quad_su3_edges(in);
+    communicate_eo_quad_su3_edges(*in);
     
     //allocate a temporary conf if going to smear iteratively or out==ext_in
     
@@ -85,12 +87,12 @@ namespace nissa
 	    {
 	      //compute the staples needed to smear
 	      stout_link_staples sto_ste;
-	      stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
+	      stout_smear_compute_staples(&sto_ste,(*in),p,A,mu,rho);
 	      
 	      //exp(iQ)*U (eq. 3)
 	      su3 expiQ;
 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
+	      unsafe_su3_prod_su3((*out)[p][A][mu],expiQ,(*in)[p][A][mu]);
 	    }
         NISSA_PARALLEL_LOOP_END;
 	
