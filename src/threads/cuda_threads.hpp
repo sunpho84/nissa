@@ -73,6 +73,8 @@ namespace nissa
     
     cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,f);
     thread_barrier_internal();
+    if(rank==0)
+      printf(" finished\n");
   }
   
   inline void cache_flush()
