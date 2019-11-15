@@ -58,7 +58,7 @@ namespace nissa
   void stout_smear_whole_stack(quad_su3 ***out,quad_su3 **in,stout_pars_t *stout_pars,bool *dirs=all_dirs);
   void stout_smear(quad_su3 **ext_out,quad_su3 **ext_in,stout_pars_t *stout_pars,bool *dirs=all_dirs);
   void stout_smear_single_level(quad_su3_ptr_two *out,quad_su3_ptr_two *ext_in,double rho,bool *dirs=all_dirs);
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,int A,int mu,double rho);
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3_ptr_two *conf,int p,int A,int mu,double rho);
   CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,double rho);
   void stout_smear_conf_stack_allocate(quad_su3 ****out,quad_su3 **in,int nlev);
   void stout_smear_conf_stack_free(quad_su3 ****out,int nlev);

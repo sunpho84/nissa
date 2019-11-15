@@ -22,7 +22,7 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3_ptr_two *conf,int p,int A,int mu,double rho)
   {
 #warning do something
     //if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("../communicate/communicate edges externally");
@@ -37,14 +37,14 @@ namespace nissa
 	{                                     //  D---A---B
 	  int B=loceo_neighup[p][A][nu];      //        nu
 	  int F=loceo_neighup[p][A][mu];
-	  unsafe_su3_prod_su3(    temp1,conf[p][A][nu],conf[!p][B][mu]);
-	  unsafe_su3_prod_su3_dag(temp2,temp1,         conf[!p][F][nu]);
+	  unsafe_su3_prod_su3(    temp1,(*conf)[p][A][nu],(*conf)[!p][B][mu]);
+	  unsafe_su3_prod_su3_dag(temp2,temp1,         (*conf)[!p][F][nu]);
 	  su3_summ_the_prod_double(staples,temp2,rho);
 	  
 	  int D=loceo_neighdw[p][A][nu];
 	  int E=loceo_neighup[!p][D][mu];
-	  unsafe_su3_dag_prod_su3(temp1,conf[!p][D][nu],conf[!p][D][mu]);
-	  unsafe_su3_prod_su3(    temp2,temp1,          conf[ p][E][nu]);
+	  unsafe_su3_dag_prod_su3(temp1,(*conf)[!p][D][nu],(*conf)[!p][D][mu]);
+	  unsafe_su3_prod_su3(    temp2,temp1,          (*conf)[ p][E][nu]);
 	  su3_summ_the_prod_double(staples,temp2,rho);
 	}
   }
@@ -52,13 +52,13 @@ namespace nissa
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   
   //partial derivative of the force
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3_ptr_two *conf,int p,int A,int mu,double rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,p,A,mu,rho);
     
     //build Omega (eq. 2.b)
-    unsafe_su3_prod_su3_dag(out->Omega,out->C,conf[p][A][mu]);
+    unsafe_su3_prod_su3_dag(out->Omega,out->C,(*conf)[p][A][mu]);
     
     //compute Q (eq. 2.a)
     su3 iQ;
@@ -85,7 +85,7 @@ namespace nissa
 	    {
 	      //compute the staples needed to smear
 	      stout_link_staples sto_ste;
-	      stout_smear_compute_staples(&sto_ste,(*in),p,A,mu,rho);
+	      stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
 	      
 	      //exp(iQ)*U (eq. 3)
 	      su3 expiQ;
@@ -191,7 +191,7 @@ namespace nissa
 	  {
 	    //compute the ingredients needed to smear
 	    stout_link_staples sto_ste;
-	    stout_smear_compute_staples(&sto_ste,conf,p,A,mu,rho);
+	    stout_smear_compute_staples(&sto_ste,(quad_su3_ptr_two*)&conf,p,A,mu,rho);
 	    
 	    //compute the ingredients needed to exponentiate
 	    hermitian_exp_ingredients ing;
