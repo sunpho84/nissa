@@ -279,9 +279,7 @@ namespace nissa
     for(int i=0;i<n;i++)
       complex_summassign(loc_res,a[i]);
     
-    if(nranks>1) MPI_reduce_complex(glb_res,loc_res);
-    else
-      complex_copy(glb_res,loc_res);
+    MPI_reduce_complex(glb_res,loc_res);
     
 #warning not working
 // #ifndef REPRODUCIBLE_RUN
