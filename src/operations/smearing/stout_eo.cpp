@@ -126,14 +126,14 @@ namespace nissa
 	break;
       default:
 	//allocate temp
-	quad_su3 *ext_temp[2];
+	CUDA_MANAGED quad_su3 *ext_temp[2];
 	for(int eo=0;eo<2;eo++) ext_temp[eo]=nissa_malloc("temp",loc_volh+bord_volh+edge_volh,quad_su3);
 	
-	quad_su3 **in=ext_in,**ptr[2]={ext_temp,ext_out};
+	CUDA_MANAGED quad_su3 **in=ext_in,**ptr[2]={ext_temp,ext_out};
 	
 	//if the distance is even, first pass must use temp as out
-	quad_su3 **out=ptr[!(stout_pars->nlevels%2==0)];
-	quad_su3 **temp=ptr[(stout_pars->nlevels%2==0)];
+	CUDA_MANAGED quad_su3 **out=ptr[!(stout_pars->nlevels%2==0)];
+	CUDA_MANAGED quad_su3 **temp=ptr[(stout_pars->nlevels%2==0)];
 	
 	for(int i=0;i<stout_pars->nlevels;i++)
 	  {
