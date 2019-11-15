@@ -48,8 +48,9 @@ namespace nissa
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       {
-    	unsafe_halfspincolor_halfspincolor_times_halfspincolor_128 (&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
-    	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor_128(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
+	typedef halfspincolor_128 hs;
+    	unsafe_halfspincolor_halfspincolor_times_halfspincolor_128 (((hs*)(out[X]))[high],invCl[X][high],((hs*)(in[X]))[high]);
+    	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor_128(((hs*)(out[X]))[low],invCl[X][low],((hs*)(in[X]))[low]);
       }
     NISSA_PARALLEL_LOOP_END;
     
