@@ -104,40 +104,39 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //smear n times, using only one additional vectors
-  THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
   {
+    //allocate temp
+    quad_su3 *in[2];
+    
     verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
     switch(stout_pars->nlevels)
       {
-      case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
+      case 0: if(out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(out[eo],ext_in[eo]);break;
       case 1:
-	stout_smear_single_level(ext_out,ext_in,stout_pars->rho,dirs);
-	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_out));
+	stout_smear_single_level(out,ext_in,stout_pars->rho,dirs);
+	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(out));
 	break;
       default:
-	//allocate temp
-	quad_su3 *ext_temp[2];
-	for(int eo=0;eo<2;eo++) ext_temp[eo]=nissa_malloc("temp",loc_volh+bord_volh+edge_volh,quad_su3);
-	
-	quad_su3 **in=ext_in,**ptr[2]={ext_temp,ext_out};
-	
-	//if the distance is even, first pass must use temp as out
-	quad_su3 **out=ptr[!(stout_pars->nlevels%2==0)];
-	quad_su3 **temp=ptr[(stout_pars->nlevels%2==0)];
+	for(int eo=0;eo<2;eo++)
+	  {
+	    in[eo]=nissa_malloc("in",loc_volh+bord_volh+edge_volh,quad_su3);
+	    vector_copy(in[eo],ext_in[eo]);
+	  }
 	
 	for(int i=0;i<stout_pars->nlevels;i++)
 	  {
 	    stout_smear_single_level(out,in,stout_pars->rho,dirs);
+	    if(i!=stout_pars->nlevels-1)
+	      for(int eo=0;eo<2;eo++)
+		vector_copy(in[eo],out[eo]);
+	      
             verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(out));
-	    //next input is current output
-	    in=out;
-	    //exchange out and temp
-	    std::swap(out,temp);
 	  }
 	
 	//free temp
-	for(int eo=0;eo<2;eo++) nissa_free(ext_temp[eo]);
-      }
+	for(int eo=0;eo<2;eo++) nissa_free(in[eo]);
+      } 
   }
   THREADABLE_FUNCTION_END
   
