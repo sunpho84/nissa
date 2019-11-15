@@ -99,7 +99,7 @@ namespace nissa
   //reduce a complex
   inline void MPI_reduce_complex(complex out_glb,complex in_loc)
   {
-    MPI_Allreduce(&in_loc,&out_glb,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(in_loc,out_glb,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   }
   
   //reduce a float_128
@@ -115,7 +115,7 @@ namespace nissa
   //reduce a complex 128
   inline void MPI_reduce_complex_128(complex_128 out_glb,complex_128 in_loc)
   {
-    MPI_Allreduce(&in_loc,&out_glb,2,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(in_loc,out_glb,2,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
   }
   
   //reduce a double vector
