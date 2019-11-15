@@ -66,16 +66,27 @@ namespace nissa
     su3_prod_idouble(out->Q,iQ,-1);
   }
   
+  namespace {
+    CUDA_MANAGED quad_su3 *_in[2],**in=_in;
+  }
+  
   //smear the configuration according to Peardon paper
-  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,in, double,rho, bool*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, double,rho, bool*,dirs)
   {
     GET_THREAD_ID();
     
     START_TIMING(sto_time,nsto);
     
-    if(in==out) crash("out==in");
+    communicate_eo_quad_su3_edges(ext_in);
     
-    communicate_eo_quad_su3_edges(in);
+    //allocate a temporary conf if going to smear iteratively or out==ext_in
+    for(int eo=0;eo<2;eo++)
+      if(out==ext_in)
+	{
+	  in[eo]=nissa_malloc("in",loc_volh+bord_volh+edge_volh,quad_su3);
+	  vector_copy(in[eo],ext_in[eo]);
+	}
+      else in[eo]=ext_in[eo];
     
     for(int p=0;p<2;p++)
       for(int mu=0;mu<NDIM;mu++)
@@ -95,7 +106,10 @@ namespace nissa
 	
     //invalid the border and free allocated memory, if any
     for(int eo=0;eo<2;eo++)
+      {
 	set_borders_invalid(out[eo]);
+	if(out==ext_in) nissa_free(in[eo]);
+      }
     
     STOP_TIMING(sto_time);
   }
