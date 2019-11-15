@@ -28,7 +28,7 @@ namespace nissa
   {return (i>>ibit)&1;}
   
   template <class T>
-  T summ(T a,T b)
+  T summ(const T& a,const T& b)
   {return a+b;}
   
   template <class T>
