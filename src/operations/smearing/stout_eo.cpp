@@ -50,7 +50,7 @@ namespace nissa
   }
   
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
-
+  
   //partial derivative of the force
   CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,int A,int mu,double rho)
   {
@@ -103,12 +103,12 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+    //allocate temp
+CUDA_MANAGED    quad_su3 *in[2];
+    
   //smear n times, using only one additional vectors
   THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
   {
-    //allocate temp
-    quad_su3 *in[2];
-    
     verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
     switch(stout_pars->nlevels)
       {
