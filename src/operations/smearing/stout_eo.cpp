@@ -74,15 +74,17 @@ namespace nissa
     
     communicate_eo_quad_su3_edges(ext_in);
     
+    if(ext_in==out) crash("cannot overwrite");
+    
     //allocate a temporary conf if going to smear iteratively or out==ext_in
-    quad_su3 *_in[2],**in=_in;
-    for(int eo=0;eo<2;eo++)
-      if(out==ext_in)
-	{
-	  in[eo]=nissa_malloc("in",loc_volh+bord_volh+edge_volh,quad_su3);
-	  vector_copy(in[eo],ext_in[eo]);
-	}
-      else in[eo]=ext_in[eo];
+    // quad_su3 *_in[2],**in=_in;
+    // for(int eo=0;eo<2;eo++)
+    //   if(out==ext_in)
+    // 	{
+    // 	  in[eo]=nissa_malloc("in",loc_volh+bord_volh+edge_volh,quad_su3);
+    // 	  vector_copy(in[eo],ext_in[eo]);
+    // 	}
+    //   else in[eo]=ext_in[eo];
     
     for(int p=0;p<2;p++)
       for(int mu=0;mu<NDIM;mu++)
@@ -91,12 +93,12 @@ namespace nissa
 	    {
 	      //compute the staples needed to smear
 	      stout_link_staples sto_ste;
-	      stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
+	      stout_smear_compute_staples(&sto_ste,ext_in,p,A,mu,rho);
 	      
 	      //exp(iQ)*U (eq. 3)
 	      su3 expiQ;
 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
+	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,ext_in[p][A][mu]);
 	    }
         NISSA_PARALLEL_LOOP_END;
 	
@@ -104,7 +106,7 @@ namespace nissa
     for(int eo=0;eo<2;eo++)
       {
 	set_borders_invalid(out[eo]);
-	if(out==ext_in) nissa_free(in[eo]);
+	// if(out==ext_in) nissa_free(in[eo]);
       }
     
     STOP_TIMING(sto_time);
