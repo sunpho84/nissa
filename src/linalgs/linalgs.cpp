@@ -276,10 +276,12 @@ namespace nissa
     complex loc_res;
     
     complex_put_to_zero(loc_res);
-    for(int i=1;i<n;i++)
+    for(int i=0;i<n;i++)
       complex_summassign(loc_res,a[i]);
     
-    MPI_reduce_complex(glb_res,loc_res);
+    if(nranks>1) MPI_reduce_complex(glb_res,loc_res);
+    else
+      complex_copy(glb_res,loc_res);
     
 #warning not working
 // #ifndef REPRODUCIBLE_RUN
