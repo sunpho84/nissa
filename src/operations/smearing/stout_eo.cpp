@@ -22,7 +22,7 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *const*conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,double rho)
   {
 #warning do something
     //if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("../communicate/communicate edges externally");
@@ -50,8 +50,9 @@ namespace nissa
   }
   
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
+
   //partial derivative of the force
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *const*conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,int A,int mu,double rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,p,A,mu,rho);
