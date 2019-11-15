@@ -74,9 +74,6 @@ namespace nissa
     START_TIMING(sto_time,nsto);
     
     if(in==out) crash("in==out");
-    cudaPointerAttributes attributes;
-    cudaPointerGetAttributes(&attributes,out[0]);
-    printf("isManaged outside: %d\n",attributes.isManaged);
     communicate_eo_quad_su3_edges(in);
     
     //allocate a temporary conf if going to smear iteratively or out==ext_in
@@ -90,9 +87,6 @@ namespace nissa
 	      stout_link_staples sto_ste;
 	      stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
 	      
-    cudaPointerAttributes attributes;
-    cudaPointerGetAttributes(&attributes,out[0]);
-    printf("isManaged inside: %d\n",attributes.isManaged);
 	      //exp(iQ)*U (eq. 3)
 	      su3 expiQ;
 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
@@ -113,6 +107,8 @@ namespace nissa
   {
     //allocate temp
     quad_su3 *in[2];
+    for(int eo=0;eo<2;eo++)
+      in[eo]=nissa_malloc("in",loc_volh+bord_volh,quad_su3);
     
     verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
     switch(stout_pars->nlevels)
@@ -141,7 +137,7 @@ namespace nissa
 	
 	//free temp
 	for(int eo=0;eo<2;eo++) nissa_free(in[eo]);
-      } 
+      }
   }
   THREADABLE_FUNCTION_END
   
