@@ -110,7 +110,7 @@ namespace nissa
       {
       case 0: if(out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(out[eo],ext_in[eo]);break;
       case 1:
-	stout_smear_single_level(out,ext_in,stout_pars->rho,dirs);
+	stout_smear_single_level((quad_su3_ptr_two*)out,(quad_su3_ptr_two*)ext_in,stout_pars->rho,dirs);
 	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(out));
 	break;
       default:
@@ -124,7 +124,7 @@ namespace nissa
 	
 	for(int i=0;i<stout_pars->nlevels;i++)
 	  {
-	    stout_smear_single_level(out,in,stout_pars->rho,dirs);
+	    stout_smear_single_level((quad_su3_ptr_two*)out,(quad_su3_ptr_two*)in,stout_pars->rho,dirs);
 	    if(i!=stout_pars->nlevels-1)
 	      for(int eo=0;eo<2;eo++)
 		vector_copy(in[eo],out[eo]);
@@ -169,7 +169,7 @@ namespace nissa
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)
       {
-	stout_smear_single_level(out[i],out[i-1],stout_pars->rho,dirs);
+	stout_smear_single_level((quad_su3_ptr_two*)&out[i],(quad_su3_ptr_two*)&out[i-1],stout_pars->rho,dirs);
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
       }
   }
