@@ -74,7 +74,9 @@ namespace nissa
     START_TIMING(sto_time,nsto);
     
     if(in==out) crash("in==out");
-    
+    cudaPointerAttributes attributes;
+    cudaPointerGetAttributes(&attributes,in[0]);
+    printf("isManaged: %d\n",attributes.isManaged);
     communicate_eo_quad_su3_edges(in);
     
     //allocate a temporary conf if going to smear iteratively or out==ext_in
@@ -103,12 +105,12 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-    //allocate temp
-CUDA_MANAGED    quad_su3 *in[2];
-    
   //smear n times, using only one additional vectors
   THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
   {
+    //allocate temp
+    quad_su3 *in[2];
+    
     verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
     switch(stout_pars->nlevels)
       {
