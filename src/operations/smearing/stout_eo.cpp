@@ -114,7 +114,7 @@ namespace nissa
   //smear n times, using only one additional vectors
   THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
   {
-    verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
+    verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
     switch(stout_pars->nlevels)
       {
       case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
