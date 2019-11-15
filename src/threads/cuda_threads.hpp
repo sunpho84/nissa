@@ -56,9 +56,9 @@ namespace nissa
 	    typename IMax,
 	    typename F>
   void cuda_parallel_for(const int line,
-			 const char*file,
-			 const IMin &min,
-			 const IMax &max,
+			 const char *file,
+			 const IMin min,
+			 const IMax max,
 			 F f)
   {
     const auto length=(max-min);

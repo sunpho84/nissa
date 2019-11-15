@@ -271,7 +271,7 @@ namespace nissa
   //complex version
   THREADABLE_FUNCTION_3ARG(complex_vector_glb_collapse, double*,glb_res, complex*,a, int,n)
   {
-    master_printf("WARNING not reproducible and not pararrelized!");
+    master_printf("WARNING not reproducible and not pararrelized!\n");
     
     complex loc_res;
     
@@ -281,7 +281,6 @@ namespace nissa
     
     MPI_reduce_complex(glb_res,loc_res);
     
-#warning not working
 // #ifndef REPRODUCIBLE_RUN
 //     //perform thread summ
 //     complex loc_thread_res={0,0};
