@@ -22,7 +22,7 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3_ptr_two *conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3_eo *conf,int p,int A,int mu,double rho)
   {
 #warning do something
     //if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("../communicate/communicate edges externally");
@@ -52,7 +52,7 @@ namespace nissa
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   
   //partial derivative of the force
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3_ptr_two *conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3_eo *conf,int p,int A,int mu,double rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,p,A,mu,rho);
@@ -67,14 +67,15 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3_ptr_two*,out, quad_su3_ptr_two*,in, double,rho, bool*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3_eo,out, quad_su3_eo,in, double,rho, bool*,dirs)
   {
     GET_THREAD_ID();
     
     START_TIMING(sto_time,nsto);
     
-    if(in==out) crash("in==out");
-    communicate_eo_quad_su3_edges(*in);
+    if(in[0]==out[0]) crash("in==out");
+#warning
+    //communicate_eo_quad_su3_edges((quad_su3**)in);
     
     //allocate a temporary conf if going to smear iteratively or out==ext_in
     
@@ -90,13 +91,13 @@ namespace nissa
 	      //exp(iQ)*U (eq. 3)
 	      su3 expiQ;
 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-	      unsafe_su3_prod_su3((*out)[p][A][mu],expiQ,(*in)[p][A][mu]);
+	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
 	    }
         NISSA_PARALLEL_LOOP_END;
 	
     //invalid the border and free allocated memory, if any
     for(int eo=0;eo<2;eo++)
-      set_borders_invalid(out[eo]);
+      set_borders_invalid((quad_su3*)out[eo]);
     
     STOP_TIMING(sto_time);
   }
@@ -110,12 +111,13 @@ namespace nissa
       {
       case 0: if(out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(out[eo],ext_in[eo]);break;
       case 1:
-	stout_smear_single_level((quad_su3_ptr_two*)out,(quad_su3_ptr_two*)ext_in,stout_pars->rho,dirs);
+	crash("");
+	// stout_smear_single_level((quad_su3_ptr_two*)out,(quad_su3_ptr_two*)ext_in,stout_pars->rho,dirs);
 	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(out));
 	break;
       default:
 	//allocate temp
-	quad_su3 *in[2];
+	quad_su3_eo in;
     	for(int eo=0;eo<2;eo++)
 	  {
 	    in[eo]=nissa_malloc("in",loc_volh+bord_volh+edge_volh,quad_su3);
@@ -124,7 +126,7 @@ namespace nissa
 	
 	for(int i=0;i<stout_pars->nlevels;i++)
 	  {
-	    stout_smear_single_level((quad_su3_ptr_two*)out,(quad_su3_ptr_two*)in,stout_pars->rho,dirs);
+	    stout_smear_single_level(*(quad_su3_eo*)&out,in,stout_pars->rho,dirs);
 	    if(i!=stout_pars->nlevels-1)
 	      for(int eo=0;eo<2;eo++)
 		vector_copy(in[eo],out[eo]);
@@ -169,7 +171,8 @@ namespace nissa
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)
       {
-	stout_smear_single_level((quad_su3_ptr_two*)&out[i],(quad_su3_ptr_two*)&out[i-1],stout_pars->rho,dirs);
+	#warning
+	//stout_smear_single_level(out[i],out[i-1],stout_pars->rho,dirs);
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
       }
   }
@@ -191,7 +194,8 @@ namespace nissa
 	  {
 	    //compute the ingredients needed to smear
 	    stout_link_staples sto_ste;
-	    stout_smear_compute_staples(&sto_ste,(quad_su3_ptr_two*)&conf,p,A,mu,rho);
+#warning
+	    //stout_smear_compute_staples(&sto_ste,(quad_su3_ptr_two*)&conf,p,A,mu,rho);
 	    
 	    //compute the ingredients needed to exponentiate
 	    hermitian_exp_ingredients ing;
