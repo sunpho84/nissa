@@ -104,23 +104,24 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //smear n times, using only one additional vectors
-  THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
   {
     verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
     switch(stout_pars->nlevels)
       {
-      case 0: if(out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(out[eo],ext_in[eo]);break;
+      case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
       case 1:
 	crash("");
 	// stout_smear_single_level((quad_su3_ptr_two*)out,(quad_su3_ptr_two*)ext_in,stout_pars->rho,dirs);
-	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(out));
+	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_out));
 	break;
       default:
 	//allocate temp
-	quad_su3_eo in;
+	quad_su3_eo in,out;
     	for(int eo=0;eo<2;eo++)
 	  {
 	    in[eo]=nissa_malloc("in",loc_volh+bord_volh+edge_volh,quad_su3);
+	    out[eo]=nissa_malloc("out",loc_volh+bord_volh+edge_volh,quad_su3);
 	    vector_copy(in[eo],ext_in[eo]);
 	  }
 	
@@ -128,16 +129,23 @@ namespace nissa
     //verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(in));
 	for(int i=0;i<stout_pars->nlevels;i++)
 	  {
-	    stout_smear_single_level(*(quad_su3_eo*)&out,in,stout_pars->rho,dirs);
+	    stout_smear_single_level(out,in,stout_pars->rho,dirs);
 	    if(i!=stout_pars->nlevels-1)
 	      for(int eo=0;eo<2;eo++)
 		vector_copy(in[eo],out[eo]);
 	      
-            verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(out));
+            //verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(_extout));
 	  }
 	
+	for(int eo=0;eo<2;eo++)
+	  vector_copy(ext_out[eo],out[eo]);
+	
 	//free temp
-	for(int eo=0;eo<2;eo++) nissa_free(in[eo]);
+	for(int eo=0;eo<2;eo++)
+	  {
+	    nissa_free(in[eo]);
+	    nissa_free(out[eo]);
+	  }
       }
   }
   THREADABLE_FUNCTION_END
