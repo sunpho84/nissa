@@ -67,11 +67,11 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   //reduce a double
-  inline double MPI_reduce_double(double in_loc,MPI_Op mpi_op)
+  inline double MPI_reduce_double(double in_loc,MPI_Op mpi_op=MPI_SUM)
   {
     double out_glb;
     
-    MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,mpi_op,MPI_COMM_WORLD);
     
     return out_glb;
   }

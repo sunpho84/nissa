@@ -129,7 +129,15 @@ namespace nissa
   //scalar product
   THREADABLE_FUNCTION_4ARG(double_vector_glb_scalar_prod, double*,glb_res, double*,a, double*,b, int,n)
   {
-    crash("");
+    master_printf("WARNING not reproducible and not pararrelized!\n");
+    
+    double loc_res=0.0;
+    
+    for(int i=0;i<n;i++)
+      loc_res+=a[i]*b[i];
+    
+    *glb_res=MPI_reduce_double(loc_res);
+    
 // #ifndef REPRODUCIBLE_RUN
 //     //perform thread summ
 //     double loc_thread_res=0;
