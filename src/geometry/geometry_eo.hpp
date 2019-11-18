@@ -18,6 +18,25 @@
 
 namespace nissa
 {
+  //
+  template <typename T>
+  struct eo_ptr
+  {
+    using Tptr=T*;
+    
+    Tptr data[2];
+    
+    CUDA_HOST_AND_DEVICE Tptr& operator[](const int i)
+    {
+      return data[i];
+    }
+    
+    CUDA_HOST_AND_DEVICE const Tptr& operator[](const int i) const
+    {
+      return data[i];
+    }
+  };
+  
   //-eo is even-odd
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loclx_parity;
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loceo_of_loclx;

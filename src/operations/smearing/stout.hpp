@@ -17,25 +17,6 @@ namespace nissa
     su3 Q;
   };
   
-  //
-  template <typename T>
-  struct eo_ptr
-  {
-    using Tptr=T*;
-    
-    Tptr data[2];
-    
-    CUDA_HOST_AND_DEVICE Tptr& operator[](const int i)
-    {
-      return data[i];
-    }
-    
-    CUDA_HOST_AND_DEVICE const Tptr& operator[](const int i) const
-    {
-      return data[i];
-    }
-  };
-  
   //parameters to stout
   struct stout_pars_t
   {
