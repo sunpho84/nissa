@@ -17,19 +17,20 @@ namespace nissa
     su3 Q;
   };
   
-  typedef quad_su3* quad_su3_ptr;
-  
-  //quadruple precision float
-  struct quad_su3_eo
+  //
+  template <typename T>
+  struct eo_ptr
   {
-    quad_su3_ptr data[2];
+    using Tptr=T*;
     
-    CUDA_HOST_AND_DEVICE quad_su3_ptr& operator[](const int i)
+    Tptr data[2];
+    
+    CUDA_HOST_AND_DEVICE Tptr& operator[](const int i)
     {
       return data[i];
     }
     
-    CUDA_HOST_AND_DEVICE const quad_su3_ptr& operator[](const int i) const
+    CUDA_HOST_AND_DEVICE const Tptr& operator[](const int i) const
     {
       return data[i];
     }
@@ -73,8 +74,8 @@ namespace nissa
   //eo
   void stout_smear_whole_stack(quad_su3 ***out,quad_su3 **in,stout_pars_t *stout_pars,bool *dirs=all_dirs);
   void stout_smear(quad_su3 **ext_out,quad_su3 **ext_in,stout_pars_t *stout_pars,bool *dirs=all_dirs);
-  void stout_smear_single_level(quad_su3_eo out,quad_su3_eo ext_in,double rho,bool *dirs=all_dirs);
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3_eo conf,int p,int A,int mu,double rho);
+  void stout_smear_single_level(eo_ptr<quad_su3> out,eo_ptr<quad_su3> ext_in,double rho,bool *dirs=all_dirs);
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho);
   CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,double rho);
   void stout_smear_conf_stack_allocate(quad_su3 ****out,quad_su3 **in,int nlev);
   void stout_smear_conf_stack_free(quad_su3 ****out,int nlev);

@@ -22,7 +22,7 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3_eo conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho)
   {
 #warning do something
     //if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("../communicate/communicate edges externally");
@@ -52,7 +52,7 @@ namespace nissa
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   
   //partial derivative of the force
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3_eo conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,p,A,mu,rho);
@@ -67,7 +67,7 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3_eo,out, quad_su3_eo,in, double,rho, bool*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, eo_ptr<quad_su3>,out, eo_ptr<quad_su3>,in, double,rho, bool*,dirs)
   {
     GET_THREAD_ID();
     
@@ -117,7 +117,7 @@ namespace nissa
 	break;
       default:
 	//allocate temp
-	quad_su3_eo in,out;
+	eo_ptr<quad_su3> in,out;
     	for(int eo=0;eo<2;eo++)
 	  {
 	    in[eo]=nissa_malloc("in",loc_volh+bord_volh+edge_volh,quad_su3);
@@ -194,7 +194,7 @@ namespace nissa
     GET_THREAD_ID();
     communicate_eo_quad_su3_edges(conf);
     
-    quad_su3 *Lambda[2];
+    eo_ptr<quad_su3> Lambda;
     for(int eo=0;eo<2;eo++)
       Lambda[eo]=nissa_malloc("Lambda",loc_volh+bord_volh+edge_volh,quad_su3);
     
@@ -234,7 +234,7 @@ namespace nissa
     for(int p=0;p<2;p++) set_borders_invalid(Lambda[p]);
     
     //compute the third piece of eq. (75)
-    communicate_eo_quad_su3_edges(Lambda);
+    #warning communicate_eo_quad_su3_edges(Lambda);
     
     for(int p=0;p<2;p++)
       for(int mu=0;mu<4;mu++)
