@@ -3,6 +3,7 @@
 
 #include <sstream>
 
+#include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
 #include "new_types/su3_op.hpp"
