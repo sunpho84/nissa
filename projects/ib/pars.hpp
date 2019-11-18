@@ -36,18 +36,18 @@ namespace nissa
     if(clover_run) read_str_double("cSW",&glb_cSW);
   }
   
-  EXTERN_PARS double temporal_bc INIT_TO(ANTIPERIODIC_BC);
+  CUDA_MANAGED EXTERN_PARS double temporal_bc INIT_TO(ANTIPERIODIC_BC);
   
-  EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
-  EXTERN_PARS int nso_spi,nso_col;
-  EXTERN_PARS coords source_coord;
-  inline int rel_coord_of_glb_coord(int c,int mu)
+  CUDA_MANAGED EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
+  CUDA_MANAGED EXTERN_PARS int nso_spi,nso_col;
+  CUDA_MANAGED EXTERN_PARS coords source_coord;
+  CUDA_HOST_AND_DEVICE inline int rel_coord_of_glb_coord(int c,int mu)
   {return (glb_size[mu]+c-source_coord[mu])%glb_size[mu];}
   inline int rel_time_of_glb_time(int t)
   {return rel_coord_of_glb_coord(t,0);}
-  inline int rel_coord_of_loclx(int loclx,int mu)
+  CUDA_HOST_AND_DEVICE inline int rel_coord_of_loclx(int loclx,int mu)
   {return rel_coord_of_glb_coord(glb_coord_of_loclx[loclx][mu],mu);}
-  inline int rel_time_of_loclx(int loclx)
+  CUDA_HOST_AND_DEVICE inline int rel_time_of_loclx(int loclx)
   {return rel_coord_of_loclx(loclx,0);}
   
   //convention on gospel
@@ -149,7 +149,7 @@ namespace nissa
   {read_str_int("FreeTheory",&free_theory);}
   
   //flag to make the muon with or without the external line
-  EXTERN_PARS int follow_chris_or_nazario INIT_TO(follow_nazario);
+  CUDA_MANAGED EXTERN_PARS int follow_chris_or_nazario INIT_TO(follow_nazario);
   inline void read_gospel_convention()
   {read_str_int("FollowChrisOrNazario",&follow_chris_or_nazario);}
   
@@ -181,7 +181,7 @@ namespace nissa
   {read_str_int("LocMuonCurr",&loc_muon_curr);}
   
   //stochastic sources
-  EXTERN_PARS int stoch_source INIT_TO(0);
+  CUDA_MANAGED EXTERN_PARS int stoch_source INIT_TO(0);
   inline void read_stoch_source()
   {read_str_int("StochSource",&stoch_source);}
   

@@ -104,7 +104,7 @@ namespace nissa
   }
   
   //compute phase exponent for space part: vec{p}*\vec{x}
-  double get_space_arg(int ivol,momentum_t bc)
+  CUDA_HOST_AND_DEVICE double get_space_arg(int ivol,const momentum_t bc)
   {
     double arg=0;
     for(int mu=1;mu<NDIM;mu++)
@@ -116,7 +116,7 @@ namespace nissa
   }
   
   //compute the phase for lepton on its sink
-  void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info le)
+  CUDA_HOST_AND_DEVICE void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info le)
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,le.bc);
@@ -130,7 +130,7 @@ namespace nissa
   }
   
   //compute the phase for antineutrino - the orientation is that of the muon (as above)
-  void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc)
+  CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,const momentum_t bc)
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,bc);
@@ -407,10 +407,10 @@ namespace nissa
 	    
 	    //combine mesolep
 	    complex_prodassign(h,ph);
-	    spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h);
+	    #warning spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h);
 	  }
 	NISSA_PARALLEL_LOOP_END;
-	glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));
+	#warning glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));
 	
 	//save projection on LO
 	for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
@@ -420,7 +420,7 @@ namespace nissa
 	      int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
 	      
 	      spinspin td;
-	      unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);
+	      #warning unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);
 	      spinspin dtd;
 	      unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 	      complex mesolep;

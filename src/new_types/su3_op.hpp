@@ -1101,7 +1101,7 @@ namespace nissa
   {safe_spincolor_prod_complex(a,a,factor);}
   
   //spincolor+spincolor*complex
-  inline void spincolor_summ_the_prod_complex(spincolor a,const spincolor b,const complex factor)
+  CUDA_HOST_AND_DEVICE inline void spincolor_summ_the_prod_complex(spincolor a,const spincolor b,const complex factor)
   {for(size_t i=0;i<NDIRAC;i++) color_summ_the_prod_complex(a[i],b[i],factor);}
   
   //spincolor+spincolor*idouble
@@ -1111,10 +1111,10 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_spincolor(spincolor out,const dirac_matr *m,const spincolor in)
   {for(size_t id1=0;id1<NDIRAC;id1++) unsafe_color_prod_complex(out[id1],in[m->pos[id1]],m->entr[id1]);}
   
-  inline void dirac_summ_the_prod_spincolor(spincolor out,const dirac_matr *m,const spincolor in)
+  CUDA_HOST_AND_DEVICE inline void dirac_summ_the_prod_spincolor(spincolor out,const dirac_matr *m,const spincolor in)
   {for(size_t id1=0;id1<NDIRAC;id1++) color_summ_the_prod_complex(out[id1],in[m->pos[id1]],m->entr[id1]);}
   
-  inline void dirac_subt_the_prod_spincolor(spincolor out,const dirac_matr *m,const spincolor in)
+  CUDA_HOST_AND_DEVICE inline void dirac_subt_the_prod_spincolor(spincolor out,const dirac_matr *m,const spincolor in)
   {for(size_t id1=0;id1<NDIRAC;id1++) color_subt_the_prod_complex(out[id1],in[m->pos[id1]],m->entr[id1]);}
   
   //spincolor*dirac

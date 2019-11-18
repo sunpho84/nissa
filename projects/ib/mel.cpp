@@ -600,7 +600,7 @@ void generate_photon_stochastic_propagator()
 /////////////////////////////////////////////// lepton propagators ///////////////////////////////////////////
 
 //compute phase exponent for space part: vec{p}*\vec{x}
-double get_space_arg(int ivol,momentum_t bc)
+double get_space_arg(const int ivol,const momentum_t bc)
 {
   double arg=0;
   for(int mu=1;mu<NDIM;mu++)
@@ -626,7 +626,7 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
 }
 
 //compute the phase for antineutrino - the orientation is that of the muon (as above)
-void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc)
+void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc)
 {
   //compute space and time factor
   double arg=get_space_arg(ivol,bc);

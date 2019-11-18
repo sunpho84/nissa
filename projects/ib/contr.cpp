@@ -140,7 +140,7 @@ namespace nissa
 			      complex c={0,0};
 			      for(int a=0;a<NCOL;a++)
 				complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			      complex_summ_the_prod(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
+			     #warning  complex_summ_the_prod(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
 			    }
 			NISSA_PARALLEL_LOOP_END;
 		      }
@@ -170,7 +170,7 @@ namespace nissa
     contr_print_time-=take_time();
     
     //reduce and normalise
-    glb_nodes_reduce_complex_vect(mes2pts_contr,mes2pts_contr_size);
+    #warning reimplement glb_nodes_reduce_complex_vect(mes2pts_contr,mes2pts_contr_size);
     for(int i=0;i<mes2pts_contr_size;i++) complex_prodassign_double(mes2pts_contr[i],1.0);
     
     //list to open or append
@@ -344,12 +344,13 @@ namespace nissa
 		su3spinspin p1,p2,p3;
 		
 		//Takes a slice
-		for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
-		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
-		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
-		      for(int co_so=0;co_so<NCOL;co_so++)
-			for(int co_si=0;co_si<NCOL;co_si++)
-			  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
+#warning reimplement
+		// for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
+		//   for(int sp_so=0;sp_so<NDIRAC;sp_so++)
+		//     for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+		//       for(int co_so=0;co_so<NCOL;co_so++)
+		// 	for(int co_si=0;co_si<NCOL;co_si++)
+		// 	  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
 		
 		//Color source
 		for(int b_so=0;b_so<ncol;b_so++)
@@ -377,7 +378,8 @@ namespace nissa
 				      {
 					int ga_si=proj[idg0].pos[ga_so];
 					
-					int isign=((sign[iperm_so]*sign[iperm_si]*sign_idg0(t,idg0))==+1);
+					int isign=0;
+					#warning reimplement ((sign[iperm_so]*sign[iperm_si]*sign_idg0(t,idg0))==+1);
 					
 					for(int iWick=0;iWick<2;iWick++)
 					  {
@@ -410,16 +412,17 @@ namespace nissa
     STOP_TIMING(bar2pts_alt_contr_time);
     
     //reduce
-    complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_alt_contr_size);
-    NISSA_PARALLEL_LOOP(i,0,bar2pts_alt_contr_size)
-      {
+#warning reimplement
+    // complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_alt_contr_size);
+    // NISSA_PARALLEL_LOOP(i,0,bar2pts_alt_contr_size)
+    //   {
 	//remove border phase
-	int t=i%glb_size[0];
-	double arg=3*temporal_bc*M_PI*t/glb_size[0];
-	complex phase={cos(arg),sin(arg)};
-	complex_summ_the_prod(bar2pts_alt_contr[i],master_reduced_contr[i],phase);
-      }
-    NISSA_PARALLEL_LOOP_END;
+// 	int t=i%glb_size[0];
+// 	double arg=3*temporal_bc*M_PI*t/glb_size[0];
+// 	complex phase={cos(arg),sin(arg)};
+// complex_summ_the_prod(bar2pts_alt_contr[i],master_reduced_contr[i],phase);
+      // }
+    // NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     delete[] loc_contr;
     
@@ -610,19 +613,20 @@ namespace nissa
     					int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
     					int ga1=ga1_l[idg0][ga];
 					
-    					list_fun[isign](diquark_dir,Q1[so_sp_col_ind(al,a)][ivol][al1][a1],Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1]); //direct
-    					list_fun[isign](diquark_exc,Q1[so_sp_col_ind(ga,c)][ivol][al1][a1],Q3[so_sp_col_ind(al,a)][ivol][ga1][c1]); //exchange
+    					// list_fun[isign](diquark_dir,Q1[so_sp_col_ind(al,a)][ivol][al1][a1],Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1]); //direct
+    					// list_fun[isign](diquark_exc,Q1[so_sp_col_ind(ga,c)][ivol][al1][a1],Q3[so_sp_col_ind(al,a)][ivol][ga1][c1]); //exchange
     				      }
     				  }
 				
     				//close it
-    				complex w;
-    				unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
-				int be1=Cg5.pos[al1];
-    				complex_prodassign_double(diquark_dir,w[RE]*norm);
-    				complex_prodassign_double(diquark_exc,w[RE]*norm);
-				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
-				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
+#warning reimplement
+    				// complex w;
+    				// unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
+				// int be1=Cg5.pos[al1];
+    				// complex_prodassign_double(diquark_dir,w[RE]*norm);
+    				// complex_prodassign_double(diquark_exc,w[RE]*norm);
+				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
+ 				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
     			      }
 		    }
 		  NISSA_PARALLEL_LOOP_END;
@@ -631,16 +635,17 @@ namespace nissa
     STOP_TIMING(bar2pts_contr_time);
     
     //reduce
-    complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
-    NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
-      {
-	//remove border phase
-	int t=i%glb_size[0];
-	double arg=3*temporal_bc*M_PI*t/glb_size[0];
-	complex phase={cos(arg),sin(arg)};
-	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
-      }
-    NISSA_PARALLEL_LOOP_END;
+    #warning
+    // complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
+    // NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
+    //   {
+    // 	//remove border phase
+    // 	int t=i%glb_size[0];
+    // 	double arg=3*temporal_bc*M_PI*t/glb_size[0];
+    // 	complex phase={cos(arg),sin(arg)};
+    // 	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     delete[] loc_contr;
     
@@ -656,7 +661,8 @@ namespace nissa
     open_or_append_t list;
     
     //reduce
-    glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
+#warning reimplement
+    //glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
 	for(int dir_exc=0;dir_exc<2;dir_exc++)
@@ -682,7 +688,7 @@ namespace nissa
     open_or_append_t list;
     
     //reduce
-    glb_nodes_reduce_complex_vect(bar2pts_alt_contr,bar2pts_alt_contr_size);
+#warning reimplement glb_nodes_reduce_complex_vect(bar2pts_alt_contr,bar2pts_alt_contr_size);
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
       for(int iProj=0;iProj<6;iProj++)
@@ -896,12 +902,12 @@ namespace nissa
       else
 	{
 	  crash("check race");
-	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	    for(int mu=0;mu<NDIM;mu++)
-	      complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
-				    sides[handcuffs_map[ihand].left][ivol][mu],
-				    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
-	  NISSA_PARALLEL_LOOP_END;
+	  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  //   for(int mu=0;mu<NDIM;mu++)
+	  //     complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
+	  // 			    sides[handcuffs_map[ihand].left][ivol][mu],
+	  // 			    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
+	  // NISSA_PARALLEL_LOOP_END;
 	}
     
     //free
@@ -930,7 +936,7 @@ namespace nissa
     contr_print_time-=take_time();
     
     //reduce and normalise
-    glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);
+    #warning reimplement glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);
     
     //Open if size different from zero
     FILE *fout=NULL;

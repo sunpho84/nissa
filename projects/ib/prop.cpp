@@ -84,6 +84,11 @@ namespace nissa
     //reset all to begin
     for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
     
+    spincolor **sou_proxy=nissa_malloc("sou_proxy",nso_spi*nso_col,spincolor*);
+    for(int id_so=0;id_so<nso_spi;id_so++)
+      for(int ic_so=0;ic_so<nso_col;ic_so++)
+	sou_proxy[so_sp_col_ind(id_so,ic_so)]=sou->sp[so_sp_col_ind(id_so,ic_so)];
+    
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	spincolor c;
@@ -116,7 +121,7 @@ namespace nissa
 	    for(int id_si=0;id_si<NDIRAC;id_si++)
 	      for(int ic_si=0;ic_si<NCOL;ic_si++)
 		  if((!diluted_spi_source or (id_so==id_si)) and (!diluted_col_source or (ic_so==ic_si)))
-		    complex_copy(sou->sp[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
+		    complex_copy(sou_proxy[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -130,6 +135,8 @@ namespace nissa
 	  ori_source_norm2+=double_vector_glb_norm2(s,loc_vol);
 	}
     if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
+    
+    nissa_free(sou_proxy);
   }
   THREADABLE_FUNCTION_END
   
@@ -307,8 +314,9 @@ namespace nissa
     for(auto& c : *source_terms)
       {
 	complex coef={c.second.first,c.second.second};
+	spincolor *p=Q[c.first][isou];
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  spincolor_summ_the_prod_complex(out[ivol],Q[c.first][isou][ivol],coef);
+	  spincolor_summ_the_prod_complex(out[ivol],p[ivol],coef);
 	NISSA_PARALLEL_LOOP_END;
       }
     set_borders_invalid(out);
@@ -784,10 +792,10 @@ namespace nissa
 		{
 		  master_printf("Filtering %d/%d\n",i,nf);
 		  fft_filterer[i].fft_filter_remap.communicate(qfilt_temp[i],qtilde,sizeof(spincolor));
-		  
-		  NISSA_PARALLEL_LOOP(imom,0,fft_filterer[i].nfft_filtered)
-		    spincolor_copy(qfilt[i][imom*nso_spi*nso_col+so_sp_col_ind(id_so,ic_so)],qfilt_temp[i][imom]);
-		  NISSA_PARALLEL_LOOP_END;
+		  #warning reimplement
+		  // NISSA_PARALLEL_LOOP(imom,0,fft_filterer[i].nfft_filtered)
+		  //   spincolor_copy(qfilt[i][imom*nso_spi*nso_col+so_sp_col_ind(id_so,ic_so)],qfilt_temp[i][imom]);
+		  // NISSA_PARALLEL_LOOP_END;
 		  set_borders_invalid(qfilt[i]);
 		}
 	      

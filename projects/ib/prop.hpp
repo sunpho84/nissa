@@ -137,12 +137,12 @@ namespace nissa
   
   EXTERN_PROP int load_photons INIT_TO(false);
   EXTERN_PROP int store_photons INIT_TO(false);
-  EXTERN_PROP spin1field *photon_field;
+  CUDA_MANAGED EXTERN_PROP spin1field *photon_field;
   EXTERN_PROP spin1field *photon_phi;
   EXTERN_PROP spin1field *photon_eta;
   void allocate_photon_fields();
   void free_photon_fields();
-  EXTERN_PROP spinspin *temp_lep;
+  CUDA_MANAGED EXTERN_PROP spinspin *temp_lep;
   
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,double *theta);
   void generate_original_source(qprop_t *sou);
@@ -152,7 +152,7 @@ namespace nissa
   void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator(int ihit);
-  void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc);
+  //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
   void generate_lepton_propagators();
   void propagators_fft(int ihit);
   

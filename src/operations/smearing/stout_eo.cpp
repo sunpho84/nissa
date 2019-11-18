@@ -194,7 +194,7 @@ namespace nissa
     GET_THREAD_ID();
     communicate_eo_quad_su3_edges(conf);
     
-    quad_su3 *_Lambda[2],**Lambda=_Lambda;
+    quad_su3 *Lambda[2];
     for(int eo=0;eo<2;eo++)
       Lambda[eo]=nissa_malloc("Lambda",loc_volh+bord_volh+edge_volh,quad_su3);
     

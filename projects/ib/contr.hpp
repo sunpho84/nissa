@@ -39,7 +39,7 @@ namespace nissa
   EXTERN_CONTR std::vector<mes_contr_map_t> mes2pts_contr_map;
   EXTERN_CONTR int nmes2pts_contr_made INIT_TO(0);
   EXTERN_CONTR double mes2pts_contr_time INIT_TO(0);
-  EXTERN_CONTR complex *mes2pts_contr INIT_TO(NULL);
+  CUDA_MANAGED EXTERN_CONTR complex *mes2pts_contr INIT_TO(NULL);
   EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
   void allocate_mes2pts_contr();
   void compute_mes2pts_contr(int normalize=true);
@@ -77,6 +77,7 @@ namespace nissa
     std::string left,right;
     handcuffs_map_t(std::string name,std::string left,std::string right) : name(name),left(left),right(right) {}
   };
+  #warning
   EXTERN_CONTR std::vector<handcuffs_map_t> handcuffs_map;
   EXTERN_CONTR int nhandcuffs_contr_made INIT_TO(0);
   EXTERN_CONTR double handcuffs_contr_time INIT_TO(0);
@@ -100,7 +101,7 @@ namespace nissa
   };
   
   //Cg5
-  EXTERN_CONTR dirac_matr Cg5;
+  CUDA_MANAGED EXTERN_CONTR dirac_matr Cg5;
   void set_Cg5();
   
   EXTERN_CONTR int compute_octet INIT_TO(0);
@@ -108,7 +109,7 @@ namespace nissa
   EXTERN_CONTR std::vector<bar_triplet_t> bar2pts_contr_map;
   EXTERN_CONTR int nbar2pts_contr_made INIT_TO(0);
   EXTERN_CONTR double bar2pts_contr_time INIT_TO(0);
-  EXTERN_CONTR complex *bar2pts_contr INIT_TO(NULL);
+  CUDA_MANAGED EXTERN_CONTR complex *bar2pts_contr INIT_TO(NULL);
   void set_bar2pts_contr_ins_map();
   void allocate_bar2pts_contr();
   void compute_bar2pts_contr();
@@ -124,7 +125,7 @@ namespace nissa
   }
   EXTERN_CONTR int bar2pts_contr_size;
   
-  EXTERN_CONTR complex *bar2pts_alt_contr INIT_TO(NULL);
+  CUDA_MANAGED EXTERN_CONTR complex *bar2pts_alt_contr INIT_TO(NULL);
   EXTERN_CONTR int nbar2pts_alt_contr_made INIT_TO(0);
   EXTERN_CONTR double bar2pts_alt_contr_time INIT_TO(0);
   void allocate_bar2pts_alt_contr();

@@ -14,9 +14,9 @@ CLEANFILES=
 
 include $(srcdir)/generate_confs/Makefile.am
 include $(srcdir)/ib/Makefile.am
-include $(srcdir)/nucleons/Makefile.am
-include $(srcdir)/reno_const/Makefile.am
-include $(srcdir)/semileptonic/Makefile.am
+#include $(srcdir)/nucleons/Makefile.am
+#include $(srcdir)/reno_const/Makefile.am
+#include $(srcdir)/semileptonic/Makefile.am
 
 if NDIM2
 include $(srcdir)/cpn/Makefile.am
