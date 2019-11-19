@@ -20,11 +20,13 @@ namespace nissa
   {
     GET_THREAD_ID();
     
+    const int nterms=appr->degree();
+    
     START_TIMING(quark_force_over_time,nquark_force_over);
     
     //allocate each terms of the expansion
-    color **v_o=new color*[appr->degree()],**chi_e=new color*[appr->degree()];
-    for(int iterm=0;iterm<appr->degree();iterm++)
+    color **v_o=nissa_malloc("v_o",nterms,color*),**chi_e=nissa_malloc("chi_e",nterms,color*);
+    for(int iterm=0;iterm<nterms;iterm++)
       {
 	v_o[iterm]=nissa_malloc("v_o",loc_volh+bord_volh,color);
 	chi_e[iterm]=nissa_malloc("chi_e",loc_volh+bord_volh,color);
@@ -35,23 +37,23 @@ namespace nissa
     
     //invert the various terms
     STOP_TIMING(quark_force_over_time);
-    inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec(chi_e,eo_conf,appr->poles.data(),appr->degree(),1000000,residue,pf);
+    inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec(chi_e,eo_conf,appr->poles.data(),nterms,1000000,residue,pf);
     UNPAUSE_TIMING(quark_force_over_time);
     
     ////////////////////
     
     //summ all the terms performing appropriate elaboration
     //possible improvement by communicating more borders together
-    for(int iterm=0;iterm<appr->degree();iterm++) apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
+    for(int iterm=0;iterm<nterms;iterm++) apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
     
     //remove the background fields
     rem_backfield_with_stagphases_from_conf(eo_conf,u1b);
     
     //communicate borders of v_o (could be improved...)
-    for(int iterm=0;iterm<appr->degree();iterm++) communicate_od_color_borders(v_o[iterm]);
+    for(int iterm=0;iterm<nterms;iterm++) communicate_od_color_borders(v_o[iterm]);
     
     //conclude the calculation of the fermionic force
-    for(int iterm=0;iterm<appr->degree();iterm++)
+    for(int iterm=0;iterm<nterms;iterm++)
       {
 	const double weight=appr->weights[iterm];
 	
@@ -76,14 +78,14 @@ namespace nissa
       }
     
     //free
-    for(int iterm=0;iterm<appr->degree();iterm++)
+    for(int iterm=0;iterm<nterms;iterm++)
       {
 	nissa_free(v_o[iterm]);
 	nissa_free(chi_e[iterm]);
       }
     
-    delete[] chi_e;
-    delete[] v_o;
+    nissa_free(chi_e);
+    nissa_free(v_o);
     
     STOP_TIMING(quark_force_over_time);
   }
