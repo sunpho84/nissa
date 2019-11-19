@@ -50,12 +50,12 @@ namespace nissa
     //communicate borders of v_o (could be improved...)
     for(int iterm=0;iterm<appr->degree();iterm++) communicate_od_color_borders(v_o[iterm]);
     
-    std::vector<double> _weights=appr->weights;
-    const double *weights=&_weights[0];
-    
     //conclude the calculation of the fermionic force
     for(int iterm=0;iterm<appr->degree();iterm++)
-      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+      {
+	const double weight=appr->weights[iterm];
+	
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	for(int mu=0;mu<NDIM;mu++)
 	  for(int ic1=0;ic1<NCOL;ic1++)
 	    for(int ic2=0;ic2<NCOL;ic2++)
@@ -65,14 +65,15 @@ namespace nissa
 		//this is for ieo=EVN
 		unsafe_complex_conj2_prod(temp1,v_o[iterm][loceo_neighup[EVN][ieo][mu]][ic1],chi_e[iterm][ieo][ic2]);
 		unsafe_complex_prod(temp2,temp1,u1b[EVN][ieo][mu]);
-		complex_summ_the_prod_double(F[EVN][ieo][mu][ic1][ic2],temp2,weights[iterm]*get_stagphase_of_lx(loclx_of_loceo[EVN][ieo],mu));
+		complex_summ_the_prod_double(F[EVN][ieo][mu][ic1][ic2],temp2,weight*get_stagphase_of_lx(loclx_of_loceo[EVN][ieo],mu));
 		
 		//this is for ieo=ODD
 		unsafe_complex_conj2_prod(temp1,chi_e[iterm][loceo_neighup[ODD][ieo][mu]][ic1],v_o[iterm][ieo][ic2]);
 		unsafe_complex_prod(temp2,temp1,u1b[ODD][ieo][mu]);
-		complex_subt_the_prod_double(F[ODD][ieo][mu][ic1][ic2],temp2,weights[iterm]*get_stagphase_of_lx(loclx_of_loceo[ODD][ieo],mu));
+		complex_subt_the_prod_double(F[ODD][ieo][mu][ic1][ic2],temp2,weight*get_stagphase_of_lx(loclx_of_loceo[ODD][ieo],mu));
 	      }
-    NISSA_PARALLEL_LOOP_END;
+	NISSA_PARALLEL_LOOP_END;
+      }
     
     //free
     for(int iterm=0;iterm<appr->degree();iterm++)

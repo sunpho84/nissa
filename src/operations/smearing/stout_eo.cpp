@@ -134,7 +134,7 @@ namespace nissa
 	      for(int eo=0;eo<2;eo++)
 		vector_copy(in[eo],out[eo]);
 	      
-            verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(ext_out));
+            verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(out));
 	  }
 	
 	for(int eo=0;eo<2;eo++)
