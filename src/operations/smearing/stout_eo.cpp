@@ -134,7 +134,7 @@ namespace nissa
 	      for(int eo=0;eo<2;eo++)
 		vector_copy(in[eo],out[eo]);
 	      
-            //verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(_extout));
+            verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(ext_out));
 	  }
 	
 	for(int eo=0;eo<2;eo++)
@@ -181,8 +181,7 @@ namespace nissa
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)
       {
-	#warning
-	//stout_smear_single_level(out[i],out[i-1],stout_pars->rho,dirs);
+	stout_smear_single_level(out[i],out[i-1],stout_pars->rho,dirs);
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
       }
   }
@@ -204,8 +203,7 @@ namespace nissa
 	  {
 	    //compute the ingredients needed to smear
 	    stout_link_staples sto_ste;
-#warning
-	    //stout_smear_compute_staples(&sto_ste,(quad_su3_ptr_two*)&conf,p,A,mu,rho);
+	    stout_smear_compute_staples(&sto_ste,conf,p,A,mu,rho);
 	    
 	    //compute the ingredients needed to exponentiate
 	    hermitian_exp_ingredients ing;
