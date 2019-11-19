@@ -123,9 +123,14 @@ namespace nissa
     define_MPI_types();
     
 #if THREADS_TYPE == CUDA_THREADS
-    cudaDeviceProp deviceProp;
-    cudaGetDeviceProperties(&deviceProp, dev);
-    master_printf("CUDA Enabled device: %d.%d\n",deviceProp.major,deviceProp.minor);
+    int nDevices;
+    cudaGetDeviceCount(&nDevices);
+    for(int i=0;i<nDevices;i++)
+      {
+	cudaDeviceProp deviceProp;
+	cudaGetDeviceProperties(&deviceProp,i);
+	master_printf("CUDA Enabled device %d/%d: %d.%d\n",i,nDevices,deviceProp.major,deviceProp.minor);
+      }
  #endif
 
 //initialize the first vector of nissa
