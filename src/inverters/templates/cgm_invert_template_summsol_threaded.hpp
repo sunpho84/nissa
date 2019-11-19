@@ -16,16 +16,17 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
 {
   GET_THREAD_ID();
   
+  const int nterms=appr->degree();
+  
   //allocate temporary single solutions
-  BASETYPE **temp=new BASETYPE*[appr->degree()];
-  for(int iterm=0;iterm<appr->degree();iterm++)
+  BASETYPE **temp=nissa_malloc("temp",nterms,BASETYPE*);
+  for(int iterm=0;iterm<nderms;iterm++)
     temp[iterm]=nissa_malloc(combine("temp%d",iterm).c_str(),BULK_VOL+BORD_VOL,BASETYPE);
   
   //call multi-shift solver
   CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(temp,CGM_ADDITIONAL_PARAMETERS_CALL appr->poles.data(),appr->degree(),niter_max,req_res,source);
 
-  const int nterms=appr->degree();
-  double *weights=new double[nterms];
+  double *weights=nissa_malloc("weights",nterms,double);
   for(int iterm=0;iterm<nterms;iterm++)
     weights[iterm]=appr->weights[iterm];
   const double cons=appr->cons;
@@ -45,7 +46,7 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
   for(int iterm=0;iterm<appr->degree();iterm++)
     nissa_free(temp[iterm]);
   
-  delete[] temp;
-  delete[] weights;
+  nissa_free(temp);
+  nissa_free(weights);
 }
 THREADABLE_FUNCTION_END
