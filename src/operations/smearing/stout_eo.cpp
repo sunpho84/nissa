@@ -188,10 +188,10 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //remap the force to one smearing level less
-  THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf, double,rho)
+  THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,conf, double,rho)
   {
     GET_THREAD_ID();
-    communicate_eo_quad_su3_edges(conf);
+    #warning communicate_eo_quad_su3_edges(conf);
     
     eo_ptr<quad_su3> Lambda;
     for(int eo=0;eo<2;eo++)
