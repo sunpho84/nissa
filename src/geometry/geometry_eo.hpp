@@ -51,8 +51,6 @@ namespace nissa
     }
   };
   
-  eo_ptr<double> a;
-  
   //-eo is even-odd
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loclx_parity;
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loceo_of_loclx;
