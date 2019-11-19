@@ -15,7 +15,7 @@
 namespace nissa
 {
   //Finish the computation multiplying for the conf and taking TA
-  THREADABLE_FUNCTION_2ARG(compute_quark_force_finish_computation, quad_su3**,F, quad_su3**,conf)
+  THREADABLE_FUNCTION_2ARG(compute_quark_force_finish_computation, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,conf)
   {
     GET_THREAD_ID();
     
