@@ -95,7 +95,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, quad_su3**,conf, color*,temp, double,mass2, color*,in)
+  THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, quad_su3**,_conf, color*,temp, double,mass2, color*,in)
   {
     GET_THREAD_ID();
     if(IS_MASTER_THREAD)
@@ -107,9 +107,11 @@ namespace nissa
       }
     START_TIMING(portable_stD_app_time,nportable_stD_app);
     
-    if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
-      communicate_ev_and_od_quad_su3_borders(conf);
+    if(!check_borders_valid(_conf[EVN])||!check_borders_valid(_conf[ODD]))
+      communicate_ev_and_od_quad_su3_borders(_conf);
     if(!check_borders_valid(in)) communicate_ev_color_borders(in);
+    
+    eo_ptr<quad_su3> conf={_conf[0],_conf[1]};
     
     NISSA_PARALLEL_LOOP(io,0,loc_volh)
       {
