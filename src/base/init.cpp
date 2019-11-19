@@ -122,7 +122,13 @@ namespace nissa
     //define all derived MPI types
     define_MPI_types();
     
-    //initialize the first vector of nissa
+#if THREADS_TYPE == CUDA_THREADS
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, dev);
+    master_printf("CUDA Enabled device: %d.%d\n",deviceProp.major,deviceProp.minor);
+ #endif
+
+//initialize the first vector of nissa
     initialize_main_vect();
     
     //initialize global variables
