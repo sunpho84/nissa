@@ -125,6 +125,7 @@ namespace nissa
 #if THREADS_TYPE == CUDA_THREADS
     int nDevices;
     cudaGetDeviceCount(&nDevices);
+    master_printf("Number of CUDA enabled devices: %d\n",nDevices);
     for(int i=0;i<nDevices;i++)
       {
 	cudaDeviceProp deviceProp;
