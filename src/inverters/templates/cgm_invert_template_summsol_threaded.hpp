@@ -27,7 +27,7 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
   const int nterms=appr->degree();
   const double *weights=new double[nterms];
   for(int iterm=0;iterm<nterms;iterm++)
-    weights[iweight]=appr->weights[iweight];
+    weights[iterm]=appr->weights[iterm];
   const double cons=appr->cons;
   
   //summ all the shifts
