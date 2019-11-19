@@ -724,7 +724,8 @@ namespace nissa
     vector_reset(si);
     
     //compute the gammas
-    dirac_matr GAMMA[5],temp_gamma;
+    dirac_matr* GAMMA=nissa_malloc("GAMMA",5,dirac_matr);
+    dirac_matr temp_gamma;
     if(twisted_run>0)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[r]);
     else                temp_gamma=base_gamma[0];
     
@@ -784,6 +785,8 @@ namespace nissa
 	      }
 	  NISSA_PARALLEL_LOOP_END;
 	}
+    
+    nissa_free(GAMMA);
   }
   THREADABLE_FUNCTION_END
   
