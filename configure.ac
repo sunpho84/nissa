@@ -149,8 +149,6 @@ case "$with_threads_type" in
      cuda)  if test "$have_cuda" != "no"
     	    then
 		THREADS_TYPE=CUDA_THREADS
-		CXX="nvcc"
-		CPPFLAGS="-dc --expt-relaxed-constexpr --expt-extended-lambda -x cu -Xcudafe --diag_suppress=extern_entity_treated_as_static $CPPFLAGS"
 		CUDA_MANAGED=__managed__
 		CUDA_HOST_AND_DEVICE="__host__ __device__"
 	    else
@@ -456,6 +454,12 @@ AC_DEFINE_UNQUOTED([NCOL],$ncol,[Number of colors])
 AC_MSG_RESULT([enabling number of colors... $ncol])
 SUMMARY_RESULT="$SUMMARY_RESULT
 Number of colors    : $ncol"
+
+if test "$with_threads_type" = "cuda"
+then
+	CXX="nvcc"
+	CPPFLAGS="-dc --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
+fi
 
 #macros to concatenate
 AC_DEFINE([_CONCAT(X,Y)],[X##Y],[Internally concatenation])

@@ -12,8 +12,8 @@
 >     
 >     if test $generate = true
 >     then
-> 	command="$@ -x cu --generate-dependencies -MT $object -MF $tmpdepfile"
-> 	command=$(echo $command|sed 's|-o '$object'||;s|-x cu||')
+> 	command="$@ -x cu --generate-dependencies -MT $object --output-file $tmpdepfile"
+> 	command=$(echo $command|sed 's|-o '$object'||;s|-x cu||;s|-c ||;s|-dc ||')
 > 	$command
 > 	
 > 	stat=$?
