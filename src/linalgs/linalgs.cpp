@@ -129,7 +129,7 @@ namespace nissa
   //scalar product
   THREADABLE_FUNCTION_4ARG(double_vector_glb_scalar_prod, double*,glb_res, double*,a, double*,b, int,n)
   {
-    master_printf("WARNING not reproducible and not pararrelized!\n");
+    master_printf("WARNING not reproducible and not parallelized!\n");
     
     double loc_res=0.0;
     
@@ -236,6 +236,7 @@ namespace nissa
   THREADABLE_FUNCTION_4ARG(single_vector_glb_scalar_prod, float*,glb_res, float*,a, float*,b, int,n)
   {
 #warning not working
+    crash("");
 //     //perform thread summ
 //     float loc_thread_res=0;
 //     GET_THREAD_ID();
@@ -252,6 +253,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(double_vector_glb_collapse, double*,glb_res, double*,a, int,n)
   {
 #warning not working
+    crash("");
 // #ifndef REPRODUCIBLE_RUN
 //     //perform thread summ
 //     double loc_thread_res=0;
@@ -279,7 +281,7 @@ namespace nissa
   //complex version
   THREADABLE_FUNCTION_3ARG(complex_vector_glb_collapse, double*,glb_res, complex*,a, int,n)
   {
-    master_printf("WARNING not reproducible and not pararrelized!\n");
+    master_printf("WARNING not reproducible and not parallelized!\n");
     
     complex loc_res;
     
