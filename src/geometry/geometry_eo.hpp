@@ -38,15 +38,15 @@ namespace nissa
       return data[i];
     }
     
-    eo_ptr(Tptr a,Tptr b) : data{a,b} {}
+    CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) : data{a,b} {}
     
-    eo_ptr(Tptr2 a)
+    CUDA_HOST_AND_DEVICE eo_ptr(Tptr2 a)
     {
       data[0]=a[0];
       data[1]=a[1];
     }
     
-    eo_ptr()
+    CUDA_HOST_AND_DEVICE eo_ptr()
     {
     }
   };
