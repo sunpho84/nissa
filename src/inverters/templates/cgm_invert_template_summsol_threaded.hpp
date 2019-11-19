@@ -26,11 +26,12 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
 
   const int nterms=appr->degree();
   const double *weights=&appr->weights[0];
+  const double cons=appr->cons;
   
   //summ all the shifts
   NISSA_PARALLEL_LOOP(i,0,BULK_VOL*NDOUBLES_PER_SITE)
     {
-      ((double*)sol)[i]=appr->cons*((double*)source)[i];
+      ((double*)sol)[i]=cons*((double*)source)[i];
       for(int iterm=0;iterm<nterms;iterm++)
 	((double*)sol)[i]+=weights[iterm]*((double*)(temp[iterm]))[i];
     }
