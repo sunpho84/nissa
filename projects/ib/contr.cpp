@@ -797,7 +797,7 @@ namespace nissa
     
     vector_reset(si);
     
-    dirac_matr GAMMA[NDIM];
+    dirac_matr *GAMMA=nissa_malloc("GAMMA",NDIM,dirac_matr);
     for(int mu=0;mu<NDIM;mu++)
       if(revert) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
       else       GAMMA[mu]=base_gamma[igamma_of_mu[mu]];
@@ -827,6 +827,8 @@ namespace nissa
 	      }
 	  NISSA_PARALLEL_LOOP_END;
 	}
+    
+    nissa_free(GAMMA);
   }
   THREADABLE_FUNCTION_END
   
