@@ -4,6 +4,9 @@
 
 #include <string.h>
 
+#define EXTERN_GEOMETRY_EO
+ #include "geometry_eo.hpp"
+
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -11,8 +14,6 @@
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
-#define EXTERN_GEOMETRY_EO
-#include "geometry_eo.hpp"
 
 //add a check that loc_vol is a multiple of 2
 //#define REM_2 if(0)
