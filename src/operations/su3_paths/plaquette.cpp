@@ -131,7 +131,7 @@ namespace nissa
     global_plaquette_lx_conf(plaq,conf);
     return (plaq[0]+plaq[1])/2;
   }
-  double global_plaquette_eo_conf(quad_su3 **conf)
+  double global_plaquette_eo_conf(eo_ptr<quad_su3> conf)
   {
     //compute the two plaquettes
     double plaq[2];
