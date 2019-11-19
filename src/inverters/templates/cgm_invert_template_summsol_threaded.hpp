@@ -25,7 +25,7 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
   CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(temp,CGM_ADDITIONAL_PARAMETERS_CALL appr->poles.data(),appr->degree(),niter_max,req_res,source);
 
   const int nterms=appr->degree();
-  const double *weights=new double[nterms];
+  double *weights=new double[nterms];
   for(int iterm=0;iterm<nterms;iterm++)
     weights[iterm]=appr->weights[iterm];
   const double cons=appr->cons;
