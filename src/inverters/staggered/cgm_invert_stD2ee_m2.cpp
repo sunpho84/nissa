@@ -50,7 +50,7 @@ namespace nissa
 #endif
   }
   
-  void inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec(eo_ptr<color> chi_e,eo_ptr<quad_su3> eo_conf,double *poles,int nterms,int niter_max,double residue,color *pf)
+  void inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec(color **chi_e,eo_ptr<quad_su3> eo_conf,double *poles,int nterms,int niter_max,double residue,color *pf)
   {
 #ifndef BGQ
     inv_stD2ee_m2_cgm_portable_run_hm_up_to_comm_prec(chi_e,eo_conf,poles,nterms,niter_max,residue,pf);

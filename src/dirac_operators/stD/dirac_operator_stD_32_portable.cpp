@@ -2,11 +2,12 @@
  #include "config.hpp"
 #endif
 
+#include <geometry/geometry_eo.hpp>
 #include "threads/threads.hpp"
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2_32, single_color*,out, single_quad_su3**,conf, single_color*,temp, float,mass2, single_color*,in)
+  THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2_32, single_color*,out, eo_ptr<single_quad_su3>,conf, single_color*,temp, float,mass2, single_color*,in)
   {
     GET_THREAD_ID();
     if(IS_MASTER_THREAD)

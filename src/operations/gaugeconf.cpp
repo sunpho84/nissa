@@ -167,7 +167,7 @@ namespace nissa
   }
   
   //generate an identical conf
-  void generate_cold_eo_conf(quad_su3 **conf)
+  void generate_cold_eo_conf(eo_ptr<quad_su3> conf)
   {
     for(int par=0;par<2;par++)
       {
@@ -180,7 +180,7 @@ namespace nissa
   }
   
   //generate a random conf
-  void generate_hot_eo_conf(quad_su3 **conf)
+  void generate_hot_eo_conf(eo_ptr<quad_su3> conf)
   {
     if(loc_rnd_gen_inited==0) crash("random number generator not inited");
     

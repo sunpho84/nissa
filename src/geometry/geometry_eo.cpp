@@ -14,7 +14,6 @@
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
-
 //add a check that loc_vol is a multiple of 2
 //#define REM_2 if(0)
 #define REM_2

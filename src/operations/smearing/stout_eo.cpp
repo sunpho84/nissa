@@ -75,7 +75,7 @@ namespace nissa
     
     if(in==out) crash("in==out");
 #warning
-    //communicate_eo_quad_su3_edges((quad_su3**)in);
+    //communicate_eo_quad_su3_edges((eo_ptr<quad_su3>)in);
     
     //allocate a temporary conf if going to smear iteratively or out==ext_in
     
@@ -164,7 +164,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //free all the stack of allocated smeared conf
-  THREADABLE_FUNCTION_2ARG(stout_smear_conf_stack_free, quad_su3****,out, int,nlev)
+  THREADABLE_FUNCTION_2ARG(stout_smear_conf_stack_free, eo_ptr<quad_su3>**,out, int,nlev)
   {
     for(int i=1;i<=nlev;i++)
       {
@@ -176,7 +176,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //smear iteratively retainig all the stack
-  THREADABLE_FUNCTION_4ARG(stout_smear_whole_stack, quad_su3***,out, quad_su3**,in, stout_pars_t*,stout_pars, bool*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear_whole_stack, eo_ptr<quad_su3>*,out, eo_ptr<quad_su3>,in, stout_pars_t*,stout_pars, bool*,dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)
@@ -294,7 +294,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //remap iteratively the force, adding the missing pieces of the chain rule derivation
-  THREADABLE_FUNCTION_3ARG(stouted_force_remap, quad_su3**,F, quad_su3***,sme_conf, stout_pars_t*,stout_pars)
+  THREADABLE_FUNCTION_3ARG(stouted_force_remap, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>*,sme_conf, stout_pars_t*,stout_pars)
   {
     GET_THREAD_ID();
     

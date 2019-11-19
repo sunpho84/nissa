@@ -555,7 +555,7 @@ namespace nissa
   
   ////////////////////// color put/get from su3 ///////////////////////////
   
-  THREADABLE_FUNCTION_3ARG(get_color_from_su3, color**,out, su3**,in, int,ic_source)
+  THREADABLE_FUNCTION_3ARG(get_color_from_su3, eo_ptr<color>,out, eo_ptr<su3>,in, int,ic_source)
   {
     GET_THREAD_ID();
     for(int eo=0;eo<2;eo++)
@@ -568,7 +568,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-    THREADABLE_FUNCTION_3ARG(put_color_into_su3, su3**,out, color**,in, int,ic_source)
+    THREADABLE_FUNCTION_3ARG(put_color_into_su3, eo_ptr<su3>,out, eo_ptr<color>,in, int,ic_source)
   {
     GET_THREAD_ID();
     for(int eo=0;eo<2;eo++)
