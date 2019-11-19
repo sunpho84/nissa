@@ -102,7 +102,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_2ARG(chromo_operator, clover_term_t**,Cl_eo, quad_su3**,conf_eo)
+  THREADABLE_FUNCTION_2ARG(chromo_operator, eo_ptr<clover_term_t>,Cl_eo, eo_ptr<quad_su3>,conf_eo)
   {
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     clover_term_t *Cl_lx=nissa_malloc("Cl_lx",loc_vol,clover_term_t);

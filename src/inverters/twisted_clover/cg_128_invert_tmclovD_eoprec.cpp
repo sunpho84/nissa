@@ -5,6 +5,7 @@
 #include "base/vectors.hpp"
 #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
 #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_128.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "inverters/twisted_clover/cg_64_invert_tmclovD_eoprec.hpp"
 #include "linalgs/linalgs.hpp"
@@ -24,7 +25,7 @@
 #define CG_128_INVERT inv_tmclovDkern_eoprec_square_eos_cg_128
 //parameters to be passed externally to the 128 inverter
 #define CG_NARG 5
-#define AT1 quad_su3**
+#define AT1 eo_ptr<quad_su3>
 #define A1 conf
 #define AT2 double
 #define A2 kappa

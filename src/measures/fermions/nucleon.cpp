@@ -16,7 +16,7 @@ namespace nissa
 {
   using namespace stag;
   
-  THREADABLE_FUNCTION_5ARG(measure_nucleon_corr, quad_su3**,conf, theory_pars_t,theory_pars, nucleon_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
+  THREADABLE_FUNCTION_5ARG(measure_nucleon_corr, eo_ptr<quad_su3>,conf, theory_pars_t,theory_pars, nucleon_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
   {
     GET_THREAD_ID();
     // const int eps_i[6][3]={{0,1,2},{1,2,0},{2,0,1},{0,2,1},{2,1,0},{1,0,2}};
@@ -27,12 +27,12 @@ namespace nissa
     int nflavs=theory_pars.nflavs();
     
     //allocate source
-    su3 *_source[2]={nissa_malloc("source_e",loc_volh+bord_volh,su3),nissa_malloc("source_o",loc_volh+bord_volh,su3)},**source=_source;
-    color *_temp_source[2]={nissa_malloc("temp_source_e",loc_volh+bord_volh,color),nissa_malloc("temp_source_o",loc_volh+bord_volh,color)},**temp_source=_temp_source;
-    color *_temp_sol[2]={nissa_malloc("temp_sol_e",loc_volh+bord_volh,color),nissa_malloc("temp_sol_o",loc_volh+bord_volh,color)},**temp_sol=_temp_sol;
+    eo_ptr<su3> source={nissa_malloc("source_e",loc_volh+bord_volh,su3),nissa_malloc("source_o",loc_volh+bord_volh,su3)};
+    eo_ptr<color> temp_source={nissa_malloc("temp_source_e",loc_volh+bord_volh,color),nissa_malloc("temp_source_o",loc_volh+bord_volh,color)};
+    eo_ptr<color> temp_sol={nissa_malloc("temp_sol_e",loc_volh+bord_volh,color),nissa_malloc("temp_sol_o",loc_volh+bord_volh,color)};
     
     //allocate propagators
-    su3 *_prop[nflavs][2],***prop=(su3***)&_prop;
+    eo_ptr<su3> prop[nflavs];
     for(int iflav=0;iflav<nflavs;iflav++)
       for(int EO=0;EO<2;EO++)
 	  prop[iflav][EO]=nissa_malloc("prop",loc_volh+bord_volh,su3);

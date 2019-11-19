@@ -29,12 +29,12 @@ int nflavs;
   {return t+glb_size[0]*(iop+nop*iflav);}
   
   //compute correlation functions for staggered mesons, arbitary taste and spin
-  THREADABLE_FUNCTION_4ARG(compute_meson_corr, complex*,corr, quad_su3**,conf, theory_pars_t*,tp, meson_corr_meas_pars_t*,meas_pars)
+  THREADABLE_FUNCTION_4ARG(compute_meson_corr, complex*,corr, eo_ptr<quad_su3>,conf, theory_pars_t*,tp, meson_corr_meas_pars_t*,meas_pars)
   {
     GET_THREAD_ID();
     
     //allocate
-    color *ori_source[2],*source[2],*sol[2],*quark[nop][2],*temp[2][2];
+    eo_ptr<color> ori_source,source,sol,quark[nop],temp[2];
     for(int eo=0;eo<2;eo++) ori_source[eo]=nissa_malloc("ori_source",loc_volh+bord_volh,color);
     for(int eo=0;eo<2;eo++) source[eo]=nissa_malloc("source",loc_volh+bord_volh,color);
     for(int eo=0;eo<2;eo++) sol[eo]=nissa_malloc("sol",loc_volh+bord_volh,color);
@@ -124,7 +124,7 @@ int nflavs;
   THREADABLE_FUNCTION_END
   
   //compute and print
-  void measure_meson_corr(quad_su3 **ext_conf,theory_pars_t &tp,meson_corr_meas_pars_t &meas_pars,int iconf,int conf_created)
+  void measure_meson_corr(eo_ptr<quad_su3> ext_conf,theory_pars_t &tp,meson_corr_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     nop=meas_pars.mesons.size();
     nflavs=tp.nflavs();

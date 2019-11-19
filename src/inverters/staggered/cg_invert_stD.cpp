@@ -13,7 +13,7 @@
 
 namespace nissa
 {
-  void inv_stD_cg(color **sol,color *guess,quad_su3 **conf,double m,int niter,double residue,color **source)
+  void inv_stD_cg(eo_ptr<color> sol,color *guess,eo_ptr<quad_su3> conf,double m,int niter,double residue,eo_ptr<color> source)
   {
     inv_evn_stD_cg(sol[EVN],guess,conf,m,niter,residue,source);
     apply_st2Doe(sol[ODD],conf,sol[EVN]);

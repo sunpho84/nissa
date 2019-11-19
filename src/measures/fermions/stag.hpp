@@ -63,23 +63,23 @@ namespace nissa
       summ_the_trace((double*)A,point_result,B,C);			\
       if(ihit==meas_pars.nhits-1) PRINT(A)
       
-    void fill_source(color **src,int twall,rnd_t noise_type);
-    void compute_fw_bw_der_mel(complex *res_fw_bw,color **left,quad_su3 **conf,int mu,color **right,complex *point_result);
-    void mult_Minv(color **prop,quad_su3 **conf,quad_u1 **u1b,double m,double residue,color **source);
-    void mult_Minv(color **prop,quad_su3 **conf,theory_pars_t *pars,int iflav,double residue,color **source);
-    void mult_dMdmu(color **out,theory_pars_t *theory_pars,quad_su3 **conf,int iflav,int ord,color **in);
-    void insert_external_source_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars);
-    void insert_vector_vertex(color **out,quad_su3 **conf,theory_pars_t *theory_pars,int iflav,spin1field **curr,color **in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,spin1field **curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
-    void summ_the_trace(double *out,complex *point_result,color **A,color **B);
+    void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type);
+    void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result);
+    void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double residue,eo_ptr<color> source);
+    void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,theory_pars_t *pars,int iflav,double residue,eo_ptr<color> source);
+    void mult_dMdmu(eo_ptr<color> out,theory_pars_t *theory_pars,eo_ptr<quad_su3> conf,int iflav,int ord,eo_ptr<color> in);
+    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars);
+    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
+    void summ_the_trace(double *out,complex *point_result,eo_ptr<color> A,eo_ptr<color> B);
     
     enum shift_orie_t{UP,DW,BOTH};
-    void apply_covariant_shift(color **out,quad_su3 **conf,int mu,color **in,shift_orie_t side=BOTH);
-    void summ_covariant_shift(color **out,quad_su3 **conf,int mu,color **in,shift_orie_t side);
-    void apply_shift_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,quad_u1 **u1b,int shift,color **in);
+    void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side=BOTH);
+    void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side);
+    void apply_shift_op(eo_ptr<color> out,eo_ptr<color> single_perm,eo_ptr<color> internal_temp,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,int shift,eo_ptr<color> in);
     
-    void put_stag_phases(color **source,int mask);
+    void put_stag_phases(eo_ptr<color> source,int mask);
     enum GAMMA_INT{IDENTITY,GAMMA_0,GAMMA_1,SIGMA_0_1,GAMMA_2,SIGMA_0_2,SIGMA_1_2,GAMMA_5_SIGMA_3,GAMMA_3,SIGMA_0_3,SIGMA_1_3,GAMMA5_GAMMA_2,SIGMA_2_3,GAMMA_5_GAMMA_1,GAMMA_5_GAMMA_0,GAMMA_5};
-    inline void apply_stag_op(color **out,quad_su3 **conf,quad_u1 **u1b,GAMMA_INT spin,GAMMA_INT taste,color **in)
+    inline void apply_stag_op(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,GAMMA_INT spin,GAMMA_INT taste,eo_ptr<color> in)
     {
       //Allocate temp
       color *temp[2][2];
@@ -101,8 +101,8 @@ namespace nissa
 	  nissa_free(temp[itemp][eo]);
     }
     
-    void summ_dens(complex *dens,color **quark,color **temp0,color **temp1,quad_su3 **conf,quad_u1 **backfield,int shift,int mask,color **chi,color **eta);
-    inline void compute_dens(complex *dens,color **quark,color **temp0,color **temp1,quad_su3 **conf,quad_u1 **backfield,int shift,int mask,color **chi,color **eta)
+    void summ_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta);
+    inline void compute_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta)
     {
       vector_reset(dens);
       summ_dens(dens,quark,temp0,temp1,conf,backfield,shift,mask,chi,eta);

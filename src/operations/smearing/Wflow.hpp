@@ -104,7 +104,7 @@ namespace nissa
     }
     
     //add or remove backfield
-    void add_or_rem_backfield_to_confs(bool add_rem,quad_u1 **u1)
+    void add_or_rem_backfield_to_confs(bool add_rem,eo_ptr<quad_u1> u1)
     {
       for(int i=0;i<nint_steps;i++) add_or_rem_backfield_with_or_without_stagphases_to_conf(conf[i],add_rem,u1,true);
     }
@@ -157,7 +157,7 @@ namespace nissa
     //flow a field
     void flow_fermion(T *field)
     {
-      quad_su3 **conf=this->conf;
+      eo_ptr<quad_su3> conf=this->conf;
       double &dt=this->dt;
       int &nd=this->nd;
       
@@ -211,7 +211,7 @@ namespace nissa
     //flow a field
     void flow_fermion(T *field)
     {
-      quad_su3 **conf=this->conf;
+      eo_ptr<quad_su3> conf=this->conf;
       double &dt=this->dt;
       int &nd=this->nd;
       

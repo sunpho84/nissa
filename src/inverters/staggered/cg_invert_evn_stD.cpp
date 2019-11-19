@@ -12,7 +12,7 @@
 
 namespace nissa
 {
-  void inv_evn_stD_cg(color *sol,color *guess,quad_su3 **conf,double m,int niter,double residue,color **source)
+  void inv_evn_stD_cg(color *sol,color *guess,eo_ptr<quad_su3> conf,double m,int niter,double residue,color **source)
   {
     //apply the dagger ...
     color *temp=nissa_malloc("temp",loc_volh+bord_volh,color);

@@ -17,7 +17,7 @@
 namespace nissa
 {
   //generate pseudo-fermion using color vector generator
-  THREADABLE_FUNCTION_9ARG(generate_pseudo_fermion, double*,action, pseudofermion_t*,pf, quad_su3**,conf, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, quad_u1**,u1b, rat_approx_t*,rat, double,residue, quark_content_t,q)
+  THREADABLE_FUNCTION_9ARG(generate_pseudo_fermion, double*,action, pseudofermion_t*,pf, eo_ptr<quad_su3>,conf, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, eo_ptr<quad_u1>,u1b, rat_approx_t*,rat, double,residue, quark_content_t,q)
   {
     //generate the random field
     pseudofermion_t pf_hb_vec(q.discretiz);
@@ -43,7 +43,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //gemerate all pseudofermions
-  double generate_pseudofermions(std::vector<std::vector<pseudofermion_t> > &pf,quad_su3 **conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr)
+  double generate_pseudofermions(std::vector<std::vector<pseudofermion_t> > &pf,eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr)
   {
     //allocate or not clover term and inverse evn clover term
     clover_term_t *Cl[2]={NULL,NULL};

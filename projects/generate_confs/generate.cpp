@@ -14,8 +14,8 @@ using namespace nissa;
 double *top_meas_time;
 
 //new and old conf
-CUDA_MANAGED quad_su3 *new_conf[2];
-CUDA_MANAGED quad_su3 *conf[2];
+CUDA_MANAGED eo_ptr<quad_su3> new_conf;
+CUDA_MANAGED eo_ptr<quad_su3> conf;
 
 //all infos
 driver_t *drv;
@@ -31,7 +31,7 @@ int stored_last_conf=0;
 //write a conf adding info
 int nwrite_conf=0;
 double write_conf_time=0;
-void write_conf(std::string path,quad_su3 **conf)
+void write_conf(std::string path,eo_ptr<quad_su3> conf)
 {
   GET_THREAD_ID();
   
@@ -89,7 +89,7 @@ void write_conf(std::string path,quad_su3 **conf)
 int nread_conf=0;
 double read_conf_time=0;
 std::string rnd_gen_mess;
-void read_conf(quad_su3 **conf,const char *path)
+void read_conf(eo_ptr<quad_su3> conf,const char *path)
 {
   GET_THREAD_ID();
   
@@ -380,7 +380,7 @@ void measure_gauge_obs_internal(FILE *file,quad_su3 *conf,gauge_obs_meas_pars_t 
 }
 
 //measure plaquette and polyakov loop, writing also acceptance
-void measure_gauge_obs(gauge_obs_meas_pars_t &pars,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
+void measure_gauge_obs(gauge_obs_meas_pars_t &pars,eo_ptr<quad_su3> conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   const std::string path=pars.path;
   
@@ -428,7 +428,7 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars,quad_su3 **conf,int iconf,int
 }
 
 //measure the polyakov correlators
-void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf_created)
+void measure_poly_corrs(poly_corr_meas_pars_t &pars,eo_ptr<quad_su3> eo_conf,bool conf_created)
 {
   verbosity_lv1_master_printf("Measuring Polyakov loop correlators\n");
   
@@ -475,7 +475,7 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
     NAME2(measure,OBS)(temp,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created,__VA_ARGS__);
 
 //measures
-void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
+void measurements(eo_ptr<quad_su3> temp,eo_ptr<quad_su3> conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   double meas_time=-take_time();
   

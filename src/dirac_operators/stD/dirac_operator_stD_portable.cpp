@@ -10,7 +10,7 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, quad_su3**,conf, color*,in)
+  THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, eo_ptr<quad_su3>,conf, color*,in)
   {
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
       communicate_ev_and_od_quad_su3_borders(conf);
@@ -44,7 +44,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //put the 0.5 factor
-  THREADABLE_FUNCTION_3ARG(apply_stDoe, color*,out, quad_su3**,conf, color*,in)
+  THREADABLE_FUNCTION_3ARG(apply_stDoe, color*,out, eo_ptr<quad_su3>,conf, color*,in)
   {
     apply_st2Doe(out,conf,in);
     
@@ -59,7 +59,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,in)
+  THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, eo_ptr<quad_su3>,conf, color*,in)
   {
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
       communicate_ev_and_od_quad_su3_borders(conf);
@@ -95,7 +95,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, quad_su3**,_conf, color*,temp, double,mass2, color*,in)
+  THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, eo_ptr<quad_su3>,_conf, color*,temp, double,mass2, color*,in)
   {
     GET_THREAD_ID();
     if(IS_MASTER_THREAD)

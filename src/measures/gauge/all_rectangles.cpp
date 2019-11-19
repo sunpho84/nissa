@@ -486,7 +486,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,quad_su3 **conf_eo,int iconf,int create_output_file)
+  void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,eo_ptr<quad_su3> conf_eo,int iconf,int create_output_file)
   {
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);

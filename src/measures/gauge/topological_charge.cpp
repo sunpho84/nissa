@@ -167,7 +167,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //wrapper for eos case
-  THREADABLE_FUNCTION_2ARG(total_topological_charge_eo_conf, double*,tot_charge, quad_su3**,eo_conf)
+  THREADABLE_FUNCTION_2ARG(total_topological_charge_eo_conf, double*,tot_charge, eo_ptr<quad_su3>,eo_conf)
   {
     //convert to lx
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -378,7 +378,7 @@ namespace nissa
       }
   }
   
-  void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **unsmoothed_conf_eo,int iconf,bool conf_created)
+  void measure_topology_eo_conf(top_meas_pars_t &pars,eo_ptr<quad_su3> unsmoothed_conf_eo,int iconf,bool conf_created)
   {
     quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(unsmoothed_conf_lx,unsmoothed_conf_eo);
@@ -479,7 +479,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //store the topological charge if needed
-  void topotential_pars_t::store_if_needed(quad_su3 **ext_conf,int iconf)
+  void topotential_pars_t::store_if_needed(eo_ptr<quad_su3> ext_conf,int iconf)
   {
     if(flag==2 and iconf%each==0 and iconf>=after)
       {

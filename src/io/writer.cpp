@@ -144,7 +144,7 @@ namespace nissa
   }
   
   //read an ildg conf and split it into e/o parts
-  void paste_eo_parts_and_write_ildg_gauge_conf(std::string path,quad_su3 **eo_conf,size_t prec,ILDG_message *mess=NULL)
+  void paste_eo_parts_and_write_ildg_gauge_conf(std::string path,eo_ptr<quad_su3> eo_conf,size_t prec,ILDG_message *mess=NULL)
   {
     quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);

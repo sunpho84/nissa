@@ -17,7 +17,7 @@ namespace nissa
     double def_beta(){return 6;}
     gauge_action_name_t def_gauge_action_name(){return WILSON_GAUGE_ACTION;}
     
-    std::vector<quad_u1**> backfield;
+    std::vector<eo_ptr<quad_u1>> backfield;
     std::vector<quark_content_t> quarks;
     topotential_pars_t topotential_pars;
     stout_pars_t stout_pars;

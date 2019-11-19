@@ -6,7 +6,7 @@
 
 namespace nissa
 {
-  void set_expansions(std::vector<rat_approx_t> *rat_appr,quad_su3 **eo_conf,theory_pars_t *theory_pars,hmc_evol_pars_t *evol_pars);
+  void set_expansions(std::vector<rat_approx_t> *rat_appr,eo_ptr<quad_su3> eo_conf,theory_pars_t *theory_pars,hmc_evol_pars_t *evol_pars);
 }
 
 #endif

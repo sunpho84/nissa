@@ -391,7 +391,7 @@ namespace nissa
     set_borders_invalid(source);
   }
   THREADABLE_FUNCTION_END
-  void generate_fully_undiluted_eo_source(color *source[2],enum rnd_t rtype,int twall,int dir)
+  void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,int twall,int dir)
   {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
   
   //same for spincolor
@@ -413,7 +413,7 @@ namespace nissa
     set_borders_invalid(source);
   }
   THREADABLE_FUNCTION_END
-  void generate_fully_undiluted_eo_source(spincolor **source,enum rnd_t rtype,int twall,int dir)
+  void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir)
   {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
   
   //generate a delta source
@@ -441,7 +441,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //generate a delta source
-  THREADABLE_FUNCTION_2ARG(generate_delta_eo_source, su3**,source, int*,x)
+  THREADABLE_FUNCTION_2ARG(generate_delta_eo_source, eo_ptr<su3>,source, int*,x)
   {
     //reset
     for(int par=0;par<2;par++) vector_reset(source[par]);

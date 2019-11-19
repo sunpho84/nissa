@@ -33,7 +33,7 @@ namespace nissa
   //Refers to the tmD_eoprec
   
   //invert Koo defined in equation (7)
-  void inv_tmclovDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mass,int nitermax,double residue,spincolor *source)
+  void inv_tmclovDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,eo_ptr<quad_su3> conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mass,int nitermax,double residue,spincolor *source)
   {
     if(use_128_bit_precision) inv_tmclovDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,source);
     else inv_tmclovDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,source);
@@ -55,18 +55,18 @@ namespace nissa
       }
     
     //prepare the e/o split version of the source
-    spincolor *source_eos[2];
+    eo_ptr<spincolor> source_eos;
     source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spincolor);
     source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spincolor);
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
-    spincolor *solution_eos[2];
+    eo_ptr<spincolor> solution_eos;
     solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
     solution_eos[1]=nissa_malloc("solution_eos_1",loc_volh+bord_volh,spincolor);
     
     //prepare the e/o split version of the conf
-    quad_su3 *conf_eos[2];
+    eo_ptr<quad_su3> conf_eos;
     conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+bord_volh,quad_su3);
     conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+bord_volh,quad_su3);
     split_lx_vector_into_eo_parts(conf_eos,conf_lx);

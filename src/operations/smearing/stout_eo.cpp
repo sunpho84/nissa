@@ -73,7 +73,7 @@ namespace nissa
     
     START_TIMING(sto_time,nsto);
     
-    if(in[0]==out[0]) crash("in==out");
+    if(in==out) crash("in==out");
 #warning
     //communicate_eo_quad_su3_edges((quad_su3**)in);
     
@@ -104,15 +104,15 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //smear n times, using only one additional vectors
-  THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
+  THREADABLE_FUNCTION_4ARG(stout_smear, eo_ptr<quad_su3>,ext_out, eo_ptr<quad_su3>,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
   {
     verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
     switch(stout_pars->nlevels)
       {
       case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
       case 1:
-	crash("");
-	// stout_smear_single_level((quad_su3_ptr_two*)out,(quad_su3_ptr_two*)ext_in,stout_pars->rho,dirs);
+	if(ext_out==ext_in) crash("in==out");
+	stout_smear_single_level(ext_out,ext_in,stout_pars->rho,dirs);
 	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_out));
 	break;
       default:
@@ -151,9 +151,9 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //allocate all the stack for smearing
-  THREADABLE_FUNCTION_3ARG(stout_smear_conf_stack_allocate, quad_su3****,out, quad_su3**,in, int,nlev)
+  THREADABLE_FUNCTION_3ARG(stout_smear_conf_stack_allocate, eo_ptr<quad_su3>**,out, eo_ptr<quad_su3>,in, int,nlev)
   {
-    (*out)=nissa_malloc("out**",nlev+1,quad_su3**);
+    (*out)=nissa_malloc("out**",nlev+1,eo_ptr<quad_su3>);
     (*out)[0]=in;
     for(int i=1;i<=nlev;i++)
       {

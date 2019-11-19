@@ -41,7 +41,7 @@ namespace nissa
   
   void average_and_corr_polyakov_loop_lx_conf(complex tra,FILE *fout,quad_su3 *conf,int mu,int itraj);
   void average_polyakov_loop_lx_conf(complex tra,quad_su3 *conf,int mu);
-  void average_polyakov_loop_eo_conf(complex tra,quad_su3 **eo_conf,int mu);
+  void average_polyakov_loop_eo_conf(complex tra,eo_ptr<quad_su3> eo_conf,int mu);
   void compute_Pline_dag_internal(su3 *pline,quad_su3 *conf,int mu,int xmu_start);
   void compute_Pline_dag_point(su3 *pline,quad_su3 *conf,int mu,coords glb_x_start);
   void compute_Pline_dag_wall(su3 *pline,quad_su3 *conf,int mu,int xmu_start);

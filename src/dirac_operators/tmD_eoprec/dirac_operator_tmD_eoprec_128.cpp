@@ -17,7 +17,7 @@ namespace nissa
   //Refers to the doc: "doc/eo_inverter.lyx" for explenations
   
   //apply even-odd or odd-even part of tmD, multiplied by -2
-  THREADABLE_FUNCTION_4ARG(tmn2Deo_or_tmn2Doe_eos_128, spincolor_128*,out, quad_su3**,conf, int,eooe, spincolor_128*,in)
+  THREADABLE_FUNCTION_4ARG(tmn2Deo_or_tmn2Doe_eos_128, spincolor_128*,out, eo_ptr<quad_su3>,conf, int,eooe, spincolor_128*,in)
   {
     communicate_ev_and_od_quad_su3_borders(conf);
     
@@ -189,7 +189,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //implement Koo defined in equation (7)
-  THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos_128, spincolor_128*,out, spincolor_128*,temp, quad_su3**,conf, double,kappa, double,mu, spincolor_128*,in)
+  THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos_128, spincolor_128*,out, spincolor_128*,temp, eo_ptr<quad_su3>,conf, double,kappa, double,mu, spincolor_128*,in)
   {
     tmn2Deo_eos_128(out,conf,in);
     inv_tmDee_or_oo_eos_128(temp,kappa,mu,out);
@@ -202,7 +202,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //square of Koo
-  void tmDkern_eoprec_square_eos_128(spincolor_128 *out,spincolor_128 *temp1,spincolor_128 *temp2,quad_su3 **conf,double kappa,double mu,spincolor_128 *in)
+  void tmDkern_eoprec_square_eos_128(spincolor_128 *out,spincolor_128 *temp1,spincolor_128 *temp2,eo_ptr<quad_su3> conf,double kappa,double mu,spincolor_128 *in)
   {
     tmDkern_eoprec_eos_128(temp1,temp2,conf,kappa,-mu, in   );
     tmDkern_eoprec_eos_128(out,  temp2,conf,kappa,+mu, temp1);

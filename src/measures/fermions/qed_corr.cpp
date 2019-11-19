@@ -30,7 +30,7 @@ namespace nissa
   namespace stag
   {
     //return directly a eosplit photon field
-    void get_eo_photon(spin1field **out,gauge_info photon)
+    void get_eo_photon(eo_ptr<spin1field> out,gauge_info photon)
     {
       //allocate lx version of photon field
       spin1field *photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
@@ -47,12 +47,12 @@ namespace nissa
       nissa_free(photon_eta);
     }
     
-    void insert_tadpole_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
-    void insert_conserved_current_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars){out[RE]=((int*)pars)[mu];out[IM]=0;}
-    void insert_time_conserved_vector_current_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars){out[RE]=(mu==0);out[IM]=0;}
+    void insert_tadpole_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
+    void insert_conserved_current_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=((int*)pars)[mu];out[IM]=0;}
+    void insert_time_conserved_vector_current_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=(mu==0);out[IM]=0;}
     
     //insert the tadpol
-    THREADABLE_FUNCTION_7ARG(insert_tadpole, color**,out, quad_su3**,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, double*,tad, int,t)
+    THREADABLE_FUNCTION_7ARG(insert_tadpole, color**,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, double*,tad, int,t)
     {
       //call with no source insertion, plus between fw and bw, and a global -0.25
       complex fw_factor={-0.25,0},bw_factor={-0.25,0};
@@ -61,7 +61,7 @@ namespace nissa
     THREADABLE_FUNCTION_END
     
     //insert the external source, that is one of the two extrema of the stoch prop
-    THREADABLE_FUNCTION_7ARG(insert_external_source, color**,out, quad_su3**,conf, theory_pars_t*,theory_pars, int,iflav, spin1field**,curr, color**,in, int,t)
+    THREADABLE_FUNCTION_7ARG(insert_external_source, color**,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, spin1field**,curr, color**,in, int,t)
     {
       //call with source insertion, minus between fw and bw, and a global i*0.5
       complex fw_factor={0,+0.5},bw_factor={0,-0.5};
@@ -70,7 +70,7 @@ namespace nissa
     THREADABLE_FUNCTION_END
     
     //insert the time componente of the vectorial current
-    THREADABLE_FUNCTION_6ARG(insert_time_conserved_vector_current, color**,out, quad_su3**,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, int,t)
+    THREADABLE_FUNCTION_6ARG(insert_time_conserved_vector_current, color**,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, int,t)
     {
       //call with no source insertion, minus between fw and bw, and a global i*0.5
       complex fw_factor={0,+0.5},bw_factor={0,-0.5};
@@ -101,7 +101,7 @@ namespace nissa
   }
   
   //compute and print
-  THREADABLE_FUNCTION_5ARG(measure_qed_corr, quad_su3**,conf, theory_pars_t,theory_pars, qed_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
+  THREADABLE_FUNCTION_5ARG(measure_qed_corr, eo_ptr<quad_su3>,conf, theory_pars_t,theory_pars, qed_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
   {
     GET_THREAD_ID();
     

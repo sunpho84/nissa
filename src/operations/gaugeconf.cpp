@@ -279,7 +279,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //eo version
-  THREADABLE_FUNCTION_1ARG(unitarize_eo_conf_maximal_trace_projecting, quad_su3**,conf)
+  THREADABLE_FUNCTION_1ARG(unitarize_eo_conf_maximal_trace_projecting, eo_ptr<quad_su3>,conf)
   {
     GET_THREAD_ID();
     START_TIMING(unitarize_time,nunitarize);

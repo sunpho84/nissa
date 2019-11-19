@@ -35,7 +35,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the quark force, without stouting reampping
-  THREADABLE_FUNCTION_6ARG(compute_quark_force_no_stout_remapping, quad_su3**,F, quad_su3**,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,tp, std::vector<rat_approx_t>*,appr, double,residue)
+  THREADABLE_FUNCTION_6ARG(compute_quark_force_no_stout_remapping, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,tp, std::vector<rat_approx_t>*,appr, double,residue)
   {
     //reset forces
     for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
@@ -58,7 +58,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //take into account the stout remapping procedure
-  THREADABLE_FUNCTION_6ARG(compute_quark_force, quad_su3**,F, quad_su3**,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,physics, std::vector<rat_approx_t>*,appr, double,residue)
+  THREADABLE_FUNCTION_6ARG(compute_quark_force, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,physics, std::vector<rat_approx_t>*,appr, double,residue)
   {
     int nlevls=physics->stout_pars.nlevels;
     
@@ -67,7 +67,7 @@ namespace nissa
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]
-	quad_su3 ***sme_conf;
+	eo_ptr<quad_su3> *sme_conf;
 	stout_smear_conf_stack_allocate(&sme_conf,conf,nlevls);
 	
 	//smear iteratively retaining all the stack

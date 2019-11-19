@@ -375,7 +375,7 @@ namespace nissa
   /////////////////////////////////////// communicating e&o vec //////////////////////////////////////
   
   //fill the sending buf using the data inside an ev and odd vec, using lx style inside buf
-  void fill_sending_buf_with_ev_and_od_vec(comm_t &comm,void **vec)
+  void fill_sending_buf_with_ev_and_od_vec(comm_t &comm,eo_ptr<void> vec)
   {
     GET_THREAD_ID();
     
@@ -400,7 +400,7 @@ namespace nissa
   }
   
   //extract the information from receiving buffer and put them inside an even or odd vec
-  void fill_ev_and_od_bord_with_receiving_buf(void **vec,comm_t &comm)
+  void fill_ev_and_od_bord_with_receiving_buf(eo_ptr<void> vec,comm_t &comm)
   {
     GET_THREAD_ID();
     
@@ -427,7 +427,7 @@ namespace nissa
   }
   
   //start communication using an ev and od border
-  void start_communicating_ev_and_od_borders(comm_t &comm,void **vec)
+  void start_communicating_ev_and_od_borders(comm_t &comm,eo_ptr<void> vec)
   {
     if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && nparal_dir>0)
       {
@@ -435,7 +435,7 @@ namespace nissa
 	
 	//take time and output debugging info
 	START_TIMING(tot_comm_time,ntot_comm);
-	verbosity_lv3_master_printf("Starting communication of ev and od borders of %s\n",get_vect_name((void*)(*vec)));
+	verbosity_lv3_master_printf("Starting communication of ev and od borders of %s\n",get_vect_name(vec[0]));
 	
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_ev_and_od_vec(comm,vec);
@@ -445,7 +445,7 @@ namespace nissa
   }
   
   //finish communicating
-  void finish_communicating_ev_and_od_borders(void **vec,comm_t &comm)
+  void finish_communicating_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm)
   {
     if(comm.comm_in_prog && nparal_dir>0)
       {
@@ -453,7 +453,7 @@ namespace nissa
 	
 	//take time and make some output
 	START_TIMING(tot_comm_time,ntot_comm);
-	verbosity_lv3_master_printf("Finish communication of ev and od borders of %s\n",get_vect_name((void*)(*vec)));
+	verbosity_lv3_master_printf("Finish communication of ev and od borders of %s\n",get_vect_name(vec[0]));
 	
 	//wait communication to finish, fill back the vector and take time
 	comm_wait(comm);
@@ -467,7 +467,7 @@ namespace nissa
   }
   
   //merge the two
-  void communicate_ev_and_od_borders(void **vec,comm_t &comm)
+  void communicate_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm)
   {
     start_communicating_ev_and_od_borders(comm,vec);
     finish_communicating_ev_and_od_borders(vec,comm);
@@ -631,7 +631,7 @@ namespace nissa
   /////////////////////////////////////// communicating e&o vec //////////////////////////////////////
   
   //fill the sending buf using the data inside an ev and odd vec, using Leblx style inside buf
-  void fill_sending_buf_with_Leb_ev_and_od_vec(comm_t &comm,void **vec)
+  void fill_sending_buf_with_Leb_ev_and_od_vec(comm_t &comm,eo_ptr<void> vec)
   {
     GET_THREAD_ID();
     
@@ -657,11 +657,11 @@ namespace nissa
   }
   
   //extract the information from receiving buffer and put them inside an even or odd vec
-  void fill_Leb_ev_and_od_bord_with_receiving_buf(void **vec,comm_t &comm)
+  void fill_Leb_ev_and_od_bord_with_receiving_buf(eo_ptr<void> vec,comm_t &comm)
   {fill_ev_and_od_bord_with_receiving_buf(vec,comm);}
   
   //start communication using an ev and od border
-  void start_communicating_Leb_ev_and_od_borders(comm_t &comm,void **vec)
+  void start_communicating_Leb_ev_and_od_borders(comm_t &comm,eo_ptr<void> vec)
   {
     if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && nparal_dir>0)
       {
@@ -669,7 +669,7 @@ namespace nissa
 	
 	//take time and output debugging info
 	START_TIMING(tot_comm_time,ntot_comm);
-	verbosity_lv3_master_printf("Starting communication of Leb ev and od borders of %s\n",get_vect_name((void*)(*vec)));
+	verbosity_lv3_master_printf("Starting communication of Leb ev and od borders of %s\n",get_vect_name((void*)(vec[0])));
 	
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_Leb_ev_and_od_vec(comm,vec);
@@ -679,11 +679,11 @@ namespace nissa
   }
   
   //finish communicating
-  void finish_communicating_Leb_ev_and_od_borders(void **vec,comm_t &comm)
+  void finish_communicating_Leb_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm)
   {finish_communicating_ev_and_od_borders(vec,comm);}
   
   //merge the two
-  void communicate_Leb_ev_and_od_borders(void **vec,comm_t &comm)
+  void communicate_Leb_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm)
   {
     start_communicating_Leb_ev_and_od_borders(comm,vec);
     finish_communicating_Leb_ev_and_od_borders(vec,comm);

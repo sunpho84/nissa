@@ -14,7 +14,7 @@
 namespace nissa
 {
   //compute the action of the momenta
-  double momenta_action(quad_su3 **H)
+  double momenta_action(eo_ptr<quad_su3> H)
   {
     //summ the square of H
     double glb_action_eo[2];

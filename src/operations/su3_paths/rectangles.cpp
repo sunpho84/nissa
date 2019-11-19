@@ -13,11 +13,11 @@
 namespace nissa
 {
   //compute plaquettes and rectangles
-  THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_eo_conf, double*,glb_shapes, quad_su3**,conf)
+  THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_eo_conf, double*,glb_shapes, eo_ptr<quad_su3>,conf)
   {
     GET_THREAD_ID();
     
-    communicate_eo_quad_su3_edges(conf);
+    #warning communicate_eo_quad_su3_edges(conf);
     
     //summ squares and rectangles separately
     complex *point_shapes=nissa_malloc("point_shapes",loc_vol,complex);

@@ -16,7 +16,7 @@
 namespace nissa
 {
   //separate the even and odd part of a vector
-  THREADABLE_FUNCTION_3ARG(split_lx_vector_into_eo_parts_internal, char**,out_eo, char*,in_lx, size_t,bps)
+  THREADABLE_FUNCTION_3ARG(split_lx_vector_into_eo_parts_internal, eo_ptr<void>,out_eo, void*,in_lx, size_t,bps)
   {
     GET_THREAD_ID();
     
@@ -24,7 +24,7 @@ namespace nissa
     
     //split
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
-      memcpy(out_eo[loclx_parity[loclx]]+bps*loceo_of_loclx[loclx],in_lx+bps*loclx,bps);
+      memcpy((char*)(out_eo[loclx_parity[loclx]])+bps*loceo_of_loclx[loclx],(char*)in_lx+bps*loclx,bps);
     NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);
@@ -35,7 +35,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //separate the even and odd part of a vector
-  THREADABLE_FUNCTION_4ARG(get_evn_or_odd_part_of_lx_vector_internal, char*,out_ev_or_od, char*,in_lx, size_t,bps, int,par)
+  THREADABLE_FUNCTION_4ARG(get_evn_or_odd_part_of_lx_vector_internal, void*,out_ev_or_od, void*,in_lx, size_t,bps, int,par)
   {
     GET_THREAD_ID();
     
@@ -44,7 +44,7 @@ namespace nissa
     //get
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
       if(loclx_parity[loclx]==par)
-      memcpy(out_ev_or_od+bps*loceo_of_loclx[loclx],in_lx+bps*loclx,bps);
+	memcpy((char*)out_ev_or_od+bps*loceo_of_loclx[loclx],(char*)in_lx+bps*loclx,bps);
     NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);
@@ -54,7 +54,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //paste the even and odd parts of a vector into a full lx vector
-  THREADABLE_FUNCTION_3ARG(paste_eo_parts_into_lx_vector_internal, char*,out_lx, char**,in_eo, size_t,bps)
+  THREADABLE_FUNCTION_3ARG(paste_eo_parts_into_lx_vector_internal, void*,out_lx, eo_ptr<void>,in_eo, size_t,bps)
   {
     GET_THREAD_ID();
     
@@ -63,7 +63,7 @@ namespace nissa
     //paste
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(eo,0,loc_volh)
-	memcpy(out_lx+bps*loclx_of_loceo[par][eo],in_eo[par]+bps*eo,bps);
+	memcpy((char*)out_lx+bps*loclx_of_loceo[par][eo],(char*)(in_eo[par])+bps*eo,bps);
     NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);
@@ -93,26 +93,26 @@ namespace nissa
   
   ///////////////////////
   
-  //pack the 8 links attached to a given site
-  THREADABLE_FUNCTION_3ARG(remap_loceo_conf_to_Lebeo_oct, oct_su3*,out, quad_su3**,in, int,par)
-  {
-    GET_THREAD_ID();
+  // //pack the 8 links attached to a given site
+  // THREADABLE_FUNCTION_3ARG(remap_loceo_conf_to_Lebeo_oct, oct_su3*,out, quad_su3**,in, int,par)
+  // {
+  //   GET_THREAD_ID();
     
-    START_TIMING(remap_time,nremap);
+  //   START_TIMING(remap_time,nremap);
     
-    communicate_ev_and_od_quad_su3_borders(in);
+  //   communicate_ev_and_od_quad_su3_borders(in);
     
-    NISSA_PARALLEL_LOOP(Lebdest,0,loc_volh)
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  su3_copy(out[Lebdest][NDIM+mu],in[par][loceo_of_Lebeo[par][Lebdest]][mu]);
-	  su3_copy(out[Lebdest][mu],in[!par][loceo_of_Lebeo[!par][Lebeo_neighdw[par][Lebdest][mu]]][mu]);
-	}
-    NISSA_PARALLEL_LOOP_END;
+  //   NISSA_PARALLEL_LOOP(Lebdest,0,loc_volh)
+  //     for(int mu=0;mu<NDIM;mu++)
+  // 	{
+  // 	  su3_copy(out[Lebdest][NDIM+mu],in[par][loceo_of_Lebeo[par][Lebdest]][mu]);
+  // 	  su3_copy(out[Lebdest][mu],in[!par][loceo_of_Lebeo[!par][Lebeo_neighdw[par][Lebdest][mu]]][mu]);
+  // 	}
+  //   NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(out);
+  //   set_borders_invalid(out);
     
-    STOP_TIMING(remap_time);
-  }
-  THREADABLE_FUNCTION_END
+  //   STOP_TIMING(remap_time);
+  // }
+  // THREADABLE_FUNCTION_END
 }

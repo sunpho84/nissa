@@ -31,7 +31,7 @@ namespace nissa
     virtual ~fermionic_putpourri_meas_pars_t(){}
   };
   
-  void measure_fermionic_putpourri(quad_su3 **conf,theory_pars_t &theory_pars,fermionic_putpourri_meas_pars_t &meas_pars,int iconf,int conf_created);
+  void measure_fermionic_putpourri(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,fermionic_putpourri_meas_pars_t &meas_pars,int iconf,int conf_created);
 }
 
 #endif

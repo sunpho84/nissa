@@ -12,7 +12,7 @@
 namespace nissa
 {
   //computes the spectrum of the staggered operator
-  void find_eigenvalues_staggered_D2ee(color **eigvec,complex *eigval,int neigs,bool min_max,quad_su3 **conf,quad_u1 **u1b,double mass2,double residue,int wspace_size)
+  void find_eigenvalues_staggered_D2ee(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double mass2,double residue,int wspace_size)
   {
     add_backfield_with_stagphases_to_conf(conf,u1b);
     
@@ -49,17 +49,14 @@ namespace nissa
   }
   
   //computes the spectrum of the staggered iD operator
-  void find_eigenvalues_staggered_iD(color **eigvec,complex *eigval,int neigs,bool min_max,quad_su3 **conf,quad_u1 **u1b,double residue,int wspace_size)
+  void find_eigenvalues_staggered_iD(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double residue,int wspace_size)
   {
     
-    std::array<color*,2> _temp_in_eo={nissa_malloc("temp_in_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_in_eo_ODD",loc_volh+bord_volh,color)};
-    std::array<color*,2> _temp_out_eo={nissa_malloc("temp_out_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_out_eo_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> temp_in_eo={nissa_malloc("temp_in_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_in_eo_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> temp_out_eo={nissa_malloc("temp_out_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_out_eo_ODD",loc_volh+bord_volh,color)};
     
-    const auto imp_mat=[conf,u1b,&_temp_in_eo,&_temp_out_eo](complex *out,complex *in)
+    const auto imp_mat=[conf,u1b,&temp_in_eo,&temp_out_eo](complex *out,complex *in)
       {
-	color **temp_in_eo=&_temp_in_eo[0];
-	color **temp_out_eo=&_temp_out_eo[0];
-	
         split_lx_vector_into_eo_parts(temp_in_eo,(color*)in);
         
         // temp_out_eo = D * in
@@ -102,18 +99,18 @@ namespace nissa
     //find eigenvalues and eigenvectors of the staggered
     eigenvalues_find((complex**)eigvec,eigval,neigs,min_max,mat_size,mat_size_to_allocate,imp_mat,maxerr,niter_max,filler,wspace_size);
     
-    nissa_free(_temp_in_eo[EVN]);
-    nissa_free(_temp_in_eo[ODD]);
-    nissa_free(_temp_out_eo[EVN]);
-    nissa_free(_temp_out_eo[ODD]);
+    nissa_free(temp_in_eo[EVN]);
+    nissa_free(temp_in_eo[ODD]);
+    nissa_free(temp_out_eo[EVN]);
+    nissa_free(temp_out_eo[ODD]);
   }
   
   //computes the spectrum of the staggered Adams operator (iD_st - Gamma5 m_Adams)
-  void find_eigenvalues_staggered_Adams(color **eigvec,complex *eigval,int neigs,bool min_max,quad_su3 **conf,quad_u1 **u1b,double mass,double m_Adams,double residue,int wspace_size)
+  void find_eigenvalues_staggered_Adams(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double mass,double m_Adams,double residue,int wspace_size)
   {
-    color *temp[2]={nissa_malloc("temp_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_ODD",loc_volh+bord_volh,color)};
-    color *temp_in_eo[2] = {nissa_malloc("temp_in_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_in_eo_ODD",loc_volh+bord_volh,color)};
-    color *temp_out_eo[2] = {nissa_malloc("temp_out_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_out_eo_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> temp={nissa_malloc("temp_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> temp_in_eo = {nissa_malloc("temp_in_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_in_eo_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> temp_out_eo = {nissa_malloc("temp_out_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_out_eo_ODD",loc_volh+bord_volh,color)};
     
     //Application of the staggered Operator
     const auto imp_mat=[conf,u1b,&temp,&temp_in_eo,&temp_out_eo,mass,m_Adams](complex *out,complex *in)
@@ -154,11 +151,11 @@ namespace nissa
   }
   
   //computes the spectrum of the staggered Adams operator (Eps D_st - Gamma5 m_Adams), where Eps = Gamma5 x Gamma5.
-  void find_eigenvalues_staggered_AdamsII(color **eigvec,complex *eigval,int neigs,bool min_max,quad_su3 **conf,quad_u1 **u1b,double mass,double m_Adams,double residue,int wspace_size)
+  void find_eigenvalues_staggered_AdamsII(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double mass,double m_Adams,double residue,int wspace_size)
   {
-    color *temp[2]={nissa_malloc("temp_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_ODD",loc_volh+bord_volh,color)};
-    color *temp_in_eo[2] = {nissa_malloc("temp_in_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_in_eo_ODD",loc_volh+bord_volh,color)};
-    color *temp_out_eo[2] = {nissa_malloc("temp_out_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_out_eo_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> temp={nissa_malloc("temp_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> temp_in_eo={nissa_malloc("temp_in_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_in_eo_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> temp_out_eo={nissa_malloc("temp_out_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("temp_out_eo_ODD",loc_volh+bord_volh,color)};
     
     //Application of the staggered Operator
     const auto imp_mat=

@@ -1,6 +1,7 @@
 #ifndef _SYMANZIK_ACTION_HPP
 #define _SYMANZIK_ACTION_HPP
 
+#include "geometry/geometry_eo.hpp"
 #include "new_types/su3.hpp"
 
 namespace nissa
@@ -13,7 +14,7 @@ namespace nissa
   inline double get_C0(double C1)
   {return 1-8*C1;}
   
-  void Symanzik_action(double *action,quad_su3 **eo_conf,double beta,double C1);
+  void Symanzik_action(double *action,eo_ptr<quad_su3> eo_conf,double beta,double C1);
   void Symanzik_action(double *action,quad_su3 *lx_conf,double beta,double C1);
   template <class T> void tlSym_action(double *action,T lx_conf,double beta)
   {return Symanzik_action(action,lx_conf,beta,C1_TLSYM);}

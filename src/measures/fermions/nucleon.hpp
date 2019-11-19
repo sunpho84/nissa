@@ -27,7 +27,7 @@ namespace nissa
     virtual ~nucleon_corr_meas_pars_t(){}
   };
   
-  void measure_nucleon_corr(quad_su3 **conf,theory_pars_t theory_pars,nucleon_corr_meas_pars_t meas_pars,int iconf,int conf_created);
+  void measure_nucleon_corr(eo_ptr<quad_su3> conf,theory_pars_t theory_pars,nucleon_corr_meas_pars_t meas_pars,int iconf,int conf_created);
 }
 
 #endif

@@ -18,7 +18,7 @@ namespace nissa
 {
   //compute the magnetization starting from chi and rnd
   //please note that the conf must hold backfield
-  THREADABLE_FUNCTION_10ARG(magnetization, complex*,magn, complex*,magn_proj_x, quad_su3**,conf, quark_content_t*,quark, color**,rnd, color**,chi, complex*,point_magn, coords*,arg, int,mu, int,nu)
+  THREADABLE_FUNCTION_10ARG(magnetization, complex*,magn, complex*,magn_proj_x, eo_ptr<quad_su3>,conf, quark_content_t*,quark, eo_ptr<color>,rnd, eo_ptr<color>,chi, complex*,point_magn, coords*,arg, int,mu, int,nu)
   {
     GET_THREAD_ID();
     
@@ -94,7 +94,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the magnetization
-  THREADABLE_FUNCTION_8ARG(magnetization, complex*,magn, complex*,magn_proj_x, quad_su3**,conf, int,quantization, quad_u1**,u1b, quark_content_t*,quark, double,residue, color**,rnd)
+  THREADABLE_FUNCTION_8ARG(magnetization, complex*,magn, complex*,magn_proj_x, eo_ptr<quad_su3>,conf, int,quantization, eo_ptr<quad_u1>,u1b, quark_content_t*,quark, double,residue, eo_ptr<color>,rnd)
   {
     GET_THREAD_ID();
     
@@ -133,10 +133,10 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the magnetization
-  void magnetization(complex *magn,complex *magn_proj_x,rnd_t rnd_type,quad_su3 **conf,int quantization,quad_u1 **u1b,quark_content_t *quark,double residue)
+  void magnetization(complex *magn,complex *magn_proj_x,rnd_t rnd_type,eo_ptr<quad_su3> conf,int quantization,eo_ptr<quad_u1> u1b,quark_content_t *quark,double residue)
   {
     //allocate source and generate it
-    color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> rnd={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
     generate_fully_undiluted_eo_source(rnd,rnd_type,-1);
     
     //call inner function
@@ -146,7 +146,7 @@ namespace nissa
   }
   
   //measure magnetization
-  void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,magnetization_meas_pars_t &meas_pars,int iconf,int conf_created)
+  void measure_magnetization(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,magnetization_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     FILE *file_proj=open_file(meas_pars.path+"%s_proj_x",conf_created?"w":"a");

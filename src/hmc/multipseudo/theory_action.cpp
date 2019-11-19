@@ -20,7 +20,7 @@
 namespace nissa
 {
   //compute quark action for a set of quark
-  THREADABLE_FUNCTION_7ARG(compute_quark_action, double*,glb_action, quad_su3**,eo_conf, std::vector<quad_u1**>,u1b, std::vector<std::vector<pseudofermion_t> >*,pf, std::vector<quark_content_t>,quark_content, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
+  THREADABLE_FUNCTION_7ARG(compute_quark_action, double*,glb_action, eo_ptr<quad_su3>,eo_conf, std::vector<eo_ptr<quad_u1>>,u1b, std::vector<std::vector<pseudofermion_t> >*,pf, std::vector<quark_content_t>,quark_content, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
   {
     int nfl=quark_content.size();
     double res=simul_pars->pf_action_residue;
@@ -94,7 +94,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //Compute the total action of the rooted staggered e/o improved theory
-  THREADABLE_FUNCTION_9ARG(full_theory_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, std::vector<std::vector<pseudofermion_t> > *,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr, double,external_quark_action)
+  THREADABLE_FUNCTION_9ARG(full_theory_action, double*,tot_action, eo_ptr<quad_su3>,eo_conf, eo_ptr<quad_su3>,sme_conf, eo_ptr<quad_su3>,H, std::vector<std::vector<pseudofermion_t> > *,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr, double,external_quark_action)
   {
     verbosity_lv1_master_printf("Computing action\n");
     

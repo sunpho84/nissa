@@ -1,12 +1,13 @@
 #ifndef _READER_HPP
 #define _READER_HPP
 
+#include "geometry/geometry_eo.hpp"
 #include "ILDG_File.hpp"
 #include "new_types/su3.hpp"
 
 namespace nissa
 {
-  void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,std::string path,ILDG_message *mess=NULL);
+  void read_ildg_gauge_conf_and_split_into_eo_parts(eo_ptr<quad_su3> eo_conf,std::string path,ILDG_message *mess=NULL);
   void read_ildg_gauge_conf(quad_su3 *conf,std::string path,ILDG_message *mess=NULL);
   void read_real_vector(double *out,ILDG_File file,ILDG_header &header,uint64_t nreals_per_site);
   template <class T> void read_real_vector(T *out,ILDG_File file,ILDG_header &header)

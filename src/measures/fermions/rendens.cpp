@@ -23,7 +23,7 @@ namespace nissa
   using namespace stag;
   
   //measure the quark number and its derivative w.r.t mu
-  void measure_quark_rendens(quad_su3 **conf,theory_pars_t &theory_pars,quark_rendens_meas_pars_t &meas_pars,int iconf,int conf_created)
+  void measure_quark_rendens(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,quark_rendens_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     //open the file, allocate point result and source
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");

@@ -27,14 +27,14 @@ namespace nissa
   //Refers to the doc: "doc/eo_inverter.lyx" for explenations
   
   //invert Koo defined in equation (7)
-  void inv_tmDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mass,int nitermax,double residue,spincolor *source)
+  void inv_tmDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,eo_ptr<quad_su3> conf,double kappa,double mass,int nitermax,double residue,spincolor *source)
   {
     if(use_128_bit_precision) inv_tmDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
     else inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
   }
   
   //Prepare the source according to Equation (8.b)
-  void inv_tmD_cg_eoprec_prepare_source(spincolor *varphi,quad_su3 **conf_eos,spincolor *eq8a,spincolor *source_odd)
+  void inv_tmD_cg_eoprec_prepare_source(spincolor *varphi,eo_ptr<quad_su3> conf_eos,spincolor *eq8a,spincolor *source_odd)
   {
     GET_THREAD_ID();
     
@@ -52,7 +52,7 @@ namespace nissa
   }
   
   //Eq.(11) up to last piece
-  void inv_tmD_cg_eoprec_almost_reco_sol(spincolor *varphi,quad_su3 **conf_eos,spincolor *sol_odd,spincolor *source_evn)
+  void inv_tmD_cg_eoprec_almost_reco_sol(spincolor *varphi,eo_ptr<quad_su3> conf_eos,spincolor *sol_odd,spincolor *source_evn)
   {
     GET_THREAD_ID();
     
@@ -72,18 +72,19 @@ namespace nissa
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
     //prepare the e/o split version of the source
-    spincolor *source_eos[2];
+    eo_ptr<spincolor> source_eos;
     source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spincolor);
     source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spincolor);
+    
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
-    spincolor *solution_eos[2];
+    eo_ptr<spincolor> solution_eos;
     solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
     solution_eos[1]=nissa_malloc("solution_eos_1",loc_volh+bord_volh,spincolor);
     
     //prepare the e/o split version of the conf
-    quad_su3 *conf_eos[2];
+    eo_ptr<quad_su3> conf_eos;
     conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+bord_volh,quad_su3);
     conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+bord_volh,quad_su3);
     split_lx_vector_into_eo_parts(conf_eos,conf_lx);

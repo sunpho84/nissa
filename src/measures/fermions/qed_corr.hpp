@@ -26,7 +26,7 @@ namespace nissa
     virtual ~qed_corr_meas_pars_t(){}
   };
   
-  void measure_qed_corr(quad_su3 **conf,theory_pars_t theory_pars,qed_corr_meas_pars_t meas_pars,int iconf,int conf_created);
+  void measure_qed_corr(eo_ptr<quad_su3> conf,theory_pars_t theory_pars,qed_corr_meas_pars_t meas_pars,int iconf,int conf_created);
 }
 
 #endif

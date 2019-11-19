@@ -43,7 +43,7 @@
 
 //additional parameters
 #define CG_NARG 3
-#define AT1 quad_su3**
+#define AT1 eo_ptr<quad_su3>
 #define A1 conf
 #define AT2 double
 #define A2 kappa
