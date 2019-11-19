@@ -20,7 +20,7 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
   
   //allocate temporary single solutions
   BASETYPE **temp=nissa_malloc("temp",nterms,BASETYPE*);
-  for(int iterm=0;iterm<nderms;iterm++)
+  for(int iterm=0;iterm<nterms;iterm++)
     temp[iterm]=nissa_malloc(combine("temp%d",iterm).c_str(),BULK_VOL+BORD_VOL,BASETYPE);
   
   //call multi-shift solver
