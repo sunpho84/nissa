@@ -2,8 +2,8 @@ bin_PROGRAMS+= \
 	$(top_builddir)/bin/checks_ib \
 	$(top_builddir)/bin/EU3_source \
 	$(top_builddir)/bin/ib
-	# $(top_builddir)/bin/disco2
-	# $(top_builddir)/bin/disco3
+# 	$(top_builddir)/bin/disco2
+# 	$(top_builddir)/bin/disco3
 #       $(top_builddir)/bin/mel_point_source
 #	$(top_builddir)/bin/mel
 #	$(top_builddir)/bin/disco
