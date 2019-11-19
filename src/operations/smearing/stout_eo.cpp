@@ -156,10 +156,7 @@ namespace nissa
     (*out)=nissa_malloc("out**",nlev+1,eo_ptr<quad_su3>);
     (*out)[0]=in;
     for(int i=1;i<=nlev;i++)
-      {
-	(*out)[i]=nissa_malloc("out*",2,quad_su3*);
-	for(int eo=0;eo<2;eo++) (*out)[i][eo]=nissa_malloc("out",loc_volh+bord_volh+edge_volh,quad_su3);
-      }
+      for(int eo=0;eo<2;eo++) (*out)[i][eo]=nissa_malloc("out",loc_volh+bord_volh+edge_volh,quad_su3);
   }
   THREADABLE_FUNCTION_END
   
@@ -167,10 +164,7 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(stout_smear_conf_stack_free, eo_ptr<quad_su3>**,out, int,nlev)
   {
     for(int i=1;i<=nlev;i++)
-      {
 	for(int eo=0;eo<2;eo++) nissa_free((*out)[i][eo]);
-	nissa_free((*out)[i]);
-      }
     nissa_free(*out);
   }
   THREADABLE_FUNCTION_END
