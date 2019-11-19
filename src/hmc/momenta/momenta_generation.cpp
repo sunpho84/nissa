@@ -19,7 +19,7 @@
 namespace nissa
 {
   //generate momenta using guassian hermitean matrix generator
-  THREADABLE_FUNCTION_1ARG(generate_hmc_momenta, quad_su3**,H)
+  THREADABLE_FUNCTION_1ARG(generate_hmc_momenta, eo_ptr<quad_su3>,H)
   {
     GET_THREAD_ID();
     for(int par=0;par<2;par++)

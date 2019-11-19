@@ -23,11 +23,13 @@ namespace nissa
   struct eo_ptr
   {
     using Tptr=T*;
+    using Tptr2=Tptr[2];
     
     Tptr data[2];
     
     CUDA_HOST_AND_DEVICE Tptr& operator[](const int i)
     {
+      static_assert(std::is_trivially_copyable<eo_ptr<T>>::value,"not trivially copyable");
       return data[i];
     }
     
@@ -35,7 +37,21 @@ namespace nissa
     {
       return data[i];
     }
+    
+    eo_ptr(Tptr a,Tptr b) : data{a,b} {}
+    
+    eo_ptr(Tptr2 a)
+    {
+      data[0]=a[0];
+      data[1]=a[1];
+    }
+    
+    eo_ptr()
+    {
+    }
   };
+  
+  eo_ptr<double> a;
   
   //-eo is even-odd
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loclx_parity;
