@@ -25,7 +25,9 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
   CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(temp,CGM_ADDITIONAL_PARAMETERS_CALL appr->poles.data(),appr->degree(),niter_max,req_res,source);
 
   const int nterms=appr->degree();
-  const double *weights=&appr->weights[0];
+  const double *weights=new double[nweights];
+  for(int iterm=0;iterm<nterms;iterm++)
+    weights[iweight]=appr->weights[iweight];
   const double cons=appr->cons;
   
   //summ all the shifts
@@ -44,5 +46,6 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
     nissa_free(temp[iterm]);
   
   delete[] temp;
+  delete[] weights;
 }
 THREADABLE_FUNCTION_END
