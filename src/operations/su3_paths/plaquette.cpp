@@ -51,7 +51,7 @@ namespace nissa
 	  }
       }
   }
-  CUDA_HOST_AND_DEVICE void point_plaquette_eo_conf(complex loc_plaq,quad_su3 **conf,int par,int A)
+  CUDA_HOST_AND_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,int par,int A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
     for(int mu=0;mu<NDIM;mu++)
@@ -96,13 +96,13 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, quad_su3**,conf)
+  THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, eo_ptr<quad_su3>,conf)
   {
     GET_THREAD_ID();
     
     //summ temporal and spatial separately
     complex *point_plaq=nissa_malloc("point_plaq",loc_vol,complex);
-    communicate_ev_and_od_quad_su3_borders(conf);
+    #warning communicate_ev_and_od_quad_su3_borders(conf);
     
     //loop over all the lattice
     for(int par=0;par<2;par++)
