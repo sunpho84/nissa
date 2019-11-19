@@ -178,14 +178,6 @@ namespace nissa
 	if(twisted_run>0) dirac_prod_double(&GAMMA,base_gamma+0,1);
 	else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
 	
-	//phases
-	quad_u1 phases;
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    phases[mu][0]=cos(le.bc[mu]*M_PI);
-	    phases[mu][1]=sin(le.bc[mu]*M_PI);
-	  }
-	
 	//prepare each propagator for a single lepton
 	//by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
 	//(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
@@ -194,6 +186,11 @@ namespace nissa
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
 		{
+		  //phases
+		  complex phase;
+		  phase[0]=cos(le.bc[mu]*M_PI);
+		  phase[1]=sin(le.bc[mu]*M_PI);
+		  
 		  //find neighbors
 		  int ifw=loclx_neighup[ivol][mu];
 		  int ibw=loclx_neighdw[ivol][mu];
@@ -202,9 +199,9 @@ namespace nissa
 		  spinspin ph_bw,ph_fw;
 		  
 		  //transport down and up
-		  if(rel_coord_of_loclx(ivol,mu)==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
+		  if(rel_coord_of_loclx(ivol,mu)==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phase);
 		  else spinspin_copy(ph_fw,temp_lep[ifw]);
-		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
+		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phase);
 		  else spinspin_copy(ph_bw,temp_lep[ibw]);
 		  
 		  //fix coefficients, i is inserted here!
