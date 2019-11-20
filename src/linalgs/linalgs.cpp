@@ -19,11 +19,6 @@
  #include "bgq/intrinsic.hpp"
 #endif
 
-#include <cooperative_groups.h>
-#include <stdio.h>
-
-namespace cg = cooperative_groups;
-
 namespace nissa
 {
   //set to zero
