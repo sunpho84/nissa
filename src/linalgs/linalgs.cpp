@@ -170,8 +170,19 @@ namespace nissa
       reducing_buffer[i]=a[i]*b[i];
     NISSA_PARALLEL_LOOP_END;
     
+    int iter=0;
+    
     while(n>1)
       {
+	master_printf("///////////////////////////////////////////////////////////////// iter %d /////////////////////////////////////////////////////////////////\n",iter++);
+	double t=0;
+	for(int i=0;i<n;i++)
+	  {
+	    t+=reducing_buffer[i];
+	    master_printf("%lg\n",reducing_buffer[i]);
+	  }
+	master_printf("Total: %lg\n",t);
+	
 	NISSA_PARALLEL_LOOP(i,0,n/2)
 	  if(i+n/2<n)
 	    reducing_buffer[i]+=reducing_buffer[i+n/2];
