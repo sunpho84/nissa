@@ -133,11 +133,12 @@ namespace nissa
       }
     NISSA_PARALLEL_LOOP_END_CUDA;
     
-    set_borders_invalid(temp);
-    communicate_od_color_borders(temp);
+#warning
+    // set_borders_invalid(temp);
+    // communicate_od_color_borders(temp);
     
     //we still apply Deo, but then we put a - because we should apply Doe^+=-Deo
-    NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+    NISSA_PARALLEL_LOOP_CUDA(ie,0,loc_volh)
       {
 	int odup0=loceo_neighup[EVN][ie][0];
 	int oddw0=loceo_neighdw[EVN][ie][0];
@@ -154,23 +155,23 @@ namespace nissa
 	    su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw][mu],temp[oddw]);
 	  }
       }
-    NISSA_PARALLEL_LOOP_END;
+    NISSA_PARALLEL_LOOP_END_CUDA;
     
     if(mass2!=0)
       {
-	NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+	NISSA_PARALLEL_LOOP_CUDA(ie,0,loc_volh)
 	  for(int ic=0;ic<3;ic++)
 	    for(int ri=0;ri<2;ri++)
 	      out[ie][ic][ri]=mass2*in[ie][ic][ri]-out[ie][ic][ri]*0.25;
-	NISSA_PARALLEL_LOOP_END;
+	NISSA_PARALLEL_LOOP_END_CUDA;
       }
     else
       {
-	NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+	NISSA_PARALLEL_LOOP_CUDA(ie,0,loc_volh)
 	  for(int ic=0;ic<3;ic++)
 	    for(int ri=0;ri<2;ri++)
 	      out[ie][ic][ri]*=-0.25;
-	NISSA_PARALLEL_LOOP_END;
+	NISSA_PARALLEL_LOOP_END_CUDA;
       }
     set_borders_invalid(out);
     
