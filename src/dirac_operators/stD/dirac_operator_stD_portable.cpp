@@ -111,7 +111,7 @@ namespace nissa
       communicate_ev_and_od_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_ev_color_borders(in);
     
-    NISSA_PARALLEL_LOOP(io,0,loc_volh)
+    NISSA_PARALLEL_LOOP_CUDA(io,0,loc_volh)
       {
 	//neighbours search
 	int evup0=loceo_neighup[ODD][io][0];
