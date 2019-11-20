@@ -159,7 +159,12 @@ namespace nissa
     
     double *reducing_buffer=get_reducing_buffer<double>(n);
     
-    //double loc_res=0.0;
+    double loc_res=0.0;
+    for(int i=0;i<n;i++)
+      loc_res+=a[i]*b[i];
+    *glb_res=MPI_reduce_double(loc_res);
+    
+    master_printf("res naive: %lg\n",*glb_res);
     
     NISSA_PARALLEL_LOOP(i,0,n)
       reducing_buffer[i]=a[i]*b[i];
@@ -175,6 +180,7 @@ namespace nissa
       }
     
     *glb_res=MPI_reduce_double(reducing_buffer[0]);
+    master_printf("res official: %lg\n",*glb_res);
     
 // #ifndef REPRODUCIBLE_RUN
 //     //perform thread summ
