@@ -138,16 +138,29 @@ namespace nissa
   T* get_reducing_buffer(const int64_t n)
   {
     int64_t required_size=sizeof(T)*n;
+    master_printf("Requred size: %ld\n",required_size);
     if(reducing_buffer_size<n)
       {
-	nissa_free(reducing_buffer);
+	master_printf("Current size: %ld\n",required_size);
+	if(reducing_buffer!=nullptr)
+	  {
+	    master_printf("Freeing the buffer\n");
+	    nissa_free(reducing_buffer);
+	  }
+	else
+	  master_printf("Not freeing the buffer\n");
+	  
 	reducing_buffer_size=0;
+	master_printf("Setting buffer size to 0\n");
       }
     
     if(reducing_buffer==nullptr)
       {
+	master_printf("Reducing buffer not allocated\n");
 	reducing_buffer=nissa_malloc("reducing_buffer",required_size,char);
+	master_printf("Allocating the buffer\n");
 	reducing_buffer_size=required_size;
+	master_printf("Setting buffer size to %ld\n",required_size);
       }
     
     return (T*)reducing_buffer;
