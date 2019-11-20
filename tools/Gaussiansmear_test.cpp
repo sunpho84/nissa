@@ -41,9 +41,10 @@ THREADABLE_FUNCTION_4ARG(compute_gaussianity_pars, double*,x, color*,source, int
   THREAD_BARRIER();
   
   //reduce
-  for(int t=0;t<glb_size[0];t++)
-    for(int ipow=0;ipow<maxpow;ipow++)
-      x[t*maxpow+ipow]=glb_reduce_double(locx[t][ipow]);
+#warning
+  // for(int t=0;t<glb_size[0];t++)
+  //   for(int ipow=0;ipow<maxpow;ipow++)
+  //     x[t*maxpow+ipow]=glb_reduce_double(locx[t][ipow]);
 }
 THREADABLE_FUNCTION_END
 
