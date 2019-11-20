@@ -187,7 +187,7 @@ namespace nissa
 	  if(i+n/2<n)
 	    reducing_buffer[i]+=reducing_buffer[i+n/2];
 	NISSA_PARALLEL_LOOP_END;
-	n/=2;
+	n=(n+1)/2;
       }
     
     *glb_res=MPI_reduce_double(reducing_buffer[0]);
