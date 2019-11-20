@@ -131,7 +131,7 @@ namespace nissa
 	    su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw][mu],in[evdw]);
 	  }
       }
-    NISSA_PARALLEL_LOOP_END;
+    NISSA_PARALLEL_LOOP_END_CUDA;
     
     set_borders_invalid(temp);
     communicate_od_color_borders(temp);
