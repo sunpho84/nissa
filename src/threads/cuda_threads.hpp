@@ -53,7 +53,7 @@ namespace nissa
   
   inline void thread_barrier_internal()
   {
-    cudaDeviceSynchronize();
+    //cudaDeviceSynchronize();
   }
   
   template <typename IMin,
@@ -76,7 +76,7 @@ namespace nissa
 	   line,file,(int64_t)min,(int64_t)max,block_dimension.x,grid_dimension.x);
     
     cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,f);
-    thread_barrier_internal();
+    cudaDeviceSynchronize();
     if(print)
       printf(" finished\n");
   }
