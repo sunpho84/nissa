@@ -653,7 +653,7 @@ void run_program_for_analysis()
 }
 
 //print the statistic
-void print_stat(const char *what,double time,int n,int flops=0)
+void print_stat(const char *what,double time,int n,int64_t flops=0)
 {
   double tot_time=take_time()-init_time;
   master_printf("time to %s %d times: %lg s (%2.2g %c tot), %lg per iter",what,n,time,time*100/tot_time,'%',time/std::max(n,1));
