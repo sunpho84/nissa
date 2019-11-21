@@ -26,6 +26,15 @@
  #error Unknown thread paralleization THREADS_TYPE !
 #endif
 
+#ifndef NISSA_PARALLEL_LOOP_EXP
+ #define NISSA_PARALLEL_LOOP_EXP(INDEX,EXT_START,EXT_END)
+#endif
+
+#ifndef NISSA_PARALLEL_LOOP_END_EXP
+ #define NISSA_PARALLEL_LOOP_END_EXP
+#endif
+
+
 namespace nissa
 {
 }
