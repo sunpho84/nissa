@@ -159,7 +159,6 @@ namespace nissa
       }
     NISSA_PARALLEL_LOOP_END_EXP;
     
-    for(int i=0;i<n;i++)
     if(mass2!=0)
       {
 	NISSA_PARALLEL_LOOP_EXP(ie,0,loc_volh)
@@ -170,7 +169,6 @@ namespace nissa
       }
     else
       {
-    for(int i=0;i<n;i++)
 	NISSA_PARALLEL_LOOP_EXP(ie,0,loc_volh)
 	  for(int ic=0;ic<3;ic++)
 	    for(int ri=0;ri<2;ri++)
