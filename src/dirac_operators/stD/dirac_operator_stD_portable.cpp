@@ -106,11 +106,13 @@ namespace nissa
     // 	if(temp==in)  crash("temp==in!");
     //   }
     START_TIMING(portable_stD_app_time,nportable_stD_app);
-    
+    int n=10;
+    nportable_stD_app+=n-1;
     // if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
     //   communicate_ev_and_od_quad_su3_borders(conf);
     // if(!check_borders_valid(in)) communicate_ev_color_borders(in);
-    
+    for(int i=0;i<n;i++)
+     
     NISSA_PARALLEL_LOOP_EXP(io,0,loc_volh)
       {
 	//neighbours search
@@ -137,6 +139,7 @@ namespace nissa
     // communicate_od_color_borders(temp);
     
     //we still apply Deo, but then we put a - because we should apply Doe^+=-Deo
+    for(int i=0;i<n;i++)
     NISSA_PARALLEL_LOOP_EXP(ie,0,loc_volh)
       {
 	int odup0=loceo_neighup[EVN][ie][0];
@@ -156,6 +159,7 @@ namespace nissa
       }
     NISSA_PARALLEL_LOOP_END_EXP;
     
+    for(int i=0;i<n;i++)
     if(mass2!=0)
       {
 	NISSA_PARALLEL_LOOP_EXP(ie,0,loc_volh)
@@ -166,6 +170,7 @@ namespace nissa
       }
     else
       {
+    for(int i=0;i<n;i++)
 	NISSA_PARALLEL_LOOP_EXP(ie,0,loc_volh)
 	  for(int ic=0;ic<3;ic++)
 	    for(int ri=0;ri<2;ri++)
