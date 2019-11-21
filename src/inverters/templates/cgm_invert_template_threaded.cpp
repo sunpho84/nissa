@@ -143,7 +143,7 @@ namespace nissa
 	final_iter=(++iter);
 	
 	//     -s=Ap
-	if(use_async_communications && iter>1) CGM_FINISH_COMMUNICATING_BORDERS(p);
+	// if(use_async_communications && iter>1) CGM_FINISH_COMMUNICATING_BORDERS(p);
 	
 	if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
 	APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS 0,p);
@@ -202,7 +202,7 @@ namespace nissa
 	double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,prob_size);
 	
 	//start the communications of the border
-	if(use_async_communications)  CGM_START_COMMUNICATING_BORDERS(p);
+	// if(use_async_communications)  CGM_START_COMMUNICATING_BORDERS(p);
 	
 	//     calculate
 	//     -alphas=alpha*zfs*betas/zas*beta
@@ -255,7 +255,7 @@ namespace nissa
       }
     while(nrun_shift>0 && iter<niter_max);
     
-    if(use_async_communications) CGM_FINISH_COMMUNICATING_BORDERS(p);
+    // if(use_async_communications) CGM_FINISH_COMMUNICATING_BORDERS(p);
     
     //print the final true residue
     for(int ishift=0;ishift<nshift;ishift++)
