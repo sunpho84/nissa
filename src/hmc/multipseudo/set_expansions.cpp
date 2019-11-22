@@ -227,7 +227,7 @@ namespace nissa
 	      typename T>
     /*__global__*/ void Doe_or_Deo(gpu_color<T>& out,const gpu_links<T>& conf,const gpu_color<T>& in,int64_t ivol_out)
     {
-      const int64_t ivol_out=blockIdx.x*blockDim.x+threadIdx.x;
+      //      const int64_t ivol_out=blockIdx.x*blockDim.x+threadIdx.x;
       if(ivol_out<loc_volh)
 	{
 	  for(int ic=0;ic<NCOL;ic++)
