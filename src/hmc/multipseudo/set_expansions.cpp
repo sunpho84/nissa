@@ -138,14 +138,18 @@ namespace nissa
 	      buf[iout].set(temp);
 	    }
 	
+	master_printf("Preparing transfer\n");
+	
 	cpu_to_gpu(data,&buf[0],n);
+	
+	master_printf("Transferred color\n");
       }
       
       void export_to_cpu(color *out) const
       {
 	std::unique_ptr<Compl<T>[]> buf(new Compl<T>[n]);
 	
-	cpu_to_gpu(&buf[0],data,n);
+	gpu_to_cpu(&buf[0],data,n);
 	
 	for(int icol=0;icol<NCOL;icol++)
 	  for(int64_t ivol_eo=0;ivol_eo<loc_volh;ivol_eo++)
@@ -213,7 +217,11 @@ namespace nissa
 		    buf[iout].set(temp);
 		  }
 	
+	master_printf("Preparing transfer\n");
+	
 	cpu_to_gpu(data,&buf[0],n);
+	
+	master_printf("Transferred conf\n")
       }
       
       void export_to_cpu(eo_ptr<quad_su3> out) const
