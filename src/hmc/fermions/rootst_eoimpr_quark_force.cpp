@@ -295,7 +295,7 @@ namespace nissa
 	chi_e[iterm]=nissa_malloc("chi_e",loc_volh+bord_volh,color);
       }
     
-    gpu::operator_test<double>(v_o[0],eo_conf,pf);
+    //gpu::operator_test<double>(v_o[0],eo_conf,pf);
     
     //add the background fields
     add_backfield_with_stagphases_to_conf(eo_conf,u1b);
