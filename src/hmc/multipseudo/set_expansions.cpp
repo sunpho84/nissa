@@ -31,14 +31,14 @@ namespace nissa
     T re;
     T im;
     
-    inline __device__ void set(const complex &o)
+    __inline__ __host__ __device__ void set(const complex &o)
     {
       re=o[RE];
       im=o[IM];
     }
     
     template <typename O>
-    __inline__ __device__ Compl& operator=(const O& oth)
+    __inline__ __host__ __device__ Compl& operator=(const O& oth)
     {
       re=(O)oth;
       im=T{0};
@@ -47,13 +47,13 @@ namespace nissa
     }
     
     template <typename O>
-    __inline__ __device__ Compl<decltype(O{}*T{})> operator*(const Compl<O>& oth) const
+    __inline__ __host__ __device__ Compl<decltype(O{}*T{})> operator*(const Compl<O>& oth) const
     {
       return {re*oth.re-im*oth.im,re*oth.im+im*oth.re};
     }
     
     template <typename O>
-    __inline__ __device__ Compl<decltype(O{}+T{})> operator+=(const Compl<O>& oth)
+    __inline__ __host__ __device__ Compl<decltype(O{}+T{})> operator+=(const Compl<O>& oth)
     {
       re+=oth.re;
       im+=oth.im;
