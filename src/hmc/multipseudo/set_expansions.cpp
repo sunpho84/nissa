@@ -259,7 +259,7 @@ namespace nissa
 	  //     for(int ic1=0;ic1<NCOL;ic1++)
 	  // 	for(int ic2=0;ic2<NCOL;ic2++)
 	  // 	  out(ic1,ivol_out)+=conf(mu,ic1,ic2,!PAR,ivol_dw_in)*in(ic2,ivol_dw_in);
-	    }
+	    // }
 	}
       // else
       // 	printf("%d not running\n",ivol_out);
