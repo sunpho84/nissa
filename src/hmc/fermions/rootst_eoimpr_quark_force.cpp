@@ -261,8 +261,7 @@ namespace nissa
       double init=take_time();
       int n=100;
       
-      if(0)
-	for(int i=0;i<n;i++)
+      for(int i=0;i<n;i++)
 	{
 	  Doe_or_Deo<EVN><<<grid_dimension,block_dimension>>>(temp,conf,in);
 	  Doe_or_Deo<ODD><<<grid_dimension,block_dimension>>>(out,conf,temp);
