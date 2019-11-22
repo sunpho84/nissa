@@ -254,8 +254,8 @@ namespace nissa
 		  out(ic1,ivol_out)+=conf(mu,ic1,ic2,!PAR,ivol_dw_in)*in(ic2,ivol_dw_in);
 	    }
 	}
-      else
-	printf("%d not running\n",ivol_out);
+      // else
+      // 	printf("%d not running\n",ivol_out);
     }
     
     template <typename T>
