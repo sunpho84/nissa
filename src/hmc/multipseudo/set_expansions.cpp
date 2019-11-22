@@ -31,22 +31,29 @@ namespace nissa
     T re;
     T im;
     
-    __device__ Compl& operator=(const T& oth)
+    inline __device__ void set(const complex &o)
     {
-      re=oth;
+      re=o[RE];
+      im=o[IM];
+    }
+    
+    template <typename O>
+    __inline__ __device__ Compl& operator=(const O& oth)
+    {
+      re=(O)oth;
       im=T{0};
       
       return *this;
     }
     
     template <typename O>
-    __device__ Compl<decltype(O{}*T{})> operator*(const Compl<O>& oth) const
+    __inline__ __device__ Compl<decltype(O{}*T{})> operator*(const Compl<O>& oth) const
     {
       return {re*oth.re-im*oth.im,re*oth.im+im*oth.re};
     }
     
     template <typename O>
-    __device__ Compl<decltype(O{}+T{})> operator+=(const Compl<O>& oth)
+    __inline__ __device__ Compl<decltype(O{}+T{})> operator+=(const Compl<O>& oth)
     {
       re+=oth.re;
       im+=oth.im;
@@ -128,7 +135,7 @@ namespace nissa
 	    {
 	      const int64_t iout=idx(icol,ivol_eo);
 	      const complex& temp=in[ivol_eo][icol];
-	      buf[iout]={temp[RE],temp[IM]};
+	      buf[iout].set(temp);
 	    }
 	
 	cpu_to_gpu(data,&buf[0],n);
@@ -203,7 +210,7 @@ namespace nissa
 		  {
 		    const int64_t iout=idx(mu,icol1,icol2,ieo,ivol_eo);
 		    const complex& temp=in[ieo][ivol_eo][mu][icol1][icol2];
-		    buf[iout]={temp[RE],temp[IM]};
+		    buf[iout].set(temp);
 		  }
 	
 	cpu_to_gpu(data,&buf[0],n);
@@ -337,6 +344,7 @@ namespace nissa
     
     
     gpu::operator_test<double>(out.stag,eo_conf,in.stag);
+    gpu::operator_test<float>(out.stag,eo_conf,in.stag);
     
     do
       {
