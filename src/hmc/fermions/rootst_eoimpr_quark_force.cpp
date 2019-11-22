@@ -96,7 +96,7 @@ namespace nissa
       
       const int64_t n;
       
-      gpu_color(const color *in=nullptr): n(NCOL*2*loc_volh)
+      gpu_color(const color *in=nullptr): n(NCOL*loc_volh)
       {
 	gpu_alloc(data,n);
 	if(in!=nullptr)
@@ -261,7 +261,8 @@ namespace nissa
       double init=take_time();
       int n=100;
       
-      for(int i=0;i<n;i++)
+      if(0)
+	for(int i=0;i<n;i++)
 	{
 	  Doe_or_Deo<EVN><<<grid_dimension,block_dimension>>>(temp,conf,in);
 	  Doe_or_Deo<ODD><<<grid_dimension,block_dimension>>>(out,conf,temp);
