@@ -270,14 +270,14 @@ namespace nissa
     {
       gpu_color<T> in;
       in.alloc();
-      in.import_on_gpu(_in);
+      //in.import_on_gpu(_in);
       
       gpu_color<T> temp;
       temp.alloc();
       
       gpu_links<T> conf;
       conf.alloc();
-      conf.import_on_gpu(_conf);
+      //conf.import_on_gpu(_conf);
       
       gpu_color<T> out;
       out.alloc();
@@ -290,7 +290,8 @@ namespace nissa
       
       double init=take_time();
       int n=100;
-      
+
+      if(0)
       for(int i=0;i<n;i++)
 	{
 	  Doe_or_Deo<EVN><<<grid_dimension,block_dimension>>>(temp,conf,in);
