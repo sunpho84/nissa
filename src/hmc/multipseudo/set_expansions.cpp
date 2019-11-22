@@ -71,7 +71,7 @@ namespace nissa
     }
     
     template <typename T>
-    void gpu_free(T& data)
+    void gpu_free(T*& data)
     {
       cudaFree(&data);
     }
@@ -254,20 +254,22 @@ namespace nissa
 	  for(int ic=0;ic<NCOL;ic++)
 	    out(ic,ivol_out)=0.0;
 	  
-	  // for(int mu=0;mu<NDIM;mu++)
-	  //   {
-	  //     const int64_t ivol_up_in=ivol_out;//loceo_neighup[PAR][ivol_out][mu];
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      const int64_t ivol_up_in=// ivol_out;
+	      loceo_neighup[PAR][ivol_out][mu];
 	      
-	  //     for(int ic1=0;ic1<NCOL;ic1++)
-	  // 	for(int ic2=0;ic2<NCOL;ic2++)
-	  // 	  out(ic1,ivol_out)+=conf(mu,ic1,ic2,PAR,ivol_out)*in(ic2,ivol_up_in);
+	      for(int ic1=0;ic1<NCOL;ic1++)
+	  	for(int ic2=0;ic2<NCOL;ic2++)
+	  	  out(ic1,ivol_out)+=conf(mu,ic1,ic2,PAR,ivol_out)*in(ic2,ivol_up_in);
 	      
-	  //     const int64_t ivol_dw_in=ivol_out;//loceo_neighdw[PAR][ivol_out][mu];
+	      const int64_t ivol_dw_in=// ivol_out;
+		loceo_neighdw[PAR][ivol_out][mu];
 	      
-	  //     for(int ic1=0;ic1<NCOL;ic1++)
-	  // 	for(int ic2=0;ic2<NCOL;ic2++)
-	  // 	  out(ic1,ivol_out)+=conf(mu,ic1,ic2,!PAR,ivol_dw_in)*in(ic2,ivol_dw_in);
-	    // }
+	      for(int ic1=0;ic1<NCOL;ic1++)
+	  	for(int ic2=0;ic2<NCOL;ic2++)
+	  	  out(ic1,ivol_out)+=conf(mu,ic1,ic2,!PAR,ivol_dw_in)*in(ic2,ivol_dw_in);
+	    }
 	}
       // else
       // 	printf("%d not running\n",ivol_out);
