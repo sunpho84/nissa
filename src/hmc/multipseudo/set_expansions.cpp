@@ -174,7 +174,7 @@ namespace nissa
       
       __host__ __device__ int64_t idx(const int mu,const int icol1,const int icol2,const int ieo,const int64_t ivol_eo) const
       {
-	return ivol_eo+loc_volh*(ieo+2*(icol2+NCOL*(icol1+NCOL*mu)));
+	//return ivol_eo+loc_volh*(ieo+2*(icol2+NCOL*(icol1+NCOL*mu)));
 	return ivol_eo+loc_volh*(ieo+2*(mu+NDIM*(icol2+NCOL*icol1)));
 	//return icol2+NCOL*(icol1+NCOL*(mu+NDIM*(ivol_eo+loc_volh*ieo)));
       }
@@ -251,6 +251,7 @@ namespace nissa
 	      typename T>
     __global__ void Doe_or_Deo(gpu_color<T> out,const gpu_links<T> conf,const gpu_color<T> in)
     {
+      
       const int64_t ivol_out=blockIdx.x*blockDim.x+threadIdx.x;
       if(ivol_out<loc_volh)
 	{
