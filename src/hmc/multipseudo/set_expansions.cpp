@@ -255,7 +255,7 @@ namespace nissa
 	    }
 	}
       else
-	printf("%d not running\n",ivol);
+	printf("%d not running\n",ivol_out);
     }
     
     template <typename T>
