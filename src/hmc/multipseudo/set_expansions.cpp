@@ -270,14 +270,14 @@ namespace nissa
     {
       gpu_color<T> in;
       in.alloc();
-      //in.import_on_gpu(_in);
+      in.import_on_gpu(_in);
       
       gpu_color<T> temp;
       temp.alloc();
       
       gpu_links<T> conf;
       conf.alloc();
-      //conf.import_on_gpu(_conf);
+      conf.import_on_gpu(_conf);
       
       gpu_color<T> out;
       out.alloc();
@@ -305,7 +305,7 @@ namespace nissa
       double each=(end-init)/n;
       master_printf("Time for the improved operator: %lg s\n",each);
 	}
-      //out.export_to_cpu(_out);
+      out.export_to_cpu(_out);
       
       out.dealloc();
       conf.dealloc();
