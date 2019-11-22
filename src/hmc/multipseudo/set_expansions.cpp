@@ -228,7 +228,7 @@ namespace nissa
     __global__ void Doe_or_Deo(gpu_color<T>& out,const gpu_links<T>& conf,const gpu_color<T>& in)
     {
       const int64_t ivol_out=blockIdx.x*blockDim.x+threadIdx.x;
-      if(ivol_out<loc_volh and 0)
+      if(ivol_out<loc_volh)
 	{
 	  for(int ic=0;ic<NCOL;ic++)
 	    out(ic,ivol_out)=0.0;
@@ -271,7 +271,9 @@ namespace nissa
       for(int i=0;i<n;i++)
 	{
 	  Doe_or_Deo<EVN><<<grid_dimension,block_dimension>>>(temp,conf,in);
+	  cudaDeviceSynchronize();
 	  Doe_or_Deo<ODD><<<grid_dimension,block_dimension>>>(out,conf,temp);
+	  cudaDeviceSynchronize();
 	}
       
       double end=take_time();
