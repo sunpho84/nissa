@@ -124,7 +124,7 @@ namespace nissa
 	for(int64_t ivol_eo=0;ivol_eo<loc_volh;ivol_eo++)
 	  for(int icol=0;icol<NCOL;icol++)
 	    {
-	      int64_t iout=idx(icol,ivol_eo);
+	      const int64_t iout=idx(icol,ivol_eo);
 	      const complex& temp=in[ivol_eo][icol];
 	      buf[iout]={temp[RE],temp[IM]};
 	    }
@@ -228,7 +228,7 @@ namespace nissa
     __global__ void Doe_or_Deo(gpu_color<T>& out,const gpu_links<T>& conf,const gpu_color<T>& in)
     {
       const int64_t ivol_out=blockIdx.x*blockDim.x+threadIdx.x;
-      if(ivol_out<loc_volh)
+      if(ivol_out<loc_volh and 0)
 	{
 	  for(int ic=0;ic<NCOL;ic++)
 	    out(ic,ivol_out)=0.0;
@@ -279,7 +279,7 @@ namespace nissa
       double each=(end-init)/n;
       master_printf("Time for the improved operator: %lg s\n",each);
       
-      //out.export_to_cpu(_out);
+      out.export_to_cpu(_out);
     }
   }
   
