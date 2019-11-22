@@ -279,12 +279,12 @@ namespace nissa
       double each=(end-init)/n;
       master_printf("Time for the improved operator: %lg s\n",each);
       
-      out.export_to_cpu(_out);
+      //out.export_to_cpu(_out);
     }
   }
   
   //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
-  THREADABLE_FUNCTION_6ARG(max_eigenval, double*,eig_max, quark_content_t*,quark, eo_ptr<quad_su3>,eo_conf, clover_term_t**,Cl, eo_ptr<quad_u1>,backfield, int,niters)
+  THREADABLE_FUNCTION_6ARG(max_eigenval, double*,eig_max, quark_content_t*,quark, eo_ptr<quad_su3>,eo_conf, eo_ptr<clover_term_t>,Cl, eo_ptr<quad_u1>,backfield, int,niters)
   {
     pseudofermion_t in(quark->discretiz);
     pseudofermion_t temp1(quark->discretiz);
