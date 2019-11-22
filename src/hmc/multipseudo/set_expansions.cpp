@@ -186,7 +186,7 @@ namespace nissa
 	gpu_alloc(data,n);
       }
       
-      void dealloc)
+      void dealloc()
       {
 	gpu_free(data);
       }
