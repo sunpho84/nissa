@@ -273,7 +273,9 @@ namespace nissa
       gpu_color<T> out;
       out.alloc();
       
-      const int ngpu_threads=128;
+      for(int ngpu_threads=16;ngpu_threads<1024;ngpu_thread*=2)
+	{
+	  master_printf("nthreads: %d\n",ngpu_threads);
       const dim3 block_dimension(ngpu_threads);
       const dim3 grid_dimension((loc_volh+ngpu_threads)/ngpu_threads);
       
@@ -292,7 +294,7 @@ namespace nissa
       
       double each=(end-init)/n;
       master_printf("Time for the improved operator: %lg s\n",each);
-      
+	}
       out.export_to_cpu(_out);
       
       out.dealloc();
