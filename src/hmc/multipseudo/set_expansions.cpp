@@ -304,7 +304,7 @@ namespace nissa
       double each=(end-init)/n;
       master_printf("Time for the improved operator: %lg s\n",each);
 	}
-      out.export_to_cpu(_out);
+      //out.export_to_cpu(_out);
       
       out.dealloc();
       conf.dealloc();
