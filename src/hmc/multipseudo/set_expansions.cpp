@@ -97,8 +97,8 @@ namespace nissa
       
       __host__ __device__ int64_t idx(const int icol,const int64_t ivol_eo) const
       {
-	//return ivol_eo+loc_volh*icol;
-	return icol+NCOL*ivol_eo;
+	return ivol_eo+loc_volh*icol;
+	//return icol+NCOL*ivol_eo;
       }
       
       __device__ const Compl<T>& operator()(const int icol,const int64_t ivol_eo) const
@@ -174,8 +174,9 @@ namespace nissa
       
       __host__ __device__ int64_t idx(const int mu,const int icol1,const int icol2,const int ieo,const int64_t ivol_eo) const
       {
-	//return ivol_eo+loc_volh*(ieo+2*(icol2+NCOL*(icol1+NCOL*mu)));
-	return icol2+NCOL*(icol1+NCOL*(mu+NDIM*(ivol_eo+loc_volh*ieo)));
+	return ivol_eo+loc_volh*(ieo+2*(icol2+NCOL*(icol1+NCOL*mu)));
+	return ivol_eo+loc_volh*(ieo+2*(mu+NDIM*(icol2+NCOL*icol1)));
+	//return icol2+NCOL*(icol1+NCOL*(mu+NDIM*(ivol_eo+loc_volh*ieo)));
       }
       
       __device__ Compl<T>& operator()(const int mu,const int icol1,const int icol2,const int ieo,const int64_t ivol_eo)
