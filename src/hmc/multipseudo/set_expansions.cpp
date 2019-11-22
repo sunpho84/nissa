@@ -100,7 +100,7 @@ namespace nissa
       
       __device__ Compl<T>& operator()(const int icol,const int64_t ivol_eo)
       {
-	return const_cast<Compl<T>&>(const_cast<gpu_color&>(*this)(icol,ivol_eo));
+	return data[idx(icol,ivol_eo)];
       }
       
       const int64_t n;
@@ -165,7 +165,7 @@ namespace nissa
       
       __device__ Compl<T>& operator()(const int mu,const int icol1,const int icol2,const int ieo,const int64_t ivol_eo)
       {
-	const_cast<Compl<T>&>(const_cast<gpu_links&>(*this)(mu,icol1,icol2,ieo,ivol_eo));
+	return data[idx(mu,icol1,icol2,ieo,ivol_eo)];
       }
       
       __device__ const Compl<T>& operator()(const int mu,const int icol1,const int icol2,const int ieo,const int64_t ivol_eo) const
