@@ -225,9 +225,9 @@ namespace nissa
     
     template <int PAR,
 	      typename T>
-    /*__global__*/ void Doe_or_Deo(gpu_color<T>& out,const gpu_links<T>& conf,const gpu_color<T>& in,int64_t ivol_out)
+    __global__ void Doe_or_Deo(gpu_color<T>& out,const gpu_links<T>& conf,const gpu_color<T>& in)
     {
-      //      const int64_t ivol_out=blockIdx.x*blockDim.x+threadIdx.x;
+      const int64_t ivol_out=blockIdx.x*blockDim.x+threadIdx.x;
       if(ivol_out<loc_volh)
 	{
 	  for(int ic=0;ic<NCOL;ic++)
@@ -270,12 +270,8 @@ namespace nissa
       
       for(int i=0;i<n;i++)
 	{
-	  // Doe_or_Deo<EVN><<<grid_dimension,block_dimension>>>(temp,conf,in);
-	  // Doe_or_Deo<ODD><<<grid_dimension,block_dimension>>>(out,conf,temp);
-	  for(int ivol=0;ivol<loc_volh;ivol++)
-	    Doe_or_Deo<EVN>(temp,conf,in,ivol);
-	  for(int ivol=0;ivol<loc_volh;ivol++)
-	    Doe_or_Deo<ODD>(out,conf,temp,ivol);
+	  Doe_or_Deo<EVN><<<grid_dimension,block_dimension>>>(temp,conf,in);
+	  Doe_or_Deo<ODD><<<grid_dimension,block_dimension>>>(out,conf,temp);
 	}
       
       double end=take_time();
