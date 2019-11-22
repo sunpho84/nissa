@@ -105,14 +105,16 @@ namespace nissa
       
       const int64_t n;
       
-      gpu_color(const color *in=nullptr): n(NCOL*loc_volh)
+      gpu_color() : n(NCOL*loc_volh)
       {
-	gpu_alloc(data,n);
-	if(in!=nullptr)
-	  import_on_gpu(in);
       }
       
-      ~gpu_color()
+      void alloc()
+      {
+	gpu_alloc(data,n);
+      }
+      
+      void dealloc()
       {
 	gpu_free(data);
       }
@@ -253,13 +255,19 @@ namespace nissa
     template <typename T>
     void operator_test(color *_out,eo_ptr<quad_su3> _conf,color *_in)
     {
-      gpu_color<T> in(_in);
+      gpu_color<T> in;
+      in.alloc();
+      in.import_on_gpu(_in);
       
       gpu_color<T> temp;
+      temp.alloc();
       
-      gpu_links<T> conf(_conf);
+      gpu_links<T> conf;
+      conf.alloc();
+      conf.import_on_gpu(_conf);
       
       gpu_color<T> out;
+      out.alloc();
       
       const int ngpu_threads=128;
       const dim3 block_dimension(ngpu_threads);
@@ -282,6 +290,11 @@ namespace nissa
       master_printf("Time for the improved operator: %lg s\n",each);
       
       out.export_to_cpu(_out);
+      
+      out.dealloc();
+      conf.dealloc();
+      temp.dealloc();
+      in.dealloc();
     }
   }
   
