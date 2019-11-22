@@ -177,7 +177,7 @@ namespace nissa
       
       const int64_t n;
       
-      gpu_links(const eo_ptr<quad_su3> in) : n(NDIM*NCOL*NCOL*2*loc_volh)
+      gpu_links() : n(NDIM*NCOL*NCOL*2*loc_volh)
       {
 	gpu_alloc(data,n);
       }
