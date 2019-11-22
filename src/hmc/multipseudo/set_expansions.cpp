@@ -273,7 +273,7 @@ namespace nissa
       gpu_color<T> out;
       out.alloc();
       
-      for(int ngpu_threads=16;ngpu_threads<1024;ngpu_thread*=2)
+      for(int ngpu_threads=16;ngpu_threads<1024;ngpu_threads*=2)
 	{
 	  master_printf("nthreads: %d\n",ngpu_threads);
       const dim3 block_dimension(ngpu_threads);
