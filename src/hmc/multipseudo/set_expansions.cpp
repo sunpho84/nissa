@@ -179,10 +179,14 @@ namespace nissa
       
       gpu_links() : n(NDIM*NCOL*NCOL*2*loc_volh)
       {
+      }
+      
+      void alloc()
+      {
 	gpu_alloc(data,n);
       }
       
-      ~gpu_links()
+      void dealloc)
       {
 	gpu_free(data);
       }
