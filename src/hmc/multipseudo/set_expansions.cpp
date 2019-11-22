@@ -221,7 +221,7 @@ namespace nissa
 	
 	cpu_to_gpu(data,&buf[0],n);
 	
-	master_printf("Transferred conf\n")
+	master_printf("Transferred conf\n");
       }
       
       void export_to_cpu(eo_ptr<quad_su3> out) const
