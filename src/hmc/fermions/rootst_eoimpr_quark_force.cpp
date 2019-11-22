@@ -169,8 +169,6 @@ namespace nissa
       gpu_links(const eo_ptr<quad_su3> in) : n(NDIM*NCOL*NCOL*2*loc_volh)
       {
 	gpu_alloc(data,n);
-	if(in!=nullptr)
-	  import_on_gpu(in);
       }
       
       ~gpu_links()
