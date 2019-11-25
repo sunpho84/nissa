@@ -174,14 +174,14 @@ namespace nissa
   }
   
   void gauge_transform_conf(quad_su3 *uout,su3 *g,const quad_su3 *uin);
-  void gauge_transform_conf(quad_su3 **uout,su3 **g,quad_su3 **uin);
+  void gauge_transform_conf(eo_ptr<quad_su3> uout,eo_ptr<su3> g,eo_ptr<quad_su3> uin);
   
-  void gauge_transform_color(color **out,su3 **g,color **in);
+  void gauge_transform_color(eo_ptr<color> out,eo_ptr<su3> g,eo_ptr<color> in);
   
   void Landau_or_Coulomb_gauge_fix(quad_su3 *conf_out,LC_gauge_fixing_pars_t *pars,quad_su3 *conf_in);
   
   void perform_random_gauge_transform(quad_su3 *conf_out,quad_su3 *conf_in);
-  void perform_random_gauge_transform(quad_su3 **conf_out,quad_su3 **conf_in);
+  void perform_random_gauge_transform(eo_ptr<quad_su3> conf_out,eo_ptr<quad_su3> conf_in);
 }
 
 #endif

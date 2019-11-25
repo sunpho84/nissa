@@ -63,7 +63,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   //e/o version
-  THREADABLE_FUNCTION_3ARG(gauge_transform_conf, quad_su3**,uout, su3**,g, quad_su3**,uin)
+  THREADABLE_FUNCTION_3ARG(gauge_transform_conf, eo_ptr<quad_su3>,uout, eo_ptr<su3>,g, eo_ptr<quad_su3>,uin)
   {
     GET_THREAD_ID();
     
@@ -88,7 +88,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //transform a color field
-  THREADABLE_FUNCTION_3ARG(gauge_transform_color, color**,out, su3**,g, color**,in)
+  THREADABLE_FUNCTION_3ARG(gauge_transform_color, eo_ptr<color>,out, eo_ptr<su3,g, eo_ptr<color>,in)
   {
     GET_THREAD_ID();
     
@@ -751,12 +751,12 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_2ARG(perform_random_gauge_transform, quad_su3**,conf_out, quad_su3**,conf_in)
+  THREADABLE_FUNCTION_2ARG(perform_random_gauge_transform, eo_ptr<quad_su3>,conf_out, eo_ptr<quad_su3>,conf_in)
   {
     GET_THREAD_ID();
     
     //allocate fixing matrix
-    su3 *_fixm[2]={nissa_malloc("fixm_e",loc_volh+bord_volh,su3),nissa_malloc("fixm_o",loc_volh+bord_volh,su3)},**fixm=_fixm;
+    eo_ptr<su3> fixm={nissa_malloc("fixm_e",loc_volh+bord_volh,su3),nissa_malloc("fixm_o",loc_volh+bord_volh,su3)};
     
     //extract random SU(3) matrix
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
