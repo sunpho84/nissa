@@ -157,7 +157,7 @@ namespace nissa
     //flow a field
     void flow_fermion(T *field)
     {
-      eo_ptr<quad_su3> conf=this->conf;
+      quad_su3** conf=this->conf;
       double &dt=this->dt;
       int &nd=this->nd;
       
@@ -211,7 +211,7 @@ namespace nissa
     //flow a field
     void flow_fermion(T *field)
     {
-      eo_ptr<quad_su3> conf=this->conf;
+      quad_su3 **conf=this->conf;
       double &dt=this->dt;
       int &nd=this->nd;
       

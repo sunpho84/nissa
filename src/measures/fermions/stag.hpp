@@ -33,7 +33,7 @@ namespace nissa
   
   namespace stag
   {
-    typedef color* field_t[2];
+    typedef eo_ptr<color> field_t;
 #define NEW_FIELD_T(A)					\
     field_t A;						\
     A[0]=nissa_malloc(#A,loc_volh+bord_volh,color);	\

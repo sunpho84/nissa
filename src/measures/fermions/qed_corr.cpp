@@ -52,16 +52,16 @@ namespace nissa
     void insert_time_conserved_vector_current_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=(mu==0);out[IM]=0;}
     
     //insert the tadpol
-    THREADABLE_FUNCTION_7ARG(insert_tadpole, color**,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, double*,tad, int,t)
+    THREADABLE_FUNCTION_7ARG(insert_tadpole, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, eo_ptr<color>,in, double*,tad, int,t)
     {
       //call with no source insertion, plus between fw and bw, and a global -0.25
       complex fw_factor={-0.25,0},bw_factor={-0.25,0};
-      insert_vector_vertex(out,conf,theory_pars,iflav,NULL,in,fw_factor,bw_factor,insert_tadpole_handle,t,tad);
+      insert_vector_vertex(out,conf,theory_pars,iflav,{NULL,NULL},in,fw_factor,bw_factor,insert_tadpole_handle,t,tad);
     }
     THREADABLE_FUNCTION_END
     
     //insert the external source, that is one of the two extrema of the stoch prop
-    THREADABLE_FUNCTION_7ARG(insert_external_source, color**,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, spin1field**,curr, color**,in, int,t)
+    THREADABLE_FUNCTION_7ARG(insert_external_source, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, eo_ptr<spin1field>,curr, eo_ptr<color>,in, int,t)
     {
       //call with source insertion, minus between fw and bw, and a global i*0.5
       complex fw_factor={0,+0.5},bw_factor={0,-0.5};
@@ -70,11 +70,11 @@ namespace nissa
     THREADABLE_FUNCTION_END
     
     //insert the time componente of the vectorial current
-    THREADABLE_FUNCTION_6ARG(insert_time_conserved_vector_current, color**,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, int,t)
+    THREADABLE_FUNCTION_6ARG(insert_time_conserved_vector_current, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, eo_ptr<color>,in, int,t)
     {
       //call with no source insertion, minus between fw and bw, and a global i*0.5
       complex fw_factor={0,+0.5},bw_factor={0,-0.5};
-      insert_vector_vertex(out,conf,theory_pars,iflav,NULL,in,fw_factor,bw_factor,insert_time_conserved_vector_current_handle,t);
+      insert_vector_vertex(out,conf,theory_pars,iflav,{NULL,NULL},in,fw_factor,bw_factor,insert_time_conserved_vector_current_handle,t);
     }
     THREADABLE_FUNCTION_END
   }
@@ -123,8 +123,8 @@ namespace nissa
     
     //allocate
     const int nflavs=theory_pars.nflavs();
-    spin1field *photon_field[2]={nissa_malloc("photon_phi_ev",loc_volh+bord_volh,spin1field),nissa_malloc("photon_phi_od",loc_volh+bord_volh,spin1field)};
-    color *M[nprop_t*nflavs][2];
+    eo_ptr<spin1field> photon_field={nissa_malloc("photon_phi_ev",loc_volh+bord_volh,spin1field),nissa_malloc("photon_phi_od",loc_volh+bord_volh,spin1field)};
+    eo_ptr<color> M[nprop_t*nflavs];
     for(int i=0;i<nprop_t*nflavs;i++)
       for(int par=0;par<2;par++)
 	M[i][par]=nissa_malloc(combine("M_%d_%d",i,par).c_str(),loc_volh+bord_volh,color);
@@ -180,7 +180,7 @@ namespace nissa
 	      for(size_t iprop=0;iprop<prop_build.size();iprop++)
 		{
 		  //select the source
-		  color **so;
+		  eo_ptr<color> so;
 		  if(prop_build[iprop].sou==-1) so=ori_source;
 		  else so=M[prop_build[iprop].sou+nprop_t*iflav];
 		  
@@ -207,8 +207,8 @@ namespace nissa
 	      for(int jflav=0;jflav<nflavs;jflav++)
 		for(size_t icontr=0;icontr<contr_map.size();icontr++)
 		  {
-		    color **A=(contr_map[icontr].first==-1)?ori_source:M[contr_map[icontr].first+nprop_t*iflav];
-		    color **B=(contr_map[icontr].second==-1)?ori_source:M[contr_map[icontr].second+nprop_t*jflav];
+		    eo_ptr<color> A=(contr_map[icontr].first==-1)?ori_source:M[contr_map[icontr].first+nprop_t*iflav];
+		    eo_ptr<color> B=(contr_map[icontr].second==-1)?ori_source:M[contr_map[icontr].second+nprop_t*jflav];
 		    
 		    for(int par=0;par<2;par++)
 		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)

@@ -58,7 +58,7 @@ namespace nissa
     {
       crash("NOT USABLE YET");
       //allocate temp
-      color *temp[2];
+      eo_ptr<color> temp;
       for(int par=0;par<2;par++)
 	temp[par]=nissa_malloc("temp",loc_volh+bord_volh,color);
       

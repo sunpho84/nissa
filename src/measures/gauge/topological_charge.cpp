@@ -484,7 +484,7 @@ namespace nissa
     if(flag==2 and iconf%each==0 and iconf>=after)
       {
 	double charge;
-	quad_su3 *conf[2];
+	eo_ptr<quad_su3> conf;
 	if(stout_pars.nlevels==0)
 	  {
 	    conf[0]=ext_conf[0];
