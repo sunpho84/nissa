@@ -95,10 +95,10 @@ namespace nissa
     
     master_printf("Entering debug loop, please type:\n"
 		  "$ gdb -p %d\n"
-		  "$ set flag=1;finish;finish\n",getpid());
+		  "$ set flag=1\n",getpid());
     
-    while(flag==0)
-      sleep(1);
+    if(rank==0)
+      while(flag==0);
     
     ranks_barrier();
   }
