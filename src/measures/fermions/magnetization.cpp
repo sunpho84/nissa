@@ -102,7 +102,7 @@ namespace nissa
     int mu=1,nu=2;
     
     //allocate source and propagator
-    color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> chi={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
     
     //we need to store phases
     coords *arg=nissa_malloc("arg",loc_vol+bord_vol,coords);
