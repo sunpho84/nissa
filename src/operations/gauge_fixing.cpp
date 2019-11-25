@@ -88,7 +88,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //transform a color field
-  THREADABLE_FUNCTION_3ARG(gauge_transform_color, eo_ptr<color>,out, eo_ptr<su3,g, eo_ptr<color>,in)
+  THREADABLE_FUNCTION_3ARG(gauge_transform_color, eo_ptr<color>,out, eo_ptr<su3>,g, eo_ptr<color>,in)
   {
     GET_THREAD_ID();
     
