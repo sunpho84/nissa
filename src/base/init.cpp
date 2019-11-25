@@ -88,6 +88,21 @@ namespace nissa
       }
   };
   
+  /// Implements the trap to debug
+  void debug_loop()
+  {
+    volatile int flag=0;
+    
+    master_printf("Entering debug loop, please type:\n"
+		  "$ gdb -p %d\n"
+		  "$ set flag=1;finish;finish\n",getpid());
+    
+    while(flag==0)
+      sleep(1);
+    
+    ranks_barrier();
+  }
+  
   //init nissa
   void init_nissa(int narg,char **arg,const char compile_info[5][1024])
   {
@@ -133,8 +148,8 @@ namespace nissa
 	master_printf("CUDA Enabled device %d/%d: %d.%d\n",i,nDevices,deviceProp.major,deviceProp.minor);
       }
  #endif
-
-//initialize the first vector of nissa
+    
+    //initialize the first vector of nissa
     initialize_main_vect();
     
     //initialize global variables
@@ -271,6 +286,12 @@ namespace nissa
     init_base_gamma();
     
     master_printf("Nissa initialized!\n");
+    
+    const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
+    if(getenv(DEBUG_LOOP_STRING)!=NULL)
+      debug_loop();
+    else
+      master_printf("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
   }
   
   //compute internal volume
