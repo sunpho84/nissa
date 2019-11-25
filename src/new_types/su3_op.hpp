@@ -917,7 +917,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void su3_unitarize_maximal_trace_projecting(su3 out,const double precision=5e-15,int niter_max=20000)
   {su3_unitarize_maximal_trace_projecting(out,out,precision,niter_max);}
   
-  void su3_find_cooled_eo_conf(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu);
+  void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,int par,int ieo,int mu);
   void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu);
   
   ////////////////////// products between su3 and color //////////////////

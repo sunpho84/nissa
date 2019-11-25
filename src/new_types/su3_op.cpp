@@ -288,7 +288,7 @@ namespace nissa
   }
   
   //return a cooled copy of the passed link
-  void su3_find_cooled_eo_conf(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu)
+  void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,int par,int ieo,int mu)
     {
     //compute the staple
     su3 staple;
