@@ -46,7 +46,7 @@ namespace nissa
   double generate_pseudofermions(std::vector<std::vector<pseudofermion_t> > &pf,eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr)
   {
     //allocate or not clover term and inverse evn clover term
-    clover_term_t *Cl[2]={NULL,NULL};
+    eo_ptr<clover_term_t> Cl={NULL,NULL};
     inv_clover_term_t *invCl_evn=NULL;
     bool clover_to_be_computed=false;
     for(int iflav=0;iflav<theory_pars.nflavs();iflav++) clover_to_be_computed|=ferm_discretiz::include_clover(theory_pars.quarks[iflav].discretiz);

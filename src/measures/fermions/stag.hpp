@@ -82,7 +82,7 @@ namespace nissa
     inline void apply_stag_op(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,GAMMA_INT spin,GAMMA_INT taste,eo_ptr<color> in)
     {
       //Allocate temp
-      color *temp[2][2];
+      eo_ptr<color> temp[2];
       for(int itemp=0;itemp<2;itemp++)
       for(int eo=0;eo<2;eo++)
 	temp[itemp][eo]=nissa_malloc("temp",loc_volh+bord_volh,color);

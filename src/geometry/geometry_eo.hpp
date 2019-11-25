@@ -48,11 +48,11 @@ namespace nissa
     CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) : data{a,b} {}
     
     //Create from an array of two pointers - to deprecate?
-    CUDA_HOST_AND_DEVICE eo_ptr(Tptr2 a)
-    {
-      data[0]=a[0];
-      data[1]=a[1];
-    }
+    // CUDA_HOST_AND_DEVICE eo_ptr(Tptr2 a)
+    // {
+    //   data[0]=a[0];
+    //   data[1]=a[1];
+    // }
     
     //Default creator
     CUDA_HOST_AND_DEVICE eo_ptr()

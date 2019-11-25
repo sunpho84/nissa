@@ -28,7 +28,7 @@
 
 //additional parameters
 #define CGM_NARG 1
-#define AT1 single_quad_su3**
+#define AT1 eo_ptr<single_quad_su3>
 #define A1 conf
 
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,

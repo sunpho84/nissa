@@ -17,13 +17,13 @@
 
 namespace nissa
 {
-  void summ_src_and_all_inv_stD2ee_m2_cgm_32(color *chi_e,quad_su3 **eo_conf,rat_approx_t *appr,int niter_max,double req_res,color *source)
+  void summ_src_and_all_inv_stD2ee_m2_cgm_32(color *chi_e,eo_ptr<quad_su3> eo_conf,rat_approx_t *appr,int niter_max,double req_res,color *source)
   {
 #ifndef BGQ
     //allocate
     single_color *ssource=nissa_malloc("ssource",loc_volh,single_color);
     single_color *schi_e=nissa_malloc("schi_e",loc_volh+bord_volh,single_color);
-    single_quad_su3 *seo_conf[2]={nissa_malloc("single_conf",loc_volh+bord_volh,single_quad_su3),
+    eo_ptr<single_quad_su3> seo_conf={nissa_malloc("single_conf",loc_volh+bord_volh,single_quad_su3),
 				   nissa_malloc("single_conf",loc_volh+bord_volh,single_quad_su3)};
     //convert forward
     for(int par=0;par<2;par++) double_vector_to_single((float*)(seo_conf[par]),(double*)(eo_conf[par]),loc_volh*sizeof(quad_su3)/sizeof(double));
@@ -39,7 +39,7 @@ namespace nissa
 #else
     //allocate
     vir_single_color *vir_source=nissa_malloc("vir_source",loc_volh/2,vir_single_color);
-    vir_single_oct_su3 *vir_eo_conf[2]={nissa_malloc("vir_conf_evn",(loc_volh+bord_volh)/2,vir_single_oct_su3),
+    eo_ptr<vir_single_oct_su3> vir_eo_conf={nissa_malloc("vir_conf_evn",(loc_volh+bord_volh)/2,vir_single_oct_su3),
 				      nissa_malloc("vir_conf_odd",(loc_volh+bord_volh)/2,vir_single_oct_su3)};
     vir_single_color *vir_chi_e=nissa_malloc("vir_chi_e",loc_volh/2,vir_single_color);
     
@@ -66,14 +66,14 @@ namespace nissa
 #endif
   }
   
-  void inv_stD2ee_m2_cgm_32_run_hm_up_to_comm_prec(color **chi_e,quad_su3 **eo_conf,double *poles,int nterms,int niter_max,double residue,color *pf)
+  void inv_stD2ee_m2_cgm_32_run_hm_up_to_comm_prec(color **chi_e,eo_ptr<quad_su3> eo_conf,double *poles,int nterms,int niter_max,double residue,color *pf)
   {
 #ifndef BGQ
     //allocate
     single_color *spf=nissa_malloc("spf",loc_volh,single_color);
     single_color *schi_e[nterms];
     for(int iterm=0;iterm<nterms;iterm++) schi_e[iterm]=nissa_malloc("schi_e",loc_volh+bord_volh,single_color);
-    single_quad_su3 *seo_conf[2]={nissa_malloc("single_conf",loc_volh+bord_volh,single_quad_su3),
+    eo_ptr<single_quad_su3> seo_conf={nissa_malloc("single_conf",loc_volh+bord_volh,single_quad_su3),
 				   nissa_malloc("single_conf",loc_volh+bord_volh,single_quad_su3)};
     //convert forward
     for(int par=0;par<2;par++) double_vector_to_single((float*)(seo_conf[par]),(double*)(eo_conf[par]),loc_volh*sizeof(quad_su3)/sizeof(double));
@@ -91,7 +91,7 @@ namespace nissa
     
     //allocate
     vir_single_color *vir_pf=nissa_malloc("vir_pf",loc_volh/2,vir_single_color);
-    vir_single_oct_su3 *vir_eo_conf[2]={nissa_malloc("vir_conf_evn",loc_volh/2,vir_single_oct_su3),
+    eo_ptr<vir_single_oct_su3> vir_eo_conf={nissa_malloc("vir_conf_evn",loc_volh/2,vir_single_oct_su3),
 				      nissa_malloc("vir_conf_odd",loc_volh/2,vir_single_oct_su3)};
     vir_single_color *vir_chi_e[nterms];
     for(int iterm=0;iterm<nterms;iterm++) vir_chi_e[iterm]=nissa_malloc("vir_chi_e",loc_volh/2,vir_single_color);

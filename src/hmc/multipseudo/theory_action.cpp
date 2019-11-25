@@ -26,7 +26,7 @@ namespace nissa
     double res=simul_pars->pf_action_residue;
     
     //allocate or not clover term and inverse evn clover term
-    clover_term_t *Cl[2]={NULL,NULL};
+    eo_ptr<clover_term_t> Cl={NULL,NULL};
     inv_clover_term_t *invCl_evn=NULL;
     bool clover_to_be_computed=false;
     for(int iflav=0;iflav<nfl;iflav++) clover_to_be_computed|=ferm_discretiz::include_clover(quark_content[iflav].discretiz);

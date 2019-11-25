@@ -17,7 +17,7 @@ namespace nissa
   void communicate_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm);
   void communicate_Leb_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm);
   void communicate_ev_or_od_borders(void *vec,comm_t &comm,int eo);
-   void communicate_Leb_ev_or_od_borders(void *vec,comm_t &comm,int eo);
+  void communicate_Leb_ev_or_od_borders(void *vec,comm_t &comm,int eo);
   void communicate_lx_borders(void *vec,comm_t &comm);
   void communicate_Leblx_borders(void *vec,comm_t &comm);
   void comm_wait(comm_t &comm);

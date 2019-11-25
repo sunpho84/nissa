@@ -118,8 +118,9 @@ namespace nissa
   {
     if(!check_edges_valid(data[EVN])||!check_edges_valid(data[ODD]))
       {
+	crash("");
 	//first make sure that borders are communicated
-	communicate_ev_and_od_borders((void**)data,bord_comm);
+#warning 	communicate_ev_and_od_borders((void**)data,bord_comm);
 	
 	GET_THREAD_ID();
 	

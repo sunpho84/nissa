@@ -467,7 +467,7 @@ namespace nissa
     double maxerr_to_recreate[nappr_per_quark*nflavs];
     
     //allocate or not clover term and inverse evn clover term
-    clover_term_t *Cl[2]={NULL,NULL};
+    eo_ptr<clover_term_t> Cl{NULL,NULL};
     if(theory_pars->clover_to_be_computed())
       {
 	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);

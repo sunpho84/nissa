@@ -49,7 +49,7 @@ namespace nissa
   }
   
   //compute the action for the Fourier acceleration-related momenta
-  THREADABLE_FUNCTION_5ARG(MFACC_momenta_action, double*,tot_action, eo_ptr<su3>,pi, int,naux_fields, quad_su3*,conf, double,kappa)
+  THREADABLE_FUNCTION_5ARG(MFACC_momenta_action, double*,tot_action, su3**,pi, int,naux_fields, quad_su3*,conf, double,kappa)
   {
     //allocate temporary field where to store output
     su3 *V=nissa_malloc("V",loc_vol,su3);

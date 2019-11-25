@@ -30,7 +30,7 @@
 
 //additional parameters
 #define CG_NARG 2
-#define AT1 oct_su3**
+#define AT1 eo_ptr<oct_su3>
 #define A1 conf
 #define AT2 double
 #define A2 m2
