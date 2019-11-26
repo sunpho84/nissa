@@ -75,7 +75,8 @@ namespace nissa
     template <typename T>
     void gpu_free(T*& data)
     {
-      decript_cuda_error(cudaFree(&data),"Freeing");
+      decript_cuda_error(cudaFree(data),"Freeing");
+      data=NULL;
     }
     
     template <typename T>
@@ -308,7 +309,7 @@ namespace nissa
       
       double init=take_time();
       int n=100;
-
+      
       for(int i=0;i<n;i++)
 	{
 	  Doe_or_Deo<EVN><<<grid_dimension,block_dimension>>>(temp,conf,in);
@@ -360,9 +361,12 @@ namespace nissa
     int is_increasing=1;
     double old_eig_max;
     
-    
-    gpu::operator_test<double>(out.stag,eo_conf,in.stag);
-    gpu::operator_test<float>(out.stag,eo_conf,in.stag);
+    if(getenv("DOE_TEST")!=NULL)
+      {
+	gpu::operator_test<double>(out.stag,eo_conf,in.stag);
+	gpu::operator_test<float>(out.stag,eo_conf,in.stag);
+      }
+else
     
     do
       {
