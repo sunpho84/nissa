@@ -413,7 +413,7 @@ namespace nissa
 	    
 	    //really free
 #if THREADS_TYPE == CUDA_THREADS
-	    decript_cuda_error(cudaFree(vect),"freeing the memory for vector: %s allocated on line %d of file %s\n",vect->tag,vect->line,vect->file);
+	    decript_cuda_error(cudaFree(vect),"freeing the memory for vector");
 #else
 	    free(vect);
 #endif
