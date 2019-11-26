@@ -69,27 +69,27 @@ namespace nissa
     {
       const int64_t tot=n*sizeof(T);
       
-      decrypt_cuda_error(cudaMalloc(&data,tot),"Allocating %ld bytes",tot);
+      decript_cuda_error(cudaMalloc(&data,tot),"Allocating %ld bytes",tot);
     }
     
     template <typename T>
     void gpu_free(T*& data)
     {
-      decrypt_cuda_error(cudaFree(&data),"Freeing");
+      decript_cuda_error(cudaFree(&data),"Freeing");
     }
     
     template <typename T>
     void cpu_to_gpu(T* out,const T* in,const int64_t n)
     {
       const int64_t tot=n*sizeof(T);
-      decrypt_cuda_error(cudaMemcpy(out,in,tot,cudaMemcpyHostToDevice),"Copying %ld bytes from cpu to gpu",tot);
+      decript_cuda_error(cudaMemcpy(out,in,tot,cudaMemcpyHostToDevice),"Copying %ld bytes from cpu to gpu",tot);
     }
     
     template <typename T>
     void gpu_to_cpu(T* out,const T* in,const int64_t n)
     {
       const int64_t tot=n*sizeof(T);
-      decrypt_cuda_error(cudaMemcpy(out,in,n*sizeof(T),cudaMemcpyDeviceToHost),"Copying %ld bytes from cpu to gpu",tot);
+      decript_cuda_error(cudaMemcpy(out,in,n*sizeof(T),cudaMemcpyDeviceToHost),"Copying %ld bytes from cpu to gpu",tot);
     }
     
     template <typename T>
