@@ -387,7 +387,7 @@ namespace nissa
       {
 	if(arr!=NULL)
 	  {
-	    nissa_vect *vect=(nissa_vect*)((char*)(*arr)-sizeof(nissa_vect));
+	    nissa_vect *vect=get_vect(*arr);
 	    nissa_vect *prev=vect->prev;
 	    nissa_vect *next=vect->next;
 	    
@@ -413,7 +413,7 @@ namespace nissa
 	    
 	    //really free
 #if THREADS_TYPE == CUDA_THREADS
-	    decript_cuda_error(cudaFree(vect),"freeing the memory");
+	    decript_cuda_error(cudaFree(vect),"freeing the memory for vector: %s allocated on line %d of file %s\n",vect->tag,vect->line,vect->file);
 #else
 	    free(vect);
 #endif
