@@ -361,13 +361,15 @@ namespace nissa
     int is_increasing=1;
     double old_eig_max;
     
-    if(getenv("DOE_TEST")!=NULL)
+    const char DOE_TEST[]="DOE_TEST";
+    if(getenv(DOE_TEST)!=NULL)
       {
 	gpu::operator_test<double>(out.stag,eo_conf,in.stag);
 	gpu::operator_test<float>(out.stag,eo_conf,in.stag);
       }
-else
-    
+    else
+      master_printf("to run the test export %s\n",DOE_TEST);
+  
     do
       {
 	switch(quark->discretiz)
