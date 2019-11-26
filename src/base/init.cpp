@@ -93,9 +93,12 @@ namespace nissa
   {
     volatile int flag=0;
     
-    master_printf("Entering debug loop, please type:\n"
+    master_printf("Entering debug loop, flag has address %p please type:\n"
 		  "$ gdb -p %d\n"
-		  "$ set flag=1\n",getpid());
+		  "$ set flag=1\n"
+		  "$ continue\n",
+		  flag,
+		  getpid());
     
     if(rank==0)
       while(flag==0);
