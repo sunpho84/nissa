@@ -288,8 +288,6 @@ namespace nissa
     const std::array<std::array<int,2>,3> eps={1,2, 2,0, 0,1};
     const int sign[2]={1,-1};
     
-    void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
-    
     const int ncol=free_theory?1:NCOL;
     
     UNPAUSE_TIMING(bar2pts_alt_contr_time);
@@ -343,6 +341,8 @@ namespace nissa
 		const int g_of_id_g0[2]={0,4};
 		for(int idg0=0;idg0<2;idg0++)
 		  proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
+		
+		void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
 		
 		//Takes a slice
 #warning reimplement

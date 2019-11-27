@@ -5,43 +5,44 @@ using namespace nissa;
 THREADABLE_FUNCTION_4ARG(compute_gaussianity_pars, double*,x, color*,source, int,maxpow, coords*,source_pos)
 {
   GET_THREAD_ID();
+  #warning
+
+  crash("reimplement");
+  // //reset local pows
+  // double locx[glb_size[0]][maxpow];
+  // for(int t=0;t<glb_size[0];t++)
+  //   for(int ipow=0;ipow<maxpow;ipow++)
+  //     locx[t][ipow]=0.0;
   
-  //reset local pows
-  double locx[glb_size[0]][maxpow];
-  for(int t=0;t<glb_size[0];t++)
-    for(int ipow=0;ipow<maxpow;ipow++)
-      locx[t][ipow]=0.0;
-  
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    {
-      int t=glb_coord_of_loclx[ivol][0];
+  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  //   {
+  //     int t=glb_coord_of_loclx[ivol][0];
       
-      //get site norm
-      double n=0.0;
-      for(int ic=0;ic<NCOL;ic++)
-	for(int ri=0;ri<2;ri++)
-	  n+=sqr(source[ivol][ic][ri]);
+  //     //get site norm
+  //     double n=0.0;
+  //     for(int ic=0;ic<NCOL;ic++)
+  // 	for(int ri=0;ri<2;ri++)
+  // 	  n+=sqr(source[ivol][ic][ri]);
       
-      //loop over all powers to be computed
-      for(int ipow=0;ipow<maxpow;ipow++)
-	{
-	  //compute distance
-	  double xpow=0.0;
-	  for(int mu=1;mu<NDIM;mu++)
-	    {
-	      int xmu=(glb_coord_of_loclx[ivol][mu]-source_pos[t][mu]+glb_size[mu])%glb_size[mu];
-	      if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
-	      xpow+=pow(xmu,ipow*2);
-	    }
+  //     //loop over all powers to be computed
+  //     for(int ipow=0;ipow<maxpow;ipow++)
+  // 	{
+  // 	  //compute distance
+  // 	  double xpow=0.0;
+  // 	  for(int mu=1;mu<NDIM;mu++)
+  // 	    {
+  // 	      int xmu=(glb_coord_of_loclx[ivol][mu]-source_pos[t][mu]+glb_size[mu])%glb_size[mu];
+  // 	      if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
+  // 	      xpow+=pow(xmu,ipow*2);
+  // 	    }
 	  
-	  locx[t][ipow]+=n*xpow;
-	}
-    }
-  NISSA_PARALLEL_LOOP_END;
-  THREAD_BARRIER();
+  // 	  locx[t][ipow]+=n*xpow;
+  // 	}
+  //   }
+  // NISSA_PARALLEL_LOOP_END;
+  // THREAD_BARRIER();
   
   //reduce
-#warning
   // for(int t=0;t<glb_size[0];t++)
   //   for(int ipow=0;ipow<maxpow;ipow++)
   //     x[t*maxpow+ipow]=glb_reduce_double(locx[t][ipow]);
