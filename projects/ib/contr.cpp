@@ -321,20 +321,20 @@ namespace nissa
 	    dirac_matr Cg_so=herm(g[4]*set_CgX(igSo)*g[4]);
 	    dirac_matr Cg_si=set_CgX(igSi);
 	    
-	    //Precompute the factor to be added
-	    spinspin fact;
-	      for(int sp_si=0;sp_si<NDIRAC;sp_si++)
-		for(int sp_so=0;sp_so<NDIRAC;sp_so++)
-		  {
-		    complex& f=fact[sp_si][sp_so];
-		    unsafe_complex_prod(f,Cg_si.entr[sp_si],Cg_so.entr[sp_so]);
-		    complex_prodassign_double(f,norm);
-		  }
-	    
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	      {
 		int t=rel_coord_of_loclx(ivol,0);
 		su3spinspin p1,p2,p3;
+		
+		//Precompute the factor to be added
+		spinspin fact;
+		for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
+		    {
+		      complex& f=fact[sp_si][sp_so];
+		      unsafe_complex_prod(f,Cg_si.entr[sp_si],Cg_so.entr[sp_so]);
+		      complex_prodassign_double(f,norm);
+		    }
 		
 		//Compute the projector, gi*gj*(1 or g0)
 		dirac_matr proj[2];
