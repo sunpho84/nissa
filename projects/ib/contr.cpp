@@ -591,7 +591,7 @@ namespace nissa
 		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		    {
 		      const int eps[3][2]={{1,2},{2,0},{0,1}};
-		      std::array<int,2> sign={1,-1};
+		      int sign[2]={1,-1};
     
 		      int t=rel_time_of_loclx(ivol);
 		      
