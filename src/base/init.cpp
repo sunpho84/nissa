@@ -160,6 +160,10 @@ namespace nissa
 	decript_cuda_error(cudaSetDevice(idevice),"Unable to set device %d",idevice);
       }
     
+    color *test=nissa_malloc("test",loc_vol,color);
+    nissa_free(test);
+    master_printf("Managed to free test\n");
+    
  #endif
     
     //initialize the first vector of nissa

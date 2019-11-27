@@ -365,10 +365,6 @@ namespace nissa
     int is_increasing=1;
     double old_eig_max;
     
-    color *test=nissa_malloc("test",loc_vol,color);
-    nissa_free(test);
-    master_printf("Managed to free test\n");
-    
 #if THREADS_TYPE == CUDA_THREADS
     const char DOE_TEST[]="DOE_TEST";
     if(getenv(DOE_TEST)!=NULL)
