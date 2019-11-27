@@ -24,9 +24,6 @@ namespace nissa
   //compute the staples for the link U_A_mu weighting them with rho
   CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho)
   {
-#warning do something
-    //if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("../communicate/communicate edges externally");
-    
     //put staples to zero
     su3_put_to_zero(staples);
     
@@ -74,8 +71,7 @@ namespace nissa
     START_TIMING(sto_time,nsto);
     
     if(in==out) crash("in==out");
-#warning
-    //communicate_eo_quad_su3_edges((eo_ptr<quad_su3>)in);
+    communicate_eo_quad_su3_edges((eo_ptr<quad_su3>)in);
     
     //allocate a temporary conf if going to smear iteratively or out==ext_in
     
@@ -185,7 +181,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,conf, double,rho)
   {
     GET_THREAD_ID();
-    #warning communicate_eo_quad_su3_edges(conf);
+    communicate_eo_quad_su3_edges(conf);
     
     eo_ptr<quad_su3> Lambda;
     for(int eo=0;eo<2;eo++)
@@ -226,7 +222,7 @@ namespace nissa
     for(int p=0;p<2;p++) set_borders_invalid(Lambda[p]);
     
     //compute the third piece of eq. (75)
-    #warning communicate_eo_quad_su3_edges(Lambda);
+    communicate_eo_quad_su3_edges(Lambda);
     
     for(int p=0;p<2;p++)
       for(int mu=0;mu<4;mu++)

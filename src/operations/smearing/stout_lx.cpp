@@ -33,9 +33,6 @@ namespace nissa
   //compute the staples for the link U_A_mu weighting them with rho
   CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,int A,int mu,double rho)
   {
-#warning do something
-    //if(!check_edges_valid(conf)) crash("communicate edges externally");
-    
     //put staples to zero
     su3_put_to_zero(staples);
     

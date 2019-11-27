@@ -17,7 +17,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    #warning communicate_eo_quad_su3_edges(conf);
+    communicate_eo_quad_su3_edges(conf);
     
     //summ squares and rectangles separately
     complex *point_shapes=nissa_malloc("point_shapes",loc_vol,complex);

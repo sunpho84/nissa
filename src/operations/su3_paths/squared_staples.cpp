@@ -21,9 +21,6 @@ namespace nissa
   //compute the staples along a particular dir, for a single site
   CUDA_HOST_AND_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,eo_ptr<quad_su3> eo_conf,int A,int mu)
   {
-    #warning do something
-    //if(!check_edges_valid(eo_conf[0])||!check_edges_valid(eo_conf[1])) crash("communicate edges externally");
-    
     su3_put_to_zero(staple);
     
     su3 temp1,temp2;
@@ -79,7 +76,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    #warning communicate_eo_quad_su3_edges(eo_conf);
+    communicate_eo_quad_su3_edges(eo_conf);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       compute_point_summed_squared_staples_eo_conf(F[loclx_parity[ivol]][loceo_of_loclx[ivol]],eo_conf,ivol);

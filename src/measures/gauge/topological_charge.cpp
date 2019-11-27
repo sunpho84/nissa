@@ -48,8 +48,6 @@ namespace nissa
   */
   CUDA_HOST_AND_DEVICE void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X)
   {
-    #warning if(!check_edges_valid(conf[0])) crash("communicate edges externally");
-    
     int munu=0;
     for(int mu=0;mu<NDIM;mu++)
       {

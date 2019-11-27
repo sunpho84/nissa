@@ -114,13 +114,11 @@ namespace nissa
   ///////////////////////////////////////////// e/o geometry /////////////////////////////////////////
   
   //Send the edges of eo vector
-  void communicate_eo_edges(char **data,comm_t &bord_comm,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
+  void communicate_eo_edges(eo_ptr<void> data,comm_t &bord_comm,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
   {
     if(!check_edges_valid(data[EVN])||!check_edges_valid(data[ODD]))
       {
-	crash("");
-	//first make sure that borders are communicated
-#warning 	communicate_ev_and_od_borders((void**)data,bord_comm);
+	communicate_ev_and_od_borders(data,bord_comm);
 	
 	GET_THREAD_ID();
 	
@@ -162,8 +160,8 @@ namespace nissa
 			    //Receive the (mu,-nu) external edge from the -nu rank (mu,nu) internal edge
 			    int ext_edge_recv_start=(loc_volh+bord_volh+edge_volh/4*(vmu*2+!vnu)+edge_offset[iedge]/2)*nbytes_per_site;
 			    int int_edge_send_start=loc_volh*nbytes_per_site;
-			    MPI_Irecv(data[par]+ext_edge_recv_start,1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu][nu],imessage,cart_comm,request+(nrequest++));
-			    MPI_Isend(data[par]+int_edge_send_start,1,MPI_EDGES_SEND[icomm_send],rank_neigh[vnu][nu],imessage,cart_comm,request+(nrequest++));
+			    MPI_Irecv((char*)(data[par])+ext_edge_recv_start,1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu][nu],imessage,cart_comm,request+(nrequest++));
+			    MPI_Isend((char*)(data[par])+int_edge_send_start,1,MPI_EDGES_SEND[icomm_send],rank_neigh[vnu][nu],imessage,cart_comm,request+(nrequest++));
 			    
 			    imessage++;
 			  }
@@ -179,6 +177,6 @@ namespace nissa
   }
   
   //Send the edges of the gauge configuration
-  void communicate_eo_quad_su3_edges(quad_su3 **conf)
-  {communicate_eo_edges((char**)conf,lx_quad_su3_comm,MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
+  void communicate_eo_quad_su3_edges(eo_ptr<quad_su3> conf)
+  {communicate_eo_edges({conf[EVN],conf[ODD]},lx_quad_su3_comm,MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
 }
