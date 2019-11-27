@@ -323,13 +323,6 @@ namespace nissa
 	    dirac_matr Cg_so=herm(g[4]*set_CgX(igSo)*g[4]);
 	    dirac_matr Cg_si=set_CgX(igSi);
 	    
-	    //Compute the projector, gi*gj*(1 or g0)
-	    using proj_t=dirac_matr[2];
-	    proj_t proj;
-	    const int g_of_id_g0[2]={0,4};
-	    for(int idg0=0;idg0<2;idg0++)
-	      proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
-	    
 	    //Precompute the factor to be added
 	    spinspin fact;
 	      for(int sp_si=0;sp_si<NDIRAC;sp_si++)
@@ -344,6 +337,12 @@ namespace nissa
 	      {
 		int t=rel_coord_of_loclx(ivol,0);
 		su3spinspin p1,p2,p3;
+		
+		//Compute the projector, gi*gj*(1 or g0)
+		dirac_matr proj[2];
+		const int g_of_id_g0[2]={0,4};
+		for(int idg0=0;idg0<2;idg0++)
+		  proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
 		
 		//Takes a slice
 #warning reimplement
