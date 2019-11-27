@@ -39,7 +39,7 @@ namespace nissa
   //-lx is lexicografic
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords *glb_coord_of_loclx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords *loc_coord_of_loclx;
-  EXTERN_GEOMETRY_LX int *glblx_of_loclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblx_of_loclx;
   EXTERN_GEOMETRY_LX int *glblx_of_bordlx;
   EXTERN_GEOMETRY_LX int *loclx_of_bordlx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflx_of_bordlx;

@@ -44,15 +44,17 @@ void in_main(int narg,char **arg)
   read_real_vector(source,source_path,tag);
   read_real_vector(smeared_source,smeared_source_path,tag);
   
-  int iglb_max=0;
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    if(spincolor_norm2(source[ivol])>1e-10)
-      iglb_max=glblx_of_loclx[ivol];
-  NISSA_PARALLEL_LOOP_END;
-  MPI_Allreduce(MPI_IN_PLACE,&iglb_max,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-  coords g;
-  glb_coord_of_glblx(g,iglb_max);
-  master_printf("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
+#warning
+  crash("");
+  // int iglb_max=0;
+  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  //   if(spincolor_norm2(source[ivol])>1e-10)
+  //     iglb_max=glblx_of_loclx[ivol];
+  // NISSA_PARALLEL_LOOP_END;
+  // MPI_Allreduce(MPI_IN_PLACE,&iglb_max,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+  // coords g;
+  // glb_coord_of_glblx(g,iglb_max);
+  // master_printf("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
   
   //check the norm
   double source_norm=double_vector_glb_norm2(source,loc_vol);
