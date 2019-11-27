@@ -574,9 +574,6 @@ namespace nissa
     complex *loc_contr=new complex[bar2pts_contr_size];
     memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
     
-    const int eps[3][2]={{1,2},{2,0},{0,1}};
-    std::array<int,2> sign={1,-1};
-    
     void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
     UNPAUSE_TIMING(bar2pts_contr_time);
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
@@ -591,13 +588,16 @@ namespace nissa
 	    for(int b=0;b<NCOL;b++)
 	      for(int iperm=0;iperm<2;iperm++)
 		{
-		  int c=eps[b][iperm],a=eps[b][!iperm];
-		  int be=Cg5.pos[al];
-		  
 		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		    {
+		      const int eps[3][2]={{1,2},{2,0},{0,1}};
+		      std::array<int,2> sign={1,-1};
+    
 		      int t=rel_time_of_loclx(ivol);
 		      
+		      int c=eps[b][iperm],a=eps[b][!iperm];
+		      int be=Cg5.pos[al];
+		  
 		      int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
 		      int sign_idg0[2]={1,(t<(glb_size[0]/2))?-1:+1}; //gamma0 is -1 always
     			  for(int al1=0;al1<NDIRAC;al1++)

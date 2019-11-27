@@ -31,8 +31,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/spinors/ildg_to_txt \
 	$(top_builddir)/tools/spinors/take_parity \
 	$(top_builddir)/tools/spinors/sources_compare \
-	$(top_builddir)/tools/unitarity_check/unitarity_check \
-	$(top_builddir)/tools/x_clusterize/x_clusterize
+	$(top_builddir)/tools/unitarity_check/unitarity_check
 
 __top_builddir__tools_benchmarks_stag_SOURCES=benchmarks/stag.cpp
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES=find_best_vir_partitioning/find.cpp
@@ -63,6 +62,5 @@ __top_builddir__tools_spinors_sources_compare_SOURCES=spinors/sources_compare.cp
 __top_builddir__tools_spinors_take_parity_SOURCES=spinors/take_parity.cpp
 __top_builddir__tools_print_gamma_gamma_test_SOURCES=print_gamma/gamma_test.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES=unitarity_check/unitarity_check.cpp
-__top_builddir__tools_x_clusterize_x_clusterize_SOURCES=x_clusterize/x_clusterize.cpp
 
 EXTRA_DIST=find_best_vir_partitioning/prepare_mapping.sh

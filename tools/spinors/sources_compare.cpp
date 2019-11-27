@@ -52,7 +52,7 @@ void in_main(int narg,char **arg)
   //     iglb_max=glblx_of_loclx[ivol];
   // NISSA_PARALLEL_LOOP_END;
   // MPI_Allreduce(MPI_IN_PLACE,&iglb_max,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-  // coords g;
+  coords g;
   // glb_coord_of_glblx(g,iglb_max);
   // master_printf("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
   
@@ -63,7 +63,7 @@ void in_main(int narg,char **arg)
   
   std::map<int,std::pair<double,int>> rho;
   
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  for(int ivol=0;ivol<loc_vol;ivol++)
     if(glb_coord_of_loclx[ivol][0]==g[0])
       {
 	int r2=0;
@@ -75,8 +75,6 @@ void in_main(int narg,char **arg)
 	rho[r2].first+=spincolor_norm2(smeared_source[ivol]);
 	rho[r2].second++;
       }
-  NISSA_PARALLEL_LOOP_END;
-  THREAD_BARRIER();
   
   for(int i=1;i<nranks;i++)
     {
