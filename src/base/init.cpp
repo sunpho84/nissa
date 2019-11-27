@@ -143,14 +143,23 @@ namespace nissa
     
 #if THREADS_TYPE == CUDA_THREADS
     int nDevices;
-    cudaGetDeviceCount(&nDevices);
-    master_printf("Number of CUDA enabled devices: %d\n",nDevices);
+    if(cudaGetDeviceCount(&nDevices)!=cudaSuccess)
+      crash("no CUDA enabled device");
+    
+    printf("Number of CUDA enabled devices on rank %d: %d\n",rank,nDevices);
     for(int i=0;i<nDevices;i++)
       {
 	cudaDeviceProp deviceProp;
 	cudaGetDeviceProperties(&deviceProp,i);
-	master_printf("CUDA Enabled device %d/%d: %d.%d\n",i,nDevices,deviceProp.major,deviceProp.minor);
+	printf(" rank %d CUDA Enabled device %d/%d: %d.%d\n",rank,i,nDevices,deviceProp.major,deviceProp.minor);
       }
+    //assumes that if we are seeing multiple gpus, there are nDevices ranks to attach to each of it
+    if(nDevices!=1)
+      {
+	int idevice=rank%nDevices;
+	decript_cuda_error(cucudaSetDevice(idevice),"Unable to set device %d",idevice);
+      }
+    
  #endif
     
     //initialize the first vector of nissa
