@@ -25,6 +25,8 @@ namespace nissa
   //fourth root of 2, used to extend the range of eigenvalues
   const double enl_gen=pow(2,0.25);
   
+#if THREADS_TYPE == CUDA_THREADS
+  
   template <typename T>
   struct Compl
   {
@@ -332,6 +334,8 @@ namespace nissa
     }
   }
   
+#endif
+  
   //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
   THREADABLE_FUNCTION_6ARG(max_eigenval, double*,eig_max, quark_content_t*,quark, eo_ptr<quad_su3>,eo_conf, eo_ptr<clover_term_t>,Cl, eo_ptr<quad_u1>,backfield, int,niters)
   {
@@ -361,6 +365,11 @@ namespace nissa
     int is_increasing=1;
     double old_eig_max;
     
+    color *test=nissa_malloc("test",loc_vol,color);
+    nissa_free(test);
+    master_printf("Managed to free test\n");
+    
+#if THREADS_TYPE == CUDA_THREADS
     const char DOE_TEST[]="DOE_TEST";
     if(getenv(DOE_TEST)!=NULL)
       {
@@ -369,6 +378,7 @@ namespace nissa
       }
     else
       master_printf("to run the test export %s\n",DOE_TEST);
+#endif
     
     do
       {
