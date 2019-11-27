@@ -157,7 +157,7 @@ namespace nissa
     if(nDevices!=1)
       {
 	int idevice=rank%nDevices;
-	decript_cuda_error(cucudaSetDevice(idevice),"Unable to set device %d",idevice);
+	decript_cuda_error(cudaSetDevice(idevice),"Unable to set device %d",idevice);
       }
     
  #endif
