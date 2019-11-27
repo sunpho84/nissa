@@ -4,7 +4,7 @@ using namespace nissa;
 
 int L,T;
 
-THREADABLE_FUNCTION_3ARG(new_cool_eo_conf, quad_su3**,eo_conf, int,over_flag, double,over_exp)
+THREADABLE_FUNCTION_3ARG(new_cool_eo_conf, eo_ptr<quad_su3>,eo_conf, int,over_flag, double,over_exp)
 {
   GET_THREAD_ID();
     
@@ -27,7 +27,7 @@ THREADABLE_FUNCTION_3ARG(new_cool_eo_conf, quad_su3**,eo_conf, int,over_flag, do
 }
 THREADABLE_FUNCTION_END
 
-THREADABLE_FUNCTION_1ARG(unitarize_conf_max, quad_su3**,conf)
+THREADABLE_FUNCTION_1ARG(unitarize_conf_max, eo_ptr<quad_su3>,conf)
 {
   GET_THREAD_ID();
     for(int par=0;par<2;par++)
