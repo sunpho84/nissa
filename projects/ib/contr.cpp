@@ -324,7 +324,8 @@ namespace nissa
 	    dirac_matr Cg_si=set_CgX(igSi);
 	    
 	    //Compute the projector, gi*gj*(1 or g0)
-	    dirac_matr proj[2];
+	    using proj_t=dirac_matr[2];
+	    proj_t proj;
 	    const int g_of_id_g0[2]={0,4};
 	    for(int idg0=0;idg0<2;idg0++)
 	      proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
