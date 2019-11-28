@@ -274,7 +274,7 @@ namespace nissa
     
     //copy data on the out-going buffer
     NISSA_PARALLEL_LOOP(iel_out,0,nel_out)
-      memcpy(out_buf+iel_out*bps,(char*)in+out_buf_source[iel_out]*bps,bps);
+      memcpy(out_buf+iel_out*bps,(char*)in+this->out_buf_source[iel_out]*bps,bps);
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
