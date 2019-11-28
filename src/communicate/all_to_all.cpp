@@ -271,10 +271,11 @@ namespace nissa
     //allocate a buffer where to repack data
     char *out_buf=(ext_out_buf==NULL)?nissa_malloc("out_buf",nel_out*bps,char):(char*)ext_out_buf;
     char *in_buf=(ext_in_buf==NULL)?nissa_malloc("in_buf",nel_in*bps,char):(char*)ext_in_buf;
+    int *source=this->out_buf_source;
     
     //copy data on the out-going buffer
     NISSA_PARALLEL_LOOP(iel_out,0,nel_out)
-      memcpy(out_buf+iel_out*bps,(char*)in+this->out_buf_source[iel_out]*bps,bps);
+      memcpy(out_buf+iel_out*bps,(char*)in+source[iel_out]*bps,bps);
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
