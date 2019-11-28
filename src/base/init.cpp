@@ -146,7 +146,7 @@ namespace nissa
     if(cudaGetDeviceCount(&nDevices)!=cudaSuccess)
       crash("no CUDA enabled device");
     
-    printf("Number of CUDA enabled devices on rank %d: %d\n",rank,nDevices);
+    printf("Number of CUDA enabled devices on rank[%d] (%s) : %d\n",rank,MPI_get_processor_name().c_str(),nDevices);
     for(int i=0;i<nDevices;i++)
       {
 	cudaDeviceProp deviceProp;

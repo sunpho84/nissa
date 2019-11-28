@@ -138,6 +138,8 @@ namespace nissa
   {
     MPI_reduce_double_vect(vect[0],2*nel);
   }
+  
+  std::string MPI_get_processor_name();
 }
 
 #endif

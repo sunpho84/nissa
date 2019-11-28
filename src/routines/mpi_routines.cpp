@@ -255,4 +255,14 @@ namespace nissa
       }
     THREAD_BARRIER();
   }
+  
+  //Return the name of the processor
+  std::string MPI_get_processor_name()
+  {
+    int resultlen=MPI_MAX_PROCESSOR_NAME;
+    char name[MPI_MAX_PROCESSOR_NAME];
+    MPI_Get_processor_name(name,&resultlen);
+    
+    return name;
+  }
 }
