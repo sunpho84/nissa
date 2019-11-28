@@ -294,9 +294,11 @@ namespace nissa
       }
     THREAD_BARRIER();
     
+    int *dest=in_buf_dest;
+    
     //sort out data from the incoming buffer
     NISSA_PARALLEL_LOOP(iel_in,0,nel_in)
-      memcpy((char*)out+in_buf_dest[iel_in]*bps,in_buf+iel_in*bps,bps);
+      memcpy((char*)out+dest[iel_in]*bps,in_buf+iel_in*bps,bps);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
