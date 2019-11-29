@@ -62,6 +62,14 @@ namespace nissa
       
       return *this;
     }
+    
+    __inline__ __host__ __device__ Compl& summ_the_prod(const Compl<O>& oth1,const Compl<O>& oth2)
+    {
+      re+=oth1.re*oth2.re-oth1.im*oth2.im;
+      im+=oth1.re*oth2.im+oth1.im*oth2.re;
+      
+      return *this;
+    }
   };
   
   namespace gpu
@@ -276,7 +284,8 @@ namespace nissa
 	      for(int ic1=0;ic1<NCOL;ic1++)
 #pragma unroll
 	  	for(int ic2=0;ic2<NCOL;ic2++)
-	  	  out(ic1,ivol_out)+=conf(mu,ic1,ic2,PAR,ivol_out)*in(ic2,ivol_up_in);
+	  	  //out(ic1,ivol_out)+=conf(mu,ic1,ic2,PAR,ivol_out)*in(ic2,ivol_up_in);
+		  out(ic1,ivol_out).summ_the_prod(conf(mu,ic1,ic2,PAR,ivol_out),in(ic2,ivol_up_in));
 	      
 	      const int64_t ivol_dw_in=// ivol_out;
 		loceo_neighdw[PAR][ivol_out][mu];
@@ -285,7 +294,7 @@ namespace nissa
 	      for(int ic1=0;ic1<NCOL;ic1++)
 #pragma unroll
 	  	for(int ic2=0;ic2<NCOL;ic2++)
-	  	  out(ic1,ivol_out)+=conf(mu,ic1,ic2,!PAR,ivol_dw_in)*in(ic2,ivol_dw_in);
+	  	  out(ic1,ivol_out).summ_the_prod(conf(mu,ic1,ic2,!PAR,ivol_dw_in),in(ic2,ivol_dw_in));
 	    }
 	}
       // else
