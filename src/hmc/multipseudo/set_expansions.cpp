@@ -63,7 +63,9 @@ namespace nissa
       return *this;
     }
     
-    __inline__ __host__ __device__ Compl& summ_the_prod(const Compl<O>& oth1,const Compl<O>& oth2)
+    template <typename O1,
+	      typename O2>
+    __inline__ __host__ __device__ Compl& summ_the_prod(const Compl<O1>& oth1,const Compl<O2>& oth2)
     {
       re+=oth1.re*oth2.re-oth1.im*oth2.im;
       im+=oth1.re*oth2.im+oth1.im*oth2.re;
