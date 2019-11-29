@@ -120,7 +120,7 @@ namespace nissa
       
       const int64_t n;
       
-      gpu_color() : n(NCOL*loc_volh)
+      gpu_color() : n(NCOL*(loc_volh+bord_volh))
       {
       }
       
@@ -198,7 +198,7 @@ namespace nissa
       
       const int64_t n;
       
-      gpu_links() : n(NDIM*NCOL*NCOL*2*loc_volh)
+      gpu_links() : n(NDIM*NCOL*NCOL*2*(loc_volh+bord_volh))
       {
       }
       
