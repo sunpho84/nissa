@@ -181,8 +181,8 @@ namespace nissa
       
       __host__ __device__ int64_t idx(const int mu,const int icol1,const int icol2,const int ieo,const int64_t ivol_eo) const
       {
-	//return ivol_eo+loc_volh*(ieo+2*(icol2+NCOL*(icol1+NCOL*mu)));
-	return ivol_eo+loc_volh*(ieo+2*(mu+NDIM*(icol2+NCOL*icol1)));
+	return ivol_eo+loc_volh*(ieo+2*(icol2+NCOL*(icol1+NCOL*mu)));
+	//return ivol_eo+loc_volh*(ieo+2*(mu+NDIM*(icol2+NCOL*icol1)));
 	//return icol2+NCOL*(icol1+NCOL*(mu+NDIM*(ivol_eo+loc_volh*ieo)));
       }
       
@@ -262,22 +262,28 @@ namespace nissa
       const int64_t ivol_out=blockIdx.x*blockDim.x+threadIdx.x;
       if(ivol_out<loc_volh)
 	{
+#pragma unroll
 	  for(int ic=0;ic<NCOL;ic++)
 	    out(ic,ivol_out)=0.0;
 	  
+#pragma unroll
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
 	      const int64_t ivol_up_in=// ivol_out;
 	      loceo_neighup[PAR][ivol_out][mu];
 	      
+#pragma unroll
 	      for(int ic1=0;ic1<NCOL;ic1++)
+#pragma unroll
 	  	for(int ic2=0;ic2<NCOL;ic2++)
 	  	  out(ic1,ivol_out)+=conf(mu,ic1,ic2,PAR,ivol_out)*in(ic2,ivol_up_in);
 	      
 	      const int64_t ivol_dw_in=// ivol_out;
 		loceo_neighdw[PAR][ivol_out][mu];
 	      
+#pragma unroll
 	      for(int ic1=0;ic1<NCOL;ic1++)
+#pragma unroll
 	  	for(int ic2=0;ic2<NCOL;ic2++)
 	  	  out(ic1,ivol_out)+=conf(mu,ic1,ic2,!PAR,ivol_dw_in)*in(ic2,ivol_dw_in);
 	    }
@@ -316,14 +322,15 @@ namespace nissa
 	{
 	  Doe_or_Deo<EVN><<<grid_dimension,block_dimension>>>(temp,conf,in);
 	  cudaDeviceSynchronize();
-	  // Doe_or_Deo<ODD><<<grid_dimension,block_dimension>>>(out,conf,temp);
-	  // cudaDeviceSynchronize();
+	  Doe_or_Deo<ODD><<<grid_dimension,block_dimension>>>(out,conf,temp);
+	  cudaDeviceSynchronize();
 	}
       
       double end=take_time();
       
       double each=(end-init)/n;
-      master_printf("Time for the improved operator: %lg s\n",each);
+      const int nflops_per_site=8*8*9*2;
+      master_printf("Time for the improved operator: %lg s, per site: %lg s, Gflops: %lg\n",each,each/loc_volh,nflops_per_site/each*loc_volh*1e-9);
 	}
       out.export_to_cpu(_out);
       
