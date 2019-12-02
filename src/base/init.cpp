@@ -20,6 +20,7 @@
 #include "base/DDalphaAMG_bridge.hpp"
 #include "base/bench.hpp"
 #include "base/debug.hpp"
+#include "base/field.hpp"
 #include "base/git_info.hpp"
 #include "base/random.hpp"
 #include "base/vectors.hpp"
@@ -299,6 +300,8 @@ namespace nissa
     init_base_gamma();
     
     master_printf("Nissa initialized!\n");
+    
+    new_index_test();
     
     const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
     if(getenv(DEBUG_LOOP_STRING)!=NULL)
