@@ -22,6 +22,7 @@ __top_builddir__lib_libnissa_a_SOURCES= \
 include_HEADERS+= \
 	%D%/bench.hpp \
 	%D%/close.hpp \
+	%D%/cuda_test.hpp \
 	%D%/debug.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
