@@ -300,17 +300,19 @@ namespace nissa
 	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
 	if(free_theory) norm*=NCOL*(NCOL+1)/4;
 	
-	// for(auto &iProjGroup : std::array<std::array<int,3>,10>
-	//       {{{5,5,0},
-	//       {1,1,1},{2,2,2},{3,3,3},
-	//       {1,2,4},{1,3,5},{2,1,6},{2,3,7},{3,1,8},{3,2,9}}})
-	for(auto &iProjGroup : std::array<std::array<int,3>,17>
+	 for(auto &iProjGroup : std::array<std::array<int,3>,NBAR_ALT_SINGLE_PROJ>
+#ifdef BAR_ALT_LIMITED_PROJ
+	       {{{5,5, 0},
+		 {1,1, 1},{2,2, 1},{3,3, 1},
+		 {1,2, 2},{1,3, 2},{2,1, 2},{2,3, 2},{3,1, 2},{3,2, 2}}})
+#else
 	      {{{5,5, 0},
 		{1,1, 1},{2,2, 1},{3,3, 1},
 		{1,2, 2},{1,3, 2},{2,1, 2},{2,3, 2},{3,1, 2},{3,2, 2},
 		{4,4, 3},
 		{4,1, 4},{4,2, 4},{4,3, 4},
 		{1,4, 5},{2,4, 5},{3,4, 5}}})
+#endif
 	  {
 	    const int igSo=iProjGroup[0];
 	    const int igSi=iProjGroup[1];
@@ -685,17 +687,13 @@ namespace nissa
     glb_nodes_reduce_complex_vect(bar2pts_alt_contr,bar2pts_alt_contr_size);
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
-      for(int iProj=0;iProj<6;iProj++)
+      for(int iProj=0;iProj<NBAR_ALT_PROJ;iProj++)
 	for(int iWick=0;iWick<2;iWick++)
 	  {
 	    //open output
 	    FILE *fout=list.open(combine("%s/bar_alt_contr_%s_proj_%d_Wick_%d",outfolder,bar2pts_contr_map[icombo].name.c_str(),iProj,iWick));
 	    
-	    std::vector<std::array<int,3>> l
-	      {{{5,5,0},
-		{1,1,1},{2,2,2},{3,3,3},
-		{1,2,4},{1,3,5},{2,1,6},{2,3,7},{3,1,8},{3,2,9}}};
-	    master_fprintf(fout,"# %d %d\n",l[iProj][0],l[iProj][1]);
+	    master_fprintf(fout,"# proj %d\n",iProj);
 	    for(int t=0;t<glb_size[0];t++)
 	      {
 		//normalize for nsources and 1+g0
