@@ -50,36 +50,29 @@ namespace nissa
     }
     
     /// Reset to standard value
-    void reset()
+    template <typename V=T>
+    void reset(const V& init)
     {
       switch(E)
 	{
 	case MINIMUM:
-	  extr=std::numeric_limits<T>::max();
+	  extr=val=init;
 	  break;
 	case MAXIMUM:
-	  extr=std::numeric_limits<T>::min();
+	  extr=val=init;
 	  break;
 	}
     }
     
     /// Constructor
     template <typename V=T>
-    ValWithExtreme(const V& init) :
-      val(init),
-      extr(init)
+    ValWithExtreme(const V& init)
     {
-    }
-    
-    /// Default constructor
-    ValWithExtreme()
-    {
-      reset();
+      reset(init);
     }
     
     /// Implicit cast to const value reference
-    operator const T&()
-      const
+    operator const T&() const
     {
       return val;
     }
