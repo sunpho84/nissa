@@ -167,7 +167,9 @@ namespace nissa
     typedef TupleFilter<filter,std::tuple<Tps...>> type;
   };
   
-  /// Directly provides the result of filtering out th types of the tuple F from Tuple Tp
+  /////////////////////////////////////////////////////////////////
+  
+  /// Directly provides the result of filtering out the types of the tuple F from Tuple Tp
   template <typename F,
 	    typename Tp>
   using TupleFilterOut=typename _TupleFilterOut<F,Tp>::type;
@@ -192,6 +194,13 @@ namespace nissa
       static constexpr bool value=(sumAll<int>(std::is_same<T,Tp>::value...)==N);
     };
   };
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Returns a tuple containing all types common to the two tuples
+  template <typename TupleToSearch,
+	    typename TupleBeingSearched>
+  using TupleCommonTypes=TupleFilter<TypeIsInList<1,TupleToSearch>::template t,TupleBeingSearched>;
 }
 
 #endif
