@@ -19,26 +19,6 @@ namespace nissa
     };
   };
   
-  /// Base type for a space index
-  struct _Space : public TensCompSize<>
-  {
-  };
-  
-  /// Base type for a color index
-  struct _Color : public TensCompSize<3>
-  {
-  };
-  
-  /// Base type for a spin index
-  struct _Spin : public TensCompSize<4>
-  {
-  };
-  
-  /// Base type for a complex index
-  struct _Compl : public TensCompSize<2>
-  {
-  };
-  
   /// Row or column
   enum RowCol{ROW,COL,ANY};
   
@@ -107,25 +87,38 @@ namespace nissa
     };
   };
   
+  /////////////////////////////////////////////////////////////////
+  
+  #define DEFINE_BASE_COMP(NAME,SIZE)			\
+  /*! Base type for a NAME index */			\
+    struct _ ## NAME : public TensCompSize<SIZE>	\
+  {							\
+  }
+  
+  /// Define a component which cannot be included more than once
+#define DEFINE_SINGLE_COMP_IDX(NAME,SIZE)		\
+  DEFINE_BASE_COMP(NAME,SIZE);				\
+  /*! NAME index */					\
+  using NAME ## Idx=TensCompIdx<_ ## NAME,ANY,0>
+  
+#define DEFINE_ROW_OR_COL_COMP_IDX(NAME,SIZE)	\
+  DEFINE_BASE_COMP(NAME,SIZE);			\
+  /*! NAME index */				\
+  template <RowCol RC=ROW,			\
+	    int Which=0>			\
+  using NAME ## Idx=TensCompIdx<_ ## NAME,RC,Which>
+  
+  /// Complex index
+  DEFINE_SINGLE_COMP_IDX(Compl,2);
+  DEFINE_ROW_OR_COL_COMP_IDX(Color,NCOL);
+  DEFINE_ROW_OR_COL_COMP_IDX(Spin,NDIRAC);
+  DEFINE_SINGLE_COMP_IDX(LocVol,DYNAMIC);
+  DEFINE_SINGLE_COMP_IDX(LocVolEvn,DYNAMIC);
+  DEFINE_SINGLE_COMP_IDX(LocVolOdd,DYNAMIC);
+  
   /// Collection of components
   template <typename...Tc>
   using TensComps=std::tuple<Tc...>;
-  
-  /// Space index
-  using SpaceIdx=TensCompIdx<_Space,ANY,0>;
-  
-  /// Spin index
-  template <RowCol RC=ROW,
-	    int Which=0>
-  using SpinIdx=TensCompIdx<_Spin,RC,Which>;
-  
-  /// Color index
-  template <RowCol RC=ROW,
-	    int Which=0>
-  using ColorIdx=TensCompIdx<_Color,RC,Which>;
-  
-  /// Complex index
-  using ComplIdx=TensCompIdx<_Compl,ANY,0>;
 }
 
 #endif
