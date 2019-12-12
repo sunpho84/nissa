@@ -20,8 +20,8 @@
 #include "base/DDalphaAMG_bridge.hpp"
 #include "base/bench.hpp"
 #include "base/debug.hpp"
-#include "base/field.hpp"
 #include "base/git_info.hpp"
+#include "base/memory_manager.hpp"
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 
@@ -166,6 +166,9 @@ namespace nissa
     //initialize the first vector of nissa
     initialize_main_vect();
     
+    //initialize the memory manager
+    memory_manager=new MemoryManager;
+    
     //initialize global variables
     lx_geom_inited=0;
 #ifdef USE_VNODES
@@ -300,8 +303,6 @@ namespace nissa
     init_base_gamma();
     
     master_printf("Nissa initialized!\n");
-    
-    new_index_test();
     
     const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
     if(getenv(DEBUG_LOOP_STRING)!=NULL)

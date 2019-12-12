@@ -22,6 +22,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gauge/watusso.cpp
 
 include_HEADERS+= \
+	%D%/fermions/fermionic_meas.hpp \
 	%D%/fermions/mesons.hpp \
 	%D%/fermions/magnetization.hpp \
 	%D%/fermions/minmax_eigenvalues.hpp \

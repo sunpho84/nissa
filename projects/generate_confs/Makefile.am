@@ -9,8 +9,7 @@ bin_PROGRAMS+= \
 generate_parser_sources= \
         %D%/parser.ypp \
         %D%/tokenizer.lpp \
-        %D%/driver.hpp \
-        %D%/redefine_yy.hpp
+        %D%/driver.hpp
 generate_parser_built_sources= \
         %D%/tokenizer.cpp \
         %D%/parser.hpp \

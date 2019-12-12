@@ -7,6 +7,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 
 include_HEADERS+= \
 	%D%/eigenvalues.hpp \
+	%D%/eigenvalues_all.hpp \
 	%D%/eigenvalues_autarchic.hpp \
 	%D%/eigenvalues_overlap.hpp \
 	%D%/eigenvalues_staggered.hpp

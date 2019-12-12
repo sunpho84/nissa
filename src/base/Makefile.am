@@ -16,8 +16,8 @@ __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/bench.cpp \
 	%D%/close.cpp \
 	%D%/debug.cpp \
-	%D%/field.cpp \
 	%D%/init.cpp \
+	%D%/memory_manager.cpp \
 	%D%/random.cpp \
 	%D%/vectors.cpp
 include_HEADERS+= \
@@ -27,6 +27,7 @@ include_HEADERS+= \
 	%D%/debug.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
+	%D%/memory_manager.hpp \
 	%D%/random.hpp \
 	%D%/vectors.hpp
 

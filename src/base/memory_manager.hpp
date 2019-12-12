@@ -5,6 +5,10 @@
 #include <vector>
 #include <cstdint>
 
+#ifndef EXTERN_MEMORY_MANAGER
+ #define EXTERN_MEMORY_MANAGER extern
+#endif
+
 #include <base/debug.hpp>
 #include <routines/ios.hpp>
 #include <new_types/value_with_extreme.hpp>
@@ -17,7 +21,7 @@ namespace nissa
 #define DEFAULT_ALIGNMENT 16
   
   /// Memory manager
-  class Memory
+  class MemoryManager
   {
     /// List of dynamical allocated memory
     std::map<void*,Size> used;
@@ -95,12 +99,12 @@ namespace nissa
       
       used.erase(el);
       
-      returnsize;
+      return size;
     }
     
     /// Adds a memory to cache
     void pushToCache(void* ptr,          ///< Memory to cache
-		     const Size size)  ///< Memory size
+		     const Size size)    ///< Memory size
     {
       cached[size].push_back(ptr);
       
@@ -282,7 +286,7 @@ namespace nissa
     }
     
     /// Create the memory manager
-    Memory() :
+    MemoryManager() :
       usedSize(0),
       cachedSize(0)
     {
@@ -290,7 +294,7 @@ namespace nissa
     }
     
     /// Destruct the memory manager
-    ~Memory()
+    ~MemoryManager()
     {
       master_printf("Stopping the memory manager\n");
       
@@ -302,8 +306,9 @@ namespace nissa
     }
   };
   
-  extern Memory memory;
-  
+  EXTERN_MEMORY_MANAGER MemoryManager *memory_manager;
 }
+
+#undef EXTERN_MEMORY_MANAGER
 
 #endif

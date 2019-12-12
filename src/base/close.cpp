@@ -8,6 +8,7 @@
 
 #include "bench.hpp"
 #include "debug.hpp"
+#include "memory_manager.hpp"
 #include "random.hpp"
 #include "vectors.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -67,6 +68,8 @@ namespace nissa
 	print_all_vect_content();
 	printf("For a total of %zu bytes\n",compute_vect_memory_usage());
       }
+    
+    delete memory_manager;
     
     tot_time+=take_time();
     master_printf("Total time: %lg s\n",tot_time);
