@@ -39,6 +39,15 @@ namespace nissa
       data(SpaceTimeProps<typename CT::SpaceTimeComp>::loc(),std::forward<S>(s)...)
     {
     }
+    
+    /// Evaluate
+    template <typename...A>
+    const F& eval(A&&...a) const
+    {
+      return data(std::forward<A>(a)...);
+    }
+    
+    PROVIDE_ALSO_NON_CONST_METHOD(eval);
   };
   
   /// Properties of components of field

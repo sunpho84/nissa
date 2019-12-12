@@ -190,9 +190,9 @@ namespace nissa
     }
     
     /// Allocate or get from cache after computing the proper size
-    template <class T=char>
+    template <class T>
     T* provideAligned(const Size nel,
-		      const Size alignment)
+		      const Size alignment=DEFAULT_ALIGNMENT)
     {
       /// Total size to allocate
       const Size size=sizeof(T)*nel;
@@ -280,7 +280,7 @@ namespace nissa
     /// Print to a stream
     void printStatistics()
     {
-      master_printf("Maximal memory used: %ld bytes, currently used: %ld bytes, number of allocation: %ld unaligned, %ld aligned\n",
+      master_printf("Maximal memory used: %ld bytes, currently used: %ld bytes, number of allocations: %ld unaligned, %ld aligned\n",
 		    usedSize.extreme(),(Size)usedSize,nUnalignedAlloc,nAlignedAlloc);
       master_printf("Maximal memory cached: %ld bytes, currently used: %ld bytes, number of reused: %ld\n",
 		    cachedSize.extreme(),(Size)cachedSize,nCachedReused);

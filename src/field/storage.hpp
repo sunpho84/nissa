@@ -21,13 +21,13 @@ namespace nissa
       /// Construct allocating data
       DynamicStorage(const Size& dynSize)
       {
-	crash("not quite yet");
+	data=memory_manager->provideAligned<Fund>(dynSize);
       }
       
       /// Destructor deallocating the memory
       ~DynamicStorage()
       {
-	delete[] data;
+	memory_manager->release(data);
       }
     };
     
