@@ -62,12 +62,12 @@
 
 #include "eigenvalues/eigenvalues.hpp"
 
-#include "fields/binder.hpp"
-#include "fields/component.hpp"
-#include "fields/features.hpp"
-#include "fields/storage.hpp"
-#include "fields/tensor.hpp"
-#include "fields/transposer.hpp"
+#include "field/binder.hpp"
+#include "field/component.hpp"
+#include "field/features.hpp"
+#include "field/storage.hpp"
+#include "field/tensor.hpp"
+#include "field/transposer.hpp"
 
 #include "free_theory/cg_eoprec_twisted_free_operator.hpp"
 #include "free_theory/free_theory_types.hpp"

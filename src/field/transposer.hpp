@@ -1,7 +1,7 @@
 #ifndef _TRANSPOSER_HPP
 #define _TRANSPOSER_HPP
 
-#include <fields/features.hpp>
+#include <field/features.hpp>
 #include <base/metaprogramming.hpp>
 
 namespace nissa

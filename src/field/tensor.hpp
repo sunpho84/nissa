@@ -1,9 +1,9 @@
 #ifndef _TENSOR_HPP
 #define _TENSOR_HPP
 
-#include "fields/component.hpp"
-#include "fields/features.hpp"
-#include "fields/storage.hpp"
+#include "component.hpp"
+#include "features.hpp"
+#include "storage.hpp"
 
 namespace nissa
 {
