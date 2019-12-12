@@ -6,5 +6,5 @@
  #include "base/memory_manager.hpp"
 
 namespace nissa
-{ 
+{
 }

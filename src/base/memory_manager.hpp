@@ -15,6 +15,7 @@
 
 namespace nissa
 {
+  /// Type used for size
   using Size=int64_t;
   
   /// Minimal alignment

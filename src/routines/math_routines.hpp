@@ -2,6 +2,7 @@
 #define _MATH_ROUTINES_HPP
 
 #include <algorithm>
+#include <functional>
 
 #include "new_types/complex.hpp"
 
@@ -68,6 +69,43 @@ namespace nissa
     dev-=ave*ave;
     dev=sqrt(dev*n/(n-1));
   }
+  
+  /// Combine the the passed list of values
+  template <typename F,
+	    typename T,
+	    typename...Ts>
+  constexpr T binaryCombine(F&& f,
+			    const T& init,
+			    Ts&&...list)
+  {
+    /// Result
+    T out=init;
+    
+    const T l[]{list...};
+    
+    for(auto i : l)
+      out=f(out,i);
+    
+    return out;
+  }
+  
+  ///Product of the arguments
+  template <typename T,
+	    typename...Ts>
+  constexpr auto productAll(Ts&&...t)
+  {
+    return binaryCombine(std::multiplies<>(),T{1},std::forward<Ts>(t)...);
+  }
+  
+  ///Sum of the arguments
+  template <typename T,
+	    typename...Ts>
+  constexpr auto sumAll(Ts&&...t)
+  {
+    return binaryCombine(std::plus<>(),T{0},std::forward<Ts>(t)...);
+  }
+  
+  
 }
 
 #endif
