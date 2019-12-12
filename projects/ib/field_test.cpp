@@ -2,13 +2,7 @@
 
 using namespace nissa;
 
-template <typename...Tp>
-struct Field
-{
-  
-};
-
-using SpinSpaceColor=TensComps<SpinIdx<ROW>,SpaceIdx,ColorIdx<ROW>>;
+using SpinSpaceColor=TensComps<SpinIdx<ROW>,LocVolIdx,ColorIdx<ROW>>;
 
 template <typename Fund>
 using SpinColorField=Tens<SpinSpaceColor,Fund>;
@@ -16,13 +10,17 @@ using SpinColorField=Tens<SpinSpaceColor,Fund>;
 using SpinColorFieldD=SpinColorField<double>;
 
 #define TEST(NAME,...)							\
-  double& NAME(SpinColorFieldD& tensor,SpinIdx<ROW> spin,ColorIdx<ROW> col,SpaceIdx space) \
+  double& NAME(SpinColorFieldD& tensor,SpinIdx<ROW> spin,ColorIdx<ROW> col,LocVolIdx space) \
   {									\
     asm("#here " #NAME "  access");					\
     return __VA_ARGS__;							\
   }
 
-SpaceIdx vol;
+LocVolIdx vol;
+
+struct _Spin : public TensCompSize<4>
+{
+};
 
 TEST(seq_fun,bindComp(tensor,col,spin,space).eval())
 
@@ -48,7 +46,7 @@ template <typename TOut,
 	  typename TIn2>
 void unsafe_su3_prod(TOut&& out,const TIn1& in1,const TIn2& in2)
 {
-  SpaceIdx s(0);
+  LocVolIdx s(0);
   
   for(ColorIdx<ROW> i1{0};i1<3;i1++)
     for(ColorIdx<COL> k2{0};k2<3;k2++)
@@ -73,7 +71,7 @@ int main()
   
   /// Fill the spincolor with flattened index
   for(SpinIdx<ROW> s(0);s<4;s++)
-    for(SpaceIdx v(0);v<vol;v++)
+    for(LocVolIdx v(0);v<vol;v++)
       for(ColorIdx<ROW> c(0);c<3;c++)
   	tensor(s,v,c)=c+3*(v+vol*s);
   
@@ -85,7 +83,7 @@ int main()
   cin>>spin;
   
   /// Space component
-  SpaceIdx space;
+  LocVolIdx space;
   cin>>space;
   
   /// Color component
@@ -109,7 +107,7 @@ int main()
   /// Trivial spin access
   double& t=triv_fun(tensor,spin,col,space);
   
-  using SU3FieldComps=TensComps<ColorIdx<ROW>,ColorIdx<COL>,SpaceIdx>;
+  using SU3FieldComps=TensComps<ColorIdx<ROW>,ColorIdx<COL>,LocVolIdx>;
   
   using SU3Field=Tens<SU3FieldComps,double>;
   
@@ -132,15 +130,15 @@ int main()
     Tens<ComplComps,double> test;
   test.trivialAccess(0)=0.0;
   
-    for(SpaceIdx v(0);v<vol;v++)
+    for(LocVolIdx v(0);v<vol;v++)
       for(ColorIdx<ROW> c1(0);c1<3;c1++)
 	for(ColorIdx<COL> c2(0);c2<3;c2++)
 	  conf1(space,c1,c2)=conf2(space,c1,c2)=conf3(space,c1,c2)=0.0;
   
   unsafe_su3_prod(conf1,conf2,conf3);
   
-  conf1(ColorIdx<COL>{0},ColorIdx<ROW>{1},SpaceIdx{0})=1.0;
-  cout<<"Transp: "<<transpose(conf1(SpaceIdx{0})(ColorIdx<ROW>{1}))(ColorIdx<ROW>{0})<<endl;
+  conf1(ColorIdx<COL>{0},ColorIdx<ROW>{1},LocVolIdx{0})=1.0;
+  cout<<"Transp: "<<transpose(conf1(LocVolIdx{0})(ColorIdx<ROW>{1}))(ColorIdx<ROW>{0})<<endl;
   
   cout<<"Test:";
   cout<<" "<<conf1[space][col][col.transp()];
