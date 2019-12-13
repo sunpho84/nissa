@@ -9,7 +9,7 @@ namespace nissa
 {
   /// Tensor with Comps components, of Fund funamental type
   template <typename Comps,
-	    typename Fund>
+	    typename Fund=double>
   struct Tens;
   
   /// Tensor
