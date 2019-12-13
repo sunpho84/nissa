@@ -129,7 +129,7 @@ namespace nissa
     using FIT=FieldInnerTypes<FL,_S,_F,_Tc>;
     
     /// Spacetime inner type
-    using S=typename FIT::S;
+    using SpaceTimeComp=typename FIT::S;
     
     /// Components
     using Comps=typename FIT::Comps;

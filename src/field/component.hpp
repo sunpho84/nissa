@@ -46,7 +46,7 @@ namespace nissa
     static constexpr bool SizeIsKnownAtCompileTime=Base::sizeAtCompileTime()!=DYNAMIC;
     
     /// Init from int
-    explicit TensCompIdx(Size i) : i(i)
+    explicit constexpr TensCompIdx(Size i) : i(i)
     {
     }
     
@@ -89,33 +89,47 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  /// Define the base type for a component of name NAME and size SIZE
   #define DEFINE_BASE_COMP(NAME,SIZE)			\
   /*! Base type for a NAME index */			\
     struct _ ## NAME : public TensCompSize<SIZE>	\
   {							\
   }
   
+  /// Provide the access to a component
+#define PROVIDE_COMP_ACCESS(ACCESS,...)		\
+  auto ACCESS(const int64_t& i)			\
+  {						\
+    return __VA_ARGS__{i};			\
+  }
+  
   /// Define a component which cannot be included more than once
-#define DEFINE_SINGLE_COMP_IDX(NAME,SIZE)		\
+#define DEFINE_SINGLE_COMP_IDX(NAME,ACCESS,SIZE)	\
   DEFINE_BASE_COMP(NAME,SIZE);				\
   /*! NAME index */					\
-  using NAME ## Idx=TensCompIdx<_ ## NAME,ANY,0>
+  using NAME ## Idx=TensCompIdx<_ ## NAME,ANY,0>;	\
+							\
+  PROVIDE_COMP_ACCESS(ACCESS,NAME ## Idx)
   
-#define DEFINE_ROW_OR_COL_COMP_IDX(NAME,SIZE)	\
-  DEFINE_BASE_COMP(NAME,SIZE);			\
-  /*! NAME index */				\
-  template <RowCol RC=ROW,			\
-	    int Which=0>			\
-  using NAME ## Idx=TensCompIdx<_ ## NAME,RC,Which>
+#define DEFINE_ROW_OR_COL_COMP_IDX(NAME,ACCESS,SIZE)	\
+  DEFINE_BASE_COMP(NAME,SIZE);				\
+  /*! NAME index */					\
+  template <RowCol RC=ROW,				\
+	    int Which=0>				\
+  using NAME ## Idx=TensCompIdx<_ ## NAME,RC,Which>;	\
+							\
+  PROVIDE_COMP_ACCESS(row ## NAME,NAME ## Idx<ROW,0>);	\
+  PROVIDE_COMP_ACCESS(col ## NAME,NAME ## Idx<COL,0>);	\
+  PROVIDE_COMP_ACCESS(ACCESS,NAME ## Idx<ROW,0>)
   
   /// Complex index
-  DEFINE_SINGLE_COMP_IDX(Compl,2);
-  DEFINE_ROW_OR_COL_COMP_IDX(Color,NCOL);
-  DEFINE_ROW_OR_COL_COMP_IDX(Spin,NDIRAC);
-  DEFINE_ROW_OR_COL_COMP_IDX(Lorentz,NDIM);
-  DEFINE_SINGLE_COMP_IDX(LocVol,DYNAMIC);
-  DEFINE_SINGLE_COMP_IDX(LocVolEvn,DYNAMIC);
-  DEFINE_SINGLE_COMP_IDX(LocVolOdd,DYNAMIC);
+  DEFINE_SINGLE_COMP_IDX(Compl,complexAccess,2);
+  DEFINE_ROW_OR_COL_COMP_IDX(Color,cl,NCOL);
+  DEFINE_ROW_OR_COL_COMP_IDX(Spin,sp,NDIRAC);
+  DEFINE_ROW_OR_COL_COMP_IDX(Lorentz,lorentz,NDIM);
+  DEFINE_SINGLE_COMP_IDX(LocVol,locVol,DYNAMIC);
+  DEFINE_SINGLE_COMP_IDX(LocVolEvn,locVolEvn,DYNAMIC);
+  DEFINE_SINGLE_COMP_IDX(LocVolOdd,locVolOdd,DYNAMIC);
   
   /// Collection of components
   template <typename...Tc>

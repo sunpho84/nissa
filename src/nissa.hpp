@@ -66,6 +66,7 @@
 #include "field/component.hpp"
 #include "field/features.hpp"
 #include "field/field.hpp"
+#include "field/physical_fields.hpp"
 #include "field/storage.hpp"
 #include "field/tensor.hpp"
 #include "field/transposer.hpp"

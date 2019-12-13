@@ -50,7 +50,7 @@ namespace nissa
   DEFINE_FIELD_WITH_DOUBLE_FLOAT(NAME,Odd,LocVolOddIdx);	\
   /*! Alias for the lx double precision version of the field */\
   using NAME ## Field = NAME ## Lx
-
+  
   /// Define a "physical field" with name NAME based on the variadic components
 #define DEFINE_PHYSICAL_FIELD(NAME,...)				     \
   DEFINE_COMPS(NAME,__VA_ARGS__);				     \
@@ -64,6 +64,26 @@ namespace nissa
   DEFINE_PHYSICAL_FIELD(SpinColorCompl,SpinIdx<>,ColorIdx<>,ComplIdx);
   DEFINE_PHYSICAL_FIELD(ColorColorCompl,ColorIdx<ROW>,ColorIdx<COL>,ComplIdx);
   DEFINE_PHYSICAL_FIELD(SpinSpinCompl,SpinIdx<ROW>,SpinIdx<COL>,ComplIdx);
+  DEFINE_PHYSICAL_FIELD(LorentzColorColorCompl,LorentzIdx<ROW>,ColorIdx<ROW>,ColorIdx<COL>,ComplIdx);
+  
+  /// Alias for LorentzColorColorCompl
+  using QuadSU3=LorentzColorColorCompl;
+  
+  /// Alias for LorentzColorColorComplField
+  using GaugeConf=LorentzColorColorComplField;
+  
+  /// Alias for even part of the gauge conf (LorentzColorColorComplField
+  using EvnGaugeConf=LorentzColorColorComplEvnD;
+  
+  /// Alias for odd part of the gauge conf (LorentzColorColorComplField
+  using OddGaugeConf=LorentzColorColorComplOddD;
+  
+  /// Real part access to complex
+  constexpr ComplIdx re{0};
+  
+  /// Imaginary part access to complex
+  constexpr ComplIdx im{1};
+  
 }
 
 #endif
