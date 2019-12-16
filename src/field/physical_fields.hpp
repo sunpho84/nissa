@@ -67,6 +67,9 @@ namespace nissa
   DEFINE_PHYSICAL_FIELD(LorentzColorColorCompl,LorentzIdx<ROW>,ColorIdx<ROW>,ColorIdx<COL>,ComplIdx);
   
   /// Alias for LorentzColorColorCompl
+  using SU3=ColorColorCompl;
+  
+  /// Alias for LorentzColorColorCompl
   using QuadSU3=LorentzColorColorCompl;
   
   /// Alias for LorentzColorColorComplField
@@ -77,13 +80,6 @@ namespace nissa
   
   /// Alias for odd part of the gauge conf (LorentzColorColorComplField
   using OddGaugeConf=LorentzColorColorComplOddD;
-  
-  /// Real part access to complex
-  constexpr ComplIdx re{0};
-  
-  /// Imaginary part access to complex
-  constexpr ComplIdx im{1};
-  
 }
 
 #endif

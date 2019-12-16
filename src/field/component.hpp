@@ -118,6 +118,9 @@ namespace nissa
 	    int Which=0>				\
   using NAME ## Idx=TensCompIdx<_ ## NAME,RC,Which>;	\
 							\
+  using Row ## NAME ## Idx = NAME ## Idx<ROW,0>;	\
+  using Col ## NAME ## Idx = NAME ## Idx<COL,0>;	\
+  							\
   PROVIDE_COMP_ACCESS(row ## NAME,NAME ## Idx<ROW,0>);	\
   PROVIDE_COMP_ACCESS(col ## NAME,NAME ## Idx<COL,0>);	\
   PROVIDE_COMP_ACCESS(ACCESS,NAME ## Idx<ROW,0>)
@@ -134,6 +137,38 @@ namespace nissa
   /// Collection of components
   template <typename...Tc>
   using TensComps=std::tuple<Tc...>;
+  
+  /// Real part access to complex
+  constexpr ComplIdx re{0};
+  
+  /// Imaginary part access to complex
+  constexpr ComplIdx im{1};
+  
+  /// Loop over a range
+#define LOOP_RANGE(TYPE,NAME,MIN,MAX)					\
+  TYPE NAME{MIN};NAME<MAX;NAME++
+  
+#define REIM(NAME) auto NAME : {re,im}
+  
+#define _ALL_ROW_OR_COL_COLORS(NAME,RC) LOOP_RANGE(ColorIdx<RC>,NAME,0,NCOL)
+#define _ALL_ROW_OR_COL_SPINS(NAME,RC) LOOP_RANGE(SpinIdx<RC>,NAME,0,NDIRAC)
+#define _ALL_ROW_OR_COL_DIRS(NAME,RC) LOOP_RANGE(LorentzIdx<RC>,NAME,0,NDIM)
+
+#define ALL_ROW_COLORS(NAME) _ALL_ROW_OR_COL_COLORS(NAME,ROW)
+#define ALL_COL_COLORS(NAME) _ALL_ROW_OR_COL_COLORS(NAME,COL)
+#define ALL_COLORS(NAME) ALL_ROW_COLORS(NAME)
+
+#define ALL_ROW_SPINS(NAME) _ALL_ROW_OR_COL_SPINS(NAME,ROW)
+#define ALL_COL_SPINS(NAME) _ALL_ROW_OR_COL_SPINS(NAME,COL)
+#define ALL_SPINS(NAME) ALL_ROW_SPINS(NAME)
+
+#define ALL_ROW_DIRS(NAME) _ALL_ROW_OR_COL_DIRS(NAME,ROW)
+#define ALL_COL_DIRS(NAME) _ALL_ROW_OR_COL_DIRS(NAME,COL)
+#define ALL_DIRS(NAME) ALL_ROW_DIRS(NAME)
+  
+#define ALL_LOC_SITES(NAME) LOOP_RANGE(LocVol,NAME,loc_vol)
+#define ALL_EVN_LOC_SITES(NAME) LOOP_RANGE(LocVolEvn,NAME,loc_volh)
+#define ALL_ODD_LOC_SITES(NAME) LOOP_RANGE(LocVolOdd,NAME,loc_volh)
 }
 
 #endif
