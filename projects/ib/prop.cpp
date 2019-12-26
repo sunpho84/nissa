@@ -201,7 +201,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    for(int mu=1;mu<NDIM;mu++) if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10) crash("Error: phase %lg must be an even integer",th);
+    for(int mu=1;mu<NDIM;mu++) if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10) crash("Error: phase %lg must be an even integer",th[mu]);
     
     vector_reset(out);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
