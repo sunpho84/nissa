@@ -30,8 +30,15 @@ namespace nissa
   /// Internal layout specifier
   enum FieldLayout{CPU,GPU,VECT};
   
+  /// Specify which kind of halo to use
+  enum HaloKind{NO_HALO,WITH_BORDERS,WITH_EDGES};
+  
   /// Ordinary layout used not specified otherwise
   static constexpr FieldLayout OrdinaryLayout=CPU;
+  
+  /// Contains the field halo properties
+  template <HaloKind>
+  struct HaloFieldProperties;
   
   /// Field type
   ///
@@ -45,15 +52,34 @@ namespace nissa
     /// Components traits
     using CT=CompsTraits<Field<_S,_Tc,_F,FL>>;
     
+    /// Kind of halo
+    const HaloKind haloKind;
+    
+    const Size spaceToAllocate() const
+    {
+      switch(haloKind)
+	{
+	}
+    }
+    
     /// Storing data
     Tens<typename CT::Comps,typename CT::F> data;
     
     /// Create taking the dynamical sizes as argument
     template <typename...D>
-    Field(D&&...d) :
+    Field(D&&...d) : Field(NO_HALO,std::forward<D>(d)...)
+    {
+    }
+    
+    /// Create taking the dynamical sizes as argument
+    template <typename...D>
+    Field(HaloKind haloKind,
+	  D&&...d) :
+      haloKind(haloKind),
       data(SpaceTimeProps<typename CT::SpaceTimeComp>::loc(),std::forward<D>(d)...)
     {
     }
+    
     
     /// Evaluate
     template <typename...A>
