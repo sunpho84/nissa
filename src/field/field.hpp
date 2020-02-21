@@ -6,34 +6,65 @@
 
 namespace nissa
 {
-  /// Properties of the SpaceTime components
-  template <typename T>
-  struct SpaceTimeProps
-  {
-    inline static T loc();
-  };
-  
-  /// Define the local properties of the given SpaceTime kind
-#define PROVIDE_LOC_PROP(TYPE,VAL)		\
-  template <>					\
-  inline TYPE SpaceTimeProps<TYPE>::loc()	\
-  {						\
-    return TYPE{VAL};				\
-  }
-  
-  PROVIDE_LOC_PROP(LocVolIdx,loc_vol)
-  PROVIDE_LOC_PROP(LocVolEvnIdx,loc_volh)
-  PROVIDE_LOC_PROP(LocVolOddIdx,loc_volh)
-  
-#undef PROVIDE_LOC_PROP
-  
   /// Internal layout specifier
   enum FieldLayout{CPU,GPU,VECT};
   
   /// Specify which kind of halo to use
   enum HaloKind{NO_HALO,WITH_BORDERS,WITH_EDGES};
   
-  /// Ordinary layout used not specified otherwise
+  /// Properties of the SpaceTime component
+  template <typename T>
+  struct SpaceTimeProps
+  {
+    inline static T locSize();
+    inline static T bordSize();
+    inline static T edgeSize();
+    
+    inline static T totSize(HaloKind haloKind)
+    {
+      switch(haloKind)
+	{
+	case NO_HALO:
+	  return locSize();
+	  break;
+	case WITH_BORDERS:
+	  return locSize()+bordSize();
+	  break;
+	case WITH_EDGES:
+	  return locSize()+bordSize()+edgeSize();
+	  break;
+	}
+    }
+  };
+  
+  /// Define the local properties of the given SpaceTime kind
+#define PROVIDE_LOC_PROP(TYPE,LOC_SIZE,BORD_SIZE,EDGE_SIZE)	\
+  template <>							\
+  inline TYPE SpaceTimeProps<TYPE>::locSize()			\
+  {								\
+    return TYPE{LOC_SIZE};					\
+  }								\
+								\
+  template <>							\
+  inline TYPE SpaceTimeProps<TYPE>::bordSize()			\
+  {								\
+    return TYPE{BORD_SIZE};					\
+  }								\
+								\
+								\
+  template <>							\
+  inline TYPE SpaceTimeProps<TYPE>::edgeSize()			\
+  {								\
+    return TYPE{EDGE_SIZE};					\
+  }
+  
+  PROVIDE_LOC_PROP(LocVolIdx,loc_vol,bord_vol,edge_vol)
+  PROVIDE_LOC_PROP(LocVolEvnIdx,loc_volh,bord_volh,edge_volh)
+  PROVIDE_LOC_PROP(LocVolOddIdx,loc_volh,bord_volh,edge_volh)
+  
+#undef PROVIDE_LOC_PROP
+  
+  /// Ordinary layout used when not specified otherwise
   static constexpr FieldLayout OrdinaryLayout=CPU;
   
   /// Contains the field halo properties
@@ -55,13 +86,6 @@ namespace nissa
     /// Kind of halo
     const HaloKind haloKind;
     
-    const Size spaceToAllocate() const
-    {
-      switch(haloKind)
-	{
-	}
-    }
-    
     /// Storing data
     Tens<typename CT::Comps,typename CT::F> data;
     
@@ -76,7 +100,7 @@ namespace nissa
     Field(HaloKind haloKind,
 	  D&&...d) :
       haloKind(haloKind),
-      data(SpaceTimeProps<typename CT::SpaceTimeComp>::loc(),std::forward<D>(d)...)
+      data(SpaceTimeProps<typename CT::SpaceTimeComp>::totSize(haloKind),std::forward<D>(d)...)
     {
     }
     

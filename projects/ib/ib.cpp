@@ -369,15 +369,53 @@ void close()
     }
   free_bar2pts_contr();
 }
+using Y=SpinColorComplField;
 
+// template <typename D>
+// void fuffa(D&& out)
+// {
+//   out(cl(2),sp(1),re)=1.0;
+// }
+// namespace nissa
+// {
+//   void fu1(Y& y)
+//   {
+//  asm("#here3");
+//  fuffa(y(LocVolIdx{1}));
+//  asm("#here4");
+//   }
+  
+//   void fu2(Y& x)
+//   {
+//     NISSA_PARALLEL_LOOP(RowSpin,sp,0)
+//     NISSA_PARALLEL_LOOP(RowSpin,sp,0)
+//     NISSA_PARALLEL_LOOP(RowSpin,sp,0)
+//   asm("#here1");
+//   for(ALL_SPINS(sp))
+//     for(ALL_COLORS(cl))
+//       REIM_LOOP(reim,)
+//  x(LocVolIdx{1},cl,sp,reim)=1.0;
+//  asm("#here2");
+ 
+//  SU3 su3;
+//  for(ALL_ROW_COLORS(cl1))
+//    for(ALL_COL_COLORS(cl2))
+//      for(REIM(reim))
+//        su3(cl1,cl2,reim)=(cl1==cl2) and (reim==1);
+//   }
+  
+// }
 void in_main(int narg,char **arg)
 {
+  Y a(true);
+  
   //Basic mpi initialization
   tot_prog_time-=take_time();
   
   //init simulation according to input file
   init_simulation(narg,arg);
   
+
   //loop over the configs
   int iconf=0;
   while(read_conf_parameters(iconf,finish_file_present))
