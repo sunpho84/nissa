@@ -3,6 +3,7 @@
 #endif
 
 #include "hmc/fermions/rootst_eoimpr_quark_force.hpp"
+#include "hmc/fermions/roottm_clov_eoimpr_quark_force.hpp"
 #include "hmc/hmc.hpp"
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 #include "hmc/theory_pars.hpp"
@@ -49,6 +50,8 @@ namespace nissa
 	    {
 	    case ferm_discretiz::ROOT_STAG:
 	      summ_the_rootst_eoimpr_quark_force(F,tp->quarks[iflav].charge,conf,(*pf)[iflav][ipf].stag,tp->em_field_pars.flag,tp->backfield[iflav],&((*appr)[iflav*nappr_per_quark+RAT_APPR_QUARK_FORCE]),residue);break;
+	    case ferm_discretiz::ROOT_TM_CLOV:
+	      summ_the_roottm_clov_eoimpr_quark_force(F,tp->quarks[iflav].charge,conf,(*pf)[iflav][ipf].Wils,tp->em_field_pars.flag,tp->backfield[iflav],&((*appr)[iflav*nappr_per_quark+RAT_APPR_QUARK_FORCE]),residue);break;
 	    default:
 	      crash("non staggered not yet implemented");
 	    }

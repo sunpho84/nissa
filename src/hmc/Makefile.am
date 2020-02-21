@@ -4,6 +4,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/backfield.cpp \
 	%D%/theory_pars.cpp \
 	%D%/fermions/rootst_eoimpr_quark_force.cpp \
+	%D%/fermions/roottm_clov_eoimpr_quark_force.cpp \
 	%D%/fermions/pseudofermions_generation.cpp \
 	%D%/gauge/MFACC_fields.cpp \
 	%D%/gauge/gluonic_force.cpp \
@@ -31,6 +32,7 @@ include_HEADERS+= \
 	%D%/quark_pars.hpp \
 	%D%/theory_pars.hpp \
 	%D%/fermions/rootst_eoimpr_quark_force.hpp \
+	%D%/fermions/roottm_clov_eoimpr_quark_force.hpp \
 	%D%/fermions/pseudofermions_generation.hpp \
 	%D%/gauge/MFACC_fields.hpp \
 	%D%/gauge/gluonic_action.hpp \

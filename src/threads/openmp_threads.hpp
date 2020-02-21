@@ -9,9 +9,6 @@
 #include <cstdint>
 
 #include "base/debug.hpp"
-#ifdef THREAD_DEBUG
- #include "base/random.hpp"
-#endif
 #include "new_types/float_128.hpp"
 
 #if defined BGQ && !defined BGQ_EMU
@@ -530,6 +527,7 @@ namespace nissa
    EXTERN_THREADS int glb_barr_line;
    EXTERN_THREADS char glb_barr_file[1024];
   #if THREAD_DEBUG >=2
+    class rnd_gen;
     EXTERN_THREADS rnd_gen *delay_rnd_gen;
     EXTERN_THREADS int *delayed_thread_barrier;
   #endif
