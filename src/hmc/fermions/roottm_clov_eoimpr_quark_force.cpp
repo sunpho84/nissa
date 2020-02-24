@@ -7,13 +7,13 @@
 #include "communicate/borders.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "hmc/backfield.hpp"
-#include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
+#include "inverters/twisted_clover/cgm_invert_tmclovDkern_eoprec_square_portable.hpp"
 #include "new_types/su3.hpp"
 #include "threads/threads.hpp"
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_8ARG(summ_the_roottm_clov_eoimpr_quark_force, quad_su3**,F, double,charge, quad_su3**,eo_conf, spincolor*,pf, int,quantization, quad_u1**,u1b, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_10ARG(summ_the_roottm_clov_eoimpr_quark_force, quad_su3**,F, quad_su3**,eo_conf, double,kappa, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, double,mass, spincolor*,pf, quad_u1**,u1b, rat_approx_t*,appr, double,residue)
   {
     GET_THREAD_ID();
     
@@ -32,7 +32,7 @@ namespace nissa
     
     //invert the various terms
     STOP_TIMING(quark_force_over_time);
-    crash("");
+    inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec(chi_e,eo_conf,kappa,Cl_odd,invCl_evn,mass,appr->poles.data(),appr->degree(),10000000,residue,pf);
     //inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec(chi_e,eo_conf,appr->poles.data(),appr->degree(),1000000,residue,pf);
     UNPAUSE_TIMING(quark_force_over_time);
     
