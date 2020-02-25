@@ -7,8 +7,8 @@
 
 namespace nissa
 {
-  void summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(spincolor *sol, quad_su3 **conf, double kappa, clover_term_t *Cl_odd, inv_clover_term_t *invCl_evn, double mass, nissa::rat_approx_t *appr, int niter_max, double req_res, spincolor *source);
-  void inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec(spincolor **sol, quad_su3 **conf, double kappa, clover_term_t *Cl_odd, inv_clover_term_t *invCl_evn, double mass, double *shift, int nshift, int niter_max, double req_res, spincolor *source);
+  void summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(spincolor *sol, quad_su3 **conf, double kappa, clover_term_t *Cl_odd, inv_clover_term_t *invCl_evn, nissa::rat_approx_t *appr, int niter_max, double req_res, spincolor *source);
+  void inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec(spincolor **sol, quad_su3 **conf, double kappa, clover_term_t *Cl_odd, inv_clover_term_t *invCl_evn, double *shift, int nshift, int niter_max, double req_res, spincolor *source);
 }
 
 #endif

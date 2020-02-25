@@ -57,7 +57,8 @@ namespace nissa
 	switch(quark->discretiz)
 	  {
 	  case ferm_discretiz::ROOT_STAG:
-	    apply_stD2ee_m2(out.stag,eo_conf,temp1.stag,sqr(quark->mass),in.stag);break;
+	    apply_stD2ee_m2(out.stag,eo_conf,temp1.stag,sqr(quark->mass),in.stag);
+	    break;
 	  case ferm_discretiz::ROOT_TM_CLOV:
 	    tmclovDkern_eoprec_square_eos(out.Wils,temp1.Wils,temp2.Wils,eo_conf,quark->kappa,Cl[ODD],invCl_evn,quark->mass,in.Wils);
 	    break;

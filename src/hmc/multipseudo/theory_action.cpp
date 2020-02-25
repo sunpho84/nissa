@@ -67,7 +67,7 @@ namespace nissa
 		summ_src_and_all_inv_stD2ee_m2_cgm(chi_e.stag,eo_conf,r,1000000,res,p.stag);
 		break;
 	      case ferm_discretiz::ROOT_TM_CLOV:
-		summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi_e.Wils,eo_conf,q.kappa,Cl[ODD],invCl_evn,q.mass,r,1000000,res,p.Wils);
+		summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi_e.Wils,eo_conf,q.kappa,Cl[ODD],invCl_evn,r,1000000,res,p.Wils);
 		break;
 	      default: crash("still not implemented");
 	      }
