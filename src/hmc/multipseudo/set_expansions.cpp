@@ -81,6 +81,9 @@ namespace nissa
     //assume a 10% excess
     (*eig_max)*=1.1;
     verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark->mass,*eig_max);
+    
+    if(ferm_discretiz::include_clover(quark->discretiz))
+      nissa_free(invCl_evn);
   }
   THREADABLE_FUNCTION_END
   
@@ -288,6 +291,9 @@ namespace nissa
     //wait
     if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
     THREAD_BARRIER();
+    
+    if(theory_pars->clover_to_be_computed())
+      for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
   }
   THREADABLE_FUNCTION_END
 }
