@@ -44,6 +44,7 @@ namespace nissa
     if(ferm_discretiz::include_clover(quark->discretiz))
       {
 	invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+	chromo_operator_include_cSW(Cl,quark->cSW);
 	invert_twisted_clover_term(invCl_evn,quark->mass,quark->kappa,Cl[EVN]);
       }
     
@@ -83,7 +84,10 @@ namespace nissa
     verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark->mass,*eig_max);
     
     if(ferm_discretiz::include_clover(quark->discretiz))
-      nissa_free(invCl_evn);
+      {
+	chromo_operator_remove_cSW(Cl,quark->cSW);
+	nissa_free(invCl_evn);
+      }
   }
   THREADABLE_FUNCTION_END
   
