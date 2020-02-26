@@ -594,6 +594,107 @@ bool check_if_continue()
   return true;
 }
 
+void test_TM()
+{
+  master_printf("Testing TM\n");
+  
+  spincolor *out=nissa_malloc("out",loc_volh,spincolor);
+  spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
+  spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
+  double kappa=0.24;
+  double mu=0.124;
+  double cSW=0.0;
+  
+  /// Preprare clover
+  clover_term_t *Cl[2]={NULL,NULL};
+  for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  /// Prepare inverse clover
+  inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+  invert_twisted_clover_term(invCl_evn,mu,kappa,Cl[EVN]);
+  
+  spincolor *in=nissa_malloc("in",loc_volh,spincolor);
+  generate_fully_undiluted_eo_source(in,RND_Z2,-1,ODD);
+
+  auto act=[=]()
+	   {
+	     tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl_evn,mu,in);
+	     double act;
+	     double_vector_glb_scalar_prod(&act,(double*)in,(double*)out,loc_volh*sizeof(spincolor)/sizeof(double));
+	     return act;
+	   };
+  
+  //store initial link and compute action
+  const bool eo=1;
+  su3& l=conf[eo][0][0];
+  su3 sto;
+  su3_copy(sto,l);
+  double act_ori=act();
+    
+  //store derivative
+  su3 nu_plus,nu_minus;
+  su3_put_to_zero(nu_plus);
+  su3_put_to_zero(nu_minus);
+  
+  const double eps=1e-4;
+  for(int igen=0;igen<NCOL*NCOL-1;igen++)
+    {
+      //prepare increment and change
+      su3 ba;
+      su3_prod_double(ba,gell_mann_matr[igen],eps/2);
+      su3 exp_mod;
+      safe_hermitian_exact_i_exponentiate(exp_mod,ba);
+      
+      //change -, compute action
+      unsafe_su3_dag_prod_su3(l,exp_mod,sto);
+      double act_minus=act();
+	
+      //change +, compute action
+      unsafe_su3_prod_su3(l,exp_mod,sto);
+      double act_plus=act();
+      
+      //set back everything
+      su3_copy(l,sto);
+      
+      //printf("plus: %+016.016le, ori: %+16.16le, minus: %+16.16le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
+      double gr_plus=-(act_plus-act_ori)/eps;
+      double gr_minus=-(act_ori-act_minus)/eps;
+      su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus);
+      su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus);
+    }
+  
+  //take the average
+  su3 nu;
+  su3_summ(nu,nu_plus,nu_minus);
+  su3_prodassign_double(nu,0.5);
+  
+  master_printf("Comparing derivative\n");
+  // master_printf("an\n");
+  // su3_print(F[0]);
+  master_printf("nu+\n");
+  su3_print(nu_plus);
+  master_printf("nu-\n");
+  su3_print(nu_minus);
+  master_printf("nu\n");
+  su3_print(nu);
+  // su3 diff;
+  // su3_subt(diff,F[0],nu_plus);
+  // master_printf("Norm of the difference+: %lg\n",sqrt(su3_norm2(diff)));
+  // su3_subt(diff,F[0],nu_minus);
+  // master_printf("Norm of the difference-: %lg\n",sqrt(su3_norm2(diff)));
+  // su3_subt(diff,F[0],nu);
+  // master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
+  
+  chromo_operator_remove_cSW(Cl,cSW);
+  
+  nissa_free(temp2);
+  nissa_free(temp1);
+  nissa_free(out);
+  nissa_free(in);
+}
+
 //run the program for "production" mode
 void run_program_for_production()
 {
@@ -603,6 +704,9 @@ void run_program_for_production()
   while(check_if_continue())
     {
       double init_traj_time=take_time();
+      
+      test_TM();
+      crash("");
       
       // 1) produce new conf
       int acc=1;
