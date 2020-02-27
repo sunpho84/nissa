@@ -27,7 +27,7 @@ namespace nissa
 	{
 	  Y[eo][iterm]=nissa_malloc("Y",loc_volh+bord_volh,spincolor);
 	  X[eo][iterm]=nissa_malloc("X",loc_volh+bord_volh,spincolor);
-      }
+	}
     
     //add the background fields
     add_backfield_without_stagphases_to_conf(eo_conf,u1b);

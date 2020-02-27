@@ -594,45 +594,137 @@ bool check_if_continue()
   return true;
 }
 
+THREADABLE_FUNCTION_6ARG(apply_test, spincolor*,out, quad_su3*,conf, double,kappa, clover_term_t*,Cl, double,mu, spincolor*,in)
+{
+  communicate_lx_spincolor_borders(in);
+  communicate_lx_quad_su3_borders(conf);
+  
+  vector_reset(out);
+  
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    {
+      //Forward 0
+      int iup=loclx_neighup[ivol][0];
+      unsafe_su3_prod_spincolor(out[ivol],conf[ivol][0],in[iup]);
+      
+      //Backward 0
+      int idw=loclx_neighdw[ivol][0];
+      su3_dag_summ_the_prod_spincolor(out[ivol],conf[idw][0],in[idw]);
+      
+      spincolor_prodassign_double(out[ivol],0.5);
+    }
+  NISSA_PARALLEL_LOOP_END;
+  
+  set_borders_invalid(out);
+}
+THREADABLE_FUNCTION_END
+
+void test_an(su3 F,int ivol,int mu,quad_su3* conf,spincolor *Y)
+{
+  int iup=loclx_neighup[ivol][mu];
+  su3_put_to_zero(F);
+  
+  for(int ic1=0;ic1<NCOL;ic1++)
+    for(int ic2=0;ic2<NCOL;ic2++)
+      for(int id=0;id<NDIRAC;id++)
+  	{
+  	  complex_summ_the_conj2_prod(F[ic1][ic2],Y[iup][id][ic1],Y[ivol][id][ic2]);
+	  //complex_subt_the_conj1_prod(F[ic1][ic2],Y[iup][id][ic1],Y[ivol][id][ic2]);
+  	}
+  // //Forward 0
+  // int iup=loclx_neighup[ivol][0];
+  // unsafe_su3_prod_spincolor(F,conf[ivol][0],Y[iup]);
+  
+  // //Backward 0
+  // int idw=loclx_neighdw[ivol][0];
+  // su3_dag_subt_the_prod_spincolor(F,conf[idw][0],Y[idw]);
+  
+  // spincolor_prodassign_double(F,0.5);
+  
+  // spincolor y1,y2;
+  // const spincolor& y=Y[ivol];
+  // const spincolor& yup=Y[iup];
+  // spincolor_copy(y1,yup);
+  // spincolor_copy(y2,y);
+  // dirac_summ_the_prod_spincolor(y1,&base_gamma[igamma_of_mu[mu]],yup);
+  // dirac_subt_the_prod_spincolor(y2,&base_gamma[igamma_of_mu[mu]],y);
+  // unsafe_dirac_prod_spincolor(y1,base_gamma+5,y1);///it's just a sign
+  // unsafe_dirac_prod_spincolor(y2,base_gamma+5,y2);
+  
+  // for(int ic1=0;ic1<NCOL;ic1++)
+  //   for(int ic2=0;ic2<NCOL;ic2++)
+  //     {
+  // 	complex xy1={0.0,0.0};
+  // 	complex xy2={0.0,0.0};
+  // 	for(int id=0;id<NDIRAC;id++)
+  // 	  {
+  // 	    complex_summ_the_conj1_prod(xy1,y[id][ic1],y1[id][ic2]);
+  // 	    complex_summ_the_conj2_prod(xy2,yup[id][ic1],y2[id][ic2]);
+  // 	  }
+	
+  // 	complex xy;
+  // 	complex_subt(xy,xy1,xy2);
+	
+  // 	complex_summ_the_prod_double(F[ic1][ic2],xy,0.5);
+  //     }
+}
+
 void test_TM()
 {
   master_printf("Testing TM\n");
   
-  spincolor *out=nissa_malloc("out",loc_volh,spincolor);
-  spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
-  spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
+  spincolor *out=nissa_malloc("out",loc_vol,spincolor);
+  spincolor *temp1=nissa_malloc("temp1",loc_vol,spincolor);
+  spincolor *temp2=nissa_malloc("temp2",loc_vol,spincolor);
   double kappa=0.24;
-  double mu=0.124;
+  double mass=0.124;
   double cSW=0.0;
   
-  /// Preprare clover
-  clover_term_t *Cl[2]={NULL,NULL};
-  for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
-  chromo_operator(Cl,conf);
-  chromo_operator_include_cSW(Cl,cSW);
+  //generate_cold_eo_conf(conf);
+  generate_hot_eo_conf(conf);
+  
+  //chromo_operator_include_cSW(Cl,cSW);
   
   /// Prepare inverse clover
-  inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
-  invert_twisted_clover_term(invCl_evn,mu,kappa,Cl[EVN]);
+  // inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+  // invert_twisted_clover_term(invCl_evn,mu,kappa,Cl[EVN]);
   
-  spincolor *in=nissa_malloc("in",loc_volh,spincolor);
-  generate_fully_undiluted_eo_source(in,RND_Z2,-1,ODD);
-
-  auto act=[=]()
+  spincolor *in=nissa_malloc("in",loc_vol,spincolor);
+  generate_undiluted_source(in,RND_GAUSS,-1);
+  
+  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
+  auto act=[in,lx_conf,out,kappa,mass,cSW]()
 	   {
-	     tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl_evn,mu,in);
-	     double act;
-	     double_vector_glb_scalar_prod(&act,(double*)in,(double*)out,loc_volh*sizeof(spincolor)/sizeof(double));
-	     return act;
+	     paste_eo_parts_into_lx_vector(lx_conf,conf);
+	     
+	     /// Preprare clover
+	     clover_term_t *Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
+	     chromo_operator(Cl,lx_conf);
+	     
+	     apply_test(out,lx_conf,kappa,Cl,mass,in);
+	     // apply_tmclovQ(out,lx_conf,kappa,Cl,mass,in);
+	     //tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl_evn,mu,in);
+	     complex act;
+	     complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_vol*sizeof(spincolor)/sizeof(complex));
+	     
+	     chromo_operator_remove_cSW(Cl,cSW);
+	     
+	     nissa_free(Cl);
+	     
+	     master_printf("%lg %lg\n",act[RE],act[IM]);
+	     
+	     return act[RE];
 	   };
   
   //store initial link and compute action
-  const bool eo=1;
-  su3& l=conf[eo][0][0];
+  const int ivol=0,dir=0;
+  const bool eo=loclx_parity[ivol],ieo=loceo_of_loclx[ivol];
+  su3& l=conf[eo][ieo][dir];
   su3 sto;
   su3_copy(sto,l);
   double act_ori=act();
-    
+  
   //store derivative
   su3 nu_plus,nu_minus;
   su3_put_to_zero(nu_plus);
@@ -650,7 +742,7 @@ void test_TM()
       //change -, compute action
       unsafe_su3_dag_prod_su3(l,exp_mod,sto);
       double act_minus=act();
-	
+      
       //change +, compute action
       unsafe_su3_prod_su3(l,exp_mod,sto);
       double act_plus=act();
@@ -669,16 +761,19 @@ void test_TM()
   su3 nu;
   su3_summ(nu,nu_plus,nu_minus);
   su3_prodassign_double(nu,0.5);
-  
-  master_printf("Comparing derivative\n");
-  // master_printf("an\n");
-  // su3_print(F[0]);
-  master_printf("nu+\n");
-  su3_print(nu_plus);
-  master_printf("nu-\n");
-  su3_print(nu_minus);
   master_printf("nu\n");
   su3_print(nu);
+  
+  su3 an;
+  paste_eo_parts_into_lx_vector(lx_conf,conf);
+  test_an(an,ivol,dir,lx_conf,in);
+  su3 r1;
+  unsafe_su3_prod_su3(r1,lx_conf[ivol][dir],an);
+  unsafe_su3_traceless_anti_hermitian_part(an,r1);
+  
+  master_printf("Comparing derivative\n");
+  master_printf("an\n");
+  su3_print(an);
   // su3 diff;
   // su3_subt(diff,F[0],nu_plus);
   // master_printf("Norm of the difference+: %lg\n",sqrt(su3_norm2(diff)));
@@ -687,8 +782,7 @@ void test_TM()
   // su3_subt(diff,F[0],nu);
   // master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
   
-  chromo_operator_remove_cSW(Cl,cSW);
-  
+  nissa_free(lx_conf);
   nissa_free(temp2);
   nissa_free(temp1);
   nissa_free(out);
