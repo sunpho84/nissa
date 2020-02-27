@@ -599,20 +599,24 @@ THREADABLE_FUNCTION_6ARG(apply_test, spincolor*,out, quad_su3*,conf, double,kapp
   communicate_lx_spincolor_borders(in);
   communicate_lx_quad_su3_borders(conf);
   
-  vector_reset(out);
-  
   GET_THREAD_ID();
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(X,0,loc_vol)
     {
+      int Xup,Xdw;
+      
+      spincolor temp;
+      
       //Forward 0
-      int iup=loclx_neighup[ivol][0];
-      unsafe_su3_prod_spincolor(out[ivol],conf[ivol][0],in[iup]);
+      Xup=loclx_neighup[X][0];
+      unsafe_dirac_prod_spincolor(temp,base_gamma+4,in[Xup]);
+      unsafe_su3_prod_spincolor(out[X],conf[X][0],temp);
       
       //Backward 0
-      int idw=loclx_neighdw[ivol][0];
-      su3_dag_summ_the_prod_spincolor(out[ivol],conf[idw][0],in[idw]);
+      Xdw=loclx_neighdw[X][0];
+      unsafe_dirac_prod_spincolor(temp,base_gamma+4,in[Xdw]);
+      su3_dag_summ_the_prod_spincolor(out[X],conf[Xdw][0],temp);
       
-      spincolor_prodassign_double(out[ivol],0.5);
+      spincolor_prodassign_double(out[X],0.5);
     }
   NISSA_PARALLEL_LOOP_END;
   
@@ -622,14 +626,21 @@ THREADABLE_FUNCTION_END
 
 void test_an(su3 F,int ivol,int mu,quad_su3* conf,spincolor *Y)
 {
-  int iup=loclx_neighup[ivol][mu];
+  int X=ivol,Xup;
+  
+  spincolor temp,*in=Y;
+  
+  //Forward 0
+  Xup=loclx_neighup[X][0];
+  unsafe_dirac_prod_spincolor(temp,base_gamma+4,in[Xup]);
+  
   su3_put_to_zero(F);
   
   for(int ic1=0;ic1<NCOL;ic1++)
     for(int ic2=0;ic2<NCOL;ic2++)
       for(int id=0;id<NDIRAC;id++)
   	{
-  	  complex_summ_the_conj2_prod(F[ic1][ic2],Y[iup][id][ic1],Y[ivol][id][ic2]);
+  	  complex_summ_the_conj2_prod(F[ic1][ic2],temp[id][ic1],Y[ivol][id][ic2]);
 	  //complex_subt_the_conj1_prod(F[ic1][ic2],Y[iup][id][ic1],Y[ivol][id][ic2]);
   	}
   // //Forward 0
