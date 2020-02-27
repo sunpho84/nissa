@@ -608,14 +608,17 @@ THREADABLE_FUNCTION_6ARG(apply_test, spincolor*,out, quad_su3*,conf, double,kapp
       
       //Forward 0
       Xup=loclx_neighup[X][0];
-      unsafe_dirac_prod_spincolor(temp,base_gamma+4,in[Xup]);
+      unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xup]);
+      dirac_summ_the_prod_spincolor(temp,base_gamma+4,in[Xup]);
       unsafe_su3_prod_spincolor(out[X],conf[X][0],temp);
       
       //Backward 0
       Xdw=loclx_neighdw[X][0];
-      unsafe_dirac_prod_spincolor(temp,base_gamma+4,in[Xdw]);
+      unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xdw]);
+      dirac_subt_the_prod_spincolor(temp,base_gamma+4,in[Xdw]);
       su3_dag_summ_the_prod_spincolor(out[X],conf[Xdw][0],temp);
       
+      safe_dirac_prod_spincolor(out[X],base_gamma+5,out[X]);
       spincolor_prodassign_double(out[X],0.5);
     }
   NISSA_PARALLEL_LOOP_END;
@@ -632,53 +635,16 @@ void test_an(su3 F,int ivol,int mu,quad_su3* conf,spincolor *Y)
   
   //Forward 0
   Xup=loclx_neighup[X][0];
-  unsafe_dirac_prod_spincolor(temp,base_gamma+4,in[Xup]);
+  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xup]);
+  dirac_summ_the_prod_spincolor(temp,base_gamma+4,in[Xup]);
+  safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
   
   su3_put_to_zero(F);
   
   for(int ic1=0;ic1<NCOL;ic1++)
     for(int ic2=0;ic2<NCOL;ic2++)
       for(int id=0;id<NDIRAC;id++)
-  	{
-  	  complex_summ_the_conj2_prod(F[ic1][ic2],temp[id][ic1],Y[ivol][id][ic2]);
-	  //complex_subt_the_conj1_prod(F[ic1][ic2],Y[iup][id][ic1],Y[ivol][id][ic2]);
-  	}
-  // //Forward 0
-  // int iup=loclx_neighup[ivol][0];
-  // unsafe_su3_prod_spincolor(F,conf[ivol][0],Y[iup]);
-  
-  // //Backward 0
-  // int idw=loclx_neighdw[ivol][0];
-  // su3_dag_subt_the_prod_spincolor(F,conf[idw][0],Y[idw]);
-  
-  // spincolor_prodassign_double(F,0.5);
-  
-  // spincolor y1,y2;
-  // const spincolor& y=Y[ivol];
-  // const spincolor& yup=Y[iup];
-  // spincolor_copy(y1,yup);
-  // spincolor_copy(y2,y);
-  // dirac_summ_the_prod_spincolor(y1,&base_gamma[igamma_of_mu[mu]],yup);
-  // dirac_subt_the_prod_spincolor(y2,&base_gamma[igamma_of_mu[mu]],y);
-  // unsafe_dirac_prod_spincolor(y1,base_gamma+5,y1);///it's just a sign
-  // unsafe_dirac_prod_spincolor(y2,base_gamma+5,y2);
-  
-  // for(int ic1=0;ic1<NCOL;ic1++)
-  //   for(int ic2=0;ic2<NCOL;ic2++)
-  //     {
-  // 	complex xy1={0.0,0.0};
-  // 	complex xy2={0.0,0.0};
-  // 	for(int id=0;id<NDIRAC;id++)
-  // 	  {
-  // 	    complex_summ_the_conj1_prod(xy1,y[id][ic1],y1[id][ic2]);
-  // 	    complex_summ_the_conj2_prod(xy2,yup[id][ic1],y2[id][ic2]);
-  // 	  }
-	
-  // 	complex xy;
-  // 	complex_subt(xy,xy1,xy2);
-	
-  // 	complex_summ_the_prod_double(F[ic1][ic2],xy,0.5);
-  //     }
+	complex_summ_the_conj2_prod(F[ic1][ic2],temp[id][ic1],Y[ivol][id][ic2]);
 }
 
 void test_TM()
