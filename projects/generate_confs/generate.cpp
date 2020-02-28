@@ -630,78 +630,14 @@ THREADABLE_FUNCTION_6ARG(apply_test, spincolor*,out, quad_su3*,conf, double,kapp
 }
 THREADABLE_FUNCTION_END
 
-void test_an(su3 F,int ivol,int mu,quad_su3* conf,spincolor *Y)
+template <typename F,
+	  typename...Ts>
+void get_num(su3 nu,int eo,int ieo,int dir,F& act,Ts&&...ts)
 {
-  int X=ivol,Xup;
-  
-  spincolor temp,*in=Y;
-  
-  su3_put_to_zero(F);
-  
-  Xup=loclx_neighup[X][mu];
-  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xup]);
-  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[mu],in[Xup]);
-  safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
-  
-  for(int ic1=0;ic1<NCOL;ic1++)
-    for(int ic2=0;ic2<NCOL;ic2++)
-      for(int id=0;id<NDIRAC;id++)
-	complex_subt_the_conj2_prod(F[ic1][ic2],temp[id][ic1],Y[ivol][id][ic2]);
-}
-
-void test_TM()
-{
-  master_printf("Testing TM\n");
-  
-  spincolor *out=nissa_malloc("out",loc_vol,spincolor);
-  spincolor *temp1=nissa_malloc("temp1",loc_vol,spincolor);
-  spincolor *temp2=nissa_malloc("temp2",loc_vol,spincolor);
-  double kappa=0.24;
-  double mass=0.0;
-  double cSW=0.0;
-  
-  //generate_cold_eo_conf(conf);
-  generate_hot_eo_conf(conf);
-  
-  /// Prepare inverse clover
-  // inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
-  // invert_twisted_clover_term(invCl_evn,mu,kappa,Cl[EVN]);
-  
-  spincolor *in=nissa_malloc("in",loc_vol,spincolor);
-  generate_undiluted_source(in,RND_GAUSS,-1);
-  
-  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
-  auto act=[in,lx_conf,out,kappa,mass,cSW]()
-	   {
-	     paste_eo_parts_into_lx_vector(lx_conf,conf);
-	     
-	     /// Preprare clover
-	     clover_term_t *Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
-	     chromo_operator(Cl,lx_conf);
-	     chromo_operator_include_cSW(Cl,cSW);
-	     
-	     //apply_test(out,lx_conf,kappa,Cl,mass,in);
-	     apply_tmclovQ(out,lx_conf,kappa,Cl,mass,in);
-	     //tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl_evn,mu,in);
-	     complex act;
-	     complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_vol*sizeof(spincolor)/sizeof(complex));
-	     
-	     chromo_operator_remove_cSW(Cl,cSW);
-	     
-	     nissa_free(Cl);
-	     
-	     master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
-	     
-	     return act[RE];
-	   };
-  
-  //store initial link and compute action
-  const int ivol=0,dir=0;
-  const bool eo=loclx_parity[ivol],ieo=loceo_of_loclx[ivol];
   su3& l=conf[eo][ieo][dir];
   su3 sto;
   su3_copy(sto,l);
-  double act_ori=act();
+  double act_ori=act(ts...);
   
   //store derivative
   su3 nu_plus,nu_minus;
@@ -719,11 +655,11 @@ void test_TM()
       
       //change -, compute action
       unsafe_su3_dag_prod_su3(l,exp_mod,sto);
-      double act_minus=act();
+      double act_minus=act(ts...);
       
       //change +, compute action
       unsafe_su3_prod_su3(l,exp_mod,sto);
-      double act_plus=act();
+      double act_plus=act(ts...);
       
       //set back everything
       su3_copy(l,sto);
@@ -736,18 +672,105 @@ void test_TM()
     }
   
   //take the average
-  su3 nu;
   su3_summ(nu,nu_plus,nu_minus);
   su3_prodassign_double(nu,0.5);
   master_printf("nu\n");
   su3_print(nu);
+}
+
+double xQx(spincolor *in,double kappa,double mass,double cSW)
+{
+  spincolor *out=nissa_malloc("out",loc_vol,spincolor);
+  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
+  paste_eo_parts_into_lx_vector(lx_conf,conf);
+  
+  /// Preprare clover
+  clover_term_t *Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
+  chromo_operator(Cl,lx_conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  //apply_test(out,lx_conf,kappa,Cl,mass,in);
+  apply_tmclovQ(out,lx_conf,kappa,Cl,mass,in);
+  //tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl_evn,mu,in);
+  complex act;
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_vol*sizeof(spincolor)/sizeof(complex));
+  
+  chromo_operator_remove_cSW(Cl,cSW);
+  
+  nissa_free(Cl);
+  
+  master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
+  
+  nissa_free(lx_conf);
+  nissa_free(out);
+  
+  return act[RE];
+}
+
+void xQx_der(su3 an,int eo,int ieo,int dir,spincolor *in)
+{
+  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
+  paste_eo_parts_into_lx_vector(lx_conf,conf);
+  
+  int ivol=loclx_of_loceo[eo][ieo];
+  
+  spincolor temp;
+  
+  su3_put_to_zero(an);
+  
+  int iup=loclx_neighup[ivol][dir];
+  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[iup]);
+  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[dir],in[iup]);
+  safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
+  
+  for(int ic1=0;ic1<NCOL;ic1++)
+    for(int ic2=0;ic2<NCOL;ic2++)
+      for(int id=0;id<NDIRAC;id++)
+	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],in[ivol][id][ic2]);
+  
+  nissa_free(lx_conf);
+}
+
+template <typename F,
+	  typename...Ts>
+void get_an(su3 an,int eo,int ieo,int dir,F& der,Ts&&...ts)
+{
+  der(an,eo,ieo,dir,ts...);
+  
+  su3 r1;
+  unsafe_su3_prod_su3(r1,conf[eo][ieo][dir],an);
+  unsafe_su3_traceless_anti_hermitian_part(an,r1);
+}
+
+void test_TM()
+{
+  master_printf("Testing TM\n");
+  
+  spincolor *temp1=nissa_malloc("temp1",loc_vol,spincolor);
+  spincolor *temp2=nissa_malloc("temp2",loc_vol,spincolor);
+  double kappa=0.24;
+  double mass=0.0;
+  double cSW=0.0;
+  
+  //generate_cold_eo_conf(conf);
+  generate_hot_eo_conf(conf);
+  
+  /// Prepare inverse clover
+  // inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+  // invert_twisted_clover_term(invCl_evn,mu,kappa,Cl[EVN]);
+  
+  spincolor *in=nissa_malloc("in",loc_vol,spincolor);
+  generate_undiluted_source(in,RND_GAUSS,-1);
+  
+  //store initial link and compute action
+  const int ivol=0,dir=0;
+  const bool eo=loclx_parity[ivol],ieo=loceo_of_loclx[ivol];
+  
+  su3 nu;
+  get_num(nu,eo,ieo,dir,xQx,in,kappa,mass,cSW);
   
   su3 an;
-  paste_eo_parts_into_lx_vector(lx_conf,conf);
-  test_an(an,ivol,dir,lx_conf,in);
-  su3 r1;
-  unsafe_su3_prod_su3(r1,lx_conf[ivol][dir],an);
-  unsafe_su3_traceless_anti_hermitian_part(an,r1);
+  get_an(an,eo,ieo,dir,xQx_der,in);
   
   master_printf("Comparing derivative\n");
   master_printf("an\n");
@@ -760,10 +783,8 @@ void test_TM()
   // su3_subt(diff,F[0],nu);
   // master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
   
-  nissa_free(lx_conf);
   nissa_free(temp2);
   nissa_free(temp1);
-  nissa_free(out);
   nissa_free(in);
 }
 
