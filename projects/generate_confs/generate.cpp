@@ -594,7 +594,7 @@ bool check_if_continue()
   return true;
 }
 
-THREADABLE_FUNCTION_6ARG(apply_test, spincolor*,out, quad_su3*,conf, double,kappa, clover_term_t*,Cl, double,mu, spincolor*,in)
+THREADABLE_FUNCTION_6ARG(apply_test, spincolor*,out, quad_su3*,conf, double,kappa, clover_term_t*,Cl, double,mass, spincolor*,in)
 {
   communicate_lx_spincolor_borders(in);
   communicate_lx_quad_su3_borders(conf);
@@ -602,24 +602,27 @@ THREADABLE_FUNCTION_6ARG(apply_test, spincolor*,out, quad_su3*,conf, double,kapp
   GET_THREAD_ID();
   NISSA_PARALLEL_LOOP(X,0,loc_vol)
     {
-      int Xup,Xdw;
+      spincolor_put_to_zero(out[X]);
       
-      spincolor temp;
-      
-      //Forward 0
-      Xup=loclx_neighup[X][0];
-      unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xup]);
-      dirac_summ_the_prod_spincolor(temp,base_gamma+4,in[Xup]);
-      unsafe_su3_prod_spincolor(out[X],conf[X][0],temp);
-      
-      //Backward 0
-      Xdw=loclx_neighdw[X][0];
-      unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xdw]);
-      dirac_subt_the_prod_spincolor(temp,base_gamma+4,in[Xdw]);
-      su3_dag_summ_the_prod_spincolor(out[X],conf[Xdw][0],temp);
+      for(int mu=0;mu<NDIM;mu++)
+	{
+	  spincolor temp;
+	  
+	  //Forward
+	  int Xup=loclx_neighup[X][0];
+	  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xup]);
+	  dirac_summ_the_prod_spincolor(temp,base_gamma+igamma_of_mu[mu],in[Xup]);
+	  su3_summ_the_prod_spincolor(out[X],conf[X][mu],temp);
+	  
+	  //Backward
+	  int Xdw=loclx_neighdw[X][0];
+	  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xdw]);
+	  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[mu],in[Xdw]);
+	  su3_dag_summ_the_prod_spincolor(out[X],conf[Xdw][mu],temp);
+	}
       
       safe_dirac_prod_spincolor(out[X],base_gamma+5,out[X]);
-      spincolor_prodassign_double(out[X],0.5);
+      spincolor_prodassign_double(out[X],-0.5);
     }
   NISSA_PARALLEL_LOOP_END;
   
@@ -633,18 +636,17 @@ void test_an(su3 F,int ivol,int mu,quad_su3* conf,spincolor *Y)
   
   spincolor temp,*in=Y;
   
-  //Forward 0
-  Xup=loclx_neighup[X][0];
-  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xup]);
-  dirac_summ_the_prod_spincolor(temp,base_gamma+4,in[Xup]);
-  safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
-  
   su3_put_to_zero(F);
+  
+  Xup=loclx_neighup[X][mu];
+  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xup]);
+  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[mu],in[Xup]);
+  safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
   
   for(int ic1=0;ic1<NCOL;ic1++)
     for(int ic2=0;ic2<NCOL;ic2++)
       for(int id=0;id<NDIRAC;id++)
-	complex_summ_the_conj2_prod(F[ic1][ic2],temp[id][ic1],Y[ivol][id][ic2]);
+	complex_subt_the_conj2_prod(F[ic1][ic2],temp[id][ic1],Y[ivol][id][ic2]);
 }
 
 void test_TM()
@@ -655,13 +657,11 @@ void test_TM()
   spincolor *temp1=nissa_malloc("temp1",loc_vol,spincolor);
   spincolor *temp2=nissa_malloc("temp2",loc_vol,spincolor);
   double kappa=0.24;
-  double mass=0.124;
+  double mass=0.0;
   double cSW=0.0;
   
   //generate_cold_eo_conf(conf);
   generate_hot_eo_conf(conf);
-  
-  //chromo_operator_include_cSW(Cl,cSW);
   
   /// Prepare inverse clover
   // inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
@@ -678,9 +678,10 @@ void test_TM()
 	     /// Preprare clover
 	     clover_term_t *Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
 	     chromo_operator(Cl,lx_conf);
+	     chromo_operator_include_cSW(Cl,cSW);
 	     
-	     apply_test(out,lx_conf,kappa,Cl,mass,in);
-	     // apply_tmclovQ(out,lx_conf,kappa,Cl,mass,in);
+	     //apply_test(out,lx_conf,kappa,Cl,mass,in);
+	     apply_tmclovQ(out,lx_conf,kappa,Cl,mass,in);
 	     //tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl_evn,mu,in);
 	     complex act;
 	     complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_vol*sizeof(spincolor)/sizeof(complex));
@@ -689,7 +690,7 @@ void test_TM()
 	     
 	     nissa_free(Cl);
 	     
-	     master_printf("%lg %lg\n",act[RE],act[IM]);
+	     master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
 	     
 	     return act[RE];
 	   };
