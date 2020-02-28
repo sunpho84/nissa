@@ -594,42 +594,9 @@ bool check_if_continue()
   return true;
 }
 
-THREADABLE_FUNCTION_6ARG(apply_test, spincolor*,out, quad_su3*,conf, double,kappa, clover_term_t*,Cl, double,mass, spincolor*,in)
-{
-  communicate_lx_spincolor_borders(in);
-  communicate_lx_quad_su3_borders(conf);
-  
-  GET_THREAD_ID();
-  NISSA_PARALLEL_LOOP(X,0,loc_vol)
-    {
-      spincolor_put_to_zero(out[X]);
-      
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  spincolor temp;
-	  
-	  //Forward
-	  int Xup=loclx_neighup[X][0];
-	  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xup]);
-	  dirac_summ_the_prod_spincolor(temp,base_gamma+igamma_of_mu[mu],in[Xup]);
-	  su3_summ_the_prod_spincolor(out[X],conf[X][mu],temp);
-	  
-	  //Backward
-	  int Xdw=loclx_neighdw[X][0];
-	  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[Xdw]);
-	  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[mu],in[Xdw]);
-	  su3_dag_summ_the_prod_spincolor(out[X],conf[Xdw][mu],temp);
-	}
-      
-      safe_dirac_prod_spincolor(out[X],base_gamma+5,out[X]);
-      spincolor_prodassign_double(out[X],-0.5);
-    }
-  NISSA_PARALLEL_LOOP_END;
-  
-  set_borders_invalid(out);
-}
-THREADABLE_FUNCTION_END
+/////////////////////////////////////////////////////////////////
 
+// computing numerically
 template <typename F,
 	  typename...Ts>
 void get_num(su3 nu,int eo,int ieo,int dir,F& act,Ts&&...ts)
@@ -674,9 +641,45 @@ void get_num(su3 nu,int eo,int ieo,int dir,F& act,Ts&&...ts)
   //take the average
   su3_summ(nu,nu_plus,nu_minus);
   su3_prodassign_double(nu,0.5);
+}
+
+/// computing analytically
+template <typename F,
+	  typename...Ts>
+void get_an(su3 an,int eo,int ieo,int dir,F& der,Ts&&...ts)
+{
+  der(an,eo,ieo,dir,ts...);
+  
+  su3 r1;
+  unsafe_su3_prod_su3(r1,conf[eo][ieo][dir],an);
+  unsafe_su3_traceless_anti_hermitian_part(an,r1);
+}
+
+template <typename FNu,
+	  typename FAn,
+	  typename...Ts>
+void compare(int eo,int ieo,int dir,FNu fnu,FAn fan,Ts...ts)
+{
+  su3 nu;
+  get_num(nu,eo,ieo,dir,fnu,ts...);
+  
   master_printf("nu\n");
   su3_print(nu);
+  
+  su3 an;
+  get_an(an,eo,ieo,dir,fan,ts...);
+  
+  master_printf("an\n");
+  su3_print(an);
+  
+  su3 diff;
+  su3_subt(diff,an,nu);
+  master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
 }
+
+/////////////////////////////////////////////////////////////////
+
+// XQX functional
 
 double xQx(spincolor *in,double kappa,double mass,double cSW)
 {
@@ -707,7 +710,7 @@ double xQx(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQx_der(su3 an,int eo,int ieo,int dir,spincolor *in)
+void xQx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
 {
   quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
   paste_eo_parts_into_lx_vector(lx_conf,conf);
@@ -731,23 +734,12 @@ void xQx_der(su3 an,int eo,int ieo,int dir,spincolor *in)
   nissa_free(lx_conf);
 }
 
-template <typename F,
-	  typename...Ts>
-void get_an(su3 an,int eo,int ieo,int dir,F& der,Ts&&...ts)
-{
-  der(an,eo,ieo,dir,ts...);
-  
-  su3 r1;
-  unsafe_su3_prod_su3(r1,conf[eo][ieo][dir],an);
-  unsafe_su3_traceless_anti_hermitian_part(an,r1);
-}
+/////////////////////////////////////////////////////////////////
 
 void test_TM()
 {
   master_printf("Testing TM\n");
   
-  spincolor *temp1=nissa_malloc("temp1",loc_vol,spincolor);
-  spincolor *temp2=nissa_malloc("temp2",loc_vol,spincolor);
   double kappa=0.24;
   double mass=0.0;
   double cSW=0.0;
@@ -763,28 +755,13 @@ void test_TM()
   generate_undiluted_source(in,RND_GAUSS,-1);
   
   //store initial link and compute action
-  const int ivol=0,dir=0;
-  const bool eo=loclx_parity[ivol],ieo=loceo_of_loclx[ivol];
+  const bool eo=EVN;
+  const int ieo=0;
+  const int dir=0;
   
-  su3 nu;
-  get_num(nu,eo,ieo,dir,xQx,in,kappa,mass,cSW);
-  
-  su3 an;
-  get_an(an,eo,ieo,dir,xQx_der,in);
-  
+  compare(eo,ieo,dir,xQx,xQx_der,in,kappa,mass,cSW);
   master_printf("Comparing derivative\n");
-  master_printf("an\n");
-  su3_print(an);
-  // su3 diff;
-  // su3_subt(diff,F[0],nu_plus);
-  // master_printf("Norm of the difference+: %lg\n",sqrt(su3_norm2(diff)));
-  // su3_subt(diff,F[0],nu_minus);
-  // master_printf("Norm of the difference-: %lg\n",sqrt(su3_norm2(diff)));
-  // su3_subt(diff,F[0],nu);
-  // master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
   
-  nissa_free(temp2);
-  nissa_free(temp1);
   nissa_free(in);
 }
 
