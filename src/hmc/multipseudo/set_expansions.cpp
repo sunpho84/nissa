@@ -23,7 +23,7 @@ namespace nissa
   //fourth root of 2, used to extend the range of eigenvalues
   const double enl_gen=pow(2,0.25);
   
-  //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
+  //Return the maximal eigenvalue of the Dirac operator for the passed quark
   THREADABLE_FUNCTION_6ARG(max_eigenval, double*,eig_max, quark_content_t*,quark, quad_su3**,eo_conf, clover_term_t**,Cl, quad_u1**,backfield, int,niters)
   {
     pseudofermion_t in(quark->discretiz);
@@ -39,7 +39,11 @@ namespace nissa
     verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
     
     //prepare the ingredients
-    add_backfield_with_stagphases_to_conf(eo_conf,backfield);
+    if(ferm_discretiz::is_stag(quark->discretiz))
+      add_backfield_with_stagphases_to_conf(eo_conf,backfield);
+    else
+      add_backfield_without_stagphases_to_conf(eo_conf,backfield);
+    
     inv_clover_term_t *invCl_evn=NULL;
     if(ferm_discretiz::include_clover(quark->discretiz))
       {
@@ -74,10 +78,13 @@ namespace nissa
 	if((iter++)>0) is_increasing=(*eig_max/old_eig_max-1>1e-14);
 	verbosity_lv2_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark->mass,iter,*eig_max);
       }
-    while(iter<niters&&is_increasing);
+    while(iter<niters and is_increasing);
     
     //remove the background field
-    rem_backfield_with_stagphases_from_conf(eo_conf,backfield);
+    if(ferm_discretiz::is_stag(quark->discretiz))
+      rem_backfield_with_stagphases_from_conf(eo_conf,backfield);
+    else
+      rem_backfield_without_stagphases_from_conf(eo_conf,backfield);
     
     //assume a 10% excess
     (*eig_max)*=1.1;

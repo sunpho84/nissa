@@ -73,35 +73,17 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
-	      int iup=loceo_neighup[eo][ieo][mu];
+	      int Xup=loceo_neighup[eo][ieo][mu];
 	      
-	      spincolor y1,y2;
-	      const spincolor& y=Y[eo][iterm][ieo],&x=X[eo][iterm][ieo];
-	      const spincolor& yup=Y[!eo][iterm][iup],&xup=X[!eo][iterm][iup];
-	      spincolor_copy(y1,yup);
-	      spincolor_copy(y2,y);
-	      dirac_summ_the_prod_spincolor(y1,&base_gamma[igamma_of_mu[mu]],yup);
-	      dirac_subt_the_prod_spincolor(y2,&base_gamma[igamma_of_mu[mu]],y);
-	      unsafe_dirac_prod_spincolor(y1,base_gamma+5,y1);///it's just a sign
-	      unsafe_dirac_prod_spincolor(y2,base_gamma+5,y2);
+	      spincolor s;
+	      spincolor_copy(s,Y[!eo][iterm][Xup]);
+	      dirac_subt_the_prod_spincolor(s,base_gamma+igamma_of_mu[mu],Y[!eo][iterm][Xup]);
+	      safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
 	      
 	      for(int ic1=0;ic1<NCOL;ic1++)
 		for(int ic2=0;ic2<NCOL;ic2++)
-		  {
-		    complex xy1={0.0,0.0};
-		    complex xy2={0.0,0.0};
-		    for(int id=0;id<NDIRAC;id++)
-		      {
-			complex_summ_the_conj1_prod(xy1,x[id][ic1],y1[id][ic2]);
-			complex_summ_the_conj2_prod(xy2,xup[id][ic1],y2[id][ic2]);
-		      }
-		    
-		    complex xy;
-		    unsafe_complex_prod(xy,u1b[eo][ieo][mu],xy1);
-		    complex_subt_the_conj1_prod(xy,u1b[!eo][iup][mu],xy2);
-		    
-		    complex_summ_the_prod_double(F[EVN][ieo][mu][ic1][ic2],xy,appr->weights[iterm]*0.5);
-		  }
+		  for(int id=0;id<NDIRAC;id++)
+		    complex_subt_the_conj2_prod(F[eo][ieo][mu][ic1][ic2],s[id][ic1],X[eo][iterm][ieo][id][ic2]);
 	    }
     NISSA_PARALLEL_LOOP_END;
     

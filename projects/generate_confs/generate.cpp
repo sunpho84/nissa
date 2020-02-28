@@ -663,33 +663,36 @@ void test_TM()
   //generate_cold_eo_conf(conf);
   generate_hot_eo_conf(conf);
   
-  /// Prepare inverse clover
-  // inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
-  // invert_twisted_clover_term(invCl_evn,mu,kappa,Cl[EVN]);
-  
   spincolor *in=nissa_malloc("in",loc_vol,spincolor);
   generate_undiluted_source(in,RND_GAUSS,-1);
   
   quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
   auto act=[in,lx_conf,out,kappa,mass,cSW]()
 	   {
+	     clover_term_t *Cl[2]={NULL,NULL};
+	     for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+	     chromo_operator(Cl,conf);
+	     
+	     inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+	     chromo_operator_include_cSW(Cl,cSW);
+	     invert_twisted_clover_term(invCl_evn,mass,kappa,Cl[EVN]);
+	     
 	     paste_eo_parts_into_lx_vector(lx_conf,conf);
 	     
-	     /// Preprare clover
-	     clover_term_t *Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
-	     chromo_operator(Cl,lx_conf);
-	     chromo_operator_include_cSW(Cl,cSW);
+	     spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
+	     spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
 	     
 	     //apply_test(out,lx_conf,kappa,Cl,mass,in);
-	     apply_tmclovQ(out,lx_conf,kappa,Cl,mass,in);
-	     //tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl_evn,mu,in);
+	     //apply_tmclovQ(out,lx_conf,kappa,Cl,mass,in);
+	     tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl_evn,mass,in);
 	     complex act;
-	     complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_vol*sizeof(spincolor)/sizeof(complex));
+	     complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_volh*sizeof(spincolor)/sizeof(complex));
 	     
 	     chromo_operator_remove_cSW(Cl,cSW);
 	     
-	     nissa_free(Cl);
-	     
+	     for(int eo=0;eo<2;eo++)
+	       nissa_free(Cl[eo]);
+	     nissa_free(invCl_evn);
 	     master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
 	     
 	     return act[RE];
