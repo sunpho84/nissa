@@ -335,9 +335,13 @@ void close()
   free_photon_fields();
   free_loop_source();
   free_L_prop();
-  nissa_free(glb_conf);
-  nissa_free(inner_conf);
-  nissa_free(ape_smeared_conf);
+  // if there was only one hit, we've freed the gauges before starting
+  // the contactions
+  if(nhits > 1){
+    nissa_free(glb_conf);
+    nissa_free(inner_conf);
+    nissa_free(ape_smeared_conf);
+  }
   
   free_mes2pts_contr();
   free_handcuffs_contr();
@@ -378,6 +382,11 @@ void in_main(int narg,char **arg)
 	  start_hit(ihit);
 	  generate_propagators(ihit);
 	  compute_contractions();
+          if(nhits == 1){
+            nissa_free(glb_conf);
+            nissa_free(inner_conf);
+            nissa_free(ape_smeared_conf);
+          }
 	  propagators_fft(ihit);
 	}
       print_contractions();
