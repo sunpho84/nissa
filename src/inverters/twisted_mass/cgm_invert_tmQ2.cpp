@@ -1,5 +1,5 @@
 #include <math.h>
-
+#include <cmath>
 #include "cg_128_invert_tmQ2.hpp"
 
 #include "base/bench.hpp"

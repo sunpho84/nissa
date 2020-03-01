@@ -3,7 +3,7 @@
 #endif
 
 #include <math.h>
-
+#include <cmath>
 #ifdef BGQ
  #include "cg_64_invert_tmD_eoprec_bgq.hpp"
  #include "geometry/geometry_eo.hpp"
