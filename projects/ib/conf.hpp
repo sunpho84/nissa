@@ -24,12 +24,15 @@ namespace nissa
   EXTERN_CONF char conf_path[1024],outfolder[1024];
   EXTERN_CONF int ngauge_conf;
   EXTERN_CONF int inner_conf_valid;
+  EXTERN_CONF bool conf_allocated INIT_TO(false);
   EXTERN_CONF quad_su3 *glb_conf INIT_TO(NULL);
   EXTERN_CONF quad_su3 *inner_conf INIT_TO(NULL);
   EXTERN_CONF quad_su3 *ape_smeared_conf INIT_TO(NULL);
   
   EXTERN_CONF int lock_fd;
   
+  void allocate_confs();
+  void free_confs();
   void read_init_grid();
   void generate_random_coord(coords);
   quad_su3* get_updated_conf(double charge,double *theta,quad_su3 *in_conf);

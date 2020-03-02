@@ -327,9 +327,6 @@ void init_simulation(int narg,char **arg)
   allocate_bar2pts_contr();
   
   allocate_L_prop();
-  glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   lock_file.init();
 }
@@ -344,9 +341,6 @@ void close()
   free_photon_fields();
   free_loop_source();
   free_L_prop();
-  nissa_free(glb_conf);
-  nissa_free(inner_conf);
-  nissa_free(ape_smeared_conf);
   
   free_mes2pts_contr();
   free_handcuffs_contr();
@@ -368,6 +362,8 @@ void close()
       nissa_free(invCl);
     }
   free_bar2pts_contr();
+  
+  free_confs();
 }
 
 void in_main(int narg,char **arg)
@@ -389,6 +385,8 @@ void in_main(int narg,char **arg)
 	  compute_contractions();
 	  propagators_fft(ihit);
 	}
+      
+      free_confs();
       print_contractions();
       
       mark_finished();

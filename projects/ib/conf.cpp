@@ -23,6 +23,40 @@ namespace nissa
   bool finish_file_present()
   {return not file_exists(combine("%s/finished",outfolder).c_str());}
   
+  //allocate confs needed by the program
+  void allocate_confs()
+  {
+    if(not conf_allocated)
+      {
+	master_printf("Allocating confs\n");
+	
+	glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+	inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+	ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+      }
+    else
+      master_printf("Skipping allocating confs\n");
+    
+    conf_allocated=true;
+  }
+  
+  //freeing the confs
+  void free_confs()
+  {
+    if(conf_allocated)
+      {
+	master_printf("Freeing confs\n");
+	
+	nissa_free(glb_conf);
+	nissa_free(inner_conf);
+	nissa_free(ape_smeared_conf);
+      }
+    else
+      master_printf("Skipping freeing confs\n");
+    
+    conf_allocated=false;
+  }
+  
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {
@@ -179,6 +213,8 @@ namespace nissa
     //check that there are still conf to go
     int still_conf=iconf<ngauge_conf;
     verbosity_lv2_master_printf("Still conf: %d\n",still_conf);
+    
+    allocate_confs();
     
     int ok_conf=false;
     if(!asked_stop and !asked_restart and enough_time and still_conf)

@@ -3,6 +3,7 @@
 #endif
 
 #include <math.h>
+#include <cmath>
 
 #ifdef BGQ
  #include "cg_64_invert_tmclovD_eoprec_bgq.hpp"
