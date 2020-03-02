@@ -11,7 +11,6 @@
 
 #include <stdint.h>
 #include <routines/math_routines.hpp>
-#include <threads/threads.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
  #define EXTERN_GEOMETRY_LX extern
