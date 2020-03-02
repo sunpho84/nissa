@@ -383,9 +383,10 @@ void in_main(int narg,char **arg)
 	  start_hit(ihit);
 	  generate_propagators(ihit);
 	  compute_contractions();
-	  free_confs();
 	  propagators_fft(ihit);
 	}
+      
+      free_confs();
       print_contractions();
       
       mark_finished();
