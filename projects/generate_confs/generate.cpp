@@ -758,8 +758,8 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
-  //inv_tmclovDee_or_oo_eos(temp,invCl[EVN],false,out);
-  tmn2Deo_eos(temp,conf,in);
+  tmn2Deo_eos(out,conf,in);
+  inv_tmclovDee_or_oo_eos(temp,invCl[EVN],false,out);
   tmn2Doe_eos(out,conf,temp);
    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
@@ -772,7 +772,7 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
     	    }
     NISSA_PARALLEL_LOOP_END;
 
-    // tmclovDkern_eoprec_eos(out,temp,conf,kappa,Cl[ODD],invCl[EVN],false,mass,in);
+     tmclovDkern_eoprec_eos(out,temp,conf,kappa,Cl[ODD],invCl[EVN],false,mass,in);
 
   complex act;
   complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_volh*sizeof(spincolor)/sizeof(complex));
@@ -809,7 +809,7 @@ void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double 
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
-  // spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
+  spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
   spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
   tmn2Deo_eos(temp2,conf,in);
    GET_THREAD_ID();
@@ -818,10 +818,11 @@ void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double 
     	for(int ic=0;ic<NCOL;ic++)
     	  for(int ri=0;ri<2;ri++)
     	    { //gamma5 is explicitely implemented
-    	      temp2[ivol][id  ][ic][ri]*=-0.25;
-    	      temp2[ivol][id+NDIRAC/2][ic][ri]*=+0.25;
+    	      temp2[ivol][id  ][ic][ri]*=+0.5;
+    	      temp2[ivol][id+NDIRAC/2][ic][ri]*=-0.5;
     	    }
     NISSA_PARALLEL_LOOP_END;
+  inv_tmclovDee_or_oo_eos(temp1,invCl[EVN],true,temp2);
   //inv_tmclovDee_or_oo_eos(temp2,invCl[EVN],false,temp1);
   
   int iup=loceo_neighup[eo][ieo][dir];
@@ -832,7 +833,7 @@ void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double 
   for(int ic1=0;ic1<NCOL;ic1++)
     for(int ic2=0;ic2<NCOL;ic2++)
       for(int id=0;id<NDIRAC;id++)
-	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],temp2[ieo][id][ic2]);
+	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],temp1[ieo][id][ic2]);
 }
 
 /////////////////////////////////////////////////////////////////
