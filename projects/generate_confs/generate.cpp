@@ -742,7 +742,7 @@ quad_su3 *ref_conf[2];
 double xQhatx(spincolor *in,double kappa,double mass,double cSW)
 {
   spincolor *out=nissa_malloc("out",loc_volh,spincolor);
-  // spincolor *temp=nissa_malloc("temp",loc_volh,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_volh,spincolor);
   
   /// Preprare clover
   clover_term_t *Cl[2];
@@ -758,19 +758,19 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
-  //tmn2Deo_eos(temp,conf,in);
   //inv_tmclovDee_or_oo_eos(temp,invCl[EVN],false,out);
-  tmn2Doe_eos(out,conf,in);
-    // GET_THREAD_ID();
-    // NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-    //   for(int id=0;id<NDIRAC/2;id++)
-    // 	for(int ic=0;ic<NCOL;ic++)
-    // 	  for(int ri=0;ri<2;ri++)
-    // 	    { //gamma5 is explicitely implemented
-    // 	      out[ivol][id  ][ic][ri]=-out[ivol][id  ][ic][ri]*0.25;
-    // 	      out[ivol][id+NDIRAC/2][ic][ri]=+out[ivol][id+2][ic][ri]*0.25;
-    // 	    }
-    // NISSA_PARALLEL_LOOP_END;
+  tmn2Deo_eos(temp,conf,in);
+  tmn2Doe_eos(out,conf,temp);
+   GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+      for(int id=0;id<NDIRAC/2;id++)
+    	for(int ic=0;ic<NCOL;ic++)
+    	  for(int ri=0;ri<2;ri++)
+    	    { //gamma5 is explicitely implemented
+    	      out[ivol][id  ][ic][ri]=-out[ivol][id  ][ic][ri]*0.25;
+    	      out[ivol][id+NDIRAC/2][ic][ri]=+out[ivol][id+2][ic][ri]*0.25;
+    	    }
+    NISSA_PARALLEL_LOOP_END;
 
     // tmclovDkern_eoprec_eos(out,temp,conf,kappa,Cl[ODD],invCl[EVN],false,mass,in);
 
@@ -784,6 +784,7 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
   master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
   
   nissa_free(out);
+  nissa_free(temp);
   
   return act[RE];
 }
@@ -809,8 +810,18 @@ void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double 
     }
   
   // spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
-  //spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
-  //tmn2Deo_eos(temp2,conf,in);
+  spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
+  tmn2Deo_eos(temp2,conf,in);
+   GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+      for(int id=0;id<NDIRAC/2;id++)
+    	for(int ic=0;ic<NCOL;ic++)
+    	  for(int ri=0;ri<2;ri++)
+    	    { //gamma5 is explicitely implemented
+    	      temp2[ivol][id  ][ic][ri]*=-0.25;
+    	      temp2[ivol][id+NDIRAC/2][ic][ri]*=+0.25;
+    	    }
+    NISSA_PARALLEL_LOOP_END;
   //inv_tmclovDee_or_oo_eos(temp2,invCl[EVN],false,temp1);
   
   int iup=loceo_neighup[eo][ieo][dir];
@@ -821,7 +832,7 @@ void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double 
   for(int ic1=0;ic1<NCOL;ic1++)
     for(int ic2=0;ic2<NCOL;ic2++)
       for(int id=0;id<NDIRAC;id++)
-	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],in[ieo][id][ic2]);
+	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],temp2[ieo][id][ic2]);
 }
 
 /////////////////////////////////////////////////////////////////
