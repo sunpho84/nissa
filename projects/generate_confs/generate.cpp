@@ -733,11 +733,35 @@ void xQx_der(su3 an,int eo,int ieo,int dir,spincolor *in_l,spincolor *in_r,doubl
   nissa_free(lx_conf);
 }
 
+void test_xQx()
+{
+  master_printf("Testing TM\n");
+  
+  double kappa=0.24;
+  double mass=1;
+  double cSW=0.0;
+  
+  //generate_cold_eo_conf(conf);
+  generate_hot_eo_conf(conf);
+  
+  spincolor *in=nissa_malloc("in",loc_vol,spincolor);
+  generate_undiluted_source(in,RND_GAUSS,-1);
+  
+  //store initial link and compute action
+  const bool eo=EVN;
+  const int ieo=0;
+  const int dir=0;
+  
+  compare(eo,ieo,dir,xQx,xQx_der,in,in,kappa,mass,cSW);
+  
+  master_printf("Comparing derivative of xQx for link %d %d %d\n",(int)eo,ieo,dir);
+  
+  nissa_free(in);
+}
+
 /////////////////////////////////////////////////////////////////
 
 // XQhatX functional
-
-quad_su3 *ref_conf[2];
 
 double xQhatx(spincolor *in,double kappa,double mass,double cSW)
 {
@@ -839,68 +863,26 @@ void xQhatx_der_bis(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,dou
     }
   
   //allocate each terms of the expansion
-  spincolor *_X[2],/**_Y[2],*/*temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+  spincolor *_X[2],*temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
   for(int eo=0;eo<2;eo++)
-    // {
-      _X[eo]=nissa_malloc("_X",loc_volh+bord_volh,spincolor);
-    //   _Y[eo]=nissa_malloc("_Y",loc_volh+bord_volh,spincolor);
-    // }
+    _X[eo]=nissa_malloc("_X",loc_volh+bord_volh,spincolor);
   
   vector_copy(_X[ODD],in);
-  // tmclovDkern_eoprec_eos(_Y[ODD],temp,conf,kappa,Cl[ODD],invCl[EVN],true,mass,_X[ODD]);
   
   tmn2Deo_eos(temp,conf,_X[ODD]);
   inv_tmclovDee_or_oo_eos(_X[EVN],invCl[EVN],true,temp); //Remove -2 and add -1
   double_vector_prodassign_double((double*)(_X[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
   
-  // tmn2Deo_eos(temp,conf,_Y[ODD]);
-  // inv_tmclovDee_or_oo_eos(_Y[EVN],invCl[EVN],false,temp);
-  // double_vector_prodassign_double((double*)(_Y[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
-  
   spincolor *X=nissa_malloc("X",loc_vol+bord_vol,spincolor);
-  // spincolor *Y=nissa_malloc("Y",loc_vol+bord_vol,spincolor);
   paste_eo_parts_into_lx_vector(X,_X);
-  // paste_eo_parts_into_lx_vector(Y,_Y);
   
   xQx_der(an,eo,ieo,dir,X,X,kappa,mass,cSW);
   
   //free
   for(int eo=0;eo<2;eo++)
-    // {
-      nissa_free(_X[eo]);
-    //   nissa_free(_Y[eo]);
-    // }
+    nissa_free(_X[eo]);
   nissa_free(temp);
   nissa_free(X);
-  // nissa_free(Y);
-}
-
-/////////////////////////////////////////////////////////////////
-
-void test_xQx()
-{
-  master_printf("Testing TM\n");
-  
-  double kappa=0.24;
-  double mass=1;
-  double cSW=0.0;
-  
-  //generate_cold_eo_conf(conf);
-  generate_hot_eo_conf(conf);
-  
-  spincolor *in=nissa_malloc("in",loc_vol,spincolor);
-  generate_undiluted_source(in,RND_GAUSS,-1);
-  
-  //store initial link and compute action
-  const bool eo=EVN;
-  const int ieo=0;
-  const int dir=0;
-  
-  compare(eo,ieo,dir,xQx,xQx_der,in,in,kappa,mass,cSW);
-  
-  master_printf("Comparing derivative of xQx for link %d %d %d\n",(int)eo,ieo,dir);
-  
-  nissa_free(in);
 }
 
 void test_xQhatx()
@@ -914,9 +896,6 @@ void test_xQhatx()
   //generate_cold_eo_conf(conf);
   generate_hot_eo_conf(conf);
   
-  // for(int i=0;i<2;i++)
-  //   vector_copy(new_conf[i],conf[i]);
-  
   spincolor *in=nissa_malloc("in",loc_volh,spincolor);
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
@@ -926,6 +905,129 @@ void test_xQhatx()
   const int dir=1;
   
   compare(eo,ieo,dir,xQhatx,xQhatx_der_bis,in,kappa,mass,cSW);
+  
+  master_printf("Comparing derivative of xQhatx for link %d %d %d\n",(int)eo,ieo,dir);
+  
+  nissa_free(in);
+}
+
+/////////////////////////////////////////////////////////////////
+
+// XQ2hatX functional
+
+double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
+{
+  spincolor *out=nissa_malloc("out",loc_volh,spincolor);
+  spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
+  spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
+  
+  /// Preprare clover
+  clover_term_t *Cl[2];
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  inv_clover_term_t *invCl[2];
+  for(int eo=0;eo<2;eo++)
+    {
+      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
+    }
+  
+  tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl[EVN],mass,in);
+  
+  complex act;
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_volh*sizeof(spincolor)/sizeof(complex));
+  
+  chromo_operator_remove_cSW(Cl,cSW);
+  
+  nissa_free(Cl);
+  
+  master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
+  
+  nissa_free(out);
+  nissa_free(temp1);
+  nissa_free(temp2);
+  
+  return act[RE];
+}
+
+void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
+{
+  /// Preprare clover
+  clover_term_t *Cl[2];
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  inv_clover_term_t *invCl[2];
+  for(int eo=0;eo<2;eo++)
+    {
+      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
+    }
+  
+  //allocate each terms of the expansion
+  spincolor *_X[2],*_Y[2],*temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+  for(int eo=0;eo<2;eo++)
+    {
+      _X[eo]=nissa_malloc("_X",loc_volh+bord_volh,spincolor);
+      _Y[eo]=nissa_malloc("_Y",loc_volh+bord_volh,spincolor);
+    }
+  
+  vector_copy(_X[ODD],in);
+  tmclovDkern_eoprec_eos(_Y[ODD],temp,conf,kappa,Cl[ODD],invCl[EVN],true,mass,_X[ODD]);
+  
+  tmn2Deo_eos(temp,conf,_X[ODD]);
+  inv_tmclovDee_or_oo_eos(_X[EVN],invCl[EVN],true,temp); //Remove -2 and add -1
+  double_vector_prodassign_double((double*)(_X[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
+  
+  tmn2Deo_eos(temp,conf,_Y[ODD]);
+  inv_tmclovDee_or_oo_eos(_Y[EVN],invCl[EVN],false,temp);
+  double_vector_prodassign_double((double*)(_Y[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
+  
+  spincolor *X=nissa_malloc("X",loc_vol+bord_vol,spincolor);
+  spincolor *Y=nissa_malloc("Y",loc_vol+bord_vol,spincolor);
+  paste_eo_parts_into_lx_vector(X,_X);
+  paste_eo_parts_into_lx_vector(Y,_Y);
+  
+  xQx_der(an,eo,ieo,dir,X,Y,kappa,mass,cSW);
+  
+  //free
+  for(int eo=0;eo<2;eo++)
+    {
+      nissa_free(_X[eo]);
+      nissa_free(_Y[eo]);
+    }
+  nissa_free(temp);
+  nissa_free(X);
+  nissa_free(Y);
+}
+
+/////////////////////////////////////////////////////////////////
+
+void test_xQ2hatx()
+{
+  master_printf("Testing TM\n");
+  
+  double kappa=0.24;
+  double mass=0.0;
+  double cSW=0.0;
+  
+  //generate_cold_eo_conf(conf);
+  generate_hot_eo_conf(conf);
+  
+  spincolor *in=nissa_malloc("in",loc_volh,spincolor);
+  generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
+  
+  //store initial link and compute action
+  const bool eo=EVN;
+  const int ieo=1;
+  const int dir=1;
+  
+  compare(eo,ieo,dir,xQ2hatx,xQ2hatx_der,in,kappa,mass,cSW);
   
   master_printf("Comparing derivative of xQhatx for link %d %d %d\n",(int)eo,ieo,dir);
   
@@ -943,7 +1045,8 @@ void run_program_for_production()
       double init_traj_time=take_time();
       
       //test_xQx();
-      test_xQhatx();
+      //test_xQhatx();
+      test_xQ2hatx();
       crash("");
       
       // 1) produce new conf
