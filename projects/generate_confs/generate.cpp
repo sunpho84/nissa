@@ -993,7 +993,11 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   paste_eo_parts_into_lx_vector(X,_X);
   paste_eo_parts_into_lx_vector(Y,_Y);
   
-  xQx_der(an,eo,ieo,dir,X,Y,kappa,mass,cSW);
+  su3 an1,an2;
+  xQx_der(an1,eo,ieo,dir,X,Y,kappa,mass,cSW);
+  xQx_der(an2,eo,ieo,dir,Y,X,kappa,mass,cSW);
+  
+  su3_summ(an,an1,an2);
   
   //free
   for(int eo=0;eo<2;eo++)
@@ -1006,33 +1010,33 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   nissa_free(Y);
 }
 
-/////////////////////////////////////////////////////////////////
-
 void test_xQ2hatx()
 {
   master_printf("Testing TM\n");
   
   double kappa=0.24;
-  double mass=0.0;
+  double mass=0.10;
   double cSW=0.0;
   
-  //generate_cold_eo_conf(conf);
-  generate_hot_eo_conf(conf);
+  generate_cold_eo_conf(conf);
+  //generate_hot_eo_conf(conf);
   
   spincolor *in=nissa_malloc("in",loc_volh,spincolor);
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
-  const bool eo=EVN;
+  const bool eo=ODD;
   const int ieo=1;
   const int dir=1;
   
   compare(eo,ieo,dir,xQ2hatx,xQ2hatx_der,in,kappa,mass,cSW);
   
-  master_printf("Comparing derivative of xQhatx for link %d %d %d\n",(int)eo,ieo,dir);
+  master_printf("Comparing derivative of xQ2hatx for link %d %d %d\n",(int)eo,ieo,dir);
   
   nissa_free(in);
 }
+
+/////////////////////////////////////////////////////////////////
 
 //run the program for "production" mode
 void run_program_for_production()
