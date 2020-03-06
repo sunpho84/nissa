@@ -259,7 +259,7 @@ namespace nissa
 	  fill(1,1, 0,ic1,ic2, {-1,-1});
 	}
     
-    complex mt={1/(2*kappa),mass};
+    complex mt={1/(2*kappa),(x_high_low==0)?mass:-mass};
     for(int id=0;id<NDIRAC/2;id++)
       for(int ic=0;ic<NCOL;ic++)
 	complex_summassign(out[id][ic][id][ic],mt);

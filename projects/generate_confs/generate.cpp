@@ -1071,6 +1071,7 @@ double xQeex(double kappa,double mass,double cSW)
 	  fill_point_twisted_clover_term(e,x_high_low,Cl[EVN][ieo],mass,kappa);
 	  
 	  matrix_determinant(d[x_high_low],(complex*)e,NDIRAC*NCOL/2);
+	  //complex_print(d[x_high_low]);
 	}
       
       //Product of the two subblocks determinants
@@ -1150,12 +1151,12 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
 			int jd=m[ipair].pos[id];
 			int jw=jd-2*x_high_low;
 			
-			complex_summ_the_prod_i(insertion[jeo][ipair][ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
+			complex_summ_the_prod(insertion[jeo][ipair][ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
 		      }
 		}
 	    
-	    su3_print(insertion[jeo][ipair]);
-	    master_printf("&&&&\n");
+	    // su3_print(insertion[jeo][ipair]);
+	    // master_printf("&&&&\n");
 	  }
     }
   NISSA_PARALLEL_LOOP_END;
@@ -1189,8 +1190,8 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
   	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
   	  if(i==3) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
 	  
-  	  master_printf("u:\n");
-  	  su3_print(u);
+  	  // master_printf("u:\n");
+  	  // su3_print(u);
   	  su3_summassign(an,u);
 	  
   	  su3 v;
@@ -1204,8 +1205,8 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
   	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
   	  if(i==3) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
 	  
-  	  master_printf("v:\n");
-  	  su3_print(v);
+  	  // master_printf("v:\n");
+  	  // su3_print(v);
   	  su3_subtassign(an,v);
 	  
   	  // su3_print(an);
