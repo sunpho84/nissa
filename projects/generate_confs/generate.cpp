@@ -1122,10 +1122,7 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
       {
 	int ipair=edge_numb[mu][nu];
 	m[ipair]=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
-	dirac_prod_double(m+ipair,m+ipair,-cSW/4);
-	
-	// 	print_dirac(m+ipair);
-	// 	 master_printf("\n");
+	dirac_prod_double(m+ipair,m+ipair,-cSW/8);
       }
   
   /////////////////////////////////////////////////////////////////
@@ -1175,20 +1172,20 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
       
       int ipair=edge_numb[dir][nu];
       
-      for(int i=eo;i<4;i+=2)
+      for(int i=0;i<2;i++)
   	{
   	  // master_printf("i: %d \n",i);
 	  
   	  su3 u;
 	  
   	  su3_put_to_id(u);
-  	  if(i==0) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
+  	  if(i==0 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
   	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
-  	  if(i==1) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
+  	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
   	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
-  	  if(i==2) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
+  	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
   	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
-  	  if(i==3) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
+  	  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
 	  
   	  // master_printf("u:\n");
   	  // su3_print(u);
@@ -1197,13 +1194,13 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
   	  su3 v;
 	  
   	  su3_put_to_id(v);
-  	  if(i==0) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
+  	  if(i==0 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
   	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
-  	  if(i==1) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
+  	  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
   	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
-  	  if(i==2) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
+  	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
   	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
-  	  if(i==3) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
+  	  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
 	  
   	  // master_printf("v:\n");
   	  // su3_print(v);
@@ -1234,9 +1231,9 @@ void test_xQeex()
   generate_hot_eo_conf(conf);
   
   //store initial link and compute action
-  const bool eo=EVN;
+  const bool eo=ODD;
   const int ieo=1;
-  const int dir=1;
+  const int dir=3;
   
   compare(eo,ieo,dir,xQeex,xQeex_der,kappa,mass,cSW);
   
