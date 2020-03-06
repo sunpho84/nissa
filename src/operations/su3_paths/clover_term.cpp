@@ -242,6 +242,29 @@ namespace nissa
     apply_point_twisted_clover_term_to_halfspincolor(out ,-mass,kappa,Cl,temp);
   }
   
+  void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa)
+  {
+    for(int ic1=0;ic1<NCOL;ic1++)
+      for(int ic2=0;ic2<NCOL;ic2++)
+	{
+	  auto fill=[&out,x_high_low,icl1=ic1,icl2=ic2,C](int id1,int id2,int icl,int ic1,int ic2,const complex& f)
+		    {
+		      for(int ri=0;ri<2;ri++)
+			out[id1][icl1][id2][icl2][ri]=C[icl+x_high_low*2][ic1][ic2][ri]*f[ri];
+		    };
+	  
+	  fill(0,0, 0,ic1,ic2, {1,1});
+	  fill(1,0, 1,ic1,ic2, {1,1});
+	  fill(0,1, 1,ic2,ic1, {1,-1});
+	  fill(1,1, 0,ic1,ic2, {-1,-1});
+	}
+    
+    complex mt={1/(2*kappa),mass};
+    for(int id=0;id<NDIRAC/2;id++)
+      for(int ic=0;ic<NCOL;ic++)
+	complex_summassign(out[id][ic][id][ic],mt);
+  }
+  
   //form the inverse of the clover term
   void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl)
   {
