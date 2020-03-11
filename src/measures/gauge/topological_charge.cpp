@@ -50,7 +50,6 @@ namespace nissa
   {
     if(!check_edges_valid(conf[0])) crash("communicate edges externally");
     
-    int munu=0;
     for(int mu=0;mu<NDIM;mu++)
       {
 	int A=loclx_neighup[X][mu];
@@ -58,6 +57,8 @@ namespace nissa
         
 	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
+	    int munu=edge_numb[mu][nu];
+	    
 	    int B=loclx_neighup[X][nu];
 	    int F=loclx_neighdw[X][nu];
             
