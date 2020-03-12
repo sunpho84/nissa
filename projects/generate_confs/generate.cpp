@@ -1124,59 +1124,36 @@ void clover_of_site(spincolor_spincolor out,int eo,int ieo,double kappa,double c
 }
 
 // XQeeX functional
-// const bool doANN=0;
 int DIR;
-// const int ANN=1;
 double xQeex(double kappa,double mass,double cSW)
 {
   GET_THREAD_ID();
   
-  /// Preprare clover
-  // clover_term_t *Cl[2];
-  // for(int eo=0;eo<2;eo++)
-  //   Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
-  // chromo_operator(Cl,conf);
-  
-  //////// ANNHILATION
-  // if(doANN)
-  // NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-  //   {
-  //     for(int i=0;i<4;i++)
-  // 	if(i%2==ANN)
-  // 	  su3_put_to_zero(Cl[EVN][ieo][i]);
-  //   }
-  // NISSA_PARALLEL_LOOP_END;
-  
-  // chromo_operator_include_cSW(Cl,cSW);
+  //Preprare clover
+  clover_term_t *Cl[2];
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
   
   double *loc_act=nissa_malloc("loc_act",loc_volh,double);
   
   NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
     {
-      // complex d[2];
-      // double& d=loc_act[ieo];
-      // d=1;
-      // for(int x_high_low=0;x_high_low<2;x_high_low++)
-      // 	{
-	  spincolor_spincolor cl;
-	  clover_of_site(cl,EVN,ieo,kappa,cSW);
-      
-      	  // halfspincolor_halfspincolor e;
+      complex d[2];
+      for(int x_high_low=0;x_high_low<2;x_high_low++)
+      	{
+  	  halfspincolor_halfspincolor e;
 	  
-      	  // fill_point_twisted_clover_term(e,x_high_low,Cl[EVN][ieo],mass,kappa);
+      	  fill_point_twisted_clover_term(e,x_high_low,Cl[EVN][ieo],mass,kappa);
 	  
-	  loc_act[ieo]=0;
-	  for(int id=0;id<NDIRAC;id++)
-	    for(int ic=0;ic<NCOL;ic++)
-	  for(int id1=0;id1<NDIRAC;id1++)
-	    for(int ic1=0;ic1<NCOL;ic1++)
-	      loc_act[ieo]+=complex_norm2(cl[id][ic][id1][ic1]);
-      	  //matrix_determinant(d[x_high_low],(complex*)e,NDIRAC*NCOL/2);
+      	  matrix_determinant(d[x_high_low],(complex*)e,NDIRAC*NCOL/2);
       	  //complex_print(d[x_high_low]);
+	}
       
       //Product of the two subblocks determinants
-      // complex p;
-      // unsafe_complex_prod(p,d[0],d[1]);
+      complex p;
+      unsafe_complex_prod(p,d[0],d[1]);
       
       // spincolor_spincolor cl;
       // clover_of_site(cl,EVN,ieo,kappa,cSW);
@@ -1185,12 +1162,12 @@ double xQeex(double kappa,double mass,double cSW)
       // matrix_determinant(d,(complex*)cl,NDIRAC*NCOL);
       // // master_printf("%.16lg %.16lg\n",p[0],p[1]);
       
-      // loc_act[ieo]=-log(p[RE]);
+      loc_act[ieo]=2*log(p[RE]);
     }
   NISSA_PARALLEL_LOOP_END;
   
-  // for(int eo=0;eo<2;eo++)
-  //   nissa_free(Cl[eo]);
+  for(int eo=0;eo<2;eo++)
+    nissa_free(Cl[eo]);
   
   double act;
   double_vector_glb_collapse(&act,loc_act,loc_volh);
@@ -1204,12 +1181,12 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
 {
   GET_THREAD_ID();
   
-  /// Preprare clover
-  // clover_term_t *Cl[2];
-  // for(int eo=0;eo<2;eo++)
-  //   Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
-  // chromo_operator(Cl,conf);
-  // chromo_operator_include_cSW(Cl,cSW);
+  //Prepare clover
+  clover_term_t *Cl[2];
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
   
   // su3spinspin alt;
   // clover_of_site(alt,eo,ieo,kappa,cSW);
@@ -1257,12 +1234,12 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
   //   }
   // NISSA_PARALLEL_LOOP_END;
   
-  // inv_clover_term_t *invCl[2];
-  // for(int eo=0;eo<2;eo++)
-  //   {
-  //     invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
-  //     invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
-  //   }
+  inv_clover_term_t *invCl[2];
+  for(int eo=0;eo<2;eo++)
+    {
+      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
+    }
   
   // dirac_matr m[6];
   // for(int mu=0;mu<NDIM;mu++)
@@ -1280,9 +1257,9 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
   
   NISSA_PARALLEL_LOOP(jeo,0,loc_volh)
     {
-      spincolor_spincolor alt// ,inv_alt
-	;
-      clover_of_site(alt,eo,jeo,kappa,cSW);
+      // spincolor_spincolor alt// ,inv_alt
+      // 	;
+      // clover_of_site(alt,eo,jeo,kappa,cSW);
       
       for(int mu=0;mu<NDIM;mu++)
     	// for(int nu=mu+1;nu<NDIM;nu++)
@@ -1355,13 +1332,13 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
 			int id=2*x_high_low+iw;
 			complex& c=m.entr[id];
 			int jd=m.pos[id];
-			// int jw=jd%2;//-2*x_high_low;
+			int jw=jd%2;//-2*x_high_low;
 			// int y_high_low=jd/2;
 			// if(y_high_low!=x_high_low)
 			//   crash("");
 			//complex_print(c);
-			// complex_summ_the_prod(insertion[jeo][ipair][ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
-			complex_summ_the_prod(insertion[jeo][mu][nu][ic1][ic2],c,alt[jd][ic1][id][ic2]);
+			complex_summ_the_prod(insertion[jeo][mu][nu][ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
+			// complex_summ_the_prod(insertion[jeo][mu][nu][ic1][ic2],c,alt[jd][ic1][id][ic2]);
 			// complex_summ_the_prod(ins_alt[ic1][ic2],c,inv_alt[jd][ic1][id][ic2]);
 		      }
 		  
@@ -1484,11 +1461,11 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
   
   // // nissa_free(Y);
   
-  // for(int eo=0;eo<2;eo++)
-  //   {
-  //     nissa_free(Cl[eo]);
-      // nissa_free(invCl[eo]);
-    // }
+  for(int eo=0;eo<2;eo++)
+    {
+      nissa_free(Cl[eo]);
+      nissa_free(invCl[eo]);
+    }
 }
 
 void test_xQeex()
