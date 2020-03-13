@@ -244,6 +244,22 @@ namespace nissa
   
   void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa)
   {
+    // halfspincolor_halfspincolor out_sure;
+    // for(int id1=0;id1<NDIRAC/2;id1++)
+    //   for(int ic1=0;ic1<NCOL;ic1++)
+    // 	{
+    // 	  halfspincolor in;
+    // 	  halfspincolor_put_to_zero(in);
+    // 	  in[id1][ic1][RE]=1.0;
+	  
+    // 	  halfspincolor temp;
+    // 	  apply_point_twisted_clover_term_to_halfspincolor(temp,mass,kappa,C+2*x_high_low,in);
+	  
+    // 	  for(int id=0;id<NDIRAC/2;id++)
+    // 	    for(int ic=0;ic<NCOL;ic++)
+    // 	      complex_copy(out_sure[id][ic][id1][ic1],temp[id][ic]);
+    // 	}
+    
     for(int ic1=0;ic1<NCOL;ic1++)
       for(int ic2=0;ic2<NCOL;ic2++)
 	{
@@ -263,6 +279,36 @@ namespace nissa
     for(int id=0;id<NDIRAC/2;id++)
       for(int ic=0;ic<NCOL;ic++)
 	complex_summassign(out[id][ic][id][ic],mt);
+    
+    // double diff=0,norm2=0;
+    // for(int id1=0;id1<NDIRAC/2;id1++)
+    //   for(int ic1=0;ic1<NCOL;ic1++)
+    // 	for(int id=0;id<NDIRAC/2;id++)
+    // 	  for(int ic=0;ic<NCOL;ic++)
+    // 	    {
+    // 	      norm2+=complex_norm2(out_sure[id][ic][id1][ic1]);
+    // 	      complex_subtassign(out_sure[id][ic][id1][ic1],out[id][ic][id1][ic1]);
+    // 	      diff+=complex_norm2(out_sure[id][ic][id1][ic1]);
+    // 	    }
+    // master_printf("DIFF: %lg\n",sqrt(diff/norm2));
+    
+    // auto pr=[](halfspincolor_halfspincolor out)
+    // 	    {
+    // 	      for(int id1=0;id1<NDIRAC/2;id1++)
+    // 		for(int ic1=0;ic1<NCOL;ic1++)
+    // 		  {
+    // 		    for(int id=0;id<NDIRAC/2;id++)
+    // 		      for(int ic=0;ic<NCOL;ic++)
+    // 			master_printf("%lg %lg\t",out[id1][ic1][id][ic][RE],out[id1][ic1][id][ic][IM]);
+    // 		    master_printf("\n");
+    // 		  }
+    // 		    master_printf("\n");
+    // 	    };
+    
+    // master_printf("out:\n");
+    // pr(out);
+    // master_printf("correct:\n");
+    // pr(out_sure);
   }
   
   //form the inverse of the clover term
