@@ -1126,7 +1126,7 @@ void clover_of_site(spincolor_spincolor out,int eo,int ieo,double kappa,double c
 // XQeeX functional
 int EO;
 int DIR;
-double xQeex(double kappa,double mass,double cSW)
+double xQ2eex(double kappa,double mass,double cSW)
 {
   GET_THREAD_ID();
   
@@ -1155,7 +1155,7 @@ double xQeex(double kappa,double mass,double cSW)
       complex p;
       unsafe_complex_prod(p,d[0],d[1]);
       
-      loc_act[ieo]=2*log(p[RE]);
+      loc_act[ieo]=log(complex_norm2(p));
     }
   NISSA_PARALLEL_LOOP_END;
   
@@ -1170,7 +1170,7 @@ double xQeex(double kappa,double mass,double cSW)
   return act;
 }
 
-void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW)
+void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW)
 {
   GET_THREAD_ID();
   
@@ -1180,52 +1180,6 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
     Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
-  
-  // su3spinspin alt;
-  // clover_of_site(alt,eo,ieo,kappa,cSW);
-  
-  // master_printf("alt\n");
-  // const int x_high_low=1;
-  // for(int id1=NDIRAC/2*x_high_low;id1<NDIRAC/2*(x_high_low+1);id1++)
-  //   for(int ic1=0;ic1<NCOL;ic1++)
-  //     {
-  // 	for(int id=NDIRAC/2*x_high_low;id<NDIRAC/2*(x_high_low+1);id++)
-  // 	  for(int ic=0;ic<NCOL;ic++)
-  // 	    {
-  // 	      complex& c=alt[ic1][ic][id1][id];
-  // 	      master_printf("%lg %lg\t",c[RE],c[IM]);
-  // 	    }
-  // 	master_printf("\n");
-  //     }
-  // master_printf("\n");
-  
-  // master_printf("ord\n");
-  // halfspincolor_halfspincolor ord;
-  // fill_point_twisted_clover_term(ord,x_high_low,Cl[EVN][ieo],mass,kappa);
-  
-  // for(int id1=0;id1<NDIRAC/2;id1++)
-  //   for(int ic1=0;ic1<NCOL;ic1++)
-  //     {
-  // 	for(int id=0;id<NDIRAC/2;id++)
-  // 	  for(int ic=0;ic<NCOL;ic++)
-  // 	    {
-  // 	      complex& c=ord[id1][ic1][id][ic];
-  // 	      master_printf("%lg %lg\t",c[RE],c[IM]);
-  // 	    }
-  // 	master_printf("\n");
-  //     }
-  // master_printf("\n");
-  
-  
-  //////// ANNHILATION
-  // if(doANN)
-  // NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-  //   {
-  //     for(int i=0;i<4;i++)
-  // 	if(i%2==ANN)
-  // 	  su3_put_to_zero(Cl[EVN][ieo][i]);
-  //   }
-  // NISSA_PARALLEL_LOOP_END;
   
   inv_clover_term_t *invCl[2];
   for(int eo=0;eo<2;eo++)
@@ -1246,10 +1200,12 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
 	    int ipair=edge_numb[mu][nu];
 	    dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
 	    
+	    su3& ins=insertion[jeo][ipair];
+	    
 	    for(int ic1=0;ic1<NCOL;ic1++)
 	      for(int ic2=0;ic2<NCOL;ic2++)
 		{
-		  complex_put_to_zero(insertion[jeo][ipair][ic1][ic2]);
+		  complex_put_to_zero(ins[ic1][ic2]);
 		  
 		  for(int x_high_low=0;x_high_low<2;x_high_low++)
 		    for(int iw=0;iw<NDIRAC/2;iw++)
@@ -1259,9 +1215,11 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
 			int jd=m.pos[id];
 			int jw=jd-2*x_high_low;
 			
-			complex_summ_the_prod(insertion[jeo][ipair][ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
+			complex_summ_the_prod(ins[ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
 		      }
 		}
+	    
+	    safe_su3
 	  }
     }
   NISSA_PARALLEL_LOOP_END;
@@ -1289,9 +1247,19 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
 	  else       sign=-1.0;
 	  
   	  su3_put_to_diag(u,sign);
-  	  if(i==0 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
+  	  if(i==0 and eo==ODD)
+	    {
+	      master_printf("0 a ODD\n");
+	      su3_print(insertion[xpmu][ipair]);
+	      safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
+	    }
   	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
-  	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
+  	  if(i==0 and eo==EVN)
+	    {
+	      master_printf("0 a EVN\n");
+	      su3_print(insertion[xpmupnu][ipair]);
+	      safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
+	    }
   	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
   	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
   	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
@@ -1325,10 +1293,10 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
     }
 }
 
-void test_xQeex()
+void test_xQ2eex()
 {
   double kappa=0.177;
-  double mass=0.0;
+  double mass=0.4;
   double cSW=0.8;
   
   //generate_cold_eo_conf(conf);
@@ -1339,9 +1307,9 @@ void test_xQeex()
   const int ieo=1;
   const int dir=DIR;
   
-  compare(eo,ieo,dir,xQeex,xQeex_der,kappa,mass,cSW);
+  compare(eo,ieo,dir,xQ2eex,xQ2eex_der,kappa,mass,cSW);
   
-  master_printf("Comparing derivative of xQeex for link %d %d %d\n",(int)eo,ieo,dir);
+  master_printf("Comparing derivative of xQ2eex for link %d %d %d\n",(int)eo,ieo,dir);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1542,7 +1510,7 @@ void run_program_for_production()
       //test_xQ2hatx();
       for(EO=0;EO<2;EO++)
 	for(DIR=0;DIR<NDIM;DIR++)
-	  test_xQeex();
+	  test_xQ2eex();
       crash("");
       
       // 1) produce new conf

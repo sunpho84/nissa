@@ -211,7 +211,15 @@ The probability distribution contains a term
 where 
 \begin_inset Formula 
 \[
-S=-\sum_{x}\ln\det M\left(x\right)\:.
+S=-\sum_{x}\ln\det M\left(x\right)=-{\rm Tr}\ln\left(Q_{ee}\right)\:.
+\]
+
+\end_inset
+
+The derivative is given by
+\begin_inset Formula 
+\[
+\frac{\partial S}{\partial U_{\mu}\left(x\right)}=-\frac{1}{\det M\left(x\right)}
 \]
 
 \end_inset
