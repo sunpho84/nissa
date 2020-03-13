@@ -72,6 +72,13 @@ namespace nissa
     return ins_list[i];
   }
   
+  inline int is_smearing_ins(insertion_t ins)
+  {
+    return
+      (ins==SMEARING) or
+      (ins==ANYSM);
+  }
+  
   inline int is_photon_ins(insertion_t ins)
   {
     return
