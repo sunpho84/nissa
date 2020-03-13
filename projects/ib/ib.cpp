@@ -249,6 +249,27 @@ void init_simulation(int narg,char **arg)
 	  
 	  read_theta(theta);
 	}
+
+      //read smearing
+      double kappa1,kappa2,kappa3;
+      if(strcasecmp(ins,ins_tag[ANYSM])==0)
+	{
+	  decripted=true;
+	
+	  read_double(&kappa1);
+	  master_printf("Read variable 'Kappa1' with value: %lg\n",kappa1);
+
+	  read_double(&kappa2);
+	  master_printf("Read variable 'Kappa2' with value: %lg\n",kappa2);
+	  
+	  read_double(&kappa3);
+	  master_printf("Read variable 'Kappa3' with value: %lg\n",kappa3);
+	  
+	  read_int(&r);
+	  master_printf("Read variable 'R' with value: %d\n",r);
+	  
+	  read_theta(theta);
+	}
       
       //everything else
       if(not decripted)
@@ -271,7 +292,8 @@ void init_simulation(int narg,char **arg)
       
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
-      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,mass,ext_field_path,r,charge,theta,store_prop);
+      double kappa_asymm[4]={0.0,kappa1,kappa2,kappa3};
+      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
       qprop_name_list[iq]=name;
     }
   

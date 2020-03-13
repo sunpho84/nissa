@@ -13,7 +13,7 @@ namespace nissa
 {
   //apply kappa*H
 #define DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(TYPE)			\
-  THREADABLE_FUNCTION_4ARG(NAME2(gaussian_smearing_apply_kappa_H,TYPE), TYPE*,H, double,kappa, quad_su3*,conf, TYPE*,in) \
+  THREADABLE_FUNCTION_4ARG(NAME2(gaussian_smearing_apply_kappa_H,TYPE), TYPE*,H, double*,kappa, quad_su3*,conf, TYPE*,in) \
   {									\
     GET_THREAD_ID();							\
 									\
@@ -28,11 +28,11 @@ namespace nissa
 	  {								\
 	    int ivup=loclx_neighup[ivol][mu];				\
 	    int ivdw=loclx_neighdw[ivol][mu];				\
-									\
-	    NAME2(su3_summ_the_prod,TYPE)(H[ivol],conf[ivol][mu],in[ivup]); \
-	    NAME2(su3_dag_summ_the_prod,TYPE)(H[ivol],conf[ivdw][mu],in[ivdw]); \
+	    TYPE temp;							\
+	    NAME2(unsafe_su3_prod,TYPE)(temp,conf[ivol][mu],in[ivup]); \
+	    NAME2(su3_dag_summ_the_prod,TYPE)(temp,conf[ivdw][mu],in[ivdw]);	\
+	    NAME2(TYPE,summ_the_prod_double)(H[ivol],temp,kappa[mu]);		\
 	  }								\
-	NAME2(TYPE,prod_double)(H[ivol],H[ivol],kappa);			\
       }									\
     NISSA_PARALLEL_LOOP_END;						\
     									\
@@ -42,7 +42,7 @@ namespace nissa
 
 //gaussian smearing
 #define DEFINE_GAUSSIAN_SMEARING(TYPE)					\
-  THREADABLE_FUNCTION_7ARG(gaussian_smearing, TYPE*,smear_sc, TYPE*,origi_sc, quad_su3*,conf, double,kappa, int,niter, TYPE*,ext_temp, TYPE*,ext_H) \
+  THREADABLE_FUNCTION_7ARG(gaussian_smearing, TYPE*,smear_sc, TYPE*,origi_sc, quad_su3*,conf, double*,kappa, int,niter, TYPE*,ext_temp, TYPE*,ext_H) \
   {									\
     if(niter<1)								\
       {									\
@@ -57,9 +57,9 @@ namespace nissa
 	TYPE *H=ext_H;							\
 	if(ext_H==NULL) H=nissa_malloc("H",loc_vol+bord_vol,TYPE);	\
 									\
-	double norm_fact=1/(1+6*kappa);					\
+	double norm_fact=1/(1+2*(kappa[1]+kappa[2]+kappa[3]));		\
 									\
-	verbosity_lv2_master_printf("GAUSSIAN smearing with kappa=%g, %d iterations\n",kappa,niter); \
+	verbosity_lv2_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g}, %d iterations\n",kappa[1],kappa[2],kappa[3],niter); \
 									\
 	/*iter 0*/							\
 	double_vector_copy((double*)temp,(double*)origi_sc,loc_vol*sizeof(TYPE)/sizeof(double)); \
@@ -67,7 +67,7 @@ namespace nissa
 	/*loop over gaussian iterations*/				\
 	for(int iter=0;iter<niter;iter++)				\
 	  {								\
-	    verbosity_lv3_master_printf("GAUSSIAN smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter); \
+	    verbosity_lv3_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g} iteration %d of %d\n",kappa[1],kappa[2],kappa[3],iter,niter); \
 									\
 	    /*apply kappa*H*/						\
 	    NAME2(gaussian_smearing_apply_kappa_H,TYPE)(H,kappa,conf,temp); \
