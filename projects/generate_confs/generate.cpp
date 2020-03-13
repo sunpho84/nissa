@@ -1124,6 +1124,7 @@ void clover_of_site(spincolor_spincolor out,int eo,int ieo,double kappa,double c
 }
 
 // XQeeX functional
+int EO;
 int DIR;
 double xQeex(double kappa,double mass,double cSW)
 {
@@ -1148,19 +1149,11 @@ double xQeex(double kappa,double mass,double cSW)
       	  fill_point_twisted_clover_term(e,x_high_low,Cl[EVN][ieo],mass,kappa);
 	  
       	  matrix_determinant(d[x_high_low],(complex*)e,NDIRAC*NCOL/2);
-      	  //complex_print(d[x_high_low]);
 	}
       
       //Product of the two subblocks determinants
       complex p;
       unsafe_complex_prod(p,d[0],d[1]);
-      
-      // spincolor_spincolor cl;
-      // clover_of_site(cl,EVN,ieo,kappa,cSW);
-      
-      // complex d;
-      // matrix_determinant(d,(complex*)cl,NDIRAC*NCOL);
-      // // master_printf("%.16lg %.16lg\n",p[0],p[1]);
       
       loc_act[ieo]=2*log(p[RE]);
     }
@@ -1241,90 +1234,22 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
-  // dirac_matr m[6];
-  // for(int mu=0;mu<NDIM;mu++)
-  //   for(int nu=mu+1;nu<NDIM;nu++)
-  //     {
-  // 	int ipair=edge_numb[mu][nu]; // Se scambio mu e nu, scambio solo i segni sbagliati
-  // 	m[ipair]=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
-  // 	dirac_prod_double(m+ipair,m+ipair,-cSW/8);
-  //     }
-  
   /////////////////////////////////////////////////////////////////
   
-  using many_su3=su3[4][4];
-  many_su3 *insertion=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,many_su3);
+  as2t_su3 *insertion=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
   
   NISSA_PARALLEL_LOOP(jeo,0,loc_volh)
     {
-      // spincolor_spincolor alt// ,inv_alt
-      // 	;
-      // clover_of_site(alt,eo,jeo,kappa,cSW);
-      
       for(int mu=0;mu<NDIM;mu++)
-    	// for(int nu=mu+1;nu<NDIM;nu++)
-    	//   {
-    	for(int inu=0;inu<NDIM-1;inu++)
-    	  {
-    	    int nu=perp_dir[mu][inu];
-    	    // int ipair=edge_numb[mu][nu];
-    	    // master_printf("%d %d %d\n",mu,nu,ipair);
+    	for(int nu=mu+1;nu<NDIM;nu++)
+	  {
+	    int ipair=edge_numb[mu][nu];
+	    dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
 	    
-    // // 	    {
-    // using cpp_complex=std::complex<double>;
-    // using cpp_matrix=cpp_complex*;
-    // using eig_matrix=Eigen::Matrix<std::complex<double>,12,12,Eigen::RowMajor>;
-    // using map_eig_matrix=Eigen::Map<eig_matrix>;
-    
-    // cpp_matrix cpp_l=reinterpret_cast<cpp_complex*>(inv_alt);
-    // cpp_matrix cpp_r=reinterpret_cast<cpp_complex*>(alt);
-    // map_eig_matrix eig_l(cpp_l),eig_r(cpp_r);
-    // eig_l=eig_r.inverse();
-    
-  // master_printf("alt\n");
-  // const int x_high_low=1;
-  // for(int id1=NDIRAC/2*x_high_low;id1<NDIRAC/2*(x_high_low+1);id1++)
-  //   for(int ic1=0;ic1<NCOL;ic1++)
-  //     {
-  // 	for(int id=NDIRAC/2*x_high_low;id<NDIRAC/2*(x_high_low+1);id++)
-  // 	  for(int ic=0;ic<NCOL;ic++)
-  // 	    {
-  // 	      complex& c=alt[id1][ic1][id][ic];
-  // 	      master_printf("%lg %lg\t",c[RE],c[IM]);
-  // 	    }
-  // 	master_printf("\n");
-  //     }
-  // master_printf("\n");
-  
-  // master_printf("ord\n");
-  
-  // for(int id1=0;id1<NDIRAC/2;id1++)
-  //   for(int ic1=0;ic1<NCOL;ic1++)
-  //     {
-  // 	for(int id=0;id<NDIRAC/2;id++)
-  // 	  for(int ic=0;ic<NCOL;ic++)
-  // 	    {
-  // 	      complex& c=invCl[eo][jeo][x_high_low][id1][ic1][id][ic];
-  // 	      master_printf("%lg %lg\t",c[RE],c[IM]);
-  // 	    }
-  // 	master_printf("\n");
-  //     }
-  // master_printf("\n");
-    
-	    // }
-	    
-	    // su3 ins_alt;
-	    // su3_put_to_zero(ins_alt);
-
-	      // dirac_matr m[6];
-
-      // int ipair=edge_numb[mu][nu]; // Se scambio mu e nu, scambio solo i segni sbagliati
-	dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
-
 	    for(int ic1=0;ic1<NCOL;ic1++)
 	      for(int ic2=0;ic2<NCOL;ic2++)
 		{
-		  complex_put_to_zero(insertion[jeo][mu][nu][ic1][ic2]);
+		  complex_put_to_zero(insertion[jeo][ipair][ic1][ic2]);
 		  
 		  for(int x_high_low=0;x_high_low<2;x_high_low++)
 		    for(int iw=0;iw<NDIRAC/2;iw++)
@@ -1332,33 +1257,11 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
 			int id=2*x_high_low+iw;
 			complex& c=m.entr[id];
 			int jd=m.pos[id];
-			int jw=jd%2;//-2*x_high_low;
-			// int y_high_low=jd/2;
-			// if(y_high_low!=x_high_low)
-			//   crash("");
-			//complex_print(c);
-			complex_summ_the_prod(insertion[jeo][mu][nu][ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
-			// complex_summ_the_prod(insertion[jeo][mu][nu][ic1][ic2],c,alt[jd][ic1][id][ic2]);
-			// complex_summ_the_prod(ins_alt[ic1][ic2],c,inv_alt[jd][ic1][id][ic2]);
+			int jw=jd-2*x_high_low;
+			
+			complex_summ_the_prod(insertion[jeo][ipair][ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
 		      }
-		  
-		  // for(int id=0;id<NDIRAC;id++)
-		  //   {
-		  //     complex& c=m[ipair].entr[id];
-		  //     int jd=m[ipair].pos[id];
-		  //     complex_summ_the_prod(ins_alt[ic1][ic2],c,inv_alt[jd][ic1][id][ic2]);
-		  //   }
-		  
 		}
-	    
-	    // master_printf("ins ord %d %d:\n",mu,nu);
-	    // su3_print(insertion[jeo][ipair]);
-	    
-	    // master_printf("ins alt:\n");
-	    // su3_print(ins_alt);
-	    
-	    // su3_print(insertion[jeo][ipair]);
-	    // master_printf("&&&&\n");
 	  }
     }
   NISSA_PARALLEL_LOOP_END;
@@ -1375,91 +1278,45 @@ void xQeex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW
       int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
       int xpmupnu=loceo_neighup[!eo][xpmu][nu];
       
-      // int ipair=edge_numb[dir][nu];
+      int ipair=edge_numb[dir][nu];
       
       for(int i=0;i<2;i++)
   	{
-  	  // master_printf("i: %d \n",i);
-	  
   	  su3 u;
 	  
-  	  su3_put_to_id(u);
-  	  if(i==0 and eo==ODD)
-	    {
-	      // master_printf("0 a ODD\n");
-	      // su3_print(insertion[xpmu][dir][nu]);
-	      safe_su3_prod_su3(u,u,insertion[xpmu][dir][nu]);
-	    }
-  	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
-  	  if(i==0 and eo==EVN)
-	    {
-	      // master_printf("0 a EVN\n");
-	      // su3_print(insertion[xpmupnu][dir][nu]);
-	      safe_su3_prod_su3(u,u,insertion[xpmupnu][dir][nu]);
-	    }
-  	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
-  	  if(i==1 and eo==ODD)
-	    {
-	      // master_printf("1 a ODD\n");
-	      // su3_print(insertion[xpnu][dir][nu]);
-	      safe_su3_prod_su3(u,u,insertion[xpnu][dir][nu]);
-	    }
-  	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
-  	  if(i==1 and eo==EVN)
-	    {
-	      // master_printf("1 a EVN\n");
-	      // su3_print(insertion[ieo][dir][nu]);
-	      safe_su3_prod_su3(u,u,insertion[ieo][dir][nu]);
-	    }
+	  double sign;
+	  if(dir<nu) sign=+1.0;
+	  else       sign=-1.0;
 	  
-  	  // master_printf("u:\n");
-  	  // su3_print(u);
+  	  su3_put_to_diag(u,sign);
+  	  if(i==0 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
+  	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
+  	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
+  	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
+  	  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
+	  
   	  su3_summassign(an,u);
 	  
   	  su3 v;
 	  
-  	  su3_put_to_id(v);
-  	  if(i==0 and eo==ODD)
-	    {
-	      // master_printf("0 b ODD\n");
-	      // su3_print(insertion[xpmu][dir][nu]);
-	      safe_su3_prod_su3(v,v,insertion[xpmu][dir][nu]);
-	    }
+  	  su3_put_to_diag(v,sign);
+  	  if(i==0 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
   	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
-  	  if(i==0 and eo==EVN)
-	    {
-	      // master_printf("0 b EVN\n");
-	      // su3_print(insertion[xpmumnu][dir][nu]);
-	      safe_su3_prod_su3(v,v,insertion[xpmumnu][dir][nu]);
-	    }
+  	  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
   	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
-  	  if(i==1 and eo==ODD)
-	    {
-	      // master_printf("1 b ODD\n");
-	      // su3_print(insertion[xmnu][dir][nu]);
-	      safe_su3_prod_su3(v,v,insertion[xmnu][dir][nu]);
-	    }
+  	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
   	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
-  	  if(i==1 and eo==EVN)
-	    {
-	      // master_printf("1 b EVN\n");
-	      // su3_print(insertion[ieo][dir][nu]);
-	      safe_su3_prod_su3(v,v,insertion[ieo][dir][nu]);
-	    }
+  	  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
 	  
-  	  // master_printf("v:\n");
-  	  // su3_print(v);
   	  su3_subtassign(an,v);
-	  
-	  // su3_print(an);
   	}
     }
   
   su3_prodassign_double(an,-cSW/4);
-   
-  nissa_free(insertion);
   
-  // // nissa_free(Y);
+  nissa_free(insertion);
   
   for(int eo=0;eo<2;eo++)
     {
@@ -1478,7 +1335,7 @@ void test_xQeex()
   generate_hot_eo_conf(conf);
   
   //store initial link and compute action
-  const bool eo=EVN;
+  const bool eo=EO;
   const int ieo=1;
   const int dir=DIR;
   
@@ -1683,8 +1540,9 @@ void run_program_for_production()
       //test_xQx();
       //test_xQhatx();
       //test_xQ2hatx();
-      for(DIR=0;DIR<NDIM;DIR++)
-	test_xQeex();
+      for(EO=0;EO<2;EO++)
+	for(DIR=0;DIR<NDIM;DIR++)
+	  test_xQeex();
       crash("");
       
       // 1) produce new conf
