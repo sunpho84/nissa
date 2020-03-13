@@ -1219,7 +1219,7 @@ void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cS
 		      }
 		}
 	    
-	    safe_su3
+	    su3_anti_hermitian_part(ins,ins);
 	  }
     }
   NISSA_PARALLEL_LOOP_END;
@@ -1247,19 +1247,9 @@ void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cS
 	  else       sign=-1.0;
 	  
   	  su3_put_to_diag(u,sign);
-  	  if(i==0 and eo==ODD)
-	    {
-	      master_printf("0 a ODD\n");
-	      su3_print(insertion[xpmu][ipair]);
-	      safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
-	    }
+  	  if(i==0 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
   	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
-  	  if(i==0 and eo==EVN)
-	    {
-	      master_printf("0 a EVN\n");
-	      su3_print(insertion[xpmupnu][ipair]);
-	      safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
-	    }
+  	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
   	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
   	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
   	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
