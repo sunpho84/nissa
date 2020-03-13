@@ -733,69 +733,6 @@ void xQx_der(su3 an,int eo,int ieo,int dir,spincolor *in_l,spincolor *in_r,doubl
   nissa_free(lx_conf);
 }
 
-// void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *in_l,spincolor *in_r,double kappa,double mass,double cSW)
-// {
-  
-//   as2t_su3 *insertion=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
-  
-//   GET_THREAD_ID();
-  
-  
-//   if(cSW!=0)
-//     {
-//       for(int inu=0;inu<NDIM-1;inu++)
-// 	{
-// 	  int nu=perp_dir[dir][inu];
-	  
-// 	  int xpmu=loclx_neighup[ivol][dir];
-// 	  int xmnu=loclx_neighdw[ivol][nu];
-// 	  int xpnu=loclx_neighup[ivol][nu];
-// 	  int xpmumnu=loclx_neighdw[xpmu][nu];
-// 	  int xpmupnu=loclx_neighup[xpmu][nu];
-	  
-// 	  int ipair=edge_numb[dir][nu];
-	  
-// 	  for(int i=0;i<4;i++)
-// 	    {
-// 	      su3 u;
-	  
-// 	  double sign;
-// 	  if(dir<nu) sign=+1.0;
-// 	  else       sign=-1.0;
-	  
-//   	  su3_put_to_diag(u,sign);
-//   	  if(i==0 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
-//   	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
-//   	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
-//   	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
-//   	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
-//   	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
-//   	  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
-	  
-//   	  su3_summassign(an,u);
-	  
-//   	  su3 v;
-	  
-//   	  su3_put_to_diag(v,sign);
-//   	  if(i==0 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
-//   	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
-//   	  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
-//   	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
-//   	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
-//   	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
-//   	  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
-	  
-//   	  su3_subtassign(an,v);
-//   	}
-//     }
-  
-//   su3_prodassign_double(an,-cSW/4);
-  
-//   nissa_free(insertion);
-  
-//     }
-// }
-
 void test_xQx()
 {
   master_printf("Testing TM\n");
@@ -1020,6 +957,109 @@ double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
+void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double kappa,double mass,double cSW)
+{
+  GET_THREAD_ID();
+  
+  int ivol=loclx_of_loceo[eo][ieo];
+  
+  as2t_su3 *insertion=nissa_malloc("insertion",loc_vol+bord_vol+edge_vol,as2t_su3);
+  
+  NISSA_PARALLEL_LOOP(jvol,0,loc_vol)
+    {
+      for(int mu=0;mu<NDIM;mu++)
+    	for(int nu=mu+1;nu<NDIM;nu++)
+	  {
+	    int ipair=edge_numb[mu][nu];
+	    dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]));
+	    
+	    spincolor tempX,tempY;
+	    for(auto& p : {std::make_pair(tempX,X[ivol]),std::make_pair(tempY,Y[ivol])})
+	      unsafe_dirac_prod_spincolor(std::get<0>(p),base_gamma+igamma_of_mu[dir],std::get<1>(p));
+  
+  for(int ic1=0;ic1<NCOL;ic1++)
+    for(int ic2=0;ic2<NCOL;ic2++)
+      for(int id=0;id<NDIRAC;id++)
+	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],in_l[ivol][id][ic2]);
+  
+  nissa_free(lx_conf);
+
+	    su3& ins=insertion[jvol][ipair];
+	    
+	    for(int ic1=0;ic1<NCOL;ic1++)
+	      for(int ic2=0;ic2<NCOL;ic2++)
+		{
+		  complex_put_to_zero(ins[ic1][ic2]);
+		  
+		  for(int x_high_low=0;x_high_low<2;x_high_low++)
+		    for(int iw=0;iw<NDIRAC/2;iw++)
+		      {
+			int id=2*x_high_low+iw;
+			complex& c=m.entr[id];
+			int jd=m.pos[id];
+			int jw=jd-2*x_high_low;
+			
+			complex_summ_the_prod(ins[ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
+		      }
+		}
+	    
+	    su3_anti_hermitian_part(ins,ins);
+	  }
+    }
+  NISSA_PARALLEL_LOOP_END;
+  
+  for(int inu=0;inu<NDIM-1;inu++)
+    {
+      int nu=perp_dir[dir][inu];
+      
+      int xpmu=loclx_neighup[ivol][dir];
+      int xmnu=loclx_neighdw[ivol][nu];
+      int xpnu=loclx_neighup[ivol][nu];
+      int xpmumnu=loclx_neighdw[xpmu][nu];
+      int xpmupnu=loclx_neighup[xpmu][nu];
+      
+      int ipair=edge_numb[dir][nu];
+      
+      for(int i=0;i<4;i++)
+	{
+	  su3 u;
+	  
+	  double sign;
+	  if(dir<nu) sign=+1.0;
+	  else       sign=-1.0;
+	  
+  	  su3_put_to_diag(u,sign);
+  	  if(i==0) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
+  	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
+  	  if(i==1) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
+  	  if(i==2) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
+  	  if(i==3) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
+	  
+  	  su3_summassign(an,u);
+	  
+  	  su3 v;
+	  
+  	  su3_put_to_diag(v,sign);
+  	  if(i==0) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
+  	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
+  	  if(i==1) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
+  	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
+  	  if(i==2) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
+  	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
+  	  if(i==3) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
+	  
+  	  su3_subtassign(an,v);
+  	}
+    }
+  
+  su3_prodassign_double(an,-cSW/4);
+  
+  nissa_free(insertion);
+  
+}
+
 void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
 {
   /// Preprare clover
@@ -1063,6 +1103,11 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   su3 an1,an2;
   xQx_der(an1,eo,ieo,dir,X,Y,kappa,mass,cSW);
   xQx_der(an2,eo,ieo,dir,Y,X,kappa,mass,cSW);
+  
+  // master_printf("an1:\n");
+  // su3_print(an1);
+  // master_printf("an2:\n");
+  // su3_print(an2);
   
   su3_summ(an,an1,an2);
   
