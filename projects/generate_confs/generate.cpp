@@ -733,6 +733,69 @@ void xQx_der(su3 an,int eo,int ieo,int dir,spincolor *in_l,spincolor *in_r,doubl
   nissa_free(lx_conf);
 }
 
+// void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *in_l,spincolor *in_r,double kappa,double mass,double cSW)
+// {
+  
+//   as2t_su3 *insertion=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
+  
+//   GET_THREAD_ID();
+  
+  
+//   if(cSW!=0)
+//     {
+//       for(int inu=0;inu<NDIM-1;inu++)
+// 	{
+// 	  int nu=perp_dir[dir][inu];
+	  
+// 	  int xpmu=loclx_neighup[ivol][dir];
+// 	  int xmnu=loclx_neighdw[ivol][nu];
+// 	  int xpnu=loclx_neighup[ivol][nu];
+// 	  int xpmumnu=loclx_neighdw[xpmu][nu];
+// 	  int xpmupnu=loclx_neighup[xpmu][nu];
+	  
+// 	  int ipair=edge_numb[dir][nu];
+	  
+// 	  for(int i=0;i<4;i++)
+// 	    {
+// 	      su3 u;
+	  
+// 	  double sign;
+// 	  if(dir<nu) sign=+1.0;
+// 	  else       sign=-1.0;
+	  
+//   	  su3_put_to_diag(u,sign);
+//   	  if(i==0 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
+//   	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
+//   	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
+//   	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
+//   	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
+//   	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
+//   	  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
+	  
+//   	  su3_summassign(an,u);
+	  
+//   	  su3 v;
+	  
+//   	  su3_put_to_diag(v,sign);
+//   	  if(i==0 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
+//   	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
+//   	  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
+//   	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
+//   	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
+//   	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
+//   	  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
+	  
+//   	  su3_subtassign(an,v);
+//   	}
+//     }
+  
+//   su3_prodassign_double(an,-cSW/4);
+  
+//   nissa_free(insertion);
+  
+//     }
+// }
+
 void test_xQx()
 {
   master_printf("Testing TM\n");
@@ -799,7 +862,7 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
+void xQhatx_der_old(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
 {
   spincolor temp;
   
@@ -846,7 +909,7 @@ void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double 
 	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],temp1[ieo][id][ic2]);
 }
 
-void xQhatx_der_bis(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
+void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
 {
   /// Preprare clover
   clover_term_t *Cl[2];
@@ -890,7 +953,7 @@ void test_xQhatx()
   master_printf("Testing TM\n");
   
   double kappa=0.24;
-  double mass=0.0;
+  double mass=0.0; //leavi it 0
   double cSW=0.0;
   
   //generate_cold_eo_conf(conf);
@@ -904,7 +967,7 @@ void test_xQhatx()
   const int ieo=1;
   const int dir=1;
   
-  compare(eo,ieo,dir,xQhatx,xQhatx_der_bis,in,kappa,mass,cSW);
+  compare(eo,ieo,dir,xQhatx,xQhatx_der,in,kappa,mass,cSW);
   
   master_printf("Comparing derivative of xQhatx for link %d %d %d\n",(int)eo,ieo,dir);
   
@@ -1495,12 +1558,15 @@ void run_program_for_production()
     {
       double init_traj_time=take_time();
       
-      //test_xQx();
-      //test_xQhatx();
-      //test_xQ2hatx();
       for(EO=0;EO<2;EO++)
 	for(DIR=0;DIR<NDIM;DIR++)
-	  test_xQ2eex();
+	  {
+	    //test_xQx();
+	    //test_xQhatx();
+	    test_xQ2hatx();
+	    //test_xQ2eex();
+	  }
+	    
       crash("");
       
       // 1) produce new conf
