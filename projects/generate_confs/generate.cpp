@@ -1042,86 +1042,86 @@ void test_xQ2hatx()
 
 /////////////////////////////////////////////////////////////////
 
-using spincolor_spincolor=complex[NDIRAC][NCOL][NDIRAC][NCOL];
-void clover_of_site(spincolor_spincolor out,int eo,int ieo,double kappa,double cSW)
-{
-  memset(out,0,sizeof(spincolor_spincolor));
-
-  complex d{1/(2*kappa),0.0};
-  for(int id=0;id<NDIRAC;id++)
-    for(int ic=0;ic<NCOL;ic++)
-      complex_summassign(out[id][ic][id][ic],d);
+// using spincolor_spincolor=complex[NDIRAC][NCOL][NDIRAC][NCOL];
+// void clover_of_site(spincolor_spincolor out,int eo,int ieo,double kappa,double cSW)
+// {
+//   memset(out,0,sizeof(spincolor_spincolor));
   
-  int X=loclx_of_loceo[eo][ieo];
+//   complex d{1/(2*kappa),0.0};
+//   for(int id=0;id<NDIRAC;id++)
+//     for(int ic=0;ic<NCOL;ic++)
+//       complex_summassign(out[id][ic][id][ic],d);
   
-  for(int mu=0;mu<NDIM;mu++)
-    {
-      int A=loclx_neighup[X][mu];
-      int D=loclx_neighdw[X][mu];
+//   int X=loclx_of_loceo[eo][ieo];
+  
+//   for(int mu=0;mu<NDIM;mu++)
+//     {
+//       int A=loclx_neighup[X][mu];
+//       int D=loclx_neighdw[X][mu];
       
-      for(int inu=0;inu<NDIM-1;inu++)
-	{
-	  int nu=perp_dir[mu][inu];
-	  dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
+//       for(int inu=0;inu<NDIM-1;inu++)
+// 	{
+// 	  int nu=perp_dir[mu][inu];
+// 	  dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
 	  
-	  dirac_prod_double(&m,&m,-cSW/16);
+// 	  dirac_prod_double(&m,&m,-cSW/16);
 	  
-	  int B=loclx_neighup[X][nu];
-	  int F=loclx_neighdw[X][nu];
+// 	  int B=loclx_neighup[X][nu];
+// 	  int F=loclx_neighdw[X][nu];
           
-	  int C=loclx_neighup[D][nu];
-	  int E=loclx_neighdw[D][nu];
+// 	  int C=loclx_neighup[D][nu];
+// 	  int E=loclx_neighdw[D][nu];
           
-	  int G=loclx_neighdw[A][nu];
+// 	  int G=loclx_neighdw[A][nu];
           
-	  su3 temp1,temp2;
+// 	  su3 temp1,temp2;
 	  
-	  auto c=[](int lx,int dir)
-		 {
-		   return conf[loclx_parity[lx]][loceo_of_loclx[lx]][dir];
-		 };
+// 	  auto c=[](int lx,int dir)
+// 		 {
+// 		   return conf[loclx_parity[lx]][loceo_of_loclx[lx]][dir];
+// 		 };
 	  
-	  auto s=[&m,&temp1,&out]()
-		 {
-		   for(int id=0;id<NDIRAC;id++)
-		     {
-		       int jd=m.pos[id];
-		       for(int ic=0;ic<NCOL;ic++)
-			 for(int jc=0;jc<NCOL;jc++)
-			   complex_summ_the_prod(out[id][ic][jd][jc],m.entr[id],temp1[ic][jc]);
-		     }
-		 };
+// 	  auto s=[&m,&temp1,&out]()
+// 		 {
+// 		   for(int id=0;id<NDIRAC;id++)
+// 		     {
+// 		       int jd=m.pos[id];
+// 		       for(int ic=0;ic<NCOL;ic++)
+// 			 for(int jc=0;jc<NCOL;jc++)
+// 			   complex_summ_the_prod(out[id][ic][jd][jc],m.entr[id],temp1[ic][jc]);
+// 		     }
+// 		 };
 	  
-	  //Leaf 1
-	  unsafe_su3_prod_su3(temp1,c(X,mu),c(A,nu));               //    B--<--Y
-	  unsafe_su3_prod_su3_dag(temp2,temp1,c(B,mu));             //    |  1  |
-	  unsafe_su3_prod_su3_dag(temp1,temp2,c(X,nu));             //    |     |
-	  /*                                             */         //    X-->--A
-	  s();
+// 	  //Leaf 1
+// 	  unsafe_su3_prod_su3(temp1,c(X,mu),c(A,nu));               //    B--<--Y
+// 	  unsafe_su3_prod_su3_dag(temp2,temp1,c(B,mu));             //    |  1  |
+// 	  unsafe_su3_prod_su3_dag(temp1,temp2,c(X,nu));             //    |     |
+// 	  /*                                             */         //    X-->--A
+// 	  s();
           
-	  //Leaf 2
-	  unsafe_su3_prod_su3_dag(temp1,c(X,nu),c(C,mu));           //    C--<--B
-	  unsafe_su3_prod_su3_dag(temp2,temp1,c(D,nu));             //    |  2  |
-	  unsafe_su3_prod_su3(temp1,temp2,c(D,mu));                 //    |     |
-	  /*                                             */         //    D-->--X
-	  s();
+// 	  //Leaf 2
+// 	  unsafe_su3_prod_su3_dag(temp1,c(X,nu),c(C,mu));           //    C--<--B
+// 	  unsafe_su3_prod_su3_dag(temp2,temp1,c(D,nu));             //    |  2  |
+// 	  unsafe_su3_prod_su3(temp1,temp2,c(D,mu));                 //    |     |
+// 	  /*                                             */         //    D-->--X
+// 	  s();
 	  
-	  //Leaf 3
-	  unsafe_su3_dag_prod_su3_dag(temp1,c(D,mu),c(E,nu));        //   D--<--X
-	  unsafe_su3_prod_su3(temp2,temp1,c(E,mu));                  //   |  3  |
-	  unsafe_su3_prod_su3(temp1,temp2,c(F,nu));                  //   |     |
-	  /*                                                 */      //   E-->--F
-	  s();
+// 	  //Leaf 3
+// 	  unsafe_su3_dag_prod_su3_dag(temp1,c(D,mu),c(E,nu));        //   D--<--X
+// 	  unsafe_su3_prod_su3(temp2,temp1,c(E,mu));                  //   |  3  |
+// 	  unsafe_su3_prod_su3(temp1,temp2,c(F,nu));                  //   |     |
+// 	  /*                                                 */      //   E-->--F
+// 	  s();
 	  
-	  //Leaf 4
-	  unsafe_su3_dag_prod_su3(temp1,c(F,nu),c(F,mu));             //  X--<--A
-	  unsafe_su3_prod_su3(temp2,temp1,c(G,nu));                   //  |  4  |
-	  unsafe_su3_prod_su3_dag(temp1,temp2,c(X,mu));               //  |     |
-	  /*                                   */                     //  F-->--G
-	  s();
-	}
-    }
-}
+// 	  //Leaf 4
+// 	  unsafe_su3_dag_prod_su3(temp1,c(F,nu),c(F,mu));             //  X--<--A
+// 	  unsafe_su3_prod_su3(temp2,temp1,c(G,nu));                   //  |  4  |
+// 	  unsafe_su3_prod_su3_dag(temp1,temp2,c(X,mu));               //  |     |
+// 	  /*                                   */                     //  F-->--G
+// 	  s();
+// 	}
+//     }
+// }
 
 // XQeeX functional
 int EO;
@@ -1130,7 +1130,7 @@ double xQ2eex(double kappa,double mass,double cSW)
 {
   GET_THREAD_ID();
   
-  //Preprare clover
+  //Preparre clover
   clover_term_t *Cl[2];
   for(int eo=0;eo<2;eo++)
     Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
