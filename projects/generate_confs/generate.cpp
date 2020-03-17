@@ -738,7 +738,7 @@ void test_xQx()
   master_printf("Testing TM\n");
   
   double kappa=0.24;
-  double mass=1;
+  double mass=0.14;
   double cSW=0.0;
   
   //generate_cold_eo_conf(conf);
@@ -890,7 +890,7 @@ void test_xQhatx()
   master_printf("Testing TM\n");
   
   double kappa=0.24;
-  double mass=0.0; //leavi it 0
+  double mass=0.0; //leave it 0
   double cSW=0.0;
   
   //generate_cold_eo_conf(conf);
@@ -973,37 +973,25 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
 	    int ipair=edge_numb[mu][nu];
 	    dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]));
 	    
-	    spincolor tempX,tempY;
-	    for(auto& p : {std::make_pair(tempX,X[ivol]),std::make_pair(tempY,Y[ivol])})
-	      unsafe_dirac_prod_spincolor(std::get<0>(p),base_gamma+igamma_of_mu[dir],std::get<1>(p));
-  
-  for(int ic1=0;ic1<NCOL;ic1++)
-    for(int ic2=0;ic2<NCOL;ic2++)
-      for(int id=0;id<NDIRAC;id++)
-	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],in_l[ivol][id][ic2]);
-  
-  nissa_free(lx_conf);
-
 	    su3& ins=insertion[jvol][ipair];
+	    spincolor temp;
+	    unsafe_dirac_prod_spincolor(temp,&m,X[ivol]);
+	    
+	    su3_put_to_zero(ins);
 	    
 	    for(int ic1=0;ic1<NCOL;ic1++)
 	      for(int ic2=0;ic2<NCOL;ic2++)
-		{
-		  complex_put_to_zero(ins[ic1][ic2]);
-		  
-		  for(int x_high_low=0;x_high_low<2;x_high_low++)
-		    for(int iw=0;iw<NDIRAC/2;iw++)
-		      {
-			int id=2*x_high_low+iw;
-			complex& c=m.entr[id];
-			int jd=m.pos[id];
-			int jw=jd-2*x_high_low;
-			
-			complex_summ_the_prod(ins[ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
-		      }
-		}
+		for(int id=0;id<NDIRAC;id++)
+		  {
+		    complex t;
+		    unsafe_complex_conj2_prod(t,temp[id][ic1],Y[ivol][id][ic2]);
+		    
+		    complex_subtassign(ins[ic1][ic2],t);
+		    complex_summ_conj2(ins[ic2][ic1],ins[ic2][ic1],t);
+		  }
 	    
-	    su3_anti_hermitian_part(ins,ins);
+	    master_printf("%d %d\n",mu,nu);
+	    su3_print(ins);
 	  }
     }
   NISSA_PARALLEL_LOOP_END;
@@ -1021,12 +1009,12 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
       int ipair=edge_numb[dir][nu];
       
       for(int i=0;i<4;i++)
-	{
-	  su3 u;
+  	{
+  	  su3 u;
 	  
-	  double sign;
-	  if(dir<nu) sign=+1.0;
-	  else       sign=-1.0;
+  	  double sign;
+  	  if(dir<nu) sign=+1.0;
+  	  else       sign=-1.0;
 	  
   	  su3_put_to_diag(u,sign);
   	  if(i==0) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
@@ -1054,7 +1042,7 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
   	}
     }
   
-  su3_prodassign_double(an,-cSW/4);
+  su3_prodassign_double(an,-cSW/8);
   
   nissa_free(insertion);
   
@@ -1103,6 +1091,9 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   su3 an1,an2;
   xQx_der(an1,eo,ieo,dir,X,Y,kappa,mass,cSW);
   xQx_der(an2,eo,ieo,dir,Y,X,kappa,mass,cSW);
+  
+  su3 an_cSW;
+  xQx_der_cSW(an_cSW,eo,ieo,dir,X,Y,kappa,mass,cSW);
   
   // master_printf("an1:\n");
   // su3_print(an1);

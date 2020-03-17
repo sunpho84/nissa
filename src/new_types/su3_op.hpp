@@ -302,6 +302,7 @@ namespace nissa
 	//real part of diagonal: 0
 	out[ic][ic][RE]=0;
 	//imag part of diagonal: no change
+	out[ic][ic][IM]=in[ic][ic][IM];
 	
 	for(size_t jc=0;jc<ic;jc++)
 	  {
