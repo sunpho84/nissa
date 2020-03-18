@@ -679,6 +679,131 @@ void compare(int eo,int ieo,int dir,FNu fnu,FAn fan,Ts...ts)
 
 /////////////////////////////////////////////////////////////////
 
+THREADABLE_FUNCTION_6ARG(apply_tmclovQprime, spincolor*,out, quad_su3*,conf, double,kappa, clover_term_t*,Cl, double,mu, spincolor*,in)
+{
+  communicate_lx_spincolor_borders(in);
+  communicate_lx_quad_su3_borders(conf);
+  
+  double kcf=1/(2*kappa);
+  
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(X,0,loc_vol)
+    {
+      int Xup,Xdw;
+      color temp_c0,temp_c1,temp_c2,temp_c3;
+      
+      //Clover term
+      spincolor Clin;
+      unsafe_apply_point_chromo_operator_to_spincolor(Clin,Cl[X],in[X]);
+      
+      spincolor temp;
+      
+      //Forward 0
+      Xup=loclx_neighup[X][0];
+      color_summ(temp_c0,in[Xup][0],in[Xup][2]);
+      color_summ(temp_c1,in[Xup][1],in[Xup][3]);
+      unsafe_su3_prod_color(temp[2],conf[X][0],temp_c0);
+      unsafe_su3_prod_color(temp[3],conf[X][0],temp_c1);
+      color_copy(temp[0],temp[2]);
+      color_copy(temp[1],temp[3]);
+      
+      //Backward 0
+      Xdw=loclx_neighdw[X][0];
+      color_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
+      color_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
+      unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][0],temp_c0);
+      unsafe_su3_dag_prod_color(temp_c3,conf[Xdw][0],temp_c1);
+      color_summassign(temp[0],temp_c2);
+      color_summassign(temp[1],temp_c3);
+      color_subtassign(temp[2],temp_c2);
+      color_subtassign(temp[3],temp_c3);
+      
+      //Forward 1
+      Xup=loclx_neighup[X][1];
+      color_isumm(temp_c0,in[Xup][0],in[Xup][3]);
+      color_isumm(temp_c1,in[Xup][1],in[Xup][2]);
+      unsafe_su3_prod_color(temp_c2,conf[X][1],temp_c0);
+      unsafe_su3_prod_color(temp_c3,conf[X][1],temp_c1);
+      color_summassign(temp[0],temp_c2);
+      color_summassign(temp[1],temp_c3);
+      color_isubtassign(temp[2],temp_c3);
+      color_isubtassign(temp[3],temp_c2);
+      
+      //Backward 1
+      Xdw=loclx_neighdw[X][1];
+      color_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
+      color_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
+      unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][1],temp_c0);
+      unsafe_su3_dag_prod_color(temp_c3,conf[Xdw][1],temp_c1);
+      color_summassign(temp[0],temp_c2);
+      color_summassign(temp[1],temp_c3);
+      color_isummassign(temp[2],temp_c3);
+      color_isummassign(temp[3],temp_c2);
+      
+      //Forward 2
+      Xup=loclx_neighup[X][2];
+      color_summ(temp_c0,in[Xup][0],in[Xup][3]);
+      color_subt(temp_c1,in[Xup][1],in[Xup][2]);
+      unsafe_su3_prod_color(temp_c2,conf[X][2],temp_c0);
+      unsafe_su3_prod_color(temp_c3,conf[X][2],temp_c1);
+      color_summassign(temp[0],temp_c2);
+      color_summassign(temp[1],temp_c3);
+      color_subtassign(temp[2],temp_c3);
+      color_summassign(temp[3],temp_c2);
+      
+      //Backward 2
+      Xdw=loclx_neighdw[X][2];
+      color_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
+      color_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
+      unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][2],temp_c0);
+      unsafe_su3_dag_prod_color(temp_c3,conf[Xdw][2],temp_c1);
+      color_summassign(temp[0],temp_c2);
+      color_summassign(temp[1],temp_c3);
+      color_summassign(temp[2],temp_c3);
+      color_subtassign(temp[3],temp_c2);
+      
+      //Forward 3
+      Xup=loclx_neighup[X][3];
+      color_isumm(temp_c0,in[Xup][0],in[Xup][2]);
+      color_isubt(temp_c1,in[Xup][1],in[Xup][3]);
+      unsafe_su3_prod_color(temp_c2,conf[X][3],temp_c0);
+      unsafe_su3_prod_color(temp_c3,conf[X][3],temp_c1);
+      color_summassign(temp[0],temp_c2);
+      color_summassign(temp[1],temp_c3);
+      color_isubtassign(temp[2],temp_c2);
+      color_isummassign(temp[3],temp_c3);
+      
+      //Backward 3
+      Xdw=loclx_neighdw[X][3];
+      color_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
+      color_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
+      unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][3],temp_c0);
+      unsafe_su3_dag_prod_color(temp_c3,conf[Xdw][3],temp_c1);
+      color_summassign(temp[0],temp_c2);
+      color_summassign(temp[1],temp_c3);
+      color_isummassign(temp[2],temp_c2);
+      color_isubtassign(temp[3],temp_c3);
+      
+      //Put the -1/2 factor on derivative and the gamma5
+      //ok this is horrible, but fast
+      for(int c=0;c<NCOL;c++)
+	{
+	  out[X][0][c][0]=+Clin[0][c][0]-0.*temp[0][c][0]+kcf*in[X][0][c][0]-mu*in[X][0][c][1];
+	  out[X][0][c][1]=+Clin[0][c][1]-0.*temp[0][c][1]+kcf*in[X][0][c][1]+mu*in[X][0][c][0];
+	  out[X][1][c][0]=+Clin[1][c][0]-0.*temp[1][c][0]+kcf*in[X][1][c][0]-mu*in[X][1][c][1];
+	  out[X][1][c][1]=+Clin[1][c][1]-0.*temp[1][c][1]+kcf*in[X][1][c][1]+mu*in[X][1][c][0];
+	  out[X][2][c][0]=-Clin[2][c][0]+0.*temp[2][c][0]-kcf*in[X][2][c][0]-mu*in[X][2][c][1];
+	  out[X][2][c][1]=-Clin[2][c][1]+0.*temp[2][c][1]-kcf*in[X][2][c][1]+mu*in[X][2][c][0];
+	  out[X][3][c][0]=-Clin[3][c][0]+0.*temp[3][c][0]-kcf*in[X][3][c][0]-mu*in[X][3][c][1];
+	  out[X][3][c][1]=-Clin[3][c][1]+0.*temp[3][c][1]-kcf*in[X][3][c][1]+mu*in[X][3][c][0];
+	}
+    }
+  NISSA_PARALLEL_LOOP_END;
+  
+  set_borders_invalid(out);
+}
+THREADABLE_FUNCTION_END
+
 // XQX functional
 
 double xQx(spincolor *in_l,spincolor *in_r,double kappa,double mass,double cSW)
@@ -692,7 +817,7 @@ double xQx(spincolor *in_l,spincolor *in_r,double kappa,double mass,double cSW)
   chromo_operator(Cl,lx_conf);
   chromo_operator_include_cSW(Cl,cSW);
   
-  apply_tmclovQ(out,lx_conf,kappa,Cl,mass,in_r);
+  apply_tmclovQprime(out,lx_conf,kappa,Cl,mass,in_r);
   
   complex act;
   complex_vector_glb_scalar_prod(act,(complex*)in_l,(complex*)out,loc_vol*sizeof(spincolor)/sizeof(complex));
@@ -709,28 +834,131 @@ double xQx(spincolor *in_l,spincolor *in_r,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQx_der(su3 an,int eo,int ieo,int dir,spincolor *in_l,spincolor *in_r,double kappa,double mass,double cSW)
+void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double kappa,double mass,double cSW)
 {
-  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
-  paste_eo_parts_into_lx_vector(lx_conf,conf);
+  GET_THREAD_ID();
   
   int ivol=loclx_of_loceo[eo][ieo];
   
-  spincolor temp;
+  as2t_su3 *insertion=nissa_malloc("insertion",loc_vol+bord_vol+edge_vol,as2t_su3);
+  
+  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
+  paste_eo_parts_into_lx_vector(lx_conf,conf);
+  
+  NISSA_PARALLEL_LOOP(jvol,0,loc_vol)
+    {
+      for(int mu=0;mu<NDIM;mu++)
+    	for(int nu=mu+1;nu<NDIM;nu++)
+	  {
+	    int ipair=edge_numb[mu][nu];
+	    dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]));
+	    
+	    su3& ins=insertion[jvol][ipair];
+	    spincolor tempX,tempY;
+	    unsafe_dirac_prod_spincolor(tempX,&m,X[ivol]);
+	    unsafe_dirac_prod_spincolor(tempY,&m,Y[ivol]);
+	    
+	    su3_put_to_zero(ins);
+	    
+	    for(int ic1=0;ic1<NCOL;ic1++)
+	      for(int ic2=0;ic2<NCOL;ic2++)
+		for(int id=0;id<NDIRAC;id++)
+		  {
+		    complex_summ_the_conj2_prod(ins[ic1][ic2],tempY[id][ic1],X[ivol][id][ic2]);
+		    complex_summ_the_conj2_prod(ins[ic1][ic2],tempX[id][ic1],Y[ivol][id][ic2]);
+		  }
+	    
+	    // master_printf("%d %d\n",mu,nu);
+	    // su3_print(ins);
+	  }
+    }
+  NISSA_PARALLEL_LOOP_END;
   
   su3_put_to_zero(an);
   
-  int iup=loclx_neighup[ivol][dir];
-  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in_r[iup]);
-  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[dir],in_r[iup]);
-  safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
+  for(int inu=0;inu<NDIM-1;inu++)
+    {
+      int nu=perp_dir[dir][inu];
+      
+      int xpmu=loclx_neighup[ivol][dir];
+      int xmnu=loclx_neighdw[ivol][nu];
+      int xpnu=loclx_neighup[ivol][nu];
+      int xpmumnu=loclx_neighdw[xpmu][nu];
+      int xpmupnu=loclx_neighup[xpmu][nu];
+      
+      int ipair=edge_numb[dir][nu];
+      
+      for(int i=0;i<4;i++)
+  	{
+	  
+  	  double sign;
+  	  if(dir<nu) sign=+1.0;
+  	  else       sign=-1.0;
+	  
+	  sign=1;
+	  
+  	  su3 u;
+	  
+  	  su3_put_to_diag(u,sign);
+  	  if(i==0) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
+  	  safe_su3_prod_su3(u,u,lx_conf[xpmu][nu]);
+  	  if(i==1) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,lx_conf[xpnu][dir]);
+  	  if(i==2) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,lx_conf[ivol][nu]);
+  	  if(i==3) safe_su3_prod_su3(u,u,insertion[ivol][ipair]);
+	  su3_summassign(an,u);
+	  
+	  su3 v;
+	  
+  	  su3_put_to_diag(v,sign);
+  	  if(i==0) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
+  	  safe_su3_prod_su3_dag(v,v,lx_conf[xpmumnu][nu]);
+  	  if(i==1) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
+  	  safe_su3_prod_su3_dag(v,v,lx_conf[xmnu][dir]);
+  	  if(i==2) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
+  	  safe_su3_prod_su3(v,v,lx_conf[xmnu][nu]);
+  	  if(i==3) safe_su3_prod_su3(v,v,insertion[ivol][ipair]);
+	  su3_subtassign(an,v);
+	}
+    }
   
-  for(int ic1=0;ic1<NCOL;ic1++)
-    for(int ic2=0;ic2<NCOL;ic2++)
-      for(int id=0;id<NDIRAC;id++)
-	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],in_l[ivol][id][ic2]);
+  su3_prodassign_double(an,-cSW/8);
   
+  nissa_free(insertion);
   nissa_free(lx_conf);
+}
+
+void xQx_der(su3 an,int eo,int ieo,int dir,spincolor *in_l,spincolor *in_r,double kappa,double mass,double cSW)
+{
+  // quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
+  // paste_eo_parts_into_lx_vector(lx_conf,conf);
+  
+  // int ivol=loclx_of_loceo[eo][ieo];
+  
+  // spincolor temp;
+  
+  su3_put_to_zero(an);
+  
+  // int iup=loclx_neighup[ivol][dir];
+  // unsafe_dirac_prod_spincolor(temp,base_gamma+0,in_r[iup]);
+  // dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[dir],in_r[iup]);
+  // safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
+  
+  // for(int ic1=0;ic1<NCOL;ic1++)
+  //   for(int ic2=0;ic2<NCOL;ic2++)
+  //     for(int id=0;id<NDIRAC;id++)
+  // 	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],in_l[ivol][id][ic2]);
+  
+  // nissa_free(lx_conf);
+  
+  if(cSW!=0)
+    {
+      su3 an_cSW;
+      xQx_der_cSW(an_cSW,eo,ieo,dir,in_l,in_r,kappa,mass,cSW);
+      su3_summassign(an,an_cSW);
+    }
+  
 }
 
 void test_xQx()
@@ -738,8 +966,8 @@ void test_xQx()
   master_printf("Testing TM\n");
   
   double kappa=0.24;
-  double mass=0.14;
-  double cSW=0.0;
+  double mass=0;
+  double cSW=1;
   
   //generate_cold_eo_conf(conf);
   generate_hot_eo_conf(conf);
@@ -955,97 +1183,6 @@ double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
   nissa_free(temp2);
   
   return act[RE];
-}
-
-void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double kappa,double mass,double cSW)
-{
-  GET_THREAD_ID();
-  
-  int ivol=loclx_of_loceo[eo][ieo];
-  
-  as2t_su3 *insertion=nissa_malloc("insertion",loc_vol+bord_vol+edge_vol,as2t_su3);
-  
-  NISSA_PARALLEL_LOOP(jvol,0,loc_vol)
-    {
-      for(int mu=0;mu<NDIM;mu++)
-    	for(int nu=mu+1;nu<NDIM;nu++)
-	  {
-	    int ipair=edge_numb[mu][nu];
-	    dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]));
-	    
-	    su3& ins=insertion[jvol][ipair];
-	    spincolor temp;
-	    unsafe_dirac_prod_spincolor(temp,&m,X[ivol]);
-	    
-	    su3_put_to_zero(ins);
-	    
-	    for(int ic1=0;ic1<NCOL;ic1++)
-	      for(int ic2=0;ic2<NCOL;ic2++)
-		for(int id=0;id<NDIRAC;id++)
-		  {
-		    complex t;
-		    unsafe_complex_conj2_prod(t,temp[id][ic1],Y[ivol][id][ic2]);
-		    
-		    complex_subtassign(ins[ic1][ic2],t);
-		    complex_summ_conj2(ins[ic2][ic1],ins[ic2][ic1],t);
-		  }
-	    
-	    master_printf("%d %d\n",mu,nu);
-	    su3_print(ins);
-	  }
-    }
-  NISSA_PARALLEL_LOOP_END;
-  
-  for(int inu=0;inu<NDIM-1;inu++)
-    {
-      int nu=perp_dir[dir][inu];
-      
-      int xpmu=loclx_neighup[ivol][dir];
-      int xmnu=loclx_neighdw[ivol][nu];
-      int xpnu=loclx_neighup[ivol][nu];
-      int xpmumnu=loclx_neighdw[xpmu][nu];
-      int xpmupnu=loclx_neighup[xpmu][nu];
-      
-      int ipair=edge_numb[dir][nu];
-      
-      for(int i=0;i<4;i++)
-  	{
-  	  su3 u;
-	  
-  	  double sign;
-  	  if(dir<nu) sign=+1.0;
-  	  else       sign=-1.0;
-	  
-  	  su3_put_to_diag(u,sign);
-  	  if(i==0) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
-  	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
-  	  if(i==1) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
-  	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
-  	  if(i==2) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
-  	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
-  	  if(i==3) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
-	  
-  	  su3_summassign(an,u);
-	  
-  	  su3 v;
-	  
-  	  su3_put_to_diag(v,sign);
-  	  if(i==0) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
-  	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
-  	  if(i==1) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
-  	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
-  	  if(i==2) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
-  	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
-  	  if(i==3) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
-	  
-  	  su3_subtassign(an,v);
-  	}
-    }
-  
-  su3_prodassign_double(an,-cSW/8);
-  
-  nissa_free(insertion);
-  
 }
 
 void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
@@ -1597,9 +1734,9 @@ void run_program_for_production()
       for(EO=0;EO<2;EO++)
 	for(DIR=0;DIR<NDIM;DIR++)
 	  {
-	    //test_xQx();
+	    test_xQx();
 	    //test_xQhatx();
-	    test_xQ2hatx();
+	    //test_xQ2hatx();
 	    //test_xQ2eex();
 	  }
 	    
