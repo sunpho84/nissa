@@ -786,7 +786,8 @@ THREADABLE_FUNCTION_6ARG(apply_tmclovQprime, spincolor*,out, quad_su3*,conf, dou
       
       //Put the -1/2 factor on derivative and the gamma5
       //ok this is horrible, but fast
-      for(int c=0;c<NCOL;c++)
+      if(X==0)
+	for(int c=0;c<NCOL;c++)
 	{
 	  out[X][0][c][0]=+Clin[0][c][0]-0.*temp[0][c][0]+kcf*in[X][0][c][0]-mu*in[X][0][c][1];
 	  out[X][0][c][1]=+Clin[0][c][1]-0.*temp[0][c][1]+kcf*in[X][0][c][1]+mu*in[X][0][c][0];
@@ -846,6 +847,7 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
   paste_eo_parts_into_lx_vector(lx_conf,conf);
   
   NISSA_PARALLEL_LOOP(jvol,0,loc_vol)
+    if(jvol==0)
     {
       for(int mu=0;mu<NDIM;mu++)
     	for(int nu=mu+1;nu<NDIM;nu++)
@@ -895,7 +897,7 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
   	  if(dir<nu) sign=+1.0;
   	  else       sign=-1.0;
 	  
-	  sign=1;
+	  //sign=1;
 	  
   	  su3 u;
 	  
@@ -923,7 +925,7 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
 	}
     }
   
-  su3_prodassign_double(an,-cSW/8);
+  su3_prodassign_double(an,-cSW/16);
   
   nissa_free(insertion);
   nissa_free(lx_conf);
