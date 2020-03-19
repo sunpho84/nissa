@@ -786,8 +786,7 @@ THREADABLE_FUNCTION_6ARG(apply_tmclovQprime, spincolor*,out, quad_su3*,conf, dou
       
       //Put the -1/2 factor on derivative and the gamma5
       //ok this is horrible, but fast
-      if(X==0)
-	for(int c=0;c<NCOL;c++)
+      for(int c=0;c<NCOL;c++)
 	{
 	  out[X][0][c][0]=+Clin[0][c][0]-0.*temp[0][c][0]+kcf*in[X][0][c][0]-mu*in[X][0][c][1];
 	  out[X][0][c][1]=+Clin[0][c][1]-0.*temp[0][c][1]+kcf*in[X][0][c][1]+mu*in[X][0][c][0];
@@ -847,7 +846,6 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
   paste_eo_parts_into_lx_vector(lx_conf,conf);
   
   NISSA_PARALLEL_LOOP(jvol,0,loc_vol)
-    if(jvol==0)
     {
       for(int mu=0;mu<NDIM;mu++)
     	for(int nu=mu+1;nu<NDIM;nu++)
@@ -857,8 +855,8 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
 	    
 	    su3& ins=insertion[jvol][ipair];
 	    spincolor tempX,tempY;
-	    unsafe_dirac_prod_spincolor(tempX,&m,X[ivol]);
-	    unsafe_dirac_prod_spincolor(tempY,&m,Y[ivol]);
+	    unsafe_dirac_prod_spincolor(tempX,&m,X[jvol]);
+	    unsafe_dirac_prod_spincolor(tempY,&m,Y[jvol]);
 	    
 	    su3_put_to_zero(ins);
 	    
@@ -866,8 +864,8 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
 	      for(int ic2=0;ic2<NCOL;ic2++)
 		for(int id=0;id<NDIRAC;id++)
 		  {
-		    complex_summ_the_conj2_prod(ins[ic1][ic2],tempY[id][ic1],X[ivol][id][ic2]);
-		    complex_summ_the_conj2_prod(ins[ic1][ic2],tempX[id][ic1],Y[ivol][id][ic2]);
+		    complex_summ_the_conj2_prod(ins[ic1][ic2],tempY[id][ic1],X[jvol][id][ic2]);
+		    complex_summ_the_conj2_prod(ins[ic1][ic2],tempX[id][ic1],Y[jvol][id][ic2]);
 		  }
 	    
 	    // master_printf("%d %d\n",mu,nu);
@@ -906,7 +904,7 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
   	  safe_su3_prod_su3(u,u,lx_conf[xpmu][nu]);
   	  if(i==1) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
   	  safe_su3_prod_su3_dag(u,u,lx_conf[xpnu][dir]);
-  	  if(i==2) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
+  	  if(i==2) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]); //infatti qua non dovrebbe inserire ivol?
   	  safe_su3_prod_su3_dag(u,u,lx_conf[ivol][nu]);
   	  if(i==3) safe_su3_prod_su3(u,u,insertion[ivol][ipair]);
 	  su3_summassign(an,u);
