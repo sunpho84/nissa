@@ -677,6 +677,9 @@ void compare(int eo,int ieo,int dir,FNu fnu,FAn fan,Ts...ts)
   master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
 }
 
+int EO;
+int DIR;
+
 /////////////////////////////////////////////////////////////////
 
 THREADABLE_FUNCTION_6ARG(apply_tmclovQprime, spincolor*,out, quad_su3*,conf, double,kappa, clover_term_t*,Cl, double,mu, spincolor*,in)
@@ -895,8 +898,6 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
   	  if(dir<nu) sign=+1.0;
   	  else       sign=-1.0;
 	  
-	  //sign=1;
-	  
   	  su3 u;
 	  
   	  su3_put_to_diag(u,sign);
@@ -904,7 +905,7 @@ void xQx_der_cSW(su3 an,int eo,int ieo,int dir,spincolor *X,spincolor *Y,double 
   	  safe_su3_prod_su3(u,u,lx_conf[xpmu][nu]);
   	  if(i==1) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
   	  safe_su3_prod_su3_dag(u,u,lx_conf[xpnu][dir]);
-  	  if(i==2) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]); //infatti qua non dovrebbe inserire ivol?
+  	  if(i==2) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
   	  safe_su3_prod_su3_dag(u,u,lx_conf[ivol][nu]);
   	  if(i==3) safe_su3_prod_su3(u,u,insertion[ivol][ipair]);
 	  su3_summassign(an,u);
@@ -966,8 +967,8 @@ void test_xQx()
   master_printf("Testing TM\n");
   
   double kappa=0.24;
-  double mass=0;
-  double cSW=1;
+  double mass=0.324;
+  double cSW=0.723;
   
   //generate_cold_eo_conf(conf);
   generate_hot_eo_conf(conf);
@@ -976,9 +977,9 @@ void test_xQx()
   generate_undiluted_source(in,RND_GAUSS,-1);
   
   //store initial link and compute action
-  const bool eo=EVN;
+  const bool eo=EO;
   const int ieo=0;
-  const int dir=0;
+  const int dir=DIR;
   
   compare(eo,ieo,dir,xQx,xQx_der,in,in,kappa,mass,cSW);
   
@@ -1360,8 +1361,6 @@ void test_xQ2hatx()
 // }
 
 // XQeeX functional
-int EO;
-int DIR;
 double xQ2eex(double kappa,double mass,double cSW)
 {
   GET_THREAD_ID();
