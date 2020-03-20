@@ -45,9 +45,6 @@ namespace nissa
 	quark_content_t &q=quark_content[ifl];
 	pseudofermion_t chi_e(q.discretiz,"chi_e");
 	
-	//add background field
-	add_backfield_with_stagphases_to_conf(eo_conf,u1b[ifl]);
-	
 	//if clover is included, compute it
 	if(clover_to_be_computed)
 	  {
@@ -64,10 +61,14 @@ namespace nissa
 	    switch(q.discretiz)
 	      {
 	      case ferm_discretiz::ROOT_STAG:
+		add_backfield_with_stagphases_to_conf(eo_conf,u1b[ifl]);
 		summ_src_and_all_inv_stD2ee_m2_cgm(chi_e.stag,eo_conf,r,1000000,res,p.stag);
+		rem_backfield_with_stagphases_from_conf(eo_conf,u1b[ifl]);
 		break;
 	      case ferm_discretiz::ROOT_TM_CLOV:
+		add_backfield_without_stagphases_to_conf(eo_conf,u1b[ifl]);
 		summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi_e.Wils,eo_conf,q.kappa,Cl[ODD],invCl_evn,r,1000000,res,p.Wils);
+		rem_backfield_without_stagphases_from_conf(eo_conf,u1b[ifl]);
 		break;
 	      default: crash("still not implemented");
 	      }
@@ -79,9 +80,6 @@ namespace nissa
 	
 	//remove cSW from chromo operator
 	if(clover_to_be_computed) chromo_operator_remove_cSW(Cl,q.cSW);
-	
-	//remove background field
-	rem_backfield_with_stagphases_from_conf(eo_conf,u1b[ifl]);
       }
     
     //free clover term if ever allocated

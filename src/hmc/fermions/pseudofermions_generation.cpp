@@ -27,18 +27,20 @@ namespace nissa
     (*action)=pf_hb_vec.norm2();
     
     //invert to perform hv
-    add_backfield_with_stagphases_to_conf(conf,u1b);
     switch(q.discretiz)
       {
       case ferm_discretiz::ROOT_STAG:
+	add_backfield_with_stagphases_to_conf(conf,u1b);
 	summ_src_and_all_inv_stD2ee_m2_cgm(pf->stag,conf,rat,10000000,residue,pf_hb_vec.stag);
+	rem_backfield_with_stagphases_from_conf(conf,u1b);
 	break;
       case ferm_discretiz::ROOT_TM_CLOV:
+	add_backfield_without_stagphases_to_conf(conf,u1b);
 	summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(pf->Wils,conf,q.kappa,Cl_odd,invCl_evn,rat,10000000,residue,pf_hb_vec.Wils);
+	rem_backfield_without_stagphases_from_conf(conf,u1b);
 	break;
       default:crash("not supported");break;
       }
-    rem_backfield_with_stagphases_from_conf(conf,u1b);
   }
   THREADABLE_FUNCTION_END
   

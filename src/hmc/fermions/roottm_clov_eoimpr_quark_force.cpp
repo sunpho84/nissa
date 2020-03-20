@@ -89,9 +89,10 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
-	      su3& out=F[eo][ieo][mu];
-	      
 	      int ineoup=loceo_neighup[eo][ieo][mu];
+	      
+	      su3 contr;
+	      su3_put_to_zero(contr);
 	      
 	      for(int i=0;i<2;i++)
 		{
@@ -106,8 +107,10 @@ namespace nissa
 		  for(int ic1=0;ic1<NCOL;ic1++)
 		    for(int ic2=0;ic2<NCOL;ic2++)
 		      for(int id=0;id<NDIRAC;id++)
-			complex_subt_the_conj2_prod(out[ic1][ic2],temp[id][ic1],b[id][ic2]);
+			complex_subt_the_conj2_prod(contr[ic1][ic2],temp[id][ic1],b[id][ic2]);
 		}
+	      
+	      su3_summ_the_prod_complex(F[eo][ieo][mu],contr,u1b[eo][ieo][mu]);
 	    }
     NISSA_PARALLEL_LOOP_END;
     
@@ -200,6 +203,7 @@ namespace nissa
 			su3_subtassign(stap,v);
 		      }
 		    
+		    safe_su3_prod_complex(stap,stap,u1b[eo][ieo][dir]);
 		    su3_summ_the_prod_double(F[eo][ieo][dir],stap,-cSW/8);
 		  }
 	      }
@@ -208,7 +212,7 @@ namespace nissa
 	for(int eo=0;eo<2;eo++)
 	  nissa_free(cl_insertion[eo]);
       }
-    #warning extra fase u1?
+    
     //remove the background fields
     rem_backfield_without_stagphases_from_conf(eo_conf,u1b);
     

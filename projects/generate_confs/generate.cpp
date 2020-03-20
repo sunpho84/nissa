@@ -1627,11 +1627,11 @@ void run_program_for_production()
 	  {
 	    //test_xQx();
 	    //test_xQhatx();
-	    test_xQ2hatx();
+	    //test_xQ2hatx();
 	    //test_xQ2eex();
 	  }
       
-      crash("");
+      //crash("");
       
       // 1) produce new conf
       int acc=1;
