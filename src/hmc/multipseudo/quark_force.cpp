@@ -77,7 +77,7 @@ namespace nissa
 	      case ferm_discretiz::ROOT_STAG:
 		summ_the_rootst_eoimpr_quark_force(F,conf,(*pf)[iflav][ipf].stag,bf,app,residue);break;
 	      case ferm_discretiz::ROOT_TM_CLOV:
-		summ_the_roottm_clov_eoimpr_quark_force(F,conf,q.kappa,Cl[ODD],invCl_evn,(*pf)[iflav][ipf].Wils,bf,app,residue);break;
+		summ_the_roottm_clov_eoimpr_quark_force(F,conf,q.kappa,q.cSW,Cl[ODD],invCl_evn,(*pf)[iflav][ipf].Wils,bf,app,residue);break;
 	      default:
 		crash("not yet implemented");
 	      }
