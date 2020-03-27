@@ -32,15 +32,12 @@ namespace nissa
     add_backfield_without_stagphases_to_conf(conf,u1b);
     if(2*rat->num==rat->den)
       {
-	spincolor *tmp1=nissa_malloc("tmp1",loc_volh+bord_volh,spincolor);
-	spincolor *tmp2=nissa_malloc("tmp2",loc_volh+bord_volh,spincolor);
-	inv_tmclovDkern_eoprec_square_eos_cg_64(tmp1,NULL,conf,q.kappa,Cl[ODD],invCl_evn,q.mass,1000000,residue,eta);
-	tmclovDkern_eoprec_eos(pf,tmp2,conf,q.kappa,Cl[ODD],invCl_evn,true,q.mass,tmp1);
-	nissa_free(tmp2);
-	nissa_free(tmp1);
+	spincolor *tmp=nissa_malloc("tmp1",loc_volh+bord_volh,spincolor);
+	tmclovDkern_eoprec_eos(pf,tmp,conf,q.kappa,Cl[ODD],invCl_evn,false,q.mass,eta);
+	nissa_free(tmp);
       }
     else
-      summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(pf,conf,q.kappa,Cl[ODD],invCl_evn,rat,10000000,residue,eta);
+      summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(pf,conf,q.kappa,Cl[ODD],invCl_evn,q.mass,rat,10000000,residue,eta);
     rem_backfield_without_stagphases_from_conf(conf,u1b);
     
     //free clover term

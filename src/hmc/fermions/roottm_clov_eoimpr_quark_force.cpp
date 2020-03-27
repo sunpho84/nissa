@@ -37,7 +37,7 @@ namespace nissa
   }
   
   // implement appendix B of https://arxiv.org/pdf/0905.3331.pdf
-  THREADABLE_FUNCTION_10ARG(summ_the_roottm_clov_eoimpr_quark_force, quad_su3**,F, quad_su3**,eo_conf, double,kappa, double,cSW, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, spincolor*,phi_o, quad_u1**,u1b, rat_approx_t*,appr, double,residue)
+  void summ_the_roottm_clov_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,double kappa,double cSW,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor *phi_o,quad_u1 **u1b,rat_approx_t *appr,double residue)
   {
     GET_THREAD_ID();
     
@@ -58,7 +58,7 @@ namespace nissa
     //invert the various terms
     STOP_TIMING(quark_force_over_time);
     // eq. B.8a
-    inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec(X[ODD],eo_conf,kappa,Cl_odd,invCl_evn,appr->poles.data(),appr->degree(),10000000,residue,phi_o);
+    inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec(X[ODD],eo_conf,kappa,Cl_odd,invCl_evn,mu,appr->poles.data(),appr->degree(),10000000,residue,phi_o);
     UNPAUSE_TIMING(quark_force_over_time);
     
     ////////////////////
@@ -66,7 +66,7 @@ namespace nissa
     for(int iterm=0;iterm<appr->degree();iterm++)
       {
 	//eq. B.8b: Y_o = Qhat^- X_o
-	tmclovDkern_eoprec_eos(Y[ODD][iterm],temp,eo_conf,kappa,Cl_odd,invCl_evn,true,appr->poles[iterm],X[ODD][iterm]);
+	tmclovDkern_eoprec_eos(Y[ODD][iterm],temp,eo_conf,kappa,Cl_odd,invCl_evn,true,mu,X[ODD][iterm]);
 	
 	tmn2Deo_eos(temp,eo_conf,X[ODD][iterm]); // temp = - 2 * D_eo * X_o
 	inv_tmclovDee_or_oo_eos(X[EVN][iterm],invCl_evn,true,temp); // X_e = M_ee+^-1 * temp = - 2 * M_ee+^-1 * D_eo * X_o
@@ -227,5 +227,4 @@ namespace nissa
     
     STOP_TIMING(quark_force_over_time);
   }
-  THREADABLE_FUNCTION_END
 }

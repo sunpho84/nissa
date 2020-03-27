@@ -28,7 +28,7 @@
 
 namespace nissa
 {
-  //ROOT_STAG has mass term completely constant
+  //in the ROOT_STAG the mass is passed through shift
   namespace
   {
     const double shift_poles=1,shift_poles_back=-1;

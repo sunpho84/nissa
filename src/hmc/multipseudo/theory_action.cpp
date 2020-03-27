@@ -67,7 +67,7 @@ namespace nissa
 		break;
 	      case ferm_discretiz::ROOT_TM_CLOV:
 		add_backfield_without_stagphases_to_conf(eo_conf,u1b[ifl]);
-		summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi_e.Wils,eo_conf,q.kappa,Cl[ODD],invCl_evn,r,1000000,res,p.Wils);
+		summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi_e.Wils,eo_conf,q.kappa,Cl[ODD],invCl_evn,q.mass,r,1000000,res,p.Wils);
 		rem_backfield_without_stagphases_from_conf(eo_conf,u1b[ifl]);
 		break;
 	      default: crash("still not implemented");

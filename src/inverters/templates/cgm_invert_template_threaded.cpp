@@ -287,8 +287,8 @@ namespace nissa
 	verbosity_lv2_master_printf(" ishift %d, rel residue true=%lg approx=%lg commanded=%lg weighted=%lg max=%lg\n",
 				    ishift,res/source_norm,final_res[ishift],inn_req_res[ishift],w_res,max_res);
 	if(res/source_norm>=2*final_res[ishift])
-	  master_printf("WARNING: true residue for shift %d (%lg) much larger than expected one (%lg)\n",
-			ishift,res/source_norm,final_res[ishift]);
+	  master_printf("WARNING: shift[%d]=%lg true residue (%lg) much larger than expected one (%lg)\n",
+			ishift,IN_SHIFT[ishift],res/source_norm,final_res[ishift]);
       }
     
     verbosity_lv1_master_printf(" Total cgm iterations: %d\n",final_iter);
