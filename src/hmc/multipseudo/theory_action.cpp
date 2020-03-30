@@ -3,6 +3,7 @@
 #endif
 
 #include "hmc/backfield.hpp"
+#include "hmc/gauge/clover_det_action.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/topological_action.hpp"
 #include "hmc/hmc.hpp"
@@ -142,8 +143,14 @@ namespace nissa
     double topo_action=(theory_pars->topotential_pars.flag?topotential_action(eo_conf,theory_pars->topotential_pars):0);
     if(theory_pars->topotential_pars.flag) verbosity_lv1_master_printf("Topological_action: %16.16lg\n",topo_action);
     
+    //Clover determinant action
+    double cl_det_action;
+    clover_det_action(&cl_det_action,theory_pars->quarks,sme_conf);
+    if(cl_det_action)
+      verbosity_lv1_master_printf("Clover determinant action: %16.16lg\n",cl_det_action);
+    
     //total action
-    (*tot_action)=quark_action+gluon_action+mom_action+topo_action;
+    (*tot_action)=quark_action+gluon_action+mom_action+topo_action+cl_det_action;
   }
   THREADABLE_FUNCTION_END
 }
