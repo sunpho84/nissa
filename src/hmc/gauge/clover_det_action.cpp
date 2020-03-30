@@ -64,7 +64,11 @@ namespace nissa
 	      double flav_act;
 	      double_vector_glb_collapse(&flav_act,loc_act,loc_volh);
 	      
-	      res+=flav_act*q.deg;
+	      //half volume, all colors, all dirac, norm2. Deg is included below
+	      const double offset=log((1/sqr(2*q.kappa)+sqr(q.mass)))*NCOL*NDIRAC*glb_volh;
+	      flav_act-=offset;
+	      
+	      res+=-flav_act*q.deg;
 	    }
 	
 	nissa_free(loc_act);
