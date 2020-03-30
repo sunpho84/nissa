@@ -37,6 +37,7 @@ namespace nissa
 	}
   }
   
+  // Compute the insertion to be plugged inside the clover staples
   void compute_clover_staples_insertions(as2t_su3 *cl_insertion[2],spincolor *X[2],spincolor *Y[2])
   {
     GET_THREAD_ID();
@@ -72,6 +73,7 @@ namespace nissa
       }
   }
   
+  // Compute the clover staples
   void get_clover_staples(su3 stap,quad_su3 **conf,int eo,int ieo,int dir,as2t_su3 *cl_insertion[2],double cSW)
   {
     su3_put_to_zero(stap);
@@ -201,7 +203,9 @@ namespace nissa
 			complex_summ_the_conj2_prod(contr[ic1][ic2],temp[id][ic1],b[id][ic2]);
 		}
 	      
-	      su3_summ_the_prod_complex(F[eo][ieo][mu],contr,u1b[eo][ieo][mu]);
+	      complex w;
+	      complex_prod_double(w,u1b[eo][ieo][mu],appr->weights[iterm]);
+	      su3_summ_the_prod_complex(F[eo][ieo][mu],contr,w);
 	    }
     NISSA_PARALLEL_LOOP_END;
     
@@ -229,7 +233,7 @@ namespace nissa
 		    su3 stap;
 		    
 		    get_clover_staples(stap,eo_conf,eo,ieo,dir,cl_insertion,cSW);
-		    su3_summ_the_prod_double(F[eo][ieo][dir],stap,cSW/8);
+		    su3_summ_the_prod_double(F[eo][ieo][dir],stap,cSW/8*appr->weights[iterm]);
 		  }
 	    NISSA_PARALLEL_LOOP_END;
 	  }

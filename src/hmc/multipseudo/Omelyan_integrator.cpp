@@ -194,7 +194,7 @@ namespace nissa
     su3_summ(nu,nu_plus,nu_minus);
     su3_prodassign_double(nu,0.5);
     
-    master_printf("checking pure gauge force\n");
+    master_printf("checking quark force\n");
     master_printf("an\n");
     su3_print(F[par][ieo][mu]);
     master_printf("nu\n");
