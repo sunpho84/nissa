@@ -134,11 +134,11 @@ namespace nissa
     //compute the force
     compute_quark_force(F,conf,pf,theory_pars,rat_appr,simul_pars->md_residue);
     
-    //#define DEBUG
+    //#define DEBUG_FORCE
     
-#ifdef DEBUG
-    int par=1,ieo=1,mu=1;
-    double eps=1e-5;
+#ifdef DEBUG_FORCE
+    int par=0,ieo=1,mu=1;
+    double eps=1e-4;
     
     //store initial link
     su3 sto;
@@ -199,10 +199,10 @@ namespace nissa
     su3_print(F[par][ieo][mu]);
     master_printf("nu\n");
     su3_print(nu);
-    master_printf("nu_plus\n");
-    su3_print(nu_plus);
-    master_printf("nu_minus\n");
-    su3_print(nu_minus);
+    // master_printf("nu_plus\n");
+    // su3_print(nu_plus);
+    // master_printf("nu_minus\n");
+    // su3_print(nu_minus);
     //crash("anna");
 #endif
     
