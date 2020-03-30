@@ -182,5 +182,5 @@ namespace nissa
   {communicate_eo_edges((char**)conf,lx_quad_su3_comm,MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
   
   void communicate_eo_as2t_su3_edges(as2t_su3 **a)
-  {communicate_lx_edges((char*)a,lx_as2t_su3_comm,MPI_EO_AS2T_SU3_EDGES_SEND,MPI_EO_AS2T_SU3_EDGES_RECE,sizeof(as2t_su3));}
+  {communicate_eo_edges((char**)a,lx_as2t_su3_comm,MPI_EO_AS2T_SU3_EDGES_SEND,MPI_EO_AS2T_SU3_EDGES_RECE,sizeof(as2t_su3));}
 }
