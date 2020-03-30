@@ -7,6 +7,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/fermions/roottm_clov_eoimpr_quark_force.cpp \
 	%D%/fermions/pseudofermions_generation.cpp \
 	%D%/gauge/clover_det_action.cpp \
+	%D%/gauge/clover_det_force.cpp \
 	%D%/gauge/MFACC_fields.cpp \
 	%D%/gauge/gluonic_force.cpp \
 	%D%/gauge/pure_gauge_hmc_step.cpp \
@@ -36,6 +37,7 @@ include_HEADERS+= \
 	%D%/fermions/roottm_clov_eoimpr_quark_force.hpp \
 	%D%/fermions/pseudofermions_generation.hpp \
 	%D%/gauge/clover_det_action.hpp \
+	%D%/gauge/clover_det_force.hpp \
 	%D%/gauge/MFACC_fields.hpp \
 	%D%/gauge/gluonic_action.hpp \
 	%D%/gauge/gluonic_force.hpp \
