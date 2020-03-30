@@ -259,6 +259,12 @@ namespace nissa
     init_base_gamma();
     
     master_printf("Nissa initialized!\n");
+    
+    const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
+    if(getenv(DEBUG_LOOP_STRING)!=NULL)
+      debug_loop();
+    else
+      master_printf("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
   }
   
   //compute internal volume
