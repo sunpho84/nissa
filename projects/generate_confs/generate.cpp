@@ -732,97 +732,18 @@ double xQx(spincolor **in_l,spincolor **in_r,double kappa,double mass,double cSW
   return act[RE];
 }
 
-void compute_clover_staples_insertions(as2t_su3 *cl_insertion[2],spincolor *X[2],spincolor *Y[2])
-{
-  GET_THREAD_ID();
-  
-  for(int eo=0;eo<2;eo++)
-    NISSA_PARALLEL_LOOP(jeo,0,loc_volh)
-      {
-	for(int mu=0;mu<NDIM;mu++)
-	  for(int nu=mu+1;nu<NDIM;nu++)
-	    {
-	      int ipair=edge_numb[mu][nu];
-	      dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]));
-	      
-	      su3& ins=cl_insertion[eo][jeo][ipair];
-	      spincolor tempX,tempY;
-	      unsafe_dirac_prod_spincolor(tempX,&m,X[eo][jeo]);
-	      unsafe_dirac_prod_spincolor(tempY,&m,Y[eo][jeo]);
-	      
-	      su3_put_to_zero(ins);
-	      
-	      for(int ic1=0;ic1<NCOL;ic1++)
-		for(int ic2=0;ic2<NCOL;ic2++)
-		  for(int id=0;id<NDIRAC;id++)
-		    {
-		      complex_summ_the_conj2_prod(ins[ic1][ic2],tempY[id][ic1],X[eo][jeo][id][ic2]);
-		      complex_summ_the_conj2_prod(ins[ic1][ic2],tempX[id][ic1],Y[eo][jeo][id][ic2]);
-		    }
-	    }
-      }
-  NISSA_PARALLEL_LOOP_END;
-
-}
-
-void get_clover_staples(su3 stap,int eo,int ieo,int dir,spincolor *X[2],spincolor *Y[2],as2t_su3 *cl_insertion[2],double cSW)
-{
-  su3_put_to_zero(stap);
-  
-  for(int inu=0;inu<NDIM-1;inu++)
-    {
-      int nu=perp_dir[dir][inu];
-      
-      int xpmu=loceo_neighup[eo][ieo][dir];
-      int xmnu=loceo_neighdw[eo][ieo][nu];
-      int xpnu=loceo_neighup[eo][ieo][nu];
-      int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
-      int xpmupnu=loceo_neighup[!eo][xpmu][nu];
-      
-      int ipair=edge_numb[dir][nu];
-      
-      for(int i=0;i<4;i++)
-  	{
-	  
-  	  double sign;
-  	  if(dir<nu) sign=+1.0;
-  	  else       sign=-1.0;
-	  
-  	  su3 u;
-	  
-  	  su3_put_to_diag(u,sign);
-  	  if(i==0) safe_su3_prod_su3(u,u,cl_insertion[!eo][xpmu][ipair]);
-  	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
-  	  if(i==1) safe_su3_prod_su3(u,u,cl_insertion[eo][xpmupnu][ipair]);
-  	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
-  	  if(i==2) safe_su3_prod_su3(u,u,cl_insertion[!eo][xpnu][ipair]);
-  	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
-  	  if(i==3) safe_su3_prod_su3(u,u,cl_insertion[eo][ieo][ipair]);
-	  su3_summassign(stap,u);
-	  
-	  su3 v;
-	  
-  	  su3_put_to_diag(v,sign);
-  	  if(i==0) safe_su3_prod_su3(v,v,cl_insertion[!eo][xpmu][ipair]);
-  	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
-  	  if(i==1) safe_su3_prod_su3(v,v,cl_insertion[eo][xpmumnu][ipair]);
-  	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
-  	  if(i==2) safe_su3_prod_su3(v,v,cl_insertion[!eo][xmnu][ipair]);
-  	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
-  	  if(i==3) safe_su3_prod_su3(v,v,cl_insertion[eo][ieo][ipair]);
-	  su3_subtassign(stap,v);
-	}
-    }
-}
-
 namespace nissa
 {
+  void compute_clover_staples_insertions(as2t_su3 *cl_insertion[2],spincolor *X[2],spincolor *Y[2]);
   void get_point_twisted_force(su3 out,spincolor *a[2],spincolor *b[2],int eo,int ieo,int dir);
+  void get_clover_staples(su3 stap,quad_su3 **conf,int eo,int ieo,int dir,as2t_su3 *cl_insertion[2],double cSW);
 }
 
 void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,spincolor *in_l[2],spincolor *in_r[2],double kappa,double mass,double cSW)
 {
   GET_THREAD_ID();
+  
+  add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
   
   quad_su3 *an[2];
   for(int eo=0;eo<2;eo++)
@@ -845,6 +766,8 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,spincolor *in_l[2],sp
 	}
   NISSA_PARALLEL_LOOP_END;
   
+  rem_backfield_without_stagphases_from_conf(conf,drv->theories[0].backfield[0]);
+  
   if(cSW!=0)
     {
       as2t_su3 *cl_insertion[2];
@@ -857,7 +780,8 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,spincolor *in_l[2],sp
 	  for(int dir=0;dir<NDIM;dir++)
 	    {
 	      su3 cl_staples;
-	      get_clover_staples(cl_staples,eo,ieo,ext_dir,in_l,in_r,cl_insertion,cSW);
+	      get_clover_staples(cl_staples,conf,eo,ieo,ext_dir,cl_insertion,cSW);
+	      
 	      su3_summ_the_prod_double(an[eo][ieo][dir],cl_staples,-cSW/8);
 	    }
       NISSA_PARALLEL_LOOP_END;
@@ -869,33 +793,33 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,spincolor *in_l[2],sp
   su3_copy(ext_an,an[ext_eo][ext_ieo][ext_dir]);
 }
 
-// void test_xQx()
-// {
-//   master_printf("Testing TM\n");
+void test_xQx()
+{
+  master_printf("Testing TM\n");
   
-//   double kappa=0.24;
-//   double mass=0.324;
-//   double cSW=0.723;
+  double kappa=0.24;
+  double mass=0.324;
+  double cSW=0.723;
   
-//   //generate_cold_eo_conf(conf);
-//   generate_hot_eo_conf(conf);
+  //generate_cold_eo_conf(conf);
+  generate_hot_eo_conf(conf);
   
-//   spincolor *in[2];
-//   for(int eo=0;eo<2;eo++)
-//     in[eo]=nissa_malloc("in",loc_volh,spincolor);
-//   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1);
+  spincolor *in[2];
+  for(int eo=0;eo<2;eo++)
+    in[eo]=nissa_malloc("in",loc_volh,spincolor);
+  generate_fully_undiluted_eo_source(in,RND_GAUSS,-1);
   
-//   //store initial link and compute action
-//   const bool eo=EO;
-//   const int ieo=0;
-//   const int dir=DIR;
+  //store initial link and compute action
+  const bool eo=EO;
+  const int ieo=0;
+  const int dir=DIR;
   
-//   compare(eo,ieo,dir,xQx,xQx_der,in,in,kappa,mass,cSW);
+  compare(eo,ieo,dir,xQx,xQx_der,in,in,kappa,mass,cSW);
   
-//   master_printf("Comparing derivative of xQx for link %d %d %d\n",(int)eo,ieo,dir);
+  master_printf("Comparing derivative of xQx for link %d %d %d\n",(int)eo,ieo,dir);
   
-//   nissa_free(in);
-// }
+  nissa_free(in);
+}
 
 /////////////////////////////////////////////////////////////////
 
@@ -1069,7 +993,9 @@ double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
+  add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
   tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl[EVN],mass,in);
+  rem_backfield_without_stagphases_from_conf(conf,drv->theories[0].backfield[0]);
   
   complex act;
   complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_volh*sizeof(spincolor)/sizeof(complex));
@@ -1115,6 +1041,7 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
       _Y[eo]=nissa_malloc("_Y",loc_volh+bord_volh,spincolor);
     }
   
+  add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
   vector_copy(_X[ODD],in);
   tmclovDkern_eoprec_eos(_Y[ODD],temp,conf,kappa,Cl[ODD],invCl[EVN],true,mass,_X[ODD]);
   
@@ -1125,6 +1052,7 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   tmn2Deo_eos(temp,conf,_Y[ODD]);
   inv_tmclovDee_or_oo_eos(_Y[EVN],invCl[EVN],false,temp);
   double_vector_prodassign_double((double*)(_Y[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
+  rem_backfield_without_stagphases_from_conf(conf,drv->theories[0].backfield[0]);
   
   xQx_der(an,eo,ieo,dir,_X,_Y,kappa,mass,cSW);
   //xQx_der(an2,eo,ieo,dir,_Y,_X,kappa,mass,cSW);
@@ -1622,6 +1550,7 @@ void run_program_for_production()
     {
       double init_traj_time=take_time();
       
+      //init_backfield_to_id(drv->theories[0].backfield[0]);
       for(EO=0;EO<2;EO++)
 	for(DIR=0;DIR<NDIM;DIR++)
 	  {
@@ -1631,7 +1560,7 @@ void run_program_for_production()
 	    //test_xQ2eex();
 	  }
       
-      //crash("");
+      //     crash("");
       
       // 1) produce new conf
       int acc=1;

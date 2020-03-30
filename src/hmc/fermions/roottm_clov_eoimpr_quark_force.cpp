@@ -10,6 +10,7 @@
 #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
 #include "hmc/backfield.hpp"
 #include "inverters/twisted_clover/cgm_invert_tmclovDkern_eoprec_square_portable.hpp"
+#include "inverters/twisted_clover/cg_64_invert_tmclovD_eoprec.hpp"
 #include "new_types/su3_op.hpp"
 #include "threads/threads.hpp"
 
@@ -36,6 +37,90 @@ namespace nissa
 	}
   }
   
+  void compute_clover_staples_insertions(as2t_su3 *cl_insertion[2],spincolor *X[2],spincolor *Y[2])
+  {
+    GET_THREAD_ID();
+    
+    for(int eo=0;eo<2;eo++)
+      {
+	NISSA_PARALLEL_LOOP(jeo,0,loc_volh)
+	  {
+	    for(int mu=0;mu<NDIM;mu++)
+	      for(int nu=mu+1;nu<NDIM;nu++)
+		{
+		  int ipair=edge_numb[mu][nu];
+		  dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]));
+		  
+		  su3& ins=cl_insertion[eo][jeo][ipair];
+		  spincolor tempX,tempY;
+		  unsafe_dirac_prod_spincolor(tempX,&m,X[eo][jeo]);
+		  unsafe_dirac_prod_spincolor(tempY,&m,Y[eo][jeo]);
+		  
+		  su3_put_to_zero(ins);
+		  
+		  for(int ic1=0;ic1<NCOL;ic1++)
+		    for(int ic2=0;ic2<NCOL;ic2++)
+		      for(int id=0;id<NDIRAC;id++)
+			{
+			  complex_summ_the_conj2_prod(ins[ic1][ic2],tempY[id][ic1],X[eo][jeo][id][ic2]);
+			  complex_summ_the_conj2_prod(ins[ic1][ic2],tempX[id][ic1],Y[eo][jeo][id][ic2]);
+			}
+		}
+	  }
+	NISSA_PARALLEL_LOOP_END;
+	set_borders_invalid(cl_insertion[eo]);
+      }
+  }
+  
+  void get_clover_staples(su3 stap,quad_su3 **conf,int eo,int ieo,int dir,as2t_su3 *cl_insertion[2],double cSW)
+  {
+    su3_put_to_zero(stap);
+    
+    for(int inu=0;inu<NDIM-1;inu++)
+      {
+	int nu=perp_dir[dir][inu];
+	
+	int xpmu=loceo_neighup[eo][ieo][dir];
+	int xmnu=loceo_neighdw[eo][ieo][nu];
+	int xpnu=loceo_neighup[eo][ieo][nu];
+	int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
+	int xpmupnu=loceo_neighup[!eo][xpmu][nu];
+	
+	int ipair=edge_numb[dir][nu];
+	
+	for(int i=0;i<4;i++)
+	  {
+	    double sign;
+	    if(dir<nu) sign=+1.0;
+	    else       sign=-1.0;
+	    
+	    su3 u;
+	    
+	    su3_put_to_diag(u,sign);
+	    if(i==0) safe_su3_prod_su3(u,u,cl_insertion[!eo][xpmu][ipair]);
+	    safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
+	    if(i==1) safe_su3_prod_su3(u,u,cl_insertion[eo][xpmupnu][ipair]);
+	    safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
+	    if(i==2) safe_su3_prod_su3(u,u,cl_insertion[!eo][xpnu][ipair]);
+	    safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
+	    if(i==3) safe_su3_prod_su3(u,u,cl_insertion[eo][ieo][ipair]);
+	    su3_summassign(stap,u);
+	    
+	    su3 v;
+	    
+	    su3_put_to_diag(v,sign);
+	    if(i==0) safe_su3_prod_su3(v,v,cl_insertion[!eo][xpmu][ipair]);
+	    safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
+	    if(i==1) safe_su3_prod_su3(v,v,cl_insertion[eo][xpmumnu][ipair]);
+	    safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
+	    if(i==2) safe_su3_prod_su3(v,v,cl_insertion[!eo][xmnu][ipair]);
+	    safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
+	    if(i==3) safe_su3_prod_su3(v,v,cl_insertion[eo][ieo][ipair]);
+	    su3_subtassign(stap,v);
+	  }
+      }
+  }
+  
   // implement appendix B of https://arxiv.org/pdf/0905.3331.pdf
   void summ_the_roottm_clov_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,double kappa,double cSW,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor *phi_o,quad_u1 **u1b,rat_approx_t *appr,double residue)
   {
@@ -58,7 +143,13 @@ namespace nissa
     //invert the various terms
     STOP_TIMING(quark_force_over_time);
     // eq. B.8a
-    inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec(X[ODD],eo_conf,kappa,Cl_odd,invCl_evn,mu,appr->poles.data(),appr->degree(),10000000,residue,phi_o);
+    if(appr->degree()==1 and appr->poles[0]==0)
+      {
+	master_printf("please cleanup, put this into the template\n");
+	inv_tmclovDkern_eoprec_square_eos_cg_64(X[ODD][0],nullptr,eo_conf,kappa,Cl_odd,invCl_evn,mu,10000000,residue,phi_o);
+      }
+    else
+      inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec(X[ODD],eo_conf,kappa,Cl_odd,invCl_evn,mu,appr->poles.data(),appr->degree(),10000000,residue,phi_o);
     UNPAUSE_TIMING(quark_force_over_time);
     
     ////////////////////
@@ -107,114 +198,45 @@ namespace nissa
 		  for(int ic1=0;ic1<NCOL;ic1++)
 		    for(int ic2=0;ic2<NCOL;ic2++)
 		      for(int id=0;id<NDIRAC;id++)
-			complex_subt_the_conj2_prod(contr[ic1][ic2],temp[id][ic1],b[id][ic2]);
+			complex_summ_the_conj2_prod(contr[ic1][ic2],temp[id][ic1],b[id][ic2]);
 		}
 	      
 	      su3_summ_the_prod_complex(F[eo][ieo][mu],contr,u1b[eo][ieo][mu]);
 	    }
     NISSA_PARALLEL_LOOP_END;
     
+    //remove the background fields
+    rem_backfield_without_stagphases_from_conf(eo_conf,u1b);
+    
     if(cSW!=0)
       {
+	communicate_eo_quad_su3_edges(eo_conf);
+	
 	as2t_su3 *cl_insertion[2];
 	for(int eo=0;eo<2;eo++)
 	  cl_insertion[eo]=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
 	
 	for(int iterm=0;iterm<appr->degree();iterm++)
-	  for(int eo=0;eo<2;eo++)
-	    {
-	      NISSA_PARALLEL_LOOP(jeo,0,loc_volh)
-		{
-		  for(int mu=0;mu<NDIM;mu++)
-		    for(int nu=mu+1;nu<NDIM;nu++)
-		      {
-			int ipair=edge_numb[mu][nu];
-			dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]));
-			
-			su3& ins=cl_insertion[eo][jeo][ipair];
-			spincolor tempX,tempY;
-			unsafe_dirac_prod_spincolor(tempX,&m,X[eo][iterm][jeo]);
-			unsafe_dirac_prod_spincolor(tempY,&m,Y[eo][iterm][jeo]);
-			
-			su3_put_to_zero(ins);
-			
-			for(int ic1=0;ic1<NCOL;ic1++)
-			  for(int ic2=0;ic2<NCOL;ic2++)
-			    for(int id=0;id<NDIRAC;id++)
-			      {
-				complex_summ_the_conj2_prod(ins[ic1][ic2],tempY[id][ic1],X[eo][iterm][jeo][id][ic2]);
-				complex_summ_the_conj2_prod(ins[ic1][ic2],tempX[id][ic1],Y[eo][iterm][jeo][id][ic2]);
-			      }
-		      }
-		}
-	      NISSA_PARALLEL_LOOP_END;
-	      set_borders_invalid(cl_insertion[eo]);
-	    }
-	
-	communicate_eo_as2t_su3_edges(cl_insertion);
-	
-	for(int eo=0;eo<2;eo++)
-	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	    for(int dir=0;dir<NDIM;dir++)
-	      {
-		su3 stap;
-		su3_put_to_zero(stap);
-		
-		for(int inu=0;inu<NDIM-1;inu++)
+	  {
+	    spincolor *tempX[2]={X[EVN][iterm],X[ODD][iterm]},*tempY[2]={Y[EVN][iterm],Y[ODD][iterm]};
+	    compute_clover_staples_insertions(cl_insertion,tempX,tempY);
+	    communicate_eo_as2t_su3_edges(cl_insertion);
+	    
+	    for(int eo=0;eo<2;eo++)
+	      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		for(int dir=0;dir<NDIM;dir++)
 		  {
-		    int nu=perp_dir[dir][inu];
+		    su3 stap;
 		    
-		    int xpmu=loceo_neighup[eo][ieo][dir];
-		    int xmnu=loceo_neighdw[eo][ieo][nu];
-		    int xpnu=loceo_neighup[eo][ieo][nu];
-		    int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
-		    int xpmupnu=loceo_neighup[!eo][xpmu][nu];
-		    
-		    int ipair=edge_numb[dir][nu];
-		    
-		    for(int i=0;i<4;i++)
-		      {
-			double sign;
-			if(dir<nu) sign=+1.0;
-			else       sign=-1.0;
-			
-			su3 u;
-			
-			su3_put_to_diag(u,sign);
-			if(i==0) safe_su3_prod_su3(u,u,cl_insertion[!eo][xpmu][ipair]);
-			safe_su3_prod_su3(u,u,eo_conf[!eo][xpmu][nu]);
-			if(i==1) safe_su3_prod_su3(u,u,cl_insertion[eo][xpmupnu][ipair]);
-			safe_su3_prod_su3_dag(u,u,eo_conf[!eo][xpnu][dir]);
-			if(i==2) safe_su3_prod_su3(u,u,cl_insertion[!eo][xpnu][ipair]);
-			safe_su3_prod_su3_dag(u,u,eo_conf[eo][ieo][nu]);
-			if(i==3) safe_su3_prod_su3(u,u,cl_insertion[eo][ieo][ipair]);
-			su3_summassign(stap,u);
-			
-			su3 v;
-			
-			su3_put_to_diag(v,sign);
-			if(i==0) safe_su3_prod_su3(v,v,cl_insertion[!eo][xpmu][ipair]);
-			safe_su3_prod_su3_dag(v,v,eo_conf[eo][xpmumnu][nu]);
-			if(i==1) safe_su3_prod_su3(v,v,cl_insertion[eo][xpmumnu][ipair]);
-			safe_su3_prod_su3_dag(v,v,eo_conf[!eo][xmnu][dir]);
-			if(i==2) safe_su3_prod_su3(v,v,cl_insertion[!eo][xmnu][ipair]);
-			safe_su3_prod_su3(v,v,eo_conf[!eo][xmnu][nu]);
-			if(i==3) safe_su3_prod_su3(v,v,cl_insertion[eo][ieo][ipair]);
-			su3_subtassign(stap,v);
-		      }
-		    
-		    safe_su3_prod_complex(stap,stap,u1b[eo][ieo][dir]);
-		    su3_summ_the_prod_double(F[eo][ieo][dir],stap,-cSW/8);
+		    get_clover_staples(stap,eo_conf,eo,ieo,dir,cl_insertion,cSW);
+		    su3_summ_the_prod_double(F[eo][ieo][dir],stap,cSW/8);
 		  }
-	      }
-	NISSA_PARALLEL_LOOP_END;
+	    NISSA_PARALLEL_LOOP_END;
+	  }
 	
 	for(int eo=0;eo<2;eo++)
 	  nissa_free(cl_insertion[eo]);
       }
-    
-    //remove the background fields
-    rem_backfield_without_stagphases_from_conf(eo_conf,u1b);
     
     //free
     for(int eo=0;eo<2;eo++)

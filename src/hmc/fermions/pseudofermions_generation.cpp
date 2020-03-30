@@ -18,6 +18,7 @@
 
 namespace nissa
 {
+  // Generate the pseudofermions in the root tm case
   void generate_root_tm_clov_pseudo_fermion(spincolor *pf,quad_su3 **conf,quad_u1 **u1b,rat_approx_t *rat,double residue,quark_content_t q,spincolor *eta)
   {
     //allocate and compute clover term
