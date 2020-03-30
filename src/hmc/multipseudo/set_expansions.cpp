@@ -189,9 +189,15 @@ namespace nissa
       {
 	quark_content_t &q=theory_pars->quarks[iflav];
 	
-	//find min and max eigenvalue
-	double eig_min,eig_max;
-	max_eigenval(&eig_max,&q,eo_conf,Cl,theory_pars->backfield[iflav],max_iter);
+	//take the pointer to the rational approximations for current flavor and mark down degeneracy
+	rat_approx_t *appr=&(*rat_appr)[nappr_per_quark*iflav];
+	int deg=q.deg;
+	int npf=evol_pars->npseudo_fs[iflav];
+	int root_val=ferm_discretiz::root_needed(q.discretiz);
+	bool is_really_rooted=(deg!=npf*root_val);
+	
+	//find min eigenvalue
+	double eig_min;
 	switch(q.discretiz)
 	  {
 	  case ferm_discretiz::ROOT_STAG:
@@ -204,14 +210,15 @@ namespace nissa
 	    eig_min=0;
 	  }
 	
-	//take the pointer to the rational approximations for current flavor and mark down degeneracy
-	rat_approx_t *appr=&(*rat_appr)[nappr_per_quark*iflav];
-	int deg=q.deg;
-	int npf=evol_pars->npseudo_fs[iflav];
+	//Find max eigenvalue
+	double eig_max;
+	if(ferm_discretiz::ROOT_TM_CLOV and not is_really_rooted)
+	  eig_max=eig_min*1.1;
+	else
+	  max_eigenval(&eig_max,&q,eo_conf,Cl,theory_pars->backfield[iflav],max_iter);
 	
 	//generate the three approximations
-	int root=ferm_discretiz::root_needed(q.discretiz);
-	int extra_fact[nappr_per_quark]={2*root,-root,-root};
+	int extra_fact[nappr_per_quark]={2*root_val,-root_val,-root_val};
 	double maxerr[nappr_per_quark]={sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->md_residue)};
 	for(int i=0;i<nappr_per_quark;i++)
 	  {
