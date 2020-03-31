@@ -70,7 +70,8 @@ namespace nissa
 	measure_is_due(chir_zumba_meas,itheory,iconf) or
 	measure_is_due(spinpol_meas,itheory,iconf) or
 	measure_is_due(qed_corr_meas,itheory,iconf) or
-	measure_is_due(spectral_proj_meas,itheory,iconf);
+	measure_is_due(spectral_proj_meas,itheory,iconf) or
+	measure_is_due(tm_tuning_meas,itheory,iconf);
     }
     //print a message if a measure is due
     template <class T> bool if_meas_is_due_print(T &obj,int itheory,int iconf,const char *text)
