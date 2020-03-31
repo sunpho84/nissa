@@ -138,6 +138,7 @@
 #include "measures/fermions/spectral_projectors.hpp"
 #include "measures/fermions/spinpol.hpp"
 #include "measures/fermions/stag.hpp"
+#include "measures/fermions/tm_tuning.hpp"
 #include "measures/fermions/zumba.hpp"
 
 #include "measures/gauge/all_rectangles.hpp"

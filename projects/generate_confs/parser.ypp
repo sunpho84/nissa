@@ -65,6 +65,7 @@
     nissa::watusso_meas_pars_t *watusso_meas;
     nissa::all_rects_meas_pars_t *all_rects_meas;
     nissa::spectr_proj_meas_pars_t *spectr_proj_meas;
+    nissa::tm_tuning_meas_pars_t *tm_tuning_meas;
     
     nissa::rnd_t rnd_type;
     
@@ -266,6 +267,9 @@
 %type <double_numb> eig_precision
 %token TK_WSPACE_SIZE
 %type <int_numb> wspace_size
+//tm tuning meas
+%type <tm_tuning_meas> tm_tuning_meas
+%token TK_TM_TUNING
 //gauge measures
 %token TK_USE_SMOOTH
 %token TK_MEAS_PLAQ_POL
@@ -352,6 +356,7 @@ global_specify: geometry
               | plaq_pol_meas {driver->add_plaq_pol_meas(*$1);delete $1;}
               | top_meas {driver->add_top_meas(*$1);delete $1;}
               | spectr_proj_meas {driver->add_spectr_proj_meas(*$1);delete $1;}
+              | tm_tuning_meas {driver->add_tm_tuning_meas(*$1);delete $1;}
               | luppoli_meas {driver->add_luppoli_meas(*$1);delete $1;}
               | watusso_meas {driver->add_watusso_meas(*$1);delete $1;}
               | all_rects_meas {driver->add_all_rects_meas(*$1);delete $1;}
@@ -757,6 +762,19 @@ spectr_proj_meas: TK_SPECTR_PROJ {$$=new spectr_proj_meas_pars_t();}
                 | spectr_proj_meas eig_precision {$$->eig_precision=$2;}
                 | spectr_proj_meas wspace_size {$$->wspace_size=$2;}
                 | spectr_proj_meas smooth_pars {$$->smooth_pars=(*$2);delete $2;}
+;
+
+////////////////////////////////////////////////// TM TUNING //////////////////////////////////////////////////
+
+tm_tuning_meas: TK_TM_TUNING {$$=new tm_tuning_meas_pars_t();}
+                | tm_tuning_meas each {$$->each=$2;}
+                | tm_tuning_meas after {$$->after=$2;}
+                | tm_tuning_meas path {$$->path=(*$2);delete $2;}
+                | tm_tuning_meas residue {$$->residue=$2;}
+                | tm_tuning_meas itheory {$$->itheory=$2;}
+                | tm_tuning_meas ncopies {$$->ncopies=$2;}
+                | tm_tuning_meas noise_type {$$->rnd_type=$2;}
+                | tm_tuning_meas nhits {$$->nhits=$2;}
 ;
 
 ////////////////////////////////////////////////// ANALYSIS //////////////////////////////////////////////////

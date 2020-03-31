@@ -256,6 +256,7 @@ MeasMinMaxEigenval DEBUG_PRINTF("Found MeasMinMaxEigenval\n");return TK_MEAS_MIN
 MeasZumba DEBUG_PRINTF("Found MeasZumba\n");return TK_MEAS_ZUMBA;
 MeasSpinPol DEBUG_PRINTF("Found MeasSpinPol\n");return TK_MEAS_SPINPOL;
 MeasSpectrProj DEBUG_PRINTF("Found MeasSpectrProj\n");return TK_SPECTR_PROJ;
+TMTuning DEBUG_PRINTF("Found MeasTMTuning\n");return TK_TM_TUNING;
 
  /* parameters for PutPourri */
 ComputeSusc DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
