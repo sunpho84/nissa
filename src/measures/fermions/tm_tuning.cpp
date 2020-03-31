@@ -139,8 +139,8 @@ namespace nissa
     for(int icopy=0;icopy<ncopies;icopy++)
       for(int iflav=0;iflav<tp.nflavs();iflav++)
 	{
-	  master_fprintf(file," # conf %d ; flv = %d , m = %lg\n",
-			 iconf,iflav,tp.quarks[iflav].mass);
+	  master_fprintf(file," # conf %d ; flv = %d , m = %lg , k = %lg , cSW = %lg\n",
+			 iconf,iflav,tp.quarks[iflav].mass,tp.quarks[iflav].kappa,tp.quarks[iflav].cSW);
 	  
 	  quark_content_t& q=tp.quarks[iflav];
 	  
@@ -164,7 +164,7 @@ namespace nissa
 	  //output
 	  for(int t=0;t<glb_size[0];t++)
 	    {
-	      master_fprintf(file,"%d\t",t);
+	      master_fprintf(file,"%d  ",t);
 	      for(int ic=0;ic<ncorr_kind;ic++)
 		{
 		  complex c;
