@@ -94,9 +94,9 @@ namespace nissa
 	inv(phi_ins_S,phi);
 	
 	contr(phi,phi,5,0);
-	contr(phi,phi,4,1);
-	contr(phi,phi_ins_S,4,2);
-	contr(phi,phi_ins_P,4,3);
+	contr(phi,phi,9,1);
+	contr(phi,phi_ins_S,9,2);
+	contr(phi,phi_ins_P,9,3);
       }
     
     glb_threads_reduce_double_vect((double*)loc_corr,2*ncorr_kind*glb_size[0]);
