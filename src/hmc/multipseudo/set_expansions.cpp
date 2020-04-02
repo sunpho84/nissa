@@ -23,7 +23,7 @@ namespace nissa
   //fourth root of 2, used to extend the range of eigenvalues
   const double enl_gen=pow(2,0.25);
   
-  //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
+  //Return the maximal eigenvalue of the Dirac operator for the passed quark
   THREADABLE_FUNCTION_6ARG(max_eigenval, double*,eig_max, quark_content_t*,quark, quad_su3**,eo_conf, clover_term_t**,Cl, quad_u1**,backfield, int,niters)
   {
     pseudofermion_t in(quark->discretiz);
@@ -39,11 +39,16 @@ namespace nissa
     verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
     
     //prepare the ingredients
-    add_backfield_with_stagphases_to_conf(eo_conf,backfield);
+    if(ferm_discretiz::is_stag(quark->discretiz))
+      add_backfield_with_stagphases_to_conf(eo_conf,backfield);
+    else
+      add_backfield_without_stagphases_to_conf(eo_conf,backfield);
+    
     inv_clover_term_t *invCl_evn=NULL;
     if(ferm_discretiz::include_clover(quark->discretiz))
       {
 	invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+	chromo_operator_include_cSW(Cl,quark->cSW);
 	invert_twisted_clover_term(invCl_evn,quark->mass,quark->kappa,Cl[EVN]);
       }
     
@@ -57,7 +62,8 @@ namespace nissa
 	switch(quark->discretiz)
 	  {
 	  case ferm_discretiz::ROOT_STAG:
-	    apply_stD2ee_m2(out.stag,eo_conf,temp1.stag,sqr(quark->mass),in.stag);break;
+	    apply_stD2ee_m2(out.stag,eo_conf,temp1.stag,sqr(quark->mass),in.stag);
+	    break;
 	  case ferm_discretiz::ROOT_TM_CLOV:
 	    tmclovDkern_eoprec_square_eos(out.Wils,temp1.Wils,temp2.Wils,eo_conf,quark->kappa,Cl[ODD],invCl_evn,quark->mass,in.Wils);
 	    break;
@@ -72,14 +78,23 @@ namespace nissa
 	if((iter++)>0) is_increasing=(*eig_max/old_eig_max-1>1e-14);
 	verbosity_lv2_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark->mass,iter,*eig_max);
       }
-    while(iter<niters&&is_increasing);
+    while(iter<niters and is_increasing);
     
     //remove the background field
-    rem_backfield_with_stagphases_from_conf(eo_conf,backfield);
+    if(ferm_discretiz::is_stag(quark->discretiz))
+      rem_backfield_with_stagphases_from_conf(eo_conf,backfield);
+    else
+      rem_backfield_without_stagphases_from_conf(eo_conf,backfield);
     
     //assume a 10% excess
     (*eig_max)*=1.1;
     verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark->mass,*eig_max);
+    
+    if(ferm_discretiz::include_clover(quark->discretiz))
+      {
+	chromo_operator_remove_cSW(Cl,quark->cSW);
+	nissa_free(invCl_evn);
+      }
   }
   THREADABLE_FUNCTION_END
   
@@ -174,9 +189,15 @@ namespace nissa
       {
 	quark_content_t &q=theory_pars->quarks[iflav];
 	
-	//find min and max eigenvalue
-	double eig_min,eig_max;
-	max_eigenval(&eig_max,&q,eo_conf,Cl,theory_pars->backfield[iflav],max_iter);
+	//take the pointer to the rational approximations for current flavor and mark down degeneracy
+	rat_approx_t *appr=&(*rat_appr)[nappr_per_quark*iflav];
+	int deg=q.deg;
+	int npf=evol_pars->npseudo_fs[iflav];
+	int root_val=ferm_discretiz::root_needed(q.discretiz);
+	bool is_really_rooted=(deg!=npf*root_val);
+	
+	//find min eigenvalue
+	double eig_min;
 	switch(q.discretiz)
 	  {
 	  case ferm_discretiz::ROOT_STAG:
@@ -189,14 +210,15 @@ namespace nissa
 	    eig_min=0;
 	  }
 	
-	//take the pointer to the rational approximations for current flavor and mark down degeneracy
-	rat_approx_t *appr=&(*rat_appr)[nappr_per_quark*iflav];
-	int deg=q.deg;
-	int npf=evol_pars->npseudo_fs[iflav];
+	//Find max eigenvalue
+	double eig_max;
+	if(ferm_discretiz::ROOT_TM_CLOV and not is_really_rooted)
+	  eig_max=eig_min*1.1;
+	else
+	  max_eigenval(&eig_max,&q,eo_conf,Cl,theory_pars->backfield[iflav],max_iter);
 	
 	//generate the three approximations
-	int root=ferm_discretiz::root_needed(q.discretiz);
-	int extra_fact[nappr_per_quark]={2*root,-root,-root};
+	int extra_fact[nappr_per_quark]={2*root_val,-root_val,-root_val};
 	double maxerr[nappr_per_quark]={sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->md_residue)};
 	for(int i=0;i<nappr_per_quark;i++)
 	  {
@@ -287,6 +309,9 @@ namespace nissa
     //wait
     if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
     THREAD_BARRIER();
+    
+    if(theory_pars->clover_to_be_computed())
+      for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
   }
   THREADABLE_FUNCTION_END
 }

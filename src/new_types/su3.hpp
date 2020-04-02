@@ -36,7 +36,7 @@ namespace nissa
   
   typedef colorspinspin su3spinspin[NCOL];
   
-  typedef su3 as2t_su3[NDIM*(NDIM+1)/2];
+  typedef su3 as2t_su3[NDIM*(NDIM-1)/2];
   typedef su3 clover_term_t[4];
   typedef halfspincolor_halfspincolor inv_clover_term_t[2];
   

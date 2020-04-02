@@ -6,6 +6,7 @@
 #include "geometry/geometry_mix.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
+#include "routines/ios.hpp"
 
 namespace nissa
 {
@@ -21,11 +22,11 @@ namespace nissa
   inline double chromo_operator_factor(double cSW)
   {return -cSW/4;}
   inline void chromo_operator_adjust_cSW(clover_term_t *Cl,double cSW_new,double cSW_old)
-  {/*master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/double_vector_prod_double((double*)Cl,(double*)Cl,chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old),sizeof(clover_term_t)/sizeof(double)*loc_vol);}
+  {master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);double_vector_prod_double((double*)Cl,(double*)Cl,chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old),sizeof(clover_term_t)/sizeof(double)*loc_vol);}
   inline void chromo_operator_adjust_cSW(clover_term_t **Cl,double cSW_new,double cSW_old)
-  {/*master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(Cl[eo]),(double*)(Cl[eo]),chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old),sizeof(clover_term_t)/sizeof(double)*loc_volh);}
-  inline void chromo_operator_include_cSW(clover_term_t *Cl,double cSW)
-  {double_vector_prod_double((double*)Cl,(double*)Cl,-cSW/4,sizeof(clover_term_t)/sizeof(double)*loc_vol);}
+  {master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(Cl[eo]),(double*)(Cl[eo]),chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old),sizeof(clover_term_t)/sizeof(double)*loc_volh);}
+  // inline void chromo_operator_include_cSW(clover_term_t *Cl,double cSW)
+  // {double_vector_prod_double((double*)Cl,(double*)Cl,-cSW/4,sizeof(clover_term_t)/sizeof(double)*loc_vol);}
   template <class T> void chromo_operator_include_cSW(T Cl,double cSW)
   {chromo_operator_adjust_cSW(Cl,cSW+1e-16,-4);}
   template <class T> void chromo_operator_remove_cSW(T Cl,double cSW)
@@ -37,6 +38,7 @@ namespace nissa
     chromo_operator_include_cSW(Cl,cSW);
   }
   
+  void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa);
   void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in);
   void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex diag,clover_term_t Cl,halfspincolor_128 in);
   void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in);

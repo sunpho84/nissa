@@ -28,13 +28,12 @@
 
 namespace nissa
 {
-  //ROOT_STAG has mass term completely constant
+  //in the ROOT_STAG the mass is passed through shift
   namespace
   {
     const double shift_poles=1,shift_poles_back=-1;
     void shift_all_ROOT_STAG_poles(theory_pars_t &theory_pars,std::vector<rat_approx_t> &rat_appr,const double sign)
     {
-      
       for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
 	if(theory_pars.quarks[iflav].discretiz==ferm_discretiz::ROOT_STAG)
 	  for(int i=0;i<nappr_per_quark;i++)

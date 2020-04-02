@@ -19,15 +19,29 @@ then
 fi
 ])
 
-# usage: AX_SUBPACKAGE(package_name,header,library,function,conditional_name)
+# usage: AX_SUBPACKAGE(package_name,header,library,function,conditional_name,include_dir=include,lib_dir=lib)
 AC_DEFUN([AX_SUBPACKAGE], [
+
+if test x$6 == x
+then
+	include_dir=include
+else
+	include_dir=$6
+fi
+
+if test x$7=x
+then
+	lib_dir=lib
+else
+	lib_dir=$7
+fi
 
 #introduce flags
 AC_ARG_WITH($1,
 	AS_HELP_STRING([--with-$1[=dir]], [Specify where to find $1]),
 	with_$1="${withval}"
-	CPPFLAGS="-I${with_$1}/include/ $CPPFLAGS"
-	LDFLAGS="-L${with_$1}/lib/ $LDFLAGS",
+	CPPFLAGS="-I${with_$1}/${include_dir}/ $CPPFLAGS"
+	LDFLAGS="-L${with_$1}/${lib_dir}/ $LDFLAGS",
 	with_$1=no)
 AC_MSG_RESULT(with $1 ... ${with_$1})
 

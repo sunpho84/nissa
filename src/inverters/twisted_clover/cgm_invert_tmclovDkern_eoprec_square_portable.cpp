@@ -10,17 +10,23 @@
 
 namespace nissa
 {
-  inline void tmclovDkern_eoprec_square_eos_wrap(spincolor *out,spincolor *temp1,spincolor *temp2,quad_su3 **conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,double dum,spincolor *in)
-  {tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl_odd,invCl_evn,mu,in);}
+  void apply_tmclovDkern_cgm_kernel(spincolor *out,spincolor *temp1,spincolor *temp2,quad_su3 **conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,double diag_coeff,spincolor *in)
+  {
+    tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl_odd,invCl_evn,mu,in);
+    
+    if(diag_coeff!=0)
+      double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,diag_coeff,sizeof(spincolor)/sizeof(double)*loc_volh);
+  }
 }
+
 
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
 #define BULK_VOL loc_volh
 #define BORD_VOL bord_volh
 
-#define APPLY_OPERATOR tmclovDkern_eoprec_square_eos_wrap
-#define CGM_OPERATOR_PARAMETERS t1,t2,conf,kappa,Cl_odd,invCl_evn,mass,
+#define APPLY_OPERATOR apply_tmclovDkern_cgm_kernel
+#define CGM_OPERATOR_PARAMETERS t1,t2,conf,kappa,Cl_odd,invCl_evn,mu,
 
 #define CGM_INVERT inv_tmclovDkern_eoprec_square_portable
 #define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec
@@ -49,9 +55,9 @@ namespace nissa
 #define AT4 inv_clover_term_t *
 #define A4 invCl_evn
 #define AT5 double
-#define A5 mass
+#define A5 mu
 
-#define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,Cl_odd,invCl_evn,mass,
+#define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,Cl_odd,invCl_evn,mu,
 
 #include "inverters/templates/cgm_invert_template_threaded.cpp"
 

@@ -22,6 +22,25 @@
 
 namespace nissa
 {
+  /// Implements the trap to debug
+  void debug_loop()
+  {
+    volatile int flag=0;
+    
+    printf("Entering debug loop on rank %d, flag has address %p please type:\n"
+	   "$ gdb -p %d\n"
+	   "$ set flag=1\n"
+	   "$ continue\n",
+	   rank,
+	   &flag,
+	   getpid());
+    
+    if(rank==0)
+      while(flag==0);
+    
+    ranks_barrier();
+  }
+  
   //take the time
   double take_time()
   {

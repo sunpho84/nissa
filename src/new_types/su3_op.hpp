@@ -294,6 +294,26 @@ namespace nissa
       }
   }
   
+  //keep the antihermitian part of an su3 matrix
+  inline void su3_anti_hermitian_part(su3 out,su3 in)
+  {
+    for(size_t ic=0;ic<NCOL;ic++)
+      {
+	//real part of diagonal: 0
+	out[ic][ic][RE]=0;
+	//imag part of diagonal: no change
+	out[ic][ic][IM]=in[ic][ic][IM];
+	
+	for(size_t jc=0;jc<ic;jc++)
+	  {
+	    //out-of-diag real part
+	    out[ic][jc][RE]=-(out[jc][ic][RE]=(in[jc][ic][RE]-in[ic][jc][RE])/2);
+	    //out-of-diag imag part
+	    out[ic][jc][IM]=+(out[jc][ic][IM]=(in[jc][ic][IM]+in[ic][jc][IM])/2);
+	  }
+      }
+  }
+  
   //return the hermitian traceless part of an su3 matrix
   inline void unsafe_su3_traceless_hermitian_part(su3 out,const su3 in)
   {

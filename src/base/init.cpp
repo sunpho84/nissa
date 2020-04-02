@@ -259,6 +259,12 @@ namespace nissa
     init_base_gamma();
     
     master_printf("Nissa initialized!\n");
+    
+    const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
+    if(getenv(DEBUG_LOOP_STRING)!=NULL)
+      debug_loop();
+    else
+      master_printf("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
   }
   
   //compute internal volume
@@ -805,6 +811,7 @@ namespace nissa
 	
 #ifdef USE_MPI
 	set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
+	set_eo_edge_senders_and_receivers(MPI_EO_AS2T_SU3_EDGES_SEND,MPI_EO_AS2T_SU3_EDGES_RECE,&MPI_AS2T_SU3);
 #endif
       }
     
