@@ -104,10 +104,9 @@ namespace nissa
 	  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
 	  paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
 	  spincolor *tmp_in=nissa_malloc("tmp_in",loc_vol,spincolor);
-	  spincolor *source_dum[2]={source,source};
-	  paste_eo_parts_into_lx_vector(tmp_in,source_dum);
 	  spincolor *tmp_out=nissa_malloc("tmp_out",loc_vol,spincolor);
-	  
+	  vector_reset(tmp_in);
+	  double_vector_copy((double*)tmp_in,(double*)source,loc_volh*sizeof(spincolor)/sizeof(double));
 	  DD::solve(tmp_out,lx_conf,kappa,cSW,mu,residue,tmp_in,true);
 	  nissa_free(lx_conf);
 	  inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
