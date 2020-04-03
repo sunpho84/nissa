@@ -148,7 +148,7 @@ namespace nissa
     if(appr->degree()==1 and appr->poles[0]==0)
       {
 	master_printf("please cleanup, put this into the template\n");
-	inv_tmclovDkern_eoprec_square_eos_cg_64(X[ODD][0],nullptr,eo_conf,kappa,Cl_odd,invCl_evn,mu,10000000,residue,phi_o);
+	inv_tmclovDkern_eoprec_square_eos_cg_64(X[ODD][0],nullptr,eo_conf,kappa,cSW,Cl_odd,invCl_evn,mu,10000000,residue,phi_o);
       }
     else
       inv_tmclovDkern_eoprec_square_portable_run_hm_up_to_comm_prec(X[ODD],eo_conf,kappa,Cl_odd,invCl_evn,mu,appr->poles.data(),appr->degree(),10000000,residue,phi_o);

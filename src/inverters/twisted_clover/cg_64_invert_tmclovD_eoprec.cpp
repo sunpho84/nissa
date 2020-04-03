@@ -12,10 +12,11 @@
 #endif
 #include "base/bench.hpp"
 #include "base/debug.hpp"
+#include "base/DDalphaAMG_bridge.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
-#include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_mix.hpp"
 #include "linalgs/linalgs.hpp"
 #include "routines/ios.hpp"
 
@@ -60,7 +61,7 @@
 namespace nissa
 {
   //wrapper for bgq
-  void inv_tmclovDkern_eoprec_square_eos_cg_64(spincolor *sol,spincolor *guess,quad_su3 **eo_conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,int niter,double residue,spincolor *source)
+  void inv_tmclovDkern_eoprec_square_eos_cg_64(spincolor *sol,spincolor *guess,quad_su3 **eo_conf,double kappa,double cSW,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,int niter,double residue,spincolor *source)
   {
 #ifdef BGQ
     //allocate
@@ -97,8 +98,22 @@ namespace nissa
     nissa_free(vir_Cl_odd);
     nissa_free(vir_invCl_evn);
     if(guess!=NULL) nissa_free(vir_guess);
+#elif defined USE_DDALPHAAMG
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
+    paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
+    spincolor *tmp_in=nissa_malloc("tmp_in",loc_vol,spincolor);
+    spincolor *source_dum[2]={source,source};
+    paste_eo_parts_into_lx_vector(tmp_in,source_dum);
+    spincolor *tmp_out=nissa_malloc("tmp_out",loc_vol,spincolor);
+    
+    DD::solve(tmp_out,lx_conf,kappa,cSW,mu,residue,tmp_in,true);
+    nissa_free(lx_conf);
+    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
+    master_printf("%lg %lg\n",tmp_out[0][0][0][0],sol[0][0][0][0]);
+    nissa_free(tmp_out);
+    nissa_free(tmp_in);
 #else
     inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
 #endif
-  } 
+  }
 }

@@ -303,15 +303,16 @@ namespace DD
     inited=false;
   }
   
-  //solve
-  int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in)
+  //solve: if squared is asked, solve the odd square (Dkern_squared)
+  int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared)
   {
     initialize(kappa,cSW,mu);
     import_gauge_conf(conf);
     update_setup();
     
     //else DDalphaAMG_update_setup(int iterations, DDalphaAMG_status *mg_status)
-    DDalphaAMG_solve((double*)out,(double*)in,sqrt(precision2),&status);
+    if(squared) DDalphaAMG_solve_squared_odd((double*)out,(double*)in,sqrt(precision2),&status);
+    else        DDalphaAMG_solve((double*)out,(double*)in,sqrt(precision2),&status);
     //DDalphaAMG_apply_operator((double*)out,(double*)in,&status);
     
     master_printf("DD: Solving time %.2f sec (%.1f %% on coarse grid)\n",status.time,100.0*(status.coarse_time/status.time));

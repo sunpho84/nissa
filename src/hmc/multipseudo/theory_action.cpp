@@ -40,7 +40,7 @@ namespace nissa
     
     add_backfield_without_stagphases_to_conf(eo_conf,u1b);
      if(use_cg)
-       inv_tmclovDkern_eoprec_square_eos_cg_64(chi,nullptr,eo_conf,q.kappa,Cl[ODD],invCl_evn,q.mass,1000000,residue,pf);
+       inv_tmclovDkern_eoprec_square_eos_cg_64(chi,nullptr,eo_conf,q.kappa,q.cSW,Cl[ODD],invCl_evn,q.mass,1000000,residue,pf);
      else
       summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi,eo_conf,q.kappa,Cl[ODD],invCl_evn,q.mass,rat,1000000,residue,pf);
     rem_backfield_without_stagphases_from_conf(eo_conf,u1b);

@@ -23,22 +23,24 @@
 //name of the inverter, externally accedable
 #define CG_128_INVERT inv_tmclovDkern_eoprec_square_eos_cg_128
 //parameters to be passed externally to the 128 inverter
-#define CG_NARG 5
+#define CG_NARG 6
 #define AT1 quad_su3**
 #define A1 conf
 #define AT2 double
 #define A2 kappa
-#define AT3 clover_term_t*
-#define A3 Cl_odd
-#define AT4 inv_clover_term_t*
-#define A4 invCl_evn
-#define AT5 double
-#define A5 mu
+#define AT3 double
+#define A3 cSW
+#define AT4 clover_term_t*
+#define A4 Cl_odd
+#define AT5 inv_clover_term_t*
+#define A5 invCl_evn
+#define AT6 double
+#define A6 mu
 
 //name of the inner solver
 #define CG_128_INNER_SOLVER inv_tmclovDkern_eoprec_square_eos_cg_64
 //parameters of the inner solver
-#define CG_128_INNER_PARAMETERS_CALL conf,kappa,Cl_odd,invCl_evn,mu,
+#define CG_128_INNER_PARAMETERS_CALL conf,kappa,cSW,Cl_odd,invCl_evn,mu,
 
 #define CG_ADDITIONAL_VECTORS_ALLOCATION()	\
   BASETYPE_128 *temp1=nissa_malloc("temp1",BULK_SIZE+BORD_SIZE,BASETYPE_128); \

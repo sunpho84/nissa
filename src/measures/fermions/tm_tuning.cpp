@@ -109,6 +109,7 @@ namespace nissa
     
     delete [] loc_corr;
     
+    nissa_free(tmp);
     nissa_free(eta);
     nissa_free(phi);
     nissa_free(phi_ins_S);
