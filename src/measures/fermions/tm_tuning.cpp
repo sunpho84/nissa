@@ -17,7 +17,7 @@ namespace nissa
 {
   namespace
   {
-    const int ncorr_kind=4;
+    const int ncorr_kind=6;
   }
   
   //compute correlation functions for twisted clover, needed to fix tuning
@@ -25,6 +25,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
+    spincolor *tmp=nissa_malloc("tmp",loc_vol+bord_vol,spincolor);
     spincolor *eta=nissa_malloc("eta",loc_vol+bord_vol,spincolor);
     spincolor *phi=nissa_malloc("phi",loc_vol+bord_vol,spincolor);
     spincolor *phi_ins_S=nissa_malloc("phi_ins_S",loc_vol+bord_vol,spincolor);
@@ -40,8 +41,10 @@ namespace nissa
     // Command to invert
     auto inv=[&](spincolor *out,spincolor *in)
 	     {
-	       if(q->cSW) inv_tmclovD_cg_eoprec(out,NULL,conf,q->kappa,Cl,invCl,q->cSW,q->mass,1000000,meas_pars->residue,in);
-	       else inv_tmD_cg_eoprec(out,NULL,conf,q->kappa,q->mass,1000000,meas_pars->residue,in);
+	       safe_dirac_prod_spincolor(tmp,&Pplus,in);
+	       if(q->cSW) inv_tmclovD_cg_eoprec(out,NULL,conf,q->kappa,Cl,invCl,q->cSW,q->mass,1000000,meas_pars->residue,tmp);
+	       else inv_tmD_cg_eoprec(out,NULL,conf,q->kappa,q->mass,1000000,meas_pars->residue,tmp);
+	       safe_dirac_prod_spincolor(out,&Pplus,out);
 	     };
     
     // Command to insert
@@ -94,9 +97,11 @@ namespace nissa
 	inv(phi_ins_S,phi);
 	
 	contr(phi,phi,5,0);
-	contr(phi,phi,9,1);
-	contr(phi,phi_ins_S,9,2);
-	contr(phi,phi_ins_P,9,3);
+	contr(phi,phi,4,1);
+	contr(phi,phi_ins_S,5,2);
+	contr(phi,phi_ins_S,4,3);
+	contr(phi,phi_ins_P,5,4);
+	contr(phi,phi_ins_P,4,5);
       }
     
     glb_threads_reduce_double_vect((double*)loc_corr,2*ncorr_kind*glb_size[0]);
