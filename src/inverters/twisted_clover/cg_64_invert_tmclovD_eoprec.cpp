@@ -99,21 +99,25 @@ namespace nissa
     nissa_free(vir_invCl_evn);
     if(guess!=NULL) nissa_free(vir_guess);
 #elif defined USE_DDALPHAAMG
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
-    paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
-    spincolor *tmp_in=nissa_malloc("tmp_in",loc_vol,spincolor);
-    spincolor *source_dum[2]={source,source};
-    paste_eo_parts_into_lx_vector(tmp_in,source_dum);
-    spincolor *tmp_out=nissa_malloc("tmp_out",loc_vol,spincolor);
-    
-    DD::solve(tmp_out,lx_conf,kappa,cSW,mu,residue,tmp_in,true);
-    nissa_free(lx_conf);
-    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
-    master_printf("%lg %lg\n",tmp_out[0][0][0][0],sol[0][0][0][0]);
-    nissa_free(tmp_out);
-    nissa_free(tmp_in);
-#else
-    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
+    if(use_DD and fabs(mu)<=DD::max_mass)
+	{
+	  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
+	  paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
+	  spincolor *tmp_in=nissa_malloc("tmp_in",loc_vol,spincolor);
+	  spincolor *source_dum[2]={source,source};
+	  paste_eo_parts_into_lx_vector(tmp_in,source_dum);
+	  spincolor *tmp_out=nissa_malloc("tmp_out",loc_vol,spincolor);
+	  
+	  DD::solve(tmp_out,lx_conf,kappa,cSW,mu,residue,tmp_in,true);
+	  nissa_free(lx_conf);
+	  inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
+	  master_printf("%lg %lg\n",tmp_out[0][0][0][0],sol[0][0][0][0]);
+	  master_printf("%lg %lg\n",tmp_out[0][0][0][1],sol[0][0][0][1]);
+	  nissa_free(tmp_out);
+	  nissa_free(tmp_in);
+	}
+    else
 #endif
+    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
   }
 }
