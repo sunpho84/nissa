@@ -225,7 +225,7 @@ FFT type            : $with_fft_type"
 
 #################### eigen ####################
 
-AX_SUBPACKAGE(eigen,eigen3/Eigen/Dense,,,EIGEN)
+AX_SUBPACKAGE(eigen,Eigen/Dense,,,EIGEN,".",".")
 
 #enable eigen for linear algebra
 AC_ARG_ENABLE(eigen_everywhere,

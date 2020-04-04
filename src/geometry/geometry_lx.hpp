@@ -11,7 +11,6 @@
 
 #include <stdint.h>
 #include <routines/math_routines.hpp>
-#include <threads/threads.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
  #define EXTERN_GEOMETRY_LX extern
@@ -99,6 +98,7 @@ namespace nissa
   
   CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(coords ph,int ivol);
   CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(int ivol,int mu);
+  
   int bordlx_of_coord(int *x,int mu);
   int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
   void coord_of_lx(coords x,int ilx,coords s);

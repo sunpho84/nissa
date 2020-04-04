@@ -21,7 +21,7 @@ namespace DD
   
   void finalize();
   void read_DDalphaAMG_pars();
-  int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in);
+  int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false);
 }
 
 #undef EXTERN_DD_BRIDGE

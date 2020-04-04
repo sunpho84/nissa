@@ -188,7 +188,8 @@ namespace nissa
   }
   
   //smear the propagator
-  void smear_prop(spincolor *out,quad_su3 *conf,spincolor *ori,int t,double kappa,int nlevels)
+  template <typename T>
+  void smear_prop(spincolor *out,quad_su3 *conf,spincolor *ori,int t,T kappa,int nlevels)
   {
     GET_THREAD_ID();
     
@@ -208,7 +209,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    for(int mu=1;mu<NDIM;mu++) if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10) crash("Error: phase %lg must be an even integer",th);
+    for(int mu=1;mu<NDIM;mu++) if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10) crash("Error: phase %lg must be an even integer",th[mu]);
     
     vector_reset(out);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -324,7 +325,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //generate a sequential source
-  void generate_source(insertion_t inser,char *ext_field_path,int r,double charge,double kappa,double *theta,std::vector<source_term_t>& source_terms,int isou,int t)
+  void generate_source(insertion_t inser,char *ext_field_path,int r,double charge,double kappa,double* kappa_asymm,double *theta,std::vector<source_term_t>& source_terms,int isou,int t)
   {
     source_time-=take_time();
     
@@ -332,7 +333,7 @@ namespace nissa
     if(rel_t!=-1) rel_t=(t+source_coord[0])%glb_size[0];
     
     quad_su3 *conf;
-    if(inser!=SMEARING) conf=get_updated_conf(charge,theta,glb_conf);
+    if(not is_smearing_ins(inser)) conf=get_updated_conf(charge,theta,glb_conf);
     else
       {
 	quad_su3 *ext_conf;
@@ -372,6 +373,7 @@ namespace nissa
       case CVEC3:insert_conserved_current(loop_source,conf,ori,rel_t,r,only_dir[3]);break;
       case EXT_FIELD:insert_external_source(loop_source,conf,ext_field,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case SMEARING:smear_prop(loop_source,conf,ori,rel_t,kappa,r);break;
+      case ANYSM:smear_prop(loop_source,conf,ori,rel_t,kappa_asymm,r);break;
       case WFLOW:flow_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       case BACK_WFLOW:back_flow_prop(loop_source,conf,ori,rel_t,kappa,r);break;
       case PHASING:phase_prop(loop_source,ori,rel_t,theta);break;
@@ -482,7 +484,7 @@ namespace nissa
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
 	      int isou=so_sp_col_ind(id_so,ic_so);
-	      generate_source(insertion,q.ext_field_path,q.r,q.charge,q.kappa,q.theta,q.source_terms,isou,q.tins);
+	      generate_source(insertion,q.ext_field_path,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
 	      spincolor *sol=q[isou];
 	      
 	      //combine the filename

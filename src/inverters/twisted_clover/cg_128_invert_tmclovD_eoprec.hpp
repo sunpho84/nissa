@@ -6,7 +6,7 @@
 
 namespace nissa
 {
-  void inv_tmclovDkern_eoprec_square_eos_cg_128(spincolor *sol,spincolor *guess,eo_ptr<quad_su3> conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,int niter,double external_solver_residue,spincolor *external_source);
+  void inv_tmclovDkern_eoprec_square_eos_cg_128(spincolor *sol,spincolor *guess,eo_ptr<quad_su3> conf,double kappa,double cSW,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,int niter,double external_solver_residue,spincolor *external_source);
 }
 
 #endif

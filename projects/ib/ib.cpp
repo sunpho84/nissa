@@ -250,6 +250,28 @@ void init_simulation(int narg,char **arg)
 	  read_theta(theta);
 	}
       
+      //read smearing
+      double kappa1=0.0,kappa2=0.0,kappa3=0.0;
+      if(strcasecmp(ins,ins_tag[ANYSM])==0)
+	{
+	  decripted=true;
+	  
+	  read_double(&kappa1);
+	  master_printf("Read variable 'Kappa1' with value: %lg\n",kappa1);
+	  
+	  read_double(&kappa2);
+	  master_printf("Read variable 'Kappa2' with value: %lg\n",kappa2);
+	  
+	  read_double(&kappa3);
+	  master_printf("Read variable 'Kappa3' with value: %lg\n",kappa3);
+	  
+	  read_int(&r);
+	  master_printf("Read variable 'R' with value: %d\n",r);
+	  
+	  read_theta(theta);
+	}
+      double kappa_asymm[4]={0.0,kappa1,kappa2,kappa3};
+      
       //everything else
       if(not decripted)
 	{
@@ -271,7 +293,8 @@ void init_simulation(int narg,char **arg)
       
       read_int(&store_prop);
       master_printf("Read variable 'Store' with value: %d\n",store_prop);
-      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,mass,ext_field_path,r,charge,theta,store_prop);
+      
+      Q[name].init_as_propagator(ins_from_tag(ins),source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store_prop);
       qprop_name_list[iq]=name;
     }
   
@@ -327,9 +350,6 @@ void init_simulation(int narg,char **arg)
   allocate_bar2pts_contr();
   
   allocate_L_prop();
-  glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  inner_conf=nissa_malloc("inner_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   lock_file.init();
 }
@@ -344,9 +364,6 @@ void close()
   free_photon_fields();
   free_loop_source();
   free_L_prop();
-  nissa_free(glb_conf);
-  nissa_free(inner_conf);
-  nissa_free(ape_smeared_conf);
   
   free_mes2pts_contr();
   free_handcuffs_contr();
@@ -368,6 +385,8 @@ void close()
       nissa_free(invCl);
     }
   free_bar2pts_contr();
+  
+  free_confs();
 }
 using Y=SpinColorComplField;
 
@@ -427,6 +446,8 @@ void in_main(int narg,char **arg)
 	  compute_contractions();
 	  propagators_fft(ihit);
 	}
+      
+      free_confs();
       print_contractions();
       
       mark_finished();

@@ -1,4 +1,5 @@
 #include <math.h>
+#include <cmath>
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"

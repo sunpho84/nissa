@@ -89,25 +89,6 @@ namespace nissa
       }
   };
   
-  /// Implements the trap to debug
-  void debug_loop()
-  {
-    volatile int flag=0;
-    
-    printf("Entering debug loop on rank %d, flag has address %p please type:\n"
-	   "$ gdb -p %d\n"
-	   "$ set flag=1\n"
-	   "$ continue\n",
-	   rank,
-	   &flag,
-	   getpid());
-    
-    if(rank==0)
-      while(flag==0);
-    
-    ranks_barrier();
-  }
-  
   //init nissa
   void init_nissa(int narg,char **arg,const char compile_info[5][1024])
   {
@@ -855,6 +836,7 @@ namespace nissa
 	
 #ifdef USE_MPI
 	set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
+	set_eo_edge_senders_and_receivers(MPI_EO_AS2T_SU3_EDGES_SEND,MPI_EO_AS2T_SU3_EDGES_RECE,&MPI_AS2T_SU3);
 #endif
       }
     

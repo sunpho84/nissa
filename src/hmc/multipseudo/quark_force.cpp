@@ -3,12 +3,14 @@
 #endif
 
 #include "hmc/fermions/rootst_eoimpr_quark_force.hpp"
+#include "hmc/fermions/roottm_clov_eoimpr_quark_force.hpp"
 #include "hmc/hmc.hpp"
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 #include "hmc/theory_pars.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "operations/smearing/stout.hpp"
+#include "operations/su3_paths/clover_term.cpp"
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
@@ -37,23 +39,60 @@ namespace nissa
   //compute the quark force, without stouting reampping
   THREADABLE_FUNCTION_6ARG(compute_quark_force_no_stout_remapping, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,tp, std::vector<rat_approx_t>*,appr, double,residue)
   {
+    //allocate or not clover term and inverse evn clover term
+    eo_ptr<clover_term_t> Cl={NULL,NULL};
+    inv_clover_term_t *invCl_evn=NULL;
+    bool clover_to_be_computed=false;
+    for(int iflav=0;iflav<tp->nflavs();iflav++) clover_to_be_computed|=ferm_discretiz::include_clover(tp->quarks[iflav].discretiz);
+    if(clover_to_be_computed)
+      {
+	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+	invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+	chromo_operator(Cl,conf);
+      }
+    
     //reset forces
     for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
     
     for(int iflav=0;iflav<tp->nflavs();iflav++)
-      for(size_t ipf=0;ipf<(*pf)[iflav].size();ipf++)
-	{
-	  verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %d/%d\n",iflav+1,tp->nflavs(),ipf+1,(*pf)[iflav].size());
-	  
-	  switch(tp->quarks[iflav].discretiz)
-	    {
-	    case ferm_discretiz::ROOT_STAG:
-	      summ_the_rootst_eoimpr_quark_force(F,tp->quarks[iflav].charge,conf,(*pf)[iflav][ipf].stag,tp->em_field_pars.flag,tp->backfield[iflav],&((*appr)[iflav*nappr_per_quark+RAT_APPR_QUARK_FORCE]),residue);break;
-	    default:
-	      crash("non staggered not yet implemented");
-	    }
-	}
+      {
+	quark_content_t &q=tp->quarks[iflav];
+	
+	//if clover is included, compute it
+	if(ferm_discretiz::include_clover(q.discretiz))
+	  {
+	    chromo_operator_include_cSW(Cl,q.cSW);
+	    invert_twisted_clover_term(invCl_evn,q.mass,q.kappa,Cl[EVN]);
+	  }
+	
+	eo_ptr<quad_u1>& bf=tp->backfield[iflav];
+	rat_approx_t *app=&((*appr)[iflav*nappr_per_quark+RAT_APPR_QUARK_FORCE]);
+	
+	for(size_t ipf=0;ipf<(*pf)[iflav].size();ipf++)
+	  {
+	    verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %d/%d\n",iflav+1,tp->nflavs(),ipf+1,(*pf)[iflav].size());
+	    
+	    switch(q.discretiz)
+	      {
+	      case ferm_discretiz::ROOT_STAG:
+		summ_the_rootst_eoimpr_quark_force(F,conf,(*pf)[iflav][ipf].stag,bf,app,residue);break;
+	      case ferm_discretiz::ROOT_TM_CLOV:
+		summ_the_roottm_clov_eoimpr_quark_force(F,conf,q.kappa,q.cSW,Cl[ODD],invCl_evn,q.mass,(*pf)[iflav][ipf].Wils,bf,app,residue);break;
+	      default:
+		crash("not yet implemented");
+	      }
+	  }
+	
+	//remove cSW from chromo operator
+	if(ferm_discretiz::include_clover(q.discretiz)) chromo_operator_remove_cSW(Cl,q.cSW);
+      }
     
+    //free clover term if ever allocated
+    if(clover_to_be_computed)
+      {
+	nissa_free(invCl_evn);
+	for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
+      }
   }
   THREADABLE_FUNCTION_END
   

@@ -165,7 +165,7 @@ namespace nissa
     MPI_Type_commit(&MPI_QUAD_SU3);
     
     //six (in 4d) links starting from a single point
-    MPI_Type_contiguous(NDIM*(NDIM+1)/2,MPI_SU3,&MPI_AS2T_SU3);
+    MPI_Type_contiguous(sizeof(as2t_su3)/sizeof(su3),MPI_SU3,&MPI_AS2T_SU3);
     MPI_Type_commit(&MPI_AS2T_SU3);
     
     //a color (6 doubles)

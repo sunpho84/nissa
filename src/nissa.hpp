@@ -85,6 +85,7 @@
 
 #include "hmc/backfield.hpp"
 #include "hmc/fermions/rootst_eoimpr_quark_force.hpp"
+#include "hmc/fermions/roottm_clov_eoimpr_quark_force.hpp"
 #include "hmc/fermions/pseudofermions_generation.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/gluonic_force.hpp"
@@ -146,6 +147,7 @@
 #include "measures/fermions/spectral_projectors.hpp"
 #include "measures/fermions/spinpol.hpp"
 #include "measures/fermions/stag.hpp"
+#include "measures/fermions/tm_tuning.hpp"
 #include "measures/fermions/zumba.hpp"
 
 #include "measures/gauge/all_rectangles.hpp"

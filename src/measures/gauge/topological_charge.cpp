@@ -48,7 +48,8 @@ namespace nissa
   */
   CUDA_HOST_AND_DEVICE void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X)
   {
-    int munu=0;
+    if(!check_edges_valid(conf[0])) crash("communicate edges externally");
+    
     for(int mu=0;mu<NDIM;mu++)
       {
 	int A=loclx_neighup[X][mu];
@@ -56,6 +57,8 @@ namespace nissa
         
 	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
+	    int munu=edge_numb[mu][nu];
+	    
 	    int B=loclx_neighup[X][nu];
 	    int F=loclx_neighdw[X][nu];
             

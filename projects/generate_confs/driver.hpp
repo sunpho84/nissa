@@ -49,6 +49,7 @@ namespace nissa
     std::vector<magnetization_meas_pars_t> magnetization_meas;
     std::vector<minmax_eigenvalues_meas_pars_t> minmax_eigenvalues_meas;
     std::vector<spectr_proj_meas_pars_t> spectral_proj_meas;
+    std::vector<tm_tuning_meas_pars_t> tm_tuning_meas;
     
     //check if any measure is due
     template <class T> int measure_is_due(std::vector<T> &pars,int itheory,int iconf)
@@ -69,7 +70,8 @@ namespace nissa
 	measure_is_due(chir_zumba_meas,itheory,iconf) or
 	measure_is_due(spinpol_meas,itheory,iconf) or
 	measure_is_due(qed_corr_meas,itheory,iconf) or
-	measure_is_due(spectral_proj_meas,itheory,iconf);
+	measure_is_due(spectral_proj_meas,itheory,iconf) or
+	measure_is_due(tm_tuning_meas,itheory,iconf);
     }
     //print a message if a measure is due
     template <class T> bool if_meas_is_due_print(T &obj,int itheory,int iconf,const char *text)
@@ -91,6 +93,7 @@ namespace nissa
     void add_magnetization_meas(magnetization_meas_pars_t &m){magnetization_meas.push_back(m);}
     void add_minmax_eigenvalues_meas(minmax_eigenvalues_meas_pars_t &m){minmax_eigenvalues_meas.push_back(m);}
     void add_spectr_proj_meas(spectr_proj_meas_pars_t &m){spectral_proj_meas.push_back(m);}
+    void add_tm_tuning_meas(tm_tuning_meas_pars_t &m){tm_tuning_meas.push_back(m);}
     
     //gauge measures
     std::vector<gauge_obs_meas_pars_t> plaq_pol_meas;
@@ -185,6 +188,7 @@ namespace nissa
       os<<vector_get_str(magnetization_meas,full);
       os<<vector_get_str(minmax_eigenvalues_meas,full);
       os<<vector_get_str(spectral_proj_meas,full);
+      os<<vector_get_str(tm_tuning_meas,full);
       //gauge masures
       os<<vector_get_str(plaq_pol_meas,full);
       os<<vector_get_str(top_meas,full);

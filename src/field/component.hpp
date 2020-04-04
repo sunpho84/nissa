@@ -98,7 +98,7 @@ namespace nissa
   
   /// Provide the access to a component
 #define PROVIDE_COMP_ACCESS(ACCESS,...)		\
-  auto ACCESS(const int64_t& i)			\
+  auto inline ACCESS(const int64_t& i)			\
   {						\
     return __VA_ARGS__{i};			\
   }

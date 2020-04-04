@@ -13,6 +13,7 @@
 
 namespace nissa
 {
+  void debug_loop();
   void check_128_bit_prec();
   void internal_crash(int line,const char *file,const char *templ,...);
   void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...);

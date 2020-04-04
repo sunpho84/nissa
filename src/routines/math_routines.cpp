@@ -7,6 +7,10 @@
 #include "base/random.hpp"
 #include "new_types/complex.hpp"
 
+#if USE_EIGEN
+ #include <unsupported/Eigen/MatrixFunctions>
+#endif
+
 namespace nissa
 {
   //return the log of the factorial of n
@@ -117,11 +121,25 @@ namespace nissa
 	  }
       }
   }
-  //compute the determinant of a NxN matrix through a recursive formula
+  
+  //compute the determinant of a NxN matrix through a recursive formula or eigen
   void matrix_determinant(complex d,complex *m,int n)
   {
+#if USE_EIGEN
+    using cpp_complex=std::complex<double>;
+    using cpp_matrix=cpp_complex*;
+    using eig_matrix=Eigen::Matrix<std::complex<double>,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor>;
+    using map_eig_matrix=Eigen::Map<eig_matrix>;
+    
+    cpp_complex& cpp_d=*reinterpret_cast<cpp_complex*>(d);
+    cpp_matrix cpp_m=reinterpret_cast<cpp_complex*>(m);
+    map_eig_matrix eig_m(cpp_m,n,n);
+    
+    cpp_d=eig_m.determinant();
+#else
     int l[n];
     for(int i=0;i<n;i++) l[i]=i;
     determinant(d,m,l,n,n);
+#endif
   }
 }
