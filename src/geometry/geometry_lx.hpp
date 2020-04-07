@@ -73,7 +73,7 @@ namespace nissa
   //size along various dir
   EXTERN_GEOMETRY_LX int bord_dir_vol[NDIM],bord_offset[NDIM];
   EXTERN_GEOMETRY_LX int edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
-  EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   //mapping of ILDG data
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords scidac_mapping;
   //perpendicular dir

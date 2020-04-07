@@ -426,7 +426,7 @@ using Y=SpinColorComplField;
 // }
 void in_main(int narg,char **arg)
 {
-  Y a(true);
+  Y a;
   
   //Basic mpi initialization
   tot_prog_time-=take_time();

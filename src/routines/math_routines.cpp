@@ -123,7 +123,7 @@ namespace nissa
   }
   
   //compute the determinant of a NxN matrix through a recursive formula or eigen
-  void matrix_determinant(complex d,complex *m,int n)
+  CUDA_HOST_AND_DEVICE void matrix_determinant(complex d,complex *m,int n)
   {
 #if USE_EIGEN
     using cpp_complex=std::complex<double>;
@@ -137,9 +137,10 @@ namespace nissa
     
     cpp_d=eig_m.determinant();
 #else
-    int l[n];
+    int *l=new int[n];
     for(int i=0;i<n;i++) l[i]=i;
     determinant(d,m,l,n,n);
+    delete[] l;
 #endif
   }
 }

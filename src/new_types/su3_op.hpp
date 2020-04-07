@@ -296,7 +296,7 @@ namespace nissa
   }
   
   //keep the antihermitian part of an su3 matrix
-  inline void su3_anti_hermitian_part(su3 out,su3 in)
+  CUDA_HOST_AND_DEVICE inline void su3_anti_hermitian_part(su3 out,su3 in)
   {
     for(size_t ic=0;ic<NCOL;ic++)
       {
@@ -1398,11 +1398,11 @@ namespace nissa
   {for(uint32_t ic=0;ic<NCOL;ic++) spinspin_prodassign_idouble(c[ic],f);}
   CUDA_HOST_AND_DEVICE inline void colorspinspin_prod_complex(colorspinspin out,const colorspinspin in,const complex factor)
   {for(size_t ic=0;ic<NCOL;ic++) for(size_t id=0;id<NDIRAC;id++)for(size_t jd=0;jd<NDIRAC;jd++)safe_complex_prod(out[ic][id][jd],in[ic][id][jd],factor);}
-  inline void colorspinspin_prod_complex_conj(colorspinspin out,const colorspinspin in,const complex factor)
+  CUDA_HOST_AND_DEVICE inline void colorspinspin_prod_complex_conj(colorspinspin out,const colorspinspin in,const complex factor)
   {complex temp;complex_conj(temp,factor);colorspinspin_prod_complex(out,in,temp);}
   CUDA_HOST_AND_DEVICE inline void colorspinspin_prodassign_complex(colorspinspin c,const complex f)
   {colorspinspin_prod_complex(c,c,f);}
-  inline void colorspinspin_prodassign_complex_conj(colorspinspin c,const complex f)
+  CUDA_HOST_AND_DEVICE inline void colorspinspin_prodassign_complex_conj(colorspinspin c,const complex f)
   {colorspinspin_prod_complex_conj(c,c,f);}
   
   //colorspinspin summ
@@ -1414,13 +1414,13 @@ namespace nissa
   inline void colorspinspin_subtassign(colorspinspin out,const colorspinspin in) {colorspinspin_subt(out,out,in);}
   
   //summ two colorspinspin with a factor
-  inline void colorspinspin_summ_the_prod_double(colorspinspin out,const colorspinspin in,const double factor)
+  CUDA_HOST_AND_DEVICE inline void colorspinspin_summ_the_prod_double(colorspinspin out,const colorspinspin in,const double factor)
   {for(size_t i=0;i<NCOL;i++) spinspin_summ_the_prod_double(out[i],in[i],factor);}
-  inline void colorspinspin_summ_the_prod_idouble(colorspinspin out,const colorspinspin in,const double factor)
+  CUDA_HOST_AND_DEVICE inline void colorspinspin_summ_the_prod_idouble(colorspinspin out,const colorspinspin in,const double factor)
   {for(size_t i=0;i<NCOL;i++) spinspin_summ_the_prod_idouble(out[i],in[i],factor);}
   
   //colorspinspin*complex
-  inline void unsafe_colorspinspin_prod_complex(colorspinspin out,const colorspinspin in,const complex factor)
+  CUDA_HOST_AND_DEVICE inline void unsafe_colorspinspin_prod_complex(colorspinspin out,const colorspinspin in,const complex factor)
   {for(size_t i=0;i<NCOL;i++) unsafe_spinspin_prod_complex(out[i],in[i],factor);}
   
   /////////////////////////////// su3spinspin /////////////////////////////////////////////
@@ -1434,11 +1434,11 @@ namespace nissa
   {for(size_t i=0;i<NCOL;i++) colorspinspin_prodassign_idouble(out[i],factor);}
   CUDA_HOST_AND_DEVICE inline void su3spinspin_prod_complex(su3spinspin out,const su3spinspin in,const complex factor)
   {for(size_t i=0;i<NCOL;i++) colorspinspin_prod_complex(out[i],in[i],factor);}
-  inline void su3spinspin_prod_complex_conj(su3spinspin out,const su3spinspin in,const complex factor)
+  CUDA_HOST_AND_DEVICE inline void su3spinspin_prod_complex_conj(su3spinspin out,const su3spinspin in,const complex factor)
   {for(size_t i=0;i<NCOL;i++) colorspinspin_prod_complex_conj(out[i],in[i],factor);}
   CUDA_HOST_AND_DEVICE inline void su3spinspin_prodassign_complex(su3spinspin c,const complex f)
   {su3spinspin_prod_complex(c,c,f);}
-  inline void su3spinspin_prodassign_complex_conj(su3spinspin c,const complex f)
+  CUDA_HOST_AND_DEVICE inline void su3spinspin_prodassign_complex_conj(su3spinspin c,const complex f)
   {su3spinspin_prod_complex_conj(c,c,f);}
   
   //su3spinspin summ
@@ -1450,17 +1450,17 @@ namespace nissa
   inline void su3spinspin_subtassign(su3spinspin out,const su3spinspin in) {su3spinspin_subt(out,out,in);}
   
   //summ two su3spinspin with a factor
-  inline void su3spinspin_summ_the_prod_double(su3spinspin out,const su3spinspin in,const double factor)
+  CUDA_HOST_AND_DEVICE inline void su3spinspin_summ_the_prod_double(su3spinspin out,const su3spinspin in,const double factor)
   {for(size_t i=0;i<NCOL;i++) colorspinspin_summ_the_prod_double(out[i],in[i],factor);}
-  inline void su3spinspin_summ_the_prod_idouble(su3spinspin out,const su3spinspin in,const double factor)
+  CUDA_HOST_AND_DEVICE inline void su3spinspin_summ_the_prod_idouble(su3spinspin out,const su3spinspin in,const double factor)
   {for(size_t i=0;i<NCOL;i++) colorspinspin_summ_the_prod_idouble(out[i],in[i],factor);}
   
   ////////////////////////////////////// su3spinspin /////////////////////////////////////
   
   //su3spinspin*complex
-  inline void unsafe_su3spinspin_prod_complex(su3spinspin out,const su3spinspin in,const complex factor)
+  CUDA_HOST_AND_DEVICE inline void unsafe_su3spinspin_prod_complex(su3spinspin out,const su3spinspin in,const complex factor)
   {for(size_t i=0;i<NCOL;i++) unsafe_colorspinspin_prod_complex(out[i],in[i],factor);}
-  inline void safe_su3spinspin_prod_complex(su3spinspin out,const su3spinspin in,const complex factor)
+  CUDA_HOST_AND_DEVICE inline void safe_su3spinspin_prod_complex(su3spinspin out,const su3spinspin in,const complex factor)
   {su3spinspin temp;su3spinspin_copy(temp,in);unsafe_su3spinspin_prod_complex(out,temp,factor);}
   
   CUDA_HOST_AND_DEVICE inline void unsafe_su3_prod_su3spinspin(su3spinspin a,const su3 b,const su3spinspin c)

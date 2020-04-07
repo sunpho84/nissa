@@ -36,7 +36,7 @@ namespace nissa
     memset(loc_corr,0,sizeof(complex)*ncorr_kind*glb_size[0]);
     
     //Source time
-    int tso;
+    int tso=0;
     
     // Command to invert
     auto inv=[&](spincolor *out,spincolor *in)

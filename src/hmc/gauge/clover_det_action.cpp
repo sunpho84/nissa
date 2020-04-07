@@ -38,6 +38,9 @@ namespace nissa
 	    {
 	      chromo_operator_include_cSW(Cl,q.cSW);
 	      
+	      const double &mass=q.mass;
+	      const double &kappa=q.kappa;
+	      
 	      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 		{
 		  complex d[2];
@@ -45,7 +48,7 @@ namespace nissa
 		    {
 		      halfspincolor_halfspincolor e;
 		      
-		      fill_point_twisted_clover_term(e,x_high_low,Cl[EVN][ieo],q.mass,q.kappa);
+		      fill_point_twisted_clover_term(e,x_high_low,Cl[EVN][ieo],mass,kappa);
 		      
 		      matrix_determinant(d[x_high_low],(complex*)e,NDIRAC*NCOL/2);
 		    }

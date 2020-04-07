@@ -89,6 +89,11 @@ namespace nissa
   {
   }
   
+  double *glb_threads_reduce_double_vect(double *vect,int nel)
+  {
+    return vect;
+  }
+  
   //start nissa
   inline void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg),const char compile_info[5][1024])
   {

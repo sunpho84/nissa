@@ -22,18 +22,22 @@ namespace nissa
     
     inline static T totSize(HaloKind haloKind)
     {
+      Size res=0;
+      
       switch(haloKind)
 	{
 	case NO_HALO:
-	  return locSize();
+	  res=locSize();
 	  break;
 	case WITH_BORDERS:
-	  return locSize()+bordSize();
+	  res=locSize()+bordSize();
 	  break;
 	case WITH_EDGES:
-	  return locSize()+bordSize()+edgeSize();
+	  res=locSize()+bordSize()+edgeSize();
 	  break;
 	}
+      
+      return static_cast<T>(res);
     }
   };
   

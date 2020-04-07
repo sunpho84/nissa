@@ -17,7 +17,7 @@
 namespace nissa
 {
   /// Derivative of xQy
-  void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,int eo,int ieo,int dir)
+  CUDA_HOST_AND_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,int eo,int ieo,int dir)
   {
     int ineoup=loceo_neighup[eo][ieo][dir];
     
@@ -74,7 +74,7 @@ namespace nissa
   }
   
   // Compute the clover staples
-  void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,int ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW)
+  CUDA_HOST_AND_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,int ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW)
   {
     su3_put_to_zero(stap);
     
@@ -131,13 +131,17 @@ namespace nissa
     START_TIMING(quark_force_over_time,nquark_force_over);
     
     //allocate each terms of the expansion
-    spincolor *Y[2][appr->degree()],*X[2][appr->degree()],*temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+    spincolor **Y[2],**X[2],*temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
     for(int eo=0;eo<2;eo++)
-      for(int iterm=0;iterm<appr->degree();iterm++)
-	{
-	  Y[eo][iterm]=nissa_malloc("Y",loc_volh+bord_volh,spincolor);
-	  X[eo][iterm]=nissa_malloc("X",loc_volh+bord_volh,spincolor);
-	}
+      {
+	X[eo]=nissa_malloc("X[eo]",appr->degree(),spincolor*);
+	Y[eo]=nissa_malloc("Y[eo]",appr->degree(),spincolor*);
+	for(int iterm=0;iterm<appr->degree();iterm++)
+	  {
+	    Y[eo][iterm]=nissa_malloc("Y",loc_volh+bord_volh,spincolor);
+	    X[eo][iterm]=nissa_malloc("X",loc_volh+bord_volh,spincolor);
+	  }
+      }
     
     //add the background fields
     add_backfield_without_stagphases_to_conf(eo_conf,u1b);
@@ -178,36 +182,40 @@ namespace nissa
     
     //conclude the calculation of the fermionic force
     for(int iterm=0;iterm<appr->degree();iterm++)
-      for(int eo=0;eo<2;eo++)
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	  for(int mu=0;mu<NDIM;mu++)
-	    {
-	      int ineoup=loceo_neighup[eo][ieo][mu];
-	      
-	      su3 contr;
-	      su3_put_to_zero(contr);
-	      
-	      for(int i=0;i<2;i++)
-		{
-		  spincolor& a=((i==0)?X[!eo]:Y[!eo])[iterm][ineoup];
-		  spincolor& b=((i==0)?Y[eo]:X[eo])[iterm][ieo];
-		  
-		  spincolor temp;
-		  spincolor_copy(temp,a);
-		  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[mu],a);
-		  safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
-		  
-		  for(int ic1=0;ic1<NCOL;ic1++)
-		    for(int ic2=0;ic2<NCOL;ic2++)
-		      for(int id=0;id<NDIRAC;id++)
-			complex_summ_the_conj2_prod(contr[ic1][ic2],temp[id][ic1],b[id][ic2]);
-		}
-	      
-	      complex w;
-	      complex_prod_double(w,u1b[eo][ieo][mu],appr->weights[iterm]);
-	      su3_summ_the_prod_complex(F[eo][ieo][mu],contr,w);
-	    }
-    NISSA_PARALLEL_LOOP_END;
+      {
+	const double weight=appr->weights[iterm];
+	
+	for(int eo=0;eo<2;eo++)
+	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		int ineoup=loceo_neighup[eo][ieo][mu];
+		
+		su3 contr;
+		su3_put_to_zero(contr);
+		
+		for(int i=0;i<2;i++)
+		  {
+		    spincolor& a=((i==0)?X[!eo]:Y[!eo])[iterm][ineoup];
+		    spincolor& b=((i==0)?Y[eo]:X[eo])[iterm][ieo];
+		    
+		    spincolor temp;
+		    spincolor_copy(temp,a);
+		    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[mu],a);
+		    safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
+		    
+		    for(int ic1=0;ic1<NCOL;ic1++)
+		      for(int ic2=0;ic2<NCOL;ic2++)
+			for(int id=0;id<NDIRAC;id++)
+			  complex_summ_the_conj2_prod(contr[ic1][ic2],temp[id][ic1],b[id][ic2]);
+		  }
+		
+		complex w;
+		complex_prod_double(w,u1b[eo][ieo][mu],weight);
+		su3_summ_the_prod_complex(F[eo][ieo][mu],contr,w);
+	      }
+	NISSA_PARALLEL_LOOP_END;
+      }
     
     //remove the background fields
     rem_backfield_without_stagphases_from_conf(eo_conf,u1b);
@@ -222,6 +230,8 @@ namespace nissa
 	
 	for(int iterm=0;iterm<appr->degree();iterm++)
 	  {
+	    const double weight=appr->weights[iterm];
+	    
 	    eo_ptr<spincolor> tempX={X[EVN][iterm],X[ODD][iterm]},tempY={Y[EVN][iterm],Y[ODD][iterm]};
 	    compute_clover_staples_insertions(cl_insertion,tempX,tempY);
 	    communicate_eo_as2t_su3_edges(cl_insertion);
@@ -233,7 +243,7 @@ namespace nissa
 		    su3 stap;
 		    
 		    get_clover_staples(stap,eo_conf,eo,ieo,dir,cl_insertion,cSW);
-		    su3_summ_the_prod_double(F[eo][ieo][dir],stap,cSW/8*appr->weights[iterm]);
+		    su3_summ_the_prod_double(F[eo][ieo][dir],stap,cSW/8*weight);
 		  }
 	    NISSA_PARALLEL_LOOP_END;
 	  }
@@ -244,11 +254,15 @@ namespace nissa
     
     //free
     for(int eo=0;eo<2;eo++)
-      for(int iterm=0;iterm<appr->degree();iterm++)
-	{
-	  nissa_free(X[eo][iterm]);
-	  nissa_free(Y[eo][iterm]);
-	}
+      {
+	for(int iterm=0;iterm<appr->degree();iterm++)
+	  {
+	    nissa_free(X[eo][iterm]);
+	    nissa_free(Y[eo][iterm]);
+	  }
+	nissa_free(X[eo]);
+	nissa_free(Y[eo]);
+      }
     nissa_free(temp);
     
     STOP_TIMING(quark_force_over_time);

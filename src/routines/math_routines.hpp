@@ -20,7 +20,7 @@ namespace nissa
   int metro_test(double arg);
   int factorize(int *list,int N);
   int log2N(int N);
-  void matrix_determinant(complex d,complex *m,int n);
+  CUDA_HOST_AND_DEVICE void matrix_determinant(complex d,complex *m,int n);
   int bitrev(int in,int l2n);
   int find_max_pow2(int a);
   

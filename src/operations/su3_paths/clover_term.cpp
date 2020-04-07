@@ -247,7 +247,7 @@ namespace nissa
     apply_point_twisted_clover_term_to_halfspincolor(out ,-mass,kappa,Cl,temp);
   }
   
-  void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa)
+  CUDA_HOST_AND_DEVICE void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa)
   {
     // halfspincolor_halfspincolor out_sure;
     // for(int id1=0;id1<NDIRAC/2;id1++)
