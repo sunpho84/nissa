@@ -266,6 +266,10 @@ AC_MSG_RESULT([enabling parpack debug... $enable_parpack_debug])
 
 AX_SUBPACKAGE(lime,lime.h,lime,limeReaderNextRecord,LIME)
 
+#################### QUDA ####################
+
+AX_SUBPACKAGE(quda,quda.h,cuda quda,cuMemcpy freeGaugeQuda,QUDA)
+
 #################### tmLQCD ####################
 
 #search for the library
