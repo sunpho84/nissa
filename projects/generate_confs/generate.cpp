@@ -737,7 +737,7 @@ namespace nissa
 {
   void compute_clover_staples_insertions(eo_ptr<as2t_su3> cl_insertion,eo_ptr<spincolor> X,eo_ptr<spincolor> Y);
   CUDA_HOST_AND_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,int eo,int ieo,int dir);
-  void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,int ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW);
+  CUDA_HOST_AND_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,int ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW);
 }
 
 void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)

@@ -10,7 +10,7 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "operations/smearing/stout.hpp"
-#include "operations/su3_paths/clover_term.cpp"
+#include "operations/su3_paths/clover_term.hpp"
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 

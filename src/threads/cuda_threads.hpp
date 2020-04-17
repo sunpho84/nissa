@@ -89,7 +89,7 @@ namespace nissa
   {
   }
   
-  double *glb_threads_reduce_double_vect(double *vect,int nel)
+  inline double *glb_threads_reduce_double_vect(double *vect,int nel)
   {
     return vect;
   }

@@ -54,7 +54,7 @@ namespace nissa
   
   CUDA_HOST_AND_DEVICE inline void color_put_to_zero(color m) {for(size_t ic=0;ic<NCOL;ic++) complex_put_to_zero(m[ic]);}
   CUDA_HOST_AND_DEVICE inline void su3_put_to_zero(su3 m) {for(size_t ic=0;ic<NCOL;ic++) color_put_to_zero(m[ic]);}
-  inline void as2t_su3_put_to_zero(as2t_su3 m) {for(size_t i=0;i<sizeof(as2t_su3)/sizeof(su3);i++) su3_put_to_zero(m[i]);}
+  CUDA_HOST_AND_DEVICE inline void as2t_su3_put_to_zero(as2t_su3 m) {for(size_t i=0;i<sizeof(as2t_su3)/sizeof(su3);i++) su3_put_to_zero(m[i]);}
   CUDA_HOST_AND_DEVICE inline void spincolor_put_to_zero(spincolor m) {for(size_t id=0;id<NDIRAC;id++) color_put_to_zero(m[id]);}
   inline void colorspinspin_put_to_zero(colorspinspin m) {for(size_t ic=0;ic<NCOL;ic++) spinspin_put_to_zero(m[ic]);}
   inline void su3spinspin_put_to_zero(su3spinspin m) {for(size_t ic=0;ic<NCOL;ic++) colorspinspin_put_to_zero(m[ic]);}
