@@ -107,7 +107,7 @@ namespace nissa
 	for(int p=0;p<n;p++)
 	  {
 	    //prepare submatrix
-	    int l[n-1];
+	    int *l=new int[n-1];
 	    for(int i=0;i<p;i++) l[i]=s[i];
 	    for(int i=p;i<n-1;i++) l[i]=s[i+1];
 	    
@@ -118,6 +118,8 @@ namespace nissa
 	    //summ or subtract the product
 	    void (*fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
 	    fun[p%2](d,m[s[p]],in_det);
+	    
+	    delete[] l;
 	  }
       }
   }
