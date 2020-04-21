@@ -131,7 +131,8 @@ namespace nissa
     START_TIMING(quark_force_over_time,nquark_force_over);
     
     //allocate each terms of the expansion
-    spincolor **Y[2],**X[2],*temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+    eo_ptr<spincolor*>Y,X;
+    spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
     for(int eo=0;eo<2;eo++)
       {
 	X[eo]=nissa_malloc("X[eo]",appr->degree(),spincolor*);
