@@ -8,6 +8,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/convert/eo_to_ildg \
 	$(top_builddir)/tools/conf_transform/convert/gpu_to_ildg \
 	$(top_builddir)/tools/conf_transform/convert/ildg_to_eo \
+        $(top_builddir)/tools/conf_transform/convert/ildg_to_Claudio \
         $(top_builddir)/tools/conf_transform/convert/Claudio_to_ildg \
 	$(top_builddir)/tools/conf_transform/convert/ildg_to_gpu \
 	$(top_builddir)/tools/conf_transform/create/create_cold \
@@ -41,6 +42,7 @@ __top_builddir__tools_conf_measure_topo_SOURCES=conf_measure/topo.cpp
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES=conf_transform/convert/gpu_to_ildg.cpp conf_transform/convert/gpu_stagphase.cpp
 __top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES=conf_transform/convert/ildg_to_eo.cpp
 __top_builddir__tools_conf_transform_convert_Claudio_to_ildg_SOURCES=conf_transform/convert/Claudio_to_ildg.cpp
+__top_builddir__tools_conf_transform_convert_ildg_to_Claudio_SOURCES=conf_transform/convert/ildg_to_Claudio.cpp
 __top_builddir__tools_conf_transform_convert_eo_to_ildg_SOURCES=conf_transform/convert/eo_to_ildg.cpp
 __top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES=conf_transform/convert/ildg_to_gpu.cpp conf_transform/convert/gpu_stagphase.cpp
 __top_builddir__tools_conf_transform_create_create_cold_SOURCES=conf_transform/create/create_cold.cpp

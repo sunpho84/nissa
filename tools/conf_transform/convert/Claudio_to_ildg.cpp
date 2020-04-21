@@ -3,7 +3,6 @@
 
 using namespace nissa;
 
-int L,T;
 bool is_old;
 
 #ifdef USE_SSL
@@ -16,7 +15,7 @@ unsigned char c[MD5_DIGEST_LENGTH];
 
 int snum(int x,int y,int z,int t)
 {
-  int aux=(t+x*T+y*L*T+z*L*L*T);
+  int aux=(t+x*glb_size[0]+y*glb_size[1]*glb_size[0]+z*glb_size[2]*glb_size[1]*glb_size[0]);
   if(not is_old)
     return aux;
   else
@@ -44,6 +43,7 @@ void read_from_binary_file(su3 A,FILE *fp)
   for(int icol=0;icol<NCOL;icol++)
     for(int jcol=0;jcol<NCOL;jcol++)
       MD5_Update(&mdContext,A[icol][jcol],sizeof(complex));
+  
 #endif
   
   if(little_endian and not is_old)
@@ -68,16 +68,18 @@ int main(int narg,char **arg)
   if(nranks>1)
     crash("cannot run in parallel");
   
-  if(narg<5) crash("use: %s L T file_in file_out [--old] \n. Use --old for conf generated with previous versions of sun_topo",arg[0]);
+  if(narg<7) crash("use: %s T LX LY LZ file_in file_out [--old] \n. Use --old for conf generated with previous versions of sun_topo",arg[0]);
   
-  L=atoi(arg[1]);
-  T=atoi(arg[2]);
-  in_conf_name=arg[3];
-  out_conf_name=arg[4];
-  is_old=(narg>5 and strcmp(arg[5],"--old")==0);
+  glb_size[0]=atoi(arg[1]);
+  glb_size[1]=atoi(arg[2]);
+  glb_size[2]=atoi(arg[3]);
+  glb_size[3]=atoi(arg[4]);
+  in_conf_name=arg[5];
+  out_conf_name=arg[6];
+  is_old=(narg>7 and strcmp(arg[7],"--old")==0);
   
   //Init the MPI grid
-  init_grid(T,L);
+  init_grid(0,0);
   
   //////////////////////////////// read the file /////////////////////////
   
@@ -163,10 +165,10 @@ int main(int narg,char **arg)
   quad_su3 *out_conf=nissa_malloc("out_conf",loc_vol,quad_su3);
   
   //reorder data
-  for(int t=0;t<T;t++)
-    for(int z=0;z<L;z++)
-      for(int y=0;y<L;y++)
-	for(int x=0;x<L;x++)
+  for(int t=0;t<glb_size[0];t++)
+    for(int z=0;z<glb_size[3];z++)
+      for(int y=0;y<glb_size[2];y++)
+	for(int x=0;x<glb_size[1];x++)
 	  {
 	    int num=snum(x,y,z,t);
 	    
