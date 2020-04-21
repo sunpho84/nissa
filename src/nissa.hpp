@@ -17,6 +17,9 @@
 #ifdef USE_DDALPHAAMG
  #include "base/DDalphaAMG_bridge.hpp"
 #endif
+#ifdef USE_QUDA
+ #include "base/quda_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 
 //include bg/q specifics

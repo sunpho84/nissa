@@ -45,6 +45,13 @@ include_HEADERS+= \
 	%D%/DDalphaAMG_bridge.hpp
 endif
 
+if USE_QUDA
+__top_builddir__lib_libnissa_a_SOURCES+= \
+	%D%/quda_bridge.cpp
+include_HEADERS+= \
+	%D%/quda_bridge.hpp
+endif
+
 #add BGQ if needed
 if BGQ
 include_HEADERS+=%D%/bgq_instructions.hpp
