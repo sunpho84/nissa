@@ -23,4 +23,7 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE bool inited INIT_TO(false);
 }
 
+#undef INIT_TO
+#undef EXTERN_QUDA_BRIDGE
+
 #endif

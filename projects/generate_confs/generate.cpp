@@ -1411,13 +1411,13 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
   // spincolor *Y=nissa_malloc("Y",loc_volh,spincolor);
   // tmclovDee_or_oo_eos(Y,kappa,Cl[EVN],true,mass,X);
   
-  dirac_matr m[6];
+  std::array<dirac_matr,6> m;
   for(int mu=0;mu<NDIM;mu++)
     for(int nu=mu+1;nu<NDIM;nu++)
       {
 	int ipair=edge_numb[mu][nu];
 	m[ipair]=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
-	dirac_prod_double(m+ipair,m+ipair,-cSW/4);
+	dirac_prod_double(&m[ipair],&m[ipair],-cSW/4);
 	  
 	  // print_dirac(m+ipair);
 	  // master_printf("\n");
@@ -1437,7 +1437,7 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
 	  {
 	    spincolor tempX;
 	    // spincolor tempY;
-	    unsafe_dirac_prod_spincolor(tempX,m+ipair,X[ieo]);
+	    unsafe_dirac_prod_spincolor(tempX,&m[ipair],X[ieo]);
 	    // unsafe_dirac_prod_spincolor(tempY,m+ipair,Y[ieo]);
 	    
 	    for(int ic1=0;ic1<NCOL;ic1++)

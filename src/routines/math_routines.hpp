@@ -104,8 +104,6 @@ namespace nissa
   {
     return binaryCombine(std::plus<>(),T{0},std::forward<Ts>(t)...);
   }
-  
-  
 }
 
 #endif

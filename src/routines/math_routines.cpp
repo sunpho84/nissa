@@ -91,7 +91,7 @@ namespace nissa
   }
   
   //recursive call - see below
-  void determinant(complex d,complex *m,int *s,int n,int N)
+  CUDA_HOST_AND_DEVICE void determinant(complex d,complex *m,int *s,int n,int N)
   {
     switch(n)
       {
