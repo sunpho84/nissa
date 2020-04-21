@@ -51,6 +51,10 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
+#ifdef USE_QUDA
+ #include <quda.h>
+#endif
+
 //test to remove limit 2
 //#define REM_2 if(0)
 #define REM_2
@@ -213,12 +217,17 @@ namespace nissa
     warn_if_not_communicated=NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
     for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
+    
 #ifdef USE_VNODES
     vnode_paral_dir=NISSA_DEFAULT_VNODE_PARAL_DIR;
 #endif
 
 #ifdef USE_DDALPHAAMG
     master_printf("Linked with DDalphaAMG\n");
+#endif
+
+#ifdef USE_QUDA
+	master_printf("Linked with QUDA, version: %d.%d.%d\n",QUDA_VERSION_MAJOR,QUDA_VERSION_MINOR,QUDA_VERSION_SUBMINOR);
 #endif
     
 #ifdef USE_EIGEN
