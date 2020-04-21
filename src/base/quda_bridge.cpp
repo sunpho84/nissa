@@ -13,8 +13,8 @@
 namespace quda_iface
 {
   /// Direction to be used to refer to the nissa one
-  const int nissa_dir_of_quda[NDIM]={1,2,3,0};
-  const int quda_dir_of_nissa[NDIM]={3,0,1,2};
+  CUDA_MANAGED int nissa_dir_of_quda[NDIM]={1,2,3,0};
+  CUDA_MANAGED int quda_dir_of_nissa[NDIM]={3,0,1,2};
   
   /// Return the rank of the given quda coords
   int get_rank_of_quda_coords(const int *coords,void *fdata)
