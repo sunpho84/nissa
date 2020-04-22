@@ -7,6 +7,7 @@
 
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 
@@ -239,16 +240,18 @@ namespace quda_iface
   }
   
   /// Reorder spinor to QUDA format
-  void remap_nissa_to_quda(double *out,spincolor *in)
+  void remap_nissa_to_quda(double *_out,spincolor *in)
   {
+    spincolor *out=(spincolor*)_out;
+    
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	const int iquda=quda_of_loclx(ivol);
-	
-	for(int mu=0;mu<NDIM;mu++)
-	  memcpy((spincolor*)out+iquda,in+ivol,sizeof(su3));
+	if(iquda<0 or iquda>=loc_vol)
+	  crash("ivol %d remapping to iquda %d not in range [0,%d]",ivol,iquda,loc_vol);
+	spincolor_copy(out[iquda],in[ivol]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -256,16 +259,18 @@ namespace quda_iface
   }
   
   /// Reorder spinor from QUDA format
-  void remap_quda_to_nissa(spincolor *out,double *in)
+  void remap_quda_to_nissa(spincolor *out,double *_in)
   {
+    spincolor *in=(spincolor*)_in;
+    
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(iquda,0,loc_vol)
       {
 	const int ivol=loclx_of_quda(iquda);
-	
-	for(int mu=0;mu<NDIM;mu++)
-	  memcpy(out+ivol,(spincolor*)in+iquda,sizeof(su3));
+	if(ivol<0 or ivol>=loc_vol)
+	  crash("iquda %d remapping to ivol %d not in range [0,%d]",iquda,ivol,loc_vol);
+	spincolor_copy(out[ivol],in[iquda]);
       }
     NISSA_PARALLEL_LOOP_END;
     
