@@ -1,4 +1,5 @@
 #include <nissa.hpp>
+#include <iostream>
 
 using namespace nissa;
 
