@@ -34,7 +34,7 @@ namespace quda_iface
   }
   
   /// Returns the quda order of loclx
-  int quda_of_loclx(int ivol)
+  CUDA_HOST_AND_DEVICE int quda_of_loclx(int ivol)
   {
     const coords& c=loc_coord_of_loclx[ivol];
     const coords& l=loc_size;
@@ -53,7 +53,7 @@ namespace quda_iface
   }
   
   /// Returns the loclx order of quda
-  int loclx_of_quda(int iquda)
+  CUDA_HOST_AND_DEVICE int loclx_of_quda(int iquda)
   {
     const int par=iquda%loc_volh;
     int itmp=2*(iquda-par*loc_volh);
