@@ -32,6 +32,8 @@ namespace quda_iface
   void initialize();
   void finalize();
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in);
+  void remap_nissa_to_quda(double *out,spincolor *in);
+  void remap_quda_to_nissa(spincolor *out,double *in);
 }
 
 #undef INIT_TO
