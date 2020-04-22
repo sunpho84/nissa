@@ -12,6 +12,8 @@
 
 namespace quda_iface
 {
+  using namespace nissa;
+  
   /// Direction to be used to refer to the nissa one
   CUDA_MANAGED int nissa_dir_of_quda[NDIM]={1,2,3,0};
   CUDA_MANAGED int quda_dir_of_nissa[NDIM]={3,0,1,2};
@@ -22,15 +24,54 @@ namespace quda_iface
     /// Coordinates
     int c[NDIM];
     for(int mu=0;mu<NDIM;mu++)
-      c[mu]=nissa::rank_coord[nissa_dir_of_quda[mu]];
+      c[mu]=rank_coord[nissa_dir_of_quda[mu]];
     
     /// Result
     int out;
-    MPI_Cart_rank(nissa::cart_comm,c,&out);
+    MPI_Cart_rank(cart_comm,c,&out);
     
     return out;
   }
   
+  /// Returns the quda order of loclx
+  int quda_of_loclx(int ivol)
+  {
+    const coords& c=loc_coord_of_loclx[ivol];
+    const coords& l=loc_size;
+    
+    int itmp=0;
+    int par=0;
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	const int nu=nissa_dir_of_quda[mu];
+	itmp=itmp*l[nu]+c[nu];
+	par+=c[nu];
+      }
+    const int iquda=par*loc_volh+itmp/2;
+    
+    return iquda;
+  }
+  
+  /// Returns the loclx order of quda
+  int loclx_of_quda(int iquda)
+  {
+    const int par=iquda%loc_volh;
+    int itmp=2*(iquda-par*loc_volh);
+    
+    const coords& l=loc_size;
+    coords c;
+    
+    for(int mu=NDIM-1;mu>=0;mu--)
+      {
+	const int nu=nissa_dir_of_quda[mu];
+	c[nu]=itmp%l[nu];
+	itmp/=l[nu];
+      }
+    
+    return loclx_of_coord(c);
+  }
+  
+  /// Initialize QUDA
   void initialize()
   {
     if(not inited)
@@ -40,7 +81,7 @@ namespace quda_iface
 	
 	////////////////////////////// verbosity ///////////////////////////////////
 	
-	switch(nissa::verbosity_lv)
+	switch(verbosity_lv)
 	  {
 	  case 0:
 	    inv_param.verbosity=QUDA_SILENT;
@@ -62,7 +103,7 @@ namespace quda_iface
 	gauge_param=newQudaGaugeParam();
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  gauge_param.X[mu]=nissa::loc_size[nissa_dir_of_quda[mu]];
+	  gauge_param.X[mu]=loc_size[nissa_dir_of_quda[mu]];
 	
 	gauge_param.anisotropy=1.0;
 	gauge_param.type=QUDA_WILSON_LINKS;
@@ -81,7 +122,7 @@ namespace quda_iface
 	
 	gauge_param.ga_pad=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  gauge_param.ga_pad=std::max(gauge_param.ga_pad,nissa::bord_dir_vol[mu]/2);
+	  gauge_param.ga_pad=std::max(gauge_param.ga_pad,bord_dir_vol[mu]/2);
 	
 	///////////////////////////// inverter parameters ////////////////////////////////////
 	
@@ -108,7 +149,7 @@ namespace quda_iface
 	inv_param.tol_precondition=0.1;
 	inv_param.maxiter_precondition=10;
 	inv_param.verbosity_precondition=QUDA_SILENT;
-	if(nissa::verbosity_lv>=2)
+	if(verbosity_lv>=2)
 	  inv_param.verbosity_precondition=QUDA_VERBOSE;
 	
 	inv_param.omega=1.0;
@@ -142,7 +183,7 @@ namespace quda_iface
 	
 	int grid[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
-	  grid[mu]=nissa::nrank_dir[nissa_dir_of_quda[mu]];
+	  grid[mu]=nrank_dir[nissa_dir_of_quda[mu]];
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
@@ -154,6 +195,7 @@ namespace quda_iface
       }
   }
   
+  /// Finalize QUDA
   void finalize()
   {
     if(inited)
@@ -172,40 +214,131 @@ namespace quda_iface
       }
   }
   
+  /// Loads the clover term
   void load_clover_term(QudaInvertParam* inv_param)
   {
     freeCloverQuda();
     loadCloverQuda(NULL,NULL,inv_param);
   }
   
-  void load_conf(nissa::quad_su3 *nissa_conf)
+  /// Reorder conf into QUDA format
+  void remap_nissa_to_quda(double *out,quad_su3 *in)
   {
-    using namespace nissa;
-    
-    freeGaugeQuda();
-    
-    //Allocate the temporary buffer
-    double *quda_conf=nissa_malloc("gauge_cuda",loc_vol*sizeof(quad_su3)/sizeof(double),double);
-    
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
-	const coords& c=loc_coord_of_loclx[ivol];
-	const coords& l=loc_size;
-	const int itmp=c[1]+l[1]*(c[2]+l[2]*(c[3]+l[3]*c[0]));
-	const int par=(c[0]+c[1]+c[2]+c[3])&1;
-	const int iquda=par*loc_volh+itmp/2;
+	const int iquda=quda_of_loclx(ivol);
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  memcpy(quda_conf+(iquda+loc_vol*quda_dir_of_nissa[mu])*NCOL*NCOL*2,nissa_conf[ivol][mu],sizeof(su3));
+	  memcpy((su3*)out+(iquda+loc_vol*quda_dir_of_nissa[mu])*NCOL*NCOL*2,in[ivol][mu],sizeof(su3));
       }
     NISSA_PARALLEL_LOOP_END;
     
     THREAD_BARRIER();
+  }
+  
+  /// Reorder spinor to QUDA format
+  void remap_nissa_to_quda(double *out,spincolor *in)
+  {
+    GET_THREAD_ID();
     
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	const int iquda=quda_of_loclx(ivol);
+	
+	for(int mu=0;mu<NDIM;mu++)
+	  memcpy((spincolor*)out+iquda,in+ivol,sizeof(su3));
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    THREAD_BARRIER();
+  }
+  
+  /// Reorder spinor from QUDA format
+  void remap_quda_to_nissa(spincolor *out,double *in)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(iquda,0,loc_vol)
+      {
+	const int ivol=loclx_of_quda(iquda);
+	
+	for(int mu=0;mu<NDIM;mu++)
+	  memcpy(out+ivol,(spincolor*)in+iquda,sizeof(su3));
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    set_borders_invalid(out);
+  }
+  
+  /// Load a gauge conf
+  void load_conf(quad_su3 *nissa_conf)
+  {
+    freeGaugeQuda();
+    
+    double *quda_conf=nissa_malloc("gauge_cuda",loc_vol*sizeof(quad_su3)/sizeof(double),double);
+    remap_nissa_to_quda(quda_conf,nissa_conf);
     loadGaugeQuda((void*)quda_conf,&gauge_param);
     
     nissa_free(quda_conf);
   }
+  
+  /// Sets the sloppy precision
+  void set_sloppy_prec(const QudaPrecision sloppy_prec)
+  {
+    master_printf("Quda sloppy precision: ");
+    
+    switch(sloppy_prec)
+      {
+      case QUDA_DOUBLE_PRECISION:
+	master_printf("double");
+	break;
+      case QUDA_SINGLE_PRECISION:
+	master_printf("single");
+	break;
+      case QUDA_HALF_PRECISION:
+	master_printf("half");
+	break;
+      case QUDA_QUARTER_PRECISION:
+	master_printf("quarter");
+	break;
+      case QUDA_INVALID_PRECISION:
+	crash("invalid precision");
+      };
+    master_printf("\n");
+  
+  gauge_param.cuda_prec_sloppy=
+    gauge_param.cuda_prec_refinement_sloppy=
+    inv_param.cuda_prec_sloppy=
+    inv_param.clover_cuda_prec_sloppy=
+    inv_param.clover_cuda_prec_refinement_sloppy=
+    sloppy_prec;
+  }
+  
+  /// Apply the dirac operator
+  void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
+  {
+    inv_param.kappa=kappa;
+    
+    //minus due to different gamma5 definition
+    inv_param.mu=-mu;
+    inv_param.epsilon=0.0;
+    
+    inv_param.twist_flavor=QUDA_TWIST_SINGLET;
+    inv_param.Ls=1;
+    
+    const int ndoubles=loc_vol*sizeof(spincolor)/sizeof(double);
+    double *quda_in=nissa_malloc("quda_in",ndoubles,double);
+    double *quda_out=nissa_malloc("quda_out",ndoubles,double);
+    
+    load_conf(conf);
+    
+    remap_nissa_to_quda(quda_in,in);
+    inv_param.solution_type=QUDA_MAT_SOLUTION;
+    MatQuda(quda_out,quda_in,&inv_param);
+    
+    remap_quda_to_nissa(out,quda_out);
+}
+  
 }

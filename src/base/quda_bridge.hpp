@@ -23,6 +23,17 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE bool inited INIT_TO(false);
 }
 
+#include "new_types/su3.hpp"
+
+namespace quda_iface
+{
+  using namespace nissa;
+  
+  void initialize();
+  void finalize();
+  void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in);
+}
+
 #undef INIT_TO
 #undef EXTERN_QUDA_BRIDGE
 

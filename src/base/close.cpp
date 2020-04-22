@@ -26,6 +26,10 @@
  #include <fftw3.h>
 #endif
 
+#ifdef USE_QUDA
+ #include "base/quda_bridge.hpp"
+#endif
+
 namespace nissa
 {
   void close_nissa()
@@ -83,6 +87,10 @@ namespace nissa
     free(delay_rnd_gen);
 #endif
     
+#ifdef USE_QUDA
+     quda_iface::finalize();
+#endif
+     
     MPI_Barrier(MPI_COMM_WORLD);
     master_printf("   Ciao!\n\n");
     MPI_Finalize();

@@ -64,7 +64,6 @@ namespace nissa
   }
   void coord_of_lx(coords x,int ilx,coords s)
   {
-
     for(int mu=NDIM-1;mu>=0;mu--)
       {
 	x[mu]=ilx%s[mu];

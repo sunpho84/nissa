@@ -53,7 +53,7 @@
 #include <sys/ioctl.h>
 
 #ifdef USE_QUDA
- #include <quda.h>
+ #include "base/quda_bridge.hpp"
 #endif
 
 //test to remove limit 2
@@ -849,6 +849,10 @@ namespace nissa
 #endif
       }
     
+#ifdef USE_QUDA
+     quda_iface::initialize();
+#endif
+     
     //take final time
     master_printf("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
     
