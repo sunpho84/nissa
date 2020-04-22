@@ -28,7 +28,7 @@ namespace nissa
 	  Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
 	chromo_operator(Cl,eo_conf);
 	
-	inv_clover_term_t *invCl[2];
+	eo_ptr<inv_clover_term_t> invCl;
 	for(int eo=0;eo<2;eo++)
 	  invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
 	
