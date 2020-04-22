@@ -2,6 +2,7 @@ bin_PROGRAMS+= \
 	$(top_builddir)/bin/checks_ib \
 	$(top_builddir)/bin/EU3_source \
 	$(top_builddir)/bin/field_test \
+	$(top_builddir)/bin/test_quda \
 	$(top_builddir)/bin/ib
 # 	$(top_builddir)/bin/disco2
 # 	$(top_builddir)/bin/disco3
@@ -25,6 +26,10 @@ include_HEADERS+= \
 	%D%/meslep.hpp \
 	%D%/pars.hpp \
 	%D%/prop.hpp
+
+ __top_builddir__bin_test_quda_SOURCES=%D%/test_quda.cpp
+ __top_builddir__bin_test_quda_LDADD=$(LDADD)
+ __top_builddir__bin_test_quda_LDFLAGS=$(LDFLAGS)
 
  __top_builddir__bin_checks_ib_SOURCES=%D%/checks.cpp
  __top_builddir__bin_checks_ib_LDADD=$(LDADD)
