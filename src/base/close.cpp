@@ -89,7 +89,7 @@ namespace nissa
 #endif
     
 #ifdef USE_QUDA
-     quda_iface::finalize();
+    if(use_quda) quda_iface::finalize();
 #endif
      
     MPI_Barrier(MPI_COMM_WORLD);

@@ -19,6 +19,9 @@ namespace quda_iface
   CUDA_MANAGED int nissa_dir_of_quda[NDIM]={1,2,3,0};
   CUDA_MANAGED int quda_dir_of_nissa[NDIM]={3,0,1,2};
   
+  int* loclx_of_quda;
+  int* quda_of_loclx;
+  
   /// Return the rank of the given quda coords
   int get_rank_of_quda_coords(const int *coords,void *fdata)
   {
@@ -34,44 +37,6 @@ namespace quda_iface
     return out;
   }
   
-  /// Returns the quda order of loclx
-  CUDA_HOST_AND_DEVICE int quda_of_loclx(int ivol)
-  {
-    const coords& c=loc_coord_of_loclx[ivol];
-    const coords& l=loc_size;
-    
-    int itmp=0;
-    int par=0;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	const int nu=nissa_dir_of_quda[mu];
-	itmp=itmp*l[nu]+c[nu];
-	par+=c[nu];
-      }
-    const int iquda=par*loc_volh+itmp/2;
-    
-    return iquda;
-  }
-  
-  /// Returns the loclx order of quda
-  CUDA_HOST_AND_DEVICE int loclx_of_quda(int iquda)
-  {
-    const int par=iquda%loc_volh;
-    int itmp=2*(iquda-par*loc_volh);
-    
-    const coords& l=loc_size;
-    coords c;
-    
-    for(int mu=NDIM-1;mu>=0;mu--)
-      {
-	const int nu=nissa_dir_of_quda[mu];
-	c[nu]=itmp%l[nu];
-	itmp/=l[nu];
-      }
-    
-    return loclx_of_coord(c);
-  }
-  
   /// Initialize QUDA
   void initialize()
   {
@@ -79,6 +44,31 @@ namespace quda_iface
       {
 	if(QUDA_VERSION_MAJOR==0 and QUDA_VERSION_MINOR<7)
 	  crash("minimum QUDA version required is 0.7.0");
+	
+	/////////////////////////////////////////////////////////////////
+	
+	quda_of_loclx=nissa_malloc("quda_of_loclx",loc_vol,int);
+	loclx_of_quda=nissa_malloc("loclx_of_quda",loc_vol,int);
+	
+	for(int ivol=0;ivol<loc_vol;ivol++)
+	  {
+	    const coords& c=loc_coord_of_loclx[ivol];
+	    const coords& l=loc_size;
+	    
+	    int itmp=0;
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		const int nu=nissa_dir_of_quda[mu];
+		itmp=itmp*l[nu]+c[nu];
+	      }
+	    const int quda=loclx_parity[ivol]*loc_volh+itmp/2;
+	    
+	    if(quda<0 or quda>=loc_vol)
+	      crash("quda %d remapping to ivol %d not in range [0,%d]",quda,ivol,loc_vol);
+	    
+	    quda_of_loclx[ivol]=quda;
+	    loclx_of_quda[quda]=ivol;
+	  }
 	
 	////////////////////////////// verbosity ///////////////////////////////////
 	
@@ -201,6 +191,9 @@ namespace quda_iface
   {
     if(inited)
       {
+	nissa_free(loclx_of_quda);
+	nissa_free(quda_of_loclx);
+	
 	// destroys the preconditioner if it was created
 	if(quda_mg_preconditioner!=NULL)
 	  {
@@ -229,7 +222,7 @@ namespace quda_iface
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
-	const int iquda=quda_of_loclx(ivol);
+	const int iquda=quda_of_loclx[ivol];
 	
 	for(int mu=0;mu<NDIM;mu++)
 	  memcpy((su3*)out+(iquda+loc_vol*quda_dir_of_nissa[mu])*NCOL*NCOL*2,in[ivol][mu],sizeof(su3));
@@ -248,9 +241,7 @@ namespace quda_iface
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
-	const int iquda=quda_of_loclx(ivol);
-	if(iquda<0 or iquda>=loc_vol)
-	  crash("ivol %d remapping to iquda %d not in range [0,%d]",ivol,iquda,loc_vol);
+	const int iquda=quda_of_loclx[ivol];
 	spincolor_copy(out[iquda],in[ivol]);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -267,9 +258,7 @@ namespace quda_iface
     
     NISSA_PARALLEL_LOOP(iquda,0,loc_vol)
       {
-	const int ivol=loclx_of_quda(iquda);
-	if(ivol<0 or ivol>=loc_vol)
-	  crash("iquda %d remapping to ivol %d not in range [0,%d]",iquda,ivol,loc_vol);
+	const int ivol=loclx_of_quda[iquda];
 	spincolor_copy(out[ivol],in[iquda]);
       }
     NISSA_PARALLEL_LOOP_END;

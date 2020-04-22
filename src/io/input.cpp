@@ -17,6 +17,9 @@
 #ifdef USE_DDALPHAAMG
  #include "base/DDalphaAMG_bridge.hpp"
 #endif
+#ifdef USE_QUDA
+ #include "base/quda_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "eigenvalues/eigenvalues.hpp"
@@ -451,6 +454,9 @@ namespace nissa
 #endif
 #ifdef USE_DDALPHAAMG
     tags.push_back(triple_tag("use_DDalphaAMG",		       use_DD));
+#endif
+#ifdef USE_QUDA
+    tags.push_back(triple_tag("use_QUDA",		       use_quda));
 #endif
 #ifdef USE_PARPACK
     tags.push_back(triple_tag("use_parpack",		       use_parpack));

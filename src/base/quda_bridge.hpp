@@ -25,6 +25,11 @@ namespace quda_iface
 
 #include "new_types/su3.hpp"
 
+namespace nissa
+{
+  EXTERN_QUDA_BRIDGE int use_quda INIT_TO(true);
+}
+
 namespace quda_iface
 {
   using namespace nissa;

@@ -851,7 +851,7 @@ namespace nissa
       }
     
 #ifdef USE_QUDA
-     quda_iface::initialize();
+    if(use_quda) quda_iface::initialize();
 #endif
      
     //take final time
