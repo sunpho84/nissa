@@ -82,6 +82,8 @@ int main(int narg,char **arg)
   for(int mu=0;mu<NDIM;mu++)
     if(pars[1+mu]!=glb_size[mu])
       crash("size[%d]=%d!=glb_size[mu]=%d",mu,pars[mu+1],mu,glb_size[mu]);
+  int itraj=pars[5];
+  master_printf("traj id: %d\n",itraj);
   
   char crypto[101];
   int rc=fscanf(fin,"%100s",crypto);
@@ -195,7 +197,19 @@ int main(int narg,char **arg)
   
   //print the plaquette and write the conf
   master_printf("Global plaquette: %.16lg\n",global_plaquette_lx_conf(out_conf));
-  write_ildg_gauge_conf(out_conf_name,out_conf,64);
+  
+  ILDG_message mess;
+  ILDG_message_init_to_last(&mess);
+  
+  //traj id
+  char text[1024];
+  snprintf(text,1024,"%d",itraj);
+  ILDG_string_message_append_to_last(&mess,"MD_traj",text);
+  
+  write_ildg_gauge_conf(out_conf_name,out_conf,64,&mess);
+  
+  //free messages
+  ILDG_message_free_all(&mess);
   
   nissa_free(out_conf);
   

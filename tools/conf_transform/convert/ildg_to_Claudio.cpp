@@ -53,9 +53,23 @@ int main(int narg,char **arg)
   
   quad_su3 *in_conf=nissa_malloc("in_conf",loc_vol,quad_su3);
   
-  read_ildg_gauge_conf(in_conf,in_conf_name);
+  //init messages
+  ILDG_message mess;
+  ILDG_message_init_to_last(&mess);
+  
+  read_ildg_gauge_conf(in_conf,in_conf_name,&mess);
   // int file_size=get_file_size(in_conf_name);
   // master_printf("File size: %d\n",file_size);
+  
+  int itraj=0;
+  for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
+    if(strcasecmp(cur_mess->name,"ConfID")==0 or
+       strcasecmp(cur_mess->name,"MD_traj")==0)
+      sscanf(cur_mess->data,"%d",&itraj);
+  
+  //free all messages
+  ILDG_message_free_all(&mess);
+  master_printf("Traj ID: %d\n",itraj);
   
   ////////////////////////////// convert conf ////////////////////////////
   
@@ -81,7 +95,7 @@ int main(int narg,char **arg)
   FILE *fout=open_file(out_conf_name,"w");
   if(fout==NULL) crash("while opening %s",out_conf_name);
   
-  fprintf(fout,"4 %d %d %d %d 0 ",glb_size[0],glb_size[1],glb_size[2],glb_size[3]);
+  fprintf(fout,"4 %d %d %d %d %d ",glb_size[0],glb_size[1],glb_size[2],glb_size[3],itraj);
   
   char res[2*MD5_DIGEST_LENGTH+1]="";
 #ifdef USE_SSL
