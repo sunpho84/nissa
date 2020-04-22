@@ -15,19 +15,12 @@ unsigned char c[MD5_DIGEST_LENGTH];
 
 int snum(int x,int y,int z,int t)
 {
-  int aux=(t+x*glb_size[0]+y*glb_size[1]*glb_size[0]+z*glb_size[2]*glb_size[1]*glb_size[0]);
-  if(not is_old)
-    return aux;
-  else
-    {
-      int eo=(x+y+z+t)%2;
-      return eo*loc_volh+aux/2;
-    }
+  return (t+x*glb_size[0]+y*glb_size[1]*glb_size[0]+z*glb_size[2]*glb_size[1]*glb_size[0]);
 }
 
 void write_to_binary_file(FILE *fp,su3 A)
 {
-  if(little_endian and not is_old)
+  if(little_endian)
     change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
   
   if(fwrite(A,sizeof(su3),1,fp)!=1)
@@ -44,7 +37,7 @@ int main(int narg,char **arg)
   if(nranks>1)
     crash("cannot run in parallel");
   
-  if(narg<7) crash("use: %s T LX LY LZ file_in file_out [--old] \n. Use --old for conf generated with previous versions of sun_topo",arg[0]);
+  if(narg<7) crash("use: %s T LX LY LZ file_in file_out",arg[0]);
   
   glb_size[0]=atoi(arg[1]);
   glb_size[1]=atoi(arg[2]);
@@ -52,7 +45,6 @@ int main(int narg,char **arg)
   glb_size[3]=atoi(arg[4]);
   in_conf_name=arg[5];
   out_conf_name=arg[6];
-  is_old=(narg>7 and strcmp(arg[7],"--old")==0);
   
   //Init the MPI grid
   init_grid(0,0);
@@ -89,7 +81,7 @@ int main(int narg,char **arg)
   FILE *fout=open_file(out_conf_name,"w");
   if(fout==NULL) crash("while opening %s",out_conf_name);
   
-  fprintf(fout,"4 %d %d %d %d ",glb_size[0],glb_size[1],glb_size[2],glb_size[3]);
+  fprintf(fout,"4 %d %d %d %d 0 ",glb_size[0],glb_size[1],glb_size[2],glb_size[3]);
   
   char res[2*MD5_DIGEST_LENGTH+1]="";
 #ifdef USE_SSL
@@ -101,7 +93,7 @@ int main(int narg,char **arg)
 	  {
 	    complex& c=out_conf[ivol][mu][icol][jcol];
 	    complex d;
-	    if(little_endian and not is_old)
+	    if(little_endian)
 	      change_endianness((double*)d,(double*)c,sizeof(complex)/sizeof(double));
 	    else
 	      complex_copy(d,c);
