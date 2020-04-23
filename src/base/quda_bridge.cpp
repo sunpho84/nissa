@@ -102,6 +102,7 @@ namespace quda_iface
 	gauge_param.type=QUDA_WILSON_LINKS;
 	gauge_param.gauge_order=QUDA_QDP_GAUGE_ORDER;
 	
+	gauge_param.t_boundary=QUDA_PERIODIC_T;
 	gauge_param.cpu_prec=QUDA_DOUBLE_PRECISION;
 	gauge_param.cuda_prec=QUDA_DOUBLE_PRECISION;
 	gauge_param.reconstruct=QUDA_RECONSTRUCT_NO;
