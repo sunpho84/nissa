@@ -13,6 +13,9 @@
 
 namespace quda_iface
 {
+  using su3_ptr=su3*;
+  using quda_conf_t=su3_ptr[NDIM];
+  
   using namespace nissa;
   
   /// Direction to be used to refer to the nissa one
@@ -227,11 +230,9 @@ namespace quda_iface
   }
   
   /// Reorder conf into QUDA format
-  void remap_nissa_to_quda(double *_out,quad_su3 *in)
+  void remap_nissa_to_quda(quda_conf_t out,quad_su3 *in)
   {
     master_printf("%s\n",__FUNCTION__);
-    
-    su3* out=(su3*)_out;
     
     GET_THREAD_ID();
     
@@ -240,7 +241,7 @@ namespace quda_iface
 	const int iquda=quda_of_loclx[ivol];
 	
 	for(int nu=0;nu<NDIM;nu++)
-	  su3_copy(out[iquda+loc_vol*quda_dir_of_nissa[nu]],in[ivol][nu]);
+	  su3_copy(out[quda_dir_of_nissa[nu]][iquda],in[ivol][nu]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -248,11 +249,9 @@ namespace quda_iface
   }
   
   /// Reorder spinor to QUDA format
-  void remap_nissa_to_quda(double *_out,spincolor *in)
+  void remap_nissa_to_quda(spincolor *out,spincolor *in)
   {
     master_printf("%s\n",__FUNCTION__);
-    
-    spincolor *out=(spincolor*)_out;
     
     GET_THREAD_ID();
     
@@ -267,11 +266,9 @@ namespace quda_iface
   }
   
   /// Reorder spinor from QUDA format
-  void remap_quda_to_nissa(spincolor *out,double *_in)
+  void remap_quda_to_nissa(spincolor *out,spincolor *in)
   {
     master_printf("%s\n",__FUNCTION__);
-    
-    spincolor *in=(spincolor*)_in;
     
     GET_THREAD_ID();
     
@@ -291,13 +288,16 @@ namespace quda_iface
     master_printf("freeing the QUDA gauge conf\n");
     freeGaugeQuda();
     
-    double *quda_conf=nissa_malloc("gauge_cuda",loc_vol*sizeof(quad_su3)/sizeof(double),double);
+    quda_conf_t quda_conf;
+    for(int mu=0;mu<NDIM;mu++)
+      quda_conf[mu]=nissa_malloc("gauge_cuda",loc_vol,su3);
     
     remap_nissa_to_quda(quda_conf,nissa_conf);
     master_printf("loading to QUDA the gauge conf\n");
     loadGaugeQuda((void*)quda_conf,&gauge_param);
     master_printf("loaded!\n");
-    nissa_free(quda_conf);
+    for(int mu=0;mu<NDIM;mu++)
+      nissa_free(quda_conf[mu]);
   }
   
   /// Sets the sloppy precision
@@ -349,9 +349,8 @@ namespace quda_iface
     inv_param.twist_flavor=QUDA_TWIST_SINGLET;
     inv_param.Ls=1;
     
-    const int ndoubles=loc_vol*sizeof(spincolor)/sizeof(double);
-    double *quda_in=nissa_malloc("quda_in",ndoubles,double);
-    double *quda_out=nissa_malloc("quda_out",ndoubles,double);
+    spincolor *quda_in=nissa_malloc("quda_in",loc_vol,spincolor);
+    spincolor *quda_out=nissa_malloc("quda_out",loc_vol,spincolor);
     
     remap_nissa_to_quda(quda_in,in);
     MatQuda(quda_out,quda_in,&inv_param);

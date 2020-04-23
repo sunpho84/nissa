@@ -22,7 +22,7 @@ void in_main(int narg,char **arg)
   
   spincolor *in=nissa_malloc("in",loc_vol,spincolor);
   spincolor *out=nissa_malloc("out",loc_vol,spincolor);
-  double *tmp=nissa_malloc("tmp",loc_vol*sizeof(spincolor)/sizeof(double),double);
+  spincolor *tmp=nissa_malloc("tmp",loc_vol,spincolor);
   
   /// First test: load a spincolor and unload it
   generate_undiluted_source(in,RND_Z2,-1);
