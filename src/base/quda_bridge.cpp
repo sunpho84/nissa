@@ -99,19 +99,23 @@ namespace quda_iface
 	  gauge_param.X[mu]=loc_size[nissa_dir_of_quda[mu]];
 	
 	gauge_param.anisotropy=1.0;
+	
 	gauge_param.type=QUDA_WILSON_LINKS;
 	gauge_param.gauge_order=QUDA_QDP_GAUGE_ORDER;
 	
 	gauge_param.t_boundary=QUDA_PERIODIC_T;
+	
 	gauge_param.cpu_prec=QUDA_DOUBLE_PRECISION;
 	gauge_param.cuda_prec=QUDA_DOUBLE_PRECISION;
-	gauge_param.reconstruct=QUDA_RECONSTRUCT_NO;
 	gauge_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
-	gauge_param.reconstruct_sloppy=QUDA_RECONSTRUCT_NO;
 	gauge_param.cuda_prec_precondition=QUDA_HALF_PRECISION;
-	gauge_param.reconstruct_precondition=QUDA_RECONSTRUCT_NO;
 	gauge_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
+	
+	gauge_param.reconstruct=QUDA_RECONSTRUCT_NO;
+	gauge_param.reconstruct_sloppy=QUDA_RECONSTRUCT_NO;
+	gauge_param.reconstruct_precondition=QUDA_RECONSTRUCT_NO;
 	gauge_param.reconstruct_refinement_sloppy=QUDA_RECONSTRUCT_NO;
+	
 	gauge_param.gauge_fix=QUDA_GAUGE_FIXED_NO;
 	
 	gauge_param.ga_pad=0;
@@ -225,6 +229,8 @@ namespace quda_iface
   /// Reorder conf into QUDA format
   void remap_nissa_to_quda(double *_out,quad_su3 *in)
   {
+    master_printf("%s\n",__FUNCTION__);
+    
     su3* out=(su3*)_out;
     
     GET_THREAD_ID();
@@ -244,6 +250,8 @@ namespace quda_iface
   /// Reorder spinor to QUDA format
   void remap_nissa_to_quda(double *_out,spincolor *in)
   {
+    master_printf("%s\n",__FUNCTION__);
+    
     spincolor *out=(spincolor*)_out;
     
     GET_THREAD_ID();
@@ -261,6 +269,8 @@ namespace quda_iface
   /// Reorder spinor from QUDA format
   void remap_quda_to_nissa(spincolor *out,double *_in)
   {
+    master_printf("%s\n",__FUNCTION__);
+    
     spincolor *in=(spincolor*)_in;
     
     GET_THREAD_ID();
@@ -325,6 +335,8 @@ namespace quda_iface
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
   {
     load_conf(conf);
+    
+    master_printf("setting pars\n");
     
     inv_param.kappa=kappa;
     inv_param.solution_type=QUDA_MAT_SOLUTION;
