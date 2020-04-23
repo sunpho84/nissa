@@ -240,7 +240,7 @@ namespace quda_iface
 	const int iquda=quda_of_loclx[ivol];
 	
 	for(int nu=0;nu<NDIM;nu++)
-	  memcpy(out[iquda+loc_vol*quda_dir_of_nissa[nu]],in[ivol][nu],sizeof(su3));
+	  su3_copy(out[iquda+loc_vol*quda_dir_of_nissa[nu]],in[ivol][nu]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -296,6 +296,7 @@ namespace quda_iface
     remap_nissa_to_quda(quda_conf,nissa_conf);
     master_printf("loading to QUDA the gauge conf\n");
     loadGaugeQuda((void*)quda_conf,&gauge_param);
+    master_printf("loaded!\n");
     nissa_free(quda_conf);
   }
   
