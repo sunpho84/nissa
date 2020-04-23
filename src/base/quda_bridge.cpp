@@ -222,16 +222,18 @@ namespace quda_iface
   }
   
   /// Reorder conf into QUDA format
-  void remap_nissa_to_quda(double *out,quad_su3 *in)
+  void remap_nissa_to_quda(double *_out,quad_su3 *in)
   {
+    su3* out=(su3*)_out;
+    
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	const int iquda=quda_of_loclx[ivol];
 	
-	for(int mu=0;mu<NDIM;mu++)
-	  memcpy((su3*)out+(iquda+loc_vol*quda_dir_of_nissa[mu])*NCOL*NCOL*2,in[ivol][mu],sizeof(su3));
+	for(int nu=0;nu<NDIM;nu++)
+	  memcpy(out[iquda+loc_vol*quda_dir_of_nissa[nu]],in[ivol][nu],sizeof(su3));
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -275,12 +277,14 @@ namespace quda_iface
   /// Load a gauge conf
   void load_conf(quad_su3 *nissa_conf)
   {
+    master_printf("freeing the QUDA gauge conf\n");
     freeGaugeQuda();
     
     double *quda_conf=nissa_malloc("gauge_cuda",loc_vol*sizeof(quad_su3)/sizeof(double),double);
-    remap_nissa_to_quda(quda_conf,nissa_conf);
-    loadGaugeQuda((void*)quda_conf,&gauge_param);
     
+    remap_nissa_to_quda(quda_conf,nissa_conf);
+    master_printf("loading to QUDA the gauge conf\n");
+    loadGaugeQuda((void*)quda_conf,&gauge_param);
     nissa_free(quda_conf);
   }
   
@@ -319,7 +323,10 @@ namespace quda_iface
   /// Apply the dirac operator
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
   {
+    load_conf(conf);
+    
     inv_param.kappa=kappa;
+    inv_param.solution_type=QUDA_MAT_SOLUTION;
     
     //minus due to different gamma5 definition
     inv_param.mu=-mu;
@@ -332,12 +339,8 @@ namespace quda_iface
     double *quda_in=nissa_malloc("quda_in",ndoubles,double);
     double *quda_out=nissa_malloc("quda_out",ndoubles,double);
     
-    load_conf(conf);
-    
     remap_nissa_to_quda(quda_in,in);
-    inv_param.solution_type=QUDA_MAT_SOLUTION;
     MatQuda(quda_out,quda_in,&inv_param);
-    
     remap_quda_to_nissa(out,quda_out);
   }
 }
