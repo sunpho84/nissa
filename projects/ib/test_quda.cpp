@@ -26,13 +26,18 @@ void in_main(int narg,char **arg)
   const double res=sqrt(norm2_diff/norm2_in);
   master_printf("testing map and unmap, residue: %lg\n",res);
   
+  /// Second test: apply the dirac operator
+  
+  quad_su3 *conf=nissa_malloc("conf",loc_vol,quad_su3);
+  
+  generate_cold_lx_conf(conf);
+  
+  quda_iface::apply_tmD(out,conf,0.125,0.0,in);
+  
   nissa_free(tmp);
   nissa_free(in);
   nissa_free(out);
-  
-  //quad_su3 *conf=nissa_malloc("conf",loc_vol,quad_su3);
-  
-  //nissa_free(conf);
+  nissa_free(conf);
 }
 
 int main(int narg,char **arg)

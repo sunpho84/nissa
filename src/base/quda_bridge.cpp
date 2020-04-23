@@ -42,6 +42,8 @@ namespace quda_iface
   {
     if(not inited)
       {
+	master_printf("Initializing QUDA\n");
+	
 	if(QUDA_VERSION_MAJOR==0 and QUDA_VERSION_MINOR<7)
 	  crash("minimum QUDA version required is 0.7.0");
 	
@@ -191,6 +193,8 @@ namespace quda_iface
   {
     if(inited)
       {
+	master_printf("Finalizing QUDA\n");
+	
 	nissa_free(loclx_of_quda);
 	nissa_free(quda_of_loclx);
 	
@@ -205,6 +209,8 @@ namespace quda_iface
 	freeGaugeQuda();
 	freeCloverQuda();
 	endQuda();
+	
+	inited=false;
       }
   }
   
@@ -333,6 +339,5 @@ namespace quda_iface
     MatQuda(quda_out,quda_in,&inv_param);
     
     remap_quda_to_nissa(out,quda_out);
-}
-  
+  }
 }
