@@ -340,6 +340,7 @@ namespace quda_iface
     master_printf("setting pars\n");
     
     inv_param.kappa=kappa;
+    inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
     //minus due to different gamma5 definition
