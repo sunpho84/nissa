@@ -45,6 +45,13 @@ include_HEADERS+= \
 	%D%/DDalphaAMG_bridge.hpp
 endif
 
+if USE_CUDA
+__top_builddir__lib_libnissa_a_SOURCES+= \
+	%D%/cuda.cpp
+include_HEADERS+= \
+	%D%/cuda.hpp
+endif
+
 if USE_QUDA
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/quda_bridge.cpp

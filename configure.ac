@@ -116,6 +116,11 @@ AX_OPENMP
 
 #cuda
 AX_CHECK_CUDA
+AM_CONDITIONAL([USE_CUDA],[test "$CXX" == "nvcc"])
+if test "$CXX" == "nvcc"
+then
+	AC_DEFINE([USE_CUDA],1,"Using CUDA")
+fi
 
 #threads
 AC_DEFINE([NO_THREADS],[0],["No thread parallelization used"])
@@ -461,7 +466,6 @@ Number of colors    : $ncol"
 
 if test "$with_threads_type" = "cuda"
 then
-	CXX="nvcc"
 	CPPFLAGS="-dc --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
 fi
 

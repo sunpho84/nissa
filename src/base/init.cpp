@@ -17,6 +17,10 @@
  #include <malloc.h>
 #endif
 
+#ifdef USE_CUDA
+ #include "base/cuda.hpp"
+#endif
+
 #include "base/DDalphaAMG_bridge.hpp"
 #include "base/bench.hpp"
 #include "base/debug.hpp"
@@ -127,26 +131,9 @@ namespace nissa
     //define all derived MPI types
     define_MPI_types();
     
-#if THREADS_TYPE == CUDA_THREADS
-    int nDevices;
-    if(cudaGetDeviceCount(&nDevices)!=cudaSuccess)
-      crash("no CUDA enabled device");
-    
-    printf("Number of CUDA enabled devices on rank[%d] (%s) : %d\n",rank,MPI_get_processor_name().c_str(),nDevices);
-    for(int i=0;i<nDevices;i++)
-      {
-	cudaDeviceProp deviceProp;
-	cudaGetDeviceProperties(&deviceProp,i);
-	printf(" rank %d CUDA Enabled device %d/%d: %d.%d\n",rank,i,nDevices,deviceProp.major,deviceProp.minor);
-      }
-    //assumes that if we are seeing multiple gpus, there are nDevices ranks to attach to each of it
-    if(nDevices!=1)
-      {
-	int idevice=rank%nDevices;
-	decript_cuda_error(cudaSetDevice(idevice),"Unable to set device %d",idevice);
-      }
-    
- #endif
+#ifdef USE_CUDA
+    init_cuda();
+#endif
     
     //initialize the first vector of nissa
     initialize_main_vect();

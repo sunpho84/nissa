@@ -21,6 +21,9 @@
  #include "base/quda_bridge.hpp"
 #endif
 #include "base/vectors.hpp"
+#ifdef USE_CUDA
+ #include "base/cuda.hpp"
+#endif
 
 //include bg/q specifics
 #ifdef BGQ

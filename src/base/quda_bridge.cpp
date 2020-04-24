@@ -5,6 +5,7 @@
 #define EXTERN_QUDA_BRIDGE
  #include "quda_bridge.hpp"
 
+#include "base/cuda.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3_op.hpp"
@@ -18,8 +19,16 @@ namespace quda_iface
   
   using namespace nissa;
   
-  int* loclx_of_quda;
-  int* quda_of_loclx;
+  /// Lookup tables to map from nissa to quda and vice-versa
+  int* loclx_of_quda=nullptr;
+  int* quda_of_loclx=nullptr;
+  
+  /// Conf used to remap
+  quda_conf_t quda_conf{};
+  
+  /// Spincolor used to remap
+  spincolor *spincolor_in=nullptr;
+  spincolor *spincolor_out=nullptr;
   
   /// Return the rank of the given quda coords
   int get_rank_of_quda_coords(const int *coords,void *fdata)
@@ -70,6 +79,12 @@ namespace quda_iface
 	    quda_of_loclx[ivol]=quda;
 	    loclx_of_quda[quda]=ivol;
 	  }
+	
+	for(int mu=0;mu<NDIM;mu++)
+	  quda_conf[mu]=nissa_malloc("gauge_cuda",loc_vol,su3);
+	
+	spincolor_in=nissa_malloc("spincolor_in",loc_vol,spincolor);
+	spincolor_out=nissa_malloc("spincolor_out",loc_vol,spincolor);
 	
 	////////////////////////////// verbosity ///////////////////////////////////
 	
@@ -134,7 +149,7 @@ namespace quda_iface
 	inv_param.pipeline=0;
 	inv_param.gcrNkrylov=20;
 	
-	inv_param.residual_type=(QudaResidualType)QUDA_L2_RELATIVE_RESIDUAL;
+	inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
 	inv_param.tol_hq=0.1;
 	inv_param.reliable_delta=1e-3; // ignored by multi-shift solver
 	inv_param.use_sloppy_partial_accumulator=0;
@@ -184,9 +199,7 @@ namespace quda_iface
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
-	int idevice=0;
-	master_printf("Fix this\n");
-	initQuda(idevice);
+	initQuda(iCudaDevice);
 	
 	inited=1;
       }
@@ -208,6 +221,12 @@ namespace quda_iface
 	    destroyMultigridQuda(quda_mg_preconditioner);
 	    quda_mg_preconditioner=NULL;
 	  }
+	
+	for(int mu=0;mu<NDIM;mu++)
+	  nissa_free(quda_conf[mu]);
+	
+	nissa_free(spincolor_in);
+	nissa_free(spincolor_out);
 	
 	//free the clover and gauge conf
 	freeGaugeQuda();
@@ -284,10 +303,6 @@ namespace quda_iface
     master_printf("freeing the QUDA gauge conf\n");
     freeGaugeQuda();
     
-    quda_conf_t quda_conf;
-    for(int mu=0;mu<NDIM;mu++)
-      quda_conf[mu]=nissa_malloc("gauge_cuda",loc_vol,su3);
-    
     remap_nissa_to_quda(quda_conf,nissa_conf);
     master_printf("loading to QUDA the gauge conf\n");
     loadGaugeQuda((void*)quda_conf,&gauge_param);
@@ -295,8 +310,6 @@ namespace quda_iface
     double plaq;
     plaqQuda(&plaq);
     master_printf("loaded, plaquette: %lg\n",plaq);
-    for(int mu=0;mu<NDIM;mu++)
-      nissa_free(quda_conf[mu]);
   }
   
   /// Sets the sloppy precision
@@ -349,15 +362,33 @@ namespace quda_iface
     inv_param.twist_flavor=QUDA_TWIST_SINGLET;
     inv_param.Ls=1;
     
-    spincolor *quda_in=nissa_malloc("quda_in",loc_vol,spincolor);
-    spincolor *quda_out=nissa_malloc("quda_out",loc_vol,spincolor);
+    remap_nissa_to_quda(spincolor_in,in);
+    MatQuda(spincolor_out,spincolor_in,&inv_param);
+    remap_quda_to_nissa(out,spincolor_out);
+  }
+  
+  int invert_tmD(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mu,int niter,double residue,spincolor *source)
+  {
+    inv_param.kappa=kappa;
     
-    remap_nissa_to_quda(quda_in,in);
-    master_printf("applying in cuda\n");
-    MatQuda(quda_out,quda_in,&inv_param);
-    remap_quda_to_nissa(out,quda_out);
+    // set_sloppy_prec(optr->sloppy_precision);
     
-    nissa_free(quda_in);
-    nissa_free(quda_out);
+    load_conf(conf);
+    
+    // _setOneFlavourSolverParam(optr->kappa, 
+    // 			      optr->c_sw, 
+    // 			      optr->mu, 
+    // 			      optr->solver,
+    // 			      optr->even_odd_flag,
+    // 			      optr->eps_sq,
+    // 			      optr->maxiter);
+    
+    remap_nissa_to_quda(spincolor_in,source);
+    
+    invertQuda(spincolor_out,spincolor_in,&inv_param);
+    
+    master_printf("# QUDA solved in: %i iter / %g secs = %g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
+    
+    remap_quda_to_nissa(sol,spincolor_out);
   }
 }
