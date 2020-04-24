@@ -42,6 +42,8 @@ namespace quda_iface
     int out;
     MPI_Cart_rank(cart_comm,c,&out);
     
+    printf("rank %d->%d\n",rank,out);
+    
     return out;
   }
   
