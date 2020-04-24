@@ -38,14 +38,17 @@ void in_main(int narg,char **arg)
   spincolor *out_nissa=nissa_malloc("out_nissa",loc_vol,spincolor);
   
   generate_hot_lx_conf(conf);
+  master_printf("plaq: %lg\n",global_plaquette_lx_conf(conf));
+  
   vector_reset(in);
   in[0][0][0][0]=1.0;
   
   const double kappa=0.125,mu=0.0;
   quda_iface::apply_tmD(out,conf,kappa,mu,in);
   apply_tmQ(out_nissa,conf,kappa,mu,in);
-  safe_dirac_prod_spincolor(out_nissa,base_gamma+5,in);
-
+  safe_dirac_prod_spincolor(out_nissa,base_gamma+5,out_nissa);
+  
+  master_printf("comparing\n");
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int id=0;id<NDIRAC;id++)
       for(int ic=0;ic<NCOL;ic++)

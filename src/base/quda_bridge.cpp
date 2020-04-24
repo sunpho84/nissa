@@ -295,7 +295,7 @@ namespace quda_iface
     remap_nissa_to_quda(quda_conf,nissa_conf);
     master_printf("loading to QUDA the gauge conf\n");
     loadGaugeQuda((void*)quda_conf,&gauge_param);
-
+    
     double plaq;
     plaqQuda(&plaq);
     master_printf("loaded, plaquette: %lg\n",plaq);
@@ -357,6 +357,7 @@ namespace quda_iface
     spincolor *quda_out=nissa_malloc("quda_out",loc_vol,spincolor);
     
     remap_nissa_to_quda(quda_in,in);
+    master_printf("applying in cuda\n");
     MatQuda(quda_out,quda_in,&inv_param);
     remap_quda_to_nissa(out,quda_out);
     
