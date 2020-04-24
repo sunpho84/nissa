@@ -37,7 +37,7 @@ void in_main(int narg,char **arg)
   quad_su3 *conf=nissa_malloc("conf",loc_vol,quad_su3);
   spincolor *out_nissa=nissa_malloc("out_nissa",loc_vol,spincolor);
   
-  generate_cold_lx_conf(conf);
+  generate_hot_lx_conf(conf);
   vector_reset(in);
   in[0][0][0][0]=1.0;
   

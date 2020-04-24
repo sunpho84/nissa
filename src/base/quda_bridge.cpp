@@ -295,7 +295,10 @@ namespace quda_iface
     remap_nissa_to_quda(quda_conf,nissa_conf);
     master_printf("loading to QUDA the gauge conf\n");
     loadGaugeQuda((void*)quda_conf,&gauge_param);
-    master_printf("loaded!\n");
+
+    double plaq;
+    plaqQuda(&plaq);
+    master_printf("loaded, plaquette: %lg\n",plaq);
     for(int mu=0;mu<NDIM;mu++)
       nissa_free(quda_conf[mu]);
   }
