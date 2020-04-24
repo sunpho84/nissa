@@ -38,6 +38,8 @@ void in_main(int narg,char **arg)
   spincolor *out_nissa=nissa_malloc("out_nissa",loc_vol,spincolor);
   
   generate_cold_lx_conf(conf);
+  vector_reset(in);
+  in[0][0][0][0]=1.0;
   
   const double kappa=0.125,mu=0.0;
   quda_iface::apply_tmD(out,conf,kappa,mu,in);
@@ -48,8 +50,8 @@ void in_main(int narg,char **arg)
     for(int id=0;id<NDIRAC;id++)
       for(int ic=0;ic<NCOL;ic++)
 	for(int ri=0;ri<2;ri++)
-	  printf("out,[nissa,quda][ivol=%d,id=%d,ic=%d,ri=%d]: %lg %lg\n",
-		 ivol,id,ic,ri,out_nissa[ivol][id][ic][ri],out[ivol][id][ic][ri]);
+	  master_printf("out,[nissa,quda][ivol=%d,id=%d,ic=%d,ri=%d]: %lg %lg\n",
+			ivol,id,ic,ri,out_nissa[ivol][id][ic][ri],out[ivol][id][ic][ri]);
   
   master_printf("testing tmD, residue: %lg\n",rel_diff_norm(out,out_nissa));
   
