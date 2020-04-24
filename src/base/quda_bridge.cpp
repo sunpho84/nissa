@@ -18,10 +18,6 @@ namespace quda_iface
   
   using namespace nissa;
   
-  /// Direction to be used to refer to the nissa one
-  CUDA_MANAGED int nissa_dir_of_quda[NDIM]={1,2,3,0};
-  CUDA_MANAGED int quda_dir_of_nissa[NDIM]={3,0,1,2};
-  
   int* loclx_of_quda;
   int* quda_of_loclx;
   
@@ -31,7 +27,7 @@ namespace quda_iface
     /// Coordinates
     int c[NDIM];
     for(int mu=0;mu<NDIM;mu++)
-      c[mu]=rank_coord[nissa_dir_of_quda[mu]];
+      c[mu]=rank_coord[std::array<int,NDIM>{3,0,1,2}[mu]];
     
     /// Result
     int out;
@@ -63,7 +59,7 @@ namespace quda_iface
 	    int itmp=0;
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
-		const int nu=nissa_dir_of_quda[mu];
+		const int nu=std::array<int,NDIM>{0,3,2,1}[mu];
 		itmp=itmp*l[nu]+c[nu];
 	      }
 	    const int quda=loclx_parity[ivol]*loc_volh+itmp/2;
@@ -99,7 +95,7 @@ namespace quda_iface
 	gauge_param=newQudaGaugeParam();
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  gauge_param.X[mu]=loc_size[nissa_dir_of_quda[mu]];
+	  gauge_param.X[mu]=loc_size[std::array<int,NDIM>{1,2,3,0}[mu]];
 	
 	gauge_param.anisotropy=1.0;
 	
@@ -184,7 +180,7 @@ namespace quda_iface
 	
 	int grid[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
-	  grid[mu]=nrank_dir[nissa_dir_of_quda[mu]];
+	  grid[mu]=nrank_dir[std::array<int,NDIM>{1,2,3,0}[mu]];
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
@@ -241,7 +237,7 @@ namespace quda_iface
 	const int iquda=quda_of_loclx[ivol];
 	
 	for(int nu=0;nu<NDIM;nu++)
-	  su3_copy(out[quda_dir_of_nissa[nu]][iquda],in[ivol][nu]);
+	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[ivol][nu]);
       }
     NISSA_PARALLEL_LOOP_END;
     
