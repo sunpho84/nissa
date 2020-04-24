@@ -36,7 +36,7 @@ namespace quda_iface
     /// Coordinates
     int c[NDIM];
     for(int mu=0;mu<NDIM;mu++)
-      c[mu]=rank_coord[std::array<int,NDIM>{3,0,1,2}[mu]];
+      c[mu]=coords[std::array<int,NDIM>{3,0,1,2}[mu]];
     
     /// Result
     int out;
