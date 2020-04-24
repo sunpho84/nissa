@@ -356,5 +356,8 @@ namespace quda_iface
     remap_nissa_to_quda(quda_in,in);
     MatQuda(quda_out,quda_in,&inv_param);
     remap_quda_to_nissa(out,quda_out);
+    
+    nissa_free(quda_in);
+    nissa_free(quda_out);
   }
 }

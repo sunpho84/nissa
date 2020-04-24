@@ -43,6 +43,10 @@ namespace nissa
 	if(remap_locd_to_lx[mu]) delete remap_locd_to_lx[mu];
       }
     
+#ifdef USE_QUDA
+    if(use_quda) quda_iface::finalize();
+#endif
+     
     //unset lx geometry
     if(lx_geom_inited) unset_lx_geometry();
     
@@ -88,10 +92,6 @@ namespace nissa
     free(delay_rnd_gen);
 #endif
     
-#ifdef USE_QUDA
-    if(use_quda) quda_iface::finalize();
-#endif
-     
     MPI_Barrier(MPI_COMM_WORLD);
     master_printf("   Ciao!\n\n");
     MPI_Finalize();
