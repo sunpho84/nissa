@@ -46,13 +46,17 @@ void in_main(int narg,char **arg)
   apply_tmQ(out_nissa,conf,kappa,mu,in);
   safe_dirac_prod_spincolor(out_nissa,base_gamma+5,in);
 
-  for(int ivol=0;ivol<10;ivol++)
+  for(int ivol=0;ivol<loc_vol;ivol++)
     for(int id=0;id<NDIRAC;id++)
       for(int ic=0;ic<NCOL;ic++)
 	for(int ri=0;ri<2;ri++)
-	  master_printf("out,[nissa,quda][ivol=%d,id=%d,ic=%d,ri=%d]: %lg %lg\n",
-			ivol,id,ic,ri,out_nissa[ivol][id][ic][ri],out[ivol][id][ic][ri]);
-  
+	  {
+	    const double n=out_nissa[ivol][id][ic][ri];
+	    const double q=out[ivol][id][ic][ri];
+	    if(fabs(n)>1e-10 or fabs(q)>1e-10)
+	      master_printf("out,[nissa,quda][ivol=%d,id=%d,ic=%d,ri=%d]: %lg %lg\n",
+			    ivol,id,ic,ri,n,q);
+	  }
   master_printf("testing tmD, residue: %lg\n",rel_diff_norm(out,out_nissa));
   
   nissa_free(tmp);
