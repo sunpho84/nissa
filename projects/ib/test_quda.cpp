@@ -22,9 +22,13 @@ void in_main(int narg,char **arg)
   
   spincolor *in=nissa_malloc("in",loc_vol,spincolor);
   spincolor *out=nissa_malloc("out",loc_vol,spincolor);
+  spincolor *tmp=nissa_malloc("tmp",loc_vol,spincolor);
   
   /// First test: load a spincolor and unload it
   generate_undiluted_source(in,RND_Z2,-1);
+  
+  quda_iface::remap_nissa_to_quda(tmp,in);
+  quda_iface::remap_quda_to_nissa(out,tmp);
   
   master_printf("testing map and unmap, residue: %lg\n",rel_diff_norm(out,in));
   
@@ -59,6 +63,7 @@ void in_main(int narg,char **arg)
 	  }
   master_printf("testing tmD, residue: %lg\n",rel_diff_norm(out,out_nissa));
   
+  nissa_free(tmp);
   nissa_free(in);
   nissa_free(out);
   nissa_free(out_nissa);
