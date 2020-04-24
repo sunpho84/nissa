@@ -367,7 +367,7 @@ namespace quda_iface
     remap_quda_to_nissa(out,spincolor_out);
   }
   
-  int invert_tmD(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mu,int niter,double residue,spincolor *source)
+  void invert_tmD(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mu,int niter,double residue,spincolor *source)
   {
     inv_param.kappa=kappa;
     

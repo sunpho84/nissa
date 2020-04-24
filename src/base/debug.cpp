@@ -12,6 +12,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#ifdef USE_CUDA
+ #include <cuda_runtime.h>
+#endif
+
 #include "geometry/geometry_lx.hpp"
 #include "new_types/float_128.hpp"
 #include "routines/ios.hpp"
@@ -153,7 +157,7 @@ namespace nissa
   }
 #endif
   
-#if THREADS_TYPE == CUDA_THREADS
+#if USE_CUDA
   void internal_decript_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...)
   {
     if(rc!=cudaSuccess && rank==0)

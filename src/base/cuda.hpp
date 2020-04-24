@@ -8,6 +8,8 @@
  #define INIT_TO(var) =var
 #endif
 
+#include <cuda_runtime.h>
+
 namespace nissa
 {
   EXTERN_CUDA int nCudaDevices;
