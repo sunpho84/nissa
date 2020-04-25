@@ -125,6 +125,8 @@ namespace nissa
 	signal(SIGABRT,signal_handler);
 	signal(SIGINT,signal_handler);
       }
+    else
+      master_printf("Not trapping signals\n");
     
     print_banner();
     
