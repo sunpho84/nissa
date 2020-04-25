@@ -201,7 +201,8 @@ namespace quda_iface
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
-	initQuda(iCudaDevice);
+	//initQuda(iCudaDevice);
+	initQuda(-1);
 	
 	inited=1;
       }
