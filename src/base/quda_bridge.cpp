@@ -136,7 +136,10 @@ namespace quda_iface
 	
 	gauge_param.ga_pad=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  gauge_param.ga_pad=std::max(gauge_param.ga_pad,bord_dir_vol[mu]/2);
+	  {
+	    int surf_size=loc_vol/loc_size[mu]/2;
+	    gauge_param.ga_pad=std::max(gauge_param.ga_pad,surf_size);
+	  }
 	
 	///////////////////////////// inverter parameters ////////////////////////////////////
 	
