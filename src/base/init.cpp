@@ -114,12 +114,17 @@ namespace nissa
     get_MPI_rank();
     
     //associate signals
-    signal(SIGBUS,signal_handler);
-    signal(SIGSEGV,signal_handler);
-    signal(SIGFPE,signal_handler);
-    signal(SIGXCPU,signal_handler);
-    signal(SIGABRT,signal_handler);
-    signal(SIGINT,signal_handler);
+    const char DO_NOT_TRAP_SIGNALS_STRING[]="NISSA_DO_NOT_TRAP_SIGNALS";
+    verbosity_lv2_master_printf("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
+    if(getenv(DO_NOT_TRAP_SIGNALS_STRING)!=NULL)
+      {
+	signal(SIGBUS,signal_handler);
+	signal(SIGSEGV,signal_handler);
+	signal(SIGFPE,signal_handler);
+	signal(SIGXCPU,signal_handler);
+	signal(SIGABRT,signal_handler);
+	signal(SIGINT,signal_handler);
+      }
     
     print_banner();
     
