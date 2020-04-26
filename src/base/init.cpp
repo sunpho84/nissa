@@ -116,7 +116,7 @@ namespace nissa
     //associate signals
     const char DO_NOT_TRAP_SIGNALS_STRING[]="NISSA_DO_NOT_TRAP_SIGNALS";
     verbosity_lv2_master_printf("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
-    if(getenv(DO_NOT_TRAP_SIGNALS_STRING)!=NULL)
+    if(getenv(DO_NOT_TRAP_SIGNALS_STRING)==NULL)
       {
 	signal(SIGBUS,signal_handler);
 	signal(SIGSEGV,signal_handler);
