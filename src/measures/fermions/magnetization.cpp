@@ -126,7 +126,7 @@ namespace nissa
     
     //call inner function
     magnetization(magn,conf,quantization,u1b,quark,residue,rnd);
-    magnetization(magn_free,conf,quantization,u1b,quark,residue,rnd);
+    magnetization(magn_free,free_conf,quantization,u1b,quark,residue,rnd);
     
     for(int par=0;par<2;par++) nissa_free(rnd[par]);
   }
