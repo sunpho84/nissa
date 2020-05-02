@@ -180,7 +180,7 @@ namespace nissa
       }
     
     for(int eo=0;eo<2;eo++)
-      nissa_free(free_conf);
+      nissa_free(free_conf[eo]);
     
     close_file(file);
     close_file(file_free);
