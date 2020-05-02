@@ -146,6 +146,7 @@ namespace nissa
     for(int icopy=0;icopy<ncopies;icopy++)
       {
         master_fprintf(file,"%d",iconf);
+        master_fprintf(file_free,"%d",iconf);
         
         //measure magnetization for each quark
         for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
@@ -177,6 +178,7 @@ namespace nissa
           }
         
         master_fprintf(file,"\n");
+        master_fprintf(file_free,"\n");
       }
     
     for(int eo=0;eo<2;eo++)
