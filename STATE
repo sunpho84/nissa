@@ -1,0 +1,53 @@
+Tipi fondamentali
+.................
+
+Classe TensCompIdx
+------------------
+Rappresenta l'indice di una singola componente di un tensore.
+Contiene semplicemente un intero, corrispondente al valore della componente.
+La classe prende un tipo come argomento template, che serve a distinguere una componente dall'altra e che inoltre incapsula il valore massimo della componente.
+Può essere convertita implicitamente al valore numerico contenuto.
+Ogni componente può essere di riga (default) o di colonna, così che un tensore avente questa solo componente sarebbe rispettavamente di colonna o riga, e si possa
+avere sia indici di riga o di colonna per una data componente.
+La dimensione massima può essere specificata a tempo di compilazione nel tipo base, o delegata al momento di allocare.
+
+TensComps
+---------
+Classe che contiene la lista ordinata delle componenti, come tupla.
+Può essere usata per specificare il tipo di tensore richiesto.
+Può poi essere usata per memorizzare la lista delle componenti sottoscritte, in maniera da potere accederla sia per tipo, sia per posizione, in modo da
+fornire un'interfaccia doppia che da un lato permette di accedere alle componenti senza conoscerne l'ordine, dall'altro permette di scorrere le componenti
+secondo l'ordine di memorizzazione, e costruire iterativamente l'indice puntato.
+
+TensStorage
+-----------
+Contiene i dati veri e propri
+Prende compe parametri il tipo fondamentale, la dimensione nota a tempo di compilazione e se questa ammonta al totale o meno
+Se la taglia è nota a tempo di compilazione, e se la taglia è minore di un certo massimo, contiene un array di dimensione nota
+Altrimenti un puntatore a una zona di memoria, che viene allocata sulla base di quanto richiesto in fase di costruzione
+Fornisce un operatore di sottoscrizione semplice [] per accedere ai dati
+Conosce se i dati sono allocati su gpu o cpu
+
+Tensor
+------
+Contiene la lista delle componenti, il tipo fondamentale, e la locazione in cui i dati sono allocati (gpu o cpu).
+In fase di allocazione vengono specificate le taglie di tutte le componenti non note a tempo di compilazione.
+Fornisce un accesso alle componenti per "vista", cioè in cui non si specificano tutte le componenti allo stesso momento.
+Quando tutte le componenti sono specificate, vengono riordinate in maniera da corrispondere all'ordine memorizzato e viene calcolato
+l'indice puntato.
+Se il programma è compilato con CUDA, la classe contiene un metodo per restituire una copia sul device o sull'host, in maniera da rendere triviale il trasferimento.
+Anche per la conversione double-single si può fare lo stesso, con il caveat del caso SIMD ma a questo penseremo un'altra volta
+
+Field
+-----
+Contiene una lista di indici interni, il tipo SpazioTempo (tutti i siti, siti pari, siti dispari), un flag che specifica il tipo di alone, il layout di memoria e la collocazione (GPU o CPU).
+Il layout può essere vettore-di-strutture (AoS) per l'I/O, struttura-di-vettori (SoA) per le GPU, o struttura-di-vettori-di-strutture (SoAoS) per le cpu vettoriali (SIMD).
+La collocazione può essere CPU o GPU, non necesseriamente legata al layout. Infatti sarà necessario poter tenere sulla CPU il formato GPU per conversione in I/O.
+Deve contere un metodo statico atto a geneare il loop parallelo sull'indice spaziotempo, da gestire tramite kernel, e che corre solo sui dati del bulk.
+La componente spaziotemporale verrà aggiunta in cima (AoS), in fondo (SoA), o sia in cima che in fondo (SoAoS) alle altre, a seconda del layout, ovviamente in quest'ultimo caso sarà divisa nei due
+fattori corrispondenti all'indice che corre sui siti non fusi (esterno) e fusi (interno).
+La componente spaziotemporale sarà di tipo diversa nel caso l'allocazione sia fatta sulle GPU, in modo da puntare alla taglia nota sul lato gpu.
+Il layout e la collocazione saranno di default quelli "ottimali" per l'architettura, quindi GPU o SIMD. Solo nel caso di I/O si dovrà esplicitare il layout non-ottimale.
+La conversione da una collocazione all'altra avviene tramite l'apposito metodo del tensore sottostante.
+La conversione ad un diverso layout di memoria avviene automaticamente tramite il diverso TensComp.
+
