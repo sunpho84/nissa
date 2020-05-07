@@ -108,7 +108,6 @@ namespace nissa
     {
     }
     
-    
     /// Evaluate
     template <typename...A>
     const auto& eval(A&&...a) const

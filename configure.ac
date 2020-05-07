@@ -506,6 +506,7 @@ AC_CONFIG_FILES(
 	Makefile
 	src/Makefile
 	projects/Makefile
+	test/Makefile
 	tools/Makefile)
 
 AC_OUTPUT
