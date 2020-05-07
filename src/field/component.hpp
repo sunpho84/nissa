@@ -20,18 +20,18 @@ namespace nissa
   };
   
   /// Row or column
-  enum RowCol{ROW,COL,ANY};
+  enum RwCl{RW,CL,ANY};
   
   /// Tensor component defined by base type S
   ///
   /// Inherit from S to get size
   template <typename S,
-	    RowCol RC=ROW,
+	    RwCl RC=RW,
 	    int Which=0>
   struct TensCompIdx
   {
     /// Transposed type of component
-    static constexpr RowCol TRANSP=(RC==ANY)?ANY:((RC==COL)?ROW:COL);
+    static constexpr RwCl TRANSP=(RC==ANY)?ANY:((RC==CL)?RW:CL);
     
     /// Transposed component
     using Transp=TensCompIdx<S,TRANSP,Which>;
@@ -61,7 +61,7 @@ namespace nissa
       return i;
     }
     
-    /// Convert to actual value
+    /// Convert to actual value with const attribute
     operator const Size&() const
     {
       return i;
@@ -96,9 +96,9 @@ namespace nissa
   {							\
   }
   
-  /// Provide the access to a component
+  /// Provide the access to a component, through a function naed ACCESS
 #define PROVIDE_COMP_ACCESS(ACCESS,...)		\
-  auto inline ACCESS(const int64_t& i)			\
+  auto inline ACCESS(const int64_t& i)		\
   {						\
     return __VA_ARGS__{i};			\
   }
@@ -109,27 +109,29 @@ namespace nissa
   /*! NAME index */					\
   using NAME ## Idx=TensCompIdx<_ ## NAME,ANY,0>;	\
 							\
-  PROVIDE_COMP_ACCESS(ACCESS,NAME ## Idx)
+  PROVIDE_COMP_ACCESS(ACCESS, NAME ## Idx)
   
-#define DEFINE_ROW_OR_COL_COMP_IDX(NAME,ACCESS,SIZE)	\
+  /// Define a component which can be included twice
+#define DEFINE_RW_OR_CL_COMP_IDX(NAME,ACCESS,SIZE)	\
   DEFINE_BASE_COMP(NAME,SIZE);				\
   /*! NAME index */					\
-  template <RowCol RC=ROW,				\
+  template <RwCl RC=RW,					\
 	    int Which=0>				\
-  using NAME ## Idx=TensCompIdx<_ ## NAME,RC,Which>;	\
+  using _ ## NAME ## Idx=TensCompIdx<_ ## NAME,RC,Which>;	\
 							\
-  using Row ## NAME ## Idx = NAME ## Idx<ROW,0>;	\
-  using Col ## NAME ## Idx = NAME ## Idx<COL,0>;	\
+  using Rw ## NAME ## Idx = _ ## NAME ## Idx<RW,0>;	\
+  using Cl ## NAME ## Idx = _ ## NAME ## Idx<CL,0>;	\
+  using NAME ## Idx = Rw ## NAME ## Idx;	\
   							\
-  PROVIDE_COMP_ACCESS(row ## NAME,NAME ## Idx<ROW,0>);	\
-  PROVIDE_COMP_ACCESS(col ## NAME,NAME ## Idx<COL,0>);	\
-  PROVIDE_COMP_ACCESS(ACCESS,NAME ## Idx<ROW,0>)
+  PROVIDE_COMP_ACCESS(rw ## NAME, _ ## NAME ## Idx<RW,0>);	\
+  PROVIDE_COMP_ACCESS(cl ## NAME, _ ## NAME ## Idx<CL,0>);	\
+  PROVIDE_COMP_ACCESS(ACCESS,_ ## NAME ## Idx<RW,0>)
   
   /// Complex index
   DEFINE_SINGLE_COMP_IDX(Compl,complexAccess,2);
-  DEFINE_ROW_OR_COL_COMP_IDX(Color,cl,NCOL);
-  DEFINE_ROW_OR_COL_COMP_IDX(Spin,sp,NDIRAC);
-  DEFINE_ROW_OR_COL_COMP_IDX(Lorentz,lorentz,NDIM);
+  DEFINE_RW_OR_CL_COMP_IDX(Color,cl,NCOL);
+  DEFINE_RW_OR_CL_COMP_IDX(Spin,sp,NDIRAC);
+  DEFINE_RW_OR_CL_COMP_IDX(Dir,dir,NDIM);
   DEFINE_SINGLE_COMP_IDX(LocVol,locVol,DYNAMIC);
   DEFINE_SINGLE_COMP_IDX(LocVolEvn,locVolEvn,DYNAMIC);
   DEFINE_SINGLE_COMP_IDX(LocVolOdd,locVolOdd,DYNAMIC);
@@ -150,21 +152,21 @@ namespace nissa
   
 #define REIM(NAME) auto NAME : {re,im}
   
-#define _ALL_ROW_OR_COL_COLORS(NAME,RC) LOOP_RANGE(ColorIdx<RC>,NAME,0,NCOL)
-#define _ALL_ROW_OR_COL_SPINS(NAME,RC) LOOP_RANGE(SpinIdx<RC>,NAME,0,NDIRAC)
-#define _ALL_ROW_OR_COL_DIRS(NAME,RC) LOOP_RANGE(LorentzIdx<RC>,NAME,0,NDIM)
-
-#define ALL_ROW_COLORS(NAME) _ALL_ROW_OR_COL_COLORS(NAME,ROW)
-#define ALL_COL_COLORS(NAME) _ALL_ROW_OR_COL_COLORS(NAME,COL)
-#define ALL_COLORS(NAME) ALL_ROW_COLORS(NAME)
-
-#define ALL_ROW_SPINS(NAME) _ALL_ROW_OR_COL_SPINS(NAME,ROW)
-#define ALL_COL_SPINS(NAME) _ALL_ROW_OR_COL_SPINS(NAME,COL)
-#define ALL_SPINS(NAME) ALL_ROW_SPINS(NAME)
-
-#define ALL_ROW_DIRS(NAME) _ALL_ROW_OR_COL_DIRS(NAME,ROW)
-#define ALL_COL_DIRS(NAME) _ALL_ROW_OR_COL_DIRS(NAME,COL)
-#define ALL_DIRS(NAME) ALL_ROW_DIRS(NAME)
+#define _ALL_RW_OR_CL_COLORS(NAME,RC) LOOP_RANGE(ColorIdx<RC>,NAME,0,NCL)
+#define _ALL_RW_OR_CL_SPINS(NAME,RC) LOOP_RANGE(SpinIdx<RC>,NAME,0,NDIRAC)
+#define _ALL_RW_OR_CL_DIRS(NAME,RC) LOOP_RANGE(DirIdx<RC>,NAME,0,NDIM)
+  
+#define ALL_RW_COLORS(NAME) _ALL_RW_OR_CL_COLORS(NAME,RW)
+#define ALL_CL_COLORS(NAME) _ALL_RW_OR_CL_COLORS(NAME,CL)
+#define ALL_COLORS(NAME) ALL_RW_COLORS(NAME)
+  
+#define ALL_RW_SPINS(NAME) _ALL_RW_OR_CL_SPINS(NAME,RW)
+#define ALL_CL_SPINS(NAME) _ALL_RW_OR_CL_SPINS(NAME,CL)
+#define ALL_SPINS(NAME) ALL_RW_SPINS(NAME)
+  
+#define ALL_RW_DIRS(NAME) _ALL_RW_OR_CL_DIRS(NAME,RW)
+#define ALL_CL_DIRS(NAME) _ALL_RW_OR_CL_DIRS(NAME,CL)
+#define ALL_DIRS(NAME) ALL_RW_DIRS(NAME)
   
 #define ALL_LOC_SITES(NAME) LOOP_RANGE(LocVol,NAME,loc_vol)
 #define ALL_EVN_LOC_SITES(NAME) LOOP_RANGE(LocVolEvn,NAME,loc_volh)

@@ -77,8 +77,7 @@ namespace nissa
 	printf("For a total of %zu bytes\n",compute_vect_memory_usage());
       }
     
-#warning reeneable
-    //delete memory_manager;
+    delete memory_manager;
     
     tot_time+=take_time();
     master_printf("Total time: %lg s\n",tot_time);

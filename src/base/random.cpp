@@ -39,7 +39,7 @@ namespace nissa
   //   cudageneric_kernel<<<grid_dimension,block_dimension>>>(0, 1, [=] __host__ __device__(int){});
   // }
   
-  double rnd_get_unif(rnd_gen *gen,double min,double max);
+  CUDA_HOST_AND_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
   
   //initialize a random number generator
   void start_rnd_gen(rnd_gen *out,int seed)

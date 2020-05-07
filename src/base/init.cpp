@@ -146,8 +146,7 @@ namespace nissa
     initialize_main_vect();
     
     //initialize the memory manager
-    #warning reenabel
-    //memory_manager=new MemoryManager;
+    memory_manager=new MemoryManager;
     
     //initialize global variables
     lx_geom_inited=0;

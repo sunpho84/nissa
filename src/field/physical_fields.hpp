@@ -37,7 +37,7 @@ namespace nissa
   /*! Field of type NAME over LOC volume with FUND type*/		\
   using NAME ## SHORT_LOC ## SHORT_FUND = Field<LOC,NAME ## Comps,FUND>
   
-  /// Define a field with many fundamental type
+  /// Define a field with many fundamental type, running on sites of type LOC
 #define DEFINE_FIELD_WITH_DOUBLE_FLOAT(NAME,SHORT_LOC,LOC)		\
   DEFINE_FIELD(NAME,SHORT_LOC,LOC,D,double);				\
   DEFINE_FIELD(NAME,SHORT_LOC,LOC,F,float);				\
@@ -59,27 +59,27 @@ namespace nissa
   
   DEFINE_PHYSICAL_FIELD(Scalar,);
   DEFINE_PHYSICAL_FIELD(Compl,ComplIdx);
-  DEFINE_PHYSICAL_FIELD(ColorCompl,ColorIdx<>,ComplIdx);
-  DEFINE_PHYSICAL_FIELD(SpinCompl,SpinIdx<>,ComplIdx);
-  DEFINE_PHYSICAL_FIELD(SpinColorCompl,SpinIdx<>,ColorIdx<>,ComplIdx);
-  DEFINE_PHYSICAL_FIELD(ColorColorCompl,ColorIdx<ROW>,ColorIdx<COL>,ComplIdx);
-  DEFINE_PHYSICAL_FIELD(SpinSpinCompl,SpinIdx<ROW>,SpinIdx<COL>,ComplIdx);
-  DEFINE_PHYSICAL_FIELD(LorentzColorColorCompl,LorentzIdx<ROW>,ColorIdx<ROW>,ColorIdx<COL>,ComplIdx);
+  DEFINE_PHYSICAL_FIELD(ColorCompl,ColorIdx,ComplIdx);
+  DEFINE_PHYSICAL_FIELD(SpinCompl,SpinIdx,ComplIdx);
+  DEFINE_PHYSICAL_FIELD(SpinColorCompl,SpinIdx,ColorIdx,ComplIdx);
+  DEFINE_PHYSICAL_FIELD(ColorColorCompl,RwColorIdx,ClColorIdx,ComplIdx);
+  DEFINE_PHYSICAL_FIELD(SpinSpinCompl,RwSpinIdx,ClSpinIdx,ComplIdx);
+  DEFINE_PHYSICAL_FIELD(DirColorColorCompl,DirIdx,RwColorIdx,ClColorIdx,ComplIdx);
   
-  /// Alias for LorentzColorColorCompl
+  /// Alias for DirColorColorCompl
   using SU3=ColorColorCompl;
   
-  /// Alias for LorentzColorColorCompl
-  using QuadSU3=LorentzColorColorCompl;
+  /// Alias for DirColorColorCompl
+  using QuadSU3=DirColorColorCompl;
   
-  /// Alias for LorentzColorColorComplField
-  using GaugeConf=LorentzColorColorComplField;
+  /// Alias for DirColorColorComplField
+  using GaugeConf=DirColorColorComplField;
   
-  /// Alias for even part of the gauge conf (LorentzColorColorComplField
-  using EvnGaugeConf=LorentzColorColorComplEvnD;
+  /// Alias for even part of the gauge conf (DirColorColorComplField
+  using EvnGaugeConf=DirColorColorComplEvnD;
   
-  /// Alias for odd part of the gauge conf (LorentzColorColorComplField
-  using OddGaugeConf=LorentzColorColorComplOddD;
+  /// Alias for odd part of the gauge conf (DirColorColorComplField
+  using OddGaugeConf=DirColorColorComplOddD;
 }
 
 #endif

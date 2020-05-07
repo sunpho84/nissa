@@ -3,7 +3,7 @@
 
 using namespace nissa;
 
-using SpinSpaceColor=TensComps<SpinIdx<ROW>,LocVolIdx,ColorIdx<ROW>>;
+using SpinSpaceColor=TensComps<SpinIdx,LocVolIdx,ColorIdx>;
 
 template <typename Fund>
 using SpinColorField=Tens<SpinSpaceColor,Fund>;
@@ -11,7 +11,7 @@ using SpinColorField=Tens<SpinSpaceColor,Fund>;
 using SpinColorFieldD=SpinColorField<double>;
 
 #define TEST(NAME,...)							\
-  double& NAME(SpinColorFieldD& tensor,SpinIdx<ROW> spin,ColorIdx<ROW> col,LocVolIdx space) \
+  double& NAME(SpinColorFieldD& tensor,SpinIdx spin,ColorIdx col,LocVolIdx space) \
   {									\
     asm("#here " #NAME "  access");					\
     return __VA_ARGS__;							\
@@ -49,11 +49,11 @@ void unsafe_su3_prod(TOut&& out,const TIn1& in1,const TIn2& in2)
 {
   LocVolIdx s(0);
   
-  for(ColorIdx<ROW> i1{0};i1<3;i1++)
-    for(ColorIdx<COL> k2{0};k2<3;k2++)
+  for(RwColorIdx i1{0};i1<3;i1++)
+    for(ClColorIdx k2{0};k2<3;k2++)
       {
   	out(i1,k2,s)=0.0;
-  	for(ColorIdx<COL> i2(0);i2<3;i2++)
+  	for(ClColorIdx i2(0);i2<3;i2++)
   	  out(i1,k2,s)+=in1(i1,i2,s)*in2(i2.transp(),k2,s);
       }
 }
@@ -71,16 +71,16 @@ int main()
   Tens<SpinSpaceColor,double> tensor(vol);
   
   /// Fill the spincolor with flattened index
-  for(SpinIdx<ROW> s(0);s<4;s++)
+  for(SpinIdx s(0);s<4;s++)
     for(LocVolIdx v(0);v<vol;v++)
-      for(ColorIdx<ROW> c(0);c<3;c++)
+      for(ColorIdx c(0);c<3;c++)
   	tensor(s,v,c)=c+3*(v+vol*s);
   
   // Read components to access
   cout<<"Please enter spin, space and color index to printout: ";
   
   /// Spin component
-  SpinIdx<ROW> spin;
+  SpinIdx spin;
   cin>>spin;
   
   /// Space component
@@ -88,7 +88,7 @@ int main()
   cin>>space;
   
   /// Color component
-  ColorIdx<ROW> col;
+  ColorIdx col;
   cin>>col;
   
   double& hyp=hyp_fun(tensor,spin,col,space);
@@ -108,7 +108,7 @@ int main()
   /// Trivial spin access
   double& t=triv_fun(tensor,spin,col,space);
   
-  using SU3FieldComps=TensComps<ColorIdx<ROW>,ColorIdx<COL>,LocVolIdx>;
+  using SU3FieldComps=TensComps<RwColorIdx,ClColorIdx,LocVolIdx>;
   
   using SU3Field=Tens<SU3FieldComps,double>;
   
@@ -132,14 +132,14 @@ int main()
   test.trivialAccess(0)=0.0;
   
     for(LocVolIdx v(0);v<vol;v++)
-      for(ColorIdx<ROW> c1(0);c1<3;c1++)
-	for(ColorIdx<COL> c2(0);c2<3;c2++)
+      for(RwColorIdx c1(0);c1<3;c1++)
+	for(ClColorIdx c2(0);c2<3;c2++)
 	  conf1(space,c1,c2)=conf2(space,c1,c2)=conf3(space,c1,c2)=0.0;
   
   unsafe_su3_prod(conf1,conf2,conf3);
   
-  conf1(ColorIdx<COL>{0},ColorIdx<ROW>{1},LocVolIdx{0})=1.0;
-  cout<<"Transp: "<<transpose(conf1(LocVolIdx{0})(ColorIdx<ROW>{1}))(ColorIdx<ROW>{0})<<endl;
+  conf1(ClColorIdx{0},RwColorIdx{1},LocVolIdx{0})=1.0;
+  cout<<"Transp: "<<transpose(conf1(LocVolIdx{0})(RwColorIdx{1}))(RwColorIdx{0})<<endl;
   
   cout<<"Test:";
   cout<<" "<<conf1[space][col][col.transp()];
