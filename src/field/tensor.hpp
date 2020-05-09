@@ -7,15 +7,28 @@
 
 namespace nissa
 {
+  /// Ordinary storage location used when not specified otherwise
+  static constexpr TensStorageLocation OrdinaryTensStorageLocation=
+#ifdef USE_CUDA
+    TensStorageLocation::ON_GPU
+#else
+    TensStorageLocation::ON_CPU
+#endif
+    ;
+  
   /// Tensor with Comps components, of Fund funamental type
+  ///
+  /// Forward definition to capture actual components
   template <typename Comps,
-	    typename Fund=double>
+	    typename Fund=double,
+	    TensStorageLocation SL=OrdinaryTensStorageLocation>
   struct Tens;
   
   /// Tensor
   template <typename Fund,
+	    TensStorageLocation SL,
 	    typename...TC>
-  struct Tens<TensComps<TC...>,Fund> : public Subscribable<Tens<TensComps<TC...>,Fund>>
+  struct Tens<TensComps<TC...>,Fund,SL> : public Subscribable<Tens<TensComps<TC...>,Fund,SL>>
   {
     /// Components
     using Comps=TensComps<TC...>;
@@ -99,13 +112,17 @@ namespace nissa
       return index(0,std::get<TC>(argsInATuple)...);
     }
     
-    /// Compute the data size
-    Size size;
+    // /// Compute the data size
+    // Size size;
     
+    /// Determine whether the components are all static, or not
     static constexpr bool allCompsAreStatic=std::is_same<DynamicComps,std::tuple<>>::value;
     
+    /// Computes the storage size at compile time, if knwon
+    static constexpr Size storageSizeAtCompileTime=allCompsAreStatic?staticSize:DYNAMIC;
+    
     /// Storage
-    TensStorage<Fund,staticSize,allCompsAreStatic> data;
+    TensStorage<Fund,storageSizeAtCompileTime,SL> data;
     
     /// Initialize the dynamical component \t Out using the inputs
     template <typename Ds,   // Type of the dynamically allocated components
@@ -186,11 +203,13 @@ namespace nissa
     PROVIDE_ALSO_NON_CONST_METHOD(getRawAccess);
   };
   
+  /// Traits of the Tensor
   template <typename Fund,
-	    typename...TC>
-  struct CompsTraits<Tens<TensComps<TC...>,Fund>>
+	    typename...TC,
+	    TensStorageLocation SL>
+  struct CompsTraits<Tens<TensComps<TC...>,Fund,SL>>
   {
-    using Type=Tens<TensComps<TC...>,Fund>;
+    using Type=Tens<TensComps<TC...>,Fund,SL>;
     
     using Comps=TensComps<TC...>;
   };

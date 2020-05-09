@@ -1,29 +1,52 @@
 #ifndef _MEMORY_MANAGER_HPP
 #define _MEMORY_MANAGER_HPP
 
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #include <map>
 #include <vector>
 #include <cstdint>
+
+#ifdef USE_CUDA
+ #include <cuda_runtime.h>
+#endif
 
 #ifndef EXTERN_MEMORY_MANAGER
  #define EXTERN_MEMORY_MANAGER extern
 #endif
 
 #include <base/debug.hpp>
+#include <base/metaprogramming.hpp>
 #include <routines/ios.hpp>
 #include <new_types/value_with_extreme.hpp>
 
 namespace nissa
 {
+  enum class MemoryType{CPU ///< Memory allocated on CPU side
+#ifdef USE_CUDA
+			,GPU ///< Memory allocated on GPU side
+#endif
+  };
+  
   /// Type used for size
   using Size=int64_t;
   
   /// Minimal alignment
 #define DEFAULT_ALIGNMENT 16
   
-  /// Memory manager
-  class MemoryManager
+  /// Memory manager, base type
+  template <typename C>
+  class BaseMemoryManager : public Crtp<C>
   {
+  protected:
+    
+    /// Number of allocation performed
+    Size nAlloc{0};
+    
+  private:
+    
     /// List of dynamical allocated memory
     std::map<void*,Size> used;
     
@@ -39,35 +62,8 @@ namespace nissa
     /// Use or not cache
     bool useCache{true};
     
-    /// Number of unaligned allocation performed
-    Size nUnalignedAlloc{0};
-    
-    /// Number of aligned allocation performed
-    Size nAlignedAlloc{0};
-    
     /// Number of cached memory reused
     Size nCachedReused{0};
-    
-    /// Get aligned memory
-    ///
-    /// Call the system routine which allocate memory
-    void* allocateRawAligned(const Size size,         ///< Amount of memory to allocate
-			     const Size alignment)    ///< Required alignment
-    {
-      // runLog()<<"Raw allocating "<<size;
-      
-      /// Result
-      void* ptr=nullptr;
-      
-      /// Returned condition
-      int rc=posix_memalign(&ptr,alignment,size);
-      
-      if(rc) crash("Failed to allocate %ld with alignement %ld",size,alignment);
-      
-      nAlignedAlloc++;
-      
-      return ptr;
-    }
     
     /// Add to the list of used memory
     void pushToUsed(void* ptr,
@@ -191,8 +187,8 @@ namespace nissa
     
     /// Allocate or get from cache after computing the proper size
     template <class T>
-    T* provideAligned(const Size nel,
-		      const Size alignment=DEFAULT_ALIGNMENT)
+    T* provide(const Size nel,
+	       const Size alignment=DEFAULT_ALIGNMENT)
     {
       /// Total size to allocate
       const Size size=sizeof(T)*nel;
@@ -205,7 +201,7 @@ namespace nissa
       
       // If not found in the cache, allocate new memory
       if(ptr==nullptr)
-	ptr=allocateRawAligned(size,alignment);
+	ptr=this->crtp().allocateRaw(size,alignment);
       else
 	nCachedReused++;
       
@@ -214,16 +210,17 @@ namespace nissa
       return static_cast<T*>(ptr);
     }
     
-    /// Decleare unused the memory
-    template <class T>
-    void release(T* ptr) ///< Pointer getting freed
+    /// Declare unused the memory and possibly free it
+    template <typename T>
+    void release(T* &ptr) ///< Pointer getting freed
     {
       if(useCache)
 	moveToCache(static_cast<void*>(ptr));
       else
 	{
 	  popFromUsed(ptr);
-	  free(ptr);
+	  this->crtp().deAllocateRaw(ptr);
+	  ptr=nullptr;
 	}
     }
     
@@ -244,7 +241,7 @@ namespace nissa
 	  // Increment iterator before releasing
 	  el++;
 	  
-	  release(ptr);
+	  this->crtp().release(ptr);
 	}
     }
     
@@ -280,14 +277,12 @@ namespace nissa
     /// Print to a stream
     void printStatistics()
     {
-      master_printf("Maximal memory used: %ld bytes, currently used: %ld bytes, number of allocations: %ld unaligned, %ld aligned\n",
-		    usedSize.extreme(),(Size)usedSize,nUnalignedAlloc,nAlignedAlloc);
       master_printf("Maximal memory cached: %ld bytes, currently used: %ld bytes, number of reused: %ld\n",
 		    cachedSize.extreme(),(Size)cachedSize,nCachedReused);
     }
     
     /// Create the memory manager
-    MemoryManager() :
+    BaseMemoryManager() :
       usedSize(0),
       cachedSize(0)
     {
@@ -295,7 +290,7 @@ namespace nissa
     }
     
     /// Destruct the memory manager
-    ~MemoryManager()
+    ~BaseMemoryManager()
     {
       master_printf("Stopping the memory manager\n");
       
@@ -307,7 +302,67 @@ namespace nissa
     }
   };
   
-  EXTERN_MEMORY_MANAGER MemoryManager *memory_manager;
+  /// Manager of CPU memory
+  struct CPUMemoryManager : public BaseMemoryManager<CPUMemoryManager>
+  {
+    /// Get memory
+    ///
+    /// Call the system routine which allocate memory
+    void* allocateRaw(const Size size,        ///< Amount of memory to allocate
+		      const Size alignment)   ///< Required alignment
+    {
+      /// Result
+      void* ptr=nullptr;
+      
+      /// Returned condition
+      int rc=posix_memalign(&ptr,alignment,size);
+      if(rc) crash("Failed to allocate %ld CPU memory with alignement %ld",size,alignment);
+      
+      nAlloc++;
+      
+      return ptr;
+    }
+    
+    /// Properly free
+    void deAllocateRaw(void* ptr)
+    {
+      free(ptr);
+    }
+  };
+  
+  EXTERN_MEMORY_MANAGER CPUMemoryManager *cpu_memory_manager;
+  
+#ifdef USE_CUDA
+  
+  /// Manager of GPU memory
+  struct GPUMemoryManager : public BaseMemoryManager<GPUMemoryManager>
+  {
+    /// Get memory on GPU
+    ///
+    /// Call the system routine which allocate memory
+    void* allocateRaw(const Size size,        ///< Amount of memory to allocate
+		      const Size alignment)   ///< Required alignment
+    {
+      /// Result
+      void* ptr=nullptr;
+      
+      decript_cuda_error(cudaMalloc(&ptr,size),"Allocating on Gpu");
+      
+      nAlloc++;
+      
+      return ptr;
+    }
+    
+    /// Properly free
+    void deAllocateRaw(void* ptr)
+    {
+      cudaFree(&ptr);
+    }
+  };
+  
+  EXTERN_MEMORY_MANAGER GPUMemoryManager *gpu_memory_manager;
+
+#endif
 }
 
 #undef EXTERN_MEMORY_MANAGER

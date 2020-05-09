@@ -146,7 +146,10 @@ namespace nissa
     initialize_main_vect();
     
     //initialize the memory manager
-    memory_manager=new MemoryManager;
+    cpu_memory_manager=new CPUMemoryManager;
+#ifdef USE_CUDA
+    gpu_memory_manager=new GPUMemoryManager;
+#endif
     
     //initialize global variables
     lx_geom_inited=0;

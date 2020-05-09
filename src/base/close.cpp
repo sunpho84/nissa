@@ -77,7 +77,10 @@ namespace nissa
 	printf("For a total of %zu bytes\n",compute_vect_memory_usage());
       }
     
-    delete memory_manager;
+    delete cpu_memory_manager;
+#ifdef USE_CUDA
+    delete gpu_memory_manager;
+#endif
     
     tot_time+=take_time();
     master_printf("Total time: %lg s\n",tot_time);

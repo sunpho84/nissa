@@ -141,7 +141,7 @@ namespace nissa
   //decript the MPI error
   void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
   {
-    if(rc!=MPI_SUCCESS && rank==0)
+    if(rc!=MPI_SUCCESS and rank==0)
       {
 	char err[1024];
 	int len=1024;
@@ -160,7 +160,7 @@ namespace nissa
 #if USE_CUDA
   void internal_decript_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...)
   {
-    if(rc!=cudaSuccess && rank==0)
+    if(rc!=cudaSuccess and rank==0)
       {
 	char mess[1024];
 	va_list ap;
