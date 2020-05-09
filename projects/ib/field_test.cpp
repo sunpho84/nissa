@@ -155,6 +155,8 @@ int main()
   cout<<SpinColorFieldD::stackAllocated<<endl;
   cout<<SU3Field::stackAllocated<<endl;
   
+  init_grid(8,4);
+  
   Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::GPU> testG(HaloKind::NO_HALO);
   Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::CPU> testC(HaloKind::NO_HALO);
   
