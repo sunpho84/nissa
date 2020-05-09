@@ -1,4 +1,5 @@
 #include <nissa.hpp>
+
 #include <iostream>
 
 using namespace nissa;
@@ -153,6 +154,9 @@ int main()
   
   cout<<SpinColorFieldD::stackAllocated<<endl;
   cout<<SU3Field::stackAllocated<<endl;
+  
+  Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::GPU> testG(HaloKind::NO_HALO);
+  Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::CPU> testC(HaloKind::NO_HALO);
   
   return 0;
 }
