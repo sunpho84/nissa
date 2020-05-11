@@ -73,7 +73,7 @@ namespace nissa
       
       usedSize+=size;
       
-      // runLog()<<"Pushing to used "<<ptr<<" "<<size<<", number of used:"<<used.size();
+      master_printf("Pushing to used %p %zu, used: %zu\n",ptr,size,used.size());
     }
     
     /// Removes a pointer from the used list, without actually freeing associated memory
@@ -81,7 +81,7 @@ namespace nissa
     /// Returns the size of the memory pointed
     Size popFromUsed(void* ptr) ///< Pointer to the memory to move to cache
     {
-      // runLog()<<"Popping from used "<<ptr;
+      master_printf("Popping from used %p\n",ptr);
       
       /// Iterator to search result
       auto el=used.find(ptr);
@@ -107,7 +107,7 @@ namespace nissa
       
       cachedSize+=size;
       
-      // runLog()<<"Pushing to cache "<<size<<" "<<ptr<<", cache size: "<<cached.size();
+      master_printf("Pushing to cache %zu %p, cache size: %zu\n",size,ptr,cached.size());
     }
     
     /// Check if a pointer is suitably aligned
@@ -121,7 +121,7 @@ namespace nissa
     void* popFromCache(const Size& size,
 		       const Size& alignment)
     {
-      // runLog()<<"Try to popping from cache "<<size;
+      master_printf("Try to popping from cache %zu\n",size);
       
       /// List of memory with searched size
       auto cachedIt=cached.find(size);
@@ -161,7 +161,7 @@ namespace nissa
     /// Move the allocated memory to cache
     void moveToCache(void* ptr) ///< Pointer to the memory to move to cache
     {
-      // runLog()<<"Moving to cache "<<ptr;
+      master_printf("Moving to cache %p\n",ptr);
       
       /// Size of pointed memory
       const Size size=popFromUsed(ptr);
@@ -233,7 +233,7 @@ namespace nissa
       
       while(el!=used.end())
 	{
-	  // runLog()<<"Releasing "<<el.first<<" size "<<el.second;
+	  master_printf("Releasing %p size %zu\n",el->first,el->second);
 	  
 	  /// Pointer to memory to release
 	  void* ptr=el->first;
@@ -248,6 +248,8 @@ namespace nissa
     /// Release all memory from cache
     void clearCache()
     {
+      master_printf("Clearing cache\n");
+      
       /// Iterator to elements of the cached memory list
       auto el=cached.begin();
       
@@ -264,7 +266,7 @@ namespace nissa
 	  
 	  for(Size i=0;i<n;i++)
 	    {
-	      // runLog()<<"Removing from cache size "<<el.first;
+	      master_printf("Removing from cache size %zu\n",el->first);
 	      
 	      /// Memory to free
 	      void* ptr=popFromCache(size,DEFAULT_ALIGNMENT);
@@ -315,8 +317,10 @@ namespace nissa
       void* ptr=nullptr;
       
       /// Returned condition
+      master_printf("Allocating size %zu on CPU, ",size);
       int rc=posix_memalign(&ptr,alignment,size);
       if(rc) crash("Failed to allocate %ld CPU memory with alignement %ld",size,alignment);
+      master_printf("ptr: %p\n",ptr);
       
       nAlloc++;
       
@@ -326,6 +330,7 @@ namespace nissa
     /// Properly free
     void deAllocateRaw(void* ptr)
     {
+      master_printf("Freeing from CPU memory %p\n",ptr);
       free(ptr);
     }
   };
@@ -346,8 +351,10 @@ namespace nissa
       /// Result
       void* ptr=nullptr;
       
+      master_printf("Allocating size %zu on GPU, ",size);
       decript_cuda_error(cudaMalloc(&ptr,size),"Allocating on Gpu");
-      
+      master_printf("ptr: %p\n",ptr);
+
       nAlloc++;
       
       return ptr;
@@ -356,7 +363,8 @@ namespace nissa
     /// Properly free
     void deAllocateRaw(void* ptr)
     {
-      cudaFree(&ptr);
+      master_printf("Freeing from GPU memory %p\n",ptr);
+      decript_cuda_error(cudaFree(&ptr),"Freeing from GPU");
     }
   };
   
