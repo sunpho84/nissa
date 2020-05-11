@@ -73,7 +73,7 @@ namespace nissa
       
       usedSize+=size;
       
-      master_printf("Pushing to used %p %zu, used: %zu\n",ptr,size,used.size());
+      verbosity_lv3_master_printf("Pushing to used %p %zu, used: %zu\n",ptr,size,used.size());
     }
     
     /// Removes a pointer from the used list, without actually freeing associated memory
@@ -81,7 +81,7 @@ namespace nissa
     /// Returns the size of the memory pointed
     Size popFromUsed(void* ptr) ///< Pointer to the memory to move to cache
     {
-      master_printf("Popping from used %p\n",ptr);
+      verbosity_lv3_master_printf("Popping from used %p\n",ptr);
       
       /// Iterator to search result
       auto el=used.find(ptr);
@@ -107,7 +107,7 @@ namespace nissa
       
       cachedSize+=size;
       
-      master_printf("Pushing to cache %zu %p, cache size: %zu\n",size,ptr,cached.size());
+      verbosity_lv3_master_printf("Pushing to cache %zu %p, cache size: %zu\n",size,ptr,cached.size());
     }
     
     /// Check if a pointer is suitably aligned
@@ -121,7 +121,7 @@ namespace nissa
     void* popFromCache(const Size& size,
 		       const Size& alignment)
     {
-      master_printf("Try to popping from cache %zu\n",size);
+      verbosity_lv3_master_printf("Try to popping from cache %zu\n",size);
       
       /// List of memory with searched size
       auto cachedIt=cached.find(size);
@@ -161,7 +161,7 @@ namespace nissa
     /// Move the allocated memory to cache
     void moveToCache(void* ptr) ///< Pointer to the memory to move to cache
     {
-      master_printf("Moving to cache %p\n",ptr);
+      verbosity_lv3_master_printf("Moving to cache %p\n",ptr);
       
       /// Size of pointed memory
       const Size size=popFromUsed(ptr);
@@ -220,7 +220,6 @@ namespace nissa
 	{
 	  popFromUsed(ptr);
 	  this->crtp().deAllocateRaw(ptr);
-	  ptr=nullptr;
 	}
     }
     
@@ -233,7 +232,7 @@ namespace nissa
       
       while(el!=used.end())
 	{
-	  master_printf("Releasing %p size %zu\n",el->first,el->second);
+	  verbosity_lv3_master_printf("Releasing %p size %zu\n",el->first,el->second);
 	  
 	  /// Pointer to memory to release
 	  void* ptr=el->first;
@@ -248,7 +247,7 @@ namespace nissa
     /// Release all memory from cache
     void clearCache()
     {
-      master_printf("Clearing cache\n");
+      verbosity_lv3_master_printf("Clearing cache\n");
       
       /// Iterator to elements of the cached memory list
       auto el=cached.begin();
@@ -266,12 +265,13 @@ namespace nissa
 	  
 	  for(Size i=0;i<n;i++)
 	    {
-	      master_printf("Removing from cache size %zu\n",el->first);
+	      verbosity_lv3_master_printf("Removing from cache size %zu ",el->first);
 	      
 	      /// Memory to free
 	      void* ptr=popFromCache(size,DEFAULT_ALIGNMENT);
 	      
-	      free(ptr);
+	      verbosity_lv3_master_printf("ptr: %p\n",ptr);
+	      this->crtp().deAllocateRaw(ptr);
 	    }
 	}
     }
@@ -317,10 +317,10 @@ namespace nissa
       void* ptr=nullptr;
       
       /// Returned condition
-      master_printf("Allocating size %zu on CPU, ",size);
+      verbosity_lv3_master_printf("Allocating size %zu on CPU, ",size);
       int rc=posix_memalign(&ptr,alignment,size);
       if(rc) crash("Failed to allocate %ld CPU memory with alignement %ld",size,alignment);
-      master_printf("ptr: %p\n",ptr);
+      verbosity_lv3_master_printf("ptr: %p\n",ptr);
       
       nAlloc++;
       
@@ -328,10 +328,11 @@ namespace nissa
     }
     
     /// Properly free
-    void deAllocateRaw(void* ptr)
+    void deAllocateRaw(void* &ptr)
     {
-      master_printf("Freeing from CPU memory %p\n",ptr);
+      verbosity_lv3_master_printf("Freeing from CPU memory %p\n",ptr);
       free(ptr);
+      ptr=nullptr;
     }
   };
   
@@ -351,20 +352,21 @@ namespace nissa
       /// Result
       void* ptr=nullptr;
       
-      master_printf("Allocating size %zu on GPU, ",size);
+      verbosity_lv3_master_printf("Allocating size %zu on GPU, ",size);
       decript_cuda_error(cudaMalloc(&ptr,size),"Allocating on Gpu");
-      master_printf("ptr: %p\n",ptr);
-
+      verbosity_lv3_master_printf("ptr: %p\n",ptr);
+      
       nAlloc++;
       
       return ptr;
     }
     
     /// Properly free
-    void deAllocateRaw(void* ptr)
+    void deAllocateRaw(void&* ptr)
     {
       master_printf("Freeing from GPU memory %p\n",ptr);
       decript_cuda_error(cudaFree(&ptr),"Freeing from GPU");
+      ptr=nullptr;
     }
   };
   

@@ -67,7 +67,7 @@ namespace nissa
       /// Destructor deallocating the memory
       ~DynamicStorage()
       {
-	memory_manager()->release(data);
+	memory_manager()->release((void*&)data);
       }
     };
     
