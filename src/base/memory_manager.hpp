@@ -362,7 +362,7 @@ namespace nissa
     }
     
     /// Properly free
-    void deAllocateRaw(void&* ptr)
+    void deAllocateRaw(void* &ptr)
     {
       master_printf("Freeing from GPU memory %p\n",ptr);
       decript_cuda_error(cudaFree(&ptr),"Freeing from GPU");
