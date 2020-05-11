@@ -61,7 +61,7 @@ namespace nissa
       /// Construct allocating data
       DynamicStorage(const Size& dynSize)
       {
-	memory_manager()->template provide<Fund>(dynSize);
+	data=memory_manager()->template provide<Fund>(dynSize);
       }
       
       /// Destructor deallocating the memory
