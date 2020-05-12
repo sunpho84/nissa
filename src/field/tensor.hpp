@@ -153,7 +153,7 @@ namespace nissa
     template <typename...TD>
     Tens(TD&&...td) :
       dynamicSizes{initializeDynSizes((DynamicComps*)nullptr,std::forward<TD>(td)...)},
-      data(productAll<Size>(std::forward<TD>(td)...))
+      data(staticSize*productAll<Size>(std::forward<TD>(td)...))
     {
       /// Dynamic size
       //const Size dynamicSize=product<Size>(std::forward<TD>(td)...);
