@@ -11,12 +11,14 @@ using SpinSpaceColor=TensComps<SpinIdx,LocVolIdx,ColorIdx>;
 
 // using SpinColorFieldD=SpinColorField<double>;
 
-// #define TEST(NAME,...)							\
-//   double& NAME(SpinColorFieldD& tensor,SpinIdx spin,ColorIdx col,LocVolIdx space) \
-//   {									\
-//     asm("#here " #NAME "  access");					\
-//     return __VA_ARGS__;							\
-//   }
+/*
+#define TEST(NAME,...)							\
+   double& NAME(SpinColorFieldD& tensor,SpinIdx spin,ColorIdx col,LocVolIdx space) \
+   {									\
+     asm("#here " #NAME "  access");					\
+     return __VA_ARGS__;							\
+   }
+   */
 
 // LocVolIdx vol;
 
@@ -66,6 +68,24 @@ void in_main(int narg,char **arg)
   Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::GPU> testG(HaloKind::NO_HALO);
   Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::CPU> testC(HaloKind::NO_HALO);
   
+  decltype(testG)::spaceTimeParallelLoop([&](const auto& ivol)
+					 {
+					   for(SpinIdx id{0};id<4;id++)
+					     for(ColorIdx ic{0};ic<3;ic++)
+					       for(ComplIdx ri{0};ri<2;ri++)
+						 {
+						   double* offC=testC.data.data.data.data;
+						   double* offG=testG.data.data.data.data;
+						   double& tC=testC(ivol,id,ic,ri);
+						   double& tG=testG(ivol,id,ic,ri);
+						   int nC=(int)((size_t)&tC-(size_t)offC)/sizeof(double);
+						   int nG=(int)((size_t)&tG-(size_t)offG)/sizeof(double);
+						   printf("ivol %d loc_vol %ld %d %d\n",(int)ivol,loc_vol,nC,nG);
+						   tC=tG=1.0;
+						 }
+					 });
+  
+  master_printf("%lg\n",testG.data.trivialAccess(0));
 }
 
 int main(int narg,char **arg)

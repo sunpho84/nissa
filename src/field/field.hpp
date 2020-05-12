@@ -6,6 +6,45 @@
 
 namespace nissa
 {
+  ///////////// TO BE MOVED SOMEWHERE ELSE ////////
+  template <TensStorageLocation>
+  struct _ParallelLoop;
+  
+  template <>
+  struct _ParallelLoop<TensStorageLocation::ON_CPU>
+  {
+    template <typename S,
+	      typename F>
+    static void loop(const S& min,const S& max,F&& f)
+    {
+      for(S i=min;i<max;i++)
+	f(i);
+    }
+  };
+  
+#ifdef USE_CUDA
+  template <>
+  struct _ParallelLoop<TensStorageLocation::ON_GPU>
+  {
+    template <typename S,
+	      typename F>
+    static void loop(const S& min,const S& max,F&& f)
+    {
+      cuda_parallel_for(__LINE__,__FILE__,min,max,f);
+    }
+  };
+#endif
+  
+  template <TensStorageLocation SL,
+	    typename S,
+	    typename F>
+  void parallelLoop(const S& min,const S& max,F&& f)
+  {
+    _ParallelLoop<SL>::loop(min,max,std::forward<F>(f));
+  }
+  
+  /////////////////////////////////////////////////////////////////
+  
   /// Ordinary storage location used when not specified otherwise
   static constexpr TensStorageLocation OrdinaryFieldStorageLocation=
 #ifdef USE_CUDA
@@ -108,6 +147,14 @@ namespace nissa
     
     /// Storing data
     Tens<typename CT::Comps,typename CT::F,SL> data;
+    
+    template <typename F>
+    static void spaceTimeParallelLoop(F&& f)
+    {
+      using S=typename CT::SpaceTimeComp;
+      
+      parallelLoop<SL>((S)0,SpaceTimeProps<S>::locSize(),std::forward<F>(f));
+    }
     
     /// Create taking the dynamical sizes as argument
     template <typename...D>
