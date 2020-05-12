@@ -152,7 +152,7 @@ namespace nissa
   
 #define REIM(NAME) auto NAME : {re,im}
   
-#define _ALL_RW_OR_CL_COLORS(NAME,RC) LOOP_RANGE(ColorIdx<RC>,NAME,0,NCL)
+#define _ALL_RW_OR_CL_COLORS(NAME,RC) LOOP_RANGE(ColorIdx<RC>,NAME,0,NCOL)
 #define _ALL_RW_OR_CL_SPINS(NAME,RC) LOOP_RANGE(SpinIdx<RC>,NAME,0,NDIRAC)
 #define _ALL_RW_OR_CL_DIRS(NAME,RC) LOOP_RANGE(DirIdx<RC>,NAME,0,NDIM)
   
