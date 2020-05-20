@@ -19,7 +19,7 @@ namespace nissa
 {
   //compute the magnetization starting from chi and rnd
   //please note that the conf must hold backfield
-  THREADABLE_FUNCTION_10ARG(magnetization, complex*,magn, double*,proj_magn, quad_su3**,conf, quark_content_t*,quark, color**,rnd, color**,chi, complex*,point_magn, coords*,arg, int,mu, int,nu)
+  THREADABLE_FUNCTION_10ARG(magnetization, complex*,magn, double*,proj_magn, quad_su3**,conf, quark_content_t*,quark, color**,rnd, color**,chi, complex*,point_magn, momentum_t*,arg, int,mu, int,nu)
   {
     GET_THREAD_ID();
     
@@ -99,7 +99,7 @@ namespace nissa
     color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
     
     //we need to store phases
-    coords *arg=nissa_malloc("arg",loc_vol+bord_vol,coords);
+    momentum_t *arg=nissa_malloc("arg",loc_vol+bord_vol,momentum_t);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol+bord_vol)
       get_args_of_quantization[quantization](arg[ivol],ivol,mu,nu);
     NISSA_PARALLEL_LOOP_END;
