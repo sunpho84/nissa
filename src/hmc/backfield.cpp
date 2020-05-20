@@ -57,11 +57,11 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute args for non-present quantization
-  void get_args_of_null_quantization(coords phase,int ivol,int mu,int nu)
+  void get_args_of_null_quantization(momentum_t phase,int ivol,int mu,int nu)
   {phase[0]=phase[1]=phase[2]=phase[3]=0;}
   
   //compute args for 1/L2 quantization
-  void get_args_of_one_over_L2_quantization(coords phase,int ivol,int mu,int nu)
+  void get_args_of_one_over_L2_quantization(momentum_t phase,int ivol,int mu,int nu)
   {
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
@@ -94,7 +94,7 @@ namespace nissa
   }
   
   //compute args for half-half quantization
-  void get_args_of_half_half_quantization(coords phase,int ivol,int mu,int nu)
+  void get_args_of_half_half_quantization(momentum_t phase,int ivol,int mu,int nu)
   {
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
@@ -109,7 +109,7 @@ namespace nissa
     phase[nu]=xmu;
   }
   
-  void (*get_args_of_quantization[3])(coords,int,int,int)=
+  void (*get_args_of_quantization[3])(momentum_t,int,int,int)=
   {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
   
   //multiply a background field by a constant em field
@@ -125,7 +125,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	  {
 	    //compute arg
-	    coords arg;
+	    momentum_t arg;
 	    get_args_of_quantization[quantization](arg,loclx_of_loceo[par][ieo],mu,nu);
 	    
 	    //compute u1phase and multiply
@@ -146,12 +146,6 @@ namespace nissa
   //set up all the 6 components
   THREADABLE_FUNCTION_3ARG(add_em_field_to_backfield, quad_u1**,S, quark_content_t*,quark_content, em_field_pars_t*,em_field_pars)
   {
-    for(int x=0;x<glb_size[1];x++)
-      for(int y=0;y<glb_size[2];y++)
-	{
-	  
-	}
-    
     double *E=em_field_pars->E,*B=em_field_pars->B;
     int q=em_field_pars->flag;
     if(q)
