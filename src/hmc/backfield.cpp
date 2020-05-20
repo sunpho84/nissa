@@ -72,12 +72,25 @@ namespace nissa
     if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
     if(xnu>=glb_size[nu]/2) xnu-=glb_size[nu];
     
-    //define the arguments of exponentials
-    if(xmu==glb_size[mu]/2-1) phase[mu]+=-xnu*glb_size[mu]/2.0;
-    if(xnu==glb_size[nu]/2-1) phase[nu]+=+xmu*glb_size[nu]/2.0;
+    int ave=0;
     
-    phase[nu]+=+xmu/2.0;
-    phase[mu]+=-xnu/2.0;
+    //define the arguments of exponentials
+    if(not ave)
+      {
+	if(xmu==glb_size[mu]/2-1) phase[mu]=-xnu*glb_size[mu];
+	phase[nu]=xmu;
+      }
+    else
+      {
+	if(xmu==glb_size[mu]/2-1) phase[mu]+=-xnu*glb_size[mu]/2.0;
+        if(xnu==glb_size[nu]/2-1) phase[nu]+=+xmu*glb_size[nu]/2.0;
+	
+	phase[nu]+=+xmu/2.0;
+        phase[mu]+=-xnu/2.0;
+      }
+
+    if(glb_coord_of_loclx[ivol][0]==0 and glb_coord_of_loclx[ivol][3]==0)
+      master_printf("PH %d %d %lg %lg\n",glb_coord_of_loclx[ivol][mu],glb_coord_of_loclx[ivol][nu],phase[mu],phase[nu]);
   }
   
   //compute args for half-half quantization
@@ -126,6 +139,7 @@ namespace nissa
 	
 	set_borders_invalid(S[par]);
       }
+    crash("");
   }
   THREADABLE_FUNCTION_END
   
