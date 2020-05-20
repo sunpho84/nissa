@@ -73,8 +73,11 @@ namespace nissa
     if(xnu>=glb_size[nu]/2) xnu-=glb_size[nu];
     
     //define the arguments of exponentials
-    if(xmu==glb_size[mu]/2-1) phase[mu]=-xnu*glb_size[mu];
-    phase[nu]=xmu;
+    if(xmu==glb_size[mu]/2-1) phase[mu]+=-xnu*glb_size[mu]/2.0;
+    if(xnu==glb_size[nu]/2-1) phase[nu]+=+xmu*glb_size[nu]/2.0;
+    
+    phase[nu]+=+xmu/2.0;
+    phase[mu]+=-xnu/2.0;
   }
   
   //compute args for half-half quantization
@@ -129,6 +132,12 @@ namespace nissa
   //set up all the 6 components
   THREADABLE_FUNCTION_3ARG(add_em_field_to_backfield, quad_u1**,S, quark_content_t*,quark_content, em_field_pars_t*,em_field_pars)
   {
+    for(int x=0;x<glb_size[1];x++)
+      for(int y=0;y<glb_size[2];y++)
+	{
+	  
+	}
+    
     double *E=em_field_pars->E,*B=em_field_pars->B;
     int q=em_field_pars->flag;
     if(q)

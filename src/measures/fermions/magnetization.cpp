@@ -19,7 +19,7 @@ namespace nissa
 {
   //compute the magnetization starting from chi and rnd
   //please note that the conf must hold backfield
-  THREADABLE_FUNCTION_9ARG(magnetization, complex*,magn, quad_su3**,conf, quark_content_t*,quark, color**,rnd, color**,chi, complex*,point_magn, coords*,arg, int,mu, int,nu)
+  THREADABLE_FUNCTION_10ARG(magnetization, complex*,magn, double*,proj_magn, quad_su3**,conf, quark_content_t*,quark, color**,rnd, color**,chi, complex*,point_magn, coords*,arg, int,mu, int,nu)
   {
     GET_THREAD_ID();
     
@@ -63,6 +63,16 @@ namespace nissa
     complex temp;
     complex_vector_glb_collapse(temp,point_magn,loc_vol);
     
+    double coeff=-quark->deg*2*M_PI*quark->charge/(4.0*glb_vol*2*glb_size[mu]*glb_size[nu]);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	int x=glb_coord_of_loclx[ivol][1];
+	int y=glb_coord_of_loclx[ivol][2];
+	proj_magn[y+glb_size[2]*x]-=point_magn[ivol][IM]*coeff;
+      }
+    NISSA_PARALLEL_LOOP_END;
+    THREAD_BARRIER();
+    
     //add normalization, corresponding to all factors relative to derivative with respects to "b": 
     //-quark_deg/4 coming from the determinant
     //-1/vol coming from stochastic trace
@@ -71,7 +81,6 @@ namespace nissa
     //and a minus because F=-logZ
     if(IS_MASTER_THREAD)
       {
-        double coeff=-quark->deg*2*M_PI*quark->charge/(4.0*glb_vol*2*glb_size[mu]*glb_size[nu]);
         complex_prod_idouble(*magn,temp,coeff);
       }
     THREAD_BARRIER();
@@ -79,7 +88,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the magnetization
-  THREADABLE_FUNCTION_7ARG(magnetization, complex*,magn, quad_su3**,conf, int,quantization, quad_u1**,u1b, quark_content_t*,quark, double,residue, color**,rnd)
+  THREADABLE_FUNCTION_8ARG(magnetization, complex*,magn, double*,proj_magn, quad_su3**,conf, int,quantization, quad_u1**,u1b, quark_content_t*,quark, double,residue, color**,rnd)
   {
     GET_THREAD_ID();
     
@@ -105,7 +114,7 @@ namespace nissa
     inv_stD_cg(chi,conf,quark->mass,1000000,residue,rnd);
     
     //compute mag
-    magnetization(magn,conf,quark,rnd,chi,point_magn,arg,mu,nu);
+    magnetization(magn,proj_magn,conf,quark,rnd,chi,point_magn,arg,mu,nu);
     
     //remove backfield
     rem_backfield_with_stagphases_from_conf(conf,u1b);
@@ -118,15 +127,14 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the magnetization
-  void magnetization(complex *magn,complex *magn_free,rnd_t rnd_type,quad_su3 **conf,quad_su3 **free_conf,int quantization,quad_u1 **u1b,quark_content_t *quark,double residue)
+  void magnetization(complex *magn,double *proj_magn,rnd_t rnd_type,quad_su3 **conf,int quantization,quad_u1 **u1b,quark_content_t *quark,double residue)
   {
     //allocate source and generate it
     color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
     generate_fully_undiluted_eo_source(rnd,rnd_type,-1);
     
     //call inner function
-    magnetization(magn,conf,quantization,u1b,quark,residue,rnd);
-    magnetization(magn_free,free_conf,quantization,u1b,quark,residue,rnd);
+    magnetization(magn,proj_magn,conf,quantization,u1b,quark,residue,rnd);
     
     for(int par=0;par<2;par++) nissa_free(rnd[par]);
   }
@@ -135,57 +143,57 @@ namespace nissa
   void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,magnetization_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    FILE *file_free=open_file(meas_pars.path+"_free",conf_created?"w":"a");
+    FILE *file_proj=open_file(meas_pars.path+"_proj",conf_created?"w":"a");
     
-    quad_su3 *free_conf[2];
-    for(int eo=0;eo<2;eo++)
-      free_conf[eo]=nissa_malloc("free_conf",loc_volh+bord_volh,quad_su3);
-    generate_cold_eo_conf(free_conf);
+    double *proj_magn=new double[glb_size[1]*glb_size[2]];
     
     int ncopies=meas_pars.ncopies;
     for(int icopy=0;icopy<ncopies;icopy++)
       {
         master_fprintf(file,"%d",iconf);
-        master_fprintf(file_free,"%d",iconf);
         
+	memset(proj_magn,0,sizeof(double)*glb_size[1]*glb_size[2]);
+	
+	int nhits=meas_pars.nhits;
         //measure magnetization for each quark
         for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
           {
 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
 	    
             complex magn={0,0};
-            complex magn_free={0,0};
             
             //loop over hits
-            int nhits=meas_pars.nhits;
             for(int hit=0;hit<nhits;hit++)
               {
                 verbosity_lv2_master_printf("Evaluating magnetization for flavor %d/%d, ncopies %d/%d nhits %d/%d\n",
                                             iflav+1,theory_pars.nflavs(),icopy+1,ncopies,hit+1,nhits);
             
                 //compute and summ
-                complex temp,temp_free;
-                magnetization(&temp,&temp_free,meas_pars.rnd_type,conf,free_conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue); //flag holds quantization
+                complex temp;
+                magnetization(&temp,proj_magn,meas_pars.rnd_type,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue); //flag holds quantization
                 
                 //normalize
                 complex_summ_the_prod_double(magn,temp,1.0/nhits);
-                complex_summ_the_prod_double(magn_free,temp_free,1.0/nhits);
               }
             
             //output
             master_fprintf(file,"\t%+016.16lg \t%+016.16lg",magn[RE],magn[IM]);
-            master_fprintf(file_free,"\t%+016.16lg \t%+016.16lg",magn_free[RE],magn_free[IM]);
           }
-        
+	MPI_Allreduce(MPI_IN_PLACE,proj_magn,glb_size[1]*glb_size[2],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	//MPI_reduce_double_vect(proj_magn,glb_size[1]*glb_size[2]);
+	
         master_fprintf(file,"\n");
-        master_fprintf(file_free,"\n");
+	
+	for(int x=0;x<glb_size[1];x++)
+	  for(int y=0;y<glb_size[2];y++)
+	    master_fprintf(file_proj,"%.16lg\n",proj_magn[y+glb_size[2]*x]/nhits);
+	master_fprintf(file_proj,"\n");
       }
     
-    for(int eo=0;eo<2;eo++)
-      nissa_free(free_conf[eo]);
-    
     close_file(file);
-    close_file(file_free);
+    close_file(file_proj);
+    
+    delete [] proj_magn;
   }
   
   //print
