@@ -7,6 +7,8 @@
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "io/input.hpp"
+#include "io/reader.hpp"
 #include "hmc/multipseudo/theory_action.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
@@ -39,7 +41,7 @@ namespace nissa
   
   //multiply a background field by the imaginary chemical potential
   THREADABLE_FUNCTION_2ARG(add_im_pot_to_backfield, quad_u1**,S, quark_content_t*,quark_content)
-  {    
+  {
     GET_THREAD_ID();
     
     double im_pot=quark_content->im_pot*M_PI/glb_size[0];
@@ -60,24 +62,128 @@ namespace nissa
   void get_args_of_null_quantization(momentum_t phase,int ivol,int mu,int nu)
   {phase[0]=phase[1]=phase[2]=phase[3]=0;}
   
+  double *px=nullptr,*py=nullptr;
+  int ind(int x,int y)
+  {
+    return y+glb_size[2]*x;
+  };
+  
+  double var()
+  {
+    double t2=0;
+    double t=0;
+    for(int x=0;x<glb_size[1];x++)
+      for(int y=0;y<glb_size[2];y++)
+	{
+	  t2+=px[ind(x,y)]*px[ind(x,y)];
+	  t2+=py[ind(x,y)]*py[ind(x,y)];
+	  t+=px[ind(x,y)]+py[ind(x,y)];
+	}
+    t2/=glb_size[1]*glb_size[2];
+    t/=glb_size[1]*glb_size[2];
+    t2-=t*t;
+    
+    return t2;
+  }
+  
+  void set_glb_phases()
+  {
+    const int L=glb_size[1];
+    
+    px=nissa_malloc("px",L*L,double);
+    py=nissa_malloc("py",L*L,double);
+    
+    const int ave=1,shift=1;
+    
+    for(int _x=0;_x<L;_x++)
+      for(int _y=0;_y<L;_y++)
+	{
+	  int i=ind(_x,_y);
+	  px[i]=py[i]=0;
+	  
+	  double x=_x;
+	  double y=_y;
+	
+	  if(x>=L/2) x-=L;
+	  if(y>=L/2) y-=L;
+	
+	  if(ave)
+	    {
+	      if(x==L/2-1) px[i]+=-(y+0.5*shift)*L/2.0;
+	      if(y==L/2-1) py[i]+=+(x+0.5*shift)*L/2.0;
+	    }
+	  else
+	    if(x==L/2-1) px[i]+=-(y+0.5*shift)*L;
+	  
+	  if(ave)
+	    {
+	      py[i]+=+(x+0.5*shift)/2.0;
+	      px[i]+=-(y+0.5*shift)/2.0;
+	    }
+	  else
+	    py[i]+=+(x+0.5*shift);
+	}
+    
+    double c_ave,thresh=0;
+    do
+      {
+	c_ave=0;
+	
+	for(int y=0;y<L;y++)
+	  for(int x=0;x<=y;x++)
+	    {
+	      const int xm=(x+L-1)%L;
+	      const int ym=(y+L-1)%L;
+	      
+	      double &a0=px[ind(x,y)];
+	      double &a1=px[ind(xm,y)];
+	      double &a2=py[ind(x,y)];
+	      double &a3=py[ind(x,ym)];
+	      
+	      const double c=(-a0+a1-a2+a3)/4;
+	      c_ave+=c*c;
+	      // printf("c: %lg\n",c);
+	      a0+=c;
+	      a1-=c;
+	      a2+=c;
+	      a3-=c;
+	      
+	      py[ind(y,x)]-=c;
+	      py[ind(y,xm)]+=c;
+	      px[ind(y,x)]-=c;
+	      px[ind(ym,x)]+=c;
+	    }
+	
+	master_printf("Var: %.16lg\n",var());
+	if(thresh==0)
+	  thresh=5e-32*c_ave;
+      }
+    while(c_ave>thresh);
+  }
+  
   //compute args for 1/L2 quantization
   void get_args_of_one_over_L2_quantization(momentum_t phase,int ivol,int mu,int nu)
   {
+    if(px==nullptr) set_glb_phases();
+    
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
     
     //take absolute coords
     int xmu=glb_coord_of_loclx[ivol][mu];
     int xnu=glb_coord_of_loclx[ivol][nu];
-    if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
-    if(xnu>=glb_size[nu]/2) xnu-=glb_size[nu];
+    // if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
+    // if(xnu>=glb_size[nu]/2) xnu-=glb_size[nu];
     
-    //define the arguments of exponentials
-    if(xmu==glb_size[mu]/2-1) phase[mu]+=-xnu*glb_size[mu]/2.0;
-    if(xnu==glb_size[nu]/2-1) phase[nu]+=+xmu*glb_size[nu]/2.0;
+    // //define the arguments of exponentials
+    // if(xmu==glb_size[mu]/2-1) phase[mu]+=-xnu*glb_size[mu]/2.0;
+    // if(xnu==glb_size[nu]/2-1) phase[nu]+=+xmu*glb_size[nu]/2.0;
     
-    phase[nu]+=+xmu/2.0;
-    phase[mu]+=-xnu/2.0;
+    // phase[nu]+=+xmu/2.0;
+    // phase[mu]+=-xnu/2.0;
+    
+    phase[1]=px[ind(xmu,xnu)];
+    phase[2]=py[ind(xmu,xnu)];
   }
   
   //compute args for half-half quantization
