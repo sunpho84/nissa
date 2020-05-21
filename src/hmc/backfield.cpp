@@ -175,13 +175,6 @@ namespace nissa
     // if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
     // if(xnu>=glb_size[nu]/2) xnu-=glb_size[nu];
     
-    // //define the arguments of exponentials
-    // if(xmu==glb_size[mu]/2-1) phase[mu]+=-xnu*glb_size[mu]/2.0;
-    // if(xnu==glb_size[nu]/2-1) phase[nu]+=+xmu*glb_size[nu]/2.0;
-    
-    // phase[nu]+=+xmu/2.0;
-    // phase[mu]+=-xnu/2.0;
-    
     phase[1]=px[ind(xmu,xnu)];
     phase[2]=py[ind(xmu,xnu)];
   }
