@@ -854,8 +854,10 @@ namespace nissa
 	vector_reset(sides[side_name]);
 	
 	//check r are the same (that is, opposite!)
-	if(twisted_run and Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
-	  crash("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fw.c_str(),h.bw.c_str());
+	if(twisted_run and (not loc_hadr_curr)) {
+	  if(Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
+	    crash("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fw.c_str(),h.bw.c_str());
+	}
 	
 	//compute dirac combo
 	dirac_matr g;
