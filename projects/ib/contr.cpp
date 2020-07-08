@@ -889,7 +889,7 @@ namespace nissa
       }
     
     //compute the hands
-    NISSA_PARALLEL_LOOP(ihand,0, handcuffs_map.size())
+    NISSA_PARALLEL_LOOP(ihand,0, (int)handcuffs_map.size())
       if(sides.find(handcuffs_map[ihand].left)==sides.end() or
 	 sides.find(handcuffs_map[ihand].right)==sides.end())
 	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
