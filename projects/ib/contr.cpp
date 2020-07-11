@@ -843,6 +843,7 @@ namespace nissa
     
     //allocate all sides
     std::map<std::string,spin1field*> sides;
+
     
     //loop over sides
     for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
@@ -852,7 +853,8 @@ namespace nissa
 	std::string side_name=h.name;
 	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),loc_vol,spin1field);
 	vector_reset(sides[side_name]);
-	
+
+      
 	//check r are the same (that is, opposite!)
 	if(twisted_run and (not loc_hadr_curr)) {
 	  if(Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
@@ -871,6 +873,7 @@ namespace nissa
 	
 	//if(h.store) store_spin1field(combine("%s/handcuff_side_%s",outfolder,h.name.c_str()),si);
       }
+
     
     //add the photon
     for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
@@ -887,7 +890,7 @@ namespace nissa
 	    multiply_by_tlSym_gauge_propagator(rp,sides[h.right],photon);
 	  }
       }
-    
+
     //compute the hands
     NISSA_PARALLEL_LOOP(ihand,0, (int)handcuffs_map.size())
       if(sides.find(handcuffs_map[ihand].left)==sides.end() or
