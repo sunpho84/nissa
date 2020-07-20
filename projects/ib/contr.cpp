@@ -866,8 +866,9 @@ namespace nissa
 	int ig=::abs(handcuffs_side_map[iside].igamma);
 	int revert=(handcuffs_side_map[iside].igamma>=0); //reverting only if positive ig asked
 	if(ig!=5 and !diluted_spi_source) crash("ig %d not available if not diluting in spin",ig);
-	dirac_prod(&g,base_gamma+5,base_gamma+ig);
-	
+	//dirac_prod(&g,base_gamma+5,base_gamma+ig);
+	g=base_gamma[ig];
+		
 	//compute the matrix element
 	local_or_conserved_vector_current_mel(si,g,h.bw,h.fw,revert);
 	
