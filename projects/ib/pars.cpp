@@ -46,9 +46,9 @@ namespace nissa
   }
   
   //meson tags
-  const int nmes2pts_known=20;
-  enum mes2pts_known_t                      { P5P5 , GIP5 , P5GI , V0V0 , AKAK , VKVK , VKTK , TKVK , TKTK , BKBK , GIS0 , S0GI , V0P5 , VKP5 , S0S0 , A0A0 , AKBK , BKAK , V0S0 , S0V0};
-  const char mes2pts_tag[nmes2pts_known][5]={"P5P5","GIP5","P5GI","V0V0","AKAK","VKVK","VKTK","TKVK","TKTK","BKBK","GIS0","S0GI","V0P5","VKP5","S0S0","A0A0","AKBK","BKAK","V0S0","S0V0"};
+  const int nmes2pts_known=21;
+  enum mes2pts_known_t                      { P5P5 , GIP5 , P5GI , V0V0 , AKAK , VKVK , VKTK , TKVK , TKTK , BKBK , GIS0 , S0GI , V0P5 , VKP5 , S0S0 , A0A0 , AKBK , BKAK , V0S0 , S0V0, S0P5};
+  const char mes2pts_tag[nmes2pts_known][5]={"P5P5","GIP5","P5GI","V0V0","AKAK","VKVK","VKTK","TKVK","TKTK","BKBK","GIS0","S0GI","V0P5","VKP5","S0S0","A0A0","AKBK","BKAK","V0S0","S0V0","S0P5"};
   mes2pts_known_t read_2pts_tag()
   {
     //read the tag
@@ -119,6 +119,7 @@ namespace nissa
 	  case AKBK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+5,mu+12)); break;
 	  case BKAK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+12,mu+5)); break;
 	  case S0V0: mes_gamma_list.push_back(idirac_pair_t(0,4));                                 break;
+	  case S0P5: mes_gamma_list.push_back(idirac_pair_t(0,5));                                 break;
 	  case V0S0: mes_gamma_list.push_back(idirac_pair_t(4,0));                                 break;
 	  default: crash("unknown meson_contr");
 	  }
