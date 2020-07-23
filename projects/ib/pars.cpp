@@ -176,7 +176,11 @@ namespace nissa
 	    read_int(&store);
 	    
 	    handcuffs_side_map.push_back(handcuffs_side_map_t(name,igamma,bw,fw,store));
+	    if(Q.find(bw)==Q.end()) crash("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw);
+	    if(Q.find(fw)==Q.end()) crash("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw);
 	  }
+	
+	
 	
 	//read the sides combo
 	for(int i=0;i<nhand_contr;i++)
@@ -187,6 +191,18 @@ namespace nissa
 	    char right[1024];
 	    read_str(left,1024);
 	    read_str(right,1024);
+	    //check if left and right is present in handcuffs_size_map
+	    bool left_hand_found=false;
+	    bool right_hand_found=false;
+	    for(auto &hand : handcuffs_side_map)
+	      {
+		if(hand.name==left) left_hand_found=true;
+		if(hand.name==right) right_hand_found=true;
+		if(left_hand_found && right_hand_found) break;
+	      }
+	    
+	    if(!left_hand_found)   crash("for handcuffs \'%s\' the left bubble \'%s\' is not present",name,left);
+	    if(!right_hand_found)  crash("for handcuffs \'%s\' the right bubble \'%s\' is not present",name,right);
 	    
 	    handcuffs_map.push_back(handcuffs_map_t(name,left,right));
 	  }

@@ -21,14 +21,16 @@ namespace nissa
   /// Forward definition to capture actual components
   template <typename Comps,
 	    typename Fund=double,
-	    TensStorageLocation SL=OrdinaryTensStorageLocation>
+	    TensStorageLocation SL=OrdinaryTensStorageLocation,
+	    bool IsRef=false>
   struct Tens;
   
   /// Tensor
   template <typename Fund,
 	    TensStorageLocation SL,
-	    typename...TC>
-  struct Tens<TensComps<TC...>,Fund,SL> : public Subscribable<Tens<TensComps<TC...>,Fund,SL>>
+	    typename...TC,
+	    bool IsRef>
+  struct Tens<TensComps<TC...>,Fund,SL,IsRef> : public Subscribable<Tens<TensComps<TC...>,Fund,SL,IsRef>>
   {
     /// Components
     using Comps=TensComps<TC...>;
@@ -43,7 +45,8 @@ namespace nissa
     const DynamicComps dynamicSizes;
     
     /// Static size
-    static constexpr Size staticSize=productAll<Size>((TC::SizeIsKnownAtCompileTime?TC::Base::sizeAtCompileTime():1)...);
+    static constexpr Size staticSize=
+      productAll<Size>((TC::SizeIsKnownAtCompileTime?TC::Base::sizeAtCompileTime():1)...);
     
     /// Calculate the index - no more components to parse
     Size index(Size outer) const ///< Value of all the outer components
@@ -121,8 +124,11 @@ namespace nissa
     /// Computes the storage size at compile time, if knwon
     static constexpr Size storageSizeAtCompileTime=allCompsAreStatic?staticSize:DYNAMIC;
     
-    /// Storage
-    TensStorage<Fund,storageSizeAtCompileTime,SL> data;
+    /// Storage type
+    using StorageType=TensStorage<Fund,storageSizeAtCompileTime,SL,IsRef>;
+    
+    /// Actual storage
+    StorageType data;
     
     /// Initialize the dynamical component \t Out using the inputs
     template <typename Ds,   // Type of the dynamically allocated components
@@ -146,14 +152,11 @@ namespace nissa
       return {std::get<Td>(std::make_tuple(in...))...};
     }
     
-    /// Report whether the data is allocated on the stack or dynamically
-    static constexpr bool stackAllocated=decltype(data)::stackAllocated;
-    
     /// Initialize the tensor with the knowledge of the dynamic size
     template <typename...TD>
-    Tens(TD&&...td) :
-      dynamicSizes{initializeDynSizes((DynamicComps*)nullptr,std::forward<TD>(td)...)},
-      data(staticSize*productAll<Size>(std::forward<TD>(td)...))
+    Tens(const BaseTensComp<TD>&...td) :
+      dynamicSizes{initializeDynSizes((DynamicComps*)nullptr,td.crtp()...)},
+      data(staticSize*productAll<Size>(td.crtp()...))
     {
       /// Dynamic size
       //const Size dynamicSize=product<Size>(std::forward<TD>(td)...);
@@ -164,18 +167,43 @@ namespace nissa
       //data=std::unique_ptr<Fund[]>(new Fund[size]);
     }
     
+    /// Move constructor
+    Tens(Tens<TensComps<TC...>,Fund,SL,true>&& oth) : dynamicSizes(oth.dynamicSizes),data(oth.data.data.data)
+    {
+    }
+    
+    Tens(Tens<TensComps<TC...>,Fund,SL,true>& oth) : dynamicSizes(oth.dynamicSizes),data(oth.data.data.data)
+    {
+      static_assert(IsRef,"Makes no sense if not a ref");
+    }
+    
+    /// Initialize the tensor as a reference
+    template <Size OthStaticSize,         // Size konwn at compile time
+	      TensStorageLocation OthSL,  // Location where to store data
+	      bool OthIsRef>              // Holds or not the data
+    Tens(const DynamicComps& dynamicSizes,TensStorage<Fund,OthStaticSize,OthSL,OthIsRef>& oth) :
+      dynamicSizes(dynamicSizes),data(oth.data.data)
+    {
+      static_assert(IsRef,"Makes no sense if not a ref");
+    }
+    
+    Tens<TensComps<TC...>,Fund,SL,true> getRef()
+    {
+      return Tens<TensComps<TC...>,Fund,SL,true>(dynamicSizes,data);
+    }
+    
     /// Access to inner data with any order
     template <typename...Cp>
-    const Fund& eval(Cp&&...comps) const ///< Components
+    const Fund& eval(const BaseTensComp<Cp>&...comps) const ///< Components
     {
       /// Compute the index
-      const Size i=reorderedIndex(std::forward<Cp>(comps)...);
+      const Size i=reorderedIndex(comps.crtp()...);
       
       //cout<<"Index: "<<i<<endl;
       return data[i];
     }
     
-    //PROVIDE_ALSO_NON_CONST_METHOD(operator());
+    PROVIDE_ALSO_NON_CONST_METHOD(eval);
     
     // /// Single component access via subscribe operator
     // template <typename T>                   // Subscribed component type
@@ -206,10 +234,11 @@ namespace nissa
   /// Traits of the Tensor
   template <typename Fund,
 	    typename...TC,
-	    TensStorageLocation SL>
-  struct CompsTraits<Tens<TensComps<TC...>,Fund,SL>>
+	    TensStorageLocation SL,
+	    bool IsRef>
+  struct CompsTraits<Tens<TensComps<TC...>,Fund,SL,IsRef>>
   {
-    using Type=Tens<TensComps<TC...>,Fund,SL>;
+    using Type=Tens<TensComps<TC...>,Fund,SL,IsRef>;
     
     using Comps=TensComps<TC...>;
   };

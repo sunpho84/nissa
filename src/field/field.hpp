@@ -136,17 +136,18 @@ namespace nissa
 	    typename _Tc,                       // Other components
 	    typename _F=double,                 // Fundamental type
 	    FieldLayout FL=OrdinaryLayout,      // Layout
-	    TensStorageLocation SL=OrdinaryFieldStorageLocation>
-  struct Field : public Subscribable<Field<_SPT,_Tc,_F,FL>>
+	    TensStorageLocation SL=OrdinaryFieldStorageLocation,
+	    bool IsRef=false>
+  struct Field : public Subscribable<Field<_SPT,_Tc,_F,FL,SL,IsRef>>
   {
     /// Components traits
-    using CT=CompsTraits<Field<_SPT,_Tc,_F,FL>>;
+    using CT=CompsTraits<Field<_SPT,_Tc,_F,FL,SL,IsRef>>;
     
     /// Kind of halo
     const HaloKind haloKind;
     
     /// Storing data
-    Tens<typename CT::Comps,typename CT::F,SL> data;
+    Tens<typename CT::Comps,typename CT::F,SL,IsRef> data;
     
     template <typename F>
     static void spaceTimeParallelLoop(F&& f)
@@ -230,11 +231,12 @@ namespace nissa
   template <typename _S,
 	    typename _Tc,
 	    typename _F,
-	    FieldLayout FL>
-  struct CompsTraits<Field<_S,_Tc,_F,FL>>
+	    FieldLayout FL,
+	    TensStorageLocation SL>
+  struct CompsTraits<Field<_S,_Tc,_F,FL,SL>>
   {
     /// Actual type
-    using Type=Field<_S,_Tc,_F,FL>;
+    using Type=Field<_S,_Tc,_F,FL,SL>;
     
     /// List of valid types
     using SpaceTimeTypes=std::tuple<LocVolIdx,LocVolEvnIdx,LocVolOddIdx>;

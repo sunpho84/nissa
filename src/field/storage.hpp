@@ -40,10 +40,17 @@ namespace nissa
   };
 #endif
   
+  /// Basic storage, to use to detect storage
+  template <typename T>
+  struct BaseTensStorage : public Crtp<T>
+  {
+  };
+  
   /// Class to store the data
   template <typename Fund,           // Fundamental type
 	    Size StaticSize,         // Size konwn at compile time
-	    TensStorageLocation SL>  // Location where to store data
+	    TensStorageLocation SL,  // Location where to store data
+	    bool IsRef>              // Holds or not the data
   struct TensStorage
   {
     /// Structure to hold dynamically allocated data
@@ -83,6 +90,18 @@ namespace nissa
       }
     };
     
+    /// Structure to hold a reference
+    struct RefStorage
+    {
+      /// Storage
+      Fund* data;
+      
+      /// Construct taking ref to the data
+      RefStorage(Fund* data) : data(data)
+      {
+      }
+    };
+    
     /// Threshold beyond which allocate dynamically in any case
     static constexpr Size MAX_STACK_SIZE=2304;
     
@@ -90,7 +109,8 @@ namespace nissa
     static constexpr bool stackAllocated=StaticSize!=DYNAMIC and StaticSize*sizeof(Fund)<=MAX_STACK_SIZE;
     
     /// Actual storage class
-    using ActualStorage=std::conditional_t<stackAllocated,StackStorage,DynamicStorage>;
+    using ActualStorage=std::conditional_t<IsRef,RefStorage,
+					   std::conditional_t<stackAllocated,StackStorage,DynamicStorage>>;
     
     /// Storage of data
     ActualStorage data;
@@ -102,6 +122,12 @@ namespace nissa
     TensStorage(const Size& size) ///< Size to allocate
       : data(size)
     {
+    }
+    
+    /// Construct taking anothe storage as a reference
+    TensStorage(Fund* oth) : data(oth)
+    {
+      static_assert(IsRef,"Makes no sense if not a reference");
     }
     
     /// Single component access via subscribe operator

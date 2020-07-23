@@ -2,6 +2,7 @@
 #define _COMPONENTS_HPP
 
 #include "base/memory_manager.hpp"
+#include "base/metaprogramming.hpp"
 
 namespace nissa
 {
@@ -22,13 +23,19 @@ namespace nissa
   /// Row or column
   enum RwCl{RW,CL,ANY};
   
+  /// Base tens comp, to detect the atribute
+  template <typename T>
+  struct BaseTensComp : public Crtp<T>
+  {
+  };
+  
   /// Tensor component defined by base type S
   ///
   /// Inherit from S to get size
   template <typename S,
 	    RwCl RC=RW,
 	    int Which=0>
-  struct TensCompIdx
+  struct TensCompIdx : public BaseTensComp<TensCompIdx<S,RC,Which>>
   {
     /// Transposed type of component
     static constexpr RwCl TRANSP=(RC==ANY)?ANY:((RC==CL)?RW:CL);

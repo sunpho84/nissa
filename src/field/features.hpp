@@ -37,13 +37,13 @@ namespace nissa
     
     /// Access to inner data with any order
     template <typename...Cp,
-	      std::enable_if_t<sizeof...(Cp)==NComps,void*> =nullptr>
+    	      std::enable_if_t<sizeof...(Cp)==NComps,void*> =nullptr>
     decltype(auto) operator()(Cp&&...comps) const ///< Components
     {
       return this->crtp().eval(std::forward<Cp>(comps)...);
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD(operator());
+     PROVIDE_ALSO_NON_CONST_METHOD(operator());
   };
 }
 

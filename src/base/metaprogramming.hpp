@@ -24,6 +24,19 @@ namespace nissa
   
 #endif
   
+  /// Provides a SFINAE to be used in template par list
+  ///
+  /// This follows
+  /// https://stackoverflow.com/questions/32636275/sfinae-with-variadic-templates
+  /// as in this example
+  /// \code
+  /// template <typename D,
+  ///           SFINAE_ON_TEMPLATE_ARG(IsSame<D,int>)>
+  /// void foo(D i) {} // fails if D is not int
+  /// \endcode
+#define SFINAE_ON_TEMPLATE_ARG(...)	\
+  std::enable_if_t<(__VA_ARGS__),void*> =nullptr
+  
   /// Returns true if T is a const lvalue reference
   template <typename T>
   constexpr bool is_const_lvalue_reference_v=std::is_lvalue_reference<T>::value and std::is_const<std::remove_reference_t<T>>::value;

@@ -6,6 +6,12 @@ using namespace nissa;
 
 using SpinSpaceColor=TensComps<SpinIdx,LocVolIdx,ColorIdx>;
 
+#ifdef __NVCC__
+ #define DEVICE __device__
+#else
+ #define DEVICE
+#endif
+
 // template <typename Fund>
 // using SpinColorField=Tens<SpinSpaceColor,Fund>;
 
@@ -61,31 +67,81 @@ using SpinSpaceColor=TensComps<SpinIdx,LocVolIdx,ColorIdx>;
 //       }
 // }
 
+using G=  Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::GPU>;
+using C=  Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::CPU>;
+
+void maybe(G& testG,C& testC)
+{
+  asm("#here starts maybe");
+  G::spaceTimeParallelLoop([testC=testC.data.getRef(),testG=testG.data.getRef()] DEVICE
+  					 (const int _ivol) mutable
+  					 {
+					   LocVolIdx ivol{_ivol};
+  					   for(SpinIdx id{0};id<4;id++)
+  					     for(ColorIdx ic{0};ic<3;ic++)
+  					       for(ComplIdx ri{0};ri<2;ri++)
+  						 {
+  						   // double* offC=testC.data.data.data;
+  						   // double* offG=testG.data.data.data;
+  						   double& tC=testC(ivol,id,ic,ri);
+  						   double& tG=testG(ivol,id,ic,ri);
+  						   // int nC=(int)((size_t)&tC-(size_t)offC)/sizeof(double);
+  						   // int nG=(int)((size_t)&tG-(size_t)offG)/sizeof(double);
+  						   // printf("ivol %d loc_vol %ld %d %d\n",(int)ivol,loc_vol,nC,nG);
+  						   tG=tC;
+  						 }
+  					 });
+  asm("#here ends maybe");
+}
+
+void trivial(G& testG,C& testC)
+{
+  asm("#here starts again");
+  double* tC=testC.data.data.data.data;
+  double* tG=testG.data.data.data.data;;
+  
+  for(Size ivol=0;ivol<loc_vol;ivol++)
+    for(Size id=0;id<4;id++)
+      for(Size ic=0;ic<3;ic++)
+	for(Size ri=0;ri<2;ri++)
+	  tG[ivol+loc_vol*(ri+2*(ic+3*id))]=tC[ri+2*(ic+3*(id+4*ivol))];
+  
+  asm("#here ends again");
+  master_printf("%lg\n",testG(LocVolIdx{3},SpinIdx{1},ColorIdx{2},ComplIdx{0}));
+}
+
+
 void in_main(int narg,char **arg)
 {
   init_grid(8,4);
   
-  Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::GPU> testG(HaloKind::NO_HALO);
-  Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::CPU> testC(HaloKind::NO_HALO);
+  Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::GPU,TensStorageLocation::ON_GPU> testG_onG(HaloKind::NO_HALO);
   
-  decltype(testG)::spaceTimeParallelLoop([&](const auto& ivol)
-					 {
-					   for(SpinIdx id{0};id<4;id++)
-					     for(ColorIdx ic{0};ic<3;ic++)
-					       for(ComplIdx ri{0};ri<2;ri++)
-						 {
-						   double* offC=testC.data.data.data.data;
-						   double* offG=testG.data.data.data.data;
-						   double& tC=testC(ivol,id,ic,ri);
-						   double& tG=testG(ivol,id,ic,ri);
-						   int nC=(int)((size_t)&tC-(size_t)offC)/sizeof(double);
-						   int nG=(int)((size_t)&tG-(size_t)offG)/sizeof(double);
-						   printf("ivol %d loc_vol %ld %d %d\n",(int)ivol,loc_vol,nC,nG);
-						   tC=tG=1.0;
-						 }
-					 });
+  G::spaceTimeParallelLoop([testG_onG=testG_onG.data.getRef()] DEVICE
+  					 (const int _ivol) mutable
+  					 {
+					   LocVolIdx ivol{_ivol};
+  					   for(SpinIdx id{0};id<4;id++)
+  					     for(ColorIdx ic{0};ic<3;ic++)
+  					       for(ComplIdx ri{0};ri<2;ri++)
+  						 {
+  						   double& tG=testG_onG(ivol,id,ic,ri);
+  						   tG=M_PI;
+  						 }
+  					 });
   
-  master_printf("%lg\n",testG.data.trivialAccess(0));
+  //temporary hack
+  Field<LocVolIdx,SpinColorComplComps,double,FieldLayout::GPU,TensStorageLocation::ON_CPU> testG_onC(HaloKind::NO_HALO);
+  decript_cuda_error(cudaMemcpy(testG_onC.data.data.data.data,testG_onG.data.data.data.data,sizeof(spincolor)/sizeof(double)*loc_vol,cudaMemcpyDeviceToHost),"Copying");
+  //gpu_to_cpu_copy(testG_onC,testG_onG);
+  
+  for(LocVolIdx ivol{0};ivol<loc_vol;ivol++)
+    for(SpinIdx id{0};id<4;id++)
+      for(ColorIdx ic{0};ic<3;ic++)
+	for(ComplIdx ri{0};ri<2;ri++)
+	  master_printf("\n",testG_onC(ivol,id,ic,ri));
+  
+  // trivial(testG,testC);
 }
 
 int main(int narg,char **arg)
