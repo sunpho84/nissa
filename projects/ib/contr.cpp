@@ -843,6 +843,8 @@ namespace nissa
     
     //allocate all sides
     std::map<std::string,spin1field*> sides;
+    //store source norm for all sides
+    std::map<std::string, int> norm_sides;
 
     
     //loop over sides
@@ -851,6 +853,7 @@ namespace nissa
 	//allocate
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
+	norm_sides.insert({side_name, Q[h.fw].ori_source_norm2*Q[h.bw].ori_source_norm2});
 	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),loc_vol,spin1field);
 	vector_reset(sides[side_name]);
 
@@ -901,11 +904,19 @@ namespace nissa
 	{
 	  for(int ivol=0;ivol<loc_vol; ivol++)
 	    for(int mu=0;mu<NDIM;mu++)
-	      complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
+	      complex_subt_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
 				    sides[handcuffs_map[ihand].left][ivol][mu],
 				    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
+	  
+	  double normalization= glb_spat_vol*144.0;
+	  if( (norm_sides.find(handcuffs_map[ihand].left) == norm_sides.end()) || (norm_sides.find(handcuffs_map[ihand].left) == norm_sides.end()))
+	    crash("Unable to find norm sides: %s or %s", handcuffs_map[ihand].left.c_str(), handcuffs_map[ihand].right.c_str());
+	  
+	  normalization /= sqrt((double)norm_sides[handcuffs_map[ihand].left]*norm_sides[handcuffs_map[ihand].right]);
+	  complex_prodassign_double(handcuffs_contr[ind_handcuffs_contr(ihand)], normalization);
 	}
     NISSA_PARALLEL_LOOP_END;
+    
     
     //free
     for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)
