@@ -844,7 +844,7 @@ namespace nissa
     //allocate all sides
     std::map<std::string,spin1field*> sides;
     //store source norm for all sides
-    std::map<std::string, int> norm_sides;
+    std::map<std::string, double> norm_sides;
 
     
     //loop over sides
