@@ -49,8 +49,26 @@ namespace nissa
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)
       {
-	ape_spatial_smear_conf(ape_smeared_conf,conf,ape_smearing_alpha,ape_smearing_niters);
-	master_printf("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
+	if(ape_smearing_niters>0)
+	  {
+	    ape_spatial_smear_conf(ape_smeared_conf,conf,ape_smearing_alpha,ape_smearing_niters);
+	    master_printf("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
+	  }
+	else
+	  {
+	    master_printf("Wflow actually\n");
+	    for(int i=0;i<=-ape_smearing_niters;i++)
+	      {
+		if(i==0)
+		  vector_copy(ape_smeared_conf,conf);
+		else
+		  Wflow_lx_conf(ape_smeared_conf,ape_smearing_alpha,all_other_dirs[0]);
+		  
+		double totplaq[2];
+		global_plaquette_lx_conf(totplaq,ape_smeared_conf);
+		master_printf("plaquette: %lg %lg\n",totplaq[0],totplaq[1]);
+	      }
+	  }
       }
     
     //invalidate internal conf
