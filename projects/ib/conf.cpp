@@ -54,7 +54,7 @@ namespace nissa
 	    vector_copy(ape_smeared_conf,conf);
 	  else
 	    if(ape_smearing_niters>0)
-	      ape_spatial_smear_conf(ape_smeared_conf,conf,ape_smearing_alpha,1);
+	      ape_spatial_smear_conf(ape_smeared_conf,ape_smeared_conf,ape_smearing_alpha,1);
 	    else
 	      Wflow_lx_conf(ape_smeared_conf,ape_smearing_alpha,all_other_dirs[0]);
 	  
