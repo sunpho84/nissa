@@ -15,7 +15,7 @@ namespace nissa
   namespace Wflow
   {
     //we add with the new weight the previous one multiplied by the old weight
-    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,bool *dirs,int iter)
+    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,bool *dirs,int iter,int min_staple_dir)
     {
       GET_THREAD_ID();
       
@@ -36,11 +36,14 @@ namespace nissa
 	      for(int inu=0;inu<NDIM-1;inu++)
 		{
 		  int nu=perp_dir[mu][inu];
-		  int A=ivol,B=loclx_neighup[A][nu],D=loclx_neighdw[A][nu],E=loclx_neighup[D][mu],F=loclx_neighup[A][mu];
-		  unsafe_su3_prod_su3(       temp, conf[A][nu],conf[B][mu]);
-		  su3_summ_the_prod_su3_dag(staple,temp,       conf[F][nu]);
-		  unsafe_su3_dag_prod_su3(temp,    conf[D][nu],conf[D][mu]);
-		  su3_summ_the_prod_su3(staple,    temp,       conf[E][nu]);
+		  if(nu>=min_staple_dir)
+		    {
+		      int A=ivol,B=loclx_neighup[A][nu],D=loclx_neighdw[A][nu],E=loclx_neighup[D][mu],F=loclx_neighup[A][mu];
+		      unsafe_su3_prod_su3(       temp, conf[A][nu],conf[B][mu]);
+		      su3_summ_the_prod_su3_dag(staple,temp,       conf[F][nu]);
+		      unsafe_su3_dag_prod_su3(temp,    conf[D][nu],conf[D][mu]);
+		      su3_summ_the_prod_su3(staple,    temp,       conf[E][nu]);
+		    }
 		}
 	      
 	      //build Omega
@@ -80,7 +83,7 @@ namespace nissa
   }
   
   //flow for the given time for a dt using 1006.4518 appendix C
-  THREADABLE_FUNCTION_3ARG(Wflow_lx_conf, quad_su3*,conf, double,dt, bool*,dirs)
+  THREADABLE_FUNCTION_4ARG(Wflow_lx_conf, quad_su3*,conf, double,dt, bool*,dirs, int,min_staple_dir)
   {
     //storage for staples
     quad_su3 *arg=nissa_malloc("arg",loc_vol,quad_su3);
@@ -89,7 +92,7 @@ namespace nissa
     //we write the 4 terms of the Runge Kutta scheme iteratively
     for(int iter=0;iter<3;iter++)
       {
-	Wflow::update_arg(arg,conf,dt,dirs,iter);
+	Wflow::update_arg(arg,conf,dt,dirs,iter,min_staple_dir);
 	Wflow::update_conf(arg,conf,dirs);
       }
     

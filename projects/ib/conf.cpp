@@ -56,7 +56,7 @@ namespace nissa
 	    if(ape_smearing_niters>0)
 	      ape_spatial_smear_conf(ape_smeared_conf,ape_smeared_conf,ape_smearing_alpha,1);
 	    else
-	      Wflow_lx_conf(ape_smeared_conf,ape_smearing_alpha,all_other_dirs[0]);
+	      Wflow_lx_conf(ape_smeared_conf,ape_smearing_alpha,all_other_dirs[0],1);
 	  
 	  double totplaq[2];
 	  global_plaquette_lx_conf(totplaq,ape_smeared_conf);

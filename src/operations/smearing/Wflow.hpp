@@ -16,7 +16,7 @@ namespace nissa
 {
   namespace Wflow
   {
-    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,bool *dirs,int iter);
+    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,bool *dirs,int iter,int min_staple_dir=0);
     void update_conf(quad_su3 *arg,quad_su3 *conf,bool *dirs);
     
     //call the 2-links Laplace operator, for staggered fields
@@ -238,7 +238,7 @@ namespace nissa
     }
   };
   
-  void Wflow_lx_conf(quad_su3 *conf,double dt,bool *dirs=all_dirs);
+  void Wflow_lx_conf(quad_su3 *conf,double dt,bool *dirs=all_dirs,int min_dirs=0);
 }
 
 #endif
