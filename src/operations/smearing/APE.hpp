@@ -49,7 +49,7 @@ namespace nissa
   inline void ape_single_dir_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int mu,int min_staple_dir=0)
   {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,only_dir[mu],min_staple_dir);}
   inline void ape_perp_dir_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int mu,int min_staple_dir=0)
-  {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,all_other_dirs[mu]);}
+  {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,all_other_dirs[mu],min_staple_dir);}
   inline void ape_temporal_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
   {ape_single_dir_smear_conf(smear_conf,origi_conf,alpha,nstep,0);}
   inline void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
