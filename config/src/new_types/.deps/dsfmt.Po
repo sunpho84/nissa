@@ -1,0 +1,39 @@
+new_types/dsfmt.o: ../../src/new_types/dsfmt.cpp \
+ /usr/include/stdc-predef.h config.hpp ../../src/new_types/dsfmt.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdint.h \
+ /usr/include/stdint.h /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
+ /usr/include/gnu/stubs-64.h /usr/include/bits/wchar.h \
+ /usr/include/string.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stddef.h \
+ /usr/include/xlocale.h ../../src/io/endianness.hpp
+
+/usr/include/stdc-predef.h:
+
+config.hpp:
+
+../../src/new_types/dsfmt.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/gnu/stubs-64.h:
+
+/usr/include/bits/wchar.h:
+
+/usr/include/string.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stddef.h:
+
+/usr/include/xlocale.h:
+
+../../src/io/endianness.hpp:

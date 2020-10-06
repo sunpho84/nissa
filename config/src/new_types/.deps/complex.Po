@@ -1,0 +1,6 @@
+new_types/complex.o: ../../src/new_types/complex.cpp \
+ /usr/include/stdc-predef.h config.hpp
+
+/usr/include/stdc-predef.h:
+
+config.hpp:

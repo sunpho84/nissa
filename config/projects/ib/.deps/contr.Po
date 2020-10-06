@@ -1,0 +1,1195 @@
+ib/contr.o: ../../projects/ib/contr.cpp /usr/include/stdc-predef.h \
+ ../../src/nissa.hpp ../src/config.hpp ../../src/base/bench.hpp \
+ ../../src/base/close.hpp ../../src/base/debug.hpp \
+ ../../src/base/init.hpp ../../src/base/random.hpp /usr/include/fcntl.h \
+ /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
+ /usr/include/gnu/stubs-64.h /usr/include/bits/types.h \
+ /usr/include/bits/typesizes.h /usr/include/bits/fcntl.h \
+ /usr/include/bits/fcntl-linux.h /usr/include/bits/uio.h \
+ /usr/include/sys/types.h /usr/include/time.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stddef.h \
+ /usr/include/endian.h /usr/include/bits/endian.h \
+ /usr/include/bits/byteswap.h /usr/include/bits/byteswap-16.h \
+ /usr/include/sys/select.h /usr/include/bits/select.h \
+ /usr/include/bits/sigset.h /usr/include/bits/time.h \
+ /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
+ /usr/include/bits/stat.h /usr/include/unistd.h \
+ /usr/include/bits/posix_opt.h /usr/include/bits/environments.h \
+ /usr/include/bits/confname.h /usr/include/getopt.h \
+ ../../src/geometry/geometry_lx.hpp \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpio.h \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpicxx.h \
+ /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h \
+ /usr/include/wchar.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdarg.h \
+ /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+ /usr/include/bits/stdio.h ../../src/routines/math_routines.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/algorithm \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/utility \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/c++config.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/os_defines.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/cpu_defines.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_relops.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_pair.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/move.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/concept_check.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/type_traits \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/initializer_list \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_algobase.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/functexcept.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/exception_defines.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/cpp_type_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/type_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/numeric_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator_base_types.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator_base_funcs.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/debug/assertions.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/ptr_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/debug/debug.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/predefined_ops.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_algo.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cstdlib \
+ /usr/include/stdlib.h /usr/include/bits/waitflags.h \
+ /usr/include/bits/waitstatus.h /usr/include/xlocale.h \
+ /usr/include/alloca.h /usr/include/bits/stdlib-float.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/algorithmfwd.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_heap.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_tempbuf.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_construct.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/new \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/exception \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/atomic_lockfree_defines.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/exception_ptr.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/nested_exception.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/alloc_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/alloc_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/memoryfwd.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/uniform_int_dist.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/limits \
+ ../../src/new_types/complex.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/math.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cmath \
+ /usr/include/math.h /usr/include/bits/huge_val.h \
+ /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
+ /usr/include/bits/inf.h /usr/include/bits/nan.h \
+ /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
+ /usr/include/bits/mathinline.h ../../src/new_types/su3.hpp \
+ ../../src/new_types/complex.hpp ../../src/new_types/dirac.hpp \
+ /usr/include/string.h ../../src/base/debug.hpp \
+ ../../src/new_types/spin.hpp ../../src/base/thread_macros.hpp \
+ ../../src/base/debug.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/omp.h \
+ ../../src/routines/thread.hpp ../../src/base/thread_macros.hpp \
+ ../../src/new_types/float_128.hpp ../../src/routines/ios.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/fstream \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/istream \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ios \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/iosfwd \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stringfwd.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/postypes.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cwchar \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/char_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cstdint \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/localefwd.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/c++locale.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/clocale \
+ /usr/include/locale.h /usr/include/bits/locale.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cctype \
+ /usr/include/ctype.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/ios_base.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/atomicity.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/gthr.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/gthr-default.h \
+ /usr/include/pthread.h /usr/include/sched.h /usr/include/bits/sched.h \
+ /usr/include/bits/timex.h /usr/include/bits/setjmp.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/atomic_word.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/locale_classes.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/string \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/allocator.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/c++allocator.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/new_allocator.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/ostream_insert.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/cxxabi_forced.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_function.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/backward/binders.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/range_access.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/basic_string.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/string_conversions.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cstdio \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cerrno \
+ /usr/include/errno.h /usr/include/bits/errno.h \
+ /usr/include/linux/errno.h /usr/include/asm/errno.h \
+ /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/functional_hash.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/hash_bytes.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/basic_string.tcc \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/locale_classes.tcc \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/system_error \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/error_constants.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/stdexcept \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/streambuf \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/streambuf.tcc \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/basic_ios.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/locale_facets.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cwctype \
+ /usr/include/wctype.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/ctype_base.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/streambuf_iterator.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/ctype_inline.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/locale_facets.tcc \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/basic_ios.tcc \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ostream \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/ostream.tcc \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/istream.tcc \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/codecvt.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/basic_file.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/c++io.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/fstream.tcc \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/vector \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_uninitialized.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_vector.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_bvector.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/vector.tcc \
+ ../../src/measures/contract/mesons_2pts.hpp ../../src/base/random.hpp \
+ ../../src/base/vectors.hpp ../../src/communicate/borders.hpp \
+ ../../src/communicate/communicate.hpp ../../src/geometry/geometry_eo.hpp \
+ ../../src/geometry/geometry_lx.hpp ../../src/new_types/spin.hpp \
+ ../../src/communicate/communicate.hpp ../../src/communicate/edges.hpp \
+ ../../src/communicate/communicate.hpp \
+ ../../src/routines/mpi_routines.hpp ../../src/routines/math_routines.hpp \
+ ../../src/new_types/rat_approx.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/sstream \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/sstream.tcc \
+ ../../src/io/buffer.hpp ../../src/io/endianness.hpp \
+ ../../src/dirac_operators/momenta/MFACC.hpp \
+ ../../src/dirac_operators/stD/dirac_operator_stD.hpp \
+ ../../src/dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp \
+ ../../src/dirac_operators/tmQ/dirac_operator_tmQ.hpp \
+ ../../src/dirac_operators/tmQ/dirac_operator_tmQ_128.hpp \
+ ../../src/dirac_operators/tmQ/reconstruct_tm_doublet.hpp \
+ ../../src/dirac_operators/tmQ2/dirac_operator_tmQ2.hpp \
+ ../../src/dirac_operators/tmQ2/dirac_operator_tmQ2_128.hpp \
+ ../../src/dirac_operators/tmQ_left/dirac_operator_tmQ_left.hpp \
+ ../../src/dirac_operators/overlap/dirac_operator_overlap_kernel_portable.hpp \
+ ../../src/dirac_operators/overlap/dirac_operator_overlap_kernel2.hpp \
+ ../../src/dirac_operators/overlap/dirac_operator_overlap.hpp \
+ ../../src/dirac_operators/Wstat/dirac_operator_Wstat.hpp \
+ ../../src/dirac_operators/WclovQ/dirac_operator_WclovQ.hpp \
+ ../../src/dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp \
+ ../../src/dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp \
+ ../../src/dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp \
+ ../../src/dirac_operators/tmclovQ/reconstruct_tmclov_doublet.hpp \
+ ../../src/dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp \
+ ../../src/eigenvalues/eigenvalues.hpp \
+ ../../src/eigenvalues/eigenvalues_all.hpp ../../src/base/vectors.hpp \
+ ../../src/linalgs/linalgs.hpp ../../src/new_types/dirac.hpp \
+ ../../src/eigenvalues/eigenvalues_autarchic.hpp \
+ ../../src/inverters/templates/modern_cg.hpp \
+ ../../src/free_theory/cg_eoprec_twisted_free_operator.hpp \
+ ../../src/free_theory/free_theory_types.hpp \
+ ../../src/free_theory/free_theory_types.hpp \
+ ../../src/free_theory/free_theory_types_routines.hpp \
+ ../../src/free_theory/tlSym_gauge_propagator.hpp \
+ ../../src/free_theory/twisted_propagator.hpp \
+ ../../src/operations/fourier_transform.hpp \
+ ../../src/free_theory/twisted_free_Dirac_eoprec_operator.hpp \
+ ../../src/geometry/geometry_eo.hpp ../../src/geometry/geometry_lx.hpp \
+ ../../src/geometry/geometry_Leb.hpp ../../src/geometry/geometry_mix.hpp \
+ ../../src/geometry/geometry_Leb.hpp ../../src/hmc/backfield.hpp \
+ ../../src/hmc/quark_pars.hpp \
+ ../../src/hmc/fermions/rootst_eoimpr_quark_force.hpp \
+ ../../src/hmc/fermions/pseudofermions_generation.hpp \
+ ../../src/hmc/multipseudo/multipseudo_rhmc_step.hpp \
+ ../../src/hmc/theory_pars.hpp ../../src/hmc/gauge/topological_action.hpp \
+ ../../src/new_types/metadynamics.hpp ../../src/io/ILDG_File.hpp \
+ ../../src/io/checksum.hpp ../../src/operations/smearing/stout.hpp \
+ ../../src/new_types/su3_op.hpp ../../src/new_types/su3.hpp \
+ ../../src/hmc/backfield.hpp ../../src/hmc/gauge/gluonic_action.hpp \
+ ../../src/hmc/gauge/Symanzik_action.hpp \
+ ../../src/hmc/gauge/Wilson_action.hpp ../../src/operations/gaugeconf.hpp \
+ ../../src/operations/su3_paths/gauge_sweeper.hpp \
+ ../../src/communicate/all_to_all.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/map \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_tree.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/aligned_buffer.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_map.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/tuple \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/array \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/uses_allocator.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_multimap.h \
+ ../../src/operations/smearing/smooth.hpp \
+ ../../src/operations/smearing/APE.hpp \
+ ../../src/operations/smearing/cooling.hpp \
+ ../../src/operations/smearing/HYP.hpp \
+ ../../src/operations/smearing/stout.hpp \
+ ../../src/operations/smearing/Wflow.hpp \
+ ../../src/operations/covariant_derivative.hpp \
+ ../../src/operations/su3_paths/plaquette.hpp \
+ ../../src/hmc/gauge/gluonic_action.hpp \
+ ../../src/hmc/gauge/gluonic_force.hpp \
+ ../../src/hmc/gauge/pure_gauge_hmc_step.hpp \
+ ../../src/hmc/gauge/pure_gauge_Omelyan_integrator.hpp \
+ ../../src/hmc/gauge/pure_gauge_Omelyan_integrator.hpp \
+ ../../src/hmc/gauge/pure_gauge_implicit_integrator.hpp \
+ ../../src/hmc/gauge/pure_gauge_Omelyan_integrator.hpp \
+ ../../src/hmc/gauge/topological_action.hpp \
+ ../../src/hmc/gauge/topological_force.hpp \
+ ../../src/hmc/gauge/topological_action.hpp \
+ ../../src/hmc/gauge/Symanzik_force.hpp \
+ ../../src/hmc/gauge/Symanzik_action.hpp \
+ ../../src/hmc/gauge/Wilson_action.hpp \
+ ../../src/hmc/gauge/Wilson_force.hpp ../../src/hmc/hmc.hpp \
+ ../../src/hmc/momenta/momenta_action.hpp \
+ ../../src/hmc/momenta/momenta_evolve.hpp \
+ ../../src/hmc/momenta/momenta_generation.hpp \
+ ../../src/hmc/multipseudo/Omelyan_integrator.hpp \
+ ../../src/hmc/multipseudo/multipseudo_rhmc_step.hpp \
+ ../../src/hmc/multipseudo/set_expansions.hpp \
+ ../../src/hmc/multipseudo/theory_action.hpp \
+ ../../src/hmc/multipseudo/multipseudo_rhmc_step.hpp \
+ ../../src/inverters/staggered/cg_invert_stD.hpp \
+ ../../src/inverters/twisted_mass/cg_128_invert_tmQ2.hpp \
+ ../../src/inverters/twisted_mass/cg_invert_tmD_eoprec.hpp \
+ ../../src/inverters/twisted_mass/cg_invert_tmQ2.hpp \
+ ../../src/inverters/twisted_mass/cgm_invert_tmQ2.hpp \
+ ../../src/inverters/twisted_mass/tm_frontends.hpp \
+ ../../src/inverters/overlap/cgm_invert_overlap_kernel2.hpp \
+ ../../src/inverters/Wclov/cg_invert_WclovQ2.hpp \
+ ../../src/inverters/Wclov/cg_invert_WclovQ.hpp \
+ ../../src/inverters/twisted_clover//cg_invert_tmclovD_eoprec.hpp \
+ ../../src/inverters/twisted_clover/cg_invert_tmclovQ2.hpp \
+ ../../src/inverters/twisted_clover/cg_invert_tmclovQ.hpp \
+ ../../src/inverters/twisted_clover/cgm_invert_tmclovQ2.hpp \
+ ../../src/inverters/twisted_clover/tmclov_frontends.hpp \
+ ../../src/io/buffer.hpp ../../src/io/checksum.hpp \
+ ../../src/io/endianness.hpp ../../src/io/ILDG_File.hpp \
+ ../../src/io/input.hpp ../../src/io/reader.hpp \
+ ../../src/io/ILDG_File.hpp ../../src/io/writer.hpp \
+ ../../src/linalgs/linalgs.hpp \
+ ../../src/measures/contract/mesons_2pts.hpp \
+ ../../src/measures/contract/mesons_eight.hpp \
+ ../../src/measures/contract/optimized_mesons_2pts.hpp \
+ ../../src/measures/contract/site_contract.hpp \
+ ../../src/measures/fermions/magnetization.hpp \
+ ../../src/measures/fermions/fermionic_meas.hpp \
+ ../../src/measures/fermions/mesons.hpp \
+ ../../src/measures/fermions/minmax_eigenvalues.hpp \
+ ../../src/measures/fermions/nucleon.hpp \
+ ../../src/measures/fermions/putpourri.hpp \
+ ../../src/measures/fermions/qed_corr.hpp \
+ ../../src/measures/fermions/rendens.hpp \
+ ../../src/measures/fermions/spectral_projectors.hpp \
+ ../../src/measures/fermions/spinpol.hpp \
+ ../../src/operations/smearing/recursive_Wflower.hpp \
+ ../../src/measures/fermions/stag.hpp \
+ ../../src/measures/fermions/zumba.hpp \
+ ../../src/measures/gauge/all_rectangles.hpp \
+ ../../src/measures/gauge/pline.hpp \
+ ../../src/measures/gauge/topological_charge.hpp \
+ ../../src/measures/gauge/watusso.hpp ../../src/new_types/complex.hpp \
+ ../../src/new_types/dirac.hpp ../../src/new_types/dsfmt.hpp \
+ ../../src/new_types/float_128.hpp ../../src/new_types/float_256.hpp \
+ ../../src/new_types/float_128.hpp ../../src/new_types/high_prec.hpp \
+ /usr/include/gmpxx.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cstring \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cfloat \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/float.h \
+ /usr/include/gmp.h /usr/include/gmp-x86_64.h \
+ ../../src/new_types/metadynamics.hpp ../../src/new_types/rat_approx.hpp \
+ ../../src/new_types/read_new_types.hpp \
+ ../../src/operations/smearing/APE.hpp \
+ ../../src/operations/smearing/Wflow.hpp ../../src/new_types/spin.hpp \
+ ../../src/new_types/su3.hpp \
+ ../../src/operations/covariant_derivative.hpp \
+ ../../src/operations/fft.hpp ../../src/operations/fourier_transform.hpp \
+ ../../src/operations/gauge_fixing.hpp ../../src/io/input.hpp \
+ ../../src/operations/gaugeconf.hpp ../../src/operations/remap_vector.hpp \
+ ../../src/operations/remez/remez_algorithm.hpp \
+ ../../src/new_types/high_prec.hpp ../../src/operations/shift.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/stdlib.h \
+ ../../src/operations/smearing/APE.hpp \
+ ../../src/operations/smearing/HYP.hpp \
+ ../../src/operations/smearing/Wflow.hpp \
+ ../../src/operations/smearing/gaussian.hpp \
+ ../../src/operations/smearing/recursive_Wflower.hpp \
+ ../../src/operations/smearing/smooth.hpp \
+ ../../src/operations/smearing/stout.hpp ../../src/operations/source.hpp \
+ ../../src/operations/su3_paths/arbitrary.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/deque \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_deque.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/deque.tcc \
+ ../../src/operations/su3_paths/clover_term.hpp \
+ ../../src/geometry/geometry_mix.hpp \
+ ../../src/operations/su3_paths/gauge_sweeper.hpp \
+ ../../src/operations/su3_paths/plaquette.hpp \
+ ../../src/operations/su3_paths/rectangles.hpp \
+ ../../src/operations/su3_paths/rectangular_staples.hpp \
+ ../../src/operations/su3_paths/squared_staples.hpp \
+ ../../src/operations/su3_paths/squared_staples.hpp \
+ ../../src/operations/vector_gather.hpp ../../src/routines/ios.hpp \
+ ../../src/routines/math_routines.hpp ../../src/routines/mpi_routines.hpp \
+ ../../src/routines/thread.hpp ../../projects/ib/contr.hpp \
+ ../../projects/ib/pars.hpp ../../projects/ib/conf.hpp \
+ ../../projects/ib/meslep.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/set \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_set.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_multiset.h \
+ ../../projects/ib/prop.hpp
+
+/usr/include/stdc-predef.h:
+
+../../src/nissa.hpp:
+
+../src/config.hpp:
+
+../../src/base/bench.hpp:
+
+../../src/base/close.hpp:
+
+../../src/base/debug.hpp:
+
+../../src/base/init.hpp:
+
+../../src/base/random.hpp:
+
+/usr/include/fcntl.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/gnu/stubs-64.h:
+
+/usr/include/bits/types.h:
+
+/usr/include/bits/typesizes.h:
+
+/usr/include/bits/fcntl.h:
+
+/usr/include/bits/fcntl-linux.h:
+
+/usr/include/bits/uio.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/time.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stddef.h:
+
+/usr/include/endian.h:
+
+/usr/include/bits/endian.h:
+
+/usr/include/bits/byteswap.h:
+
+/usr/include/bits/byteswap-16.h:
+
+/usr/include/sys/select.h:
+
+/usr/include/bits/select.h:
+
+/usr/include/bits/sigset.h:
+
+/usr/include/bits/time.h:
+
+/usr/include/sys/sysmacros.h:
+
+/usr/include/bits/pthreadtypes.h:
+
+/usr/include/bits/stat.h:
+
+/usr/include/unistd.h:
+
+/usr/include/bits/posix_opt.h:
+
+/usr/include/bits/environments.h:
+
+/usr/include/bits/confname.h:
+
+/usr/include/getopt.h:
+
+../../src/geometry/geometry_lx.hpp:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpio.h:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpicxx.h:
+
+/usr/include/stdio.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdarg.h:
+
+/usr/include/bits/stdio_lim.h:
+
+/usr/include/bits/sys_errlist.h:
+
+/usr/include/bits/stdio.h:
+
+../../src/routines/math_routines.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/algorithm:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/utility:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/c++config.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/os_defines.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/cpu_defines.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_relops.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_pair.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/move.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/concept_check.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/type_traits:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/initializer_list:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_algobase.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/functexcept.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/exception_defines.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/cpp_type_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/type_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/numeric_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator_base_types.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator_base_funcs.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/debug/assertions.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/ptr_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/debug/debug.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/predefined_ops.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_algo.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cstdlib:
+
+/usr/include/stdlib.h:
+
+/usr/include/bits/waitflags.h:
+
+/usr/include/bits/waitstatus.h:
+
+/usr/include/xlocale.h:
+
+/usr/include/alloca.h:
+
+/usr/include/bits/stdlib-float.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/algorithmfwd.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_heap.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_tempbuf.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_construct.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/new:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/exception:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/atomic_lockfree_defines.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/exception_ptr.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/nested_exception.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/alloc_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/alloc_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/memoryfwd.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/uniform_int_dist.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/limits:
+
+../../src/new_types/complex.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/math.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cmath:
+
+/usr/include/math.h:
+
+/usr/include/bits/huge_val.h:
+
+/usr/include/bits/huge_valf.h:
+
+/usr/include/bits/huge_vall.h:
+
+/usr/include/bits/inf.h:
+
+/usr/include/bits/nan.h:
+
+/usr/include/bits/mathdef.h:
+
+/usr/include/bits/mathcalls.h:
+
+/usr/include/bits/mathinline.h:
+
+../../src/new_types/su3.hpp:
+
+../../src/new_types/complex.hpp:
+
+../../src/new_types/dirac.hpp:
+
+/usr/include/string.h:
+
+../../src/base/debug.hpp:
+
+../../src/new_types/spin.hpp:
+
+../../src/base/thread_macros.hpp:
+
+../../src/base/debug.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/omp.h:
+
+../../src/routines/thread.hpp:
+
+../../src/base/thread_macros.hpp:
+
+../../src/new_types/float_128.hpp:
+
+../../src/routines/ios.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/fstream:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/istream:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ios:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/iosfwd:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stringfwd.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/postypes.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cwchar:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/char_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cstdint:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/localefwd.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/c++locale.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/clocale:
+
+/usr/include/locale.h:
+
+/usr/include/bits/locale.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cctype:
+
+/usr/include/ctype.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/ios_base.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/atomicity.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/gthr.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/gthr-default.h:
+
+/usr/include/pthread.h:
+
+/usr/include/sched.h:
+
+/usr/include/bits/sched.h:
+
+/usr/include/bits/timex.h:
+
+/usr/include/bits/setjmp.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/atomic_word.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/locale_classes.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/string:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/allocator.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/c++allocator.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/new_allocator.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/ostream_insert.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/cxxabi_forced.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_function.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/backward/binders.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/range_access.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/basic_string.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/string_conversions.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cstdio:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cerrno:
+
+/usr/include/errno.h:
+
+/usr/include/bits/errno.h:
+
+/usr/include/linux/errno.h:
+
+/usr/include/asm/errno.h:
+
+/usr/include/asm-generic/errno.h:
+
+/usr/include/asm-generic/errno-base.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/functional_hash.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/hash_bytes.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/basic_string.tcc:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/locale_classes.tcc:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/system_error:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/error_constants.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/stdexcept:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/streambuf:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/streambuf.tcc:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/basic_ios.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/locale_facets.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cwctype:
+
+/usr/include/wctype.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/ctype_base.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/streambuf_iterator.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/ctype_inline.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/locale_facets.tcc:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/basic_ios.tcc:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ostream:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/ostream.tcc:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/istream.tcc:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/codecvt.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/basic_file.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/c++io.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/fstream.tcc:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/vector:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_uninitialized.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_vector.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_bvector.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/vector.tcc:
+
+../../src/measures/contract/mesons_2pts.hpp:
+
+../../src/base/random.hpp:
+
+../../src/base/vectors.hpp:
+
+../../src/communicate/borders.hpp:
+
+../../src/communicate/communicate.hpp:
+
+../../src/geometry/geometry_eo.hpp:
+
+../../src/geometry/geometry_lx.hpp:
+
+../../src/new_types/spin.hpp:
+
+../../src/communicate/communicate.hpp:
+
+../../src/communicate/edges.hpp:
+
+../../src/communicate/communicate.hpp:
+
+../../src/routines/mpi_routines.hpp:
+
+../../src/routines/math_routines.hpp:
+
+../../src/new_types/rat_approx.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/sstream:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/sstream.tcc:
+
+../../src/io/buffer.hpp:
+
+../../src/io/endianness.hpp:
+
+../../src/dirac_operators/momenta/MFACC.hpp:
+
+../../src/dirac_operators/stD/dirac_operator_stD.hpp:
+
+../../src/dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp:
+
+../../src/dirac_operators/tmQ/dirac_operator_tmQ.hpp:
+
+../../src/dirac_operators/tmQ/dirac_operator_tmQ_128.hpp:
+
+../../src/dirac_operators/tmQ/reconstruct_tm_doublet.hpp:
+
+../../src/dirac_operators/tmQ2/dirac_operator_tmQ2.hpp:
+
+../../src/dirac_operators/tmQ2/dirac_operator_tmQ2_128.hpp:
+
+../../src/dirac_operators/tmQ_left/dirac_operator_tmQ_left.hpp:
+
+../../src/dirac_operators/overlap/dirac_operator_overlap_kernel_portable.hpp:
+
+../../src/dirac_operators/overlap/dirac_operator_overlap_kernel2.hpp:
+
+../../src/dirac_operators/overlap/dirac_operator_overlap.hpp:
+
+../../src/dirac_operators/Wstat/dirac_operator_Wstat.hpp:
+
+../../src/dirac_operators/WclovQ/dirac_operator_WclovQ.hpp:
+
+../../src/dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp:
+
+../../src/dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp:
+
+../../src/dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp:
+
+../../src/dirac_operators/tmclovQ/reconstruct_tmclov_doublet.hpp:
+
+../../src/dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp:
+
+../../src/eigenvalues/eigenvalues.hpp:
+
+../../src/eigenvalues/eigenvalues_all.hpp:
+
+../../src/base/vectors.hpp:
+
+../../src/linalgs/linalgs.hpp:
+
+../../src/new_types/dirac.hpp:
+
+../../src/eigenvalues/eigenvalues_autarchic.hpp:
+
+../../src/inverters/templates/modern_cg.hpp:
+
+../../src/free_theory/cg_eoprec_twisted_free_operator.hpp:
+
+../../src/free_theory/free_theory_types.hpp:
+
+../../src/free_theory/free_theory_types.hpp:
+
+../../src/free_theory/free_theory_types_routines.hpp:
+
+../../src/free_theory/tlSym_gauge_propagator.hpp:
+
+../../src/free_theory/twisted_propagator.hpp:
+
+../../src/operations/fourier_transform.hpp:
+
+../../src/free_theory/twisted_free_Dirac_eoprec_operator.hpp:
+
+../../src/geometry/geometry_eo.hpp:
+
+../../src/geometry/geometry_lx.hpp:
+
+../../src/geometry/geometry_Leb.hpp:
+
+../../src/geometry/geometry_mix.hpp:
+
+../../src/geometry/geometry_Leb.hpp:
+
+../../src/hmc/backfield.hpp:
+
+../../src/hmc/quark_pars.hpp:
+
+../../src/hmc/fermions/rootst_eoimpr_quark_force.hpp:
+
+../../src/hmc/fermions/pseudofermions_generation.hpp:
+
+../../src/hmc/multipseudo/multipseudo_rhmc_step.hpp:
+
+../../src/hmc/theory_pars.hpp:
+
+../../src/hmc/gauge/topological_action.hpp:
+
+../../src/new_types/metadynamics.hpp:
+
+../../src/io/ILDG_File.hpp:
+
+../../src/io/checksum.hpp:
+
+../../src/operations/smearing/stout.hpp:
+
+../../src/new_types/su3_op.hpp:
+
+../../src/new_types/su3.hpp:
+
+../../src/hmc/backfield.hpp:
+
+../../src/hmc/gauge/gluonic_action.hpp:
+
+../../src/hmc/gauge/Symanzik_action.hpp:
+
+../../src/hmc/gauge/Wilson_action.hpp:
+
+../../src/operations/gaugeconf.hpp:
+
+../../src/operations/su3_paths/gauge_sweeper.hpp:
+
+../../src/communicate/all_to_all.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/map:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_tree.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/aligned_buffer.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_map.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/tuple:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/array:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/uses_allocator.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_multimap.h:
+
+../../src/operations/smearing/smooth.hpp:
+
+../../src/operations/smearing/APE.hpp:
+
+../../src/operations/smearing/cooling.hpp:
+
+../../src/operations/smearing/HYP.hpp:
+
+../../src/operations/smearing/stout.hpp:
+
+../../src/operations/smearing/Wflow.hpp:
+
+../../src/operations/covariant_derivative.hpp:
+
+../../src/operations/su3_paths/plaquette.hpp:
+
+../../src/hmc/gauge/gluonic_action.hpp:
+
+../../src/hmc/gauge/gluonic_force.hpp:
+
+../../src/hmc/gauge/pure_gauge_hmc_step.hpp:
+
+../../src/hmc/gauge/pure_gauge_Omelyan_integrator.hpp:
+
+../../src/hmc/gauge/pure_gauge_Omelyan_integrator.hpp:
+
+../../src/hmc/gauge/pure_gauge_implicit_integrator.hpp:
+
+../../src/hmc/gauge/pure_gauge_Omelyan_integrator.hpp:
+
+../../src/hmc/gauge/topological_action.hpp:
+
+../../src/hmc/gauge/topological_force.hpp:
+
+../../src/hmc/gauge/topological_action.hpp:
+
+../../src/hmc/gauge/Symanzik_force.hpp:
+
+../../src/hmc/gauge/Symanzik_action.hpp:
+
+../../src/hmc/gauge/Wilson_action.hpp:
+
+../../src/hmc/gauge/Wilson_force.hpp:
+
+../../src/hmc/hmc.hpp:
+
+../../src/hmc/momenta/momenta_action.hpp:
+
+../../src/hmc/momenta/momenta_evolve.hpp:
+
+../../src/hmc/momenta/momenta_generation.hpp:
+
+../../src/hmc/multipseudo/Omelyan_integrator.hpp:
+
+../../src/hmc/multipseudo/multipseudo_rhmc_step.hpp:
+
+../../src/hmc/multipseudo/set_expansions.hpp:
+
+../../src/hmc/multipseudo/theory_action.hpp:
+
+../../src/hmc/multipseudo/multipseudo_rhmc_step.hpp:
+
+../../src/inverters/staggered/cg_invert_stD.hpp:
+
+../../src/inverters/twisted_mass/cg_128_invert_tmQ2.hpp:
+
+../../src/inverters/twisted_mass/cg_invert_tmD_eoprec.hpp:
+
+../../src/inverters/twisted_mass/cg_invert_tmQ2.hpp:
+
+../../src/inverters/twisted_mass/cgm_invert_tmQ2.hpp:
+
+../../src/inverters/twisted_mass/tm_frontends.hpp:
+
+../../src/inverters/overlap/cgm_invert_overlap_kernel2.hpp:
+
+../../src/inverters/Wclov/cg_invert_WclovQ2.hpp:
+
+../../src/inverters/Wclov/cg_invert_WclovQ.hpp:
+
+../../src/inverters/twisted_clover//cg_invert_tmclovD_eoprec.hpp:
+
+../../src/inverters/twisted_clover/cg_invert_tmclovQ2.hpp:
+
+../../src/inverters/twisted_clover/cg_invert_tmclovQ.hpp:
+
+../../src/inverters/twisted_clover/cgm_invert_tmclovQ2.hpp:
+
+../../src/inverters/twisted_clover/tmclov_frontends.hpp:
+
+../../src/io/buffer.hpp:
+
+../../src/io/checksum.hpp:
+
+../../src/io/endianness.hpp:
+
+../../src/io/ILDG_File.hpp:
+
+../../src/io/input.hpp:
+
+../../src/io/reader.hpp:
+
+../../src/io/ILDG_File.hpp:
+
+../../src/io/writer.hpp:
+
+../../src/linalgs/linalgs.hpp:
+
+../../src/measures/contract/mesons_2pts.hpp:
+
+../../src/measures/contract/mesons_eight.hpp:
+
+../../src/measures/contract/optimized_mesons_2pts.hpp:
+
+../../src/measures/contract/site_contract.hpp:
+
+../../src/measures/fermions/magnetization.hpp:
+
+../../src/measures/fermions/fermionic_meas.hpp:
+
+../../src/measures/fermions/mesons.hpp:
+
+../../src/measures/fermions/minmax_eigenvalues.hpp:
+
+../../src/measures/fermions/nucleon.hpp:
+
+../../src/measures/fermions/putpourri.hpp:
+
+../../src/measures/fermions/qed_corr.hpp:
+
+../../src/measures/fermions/rendens.hpp:
+
+../../src/measures/fermions/spectral_projectors.hpp:
+
+../../src/measures/fermions/spinpol.hpp:
+
+../../src/operations/smearing/recursive_Wflower.hpp:
+
+../../src/measures/fermions/stag.hpp:
+
+../../src/measures/fermions/zumba.hpp:
+
+../../src/measures/gauge/all_rectangles.hpp:
+
+../../src/measures/gauge/pline.hpp:
+
+../../src/measures/gauge/topological_charge.hpp:
+
+../../src/measures/gauge/watusso.hpp:
+
+../../src/new_types/complex.hpp:
+
+../../src/new_types/dirac.hpp:
+
+../../src/new_types/dsfmt.hpp:
+
+../../src/new_types/float_128.hpp:
+
+../../src/new_types/float_256.hpp:
+
+../../src/new_types/float_128.hpp:
+
+../../src/new_types/high_prec.hpp:
+
+/usr/include/gmpxx.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cstring:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cfloat:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/float.h:
+
+/usr/include/gmp.h:
+
+/usr/include/gmp-x86_64.h:
+
+../../src/new_types/metadynamics.hpp:
+
+../../src/new_types/rat_approx.hpp:
+
+../../src/new_types/read_new_types.hpp:
+
+../../src/operations/smearing/APE.hpp:
+
+../../src/operations/smearing/Wflow.hpp:
+
+../../src/new_types/spin.hpp:
+
+../../src/new_types/su3.hpp:
+
+../../src/operations/covariant_derivative.hpp:
+
+../../src/operations/fft.hpp:
+
+../../src/operations/fourier_transform.hpp:
+
+../../src/operations/gauge_fixing.hpp:
+
+../../src/io/input.hpp:
+
+../../src/operations/gaugeconf.hpp:
+
+../../src/operations/remap_vector.hpp:
+
+../../src/operations/remez/remez_algorithm.hpp:
+
+../../src/new_types/high_prec.hpp:
+
+../../src/operations/shift.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/stdlib.h:
+
+../../src/operations/smearing/APE.hpp:
+
+../../src/operations/smearing/HYP.hpp:
+
+../../src/operations/smearing/Wflow.hpp:
+
+../../src/operations/smearing/gaussian.hpp:
+
+../../src/operations/smearing/recursive_Wflower.hpp:
+
+../../src/operations/smearing/smooth.hpp:
+
+../../src/operations/smearing/stout.hpp:
+
+../../src/operations/source.hpp:
+
+../../src/operations/su3_paths/arbitrary.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/deque:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_deque.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/deque.tcc:
+
+../../src/operations/su3_paths/clover_term.hpp:
+
+../../src/geometry/geometry_mix.hpp:
+
+../../src/operations/su3_paths/gauge_sweeper.hpp:
+
+../../src/operations/su3_paths/plaquette.hpp:
+
+../../src/operations/su3_paths/rectangles.hpp:
+
+../../src/operations/su3_paths/rectangular_staples.hpp:
+
+../../src/operations/su3_paths/squared_staples.hpp:
+
+../../src/operations/su3_paths/squared_staples.hpp:
+
+../../src/operations/vector_gather.hpp:
+
+../../src/routines/ios.hpp:
+
+../../src/routines/math_routines.hpp:
+
+../../src/routines/mpi_routines.hpp:
+
+../../src/routines/thread.hpp:
+
+../../projects/ib/contr.hpp:
+
+../../projects/ib/pars.hpp:
+
+../../projects/ib/conf.hpp:
+
+../../projects/ib/meslep.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/set:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_set.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_multiset.h:
+
+../../projects/ib/prop.hpp:

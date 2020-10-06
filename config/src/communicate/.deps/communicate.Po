@@ -1,0 +1,70 @@
+communicate/communicate.o: ../../src/communicate/communicate.cpp \
+ /usr/include/stdc-predef.h config.hpp \
+ ../../src/communicate/communicate.hpp \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdint.h \
+ /usr/include/stdint.h /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
+ /usr/include/gnu/stubs-64.h /usr/include/bits/wchar.h \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpio.h \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpicxx.h \
+ /usr/include/stdio.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stddef.h \
+ /usr/include/bits/types.h /usr/include/bits/typesizes.h \
+ /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdarg.h \
+ /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+ /usr/include/bits/stdio.h
+
+/usr/include/stdc-predef.h:
+
+config.hpp:
+
+../../src/communicate/communicate.hpp:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/gnu/stubs-64.h:
+
+/usr/include/bits/wchar.h:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpio.h:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpicxx.h:
+
+/usr/include/stdio.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stddef.h:
+
+/usr/include/bits/types.h:
+
+/usr/include/bits/typesizes.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdarg.h:
+
+/usr/include/bits/stdio_lim.h:
+
+/usr/include/bits/sys_errlist.h:
+
+/usr/include/bits/stdio.h:

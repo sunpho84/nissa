@@ -1,0 +1,6 @@
+operations/source.o: ../../src/operations/source.cpp \
+ /usr/include/stdc-predef.h config.hpp
+
+/usr/include/stdc-predef.h:
+
+config.hpp:

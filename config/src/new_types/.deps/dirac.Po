@@ -1,0 +1,282 @@
+new_types/dirac.o: ../../src/new_types/dirac.cpp \
+ /usr/include/stdc-predef.h config.hpp ../../src/new_types/dirac.hpp \
+ /usr/include/stdio.h /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
+ /usr/include/gnu/stubs-64.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stddef.h \
+ /usr/include/bits/types.h /usr/include/bits/typesizes.h \
+ /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdarg.h \
+ /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+ /usr/include/bits/stdio.h /usr/include/string.h /usr/include/xlocale.h \
+ ../../src/new_types/complex.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/math.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cmath \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/c++config.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/os_defines.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/cpu_defines.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/cpp_type_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/type_traits.h \
+ /usr/include/math.h /usr/include/bits/huge_val.h \
+ /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
+ /usr/include/bits/inf.h /usr/include/bits/nan.h \
+ /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
+ /usr/include/bits/mathinline.h ../../src/base/debug.hpp \
+ ../../src/new_types/spin.hpp ../../src/routines/math_routines.hpp \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/algorithm \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/utility \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_relops.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_pair.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/move.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/concept_check.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/type_traits \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/initializer_list \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_algobase.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/functexcept.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/exception_defines.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/numeric_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator_base_types.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator_base_funcs.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/debug/assertions.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/ptr_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/debug/debug.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/predefined_ops.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_algo.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cstdlib \
+ /usr/include/stdlib.h /usr/include/bits/waitflags.h \
+ /usr/include/bits/waitstatus.h /usr/include/endian.h \
+ /usr/include/bits/endian.h /usr/include/bits/byteswap.h \
+ /usr/include/bits/byteswap-16.h /usr/include/sys/types.h \
+ /usr/include/time.h /usr/include/sys/select.h /usr/include/bits/select.h \
+ /usr/include/bits/sigset.h /usr/include/bits/time.h \
+ /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
+ /usr/include/alloca.h /usr/include/bits/stdlib-float.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/algorithmfwd.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_heap.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_tempbuf.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_construct.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/new \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/exception \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/atomic_lockfree_defines.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/exception_ptr.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/nested_exception.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/alloc_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/alloc_traits.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/memoryfwd.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/uniform_int_dist.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/limits \
+ ../../src/new_types/complex.hpp ../../src/new_types/su3.hpp \
+ ../../src/geometry/geometry_lx.hpp \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h \
+ /marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpio.h \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h \
+ /cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpicxx.h
+
+/usr/include/stdc-predef.h:
+
+config.hpp:
+
+../../src/new_types/dirac.hpp:
+
+/usr/include/stdio.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/gnu/stubs-64.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stddef.h:
+
+/usr/include/bits/types.h:
+
+/usr/include/bits/typesizes.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdarg.h:
+
+/usr/include/bits/stdio_lim.h:
+
+/usr/include/bits/sys_errlist.h:
+
+/usr/include/bits/stdio.h:
+
+/usr/include/string.h:
+
+/usr/include/xlocale.h:
+
+../../src/new_types/complex.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/math.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cmath:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/c++config.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/os_defines.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/x86_64-pc-linux-gnu/bits/cpu_defines.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/cpp_type_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/type_traits.h:
+
+/usr/include/math.h:
+
+/usr/include/bits/huge_val.h:
+
+/usr/include/bits/huge_valf.h:
+
+/usr/include/bits/huge_vall.h:
+
+/usr/include/bits/inf.h:
+
+/usr/include/bits/nan.h:
+
+/usr/include/bits/mathdef.h:
+
+/usr/include/bits/mathcalls.h:
+
+/usr/include/bits/mathinline.h:
+
+../../src/base/debug.hpp:
+
+../../src/new_types/spin.hpp:
+
+../../src/routines/math_routines.hpp:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/algorithm:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/utility:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_relops.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_pair.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/move.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/concept_check.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/type_traits:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/initializer_list:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_algobase.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/functexcept.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/exception_defines.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/numeric_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator_base_types.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator_base_funcs.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/debug/assertions.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_iterator.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/ptr_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/debug/debug.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/predefined_ops.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_algo.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/cstdlib:
+
+/usr/include/stdlib.h:
+
+/usr/include/bits/waitflags.h:
+
+/usr/include/bits/waitstatus.h:
+
+/usr/include/endian.h:
+
+/usr/include/bits/endian.h:
+
+/usr/include/bits/byteswap.h:
+
+/usr/include/bits/byteswap-16.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/time.h:
+
+/usr/include/sys/select.h:
+
+/usr/include/bits/select.h:
+
+/usr/include/bits/sigset.h:
+
+/usr/include/bits/time.h:
+
+/usr/include/sys/sysmacros.h:
+
+/usr/include/bits/pthreadtypes.h:
+
+/usr/include/alloca.h:
+
+/usr/include/bits/stdlib-float.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/algorithmfwd.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_heap.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_tempbuf.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/stl_construct.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/new:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/exception:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/atomic_lockfree_defines.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/exception_ptr.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/nested_exception.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/ext/alloc_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/alloc_traits.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/memoryfwd.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/bits/uniform_int_dist.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/include/c++/6.1.0/limits:
+
+../../src/new_types/complex.hpp:
+
+../../src/new_types/su3.hpp:
+
+../../src/geometry/geometry_lx.hpp:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h:
+
+/marconi/prod/opt/compilers/gnu/6.1.0/none/lib/gcc/x86_64-pc-linux-gnu/6.1.0/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpio.h:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpi.h:
+
+/cineca/prod/opt/compilers/intel/pe-xe-2018/binary/impi/2018.4.274/intel64/include/mpicxx.h:
