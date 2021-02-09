@@ -54,11 +54,12 @@ namespace nissa
   const int follow_chris=0,follow_nazario=1;
   
   //define types of quark propagator used
-  const int nins_kind=21;
-  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , WFLOW , BACK_WFLOW , SMEARING , PHASING , EXT_FIELD};
-  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , WFLOW , BACK_WFLOW , SMEARING, PHASING , EXT_FIELD};
-  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC","CVEC0","CVEC1","CVEC2","CVEC3","PHOTON0","PHOTON1","PHOTON2","PHOTON3","WFLOW","BACK_WFLOW","SMEARING","PHASING","EXT_FIELD"};
-  const char ins_tag[nins_kind][10]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V"   ,"V0"   ,"V1"   ,"V2"   ,"V3"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     ,"WF"   ,"BWF"       ,"SM"     ,"PHA"     ,"X"    };
+  const int nins_kind=23;
+  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , WFLOW , BACK_WFLOW , SMEARING , ANYSM , PHASING , EXT_FIELD , GAMMA };
+  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , WFLOW , BACK_WFLOW , SMEARING, ANYSM, PHASING , EXT_FIELD , GAMMA };
+  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC","CVEC0","CVEC1","CVEC2","CVEC3","PHOTON0","PHOTON1","PHOTON2","PHOTON3","WFLOW","BACK_WFLOW","SMEARING","ANYSM","PHASING","EXT_FIELD","GAMMA"};
+  const char ins_tag[nins_kind][3]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V"   ,"V0"   ,"V1"   ,"V2"   ,"V3"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     ,"WF"   ,"BF"       ,"SM"     ,"AN"     ,"PH"     ,"X"    ,"G"    };
+
   inline insertion_t ins_from_tag(const char *tag)
   {
     int i=0;
