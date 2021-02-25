@@ -159,7 +159,7 @@ namespace nissa
     }
     
     //try to open and write the tag
-    void try_lock(const std::string &ext_path)
+    bool try_lock(const std::string &ext_path)
     {
       assert_inited();
       
@@ -167,14 +167,21 @@ namespace nissa
       path=ext_path;
       
       //create the lock on master
+      int written=true;
       if(rank==0)
-	{
-	  if(std::ofstream(path)<<tag<<std::endl) master_printf("Created lock file %s\n",path.c_str());
-	  else master_printf("Failed to create the lock file %s\n",path.c_str());
-	}
+	if(std::ofstream(path)<<tag<<std::endl)
+	  written=true;
+	else
+	  written=false;
+      else
+	written=true;
       
-      //barrier
-      MPI_Barrier(MPI_COMM_WORLD);
+      MPI_Bcast(&written,sizeof(T),MPI_INT,0,MPI_COMM_WORLD);
+      
+      if(written) master_printf("Created lock file %s\n",path.c_str());
+      else master_printf("Failed to create the lock file %s\n",path.c_str());
+      
+      return written;
     }
     
     //try to open and read the tag
