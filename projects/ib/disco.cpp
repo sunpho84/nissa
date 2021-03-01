@@ -593,15 +593,13 @@ bool check_lock_file()
 bool check_if_next_conf_has_to_be_analyzed()
 {
   return
-    (
-     (not asked_to_stop_or_restart()) and
+    ((not asked_to_stop_or_restart()) and
      enough_time() and
      read_conf_path_and_check_outpath_not_exists() and
      create_outpath() and
-     //create_run_file() and
+     create_run_file() and
      read_conf() and
-     // check_lock_file()
-1     );
+     check_lock_file());
 }
 
 void skip_conf()
@@ -619,7 +617,6 @@ bool find_next_conf_not_analyzed()
       
       if(not valid_conf)
 	{
-	  printf(" According to rank %d Configuration \"%s\" not to be processed\n",rank,conf_path);
 	  iconf++;
 	  
 	  skip_conf();
@@ -627,10 +624,6 @@ bool find_next_conf_not_analyzed()
     }
   
   valid_conf&=not finished_confs();
-  
-  MPI_Barrier(MPI_COMM_WORLD);
-  if(valid_conf)
-    printf(" According to rank %d Configuration \"%s\" valid, starting\n",rank,conf_path);
   
   return valid_conf;
 }
@@ -656,9 +649,7 @@ void fill_source(const int glbT)
   master_printf("Source position: %d\n",glbT);
   
   auto source_filler=field_rng_stream.getDrawer<spincolor>();
-  master_printf("Drawer initialized, speaking from rank %d\n",rank);
   source_filler.fillField(source);
-  master_printf("Source filled\n");
   
   NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
     {
@@ -697,11 +688,6 @@ void in_main(int narg,char **arg)
   //loop over the configs
   while(find_next_conf_not_analyzed())
     {
-      MPI_Barrier(MPI_COMM_WORLD);
-      printf("rank %d ok\n",rank);
-      fflush(stdout);
-      MPI_Barrier(MPI_COMM_WORLD);
-      
       FILE* disco_contr_file=open_file(combine("%s/disco_contr",outfolder),"w");
       FILE* conn_contr_file=open_file(combine("%s/conn_contr",outfolder),"w");
       

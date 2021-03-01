@@ -177,7 +177,7 @@ namespace nissa
       else
 	written=true;
       
-      MPI_Bcast(&written,sizeof(T),MPI_INT,master_rank,MPI_COMM_WORLD);
+      MPI_Bcast(&written,1,MPI_INT,master_rank,MPI_COMM_WORLD);
       
       if(written) master_printf("Created lock file %s\n",path.c_str());
       else master_printf("Failed to create the lock file %s\n",path.c_str());
