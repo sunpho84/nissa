@@ -328,11 +328,8 @@ struct FieldRngOf
   }
   
   //Fill a specific site
-  void _fillSite(T out,const int glblx)
+  void _fillSite(double* reals,const int glblx)
   {
-    //Flatten access to out
-    double* reals=(double*)out;
-    
     for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
       {
 	auto view=getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
@@ -367,7 +364,7 @@ struct FieldRngOf
       {
 	//Finds the global site of local one
 	const int& glblx=glblx_of_loclx[loclx];
-	_fillSite(out[loclx],glblx);
+	_fillSite((double*)(out[loclx]),glblx);
       }
     NISSA_PARALLEL_LOOP_END;
     
