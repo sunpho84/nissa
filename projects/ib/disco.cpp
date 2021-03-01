@@ -16,8 +16,8 @@ int nanalyzed_conf;
 int ngauge_conf;
 
 quad_su3 *glb_conf;
-spincolor *source;
-spincolor *prop;
+spincolor *source,*temp;
+spincolor *prop[2];
 
 int iconf=0;
 char conf_path[1024];
@@ -137,7 +137,10 @@ namespace Sitmo
   struct Rng
   {
     /// Default seed
-    static constexpr uint32_t DEFAULT_SEED=3472291050;
+    static constexpr uint32_t DEFAULT_SEED()
+    {
+      return 3472291050;
+    }
     
     /// Holds the state of the generator
     struct State : public Sitmo::Word
@@ -244,7 +247,7 @@ namespace Sitmo
     }
     
     /// Default constructor
-    explicit Rng(const uint32_t& s=DEFAULT_SEED)
+    explicit Rng(const uint32_t& s=DEFAULT_SEED())
     {
       seed(s);
     }
@@ -289,23 +292,31 @@ struct RngView
 template <typename T>
 struct FieldRngOf
 {
+  //Mark if the generator can be used or not
+  bool used;
+  
   //Reference to the Sitmo
   Sitmo::Rng& rng;
+  
+  //Distribution [0,1)
+  std::uniform_real_distribution<> distr;
   
   //Number of reals to be shifted, in units of global volume
   const uint64_t offsetReal;
   
+  //Number of reals for each site
+  static constexpr int nRealsPerSite=
+    sizeof(T)/sizeof(double);
+    
   //Constructor
   FieldRngOf(Sitmo::Rng& rng,const uint64_t& offsetReal) :
-    rng(rng),offsetReal(offsetReal)
+    used(false),rng(rng),offsetReal(offsetReal)
   {
   }
   
-  RngView getRngViewOnSiteAtRndReal(const int& loclx,const int& irnd_real_per_site)
+  /// Returns a view on a specific site and real number
+  RngView getRngViewOnGlbSiteIRndReal(const int& glblx,const int& irnd_real_per_site)
   {
-    //Finds the global site of local one
-    const int& glblx=glblx_of_loclx[loclx];
-    
     //Computes the number in the stream of reals
     const uint64_t irnd_double=offsetReal+glblx+glb_vol*irnd_real_per_site;
     
@@ -315,31 +326,48 @@ struct FieldRngOf
     return RngView(rng,irnd_uint32_t);
   }
   
-  //Fill a given site
-  void fillSite(T& out,const int loclx)
+  //Fill a specific site
+  void _fillSite(T out,const int glblx)
   {
-    constexpr int n=sizeof(T)/sizeof(double);
-    
-    //Distribution [0,1)
-    std::uniform_real_distribution<> distr;
-    
     //Flatten access to out
     double* reals=(double*)out;
     
-    for(int irnd_real=0;irnd_real<n;irnd_real++)
+    for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
       {
-	auto view=getRngViewOnSiteAtRndReal(loclx,irnd_real);
+	auto view=getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
 	
 	reals[irnd_real]=distr(view);
       }
   }
   
+  void enforce_single_usage()
+  {
+    if(used)
+      crash("cannot use a rng field twice");
+    used=true;
+  }
+  
+  //Fill with origin
+  void fillWithOrigin(T out)
+  {
+    enforce_single_usage();
+    
+    _fillSite(out,0);
+  }
+  
+  //Fill all sites
   void fillField(T* out)
   {
+    enforce_single_usage();
+    
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
-      this->fillSite(out[loclx],loclx);
+      {
+	//Finds the global site of local one
+	const int& glblx=glblx_of_loclx[loclx];
+	_fillSite(out[loclx],glblx);
+      }
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
@@ -354,18 +382,43 @@ struct FieldRngStream
   //Number of double precision numbers generated per site
   uint64_t ndouble_gen;
   
+  //Returns a single scalar
+  template <typename T>
+  T drawScalar()
+  {
+    static_assert(sizeof(T)%sizeof(double)==0,"Type not multiple in size of double");
+  }
+  
+  //Skip n drawers
+  template <typename T>
+  void skipDrawers(const uint64_t& nDrawers)
+  {
+    ndouble_gen+=FieldRngOf<T>::nRealsPerSite*nDrawers;
+  }
+  
   //Return a proxy from which to fetch the random numbers
   template <typename T>
-  auto draw()
+  auto getDrawer()
   {
     static_assert(sizeof(T)%sizeof(double)==0,"Type not multiple in size of double");
     
     //Result
     FieldRngOf<T> res(rng,ndouble_gen);
     
-    ndouble_gen+=sizeof(T)/sizeof(double);
+    skipDrawers<T>(1);
     
     return res;
+  }
+  
+  //Draw a single instance of T
+  template <typename T>
+  void drawScalar(T& out)
+  {
+    static_assert(sizeof(T)%sizeof(double)==0,"Type not multiple in size of double");
+    
+    auto drawer=getDrawer<T>();
+    
+    drawer.fillWithOrigin(out);
   }
   
   //Initilizes with a seed
@@ -387,24 +440,6 @@ void BoxMullerTransform(complex out,const complex ave=zero_complex,const complex
   
   out[RE]=r*cos(q)*sig[RE]+ave[RE];
   out[IM]=r*sin(q)*sig[IM]+ave[IM];
-}
-
-void fill_source()
-{
-  GET_THREAD_ID();
-  
-  auto source_filler=field_rng_stream.draw<spincolor>();
-  
-  NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
-    {
-      source_filler.fillSite(source[loclx],loclx);
-      for(int id=0;id<NDIRAC;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  BoxMullerTransform(source[loclx][id][ic]);
-    }
-  NISSA_PARALLEL_LOOP_END;
-  
-  set_borders_invalid(source);
 }
 
 void init_simulation(int narg,char **arg)
@@ -437,17 +472,29 @@ void init_simulation(int narg,char **arg)
   
   source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   
-  prop=nissa_malloc("prop",loc_vol+bord_vol,spincolor);
+  temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+  
+  for(int r=0;r<2;r++)
+    prop[r]=nissa_malloc("prop",loc_vol+bord_vol,spincolor);
 }
 
 //close the program
 void close()
 {
   close_input();
+
+  master_printf("\n");
+  master_printf("Nanalyzed confs: %d\n",nanalyzed_conf);
+  master_printf("Total time: %lg s\n",take_time()-init_time);
+  if(nanalyzed_conf)
+    master_printf("Time per conf: %lg s\n",(take_time()-init_time)/nanalyzed_conf);
+  master_printf("\n");
   
   nissa_free(glb_conf);
-  nissa_free(prop);
+  for(int r=0;r<2;r++)
+    nissa_free(prop[r]);
   nissa_free(source);
+  nissa_free(temp);
 }
 
 //check if asked to stop or restart
@@ -564,6 +611,11 @@ bool check_if_next_conf_has_to_be_analyzed()
      check_lock_file());
 }
 
+void skip_conf()
+{
+  field_rng_stream.skipDrawers<spincolor>(nhits*glb_size[0]);
+}
+
 bool find_next_conf_not_analyzed()
 {
   bool valid_conf=false;
@@ -576,6 +628,8 @@ bool find_next_conf_not_analyzed()
 	{
 	  master_printf(" Configuration \"%s\" not to be processed\n",conf_path);
 	  iconf++;
+	  
+	  skip_conf();
 	}
     }
   
@@ -596,6 +650,39 @@ void mark_finished()
   nanalyzed_conf++;
 }
 
+void fill_source(const int glbT)
+{
+  GET_THREAD_ID();
+  
+  // double tFrT[1];
+  // field_rng_stream.drawScalar(tFrT);
+  // const int glbT=tFrT[0]*glb_size[0];
+  // master_printf("Source position: %d\n",glbT);
+  
+  auto source_filler=field_rng_stream.getDrawer<spincolor>();
+  source_filler.fillField(source);
+  
+  NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
+    {
+      if(glbT==glb_coord_of_loclx[loclx][0])
+	for(int id=0;id<NDIRAC;id++)
+	  for(int ic=0;ic<NCOL;ic++)
+	    BoxMullerTransform(source[loclx][id][ic]);
+      else
+	spincolor_put_to_zero(source[loclx]);
+    }
+  NISSA_PARALLEL_LOOP_END;
+  
+  set_borders_invalid(source);
+}
+
+void get_prop(const int& r)
+{
+  safe_dirac_prod_spincolor(temp,(tau3[r]==-1)?&Pminus:&Pplus,source);
+  inv_tmD_cg_eoprec(prop[r],NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
+  safe_dirac_prod_spincolor(prop[r],(tau3[r]==-1)?&Pminus:&Pplus,prop[r]);
+}
+
 void in_main(int narg,char **arg)
 {
   const char stop_path[]="stop";
@@ -610,15 +697,58 @@ void in_main(int narg,char **arg)
   //loop over the configs
   while(find_next_conf_not_analyzed())
     {
+      FILE* disco_contr_file=open_file(combine("%s/disco_contr",outfolder),"w");
+      FILE* conn_contr_file=open_file(combine("%s/conn_contr",outfolder),"w");
+      
       for(int ihit=0;ihit<nhits;ihit++)
 	{
-	  fill_source();
+	  complex disco_contr[2][glb_size[0]];
 	  
-	  const double n=double_vector_glb_norm2(source,loc_vol);
-	  master_printf("n: %lg\n",n);
+	  for(int glbT=0;glbT<glb_size[0];glbT++)
+	    {
+	      fill_source(glbT);
+	      
+	      for(int r=0;r<2;r++)
+		{
+		  get_prop(r);
+		  // const double n=double_vector_glb_norm2(source,loc_vol);
+		  // master_printf("n: %lg\n",n);
+		  
+		  prop_multiply_with_gamma(temp,5,prop[r],-1);
+		  
+		  complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source,(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
+		  
+		  //master_printf("Prop: %lg %lg\n",prop[0][0][0][0],prop[0][0][0][1]);
+		}
+	      
+	      for(int r1=0;r1<2;r1++)
+		for(int r2=0;r2<2;r2++)
+		  {
+		    complex conn_contr[glb_size[0]];
+		    for(int locT=0;locT<loc_size[0];locT++)
+		      {
+			const int cubeOrigin=loc_spat_vol*locT;
+			const int glbTshifted=(glb_coord_of_loclx[cubeOrigin][0]-glbT+glb_size[0])%glb_size[0];
+			complex* slice1=(complex*)(prop[r1][cubeOrigin]);
+			complex* slice2=(complex*)(prop[r2][cubeOrigin]);
+			
+			complex_vector_glb_scalar_prod(conn_contr[glbTshifted],slice1,slice2,loc_spat_vol*sizeof(spincolor)/sizeof(complex));
+		      }
+		    
+		    MPI_Allreduce(MPI_IN_PLACE,conn_contr,2*glb_size[0],MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD);
+		    master_fprintf(conn_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+		    for(int t=0;t<glb_size[0];t++)
+		      master_fprintf(conn_contr_file,"%.16lg %.16lg\n",conn_contr[t][RE],conn_contr[t][IM]);
+		  }
+	    }
+	  
+	  for(int r=0;r<2;r++)
+	    {
+	      master_fprintf(disco_contr_file,"\n# hit %d , r %d\n\n",ihit,r);
+	      for(int glbT=0;glbT<glb_size[0];glbT++)
+		master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][glbT][RE],disco_contr[r][glbT][IM]);
+	    }
 	}
-      
-      //const uint64_t irnd=ri+2*(icol+NCOL*(glblx_of_loclx[ivol]+glb_vol*(ihit+nhits*iconf)));
       
       mark_finished();
       
