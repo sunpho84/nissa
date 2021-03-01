@@ -332,12 +332,9 @@ struct FieldRngOf
   {
     for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
       {
-	//master_printf(" Getting view on site %llu for rndreal %d\n",glblx,irnd_real);
 	auto view=getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
 	
-	//master_printf(" Filling %d %p\n",irnd_real,&(reals[irnd_real]));
 	reals[irnd_real]=distr(view);
-	//master_printf(" done\n");
       }
   }
   
@@ -365,7 +362,6 @@ struct FieldRngOf
     
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
       {
-	//master_printf("Filling site %d\n",loclx);
 	//Finds the global site of local one
 	const int& glblx=glblx_of_loclx[loclx];
 	_fillSite((double*)(out+loclx),glblx);
@@ -388,7 +384,6 @@ struct FieldRngStream
   template <typename T>
   void skipDrawers(const uint64_t& nDrawers)
   {
-    master_printf("Skipping drawer\n");
     ndouble_gen+=FieldRngOf<T>::nRealsPerSite*nDrawers;
   }
   
@@ -397,8 +392,6 @@ struct FieldRngStream
   auto getDrawer()
   {
     static_assert(sizeof(T)%sizeof(double)==0,"Type not multiple in size of double");
-    
-    master_printf("Creating the drawer\n");
     
     //Result
     FieldRngOf<T> res(rng,ndouble_gen);
@@ -545,18 +538,15 @@ bool read_conf_path_and_check_outpath_not_exists()
   
   read_str(outfolder,1024);
   
-//   master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+  master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
   
-//   const bool has_to_be_created=not dir_exists(outfolder);
-//   if(has_to_be_created)
-//       master_printf(" Output path \"%s\" not present.\n",outfolder);
-//   else
-//     master_printf(" Output path \"%s\" already present.\n",outfolder);
+  const bool has_to_be_created=not dir_exists(outfolder);
+  if(has_to_be_created)
+      master_printf(" Output path \"%s\" not present.\n",outfolder);
+  else
+    master_printf(" Output path \"%s\" already present.\n",outfolder);
   
-//   return has_to_be_created;
-//
-
-  return 1;
+  return has_to_be_created;
 }
 
 bool create_outpath()
