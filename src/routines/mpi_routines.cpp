@@ -6,6 +6,9 @@
  #include <mpi.h>
 #endif
 
+#define EXTERN_MPI
+ #include "mpi_routines.hpp"
+
 #include "ios.hpp"
 
 #include "geometry/geometry_lx.hpp"
@@ -13,9 +16,6 @@
 #include "new_types/float_128.hpp"
 #include "new_types/rat_approx.hpp"
 #include "threads/threads.hpp"
-
-#define EXTERN_MPI
-#include "mpi_routines.hpp"
 
 namespace nissa
 {
