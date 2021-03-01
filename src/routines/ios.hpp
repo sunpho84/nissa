@@ -56,7 +56,7 @@ namespace nissa
   EXTERN_IOS int verbosity_lv;
   
   int count_substrings(const char *str,const char *sub);
-  FILE* open_file(std::string path,const char *mode,int ext_rank=0);
+  FILE* open_file(std::string path,const char *mode,int ext_rank=master_rank);
   FILE* open_text_file_for_output(std::string path);
   int cd(std::string path);
   int cp(std::string path_out,std::string path_in);
@@ -104,7 +104,7 @@ namespace nissa
 	crash("Unable to read!");
     
     //broadcast
-    MPI_Bcast(&out,sizeof(T),MPI_CHAR,0,MPI_COMM_WORLD);
+    MPI_Bcast(&out,sizeof(T),MPI_CHAR,master_rank,MPI_COMM_WORLD);
     
     return out;
   }
@@ -177,7 +177,7 @@ namespace nissa
       else
 	written=true;
       
-      MPI_Bcast(&written,sizeof(T),MPI_INT,0,MPI_COMM_WORLD);
+      MPI_Bcast(&written,sizeof(T),MPI_INT,master_rank,MPI_COMM_WORLD);
       
       if(written) master_printf("Created lock file %s\n",path.c_str());
       else master_printf("Failed to create the lock file %s\n",path.c_str());
@@ -197,7 +197,7 @@ namespace nissa
       if(is_master_rank()) std::ifstream(path)>>test_tag;
       
       //broadcast
-      MPI_Bcast(&test_tag,sizeof(T),MPI_CHAR,0,MPI_COMM_WORLD);
+      MPI_Bcast(&test_tag,sizeof(T),MPI_CHAR,master_rank,MPI_COMM_WORLD);
       
       //return the comparison
       return (test_tag==tag);
