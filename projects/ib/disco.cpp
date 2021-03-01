@@ -660,7 +660,9 @@ void fill_source(const int glbT)
   master_printf("Source position: %d\n",glbT);
   
   auto source_filler=field_rng_stream.getDrawer<spincolor>();
+  master_printf("Drawer initialized\n");
   source_filler.fillField(source);
+  master_printf("Source filled\n");
   
   NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
     {
@@ -673,7 +675,7 @@ void fill_source(const int glbT)
     }
   NISSA_PARALLEL_LOOP_END;
   
-  master_printf("Soure filled\n");
+  master_printf("Box-Muller transformation performed\n");
   
   set_borders_invalid(source);
 }
