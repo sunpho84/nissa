@@ -332,12 +332,12 @@ struct FieldRngOf
   {
     for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
       {
-	master_printf(" Getting view on site %llu for rndreal %d\n",glblx,irnd_real);
+	//master_printf(" Getting view on site %llu for rndreal %d\n",glblx,irnd_real);
 	auto view=getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
 	
-	master_printf(" Filling %d %p\n",irnd_real,&(reals[irnd_real]));
+	//master_printf(" Filling %d %p\n",irnd_real,&(reals[irnd_real]));
 	reals[irnd_real]=distr(view);
-	master_printf(" done\n");
+	//master_printf(" done\n");
       }
   }
   
@@ -365,7 +365,7 @@ struct FieldRngOf
     
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
       {
-	master_printf("Filling site %d\n",loclx);
+	//master_printf("Filling site %d\n",loclx);
 	//Finds the global site of local one
 	const int& glblx=glblx_of_loclx[loclx];
 	_fillSite((double*)(out+loclx),glblx);
