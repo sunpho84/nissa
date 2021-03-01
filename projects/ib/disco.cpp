@@ -597,8 +597,8 @@ bool check_if_next_conf_has_to_be_analyzed()
      // (not asked_to_stop_or_restart()) and
      // enough_time() and
      read_conf_path_and_check_outpath_not_exists() and
-     // create_outpath() and
-     // create_run_file() and
+     create_outpath() and
+     create_run_file() and
      read_conf() and
      // check_lock_file()
 1     );
