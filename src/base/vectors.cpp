@@ -56,7 +56,7 @@ namespace nissa
   //print the content of an nissa vect
   void vect_content_fprintf(FILE *fout,nissa_vect *vect)
   {
-    if(rank==0)
+    if(is_master_rank())
       {
 	fprintf(fout,"\"%s\" ",vect->tag);
 	fprintf(fout,"of %ld elements of type \"%s\" (%ld bytes) ",vect->nel,vect->type,vect->nel*vect->size_per_el);
@@ -180,7 +180,7 @@ namespace nissa
   void crash_if_borders_not_allocated(void *v,int min_size)
   {
     if(!check_borders_allocated(v,min_size))
-      if(rank==0)
+      if(is_master_rank())
 	{
 	  fprintf(stderr,"borders not allocated in ");
 	  vect_content_fprintf(stderr,v);
@@ -192,7 +192,7 @@ namespace nissa
   void crash_if_edges_not_allocated(void *v,int min_size)
   {
     if(!check_edges_allocated(v,min_size))
-      if(rank==0)
+      if(is_master_rank())
 	{
 	  fprintf(stderr,"edges not allocated in ");
 	  vect_content_fprintf(stderr,v);

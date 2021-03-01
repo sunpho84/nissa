@@ -32,7 +32,7 @@ namespace nissa
     
     if(delayed_thread_barrier[THREAD_ID]==0)
       {
-	if(rank==0 && VERBOSITY_LV3) printf("thread %d waiting for delayed threads\n",THREAD_ID);
+	if(is_master_rank() && VERBOSITY_LV3) printf("thread %d waiting for delayed threads\n",THREAD_ID);
 	thread_barrier_internal();
       }
   }
@@ -69,7 +69,7 @@ namespace nissa
     
     if(delayed_thread_barrier[THREAD_ID]==1)
       {
-	if(rank==0 && VERBOSITY_LV3) printf("thread %d will delay its execution,stopped at %s,%d\n",
+	if(is_master_rank() && VERBOSITY_LV3) printf("thread %d will delay its execution,stopped at %s,%d\n",
 					    THREAD_ID,glb_barr_file,glb_barr_line);
 	thread_barrier_internal();
       }
@@ -136,7 +136,7 @@ namespace nissa
     THREAD_BARRIER_FORCE();
 #ifdef THREAD_DEBUG
     GET_THREAD_ID();
-    if(rank==0 && VERBOSITY_LV3)
+    if(is_master_rank() && VERBOSITY_LV3)
       {
 	printf("thread %d unlocking the pool\n",THREAD_ID);
 	fflush(stdout);
@@ -163,7 +163,7 @@ namespace nissa
     thread_pool_locked=true;
     cache_flush();
 #ifdef THREAD_DEBUG
-    if(rank==0 && VERBOSITY_LV3)
+    if(is_master_rank() && VERBOSITY_LV3)
       {
 	printf("thread %d locking the pool\n",THREAD_ID);
 	fflush(stdout);
@@ -198,7 +198,7 @@ namespace nissa
     while(stay_working);
     
 #ifdef THREAD_DEBUG
-    if(rank==0 && VERBOSITY_LV3)
+    if(is_master_rank() && VERBOSITY_LV3)
       {
 	printf("thread %d exit pool\n",THREAD_ID);
 	fflush(stdout);
@@ -210,7 +210,7 @@ namespace nissa
   void start_threaded_function(void(*function)(void),const char *name)
   {
 #ifdef THREAD_DEBUG
-    if(rank==0 && VERBOSITY_LV3)
+    if(is_master_rank() && VERBOSITY_LV3)
       {
 	printf("----------Start working %s thread pool--------\n",name);
 	fflush(stdout);
@@ -225,7 +225,7 @@ namespace nissa
     thread_pool_lock();
     
 #ifdef THREAD_DEBUG
-    if(rank==0 && VERBOSITY_LV3)
+    if(is_master_rank() && VERBOSITY_LV3)
       {
 	printf("----------Finished working %s thread pool--------\n",name);
 	fflush(stdout);

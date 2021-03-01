@@ -48,7 +48,7 @@ namespace nissa
       }
     
     //broadcast name and copy in prefix
-    MPI_Bcast(buffer,strlen(buffer),MPI_CHAR,0,MPI_COMM_WORLD);
+    MPI_Bcast(buffer,strlen(buffer),MPI_CHAR,master_rank,MPI_COMM_WORLD);
     prefix=buffer;
     
     free(buffer);
@@ -91,7 +91,7 @@ namespace nissa
   {
     umask(0);
     int res=is_master_rank() ? mkdir(path.c_str(),0775) : 0;
-    MPI_Bcast(&res,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&res,1,MPI_INT,master_rank,MPI_COMM_WORLD);
     if(res!=0)
       master_printf("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path.c_str(),res);
     

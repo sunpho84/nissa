@@ -402,7 +402,7 @@ namespace nissa
   //write from first node
   void ILDG_File_master_write(ILDG_File &file,void *data,size_t nbytes_req)
   {
-    if(rank==0)
+    if(is_master_rank())
       {
 #ifdef USE_MPI_IO
 	//write data

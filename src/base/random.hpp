@@ -6,6 +6,7 @@
 
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
+#include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 
 #ifndef EXTERN_RANDOM
@@ -85,7 +86,7 @@ namespace nissa
   {
     const int size=sizeof(T);
     
-    if(rank==0)
+    if(is_master_rank())
       {
 	const char path[]="/dev/urandom";
 	int fd=open(path,O_RDONLY);
@@ -95,7 +96,7 @@ namespace nissa
         if(rc!=size) crash("reading %zu bytes from %s, obtained: %d",size,path,rc);
 	if(close(fd)==-1) crash("Closing %s",path);
     }
-    MPI_Bcast(&t,size,MPI_CHAR,0,MPI_COMM_WORLD);
+    MPI_Bcast(&t,size,MPI_CHAR,master_rank,MPI_COMM_WORLD);
   }
 }
 

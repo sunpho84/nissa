@@ -40,7 +40,7 @@ namespace nissa
   //touch a file
   void file_touch(std::string path)
   {
-    if(rank==0)
+    if(is_master_rank())
       {
 	FILE *f=fopen(path.c_str(),"w");
 	if(f!=NULL)
@@ -57,7 +57,7 @@ namespace nissa
   int file_lock(std::string path)
   {
     int f=0;
-    if(rank==0)
+    if(is_master_rank())
       {
 	//open the file descriptor
 	f=open(path.c_str(),O_RDWR);
@@ -74,7 +74,7 @@ namespace nissa
       }
     
     //broadcast
-    MPI_Bcast(&f,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&f,1,MPI_INT,master_rank,MPI_COMM_WORLD);
     
     return f;
   }
@@ -82,7 +82,7 @@ namespace nissa
   //unlock a file
   int file_unlock(int f)
   {
-    if(rank==0)
+    if(is_master_rank())
       {
 	int status=lockf(f,F_ULOCK,0);
 	if(not status) master_printf("Unable to unset the lock on file descriptor %d\n",f);
@@ -90,7 +90,7 @@ namespace nissa
       }
     
     //broadcast
-    MPI_Bcast(&f,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&f,1,MPI_INT,master_rank,MPI_COMM_WORLD);
     
     return f;
   }
@@ -100,7 +100,7 @@ namespace nissa
   {
     int status=1;
     
-    if(rank==0)
+    if(is_master_rank())
       {
 	FILE *f=fopen(path.c_str(),"r");
 	if(f!=NULL)
@@ -117,7 +117,7 @@ namespace nissa
       }
     
     //broadcast the result
-    MPI_Bcast(&status,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&status,1,MPI_INT,master_rank,MPI_COMM_WORLD);
     
     return status;
   }
@@ -127,7 +127,7 @@ namespace nissa
   {
     int exists;
     
-    if(rank==0)
+    if(is_master_rank())
       {
 	DIR *d=opendir(path.c_str());
 	exists=(d!=NULL);
@@ -140,7 +140,7 @@ namespace nissa
 	else verbosity_lv2_master_printf("Directory \"%s\" is not present\n",path.c_str());
       }
     
-    MPI_Bcast(&exists,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&exists,1,MPI_INT,master_rank,MPI_COMM_WORLD);
     
     return exists;
   }
@@ -156,7 +156,7 @@ namespace nissa
   //close the input file
   void close_input()
   {
-    if(rank==0)
+    if(is_master_rank())
       {
 	if(input_global_stack.size()==0 and input_global==NULL) crash("No input file open");
 	fclose(input_global);
@@ -177,16 +177,16 @@ namespace nissa
     int ok=1,len=0;
     tok[0]='\0';
     
-    if(rank==0)
+    if(is_master_rank())
       {
 	if(feof(input_global)) crash("reached EOF while scanning input file");
 	ok=fscanf(input_global,"%s",tok);
 	len=strlen(tok)+1;
       }
     
-    MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
-    MPI_Bcast(&len,1,MPI_INT,0,MPI_COMM_WORLD);
-    MPI_Bcast(tok,len,MPI_BYTE,0,MPI_COMM_WORLD);
+    MPI_Bcast(&ok,1,MPI_INT,master_rank,MPI_COMM_WORLD);
+    MPI_Bcast(&len,1,MPI_INT,master_rank,MPI_COMM_WORLD);
+    MPI_Bcast(tok,len,MPI_BYTE,master_rank,MPI_COMM_WORLD);
     
     return ok;
   }

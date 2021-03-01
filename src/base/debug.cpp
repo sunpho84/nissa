@@ -40,7 +40,7 @@ namespace nissa
     char **strs=backtrace_symbols(callstack,frames);
     
     //only master rank, but not master thread
-    if(rank==0)
+    if(is_master_rank())
       {
 	printf("Backtracing...\n");
 	for(int i=0;i<frames;i++) printf("%s\n",strs[i]);
@@ -59,7 +59,7 @@ namespace nissa
     GET_THREAD_ID();
     if(!IS_MASTER_THREAD) sleep(1);
     
-    if(rank==0)
+    if(is_master_rank())
       {
 	//expand error message
 	char mess[1024];
@@ -121,7 +121,7 @@ namespace nissa
     va_list ap;
     va_start(ap,templ);
     
-    if(rc!=MPI_SUCCESS && rank==0)
+    if(rc!=MPI_SUCCESS && is_master_rank())
       {
 	char err[1024];
 	int len=1024;

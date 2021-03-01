@@ -199,7 +199,7 @@ namespace nissa
   
   //broadcast a coord
   void coords_broadcast(coords c)
-  {MPI_Bcast(c,NDIM,MPI_INT,0,MPI_COMM_WORLD);}
+  {MPI_Bcast(c,NDIM,MPI_INT,master_rank,MPI_COMM_WORLD);}
   
   //ceil to next multiple of eight
   MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos)
@@ -344,7 +344,7 @@ namespace nissa
 	
 	//copy loc in the buf and sync all the threads
 	float_128_copy(glb_quadruple_reduction_buf[thread_id],in_loc);
-	if(VERBOSITY_LV3 && rank==0) printf(" entering 128 reduction, in_loc[%d]: %+16.16lg\n",THREAD_ID,in_loc[0]+in_loc[1]);
+	if(VERBOSITY_LV3 && is_master_rank()) printf(" entering 128 reduction, in_loc[%d]: %+16.16lg\n",THREAD_ID,in_loc[0]+in_loc[1]);
 	THREAD_BARRIER();
 	
 	//within master thread summ all the pieces and between MPI
@@ -352,7 +352,7 @@ namespace nissa
 	  {
 	    for(unsigned int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_quadruple_reduction_buf[ith]);
 	    MPI_Allreduce(in_loc,glb_quadruple_reduction_buf[0],1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
-	    if(VERBOSITY_LV3 && rank==0) printf("glb tot: %+016.16lg\n",glb_quadruple_reduction_buf[0][0]+
+	    if(VERBOSITY_LV3 && is_master_rank()) printf("glb tot: %+016.16lg\n",glb_quadruple_reduction_buf[0][0]+
 						glb_quadruple_reduction_buf[0][1]);
 	    cache_flush();
 	  }
