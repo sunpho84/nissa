@@ -599,7 +599,7 @@ bool check_lock_file()
 
 bool check_if_next_conf_has_to_be_analyzed()
 {
-  bool res=
+  return
     ((not asked_to_stop_or_restart()) and
      enough_time() and
      read_conf_path_and_check_outpath_not_exists() and
@@ -607,10 +607,6 @@ bool check_if_next_conf_has_to_be_analyzed()
      create_run_file() and
      read_conf() and
      check_lock_file());
-  
-  printf("rank %d res %d\n",rank,(int)res);
-
-  return res;
 }
 
 void skip_conf()
@@ -628,7 +624,7 @@ bool find_next_conf_not_analyzed()
       
       if(not valid_conf)
 	{
-	  master_printf(" Configuration \"%s\" not to be processed\n",conf_path);
+	  printf(" According to rank %d Configuration \"%s\" not to be processed\n",rank,conf_path);
 	  iconf++;
 	  
 	  skip_conf();
@@ -636,7 +632,7 @@ bool find_next_conf_not_analyzed()
     }
   
   if(valid_conf)
-    master_printf(" Configuration \"%s\" valid, starting\n",conf_path);
+    printf(" According to rank %d Configuration \"%s\" valid, starting\n",rank,conf_path);
   
   return valid_conf and not finished_confs();
 }
@@ -654,9 +650,6 @@ void mark_finished()
 
 void fill_source(const int glbT)
 {
-  master_rank=1;
-  master_printf("Speaking from rank %d\n",rank);
-  
   GET_THREAD_ID();
   
   // double tFrT[1];
