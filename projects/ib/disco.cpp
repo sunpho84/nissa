@@ -312,6 +312,7 @@ struct FieldRngOf
   FieldRngOf(Sitmo::Rng& rng,const uint64_t& offsetReal) :
     used(false),rng(rng),offsetReal(offsetReal)
   {
+    master_printf("All entries of FieldRng initialized\n");
   }
   
   /// Returns a view on a specific site and real number
@@ -382,17 +383,11 @@ struct FieldRngStream
   //Number of double precision numbers generated per site
   uint64_t ndouble_gen;
   
-  //Returns a single scalar
-  template <typename T>
-  T drawScalar()
-  {
-    static_assert(sizeof(T)%sizeof(double)==0,"Type not multiple in size of double");
-  }
-  
   //Skip n drawers
   template <typename T>
   void skipDrawers(const uint64_t& nDrawers)
   {
+    master_printf("Skipping drawer\n");
     ndouble_gen+=FieldRngOf<T>::nRealsPerSite*nDrawers;
   }
   
@@ -401,6 +396,8 @@ struct FieldRngStream
   auto getDrawer()
   {
     static_assert(sizeof(T)%sizeof(double)==0,"Type not multiple in size of double");
+    
+    master_printf("Creating the drawer\n");
     
     //Result
     FieldRngOf<T> res(rng,ndouble_gen);
