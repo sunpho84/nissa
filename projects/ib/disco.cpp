@@ -701,10 +701,14 @@ void in_main(int narg,char **arg)
   //loop over the configs
   while(find_next_conf_not_analyzed())
     {
+      MPI_Barrier(MPI_COMM_WORLD);
       printf("rank %d ok\n",rank);
+      fflush(stdout);
+      MPI_Barrier(MPI_COMM_WORLD);
+      
       FILE* disco_contr_file=open_file(combine("%s/disco_contr",outfolder),"w");
       FILE* conn_contr_file=open_file(combine("%s/conn_contr",outfolder),"w");
-      fflush(stdout);
+      
       for(int ihit=0;ihit<nhits;ihit++)
 	{
 	  complex disco_contr[2][glb_size[0]];
