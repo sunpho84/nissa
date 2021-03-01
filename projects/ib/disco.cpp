@@ -721,7 +721,7 @@ void in_main(int narg,char **arg)
 		    for(int locT=0;locT<loc_size[0];locT++)
 		      {
 			const int cubeOrigin=loc_spat_vol*locT;
-			const int glbTshifted=(glb_coord_of_loclx[cubeOrigin][0]-glbT+glb_size[0])%glb_size[0];
+			const int glbTshifted=(rank_coord[0]*loc_size[0]+locT-glbT+glb_size[0])%glb_size[0];
 			complex* slice1=(complex*)(prop[r1][cubeOrigin]);
 			complex* slice2=(complex*)(prop[r2][cubeOrigin]);
 			
