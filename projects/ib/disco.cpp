@@ -659,7 +659,7 @@ void fill_source(const int glbT)
   
   auto source_filler=field_rng_stream.getDrawer<spincolor>();
   master_printf("Drawer initialized, speaking from rank %d\n",rank);
-  if(rank==master_rank) source_filler.fillField(source);
+  source_filler.fillField(source);
   master_printf("Source filled\n");
   
   NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
