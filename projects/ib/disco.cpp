@@ -545,15 +545,18 @@ bool read_conf_path_and_check_outpath_not_exists()
   
   read_str(outfolder,1024);
   
-  master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+//   master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
   
-  const bool has_to_be_created=not dir_exists(outfolder);
-  if(has_to_be_created)
-      master_printf(" Output path \"%s\" not present.\n",outfolder);
-  else
-    master_printf(" Output path \"%s\" already present.\n",outfolder);
+//   const bool has_to_be_created=not dir_exists(outfolder);
+//   if(has_to_be_created)
+//       master_printf(" Output path \"%s\" not present.\n",outfolder);
+//   else
+//     master_printf(" Output path \"%s\" already present.\n",outfolder);
   
-  return has_to_be_created;
+//   return has_to_be_created;
+//
+
+  return 1;
 }
 
 bool create_outpath()
@@ -600,13 +603,15 @@ bool check_lock_file()
 bool check_if_next_conf_has_to_be_analyzed()
 {
   return
-    ((not asked_to_stop_or_restart()) and
-     enough_time() and
+    (
+     // (not asked_to_stop_or_restart()) and
+     // enough_time() and
      read_conf_path_and_check_outpath_not_exists() and
-     create_outpath() and
-     create_run_file() and
+     // create_outpath() and
+     // create_run_file() and
      read_conf() and
-     check_lock_file());
+     // check_lock_file()
+1     );
 }
 
 void skip_conf()
@@ -633,6 +638,7 @@ bool find_next_conf_not_analyzed()
   
   valid_conf&=not finished_confs();
   
+  MPI_Barrier(MPI_COMM_WORLD);
   if(valid_conf)
     printf(" According to rank %d Configuration \"%s\" valid, starting\n",rank,conf_path);
   
