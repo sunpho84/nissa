@@ -716,6 +716,8 @@ void in_main(int narg,char **arg)
 		for(int r2=0;r2<2;r2++)
 		  {
 		    complex conn_contr[glb_size[0]];
+		    memset(conn_contr,0,sizeof(complex)*glb_size[0]);
+		    
 		    for(int locT=0;locT<loc_size[0];locT++)
 		      {
 			const int cubeOrigin=loc_spat_vol*locT;
