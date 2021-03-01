@@ -362,9 +362,10 @@ struct FieldRngOf
     
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
       {
+	master_printf("Filling site %d\n",loclx);
 	//Finds the global site of local one
 	const int& glblx=glblx_of_loclx[loclx];
-	_fillSite((double*)(out[loclx]),glblx);
+	_fillSite((double*)(out+loclx),glblx);
       }
     NISSA_PARALLEL_LOOP_END;
     
