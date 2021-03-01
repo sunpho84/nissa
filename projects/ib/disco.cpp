@@ -652,8 +652,6 @@ void fill_source(const int glbT)
 {
   GET_THREAD_ID();
   
-  master_rank=1;
-  master_printf("Speaking from rank %d\n",rank);
   // double tFrT[1];
   // field_rng_stream.drawScalar(tFrT);
   // const int glbT=tFrT[0]*glb_size[0];
@@ -698,6 +696,8 @@ void in_main(int narg,char **arg)
   
   field_rng_stream.init(seed);
   
+  master_rank=1;
+  master_printf("Speaking from rank %d\n",rank);
   //loop over the configs
   while(find_next_conf_not_analyzed())
     {

@@ -12,6 +12,7 @@
 #include "base/random.hpp"
 #include "new_types/complex.hpp"
 #include "measures/contract/mesons_2pts.hpp"
+#include "routines/mpi_routines.hpp"
 
 #if THREADS_TYPE == OPENMP_THREADS
  #include <omp.h>
@@ -98,7 +99,7 @@ namespace nissa
     
     //scan
     T out=0;
-    if(rank==0 and thread_id==0)
+    if(is_master_rank() and thread_id==0)
       if(fscanf(stream,tag,&out)!=1)
 	crash("Unable to read!");
     
@@ -168,7 +169,7 @@ namespace nissa
       
       //create the lock on master
       int written=true;
-      if(rank==0)
+      if(is_master_rank())
 	if(std::ofstream(path)<<tag<<std::endl)
 	  written=true;
 	else
@@ -193,7 +194,7 @@ namespace nissa
       memset(&test_tag,0,sizeof(T));
       
       //read on master
-      if(rank==0) std::ifstream(path)>>test_tag;
+      if(is_master_rank()) std::ifstream(path)>>test_tag;
       
       //broadcast
       MPI_Bcast(&test_tag,sizeof(T),MPI_CHAR,0,MPI_COMM_WORLD);

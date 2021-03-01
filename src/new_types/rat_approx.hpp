@@ -7,7 +7,6 @@
 
 #include "base/debug.hpp"
 #include "io/buffer.hpp"
-#include "routines/ios.hpp"
 
 namespace nissa
 {
@@ -33,7 +32,7 @@ namespace nissa
     void resize(int size){poles.resize(size);weights.resize(size);}
     
     std::string get_str();
-    int master_fprintf(FILE *fout,int full=false) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
+    int master_fprintf(FILE *fout,int full=false);
     int master_fprintf_expr(FILE *fout);
     
     void shift_all_poles(double sh) {for(int iterm=0;iterm<degree();iterm++) poles[iterm]+=sh;}
