@@ -687,6 +687,8 @@ void get_prop(const int& r)
 
 void in_main(int narg,char **arg)
 {
+  master_rank=1;
+  master_printf("Speaking from rank %d\n",rank);
   const char stop_path[]="stop";
   
   init_time=take_time();
@@ -696,8 +698,6 @@ void in_main(int narg,char **arg)
   
   field_rng_stream.init(seed);
   
-  master_rank=1;
-  master_printf("Speaking from rank %d\n",rank);
   //loop over the configs
   while(find_next_conf_not_analyzed())
     {
