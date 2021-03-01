@@ -631,10 +631,12 @@ bool find_next_conf_not_analyzed()
 	}
     }
   
+  valid_conf&=not finished_confs();
+  
   if(valid_conf)
     printf(" According to rank %d Configuration \"%s\" valid, starting\n",rank,conf_path);
   
-  return valid_conf and not finished_confs();
+  return valid_conf;
 }
 
 //mark a conf as finished
@@ -702,7 +704,7 @@ void in_main(int narg,char **arg)
       printf("rank %d ok\n",rank);
       FILE* disco_contr_file=open_file(combine("%s/disco_contr",outfolder),"w");
       FILE* conn_contr_file=open_file(combine("%s/conn_contr",outfolder),"w");
-      
+      fflush(stdout);
       for(int ihit=0;ihit<nhits;ihit++)
 	{
 	  complex disco_contr[2][glb_size[0]];
