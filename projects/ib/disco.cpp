@@ -652,14 +652,15 @@ void fill_source(const int glbT)
 {
   GET_THREAD_ID();
   
+  master_rank=1;
+  master_printf("Speaking from rank %d\n",rank);
   // double tFrT[1];
   // field_rng_stream.drawScalar(tFrT);
   // const int glbT=tFrT[0]*glb_size[0];
   master_printf("Source position: %d\n",glbT);
   
   auto source_filler=field_rng_stream.getDrawer<spincolor>();
-  master_printf("Drawer initialized\n");
-  master_rank=1;
+  master_printf("Drawer initialized, speaking from rank %d\n",rank);
   if(rank==master_rank) source_filler.fillField(source);
   master_printf("Source filled\n");
   
