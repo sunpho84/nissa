@@ -328,13 +328,16 @@ struct FieldRngOf
   }
   
   //Fill a specific site
-  void _fillSite(double* reals,const int glblx)
+  void _fillSite(double* reals,const uint64_t glblx)
   {
     for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
       {
+	master_printf(" Getting view on site %llu for rndreal %d\n",glblx,irnd_real);
 	auto view=getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
 	
+	master_printf(" Filling %d %p\n",irnd_real,&(reals[irnd_real]));
 	reals[irnd_real]=distr(view);
+	master_printf(" done\n");
       }
   }
   
