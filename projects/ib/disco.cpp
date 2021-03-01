@@ -482,7 +482,7 @@ void init_simulation(int narg,char **arg)
 void close()
 {
   close_input();
-
+  
   master_printf("\n");
   master_printf("Nanalyzed confs: %d\n",nanalyzed_conf);
   master_printf("Total time: %lg s\n",take_time()-init_time);
@@ -657,7 +657,7 @@ void fill_source(const int glbT)
   // double tFrT[1];
   // field_rng_stream.drawScalar(tFrT);
   // const int glbT=tFrT[0]*glb_size[0];
-  // master_printf("Source position: %d\n",glbT);
+  master_printf("Source position: %d\n",glbT);
   
   auto source_filler=field_rng_stream.getDrawer<spincolor>();
   source_filler.fillField(source);
@@ -672,6 +672,8 @@ void fill_source(const int glbT)
 	spincolor_put_to_zero(source[loclx]);
     }
   NISSA_PARALLEL_LOOP_END;
+  
+  master_printf("Soure filled\n");
   
   set_borders_invalid(source);
 }
@@ -751,12 +753,12 @@ void in_main(int narg,char **arg)
 	}
       
       mark_finished();
-      
-      if(iconf>=ngauge_conf)
-	{
-	  master_printf("Analyzed all confs, exiting\n\n");
-	  file_touch(stop_path);
-	}
+    }
+  
+  if(iconf>=ngauge_conf)
+    {
+      master_printf("Analyzed all confs, exiting\n\n");
+      file_touch(stop_path);
     }
   
   //close the simulation
