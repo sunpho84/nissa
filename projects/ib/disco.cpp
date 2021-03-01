@@ -649,7 +649,9 @@ void mark_finished()
 }
 
 void fill_source(const int glbT)
-{
+{  master_rank=1;
+  master_printf("Speaking from rank %d\n",rank);
+
   GET_THREAD_ID();
   
   // double tFrT[1];
@@ -687,8 +689,6 @@ void get_prop(const int& r)
 
 void in_main(int narg,char **arg)
 {
-  master_rank=1;
-  master_printf("Speaking from rank %d\n",rank);
   const char stop_path[]="stop";
   
   init_time=take_time();
