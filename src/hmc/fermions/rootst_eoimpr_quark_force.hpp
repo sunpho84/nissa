@@ -2,6 +2,7 @@
 #define _ROOTST_EOIMPR_QUARK_FORCE_HPP
 
 #include "new_types/rat_approx.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {
