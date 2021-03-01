@@ -40,7 +40,7 @@ namespace nissa
     
     //open on the master
     int fd=-1;
-    if(rank==0)
+    if(is_master_rank())
       {
 	fd=mkstemp(buffer);
 	if(fd==-1) crash("failed to open a temporary file with prefix %s",prefix.c_str());
@@ -62,7 +62,7 @@ namespace nissa
     
     va_list ap;
     va_start(ap,format);
-    if(rank==0 && IS_MASTER_THREAD) ret=vfprintf(stream,format,ap);
+    if(is_master_rank() && IS_MASTER_THREAD) ret=vfprintf(stream,format,ap);
     va_end(ap);
     
     return ret;
@@ -90,7 +90,7 @@ namespace nissa
   int create_dir(std::string path)
   {
     umask(0);
-    int res=(rank==0) ? mkdir(path.c_str(),0775) : 0;
+    int res=is_master_rank() ? mkdir(path.c_str(),0775) : 0;
     MPI_Bcast(&res,1,MPI_INT,0,MPI_COMM_WORLD);
     if(res!=0)
       master_printf("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path.c_str(),res);
@@ -102,7 +102,7 @@ namespace nissa
   int cp(std::string path_out,std::string path_in)
   {
     int rc=0;
-    if(rank==0)
+    if(is_master_rank())
       {
 	char command[1024];
 	sprintf(command,"cp %s %s",path_in.c_str(),path_out.c_str());
@@ -117,7 +117,7 @@ namespace nissa
   int cd(std::string path)
   {
     int rc=0;
-    if(rank==0)
+    if(is_master_rank())
       {
 	char command[1024];
 	sprintf(command,"cd %s",path.c_str());
@@ -156,7 +156,7 @@ namespace nissa
   
   //close an open file
   void close_file(FILE *file)
-  {if(rank==0 && file!=stdout) fclose(file);}
+  {if(is_master_rank() && file!=stdout) fclose(file);}
   
   //count the number of lines in a file
   int count_file_lines(std::string path)
@@ -167,7 +167,7 @@ namespace nissa
     //scan the file
     FILE *fin=open_text_file_for_input(path);
     int n=0;
-    if(rank==0)
+    if(is_master_rank())
       {
 	int ch;
 	while(EOF!=(ch=getchar())) if (ch=='\n') n++;
@@ -188,7 +188,7 @@ namespace nissa
     //scan the file
     FILE *fin=open_text_file_for_input(path);
     int file_size=0;
-    if(rank==0)
+    if(is_master_rank())
       {
 	if(fseek(fin,0,SEEK_END)) crash("while seeking");
 	file_size=ftell(fin);
@@ -222,7 +222,7 @@ namespace nissa
   //print a single contraction to the passed file
   void print_contraction_to_file(FILE *fout,int op_sour,int op_sink,complex *contr,int twall,const char *tag,double norm,int skip_header)
   {
-    if(rank==0)
+    if(is_master_rank())
       {
 	//header
 	if(op_sour>=0 && op_sink>=0 && (!skip_header)) fprintf(fout," # %s%s%s\n",tag,gtag[op_sink],gtag[op_sour]);
@@ -240,7 +240,7 @@ namespace nissa
   //print all the passed contractions
   void print_contractions_to_file(FILE *fout,int ncontr,const int *op_sour,const int *op_sink,complex *contr,int twall,const char *tag,double norm,int skip_header)
   {
-    if(rank==0)
+    if(is_master_rank())
       for(int icontr=0;icontr<ncontr;icontr++)
 	{
 	  fprintf(fout,"\n");

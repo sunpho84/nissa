@@ -11,6 +11,9 @@
 
 #ifndef EXTERN_MPI
  #define EXTERN_MPI extern
+ #define INIT_MPI_TO(...)
+#else
+ #define INIT_MPI_TO(ARGS...) ARGS
 #endif
 
 namespace nissa
@@ -38,6 +41,8 @@ namespace nissa
   EXTERN_MPI MPI_Comm cart_comm;
   EXTERN_MPI MPI_Comm plan_comm[NDIM];
   EXTERN_MPI MPI_Comm line_comm[NDIM];
+  
+  EXTERN_MPI int master_rank INIT_MPI_TO(=0);
   
   size_t MPI_Get_count_size_t(MPI_Status &status);
   void coords_broadcast(coords c);
@@ -77,6 +82,14 @@ namespace nissa
   void glb_reduce_float_128(float_128 out_glb,float_128 in_loc);
   
   void glb_reduce_complex_128(complex_128 out_glb,complex_128 in_loc);
+  
+  inline bool is_master_rank()
+  {
+    return rank==master_rank;
+  }
 }
+
+#undef INIT_MPI_TO
+#undef EXTERN_MPI
 
 #endif
