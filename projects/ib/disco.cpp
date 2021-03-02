@@ -722,14 +722,14 @@ void in_main(int narg,char **arg)
 		      {
 			const int cubeOrigin=loc_spat_vol*locT;
 			const int glbTshifted=(rank_coord[0]*loc_size[0]+locT-glbT+glb_size[0])%glb_size[0];
-			printf("rank %d , locT %d , cubeOrigin %d , glbTshifted %d\n",rank,locT,cubeOrigin,glbTshifted);
+			//printf("rank %d , locT %d , cubeOrigin %d , glbTshifted %d\n",rank,locT,cubeOrigin,glbTshifted);
 			complex* slice1=(complex*)(prop[r1][cubeOrigin]);
 			complex* slice2=(complex*)(prop[r2][cubeOrigin]);
 			
 			complex_vector_glb_scalar_prod(conn_contr[glbTshifted],slice1,slice2,loc_spat_vol*sizeof(spincolor)/sizeof(complex));
 		      }
 		    
-		    MPI_Allreduce(MPI_IN_PLACE,conn_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+		    //MPI_Allreduce(MPI_IN_PLACE,conn_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 		    master_fprintf(conn_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
 		    for(int t=0;t<glb_size[0];t++)
 		      master_fprintf(conn_contr_file,"%.16lg %.16lg\n",conn_contr[t][RE],conn_contr[t][IM]);
