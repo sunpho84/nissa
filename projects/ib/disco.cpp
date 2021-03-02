@@ -18,6 +18,7 @@ int ngauge_conf;
 quad_su3 *glb_conf;
 spincolor *source,*temp;
 spincolor *prop[2];
+complex* conn_contr;
 
 int iconf=0;
 char conf_path[1024];
@@ -312,7 +313,7 @@ struct FieldRngOf
   FieldRngOf(Sitmo::Rng& rng,const uint64_t& offsetReal) :
     used(false),rng(rng),offsetReal(offsetReal)
   {
-    master_printf("All entries of FieldRng initialized\n");
+    //master_printf("All entries of FieldRng initialized\n");
   }
   
   /// Returns a view on a specific site and real number
@@ -465,6 +466,8 @@ void init_simulation(int narg,char **arg)
   
   temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   
+  conn_contr=nissa_malloc("conn_contr",glb_size[0],complex);
+  
   for(int r=0;r<2;r++)
     prop[r]=nissa_malloc("prop",loc_vol+bord_vol,spincolor);
 }
@@ -486,6 +489,7 @@ void close()
     nissa_free(prop[r]);
   nissa_free(source);
   nissa_free(temp);
+  nissa_free(conn_contr);
 }
 
 //check if asked to stop or restart
@@ -662,7 +666,7 @@ void fill_source(const int glbT)
     }
   NISSA_PARALLEL_LOOP_END;
   
-  master_printf("Box-Muller transformation performed\n");
+  //master_printf("Box-Muller transformation performed\n");
   
   set_borders_invalid(source);
 }
@@ -673,6 +677,28 @@ void get_prop(const int& r)
   inv_tmD_cg_eoprec(prop[r],NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
   safe_dirac_prod_spincolor(prop[r],(tau3[r]==-1)?&Pminus:&Pplus,prop[r]);
 }
+
+THREADABLE_FUNCTION_4ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2, int,glbT)
+{
+  GET_THREAD_ID();
+  
+  vector_reset(conn_contr);
+  
+  NISSA_PARALLEL_LOOP(locT,0,loc_size[0])
+    {
+      const int glbTshifted=(rank_coord[0]*loc_size[0]+locT-glbT+glb_size[0])%glb_size[0];
+      for(int ivol=loc_spat_vol*locT;ivol<loc_spat_vol*(locT+1);ivol++)
+	{
+	  complex s;
+	  spincolor_scalar_prod(s,prop[r1][ivol],prop[r2][ivol]);
+	  complex_summassign(conn_contr[glbTshifted],s);
+	}
+    }
+  THREADABLE_FUNCTION_END;
+  
+  MPI_Allreduce(MPI_IN_PLACE,conn_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+}
+THREADABLE_FUNCTION_END
 
 void in_main(int narg,char **arg)
 {
@@ -708,28 +734,13 @@ void in_main(int narg,char **arg)
 		  prop_multiply_with_gamma(temp,5,prop[r],-1);
 		  
 		  complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source,(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
-		  
-		  //master_printf("Prop: %lg %lg\n",prop[0][0][0][0],prop[0][0][0][1]);
 		}
 	      
 	      for(int r1=0;r1<2;r1++)
 		for(int r2=0;r2<2;r2++)
 		  {
-		    complex conn_contr[glb_size[0]];
-		    memset(conn_contr,0,sizeof(complex)*glb_size[0]);
+		    compute_conn_contr(conn_contr,r1,r2,glbT);
 		    
-		    for(int locT=0;locT<loc_size[0];locT++)
-		      {
-			const int cubeOrigin=loc_spat_vol*locT;
-			const int glbTshifted=(rank_coord[0]*loc_size[0]+locT-glbT+glb_size[0])%glb_size[0];
-			//printf("rank %d , locT %d , cubeOrigin %d , glbTshifted %d\n",rank,locT,cubeOrigin,glbTshifted);
-			complex* slice1=(complex*)(prop[r1][cubeOrigin]);
-			complex* slice2=(complex*)(prop[r2][cubeOrigin]);
-			
-			complex_vector_glb_scalar_prod(conn_contr[glbTshifted],slice1,slice2,loc_spat_vol*sizeof(spincolor)/sizeof(complex));
-		      }
-		    
-		    //MPI_Allreduce(MPI_IN_PLACE,conn_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 		    master_fprintf(conn_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
 		    for(int t=0;t<glb_size[0];t++)
 		      master_fprintf(conn_contr_file,"%.16lg %.16lg\n",conn_contr[t][RE],conn_contr[t][IM]);
