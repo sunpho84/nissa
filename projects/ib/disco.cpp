@@ -425,6 +425,7 @@ FieldRngStream field_rng_stream;
 
 static constexpr complex zero_complex={0.0,0.0};
 static constexpr complex sqrt_2_half_complex{M_SQRT1_2,M_SQRT1_2};
+
 void BoxMullerTransform(complex out,const complex ave=zero_complex,const complex sig=sqrt_2_half_complex)
 {
   const double r=sqrt(-2*log(1-out[RE]));
@@ -432,6 +433,12 @@ void BoxMullerTransform(complex out,const complex ave=zero_complex,const complex
   
   out[RE]=r*cos(q)*sig[RE]+ave[RE];
   out[IM]=r*sin(q)*sig[IM]+ave[IM];
+}
+
+void z4Transform(complex out)
+{
+  for(int ri=0;ri<2;ri++)
+    out[ri]=(out[ri]>0.5)?M_SQRT1_2:-M_SQRT1_2;
 }
 
 void init_simulation(int narg,char **arg)
@@ -660,7 +667,7 @@ void fill_source(const int glbT)
       if(glbT==glb_coord_of_loclx[loclx][0])
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
-	    BoxMullerTransform(source[loclx][id][ic]);
+	    z4Transform(source[loclx][id][ic]);//BoxMullerTransform(source[loclx][id][ic]);
       else
 	spincolor_put_to_zero(source[loclx]);
     }
