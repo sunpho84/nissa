@@ -4,6 +4,7 @@
 
 using namespace nissa;
 
+int useNewGenerator;
 int nhits;
 int seed;
 double wall_time;
@@ -26,6 +27,7 @@ char outfolder[1024];
 char run_file[1024];
 lock_file_t<uint64_t> lock_file;
 double init_time;
+
 
 /*
 
@@ -416,7 +418,10 @@ struct FieldRngStream
   //Initilizes with a seed
   void init(const uint32_t& seed)
   {
-    rng.seed(seed);
+    if(useNewGenerator)
+      rng.seed(seed);
+    else
+      start_loc_rnd_gen(seed);
     ndouble_gen=0;
   }
 };
@@ -454,6 +459,8 @@ void init_simulation(int narg,char **arg)
   init_grid(T,L);
   
   read_str_double("WallTime",&wall_time);
+  
+  read_str_int("UseNewGenerator",&useNewGenerator);
   
   read_str_int("Seed",&seed);
   
@@ -615,7 +622,11 @@ bool check_if_next_conf_has_to_be_analyzed()
 
 void skip_conf()
 {
-  field_rng_stream.skipDrawers<spincolor>(nhits*glb_size[0]);
+  if(useNewGenerator)
+    field_rng_stream.skipDrawers<spincolor>(nhits*glb_size[0]);
+  else
+    for(int i=0;i<nhits*glb_size[0];i++)
+      generate_undiluted_source(source,RND_Z4,0);
 }
 
 bool find_next_conf_not_analyzed()
@@ -730,7 +741,10 @@ void in_main(int narg,char **arg)
 	  
 	  for(int glbT=0;glbT<glb_size[0];glbT++)
 	    {
-	      fill_source(glbT);
+	      if(useNewGenerator)
+		fill_source(glbT);
+	      else
+		generate_undiluted_source(source,RND_Z4,glbT);
 	      
 	      for(int r=0;r<2;r++)
 		{
