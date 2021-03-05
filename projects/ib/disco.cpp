@@ -17,9 +17,19 @@ int nanalyzed_conf;
 int ngauge_conf;
 
 quad_su3 *glb_conf;
-spincolor *source,*temp;
-spincolor *prop[2];
-complex* conn_contr;
+spincolor **source_ptr,*temp,**prop_ptr;
+
+spincolor* &prop(const int t,const int r)
+{
+  return prop_ptr[r+2*t];
+}
+
+spincolor* &source(const int t)
+{
+  return source_ptr[t];
+}
+
+complex* temp_contr;
 
 int iconf=0;
 char conf_path[1024];
@@ -44,7 +54,8 @@ local structure T to be be filled. The request produces a proxy,
 FieldRngOf<T>, which keeps track of the request. When the request is
 made, the status of the FieldRngStream is advanced. The user can pick
 up the requested numbers from the FieldRngOf<T>, requiring a specific
-site. Only at this moment the actual Sitmo is accessed, and the numbers generated.
+site. Only at this moment the actual Sitmo is accessed, and the
+numbers generated.
 
 SitmoRng
 --------
@@ -475,15 +486,19 @@ void init_simulation(int narg,char **arg)
   read_str_int("NGaugeConf",&ngauge_conf);
   
   glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  
-  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
+
+  source_ptr=nissa_malloc("source_ptr",glb_size[0],spincolor*);
+  for(int t=0;t<glb_size[0];t++)
+    source(t)=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   
   temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   
-  conn_contr=nissa_malloc("conn_contr",glb_size[0],complex);
+  temp_contr=nissa_malloc("temp_contr",glb_size[0],complex);
   
-  for(int r=0;r<2;r++)
-    prop[r]=nissa_malloc("prop",loc_vol+bord_vol,spincolor);
+  prop_ptr=nissa_malloc("prop_ptr",2*glb_size[0],spincolor*);
+  for(int t=0;t<glb_size[0];t++)
+    for(int r=0;r<2;r++)
+      prop(t,r)=nissa_malloc("prop",loc_vol+bord_vol,spincolor);
 }
 
 //close the program
@@ -499,11 +514,15 @@ void close()
   master_printf("\n");
   
   nissa_free(glb_conf);
-  for(int r=0;r<2;r++)
-    nissa_free(prop[r]);
-  nissa_free(source);
+  for(int t=0;t<glb_size[0];t++)
+    for(int r=0;r<2;r++)
+      nissa_free(prop(t,r));
+  nissa_free(prop_ptr);
+  for(int t=0;t<glb_size[0];t++)
+    nissa_free(source(t));
+  nissa_free(source_ptr);
   nissa_free(temp);
-  nissa_free(conn_contr);
+  nissa_free(temp_contr);
 }
 
 //check if asked to stop or restart
@@ -626,7 +645,7 @@ void skip_conf()
     field_rng_stream.skipDrawers<spincolor>(nhits*glb_size[0]);
   else
     for(int i=0;i<nhits*glb_size[0];i++)
-      generate_undiluted_source(source,RND_Z4,0);
+      generate_undiluted_source(source(0),RND_Z4,0);
 }
 
 bool find_next_conf_not_analyzed()
@@ -671,32 +690,32 @@ void fill_source(const int glbT)
   master_printf("Source position: %d\n",glbT);
   
   auto source_filler=field_rng_stream.getDrawer<spincolor>();
-  source_filler.fillField(source);
+  source_filler.fillField(source(glbT));
   
   NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
     {
       if(glbT==glb_coord_of_loclx[loclx][0])
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
-	    z4Transform(source[loclx][id][ic]);//BoxMullerTransform(source[loclx][id][ic]);
+	    z4Transform(source(glbT)[loclx][id][ic]);//BoxMullerTransform(source[loclx][id][ic]);
       else
-	spincolor_put_to_zero(source[loclx]);
+	spincolor_put_to_zero(source(glbT)[loclx]);
     }
   NISSA_PARALLEL_LOOP_END;
   
   //master_printf("Box-Muller transformation performed\n");
   
-  set_borders_invalid(source);
+  set_borders_invalid(source(glbT));
 }
 
-void get_prop(const int& r)
+void get_prop(const int& t,const int& r)
 {
-  safe_dirac_prod_spincolor(temp,(tau3[r]==-1)?&Pminus:&Pplus,source);
-  inv_tmD_cg_eoprec(prop[r],NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
-  safe_dirac_prod_spincolor(prop[r],(tau3[r]==-1)?&Pminus:&Pplus,prop[r]);
+  safe_dirac_prod_spincolor(temp,(tau3[r]==-1)?&Pminus:&Pplus,source(t));
+  inv_tmD_cg_eoprec(prop(t,r),NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
+  safe_dirac_prod_spincolor(prop(t,r),(tau3[r]==-1)?&Pminus:&Pplus,prop(t,r));
 }
 
-THREADABLE_FUNCTION_4ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2, int,glbT)
+THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2, int,glbT, dirac_matr*,gamma)
 {
   GET_THREAD_ID();
   
@@ -708,7 +727,9 @@ THREADABLE_FUNCTION_4ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2,
       for(int ivol=loc_spat_vol*locT;ivol<loc_spat_vol*(locT+1);ivol++)
 	{
 	  complex s;
-	  spincolor_scalar_prod(s,prop[r1][ivol],prop[r2][ivol]);
+	  spincolor gs;
+	  unsafe_dirac_prod_spincolor(gs,gamma,prop(glbT,r2)[ivol]);
+	  spincolor_scalar_prod(s,prop(glbT,r1)[ivol],gs);
 	  complex_summassign(conn_contr[glbTshifted],s);
 	}
     }
@@ -733,26 +754,28 @@ void in_main(int narg,char **arg)
   while(find_next_conf_not_analyzed())
     {
       FILE* disco_contr_file=open_file(combine("%s/disco_contr",outfolder),"w");
-      FILE* conn_contr_file=open_file(combine("%s/conn_contr",outfolder),"w");
+      FILE* P5P5_contr_file=open_file(combine("%s/P5P5_contr",outfolder),"w");
+      FILE* S0P5_contr_file=open_file(combine("%s/S0P5_contr",outfolder),"w");
       
       for(int ihit=0;ihit<nhits;ihit++)
 	{
 	  complex disco_contr[2][glb_size[0]];
+	  complex S0P5_contr[2][2][glb_size[0]];
 	  
 	  for(int glbT=0;glbT<glb_size[0];glbT++)
 	    {
 	      if(useNewGenerator)
 		fill_source(glbT);
 	      else
-		generate_undiluted_source(source,RND_Z4,glbT);
+		generate_undiluted_source(source(glbT),RND_Z4,glbT);
 	      
 	      for(int r=0;r<2;r++)
 		{
-		  get_prop(r);
+		  get_prop(glbT,r);
 		  // const double n=double_vector_glb_norm2(source,loc_vol);
 		  // master_printf("n: %lg\n",n);
 		  
-		  prop_multiply_with_gamma(temp,5,prop[r],-1);
+		  prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
 		  
 		  complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source,(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
 		}
@@ -760,21 +783,43 @@ void in_main(int narg,char **arg)
 	      for(int r1=0;r1<2;r1++)
 		for(int r2=0;r2<2;r2++)
 		  {
-		    compute_conn_contr(conn_contr,r1,r2,glbT);
+		    compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
 		    
-		    master_fprintf(conn_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+		    master_fprintf(P5P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
 		    for(int t=0;t<glb_size[0];t++)
-		      master_fprintf(conn_contr_file,"%.16lg %.16lg\n",conn_contr[t][RE],conn_contr[t][IM]);
+		      master_fprintf(P5P5_contr_file,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
+		  }
+	      
+	      for(int r1=0;r1<2;r1++)
+		for(int r2=0;r2<2;r2++)
+		  {
+		    compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
+		    
+		    complex_put_to_zero(S0P5_contr[r1][2][glbT]);
+		    for(int t=0;t<glb_size[0];t++)
+		      complex_summassign(S0P5_contr[r1][2][glbT],temp_contr[t]);
 		  }
 	    }
 	  
 	  for(int r=0;r<2;r++)
 	    {
 	      master_fprintf(disco_contr_file,"\n# hit %d , r %d\n\n",ihit,r);
-	      for(int glbT=0;glbT<glb_size[0];glbT++)
-		master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][glbT][RE],disco_contr[r][glbT][IM]);
+	      for(int t=0;t<glb_size[0];t++)
+		master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][t][RE],disco_contr[r][t][IM]);
 	    }
+	  
+	  for(int r1=0;r1<2;r1++)
+	    for(int r2=0;r2<2;r2++)
+	      {
+		master_fprintf(S0P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+		for(int t=0;t<glb_size[0];t++)
+		  master_fprintf(S0P5_contr_file,"%.16lg %.16lg\n",S0P5_contr[r1][r2][t][RE],S0P5_contr[r1][r2][t][IM]);
+	      }
 	}
+      
+      close_file(disco_contr_file);
+      close_file(P5P5_contr_file);
+      close_file(S0P5_contr_file);
       
       mark_finished();
     }
