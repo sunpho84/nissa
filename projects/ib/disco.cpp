@@ -739,6 +739,21 @@ THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2,
 }
 THREADABLE_FUNCTION_END
 
+THREADABLE_FUNCTION_6ARG(compute_inserted_contr,double*,contr, int,r1, int,r2, int,glbT1, int,glbT2, dirac_matr*,gamma)
+{
+  GET_THREAD_ID();
+  
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    {
+      unsafe_dirac_prod_spincolor(temp[ivol],gamma,prop(glbT1,r1)[ivol]);
+    }
+  THREADABLE_FUNCTION_END;
+  set_borders_invalid(temp);
+  
+  complex_vector_glb_scalar_prod(contr,(complex*)prop(glbT2,r2),(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
+}
+THREADABLE_FUNCTION_END
+
 void in_main(int narg,char **arg)
 {
   const char stop_path[]="stop";
@@ -756,51 +771,32 @@ void in_main(int narg,char **arg)
       FILE* disco_contr_file=open_file(combine("%s/disco_contr",outfolder),"w");
       FILE* P5P5_contr_file=open_file(combine("%s/P5P5_contr",outfolder),"w");
       FILE* S0P5_contr_file=open_file(combine("%s/S0P5_contr",outfolder),"w");
+      FILE* P5S0P5_contr_file=open_file(combine("%s/P5S0P5_contr",outfolder),"w");
       
       for(int ihit=0;ihit<nhits;ihit++)
 	{
-	  complex disco_contr[2][glb_size[0]];
-	  complex S0P5_contr[2][2][glb_size[0]];
-	  
+	  //Fill sources
 	  for(int glbT=0;glbT<glb_size[0];glbT++)
-	    {
-	      if(useNewGenerator)
-		fill_source(glbT);
-	      else
-		generate_undiluted_source(source(glbT),RND_Z4,glbT);
-	      
-	      for(int r=0;r<2;r++)
-		{
-		  get_prop(glbT,r);
-		  // const double n=double_vector_glb_norm2(source,loc_vol);
-		  // master_printf("n: %lg\n",n);
-		  
-		  prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
-		  
-		  complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source,(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
-		}
-	      
-	      for(int r1=0;r1<2;r1++)
-		for(int r2=0;r2<2;r2++)
-		  {
-		    compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
-		    
-		    master_fprintf(P5P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-		    for(int t=0;t<glb_size[0];t++)
-		      master_fprintf(P5P5_contr_file,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
-		  }
-	      
-	      for(int r1=0;r1<2;r1++)
-		for(int r2=0;r2<2;r2++)
-		  {
-		    compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
-		    
-		    complex_put_to_zero(S0P5_contr[r1][2][glbT]);
-		    for(int t=0;t<glb_size[0];t++)
-		      complex_summassign(S0P5_contr[r1][2][glbT],temp_contr[t]);
-		  }
-	    }
+	    if(useNewGenerator)
+	      fill_source(glbT);
+	    else
+	      generate_undiluted_source(source(glbT),RND_Z4,glbT);
 	  
+	  //Compute props
+	  for(int glbT=0;glbT<glb_size[0];glbT++)
+	    for(int r=0;r<2;r++)
+	      get_prop(glbT,r);
+	  
+	  //Compute disco
+	  complex disco_contr[2][glb_size[0]];
+	  for(int r=0;r<2;r++)
+	    for(int glbT=0;glbT<glb_size[0];glbT++)
+	      {
+		prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
+		complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
+	      }
+	  
+	  //Print disco
 	  for(int r=0;r<2;r++)
 	    {
 	      master_fprintf(disco_contr_file,"\n# hit %d , r %d\n\n",ihit,r);
@@ -808,6 +804,32 @@ void in_main(int narg,char **arg)
 		master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][t][RE],disco_contr[r][t][IM]);
 	    }
 	  
+	  //Compute and print P5P5
+	  for(int r1=0;r1<2;r1++)
+	    for(int r2=0;r2<2;r2++)
+	      for(int glbT=0;glbT<glb_size[0];glbT++)
+		{
+		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
+		  
+		  master_fprintf(P5P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+		  for(int t=0;t<glb_size[0];t++)
+		    master_fprintf(P5P5_contr_file,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
+		}
+	      
+	  //Compute S0P5
+	  complex S0P5_contr[2][2][glb_size[0]];
+	  for(int r1=0;r1<2;r1++)
+	    for(int r2=0;r2<2;r2++)
+	      for(int glbT=0;glbT<glb_size[0];glbT++)
+		{
+		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
+		  
+		  complex_put_to_zero(S0P5_contr[r1][r2][glbT]);
+		  for(int t=0;t<glb_size[0];t++)
+		    complex_summassign(S0P5_contr[r1][r2][glbT],temp_contr[t]);
+		}
+	  
+	  //Print S0P5
 	  for(int r1=0;r1<2;r1++)
 	    for(int r2=0;r2<2;r2++)
 	      {
@@ -815,11 +837,37 @@ void in_main(int narg,char **arg)
 		for(int t=0;t<glb_size[0];t++)
 		  master_fprintf(S0P5_contr_file,"%.16lg %.16lg\n",S0P5_contr[r1][r2][t][RE],S0P5_contr[r1][r2][t][IM]);
 	      }
+	  
+	  //Compute P5S0P5
+	  complex P5S0P5_contr[2][2][glb_size[0]];
+	  for(int r1=0;r1<2;r1++)
+	    for(int r2=0;r2<2;r2++)
+	      for(int dT=0;dT<glb_size[0];dT++)
+		{
+		  complex_put_to_zero(P5S0P5_contr[r1][r2][dT]);
+		  for(int glbT1=0;glbT1<glb_size[0];glbT1++)
+		    {
+		      int glbT2=(glbT1+dT)%glb_size[0];
+		      complex c;
+		      compute_inserted_contr(c,r1,!r2,glbT1,glbT2,base_gamma+5);
+		      complex_summassign(P5S0P5_contr[r1][r2][dT],c);
+		    }
+		}
+	  
+	  //Print P5S0P5
+	  for(int r1=0;r1<2;r1++)
+	    for(int r2=0;r2<2;r2++)
+	      {
+		master_fprintf(P5S0P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+		for(int t=0;t<glb_size[0];t++)
+		  master_fprintf(P5S0P5_contr_file,"%.16lg %.16lg\n",P5S0P5_contr[r1][r2][t][RE]/glb_size[0],P5S0P5_contr[r1][r2][t][IM]/glb_size[0]);
+	      }
 	}
       
       close_file(disco_contr_file);
       close_file(P5P5_contr_file);
       close_file(S0P5_contr_file);
+      close_file(P5S0P5_contr_file);
       
       mark_finished();
     }
