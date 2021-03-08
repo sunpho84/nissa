@@ -740,18 +740,18 @@ THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2,
 }
 THREADABLE_FUNCTION_END
 
-THREADABLE_FUNCTION_6ARG(compute_inserted_contr,double*,contr, int,r1, int,r2, int,glbT1, int,glbT2, dirac_matr*,gamma)
+THREADABLE_FUNCTION_4ARG(compute_inserted_contr,double*,contr, spincolor*,propBw, spincolor*,propFw, dirac_matr*,gamma)
 {
   GET_THREAD_ID();
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
-      unsafe_dirac_prod_spincolor(temp[ivol],gamma,prop(glbT1,r1)[ivol]);
+      unsafe_dirac_prod_spincolor(temp[ivol],gamma,propFw[ivol]);
     }
   THREADABLE_FUNCTION_END;
   set_borders_invalid(temp);
   
-  complex_vector_glb_scalar_prod(contr,(complex*)prop(glbT2,r2),(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
+  complex_vector_glb_scalar_prod(contr,(complex*)propBw,(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
 }
 THREADABLE_FUNCTION_END
 
@@ -760,7 +760,8 @@ void analyzeConf()
   FILE* disco_contr_file=open_file(combine("%s/disco_contr",outfolder),"w");
   FILE* P5P5_contr_file=open_file(combine("%s/P5P5_contr",outfolder),"w");
   FILE* S0P5_contr_file=open_file(combine("%s/S0P5_contr",outfolder),"w");
-  FILE* P5S0P5_contr_file=open_file(combine("%s/P5S0P5_contr",outfolder),"w");
+  FILE* P5P5_SS_contr_file=open_file(combine("%s/P5P5_SS_contr",outfolder),"w");
+  FILE* P5P5_0S_contr_file=open_file(combine("%s/P5P5_0S_contr",outfolder),"w");
   
   for(int ihit=0;ihit<nhits;ihit++)
     {
@@ -827,9 +828,11 @@ void analyzeConf()
 	      master_fprintf(S0P5_contr_file,"%.16lg %.16lg\n",S0P5_contr[r1][r2][t][RE],S0P5_contr[r1][r2][t][IM]);
 	  }
       
-      //Compute P5S0P5
-      complex P5S0P5_contr[2][2][2][2][glb_size[0]];
-      memset(P5S0P5_contr,0,sizeof(complex)*2*2*2*2*glb_size[0]);
+      //Compute P5P5_SS and 0S
+      complex P5P5_SS_contr[2][2][2][2][glb_size[0]];
+      memset(P5P5_SS_contr,0,sizeof(complex)*2*2*2*2*glb_size[0]);
+      complex P5P5_0S_contr[2][2][2][glb_size[0]];
+      memset(P5P5_0S_contr,0,sizeof(complex)*2*2*2*glb_size[0]);
       for(int dT=0;dT<glb_size[0];dT++)
 	for(int glbT1=0;glbT1<glb_size[0];glbT1++)
 	  {
@@ -837,33 +840,46 @@ void analyzeConf()
 	    complex c[2][2];
 	    for(int r1=0;r1<2;r1++)
 	      for(int r2=0;r2<2;r2++)
-		compute_inserted_contr(c[r1][r2],r1,!r2,glbT1,glbT2,base_gamma+5);
+		compute_inserted_contr(c[r1][r2],prop(glbT2,!r2),prop(glbT1,r1),base_gamma+5);
 	    
+	    //prop with other source, to compute 0S
+	    complex spect[2];
+	    for(int r=0;r<2;r++)
+		compute_inserted_contr(spect[r],source(glbT2),prop(glbT1,r),base_gamma+0);
+	    
+	    //SS
 	    for(int r1f=0;r1f<2;r1f++)
 	      for(int r2f=0;r2f<2;r2f++)
 		for(int r1b=0;r1b<2;r1b++)
 		  for(int r2b=0;r2b<2;r2b++)
-		    complex_summ_the_conj1_prod(P5S0P5_contr[r1b][r2b][r1f][r2f][dT],c[r1b][r2b],c[r1f][r2f]);
+		    complex_summ_the_conj1_prod(P5P5_SS_contr[r1b][r2b][r1f][r2f][dT],c[r1b][r2b],c[r1f][r2f]);
+	    
+	    //0S
+	    for(int r1f=0;r1f<2;r1f++)
+	      for(int r2f=0;r2f<2;r2f++)
+		for(int rb=0;rb<2;rb++)
+		    complex_summ_the_conj1_prod(P5P5_0S_contr[rb][r1f][r2f][dT],spect[rb],c[r1f][r2f]);
 	  }
       
-      //Print P5S0P5
+      //Print P5P5_SS
       for(int r1b=0;r1b<2;r1b++)
 	for(int r2b=0;r2b<2;r2b++)
 	  for(int r1f=0;r1f<2;r1f++)
 	    for(int r2f=0;r2f<2;r2f++)
 	      {
-		master_fprintf(P5S0P5_contr_file,"\n# hit %d , r1b %d , r2b %d , r1f %d , r2f %d\n\n",ihit,r1b,r2b,r1f,r2f);
+		master_fprintf(P5P5_SS_contr_file,"\n# hit %d , r1b %d , r2b %d , r1f %d , r2f %d\n\n",ihit,r1b,r2b,r1f,r2f);
 		for(int t=0;t<glb_size[0];t++)
-		  master_fprintf(P5S0P5_contr_file,"%.16lg %.16lg\n",
-				 P5S0P5_contr[r1b][r2b][r1f][r2f][t][RE]/glb_size[0],
-				 P5S0P5_contr[r1b][r2b][r1f][r2f][t][IM]/glb_size[0]);
+		  master_fprintf(P5P5_SS_contr_file,"%.16lg %.16lg\n",
+				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][RE]/glb_size[0],
+				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][IM]/glb_size[0]);
 	      }
     }
   
   close_file(disco_contr_file);
   close_file(P5P5_contr_file);
   close_file(S0P5_contr_file);
-  close_file(P5S0P5_contr_file);
+  close_file(P5P5_SS_contr_file);
+  close_file(P5P5_0S_contr_file);
   
   mark_finished();
   
