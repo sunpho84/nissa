@@ -506,6 +506,8 @@ void init_simulation(int narg,char **arg)
     for(int r=0;r<2;r++)
       prop(t,r)=nissa_malloc("prop",loc_vol+bord_vol,spincolor);
   
+  field_rng_stream.init(seed);
+  
   runMode=SEARCHING_CONF;
 }
 
@@ -867,8 +869,6 @@ void analyzeConf()
 
 void in_main(int narg,char **arg)
 {
-  field_rng_stream.init(seed);
-  
   do
     switch(runMode)
       {
