@@ -828,29 +828,36 @@ void analyzeConf()
 	  }
       
       //Compute P5S0P5
-      complex P5S0P5_contr[2][2][glb_size[0]];
-      for(int r1=0;r1<2;r1++)
-	for(int r2=0;r2<2;r2++)
-	  for(int dT=0;dT<glb_size[0];dT++)
-	    {
-	      complex_put_to_zero(P5S0P5_contr[r1][r2][dT]);
-	      for(int glbT1=0;glbT1<glb_size[0];glbT1++)
-		{
-		  int glbT2=(glbT1+dT)%glb_size[0];
-		  complex c;
-		  compute_inserted_contr(c,r1,!r2,glbT1,glbT2,base_gamma+5);
-		  complex_summassign(P5S0P5_contr[r1][r2][dT],c);
-		}
-	    }
+      complex P5S0P5_contr[2][2][2][2][glb_size[0]];
+      memset(P5S0P5_contr,0,sizeof(complex)*2*2*2*2*glb_size[0]);
+      for(int dT=0;dT<glb_size[0];dT++)
+	for(int glbT1=0;glbT1<glb_size[0];glbT1++)
+	  {
+	    int glbT2=(glbT1+dT)%glb_size[0];
+	    complex c[2][2];
+	    for(int r1=0;r1<2;r1++)
+	      for(int r2=0;r2<2;r2++)
+		compute_inserted_contr(c[r1][r2],r1,!r2,glbT1,glbT2,base_gamma+5);
+	    
+	    for(int r1f=0;r1f<2;r1f++)
+	      for(int r2f=0;r2f<2;r2f++)
+		for(int r1b=0;r1b<2;r1b++)
+		  for(int r2b=0;r2b<2;r2b++)
+		    complex_summ_the_conj1_prod(P5S0P5_contr[r1b][r2b][r1f][r2f][dT],c[r1b][r2b],c[r1f][r2f]);
+	  }
       
       //Print P5S0P5
-      for(int r1=0;r1<2;r1++)
-	for(int r2=0;r2<2;r2++)
-	  {
-	    master_fprintf(P5S0P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-	    for(int t=0;t<glb_size[0];t++)
-	      master_fprintf(P5S0P5_contr_file,"%.16lg %.16lg\n",P5S0P5_contr[r1][r2][t][RE]/glb_size[0],P5S0P5_contr[r1][r2][t][IM]/glb_size[0]);
-	  }
+      for(int r1b=0;r1b<2;r1b++)
+	for(int r2b=0;r2b<2;r2b++)
+	  for(int r1f=0;r1f<2;r1f++)
+	    for(int r2f=0;r2f<2;r2f++)
+	      {
+		master_fprintf(P5S0P5_contr_file,"\n# hit %d , r1b %d , r2b %d , r1f %d , r2f %d\n\n",ihit,r1b,r2b,r1f,r2f);
+		for(int t=0;t<glb_size[0];t++)
+		  master_fprintf(P5S0P5_contr_file,"%.16lg %.16lg\n",
+				 P5S0P5_contr[r1b][r2b][r1f][r2f][t][RE]/glb_size[0],
+				 P5S0P5_contr[r1b][r2b][r1f][r2f][t][IM]/glb_size[0]);
+	      }
     }
   
   close_file(disco_contr_file);
