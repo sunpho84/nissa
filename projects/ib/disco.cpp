@@ -19,6 +19,10 @@ int ngauge_conf;
 quad_su3 *glb_conf;
 spincolor **source_ptr,*temp,**prop_ptr;
 
+enum RunMode{INITIALIZING,SEARCHING_CONF,ANALYZING_CONF,STOP};
+RunMode runMode{INITIALIZING};
+const char stop_path[]="stop";
+
 spincolor* &prop(const int t,const int r)
 {
   return prop_ptr[r+2*t];
@@ -459,6 +463,8 @@ void z4Transform(complex out)
 
 void init_simulation(int narg,char **arg)
 {
+  init_time=take_time();
+  
   lock_file.init();
   
   open_input(arg[1]);
@@ -499,6 +505,8 @@ void init_simulation(int narg,char **arg)
   for(int t=0;t<glb_size[0];t++)
     for(int r=0;r<2;r++)
       prop(t,r)=nissa_malloc("prop",loc_vol+bord_vol,spincolor);
+  
+  runMode=SEARCHING_CONF;
 }
 
 //close the program
@@ -600,6 +608,8 @@ bool create_outpath()
 
 bool create_run_file()
 {
+  create_outpath();
+
   if(snprintf(run_file,1024,"%s/running",outfolder)<0) crash("writing %s",run_file);
   
   return lock_file.try_lock(run_file);
@@ -627,20 +637,10 @@ bool check_lock_file()
   return lock_file_valid;
 }
 
-bool check_if_next_conf_has_to_be_analyzed()
+void skipConf()
 {
-  return
-    ((not asked_to_stop_or_restart()) and
-     enough_time() and
-     read_conf_path_and_check_outpath_not_exists() and
-     create_outpath() and
-     create_run_file() and
-     read_conf() and
-     check_lock_file());
-}
-
-void skip_conf()
-{
+  iconf++;
+  
   if(useNewGenerator)
     field_rng_stream.skipDrawers<spincolor>(nhits*glb_size[0]);
   else
@@ -648,25 +648,22 @@ void skip_conf()
       generate_undiluted_source(source(0),RND_Z4,0);
 }
 
-bool find_next_conf_not_analyzed()
+void searchConf()
 {
-  bool valid_conf=false;
+  if(read_conf_path_and_check_outpath_not_exists() and
+     create_run_file() and
+     read_conf() and
+     check_lock_file())
+      runMode=ANALYZING_CONF;
+  else
+    skipConf();
   
-  while((not finished_confs()) and not valid_conf)
+  if(finished_confs())
     {
-      valid_conf=check_if_next_conf_has_to_be_analyzed();
-      
-      if(not valid_conf)
-	{
-	  iconf++;
-	  
-	  skip_conf();
-	}
+      master_printf("Analyzed all confs, exiting\n\n");
+      file_touch(stop_path);
+      runMode=STOP;
     }
-  
-  valid_conf&=not finished_confs();
-  
-  return valid_conf;
 }
 
 //mark a conf as finished
@@ -678,6 +675,8 @@ void mark_finished()
   
   iconf++;
   nanalyzed_conf++;
+  
+  runMode=SEARCHING_CONF;
 }
 
 void fill_source(const int glbT)
@@ -754,129 +753,138 @@ THREADABLE_FUNCTION_6ARG(compute_inserted_contr,double*,contr, int,r1, int,r2, i
 }
 THREADABLE_FUNCTION_END
 
-void in_main(int narg,char **arg)
+void analyzeConf()
 {
-  const char stop_path[]="stop";
+  FILE* disco_contr_file=open_file(combine("%s/disco_contr",outfolder),"w");
+  FILE* P5P5_contr_file=open_file(combine("%s/P5P5_contr",outfolder),"w");
+  FILE* S0P5_contr_file=open_file(combine("%s/S0P5_contr",outfolder),"w");
+  FILE* P5S0P5_contr_file=open_file(combine("%s/P5S0P5_contr",outfolder),"w");
   
-  init_time=take_time();
-  
-  //init simulation according to input file
-  init_simulation(narg,arg);
-  
-  field_rng_stream.init(seed);
-  
-  //loop over the configs
-  while(find_next_conf_not_analyzed())
+  for(int ihit=0;ihit<nhits;ihit++)
     {
-      FILE* disco_contr_file=open_file(combine("%s/disco_contr",outfolder),"w");
-      FILE* P5P5_contr_file=open_file(combine("%s/P5P5_contr",outfolder),"w");
-      FILE* S0P5_contr_file=open_file(combine("%s/S0P5_contr",outfolder),"w");
-      FILE* P5S0P5_contr_file=open_file(combine("%s/P5S0P5_contr",outfolder),"w");
+      //Fill sources
+      for(int glbT=0;glbT<glb_size[0];glbT++)
+	if(useNewGenerator)
+	  fill_source(glbT);
+	else
+	  generate_undiluted_source(source(glbT),RND_Z4,glbT);
       
-      for(int ihit=0;ihit<nhits;ihit++)
+      //Compute props
+      for(int glbT=0;glbT<glb_size[0];glbT++)
+	for(int r=0;r<2;r++)
+	  get_prop(glbT,r);
+      
+      //Compute disco
+      complex disco_contr[2][glb_size[0]];
+      for(int r=0;r<2;r++)
+	for(int glbT=0;glbT<glb_size[0];glbT++)
+	  {
+	    prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
+	    complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
+	  }
+      
+      //Print disco
+      for(int r=0;r<2;r++)
 	{
-	  //Fill sources
-	  for(int glbT=0;glbT<glb_size[0];glbT++)
-	    if(useNewGenerator)
-	      fill_source(glbT);
-	    else
-	      generate_undiluted_source(source(glbT),RND_Z4,glbT);
-	  
-	  //Compute props
-	  for(int glbT=0;glbT<glb_size[0];glbT++)
-	    for(int r=0;r<2;r++)
-	      get_prop(glbT,r);
-	  
-	  //Compute disco
-	  complex disco_contr[2][glb_size[0]];
-	  for(int r=0;r<2;r++)
-	    for(int glbT=0;glbT<glb_size[0];glbT++)
-	      {
-		prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
-		complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
-	      }
-	  
-	  //Print disco
-	  for(int r=0;r<2;r++)
-	    {
-	      master_fprintf(disco_contr_file,"\n# hit %d , r %d\n\n",ihit,r);
-	      for(int t=0;t<glb_size[0];t++)
-		master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][t][RE],disco_contr[r][t][IM]);
-	    }
-	  
-	  //Compute and print P5P5
-	  for(int r1=0;r1<2;r1++)
-	    for(int r2=0;r2<2;r2++)
-	      for(int glbT=0;glbT<glb_size[0];glbT++)
-		{
-		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
-		  
-		  master_fprintf(P5P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-		  for(int t=0;t<glb_size[0];t++)
-		    master_fprintf(P5P5_contr_file,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
-		}
-	      
-	  //Compute S0P5
-	  complex S0P5_contr[2][2][glb_size[0]];
-	  for(int r1=0;r1<2;r1++)
-	    for(int r2=0;r2<2;r2++)
-	      for(int glbT=0;glbT<glb_size[0];glbT++)
-		{
-		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
-		  
-		  complex_put_to_zero(S0P5_contr[r1][r2][glbT]);
-		  for(int t=0;t<glb_size[0];t++)
-		    complex_summassign(S0P5_contr[r1][r2][glbT],temp_contr[t]);
-		}
-	  
-	  //Print S0P5
-	  for(int r1=0;r1<2;r1++)
-	    for(int r2=0;r2<2;r2++)
-	      {
-		master_fprintf(S0P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-		for(int t=0;t<glb_size[0];t++)
-		  master_fprintf(S0P5_contr_file,"%.16lg %.16lg\n",S0P5_contr[r1][r2][t][RE],S0P5_contr[r1][r2][t][IM]);
-	      }
-	  
-	  //Compute P5S0P5
-	  complex P5S0P5_contr[2][2][glb_size[0]];
-	  for(int r1=0;r1<2;r1++)
-	    for(int r2=0;r2<2;r2++)
-	      for(int dT=0;dT<glb_size[0];dT++)
-		{
-		  complex_put_to_zero(P5S0P5_contr[r1][r2][dT]);
-		  for(int glbT1=0;glbT1<glb_size[0];glbT1++)
-		    {
-		      int glbT2=(glbT1+dT)%glb_size[0];
-		      complex c;
-		      compute_inserted_contr(c,r1,!r2,glbT1,glbT2,base_gamma+5);
-		      complex_summassign(P5S0P5_contr[r1][r2][dT],c);
-		    }
-		}
-	  
-	  //Print P5S0P5
-	  for(int r1=0;r1<2;r1++)
-	    for(int r2=0;r2<2;r2++)
-	      {
-		master_fprintf(P5S0P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-		for(int t=0;t<glb_size[0];t++)
-		  master_fprintf(P5S0P5_contr_file,"%.16lg %.16lg\n",P5S0P5_contr[r1][r2][t][RE]/glb_size[0],P5S0P5_contr[r1][r2][t][IM]/glb_size[0]);
-	      }
+	  master_fprintf(disco_contr_file,"\n# hit %d , r %d\n\n",ihit,r);
+	  for(int t=0;t<glb_size[0];t++)
+	    master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][t][RE],disco_contr[r][t][IM]);
 	}
       
-      close_file(disco_contr_file);
-      close_file(P5P5_contr_file);
-      close_file(S0P5_contr_file);
-      close_file(P5S0P5_contr_file);
+      //Compute and print P5P5
+      for(int r1=0;r1<2;r1++)
+	for(int r2=0;r2<2;r2++)
+	  for(int glbT=0;glbT<glb_size[0];glbT++)
+	    {
+	      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
+	      
+	      master_fprintf(P5P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+	      for(int t=0;t<glb_size[0];t++)
+		master_fprintf(P5P5_contr_file,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
+	    }
       
-      mark_finished();
+      //Compute S0P5
+      complex S0P5_contr[2][2][glb_size[0]];
+      for(int r1=0;r1<2;r1++)
+	for(int r2=0;r2<2;r2++)
+	  for(int glbT=0;glbT<glb_size[0];glbT++)
+	    {
+	      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
+	      
+	      complex_put_to_zero(S0P5_contr[r1][r2][glbT]);
+	      for(int t=0;t<glb_size[0];t++)
+		complex_summassign(S0P5_contr[r1][r2][glbT],temp_contr[t]);
+	    }
+      
+      //Print S0P5
+      for(int r1=0;r1<2;r1++)
+	for(int r2=0;r2<2;r2++)
+	  {
+	    master_fprintf(S0P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+	    for(int t=0;t<glb_size[0];t++)
+	      master_fprintf(S0P5_contr_file,"%.16lg %.16lg\n",S0P5_contr[r1][r2][t][RE],S0P5_contr[r1][r2][t][IM]);
+	  }
+      
+      //Compute P5S0P5
+      complex P5S0P5_contr[2][2][glb_size[0]];
+      for(int r1=0;r1<2;r1++)
+	for(int r2=0;r2<2;r2++)
+	  for(int dT=0;dT<glb_size[0];dT++)
+	    {
+	      complex_put_to_zero(P5S0P5_contr[r1][r2][dT]);
+	      for(int glbT1=0;glbT1<glb_size[0];glbT1++)
+		{
+		  int glbT2=(glbT1+dT)%glb_size[0];
+		  complex c;
+		  compute_inserted_contr(c,r1,!r2,glbT1,glbT2,base_gamma+5);
+		  complex_summassign(P5S0P5_contr[r1][r2][dT],c);
+		}
+	    }
+      
+      //Print P5S0P5
+      for(int r1=0;r1<2;r1++)
+	for(int r2=0;r2<2;r2++)
+	  {
+	    master_fprintf(P5S0P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+	    for(int t=0;t<glb_size[0];t++)
+	      master_fprintf(P5S0P5_contr_file,"%.16lg %.16lg\n",P5S0P5_contr[r1][r2][t][RE]/glb_size[0],P5S0P5_contr[r1][r2][t][IM]/glb_size[0]);
+	  }
     }
   
-  if(iconf>=ngauge_conf)
-    {
-      master_printf("Analyzed all confs, exiting\n\n");
-      file_touch(stop_path);
-    }
+  close_file(disco_contr_file);
+  close_file(P5P5_contr_file);
+  close_file(S0P5_contr_file);
+  close_file(P5S0P5_contr_file);
+  
+  mark_finished();
+  
+  if(asked_to_stop_or_restart()
+     or not enough_time())
+    runMode=STOP;
+  else
+    runMode=SEARCHING_CONF;
+}
+
+void in_main(int narg,char **arg)
+{
+  field_rng_stream.init(seed);
+  
+  do
+    switch(runMode)
+      {
+      case INITIALIZING:
+	init_simulation(narg,arg);
+	break;
+      case SEARCHING_CONF:
+	searchConf();
+	break;
+      case ANALYZING_CONF:
+	analyzeConf();
+	break;
+      case STOP:
+	break;
+      }
+  while(runMode!=STOP);
   
   //close the simulation
   close();
