@@ -11,6 +11,7 @@ double wall_time;
 
 double mass;
 double kappa;
+double cSW;
 double residue;
 
 int nanalyzed_conf;
@@ -18,6 +19,8 @@ int ngauge_conf;
 
 quad_su3 *glb_conf;
 spincolor **source_ptr,*temp,**prop_ptr;
+clover_term_t *Cl;
+inv_clover_term_t *invCl;
 
 enum RunMode{INITIALIZING,SEARCHING_CONF,ANALYZING_CONF,STOP};
 RunMode runMode{INITIALIZING};
@@ -485,6 +488,8 @@ void init_simulation(int narg,char **arg)
   
   read_str_double("Kappa",&kappa);
   
+  read_str_double("cSW",&cSW);
+  
   read_str_double("Mass",&mass);
   
   read_str_double("Residue",&residue);
@@ -492,7 +497,13 @@ void init_simulation(int narg,char **arg)
   read_str_int("NGaugeConf",&ngauge_conf);
   
   glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-
+  
+  if(cSW!=0.0)
+    {
+      Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
+      invCl=nissa_malloc("invCl",loc_vol,inv_clover_term_t);
+    }
+  
   source_ptr=nissa_malloc("source_ptr",glb_size[0],spincolor*);
   for(int t=0;t<glb_size[0];t++)
     source(t)=nissa_malloc("source",loc_vol+bord_vol,spincolor);
@@ -522,6 +533,12 @@ void close()
   if(nanalyzed_conf)
     master_printf("Time per conf: %lg s\n",(take_time()-init_time)/nanalyzed_conf);
   master_printf("\n");
+  
+  if(cSW!=0.0)
+    {
+      nissa_free(Cl);
+      nissa_free(invCl);
+    }
   
   nissa_free(glb_conf);
   for(int t=0;t<glb_size[0];t++)
@@ -711,9 +728,17 @@ void fill_source(const int glbT)
 
 void get_prop(const int& t,const int& r)
 {
+  spincolor* p=prop(t,r);
+  
   safe_dirac_prod_spincolor(temp,(tau3[r]==-1)?&Pminus:&Pplus,source(t));
-  inv_tmD_cg_eoprec(prop(t,r),NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
-  safe_dirac_prod_spincolor(prop(t,r),(tau3[r]==-1)?&Pminus:&Pplus,prop(t,r));
+  if(cSW==0.0)
+    inv_tmD_cg_eoprec(p,NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
+  else
+    {
+      invert_twisted_clover_term(invCl,mass*tau3[r],kappa,Cl);
+      inv_tmclovD_cg_eoprec(p,NULL,glb_conf,kappa,Cl,invCl,cSW,mass*tau3[r],1000000,residue,temp);
+    }
+  safe_dirac_prod_spincolor(p,(tau3[r]==-1)?&Pminus:&Pplus,prop(t,r));
 }
 
 THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2, int,glbT, dirac_matr*,gamma)
@@ -762,6 +787,8 @@ void analyzeConf()
   FILE* S0P5_contr_file=open_file(combine("%s/S0P5_contr",outfolder),"w");
   FILE* P5P5_SS_contr_file=open_file(combine("%s/P5P5_SS_contr",outfolder),"w");
   FILE* P5P5_0S_contr_file=open_file(combine("%s/P5P5_0S_contr",outfolder),"w");
+  
+  if(cSW!=0.0) clover_term(Cl,cSW,glb_conf);
   
   for(int ihit=0;ihit<nhits;ihit++)
     {
