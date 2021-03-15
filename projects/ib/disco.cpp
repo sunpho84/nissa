@@ -27,6 +27,8 @@ spincolor **source_ptr,*temp,**prop_ptr;
 clover_term_t *Cl;
 inv_clover_term_t *invCl;
 
+double prop_time,P5P5_time,S0P5_time,disco_time;
+
 enum RunMode{INITIALIZING,SEARCHING_CONF,ANALYZING_CONF,STOP};
 RunMode runMode{INITIALIZING};
 const char stop_path[]="stop";
@@ -548,7 +550,13 @@ void close()
   master_printf("Nanalyzed confs: %d\n",nanalyzed_conf);
   master_printf("Total time: %lg s\n",take_time()-init_time);
   if(nanalyzed_conf)
-    master_printf("Time per conf: %lg s\n",(take_time()-init_time)/nanalyzed_conf);
+    {
+      master_printf("Time per conf: %lg s\n",(take_time()-init_time)/nanalyzed_conf);
+      master_printf("Time to prop: %lg s, %lg %c\n",prop_time,prop_time/(take_time()-init_time)*100,'%');
+      master_printf("Time to S0P5: %lg s, %lg %c\n",S0P5_time,prop_time/(take_time()-init_time)*100,'%');
+      master_printf("Time to P5P5: %lg s, %lg %c\n",P5P5_time,prop_time/(take_time()-init_time)*100,'%');
+      master_printf("Time to disco: %lg s, %lg %c\n",disco_time,prop_time/(take_time()-init_time)*100,'%');
+    }
   master_printf("\n");
   
   if(cSW!=0.0)
@@ -842,11 +850,14 @@ void analyzeConf()
 	}
       
       //Compute props
+      prop_time-=take_time();
       for(int glbT=0;glbT<glb_size[0];glbT++)
 	for(int r=0;r<2;r++)
 	  get_prop(glbT,r);
+      prop_time+=take_time();
       
       //Compute disco
+      disco_time-=take_time();
       complex disco_contr[2][glb_size[0]];
       for(int r=0;r<2;r++)
 	for(int glbT=0;glbT<glb_size[0];glbT++)
@@ -854,6 +865,7 @@ void analyzeConf()
 	    prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
 	    complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
 	  }
+      disco_time+=take_time();
       
       //Print disco
       for(int r=0;r<2;r++)
@@ -864,6 +876,7 @@ void analyzeConf()
 	}
       
       //Compute and print P5P5
+      P5P5_time-=take_time();
       for(int r1=0;r1<2;r1++)
 	for(int r2=0;r2<2;r2++)
 	  for(int glbT=0;glbT<glb_size[0];glbT++)
@@ -877,8 +890,10 @@ void analyzeConf()
 		for(int t=0;t<glb_size[0];t++)
 		  master_fprintf(outFile,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
 	    }
+      P5P5_time+=take_time();
       
       //Compute S0P5
+      S0P5_time-=take_time();
       complex S0P5_contr[2][2][glb_size[0]];
       for(int r1=0;r1<2;r1++)
 	for(int r2=0;r2<2;r2++)
@@ -890,6 +905,7 @@ void analyzeConf()
 	      for(int t=0;t<glb_size[0];t++)
 		complex_summassign(S0P5_contr[r1][r2][glbT],temp_contr[t]);
 	    }
+      S0P5_time+=take_time();
       
       //Print S0P5
       for(int r1=0;r1<2;r1++)
