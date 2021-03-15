@@ -14,10 +14,15 @@ double kappa;
 double cSW;
 double residue;
 
+int useSme;
+double apeAlpha,kappaSme;
+int nApe,nSme;
+
 int nanalyzed_conf;
 int ngauge_conf;
 
 quad_su3 *glb_conf;
+quad_su3 *ape_conf;
 spincolor **source_ptr,*temp,**prop_ptr;
 clover_term_t *Cl;
 inv_clover_term_t *invCl;
@@ -494,9 +499,21 @@ void init_simulation(int narg,char **arg)
   
   read_str_double("Residue",&residue);
   
+  read_str_int("UseSme",&useSme);
+  
+  if(useSme)
+    {
+      read_str_int("NApe",&nApe);
+      read_str_double("ApeAlpha",&apeAlpha);
+      read_str_int("NSme",&nSme);
+      read_str_double("KappaSme",&kappaSme);
+    }
+  
   read_str_int("NGaugeConf",&ngauge_conf);
   
   glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  if(useSme)
+    ape_conf=nissa_malloc("ape_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   if(cSW!=0.0)
     {
@@ -541,6 +558,9 @@ void close()
     }
   
   nissa_free(glb_conf);
+  if(useSme)
+    nissa_free(ape_conf);
+  
   for(int t=0;t<glb_size[0];t++)
     for(int r=0;r<2;r++)
       nissa_free(prop(t,r));
@@ -639,10 +659,6 @@ bool read_conf()
   read_ildg_gauge_conf(glb_conf,conf_path);
   master_printf("plaq: %+16.16g\n",global_plaquette_lx_conf(glb_conf));
   
-  momentum_t old_theta={0,0,0,0};
-  momentum_t theta={1,0,0,0};
-  adapt_theta(glb_conf,old_theta,theta,0,0);
-  
   return true;
 }
 
@@ -654,6 +670,16 @@ bool check_lock_file()
     master_printf("Somebody acquired the lock on %s\n",run_file);
   
   return lock_file_valid;
+}
+
+void setup_conf()
+{
+  if(useSme)
+    ape_smear_conf(ape_conf,glb_conf,apeAlpha,nApe,all_other_spat_dirs[0],1);
+  
+  momentum_t old_theta={0,0,0,0};
+  momentum_t theta={1,0,0,0};
+  adapt_theta(glb_conf,old_theta,theta,0,0);
 }
 
 void skipConf()
@@ -673,7 +699,10 @@ void searchConf()
      create_run_file() and
      read_conf() and
      check_lock_file())
+    {
+      setup_conf();
       runMode=ANALYZING_CONF;
+    }
   else
     skipConf();
   
@@ -741,11 +770,15 @@ void get_prop(const int& t,const int& r)
   safe_dirac_prod_spincolor(p,(tau3[r]==-1)?&Pminus:&Pplus,prop(t,r));
 }
 
-THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2, int,glbT, dirac_matr*,gamma)
+THREADABLE_FUNCTION_6ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2, int,glbT, dirac_matr*,gamma, bool,withoutWithSme)
 {
   GET_THREAD_ID();
   
   vector_reset(conn_contr);
+  if(withoutWithSme)
+    gaussian_smearing(temp,prop(glbT,r2),ape_conf,kappaSme,2*nSme);
+  else
+    vector_copy(temp,prop(glbT,r2));
   
   NISSA_PARALLEL_LOOP(locT,0,loc_size[0])
     {
@@ -754,7 +787,7 @@ THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2,
 	{
 	  complex s;
 	  spincolor gs;
-	  unsafe_dirac_prod_spincolor(gs,gamma,prop(glbT,r2)[ivol]);
+	  unsafe_dirac_prod_spincolor(gs,gamma,temp[ivol]);
 	  spincolor_scalar_prod(s,prop(glbT,r1)[ivol],gs);
 	  complex_summassign(conn_contr[glbTshifted],s);
 	}
@@ -784,6 +817,9 @@ void analyzeConf()
 {
   FILE* disco_contr_file=open_file(combine("%s/disco_contr",outfolder),"w");
   FILE* P5P5_contr_file=open_file(combine("%s/P5P5_contr",outfolder),"w");
+  FILE* P5P5_contr_sme_file=nullptr;
+  if(useSme)
+    P5P5_contr_sme_file=open_file(combine("%s/P5P5_contr_sme",outfolder),"w");
   FILE* S0P5_contr_file=open_file(combine("%s/S0P5_contr",outfolder),"w");
   FILE* P5P5_SS_contr_file=open_file(combine("%s/P5P5_SS_contr",outfolder),"w");
   FILE* P5P5_0S_contr_file=open_file(combine("%s/P5P5_0S_contr",outfolder),"w");
@@ -797,7 +833,10 @@ void analyzeConf()
 	if(useNewGenerator)
 	  fill_source(glbT);
 	else
-	  generate_undiluted_source(source(glbT),RND_Z4,glbT);
+	  {
+	    generate_undiluted_source(temp,RND_Z4,glbT);
+	    gaussian_smearing(source(glbT),temp,ape_conf,kappaSme,nSme);
+	  }
       
       //Compute props
       for(int glbT=0;glbT<glb_size[0];glbT++)
@@ -825,12 +864,15 @@ void analyzeConf()
       for(int r1=0;r1<2;r1++)
 	for(int r2=0;r2<2;r2++)
 	  for(int glbT=0;glbT<glb_size[0];glbT++)
-	    {
-	      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
-	      
-	      master_fprintf(P5P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-	      for(int t=0;t<glb_size[0];t++)
-		master_fprintf(P5P5_contr_file,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
+	    for(int withoutWithSme=0;withoutWithSme<(useSme?2:1);withoutWithSme++)
+	      {
+		compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0,withoutWithSme);
+		
+		FILE* outFile=withoutWithSme?P5P5_contr_sme_file:P5P5_contr_file;
+		
+		master_fprintf(outFile,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+		for(int t=0;t<glb_size[0];t++)
+		  master_fprintf(outFile,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
 	    }
       
       //Compute S0P5
@@ -839,7 +881,7 @@ void analyzeConf()
 	for(int r2=0;r2<2;r2++)
 	  for(int glbT=0;glbT<glb_size[0];glbT++)
 	    {
-	      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
+	      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5,false);
 	      
 	      complex_put_to_zero(S0P5_contr[r1][r2][glbT]);
 	      for(int t=0;t<glb_size[0];t++)
@@ -904,6 +946,8 @@ void analyzeConf()
   
   close_file(disco_contr_file);
   close_file(P5P5_contr_file);
+  if(useSme)
+    close_file(P5P5_contr_sme_file);
   close_file(S0P5_contr_file);
   close_file(P5P5_SS_contr_file);
   close_file(P5P5_0S_contr_file);
