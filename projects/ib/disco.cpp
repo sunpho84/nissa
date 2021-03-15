@@ -830,13 +830,16 @@ void analyzeConf()
     {
       //Fill sources
       for(int glbT=0;glbT<glb_size[0];glbT++)
-	if(useNewGenerator)
-	  fill_source(glbT);
-	else
-	  {
+	{
+	  // Fill the source
+	  if(useNewGenerator)
+	    fill_source(glbT);
+	  else
 	    generate_undiluted_source(temp,RND_Z4,glbT);
-	    gaussian_smearing(source(glbT),temp,ape_conf,kappaSme,nSme);
-	  }
+	  
+	  // Smear it
+	  gaussian_smearing(source(glbT),temp,ape_conf,kappaSme,nSme);
+	}
       
       //Compute props
       for(int glbT=0;glbT<glb_size[0];glbT++)
