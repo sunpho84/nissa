@@ -835,10 +835,10 @@ void analyzeConf()
 	  if(useNewGenerator)
 	    fill_source(glbT);
 	  else
-	    generate_undiluted_source(temp,RND_Z4,glbT);
+	    generate_undiluted_source(source(glbT),RND_Z4,glbT);
 	  
 	  // Smear it
-	  gaussian_smearing(source(glbT),temp,ape_conf,kappaSme,nSme);
+	  gaussian_smearing(source(glbT),source(glbT),ape_conf,kappaSme,nSme);
 	}
       
       //Compute props
