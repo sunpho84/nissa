@@ -557,7 +557,7 @@ void close()
       master_printf(" Time to S0P5: %lg s, %lg %c\n",S0P5_time,S0P5_time/(take_time()-init_time)*100,'%');
       master_printf(" Time to P5P5: %lg s, %lg %c\n",P5P5_time,P5P5_time/(take_time()-init_time)*100,'%');
       master_printf(" Time to disco: %lg s, %lg %c\n",disco_time,disco_time/(take_time()-init_time)*100,'%');
-      master_printf(" Time to P5P5_with_ins: %lg s, %lg %c\n",P5P5_with_ins_time,disco_time/(take_time()-init_time)*100,'%');
+      master_printf(" Time to P5P5_with_ins: %lg s, %lg %c\n",P5P5_with_ins_time,P5P5_with_ins_time/(take_time()-init_time)*100,'%');
     }
   master_printf("\n");
   
