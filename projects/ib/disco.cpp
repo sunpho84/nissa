@@ -27,7 +27,7 @@ spincolor **source_ptr,*temp,**prop_ptr;
 clover_term_t *Cl;
 inv_clover_term_t *invCl;
 
-double prop_time,P5P5_time,S0P5_time,disco_time;
+double prop_time,P5P5_time,S0P5_time,disco_time,P5P5_with_ins_time,prepare_time;
 
 enum RunMode{INITIALIZING,SEARCHING_CONF,ANALYZING_CONF,STOP};
 RunMode runMode{INITIALIZING};
@@ -552,10 +552,12 @@ void close()
   if(nanalyzed_conf)
     {
       master_printf("Time per conf: %lg s\n",(take_time()-init_time)/nanalyzed_conf);
-      master_printf("Time to prop: %lg s, %lg %c\n",prop_time,prop_time/(take_time()-init_time)*100,'%');
-      master_printf("Time to S0P5: %lg s, %lg %c\n",S0P5_time,prop_time/(take_time()-init_time)*100,'%');
-      master_printf("Time to P5P5: %lg s, %lg %c\n",P5P5_time,prop_time/(take_time()-init_time)*100,'%');
-      master_printf("Time to disco: %lg s, %lg %c\n",disco_time,prop_time/(take_time()-init_time)*100,'%');
+      master_printf(" Time to prepare: %lg s, %lg %c\n",prepare_time,prepare_time/(take_time()-init_time)*100,'%');
+      master_printf(" Time to prop: %lg s, %lg %c\n",prop_time,prop_time/(take_time()-init_time)*100,'%');
+      master_printf(" Time to S0P5: %lg s, %lg %c\n",S0P5_time,S0P5_time/(take_time()-init_time)*100,'%');
+      master_printf(" Time to P5P5: %lg s, %lg %c\n",P5P5_time,P5P5_time/(take_time()-init_time)*100,'%');
+      master_printf(" Time to disco: %lg s, %lg %c\n",disco_time,disco_time/(take_time()-init_time)*100,'%');
+      master_printf(" Time to P5P5_with_ins: %lg s, %lg %c\n",P5P5_with_ins_time,disco_time/(take_time()-init_time)*100,'%');
     }
   master_printf("\n");
   
@@ -682,12 +684,14 @@ bool check_lock_file()
 
 void setup_conf()
 {
+  prepare_time-=take_time();
   if(useSme)
     ape_smear_conf(ape_conf,glb_conf,apeAlpha,nApe,all_other_spat_dirs[0],1);
   
   momentum_t old_theta={0,0,0,0};
   momentum_t theta={1,0,0,0};
   adapt_theta(glb_conf,old_theta,theta,0,0);
+  prepare_time+=take_time();
 }
 
 void skipConf()
@@ -703,6 +707,7 @@ void skipConf()
 
 void searchConf()
 {
+  prepare_time-=take_time();
   if(read_conf_path_and_check_outpath_not_exists() and
      create_run_file() and
      read_conf() and
@@ -720,6 +725,7 @@ void searchConf()
       file_touch(stop_path);
       runMode=STOP;
     }
+  prepare_time+=take_time();
 }
 
 //mark a conf as finished
@@ -778,15 +784,11 @@ void get_prop(const int& t,const int& r)
   safe_dirac_prod_spincolor(p,(tau3[r]==-1)?&Pminus:&Pplus,prop(t,r));
 }
 
-THREADABLE_FUNCTION_6ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2, int,glbT, dirac_matr*,gamma, bool,withoutWithSme)
+THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2, int,glbT, dirac_matr*,gamma)
 {
   GET_THREAD_ID();
   
   vector_reset(conn_contr);
-  if(withoutWithSme)
-    gaussian_smearing(temp,prop(glbT,r2),ape_conf,kappaSme,2*nSme);
-  else
-    vector_copy(temp,prop(glbT,r2));
   
   NISSA_PARALLEL_LOOP(locT,0,loc_size[0])
     {
@@ -836,6 +838,8 @@ void analyzeConf()
   
   for(int ihit=0;ihit<nhits;ihit++)
     {
+      prepare_time-=take_time();
+      
       //Fill sources
       for(int glbT=0;glbT<glb_size[0];glbT++)
 	{
@@ -848,6 +852,7 @@ void analyzeConf()
 	  // Smear it
 	  gaussian_smearing(source(glbT),source(glbT),ape_conf,kappaSme,nSme);
 	}
+      prepare_time+=take_time();
       
       //Compute props
       prop_time-=take_time();
@@ -875,23 +880,6 @@ void analyzeConf()
 	    master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][t][RE],disco_contr[r][t][IM]);
 	}
       
-      //Compute and print P5P5
-      P5P5_time-=take_time();
-      for(int r1=0;r1<2;r1++)
-	for(int r2=0;r2<2;r2++)
-	  for(int glbT=0;glbT<glb_size[0];glbT++)
-	    for(int withoutWithSme=0;withoutWithSme<(useSme?2:1);withoutWithSme++)
-	      {
-		compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0,withoutWithSme);
-		
-		FILE* outFile=withoutWithSme?P5P5_contr_sme_file:P5P5_contr_file;
-		
-		master_fprintf(outFile,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-		for(int t=0;t<glb_size[0];t++)
-		  master_fprintf(outFile,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
-	    }
-      P5P5_time+=take_time();
-      
       //Compute S0P5
       S0P5_time-=take_time();
       complex S0P5_contr[2][2][glb_size[0]];
@@ -899,7 +887,7 @@ void analyzeConf()
 	for(int r2=0;r2<2;r2++)
 	  for(int glbT=0;glbT<glb_size[0];glbT++)
 	    {
-	      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5,false);
+	      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
 	      
 	      complex_put_to_zero(S0P5_contr[r1][r2][glbT]);
 	      for(int t=0;t<glb_size[0];t++)
@@ -917,6 +905,7 @@ void analyzeConf()
 	  }
       
       //Compute P5P5_SS and 0S
+      P5P5_with_ins_time-=take_time();
       complex P5P5_SS_contr[2][2][2][2][glb_size[0]];
       memset(P5P5_SS_contr,0,sizeof(complex)*2*2*2*2*glb_size[0]);
       complex P5P5_0S_contr[2][2][2][glb_size[0]];
@@ -961,6 +950,31 @@ void analyzeConf()
 				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][RE]/glb_size[0],
 				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][IM]/glb_size[0]);
 	      }
+      P5P5_with_ins_time+=take_time();
+      
+      //Compute and print P5P5
+      P5P5_time-=take_time();
+      for(int withoutWithSme=0;withoutWithSme<(useSme?2:1);withoutWithSme++)
+	{
+	  if(withoutWithSme)
+	    for(int r1=0;r1<2;r1++)
+	      for(int glbT=0;glbT<glb_size[0];glbT++)
+		gaussian_smearing(prop(glbT,r1),prop(glbT,r1),ape_conf,kappaSme,nSme);
+	  
+	  for(int r1=0;r1<2;r1++)
+	    for(int r2=0;r2<2;r2++)
+	      for(int glbT=0;glbT<glb_size[0];glbT++)
+		{
+		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
+		  
+		  FILE* outFile=withoutWithSme?P5P5_contr_sme_file:P5P5_contr_file;
+		  
+		  master_fprintf(outFile,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+		  for(int t=0;t<glb_size[0];t++)
+		    master_fprintf(outFile,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
+		}
+	}
+      P5P5_time+=take_time();
     }
   
   close_file(disco_contr_file);
