@@ -935,7 +935,7 @@ void analyzeConf()
 	    for(int r1f=0;r1f<2;r1f++)
 	      for(int r2f=0;r2f<2;r2f++)
 		for(int rb=0;rb<2;rb++)
-		    complex_summ_the_conj1_prod(P5P5_0S_contr[rb][r1f][r2f][dT],spect[rb],c[r1f][r2f]);
+		  complex_summ_the_conj1_prod(P5P5_0S_contr[rb][r1f][r2f][dT],spect[rb],c[r1f][r2f]);
 	  }
       
       //Print P5P5_SS
