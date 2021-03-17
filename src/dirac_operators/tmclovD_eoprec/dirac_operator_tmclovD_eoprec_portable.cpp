@@ -52,7 +52,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //implement Koo defined in equation (7)
-  THREADABLE_FUNCTION_9ARG(tmclovDkern_eoprec_eos, spincolor*,out, spincolor*,temp, quad_su3**,conf, double,kappa, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, bool,dag, double,mu, spincolor*,in)
+  THREADABLE_FUNCTION_9ARG(tmclovDkern_eoprec_eos, spincolor*,out, spincolor*,temp, eo_ptr<quad_su3>,conf, double,kappa, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, bool,dag, double,mu, spincolor*,in)
   {
     tmn2Deo_eos(out,conf,in);
     inv_tmclovDee_or_oo_eos(temp,invCl_evn,dag,out);
@@ -65,7 +65,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //square of Koo
-  void tmclovDkern_eoprec_square_eos(spincolor *out,spincolor *temp1,spincolor *temp2,quad_su3 **conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor *in)
+  void tmclovDkern_eoprec_square_eos(spincolor *out,spincolor *temp1,spincolor *temp2,eo_ptr<quad_su3> conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor *in)
   {
     tmclovDkern_eoprec_eos(temp1,temp2,conf,kappa,Cl_odd,invCl_evn,true,  mu,in   );
     tmclovDkern_eoprec_eos(out,  temp2,conf,kappa,Cl_odd,invCl_evn,false, mu,temp1);

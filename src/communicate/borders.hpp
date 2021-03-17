@@ -14,29 +14,29 @@
 namespace nissa
 {
   void comm_start(comm_t &comm,int *dir_comm=NULL,int tot_size=-1);
-  void communicate_ev_and_od_borders(void **vec,comm_t &comm);
-  void communicate_Leb_ev_and_od_borders(void **vec,comm_t &comm);
+  void communicate_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm);
+  void communicate_Leb_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm);
   void communicate_ev_or_od_borders(void *vec,comm_t &comm,int eo);
   void communicate_Leb_ev_or_od_borders(void *vec,comm_t &comm,int eo);
   void communicate_lx_borders(void *vec,comm_t &comm);
   void communicate_Leblx_borders(void *vec,comm_t &comm);
   void comm_wait(comm_t &comm);
-  void finish_communicating_ev_and_od_borders(void **vec,comm_t &comm);
-  void finish_communicating_Leb_ev_and_od_borders(void **vec,comm_t &comm);
+  void finish_communicating_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm);
+  void finish_communicating_Leb_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm);
   void finish_communicating_ev_or_od_borders(void *vec,comm_t &comm);
   void finish_communicating_Leb_ev_or_od_borders(void *vec,comm_t &comm);
   void finish_communicating_lx_borders(void *vec,comm_t &comm);
   void finish_communicating_Leblx_borders(void *vec,comm_t &comm);
-  void start_communicating_ev_and_od_borders(comm_t &comm,void **vec);
-  void start_communicating_Leb_ev_and_od_borders(comm_t &comm,void **vec);
+  void start_communicating_ev_and_od_borders(comm_t &comm,eo_ptr<void> vec);
+  void start_communicating_Leb_ev_and_od_borders(comm_t &comm,eo_ptr<void> vec);
   void start_communicating_ev_or_od_borders(comm_t &comm,void *vec,int eo);
   void start_communicating_Leb_ev_or_od_borders(comm_t &comm,void *vec,int eo);
   void start_communicating_lx_borders(comm_t &comm,void *vec);
   void start_communicating_Leblx_borders(comm_t &comm,void *vec);
-  void fill_buffered_sending_buf_with_ev_and_od_vec(comm_t &comm,void **vec);
+  void fill_buffered_sending_buf_with_ev_and_od_vec(comm_t &comm,eo_ptr<void> vec);
   void fill_buffered_sending_buf_with_ev_or_od_vec(comm_t &comm,void *vec,int eo);
   void fill_buffered_sending_buf_with_lx_vec(comm_t &comm,void *vec);
-  void fill_ev_and_od_bord_with_buffered_receiving_buf(void **vec,comm_t &comm);
+  void fill_ev_and_od_bord_with_buffered_receiving_buf(eo_ptr<void> vec,comm_t &comm);
   void fill_ev_or_od_bord_with_buffered_receiving_buf(void *vec,comm_t &comm);
   void fill_lx_bord_with_buffered_receiving_buf(void *vec,comm_t &comm);
   void comm_set(comm_t &comm);
@@ -46,8 +46,8 @@ namespace nissa
   void comm_unset(comm_t &comm);
   
   #define DEFINE_EO_BORDERS_ROUTINES(TYPE)				\
-  inline void NAME3(communicate_ev_and_od,TYPE,borders)(TYPE **s)	\
-  {communicate_ev_and_od_borders((void**)s,NAME3(lx,TYPE,comm));}	\
+  inline void NAME3(communicate_ev_and_od,TYPE,borders)(eo_ptr<TYPE> s)	\
+  {communicate_ev_and_od_borders({s[EVN],s[ODD]},NAME3(lx,TYPE,comm));}	\
   inline void NAME3(communicate_ev_or_od,TYPE,borders)(TYPE *s,int eo)	\
   {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),eo);}		\
   inline void NAME3(start_communicating_ev_or_od,TYPE,borders)(TYPE *s,int eo) \
@@ -68,8 +68,8 @@ namespace nissa
   {finish_communicating_lx_borders(s,NAME3(lx,TYPE,comm));}
   
 #define DEFINE_LEBEO_BORDERS_ROUTINES(TYPE)				\
-  inline void NAME3(communicate_Leb_ev_and_od,TYPE,borders)(TYPE **s)	\
-  {communicate_Leb_ev_and_od_borders((void**)s,NAME3(lx,TYPE,comm));} \
+  inline void NAME3(communicate_Leb_ev_and_od,TYPE,borders)(eo_ptr<TYPE> s)	\
+  {communicate_Leb_ev_and_od_borders({s[EVN],s[ODD]},NAME3(lx,TYPE,comm));} \
   inline void NAME3(communicate_Leb_ev_or_od,TYPE,borders)(TYPE *s,int eo) \
   {communicate_Leb_ev_or_od_borders(s,NAME3(eo,TYPE,comm),eo);}	\
   inline void NAME3(start_communicating_Leb_ev_or_od,TYPE,borders)(TYPE *s,int eo) \

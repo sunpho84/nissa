@@ -33,9 +33,9 @@ namespace nissa
   }
   
   //Compute the topological action
-  double topotential_action(quad_su3 **ext_conf,topotential_pars_t &pars)
+  double topotential_action(eo_ptr<quad_su3> ext_conf,topotential_pars_t &pars)
   {
-    quad_su3 *conf[2];
+    eo_ptr<quad_su3> conf;
     if(pars.stout_pars.nlevels==0)
       {
         conf[0]=ext_conf[0];
@@ -73,7 +73,7 @@ namespace nissa
   double topotential_action(quad_su3 *lx_conf,topotential_pars_t &pars)
   {
     //allocate
-    quad_su3 *eo_conf[2];
+    eo_ptr<quad_su3> eo_conf;
     for(int eo=0;eo<2;eo++) eo_conf[eo]=nissa_malloc("stout_conf",loc_volh+bord_volh+edge_volh,quad_su3);
     
     //split and compute

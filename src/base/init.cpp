@@ -17,10 +17,15 @@
  #include <malloc.h>
 #endif
 
+#ifdef USE_CUDA
+ #include "base/cuda.hpp"
+#endif
+
 #include "base/DDalphaAMG_bridge.hpp"
 #include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/git_info.hpp"
+#include "base/memory_manager.hpp"
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 
@@ -50,6 +55,10 @@
 
 #include <unistd.h>
 #include <sys/ioctl.h>
+
+#ifdef USE_QUDA
+ #include "base/quda_bridge.hpp"
+#endif
 
 //test to remove limit 2
 //#define REM_2 if(0)
@@ -105,12 +114,19 @@ namespace nissa
     get_MPI_rank();
     
     //associate signals
-    signal(SIGBUS,signal_handler);
-    signal(SIGSEGV,signal_handler);
-    signal(SIGFPE,signal_handler);
-    signal(SIGXCPU,signal_handler);
-    signal(SIGABRT,signal_handler);
-    signal(SIGINT,signal_handler);
+    const char DO_NOT_TRAP_SIGNALS_STRING[]="NISSA_DO_NOT_TRAP_SIGNALS";
+    verbosity_lv2_master_printf("To avoid trapping signals, export: %s\n",DO_NOT_TRAP_SIGNALS_STRING);
+    if(getenv(DO_NOT_TRAP_SIGNALS_STRING)==NULL)
+      {
+	signal(SIGBUS,signal_handler);
+	signal(SIGSEGV,signal_handler);
+	signal(SIGFPE,signal_handler);
+	signal(SIGXCPU,signal_handler);
+	signal(SIGABRT,signal_handler);
+	signal(SIGINT,signal_handler);
+      }
+    else
+      master_printf("Not trapping signals\n");
     
     print_banner();
     
@@ -122,8 +138,18 @@ namespace nissa
     //define all derived MPI types
     define_MPI_types();
     
+#ifdef USE_CUDA
+    init_cuda();
+#endif
+    
     //initialize the first vector of nissa
     initialize_main_vect();
+    
+    //initialize the memory manager
+    cpu_memory_manager=new CPUMemoryManager;
+#ifdef USE_CUDA
+    gpu_memory_manager=new GPUMemoryManager;
+#endif
     
     //initialize global variables
     lx_geom_inited=0;
@@ -213,12 +239,17 @@ namespace nissa
     warn_if_not_communicated=NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
     for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
+    
 #ifdef USE_VNODES
     vnode_paral_dir=NISSA_DEFAULT_VNODE_PARAL_DIR;
 #endif
 
 #ifdef USE_DDALPHAAMG
     master_printf("Linked with DDalphaAMG\n");
+#endif
+
+#ifdef USE_QUDA
+	master_printf("Linked with QUDA, version: %d.%d.%d\n",QUDA_VERSION_MAJOR,QUDA_VERSION_MINOR,QUDA_VERSION_SUBMINOR);
 #endif
     
 #ifdef USE_EIGEN
@@ -259,6 +290,12 @@ namespace nissa
     init_base_gamma();
     
     master_printf("Nissa initialized!\n");
+    
+    const char DEBUG_LOOP_STRING[]="WAIT_TO_ATTACH";
+    if(getenv(DEBUG_LOOP_STRING)!=NULL)
+      debug_loop();
+    else
+      master_printf("To wait attaching the debugger please export: %s\n",DEBUG_LOOP_STRING);
   }
   
   //compute internal volume
@@ -805,9 +842,14 @@ namespace nissa
 	
 #ifdef USE_MPI
 	set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
+	set_eo_edge_senders_and_receivers(MPI_EO_AS2T_SU3_EDGES_SEND,MPI_EO_AS2T_SU3_EDGES_RECE,&MPI_AS2T_SU3);
 #endif
       }
     
+#ifdef USE_QUDA
+    if(use_quda) quda_iface::initialize();
+#endif
+     
     //take final time
     master_printf("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
     

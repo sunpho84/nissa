@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void inv_stD2Leb_ee_m2_cg_portable(color *sol,color *guess,oct_su3 **conf,double m2,int niter,double residue,color *source);
+  void inv_stD2Leb_ee_m2_cg_portable(color *sol,color *guess,eo_ptr<oct_su3> conf,double m2,int niter,double residue,color *source);
 }
 
 #endif

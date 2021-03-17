@@ -3,9 +3,6 @@
 
 using namespace nissa;
 
-int L,T;
-bool is_old;
-
 #ifdef USE_SSL
 #include <openssl/md5.h>
 
@@ -16,21 +13,14 @@ unsigned char c[MD5_DIGEST_LENGTH];
 
 int snum(int x,int y,int z,int t)
 {
-  int aux=(t+x*T+y*L*T+z*L*L*T);
-  if(not is_old)
-    return aux;
-  else
-    {
-      int eo=(x+y+z+t)%2;
-      return eo*loc_volh+aux/2;
-    }
+  return (t+x*glb_size[0]+y*glb_size[1]*glb_size[0]+z*glb_size[2]*glb_size[1]*glb_size[0]);
 }
 
-double read_double(FILE *in)
+int read_int(FILE *in)
 {
-  double out;
+  int out;
   
-  if(fscanf(in,"%lg",&out)!=1) crash("reading double");
+  if(fscanf(in,"%d",&out)!=1) crash("reading int");
   
   return out;
 }
@@ -44,18 +34,11 @@ void read_from_binary_file(su3 A,FILE *fp)
   for(int icol=0;icol<NCOL;icol++)
     for(int jcol=0;jcol<NCOL;jcol++)
       MD5_Update(&mdContext,A[icol][jcol],sizeof(complex));
+  
 #endif
   
-  if(little_endian and not is_old)
+  if(little_endian)
     change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
-}
-
-void read_su3(su3 out,FILE *in)
-{
-  for(int i=0;i<NCOL;i++)
-    for(int j=0;j<NCOL;j++)
-      for(int ri=0;ri<2;ri++)
-	out[i][j][ri]=read_double(in);
 }
 
 int main(int narg,char **arg)
@@ -68,16 +51,17 @@ int main(int narg,char **arg)
   if(nranks>1)
     crash("cannot run in parallel");
   
-  if(narg<5) crash("use: %s L T file_in file_out [--old] \n. Use --old for conf generated with previous versions of sun_topo",arg[0]);
+  if(narg<7) crash("use: %s T LX LY LZ file_in file_out\n.",arg[0]);
   
-  L=atoi(arg[1]);
-  T=atoi(arg[2]);
-  in_conf_name=arg[3];
-  out_conf_name=arg[4];
-  is_old=(narg>5 and strcmp(arg[5],"--old")==0);
+  glb_size[0]=atoi(arg[1]);
+  glb_size[1]=atoi(arg[2]);
+  glb_size[2]=atoi(arg[3]);
+  glb_size[3]=atoi(arg[4]);
+  in_conf_name=arg[5];
+  out_conf_name=arg[6];
   
   //Init the MPI grid
-  init_grid(T,L);
+  init_grid(0,0);
   
   //////////////////////////////// read the file /////////////////////////
   
@@ -91,11 +75,15 @@ int main(int narg,char **arg)
   if(fin==NULL) crash("while opening %s",in_conf_name);
   
   //read the first line which contains the parameters of the lattice
-  for(int k=0;k<5;k++)
-    {
-      double parameters=read_double(fin);
-      master_printf("%lg\n",parameters);
-    }
+  int pars[6]={};
+  for(int k=0;k<6;k++)
+    pars[k]=read_int(fin);
+  if(pars[0]!=NDIM) crash("NDim=%d",pars[0]);
+  for(int mu=0;mu<NDIM;mu++)
+    if(pars[1+mu]!=glb_size[mu])
+      crash("size[%d]=%d!=glb_size[mu]=%d",mu,pars[mu+1],mu,glb_size[mu]);
+  int itraj=pars[5];
+  master_printf("traj id: %d\n",itraj);
   
   char crypto[101];
   int rc=fscanf(fin,"%100s",crypto);
@@ -163,10 +151,10 @@ int main(int narg,char **arg)
   quad_su3 *out_conf=nissa_malloc("out_conf",loc_vol,quad_su3);
   
   //reorder data
-  for(int t=0;t<T;t++)
-    for(int z=0;z<L;z++)
-      for(int y=0;y<L;y++)
-	for(int x=0;x<L;x++)
+  for(int t=0;t<glb_size[0];t++)
+    for(int z=0;z<glb_size[3];z++)
+      for(int y=0;y<glb_size[2];y++)
+	for(int x=0;x<glb_size[1];x++)
 	  {
 	    int num=snum(x,y,z,t);
 	    
@@ -209,7 +197,19 @@ int main(int narg,char **arg)
   
   //print the plaquette and write the conf
   master_printf("Global plaquette: %.16lg\n",global_plaquette_lx_conf(out_conf));
-  write_ildg_gauge_conf(out_conf_name,out_conf,64);
+  
+  ILDG_message mess;
+  ILDG_message_init_to_last(&mess);
+  
+  //traj id
+  char text[1024];
+  snprintf(text,1024,"%d",itraj);
+  ILDG_string_message_append_to_last(&mess,"MD_traj",text);
+  
+  write_ildg_gauge_conf(out_conf_name,out_conf,64,&mess);
+  
+  //free messages
+  ILDG_message_free_all(&mess);
   
   nissa_free(out_conf);
   

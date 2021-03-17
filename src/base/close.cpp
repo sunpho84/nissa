@@ -8,6 +8,7 @@
 
 #include "bench.hpp"
 #include "debug.hpp"
+#include "memory_manager.hpp"
 #include "random.hpp"
 #include "vectors.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -25,6 +26,10 @@
  #include <fftw3.h>
 #endif
 
+#ifdef USE_QUDA
+ #include "base/quda_bridge.hpp"
+#endif
+
 namespace nissa
 {
   void close_nissa()
@@ -38,6 +43,10 @@ namespace nissa
 	if(remap_locd_to_lx[mu]) delete remap_locd_to_lx[mu];
       }
     
+#ifdef USE_QUDA
+    if(use_quda) quda_iface::finalize();
+#endif
+     
     //unset lx geometry
     if(lx_geom_inited) unset_lx_geometry();
     
@@ -67,6 +76,11 @@ namespace nissa
 	print_all_vect_content();
 	printf("For a total of %zu bytes\n",compute_vect_memory_usage());
       }
+    
+    delete cpu_memory_manager;
+#ifdef USE_CUDA
+    delete gpu_memory_manager;
+#endif
     
     tot_time+=take_time();
     master_printf("Total time: %lg s\n",tot_time);

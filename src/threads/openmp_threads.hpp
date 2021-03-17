@@ -9,9 +9,6 @@
 #include <cstdint>
 
 #include "base/debug.hpp"
-#ifdef THREAD_DEBUG
- #include "base/random.hpp"
-#endif
 #include "new_types/float_128.hpp"
 
 #if defined BGQ && !defined BGQ_EMU
@@ -530,6 +527,7 @@ namespace nissa
    EXTERN_THREADS int glb_barr_line;
    EXTERN_THREADS char glb_barr_file[1024];
   #if THREAD_DEBUG >=2
+    struct rnd_gen;
     EXTERN_THREADS rnd_gen *delay_rnd_gen;
     EXTERN_THREADS int *delayed_thread_barrier;
   #endif
@@ -539,9 +537,9 @@ namespace nissa
   EXTERN_THREADS unsigned int nthreads INIT_TO(1);
   
   EXTERN_THREADS void *broadcast_ptr;
-  EXTERN_THREADS float *glb_single_reduction_buf;
-  EXTERN_THREADS double *glb_double_reduction_buf;
-  EXTERN_THREADS float_128 *glb_quadruple_reduction_buf;
+  EXTERN_THREADS float *openmp_threads_single_reduction_buf;
+  EXTERN_THREADS double *openmp_threads_double_reduction_buf;
+  EXTERN_THREADS float_128 *openmp_threads_quadruple_reduction_buf;
   
   EXTERN_THREADS void(*threaded_function_ptr)();
   
@@ -560,6 +558,54 @@ namespace nissa
   {return (complex*)glb_threads_reduce_double_vect((double*)vect,2*nel);}
   
   void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg),const char compile_info[5][1024]);
+  
+  // Reduce between threads
+  template <typename T>
+  T openmp_threads_reduce(T in,T (*thread_op)(const T&,const T&),T *reduction_buf)
+  {
+    T out;
+    
+    if(!thread_pool_locked)
+      {
+	GET_THREAD_ID();
+	
+	//copy loc in the buf and sync all the threads
+	reduction_buf[thread_id]=in;
+	THREAD_BARRIER();
+	
+	//within master thread summ all the pieces
+	if(IS_MASTER_THREAD)
+	  {
+	    for(unsigned int ith=1;ith<nthreads;ith++) in=thread_op(in,reduction_buf[ith]);
+	    cache_flush();
+	  }
+	
+	//read glb val
+	THREAD_ATOMIC_EXEC(out=reduction_buf[0];);
+      }
+    else
+      out=in;
+    
+    return out;
+  }
+  
+  //Reduce quadruples between threads
+  inline float_128 openmp_threads_reduce_quadruple(const float_128& in,float_128 (*thread_op)(const float_128&,const float_128&)=summ<float_128>)
+  {
+    return openmp_threads_reduce(in,thread_op,openmp_threads_quadruple_reduction_buf);
+  }
+  
+  //Reduce doubles between threads
+  inline double openmp_threads_reduce_double(const double& in,double (*thread_op)(const double&,const double&)=summ<double>)
+  {
+    return openmp_threads_reduce(in,thread_op,openmp_threads_double_reduction_buf);
+  }
+  
+  //Reduce singles between threads
+  inline float openmp_threads_reduce_single(const float& in,float (*thread_op)(const float&,const float&)=summ<float>)
+  {
+    return openmp_threads_reduce(in,thread_op,openmp_threads_single_reduction_buf);
+  }
 }
 
 #undef EXTERN_THREADS

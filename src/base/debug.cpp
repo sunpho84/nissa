@@ -12,6 +12,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#ifdef USE_CUDA
+ #include <cuda_runtime.h>
+#endif
+
 #include "geometry/geometry_lx.hpp"
 #include "new_types/float_128.hpp"
 #include "routines/ios.hpp"
@@ -22,6 +26,25 @@
 
 namespace nissa
 {
+  /// Implements the trap to debug
+  void debug_loop()
+  {
+    volatile int flag=0;
+    
+    printf("Entering debug loop on rank %d, flag has address %p please type:\n"
+	   "$ gdb -p %d\n"
+	   "$ set flag=1\n"
+	   "$ continue\n",
+	   rank,
+	   &flag,
+	   getpid());
+    
+    if(is_master_rank())
+      while(flag==0);
+    
+    ranks_barrier();
+  }
+  
   //take the time
   double take_time()
   {
@@ -118,20 +141,36 @@ namespace nissa
   //decript the MPI error
   void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
   {
-    va_list ap;
-    va_start(ap,templ);
-    
-    if(rc!=MPI_SUCCESS && is_master_rank())
+    if(rc!=MPI_SUCCESS and is_master_rank())
       {
 	char err[1024];
 	int len=1024;
 	MPI_Error_string(rc,err,&len);
+	
+	va_list ap;
+	va_start(ap,templ);
 	char mess[1024];
 	vsprintf(mess,templ,ap);
-	internal_crash(line,file,"%s, raised error: %s",mess,err);
+	va_end(ap);
+	
+	internal_crash(line,file,"%s, MPI raised error: %s",mess,err);
       }
-    
-    va_end(ap);
+  }
+#endif
+  
+#if USE_CUDA
+  void internal_decript_cuda_error(int line,const char *file,cudaError_t rc,const char *templ,...)
+  {
+    if(rc!=cudaSuccess and rank==0)
+      {
+	va_list ap;
+	va_start(ap,templ);
+	char mess[1024];
+	vsprintf(mess,templ,ap);
+	va_end(ap);
+	
+	internal_crash(line,file,"%s, cuda raised error: %s",mess,cudaGetErrorString(rc));
+      }
   }
 #endif
   

@@ -5,10 +5,9 @@
 using namespace nissa;
 
 //observables
-FILE *file_obs=NULL,*file_obs_per_timeslice=NULL;
+FILE *file_obs=NULL;
 int gauge_obs_flag;
 char gauge_obs_path[1024];
-char gauge_obs_per_timeslice_path[1024];
 top_meas_pars_t top_meas_pars;
 
 //input and output path for confs
@@ -25,7 +24,6 @@ gauge_sweeper_t *sweeper;
 pure_gauge_evol_pars_t evol_pars;
 boundary_cond_t boundary_cond=UNSPEC_BOUNDARY_COND;
 double(*compute_action)(double *paths);
-double(*compute_action_per_timeslice)(double *paths,double *paths_per_timeslice);
 int npaths_per_action;
 rat_approx_t rat_exp_H;
 
@@ -439,40 +437,6 @@ double compute_Symanzik_action(double *paths,double C1)
 double compute_tlSym_action(double *paths) {return compute_Symanzik_action(paths,C1_TLSYM);}
 double compute_Iwasaki_action(double *paths) {return compute_Symanzik_action(paths,C1_IWASAKI);}
 
-//compute action
-double compute_Symanzik_action_per_timeslice(double *paths,double *paths_per_timeslice,double C1)
-{
-  //compute the total action
-  global_plaquette_and_rectangles_lx_conf_per_timeslice(paths_per_timeslice,conf);
-  paths[0]=paths[1]=0;
-  for(int t=0;t<glb_size[0]-1;t++)
-    for(int ip=0;ip<2;ip++)
-     paths[ip]+=paths_per_timeslice[2*t+ip];
-  
-  //normalize
-  for(int ip=0;ip<2;ip++) paths[ip]/=(glb_size[0]-1);
-  
-  return get_C0(C1)*6*glb_vol*(1-paths[0])+C1*12*glb_vol*(1-paths[1]);
-}
-double compute_Wilson_action_per_timeslice(double *paths,double *paths_per_timeslice)
-{
-  //compute the total action
-  global_plaquette_lx_conf_per_timeslice(paths_per_timeslice,conf);
-  paths[0]=0;
-  for(int t=0;t<glb_size[0]-1;t++)
-    paths[0]+=paths_per_timeslice[t];
-  
-  //normalize
-  paths[0]/=(glb_size[0]-1);
-  
-  return 6*glb_vol*(1-paths[0]);
-}
-//wrappers
-double compute_tlSym_action_per_timeslice(double *paths,double *paths_per_timeslice)
-{return compute_Symanzik_action_per_timeslice(paths, paths_per_timeslice,C1_TLSYM);}
-double compute_Iwasaki_action_per_timeslice(double *paths,double *paths_per_timeslice)
-{return compute_Symanzik_action_per_timeslice(paths, paths_per_timeslice,C1_IWASAKI);}
-
 //initialize the simulation
 void init_simulation(char *path)
 {
@@ -527,10 +491,7 @@ void init_simulation(char *path)
   read_str_str("BoundaryCond",boundary_cond_str,1024);
   if(strcasecmp(boundary_cond_str,"PERIODIC")==0) boundary_cond=PERIODIC_BOUNDARY_COND;
   if(strcasecmp(boundary_cond_str,"OPEN")==0)
-    {
-      boundary_cond=OPEN_BOUNDARY_COND;
-      read_str_str("GaugeObsPerTimeslicePath",gauge_obs_per_timeslice_path,1024);
-    }
+    boundary_cond=OPEN_BOUNDARY_COND;
   if(boundary_cond==UNSPEC_BOUNDARY_COND)
     crash("unknown boundary condition %s, expected 'PERIODIC' or 'OPEN'",boundary_cond_str);
   
@@ -562,17 +523,14 @@ void init_simulation(char *path)
     {
     case WILSON_GAUGE_ACTION:
       compute_action=compute_Wilson_action;
-      compute_action_per_timeslice=compute_Wilson_action_per_timeslice;
       npaths_per_action=1;
       break;
     case TLSYM_GAUGE_ACTION:
       compute_action=compute_tlSym_action;
-      compute_action_per_timeslice=compute_tlSym_action_per_timeslice;
       npaths_per_action=2;
       break;
     case IWASAKI_GAUGE_ACTION:
       compute_action=compute_Iwasaki_action;
-      compute_action_per_timeslice=compute_Iwasaki_action_per_timeslice;
       npaths_per_action=2;
       break;
     default:
@@ -595,8 +553,6 @@ void init_simulation(char *path)
   
   //open file according
   file_obs=open_file(gauge_obs_path,conf_found?"a":"w");
-  if(boundary_cond==OPEN_BOUNDARY_COND)
-    file_obs_per_timeslice=open_file(gauge_obs_per_timeslice_path,conf_found?"a":"w");
   
   //load conf or generate it
   if(conf_found)
@@ -652,7 +608,6 @@ THREADABLE_FUNCTION_END
 void close_simulation()
 {
   close_file(file_obs);
-  if(boundary_cond==OPEN_BOUNDARY_COND) close_file(file_obs_per_timeslice);
   
   master_printf("========== Performance report ===========\n");
   master_printf("Total time: %lg sec for %d confs\n",take_time()-initial_time,nprod_confs);
@@ -761,8 +716,7 @@ void measure_gauge_obs()
   //compute action
   double time_action=-take_time();
   double paths[2];
-  double paths_per_timeslice[glb_size[0]*npaths_per_action];
-  double action=(boundary_cond==OPEN_BOUNDARY_COND)?compute_action_per_timeslice(paths,paths_per_timeslice):compute_action(paths);
+  double action=compute_action(paths);
   master_printf("Action: %16.16lg measured in %lg sec\n",action,time_action+take_time());
   
   master_fprintf(file_obs,"%6d\t%16.16lg",iconf,action);
@@ -771,18 +725,6 @@ void measure_gauge_obs()
   if(rank==0 && iconf%flushing_nconfs==0) fflush(file_obs);
   
   meas_time+=take_time();
-  
-  if(boundary_cond==OPEN_BOUNDARY_COND)
-    {
-      for(int t=0;t<glb_size[0];t++)
-	{
-	  master_fprintf(file_obs_per_timeslice,"%d %d ",iconf,t);
-	  for(int ipath=0;ipath<npaths_per_action;ipath++)
-	    master_fprintf(file_obs_per_timeslice,"%15.15lg \n",iconf,t,paths_per_timeslice[t*npaths_per_action+ipath]);
-	  master_fprintf(file_obs_per_timeslice,"\n");
-	}
-      if(rank==0 && iconf%flushing_nconfs==0) fflush(file_obs_per_timeslice);
-    }
 }
 
 //store conf when appropriate

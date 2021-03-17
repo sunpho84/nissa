@@ -28,13 +28,12 @@
 
 namespace nissa
 {
-  //ROOT_STAG has mass term completely constant
+  //in the ROOT_STAG the mass is passed through shift
   namespace
   {
     const double shift_poles=1,shift_poles_back=-1;
     void shift_all_ROOT_STAG_poles(theory_pars_t &theory_pars,std::vector<rat_approx_t> &rat_appr,const double sign)
     {
-      
       for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
 	if(theory_pars.quarks[iflav].discretiz==ferm_discretiz::ROOT_STAG)
 	  for(int i=0;i<nappr_per_quark;i++)
@@ -43,7 +42,7 @@ namespace nissa
   }
   
   //perform a full hmc step and return the difference between final and original action
-  double multipseudo_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr,int itraj)
+  double multipseudo_rhmc_step(eo_ptr<quad_su3> out_conf,eo_ptr<quad_su3> in_conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr,int itraj)
   {
     //header
     master_printf("Trajectory %d->%d\n",itraj,itraj+1);
@@ -53,7 +52,7 @@ namespace nissa
     double hmc_time=-take_time();
     
     //allocate the momenta
-    quad_su3 *H[2];
+    eo_ptr<quad_su3> H;
     for(int par=0;par<2;par++) H[par]=nissa_malloc("H",loc_volh,quad_su3);
     
     //copy the old conf into the new
@@ -74,7 +73,7 @@ namespace nissa
     
     //if needed smear the configuration for pseudo-fermions, approx generation and action computation
     //otherwise bind out_conf to sme_conf
-    quad_su3 *sme_conf[2];
+    eo_ptr<quad_su3> sme_conf;
     for(int eo=0;eo<2;eo++)
       sme_conf[eo]=(theory_pars.stout_pars.nlevels!=0)?
 	nissa_malloc("sme_conf",loc_volh+bord_volh+edge_volh,quad_su3):out_conf[eo];

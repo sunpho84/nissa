@@ -10,7 +10,7 @@ namespace nissa
   //Refers to the doc: "doc/eo_inverter.lyx" for explenations
   
   //apply even-odd or odd-even part of tmD, multiplied by -2
-  THREADABLE_FUNCTION_4ARG(tmn2Deo_or_tmn2Doe_eos, spincolor*,out, quad_su3**,conf, int,eooe, spincolor*,in)
+  THREADABLE_FUNCTION_4ARG(tmn2Deo_or_tmn2Doe_eos, spincolor*,out, eo_ptr<quad_su3>,conf, int,eooe, spincolor*,in)
   {
     communicate_ev_and_od_quad_su3_borders(conf);
     
@@ -116,20 +116,20 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //wrappers
-  void tmn2Doe_eos(spincolor *out,quad_su3 **conf,spincolor *in){tmn2Deo_or_tmn2Doe_eos(out,conf,1,in);}
-  void tmn2Deo_eos(spincolor *out,quad_su3 **conf,spincolor *in){tmn2Deo_or_tmn2Doe_eos(out,conf,0,in);}
+  void tmn2Doe_eos(spincolor *out,eo_ptr<quad_su3> conf,spincolor *in){tmn2Deo_or_tmn2Doe_eos(out,conf,1,in);}
+  void tmn2Deo_eos(spincolor *out,eo_ptr<quad_su3> conf,spincolor *in){tmn2Deo_or_tmn2Doe_eos(out,conf,0,in);}
   
   //implement ee or oo part of Dirac operator, equation(3)
   THREADABLE_FUNCTION_4ARG(tmDee_or_oo_eos, spincolor*,out, double,kappa, double,mu, spincolor*,in)
   {
-    complex z={1/(2*kappa),mu};
-    
     if(in==out) crash("in==out!");
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       for(int ic=0;ic<NCOL;ic++)
 	{
+	  const complex z={1/(2*kappa),mu};
+	  
 	  for(int id=0;id<NDIRAC/2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
 	  for(int id=NDIRAC/2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
 	}
@@ -142,15 +142,15 @@ namespace nissa
   //inverse
   THREADABLE_FUNCTION_4ARG(inv_tmDee_or_oo_eos, spincolor*,out, double,kappa, double,mu, spincolor*,in)
   {
-    double a=1/(2*kappa),b=mu,nrm=a*a+b*b;
-    complex z={+a/nrm,-b/nrm};
-    
     if(in==out) crash("in==out!");
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       for(int ic=0;ic<NCOL;ic++)
 	{
+	  const double a=1/(2*kappa),b=mu,nrm=a*a+b*b;
+	  const complex z={+a/nrm,-b/nrm};
+	  
 	  for(int id=0;id<NDIRAC/2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
 	  for(int id=NDIRAC/2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
 	}
@@ -179,7 +179,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //implement Koo defined in equation (7)
-  THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos, spincolor*,out, spincolor*,temp, quad_su3**,conf, double,kappa, double,mu, spincolor*,in)
+  THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos, spincolor*,out, spincolor*,temp, eo_ptr<quad_su3>,conf, double,kappa, double,mu, spincolor*,in)
   {
     tmn2Deo_eos(out,conf,in);
     inv_tmDee_or_oo_eos(temp,kappa,mu,out);
@@ -192,7 +192,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //square of Koo
-  void tmDkern_eoprec_square_eos(spincolor *out,spincolor *temp1,spincolor *temp2,quad_su3 **conf,double kappa,double mu,spincolor *in)
+  void tmDkern_eoprec_square_eos(spincolor *out,spincolor *temp1,spincolor *temp2,eo_ptr<quad_su3> conf,double kappa,double mu,spincolor *in)
   {
     tmDkern_eoprec_eos(temp1,temp2,conf,kappa,-mu, in   );
     tmDkern_eoprec_eos(out,  temp2,conf,kappa,+mu, temp1);

@@ -23,8 +23,25 @@
 #elif THREADS_TYPE == CUDA_THREADS
  #include "threads/cuda_threads.hpp"
 #else
- #error Unknown thread paralleization THREADS_TYPE !
+ #error Unknown thread parallelization THREADS_TYPE !
 #endif
+
+#ifndef NISSA_PARALLEL_LOOP
+ #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) for(int INDEX=EXT_START;INDEX<EXT_END;INDEX++){
+#endif
+
+#ifndef NISSA_PARALLEL_LOOP_END
+ #define NISSA_PARALLEL_LOOP_END }
+#endif
+
+#ifndef NISSA_PARALLEL_LOOP_EXP
+ #define NISSA_PARALLEL_LOOP_EXP(INDEX,EXT_START,EXT_END) NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END)
+#endif
+
+#ifndef NISSA_PARALLEL_LOOP_END_EXP
+ #define NISSA_PARALLEL_LOOP_END_EXP NISSA_PARALLEL_LOOP_END
+#endif
+
 
 namespace nissa
 {

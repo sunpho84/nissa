@@ -271,10 +271,11 @@ namespace nissa
     //allocate a buffer where to repack data
     char *out_buf=(ext_out_buf==NULL)?nissa_malloc("out_buf",nel_out*bps,char):(char*)ext_out_buf;
     char *in_buf=(ext_in_buf==NULL)?nissa_malloc("in_buf",nel_in*bps,char):(char*)ext_in_buf;
+    int *source=this->out_buf_source;
     
     //copy data on the out-going buffer
     NISSA_PARALLEL_LOOP(iel_out,0,nel_out)
-      memcpy(out_buf+iel_out*bps,(char*)in+out_buf_source[iel_out]*bps,bps);
+      memcpy(out_buf+iel_out*bps,(char*)in+source[iel_out]*bps,bps);
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
@@ -293,9 +294,11 @@ namespace nissa
       }
     THREAD_BARRIER();
     
+    int *dest=in_buf_dest;
+    
     //sort out data from the incoming buffer
     NISSA_PARALLEL_LOOP(iel_in,0,nel_in)
-      memcpy((char*)out+in_buf_dest[iel_in]*bps,in_buf+iel_in*bps,bps);
+      memcpy((char*)out+dest[iel_in]*bps,in_buf+iel_in*bps,bps);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);

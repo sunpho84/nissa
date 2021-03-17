@@ -70,7 +70,7 @@ namespace free_th
 namespace mel
 {
   //buffer for reduction
-  complex *buffer;
+  CUDA_MANAGED complex *buffer;
   
   //compute the local matrix element between source and prop of gamma[igamma]
   THREADABLE_FUNCTION_4ARG(local_mel, double*,out, spincolor*,source, int,igamma, spincolor*,prop)

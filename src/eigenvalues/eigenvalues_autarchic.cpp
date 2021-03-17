@@ -104,7 +104,7 @@ namespace nissa
       NISSA_PARALLEL_LOOP(iel,0,vec_length)
 	{
 	  //store the linear combo at fixed i
-	  complex tmp[nout];
+	  complex *tmp=new complex[nout];
 	  
 	  //combine
 	  for(int j=0;j<nout;j++)
@@ -117,6 +117,8 @@ namespace nissa
 	  //overwrite
 	  for(int j=0;j<nout;j++)
 	    complex_copy(vect[j][iel],tmp[j]);
+	  
+	  delete[] tmp;
 	}
       NISSA_PARALLEL_LOOP_END;
       

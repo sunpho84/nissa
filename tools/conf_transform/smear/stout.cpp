@@ -4,7 +4,7 @@ using namespace nissa;
 
 int L,T;
 
-THREADABLE_FUNCTION_3ARG(new_cool_eo_conf, quad_su3**,eo_conf, int,over_flag, double,over_exp)
+THREADABLE_FUNCTION_3ARG(new_cool_eo_conf, eo_ptr<quad_su3>,eo_conf, int,over_flag, double,over_exp)
 {
   GET_THREAD_ID();
     
@@ -22,12 +22,12 @@ THREADABLE_FUNCTION_3ARG(new_cool_eo_conf, quad_su3**,eo_conf, int,over_flag, do
 	    su3_unitarize_maximal_trace_projecting_iteration(eo_conf[par][ieo][mu],staple);
 	  }
 	NISSA_PARALLEL_LOOP_END;
-	set_borders_invalid(eo_conf);
+	set_borders_invalid(eo_conf[par]);
       }
 }
 THREADABLE_FUNCTION_END
 
-THREADABLE_FUNCTION_1ARG(unitarize_conf_max, quad_su3**,conf)
+THREADABLE_FUNCTION_1ARG(unitarize_conf_max, eo_ptr<quad_su3>,conf)
 {
   GET_THREAD_ID();
     for(int par=0;par<2;par++)
@@ -64,8 +64,8 @@ void in_main(int narg,char **arg)
   
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf[2]={nissa_malloc("conf_e",loc_volh+bord_volh+edge_volh,quad_su3),
-			nissa_malloc("conf_o",loc_volh+bord_volh+edge_volh,quad_su3)};
+  eo_ptr<quad_su3> conf={nissa_malloc("conf_e",loc_volh+bord_volh+edge_volh,quad_su3),
+			 nissa_malloc("conf_o",loc_volh+bord_volh+edge_volh,quad_su3)};
   
   //read the conf and write plaquette
   ILDG_message mess;

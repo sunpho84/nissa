@@ -10,7 +10,7 @@ rm -fr \
 aclocal
 autoreconf --verbose --install --force
 #fix ylwrap and depcomp
-for i in ylwrap depcomp
+for i in depcomp
 do
     patch -p1 config/$i < config/patch_$i
 done

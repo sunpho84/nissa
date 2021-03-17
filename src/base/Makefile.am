@@ -17,14 +17,17 @@ __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/close.cpp \
 	%D%/debug.cpp \
 	%D%/init.cpp \
+	%D%/memory_manager.cpp \
 	%D%/random.cpp \
 	%D%/vectors.cpp
 include_HEADERS+= \
 	%D%/bench.hpp \
 	%D%/close.hpp \
+	%D%/cuda_test.hpp \
 	%D%/debug.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
+	%D%/memory_manager.hpp \
 	%D%/random.hpp \
 	%D%/vectors.hpp
 
@@ -40,6 +43,20 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/DDalphaAMG_bridge.cpp
 include_HEADERS+= \
 	%D%/DDalphaAMG_bridge.hpp
+endif
+
+if USE_CUDA
+__top_builddir__lib_libnissa_a_SOURCES+= \
+	%D%/cuda.cpp
+include_HEADERS+= \
+	%D%/cuda.hpp
+endif
+
+if USE_QUDA
+__top_builddir__lib_libnissa_a_SOURCES+= \
+	%D%/quda_bridge.cpp
+include_HEADERS+= \
+	%D%/quda_bridge.hpp
 endif
 
 #add BGQ if needed

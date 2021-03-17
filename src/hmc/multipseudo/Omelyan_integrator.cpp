@@ -41,7 +41,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //eo wrapper
-  THREADABLE_FUNCTION_4ARG(evolve_eo_momenta_with_topological_force, quad_su3**,eo_H, quad_su3**,eo_conf, topotential_pars_t*,topars, double,dt)
+  THREADABLE_FUNCTION_4ARG(evolve_eo_momenta_with_topological_force, eo_ptr<quad_su3>,eo_H, eo_ptr<quad_su3>,eo_conf, topotential_pars_t*,topars, double,dt)
   {
     verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
     
@@ -102,7 +102,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //wrapper
-  void Omelyan_pure_gauge_evolver_eo_conf(quad_su3 **H_eo,quad_su3 **conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
+  void Omelyan_pure_gauge_evolver_eo_conf(eo_ptr<quad_su3> H_eo,eo_ptr<quad_su3> conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
   {
     quad_su3 *H_lx=nissa_malloc("H_lx",loc_vol,quad_su3);
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -122,30 +122,30 @@ namespace nissa
   /////////////////////////////////////// QUARK E/O PART ////////////////////////////////////////////////
   
   // Evolve momenta according to the rooted staggered force
-  THREADABLE_FUNCTION_7ARG(evolve_momenta_with_quark_force, quad_su3**,H, quad_su3**,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr, double,dt)
+  THREADABLE_FUNCTION_7ARG(evolve_momenta_with_quark_force, eo_ptr<quad_su3>,H, eo_ptr<quad_su3>,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr, double,dt)
   {
     GET_THREAD_ID();
     
     verbosity_lv2_master_printf("Evolving momenta with quark force, dt=%lg\n",dt);
     
     //allocate forces
-    quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
+    eo_ptr<quad_su3> F={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
     
     //compute the force
     compute_quark_force(F,conf,pf,theory_pars,rat_appr,simul_pars->md_residue);
     
-    //#define DEBUG
+    //#define DEBUG_FORCE
     
-#ifdef DEBUG
-    int par=1,ieo=1,mu=1;
-    double eps=1e-5;
+#ifdef DEBUG_FORCE
+    int par=0,ieo=1,mu=1;
+    double eps=1e-4;
     
     //store initial link
     su3 sto;
     su3_copy(sto,conf[par][ieo][mu]);
     
     //allocate smeared conf
-    quad_su3 *sme_conf[2];
+    std::array<quad_su3*,2> sme_conf;
     for(int eo=0;eo<2;eo++) sme_conf[eo]=nissa_malloc("sme_conf",loc_volh+bord_volh+edge_volh,quad_su3);
     
     //compute action before
@@ -194,15 +194,15 @@ namespace nissa
     su3_summ(nu,nu_plus,nu_minus);
     su3_prodassign_double(nu,0.5);
     
-    master_printf("checking pure gauge force\n");
+    master_printf("checking quark force\n");
     master_printf("an\n");
     su3_print(F[par][ieo][mu]);
     master_printf("nu\n");
     su3_print(nu);
-    master_printf("nu_plus\n");
-    su3_print(nu_plus);
-    master_printf("nu_minus\n");
-    su3_print(nu_minus);
+    // master_printf("nu_plus\n");
+    // su3_print(nu_plus);
+    // master_printf("nu_minus\n");
+    // su3_print(nu_minus);
     //crash("anna");
 #endif
     
@@ -223,7 +223,7 @@ namespace nissa
   
   ////////////////////////////////////// MACRO OMELYAN ////////////////////////////////////////////////
   
-  THREADABLE_FUNCTION_6ARG(Omelyan_integrator, quad_su3**,H, quad_su3**,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
+  THREADABLE_FUNCTION_6ARG(Omelyan_integrator, eo_ptr<quad_su3>,H, eo_ptr<quad_su3>,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
   {
     int nsteps=simul_pars->nmd_steps;
     if(nsteps)

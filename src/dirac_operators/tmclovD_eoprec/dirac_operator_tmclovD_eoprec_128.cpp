@@ -48,8 +48,9 @@ namespace nissa
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       {
-    	unsafe_halfspincolor_halfspincolor_times_halfspincolor_128 (&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
-    	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor_128(&(out[X][2*low]),invCl[X][low],&(in[X][2*low]));
+	typedef halfspincolor_128 hs;
+    	unsafe_halfspincolor_halfspincolor_times_halfspincolor_128 (((hs*)(out[X]))[high],invCl[X][high],((hs*)(in[X]))[high]);
+    	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor_128(((hs*)(out[X]))[low],invCl[X][low],((hs*)(in[X]))[low]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -58,7 +59,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //implement Koo defined in equation (7)
-  THREADABLE_FUNCTION_9ARG(tmclovDkern_eoprec_eos_128, spincolor_128*,out, spincolor_128*,temp, quad_su3**,conf, double,kappa, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, bool,dag, double,mu, spincolor_128*,in)
+  THREADABLE_FUNCTION_9ARG(tmclovDkern_eoprec_eos_128, spincolor_128*,out, spincolor_128*,temp, eo_ptr<quad_su3>,conf, double,kappa, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, bool,dag, double,mu, spincolor_128*,in)
   {
     tmn2Deo_eos_128(out,conf,in);
     inv_tmclovDee_or_oo_eos_128(temp,invCl_evn,dag,out);
@@ -71,7 +72,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //square of Koo
-  void tmclovDkern_eoprec_square_eos_128(spincolor_128 *out,spincolor_128 *temp1,spincolor_128 *temp2,quad_su3 **conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor_128 *in)
+  void tmclovDkern_eoprec_square_eos_128(spincolor_128 *out,spincolor_128 *temp1,spincolor_128 *temp2,eo_ptr<quad_su3> conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor_128 *in)
   {
     tmclovDkern_eoprec_eos_128(temp1,temp2,conf,kappa,Cl_odd,invCl_evn,true,  mu,in   );
     tmclovDkern_eoprec_eos_128(out,  temp2,conf,kappa,Cl_odd,invCl_evn,false, mu,temp1);

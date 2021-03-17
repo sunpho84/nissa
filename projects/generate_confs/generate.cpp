@@ -14,8 +14,8 @@ using namespace nissa;
 double *top_meas_time;
 
 //new and old conf
-quad_su3 *new_conf[2];
-quad_su3 *conf[2];
+CUDA_MANAGED eo_ptr<quad_su3> new_conf;
+CUDA_MANAGED eo_ptr<quad_su3> conf;
 
 //all infos
 driver_t *drv;
@@ -31,7 +31,7 @@ int stored_last_conf=0;
 //write a conf adding info
 int nwrite_conf=0;
 double write_conf_time=0;
-void write_conf(std::string path,quad_su3 **conf)
+void write_conf(std::string path,eo_ptr<quad_su3> conf)
 {
   GET_THREAD_ID();
   
@@ -89,7 +89,7 @@ void write_conf(std::string path,quad_su3 **conf)
 int nread_conf=0;
 double read_conf_time=0;
 std::string rnd_gen_mess;
-void read_conf(quad_su3 **conf,const char *path)
+void read_conf(eo_ptr<quad_su3> conf,const char *path)
 {
   GET_THREAD_ID();
   
@@ -380,7 +380,7 @@ void measure_gauge_obs_internal(FILE *file,quad_su3 *conf,gauge_obs_meas_pars_t 
 }
 
 //measure plaquette and polyakov loop, writing also acceptance
-void measure_gauge_obs(gauge_obs_meas_pars_t &pars,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
+void measure_gauge_obs(gauge_obs_meas_pars_t &pars,eo_ptr<quad_su3> conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   const std::string path=pars.path;
   
@@ -428,7 +428,7 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars,quad_su3 **conf,int iconf,int
 }
 
 //measure the polyakov correlators
-void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf_created)
+void measure_poly_corrs(poly_corr_meas_pars_t &pars,eo_ptr<quad_su3> eo_conf,bool conf_created)
 {
   verbosity_lv1_master_printf("Measuring Polyakov loop correlators\n");
   
@@ -475,7 +475,7 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
     NAME2(measure,OBS)(temp,DRV->theories[itheory],DRV->NAME2(OBS,meas)[imeas],iconf,conf_created,__VA_ARGS__);
 
 //measures
-void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
+void measurements(eo_ptr<quad_su3> temp,eo_ptr<quad_su3> conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   double meas_time=-take_time();
   
@@ -510,6 +510,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	RANGE_FERMIONIC_MEAS(drv,nucleon_corr);
 	RANGE_FERMIONIC_MEAS(drv,meson_corr);
 	RANGE_FERMIONIC_MEAS(drv,spectral_proj);
+	RANGE_FERMIONIC_MEAS(drv,tm_tuning);
       }
   
   meas_time+=take_time();
@@ -594,6 +595,954 @@ bool check_if_continue()
   return true;
 }
 
+/////////////////////////////////////////////////////////////////
+
+// computing numerically
+template <typename F,
+	  typename...Ts>
+void get_num(su3 nu,int eo,int ieo,int dir,F& act,Ts&&...ts)
+{
+  su3& l=conf[eo][ieo][dir];
+  su3 sto;
+  su3_copy(sto,l);
+  double act_ori=act(ts...);
+  
+  //store derivative
+  su3 nu_plus,nu_minus;
+  su3_put_to_zero(nu_plus);
+  su3_put_to_zero(nu_minus);
+  
+  const double eps=1e-4;
+  for(int igen=0;igen<NCOL*NCOL-1;igen++)
+    {
+      //prepare increment and change
+      su3 ba;
+      su3_prod_double(ba,gell_mann_matr[igen],eps/2);
+      su3 exp_mod;
+      safe_hermitian_exact_i_exponentiate(exp_mod,ba);
+      
+      //change -, compute action
+      unsafe_su3_dag_prod_su3(l,exp_mod,sto);
+      double act_minus=act(ts...);
+      
+      //change +, compute action
+      unsafe_su3_prod_su3(l,exp_mod,sto);
+      double act_plus=act(ts...);
+      
+      //set back everything
+      su3_copy(l,sto);
+      
+      //printf("plus: %+016.016le, ori: %+16.16le, minus: %+16.16le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
+      double gr_plus=-(act_plus-act_ori)/eps;
+      double gr_minus=-(act_ori-act_minus)/eps;
+      su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus);
+      su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus);
+    }
+  
+  //take the average
+  su3_summ(nu,nu_plus,nu_minus);
+  su3_prodassign_double(nu,0.5);
+}
+
+/// computing analytically
+template <typename F,
+	  typename...Ts>
+void get_an(su3 an,int eo,int ieo,int dir,F& der,Ts&&...ts)
+{
+  der(an,eo,ieo,dir,ts...);
+  
+  su3 r1;
+  unsafe_su3_prod_su3(r1,conf[eo][ieo][dir],an);
+  unsafe_su3_traceless_anti_hermitian_part(an,r1);
+}
+
+template <typename FNu,
+	  typename FAn,
+	  typename...Ts>
+void compare(int eo,int ieo,int dir,FNu fnu,FAn fan,Ts...ts)
+{
+  su3 nu;
+  get_num(nu,eo,ieo,dir,fnu,ts...);
+  
+  master_printf("nu\n");
+  su3_print(nu);
+  
+  su3 an;
+  get_an(an,eo,ieo,dir,fan,ts...);
+  
+  master_printf("an\n");
+  su3_print(an);
+  
+  su3 diff;
+  su3_subt(diff,an,nu);
+  master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
+}
+
+int EO;
+int DIR;
+
+/////////////////////////////////////////////////////////////////
+
+// XQX functional
+
+double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
+{
+  eo_ptr<spincolor> out;
+  for(int eo=0;eo<2;eo++)
+    out[eo]=nissa_malloc("out",loc_volh,spincolor);
+  
+  /// Preprare clover
+  eo_ptr<clover_term_t> Cl;
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_vol,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  {
+    spincolor *out_lx=nissa_malloc("out",loc_vol,spincolor);
+    spincolor *in_r_lx=nissa_malloc("in_r",loc_vol+bord_vol,spincolor);
+    quad_su3 *conf_lx=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
+    clover_term_t *Cl_lx=nissa_malloc("Cl",loc_vol+bord_vol+edge_vol,clover_term_t);
+    paste_eo_parts_into_lx_vector(conf_lx,conf);
+    paste_eo_parts_into_lx_vector(in_r_lx,in_r);
+    paste_eo_parts_into_lx_vector(Cl_lx,Cl);
+    apply_tmclovQ(out_lx,conf_lx,kappa,Cl_lx,mass,in_r_lx);
+    split_lx_vector_into_eo_parts(out,out_lx);
+    
+    nissa_free(Cl_lx);
+    nissa_free(out_lx);
+    nissa_free(in_r_lx);
+    nissa_free(conf_lx);
+  }
+  
+  complex act_eo[2];
+  for(int eo=0;eo<2;eo++)
+    complex_vector_glb_scalar_prod(act_eo[eo],(complex*)(in_l[eo]),(complex*)(out[eo]),loc_volh*sizeof(spincolor)/sizeof(complex));
+  
+  chromo_operator_remove_cSW(Cl,cSW);
+  
+  nissa_free(Cl);
+  
+  complex act;
+  complex_summ(act,act_eo[EVN],act_eo[ODD]);
+  master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
+  
+  for(int eo=0;eo<2;eo++)
+    nissa_free(out[eo]);
+  
+  return act[RE];
+}
+
+namespace nissa
+{
+  void compute_clover_staples_insertions(eo_ptr<as2t_su3> cl_insertion,eo_ptr<spincolor> X,eo_ptr<spincolor> Y);
+  CUDA_HOST_AND_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,int eo,int ieo,int dir);
+  CUDA_HOST_AND_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,int ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW);
+}
+
+void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
+{
+  GET_THREAD_ID();
+  
+  add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
+  
+  eo_ptr<quad_su3> an;
+  for(int eo=0;eo<2;eo++)
+    an[eo]=nissa_malloc("an",loc_volh,quad_su3);
+  
+  for(int eo=0;eo<2;eo++)
+    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+      for(int dir=0;dir<NDIM;dir++)
+	{
+	  su3& out=an[eo][ieo][dir];
+	  su3_put_to_zero(out);
+	  
+	  decltype(in_r) in[2]={in_l,in_r};
+	  for(int i=0;i<2;i++)
+	    {
+	      su3 temp;
+	      get_point_twisted_force(temp,in[i],in[!i],eo,ieo,dir);
+	      su3_summassign(out,temp);
+	    };
+	}
+  NISSA_PARALLEL_LOOP_END;
+  
+  rem_backfield_without_stagphases_from_conf(conf,drv->theories[0].backfield[0]);
+  
+  if(cSW!=0)
+    {
+      eo_ptr<as2t_su3> cl_insertion;
+      for(int eo=0;eo<2;eo++)
+	cl_insertion[eo]=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
+      compute_clover_staples_insertions(cl_insertion,in_l,in_r);
+      
+      for(int eo=0;eo<2;eo++)
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  for(int dir=0;dir<NDIM;dir++)
+	    {
+	      su3 cl_staples;
+	      get_clover_staples(cl_staples,conf,eo,ieo,ext_dir,cl_insertion,cSW);
+	      
+	      su3_summ_the_prod_double(an[eo][ieo][dir],cl_staples,-cSW/8);
+	    }
+      NISSA_PARALLEL_LOOP_END;
+      
+      for(int eo=0;eo<2;eo++)
+	nissa_free(cl_insertion[eo]);
+    }
+  
+  su3_copy(ext_an,an[ext_eo][ext_ieo][ext_dir]);
+}
+
+void test_xQx()
+{
+  master_printf("Testing TM\n");
+  
+  double kappa=0.24;
+  double mass=0.324;
+  double cSW=0.723;
+  
+  //generate_cold_eo_conf(conf);
+  generate_hot_eo_conf(conf);
+  
+  eo_ptr<spincolor> in;
+  for(int eo=0;eo<2;eo++)
+    in[eo]=nissa_malloc("in",loc_volh,spincolor);
+  generate_fully_undiluted_eo_source(in,RND_GAUSS,-1);
+  
+  //store initial link and compute action
+  const bool eo=EO;
+  const int ieo=0;
+  const int dir=DIR;
+  
+  compare(eo,ieo,dir,xQx,xQx_der,in,in,kappa,mass,cSW);
+  
+  master_printf("Comparing derivative of xQx for link %d %d %d\n",(int)eo,ieo,dir);
+  
+  nissa_free(in);
+}
+
+/////////////////////////////////////////////////////////////////
+
+// XQhatX functional
+
+double xQhatx(spincolor *in,double kappa,double mass,double cSW)
+{
+  spincolor *out=nissa_malloc("out",loc_volh,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_volh,spincolor);
+  
+  /// Preprare clover
+  eo_ptr<clover_term_t> Cl;
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  eo_ptr<inv_clover_term_t> invCl;
+  for(int eo=0;eo<2;eo++)
+    {
+      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
+    }
+  
+  tmclovDkern_eoprec_eos(out,temp,conf,kappa,Cl[ODD],invCl[EVN],false,mass,in);
+  
+  complex act;
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_volh*sizeof(spincolor)/sizeof(complex));
+  
+  chromo_operator_remove_cSW(Cl,cSW);
+  
+  nissa_free(Cl);
+  
+  master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
+  
+  nissa_free(out);
+  nissa_free(temp);
+  
+  return act[RE];
+}
+
+void xQhatx_der_old(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
+{
+  spincolor temp;
+  
+  su3_put_to_zero(an);
+  
+  /// Preprare clover
+  eo_ptr<clover_term_t> Cl;
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  eo_ptr<inv_clover_term_t> invCl;
+  for(int eo=0;eo<2;eo++)
+    {
+      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
+    }
+  
+  spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
+  spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
+  tmn2Deo_eos(temp2,conf,in);
+   GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+      for(int id=0;id<NDIRAC/2;id++)
+    	for(int ic=0;ic<NCOL;ic++)
+    	  for(int ri=0;ri<2;ri++)
+    	    { //gamma5 is explicitely implemented
+    	      temp2[ivol][id  ][ic][ri]*=+0.5;
+    	      temp2[ivol][id+NDIRAC/2][ic][ri]*=-0.5;
+    	    }
+    NISSA_PARALLEL_LOOP_END;
+  inv_tmclovDee_or_oo_eos(temp1,invCl[EVN],true,temp2);
+  //inv_tmclovDee_or_oo_eos(temp2,invCl[EVN],false,temp1);
+  
+  int iup=loceo_neighup[eo][ieo][dir];
+  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[iup]);
+  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[dir],in[iup]);
+  //safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
+  
+  for(int ic1=0;ic1<NCOL;ic1++)
+    for(int ic2=0;ic2<NCOL;ic2++)
+      for(int id=0;id<NDIRAC;id++)
+	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],temp1[ieo][id][ic2]);
+}
+
+void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
+{
+  /// Preprare clover
+  eo_ptr<clover_term_t> Cl;
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  eo_ptr<inv_clover_term_t> invCl;
+  for(int eo=0;eo<2;eo++)
+    {
+      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
+    }
+  
+  //allocate each terms of the expansion
+  eo_ptr<spincolor> _X;
+  spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+  for(int eo=0;eo<2;eo++)
+    _X[eo]=nissa_malloc("_X",loc_volh+bord_volh,spincolor);
+  
+  vector_copy(_X[ODD],in);
+  
+  tmn2Deo_eos(temp,conf,_X[ODD]);
+  inv_tmclovDee_or_oo_eos(_X[EVN],invCl[EVN],true,temp); //Remove -2 and add -1
+  double_vector_prodassign_double((double*)(_X[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
+  
+  xQx_der(an,eo,ieo,dir,_X,_X,kappa,mass,cSW);
+  
+  //free
+  for(int eo=0;eo<2;eo++)
+    nissa_free(_X[eo]);
+  nissa_free(temp);
+}
+
+void test_xQhatx()
+{
+  master_printf("Testing TM\n");
+  
+  double kappa=0.24;
+  double mass=0.0; //leave it 0
+  double cSW=0.6332;
+  
+  //generate_cold_eo_conf(conf);
+  generate_hot_eo_conf(conf);
+  
+  spincolor *in=nissa_malloc("in",loc_volh,spincolor);
+  generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
+  
+  //store initial link and compute action
+  const bool eo=EVN;
+  const int ieo=1;
+  const int dir=1;
+  
+  compare(eo,ieo,dir,xQhatx,xQhatx_der,in,kappa,mass,cSW);
+  
+  master_printf("Comparing derivative of xQhatx for link %d %d %d\n",(int)eo,ieo,dir);
+  
+  nissa_free(in);
+}
+
+/////////////////////////////////////////////////////////////////
+
+// XQ2hatX functional
+
+double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
+{
+  spincolor *out=nissa_malloc("out",loc_volh,spincolor);
+  spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
+  spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
+  
+  /// Preprare clover
+  eo_ptr<clover_term_t> Cl;
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  eo_ptr<inv_clover_term_t> invCl;
+  for(int eo=0;eo<2;eo++)
+    {
+      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
+    }
+  
+  add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
+  tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl[ODD],invCl[EVN],mass,in);
+  rem_backfield_without_stagphases_from_conf(conf,drv->theories[0].backfield[0]);
+  
+  complex act;
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_volh*sizeof(spincolor)/sizeof(complex));
+  
+  chromo_operator_remove_cSW(Cl,cSW);
+  
+  for(int eo=0;eo<2;eo++)
+    {
+      nissa_free(Cl[eo]);
+      nissa_free(invCl[eo]);
+    }
+  
+  master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
+  
+  nissa_free(out);
+  nissa_free(temp1);
+  nissa_free(temp2);
+  
+  return act[RE];
+}
+
+void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
+{
+  /// Preprare clover
+  eo_ptr<clover_term_t> Cl;
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  eo_ptr<inv_clover_term_t> invCl;
+  for(int eo=0;eo<2;eo++)
+    {
+      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
+    }
+  
+  //allocate each terms of the expansion
+  eo_ptr<spincolor> _X,_Y;
+  spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+  for(int eo=0;eo<2;eo++)
+    {
+      _X[eo]=nissa_malloc("_X",loc_volh+bord_volh,spincolor);
+      _Y[eo]=nissa_malloc("_Y",loc_volh+bord_volh,spincolor);
+    }
+  
+  add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
+  vector_copy(_X[ODD],in);
+  tmclovDkern_eoprec_eos(_Y[ODD],temp,conf,kappa,Cl[ODD],invCl[EVN],true,mass,_X[ODD]);
+  
+  tmn2Deo_eos(temp,conf,_X[ODD]);
+  inv_tmclovDee_or_oo_eos(_X[EVN],invCl[EVN],true,temp); //Remove -2 and add -1
+  double_vector_prodassign_double((double*)(_X[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
+  
+  tmn2Deo_eos(temp,conf,_Y[ODD]);
+  inv_tmclovDee_or_oo_eos(_Y[EVN],invCl[EVN],false,temp);
+  double_vector_prodassign_double((double*)(_Y[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
+  rem_backfield_without_stagphases_from_conf(conf,drv->theories[0].backfield[0]);
+  
+  xQx_der(an,eo,ieo,dir,_X,_Y,kappa,mass,cSW);
+  //xQx_der(an2,eo,ieo,dir,_Y,_X,kappa,mass,cSW);
+  
+  // master_printf("an1:\n");
+  // su3_print(an1);
+  // master_printf("an2:\n");
+  // su3_print(an2);
+  
+  //free
+  for(int eo=0;eo<2;eo++)
+    {
+      nissa_free(_X[eo]);
+      nissa_free(_Y[eo]);
+    }
+  nissa_free(temp);
+}
+
+void test_xQ2hatx()
+{
+  master_printf("Testing TM\n");
+  
+  double kappa=0.24;
+  double mass=0.4561;
+  double cSW=0.88120;
+  
+  //generate_cold_eo_conf(conf);
+  generate_hot_eo_conf(conf);
+  
+  spincolor *in=nissa_malloc("in",loc_volh,spincolor);
+  generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
+  
+  //store initial link and compute action
+  const bool eo=ODD;
+  const int ieo=1;
+  const int dir=DIR;
+  
+  compare(eo,ieo,dir,xQ2hatx,xQ2hatx_der,in,kappa,mass,cSW);
+  
+  master_printf("Comparing derivative of xQ2hatx for link %d %d %d\n",(int)eo,ieo,dir);
+  
+  nissa_free(in);
+}
+
+/////////////////////////////////////////////////////////////////
+
+// using spincolor_spincolor=complex[NDIRAC][NCOL][NDIRAC][NCOL];
+// void clover_of_site(spincolor_spincolor out,int eo,int ieo,double kappa,double cSW)
+// {
+//   memset(out,0,sizeof(spincolor_spincolor));
+  
+//   complex d{1/(2*kappa),0.0};
+//   for(int id=0;id<NDIRAC;id++)
+//     for(int ic=0;ic<NCOL;ic++)
+//       complex_summassign(out[id][ic][id][ic],d);
+  
+//   int X=loclx_of_loceo[eo][ieo];
+  
+//   for(int mu=0;mu<NDIM;mu++)
+//     {
+//       int A=loclx_neighup[X][mu];
+//       int D=loclx_neighdw[X][mu];
+      
+//       for(int inu=0;inu<NDIM-1;inu++)
+// 	{
+// 	  int nu=perp_dir[mu][inu];
+// 	  dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
+	  
+// 	  dirac_prod_double(&m,&m,-cSW/16);
+	  
+// 	  int B=loclx_neighup[X][nu];
+// 	  int F=loclx_neighdw[X][nu];
+          
+// 	  int C=loclx_neighup[D][nu];
+// 	  int E=loclx_neighdw[D][nu];
+          
+// 	  int G=loclx_neighdw[A][nu];
+          
+// 	  su3 temp1,temp2;
+	  
+// 	  auto c=[](int lx,int dir)
+// 		 {
+// 		   return conf[loclx_parity[lx]][loceo_of_loclx[lx]][dir];
+// 		 };
+	  
+// 	  auto s=[&m,&temp1,&out]()
+// 		 {
+// 		   for(int id=0;id<NDIRAC;id++)
+// 		     {
+// 		       int jd=m.pos[id];
+// 		       for(int ic=0;ic<NCOL;ic++)
+// 			 for(int jc=0;jc<NCOL;jc++)
+// 			   complex_summ_the_prod(out[id][ic][jd][jc],m.entr[id],temp1[ic][jc]);
+// 		     }
+// 		 };
+	  
+// 	  //Leaf 1
+// 	  unsafe_su3_prod_su3(temp1,c(X,mu),c(A,nu));               //    B--<--Y
+// 	  unsafe_su3_prod_su3_dag(temp2,temp1,c(B,mu));             //    |  1  |
+// 	  unsafe_su3_prod_su3_dag(temp1,temp2,c(X,nu));             //    |     |
+// 	  /*                                             */         //    X-->--A
+// 	  s();
+          
+// 	  //Leaf 2
+// 	  unsafe_su3_prod_su3_dag(temp1,c(X,nu),c(C,mu));           //    C--<--B
+// 	  unsafe_su3_prod_su3_dag(temp2,temp1,c(D,nu));             //    |  2  |
+// 	  unsafe_su3_prod_su3(temp1,temp2,c(D,mu));                 //    |     |
+// 	  /*                                             */         //    D-->--X
+// 	  s();
+	  
+// 	  //Leaf 3
+// 	  unsafe_su3_dag_prod_su3_dag(temp1,c(D,mu),c(E,nu));        //   D--<--X
+// 	  unsafe_su3_prod_su3(temp2,temp1,c(E,mu));                  //   |  3  |
+// 	  unsafe_su3_prod_su3(temp1,temp2,c(F,nu));                  //   |     |
+// 	  /*                                                 */      //   E-->--F
+// 	  s();
+	  
+// 	  //Leaf 4
+// 	  unsafe_su3_dag_prod_su3(temp1,c(F,nu),c(F,mu));             //  X--<--A
+// 	  unsafe_su3_prod_su3(temp2,temp1,c(G,nu));                   //  |  4  |
+// 	  unsafe_su3_prod_su3_dag(temp1,temp2,c(X,mu));               //  |     |
+// 	  /*                                   */                     //  F-->--G
+// 	  s();
+// 	}
+//     }
+// }
+
+// XQeeX functional
+double xQ2eex(double kappa,double mass,double cSW)
+{
+  GET_THREAD_ID();
+  
+  //Preparre clover
+  eo_ptr<clover_term_t> Cl;
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  double *loc_act=nissa_malloc("loc_act",loc_volh,double);
+  
+  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+    {
+      complex d[2];
+      for(int x_high_low=0;x_high_low<2;x_high_low++)
+      	{
+  	  halfspincolor_halfspincolor e;
+	  
+      	  fill_point_twisted_clover_term(e,x_high_low,Cl[EVN][ieo],mass,kappa);
+	  
+      	  matrix_determinant(d[x_high_low],(complex*)e,NDIRAC*NCOL/2);
+	}
+      
+      //Product of the two subblocks determinants
+      complex p;
+      unsafe_complex_prod(p,d[0],d[1]);
+      
+      loc_act[ieo]=log(complex_norm2(p));
+    }
+  NISSA_PARALLEL_LOOP_END;
+  
+  for(int eo=0;eo<2;eo++)
+    nissa_free(Cl[eo]);
+  
+  double act;
+  double_vector_glb_collapse(&act,loc_act,loc_volh);
+  
+  nissa_free(loc_act);
+  
+  return act;
+}
+
+void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW)
+{
+  GET_THREAD_ID();
+  
+  //Prepare clover
+  eo_ptr<clover_term_t> Cl;
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  eo_ptr<inv_clover_term_t> invCl;
+  for(int eo=0;eo<2;eo++)
+    {
+      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
+    }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  as2t_su3 *insertion=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
+  
+  NISSA_PARALLEL_LOOP(jeo,0,loc_volh)
+    {
+      for(int mu=0;mu<NDIM;mu++)
+    	for(int nu=mu+1;nu<NDIM;nu++)
+	  {
+	    int ipair=edge_numb[mu][nu];
+	    dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
+	    
+	    su3& ins=insertion[jeo][ipair];
+	    
+	    for(int ic1=0;ic1<NCOL;ic1++)
+	      for(int ic2=0;ic2<NCOL;ic2++)
+		{
+		  complex_put_to_zero(ins[ic1][ic2]);
+		  
+		  for(int x_high_low=0;x_high_low<2;x_high_low++)
+		    for(int iw=0;iw<NDIRAC/2;iw++)
+		      {
+			int id=2*x_high_low+iw;
+			complex& c=m.entr[id];
+			int jd=m.pos[id];
+			int jw=jd-2*x_high_low;
+			
+			complex_summ_the_prod(ins[ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
+		      }
+		}
+	    
+	    su3_anti_hermitian_part(ins,ins);
+	  }
+    }
+  NISSA_PARALLEL_LOOP_END;
+  
+  su3_put_to_zero(an);
+  
+  for(int inu=0;inu<NDIM-1;inu++)
+    {
+      int nu=perp_dir[dir][inu];
+      
+      int xpmu=loceo_neighup[eo][ieo][dir];
+      int xmnu=loceo_neighdw[eo][ieo][nu];
+      int xpnu=loceo_neighup[eo][ieo][nu];
+      int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
+      int xpmupnu=loceo_neighup[!eo][xpmu][nu];
+      
+      int ipair=edge_numb[dir][nu];
+      
+      for(int i=0;i<2;i++)
+  	{
+  	  su3 u;
+	  
+	  double sign;
+	  if(dir<nu) sign=+1.0;
+	  else       sign=-1.0;
+	  
+  	  su3_put_to_diag(u,sign);
+  	  if(i==0 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
+  	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
+  	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
+  	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
+  	  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
+	  
+  	  su3_summassign(an,u);
+	  
+  	  su3 v;
+	  
+  	  su3_put_to_diag(v,sign);
+  	  if(i==0 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
+  	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
+  	  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
+  	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
+  	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
+  	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
+  	  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
+	  
+  	  su3_subtassign(an,v);
+  	}
+    }
+  
+  su3_prodassign_double(an,-cSW/4);
+  
+  nissa_free(insertion);
+  
+  for(int eo=0;eo<2;eo++)
+    {
+      nissa_free(Cl[eo]);
+      nissa_free(invCl[eo]);
+    }
+}
+
+void test_xQ2eex()
+{
+  double kappa=0.177;
+  double mass=0.4;
+  double cSW=0.8;
+  
+  //generate_cold_eo_conf(conf);
+  generate_hot_eo_conf(conf);
+  
+  //store initial link and compute action
+  const bool eo=EO;
+  const int ieo=1;
+  const int dir=DIR;
+  
+  compare(eo,ieo,dir,xQ2eex,xQ2eex_der,kappa,mass,cSW);
+  
+  master_printf("Comparing derivative of xQ2eex for link %d %d %d\n",(int)eo,ieo,dir);
+}
+
+/////////////////////////////////////////////////////////////////
+
+// XQee^-1X functional
+
+double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
+{
+  spincolor *out=nissa_malloc("out",loc_volh,spincolor);
+  // spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
+  
+  /// Preprare clover
+  eo_ptr<clover_term_t> Cl;
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  tmclovDee_or_oo_eos(out,kappa,Cl[EVN],false,mass,in);
+  
+  // tmclovDee_or_oo_eos(temp1,kappa,Cl[EVN],false,mass,in);
+  // tmclovDee_or_oo_eos(out,kappa,Cl[EVN],true,mass,temp1);
+  
+  complex act;
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_volh*sizeof(spincolor)/sizeof(complex));
+  
+  chromo_operator_remove_cSW(Cl,cSW);
+  
+  for(int eo=0;eo<2;eo++)
+    nissa_free(Cl[eo]);
+  
+  master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
+  
+  nissa_free(out);
+  // nissa_free(temp1);
+  
+  return act[RE];
+}
+
+void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,double mass,double cSW)
+{
+  GET_THREAD_ID();
+  
+  /// Preprare clover
+  eo_ptr<clover_term_t> Cl;
+  for(int eo=0;eo<2;eo++)
+    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+  chromo_operator(Cl,conf);
+  chromo_operator_include_cSW(Cl,cSW);
+  
+  // spincolor *Y=nissa_malloc("Y",loc_volh,spincolor);
+  // tmclovDee_or_oo_eos(Y,kappa,Cl[EVN],true,mass,X);
+  
+  std::array<dirac_matr,6> m;
+  for(int mu=0;mu<NDIM;mu++)
+    for(int nu=mu+1;nu<NDIM;nu++)
+      {
+	int ipair=edge_numb[mu][nu];
+	m[ipair]=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
+	dirac_prod_double(&m[ipair],&m[ipair],-cSW/4);
+	  
+	  // print_dirac(m+ipair);
+	  // master_printf("\n");
+      }
+  
+  /////////////////////////////////////////////////////////////////
+  as2t_su3 *insertion=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
+  
+  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+    {
+      int ipair=0;
+      
+      as2t_su3_put_to_zero(insertion[ieo]);
+      
+      for(int mu=0;mu<NDIM;mu++)
+	for(int nu=mu+1;nu<NDIM;nu++)
+	  {
+	    spincolor tempX;
+	    // spincolor tempY;
+	    unsafe_dirac_prod_spincolor(tempX,&m[ipair],X[ieo]);
+	    // unsafe_dirac_prod_spincolor(tempY,m+ipair,Y[ieo]);
+	    
+	    for(int ic1=0;ic1<NCOL;ic1++)
+	      for(int ic2=0;ic2<NCOL;ic2++)
+		for(int id=0;id<NDIRAC;id++)
+		  {
+		    complex_summ_the_conj2_prod(insertion[ieo][ipair][ic1][ic2],tempX[id][ic1],X[ieo][id][ic2]);
+		    //complex_summ_the_conj2_prod(iX[ic1][ic2],Y[ieo][id][ic1],X[ieo][id][ic2]);
+		    // complex_summ_the_conj2_prod(iY[ic1][ic2],X[ieo][id][ic1],Y[ieo][id][ic2]);
+		  }
+	    
+	    // su3_print(insertion[ieo][ipair]);
+	    // master_printf("\n");
+	    
+	    ipair++;
+	  }
+    }
+  NISSA_PARALLEL_LOOP_END;
+  
+  su3_put_to_zero(an);
+  
+  for(int inu=0;inu<NDIM-1;inu++)
+    {
+      int nu=perp_dir[dir][inu];
+      
+      int xpmu=loceo_neighup[eo][ieo][dir];
+      int xmnu=loceo_neighdw[eo][ieo][nu];
+      int xpnu=loceo_neighup[eo][ieo][nu];
+      int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
+      int xpmupnu=loceo_neighup[!eo][xpmu][nu];
+      
+      int ipair=edge_numb[dir][nu];
+      
+      for(int i=0;i<4;i++)
+	{
+	  // master_printf("i: %d \n",i);
+	  
+	  su3 u;
+	  
+	  su3_put_to_id(u);
+	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
+	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
+	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
+	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
+	  if(i==2 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
+	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
+	  if(i==3 and eo==ODD) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
+	  
+	  // master_printf("u:\n");
+	  // su3_print(u);
+	  su3_summassign(an,u);
+	  
+	  su3 v;
+	  
+	  su3_put_to_id(v);
+	  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
+	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
+	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
+	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
+	  if(i==2 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
+	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
+	  if(i==3 and eo==ODD) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
+	  
+	  // master_printf("v:\n");
+	  // su3_print(v);
+	  su3_subtassign(an,v);
+	  
+	  // su3_print(an);
+	}
+    }
+  
+  nissa_free(insertion);
+  
+  // nissa_free(Y);
+  
+  for(int eo=0;eo<2;eo++)
+    nissa_free(Cl[eo]);
+}
+
+void test_xQinv_eex()
+{
+  double kappa=0.24;
+  double mass=0.0;
+  double cSW=0.8;
+  
+  generate_cold_eo_conf(conf);
+  //generate_hot_eo_conf(conf);
+  
+  spincolor *in=nissa_malloc("in",loc_volh,spincolor);
+  generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
+  
+  //store initial link and compute action
+  const bool eo=EVN;
+  const int ieo=1;
+  const int dir=1;
+  
+  compare(eo,ieo,dir,xQee_inv_x,xQee_inv_x_der,in,kappa,mass,cSW);
+  
+  master_printf("Comparing derivative of xQeex for link %d %d %d\n",(int)eo,ieo,dir);
+  
+  nissa_free(in);
+}
+
+/////////////////////////////////////////////////////////////////
+
 //run the program for "production" mode
 void run_program_for_production()
 {
@@ -653,7 +1602,7 @@ void run_program_for_analysis()
 }
 
 //print the statistic
-void print_stat(const char *what,double time,int n,int flops=0)
+void print_stat(const char *what,double time,int n,int64_t flops=0)
 {
   double tot_time=take_time()-init_time;
   master_printf("time to %s %d times: %lg s (%2.2g %c tot), %lg per iter",what,n,time,time*100/tot_time,'%',time/std::max(n,1));

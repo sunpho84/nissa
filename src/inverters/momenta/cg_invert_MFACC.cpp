@@ -1,4 +1,5 @@
 #include <math.h>
+#include <cmath>
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
@@ -55,8 +56,8 @@ namespace nissa
 	//copy out
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  su3_copy(temp_source[ivol],source[ivol][mu]);
-	set_borders_invalid(temp_source);
 	NISSA_PARALLEL_LOOP_END;
+	set_borders_invalid(temp_source);
 	
 	//invert
 	inv_MFACC_cg(temp_sol,NULL,conf,kappa,niter,residue,temp_source);

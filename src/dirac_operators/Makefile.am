@@ -80,6 +80,7 @@ EXTRA_DIST= \
 	%D%/stD/dirac_operator_stD_portable.cpp \
 	%D%/stD/dirac_operator_stD_32_portable.cpp \
 	%D%/stD/dirac_operator_stD_bgq_template.cpp \
+	%D%/stD/dirac_operator_stDLeb_portable.cpp \
 	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_portable.cpp \
 	%D%/tmD_eoprec/dirac_operator_tmD_eoprec_portable.cpp \
 	%D%/tmQ/dirac_operator_tmQ_portable.cpp \

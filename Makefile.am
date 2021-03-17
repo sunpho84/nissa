@@ -12,7 +12,6 @@ EXTRA_DIST= \
 	config \
 	README \
 	src/nissa.hpp \
-	src/create_headers.sh \
 	tools/ave.cpp \
 	tools/common_tools.cpp \
         tools/conf_transform \
