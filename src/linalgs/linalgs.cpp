@@ -276,8 +276,7 @@ namespace nissa
   //scalar product
   THREADABLE_FUNCTION_4ARG(single_vector_glb_scalar_prod, float*,glb_res, float*,a, float*,b, int,n)
   {
-#warning not working
-    crash("");
+    crash("not working");
 //     //perform thread summ
 //     float loc_thread_res=0;
 //     GET_THREAD_ID();
@@ -293,8 +292,7 @@ namespace nissa
   //summ all points
   THREADABLE_FUNCTION_3ARG(double_vector_glb_collapse, double*,glb_res, double*,a, int,n)
   {
-#warning not working
-    crash("");
+    crash("not working");
 // #ifndef REPRODUCIBLE_RUN
 //     //perform thread summ
 //     double loc_thread_res=0;

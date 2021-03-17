@@ -71,11 +71,12 @@ namespace nissa
 		    mult_Minv(temp_sol,conf,&theory_pars,iflav,meas_pars.residue,temp_source);
 		    
 		    //put the anti-periodic condition on the propagator
+		    crash("See below");
 		    for(int eo=0;eo<2;eo++)
 		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 			{
 			  //color_prod_double(temp_sol[eo][ieo],temp_sol[eo][ieo],(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]>=source_coord[0])?+1:-1);
-			  #warning reimplement put_color_into_su3(prop[iflav][eo][ieo],temp_sol[eo][ieo],ic);
+			  //crash("#warning reimplement put_color_into_su3(prop[iflav][eo][ieo],temp_sol[eo][ieo],ic);");
 			}
 		    NISSA_PARALLEL_LOOP_END;
 		  }

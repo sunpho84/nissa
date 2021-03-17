@@ -71,7 +71,7 @@ namespace nissa
     
     //reduce the projected magnetization
     complex temp_proj_x[glb_size[1]];
-    #warning reimplement for(int x=0;x<glb_size[1];x++) glb_reduce_complex(temp_proj_x[x],thr_magn_proj_x[x]);
+    crash("#warning reimplement for(int x=0;x<glb_size[1];x++) glb_reduce_complex(temp_proj_x[x],thr_magn_proj_x[x]);");
     
     //reduce across all nodes and threads
     complex temp;

@@ -148,9 +148,9 @@ namespace nissa
     contr_map.push_back(std::make_pair(P0,PV));
     
     //init the contr
-    int ncontr_tot=contr_map.size()*nflavs*nflavs,contr_tot_size=ncontr_tot*glb_size[0];
+    //int ncontr_tot=contr_map.size()*nflavs*nflavs,contr_tot_size=ncontr_tot*glb_size[0];
     complex *glb_contr=nullptr;
-#warning reimplement nissa_malloc("glb_contr",contr_tot_size*nthreads,complex);
+    crash("#warning reimplement nissa_malloc(\"glb_contr\",contr_tot_size*nthreads,complex);");
     // complex *loc_contr=glb_contr+THREAD_ID*contr_tot_size;
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
@@ -207,13 +207,13 @@ namespace nissa
 	      for(int jflav=0;jflav<nflavs;jflav++)
 		for(size_t icontr=0;icontr<contr_map.size();icontr++)
 		  {
-		    eo_ptr<color> A=(contr_map[icontr].first==-1)?ori_source:M[contr_map[icontr].first+nprop_t*iflav];
-		    eo_ptr<color> B=(contr_map[icontr].second==-1)?ori_source:M[contr_map[icontr].second+nprop_t*jflav];
+		    // eo_ptr<color> A=(contr_map[icontr].first==-1)?ori_source:M[contr_map[icontr].first+nprop_t*iflav];
+		    // eo_ptr<color> B=(contr_map[icontr].second==-1)?ori_source:M[contr_map[icontr].second+nprop_t*jflav];
 		    
+			  crash("#warning reimplement");
 		    for(int par=0;par<2;par++)
 		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 			{
-			  #warning reimplement
 			  // int ivol=loclx_of_loceo[par][ieo];
 			  // int t=(glb_coord_of_loclx[ivol][0]+glb_size[0]-tso)%glb_size[0];
 			  // for(int ic=0;ic<NCOL;ic++)
@@ -225,8 +225,8 @@ namespace nissa
 	  }
 	
 	//reduce
-	#warning reimplement glb_threads_reduce_complex_vect(loc_contr,contr_tot_size);
-	#warning if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);
+	crash("#warning reimplement glb_threads_reduce_complex_vect(loc_contr,contr_tot_size);");
+	crash("#warning if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);");
 	
 	//print
 	double norm=1.0/(meas_pars.nhits*glb_spat_vol);

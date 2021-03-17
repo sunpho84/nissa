@@ -44,7 +44,7 @@ namespace nissa
   //compute the fermionic putpourri for a single conf and hit
   THREADABLE_FUNCTION_7ARG(fermionic_putpourri, fermionic_putpourri_t*,putpourri, rnd_t,rnd_type,eo_ptr<quad_su3>,conf, eo_ptr<quad_u1>,u1b, quark_content_t*,quark, double,residue, int,comp_susc)
   {
-    #warning toredo
+    crash("#warning toredo");
     // GET_THREAD_ID();
     
     // THREAD_BARRIER();

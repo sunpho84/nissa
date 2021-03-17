@@ -206,9 +206,9 @@ namespace nissa
 	// 	       glb_size[mu1_l[imu01]]};
 	
 	//create all Tline
+	    crash("#warning reimplement");
 	NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 	  {
-	    #warning reimplement
 	    // //take initial link
 	    // su3 U;
 	    // su3_copy(U,transp_conf[imu01][icmp+cmp_vol[imu01]*0]);
@@ -228,10 +228,10 @@ namespace nissa
 	
 	for(int ispat_sme=0;ispat_sme<nspat_sme;ispat_sme++)
 	  {
+		crash("#warning reimplement");
 	    //create Dlines up to Dmin
 	    NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 	      {
-		#warning reimplement
 		// //copy initial link
 		// su3_copy(Dline[icmp],transp_conf[imu01][icmp+cmp_vol[imu01]*(1+ispat_sme)]);
 		
@@ -249,10 +249,10 @@ namespace nissa
 		//tak true d
 		// int d=dd+pars->Dmin;
 		
+		      crash("#warning reimplement");
 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 		  for(int dt=0;dt<dT;dt++)
 		    {
-		      #warning reimplement
 		      // //take true t
 		      // int t=dt+pars->Tmin;
 		      
@@ -271,8 +271,8 @@ namespace nissa
 		THREAD_BARRIER();
 		
 		//prolong
-		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 		  crash("#warning reimplement");
+		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
   {
     // safe_su3_prod_su3(Dline[icmp],Dline[icmp],
     // 		      transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+ispat_sme)]);

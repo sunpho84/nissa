@@ -188,10 +188,11 @@ namespace nissa
     complex *loc_c_base=loc_c_tot+ncontr*glb_size[0];
     // complex *loc_c=loc_c_base+loc_size[0]*ncontr*THREAD_ID;
     
+    crash("#warning not implemented");
+    
     //loop over time and number of contractions
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
-	#warning not implemented
 	// complex ctempL[ncontr],ctempR[ncontr];
 	// memset(ctempL,0,sizeof(complex)*ncontr);
 	// memset(ctempR,0,sizeof(complex)*ncontr);

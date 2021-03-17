@@ -198,10 +198,11 @@ namespace nissa
     
     THREAD_BARRIER();
     
+    crash("#warning not implemented");
+    
     //summ the result to all the corr to which it contributes
     NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
       {
-	#warning not implemented
 	// //set in and out
 	// icontrib_t=ncontrib*loc_t;
 	// int t=(glb_size[0]+loc_size[0]*rank_coord[0]+loc_t-twall)%glb_size[0];

@@ -407,7 +407,7 @@ namespace nissa
 	    crash("#warning spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h");
 	  }
 	NISSA_PARALLEL_LOOP_END;
-	#warning glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));
+	crash("#warning glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));");
 	
 	//save projection on LO
 	for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
@@ -417,7 +417,7 @@ namespace nissa
 	      int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
 	      
 	      spinspin td;
-	      #warning unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);
+	      crash("#warning unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);");
 	      spinspin dtd;
 	      unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 	      complex mesolep;

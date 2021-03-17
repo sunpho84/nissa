@@ -87,11 +87,11 @@ int nflavs;
 		    put_stag_phases(quark[iop],mask[iop]);
 		  }
 		
+		crash("not implemented!");
 		for(int iop=0;iop<nop;iop++)
 		  for(int eo=0;eo<2;eo++)
 		    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 		      {
-			crash("not implemented!");
 			// int ivol=loclx_of_loceo[eo][ieo];
 			// int t=(glb_coord_of_loclx[ivol][0]-tso+glb_size[0])%glb_size[0];
 			// for(int ic=0;ic<NCOL;ic++)
