@@ -90,9 +90,10 @@ namespace nissa
     
     //remapping
     int nspat_sme=pars->spat_smear_pars.nmeas_nonzero(),ntot_sme=1+nspat_sme;
-    int prp_vol[12],cmp_vol[12],imu01=0,mu0_l[12],mu1_l[12],cmp_vol_max=0;
-    vector_remap_t *remap[12];
-    su3 *transp_conf[12];
+    std::array<int,12> prp_vol,cmp_vol,mu0_l,mu1_l;
+    int imu01=0,cmp_vol_max=0;
+    std::array<vector_remap_t*,12> remap;
+    std::array<su3*,12> transp_conf;
     su3 *pre_transp_conf_holder=nissa_malloc("pre_transp_conf_holder",loc_vol,su3);
     for(int mu0=0;mu0<4;mu0++)
       for(int imu1=0;imu1<3;imu1++)
@@ -201,26 +202,27 @@ namespace nissa
     int irect=0;
     for(int imu01=0;imu01<12;imu01++)
       {
-	tricoords_t L={cmp_vol[imu01]/glb_size[mu0_l[imu01]]/glb_size[mu1_l[imu01]],glb_size[mu0_l[imu01]],
-		       glb_size[mu1_l[imu01]]};
+	// tricoords_t L={cmp_vol[imu01]/glb_size[mu0_l[imu01]]/glb_size[mu1_l[imu01]],glb_size[mu0_l[imu01]],
+	// 	       glb_size[mu1_l[imu01]]};
 	
 	//create all Tline
 	NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 	  {
-	    //take initial link
-	    su3 U;
-	    su3_copy(U,transp_conf[imu01][icmp+cmp_vol[imu01]*0]);
+	    #warning reimplement
+	    // //take initial link
+	    // su3 U;
+	    // su3_copy(U,transp_conf[imu01][icmp+cmp_vol[imu01]*0]);
 	    
-	    //arrive to initial t
-	    for(int t=1;t<pars->Tmin;t++)
-	      safe_su3_prod_su3(U,U,transp_conf[imu01][site_shift(icmp,L,1,t)+cmp_vol[imu01]*0]);
+	    // //arrive to initial t
+	    // for(int t=1;t<pars->Tmin;t++)
+	    //   safe_su3_prod_su3(U,U,transp_conf[imu01][site_shift(icmp,L,1,t)+cmp_vol[imu01]*0]);
 	    
-	    //multiply all the rest
-	    for(int dt=0;dt<dT;dt++)
-	      {
-		su3_copy(Tline[icmp*dT+dt],U);
-		safe_su3_prod_su3(U,U,transp_conf[imu01][site_shift(icmp,L,1,dt+pars->Tmin)+cmp_vol[imu01]*0]);
-	      }
+	    // //multiply all the rest
+	    // for(int dt=0;dt<dT;dt++)
+	    //   {
+	    // 	su3_copy(Tline[icmp*dT+dt],U);
+	    // 	safe_su3_prod_su3(U,U,transp_conf[imu01][site_shift(icmp,L,1,dt+pars->Tmin)+cmp_vol[imu01]*0]);
+	    //   }
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -229,13 +231,14 @@ namespace nissa
 	    //create Dlines up to Dmin
 	    NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 	      {
-		//copy initial link
-		su3_copy(Dline[icmp],transp_conf[imu01][icmp+cmp_vol[imu01]*(1+ispat_sme)]);
+		#warning reimplement
+		// //copy initial link
+		// su3_copy(Dline[icmp],transp_conf[imu01][icmp+cmp_vol[imu01]*(1+ispat_sme)]);
 		
-		//procede until minimum
-		for(int d=1;d<pars->Dmin;d++)
-		  safe_su3_prod_su3(Dline[icmp],Dline[icmp],
-				    transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+ispat_sme)]);
+		// //procede until minimum
+		// for(int d=1;d<pars->Dmin;d++)
+		//   safe_su3_prod_su3(Dline[icmp],Dline[icmp],
+		// 		    transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+ispat_sme)]);
 	      }
 	    NISSA_PARALLEL_LOOP_END;
 	    THREAD_BARRIER();
@@ -244,21 +247,22 @@ namespace nissa
 	    for(int dd=0;dd<dD;dd++)
 	      {
 		//tak true d
-		int d=dd+pars->Dmin;
+		// int d=dd+pars->Dmin;
 		
 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
 		  for(int dt=0;dt<dT;dt++)
 		    {
-		      //take true t
-		      int t=dt+pars->Tmin;
+		      #warning reimplement
+		      // //take true t
+		      // int t=dt+pars->Tmin;
 		      
-		      //take the product
-		      su3 part1,part2;
-		      unsafe_su3_prod_su3(part1,Dline[icmp],Tline[site_shift(icmp,L,2,d)*dT+dt]);
-		      unsafe_su3_prod_su3(part2,Tline[icmp*dT+dt],Dline[site_shift(icmp,L,1,t)]);
+		      // //take the product
+		      // su3 part1,part2;
+		      // unsafe_su3_prod_su3(part1,Dline[icmp],Tline[site_shift(icmp,L,2,d)*dT+dt]);
+		      // unsafe_su3_prod_su3(part2,Tline[icmp*dT+dt],Dline[site_shift(icmp,L,1,t)]);
 		      
-		      //add to local rectangles summ
-		      all_rectangles_loc_thread[irect+dt]+=real_part_of_trace_su3_prod_su3_dag(part1,part2);
+		      // //add to local rectangles summ
+		      // all_rectangles_loc_thread[irect+dt]+=real_part_of_trace_su3_prod_su3_dag(part1,part2);
 		    }
 		NISSA_PARALLEL_LOOP_END;
 		
@@ -268,8 +272,11 @@ namespace nissa
 		
 		//prolong
 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol[imu01])
-		  safe_su3_prod_su3(Dline[icmp],Dline[icmp],
-				    transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+ispat_sme)]);
+		  crash("#warning reimplement");
+  {
+    // safe_su3_prod_su3(Dline[icmp],Dline[icmp],
+    // 		      transp_conf[imu01][site_shift(icmp,L,2,d)+cmp_vol[imu01]*(1+ispat_sme)]);
+  }
 		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
 	      }
@@ -479,7 +486,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,quad_su3 **conf_eo,int iconf,int create_output_file)
+  void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,eo_ptr<quad_su3> conf_eo,int iconf,int create_output_file)
   {
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);

@@ -18,7 +18,7 @@ namespace nissa
 {
   //compute the magnetization starting from chi and rnd
   //please note that the conf must hold backfield
-  THREADABLE_FUNCTION_10ARG(magnetization, complex*,magn, complex*,magn_proj_x, quad_su3**,conf, quark_content_t*,quark, color**,rnd, color**,chi, complex*,point_magn, coords*,arg, int,mu, int,nu)
+  THREADABLE_FUNCTION_10ARG(magnetization, complex*,magn, complex*,magn_proj_x, eo_ptr<quad_su3>,conf, quark_content_t*,quark, eo_ptr<color>,rnd, eo_ptr<color>,chi, complex*,point_magn, coords*,arg, int,mu, int,nu)
   {
     GET_THREAD_ID();
     
@@ -49,21 +49,21 @@ namespace nissa
               complex t;
               
               //mu component of x
-              int ix=glb_coord_of_loclx[ivol][1];
+              //int ix=glb_coord_of_loclx[ivol][1];
               
               //forward derivative
               unsafe_su3_prod_color(v,conf[par][ieo][rho],chi[!par][iup_eo]);
               color_scalar_prod(t,rnd[par][ieo],v);
               complex_summ_the_prod_double(point_magn[ivol],t,arg[ivol][rho]);
               //compute also the projected current
-              complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[ivol][rho]);
+	      crash("#warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[ivol][rho]");
               
               //backward derivative: note that we should multiply for -arg*(-U^+)
               unsafe_su3_dag_prod_color(v,conf[!par][idw_eo][rho],chi[!par][idw_eo]);
               color_scalar_prod(t,rnd[par][ieo],v);
 	      complex_summ_the_prod_double(point_magn[ivol],t,arg[idw_lx][rho]);
               //compute also the projected current
-              complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[idw_lx][rho]);
+	      crash("#warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[idw_lx][rho]");
             }
         }
     NISSA_PARALLEL_LOOP_END;
@@ -71,7 +71,7 @@ namespace nissa
     
     //reduce the projected magnetization
     complex temp_proj_x[glb_size[1]];
-    for(int x=0;x<glb_size[1];x++) glb_reduce_complex(temp_proj_x[x],thr_magn_proj_x[x]);
+    #warning reimplement for(int x=0;x<glb_size[1];x++) glb_reduce_complex(temp_proj_x[x],thr_magn_proj_x[x]);
     
     //reduce across all nodes and threads
     complex temp;
@@ -94,7 +94,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the magnetization
-  THREADABLE_FUNCTION_8ARG(magnetization, complex*,magn, complex*,magn_proj_x, quad_su3**,conf, int,quantization, quad_u1**,u1b, quark_content_t*,quark, double,residue, color**,rnd)
+  THREADABLE_FUNCTION_8ARG(magnetization, complex*,magn, complex*,magn_proj_x, eo_ptr<quad_su3>,conf, int,quantization, eo_ptr<quad_u1>,u1b, quark_content_t*,quark, double,residue, eo_ptr<color>,rnd)
   {
     GET_THREAD_ID();
     
@@ -102,7 +102,7 @@ namespace nissa
     int mu=1,nu=2;
     
     //allocate source and propagator
-    color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> chi={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
     
     //we need to store phases
     coords *arg=nissa_malloc("arg",loc_vol+bord_vol,coords);
@@ -133,10 +133,10 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the magnetization
-  void magnetization(complex *magn,complex *magn_proj_x,rnd_t rnd_type,quad_su3 **conf,int quantization,quad_u1 **u1b,quark_content_t *quark,double residue)
+  void magnetization(complex *magn,complex *magn_proj_x,rnd_t rnd_type,eo_ptr<quad_su3> conf,int quantization,eo_ptr<quad_u1> u1b,quark_content_t *quark,double residue)
   {
     //allocate source and generate it
-    color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> rnd={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
     generate_fully_undiluted_eo_source(rnd,rnd_type,-1);
     
     //call inner function
@@ -146,7 +146,7 @@ namespace nissa
   }
   
   //measure magnetization
-  void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,magnetization_meas_pars_t &meas_pars,int iconf,int conf_created)
+  void measure_magnetization(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,magnetization_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     FILE *file_proj=open_file(meas_pars.path+"%s_proj_x",conf_created?"w":"a");

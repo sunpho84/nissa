@@ -33,13 +33,17 @@ namespace nissa
   //convert a gauge action name into a str
   inline std::string gauge_action_str_from_name(gauge_action_name_t name)
   {
+    std::string res;
+    
     switch(name)
       {
-      case WILSON_GAUGE_ACTION:return "Wilson";break;
-      case TLSYM_GAUGE_ACTION:return "tlSym";break;
-      case IWASAKI_GAUGE_ACTION:return "Iwasaki";break;
-      default:return "Unknown";
+      case WILSON_GAUGE_ACTION:res="Wilson";break;
+      case TLSYM_GAUGE_ACTION:res="tlSym";break;
+      case IWASAKI_GAUGE_ACTION:res="Iwasaki";break;
+      default:res="Unknown";
       }
+    
+    return res;
   }
   
   template <class T> void gluonic_action(double *gluon_action,T conf,gauge_action_name_t gauge_action_name,double beta)

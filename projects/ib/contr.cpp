@@ -285,9 +285,8 @@ namespace nissa
     complex *loc_contr=new complex[bar2pts_alt_contr_size];
     memset(loc_contr,0,sizeof(complex)*bar2pts_alt_contr_size);
     
-    const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
-    
-    void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
+    const std::array<std::array<int,2>,3> eps={1,2, 2,0, 0,1};
+    const int sign[2]={1,-1};
     
     const int ncol=free_theory?1:NCOL;
     
@@ -324,34 +323,37 @@ namespace nissa
 	    dirac_matr Cg_so=herm(g[4]*set_CgX(igSo)*g[4]);
 	    dirac_matr Cg_si=set_CgX(igSi);
 	    
-	    //Compute the projector, gi*gj*(1 or g0)
-	    dirac_matr proj[2];
-	    const int g_of_id_g0[2]={0,4};
-	    for(int idg0=0;idg0<2;idg0++)
-	      proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
-	    
-	    //Precompute the factor to be added
-	    spinspin fact;
-	      for(int sp_si=0;sp_si<NDIRAC;sp_si++)
-		for(int sp_so=0;sp_so<NDIRAC;sp_so++)
-		  {
-		    complex& f=fact[sp_si][sp_so];
-		    unsafe_complex_prod(f,Cg_si.entr[sp_si],Cg_so.entr[sp_so]);
-		    complex_prodassign_double(f,norm);
-		  }
-	    
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	      {
 		int t=rel_coord_of_loclx(ivol,0);
 		su3spinspin p1,p2,p3;
 		
-		//Takes a slice
-		for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
+		//Precompute the factor to be added
+		spinspin fact;
+		for(int sp_si=0;sp_si<NDIRAC;sp_si++)
 		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
-		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
-		      for(int co_so=0;co_so<NCOL;co_so++)
-			for(int co_si=0;co_si<NCOL;co_si++)
-			  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
+		    {
+		      complex& f=fact[sp_si][sp_so];
+		      unsafe_complex_prod(f,Cg_si.entr[sp_si],Cg_so.entr[sp_so]);
+		      complex_prodassign_double(f,norm);
+		    }
+		
+		//Compute the projector, gi*gj*(1 or g0)
+		dirac_matr proj[2];
+		const int g_of_id_g0[2]={0,4};
+		for(int idg0=0;idg0<2;idg0++)
+		  proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
+		
+		void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
+		
+		//Takes a slice
+#warning reimplement
+		// for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
+		//   for(int sp_so=0;sp_so<NDIRAC;sp_so++)
+		//     for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+		//       for(int co_so=0;co_so<NCOL;co_so++)
+		// 	for(int co_si=0;co_si<NCOL;co_si++)
+		// 	  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
 		
 		//Color source
 		for(int b_so=0;b_so<ncol;b_so++)
@@ -379,7 +381,8 @@ namespace nissa
 				      {
 					int ga_si=proj[idg0].pos[ga_so];
 					
-					int isign=((sign[iperm_so]*sign[iperm_si]*sign_idg0(t,idg0))==+1);
+					int isign=0;
+					#warning reimplement ((sign[iperm_so]*sign[iperm_si]*sign_idg0(t,idg0))==+1);
 					
 					for(int iWick=0;iWick<2;iWick++)
 					  {
@@ -412,16 +415,17 @@ namespace nissa
     STOP_TIMING(bar2pts_alt_contr_time);
     
     //reduce
-    complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_alt_contr_size);
-    NISSA_PARALLEL_LOOP(i,0,bar2pts_alt_contr_size)
-      {
+#warning reimplement
+    // complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_alt_contr_size);
+    // NISSA_PARALLEL_LOOP(i,0,bar2pts_alt_contr_size)
+    //   {
 	//remove border phase
-	int t=i%glb_size[0];
-	double arg=3*temporal_bc*M_PI*t/glb_size[0];
-	complex phase={cos(arg),sin(arg)};
-	complex_summ_the_prod(bar2pts_alt_contr[i],master_reduced_contr[i],phase);
-      }
-    NISSA_PARALLEL_LOOP_END;
+// 	int t=i%glb_size[0];
+// 	double arg=3*temporal_bc*M_PI*t/glb_size[0];
+// 	complex phase={cos(arg),sin(arg)};
+// complex_summ_the_prod(bar2pts_alt_contr[i],master_reduced_contr[i],phase);
+      // }
+    // NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     delete[] loc_contr;
     
@@ -572,8 +576,6 @@ namespace nissa
     complex *loc_contr=new complex[bar2pts_contr_size];
     memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
     
-    const int eps[3][2]={{1,2},{2,0},{0,1}},sign[2]={1,-1};
-    
     void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
     UNPAUSE_TIMING(bar2pts_contr_time);
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
@@ -588,13 +590,16 @@ namespace nissa
 	    for(int b=0;b<NCOL;b++)
 	      for(int iperm=0;iperm<2;iperm++)
 		{
-		  int c=eps[b][iperm],a=eps[b][!iperm];
-		  int be=Cg5.pos[al];
-		  
 		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		    {
+		      const int eps[3][2]={{1,2},{2,0},{0,1}};
+		      int sign[2]={1,-1};
+    
 		      int t=rel_time_of_loclx(ivol);
 		      
+		      int c=eps[b][iperm],a=eps[b][!iperm];
+		      int be=Cg5.pos[al];
+		  
 		      int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
 		      int sign_idg0[2]={1,(t<(glb_size[0]/2))?-1:+1}; //gamma0 is -1 always
     			  for(int al1=0;al1<NDIRAC;al1++)
@@ -612,19 +617,20 @@ namespace nissa
     					int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
     					int ga1=ga1_l[idg0][ga];
 					
-    					list_fun[isign](diquark_dir,Q1[so_sp_col_ind(al,a)][ivol][al1][a1],Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1]); //direct
-    					list_fun[isign](diquark_exc,Q1[so_sp_col_ind(ga,c)][ivol][al1][a1],Q3[so_sp_col_ind(al,a)][ivol][ga1][c1]); //exchange
+    					// list_fun[isign](diquark_dir,Q1[so_sp_col_ind(al,a)][ivol][al1][a1],Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1]); //direct
+    					// list_fun[isign](diquark_exc,Q1[so_sp_col_ind(ga,c)][ivol][al1][a1],Q3[so_sp_col_ind(al,a)][ivol][ga1][c1]); //exchange
     				      }
     				  }
 				
     				//close it
-    				complex w;
-    				unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
-				int be1=Cg5.pos[al1];
-    				complex_prodassign_double(diquark_dir,w[RE]*norm);
-    				complex_prodassign_double(diquark_exc,w[RE]*norm);
-				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
-				complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
+#warning reimplement
+    				// complex w;
+    				// unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
+				// int be1=Cg5.pos[al1];
+    				// complex_prodassign_double(diquark_dir,w[RE]*norm);
+    				// complex_prodassign_double(diquark_exc,w[RE]*norm);
+				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
+ 				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
     			      }
 		    }
 		  NISSA_PARALLEL_LOOP_END;
@@ -633,16 +639,17 @@ namespace nissa
     STOP_TIMING(bar2pts_contr_time);
     
     //reduce
-    complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
-    NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
-      {
-	//remove border phase
-	int t=i%glb_size[0];
-	double arg=3*temporal_bc*M_PI*t/glb_size[0];
-	complex phase={cos(arg),sin(arg)};
-	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
-      }
-    NISSA_PARALLEL_LOOP_END;
+    #warning
+    // complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
+    // NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
+    //   {
+    // 	//remove border phase
+    // 	int t=i%glb_size[0];
+    // 	double arg=3*temporal_bc*M_PI*t/glb_size[0];
+    // 	complex phase={cos(arg),sin(arg)};
+    // 	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     delete[] loc_contr;
     
@@ -658,7 +665,8 @@ namespace nissa
     open_or_append_t list;
     
     //reduce
-    glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
+#warning reimplement
+    //glb_nodes_reduce_complex_vect(bar2pts_contr,bar2pts_contr_size);
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
 	for(int dir_exc=0;dir_exc<2;dir_exc++)
@@ -684,7 +692,7 @@ namespace nissa
     open_or_append_t list;
     
     //reduce
-    glb_nodes_reduce_complex_vect(bar2pts_alt_contr,bar2pts_alt_contr_size);
+#warning reimplement glb_nodes_reduce_complex_vect(bar2pts_alt_contr,bar2pts_alt_contr_size);
     
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
       for(int iProj=0;iProj<NBAR_ALT_PROJ;iProj++)
@@ -716,7 +724,8 @@ namespace nissa
     vector_reset(si);
     
     //compute the gammas
-    dirac_matr GAMMA[5],temp_gamma;
+    dirac_matr* GAMMA=nissa_malloc("GAMMA",5,dirac_matr);
+    dirac_matr temp_gamma;
     if(twisted_run>0)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[r]);
     else                temp_gamma=base_gamma[0];
     
@@ -776,6 +785,8 @@ namespace nissa
 	      }
 	  NISSA_PARALLEL_LOOP_END;
 	}
+    
+    nissa_free(GAMMA);
   }
   THREADABLE_FUNCTION_END
   
@@ -786,7 +797,7 @@ namespace nissa
     
     vector_reset(si);
     
-    dirac_matr GAMMA[NDIM];
+    dirac_matr *GAMMA=nissa_malloc("GAMMA",NDIM,dirac_matr);
     for(int mu=0;mu<NDIM;mu++)
       if(revert) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
       else       GAMMA[mu]=base_gamma[igamma_of_mu[mu]];
@@ -816,6 +827,8 @@ namespace nissa
 	      }
 	  NISSA_PARALLEL_LOOP_END;
 	}
+    
+    nissa_free(GAMMA);
   }
   THREADABLE_FUNCTION_END
   
@@ -843,6 +856,7 @@ namespace nissa
     
     //allocate all sides
     std::map<std::string,spin1field*> sides;
+
     
     //loop over sides
     for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
@@ -852,23 +866,28 @@ namespace nissa
 	std::string side_name=h.name;
 	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),loc_vol,spin1field);
 	vector_reset(sides[side_name]);
-	
+
+      
 	//check r are the same (that is, opposite!)
-	if(twisted_run and Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
-	  crash("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fw.c_str(),h.bw.c_str());
+	if(twisted_run and (not loc_hadr_curr)) {
+	  if(Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
+	    crash("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fw.c_str(),h.bw.c_str());
+	}
 	
 	//compute dirac combo
 	dirac_matr g;
 	int ig=::abs(handcuffs_side_map[iside].igamma);
 	int revert=(handcuffs_side_map[iside].igamma>=0); //reverting only if positive ig asked
 	if(ig!=5 and !diluted_spi_source) crash("ig %d not available if not diluting in spin",ig);
-	dirac_prod(&g,base_gamma+5,base_gamma+ig);
-	
+	//dirac_prod(&g,base_gamma+5,base_gamma+ig);
+	g=base_gamma[ig];
+		
 	//compute the matrix element
 	local_or_conserved_vector_current_mel(si,g,h.bw,h.fw,revert);
 	
 	//if(h.store) store_spin1field(combine("%s/handcuff_side_%s",outfolder,h.name.c_str()),si);
       }
+
     
     //add the photon
     for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
@@ -885,22 +904,23 @@ namespace nissa
 	    multiply_by_tlSym_gauge_propagator(rp,sides[h.right],photon);
 	  }
       }
-    
+
     //compute the hands
-    for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
+    NISSA_PARALLEL_LOOP(ihand,0, (int)handcuffs_map.size())
       if(sides.find(handcuffs_map[ihand].left)==sides.end() or
 	 sides.find(handcuffs_map[ihand].right)==sides.end())
 	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
       else
 	{
 	  crash("check race");
-	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	    for(int mu=0;mu<NDIM;mu++)
-	      complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
-				    sides[handcuffs_map[ihand].left][ivol][mu],
-				    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
-	  NISSA_PARALLEL_LOOP_END;
+	  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  //   for(int mu=0;mu<NDIM;mu++)
+	  //     complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
+	  // 			    sides[handcuffs_map[ihand].left][ivol][mu],
+	  // 			    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
+	  // NISSA_PARALLEL_LOOP_END;
 	}
+    NISSA_PARALLEL_LOOP_END;
     
     //free
     for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)
@@ -928,7 +948,7 @@ namespace nissa
     contr_print_time-=take_time();
     
     //reduce and normalise
-    glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);
+    #warning reimplement glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);
     
     //Open if size different from zero
     FILE *fout=NULL;

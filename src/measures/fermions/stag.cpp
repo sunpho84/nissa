@@ -20,7 +20,7 @@ namespace nissa
   namespace stag
   {
     //summ a single shift
-    void summ_covariant_shift(color **out,quad_su3 **conf,int mu,color **in,shift_orie_t side)
+    void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side)
     {
       GET_THREAD_ID();
       
@@ -47,18 +47,18 @@ namespace nissa
     }
     
     //apply a single shift
-    void apply_covariant_shift(color **out,quad_su3 **conf,int mu,color **in,shift_orie_t side)
+    void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side)
     {
       for(int eo=0;eo<2;eo++) vector_reset(out[eo]);
       summ_covariant_shift(out,conf,mu,in,side);
     }
     
     //apply two-links laplacian, as per 1302.5246
-    THREADABLE_FUNCTION_3ARG(two_links_laplacian, color**,out, quad_su3**,conf, color**,in)
+    THREADABLE_FUNCTION_3ARG(two_links_laplacian, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, eo_ptr<color>,in)
     {
       crash("NOT USABLE YET");
       //allocate temp
-      color *temp[2];
+      eo_ptr<color> temp;
       for(int par=0;par<2;par++)
 	temp[par]=nissa_malloc("temp",loc_volh+bord_volh,color);
       
@@ -89,7 +89,7 @@ namespace nissa
     THREADABLE_FUNCTION_END
     
     //apply the operator
-    void apply_shift_op_single_perm(color **out,color **temp,quad_su3 **conf,std::vector<int> &list_dir,color **in)
+    void apply_shift_op_single_perm(eo_ptr<color> out,eo_ptr<color> temp,eo_ptr<quad_su3> conf,std::vector<int> &list_dir,eo_ptr<color> in)
     {
       //make a temporary copy
       for(int eo=0;eo<2;eo++) vector_copy(temp[eo],in[eo]);
@@ -108,7 +108,7 @@ namespace nissa
     }
     
     //apply the operator summing all permutations
-    void apply_shift_op(color **out,color **single_perm,color **internal_temp,quad_su3 **conf,quad_u1 **u1b,int shift,color **in)
+    void apply_shift_op(eo_ptr<color> out,eo_ptr<color> single_perm,eo_ptr<color> internal_temp,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,int shift,eo_ptr<color> in)
     {
       //make a list that can be easily permuted
       std::vector<int> list_dir;
@@ -147,7 +147,7 @@ namespace nissa
     }
     
     //add the phases
-    THREADABLE_FUNCTION_2ARG(put_stag_phases, color**,source, int,mask)
+    THREADABLE_FUNCTION_2ARG(put_stag_phases, eo_ptr<color>,source, int,mask)
     {
       GET_THREAD_ID();
       
@@ -158,7 +158,6 @@ namespace nissa
 	    {
 	      int sign=1,ivol=loclx_of_loceo[eo][ieo];
 	      for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1) and (glb_coord_of_loclx[ivol][mu]&0x1));
-	      if(abs(sign)!=1) crash("unexpected sign %d",sign);
 	      color_prod_double(source[eo][ieo],source[eo][ieo],sign);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -168,19 +167,19 @@ namespace nissa
     THREADABLE_FUNCTION_END
     
     //multiply by M^-1
-    THREADABLE_FUNCTION_6ARG(mult_Minv, color**,prop, quad_su3**,conf, quad_u1**,u1b, double,m, double,residue, color**,source)
+    THREADABLE_FUNCTION_6ARG(mult_Minv, eo_ptr<color>,prop, eo_ptr<quad_su3>,conf, eo_ptr<quad_u1>,u1b, double,m, double,residue, eo_ptr<color>,source)
     {
       add_backfield_with_stagphases_to_conf(conf,u1b);
       inv_stD_cg(prop,conf,m,100000,residue,source);
       rem_backfield_with_stagphases_from_conf(conf,u1b);
     }
     THREADABLE_FUNCTION_END
-    void mult_Minv(color **prop,quad_su3 **conf,theory_pars_t *pars,int iflav,double residue,color **source)
+    void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,theory_pars_t *pars,int iflav,double residue,eo_ptr<color> source)
     {mult_Minv(prop,conf,pars->backfield[iflav],pars->quarks[iflav].mass,residue,source);}
     
     //compute the matrix element of the derivative of the dirac operator between two vectors
     //forward and backward derivative are stored separately, for a reason
-    void compute_fw_bw_der_mel(complex *res_fw_bw,color **left,quad_su3 **conf,int mu,color **right,complex *point_result)
+    void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result)
     {
       GET_THREAD_ID();
       
@@ -188,14 +187,14 @@ namespace nissa
       communicate_ev_and_od_quad_su3_borders(conf);
       communicate_ev_and_od_color_borders(right);
       
-      color **right_fw_bw[2]={right,left};
-      
       for(int fw_bw=0;fw_bw<2;fw_bw++)
 	{
 	  vector_reset(point_result);
 	  for(int par=0;par<2;par++)
 	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	      {
+		eo_ptr<color> right_fw_bw[2]={right,left};
+		
 		color v;
 		unsafe_su3_prod_color(v,conf[par][ieo][mu],right_fw_bw[fw_bw][!par][loceo_neighup[par][ieo][mu]]);
 		complex t;
@@ -213,13 +212,13 @@ namespace nissa
     }
     
     //fill a source
-    void fill_source(color **src,int twall,rnd_t noise_type)
+    void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type)
     {
       generate_fully_undiluted_eo_source(src,noise_type,twall);
     }
     
     //take the trace between A^dag and B
-    THREADABLE_FUNCTION_4ARG(summ_the_trace, double*,out, complex*,point_result, color**, A, color**, B)
+    THREADABLE_FUNCTION_4ARG(summ_the_trace, double*,out, complex*,point_result, eo_ptr<color>, A, eo_ptr<color>, B)
     {
       GET_THREAD_ID();
       
@@ -240,7 +239,7 @@ namespace nissa
     THREADABLE_FUNCTION_END
     
     //multiply by the derivative of M w.r.t mu
-    THREADABLE_FUNCTION_6ARG(mult_dMdmu, color**,out, theory_pars_t*,theory_pars, quad_su3**,conf, int,iflav, int,ord, color**,in)
+    THREADABLE_FUNCTION_6ARG(mult_dMdmu, eo_ptr<color>,out, theory_pars_t*,theory_pars, eo_ptr<quad_su3>,conf, int,iflav, int,ord, eo_ptr<color>,in)
     {
       GET_THREAD_ID();
       
@@ -270,7 +269,7 @@ namespace nissa
     THREADABLE_FUNCTION_END
     
     //compute a density
-    THREADABLE_FUNCTION_10ARG(summ_dens, complex*,dens, color**,quark, color**,temp0, color**,temp1, quad_su3**,conf, quad_u1**,backfield, int,shift, int,mask, color**,chi, color**,eta)
+    THREADABLE_FUNCTION_10ARG(summ_dens, complex*,dens, eo_ptr<color>,quark, eo_ptr<color>,temp0, eo_ptr<color>,temp1, eo_ptr<quad_su3>,conf, eo_ptr<quad_u1>,backfield, int,shift, int,mask, eo_ptr<color>,chi, eo_ptr<color>,eta)
     {
       GET_THREAD_ID();
       
@@ -290,17 +289,17 @@ namespace nissa
     }
     THREADABLE_FUNCTION_END
     
-    void insert_external_source_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars)
-    {if(aux) complex_copy(out,aux[par][ieo][mu]);else complex_put_to_real(out,1);}
+    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars)
+    {if(aux[0]) complex_copy(out,aux[par][ieo][mu]);else complex_put_to_real(out,1);}
     //insert an external current
-    void insert_vector_vertex(color **out,quad_su3 **conf,theory_pars_t *theory_pars,int iflav,spin1field **curr,color **in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,spin1field **curr,int par,int ieo,int mu,void *pars),int t,void *pars)
+    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars)
     {
       GET_THREAD_ID();
       
       add_backfield_with_stagphases_to_conf(conf,theory_pars->backfield[iflav]);
       communicate_ev_and_od_quad_su3_borders(conf);
       communicate_ev_and_od_color_borders(in);
-      if(curr) communicate_ev_and_od_spin1field_borders(curr);
+      if(curr[0]) communicate_ev_and_od_spin1field_borders(curr);
       
       for(int par=0;par<2;par++)
 	{

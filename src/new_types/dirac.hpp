@@ -24,14 +24,14 @@ namespace nissa
   };
   
   //The base of the 16 gamma matrixes, the two rotators and Ci=G0*Gi*G5
-  EXTERN_DIRAC dirac_matr base_gamma[19];
+  CUDA_MANAGED EXTERN_DIRAC dirac_matr base_gamma[19];
   EXTERN_DIRAC dirac_matr Pplus,Pminus;
   EXTERN_DIRAC char gtag[19][3]
 #ifndef ONLY_INSTANTIATION
   ={"S0","V1","V2","V3","V0","P5","A1","A2","A3","A0","T1","T2","T3","B1","B2","B3","C1","C2","C3"}
 #endif
     ;
-  EXTERN_DIRAC int tau3[2]
+  CUDA_MANAGED EXTERN_DIRAC int tau3[2]
 #ifndef ONLY_INSTANTIATION
   ={-1,+1}
 #endif
@@ -82,7 +82,7 @@ namespace nissa
   }
   
   //Assign to the first dirac matrixes the product of the second and the third
-  inline void dirac_prod(dirac_matr *out,const dirac_matr *in1,const dirac_matr *in2)
+  CUDA_HOST_AND_DEVICE inline void dirac_prod(dirac_matr *out,const dirac_matr *in1,const dirac_matr *in2)
   {
     dirac_matr temp; //this is needed to avoid to overwrite one of the input
     

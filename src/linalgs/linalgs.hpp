@@ -1,6 +1,7 @@
 #ifndef _LINALGS_HPP
 #define _LINALGS_HPP
 
+#include "geometry/geometry_eo.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/su3.hpp"
@@ -90,11 +91,11 @@ namespace nissa
   void single_vector_summ_single_vector_prod_single(float *a,float *b,float *c,float d,int n,int OPT=0);
   void get_color_from_colorspinspin(color *out,colorspinspin *in,int id1,int id2);
   void get_color_from_spincolor(color *out,spincolor *in,int id);
-  void get_color_from_su3(color **out,su3 **in,int ic);
+  void get_color_from_su3(eo_ptr<color> out,eo_ptr<su3> in,int ic);
   void get_spincolor_from_colorspinspin(spincolor *out,colorspinspin *in,int id);
   void get_spincolor_from_su3spinspin(spincolor *out,su3spinspin *in,int id,int ic);
   void parallel_memcpy(void *out,void *in,int n);
-  void put_color_into_su3(su3 **out,color **in,int ic);
+  void put_color_into_su3(eo_ptr<su3> out,eo_ptr<color> in,int ic);
   void put_color_into_colorspinspin(colorspinspin *out,color *in,int id1,int id2);
   void put_color_into_spincolor(spincolor *out,color *in,int id);
   void put_spincolor_into_colorspinspin(colorspinspin *out,spincolor *in,int id);

@@ -1,6 +1,9 @@
 ################################### threads ###################################
 
 include_HEADERS+= \
+	%D%/cuda_threads.hpp \
+	%D%/no_threads.hpp \
+	%D%/openmp_threads.hpp \
 	%D%/threads.hpp
 
 if USE_OPENMP_THREADS

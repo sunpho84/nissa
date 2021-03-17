@@ -28,7 +28,7 @@ namespace nissa
   }
   
   //eo wrapper
-  void Symanzik_action(double *action,quad_su3 **conf,double beta,double C1)
+  void Symanzik_action(double *action,eo_ptr<quad_su3> conf,double beta,double C1)
   {
     //compute shapes
     complex glb_shapes;

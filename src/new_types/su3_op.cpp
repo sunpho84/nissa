@@ -43,8 +43,10 @@ namespace nissa
        {{0,0},{1/sqrt(3),0},{0,0}},
        {{0,0},{0,0},{-2/sqrt(3),0}}}};
   
+  CUDA_MANAGED int su3_sub_gr_indices[3][2]={{0,1},{1,2},{0,2}};
+  
   //make unitary maximazing Trace(out*M^dag)
-  void su3_unitarize_maximal_trace_projecting(su3 out,const su3 M,const double precision,const int niter_max)
+  CUDA_HOST_AND_DEVICE void su3_unitarize_maximal_trace_projecting(su3 out,const su3 M,const double precision,const int niter_max)
   {
     //initialize the guess with the identity - proved to be faster than any good guess,
     //because iterations are so good
@@ -93,17 +95,22 @@ namespace nissa
 	    unsafe_su3_prod_su3_dag(prod,U,M);
 	  }
 	
-	if(iter>niter_max*0.9)
+  if(iter>niter_max*0.9)
 	  {
 	    printf("We arrived to %d iter, that was set to be the maximum\n",iter);
 	    printf("Here you are the input link:\n");
-	    su3_print(M);
+	    //su3_print(M);
 	    printf("Here you are the current maxtrace link:\n");
-	    su3_print(U);
+	    //su3_print(U);
 	    printf("This is meant to be the product:\n");
-	    su3_print(prod);
+	    //su3_print(prod);
 	    printf("The norm was: %16.16lg and the trace: %16.16lg\n",rotating_norm,su3_real_trace(prod));
-	    if(iter>niter_max) crash("%lg",rotating_norm);
+	    if(iter>niter_max)
+#ifdef USE_CUDA
+#warning crashing
+#else
+	      crash("%lg",rotating_norm);
+#endif
 	  }
       }
     while(not converged);
@@ -181,7 +188,7 @@ namespace nissa
   //exact exponential of i times the *****passed hermitian matrix Q*****
   //algorithm taken from hep­lat/0311018
   //the stored f are relative to c0
-  void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q)
+  CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q)
   {
     //copy Q
     su3_copy(out.Q,Q);
@@ -285,7 +292,7 @@ namespace nissa
   }
   
   //return a cooled copy of the passed link
-  void su3_find_cooled_eo_conf(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu)
+  void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,int par,int ieo,int mu)
     {
     //compute the staple
     su3 staple;

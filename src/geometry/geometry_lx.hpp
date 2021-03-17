@@ -11,7 +11,6 @@
 
 #include <stdint.h>
 #include <routines/math_routines.hpp>
-#include <threads/threads.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
  #define EXTERN_GEOMETRY_LX extern
@@ -28,9 +27,9 @@ namespace nissa
   //nomenclature:
   //-glb is relative to the global grid
   //-loc to the local one
-  EXTERN_GEOMETRY_LX coords glb_size,loc_size;
-  EXTERN_GEOMETRY_LX int64_t glb_vol,glb_spat_vol,glb_volh;
-  EXTERN_GEOMETRY_LX int64_t loc_vol,loc_spat_vol,loc_volh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords glb_size,loc_size;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glb_vol,glb_spat_vol,glb_volh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t loc_vol,loc_spat_vol,loc_volh;
   EXTERN_GEOMETRY_LX int64_t bulk_vol,non_bw_surf_vol,non_fw_surf_vol;
   EXTERN_GEOMETRY_LX int64_t surf_vol,bw_surf_vol,fw_surf_vol;
   EXTERN_GEOMETRY_LX int64_t vsurf_vol,vsurf_volh;
@@ -38,8 +37,8 @@ namespace nissa
   EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
   //-lx is lexicografic
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords *glb_coord_of_loclx;
-  EXTERN_GEOMETRY_LX coords *loc_coord_of_loclx;
-  EXTERN_GEOMETRY_LX int *glblx_of_loclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *loc_coord_of_loclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblx_of_loclx;
   EXTERN_GEOMETRY_LX int *glblx_of_bordlx;
   EXTERN_GEOMETRY_LX int *loclx_of_bordlx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflx_of_bordlx;
@@ -47,24 +46,24 @@ namespace nissa
   EXTERN_GEOMETRY_LX int *loclx_of_bulklx;
   EXTERN_GEOMETRY_LX int *loclx_of_surflx;
   EXTERN_GEOMETRY_LX int *loclx_of_non_bw_surflx;
-  EXTERN_GEOMETRY_LX int *loclx_of_non_fw_surflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclx_of_non_fw_surflx;
   EXTERN_GEOMETRY_LX int *loclx_of_bw_surflx;
-  EXTERN_GEOMETRY_LX int *loclx_of_fw_surflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclx_of_fw_surflx;
   EXTERN_GEOMETRY_LX int lx_geom_inited;
   //box, division in 2^NDIM of the lattice
   EXTERN_GEOMETRY_LX coords box_coord[1<<NDIM];
   EXTERN_GEOMETRY_LX coords box_size[1<<NDIM];
-  EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
   //neighbours of local volume + borders
-  EXTERN_GEOMETRY_LX coords *loclx_neighdw,*loclx_neighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *loclx_neighdw,*loclx_neighup;
   EXTERN_GEOMETRY_LX coords *loclx_neigh[2];
   //ranks
   EXTERN_GEOMETRY_LX coords fix_nranks;
   EXTERN_GEOMETRY_LX int rank,nranks,cart_rank;
-  EXTERN_GEOMETRY_LX coords rank_coord;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords rank_coord;
   EXTERN_GEOMETRY_LX coords rank_neigh[2],rank_neighdw,rank_neighup;
   EXTERN_GEOMETRY_LX coords plan_rank,line_rank,line_coord_rank;
-  EXTERN_GEOMETRY_LX coords nrank_dir;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords nrank_dir;
   EXTERN_GEOMETRY_LX int grid_inited;
   EXTERN_GEOMETRY_LX int nparal_dir;
   EXTERN_GEOMETRY_LX coords paral_dir;
@@ -74,31 +73,32 @@ namespace nissa
   //size along various dir
   EXTERN_GEOMETRY_LX int bord_dir_vol[NDIM],bord_offset[NDIM];
   EXTERN_GEOMETRY_LX int edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
-  EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   //mapping of ILDG data
-  EXTERN_GEOMETRY_LX coords scidac_mapping;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords scidac_mapping;
   //perpendicular dir
   EXTERN_GEOMETRY_LX bool all_dirs[NDIM];
   EXTERN_GEOMETRY_LX bool only_dir[NDIM][NDIM];
   EXTERN_GEOMETRY_LX bool all_other_dirs[NDIM][NDIM];
   EXTERN_GEOMETRY_LX bool all_other_spat_dirs[NDIM][NDIM];
 #if NDIM >= 2
-  EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
 #endif
 #if NDIM >= 3
-  EXTERN_GEOMETRY_LX int perp2_dir[NDIM][NDIM-1][NDIM-2];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int perp2_dir[NDIM][NDIM-1][NDIM-2];
 #endif
 #if NDIM >= 4
   EXTERN_GEOMETRY_LX int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];
 #endif
-  EXTERN_GEOMETRY_LX int igamma_of_mu[4]
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int igamma_of_mu[4]
 #ifndef ONLY_INSTANTIATION
   ={4,1,2,3}
 #endif
     ;
   
-  void get_stagphase_of_lx(coords ph,int ivol);
-  int get_stagphase_of_lx(int ivol,int mu);  
+  CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(coords ph,int ivol);
+  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(int ivol,int mu);
+  
   int bordlx_of_coord(int *x,int mu);
   int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
   void coord_of_lx(coords x,int ilx,coords s);
@@ -116,13 +116,13 @@ namespace nissa
   int glblx_of_diff(int b,int c);
   int glblx_of_summ(int b,int c);
   int glblx_opp(int b);
-  int loclx_of_coord(coords x);
+  CUDA_HOST_AND_DEVICE int loclx_of_coord(coords x);
   inline int loclx_of_coord_list(int x0,int x1,int x2,int x3)
   {
     coords c={x0,x1,x2,x3};
     return loclx_of_coord(c);
   }
-  int lx_of_coord(coords x,coords s);
+  CUDA_HOST_AND_DEVICE int lx_of_coord(coords x,coords s);
   int vol_of_lx(coords size);
   int rank_hosting_glblx(int gx);
   int rank_hosting_site_of_coord(coords x);

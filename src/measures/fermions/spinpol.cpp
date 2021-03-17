@@ -42,7 +42,7 @@ namespace nissa
   }
   
   //compute the spin-polarization for all flavors
-  THREADABLE_FUNCTION_5ARG(measure_spinpol, theory_pars_t*,tp, spinpol_meas_pars_t*,mp,int,iconf, int,conf_created, quad_su3**,glu_conf)
+  THREADABLE_FUNCTION_5ARG(measure_spinpol, theory_pars_t*,tp, spinpol_meas_pars_t*,mp,int,iconf, int,conf_created, eo_ptr<quad_su3>,glu_conf)
   {
     verbosity_lv1_master_printf("Evaluating spinpol\n");
     
@@ -65,12 +65,12 @@ namespace nissa
     complex *tens_dens=nissa_malloc("tens_dens",loc_vol+bord_vol,complex);
     complex *spinpol_dens=nissa_malloc("spinpol_dens",loc_vol,complex);
     //allocate point and local results
-    double *topo_dens[2];
+    eo_ptr<double> topo_dens;
     for(int i=0;i<2;i++) topo_dens[i]=nissa_malloc("topo_dens",loc_vol,double);
     //operator applied to a field
-    color *chiop[2]={nissa_malloc("chiop_EVN",loc_volh+bord_volh,color),nissa_malloc("chiop_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> chiop={nissa_malloc("chiop_EVN",loc_volh+bord_volh,color),nissa_malloc("chiop_ODD",loc_volh+bord_volh,color)};
     //temporary vectors
-    color *temp[2][2];
+    eo_ptr<color> temp[2];
     for(int itemp=0;itemp<2;itemp++)
       for(int eo=0;eo<2;eo++)
 	temp[itemp][eo]=nissa_malloc("temp",loc_volh+bord_volh,color);
@@ -90,7 +90,7 @@ namespace nissa
     quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
     //allocate the fermion (possibly stouted) conf
-    quad_su3 *ferm_conf[2];
+    eo_ptr<quad_su3> ferm_conf;
     for(int eo=0;eo<2;eo++) ferm_conf[eo]=nissa_malloc("ferm_conf",loc_volh+bord_volh+edge_volh,quad_su3);
     
     //allocate sources, to be flown
@@ -100,8 +100,8 @@ namespace nissa
     
     if(mp->use_adjoint_flow)
       {
-	color *temp_eta[2]={nissa_malloc("eta_EVN",loc_volh+bord_volh,color),nissa_malloc("eta_ODD",loc_volh+bord_volh,color)};
-	color *temp_phi[2]={nissa_malloc("phi_EVN",loc_volh+bord_volh,color),nissa_malloc("phi_ODD",loc_volh+bord_volh,color)};
+	eo_ptr<color> temp_eta={nissa_malloc("eta_EVN",loc_volh+bord_volh,color),nissa_malloc("eta_ODD",loc_volh+bord_volh,color)};
+	eo_ptr<color> temp_phi={nissa_malloc("phi_EVN",loc_volh+bord_volh,color),nissa_malloc("phi_ODD",loc_volh+bord_volh,color)};
 	
 	int ntot_eta=ind_copy_hit(ncopies-1,nhits-1)+1;
 	int ntot_phi=ind_copy_flav_hit_meas(ncopies-1,nflavs-1,nhits-1,nmeas-1)+1;
@@ -298,7 +298,7 @@ namespace nissa
 	//decides wheter the field is a source (when using value
 	//"ieta") or the result
 	int nfields=ind_copy_flav_hit_phieta(ncopies-1,nflavs-1,nhits-1,nPHIETA-1)+1;
-	color *fields[nfields][2];
+	eo_ptr<color> fields[nfields];
 	for(int ifield=0;ifield<nfields;ifield++)
 	  for(int eo=0;eo<2;eo++)
 	    fields[ifield][eo]=nissa_malloc("field",loc_volh+bord_volh,color);

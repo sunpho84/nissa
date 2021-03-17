@@ -18,20 +18,20 @@ namespace nissa
   // build an estimate of the topological susceptibility.
   // refs:  https://arxiv.org/pdf/1008.0732.pdf for the susceptibility formula,
   //        https://arxiv.org/pdf/0912.2850.pdf for the 2^(d/2) overcounting.
-  THREADABLE_FUNCTION_7ARG(measure_iD_spectrum, color**,eigvec, quad_su3**,conf,complex*, charge_cut, complex*, eigval, int,neigs, double,eig_precision, int,wspace_size)
+  THREADABLE_FUNCTION_7ARG(measure_iD_spectrum, color**,eigvec, eo_ptr<quad_su3>,conf,complex*, charge_cut, complex*, eigval, int,neigs, double,eig_precision, int,wspace_size)
   {
     //parameters of the eigensolver
     const bool min_max=0;
     
     //identity backfield
-    quad_u1 *u1b[2]={nissa_malloc("u1b",loc_volh+bord_volh,quad_u1),nissa_malloc("u1b",loc_volh+bord_volh,quad_u1)};
+    eo_ptr<quad_u1> u1b={nissa_malloc("u1b",loc_volh+bord_volh,quad_u1),nissa_malloc("u1b",loc_volh+bord_volh,quad_u1)};
     init_backfield_to_id(u1b);
     
     //temporary vectors
-    color *tmpvec_eo[2]={nissa_malloc("tmpvec_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("tmpvec_eo_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> tmpvec_eo={nissa_malloc("tmpvec_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("tmpvec_eo_ODD",loc_volh+bord_volh,color)};
     
     //results of the g5 application
-    color *eigvec_g5_eo[2]={nissa_malloc("eigvec_g5_EVN",loc_volh+bord_volh,color),nissa_malloc("eigvec_g5_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> eigvec_g5_eo={nissa_malloc("eigvec_g5_EVN",loc_volh+bord_volh,color),nissa_malloc("eigvec_g5_ODD",loc_volh+bord_volh,color)};
     color *eigvec_g5_lx=nissa_malloc("eigvec_g5",loc_vol+bord_vol,color);
     
     //launch the eigenfinder
@@ -82,7 +82,7 @@ namespace nissa
     int neigs=meas_pars.neigs;
     
     //smooth is implemented only for lx
-    quad_su3 *conf_eo[2]={nissa_malloc("conf_eo_EVN",loc_volh+bord_volh+edge_volh,quad_su3),nissa_malloc("conf_eo_ODD",loc_volh+bord_volh+edge_volh,quad_su3)};
+    eo_ptr<quad_su3> conf_eo={nissa_malloc("conf_eo_EVN",loc_volh+bord_volh+edge_volh,quad_su3),nissa_malloc("conf_eo_ODD",loc_volh+bord_volh+edge_volh,quad_su3)};
     split_lx_vector_into_eo_parts(conf_eo,conf_lx);
     
     // allocate auxiliary vectors
@@ -148,7 +148,7 @@ namespace nissa
   }
   
   //measure of spectrally projected components of gamma5 in the staggered formulation using iD
-  void measure_spectral_proj(quad_su3 **conf,theory_pars_t &theory_pars,spectr_proj_meas_pars_t &meas_pars,int iconf,bool conf_created)
+  void measure_spectral_proj(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,spectr_proj_meas_pars_t &meas_pars,int iconf,bool conf_created)
   {
     /* The format of the file for a single measure is the following:
      *

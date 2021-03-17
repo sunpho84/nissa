@@ -47,7 +47,7 @@ namespace nissa
     virtual ~spectr_proj_meas_pars_t(){}
   };
   
-  void measure_spectral_proj(quad_su3 **conf,theory_pars_t &theory_pars,spectr_proj_meas_pars_t &pars, int iconf,bool conf_created);
+  void measure_spectral_proj(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,spectr_proj_meas_pars_t &pars, int iconf,bool conf_created);
 }
 
 #endif

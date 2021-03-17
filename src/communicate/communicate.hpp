@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "new_types/rat_approx.hpp"
+
 #define NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED 0
 #define NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS 1
 
@@ -119,7 +121,7 @@ namespace nissa
   
   //buffers
   EXTERN_COMMUNICATE uint64_t recv_buf_size,send_buf_size;
-  EXTERN_COMMUNICATE char *recv_buf,*send_buf;
+  CUDA_MANAGED EXTERN_COMMUNICATE char *recv_buf,*send_buf;
   
 #define DEFINE_COMM(T) EXTERN_COMMUNICATE comm_t NAME3(lx,T,comm),NAME3(eo,T,comm)
   

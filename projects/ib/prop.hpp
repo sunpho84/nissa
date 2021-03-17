@@ -29,6 +29,7 @@ namespace nissa
     bool is_source;
     
     double kappa;
+    double kappa_asymm[NDIM];
     double mass;
     int r;
     double charge;
@@ -56,11 +57,12 @@ namespace nissa
     }
     
     //initialize as a propagator
-    void init_as_propagator(insertion_t _insertion,const std::vector<source_term_t>& _source_terms,int _tins,double _residue,double _kappa,double _mass,char *_ext_field_path,int _r,double _charge,double *_theta,bool _store)
+    void init_as_propagator(insertion_t _insertion,const std::vector<source_term_t>& _source_terms,int _tins,double _residue,double _kappa,const double* _kappa_asymm,double _mass,char *_ext_field_path,int _r,double _charge,double *_theta,bool _store)
     {
       is_source=false;
       
       kappa=_kappa;
+      for(int mu=0;mu<NDIM;mu++) kappa_asymm[mu]=_kappa_asymm[mu];
       mass=_mass;
       r=_r;
       charge=_charge;
@@ -89,8 +91,8 @@ namespace nissa
       alloc_spincolor();
     }
     
-    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double mass,char *ext_field_path,int r,double charge,double *theta,bool store)
-    {init_as_propagator(insertion,source_terms,tins,residue,kappa,mass,ext_field_path,r,charge,theta,store);}
+    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double* kappa_asymm, double mass,char *ext_field_path,int r,double charge,double *theta,bool store)
+    {init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store);}
     qprop_t(rnd_t noise_type,int tins,int r,bool store) {init_as_source(noise_type,tins,r,store);}
     qprop_t() {is_source=0;}
     ~qprop_t() {for(size_t i=0;i<sp.size();i++) nissa_free(sp[i]);}
@@ -137,12 +139,12 @@ namespace nissa
   
   EXTERN_PROP int load_photons INIT_TO(false);
   EXTERN_PROP int store_photons INIT_TO(false);
-  EXTERN_PROP spin1field *photon_field;
+  CUDA_MANAGED EXTERN_PROP spin1field *photon_field;
   EXTERN_PROP spin1field *photon_phi;
   EXTERN_PROP spin1field *photon_eta;
   void allocate_photon_fields();
   void free_photon_fields();
-  EXTERN_PROP spinspin *temp_lep;
+  CUDA_MANAGED EXTERN_PROP spinspin *temp_lep;
   
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,double *theta);
   void generate_original_source(qprop_t *sou);
@@ -152,7 +154,7 @@ namespace nissa
   void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator(int ihit);
-  void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc);
+  //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
   void generate_lepton_propagators();
   void propagators_fft(int ihit);
   

@@ -12,8 +12,6 @@
 #define THREAD_BARRIER_FORCE()
 #define THREAD_BARRIER()
 #define IS_MASTER_THREAD (1)
-#define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) for(int INDEX=EXT_START;INDEX<EXT_END;INDEX++){
-#define NISSA_PARALLEL_LOOP_END }
 #define THREAD_ATOMIC_EXEC(inst) inst
 #define THREAD_BROADCAST(out,in) (out)=(in)
 #define THREAD_BROADCAST_PTR(out,in) THREAD_BROADCAST(out,in)
@@ -39,6 +37,11 @@ namespace nissa
   
   inline void cache_flush()
   {
+  }
+  
+  inline double *glb_threads_reduce_double_vect(double *vect,int nel)
+  {
+    return vect;
   }
   
   inline void thread_barrier_internal()

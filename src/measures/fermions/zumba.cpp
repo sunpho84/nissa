@@ -14,7 +14,7 @@ namespace nissa
   using namespace stag;
   
   // measure the chiral condensate and its derivative w.r.t mu
-  void measure_chir_zumba(quad_su3 **conf,theory_pars_t &theory_pars,chir_zumba_meas_pars_t &meas_pars,int iconf,int conf_created)
+  void measure_chir_zumba(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,chir_zumba_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     int nflavs=theory_pars.nflavs();
     

@@ -1,5 +1,4 @@
 bin_PROGRAMS+= \
-	$(top_builddir)/bin/field_test \
 	$(top_builddir)/bin/ib \
 	$(top_builddir)/bin/disco
 
@@ -38,10 +37,6 @@ endif
  # __top_builddir__bin_checks_ib_SOURCES=%D%/checks.cpp
  # __top_builddir__bin_checks_ib_LDADD=$(LDADD)
  # __top_builddir__bin_checks_ib_LDFLAGS=$(LDFLAGS)
-
- __top_builddir__bin_field_test_SOURCES=%D%/field_test.cpp
- __top_builddir__bin_field_test_LDADD=$(LDADD)
- __top_builddir__bin_field_test_LDFLAGS=$(LDFLAGS)
 
 __top_builddir__bin_ib_SOURCES=%D%/ib.cpp $(common_sources)
 __top_builddir__bin_ib_LDADD=$(LDADD)

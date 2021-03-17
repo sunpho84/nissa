@@ -3,12 +3,14 @@
 #endif
 
 #include "hmc/backfield.hpp"
+#include "hmc/gauge/clover_det_action.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/topological_action.hpp"
 #include "hmc/hmc.hpp"
 #include "hmc/momenta/momenta_action.hpp"
 #include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 #include "geometry/geometry_eo.hpp"
+#include "inverters/twisted_clover/cg_64_invert_tmclovD_eoprec.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "inverters/twisted_clover/cgm_invert_tmclovDkern_eoprec_square_portable.hpp"
 #include "linalgs/linalgs.hpp"
@@ -19,23 +21,63 @@
 
 namespace nissa
 {
+  // Compute the action in the root tm case
+  double compute_root_tm_clov_action(eo_ptr<quad_su3> eo_conf,eo_ptr<quad_u1> u1b,rat_approx_t *rat,quark_content_t q,double residue,spincolor *pf)
+  {
+    spincolor *chi=nissa_malloc("chi",loc_volh+bord_volh,spincolor);
+    
+    //allocate or not clover term and inverse evn clover term
+    eo_ptr<clover_term_t> Cl={NULL,NULL};
+    for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+    inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+    chromo_operator(Cl,eo_conf);
+    chromo_operator_include_cSW(Cl,q.cSW);
+    invert_twisted_clover_term(invCl_evn,q.mass,q.kappa,Cl[EVN]);
+    
+    // If inverting the inverse, just do it
+    master_printf("Move it inside the template, please\n");
+    const bool use_cg=(rat->num==-rat->den);
+    
+    add_backfield_without_stagphases_to_conf(eo_conf,u1b);
+     if(use_cg)
+       inv_tmclovDkern_eoprec_square_eos_cg_64(chi,nullptr,eo_conf,q.kappa,q.cSW,Cl[ODD],invCl_evn,q.mass,1000000,residue,pf);
+     else
+      summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi,eo_conf,q.kappa,Cl[ODD],invCl_evn,q.mass,rat,1000000,residue,pf);
+    rem_backfield_without_stagphases_from_conf(eo_conf,u1b);
+    
+    // Takes scalar product with the pseudofermion
+    double action;
+    double_vector_glb_scalar_prod(&action,(double*)pf,(double*)chi,loc_volh*sizeof(spincolor)/sizeof(double));
+    
+    nissa_free(chi);
+    nissa_free(invCl_evn);
+    for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
+    
+    return action;
+  }
+  
+  // Compute the action in the root staggered case
+  double compute_root_st_action(eo_ptr<quad_su3> eo_conf,eo_ptr<quad_u1> u1b,rat_approx_t *rat,double residue,color *pf)
+  {
+    color *chi=nissa_malloc("chi",loc_volh,color);
+    
+    add_backfield_with_stagphases_to_conf(eo_conf,u1b);
+    summ_src_and_all_inv_stD2ee_m2_cgm(chi,eo_conf,rat,1000000,residue,pf);
+    rem_backfield_with_stagphases_from_conf(eo_conf,u1b);
+    
+    double action;
+    double_vector_glb_scalar_prod(&action,(double*)chi,(double*)chi,loc_volh*sizeof(color)/sizeof(double));
+    
+    nissa_free(chi);
+    
+    return action;
+  }
+  
   //compute quark action for a set of quark
-  THREADABLE_FUNCTION_7ARG(compute_quark_action, double*,glb_action, quad_su3**,eo_conf, std::vector<quad_u1**>,u1b, std::vector<std::vector<pseudofermion_t> >*,pf, std::vector<quark_content_t>,quark_content, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
+  THREADABLE_FUNCTION_7ARG(compute_quark_action, double*,glb_action, eo_ptr<quad_su3>,eo_conf, std::vector<eo_ptr<quad_u1>>,u1b, std::vector<std::vector<pseudofermion_t> >*,pf, std::vector<quark_content_t>,quark_content, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
   {
     int nfl=quark_content.size();
     double res=simul_pars->pf_action_residue;
-    
-    //allocate or not clover term and inverse evn clover term
-    clover_term_t *Cl[2]={NULL,NULL};
-    inv_clover_term_t *invCl_evn=NULL;
-    bool clover_to_be_computed=false;
-    for(int iflav=0;iflav<nfl;iflav++) clover_to_be_computed|=ferm_discretiz::include_clover(quark_content[iflav].discretiz);
-    if(clover_to_be_computed)
-      {
-	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
-	invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
-	chromo_operator(Cl,eo_conf);
-      }
     
     //quark action
     (*glb_action)=0;
@@ -45,56 +87,36 @@ namespace nissa
 	quark_content_t &q=quark_content[ifl];
 	pseudofermion_t chi_e(q.discretiz,"chi_e");
 	
-	//add background field
-	add_backfield_with_stagphases_to_conf(eo_conf,u1b[ifl]);
-	
-	//if clover is included, compute it
-	if(clover_to_be_computed)
-	  {
-	    chromo_operator_include_cSW(Cl,q.cSW);
-	    invert_twisted_clover_term(invCl_evn,q.mass,q.kappa,Cl[EVN]);
-	  }
-	
 	for(int ipf=0;ipf<simul_pars->npseudo_fs[ifl];ipf++)
 	  {
 	    pseudofermion_t &p=(*pf)[ifl][ipf];
 	    verbosity_lv1_master_printf("Computing action for flavour %d/%d, pseudofermion %d/%d\n",ifl+1,nfl,ipf+1,simul_pars->npseudo_fs[ifl]);
 	    
 	    //compute chi with background field
+	    double flav_action;
 	    switch(q.discretiz)
 	      {
 	      case ferm_discretiz::ROOT_STAG:
-		summ_src_and_all_inv_stD2ee_m2_cgm(chi_e.stag,eo_conf,r,1000000,res,p.stag);
+		flav_action=compute_root_st_action(eo_conf,u1b[ifl],r,res,p.stag);
 		break;
 	      case ferm_discretiz::ROOT_TM_CLOV:
-		summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi_e.Wils,eo_conf,q.kappa,Cl[ODD],invCl_evn,q.mass,r,1000000,res,p.Wils);
+		flav_action=compute_root_tm_clov_action(eo_conf,u1b[ifl],r,q,res,p.Wils);
 		break;
-	      default: crash("still not implemented");
+	      default:
+		flav_action=0;
+		crash("still not implemented");
 	      }
 	    
 	    //compute scalar product
-	    double flav_action=chi_e.scal_prod_with(p);
 	    (*glb_action)+=flav_action;
 	  }
 	
-	//remove cSW from chromo operator
-	if(clover_to_be_computed) chromo_operator_remove_cSW(Cl,q.cSW);
-	
-	//remove background field
-	rem_backfield_with_stagphases_from_conf(eo_conf,u1b[ifl]);
-      }
-    
-    //free clover term if ever allocated
-    if(clover_to_be_computed)
-      {
-	nissa_free(invCl_evn);
-	for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
       }
   }
   THREADABLE_FUNCTION_END
   
   //Compute the total action of the rooted staggered e/o improved theory
-  THREADABLE_FUNCTION_9ARG(full_theory_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, std::vector<std::vector<pseudofermion_t> > *,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr, double,external_quark_action)
+  THREADABLE_FUNCTION_9ARG(full_theory_action, double*,tot_action, eo_ptr<quad_su3>,eo_conf, eo_ptr<quad_su3>,sme_conf, eo_ptr<quad_su3>,H, std::vector<std::vector<pseudofermion_t> > *,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr, double,external_quark_action)
   {
     verbosity_lv1_master_printf("Computing action\n");
     
@@ -121,8 +143,14 @@ namespace nissa
     double topo_action=(theory_pars->topotential_pars.flag?topotential_action(eo_conf,theory_pars->topotential_pars):0);
     if(theory_pars->topotential_pars.flag) verbosity_lv1_master_printf("Topological_action: %16.16lg\n",topo_action);
     
+    //Clover determinant action
+    double cl_det_action;
+    clover_det_action(&cl_det_action,theory_pars->quarks,sme_conf);
+    if(cl_det_action)
+      verbosity_lv1_master_printf("Clover determinant action: %16.16lg\n",cl_det_action);
+    
     //total action
-    (*tot_action)=quark_action+gluon_action+mom_action+topo_action;
+    (*tot_action)=quark_action+gluon_action+mom_action+topo_action+cl_det_action;
   }
   THREADABLE_FUNCTION_END
 }

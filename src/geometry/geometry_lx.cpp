@@ -53,7 +53,7 @@ namespace nissa
   }
   
   //Return the index of site of coord x in a box of sides s
-  int lx_of_coord(coords x,coords s)
+  CUDA_HOST_AND_DEVICE int lx_of_coord(coords x,coords s)
   {
     int ilx=0;
     
@@ -80,7 +80,7 @@ namespace nissa
   }
   
   //wrappers
-  int loclx_of_coord(coords x)
+  CUDA_HOST_AND_DEVICE int loclx_of_coord(coords x)
   {return lx_of_coord(x,loc_size);}
   
   //wrappers
@@ -619,7 +619,7 @@ namespace nissa
   }
   
   //return the staggered phases for a given site
-  void get_stagphase_of_lx(coords ph,int ivol)
+  CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(coords ph,int ivol)
   {
     ph[0]=1;
     for(int mu=1;mu<NDIM;mu++)
@@ -627,7 +627,7 @@ namespace nissa
   }
   
   //return the staggered phases for a given site
-  int get_stagphase_of_lx(int ivol,int mu)
+  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(int ivol,int mu)
   {
     int ph=1;
     for(int nu=1;nu<=mu;nu++)

@@ -1,3 +1,4 @@
+
 //return all the shifts summed together
 //placed here because common to 64 and 32 bits template
 #if CGM_NARG == 0
@@ -15,21 +16,28 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
 #endif
 {
   GET_THREAD_ID();
-    
+  
+  const int nterms=appr->degree();
+  
   //allocate temporary single solutions
-  BASETYPE *temp[appr->degree()];
-  for(int iterm=0;iterm<appr->degree();iterm++)
+  BASETYPE **temp=nissa_malloc("temp",nterms,BASETYPE*);
+  for(int iterm=0;iterm<nterms;iterm++)
     temp[iterm]=nissa_malloc(combine("temp%d",iterm).c_str(),BULK_VOL+BORD_VOL,BASETYPE);
   
   //call multi-shift solver
   CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(temp,CGM_ADDITIONAL_PARAMETERS_CALL appr->poles.data(),appr->degree(),niter_max,req_res,source);
+
+  double *weights=nissa_malloc("weights",nterms,double);
+  for(int iterm=0;iterm<nterms;iterm++)
+    weights[iterm]=appr->weights[iterm];
+  const double cons=appr->cons;
   
   //summ all the shifts
   NISSA_PARALLEL_LOOP(i,0,BULK_VOL*NDOUBLES_PER_SITE)
     {
-      ((double*)sol)[i]=appr->cons*((double*)source)[i];
-      for(int iterm=0;iterm<appr->degree();iterm++)
-	((double*)sol)[i]+=appr->weights[iterm]*((double*)(temp[iterm]))[i];
+      ((double*)sol)[i]=cons*((double*)source)[i];
+      for(int iterm=0;iterm<nterms;iterm++)
+	((double*)sol)[i]+=weights[iterm]*((double*)(temp[iterm]))[i];
     }
   NISSA_PARALLEL_LOOP_END;
   
@@ -38,5 +46,8 @@ THREADABLE_FUNCTION_10ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A
   //free temp vectors
   for(int iterm=0;iterm<appr->degree();iterm++)
     nissa_free(temp[iterm]);
+  
+  nissa_free(temp);
+  nissa_free(weights);
 }
 THREADABLE_FUNCTION_END

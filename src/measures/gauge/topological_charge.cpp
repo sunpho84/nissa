@@ -46,11 +46,10 @@ namespace nissa
     in order to have the anti-symmetric part, use
     the routine inside "clover_term"
   */
-  void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X)
+  CUDA_HOST_AND_DEVICE void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X)
   {
-    if(!check_edges_valid(conf[0])) crash("communicate edges externally");
+    //if(!check_edges_valid(conf[0])) crash("communicate edges externally");
     
-    int munu=0;
     for(int mu=0;mu<NDIM;mu++)
       {
 	int A=loclx_neighup[X][mu];
@@ -58,6 +57,8 @@ namespace nissa
         
 	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
+	    int munu=edge_numb[mu][nu];
+	    
 	    int B=loclx_neighup[X][nu];
 	    int F=loclx_neighdw[X][nu];
             
@@ -121,7 +122,6 @@ namespace nissa
     
     //list the three combinations of plans
     int plan_id[3][2]={{0,5},{1,4},{2,3}};
-    int sign[3]={1,-1,1};
     
     //loop on the three different combinations of plans
     GET_THREAD_ID();
@@ -133,6 +133,8 @@ namespace nissa
 	
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
+	    const int sign[3]={1,-1,1};
+	    
 	    //products
 	    su3 clock,aclock;
 	    unsafe_su3_prod_su3_dag(clock,leaves[ivol][ip0],leaves[ivol][ip1]);
@@ -166,7 +168,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //wrapper for eos case
-  THREADABLE_FUNCTION_2ARG(total_topological_charge_eo_conf, double*,tot_charge, quad_su3**,eo_conf)
+  THREADABLE_FUNCTION_2ARG(total_topological_charge_eo_conf, double*,tot_charge, eo_ptr<quad_su3>,eo_conf)
   {
     //convert to lx
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -377,7 +379,7 @@ namespace nissa
       }
   }
   
-  void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **unsmoothed_conf_eo,int iconf,bool conf_created)
+  void measure_topology_eo_conf(top_meas_pars_t &pars,eo_ptr<quad_su3> unsmoothed_conf_eo,int iconf,bool conf_created)
   {
     quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(unsmoothed_conf_lx,unsmoothed_conf_eo);
@@ -410,63 +412,65 @@ namespace nissa
     set_borders_invalid(leaves);
     communicate_lx_as2t_su3_edges(leaves);
     
-    //list the plan and coefficients for each staples
-    int plan_perp[4][3]={{ 5, 4, 3},{ 5, 2, 1},{ 4, 2, 0},{ 3, 1, 0}};
-    int plan_sign[4][3]={{+1,-1,+1},{-1,+1,-1},{+1,-1,+1},{-1,+1,-1}};
-    
     //loop on the three different combinations of plans
     vector_reset(staples);
     NISSA_PARALLEL_LOOP(A,0,loc_vol)
-      for(int mu=0;mu<NDIM;mu++) //link direction
-	for(int inu=0;inu<NDIM-1;inu++)              //  E---F---C
-	  {                                          //  |   |   | mu
-	    int nu=perp_dir[mu][inu];                //  D---A---B
-	    //this gives the other pair element      //        nu
-	    int iplan=plan_perp[mu][inu];
-	    
-	    //takes neighbours
-	    int B=loclx_neighup[A][nu];
-	    int C=loclx_neighup[B][mu];
-	    int D=loclx_neighdw[A][nu];
-	    int E=loclx_neighup[D][mu];
-	    int F=loclx_neighup[A][mu];
-	    
-	    //compute ABC, BCF and the full SU(3) staple, ABCF
-	    su3 ABC,BCF,ABCF;
-	    unsafe_su3_prod_su3(ABC,conf[A][nu],conf[B][mu]);
-	    unsafe_su3_prod_su3_dag(BCF,conf[B][mu],conf[F][nu]);
-	    unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
-	    
-	    //compute ADE, DEF and the full SU(3) staple, ADEF
-	    su3 ADE,DEF,ADEF;
-	    unsafe_su3_dag_prod_su3(ADE,conf[D][nu],conf[D][mu]);
-	    unsafe_su3_prod_su3(DEF,conf[D][mu],conf[E][nu]);
-	    unsafe_su3_prod_su3(ADEF,ADE,conf[E][nu]);
-	    
-	    //local summ and temp
-	    su3 loc_staples,temp;
-	    su3_put_to_zero(loc_staples);
-	    //insert the leave in the four possible forward positions
-	    
-	    unsafe_su3_prod_su3(loc_staples,leaves[A][iplan],ABCF);     //insertion on A
-	    unsafe_su3_prod_su3(temp,conf[A][nu],leaves[B][iplan]);
-	    su3_summ_the_prod_su3(loc_staples,temp,BCF);                //insertion on B
-	    unsafe_su3_prod_su3(temp,ABC,leaves[C][iplan]);
-	    su3_summ_the_prod_su3_dag(loc_staples,temp,conf[F][nu]);    //insertion on C
-	    su3_summ_the_prod_su3(loc_staples,ABCF,leaves[F][iplan]);   //insertion on F
-	    
-	    //insert the leave in the four possible backward positions
-	    su3_summ_the_dag_prod_su3(loc_staples,leaves[A][iplan],ADEF);    //insertion on A
-	    unsafe_su3_dag_prod_su3_dag(temp,conf[D][nu],leaves[D][iplan]);
-	    su3_summ_the_prod_su3(loc_staples,temp,DEF);                     //insertion on D
-	    unsafe_su3_prod_su3_dag(temp,ADE,leaves[E][iplan]);
-	    su3_summ_the_prod_su3(loc_staples,temp,conf[E][nu]);             //insertion on E
-	    su3_summ_the_prod_su3_dag(loc_staples,ADEF,leaves[F][iplan]);    //insertion on F
-	    
-	    //summ or subtract, according to the coefficient
-	    if(plan_sign[mu][inu]==+1) su3_summassign(staples[A][mu],loc_staples);
-	    else                       su3_subtassign(staples[A][mu],loc_staples);
-	  }
+      {
+	//list the plan and coefficients for each staples
+	const int plan_perp[4][3]={{ 5, 4, 3},{ 5, 2, 1},{ 4, 2, 0},{ 3, 1, 0}};
+	const int plan_sign[4][3]={{+1,-1,+1},{-1,+1,-1},{+1,-1,+1},{-1,+1,-1}};
+	
+	for(int mu=0;mu<NDIM;mu++) //link direction
+	  for(int inu=0;inu<NDIM-1;inu++)              //  E---F---C
+	    {                                          //  |   |   | mu
+	      int nu=perp_dir[mu][inu];                //  D---A---B
+	      //this gives the other pair element      //        nu
+	      int iplan=plan_perp[mu][inu];
+	      
+	      //takes neighbours
+	      int B=loclx_neighup[A][nu];
+	      int C=loclx_neighup[B][mu];
+	      int D=loclx_neighdw[A][nu];
+	      int E=loclx_neighup[D][mu];
+	      int F=loclx_neighup[A][mu];
+	      
+	      //compute ABC, BCF and the full SU(3) staple, ABCF
+	      su3 ABC,BCF,ABCF;
+	      unsafe_su3_prod_su3(ABC,conf[A][nu],conf[B][mu]);
+	      unsafe_su3_prod_su3_dag(BCF,conf[B][mu],conf[F][nu]);
+	      unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
+	      
+	      //compute ADE, DEF and the full SU(3) staple, ADEF
+	      su3 ADE,DEF,ADEF;
+	      unsafe_su3_dag_prod_su3(ADE,conf[D][nu],conf[D][mu]);
+	      unsafe_su3_prod_su3(DEF,conf[D][mu],conf[E][nu]);
+	      unsafe_su3_prod_su3(ADEF,ADE,conf[E][nu]);
+	      
+	      //local summ and temp
+	      su3 loc_staples,temp;
+	      su3_put_to_zero(loc_staples);
+	      //insert the leave in the four possible forward positions
+	      
+	      unsafe_su3_prod_su3(loc_staples,leaves[A][iplan],ABCF);     //insertion on A
+	      unsafe_su3_prod_su3(temp,conf[A][nu],leaves[B][iplan]);
+	      su3_summ_the_prod_su3(loc_staples,temp,BCF);                //insertion on B
+	      unsafe_su3_prod_su3(temp,ABC,leaves[C][iplan]);
+	      su3_summ_the_prod_su3_dag(loc_staples,temp,conf[F][nu]);    //insertion on C
+	      su3_summ_the_prod_su3(loc_staples,ABCF,leaves[F][iplan]);   //insertion on F
+	      
+	      //insert the leave in the four possible backward positions
+	      su3_summ_the_dag_prod_su3(loc_staples,leaves[A][iplan],ADEF);    //insertion on A
+	      unsafe_su3_dag_prod_su3_dag(temp,conf[D][nu],leaves[D][iplan]);
+	      su3_summ_the_prod_su3(loc_staples,temp,DEF);                     //insertion on D
+	      unsafe_su3_prod_su3_dag(temp,ADE,leaves[E][iplan]);
+	      su3_summ_the_prod_su3(loc_staples,temp,conf[E][nu]);             //insertion on E
+	      su3_summ_the_prod_su3_dag(loc_staples,ADEF,leaves[F][iplan]);    //insertion on F
+	      
+	      //summ or subtract, according to the coefficient
+	      if(plan_sign[mu][inu]==+1) su3_summassign(staples[A][mu],loc_staples);
+	      else                       su3_subtassign(staples[A][mu],loc_staples);
+	    }
+      }
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(staples);
@@ -476,12 +480,12 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //store the topological charge if needed
-  void topotential_pars_t::store_if_needed(quad_su3 **ext_conf,int iconf)
+  void topotential_pars_t::store_if_needed(eo_ptr<quad_su3> ext_conf,int iconf)
   {
     if(flag==2 and iconf%each==0 and iconf>=after)
       {
 	double charge;
-	quad_su3 *conf[2];
+	eo_ptr<quad_su3> conf;
 	if(stout_pars.nlevels==0)
 	  {
 	    conf[0]=ext_conf[0];

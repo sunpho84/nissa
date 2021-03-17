@@ -12,6 +12,7 @@
 #include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
+#include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 
 #include "debug.hpp"
@@ -228,7 +229,8 @@ namespace nissa
 	main_vect.prev=main_vect.next=NULL;
 	main_vect.nel=0;
 	main_vect.size_per_el=0;
-	memcpy(main_vect.file,__FILE__+std::max(0,(int)strlen(__FILE__)-12),12);
+	const char file_name[]=__FILE__;
+	memcpy(main_vect.file,file_name+std::max(0,(int)strlen(file_name)-12),12);
 	main_vect.line=__LINE__;
 	main_arr=(char*)last_vect+sizeof(nissa_vect);
 	
@@ -252,10 +254,19 @@ namespace nissa
 	
 	int64_t size=nel*size_per_el;
 	//try to allocate the new vector
-	nissa_vect *nv=(nissa_vect*)malloc(size+sizeof(nissa_vect));
+	nissa_vect *nv;
+	int64_t tot_size=size+sizeof(nissa_vect);
+#define ALLOCATING_ERROR \
+	"could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) "\
+		"request on line %d of file %s",tag,nel,type,size,line,file
+#if THREADS_TYPE==CUDA_THREADS
+	decript_cuda_error(cudaMallocManaged(&nv,tot_size),ALLOCATING_ERROR);
+#else
+	nv=(nissa_vect*)malloc(tot_size);
 	if(nv==NULL)
-	  crash("could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) "
-		"request on line %d of file %s",tag,nel,type,size,line,file);
+	  crash(ALLOCATING_ERROR);
+#endif
+#undef ALLOCATING_ERROR
 	
 	//fill the vector with information supplied
 	nv->line=line;
@@ -377,7 +388,7 @@ namespace nissa
       {
 	if(arr!=NULL)
 	  {
-	    nissa_vect *vect=(nissa_vect*)((char*)(*arr)-sizeof(nissa_vect));
+	    nissa_vect *vect=get_vect(*arr);
 	    nissa_vect *prev=vect->prev;
 	    nissa_vect *next=vect->next;
 	    
@@ -402,7 +413,11 @@ namespace nissa
 	    required_memory-=(vect->size_per_el*vect->nel);
 	    
 	    //really free
+#if THREADS_TYPE == CUDA_THREADS
+	    decript_cuda_error(cudaFree(vect),"freeing the memory for vector");
+#else
 	    free(vect);
+#endif
 	  }
 	else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
 	

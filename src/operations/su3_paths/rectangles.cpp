@@ -13,7 +13,7 @@
 namespace nissa
 {
   //compute plaquettes and rectangles
-  THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_eo_conf, double*,glb_shapes, quad_su3**,conf)
+  THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_eo_conf, double*,glb_shapes, eo_ptr<quad_su3>,conf)
   {
     GET_THREAD_ID();
     
@@ -123,7 +123,7 @@ namespace nissa
     glb_shapes[IM]=coll_shapes[IM]/(36*glb_vol);
   }
   THREADABLE_FUNCTION_END
-
+  
   //compute plaquettes and rectangles
   THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_lx_conf_per_timeslice, double*,glb_shapes, quad_su3*,conf)
   {

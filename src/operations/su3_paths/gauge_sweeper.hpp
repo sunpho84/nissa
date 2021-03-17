@@ -183,25 +183,29 @@ namespace nissa
   
   inline gauge_sweeper_t *get_sweeper(gauge_action_name_t gauge_action_name)
   {
+    gauge_sweeper_t * sweeper=NULL;
+    
     switch(gauge_action_name)
       {
       case WILSON_GAUGE_ACTION:
 	init_Wilson_sweeper();
 	Wilson_sweeper->C1=0;
-	return Wilson_sweeper;
+	sweeper=Wilson_sweeper;
 	break;
       case TLSYM_GAUGE_ACTION:
 	init_Symanzik_sweeper();
 	Symanzik_sweeper->C1=C1_TLSYM;
-	return Symanzik_sweeper;
+	sweeper=Symanzik_sweeper;
       case IWASAKI_GAUGE_ACTION:
 	init_Symanzik_sweeper();
 	Symanzik_sweeper->C1=C1_IWASAKI;
-	return Symanzik_sweeper;
+	sweeper=Symanzik_sweeper;
 	break;
       case UNSPEC_GAUGE_ACTION:crash("unspecified action");
-      default: crash("not implemented action");return NULL;break;
+      default: crash("not implemented action");sweeper=NULL;break;
       }
+    
+    return sweeper;
   }
 }
 

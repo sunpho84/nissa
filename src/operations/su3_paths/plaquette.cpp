@@ -33,7 +33,7 @@ namespace nissa
       =U(A,mu)U(B,nu)(U(A,nu)U^(C,mu))^=U(AB,munu)*U^(AC,numu)
   */
   
-  void point_plaquette_lx_conf(complex loc_plaq,quad_su3 *conf,int A)
+  CUDA_HOST_AND_DEVICE void point_plaquette_lx_conf(complex loc_plaq,quad_su3 *conf,int A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
     for(int mu=0;mu<NDIM;mu++)
@@ -51,7 +51,7 @@ namespace nissa
 	  }
       }
   }
-  void point_plaquette_eo_conf(complex loc_plaq,quad_su3 **conf,int par,int A)
+  CUDA_HOST_AND_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,int par,int A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
     for(int mu=0;mu<NDIM;mu++)
@@ -96,48 +96,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //calculate the global plaquette of an lx conf
-  THREADABLE_FUNCTION_2ARG(global_plaquette_lx_conf_per_timeslice, double*,glb_plaq, quad_su3*,conf)
-  {
-    GET_THREAD_ID();
-    
-    //summ temporal and spatial separately
-    complex *point_plaq=nissa_malloc("point_plaq",loc_vol,complex);
-    communicate_lx_quad_su3_borders(conf);
-    
-    //loop over all the lattice
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      point_plaquette_lx_conf(point_plaq[ivol],conf,ivol);
-    NISSA_PARALLEL_LOOP_END;
-    
-    //wait to have filled all the point array
-    THREAD_BARRIER();
-    
-    //reduce
-    double *loc_plaq=nissa_malloc("loc_plaq",glb_size[0],double);
-    vector_reset(loc_plaq);
-    
-    //loop on time
-    NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
-      for(int ivol=loc_t*loc_spat_vol;ivol<(loc_t+1)*loc_spat_vol;ivol++)
-	loc_plaq[glb_coord_of_loclx[ivol][0]]+=point_plaq[ivol][RE]+point_plaq[ivol][IM];
-    NISSA_PARALLEL_LOOP_END;
-    nissa_free(point_plaq);
-    
-    //reduce (passing throug additional var because of external unkwnon env)
-    double *coll_plaq=nissa_malloc("coll_plaq",glb_size[0],double);
-    if(IS_MASTER_THREAD) MPI_Reduce(loc_plaq,coll_plaq,glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-    nissa_free(loc_plaq);
-    
-    //normalize
-    for(int t=0;t<glb_size[0];t++)
-      glb_plaq[t]=coll_plaq[t]/(18*glb_vol/glb_size[0]);
-    
-    nissa_free(coll_plaq);
-  }
-  THREADABLE_FUNCTION_END
-  
-  THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, quad_su3**,conf)
+  THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, eo_ptr<quad_su3>,conf)
   {
     GET_THREAD_ID();
     
@@ -172,7 +131,7 @@ namespace nissa
     global_plaquette_lx_conf(plaq,conf);
     return (plaq[0]+plaq[1])/2;
   }
-  double global_plaquette_eo_conf(quad_su3 **conf)
+  double global_plaquette_eo_conf(eo_ptr<quad_su3> conf)
   {
     //compute the two plaquettes
     double plaq[2];

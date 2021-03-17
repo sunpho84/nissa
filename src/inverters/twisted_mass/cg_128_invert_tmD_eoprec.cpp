@@ -24,7 +24,7 @@
 #define CG_128_INVERT inv_tmDkern_eoprec_square_eos_cg_128
 //parameters to be passed externally to the 128 inverter
 #define CG_NARG 3
-#define AT1 quad_su3**
+#define AT1 eo_ptr<quad_su3>
 #define A1 conf
 #define AT2 double
 #define A2 kappa

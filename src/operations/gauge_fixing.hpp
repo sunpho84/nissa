@@ -15,13 +15,17 @@ namespace nissa
     enum gauge_t{Landau=0,Coulomb=1};
     static inline std::string gauge_tag(gauge_t gauge)
     {
+      std::string res;
+      
       switch(gauge)
 	{
-	case Landau: return "Landau";break;
-	case Coulomb: return "Coulomb";break;
+	case Landau: res="Landau";break;
+	case Coulomb: res="Coulomb";break;
+	default:
+	  crash("unknown gauge %d",gauge);
 	}
-      crash("unknown gauge %d",gauge);
-      return "";
+      
+      return res;
     }
     static inline gauge_t gauge_from_tag(const char *tag)
     {
@@ -49,13 +53,17 @@ namespace nissa
     enum method_t{overrelax,exponentiate};
     static inline std::string method_tag(method_t method)
     {
+      std::string res;
+      
       switch(method)
 	{
-	case overrelax: return "Overrelax";break;
-	case exponentiate: return "Exponentiate";break;
+	case overrelax: res="Overrelax";break;
+	case exponentiate: res="Exponentiate";break;
+	default:
+	  crash("unknwon method %d",method);
 	}
-      crash("unknwon method %d",method);
-      return "";
+      
+      return res;
     }
     static inline method_t method_from_tag(const char *tag)
     {
@@ -166,14 +174,14 @@ namespace nissa
   }
   
   void gauge_transform_conf(quad_su3 *uout,su3 *g,const quad_su3 *uin);
-  void gauge_transform_conf(quad_su3 **uout,su3 **g,quad_su3 **uin);
+  void gauge_transform_conf(eo_ptr<quad_su3> uout,eo_ptr<su3> g,eo_ptr<quad_su3> uin);
   
-  void gauge_transform_color(color **out,su3 **g,color **in);
+  void gauge_transform_color(eo_ptr<color> out,eo_ptr<su3> g,eo_ptr<color> in);
   
   void Landau_or_Coulomb_gauge_fix(quad_su3 *conf_out,LC_gauge_fixing_pars_t *pars,quad_su3 *conf_in);
   
   void perform_random_gauge_transform(quad_su3 *conf_out,quad_su3 *conf_in);
-  void perform_random_gauge_transform(quad_su3 **conf_out,quad_su3 **conf_in);
+  void perform_random_gauge_transform(eo_ptr<quad_su3> conf_out,eo_ptr<quad_su3> conf_in);
 }
 
 #endif

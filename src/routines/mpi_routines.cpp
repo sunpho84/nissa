@@ -7,14 +7,13 @@
 #endif
 
 #define EXTERN_MPI
- #include "mpi_routines.hpp"
-
-#include "ios.hpp"
+#include "mpi_routines.hpp"
 
 #include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/rat_approx.hpp"
+#include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
 namespace nissa
@@ -165,7 +164,7 @@ namespace nissa
     MPI_Type_commit(&MPI_QUAD_SU3);
     
     //six (in 4d) links starting from a single point
-    MPI_Type_contiguous(NDIM*(NDIM+1)/2,MPI_SU3,&MPI_AS2T_SU3);
+    MPI_Type_contiguous(sizeof(as2t_su3)/sizeof(su3),MPI_SU3,&MPI_AS2T_SU3);
     MPI_Type_commit(&MPI_AS2T_SU3);
     
     //a color (6 doubles)
@@ -256,120 +255,13 @@ namespace nissa
     THREAD_BARRIER();
   }
   
-  //reduce a double
-  double glb_reduce_double(double in_loc,double (*thread_op)(double,double),MPI_Op mpi_op)
+  //Return the name of the processor
+  std::string MPI_get_processor_name()
   {
-    double out_glb;
+    int resultlen=MPI_MAX_PROCESSOR_NAME;
+    char name[MPI_MAX_PROCESSOR_NAME];
+    MPI_Get_processor_name(name,&resultlen);
     
-#if THREADS_TYPE == OPENMP_THREADS
-    if(!thread_pool_locked)
-      {
-	GET_THREAD_ID();
-	
-	//copy loc in the buf and sync all the threads
-	glb_double_reduction_buf[thread_id]=in_loc;
-	THREAD_BARRIER();
-	
-	//within master thread summ all the pieces and between MPI
-	if(IS_MASTER_THREAD)
-	  {
-	    for(unsigned int ith=1;ith<nthreads;ith++) in_loc=thread_op(in_loc,glb_double_reduction_buf[ith]);
-	    MPI_Allreduce(&in_loc,&(glb_double_reduction_buf[0]),1,MPI_DOUBLE,mpi_op,MPI_COMM_WORLD);
-	    cache_flush();
-	  }
-	
-	//read glb val
-	THREAD_ATOMIC_EXEC(out_glb=glb_double_reduction_buf[0];);
-      }
-    else
-#endif
-      MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    
-    return out_glb;
+    return name;
   }
-  
-  //reduce a double
-  float glb_reduce_single(float in_loc)
-  {
-    float out_glb;
-    
-#if THREADS_TYPE == OPENMP_THREADS
-    if(!thread_pool_locked)
-      {
-	GET_THREAD_ID();
-	
-	//copy loc in the buf and sync all the threads
-	glb_single_reduction_buf[thread_id]=in_loc;
-	THREAD_BARRIER();
-	
-	//within master thread summ all the pieces and between MPI
-	if(IS_MASTER_THREAD)
-	  {
-	    for(unsigned int ith=1;ith<nthreads;ith++) in_loc+=glb_single_reduction_buf[ith];
-	    MPI_Allreduce(&in_loc,&(glb_single_reduction_buf[0]),1,MPI_FLOAT,MPI_SUM,MPI_COMM_WORLD);
-	    cache_flush();
-	  }
-	
-	//read glb val
-	THREAD_ATOMIC_EXEC(out_glb=glb_single_reduction_buf[0];);
-      }
-    else
-#endif
-      MPI_Allreduce(&in_loc,&out_glb,1,MPI_FLOAT,MPI_SUM,MPI_COMM_WORLD);
-    
-    return out_glb;
-  }
-  
-  //reduce an int
-  void glb_reduce_int(int *out_glb,int in_loc)
-  {
-#if THREADS_TYPE == OPENMP_THREADS
-    if(!thread_pool_locked) crash("not threaded yet");
-    else
-#endif
-      MPI_Allreduce(&in_loc,out_glb,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-  }
-  
-  //reduce a complex
-  void glb_reduce_complex(complex out_glb,complex in_loc)
-  {for(int ri=0;ri<2;ri++) out_glb[ri]=glb_reduce_double(in_loc[ri]);}
-  
-  //reduce a float_128
-  void glb_reduce_float_128(float_128 out_glb,float_128 in_loc)
-  {
-#if THREADS_TYPE == OPENMP_THREADS
-    if(!thread_pool_locked)
-      {
-	GET_THREAD_ID();
-	
-	//copy loc in the buf and sync all the threads
-	float_128_copy(glb_quadruple_reduction_buf[thread_id],in_loc);
-	if(VERBOSITY_LV3 && is_master_rank()) printf(" entering 128 reduction, in_loc[%d]: %+16.16lg\n",THREAD_ID,in_loc[0]+in_loc[1]);
-	THREAD_BARRIER();
-	
-	//within master thread summ all the pieces and between MPI
-	if(IS_MASTER_THREAD)
-	  {
-	    for(unsigned int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_quadruple_reduction_buf[ith]);
-	    MPI_Allreduce(in_loc,glb_quadruple_reduction_buf[0],1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
-	    if(VERBOSITY_LV3 && is_master_rank()) printf("glb tot: %+016.16lg\n",glb_quadruple_reduction_buf[0][0]+
-						glb_quadruple_reduction_buf[0][1]);
-	    cache_flush();
-	  }
-	
-	//read glb val
-	THREAD_ATOMIC_EXEC(float_128_copy(out_glb,glb_quadruple_reduction_buf[0]));
-      }
-    else
-#endif
-      MPI_Allreduce(in_loc,out_glb,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
-  }
-  
-  //reduce a complex 128
-  void glb_reduce_complex_128(complex_128 out_glb,complex_128 in_loc)
-  {for(int ri=0;ri<2;ri++) glb_reduce_float_128(out_glb[ri],in_loc[ri]);}
-  
-  //reduce a double vector
-  void glb_nodes_reduce_double_vect(double *out_glb,double *in_loc,int nel)
-  {MPI_Allreduce(in_loc,out_glb,nel,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);}
 }

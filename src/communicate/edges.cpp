@@ -9,6 +9,7 @@
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
@@ -110,16 +111,15 @@ namespace nissa
   //Send the edges of the as2t_su3 field (for clover derivative)
   void communicate_lx_as2t_su3_edges(as2t_su3 *a)
   {communicate_lx_edges((char*)a,lx_as2t_su3_comm,MPI_LX_AS2T_SU3_EDGES_SEND,MPI_LX_AS2T_SU3_EDGES_RECE,sizeof(as2t_su3));}
-
+  
   ///////////////////////////////////////////// e/o geometry /////////////////////////////////////////
   
   //Send the edges of eo vector
-  void communicate_eo_edges(char **data,comm_t &bord_comm,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
+  void communicate_eo_edges(eo_ptr<void> data,comm_t &bord_comm,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
   {
     if(!check_edges_valid(data[EVN])||!check_edges_valid(data[ODD]))
       {
-	//first make sure that borders are communicated
-	communicate_ev_and_od_borders((void**)data,bord_comm);
+	communicate_ev_and_od_borders(data,bord_comm);
 	
 	GET_THREAD_ID();
 	
@@ -161,8 +161,8 @@ namespace nissa
 			    //Receive the (mu,-nu) external edge from the -nu rank (mu,nu) internal edge
 			    int ext_edge_recv_start=(loc_volh+bord_volh+edge_volh/4*(vmu*2+!vnu)+edge_offset[iedge]/2)*nbytes_per_site;
 			    int int_edge_send_start=loc_volh*nbytes_per_site;
-			    MPI_Irecv(data[par]+ext_edge_recv_start,1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu][nu],imessage,cart_comm,request+(nrequest++));
-			    MPI_Isend(data[par]+int_edge_send_start,1,MPI_EDGES_SEND[icomm_send],rank_neigh[vnu][nu],imessage,cart_comm,request+(nrequest++));
+			    MPI_Irecv((char*)(data[par])+ext_edge_recv_start,1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu][nu],imessage,cart_comm,request+(nrequest++));
+			    MPI_Isend((char*)(data[par])+int_edge_send_start,1,MPI_EDGES_SEND[icomm_send],rank_neigh[vnu][nu],imessage,cart_comm,request+(nrequest++));
 			    
 			    imessage++;
 			  }
@@ -178,6 +178,9 @@ namespace nissa
   }
   
   //Send the edges of the gauge configuration
-  void communicate_eo_quad_su3_edges(quad_su3 **conf)
-  {communicate_eo_edges((char**)conf,lx_quad_su3_comm,MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
+  void communicate_eo_quad_su3_edges(eo_ptr<quad_su3> conf)
+  {communicate_eo_edges({conf[EVN],conf[ODD]},lx_quad_su3_comm,MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
+  
+  void communicate_eo_as2t_su3_edges(eo_ptr<as2t_su3> a)
+  {communicate_eo_edges({a[EVN],a[ODD]},lx_as2t_su3_comm,MPI_EO_AS2T_SU3_EDGES_SEND,MPI_EO_AS2T_SU3_EDGES_RECE,sizeof(as2t_su3));}
 }

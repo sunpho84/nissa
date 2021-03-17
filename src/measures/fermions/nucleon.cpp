@@ -16,11 +16,10 @@ namespace nissa
 {
   using namespace stag;
   
-  THREADABLE_FUNCTION_5ARG(measure_nucleon_corr, quad_su3**,conf, theory_pars_t,theory_pars, nucleon_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
+  THREADABLE_FUNCTION_5ARG(measure_nucleon_corr, eo_ptr<quad_su3>,conf, theory_pars_t,theory_pars, nucleon_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
   {
     GET_THREAD_ID();
-    const int eps_i[6][3]={{0,1,2},{1,2,0},{2,0,1},{0,2,1},{2,1,0},{1,0,2}};
-    const int eps_s[6]={+1,+1,+1,-1,-1,-1};
+    // const int eps_i[6][3]={{0,1,2},{1,2,0},{2,0,1},{0,2,1},{2,1,0},{1,0,2}};
     
     CRASH_IF_NOT_3COL();
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
@@ -28,12 +27,12 @@ namespace nissa
     int nflavs=theory_pars.nflavs();
     
     //allocate source
-    su3 *source[2]={nissa_malloc("source_e",loc_volh+bord_volh,su3),nissa_malloc("source_o",loc_volh+bord_volh,su3)};
-    color *temp_source[2]={nissa_malloc("temp_source_e",loc_volh+bord_volh,color),nissa_malloc("temp_source_o",loc_volh+bord_volh,color)};
-    color *temp_sol[2]={nissa_malloc("temp_sol_e",loc_volh+bord_volh,color),nissa_malloc("temp_sol_o",loc_volh+bord_volh,color)};
+    eo_ptr<su3> source={nissa_malloc("source_e",loc_volh+bord_volh,su3),nissa_malloc("source_o",loc_volh+bord_volh,su3)};
+    eo_ptr<color> temp_source={nissa_malloc("temp_source_e",loc_volh+bord_volh,color),nissa_malloc("temp_source_o",loc_volh+bord_volh,color)};
+    eo_ptr<color> temp_sol={nissa_malloc("temp_sol_e",loc_volh+bord_volh,color),nissa_malloc("temp_sol_o",loc_volh+bord_volh,color)};
     
     //allocate propagators
-    su3 *prop[nflavs][2];
+    eo_ptr<su3> prop[nflavs];
     for(int iflav=0;iflav<nflavs;iflav++)
       for(int EO=0;EO<2;EO++)
 	  prop[iflav][EO]=nissa_malloc("prop",loc_volh+bord_volh,su3);
@@ -76,7 +75,7 @@ namespace nissa
 		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 			{
 			  //color_prod_double(temp_sol[eo][ieo],temp_sol[eo][ieo],(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]>=source_coord[0])?+1:-1);
-			  put_color_into_su3(prop[iflav][eo][ieo],temp_sol[eo][ieo],ic);
+			  #warning reimplement put_color_into_su3(prop[iflav][eo][ieo],temp_sol[eo][ieo],ic);
 			}
 		    NISSA_PARALLEL_LOOP_END;
 		  }
@@ -91,22 +90,25 @@ namespace nissa
 		    for(int eo=0;eo<2;eo++)
 		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 			{
+			  const int eps_s[6]={+1,+1,+1,-1,-1,-1};
+			  
 			  //find t
 			  int ilx=loclx_of_loceo[eo][ieo];
 			  int *c=glb_coord_of_loclx[ilx];
 			  if(c[1]%2==0&& c[2]%2==0 && c[3]%2==0)
 			    {
-			      int t=(glb_coord_of_loclx[ilx][0]+glb_size[0]-source_coord[0])%glb_size[0];
+			      // int t=(glb_coord_of_loclx[ilx][0]+glb_size[0]-source_coord[0])%glb_si
+				// ze[0];
 			      
 			      for(int soeps=0;soeps<6;soeps++)
 				for(int sieps=0;sieps<6;sieps++)
 				  {
 				    complex temp;
-				    const int *soc=eps_i[soeps];
-				    const int *sic=eps_i[sieps];
-				    unsafe_complex_prod(temp,prop[ifl0][eo][ieo][sic[0]][soc[0]],prop[ifl1][eo][ieo][sic[1]][soc[1]]);
+				    // const int *soc=eps_i[soeps];
+				    // const int *sic=eps_i[sieps];
+				    crash("#warning reimplement unsafe_complex_prod(temp,prop[ifl0][eo][ieo][sic[0]][soc[0]],prop[ifl1][eo][ieo][sic[1]][soc[1]]");
 				    complex_prodassign_double(temp,eps_s[soeps]*eps_s[sieps]);
-				    complex_summ_the_prod(loc_contr[icombo*glb_size[0]+t],temp,prop[ifl2][eo][ieo][sic[2]][soc[2]]);
+				    crash("#warning complex_summ_the_prod(loc_contr[icombo*glb_size[0]+t],temp,prop[ifl2][eo][ieo][sic[2]][soc[2]]");
 				  }
 			    }
 			}
@@ -116,8 +118,8 @@ namespace nissa
 	  }
 	
 	//reduce
-	glb_threads_reduce_double_vect((double*)loc_contr,2*ncompl);
-	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,loc_contr,ncompl);
+	crash("#warning reimplement glb_threads_reduce_double_vect((double*)loc_contr,2*ncompl");
+	crash("#warning if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,loc_contr,ncompl");
 	
 	//print
 	double norm=nhits;

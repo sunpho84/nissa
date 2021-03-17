@@ -27,7 +27,7 @@
 namespace nissa
 {
   //apply the passed transformation to the point
-  void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
+  CUDA_HOST_AND_DEVICE void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
   {
     // for each dir...
     for(int mu=0;mu<NDIM;mu++)
@@ -49,10 +49,10 @@ namespace nissa
     communicate_lx_su3_borders(g);
     
     //transform
-    su3 temp;
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
 	{
+	  su3 temp;
 	  unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclx_neighup[ivol][mu]]);
 	  unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
 	}
@@ -63,7 +63,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   //e/o version
-  THREADABLE_FUNCTION_3ARG(gauge_transform_conf, quad_su3**,uout, su3**,g, quad_su3**,uin)
+  THREADABLE_FUNCTION_3ARG(gauge_transform_conf, eo_ptr<quad_su3>,uout, eo_ptr<su3>,g, eo_ptr<quad_su3>,uin)
   {
     GET_THREAD_ID();
     
@@ -71,11 +71,11 @@ namespace nissa
     communicate_ev_and_od_su3_borders(g);
     
     //transform
-    su3 temp;
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	for(int mu=0;mu<NDIM;mu++)
 	  {
+	    su3 temp;
 	    unsafe_su3_prod_su3_dag(temp,uin[par][ivol][mu],g[!par][loceo_neighup[par][ivol][mu]]);
 	    unsafe_su3_prod_su3(uout[par][ivol][mu],g[par][ivol],temp);
 	  }
@@ -88,7 +88,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //transform a color field
-  THREADABLE_FUNCTION_3ARG(gauge_transform_color, color**,out, su3**,g, color**,in)
+  THREADABLE_FUNCTION_3ARG(gauge_transform_color, eo_ptr<color>,out, eo_ptr<su3>,g, eo_ptr<color>,in)
   {
     GET_THREAD_ID();
     
@@ -177,7 +177,7 @@ namespace nissa
   }
   
   //derivative of the functional
-  void compute_Landau_or_Coulomb_functional_der(su3 out,quad_su3 *conf,int ivol,int start_mu)
+  CUDA_HOST_AND_DEVICE void compute_Landau_or_Coulomb_functional_der(su3 out,quad_su3 *conf,int ivol,int start_mu)
   {
     su3_put_to_zero(out);
     
@@ -488,9 +488,9 @@ namespace nissa
   //GCG stuff - taken from 1405.5812
   namespace GCG
   {
-    su3 *prev_der;
-    su3 *s;
-    double *accum;
+    CUDA_MANAGED su3 *prev_der;
+    CUDA_MANAGED su3 *s;
+    CUDA_MANAGED double *accum;
   }
   
   //allocate the stuff for GCG
@@ -751,12 +751,12 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_2ARG(perform_random_gauge_transform, quad_su3**,conf_out, quad_su3**,conf_in)
+  THREADABLE_FUNCTION_2ARG(perform_random_gauge_transform, eo_ptr<quad_su3>,conf_out, eo_ptr<quad_su3>,conf_in)
   {
     GET_THREAD_ID();
     
     //allocate fixing matrix
-    su3 *fixm[2]={nissa_malloc("fixm_e",loc_volh+bord_volh,su3),nissa_malloc("fixm_o",loc_volh+bord_volh,su3)};
+    eo_ptr<su3> fixm={nissa_malloc("fixm_e",loc_volh+bord_volh,su3),nissa_malloc("fixm_o",loc_volh+bord_volh,su3)};
     
     //extract random SU(3) matrix
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)

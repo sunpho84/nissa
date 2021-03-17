@@ -104,7 +104,7 @@ namespace nissa
   }
   
   //compute phase exponent for space part: vec{p}*\vec{x}
-  double get_space_arg(int ivol,momentum_t bc)
+  CUDA_HOST_AND_DEVICE double get_space_arg(int ivol,const momentum_t bc)
   {
     double arg=0;
     for(int mu=1;mu<NDIM;mu++)
@@ -116,7 +116,7 @@ namespace nissa
   }
   
   //compute the phase for lepton on its sink
-  void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info le)
+  CUDA_HOST_AND_DEVICE void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info le)
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,le.bc);
@@ -130,7 +130,7 @@ namespace nissa
   }
   
   //compute the phase for antineutrino - the orientation is that of the muon (as above)
-  void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc)
+  CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,const momentum_t bc)
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,bc);
@@ -178,14 +178,6 @@ namespace nissa
 	if(twisted_run>0) dirac_prod_double(&GAMMA,base_gamma+0,1);
 	else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
 	
-	//phases
-	quad_u1 phases;
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    phases[mu][0]=cos(le.bc[mu]*M_PI);
-	    phases[mu][1]=sin(le.bc[mu]*M_PI);
-	  }
-	
 	//prepare each propagator for a single lepton
 	//by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
 	//(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
@@ -194,6 +186,11 @@ namespace nissa
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
 		{
+		  //phases
+		  complex phase;
+		  phase[0]=cos(le.bc[mu]*M_PI);
+		  phase[1]=sin(le.bc[mu]*M_PI);
+		  
 		  //find neighbors
 		  int ifw=loclx_neighup[ivol][mu];
 		  int ibw=loclx_neighdw[ivol][mu];
@@ -202,9 +199,9 @@ namespace nissa
 		  spinspin ph_bw,ph_fw;
 		  
 		  //transport down and up
-		  if(rel_coord_of_loclx(ivol,mu)==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
+		  if(rel_coord_of_loclx(ivol,mu)==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phase);
 		  else spinspin_copy(ph_fw,temp_lep[ifw]);
-		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
+		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phase);
 		  else spinspin_copy(ph_bw,temp_lep[ibw]);
 		  
 		  //fix coefficients, i is inserted here!
@@ -407,10 +404,10 @@ namespace nissa
 	    
 	    //combine mesolep
 	    complex_prodassign(h,ph);
-	    spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h);
+	    crash("#warning spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h");
 	  }
 	NISSA_PARALLEL_LOOP_END;
-	glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));
+	#warning glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));
 	
 	//save projection on LO
 	for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
@@ -420,7 +417,7 @@ namespace nissa
 	      int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
 	      
 	      spinspin td;
-	      unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);
+	      #warning unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);
 	      spinspin dtd;
 	      unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 	      complex mesolep;

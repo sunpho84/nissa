@@ -53,7 +53,7 @@ namespace nissa
     
     NB: indeed Pi is anti-hermitian
   */
-  void point_chromo_operator(clover_term_t Cl,quad_su3 *conf,int X)
+  CUDA_HOST_AND_DEVICE void point_chromo_operator(clover_term_t Cl,quad_su3 *conf,int X)
   {
     //this is the non-anti-symmetric part 2*F_mu_nu
     as2t_su3 leaves;
@@ -102,7 +102,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_2ARG(chromo_operator, clover_term_t**,Cl_eo, quad_su3**,conf_eo)
+  THREADABLE_FUNCTION_2ARG(chromo_operator, eo_ptr<clover_term_t>,Cl_eo, eo_ptr<quad_su3>,conf_eo)
   {
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     clover_term_t *Cl_lx=nissa_malloc("Cl_lx",loc_vol,clover_term_t);
@@ -115,7 +115,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //apply the chromo operator to the passed spincolor
-  void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,clover_term_t Cl,spincolor in)
+  CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,clover_term_t Cl,spincolor in)
   {
     unsafe_su3_prod_color(out[0],Cl[0],in[0]);
     su3_dag_summ_the_prod_color(out[0],Cl[1],in[1]);
@@ -138,7 +138,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //128 bit case
-  void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in)
+  CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in)
   {
     unsafe_su3_prod_color_128(out[0],Cl[0],in[0]);
     su3_dag_summ_the_prod_color_128(out[0],Cl[1],in[1]);
@@ -164,21 +164,23 @@ namespace nissa
   //normalization as in ape next
   THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_colorspinspin, colorspinspin*,out, clover_term_t*,Cl, colorspinspin*,in)
   {
-    spincolor temp1,temp2;
-    
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      //Loop over the four source dirac indexes
-      for(int id_source=0;id_source<NDIRAC;id_source++) //dirac index of source
-	{
-	  //Switch the color_spinspin into the spincolor.
-	  get_spincolor_from_colorspinspin(temp1,in[ivol],id_source);
-	  
-	  unsafe_apply_point_chromo_operator_to_spincolor(temp2,Cl[ivol],temp1);
-	  
-	  //Switch back the spincolor into the colorspinspin
-	  put_spincolor_into_colorspinspin(out[ivol],temp2,id_source);
-	}
+      {
+	spincolor temp1,temp2;
+	
+	//Loop over the four source dirac indexes
+	for(int id_source=0;id_source<NDIRAC;id_source++) //dirac index of source
+	  {
+	    //Switch the color_spinspin into the spincolor.
+	    get_spincolor_from_colorspinspin(temp1,in[ivol],id_source);
+	    
+	    unsafe_apply_point_chromo_operator_to_spincolor(temp2,Cl[ivol],temp1);
+	    
+	    //Switch back the spincolor into the colorspinspin
+	    put_spincolor_into_colorspinspin(out[ivol],temp2,id_source);
+	  }
+      }
     NISSA_PARALLEL_LOOP_END;
     
     //invalidate borders
@@ -190,22 +192,25 @@ namespace nissa
   //normalization as in ape next
   THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_su3spinspin, su3spinspin*,out, clover_term_t*,Cl, su3spinspin*,in)
   {
-    spincolor temp1,temp2;
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      //Loop over the four source dirac indexes
-      for(int id_source=0;id_source<NDIRAC;id_source++) //dirac index of source
-	for(int ic_source=0;ic_source<NCOL;ic_source++) //color index of source
-	  {
-	    //Switch the su3spinspin into the spincolor.
-	    get_spincolor_from_su3spinspin(temp1,in[ivol],id_source,ic_source);
-	    
-	    unsafe_apply_point_chromo_operator_to_spincolor(temp2,Cl[ivol],temp1);
-	    
-	    //Switch back the spincolor into the colorspinspin
-	    put_spincolor_into_su3spinspin(out[ivol],temp2,id_source,ic_source);
-	  }
+      {
+	spincolor temp1,temp2;
+	
+	//Loop over the four source dirac indexes
+	for(int id_source=0;id_source<NDIRAC;id_source++) //dirac index of source
+	  for(int ic_source=0;ic_source<NCOL;ic_source++) //color index of source
+	    {
+	      //Switch the su3spinspin into the spincolor.
+	      get_spincolor_from_su3spinspin(temp1,in[ivol],id_source,ic_source);
+	      
+	      unsafe_apply_point_chromo_operator_to_spincolor(temp2,Cl[ivol],temp1);
+	      
+	      //Switch back the spincolor into the colorspinspin
+	      put_spincolor_into_su3spinspin(out[ivol],temp2,id_source,ic_source);
+	    }
+      }
     NISSA_PARALLEL_LOOP_END;
     
     //invalidate borders
@@ -214,7 +219,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //apply a diagonal matrix plus clover term to up or low components
-  void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in)
+  CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in)
   {
     unsafe_color_prod_complex(out[0],in[0],diag);
     su3_summ_the_prod_color(out[0],Cl[0],in[0]);
@@ -224,7 +229,7 @@ namespace nissa
     su3_summ_the_prod_color(out[1],Cl[1],in[0]);
     su3_subt_the_prod_color(out[1],Cl[0],in[1]);
   }
-  void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex diag,clover_term_t Cl,halfspincolor_128 in)
+  CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex& diag,clover_term_t Cl,halfspincolor_128 in)
   {
     unsafe_color_128_prod_complex_64(out[0],in[0],diag);
     su3_summ_the_prod_color_128(out[0],Cl[0],in[0]);
@@ -235,15 +240,84 @@ namespace nissa
     su3_subt_the_prod_color_128(out[1],Cl[0],in[1]);
   }
   
-  void apply_point_squared_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
+  CUDA_HOST_AND_DEVICE void apply_point_squared_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
   {
     halfspincolor temp;
     apply_point_twisted_clover_term_to_halfspincolor(temp,+mass,kappa,Cl,in);
     apply_point_twisted_clover_term_to_halfspincolor(out ,-mass,kappa,Cl,temp);
   }
   
+  CUDA_HOST_AND_DEVICE void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa)
+  {
+    // halfspincolor_halfspincolor out_sure;
+    // for(int id1=0;id1<NDIRAC/2;id1++)
+    //   for(int ic1=0;ic1<NCOL;ic1++)
+    // 	{
+    // 	  halfspincolor in;
+    // 	  halfspincolor_put_to_zero(in);
+    // 	  in[id1][ic1][RE]=1.0;
+	  
+    // 	  halfspincolor temp;
+    // 	  apply_point_twisted_clover_term_to_halfspincolor(temp,mass,kappa,C+2*x_high_low,in);
+	  
+    // 	  for(int id=0;id<NDIRAC/2;id++)
+    // 	    for(int ic=0;ic<NCOL;ic++)
+    // 	      complex_copy(out_sure[id][ic][id1][ic1],temp[id][ic]);
+    // 	}
+    
+    for(int ic1=0;ic1<NCOL;ic1++)
+      for(int ic2=0;ic2<NCOL;ic2++)
+	{
+	  auto fill=[&out,x_high_low,icl1=ic1,icl2=ic2,C](int id1,int id2,int icl,int ic1,int ic2,const complex& f)
+		    {
+		      for(int ri=0;ri<2;ri++)
+			out[id1][icl1][id2][icl2][ri]=C[icl+x_high_low*2][ic1][ic2][ri]*f[ri];
+		    };
+	  
+	  fill(0,0, 0,ic1,ic2, {1,1});
+	  fill(1,0, 1,ic1,ic2, {1,1});
+	  fill(0,1, 1,ic2,ic1, {1,-1});
+	  fill(1,1, 0,ic1,ic2, {-1,-1});
+	}
+    
+    complex mt={1/(2*kappa),(x_high_low==0)?mass:-mass};
+    for(int id=0;id<NDIRAC/2;id++)
+      for(int ic=0;ic<NCOL;ic++)
+	complex_summassign(out[id][ic][id][ic],mt);
+    
+    // double diff=0,norm2=0;
+    // for(int id1=0;id1<NDIRAC/2;id1++)
+    //   for(int ic1=0;ic1<NCOL;ic1++)
+    // 	for(int id=0;id<NDIRAC/2;id++)
+    // 	  for(int ic=0;ic<NCOL;ic++)
+    // 	    {
+    // 	      norm2+=complex_norm2(out_sure[id][ic][id1][ic1]);
+    // 	      complex_subtassign(out_sure[id][ic][id1][ic1],out[id][ic][id1][ic1]);
+    // 	      diff+=complex_norm2(out_sure[id][ic][id1][ic1]);
+    // 	    }
+    // master_printf("DIFF: %lg\n",sqrt(diff/norm2));
+    
+    // auto pr=[](halfspincolor_halfspincolor out)
+    // 	    {
+    // 	      for(int id1=0;id1<NDIRAC/2;id1++)
+    // 		for(int ic1=0;ic1<NCOL;ic1++)
+    // 		  {
+    // 		    for(int id=0;id<NDIRAC/2;id++)
+    // 		      for(int ic=0;ic<NCOL;ic++)
+    // 			master_printf("%lg %lg\t",out[id1][ic1][id][ic][RE],out[id1][ic1][id][ic][IM]);
+    // 		    master_printf("\n");
+    // 		  }
+    // 		    master_printf("\n");
+    // 	    };
+    
+    // master_printf("out:\n");
+    // pr(out);
+    // master_printf("correct:\n");
+    // pr(out_sure);
+  }
+  
   //form the inverse of the clover term
-  void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl)
+  CUDA_HOST_AND_DEVICE void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl)
   {
     //inv_clover_term_t dir;
     
@@ -278,7 +352,7 @@ namespace nissa
 	    
 	    //count iterations
 	    int iter=1;
-	    const int niter_max=200,niter_for_verbosity=20;
+	    const int niter_max=200;//,niter_for_verbosity=20;
 	    const double target_res=1e-32;
 	    double res;
 	    do
@@ -306,11 +380,13 @@ namespace nissa
 		res=rr/ori_rr;
 		
 		//write residual
-		if(iter>=niter_for_verbosity) master_printf("iter %d rel residue: %lg\n",iter,res);
+#warning do something
+		//if(iter>=niter_for_verbosity) master_printf("iter %d rel residue: %lg\n",iter,res);
 		iter++;
 	      }
 	    while(res>=target_res && iter<niter_max);
-	    if(iter>=niter_max) crash("exceeded maximal number of iterations %d, arrived to %d with residue %lg, target %lg",niter_max,iter,res,target_res);
+	    #warning do something
+	    // if(iter>=niter_max) crash("exceeded maximal number of iterations %d, arrived to %d with residue %lg, target %lg",niter_max,iter,res,target_res);
 	    
 	    //halfspincolor ap;
 	    //apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,x);

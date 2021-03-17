@@ -7,6 +7,7 @@
 
 #include "base/debug.hpp"
 #include "io/buffer.hpp"
+#include "routines/ios.hpp"
 
 namespace nissa
 {

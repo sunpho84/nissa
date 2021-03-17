@@ -45,11 +45,11 @@ namespace nissa
     {}
   };
   
-  void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X);
-  void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **unsmoothed_conf_eo,int iconf,bool conf_created);
+  CUDA_HOST_AND_DEVICE void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X);
+  void measure_topology_eo_conf(top_meas_pars_t &pars,eo_ptr<quad_su3> unsmoothed_conf_eo,int iconf,bool conf_created);
   void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *unsmoothed_conf,int iconf,bool conf_created,bool preserve_unsmoothed);
   void local_topological_charge(double *charge,quad_su3 *conf);
-  void total_topological_charge_eo_conf(double *tot_charge,quad_su3 **eo_conf);
+  void total_topological_charge_eo_conf(double *tot_charge,eo_ptr<quad_su3> eo_conf);
   void total_topological_charge_lx_conf(double *tot_charge,quad_su3 *lx_conf);
   void topological_staples(quad_su3 *staples,quad_su3 *conf);
 }

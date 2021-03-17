@@ -11,7 +11,7 @@
 #include "routines/math_routines.hpp"
 #include "threads/threads.hpp"
 
-#if CG_NARG >= 6
+#if CG_NARG >= 7
  #error not supported
 #endif
 
@@ -29,6 +29,8 @@ namespace nissa
   THREADABLE_FUNCTION_9ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, int,niter, double,external_solver_residue, BASETYPE*,external_source)
 #elif CG_NARG == 5
   THREADABLE_FUNCTION_10ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, AT5,A5, int,niter, double,external_solver_residue, BASETYPE*,external_source)
+#elif CG_NARG == 6
+  THREADABLE_FUNCTION_11ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, AT5,A5, AT6,A6, int,niter, double,external_solver_residue, BASETYPE*,external_source)
 #endif
   {
     //Allocate the solution in 128 bit and initialize it. If guess passed copy it.

@@ -26,7 +26,8 @@ namespace nissa
     fft4d((complex*)out,(complex*)in,dirs,sizeof(spinspin)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glb_size[mu];
     
@@ -59,7 +60,8 @@ namespace nissa
     int s=sign[source_or_sink]*include_phases;
     
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glb_size[mu];
     
@@ -91,7 +93,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //+1 if sink, -1 if source
-    int sign[2]={-1,+1};
+    int _sign[2]={-1,+1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
     
     //multiply by exp(i sign*(p_mu-p_nu)/2)
@@ -120,7 +122,8 @@ namespace nissa
     fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=s*bc[mu]*M_PI/glb_size[mu];
     
@@ -151,11 +154,12 @@ namespace nissa
     GET_THREAD_ID();
     
     //-1 if sink, +1 if source
-    int sign[2]={+1,-1};
+    int _sign[2]={+1,-1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
     
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=s*dirs[mu]*bc[mu]*M_PI/glb_size[mu];
     
@@ -210,7 +214,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //+1 if sink, -1 if source
-    int sign[2]={-1,+1};
+    int _sign[2]={-1,+1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
     
     //multiply by exp(i p_mu/2)
@@ -235,7 +239,8 @@ namespace nissa
     fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1field)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glb_size[mu];
     
@@ -264,11 +269,12 @@ namespace nissa
     GET_THREAD_ID();
     
     //-1 if sink, +1 if source
-    int sign[2]={+1,-1};
+    int _sign[2]={+1,-1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
-	
+    
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glb_size[mu];
     
@@ -317,14 +323,15 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    int sign[2]={-1,+1};
+    int _sign[2]={-1,+1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
     
     //compute the main part of the fft
     fft4d((complex*)out,(complex*)in,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glb_size[mu];
     
@@ -352,11 +359,12 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    int sign[2]={+1,-1};
+    int _sign[2]={+1,-1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
        
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glb_size[mu];
     
@@ -387,14 +395,15 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    int sign[2]={-1,+1};
+    int _sign[2]={-1,+1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
     
     //compute the main part of the fft
     fft4d((complex*)out,(complex*)in,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glb_size[mu];
     
@@ -424,11 +433,12 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    int sign[2]={+1,-1};
+    int _sign[2]={+1,-1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
     
     //compute steps
-    momentum_t steps;
+    momentum_t _steps;
+    double *steps=_steps;
     for(int mu=0;mu<NDIM;mu++)
       steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glb_size[mu];
     

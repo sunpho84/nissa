@@ -36,3 +36,4 @@ tools/Makefile.in
 /doc/description.txt
 /test/projects/spectral_projectors/conf*
 /test/projects/spectral_projectors/full_input
+/.cache/

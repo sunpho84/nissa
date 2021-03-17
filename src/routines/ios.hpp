@@ -1,15 +1,14 @@
 #ifndef _IOS_HPP
 #define _IOS_HPP
 
-#include <fstream>
 #include <mpi.h>
+#include <fstream>
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
 #include <vector>
 
 #include "base/debug.hpp"
-#include "base/random.hpp"
 #include "new_types/complex.hpp"
 #include "measures/contract/mesons_2pts.hpp"
 #include "routines/mpi_routines.hpp"

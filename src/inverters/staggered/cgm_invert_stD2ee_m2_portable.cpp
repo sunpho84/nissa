@@ -1,4 +1,5 @@
 #include <math.h>
+#include <cmath>
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
@@ -28,7 +29,7 @@
 
 //additional parameters
 #define CGM_NARG 1
-#define AT1 quad_su3**
+#define AT1 eo_ptr<quad_su3>
 #define A1 conf
 
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,

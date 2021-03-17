@@ -283,7 +283,7 @@ namespace nissa
   {average_and_corr_polyakov_loop_lx_conf(tra,NULL,conf,mu);}
   
   //definition in case of eo conf
-  void average_polyakov_loop_eo_conf(complex tra,quad_su3 **eo_conf,int mu)
+  void average_polyakov_loop_eo_conf(complex tra,eo_ptr<quad_su3> eo_conf,int mu)
   {
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);

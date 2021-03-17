@@ -3,6 +3,7 @@
 #endif
 
 #include <math.h>
+#include <cmath>
 
 #include "base/vectors.hpp"
 #include "base/debug.hpp"

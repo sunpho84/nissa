@@ -18,13 +18,67 @@
 
 namespace nissa
 {
+  //Structure to hold an even/old field
+  template <typename T>
+  struct eo_ptr
+  {
+    //Type representing a pointer to type T
+    using Tptr=T*;
+    
+    //Type representing a pair of pointers
+    using Tptr2=Tptr[2];
+    
+    //Inner pointer pairs
+    Tptr data[2];
+    
+    //Access to data[i]
+    CUDA_HOST_AND_DEVICE Tptr& operator[](const int i)
+    {
+      static_assert(std::is_trivially_copyable<eo_ptr<T>>::value,"not trivially copyable");
+      return data[i];
+    }
+    
+    //Constant access to data[i]
+    CUDA_HOST_AND_DEVICE const Tptr& operator[](const int i) const
+    {
+      return data[i];
+    }
+    
+    //Create from a pair of pointers
+    CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) : data{a,b} {}
+    
+    //Create from an array of two pointers - to deprecate?
+    // CUDA_HOST_AND_DEVICE eo_ptr(Tptr2 a)
+    // {
+    //   data[0]=a[0];
+    //   data[1]=a[1];
+    // }
+    
+    //Default creator
+    CUDA_HOST_AND_DEVICE eo_ptr()
+    {
+    }
+    
+    //Check whether the two ptr are equals
+    CUDA_HOST_AND_DEVICE bool operator==(const eo_ptr& oth) const
+    {
+      return oth[0]==data[0] and oth[1]==data[1];
+    }
+    
+    //Check whether the two ptr are different
+    CUDA_HOST_AND_DEVICE bool operator!=(const eo_ptr& oth) const
+    {
+      return not ((*this)==oth);
+    }
+  };
+  
   //-eo is even-odd
-  EXTERN_GEOMETRY_EO int *loclx_parity;
-  EXTERN_GEOMETRY_EO int *loceo_of_loclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO int *loclx_of_loceo[2];
-  EXTERN_GEOMETRY_EO int *surfeo_of_bordeo[2];
-  EXTERN_GEOMETRY_EO coords *loceo_neighup[2];
-  EXTERN_GEOMETRY_EO coords *loceo_neighdw[2];
+  CUDA_MANAGED EXTERN_GEOMETRY_EO int *loclx_parity;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO int *loceo_of_loclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> loclx_of_loceo;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> surfeo_of_bordeo;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<coords> loceo_neighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<coords> loceo_neighdw;
   EXTERN_GEOMETRY_EO int eo_geom_inited;
   EXTERN_GEOMETRY_EO int use_eo_geom;
   

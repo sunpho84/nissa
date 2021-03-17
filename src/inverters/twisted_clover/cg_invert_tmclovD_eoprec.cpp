@@ -33,14 +33,14 @@ namespace nissa
   //Refers to the tmD_eoprec
   
   //invert Koo defined in equation (7)
-  void inv_tmclovDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mass,int nitermax,double residue,spincolor *source)
+  void inv_tmclovDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,eo_ptr<quad_su3> conf,double kappa,double cSW,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mass,int nitermax,double residue,spincolor *source)
   {
-    if(use_128_bit_precision) inv_tmclovDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,source);
-    else inv_tmclovDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,source);
+    if(use_128_bit_precision) inv_tmclovDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,cSW,Cl_odd,invCl_evn,mass,nitermax,residue,source);
+    else inv_tmclovDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,cSW,Cl_odd,invCl_evn,mass,nitermax,residue,source);
   }
   
   //Invert twisted clover operator using e/o preconditioning.
-  THREADABLE_FUNCTION_10ARG(inv_tmclovD_cg_eoprec_native, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, clover_term_t*,Cl_lx, inv_clover_term_t*,ext_invCl_lx, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
+  THREADABLE_FUNCTION_11ARG(inv_tmclovD_cg_eoprec_native, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, double,cSW, clover_term_t*,Cl_lx, inv_clover_term_t*,ext_invCl_lx, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
   {
     GET_THREAD_ID();
     
@@ -55,18 +55,18 @@ namespace nissa
       }
     
     //prepare the e/o split version of the source
-    spincolor *source_eos[2];
+    eo_ptr<spincolor> source_eos;
     source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spincolor);
     source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spincolor);
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
-    spincolor *solution_eos[2];
+    eo_ptr<spincolor> solution_eos;
     solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
     solution_eos[1]=nissa_malloc("solution_eos_1",loc_volh+bord_volh,spincolor);
     
     //prepare the e/o split version of the conf
-    quad_su3 *conf_eos[2];
+    eo_ptr<quad_su3> conf_eos;
     conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+bord_volh,quad_su3);
     conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+bord_volh,quad_su3);
     split_lx_vector_into_eo_parts(conf_eos,conf_lx);
@@ -92,7 +92,7 @@ namespace nissa
     inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,temp,source_eos[ODD]);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
-    inv_tmclovDkern_eoprec_square_eos_cg(temp,guess_Koo,conf_eos,kappa,Cl_odd,invCl_evn,mass,nitermax,residue,varphi);
+    inv_tmclovDkern_eoprec_square_eos_cg(temp,guess_Koo,conf_eos,kappa,cSW,Cl_odd,invCl_evn,mass,nitermax,residue,varphi);
     if(guess_Koo!=NULL) vector_copy(guess_Koo,temp); //if a guess was passed, return new one
     
     //Equation (10)
@@ -114,11 +114,13 @@ namespace nissa
     //multiply by g5*D
     apply_tmclovQ(check_res,conf_lx,kappa,Cl_lx,mass,solution_lx);
     //remove g5 and take the difference with source
-    const double mg5[2]={-1,1};
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int high_low=0;high_low<2;high_low++)
-	for(int id=high_low*NDIRAC/2;id<(high_low+1)*NDIRAC/2;id++)
+      {
+	const double mg5[2]={-1,1};
+	for(int high_low=0;high_low<2;high_low++)
+	  for(int id=high_low*NDIRAC/2;id<(high_low+1)*NDIRAC/2;id++)
 	    color_summ_the_prod_double(check_res[ivol][id],source_lx[ivol][id],mg5[high_low]);
+      }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(check_res);
     //compute residual and print
@@ -234,8 +236,7 @@ namespace nissa
 	}
       else
 #endif
-	
 	//fallback to naive implementation
-	inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,Cl_lx,ext_invCl_lx,mass,nitermax,residue,source_lx);
+	inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,cSW,Cl_lx,ext_invCl_lx,mass,nitermax,residue,source_lx);
   }
 }

@@ -10,7 +10,7 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, quad_su3**,conf, color*,in)
+  THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, eo_ptr<quad_su3>,conf, color*,in)
   {
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
       communicate_ev_and_od_quad_su3_borders(conf);
@@ -44,7 +44,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //put the 0.5 factor
-  THREADABLE_FUNCTION_3ARG(apply_stDoe, color*,out, quad_su3**,conf, color*,in)
+  THREADABLE_FUNCTION_3ARG(apply_stDoe, color*,out, eo_ptr<quad_su3>,conf, color*,in)
   {
     apply_st2Doe(out,conf,in);
     
@@ -59,7 +59,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,in)
+  THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, eo_ptr<quad_su3>,conf, color*,in)
   {
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
       communicate_ev_and_od_quad_su3_borders(conf);
@@ -95,7 +95,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, quad_su3**,conf, color*,temp, double,mass2, color*,in)
+  THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, eo_ptr<quad_su3>,conf, color*,temp, double,mass2, color*,in)
   {
     GET_THREAD_ID();
     if(IS_MASTER_THREAD)
@@ -111,7 +111,7 @@ namespace nissa
       communicate_ev_and_od_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_ev_color_borders(in);
     
-    NISSA_PARALLEL_LOOP(io,0,loc_volh)
+    NISSA_PARALLEL_LOOP_EXP(io,0,loc_volh)
       {
 	//neighbours search
 	int evup0=loceo_neighup[ODD][io][0];
@@ -131,13 +131,13 @@ namespace nissa
 	    su3_dag_subt_the_prod_color(temp[io],conf[EVN][evdw][mu],in[evdw]);
 	  }
       }
-    NISSA_PARALLEL_LOOP_END;
+    NISSA_PARALLEL_LOOP_END_EXP;
     
     set_borders_invalid(temp);
     communicate_od_color_borders(temp);
     
     //we still apply Deo, but then we put a - because we should apply Doe^+=-Deo
-    NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+    NISSA_PARALLEL_LOOP_EXP(ie,0,loc_volh)
       {
 	int odup0=loceo_neighup[EVN][ie][0];
 	int oddw0=loceo_neighdw[EVN][ie][0];
@@ -154,23 +154,23 @@ namespace nissa
 	    su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw][mu],temp[oddw]);
 	  }
       }
-    NISSA_PARALLEL_LOOP_END;
+    NISSA_PARALLEL_LOOP_END_EXP;
     
     if(mass2!=0)
       {
-	NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+	NISSA_PARALLEL_LOOP_EXP(ie,0,loc_volh)
 	  for(int ic=0;ic<3;ic++)
 	    for(int ri=0;ri<2;ri++)
 	      out[ie][ic][ri]=mass2*in[ie][ic][ri]-out[ie][ic][ri]*0.25;
-	NISSA_PARALLEL_LOOP_END;
+	NISSA_PARALLEL_LOOP_END_EXP;
       }
     else
       {
-	NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+	NISSA_PARALLEL_LOOP_EXP(ie,0,loc_volh)
 	  for(int ic=0;ic<3;ic++)
 	    for(int ri=0;ri<2;ri++)
 	      out[ie][ic][ri]*=-0.25;
-	NISSA_PARALLEL_LOOP_END;
+	NISSA_PARALLEL_LOOP_END_EXP;
       }
     set_borders_invalid(out);
     

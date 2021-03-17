@@ -41,6 +41,7 @@ include_HEADERS+= \
 	%D%/smearing/cooling.hpp \
 	%D%/smearing/gaussian.hpp \
 	%D%/smearing/HYP.hpp \
+	%D%/smearing/recursive_Wflower.hpp \
 	%D%/smearing/smooth.hpp \
 	%D%/smearing/stout.hpp \
 	%D%/smearing/Wflow.hpp \

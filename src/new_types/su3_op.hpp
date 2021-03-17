@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "base/debug.hpp"
+#include "geometry/geometry_eo.hpp"
 
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"

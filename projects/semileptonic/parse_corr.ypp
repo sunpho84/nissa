@@ -1,7 +1,7 @@
-%pure-parser
+%define api.pure
 %locations
 %defines
-%error-verbose
+%define parse.error verbose
 %parse-param {two_pts_parser_driver *driver}
 %lex-param {void *scanner}
 

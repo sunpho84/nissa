@@ -218,28 +218,20 @@ namespace nissa
   //find nmax_err_points+1 extrema of Chebyshev polynomial
   void rat_approx_finder_t::find_cheb()
   {
-    GET_THREAD_ID();
-    
     double coeff=(maximum-minimum)/(exp(1)-1);
-    NISSA_PARALLEL_LOOP(i,0,nmax_err_points)
+    for(int i=0;i<nmax_err_points;i++)
       {
 	xmax[i]=minimum+(exp(0.5*(1-cos((M_PI*i)/nzero_err_points)))-1)*coeff;
 	zero[i]=minimum+(exp(0.5*(1-cos(M_PI*(2*i+1)/(2*nzero_err_points))))-1)*coeff;
       }
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
   }
   
   //set the steps
   void rat_approx_finder_t::set_step()
   {
-    GET_THREAD_ID();
-    
     step[0]=zero[0]-minimum;
-    NISSA_PARALLEL_LOOP(i,1,nmax_err_points)
+    for(int i=1;i<nmax_err_points;i++)
       step[i]=zero[i]-zero[i-1];
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
   }
   
   //perform an accomodation step
@@ -363,9 +355,7 @@ namespace nissa
   //set the linear system to be solved
   void rat_approx_finder_t::set_linear_system(float_high_prec_t *matr,float_high_prec_t *vec)
   {
-    GET_THREAD_ID();
-    
-    NISSA_PARALLEL_LOOP(i,0,nzero_err_points)
+    for(int i=0;i<nzero_err_points;i++)
       {
 	float_high_prec_t y;
 	y=func_to_approx(zero[i]);
@@ -384,8 +374,6 @@ namespace nissa
 	  }
 	vec[i]=z*y;
       }
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
   }
   
   //compute separately the numerator and denominator of the approximation

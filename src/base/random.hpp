@@ -7,6 +7,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
+#include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 
 #ifndef EXTERN_RANDOM

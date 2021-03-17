@@ -43,7 +43,7 @@ namespace nissa
     }
     virtual ~minmax_eigenvalues_meas_pars_t(){}
   };
-  void measure_minmax_eigenvalues(quad_su3 **conf,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created);
+  void measure_minmax_eigenvalues(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created);
 }
 
 #endif

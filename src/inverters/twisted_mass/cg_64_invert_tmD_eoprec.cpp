@@ -3,6 +3,7 @@
 #endif
 
 #include <math.h>
+#include <cmath>
 
 #ifdef BGQ
  #include "cg_64_invert_tmD_eoprec_bgq.hpp"
@@ -43,7 +44,7 @@
 
 //additional parameters
 #define CG_NARG 3
-#define AT1 quad_su3**
+#define AT1 eo_ptr<quad_su3>
 #define A1 conf
 #define AT2 double
 #define A2 kappa
@@ -55,7 +56,7 @@
 namespace nissa
 {
   //wrapper for bgq
-  void inv_tmDkern_eoprec_square_eos_cg_64(spincolor *sol,spincolor *guess,quad_su3 **eo_conf,double kappa,double mu,int niter,double residue,spincolor *source)
+  void inv_tmDkern_eoprec_square_eos_cg_64(spincolor *sol,spincolor *guess,eo_ptr<quad_su3> eo_conf,double kappa,double mu,int niter,double residue,spincolor *source)
   {
 #ifdef BGQ
     //allocate

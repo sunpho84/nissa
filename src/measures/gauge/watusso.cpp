@@ -31,7 +31,7 @@ time |  |___________|
 namespace nissa
 {
   //compute the flux tube
-  THREADABLE_FUNCTION_4ARG(measure_watusso, watusso_meas_pars_t*,pars, quad_su3**,eo_conf, int,iconf, int,create_output_file)
+  THREADABLE_FUNCTION_4ARG(measure_watusso, watusso_meas_pars_t*,pars, eo_ptr<quad_su3>,eo_conf, int,iconf, int,create_output_file)
   {
     GET_THREAD_ID();
     

@@ -16,6 +16,7 @@
 namespace nissa
 {
   int rat_approx_t::master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
+
   
   //convert to string
   std::string rat_approx_t::get_str()
@@ -31,7 +32,7 @@ namespace nissa
     
     return out.str();
   }
-  
+
   int rat_approx_t::master_fprintf_expr(FILE *fout)
   {
     int rc=0;

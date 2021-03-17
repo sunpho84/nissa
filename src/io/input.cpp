@@ -17,6 +17,9 @@
 #ifdef USE_DDALPHAAMG
  #include "base/DDalphaAMG_bridge.hpp"
 #endif
+#ifdef USE_QUDA
+ #include "base/quda_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "eigenvalues/eigenvalues.hpp"
@@ -40,7 +43,7 @@ namespace nissa
   //touch a file
   void file_touch(std::string path)
   {
-    if(is_master_rank())
+    if(rank==0)
       {
 	FILE *f=fopen(path.c_str(),"w");
 	if(f!=NULL)
@@ -57,7 +60,7 @@ namespace nissa
   int file_lock(std::string path)
   {
     int f=0;
-    if(is_master_rank())
+    if(rank==0)
       {
 	//open the file descriptor
 	f=open(path.c_str(),O_RDWR);
@@ -74,7 +77,7 @@ namespace nissa
       }
     
     //broadcast
-    MPI_Bcast(&f,1,MPI_INT,master_rank,MPI_COMM_WORLD);
+    MPI_Bcast(&f,1,MPI_INT,0,MPI_COMM_WORLD);
     
     return f;
   }
@@ -82,7 +85,7 @@ namespace nissa
   //unlock a file
   int file_unlock(int f)
   {
-    if(is_master_rank())
+    if(rank==0)
       {
 	int status=lockf(f,F_ULOCK,0);
 	if(not status) master_printf("Unable to unset the lock on file descriptor %d\n",f);
@@ -90,7 +93,7 @@ namespace nissa
       }
     
     //broadcast
-    MPI_Bcast(&f,1,MPI_INT,master_rank,MPI_COMM_WORLD);
+    MPI_Bcast(&f,1,MPI_INT,0,MPI_COMM_WORLD);
     
     return f;
   }
@@ -100,7 +103,7 @@ namespace nissa
   {
     int status=1;
     
-    if(is_master_rank())
+    if(rank==0)
       {
 	FILE *f=fopen(path.c_str(),"r");
 	if(f!=NULL)
@@ -117,7 +120,7 @@ namespace nissa
       }
     
     //broadcast the result
-    MPI_Bcast(&status,1,MPI_INT,master_rank,MPI_COMM_WORLD);
+    MPI_Bcast(&status,1,MPI_INT,0,MPI_COMM_WORLD);
     
     return status;
   }
@@ -127,7 +130,7 @@ namespace nissa
   {
     int exists;
     
-    if(is_master_rank())
+    if(rank==0)
       {
 	DIR *d=opendir(path.c_str());
 	exists=(d!=NULL);
@@ -140,7 +143,7 @@ namespace nissa
 	else verbosity_lv2_master_printf("Directory \"%s\" is not present\n",path.c_str());
       }
     
-    MPI_Bcast(&exists,1,MPI_INT,master_rank,MPI_COMM_WORLD);
+    MPI_Bcast(&exists,1,MPI_INT,0,MPI_COMM_WORLD);
     
     return exists;
   }
@@ -156,7 +159,7 @@ namespace nissa
   //close the input file
   void close_input()
   {
-    if(is_master_rank())
+    if(rank==0)
       {
 	if(input_global_stack.size()==0 and input_global==NULL) crash("No input file open");
 	fclose(input_global);
@@ -177,16 +180,16 @@ namespace nissa
     int ok=1,len=0;
     tok[0]='\0';
     
-    if(is_master_rank())
+    if(rank==0)
       {
 	if(feof(input_global)) crash("reached EOF while scanning input file");
 	ok=fscanf(input_global,"%s",tok);
 	len=strlen(tok)+1;
       }
     
-    MPI_Bcast(&ok,1,MPI_INT,master_rank,MPI_COMM_WORLD);
-    MPI_Bcast(&len,1,MPI_INT,master_rank,MPI_COMM_WORLD);
-    MPI_Bcast(tok,len,MPI_BYTE,master_rank,MPI_COMM_WORLD);
+    MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&len,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(tok,len,MPI_BYTE,0,MPI_COMM_WORLD);
     
     return ok;
   }
@@ -451,6 +454,9 @@ namespace nissa
 #endif
 #ifdef USE_DDALPHAAMG
     tags.push_back(triple_tag("use_DDalphaAMG",		       use_DD));
+#endif
+#ifdef USE_QUDA
+    tags.push_back(triple_tag("use_QUDA",		       use_quda));
 #endif
 #ifdef USE_PARPACK
     tags.push_back(triple_tag("use_parpack",		       use_parpack));

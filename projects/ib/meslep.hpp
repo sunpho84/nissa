@@ -5,15 +5,15 @@
 
 #ifndef EXTERN_MESLEP
  #define EXTERN_MESLEP extern
- #define INIT_TO(VAR)
+ #define INIT_TO(...)
 #else
- #define INIT_TO(VAR) =VAR
+ #define INIT_TO(...) =__VA_ARGS__
 #endif
 
 namespace nissa
 {
   EXTERN_MESLEP int nquark_lep_combos INIT_TO(0);
-  EXTERN_MESLEP double *lep_energy,*neu_energy;
+  CUDA_MANAGED EXTERN_MESLEP double *lep_energy,*neu_energy;
   
   EXTERN_MESLEP int nmeslep_contr_made INIT_TO(0);
   EXTERN_MESLEP double meslep_contr_time INIT_TO(0);
@@ -28,7 +28,7 @@ namespace nissa
   const int nindep_meslep_weak=9;
   EXTERN_MESLEP int nmeslep_corr;
   EXTERN_MESLEP spinspin *meslep_hadr_part;
-  EXTERN_MESLEP complex *meslep_contr;
+  CUDA_MANAGED EXTERN_MESLEP complex *meslep_contr;
   
   //parameters of the leptons
   EXTERN_MESLEP int *lep_contr_iq1;
@@ -37,8 +37,8 @@ namespace nissa
   //const int nmeslep_proj=4,meslep_projs[nmeslep_proj]={9,4,5,0};
   const int nmeslep_proj=1,meslep_projs[nmeslep_proj]={4};
   const int list_weak_insq[nmeslep_weak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9, 5};
-  const int list_weak_insl[nmeslep_weak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4, 5};
-  const int list_weak_ind_contr[nmeslep_weak_ins]={0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7, 8};
+  EXTERN_MESLEP CUDA_MANAGED int list_weak_insl[nmeslep_weak_ins] INIT_TO({1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4, 5});
+  EXTERN_MESLEP CUDA_MANAGED int list_weak_ind_contr[nmeslep_weak_ins] INIT_TO({0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7, 8});
   const char list_weak_ind_nameq[nindep_meslep_weak][3]={"VK","V0","AK","A0","VK","V0","AK","A0","P5"};
   const char list_weak_ind_namel[nindep_meslep_weak][3]={"VK","V0","AK","A0","AK","A0","VK","V0","V0"};
   

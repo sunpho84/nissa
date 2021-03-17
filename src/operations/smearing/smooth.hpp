@@ -28,61 +28,73 @@ namespace nissa
     //returns the directions to smooth according to parameter
     static bool* get_dirs(space_or_time_t space_or_time)
     {
+      bool* res=NULL;
+      
       switch(space_or_time)
       {
       case SPACE:
-	return all_other_dirs[0];
+	res=all_other_dirs[0];
 	break;
       case TIME:
-	return only_dir[0];
+	res=only_dir[0];
 	break;
       case SPACETIME:
-	return all_dirs;
+	res=all_dirs;
 	break;
       default:
-	return NULL;
+	res=NULL;
 	crash("Unknown type");
       }
+      
+      return res;
     }
     
     //returns the minimal staple direction according to parameter
     static int get_staple_min_dir(space_or_time_t space_or_time)
     {
+      int res=0;
+      
       switch(space_or_time)
       {
       case SPACE:
-	return 1;
+	res=1;
 	break;
       case TIME:
-	return 1;
+	res=1;
 	break;
       case SPACETIME:
-	return 0;
+	res=0;
 	break;
       default:
-	return 0;
+	res=0;
 	crash("Unknown type");
       }
+      
+      return res;
     }
     
     //convert a space_or_time_t into a str
     inline std::string space_or_time_str_from_name(space_or_time_t space_or_time)
     {
+      std::string res;
+      
       switch(space_or_time)
       {
       case SPACE:
-	return "Space";
+	res="Space";
 	break;
       case TIME:
-	return "Time";
+	res="Time";
 	break;
       case SPACETIME:
-	return "SpaceTime";
+	res="SpaceTime";
 	break;
       default:
-	return "Boh";
+	res="Boh";
 	crash("Unknown type");
       }
+      
+      return res;
     }
     
     //pars
@@ -94,15 +106,19 @@ namespace nissa
     
     std::string get_method_name()
     {
+      std::string res;
+      
       switch(method)
 	{
-	case COOLING: return "Cooling";break;
-	case STOUT: return "Stout";break;
-	case WFLOW: return "WFlow";break;
-	case APE: return "Ape";break;
-	case HYP: return "Hyp";break;
-	default: crash("not meant to be reached");return "";
+	case COOLING: res="Cooling";break;
+	case STOUT: res="Stout";break;
+	case WFLOW: res="WFlow";break;
+	case APE: res="Ape";break;
+	case HYP: res="Hyp";break;
+	default: crash("not meant to be reached");res="";
 	}
+      
+      return res;
     }
     
     //return the next measure strictly after nsmooth
@@ -114,15 +130,19 @@ namespace nissa
     //returns the number of smooth
     int nsmooth()
     {
+      int res=0;
+      
       switch(method)
 	{
-	case COOLING:return cool.nsteps;break;
-	case STOUT:return stout.nlevels;break;
-	case WFLOW:return Wflow.nflows;break;
-	case APE:return ape.nlevels;break;
-	case HYP:return hyp.nlevels;break;
-	default:crash("not meant to be reached");return 0;
+	case COOLING:res=cool.nsteps;break;
+	case STOUT:res=stout.nlevels;break;
+	case WFLOW:res=Wflow.nflows;break;
+	case APE:res=ape.nlevels;break;
+	case HYP:res=hyp.nlevels;break;
+	default:crash("not meant to be reached");res=0;
 	}
+      
+      return res;
     }
     
     //returns the number of measurement, without 0

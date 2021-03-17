@@ -64,7 +64,7 @@ namespace nissa
   }
   
   //measure minmax_eigenvalues
-  void measure_minmax_eigenvalues(quad_su3 **conf_eo,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created)
+  void measure_minmax_eigenvalues(eo_ptr<quad_su3> conf_eo,theory_pars_t &theory_pars,minmax_eigenvalues_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     double eig_time=-take_time();
     

@@ -167,7 +167,7 @@ namespace nissa
   }
   
   //generate an identical conf
-  void generate_cold_eo_conf(quad_su3 **conf)
+  void generate_cold_eo_conf(eo_ptr<quad_su3> conf)
   {
     for(int par=0;par<2;par++)
       {
@@ -180,7 +180,7 @@ namespace nissa
   }
   
   //generate a random conf
-  void generate_hot_eo_conf(quad_su3 **conf)
+  void generate_hot_eo_conf(eo_ptr<quad_su3> conf)
   {
     if(loc_rnd_gen_inited==0) crash("random number generator not inited");
     
@@ -222,24 +222,25 @@ namespace nissa
   //perform a unitarity check on a lx conf
   void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
   {
-    //results
-    double loc_avg=0,loc_max=0,loc_nbroken=0;
+    crash("#warning reimplement");
+    // //results
+    // double loc_avg=0,loc_max=0,loc_nbroken=0;
     
-    NISSA_LOC_VOL_LOOP(ivol)
-      for(int idir=0;idir<NDIM;idir++)
-	{
-	  double err=su3_get_non_unitariness(conf[ivol][idir]);
+    // NISSA_LOC_VOL_LOOP(ivol)
+    //   for(int idir=0;idir<NDIM;idir++)
+    // 	{
+    // 	  double err=su3_get_non_unitariness(conf[ivol][idir]);
 	  
-	  //compute average and max deviation
-	  loc_avg+=err;
-	  loc_max=std::max(err,loc_max);
-	  if(err>1e-13) loc_nbroken+=1;
-	}
+    // 	  //compute average and max deviation
+    // 	  loc_avg+=err;
+    // 	  loc_max=std::max(err,loc_max);
+    // 	  if(err>1e-13) loc_nbroken+=1;
+    // 	}
     
-    //take global average and print
-    result.average_diff=glb_reduce_double(loc_avg)/glb_vol/NDIM;
-    result.max_diff=glb_max_double(loc_max);
-    result.nbroken_links=(int)glb_max_double(loc_nbroken);
+    // //take global average and print
+    // result.average_diff=glb_reduce_double(loc_avg)/glb_vol/NDIM;
+    // result.max_diff=glb_max_double(loc_max);
+    // result.nbroken_links=(int)glb_max_double(loc_nbroken);
   }
   
   //unitarize an a lx conf
@@ -278,7 +279,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //eo version
-  THREADABLE_FUNCTION_1ARG(unitarize_eo_conf_maximal_trace_projecting, quad_su3**,conf)
+  THREADABLE_FUNCTION_1ARG(unitarize_eo_conf_maximal_trace_projecting, eo_ptr<quad_su3>,conf)
   {
     GET_THREAD_ID();
     START_TIMING(unitarize_time,nunitarize);

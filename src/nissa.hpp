@@ -17,7 +17,13 @@
 #ifdef USE_DDALPHAAMG
  #include "base/DDalphaAMG_bridge.hpp"
 #endif
+#ifdef USE_QUDA
+ #include "base/quda_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
+#ifdef USE_CUDA
+ #include "base/cuda.hpp"
+#endif
 
 //include bg/q specifics
 #ifdef BGQ
@@ -62,6 +68,7 @@
 
 #include "eigenvalues/eigenvalues.hpp"
 
+
 #include "free_theory/cg_eoprec_twisted_free_operator.hpp"
 #include "free_theory/free_theory_types.hpp"
 #include "free_theory/free_theory_types_routines.hpp"
@@ -76,6 +83,7 @@
 
 #include "hmc/backfield.hpp"
 #include "hmc/fermions/rootst_eoimpr_quark_force.hpp"
+#include "hmc/fermions/roottm_clov_eoimpr_quark_force.hpp"
 #include "hmc/fermions/pseudofermions_generation.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/gluonic_force.hpp"
@@ -137,6 +145,7 @@
 #include "measures/fermions/spectral_projectors.hpp"
 #include "measures/fermions/spinpol.hpp"
 #include "measures/fermions/stag.hpp"
+#include "measures/fermions/tm_tuning.hpp"
 #include "measures/fermions/zumba.hpp"
 
 #include "measures/gauge/all_rectangles.hpp"

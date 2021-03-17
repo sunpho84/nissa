@@ -7,6 +7,10 @@
 #include "base/random.hpp"
 #include "new_types/complex.hpp"
 
+#if USE_EIGEN
+ #include <unsupported/Eigen/MatrixFunctions>
+#endif
+
 namespace nissa
 {
   //return the log of the factorial of n
@@ -87,7 +91,7 @@ namespace nissa
   }
   
   //recursive call - see below
-  void determinant(complex d,complex *m,int *s,int n,int N)
+  CUDA_HOST_AND_DEVICE void determinant(complex d,complex *m,int *s,int n,int N)
   {
     switch(n)
       {
@@ -103,7 +107,7 @@ namespace nissa
 	for(int p=0;p<n;p++)
 	  {
 	    //prepare submatrix
-	    int l[n-1];
+	    int *l=new int[n-1];
 	    for(int i=0;i<p;i++) l[i]=s[i];
 	    for(int i=p;i<n-1;i++) l[i]=s[i+1];
 	    
@@ -114,14 +118,31 @@ namespace nissa
 	    //summ or subtract the product
 	    void (*fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
 	    fun[p%2](d,m[s[p]],in_det);
+	    
+	    delete[] l;
 	  }
       }
   }
-  //compute the determinant of a NxN matrix through a recursive formula
-  void matrix_determinant(complex d,complex *m,int n)
+  
+  //compute the determinant of a NxN matrix through a recursive formula or eigen
+  CUDA_HOST_AND_DEVICE void matrix_determinant(complex d,complex *m,int n)
   {
-    int l[n];
+#if USE_EIGEN
+    using cpp_complex=std::complex<double>;
+    using cpp_matrix=cpp_complex*;
+    using eig_matrix=Eigen::Matrix<std::complex<double>,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor>;
+    using map_eig_matrix=Eigen::Map<eig_matrix>;
+    
+    cpp_complex& cpp_d=*reinterpret_cast<cpp_complex*>(d);
+    cpp_matrix cpp_m=reinterpret_cast<cpp_complex*>(m);
+    map_eig_matrix eig_m(cpp_m,n,n);
+    
+    cpp_d=eig_m.determinant();
+#else
+    int *l=new int[n];
     for(int i=0;i<n;i++) l[i]=i;
     determinant(d,m,l,n,n);
+    delete[] l;
+#endif
   }
 }

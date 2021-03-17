@@ -317,11 +317,9 @@ namespace nissa
   }
   
   //add all the links needed to compute staples separately for each box
-  THREADABLE_FUNCTION_2ARG(add_staples_required_links_to_gauge_sweep, gauge_sweeper_t*,gs, all_to_all_gathering_list_t**,gl)
+  void add_staples_required_links_to_gauge_sweep(gauge_sweeper_t *gs,all_to_all_gathering_list_t **gl)
   {
-    GET_THREAD_ID();
-    
-    NISSA_PARALLEL_LOOP(ibox,0,(1<<NDIM))
+    for(int ibox=0;ibox<(1<<NDIM);ibox++)
       {
 	//find base for curr box
 	int ibase=0;
@@ -340,10 +338,7 @@ namespace nissa
 	      ibase+=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+NDIM*ibox)];
 	    }
     }
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
   
   //wrapper to use threads
   void gauge_sweeper_t::add_staples_required_links(all_to_all_gathering_list_t **gl)
@@ -401,13 +396,13 @@ namespace nissa
   //add all links needed for a certain site
   void add_Symanzik_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
   {
-    int *A=glb_coord_of_loclx[ivol];                        //       P---O---N
-    coords B,C,D,E,F,G,H,I,J,K,L,M,N,O,P;                   //       |   |   |
-    //find coord mu                                         //   H---G---F---E---D
-    K[mu]=L[mu]=M[mu]=(A[mu]-1+glb_size[mu])%glb_size[mu];  //   |   |   |   |   |
-    I[mu]=J[mu]=B[mu]=C[mu]=A[mu];                          //   I---J---A---B---C
-    D[mu]=E[mu]=F[mu]=G[mu]=H[mu]=(A[mu]+1)%glb_size[mu];   //       |   |   |
-    N[mu]=O[mu]=P[mu]=(A[mu]+2)%glb_size[mu];               //       K---L---M
+    int *A=glb_coord_of_loclx[ivol];                            //       P---O---N
+    coords B,C,/*D,*/E,F,G,H,I,J,K,L,M,/*N,*/O,P;               //       |   |   |
+    //find coord mu                                             //   H---G---F---E---D
+    K[mu]=L[mu]=M[mu]=(A[mu]-1+glb_size[mu])%glb_size[mu];      //   |   |   |   |   |
+    I[mu]=J[mu]=B[mu]=C[mu]=A[mu];                              //   I---J---A---B---C
+    /*D[mu]=*/E[mu]=F[mu]=G[mu]=H[mu]=(A[mu]+1)%glb_size[mu];   //       |   |   |
+    /*N[mu]=*/O[mu]=P[mu]=(A[mu]+2)%glb_size[mu];               //       K---L---M
     for(int inu=0;inu<NDIM-1;inu++)
       {
 	int nu=perp_dir[mu][inu];
@@ -417,7 +412,7 @@ namespace nissa
 	for(int irh=0;irh<NDIM-2;irh++)
 	  {
 	    int rh=perp2_dir[mu][inu][irh];
-	    B[rh]=C[rh]=D[rh]=E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=N[rh]=O[rh]=P[rh]=A[rh];
+	    B[rh]=C[rh]=/*D[rh]=*/E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=/*N[rh]=*/O[rh]=P[rh]=A[rh];
 	  }
 #endif
 	
@@ -425,8 +420,8 @@ namespace nissa
 	H[nu]=I[nu]=(A[nu]-2+glb_size[nu])%glb_size[nu];
 	K[nu]=J[nu]=G[nu]=P[nu]=(I[nu]+1)%glb_size[nu];
 	L[nu]=F[nu]=O[nu]=A[nu];
-	M[nu]=B[nu]=E[nu]=N[nu]=(A[nu]+1)%glb_size[nu];
-	C[nu]=D[nu]=(A[nu]+2)%glb_size[nu];
+	M[nu]=B[nu]=E[nu]=/*N[nu]=*/(A[nu]+1)%glb_size[nu];
+	C[nu]=/*D[nu]=*/(A[nu]+2)%glb_size[nu];
 	
 	//backward square staple
 	*(ilink_to_be_used++)=gat.add_conf_link_for_paths(J,nu);

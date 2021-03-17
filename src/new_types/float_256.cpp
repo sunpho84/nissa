@@ -15,11 +15,12 @@ namespace nissa
 {
   void float_256_print(float_256 a)
   {
-    printf("(");
-    float_128_print((double*)a);
-    printf(",");
-    float_128_print((double*)a+2);
-    printf(")");
+    crash("");
+    // printf("(");
+    // float_128_print((double*)a);
+    // printf(",");
+    // float_128_print((double*)a+2);
+    // printf(")");
   }
   
   void float_256_copy(float_256 b,float_256 a)
@@ -478,7 +479,7 @@ namespace nissa
   void float_256_pow_int(float_256 out,float_256 in,int d)
   {
     //master_printf("Taking: {%lg,%lg,%lg,%lg}^%d\n",in[0],in[1],in[2],in[3],d);
-
+    
     //negative or null case
     if(d<=0)
       {

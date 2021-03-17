@@ -30,7 +30,7 @@ namespace nissa
   namespace stag
   {
     //return directly a eosplit photon field
-    void get_eo_photon(spin1field **out,gauge_info photon)
+    void get_eo_photon(eo_ptr<spin1field> out,gauge_info photon)
     {
       //allocate lx version of photon field
       spin1field *photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
@@ -47,21 +47,21 @@ namespace nissa
       nissa_free(photon_eta);
     }
     
-    void insert_tadpole_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
-    void insert_conserved_current_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars){out[RE]=((int*)pars)[mu];out[IM]=0;}
-    void insert_time_conserved_vector_current_handle(complex out,spin1field **aux,int par,int ieo,int mu,void *pars){out[RE]=(mu==0);out[IM]=0;}
+    void insert_tadpole_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
+    void insert_conserved_current_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=((int*)pars)[mu];out[IM]=0;}
+    void insert_time_conserved_vector_current_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=(mu==0);out[IM]=0;}
     
     //insert the tadpol
-    THREADABLE_FUNCTION_7ARG(insert_tadpole, color**,out, quad_su3**,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, double*,tad, int,t)
+    THREADABLE_FUNCTION_7ARG(insert_tadpole, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, eo_ptr<color>,in, double*,tad, int,t)
     {
       //call with no source insertion, plus between fw and bw, and a global -0.25
       complex fw_factor={-0.25,0},bw_factor={-0.25,0};
-      insert_vector_vertex(out,conf,theory_pars,iflav,NULL,in,fw_factor,bw_factor,insert_tadpole_handle,t,tad);
+      insert_vector_vertex(out,conf,theory_pars,iflav,{NULL,NULL},in,fw_factor,bw_factor,insert_tadpole_handle,t,tad);
     }
     THREADABLE_FUNCTION_END
     
     //insert the external source, that is one of the two extrema of the stoch prop
-    THREADABLE_FUNCTION_7ARG(insert_external_source, color**,out, quad_su3**,conf, theory_pars_t*,theory_pars, int,iflav, spin1field**,curr, color**,in, int,t)
+    THREADABLE_FUNCTION_7ARG(insert_external_source, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, eo_ptr<spin1field>,curr, eo_ptr<color>,in, int,t)
     {
       //call with source insertion, minus between fw and bw, and a global i*0.5
       complex fw_factor={0,+0.5},bw_factor={0,-0.5};
@@ -70,11 +70,11 @@ namespace nissa
     THREADABLE_FUNCTION_END
     
     //insert the time componente of the vectorial current
-    THREADABLE_FUNCTION_6ARG(insert_time_conserved_vector_current, color**,out, quad_su3**,conf, theory_pars_t*,theory_pars, int,iflav, color**,in, int,t)
+    THREADABLE_FUNCTION_6ARG(insert_time_conserved_vector_current, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, eo_ptr<color>,in, int,t)
     {
       //call with no source insertion, minus between fw and bw, and a global i*0.5
       complex fw_factor={0,+0.5},bw_factor={0,-0.5};
-      insert_vector_vertex(out,conf,theory_pars,iflav,NULL,in,fw_factor,bw_factor,insert_time_conserved_vector_current_handle,t);
+      insert_vector_vertex(out,conf,theory_pars,iflav,{NULL,NULL},in,fw_factor,bw_factor,insert_time_conserved_vector_current_handle,t);
     }
     THREADABLE_FUNCTION_END
   }
@@ -101,7 +101,7 @@ namespace nissa
   }
   
   //compute and print
-  THREADABLE_FUNCTION_5ARG(measure_qed_corr, quad_su3**,conf, theory_pars_t,theory_pars, qed_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
+  THREADABLE_FUNCTION_5ARG(measure_qed_corr, eo_ptr<quad_su3>,conf, theory_pars_t,theory_pars, qed_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
   {
     GET_THREAD_ID();
     
@@ -123,8 +123,8 @@ namespace nissa
     
     //allocate
     const int nflavs=theory_pars.nflavs();
-    spin1field *photon_field[2]={nissa_malloc("photon_phi_ev",loc_volh+bord_volh,spin1field),nissa_malloc("photon_phi_od",loc_volh+bord_volh,spin1field)};
-    color *M[nprop_t*nflavs][2];
+    eo_ptr<spin1field> photon_field={nissa_malloc("photon_phi_ev",loc_volh+bord_volh,spin1field),nissa_malloc("photon_phi_od",loc_volh+bord_volh,spin1field)};
+    eo_ptr<color> M[nprop_t*nflavs];
     for(int i=0;i<nprop_t*nflavs;i++)
       for(int par=0;par<2;par++)
 	M[i][par]=nissa_malloc(combine("M_%d_%d",i,par).c_str(),loc_volh+bord_volh,color);
@@ -149,8 +149,9 @@ namespace nissa
     
     //init the contr
     int ncontr_tot=contr_map.size()*nflavs*nflavs,contr_tot_size=ncontr_tot*glb_size[0];
-    complex *glb_contr=nissa_malloc("glb_contr",contr_tot_size*nthreads,complex);
-    complex *loc_contr=glb_contr+THREAD_ID*contr_tot_size;
+    complex *glb_contr=nullptr;
+#warning reimplement nissa_malloc("glb_contr",contr_tot_size*nthreads,complex);
+    // complex *loc_contr=glb_contr+THREAD_ID*contr_tot_size;
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
@@ -179,7 +180,7 @@ namespace nissa
 	      for(size_t iprop=0;iprop<prop_build.size();iprop++)
 		{
 		  //select the source
-		  color **so;
+		  eo_ptr<color> so;
 		  if(prop_build[iprop].sou==-1) so=ori_source;
 		  else so=M[prop_build[iprop].sou+nprop_t*iflav];
 		  
@@ -206,25 +207,26 @@ namespace nissa
 	      for(int jflav=0;jflav<nflavs;jflav++)
 		for(size_t icontr=0;icontr<contr_map.size();icontr++)
 		  {
-		    color **A=(contr_map[icontr].first==-1)?ori_source:M[contr_map[icontr].first+nprop_t*iflav];
-		    color **B=(contr_map[icontr].second==-1)?ori_source:M[contr_map[icontr].second+nprop_t*jflav];
+		    eo_ptr<color> A=(contr_map[icontr].first==-1)?ori_source:M[contr_map[icontr].first+nprop_t*iflav];
+		    eo_ptr<color> B=(contr_map[icontr].second==-1)?ori_source:M[contr_map[icontr].second+nprop_t*jflav];
 		    
 		    for(int par=0;par<2;par++)
 		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 			{
-			  int ivol=loclx_of_loceo[par][ieo];
-			  int t=(glb_coord_of_loclx[ivol][0]+glb_size[0]-tso)%glb_size[0];
-			  for(int ic=0;ic<NCOL;ic++)
-			    complex_summ_the_conj1_prod(loc_contr[t+glb_size[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav))],
-							A[par][ieo][ic],B[par][ieo][ic]);
+			  #warning reimplement
+			  // int ivol=loclx_of_loceo[par][ieo];
+			  // int t=(glb_coord_of_loclx[ivol][0]+glb_size[0]-tso)%glb_size[0];
+			  // for(int ic=0;ic<NCOL;ic++)
+			  //   complex_summ_the_conj1_prod(loc_contr[t+glb_size[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav))],
+			  // 				A[par][ieo][ic],B[par][ieo][ic]);
 			}
 		    NISSA_PARALLEL_LOOP_END;
 		  }
 	  }
 	
 	//reduce
-	glb_threads_reduce_complex_vect(loc_contr,contr_tot_size);
-	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);
+	#warning reimplement glb_threads_reduce_complex_vect(loc_contr,contr_tot_size);
+	#warning if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);
 	
 	//print
 	double norm=1.0/(meas_pars.nhits*glb_spat_vol);

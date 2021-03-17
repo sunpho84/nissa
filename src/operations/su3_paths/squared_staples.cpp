@@ -19,10 +19,8 @@
 namespace nissa
 {
   //compute the staples along a particular dir, for a single site
-  void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
+  CUDA_HOST_AND_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,eo_ptr<quad_su3> eo_conf,int A,int mu)
   {
-    if(!check_edges_valid(eo_conf[0])||!check_edges_valid(eo_conf[1])) crash("communicate edges externally");
-    
     su3_put_to_zero(staple);
     
     su3 temp1,temp2;
@@ -50,10 +48,10 @@ namespace nissa
     su3_put_to_zero(staple);
     
     su3 temp1,temp2;
-    for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C   
+    for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
       {                                               //  |   |   | mu
-	int nu=perp_dir[mu][inu];                     //  D---A---B   
-	int B=loclx_neighup[A][nu];                   //        nu    
+	int nu=perp_dir[mu][inu];                     //  D---A---B
+	int B=loclx_neighup[A][nu];                   //        nu
 	int F=loclx_neighup[A][mu];
 	unsafe_su3_prod_su3(    temp1,lx_conf[A][nu],lx_conf[B][mu]);
 	unsafe_su3_prod_su3_dag(temp2,temp1,         lx_conf[F][nu]);
@@ -68,13 +66,13 @@ namespace nissa
   }
   
   //compute the staples along all the four dirs
-  void compute_point_summed_squared_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
+  void compute_point_summed_squared_staples_eo_conf(quad_su3 staple,eo_ptr<quad_su3> eo_conf,int A)
   {for(int mu=0;mu<4;mu++) compute_point_summed_squared_staples_eo_conf_single_dir(staple[mu],eo_conf,A,mu);}
   void compute_point_summed_squared_staples_lx_conf(quad_su3 staple,quad_su3 *lx_conf,int A)
   {for(int mu=0;mu<4;mu++) compute_point_summed_squared_staples_lx_conf_single_dir(staple[mu],lx_conf,A,mu);}
   
   //compute the summ of all the staples for the whole conf
-  THREADABLE_FUNCTION_2ARG(compute_summed_squared_staples_eo_conf, quad_su3**,F, quad_su3**,eo_conf)
+  THREADABLE_FUNCTION_2ARG(compute_summed_squared_staples_eo_conf, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,eo_conf)
   {
     GET_THREAD_ID();
     
@@ -251,15 +249,15 @@ namespace nissa
     GET_THREAD_ID();
     
     //compute non_fw_surf fw staples
-    squared_staples_lx_conf_start_communicating_lower_surface(conf,thread_id);
-    squared_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,thread_id);
-    squared_staples_lx_conf_finish_communicating_lower_surface(conf,thread_id);
+    squared_staples_lx_conf_start_communicating_lower_surface(conf,THREAD_ID);
+    squared_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,THREAD_ID);
+    squared_staples_lx_conf_finish_communicating_lower_surface(conf,THREAD_ID);
     
     //compute fw_surf bw staples, non_fw_surf bw staples and fw_surf fw staples
-    squared_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,thread_id);
-    squared_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,thread_id);
-    squared_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,thread_id);
-    squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,thread_id);
+    squared_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,THREAD_ID);
+    squared_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,THREAD_ID);
+    squared_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,THREAD_ID);
+    squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,THREAD_ID);
   }
   THREADABLE_FUNCTION_END
   

@@ -201,23 +201,24 @@ namespace nissa
     //summ the result to all the corr to which it contributes
     NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
       {
-	//set in and out
-	icontrib_t=ncontrib*loc_t;
-	int t=(glb_size[0]+loc_size[0]*rank_coord[0]+loc_t-twall)%glb_size[0];
+	#warning not implemented
+	// //set in and out
+	// icontrib_t=ncontrib*loc_t;
+	// int t=(glb_size[0]+loc_size[0]*rank_coord[0]+loc_t-twall)%glb_size[0];
 	
-	//loop on all contributions
-	for(two_pts_comp_t::iterator it=this->begin();it!=this->end();it++)
-	  {
-	    //loop on all correlation to which it contributes
-	    for(corr_id_weight_t::iterator jt=it->second.begin();jt!=it->second.end();jt++)
-	      {
-		uint16_t corr_id=jt->first;
-		double weight=jt->second;
+	// //loop on all contributions
+	// for(two_pts_comp_t::iterator it=this->begin();it!=this->end();it++)
+	//   {
+	//     //loop on all correlation to which it contributes
+	//     for(corr_id_weight_t::iterator jt=it->second.begin();jt!=it->second.end();jt++)
+	//       {
+	// 	uint16_t corr_id=jt->first;
+	// 	double weight=jt->second;
 		
-		out[glb_size[0]*corr_id+t]+=weight*temp[icontrib_t];
-	      }
-	    icontrib_t++;
-	  }
+	// 	out[glb_size[0]*corr_id+t]+=weight*temp[icontrib_t];
+	//       }
+	//     icontrib_t++;
+	//   }
       }
     NISSA_PARALLEL_LOOP_END;
     

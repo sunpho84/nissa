@@ -16,7 +16,7 @@ namespace nissa
   }
   
   //eo wrapper
-  void Wilson_action(double *action,quad_su3 **eo_conf,double beta)
+  void Wilson_action(double *action,eo_ptr<quad_su3> eo_conf,double beta)
   {Wilson_action(action,global_plaquette_eo_conf(eo_conf),beta);}
   
   //lx wrapper

@@ -25,4 +25,5 @@ include_HEADERS+= \
 	%D%/read_new_types.hpp \
 	%D%/spin.hpp \
 	%D%/su3.hpp \
-	%D%/su3_op.hpp
+	%D%/su3_op.hpp \
+	%D%/value_with_extreme.hpp

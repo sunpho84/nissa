@@ -15,6 +15,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/fermions/spectral_projectors.cpp \
 	%D%/fermions/spinpol.cpp \
 	%D%/fermions/stag.cpp \
+	%D%/fermions/tm_tuning.cpp \
 	%D%/fermions/zumba.cpp \
 	%D%/gauge/all_rectangles.cpp \
 	%D%/gauge/pline.cpp \
@@ -22,6 +23,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gauge/watusso.cpp
 
 include_HEADERS+= \
+	%D%/fermions/fermionic_meas.hpp \
 	%D%/fermions/mesons.hpp \
 	%D%/fermions/magnetization.hpp \
 	%D%/fermions/minmax_eigenvalues.hpp \
@@ -32,6 +34,7 @@ include_HEADERS+= \
 	%D%/fermions/spectral_projectors.hpp \
 	%D%/fermions/spinpol.hpp \
 	%D%/fermions/stag.hpp \
+	%D%/fermions/tm_tuning.hpp \
 	%D%/fermions/zumba.hpp \
 	%D%/contract/mesons_2pts.hpp \
 	%D%/contract/mesons_eight.hpp \
