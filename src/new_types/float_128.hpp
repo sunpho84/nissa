@@ -432,6 +432,12 @@ namespace nissa
   
   //////////////////////////////////////////////////////
   
+  CUDA_HOST_AND_DEVICE inline void complex_128_from_64(complex_128& b,const complex& a)
+  {
+    for(int ri=0;ri<2;ri++)
+      float_128_from_64(b[ri],a[ri]);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void complex_128_put_to_zero(complex_128& a)
   {for(int ri=0;ri<2;ri++) float_128_put_to_zero(a[ri]);}
   

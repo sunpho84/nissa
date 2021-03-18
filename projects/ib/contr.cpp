@@ -948,7 +948,7 @@ crash("#warning reimplement");
     contr_print_time-=take_time();
     
     //reduce and normalise
-    crash("#warning reimplement glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);");
+    glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);
     
     //Open if size different from zero
     FILE *fout=NULL;
