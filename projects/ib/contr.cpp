@@ -271,24 +271,24 @@ namespace nissa
     master_printf("Computing barion 2pts contractions alternative\n");
     
     //In practice, only in the second half and for the g0 we have a minus
-    // auto sign_idg0=[](const int t,const int idg0) -> int
-    // 		   {
-    // 		     const int first_half=(t<=glb_size[0]/2);
+    auto sign_idg0=[](const int t,const int idg0) -> int
+		   {
+		     const int first_half=(t<=glb_size[0]/2);
 		     
-    // 		     if(first_half or idg0==0)
-    // 		       return +1;
-    // 		     else
-    // 		       return -1;
-    // 		   };
+		     if(first_half or idg0==0)
+		       return +1;
+		     else
+		       return -1;
+		   };
     
     //allocate loc storage
     complex *loc_contr=new complex[bar2pts_alt_contr_size];
     memset(loc_contr,0,sizeof(complex)*bar2pts_alt_contr_size);
     
-    // const std::array<std::array<int,2>,3> eps={1,2, 2,0, 0,1};
-    //const int sign[2]={1,-1};
+    const std::array<std::array<int,2>,3> eps={{{1,2}, {2,0}, {0,1}}};
+    const int sign[2]={1,-1};
     
-    // const int ncol=free_theory?1:NCOL;
+    const int ncol=free_theory?1:NCOL;
     
     UNPAUSE_TIMING(bar2pts_alt_contr_time);
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
@@ -325,8 +325,8 @@ namespace nissa
 	    
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	      {
-		// int t=rel_coord_of_loclx(ivol,0);
-		// su3spinspin p1,p2,p3;
+		int t=rel_coord_of_loclx(ivol,0);
+		su3spinspin p1,p2,p3;
 		
 		//Precompute the factor to be added
 		spinspin fact;
@@ -344,70 +344,68 @@ namespace nissa
 		for(int idg0=0;idg0<2;idg0++)
 		  proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
 		
-		// void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
+		void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
 		
 		//Takes a slice
-crash("#warning reimplement");
-		// for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
-		//   for(int sp_so=0;sp_so<NDIRAC;sp_so++)
-		//     for(int sp_si=0;sp_si<NDIRAC;sp_si++)
-		//       for(int co_so=0;co_so<NCOL;co_so++)
-		// 	for(int co_si=0;co_si<NCOL;co_si++)
-		// 	  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
+		for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
+		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
+		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+		      for(int co_so=0;co_so<NCOL;co_so++)
+			for(int co_si=0;co_si<NCOL;co_si++)
+			  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
 		
 		//Color source
-		// for(int b_so=0;b_so<ncol;b_so++)
-		//   //Color sink
-		//   for(int b_si=0;b_si<ncol;b_si++)
-		//     {
+		for(int b_so=0;b_so<ncol;b_so++)
+		  //Color sink
+		  for(int b_si=0;b_si<ncol;b_si++)
+		    {
 		      //Dirac source
-		      // for(int al_so=0;al_so<NDIRAC;al_so++)
-		      // 	for(int be_so=Cg_so.pos[al_so],
-		      // 	      //Dirac sink
-		      // 	      al_si=0;al_si<NDIRAC;al_si++)
-		      // 	  {
-		      // 	    // int be_si=Cg_si.pos[al_si];
+		      for(int al_so=0;al_so<NDIRAC;al_so++)
+			for(int be_so=Cg_so.pos[al_so],
+			      //Dirac sink
+			      al_si=0;al_si<NDIRAC;al_si++)
+			  {
+			    int be_si=Cg_si.pos[al_si];
 			    
-		      // 	    complex AC_proj[2][2]={};
+			    complex AC_proj[2][2]={};
 			    
-		      // 	    for(int iperm_so=0;iperm_so<2;iperm_so++)
-		      // 	      for(int iperm_si=0;iperm_si<2;iperm_si++)
-		      // 		{
-		      // 		  // int c_so=eps[b_so][1-iperm_so],a_so=eps[b_so][iperm_so];
-		      // 		  // int c_si=eps[b_si][1-iperm_si],a_si=eps[b_si][iperm_si];
+			    for(int iperm_so=0;iperm_so<2;iperm_so++)
+			      for(int iperm_si=0;iperm_si<2;iperm_si++)
+				{
+				  int c_so=eps[b_so][1-iperm_so],a_so=eps[b_so][iperm_so];
+				  int c_si=eps[b_si][1-iperm_si],a_si=eps[b_si][iperm_si];
 				  
-		      // 		  for(int ga_so=0;ga_so<NDIRAC;ga_so++)
-		      // 		    for(int idg0=0;idg0<2;idg0++)
-		      // 		      {
-		      // 			// int ga_si=proj[idg0].pos[ga_so];
+				  for(int ga_so=0;ga_so<NDIRAC;ga_so++)
+				    for(int idg0=0;idg0<2;idg0++)
+				      {
+					int ga_si=proj[idg0].pos[ga_so];
 					
-		      // 			int isign=0;
-		      // 			crash("#warning reimplement ((sign[iperm_so]*sign[iperm_si]*sign_idg0(t,idg0))==+1);");
+					int isign=((sign[iperm_so]*sign[iperm_si]*sign_idg0(t,idg0))==+1);
 					
-		      // 			for(int iWick=0;iWick<2;iWick++)
-		      // 			  {
-		      // 			    // const int sp1_si=(iWick==0)?al_si:ga_si;
-		      // 			    // const int sp3_si=(iWick==0)?ga_si:al_si;
+					for(int iWick=0;iWick<2;iWick++)
+					  {
+					    const int sp1_si=(iWick==0)?al_si:ga_si;
+					    const int sp3_si=(iWick==0)?ga_si:al_si;
 					    
-		      // 			    // const int co1_si=(iWick==0)?a_si:c_si;
-		      // 			    // const int co3_si=(iWick==0)?c_si:a_si;
+					    const int co1_si=(iWick==0)?a_si:c_si;
+					    const int co3_si=(iWick==0)?c_si:a_si;
 					    
-		      // 			    complex AC;
-		      // 			    // unsafe_complex_prod(AC,p1[co1_si][a_so][sp1_si][al_so],p3[co3_si][c_so][sp3_si][ga_so]);
-		      // 			    list_fun[isign](AC_proj[idg0][iWick],AC,proj[idg0].entr[ga_so]);
-		      // 			  }
-		      // 		      }
-		      // 		}
+					    complex AC;
+					    unsafe_complex_prod(AC,p1[co1_si][a_so][sp1_si][al_so],p3[co3_si][c_so][sp3_si][ga_so]);
+					    list_fun[isign](AC_proj[idg0][iWick],AC,proj[idg0].entr[ga_so]);
+					  }
+				      }
+				}
 			    
-		    // 	    for(int idg0=0;idg0<2;idg0++)
-		    // 	      for(int iWick=0;iWick<2;iWick++)
-		    // 		{
-		    // 		  complex term;
-		    // 		  unsafe_complex_prod(term,AC_proj[idg0][iWick],fact[al_si][al_so]);
-		    // 		  // complex_summ_the_prod(loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)],term,p2[b_si][b_so][be_si][be_so]);
-		    // 		}
-		    // 	  }
-		    // }
+			    for(int idg0=0;idg0<2;idg0++)
+			      for(int iWick=0;iWick<2;iWick++)
+				{
+				  complex term;
+				  unsafe_complex_prod(term,AC_proj[idg0][iWick],fact[al_si][al_so]);
+				  complex_summ_the_prod(loc_contr[ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],t)],term,p2[b_si][b_so][be_si][be_so]);
+				}
+			  }
+		    }
 	      }
 	    NISSA_PARALLEL_LOOP_END;
 	  }
