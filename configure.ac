@@ -166,6 +166,14 @@ AM_CONDITIONAL([USE_CUDA_THREADS], [test x$with_threads_type = xcuda])
 AC_DEFINE_UNQUOTED([THREADS_TYPE],${THREADS_TYPE},[Kind of thread parallelization])
 AC_DEFINE_UNQUOTED([CUDA_MANAGED],${CUDA_MANAGED},[Whether to use managed memory])
 AC_DEFINE_UNQUOTED([CUDA_HOST_AND_DEVICE],${CUDA_HOST_AND_DEVICE},[Whether to duplicate functions for host and device])
+AH_VERBATIM([COMPILING_FOR_DEVICE],
+#ifdef __CUDA_ARCH__
+ 
+ /// A convenient macro to detect that we are compiling on device
+# define COMPILING_FOR_DEVICE
+ 
+#endif
+)
 AC_MSG_RESULT([with threads type... ${with_threads_type}])
 SUMMARY_RESULT="$SUMMARY_RESULT
 threads type            : $with_threads_type"
