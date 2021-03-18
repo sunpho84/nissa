@@ -33,7 +33,7 @@ namespace nissa
   {return a+b;}
   
   template <class T>
-  T nissa_max(T a,T b)
+  T nissa_max(const T& a,const T& b)
   {
     return std::max(a,b);
   }

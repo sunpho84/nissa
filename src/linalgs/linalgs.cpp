@@ -5,6 +5,9 @@
 #include <string.h>
 #include <math.h>
 
+#define EXTERN_LINALGS
+ #include <linalgs/linalgs.hpp>
+
 #include "communicate/communicate.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
@@ -126,37 +129,12 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  int64_t reducing_buffer_size=0;
-  CUDA_MANAGED void *reducing_buffer=nullptr;
-  
-  template <typename T>
-  T* get_reducing_buffer(const int64_t n)
-  {
-    int64_t required_size=sizeof(T)*n;
-    if(reducing_buffer_size<n)
-      {
-	if(reducing_buffer!=nullptr)
-	  nissa_free(reducing_buffer);
-	
-	reducing_buffer_size=0;
-      }
-    
-    if(reducing_buffer==nullptr)
-      {
-	reducing_buffer=nissa_malloc("reducing_buffer",required_size,char);
-	reducing_buffer_size=required_size;
-      }
-    
-    return (T*)reducing_buffer;
-  }
-  
   //scalar product
   THREADABLE_FUNCTION_4ARG(double_vector_glb_scalar_prod, double*,glb_res, double*,a, double*,b, int,n)
   {
     GET_THREAD_ID();
     
-    //master_printf("WARNING not reproducible and not parallelized!\n");
-    
+    crash("");
     double *reducing_buffer=get_reducing_buffer<double>(n);
     
     NISSA_PARALLEL_LOOP(i,0,n)
@@ -320,7 +298,7 @@ namespace nissa
   //complex version
   THREADABLE_FUNCTION_3ARG(complex_vector_glb_collapse, double*,glb_res, complex*,a, int,n)
   {
-    master_printf("WARNING not reproducible and not parallelized!\n");
+    crash("WARNING not reproducible and not parallelized!\n");
     
     complex loc_res;
     

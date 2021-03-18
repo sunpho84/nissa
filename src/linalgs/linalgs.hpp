@@ -1,11 +1,19 @@
 #ifndef _LINALGS_HPP
 #define _LINALGS_HPP
 
+#include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/su3.hpp"
 #include "threads/threads.hpp"
+
+#ifndef EXTERN_LINALGS
+ #define EXTERN_LINALGS extern
+ #define INIT_LINALGS_TO(...)
+#else
+ #define INIT_LINALGS_TO(...) __VA_ARGS__
+#endif
 
 namespace nissa
 {
@@ -110,6 +118,33 @@ namespace nissa
   void rotate_vol_su3spinspin_to_physical_basis(su3spinspin *s,int rsi,int rso);
   void quad_su3_nissa_to_ildg_reord_in_place(quad_su3 *conf);
   void quad_su3_ildg_to_nissa_reord_in_place(quad_su3 *conf);
+  
+  EXTERN_LINALGS int64_t reducing_buffer_size INIT_LINALGS_TO(=0);
+  EXTERN_LINALGS CUDA_MANAGED void *reducing_buffer INIT_LINALGS_TO(=nullptr);
+  
+  template <typename T>
+  T* get_reducing_buffer(const int64_t n)
+  {
+    int64_t required_size=sizeof(T)*n;
+    if(reducing_buffer_size<n)
+      {
+	if(reducing_buffer!=nullptr)
+	  nissa_free(reducing_buffer);
+	
+	reducing_buffer_size=0;
+      }
+    
+    if(reducing_buffer==nullptr)
+      {
+	reducing_buffer=nissa_malloc("reducing_buffer",required_size,char);
+	reducing_buffer_size=required_size;
+      }
+    
+    return (T*)reducing_buffer;
+  }
 }
+
+#undef EXTERN_LINALGS
+#undef INIT_LINALGS_TO
 
 #endif

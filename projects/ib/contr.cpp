@@ -135,12 +135,12 @@ namespace nissa
 			  for(int ispat=0;ispat<loc_spat_vol;ispat++)
 			    {
 			      int ivol=loc_t*loc_spat_vol+ispat;
-			      //int t=rel_time_of_loclx(ivol);
+			      int t=rel_time_of_loclx(ivol);
 			      
 			      complex c={0,0};
 			      for(int a=0;a<NCOL;a++)
 				complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			      crash("complex_summ_the_prod(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);");
+			      complex_summ_the_prod(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
 			    }
 			NISSA_PARALLEL_LOOP_END;
 		      }
@@ -170,7 +170,7 @@ namespace nissa
     contr_print_time-=take_time();
     
     //reduce and normalise
-    crash("#warning reimplement glb_nodes_reduce_complex_vect(mes2pts_contr,mes2pts_contr_size);");
+    glb_nodes_reduce_complex_vect(mes2pts_contr,mes2pts_contr_size);
     for(int i=0;i<mes2pts_contr_size;i++) complex_prodassign_double(mes2pts_contr[i],1.0);
     
     //list to open or append

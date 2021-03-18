@@ -45,6 +45,9 @@
 
 namespace nissa
 {
+  double *glb_threads_reduce_double_vect(double *vect,int nel);
+  inline complex *glb_threads_reduce_complex_vect(complex *vect,int nel)
+  {return (complex*)glb_threads_reduce_double_vect((double*)vect,2*nel);}
 }
 
 #endif
