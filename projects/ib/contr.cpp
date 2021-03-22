@@ -108,6 +108,8 @@ namespace nissa
 	    int ig_si=mes_gamma_list[ihadr_contr].si;
 	    if(nso_spi==1 and ig_so!=5) crash("implemented only g5 contraction on the source for non-diluted source");
 	    
+	    vector_reset(loc_contr);
+	    
 	    for(int i=0;i<nso_spi;i++)
 	      {
 		int j=(base_gamma+ig_so)->pos[i];
@@ -120,35 +122,37 @@ namespace nissa
 		    spincolor *q1=Q1[so_sp_col_ind(j,b)];
 		    spincolor *q2=Q2[so_sp_col_ind(i,b)];
 		    
-		    for(int k=0;k<NDIRAC;k++)
+		    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		      {
-			int l=(base_gamma+ig_si)->pos[k];
-			
-			//compute AB*norm
-			complex B;
-			unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
-			complex AB;
-			unsafe_complex_prod(AB,A,B);
-			if(normalize) complex_prodassign_double(AB,norm);
-			
-			NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
-			  for(int ispat=0;ispat<loc_spat_vol;ispat++)
-			    {
-			      int ivol=loc_t*loc_spat_vol+ispat;
-			      int t=rel_time_of_loclx(ivol);
-			      
-			      complex c={0,0};
-			      for(int a=0;a<NCOL;a++)
-				complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			      complex_summ_the_prod(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,t)],c,AB);
-			    }
-			NISSA_PARALLEL_LOOP_END;
+			for(int k=0;k<NDIRAC;k++)
+			  {
+			    int l=(base_gamma+ig_si)->pos[k];
+			    
+			    //compute AB*norm
+			    complex B;
+			    unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
+			    complex AB;
+			    unsafe_complex_prod(AB,A,B);
+			    if(normalize) complex_prodassign_double(AB,norm);
+			    
+			    complex c={0,0};
+			    for(int a=0;a<NCOL;a++)
+			      complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
+			    complex_summ_the_prod(loc_contr[ivol],c,AB);
+			  }
 		      }
+		    NISSA_PARALLEL_LOOP_END;
 		  }
 	      }
+	    
+	    THREAD_BARRIER();
+	    complex temp_contr[glb_size[0]];
+	    _vector_glb_reduce(temp_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],loc_coord_of_loclx[0][0]);
+	    
+	    for(int t=0;t<glb_size[0];t++)
+	      complex_copy(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glb_size[0]-source_coord[0])%glb_size[0])],temp_contr[t]);
 	  }
       }
-    THREAD_BARRIER();
     
     //stats
     if(IS_MASTER_THREAD)

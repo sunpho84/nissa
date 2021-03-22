@@ -340,6 +340,8 @@ void init_simulation(int narg,char **arg)
   allocate_loop_source();
   allocate_photon_fields();
   
+  loc_contr=nissa_malloc("loc_contr",loc_vol,complex);
+  
   allocate_mes2pts_contr();
   allocate_handcuffs_contr();
   
@@ -367,6 +369,8 @@ void close()
   
   free_mes2pts_contr();
   free_handcuffs_contr();
+  
+  nissa_free(loc_contr);
   
   nissa_free(meslep_hadr_part);
   nissa_free(meslep_contr);

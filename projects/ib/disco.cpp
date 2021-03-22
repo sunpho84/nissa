@@ -44,6 +44,7 @@ spincolor* &source(const int t)
   return source_ptr[t];
 }
 
+complex* loc_contr;
 complex* temp_contr;
 
 int iconf=0;
@@ -530,6 +531,7 @@ void init_simulation(int narg,char **arg)
   
   temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   
+  loc_contr=nissa_malloc("loc_contr",loc_vol,complex);
   temp_contr=nissa_malloc("temp_contr",glb_size[0],complex);
   
   prop_ptr=nissa_malloc("prop_ptr",2*glb_size[0],spincolor*);
@@ -581,6 +583,7 @@ void close()
   nissa_free(source_ptr);
   nissa_free(temp);
   nissa_free(temp_contr);
+  nissa_free(loc_contr);
 }
 
 //check if asked to stop or restart
@@ -789,23 +792,21 @@ THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2,
 {
   GET_THREAD_ID();
   
-  vector_reset(conn_contr);
+  vector_reset(loc_contr);
   
-  NISSA_PARALLEL_LOOP(locT,0,loc_size[0])
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
-      const int glbTshifted=(rank_coord[0]*loc_size[0]+locT-glbT+glb_size[0])%glb_size[0];
-      for(int ivol=loc_spat_vol*locT;ivol<loc_spat_vol*(locT+1);ivol++)
-	{
-	  complex s;
-	  spincolor gs;
-	  unsafe_dirac_prod_spincolor(gs,gamma,prop(glbT,r2)[ivol]);
-	  spincolor_scalar_prod(s,prop(glbT,r1)[ivol],gs);
-	  complex_summassign(conn_contr[glbTshifted],s);
-	}
+      spincolor gs;
+      unsafe_dirac_prod_spincolor(gs,gamma,prop(glbT,r2)[ivol]);
+      spincolor_scalar_prod(loc_contr[ivol],prop(glbT,r1)[ivol],gs);
     }
   THREADABLE_FUNCTION_END;
   
-  MPI_Allreduce(MPI_IN_PLACE,conn_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  complex glb_contr[glb_size[0]];
+  _vector_glb_reduce(glb_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],glb_coord_of_loclx[0][0]);
+  
+  for(int t=0;t<glb_size[0];t++)
+    complex_summassign(conn_contr[t],glb_contr[(t+glb_size[0]-glbT)%glb_size[0]]);
 }
 THREADABLE_FUNCTION_END
 
