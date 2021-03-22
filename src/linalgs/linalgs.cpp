@@ -1,3 +1,4 @@
+#include "linalgs/reduce.hpp"
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
@@ -5,11 +6,10 @@
 #include <string.h>
 #include <math.h>
 
-#define EXTERN_LINALGS
- #include <linalgs/linalgs.hpp>
 
 #include "communicate/communicate.hpp"
 #include "base/vectors.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/float_128.hpp"
@@ -134,57 +134,27 @@ namespace nissa
   {
     GET_THREAD_ID();
     
- #ifndef REPRODUCIBLE_RUN
+#ifndef REPRODUCIBLE_RUN
     double *reducing_buffer=get_reducing_buffer<double>(n);
-    
-    NISSA_PARALLEL_LOOP(i,0,n)
-      reducing_buffer[i]=a[i]*b[i];
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
-    
-    while(n>1)
-      {
-	int64_t stride=(n+1)/2;
-	
-	NISSA_PARALLEL_LOOP(i,0,stride)
-	  {
-	    int64_t oth=i+stride;
-	    if(oth<n)
-	      reducing_buffer[i]+=reducing_buffer[oth];
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	THREAD_BARRIER();
-	n=stride;
-      }
-    
-    *glb_res=MPI_reduce_double(reducing_buffer[0]);
-    
 #else
     float_128 *reducing_buffer=get_reducing_buffer<float_128>(n);
+#endif
     
     NISSA_PARALLEL_LOOP(i,0,n)
+#ifndef REPRODUCIBLE_RUN
+      reducing_buffer[i]=a[i]*b[i];
+#else
       float_128_from_64(reducing_buffer[i],a[i]*b[i]);
+#endif
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    while(n>1)
-      {
-	int64_t stride=(n+1)/2;
-	
-	NISSA_PARALLEL_LOOP(i,0,stride)
-	  {
-	    int64_t oth=i+stride;
-	    if(oth<n)
-	      float_128_summassign(reducing_buffer[i],reducing_buffer[oth]);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	THREAD_BARRIER();
-    n=stride;
-      }
-    
-    float_128 temp=MPI_reduce_float_128(reducing_buffer[0]);
+#ifndef REPRODUCIBLE_RUN
+    _vector_glb_reduce(glb_res,reducing_buffer,n);
+#else
+    float_128 temp;
+    _vector_glb_reduce(&temp,reducing_buffer,n);
     *glb_res=temp[0];
-    
 #endif
   }
   THREADABLE_FUNCTION_END
@@ -244,28 +214,29 @@ namespace nissa
   //summ all points
   THREADABLE_FUNCTION_3ARG(double_vector_glb_collapse, double*,glb_res, double*,a, int,n)
   {
-    crash("not working");
-// #ifndef REPRODUCIBLE_RUN
-//     //perform thread summ
-//     double loc_thread_res=0;
-//     GET_THREAD_ID();
-//     NISSA_PARALLEL_LOOP(i,0,n)
-//       loc_thread_res+=a[i];
-//     NISSA_PARALLEL_LOOP_END;
+#ifndef REPRODUCIBLE_RUN
+    double* reducing_buf=get_reducing_buffer<double>(n);
+#else
+    float_128* reducing_buf=get_reducing_buffer<float_128>(n);
+#endif
     
-//     (*glb_res)=glb_reduce_double(loc_thread_res);
-// #else
-//     //perform thread summ
-//     float_128 loc_thread_res={0,0};
-//     GET_THREAD_ID();
-//     NISSA_PARALLEL_LOOP(i,0,n)
-//       float_128_summassign_64(loc_thread_res,a[i]);
-//     NISSA_PARALLEL_LOOP_END;
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(i,0,n)
+#ifndef REPRODUCIBLE_RUN
+      reducing_buf[i]=a[i];
+#else
+      float_128_from_64(reducing_buf[i],a[i]);
+#endif
+    NISSA_PARALLEL_LOOP_END;
+    THREAD_BARRIER();
     
-//     float_128 temp;
-//     glb_reduce_float_128(temp,loc_thread_res);
-//     (*glb_res)=temp[0];
-// #endif
+#ifndef REPRODUCIBLE_RUN
+    _vector_glb_reduce((double*)&glb_res,reducing_buf,n);
+#else
+    float_128 temp;
+    _vector_glb_reduce(temp,reducing_buf,n);
+    *glb_res=temp[0];
+#endif
   }
   THREADABLE_FUNCTION_END
   
@@ -273,62 +244,29 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(complex_vector_glb_collapse, double*,glb_res, complex*,a, int,n)
   {
 #ifndef REPRODUCIBLE_RUN
-    
     complex* reducing_buf=get_reducing_buffer<complex>(n);
-    GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(i,0,n)
-      complex_copy(reducing_buf[i],a[i]);
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
-    
-    while(n>1)
-      {
-	int64_t stride=(n+1)/2;
-	
-	NISSA_PARALLEL_LOOP(i,0,stride)
-	  {
-	    int64_t oth=i+stride;
-	    if(oth<n)
-	      complex_summassign(reducing_buf[i],reducing_buf[oth]);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	THREAD_BARRIER();
-	n=stride;
-      }
-    
-    MPI_Allreduce(reducing_buf[0],glb_res,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    
 #else
-    
     complex_128* reducing_buf=get_reducing_buffer<complex_128>(n);
+#endif
+    
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(i,0,n)
+#ifndef REPRODUCIBLE_RUN
+      complex_copy(reducing_buf[i],a[i]);
+#else
       complex_128_from_64(reducing_buf[i],a[i]);
+#endif
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    while(n>1)
-      {
-	int64_t stride=(n+1)/2;
-	
-	NISSA_PARALLEL_LOOP(i,0,stride)
-	  {
-	    int64_t oth=i+stride;
-	    if(oth<n)
-	      complex_128_summassign(reducing_buf[i],reducing_buf[oth]);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	THREAD_BARRIER();
-	n=stride;
-      }
-    
-    complex_128 temp;
-    MPI_reduce_complex_128(temp,reducing_buf[0]);
-    
+#ifndef REPRODUCIBLE_RUN
+    _vector_glb_reduce((complex*)&glb_res,reducing_buf,n);
+#else
+    float_128 temp;
+    _vector_glb_reduce(temp,reducing_buf,n);
     for(int ri=0;ri<2;ri++)
-      glb_res[ri]=temp[ri][0];
-    
- #endif
+      (*glb_res)[ri]=temp[ri][0];
+#endif
   }
   THREADABLE_FUNCTION_END
   

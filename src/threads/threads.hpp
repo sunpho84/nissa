@@ -48,6 +48,11 @@ namespace nissa
   double *glb_threads_reduce_double_vect(double *vect,int nel);
   inline complex *glb_threads_reduce_complex_vect(complex *vect,int nel)
   {return (complex*)glb_threads_reduce_double_vect((double*)vect,2*nel);}
+  
+  void _vector_loc_reduce(double* loc_res,double* buf,int64_t n,int nslices=1);
+  void _vector_loc_reduce(float_128* loc_res,float_128* buf,int64_t n,int nslices=1);
+  void _vector_loc_reduce(complex* loc_res,complex* buf,int64_t n,int nslices=1);
+  void _vector_loc_reduce(complex_128* loc_res,complex_128* buf,int64_t n,int nslices=1);
 }
 
 #endif

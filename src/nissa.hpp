@@ -129,6 +129,7 @@
 #include "io/writer.hpp"
 
 #include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 
 #include "measures/contract/mesons_2pts.hpp"
 #include "measures/contract/mesons_eight.hpp"

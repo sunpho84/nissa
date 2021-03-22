@@ -21,6 +21,7 @@ namespace nissa
   
   //basic mpi types
   EXTERN_MPI MPI_Datatype MPI_FLOAT_128;
+  EXTERN_MPI MPI_Datatype MPI_COMPLEX_128;
   EXTERN_MPI MPI_Datatype MPI_SU3;
   EXTERN_MPI MPI_Datatype MPI_QUAD_SU3;
   EXTERN_MPI MPI_Datatype MPI_AS2T_SU3;
@@ -32,6 +33,7 @@ namespace nissa
   EXTERN_MPI MPI_Datatype MPI_REDSPINCOLOR;
   //float 128 summ
   EXTERN_MPI MPI_Op MPI_FLOAT_128_SUM;
+  EXTERN_MPI MPI_Op MPI_COMPLEX_128_SUM;
   
   EXTERN_MPI MPI_Datatype MPI_LX_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
   EXTERN_MPI MPI_Datatype MPI_LX_AS2T_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_AS2T_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
@@ -45,6 +47,51 @@ namespace nissa
   EXTERN_MPI MPI_Comm line_comm[NDIM];
   
   EXTERN_MPI int master_rank INIT_MPI_TO(=0);
+  
+#define DEFINE_MPI_DATATYPE_OF(T,MPI_T)		\
+  /*! MPI Datatype corresponding to T */	\
+  inline MPI_Datatype _MPI_Datatype_of(T*)	\
+  {						\
+    return MPI_T;				\
+  }
+  
+  DEFINE_MPI_DATATYPE_OF(double,MPI_DOUBLE)
+  DEFINE_MPI_DATATYPE_OF(complex,MPI_DOUBLE_COMPLEX)
+  DEFINE_MPI_DATATYPE_OF(float_128,MPI_FLOAT_128)
+  DEFINE_MPI_DATATYPE_OF(complex_128,MPI_COMPLEX_128)
+  
+  /// Instantiates the correct datatype, given the type
+  template <typename T>
+  MPI_Datatype MPI_Datatype_of()
+  {
+    return _MPI_Datatype_of((T*)nullptr);
+  }
+  
+  /// Provides the correct operation for summing
+  template <typename T>
+  struct _MPI_Op_dispatcher
+  {
+    static MPI_Op sum()
+    {
+      return MPI_SUM;
+    }
+  };
+  
+#define DEFINE_MPI_OP_DISPATCHER(TYPE,OP)	\
+  /*! Provides the correct operation for TYPE */\
+  template <>					\
+  struct _MPI_Op_dispatcher<TYPE>		\
+  {						\
+    static MPI_Op sum()				\
+    {						\
+      return OP;				\
+    }						\
+  }
+  
+  DEFINE_MPI_OP_DISPATCHER(float_128,MPI_FLOAT_128_SUM);
+  DEFINE_MPI_OP_DISPATCHER(complex_128,MPI_COMPLEX_128_SUM);
+  
+#undef DEFINE_MPI_OP_DISPATCHER
   
   size_t MPI_Get_count_size_t(MPI_Status &status);
   void coords_broadcast(coords c);
@@ -81,16 +128,6 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   //reduce a double
-  inline double MPI_reduce_double(double in_loc,MPI_Op mpi_op=MPI_SUM)
-  {
-    double out_glb;
-    
-    MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,mpi_op,MPI_COMM_WORLD);
-    
-    return out_glb;
-  }
-  
-  //reduce a double
   inline float MPI_reduce_single(float in_loc)
   {
     float out_glb;
@@ -110,47 +147,28 @@ namespace nissa
     return out_glb;
   }
   
-  //reduce a complex
-  inline void MPI_reduce_complex(complex out_glb,complex in_loc)
+  //reduce a vector
+  template <typename T>
+  inline void MPI_reduce_vect(T* out_glb,T* in_loc=nullptr,const int n=1,MPI_Op mpi_op=MPI_SUM)
   {
-    MPI_Allreduce(in_loc,out_glb,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  }
-  
-  //reduce a float_128
-  inline float_128 MPI_reduce_float_128(const float_128& in_loc)
-  {
-    float_128 out_glb;
+    if(in_loc==nullptr)
+      in_loc=(T*)MPI_IN_PLACE;
     
-    MPI_Allreduce(&in_loc,&out_glb,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
-    
-    return out_glb;
+    MPI_Allreduce(in_loc,out_glb,n,MPI_Datatype_of<T>(),mpi_op,MPI_COMM_WORLD);
   }
   
-  //reduce a complex 128
-  inline void MPI_reduce_complex_128(complex_128 out_glb,complex_128 in_loc)
+  //reduce
+  template <typename T>
+  inline void MPI_reduce(T* out_glb,T* in_loc,MPI_Op mpi_op=_MPI_Op_dispatcher<T>::sum())
   {
-    MPI_Allreduce(in_loc,out_glb,2,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+    MPI_reduce_vect(out_glb,in_loc,1,mpi_op);
   }
   
-  //reduce a double vector
-  inline void MPI_reduce_double_vect(double *out_glb,double *in_loc,int nel)
+  //reduce
+  template <typename T>
+  inline void MPI_reduce(T* out_glb,MPI_Op mpi_op=_MPI_Op_dispatcher<T>::sum())
   {
-    MPI_Allreduce(in_loc,out_glb,nel,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  }
-  
-  inline void MPI_reduce_double_vect(double *vect,int nel)
-  {
-    MPI_reduce_double_vect(vect,(double*)MPI_IN_PLACE,nel);
-  }
-  
-  inline void MPI_reduce_complex_vect(complex *out_glb,complex *in_loc,int nel)
-  {
-    MPI_reduce_double_vect(out_glb[0],in_loc[0],2*nel);
-  }
-  
-  inline void MPI_reduce_complex_vect(complex *vect,int nel)
-  {
-    MPI_reduce_double_vect(vect[0],2*nel);
+    MPI_reduce_vect(out_glb,nullptr,1,mpi_op);
   }
   
   void glb_nodes_reduce_double_vect(double *out_glb,double *in_loc,int nel);

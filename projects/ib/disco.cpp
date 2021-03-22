@@ -1,6 +1,7 @@
 #include "nissa.hpp"
 
 #include <random>
+#include <tuple>
 
 using namespace nissa;
 
@@ -950,6 +951,19 @@ void analyzeConf()
 				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][RE]/glb_size[0],
 				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][IM]/glb_size[0]);
 	      }
+      
+      //Print P5P5_0S
+      for(int rb=0;rb<2;rb++)
+	for(int r1f=0;r1f<2;r1f++)
+	  for(int r2f=0;r2f<2;r2f++)
+	    {
+	      master_fprintf(P5P5_0S_contr_file,"\n# hit %d , rb %d , r1f %d , r2f %d\n\n",ihit,rb,r1f,r2f);
+	      for(int t=0;t<glb_size[0];t++)
+		master_fprintf(P5P5_0S_contr_file,"%.16lg %.16lg\n",
+			       P5P5_0S_contr[rb][r1f][r2f][t][RE]/glb_size[0],
+			       P5P5_0S_contr[rb][r1f][r2f][t][IM]/glb_size[0]);
+	    }
+      
       P5P5_with_ins_time+=take_time();
       
       //Compute and print P5P5

@@ -105,7 +105,7 @@ namespace nissa
       }
     
     glb_threads_reduce_double_vect((double*)loc_corr,2*ncorr_kind*glb_size[0]);
-    if(IS_MASTER_THREAD) MPI_reduce_complex_vect(corr,loc_corr,ncorr_kind*glb_size[0]);
+    if(IS_MASTER_THREAD) MPI_reduce_vect(corr,loc_corr,ncorr_kind*glb_size[0]);
     
     delete [] loc_corr;
     
