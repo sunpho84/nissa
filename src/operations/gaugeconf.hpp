@@ -17,7 +17,7 @@ namespace nissa
   //results of a unitarity check
   struct unitarity_check_result_t
   {
-    int nbroken_links;
+    std::int64_t nbroken_links;
     double average_diff;
     double max_diff;
     

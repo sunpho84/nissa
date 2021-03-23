@@ -49,6 +49,18 @@ namespace nissa
   namespace
   {
     /// Implement oth=first
+    inline void int64_t_copy(int64_t& oth,const int64_t& first)
+    {
+      oth=first;
+    }
+    
+    /// Implement oth+=first
+    inline void int64_t_summassign(int64_t& oth,const int64_t& first)
+    {
+      oth+=first;
+    }
+    
+    /// Implement oth=first
     inline void double_copy(double& oth,const double& first)
     {
       oth=first;
@@ -61,6 +73,7 @@ namespace nissa
     }
   }
   
+  DEFINE_LOC_REDUCE_OF(int64_t)
   DEFINE_LOC_REDUCE_OF(double)
   DEFINE_LOC_REDUCE_OF(complex)
   DEFINE_LOC_REDUCE_OF(float_128)

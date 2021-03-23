@@ -223,25 +223,32 @@ namespace nissa
   //perform a unitarity check on a lx conf
   void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
   {
-    crash("#warning reimplement");
-    // //results
-    // double loc_avg=0,loc_max=0,loc_nbroken=0;
+    //results
+    double* loc_avg=nissa_malloc("loc_avg",loc_vol,double);
+    double* loc_max=nissa_malloc("loc_max",loc_vol,double);
+    int64_t* loc_nbroken=nissa_malloc("loc_nbroken",loc_vol,int64_t);
     
-    // NISSA_LOC_VOL_LOOP(ivol)
-    //   for(int idir=0;idir<NDIM;idir++)
-    // 	{
-    // 	  double err=su3_get_non_unitariness(conf[ivol][idir]);
+    NISSA_LOC_VOL_LOOP(ivol)
+      for(int idir=0;idir<NDIM;idir++)
+	{
+	  const double err=su3_get_non_unitariness(conf[ivol][idir]);
 	  
-    // 	  //compute average and max deviation
-    // 	  loc_avg+=err;
-    // 	  loc_max=std::max(err,loc_max);
-    // 	  if(err>1e-13) loc_nbroken+=1;
-    // 	}
+	  //compute average and max deviation
+	  loc_avg[ivol]=err;
+	  loc_max[ivol]=err;
+	  loc_nbroken[ivol]=(err>1e-13);
+	}
     
-    // //take global average and print
-    // result.average_diff=glb_reduce_double(loc_avg)/glb_vol/NDIM;
-    // result.max_diff=glb_max_double(loc_max);
-    // result.nbroken_links=(int)glb_max_double(loc_nbroken);
+    glb_reduce(&result.average_diff,loc_avg,loc_vol);
+    result.average_diff/=glb_vol*NDIM;
+    
+    master_printf("Warning, max is undefined\n");
+    //glb_reduce(&result.max_diff,loc_max,loc_vol,max_to_be_implemented);
+    glb_reduce(&result.nbroken_links,loc_nbroken,loc_vol);
+    
+    nissa_free(loc_avg);
+    nissa_free(loc_max);
+    nissa_free(loc_nbroken);
   }
   
   //unitarize an a lx conf

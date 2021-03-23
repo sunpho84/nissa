@@ -24,10 +24,10 @@ namespace nissa
   
   /// Get the reduction buffer
   template <typename T>
-  T* get_reducing_buffer(const int64_t n)
+  T* get_reducing_buffer(const int64_t& n)
   {
-    int64_t required_size=sizeof(T)*n;
-    if(reducing_buffer_size<n)
+    const int64_t required_size=sizeof(T)*n;
+    if(reducing_buffer_size<required_size)
       {
 	if(reducing_buffer!=nullptr)
 	  nissa_free(reducing_buffer);
@@ -51,6 +51,7 @@ namespace nissa
   
   void deallocate_reduction_buffer();
   
+  void loc_reduce(int64_t* loc_res,int64_t* buf,int64_t n,int nslices=1);
   void loc_reduce(double* loc_res,double* buf,int64_t n,int nslices=1);
   void loc_reduce(complex* loc_res,complex* buf,int64_t n,int nslices=1);
 #ifdef REPRODUCIBLE_RUN

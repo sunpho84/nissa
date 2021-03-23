@@ -283,7 +283,8 @@ namespace nissa
   {
     backfield.resize(nflavs());
     for(int iflav=0;iflav<nflavs();iflav++)
-      for(int par=0;par<2;par++) backfield[iflav][par]=nissa_malloc("back_eo",loc_volh,quad_u1);
+      for(int par=0;par<2;par++)
+	backfield[iflav][par]=nissa_malloc("back_eo",loc_volh,quad_u1);
   }
   
   //set the background fields
@@ -311,6 +312,7 @@ namespace nissa
   void theory_pars_t::destroy_backfield()
   {
     for(int iflav=0;iflav<nflavs();iflav++)
-      nissa_free(backfield[iflav]);
+      for(int par=0;par<2;par++)
+	nissa_free(backfield[iflav][par]);
   }
 }
