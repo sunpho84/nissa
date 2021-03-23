@@ -1626,9 +1626,6 @@ void in_main(int narg,char **arg)
   /////////////////////////////////////// timings /////////////////////////////////
   
   print_stat("apply non vectorized staggered operator",portable_stD_app_time,nportable_stD_app,1158*loc_volh);
-#ifdef BGQ
-  print_stat("apply vectorized staggered operator",bgq_stdD_app_time,nbgq_stdD_app,1158*loc_volh);
-#endif
   print_stat("cgm invert (overhead)",cgm_inv_over_time,ncgm_inv);
   print_stat("cg invert (overhead)",cg_inv_over_time,ncg_inv);
   print_stat("stout smearing",sto_time,nsto);
