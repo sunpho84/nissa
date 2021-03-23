@@ -7,6 +7,7 @@
 #include "communicate/borders.hpp"
 #include "communicate/edges.hpp"
 #include "geometry/geometry_eo.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
@@ -356,7 +357,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    double_vector_glb_collapse(energy,loc_energy,loc_vol);
+    glb_reduce(energy,loc_energy,loc_vol);
     
     nissa_free(loc_energy);
   }

@@ -102,10 +102,6 @@ namespace nissa
   void create_MPI_cartesian_grid();
   void ranks_abort(int err);
   void ranks_barrier();
-  float glb_reduce_single(float in_loc);
-  double glb_reduce_double(double in_loc,double (*thread_op)(const double&,const double&)=summ<double>,MPI_Op mpi_op=MPI_SUM);
-  inline double glb_max_double(double in_loc)
-  {return glb_reduce_double(in_loc,nissa_max,MPI_MAX);}
   int broadcast(int in,int rank_from=0);
   void broadcast(rat_approx_t *rat,int rank_from=0);
   double broadcast(double in,int rank_from=0);
@@ -124,65 +120,6 @@ namespace nissa
   }
   
   std::string MPI_get_processor_name();
-  
-  /////////////////////////////////////////////////////////////////
-  
-  //reduce a double
-  inline float MPI_reduce_single(float in_loc)
-  {
-    float out_glb;
-    
-    MPI_Allreduce(&in_loc,&out_glb,1,MPI_FLOAT,MPI_SUM,MPI_COMM_WORLD);
-    
-    return out_glb;
-  }
-  
-  //reduce an int
-  inline int MPI_reduce_int(int in_loc)
-  {
-    int out_glb;
-    
-    MPI_Allreduce(&in_loc,&out_glb,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-    
-    return out_glb;
-  }
-  
-  //reduce a vector
-  template <typename T>
-  inline void MPI_reduce_vect(T* out_glb,T* in_loc=nullptr,const int n=1,MPI_Op mpi_op=MPI_SUM)
-  {
-    if(in_loc==nullptr)
-      in_loc=(T*)MPI_IN_PLACE;
-    
-    MPI_Allreduce(in_loc,out_glb,n,MPI_Datatype_of<T>(),mpi_op,MPI_COMM_WORLD);
-  }
-  
-  //reduce
-  template <typename T>
-  inline void MPI_reduce(T* out_glb,T* in_loc,MPI_Op mpi_op=_MPI_Op_dispatcher<T>::sum())
-  {
-    MPI_reduce_vect(out_glb,in_loc,1,mpi_op);
-  }
-  
-  //reduce
-  template <typename T>
-  inline void MPI_reduce(T* out_glb,MPI_Op mpi_op=_MPI_Op_dispatcher<T>::sum())
-  {
-    MPI_reduce_vect(out_glb,nullptr,1,mpi_op);
-  }
-  
-  void glb_nodes_reduce_double_vect(double *out_glb,double *in_loc,int nel);
-  inline void glb_nodes_reduce_double_vect(double *vect,int nel)
-  {glb_nodes_reduce_double_vect(vect,(double*)MPI_IN_PLACE,nel);}
-  inline void glb_nodes_reduce_complex_vect(complex *out_glb,complex *in_loc,int nel)
-  {glb_nodes_reduce_double_vect(out_glb[0],in_loc[0],2*nel);}
-  inline void glb_nodes_reduce_complex_vect(complex *vect,int nel)
-  {
-    glb_nodes_reduce_double_vect(vect[0],2*nel);
-  }
-  void glb_reduce_float_128(float_128 out_glb,float_128 in_loc);
-  
-  void glb_reduce_complex_128(complex_128 out_glb,complex_128 in_loc);
 }
 
 #endif

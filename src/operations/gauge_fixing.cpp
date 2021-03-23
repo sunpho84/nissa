@@ -12,6 +12,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/fft.hpp"
@@ -209,7 +210,7 @@ namespace nissa
     
     //collapse
     double F;
-    double_vector_glb_collapse(&F,loc_F,loc_vol);
+    glb_reduce(&F,loc_F,loc_vol);
     if(ext_loc_F==NULL) nissa_free(loc_F);
     
     return F;
@@ -245,7 +246,7 @@ namespace nissa
     
     //global reduction
     double omega;
-    double_vector_glb_collapse(&omega,loc_omega,loc_vol);
+    glb_reduce(&omega,loc_omega,loc_vol);
     nissa_free(loc_omega);
     
     return omega/glb_vol/NCOL;
@@ -532,7 +533,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	double den;
-	double_vector_glb_collapse(&den,accum,loc_vol);
+	glb_reduce(&den,accum,loc_vol);
 	VERBOSITY_MASTER_PRINTF("den: %lg\n",den);
 	
 	//numerator
@@ -547,7 +548,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	double num;
-	double_vector_glb_collapse(&num,accum,loc_vol);
+	glb_reduce(&num,accum,loc_vol);
 	VERBOSITY_MASTER_PRINTF("num: %lg\n",num);
 	
 	//compute beta

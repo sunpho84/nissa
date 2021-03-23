@@ -803,7 +803,7 @@ THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2,
   THREADABLE_FUNCTION_END;
   
   complex glb_contr[glb_size[0]];
-  _vector_glb_reduce(glb_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],glb_coord_of_loclx[0][0]);
+  glb_reduce(glb_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],glb_coord_of_loclx[0][0]);
   
   for(int t=0;t<glb_size[0];t++)
     complex_summassign(conn_contr[t],glb_contr[(t+glb_size[0]-glbT)%glb_size[0]]);

@@ -6,6 +6,7 @@
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/su3.hpp"
 #include "operations/shift.hpp"
 #include "operations/su3_paths/arbitrary.hpp"
@@ -83,7 +84,7 @@ namespace nissa
 	    NISSA_PARALLEL_LOOP_END;
 	    THREAD_BARRIER();
 	    complex small_trace;
-	    complex_vector_glb_collapse(small_trace,loc_res,loc_vol);
+	    glb_reduce(&small_trace,loc_res,loc_vol);
 	    
 	    master_fprintf(fout," ### SMOOTH = ( %d ) , nu = %d , mu = %d , 1/3<trU> = %+16.16lg %+16.16lg\n\n",
 			   imeas,nu,mu,small_trace[RE]/glb_vol/NCOL,small_trace[IM]/glb_vol/NCOL);
@@ -116,7 +117,7 @@ namespace nissa
 		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
 		complex big_trace;
-		complex_vector_glb_collapse(big_trace,loc_res,loc_vol);
+		glb_reduce(&big_trace,loc_res,loc_vol);
 		
 		//elong the big of what needed
 		//ANNA MOVE the big to the center
@@ -147,7 +148,7 @@ namespace nissa
 			      NISSA_PARALLEL_LOOP_END;
 			      //wait and collapse
 			      THREAD_BARRIER();
-			      complex_vector_glb_collapse(conn[dmax+orie*d],loc_res,loc_vol);
+			      glb_reduce(&conn[dmax+orie*d],loc_res,loc_vol);
 			      
 			      //separate trace
 			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -160,7 +161,7 @@ namespace nissa
 			      NISSA_PARALLEL_LOOP_END;
 			      //wait and collapse
 			      THREAD_BARRIER();
-			      complex_vector_glb_collapse(disc[dmax+orie*d],loc_res,loc_vol);
+			      glb_reduce(&disc[dmax+orie*d],loc_res,loc_vol);
 			      
 			      //elong if needed
 			      if(d!=dmax) elong_su3_path(&p,periscoped,lx_conf,rho,-orie,true);

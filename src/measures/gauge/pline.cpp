@@ -12,6 +12,7 @@
 #include "geometry/geometry_mix.hpp"
 #include "io/endianness.hpp"
 #include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/fft.hpp"
@@ -136,7 +137,7 @@ namespace nissa
       
     //compute the trace; since we reduce over all the volume there are glb_size[mu] replica
     complex temp_trace;
-    complex_vector_glb_collapse(temp_trace,point_loop,loc_vol);
+    glb_reduce(&temp_trace,point_loop,loc_vol);
     complex_prod_double(loop_trace,temp_trace,1.0/(3*glb_vol));
     
     //if an appropriate array passed compute correlators of polyakov loop
@@ -163,7 +164,7 @@ namespace nissa
       {
 	//for debugging purpose
 	complex temp_dag_trace;
-	complex_vector_glb_collapse(temp_dag_trace,point_loop_dag,loc_vol);
+	glb_reduce(&temp_dag_trace,point_loop_dag,loc_vol);
 	complex_prod_double(loop_dag_trace,temp_dag_trace,1.0/(3*glb_vol));
 	
 	//transform

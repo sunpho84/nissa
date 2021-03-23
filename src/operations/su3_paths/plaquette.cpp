@@ -12,7 +12,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
-#include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/float_128.hpp"
@@ -89,7 +89,7 @@ namespace nissa
     
     //reduce as complex and normalize
     complex temp;
-    complex_vector_glb_collapse(temp,point_plaq,loc_vol);
+    glb_reduce(&temp,point_plaq,loc_vol);
     for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glb_vol*3*3);
     
     nissa_free(point_plaq);
@@ -117,7 +117,7 @@ namespace nissa
     
     //reduce as complex and normalize
     complex temp;
-    complex_vector_glb_collapse(temp,point_plaq,loc_vol);
+    glb_reduce(&temp,point_plaq,loc_vol);
     for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glb_vol*3*3);
     
     nissa_free(point_plaq);

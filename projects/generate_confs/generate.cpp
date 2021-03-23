@@ -1221,7 +1221,7 @@ double xQ2eex(double kappa,double mass,double cSW)
     nissa_free(Cl[eo]);
   
   double act;
-  double_vector_glb_collapse(&act,loc_act,loc_volh);
+  glb_reduce(&act,loc_act,loc_volh);
   
   nissa_free(loc_act);
   

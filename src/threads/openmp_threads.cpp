@@ -277,11 +277,6 @@ namespace nissa
   //start the master thread, locking all the other threads
   void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg))
   {
-    //initialize reducing buffers
-    openmp_threads_single_reduction_buf=(float*)malloc(nthreads*sizeof(float));
-    openmp_threads_double_reduction_buf=(double*)malloc(nthreads*sizeof(double));
-    openmp_threads_quadruple_reduction_buf=(float_128*)malloc(nthreads*sizeof(float_128));
-    
     //lock the pool
     thread_pool_locked=true;
     cache_flush();
@@ -292,44 +287,8 @@ namespace nissa
     //launch the main function
     main_function(narg,arg);
     
-    //free global reduction buffers
-    free(openmp_threads_single_reduction_buf);
-    free(openmp_threads_double_reduction_buf);
-    free(openmp_threads_quadruple_reduction_buf);
-    
     //exit the thread pool
     thread_pool_stop();
-  }
-  
-  //reduce a double vector among threads
-  double *glb_threads_reduce_double_vect(double *vect,int nel)
-  {
-    GET_THREAD_ID();
-    
-    //fill all the threads pointers
-    double **ptr=nissa_malloc("ptr",NACTIVE_THREADS,double*);
-    ptr[THREAD_ID]=vect;
-    THREAD_BARRIER();
-    
-    //reduce among threads on thread 0
-    for(unsigned int jthread=1;jthread<NACTIVE_THREADS;jthread++)
-      {
-	if(ptr[0]==ptr[jthread]) crash("overlapping vectors for threads %d and 0",jthread);
-	NISSA_PARALLEL_LOOP(iel,0,nel)
-	  ptr[0][iel]+=ptr[jthread][iel];
-	NISSA_PARALLEL_LOOP_END;
-      }
-    
-    //copy to the output
-    for(unsigned int jthread=1;jthread<NACTIVE_THREADS;jthread++)
-      NISSA_PARALLEL_LOOP(iel,0,nel)
-	ptr[jthread][iel]=ptr[0][iel];
-    NISSA_PARALLEL_LOOP_END;
-    
-    //return ptr 0
-    double *ret=ptr[0];
-    nissa_free(ptr);
-    return ret;
   }
   
   //start nissa in a threaded environment, sending all threads but first in the
@@ -348,11 +307,6 @@ namespace nissa
       nthreads=omp_get_num_threads();
       master_printf("Using %u threads\n",nthreads);
       
-      //if BGQ, define appropriate barrier (to be done before sanity check, otherwise cannot barrier!)
-#if defined BGQ && (! defined BGQ_EMU)
-      bgq_barrier_define();
-#endif
-      
       //define delayed thread behavior (also this needed before sanity check, otherwise barrier would fail)
 #if THREAD_DEBUG>=2
       delayed_thread_barrier=(int*)malloc(nthreads*sizeof(int));
@@ -368,63 +322,5 @@ namespace nissa
       else thread_master_start(narg,arg,main_function);
     }
   }
-  
-#define DEFINE_LOC_REDUCE_VECTOR_OF(TYPE)				\
-  /*! Reduce a vector of */						\
-  THREADABLE_FUNCTION_4ARG(_vector_loc_reduce, TYPE*,loc_res, TYPE*,buf, int64_t,n, int,nslices) \
-  {									\
-    GET_THREAD_ID();							\
-									\
-    if(n%nslices)							\
-      crash("number of elements %ld not divisible by number of slices %d",n,nslices); \
-									\
-    const int64_t nori_per_slice=n/nslices;				\
-    int64_t nper_slice=n/nslices;					\
-									\
-    while(nper_slice>1)							\
-      {									\
-	const int64_t stride=(nper_slice+1)/2;				\
-	const int64_t nreductions_per_slice=nper_slice/2;		\
-	const int64_t nreductions=nreductions_per_slice*nslices;	\
-									\
-	NISSA_PARALLEL_LOOP(ireduction,0,nreductions)			\
-	  {								\
-	    const int64_t islice=ireduction%nslices;			\
-	    const int64_t ireduction_in_slice=ireduction/nslices;	\
-	    const int64_t first=ireduction_in_slice+nori_per_slice*islice; \
-	    const int64_t second=first+stride;				\
-									\
-	    TYPE ## _summassign(buf[first],buf[second]);		\
-	  }								\
-	NISSA_PARALLEL_LOOP_END;					\
-	THREAD_BARRIER();						\
-									\
-	nper_slice=stride;						\
-      }									\
-									\
-    for(int islice=0;islice<nslices;islice++)				\
-      NAME2(TYPE,copy)(loc_res[islice],buf[islice*nori_per_slice]);	\
-  }									\
-  THREADABLE_FUNCTION_END
-  
-  namespace
-  {
-    /// Implement oth=first 
-    inline void double_copy(double& oth,const double& first)
-    {
-      oth=first;
-    }
-    
-    /// Implements oth+=first
-    inline void double_summassign(double& oth,const double& first)
-    {
-      oth+=first;
-    }
-  }
-  
-  DEFINE_LOC_REDUCE_VECTOR_OF(double)
-  DEFINE_LOC_REDUCE_VECTOR_OF(complex)
-  DEFINE_LOC_REDUCE_VECTOR_OF(float_128)
-  DEFINE_LOC_REDUCE_VECTOR_OF(complex_128)
 }
 

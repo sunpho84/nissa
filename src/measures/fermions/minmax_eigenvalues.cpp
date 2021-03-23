@@ -6,6 +6,7 @@
 #include "eigenvalues/eigenvalues.hpp"
 #include "eigenvalues/eigenvalues_overlap.hpp"
 #include "geometry/geometry_mix.hpp"
+#include "linalgs/reduce.hpp"
 #include "minmax_eigenvalues.hpp"
 #include "new_types/rat_approx.hpp"
 #include "operations/remez/remez_algorithm.hpp"
@@ -34,7 +35,7 @@ namespace nissa
       NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
       
-      complex_vector_glb_collapse(out,buffer,loc_vol);
+      glb_reduce((complex*)out,buffer,loc_vol);
     }
     THREADABLE_FUNCTION_END
   }

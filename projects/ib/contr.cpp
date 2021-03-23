@@ -72,7 +72,7 @@ namespace nissa
       }
     THREAD_BARRIER();
     
-    complex_vector_glb_collapse(res,loc,loc_vol);
+    glb_reduce((complex*)res,loc,loc_vol);
     
     nissa_free(loc);
   }
@@ -147,7 +147,7 @@ namespace nissa
 	    
 	    THREAD_BARRIER();
 	    complex temp_contr[glb_size[0]];
-	    _vector_glb_reduce(temp_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],glb_coord_of_loclx[0][0]);
+	    glb_reduce(temp_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],glb_coord_of_loclx[0][0]);
 	    
 	    for(int t=0;t<glb_size[0];t++)
 	      complex_copy(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glb_size[0]-source_coord[0])%glb_size[0])],temp_contr[t]);
@@ -948,9 +948,6 @@ namespace nissa
     open_or_append_t list;
     
     contr_print_time-=take_time();
-    
-    //reduce and normalise
-    glb_nodes_reduce_complex_vect(handcuffs_contr,handcuffs_contr_size);
     
     //Open if size different from zero
     FILE *fout=NULL;

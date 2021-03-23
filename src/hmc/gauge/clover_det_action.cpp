@@ -5,7 +5,7 @@
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/su3.hpp"
-#include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "threads/threads.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 #include "hmc/quark_pars.hpp"
@@ -65,7 +65,7 @@ namespace nissa
 	      chromo_operator_remove_cSW(Cl,q.cSW);
 	      
 	      double flav_act;
-	      double_vector_glb_collapse(&flav_act,loc_act,loc_volh);
+	      glb_reduce(&flav_act,loc_act,loc_volh);
 	      
 	      //half volume, all colors, all dirac, norm2. Deg is included below
 	      const double offset=log((1/sqr(2*q.kappa)+sqr(q.mass)))*NCOL*NDIRAC*glb_volh;

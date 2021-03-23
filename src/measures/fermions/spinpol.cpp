@@ -5,7 +5,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "hmc/theory_pars.hpp"
-#include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/complex.hpp"
 #include "measures/fermions/stag.hpp"
 #include "operations/gaugeconf.hpp"
@@ -218,7 +218,7 @@ namespace nissa
 		    if(gauge_ferm_conf) nissa_free(topo_conf);
 		    
 		    //total topological charge
-		    double_vector_glb_collapse(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],loc_vol);
+		    glb_reduce(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],loc_vol);
 		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens[gauge_ferm_conf],loc_vol);
 		  }
 		
@@ -239,14 +239,14 @@ namespace nissa
 			//compute the average tensorial density
 			complex tens;
 			double_vector_prodassign_double((double*)tens_dens,1.0/(glb_vol*nhits),loc_vol*2);
-			complex_vector_glb_collapse(tens,tens_dens,loc_vol);
+			glb_reduce(&tens,tens_dens,loc_vol);
 			
 			//compute correlation with topocharge
 			complex spinpol;
 			for(int gauge_ferm_conf=0;gauge_ferm_conf<2;gauge_ferm_conf++)
 			  {
 			    compute_tens_dens_topo_correlation(spinpol_dens,tens_dens,topo_dens[gauge_ferm_conf]);
-			    complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
+			    glb_reduce(&spinpol,spinpol_dens,loc_vol);
 			    
 			    master_fprintf(fout,"%d\t",iconf);
 			    master_fprintf(fout,"%d\t",icopy);
@@ -363,7 +363,7 @@ namespace nissa
 		    if(gauge_ferm_conf) nissa_free(topo_conf);
 		    
 		    //total topological charge
-		    double_vector_glb_collapse(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],loc_vol);
+		    glb_reduce(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],loc_vol);
 		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens[gauge_ferm_conf],loc_vol);
 		  }
 		
@@ -384,14 +384,14 @@ namespace nissa
 			//compute the average tensorial density
 			complex tens;
 			double_vector_prodassign_double((double*)tens_dens,1.0/(glb_vol*nhits),loc_vol*2);
-			complex_vector_glb_collapse(tens,tens_dens,loc_vol);
+			glb_reduce(&tens,tens_dens,loc_vol);
 			
 			//compute correlation with topocharge
 			complex spinpol;
 			for(int gauge_ferm_conf=0;gauge_ferm_conf<2;gauge_ferm_conf++)
 			  {
 			    compute_tens_dens_topo_correlation(spinpol_dens,tens_dens,topo_dens[gauge_ferm_conf]);
-			    complex_vector_glb_collapse(spinpol,spinpol_dens,loc_vol);
+			    glb_reduce(&spinpol,spinpol_dens,loc_vol);
 			    
 			    master_fprintf(fout,"%d\t",iconf);
 			    master_fprintf(fout,"%d\t",icopy);

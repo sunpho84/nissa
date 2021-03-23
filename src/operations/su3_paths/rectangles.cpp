@@ -5,7 +5,7 @@
 #include "base/vectors.hpp"
 #include "communicate/edges.hpp"
 #include "geometry/geometry_eo.hpp"
-#include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
@@ -56,7 +56,7 @@ namespace nissa
     
     //reduce and free
     complex coll_shapes;
-    complex_vector_glb_collapse(coll_shapes,point_shapes,loc_vol);
+    glb_reduce(&coll_shapes,point_shapes,loc_vol);
     nissa_free(point_shapes);
     
     //normalize (passing throug additional var because of external unkwnon env)
@@ -115,7 +115,7 @@ namespace nissa
     
     //reduce and free
     complex coll_shapes;
-    complex_vector_glb_collapse(coll_shapes,point_shapes,loc_vol);
+    glb_reduce(&coll_shapes,point_shapes,loc_vol);
     nissa_free(point_shapes);
     
     //normalize (passing throug additional var because of external unkwnon env)

@@ -13,6 +13,7 @@
 #include "geometry/geometry_mix.hpp"
 #include "io/input.hpp"
 #include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/spin.hpp"
@@ -162,7 +163,7 @@ namespace nissa
   {
     double *charge=nissa_malloc("charge",loc_vol,double);
     local_topological_charge(charge,conf);
-    double_vector_glb_collapse(tot_charge,charge,loc_vol);
+    glb_reduce(tot_charge,charge,loc_vol);
     nissa_free(charge);
   }
   THREADABLE_FUNCTION_END
@@ -353,7 +354,7 @@ namespace nissa
 	local_topological_charge(charge,smoothed_conf);
 	//total charge
 	double tot_charge;
-	double_vector_glb_collapse(&tot_charge,charge,loc_vol);
+	glb_reduce(&tot_charge,charge,loc_vol);
 	total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
 	master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,nsmooth,tot_charge,plaq);
 	finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,nsmooth);

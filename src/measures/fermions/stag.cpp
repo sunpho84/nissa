@@ -10,6 +10,7 @@
 #include "hmc/theory_pars.hpp"
 #include "inverters/staggered/cg_invert_stD.hpp"
 #include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/su3.hpp"
 #include "measures/fermions/fermionic_meas.hpp"
 
@@ -204,7 +205,7 @@ namespace nissa
 	      }
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
-	  complex_vector_glb_collapse(res_fw_bw[fw_bw],point_result,loc_vol);
+	  glb_reduce(&res_fw_bw[fw_bw],point_result,loc_vol);
 	  
 	  //DEB_STAG("fw_bw=%d mu=%d, RE=%lg IM=%lg\n",fw_bw,mu,res_fw_bw[fw_bw][RE],res_fw_bw[fw_bw][IM]);
 	  
@@ -233,7 +234,7 @@ namespace nissa
       
       //final reduction
       complex temp;
-      complex_vector_glb_collapse(temp,point_result,loc_vol);
+      glb_reduce(&temp,point_result,loc_vol);
       if(IS_MASTER_THREAD) complex_summassign(out,temp);
     }
     THREADABLE_FUNCTION_END

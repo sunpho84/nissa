@@ -51,20 +51,52 @@ namespace nissa
   
   void deallocate_reduction_buffer();
   
+  void loc_reduce(double* loc_res,double* buf,int64_t n,int nslices=1);
+  void loc_reduce(complex* loc_res,complex* buf,int64_t n,int nslices=1);
+#ifdef REPRODUCIBLE_RUN
+  void loc_reduce(float_128* loc_res,float_128* buf,int64_t n,int nslices=1);
+  void loc_reduce(complex_128* loc_res,complex_128* buf,int64_t n,int nslices=1);
+#endif
+  
+  //reduce a vector
+  template <typename T>
+  inline void non_loc_reduce(T* out_glb,T* in_loc=nullptr,const int n=1,MPI_Op mpi_op=MPI_SUM)
+  {
+    if(in_loc==nullptr)
+      in_loc=(T*)MPI_IN_PLACE;
+    
+    MPI_Allreduce(in_loc,out_glb,n,MPI_Datatype_of<T>(),mpi_op,MPI_COMM_WORLD);
+  }
+  
+  //reduce
+  template <typename T>
+  inline void non_loc_reduce(T* out_glb,T* in_loc,MPI_Op mpi_op=_MPI_Op_dispatcher<T>::sum())
+  {
+    non_loc_reduce(out_glb,in_loc,1,mpi_op);
+  }
+  
+  //reduce
+  template <typename T>
+  inline void non_loc_reduce(T* out_glb,MPI_Op mpi_op=_MPI_Op_dispatcher<T>::sum())
+  {
+    non_loc_reduce(out_glb,nullptr,1,mpi_op);
+  }
+  
+  /////////////////////////////////////////////////////////////////
+  
   //Reduce a vector over all nodes, using threads
   template <typename T>
-  void _vector_glb_reduce(T* glb_res,T* buf,int64_t nloc,const int nslices=1,const int nloc_slices=1,const int loc_offset=0)
+  void glb_reduce(T* glb_res,T* buf,int64_t nloc,const int nslices=1,const int nloc_slices=1,const int loc_offset=0)
   {
     T loc_res[nslices];
     memset(loc_res,0,sizeof(T)*nslices);
-    _vector_loc_reduce(loc_res+loc_offset,buf,nloc,nloc_slices);
+    loc_reduce(loc_res+loc_offset,buf,nloc,nloc_slices);
     
-    MPI_reduce_vect(glb_res,loc_res,nslices);
+    non_loc_reduce(glb_res,loc_res,nslices);
   }
 }
 
 #undef EXTERN_REDUCE
 #undef INIT_REDUCE_TO
-
 
 #endif

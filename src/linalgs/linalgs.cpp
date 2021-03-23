@@ -1,4 +1,3 @@
-#include "linalgs/reduce.hpp"
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
@@ -10,6 +9,7 @@
 #include "communicate/communicate.hpp"
 #include "base/vectors.hpp"
 #include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/float_128.hpp"
@@ -150,10 +150,10 @@ namespace nissa
     THREAD_BARRIER();
     
 #ifndef REPRODUCIBLE_RUN
-    _vector_glb_reduce(glb_res,reducing_buffer,n);
+    glb_reduce(glb_res,reducing_buffer,n);
 #else
     float_128 temp;
-    _vector_glb_reduce(&temp,reducing_buffer,n);
+    glb_reduce(&temp,reducing_buffer,n);
     *glb_res=temp[0];
 #endif
   }
@@ -208,65 +208,6 @@ namespace nissa
 //     NISSA_PARALLEL_LOOP_END;
     
 //     (*glb_res)=glb_reduce_single(loc_thread_res);
-  }
-  THREADABLE_FUNCTION_END
-  
-  //summ all points
-  THREADABLE_FUNCTION_3ARG(double_vector_glb_collapse, double*,glb_res, double*,a, int,n)
-  {
-#ifndef REPRODUCIBLE_RUN
-    double* reducing_buf=get_reducing_buffer<double>(n);
-#else
-    float_128* reducing_buf=get_reducing_buffer<float_128>(n);
-#endif
-    
-    GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(i,0,n)
-#ifndef REPRODUCIBLE_RUN
-      reducing_buf[i]=a[i];
-#else
-      float_128_from_64(reducing_buf[i],a[i]);
-#endif
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
-    
-#ifndef REPRODUCIBLE_RUN
-    _vector_glb_reduce((double*)&glb_res,reducing_buf,n);
-#else
-    float_128 temp;
-    _vector_glb_reduce(temp,reducing_buf,n);
-    *glb_res=temp[0];
-#endif
-  }
-  THREADABLE_FUNCTION_END
-  
-  //complex version
-  THREADABLE_FUNCTION_3ARG(complex_vector_glb_collapse, double*,glb_res, complex*,a, int,n)
-  {
-#ifndef REPRODUCIBLE_RUN
-    complex* reducing_buf=get_reducing_buffer<complex>(n);
-#else
-    complex_128* reducing_buf=get_reducing_buffer<complex_128>(n);
-#endif
-    
-    GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(i,0,n)
-#ifndef REPRODUCIBLE_RUN
-      complex_copy(reducing_buf[i],a[i]);
-#else
-      complex_128_from_64(reducing_buf[i],a[i]);
-#endif
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
-    
-#ifndef REPRODUCIBLE_RUN
-    _vector_glb_reduce((complex*)&glb_res,reducing_buf,n);
-#else
-    float_128 temp;
-    _vector_glb_reduce(temp,reducing_buf,n);
-    for(int ri=0;ri<2;ri++)
-      (*glb_res)[ri]=temp[ri][0];
-#endif
   }
   THREADABLE_FUNCTION_END
   

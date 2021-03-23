@@ -8,7 +8,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "hmc/backfield.hpp"
 #include "inverters/staggered/cg_invert_stD.hpp"
-#include "linalgs/linalgs.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/su3.hpp"
 #include "routines/mpi_routines.hpp"
 
@@ -75,7 +75,7 @@ namespace nissa
     
     //reduce across all nodes and threads
     complex temp;
-    complex_vector_glb_collapse(temp,point_magn,loc_vol);
+    glb_reduce(&temp,point_magn,loc_vol);
     
     //add normalization, corresponding to all factors relative to derivative with respects to "b": 
     //-quark_deg/4 coming from the determinant
