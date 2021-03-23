@@ -8,10 +8,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#ifdef USE_HUGEPAGES
- #include <sys/mman.h>
-#endif
-
 #ifndef EXTERN_VECTORS
  #define EXTERN_VECTORS extern
 #endif
@@ -29,11 +25,7 @@
 #define NISSA_DEFAULT_WARN_IF_NOT_DISALLOCATED 1
 
 #define NISSA_VECT_STRING_LENGTH 20
-#if defined(BGQ) && !defined(BGQ_EMU)
- #define NISSA_VECT_ALIGNMENT 32
-#else
- #define NISSA_VECT_ALIGNMENT 16
-#endif
+#define NISSA_VECT_ALIGNMENT 16
 
 #define nissa_malloc(a,b,c) (c*)internal_nissa_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
 #define nissa_free(a) internal_nissa_free((char**)&(a),__FILE__,__LINE__)
@@ -43,10 +35,6 @@
 
 namespace nissa
 {
-#ifdef USE_HUGEPAGES
-  void* mmap_allocate(uint64_t size);
-#endif
-  
   //nissa vector
   struct nissa_vect
   {

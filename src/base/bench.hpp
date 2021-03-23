@@ -39,10 +39,6 @@ namespace nissa
   EXTERN_BENCH int nunitarize EQUAL_ZERO;
   EXTERN_BENCH int perform_benchmark;
  #define NISSA_DEFAULT_PERFORM_BENCHMARK 0
-#ifdef BGQ
-  EXTERN_BENCH double bgq_stdD_app_time EQUAL_ZERO;
-  EXTERN_BENCH int nbgq_stdD_app EQUAL_ZERO;
-#endif
   
 #define UNPAUSE_TIMING(TIME) if(IS_MASTER_THREAD) TIME-=take_time()
 #define RESET_TIMING(TIME,COUNTER) do{if(IS_MASTER_THREAD){TIME=0;COUNTER=0;}}while(0)

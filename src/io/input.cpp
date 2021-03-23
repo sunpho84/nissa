@@ -26,7 +26,6 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_Leb.hpp"
-#include "geometry/geometry_vir.hpp"
 #include "io/ILDG_File.hpp"
 #include "new_types/high_prec.hpp"
 #include "new_types/su3.hpp"
@@ -443,9 +442,6 @@ namespace nissa
     tags.push_back(triple_tag("set_z_nranks",		       fix_nranks[3]));
     tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
     tags.push_back(triple_tag("perform_benchmark",             perform_benchmark));
-#ifdef USE_VNODES
-    tags.push_back(triple_tag("vnode_paral_dir",	       vnode_paral_dir));
-#endif
 #if HIGH_PREC_TYPE==GMP_HIGH_PREC
     tags.push_back(triple_tag("mpf_precision",                 mpf_precision));
 #endif
@@ -460,9 +456,6 @@ namespace nissa
 #endif
 #ifdef USE_PARPACK
     tags.push_back(triple_tag("use_parpack",		       use_parpack));
-#endif
-#ifdef USE_HUGEPAGES
-    tags.push_back(triple_tag("use_hugepages",		       use_hugepages));
 #endif
     
     if(file_exists(path))

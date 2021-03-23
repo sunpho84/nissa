@@ -19,9 +19,6 @@ namespace nissa
   
   typedef float single_complex[2];
   
-  typedef complex vir_complex[2];
-  typedef single_complex vir_single_complex[2];
-  
   //////////////////////////////////////////////////////////
   
   inline double real_part_of_complex_prod(const complex a,const complex b)

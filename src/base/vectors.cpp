@@ -24,28 +24,6 @@
 
 namespace nissa
 {
- #ifdef USE_HUGEPAGES
-  void* mmap_allocate(uint64_t size)
-  {
-    const int prot=PROT_READ|PROT_WRITE;
-    const int flags=MAP_SHARED|MAP_ANONYMOUS|MAP_HUGETLB;
-    
-    void *ret=NULL;
-    
-    if(size>0)
-      {
-	ret=mmap(NULL,size,prot,flags,-1,0);
-	if(ret==MAP_FAILED)
-	  {
-	    perror("error allocating: ");
-	    crash("Allocating %d bytes with mmap",size);
-	  }
-      }
-    
-    return ret;
-  };
-#endif
-  
   //return the pointer to the nissa vect
   nissa_vect* get_vect(void *v)
   {return (nissa_vect*)v-1;}

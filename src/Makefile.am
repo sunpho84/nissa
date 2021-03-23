@@ -1,7 +1,6 @@
 include_HEADERS=nissa.hpp
 
 include $(top_srcdir)/src/base/Makefile.am
-include $(top_srcdir)/src/bgq/Makefile.am
 include $(top_srcdir)/src/communicate/Makefile.am
 include $(top_srcdir)/src/dirac_operators/Makefile.am
 include $(top_srcdir)/src/eigenvalues/Makefile.am

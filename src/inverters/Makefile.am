@@ -69,41 +69,8 @@ include_HEADERS+= \
 	%D%/twisted_clover/cg_invert_tmclovD_eoprec.hpp \
 	%D%/twisted_clover/tmclov_frontends.hpp
 
-#compile or not bgq source
-if BGQ
-__top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/staggered/cgm_invert_stD2ee_m2_bgq.cpp \
-	%D%/staggered/cgm_32_invert_stD2ee_m2_bgq.cpp \
-	%D%/staggered/cg_invert_stD2ee_m2_bgq.cpp \
-	%D%/twisted_mass/cgm_invert_tmQ2_bgq.cpp \
-	%D%/twisted_mass/cg_64_invert_tmQ2_bgq.cpp \
-	%D%/twisted_mass/cg_128_invert_tmQ2_bgq.cpp \
-	%D%/twisted_mass/cg_64_invert_tmD_eoprec_bgq.cpp \
-	%D%/twisted_mass/cg_invert_tmQ2_bgq.cpp \
-	%D%/twisted_clover/cgm_invert_tmclovQ2_bgq.cpp \
-	%D%/twisted_clover/cg_64_invert_tmclovQ2_bgq.cpp \
-	%D%/twisted_clover/cg_64_invert_tmclovD_eoprec_bgq.cpp \
-	%D%/twisted_clover/cg_128_invert_tmclovQ2_bgq.cpp
-
-include_HEADERS+= \
-	%D%/staggered/cgm_invert_stD2ee_m2_bgq.hpp \
-	%D%/staggered/cgm_32_invert_stD2ee_m2_bgq.hpp \
-	%D%/staggered/cg_invert_stD2ee_m2_bgq.hpp \
-	%D%/twisted_mass/cgm_invert_tmQ2_bgq.hpp \
-	%D%/twisted_mass/cg_64_invert_tmQ2_bgq.hpp \
-	%D%/twisted_mass/cg_128_invert_tmQ2_bgq.hpp \
-	%D%/twisted_mass/cg_64_invert_tmD_eoprec_bgq.hpp \
-	%D%/twisted_mass/cg_invert_tmQ2_bgq.hpp \
-	%D%/twisted_clover/cg_64_invert_tmclovQ2_bgq.hpp \
-	%D%/twisted_clover/cg_64_invert_tmclovD_eoprec_bgq.hpp \
-	%D%/twisted_clover/cg_128_invert_tmclovQ2_bgq.hpp \
-	%D%/twisted_clover/cgm_invert_tmclovQ2_bgq.hpp \
-	%D%/twisted_clover/cgm_invert_tmclovDkern_eoprec_square_portable.hpp
-endif
-
 EXTRA_DIST+= \
 	%D%/twisted_mass/cg_invert_tmQ2_common.cpp \
-	%D%/twisted_mass/cgm_invert_tmQ2_bgq.hpp \
 	%D%/templates/cgm_32_invert_template_threaded.cpp \
 	%D%/templates/cg_128_invert_template_threaded.cpp \
 	%D%/templates/cgm_invert_template_summsol_threaded.hpp \

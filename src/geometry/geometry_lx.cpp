@@ -18,15 +18,6 @@
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 
-#ifdef SPI
- #include <malloc.h>
- #include <stdlib.h>
-#endif
-
-#ifdef USE_HUGEPAGES
- #include <sys/mman.h>
-#endif
-
 namespace nissa
 {
   //Return the index of site of coord x in the border mu,nu
@@ -500,36 +491,8 @@ namespace nissa
     master_printf("Unsetting cartesian geometry\n");
     lx_geom_inited=0;
     
-#if defined BGQ && defined SPI
-    free(recv_buf);
-    free(send_buf);
-#elif defined USE_HUGEPAGES
-    
-    if(use_hugepages)
-      {
-	// auto unall=[](char *&ptr,uint64_t size,const char *tag)
-	//   {
-	// 	if(size>0 and ptr!=NULL)
-	// 	  if(munmap(ptr,size)!=0)
-	// 	    {
-	// 	      perror("Unmapping error: ");
-	// 	      crash("Freeing %s",tag);
-	// 	    }
-	
-	// 	ptr=NULL;
-	//   };
-	
-	// unall(recv_buf,recv_buf_size,"recv_buf");
-	// unall(send_buf,send_buf_size,"send_buf");
-      }
-    else
-      {
-#endif
-	nissa_free(recv_buf);
-	nissa_free(send_buf);
-#if defined USE_HUGEPAGES
-      }
-#endif
+    nissa_free(recv_buf);
+    nissa_free(send_buf);
     
     nissa_free(loc_coord_of_loclx);
     nissa_free(glb_coord_of_loclx);

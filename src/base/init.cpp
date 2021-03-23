@@ -13,10 +13,6 @@
  #include <gmpxx.h>
 #endif
 
-#if defined BGQ && !defined BGQ_EMU
- #include <malloc.h>
-#endif
-
 #ifdef USE_CUDA
  #include "base/cuda.hpp"
 #endif
@@ -40,18 +36,11 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_Leb.hpp"
-#ifdef USE_VNODES
- #include "geometry/geometry_vir.hpp"
-#endif
 #include "new_types/dirac.hpp"
 #include "new_types/high_prec.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #include "routines/mpi_routines.hpp"
-
-#ifdef SPI
- #include "bgq/spi.hpp"
-#endif
 
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -153,16 +142,10 @@ namespace nissa
     
     //initialize global variables
     lx_geom_inited=0;
-#ifdef USE_VNODES
-    vir_geom_inited=0;
-#endif
     eo_geom_inited=0;
     loc_rnd_gen_inited=0;
     glb_rnd_gen_inited=0;
     grid_inited=0;
-#ifdef SPI
-    spi_inited=0;
-#endif
     for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=nrank_dir[mu]=0;
     
     //check endianness
@@ -225,10 +208,6 @@ namespace nissa
     mpf_precision=NISSA_DEFAULT_MPF_PRECISION;
 #endif
     
-#ifdef USE_HUGEPAGES
-    use_hugepages=NISSA_DEFAULT_USE_HUGEPAGES;
-#endif
-    
     //set default value for parameters
     perform_benchmark=NISSA_DEFAULT_PERFORM_BENCHMARK;
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
@@ -240,10 +219,6 @@ namespace nissa
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
     for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
     
-#ifdef USE_VNODES
-    vnode_paral_dir=NISSA_DEFAULT_VNODE_PARAL_DIR;
-#endif
-
 #ifdef USE_DDALPHAAMG
     master_printf("Linked with DDalphaAMG\n");
 #endif
@@ -345,10 +320,6 @@ namespace nissa
   {
     coords additionally_parallelize_dir;
     for(int mu=0;mu<NDIM;mu++) additionally_parallelize_dir[mu]=0;
-#ifdef SPI
-    //switched off: conflict with E/O
-    //additionally_parallelize_dir[0]=1;
-#endif
     
     //if we want to repartition one dir we must take this into account
     coords L;
@@ -479,11 +450,6 @@ namespace nissa
 		  if(fix_nranks[mu]) valid_partitioning&=(fix_nranks[mu]==R[mu]);
 		}
 	    
-#if USE_VNODES
-	    //we must check that v dir is multiple of 4
-	    valid_partitioning&=((L[vnode_paral_dir]/R[vnode_paral_dir])%4==0);
-#endif
-	    
 	    //validity coulde have changed
 	    if(valid_partitioning)
 	      {
@@ -613,10 +579,7 @@ namespace nissa
     //and check wether the mu dir is parallelized or not
     int ok=(glb_vol%nranks==0);
     if(!ok) crash("The lattice is incommensurable with nranks!");
-#if defined BGQ && (! defined BGQ_EMU)
-    ok&=(glb_vol%(2*nranks)==0);
-    if(!ok) crash("Compiled for BGQ, the lattice is incommensurable with 2*nranks!");
-#endif
+    
     for(int mu=0;mu<NDIM;mu++)
       {
 	ok&=(nrank_dir[mu]>0);
@@ -675,20 +638,6 @@ namespace nissa
     bord_vol=2*bord_volh;
     
     init_boxes();
-    
-#ifdef USE_VNODES
-    //two times the size of vnode_paral_dir face
-    vbord_vol=2*loc_vol/loc_size[vnode_paral_dir]; //so is not counting all vsites
-    vbord_volh=vbord_vol/2;
-    vdir_bord_vol=vbord_vol/2;
-    vdir_bord_volh=vbord_volh/2;
-    //compute the offset between sites of different vnodes
-    //this amount to the product of the local size of the direction running faster than
-    //vnode_paral_dir, times half the local size along vnode_paral_dir
-    vnode_lx_offset=loc_size[vnode_paral_dir]/NVNODES;
-    for(int mu=vnode_paral_dir+1;mu<NDIM;mu++) vnode_lx_offset*=loc_size[mu];
-    vnode_eo_offset=vnode_lx_offset/2;
-#endif
     
     //calculate the egdes size
     edge_vol=0;
@@ -768,38 +717,13 @@ namespace nissa
     if(use_eo_geom) set_eo_geometry();
     if(use_Leb_geom) set_Leb_geometry();
     
-#ifdef USE_VNODES
-    set_vir_geometry();
-#endif
-    
     ///////////////////////////////////// start communicators /////////////////////////////////
     
     ncomm_allocated=0;
     
     //allocate only now buffers, so we should have finalized its size
-#if defined BGQ && defined SPI
-    
-    recv_buf=(char*)memalign(64,recv_buf_size);
-    send_buf=(char*)memalign(64,send_buf_size);
-    
-#elif defined USE_HUGEPAGES
-    if(use_hugepages)
-      {
-	recv_buf=(char*)mmap_allocate(recv_buf_size);
-	send_buf=(char*)mmap_allocate(send_buf_size);
-      }
-    else
-      {
-#endif
-	recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
-	send_buf=nissa_malloc("send_buf",send_buf_size,char);
-#if defined USE_HUGEPAGES
-      }
-#endif
-    
-#ifdef SPI
-    init_spi();
-#endif
+    recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
+    send_buf=nissa_malloc("send_buf",send_buf_size,char);
     
     //setup all lx borders communicators
     set_lx_comm(lx_su3_comm,sizeof(su3));

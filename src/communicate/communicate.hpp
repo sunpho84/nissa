@@ -71,33 +71,17 @@
  #define EXTERN_COMMUNICATE extern
 #endif
 
-#ifdef SPI
- #include <spi/include/kernel/MU.h>
-#endif
-
 namespace nissa
 {
-#ifdef USE_HUGEPAGES
-  EXTERN_COMMUNICATE int use_hugepages;
-  #define NISSA_DEFAULT_USE_HUGEPAGES 0
-#endif
-  
 #ifdef USE_MPI
   //out and in buffer
   struct comm_t
   {
-    //bgq specific structures, in alternative to ordinary MPI
-#ifdef SPI
-    //descriptors
-    MUHWI_Descriptor_t *descriptors;
-    MUHWI_Destination spi_dest[8];
-#else
     //destinations and source ranks
     int send_rank[8],recv_rank[8];
     //requests and message
     MPI_Request requests[16];
     int nrequest,imessage;
-#endif
     
     //communication in progress
     int comm_in_prog;

@@ -18,10 +18,6 @@
 
 namespace nissa
 {
-#ifdef BGQ
-  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,vir_su3 *links);
-#endif
-  
   //sweep a configuration, possibly using subboxes, each divided in checkboard so to avoid communication problem
   struct gauge_sweeper_t
   {
@@ -67,9 +63,6 @@ namespace nissa
     //routine computing staples
     void (*compute_staples)(su3 staples,su3 *links,int *ilinks,double C1);
     void (*compute_staples_packed)(su3 staples,su3 *links,double C1);
-#ifdef BGQ
-    void (*compute_staples_packed_bgq)(su3 staples1,su3 staples2,vir_su3 *links,double C1);
-#endif
     
     //inits the parity checkboard according to an external parity
     void init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(coords ivol_coord,int dir));
@@ -79,19 +72,6 @@ namespace nissa
     {
       MANDATORY_PARALLEL;
       GET_THREAD_ID();
-    
-#ifdef BGQ
-      su3 *staples_list;
-      if(packing_inited)
-	{
-	  int staples_list_size=0;
-	  for(int ibox=0;ibox<(1<<NDIM);ibox++)
-	    for(int dir=0;dir<NDIM;dir++)
-	      for(int par=0;par<gpar;par++)
-		staples_list_size=std::max(staples_list_size,2*((nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)]+1)/2));
-	  staples_list=nissa_malloc("staples_list",staples_list_size,su3);
-	}
-#endif
       
       int ibase=0;
       for(int ibox=0;ibox<(1<<NDIM);ibox++)
@@ -112,20 +92,6 @@ namespace nissa
 		//pack
 		if(packing_inited) pack_links(conf,ibase,box_dir_par_size);
 		
-#ifdef BGQ
-		//finding half box_dir_par_size
-		int box_dir_par_sizeh=box_dir_par_size/2;
-		if(box_dir_par_sizeh*2!=box_dir_par_size) box_dir_par_sizeh++;
-		if(packing_inited)
-		  {
-		    NISSA_PARALLEL_LOOP(ibox_dir_par,0,box_dir_par_sizeh)
-		      compute_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+box_dir_par_sizeh],
-						 ((vir_su3*)packing_link_buf)+ibox_dir_par*nlinks_per_staples_of_link,C1);
-		    NISSA_PARALLEL_LOOP_END;
-		  }
-		THREAD_BARRIER();
-#endif
-		
 		//scan the whole box
 		NISSA_PARALLEL_LOOP(ibox_dir_par,ibase,ibase+box_dir_par_size)
 		  {
@@ -133,14 +99,9 @@ namespace nissa
 		    su3 staples;
 		    
 		    if(packing_inited)
-		      {
-#ifdef BGQ
-			su3_copy(staples,staples_list[ibox_dir_par-ibase]);
-#else
-			compute_staples_packed(staples,packing_link_buf+(ibox_dir_par-ibase)*nlinks_per_staples_of_link,C1);
-#endif
-		      }
-		    else compute_staples(staples,(su3*)conf,ilink_per_staples+nlinks_per_staples_of_link*ibox_dir_par,C1);
+		      compute_staples_packed(staples,packing_link_buf+(ibox_dir_par-ibase)*nlinks_per_staples_of_link,C1);
+		    else
+		      compute_staples(staples,(su3*)conf,ilink_per_staples+nlinks_per_staples_of_link*ibox_dir_par,C1);
 		    
 		    //find new link
 		    int ivol=ivol_of_box_dir_par[ibox_dir_par];
@@ -156,9 +117,6 @@ namespace nissa
 	}
       
       set_borders_invalid(conf);
-#ifdef BGQ
-      if(packing_inited) nissa_free(staples_list);
-#endif
     }
   
     //checkers
@@ -170,10 +128,6 @@ namespace nissa
     gauge_sweeper_t();
   };
   
-#ifdef BGQ
-  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,vir_su3 *links);
-  void compute_Symanzik_force_packed_bgq(su3 staples1,su3 staples2,vir_su3 *links,double beta);
-#endif
   void compute_Symanzik_staples_packed(su3 staples,su3 *links,double C1);
   void init_Symanzik_sweeper();
   void init_Wilson_sweeper();

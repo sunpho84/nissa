@@ -11,11 +11,6 @@
 #include "base/debug.hpp"
 #include "new_types/float_128.hpp"
 
-#if defined BGQ && !defined BGQ_EMU
- #include <bgpm/include/bgpm.h>
- #include "bgq/bgq_barrier.hpp"
-#endif
-
 #ifndef EXTERN_THREADS
  #define EXTERN_THREADS extern
  #define INIT_TO(A)
@@ -34,13 +29,7 @@
 
 #define IS_PARALLEL (NACTIVE_THREADS!=1)
 
-#if defined BGQ && !defined BGQ_EMU
-  #include <spi/include/kernel/location.h>
-  //#define GET_THREAD_ID() uint32_t thread_id=Kernel_ProcessorID() //works only if 64 threads are used...
-  #define GET_THREAD_ID() uint32_t thread_id=omp_get_thread_num()
- #else
-  #define GET_THREAD_ID() uint32_t thread_id=omp_get_thread_num()
- #endif
+#define GET_THREAD_ID() const uint32_t thread_id=omp_get_thread_num()
 
 #define THREAD_ID thread_id
  
@@ -464,35 +453,16 @@ namespace nissa
   //flush the cache
   inline void cache_flush()
   {
-#if defined BGQ
- #if ! defined BGQ_EMU
-    mbar();
- #else
-    __sync_synchronize();
- #endif
-#else
-     #pragma omp flush
-#endif
+#pragma omp flush
   }
 }
-
-#if defined BGQ && (! defined BGQ_EMU)
-namespace nissa
-{
-  extern unsigned int nthreads;
-}
-#endif
 
 //barrier without any possible checking
 namespace nissa
 {
   inline void thread_barrier_internal()
   {
-#if defined BGQ && (! defined BGQ_EMU)
-    bgq_barrier(nissa::nthreads);
-#else
     #pragma omp barrier
-#endif
   }
 }
 

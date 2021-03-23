@@ -43,12 +43,6 @@ namespace nissa
   typedef complex_128 color_128[NCOL];
   typedef color_128 halfspincolor_128[NDIRAC/2];
   typedef color_128 spincolor_128[NDIRAC];
-  typedef complex_128 vir_complex_128[2];
-  
-  typedef vir_complex_128 vir_color_128[NCOL];
-  typedef vir_color_128 vir_su3_128[NCOL];
-  typedef vir_su3_128 vir_oct_su3_128[8];
-  typedef vir_color_128 vir_spincolor_128[NDIRAC];
   
   inline void float_128_copy(float_128& b,const float_128 a)
   {

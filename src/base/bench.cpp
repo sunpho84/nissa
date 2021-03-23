@@ -6,10 +6,6 @@
 #include "new_types/float_128.hpp"
 #include "routines/ios.hpp"
 
-#ifdef BGQ
- #include "bgq/intrinsic.hpp"
-#endif
-
 #include "threads/threads.hpp"
 
 #define EXTERN_BENCH
@@ -28,18 +24,7 @@ namespace nissa
     
     NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,size,THREAD_ID,NACTIVE_THREADS);
     
-#if BGQ
-    double *temp_out=out-4;
-    double *temp_in=in-4;
-    for(int i=start;i<end;i+=4)
-      {
-	reg_vir_complex reg;
-	REG_LOAD_VIR_COMPLEX_AFTER_ADVANCING(reg,temp_in);
-	REG_STORE_VIR_COMPLEX_AFTER_ADVANCING(temp_out,reg);
-      }
-#else
     for(int i=start;i<end;i++) out[i]=in[i];
-#endif
   }
   
   //benchmark memory
@@ -77,21 +62,8 @@ namespace nissa
 	  int size=1<<ipow;
 	  char *out,*in;
 	  
-#ifdef USE_HUGEPAGES
-	  if(use_hugepages and size<send_buf_size)
-	    {
-	      out=send_buf;
-	      in=recv_buf;
-	    }
-	  else
-	    {
-	      master_printf("Not using hugepages\n");
-#endif
-	      out=nissa_malloc("out",size,char);
-	      in=nissa_malloc("in",size,char);
-#ifdef USE_HUGEPAGES
-	    }
-#endif
+	  out=nissa_malloc("out",size,char);
+	  in=nissa_malloc("in",size,char);
 	  
 	  //total time
 	  double tot_time=0;
@@ -126,17 +98,8 @@ namespace nissa
 	  speed_var-=speed_ave*speed_ave;
 	  double speed_stddev=sqrt(speed_var);
 	  
-#ifdef USE_HUGEPAGES
-	  if(not (use_hugepages and size<send_buf_size))
-	    {
-#endif
-	      
-	      nissa_free(in);
-	      nissa_free(out);
-	      
-#ifdef USE_HUGEPAGES
-	    }
-#endif
+	  nissa_free(in);
+	  nissa_free(out);
 	  
 	  master_printf("Communication benchmark, packet size %d (%lg, stddev %lg) Mb/s (%lg s total)\n",size,speed_ave,speed_stddev,tot_time);
 	}

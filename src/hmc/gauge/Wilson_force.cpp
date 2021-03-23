@@ -58,33 +58,4 @@ namespace nissa
     set_borders_invalid(F);
   }
   THREADABLE_FUNCTION_END
-  
-#ifdef USE_VNODES_
-  //lx version
-  THREADABLE_FUNCTION_3ARG(Wilson_force_lx_conf_vir, quad_su3*,F, quad_su3*,conf, double,beta)
-  {
-    GET_THREAD_ID();
-    
-    verbosity_lv1_master_printf("Computing Wilson force (lx)\n");
-    
-    bi_su3 *hopper=nissa_malloc("hopper",2*NDIM*loc_vol/NVNODES,su3);
-    lx_conf_remap_to_virlx_blocked(hopper,conf);
-    
-    bi_su3 *path=nissa_malloc("path",loc_vol/NVNODES+,su3);
-    
-    double r=-beta/NCOL;
-    compute_summed_squared_staples_lx_conf(F,conf);
-    
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      {
-	for(int mu=0;mu<NDIM;mu++)
-	  safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(F);
-  }
-  THREADABLE_FUNCTION_END
-#endif
-  
 }

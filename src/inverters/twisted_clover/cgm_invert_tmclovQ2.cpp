@@ -12,11 +12,6 @@
 #include "geometry/geometry_lx.hpp"
 #include "linalgs/linalgs.hpp"
 
-#ifdef BGQ
- #include "geometry/geometry_vir.hpp"
- #include "cgm_invert_tmclovQ2_bgq.hpp"
-#endif
-
 #define BASETYPE spincolor
 
 #define NDOUBLES_PER_SITE 24
@@ -55,30 +50,7 @@ namespace nissa
     double m2[nmass];
     for(int imass=0;imass<nmass;imass++) m2[imass]=m[imass]*m[imass];
     
-#if defined BGQ
-    vir_oct_su3 *vir_conf=nissa_malloc("vir_conf",loc_volh,vir_oct_su3);
-    lx_conf_remap_to_virlx(vir_conf,conf);
-    vir_clover_term_t *vir_Cl=nissa_malloc("vir_Cl",loc_volh,vir_clover_term_t);
-    lx_clover_term_t_remap_to_virlx(vir_Cl,Cl);
-    vir_spincolor *vir_source=nissa_malloc("vir_source",loc_volh,vir_spincolor);
-    lx_spincolor_remap_to_virlx(vir_source,source);
-    vir_spincolor *vir_sol[nmass];
-    for(int imass=0;imass<nmass;imass++) vir_sol[imass]=nissa_malloc("vir_sol",loc_volh,vir_spincolor);
-    
-    inv_tmclovQ2_m2_cgm_bgq(vir_sol,vir_conf,kappa,vir_Cl,m2,nmass,niter_max,req_res,vir_source);
-    
-    //unmap and free
-    for(int imass=0;imass<nmass;imass++)
-      {
-	virlx_spincolor_remap_to_lx(sol[imass],vir_sol[imass]);
-	nissa_free(vir_sol[imass]);
-      }
-    nissa_free(vir_source);
-    nissa_free(vir_conf);
-    nissa_free(vir_Cl);
-#else
     inv_tmclovQ2_m2_cgm_portable(sol,conf,kappa,Cl,m2,nmass,niter_max,req_res,source);
-#endif
   }
   
   void inv_tmclovDQ_cgm(spincolor **sol,quad_su3 *conf,double kappa,clover_term_t *Cl,double *m,int nmass,int niter_max,double *req_res,spincolor *source)

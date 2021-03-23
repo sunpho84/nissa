@@ -58,8 +58,3 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 include_HEADERS+= \
 	%D%/quda_bridge.hpp
 endif
-
-#add BGQ if needed
-if BGQ
-include_HEADERS+=%D%/bgq_instructions.hpp
-endif

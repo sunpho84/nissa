@@ -8,10 +8,6 @@
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
 
-#ifdef BGQ
- #include "bgq/bgq_macros.hpp"
-#endif
-
 #include <stdlib.h>
 
 #define EXTERN
@@ -291,13 +287,7 @@ namespace nissa
 		      packing_link_source_dest[2*(ilink+nlinks_per_staples_of_link*(ibox_dir_par+ibase))+0]=
 			ilink_per_staples[(ibox_dir_par+ibase)*nlinks_per_staples_of_link+ilink];
 		      packing_link_source_dest[2*(ilink+nlinks_per_staples_of_link*(ibox_dir_par+ibase))+1]=
-#ifdef BGQ
-			//if using BGQ, pack info on vnode too, as last bit
-			((ilink+nlinks_per_staples_of_link*(ibox_dir_par%nsh))<<1)+
-			 (ibox_dir_par>=nsh) //vnode bit
-#else
 			ilink+nlinks_per_staples_of_link*ibox_dir_par
-#endif
 			;
 		    }
 		
@@ -309,9 +299,6 @@ namespace nissa
 	
 	//allocate packing link and deallocate ilink_per_staples
 	packing_link_buf=nissa_malloc("packing_link_buf",max_packing_link_nel,su3);
-#ifdef BGQ
-	vector_reset(packing_link_buf); //might be used when not initialized
-#endif
 	nissa_free(ilink_per_staples);
       }
   }
@@ -357,27 +344,7 @@ namespace nissa
       {
 	int isource=*(source_dest++);
 	int idest=*(source_dest++);
-#ifdef BGQ
-	//decript the true destination
-	int true_dest=(idest>>1);
-	int vnode=idest&1;
-	
-#ifndef BGQ_EMU
-	//prefetch
-	int inext_source=*source_dest;
-	dcache_block_touch((char*)((su3*)conf+inext_source)+0);
-#endif
-	
-	//working slower for some reason
-	//DECLARE_REG_VIR_SU3(REG_U);
-	//REG_LOAD_SU3(REG_U,((su3*)conf)[isource]);
-	//STORE_REG_SU3(((vir_su3*)packing_link_buf)[true_dest],vnode,REG_U);
-	
-	//copy
-	SU3_TO_VIR_SU3(((vir_su3*)packing_link_buf)[true_dest],((su3*)conf)[isource],vnode);
-#else
 	su3_copy(packing_link_buf[idest],((su3*)conf)[isource]);
-#endif
       }
     THREAD_BARRIER();
   }
@@ -600,135 +567,6 @@ namespace nissa
     su3_linear_comb(staples,squares,C0,rectangles,C1);
   }
   
-#ifdef BGQ
-  //compute the summ of the staples pointed by "ilinks"
-  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,vir_su3 *links,double C1)
-  {
-    double C0=get_C0(C1);
-    vir_su3 squares,rectangles,up_rectangles,dw_rectangles;
-    
-    VIR_SU3_PUT_TO_ZERO(squares);
-    VIR_SU3_PUT_TO_ZERO(rectangles);
-    VIR_SU3_PUT_TO_ZERO(up_rectangles);
-    VIR_SU3_PUT_TO_ZERO(dw_rectangles);
-    
-    DECLARE_REG_VIR_SU3(REG_U1);
-    DECLARE_REG_VIR_SU3(REG_U2);
-    DECLARE_REG_VIR_SU3(REG_U3);
-    
-    for(int inu=0;inu<NDIM-1;inu++)
-      {
-	//backward square staple
-	vir_su3 hb;
-	REG_LOAD_VIR_SU3(REG_U2,links[0]);
-	REG_LOAD_VIR_SU3(REG_U3,links[1]);
-	REG_VIR_SU3_DAG_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	STORE_REG_VIR_SU3(hb,REG_U1);
-	REG_LOAD_VIR_SU3(REG_U2,squares);
-	REG_LOAD_VIR_SU3(REG_U3,links[2]);
-	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
-	STORE_REG_VIR_SU3(squares,REG_U2);
-	//forward square staple
-	vir_su3 hf;
-	REG_LOAD_VIR_SU3(REG_U2,links[3]);
-	REG_LOAD_VIR_SU3(REG_U3,links[4]);
-	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	STORE_REG_VIR_SU3(hf,REG_U1);
-	REG_LOAD_VIR_SU3(REG_U2,squares);
-	REG_LOAD_VIR_SU3(REG_U3,links[5]);
-	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U2,REG_U1,REG_U3);
-	STORE_REG_VIR_SU3(squares,REG_U2);
-	
-	//backward dw rectangle
-	REG_LOAD_VIR_SU3(REG_U2,links[6]);
-	REG_LOAD_VIR_SU3(REG_U3,links[7]);
-	REG_VIR_SU3_DAG_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_VIR_SU3(REG_U3,links[8]);
-	REG_VIR_SU3_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
-	REG_LOAD_VIR_SU3(REG_U1,dw_rectangles);
-	REG_LOAD_VIR_SU3(REG_U3,links[9]);
-	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	STORE_REG_VIR_SU3(dw_rectangles,REG_U1);
-	//backward backward rectangle
-	REG_LOAD_VIR_SU3(REG_U2,links[10]);
-	REG_LOAD_VIR_SU3(REG_U3,links[11]);
-	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U3,REG_U2); //not dag dag, so reverted
-	REG_LOAD_VIR_SU3(REG_U3,links[12]);
-	REG_VIR_SU3_DAG_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3); //daggering the first instead
-	REG_LOAD_VIR_SU3(REG_U3,links[13]);
-	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_VIR_SU3(REG_U3,links[14]);
-	REG_LOAD_VIR_SU3(REG_U2,rectangles);
-	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
-	STORE_REG_VIR_SU3(rectangles,REG_U2);
-	//backward up rectangle
-	REG_LOAD_VIR_SU3(REG_U2,hb);
-	REG_LOAD_VIR_SU3(REG_U3,links[15]);
-        REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_VIR_SU3(REG_U3,links[16]);
-	REG_LOAD_VIR_SU3(REG_U2,up_rectangles);
-	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
-	STORE_REG_VIR_SU3(up_rectangles,REG_U2);
-	//forward dw rectangle
-	REG_LOAD_VIR_SU3(REG_U2,links[17]);
-	REG_LOAD_VIR_SU3(REG_U3,links[18]);
-	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_VIR_SU3(REG_U3,links[19]);
-	REG_VIR_SU3_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
-	REG_LOAD_VIR_SU3(REG_U1,dw_rectangles);
-	REG_LOAD_VIR_SU3(REG_U3,links[20]);
-	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U1,REG_U2,REG_U3);
-	STORE_REG_VIR_SU3(dw_rectangles,REG_U1);
-	//forward forward rectangle
-	REG_LOAD_VIR_SU3(REG_U2,links[21]);
-	REG_LOAD_VIR_SU3(REG_U3,links[22]);
-	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_VIR_SU3(REG_U3,links[23]);
-	REG_VIR_SU3_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
-	REG_LOAD_VIR_SU3(REG_U3,links[24]);
-	REG_VIR_SU3_PROD_VIR_SU3_DAG(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_VIR_SU3(REG_U3,links[25]);
-	REG_LOAD_VIR_SU3(REG_U2,rectangles);
-	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U2,REG_U1,REG_U3);
-	STORE_REG_VIR_SU3(rectangles,REG_U2);
-	//forward up rectangle
-	REG_LOAD_VIR_SU3(REG_U2,hf);
-	REG_LOAD_VIR_SU3(REG_U3,links[26]);
-        REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	REG_LOAD_VIR_SU3(REG_U3,links[27]);
-	REG_LOAD_VIR_SU3(REG_U2,up_rectangles);
-	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U2,REG_U1,REG_U3);
-	STORE_REG_VIR_SU3(up_rectangles,REG_U2);
-	
-	links+=28;
-      }
-    
-    //close the two partial rectangles
-    REG_LOAD_VIR_SU3(REG_U1,rectangles);
-    REG_LOAD_VIR_SU3(REG_U2,up_rectangles);
-    REG_LOAD_VIR_SU3(REG_U3,links[0]);
-    REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U1,REG_U2,REG_U3);
-    REG_LOAD_VIR_SU3(REG_U2,dw_rectangles);
-    REG_LOAD_VIR_SU3(REG_U3,links[1]);
-    REG_VIR_SU3_DAG_SUMM_THE_PROD_VIR_SU3(REG_U1,REG_U3,REG_U2);
-    STORE_REG_VIR_SU3(rectangles,REG_U1);
-    
-    //compute the summed staples
-    DECLARE_REG_VIR_COMPLEX(reg_c0);
-    DECLARE_REG_VIR_COMPLEX(reg_c1);
-    REG_SPLAT_VIR_COMPLEX(reg_c0,C0);
-    REG_SPLAT_VIR_COMPLEX(reg_c1,C1);
-    REG_LOAD_VIR_SU3(REG_U2,squares);
-    REG_VIR_SU3_PROD_4DOUBLE(REG_U3,REG_U2,reg_c0);
-    REG_VIR_SU3_SUMM_THE_PROD_4DOUBLE(REG_U3,REG_U3,REG_U1,reg_c1);
-    
-    //split staples
-    vir_su3 vir_staples;
-    STORE_REG_VIR_SU3(vir_staples,REG_U3);
-    VIR_SU3_TO_SU3(staples1,staples2,vir_staples);
-  }
-#endif
-  
   //initialize the tlSym sweeper using the above defined routines
   void init_Symanzik_sweeper()
   {
@@ -741,10 +579,6 @@ namespace nissa
 	const int nlinks_per_Symanzik_staples_of_link=(NDIM-1)*2*(3+5*3)-(NDIM-1)*8+2;
 	Symanzik_sweeper->init_box_dir_par_geometry(4,Symanzik_par);
 	Symanzik_sweeper->init_staples(nlinks_per_Symanzik_staples_of_link,add_Symanzik_staples,compute_Symanzik_staples);
-#ifdef BGQ
-	Symanzik_sweeper->compute_staples_packed_bgq=compute_Symanzik_staples_packed_bgq;
-	Symanzik_sweeper->find_packing_index(compute_Symanzik_staples_packed);
-#endif
       }
   }
   
@@ -837,48 +671,6 @@ namespace nissa
       }
   }
   
-#ifdef BGQ
-  //compute the summ of the staples pointed by "ilinks"
-  void compute_Wilson_staples_packed_bgq(su3 staples1,su3 staples2,vir_su3 *links,double C1)
-  {
-    vir_su3 vir_staples;
-    
-    VIR_SU3_PUT_TO_ZERO(vir_staples);
-    
-    DECLARE_REG_VIR_SU3(REG_U1);
-    DECLARE_REG_VIR_SU3(REG_U2);
-    DECLARE_REG_VIR_SU3(REG_U3);
-    
-    for(int inu=0;inu<NDIM-1;inu++)
-      {
-	//backward square staple
-	vir_su3 hb;
-	REG_LOAD_VIR_SU3(REG_U2,links[0]);
-	REG_LOAD_VIR_SU3(REG_U3,links[1]);
-	REG_VIR_SU3_DAG_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	STORE_REG_VIR_SU3(hb,REG_U1);
-	REG_LOAD_VIR_SU3(REG_U2,vir_staples);
-	REG_LOAD_VIR_SU3(REG_U3,links[2]);
-	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3(REG_U2,REG_U1,REG_U3);
-	STORE_REG_VIR_SU3(vir_staples,REG_U2);
-	//forward square staple
-	vir_su3 hf;
-	REG_LOAD_VIR_SU3(REG_U2,links[3]);
-	REG_LOAD_VIR_SU3(REG_U3,links[4]);
-	REG_VIR_SU3_PROD_VIR_SU3(REG_U1,REG_U2,REG_U3);
-	STORE_REG_VIR_SU3(hf,REG_U1);
-	REG_LOAD_VIR_SU3(REG_U2,vir_staples);
-	REG_LOAD_VIR_SU3(REG_U3,links[5]);
-	REG_VIR_SU3_SUMM_THE_PROD_VIR_SU3_DAG(REG_U2,REG_U1,REG_U3);
-	STORE_REG_VIR_SU3(vir_staples,REG_U2);
-	
-	links+=6;
-      }
-    
-    VIR_SU3_TO_SU3(staples1,staples2,vir_staples);
-  }
-#endif
-  
   //initialize the Wilson sweeper using the above defined routines
   void init_Wilson_sweeper()
   {
@@ -891,10 +683,6 @@ namespace nissa
 	Wilson_sweeper->init_box_dir_par_geometry(2,Wilson_par);
 	const int nlinks_per_Wilson_staples_of_link=6*(NDIM-1);
 	Wilson_sweeper->init_staples(nlinks_per_Wilson_staples_of_link,add_Wilson_staples,compute_Wilson_staples);
-#ifdef BGQ
-	Wilson_sweeper->compute_staples_packed_bgq=compute_Wilson_staples_packed_bgq;
-	Wilson_sweeper->find_packing_index(compute_Wilson_staples_packed);
-#endif
       }
   }
   

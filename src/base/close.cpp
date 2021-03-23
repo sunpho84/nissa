@@ -15,9 +15,6 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_Leb.hpp"
-#ifdef USE_VNODES
- #include "geometry/geometry_vir.hpp"
-#endif
 #include "hmc/gauge/Symanzik_force.hpp"
 #include "hmc/gauge/Symanzik_action.hpp"
 #include "operations/remap_vector.hpp"
@@ -56,11 +53,6 @@ namespace nissa
     
     //unset Leb geometry
     if(Leb_geom_inited) unset_Leb_geometry();
-    
-    //unset the virtual node parallelization geometry
-#ifdef USE_VNODES
-    unset_vir_geometry();
-#endif
     
     //stop the random generator
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();

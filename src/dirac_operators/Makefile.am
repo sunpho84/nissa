@@ -50,36 +50,11 @@ include_HEADERS+= \
 	%D%/overlap/dirac_operator_overlap_kernel_portable.hpp \
 	%D%/overlap/dirac_operator_overlap.hpp
 
-#compile or not bgq source
-if BGQ
-__top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/tmD_eoprec/dirac_operator_tmD_eoprec_bgq.cpp \
-	%D%/tmQ/dirac_operator_tmQ_bgq.cpp \
-	%D%/tmQ2/dirac_operator_tmQ2_bgq.cpp \
-	%D%/tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
-	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_bgq.cpp \
-	%D%/tmclovQ/dirac_operator_tmclovQ_bgq.cpp \
-	%D%/tmclovQ2/dirac_operator_tmclovQ2_bgq.cpp \
-	%D%/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.cpp \
-	%D%/stD/dirac_operator_stD_bgq.cpp
-include_HEADERS+= \
-	%D%/tmD_eoprec/dirac_operator_tmD_eoprec_bgq.hpp \
-	%D%/tmQ/dirac_operator_tmQ_bgq.hpp \
-	%D%/tmQ2/dirac_operator_tmQ2_bgq.hpp \
-	%D%/tmQ2/dirac_operator_tmQ2_128_bgq.hpp \
-	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_bgq.hpp \
-	%D%/tmclovQ/dirac_operator_tmclovQ_bgq.hpp \
-	%D%/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp \
-	%D%/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.hpp \
-	%D%/stD/dirac_operator_stD_bgq.hpp
-endif
-
 EXTRA_DIST= \
 	base/git_info.hpp \
 	%D%/WclovQ/dirac_operator_WclovQ_portable.cpp \
 	%D%/stD/dirac_operator_stD_portable.cpp \
 	%D%/stD/dirac_operator_stD_32_portable.cpp \
-	%D%/stD/dirac_operator_stD_bgq_template.cpp \
 	%D%/stD/dirac_operator_stDLeb_portable.cpp \
 	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_portable.cpp \
 	%D%/tmD_eoprec/dirac_operator_tmD_eoprec_portable.cpp \
