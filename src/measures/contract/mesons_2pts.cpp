@@ -15,9 +15,8 @@
 namespace nissa
 {
 #define DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(TYPE,SHORTTYPE)	\
-  THREADABLE_FUNCTION_7ARG(NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE), complex*,glb_c, complex*,loc_c, dirac_matr*,g1, TYPE*,s1, dirac_matr*,g2, TYPE*,s2, int,ncontr) \
+  void NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE)(complex* glb_c,complex* loc_c,dirac_matr* g1,TYPE* s1,dirac_matr* g2,TYPE* s2,int ncontr) \
   {									\
-    GET_THREAD_ID();							\
     									\
     vector_reset(loc_c);						\
     									\
@@ -52,7 +51,6 @@ namespace nissa
       }									\
     THREAD_BARRIER();							\
   }									\
-  THREADABLE_FUNCTION_END
 
 //this function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 #define DEFINE_MESON_TWO_POINTS_WILSON_PROP(TYPE,SHORTTYPE)		\

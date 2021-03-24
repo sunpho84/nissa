@@ -187,7 +187,6 @@ namespace nissa
   //generate a random postion
   void generate_random_coord(coords c)
   {
-    GET_THREAD_ID();
     coords temp;
     for(int mu=0;mu<NDIM;mu++)
       {
@@ -274,9 +273,8 @@ namespace nissa
   }
   
   //fill a grid of vectors with numbers between 0 and 1
-  THREADABLE_FUNCTION_4ARG(rnd_fill_unif_loc_vector, double*,v, int,dps, double,min, double,max)
+  void rnd_fill_unif_loc_vector(double* v,int dps,double min,double max)
   {
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int i=0;i<dps;i++)
 	v[ivol*dps+i]=rnd_get_unif(&(loc_rnd_gen[ivol]),min,max);
@@ -284,12 +282,10 @@ namespace nissa
     
     set_borders_invalid(v);
   }
-  THREADABLE_FUNCTION_END
   
   //return a grid of +-x numbers
-  THREADABLE_FUNCTION_2ARG(rnd_fill_pm_one_loc_vector, double*,v, int,nps)
+  void rnd_fill_pm_one_loc_vector(double* v,int nps)
   {
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int i=0;i<nps;i++)
 	v[ivol*nps+i]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
@@ -297,15 +293,13 @@ namespace nissa
     
     set_borders_invalid(v);
   }
-  THREADABLE_FUNCTION_END
   
   //generate a spindiluted vector according to the passed type
-  THREADABLE_FUNCTION_3ARG(generate_colorspindiluted_source, su3spinspin*,source, enum rnd_t,rtype, int,twall)
+  void generate_colorspindiluted_source(su3spinspin* source,enum rnd_t rtype,int twall)
   {
     //reset
     vector_reset(source);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       if(glb_coord_of_loclx[ivol][0]==twall or twall<0)
 	{
@@ -319,15 +313,13 @@ namespace nissa
     
     set_borders_invalid(source);
   }
-  THREADABLE_FUNCTION_END
   
   //generate a spindiluted vector according to the passed type
-  THREADABLE_FUNCTION_3ARG(generate_spindiluted_source, colorspinspin*,source, enum rnd_t,rtype, int,twall)
+  void generate_spindiluted_source(colorspinspin* source,enum rnd_t rtype,int twall)
   {
     //reset
     vector_reset(source);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       if(glb_coord_of_loclx[ivol][0]==twall or twall<0)
 	for(int ic=0;ic<NCOL;ic++)
@@ -340,14 +332,12 @@ namespace nissa
     
     set_borders_invalid(source);
   }
-  THREADABLE_FUNCTION_END
   
   //generate an undiluted vector according to the passed type
-  THREADABLE_FUNCTION_3ARG(generate_undiluted_source, spincolor*,source, enum rnd_t,rtype, int,twall)
+  void generate_undiluted_source(spincolor* source,enum rnd_t rtype,int twall)
   {
     vector_reset(source);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       if(glb_coord_of_loclx[ivol][0]==twall or twall<0)
 	for(int id=0;id<NDIRAC;id++)
@@ -357,14 +347,12 @@ namespace nissa
     
     set_borders_invalid(source);
   }
-  THREADABLE_FUNCTION_END
   
   //generate a fully undiluted source
-  THREADABLE_FUNCTION_4ARG(generate_fully_undiluted_lx_source, color*,source, enum rnd_t,rtype, int,twall, int,dir)
+  void generate_fully_undiluted_lx_source(color* source,enum rnd_t rtype,int twall,int dir)
   {
     vector_reset(source);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ilx,0,loc_vol)
       if(twall<0 or glb_coord_of_loclx[ilx][dir]==twall)
 	for(int ic=0;ic<NCOL;ic++)
@@ -373,13 +361,11 @@ namespace nissa
     
     set_borders_invalid(source);
   }
-  THREADABLE_FUNCTION_END
   //eo version
-  THREADABLE_FUNCTION_5ARG(generate_fully_undiluted_eo_source, color*,source, enum rnd_t,rtype, int,twall, int,par, int,dir)
+  void generate_fully_undiluted_eo_source(color* source,enum rnd_t rtype,int twall,int par,int dir)
   {
     vector_reset(source);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
       {
 	int ilx=loclx_of_loceo[par][ieo];
@@ -391,16 +377,14 @@ namespace nissa
     
     set_borders_invalid(source);
   }
-  THREADABLE_FUNCTION_END
   void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,int twall,int dir)
   {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
   
   //same for spincolor
-  THREADABLE_FUNCTION_5ARG(generate_fully_undiluted_eo_source, spincolor*,source, enum rnd_t,rtype, int,twall, int,par, int,dir)
+  void generate_fully_undiluted_eo_source(spincolor* source,enum rnd_t rtype,int twall,int par,int dir)
   {
     vector_reset(source);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
       {
 	int ilx=loclx_of_loceo[par][ieo];
@@ -413,12 +397,11 @@ namespace nissa
     
     set_borders_invalid(source);
   }
-  THREADABLE_FUNCTION_END
   void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir)
   {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
   
   //generate a delta source
-  THREADABLE_FUNCTION_2ARG(generate_delta_source, su3spinspin*,source, int*,x)
+  void generate_delta_source(su3spinspin* source,int* x)
   {
     //reset
     vector_reset(source);
@@ -439,10 +422,9 @@ namespace nissa
     
     set_borders_invalid(source);
   }
-  THREADABLE_FUNCTION_END
   
   //generate a delta source
-  THREADABLE_FUNCTION_2ARG(generate_delta_eo_source, eo_ptr<su3>,source, int*,x)
+  void generate_delta_eo_source(eo_ptr<su3> source,int* x)
   {
     //reset
     for(int par=0;par<2;par++) vector_reset(source[par]);
@@ -464,7 +446,6 @@ namespace nissa
     
     for(int par=0;par<2;par++) set_borders_invalid(source[par]);
   }
-  THREADABLE_FUNCTION_END
   
     //Taken from M.D'Elia
 #if NCOL == 3

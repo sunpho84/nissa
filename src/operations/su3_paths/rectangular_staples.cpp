@@ -218,9 +218,8 @@ namespace nissa
   }
   
   //compute rectangular staples overlapping computation and communications, and avoiding using edges
-  THREADABLE_FUNCTION_3ARG(compute_rectangular_staples_lx_conf, rectangular_staples_t*,out, quad_su3*,conf, squared_staples_t*,sq_staples)
+  void compute_rectangular_staples_lx_conf(rectangular_staples_t* out,quad_su3* conf,squared_staples_t* sq_staples)
   {
-    GET_THREAD_ID();
     
     //compute non_fw_surf fw staples
     rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(sq_staples,THREAD_ID);
@@ -235,12 +234,10 @@ namespace nissa
     
     THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
   
   //summ everything together
-  THREADABLE_FUNCTION_3ARG(compute_summed_rectangular_staples_lx_conf, quad_su3*,out, quad_su3*,conf, squared_staples_t*,squared_staples)
+  void compute_summed_rectangular_staples_lx_conf(quad_su3* out,quad_su3* conf,squared_staples_t* squared_staples)
   {
-    GET_THREAD_ID();
     
     //compute pieces
     rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",loc_vol+bord_vol,rectangular_staples_t);
@@ -258,5 +255,4 @@ namespace nissa
     
     nissa_free(rectangular_staples);
   }
-  THREADABLE_FUNCTION_END
 }

@@ -40,9 +40,8 @@ namespace nissa
   }
   
   //Invert twisted clover operator using e/o preconditioning.
-  THREADABLE_FUNCTION_11ARG(inv_tmclovD_cg_eoprec_native, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, double,cSW, clover_term_t*,Cl_lx, inv_clover_term_t*,ext_invCl_lx, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
+  void inv_tmclovD_cg_eoprec_native(spincolor* solution_lx,spincolor* guess_Koo,quad_su3* conf_lx,double kappa,double cSW,clover_term_t* Cl_lx,inv_clover_term_t* ext_invCl_lx,double mass,int nitermax,double residue,spincolor* source_lx)
   {
-    GET_THREAD_ID();
     
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
@@ -139,7 +138,6 @@ namespace nissa
     nissa_free(Cl_odd);
     if(ext_invCl_lx==NULL) nissa_free(invCl_lx);
   }
-  THREADABLE_FUNCTION_END
   
   void inv_tmclovD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,clover_term_t *Cl_lx,inv_clover_term_t *ext_invCl_lx,double cSW,double mass,int nitermax,double residue,spincolor *source_lx)
   {
@@ -214,7 +212,6 @@ namespace nissa
 	  spincolor *temp_lx=nissa_malloc("temp",loc_vol,spincolor);
 	  apply_tmclovQ(temp_lx,conf_lx,kappa,Cl_lx,mass,solution_lx);
 	  
-	  GET_THREAD_ID();
 	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	     for(int id=0;id<NDIRAC;id++)
 	       for(int ic=0;ic<NCOL;ic++)

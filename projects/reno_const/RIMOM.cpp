@@ -429,9 +429,8 @@ void compute_fft(double sign)
   if(full_P_space_prop_prec!=0) write_all_propagators("FullP",full_P_space_prop_prec);
 }
 
-THREADABLE_FUNCTION_4ARG(write_data, MPI_File*,fout, int,imass, int,ilp, int,offset)
+void write_data(MPI_File* fout,int imass,int ilp,int offset)
 {
-  GET_THREAD_ID();
   
   //bufferize data
   NISSA_PARALLEL_LOOP(r,0,2)
@@ -453,7 +452,6 @@ THREADABLE_FUNCTION_4ARG(write_data, MPI_File*,fout, int,imass, int,ilp, int,off
     }
   NISSA_PARALLEL_LOOP_END;
 }
-THREADABLE_FUNCTION_END
 
 //filter the propagators
 void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *do_iparr,coords mul)

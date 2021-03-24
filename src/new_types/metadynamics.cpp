@@ -89,7 +89,6 @@ namespace nissa
   //read
   void meta_pars_t::load(const char *path)
   {
-    GET_THREAD_ID();
     
     //to be sure, resize
     grid.resize(ngrid+1);

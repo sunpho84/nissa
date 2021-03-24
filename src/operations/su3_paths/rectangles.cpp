@@ -13,9 +13,8 @@
 namespace nissa
 {
   //compute plaquettes and rectangles
-  THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_eo_conf, double*,glb_shapes, eo_ptr<quad_su3>,conf)
+  void global_plaquette_and_rectangles_eo_conf(double* glb_shapes,eo_ptr<quad_su3> conf)
   {
-    GET_THREAD_ID();
     
     communicate_eo_quad_su3_edges(conf);
     
@@ -63,12 +62,10 @@ namespace nissa
     glb_shapes[RE]=coll_shapes[RE]/(18*glb_vol);
     glb_shapes[IM]=coll_shapes[IM]/(36*glb_vol);
   }
-  THREADABLE_FUNCTION_END
 
   //compute plaquettes and rectangles
-  THREADABLE_FUNCTION_2ARG(point_plaquette_and_rectangles_lx_conf, complex*,point_shapes, quad_su3*,conf)
+  void point_plaquette_and_rectangles_lx_conf(complex* point_shapes,quad_su3* conf)
   {
-    GET_THREAD_ID();
     
     //communicate conf and reset point shapes
     communicate_lx_quad_su3_edges(conf);
@@ -104,10 +101,9 @@ namespace nissa
 	  }
     THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
   
   //compute plaquettes and rectangles
-  THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_lx_conf, double*,glb_shapes, quad_su3*,conf)
+  void global_plaquette_and_rectangles_lx_conf(double* glb_shapes,quad_su3* conf)
   {
     //summ squares and rectangles separately
     complex *point_shapes=nissa_malloc("point_shapes",loc_vol,complex);
@@ -122,12 +118,10 @@ namespace nissa
     glb_shapes[RE]=coll_shapes[RE]/(18*glb_vol);
     glb_shapes[IM]=coll_shapes[IM]/(36*glb_vol);
   }
-  THREADABLE_FUNCTION_END
   
   //compute plaquettes and rectangles
-  THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_lx_conf_per_timeslice, double*,glb_shapes, quad_su3*,conf)
+  void global_plaquette_and_rectangles_lx_conf_per_timeslice(double* glb_shapes,quad_su3* conf)
   {
-    GET_THREAD_ID();
     
     //summ squares and rectangles separately
     complex *point_shapes=nissa_malloc("point_shapes",loc_vol,complex);
@@ -157,5 +151,4 @@ namespace nissa
       }
     nissa_free(coll_shapes);
   }
-  THREADABLE_FUNCTION_END
 }

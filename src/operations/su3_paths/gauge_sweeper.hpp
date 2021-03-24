@@ -71,7 +71,6 @@ namespace nissa
     void sweep_conf(quad_su3 *conf,void (*update_fun)(su3 out,su3 staples,int ivol,int mu,void *pars),void *pars)
     {
       MANDATORY_PARALLEL;
-      GET_THREAD_ID();
       
       int ibase=0;
       for(int ibox=0;ibox<(1<<NDIM);ibox++)

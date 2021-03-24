@@ -655,7 +655,7 @@ namespace nissa
 	  
 	  //summ of the border extent up to dir i
 	  if(iedge>0)
-	  edge_offset[iedge]=edge_offset[iedge-1]+edge_dir_vol[iedge-1];
+	    edge_offset[iedge]=edge_offset[iedge-1]+edge_dir_vol[iedge-1];
 	  iedge++;
 	}
     edge_vol*=4;

@@ -2,9 +2,8 @@
 
 using namespace nissa;
 
-THREADABLE_FUNCTION_1ARG(put_current_to_one_in_time, spin1field*,J)
+void put_current_to_one_in_time(spin1field* J)
 {
-  GET_THREAD_ID();
   
   master_printf("Putting to zero all spatial, 1 time\n");
   
@@ -15,7 +14,6 @@ THREADABLE_FUNCTION_1ARG(put_current_to_one_in_time, spin1field*,J)
   
   set_borders_invalid(J);
 }
-THREADABLE_FUNCTION_END
 
 void in_main(int narg,char **arg)
 {

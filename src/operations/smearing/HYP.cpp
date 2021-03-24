@@ -18,10 +18,9 @@ namespace nissa
 {
   //smear a conf using hyp
   //warning, the input conf needs to have edges allocate!
-  THREADABLE_FUNCTION_6ARG(hyp_smear_conf, quad_su3*,sm_conf, quad_su3*,conf, double,alpha0, double,alpha1, double,alpha2, bool*,dirs)
+  void hyp_smear_conf(quad_su3* sm_conf,quad_su3* conf,double alpha0,double alpha1,double alpha2,bool* dirs)
   {
 #if NDIM == 4
-    GET_THREAD_ID();
     
     //fill the dec2 and dec1 remapping table
     int _dec2_remap_index[4][4][4]={},***dec2_remap_index=(int***)_dec2_remap_index;
@@ -228,5 +227,4 @@ namespace nissa
     crash("Ndim=%d cannot use HYP",NDIM);
 #endif
   }
-  THREADABLE_FUNCTION_END
 }

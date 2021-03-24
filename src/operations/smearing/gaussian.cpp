@@ -13,9 +13,8 @@ namespace nissa
 {
   //apply kappa*H
 #define DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(TYPE)			\
-  THREADABLE_FUNCTION_4ARG(NAME2(gaussian_smearing_apply_kappa_H,TYPE), TYPE*,H, double*,kappa, quad_su3*,conf, TYPE*,in) \
+  void NAME2(gaussian_smearing_apply_kappa_H,TYPE)(TYPE* H,double* kappa,quad_su3* conf,TYPE* in) \
   {									\
-    GET_THREAD_ID();							\
 									\
     NAME3(communicate_lx,TYPE,borders)(in);				\
     communicate_lx_quad_su3_borders(conf);				\
@@ -38,11 +37,10 @@ namespace nissa
     									\
     set_borders_invalid(H);						\
   }									\
-  THREADABLE_FUNCTION_END
 
 //gaussian smearing
 #define DEFINE_GAUSSIAN_SMEARING(TYPE)					\
-  THREADABLE_FUNCTION_7ARG(gaussian_smearing, TYPE*,smear_sc, TYPE*,origi_sc, quad_su3*,conf, double*,kappa, int,niter, TYPE*,ext_temp, TYPE*,ext_H) \
+  void gaussian_smearing(TYPE* smear_sc,TYPE* origi_sc,quad_su3* conf,double* kappa,int niter,TYPE* ext_temp,TYPE* ext_H) \
   {									\
     if(niter<1)								\
       {									\
@@ -81,7 +79,6 @@ namespace nissa
 	if(ext_temp==NULL) nissa_free(temp);				\
       }									\
   }									\
-  THREADABLE_FUNCTION_END
   
   DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(su3spinspin)
   DEFINE_GAUSSIAN_SMEARING(su3spinspin)

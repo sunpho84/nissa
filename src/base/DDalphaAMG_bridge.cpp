@@ -10,7 +10,9 @@
 #include "io/checksum.hpp"
 #include "io/input.hpp"
 #include "new_types/su3.hpp"
+#include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
+#include "threads/threads.hpp"
 
 #define EXTERN_DD_BRIDGE
  #include "DDalphaAMG_bridge.hpp"

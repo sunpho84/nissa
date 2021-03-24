@@ -17,9 +17,8 @@
 namespace nissa
 {
   //shift an su3 vector of a single step along the mu axis, in the positive or negative dir
-  THREADABLE_FUNCTION_3ARG(su3_vec_single_shift, su3*,u, int,mu, int,sign)
+  void su3_vec_single_shift(su3* u,int mu,int sign)
   {
-    GET_THREAD_ID();
     
     //communicate borders
     communicate_lx_su3_borders(u);
@@ -76,5 +75,4 @@ namespace nissa
     //invalidate borders
     set_borders_invalid(u);
   }
-  THREADABLE_FUNCTION_END
 }

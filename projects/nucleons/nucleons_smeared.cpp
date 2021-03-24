@@ -238,9 +238,8 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
 }
 
 //perform the first inversion to produce the S0 for u and d
-THREADABLE_FUNCTION_0ARG(calculate_S0)
+void calculate_S0()
 {
-  GET_THREAD_ID();
   
   for(int ic_sour=0;ic_sour<NCOL;ic_sour++)
     for(int id_sour=0;id_sour<4;id_sour++)
@@ -312,12 +311,10 @@ THREADABLE_FUNCTION_0ARG(calculate_S0)
   
   master_printf(" final rotations performed\n");
 }
-THREADABLE_FUNCTION_END
 
 //Calculate the proton contraction for a single point
-THREADABLE_FUNCTION_2ARG(local_diquark, diquark*,diq, su3spinspin*,S)
+void local_diquark(diquark* diq,su3spinspin* S)
 {
-  GET_THREAD_ID();
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int al=0;al<4;al++)
@@ -344,12 +341,10 @@ THREADABLE_FUNCTION_2ARG(local_diquark, diquark*,diq, su3spinspin*,S)
   NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
 }
-THREADABLE_FUNCTION_END
 
 //close the diquark with the third propagator
-THREADABLE_FUNCTION_3ARG(close_diquark, ssssss*,prot6, diquark*,diq, su3spinspin*,S)
+void close_diquark(ssssss* prot6,diquark* diq,su3spinspin* S)
 {
-  GET_THREAD_ID();
   
   ssssss *loc_prot6=new ssssss[glb_size[0]];
   memset(loc_prot6,0,sizeof(ssssss)*glb_size[0]);
@@ -372,7 +367,6 @@ THREADABLE_FUNCTION_3ARG(close_diquark, ssssss*,prot6, diquark*,diq, su3spinspin
   
   delete[] loc_prot6;
 }
-THREADABLE_FUNCTION_END
 
 //calculate all the 2pts contractions
 void calculate_all_2pts(char *path,su3spinspin ***S0)

@@ -20,9 +20,8 @@
 namespace nissa
 {
   //Finish the computation multiplying for the conf and taking TA
-  THREADABLE_FUNCTION_2ARG(gluonic_force_finish_computation, quad_su3*,F, quad_su3*,conf)
+  void gluonic_force_finish_computation(quad_su3* F,quad_su3* conf)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
@@ -35,7 +34,6 @@ namespace nissa
     
     THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
   
   //compute the gauge force
   void compute_gluonic_force_lx_conf_do_not_finish(quad_su3 *F,quad_su3 *conf,theory_pars_t *physics)
@@ -50,9 +48,8 @@ namespace nissa
   }
   
   //take also the TA
-  THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics)
+  void compute_gluonic_force_lx_conf(quad_su3* F,quad_su3* conf,theory_pars_t* physics)
   {
-    GET_THREAD_ID();
     
     START_TIMING(gluon_force_time,ngluon_force);
     
@@ -136,5 +133,4 @@ namespace nissa
     
     STOP_TIMING(gluon_force_time);
   }
-  THREADABLE_FUNCTION_END
 }

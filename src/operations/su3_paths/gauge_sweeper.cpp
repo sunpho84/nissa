@@ -238,9 +238,8 @@ namespace nissa
   {return ((int*)a)[0]-((int*)b)[0];}
   
   //reorder the packer
-  THREADABLE_FUNCTION_1ARG(reorder_packing_link_source_dest, gauge_sweeper_t*,gs)
+  void reorder_packing_link_source_dest(gauge_sweeper_t* gs)
   {
-    GET_THREAD_ID();
     
     //split workload and find starting point
     NISSA_CHUNK_WORKLOAD(bdp_start,chunk_load,bdp_end,0,(1<<NDIM)*NDIM*gs->gpar,THREAD_ID,NACTIVE_THREADS);
@@ -257,7 +256,6 @@ namespace nissa
 	ibase+=gs->nsite_per_box_dir_par[bdp];
       }
   }
-  THREADABLE_FUNCTION_END
   
   //find the place where each link must be copied to access it sequentially
   void gauge_sweeper_t::find_packing_index(void (*ext_compute_staples_packed)(su3 staples,su3 *links,double C1))
@@ -334,7 +332,6 @@ namespace nissa
   //pack all the links required to compute staples
   void gauge_sweeper_t::pack_links(quad_su3 *conf,int ibase,int nbox_dir_par)
   {
-    GET_THREAD_ID();
     
     //prepare the chunk load
     NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,nlinks_per_staples_of_link*nbox_dir_par,THREAD_ID,NACTIVE_THREADS);

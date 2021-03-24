@@ -47,4 +47,5 @@ namespace nissa
   void read_str_str(const char *exp_str,char *in,int length);
   void read_var(char *out,const char *par,int size_of);
 }
+
 #endif

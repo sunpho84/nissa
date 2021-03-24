@@ -50,7 +50,7 @@ namespace nissa
   }
   
   //Adams operator https://arxiv.org/pdf/1103.6191.pdf
-  THREADABLE_FUNCTION_7ARG(apply_Adams, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, eo_ptr<quad_u1>,u1b, double,m, double,m_Adams, eo_ptr<color>,temp, eo_ptr<color>,in)
+  void apply_Adams(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double m_Adams,eo_ptr<color> temp,eo_ptr<color> in)
   {
     // out = g5 X id * in
     apply_stag_op(out,conf,u1b,stag::GAMMA_5,stag::IDENTITY,in);
@@ -62,7 +62,6 @@ namespace nissa
     
     for(int eo=0;eo<2;eo++)
       {
-	GET_THREAD_ID();
 	
 	// temp = i * D * in
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
@@ -74,10 +73,9 @@ namespace nissa
 	double_vector_summ_double_vector_prod_double((double*)out[eo],(double*)temp[eo],(double*)out[eo],-m_Adams,2*NCOL*loc_volh);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //AdamsII operator https://arxiv.org/pdf/1008.2833.pdf
-  THREADABLE_FUNCTION_7ARG(apply_AdamsII, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, eo_ptr<quad_u1>,u1b, double,m, double,m_Adams, eo_ptr<color>,temp, eo_ptr<color>,in)
+  void apply_AdamsII(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double m_Adams,eo_ptr<color> temp,eo_ptr<color> in)
   {
     // out = D * in
     add_backfield_with_stagphases_to_conf(conf,u1b);
@@ -94,5 +92,4 @@ namespace nissa
     for(int eo=0;eo<2;eo++)
       double_vector_summ_double_vector_prod_double((double*)out[eo],(double*)temp[eo],(double*)out[eo],-m_Adams,2*NCOL*loc_volh);
   }
-  THREADABLE_FUNCTION_END
 }

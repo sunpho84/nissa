@@ -252,9 +252,8 @@ namespace nissa
   }
   
   //unitarize an a lx conf
-  THREADABLE_FUNCTION_1ARG(unitarize_lx_conf_orthonormalizing, quad_su3*,conf)
+  void unitarize_lx_conf_orthonormalizing(quad_su3* conf)
   {
-    GET_THREAD_ID();
     START_TIMING(unitarize_time,nunitarize);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -268,12 +267,10 @@ namespace nissa
     set_borders_invalid(conf);
     STOP_TIMING(unitarize_time);
   }
-  THREADABLE_FUNCTION_END
   
   //unitarize the conf by explicitly by projecting it maximally to su3
-  THREADABLE_FUNCTION_1ARG(unitarize_lx_conf_maximal_trace_projecting, quad_su3*,conf)
+  void unitarize_lx_conf_maximal_trace_projecting(quad_su3* conf)
   {
-    GET_THREAD_ID();
     START_TIMING(unitarize_time,nunitarize);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -284,12 +281,10 @@ namespace nissa
     set_borders_invalid(conf);
     STOP_TIMING(unitarize_time);
   }
-  THREADABLE_FUNCTION_END
   
   //eo version
-  THREADABLE_FUNCTION_1ARG(unitarize_eo_conf_maximal_trace_projecting, eo_ptr<quad_su3>,conf)
+  void unitarize_eo_conf_maximal_trace_projecting(eo_ptr<quad_su3> conf)
   {
-    GET_THREAD_ID();
     START_TIMING(unitarize_time,nunitarize);
     
     for(int par=0;par<2;par++)
@@ -304,14 +299,12 @@ namespace nissa
     
     STOP_TIMING(unitarize_time);
   }
-  THREADABLE_FUNCTION_END
   
   //overrelax an lx configuration
   void overrelax_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
   {su3_find_overrelaxed(out,out,staple,((int*)pars)[0]);}
-  THREADABLE_FUNCTION_3ARG(overrelax_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper, int,nhits)
+  void overrelax_lx_conf(quad_su3* conf,gauge_sweeper_t* sweeper,int nhits)
   {sweeper->sweep_conf(conf,overrelax_lx_conf_handle,(void*)&nhits);}
-  THREADABLE_FUNCTION_END
   
   //same for heatbath
   namespace heatbath_lx_conf_ns
@@ -325,24 +318,21 @@ namespace nissa
     void handle(su3 out,su3 staple,int ivol,int mu,void *pars)
     {su3_find_heatbath(out,out,staple,((pars_t*)pars)->beta,((pars_t*)pars)->nhits,loc_rnd_gen+ivol);}
   }
-  THREADABLE_FUNCTION_4ARG(heatbath_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper, double,beta, int,nhits)
+  void heatbath_lx_conf(quad_su3* conf,gauge_sweeper_t* sweeper,double beta,int nhits)
   {heatbath_lx_conf_ns::pars_t pars(beta,nhits);sweeper->sweep_conf(conf,heatbath_lx_conf_ns::handle,&pars);}
-  THREADABLE_FUNCTION_END
   
   //same for cooling
   void cool_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
   {su3_unitarize_maximal_trace_projecting_iteration(out,staple);}
-  THREADABLE_FUNCTION_2ARG(cool_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper)
+  void cool_lx_conf(quad_su3* conf,gauge_sweeper_t* sweeper)
   {sweeper->sweep_conf(conf,cool_lx_conf_handle,NULL);}
-  THREADABLE_FUNCTION_END
   
   //measure the average gauge energy
-  THREADABLE_FUNCTION_2ARG(average_gauge_energy, double*,energy, quad_su3*,conf)
+  void average_gauge_energy(double* energy,quad_su3* conf)
   {
     communicate_lx_quad_su3_edges(conf);
     double *loc_energy=nissa_malloc("energy",loc_vol,double);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	//compute the clover-shape paths
@@ -368,7 +358,6 @@ namespace nissa
     
     nissa_free(loc_energy);
   }
-  THREADABLE_FUNCTION_END
   
   std::string gauge_obs_meas_pars_t::get_str(bool full)
   {

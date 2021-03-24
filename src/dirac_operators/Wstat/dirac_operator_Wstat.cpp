@@ -13,12 +13,11 @@
 namespace nissa
 {
   //Apply the static operator to a spincolor
-  THREADABLE_FUNCTION_5ARG(apply_Wstat, spincolor*,out, quad_su3*,conf, spincolor*,in, int,mu, int,xmu_start)
+  void apply_Wstat(spincolor* out,quad_su3* conf,spincolor* in,int mu,int xmu_start)
   {
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(x,0,loc_vol)
       {
 	int xmu=glb_coord_of_loclx[x][mu];
@@ -43,5 +42,4 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
 }

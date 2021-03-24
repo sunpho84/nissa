@@ -16,9 +16,8 @@ namespace nissa
 {
   using namespace stag;
   
-  THREADABLE_FUNCTION_5ARG(measure_nucleon_corr, eo_ptr<quad_su3>,conf, theory_pars_t,theory_pars, nucleon_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
+  void measure_nucleon_corr(eo_ptr<quad_su3> conf,theory_pars_t theory_pars,nucleon_corr_meas_pars_t meas_pars,int iconf,int conf_created)
   {
-    GET_THREAD_ID();
     // const int eps_i[6][3]={{0,1,2},{1,2,0},{2,0,1},{0,2,1},{2,1,0},{1,0,2}};
     
     CRASH_IF_NOT_3COL();
@@ -152,7 +151,6 @@ namespace nissa
     
     close_file(file);
   }
-  THREADABLE_FUNCTION_END
   
   //nucleon correlators
   std::string nucleon_corr_meas_pars_t::get_str(bool full)

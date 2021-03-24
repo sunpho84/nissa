@@ -19,14 +19,13 @@ namespace nissa
   //
   // For overlap fermions k = 1/8 because kernel is massless.
   //
-  THREADABLE_FUNCTION_4ARG(apply_overlap_kernel, spincolor*,out, quad_su3*,conf, double,M, spincolor*,in)
+  void apply_overlap_kernel(spincolor* out,quad_su3* conf,double M,spincolor* in)
   {
     if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_lx_spincolor_borders(in);
     
     double kcf=4-M;
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
       {
 	int Xup,Xdw;
@@ -136,5 +135,4 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
 }

@@ -23,7 +23,6 @@ namespace nissa
   //wait previously delayed threads
   void wait_for_delayed_threads()
   {
-    GET_THREAD_ID();
     
     if(delayed_thread_barrier[THREAD_ID]==0)
       {
@@ -35,7 +34,6 @@ namespace nissa
   //select a new state for the delay
   void select_new_delay_pattern()
   {
-    GET_THREAD_ID();
     
     //extract a random switch:
     // if 0, we exec immediately
@@ -60,7 +58,6 @@ namespace nissa
   //delay marked threads
   void delay_marked_threads()
   {
-    GET_THREAD_ID();
     
     if(delayed_thread_barrier[THREAD_ID]==1)
       {
@@ -75,7 +72,6 @@ namespace nissa
   //check that the local barrier correspond to global one
   void check_barrier(const char *barr_file,int barr_line)
   {
-    GET_THREAD_ID();
     
     if(VERBOSITY_LV3)
       printf("thread %d rank %d barrier call on line %d of file %s (thread_pool_locked: %d)\n",
@@ -130,7 +126,6 @@ namespace nissa
   {
     THREAD_BARRIER_FORCE();
 #ifdef THREAD_DEBUG
-    GET_THREAD_ID();
     if(is_master_rank() && VERBOSITY_LV3)
       {
 	printf("thread %d unlocking the pool\n",THREAD_ID);
@@ -145,7 +140,6 @@ namespace nissa
   void thread_pool_lock()
   {
 #ifdef THREAD_DEBUG
-    GET_THREAD_ID();
 #endif
     
     //if something was delayed, make it advance
@@ -169,7 +163,6 @@ namespace nissa
   //thread pool (executed by non-master threads)
   void thread_pool()
   {
-    GET_THREAD_ID();
     
     //check that thread 0 is not inside the pool
     if(THREAD_ID==0) crash("thread 0 cannot enter the pool");
@@ -231,7 +224,6 @@ namespace nissa
   //delete the thread pool
   void thread_pool_stop()
   {
-    GET_THREAD_ID();
     
     //check to be thread 0
     if(THREAD_ID!=0) crash("only thread 0 can stop the pool");
@@ -241,14 +233,13 @@ namespace nissa
   }
   
   //make all threads update a single counter in turn, checking previous state
-  THREADABLE_FUNCTION_0ARG(thread_sanity_check)
+  void thread_sanity_check()
   {
     //counter
-    uint32_t *ptr=(uint32_t*)&broadcast_ptr;
-    GET_THREAD_ID();
+    int *ptr=(int*)&broadcast_ptr;
     
     //loop every threads, each one changing the counter state
-    for(uint32_t i=0;i<NACTIVE_THREADS;i++)
+    for(int i=0;i<NACTIVE_THREADS;i++)
       {
         //if it is current thread turn
         if(THREAD_ID==i)
@@ -267,7 +258,6 @@ namespace nissa
     if(THREAD_ID==0 && *ptr!=nthreads-1) crash("loop thread not closed: %u!",*ptr);
     THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
   
   //start the master thread, locking all the other threads
   void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg))
@@ -312,8 +302,7 @@ namespace nissa
 #endif
       
       //distinguish master thread from the others
-      GET_THREAD_ID();
-      if(thread_id!=0) thread_pool();
+      if(THREAD_ID!=0) thread_pool();
       else thread_master_start(narg,arg,main_function);
     }
   }

@@ -591,9 +591,8 @@ namespace nissa
   ////////////////////////////////////// external writing interfaces //////////////////////////////////////
   
   //remap to ildg
-  THREADABLE_FUNCTION_3ARG(remap_to_write_ildg_data, char*,buf, char*,data, int,nbytes_per_site)
+  void remap_to_write_ildg_data(char* buf,char* data,int nbytes_per_site)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(isour,0,loc_vol)
       {
@@ -608,7 +607,6 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
   
   //bare write data in the ILDG order
   void ILDG_File_write_ildg_data_all_raw(ILDG_File &file,void *data,uint64_t data_length)

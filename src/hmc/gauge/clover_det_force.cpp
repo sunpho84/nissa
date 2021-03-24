@@ -12,7 +12,7 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_3ARG(clover_det_force, eo_ptr<quad_su3>,F, std::vector<quark_content_t>,quark_content, eo_ptr<quad_su3>,eo_conf)
+  void clover_det_force(eo_ptr<quad_su3> F,std::vector<quark_content_t> quark_content,eo_ptr<quad_su3> eo_conf)
   {
     bool need=false;
     for(auto& q : quark_content)
@@ -20,7 +20,6 @@ namespace nissa
     
     if(need)
       {
-	GET_THREAD_ID();
 	
 	//Prepare clover
 	eo_ptr<clover_term_t> Cl;
@@ -153,5 +152,4 @@ namespace nissa
 	  }
       }
   }
-  THREADABLE_FUNCTION_END;
 }

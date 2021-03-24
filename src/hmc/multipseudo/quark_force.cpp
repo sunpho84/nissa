@@ -17,9 +17,8 @@
 namespace nissa
 {
   //Finish the computation multiplying for the conf and taking TA
-  THREADABLE_FUNCTION_2ARG(compute_quark_force_finish_computation, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,conf)
+  void compute_quark_force_finish_computation(eo_ptr<quad_su3> F,eo_ptr<quad_su3> conf)
   {
-    GET_THREAD_ID();
     
     for(int eo=0;eo<2;eo++)
       {
@@ -34,10 +33,9 @@ namespace nissa
 	
       }
   }
-  THREADABLE_FUNCTION_END
   
   //compute the quark force, without stouting reampping
-  THREADABLE_FUNCTION_6ARG(compute_quark_force_no_stout_remapping, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,tp, std::vector<rat_approx_t>*,appr, double,residue)
+  void compute_quark_force_no_stout_remapping(eo_ptr<quad_su3> F,eo_ptr<quad_su3> conf,std::vector<std::vector<pseudofermion_t> >* pf,theory_pars_t* tp,std::vector<rat_approx_t>* appr,double residue)
   {
     //allocate or not clover term and inverse evn clover term
     eo_ptr<clover_term_t> Cl={NULL,NULL};
@@ -94,10 +92,9 @@ namespace nissa
 	for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //take into account the stout remapping procedure
-  THREADABLE_FUNCTION_6ARG(compute_quark_force, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,physics, std::vector<rat_approx_t>*,appr, double,residue)
+  void compute_quark_force(eo_ptr<quad_su3> F,eo_ptr<quad_su3> conf,std::vector<std::vector<pseudofermion_t> >* pf,theory_pars_t* physics,std::vector<rat_approx_t>* appr,double residue)
   {
     int nlevls=physics->stout_pars.nlevels;
     
@@ -132,5 +129,4 @@ namespace nissa
 	master_printf("  Quark force average norm: %lg\n",sqrt(norm/glb_vol));
       }
   }
-  THREADABLE_FUNCTION_END
 }

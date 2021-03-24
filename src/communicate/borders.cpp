@@ -90,7 +90,6 @@ namespace nissa
   //start the communications
   void comm_start(comm_t &comm,int *dir_comm=NULL,int tot_size=-1)
   {
-    GET_THREAD_ID();
     
     //check initialization
     crash_if_not_initialized(comm);
@@ -117,7 +116,6 @@ namespace nissa
   //wait a communication to finish
   void comm_wait(comm_t &comm)
   {
-    GET_THREAD_ID();
     
     //check initialization
     crash_if_not_initialized(comm);
@@ -160,7 +158,6 @@ namespace nissa
   //fill the sending buf using the data inside an lx vec
   void fill_sending_buf_with_lx_vec(comm_t &comm,void *vec)
   {
-    GET_THREAD_ID();
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
@@ -180,7 +177,6 @@ namespace nissa
   //extract the information from receiving buffer and put them inside an lx vec
   void fill_lx_bord_with_receiving_buf(void *vec,comm_t &comm)
   {
-    GET_THREAD_ID();
     
     if(IS_MASTER_THREAD)
       {
@@ -202,7 +198,6 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID();
 	
 	//take time and write some debug output
 	START_TIMING(tot_comm_time,ntot_comm);
@@ -220,7 +215,6 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID();
 	
 	//take note of passed time and write some debug info
 	START_TIMING(tot_comm_time,ntot_comm);
@@ -253,7 +247,6 @@ namespace nissa
   //fill the sending buf using the data inside an ev or odd vec
   void fill_sending_buf_with_ev_or_od_vec(comm_t &comm,void *vec,int eo)
   {
-    GET_THREAD_ID();
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
@@ -272,7 +265,6 @@ namespace nissa
   //extract the information from receiving buffer and put them inside an even or odd vec
   void fill_ev_or_od_bord_with_receiving_buf(void *vec,comm_t &comm)
   {
-    GET_THREAD_ID();
     
     if(IS_MASTER_THREAD)
       {
@@ -294,7 +286,6 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID();
 	
 	//take time and output debugging info
 	START_TIMING(tot_comm_time,ntot_comm);
@@ -312,7 +303,6 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID();
 	
 	//take time and make some output
 	START_TIMING(tot_comm_time,ntot_comm);
@@ -345,7 +335,6 @@ namespace nissa
   //fill the sending buf using the data inside an ev and odd vec, using lx style inside buf
   void fill_sending_buf_with_ev_and_od_vec(comm_t &comm,eo_ptr<void> vec)
   {
-    GET_THREAD_ID();
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
@@ -370,7 +359,6 @@ namespace nissa
   //extract the information from receiving buffer and put them inside an even or odd vec
   void fill_ev_and_od_bord_with_receiving_buf(eo_ptr<void> vec,comm_t &comm)
   {
-    GET_THREAD_ID();
     
     //check border allocation
     int min_size=comm.nbytes_per_site*(bord_volh+loc_volh);
@@ -399,7 +387,6 @@ namespace nissa
   {
     if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && nparal_dir>0)
       {
-	GET_THREAD_ID();
 	
 	//take time and output debugging info
 	START_TIMING(tot_comm_time,ntot_comm);
@@ -417,7 +404,6 @@ namespace nissa
   {
     if(comm.comm_in_prog && nparal_dir>0)
       {
-	GET_THREAD_ID();
 	
 	//take time and make some output
 	START_TIMING(tot_comm_time,ntot_comm);
@@ -448,7 +434,6 @@ namespace nissa
   //fill the sending buf using the data inside an LebLeblx vec
   void fill_sending_buf_with_Leblx_vec(comm_t &comm,void *vec)
   {
-    GET_THREAD_ID();
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
@@ -474,7 +459,6 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID();
 	
 	//take time and write some debug output
 	START_TIMING(tot_comm_time,ntot_comm);
@@ -508,7 +492,6 @@ namespace nissa
   //fill the sending buf using the data inside an ev or odd vec
   void fill_sending_buf_with_Leb_ev_or_od_vec(comm_t &comm,void *vec,int eo)
   {
-    GET_THREAD_ID();
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
@@ -527,7 +510,6 @@ namespace nissa
   //extract the information from receiving buffer and put them inside an even or odd vec
   void fill_Leb_ev_or_od_bord_with_receiving_buf(void *vec,comm_t &comm)
   {
-    GET_THREAD_ID();
     
     if(IS_MASTER_THREAD)
       {
@@ -550,7 +532,6 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID();
 	
 	//take time and output debugging info
 	START_TIMING(tot_comm_time,ntot_comm);
@@ -568,7 +549,6 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID();
 	
 	//take time and make some output
 	START_TIMING(tot_comm_time,ntot_comm);
@@ -601,7 +581,6 @@ namespace nissa
   //fill the sending buf using the data inside an ev and odd vec, using Leblx style inside buf
   void fill_sending_buf_with_Leb_ev_and_od_vec(comm_t &comm,eo_ptr<void> vec)
   {
-    GET_THREAD_ID();
     
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
@@ -633,7 +612,6 @@ namespace nissa
   {
     if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && nparal_dir>0)
       {
-	GET_THREAD_ID();
 	
 	//take time and output debugging info
 	START_TIMING(tot_comm_time,ntot_comm);

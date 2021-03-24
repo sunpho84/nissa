@@ -472,7 +472,6 @@ void generate_original_source()
 //insert the photon on the source side
 void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,bool *dirs,PROP_TYPE *in,int t)
 { 
-  GET_THREAD_ID();
   
   if(in==out) crash("in==out");
   
@@ -642,7 +641,6 @@ void get_antineutrino_source_phase_factor(complex out,const int ivol,const int i
 //set everything to a phase factor
 void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &le)
 {
-  GET_THREAD_ID();
   
   vector_reset(prop);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -656,9 +654,8 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
 }
 
 //insert the photon on the source side
-THREADABLE_FUNCTION_5ARG(insert_photon_on_the_source, spinspin*,prop, spin1field*,A, bool*,dirs, tm_quark_info,le, int,twall)
+void insert_photon_on_the_source(spinspin* prop,spin1field* A,bool* dirs,tm_quark_info le,int twall)
 {
-  GET_THREAD_ID();
   
   //select A
   communicate_lx_spin1field_borders(A);
@@ -746,7 +743,6 @@ THREADABLE_FUNCTION_5ARG(insert_photon_on_the_source, spinspin*,prop, spin1field
   
   set_borders_invalid(prop);
 }
-THREADABLE_FUNCTION_END
 
 void insert_photon_on_the_source(spinspin *prop,bool *dirs,tm_quark_info le,int twall)
 {
@@ -766,9 +762,8 @@ void insert_photon_on_the_source(spinspin *prop,tm_quark_info &le,int twall)
 // 3)going to momentum space
 // 4)multiplying by the lepton propagator in momentum space
 // 5)coming back to x space
-THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
+void generate_lepton_propagators()
 {
-  GET_THREAD_ID();
   
   if(IS_MASTER_THREAD) lepton_prop_time-=take_time();
   
@@ -808,7 +803,6 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
 }
-THREADABLE_FUNCTION_END
 
 ////////////////////////////////////////// purely hadronic correlators ///////////////////////////////////////////
 
@@ -845,9 +839,8 @@ void compute_hadronic_correlations()
 
 //compute the hadronic part of the lepton correlation function
 //as usual, FIRST propagator is reverted
-THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PROP_TYPE*,S1, PROP_TYPE*,S2)
+void hadronic_part_leptonic_correlation(spinspin* hadr,PROP_TYPE* S1,PROP_TYPE* S2)
 {
-  GET_THREAD_ID();
   
   vector_reset(hadr);
   
@@ -872,12 +865,10 @@ THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PRO
    NISSA_PARALLEL_LOOP_END;
    THREAD_BARRIER();
 }
-THREADABLE_FUNCTION_END
 
 //compute the leptonic part of the correlation function
-THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ext_ind)
+void attach_leptonic_correlation(spinspin* hadr,int iprop,int ilepton,int orie,int rl,int ext_ind)
 {
-  GET_THREAD_ID();
   
   vector_reset(loc_corr);
   
@@ -971,7 +962,6 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
       THREAD_BARRIER();
     }
 }
-THREADABLE_FUNCTION_END
 
 //return the index of the combination of r, orientation, etc
 int hadrolept_corrpack_ind(int rl,int orie,int r2,int irev,int qins,int ilepton)

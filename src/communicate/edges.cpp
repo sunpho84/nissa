@@ -44,7 +44,6 @@ namespace nissa
     
     if(!check_edges_valid(data))
       {
-	GET_THREAD_ID();
 	
 	if(IS_MASTER_THREAD)
 	  {
@@ -121,7 +120,6 @@ namespace nissa
       {
 	communicate_ev_and_od_borders(data,bord_comm);
 	
-	GET_THREAD_ID();
 	
 	if(IS_MASTER_THREAD)
 	  {

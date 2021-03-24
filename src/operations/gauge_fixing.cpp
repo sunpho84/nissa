@@ -42,9 +42,8 @@ namespace nissa
   }
   
   //apply a gauge transformation to the conf
-  THREADABLE_FUNCTION_3ARG(gauge_transform_conf, quad_su3*,uout, su3*,g, const quad_su3*,uin)
+  void gauge_transform_conf(quad_su3* uout,su3* g,const quad_su3* uin)
   {
-    GET_THREAD_ID();
     
     //communicate borders
     communicate_lx_su3_borders(g);
@@ -62,11 +61,9 @@ namespace nissa
     //invalidate borders
     set_borders_invalid(uout);
   }
-  THREADABLE_FUNCTION_END
   //e/o version
-  THREADABLE_FUNCTION_3ARG(gauge_transform_conf, eo_ptr<quad_su3>,uout, eo_ptr<su3>,g, eo_ptr<quad_su3>,uin)
+  void gauge_transform_conf(eo_ptr<quad_su3> uout,eo_ptr<su3> g,eo_ptr<quad_su3> uin)
   {
-    GET_THREAD_ID();
     
     //communicate borders
     communicate_ev_and_od_su3_borders(g);
@@ -86,12 +83,10 @@ namespace nissa
     set_borders_invalid(uout[0]);
     set_borders_invalid(uout[1]);
   }
-  THREADABLE_FUNCTION_END
   
   //transform a color field
-  THREADABLE_FUNCTION_3ARG(gauge_transform_color, eo_ptr<color>,out, eo_ptr<su3>,g, eo_ptr<color>,in)
+  void gauge_transform_color(eo_ptr<color> out,eo_ptr<su3> g,eo_ptr<color> in)
   {
-    GET_THREAD_ID();
     
     //communicate borders
     communicate_ev_and_od_su3_borders(g);
@@ -106,7 +101,6 @@ namespace nissa
     set_borders_invalid(out[0]);
     set_borders_invalid(out[1]);
   }
-  THREADABLE_FUNCTION_END
   
   //determine the gauge transformation bringing to temporal gauge with T-1 timeslice diferent from id
   void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
@@ -192,7 +186,6 @@ namespace nissa
   //compute the functional that gets minimised
   double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int start_mu,const double *F_offset=NULL,double *ext_loc_F=NULL)
   {
-    GET_THREAD_ID();
     
     double *loc_F=ext_loc_F;
     if(ext_loc_F==NULL) loc_F=nissa_malloc("loc_F",loc_vol,double);
@@ -219,7 +212,6 @@ namespace nissa
   //compute the quality of the Landau or Coulomb gauge fixing
   double compute_Landau_or_Coulomb_gauge_fixing_quality(quad_su3 *conf,int start_mu)
   {
-    GET_THREAD_ID();
     
     communicate_lx_quad_su3_borders(conf);
     
@@ -255,7 +247,6 @@ namespace nissa
   //do all the fixing
   void Landau_or_Coulomb_gauge_fixing_overrelax(quad_su3 *fixed_conf,LC_gauge_fixing_pars_t::gauge_t gauge,double overrelax_prob,su3 *fixer,quad_su3 *ori_conf)
   {
-    GET_THREAD_ID();
     
     for(int eo=0;eo<2;eo++)
       {
@@ -325,7 +316,6 @@ namespace nissa
   //put the Fourier Acceleration kernel of eq.3.6 of C.Davies paper
   void Fourier_accelerate_derivative(su3 *der)
   {
-    GET_THREAD_ID();
     
     //Fourier Transform
     fft4d(der,FFT_MINUS,FFT_NORMALIZE);
@@ -362,7 +352,6 @@ namespace nissa
   //take exp(-0.5*alpha*der)
   void exp_der_alpha_half(su3 *g,su3 *der,double alpha)
   {
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	su3 temp;
@@ -376,7 +365,6 @@ namespace nissa
   //add the current fixer to previous one
   void add_current_transformation(su3 *fixer_out,const su3 *g,const su3 *fixer_in)
   {
-    GET_THREAD_ID();
     
     //add current transformation
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -522,7 +510,6 @@ namespace nissa
   {
     using namespace GCG;
     
-    GET_THREAD_ID();
     
     double beta;
     if(iter>1)
@@ -580,7 +567,6 @@ namespace nissa
   {
     using namespace GCG;
     
-    GET_THREAD_ID();
     
     //take the derivative
     su3 *der=nissa_malloc("der",loc_vol,su3);
@@ -630,9 +616,8 @@ namespace nissa
     return get_out;
   }
   
-  THREADABLE_FUNCTION_3ARG(Landau_or_Coulomb_gauge_fix, quad_su3*,fixed_conf, LC_gauge_fixing_pars_t*,pars, quad_su3*,ext_conf)
+  void Landau_or_Coulomb_gauge_fix(quad_su3* fixed_conf,LC_gauge_fixing_pars_t* pars,quad_su3* ext_conf)
   {
-    GET_THREAD_ID();
     double time=-take_time();
     
     const bool use_fft_acc=pars->use_fft_acc;
@@ -728,12 +713,10 @@ namespace nissa
     
     master_printf("Gauge fix time: %lg\n",time+take_time());
   }
-  THREADABLE_FUNCTION_END
   
   //perform a random gauge transformation
-  THREADABLE_FUNCTION_2ARG(perform_random_gauge_transform, quad_su3*,conf_out, quad_su3*,conf_in)
+  void perform_random_gauge_transform(quad_su3* conf_out,quad_su3* conf_in)
   {
-    GET_THREAD_ID();
     
     //allocate fixing matrix
     su3 *fixm=nissa_malloc("fixm",loc_vol+bord_vol,su3);
@@ -750,11 +733,9 @@ namespace nissa
     //free fixing matrix
     nissa_free(fixm);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_2ARG(perform_random_gauge_transform, eo_ptr<quad_su3>,conf_out, eo_ptr<quad_su3>,conf_in)
+  void perform_random_gauge_transform(eo_ptr<quad_su3> conf_out,eo_ptr<quad_su3> conf_in)
   {
-    GET_THREAD_ID();
     
     //allocate fixing matrix
     eo_ptr<su3> fixm={nissa_malloc("fixm_e",loc_volh+bord_volh,su3),nissa_malloc("fixm_o",loc_volh+bord_volh,su3)};
@@ -772,5 +753,4 @@ namespace nissa
     //free fixing matrix
     for(int eo=0;eo<2;eo++) nissa_free(fixm[eo]);
   }
-  THREADABLE_FUNCTION_END
 }

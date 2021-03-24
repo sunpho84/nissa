@@ -21,9 +21,8 @@ namespace nissa
   }
   
   //compute correlation functions for twisted clover, needed to fix tuning
-  THREADABLE_FUNCTION_6ARG(tm_tuning, complex*,corr, quad_su3*,conf, clover_term_t*,Cl, inv_clover_term_t*,invCl, quark_content_t*,q, tm_tuning_meas_pars_t*,meas_pars)
+  void tm_tuning(complex* corr,quad_su3* conf,clover_term_t* Cl,inv_clover_term_t* invCl,quark_content_t* q,tm_tuning_meas_pars_t* meas_pars)
   {
-    GET_THREAD_ID();
     
     spincolor *tmp=nissa_malloc("tmp",loc_vol+bord_vol,spincolor);
     spincolor *eta=nissa_malloc("eta",loc_vol+bord_vol,spincolor);
@@ -116,7 +115,6 @@ namespace nissa
     nissa_free(phi_ins_S);
     nissa_free(phi_ins_P);
   }
-  THREADABLE_FUNCTION_END
   
   //compute and print
   void measure_tm_tuning(eo_ptr<quad_su3> ext_conf,theory_pars_t &tp,tm_tuning_meas_pars_t &meas_pars,int iconf,int conf_created)

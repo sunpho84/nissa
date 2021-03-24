@@ -146,7 +146,6 @@ namespace nissa
   //set everything to a phase factor
   void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &le)
   {
-    GET_THREAD_ID();
     
     vector_reset(prop);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -160,9 +159,8 @@ namespace nissa
   }
   
   //insert the photon on the source side
-  THREADABLE_FUNCTION_5ARG(insert_photon_on_the_source, spinspin*,prop, spin1field*,A, int*,dirs, tm_quark_info,le, int,twall)
+  void insert_photon_on_the_source(spinspin* prop,spin1field* A,int* dirs,tm_quark_info le,int twall)
   {
-    GET_THREAD_ID();
     
     //select A
     communicate_lx_spin1field_borders(A);
@@ -247,7 +245,6 @@ namespace nissa
     
     set_borders_invalid(prop);
   }
-  THREADABLE_FUNCTION_END
   
   //generate all the lepton propagators, pointing outward
   //the computations is done by:
@@ -256,9 +253,8 @@ namespace nissa
   // 3)going to momentum space
   // 4)multiplying by the lepton propagator in momentum space
   // 5)coming back to x space
-  THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
+  void generate_lepton_propagators()
   {
-    // GET_THREAD_ID();
     
     // if(IS_MASTER_THREAD) lepton_prop_time-=take_time();
     
@@ -298,7 +294,6 @@ namespace nissa
     
     // if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
   }
-  THREADABLE_FUNCTION_END
   
   /*
     the loop is normalised such that the physical rate at leading order
@@ -309,9 +304,8 @@ namespace nissa
   
   //compute the meson part of the lepton contraction function
   //as usual, FIRST propagator is reverted
-  THREADABLE_FUNCTION_6ARG(meson_part_leptonic_contr, spinspin*,hadr, int,iq1, int,prop1_type, int,iq2, int,prop2_type, int,irev)
+  void meson_part_leptonic_contr(spinspin* hadr,int iq1,int prop1_type,int iq2,int prop2_type,int irev)
   {
-    // GET_THREAD_ID();
     
     // vector_reset(hadr);
     
@@ -332,12 +326,10 @@ namespace nissa
     // 	}
     // THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
   
   //compute the leptonic part of the contraction function
-  THREADABLE_FUNCTION_6ARG(attach_leptonic_contr, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ext_ind)
+  void attach_leptonic_contr(spinspin* hadr,int iprop,int ilepton,int orie,int rl,int ext_ind)
   {
-    GET_THREAD_ID();
     
     complex *loc_contr=nissa_malloc("loc_contr",glb_size[0],complex);
     vector_reset(loc_contr);
@@ -434,7 +426,6 @@ namespace nissa
     
     nissa_free(loc_contr);
   }
-  THREADABLE_FUNCTION_END
     
   //compute the total meslep contraction functions
   void compute_meslep_contr()

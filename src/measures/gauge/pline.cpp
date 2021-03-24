@@ -22,9 +22,8 @@
 namespace nissa
 {
   //compute the polyakov loop, for each site of the lattice
-  THREADABLE_FUNCTION_3ARG(field_untraced_polyakov_loop_lx_conf, su3*,u, quad_su3*,conf, int,mu)
+  void field_untraced_polyakov_loop_lx_conf(su3* u,quad_su3* conf,int mu)
   {
-    GET_THREAD_ID();
     
     communicate_lx_quad_su3_borders(conf);
     
@@ -46,12 +45,10 @@ namespace nissa
 	su3_vec_single_shift(u,mu,+1);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //compute the trace of the polyakov loop, but do not reduce over space
   void field_traced_polyakov_loop_lx_conf(complex *out,quad_su3 *conf,int mu)
   {
-    GET_THREAD_ID();
     
     //compute untraced loops
     su3 *u=nissa_malloc("u",loc_vol+bord_vol,su3);
@@ -119,9 +116,8 @@ namespace nissa
   }
   
   //compute the polyakov loop - if ext_ll_dag is non null uses it and store correlator with the dag inside it, if ext_ll is non null compute also the correlator with itself
-  THREADABLE_FUNCTION_6ARG(average_and_corr_polyakov_loop_lx_conf_internal, double*,loop_trace, double*,loop_dag_trace, complex*,ll_dag_corr, complex*,ll_corr, quad_su3*,conf, int,mu)
+  void average_and_corr_polyakov_loop_lx_conf_internal(double* loop_trace,double* loop_dag_trace,complex* ll_dag_corr,complex* ll_corr,quad_su3* conf,int mu)
   {
-    GET_THREAD_ID();
     
     //compute the traced loop
     complex *point_loop=nissa_malloc("point_loop",loc_vol,complex),*point_loop_dag=NULL;
@@ -185,7 +181,6 @@ namespace nissa
     nissa_free(point_loop);
     if(ll_corr) nissa_free(point_loop_dag);
   }
-  THREADABLE_FUNCTION_END
   
   //remap and save - "loop" is destroyed!
   void save_poly_loop_correlator(FILE *file,complex *loop,int mu,double *tra,int itraj)

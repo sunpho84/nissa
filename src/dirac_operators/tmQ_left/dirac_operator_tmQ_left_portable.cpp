@@ -16,14 +16,13 @@
 namespace nissa
 {
   //in this version we apply (1+gmu)/2 before the multiplication by U
-  THREADABLE_FUNCTION_5ARG(apply_tmQ_left, spincolor*,out, quad_su3*,conf, double,kappa, double,mu, spincolor*,in)
+  void apply_tmQ_left(spincolor* out,quad_su3* conf,double kappa,double mu,spincolor* in)
   {
     double kcf=1/(2*kappa);
     
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
       {
 	int Xup,Xdw;
@@ -133,5 +132,4 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
 }

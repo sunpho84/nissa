@@ -12,14 +12,13 @@
 //Apply the Q=g5*D operator to a spincolor
 namespace nissa
 {
-  THREADABLE_FUNCTION_6ARG(apply_tmclovQ, spincolor*,out, quad_su3*,conf, double,kappa, clover_term_t*,Cl, double,mu, spincolor*,in)
+  void apply_tmclovQ(spincolor* out,quad_su3* conf,double kappa,clover_term_t* Cl,double mu,spincolor* in)
   {
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
     double kcf=1/(2*kappa);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
       {
 	int Xup,Xdw;
@@ -135,5 +134,4 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
 }

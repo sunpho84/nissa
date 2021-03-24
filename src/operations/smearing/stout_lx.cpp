@@ -72,9 +72,8 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  THREADABLE_FUNCTION_4ARG(stout_smear_single_level, quad_su3*,out, quad_su3*,ext_in, double,rho, bool*,dirs)
+  void stout_smear_single_level(quad_su3* out,quad_su3* ext_in,double rho,bool* dirs)
   {
-    GET_THREAD_ID();
     
     START_TIMING(sto_time,nsto);
     
@@ -110,10 +109,9 @@ namespace nissa
     
     STOP_TIMING(sto_time);
   }
-  THREADABLE_FUNCTION_END
   
   //smear n times, using only one additional vectors
-  THREADABLE_FUNCTION_4ARG(stout_smear, quad_su3*,ext_out, quad_su3*,ext_in, stout_pars_t*,stout_pars, bool*,dirs)
+  void stout_smear(quad_su3* ext_out,quad_su3* ext_in,stout_pars_t* stout_pars,bool* dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_lx_conf(ext_in));
     switch(stout_pars->nlevels)
@@ -147,28 +145,25 @@ namespace nissa
 	nissa_free(ext_temp);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //allocate all the stack for smearing
-  THREADABLE_FUNCTION_3ARG(stout_smear_conf_stack_allocate, quad_su3***,out, quad_su3*,in, int,nlev)
+  void stout_smear_conf_stack_allocate(quad_su3*** out,quad_su3* in,int nlev)
   {
     (*out)=nissa_malloc("out*",nlev+1,quad_su3*);
     (*out)[0]=in;
     for(int i=1;i<=nlev;i++)
       (*out)[i]=nissa_malloc("out",loc_vol+bord_vol+edge_vol,quad_su3);
   }
-  THREADABLE_FUNCTION_END
   
   //free all the stack of allocated smeared conf
-  THREADABLE_FUNCTION_2ARG(stout_smear_conf_stack_free, quad_su3***,out, int,nlev)
+  void stout_smear_conf_stack_free(quad_su3*** out,int nlev)
   {
     for(int i=1;i<=nlev;i++) nissa_free((*out)[i]);
     nissa_free(*out);
   }
-  THREADABLE_FUNCTION_END
   
   //smear iteratively retainig all the stack
-  THREADABLE_FUNCTION_4ARG(stout_smear_whole_stack, quad_su3**,out, quad_su3*,in, stout_pars_t*,stout_pars, bool*,dirs)
+  void stout_smear_whole_stack(quad_su3** out,quad_su3* in,stout_pars_t* stout_pars,bool* dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_lx_conf(out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)
@@ -177,12 +172,10 @@ namespace nissa
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_lx_conf(out[i]));
       }
   }
-  THREADABLE_FUNCTION_END
   
   //remap the force to one smearing level less
-  THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3*,F, quad_su3*,conf, double,rho)
+  void stouted_force_remap_step(quad_su3* F,quad_su3* conf,double rho)
   {
-    GET_THREAD_ID();
     communicate_lx_quad_su3_edges(conf);
     
     quad_su3 *Lambda=nissa_malloc("Lambda",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -278,12 +271,10 @@ namespace nissa
 	  }
     nissa_free(Lambda);
   }
-  THREADABLE_FUNCTION_END
   
   //remap iteratively the force, adding the missing pieces of the chain rule derivation
-  THREADABLE_FUNCTION_3ARG(stouted_force_remap, quad_su3*,F, quad_su3**,sme_conf, stout_pars_t*,stout_pars)
+  void stouted_force_remap(quad_su3* F,quad_su3** sme_conf,stout_pars_t* stout_pars)
   {
-    GET_THREAD_ID();
     
     START_TIMING(sto_remap_time,nsto_remap);
     
@@ -295,5 +286,4 @@ namespace nissa
     
     STOP_TIMING(sto_remap_time);
   }
-  THREADABLE_FUNCTION_END
 }

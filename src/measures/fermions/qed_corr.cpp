@@ -52,31 +52,28 @@ namespace nissa
     void insert_time_conserved_vector_current_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=(mu==0);out[IM]=0;}
     
     //insert the tadpol
-    THREADABLE_FUNCTION_7ARG(insert_tadpole, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, eo_ptr<color>,in, double*,tad, int,t)
+    void insert_tadpole(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t* theory_pars,int iflav,eo_ptr<color> in,double* tad,int t)
     {
       //call with no source insertion, plus between fw and bw, and a global -0.25
       complex fw_factor={-0.25,0},bw_factor={-0.25,0};
       insert_vector_vertex(out,conf,theory_pars,iflav,{NULL,NULL},in,fw_factor,bw_factor,insert_tadpole_handle,t,tad);
     }
-    THREADABLE_FUNCTION_END
     
     //insert the external source, that is one of the two extrema of the stoch prop
-    THREADABLE_FUNCTION_7ARG(insert_external_source, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, eo_ptr<spin1field>,curr, eo_ptr<color>,in, int,t)
+    void insert_external_source(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t* theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,int t)
     {
       //call with source insertion, minus between fw and bw, and a global i*0.5
       complex fw_factor={0,+0.5},bw_factor={0,-0.5};
       insert_vector_vertex(out,conf,theory_pars,iflav,curr,in,fw_factor,bw_factor,insert_external_source_handle,t);
     }
-    THREADABLE_FUNCTION_END
     
     //insert the time componente of the vectorial current
-    THREADABLE_FUNCTION_6ARG(insert_time_conserved_vector_current, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, theory_pars_t*,theory_pars, int,iflav, eo_ptr<color>,in, int,t)
+    void insert_time_conserved_vector_current(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t* theory_pars,int iflav,eo_ptr<color> in,int t)
     {
       //call with no source insertion, minus between fw and bw, and a global i*0.5
       complex fw_factor={0,+0.5},bw_factor={0,-0.5};
       insert_vector_vertex(out,conf,theory_pars,iflav,{NULL,NULL},in,fw_factor,bw_factor,insert_time_conserved_vector_current_handle,t);
     }
-    THREADABLE_FUNCTION_END
   }
   
   using namespace stag;
@@ -101,9 +98,8 @@ namespace nissa
   }
   
   //compute and print
-  THREADABLE_FUNCTION_5ARG(measure_qed_corr, eo_ptr<quad_su3>,conf, theory_pars_t,theory_pars, qed_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
+  void measure_qed_corr(eo_ptr<quad_su3> conf,theory_pars_t theory_pars,qed_corr_meas_pars_t meas_pars,int iconf,int conf_created)
   {
-    GET_THREAD_ID();
     
     //open the file, allocate point result and source
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
@@ -307,5 +303,4 @@ namespace nissa
     
     close_file(file);
   }
-  THREADABLE_FUNCTION_END
 }

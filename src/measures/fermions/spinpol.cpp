@@ -34,7 +34,6 @@ namespace nissa
   //make the complex-double product
   void compute_tens_dens_topo_correlation(complex *spinpol_dens,complex *tens_dens,double *topo_dens)
   {
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       complex_prod_double(spinpol_dens[ivol],tens_dens[ivol],topo_dens[ivol]);
     NISSA_PARALLEL_LOOP_END;
@@ -42,7 +41,7 @@ namespace nissa
   }
   
   //compute the spin-polarization for all flavors
-  THREADABLE_FUNCTION_5ARG(measure_spinpol, theory_pars_t*,tp, spinpol_meas_pars_t*,mp,int,iconf, int,conf_created, eo_ptr<quad_su3>,glu_conf)
+  void measure_spinpol(theory_pars_t* tp,spinpol_meas_pars_t* mp,int iconf,int conf_created,eo_ptr<quad_su3> glu_conf)
   {
     verbosity_lv1_master_printf("Evaluating spinpol\n");
     
@@ -453,7 +452,6 @@ namespace nissa
     //close
     close_file(fout);
   }
-  THREADABLE_FUNCTION_END
   
   std::string spinpol_meas_pars_t::get_str(bool full)
   {

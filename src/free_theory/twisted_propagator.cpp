@@ -226,9 +226,8 @@ namespace nissa
   }
   
   //whole quark propagator in momentum space
-  THREADABLE_FUNCTION_3ARG(compute_mom_space_twisted_propagator, spinspin*,prop, tm_quark_info,qu, tm_basis_t,base)
+  void compute_mom_space_twisted_propagator(spinspin* prop,tm_quark_info qu,tm_basis_t base)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       mom_space_twisted_propagator_of_imom(prop[imom],qu,imom,base);
@@ -236,7 +235,6 @@ namespace nissa
     
     set_borders_invalid(prop);
   }
-  THREADABLE_FUNCTION_END
   
   ///////////////////////////////////////////// twisted propagator in x space ////////////////////////////////////////////////
   
@@ -248,9 +246,8 @@ namespace nissa
   }
   
   //squared (scalar insertion)
-  THREADABLE_FUNCTION_3ARG(compute_x_space_twisted_squared_propagator_by_fft, spinspin*,sq_prop, tm_quark_info,qu, tm_basis_t,base)
+  void compute_x_space_twisted_squared_propagator_by_fft(spinspin* sq_prop,tm_quark_info qu,tm_basis_t base)
   {
-    GET_THREAD_ID();
     
     compute_mom_space_twisted_propagator(sq_prop,qu,base);
     
@@ -266,15 +263,13 @@ namespace nissa
     
     pass_spinspin_from_mom_to_x_space(sq_prop,sq_prop,qu.bc,true,true);
   }
-  THREADABLE_FUNCTION_END
   
   /////////////////////////////////////////////// multiply from left or right a spin ///////////////////////////////////////////////
   
   //multiply from left
 #define DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(TYPE) \
-  THREADABLE_FUNCTION_4ARG(multiply_from_left_by_mom_space_twisted_propagator, TYPE*,out, TYPE*,in, tm_quark_info,qu, tm_basis_t,base) \
+  void multiply_from_left_by_mom_space_twisted_propagator(TYPE* out,TYPE* in,tm_quark_info qu,tm_basis_t base) \
   {									\
-    GET_THREAD_ID();							\
     									\
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)					\
       {									\
@@ -286,12 +281,10 @@ namespace nissa
 									\
     set_borders_invalid(out);						\
   }									\
-  THREADABLE_FUNCTION_END						\
 									\
   /*multiply from right*/						\
-  THREADABLE_FUNCTION_4ARG(multiply_from_right_by_mom_space_twisted_propagator, TYPE*,out, TYPE*,in, tm_quark_info,qu, tm_basis_t,base) \
+  void multiply_from_right_by_mom_space_twisted_propagator(TYPE* out,TYPE* in,tm_quark_info qu,tm_basis_t base) \
   {									\
-    GET_THREAD_ID();							\
 									\
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)					\
       {									\
@@ -303,7 +296,6 @@ namespace nissa
 									\
     set_borders_invalid(out);						\
   }									\
-  THREADABLE_FUNCTION_END						\
   
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spin);
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spincolor);

@@ -48,10 +48,8 @@ namespace nissa
   {nissa_free(mes2pts_contr);}
   
   //compute a single scalar product
-  THREADABLE_FUNCTION_3ARG(compute_prop_scalprod, double*,res, std::string,pr_dag, std::string, pr)
+  void compute_prop_scalprod(double* res,std::string pr_dag,std::string pr)
   {
-    GET_THREAD_ID();
-    
     master_printf("Computing the scalar product between %s and %s\n",pr_dag.c_str(),pr.c_str());
     
     complex *loc=nissa_malloc("loc",loc_vol,complex);
@@ -76,14 +74,11 @@ namespace nissa
     
     nissa_free(loc);
   }
-  THREADABLE_FUNCTION_END
   
   //compute all the meson contractions
-  THREADABLE_FUNCTION_1ARG(compute_mes2pts_contr, int,normalize)
+  void compute_mes2pts_contr(int normalize)
   //void compute_mes2pts_contr(int normalize)
   {
-    GET_THREAD_ID();
-    
     master_printf("Computing meson 2pts_contractions\n");
     
     // Tr [ GSO G5 S1^+ G5 GSI S2 ]      GSI is on the sink
@@ -161,7 +156,6 @@ namespace nissa
 	mes2pts_contr_time+=take_time();
       }
   }
-  THREADABLE_FUNCTION_END
   
   //print all mesonic 2pts contractions
   void print_mes2pts_contr(int n,int force_append,int skip_inner_header,const std::string &alternative_header_template)
@@ -269,9 +263,8 @@ namespace nissa
   // O_ga=          eps_{a,b,c} q1_{al,a}(CG)_{al,be}q2_{be,b}q3_{ga,c}
   //
   // O^\dagger_ga = eps_{a,b,c}} q3^*_{ga,c}q2^*_{be,b}(CG)^\dag_{al,be}q3_{ga,c}
-  THREADABLE_FUNCTION_0ARG(compute_bar2pts_alt_contr)
+  void compute_bar2pts_alt_contr()
   {
-    GET_THREAD_ID();
     master_printf("Computing barion 2pts contractions alternative\n");
     
     //In practice, only in the second half and for the g0 we have a minus
@@ -455,12 +448,10 @@ namespace nissa
   //stats
   if(IS_MASTER_THREAD) nbar2pts_alt_contr_made+=bar2pts_contr_map.size();
   }
-  THREADABLE_FUNCTION_END
   
   // //compute all contractions
-  // THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr_free_theory)
+  // void compute_bar2pts_contr_free_theory()
   // {
-  //   GET_THREAD_ID();
     
   //   master_printf("Computing barion contractions\n");
     
@@ -587,12 +578,10 @@ namespace nissa
   //   THREAD_BARRIER();
   //   delete[] loc_contr;
   // }
-  // THREADABLE_FUNCTION_END
   
   //compute all contractions
-  THREADABLE_FUNCTION_0ARG(compute_bar2pts_contr)
+  void compute_bar2pts_contr()
   {
-    GET_THREAD_ID();
     master_printf("Computing barion 2pts contractions\n");
     
     //allocate loc storage
@@ -679,7 +668,6 @@ namespace nissa
     //stats
     if(IS_MASTER_THREAD) nbar2pts_contr_made+=bar2pts_contr_map.size();
   }
-  THREADABLE_FUNCTION_END
   
   //print all contractions
   void print_bar2pts_contr()
@@ -737,9 +725,8 @@ namespace nissa
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //compute the matrix element of the conserved current between two propagators. If asking to revert, g5 is inserted between the two propagators
-  THREADABLE_FUNCTION_7ARG(conserved_vector_current_mel, quad_su3*,conf, spin1field*,si, dirac_matr*,ext_g, int,r, const char*,name_bw, const char*,name_fw, bool,revert)
+  void conserved_vector_current_mel(quad_su3* conf,spin1field* si,dirac_matr* ext_g,int r,const char* name_bw,const char* name_fw,bool revert)
   {
-    GET_THREAD_ID();
     
     vector_reset(si);
     
@@ -808,12 +795,10 @@ namespace nissa
     
     nissa_free(GAMMA);
   }
-  THREADABLE_FUNCTION_END
   
   //compute the matrix element of the current between two propagators
-  THREADABLE_FUNCTION_6ARG(vector_current_mel, spin1field*,si, dirac_matr*,ext_g, int,r, const char*,id_Qbw, const char*,id_Qfw, bool,revert)
+  void vector_current_mel(spin1field* si,dirac_matr* ext_g,int r,const char* id_Qbw,const char* id_Qfw,bool revert)
   {
-    GET_THREAD_ID();
     
     vector_reset(si);
     
@@ -850,7 +835,6 @@ namespace nissa
     
     nissa_free(GAMMA);
   }
-  THREADABLE_FUNCTION_END
   
   //compute local or conserved vector current matrix element
   void local_or_conserved_vector_current_mel(spin1field *si,dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert)
@@ -869,9 +853,8 @@ namespace nissa
   
   //                                                          handcuffs
   
-  THREADABLE_FUNCTION_0ARG(compute_handcuffs_contr)
+  void compute_handcuffs_contr()
   {
-    GET_THREAD_ID();
     master_printf("Computing handcuffs contractions\n");
     
     //allocate all sides
@@ -946,7 +929,6 @@ namespace nissa
     for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)
       nissa_free(it->second);
   }
-  THREADABLE_FUNCTION_END
   
   //allocate handcuff contractions
   void allocate_handcuffs_contr()

@@ -12,13 +12,12 @@ namespace nissa
   //Refers to the doc: "doc/eo_inverter.lyx" for explenations
   
   //implement ee or oo part of Dirac operator, equation(3)
-  THREADABLE_FUNCTION_6ARG(tmclovDee_or_oo_eos, spincolor*,out, double,kappa, clover_term_t*,Cl, bool,dag, double,mu, spincolor*,in)
+  void tmclovDee_or_oo_eos(spincolor* out,double kappa,clover_term_t* Cl,bool dag,double mu,spincolor* in)
   {
     if(dag) mu=-mu;
     
     if(in==out) crash("in==out!");
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       {
 	 apply_point_twisted_clover_term_to_halfspincolor(&(out[X][0*NDIRAC/2]),+mu,kappa,&(Cl[X][0*NDIRAC/2]),&(in[X][0*NDIRAC/2]));
@@ -28,10 +27,9 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //inverse
-  THREADABLE_FUNCTION_4ARG(inv_tmclovDee_or_oo_eos, spincolor*,out, inv_clover_term_t*,invCl, bool,dag, spincolor*,in)
+  void inv_tmclovDee_or_oo_eos(spincolor* out,inv_clover_term_t* invCl,bool dag,spincolor* in)
   {
     if(in==out) crash("in==out!");
     
@@ -39,7 +37,6 @@ namespace nissa
     int high=0,low=1;
     if(dag) std::swap(low,high);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
       {
     	unsafe_halfspincolor_halfspincolor_times_halfspincolor(&(out[X][2*high]),invCl[X][high],&(in[X][2*high]));
@@ -49,10 +46,9 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //implement Koo defined in equation (7)
-  THREADABLE_FUNCTION_9ARG(tmclovDkern_eoprec_eos, spincolor*,out, spincolor*,temp, eo_ptr<quad_su3>,conf, double,kappa, clover_term_t*,Cl_odd, inv_clover_term_t*,invCl_evn, bool,dag, double,mu, spincolor*,in)
+  void tmclovDkern_eoprec_eos(spincolor* out,spincolor* temp,eo_ptr<quad_su3> conf,double kappa,clover_term_t* Cl_odd,inv_clover_term_t* invCl_evn,bool dag,double mu,spincolor* in)
   {
     tmn2Deo_eos(out,conf,in);
     inv_tmclovDee_or_oo_eos(temp,invCl_evn,dag,out);
@@ -62,7 +58,6 @@ namespace nissa
     
     tmDkern_eoprec_eos_put_together_and_include_gamma5(out,temp);
   }
-  THREADABLE_FUNCTION_END
   
   //square of Koo
   void tmclovDkern_eoprec_square_eos(spincolor *out,spincolor *temp1,spincolor *temp2,eo_ptr<quad_su3> conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor *in)

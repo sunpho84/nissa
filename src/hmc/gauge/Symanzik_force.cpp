@@ -16,7 +16,7 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_4ARG(Symanzik_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta, double,C1)
+  void Symanzik_force_lx_conf(quad_su3* out,quad_su3* conf,double beta,double C1)
   {
     verbosity_lv2_master_printf("Computing Symanzik force\n");
     
@@ -24,7 +24,6 @@ namespace nissa
     double C0=get_C0(C1);
     double w1=-C1*beta/NCOL,w0=-C0*beta/NCOL;
     
-    GET_THREAD_ID();
     
     //compute squared pieces
     squared_staples_t *squared_staples=nissa_malloc("squared_staples",loc_vol+bord_vol,squared_staples_t);
@@ -55,5 +54,4 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
 }

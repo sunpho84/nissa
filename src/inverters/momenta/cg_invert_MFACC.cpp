@@ -40,9 +40,8 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_7ARG(inv_MFACC_cg, quad_su3*,sol, quad_su3*,guess, quad_su3*,conf, double,kappa, int,niter, double,residue, quad_su3*,source)
+  void inv_MFACC_cg(quad_su3* sol,quad_su3* guess,quad_su3* conf,double kappa,int niter,double residue,quad_su3* source)
   {
-    GET_THREAD_ID();
     
     //temporary allocate
     su3 *temp_source=nissa_malloc("temp_source",loc_vol,su3);
@@ -73,5 +72,4 @@ namespace nissa
     nissa_free(temp_source);
     nissa_free(temp_sol);
   }
-  THREADABLE_FUNCTION_END
 }

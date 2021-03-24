@@ -23,20 +23,19 @@
 namespace nissa
 {
 #if CG_NARG == 0
-  THREADABLE_FUNCTION_5ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, int,niter, double,residue, BASETYPE*,source)
+  void CG_INVERT(BASETYPE* sol,BASETYPE* guess,int niter,double residue,BASETYPE* source)
 #elif CG_NARG == 1
-  THREADABLE_FUNCTION_6ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, int,niter, double,residue, BASETYPE*,source)
+  void CG_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,int niter,double residue,BASETYPE* source)
 #elif CG_NARG == 2
-  THREADABLE_FUNCTION_7ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, int,niter, double,residue, BASETYPE*,source)
+  void CG_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,AT2 A2,int niter,double residue,BASETYPE* source)
 #elif CG_NARG == 3
-  THREADABLE_FUNCTION_8ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, int,niter, double,residue, BASETYPE*,source)
+  void CG_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,AT2 A2,AT3 A3,int niter,double residue,BASETYPE* source)
 #elif CG_NARG == 4
-  THREADABLE_FUNCTION_9ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, int,niter, double,residue, BASETYPE*,source)
+  void CG_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,AT2 A2,AT3 A3,AT4 A4,int niter,double residue,BASETYPE* source)
 #elif CG_NARG == 5
-  THREADABLE_FUNCTION_10ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, AT5,A5, int,niter, double,residue, BASETYPE*,source)
+  void CG_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,int niter,double residue,BASETYPE* source)
 #endif
   {
-    GET_THREAD_ID();
     
     verbosity_lv2_master_printf("\n");
     
@@ -130,7 +129,6 @@ namespace nissa
     //macro to be defined externally
     CG_ADDITIONAL_VECTORS_FREE();
   }
-  THREADABLE_FUNCTION_END
 }
 
 #undef BASETYPE

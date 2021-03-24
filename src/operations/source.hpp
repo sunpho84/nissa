@@ -8,7 +8,6 @@ namespace nissa
   //select a timeslice
   template<class prop_type> void select_propagator_timeslice(prop_type *prop_out,prop_type *prop_in,int timeslice)
   {
-    GET_THREAD_ID();
     
     if(prop_out!=prop_in) vector_copy(prop_out,prop_in);
     

@@ -9,13 +9,12 @@
 namespace nissa
 {
   //multiply the configuration for an additional u(1) field, defined as exp(-i e q A /3)
-  THREADABLE_FUNCTION_2ARG(add_photon_field_to_conf, quad_su3*,conf, double,charge)
+  void add_photon_field_to_conf(quad_su3* conf,double charge)
   {
     const double alpha_em=1/137.04;
     const double e2=4*M_PI*alpha_em;
     const double e=sqrt(e2);
     verbosity_lv2_master_printf("Adding backfield, for a quark of charge q=e*%lg/3\n",charge);
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
 	{
@@ -26,7 +25,6 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(conf);
   }
-  THREADABLE_FUNCTION_END
   
   //remove the field
   void rem_photon_field_to_conf(quad_su3 *conf,double q)
@@ -37,7 +35,6 @@ namespace nissa
   //get a propagator inverting on "in"
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,double residue,double *theta)
   {
-    GET_THREAD_ID();
     
     //rotate the source index - the propagator rotate AS the sign of mass term
     if(twisted_run>0) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
@@ -74,9 +71,8 @@ namespace nissa
   }
   
   //generate a source, wither a wall or a point in the origin
-  THREADABLE_FUNCTION_1ARG(generate_original_source, qprop_t*,sou)
+  void generate_original_source(qprop_t* sou)
   {
-    GET_THREAD_ID();
     
     //consistency check
     if(!stoch_source and (!diluted_spi_source or !diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
@@ -138,12 +134,10 @@ namespace nissa
     
     nissa_free(sou_proxy);
   }
-  THREADABLE_FUNCTION_END
   
   //insert the photon on the source side
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool* dirs)
   {
-    GET_THREAD_ID();
     
     if(in==out) crash("in==out");
     
@@ -191,7 +185,6 @@ namespace nissa
   template <typename T>
   void smear_prop(spincolor *out,quad_su3 *conf,spincolor *ori,int t,T kappa,int nlevels)
   {
-    GET_THREAD_ID();
     
     //nb: the smearing radius is given by
     //a*sqrt(2*n*kappa/(1+6*kappa))
@@ -205,9 +198,8 @@ namespace nissa
   }
   
   //phase the propagator
-  THREADABLE_FUNCTION_4ARG(phase_prop, spincolor*,out, spincolor*,ori, int,t, double*,th)
+  void phase_prop(spincolor* out,spincolor* ori,int t,double* th)
   {
-    GET_THREAD_ID();
     
     for(int mu=1;mu<NDIM;mu++) if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10) crash("Error: phase %lg must be an even integer",th[mu]);
     
@@ -230,12 +222,10 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //backward flow the propagator
-  THREADABLE_FUNCTION_6ARG(back_flow_prop, spincolor*,out, quad_su3*,conf, spincolor*,ori, int,t, double,dt, int,nflows)
+  void back_flow_prop(spincolor* out,quad_su3* conf,spincolor* ori,int t,double dt,int nflows)
   {
-    GET_THREAD_ID();
     
     START_TIMING(bflw_time,nbflw_tot);
     
@@ -271,12 +261,10 @@ namespace nissa
     
     nissa_free(flown_conf);
   }
-  THREADABLE_FUNCTION_END
   
   //flow the propagator
-  THREADABLE_FUNCTION_6ARG(flow_prop, spincolor*,out, quad_su3*,conf, spincolor*,ori, int,t, double,dt, int,nflows)
+  void flow_prop(spincolor* out,quad_su3* conf,spincolor* ori,int t,double dt,int nflows)
   {
-    GET_THREAD_ID();
     
     START_TIMING(flw_time,nflw_tot);
     
@@ -304,11 +292,9 @@ namespace nissa
     
     nissa_free(flown_conf);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_3ARG(build_source, spincolor*,out, std::vector<source_term_t>*,source_terms, int,isou)
+  void build_source(spincolor* out,std::vector<source_term_t>* source_terms,int isou)
   {
-    GET_THREAD_ID();
     
     vector_reset(out);
     
@@ -322,7 +308,6 @@ namespace nissa
       }
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //generate a sequential source
   void generate_source(insertion_t inser,char *ext_field_path,int r,double charge,double kappa,double* kappa_asymm,double *theta,std::vector<source_term_t>& source_terms,int isou,int t)
@@ -391,7 +376,6 @@ namespace nissa
   //Generate all the original sources
   void generate_original_sources(int ihit,bool skip_io)
   {
-    GET_THREAD_ID();
     
     for(size_t i=0;i<ori_source_name_list.size();i++)
       {
@@ -438,7 +422,6 @@ namespace nissa
   //generate all the quark propagators
   void generate_quark_propagators(int ihit)
   {
-    GET_THREAD_ID();
     for(size_t i=0;i<qprop_name_list.size();i++)
       {
 	//get names
@@ -539,7 +522,6 @@ namespace nissa
   //wrapper to generate a stochastic propagator
   void generate_photon_stochastic_propagator(int ihit)
   {
-    GET_THREAD_ID();
     
     photon_prop_time-=take_time();
     
@@ -593,9 +575,8 @@ namespace nissa
   }
   
   //put the phase of the source due to missing e(iky)
-  THREADABLE_FUNCTION_2ARG(put_fft_source_phase, spincolor*,qtilde, double,fft_sign)
+  void put_fft_source_phase(spincolor* qtilde,double fft_sign)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
@@ -613,7 +594,6 @@ namespace nissa
     
     set_borders_invalid(qtilde);
   }
-  THREADABLE_FUNCTION_END
   
   //initialize the fft filter, once forever
   void init_fft_filter_from_range(std::vector<std::pair<fft_mom_range_t,double>>& fft_mom_range_list)
@@ -761,7 +741,6 @@ namespace nissa
   //perform fft and store the propagators
   void propagators_fft(int ihit)
   {
-    GET_THREAD_ID();
     
     spincolor *qtilde=nissa_malloc("qtilde",loc_vol+bord_vol,spincolor);
     

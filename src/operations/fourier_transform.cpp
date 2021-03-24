@@ -15,9 +15,8 @@
 namespace nissa
 {
   //interpret free index as source or sink
-  THREADABLE_FUNCTION_6ARG(pass_spinspin_from_mom_to_x_space, spinspin*,out, spinspin*,in, bool*,dirs, double*,bc, int,source_or_sink, bool,include_phases)
+  void pass_spinspin_from_mom_to_x_space(spinspin* out,spinspin* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
   {
-    GET_THREAD_ID();
     
     //compute the main part of the fft
     //+1 if sink, -1 if source
@@ -48,12 +47,10 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //interprets free index as source or sink (see above)
-  THREADABLE_FUNCTION_6ARG(pass_spinspin_from_x_to_mom_space, spinspin*,out, spinspin*,in, bool*,dirs, double*,bc, int,source_or_sink, bool,include_phases)
+  void pass_spinspin_from_x_to_mom_space(spinspin* out,spinspin* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
   {
-    GET_THREAD_ID();
     
     //-1 if sink, +1 if source
     int sign[2]={+1,-1};
@@ -85,12 +82,10 @@ namespace nissa
     //compute the main part of the fft
     fft4d((complex*)out,(complex*)out,dirs,sizeof(spinspin)/sizeof(complex),sign[source_or_sink],1);
   }
-  THREADABLE_FUNCTION_END
   
   //see above
-  THREADABLE_FUNCTION_6ARG(pass_spin1prop_from_mom_to_x_space, spin1prop*,out, spin1prop*,in, bool*,dirs, double*,bc, int,source_or_sink, bool,include_phases)
+  void pass_spin1prop_from_mom_to_x_space(spin1prop* out,spin1prop* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
   {
-    GET_THREAD_ID();
     
     //+1 if sink, -1 if source
     int _sign[2]={-1,+1},*sign=_sign;
@@ -146,12 +141,10 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //see previous note
-  THREADABLE_FUNCTION_6ARG(pass_spin1prop_from_x_to_mom_space, spin1prop*,out, spin1prop*,in, bool*,dirs, double*,bc, int,source_or_sink, bool,include_phases)
+  void pass_spin1prop_from_x_to_mom_space(spin1prop* out,spin1prop* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
   {
-    GET_THREAD_ID();
     
     //-1 if sink, +1 if source
     int _sign[2]={+1,-1},*sign=_sign;
@@ -207,11 +200,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_6ARG(pass_spin1field_from_mom_to_x_space, spin1field*,out, spin1field*,in, bool*,dirs, double*,bc, int,source_or_sink, bool,include_phases)
+  void pass_spin1field_from_mom_to_x_space(spin1field* out,spin1field* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
   {
-    GET_THREAD_ID();
     
     //+1 if sink, -1 if source
     int _sign[2]={-1,+1},*sign=_sign;
@@ -262,11 +253,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_6ARG(pass_spin1field_from_x_to_mom_space, spin1field*,out, spin1field*,in, bool*,dirs, double*,bc, int,source_or_sink, bool,include_phases)
+  void pass_spin1field_from_x_to_mom_space(spin1field* out,spin1field* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
   {
-    GET_THREAD_ID();
     
     //-1 if sink, +1 if source
     int _sign[2]={+1,-1},*sign=_sign;
@@ -317,11 +306,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_6ARG(pass_spin_from_mom_to_x_space, spin*,out, spin*,in, bool*,dirs, double*,bc, int,source_or_sink, bool,include_phases)
+  void pass_spin_from_mom_to_x_space(spin* out,spin* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
   {
-    GET_THREAD_ID();
     
     int _sign[2]={-1,+1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
@@ -353,11 +340,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_6ARG(pass_spin_from_x_to_mom_space, spin*,out, spin*,in, bool*,dirs, double*,bc, int,source_or_sink, bool,include_phases)
+  void pass_spin_from_x_to_mom_space(spin* out,spin* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
   {
-    GET_THREAD_ID();
     
     int _sign[2]={+1,-1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
@@ -389,11 +374,9 @@ namespace nissa
     //compute the main part of the fft
     fft4d((complex*)out,(complex*)out,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],1);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_6ARG(pass_spincolor_from_mom_to_x_space, spincolor*,out, spincolor*,in, bool*,dirs, double*,bc, int,source_or_sink, bool,include_phases)
+  void pass_spincolor_from_mom_to_x_space(spincolor* out,spincolor* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
   {
-    GET_THREAD_ID();
     
     int _sign[2]={-1,+1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
@@ -427,11 +410,9 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_6ARG(pass_spincolor_from_x_to_mom_space, spincolor*,out, spincolor*,in, bool*,dirs, double*,bc, int,source_or_sink, bool,include_phases)
+  void pass_spincolor_from_x_to_mom_space(spincolor* out,spincolor* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
   {
-    GET_THREAD_ID();
     
     int _sign[2]={+1,-1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
@@ -464,5 +445,4 @@ namespace nissa
     //compute the main part of the fft
     fft4d((complex*)out,(complex*)out,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],1);
   }
-  THREADABLE_FUNCTION_END
 }

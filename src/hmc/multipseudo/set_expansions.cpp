@@ -27,7 +27,7 @@ namespace nissa
   const double enl_gen=pow(2,0.25);
   
   //Return the maximal eigenvalue of the Dirac operator for the passed quark
-  THREADABLE_FUNCTION_6ARG(max_eigenval, double*,eig_max, quark_content_t*,quark, eo_ptr<quad_su3>,eo_conf, eo_ptr<clover_term_t>,Cl, eo_ptr<quad_u1>,backfield, int,niters)
+  void max_eigenval(double* eig_max,quark_content_t* quark,eo_ptr<quad_su3> eo_conf,eo_ptr<clover_term_t> Cl,eo_ptr<quad_u1> backfield,int niters)
   {
     pseudofermion_t in(quark->discretiz);
     pseudofermion_t temp1(quark->discretiz);
@@ -110,7 +110,6 @@ namespace nissa
 	nissa_free(invCl_evn);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //check that an approximation is valid in the interval passed
   bool check_approx_validity(rat_approx_t &appr,double eig_min,double eig_max,double expo,double maxerr)
@@ -173,9 +172,8 @@ namespace nissa
   }
   
   //scale the rational expansion
-  THREADABLE_FUNCTION_4ARG(set_expansions, std::vector<rat_approx_t>*,rat_appr, eo_ptr<quad_su3>,eo_conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,evol_pars)
+  void set_expansions(std::vector<rat_approx_t>* rat_appr,eo_ptr<quad_su3> eo_conf,theory_pars_t* theory_pars,hmc_evol_pars_t* evol_pars)
   {
-    GET_THREAD_ID();
     
     //loop over each flav
     int nflavs=theory_pars->nflavs();
@@ -327,5 +325,4 @@ namespace nissa
     if(theory_pars->clover_to_be_computed())
       for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
   }
-  THREADABLE_FUNCTION_END
 }

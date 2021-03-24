@@ -10,13 +10,12 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, eo_ptr<quad_su3>,conf, color*,in)
+  void apply_st2Doe(color* out,eo_ptr<quad_su3> conf,color* in)
   {
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
       communicate_ev_and_od_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_ev_color_borders(in);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(io,0,loc_volh)
       {
 	//neighbours search
@@ -41,14 +40,12 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //put the 0.5 factor
-  THREADABLE_FUNCTION_3ARG(apply_stDoe, color*,out, eo_ptr<quad_su3>,conf, color*,in)
+  void apply_stDoe(color* out,eo_ptr<quad_su3> conf,color* in)
   {
     apply_st2Doe(out,conf,in);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(io,0,loc_volh)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
@@ -57,15 +54,13 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, eo_ptr<quad_su3>,conf, color*,in)
+  void apply_stDeo_half(color* out,eo_ptr<quad_su3> conf,color* in)
   {
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
       communicate_ev_and_od_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_od_color_borders(in);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ie,0,loc_volh)
       {
 	//neighbours search
@@ -93,11 +88,9 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, eo_ptr<quad_su3>,conf, color*,temp, double,mass2, color*,in)
+  void apply_stD2ee_m2(color* out,eo_ptr<quad_su3> conf,color* temp,double mass2,color* in)
   {
-    GET_THREAD_ID();
     if(IS_MASTER_THREAD)
       {
 	//check arguments
@@ -176,5 +169,4 @@ namespace nissa
     
     STOP_TIMING(portable_stD_app_time);
   }
-  THREADABLE_FUNCTION_END
 }

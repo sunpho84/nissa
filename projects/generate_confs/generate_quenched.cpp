@@ -196,9 +196,8 @@ void write_conf(const char *path)
 }
 
 //compute the correlation function
-THREADABLE_FUNCTION_2ARG(compute_corr, double*,corr, su3spinspin*,Q)
+void compute_corr(double* corr,su3spinspin* Q)
 {
-  GET_THREAD_ID();
   
   vector_reset(corr);
   
@@ -211,12 +210,10 @@ THREADABLE_FUNCTION_2ARG(compute_corr, double*,corr, su3spinspin*,Q)
   NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
 }
-THREADABLE_FUNCTION_END
 
 //compute the correlation function
-THREADABLE_FUNCTION_3ARG(compute_corr_stoch, double*,corr, su3spinspin**,phi, su3spinspin**,eta)
+void compute_corr_stoch(double* corr,su3spinspin** phi,su3spinspin** eta)
 {
-  GET_THREAD_ID();
   
   vector_reset(corr);
   
@@ -268,7 +265,6 @@ THREADABLE_FUNCTION_3ARG(compute_corr_stoch, double*,corr, su3spinspin**,phi, su
   for(int ico=0;ico<2;ico++) nissa_free(phieta[ico]);
   nissa_free(corr_tilde);
 }
-THREADABLE_FUNCTION_END
 
 //append correlation function
 void append_corr(const char *path,double *corr,int r,bool conf_created)
@@ -592,9 +588,8 @@ void init_simulation(char *path)
 }
 
 //set to 0 last timeslice
-THREADABLE_FUNCTION_1ARG(impose_open_boundary_cond, quad_su3*,conf)
+void impose_open_boundary_cond(quad_su3* conf)
 {
-  GET_THREAD_ID();
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     if(glb_coord_of_loclx[ivol][0]==glb_size[0]-1)
@@ -602,7 +597,6 @@ THREADABLE_FUNCTION_1ARG(impose_open_boundary_cond, quad_su3*,conf)
   NISSA_PARALLEL_LOOP_END;
   set_borders_invalid(conf);
 }
-THREADABLE_FUNCTION_END
 
 //finalize everything
 void close_simulation()
@@ -693,7 +687,6 @@ void generate_new_conf(quad_su3 *conf,int check=0)
 	}
     }
   
-  GET_THREAD_ID();
   START_TIMING(unitarize_time,nunitarize);
   unitarize_lx_conf_maximal_trace_projecting(conf);
   if(boundary_cond==OPEN_BOUNDARY_COND) impose_open_boundary_cond(conf);

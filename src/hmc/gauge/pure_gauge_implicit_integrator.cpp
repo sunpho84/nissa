@@ -72,7 +72,7 @@ namespace nissa
   }
   
   //integrator for pure gauge
-  THREADABLE_FUNCTION_6ARG(implicit_pure_gauge_evolver, quad_su3*,H, quad_su3*,conf, su3**,pi, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
+  void implicit_pure_gauge_evolver(quad_su3* H,quad_su3* conf,su3** pi,su3** phi,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul)
   {
     const int niter_max=1000000;
     const int naux_fields=simul->naux_fields;
@@ -243,7 +243,6 @@ namespace nissa
     
     crash("call linalgs in the future");
     
-    // GET_THREAD_ID();
     // double phi_rel_herm_norm=0;
     // double pi_rel_herm_norm=0;
     // for(int ifield=0;ifield<naux_fields;ifield++)
@@ -293,10 +292,9 @@ namespace nissa
     nissa_free(conf_final_old);
     nissa_free(conf_final_new);
   }
-  THREADABLE_FUNCTION_END
   
   //integrator for pure gauge - leapfrog
-  THREADABLE_FUNCTION_6ARG(implicit_pure_gauge_leapfrog_evolver, quad_su3*,H, quad_su3*,conf, su3**,pi, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
+  void implicit_pure_gauge_leapfrog_evolver(quad_su3* H,quad_su3* conf,su3** pi,su3** phi,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul)
   {
     const int niter_max=1000000;
     const int naux_fields=simul->naux_fields;
@@ -475,7 +473,6 @@ namespace nissa
     
     crash("call linalgs in the future");
     
-    // GET_THREAD_ID();
     // double phi_rel_herm_norm=0;
     // double pi_rel_herm_norm=0;
     // for(int ifield=0;ifield<naux_fields;ifield++)
@@ -524,5 +521,4 @@ namespace nissa
     nissa_free(conf_final_old);
     nissa_free(conf_final_new);
   }
-  THREADABLE_FUNCTION_END
 }

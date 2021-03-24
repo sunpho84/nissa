@@ -98,19 +98,17 @@ namespace nissa
 	  }
       }
   }
-  THREADABLE_FUNCTION_2ARG(four_leaves, as2t_su3*,leaves_summ, quad_su3*,conf)
+  void four_leaves(as2t_su3* leaves_summ,quad_su3* conf)
   {
-    GET_THREAD_ID();
     communicate_lx_quad_su3_edges(conf);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       four_leaves_point(leaves_summ[ivol],conf,ivol);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(leaves_summ);
   }
-  THREADABLE_FUNCTION_END
   
   //measure the topological charge site by site
-  THREADABLE_FUNCTION_2ARG(local_topological_charge, double*,charge, quad_su3*,conf)
+  void local_topological_charge(double* charge,quad_su3* conf)
   {
     double norm_fact=1/(128*M_PI*M_PI);
     
@@ -125,7 +123,6 @@ namespace nissa
     int plan_id[3][2]={{0,5},{1,4},{2,3}};
     
     //loop on the three different combinations of plans
-    GET_THREAD_ID();
     for(int iperm=0;iperm<3;iperm++)
       {
 	//take the index of the two plans
@@ -156,20 +153,18 @@ namespace nissa
     
     nissa_free(leaves);
   }
-  THREADABLE_FUNCTION_END
   
   //total topological charge
-  THREADABLE_FUNCTION_2ARG(total_topological_charge_lx_conf, double*,tot_charge, quad_su3*,conf)
+  void total_topological_charge_lx_conf(double* tot_charge,quad_su3* conf)
   {
     double *charge=nissa_malloc("charge",loc_vol,double);
     local_topological_charge(charge,conf);
     glb_reduce(tot_charge,charge,loc_vol);
     nissa_free(charge);
   }
-  THREADABLE_FUNCTION_END
   
   //wrapper for eos case
-  THREADABLE_FUNCTION_2ARG(total_topological_charge_eo_conf, double*,tot_charge, eo_ptr<quad_su3>,eo_conf)
+  void total_topological_charge_eo_conf(double* tot_charge,eo_ptr<quad_su3> eo_conf)
   {
     //convert to lx
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -179,12 +174,10 @@ namespace nissa
     
     nissa_free(lx_conf);
   }
-  THREADABLE_FUNCTION_END
   
   //compute the correlator between topological charge
-  THREADABLE_FUNCTION_1ARG(compute_topo_corr, double*,charge)
+  void compute_topo_corr(double* charge)
   {
-    GET_THREAD_ID();
     
     //pass to complex
     complex *ccharge=nissa_malloc("ccharge",loc_vol,complex);
@@ -211,7 +204,6 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     nissa_free(ccharge);
   }
-  THREADABLE_FUNCTION_END
   
   //finding the index to put only 1/16 of the data
   int index_to_topo_corr_remapping(int iloc_lx)
@@ -389,9 +381,8 @@ namespace nissa
   }
   
   //compute the topological staples site by site
-  THREADABLE_FUNCTION_2ARG(topological_staples, quad_su3*,staples, quad_su3*,conf)
+  void topological_staples(quad_su3* staples,quad_su3* conf)
   {
-    GET_THREAD_ID();
     as2t_su3 *leaves=nissa_malloc("leaves",loc_vol+bord_vol+edge_vol,as2t_su3);
     
     //compute the clover-shape paths
@@ -478,7 +469,6 @@ namespace nissa
     
     nissa_free(leaves);
   }
-  THREADABLE_FUNCTION_END
   
   //store the topological charge if needed
   void topotential_pars_t::store_if_needed(eo_ptr<quad_su3> ext_conf,int iconf)

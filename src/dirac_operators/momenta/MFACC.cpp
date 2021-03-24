@@ -11,12 +11,11 @@
 namespace nissa
 {
   //apply DD
-  THREADABLE_FUNCTION_5ARG(apply_MFACC, quad_su3*,out, quad_su3*,conf, double,kappa, double,offset, quad_su3*,in)
+  void apply_MFACC(quad_su3* out,quad_su3* conf,double kappa,double offset,quad_su3* in)
   {
     if(!check_borders_valid(in)) communicate_lx_quad_su3_borders(in);
     if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	for(int nu=0;nu<NDIM;nu++) su3_put_to_zero(out[ivol][nu]);
@@ -50,14 +49,12 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_5ARG(apply_MFACC, su3*,out, quad_su3*,conf, double,kappa, double,offset, su3*,in)
+  void apply_MFACC(su3* out,quad_su3* conf,double kappa,double offset,su3* in)
   {
     if(!check_borders_valid(in)) communicate_lx_su3_borders(in);
     if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	//reset
@@ -86,5 +83,4 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
 }

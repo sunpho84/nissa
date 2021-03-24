@@ -18,19 +18,19 @@
 namespace nissa
 {
 #if CG_NARG == 0
-  THREADABLE_FUNCTION_5ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, int,niter, double,external_solver_residue, BASETYPE*,external_source)
+  void CG_128_INVERT(BASETYPE* sol,BASETYPE* guess,int niter,double external_solver_residue,BASETYPE* external_source)
 #elif CG_NARG == 1
-  THREADABLE_FUNCTION_6ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, int,niter, double,external_solver_residue, BASETYPE*,external_source)
+  void CG_128_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,int niter,double external_solver_residue,BASETYPE* external_source)
 #elif CG_NARG == 2
-  THREADABLE_FUNCTION_7ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, int,niter, double,external_solver_residue, BASETYPE*,external_source)
+  void CG_128_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,AT2 A2,int niter,double external_solver_residue,BASETYPE* external_source)
 #elif CG_NARG == 3
-  THREADABLE_FUNCTION_8ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, int,niter, double,external_solver_residue, BASETYPE*,external_source)
+  void CG_128_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,AT2 A2,AT3 A3,int niter,double external_solver_residue,BASETYPE* external_source)
 #elif CG_NARG == 4
-  THREADABLE_FUNCTION_9ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, int,niter, double,external_solver_residue, BASETYPE*,external_source)
+  void CG_128_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,AT2 A2,AT3 A3,AT4 A4,int niter,double external_solver_residue,BASETYPE* external_source)
 #elif CG_NARG == 5
-  THREADABLE_FUNCTION_10ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, AT5,A5, int,niter, double,external_solver_residue, BASETYPE*,external_source)
+  void CG_128_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,int niter,double external_solver_residue,BASETYPE* external_source)
 #elif CG_NARG == 6
-  THREADABLE_FUNCTION_11ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, AT5,A5, AT6,A6, int,niter, double,external_solver_residue, BASETYPE*,external_source)
+  void CG_128_INVERT(BASETYPE* sol,BASETYPE* guess,AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,AT6 A6,int niter,double external_solver_residue,BASETYPE* external_source)
 #endif
   {
     //Allocate the solution in 128 bit and initialize it. If guess passed copy it.
@@ -106,7 +106,6 @@ namespace nissa
     nissa_free(sol_128);
     nissa_free(internal_source);
   }
-  THREADABLE_FUNCTION_END
 }
 
 #undef BASETYPE

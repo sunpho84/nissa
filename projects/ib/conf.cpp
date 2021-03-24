@@ -60,8 +60,6 @@ namespace nissa
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {
-    GET_THREAD_ID();
-    
     //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
     if(not free_theory)
       {

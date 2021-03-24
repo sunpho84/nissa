@@ -66,7 +66,6 @@ namespace nissa
 	
 	for(int eo=0;eo<2;eo++)
 	  {
-	    GET_THREAD_ID();
 	    
 	    // temp_out_eo = i * D * in
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)

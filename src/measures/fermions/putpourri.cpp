@@ -42,10 +42,9 @@ namespace nissa
   };
   
   //compute the fermionic putpourri for a single conf and hit
-  THREADABLE_FUNCTION_7ARG(fermionic_putpourri, fermionic_putpourri_t*,putpourri, rnd_t,rnd_type,eo_ptr<quad_su3>,conf, eo_ptr<quad_u1>,u1b, quark_content_t*,quark, double,residue, int,comp_susc)
+  void fermionic_putpourri(fermionic_putpourri_t* putpourri,rnd_t rnd_type,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,quark_content_t* quark,double residue,int comp_susc)
   {
     crash("#warning toredo");
-    // GET_THREAD_ID();
     
     // THREAD_BARRIER();
     
@@ -188,7 +187,6 @@ namespace nissa
     // 	  }
     //   }
   }
-  THREADABLE_FUNCTION_END
   
   //measure the above fermionic putpourri
   void measure_fermionic_putpourri(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,fermionic_putpourri_meas_pars_t &meas_pars,int iconf,int conf_created)

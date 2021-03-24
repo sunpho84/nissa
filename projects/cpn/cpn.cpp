@@ -102,7 +102,6 @@ void read_input(int &seed,const char *path)
 //initialize the system to id
 void init_system_to_cold()
 {
-  GET_THREAD_ID();
   
   //set the configuration to cold
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -172,9 +171,8 @@ void close_cpn(int isweep)
 }
 
 //compute the total energy or action
-THREADABLE_FUNCTION_3ARG(energy, double*,en, ON_t*,z, quad_u1*,l)
+void energy(double* en,ON_t* z,quad_u1* l)
 {
-  GET_THREAD_ID();
 
   communicate_lx_ON_t_borders(z);
 
@@ -193,7 +191,6 @@ THREADABLE_FUNCTION_3ARG(energy, double*,en, ON_t*,z, quad_u1*,l)
 
   (*en)=-(2*glb_reduce_double(loc_thread_res)-2*glb_vol*NDIM);
 }
-THREADABLE_FUNCTION_END
 double energy(ON_t *z,quad_u1 *l)
 {
   double en;
@@ -247,9 +244,8 @@ double lambda_unitarize(complex l)
 }
 
 //draw momenta
-THREADABLE_FUNCTION_0ARG(generate_momenta)
+void generate_momenta()
 {
-  GET_THREAD_ID();
   
   complex ave={0,0};
   const double sigma=sqrt(2);
@@ -266,12 +262,10 @@ THREADABLE_FUNCTION_0ARG(generate_momenta)
     }
   THREAD_BARRIER();
 }
-THREADABLE_FUNCTION_END
 
 //compute the action for zeta momenta
-THREADABLE_FUNCTION_1ARG(zeta_momenta_action, double*,act)
+void zeta_momenta_action(double* act)
 {
-  GET_THREAD_ID();
   
   double loc_thread_act=0;
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -279,12 +273,10 @@ THREADABLE_FUNCTION_1ARG(zeta_momenta_action, double*,act)
   loc_thread_act/=2;
   (*act)=glb_reduce_double(loc_thread_act);
 }
-THREADABLE_FUNCTION_END
 
 //compute the action for lambda momenta
-THREADABLE_FUNCTION_1ARG(lambda_momenta_action, double*,act)
+void lambda_momenta_action(double* act)
 {
-  GET_THREAD_ID();
   
   double loc_thread_act=0;
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -293,7 +285,6 @@ THREADABLE_FUNCTION_1ARG(lambda_momenta_action, double*,act)
   loc_thread_act/=2;
   (*act)=glb_reduce_double(loc_thread_act);
 }
-THREADABLE_FUNCTION_END
 
 //compute the action of momenta
 double momenta_action()
@@ -308,7 +299,6 @@ double momenta_action()
 //compute lambda force
 void compute_lambda_forces()
 {
-  GET_THREAD_ID();
   
   communicate_lx_ON_t_borders(zeta);
   
@@ -363,7 +353,6 @@ inline void site_staple(ON_t staple,ON_t *z,quad_u1 *l,int ivol)
 //compute zeta forces
 void compute_zeta_forces()
 {
-  GET_THREAD_ID();
   
   communicate_lx_ON_t_borders(zeta);
   communicate_lx_quad_u1_borders(lambda);
@@ -399,7 +388,6 @@ void compute_zeta_forces()
 //update pi momenta
 inline void update_zeta_momenta(double eps)
 {
-  GET_THREAD_ID();
   
   //compute the zeta forces
   compute_zeta_forces();
@@ -412,7 +400,6 @@ inline void update_zeta_momenta(double eps)
 //update omega momenta
 inline void update_lambda_momenta(double eps)
 {
-  GET_THREAD_ID();
   
   //compute the lambda forces
   compute_lambda_forces();
@@ -432,7 +419,6 @@ inline void update_momenta(double eps)
 //update the zetas
 inline void update_zeta_positions(double eps)
 {
-  GET_THREAD_ID();
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
@@ -464,7 +450,6 @@ inline void update_zeta_positions(double eps)
 //update the lambdas
 inline void update_lambda_positions(double eps)
 {
-  GET_THREAD_ID();
   
   //update lambda
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -484,9 +469,8 @@ void update_positions(double eps)
 }
 
 //integrate equation of motion
-THREADABLE_FUNCTION_1ARG(hmc_integrate, double,tl)
+void hmc_integrate(double tl)
 {
-  GET_THREAD_ID();
   
   double dt=tl/nhmc_steps/2,dth=dt/2,ldt=dt*OMELYAN_LAMBDA,l2dt=2*OMELYAN_LAMBDA*dt,uml2dt=(1-2*OMELYAN_LAMBDA)*dt;
 
@@ -521,7 +505,6 @@ THREADABLE_FUNCTION_1ARG(hmc_integrate, double,tl)
   set_borders_invalid(zeta);
   set_borders_invalid(lambda);
 }
-THREADABLE_FUNCTION_END
 
 //perform a hybid monte carlo update
 void hmc_update(bool skip_test=false)
@@ -566,9 +549,8 @@ void hmc_update(bool skip_test=false)
 }
 
 //return the geometric definition of topology
-THREADABLE_FUNCTION_2ARG(geometric_topology_simplified, double*,topo, ON_t*,z)
+void geometric_topology_simplified(double* topo,ON_t* z)
 {
-  GET_THREAD_ID();
   
   communicate_lx_ON_t_borders(z);
   
@@ -602,7 +584,6 @@ THREADABLE_FUNCTION_2ARG(geometric_topology_simplified, double*,topo, ON_t*,z)
     }
   (*topo)=glb_reduce_double(loc_topo_thread)/(2*M_PI);
 }
-THREADABLE_FUNCTION_END
 double geometric_topology_simplified(ON_t *z)
 {double topo;geometric_topology_simplified(&topo,z);return topo;}
 

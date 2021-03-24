@@ -40,7 +40,6 @@ namespace nissa
   // Compute the insertion to be plugged inside the clover staples
   void compute_clover_staples_insertions(eo_ptr<as2t_su3> cl_insertion,eo_ptr<spincolor> X,eo_ptr<spincolor> Y)
   {
-    GET_THREAD_ID();
     
     for(int eo=0;eo<2;eo++)
       {
@@ -126,7 +125,6 @@ namespace nissa
   // implement appendix B of https://arxiv.org/pdf/0905.3331.pdf
   void summ_the_roottm_clov_eoimpr_quark_force(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf,double kappa,double cSW,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,spincolor *phi_o,eo_ptr<quad_u1> u1b,rat_approx_t *appr,double residue)
   {
-    GET_THREAD_ID();
     
     START_TIMING(quark_force_over_time,nquark_force_over);
     

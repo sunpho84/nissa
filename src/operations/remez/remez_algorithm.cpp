@@ -92,7 +92,6 @@ namespace nissa
   //solve the linear system A*x=b
   void linear_system_solve(float_high_prec_t *A,float_high_prec_t *x,float_high_prec_t *b,int n)
   {
-    GET_THREAD_ID();
     
     /*
     float_high_prec_t xcg[n];
@@ -237,7 +236,6 @@ namespace nissa
   //perform an accomodation step
   void rat_approx_finder_t::new_step(int iter)
   {
-    GET_THREAD_ID();
     
     float_high_prec_t *yy=NULL;
     THREAD_BROADCAST_PTR(yy,new float_high_prec_t[nmax_err_points]);
@@ -416,7 +414,6 @@ namespace nissa
   //calculate the roots of the approximation
   void rat_approx_finder_t::root_find(float_high_prec_t *roots,float_high_prec_t *poles,float_high_prec_t &cons)
   {
-    GET_THREAD_ID();
     
     float_high_prec_t *poly=NULL;
     THREAD_BROADCAST_PTR(poly,new float_high_prec_t[nmax_err_points]);
@@ -503,7 +500,6 @@ namespace nissa
   //decompose in a partial expansion
   void get_partial_fraction_expansion(float_high_prec_t *res,float_high_prec_t *poles,float_high_prec_t *roots,float_high_prec_t cons,int n)
   {
-    GET_THREAD_ID();
     
     float_high_prec_t *numerator=NULL,*denominator=NULL;
     THREAD_BROADCAST_PTR(numerator,new float_high_prec_t[n]);
@@ -574,7 +570,6 @@ namespace nissa
   //giving up if min comes out to be larger than target_err
   double rat_approx_finder_t::generate_approx(float_high_prec_t *weights,float_high_prec_t *poles,float_high_prec_t &cons,double ext_minimum,double ext_maximum,int ext_degree,int ext_num,int ext_den,double target_err,double toll)
   {
-    GET_THREAD_ID();
     
     //if target_err is not positive, it is ignored
     bool consider_err=(target_err>0);
@@ -686,7 +681,6 @@ namespace nissa
   //generate an approximation
   double generate_approx(rat_approx_t &appr,double minimum,double maximum,int num,int den,double minerr,double tollerance)
   {
-    GET_THREAD_ID();
     
     appr.minimum=minimum;
     appr.maximum=maximum;
@@ -725,7 +719,6 @@ namespace nissa
   //generate an approximation
   void generate_approx_of_maxerr(rat_approx_t &appr,double minimum,double maximum,double maxerr,int num,int den,const char *name)
   {
-    GET_THREAD_ID();
     
     //perform a few checks
     if(num==den) crash("cannot work if the numerator has the same power of the denominator!");

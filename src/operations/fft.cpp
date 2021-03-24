@@ -66,7 +66,6 @@ namespace nissa
   //  4) Lanczos lemma is applied on non-local data (if needed)
   void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
   {
-    GET_THREAD_ID();
     
     //allocate the buffer to send data
     complex *buf=nissa_malloc("buf",loc_size[mu]*ncpp,complex);
@@ -324,9 +323,8 @@ namespace nissa
   
 #else
   
-  THREADABLE_FUNCTION_6ARG(fft4d, complex*,out, complex*,in, bool*,ext_dirs, int,ncpp, double,sign, int,normalize)
+  void fft4d(complex* out,complex* in,bool* ext_dirs,int ncpp,double sign,int normalize)
   {
-    GET_THREAD_ID();
     
     //first of all put in to out
     if(out!=in) vector_copy(out,in);
@@ -379,6 +377,5 @@ namespace nissa
 	nissa_free(plans);
       }
   }
-  THREADABLE_FUNCTION_END
 #endif
 }

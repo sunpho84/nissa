@@ -23,18 +23,17 @@ namespace nissa
 #endif
   
 #if CGM_NARG == 0
-  THREADABLE_FUNCTION_6ARG(CGM_INVERT, BASETYPE**,sol, double*,shift, int,nshift, int,niter_max, double*,req_res, BASETYPE*,source)
+  void CGM_INVERT(BASETYPE** sol,double* shift,int nshift,int niter_max,double* req_res,BASETYPE* source)
 #elif CGM_NARG == 1
-  THREADABLE_FUNCTION_7ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, double*,shift, int,nshift, int,niter_max, double*,req_res, BASETYPE*,source)
+  void CGM_INVERT(BASETYPE** sol,AT1 A1,double* shift,int nshift,int niter_max,double* req_res,BASETYPE* source)
 #elif CGM_NARG == 2
-  THREADABLE_FUNCTION_8ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, double*,shift, int,nshift, int,niter_max, double*,req_res, BASETYPE*,source)
+  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,double* shift,int nshift,int niter_max,double* req_res,BASETYPE* source)
 #elif CGM_NARG == 3
-  THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, double*,shift, int,nshift, int,niter_max, double*,req_res, BASETYPE*,source)
+  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,double* shift,int nshift,int niter_max,double* req_res,BASETYPE* source)
 #elif CGM_NARG == 4
-  THREADABLE_FUNCTION_10ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT4,A4, double*,shift, int,nshift, int,niter_max, double*,req_res, BASETYPE*,source)
+  void CGM_INVERT(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,double* shift,int nshift,int niter_max,double* req_res,BASETYPE* source)
 #endif
   {
-    GET_THREAD_ID();
     master_printf("ciccio\n");
 #ifdef SQRT_SHIFT
     double sqrt_shift[nshift];
@@ -270,26 +269,24 @@ namespace nissa
     
     if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
   }
-  THREADABLE_FUNCTION_END
   
   //run higher shifts up to common precision
 #if CGM_NARG == 0
-  THREADABLE_FUNCTION_6ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, double*,shift, int,nshift, int,niter_max, double,req_res, BASETYPE*,source)
+  void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #elif CGM_NARG == 1
-    THREADABLE_FUNCTION_7ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1,A1, double*,shift, int,nshift, int,niter_max, double,req_res, BASETYPE*,source)
+    void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #elif CGM_NARG == 2
-    THREADABLE_FUNCTION_8ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1,A1, AT2,A2, double*,shift, int,nshift, int,niter_max, double,req_res, BASETYPE*,source)
+    void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #elif CGM_NARG == 3
-  THREADABLE_FUNCTION_9ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, double*,shift, int,nshift, int,niter_max, double,req_res, BASETYPE*,source)
+  void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #elif CGM_NARG == 4
-  THREADABLE_FUNCTION_10ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT4,A4, double*,shift, int,nshift, int,niter_max, double,req_res, BASETYPE*,source)
+  void CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(BASETYPE** sol,AT1 A1,AT2 A2,AT3 A3,AT4 A4,double* shift,int nshift,int niter_max,double req_res,BASETYPE* source)
 #endif
   {
     double req_res_int[nshift];
     for(int ishift=0;ishift<nshift;ishift++) req_res_int[ishift]=req_res;
     CGM_INVERT(sol,CGM_ADDITIONAL_PARAMETERS_CALL shift,nshift,niter_max,req_res_int,source);
   }
-  THREADABLE_FUNCTION_END
   
   //include the summed version
   #include "cgm_invert_template_summsol_threaded.hpp"

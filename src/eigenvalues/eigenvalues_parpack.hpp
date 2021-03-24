@@ -158,7 +158,6 @@ namespace nissa
       
       int iteration()
       {
-	GET_THREAD_ID();
 	
 	//If not first iteration, read the result from the reversed communicator
 	if(ido!=0)
@@ -225,7 +224,6 @@ namespace nissa
       
       void finalize(complex **eig_vec,complex *eig_val)
       {
-	GET_THREAD_ID();
 	
 	THREAD_BARRIER();
 	

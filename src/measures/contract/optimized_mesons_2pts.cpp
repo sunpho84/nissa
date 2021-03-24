@@ -136,14 +136,14 @@ namespace nissa
   //summ the result (no glb reduction)
   void two_pts_comp_t::summ_the_loc_forw_back_contractions(double *out,double *S_forw,double *S_back,int nel,int twall)
   {
-    GET_THREAD_ID();
+    crash("#warning fix");
     
     //define the workload (to be improved)
     int ncontrib=this->size();
 #if THREADS_TYPE != OPENMP_THREADS
     int start_contr_t=0,end_contr_t=loc_size[0]*ncontrib;
 #else
-    NISSA_CHUNK_WORKLOAD(start_contr_t,chunk_load_contr_t,end_contr_t,0,loc_size[0]*ncontrib,thread_id,NACTIVE_THREADS);
+    NISSA_CHUNK_WORKLOAD(start_contr_t,chunk_load_contr_t,end_contr_t,0,loc_size[0]*ncontrib,THREAD_ID,NACTIVE_THREADS);
     chunk_load_contr_t++;
 #endif
     

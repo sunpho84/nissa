@@ -10,9 +10,8 @@ namespace nissa
   
 #define DEFINE_LOC_REDUCE_OF(TYPE)					\
   /*! Reduce a vector of */						\
-  THREADABLE_FUNCTION_4ARG(loc_reduce, TYPE*,loc_res, TYPE*,buf, int64_t,n, int,nslices) \
+  void loc_reduce(TYPE* loc_res,TYPE* buf,int64_t n,int nslices) \
   {									\
-    GET_THREAD_ID();							\
 									\
     if(n%nslices)							\
       crash("number of elements %ld not divisible by number of slices %d",n,nslices); \
@@ -44,7 +43,6 @@ namespace nissa
     for(int islice=0;islice<nslices;islice++)				\
       NAME2(TYPE,copy)(loc_res[islice],buf[islice*nori_per_slice]);	\
   }									\
-  THREADABLE_FUNCTION_END
   
   namespace
   {

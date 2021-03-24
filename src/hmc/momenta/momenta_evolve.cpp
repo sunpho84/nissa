@@ -18,9 +18,8 @@ namespace nissa
   {inv_MFACC_cg(M,NULL,conf,kappa,niter,residue,H);}
   
   //evolve the momenta with force
-  THREADABLE_FUNCTION_3ARG(evolve_lx_momenta_with_force, quad_su3*,H, quad_su3*,F, double,dt)
+  void evolve_lx_momenta_with_force(quad_su3* H,quad_su3* F,double dt)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
@@ -31,12 +30,10 @@ namespace nissa
     
     THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
   
   //evolve the configuration with the momenta
-  THREADABLE_FUNCTION_3ARG(evolve_lx_conf_with_momenta, quad_su3*,lx_conf, quad_su3*,H, double,dt)
+  void evolve_lx_conf_with_momenta(quad_su3* lx_conf,quad_su3* H,double dt)
   {
-    GET_THREAD_ID();
     
     verbosity_lv2_master_printf("Evolving conf with momenta, dt=%lg\n",dt);
     
@@ -58,7 +55,6 @@ namespace nissa
     
     STOP_TIMING(conf_evolve_time);
   }
-  THREADABLE_FUNCTION_END
   
   //accelerate and evolve
   void evolve_lx_conf_with_accelerated_momenta(quad_su3 *lx_conf,quad_su3 *acc_conf,quad_su3 *H,double kappa,int niter,double residue,double dt)

@@ -18,9 +18,9 @@
 namespace nissa
 {
   //product of the color traces
-  THREADABLE_FUNCTION_10ARG(trace_g_sdag_g_s_times_trace_g_sdag_g_s, complex**,glb_c, dirac_matr*,g1L, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, dirac_matr*,g1R,colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
+  void trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex** glb_c,dirac_matr* g1L,colorspinspin* s1L,dirac_matr* g2L,colorspinspin* s2L,dirac_matr* g1R,colorspinspin* s1R,dirac_matr* g2R,colorspinspin* s2R,int ncontr)
   {
-    GET_THREAD_ID();
+    crash("#warning fix");
     
     //allocate a contiguous memory area where to store local results
     complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
@@ -65,12 +65,11 @@ namespace nissa
     
     nissa_free(loc_c);
   }
-  THREADABLE_FUNCTION_END
   
   //trace of the product
-  THREADABLE_FUNCTION_10ARG(trace_g_css_dag_g_ss_g_css_dag_g_ss, complex**,glb_c, dirac_matr*,g1L, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, dirac_matr*,g1R,colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
+  void trace_g_css_dag_g_ss_g_css_dag_g_ss(complex** glb_c,dirac_matr* g1L,colorspinspin* s1L,dirac_matr* g2L,colorspinspin* s2L,dirac_matr* g1R,colorspinspin* s1R,dirac_matr* g2R,colorspinspin* s2R, int ncontr)
   {
-    GET_THREAD_ID();
+    crash("#warning fix");
     
     //allocate a contiguous memory area where to store local results
     complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
@@ -114,11 +113,9 @@ namespace nissa
     
     nissa_free(loc_c);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_8ARG(trace_id_css_dag_g_css_id_css_dag_g_css, complex*,glb_c, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
+  void trace_id_css_dag_g_css_id_css_dag_g_css(complex* glb_c,colorspinspin* s1L,dirac_matr* g2L,colorspinspin* s2L,colorspinspin* s1R,dirac_matr* g2R,colorspinspin* s2R,int ncontr)
   {
-    GET_THREAD_ID();
     
     //allocate a contiguous memory area where to store local results
     complex *loc_c_tot=nissa_malloc("loc_c",ncontr*(glb_size[0]+loc_size[0]*NACTIVE_THREADS),complex);
@@ -150,7 +147,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //local reduction across threads
-    for(size_t ith=0;ith<NACTIVE_THREADS;ith++)
+    for(int ith=0;ith<NACTIVE_THREADS;ith++)
       {
 	complex *loc_c=loc_c_base+loc_size[0]*ncontr*ith;
 	
@@ -176,11 +173,9 @@ namespace nissa
     
     nissa_free(loc_c_tot);
   }
-  THREADABLE_FUNCTION_END
 
-  THREADABLE_FUNCTION_8ARG(trace_id_css_dag_g_css_times_trace_id_css_dag_g_css, complex*,glb_c, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
+  void trace_id_css_dag_g_css_times_trace_id_css_dag_g_css(complex* glb_c,colorspinspin* s1L,dirac_matr* g2L,colorspinspin* s2L,colorspinspin* s1R,dirac_matr* g2R,colorspinspin* s2R,int ncontr)
   {
-    GET_THREAD_ID();
     
     //allocate a contiguous memory area where to store local results
     complex *loc_c_tot=nissa_malloc("loc_c",ncontr*(glb_size[0]+loc_size[0]*NACTIVE_THREADS),complex);
@@ -220,7 +215,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //reduce across theeads
-    for(size_t ith=0;ith<NACTIVE_THREADS;ith++)
+    for(int ith=0;ith<NACTIVE_THREADS;ith++)
       {
 	complex *loc_c=loc_c_base+loc_size[0]*ncontr*ith;
 	
@@ -246,5 +241,4 @@ namespace nissa
     
     nissa_free(loc_c_tot);
   }
-  THREADABLE_FUNCTION_END
 }

@@ -36,7 +36,6 @@ namespace nissa
   //Prepare the source according to Equation (8.b)
   void inv_tmD_cg_eoprec_prepare_source(spincolor *varphi,eo_ptr<quad_su3> conf_eos,spincolor *eq8a,spincolor *source_odd)
   {
-    GET_THREAD_ID();
     
     tmn2Doe_eos(varphi,conf_eos,eq8a);
     NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
@@ -54,7 +53,6 @@ namespace nissa
   //Eq.(11) up to last piece
   void inv_tmD_cg_eoprec_almost_reco_sol(spincolor *varphi,eo_ptr<quad_su3> conf_eos,spincolor *sol_odd,spincolor *source_evn)
   {
-    GET_THREAD_ID();
     
     tmn2Deo_eos(varphi,conf_eos,sol_odd);
     NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
@@ -67,7 +65,7 @@ namespace nissa
   }
   
   //Invert twisted mass operator using e/o preconditioning.
-  THREADABLE_FUNCTION_8ARG(inv_tmD_cg_eoprec_native, spincolor*,solution_lx, spincolor*,guess_Koo, quad_su3*,conf_lx, double,kappa, double,mass, int,nitermax, double,residue, spincolor*,source_lx)
+  void inv_tmD_cg_eoprec_native(spincolor* solution_lx,spincolor* guess_Koo,quad_su3* conf_lx,double kappa,double mass,int nitermax,double residue,spincolor* source_lx)
   {
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
@@ -123,7 +121,6 @@ namespace nissa
 	nissa_free(solution_eos[par]);
       }
   }
-  THREADABLE_FUNCTION_END
   
   void inv_tmD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mass,int nitermax,double residue,spincolor *source_lx)
   {
@@ -146,7 +143,6 @@ namespace nissa
 	  spincolor *temp_lx=nissa_malloc("temp",loc_vol,spincolor);
 	  apply_tmQ(temp_lx,conf_lx,kappa,mass,solution_lx);
 	  
-	  GET_THREAD_ID();
 	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	     for(int id=0;id<NDIRAC;id++)
 	       for(int ic=0;ic<NCOL;ic++)

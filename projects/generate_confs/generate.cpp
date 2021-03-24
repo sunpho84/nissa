@@ -33,8 +33,6 @@ int nwrite_conf=0;
 double write_conf_time=0;
 void write_conf(std::string path,eo_ptr<quad_su3> conf)
 {
-  GET_THREAD_ID();
-  
   START_TIMING(write_conf_time,nwrite_conf);
   
   //messages
@@ -91,8 +89,6 @@ double read_conf_time=0;
 std::string rnd_gen_mess;
 void read_conf(eo_ptr<quad_su3> conf,const char *path)
 {
-  GET_THREAD_ID();
-  
   START_TIMING(read_conf_time,nread_conf);
   
   master_printf("Reading conf from file: %s\n",path);
@@ -341,7 +337,7 @@ int generate_new_conf(int itraj)
 	heatbath_lx_conf(lx_conf,sweeper,drv->sea_theory().beta,drv->quenched_evol_pars.nhb_hits);
       //numer of overrelax sweeps
       for(int iov_sweep=0;iov_sweep<drv->quenched_evol_pars.nov_sweeps;iov_sweep++)
-      overrelax_lx_conf(lx_conf,sweeper,drv->quenched_evol_pars.nov_hits);
+	overrelax_lx_conf(lx_conf,sweeper,drv->quenched_evol_pars.nov_hits);
       
       split_lx_vector_into_eo_parts(conf,lx_conf);
       nissa_free(lx_conf);
@@ -742,8 +738,6 @@ namespace nissa
 
 void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
 {
-  GET_THREAD_ID();
-  
   add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
   
   eo_ptr<quad_su3> an;
@@ -885,16 +879,16 @@ void xQhatx_der_old(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,dou
   spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
   spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
   tmn2Deo_eos(temp2,conf,in);
-   GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-      for(int id=0;id<NDIRAC/2;id++)
-    	for(int ic=0;ic<NCOL;ic++)
-    	  for(int ri=0;ri<2;ri++)
-    	    { //gamma5 is explicitely implemented
-    	      temp2[ivol][id  ][ic][ri]*=+0.5;
-    	      temp2[ivol][id+NDIRAC/2][ic][ri]*=-0.5;
-    	    }
-    NISSA_PARALLEL_LOOP_END;
+  
+  NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+    for(int id=0;id<NDIRAC/2;id++)
+      for(int ic=0;ic<NCOL;ic++)
+	for(int ri=0;ri<2;ri++)
+	  { //gamma5 is explicitely implemented
+	    temp2[ivol][id  ][ic][ri]*=+0.5;
+	    temp2[ivol][id+NDIRAC/2][ic][ri]*=-0.5;
+	  }
+  NISSA_PARALLEL_LOOP_END;
   inv_tmclovDee_or_oo_eos(temp1,invCl[EVN],true,temp2);
   //inv_tmclovDee_or_oo_eos(temp2,invCl[EVN],false,temp1);
   
@@ -1186,8 +1180,6 @@ void test_xQ2hatx()
 // XQeeX functional
 double xQ2eex(double kappa,double mass,double cSW)
 {
-  GET_THREAD_ID();
-  
   //Preparre clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
@@ -1230,8 +1222,6 @@ double xQ2eex(double kappa,double mass,double cSW)
 
 void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW)
 {
-  GET_THREAD_ID();
-  
   //Prepare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
@@ -1399,8 +1389,6 @@ double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
 
 void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,double mass,double cSW)
 {
-  GET_THREAD_ID();
-  
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)

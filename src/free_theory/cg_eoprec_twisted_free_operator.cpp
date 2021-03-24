@@ -19,7 +19,6 @@ namespace nissa
   //invert Koo defined in equation (7)
   void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,tm_quark_info qu,int nitermax,double residue,spin *source)
   {
-    // GET_THREAD_ID();
     
     int niter=nitermax;
     int riter=0;
@@ -105,7 +104,6 @@ namespace nissa
   //Invert twisted mass operator using e/o preconditioning.
   void inv_tmD_cg_eoprec_eos(spin *solution_lx,spin *guess_Koo,tm_quark_info qu,int nitermax,double residue,spin *source_lx)
   {
-    GET_THREAD_ID();
     
     //prepare the e/o split version of the source
     eo_ptr<spin> source_eos;

@@ -26,7 +26,7 @@
 namespace nissa
 {
   //evolve the momenta with topological force
-  THREADABLE_FUNCTION_5ARG(evolve_lx_momenta_with_topological_force, quad_su3*,H, quad_su3*,conf, topotential_pars_t*,topars, double,dt, quad_su3*,ext_F)
+  void evolve_lx_momenta_with_topological_force(quad_su3* H,quad_su3* conf,topotential_pars_t* topars,double dt,quad_su3* ext_F)
   {
     verbosity_lv2_master_printf("Evolving lx momenta with topological force, dt=%lg\n",dt);
     
@@ -38,10 +38,9 @@ namespace nissa
     evolve_lx_momenta_with_force(H,F,dt);
     if(ext_F==NULL) nissa_free(F);
   }
-  THREADABLE_FUNCTION_END
   
   //eo wrapper
-  THREADABLE_FUNCTION_4ARG(evolve_eo_momenta_with_topological_force, eo_ptr<quad_su3>,eo_H, eo_ptr<quad_su3>,eo_conf, topotential_pars_t*,topars, double,dt)
+  void evolve_eo_momenta_with_topological_force(eo_ptr<quad_su3> eo_H,eo_ptr<quad_su3> eo_conf,topotential_pars_t* topars,double dt)
   {
     verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
     
@@ -57,10 +56,9 @@ namespace nissa
     nissa_free(lx_H);
     nissa_free(lx_conf);
   }
-  THREADABLE_FUNCTION_END
   
   //evolve the configuration according to pure gauge - note that there is a similar routine in "pure_gage"
-  THREADABLE_FUNCTION_4ARG(Omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_su3*,lx_conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul)
+  void Omelyan_pure_gauge_evolver_lx_conf(quad_su3* H,quad_su3* lx_conf,theory_pars_t* theory_pars,hmc_evol_pars_t* simul)
   {
     //macro step or micro step
     double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
@@ -99,7 +97,6 @@ namespace nissa
     
     nissa_free(aux_F);
   }
-  THREADABLE_FUNCTION_END
   
   //wrapper
   void Omelyan_pure_gauge_evolver_eo_conf(eo_ptr<quad_su3> H_eo,eo_ptr<quad_su3> conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
@@ -122,9 +119,8 @@ namespace nissa
   /////////////////////////////////////// QUARK E/O PART ////////////////////////////////////////////////
   
   // Evolve momenta according to the rooted staggered force
-  THREADABLE_FUNCTION_7ARG(evolve_momenta_with_quark_force, eo_ptr<quad_su3>,H, eo_ptr<quad_su3>,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr, double,dt)
+  void evolve_momenta_with_quark_force(eo_ptr<quad_su3> H,eo_ptr<quad_su3> conf,std::vector<std::vector<pseudofermion_t> >* pf,theory_pars_t* theory_pars,hmc_evol_pars_t* simul_pars,std::vector<rat_approx_t>* rat_appr,double dt)
   {
-    GET_THREAD_ID();
     
     verbosity_lv2_master_printf("Evolving momenta with quark force, dt=%lg\n",dt);
     
@@ -219,11 +215,10 @@ namespace nissa
         nissa_free(F[par]);
       }
   }
-  THREADABLE_FUNCTION_END
   
   ////////////////////////////////////// MACRO OMELYAN ////////////////////////////////////////////////
   
-  THREADABLE_FUNCTION_6ARG(Omelyan_integrator, eo_ptr<quad_su3>,H, eo_ptr<quad_su3>,conf, std::vector<std::vector<pseudofermion_t> >*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, std::vector<rat_approx_t>*,rat_appr)
+  void Omelyan_integrator(eo_ptr<quad_su3> H,eo_ptr<quad_su3> conf,std::vector<std::vector<pseudofermion_t> >* pf,theory_pars_t* theory_pars,hmc_evol_pars_t* simul_pars,std::vector<rat_approx_t>* rat_appr)
   {
     int nsteps=simul_pars->nmd_steps;
     if(nsteps)
@@ -258,5 +253,4 @@ namespace nissa
 	unitarize_eo_conf_maximal_trace_projecting(conf);
       }
   }
-  THREADABLE_FUNCTION_END
 }

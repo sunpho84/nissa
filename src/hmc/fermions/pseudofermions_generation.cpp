@@ -55,7 +55,7 @@ namespace nissa
   }
   
   //generate pseudo-fermion using color vector generator
-  THREADABLE_FUNCTION_7ARG(generate_pseudo_fermion, double*,action, pseudofermion_t*,pf, eo_ptr<quad_su3>,conf, eo_ptr<quad_u1>,u1b, rat_approx_t*,rat, double,residue, quark_content_t,q)
+  void generate_pseudo_fermion(double* action,pseudofermion_t* pf,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,rat_approx_t* rat,double residue,quark_content_t q)
   {
     //generate the random field
     pseudofermion_t pf_hb_vec(q.discretiz);
@@ -76,7 +76,6 @@ namespace nissa
       default:crash("not supported");break;
       }
   }
-  THREADABLE_FUNCTION_END
   
   //gemerate all pseudofermions
   double generate_pseudofermions(std::vector<std::vector<pseudofermion_t> > &pf,eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr)

@@ -89,9 +89,8 @@ namespace nissa
     su3_summ_the_prod_idouble(Cl[3],F,1);
     
   }
-  THREADABLE_FUNCTION_2ARG(chromo_operator, clover_term_t*,Cl, quad_su3*,conf)
+  void chromo_operator(clover_term_t* Cl,quad_su3* conf)
   {
-    GET_THREAD_ID();
     if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing Chromo operator\n");
     communicate_lx_quad_su3_edges(conf);
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
@@ -100,9 +99,8 @@ namespace nissa
     
     set_borders_invalid(Cl);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_2ARG(chromo_operator, eo_ptr<clover_term_t>,Cl_eo, eo_ptr<quad_su3>,conf_eo)
+  void chromo_operator(eo_ptr<clover_term_t> Cl_eo,eo_ptr<quad_su3> conf_eo)
   {
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     clover_term_t *Cl_lx=nissa_malloc("Cl_lx",loc_vol,clover_term_t);
@@ -112,7 +110,6 @@ namespace nissa
     nissa_free(conf_lx);
     nissa_free(Cl_lx);
   }
-  THREADABLE_FUNCTION_END
   
   //apply the chromo operator to the passed spincolor
   CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,clover_term_t Cl,spincolor in)
@@ -127,15 +124,13 @@ namespace nissa
     unsafe_su3_prod_color(out[3],Cl[3],in[2]);
     su3_subt_the_prod_color(out[3],Cl[2],in[3]);
   }
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_spincolor, spincolor*,out, clover_term_t*,Cl, spincolor*,in)
+  void unsafe_apply_chromo_operator_to_spincolor(spincolor* out,clover_term_t* Cl,spincolor* in)
   {
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Cl[ivol],in[ivol]);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //128 bit case
   CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in)
@@ -150,21 +145,18 @@ namespace nissa
     unsafe_su3_prod_color_128(out[3],Cl[3],in[2]);
     su3_subt_the_prod_color_128(out[3],Cl[2],in[3]);
   }
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_spincolor_128, spincolor_128*,out, clover_term_t*,Cl, spincolor_128*,in)
+  void unsafe_apply_chromo_operator_to_spincolor_128(spincolor_128* out,clover_term_t* Cl,spincolor_128* in)
   {
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       unsafe_apply_point_chromo_operator_to_spincolor_128(out[ivol],Cl[ivol],in[ivol]);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //apply the chromo operator to the passed colorspinspin
   //normalization as in ape next
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_colorspinspin, colorspinspin*,out, clover_term_t*,Cl, colorspinspin*,in)
+  void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin* out,clover_term_t* Cl,colorspinspin* in)
   {
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	spincolor temp1,temp2;
@@ -186,14 +178,12 @@ namespace nissa
     //invalidate borders
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //apply the chromo operator to the passed su3spinspin
   //normalization as in ape next
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_su3spinspin, su3spinspin*,out, clover_term_t*,Cl, su3spinspin*,in)
+  void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin* out,clover_term_t* Cl,su3spinspin* in)
   {
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
 	spincolor temp1,temp2;
@@ -216,7 +206,6 @@ namespace nissa
     //invalidate borders
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //apply a diagonal matrix plus clover term to up or low components
   CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in)
@@ -451,9 +440,8 @@ namespace nissa
 
 namespace nissa
  {
-   THREADABLE_FUNCTION_4ARG(invert_twisted_clover_term, inv_clover_term_t*,invCl, double,mass, double,kappa, clover_term_t*,Cl)
+   void invert_twisted_clover_term(inv_clover_term_t* invCl,double mass,double kappa,clover_term_t* Cl)
    {
-     GET_THREAD_ID();
      if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
      NISSA_PARALLEL_LOOP(X,0,get_vect(invCl)->nel)
        invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
@@ -488,5 +476,4 @@ namespace nissa
      // 	 nissa_free(invCl_eo[eo]);
      //   }
    }
-   THREADABLE_FUNCTION_END
 }

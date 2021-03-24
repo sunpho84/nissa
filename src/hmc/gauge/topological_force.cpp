@@ -33,7 +33,6 @@ namespace nissa
   //common part, for staples and potential if needed
   void compute_topological_force_lx_conf_internal(quad_su3 *F,quad_su3 *conf,topotential_pars_t *pars)
   {
-    GET_THREAD_ID();
     
     //compute the staples
     topological_staples(F,conf);
@@ -58,7 +57,7 @@ namespace nissa
   }
   
   //compute the topological force
-  THREADABLE_FUNCTION_3ARG(compute_topological_force_lx_conf, quad_su3*,F, quad_su3*,conf, topotential_pars_t*,pars)
+  void compute_topological_force_lx_conf(quad_su3* F,quad_su3* conf,topotential_pars_t* pars)
   {
     verbosity_lv1_master_printf("Computing topological force\n");
     
@@ -143,5 +142,4 @@ namespace nissa
     crash("anna");
 #endif
   }
-  THREADABLE_FUNCTION_END
 }

@@ -79,7 +79,6 @@ namespace nissa
     fflush(stderr);
     
     //give time to master thread to crash, if possible
-    GET_THREAD_ID();
     if(!IS_MASTER_THREAD) sleep(1);
     
     if(is_master_rank())

@@ -19,7 +19,6 @@ namespace nissa
   //the output is stored in twisted basis, assuming that prop=su3spinspin[2][nmass][>=loc_vol]
   void compute_su3spinspin_tm_propagators_multi_mass(su3spinspin ***prop,quad_su3 *conf,double kappa,double *mass,int nmass,int niter_max,double *req_res,su3spinspin *source)
   {
-    GET_THREAD_ID();
     
     //allocate temporary source
     spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);

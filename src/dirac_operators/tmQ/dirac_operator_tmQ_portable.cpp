@@ -26,14 +26,13 @@ namespace nissa
   // D_{x,y}=[-i g5 t3/(2k)+mass] \delta_{x,y}-1/2*
   //          \sum_mu{[-i g5 t3-gmu]U_x,mu\delta_{x+\hat{mu},y}+(-i g5 t3+gmu)U^+_{x-\hat{\mu},\mu}\delta_{x-\hat{\mu}}}
   //
-  THREADABLE_FUNCTION_5ARG(apply_tmQ, spincolor*,out, quad_su3*,conf, double,kappa, double,mu, spincolor*,in)
+  void apply_tmQ(spincolor* out,quad_su3* conf,double kappa,double mu,spincolor* in)
   {
     if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_lx_spincolor_borders(in);
     
     double kcf=1/(2*kappa);
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
       {
 	int Xup,Xdw;
@@ -143,5 +142,4 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
 }

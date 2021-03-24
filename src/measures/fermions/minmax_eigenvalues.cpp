@@ -22,9 +22,8 @@ namespace nissa
 {
   namespace minmax
   {
-    THREADABLE_FUNCTION_4ARG(matrix_element_with_gamma, double*,out, complex*,buffer, spincolor*,x, int,igamma)
+    void matrix_element_with_gamma(double* out,complex* buffer,spincolor* x,int igamma)
     {
-      GET_THREAD_ID();
       
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	{
@@ -37,13 +36,11 @@ namespace nissa
       
       glb_reduce((complex*)out,buffer,loc_vol);
     }
-    THREADABLE_FUNCTION_END
   }
   
   //Computes the participation ratio
   double participation_ratio(spincolor *v)
   {
-    GET_THREAD_ID();
     
     double *l=nissa_malloc("l",loc_vol,double);
     

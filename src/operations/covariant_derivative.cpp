@@ -15,7 +15,6 @@ namespace nissa
   //covariant shift backward: i=i+mu
   void cshift_bw(color *out,quad_su3 *conf,int mu,color *in,bool reset_first=true)
   {
-    GET_THREAD_ID();
     
     communicate_lx_color_borders(in);
     communicate_lx_quad_su3_borders(conf);
@@ -32,7 +31,6 @@ namespace nissa
   //covariant shift forward: i=i-mu
   void cshift_fw(color *out,quad_su3 *conf,int mu,color *in,bool reset_first=true)
   {
-    GET_THREAD_ID();
     
     communicate_lx_color_borders(in);
     communicate_lx_quad_su3_borders(conf);
@@ -49,7 +47,6 @@ namespace nissa
   //covariant shift backward: i=i+mu
   void cshift_bw(spincolor *out,quad_su3 *conf,int mu,spincolor *in,bool reset_first=true)
   {
-    GET_THREAD_ID();
     
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
@@ -66,7 +63,6 @@ namespace nissa
   //covariant shift forward: i=i-mu
   void cshift_fw(spincolor *out,quad_su3 *conf,int mu,spincolor *in,bool reset_first=true)
   {
-    GET_THREAD_ID();
     
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
@@ -81,7 +77,7 @@ namespace nissa
   }
   
   //multiply by the 2-links Laplace operator
-  THREADABLE_FUNCTION_4ARG(Laplace_operator_2_links, color*,out, quad_su3*,conf, bool*,dirs, color*,in)
+  void Laplace_operator_2_links(color* out,quad_su3* conf,bool* dirs,color* in)
   {
     color *temp=nissa_malloc("temp",loc_vol+bord_vol,color);
     int nentries=loc_vol*sizeof(color)/sizeof(double);
@@ -104,10 +100,9 @@ namespace nissa
     
     nissa_free(temp);
   }
-  THREADABLE_FUNCTION_END
   
   //multiply by the Laplace operator
-  THREADABLE_FUNCTION_4ARG(Laplace_operator, spincolor*,out, quad_su3*,conf, bool*,dirs, spincolor*,in)
+  void Laplace_operator(spincolor* out,quad_su3* conf,bool* dirs,spincolor* in)
   {
     int nentries=loc_vol*sizeof(spincolor)/sizeof(double);
     
@@ -125,12 +120,10 @@ namespace nissa
     
     double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,-2.0*ndirs,nentries);
   }
-  THREADABLE_FUNCTION_END
   
 #define APPLY_NABLA_I(TYPE)                                             \
-  THREADABLE_FUNCTION_4ARG(apply_nabla_i, TYPE*,out, TYPE*,in, quad_su3*,conf, int,mu) \
+  void apply_nabla_i(TYPE* out,TYPE* in,quad_su3* conf,int mu) \
   {                                                                     \
-    GET_THREAD_ID();                                                    \
                                                                         \
     NAME3(communicate_lx,TYPE,borders)(in);                             \
     communicate_lx_quad_su3_borders(conf);                              \
@@ -154,7 +147,6 @@ namespace nissa
                                                                         \
     set_borders_invalid(out);                                           \
   }									\
-  THREADABLE_FUNCTION_END
   
   //instantiate the application function
   APPLY_NABLA_I(spincolor)
@@ -194,7 +186,6 @@ namespace nissa
   /* for tm GAMMA should be -i g5 tau3[r], defined through the macro above, for Wilson id */		\
   void insert_vector_vertex(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,complex fact_fw,complex fact_bw,dirac_matr *GAMMA,void(*get_curr)(complex,spin1field*,int,int,void*),int t,void *pars=NULL) \
   {									\
-  GET_THREAD_ID();							\
 									\
   /*reset the output and communicate borders*/				\
   vector_reset(out);							\
@@ -247,42 +238,38 @@ namespace nissa
   }									\
   									\
   /*insert the tadpole*/						\
-  THREADABLE_FUNCTION_6ARG(insert_tadpole, TYPE*,out, quad_su3*,conf, TYPE*,in, dirac_matr*,GAMMA, double*,tad, int,t) \
+  void insert_tadpole(TYPE* out,quad_su3* conf,TYPE* in,dirac_matr* GAMMA,double* tad,int t) \
   {									\
     /*call with no source insertion, plus between fw and bw, and a global -0.25*/ \
     complex fw_factor={-0.25,0},bw_factor={-0.25,0};	/* see below for hte minus convention*/ \
     insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_tadpole_handle,t,tad); \
   }									\
-  THREADABLE_FUNCTION_END						\
   void insert_Wilson_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,double *tad,int t){insert_tadpole(out,conf,in,base_gamma+0,tad,t);} \
   void insert_tm_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,int r,double *tad,int t){DEF_TM_GAMMA(r); insert_tadpole(out,conf,in,&GAMMA,tad,t);} \
   									\
   /*insert the external source, that is one of the two extrema of the stoch prop*/ \
-  THREADABLE_FUNCTION_7ARG(insert_external_source, TYPE*,out, quad_su3*,conf, spin1field*,curr, TYPE*,in, dirac_matr*,GAMMA, bool*,dirs, int,t) \
+  void insert_external_source(TYPE* out,quad_su3* conf,spin1field* curr,TYPE* in,dirac_matr* GAMMA,bool* dirs,int t) \
   {									\
     /*call with source insertion, minus between fw and bw, and a global -i*0.5 - the minus comes from definition in eq.11 of 1303.4896*/ \
     complex fw_factor={0,-0.5},bw_factor={0,+0.5};			\
     insert_vector_vertex(out,conf,curr,in,fw_factor,bw_factor,GAMMA,insert_external_source_handle,t,dirs); \
   }									\
-  THREADABLE_FUNCTION_END						\
   void insert_Wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,bool *dirs,int t){insert_external_source(out,conf,curr,in,base_gamma+0,dirs,t);} \
   void insert_tm_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int r,bool *dirs,int t){DEF_TM_GAMMA(r);insert_external_source(out,conf,curr,in,&GAMMA,dirs,t);} \
 									\
   /*insert the conserved time current*/ \
-  THREADABLE_FUNCTION_6ARG(insert_conserved_current, TYPE*,out, quad_su3*,conf, TYPE*,in, dirac_matr*,GAMMA, bool*,dirs, int,t) \
+  void insert_conserved_current(TYPE* out,quad_su3* conf,TYPE* in,dirac_matr* GAMMA,bool* dirs,int t) \
   {									\
     /*call with no source insertion, minus between fw and bw, and a global 0.5*/ \
     complex fw_factor={-0.5,0},bw_factor={+0.5,0}; /* follow eq.11.43 of Gattringer*/		\
     insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_conserved_current_handle,t,dirs); \
   }									\
-  THREADABLE_FUNCTION_END						\
   void insert_Wilson_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,bool *dirs,int t){insert_conserved_current(out,conf,in,base_gamma+0,dirs,t);} \
   void insert_tm_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int r,bool *dirs,int t){DEF_TM_GAMMA(r);insert_conserved_current(out,conf,in,&GAMMA,dirs,t);} \
 									\
   /*multiply with gamma*/						\
-  THREADABLE_FUNCTION_4ARG(prop_multiply_with_gamma, TYPE*,out, int,ig, TYPE*,in, int,twall) \
+  void prop_multiply_with_gamma(TYPE* out,int ig,TYPE* in,int twall) \
   {									\
-    GET_THREAD_ID();							\
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
       {									\
 	NAME2(safe_dirac_prod,TYPE)(out[ivol],base_gamma+ig,in[ivol]); \
@@ -291,18 +278,15 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;						\
     set_borders_invalid(out);						\
   }									\
-  THREADABLE_FUNCTION_END						\
   									\
   /*multiply with an imaginary factor*/					\
-  THREADABLE_FUNCTION_2ARG(prop_multiply_with_idouble, TYPE*,out, double,f) \
+  void prop_multiply_with_idouble(TYPE* out,double f) \
   {									\
-    GET_THREAD_ID();							\
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
       NAME2(TYPE,prodassign_idouble)(out[ivol],f);			\
     NISSA_PARALLEL_LOOP_END;						\
     set_borders_invalid(out);						\
   }									\
-  THREADABLE_FUNCTION_END
   
   INSERT_VECTOR_VERTEX(spincolor)
   INSERT_VECTOR_VERTEX(colorspinspin)

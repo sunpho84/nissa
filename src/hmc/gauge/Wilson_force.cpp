@@ -15,9 +15,8 @@ namespace nissa
   //Compute the gluonic force for the Wilson plaquette action and summ to the output
   //Passed conf must NOT contain the backfield.
   //Of the result still need to be taken the TA
-  THREADABLE_FUNCTION_3ARG(Wilson_force_eo_conf, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,eo_conf, double,beta)
+  void Wilson_force_eo_conf(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf,double beta)
   {
-    GET_THREAD_ID();
     
     verbosity_lv1_master_printf("Computing Wilson force (eo)\n");
     
@@ -36,12 +35,10 @@ namespace nissa
 	set_borders_invalid(F[par]);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //lx version
-  THREADABLE_FUNCTION_3ARG(Wilson_force_lx_conf, quad_su3*,F, quad_su3*,conf, double,beta)
+  void Wilson_force_lx_conf(quad_su3* F,quad_su3* conf,double beta)
   {
-    GET_THREAD_ID();
     
     verbosity_lv1_master_printf("Computing Wilson force (lx)\n");
     
@@ -57,5 +54,4 @@ namespace nissa
     
     set_borders_invalid(F);
   }
-  THREADABLE_FUNCTION_END
 }

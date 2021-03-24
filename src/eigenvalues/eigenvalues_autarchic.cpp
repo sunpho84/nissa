@@ -99,7 +99,6 @@ namespace nissa
     //form v[0:nout]=v[0:nin]*coeffs[0:nin,0:nout], using v itself
     void combine_basis_to_restart(int nout,int nin,complex *coeffs,int coeffs_row_length,complex **vect,int vec_length)
     {
-      GET_THREAD_ID();
       
       NISSA_PARALLEL_LOOP(iel,0,vec_length)
 	{

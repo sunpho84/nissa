@@ -15,7 +15,7 @@
 namespace nissa
 {
   //Apply the Q+Q- operator to a spincolor
-  THREADABLE_FUNCTION_7ARG(apply_tmQ2_RL, spincolor*,out, quad_su3*,conf, double,kappa, spincolor*,ext_temp, int,RL, double,mu, spincolor*,in)
+  void apply_tmQ2_RL(spincolor* out,quad_su3* conf,double kappa,spincolor* ext_temp,int RL,double mu,spincolor* in)
   {
     spincolor *temp=ext_temp;
     if(temp==NULL) temp=nissa_malloc("tempQ",loc_vol+bord_vol,spincolor);
@@ -28,7 +28,6 @@ namespace nissa
     
     if(ext_temp==NULL) nissa_free(temp);
   }
-  THREADABLE_FUNCTION_END
 
   //wrappers
   void apply_tmQ2_m2_RL(spincolor *out,quad_su3 *conf,double kappa,spincolor *temp,int RL,double m2,spincolor *in)

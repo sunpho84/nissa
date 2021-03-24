@@ -72,9 +72,8 @@ namespace nissa
   {for(int mu=0;mu<4;mu++) compute_point_summed_squared_staples_lx_conf_single_dir(staple[mu],lx_conf,A,mu);}
   
   //compute the summ of all the staples for the whole conf
-  THREADABLE_FUNCTION_2ARG(compute_summed_squared_staples_eo_conf, eo_ptr<quad_su3>,F, eo_ptr<quad_su3>,eo_conf)
+  void compute_summed_squared_staples_eo_conf(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf)
   {
-    GET_THREAD_ID();
     
     communicate_eo_quad_su3_edges(eo_conf);
     
@@ -84,7 +83,6 @@ namespace nissa
     
     for(int par=0;par<2;par++) set_borders_invalid(F[par]);
   }
-  THREADABLE_FUNCTION_END
   
   ///////////////////////////////// lx version ///////////////////////////////////////////
   
@@ -244,9 +242,8 @@ namespace nissa
   }
   
   //compute squared staple overlapping computation and communications, and avoiding using edges
-  THREADABLE_FUNCTION_2ARG(compute_squared_staples_lx_conf, squared_staples_t*,out, quad_su3*,conf)
+  void compute_squared_staples_lx_conf(squared_staples_t* out,quad_su3* conf)
   {
-    GET_THREAD_ID();
     
     //compute non_fw_surf fw staples
     squared_staples_lx_conf_start_communicating_lower_surface(conf,THREAD_ID);
@@ -259,12 +256,10 @@ namespace nissa
     squared_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,THREAD_ID);
     squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,THREAD_ID);
   }
-  THREADABLE_FUNCTION_END
   
   //summ everything together
-  THREADABLE_FUNCTION_2ARG(compute_summed_squared_staples_lx_conf, quad_su3*,out, quad_su3*,conf)
+  void compute_summed_squared_staples_lx_conf(quad_su3* out,quad_su3* conf)
   {
-    GET_THREAD_ID();
     
     //compute pieces
     squared_staples_t *squared_staples=nissa_malloc("squared_staples",loc_vol+bord_vol,squared_staples_t);
@@ -282,5 +277,4 @@ namespace nissa
     
     nissa_free(squared_staples);
   }
-  THREADABLE_FUNCTION_END
 }

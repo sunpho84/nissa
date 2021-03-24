@@ -33,7 +33,6 @@ void get_lepton_sink_phase_factor(complex out,int ivol)
 //set everything to a phase factor
 void set_to_lepton_sink_phase_factor(spinspin *prop,int twall)
 {
-  GET_THREAD_ID();
   
   vector_reset(prop);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -88,9 +87,8 @@ double compute_lepton_circle_cont()
   return 2*sqr(le.mass)*(1-sqr(le.mass/summu));
 }
 
-THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
+void compute_lepton_free_loop()
 {
-  GET_THREAD_ID();
   
   FILE *fout=open_file("corr_l_free","w");
   
@@ -192,7 +190,6 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
   nissa_free(corr);
   close_file(fout);
 }
-THREADABLE_FUNCTION_END
 
 double sinp(coords cp1,coords cp2,momentum_t bc,double fr=1)
 {
@@ -228,7 +225,6 @@ void in_main(int narg,char **arg)
     spinspin *pro=nissa_malloc("pr",loc_vol,spinspin);
     quad_su3 *conf=nissa_malloc("conf",loc_vol,quad_su3);
     clover_term_t *Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<4;mu++)
 	su3_put_to_id(conf[ivol][mu]);
@@ -370,7 +366,6 @@ void in_main(int narg,char **arg)
   //testing the new fourier transform
   spinspin *test=nissa_malloc("test",loc_vol,spinspin);
   spinspin *test2=nissa_malloc("test2",loc_vol,spinspin);
-  GET_THREAD_ID();
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
       momentum_t bc={0,2,0,0};

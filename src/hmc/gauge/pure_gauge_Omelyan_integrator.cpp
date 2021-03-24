@@ -36,7 +36,7 @@ namespace nissa
   // Evolve momenta according to the pure gauge force
   // calculate H=H-F*dt to evolve link momenta
   // i.e calculate v(t+dt)=v(t)+a*dt
-  THREADABLE_FUNCTION_5ARG(evolve_momenta_with_pure_gauge_force, quad_su3*,H, quad_su3*,conf, theory_pars_t*,theory_pars, double,dt, quad_su3*,ext_F)
+  void evolve_momenta_with_pure_gauge_force(quad_su3* H,quad_su3* conf,theory_pars_t* theory_pars,double dt,quad_su3* ext_F)
   {
     verbosity_lv2_master_printf("Evolving momenta with pure gauge force, dt=%lg\n",dt);
     
@@ -49,10 +49,9 @@ namespace nissa
     
     if(ext_F==NULL) nissa_free(F);
   }
-  THREADABLE_FUNCTION_END
   
   //same but with acceleration
-  THREADABLE_FUNCTION_8ARG(evolve_momenta_and_FACC_momenta, quad_su3*,H, su3**,pi, quad_su3*,conf, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul, double,dt, quad_su3*,ext_F)
+  void evolve_momenta_and_FACC_momenta(quad_su3* H,su3** pi,quad_su3* conf,su3** phi,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul,double dt,quad_su3* ext_F)
   {
     verbosity_lv2_master_printf("Evolving momenta and FACC momenta, dt=%lg\n",dt);
     
@@ -140,7 +139,6 @@ namespace nissa
     
     if(ext_F==NULL) nissa_free(F);
   }
-  THREADABLE_FUNCTION_END
   
   //combine the two fields evolution
   void evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(quad_su3 *conf,su3 **phi,quad_su3 *H,su3 **pi,int naux_fields,double kappa,int niter,double residue,double dt)
@@ -150,7 +148,7 @@ namespace nissa
   }
   
   //integrator for pure gauge
-  THREADABLE_FUNCTION_6ARG(Omelyan_pure_gauge_FACC_evolver, quad_su3*,H, quad_su3*,conf, su3**,pi, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
+  void Omelyan_pure_gauge_FACC_evolver(quad_su3* H,quad_su3* conf,su3** pi,su3** phi,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul)
   {
     const int niter_max=1000000;
     
@@ -183,10 +181,9 @@ namespace nissa
     
     nissa_free(F);
   }
-  THREADABLE_FUNCTION_END
   
   //integrator for pure gauge
-  THREADABLE_FUNCTION_4ARG(Omelyan_pure_gauge_evolver, quad_su3*,H, quad_su3*,conf, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
+  void Omelyan_pure_gauge_evolver(quad_su3* H,quad_su3* conf,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul)
   {
     //macro step or micro step
     double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
@@ -217,5 +214,4 @@ namespace nissa
     
     nissa_free(F);
   }
-  THREADABLE_FUNCTION_END
 }

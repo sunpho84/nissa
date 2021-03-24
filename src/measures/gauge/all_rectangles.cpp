@@ -81,10 +81,9 @@ namespace nissa
   }
   
   //compute all possible rectangular paths among a defined interval
-  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rects_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
+  void measure_all_rectangular_paths(all_rects_meas_pars_t* pars,quad_su3* ori_conf,int iconf,int create_output_file)
   {
 #if NDIM>=3
-    GET_THREAD_ID();
     
     verbosity_lv1_master_printf("Computing all rectangular paths\n");
     
@@ -288,7 +287,7 @@ namespace nissa
 #if THREADS_TYPE == OPENMP_THREADS
     if(nthreads>1)
       if(IS_MASTER_THREAD)
-	for(unsigned int other_thread=1;other_thread<nthreads;other_thread++)
+	for(int other_thread=1;other_thread<nthreads;other_thread++)
 	  {
 	    double *all_rectangles_other_thread=all_rectangles+nrect*other_thread;
 	    for(int irect=0;irect<nrect;irect++) all_rectangles_loc_thread[irect]+=all_rectangles_other_thread[irect];
@@ -332,14 +331,12 @@ namespace nissa
     crash("not implemented");
 #endif
   }
-  THREADABLE_FUNCTION_END
   
   //compute all possible rectangular paths among a defined interval
-  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths_old, all_rects_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
+  void measure_all_rectangular_paths_old(all_rects_meas_pars_t* pars,quad_su3* ori_conf,int iconf,int create_output_file)
   {
     crash("to be fixed");
     /*
-    GET_THREAD_ID();
     
     gauge_obs_temp_spat_smear_pars_t *smear_pars=&pars->smear_pars;
     gauge_obs_temp_smear_pars_t *temp_smear_pars=&smear_pars->gauge_temp_smear_pars;
@@ -484,7 +481,6 @@ namespace nissa
     nissa_free(point_path);
     */
   }
-  THREADABLE_FUNCTION_END
   
   void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,eo_ptr<quad_su3> conf_eo,int iconf,int create_output_file)
   {

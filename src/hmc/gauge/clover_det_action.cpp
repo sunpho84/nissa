@@ -15,7 +15,7 @@
 namespace nissa
 {
   //Computes the clover determinant action
-  THREADABLE_FUNCTION_3ARG(clover_det_action, double*,act, std::vector<quark_content_t>,quark_content, eo_ptr<quad_su3>,eo_conf)
+  void clover_det_action(double* act,std::vector<quark_content_t> quark_content,eo_ptr<quad_su3> eo_conf)
   {
     double res=0.0;
     bool need=false;
@@ -26,7 +26,6 @@ namespace nissa
       res=0.0;
     else
       {
-	GET_THREAD_ID();
 	double *loc_act=nissa_malloc("loc_act",loc_volh,double);
 	
 	eo_ptr<clover_term_t> Cl={NULL,NULL};
@@ -80,5 +79,4 @@ namespace nissa
     
     *act=res;
   }
-  THREADABLE_FUNCTION_END;
 }

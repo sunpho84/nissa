@@ -29,9 +29,8 @@ int nflavs;
   {return t+glb_size[0]*(iop+nop*iflav);}
   
   //compute correlation functions for staggered mesons, arbitary taste and spin
-  THREADABLE_FUNCTION_4ARG(compute_meson_corr, complex*,corr, eo_ptr<quad_su3>,conf, theory_pars_t*,tp, meson_corr_meas_pars_t*,meas_pars)
+  void compute_meson_corr(complex* corr,eo_ptr<quad_su3> conf,theory_pars_t* tp,meson_corr_meas_pars_t* meas_pars)
   {
-    GET_THREAD_ID();
     
     //allocate
     eo_ptr<color> ori_source,source,sol,quark[nop],temp[2];
@@ -121,7 +120,6 @@ int nflavs;
 	nissa_free(temp[itemp][eo]);
     delete[] loc_corr;
   }
-  THREADABLE_FUNCTION_END
   
   //compute and print
   void measure_meson_corr(eo_ptr<quad_su3> ext_conf,theory_pars_t &tp,meson_corr_meas_pars_t &meas_pars,int iconf,int conf_created)

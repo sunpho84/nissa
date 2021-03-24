@@ -255,7 +255,6 @@ namespace quda_iface
   {
     master_printf("%s\n",__FUNCTION__);
     
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
@@ -274,7 +273,6 @@ namespace quda_iface
   {
     master_printf("%s\n",__FUNCTION__);
     
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
@@ -291,7 +289,6 @@ namespace quda_iface
   {
     master_printf("%s\n",__FUNCTION__);
     
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(iquda,0,loc_vol)
       {

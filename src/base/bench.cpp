@@ -19,7 +19,6 @@ namespace nissa
   //copy memory
   void bench_memory_copy(double *out,double *in,int size)
   {
-    GET_THREAD_ID();
     size/=8;
     
     NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,size,THREAD_ID,NACTIVE_THREADS);
@@ -28,7 +27,7 @@ namespace nissa
   }
   
   //benchmark memory
-  THREADABLE_FUNCTION_1ARG(bench_memory_bandwidth, int,mem_size)
+  void bench_memory_bandwidth(int mem_size)
   {
     //allocate double
     double *a=nissa_malloc("a",mem_size/sizeof(double),double);
@@ -50,7 +49,6 @@ namespace nissa
     master_printf("time to copy %d Mbytes: %lg, %lg Mbs\n",mem_size/1024/1024,
 		  bench_time,mem_size/1024/1024/bench_time);
   }
-  THREADABLE_FUNCTION_END
   
   //benchmark the net speed
   void bench_net_speed()

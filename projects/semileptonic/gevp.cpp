@@ -268,9 +268,8 @@ void calculate_S0(int ism_lev_so)
 
 //transpose dirac indices with spatial ones, so that destination
 //is arranged as: t,id_si,id_so,ri,spat,color
-THREADABLE_FUNCTION_2ARG(prepare_prop_for_new_contraction, colorspinspin*,prop, colorspinspin*,aux)
+void prepare_prop_for_new_contraction(colorspinspin* prop,colorspinspin* aux)
 {
-  GET_THREAD_ID();
   
   int spat_color_vol=3*loc_vol/loc_size[0];
   
@@ -286,9 +285,8 @@ THREADABLE_FUNCTION_2ARG(prepare_prop_for_new_contraction, colorspinspin*,prop, 
   parallel_memcpy(prop,aux,sizeof(colorspinspin)*loc_vol);
 }}
 //do the opposite
-THREADABLE_FUNCTION_2ARG(revert_prop_from_new_contraction, colorspinspin*,prop, colorspinspin*,aux)
+void revert_prop_from_new_contraction(colorspinspin* prop,colorspinspin* aux)
 {
-  GET_THREAD_ID();
   
   int spat_color_vol=3*loc_vol/loc_size[0];
   

@@ -71,9 +71,8 @@ namespace nissa
   }
   
   //calculate the global plaquette of an lx conf
-  THREADABLE_FUNCTION_2ARG(global_plaquette_lx_conf, double*,totplaq, quad_su3*,conf)
+  void global_plaquette_lx_conf(double* totplaq,quad_su3* conf)
   {
-    GET_THREAD_ID();
     
     //summ temporal and spatial separately
     complex *point_plaq=nissa_malloc("point_plaq",loc_vol,complex);
@@ -94,11 +93,9 @@ namespace nissa
     
     nissa_free(point_plaq);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, eo_ptr<quad_su3>,conf)
+  void global_plaquette_eo_conf(double* totplaq,eo_ptr<quad_su3> conf)
   {
-    GET_THREAD_ID();
     
     //summ temporal and spatial separately
     complex *point_plaq=nissa_malloc("point_plaq",loc_vol,complex);
@@ -122,7 +119,6 @@ namespace nissa
     
     nissa_free(point_plaq);
   }
-  THREADABLE_FUNCTION_END
   
   //return the average between spatial and temporary plaquette
   double global_plaquette_lx_conf(quad_su3 *conf)

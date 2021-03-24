@@ -14,9 +14,8 @@ namespace nissa
 {
   //perform ape smearing
   //be sure not to have border condition added
-  THREADABLE_FUNCTION_6ARG(ape_smear_conf, quad_su3*,smear_conf, quad_su3*,origi_conf, double,alpha, int,nstep, bool*,dirs, int,min_staple_dir)
+  void ape_smear_conf(quad_su3* smear_conf,quad_su3* origi_conf,double alpha,int nstep,bool* dirs,int min_staple_dir)
   {
-    GET_THREAD_ID();
     
     quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     if(origi_conf!=smear_conf) double_vector_copy((double*)smear_conf,(double*)origi_conf,loc_vol*sizeof(quad_su3)/sizeof(double));
@@ -80,5 +79,4 @@ namespace nissa
     
     nissa_free(temp_conf);
   }
-  THREADABLE_FUNCTION_END
 }

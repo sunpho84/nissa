@@ -23,7 +23,6 @@ namespace nissa
     //summ a single shift
     void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side)
     {
-      GET_THREAD_ID();
       
       if(in==out) crash("in==out");
       
@@ -55,7 +54,7 @@ namespace nissa
     }
     
     //apply two-links laplacian, as per 1302.5246
-    THREADABLE_FUNCTION_3ARG(two_links_laplacian, eo_ptr<color>,out, eo_ptr<quad_su3>,conf, eo_ptr<color>,in)
+    void two_links_laplacian(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<color> in)
     {
       crash("NOT USABLE YET");
       //allocate temp
@@ -87,7 +86,6 @@ namespace nissa
 	for(int par=0;par<2;par++)
 	  nissa_free(temp[icopy][par]);
     }
-    THREADABLE_FUNCTION_END
     
     //apply the operator
     void apply_shift_op_single_perm(eo_ptr<color> out,eo_ptr<color> temp,eo_ptr<quad_su3> conf,std::vector<int> &list_dir,eo_ptr<color> in)
@@ -148,9 +146,8 @@ namespace nissa
     }
     
     //add the phases
-    THREADABLE_FUNCTION_2ARG(put_stag_phases, eo_ptr<color>,source, int,mask)
+    void put_stag_phases(eo_ptr<color> source,int mask)
     {
-      GET_THREAD_ID();
       
       //put the phases
       for(int eo=0;eo<2;eo++)
@@ -165,16 +162,14 @@ namespace nissa
 	  set_borders_invalid(source[eo]);
 	}
     }
-    THREADABLE_FUNCTION_END
     
     //multiply by M^-1
-    THREADABLE_FUNCTION_6ARG(mult_Minv, eo_ptr<color>,prop, eo_ptr<quad_su3>,conf, eo_ptr<quad_u1>,u1b, double,m, double,residue, eo_ptr<color>,source)
+    void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double residue,eo_ptr<color> source)
     {
       add_backfield_with_stagphases_to_conf(conf,u1b);
       inv_stD_cg(prop,conf,m,100000,residue,source);
       rem_backfield_with_stagphases_from_conf(conf,u1b);
     }
-    THREADABLE_FUNCTION_END
     void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,theory_pars_t *pars,int iflav,double residue,eo_ptr<color> source)
     {mult_Minv(prop,conf,pars->backfield[iflav],pars->quarks[iflav].mass,residue,source);}
     
@@ -182,7 +177,6 @@ namespace nissa
     //forward and backward derivative are stored separately, for a reason
     void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result)
     {
-      GET_THREAD_ID();
       
       communicate_ev_and_od_color_borders(left);
       communicate_ev_and_od_quad_su3_borders(conf);
@@ -219,9 +213,8 @@ namespace nissa
     }
     
     //take the trace between A^dag and B
-    THREADABLE_FUNCTION_4ARG(summ_the_trace, double*,out, complex*,point_result, eo_ptr<color>, A, eo_ptr<color>, B)
+    void summ_the_trace(double* out,complex* point_result,eo_ptr<color>  A,eo_ptr<color>  B)
     {
-      GET_THREAD_ID();
       
       //compute results for single points
       vector_reset(point_result);
@@ -237,12 +230,10 @@ namespace nissa
       glb_reduce(&temp,point_result,loc_vol);
       if(IS_MASTER_THREAD) complex_summassign(out,temp);
     }
-    THREADABLE_FUNCTION_END
     
     //multiply by the derivative of M w.r.t mu
-    THREADABLE_FUNCTION_6ARG(mult_dMdmu, eo_ptr<color>,out, theory_pars_t*,theory_pars, eo_ptr<quad_su3>,conf, int,iflav, int,ord, eo_ptr<color>,in)
+    void mult_dMdmu(eo_ptr<color> out,theory_pars_t* theory_pars,eo_ptr<quad_su3> conf,int iflav,int ord,eo_ptr<color> in)
     {
-      GET_THREAD_ID();
       
       if(ord==0) crash("makes no sense to call with order zero");
       
@@ -267,12 +258,10 @@ namespace nissa
       
       rem_backfield_with_stagphases_from_conf(conf,theory_pars->backfield[iflav]);
     }
-    THREADABLE_FUNCTION_END
     
     //compute a density
-    THREADABLE_FUNCTION_10ARG(summ_dens, complex*,dens, eo_ptr<color>,quark, eo_ptr<color>,temp0, eo_ptr<color>,temp1, eo_ptr<quad_su3>,conf, eo_ptr<quad_u1>,backfield, int,shift, int,mask, eo_ptr<color>,chi, eo_ptr<color>,eta)
+    void summ_dens(complex* dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta)
     {
-      GET_THREAD_ID();
       
       apply_shift_op(quark,temp0,temp1,conf,backfield,shift,chi);
       put_stag_phases(quark,mask);
@@ -288,14 +277,12 @@ namespace nissa
       NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
     }
-    THREADABLE_FUNCTION_END
     
     void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars)
     {if(aux[0]) complex_copy(out,aux[par][ieo][mu]);else complex_put_to_real(out,1);}
     //insert an external current
     void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars)
     {
-      GET_THREAD_ID();
       
       add_backfield_with_stagphases_to_conf(conf,theory_pars->backfield[iflav]);
       communicate_ev_and_od_quad_su3_borders(conf);

@@ -146,7 +146,6 @@ namespace nissa
   void ranks_abort(int err)
   {
 #ifdef USE_MPI
-    GET_THREAD_ID();
     printf("thread %d on rank %d aborting\n",THREAD_ID,rank);
     MPI_Abort(MPI_COMM_WORLD,0);
 #else
@@ -217,7 +216,6 @@ namespace nissa
   template <class T> T broadcast_internal(T in,int rank_from,MPI_Datatype type)
   {
     T out;
-    GET_THREAD_ID();
     if(IS_MASTER_THREAD) MPI_Bcast(&in,1,type,rank_from,MPI_COMM_WORLD);
     THREAD_BROADCAST(out,in);
     return out;
@@ -234,7 +232,6 @@ namespace nissa
   //broadcast a whole rational approximation
   void broadcast(rat_approx_t *rat,int rank_from)
   {
-    GET_THREAD_ID();
     
     //first destroy on non-sending
     THREAD_BARRIER(); //need to barrier to avoid race condition when later "rat-degree" is update through mpi_bcast

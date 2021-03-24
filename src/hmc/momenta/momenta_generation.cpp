@@ -19,9 +19,8 @@
 namespace nissa
 {
   //generate momenta using guassian hermitean matrix generator
-  THREADABLE_FUNCTION_1ARG(generate_hmc_momenta, eo_ptr<quad_su3>,H)
+  void generate_hmc_momenta(eo_ptr<quad_su3> H)
   {
-    GET_THREAD_ID();
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
@@ -32,11 +31,9 @@ namespace nissa
 	set_borders_invalid(H[par]);
       }
   }
-  THREADABLE_FUNCTION_END
   //similar for lx
-  THREADABLE_FUNCTION_1ARG(generate_hmc_momenta, quad_su3*,H)
+  void generate_hmc_momenta(quad_su3* H)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
@@ -45,12 +42,10 @@ namespace nissa
     
     set_borders_invalid(H);
   }
-  THREADABLE_FUNCTION_END
   
   //generate momenta using guassian hermitian matrix generator
-  THREADABLE_FUNCTION_5ARG(generate_hmc_momenta_with_FACC, quad_su3*,H, quad_su3*,conf, rat_approx_t*,rat_exp_H, double,kappa, double,residue)
+  void generate_hmc_momenta_with_FACC(quad_su3* H,quad_su3* conf,rat_approx_t* rat_exp_H,double kappa,double residue)
   {
-    GET_THREAD_ID();
     
     //temporary for inversion
     su3 *in=nissa_malloc("in",loc_vol+bord_vol,su3);
@@ -89,10 +84,9 @@ namespace nissa
     nissa_free(out);
     nissa_free(tmp);
   }
-  THREADABLE_FUNCTION_END
   
   //generate momenta needed for Fourier acceleration
-  THREADABLE_FUNCTION_6ARG(generate_MFACC_momenta, su3**,pi, int,naux_fields, quad_su3*,conf, rat_approx_t*,rat_exp_H, double,kappa, double,residue)
+  void generate_MFACC_momenta(su3** pi,int naux_fields,quad_su3* conf,rat_approx_t* rat_exp_H,double kappa,double residue)
   {
     verbosity_lv1_master_printf("Generating Fourier acceleration momenta\n");
     
@@ -118,5 +112,4 @@ namespace nissa
     
     nissa_free(V);
   }
-  THREADABLE_FUNCTION_END
 }

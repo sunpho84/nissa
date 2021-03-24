@@ -18,7 +18,7 @@ namespace nissa
   // build an estimate of the topological susceptibility.
   // refs:  https://arxiv.org/pdf/1008.0732.pdf for the susceptibility formula,
   //        https://arxiv.org/pdf/0912.2850.pdf for the 2^(d/2) overcounting.
-  THREADABLE_FUNCTION_7ARG(measure_iD_spectrum, color**,eigvec, eo_ptr<quad_su3>,conf,complex*, charge_cut, complex*, eigval, int,neigs, double,eig_precision, int,wspace_size)
+  void measure_iD_spectrum(color** eigvec,eo_ptr<quad_su3> conf,complex* charge_cut,complex* eigval,int neigs,double eig_precision,int wspace_size)
   {
     //parameters of the eigensolver
     const bool min_max=0;
@@ -74,7 +74,6 @@ namespace nissa
     nissa_free(u1b[0]);
     nissa_free(u1b[1]);
   }
-  THREADABLE_FUNCTION_END
   
   //measure for a single smooth value
   void measure_spectral_proj(FILE *file,spectr_proj_meas_pars_t &meas_pars,quad_su3 *conf_lx,int iconf,int nsmooth)

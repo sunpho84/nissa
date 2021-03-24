@@ -27,9 +27,8 @@ namespace
 namespace nissa
 {
   //generate Fourier acceleration-related fields
-  THREADABLE_FUNCTION_1ARG(generate_MFACC_field, su3*,pi)
+  void generate_MFACC_field(su3* pi)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       herm_put_to_gauss(pi[ivol],&(loc_rnd_gen[ivol]),1);
@@ -37,7 +36,6 @@ namespace nissa
     
     set_borders_invalid(pi);
   }
-  THREADABLE_FUNCTION_END
   
   //compute the action for the Fourier acceleration-related fields - last bit of eq.4
   double MFACC_fields_action(su3 **phi,int naux_fields)
@@ -54,7 +52,7 @@ namespace nissa
   }
   
   //Evolve Fourier acceleration related fields - eq.5
-  THREADABLE_FUNCTION_6ARG(evolve_MFACC_fields, su3**,phi, int,naux_fields, quad_su3*,conf, double,kappa, su3**,pi, double,dt)
+  void evolve_MFACC_fields(su3** phi,int naux_fields,quad_su3* conf,double kappa,su3** pi,double dt)
   {
     verbosity_lv2_master_printf("Evolving Fourier fields, dt=%lg\n",dt);
     
@@ -129,22 +127,19 @@ namespace nissa
     
     nissa_free(F);
   }
-  THREADABLE_FUNCTION_END
   
   //Evolve Fourier acceleration related momenta - eq.6
-  THREADABLE_FUNCTION_4ARG(evolve_MFACC_momenta, su3**,pi, su3**,phi, int,naux_fields, double,dt)
+  void evolve_MFACC_momenta(su3** pi,su3** phi,int naux_fields,double dt)
   {
     verbosity_lv2_master_printf("Evolving Fourier momenta, dt=%lg\n",dt);
     
     for(int ifield=0;ifield<naux_fields;ifield++)
       double_vector_summ_double_vector_prod_double((double*)(pi[ifield]),(double*)(pi[ifield]),(double*)(phi[ifield]),-dt,loc_vol*sizeof(su3)/sizeof(double));
   }
-  THREADABLE_FUNCTION_END
   
   //compute the QCD force originated from MFACC momenta (derivative of \pi^\dag MM \pi/2) w.r.t U
-  THREADABLE_FUNCTION_5ARG(summ_the_MFACC_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, su3**,pi, int,naux_fields)
+  void summ_the_MFACC_momenta_QCD_force(quad_su3* F,quad_su3* conf,double kappa,su3** pi,int naux_fields)
   {
-    GET_THREAD_ID();
     
     verbosity_lv2_master_printf("Computing QCD force originated by MFACC momenta (derivative of \\pi^\\dag MM \\pi/2) w.r.t U\n");
     
@@ -235,12 +230,10 @@ namespace nissa
     //crash("ciccio");
 #endif
   }
-  THREADABLE_FUNCTION_END
   
   //compute the QCD momenta force (derivative of \H^\dag G \H/2) (eq.8)
-  THREADABLE_FUNCTION_6ARG(summ_the_MFACC_QCD_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, int,niter, double,residue, quad_su3*,H)
+  void summ_the_MFACC_QCD_momenta_QCD_force(quad_su3* F,quad_su3* conf,double kappa,int niter,double residue,quad_su3* H)
   {
-    GET_THREAD_ID();
     
     verbosity_lv2_master_printf("Computing QCD force due to Fourier Accelerated QCD momenta\n");
     
@@ -348,5 +341,4 @@ namespace nissa
     nissa_free(temp);
     nissa_free(H_nu);
   }
-  THREADABLE_FUNCTION_END
 }

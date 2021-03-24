@@ -16,9 +16,8 @@
 namespace nissa
 {
   //initialize an u(1) field to unity
-  THREADABLE_FUNCTION_1ARG(init_backfield_to_id, eo_ptr<quad_u1>,S)
+  void init_backfield_to_id(eo_ptr<quad_u1> S)
   {
-    GET_THREAD_ID();
     
     for(int par=0;par<2;par++)
       {
@@ -35,12 +34,10 @@ namespace nissa
         set_borders_invalid(S[par]);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //multiply a background field by the imaginary chemical potential
-  THREADABLE_FUNCTION_2ARG(add_im_pot_to_backfield, eo_ptr<quad_u1>,S, quark_content_t*,quark_content)
+  void add_im_pot_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content)
   {
-    GET_THREAD_ID();
     
     double im_pot=quark_content->im_pot*M_PI/glb_size[0];
     const double c=cos(im_pot),s=sin(im_pot);
@@ -57,7 +54,6 @@ namespace nissa
 	set_borders_invalid(S[par]);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //compute args for non-present quantization
   CUDA_HOST_AND_DEVICE void get_args_of_null_quantization(coords phase,int ivol,int mu,int nu)
@@ -100,9 +96,8 @@ namespace nissa
   
   //multiply a background field by a constant em field
   //mu nu refers to the entry of F_mu_nu involved
-  THREADABLE_FUNCTION_6ARG(add_em_field_to_backfield, eo_ptr<quad_u1>,S, quark_content_t*,quark_content, double,em_str, int,quantization, int,mu, int,nu)
+  void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content,double em_str,int quantization,int mu,int nu)
   {
-    GET_THREAD_ID();
     
     double phase=2*em_str*quark_content->charge*M_PI/glb_size[mu]/glb_size[nu];
     
@@ -129,10 +124,9 @@ namespace nissa
 	set_borders_invalid(S[par]);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //set up all the 6 components
-  THREADABLE_FUNCTION_3ARG(add_em_field_to_backfield, eo_ptr<quad_u1>,S, quark_content_t*,quark_content, em_field_pars_t*,em_field_pars)
+  void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content,em_field_pars_t* em_field_pars)
   {
     double *E=em_field_pars->E,*B=em_field_pars->B;
     int q=em_field_pars->flag;
@@ -146,12 +140,10 @@ namespace nissa
 	if(fabs(B[2])>1e-10) add_em_field_to_backfield(S,quark_content,B[2],q,1,2);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //add staggered phases (or remove them!)
-  // THREADABLE_FUNCTION_1ARG(add_stagphases_to_backfield, eo_ptr<quad_u1>,S)
+  // void add_stagphases_to_backfield(eo_ptr<quad_u1> S)
   // {
-  //   GET_THREAD_ID();
   //   for(int par=0;par<2;par++)
   //     {
   //      NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
@@ -164,12 +156,10 @@ namespace nissa
   //      set_borders_invalid(S);
   //     }
   // }
-  // THREADABLE_FUNCTION_END
   
   //add the antiperiodic condition on the on dir mu
-  THREADABLE_FUNCTION_2ARG(add_antiperiodic_condition_to_backfield, eo_ptr<quad_u1>,S, int,mu)
+  void add_antiperiodic_condition_to_backfield(eo_ptr<quad_u1> S,int mu)
   {
-    GET_THREAD_ID();
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
@@ -182,12 +172,10 @@ namespace nissa
 	set_borders_invalid(S[par]);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //multiply the configuration for stagphases
-  THREADABLE_FUNCTION_1ARG(add_or_rem_stagphases_to_conf, eo_ptr<quad_su3>,conf)
+  void add_or_rem_stagphases_to_conf(eo_ptr<quad_su3> conf)
   {
-    GET_THREAD_ID();
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
@@ -203,10 +191,9 @@ namespace nissa
 	set_borders_invalid(conf[par]);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //multiply the configuration for an additional U(1) field and possibly stagphases
-  THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, eo_ptr<quad_su3>,_conf, bool,add_rem, eo_ptr<quad_u1>,u1, bool,with_without)
+  void add_or_rem_backfield_with_or_without_stagphases_to_conf(eo_ptr<quad_su3> _conf,bool add_rem,eo_ptr<quad_u1> u1,bool with_without)
   {
     verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
     
@@ -214,7 +201,6 @@ namespace nissa
     conf[0]=_conf[0];
     conf[1]=_conf[1];
     
-    GET_THREAD_ID();
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
@@ -241,14 +227,12 @@ namespace nissa
 	set_borders_invalid(conf[par]);
       }
   }
-  THREADABLE_FUNCTION_END
   
   //multiply the configuration for an additional U(1) field and possibly stagphases
-  THREADABLE_FUNCTION_4ARG(add_or_rem_backfield_with_or_without_stagphases_to_conf, quad_su3*,conf, bool,add_rem, eo_ptr<quad_u1>,u1, bool,with_without)
+  void add_or_rem_backfield_with_or_without_stagphases_to_conf(quad_su3* conf,bool add_rem,eo_ptr<quad_u1> u1,bool with_without)
   {
     verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
     
-    GET_THREAD_ID();
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
@@ -276,7 +260,6 @@ namespace nissa
       }
     set_borders_invalid(conf);
   }
-  THREADABLE_FUNCTION_END
   
   //allocate background fields
   void theory_pars_t::allocate_backfield()

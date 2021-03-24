@@ -946,9 +946,8 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 
 //transpose dirac indices with spatial ones, so that destination
 //is arranged as: t,id_si,id_so,ri,spat,color
-THREADABLE_FUNCTION_2ARG(prepare_prop_for_new_contraction, PROP_TYPE*,prop, PROP_TYPE*,aux)
+void prepare_prop_for_new_contraction(PROP_TYPE* prop,PROP_TYPE* aux)
 {
-  GET_THREAD_ID();
   
   int spat_color_vol=loc_vol/loc_size[0]*sizeof(PROP_TYPE)/sizeof(spinspin);
   
@@ -965,9 +964,8 @@ THREADABLE_FUNCTION_2ARG(prepare_prop_for_new_contraction, PROP_TYPE*,prop, PROP
   parallel_memcpy(prop,aux,sizeof(PROP_TYPE)*loc_vol);
 }}
 //do the opposite
-THREADABLE_FUNCTION_2ARG(revert_prop_from_new_contraction, PROP_TYPE*,prop, PROP_TYPE*,aux)
+void revert_prop_from_new_contraction(PROP_TYPE* prop,PROP_TYPE* aux)
 {
-  GET_THREAD_ID();
   
   int spat_color_vol=loc_vol/loc_size[0]*sizeof(PROP_TYPE)/sizeof(spinspin);
   
@@ -985,9 +983,8 @@ THREADABLE_FUNCTION_2ARG(revert_prop_from_new_contraction, PROP_TYPE*,prop, PROP
 }}
 
 //Uses the new layout
-THREADABLE_FUNCTION_5ARG(new_meson_two_points, double*,glb_2pts, double*,loc_2pts, PROP_TYPE*,S_back, PROP_TYPE*,S_forw, two_pts_comp_t*,comp)
+void new_meson_two_points(double* glb_2pts,double* loc_2pts,PROP_TYPE* S_back,PROP_TYPE* S_forw,two_pts_comp_t* comp)
 {
-  GET_THREAD_ID();
   
   vector_reset(loc_2pts);
   

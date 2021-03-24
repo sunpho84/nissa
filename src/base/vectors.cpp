@@ -61,7 +61,6 @@ namespace nissa
   void set_vect_flag(void *v,unsigned int flag)
   {
 #ifdef DEBUG
-    GET_THREAD_ID();
     printf("set_vect_flag for vect %s allocated in file %s line %d, rank %d thread_id: %d, thread_pool_locked: %d\n",
 	   get_vect_name(v),get_vect(v)->file,get_vect(v)->line,rank,thread_id,thread_pool_locked);
     print_backtrace_list();
@@ -219,7 +218,6 @@ namespace nissa
   //allocate an nissa vector
   void *internal_nissa_malloc(const char *tag,int64_t nel,int64_t size_per_el,const char *type,const char *file,int line)
   {
-    GET_THREAD_ID();
     if(IS_MASTER_THREAD)
       {
 	IF_MAIN_VECT_NOT_INITIALIZED() initialize_main_vect();
@@ -294,7 +292,6 @@ namespace nissa
   //copy one vector into another
   void vector_copy(void *a,const void *b)
   {
-    GET_THREAD_ID();
     
     //sync so we are sure that all threads are here
     THREAD_BARRIER();
@@ -342,7 +339,6 @@ namespace nissa
     //sync so all thread are not using the vector
     THREAD_BARRIER();
     
-    GET_THREAD_ID();
     if(IS_MASTER_THREAD)
       {
 	nissa_vect *nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
@@ -361,7 +357,6 @@ namespace nissa
     //sync so all thread are not using the vector
     THREAD_BARRIER();
     
-    GET_THREAD_ID();
     if(IS_MASTER_THREAD)
       {
 	if(arr!=NULL)
@@ -408,9 +403,8 @@ namespace nissa
   }
   
   //reorder a vector according to the specified order
-  THREADABLE_FUNCTION_4ARG(reorder_vector, char*,vect, int*,order, int,nel, int,sel)
+  void reorder_vector(char* vect,int* order,int nel,int sel)
   {
-    GET_THREAD_ID();
     char *buf=nissa_malloc("buf",(int64_t)sel*nel,char);
     
     //copy in the buffer
@@ -428,6 +422,5 @@ namespace nissa
     
     nissa_free(buf);
   }
-  THREADABLE_FUNCTION_END
   
 }

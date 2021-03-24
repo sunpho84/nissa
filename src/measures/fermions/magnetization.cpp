@@ -18,9 +18,8 @@ namespace nissa
 {
   //compute the magnetization starting from chi and rnd
   //please note that the conf must hold backfield
-  THREADABLE_FUNCTION_10ARG(magnetization, complex*,magn, complex*,magn_proj_x, eo_ptr<quad_su3>,conf, quark_content_t*,quark, eo_ptr<color>,rnd, eo_ptr<color>,chi, complex*,point_magn, coords*,arg, int,mu, int,nu)
+  void magnetization(complex* magn,complex* magn_proj_x,eo_ptr<quad_su3> conf,quark_content_t* quark,eo_ptr<color> rnd,eo_ptr<color> chi,complex* point_magn,coords* arg,int mu,int nu)
   {
-    GET_THREAD_ID();
     
     communicate_ev_and_od_color_borders(chi);
     vector_reset(point_magn);
@@ -91,12 +90,10 @@ namespace nissa
       }
     THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
   
   //compute the magnetization
-  THREADABLE_FUNCTION_8ARG(magnetization, complex*,magn, complex*,magn_proj_x, eo_ptr<quad_su3>,conf, int,quantization, eo_ptr<quad_u1>,u1b, quark_content_t*,quark, double,residue, eo_ptr<color>,rnd)
+  void magnetization(complex* magn,complex* magn_proj_x,eo_ptr<quad_su3> conf,int quantization,eo_ptr<quad_u1> u1b,quark_content_t* quark,double residue,eo_ptr<color> rnd)
   {
-    GET_THREAD_ID();
     
     //fixed to Z magnetization
     int mu=1,nu=2;
@@ -130,7 +127,6 @@ namespace nissa
     nissa_free(point_magn);
     nissa_free(arg);
   }
-  THREADABLE_FUNCTION_END
   
   //compute the magnetization
   void magnetization(complex *magn,complex *magn_proj_x,rnd_t rnd_type,eo_ptr<quad_su3> conf,int quantization,eo_ptr<quad_u1> u1b,quark_content_t *quark,double residue)

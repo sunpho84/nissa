@@ -135,20 +135,17 @@ namespace nissa
     cancel_if_zero_mode(prop,gl,imom);
   }
   
-  THREADABLE_FUNCTION_2ARG(compute_mom_space_tlSym_gauge_propagator, spin1prop*,prop, gauge_info,gl)
+  void compute_mom_space_tlSym_gauge_propagator(spin1prop* prop,gauge_info gl)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       mom_space_tlSym_gauge_propagator_of_imom(prop[imom],gl,imom);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(prop);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_3ARG(multiply_mom_space_tlSym_gauge_propagator, spin1field*,out, spin1field*,in, gauge_info,gl)
+  void multiply_mom_space_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
@@ -159,11 +156,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_3ARG(multiply_mom_space_sqrt_tlSym_gauge_propagator, spin1field*,out, spin1field*,in, gauge_info,gl)
+  void multiply_mom_space_sqrt_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
   {
-    GET_THREAD_ID();
     
     if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
       crash("Eigen required when out of Wilson regularisation in the Feynaman gauge");
@@ -245,11 +240,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_3ARG(multiply_x_space_tlSym_gauge_propagator_by_fft, spin1prop*,out, spin1prop*,in, gauge_info,gl)
+  void multiply_x_space_tlSym_gauge_propagator_by_fft(spin1prop* out,spin1prop* in,gauge_info gl)
   {
-    GET_THREAD_ID();
     
     pass_spin1prop_from_x_to_mom_space(out,in,gl.bc,true,true);
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
@@ -262,7 +255,6 @@ namespace nissa
     set_borders_invalid(out);
     pass_spin1prop_from_mom_to_x_space(out,in,gl.bc,true,true);
   }
-  THREADABLE_FUNCTION_END
   
   //compute the tree level Symanzik gauge propagator in the x space by taking the fft of that in momentum space
   void compute_x_space_tlSym_gauge_propagator_by_fft(spin1prop *prop,gauge_info gl)
@@ -272,9 +264,8 @@ namespace nissa
   }
   
   //generate a stochastic gauge propagator source
-  THREADABLE_FUNCTION_1ARG(generate_stochastic_tlSym_gauge_propagator_source, spin1field*,eta)
+  void generate_stochastic_tlSym_gauge_propagator_source(spin1field* eta)
   {
-    GET_THREAD_ID();
     
     //fill with Z2
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -283,12 +274,10 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(eta);
   }
-  THREADABLE_FUNCTION_END
   
   //generate a stochastic gauge propagator
-  THREADABLE_FUNCTION_3ARG(multiply_by_sqrt_tlSym_gauge_propagator, spin1field*,photon, spin1field*,eta, gauge_info,gl)
+  void multiply_by_sqrt_tlSym_gauge_propagator(spin1field* photon,spin1field* eta,gauge_info gl)
   {
-    GET_THREAD_ID();
     
     if(photon!=eta) vector_copy(photon,eta);
     
@@ -310,12 +299,10 @@ namespace nissa
     pass_spin1field_from_mom_to_x_space(photon,photon,gl.bc,true,true);
     
   }
-  THREADABLE_FUNCTION_END
   
   //multiply by gauge prop passing to mom space
-  THREADABLE_FUNCTION_3ARG(multiply_by_tlSym_gauge_propagator, spin1field*,out, spin1field*,in, gauge_info,gl)
+  void multiply_by_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
   {
-    GET_THREAD_ID();
     
     pass_spin1field_from_x_to_mom_space(out,in,gl.bc,true,true);
     
@@ -335,7 +322,6 @@ namespace nissa
     pass_spin1field_from_mom_to_x_space(out,out,gl.bc,true,true);
     
   }
-  THREADABLE_FUNCTION_END
   
   //generate a stochastic gauge propagator
   void generate_stochastic_tlSym_gauge_propagator(spin1field *phi,spin1field *eta, gauge_info gl)

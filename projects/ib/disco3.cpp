@@ -22,9 +22,8 @@ namespace mel
   CUDA_MANAGED complex *buffer;
   
   //compute the local matrix element between source and prop of gamma[igamma]
-  THREADABLE_FUNCTION_4ARG(local_mel, double*,out, spincolor*,source, int,igamma, spincolor*,prop)
+  void local_mel(double* out,spincolor* source,int igamma,spincolor* prop)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
@@ -37,12 +36,10 @@ namespace mel
     
     complex_vector_glb_collapse(out,buffer,loc_vol);
   }
-  THREADABLE_FUNCTION_END
   
   //compute the matrix element of the conserved current between two propagators. If asking to revert, g5 is inserted between the two propagators
-  THREADABLE_FUNCTION_5ARG(conserved_vector_current_mel, spin1field*,out, spincolor*,source, quad_su3*,conf, int,r, spincolor*,prop)
+  void conserved_vector_current_mel(spin1field* out,spincolor* source,quad_su3* conf,int r,spincolor* prop)
   {
-    GET_THREAD_ID();
     
     vector_reset(out);
     
@@ -79,12 +76,10 @@ namespace mel
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   //compute the summ of the product of the two vectors
-  THREADABLE_FUNCTION_3ARG(global_product, double*,out, spin1field*,a, spin1field*,b)
+  void global_product(double* out,spin1field* a,spin1field* b)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
@@ -97,12 +92,10 @@ namespace mel
     
     complex_vector_glb_collapse(out,buffer,loc_vol);
   }
-  THREADABLE_FUNCTION_END
 }
 
-// THREADABLE_FUNCTION_8ARG(fill_eigenpart, spincolor**,eigvec_conv, spincolor**,eigvec, int,neig, quad_su3*,conf, double,kappa, double,am, int,r, double,eig_precision)
+// void fill_eigenpart(spincolor** eigvec_conv,spincolor** eigvec,int neig,quad_su3* conf,double kappa,double am,int r,double eig_precision)
 // {
-//   GET_THREAD_ID();
   
 //   //compute all eigenvectors
 //   complex lambda[neig];
@@ -115,7 +108,6 @@ namespace mel
 //       // apply_tmQ((spincolor*)out,conf,kappa,mu,(spincolor*)in);
       
 //       apply_tmQ(temp_imp_mat,conf,kappa,mu,(spincolor*)in);
-//       GET_THREAD_ID();
 //       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 //         unsafe_dirac_prod_spincolor(((spincolor*)out)[ivol],base_gamma+5,temp_imp_mat[ivol]);
 //NISSA_PARALLEL_LOOP_END;
@@ -159,7 +151,6 @@ namespace mel
       
 //       //apply the matrix
 //       apply_tmQ(temp_imp_mat,conf,kappa,am*tau3[r],eigvec[ieig]);
-//             GET_THREAD_ID();
 //       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 //       	safe_dirac_prod_spincolor(((spincolor*)temp_imp_mat)[ivol],base_gamma+5,temp_imp_mat[ivol]);
 //NISSA_PARALLEL_LOOP_END;
@@ -221,12 +212,10 @@ namespace mel
   
 //   nissa_free(temp_imp_mat);
 // }
-// THREADABLE_FUNCTION_END
 
 //compute all propagators
-THREADABLE_FUNCTION_8ARG(compute_propagators, spincolor**,phi, spincolor*,eta, int,nm, quad_su3*,conf, double,kappa, double*,am, int,r, double*,solver_precision)
+void compute_propagators(spincolor** phi,spincolor* eta,int nm,quad_su3* conf,double kappa,double* am,int r,double* solver_precision)
 {
-  GET_THREAD_ID();
   
   //source and solution for the solver
   spincolor *source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
@@ -259,7 +248,6 @@ THREADABLE_FUNCTION_8ARG(compute_propagators, spincolor**,phi, spincolor*,eta, i
   
   nissa_free(source);
 }
-THREADABLE_FUNCTION_END
 
 //check if the time is enough
 int check_remaining_time(const int& nanalyzed_confs,const double& wall_time)

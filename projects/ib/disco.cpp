@@ -318,7 +318,6 @@ struct RngView
   }
 };
 
-
 template <typename T>
 struct FieldRngOf
 {
@@ -388,7 +387,6 @@ struct FieldRngOf
   {
     enforce_single_usage();
     
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
       {
@@ -747,8 +745,6 @@ void mark_finished()
 
 void fill_source(const int glbT)
 {
-  GET_THREAD_ID();
-  
   // double tFrT[1];
   // field_rng_stream.drawScalar(tFrT);
   // const int glbT=tFrT[0]*glb_size[0];
@@ -788,10 +784,8 @@ void get_prop(const int& t,const int& r)
   safe_dirac_prod_spincolor(p,(tau3[r]==-1)?&Pminus:&Pplus,prop(t,r));
 }
 
-THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2, int,glbT, dirac_matr*,gamma)
+void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,dirac_matr* gamma)
 {
-  GET_THREAD_ID();
-  
   vector_reset(loc_contr);
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -800,7 +794,7 @@ THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2,
       unsafe_dirac_prod_spincolor(gs,gamma,prop(glbT,r2)[ivol]);
       spincolor_scalar_prod(loc_contr[ivol],prop(glbT,r1)[ivol],gs);
     }
-  THREADABLE_FUNCTION_END;
+  NISSA_PARALLEL_LOOP_END;
   
   complex glb_contr[glb_size[0]];
   glb_reduce(glb_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],glb_coord_of_loclx[0][0]);
@@ -808,22 +802,18 @@ THREADABLE_FUNCTION_5ARG(compute_conn_contr,complex*,conn_contr, int,r1, int,r2,
   for(int t=0;t<glb_size[0];t++)
     complex_summassign(conn_contr[t],glb_contr[(t+glb_size[0]-glbT)%glb_size[0]]);
 }
-THREADABLE_FUNCTION_END
 
-THREADABLE_FUNCTION_4ARG(compute_inserted_contr,double*,contr, spincolor*,propBw, spincolor*,propFw, dirac_matr*,gamma)
+void compute_inserted_contr(double* contr,spincolor* propBw,spincolor* propFw,dirac_matr* gamma)
 {
-  GET_THREAD_ID();
-  
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
       unsafe_dirac_prod_spincolor(temp[ivol],gamma,propFw[ivol]);
     }
-  THREADABLE_FUNCTION_END;
+  NISSA_PARALLEL_LOOP_END_EXP
   set_borders_invalid(temp);
   
   complex_vector_glb_scalar_prod(contr,(complex*)propBw,(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
 }
-THREADABLE_FUNCTION_END
 
 void analyzeConf()
 {

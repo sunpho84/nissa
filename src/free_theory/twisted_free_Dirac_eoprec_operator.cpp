@@ -18,7 +18,6 @@ namespace nissa
   //apply even-odd or odd-even part of tmD, multiplied by -2
   void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,momentum_t bc)
   {
-    GET_THREAD_ID();
     
     if(eooe==0) communicate_od_spin_borders(in);
     else        communicate_ev_spin_borders(in);
@@ -160,7 +159,6 @@ namespace nissa
   //implement ee or oo part of Dirac operator, equation(3)
   void tmDee_or_oo_eos(spin *out,tm_quark_info qu,spin *in)
   {
-    GET_THREAD_ID();
     
     if(in==out) crash("in==out!");
     
@@ -179,7 +177,6 @@ namespace nissa
   //inverse
   void inv_tmDee_or_oo_eos(spin *out,tm_quark_info qu,spin *in)
   {
-    GET_THREAD_ID();
     
     if(in==out) crash("in==out!");
     const double a=1/(2*qu.kappa),b=qu.mass,nrm=1/(a*a+b*b);
@@ -198,7 +195,6 @@ namespace nissa
   //implement Koo defined in equation (7) 
   void tmDkern_eoprec_eos(spin *out,spin *temp,tm_quark_info qu,spin *in)
   {
-    GET_THREAD_ID();
     
     tmn2Deo_eos(out,in,qu.bc);
     inv_tmDee_or_oo_eos(temp,qu,out);

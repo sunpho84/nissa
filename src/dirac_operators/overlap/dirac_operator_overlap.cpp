@@ -39,7 +39,7 @@ namespace nissa
   //
   // We used two different routines because parpack cannot support nested calls, and we can recycle the approximation
   // libraries that prevent innested calls
-  THREADABLE_FUNCTION_4ARG(generate_rat_approx_for_overlap, quad_su3*,conf, rat_approx_t*, appr, double,mass_overlap, double,maxerr)
+  void generate_rat_approx_for_overlap(quad_su3* conf,rat_approx_t*  appr,double mass_overlap,double maxerr)
   {
     communicate_lx_quad_su3_borders(conf);
     
@@ -84,7 +84,6 @@ namespace nissa
     nissa_free(temp);
     nissa_free(lambda);
   }
-  THREADABLE_FUNCTION_END
   
   //Verify the approximation, by applying twice the sign function
   void verify_rat_approx_for_overlap(quad_su3 *conf_lx,rat_approx_t &appr,double mass_overlap,double residue)
@@ -118,9 +117,8 @@ namespace nissa
     nissa_free(out);
   }
   
-  THREADABLE_FUNCTION_7ARG(apply_overlap, spincolor*,out, quad_su3*,conf, rat_approx_t*, appr, double,req_res, double,mass_overlap, double,mass, spincolor*,in)
+  void apply_overlap(spincolor* out,quad_su3* conf,rat_approx_t*  appr,double req_res,double mass_overlap,double mass,spincolor* in)
   {
-    GET_THREAD_ID();
     
     communicate_lx_quad_su3_borders(conf);
     communicate_lx_spincolor_borders(in);
@@ -157,5 +155,4 @@ namespace nissa
     
     nissa_free(temp);
   }
-  THREADABLE_FUNCTION_END
 }

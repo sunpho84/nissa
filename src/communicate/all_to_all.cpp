@@ -32,7 +32,6 @@ namespace nissa
   //find (communicating) the complementary info
   void all_to_all_comm_t::setup_nper_rank_other_temp(int *nper_rank_other_temp,int *nper_rank_temp)
   {
-    GET_THREAD_ID();
     
     //send and receive the number of elements to communicate with
     if(IS_MASTER_THREAD)
@@ -51,7 +50,6 @@ namespace nissa
   //common part of initialization
   void all_to_all_comm_t::common_setup_part1(temp_build_t &build)
   {
-    GET_THREAD_ID();
     
     //count the number of different ranks to send and receive from
     int nranks_to_loc=0,nranks_fr_loc=0; //local: structure could be global!
@@ -131,7 +129,6 @@ namespace nissa
     int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,int *nper_rank_note,
     int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,int *nper_rank_expl)
   {
-    GET_THREAD_ID();
     
     buf_note=nissa_malloc("buf_note",nel_note,int);
     if(IS_MASTER_THREAD)
@@ -174,7 +171,6 @@ namespace nissa
   }
   void all_to_all_comm_t::setup_knowing_where_to_send(const all_to_all_scattering_list_t &sl)
   {
-    GET_THREAD_ID();
     
     //count the number of elements to send
     temp_build_t build;
@@ -223,7 +219,6 @@ namespace nissa
   }
   void all_to_all_comm_t::setup_knowing_what_to_ask(const all_to_all_gathering_list_t &gl)
   {
-    GET_THREAD_ID();
     
     temp_build_t build;
     nel_in=gl.size();
@@ -266,7 +261,6 @@ namespace nissa
   //perform the remapping
   void all_to_all_comm_t::communicate(void *out,void *in,size_t bps,void *ext_out_buf,void *ext_in_buf,int tag)
   {
-    GET_THREAD_ID();
     
     //allocate a buffer where to repack data
     char *out_buf=(ext_out_buf==NULL)?nissa_malloc("out_buf",nel_out*bps,char):(char*)ext_out_buf;

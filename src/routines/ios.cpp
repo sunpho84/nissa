@@ -57,7 +57,6 @@ namespace nissa
   //only master rank and thread print
   int master_fprintf(FILE *stream,const char *format,...)
   {
-    GET_THREAD_ID();
     int ret=0;
     
     va_list ap;

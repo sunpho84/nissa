@@ -56,7 +56,6 @@ namespace nissa
 	    typename En=std::enable_if_t<std::is_same<TOut,typename std::remove_all_extents<TIn>::type>::value>>
   void vector_loc_norm2(TOut *loc_norm2,TIn *v,int n_per_class)
   {
-    GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(i,0,n_per_class)
       loc_norm2[i]+=norm2(v[i]);

@@ -16,9 +16,8 @@
 namespace nissa
 {
   //separate the even and odd part of a vector
-  THREADABLE_FUNCTION_3ARG(split_lx_vector_into_eo_parts_internal, eo_ptr<void>,out_eo, void*,in_lx, size_t,bps)
+  void split_lx_vector_into_eo_parts_internal(eo_ptr<void> out_eo,void* in_lx,size_t bps)
   {
-    GET_THREAD_ID();
     
     START_TIMING(remap_time,nremap);
     
@@ -32,12 +31,10 @@ namespace nissa
     set_borders_invalid(out_eo[0]);
     set_borders_invalid(out_eo[1]);
   }
-  THREADABLE_FUNCTION_END
   
   //separate the even and odd part of a vector
-  THREADABLE_FUNCTION_4ARG(get_evn_or_odd_part_of_lx_vector_internal, void*,out_ev_or_od, void*,in_lx, size_t,bps, int,par)
+  void get_evn_or_odd_part_of_lx_vector_internal(void* out_ev_or_od,void* in_lx,size_t bps,int par)
   {
-    GET_THREAD_ID();
     
     START_TIMING(remap_time,nremap);
     
@@ -51,12 +48,10 @@ namespace nissa
     
     set_borders_invalid(out_ev_or_od);
   }
-  THREADABLE_FUNCTION_END
   
   //paste the even and odd parts of a vector into a full lx vector
-  THREADABLE_FUNCTION_3ARG(paste_eo_parts_into_lx_vector_internal, void*,out_lx, eo_ptr<void>,in_eo, size_t,bps)
+  void paste_eo_parts_into_lx_vector_internal(void* out_lx,eo_ptr<void> in_eo,size_t bps)
   {
-    GET_THREAD_ID();
     
     START_TIMING(remap_time,nremap);
     
@@ -70,14 +65,12 @@ namespace nissa
     
     set_borders_invalid(out_lx);
   }
-  THREADABLE_FUNCTION_END
   
   /////////////////////
   
   //remap using a certain local remapper
-  THREADABLE_FUNCTION_5ARG(remap_vector_internal, char*,out, char*,in, size_t,bps, int*,dest_of_source, int,length)
+  void remap_vector_internal(char* out,char* in,size_t bps,int* dest_of_source,int length)
   {
-    GET_THREAD_ID();
     
     START_TIMING(remap_time,nremap);
     
@@ -89,14 +82,12 @@ namespace nissa
     
     set_borders_invalid(out);
   }
-  THREADABLE_FUNCTION_END
   
   ///////////////////////
   
   // //pack the 8 links attached to a given site
-  // THREADABLE_FUNCTION_3ARG(remap_loceo_conf_to_Lebeo_oct, oct_su3*,out, quad_su3**,in, int,par)
+  // void remap_loceo_conf_to_Lebeo_oct(oct_su3* out,quad_su3** in,int par)
   // {
-  //   GET_THREAD_ID();
     
   //   START_TIMING(remap_time,nremap);
     
@@ -114,5 +105,4 @@ namespace nissa
     
   //   STOP_TIMING(remap_time);
   // }
-  // THREADABLE_FUNCTION_END
 }

@@ -71,10 +71,14 @@ namespace nissa
   }
   
   CUDA_HOST_AND_DEVICE inline void float_128_put_to_zero(float_128& a)
-  {a[0]=a[1]=0;}
+  {
+    a[0]=a[1]=0;
+  }
   
   CUDA_HOST_AND_DEVICE inline double double_from_float_128(float_128 b)
-  {return b[0]+b[1];}
+  {
+    return b[0]+b[1];
+  }
   
   //128 summ 128
   CUDA_HOST_AND_DEVICE inline void float_128_summ(float_128& c,const float_128& a,const float_128& b)
