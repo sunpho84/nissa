@@ -83,7 +83,8 @@ namespace nissa
   template <>					\
   struct _MPI_Op_dispatcher<TYPE>		\
   {						\
-    static MPI_Op sum()				\
+    /*! Sum operation */			\
+    static MPI_Op sum()			\
     {						\
       return OP;				\
     }						\
@@ -94,8 +95,10 @@ namespace nissa
   
   /// Gets the sum operation for the type T
   template <typename T>
-  MPI_Op MPI_Op_sum_for_type=
-    _MPI_Op_dispatcher<T>::sum();
+  MPI_Op MPI_Op_sum_for_type()
+  {
+   return _MPI_Op_dispatcher<T>::sum();
+  }
   
 #undef DEFINE_MPI_OP_DISPATCHER
   
