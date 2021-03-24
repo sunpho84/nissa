@@ -800,7 +800,10 @@ void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,dirac_matr* g
   glb_reduce(glb_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],glb_coord_of_loclx[0][0]);
   
   for(int t=0;t<glb_size[0];t++)
-    complex_copy(conn_contr[t],glb_contr[(t+glb_size[0]-glbT)%glb_size[0]]);
+    {
+      const int dt=(t+glb_size[0]-glbT)%glb_size[0];
+      complex_copy(conn_contr[dt],glb_contr[t]);
+    }
 }
 
 void compute_inserted_contr(double* contr,spincolor* propBw,spincolor* propFw,dirac_matr* gamma)
