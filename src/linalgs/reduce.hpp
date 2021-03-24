@@ -61,7 +61,7 @@ namespace nissa
   
   //reduce a vector
   template <typename T>
-  inline void non_loc_reduce(T* out_glb,T* in_loc=nullptr,const int n=1,MPI_Op mpi_op=MPI_SUM)
+  inline void non_loc_reduce(T* out_glb,T* in_loc=nullptr,const int n=1,MPI_Op mpi_op=MPI_Op_sum_for_type<T>)
   {
     if(in_loc==nullptr)
       in_loc=(T*)MPI_IN_PLACE;

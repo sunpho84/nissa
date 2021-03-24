@@ -92,6 +92,11 @@ namespace nissa
   DEFINE_MPI_OP_DISPATCHER(float_128,MPI_FLOAT_128_SUM);
   DEFINE_MPI_OP_DISPATCHER(complex_128,MPI_COMPLEX_128_SUM);
   
+  /// Gets the sum operation for the type T
+  template <typename T>
+  MPI_Op MPI_Op_sum_for_type=
+    _MPI_Op_dispatcher<T>::sum();
+  
 #undef DEFINE_MPI_OP_DISPATCHER
   
   size_t MPI_Get_count_size_t(MPI_Status &status);
