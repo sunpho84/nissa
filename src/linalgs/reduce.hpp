@@ -32,7 +32,7 @@ namespace nissa
 	if(reducing_buffer!=nullptr)
 	  nissa_free(reducing_buffer);
 	
-	reducing_buffer_size=0;
+	//reducing_buffer_size=0; check
       }
     
     if(reducing_buffer==nullptr)

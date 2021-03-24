@@ -123,7 +123,6 @@ namespace nissa
   //scalar product
   void double_vector_glb_scalar_prod(double* glb_res,double* a,double* b,int n)
   {
-    
 #ifndef REPRODUCIBLE_RUN
     double *reducing_buffer=get_reducing_buffer<double>(n);
 #else
@@ -151,35 +150,33 @@ namespace nissa
   //scalar product
   void complex_vector_glb_scalar_prod(double* glb_res,complex* a,complex* b,int n)
   {
-    crash("");
+#ifndef REPRODUCIBLE_RUN
+    complex *reducing_buffer=get_reducing_buffer<complex>(n);
+#else
+    complex_128 *reducing_buffer=get_reducing_buffer<complex_128>(n);
+#endif
     
-// #ifndef REPRODUCIBLE_RUN
-//     //perform thread summ
-//     complex loc_thread_res={0.0,0.0};
+    NISSA_PARALLEL_LOOP(i,0,n)
+      {
+	complex temp;
+	unsafe_complex_conj1_prod(temp,a[i],b[i]);
+#ifndef REPRODUCIBLE_RUN
+	complex_copy(reducing_buffer[i],temp);
+#else
+	complex_128_from_64(reducing_buffer[i],temp);
+#endif
+      }
+    NISSA_PARALLEL_LOOP_END;
+    THREAD_BARRIER();
     
-//     NISSA_PARALLEL_LOOP(i,0,n)
-//       complex_summ_the_conj1_prod(loc_thread_res,a[i],b[i]);
-//     NISSA_PARALLEL_LOOP_END;
-    
-//     glb_reduce_complex(glb_res,loc_thread_res);
-// #else //reproducible run
-//     //perform thread summ
-//     complex_128 r={{0.0,0.0},{0.0,0.0}};
-//     NISSA_PARALLEL_LOOP(i,0,n)
-//       {
-// 	float_128_summ_the_64_prod(r[RE],a[i][RE],b[i][RE]);
-// 	float_128_summ_the_64_prod(r[RE],a[i][IM],b[i][IM]);
-	
-// 	float_128_summ_the_64_prod(r[IM],a[i][RE],b[i][IM]);
-// 	float_128_subt_the_64_prod(r[IM],a[i][IM],b[i][RE]);
-//       }
-//     NISSA_PARALLEL_LOOP_END;
-    
-//     complex_128 temp;
-//     glb_reduce_complex_128(temp,r);
-//     for(int reim=0;reim<2;reim++)
-//       glb_res[reim]=temp[reim][0];
-// #endif
+#ifndef REPRODUCIBLE_RUN
+    glb_reduce((complex*)glb_res,reducing_buffer,n);
+#else
+    complex_128 temp;
+    glb_reduce(&temp,reducing_buffer,n);
+    for(int ri=0;ri<2;ri++)
+      glb_res[ri]=temp[ri][0];
+#endif
   }
   
   //scalar product
