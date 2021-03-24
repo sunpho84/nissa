@@ -69,20 +69,6 @@ namespace nissa
     MPI_Allreduce(in_loc,out_glb,n,MPI_Datatype_of<T>(),mpi_op,MPI_COMM_WORLD);
   }
   
-  //reduce
-  template <typename T>
-  inline void non_loc_reduce(T* out_glb,T* in_loc,MPI_Op mpi_op=_MPI_Op_dispatcher<T>::sum())
-  {
-    non_loc_reduce(out_glb,in_loc,1,mpi_op);
-  }
-  
-  //reduce
-  template <typename T>
-  inline void non_loc_reduce(T* out_glb,MPI_Op mpi_op=_MPI_Op_dispatcher<T>::sum())
-  {
-    non_loc_reduce(out_glb,nullptr,1,mpi_op);
-  }
-  
   /////////////////////////////////////////////////////////////////
   
   //Reduce a vector over all nodes, using threads
