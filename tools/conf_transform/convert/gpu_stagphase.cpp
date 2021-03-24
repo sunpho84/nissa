@@ -3,7 +3,7 @@
 namespace nissa
 {
   //multiply the whole conf for stag phases
-  THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_lx_conf, quad_su3*,lx_conf)
+  void addrem_stagphases_to_lx_conf(quad_su3* lx_conf)
   {
     //we must ensure that nobody is using the conf
     THREAD_BARRIER();
@@ -13,7 +13,6 @@ namespace nissa
     if(check_borders_allocated(lx_conf,0) && check_borders_valid(lx_conf)) ending+=bord_vol;
     if(check_edges_allocated(lx_conf,0) && check_edges_valid(lx_conf)) ending+=edge_vol;
     
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,ending)
       {
 	int d=0;
@@ -40,5 +39,4 @@ namespace nissa
     
     THREAD_BARRIER();
   }
-  THREADABLE_FUNCTION_END
 }

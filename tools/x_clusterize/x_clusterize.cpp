@@ -54,9 +54,8 @@ void init_clusterize(const char *path)
 }
 
 //add it to the cluster
-THREADABLE_FUNCTION_4ARG(add_cluster, double*,out_buffer, double*,in_buffer, int,iconf, int,r)
+void add_cluster(double* out_buffer,double* in_buffer,int iconf,int r)
 {
-  GET_THREAD_ID();
   
   int iclust;
   if(iconf==0) iclust=njacks;
@@ -71,7 +70,6 @@ THREADABLE_FUNCTION_4ARG(add_cluster, double*,out_buffer, double*,in_buffer, int
   NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
 }
-THREADABLE_FUNCTION_END
 
 //load the correlation funcions
 void load_data(const char *path)
@@ -130,9 +128,8 @@ void clusterize(double *data)
 }
 
 //clusterize
-THREADABLE_FUNCTION_0ARG(clusterize)
+void clusterize()
 {
-  GET_THREAD_ID();
   
   for(int r=0;r<nr;r++)
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -140,7 +137,6 @@ THREADABLE_FUNCTION_0ARG(clusterize)
   NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
 }
-THREADABLE_FUNCTION_END
 
 //save the clusterized data
 void save_data(const char *path)

@@ -74,9 +74,8 @@ void read_top_meas_pars(top_meas_pars_t &pars,int flag=false)
     }
 }
 
-THREADABLE_FUNCTION_1ARG(unitarize_conf_max, quad_su3*,conf)
+void unitarize_conf_max(quad_su3* conf)
 {
-  GET_THREAD_ID();
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int idir=0;idir<4;idir++)
       {
@@ -87,7 +86,6 @@ THREADABLE_FUNCTION_1ARG(unitarize_conf_max, quad_su3*,conf)
   NISSA_PARALLEL_LOOP_END;
   set_borders_invalid(conf);
 }
-THREADABLE_FUNCTION_END
 
 
 void in_main(int narg,char **arg)

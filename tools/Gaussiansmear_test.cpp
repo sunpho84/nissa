@@ -2,9 +2,8 @@
 
 using namespace nissa;
 
-THREADABLE_FUNCTION_4ARG(compute_gaussianity_pars, double*,x, color*,source, int,maxpow, coords*,source_pos)
+void compute_gaussianity_pars(double* x,color* source,int maxpow,coords* source_pos)
 {
-  GET_THREAD_ID();
   #warning
 
   crash("reimplement");
@@ -47,7 +46,6 @@ THREADABLE_FUNCTION_4ARG(compute_gaussianity_pars, double*,x, color*,source, int
   //   for(int ipow=0;ipow<maxpow;ipow++)
   //     x[t*maxpow+ipow]=glb_reduce_double(locx[t][ipow]);
 }
-THREADABLE_FUNCTION_END
 
 //get average and error of gaussianity pars
 void process_gaussianity(double *a,double *e,double *x,int maxpow)

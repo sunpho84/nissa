@@ -24,10 +24,9 @@ void print_stat(const char *what,double time,int n,int flops)
   master_printf(", %lg MFlop/s\n",flops*1e-6*n/(time?time:1));
 }
 
-THREADABLE_FUNCTION_0ARG(bench_stag)
+void bench_stag()
 {
 #warning
-  // GET_THREAD_ID();
   
   // //conf
   // quad_su3 *conf[2];
@@ -101,11 +100,9 @@ THREADABLE_FUNCTION_0ARG(bench_stag)
   // nissa_free(Lebout);
   // nissa_free(outrec);
 }
-THREADABLE_FUNCTION_END
 
-THREADABLE_FUNCTION_0ARG(bench_Wils)
+void bench_Wils()
 {
-  GET_THREAD_ID();
   
   //conf
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
@@ -146,7 +143,6 @@ THREADABLE_FUNCTION_0ARG(bench_Wils)
   nissa_free(out);
   nissa_free(outrec);
 }
-THREADABLE_FUNCTION_END
 
 void in_main(int narg,char **arg)
 {

@@ -23,7 +23,6 @@ double integrate_corr(const std::vector<double> &c,const std::vector<double> &d,
 
 void in_main(int narg,char **arg)
 {
-  GET_THREAD_ID();
   
   if(narg<6) crash("use: %s L T file_in file_out output_path tag",arg[0]);
   

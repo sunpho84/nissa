@@ -21,7 +21,7 @@ quad_u1 *u1b[2];
 FILE *outfile;
 
 //compute the magnetization
-THREADABLE_FUNCTION_4ARG(compute_mag, quark_content_t*,qc, int,iconf, int,ihit, int,iflav)
+void compute_mag(quark_content_t* qc,int iconf,int ihit,int iflav)
 {
   //reset initial guess
   vector_reset(guess);
@@ -53,7 +53,6 @@ THREADABLE_FUNCTION_4ARG(compute_mag, quark_content_t*,qc, int,iconf, int,ihit, 
       master_fprintf(outfile,"%d %d %d %lg %16.16lg\n",iconf,ihit,iflav,b,magn[0]);
     }
 }
-THREADABLE_FUNCTION_END
 
 //analyze a single conf
 void analyze_conf(int iconf)
@@ -86,7 +85,6 @@ void analyze_conf(int iconf)
 //initialize
 void init(const char *input_path)
 {
-  GET_THREAD_ID();
   
   //open input file
   open_input(input_path);
