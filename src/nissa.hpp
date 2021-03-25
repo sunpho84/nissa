@@ -10,6 +10,7 @@
 #include "base/close.hpp"
 #include "base/debug.hpp"
 #include "base/init.hpp"
+#include "base/metaprogramming.hpp"
 #include "base/random.hpp"
 #ifdef USE_TMLQCD
  #include "base/tmLQCD_bridge.hpp"

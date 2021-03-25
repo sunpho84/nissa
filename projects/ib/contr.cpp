@@ -267,17 +267,6 @@ namespace nissa
   {
     master_printf("Computing barion 2pts contractions alternative\n");
     
-    //In practice, only in the second half and for the g0 we have a minus
-    auto sign_idg0=[](const int t,const int idg0) -> int
-		   {
-		     const int first_half=(t<=glb_size[0]/2);
-		     
-		     if(first_half or idg0==0)
-		       return +1;
-		     else
-		       return -1;
-		   };
-    
     const int nIdg0=2;
     const int nWicks=2;
     
@@ -351,12 +340,14 @@ namespace nissa
 		void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
 		
 		//Takes a slice
-		for(auto &k : std::vector<std::pair<su3spinspin&,qprop_t&>>{{p1,Q1},{p2,Q2},{p3,Q3}})
+		su3spinspin* p[3]={&p1,&p2,&p3};
+		const qprop_t* Q[3]={&Q1,&Q2,&Q3};
+		for(int i=0;i<3;i++)
 		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
 		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
 		      for(int co_so=0;co_so<NCOL;co_so++)
 			for(int co_si=0;co_si<NCOL;co_si++)
-			  complex_copy(k.first[co_si][co_so][sp_si][sp_so],k.second[so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
+			  complex_copy((*p)[i][co_si][co_so][sp_si][sp_so],(*Q)[i][so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
 		
 		//Color source
 		for(int b_so=0;b_so<ncol;b_so++)
@@ -384,7 +375,11 @@ namespace nissa
 				      {
 					int ga_si=proj[idg0].pos[ga_so];
 					
-					int isign=((sign[iperm_so]*sign[iperm_si]*sign_idg0(abs_t,idg0))==+1);
+					//In practice, only in the second half and for the g0 we have a minus
+					const bool first_half=(abs_t<=glb_size[0]/2);
+					
+					const int sign_idg0=(first_half or idg0==0)?+1:-1;
+					int isign=((sign[iperm_so]*sign[iperm_si]*sign_idg0)==+1);
 					
 					for(int iWick=0;iWick<nWicks;iWick++)
 					  {
@@ -907,14 +902,14 @@ namespace nissa
 	    multiply_by_tlSym_gauge_propagator(rp,sides[h.right],photon);
 	  }
       }
-
+    
     //compute the hands
-    NISSA_PARALLEL_LOOP(ihand,0, (int)handcuffs_map.size())
-      if(sides.find(handcuffs_map[ihand].left)==sides.end() or
-	 sides.find(handcuffs_map[ihand].right)==sides.end())
-	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
-      else
-	{
+    // NISSA_PARALLEL_LOOP(ihand,0, (int)handcuffs_map.size())
+    //   if(sides.find(handcuffs_map[ihand].left)==sides.end() or
+    // 	 sides.find(handcuffs_map[ihand].right)==sides.end())
+    // 	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
+    //   else
+    // 	{
 	  crash("check race");
 	  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  //   for(int mu=0;mu<NDIM;mu++)
@@ -922,8 +917,8 @@ namespace nissa
 	  // 			    sides[handcuffs_map[ihand].left][ivol][mu],
 	  // 			    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
 	  // NISSA_PARALLEL_LOOP_END;
-	}
-    NISSA_PARALLEL_LOOP_END;
+    // 	}
+    // NISSA_PARALLEL_LOOP_END;
     
     //free
     for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)

@@ -18,8 +18,12 @@ namespace nissa
 {
   //keep trace if generating photon is needed
   EXTERN_PROP int need_photon INIT_TO(0);
-  
-  inline int so_sp_col_ind(int sp,int col){return col+nso_col*sp;}
+
+  CUDA_HOST_AND_DEVICE
+  inline int so_sp_col_ind(const int& sp,const int& col)
+  {
+    return col+nso_col*sp;
+  }
   
   typedef std::pair<std::string,std::pair<double,double>> source_term_t;
   
@@ -47,11 +51,23 @@ namespace nissa
     double ori_source_norm2;
     
     //spincolor data
-    std::vector<spincolor*> sp;
-    spincolor* &operator[](int i){return sp[i];}
+    spincolor** sp;
+    
+    CUDA_HOST_AND_DEVICE
+    spincolor* const &operator[](const int i) const
+    {
+      return sp[i];
+    }
+    
+    CUDA_HOST_AND_DEVICE
+    spincolor* &operator[](const int i)
+    {
+      return sp[i];
+    }
+    
     void alloc_spincolor()
     {
-      sp.resize(nso_spi*nso_col);
+      sp=nissa_malloc("sp",nso_spi*nso_col,spincolor*);
       for(int i=0;i<nso_spi*nso_col;i++)
 	sp[i]=nissa_malloc("sp",loc_vol+bord_vol,spincolor);
     }
@@ -92,10 +108,26 @@ namespace nissa
     }
     
     qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double* kappa_asymm, double mass,char *ext_field_path,int r,double charge,double *theta,bool store)
-    {init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store);}
-    qprop_t(rnd_t noise_type,int tins,int r,bool store) {init_as_source(noise_type,tins,r,store);}
-    qprop_t() {is_source=0;}
-    ~qprop_t() {for(size_t i=0;i<sp.size();i++) nissa_free(sp[i]);}
+    {
+      init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store);
+    }
+    
+    qprop_t(rnd_t noise_type,int tins,int r,bool store)
+    {
+      init_as_source(noise_type,tins,r,store);
+    }
+    
+    qprop_t()
+    {
+      is_source=0;
+    }
+    
+    ~qprop_t()
+    {
+      for(size_t i=0;i<nso_spi*nso_col;i++)
+	nissa_free(sp[i]);
+      nissa_free(sp);
+    }
   };
   
   const int ALL_TIMES=-1;

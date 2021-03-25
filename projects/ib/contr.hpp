@@ -39,8 +39,8 @@ namespace nissa
   EXTERN_CONTR std::vector<mes_contr_map_t> mes2pts_contr_map;
   EXTERN_CONTR int nmes2pts_contr_made INIT_TO(0);
   EXTERN_CONTR double mes2pts_contr_time INIT_TO(0);
-  EXTERN_CONTR complex *loc_contr;
-
+  CUDA_MANAGED EXTERN_CONTR complex *loc_contr;
+  
   CUDA_MANAGED EXTERN_CONTR complex *mes2pts_contr INIT_TO(NULL);
   EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
   void allocate_mes2pts_contr();
