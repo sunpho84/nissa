@@ -314,6 +314,7 @@ namespace nissa
 	    
 	    vector_reset(loc_contr);
 	    
+	    spincolor** Q[3]={Q1.sp,Q2.sp,Q3.sp};
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	      {
 		const int loc_t=loc_coord_of_loclx[ivol][0];
@@ -341,13 +342,12 @@ namespace nissa
 		
 		//Takes a slice
 		su3spinspin* p[3]={&p1,&p2,&p3};
-		const qprop_t* Q[3]={&Q1,&Q2,&Q3};
 		for(int i=0;i<3;i++)
 		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
 		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
 		      for(int co_so=0;co_so<NCOL;co_so++)
 			for(int co_si=0;co_si<NCOL;co_si++)
-			  complex_copy((*p)[i][co_si][co_so][sp_si][sp_so],(*Q)[i][so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
+			  complex_copy((*p)[i][co_si][co_so][sp_si][sp_so],Q[i][so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
 		
 		//Color source
 		for(int b_so=0;b_so<ncol;b_so++)
@@ -579,6 +579,7 @@ namespace nissa
   {
     master_printf("Computing barion 2pts contractions\n");
     
+    crash("#warning reimplement");
     //allocate loc storage
     complex *loc_contr=new complex[bar2pts_contr_size];
     memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
@@ -630,7 +631,6 @@ namespace nissa
     				  }
 				
     				//close it
-				crash("#warning reimplement");
     				// complex w;
     				// unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
 				// int be1=Cg5.pos[al1];

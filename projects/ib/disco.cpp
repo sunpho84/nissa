@@ -24,7 +24,7 @@ int ngauge_conf;
 
 quad_su3 *glb_conf;
 quad_su3 *ape_conf;
-spincolor **source_ptr,*temp,**prop_ptr;
+CUDA_MANAGED spincolor *temp,**source_ptr,**prop_ptr;
 clover_term_t *Cl;
 inv_clover_term_t *invCl;
 
@@ -34,17 +34,19 @@ enum RunMode{INITIALIZING,SEARCHING_CONF,ANALYZING_CONF,STOP};
 RunMode runMode{INITIALIZING};
 const char stop_path[]="stop";
 
+CUDA_HOST_AND_DEVICE
 spincolor* &prop(const int t,const int r)
 {
   return prop_ptr[r+2*t];
 }
 
+CUDA_HOST_AND_DEVICE
 spincolor* &source(const int t)
 {
   return source_ptr[t];
 }
 
-complex* loc_contr;
+CUDA_MANAGED complex* loc_contr;
 complex* temp_contr;
 
 int iconf=0;
@@ -54,6 +56,29 @@ char run_file[1024];
 lock_file_t<uint64_t> lock_file;
 double init_time;
 
+
+/// Simple array to overcome limitations of std::array
+template <typename T,
+	  int N>
+struct Arr
+{
+  /// Internal data
+  T data[N];
+  
+  /// Access to internal data, constant attribute
+  CUDA_HOST_AND_DEVICE
+  const T& operator[](const int& i) const
+  {
+    return data[i];
+  }
+  
+  /// Access to internal data
+  CUDA_HOST_AND_DEVICE
+  T& operator[](const int& i)
+  {
+    return data[i];
+  }
+};
 
 /*
 
@@ -97,13 +122,14 @@ namespace Sitmo
 {
   /// Type of the key
   using Key=
-    std::array<uint64_t,5>;
+    Arr<uint64_t,5>;
   
   /// Encrypted word
   using Word=
-    std::array<uint64_t,4>;
+    Arr<uint64_t,4>;
   
   /// Encrypts the input
+  CUDA_HOST_AND_DEVICE
   inline Word encrypt(const Key& key,  ///< Key to encrypt
 		      Word x)          ///< Input to encrypt
   {
@@ -176,6 +202,7 @@ namespace Sitmo
     struct State : public Sitmo::Word
     {
       /// Increment of a certain amount
+      CUDA_HOST_AND_DEVICE
       State operator+(const uint64_t& z) const
       {
 	/// Result
@@ -257,6 +284,7 @@ namespace Sitmo
     }
     
     /// Generate a number with a given offset w.r.t current state
+    CUDA_HOST_AND_DEVICE
     ResultType generateNth(const uint64_t& offset)
     {
       union
@@ -306,12 +334,14 @@ struct RngView
   }
   
   //Constructor
+  CUDA_HOST_AND_DEVICE
   RngView(Sitmo::Rng& ref,const uint64_t& irng) :
     ref(ref),irng(irng)
   {
   }
   
   /// Returns an uint32
+  CUDA_HOST_AND_DEVICE
   uint32_t operator()()
   {
     return ref.generateNth(irng++);
@@ -345,6 +375,7 @@ struct FieldRngOf
   }
   
   /// Returns a view on a specific site and real number
+  CUDA_HOST_AND_DEVICE
   RngView getRngViewOnGlbSiteIRndReal(const int& glblx,const int& irnd_real_per_site)
   {
     //Computes the number in the stream of reals
@@ -357,6 +388,7 @@ struct FieldRngOf
   }
   
   //Fill a specific site
+  CUDA_HOST_AND_DEVICE
   void _fillSite(double* reals,const uint64_t glblx)
   {
     for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
@@ -386,7 +418,6 @@ struct FieldRngOf
   void fillField(T* out)
   {
     enforce_single_usage();
-    
     
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
       {
@@ -465,6 +496,7 @@ void BoxMullerTransform(complex out,const complex ave=zero_complex,const complex
   out[IM]=r*sin(q)*sig[IM]+ave[IM];
 }
 
+CUDA_HOST_AND_DEVICE
 void z4Transform(complex out)
 {
   for(int ri=0;ri<2;ri++)
@@ -812,7 +844,7 @@ void compute_inserted_contr(double* contr,spincolor* propBw,spincolor* propFw,di
     {
       unsafe_dirac_prod_spincolor(temp[ivol],gamma,propFw[ivol]);
     }
-  NISSA_PARALLEL_LOOP_END_EXP
+  NISSA_PARALLEL_LOOP_END;
   set_borders_invalid(temp);
   
   complex_vector_glb_scalar_prod(contr,(complex*)propBw,(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
