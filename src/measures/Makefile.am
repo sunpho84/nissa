@@ -1,6 +1,7 @@
 ####################################### measures ##################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
+	%D%/contract/baryon.cpp \
 	%D%/contract/mesons_2pts.cpp \
 	%D%/contract/mesons_eight.cpp \
 	%D%/contract/optimized_mesons_2pts.cpp \
@@ -23,6 +24,11 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gauge/watusso.cpp
 
 include_HEADERS+= \
+	%D%/contract/baryon.hpp \
+	%D%/contract/mesons_2pts.hpp \
+	%D%/contract/mesons_eight.hpp \
+	%D%/contract/optimized_mesons_2pts.hpp \
+	%D%/contract/site_contract.hpp \
 	%D%/fermions/fermionic_meas.hpp \
 	%D%/fermions/mesons.hpp \
 	%D%/fermions/magnetization.hpp \
@@ -36,10 +42,6 @@ include_HEADERS+= \
 	%D%/fermions/stag.hpp \
 	%D%/fermions/tm_tuning.hpp \
 	%D%/fermions/zumba.hpp \
-	%D%/contract/mesons_2pts.hpp \
-	%D%/contract/mesons_eight.hpp \
-	%D%/contract/optimized_mesons_2pts.hpp \
-	%D%/contract/site_contract.hpp \
 	%D%/gauge/all_rectangles.hpp \
 	%D%/gauge/pline.hpp \
 	%D%/gauge/topological_charge.hpp \
