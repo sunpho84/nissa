@@ -251,6 +251,167 @@ namespace nissa
     nissa_free(bar2pts_alt_contr);
   }
   
+  /// Compute the barionic contractions, for a specific projection
+  void compute_ba2pts_proj_contr(complex* contr,const int& igSo,const int& igSi,spincolor** Q[3])
+  {
+    /// Index of the permutation
+    const int eps_sign[2]={1,-1};
+    
+    /// List the two other terms for each color index
+    const std::array<std::array<int,2>,3> eps_id={{{1,2}, {2,0}, {0,1}}};
+    
+    /// Number of different contributions Id and gamma0
+    const int nIdg0=2;
+    
+    /// Number of wicks contractions
+    const int nWicks=2;
+    
+    //When taking the adjoint interpolating operator, we must
+    //include the sign of g0 Cg^\dagger g0.
+    const auto& g=base_gamma;
+    
+    dirac_matr Cg_so=herm(g[4]*set_CgX(igSo)*g[4]);
+    dirac_matr Cg_si=set_CgX(igSi);
+    
+    //Precompute the factor to be added
+    spinspin fact;
+    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+      for(int sp_so=0;sp_so<NDIRAC;sp_so++)
+	{
+	  complex& f=fact[sp_si][sp_so];
+	  unsafe_complex_prod(f,Cg_si.entr[sp_si],Cg_so.entr[sp_so]);
+	}
+    
+    //allocate loc storage
+    complex *loc_contr=get_reducing_buffer<complex>(loc_vol*nIdg0*nWicks);
+    vector_reset(loc_contr);
+    
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	/// Local time
+	const int loc_t=loc_coord_of_loclx[ivol][0];
+	
+	/// Local spatial id
+	const int loc_ispat=ivol%loc_spat_vol;
+	
+	/// Distance from source
+	const int dt=rel_coord_of_loclx(ivol,0);
+	
+	/// Determine whether we are in the first half
+	const bool first_half=(dt<=glb_size[0]/2);
+	
+	//Compute the projector, gi*gj*(1 or g0)
+	dirac_matr proj[nIdg0];
+	const int g_of_id_g0[nIdg0]={0,4};
+	for(int idg0=0;idg0<nIdg0;idg0++)
+	  proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
+	
+	//Takes a slice
+	su3spinspin p1,p2,p3;
+	su3spinspin* p[3]={&p1,&p2,&p3};
+	for(int i=0;i<3;i++)
+	  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
+	    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
+	      for(int co_so=0;co_so<NCOL;co_so++)
+		for(int co_si=0;co_si<NCOL;co_si++)
+		  complex_copy((*p)[i][co_si][co_so][sp_si][sp_so],Q[i][so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
+	
+	//Color source
+	for(int b_so=0;b_so<NCOL;b_so++)
+	  //Color sink
+	  for(int b_si=0;b_si<NCOL;b_si++)
+	    {
+	      //Dirac source
+	      for(int al_so=0;al_so<NDIRAC;al_so++)
+		for(int be_so=Cg_so.pos[al_so],
+		      //Dirac sink
+		      al_si=0;al_si<NDIRAC;al_si++)
+		  {
+		    int be_si=Cg_si.pos[al_si];
+		    
+		    complex AC_proj[2]={};
+		    
+		    for(int iperm_so=0;iperm_so<2;iperm_so++)
+		      for(int iperm_si=0;iperm_si<2;iperm_si++)
+			{
+			  const int c_so=eps_id[b_so][1-iperm_so],a_so=eps_id[b_so][iperm_so];
+			  const int c_si=eps_id[b_si][1-iperm_si],a_si=eps_id[b_si][iperm_si];
+			  
+			  for(int ga_so=0;ga_so<NDIRAC;ga_so++)
+			    for(int idg0=0;idg0<nIdg0;idg0++)
+			      {
+				const int ga_si=proj[idg0].pos[ga_so];
+				
+				//In practice, only in the second half and for the g0 we have a minus
+				
+				const int sign_idg0=(first_half or idg0==0)?+1:-1;
+				const int sign_tot=eps_sign[iperm_so]*eps_sign[iperm_si]*sign_idg0;
+				
+				const int sp1_si[2]={al_si,ga_si};
+				const int sp3_si[2]={ga_si,al_si};
+				
+				const int co1_si[2]={a_si,c_si};
+				const int co3_si[2]={c_si,a_si};
+				
+				for(int iWick=0;iWick<nWicks;iWick++)
+				  {
+				    complex AC;
+				    unsafe_complex_prod(AC,p1[co1_si[iWick]][a_so][sp1_si[iWick]][al_so],p3[co3_si[iWick]][c_so][sp3_si[iWick]][ga_so]);
+				    complex_prodassign_double(AC,sign_tot);
+				    complex_summ_the_prod(AC_proj[iWick],AC,proj[idg0].entr[ga_so]);
+				  }
+			      }
+			}
+		    
+		    for(int iWick=0;iWick<nWicks;iWick++)
+		      {
+			/// Index in the local elements: we put space most internally, and local time most externally
+			const int iloc=loc_ispat+loc_spat_vol*(iWick+nWicks*loc_t);
+			
+			complex term;
+			unsafe_complex_prod(term,AC_proj[iWick],fact[al_si][al_so]);
+			complex_summ_the_prod(loc_contr[iloc],term,p2[b_si][b_so][be_si][be_so]);
+		      }
+		  }
+	    }
+      }
+    NISSA_PARALLEL_LOOP_END;
+    THREAD_BARRIER();
+    
+    /// Number of local elements
+    const int nloc=nWicks*loc_vol;
+    
+    /// Number of slices to be taken
+    const int nslices=nWicks*glb_size[0];
+    
+    /// Number of local slices referring to the elements
+    const int nloc_slices=nWicks*loc_size[0];
+    
+    /// Offset of each local slice w.r.t. globals
+    const int loc_offset=nWicks*glb_coord_of_loclx[0][0];
+    
+    complex unshifted_glb_contr[glb_size[0]*nWicks];
+    glb_reduce(unshifted_glb_contr,loc_contr,nloc,nslices,nloc_slices,loc_offset);
+    
+    for(int glb_t=0;glb_t<glb_size[0];glb_t++)
+      for(int iWick=0;iWick<nWicks;iWick++)
+	{
+	  /// Distance from source
+	  const int dt=rel_coord_of_glb_coord(glb_t,0);
+	  
+	  /// Input index
+	  const int iin=iWick+nWicks*glb_t;
+	  
+	  /// Argument of the phase
+	  const double arg=3*temporal_bc*M_PI*dt/glb_size[0];
+	  
+	  /// Phase
+	  const complex phase={cos(arg),sin(arg)};
+	  
+	  complex_summ_the_prod(contr[iWick+nWicks*dt],unshifted_glb_contr[iin],phase);
+	}
+  }
+  
   //Compute all contractions for 1/2 and 3/2 barions.  The calculation
   //is organized in three blocks, one corresponding to g5 g5 matrix
   //elements, the two others to the gi gi combination, finally to the
@@ -267,17 +428,7 @@ namespace nissa
   {
     master_printf("Computing barion 2pts contractions alternative\n");
     
-    const int nIdg0=2;
     const int nWicks=2;
-    
-    //allocate loc storage
-    complex *loc_contr=get_reducing_buffer<complex>(loc_vol*nIdg0*nWicks);
-    complex *glb_contr=nissa_malloc("glb_contr",bar2pts_alt_contr_size,complex);
-    
-    const std::array<std::array<int,2>,3> eps={{{1,2}, {2,0}, {0,1}}};
-    const int sign[2]={1,-1};
-    
-    const int ncol=free_theory?1:NCOL;
     
     UNPAUSE_TIMING(bar2pts_alt_contr_time);
     for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
@@ -285,10 +436,9 @@ namespace nissa
 	qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
 	qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
 	qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
-	double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
-	if(free_theory) norm*=NCOL*(NCOL+1)/4.0;
+	const double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
 	
-	 for(auto &iProjGroup : std::array<std::array<int,3>,NBAR_ALT_SINGLE_PROJ>
+	for(auto &iProjGroup : std::array<std::array<int,3>,NBAR_ALT_SINGLE_PROJ>
 #ifdef BAR_ALT_LIMITED_PROJ
 	       {{{5,5, 0},
 		 {1,1, 1},{2,2, 1},{3,3, 1},
@@ -305,140 +455,25 @@ namespace nissa
 	    const int igSo=iProjGroup[0];
 	    const int igSi=iProjGroup[1];
 	    
-	    //When taking the adjoint interpolating operator, we must
-	    //include the sign of g0 Cg^\dagger g0.
-	    const auto& g=base_gamma;
-	    
-	    dirac_matr Cg_so=herm(g[4]*set_CgX(igSo)*g[4]);
-	    dirac_matr Cg_si=set_CgX(igSi);
-	    
-	    vector_reset(loc_contr);
-	    
 	    spincolor** Q[3]={Q1.sp,Q2.sp,Q3.sp};
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	      {
-		const int loc_t=loc_coord_of_loclx[ivol][0];
-		const int loc_ispat=ivol%loc_spat_vol;
-		const int abs_t=rel_coord_of_loclx(ivol,0);
-		su3spinspin p1,p2,p3;
-		
-		//Precompute the factor to be added
-		spinspin fact;
-		for(int sp_si=0;sp_si<NDIRAC;sp_si++)
-		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
-		    {
-		      complex& f=fact[sp_si][sp_so];
-		      unsafe_complex_prod(f,Cg_si.entr[sp_si],Cg_so.entr[sp_so]);
-		      complex_prodassign_double(f,norm);
-		    }
-		
-		//Compute the projector, gi*gj*(1 or g0)
-		dirac_matr proj[nIdg0];
-		const int g_of_id_g0[nIdg0]={0,4};
-		for(int idg0=0;idg0<nIdg0;idg0++)
-		  proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
-		
-		void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
-		
-		//Takes a slice
-		su3spinspin* p[3]={&p1,&p2,&p3};
-		for(int i=0;i<3;i++)
-		  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
-		    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
-		      for(int co_so=0;co_so<NCOL;co_so++)
-			for(int co_si=0;co_si<NCOL;co_si++)
-			  complex_copy((*p)[i][co_si][co_so][sp_si][sp_so],Q[i][so_sp_col_ind(sp_so,co_so)][ivol][sp_si][co_si]);
-		
-		//Color source
-		for(int b_so=0;b_so<ncol;b_so++)
-		  //Color sink
-		  for(int b_si=0;b_si<ncol;b_si++)
-		    {
-		      //Dirac source
-		      for(int al_so=0;al_so<NDIRAC;al_so++)
-			for(int be_so=Cg_so.pos[al_so],
-			      //Dirac sink
-			      al_si=0;al_si<NDIRAC;al_si++)
-			  {
-			    int be_si=Cg_si.pos[al_si];
-			    
-			    complex AC_proj[2][2]={};
-			    
-			    for(int iperm_so=0;iperm_so<2;iperm_so++)
-			      for(int iperm_si=0;iperm_si<2;iperm_si++)
-				{
-				  int c_so=eps[b_so][1-iperm_so],a_so=eps[b_so][iperm_so];
-				  int c_si=eps[b_si][1-iperm_si],a_si=eps[b_si][iperm_si];
-				  
-				  for(int ga_so=0;ga_so<NDIRAC;ga_so++)
-				    for(int idg0=0;idg0<nIdg0;idg0++)
-				      {
-					int ga_si=proj[idg0].pos[ga_so];
-					
-					//In practice, only in the second half and for the g0 we have a minus
-					const bool first_half=(abs_t<=glb_size[0]/2);
-					
-					const int sign_idg0=(first_half or idg0==0)?+1:-1;
-					int isign=((sign[iperm_so]*sign[iperm_si]*sign_idg0)==+1);
-					
-					for(int iWick=0;iWick<nWicks;iWick++)
-					  {
-					    const int sp1_si=(iWick==0)?al_si:ga_si;
-					    const int sp3_si=(iWick==0)?ga_si:al_si;
-					    
-					    const int co1_si=(iWick==0)?a_si:c_si;
-					    const int co3_si=(iWick==0)?c_si:a_si;
-					    
-					    complex AC;
-					    unsafe_complex_prod(AC,p1[co1_si][a_so][sp1_si][al_so],p3[co3_si][c_so][sp3_si][ga_so]);
-					    list_fun[isign](AC_proj[idg0][iWick],AC,proj[idg0].entr[ga_so]);
-					  }
-				      }
-				}
-			    
-			    for(int idg0=0;idg0<nIdg0;idg0++)
-			      for(int iWick=0;iWick<nWicks;iWick++)
-				{
-				  complex term;
-				  unsafe_complex_prod(term,AC_proj[idg0][iWick],fact[al_si][al_so]);
-				  complex_summ_the_prod(loc_contr[loc_ispat+loc_spat_vol*(iWick+nWicks*(idg0+nIdg0*loc_t))],term,p2[b_si][b_so][be_si][be_so]);
-				}
-			  }
-		    }
-	      }
-	    NISSA_PARALLEL_LOOP_END;
-	    THREAD_BARRIER();
 	    
-	    complex unshifted_glb_contr[glb_size[0]*nIdg0*nWicks];
-	    glb_reduce(unshifted_glb_contr,loc_contr,nIdg0*nWicks*loc_vol,nIdg0*nWicks*glb_size[0],nIdg0*nWicks*loc_size[0],nIdg0*nWicks*glb_coord_of_loclx[0][0]);
+	    complex contr[glb_size[0]*nWicks];
+	    compute_ba2pts_proj_contr(contr,igSo,igSi,Q);
 	    
-	    for(int glb_t=0;glb_t<glb_size[0];glb_t++)
-	      for(int idg0=0;idg0<nIdg0;idg0++)
-		for(int iWick=0;iWick<nWicks;iWick++)
-		  {
-		    const int abs_t=rel_coord_of_glb_coord(glb_t,0);
-		    const int iout=ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],abs_t);
-		    const int iin=iWick+nWicks*(idg0+nIdg0*glb_t);
-		    
-		    complex_copy(glb_contr[iout],unshifted_glb_contr[iin]);
-		  }
+	    for(int dt=0;dt<glb_size[0];dt++)
+	      for(int iWick=0;iWick<nWicks;iWick++)
+		{
+		  /// Input index
+		  const int iin=iWick+nWicks*dt;
+		  
+		  /// Out index
+		  const int iout=ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],dt);
+		  
+		  complex_summ_the_prod_double(bar2pts_alt_contr[iout],contr[iin],norm);
+		}
 	  }
   }
   STOP_TIMING(bar2pts_alt_contr_time);
-  
-  //reduce
-  NISSA_PARALLEL_LOOP(i,0,bar2pts_alt_contr_size)
-  {
-    //remove border phase
-    const int t=i%glb_size[0];
-    const double arg=3*temporal_bc*M_PI*t/glb_size[0];
-    const complex phase={cos(arg),sin(arg)};
-    complex_summ_the_prod(bar2pts_alt_contr[i],glb_contr[i],phase);
-  }
-  NISSA_PARALLEL_LOOP_END;
-  THREAD_BARRIER();
-  
-  nissa_free(glb_contr);
   
   //stats
   if(IS_MASTER_THREAD) nbar2pts_alt_contr_made+=bar2pts_contr_map.size();
@@ -859,6 +894,7 @@ namespace nissa
     //loop over sides
     for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
       {
+	  crash("check race");
 	//allocate
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
@@ -910,7 +946,6 @@ namespace nissa
     // 	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
     //   else
     // 	{
-	  crash("check race");
 	  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  //   for(int mu=0;mu<NDIM;mu++)
 	  //     complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],

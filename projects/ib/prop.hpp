@@ -124,7 +124,7 @@ namespace nissa
     
     ~qprop_t()
     {
-      for(size_t i=0;i<nso_spi*nso_col;i++)
+      for(int i=0;i<nso_spi*nso_col;i++)
 	nissa_free(sp[i]);
       nissa_free(sp);
     }

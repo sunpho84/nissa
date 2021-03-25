@@ -71,7 +71,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  //Reduce a vector over all nodes, using threads
+  /// Reduce a vector over all nodes
   template <typename T>
   void glb_reduce(T* glb_res,T* buf,int64_t nloc,const int nslices=1,const int nloc_slices=1,const int loc_offset=0)
   {
