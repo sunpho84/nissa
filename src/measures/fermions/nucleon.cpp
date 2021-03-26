@@ -97,7 +97,11 @@ namespace nissa
 			     iconf,ilikeFlav,idislikeFlav,ilikeFlav);
 	      
 	      for(int t=0;t<glbSize[0];t++)
-		master_fprintf(file,"%d %+16lg\n",t,corr[t+glbSize[0]*(ilikeFlav+nflavs*idislikeFlav)][RE]/meas_pars.nhits);
+		{
+		  complex c;
+		  complex_prod_double(c,corr[t+glbSize[0]*(ilikeFlav+nflavs*idislikeFlav)],meas_pars.nhits);
+		  master_fprintf(file,"%d %+.16lg %+.16lg\n",t,c[RE],c[IM]);
+		}
 	    }
       }
     
