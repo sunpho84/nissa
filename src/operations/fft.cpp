@@ -35,17 +35,17 @@ namespace nissa
     
     //loop over all sites
     int x[4];
-    for(x[0]=0;x[0]<loc_size[0];x[0]++)
-      for(x[1]=0;x[1]<loc_size[1];x[1]++)
-	for(x[2]=0;x[2]<loc_size[2];x[2]++)
-	  for(x[3]=0;x[3]<loc_size[3];x[3]++)
+    for(x[0]=0;x[0]<locSize[0];x[0]++)
+      for(x[1]=0;x[1]<locSize[1];x[1]++)
+	for(x[2]=0;x[2]<locSize[2];x[2]++)
+	  for(x[3]=0;x[3]<locSize[3];x[3]++)
 	    {
 	      //find in and out position
 	      int in=0,out=0;
 	      for(int mu=0;mu<4;mu++)
 		{
-		  in=in*loc_size[in_mu[mu]]+x[in_mu[mu]];
-		  out=out*loc_size[out_mu[mu]]+x[out_mu[mu]];
+		  in=in*locSize[in_mu[mu]]+x[in_mu[mu]];
+		  out=out*locSize[out_mu[mu]]+x[out_mu[mu]];
 		}
 	      
 	      //mark its final order
@@ -68,7 +68,7 @@ namespace nissa
   {
     
     //allocate the buffer to send data
-    complex *buf=nissa_malloc("buf",loc_size[mu]*ncpp,complex);
+    complex *buf=nissa_malloc("buf",locSize[mu]*ncpp,complex);
     
     if(IS_MASTER_THREAD)
       {
@@ -77,7 +77,7 @@ namespace nissa
 	int blk_size=glb_size[mu]/glb_nblk;           //block size
 	int loc_nblk=glb_nblk/nrank_dir[mu];          //number of local blocks
 	
-	//check if the loc_size is a multiple of block_size
+	//check if the locSize is a multiple of block_size
 	int r=nrank_dir[mu];
 	while(r>1)
 	  {
@@ -88,14 +88,14 @@ namespace nissa
 	////////////////////////////// first part /////////////////////////////////
 	
 	//reorder data across the various rank: glb_iel_in=iel_blk_out*glb_nblk+glb_iblk_out_rev
-	int nrequest0=0,nexp_request0=loc_size[mu]*2;
+	int nrequest0=0,nexp_request0=locSize[mu]*2;
 	MPI_Request request0[nexp_request0];
 	for(int loc_iblk_in=0;loc_iblk_in<loc_nblk;loc_iblk_in++)
 	  for(int iel_blk_in=0;iel_blk_in<blk_size;iel_blk_in++)
 	    {
 	      //find the full index
 	      int loc_iel_in=loc_iblk_in*blk_size+iel_blk_in;
-	      int glb_iel_in=glb_coord_of_loclx[0][mu]+loc_iel_in;
+	      int glb_iel_in=glbCoordOfLoclx[0][mu]+loc_iel_in;
 	      int glb_iblk_in=rank_coord[mu]*loc_nblk+loc_iblk_in;
 	      
 	      //look at the output
@@ -113,7 +113,7 @@ namespace nissa
 	      
 	      //if necessary receive data: glb_iel_send=iel_blk_in*glb_nblk+glb_iblk_in_rev
 	      int glb_iel_send=iel_blk_in*glb_nblk+bitrev(glb_iblk_in,log2glb_nblk);
-	      int rank_coord_send=glb_iel_send/loc_size[mu];
+	      int rank_coord_send=glb_iel_send/locSize[mu];
 	      if(rank_coord_send!=line_rank[mu])
 		MPI_Irecv((void*)(buf+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,rank_coord_send,1241+loc_iel_in,
 			  line_comm[mu],&request0[nrequest0++]);
@@ -126,11 +126,11 @@ namespace nissa
 	/////////////////////////// second part ////////////////////////////////////
 	
 	//perform the block fourier transform if needed
-	if(blk_size==1) memcpy(out,buf,loc_size[mu]*ncpp*sizeof(complex));
+	if(blk_size==1) memcpy(out,buf,locSize[mu]*ncpp*sizeof(complex));
 	else
 	  {
 	    //initialize the output
-	    memset(out,0,loc_size[mu]*ncpp*sizeof(complex));
+	    memset(out,0,locSize[mu]*ncpp*sizeof(complex));
 	    
 	    //loop over local blocks
 	    for(int loc_iblk=0;loc_iblk<loc_nblk;loc_iblk++)
@@ -180,7 +180,7 @@ namespace nissa
 	/////////////////////////////  third part ////////////////////////////
 	
 	//now perform the lanczos procedure up to when it does not need communications
-	for(int delta=blk_size;delta<loc_size[mu];delta*=2)
+	for(int delta=blk_size;delta<locSize[mu];delta*=2)
 	  {
 	    //incrementing factor
 	    double theta=sign*2*M_PI/(2*delta);
@@ -196,7 +196,7 @@ namespace nissa
 	    for(int m=0;m<delta;m++)
 	      {
 		//loop on the first addend
-		for(int i=m;i<loc_size[mu];i+=2*delta)
+		for(int i=m;i<locSize[mu];i+=2*delta)
 		  {
 		    //second addend
 		    int j=i+delta;
@@ -225,7 +225,7 @@ namespace nissa
 	//now perform the lanczos procedure up to the end
 	for(int delta_rank=1;delta_rank<nrank_dir[mu];delta_rank*=2) //this is rank width of delta
 	  {
-	    int delta=delta_rank*loc_size[mu];    //block extent
+	    int delta=delta_rank*locSize[mu];    //block extent
 	    int idelta=rank_coord[mu]/delta_rank; //identify the delta of the current rank
 	    
 	    //find if the current rank holding the first or second block
@@ -238,9 +238,9 @@ namespace nissa
 		first=out;
 		second=buf;
 		
-		MPI_Irecv((void*)buf,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu],
+		MPI_Irecv((void*)buf,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu],
 			  line_comm[mu],&(request2[0]));
-		MPI_Isend((void*)out,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu]+delta_rank,
+		MPI_Isend((void*)out,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu]+delta_rank,
 			  line_comm[mu],&(request2[1]));
 	      }
 	    else           //second: so it has to receive first block and send second
@@ -248,9 +248,9 @@ namespace nissa
 		first=buf;
 		second=out;
 		
-		MPI_Irecv((void*)buf,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu],
+		MPI_Irecv((void*)buf,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu],
 			  line_comm[mu],&(request2[0]));
-		MPI_Isend((void*)out,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu]-delta_rank,
+		MPI_Isend((void*)out,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu]-delta_rank,
 			  line_comm[mu],&(request2[1]));
 	      }
 	    
@@ -261,7 +261,7 @@ namespace nissa
 	    double wpi=sin(theta);
 	    
 	    int rank_pos_delta=rank_coord[mu]%delta_rank;  //position of the rank inside the delta
-	    int pos_delta=rank_pos_delta*loc_size[mu];     //starting coord of local delta inside the delta
+	    int pos_delta=rank_pos_delta*locSize[mu];     //starting coord of local delta inside the delta
 	    
 	    //fourier coefficient
 	    double wr=cos(pos_delta*theta);
@@ -271,7 +271,7 @@ namespace nissa
 	    MPI_Waitall(2,request2,status2);
 	    
 	    //loop over the delta length (each m will correspond to increasing twiddle)
-	    for(int loc_m=0;loc_m<loc_size[mu];loc_m++)
+	    for(int loc_m=0;loc_m<locSize[mu];loc_m++)
 	      {
 		//site data multiplication
 		for(int ic=0;ic<ncpp;ic++)
@@ -297,7 +297,7 @@ namespace nissa
 	  }
 	
 	if(normalize==1)
-	  for(int i=0;i<loc_size[mu]*ncpp;i++)
+	  for(int i=0;i<locSize[mu]*ncpp;i++)
 	    for(int ri=0;ri<2;ri++) out[i][ri]/=glb_size[mu];
       }
     
@@ -314,7 +314,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	//perform the 1d fft (slower dir)
-	if(dirs[mu]) fft1d(out,out,ncpp*loc_vol/loc_size[mu],mu,sign,normalize);
+	if(dirs[mu]) fft1d(out,out,ncpp*locVol/locSize[mu],mu,sign,normalize);
 	
 	//for the time being we stick to transpose the data
 	data_coordinate_order_shift(out,ncpp,mu);
