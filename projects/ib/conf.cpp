@@ -21,7 +21,9 @@ namespace nissa
   
   //needed to avoid any check
   bool finish_file_present()
-  {return not file_exists(combine("%s/finished",outfolder).c_str());}
+  {
+    return not file_exists(combine("%s/finished",outfolder).c_str());
+  }
   
   //allocate confs needed by the program
   void allocate_confs()

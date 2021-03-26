@@ -60,17 +60,20 @@ namespace nissa
 	  master_printf("Remove backfield %d\n",iflav);
 	}
       
-      cur_flav=iflav;
-      
-      const quark_content_t& q=tp.quarks[iflav];
-      add_backfield_without_stagphases_to_conf(conf,tp.backfield[iflav]);
-      master_printf("Adding backfield %d\n",iflav);
-      
-      if(q.cSW)
+      if(cur_flav!=iflav)
 	{
-	  master_printf("Adding cSW for flav %d\n",iflav);
-	  chromo_operator_include_cSW(Cl,q.cSW);
-	  invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+	  cur_flav=iflav;
+	  
+	  const quark_content_t& q=tp.quarks[iflav];
+	  add_backfield_without_stagphases_to_conf(conf,tp.backfield[iflav]);
+	  master_printf("Adding backfield %d\n",iflav);
+	  
+	  if(q.cSW)
+	    {
+	      master_printf("Adding cSW for flav %d\n",iflav);
+	      chromo_operator_include_cSW(Cl,q.cSW);
+	      invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+	    }
 	}
     }
     
