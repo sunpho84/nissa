@@ -116,10 +116,7 @@
 #include "linalgs/reduce.hpp"
 
 #include "measures/contract/baryon.hpp"
-#include "measures/contract/mesons_2pts.hpp"
-#include "measures/contract/mesons_eight.hpp"
 #include "measures/contract/optimized_mesons_2pts.hpp"
-#include "measures/contract/site_contract.hpp"
 
 #include "measures/fermions/magnetization.hpp"
 #include "measures/fermions/mesons.hpp"

@@ -2,10 +2,7 @@
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/contract/baryon.cpp \
-	%D%/contract/mesons_2pts.cpp \
-	%D%/contract/mesons_eight.cpp \
 	%D%/contract/optimized_mesons_2pts.cpp \
-	%D%/contract/site_contract.cpp \
 	%D%/fermions/mesons.cpp \
 	%D%/fermions/magnetization.cpp \
 	%D%/fermions/minmax_eigenvalues.cpp \
@@ -16,6 +13,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/fermions/spectral_projectors.cpp \
 	%D%/fermions/spinpol.cpp \
 	%D%/fermions/stag.cpp \
+	%D%/fermions/tm_corr_op.cpp \
 	%D%/fermions/tm_tuning.cpp \
 	%D%/fermions/zumba.cpp \
 	%D%/gauge/all_rectangles.cpp \
@@ -25,10 +23,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 
 include_HEADERS+= \
 	%D%/contract/baryon.hpp \
-	%D%/contract/mesons_2pts.hpp \
-	%D%/contract/mesons_eight.hpp \
 	%D%/contract/optimized_mesons_2pts.hpp \
-	%D%/contract/site_contract.hpp \
 	%D%/fermions/fermionic_meas.hpp \
 	%D%/fermions/mesons.hpp \
 	%D%/fermions/magnetization.hpp \
@@ -40,6 +35,7 @@ include_HEADERS+= \
 	%D%/fermions/spectral_projectors.hpp \
 	%D%/fermions/spinpol.hpp \
 	%D%/fermions/stag.hpp \
+	%D%/fermions/tm_corr_op.hpp \
 	%D%/fermions/tm_tuning.hpp \
 	%D%/fermions/zumba.hpp \
 	%D%/gauge/all_rectangles.hpp \

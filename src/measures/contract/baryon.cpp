@@ -64,7 +64,7 @@ namespace nissa
 	  unsafe_complex_prod(f,Cg_si.entr[sp_si],Cg_so.entr[sp_so]);
 	}
     
-    //allocate loc storage
+    /// Local storage
     complex *loc_contr=get_reducing_buffer<complex>(loc_vol*nIdg0*nWicks);
     vector_reset(loc_contr);
     
@@ -191,7 +191,7 @@ namespace nissa
 	  /// Phase
 	  const complex phase={cos(arg),sin(arg)};
 	  
-	  complex_summ_the_prod(contr[iWick+nWicks*dt],unshifted_glb_contr[iin],phase);
+	  unsafe_complex_prod(contr[iWick+nWicks*dt],unshifted_glb_contr[iin],phase);
 	}
   }
   

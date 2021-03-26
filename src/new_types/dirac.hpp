@@ -77,7 +77,7 @@ namespace nissa
 	  out->pos[ig]=in1->pos[ig];
 	  complex_subt(out->entr[ig],in1->entr[ig],in2->entr[ig]);
 	}
-      else 
+      else
 	crash("The two matrix passed to sum have different positions");
   }
   
@@ -221,7 +221,15 @@ namespace nissa
   }
   
   void init_base_gamma();
-}
+  
+  /// Pair of dirac matrices
+  struct idirac_pair_t
+  {
+    int si;
+    int so;
+    idirac_pair_t(int si,int so) : si(si),so(so) {}
+  };
+  }
 
 #undef EXTERN_DIRAC
 

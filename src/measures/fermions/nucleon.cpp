@@ -18,8 +18,6 @@ namespace nissa
   
   void measure_nucleon_corr(eo_ptr<quad_su3> conf,theory_pars_t theory_pars,nucleon_corr_meas_pars_t meas_pars,int iconf,int conf_created)
   {
-    // const int eps_i[6][3]={{0,1,2},{1,2,0},{2,0,1},{0,2,1},{2,1,0},{1,0,2}};
-    
     CRASH_IF_NOT_3COL();
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
@@ -35,6 +33,7 @@ namespace nissa
     for(int iflav=0;iflav<nflavs;iflav++)
       for(int EO=0;EO<2;EO++)
 	  prop[iflav][EO]=nissa_malloc("prop",loc_volh+bord_volh,su3);
+    
     //perform_random_gauge_transform(conf,conf);
     //allocate local and global contraction
     int ncompl=glb_size[0]*nflavs*(nflavs+1)*(nflavs+2)/6;
@@ -158,7 +157,7 @@ namespace nissa
     std::ostringstream os;
     
     os<<"MeasNucleonCorrs\n";
-    if(is_nonstandard()||full) os<<base_fermionic_meas_t::get_str(full);
+    if(is_nonstandard() or full) os<<base_fermionic_meas_t::get_str(full);
     
     return os.str();
   }
