@@ -82,16 +82,16 @@ namespace nissa
 	  proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
 	
 	//Takes a slice
-	su3spinspin p1,p2,p3;
-	su3spinspin* p[3]={&p1,&p2,&p3};
+	su3spinspin p[3];
+	su3spinspin &p1=p[0],&p2=p[1],&p3=p[2];
 	for(int i=0;i<3;i++)
 	  for(int sp_so=0;sp_so<NDIRAC;sp_so++)
 	    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
 	      for(int co_so=0;co_so<NCOL;co_so++)
 		for(int co_si=0;co_si<NCOL;co_si++)
 		  {
-		    //master_printf("Copying: ivol=%d co_si=%d co_so=%d sp_si=%d sp_so=%d \n",ivol,co_si,co_so,sp_si,sp_so);
-		    complex_copy(*(p[i])[co_si][co_so][sp_si][sp_so],Q[i][co_so+NCOL*sp_so][ivol][sp_si][co_si]);
+		    master_printf("Copying: ivol=%d co_si=%d co_so=%d sp_si=%d sp_so=%d \n",ivol,co_si,co_so,sp_si,sp_so);
+		    complex_copy(p[i][co_si][co_so][sp_si][sp_so],Q[i][co_so+NCOL*sp_so][ivol][sp_si][co_si]);
 		  }
 	
 	//Color source
