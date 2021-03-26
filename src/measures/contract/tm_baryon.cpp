@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "measures/fermions/tm_corr_op.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "linalgs/reduce.hpp"
 #include "new_types/complex.hpp"
@@ -22,7 +23,7 @@ namespace nissa
     return CgX;
   }
   
-  void compute_baryon_2pts_proj_contr(complex* contr,
+  void tm_corr_op::compute_baryon_2pts_proj_contr(complex* contr,
 				      const int& igSo,
 				      const int& igSi,
 				      spincolor** Q1,
@@ -193,7 +194,7 @@ namespace nissa
 	}
   }
   
-  void compute_nucleon_2pts_contr(complex* contr,
+  void tm_corr_op::compute_nucleon_2pts_contr(complex* contr,
 				  spincolor** Ql,
 				  spincolor** Qd,
 				  const int source_coord,
