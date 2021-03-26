@@ -53,11 +53,11 @@ namespace nissa
 	  if(cq.cSW)
 	    {
 	      chromo_operator_remove_cSW(Cl,cq.cSW);
-	      master_printf("Remove cSW for flav %d\n",iflav);
+	      master_printf("Remove cSW for flav %d\n",cur_flav);
 	    }
 	  
-	  rem_backfield_without_stagphases_from_conf(conf,tp.backfield[iflav]);
-	  master_printf("Remove backfield %d\n",iflav);
+	  rem_backfield_without_stagphases_from_conf(conf,tp.backfield[cur_flav]);
+	  master_printf("Remove backfield %d\n",cur_flav);
 	}
       
       if(cur_flav!=iflav)
