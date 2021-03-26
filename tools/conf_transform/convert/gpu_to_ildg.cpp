@@ -42,7 +42,7 @@ int main(int narg,char **arg)
 
   //////////////////////////////// read the file /////////////////////////
 
-  su3 *in_conf=nissa_malloc("in_conf",4*loc_vol,su3);
+  su3 *in_conf=nissa_malloc("in_conf",4*locVol,su3);
   
   //open the file
   FILE *fin=fopen(arg[3],"r");
@@ -63,7 +63,7 @@ int main(int narg,char **arg)
   
   ////////////////////////////// convert conf ////////////////////////////
   
-  quad_su3 *out_conf=nissa_malloc("out_conf",loc_vol,quad_su3);
+  quad_su3 *out_conf=nissa_malloc("out_conf",locVol,quad_su3);
   
   //reorder data
   int map_mu[4]={1,2,3,0};
@@ -74,13 +74,13 @@ int main(int narg,char **arg)
 	  {
 	    int sum=x+y+z+t;
 	    int even=sum%2;
-	    int num=even*loc_volh + snum(x,y,z,t);
+	    int num=even*locVolh + snum(x,y,z,t);
 	    
 	    coords c={t,x,y,z};
 	    int ivol=loclx_of_coord(c);
 	    
 	    for(int mu=0;mu<4;mu++)
-	      su3_copy(out_conf[ivol][map_mu[mu]],in_conf[mu*loc_vol+num]);
+	      su3_copy(out_conf[ivol][map_mu[mu]],in_conf[mu*locVol+num]);
 	  }
   
   nissa_free(in_conf);
@@ -90,7 +90,7 @@ int main(int narg,char **arg)
  
   ////////////////////////////// check everything /////////////////////////////
   
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  for(int ivol=0;ivol<locVol;ivol++)
     for(int mu=0;mu<4;mu++)
       {
 	//check U(3)

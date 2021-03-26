@@ -105,17 +105,17 @@ void bench_Wils()
 {
   
   //conf
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
   generate_hot_lx_conf(conf);
   
   //in
-  spincolor *in=nissa_malloc("in",loc_vol+bord_vol,spincolor);
+  spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
   generate_fully_undiluted_eo_source(in, RND_GAUSS,-1,EVN);
   
   //temp and out
-  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
-  spincolor *out=nissa_malloc("out",loc_vol+bord_vol,spincolor);
-  spincolor *outrec=nissa_malloc("outrec",loc_vol+bord_vol,spincolor);
+  spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
+  spincolor *out=nissa_malloc("out",locVol+bord_vol,spincolor);
+  spincolor *outrec=nissa_malloc("outrec",locVol+bord_vol,spincolor);
   
   int nbench=500;
   double mu=1,kappa=0.2;
@@ -132,7 +132,7 @@ void bench_Wils()
       apply_tmQ2(out,conf,kappa,temp,mu,in);
     }
   t+=take_time();
-  print_stat("apply tm operator",t,nbench,1158*2*loc_vol);
+  print_stat("apply tm operator",t,nbench,1158*2*locVol);
   
   master_printf("Timing to do %d communications: %lg s, %lg each\n",ntot_comm,tot_comm_time,tot_comm_time/ntot_comm);
   

@@ -16,7 +16,7 @@ int main(int narg,char **arg)
   init_grid(T,L);
   
   //crete and write
-  quad_su3 *conf=nissa_malloc("conf",loc_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVol,quad_su3);
   generate_cold_lx_conf(conf);
   write_ildg_gauge_conf(arg[3],conf,64);
   

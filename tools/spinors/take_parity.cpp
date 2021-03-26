@@ -22,7 +22,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  spincolor *sp=nissa_malloc("sp",loc_vol,spincolor);
+  spincolor *sp=nissa_malloc("sp",locVol,spincolor);
   int ispinor=0;
   ILDG_File fin=ILDG_File_open_for_read(pathin);
   ILDG_File fout=ILDG_File_open_for_write(pathout);

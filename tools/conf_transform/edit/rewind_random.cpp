@@ -24,14 +24,14 @@ int main(int narg,char **arg)
   
   if(narg<8) crash("use: %s T X Y Z file_in file_out ori_seed",arg[0]);
   
-  for(int mu=0;mu<4;mu++) glb_size[mu]=atoi(arg[mu+1]);
+  for(int mu=0;mu<4;mu++) glbSize[mu]=atoi(arg[mu+1]);
   
   //Init the MPI grid 
   init_grid(0,0);
   
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);  
+  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
   //messages
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);

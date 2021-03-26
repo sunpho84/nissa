@@ -13,7 +13,7 @@ unsigned char c[MD5_DIGEST_LENGTH];
 
 int snum(int x,int y,int z,int t)
 {
-  return (t+x*glb_size[0]+y*glb_size[1]*glb_size[0]+z*glb_size[2]*glb_size[1]*glb_size[0]);
+  return (t+x*glbSize[0]+y*glbSize[1]*glbSize[0]+z*glbSize[2]*glbSize[1]*glbSize[0]);
 }
 
 int read_int(FILE *in)
@@ -53,10 +53,10 @@ int main(int narg,char **arg)
   
   if(narg<7) crash("use: %s T LX LY LZ file_in file_out\n.",arg[0]);
   
-  glb_size[0]=atoi(arg[1]);
-  glb_size[1]=atoi(arg[2]);
-  glb_size[2]=atoi(arg[3]);
-  glb_size[3]=atoi(arg[4]);
+  glbSize[0]=atoi(arg[1]);
+  glbSize[1]=atoi(arg[2]);
+  glbSize[2]=atoi(arg[3]);
+  glbSize[3]=atoi(arg[4]);
   in_conf_name=arg[5];
   out_conf_name=arg[6];
   
@@ -65,7 +65,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////// read the file /////////////////////////
   
-  quad_su3 *in_conf=nissa_malloc("in_conf",loc_vol,quad_su3);
+  quad_su3 *in_conf=nissa_malloc("in_conf",locVol,quad_su3);
   
   int file_size=get_file_size(in_conf_name);
   master_printf("File size: %d\n",file_size);
@@ -80,8 +80,8 @@ int main(int narg,char **arg)
     pars[k]=read_int(fin);
   if(pars[0]!=NDIM) crash("NDim=%d",pars[0]);
   for(int mu=0;mu<NDIM;mu++)
-    if(pars[1+mu]!=glb_size[mu])
-      crash("size[%d]=%d!=glb_size[mu]=%d",mu,pars[mu+1],mu,glb_size[mu]);
+    if(pars[1+mu]!=glbSize[mu])
+      crash("size[%d]=%d!=glb_size[mu]=%d",mu,pars[mu+1],mu,glbSize[mu]);
   int itraj=pars[5];
   master_printf("traj id: %d\n",itraj);
   
@@ -92,7 +92,7 @@ int main(int narg,char **arg)
   printf("%s %d\n",crypto,rc);
   
   //Skip the whole header
-  int header_size=file_size-glb_vol*sizeof(quad_su3);
+  int header_size=file_size-glbVol*sizeof(quad_su3);
   master_printf("Header size: %d\n",header_size);
   rc=fseek(fin,header_size,SEEK_SET);
   if(rc)
@@ -148,13 +148,13 @@ int main(int narg,char **arg)
   
   ////////////////////////////// convert conf ////////////////////////////
   
-  quad_su3 *out_conf=nissa_malloc("out_conf",loc_vol,quad_su3);
+  quad_su3 *out_conf=nissa_malloc("out_conf",locVol,quad_su3);
   
   //reorder data
-  for(int t=0;t<glb_size[0];t++)
-    for(int z=0;z<glb_size[3];z++)
-      for(int y=0;y<glb_size[2];y++)
-	for(int x=0;x<glb_size[1];x++)
+  for(int t=0;t<glbSize[0];t++)
+    for(int z=0;z<glbSize[3];z++)
+      for(int y=0;y<glbSize[2];y++)
+	for(int x=0;x<glbSize[1];x++)
 	  {
 	    int num=snum(x,y,z,t);
 	    
@@ -169,7 +169,7 @@ int main(int narg,char **arg)
   ////////////////////////////// check everything /////////////////////////////
   
   int nfail1=0,nfail2=0;
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  for(int ivol=0;ivol<locVol;ivol++)
     for(int mu=0;mu<NDIM;mu++)
       {
   	//check U(3)

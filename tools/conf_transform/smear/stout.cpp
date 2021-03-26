@@ -12,7 +12,7 @@ void new_cool_eo_conf(eo_ptr<quad_su3> eo_conf,int over_flag,double over_exp)
     for(int par=0;par<2;par++)
       {
 	communicate_eo_quad_su3_edges(eo_conf);
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    //compute the staple
 	    su3 staple;
@@ -29,7 +29,7 @@ void unitarize_conf_max(eo_ptr<quad_su3> conf)
 {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int idir=0;idir<4;idir++)
 	    {
 	      su3 t;
@@ -60,8 +60,8 @@ void in_main(int narg,char **arg)
   
   //////////////////////////// read the conf /////////////////////////////
   
-  eo_ptr<quad_su3> conf={nissa_malloc("conf_e",loc_volh+bord_volh+edge_volh,quad_su3),
-			 nissa_malloc("conf_o",loc_volh+bord_volh+edge_volh,quad_su3)};
+  eo_ptr<quad_su3> conf={nissa_malloc("conf_e",locVolh+bord_volh+edge_volh,quad_su3),
+			 nissa_malloc("conf_o",locVolh+bord_volh+edge_volh,quad_su3)};
   
   //read the conf and write plaquette
   ILDG_message mess;

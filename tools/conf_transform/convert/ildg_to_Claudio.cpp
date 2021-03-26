@@ -15,7 +15,7 @@ unsigned char c[MD5_DIGEST_LENGTH];
 
 int snum(int x,int y,int z,int t)
 {
-  return (t+x*glb_size[0]+y*glb_size[1]*glb_size[0]+z*glb_size[2]*glb_size[1]*glb_size[0]);
+  return (t+x*glbSize[0]+y*glbSize[1]*glbSize[0]+z*glbSize[2]*glbSize[1]*glbSize[0]);
 }
 
 void write_to_binary_file(FILE *fp,su3 A)
@@ -39,10 +39,10 @@ int main(int narg,char **arg)
   
   if(narg<7) crash("use: %s T LX LY LZ file_in file_out",arg[0]);
   
-  glb_size[0]=atoi(arg[1]);
-  glb_size[1]=atoi(arg[2]);
-  glb_size[2]=atoi(arg[3]);
-  glb_size[3]=atoi(arg[4]);
+  glbSize[0]=atoi(arg[1]);
+  glbSize[1]=atoi(arg[2]);
+  glbSize[2]=atoi(arg[3]);
+  glbSize[3]=atoi(arg[4]);
   in_conf_name=arg[5];
   out_conf_name=arg[6];
   
@@ -51,7 +51,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////// read the file /////////////////////////
   
-  quad_su3 *in_conf=nissa_malloc("in_conf",loc_vol,quad_su3);
+  quad_su3 *in_conf=nissa_malloc("in_conf",locVol,quad_su3);
   
   //init messages
   ILDG_message mess;
@@ -73,13 +73,13 @@ int main(int narg,char **arg)
   
   ////////////////////////////// convert conf ////////////////////////////
   
-  quad_su3 *out_conf=nissa_malloc("out_conf",loc_vol,quad_su3);
+  quad_su3 *out_conf=nissa_malloc("out_conf",locVol,quad_su3);
   
   //reorder data
-  for(int t=0;t<glb_size[0];t++)
-    for(int z=0;z<glb_size[3];z++)
-      for(int y=0;y<glb_size[2];y++)
-	for(int x=0;x<glb_size[1];x++)
+  for(int t=0;t<glbSize[0];t++)
+    for(int z=0;z<glbSize[3];z++)
+      for(int y=0;y<glbSize[2];y++)
+	for(int x=0;x<glbSize[1];x++)
 	  {
 	    int num=snum(x,y,z,t);
 	    
@@ -95,7 +95,7 @@ int main(int narg,char **arg)
   FILE *fout=open_file(out_conf_name,"w");
   if(fout==NULL) crash("while opening %s",out_conf_name);
   
-  fprintf(fout,"4 %d %d %d %d %d ",glb_size[0],glb_size[1],glb_size[2],glb_size[3],itraj);
+  fprintf(fout,"4 %d %d %d %d %d ",glbSize[0],glbSize[1],glbSize[2],glbSize[3],itraj);
   
   char res[2*MD5_DIGEST_LENGTH+1]="";
 #ifdef USE_SSL

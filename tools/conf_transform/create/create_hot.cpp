@@ -18,7 +18,7 @@ int main(int narg,char **arg)
   start_loc_rnd_gen(seed);
 
   //crete and write
-  quad_su3 *conf=nissa_malloc("conf",loc_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVol,quad_su3);
   generate_hot_lx_conf(conf);
   write_ildg_gauge_conf(arg[4],conf,64);
   

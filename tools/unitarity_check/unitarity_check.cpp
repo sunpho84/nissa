@@ -25,8 +25,8 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
 	if(0)
 	if(r>1.e-30)
 	  {
-	    master_printf("diff %d %d %d %d   %d   %lg\n",glb_coord_of_loclx[ivol][0],glb_coord_of_loclx[ivol][1],
-			  glb_coord_of_loclx[ivol][2],glb_coord_of_loclx[ivol][3],idir,r);
+	    master_printf("diff %d %d %d %d   %d   %lg\n",glbCoordOfLoclx[ivol][0],glbCoordOfLoclx[ivol][1],
+			  glbCoordOfLoclx[ivol][2],glbCoordOfLoclx[ivol][3],idir,r);
 	    su3_print(conf[ivol][idir]);
 	    for(int i=0;i<3;i++)
 	      for(int j=i;j<3;j++)
@@ -39,7 +39,7 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
 		      printf(" %d%d prod: %lg %lg\n",i,j,t[0],t[1]);
 		      
 		      //search for orthogonals
-		      for(int jvol=0;jvol<loc_vol*4*9-18;jvol++)
+		      for(int jvol=0;jvol<locVol*4*9-18;jvol++)
 			{
 			  color_scalar_prod(t,conf[ivol][idir][i],(*((color*)((complex*)conf+jvol))));
 			  if(fabs(t[0])<=1.e-15)
@@ -54,7 +54,7 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
   double glb_max=0,glb_avg=0;
   MPI_Reduce(&loc_avg,&glb_avg,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   MPI_Reduce(&loc_max,&glb_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);  
-  glb_avg/=4*glb_vol;
+  glb_avg/=4*glbVol;
   
   glb_avg=sqrt(glb_avg);
   glb_max=sqrt(glb_max);
@@ -87,7 +87,7 @@ int main(int narg,char **arg)
   int nconf;
   read_str_int("NGaugeConf",&nconf);
 
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
   
   for(int iconf=0;iconf<nconf;iconf++)
     {

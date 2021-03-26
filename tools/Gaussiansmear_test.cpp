@@ -54,7 +54,7 @@ void process_gaussianity(double *a,double *e,double *x,int maxpow)
   for(int ipow=0;ipow<maxpow;ipow++)
     a[ipow]=e[ipow]=0.0;
   
-  for(int t=0;t<glb_size[0];t++)
+  for(int t=0;t<glbSize[0];t++)
     for(int ipow=0;ipow<maxpow;ipow++)
       {
 	double s=0;
@@ -69,10 +69,10 @@ void process_gaussianity(double *a,double *e,double *x,int maxpow)
   //build averages and errors
   for(int ipow=0;ipow<maxpow;ipow++)
     {
-      a[ipow]/=glb_size[0];
-      e[ipow]/=glb_size[0];
+      a[ipow]/=glbSize[0];
+      e[ipow]/=glbSize[0];
       e[ipow]-=sqr(a[ipow]);
-      e[ipow]=sqrt(fabs(e[ipow])/glb_size[0]);
+      e[ipow]=sqrt(fabs(e[ipow])/glbSize[0]);
     }
 }
 
@@ -96,11 +96,11 @@ typedef std::map<int,dens_t> mapdens_t;
 //compute the density distribution
 void compute_density(FILE *fout,color *source,coords *source_pos)
 {
-  mapdens_t density[glb_size[0]];
+  mapdens_t density[glbSize[0]];
   
   NISSA_LOC_VOL_LOOP(ivol)
     {
-      int t=glb_coord_of_loclx[ivol][0];
+      int t=glbCoordOfLoclx[ivol][0];
       
       //get site norm
       double n=0.0;
@@ -112,8 +112,8 @@ void compute_density(FILE *fout,color *source,coords *source_pos)
       int rho=0.0;
       for(int mu=1;mu<NDIM;mu++)
 	{
-	  int xmu=(glb_coord_of_loclx[ivol][mu]-source_pos[t][mu]+glb_size[mu])%glb_size[mu];
-	  if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
+	  int xmu=(glbCoordOfLoclx[ivol][mu]-source_pos[t][mu]+glbSize[mu])%glbSize[mu];
+	  if(xmu>=glbSize[mu]/2) xmu-=glbSize[mu];
 	  rho+=sqr(xmu);
 	}
       
@@ -161,7 +161,7 @@ void in_main(int narg,char **arg)
   //read conf
   char conf_path[1024];
   read_str_str("Conf",conf_path,1024);
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
   read_ildg_gauge_conf(conf,conf_path);
   
   //read APE smearing pars
@@ -182,7 +182,7 @@ void in_main(int narg,char **arg)
   char out_path[1024];
   read_str_str("Output",out_path,1024);
   FILE *fout=open_file(out_path,"w");
-  master_fprintf(fout,"T %d\n",glb_size[0]);
+  master_fprintf(fout,"T %d\n",glbSize[0]);
   master_fprintf(fout,"Kappa %lg\n",kappa);
   master_fprintf(fout,"NLevels %d\n",nlevels);
   master_fprintf(fout,"MeasEach %d\n",meas_each);
@@ -195,10 +195,10 @@ void in_main(int narg,char **arg)
   master_fprintf(fout,"\n");
   
   //set the source
-  color *source=nissa_malloc("source",loc_vol+bord_vol,color);
+  color *source=nissa_malloc("source",locVol+bord_vol,color);
   vector_reset(source);
-  coords source_pos[glb_size[0]];
-  for(int t=0;t<glb_size[0];t++)
+  coords source_pos[glbSize[0]];
+  for(int t=0;t<glbSize[0];t++)
     {
       //generate coords and fix t
       generate_random_coord(source_pos[t]);
@@ -216,7 +216,7 @@ void in_main(int narg,char **arg)
     {
       //compute gaussianity
       int maxpow=2;
-      double x[maxpow*glb_size[0]];
+      double x[maxpow*glbSize[0]];
       compute_gaussianity_pars(x,source,maxpow,source_pos);
       
       //take averages

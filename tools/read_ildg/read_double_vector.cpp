@@ -20,7 +20,7 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  double *v=nissa_malloc("v",loc_vol*nbps,double);
+  double *v=nissa_malloc("v",locVol*nbps,double);
   ILDG_File fin=ILDG_File_open_for_read(pathin);
   bool found=false;
   do
@@ -45,13 +45,13 @@ void in_main(int narg,char **arg)
   
   //print
   FILE *fout=open_file(pathout,"w");
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  for(int ivol=0;ivol<locVol;ivol++)
     for(int i=0;i<nbps;i++)
       fprintf(fout,"%d %d %d %d  %d  %+16.16lg\n",
-	      glb_coord_of_loclx[ivol][0],
-	      glb_coord_of_loclx[ivol][1],
-	      glb_coord_of_loclx[ivol][2],
-	      glb_coord_of_loclx[ivol][3],
+	      glbCoordOfLoclx[ivol][0],
+	      glbCoordOfLoclx[ivol][1],
+	      glbCoordOfLoclx[ivol][2],
+	      glbCoordOfLoclx[ivol][3],
 	      i,v[ivol*nbps+i]);
   
   close_file(fout);

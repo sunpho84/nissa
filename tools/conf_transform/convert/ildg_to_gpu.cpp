@@ -36,7 +36,7 @@ int main(int narg,char **arg)
   
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *in_conf=nissa_malloc("in_conf",loc_vol,quad_su3);
+  quad_su3 *in_conf=nissa_malloc("in_conf",locVol,quad_su3);
   
   //print the plaquette and write the conf
   read_ildg_gauge_conf(in_conf,arg[3]);
@@ -44,7 +44,7 @@ int main(int narg,char **arg)
   
   //////////////////////////// convert the conf //////////////////////////
   
-  su3 *out_conf=nissa_malloc("out_conf",4*loc_vol,su3);
+  su3 *out_conf=nissa_malloc("out_conf",4*locVol,su3);
   
   //add phases
   addrem_stagphases_to_lx_conf(in_conf);
@@ -60,13 +60,13 @@ int main(int narg,char **arg)
 	  {
 	    int sum=x+y+z+t;
 	    int even=sum%2;
-	    int num=even*loc_volh + snum(x,y,z,t);
+	    int num=even*locVolh + snum(x,y,z,t);
 	    
 	    coords c={t,x,y,z};
 	    int ivol=loclx_of_coord(c);
 	    
 	    for(int mu=0;mu<4;mu++)
-	      su3_copy(out_conf[mu*loc_vol+num],in_conf[ivol][map_mu[mu]]);
+	      su3_copy(out_conf[mu*locVol+num],in_conf[ivol][map_mu[mu]]);
 	  }
   
   nissa_free(in_conf);

@@ -38,8 +38,8 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  spincolor *source=nissa_malloc("source",loc_vol,spincolor);
-  spincolor *smeared_source=nissa_malloc("smeared_source",loc_vol,spincolor);
+  spincolor *source=nissa_malloc("source",locVol,spincolor);
+  spincolor *smeared_source=nissa_malloc("smeared_source",locVol,spincolor);
   read_real_vector(source,source_path,tag);
   read_real_vector(smeared_source,smeared_source_path,tag);
   
@@ -56,20 +56,20 @@ void in_main(int narg,char **arg)
   // master_printf("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
   
   //check the norm
-  double source_norm=double_vector_glb_norm2(source,loc_vol);
+  double source_norm=double_vector_glb_norm2(source,locVol);
   if(fabs(source_norm-1.0)>1e-10)
     crash("Norm %lg, needs to be 1, excess of %lg",source_norm,source_norm-1.0);
   
   std::map<int,std::pair<double,int>> rho;
   
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    if(glb_coord_of_loclx[ivol][0]==g[0])
+  for(int ivol=0;ivol<locVol;ivol++)
+    if(glbCoordOfLoclx[ivol][0]==g[0])
       {
 	int r2=0;
 	for(int mu=1;mu<NDIM;mu++)
 	  {
-	    int c=(glb_size[mu]+glb_coord_of_loclx[ivol][mu]-g[mu])%glb_size[mu];
-	    r2+=sqr(std::min(c,glb_size[mu]-c));
+	    int c=(glbSize[mu]+glbCoordOfLoclx[ivol][mu]-g[mu])%glbSize[mu];
+	    r2+=sqr(std::min(c,glbSize[mu]-c));
 	  }
 	rho[r2].first+=spincolor_norm2(smeared_source[ivol]);
 	rho[r2].second++;
