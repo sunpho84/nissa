@@ -28,8 +28,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    complex unshifted_glb_contr[glbSize[0]];
-    glb_reduce(unshifted_glb_contr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+    /// Temporary contraction
+    complex unshiftedGlbContr[glbSize[0]];
+    glb_reduce(unshiftedGlbContr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
     
     for(int glb_t=0;glb_t<glbSize[0];glb_t++)
       {
@@ -37,7 +38,7 @@ namespace nissa
 	const int dt=
 	  (glb_t-source_coord+glbSize[0])%glbSize[0];
 	
-	complex_copy(contr[dt],unshifted_glb_contr[glb_t]);
+	complex_copy(contr[dt],unshiftedGlbContr[glb_t]);
       }
     
   }

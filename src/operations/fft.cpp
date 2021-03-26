@@ -27,7 +27,7 @@ namespace nissa
   //it will put data in YZTX order, etc
   void data_coordinate_order_shift(complex *data,int ncpp,int mu0)
   {
-    int *pos=nissa_malloc("Pos",loc_vol,int);
+    int *pos=nissa_malloc("Pos",locVol,int);
     
     //order of directions
     int in_mu[4] ={mu0,(mu0+1)%4,(mu0+2)%4,(mu0+3)%4};
@@ -53,7 +53,7 @@ namespace nissa
 	    }
     
     //apply reordering
-    reorder_vector((char*)data,pos,loc_vol,sizeof(complex)*ncpp);
+    reorder_vector((char*)data,pos,locVol,sizeof(complex)*ncpp);
     
     nissa_free(pos);
   }
@@ -72,9 +72,9 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	int log2glb_nblk=find_max_pow2(glb_size[mu]); //number of powers of 2 contained in n
+	int log2glb_nblk=find_max_pow2(glbSize[mu]); //number of powers of 2 contained in n
 	int glb_nblk=1<<log2glb_nblk;                 //remaining odd block
-	int blk_size=glb_size[mu]/glb_nblk;           //block size
+	int blk_size=glbSize[mu]/glb_nblk;           //block size
 	int loc_nblk=glb_nblk/nrank_dir[mu];          //number of local blocks
 	
 	//check if the locSize is a multiple of block_size
@@ -298,7 +298,7 @@ namespace nissa
 	
 	if(normalize==1)
 	  for(int i=0;i<locSize[mu]*ncpp;i++)
-	    for(int ri=0;ri<2;ri++) out[i][ri]/=glb_size[mu];
+	    for(int ri=0;ri<2;ri++) out[i][ri]/=glbSize[mu];
       }
     
     nissa_free(buf);
