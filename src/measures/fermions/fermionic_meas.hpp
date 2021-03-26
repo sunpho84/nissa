@@ -1,6 +1,8 @@
 #ifndef _FERMION_MEAS_HPP
 #define _FERMION_MEAS_HPP
 
+#include <sstream>
+
 #include "routines/ios.hpp"
 #include "base/random.hpp"
 
@@ -36,7 +38,22 @@ namespace nissa
     }
     
     int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false);
+    
+    std::string get_str(bool full=false)
+    {
+      std::ostringstream os;
+      
+      if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
+      if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
+      if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+      if(residue!=def_residue() or full) os<<" Residue\t=\t"<<residue<<"\n";
+      if(ncopies!=def_ncopies() or full) os<<" NCopies\t=\t"<<ncopies<<"\n";
+      if(itheory!=def_itheory() or full) os<<" ITheory\t=\t"<<itheory<<"\n";
+      if(rnd_type!=def_rnd_type() or full) os<<" NoiseType\t=\t"<<rnd_t_str[rnd_type]<<"\n";
+      if(nhits!=def_nhits() or full) os<<" NHits\t\t=\t"<<nhits<<"\n";
+      
+      return os.str();
+    }
     
     int is_nonstandard()
     {
