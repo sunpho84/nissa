@@ -89,10 +89,7 @@ namespace nissa
 	    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
 	      for(int co_so=0;co_so<NCOL;co_so++)
 		for(int co_si=0;co_si<NCOL;co_si++)
-		  // {
-		  //   master_printf("Copying: ivol=%d co_si=%d co_so=%d sp_si=%d sp_so=%d \n",ivol,co_si,co_so,sp_si,sp_so);
-		    complex_copy(p[i][co_si][co_so][sp_si][sp_so],Q[i][co_so+NCOL*sp_so][ivol][sp_si][co_si]);
-		  // }
+		  complex_copy(p[i][co_si][co_so][sp_si][sp_so],Q[i][co_so+NCOL*sp_so][ivol][sp_si][co_si]);
 	
 	//Color source
 	for(int b_so=0;b_so<NCOL;b_so++)
@@ -162,8 +159,6 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    master_printf("DEBUG finished filling\n");
-    
     /// Number of local elements
     const int nloc=nWicks*locVol;
     
@@ -209,7 +204,6 @@ namespace nissa
     complex contr_per_Wick[glbSize[0]*2];
     compute_baryon_2pts_proj_contr(contr_per_Wick,5,5,Ql,Qd,Ql,source_coord,temporal_bc);
     
-    master_printf("DEBUG combining Wicks\n");
     for(int t=0;t<glbSize[0];t++)
       complex_subt(contr[t],contr_per_Wick[0+2*t],contr_per_Wick[1+2*t]);
   }
