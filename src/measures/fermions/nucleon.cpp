@@ -28,9 +28,14 @@ namespace nissa
     spincolor* source=nissa_malloc("source",locVol+bord_vol,spincolor);
     
     /// Propagators
-    spincolor* prop[nflavs*NDIRAC*NCOL];
-    for(int i=0;i<nflavs*NDIRAC*NCOL;i++)
-      prop[i]=nissa_malloc("prop",locVol+bord_vol,spincolor);
+    spincolor*** prop;
+    prop=nissa_malloc("prop",nflavs,spincolor**);
+    for(int iflav=0;iflav<nflavs;iflav++)
+      {
+	prop[iflav]=nissa_malloc("prop[iflav]",NDIRAC*NCOL,spincolor*);
+	for(int idc=0;idc<NDIRAC*NCOL;idc++)
+	  prop[iflav][idc]=nissa_malloc("prop[iflav][idc]",locVol+bord_vol,spincolor);
+      }
     
     /// Operations for the propagator
     tm_corr_op tmCorrOp(conf,meas_pars.residue,theory_pars);
@@ -65,7 +70,7 @@ namespace nissa
 		    if(rank==whichRank)
 		      source[locSourcePos][idirac][icol][RE]=1;
 		    
-		    tmCorrOp.inv(prop[icol+NCOL*(idirac+NDIRAC*iflav)],source,iflav);
+		    tmCorrOp.inv(prop[iflav][icol+NCOL*idirac],source,iflav);
 		  }
 	    
 	    for(int ilikeFlav=0;ilikeFlav<nflavs;ilikeFlav++)
@@ -74,8 +79,8 @@ namespace nissa
 		  master_printf("Computing %d %d\n",ilikeFlav,idislikeFlav);
 		  complex tempCorr[glbSize[0]];
 		  tm_corr_op::compute_nucleon_2pts_contr(tempCorr,
-							 prop+NDIRAC*NCOL*ilikeFlav,
-							 prop+NDIRAC*NCOL*idislikeFlav,
+							 prop[ilikeFlav],
+							 prop[idislikeFlav],
 							 glbSourceCoords[0],-1);
 		  
 		  master_printf("Summing %d %d\n",ilikeFlav,idislikeFlav);
@@ -97,8 +102,14 @@ namespace nissa
       }
     
     nissa_free(source);
-    for(int i=0;i<nflavs*NDIRAC*NCOL;i++)
-      nissa_free(prop[i]);
+    
+    for(int iflav=0;iflav<nflavs;iflav++)
+      {
+	for(int idc=0;idc<NDIRAC*NCOL;idc++)
+	  nissa_free(prop[iflav][idc]);
+	nissa_free(prop[iflav]);
+      }
+    nissa_free(prop);
     
     nissa_free(corr);
     
