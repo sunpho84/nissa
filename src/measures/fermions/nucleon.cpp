@@ -99,7 +99,7 @@ namespace nissa
 	      for(int t=0;t<glbSize[0];t++)
 		{
 		  complex c;
-		  complex_prod_double(c,corr[t+glbSize[0]*(ilikeFlav+nflavs*idislikeFlav)],meas_pars.nhits);
+		  complex_prod_double(c,corr[t+glbSize[0]*(ilikeFlav+nflavs*idislikeFlav)],1.0/meas_pars.nhits);
 		  master_fprintf(file,"%d %+.16lg %+.16lg\n",t,c[RE],c[IM]);
 		}
 	    }
