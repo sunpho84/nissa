@@ -22,14 +22,14 @@ namespace nissa
   void evn_apply_stD(color *out,eo_ptr<quad_su3> conf,double m,eo_ptr<color> in,double sign=1)
   {
     apply_stDeo_half(out,conf,in[ODD]);
-    double_vector_linear_comb((double*)out,(double*)in[EVN],m,(double*)out,sign*2,2*NCOL*loc_volh);
+    double_vector_linear_comb((double*)out,(double*)in[EVN],m,(double*)out,sign*2,2*NCOL*locVolh);
   }
   
   //return the odd part of the application of D to a vector
   void odd_apply_stD(color *out,eo_ptr<quad_su3> conf,double m,eo_ptr<color> in,double sign=1)
   {
     apply_st2Doe(out,conf,in[EVN]);
-    double_vector_linear_comb((double*)out,(double*)in[ODD],m,(double*)out,sign*0.5,2*NCOL*loc_volh);
+    double_vector_linear_comb((double*)out,(double*)in[ODD],m,(double*)out,sign*0.5,2*NCOL*locVolh);
   }
   
   //return the result of the application of D to a vector
@@ -64,13 +64,13 @@ namespace nissa
       {
 	
 	// temp = i * D * in
-	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
 	  for(int ic=0;ic<NCOL;ic++)
 	    assign_complex_prod_i(temp[eo][ivol][ic]);
 	NISSA_PARALLEL_LOOP_END;
 	
 	// out = (i * D - m * g5 X id) * in
-	double_vector_summ_double_vector_prod_double((double*)out[eo],(double*)temp[eo],(double*)out[eo],-m_Adams,2*NCOL*loc_volh);
+	double_vector_summ_double_vector_prod_double((double*)out[eo],(double*)temp[eo],(double*)out[eo],-m_Adams,2*NCOL*locVolh);
       }
   }
   
@@ -90,6 +90,6 @@ namespace nissa
     
     // out = (g5 X g5 * D - m * g5 X id) * in
     for(int eo=0;eo<2;eo++)
-      double_vector_summ_double_vector_prod_double((double*)out[eo],(double*)temp[eo],(double*)out[eo],-m_Adams,2*NCOL*loc_volh);
+      double_vector_summ_double_vector_prod_double((double*)out[eo],(double*)temp[eo],(double*)out[eo],-m_Adams,2*NCOL*locVolh);
   }
 }

@@ -11,7 +11,7 @@
 #define BASETYPE spincolor
 
 #define NDOUBLES_PER_SITE 24
-#define BULK_VOL loc_vol
+#define BULK_VOL locVol
 #define BORD_VOL bord_vol
 
 #define APPLY_OPERATOR apply_tmclovQ2

@@ -23,7 +23,7 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int mu=0;mu<NDIM;mu++)
 	    herm_put_to_gauss(H[par][ieo][mu],&(loc_rnd_gen[loclx_of_loceo[par][ieo]]),1);
 	NISSA_PARALLEL_LOOP_END;
@@ -35,7 +35,7 @@ namespace nissa
   void generate_hmc_momenta(quad_su3* H)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	herm_put_to_gauss(H[ivol][mu],&(loc_rnd_gen[ivol]),1);
     NISSA_PARALLEL_LOOP_END;
@@ -48,21 +48,21 @@ namespace nissa
   {
     
     //temporary for inversion
-    su3 *in=nissa_malloc("in",loc_vol+bord_vol,su3);
-    su3 *out=nissa_malloc("out",loc_vol+bord_vol,su3);
-    su3 *tmp=nissa_malloc("tmp",loc_vol+bord_vol,su3);
+    su3 *in=nissa_malloc("in",locVol+bord_vol,su3);
+    su3 *out=nissa_malloc("out",locVol+bord_vol,su3);
+    su3 *tmp=nissa_malloc("tmp",locVol+bord_vol,su3);
     
     for(int mu=0;mu<NDIM;mu++)
       {
 	//fill the vector randomly
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  herm_put_to_gauss(in[ivol],&(loc_rnd_gen[ivol]),1);
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(in);
 	
 	//compute the norm
 	double norm;
-	double_vector_glb_scalar_prod(&norm,(double*)in,(double*)in,loc_vol*sizeof(su3)/sizeof(double));
+	double_vector_glb_scalar_prod(&norm,(double*)in,(double*)in,locVol*sizeof(su3)/sizeof(double));
 	
 	//invert
 	summ_src_and_all_inv_MFACC_cgm(out,conf,kappa,rat_exp_H,1000000,residue,in);
@@ -70,11 +70,11 @@ namespace nissa
 	//try to compute the norm*D
         inv_MFACC_cg(tmp,NULL,conf,kappa,10000000,residue,out);
 	double norm_reco;
-	double_vector_glb_scalar_prod(&norm_reco,(double*)out,(double*)tmp,loc_vol*sizeof(su3)/sizeof(double));
+	double_vector_glb_scalar_prod(&norm_reco,(double*)out,(double*)tmp,locVol*sizeof(su3)/sizeof(double));
 	master_printf("Norm: %16.16lg, norm_reco: %16.16lg, relative error: %lg\n",sqrt(norm),sqrt(norm_reco),sqrt(norm/norm_reco)-1);
 	
 	//store the vector
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  su3_copy(H[ivol][mu],out[ivol]);
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(H);
@@ -91,7 +91,7 @@ namespace nissa
     verbosity_lv1_master_printf("Generating Fourier acceleration momenta\n");
     
     //allocate gaussian field
-    su3 *V=nissa_malloc("V",loc_vol+bord_vol,su3);
+    su3 *V=nissa_malloc("V",locVol+bord_vol,su3);
     
     double act=0;
     for(int id=0;id<naux_fields;id++)
@@ -101,7 +101,7 @@ namespace nissa
 	
 	//compute act
 	double temp;
-	double_vector_glb_scalar_prod(&temp,(double*)(pi[id]),(double*)(pi[id]),loc_vol*sizeof(su3)/sizeof(double));
+	double_vector_glb_scalar_prod(&temp,(double*)(pi[id]),(double*)(pi[id]),locVol*sizeof(su3)/sizeof(double));
 	act+=temp/2;
 	
 	//multiply by sqrt

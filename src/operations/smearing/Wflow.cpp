@@ -25,7 +25,7 @@ namespace nissa
       constexpr std::array<double,3> RK_wo={0,    -17.0/9, -1};
       
       //add the new argument of the exponential to the old one
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	for(int mu=0;mu<NDIM;mu++)
 	  if(dirs[mu])
 	    {
@@ -35,7 +35,7 @@ namespace nissa
 	      for(int inu=0;inu<NDIM-1;inu++)
 		{
 		  int nu=perp_dir[mu][inu];
-		  int A=ivol,B=loclx_neighup[A][nu],D=loclx_neighdw[A][nu],E=loclx_neighup[D][mu],F=loclx_neighup[A][mu];
+		  int A=ivol,B=loclxNeighup[A][nu],D=loclxNeighdw[A][nu],E=loclxNeighup[D][mu],F=loclxNeighup[A][mu];
 		  unsafe_su3_prod_su3(       temp, conf[A][nu],conf[B][mu]);
 		  su3_summ_the_prod_su3_dag(staple,temp,       conf[F][nu]);
 		  unsafe_su3_dag_prod_su3(temp,    conf[D][nu],conf[D][mu]);
@@ -64,7 +64,7 @@ namespace nissa
     {
       
       //integrate
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	for(int mu=0;mu<NDIM;mu++)
 	  if(dirs[mu])
 	    {
@@ -81,7 +81,7 @@ namespace nissa
   void Wflow_lx_conf(quad_su3* conf,double dt,bool* dirs)
   {
     //storage for staples
-    quad_su3 *arg=nissa_malloc("arg",loc_vol,quad_su3);
+    quad_su3 *arg=nissa_malloc("arg",locVol,quad_su3);
     vector_reset(arg);
     
     //we write the 4 terms of the Runge Kutta scheme iteratively

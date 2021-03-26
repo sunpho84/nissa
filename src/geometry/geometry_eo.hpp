@@ -11,7 +11,7 @@
 
 #define NISSA_DEFAULT_USE_EO_GEOM 1
 
-#define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<loc_volh;a++)
+#define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<locVolh;a++)
 
 #include "geometry_lx.hpp"
 #include "new_types/su3.hpp"
@@ -22,50 +22,43 @@ namespace nissa
   template <typename T>
   struct eo_ptr
   {
-    //Type representing a pointer to type T
+    /// Type representing a pointer to type T
     using Tptr=T*;
     
-    //Type representing a pair of pointers
+    /// Type representing a pair of pointers
     using Tptr2=Tptr[2];
     
-    //Inner pointer pairs
+    /// Inner pointer pairs
     Tptr data[2];
     
-    //Access to data[i]
+    /// Access to data[i]
     CUDA_HOST_AND_DEVICE Tptr& operator[](const int i)
     {
       static_assert(std::is_trivially_copyable<eo_ptr<T>>::value,"not trivially copyable");
       return data[i];
     }
     
-    //Constant access to data[i]
+    /// Constant access to data[i]
     CUDA_HOST_AND_DEVICE const Tptr& operator[](const int i) const
     {
       return data[i];
     }
     
-    //Create from a pair of pointers
+    /// Create from a pair of pointers
     CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) : data{a,b} {}
     
-    //Create from an array of two pointers - to deprecate?
-    // CUDA_HOST_AND_DEVICE eo_ptr(Tptr2 a)
-    // {
-    //   data[0]=a[0];
-    //   data[1]=a[1];
-    // }
-    
-    //Default creator
+    /// Default creator
     CUDA_HOST_AND_DEVICE eo_ptr()
     {
     }
     
-    //Check whether the two ptr are equals
+    /// Check whether the two ptr are equals
     CUDA_HOST_AND_DEVICE bool operator==(const eo_ptr& oth) const
     {
       return oth[0]==data[0] and oth[1]==data[1];
     }
     
-    //Check whether the two ptr are different
+    /// Check whether the two ptr are different
     CUDA_HOST_AND_DEVICE bool operator!=(const eo_ptr& oth) const
     {
       return not ((*this)==oth);

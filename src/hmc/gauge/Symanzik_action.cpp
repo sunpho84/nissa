@@ -15,7 +15,7 @@ namespace nissa
   void Symanzik_action(double *action,double *glb_shapes,double beta,double C1)
   {
     verbosity_lv2_master_printf("Computing Symanzik action\n");
-    (*action)=(get_C0(C1)*6*glb_vol*(1-glb_shapes[RE])+C1*12*glb_vol*(1-glb_shapes[IM]))*beta;
+    (*action)=(get_C0(C1)*6*glbVol*(1-glb_shapes[RE])+C1*12*glbVol*(1-glb_shapes[IM]))*beta;
   }
   
   //lx wrapper

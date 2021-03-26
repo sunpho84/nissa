@@ -38,7 +38,7 @@ namespace nissa
   //Send the edges of lx vector
   void communicate_lx_edges(char *data,comm_t &bord_comm,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
   {
-    int min_size=nbytes_per_site*(edge_vol+bord_vol+loc_vol);
+    int min_size=nbytes_per_site*(edge_vol+bord_vol+locVol);
     crash_if_edges_not_allocated(data,min_size);
     communicate_lx_borders(data,bord_comm);
     
@@ -63,31 +63,31 @@ namespace nissa
 		    int pos_edge_offset;
 		    
 		    //take the starting point of the border
-		    x[jdir]=loc_size[jdir]-1;
+		    x[jdir]=locSize[jdir]-1;
 		    pos_edge_offset=bordlx_of_coord(x,idir);
 		    x[jdir]=0;
 		    
 		    //Send the i-j- internal edge to the j- rank as i-j+ external edge
-		    send=(loc_vol+bord_offset[idir])*nbytes_per_site;
-		    rece=(loc_vol+bord_vol+edge_offset[iedge]+edge_vol/4)*nbytes_per_site;
+		    send=(locVol+bord_offset[idir])*nbytes_per_site;
+		    rece=(locVol+bord_vol+edge_offset[iedge]+edge_vol/4)*nbytes_per_site;
 		    MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
 		    MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
 		    
 		    //Send the i-j+ internal edge to the j+ rank as i-j- external edge
-		    send=(loc_vol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
-		    rece=(loc_vol+bord_vol+edge_offset[iedge])*nbytes_per_site;
+		    send=(locVol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
+		    rece=(locVol+bord_vol+edge_offset[iedge])*nbytes_per_site;
 		    MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
 		    MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
 		    
 		    //Send the i+j- internal edge to the j- rank as i+j+ external edge
-		    send=(loc_vol+bord_offset[idir]+bord_vol/2)*nbytes_per_site;
-		    rece=(loc_vol+bord_vol+edge_offset[iedge]+3*edge_vol/4)*nbytes_per_site;
+		    send=(locVol+bord_offset[idir]+bord_vol/2)*nbytes_per_site;
+		    rece=(locVol+bord_vol+edge_offset[iedge]+3*edge_vol/4)*nbytes_per_site;
 		    MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
 		    MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
 		    
 		    //Send the i+j+ internal edge to the j+ rank as i+j- external edge
-		    send=(loc_vol+bord_offset[idir]+bord_vol/2+pos_edge_offset)*nbytes_per_site;
-		    rece=(loc_vol+bord_vol+edge_offset[iedge]+edge_vol/2)*nbytes_per_site;
+		    send=(locVol+bord_offset[idir]+bord_vol/2+pos_edge_offset)*nbytes_per_site;
+		    rece=(locVol+bord_vol+edge_offset[iedge]+edge_vol/2)*nbytes_per_site;
 		    MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
 		    MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
 		    imessage++;
@@ -139,7 +139,7 @@ namespace nissa
 	    for(int par=0;par<2;par++)
 	      {
 		//check_edges_allocated(data);
-		int min_size=nbytes_per_site*(edge_volh+bord_volh+loc_volh);
+		int min_size=nbytes_per_site*(edge_volh+bord_volh+locVolh);
 		crash_if_edges_not_allocated(data[par],min_size);
 		
 		//"v" refer to the verse of the dir
@@ -157,8 +157,8 @@ namespace nissa
 			    
 			    //Send the (mu,nu) internal edge to the nu rank as (mu,-nu) external edge
 			    //Receive the (mu,-nu) external edge from the -nu rank (mu,nu) internal edge
-			    int ext_edge_recv_start=(loc_volh+bord_volh+edge_volh/4*(vmu*2+!vnu)+edge_offset[iedge]/2)*nbytes_per_site;
-			    int int_edge_send_start=loc_volh*nbytes_per_site;
+			    int ext_edge_recv_start=(locVolh+bord_volh+edge_volh/4*(vmu*2+!vnu)+edge_offset[iedge]/2)*nbytes_per_site;
+			    int int_edge_send_start=locVolh*nbytes_per_site;
 			    MPI_Irecv((char*)(data[par])+ext_edge_recv_start,1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu][nu],imessage,cart_comm,request+(nrequest++));
 			    MPI_Isend((char*)(data[par])+int_edge_send_start,1,MPI_EDGES_SEND[icomm_send],rank_neigh[vnu][nu],imessage,cart_comm,request+(nrequest++));
 			    

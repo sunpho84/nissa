@@ -58,19 +58,19 @@ namespace nissa
     if(Leb_geom_inited) crash("Lebesgue Geometry already initialized!");
     Leb_geom_inited=true;
     
-    loclx_of_Leblx=nissa_malloc("loclx_of_Leblx",loc_vol+bord_vol+edge_vol,int);
-    Leblx_of_loclx=nissa_malloc("Leblx_of_loclx",loc_vol+bord_vol+edge_vol,int);
-    Leblx_neighup=nissa_malloc("Leblx_neighup",loc_vol,coords);
-    Leblx_neighdw=nissa_malloc("Leblx_neighdw",loc_vol,coords);
-    Leblx_parity=nissa_malloc("Leblx_parity",loc_vol+bord_vol+edge_vol,int);
+    loclx_of_Leblx=nissa_malloc("loclx_of_Leblx",locVol+bord_vol+edge_vol,int);
+    Leblx_of_loclx=nissa_malloc("Leblx_of_loclx",locVol+bord_vol+edge_vol,int);
+    Leblx_neighup=nissa_malloc("Leblx_neighup",locVol,coords);
+    Leblx_neighdw=nissa_malloc("Leblx_neighdw",locVol,coords);
+    Leblx_parity=nissa_malloc("Leblx_parity",locVol+bord_vol+edge_vol,int);
     surfLeblx_of_bordLeblx=nissa_malloc("surfLeblx_of_Bordlx",bord_vol,int);
     
     //get nmax_fact
     int nmax_facts=0;
     for(int mu=0;mu<NDIM;mu++)
       {
-	int list_fact_mu[log2N(loc_size[mu])];
-	nmax_facts=std::max(nmax_facts,factorize(list_fact_mu,loc_size[mu]));
+	int list_fact_mu[log2N(locSize[mu])];
+	nmax_facts=std::max(nmax_facts,factorize(list_fact_mu,locSize[mu]));
       }
     
     //set all factors to 1
@@ -80,8 +80,8 @@ namespace nissa
     //put all the non-1 factors
     for(int mu=0;mu<NDIM;mu++)
       {
-	int list_fact_mu[log2N(loc_size[mu])];
-	int nfacts=factorize(list_fact_mu,loc_size[mu]);
+	int list_fact_mu[log2N(locSize[mu])];
+	int nfacts=factorize(list_fact_mu,locSize[mu]);
 	int nfacts1=nmax_facts-nfacts;
 	for(int ifact=0;ifact<nfacts;ifact++) factors[nfacts1+ifact][mu]=list_fact_mu[ifact];
       }
@@ -95,11 +95,11 @@ namespace nissa
       }
     
     //on a first basis, everything's the same
-    for(int i=0;i<loc_vol+bord_vol+edge_vol;i++)
+    for(int i=0;i<locVol+bord_vol+edge_vol;i++)
       Leblx_of_loclx[i]=loclx_of_Leblx[i]=i;
     
     //fill Leblx of loclx and the opposite
-    for(int Leblx=0;Leblx<loc_vol;Leblx++)
+    for(int Leblx=0;Leblx<locVol;Leblx++)
       {
 	coords c;
 	loclx_coord_of_Leblx(c,factors,Leblx);
@@ -111,32 +111,32 @@ namespace nissa
       }
     
     //set movements
-    for(int Leblx=0;Leblx<loc_vol;Leblx++)
+    for(int Leblx=0;Leblx<locVol;Leblx++)
       {
 	int loclx=loclx_of_Leblx[Leblx];
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    Leblx_neighup[Leblx][mu]=Leblx_of_loclx[loclx_neighup[loclx][mu]];
-	    Leblx_neighdw[Leblx][mu]=Leblx_of_loclx[loclx_neighdw[loclx][mu]];
+	    Leblx_neighup[Leblx][mu]=Leblx_of_loclx[loclxNeighup[loclx][mu]];
+	    Leblx_neighdw[Leblx][mu]=Leblx_of_loclx[loclxNeighdw[loclx][mu]];
 	  }
       }
     
     //set surf filler
-    for(int ibord=0;ibord<bord_vol;ibord++) surfLeblx_of_bordLeblx[ibord]=Leblx_of_loclx[surflx_of_bordlx[ibord]];
+    for(int ibord=0;ibord<bord_vol;ibord++) surfLeblx_of_bordLeblx[ibord]=Leblx_of_loclx[surflxOfBordlx[ibord]];
     
     //set e/o
     if(use_eo_geom)
       {
 	for(int eo=0;eo<2;eo++)
 	  {
-	    loceo_of_Lebeo[eo]=nissa_malloc("loceo_of_Lebeo",loc_volh+bord_volh+edge_volh,int);
-	    Lebeo_of_loceo[eo]=nissa_malloc("Lebeo_of_loceo",loc_volh+bord_volh+edge_volh,int);
-	    Lebeo_neighup[eo]=nissa_malloc("Lebeo_neighup",loc_volh,coords);
-	    Lebeo_neighdw[eo]=nissa_malloc("Lebeo_neighdw",loc_volh,coords);
+	    loceo_of_Lebeo[eo]=nissa_malloc("loceo_of_Lebeo",locVolh+bord_volh+edge_volh,int);
+	    Lebeo_of_loceo[eo]=nissa_malloc("Lebeo_of_loceo",locVolh+bord_volh+edge_volh,int);
+	    Lebeo_neighup[eo]=nissa_malloc("Lebeo_neighup",locVolh,coords);
+	    Lebeo_neighdw[eo]=nissa_malloc("Lebeo_neighdw",locVolh,coords);
 	  }
 	
 	int iLebeo[2]={0,0};
-	for(int Leblx=0;Leblx<loc_vol+bord_vol+edge_vol;Leblx++)
+	for(int Leblx=0;Leblx<locVol+bord_vol+edge_vol;Leblx++)
 	  {
 	    int loclx=loclx_of_Leblx[Leblx];
 	    int par=loclx_parity[loclx];
@@ -150,7 +150,7 @@ namespace nissa
 	  }
 	
 	//set e/o movements
-	for(int Leblx=0;Leblx<loc_vol;Leblx++)
+	for(int Leblx=0;Leblx<locVol;Leblx++)
 	  {
 	    int loclx=loclx_of_Leblx[Leblx];
 	    int par=loclx_parity[loclx];

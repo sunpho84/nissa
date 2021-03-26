@@ -19,10 +19,10 @@ namespace nissa
     communicate_lx_color_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	if(reset_first) color_put_to_zero(out[ivol]);
-	su3_summ_the_prod_color(out[ivol],conf[ivol][mu],in[loclx_neighup[ivol][mu]]);
+	su3_summ_the_prod_color(out[ivol],conf[ivol][mu],in[loclxNeighup[ivol][mu]]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -35,10 +35,10 @@ namespace nissa
     communicate_lx_color_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	if(reset_first) color_put_to_zero(out[ivol]);
-	su3_dag_summ_the_prod_color(out[ivol],conf[loclx_neighdw[ivol][mu]][mu],in[loclx_neighdw[ivol][mu]]);
+	su3_dag_summ_the_prod_color(out[ivol],conf[loclxNeighdw[ivol][mu]][mu],in[loclxNeighdw[ivol][mu]]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -51,10 +51,10 @@ namespace nissa
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	if(reset_first) spincolor_put_to_zero(out[ivol]);
-	su3_summ_the_prod_spincolor(out[ivol],conf[ivol][mu],in[loclx_neighup[ivol][mu]]);
+	su3_summ_the_prod_spincolor(out[ivol],conf[ivol][mu],in[loclxNeighup[ivol][mu]]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -67,10 +67,10 @@ namespace nissa
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	if(reset_first) spincolor_put_to_zero(out[ivol]);
-	su3_dag_summ_the_prod_spincolor(out[ivol],conf[loclx_neighdw[ivol][mu]][mu],in[loclx_neighdw[ivol][mu]]);
+	su3_dag_summ_the_prod_spincolor(out[ivol],conf[loclxNeighdw[ivol][mu]][mu],in[loclxNeighdw[ivol][mu]]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -79,8 +79,8 @@ namespace nissa
   //multiply by the 2-links Laplace operator
   void Laplace_operator_2_links(color* out,quad_su3* conf,bool* dirs,color* in)
   {
-    color *temp=nissa_malloc("temp",loc_vol+bord_vol,color);
-    int nentries=loc_vol*sizeof(color)/sizeof(double);
+    color *temp=nissa_malloc("temp",locVol+bord_vol,color);
+    int nentries=locVol*sizeof(color)/sizeof(double);
     
     vector_reset(out);
     
@@ -104,7 +104,7 @@ namespace nissa
   //multiply by the Laplace operator
   void Laplace_operator(spincolor* out,quad_su3* conf,bool* dirs,spincolor* in)
   {
-    int nentries=loc_vol*sizeof(spincolor)/sizeof(double);
+    int nentries=locVol*sizeof(spincolor)/sizeof(double);
     
     vector_reset(out);
     
@@ -128,14 +128,14 @@ namespace nissa
     NAME3(communicate_lx,TYPE,borders)(in);                             \
     communicate_lx_quad_su3_borders(conf);                              \
                                                                         \
-    TYPE *temp=nissa_malloc("temp",loc_vol+bord_vol,TYPE);              \
+    TYPE *temp=nissa_malloc("temp",locVol+bord_vol,TYPE);              \
     vector_reset(temp);                                                 \
                                                                         \
-    NISSA_PARALLEL_LOOP(ix,0,loc_vol)                                   \
+    NISSA_PARALLEL_LOOP(ix,0,locVol)                                   \
       {                                                                 \
         int Xup,Xdw;                                                    \
-        Xup=loclx_neighup[ix][mu];					\
-        Xdw=loclx_neighdw[ix][mu];					\
+        Xup=loclxNeighup[ix][mu];					\
+        Xdw=loclxNeighdw[ix][mu];					\
 									\
         NAME2(unsafe_su3_prod,TYPE)(      temp[ix],conf[ix][mu] ,in[Xup]); \
         NAME2(su3_dag_subt_the_prod,TYPE)(temp[ix],conf[Xdw][mu],in[Xdw]); \
@@ -193,13 +193,13 @@ namespace nissa
   communicate_lx_quad_su3_borders(conf);				\
   if(curr) communicate_lx_spin1field_borders(curr);			\
 									\
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
-    if(t==-1 or glb_coord_of_loclx[ivol][0]==t)				\
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
+    if(t==-1 or glbCoordOfLoclx[ivol][0]==t)				\
     for(int mu=0;mu<NDIM;mu++)						\
       {									\
 	/*find neighbors*/						\
-	int ifw=loclx_neighup[ivol][mu];				\
-	int ibw=loclx_neighdw[ivol][mu];				\
+	int ifw=loclxNeighup[ivol][mu];					\
+	int ibw=loclxNeighdw[ivol][mu];					\
 									\
 	/*transport down and up*/					\
 	TYPE fw,bw;							\
@@ -270,10 +270,10 @@ namespace nissa
   /*multiply with gamma*/						\
   void prop_multiply_with_gamma(TYPE* out,int ig,TYPE* in,int twall) \
   {									\
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
       {									\
 	NAME2(safe_dirac_prod,TYPE)(out[ivol],base_gamma+ig,in[ivol]); \
-	NAME2(TYPE,prodassign_double)(out[ivol],(twall==-1 or glb_coord_of_loclx[ivol][0]==twall)); \
+	NAME2(TYPE,prodassign_double)(out[ivol],(twall==-1 or glbCoordOfLoclx[ivol][0]==twall)); \
       }									\
     NISSA_PARALLEL_LOOP_END;						\
     set_borders_invalid(out);						\
@@ -282,7 +282,7 @@ namespace nissa
   /*multiply with an imaginary factor*/					\
   void prop_multiply_with_idouble(TYPE* out,double f) \
   {									\
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
       NAME2(TYPE,prodassign_idouble)(out[ivol],f);			\
     NISSA_PARALLEL_LOOP_END;						\
     set_borders_invalid(out);						\

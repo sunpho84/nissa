@@ -31,7 +31,7 @@ namespace nissa
     glb_coord_of_glblx(c,imom);
     for(int mu=1;mu<NDIM;mu++)
       {
-	double p=M_PI*(2*c[mu]+qu.bc[mu])/glb_size[mu];
+	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSize[mu];
 	double sinph=sin(p/2);
 	double sinph2=sinph*sinph;
 	double sinph4=sinph2*sinph2;
@@ -53,7 +53,7 @@ namespace nissa
     double sinh2E=0;
     coords c;
     glb_coord_of_glblx(c,imom);
-    for(int mu=1;mu<NDIM;mu++) sinh2E+=sqr(sin(M_PI*(2*c[mu]+bc[mu])/glb_size[mu]));
+    for(int mu=1;mu<NDIM;mu++) sinh2E+=sqr(sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
     return asinh(sqrt(sinh2E));
   }
   
@@ -65,7 +65,7 @@ namespace nissa
     sin2_mom=sin2_momh=0;
     for(int mu=0;mu<NDIM;mu++)
       {
-	double p=M_PI*(2*glb_coord_of_loclx[imom][mu]+qu.bc[mu])/glb_size[mu];
+	double p=M_PI*(2*glbCoordOfLoclx[imom][mu]+qu.bc[mu])/glbSize[mu];
 	sin_mom[mu]=sin(p);
 	sin2_mom+=sqr(sin_mom[mu]);
 	sin2_momh+=sqr(sin(p/2));
@@ -108,10 +108,10 @@ namespace nissa
     bool zmp=((fabs(qu.mass)<tol) /* null twisted mass*/ and (fabs(qu.kappa-1.0/8)<tol)) /* null Wilson mass */;
     for(int mu=0;mu<NDIM;mu++) zmp&=(fabs(qu.bc[mu])<tol);  //fully periodic
     
-    bool zm_time=(glb_coord_of_loclx[imom][0]==0);
+    bool zm_time=(glbCoordOfLoclx[imom][0]==0);
     bool zm_spat=true;
     for(int mu=1;mu<NDIM;mu++)
-      zm_spat&=(glb_coord_of_loclx[imom][mu]==0);
+      zm_spat&=(glbCoordOfLoclx[imom][mu]==0);
     
     bool ONLY_4D=true; /* false= UNNO_ALEMANNA, true=PECIONA*/
     bool zm_sub;
@@ -129,7 +129,7 @@ namespace nissa
     else
       {
 	//for efficiency
-	double rep_den=1/den/glb_vol;
+	double rep_den=1/den/glbVol;
 	
 	double c0[2]; c0[MAX_TWIST_BASE]=qu.mass;      c0[WILSON_BASE]=M;
 	double c5[2]; c5[MAX_TWIST_BASE]=M*tau3[qu.r]; c5[WILSON_BASE]=-qu.mass*tau3[qu.r];
@@ -155,7 +155,7 @@ namespace nissa
     glb_coord_of_glblx(c,imom);
     for(int mu=1;mu<NDIM;mu++)
       {
-	double p=M_PI*(2*c[mu]+qu.bc[mu])/glb_size[mu];
+	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSize[mu];
 	sin_mom[mu]=sin(p);
 	sin2_mom+=sqr(sin_mom[mu]);
 	sin2_momh+=sqr(sin(p/2));
@@ -184,7 +184,7 @@ namespace nissa
     spinspin_dirac_prod_double(proj,base_gamma+igamma_of_mu[0],-sinh(e));
     coords c;
     glb_coord_of_glblx(c,imom);
-    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+igamma_of_mu[mu],sin(M_PI*(2*c[mu]+bc[mu])/glb_size[mu]));
+    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+igamma_of_mu[mu],sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
     
     return abse;
   }
@@ -229,7 +229,7 @@ namespace nissa
   void compute_mom_space_twisted_propagator(spinspin* prop,tm_quark_info qu,tm_basis_t base)
   {
     
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
       mom_space_twisted_propagator_of_imom(prop[imom],qu,imom,base);
     NISSA_PARALLEL_LOOP_END;
     
@@ -252,10 +252,10 @@ namespace nissa
     compute_mom_space_twisted_propagator(sq_prop,qu,base);
     
     //square (including normalisation)
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	safe_spinspin_prod_spinspin(sq_prop[imom],sq_prop[imom],sq_prop[imom]);
-	spinspin_prodassign_double(sq_prop[imom],glb_vol);
+	spinspin_prodassign_double(sq_prop[imom],glbVol);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -271,7 +271,7 @@ namespace nissa
   void multiply_from_left_by_mom_space_twisted_propagator(TYPE* out,TYPE* in,tm_quark_info qu,tm_basis_t base) \
   {									\
     									\
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)					\
+    NISSA_PARALLEL_LOOP(imom,0,locVol)					\
       {									\
 	spinspin prop;							\
 	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
@@ -286,7 +286,7 @@ namespace nissa
   void multiply_from_right_by_mom_space_twisted_propagator(TYPE* out,TYPE* in,tm_quark_info qu,tm_basis_t base) \
   {									\
 									\
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)					\
+    NISSA_PARALLEL_LOOP(imom,0,locVol)					\
       {									\
 	spinspin prop;							\
 	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
@@ -312,8 +312,8 @@ namespace nissa
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,tm_quark_info qu,tm_basis_t base)
   {
     //source and temp prop
-    spin *tsource=nissa_malloc("tsource",loc_vol+bord_vol,spin);
-    spin *tprop=nissa_malloc("tprop",loc_vol,spin);
+    spin *tsource=nissa_malloc("tsource",locVol+bord_vol,spin);
+    spin *tprop=nissa_malloc("tprop",locVol,spin);
     
     //loop over the source index
     for(int id_so=0;id_so<NDIRAC;id_so++)
@@ -333,7 +333,7 @@ namespace nissa
   void compute_x_space_twisted_propagator_by_inv(spinspin *prop,tm_quark_info qu,tm_basis_t base)
   {
     //allocate a source
-    spinspin *delta=nissa_malloc("delta",loc_vol+bord_vol,spinspin);
+    spinspin *delta=nissa_malloc("delta",locVol+bord_vol,spinspin);
     vector_reset(delta);
     if(rank==0) spinspin_put_to_id(delta[0]);
     set_borders_invalid(delta);

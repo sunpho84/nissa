@@ -24,15 +24,15 @@ namespace nissa
     const bool min_max=0;
     
     //identity backfield
-    eo_ptr<quad_u1> u1b={nissa_malloc("u1b",loc_volh+bord_volh,quad_u1),nissa_malloc("u1b",loc_volh+bord_volh,quad_u1)};
+    eo_ptr<quad_u1> u1b={nissa_malloc("u1b",locVolh+bord_volh,quad_u1),nissa_malloc("u1b",locVolh+bord_volh,quad_u1)};
     init_backfield_to_id(u1b);
     
     //temporary vectors
-    eo_ptr<color> tmpvec_eo={nissa_malloc("tmpvec_eo_EVN",loc_volh+bord_volh,color),nissa_malloc("tmpvec_eo_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> tmpvec_eo={nissa_malloc("tmpvec_eo_EVN",locVolh+bord_volh,color),nissa_malloc("tmpvec_eo_ODD",locVolh+bord_volh,color)};
     
     //results of the g5 application
-    eo_ptr<color> eigvec_g5_eo={nissa_malloc("eigvec_g5_EVN",loc_volh+bord_volh,color),nissa_malloc("eigvec_g5_ODD",loc_volh+bord_volh,color)};
-    color *eigvec_g5_lx=nissa_malloc("eigvec_g5",loc_vol+bord_vol,color);
+    eo_ptr<color> eigvec_g5_eo={nissa_malloc("eigvec_g5_EVN",locVolh+bord_volh,color),nissa_malloc("eigvec_g5_ODD",locVolh+bord_volh,color)};
+    color *eigvec_g5_lx=nissa_malloc("eigvec_g5",locVol+bord_vol,color);
     
     //launch the eigenfinder
     double eig_time=-take_time();
@@ -57,7 +57,7 @@ namespace nissa
 	//take hermitian products
 	for(int jeig=ieig;jeig<neigs;jeig++)
 	  {
-	    complex_vector_glb_scalar_prod(charge_cut[ieig*neigs+jeig],(complex*)eigvec[jeig],(complex*)eigvec_g5_lx,loc_vol*sizeof(color)/sizeof(complex));
+	    complex_vector_glb_scalar_prod(charge_cut[ieig*neigs+jeig],(complex*)eigvec[jeig],(complex*)eigvec_g5_lx,locVol*sizeof(color)/sizeof(complex));
 	    verbosity_lv2_master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
 	  }
       }
@@ -81,7 +81,7 @@ namespace nissa
     int neigs=meas_pars.neigs;
     
     //smooth is implemented only for lx
-    eo_ptr<quad_su3> conf_eo={nissa_malloc("conf_eo_EVN",loc_volh+bord_volh+edge_volh,quad_su3),nissa_malloc("conf_eo_ODD",loc_volh+bord_volh+edge_volh,quad_su3)};
+    eo_ptr<quad_su3> conf_eo={nissa_malloc("conf_eo_EVN",locVolh+bord_volh+edge_volh,quad_su3),nissa_malloc("conf_eo_ODD",locVolh+bord_volh+edge_volh,quad_su3)};
     split_lx_vector_into_eo_parts(conf_eo,conf_lx);
     
     // allocate auxiliary vectors
@@ -92,7 +92,7 @@ namespace nissa
     
     color **eigvec=nissa_malloc("eigvec",neigs,color*);
     for(int ieig=0;ieig<neigs;ieig++)
-      eigvec[ieig]=nissa_malloc("eigvec_ieig",loc_vol+bord_vol,color);
+      eigvec[ieig]=nissa_malloc("eigvec_ieig",locVol+bord_vol,color);
     
     // reset vectors
     vector_reset(charge_cut);
@@ -163,7 +163,7 @@ namespace nissa
     
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf);
     
     //loop on smooth

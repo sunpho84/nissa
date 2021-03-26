@@ -29,7 +29,7 @@ namespace nissa
 	phases[mu][IM]=sin(M_PI*bc[mu]);
       }
     
-    NISSA_PARALLEL_LOOP(X,0,loc_volh)
+    NISSA_PARALLEL_LOOP(X,0,locVolh)
       {
 	int Xup,Xdw;
 	
@@ -39,7 +39,7 @@ namespace nissa
 	Xup=loceo_neighup[eooe][X][0];
 	complex_summ(temp_c0,in[Xup][0],in[Xup][2]);
 	complex_summ(temp_c1,in[Xup][1],in[Xup][3]);
-	if(glb_coord_of_loclx[loclx_of_loceo[!eooe][Xup]][0]==0)
+	if(glbCoordOfLoclx[loclx_of_loceo[!eooe][Xup]][0]==0)
 	  {
 	    safe_complex_prod(temp_c0,temp_c0,phases[0]);
 	    safe_complex_prod(temp_c1,temp_c1,phases[0]);
@@ -53,7 +53,7 @@ namespace nissa
 	Xdw=loceo_neighdw[eooe][X][0];
 	complex_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
 	complex_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
-	if(glb_coord_of_loclx[loclx_of_loceo[eooe][X]][0]==0)
+	if(glbCoordOfLoclx[loclx_of_loceo[eooe][X]][0]==0)
 	  {
 	    safe_complex_conj2_prod(temp_c0,temp_c0,phases[0]);
 	    safe_complex_conj2_prod(temp_c1,temp_c1,phases[0]);
@@ -67,7 +67,7 @@ namespace nissa
 	Xup=loceo_neighup[eooe][X][1];
 	complex_isumm(temp_c0,in[Xup][0],in[Xup][3]);
 	complex_isumm(temp_c1,in[Xup][1],in[Xup][2]);
-	if(glb_coord_of_loclx[loclx_of_loceo[!eooe][Xup]][1]==0)
+	if(glbCoordOfLoclx[loclx_of_loceo[!eooe][Xup]][1]==0)
 	  {
 	    safe_complex_prod(temp_c0,temp_c0,phases[1]);
 	    safe_complex_prod(temp_c1,temp_c1,phases[1]);
@@ -81,7 +81,7 @@ namespace nissa
 	Xdw=loceo_neighdw[eooe][X][1];
 	complex_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
 	complex_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
-	if(glb_coord_of_loclx[loclx_of_loceo[eooe][X]][1]==0)
+	if(glbCoordOfLoclx[loclx_of_loceo[eooe][X]][1]==0)
 	  {
 	    safe_complex_conj2_prod(temp_c0,temp_c0,phases[1]);
 	    safe_complex_conj2_prod(temp_c1,temp_c1,phases[1]);
@@ -95,7 +95,7 @@ namespace nissa
 	Xup=loceo_neighup[eooe][X][2];
 	complex_summ(temp_c0,in[Xup][0],in[Xup][3]);
 	complex_subt(temp_c1,in[Xup][1],in[Xup][2]);
-	if(glb_coord_of_loclx[loclx_of_loceo[!eooe][Xup]][2]==0)
+	if(glbCoordOfLoclx[loclx_of_loceo[!eooe][Xup]][2]==0)
 	  {
 	    safe_complex_prod(temp_c0,temp_c0,phases[2]);
 	    safe_complex_prod(temp_c1,temp_c1,phases[2]);
@@ -109,7 +109,7 @@ namespace nissa
 	Xdw=loceo_neighdw[eooe][X][2];
 	complex_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
 	complex_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
-	if(glb_coord_of_loclx[loclx_of_loceo[eooe][X]][2]==0)
+	if(glbCoordOfLoclx[loclx_of_loceo[eooe][X]][2]==0)
 	  {
 	    safe_complex_conj2_prod(temp_c0,temp_c0,phases[2]);
 	    safe_complex_conj2_prod(temp_c1,temp_c1,phases[2]);
@@ -123,7 +123,7 @@ namespace nissa
 	Xup=loceo_neighup[eooe][X][3];
 	complex_isumm(temp_c0,in[Xup][0],in[Xup][2]);
 	complex_isubt(temp_c1,in[Xup][1],in[Xup][3]);
-	if(glb_coord_of_loclx[loclx_of_loceo[!eooe][Xup]][3]==0)
+	if(glbCoordOfLoclx[loclx_of_loceo[!eooe][Xup]][3]==0)
 	  {
 	    safe_complex_prod(temp_c0,temp_c0,phases[3]);
 	    safe_complex_prod(temp_c1,temp_c1,phases[3]);
@@ -137,7 +137,7 @@ namespace nissa
 	Xdw=loceo_neighdw[eooe][X][3];
 	complex_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
 	complex_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
-	if(glb_coord_of_loclx[loclx_of_loceo[eooe][X]][3]==0)
+	if(glbCoordOfLoclx[loclx_of_loceo[eooe][X]][3]==0)
 	  {
 	    safe_complex_conj2_prod(temp_c0,temp_c0,phases[3]);
 	    safe_complex_conj2_prod(temp_c1,temp_c1,phases[3]);
@@ -162,7 +162,7 @@ namespace nissa
     
     if(in==out) crash("in==out!");
     
-    NISSA_PARALLEL_LOOP(X,0,loc_volh)
+    NISSA_PARALLEL_LOOP(X,0,locVolh)
       {
 	const complex z={1/(2*qu.kappa),qu.mass};
 	
@@ -181,7 +181,7 @@ namespace nissa
     if(in==out) crash("in==out!");
     const double a=1/(2*qu.kappa),b=qu.mass,nrm=1/(a*a+b*b);
     
-    NISSA_PARALLEL_LOOP(X,0,loc_volh)
+    NISSA_PARALLEL_LOOP(X,0,locVolh)
       {
 	const complex z={+a*nrm,-b*nrm};
 	for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id],in[X][id],z);
@@ -202,7 +202,7 @@ namespace nissa
     inv_tmDee_or_oo_eos(temp,qu,out);
     tmDee_or_oo_eos(temp,qu,in);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
       for(int id=0;id<2;id++)
 	for(int ri=0;ri<2;ri++)
 	  { //gamma5 is explicitely implemented

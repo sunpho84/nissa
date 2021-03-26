@@ -166,7 +166,7 @@ namespace nissa
     //copy one by one the surface of vec inside the sending buffer
     NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
       memcpy(send_buf+comm.nbytes_per_site*ibord,
-	     (char*)vec+surflx_of_bordlx[ibord]*comm.nbytes_per_site,
+	     (char*)vec+surflxOfBordlx[ibord]*comm.nbytes_per_site,
 	     comm.nbytes_per_site);
     NISSA_PARALLEL_LOOP_END;
     
@@ -180,14 +180,14 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol+loc_vol));
+	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol+locVol));
 	
 	//check buffer size matching
 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
 	  crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
 	
 	//the buffer is already ordered as the vec border
-	memcpy((char*)vec+loc_vol*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
+	memcpy((char*)vec+locVol*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
       }
     
     //we do not sync, because typically we will set borders as valid
@@ -268,14 +268,14 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_volh+loc_volh));
+	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_volh+locVolh));
 	
 	//check buffer size matching
 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
 	  crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
 	
 	//the buffer is already ordered as the vec border
-	memcpy((char*)vec+loc_volh*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
+	memcpy((char*)vec+locVolh*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
       }
     
     //we do not sync, because typically we will set borders as valid
@@ -344,7 +344,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ibord_lx,0,bord_vol)
       {
 	//convert lx indexing to eo
-	int source_lx=surflx_of_bordlx[ibord_lx];
+	int source_lx=surflxOfBordlx[ibord_lx];
 	int par=loclx_parity[source_lx];
 	int source_eo=loceo_of_loclx[source_lx];
 	memcpy(send_buf+ibord_lx*comm.nbytes_per_site,(char*)(vec[par])+source_eo*comm.nbytes_per_site,
@@ -361,7 +361,7 @@ namespace nissa
   {
     
     //check border allocation
-    int min_size=comm.nbytes_per_site*(bord_volh+loc_volh);
+    int min_size=comm.nbytes_per_site*(bord_volh+locVolh);
     crash_if_borders_not_allocated(vec[EVN],min_size);
     crash_if_borders_not_allocated(vec[ODD],min_size);
     
@@ -372,7 +372,7 @@ namespace nissa
     //the buffer is lx ordered
     NISSA_PARALLEL_LOOP(ibord_lx,0,bord_vol)
       {
-	int dest_lx=loc_vol+ibord_lx;
+	int dest_lx=locVol+ibord_lx;
 	int par=loclx_parity[dest_lx];
 	int dest_eo=loceo_of_loclx[dest_lx];
 	memcpy((char*)(vec[par])+dest_eo*comm.nbytes_per_site,recv_buf+ibord_lx*comm.nbytes_per_site,comm.nbytes_per_site);
@@ -513,7 +513,7 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	int min_size=comm.nbytes_per_site*(bord_volh+loc_volh);
+	int min_size=comm.nbytes_per_site*(bord_volh+locVolh);
 	crash_if_borders_not_allocated(vec,min_size);
 	
 	//check buffer size matching
@@ -521,7 +521,7 @@ namespace nissa
 	  crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
 	
 	//the buffer is already ordered as the vec border
-	memcpy((char*)vec+loc_volh*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
+	memcpy((char*)vec+locVolh*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
       }
     
     //we do not sync, because typically we will set borders as valid
@@ -590,7 +590,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ibord_loclx,0,bord_vol)
       {
 	//convert Leblx indexing to eo
-	int source_loclx=surflx_of_bordlx[ibord_loclx];
+	int source_loclx=surflxOfBordlx[ibord_loclx];
 	int par=loclx_parity[source_loclx];
 	int source_eo=loceo_of_loclx[source_loclx];
 	int source_Lebeo=Lebeo_of_loceo[par][source_eo];

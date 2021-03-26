@@ -21,7 +21,7 @@ namespace nissa
   void evolve_lx_momenta_with_force(quad_su3* H,quad_su3* F,double dt)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
         for(int ic1=0;ic1<NCOL;ic1++)
           for(int ic2=0;ic2<NCOL;ic2++)
@@ -40,7 +40,7 @@ namespace nissa
     START_TIMING(conf_evolve_time,nconf_evolve);
     
     //evolve
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  su3 t1,t2;
@@ -59,7 +59,7 @@ namespace nissa
   //accelerate and evolve
   void evolve_lx_conf_with_accelerated_momenta(quad_su3 *lx_conf,quad_su3 *acc_conf,quad_su3 *H,double kappa,int niter,double residue,double dt)
   {
-    quad_su3 *M=nissa_malloc("M",loc_vol+bord_vol,quad_su3);
+    quad_su3 *M=nissa_malloc("M",locVol+bord_vol,quad_su3);
     accelerate_lx_momenta(M,acc_conf,kappa,niter,residue,H);
     evolve_lx_conf_with_momenta(lx_conf,M,dt);
     nissa_free(M);

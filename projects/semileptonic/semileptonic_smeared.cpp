@@ -212,7 +212,7 @@ void contract_with_source(complex *corr,PROP_TYPE *S1,int *list_op,PROP_TYPE *so
 {
   //Temporary vector for the internal matrices
   dirac_matr t1[ncontr_2pts],t2[ncontr_2pts];
-  complex *loc_corr=nissa_malloc("loc_corr",ncontr_2pts*glb_size[0],complex);
+  complex *loc_corr=nissa_malloc("loc_corr",ncontr_2pts*glbSize[0],complex);
   
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     {
@@ -258,7 +258,7 @@ void generate_sequential_source(int ispec)
   NISSA_LOC_VOL_LOOP(ivol)
     {
       //put to zero everywhere but on the slice
-      if(glb_coord_of_loclx[ivol][0]!=(source_coord[0]+tsep)%glb_size[0])
+      if(glbCoordOfLoclx[ivol][0]!=(source_coord[0]+tsep)%glbSize[0])
 	memset(sequential_source[ivol],0,sizeof(PROP_TYPE));
       else
 	{
@@ -370,12 +370,12 @@ void initialize_semileptonic(char *input_path)
       verbosity_lv2_master_printf("Read %d corrs, corresponding to %d contr\n",ncontr_2pts,two_pts_comp.size());
       for(int icorr=0;icorr<two_pts_comp.ncorr;icorr++)
 	verbosity_lv2_master_printf(" %s\n",two_pts_comp.corr_name[icorr].c_str());
-      new_contr_2pts=nissa_malloc("new_contr_2pts",ncontr_2pts*glb_size[0],double);
+      new_contr_2pts=nissa_malloc("new_contr_2pts",ncontr_2pts*glbSize[0],double);
     }
   else
     {
       read_str_int("NContrTwoPoints",&ncontr_2pts);
-      contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
+      contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glbSize[0],complex);
       op_sour_2pts=nissa_malloc("op_sour_2pts",ncontr_2pts,int);
       op_sink_2pts=nissa_malloc("op_sink_2pts",ncontr_2pts,int);
       for(int icontr=0;icontr<ncontr_2pts;icontr++)
@@ -388,7 +388,7 @@ void initialize_semileptonic(char *input_path)
 	}
       
       read_str_int("NChromoContrTwoPoints",&nch_contr_2pts);
-      ch_contr_2pts=nissa_malloc("ch_contr_2pts",nch_contr_2pts*glb_size[0],complex);
+      ch_contr_2pts=nissa_malloc("ch_contr_2pts",nch_contr_2pts*glbSize[0],complex);
       ch_op_sour_2pts=nissa_malloc("ch_op_sour_2pts",ncontr_2pts,int);
       ch_op_sink_2pts=nissa_malloc("ch_op_sink_2pts",ncontr_2pts,int);
       for(int icontr=0;icontr<nch_contr_2pts;icontr++)
@@ -441,12 +441,12 @@ void initialize_semileptonic(char *input_path)
       for(int icorr=0;icorr<three_pts_comp.ncorr;icorr++)
 	verbosity_lv2_master_printf(" %s\n",three_pts_comp.corr_name[icorr].c_str());
       
-      new_contr_3pts=nissa_malloc("new_contr_3pts",ncontr_3pts*glb_size[0],double);
+      new_contr_3pts=nissa_malloc("new_contr_3pts",ncontr_3pts*glbSize[0],double);
     }
   else
     {
       read_str_int("NContrThreePoints",&ncontr_3pts);
-      contr_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glb_size[0],complex); 
+      contr_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glbSize[0],complex); 
       
       op_sour_3pts=nissa_malloc("op_sour_3pts",ncontr_3pts,int);
       op_sink_3pts=nissa_malloc("op_sink_3pts",ncontr_3pts,int);
@@ -460,7 +460,7 @@ void initialize_semileptonic(char *input_path)
 	}
       
       read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
-      ch_contr_3pts=nissa_malloc("ch_contr_3pts",nch_contr_3pts*glb_size[0],complex);
+      ch_contr_3pts=nissa_malloc("ch_contr_3pts",nch_contr_3pts*glbSize[0],complex);
       ch_op_sour_3pts=nissa_malloc("ch_op_sour_3pts",nch_contr_3pts,int);
       ch_op_sink_3pts=nissa_malloc("ch_op_sink_3pts",nch_contr_3pts,int);
       for(int icontr=0;icontr<nch_contr_3pts;icontr++)
@@ -472,7 +472,7 @@ void initialize_semileptonic(char *input_path)
 	  master_printf(" ch-contr.%d %d %d\n",icontr,ch_op_sour_3pts[icontr],ch_op_sink_3pts[icontr]);
 	}
     }
-  if(ncontr_3pts!=0 or nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,PROP_TYPE);
+  if(ncontr_3pts!=0 or nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",locVol,PROP_TYPE);
   
   read_str_int("NGaugeConf",&ngauge_conf);
   
@@ -481,10 +481,10 @@ void initialize_semileptonic(char *input_path)
   ////////////////////////////////////// end of input reading/////////////////////////////////
   
   //allocate gauge conf, Cl and all the needed spincolor and propagators
-  conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  if(conf_smearing!=no_conf_smearing) sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  conf=nissa_malloc("or_conf",locVol+bord_vol+edge_vol,quad_su3);
+  if(conf_smearing!=no_conf_smearing) sme_conf=nissa_malloc("sm_conf",locVol+bord_vol+edge_vol,quad_su3);
   else sme_conf=conf;
-  Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
+  Cl=nissa_malloc("Cl",locVol,clover_term_t);
   
   //Allocate all the S0 PROP_TYPE vectors
   npropS0=nthetaS0*nmassS0;
@@ -494,26 +494,26 @@ void initialize_semileptonic(char *input_path)
   for(int iprop=0;iprop<npropS0;iprop++)
     for(int r=0;r<2;r++)
       if(which_r_S0==2 or which_r_S0==r)
-	S0[r][iprop]=nissa_malloc("S0[r]",loc_vol+bord_vol,PROP_TYPE);
+	S0[r][iprop]=nissa_malloc("S0[r]",locVol+bord_vol,PROP_TYPE);
   
   //Allocate nmass spincolors, for the cgm solutions
   ncgm_solution=std::max(nmassS0,nmassS1);
   cgm_solution=nissa_malloc("cgm_solution",ncgm_solution,spincolor*);
-  for(int imass=0;imass<ncgm_solution;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution",loc_vol+bord_vol,spincolor);
-  temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
-  temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
+  for(int imass=0;imass<ncgm_solution;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution",locVol+bord_vol,spincolor);
+  temp_vec[0]=nissa_malloc("temp_vec[0]",locVol,spincolor);
+  temp_vec[1]=nissa_malloc("temp_vec[1]",locVol,spincolor);
   
   //Allocate one spincolor for the source
-  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
-  original_source=nissa_malloc("original_source",loc_vol,PROP_TYPE);
+  source=nissa_malloc("source",locVol+bord_vol,spincolor);
+  original_source=nissa_malloc("original_source",locVol,PROP_TYPE);
   
   //Allocate one PROP_TYPE for the chromo-contractions
-  if(nch_contr_2pts!=0 or nch_contr_3pts!=0) ch_prop=nissa_malloc("chromo-prop",loc_vol,PROP_TYPE);
+  if(nch_contr_2pts!=0 or nch_contr_3pts!=0) ch_prop=nissa_malloc("chromo-prop",locVol,PROP_TYPE);
   
   //Allocate all the S1 PROP_TYPE vectors
   npropS1=nthetaS1*nmassS1;
   S1=nissa_malloc("S1",npropS1,PROP_TYPE*);
-  for(int iprop=0;iprop<npropS1;iprop++) S1[iprop]=nissa_malloc("S1[i]",loc_vol,PROP_TYPE);
+  for(int iprop=0;iprop<npropS1;iprop++) S1[iprop]=nissa_malloc("S1[i]",locVol,PROP_TYPE);
 }
 
 //find a new conf
@@ -590,8 +590,8 @@ void setup_conf()
     case stout_conf_smearing:
       //workaround because stout is implemented only for eo conf
       quad_su3 *eo_conf[2];
-      eo_conf[EVN]=nissa_malloc("new_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
-      eo_conf[ODD]=nissa_malloc("new_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
+      eo_conf[EVN]=nissa_malloc("new_conf_e",locVolh+bord_volh+edge_volh,quad_su3);
+      eo_conf[ODD]=nissa_malloc("new_conf_o",locVolh+bord_volh+edge_volh,quad_su3);
       split_lx_vector_into_eo_parts(eo_conf,conf);
       stout_smear(eo_conf,eo_conf,&(stout_smearing_pars));
       paste_eo_parts_into_lx_vector(sme_conf,eo_conf);
@@ -666,7 +666,7 @@ void close_semileptonic()
 //smear addditivily a propagator
 void smear_additive_propagator(PROP_TYPE *out,PROP_TYPE *in,int ism_lev,int *gaussian_niter)
 {
-  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+  spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
   
   int nsme=gaussian_niter[ism_lev];
   if(ism_lev>0) nsme-=gaussian_niter[ism_lev-1];
@@ -807,7 +807,7 @@ void calculate_all_S0(int ism_lev_so)
 			else       reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,Cl,mass[imass],cgm_solution[imass]);
 			master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 		      }
-		    else memcpy(temp_vec[which_r_S0],cgm_solution[imass],sizeof(spincolor)*loc_vol);
+		    else memcpy(temp_vec[which_r_S0],cgm_solution[imass],sizeof(spincolor)*locVol);
 		    for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		      if(which_r_S0==r or which_r_S0==2)
 			{
@@ -916,7 +916,7 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 		    else       apply_tmclovQ(temp_vec[0],conf,kappa,Cl,reco_mass,cgm_solution[imass]);
 		    master_printf("Mass %d (%g) reconstructed \n",imass,massS1[imass]);
 		  }
-		else memcpy(temp_vec[0],cgm_solution[imass],sizeof(spincolor)*loc_vol);
+		else memcpy(temp_vec[0],cgm_solution[imass],sizeof(spincolor)*locVol);
 		
 #ifdef POINT_SOURCE_VERSION
 		put_spincolor_into_su3spinspin(S1[ipropS1(itheta,imass)],temp_vec[0],id,ic);
@@ -949,10 +949,10 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 void prepare_prop_for_new_contraction(PROP_TYPE* prop,PROP_TYPE* aux)
 {
   
-  int spat_color_vol=loc_vol/loc_size[0]*sizeof(PROP_TYPE)/sizeof(spinspin);
+  int spat_color_vol=locVol/locSize[0]*sizeof(PROP_TYPE)/sizeof(spinspin);
   
   //fill aux
-  for(int t=0;t<loc_size[0];t++)
+  for(int t=0;t<locSize[0];t++)
     NISSA_PARALLEL_LOOP(ispat_color,0,spat_color_vol)
       for(int idirac_ri=0;idirac_ri<32;idirac_ri++)
 	((double*)aux)[ispat_color+spat_color_vol*(idirac_ri+32*t)]=
@@ -961,16 +961,16 @@ void prepare_prop_for_new_contraction(PROP_TYPE* prop,PROP_TYPE* aux)
   THREAD_BARRIER();
   
   //copy aux to prop
-  parallel_memcpy(prop,aux,sizeof(PROP_TYPE)*loc_vol);
+  parallel_memcpy(prop,aux,sizeof(PROP_TYPE)*locVol);
 }}
 //do the opposite
 void revert_prop_from_new_contraction(PROP_TYPE* prop,PROP_TYPE* aux)
 {
   
-  int spat_color_vol=loc_vol/loc_size[0]*sizeof(PROP_TYPE)/sizeof(spinspin);
+  int spat_color_vol=locVol/locSize[0]*sizeof(PROP_TYPE)/sizeof(spinspin);
   
   //fill aux
-  for(int t=0;t<loc_size[0];t++)
+  for(int t=0;t<locSize[0];t++)
     for(int idirac_ri=0;idirac_ri<32;idirac_ri++)
       NISSA_PARALLEL_LOOP(ispat_color,0,spat_color_vol)
 	((double*)aux)[idirac_ri+32*(ispat_color+spat_color_vol*t)]=
@@ -979,7 +979,7 @@ void revert_prop_from_new_contraction(PROP_TYPE* prop,PROP_TYPE* aux)
   THREAD_BARRIER();
   
   //copy aux to prop
-  parallel_memcpy(prop,aux,sizeof(PROP_TYPE)*loc_vol);
+  parallel_memcpy(prop,aux,sizeof(PROP_TYPE)*locVol);
 }}
 
 //Uses the new layout
@@ -989,26 +989,26 @@ void new_meson_two_points(double* glb_2pts,double* loc_2pts,PROP_TYPE* S_back,PR
   vector_reset(loc_2pts);
   
   //contract
-  int slice_vol=loc_vol/loc_size[0]*sizeof(PROP_TYPE)/sizeof(spinspin);
+  int slice_vol=locVol/locSize[0]*sizeof(PROP_TYPE)/sizeof(spinspin);
   comp->summ_the_loc_forw_back_contractions(loc_2pts,(double*)S_forw,(double*)S_back,slice_vol,source_coord[0]);
   
   THREAD_BARRIER();
   
   //reduce
-  if(IS_MASTER_THREAD) MPI_Reduce(loc_2pts,glb_2pts,glb_size[0]*comp->ncorr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  if(IS_MASTER_THREAD) MPI_Reduce(loc_2pts,glb_2pts,glbSize[0]*comp->ncorr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   THREAD_BARRIER();
 }}
 
 //Calculate and print to file the 2pts
 void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 {
-  PROP_TYPE *temp_der1=(compute_der>=1)?nissa_malloc("temp_der1",loc_vol+bord_vol,PROP_TYPE):NULL;
-  PROP_TYPE *temp_der2=(compute_der>=2)?nissa_malloc("temp_der2",loc_vol+bord_vol,PROP_TYPE):NULL;
-  PROP_TYPE *temp_transp=use_new_contraction_layout?nissa_malloc("temp_trans",loc_vol,PROP_TYPE):NULL;
+  PROP_TYPE *temp_der1=(compute_der>=1)?nissa_malloc("temp_der1",locVol+bord_vol,PROP_TYPE):NULL;
+  PROP_TYPE *temp_der2=(compute_der>=2)?nissa_malloc("temp_der2",locVol+bord_vol,PROP_TYPE):NULL;
+  PROP_TYPE *temp_transp=use_new_contraction_layout?nissa_malloc("temp_trans",locVol,PROP_TYPE):NULL;
   complex *loc_2pts;
   double *new_loc_2pts;
-  if(!use_new_contraction_layout) loc_2pts=nissa_malloc("contr_2pts",std::max(ncontr_2pts,nch_contr_2pts)*glb_size[0],complex);
-  else new_loc_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],double);
+  if(!use_new_contraction_layout) loc_2pts=nissa_malloc("contr_2pts",std::max(ncontr_2pts,nch_contr_2pts)*glbSize[0],complex);
+  else new_loc_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glbSize[0],double);
   
   //smear additively the propagators
   smear_time-=take_time();
@@ -1221,11 +1221,11 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 {
   char path[1024];
-  PROP_TYPE *temp_transp=use_new_contraction_layout?nissa_malloc("temp_trans",loc_vol,PROP_TYPE):NULL;
+  PROP_TYPE *temp_transp=use_new_contraction_layout?nissa_malloc("temp_trans",locVol,PROP_TYPE):NULL;
   complex *loc_3pts;
   double *new_loc_3pts;
-  if(!use_new_contraction_layout) loc_3pts=nissa_malloc("contr_3pts",std::max(ncontr_3pts,nch_contr_3pts)*glb_size[0],complex);
-  else new_loc_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glb_size[0],double);
+  if(!use_new_contraction_layout) loc_3pts=nissa_malloc("contr_3pts",std::max(ncontr_3pts,nch_contr_3pts)*glbSize[0],complex);
+  else new_loc_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glbSize[0],double);
   
   //open output file and take time
   safe_snprintf(path,1024,"%s/3pts_sp%d_%02d_%02d",outfolder,ispec,gaussian_niter_so[ism_lev_so],gaussian_niter_se[ism_lev_se]);
@@ -1372,7 +1372,7 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
 	
 	for(int icontr=0;icontr<ncontr_2pts;icontr++)
 	  if(op_sour_2pts[icontr]==5)
-	    master_fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op_sink_2pts[icontr]],(contr_2pts+icontr*glb_size[0])[source_coord[0]][0],(contr_2pts+icontr*glb_size[0])[source_coord[0]][1]);
+	    master_fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op_sink_2pts[icontr]],(contr_2pts+icontr*glbSize[0])[source_coord[0]][0],(contr_2pts+icontr*glbSize[0])[source_coord[0]][1]);
 	master_fprintf(fout,"\n");
       }
   

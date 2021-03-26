@@ -12,10 +12,10 @@ namespace nissa
     if(prop_out!=prop_in) vector_copy(prop_out,prop_in);
     
     //put to zero everywhere but on the slice
-    if(timeslice>=0 and timeslice<glb_size[0])
+    if(timeslice>=0 and timeslice<glbSize[0])
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  if(glb_coord_of_loclx[ivol][0]!=timeslice)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	  if(glbCoordOfLoclx[ivol][0]!=timeslice)
 	    memset(prop_out[ivol],0,sizeof(prop_type));
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(prop_out);

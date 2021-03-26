@@ -177,8 +177,8 @@ namespace nissa
     double scal_prod_with(pseudofermion_t &oth)
     {
       double res;
-      if(is_stag) double_vector_glb_scalar_prod(&res,(double*)stag,(double*)oth.stag,loc_volh*sizeof(color)/sizeof(double));
-      else double_vector_glb_scalar_prod(&res,(double*)Wils,(double*)oth.Wils,loc_volh*sizeof(spincolor)/sizeof(double));
+      if(is_stag) double_vector_glb_scalar_prod(&res,(double*)stag,(double*)oth.stag,locVolh*sizeof(color)/sizeof(double));
+      else double_vector_glb_scalar_prod(&res,(double*)Wils,(double*)oth.Wils,locVolh*sizeof(spincolor)/sizeof(double));
       return res;
     }
     //return the squared norm
@@ -191,15 +191,15 @@ namespace nissa
       
       if(is_stag)
 	{
-	  stag=nissa_malloc(name,loc_volh+bord_volh,color);
+	  stag=nissa_malloc(name,locVolh+bord_volh,color);
 	  double_ptr=(double*)stag;
-	  ndoubles=loc_volh*NCOL*2;
+	  ndoubles=locVolh*NCOL*2;
 	}
       else
 	{
-	  Wils=nissa_malloc(name,loc_volh+bord_volh,spincolor);
+	  Wils=nissa_malloc(name,locVolh+bord_volh,spincolor);
 	  double_ptr=(double*)Wils;
-	  ndoubles=loc_volh*4*NCOL*2;
+	  ndoubles=locVolh*4*NCOL*2;
 	}
     }
     pseudofermion_t(ferm_discretiz::name_t regul,const char *name="pf"){create(regul,name);}

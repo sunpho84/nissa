@@ -38,10 +38,10 @@ namespace nissa
   {
     int mu=((int*)pars)[0],prp_max_vol=((int*)pars)[1];
     int glb_perp_site=0;
-    for(int nu=0;nu<NDIM;nu++) if(mu!=nu) glb_perp_site=glb_perp_site*glb_size[nu]+glb_coord_of_loclx[iloc_lx][nu];
+    for(int nu=0;nu<NDIM;nu++) if(mu!=nu) glb_perp_site=glb_perp_site*glbSize[nu]+glbCoordOfLoclx[iloc_lx][nu];
     irank_locld=glb_perp_site/prp_max_vol;
     iloc_locld=glb_perp_site-irank_locld*prp_max_vol;
-    iloc_locld=iloc_locld*glb_size[mu]+glb_coord_of_loclx[iloc_lx][mu];
+    iloc_locld=iloc_locld*glbSize[mu]+glbCoordOfLoclx[iloc_lx][mu];
   }
   
   //unmake
@@ -49,14 +49,14 @@ namespace nissa
   {
     int mu=((int*)pars)[0],prp_max_vol=((int*)pars)[1];
     coords c;
-    c[mu]=iloc_locld%glb_size[mu];
-    iloc_locld/=glb_size[mu];
+    c[mu]=iloc_locld%glbSize[mu];
+    iloc_locld/=glbSize[mu];
     int glb_perp_site=iloc_locld+rank*prp_max_vol;
     for(int nu=NDIM-1;nu>=0;nu--)
       if(mu!=nu)
 	{
-	  c[nu]=glb_perp_site%glb_size[nu];
-	  glb_perp_site/=glb_size[nu];
+	  c[nu]=glb_perp_site%glbSize[nu];
+	  glb_perp_site/=glbSize[nu];
 	}
     get_loclx_and_rank_of_coord(&iloc_lx,&irank_lx,c);
   }
@@ -65,7 +65,7 @@ namespace nissa
   void remap_lx_vector_to_locd(void *out,void *in,int nbytes,int mu)
   {
     int pars[2]={mu,max_locd_perp_size_per_dir[mu]};
-    if(remap_lx_to_locd[mu]==NULL) remap_lx_to_locd[mu]=new vector_remap_t(loc_vol,index_make_loc_dir,pars);
+    if(remap_lx_to_locd[mu]==NULL) remap_lx_to_locd[mu]=new vector_remap_t(locVol,index_make_loc_dir,pars);
     remap_lx_to_locd[mu]->remap(out,in,nbytes);
   }
   void remap_locd_vector_to_lx(void *out,void *in,int nbytes,int mu)

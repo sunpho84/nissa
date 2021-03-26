@@ -42,11 +42,11 @@ namespace nissa
   CUDA_MANAGED EXTERN_PARS int nso_spi,nso_col;
   CUDA_MANAGED EXTERN_PARS coords source_coord;
   CUDA_HOST_AND_DEVICE inline int rel_coord_of_glb_coord(int c,int mu)
-  {return (glb_size[mu]+c-source_coord[mu])%glb_size[mu];}
+  {return (glbSize[mu]+c-source_coord[mu])%glbSize[mu];}
   inline int rel_time_of_glb_time(int t)
   {return rel_coord_of_glb_coord(t,0);}
   CUDA_HOST_AND_DEVICE inline int rel_coord_of_loclx(int loclx,int mu)
-  {return rel_coord_of_glb_coord(glb_coord_of_loclx[loclx][mu],mu);}
+  {return rel_coord_of_glb_coord(glbCoordOfLoclx[loclx][mu],mu);}
   CUDA_HOST_AND_DEVICE inline int rel_time_of_loclx(int loclx)
   {return rel_coord_of_loclx(loclx,0);}
   

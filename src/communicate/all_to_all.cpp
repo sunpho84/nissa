@@ -324,7 +324,7 @@ namespace nissa
 	  {
 	    //otherwise add it to the list of to-be-gathered
 	    int nel_gathered=this->size();
-	    int igathered=NDIM*loc_vol+nel_gathered;
+	    int igathered=NDIM*locVol+nel_gathered;
 	    (*this)[irank_link_asked]=igathered;
 	    
 	    return igathered;

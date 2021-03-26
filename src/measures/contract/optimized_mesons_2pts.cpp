@@ -143,14 +143,14 @@ namespace nissa
 #if THREADS_TYPE != OPENMP_THREADS
     int start_contr_t=0,end_contr_t=loc_size[0]*ncontrib;
 #else
-    NISSA_CHUNK_WORKLOAD(start_contr_t,chunk_load_contr_t,end_contr_t,0,loc_size[0]*ncontrib,THREAD_ID,NACTIVE_THREADS);
+    NISSA_CHUNK_WORKLOAD(start_contr_t,chunk_load_contr_t,end_contr_t,0,locSize[0]*ncontrib,THREAD_ID,NACTIVE_THREADS);
     chunk_load_contr_t++;
 #endif
     
     //loop on the whole list
     int icontrib_t=0;
-    double *temp=nissa_malloc("temp",ncontrib*loc_size[0],double);
-    for(int t=0;t<loc_size[0];t++)
+    double *temp=nissa_malloc("temp",ncontrib*locSize[0],double);
+    for(int t=0;t<locSize[0];t++)
       {
 	double *S_forw_t=S_forw+t*nel*32;
 	double *S_back_t=S_back+t*nel*32;
@@ -178,7 +178,7 @@ namespace nissa
     crash("#warning not implemented");
     
     //summ the result to all the corr to which it contributes
-    NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
+    NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])
       {
 	// //set in and out
 	// icontrib_t=ncontrib*loc_t;
@@ -211,7 +211,7 @@ namespace nissa
 	{
 	  fprintf(fout,"\n");
 	  fprintf(fout," # %s\n",corr_name[icorr].c_str());
-	  for(int t=0;t<glb_size[0];t++) fprintf(fout,"%+16.16lg\n",corr[glb_size[0]*icorr+t]);
+	  for(int t=0;t<glbSize[0];t++) fprintf(fout,"%+16.16lg\n",corr[glbSize[0]*icorr+t]);
 	}
   }
   

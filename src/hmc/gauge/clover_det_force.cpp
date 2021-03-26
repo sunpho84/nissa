@@ -24,14 +24,14 @@ namespace nissa
 	//Prepare clover
 	eo_ptr<clover_term_t> Cl;
 	for(int eo=0;eo<2;eo++)
-	  Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+	  Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
 	chromo_operator(Cl,eo_conf);
 	
 	eo_ptr<inv_clover_term_t> invCl;
 	for(int eo=0;eo<2;eo++)
-	  invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+	  invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
 	
-	as2t_su3 *insertion=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
+	as2t_su3 *insertion=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
 	for(auto& q : quark_content)
 	  {
 	    const double cSW=q.cSW;
@@ -45,7 +45,7 @@ namespace nissa
 		
 		/////////////////////////////////////////////////////////////////
 		
-		NISSA_PARALLEL_LOOP(jeo,0,loc_volh)
+		NISSA_PARALLEL_LOOP(jeo,0,locVolh)
 		  {
 		    for(int mu=0;mu<NDIM;mu++)
 		      for(int nu=mu+1;nu<NDIM;nu++)
@@ -82,7 +82,7 @@ namespace nissa
 		//communicate_e o_as2t_su3_edges(cl_insertion[]);
 		
 		for(int eo=0;eo<2;eo++)
-		  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 		    {
 		      for(int mu=0;mu<NDIM;mu++)
 			{

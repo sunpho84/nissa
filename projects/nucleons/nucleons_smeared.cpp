@@ -130,9 +130,9 @@ void initialize_nucleons(char *input_path)
   //Init the MPI grid
   init_grid(T,L);
   //Allocate the gauge Conf
-  conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  smea_conf=nissa_malloc("smea_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
+  conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
+  smea_conf=nissa_malloc("smea_conf",locVol+bord_vol+edge_vol,quad_su3);
+  Cl=nissa_malloc("Cl",locVol,clover_term_t);
   //Read the gauge conf
   read_str_int("NGaugeConf",&nconf);
   conf_path=(char**)malloc(sizeof(char*)*nconf);
@@ -172,7 +172,7 @@ void initialize_nucleons(char *input_path)
   read_str_int("ComputeAlsoSL2pts",&compute_also_SL_2pts);
   //tsink-tsource
   read_str_int("TSeparation",&tseparation);
-  tsink=(source_pos[0]+tseparation)%glb_size[0];
+  tsink=(source_pos[0]+tseparation)%glbSize[0];
   
   // 4) three points computation infos
   read_str_int("Compute3ptsLike0Dislike0",&(compute_3pts[0][0]));
@@ -184,10 +184,10 @@ void initialize_nucleons(char *input_path)
   
   ///////////////////// Allocate the various spinors ///////////////////////
   
-  original_source=nissa_malloc("original_source",loc_vol,su3spinspin);
+  original_source=nissa_malloc("original_source",locVol,su3spinspin);
   
-  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
-  temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
+  source=nissa_malloc("source",locVol+bord_vol,spincolor);
+  temp_source=nissa_malloc("temp_source",locVol+bord_vol,spincolor);
   
   //S0 and similars
   solDD=(spincolor**)malloc(sizeof(spincolor*)*nmass);
@@ -195,26 +195,26 @@ void initialize_nucleons(char *input_path)
   S0_SS=(su3spinspin***)malloc(sizeof(su3spinspin**)*nmass);
   for(int imass=0;imass<nmass;imass++)
     {
-      solDD[imass]=nissa_malloc("solDD",loc_vol+bord_vol,spincolor);
+      solDD[imass]=nissa_malloc("solDD",locVol+bord_vol,spincolor);
       
       //smearead-local spinor
       S0_SL[imass]=(su3spinspin**)malloc(sizeof(su3spinspin*)*2);
-      S0_SL[imass][0]=nissa_malloc("S0_SL[X][0]",loc_vol,su3spinspin);
-      S0_SL[imass][1]=nissa_malloc("S0_SL[X][1]",loc_vol,su3spinspin);
+      S0_SL[imass][0]=nissa_malloc("S0_SL[X][0]",locVol,su3spinspin);
+      S0_SL[imass][1]=nissa_malloc("S0_SL[X][1]",locVol,su3spinspin);
       
       //smeared-smeared
       S0_SS[imass]=(su3spinspin**)malloc(sizeof(su3spinspin*)*2);
-      S0_SS[imass][0]=nissa_malloc("S0_SS[X][0]",loc_vol,su3spinspin);
-      S0_SS[imass][1]=nissa_malloc("S0_SS[X][1]",loc_vol,su3spinspin);
+      S0_SS[imass][0]=nissa_malloc("S0_SS[X][0]",locVol,su3spinspin);
+      S0_SS[imass][1]=nissa_malloc("S0_SS[X][1]",locVol,su3spinspin);
     }
   
-  sol_reco[0]=nissa_malloc("solution_reco[0]",loc_vol,spincolor);
-  sol_reco[1]=nissa_malloc("solution_reco[1]",loc_vol,spincolor);
+  sol_reco[0]=nissa_malloc("solution_reco[0]",locVol,spincolor);
+  sol_reco[1]=nissa_malloc("solution_reco[1]",locVol,spincolor);
   
-  seq_source=nissa_malloc("seqential_source",loc_vol,su3spinspin);
+  seq_source=nissa_malloc("seqential_source",locVol,su3spinspin);
   
   S1=nissa_malloc("S1",nmass,su3spinspin*);
-  for(int imass=0;imass<nmass;imass++) S1[imass]=nissa_malloc("S1",loc_vol,su3spinspin);
+  for(int imass=0;imass<nmass;imass++) S1[imass]=nissa_malloc("S1",locVol,su3spinspin);
 }
 
 //read a configuration and put anti-periodic condition at the slice tsource-1
@@ -273,11 +273,11 @@ void calculate_S0()
 	    //convert the id-th spincolor into the colorspinspin and prepare the sink smeared version
 	    for(int r=0;r<2;r++)
 	      {
-		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+		NISSA_PARALLEL_LOOP(ivol,0,locVol)
 		  {
 		    //put the anti-periodic condition on the propagator
-		    int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
-		    double arg=M_PI*dt/glb_size[0];
+		    int dt=glbCoordOfLoclx[ivol][0]-source_pos[0];
+		    double arg=M_PI*dt/glbSize[0];
 		    complex phase={cos(arg),sin(arg)};
 		    
 		    unsafe_spincolor_prod_complex(temp_source[ivol],sol_reco[r][ivol],phase);
@@ -288,7 +288,7 @@ void calculate_S0()
 		
 		//smear the sink
 		gaussian_smearing(source,temp_source,smea_conf,Gauss_kappa,Gauss_niter);
-		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+		NISSA_PARALLEL_LOOP(ivol,0,locVol)
 		  put_spincolor_into_su3spinspin(S0_SS[imass][r][ivol],source[ivol],id_sour,ic_sour);
 		NISSA_PARALLEL_LOOP_END;
 		set_borders_invalid(S0_SS[imass][r]);
@@ -299,7 +299,7 @@ void calculate_S0()
   //put the (1+ig5)/sqrt(2) factor
   for(int imass=0;imass<nmass;imass++)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      NISSA_PARALLEL_LOOP(ivol,0,locVol)
       	for(int ic1=0;ic1<NCOL;ic1++)
 	  for(int ic2=0;ic2<NCOL;ic2++)
 	    {
@@ -316,7 +316,7 @@ void calculate_S0()
 void local_diquark(diquark* diq,su3spinspin* S)
 {
   
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     for(int al=0;al<4;al++)
       for(int al1=0;al1<4;al1++)
 	for(int ga=0;ga<4;ga++)
@@ -346,10 +346,10 @@ void local_diquark(diquark* diq,su3spinspin* S)
 void close_diquark(ssssss* prot6,diquark* diq,su3spinspin* S)
 {
   
-  ssssss *loc_prot6=new ssssss[glb_size[0]];
-  memset(loc_prot6,0,sizeof(ssssss)*glb_size[0]);
+  ssssss *loc_prot6=new ssssss[glbSize[0]];
+  memset(loc_prot6,0,sizeof(ssssss)*glbSize[0]);
   
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     for(int al=0;al<4;al++)
       for(int be=0;be<4;be++)
 	for(int ga=0;ga<4;ga++)
@@ -358,10 +358,10 @@ void close_diquark(ssssss* prot6,diquark* diq,su3spinspin* S)
 	      for(int ga1=0;ga1<4;ga1++)
 		for(int b=0;b<NCOL;b++)
 		  for(int b1=0;b1<NCOL;b1++)
-		    complex_summ_the_prod(loc_prot6[glb_coord_of_loclx[ivol][0]][al][be][ga][al1][be1][ga1],S[ivol][b1][b][be1][be],diq[ivol][b][b1][al][ga][al1][ga1]);
+		    complex_summ_the_prod(loc_prot6[glbCoordOfLoclx[ivol][0]][al][be][ga][al1][be1][ga1],S[ivol][b1][b][be1][be],diq[ivol][b][b1][al][ga][al1][ga1]);
   NISSA_PARALLEL_LOOP_END;
   THREAD_BARRIER();
-  int ndoub=sizeof(ssssss)/sizeof(double)*glb_size[0];
+  int ndoub=sizeof(ssssss)/sizeof(double)*glbSize[0];
   glb_threads_reduce_double_vect((double*)loc_prot6,ndoub);
   if(IS_MASTER_THREAD) MPI_Reduce(loc_prot6,prot6,ndoub,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   
@@ -380,10 +380,10 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
   char pm_tag[2][2]={"+","-"};
   
   //diquark term and all-open dirac indices term
-  diquark *diq=nissa_malloc("diq",loc_vol,diquark);
-  ssssss prot6[glb_size[0]];
-  ssss prot4[glb_size[0]];
-  spin prot[glb_size[0]];
+  diquark *diq=nissa_malloc("diq",locVol,diquark);
+  ssssss prot6[glbSize[0]];
+  ssss prot4[glbSize[0]];
+  spin prot[glbSize[0]];
   
   //contraction
   int ncontr=nproton_2pt_contr;
@@ -417,10 +417,10 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 	      //perform the proton contraction putting operators on the sink or on the source
 	      for(int SS=0;SS<2;SS++)
 		{
-		  memset(prot4,0,sizeof(ssss)*glb_size[0]);
+		  memset(prot4,0,sizeof(ssss)*glbSize[0]);
 		  
 		  //put the gamma3 (the gamma4 is identity!)
-		  for(int t=0;t<glb_size[0];t++)
+		  for(int t=0;t<glbSize[0];t++)
 		    for(int al=0;al<4;al++)
 		      for(int be=0;be<4;be++)
 			for(int ga=0;ga<4;ga++)
@@ -442,12 +442,12 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 		  
 		  for(int icontr=0;icontr<nproton_2pt_contr;icontr++)
 		    {
-		      memset(prot,0,sizeof(spin)*glb_size[0]);
+		      memset(prot,0,sizeof(spin)*glbSize[0]);
 		      
 		      if(SS==0) master_fprintf(output,"   # %s%s-P5S0\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
 		      else      master_fprintf(output,"   # P5S0-%s%s\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
 		      
-		      for(int t=0;t<glb_size[0];t++)
+		      for(int t=0;t<glbSize[0];t++)
 			for(int ind_p=0;ind_p<4;ind_p++)
 			  for(int ico=0;ico<2;ico++)
 			    {
@@ -473,9 +473,9 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 			  if(nns<2) master_fprintf(output,"# Contraction with (1%sg4)/2\n",pm_tag[nns]);
 			  else      master_fprintf(output,"# Contraction with (1+g4)_00(spinorial)/2\n");
 			      
-			  for(int tt=0;tt<glb_size[0];tt++)
+			  for(int tt=0;tt<glbSize[0];tt++)
 			    {
-			      int t=(tt+source_pos[0])%glb_size[0];
+			      int t=(tt+source_pos[0])%glbSize[0];
 			      
 			      complex contr={0,0};
 			      for(int ind_p=0;ind_p<4;ind_p++)
@@ -502,12 +502,12 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 
 void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 {
-  int dt=(tseparation+source_pos[0])%glb_size[0]-source_pos[0];
-  double arg=M_PI*dt/glb_size[0];
+  int dt=(tseparation+source_pos[0])%glbSize[0]-source_pos[0];
+  double arg=M_PI*dt/glbSize[0];
   complex phase={cos(arg),sin(arg)};
   
   NISSA_LOC_VOL_LOOP(ivol)
-    if(glb_coord_of_loclx[ivol][0]==slice_to_take)
+    if(glbCoordOfLoclx[ivol][0]==slice_to_take)
       {
 	su3spinspin temp;
 	memset(temp,0,sizeof(su3spinspin));
@@ -556,12 +556,12 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 
 void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 {
-  int dt=(tseparation+source_pos[0])%glb_size[0]-source_pos[0];
-  double arg=M_PI*dt/glb_size[0];
+  int dt=(tseparation+source_pos[0])%glbSize[0]-source_pos[0];
+  double arg=M_PI*dt/glbSize[0];
   complex phase={cos(arg),sin(arg)};
   
   NISSA_LOC_VOL_LOOP(ivol)
-    if(glb_coord_of_loclx[ivol][0]==slice_to_take)
+    if(glbCoordOfLoclx[ivol][0]==slice_to_take)
       {
 	su3spinspin temp;
 	memset(temp,0,sizeof(su3spinspin));
@@ -675,8 +675,8 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	    NISSA_LOC_VOL_LOOP(ivol)
 	      {
 		//put the anti-periodic condition on the propagator
-		int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
-		double arg=-M_PI*dt/glb_size[0];
+		int dt=glbCoordOfLoclx[ivol][0]-source_pos[0];
+		double arg=-M_PI*dt/glbSize[0];
 		complex phase={cos(arg),sin(arg)};
 		
 		spincolor temp;
@@ -703,17 +703,17 @@ void calculate_S1_dislike(int rlike,int rdislike)
 //this is needed to check 2pts
 void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
 {
-  complex *loc_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
-  memset(loc_contr,0,sizeof(complex)*glb_size[0]);
+  complex *loc_contr=(complex*)malloc(sizeof(complex)*glbSize[0]);
+  memset(loc_contr,0,sizeof(complex)*glbSize[0]);
   
   NISSA_LOC_VOL_LOOP(ivol)
     for(int id1=0;id1<4;id1++)
       for(int id2=0;id2<4;id2++)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++) //eta+*S
-	    complex_summ_the_conj1_prod(loc_contr[glb_coord_of_loclx[ivol][0]],eta[ivol][ic2][ic1][id2][id1],S[ivol][ic2][ic1][id2][id1]);
+	    complex_summ_the_conj1_prod(loc_contr[glbCoordOfLoclx[ivol][0]],eta[ivol][ic2][ic1][id2][id1],S[ivol][ic2][ic1][id2][id1]);
   
-  MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Reduce(loc_contr,glb_contr,2*glbSize[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   
   free(loc_contr);
 }
@@ -722,7 +722,7 @@ void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
 void check_2pts_with_current_sequential_source(char *path)
 {
   FILE *fout=open_text_file_for_output(path);
-  complex *contr_2pts=(complex*)malloc(sizeof(complex)*glb_size[0]);
+  complex *contr_2pts=(complex*)malloc(sizeof(complex)*glbSize[0]);
   
   for(int imass=0;imass<nmass;imass++)
     {
@@ -759,10 +759,10 @@ void apply_dipole_operator(su3spinspin *S_out,su3spinspin *S_in,int dir)
 {
   NISSA_LOC_VOL_LOOP(ivol)
     {
-      int coor=(glb_coord_of_loclx[ivol][dir]-source_pos[dir]+glb_size[dir])%glb_size[dir];
+      int coor=(glbCoordOfLoclx[ivol][dir]-source_pos[dir]+glbSize[dir])%glbSize[dir];
       
-      if(coor> glb_size[dir]/2) coor-=glb_size[dir]; //minor distance
-      if(coor==glb_size[dir]/2) coor=0; //take away the border (Simpson)
+      if(coor> glbSize[dir]/2) coor-=glbSize[dir]; //minor distance
+      if(coor==glbSize[dir]/2) coor=0; //take away the border (Simpson)
       
       for(int icso=0;icso<3;icso++)
 	for(int icsi=0;icsi<3;icsi++)
@@ -778,12 +778,12 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 {
   int ncontr;
   FILE *fout=open_text_file_for_output(path);
-  su3spinspin *supp_S=nissa_malloc("suppS",loc_vol,su3spinspin);
+  su3spinspin *supp_S=nissa_malloc("suppS",locVol,su3spinspin);
   
   tcontr_3pt-=take_time();
   
-  complex *loc_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
-  complex *glb_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
+  complex *loc_contr=(complex*)malloc(sizeof(complex)*glbSize[0]);
+  complex *glb_contr=(complex*)malloc(sizeof(complex)*glbSize[0]);
   
   for(int im_seq=0;im_seq<nmass;im_seq++)
     for(int im_close=0;im_close<nmass;im_close++)
@@ -810,7 +810,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 	    for(int icontr=0;icontr<ncontr;icontr++)
 	      {
 		//reset output
-		memset(loc_contr,0,sizeof(complex)*glb_size[0]);
+		memset(loc_contr,0,sizeof(complex)*glbSize[0]);
 		
 		//apply the EDM in the dir=icontr+1
 		if(norm_chro_EDM==2) apply_dipole_operator(supp_S,S0_SL[im_close][rS0],icontr+1);
@@ -819,7 +819,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 		NISSA_LOC_VOL_LOOP(ivol)
 		  {
 		    complex point_contr;
-		    int glb_t=glb_coord_of_loclx[ivol][0];
+		    int glb_t=glbCoordOfLoclx[ivol][0];
 		    
 		    //contract the single point
 		    switch(norm_chro_EDM)
@@ -833,7 +833,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 		  }
 		
 		//final reduction
-		MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+		MPI_Reduce(loc_contr,glb_contr,2*glbSize[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 		
 		if(rank==0)
 		  {
@@ -848,9 +848,9 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 		      }
 		    
 		    //print the contraction
-		    for(int tt=0;tt<glb_size[0];tt++)
+		    for(int tt=0;tt<glbSize[0];tt++)
 		      {
-			int t=(tt+source_pos[0])%glb_size[0];
+			int t=(tt+source_pos[0])%glbSize[0];
 			fprintf(fout," %+016.16g\t%+016.16g\n",glb_contr[t][0],glb_contr[t][1]);
 		      }
 		    fprintf(fout,"\n");

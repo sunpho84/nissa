@@ -49,45 +49,45 @@ namespace nissa
     if(ext_invCl_lx) invCl_lx=ext_invCl_lx;
     else
       {
-	invCl_lx=nissa_malloc("invCl",loc_vol,inv_clover_term_t);
+	invCl_lx=nissa_malloc("invCl",locVol,inv_clover_term_t);
 	invert_twisted_clover_term(invCl_lx,mass,kappa,Cl_lx);
       }
     
     //prepare the e/o split version of the source
     eo_ptr<spincolor> source_eos;
-    source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spincolor);
-    source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spincolor);
+    source_eos[0]=nissa_malloc("source_eos0",locVolh+bord_volh,spincolor);
+    source_eos[1]=nissa_malloc("source_eos1",locVolh+bord_volh,spincolor);
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
     eo_ptr<spincolor> solution_eos;
-    solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
-    solution_eos[1]=nissa_malloc("solution_eos_1",loc_volh+bord_volh,spincolor);
+    solution_eos[0]=nissa_malloc("solution_eos_0",locVolh+bord_volh,spincolor);
+    solution_eos[1]=nissa_malloc("solution_eos_1",locVolh+bord_volh,spincolor);
     
     //prepare the e/o split version of the conf
     eo_ptr<quad_su3> conf_eos;
-    conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+bord_volh,quad_su3);
-    conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+bord_volh,quad_su3);
+    conf_eos[0]=nissa_malloc("conf_eos_0",locVolh+bord_volh,quad_su3);
+    conf_eos[1]=nissa_malloc("conf_eos_1",locVolh+bord_volh,quad_su3);
     split_lx_vector_into_eo_parts(conf_eos,conf_lx);
     
     //prepare the e/o split version of the clover term
     clover_term_t *Cl_odd;
-    Cl_odd=nissa_malloc("Cl_odd",loc_volh,clover_term_t);
+    Cl_odd=nissa_malloc("Cl_odd",locVolh,clover_term_t);
     get_evn_or_odd_part_of_lx_vector(Cl_odd,Cl_lx,ODD);
     
     //prepare the e/o split version of the clover term
     inv_clover_term_t *invCl_evn;
-    invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+    invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
     get_evn_or_odd_part_of_lx_vector(invCl_evn,invCl_lx,EVN);
     
     ///////////////////////////////////// invert with e/o preconditioning ///////////////////////////////////
     
     //Equation (8.a)
-    spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+    spincolor *temp=nissa_malloc("temp",locVolh+bord_volh,spincolor);
     inv_tmclovDee_or_oo_eos(temp,invCl_evn,false,source_eos[EVN]);
     
     //Equation (8.b)
-    spincolor *varphi=nissa_malloc("varphi",loc_volh+bord_volh,spincolor);
+    spincolor *varphi=nissa_malloc("varphi",locVolh+bord_volh,spincolor);
     inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,temp,source_eos[ODD]);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
@@ -109,11 +109,11 @@ namespace nissa
     paste_eo_parts_into_lx_vector(solution_lx,solution_eos);
     
     //check for residual
-    spincolor *check_res=nissa_malloc("check_res",loc_vol+bord_vol,spincolor);
+    spincolor *check_res=nissa_malloc("check_res",locVol+bord_vol,spincolor);
     //multiply by g5*D
     apply_tmclovQ(check_res,conf_lx,kappa,Cl_lx,mass,solution_lx);
     //remove g5 and take the difference with source
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	const double mg5[2]={-1,1};
 	for(int high_low=0;high_low<2;high_low++)
@@ -123,7 +123,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(check_res);
     //compute residual and print
-    double real_residue=double_vector_glb_norm2(check_res,loc_vol)/double_vector_glb_norm2(source_lx,loc_vol);
+    double real_residue=double_vector_glb_norm2(check_res,locVol)/double_vector_glb_norm2(source_lx,locVol);
     if(real_residue>residue*1.1) master_printf("WARNING preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
     
     nissa_free(check_res);
@@ -209,10 +209,10 @@ namespace nissa
 	  DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
 	  
 	  //check solution
-	  spincolor *temp_lx=nissa_malloc("temp",loc_vol,spincolor);
+	  spincolor *temp_lx=nissa_malloc("temp",locVol,spincolor);
 	  apply_tmclovQ(temp_lx,conf_lx,kappa,Cl_lx,mass,solution_lx);
 	  
-	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	     for(int id=0;id<NDIRAC;id++)
 	       for(int ic=0;ic<NCOL;ic++)
 		 for(int ri=0;ri<2;ri++)
@@ -221,8 +221,8 @@ namespace nissa
 	  THREAD_BARRIER();
 	  
 	  //compute the norm and print it
-	  double sonorm2=double_vector_glb_norm2(source_lx,loc_vol);
-	  double norm2=double_vector_glb_norm2(temp_lx,loc_vol);
+	  double sonorm2=double_vector_glb_norm2(source_lx,locVol);
+	  double norm2=double_vector_glb_norm2(temp_lx,locVol);
 	  master_printf("check solution: %lg\n",norm2/sonorm2);
 	  nissa_free(temp_lx);
 	   // for(int ivol=0;ivol<loc_vol;ivol++)

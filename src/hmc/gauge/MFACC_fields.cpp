@@ -30,7 +30,7 @@ namespace nissa
   void generate_MFACC_field(su3* pi)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       herm_put_to_gauss(pi[ivol],&(loc_rnd_gen[ivol]),1);
     NISSA_PARALLEL_LOOP_END;
     
@@ -43,7 +43,7 @@ namespace nissa
     //summ the square of pi
     double glb_action_lx[naux_fields];
     for(int ifield=0;ifield<naux_fields;ifield++)
-      double_vector_glb_scalar_prod(&(glb_action_lx[ifield]),(double*)(phi[ifield]),(double*)(phi[ifield]),sizeof(su3)/sizeof(double)*loc_vol);
+      double_vector_glb_scalar_prod(&(glb_action_lx[ifield]),(double*)(phi[ifield]),(double*)(phi[ifield]),sizeof(su3)/sizeof(double)*locVol);
     
     double act=0;
     for(int id=0;id<naux_fields;id++) act+=glb_action_lx[id];
@@ -57,7 +57,7 @@ namespace nissa
     verbosity_lv2_master_printf("Evolving Fourier fields, dt=%lg\n",dt);
     
     //allocate
-    su3 *F=nissa_malloc("temp",loc_vol+bord_vol,su3);
+    su3 *F=nissa_malloc("temp",locVol+bord_vol,su3);
     
     for(int ifield=0;ifield<naux_fields;ifield++)
       {
@@ -122,7 +122,7 @@ namespace nissa
 	//crash("pui");
 #endif
 	//evolve
-        double_vector_summ_double_vector_prod_double((double*)(phi[ifield]),(double*)(phi[ifield]),(double*)F,dt,loc_vol*sizeof(su3)/sizeof(double));
+        double_vector_summ_double_vector_prod_double((double*)(phi[ifield]),(double*)(phi[ifield]),(double*)F,dt,locVol*sizeof(su3)/sizeof(double));
       }
     
     nissa_free(F);
@@ -134,7 +134,7 @@ namespace nissa
     verbosity_lv2_master_printf("Evolving Fourier momenta, dt=%lg\n",dt);
     
     for(int ifield=0;ifield<naux_fields;ifield++)
-      double_vector_summ_double_vector_prod_double((double*)(pi[ifield]),(double*)(pi[ifield]),(double*)(phi[ifield]),-dt,loc_vol*sizeof(su3)/sizeof(double));
+      double_vector_summ_double_vector_prod_double((double*)(pi[ifield]),(double*)(pi[ifield]),(double*)(phi[ifield]),-dt,locVol*sizeof(su3)/sizeof(double));
   }
   
   //compute the QCD force originated from MFACC momenta (derivative of \pi^\dag MM \pi/2) w.r.t U
@@ -190,12 +190,12 @@ namespace nissa
     
     for(int ifield=0;ifield<naux_fields;ifield++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
 	      //temporary pieces
 	      su3 t,E;
-	      int up=loclx_neighup[ivol][mu];
+	      int up=loclxNeighup[ivol][mu];
 	      
 	      //forward piece
 	      unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],pi[ifield][ivol]);
@@ -282,13 +282,13 @@ namespace nissa
     vector_reset(F);
 #endif
     
-    su3 *H_nu=nissa_malloc("H_nu",loc_vol+bord_vol,su3);
-    su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
+    su3 *H_nu=nissa_malloc("H_nu",locVol+bord_vol,su3);
+    su3 *temp=nissa_malloc("temp",locVol+bord_vol,su3);
     
     for(int nu=0;nu<NDIM;nu++)
       {
 	//copy out
-        NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+        NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  su3_copy(H_nu[ivol],H[ivol][nu]);
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(H_nu);
@@ -296,14 +296,14 @@ namespace nissa
 	//invert
 	inv_MFACC_cg(temp,NULL,conf,kappa,niter,residue,H_nu);
 	
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    //D(A A^-1) = 0 = D(A) A^-1 + A D(A^-1) -> D(A^-1)=-A^-1 DA A^-1
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
 		su3 E,t;
-		int up=loclx_neighup[ivol][mu];
+		int up=loclxNeighup[ivol][mu];
 		
 		//forward piece
 		unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],temp[ivol]);

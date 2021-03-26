@@ -21,7 +21,7 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
 	  {
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
@@ -39,12 +39,12 @@ namespace nissa
   void add_im_pot_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content)
   {
     
-    double im_pot=quark_content->im_pot*M_PI/glb_size[0];
+    double im_pot=quark_content->im_pot*M_PI/glbSize[0];
     const double c=cos(im_pot),s=sin(im_pot);
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    const complex ph={c,s};
 	    safe_complex_prod(S[par][ieo][0],S[par][ieo][0],ph);
@@ -66,13 +66,13 @@ namespace nissa
     phase[0]=phase[1]=phase[2]=phase[3]=0;
     
     //take absolute coords
-    int xmu=glb_coord_of_loclx[ivol][mu];
-    int xnu=glb_coord_of_loclx[ivol][nu];
-    if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
-    if(xnu>=glb_size[nu]/2) xnu-=glb_size[nu];
+    int xmu=glbCoordOfLoclx[ivol][mu];
+    int xnu=glbCoordOfLoclx[ivol][nu];
+    if(xmu>=glbSize[mu]/2) xmu-=glbSize[mu];
+    if(xnu>=glbSize[nu]/2) xnu-=glbSize[nu];
     
     //define the arguments of exponentials
-    if(xmu==glb_size[mu]/2-1) phase[mu]=-xnu*glb_size[mu];
+    if(xmu==glbSize[mu]/2-1) phase[mu]=-xnu*glbSize[mu];
     phase[nu]=xmu;
   }
   
@@ -83,9 +83,9 @@ namespace nissa
     phase[0]=phase[1]=phase[2]=phase[3]=0;
     
     //take absolute coords
-    int xmu=glb_coord_of_loclx[ivol][mu];
-    if(xmu<=glb_size[mu]/2) xmu=glb_coord_of_loclx[ivol][mu]-glb_size[mu]/4;
-    else                    xmu=3*glb_size[mu]/4-glb_coord_of_loclx[ivol][mu];
+    int xmu=glbCoordOfLoclx[ivol][mu];
+    if(xmu<=glbSize[mu]/2) xmu=glbCoordOfLoclx[ivol][mu]-glbSize[mu]/4;
+    else                    xmu=3*glbSize[mu]/4-glbCoordOfLoclx[ivol][mu];
     
     //define the arguments of exponentials
     phase[nu]=xmu;
@@ -99,14 +99,14 @@ namespace nissa
   void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content,double em_str,int quantization,int mu,int nu)
   {
     
-    double phase=2*em_str*quark_content->charge*M_PI/glb_size[mu]/glb_size[nu];
+    double phase=2*em_str*quark_content->charge*M_PI/glbSize[mu]/glbSize[nu];
     
-    if(quantization==2 and glb_size[mu]%4!=0)
-      crash("for half-half quantization global size in %d direction must be multiple of 4, it is %d",mu,glb_size[mu]);
+    if(quantization==2 and glbSize[mu]%4!=0)
+      crash("for half-half quantization global size in %d direction must be multiple of 4, it is %d",mu,glbSize[mu]);
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    //compute arg
 	    coords arg;
@@ -162,9 +162,9 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ivol_eo,0,locVolh)
 	  {
-	    if(glb_coord_of_loclx[loclx_of_loceo[par][ivol_eo]][mu]==(glb_size[mu]-1))
+	    if(glbCoordOfLoclx[loclx_of_loceo[par][ivol_eo]][mu]==(glbSize[mu]-1))
 	      complex_prodassign_double(S[par][ivol_eo][mu],-1);
 	  }
 	NISSA_PARALLEL_LOOP_END;
@@ -178,7 +178,7 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
 	  {
 	    coords ph;
 	    get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
@@ -203,7 +203,7 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
 	  {
 	    coords ph;
 	    if(with_without==0) get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
@@ -235,7 +235,7 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    int ilx=loclx_of_loceo[par][ieo];
 	    coords ph;
@@ -267,7 +267,7 @@ namespace nissa
     backfield.resize(nflavs());
     for(int iflav=0;iflav<nflavs();iflav++)
       for(int par=0;par<2;par++)
-	backfield[iflav][par]=nissa_malloc("back_eo",loc_volh,quad_u1);
+	backfield[iflav][par]=nissa_malloc("back_eo",locVolh,quad_u1);
   }
   
   //set the background fields

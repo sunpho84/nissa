@@ -15,7 +15,7 @@ namespace nissa
   {
     
     apply_tmclovQ(outminus,conf,kappa,Cl,mu,in);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	spincolor_copy(outplus[ivol],outminus[ivol]);
 	spincolor_summ_the_prod_idouble(outplus[ivol],in[ivol],-2*mu);

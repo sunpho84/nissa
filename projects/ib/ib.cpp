@@ -333,21 +333,21 @@ void init_simulation(int narg,char **arg)
   
   if(clover_run)
     {
-      Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
-      invCl=nissa_malloc("invCl",loc_vol,inv_clover_term_t);
+      Cl=nissa_malloc("Cl",locVol,clover_term_t);
+      invCl=nissa_malloc("invCl",locVol,inv_clover_term_t);
     }
   
   allocate_loop_source();
   allocate_photon_fields();
   
-  loc_contr=nissa_malloc("loc_contr",loc_vol,complex);
+  loc_contr=nissa_malloc("loc_contr",locVol,complex);
   
   allocate_mes2pts_contr();
   allocate_handcuffs_contr();
   
   nmeslep_corr=nquark_lep_combos*nindep_meslep_weak;
-  meslep_hadr_part=nissa_malloc("hadr",loc_vol,spinspin);
-  meslep_contr=nissa_malloc("meslep_contr",glb_size[0]*nindep_meslep_weak*nmeslep_proj*nmeslep_corr,complex);
+  meslep_hadr_part=nissa_malloc("hadr",locVol,spinspin);
+  meslep_contr=nissa_malloc("meslep_contr",glbSize[0]*nindep_meslep_weak*nmeslep_proj*nmeslep_corr,complex);
   
   allocate_bar2pts_contr();
   

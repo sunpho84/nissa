@@ -24,7 +24,7 @@ namespace nissa
     if(eooe==0) communicate_od_spincolor_128_borders(in);
     else        communicate_ev_spincolor_128_borders(in);
     
-    NISSA_PARALLEL_LOOP(X,0,loc_volh)
+    NISSA_PARALLEL_LOOP(X,0,locVolh)
       {
 	int Xup,Xdw;
 	color_128 temp_c0,temp_c1,temp_c2,temp_c3;
@@ -125,7 +125,7 @@ namespace nissa
   {
     if(in==out) crash("in==out!");
     
-    NISSA_PARALLEL_LOOP(X,0,loc_volh)
+    NISSA_PARALLEL_LOOP(X,0,locVolh)
       for(int ic=0;ic<3;ic++)
 	{
 	  const complex z={1/(2*kappa),mu};
@@ -146,7 +146,7 @@ namespace nissa
     
     const double a=1/(2*kappa),b=mu,nrm=1/(a*a+b*b);
     
-    NISSA_PARALLEL_LOOP(X,0,loc_volh)
+    NISSA_PARALLEL_LOOP(X,0,locVolh)
       for(int ic=0;ic<3;ic++)
 	{
 	  const complex z={+a*nrm,-b*nrm};
@@ -163,7 +163,7 @@ namespace nissa
   //put g5
   void tmDkern_eoprec_eos_put_together_and_include_gamma5_128(spincolor_128* out,spincolor_128* temp)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
       for(int id=0;id<2;id++)
 	for(int ic=0;ic<3;ic++)
 	  for(int ri=0;ri<2;ri++)

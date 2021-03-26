@@ -15,7 +15,7 @@ namespace nissa
     const double e2=4*M_PI*alpha_em;
     const double e=sqrt(e2);
     verbosity_lv2_master_printf("Adding backfield, for a quark of charge q=e*%lg/3\n",charge);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  complex ph;
@@ -85,7 +85,7 @@ namespace nissa
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	sou_proxy[so_sp_col_ind(id_so,ic_so)]=sou->sp[so_sp_col_ind(id_so,ic_so)];
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	spincolor c;
 	spincolor_put_to_zero(c);
@@ -128,7 +128,7 @@ namespace nissa
 	{
 	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
 	  set_borders_invalid(s);
-	  ori_source_norm2+=double_vector_glb_norm2(s,loc_vol);
+	  ori_source_norm2+=double_vector_glb_norm2(s,locVol);
 	}
     if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
     
@@ -145,8 +145,8 @@ namespace nissa
     
     for(int mu=0;mu<NDIM;mu++)
       if(dirs[mu])
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  if(t==-1 or glb_coord_of_loclx[ivol][0]==t)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	  if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
 	    {
 	      spincolor temp1,temp2;
 	      unsafe_dirac_prod_spincolor(temp1,base_gamma+igamma_of_mu[mu],in[ivol]);
@@ -204,18 +204,18 @@ namespace nissa
     for(int mu=1;mu<NDIM;mu++) if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10) crash("Error: phase %lg must be an even integer",th[mu]);
     
     vector_reset(out);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute x*p
 	double arg=0.0;
-	for(int mu=1;mu<NDIM;mu++) arg+=M_PI*th[mu]*rel_coord_of_loclx(ivol,mu)/glb_size[mu]; //N.B: valid only if source is on origin...
+	for(int mu=1;mu<NDIM;mu++) arg+=M_PI*th[mu]*rel_coord_of_loclx(ivol,mu)/glbSize[mu]; //N.B: valid only if source is on origin...
 	
 	//compute exp(ip)
 	complex factor;
 	complex_iexp(factor,arg);
 	
 	//put the phase
-	if(t==-1 or glb_coord_of_loclx[ivol][0]==t)
+	if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
 	  unsafe_spincolor_prod_complex(out[ivol],ori[ivol],factor);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -230,7 +230,7 @@ namespace nissa
     START_TIMING(bflw_time,nbflw_tot);
     
     //the flown conf
-    quad_su3 *flown_conf=nissa_malloc("flown_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *flown_conf=nissa_malloc("flown_conf",locVol+bord_vol+edge_vol,quad_su3);
     vector_copy(flown_conf,conf);
     
     //the recursive flower, need to cache backward integration
@@ -269,7 +269,7 @@ namespace nissa
     START_TIMING(flw_time,nflw_tot);
     
     //the flown conf
-    quad_su3 *flown_conf=nissa_malloc("flown_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *flown_conf=nissa_malloc("flown_conf",locVol+bord_vol+edge_vol,quad_su3);
     vector_copy(flown_conf,conf);
     
     //the flower, need to cache integration
@@ -302,7 +302,7 @@ namespace nissa
       {
 	complex coef={c.second.first,c.second.second};
 	spincolor *p=Q[c.first][isou];
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  spincolor_summ_the_prod_complex(out[ivol],p[ivol],coef);
 	NISSA_PARALLEL_LOOP_END;
       }
@@ -315,7 +315,7 @@ namespace nissa
     source_time-=take_time();
     
     int rel_t=t;
-    if(rel_t!=-1) rel_t=(t+source_coord[0])%glb_size[0];
+    if(rel_t!=-1) rel_t=(t+source_coord[0])%glbSize[0];
     
     quad_su3 *conf;
     if(not is_smearing_ins(inser)) conf=get_updated_conf(charge,theta,glb_conf);
@@ -327,13 +327,13 @@ namespace nissa
 	conf=get_updated_conf(0.0,theta,ext_conf);
       }
     
-    spincolor* ori=nissa_malloc("ori",loc_vol+bord_vol,spincolor);
+    spincolor* ori=nissa_malloc("ori",locVol+bord_vol,spincolor);
     build_source(ori,&source_terms,isou);
     
     spin1field *ext_field=nullptr;
     if(inser==EXT_FIELD)
       {
-	ext_field=nissa_malloc("ext_field",loc_vol+bord_vol,spin1field);
+	ext_field=nissa_malloc("ext_field",locVol+bord_vol,spin1field);
 	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
       }
     
@@ -506,9 +506,9 @@ namespace nissa
   //allocate the photon fields
   void allocate_photon_fields()
   {
-    photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
-    photon_field=nissa_malloc("photon_field",loc_vol+bord_vol,spin1field);
-    photon_phi=nissa_malloc("photon_phi",loc_vol+bord_vol,spin1field);
+    photon_eta=nissa_malloc("photon_eta",locVol+bord_vol,spin1field);
+    photon_field=nissa_malloc("photon_field",locVol+bord_vol,spin1field);
+    photon_phi=nissa_malloc("photon_phi",locVol+bord_vol,spin1field);
   }
   
   //free the photon fields
@@ -578,11 +578,11 @@ namespace nissa
   void put_fft_source_phase(spincolor* qtilde,double fft_sign)
   {
     
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	//sum_mu -sign*2*pi*p_mu*y_mu/L_mu
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++) arg+=-fft_sign*2*M_PI*glb_coord_of_loclx[imom][mu]*source_coord[mu]/glb_size[mu];
+	for(int mu=0;mu<NDIM;mu++) arg+=-fft_sign*2*M_PI*glbCoordOfLoclx[imom][mu]*source_coord[mu]/glbSize[mu];
 	
 	complex f={cos(arg),sin(arg)};
 	spincolor_prodassign_complex(qtilde[imom],f);
@@ -616,13 +616,13 @@ namespace nissa
 	  //gets the coordinate in the filtering volume
 	  coords c;
 	  coord_of_lx(c,ifilt,f.first.width);
-	  coord_summassign(c,f.first.offs,glb_size);
+	  coord_summassign(c,f.first.offs,glbSize);
 	  
 	  //compute p~4/p~2^2
 	  double pt2=0,pt4=0;
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
-	      double pmu=M_PI*(2*c[mu]+(mu==0)*temporal_bc)/glb_size[mu];
+	      double pmu=M_PI*(2*c[mu]+(mu==0)*temporal_bc)/glbSize[mu];
 	      double ptmu=sin(pmu);
 	      pt2+=sqr(ptmu);
 	      pt4+=pow(ptmu,4.0);
@@ -645,8 +645,8 @@ namespace nissa
 		    if(fout)
 		      {
 			for(int mu=0;mu<NDIM;mu++)
-			  if(cmir[mu]<glb_size[mu]/2) master_fprintf(fout,"%d ",cmir[mu]);
-			  else                        master_fprintf(fout,"%d ",cmir[mu]-glb_size[mu]);
+			  if(cmir[mu]<glbSize[mu]/2) master_fprintf(fout,"%d ",cmir[mu]);
+			  else                        master_fprintf(fout,"%d ",cmir[mu]-glbSize[mu]);
 			master_fprintf(fout,"\n");
 		      }
 		    
@@ -715,7 +715,7 @@ namespace nissa
 	    
 	    std::tie(cmu,emu)=do_on_master(read_int);
 	    
-	    c[mu]=(cmu+glb_size[mu])%glb_size[mu];
+	    c[mu]=(cmu+glbSize[mu])%glbSize[mu];
 	    
 	    ended|=emu;
 	  }
@@ -742,7 +742,7 @@ namespace nissa
   void propagators_fft(int ihit)
   {
     
-    spincolor *qtilde=nissa_malloc("qtilde",loc_vol+bord_vol,spincolor);
+    spincolor *qtilde=nissa_malloc("qtilde",locVol+bord_vol,spincolor);
     
     int nf=fft_filterer.size();
     spincolor *qfilt[nf];

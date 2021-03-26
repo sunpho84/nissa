@@ -41,14 +41,14 @@ namespace nissa
     for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
       {                                               //  |   |   | mu
 	int nu=perp_dir[mu][inu];                     //  D---A---B
-	  int B=loclx_neighup[A][nu];                 //        nu
-	  int F=loclx_neighup[A][mu];
+	  int B=loclxNeighup[A][nu];                 //        nu
+	  int F=loclxNeighup[A][mu];
 	  unsafe_su3_prod_su3(    temp1,conf[A][nu],conf[B][mu]);
 	  unsafe_su3_prod_su3_dag(temp2,temp1,      conf[F][nu]);
 	  su3_summ_the_prod_double(staples,temp2,rho);
 	  
-	  int D=loclx_neighdw[A][nu];
-	  int E=loclx_neighup[D][mu];
+	  int D=loclxNeighdw[A][nu];
+	  int E=loclxNeighup[D][mu];
 	  unsafe_su3_dag_prod_su3(temp1,conf[D][nu],conf[D][mu]);
 	  unsafe_su3_prod_su3(    temp2,temp1,      conf[E][nu]);
 	  su3_summ_the_prod_double(staples,temp2,rho);
@@ -83,14 +83,14 @@ namespace nissa
     quad_su3 *in;
     if(out==ext_in)
       {
-	in=nissa_malloc("in",loc_vol+bord_vol+edge_vol,quad_su3);
+	in=nissa_malloc("in",locVol+bord_vol+edge_vol,quad_su3);
 	vector_copy(in,ext_in);
       }
       else in=ext_in;
     
     for(int mu=0;mu<NDIM;mu++)
       if(dirs[mu])
-	NISSA_PARALLEL_LOOP(A,0,loc_vol)
+	NISSA_PARALLEL_LOOP(A,0,locVol)
 	  {
 	    //compute the staples needed to smear
 	    stout_link_staples sto_ste;
@@ -123,7 +123,7 @@ namespace nissa
 	break;
       default:
 	//allocate temp
-	quad_su3 *ext_temp=nissa_malloc("temp",loc_vol+bord_vol+edge_vol,quad_su3);
+	quad_su3 *ext_temp=nissa_malloc("temp",locVol+bord_vol+edge_vol,quad_su3);
 	
 	quad_su3 *in=ext_in,*ptr[2]={ext_temp,ext_out};
 	
@@ -152,7 +152,7 @@ namespace nissa
     (*out)=nissa_malloc("out*",nlev+1,quad_su3*);
     (*out)[0]=in;
     for(int i=1;i<=nlev;i++)
-      (*out)[i]=nissa_malloc("out",loc_vol+bord_vol+edge_vol,quad_su3);
+      (*out)[i]=nissa_malloc("out",locVol+bord_vol+edge_vol,quad_su3);
   }
   
   //free all the stack of allocated smeared conf
@@ -178,10 +178,10 @@ namespace nissa
   {
     communicate_lx_quad_su3_edges(conf);
     
-    quad_su3 *Lambda=nissa_malloc("Lambda",loc_vol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *Lambda=nissa_malloc("Lambda",locVol+bord_vol+edge_vol,quad_su3);
     
     for(int mu=0;mu<NDIM;mu++)
-      NISSA_PARALLEL_LOOP(A,0,loc_vol)
+      NISSA_PARALLEL_LOOP(A,0,locVol)
 	{
 	  //compute the ingredients needed to smear
 	  stout_link_staples sto_ste;
@@ -220,13 +220,13 @@ namespace nissa
       for(int nu=0;nu<NDIM;nu++)
 	if(mu!=nu)
 	  {
-	    NISSA_PARALLEL_LOOP(A,0,loc_vol)     //   b1 --<-- f1 -->-- +
+	    NISSA_PARALLEL_LOOP(A,0,locVol)     //   b1 --<-- f1 -->-- +
 	      {                                  //    |        |       |
-		int f1=loclx_neighup[ A][mu];    //    V   B    |   F   V     ^
-		int f2=loclx_neighup[ A][nu];    //    |        |       |     m
+		int f1=loclxNeighup[ A][mu];    //    V   B    |   F   V     ^
+		int f2=loclxNeighup[ A][nu];    //    |        |       |     m
 		int f3=A;                        //  b23 -->-- f3 --<-- f2    u
-		int b1=loclx_neighdw[f1][nu];    //             A             +  nu ->
-		int b2=loclx_neighdw[b1][mu];
+		int b1=loclxNeighdw[f1][nu];    //             A             +  nu ->
+		int b2=loclxNeighdw[b1][mu];
 		int b3=b2;
 		
 		su3 temp1,temp2,temp3;

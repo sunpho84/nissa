@@ -41,11 +41,11 @@ namespace nissa
     master_fprintf(fout," #### conf = %d\n\n",iconf);
     
     //allocate and paste into lx conf
-    su3 *big_su3=nissa_malloc("big_su3",loc_vol+bord_vol,su3);
-    su3 *small_su3=nissa_malloc("small_su3",loc_vol+bord_vol,su3);
-    su3 *periscoped=nissa_malloc("periscoped",loc_vol+bord_vol,su3);
-    complex *loc_res=nissa_malloc("loc_res",loc_vol,complex);
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+    su3 *big_su3=nissa_malloc("big_su3",locVol+bord_vol,su3);
+    su3 *small_su3=nissa_malloc("small_su3",locVol+bord_vol,su3);
+    su3 *periscoped=nissa_malloc("periscoped",locVol+bord_vol,su3);
+    complex *loc_res=nissa_malloc("loc_res",locVol,complex);
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     
     int dmax=pars->dmax;
@@ -78,15 +78,15 @@ namespace nissa
 	    path_drawing_t s;
 	    compute_su3_path(&s,small_su3,lx_conf,small_steps);
 	    //trace it
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	      su3_trace(loc_res[ivol],small_su3[ivol]);
 	    NISSA_PARALLEL_LOOP_END;
 	    THREAD_BARRIER();
 	    complex small_trace;
-	    glb_reduce(&small_trace,loc_res,loc_vol);
+	    glb_reduce(&small_trace,loc_res,locVol);
 	    
 	    master_fprintf(fout," ### SMOOTH = ( %d ) , nu = %d , mu = %d , 1/3<trU> = %+16.16lg %+16.16lg\n\n",
-			   imeas,nu,mu,small_trace[RE]/glb_vol/NCOL,small_trace[IM]/glb_vol/NCOL);
+			   imeas,nu,mu,small_trace[RE]/glbVol/NCOL,small_trace[IM]/glbVol/NCOL);
 	    
 	    //elong on both sides the small
 	    //int prev_sizeh=0;
@@ -111,19 +111,19 @@ namespace nissa
 		path_drawing_t b;
 		compute_su3_path(&b,big_su3,lx_conf,big_steps);
 		//trace it
-		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+		NISSA_PARALLEL_LOOP(ivol,0,locVol)
 		  su3_trace(loc_res[ivol],big_su3[ivol]);
 		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
 		complex big_trace;
-		glb_reduce(&big_trace,loc_res,loc_vol);
+		glb_reduce(&big_trace,loc_res,locVol);
 		
 		//elong the big of what needed
 		//ANNA MOVE the big to the center
 		for(int d=0;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,mu,+1,true);
 		//prev_sizeh=sizeh;
 		
-		master_fprintf(fout," ## size = %d , 1/3<trW> = %+16.16lg %+16.16lg\n\n",size,big_trace[RE]/glb_vol/3,big_trace[IM]/glb_vol/3);
+		master_fprintf(fout," ## size = %d , 1/3<trW> = %+16.16lg %+16.16lg\n\n",size,big_trace[RE]/glbVol/3,big_trace[IM]/glbVol/3);
 		
 		//compute the periscope
 		int irho=0;
@@ -142,15 +142,15 @@ namespace nissa
 			  for(int d=0;d<=dmax;d++)
 			    {
 			      //trace it
-			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+			      NISSA_PARALLEL_LOOP(ivol,0,locVol)
 				trace_su3_prod_su3(loc_res[ivol],periscoped[ivol],big_su3[ivol]);
 			      NISSA_PARALLEL_LOOP_END;
 			      //wait and collapse
 			      THREAD_BARRIER();
-			      glb_reduce(&conn[dmax+orie*d],loc_res,loc_vol);
+			      glb_reduce(&conn[dmax+orie*d],loc_res,locVol);
 			      
 			      //separate trace
-			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+			      NISSA_PARALLEL_LOOP(ivol,0,locVol)
 				{
 				  complex p,b;
 				  su3_trace(p,periscoped[ivol]);
@@ -160,7 +160,7 @@ namespace nissa
 			      NISSA_PARALLEL_LOOP_END;
 			      //wait and collapse
 			      THREAD_BARRIER();
-			      glb_reduce(&disc[dmax+orie*d],loc_res,loc_vol);
+			      glb_reduce(&disc[dmax+orie*d],loc_res,locVol);
 			      
 			      //elong if needed
 			      if(d!=dmax) elong_su3_path(&p,periscoped,lx_conf,rho,-orie,true);
@@ -169,8 +169,8 @@ namespace nissa
 		      
 		      //print the output
 		      for(int d=0;d<2*dmax+1;d++) master_fprintf(fout,"%+d %+16.16lg %+16.16lg %+16.16lg %+16.16lg\n",d-dmax,
-								 conn[d][RE]/(NCOL*glb_vol),conn[d][IM]/(NCOL*glb_vol),
-								 disc[d][RE]/(NCOL*glb_vol),disc[d][IM]/(NCOL*glb_vol));
+								 conn[d][RE]/(NCOL*glbVol),conn[d][IM]/(NCOL*glbVol),
+								 disc[d][RE]/(NCOL*glbVol),disc[d][IM]/(NCOL*glbVol));
 		      master_fprintf(fout,"\n");
 		      
 		      //increase the perpendicular dimension

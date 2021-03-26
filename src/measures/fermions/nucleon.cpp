@@ -6,6 +6,7 @@
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "linalgs/linalgs.hpp"
+#include "measures/fermions/tm_corr_op.hpp"
 #include "new_types/su3.hpp"
 #include "nucleon.hpp"
 #include "operations/gauge_fixing.hpp"
@@ -24,19 +25,19 @@ namespace nissa
     int nflavs=theory_pars.nflavs();
     
     //allocate source
-    eo_ptr<su3> source={nissa_malloc("source_e",loc_volh+bord_volh,su3),nissa_malloc("source_o",loc_volh+bord_volh,su3)};
-    eo_ptr<color> temp_source={nissa_malloc("temp_source_e",loc_volh+bord_volh,color),nissa_malloc("temp_source_o",loc_volh+bord_volh,color)};
-    eo_ptr<color> temp_sol={nissa_malloc("temp_sol_e",loc_volh+bord_volh,color),nissa_malloc("temp_sol_o",loc_volh+bord_volh,color)};
+    eo_ptr<su3> source={nissa_malloc("source_e",locVolh+bord_volh,su3),nissa_malloc("source_o",locVolh+bord_volh,su3)};
+    eo_ptr<color> temp_source={nissa_malloc("temp_source_e",locVolh+bord_volh,color),nissa_malloc("temp_source_o",locVolh+bord_volh,color)};
+    eo_ptr<color> temp_sol={nissa_malloc("temp_sol_e",locVolh+bord_volh,color),nissa_malloc("temp_sol_o",locVolh+bord_volh,color)};
     
     //allocate propagators
     eo_ptr<su3> prop[nflavs];
     for(int iflav=0;iflav<nflavs;iflav++)
       for(int EO=0;EO<2;EO++)
-	  prop[iflav][EO]=nissa_malloc("prop",loc_volh+bord_volh,su3);
+	  prop[iflav][EO]=nissa_malloc("prop",locVolh+bord_volh,su3);
     
     //perform_random_gauge_transform(conf,conf);
     //allocate local and global contraction
-    int ncompl=glb_size[0]*nflavs*(nflavs+1)*(nflavs+2)/6;
+    int ncompl=glbSize[0]*nflavs*(nflavs+1)*(nflavs+2)/6;
     complex *glb_contr=nissa_malloc("glb_contr",ncompl,complex);
     complex *loc_contr=new complex[ncompl];
     
@@ -71,7 +72,7 @@ namespace nissa
 		    //put the anti-periodic condition on the propagator
 		    crash("See below");
 		    for(int eo=0;eo<2;eo++)
-		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 			{
 			  //color_prod_double(temp_sol[eo][ieo],temp_sol[eo][ieo],(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]>=source_coord[0])?+1:-1);
 			  //crash("#warning reimplement put_color_into_su3(prop[iflav][eo][ieo],temp_sol[eo][ieo],ic);");
@@ -87,13 +88,13 @@ namespace nissa
 		for(int ifl2=0;ifl2<=ifl1;ifl2++)
 		  {
 		    for(int eo=0;eo<2;eo++)
-		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 			{
 			  const int eps_s[6]={+1,+1,+1,-1,-1,-1};
 			  
 			  //find t
 			  int ilx=loclx_of_loceo[eo][ieo];
-			  int *c=glb_coord_of_loclx[ilx];
+			  int *c=glbCoordOfLoclx[ilx];
 			  if(c[1]%2==0&& c[2]%2==0 && c[3]%2==0)
 			    {
 			      // int t=(glb_coord_of_loclx[ilx][0]+glb_size[0]-source_coord[0])%glb_si
@@ -130,8 +131,8 @@ namespace nissa
 		master_fprintf(file," # conf %d ; flv1 = %d , m1 = %lg ; flv2 = %d , m2 = %lg ; flv3 = %d , m3 = %lg\n",
 			       iconf,ifl0,theory_pars.quarks[ifl0].mass,ifl1,theory_pars.quarks[ifl1].mass,ifl2,theory_pars.quarks[ifl2].mass);
 		
-		for(int t=0;t<glb_size[0];t++)
-		  master_fprintf(file,"%d %+016.16lg\n",t,glb_contr[icombo*glb_size[0]+t][RE]/norm);
+		for(int t=0;t<glbSize[0];t++)
+		  master_fprintf(file,"%d %+016.16lg\n",t,glb_contr[icombo*glbSize[0]+t][RE]/norm);
 		icombo++;
 	      }
       }

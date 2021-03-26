@@ -23,8 +23,8 @@ namespace nissa
   {
     //allocate and compute clover term
     eo_ptr<clover_term_t> Cl={NULL,NULL};
-    for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
-    inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+    for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
     chromo_operator(Cl,conf);
     
     chromo_operator_include_cSW(Cl,q.cSW);
@@ -33,7 +33,7 @@ namespace nissa
     add_backfield_without_stagphases_to_conf(conf,u1b);
     if(2*rat->num==rat->den)
       {
-	spincolor *tmp=nissa_malloc("tmp1",loc_volh+bord_volh,spincolor);
+	spincolor *tmp=nissa_malloc("tmp1",locVolh+bord_volh,spincolor);
 	tmclovDkern_eoprec_eos(pf,tmp,conf,q.kappa,Cl[ODD],invCl_evn,false,q.mass,eta);
 	nissa_free(tmp);
       }

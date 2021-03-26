@@ -343,7 +343,7 @@ namespace nissa
 	fftw_plan *plans=nissa_malloc("plans",ndirs,fftw_plan);
 	if(IS_MASTER_THREAD)
 	  for(int idir=0;idir<ndirs;idir++)
-	    plans[idir]=fftw_plan_many_dft(1,glb_size+list_dirs[idir],ncpp,buf,NULL,ncpp,1,buf,NULL,ncpp,1,sign,FFTW_ESTIMATE);
+	    plans[idir]=fftw_plan_many_dft(1,glbSize+list_dirs[idir],ncpp,buf,NULL,ncpp,1,buf,NULL,ncpp,1,sign,FFTW_ESTIMATE);
 	THREAD_BARRIER();
 	
 	//transpose each dir in turn and take fft
@@ -355,7 +355,7 @@ namespace nissa
 	    
 	    //makes all the fourier transform
 	    NISSA_PARALLEL_LOOP(ioff,0,locd_perp_size_per_dir[mu])
-	      fftw_execute_dft(plans[idir],buf+ioff*glb_size[mu]*ncpp,buf+ioff*glb_size[mu]*ncpp);
+	      fftw_execute_dft(plans[idir],buf+ioff*glbSize[mu]*ncpp,buf+ioff*glbSize[mu]*ncpp);
 	    NISSA_PARALLEL_LOOP_END;
 	    THREAD_BARRIER();
 	    
@@ -368,9 +368,9 @@ namespace nissa
 	//put normaliisation
 	if(normalize)
 	  {
-	    double norm=glb_size[list_dirs[0]];
-	    for(int idir=1;idir<ndirs;idir++) norm*=glb_size[idir];
-	    double_vector_prod_double((double*)out,(double*)out,1/norm,2*ncpp*loc_vol);
+	    double norm=glbSize[list_dirs[0]];
+	    for(int idir=1;idir<ndirs;idir++) norm*=glbSize[idir];
+	    double_vector_prod_double((double*)out,(double*)out,1/norm,2*ncpp*locVol);
 	  }
 	
 	nissa_free(buf);

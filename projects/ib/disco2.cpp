@@ -39,8 +39,8 @@ namespace free_th
   //allocate the free quark and photon props
   void allocate_props()
   {
-    qu=nissa_malloc("qu",loc_vol+bord_vol,spinspin);
-    ph=nissa_malloc("ph",loc_vol+bord_vol,spin1prop);
+    qu=nissa_malloc("qu",locVol+bord_vol,spinspin);
+    ph=nissa_malloc("ph",locVol+bord_vol,spin1prop);
   }
   
   //compute quark and photon props
@@ -76,7 +76,7 @@ namespace mel
   void local_mel(double* out,spincolor* source,int igamma,spincolor* prop)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	spincolor t;
 	unsafe_dirac_prod_spincolor(t,base_gamma+igamma,prop[ivol]);
@@ -85,7 +85,7 @@ namespace mel
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    complex_vector_glb_collapse(out,buffer,loc_vol);
+    complex_vector_glb_collapse(out,buffer,locVol);
   }
   
   //compute the matrix element of the conserved current between two propagators. If asking to revert, g5 is inserted between the two propagators
@@ -105,10 +105,10 @@ namespace mel
     communicate_lx_spincolor_borders(prop);
     communicate_lx_quad_su3_borders(conf);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	{
-	  int ivol_fw=loclx_neighup[ivol][mu];
+	  int ivol_fw=loclxNeighup[ivol][mu];
 	  spincolor f,Gf;
 	  complex c;
 	  
@@ -136,7 +136,7 @@ namespace mel
   void global_product(double* out,spin1field* a,spin1field* b)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	complex_put_to_zero(buffer[ivol]);
 	for(int mu=0;mu<NDIM;mu++)
@@ -145,7 +145,7 @@ namespace mel
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    complex_vector_glb_collapse(out,buffer,loc_vol);
+    complex_vector_glb_collapse(out,buffer,locVol);
   }
 }
 
@@ -279,8 +279,8 @@ void compute_propagators(spincolor** phi,spincolor** eta,int nm,int nhits,quad_s
 {
   
   //source and solution for the solver
-  spincolor *source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
-  spincolor *solution=nissa_malloc("solution",loc_vol+bord_vol,spincolor);
+  spincolor *source=nissa_malloc("source",locVol+bord_vol,spincolor);
+  spincolor *solution=nissa_malloc("solution",locVol+bord_vol,spincolor);
   
   for(int im=0;im<nm;im++)
     for(int ihit=0;ihit<nhits;ihit++)
@@ -557,15 +557,15 @@ void in_main(int narg,char **arg)
   spincolor *phi[nm*nhits];
   for(int i=0;i<nm*nhits;i++)
     {
-      eta[i]=nissa_malloc("eta",loc_vol+bord_vol,spincolor);
-      phi[i]=nissa_malloc("phi",loc_vol+bord_vol,spincolor);
+      eta[i]=nissa_malloc("eta",locVol+bord_vol,spincolor);
+      phi[i]=nissa_malloc("phi",locVol+bord_vol,spincolor);
     }
   spincolor *sum_eta[nm];
   spincolor *sum_phi[nm];
   for(int im=0;im<nm;im++)
     {
-      sum_eta[im]=nissa_malloc("sum_eta",loc_vol+bord_vol,spincolor);
-      sum_phi[im]=nissa_malloc("sum_phi",loc_vol+bord_vol,spincolor);
+      sum_eta[im]=nissa_malloc("sum_eta",locVol+bord_vol,spincolor);
+      sum_phi[im]=nissa_malloc("sum_phi",locVol+bord_vol,spincolor);
     }
   //store eigenvectors and their convoution with eigenvalue
   // spincolor *eigvec[neig];
@@ -598,7 +598,7 @@ void in_main(int narg,char **arg)
   //conf
   int nconfs,nanalyzed_confs=0;
   read_str_int("NGaugeConfs",&nconfs);
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
   
   //currents
   spin1field *J_stoch[nm*nhits];
@@ -606,21 +606,21 @@ void in_main(int narg,char **arg)
   spin1field *J_stoch_of_sum[nm];
   for(int im=0;im<nm;im++)
     {
-      J_stoch_sum[im]=nissa_malloc("J_stoch_sum",loc_vol+bord_vol,spin1field);
-      J_stoch_of_sum[im]=nissa_malloc("J_stoch_of_sum",loc_vol+bord_vol,spin1field);
+      J_stoch_sum[im]=nissa_malloc("J_stoch_sum",locVol+bord_vol,spin1field);
+      J_stoch_of_sum[im]=nissa_malloc("J_stoch_of_sum",locVol+bord_vol,spin1field);
     }
   // spin1field *J_eig[neig];
   for(int i=0;i<nm*nhits;i++)
-    J_stoch[i]=nissa_malloc("J_stoch",loc_vol+bord_vol,spin1field);
+    J_stoch[i]=nissa_malloc("J_stoch",locVol+bord_vol,spin1field);
   // for(int ieig=0;ieig<neig;ieig++)
   //   J_eig[ieig]=nissa_malloc("J_eig",loc_vol+bord_vol,spin1field);
-  spin1field *xi=nissa_malloc("xi",loc_vol+bord_vol,spin1field);
+  spin1field *xi=nissa_malloc("xi",locVol+bord_vol,spin1field);
   
   //buffer for local matrix element
-  mel::buffer=nissa_malloc("loc_mel::buffer",loc_vol,complex);
+  mel::buffer=nissa_malloc("loc_mel::buffer",locVol,complex);
   
   //propagator used for tadpole
-  spincolor *tadpole_prop=nissa_malloc("tadpole_prop",loc_vol+bord_vol,spincolor);
+  spincolor *tadpole_prop=nissa_malloc("tadpole_prop",locVol+bord_vol,spincolor);
   
   /////////////////////////////////////////////////////////////////
   
@@ -667,11 +667,11 @@ void in_main(int narg,char **arg)
 	      complex_summassign(EU5_bias,temp);
 	      
 	      //summ the J
-	      double_vector_summassign((double*)(J_stoch_sum[im]),(double*)(J_stoch[i]),loc_vol*sizeof(spin1field)/sizeof(double));
+	      double_vector_summassign((double*)(J_stoch_sum[im]),(double*)(J_stoch[i]),locVol*sizeof(spin1field)/sizeof(double));
 	      //summ eta
-	      double_vector_summassign((double*)(sum_eta[im]),(double*)(eta[i]),loc_vol*sizeof(spincolor)/sizeof(double));
+	      double_vector_summassign((double*)(sum_eta[im]),(double*)(eta[i]),locVol*sizeof(spincolor)/sizeof(double));
 	      //summ phi
-	      double_vector_summassign((double*)(sum_phi[im]),(double*)(phi[i]),loc_vol*sizeof(spincolor)/sizeof(double));
+	      double_vector_summassign((double*)(sum_phi[im]),(double*)(phi[i]),locVol*sizeof(spincolor)/sizeof(double));
 	    }
 	  
 	  //alternative calculation of EU5
@@ -695,7 +695,7 @@ void in_main(int narg,char **arg)
 	  // double_vector_prodassign_double((double*)sum_phi,1.0/nhits,sizeof(sum_phi)*loc_vol/sizeof(double));
 	  // double_vector_prodassign_double((double*)sum_eta,1.0/nhits,sizeof(sum_eta)*loc_vol/sizeof(double));
 	  
-	  double_vector_prodassign_double((double*)(J_stoch_sum[im]),1.0/nhits,sizeof(spin1field)*loc_vol/sizeof(double));
+	  double_vector_prodassign_double((double*)(J_stoch_sum[im]),1.0/nhits,sizeof(spin1field)*locVol/sizeof(double));
 	  const std::string path=combine("%s/J_stoch_m%d",outfolder,im);
 	  write_real_vector(path,J_stoch_sum[im],64,"Current");
 	  

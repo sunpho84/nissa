@@ -32,7 +32,7 @@ namespace nissa
     if(mess!=NULL) ILDG_File_write_all_messages(file,mess);
     
     //compute float or double site
-    size_t nreals_loc=nreals_per_site*loc_vol;
+    size_t nreals_loc=nreals_per_site*locVol;
     size_t nbytes_per_real=nbits/8;
     size_t nbytes_per_site=nreals_per_site*nbytes_per_real;
     
@@ -90,7 +90,7 @@ namespace nissa
 	    "<lz>%d</lz>\n"
 	    "<lt>%d</lt>\n"
 	    "</etmcFormat>",
-	    prec,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
+	    prec,1,glbSize[3],glbSize[2],glbSize[1],glbSize[0]);
     ILDG_File_write_text_record(file,"etmc-propagator-format",propagator_format_message);
 #endif
     
@@ -126,7 +126,7 @@ namespace nissa
 	    "  <lz>%d</lz>\n"
 	    "  <lt>%d</lt>\n"
 	    "</ildgFormat>",
-	    prec,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
+	    prec,glbSize[3],glbSize[2],glbSize[1],glbSize[0]);
     ILDG_File_write_text_record(file,"ildg-format",ildg_format_message);
 #endif
     
@@ -146,7 +146,7 @@ namespace nissa
   //read an ildg conf and split it into e/o parts
   void paste_eo_parts_and_write_ildg_gauge_conf(std::string path,eo_ptr<quad_su3> eo_conf,size_t prec,ILDG_message *mess=NULL)
   {
-    quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("temp_conf",locVol,quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     write_ildg_gauge_conf(path,lx_conf,prec,mess);
     nissa_free(lx_conf);

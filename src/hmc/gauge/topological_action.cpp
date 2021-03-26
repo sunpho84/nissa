@@ -43,8 +43,8 @@ namespace nissa
       }
     else
       {
-        conf[0]=nissa_malloc("stout_conf",loc_volh+bord_volh+edge_volh,quad_su3);
-        conf[1]=nissa_malloc("stout_conf",loc_volh+bord_volh+edge_volh,quad_su3);
+        conf[0]=nissa_malloc("stout_conf",locVolh+bord_volh+edge_volh,quad_su3);
+        conf[1]=nissa_malloc("stout_conf",locVolh+bord_volh+edge_volh,quad_su3);
         
         //smear
         stout_smear(conf,ext_conf,&(pars.stout_pars));
@@ -74,7 +74,7 @@ namespace nissa
   {
     //allocate
     eo_ptr<quad_su3> eo_conf;
-    for(int eo=0;eo<2;eo++) eo_conf[eo]=nissa_malloc("stout_conf",loc_volh+bord_volh+edge_volh,quad_su3);
+    for(int eo=0;eo<2;eo++) eo_conf[eo]=nissa_malloc("stout_conf",locVolh+bord_volh+edge_volh,quad_su3);
     
     //split and compute
     split_lx_vector_into_eo_parts(eo_conf,lx_conf);

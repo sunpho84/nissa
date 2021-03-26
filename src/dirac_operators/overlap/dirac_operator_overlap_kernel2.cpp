@@ -19,13 +19,13 @@ namespace nissa
   void apply_overlap_kernel2(spincolor* out,quad_su3* conf,double M,spincolor* ext_temp,double  diag_coeff,spincolor* in)
   {
     spincolor *temp=ext_temp;
-    if(temp==NULL) temp=nissa_malloc("tempQ",loc_vol+bord_vol,spincolor);
+    if(temp==NULL) temp=nissa_malloc("tempQ",locVol+bord_vol,spincolor);
     
     apply_overlap_kernel(temp,conf,M,in);
     apply_overlap_kernel(out,conf,M,temp);
     
     if(diag_coeff!=0)
-      double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,diag_coeff,sizeof(spincolor)/sizeof(double)*loc_vol);
+      double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,diag_coeff,sizeof(spincolor)/sizeof(double)*locVol);
     
     if(ext_temp==NULL) nissa_free(temp);
   }

@@ -42,28 +42,28 @@ namespace nissa
     int d2=1+(axis-1+2)%3;
     
     //check that the two directions have the same size and that we are not asking 0 as axis
-    if(glb_size[d1]!=glb_size[d2]) crash("Rotation works only if dir %d and %d have the same size!",glb_size[d1],glb_size[d2]);
+    if(glbSize[d1]!=glbSize[d2]) crash("Rotation works only if dir %d and %d have the same size!",glbSize[d1],glbSize[d2]);
     if(axis==0) crash("Error, only spatial rotations implemented");
-    int L=glb_size[d1];
+    int L=glbSize[d1];
     
     //allocate destinations and sources
-    coords *xto=nissa_malloc("xto",loc_vol,coords);
-    coords *xfr=nissa_malloc("xfr",loc_vol,coords);
+    coords *xto=nissa_malloc("xto",locVol,coords);
+    coords *xfr=nissa_malloc("xfr",locVol,coords);
     
     //scan all local sites to see where to send and from where to expect data
     NISSA_LOC_VOL_LOOP(ivol)
     {
       //copy 0 and axis coord to "to" and "from" sites
-      xto[ivol][0]=xfr[ivol][0]=glb_coord_of_loclx[ivol][0];
-      xto[ivol][axis]=xfr[ivol][axis]=glb_coord_of_loclx[ivol][axis];
+      xto[ivol][0]=xfr[ivol][0]=glbCoordOfLoclx[ivol][0];
+      xto[ivol][axis]=xfr[ivol][axis]=glbCoordOfLoclx[ivol][axis];
       
       //find reamining coord of "to" site
-      xto[ivol][d1]=(L-glb_coord_of_loclx[ivol][d2])%L;
-      xto[ivol][d2]=glb_coord_of_loclx[ivol][d1];
+      xto[ivol][d1]=(L-glbCoordOfLoclx[ivol][d2])%L;
+      xto[ivol][d2]=glbCoordOfLoclx[ivol][d1];
       
       //find remaining coord of "from" site
-      xfr[ivol][d1]=glb_coord_of_loclx[ivol][d2];
-      xfr[ivol][d2]=(L-glb_coord_of_loclx[ivol][d1])%L;
+      xfr[ivol][d1]=glbCoordOfLoclx[ivol][d2];
+      xfr[ivol][d2]=(L-glbCoordOfLoclx[ivol][d1])%L;
     }
     
     //call the remapping
@@ -101,8 +101,8 @@ namespace nissa
     int d3=axis;
     
     //allocate a temporary conf with borders
-    quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol,quad_su3);
-    memcpy(temp_conf,in,loc_vol*sizeof(quad_su3));
+    quad_su3 *temp_conf=nissa_malloc("temp_conf",locVol+bord_vol,quad_su3);
+    memcpy(temp_conf,in,locVol*sizeof(quad_su3));
     communicate_lx_quad_su3_borders(temp_conf);
     
     //now reorder links
@@ -112,7 +112,7 @@ namespace nissa
       memcpy(out[ivol][d0],temp_conf[ivol][d0],sizeof(su3));
       memcpy(out[ivol][d3],temp_conf[ivol][d3],sizeof(su3));
       //swap the other two
-      unsafe_su3_hermitian(out[ivol][d1],temp_conf[loclx_neighdw[ivol][d2]][d2]);
+      unsafe_su3_hermitian(out[ivol][d1],temp_conf[loclxNeighdw[ivol][d2]][d2]);
       memcpy(out[ivol][d2],temp_conf[ivol][d1],sizeof(su3));
     }
     
@@ -126,11 +126,11 @@ namespace nissa
     complex theta[NDIM];
     for(int idir=0;idir<NDIM;idir++)
       {
-	theta[idir][0]=cos(theta_in_pi[idir]*M_PI/glb_size[idir]);
-	theta[idir][1]=sin(theta_in_pi[idir]*M_PI/glb_size[idir]);
+	theta[idir][0]=cos(theta_in_pi[idir]*M_PI/glbSize[idir]);
+	theta[idir][1]=sin(theta_in_pi[idir]*M_PI/glbSize[idir]);
       }
     
-    int nsite=loc_vol;
+    int nsite=locVol;
     if(putonbords) nsite+=bord_vol;
     if(putonedges) nsite+=edge_vol;
     
@@ -224,9 +224,9 @@ namespace nissa
   void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
   {
     //results
-    double* loc_avg=nissa_malloc("loc_avg",loc_vol,double);
-    double* loc_max=nissa_malloc("loc_max",loc_vol,double);
-    int64_t* loc_nbroken=nissa_malloc("loc_nbroken",loc_vol,int64_t);
+    double* loc_avg=nissa_malloc("loc_avg",locVol,double);
+    double* loc_max=nissa_malloc("loc_max",locVol,double);
+    int64_t* loc_nbroken=nissa_malloc("loc_nbroken",locVol,int64_t);
     
     NISSA_LOC_VOL_LOOP(ivol)
       for(int idir=0;idir<NDIM;idir++)
@@ -239,12 +239,12 @@ namespace nissa
 	  loc_nbroken[ivol]=(err>1e-13);
 	}
     
-    glb_reduce(&result.average_diff,loc_avg,loc_vol);
-    result.average_diff/=glb_vol*NDIM;
+    glb_reduce(&result.average_diff,loc_avg,locVol);
+    result.average_diff/=glbVol*NDIM;
     
     master_printf("Warning, max is undefined\n");
     //glb_reduce(&result.max_diff,loc_max,loc_vol,max_to_be_implemented);
-    glb_reduce(&result.nbroken_links,loc_nbroken,loc_vol);
+    glb_reduce(&result.nbroken_links,loc_nbroken,locVol);
     
     nissa_free(loc_avg);
     nissa_free(loc_max);
@@ -256,7 +256,7 @@ namespace nissa
   {
     START_TIMING(unitarize_time,nunitarize);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int idir=0;idir<NDIM;idir++)
 	{
 	  su3 t;
@@ -273,7 +273,7 @@ namespace nissa
   {
     START_TIMING(unitarize_time,nunitarize);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
         su3_unitarize_maximal_trace_projecting(conf[ivol][mu],conf[ivol][mu]);
     NISSA_PARALLEL_LOOP_END;
@@ -289,7 +289,7 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-        NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+        NISSA_PARALLEL_LOOP(ivol,0,locVolh)
           for(int mu=0;mu<NDIM;mu++)
             su3_unitarize_maximal_trace_projecting(conf[par][ivol][mu],conf[par][ivol][mu]);
 	NISSA_PARALLEL_LOOP_END;
@@ -331,9 +331,9 @@ namespace nissa
   void average_gauge_energy(double* energy,quad_su3* conf)
   {
     communicate_lx_quad_su3_edges(conf);
-    double *loc_energy=nissa_malloc("energy",loc_vol,double);
+    double *loc_energy=nissa_malloc("energy",locVol,double);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute the clover-shape paths
 	as2t_su3 leaves;
@@ -349,12 +349,12 @@ namespace nissa
 	    trace_su3_prod_su3(temp,A,A);
 	    loc_energy[ivol]-=temp[RE];
 	  }
-	loc_energy[ivol]/=glb_vol;
+	loc_energy[ivol]/=glbVol;
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    glb_reduce(energy,loc_energy,loc_vol);
+    glb_reduce(energy,loc_energy,locVol);
     
     nissa_free(loc_energy);
   }

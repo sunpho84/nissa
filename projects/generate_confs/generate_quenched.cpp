@@ -201,7 +201,7 @@ void compute_corr(double* corr,su3spinspin* Q)
   
   vector_reset(corr);
   
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     for(int ic=0;ic<NCOL;ic++)
       for(int jc=0;jc<NCOL;jc++)
 	for(int id=0;id<4;id++)
@@ -219,11 +219,11 @@ void compute_corr_stoch(double* corr,su3spinspin** phi,su3spinspin** eta)
   
   //temporary vectors
   su3spinspin *phieta[2];
-  for(int iso=0;iso<2;iso++) phieta[iso]=nissa_malloc("phieta",loc_vol,su3spinspin);
-  complex *corr_tilde=nissa_malloc("corr_tilde",loc_vol,complex);
+  for(int iso=0;iso<2;iso++) phieta[iso]=nissa_malloc("phieta",locVol,su3spinspin);
+  complex *corr_tilde=nissa_malloc("corr_tilde",locVol,complex);
   
   //combine phi1 with eta2
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     for(int ic=0;ic<NCOL;ic++)
       for(int jc=0;jc<NCOL;jc++)
 	for(int id=0;id<4;id++)
@@ -239,7 +239,7 @@ void compute_corr_stoch(double* corr,su3spinspin** phi,su3spinspin** eta)
   for(int iso=0;iso<2;iso++) fft4d((complex*)(phieta[iso]),(complex*)(phieta[iso]),all_dirs,sizeof(su3spinspin)/sizeof(complex),+1,true/*normalize*/);
   
   vector_reset(corr_tilde);
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     for(int ic=0;ic<NCOL;ic++)
       for(int jc=0;jc<NCOL;jc++)
 	for(int id=0;id<2;id++)
@@ -257,7 +257,7 @@ void compute_corr_stoch(double* corr,su3spinspin** phi,su3spinspin** eta)
   fft4d(corr_tilde,corr_tilde,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
   
   //copy only the real part
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     corr[ivol]=corr_tilde[ivol][RE];
   NISSA_PARALLEL_LOOP_END;
   
@@ -342,8 +342,8 @@ void meas_x_corr_stoch(const char *path,quad_su3 *conf,bool conf_created)
   su3spinspin *phi[2];
   for(int iso=0;iso<2;iso++)
     {
-      eta[iso]=nissa_malloc("eta",loc_vol,su3spinspin);
-      phi[iso]=nissa_malloc("phi",loc_vol,su3spinspin);
+      eta[iso]=nissa_malloc("eta",locVol,su3spinspin);
+      phi[iso]=nissa_malloc("phi",locVol,su3spinspin);
       generate_spincolordiluted_source(eta[iso],RND_Z4,-1);
     }
   
@@ -419,7 +419,7 @@ double compute_Wilson_action(double *paths)
 {
   //compute the total action
   paths[0]=global_plaquette_lx_conf(conf);
-  return 6*glb_vol*(1-paths[0]);
+  return 6*glbVol*(1-paths[0]);
 }
 
 //compute Symanzik action
@@ -427,7 +427,7 @@ double compute_Symanzik_action(double *paths,double C1)
 {
   //compute the total action
   global_plaquette_and_rectangles_lx_conf(paths,conf);
-  return get_C0(C1)*6*glb_vol*(1-paths[0])+C1*12*glb_vol*(1-paths[1]);
+  return get_C0(C1)*6*glbVol*(1-paths[0])+C1*12*glbVol*(1-paths[1]);
 }
 //wrappers
 double compute_tlSym_action(double *paths) {return compute_Symanzik_action(paths,C1_TLSYM);}
@@ -513,7 +513,7 @@ void init_simulation(char *path)
   ////////////////////////// allocate stuff ////////////////////////
   
   //allocate conf
-  conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
   
   switch(theory_pars.gauge_action_name)
     {
@@ -533,15 +533,15 @@ void init_simulation(char *path)
       crash("unknown action");
     }
   
-  if(evol_pars.use_hmc) temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  if(evol_pars.use_hmc) temp_conf=nissa_malloc("temp_conf",locVol+bord_vol+edge_vol,quad_su3);
   else sweeper=get_sweeper(theory_pars.gauge_action_name);
   
   if(x_corr_flag)
     {
-      source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
-      temp_solution=nissa_malloc("temp_solution",loc_vol,spincolor);
-      P=nissa_malloc("P",loc_vol,su3spinspin);
-      corr=nissa_malloc("Corr",loc_vol,double);
+      source=nissa_malloc("source",locVol+bord_vol,spincolor);
+      temp_solution=nissa_malloc("temp_solution",locVol,spincolor);
+      P=nissa_malloc("P",locVol,su3spinspin);
+      corr=nissa_malloc("Corr",locVol,double);
     }
   
   //search conf
@@ -591,8 +591,8 @@ void init_simulation(char *path)
 void impose_open_boundary_cond(quad_su3* conf)
 {
   
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    if(glb_coord_of_loclx[ivol][0]==glb_size[0]-1)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    if(glbCoordOfLoclx[ivol][0]==glbSize[0]-1)
       su3_put_to_zero(conf[ivol][0]);
   NISSA_PARALLEL_LOOP_END;
   set_borders_invalid(conf);

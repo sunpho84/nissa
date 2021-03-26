@@ -27,7 +27,7 @@ namespace nissa
   {
     //open the file, allocate point result and source
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    complex *point_result=nissa_malloc("point_result",loc_vol,complex);
+    complex *point_result=nissa_malloc("point_result",locVol,complex);
     NEW_FIELD_T(source);
     
     //vectors for calculation

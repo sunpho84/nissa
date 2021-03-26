@@ -25,7 +25,7 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
 	  {
 	    for(int mu=0;mu<NDIM;mu++)
 	      safe_su3_hermitian_prod_double(F[par][ivol][mu],F[par][ivol][mu],r);
@@ -45,7 +45,7 @@ namespace nissa
     double r=-beta/NCOL;
     compute_summed_squared_staples_lx_conf(F,conf);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	for(int mu=0;mu<NDIM;mu++)
 	  safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);

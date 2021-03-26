@@ -16,7 +16,7 @@ namespace nissa
       communicate_ev_and_od_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_Leb_ev_color_borders(in);
     
-    NISSA_PARALLEL_LOOP(io,0,loc_volh)
+    NISSA_PARALLEL_LOOP(io,0,locVolh)
       {
 	//neighbours search
 	int evup0=Lebeo_neighup[ODD][io][0];
@@ -46,7 +46,7 @@ namespace nissa
   {
     apply_st2DLeb_oe(out,conf,in);
     
-    NISSA_PARALLEL_LOOP(io,0,loc_volh)
+    NISSA_PARALLEL_LOOP(io,0,locVolh)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
 	  out[io][ic][ri]*=0.5;
@@ -61,7 +61,7 @@ namespace nissa
       communicate_Leb_ev_and_od_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_Leb_od_color_borders(in);
     
-    NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ie,0,locVolh)
       {
 	//neighbours search
 	int odup0=Lebeo_neighup[EVN][ie][0];
@@ -104,7 +104,7 @@ namespace nissa
       communicate_Leb_ev_and_od_oct_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_Leb_ev_color_borders(in);
     
-    NISSA_PARALLEL_LOOP(io,0,loc_volh)
+    NISSA_PARALLEL_LOOP(io,0,locVolh)
       {
 	color_put_to_zero(temp[io]);
 	for(int mu=0;mu<NDIM;mu++)
@@ -122,7 +122,7 @@ namespace nissa
     communicate_Leb_od_color_borders(temp);
     
     //we still apply Deo, but then we put a - because we should apply Doe^+=-Deo
-    NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ie,0,locVolh)
       {
 	color_put_to_zero(out[ie]);
 	for(int mu=0;mu<NDIM;mu++)
@@ -138,7 +138,7 @@ namespace nissa
  
     if(mass2!=0)
       {
-	NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ie,0,locVolh)
 	  for(int ic=0;ic<NCOL;ic++)
 	    for(int ri=0;ri<2;ri++)
 	      out[ie][ic][ri]=mass2*in[ie][ic][ri]-out[ie][ic][ri]*0.25;
@@ -146,7 +146,7 @@ namespace nissa
       }
     else
       {
-	NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ie,0,locVolh)
 	  for(int ic=0;ic<NCOL;ic++)
 	    for(int ri=0;ri<2;ri++)
 	      out[ie][ic][ri]*=-0.25;

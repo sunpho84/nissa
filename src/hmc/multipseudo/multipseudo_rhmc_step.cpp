@@ -53,7 +53,7 @@ namespace nissa
     
     //allocate the momenta
     eo_ptr<quad_su3> H;
-    for(int par=0;par<2;par++) H[par]=nissa_malloc("H",loc_volh,quad_su3);
+    for(int par=0;par<2;par++) H[par]=nissa_malloc("H",locVolh,quad_su3);
     
     //copy the old conf into the new
     for(int par=0;par<2;par++)
@@ -76,7 +76,7 @@ namespace nissa
     eo_ptr<quad_su3> sme_conf;
     for(int eo=0;eo<2;eo++)
       sme_conf[eo]=(theory_pars.stout_pars.nlevels!=0)?
-	nissa_malloc("sme_conf",loc_volh+bord_volh+edge_volh,quad_su3):out_conf[eo];
+	nissa_malloc("sme_conf",locVolh+bord_volh+edge_volh,quad_su3):out_conf[eo];
     if(theory_pars.stout_pars.nlevels!=0)
       {
 	verbosity_lv2_master_printf("Stouting the links for pseudo-fermions generation and initial action computation\n");

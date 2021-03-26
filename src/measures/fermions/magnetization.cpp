@@ -25,12 +25,12 @@ namespace nissa
     vector_reset(point_magn);
     
     //allocate a thread-local reduction
-    complex thr_magn_proj_x[glb_size[1]];
-    for(int i=0;i<glb_size[1];i++) thr_magn_proj_x[i][RE]=thr_magn_proj_x[i][IM]=0;
+    complex thr_magn_proj_x[glbSize[1]];
+    for(int i=0;i<glbSize[1];i++) thr_magn_proj_x[i][RE]=thr_magn_proj_x[i][IM]=0;
     
     //summ the results of the derivative
     for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
         {
           int ivol=loclx_of_loceo[par][ieo];
           
@@ -42,7 +42,7 @@ namespace nissa
               
               int iup_eo=loceo_neighup[par][ieo][rho];
               int idw_eo=loceo_neighdw[par][ieo][rho];
-              int idw_lx=loclx_neighdw[ivol][rho];
+              int idw_lx=loclxNeighdw[ivol][rho];
               
               color v;
               complex t;
@@ -69,12 +69,12 @@ namespace nissa
     THREAD_BARRIER();
     
     //reduce the projected magnetization
-    complex temp_proj_x[glb_size[1]];
+    complex temp_proj_x[glbSize[1]];
     crash("#warning reimplement for(int x=0;x<glb_size[1];x++) glb_reduce_complex(temp_proj_x[x],thr_magn_proj_x[x]);");
     
     //reduce across all nodes and threads
     complex temp;
-    glb_reduce(&temp,point_magn,loc_vol);
+    glb_reduce(&temp,point_magn,locVol);
     
     //add normalization, corresponding to all factors relative to derivative with respects to "b": 
     //-quark_deg/4 coming from the determinant
@@ -84,9 +84,9 @@ namespace nissa
     //and a minus because F=-logZ
     if(IS_MASTER_THREAD)
       {
-        double coeff=-quark->deg*2*M_PI*quark->charge/(4.0*glb_vol*2*glb_size[mu]*glb_size[nu]);
+        double coeff=-quark->deg*2*M_PI*quark->charge/(4.0*glbVol*2*glbSize[mu]*glbSize[nu]);
         complex_prod_idouble(*magn,temp,coeff);
-        for(int x=0;x<glb_size[1];x++) complex_prod_idouble(magn_proj_x[x],temp_proj_x[x],coeff);
+        for(int x=0;x<glbSize[1];x++) complex_prod_idouble(magn_proj_x[x],temp_proj_x[x],coeff);
       }
     THREAD_BARRIER();
   }
@@ -99,16 +99,16 @@ namespace nissa
     int mu=1,nu=2;
     
     //allocate source and propagator
-    eo_ptr<color> chi={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> chi={nissa_malloc("chi_EVN",locVolh+bord_volh,color),nissa_malloc("chi_ODD",locVolh+bord_volh,color)};
     
     //we need to store phases
-    coords *arg=nissa_malloc("arg",loc_vol+bord_vol,coords);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol+bord_vol)
+    coords *arg=nissa_malloc("arg",locVol+bord_vol,coords);
+    NISSA_PARALLEL_LOOP(ivol,0,locVol+bord_vol)
       get_args_of_quantization[quantization](arg[ivol],ivol,mu,nu);
     NISSA_PARALLEL_LOOP_END;
     
     //array to store magnetization on single site (actually storing backward contrib at displaced site)
-    complex *point_magn=nissa_malloc("app",loc_vol,complex);
+    complex *point_magn=nissa_malloc("app",locVol,complex);
     
     //we add backfield externally because we need them for derivative
     add_backfield_with_stagphases_to_conf(conf,u1b);
@@ -132,7 +132,7 @@ namespace nissa
   void magnetization(complex *magn,complex *magn_proj_x,rnd_t rnd_type,eo_ptr<quad_su3> conf,int quantization,eo_ptr<quad_u1> u1b,quark_content_t *quark,double residue)
   {
     //allocate source and generate it
-    eo_ptr<color> rnd={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
+    eo_ptr<color> rnd={nissa_malloc("rnd_EVN",locVolh+bord_volh,color),nissa_malloc("rnd_ODD",locVolh+bord_volh,color)};
     generate_fully_undiluted_eo_source(rnd,rnd_type,-1);
     
     //call inner function
@@ -158,8 +158,8 @@ namespace nissa
 	    if(theory_pars.quarks[iflav].discretiz!=ferm_discretiz::ROOT_STAG) crash("not defined for non-staggered quarks");
 	    
             complex magn={0,0};
-            complex magn_proj_x[glb_size[1]]; //this makes pair and pact with "1" and "2" upstairs
-            for(int i=0;i<glb_size[1];i++) magn_proj_x[i][RE]=magn_proj_x[i][IM]=0;
+            complex magn_proj_x[glbSize[1]]; //this makes pair and pact with "1" and "2" upstairs
+            for(int i=0;i<glbSize[1];i++) magn_proj_x[i][RE]=magn_proj_x[i][IM]=0;
             
             //loop over hits
             int nhits=meas_pars.nhits;
@@ -169,17 +169,17 @@ namespace nissa
                                             iflav+1,theory_pars.nflavs(),icopy+1,ncopies,hit+1,nhits);
             
                 //compute and summ
-                complex temp,temp_magn_proj_x[glb_size[1]];
+                complex temp,temp_magn_proj_x[glbSize[1]];
                 magnetization(&temp,temp_magn_proj_x,meas_pars.rnd_type,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],&theory_pars.quarks[iflav],meas_pars.residue); //flag holds quantization
                 
                 //normalize
                 complex_summ_the_prod_double(magn,temp,1.0/nhits);
-                for(int x=0;x<glb_size[1];x++) complex_summ_the_prod_double(magn_proj_x[x],temp_magn_proj_x[x],1.0/nhits);
+                for(int x=0;x<glbSize[1];x++) complex_summ_the_prod_double(magn_proj_x[x],temp_magn_proj_x[x],1.0/nhits);
               }
             
             //output
             master_fprintf(file,"\t%+016.16lg \t%+016.16lg",magn[RE],magn[IM]);
-            for(int x=0;x<glb_size[1];x++)
+            for(int x=0;x<glbSize[1];x++)
               master_fprintf(file_proj,"%d\t%d\t%d\t%d\t%+016.16lg \t%+016.16lg\n",iconf,icopy,iflav,x,magn_proj_x[x][RE],magn_proj_x[x][IM]);
           }
         

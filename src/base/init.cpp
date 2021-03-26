@@ -141,7 +141,7 @@ namespace nissa
 #endif
     
     //initialize global variables
-    lx_geom_inited=0;
+    lxGeomInited=0;
     eo_geom_inited=0;
     loc_rnd_gen_inited=0;
     glb_rnd_gen_inited=0;
@@ -507,8 +507,8 @@ namespace nissa
     //get the size of box 0
     for(int mu=0;mu<NDIM;mu++)
       {
-	if(loc_size[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,loc_size[mu]);
-	box_size[0][mu]=loc_size[mu]/2;
+	if(locSize[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,locSize[mu]);
+	box_size[0][mu]=locSize[mu]/2;
       }
     
     //get coords of cube ans box size
@@ -527,7 +527,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    if(ibox!=0) box_size[ibox][mu]=((box_coord[ibox][mu]==0)?
-					    (box_size[0][mu]):(loc_size[mu]-box_size[0][mu]));
+					    (box_size[0][mu]):(locSize[mu]-box_size[0][mu]));
 	    nsite_per_box[ibox]*=box_size[ibox][mu];
 	    verbosity_lv3_master_printf("%d ",box_size[ibox][mu]);
 	  }
@@ -550,42 +550,42 @@ namespace nissa
     //set the volume
     if(T>0 and L>0)
       {
-	glb_size[0]=T;
-	for(int mu=1;mu<NDIM;mu++) glb_size[mu]=L;
+	glbSize[0]=T;
+	for(int mu=1;mu<NDIM;mu++) glbSize[mu]=L;
       }
     
     //broadcast the global sizes
-    coords_broadcast(glb_size);
+    coords_broadcast(glbSize);
     
     //calculate global volume, initialize local one
-    glb_vol=1;
+    glbVol=1;
     for(int mu=0;mu<NDIM;mu++)
       {
-	loc_size[mu]=glb_size[mu];
-	glb_vol*=glb_size[mu];
+	locSize[mu]=glbSize[mu];
+	glbVol*=glbSize[mu];
       }
-    glb_spat_vol=glb_vol/glb_size[0];
-    glb_vol2=(double)glb_vol*glb_vol;
+    glbSpatVol=glbVol/glbSize[0];
+    glb_vol2=(double)glbVol*glbVol;
     
-    master_printf("Global lattice:\t%d",glb_size[0]);
-    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glb_size[mu]);
-    master_printf(" = %d\n",glb_vol);
+    master_printf("Global lattice:\t%d",glbSize[0]);
+    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glbSize[mu]);
+    master_printf(" = %d\n",glbVol);
     master_printf("Number of running ranks: %d\n",nranks);
     
     //find the grid minimizing the surface
-    find_minimal_surface_grid(nrank_dir,glb_size,nranks);
+    find_minimal_surface_grid(nrank_dir,glbSize,nranks);
     
     //check that lattice is commensurable with the grid
     //and check wether the mu dir is parallelized or not
-    int ok=(glb_vol%nranks==0);
+    int ok=(glbVol%nranks==0);
     if(!ok) crash("The lattice is incommensurable with nranks!");
     
     for(int mu=0;mu<NDIM;mu++)
       {
 	ok&=(nrank_dir[mu]>0);
 	if(!ok) crash("nrank_dir[%d]: %d",mu,nrank_dir[mu]);
-	ok&=(glb_size[mu]%nrank_dir[mu]==0);
-	if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",mu,mu,glb_size[mu]%nrank_dir[mu]);
+	ok&=(glbSize[mu]%nrank_dir[mu]==0);
+	if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",mu,mu,glbSize[mu]%nrank_dir[mu]);
 	paral_dir[mu]=(nrank_dir[mu]>1);
 	nparal_dir+=paral_dir[mu];
       }
@@ -598,27 +598,27 @@ namespace nissa
     create_MPI_cartesian_grid();
     
     //calculate the local volume
-    for(int mu=0;mu<NDIM;mu++) loc_size[mu]=glb_size[mu]/nrank_dir[mu];
-    loc_vol=glb_vol/nranks;
-    loc_spat_vol=loc_vol/loc_size[0];
-    loc_vol2=(double)loc_vol*loc_vol;
+    for(int mu=0;mu<NDIM;mu++) locSize[mu]=glbSize[mu]/nrank_dir[mu];
+    locVol=glbVol/nranks;
+    locSpatVol=locVol/locSize[0];
+    loc_vol2=(double)locVol*locVol;
     
     //calculate bulk size
-    bulk_vol=non_bw_surf_vol=1;
+    bulkVol=nonBwSurfVol=1;
     for(int mu=0;mu<NDIM;mu++)
       if(paral_dir[mu])
 	{
-	  bulk_vol*=loc_size[mu]-2;
-	  non_bw_surf_vol*=loc_size[mu]-1;
+	  bulkVol*=locSize[mu]-2;
+	  nonBwSurfVol*=locSize[mu]-1;
 	}
       else
 	{
-	  bulk_vol*=loc_size[mu];
-	  non_bw_surf_vol*=loc_size[mu];
+	  bulkVol*=locSize[mu];
+	  nonBwSurfVol*=locSize[mu];
 	}
-    non_fw_surf_vol=non_bw_surf_vol;
-    fw_surf_vol=bw_surf_vol=loc_vol-non_bw_surf_vol;
-    surf_vol=loc_vol-bulk_vol;
+    nonFwSurfVol=nonBwSurfVol;
+    fwSurfVol=bwSurfVol=locVol-nonBwSurfVol;
+    surfVol=locVol-bulkVol;
     
     //calculate the border size
     bord_volh=0;
@@ -626,7 +626,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	//bord size along the mu dir
-	if(paral_dir[mu]) bord_dir_vol[mu]=loc_vol/loc_size[mu];
+	if(paral_dir[mu]) bord_dir_vol[mu]=locVol/locSize[mu];
 	else bord_dir_vol[mu]=0;
 	
 	//total bord
@@ -647,7 +647,7 @@ namespace nissa
       for(int nu=mu+1;nu<NDIM;nu++)
 	{
 	  //edge among the i and j dir
-	  if(paral_dir[mu] && paral_dir[nu]) edge_dir_vol[iedge]=bord_dir_vol[mu]/loc_size[nu];
+	  if(paral_dir[mu] && paral_dir[nu]) edge_dir_vol[iedge]=bord_dir_vol[mu]/locSize[nu];
 	  else edge_dir_vol[iedge]=0;
 	  
 	  //total edge
@@ -677,9 +677,9 @@ namespace nissa
     }
     
     //print information
-    master_printf("Local volume\t%d",loc_size[0]);
-    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",loc_size[mu]);
-    master_printf(" = %d\n",loc_vol);
+    master_printf("Local volume\t%d",locSize[0]);
+    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",locSize[mu]);
+    master_printf(" = %d\n",locVol);
     master_printf("List of parallelized dirs:\t");
     for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) master_printf("%d ",mu);
     if(nparal_dir==0) master_printf("(none)");

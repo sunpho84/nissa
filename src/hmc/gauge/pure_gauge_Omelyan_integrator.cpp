@@ -41,7 +41,7 @@ namespace nissa
     verbosity_lv2_master_printf("Evolving momenta with pure gauge force, dt=%lg\n",dt);
     
     //allocate force and compute it
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",loc_vol,quad_su3):ext_F;
+    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
     compute_gluonic_force_lx_conf(F,conf,theory_pars);
     
     //evolve
@@ -55,7 +55,7 @@ namespace nissa
   {
     verbosity_lv2_master_printf("Evolving momenta and FACC momenta, dt=%lg\n",dt);
     
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",loc_vol,quad_su3):ext_F;
+    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
     
 #ifdef DEBUG
     vector_reset(F);
@@ -157,7 +157,7 @@ namespace nissa
       ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
     int nsteps=simul->nmd_steps;
     
-    quad_su3 *F=nissa_malloc("F",loc_vol,quad_su3);
+    quad_su3 *F=nissa_malloc("F",locVol,quad_su3);
     
     evolve_momenta_and_FACC_momenta(H,pi,conf,phi,theory_pars,simul,ldt,F);
     
@@ -189,7 +189,7 @@ namespace nissa
     double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
     int nsteps=simul->nmd_steps;
     
-    quad_su3 *F=nissa_malloc("F",loc_vol,quad_su3);
+    quad_su3 *F=nissa_malloc("F",locVol,quad_su3);
     
     //first evolve for momenta
     evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,ldt,F);

@@ -230,10 +230,10 @@ void init_simulation(char *path)
   if(drv->theories.size()==0) crash("need to specify a theory");
   
   //geometry
-  glb_size[0]=drv->T;
-  glb_size[1]=drv->LX;
-  glb_size[2]=drv->LY;
-  glb_size[3]=drv->LZ;
+  glbSize[0]=drv->T;
+  glbSize[1]=drv->LX;
+  glbSize[2]=drv->LY;
+  glbSize[3]=drv->LZ;
   init_grid(0,0);
   
   top_meas_time=nissa_malloc("top_meas_time",drv->top_meas.size(),double);
@@ -242,10 +242,10 @@ void init_simulation(char *path)
   ////////////////////////// allocate stuff ////////////////////////
   
   //allocate the conf
-  conf[0]=nissa_malloc("conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
-  conf[1]=nissa_malloc("conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
-  new_conf[0]=nissa_malloc("new_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
-  new_conf[1]=nissa_malloc("new_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
+  conf[0]=nissa_malloc("conf_e",locVolh+bord_volh+edge_volh,quad_su3);
+  conf[1]=nissa_malloc("conf_o",locVolh+bord_volh+edge_volh,quad_su3);
+  new_conf[0]=nissa_malloc("new_conf_e",locVolh+bord_volh+edge_volh,quad_su3);
+  new_conf[1]=nissa_malloc("new_conf_o",locVolh+bord_volh+edge_volh,quad_su3);
   
   //////////////////////// initialize stuff ////////////////////
   
@@ -327,7 +327,7 @@ int generate_new_conf(int itraj)
       //always new conf
       acc=true;
       
-      quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol,quad_su3);
+      quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol,quad_su3);
       paste_eo_parts_into_lx_vector(lx_conf,conf);
       
       gauge_sweeper_t *sweeper=get_sweeper(drv->sea_theory().gauge_action_name);
@@ -384,7 +384,7 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars,eo_ptr<quad_su3> conf,int ico
   FILE *file=open_file(path,conf_created?"w":"a");
   
   //paste into a temporary
-  quad_su3 *temp_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  quad_su3 *temp_conf=nissa_malloc("smoothed_conf",locVol+bord_vol+edge_vol,quad_su3);
   paste_eo_parts_into_lx_vector(temp_conf,conf);
   
   if(not pars.use_smooth)
@@ -429,7 +429,7 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,eo_ptr<quad_su3> eo_conf,boo
   verbosity_lv1_master_printf("Measuring Polyakov loop correlators\n");
   
   //merge conf
-  quad_su3 *lx_conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  quad_su3 *lx_conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
   paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
   
   crash("tobexixed");
@@ -685,20 +685,20 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
 {
   eo_ptr<spincolor> out;
   for(int eo=0;eo<2;eo++)
-    out[eo]=nissa_malloc("out",loc_volh,spincolor);
+    out[eo]=nissa_malloc("out",locVolh,spincolor);
   
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",loc_vol,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVol,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   {
-    spincolor *out_lx=nissa_malloc("out",loc_vol,spincolor);
-    spincolor *in_r_lx=nissa_malloc("in_r",loc_vol+bord_vol,spincolor);
-    quad_su3 *conf_lx=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
-    clover_term_t *Cl_lx=nissa_malloc("Cl",loc_vol+bord_vol+edge_vol,clover_term_t);
+    spincolor *out_lx=nissa_malloc("out",locVol,spincolor);
+    spincolor *in_r_lx=nissa_malloc("in_r",locVol+bord_vol,spincolor);
+    quad_su3 *conf_lx=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
+    clover_term_t *Cl_lx=nissa_malloc("Cl",locVol+bord_vol+edge_vol,clover_term_t);
     paste_eo_parts_into_lx_vector(conf_lx,conf);
     paste_eo_parts_into_lx_vector(in_r_lx,in_r);
     paste_eo_parts_into_lx_vector(Cl_lx,Cl);
@@ -713,7 +713,7 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
   
   complex act_eo[2];
   for(int eo=0;eo<2;eo++)
-    complex_vector_glb_scalar_prod(act_eo[eo],(complex*)(in_l[eo]),(complex*)(out[eo]),loc_volh*sizeof(spincolor)/sizeof(complex));
+    complex_vector_glb_scalar_prod(act_eo[eo],(complex*)(in_l[eo]),(complex*)(out[eo]),locVolh*sizeof(spincolor)/sizeof(complex));
   
   chromo_operator_remove_cSW(Cl,cSW);
   
@@ -742,10 +742,10 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_
   
   eo_ptr<quad_su3> an;
   for(int eo=0;eo<2;eo++)
-    an[eo]=nissa_malloc("an",loc_volh,quad_su3);
+    an[eo]=nissa_malloc("an",locVolh,quad_su3);
   
   for(int eo=0;eo<2;eo++)
-    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       for(int dir=0;dir<NDIM;dir++)
 	{
 	  su3& out=an[eo][ieo][dir];
@@ -767,11 +767,11 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_
     {
       eo_ptr<as2t_su3> cl_insertion;
       for(int eo=0;eo<2;eo++)
-	cl_insertion[eo]=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
+	cl_insertion[eo]=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
       compute_clover_staples_insertions(cl_insertion,in_l,in_r);
       
       for(int eo=0;eo<2;eo++)
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int dir=0;dir<NDIM;dir++)
 	    {
 	      su3 cl_staples;
@@ -801,7 +801,7 @@ void test_xQx()
   
   eo_ptr<spincolor> in;
   for(int eo=0;eo<2;eo++)
-    in[eo]=nissa_malloc("in",loc_volh,spincolor);
+    in[eo]=nissa_malloc("in",locVolh,spincolor);
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1);
   
   //store initial link and compute action
@@ -822,27 +822,27 @@ void test_xQx()
 
 double xQhatx(spincolor *in,double kappa,double mass,double cSW)
 {
-  spincolor *out=nissa_malloc("out",loc_volh,spincolor);
-  spincolor *temp=nissa_malloc("temp",loc_volh,spincolor);
+  spincolor *out=nissa_malloc("out",locVolh,spincolor);
+  spincolor *temp=nissa_malloc("temp",locVolh,spincolor);
   
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
   tmclovDkern_eoprec_eos(out,temp,conf,kappa,Cl[ODD],invCl[EVN],false,mass,in);
   
   complex act;
-  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_volh*sizeof(spincolor)/sizeof(complex));
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,locVolh*sizeof(spincolor)/sizeof(complex));
   
   chromo_operator_remove_cSW(Cl,cSW);
   
@@ -865,22 +865,22 @@ void xQhatx_der_old(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,dou
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
-  spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
-  spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
+  spincolor *temp1=nissa_malloc("temp1",locVolh,spincolor);
+  spincolor *temp2=nissa_malloc("temp2",locVolh,spincolor);
   tmn2Deo_eos(temp2,conf,in);
   
-  NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+  NISSA_PARALLEL_LOOP(ivol,0,locVolh)
     for(int id=0;id<NDIRAC/2;id++)
       for(int ic=0;ic<NCOL;ic++)
 	for(int ri=0;ri<2;ri++)
@@ -908,28 +908,28 @@ void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double 
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
   //allocate each terms of the expansion
   eo_ptr<spincolor> _X;
-  spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+  spincolor *temp=nissa_malloc("temp",locVolh+bord_volh,spincolor);
   for(int eo=0;eo<2;eo++)
-    _X[eo]=nissa_malloc("_X",loc_volh+bord_volh,spincolor);
+    _X[eo]=nissa_malloc("_X",locVolh+bord_volh,spincolor);
   
   vector_copy(_X[ODD],in);
   
   tmn2Deo_eos(temp,conf,_X[ODD]);
   inv_tmclovDee_or_oo_eos(_X[EVN],invCl[EVN],true,temp); //Remove -2 and add -1
-  double_vector_prodassign_double((double*)(_X[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
+  double_vector_prodassign_double((double*)(_X[EVN]),0.5,locVolh*sizeof(spincolor)/sizeof(double));
   
   xQx_der(an,eo,ieo,dir,_X,_X,kappa,mass,cSW);
   
@@ -950,7 +950,7 @@ void test_xQhatx()
   //generate_cold_eo_conf(conf);
   generate_hot_eo_conf(conf);
   
-  spincolor *in=nissa_malloc("in",loc_volh,spincolor);
+  spincolor *in=nissa_malloc("in",locVolh,spincolor);
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
@@ -971,21 +971,21 @@ void test_xQhatx()
 
 double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
 {
-  spincolor *out=nissa_malloc("out",loc_volh,spincolor);
-  spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
-  spincolor *temp2=nissa_malloc("temp2",loc_volh,spincolor);
+  spincolor *out=nissa_malloc("out",locVolh,spincolor);
+  spincolor *temp1=nissa_malloc("temp1",locVolh,spincolor);
+  spincolor *temp2=nissa_malloc("temp2",locVolh,spincolor);
   
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
@@ -994,7 +994,7 @@ double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
   rem_backfield_without_stagphases_from_conf(conf,drv->theories[0].backfield[0]);
   
   complex act;
-  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_volh*sizeof(spincolor)/sizeof(complex));
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,locVolh*sizeof(spincolor)/sizeof(complex));
   
   chromo_operator_remove_cSW(Cl,cSW);
   
@@ -1018,24 +1018,24 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
   //allocate each terms of the expansion
   eo_ptr<spincolor> _X,_Y;
-  spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+  spincolor *temp=nissa_malloc("temp",locVolh+bord_volh,spincolor);
   for(int eo=0;eo<2;eo++)
     {
-      _X[eo]=nissa_malloc("_X",loc_volh+bord_volh,spincolor);
-      _Y[eo]=nissa_malloc("_Y",loc_volh+bord_volh,spincolor);
+      _X[eo]=nissa_malloc("_X",locVolh+bord_volh,spincolor);
+      _Y[eo]=nissa_malloc("_Y",locVolh+bord_volh,spincolor);
     }
   
   add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
@@ -1044,11 +1044,11 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   
   tmn2Deo_eos(temp,conf,_X[ODD]);
   inv_tmclovDee_or_oo_eos(_X[EVN],invCl[EVN],true,temp); //Remove -2 and add -1
-  double_vector_prodassign_double((double*)(_X[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
+  double_vector_prodassign_double((double*)(_X[EVN]),0.5,locVolh*sizeof(spincolor)/sizeof(double));
   
   tmn2Deo_eos(temp,conf,_Y[ODD]);
   inv_tmclovDee_or_oo_eos(_Y[EVN],invCl[EVN],false,temp);
-  double_vector_prodassign_double((double*)(_Y[EVN]),0.5,loc_volh*sizeof(spincolor)/sizeof(double));
+  double_vector_prodassign_double((double*)(_Y[EVN]),0.5,locVolh*sizeof(spincolor)/sizeof(double));
   rem_backfield_without_stagphases_from_conf(conf,drv->theories[0].backfield[0]);
   
   xQx_der(an,eo,ieo,dir,_X,_Y,kappa,mass,cSW);
@@ -1079,7 +1079,7 @@ void test_xQ2hatx()
   //generate_cold_eo_conf(conf);
   generate_hot_eo_conf(conf);
   
-  spincolor *in=nissa_malloc("in",loc_volh,spincolor);
+  spincolor *in=nissa_malloc("in",locVolh,spincolor);
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
@@ -1183,13 +1183,13 @@ double xQ2eex(double kappa,double mass,double cSW)
   //Preparre clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
-  double *loc_act=nissa_malloc("loc_act",loc_volh,double);
+  double *loc_act=nissa_malloc("loc_act",locVolh,double);
   
-  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
     {
       complex d[2];
       for(int x_high_low=0;x_high_low<2;x_high_low++)
@@ -1213,7 +1213,7 @@ double xQ2eex(double kappa,double mass,double cSW)
     nissa_free(Cl[eo]);
   
   double act;
-  glb_reduce(&act,loc_act,loc_volh);
+  glb_reduce(&act,loc_act,locVolh);
   
   nissa_free(loc_act);
   
@@ -1225,22 +1225,22 @@ void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cS
   //Prepare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",loc_volh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
   /////////////////////////////////////////////////////////////////
   
-  as2t_su3 *insertion=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
+  as2t_su3 *insertion=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
   
-  NISSA_PARALLEL_LOOP(jeo,0,loc_volh)
+  NISSA_PARALLEL_LOOP(jeo,0,locVolh)
     {
       for(int mu=0;mu<NDIM;mu++)
     	for(int nu=mu+1;nu<NDIM;nu++)
@@ -1356,13 +1356,13 @@ void test_xQ2eex()
 
 double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
 {
-  spincolor *out=nissa_malloc("out",loc_volh,spincolor);
+  spincolor *out=nissa_malloc("out",locVolh,spincolor);
   // spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
   
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
@@ -1372,7 +1372,7 @@ double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
   // tmclovDee_or_oo_eos(out,kappa,Cl[EVN],true,mass,temp1);
   
   complex act;
-  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,loc_volh*sizeof(spincolor)/sizeof(complex));
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,locVolh*sizeof(spincolor)/sizeof(complex));
   
   chromo_operator_remove_cSW(Cl,cSW);
   
@@ -1392,7 +1392,7 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
@@ -1412,9 +1412,9 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
       }
   
   /////////////////////////////////////////////////////////////////
-  as2t_su3 *insertion=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
+  as2t_su3 *insertion=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
   
-  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
     {
       int ipair=0;
       
@@ -1514,7 +1514,7 @@ void test_xQinv_eex()
   generate_cold_eo_conf(conf);
   //generate_hot_eo_conf(conf);
   
-  spincolor *in=nissa_malloc("in",loc_volh,spincolor);
+  spincolor *in=nissa_malloc("in",locVolh,spincolor);
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
@@ -1613,13 +1613,13 @@ void in_main(int narg,char **arg)
   
   /////////////////////////////////////// timings /////////////////////////////////
   
-  print_stat("apply non vectorized staggered operator",portable_stD_app_time,nportable_stD_app,1158*loc_volh);
+  print_stat("apply non vectorized staggered operator",portable_stD_app_time,nportable_stD_app,1158*locVolh);
   print_stat("cgm invert (overhead)",cgm_inv_over_time,ncgm_inv);
   print_stat("cg invert (overhead)",cg_inv_over_time,ncg_inv);
   print_stat("stout smearing",sto_time,nsto);
   print_stat("stout remapping",sto_remap_time,nsto_remap);
   print_stat("compute gluon force",gluon_force_time,ngluon_force,((drv->sea_theory().gauge_action_name!=WILSON_GAUGE_ACTION)?
-								  flops_per_link_gauge_tlSym:flops_per_link_gauge_Wilson)*NDIM*loc_vol);
+								  flops_per_link_gauge_tlSym:flops_per_link_gauge_Wilson)*NDIM*locVol);
   print_stat("compute quark force (overhead)",quark_force_over_time,nquark_force_over);
   print_stat("evolve the gauge conf with momenta",conf_evolve_time,nconf_evolve);
   print_stat("remap geometry of vectors",remap_time,nremap);

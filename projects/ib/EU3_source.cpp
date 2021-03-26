@@ -7,7 +7,7 @@ void put_current_to_one_in_time(spin1field* J)
   
   master_printf("Putting to zero all spatial, 1 time\n");
   
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     for(int mu=0;mu<NDIM;mu++)
       complex_put_to_real(J[ivol][mu],mu==0);
   NISSA_PARALLEL_LOOP_END;
@@ -46,9 +46,9 @@ void in_main(int narg,char **arg)
   read_str_int("NGaugeConfs",&nconfs);
   
   //allocates vectors to be combined
-  auto J_stoch_sum=nissa_malloc("J_stoch_sum",loc_vol+bord_vol,spin1field);
-  auto J_stoch_per_mass=nissa_malloc("J_stoch_per_mass",loc_vol+bord_vol,spin1field);
-  auto external_source=nissa_malloc("external_source",loc_vol+bord_vol,spin1field);
+  auto J_stoch_sum=nissa_malloc("J_stoch_sum",locVol+bord_vol,spin1field);
+  auto J_stoch_per_mass=nissa_malloc("J_stoch_per_mass",locVol+bord_vol,spin1field);
+  auto external_source=nissa_malloc("external_source",locVol+bord_vol,spin1field);
   
   for(int iconf=0;iconf<nconfs;iconf++)
     {
@@ -61,7 +61,7 @@ void in_main(int narg,char **arg)
       for(int im=0;im<nm;im++)
 	{
 	  read_real_vector(J_stoch_per_mass,combine("%s/J_stoch_m%d",directory,im),"Current");
-	  double_vector_summassign_double_vector_prod_double((double*)J_stoch_sum,(double*)J_stoch_per_mass,charge[im]/3.0,sizeof(spin1field)*loc_vol/sizeof(double));
+	  double_vector_summassign_double_vector_prod_double((double*)J_stoch_sum,(double*)J_stoch_per_mass,charge[im]/3.0,sizeof(spin1field)*locVol/sizeof(double));
 	}
       
       //convolve with the photon propagator

@@ -32,11 +32,11 @@ namespace nissa
     switch(gl.zms)
       {
       case UNNO_ALEMANNA:
-	res=!(glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
+	res=!(glbCoordOfLoclx[imom][1]==0&&glbCoordOfLoclx[imom][2]==0&&glbCoordOfLoclx[imom][3]==0);break;
       case PECIONA:
-	res=!(glb_coord_of_loclx[imom][0]==0&&glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
+	res=!(glbCoordOfLoclx[imom][0]==0&&glbCoordOfLoclx[imom][1]==0&&glbCoordOfLoclx[imom][2]==0&&glbCoordOfLoclx[imom][3]==0);break;
       case ONLY_100:
-	res=(glb_coord_of_loclx[imom][1]+glb_coord_of_loclx[imom][2]+glb_coord_of_loclx[imom][3]==1);break;
+	res=(glbCoordOfLoclx[imom][1]+glbCoordOfLoclx[imom][2]+glbCoordOfLoclx[imom][3]==1);break;
       }
     
     return res;
@@ -71,7 +71,7 @@ namespace nissa
     double ktpo2[4][4],ktso2[4][4];
     for(int mu=0;mu<4;mu++)
       {
-	k[mu]=M_PI*(2*glb_coord_of_loclx[imom][mu]+gl.bc[mu])/glb_size[mu];
+	k[mu]=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
 	kt[mu]=2*sin(k[mu]/2);
 	kt2_dir[mu]=kt[mu]*kt[mu];
 	kt4_dir[mu]=kt2_dir[mu]*kt2_dir[mu];
@@ -119,7 +119,7 @@ namespace nissa
 	      for(int si=0;si<4;si++)
 		prop[mu][nu][RE]+=(kt[si]*kron_delta[mu][nu]-kt[nu]*kron_delta[mu][si])*kt[si]*A[si][nu];
 	      
-	      prop[mu][nu][RE]/=kt2*kt2*glb_vol;
+	      prop[mu][nu][RE]/=kt2*kt2*glbVol;
 	      prop[mu][nu][IM]=0;
 	    }
       }
@@ -138,7 +138,7 @@ namespace nissa
   void compute_mom_space_tlSym_gauge_propagator(spin1prop* prop,gauge_info gl)
   {
     
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
       mom_space_tlSym_gauge_propagator_of_imom(prop[imom],gl,imom);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(prop);
@@ -147,7 +147,7 @@ namespace nissa
   void multiply_mom_space_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
   {
     
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	spin1prop prop;
 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
@@ -163,7 +163,7 @@ namespace nissa
     if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
       crash("Eigen required when out of Wilson regularisation in the Feynaman gauge");
     
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	//take the propagator
 	spin1prop prop;
@@ -229,7 +229,7 @@ namespace nissa
 	double tr=0.0,nre=0.0,nim=0.0;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    double kmu=M_PI*(2*glb_coord_of_loclx[imom][mu]+gl.bc[mu])/glb_size[mu];
+	    double kmu=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
 	    double ktmu=2*sin(kmu/2);
 	    
 	    tr+=out[imom][mu][RE]*ktmu;
@@ -245,7 +245,7 @@ namespace nissa
   {
     
     pass_spin1prop_from_x_to_mom_space(out,in,gl.bc,true,true);
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	spin1prop prop;
 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
@@ -268,7 +268,7 @@ namespace nissa
   {
     
     //fill with Z2
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z2);
     NISSA_PARALLEL_LOOP_END;
@@ -287,9 +287,9 @@ namespace nissa
     //put volume normalization due to convolution
     //cancel zero modes
     multiply_mom_space_sqrt_tlSym_gauge_propagator(photon,photon,gl);
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
-	spin_prodassign_double(photon[imom],sqrtf(glb_vol));
+	spin_prodassign_double(photon[imom],sqrtf(glbVol));
 	cancel_if_zero_mode(photon[imom],gl,imom);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -310,9 +310,9 @@ namespace nissa
     //put volume normalization due to convolution
     //cancel zero modes
     multiply_mom_space_tlSym_gauge_propagator(out,out,gl);
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
-	spin_prodassign_double(out[imom],glb_vol);
+	spin_prodassign_double(out[imom],glbVol);
 	cancel_if_zero_mode(out[imom],gl,imom);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -334,7 +334,7 @@ namespace nissa
   void compute_tadpole(double *tadpole,gauge_info photon)
   {
     double tad_time=-take_time();
-    spin1prop *gprop=nissa_malloc("gprop",loc_vol,spin1prop);
+    spin1prop *gprop=nissa_malloc("gprop",locVol,spin1prop);
     compute_x_space_tlSym_gauge_propagator_by_fft(gprop,photon);
     for(int mu=0;mu<NDIM;mu++) tadpole[mu]=broadcast(gprop[0][mu][mu][RE]);
     nissa_free(gprop);

@@ -27,7 +27,7 @@ namespace nissa
       link_id=gx*4+mu;
       int lx,rx;
       get_loclx_and_rank_of_glblx(&lx,&rx,gx);
-      ord=((rank+nranks-rx)%nranks*loc_vol+lx)*4+mu; //sort according to recv rank
+      ord=((rank+nranks-rx)%nranks*locVol+lx)*4+mu; //sort according to recv rank
     }
   };
   
@@ -99,7 +99,7 @@ namespace nissa
     
     //commands
     void start_new_path_from_loclx(int lx) {
-      pos=glblx_of_loclx[lx];
+      pos=glblxOfLoclx[lx];
       link_for_movements[cur_mov]=START_PATH_FLAG;};
     void summ_to_previous_path() {
       if(cur_path==0) crash("cannot summ to path number 0");

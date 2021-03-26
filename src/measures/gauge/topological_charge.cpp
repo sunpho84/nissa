@@ -53,20 +53,20 @@ namespace nissa
     
     for(int mu=0;mu<NDIM;mu++)
       {
-	int A=loclx_neighup[X][mu];
-	int D=loclx_neighdw[X][mu];
+	int A=loclxNeighup[X][mu];
+	int D=loclxNeighdw[X][mu];
         
 	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
 	    int munu=edge_numb[mu][nu];
 	    
-	    int B=loclx_neighup[X][nu];
-	    int F=loclx_neighdw[X][nu];
+	    int B=loclxNeighup[X][nu];
+	    int F=loclxNeighdw[X][nu];
             
-	    int C=loclx_neighup[D][nu];
-	    int E=loclx_neighdw[D][nu];
+	    int C=loclxNeighup[D][nu];
+	    int E=loclxNeighdw[D][nu];
             
-	    int G=loclx_neighdw[A][nu];
+	    int G=loclxNeighdw[A][nu];
             
 	    su3 temp1,temp2;
 	    
@@ -101,7 +101,7 @@ namespace nissa
   void four_leaves(as2t_su3* leaves_summ,quad_su3* conf)
   {
     communicate_lx_quad_su3_edges(conf);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       four_leaves_point(leaves_summ[ivol],conf,ivol);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(leaves_summ);
@@ -112,7 +112,7 @@ namespace nissa
   {
     double norm_fact=1/(128*M_PI*M_PI);
     
-    as2t_su3 *leaves=nissa_malloc("leaves",loc_vol,as2t_su3);
+    as2t_su3 *leaves=nissa_malloc("leaves",locVol,as2t_su3);
     
     vector_reset(charge);
     
@@ -129,7 +129,7 @@ namespace nissa
 	int ip0=plan_id[iperm][0];
 	int ip1=plan_id[iperm][1];
 	
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    const int sign[3]={1,-1,1};
 	    
@@ -157,9 +157,9 @@ namespace nissa
   //total topological charge
   void total_topological_charge_lx_conf(double* tot_charge,quad_su3* conf)
   {
-    double *charge=nissa_malloc("charge",loc_vol,double);
+    double *charge=nissa_malloc("charge",locVol,double);
     local_topological_charge(charge,conf);
-    glb_reduce(tot_charge,charge,loc_vol);
+    glb_reduce(tot_charge,charge,locVol);
     nissa_free(charge);
   }
   
@@ -167,7 +167,7 @@ namespace nissa
   void total_topological_charge_eo_conf(double* tot_charge,eo_ptr<quad_su3> eo_conf)
   {
     //convert to lx
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     
     total_topological_charge_lx_conf(tot_charge,lx_conf);
@@ -180,8 +180,8 @@ namespace nissa
   {
     
     //pass to complex
-    complex *ccharge=nissa_malloc("ccharge",loc_vol,complex);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    complex *ccharge=nissa_malloc("ccharge",locVol,complex);
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       complex_put_to_real(ccharge[ivol],charge[ivol]);
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
@@ -190,7 +190,7 @@ namespace nissa
     fft4d(ccharge,ccharge,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
     
     //multiply to build correlators
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       safe_complex_prod(ccharge[ivol],ccharge[ivol],ccharge[ivol]);
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
@@ -199,7 +199,7 @@ namespace nissa
     fft4d(ccharge,ccharge,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
     
     //return to double
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       charge[ivol]=ccharge[ivol][RE];
     NISSA_PARALLEL_LOOP_END;
     nissa_free(ccharge);
@@ -212,11 +212,11 @@ namespace nissa
     int subcube_size[NDIM][2],subcube_coord[NDIM],subcube_el_coord[NDIM];
     for(int mu=0;mu<NDIM;mu++)
       {
-	subcube_size[mu][0]=glb_size[mu]/2+1;
-	subcube_size[mu][1]=glb_size[mu]/2-1;
+	subcube_size[mu][0]=glbSize[mu]/2+1;
+	subcube_size[mu][1]=glbSize[mu]/2-1;
 	
 	//take global coord and identify subcube
-	int glx_mu=glb_coord_of_loclx[iloc_lx][mu];
+	int glx_mu=glbCoordOfLoclx[iloc_lx][mu];
 	subcube_coord[mu]=(glx_mu>=subcube_size[mu][0]);
 	subcube=subcube*2+subcube_coord[mu];
 	
@@ -249,8 +249,8 @@ namespace nissa
     int iglb=index_to_topo_corr_remapping(iloc_lx);
     
     //find rank and loclx
-    irank=iglb/loc_vol;
-    iloc=iglb%loc_vol;
+    irank=iglb/locVol;
+    iloc=iglb%locVol;
   }
   
   //store only 1/16 of the file
@@ -265,7 +265,7 @@ namespace nissa
     if(!little_endian)
       {
 	change_endianness((int*)&itraj,(int*)&itraj,1);
-	change_endianness(corr,corr,loc_vol);
+	change_endianness(corr,corr,locVol);
 	change_endianness(&top,&top,1);
       }
     
@@ -287,11 +287,11 @@ namespace nissa
     
     //find which piece has to write data
     int64_t tot_data=1;
-    for(int mu=0;mu<NDIM;mu++) tot_data*=glb_size[mu]/2+1;
+    for(int mu=0;mu<NDIM;mu++) tot_data*=glbSize[mu]/2+1;
     
     //fix possible exceding boundary
-    int64_t istart=std::min(tot_data,loc_vol*rank);
-    int64_t iend=std::min(tot_data,istart+loc_vol);
+    int64_t istart=std::min(tot_data,locVol*rank);
+    int64_t iend=std::min(tot_data,istart+locVol);
     int64_t loc_data=iend-istart;
     
     //take original position of the file
@@ -324,15 +324,15 @@ namespace nissa
 	corr_file=fopen(pars.corr_path.c_str(),(conf_created or !file_exists(pars.corr_path))?"w":"r+");
 	if(corr_file==NULL) crash("opening %s",pars.corr_path.c_str());
 	if(fseek(corr_file,0,SEEK_END)) crash("seeking to the end");
-	topo_corr_rem=new vector_remap_t(loc_vol,index_to_topo_corr_remapping,NULL);
+	topo_corr_rem=new vector_remap_t(locVol,index_to_topo_corr_remapping,NULL);
       }
     
     //allocate a temorary conf to be smoothed
-    double *charge=nissa_malloc("charge",loc_vol,double);
+    double *charge=nissa_malloc("charge",locVol,double);
     quad_su3 *smoothed_conf;
     if(preserve_unsmoothed)
       {
-	smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+	smoothed_conf=nissa_malloc("smoothed_conf",locVol+bord_vol+edge_vol,quad_su3);
 	vector_copy(smoothed_conf,unsmoothed_conf);
       }
     else smoothed_conf=unsmoothed_conf;
@@ -346,7 +346,7 @@ namespace nissa
 	local_topological_charge(charge,smoothed_conf);
 	//total charge
 	double tot_charge;
-	glb_reduce(&tot_charge,charge,loc_vol);
+	glb_reduce(&tot_charge,charge,locVol);
 	total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
 	master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,nsmooth,tot_charge,plaq);
 	finished=smooth_lx_conf_until_next_meas(smoothed_conf,pars.smooth_pars,nsmooth);
@@ -374,7 +374,7 @@ namespace nissa
   
   void measure_topology_eo_conf(top_meas_pars_t &pars,eo_ptr<quad_su3> unsmoothed_conf_eo,int iconf,bool conf_created)
   {
-    quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",locVol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(unsmoothed_conf_lx,unsmoothed_conf_eo);
     measure_topology_lx_conf(pars,unsmoothed_conf_lx,iconf,conf_created,false);
     nissa_free(unsmoothed_conf_lx);
@@ -383,12 +383,12 @@ namespace nissa
   //compute the topological staples site by site
   void topological_staples(quad_su3* staples,quad_su3* conf)
   {
-    as2t_su3 *leaves=nissa_malloc("leaves",loc_vol+bord_vol+edge_vol,as2t_su3);
+    as2t_su3 *leaves=nissa_malloc("leaves",locVol+bord_vol+edge_vol,as2t_su3);
     
     //compute the clover-shape paths
     four_leaves(leaves,conf);
     //takes the anti-symmetric part (apart from a factor 2), in an horrendous way
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int imunu=0;imunu<6;imunu++)
 	{
 	  color *u=leaves[ivol][imunu];
@@ -406,7 +406,7 @@ namespace nissa
     
     //loop on the three different combinations of plans
     vector_reset(staples);
-    NISSA_PARALLEL_LOOP(A,0,loc_vol)
+    NISSA_PARALLEL_LOOP(A,0,locVol)
       {
 	//list the plan and coefficients for each staples
 	const int plan_perp[4][3]={{ 5, 4, 3},{ 5, 2, 1},{ 4, 2, 0},{ 3, 1, 0}};
@@ -420,11 +420,11 @@ namespace nissa
 	      int iplan=plan_perp[mu][inu];
 	      
 	      //takes neighbours
-	      int B=loclx_neighup[A][nu];
-	      int C=loclx_neighup[B][mu];
-	      int D=loclx_neighdw[A][nu];
-	      int E=loclx_neighup[D][mu];
-	      int F=loclx_neighup[A][mu];
+	      int B=loclxNeighup[A][nu];
+	      int C=loclxNeighup[B][mu];
+	      int D=loclxNeighdw[A][nu];
+	      int E=loclxNeighup[D][mu];
+	      int F=loclxNeighup[A][mu];
 	      
 	      //compute ABC, BCF and the full SU(3) staple, ABCF
 	      su3 ABC,BCF,ABCF;
@@ -484,8 +484,8 @@ namespace nissa
 	  }
 	else
 	  {
-	    conf[0]=nissa_malloc("stout_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
-	    conf[1]=nissa_malloc("stout_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
+	    conf[0]=nissa_malloc("stout_conf_e",locVolh+bord_volh+edge_volh,quad_su3);
+	    conf[1]=nissa_malloc("stout_conf_o",locVolh+bord_volh+edge_volh,quad_su3);
 	    stout_smear(conf,ext_conf,&stout_pars);
 	  }
 	

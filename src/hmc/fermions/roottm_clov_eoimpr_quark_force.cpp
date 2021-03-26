@@ -43,7 +43,7 @@ namespace nissa
     
     for(int eo=0;eo<2;eo++)
       {
-	NISSA_PARALLEL_LOOP(jeo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(jeo,0,locVolh)
 	  {
 	    for(int mu=0;mu<NDIM;mu++)
 	      for(int nu=mu+1;nu<NDIM;nu++)
@@ -130,15 +130,15 @@ namespace nissa
     
     //allocate each terms of the expansion
     eo_ptr<spincolor*>Y,X;
-    spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+    spincolor *temp=nissa_malloc("temp",locVolh+bord_volh,spincolor);
     for(int eo=0;eo<2;eo++)
       {
 	X[eo]=nissa_malloc("X[eo]",appr->degree(),spincolor*);
 	Y[eo]=nissa_malloc("Y[eo]",appr->degree(),spincolor*);
 	for(int iterm=0;iterm<appr->degree();iterm++)
 	  {
-	    Y[eo][iterm]=nissa_malloc("Y",loc_volh+bord_volh,spincolor);
-	    X[eo][iterm]=nissa_malloc("X",loc_volh+bord_volh,spincolor);
+	    Y[eo][iterm]=nissa_malloc("Y",locVolh+bord_volh,spincolor);
+	    X[eo][iterm]=nissa_malloc("X",locVolh+bord_volh,spincolor);
 	  }
       }
     
@@ -166,11 +166,11 @@ namespace nissa
 	
 	tmn2Deo_eos(temp,eo_conf,X[ODD][iterm]); // temp = - 2 * D_eo * X_o
 	inv_tmclovDee_or_oo_eos(X[EVN][iterm],invCl_evn,true,temp); // X_e = M_ee+^-1 * temp = - 2 * M_ee+^-1 * D_eo * X_o
-	double_vector_prodassign_double((double*)(X[EVN][iterm]),0.5,loc_volh*sizeof(spincolor)/sizeof(double)); // X_e = 0.5 * X_e = - M_ee+^-1 * D_eo * X_o
+	double_vector_prodassign_double((double*)(X[EVN][iterm]),0.5,locVolh*sizeof(spincolor)/sizeof(double)); // X_e = 0.5 * X_e = - M_ee+^-1 * D_eo * X_o
 	
 	tmn2Deo_eos(temp,eo_conf,Y[ODD][iterm]); // temp = - 2 * D_eo * Y_o
 	inv_tmclovDee_or_oo_eos(Y[EVN][iterm],invCl_evn,false,temp); // Y_e = M_ee-^-1 * temp = - 2 * M_ee-^-1 * D_eo * Y_o
-	double_vector_prodassign_double((double*)(Y[EVN][iterm]),0.5,loc_volh*sizeof(spincolor)/sizeof(double)); // Y_e = 0.5 * Y_e = - M_ee-^-1 * D_eo * Y_o
+	double_vector_prodassign_double((double*)(Y[EVN][iterm]),0.5,locVolh*sizeof(spincolor)/sizeof(double)); // Y_e = 0.5 * Y_e = - M_ee-^-1 * D_eo * Y_o
       }
     
     //communicate borders (could be improved...)
@@ -185,7 +185,7 @@ namespace nissa
 	const double weight=appr->weights[iterm];
 	
 	for(int eo=0;eo<2;eo++)
-	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
 		int ineoup=loceo_neighup[eo][ieo][mu];
@@ -225,7 +225,7 @@ namespace nissa
 	
 	eo_ptr<as2t_su3> cl_insertion;
 	for(int eo=0;eo<2;eo++)
-	  cl_insertion[eo]=nissa_malloc("insertion",loc_volh+bord_volh+edge_volh,as2t_su3);
+	  cl_insertion[eo]=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
 	
 	for(int iterm=0;iterm<appr->degree();iterm++)
 	  {
@@ -236,7 +236,7 @@ namespace nissa
 	    communicate_eo_as2t_su3_edges(cl_insertion);
 	    
 	    for(int eo=0;eo<2;eo++)
-	      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 		for(int dir=0;dir<NDIM;dir++)
 		  {
 		    su3 stap;

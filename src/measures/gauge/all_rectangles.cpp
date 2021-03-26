@@ -71,8 +71,8 @@ namespace nissa
     int mu1=perp_dir[mu0][imu1],mu2=perp2_dir[mu0][imu1][0],mu3=perp2_dir[mu0][imu1][1];
     
     //find dest in the global indexing
-    int *g=glb_coord_of_loclx[iloc_lx];
-    int glb_dest_site=g[mu1]+glb_size[mu1]*(g[mu0]+glb_size[mu0]*(g[mu2]+glb_size[mu2]*g[mu3]));
+    int *g=glbCoordOfLoclx[iloc_lx];
+    int glb_dest_site=g[mu1]+glbSize[mu1]*(g[mu0]+glbSize[mu0]*(g[mu2]+glbSize[mu2]*g[mu3]));
     irank_transp=glb_dest_site/prp_vol;
     iloc_transp=glb_dest_site-irank_transp*prp_vol;
 #else
@@ -93,7 +93,7 @@ namespace nissa
     int imu01=0,cmp_vol_max=0;
     std::array<vector_remap_t*,12> remap;
     std::array<su3*,12> transp_conf;
-    su3 *pre_transp_conf_holder=nissa_malloc("pre_transp_conf_holder",loc_vol,su3);
+    su3 *pre_transp_conf_holder=nissa_malloc("pre_transp_conf_holder",locVol,su3);
     for(int mu0=0;mu0<4;mu0++)
       for(int imu1=0;imu1<3;imu1++)
 	{
@@ -102,16 +102,16 @@ namespace nissa
 	  mu0_l[imu01]=mu0;mu1_l[imu01]=mu1;
 	  
 	  //compute competing volume
-	  prp_vol[imu01]=glb_size[mu0]*glb_size[mu1]*((int)ceil((double)glb_size[mu2]*glb_size[mu3]/nranks));
+	  prp_vol[imu01]=glbSize[mu0]*glbSize[mu1]*((int)ceil((double)glbSize[mu2]*glbSize[mu3]/nranks));
 	  int min_vol=prp_vol[imu01]*rank,max_vol=min_vol+prp_vol[imu01];
-	  if(min_vol>=glb_vol) min_vol=glb_vol;
-	  if(max_vol>=glb_vol) max_vol=glb_vol;
+	  if(min_vol>=glbVol) min_vol=glbVol;
+	  if(max_vol>=glbVol) max_vol=glbVol;
 	  cmp_vol[imu01]=max_vol-min_vol;
 	  cmp_vol_max=std::max(cmp_vol_max,cmp_vol[imu01]);
 	  
 	  //define the six remapper
 	  int pars[3]={mu0,imu1,prp_vol[imu01]};
-	  remap[imu01]=new vector_remap_t(loc_vol,index_transp,pars);
+	  remap[imu01]=new vector_remap_t(locVol,index_transp,pars);
 	  if(remap[imu01]->nel_in!=cmp_vol[imu01]) crash("expected %d obtained %d",cmp_vol[imu01],remap[imu01]->nel_in);
 	  
 	  //allocate transp conf
@@ -124,7 +124,7 @@ namespace nissa
     su3 *post_transp_conf_holder=nissa_malloc("post_transp_conf_holder",cmp_vol_max,su3);
     
     //hyp or APE smear the conf
-    quad_su3 *sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *sme_conf=nissa_malloc("sme_conf",locVol+bord_vol+edge_vol,quad_su3);
     for(int mu0=0;mu0<NDIM;mu0++)
       {
 	vector_copy(sme_conf,ori_conf);
@@ -132,7 +132,7 @@ namespace nissa
 	verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
 	
 	//store temporal links and send them
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  su3_copy(pre_transp_conf_holder[ivol],sme_conf[ivol][mu0]);
 	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
@@ -162,7 +162,7 @@ namespace nissa
 	      {
 		int mu1=perp_dir[mu0][imu1];
 		int imu01=mu0*(NDIM-1)+imu1;
-		NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+		NISSA_PARALLEL_LOOP(ivol,0,locVol)
 		  su3_copy(pre_transp_conf_holder[ivol],sme_conf[ivol][mu1]);
 		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
@@ -317,7 +317,7 @@ namespace nissa
 			      iconf,
 			      dir_name[mu1_l[imu01]],isme*pars->spat_smear_pars.meas_each_nsmooth,dd+pars->Dmin,
 			      dir_name[mu0_l[imu01]],dt+pars->Tmin,
-			      all_rectangles_glb[irect++]/(3*glb_vol));
+			      all_rectangles_glb[irect++]/(3*glbVol));
 		    }
 	    fclose(fout);
 	  }
@@ -484,22 +484,22 @@ namespace nissa
   
   void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,eo_ptr<quad_su3> conf_eo,int iconf,int create_output_file)
   {
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     //check that we do not exceed geometry
-    for(int i=1;i<NDIM;i++) if(pars->Dmin>=glb_size[i]) crash("minimal spatial %d size exceeds global size[%d]=%d",pars->Dmin,i,glb_size[i]);
+    for(int i=1;i<NDIM;i++) if(pars->Dmin>=glbSize[i]) crash("minimal spatial %d size exceeds global size[%d]=%d",pars->Dmin,i,glbSize[i]);
     for(int i=1;i<NDIM;i++)
-      if(pars->Dmax>=glb_size[i])
+      if(pars->Dmax>=glbSize[i])
 	{
-	  master_printf("maximal spatial %d size exceeds global size[%d]=%d, reducing it\n",pars->Dmax,i,glb_size[i]);
-	  pars->Dmax=glb_size[i];
+	  master_printf("maximal spatial %d size exceeds global size[%d]=%d, reducing it\n",pars->Dmax,i,glbSize[i]);
+	  pars->Dmax=glbSize[i];
 	}
-    if(pars->Tmin>=glb_size[0]) crash("minimal temporal %d size exceeds global size[0]=%d",pars->Tmin,glb_size[0]);
-    if(pars->Tmax>=glb_size[0])
+    if(pars->Tmin>=glbSize[0]) crash("minimal temporal %d size exceeds global size[0]=%d",pars->Tmin,glbSize[0]);
+    if(pars->Tmax>=glbSize[0])
       {
-	master_printf("maximal temporal %d size exceeds global size[0]=%d, reducing it\n",pars->Tmax,glb_size[0]);
-	pars->Tmax=glb_size[0];
+	master_printf("maximal temporal %d size exceeds global size[0]=%d, reducing it\n",pars->Tmax,glbSize[0]);
+	pars->Tmax=glbSize[0];
       }
     
     measure_all_rectangular_paths(pars,conf_lx,iconf,create_output_file);

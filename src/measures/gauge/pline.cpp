@@ -28,16 +28,16 @@ namespace nissa
     communicate_lx_quad_su3_borders(conf);
     
     //reset the link product
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       su3_put_to_id(u[ivol]);
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //move along +mu
-    for(int i=0;i<glb_size[mu];i++)
+    for(int i=0;i<glbSize[mu];i++)
       {
 	//take the product
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][mu]);
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(u);
@@ -51,12 +51,12 @@ namespace nissa
   {
     
     //compute untraced loops
-    su3 *u=nissa_malloc("u",loc_vol+bord_vol,su3);
+    su3 *u=nissa_malloc("u",locVol+bord_vol,su3);
     field_untraced_polyakov_loop_lx_conf(u,conf,mu);
     
     //trace
     vector_reset(out);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       su3_trace(out[ivol],u[ivol]);
     NISSA_PARALLEL_LOOP_END;
     
@@ -66,7 +66,7 @@ namespace nissa
   //finding the index to put only the three directions in the plane perpendicular to the dir
   int index_to_poly_corr_remapping(int iloc_lx,int mu)
   {
-    int perp_vol=glb_vol/glb_size[mu];
+    int perp_vol=glbVol/glbSize[mu];
     
     int subcube=0,subcube_el=0;
     int subcube_size[3][2],subcube_coord[3],subcube_el_coord[3];
@@ -74,11 +74,11 @@ namespace nissa
       {
 	//take dir and subcube size
 	int nu=perp_dir[mu][inu];
-	subcube_size[inu][0]=glb_size[nu]/2+1;
-	subcube_size[inu][1]=glb_size[nu]/2-1;
+	subcube_size[inu][0]=glbSize[nu]/2+1;
+	subcube_size[inu][1]=glbSize[nu]/2-1;
 	
 	//take global coord and identify subcube
-	int glx_nu=glb_coord_of_loclx[iloc_lx][nu];
+	int glx_nu=glbCoordOfLoclx[iloc_lx][nu];
 	subcube_coord[inu]=(glx_nu>=subcube_size[inu][0]);
 	subcube=subcube*2+subcube_coord[inu];
 	
@@ -95,7 +95,7 @@ namespace nissa
 	  subcube_vol[c+2*(b+2*a)]=subcube_size[0][a]*subcube_size[1][b]*subcube_size[2][c];
     
     //set the most internal and external
-    int poly_ind=subcube_el+perp_vol*glb_coord_of_loclx[iloc_lx][mu];
+    int poly_ind=subcube_el+perp_vol*glbCoordOfLoclx[iloc_lx][mu];
     
     //summ the smaller cubes
     for(int isubcube=0;isubcube<subcube;isubcube++)
@@ -111,8 +111,8 @@ namespace nissa
     int iglb_poly=index_to_poly_corr_remapping(iloc_lx,mu);
     
     //find rank and loclx
-    irank_poly=iglb_poly/loc_vol;
-    iloc_poly=iglb_poly%loc_vol;
+    irank_poly=iglb_poly/locVol;
+    iloc_poly=iglb_poly%locVol;
   }
   
   //compute the polyakov loop - if ext_ll_dag is non null uses it and store correlator with the dag inside it, if ext_ll is non null compute also the correlator with itself
@@ -120,12 +120,12 @@ namespace nissa
   {
     
     //compute the traced loop
-    complex *point_loop=nissa_malloc("point_loop",loc_vol,complex),*point_loop_dag=NULL;
+    complex *point_loop=nissa_malloc("point_loop",locVol,complex),*point_loop_dag=NULL;
     field_traced_polyakov_loop_lx_conf(point_loop,conf,mu);
     if(ll_corr)
       {
-	point_loop_dag=nissa_malloc("point_loop_dag",loc_vol,complex);
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	point_loop_dag=nissa_malloc("point_loop_dag",locVol,complex);
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  complex_conj(point_loop_dag[ivol],point_loop[ivol]);
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(point_loop_dag);
@@ -133,8 +133,8 @@ namespace nissa
       
     //compute the trace; since we reduce over all the volume there are glb_size[mu] replica
     complex temp_trace;
-    glb_reduce(&temp_trace,point_loop,loc_vol);
-    complex_prod_double(loop_trace,temp_trace,1.0/(3*glb_vol));
+    glb_reduce(&temp_trace,point_loop,locVol);
+    complex_prod_double(loop_trace,temp_trace,1.0/(3*glbVol));
     
     //if an appropriate array passed compute correlators of polyakov loop
     if(ll_dag_corr!=NULL)
@@ -143,7 +143,7 @@ namespace nissa
 	fft4d(point_loop,point_loop,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
 	
 	//multiply to build correlators
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    unsafe_complex_conj2_prod(ll_dag_corr[ivol],point_loop[ivol],point_loop[ivol]); //counter-intuitive but true
 	    complex_prodassign_double(ll_dag_corr[ivol],1.0/9);
@@ -160,14 +160,14 @@ namespace nissa
       {
 	//for debugging purpose
 	complex temp_dag_trace;
-	glb_reduce(&temp_dag_trace,point_loop_dag,loc_vol);
-	complex_prod_double(loop_dag_trace,temp_dag_trace,1.0/(3*glb_vol));
+	glb_reduce(&temp_dag_trace,point_loop_dag,locVol);
+	complex_prod_double(loop_dag_trace,temp_dag_trace,1.0/(3*glbVol));
 	
 	//transform
 	fft4d(point_loop_dag,point_loop_dag,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
 	
 	//build l*l
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    unsafe_complex_conj2_prod(ll_corr[ivol],point_loop[ivol],point_loop_dag[ivol]); //because of convolution theorem
 	    complex_prodassign_double(ll_corr[ivol],1.0/9);
@@ -188,7 +188,7 @@ namespace nissa
     if(IS_PARALLEL) crash("cannot work threaded!");
     
     //remap
-    vector_remap_t *poly_rem=new vector_remap_t(loc_vol,index_to_poly_corr_remapping,&mu);
+    vector_remap_t *poly_rem=new vector_remap_t(locVol,index_to_poly_corr_remapping,&mu);
     poly_rem->remap(loop,loop,sizeof(complex));
     delete poly_rem;
     
@@ -196,7 +196,7 @@ namespace nissa
     if(!little_endian)
       {
 	change_endianness((float*)&itraj,(float*)&itraj,1);
-	change_endianness((double*)loop,(double*)loop,loc_vol*2);
+	change_endianness((double*)loop,(double*)loop,locVol*2);
 	change_endianness(tra,tra,2);
       }
     
@@ -218,12 +218,12 @@ namespace nissa
     
     //find which piece has to write data
     int tot_data=
-      (glb_size[perp_dir[mu][0]]/2+1)*
-      (glb_size[perp_dir[mu][1]]/2+1)*
-      (glb_size[perp_dir[mu][2]]/2+1);
+      (glbSize[perp_dir[mu][0]]/2+1)*
+      (glbSize[perp_dir[mu][1]]/2+1)*
+      (glbSize[perp_dir[mu][2]]/2+1);
     
-    int istart=loc_vol*rank;
-    int iend=istart+loc_vol;
+    int istart=locVol*rank;
+    int iend=istart+locVol;
     
     //fix possible exceding boundary
     if(istart>tot_data) istart=tot_data;
@@ -256,8 +256,8 @@ namespace nissa
     complex *loop=NULL,*loop_dag=NULL;
     if(corr_file!=NULL)
       {
-	loop=nissa_malloc("loop",loc_vol,complex);
-	loop_dag=nissa_malloc("loop_dag",loc_vol,complex);
+	loop=nissa_malloc("loop",locVol,complex);
+	loop_dag=nissa_malloc("loop_dag",locVol,complex);
       }
     
     //compute
@@ -281,7 +281,7 @@ namespace nissa
   //definition in case of eo conf
   void average_polyakov_loop_eo_conf(complex tra,eo_ptr<quad_su3> eo_conf,int mu)
   {
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol,quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     
     average_polyakov_loop_lx_conf(tra,lx_conf,mu);
@@ -299,19 +299,19 @@ namespace nissa
     communicate_lx_quad_su3_borders(conf);
     
     //Loop simultaneously forward and backward
-    for(int xmu_shift=1;xmu_shift<=glb_size[mu]/2;xmu_shift++)
+    for(int xmu_shift=1;xmu_shift<=glbSize[mu]/2;xmu_shift++)
       {
 	communicate_lx_su3_borders(pline);
 	
 	NISSA_LOC_VOL_LOOP(x)
 	{
-	  int x_back=loclx_neighdw[x][mu];
-	  int x_forw=loclx_neighup[x][mu];
+	  int x_back=loclxNeighdw[x][mu];
+	  int x_forw=loclxNeighup[x][mu];
           
 	  //consider +xmu_shift point
-	  if(glb_coord_of_loclx[x][mu]==(xmu_start+xmu_shift)%glb_size[mu]) unsafe_su3_dag_prod_su3(pline[x],conf[x_back][mu],pline[x_back]);
+	  if(glbCoordOfLoclx[x][mu]==(xmu_start+xmu_shift)%glbSize[mu]) unsafe_su3_dag_prod_su3(pline[x],conf[x_back][mu],pline[x_back]);
 	  //consider -xmu_shift point
-	  if((glb_coord_of_loclx[x][mu]+xmu_shift)%glb_size[mu]==xmu_start) unsafe_su3_prod_su3(pline[x],conf[x][mu],pline[x_forw]);
+	  if((glbCoordOfLoclx[x][mu]+xmu_shift)%glbSize[mu]==xmu_start) unsafe_su3_prod_su3(pline[x],conf[x][mu],pline[x_forw]);
 	}
 	
 	set_borders_invalid(pline);
@@ -323,7 +323,7 @@ namespace nissa
   {
     //reset the link product, putting id at x such that xmu==xmu_start
     vector_reset(pline);
-    NISSA_LOC_VOL_LOOP(x) if(glb_coord_of_loclx[x][mu]==xmu_start) su3_put_to_id(pline[x]);
+    NISSA_LOC_VOL_LOOP(x) if(glbCoordOfLoclx[x][mu]==xmu_start) su3_put_to_id(pline[x]);
     
     compute_Pline_dag_internal(pline,conf,mu,xmu_start);
   }
@@ -350,23 +350,23 @@ namespace nissa
     //Reset the link product, putting id at xmu_start
     vector_reset(pline);
     NISSA_LOC_VOL_LOOP(ivol)
-      if(glb_coord_of_loclx[ivol][mu]==xmu_start)
+      if(glbCoordOfLoclx[ivol][mu]==xmu_start)
 	color_copy(pline[ivol],source[ivol]);
     
     //Loop simultaneously forward and backward
-    for(int xmu_shift=1;xmu_shift<=glb_size[mu]/2;xmu_shift++)
+    for(int xmu_shift=1;xmu_shift<=glbSize[mu]/2;xmu_shift++)
       {
 	communicate_lx_color_borders(pline);
 	
 	NISSA_LOC_VOL_LOOP(x)
 	{
-	  int x_back=loclx_neighdw[x][mu];
-	  int x_forw=loclx_neighup[x][mu];
+	  int x_back=loclxNeighdw[x][mu];
+	  int x_forw=loclxNeighup[x][mu];
           
 	  //consider +xmu_shift point
-	  if(glb_coord_of_loclx[x][mu]==(xmu_start+xmu_shift)%glb_size[mu]) unsafe_su3_dag_prod_color(pline[x],conf[x_back][mu],pline[x_back]);
+	  if(glbCoordOfLoclx[x][mu]==(xmu_start+xmu_shift)%glbSize[mu]) unsafe_su3_dag_prod_color(pline[x],conf[x_back][mu],pline[x_back]);
 	  //consider -xmu_shift point
-	  if((glb_coord_of_loclx[x][mu]+xmu_shift)%glb_size[mu]==xmu_start) unsafe_su3_prod_color(pline[x],conf[x][mu],pline[x_forw]);
+	  if((glbCoordOfLoclx[x][mu]+xmu_shift)%glbSize[mu]==xmu_start) unsafe_su3_prod_color(pline[x],conf[x][mu],pline[x_forw]);
 	}
 	
 	set_borders_invalid(pline);
@@ -384,7 +384,7 @@ namespace nissa
     
     NISSA_LOC_VOL_LOOP(x)
     {
-      int xmu=glb_coord_of_loclx[x][mu];
+      int xmu=glbCoordOfLoclx[x][mu];
       int dist=abs(xmu-xmu_start);
       int ord=(xmu>=xmu_start);
       
@@ -394,7 +394,7 @@ namespace nissa
 	    spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],base_gamma+0,pline[x][ic1][ic2]);
             
 	    //sign of 1+-gamma_mu
-	    if((ord==1 && dist<=glb_size[mu]/2)||(ord==0 && dist>=glb_size[mu]/2)) spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //forward
+	    if((ord==1 && dist<=glbSize[mu]/2)||(ord==0 && dist>=glbSize[mu]/2)) spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //forward
 	    else                                                                   spinspin_dirac_subt_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //backward
             
 	    spinspin_prodassign_double(prop[x][ic1][ic2],0.5);
@@ -407,7 +407,7 @@ namespace nissa
   //compute the static propagator
   void compute_Wstat_prop_wall(su3spinspin *prop,quad_su3 *conf,int mu,int xmu_start)
   {
-    su3 *pline=nissa_malloc("pline",loc_vol+bord_vol,su3);
+    su3 *pline=nissa_malloc("pline",locVol+bord_vol,su3);
     
     //version with pline stemming from a wall
     compute_Pline_dag_wall(pline,conf,mu,xmu_start);
@@ -420,7 +420,7 @@ namespace nissa
   //version with pline by a point
   void compute_Wstat_prop_point(su3spinspin *prop,quad_su3 *conf,int mu,coords x_start)
   {
-    su3 *pline=nissa_malloc("pline",loc_vol+bord_vol,su3);
+    su3 *pline=nissa_malloc("pline",locVol+bord_vol,su3);
     
     //compute pline stemming from a point
     compute_Pline_dag_point(pline,conf,mu,x_start);
@@ -433,7 +433,7 @@ namespace nissa
   //compute the stochastic static propagator, putting the 1+gamma_mu in place
   void compute_Wstat_stoch_prop(colorspinspin *prop,quad_su3 *conf,int mu,int xmu_start,color *source)
   {
-    color *pline=nissa_malloc("pline",loc_vol+bord_vol,color);
+    color *pline=nissa_malloc("pline",locVol+bord_vol,color);
     
     //compute stocasthic pline
     compute_stoch_Pline_dag(pline,conf,mu,xmu_start,source);
@@ -446,7 +446,7 @@ namespace nissa
     
     NISSA_LOC_VOL_LOOP(x)
     {
-      int xmu=glb_coord_of_loclx[x][mu];
+      int xmu=glbCoordOfLoclx[x][mu];
       int dist=abs(xmu-xmu_start);
       int ord=(xmu>=xmu_start);
       
@@ -454,7 +454,7 @@ namespace nissa
 	{
 	  spinspin_dirac_summ_the_prod_complex(prop[x][ic],base_gamma+0,pline[x][ic]);
 	  
-	  if((ord==1 && dist<=glb_size[mu]/2)||(ord==0 && dist>=glb_size[mu]/2)) spinspin_dirac_summ_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //forward
+	  if((ord==1 && dist<=glbSize[mu]/2)||(ord==0 && dist>=glbSize[mu]/2)) spinspin_dirac_summ_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //forward
 	  else                                                                   spinspin_dirac_subt_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //backward
 	  
 	  spinspin_prodassign_double(prop[x][ic],0.5);

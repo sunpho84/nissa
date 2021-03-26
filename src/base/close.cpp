@@ -46,7 +46,7 @@ namespace nissa
 #endif
      
     //unset lx geometry
-    if(lx_geom_inited) unset_lx_geometry();
+    if(lxGeomInited) unset_lx_geometry();
     
     //unset eo geometry
     if(eo_geom_inited) unset_eo_geometry();

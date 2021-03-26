@@ -38,7 +38,7 @@ namespace nissa
   {
     
     tmn2Doe_eos(varphi,conf_eos,eq8a);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
       for(int id=0;id<NDIRAC/2;id++)
 	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
@@ -55,7 +55,7 @@ namespace nissa
   {
     
     tmn2Deo_eos(varphi,conf_eos,sol_odd);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
       for(int id=0;id<NDIRAC;id++)
 	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
@@ -71,30 +71,30 @@ namespace nissa
     
     //prepare the e/o split version of the source
     eo_ptr<spincolor> source_eos;
-    source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spincolor);
-    source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spincolor);
+    source_eos[0]=nissa_malloc("source_eos0",locVolh+bord_volh,spincolor);
+    source_eos[1]=nissa_malloc("source_eos1",locVolh+bord_volh,spincolor);
     
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
     eo_ptr<spincolor> solution_eos;
-    solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
-    solution_eos[1]=nissa_malloc("solution_eos_1",loc_volh+bord_volh,spincolor);
+    solution_eos[0]=nissa_malloc("solution_eos_0",locVolh+bord_volh,spincolor);
+    solution_eos[1]=nissa_malloc("solution_eos_1",locVolh+bord_volh,spincolor);
     
     //prepare the e/o split version of the conf
     eo_ptr<quad_su3> conf_eos;
-    conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+bord_volh,quad_su3);
-    conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+bord_volh,quad_su3);
+    conf_eos[0]=nissa_malloc("conf_eos_0",locVolh+bord_volh,quad_su3);
+    conf_eos[1]=nissa_malloc("conf_eos_1",locVolh+bord_volh,quad_su3);
     split_lx_vector_into_eo_parts(conf_eos,conf_lx);
     
     ///////////////////////////////////// invert with e/o preconditioning ///////////////////////////////////
     
     //Equation (8.a)
-    spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
+    spincolor *temp=nissa_malloc("temp",locVolh+bord_volh,spincolor);
     inv_tmDee_or_oo_eos(temp,kappa,mass,source_eos[EVN]);
     
     //Prepare the source according to Equation (8.b)
-    spincolor *varphi=nissa_malloc("varphi",loc_volh+bord_volh,spincolor);
+    spincolor *varphi=nissa_malloc("varphi",locVolh+bord_volh,spincolor);
     inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,temp,source_eos[ODD]);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
@@ -140,10 +140,10 @@ namespace nissa
 	  DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
 	  
 	  //check solution
-	  spincolor *temp_lx=nissa_malloc("temp",loc_vol,spincolor);
+	  spincolor *temp_lx=nissa_malloc("temp",locVol,spincolor);
 	  apply_tmQ(temp_lx,conf_lx,kappa,mass,solution_lx);
 	  
-	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	     for(int id=0;id<NDIRAC;id++)
 	       for(int ic=0;ic<NCOL;ic++)
 		 for(int ri=0;ri<2;ri++)
@@ -152,8 +152,8 @@ namespace nissa
 	  THREAD_BARRIER();
 	  
 	  //compute the norm and print it
-	  double sonorm2=double_vector_glb_norm2(source_lx,loc_vol);
-	  double norm2=double_vector_glb_norm2(temp_lx,loc_vol);
+	  double sonorm2=double_vector_glb_norm2(source_lx,locVol);
+	  double norm2=double_vector_glb_norm2(temp_lx,locVol);
 	  master_printf("check solution: %lg\n",norm2/sonorm2);
 	  nissa_free(temp_lx);
 	   // for(int ivol=0;ivol<loc_vol;ivol++)

@@ -39,7 +39,7 @@ namespace nissa
   //allocate mesonic contractions
   void allocate_mes2pts_contr()
   {
-    mes2pts_contr_size=glb_size[0]*mes_gamma_list.size()*mes2pts_contr_map.size();
+    mes2pts_contr_size=glbSize[0]*mes_gamma_list.size()*mes2pts_contr_map.size();
     mes2pts_contr=nissa_malloc("mes2pts_contr",mes2pts_contr_size,complex);
   }
   
@@ -52,7 +52,7 @@ namespace nissa
   {
     master_printf("Computing the scalar product between %s and %s\n",pr_dag.c_str(),pr.c_str());
     
-    complex *loc=nissa_malloc("loc",loc_vol,complex);
+    complex *loc=nissa_malloc("loc",locVol,complex);
     vector_reset(loc);
     
     for(int idc_so=0;idc_so<nso_spi*nso_col;idc_so++)
@@ -60,7 +60,7 @@ namespace nissa
 	spincolor *q_dag=Q[pr_dag][idc_so];
 	spincolor *q=Q[pr][idc_so];
 	
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    complex t;
 	    spincolor_scalar_prod(t,q_dag[ivol],q[ivol]);
@@ -70,7 +70,7 @@ namespace nissa
       }
     THREAD_BARRIER();
     
-    glb_reduce((complex*)res,loc,loc_vol);
+    glb_reduce((complex*)res,loc,locVol);
     
     nissa_free(loc);
   }
@@ -117,7 +117,7 @@ namespace nissa
 		    spincolor *q1=Q1[so_sp_col_ind(j,b)];
 		    spincolor *q2=Q2[so_sp_col_ind(i,b)];
 		    
-		    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+		    NISSA_PARALLEL_LOOP(ivol,0,locVol)
 		      {
 			for(int k=0;k<NDIRAC;k++)
 			  {
@@ -141,11 +141,11 @@ namespace nissa
 	      }
 	    
 	    THREAD_BARRIER();
-	    complex temp_contr[glb_size[0]];
-	    glb_reduce(temp_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],glb_coord_of_loclx[0][0]);
+	    complex temp_contr[glbSize[0]];
+	    glb_reduce(temp_contr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
 	    
-	    for(int t=0;t<glb_size[0];t++)
-	      complex_copy(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glb_size[0]-source_coord[0])%glb_size[0])],temp_contr[t]);
+	    for(int t=0;t<glbSize[0];t++)
+	      complex_copy(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbSize[0]-source_coord[0])%glbSize[0])],temp_contr[t]);
 	  }
       }
     
@@ -282,10 +282,10 @@ namespace nissa
 	    const int igSo=iProjGroup[0];
 	    const int igSi=iProjGroup[1];
 	    
-	    complex contr[glb_size[0]*nWicks];
+	    complex contr[glbSize[0]*nWicks];
 	    tm_corr_op::compute_baryon_2pts_proj_contr(contr,igSo,igSi,Q1.sp,Q2.sp,Q3.sp,source_coord[0],temporal_bc);
 	    
-	    for(int dt=0;dt<glb_size[0];dt++)
+	    for(int dt=0;dt<glbSize[0];dt++)
 	      for(int iWick=0;iWick<nWicks;iWick++)
 		{
 		  /// Input index
@@ -458,7 +458,7 @@ namespace nissa
 	    for(int b=0;b<NCOL;b++)
 	      for(int iperm=0;iperm<2;iperm++)
 		{
-		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+		  NISSA_PARALLEL_LOOP(ivol,0,locVol)
 		    {
 		      // const int eps[3][2]={{1,2},{2,0},{0,1}};
 		      // int sign[2]={1,-1};
@@ -539,7 +539,7 @@ namespace nissa
 	{
 	  //open output
 	  FILE *fout=list.open(combine("%s/bar_contr_%s_%s",outfolder,(dir_exc==0)?"dir":"exc",bar2pts_contr_map[icombo].name.c_str()));
-	  for(int t=0;t<glb_size[0];t++)
+	  for(int t=0;t<glbSize[0];t++)
 	    {
 	      //normalize for nsources and 1+g0
 	      complex c;
@@ -565,7 +565,7 @@ namespace nissa
 	    FILE *fout=list.open(combine("%s/bar_alt_contr_%s_proj_%d_Wick_%d",outfolder,bar2pts_contr_map[icombo].name.c_str(),iProj,iWick));
 	    
 	    master_fprintf(fout,"# proj %d\n",iProj);
-	    for(int t=0;t<glb_size[0];t++)
+	    for(int t=0;t<glbSize[0];t++)
 	      {
 		//normalize for nsources and 1+g0
 		complex c;
@@ -622,10 +622,10 @@ namespace nissa
 	  communicate_lx_spincolor_borders(Qbw);
 	  communicate_lx_quad_su3_borders(conf);
 	  
-	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
-		int ivol_fw=loclx_neighup[ivol][mu];
+		int ivol_fw=loclxNeighup[ivol][mu];
 		spincolor f,Gf;
 		complex c;
 		
@@ -675,7 +675,7 @@ namespace nissa
 	  spincolor *Qbw=Q[id_Qbw][so_sp_col_ind(iso_spi_bw,iso_col)];
 	  spincolor *Qfw=Q[id_Qfw][so_sp_col_ind(iso_spi_fw,iso_col)];
 	  
-	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
 		spincolor temp;
@@ -723,7 +723,7 @@ namespace nissa
 	//allocate
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
-	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),loc_vol,spin1field);
+	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),locVol,spin1field);
 	vector_reset(sides[side_name]);
 
       
@@ -759,7 +759,7 @@ namespace nissa
 	if(sides.find(right_with_photon)!=sides.end()) rp=sides[right_with_photon];
 	else
 	  {
-	    sides[right_with_photon]=rp=nissa_malloc(right_with_photon.c_str(),loc_vol,spin1field);
+	    sides[right_with_photon]=rp=nissa_malloc(right_with_photon.c_str(),locVol,spin1field);
 	    multiply_by_tlSym_gauge_propagator(rp,sides[h.right],photon);
 	  }
       }

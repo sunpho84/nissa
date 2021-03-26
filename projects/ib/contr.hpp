@@ -51,7 +51,7 @@ namespace nissa
   inline int ind_mes2pts_contr(int iquark_combo,int ihadr_contr,int t)
   {
     return
-      (t+glb_size[0]*
+      (t+glbSize[0]*
        (ihadr_contr+mes_gamma_list.size()*
 	iquark_combo));
   }
@@ -121,7 +121,7 @@ namespace nissa
   inline int ind_bar2pts_contr(int icombo,int dir_exc,int t)
   {
     return
-      (t+glb_size[0]*
+      (t+glbSize[0]*
        (dir_exc+2*
 	icombo));
   }
@@ -147,7 +147,7 @@ namespace nissa
   inline int ind_bar2pts_alt_contr(int icombo,int iWick,int iProj,int t)
   {
     return
-      (t+glb_size[0]*
+      (t+glbSize[0]*
        (iProj+NBAR_ALT_PROJ*
 	(iWick+2*
 	 icombo)));

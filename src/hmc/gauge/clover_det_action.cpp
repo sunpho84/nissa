@@ -26,10 +26,10 @@ namespace nissa
       res=0.0;
     else
       {
-	double *loc_act=nissa_malloc("loc_act",loc_volh,double);
+	double *loc_act=nissa_malloc("loc_act",locVolh,double);
 	
 	eo_ptr<clover_term_t> Cl={NULL,NULL};
-	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
+	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
 	chromo_operator(Cl,eo_conf);
 	
 	for(auto& q : quark_content)
@@ -40,7 +40,7 @@ namespace nissa
 	      const double &mass=q.mass;
 	      const double &kappa=q.kappa;
 	      
-	      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 		{
 		  complex d[2];
 		  for(int x_high_low=0;x_high_low<2;x_high_low++)
@@ -64,10 +64,10 @@ namespace nissa
 	      chromo_operator_remove_cSW(Cl,q.cSW);
 	      
 	      double flav_act;
-	      glb_reduce(&flav_act,loc_act,loc_volh);
+	      glb_reduce(&flav_act,loc_act,locVolh);
 	      
 	      //half volume, all colors, all dirac, norm2. Deg is included below
-	      const double offset=log((1/sqr(2*q.kappa)+sqr(q.mass)))*NCOL*NDIRAC*glb_volh;
+	      const double offset=log((1/sqr(2*q.kappa)+sqr(q.mass)))*NCOL*NDIRAC*glbVolh;
 	      flav_act-=offset;
 	      
 	      res+=-flav_act*q.deg;

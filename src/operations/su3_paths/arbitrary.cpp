@@ -421,7 +421,7 @@ namespace nissa
   void init_su3_path(path_drawing_t* c,su3* out)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       su3_put_to_id(out[ivol]);
     NISSA_PARALLEL_LOOP_END;
     coords_t t;
@@ -449,7 +449,7 @@ namespace nissa
     
     if(both_sides)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    su3 temp;
 	    unsafe_su3_prod_su3_dag(temp,out[ivol],conf[ivol][mu]);
@@ -459,7 +459,7 @@ namespace nissa
       }
     else
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  safe_su3_prod_su3_dag(out[ivol],out[ivol],conf[ivol][mu]);
 	NISSA_PARALLEL_LOOP_END;
       }
@@ -480,7 +480,7 @@ namespace nissa
     
     if(both_sides)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    su3 temp;
 	    unsafe_su3_prod_su3(temp,out[ivol],conf[ivol][mu]);
@@ -490,7 +490,7 @@ namespace nissa
       }
     else
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  safe_su3_prod_su3(out[ivol],out[ivol],conf[ivol][mu]);
 	NISSA_PARALLEL_LOOP_END;
       }

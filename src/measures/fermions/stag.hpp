@@ -36,8 +36,8 @@ namespace nissa
     typedef eo_ptr<color> field_t;
 #define NEW_FIELD_T(A)					\
     field_t A;						\
-    A[0]=nissa_malloc(#A,loc_volh+bord_volh,color);	\
-    A[1]=nissa_malloc(#A,loc_volh+bord_volh,color)
+    A[0]=nissa_malloc(#A,locVolh+bord_volh,color);	\
+    A[1]=nissa_malloc(#A,locVolh+bord_volh,color)
 #define DELETE_FIELD_T(A)				\
     nissa_free(A[0]);					\
     nissa_free(A[1]);
@@ -85,7 +85,7 @@ namespace nissa
       eo_ptr<color> temp[2];
       for(int itemp=0;itemp<2;itemp++)
       for(int eo=0;eo<2;eo++)
-	temp[itemp][eo]=nissa_malloc("temp",loc_volh+bord_volh,color);
+	temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
       
       //Form the mask and shift
       int shift=(spin^taste);

@@ -191,7 +191,7 @@ namespace DD
 	init_params.Cart_rank=cart_rank;
 	
 	//sizes and coord
-	remap_coord(init_params.global_lattice,nissa::glb_size);
+	remap_coord(init_params.global_lattice,nissa::glbSize);
 	remap_coord(init_params.procs,nissa::nrank_dir);
 	
 	//block size and theta
@@ -199,9 +199,9 @@ namespace DD
 	  {
 	    int jdir=nissa::scidac_mapping[dir];
 	    init_params.block_lattice[dir]=
-	      (((nissa::glb_size[jdir]/nissa::nrank_dir[jdir])%2==0)?
-	       (((nissa::glb_size[jdir]/nissa::nrank_dir[jdir])%4==0)?4:2):
-	       (((nissa::glb_size[jdir]/nissa::nrank_dir[jdir])%3==0)?3:1));
+	      (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%2==0)?
+	       (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%4==0)?4:2):
+	       (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%3==0)?3:1));
 	    if(block_size_set) init_params.block_lattice[dir]=block_size[0][dir];
 	    master_printf("Dir %d block size: %d\n",dir,init_params.block_lattice[dir]);
 	    init_params.theta[dir]=0;

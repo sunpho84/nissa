@@ -25,7 +25,7 @@ namespace nissa
     void matrix_element_with_gamma(double* out,complex* buffer,spincolor* x,int igamma)
     {
       
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	{
 	  spincolor t;
 	  unsafe_dirac_prod_spincolor(t,base_gamma+igamma,x[ivol]);
@@ -34,7 +34,7 @@ namespace nissa
       NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
       
-      glb_reduce((complex*)out,buffer,loc_vol);
+      glb_reduce((complex*)out,buffer,locVol);
     }
   }
   
@@ -42,9 +42,9 @@ namespace nissa
   double participation_ratio(spincolor *v)
   {
     
-    double *l=nissa_malloc("l",loc_vol,double);
+    double *l=nissa_malloc("l",locVol,double);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	complex t;
 	spincolor_scalar_prod(t,v[ivol],v[ivol]);
@@ -53,12 +53,12 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    double s=double_vector_glb_norm2(l,loc_vol);
-    double n2=double_vector_glb_norm2(v,loc_vol);
+    double s=double_vector_glb_norm2(l,locVol);
+    double n2=double_vector_glb_norm2(v,locVol);
     
     nissa_free(l);
     
-    return sqr(n2)/(glb_vol*s);
+    return sqr(n2)/(glbVol*s);
   }
   
   //measure minmax_eigenvalues
@@ -71,7 +71,7 @@ namespace nissa
     master_fprintf(fout," # iconf: %d\n",iconf);
     
     //zero smooth time of the conf
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol,quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     //parameters of the measure
@@ -85,10 +85,10 @@ namespace nissa
     complex *eigval=nissa_malloc("eigval",neigs,complex);
     double *eig_res=nissa_malloc("eig_res",neigs,double);
     spincolor **eigvec=nissa_malloc("eigvec",neigs,spincolor*);
-    spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
-    complex *buffer=nissa_malloc("buffer",loc_vol,complex);
+    spincolor *temp=nissa_malloc("temp",locVol,spincolor);
+    complex *buffer=nissa_malloc("buffer",locVol,complex);
     for(int ieig=0;ieig<neigs;ieig++)
-      eigvec[ieig]=nissa_malloc("eig",loc_vol+bord_vol,spincolor);
+      eigvec[ieig]=nissa_malloc("eig",locVol+bord_vol,spincolor);
     
     //loop on smooth
     int nsmooth=0;
@@ -130,14 +130,14 @@ namespace nissa
 		//eigenvalue check
 		complex eigval_check;
 		apply_overlap(temp,conf_lx,&appr,residue,mass_overlap,mass,eigvec[ieig]);
-		double eigvec_norm2=double_vector_glb_norm2(eigvec[ieig],loc_vol);
-		complex_vector_glb_scalar_prod(eigval_check,(complex*)(eigvec[ieig]),(complex*)temp,sizeof(spincolor)/sizeof(complex)*loc_vol);
+		double eigvec_norm2=double_vector_glb_norm2(eigvec[ieig],locVol);
+		complex_vector_glb_scalar_prod(eigval_check,(complex*)(eigvec[ieig]),(complex*)temp,sizeof(spincolor)/sizeof(complex)*locVol);
 		complex_prodassign_double(eigval_check,1.0/eigvec_norm2);
 		master_fprintf(fout,"     eigval_check: ( %.16lg , %.16lg)\n",eigval_check[RE],eigval_check[IM]);
 		
 		//residue
-		complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eigvec[ieig]),eigval_check,sizeof(spincolor)/sizeof(complex)*loc_vol);
-		eig_res[ieig]=sqrt(double_vector_glb_norm2(temp,loc_vol)/eigvec_norm2);
+		complex_vector_subtassign_complex_vector_prod_complex((complex*)temp,(complex*)(eigvec[ieig]),eigval_check,sizeof(spincolor)/sizeof(complex)*locVol);
+		eig_res[ieig]=sqrt(double_vector_glb_norm2(temp,locVol)/eigvec_norm2);
 		master_fprintf(fout,"     residue: %.16lg\n",residue);
 		
 		//participation ratio

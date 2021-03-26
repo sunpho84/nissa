@@ -22,7 +22,7 @@ namespace nissa
     
     for(int eo=0;eo<2;eo++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
 	      su3 temp;
@@ -44,8 +44,8 @@ namespace nissa
     for(int iflav=0;iflav<tp->nflavs();iflav++) clover_to_be_computed|=ferm_discretiz::include_clover(tp->quarks[iflav].discretiz);
     if(clover_to_be_computed)
       {
-	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",loc_volh,clover_term_t);
-	invCl_evn=nissa_malloc("invCl_evn",loc_volh,inv_clover_term_t);
+	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+	invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
 	chromo_operator(Cl,conf);
       }
     
@@ -125,8 +125,8 @@ namespace nissa
     if(VERBOSITY_LV2)
       {
 	double norm=0;
-	for(int par=0;par<2;par++) norm+=double_vector_glb_norm2(F[par],loc_volh);
-	master_printf("  Quark force average norm: %lg\n",sqrt(norm/glb_vol));
+	for(int par=0;par<2;par++) norm+=double_vector_glb_norm2(F[par],locVolh);
+	master_printf("  Quark force average norm: %lg\n",sqrt(norm/glbVol));
       }
   }
 }

@@ -22,7 +22,7 @@ namespace nissa
     if(!check_borders_valid(conf[EVN])) communicate_ev_and_od_single_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_ev_single_color_borders(in);
     
-    NISSA_PARALLEL_LOOP(io,0,loc_volh)
+    NISSA_PARALLEL_LOOP(io,0,locVolh)
       {
 	//neighbours search
 	int evup0=loceo_neighup[ODD][io][0];
@@ -48,7 +48,7 @@ namespace nissa
     communicate_od_single_color_borders(temp);
     
     //we still apply Deo, but then we put a - because we should apply Doe^+=-Deo
-    NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ie,0,locVolh)
       {
 	int odup0=loceo_neighup[EVN][ie][0];
 	int oddw0=loceo_neighdw[EVN][ie][0];

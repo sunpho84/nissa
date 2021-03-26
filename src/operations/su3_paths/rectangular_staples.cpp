@@ -55,7 +55,7 @@ namespace nissa
 	    int inu=(nu<mu)?nu:nu-1;
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(((quad_su3*)send_buf)[ibord][mu],sq_staples[surflx_of_bordlx[ibord]][mu][3+inu]); //one contribution per link in the border
+	      su3_copy(((quad_su3*)send_buf)[ibord][mu],sq_staples[surflxOfBordlx[ibord]][mu][3+inu]); //one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -77,10 +77,10 @@ namespace nissa
 	  int nu=perp_dir[mu][inu];
 	  int imu=(mu<nu)?mu:mu-1;
 	  
-	  NISSA_PARALLEL_LOOP(ibulk,0,non_fw_surf_vol)
+	  NISSA_PARALLEL_LOOP(ibulk,0,nonFwSurfVol)
 	    {
 	      su3 temp; //three staples in clocwise order
-	      int A=loclx_of_non_fw_surflx[ibulk],B=loclx_neighup[A][nu],F=loclx_neighup[A][mu];
+	      int A=loclxOfNonFwSurflx[ibulk],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
 	      COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -102,7 +102,7 @@ namespace nissa
 	    int inu=(nu<mu)?nu:nu-1;
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(sq_staples[loc_vol+ibord][mu][3+inu],((quad_su3*)recv_buf)[ibord][mu]); //one contribution per link in the border
+	      su3_copy(sq_staples[locVol+ibord][mu][3+inu],((quad_su3*)recv_buf)[ibord][mu]); //one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -120,10 +120,10 @@ namespace nissa
 	  int nu=perp_dir[mu][inu];
 	  int imu=(mu<nu)?mu:mu-1;
 	  
-	  NISSA_PARALLEL_LOOP(ifw_surf,0,fw_surf_vol)
+	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
 	      su3 temp;
-	      int D=loclx_of_fw_surflx[ifw_surf],A=loclx_neighup[D][nu],E=loclx_neighup[D][mu];
+	      int D=loclxOfFwSurflx[ifw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
 	      COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -142,7 +142,7 @@ namespace nissa
 	    int inu=(nu<mu)?nu:nu-1;
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(((quad_su3*)send_buf)[ibord][mu],out[loc_vol+ibord][mu][inu]); //one contribution per link in the border
+	      su3_copy(((quad_su3*)send_buf)[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -165,10 +165,10 @@ namespace nissa
 	  int imu=(mu<nu)?mu:mu-1;
 	  
 	  //obtained scanning D on fw_surf
-	  NISSA_PARALLEL_LOOP(inon_fw_surf,0,non_fw_surf_vol)
+	  NISSA_PARALLEL_LOOP(inon_fw_surf,0,nonFwSurfVol)
 	    {
 	      su3 temp;
-	      int D=loclx_of_non_fw_surflx[inon_fw_surf],A=loclx_neighup[D][nu],E=loclx_neighup[D][mu];
+	      int D=loclxOfNonFwSurflx[inon_fw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
 	      COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -185,10 +185,10 @@ namespace nissa
 	  int imu=(mu<nu)?mu:mu-1;
 	  
 	  //obtained looping A on forward surface
-	  NISSA_PARALLEL_LOOP(ifw_surf,0,fw_surf_vol)
+	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
 	      su3 temp;
-	      int A=loclx_of_fw_surflx[ifw_surf],B=loclx_neighup[A][nu],F=loclx_neighup[A][mu];
+	      int A=loclxOfFwSurflx[ifw_surf],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
 	      COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -210,7 +210,7 @@ namespace nissa
 	    int inu=(nu<mu)?nu:nu-1;
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(out[surflx_of_bordlx[ibord]][mu][inu],((quad_su3*)recv_buf)[ibord][mu]);//one contribution per link in the border
+	      su3_copy(out[surflxOfBordlx[ibord]][mu][inu],((quad_su3*)recv_buf)[ibord][mu]);//one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -240,11 +240,11 @@ namespace nissa
   {
     
     //compute pieces
-    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",loc_vol+bord_vol,rectangular_staples_t);
+    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",locVol+bord_vol,rectangular_staples_t);
     compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
     
     //summ
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<4;mu++)
 	{
 	  su3_copy(out[ivol][mu],rectangular_staples[ivol][mu][0]);

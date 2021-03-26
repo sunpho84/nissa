@@ -22,7 +22,7 @@ namespace nissa
     START_TIMING(remap_time,nremap);
     
     //split
-    NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
+    NISSA_PARALLEL_LOOP(loclx,0,locVol)
       memcpy((char*)(out_eo[loclx_parity[loclx]])+bps*loceo_of_loclx[loclx],(char*)in_lx+bps*loclx,bps);
     NISSA_PARALLEL_LOOP_END;
     
@@ -39,7 +39,7 @@ namespace nissa
     START_TIMING(remap_time,nremap);
     
     //get
-    NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
+    NISSA_PARALLEL_LOOP(loclx,0,locVol)
       if(loclx_parity[loclx]==par)
 	memcpy((char*)out_ev_or_od+bps*loceo_of_loclx[loclx],(char*)in_lx+bps*loclx,bps);
     NISSA_PARALLEL_LOOP_END;
@@ -57,7 +57,7 @@ namespace nissa
     
     //paste
     for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(eo,0,loc_volh)
+      NISSA_PARALLEL_LOOP(eo,0,locVolh)
 	memcpy((char*)out_lx+bps*loclx_of_loceo[par][eo],(char*)(in_eo[par])+bps*eo,bps);
     NISSA_PARALLEL_LOOP_END;
     

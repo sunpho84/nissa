@@ -17,6 +17,6 @@ namespace nissa
   {
     inv_evn_stD_cg(sol[EVN],guess,conf,m,niter,residue,source);
     apply_st2Doe(sol[ODD],conf,sol[EVN]);
-    double_vector_linear_comb((double*)(sol[ODD]),(double*)(source[ODD]),1/m,(double*)(sol[ODD]),-0.5/m,loc_volh*6);
+    double_vector_linear_comb((double*)(sol[ODD]),(double*)(source[ODD]),1/m,(double*)(sol[ODD]),-0.5/m,locVolh*6);
   }
 }

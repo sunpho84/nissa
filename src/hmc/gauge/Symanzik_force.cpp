@@ -26,14 +26,14 @@ namespace nissa
     
     
     //compute squared pieces
-    squared_staples_t *squared_staples=nissa_malloc("squared_staples",loc_vol+bord_vol,squared_staples_t);
+    squared_staples_t *squared_staples=nissa_malloc("squared_staples",locVol+bord_vol,squared_staples_t);
     compute_squared_staples_lx_conf(squared_staples,conf);
     
     //compute rectangular pieces
-    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",loc_vol+bord_vol,rectangular_staples_t);
+    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",locVol+bord_vol,rectangular_staples_t);
     compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  //summ the six terms of squares

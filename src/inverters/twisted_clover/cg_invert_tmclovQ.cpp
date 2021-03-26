@@ -13,7 +13,7 @@ namespace nissa
   void inv_tmclovQ_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,clover_term_t *Cl,double mu,int niter,double residue,spincolor *source)
   {
     inv_tmclovQ2_cg(sol,NULL,conf,kappa,Cl,mu,niter,residue,source);
-    spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+    spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
     
     //remove the "wrong r"
     vector_copy(temp,sol);

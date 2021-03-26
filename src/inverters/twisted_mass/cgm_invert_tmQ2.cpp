@@ -12,7 +12,7 @@
 
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
-#define BULK_VOL loc_vol
+#define BULK_VOL locVol
 #define BORD_VOL bord_vol
 
 #define APPLY_OPERATOR apply_tmQ2_m2_RL
@@ -61,7 +61,7 @@ namespace nissa
   void inv_tmDQ_RL_cgm(spincolor** sol,quad_su3* conf,double kappa,int RL,double* m,int nmass,int niter_max,double* req_res,spincolor* source)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int id1=2;id1<4;id1++)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ri=0;ri<2;ri++)
@@ -70,7 +70,7 @@ namespace nissa
     
     set_borders_invalid(source);
     inv_tmQ2_RL_cgm(sol,conf,kappa,RL,m,nmass,niter_max,req_res,source);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int id1=2;id1<4;id1++)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ri=0;ri<2;ri++)

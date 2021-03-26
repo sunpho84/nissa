@@ -18,14 +18,14 @@ namespace nissa
   {
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
-    spincolor *eta=nissa_malloc("eta",loc_vol+bord_vol,spincolor);
-    spincolor *phi=nissa_malloc("phi",loc_vol+bord_vol,spincolor);
-    spincolor *phi_ins_S=nissa_malloc("phi_ins_S",loc_vol+bord_vol,spincolor);
-    spincolor *phi_ins_P=nissa_malloc("phi_ins_P",loc_vol+bord_vol,spincolor);
+    spincolor *eta=nissa_malloc("eta",locVol+bord_vol,spincolor);
+    spincolor *phi=nissa_malloc("phi",locVol+bord_vol,spincolor);
+    spincolor *phi_ins_S=nissa_malloc("phi_ins_S",locVol+bord_vol,spincolor);
+    spincolor *phi_ins_P=nissa_malloc("phi_ins_P",locVol+bord_vol,spincolor);
     
     /// Store the contractions
     const int ncorr_kind=6;
-    complex* contr=nissa_malloc("contr",ncorr_kind*glb_size[0],complex);
+    complex* contr=nissa_malloc("contr",ncorr_kind*glbSize[0],complex);
     vector_reset(contr);
     
     /// Operations to compute correlators with twisted mass
@@ -62,10 +62,10 @@ namespace nissa
 	      
 	      auto c=[&](spincolor* oth,int ig,const int icontr)
 	      {
-		complex temp_contr[glb_size[0]];
+		complex temp_contr[glbSize[0]];
 		tm_corr_op::undiluted_meson_contr(temp_contr,phi,oth,ig,source_coord[0]);
-		for(int t=0;t<glb_size[0];t++)
-		  complex_summassign(contr[t+glb_size[0]*icontr],temp_contr[t]);
+		for(int t=0;t<glbSize[0];t++)
+		  complex_summassign(contr[t+glbSize[0]*icontr],temp_contr[t]);
 	      };
 	      
 	      c(phi,5,0);
@@ -77,13 +77,13 @@ namespace nissa
 	    }
 	  
 	  //output
-	  for(int t=0;t<glb_size[0];t++)
+	  for(int t=0;t<glbSize[0];t++)
 	    {
 	      master_fprintf(file,"%d  ",t);
 	      for(int ic=0;ic<ncorr_kind;ic++)
 		{
 		  complex c;
-		  complex_prod_double(c,contr[t+glb_size[0]*ic],1.0/(meas_pars.nhits*glb_spat_vol));
+		  complex_prod_double(c,contr[t+glbSize[0]*ic],1.0/(meas_pars.nhits*glbSpatVol));
 		  master_fprintf(file,"\t%+.16lg , %+.16lg",c[RE],c[IM]);
 		}
 	      master_fprintf(file,"\n");

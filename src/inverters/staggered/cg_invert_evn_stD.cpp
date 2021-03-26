@@ -15,7 +15,7 @@ namespace nissa
   void inv_evn_stD_cg(color *sol,color *guess,eo_ptr<quad_su3> conf,double m,int niter,double residue,eo_ptr<color> source)
   {
     //apply the dagger ...
-    color *temp=nissa_malloc("temp",loc_volh+bord_volh,color);
+    color *temp=nissa_malloc("temp",locVolh+bord_volh,color);
     evn_apply_stD_dag(temp,conf,m,source);
     
     //and invert the DD^+

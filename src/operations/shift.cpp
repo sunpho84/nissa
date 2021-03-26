@@ -25,11 +25,11 @@ namespace nissa
     
     //choose start, end and step
     int sh=(sign>0) ? -1 : +1;
-    int st=(sign>0) ? loc_size[mu]-1 : 0;
-    int en=(sign>0) ? 0 : loc_size[mu]-1 ;
+    int st=(sign>0) ? locSize[mu]-1 : 0;
+    int en=(sign>0) ? 0 : locSize[mu]-1 ;
     
     //loop over orthogonal dirs
-    int perp_vol=loc_vol/loc_size[mu];
+    int perp_vol=locVol/locSize[mu];
     NISSA_PARALLEL_LOOP(iperp,0,perp_vol)
       {
 	//find coords
@@ -38,8 +38,8 @@ namespace nissa
 	for(int inu=2;inu>=0;inu--)
 	  {
 	    int nu=perp_dir[mu][inu];
-	    x[nu]=jperp%loc_size[nu];
-	    jperp/=loc_size[nu];
+	    x[nu]=jperp%locSize[nu];
+	    jperp/=locSize[nu];
 	  }
 	
 	//loop along the dir
@@ -55,7 +55,7 @@ namespace nissa
 	do
 	  {
 	    //find the site and the neighbour
-	    int ineigh=(sign>0) ? loclx_neighdw[isite][mu] : loclx_neighup[isite][mu];
+	    int ineigh=(sign>0) ? loclxNeighdw[isite][mu] : loclxNeighup[isite][mu];
 	    
 	    //copy the neighbour in the site
 	    su3_copy(u[isite],u[ineigh]);

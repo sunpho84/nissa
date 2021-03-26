@@ -19,7 +19,7 @@ namespace nissa
     communicate_eo_quad_su3_edges(conf);
     
     //summ squares and rectangles separately
-    complex *point_shapes=nissa_malloc("point_shapes",loc_vol,complex);
+    complex *point_shapes=nissa_malloc("point_shapes",locVol,complex);
     vector_reset(point_shapes);
     
     for(int par=0;par<2;par++)
@@ -27,7 +27,7 @@ namespace nissa
 	for(int nu=0;nu<NDIM;nu++) //staple dir
 	  if(nu!=mu)
 	    {
-	      NISSA_PARALLEL_LOOP(A,0,loc_volh)
+	      NISSA_PARALLEL_LOOP(A,0,locVolh)
 		{
 		  int ivol=loclx_of_loceo[par][A];
 		  
@@ -55,12 +55,12 @@ namespace nissa
     
     //reduce and free
     complex coll_shapes;
-    glb_reduce(&coll_shapes,point_shapes,loc_vol);
+    glb_reduce(&coll_shapes,point_shapes,locVol);
     nissa_free(point_shapes);
     
     //normalize (passing throug additional var because of external unkwnon env)
-    glb_shapes[RE]=coll_shapes[RE]/(18*glb_vol);
-    glb_shapes[IM]=coll_shapes[IM]/(36*glb_vol);
+    glb_shapes[RE]=coll_shapes[RE]/(18*glbVol);
+    glb_shapes[IM]=coll_shapes[IM]/(36*glbVol);
   }
 
   //compute plaquettes and rectangles
@@ -75,13 +75,13 @@ namespace nissa
       for(int nu=0;nu<4;nu++) //staple dir
 	if(nu!=mu)
 	  {
-	    NISSA_PARALLEL_LOOP(A,0,loc_vol)
+	    NISSA_PARALLEL_LOOP(A,0,locVol)
 	      {
 		int ivol=A;
 		
 		//compute forward staple starting from A
-		int B=loclx_neighup[A][nu],D=loclx_neighdw[A][nu];
-		int E=loclx_neighup[D][mu],F=loclx_neighup[A][mu];
+		int B=loclxNeighup[A][nu],D=loclxNeighdw[A][nu];
+		int E=loclxNeighup[D][mu],F=loclxNeighup[A][mu];
 		su3 ABC,ABCF;
 		unsafe_su3_prod_su3(ABC,conf[A][nu],conf[B][mu]);
 		unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
@@ -106,17 +106,17 @@ namespace nissa
   void global_plaquette_and_rectangles_lx_conf(double* glb_shapes,quad_su3* conf)
   {
     //summ squares and rectangles separately
-    complex *point_shapes=nissa_malloc("point_shapes",loc_vol,complex);
+    complex *point_shapes=nissa_malloc("point_shapes",locVol,complex);
     point_plaquette_and_rectangles_lx_conf(point_shapes,conf);
     
     //reduce and free
     complex coll_shapes;
-    glb_reduce(&coll_shapes,point_shapes,loc_vol);
+    glb_reduce(&coll_shapes,point_shapes,locVol);
     nissa_free(point_shapes);
     
     //normalize (passing throug additional var because of external unkwnon env)
-    glb_shapes[RE]=coll_shapes[RE]/(18*glb_vol);
-    glb_shapes[IM]=coll_shapes[IM]/(36*glb_vol);
+    glb_shapes[RE]=coll_shapes[RE]/(18*glbVol);
+    glb_shapes[IM]=coll_shapes[IM]/(36*glbVol);
   }
   
   //compute plaquettes and rectangles
@@ -124,30 +124,30 @@ namespace nissa
   {
     
     //summ squares and rectangles separately
-    complex *point_shapes=nissa_malloc("point_shapes",loc_vol,complex);
+    complex *point_shapes=nissa_malloc("point_shapes",locVol,complex);
     point_plaquette_and_rectangles_lx_conf(point_shapes,conf);
     
     //reduce
-    complex *loc_shapes=nissa_malloc("loc_shapes",glb_size[0],complex);
+    complex *loc_shapes=nissa_malloc("loc_shapes",glbSize[0],complex);
     vector_reset(loc_shapes);
     
     //loop over time
-    NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
-      for(int ivol=loc_t*loc_spat_vol;ivol<(loc_t+1)*loc_spat_vol;ivol++)
-	complex_summassign(loc_shapes[glb_coord_of_loclx[ivol][0]],point_shapes[ivol]);
+    NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])
+      for(int ivol=loc_t*locSpatVol;ivol<(loc_t+1)*locSpatVol;ivol++)
+	complex_summassign(loc_shapes[glbCoordOfLoclx[ivol][0]],point_shapes[ivol]);
     NISSA_PARALLEL_LOOP_END;
     nissa_free(point_shapes);
     
     //reduce (passing throug additional var because of external unkwnon env)
-    complex *coll_shapes=nissa_malloc("coll_shapes",glb_size[0],complex);
-    if(IS_MASTER_THREAD) MPI_Reduce(loc_shapes,coll_shapes,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+    complex *coll_shapes=nissa_malloc("coll_shapes",glbSize[0],complex);
+    if(IS_MASTER_THREAD) MPI_Reduce(loc_shapes,coll_shapes,2*glbSize[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
     nissa_free(loc_shapes);
     
     //normalize
-    for(int t=0;t<glb_size[0];t++)
+    for(int t=0;t<glbSize[0];t++)
       {
-	glb_shapes[2*t+0]=coll_shapes[t][RE]/(18*glb_vol/glb_size[0]);
-	glb_shapes[2*t+1]=coll_shapes[t][IM]/(36*glb_vol/glb_size[0]);
+	glb_shapes[2*t+0]=coll_shapes[t][RE]/(18*glbVol/glbSize[0]);
+	glb_shapes[2*t+1]=coll_shapes[t][IM]/(36*glbVol/glbSize[0]);
       }
     nissa_free(coll_shapes);
   }

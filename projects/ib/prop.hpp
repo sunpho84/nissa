@@ -69,7 +69,7 @@ namespace nissa
     {
       sp=nissa_malloc("sp",nso_spi*nso_col,spincolor*);
       for(int i=0;i<nso_spi*nso_col;i++)
-	sp[i]=nissa_malloc("sp",loc_vol+bord_vol,spincolor);
+	sp[i]=nissa_malloc("sp",locVol+bord_vol,spincolor);
     }
     
     //initialize as a propagator
@@ -163,7 +163,7 @@ namespace nissa
   
   EXTERN_PROP std::vector<std::string> ori_source_name_list;
   EXTERN_PROP spincolor *loop_source;
-  inline void allocate_loop_source(){loop_source=nissa_malloc("loop_source",loc_vol+bord_vol,spincolor);}
+  inline void allocate_loop_source(){loop_source=nissa_malloc("loop_source",locVol+bord_vol,spincolor);}
   inline void free_loop_source(){nissa_free(loop_source);}
   
   EXTERN_PROP int nsource_tot INIT_TO(0),nphoton_prop_tot INIT_TO(0);

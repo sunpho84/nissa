@@ -14,12 +14,12 @@ namespace nissa
 					 const int source_coord)
   {
     /// Local storage
-    complex *loc_contr=get_reducing_buffer<complex>(loc_vol);
+    complex *loc_contr=get_reducing_buffer<complex>(locVol);
     
     /// Gamma matrix
     dirac_matr g=base_gamma[igamma]*base_gamma[5];
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	spincolor temp;
 	unsafe_dirac_prod_spincolor(temp,&g,fw[ivol]);
@@ -28,14 +28,14 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    complex unshifted_glb_contr[glb_size[0]];
-    glb_reduce(unshifted_glb_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],glb_coord_of_loclx[0][0]);
+    complex unshifted_glb_contr[glbSize[0]];
+    glb_reduce(unshifted_glb_contr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
     
-    for(int glb_t=0;glb_t<glb_size[0];glb_t++)
+    for(int glb_t=0;glb_t<glbSize[0];glb_t++)
       {
 	/// Distance from source
 	const int dt=
-	  (glb_t-source_coord+glb_size[0])%glb_size[0];
+	  (glb_t-source_coord+glbSize[0])%glbSize[0];
 	
 	complex_copy(contr[dt],unshifted_glb_contr[glb_t]);
       }

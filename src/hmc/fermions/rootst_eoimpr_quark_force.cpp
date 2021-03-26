@@ -27,8 +27,8 @@ namespace nissa
     color **v_o=nissa_malloc("v_o",nterms,color*),**chi_e=nissa_malloc("chi_e",nterms,color*);
     for(int iterm=0;iterm<nterms;iterm++)
       {
-	v_o[iterm]=nissa_malloc("v_o",loc_volh+bord_volh,color);
-	chi_e[iterm]=nissa_malloc("chi_e",loc_volh+bord_volh,color);
+	v_o[iterm]=nissa_malloc("v_o",locVolh+bord_volh,color);
+	chi_e[iterm]=nissa_malloc("chi_e",locVolh+bord_volh,color);
       }
     
     //add the background fields
@@ -56,7 +56,7 @@ namespace nissa
       {
 	const double weight=appr->weights[iterm];
 	
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	for(int mu=0;mu<NDIM;mu++)
 	  for(int ic1=0;ic1<NCOL;ic1++)
 	    for(int ic2=0;ic2<NCOL;ic2++)

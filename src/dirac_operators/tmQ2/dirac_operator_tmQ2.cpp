@@ -18,7 +18,7 @@ namespace nissa
   void apply_tmQ2_RL(spincolor* out,quad_su3* conf,double kappa,spincolor* ext_temp,int RL,double mu,spincolor* in)
   {
     spincolor *temp=ext_temp;
-    if(temp==NULL) temp=nissa_malloc("tempQ",loc_vol+bord_vol,spincolor);
+    if(temp==NULL) temp=nissa_malloc("tempQ",locVol+bord_vol,spincolor);
     
     if(RL==0) apply_tmQ(temp,conf,kappa,+mu,in);
     else apply_tmQ_left(temp,conf,kappa,+mu,in);

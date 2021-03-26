@@ -122,18 +122,18 @@ namespace nissa
     if(loc_rnd_gen_inited==1) crash("local random generator already initialized!");
     
     //check the grid to be initiaized
-    if(loc_vol==0) crash("grid not initalized!");
+    if(locVol==0) crash("grid not initalized!");
     
     //Generate the true seed
     if(glb_rnd_gen_inited==0) start_glb_rnd_gen(seed);
-    int internal_seed=(int)rnd_get_unif(&glb_rnd_gen,0,RAND_MAX-glb_vol);
+    int internal_seed=(int)rnd_get_unif(&glb_rnd_gen,0,RAND_MAX-glbVol);
     
     //allocate the grid of random generator, one for site
-    loc_rnd_gen=nissa_malloc("Loc_rnd_gen",loc_vol,rnd_gen);
-    for(int ivol=0;ivol<loc_vol;ivol++)
+    loc_rnd_gen=nissa_malloc("Loc_rnd_gen",locVol,rnd_gen);
+    for(int ivol=0;ivol<locVol;ivol++)
       {
-	int loc_seed=internal_seed+glblx_of_loclx[ivol];
-	if(loc_seed<0) crash("something went wrong with local seed: %d + %d = %d",internal_seed,glblx_of_loclx[ivol],loc_seed);
+	int loc_seed=internal_seed+glblxOfLoclx[ivol];
+	if(loc_seed<0) crash("something went wrong with local seed: %d + %d = %d",internal_seed,glblxOfLoclx[ivol],loc_seed);
 	start_rnd_gen(&(loc_rnd_gen[ivol]),loc_seed);
       }
     loc_rnd_gen_inited=1;
@@ -190,7 +190,7 @@ namespace nissa
     coords temp;
     for(int mu=0;mu<NDIM;mu++)
       {
-	if(IS_MASTER_THREAD) temp[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));
+	if(IS_MASTER_THREAD) temp[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize[mu]));
 	THREAD_BROADCAST(c[mu],temp[mu]);
       }
   }
@@ -275,7 +275,7 @@ namespace nissa
   //fill a grid of vectors with numbers between 0 and 1
   void rnd_fill_unif_loc_vector(double* v,int dps,double min,double max)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int i=0;i<dps;i++)
 	v[ivol*dps+i]=rnd_get_unif(&(loc_rnd_gen[ivol]),min,max);
     NISSA_PARALLEL_LOOP_END;
@@ -286,7 +286,7 @@ namespace nissa
   //return a grid of +-x numbers
   void rnd_fill_pm_one_loc_vector(double* v,int nps)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int i=0;i<nps;i++)
 	v[ivol*nps+i]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
     NISSA_PARALLEL_LOOP_END;
@@ -300,8 +300,8 @@ namespace nissa
     //reset
     vector_reset(source);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      if(glb_coord_of_loclx[ivol][0]==twall or twall<0)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
 	{
 	  comp_get_rnd(source[ivol][0][0][0][0],&(loc_rnd_gen[ivol]),rtype);
 	  for(int c=0;c<NCOL;c++)
@@ -320,8 +320,8 @@ namespace nissa
     //reset
     vector_reset(source);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      if(glb_coord_of_loclx[ivol][0]==twall or twall<0)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
 	for(int ic=0;ic<NCOL;ic++)
 	  {
 	    comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
@@ -338,8 +338,8 @@ namespace nissa
   {
     vector_reset(source);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      if(glb_coord_of_loclx[ivol][0]==twall or twall<0)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
@@ -353,8 +353,8 @@ namespace nissa
   {
     vector_reset(source);
     
-    NISSA_PARALLEL_LOOP(ilx,0,loc_vol)
-      if(twall<0 or glb_coord_of_loclx[ilx][dir]==twall)
+    NISSA_PARALLEL_LOOP(ilx,0,locVol)
+      if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
 	for(int ic=0;ic<NCOL;ic++)
 	  comp_get_rnd(source[ilx][ic],&(loc_rnd_gen[ilx]),rtype);
     NISSA_PARALLEL_LOOP_END;
@@ -366,10 +366,10 @@ namespace nissa
   {
     vector_reset(source);
     
-    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       {
 	int ilx=loclx_of_loceo[par][ieo];
-	if(twall<0 or glb_coord_of_loclx[ilx][dir]==twall)
+	if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
 	  for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ieo][ic],&(loc_rnd_gen[ilx]),rtype);
       }
@@ -385,10 +385,10 @@ namespace nissa
   {
     vector_reset(source);
     
-    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       {
 	int ilx=loclx_of_loceo[par][ieo];
-	if(twall<0 or glb_coord_of_loclx[ilx][dir]==twall)
+	if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
 	  for(int id=0;id<NDIRAC;id++)
 	    for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ieo][id][ic],&(loc_rnd_gen[ilx]),rtype);
@@ -410,9 +410,9 @@ namespace nissa
     coords lx;
     for(int mu=0;mu<NDIM;mu++)
       {
-	lx[mu]=x[mu]-rank_coord[mu]*loc_size[mu];
+	lx[mu]=x[mu]-rank_coord[mu]*locSize[mu];
 	islocal&=(lx[mu]>=0);
-	islocal&=(lx[mu]<loc_size[mu]);
+	islocal&=(lx[mu]<locSize[mu]);
       }
     
     if(islocal)
@@ -433,9 +433,9 @@ namespace nissa
     coords lx;
     for(int mu=0;mu<NDIM;mu++)
       {
-        lx[mu]=x[mu]-rank_coord[mu]*loc_size[mu];
+        lx[mu]=x[mu]-rank_coord[mu]*locSize[mu];
         islocal&=(lx[mu]>=0);
-        islocal&=(lx[mu]<loc_size[mu]);
+        islocal&=(lx[mu]<locSize[mu]);
       }
     
     if(islocal)

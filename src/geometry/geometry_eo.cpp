@@ -45,23 +45,23 @@ namespace nissa
     
     //check that all local sizes are multiples of 2
     int ok=1;
-    REM_2 for(int mu=0;mu<NDIM;mu++) ok&=(loc_size[mu]%2==0);
+    REM_2 for(int mu=0;mu<NDIM;mu++) ok&=(locSize[mu]%2==0);
     REM_2 if(!ok) crash("local lattice size odd!");
     
     //set half the vol, bord and edge size
-    glb_volh=glb_vol/2;
-    loc_volh=loc_vol/2;
+    glbVolh=glbVol/2;
+    locVolh=locVol/2;
     
     //set the parity
-    loclx_parity=nissa_malloc("loclx_parity",loc_vol+bord_vol+edge_vol,int);
+    loclx_parity=nissa_malloc("loclx_parity",locVol+bord_vol+edge_vol,int);
     ignore_borders_communications_warning(loclx_parity);
     
-    loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+bord_vol+edge_vol,int);
+    loceo_of_loclx=nissa_malloc("loceo_of_loclx",locVol+bord_vol+edge_vol,int);
     ignore_borders_communications_warning(loceo_of_loclx);
     
-    for(int par=0;par<2;par++) loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",loc_volh+bord_volh+edge_volh,int);
-    for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",loc_volh+bord_volh+edge_volh,coords);
-    for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",loc_volh+bord_volh+edge_volh,coords);
+    for(int par=0;par<2;par++) loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",locVolh+bord_volh+edge_volh,int);
+    for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",locVolh+bord_volh+edge_volh,coords);
+    for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",locVolh+bord_volh+edge_volh,coords);
     for(int par=0;par<2;par++) surfeo_of_bordeo[par]=nissa_malloc("surfeo_of_bordeo",bord_volh,int);
     for(int par=0;par<2;par++) ignore_borders_communications_warning(loclx_of_loceo[par]);
     for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighup[par]);
@@ -69,10 +69,10 @@ namespace nissa
     
     //Label the sites
     int iloc_eo[2]={0,0};
-    for(int loclx=0;loclx<loc_vol+bord_vol+edge_vol;loclx++)
+    for(int loclx=0;loclx<locVol+bord_vol+edge_vol;loclx++)
       {
 	//fix parity of local index
-	int par=loclx_parity[loclx]=glb_coord_parity(glb_coord_of_loclx[loclx]);
+	int par=loclx_parity[loclx]=glb_coord_parity(glbCoordOfLoclx[loclx]);
 	
 	//associate the e/o index to lx sites and vice-versa
 	loceo_of_loclx[loclx]=iloc_eo[par];
@@ -81,7 +81,7 @@ namespace nissa
       }
     
     //Fix the movements among e/o ordered sites
-    for(int loclx=0;loclx<loc_vol+bord_vol+edge_vol;loclx++)
+    for(int loclx=0;loclx<locVol+bord_vol+edge_vol;loclx++)
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  //take parity and e/o corresponding site
@@ -89,21 +89,21 @@ namespace nissa
 	  int loceo=loceo_of_loclx[loclx];
 	  
 	  //up movements
-	  int loclx_up=loclx_neighup[loclx][mu];
-	  if(loclx_up>=0 and loclx_up<loc_vol+bord_vol+edge_vol)
+	  int loclx_up=loclxNeighup[loclx][mu];
+	  if(loclx_up>=0 and loclx_up<locVol+bord_vol+edge_vol)
 	    loceo_neighup[par][loceo][mu]=loceo_of_loclx[loclx_up];
 	  
 	  //dw movements
-	  int loclx_dw=loclx_neighdw[loclx][mu];
-	  if(loclx_dw>=0 and loclx_dw<loc_vol+bord_vol+edge_vol)
+	  int loclx_dw=loclxNeighdw[loclx][mu];
+	  if(loclx_dw>=0 and loclx_dw<locVol+bord_vol+edge_vol)
 	    loceo_neighdw[par][loceo][mu]=loceo_of_loclx[loclx_dw];
 	}
     
     //finds how to fill the borders with surface
     for(int bordlx=0;bordlx<bord_vol;bordlx++)
       {
-	int surflx=surflx_of_bordlx[bordlx];
-	surfeo_of_bordeo[loclx_parity[surflx]][loceo_of_loclx[bordlx+loc_vol]-loc_volh]=loceo_of_loclx[surflx];
+	int surflx=surflxOfBordlx[bordlx];
+	surfeo_of_bordeo[loclx_parity[surflx]][loceo_of_loclx[bordlx+locVol]-locVolh]=loceo_of_loclx[surflx];
       }
     
     master_printf("E/O Geometry intialized\n");
@@ -125,7 +125,7 @@ namespace nissa
 		  int icomm=((par*2+vmu)*2+vnu)*NDIM*(NDIM-1)/2+iedge;
 		  
 		  //the sending edge might be a mess
-		  int eo_edge_size=loc_volh/loc_size[mu]/loc_size[nu];
+		  int eo_edge_size=locVolh/locSize[mu]/locSize[nu];
 		  int *edge_pos_disp=nissa_malloc("edge_disp",eo_edge_size,int);
 		  int *single=nissa_malloc("single",eo_edge_size,int);
 		  for(int iedge_eo=0;iedge_eo<eo_edge_size;iedge_eo++) single[iedge_eo]=1;
@@ -133,8 +133,8 @@ namespace nissa
 		  int iedge_site=0;
 		  for(int b_eo=0;b_eo<bord_volh;b_eo++)
 		    {
-		      int ivol=loclx_of_loceo[par][loc_volh+b_eo];
-		      if(loclx_neigh[!vmu][ivol][mu]>=0 and loclx_neigh[!vmu][ivol][mu]<loc_vol and loclx_neigh[vnu][ivol][nu]>=loc_vol+bord_vol) edge_pos_disp[iedge_site++]=b_eo;
+		      int ivol=loclx_of_loceo[par][locVolh+b_eo];
+		      if(loclx_neigh[!vmu][ivol][mu]>=0 and loclx_neigh[!vmu][ivol][mu]<locVol and loclx_neigh[vnu][ivol][nu]>=locVol+bord_vol) edge_pos_disp[iedge_site++]=b_eo;
 		    }
 		  if(iedge_site!=eo_edge_size) crash("iedge_site=%d did not arrive to eo_edge_size=%d",iedge_site,eo_edge_size);
 		  
@@ -155,7 +155,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       for(int nu=mu+1;nu<NDIM;nu++)
 	{
-	  MPI_Type_contiguous(loc_vol/loc_size[mu]/loc_size[nu]/2,*base,&(MPI_EDGE_RECE[iedge]));
+	  MPI_Type_contiguous(locVol/locSize[mu]/locSize[nu]/2,*base,&(MPI_EDGE_RECE[iedge]));
 	  MPI_Type_commit(&(MPI_EDGE_RECE[iedge]));
 	  iedge++;
 	}
@@ -196,7 +196,7 @@ namespace nissa
     {
       int save=1;
       for(int mu=0;mu<NDIM;mu++)
-	save=save and glb_coord_of_loclx[ivol][mu]%2==0;
+	save=save and glbCoordOfLoclx[ivol][mu]%2==0;
       
       if(!save)
 	memset(vec[loclx_parity[ivol]][loceo_of_loclx[ivol]],0,sizeof(color));

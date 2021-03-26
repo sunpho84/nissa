@@ -63,7 +63,7 @@ namespace nissa
     multiply_from_left_or_right_by_mom_space_twisted_propagator(out,out,qu,lr,base); \
     									\
     /*add normalization and go back*/					\
-    double_vector_prod_double((double*)out,(double*)out,glb_vol,loc_vol*sizeof(TYPE)/sizeof(double)); \
+    double_vector_prod_double((double*)out,(double*)out,glbVol,locVol*sizeof(TYPE)/sizeof(double)); \
     NAME3(pass,TYPE,from_mom_to_x_space)(out,out,qu.bc,!lr,include_phases);		\
   }
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(spinspin);

@@ -33,9 +33,9 @@ namespace nissa
     void get_eo_photon(eo_ptr<spin1field> out,gauge_info photon)
     {
       //allocate lx version of photon field
-      spin1field *photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
-      spin1field *photon_field=nissa_malloc("photon_field",loc_vol+bord_vol,spin1field);
-      spin1field *photon_phi=nissa_malloc("photon_phi",loc_vol+bord_vol,spin1field);
+      spin1field *photon_eta=nissa_malloc("photon_eta",locVol+bord_vol,spin1field);
+      spin1field *photon_field=nissa_malloc("photon_field",locVol+bord_vol,spin1field);
+      spin1field *photon_phi=nissa_malloc("photon_phi",locVol+bord_vol,spin1field);
       
       //generate source and stochastich propagator
       generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
@@ -119,11 +119,11 @@ namespace nissa
     
     //allocate
     const int nflavs=theory_pars.nflavs();
-    eo_ptr<spin1field> photon_field={nissa_malloc("photon_phi_ev",loc_volh+bord_volh,spin1field),nissa_malloc("photon_phi_od",loc_volh+bord_volh,spin1field)};
+    eo_ptr<spin1field> photon_field={nissa_malloc("photon_phi_ev",locVolh+bord_volh,spin1field),nissa_malloc("photon_phi_od",locVolh+bord_volh,spin1field)};
     eo_ptr<color> M[nprop_t*nflavs];
     for(int i=0;i<nprop_t*nflavs;i++)
       for(int par=0;par<2;par++)
-	M[i][par]=nissa_malloc(combine("M_%d_%d",i,par).c_str(),loc_volh+bord_volh,color);
+	M[i][par]=nissa_malloc(combine("M_%d_%d",i,par).c_str(),locVolh+bord_volh,color);
     
     //write the map of how to build props
     std::vector<ins_map_t> prop_build(nprop_t);
@@ -159,7 +159,7 @@ namespace nissa
 	    
 	    //get global time
 	    int tso;
-	    if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glb_size[0]);
+	    if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
 	    THREAD_BROADCAST(tso,tso);
 	    verbosity_lv1_master_printf("tsource: %d\n",tso);
 	    
@@ -190,7 +190,7 @@ namespace nissa
 		    case S:for(int par=0;par<2;par++) vector_copy(temp_source[par],so[par]);break;
 		    case T:insert_tadpole(temp_source,conf,&theory_pars,iflav,so,tadpole,-1);break;
 		    case F:insert_external_source(temp_source,conf,&theory_pars,iflav,photon_field,so,-1);break;
-		    case V:insert_time_conserved_vector_current(temp_source,conf,&theory_pars,iflav,so,(tso+glb_size[0]/4)%glb_size[0]);break;
+		    case V:insert_time_conserved_vector_current(temp_source,conf,&theory_pars,iflav,so,(tso+glbSize[0]/4)%glbSize[0]);break;
 		    }
 		  
 		  //invert
@@ -208,7 +208,7 @@ namespace nissa
 		    
 			  crash("#warning reimplement");
 		    for(int par=0;par<2;par++)
-		      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 			{
 			  // int ivol=loclx_of_loceo[par][ieo];
 			  // int t=(glb_coord_of_loclx[ivol][0]+glb_size[0]-tso)%glb_size[0];
@@ -225,7 +225,7 @@ namespace nissa
 	crash("#warning if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);");
 	
 	//print
-	double norm=1.0/(meas_pars.nhits*glb_spat_vol);
+	double norm=1.0/(meas_pars.nhits*glbSpatVol);
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  for(int jflav=0;jflav<nflavs;jflav++)
 	    {
@@ -234,9 +234,9 @@ namespace nissa
 	      for(size_t icontr=0;icontr<contr_map.size();icontr++)
 		{
  		  master_fprintf(file,"\n # %s%s\n\n",prop_name[contr_map[icontr].first],prop_name[contr_map[icontr].second]);
-		  for(int t=0;t<glb_size[0];t++)
+		  for(int t=0;t<glbSize[0];t++)
 		    {
-		      int i=t+glb_size[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav));
+		      int i=t+glbSize[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav));
 		      master_fprintf(file, "%+16.16lg %+16.16lg\n",glb_contr[i][RE]*norm,glb_contr[i][IM]*norm);
 		    }
 		}

@@ -18,22 +18,22 @@ namespace nissa
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
-    NISSA_PARALLEL_LOOP(x,0,loc_vol)
+    NISSA_PARALLEL_LOOP(x,0,locVol)
       {
-	int xmu=glb_coord_of_loclx[x][mu];
+	int xmu=glbCoordOfLoclx[x][mu];
 	int dist=abs(xmu-xmu_start);
 	int ori=(xmu==xmu_start);
 	int ord=xmu>=xmu_start;
 	
-	int xdw=loclx_neighdw[x][mu];
-	int xup=loclx_neighup[x][mu];
+	int xdw=loclxNeighdw[x][mu];
+	int xup=loclxNeighup[x][mu];
 	
 	for(int id=0;id<4;id++)
 	  {
 	    spincolor_copy(out[x],in[x]);
 	    if(!ori)
 	      {
-		if(ord==1 && dist<=glb_size[mu]/2) su3_subt_the_prod_spincolor(out[x],conf[xdw][mu],in[xdw]);
+		if(ord==1 && dist<=glbSize[mu]/2) su3_subt_the_prod_spincolor(out[x],conf[xdw][mu],in[xdw]);
 		else                               su3_dag_subt_the_prod_spincolor(out[x],conf[x][mu],in[xup]);
 	      }
 	  }

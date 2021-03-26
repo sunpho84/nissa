@@ -121,13 +121,13 @@ namespace nissa
     
     NISSA_LOC_VOL_LOOP(ivol)
       {
-	int *x=loc_coord_of_loclx[ivol];
-	int *X=glb_coord_of_loclx[ivol];
+	int *x=locCoordOfLoclx[ivol];
+	int *X=glbCoordOfLoclx[ivol];
 	uint32_t loc_ivol=x[0],glb_ivol=X[0];
 	for(int mu=NDIM-1;mu>0;mu--)
 	  {
-	    loc_ivol=loc_ivol*loc_size[mu]+x[mu];
-	    glb_ivol=glb_ivol*glb_size[mu]+X[mu];
+	    loc_ivol=loc_ivol*locSize[mu]+x[mu];
+	    glb_ivol=glb_ivol*glbSize[mu]+X[mu];
 	  }
 	uint32_t crc_rank[2]={glb_ivol%29,glb_ivol%31};
 	
@@ -146,9 +146,9 @@ namespace nissa
     
     NISSA_LOC_VOL_LOOP(ivol)
       {
-	int *X=glb_coord_of_loclx[ivol];
+	int *X=glbCoordOfLoclx[ivol];
 	uint32_t ildg_ivol=X[0];
-	for(int mu=NDIM-1;mu>0;mu--) ildg_ivol=ildg_ivol*glb_size[mu]+X[mu];
+	for(int mu=NDIM-1;mu>0;mu--) ildg_ivol=ildg_ivol*glbSize[mu]+X[mu];
 	uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
 	
 	uint32_t temp=ildg_crc32_fix_endianness(0,(unsigned char*)data+bps*ivol,bps,prec);

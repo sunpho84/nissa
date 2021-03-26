@@ -21,12 +21,12 @@ namespace nissa
 									\
     vector_reset(H);							\
 									\
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
       {									\
 	for(int mu=1;mu<NDIM;mu++)					\
 	  {								\
-	    int ivup=loclx_neighup[ivol][mu];				\
-	    int ivdw=loclx_neighdw[ivol][mu];				\
+	    int ivup=loclxNeighup[ivol][mu];				\
+	    int ivdw=loclxNeighdw[ivol][mu];				\
 	    TYPE temp;							\
 	    NAME2(unsafe_su3_prod,TYPE)(temp,conf[ivol][mu],in[ivup]); \
 	    NAME2(su3_dag_summ_the_prod,TYPE)(temp,conf[ivdw][mu],in[ivdw]);	\
@@ -50,17 +50,17 @@ namespace nissa
     else								\
       {									\
 	TYPE *temp=ext_temp;						\
-	if(temp==NULL) temp=nissa_malloc("temp",loc_vol+bord_vol,TYPE); \
+	if(temp==NULL) temp=nissa_malloc("temp",locVol+bord_vol,TYPE); \
 									\
 	TYPE *H=ext_H;							\
-	if(ext_H==NULL) H=nissa_malloc("H",loc_vol+bord_vol,TYPE);	\
+	if(ext_H==NULL) H=nissa_malloc("H",locVol+bord_vol,TYPE);	\
 									\
 	double norm_fact=1/(1+2*(kappa[1]+kappa[2]+kappa[3]));		\
 									\
 	verbosity_lv2_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g}, %d iterations\n",kappa[1],kappa[2],kappa[3],niter); \
 									\
 	/*iter 0*/							\
-	double_vector_copy((double*)temp,(double*)origi_sc,loc_vol*sizeof(TYPE)/sizeof(double)); \
+	double_vector_copy((double*)temp,(double*)origi_sc,locVol*sizeof(TYPE)/sizeof(double)); \
 									\
 	/*loop over gaussian iterations*/				\
 	for(int iter=0;iter<niter;iter++)				\
@@ -70,10 +70,10 @@ namespace nissa
 	    /*apply kappa*H*/						\
 	    NAME2(gaussian_smearing_apply_kappa_H,TYPE)(H,kappa,conf,temp); \
 	    /*add kappa*H and dynamic normalize*/			\
-	    double_vector_prod_the_summ_double((double*)temp,norm_fact,(double*)temp,(double*)H,sizeof(TYPE)/sizeof(double)*loc_vol); \
+	    double_vector_prod_the_summ_double((double*)temp,norm_fact,(double*)temp,(double*)H,sizeof(TYPE)/sizeof(double)*locVol); \
 	  }								\
 									\
-	double_vector_copy((double*)smear_sc,(double*)temp,loc_vol*sizeof(TYPE)/sizeof(double)); \
+	double_vector_copy((double*)smear_sc,(double*)temp,locVol*sizeof(TYPE)/sizeof(double)); \
 									\
 	if(ext_H==NULL) nissa_free(H);					\
 	if(ext_temp==NULL) nissa_free(temp);				\
@@ -99,12 +99,12 @@ namespace nissa
     else
       {
 	//copy to a temp buffer
-	TYPE *temp1=nissa_malloc("temp",loc_vol+bord_vol,TYPE);
+	TYPE *temp1=nissa_malloc("temp",locVol+bord_vol,TYPE);
 	vector_copy(temp1,origi_sc);
 	
 	//allocate two temp vectors for gaussian
-	TYPE *temp2=nissa_malloc("temp2",loc_vol+bord_vol,TYPE);
-	TYPE *temp3=nissa_malloc("temp3",loc_vol+bord_vol,TYPE);
+	TYPE *temp2=nissa_malloc("temp2",locVol+bord_vol,TYPE);
+	TYPE *temp3=nissa_malloc("temp3",locVol+bord_vol,TYPE);
 	
 	//reset the output
 	vector_reset(smear_sc);
@@ -119,7 +119,7 @@ namespace nissa
 	    gaussian_smearing(temp1,temp1,conf,kappa,nstep,temp2,temp3);
 	    
 	    //accumulate
-	    double_vector_summ_double_vector_prod_double((double*)smear_sc,(double*)smear_sc,(double*)temp1,coeff[iterm],loc_vol*sizeof(TYPE)/sizeof(double));
+	    double_vector_summ_double_vector_prod_double((double*)smear_sc,(double*)smear_sc,(double*)temp1,coeff[iterm],locVol*sizeof(TYPE)/sizeof(double));
 	  }
 	
 	set_borders_invalid(smear_sc);

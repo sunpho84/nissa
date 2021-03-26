@@ -170,8 +170,8 @@ void initialize_Zcomputation(char *input_path)
   // 5) Contraction list for two points
   
   read_str_int("NContrTwoPoints",&ncontr_2pts);
-  contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
-  loc_2pts=nissa_malloc("loc_2pts",ncontr_2pts*glb_size[0],complex);
+  contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glbSize[0],complex);
+  loc_2pts=nissa_malloc("loc_2pts",ncontr_2pts*glbSize[0],complex);
   op1_2pts=nissa_malloc("op1_2pts",ncontr_2pts,int);
   op2_2pts=nissa_malloc("op2_2pts",ncontr_2pts,int);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
@@ -206,26 +206,26 @@ void initialize_Zcomputation(char *input_path)
   ///////////////////////////////// end of input reading/////////////////////////////////
   
   //allocate gauge conf and all the needed spincolor and su3spinspin
-  conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  unfix_conf=nissa_malloc("unfix_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  conf=nissa_malloc("or_conf",locVol+bord_vol+edge_vol,quad_su3);
+  unfix_conf=nissa_malloc("unfix_conf",locVol+bord_vol+edge_vol,quad_su3);
   
   //Allocate all the S0 su3spinspin vectors
   S0[0]=nissa_malloc("S0[0]",nmass,su3spinspin*);
   S0[1]=nissa_malloc("S0[1]",nmass,su3spinspin*);
   for(int iprop=0;iprop<nmass;iprop++)
     {
-      S0[0][iprop]=nissa_malloc("S0[0][iprop]",loc_vol,su3spinspin);
-      S0[1][iprop]=nissa_malloc("S0[1][iprop]",loc_vol,su3spinspin);
+      S0[0][iprop]=nissa_malloc("S0[0][iprop]",locVol,su3spinspin);
+      S0[1][iprop]=nissa_malloc("S0[1][iprop]",locVol,su3spinspin);
     }
   
   if(cSW!=0)
     {
-      Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
-      invCl=nissa_malloc("invCl",loc_vol,inv_clover_term_t);
+      Cl=nissa_malloc("Cl",locVol,clover_term_t);
+      invCl=nissa_malloc("invCl",locVol,inv_clover_term_t);
     }
   
   //Allocate one su3spinspsin for the source
-  original_source=nissa_malloc("orig_source",loc_vol,su3spinspin);
+  original_source=nissa_malloc("orig_source",locVol,su3spinspin);
 }
 
 //load the conf, fix it and put boundary cond
@@ -311,8 +311,8 @@ void calculate_S0()
   inv_time-=take_time();
   if(not use_cgm)
     {
-      spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
-      spincolor *temp_sol=nissa_malloc("temp_sol",loc_vol+bord_vol,spincolor);
+      spincolor *temp_source=nissa_malloc("temp_source",locVol+bord_vol,spincolor);
+      spincolor *temp_sol=nissa_malloc("temp_sol",locVol+bord_vol,spincolor);
       for(int id=0;id<NDIRAC;id++)
 	for(int ic=0;ic<NCOL;ic++)
 	  {
@@ -363,20 +363,20 @@ void print_time_momentum_propagator()
     for(int imass=0;imass<nmass;imass++)
       {
 	//output
-	double p[2*glb_size[0]];
-	memset(p,0,2*sizeof(double)*glb_size[0]);
+	double p[2*glbSize[0]];
+	memset(p,0,2*sizeof(double)*glbSize[0]);
 	
-	for(int t=0;t<loc_size[0];t++)
+	for(int t=0;t<locSize[0];t++)
 	  {
 	    //go to point of coords t,0,0,0
-	    int ivol=t*(loc_vol/loc_size[0]);
-	    int glb_t=glb_coord_of_loclx[ivol][0];
+	    int ivol=t*(locVol/locSize[0]);
+	    int glb_t=glbCoordOfLoclx[ivol][0];
 	    
 	    //trace over col and with 1+g0
 	    complex c={0,0};
-	    if(glb_coord_of_loclx[ivol][1]==0 &&
-	       glb_coord_of_loclx[ivol][2]==0 &&
-	       glb_coord_of_loclx[ivol][3]==0)
+	    if(glbCoordOfLoclx[ivol][1]==0 &&
+	       glbCoordOfLoclx[ivol][2]==0 &&
+	       glbCoordOfLoclx[ivol][3]==0)
 	      for(int ic=0;ic<NCOL;ic++)
 		{
 		  summ_the_trace_dirac_prod_spinspin(c,base_gamma+0,S0[r][imass][ivol][ic][ic]);
@@ -387,11 +387,11 @@ void print_time_momentum_propagator()
 	  }
 	
 	//reduce all nodes
-	MPI_Allreduce(MPI_IN_PLACE,p,2*glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	MPI_Allreduce(MPI_IN_PLACE,p,2*glbSize[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	
 	//write out
 	master_fprintf(fout,"\n # r=%d, mass=%lg\n\n",r,mass[imass]);
-	for(int t=0;t<glb_size[0];t++)
+	for(int t=0;t<glbSize[0];t++)
 	  master_fprintf(fout,"%+16.16lg %+16.16lg\n",p[2*t+0],p[2*t+1]);
       }
   
@@ -410,7 +410,7 @@ void compute_fft(double sign)
 	NISSA_LOC_VOL_LOOP(imom)
 	  {
 	    double arg=0;
-	    for(int mu=0;mu<NDIM;mu++) arg+=((double)glb_coord_of_loclx[imom][mu]*source_coord[mu])/glb_size[mu];
+	    for(int mu=0;mu<NDIM;mu++) arg+=((double)glbCoordOfLoclx[imom][mu]*source_coord[mu])/glbSize[mu];
 	    arg*=-sign*2*M_PI;
 	    complex f={cos(arg),sin(arg)};
 	    
@@ -495,7 +495,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 		      {
 			for(int mu=0;mu<NDIM;mu++)
 			  {
-			    glb_ip[mu]=(glb_size[mu]+sig[mu]*sht_ip[mu])%glb_size[mu];
+			    glb_ip[mu]=(glbSize[mu]+sig[mu]*sht_ip[mu])%glbSize[mu];
 			    //master_printf("%d %d\n",mu,glb_ip[mu]);
 			  }
 			//identify the rank hosting this element
@@ -506,7 +506,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 			  {
 			    //find local index
 			    coords loc_ip;
-			    for(int mu=0;mu<NDIM;mu++) loc_ip[mu]=glb_ip[mu]%loc_size[mu];
+			    for(int mu=0;mu<NDIM;mu++) loc_ip[mu]=glb_ip[mu]%locSize[mu];
 			    int ilp=loclx_of_coord(loc_ip);
 			    
 			    write_data(fout,imass,ilp,offset);

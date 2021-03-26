@@ -30,9 +30,9 @@ namespace nissa
   void read_real_vector(double *out,ILDG_File file,ILDG_header &header,uint64_t nreals_per_site)
   {
     //check the size of the data block
-    int loc_nreals_tot=nreals_per_site*loc_vol;
+    int loc_nreals_tot=nreals_per_site*locVol;
     uint64_t nbytes=header.data_length;
-    uint64_t nbytes_per_site_read=nbytes/glb_vol;
+    uint64_t nbytes_per_site_read=nbytes/glbVol;
     if(nbytes_per_site_read>nreals_per_site*sizeof(double))
       crash("Opsss! The file contain %d bytes per site and it is supposed to contain not more than %d!",
 	    nbytes_per_site_read,nreals_per_site*sizeof(double));
@@ -116,7 +116,7 @@ namespace nissa
   void read_ildg_gauge_conf_and_split_into_eo_parts(eo_ptr<quad_su3> eo_conf,std::string path,ILDG_message *mess)
   {
     //read the conf in lx and reorder it
-    quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol+bord_vol,quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("temp_conf",locVol+bord_vol,quad_su3);
     read_ildg_gauge_conf(lx_conf,path,mess);
     split_lx_vector_into_eo_parts(eo_conf,lx_conf);
     nissa_free(lx_conf);

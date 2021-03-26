@@ -55,7 +55,7 @@ void index_shift(int &irank_out,int &ivol_out,int ivol_in,void *pars)
 {
   int *source_coord=(int*)pars;
   coords co;
-  for(int nu=0;nu<NDIM;nu++) co[nu]=(glb_coord_of_loclx[ivol_in][nu]+source_coord[nu])%glb_size[nu];
+  for(int nu=0;nu<NDIM;nu++) co[nu]=(glbCoordOfLoclx[ivol_in][nu]+source_coord[nu])%glbSize[nu];
   get_loclx_and_rank_of_coord(&ivol_out,&irank_out,co);
 }
 
@@ -72,7 +72,7 @@ void random_shift_gauge_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_
   
   //shift the configuration
   double shift_time=-take_time();
-  vector_remap_t shifter(loc_vol,index_shift,(void*)shift_coord);
+  vector_remap_t shifter(locVol,index_shift,(void*)shift_coord);
   shifter.remap(conf,conf,sizeof(quad_su3));
   shift_time+=take_time();
   master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+016.016lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
@@ -368,24 +368,24 @@ void init_simulation(char *path)
   nlprop=ilprop(nleptons-1,nlins-1,norie-1,nr-1)+1;
   
   //allocate temporary vectors
-  temp_source=nissa_malloc("temp_source",loc_vol,spincolor);
-  temp_solution=nissa_malloc("temp_solution",loc_vol+bord_vol,spincolor);
-  hadr_corr_length=glb_size[0]*nhadr_contr*ncombo_hadr_corr*nqmass*nqmass*nr;
+  temp_source=nissa_malloc("temp_source",locVol,spincolor);
+  temp_solution=nissa_malloc("temp_solution",locVol+bord_vol,spincolor);
+  hadr_corr_length=glbSize[0]*nhadr_contr*ncombo_hadr_corr*nqmass*nqmass*nr;
   hadr_corr=nissa_malloc("hadr_corr",hadr_corr_length,complex);
-  glb_corr=nissa_malloc("glb_corr",glb_size[0]*nhadr_contr,complex);
-  loc_corr=nissa_malloc("loc_corr",glb_size[0]*nhadr_contr,complex);
+  glb_corr=nissa_malloc("glb_corr",glbSize[0]*nhadr_contr,complex);
+  loc_corr=nissa_malloc("loc_corr",glbSize[0]*nhadr_contr,complex);
   nind=nleptons*nweak_ind*norie*nr*nins;
-  hadr=nissa_malloc("hadr",loc_vol,spinspin);
-  hadrolept_corr=nissa_malloc("hadrolept_corr",glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
-  original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
-  source=nissa_malloc("source",loc_vol,PROP_TYPE);
-  photon_field=nissa_malloc("photon_phield",loc_vol+bord_vol,spin1field);
+  hadr=nissa_malloc("hadr",locVol,spinspin);
+  hadrolept_corr=nissa_malloc("hadrolept_corr",glbSize[0]*nweak_ind*nhadrolept_proj*nind,complex);
+  original_source=nissa_malloc("source",locVol,PROP_TYPE);
+  source=nissa_malloc("source",locVol,PROP_TYPE);
+  photon_field=nissa_malloc("photon_phield",locVol+bord_vol,spin1field);
   Q=nissa_malloc("Q*",nqprop,PROP_TYPE*);
-  for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",loc_vol+bord_vol,PROP_TYPE);
+  for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",locVol+bord_vol,PROP_TYPE);
   L=nissa_malloc("L*",nlprop,spinspin*);
-  for(int iprop=0;iprop<nlprop;iprop++) L[iprop]=nissa_malloc("L",loc_vol+bord_vol,spinspin);
-  temp_lep=nissa_malloc("temp_lep",loc_vol+bord_vol,spinspin);
-  conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  for(int iprop=0;iprop<nlprop;iprop++) L[iprop]=nissa_malloc("L",locVol+bord_vol,spinspin);
+  temp_lep=nissa_malloc("temp_lep",locVol+bord_vol,spinspin);
+  conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
 }
 
 //find a new conf
@@ -479,8 +479,8 @@ void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,bool *dirs,PROP_
   
   for(int mu=0;mu<NDIM;mu++)
     if(dirs[mu])
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	if(t==-1||glb_coord_of_loclx[ivol][0]==t)
+      NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	if(t==-1||glbCoordOfLoclx[ivol][0]==t)
 	  {
 	    PROP_TYPE temp1,temp2;
 	    NAME2(unsafe_dirac_prod,PROP_TYPE)(temp1,base_gamma+map_mu[mu],in[ivol]);
@@ -604,8 +604,8 @@ double get_space_arg(const int ivol,const momentum_t bc)
   double arg=0;
   for(int mu=1;mu<NDIM;mu++)
     {
-      double step=bc[mu]*M_PI/glb_size[mu];
-      arg+=step*glb_coord_of_loclx[ivol][mu];
+      double step=bc[mu]*M_PI/glbSize[mu];
+      arg+=step*glbCoordOfLoclx[ivol][mu];
     }
   return arg;
 }
@@ -615,8 +615,8 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
 {
   //compute space and time factor
   double arg=get_space_arg(ivol,le.bc);
-  int t=glb_coord_of_loclx[ivol][0];
-  if(follow_chris_or_nazario==follow_nazario && t>=glb_size[0]/2) t=glb_size[0]-t;
+  int t=glbCoordOfLoclx[ivol][0];
+  if(follow_chris_or_nazario==follow_nazario && t>=glbSize[0]/2) t=glbSize[0]-t;
   double ext=exp(t*lep_energy[ilepton]);
   
   //compute full exponential (notice the factor -1)
@@ -629,8 +629,8 @@ void get_antineutrino_source_phase_factor(complex out,const int ivol,const int i
 {
   //compute space and time factor
   double arg=get_space_arg(ivol,bc);
-  int t=glb_coord_of_loclx[ivol][0];
-  if(follow_chris_or_nazario==follow_nazario && t>=glb_size[0]/2) t=glb_size[0]-t;
+  int t=glbCoordOfLoclx[ivol][0];
+  if(follow_chris_or_nazario==follow_nazario && t>=glbSize[0]/2) t=glbSize[0]-t;
   double ext=exp(t*neu_energy[ilepton]);
   
   //compute full exponential (notice the factor +1)
@@ -643,7 +643,7 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
 {
   
   vector_reset(prop);
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     {
       complex ph;
       get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
@@ -684,20 +684,20 @@ void insert_photon_on_the_source(spinspin* prop,spin1field* A,bool* dirs,tm_quar
       //(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
       for(int mu=0;mu<NDIM;mu++)
 	if(dirs[mu])
-	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	    if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
+	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	    if(twall==-1||glbCoordOfLoclx[ivol][0]==twall)
 	      {
 		//find neighbors
-		int ifw=loclx_neighup[ivol][mu];
-		int ibw=loclx_neighdw[ivol][mu];
+		int ifw=loclxNeighup[ivol][mu];
+		int ibw=loclxNeighdw[ivol][mu];
 		
 		//compute phase factor
 		spinspin ph_bw,ph_fw;
 		
 		//transport down and up
-		if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
+		if(glbCoordOfLoclx[ivol][mu]==glbSize[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
 		else spinspin_copy(ph_fw,temp_lep[ifw]);
-		if(glb_coord_of_loclx[ivol][mu]==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
+		if(glbCoordOfLoclx[ivol][mu]==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
 		else spinspin_copy(ph_bw,temp_lep[ibw]);
 		
 		//fix coefficients - i is inserted here!
@@ -730,8 +730,8 @@ void insert_photon_on_the_source(spinspin* prop,spin1field* A,bool* dirs,tm_quar
     {
       for(int mu=0;mu<NDIM;mu++)
 	if(dirs[mu])
-	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	    if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
+	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	    if(twall==-1||glbCoordOfLoclx[ivol][0]==twall)
 	      {
 		spinspin temp1,temp2;
 		unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+map_mu[mu]);
@@ -787,7 +787,7 @@ void generate_lepton_propagators()
 	    if(follow_chris_or_nazario==follow_nazario)
 	      {
 		//select only the wall
-		int tmiddle=glb_size[0]/2;
+		int tmiddle=glbSize[0]/2;
 		select_propagator_timeslice(prop,prop,tmiddle);
 		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base,true);
 	      }
@@ -826,10 +826,10 @@ void compute_hadronic_correlations()
 	    
 	    //save to the total stack
 	    for(int ihadr_contr=0;ihadr_contr<nhadr_contr;ihadr_contr++)
-	      for(int t=0;t<glb_size[0];t++)
+	      for(int t=0;t<glbSize[0];t++)
 		{
-		  int i=t+glb_size[0]*(ihadr_contr+nhadr_contr*(r+nr*(jmass+nqmass*(imass+nqmass*icombo))));
-		  complex_summassign(hadr_corr[i],glb_corr[t+glb_size[0]*ihadr_contr]);
+		  int i=t+glbSize[0]*(ihadr_contr+nhadr_contr*(r+nr*(jmass+nqmass*(imass+nqmass*icombo))));
+		  complex_summassign(hadr_corr[i],glb_corr[t+glbSize[0]*ihadr_contr]);
 		}
 	  }
   hadr_contr_time+=take_time();
@@ -846,7 +846,7 @@ void hadronic_part_leptonic_correlation(spinspin* hadr,PROP_TYPE* S1,PROP_TYPE* 
   
   //it's just the matter of inserting gamma5*gamma5=identity between S1^dag and S2
   //on the sink gamma5 must still be inserted!
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     for(int ic_si=0;ic_si<NCOL;ic_si++)
 #ifdef POINT_SOURCE_VERSION
       for(int ic_so=0;ic_so<NCOL;ic_so++)
@@ -908,12 +908,12 @@ void attach_leptonic_correlation(spinspin* hadr,int iprop,int ilepton,int orie,i
   for(int ins=0;ins<nweak_ins;ins++)
     {
       //define a local storage
-      spinspin hl_loc_corr[loc_size[0]];
-      for(int i=0;i<loc_size[0];i++) spinspin_put_to_zero(hl_loc_corr[i]);
+      spinspin hl_loc_corr[locSize[0]];
+      for(int i=0;i<locSize[0];i++) spinspin_put_to_zero(hl_loc_corr[i]);
       
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	{
-	  int t=loc_coord_of_loclx[ivol][0];
+	  int t=locCoordOfLoclx[ivol][0];
 	  
 	  //multiply lepton side on the right (source) side
 	  spinspin la;
@@ -937,14 +937,14 @@ void attach_leptonic_correlation(spinspin* hadr,int iprop,int ilepton,int orie,i
 	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
 	}
       NISSA_PARALLEL_LOOP_END;
-      glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
+      glb_threads_reduce_double_vect((double*)hl_loc_corr,locSize[0]*sizeof(spinspin)/sizeof(double));
       
       //save projection on LO
       for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
-	NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
+	NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])
 	  {
-	    int glb_t=loc_t+rank_coord[0]*loc_size[0];
-	    int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
+	    int glb_t=loc_t+rank_coord[0]*locSize[0];
+	    int ilnp=(glb_t>=glbSize[0]/2); //select the lepton/neutrino projector
 	    
 	    spinspin td;
 	    unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ilnp]);
@@ -954,8 +954,8 @@ void attach_leptonic_correlation(spinspin* hadr,int iprop,int ilepton,int orie,i
 	    trace_spinspin_with_dirac(hl,dtd,hadrolept_proj_gamma+ig_proj);
 	    
 	    //summ the average
-	    int i=glb_t+glb_size[0]*(ig_proj+nhadrolept_proj*(list_weak_ind_contr[ins]+nweak_ind*ext_ind));
-	    complex_summ_the_prod_double(hadrolept_corr[i],hl,1.0/glb_spat_vol); //here to remove the statistical average on xw
+	    int i=glb_t+glbSize[0]*(ig_proj+nhadrolept_proj*(list_weak_ind_contr[ins]+nweak_ind*ext_ind));
+	    complex_summ_the_prod_double(hadrolept_corr[i],hl,1.0/glbSpatVol); //here to remove the statistical average on xw
 	  }
       NISSA_PARALLEL_LOOP_END;
       if(IS_MASTER_THREAD) nlept_contr_tot+=nhadrolept_proj;
@@ -1016,7 +1016,7 @@ void print_correlations()
   
   //open file and reduce
   FILE *fout=open_file(combine("%s/corr_hl",outfolder).c_str(),"w");
-  glb_nodes_reduce_complex_vect(hadrolept_corr,glb_size[0]*nweak_ind*nhadrolept_proj*nind);
+  glb_nodes_reduce_complex_vect(hadrolept_corr,glbSize[0]*nweak_ind*nhadrolept_proj*nind);
   
   //write down
   for(int ilepton=0;ilepton<nleptons;ilepton++)
@@ -1041,9 +1041,9 @@ void print_correlations()
 		    for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 		      {
 			master_fprintf(fout," # qins=%s lins=%s proj=%s\n\n",list_weak_ind_nameq[ind],list_weak_ind_namel[ind],gtag[hadrolept_projs[ig_proj]]);
-			for(int t=0;t<glb_size[0];t++)
+			for(int t=0;t<glbSize[0];t++)
 			  {
-			    int i=t+glb_size[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*corrpack_ind));
+			    int i=t+glbSize[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*corrpack_ind));
 			    master_fprintf(fout,"%+16.16lg %+16.16lg\n",hadrolept_corr[i][RE]/(glb_spat_vol*nsources),hadrolept_corr[i][IM]/(glb_spat_vol*nsources));
 			  }
 			master_fprintf(fout,"\n");
@@ -1069,7 +1069,7 @@ void print_correlations()
 	    {
 	      if(!pure_wilson) master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d\n",qmass[imass],qmass[jmass],r);
 	      else             master_fprintf(fout," # kappa1(rev)=%lg kappa2(ins)=%lg\n",qkappa[imass],qkappa[jmass]);
-	      print_contractions_to_file(fout,nhadr_contr,ig_hadr_so,ig_hadr_si,hadr_corr+ind*glb_size[0],0,"",1.0/glb_spat_vol);
+	      print_contractions_to_file(fout,nhadr_contr,ig_hadr_so,ig_hadr_si,hadr_corr+ind*glbSize[0],0,"",1.0/glb_spat_vol);
 	      master_fprintf(fout,"\n");
 	      ind+=nhadr_contr;
 	    }

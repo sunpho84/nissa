@@ -225,11 +225,11 @@ namespace nissa
       {
 	//header
 	if(op_sour>=0 && op_sink>=0 && (!skip_header)) fprintf(fout," # %s%s%s\n",tag,gtag[op_sink],gtag[op_sour]);
-	for(int tempt=0;tempt<glb_size[0];tempt++)
+	for(int tempt=0;tempt<glbSize[0];tempt++)
 	  {
 	    //shift
 	    int t=tempt+twall;
-	    if(t>=glb_size[0]) t-=glb_size[0];
+	    if(t>=glbSize[0]) t-=glbSize[0];
 	    
 	    fprintf(fout,"%+16.016g\t%+16.016g\n",contr[t][0]*norm,contr[t][1]*norm);
 	  }
@@ -243,7 +243,7 @@ namespace nissa
       for(int icontr=0;icontr<ncontr;icontr++)
 	{
 	  fprintf(fout,"\n");
-	  print_contraction_to_file(fout,op_sour[icontr],op_sink[icontr],contr+icontr*glb_size[0],twall,tag,norm,skip_header);
+	  print_contraction_to_file(fout,op_sour[icontr],op_sink[icontr],contr+icontr*glbSize[0],twall,tag,norm,skip_header);
 	}
   }
 }

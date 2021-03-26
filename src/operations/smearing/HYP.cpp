@@ -42,7 +42,7 @@ namespace nissa
     
     //allocate dec2 conf
     su3 **dec2_conf=new su3*[idec2_remap];
-    for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",loc_vol+bord_vol+edge_vol,su3);
+    for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",locVol+bord_vol+edge_vol,su3);
     
     //loop over external index
     for(int mu=0;mu<4;mu++)
@@ -56,7 +56,7 @@ namespace nissa
 	    int ire0=dec2_remap_index[mu][nu][rho];
 	    
 	    //loop over local volume
-	    NISSA_PARALLEL_LOOP(A,0,loc_vol)
+	    NISSA_PARALLEL_LOOP(A,0,locVol)
 	      {
 		//take original link
 		su3 temp0;
@@ -66,14 +66,14 @@ namespace nissa
 		su3 stap,temp1,temp2;
 		
 		//staple in the positive dir
-		int B=loclx_neighup[A][eta];
-		int F=loclx_neighup[A][mu];
+		int B=loclxNeighup[A][eta];
+		int F=loclxNeighup[A][mu];
 		unsafe_su3_prod_su3(temp1,conf[A][eta],conf[B][mu]);
 		unsafe_su3_prod_su3_dag(stap,temp1,conf[F][eta]);
 		
 		//staple in the negative dir
-		int D=loclx_neighdw[A][eta];
-		int E=loclx_neighup[D][mu];
+		int D=loclxNeighdw[A][eta];
+		int E=loclxNeighup[D][mu];
 		unsafe_su3_dag_prod_su3(temp1,conf[D][eta],conf[D][mu]);
 		unsafe_su3_prod_su3(temp2,temp1,conf[E][eta]);
 		su3_summ(stap,stap,temp2);
@@ -97,7 +97,7 @@ namespace nissa
     
     //allocate dec1 conf
     su3 **dec1_conf=new su3*[idec1_remap];
-    for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",loc_vol+bord_vol+edge_vol,su3);
+    for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",locVol+bord_vol+edge_vol,su3);
     
     //loop over external index
     for(int mu=0;mu<4;mu++)
@@ -109,7 +109,7 @@ namespace nissa
 	  int ire0=dec1_remap_index[mu][nu];
 	  
 	  //loop over local volume
-	  NISSA_PARALLEL_LOOP(A,0,loc_vol)
+	  NISSA_PARALLEL_LOOP(A,0,locVol)
 	    {
 	      //take original link
 	      su3 temp0;
@@ -130,15 +130,15 @@ namespace nissa
 		  int ire2=dec2_remap_index[mu][rho][nu];
 		  
 		  //staple in the positive dir
-		  int B=loclx_neighup[A][rho];
-		  int F=loclx_neighup[A][mu];
+		  int B=loclxNeighup[A][rho];
+		  int F=loclxNeighup[A][mu];
 		  unsafe_su3_prod_su3(temp1,dec2_conf[ire1][A],dec2_conf[ire2][B]);
 		  unsafe_su3_prod_su3_dag(temp2,temp1,dec2_conf[ire1][F]);
 		  su3_summ(stap,stap,temp2);
 		  
 		  //staple in the negative dir
-		  int D=loclx_neighdw[A][rho];
-		  int E=loclx_neighup[D][mu];
+		  int D=loclxNeighdw[A][rho];
+		  int E=loclxNeighup[D][mu];
 		  unsafe_su3_dag_prod_su3(temp1,dec2_conf[ire1][D],dec2_conf[ire2][D]);
 		  unsafe_su3_prod_su3(temp2,temp1,dec2_conf[ire1][E]);
 		  su3_summ(stap,stap,temp2);
@@ -167,7 +167,7 @@ namespace nissa
       if(dirs[mu])
 	{
 	  //loop over local volume
-	  NISSA_PARALLEL_LOOP(A,0,loc_vol)
+	  NISSA_PARALLEL_LOOP(A,0,locVol)
 	    {
 	      //take original link
 	      su3 temp0;
@@ -188,15 +188,15 @@ namespace nissa
 		  int ire2=dec1_remap_index[mu][nu];
 		  
 		  //staple in the positive dir
-		  int B=loclx_neighup[A][nu];
-		  int F=loclx_neighup[A][mu];
+		  int B=loclxNeighup[A][nu];
+		  int F=loclxNeighup[A][mu];
 		  unsafe_su3_prod_su3(temp1,dec1_conf[ire1][A],dec1_conf[ire2][B]);
 		  unsafe_su3_prod_su3_dag(temp2,temp1,dec1_conf[ire1][F]);
 		  su3_summ(stap,stap,temp2);
 		  
 		  //staple in the negative dir
-		  int D=loclx_neighdw[A][nu];
-		  int E=loclx_neighup[D][mu];
+		  int D=loclxNeighdw[A][nu];
+		  int E=loclxNeighup[D][mu];
 		  unsafe_su3_dag_prod_su3(temp1,dec1_conf[ire1][D],dec1_conf[ire2][D]);
 		  unsafe_su3_prod_su3(temp2,temp1,dec1_conf[ire1][E]);
 		  su3_summ(stap,stap,temp2);
@@ -210,7 +210,7 @@ namespace nissa
 	}
       else
       if(sm_conf!=conf)
-	NISSA_PARALLEL_LOOP(A,0,loc_vol)
+	NISSA_PARALLEL_LOOP(A,0,locVol)
 	  su3_copy(sm_conf[A][mu],conf[A][mu]);
     NISSA_PARALLEL_LOOP_END;
     

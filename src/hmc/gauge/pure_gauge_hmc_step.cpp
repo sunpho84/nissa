@@ -60,7 +60,7 @@ namespace nissa
     master_printf("Trajectory %d (nmd: %d)\n",itraj,evol_pars.nmd_steps);
     
     //allocate the momenta and copy old conf into new
-    quad_su3 *H=nissa_malloc("H",loc_vol,quad_su3);
+    quad_su3 *H=nissa_malloc("H",locVol,quad_su3);
     vector_copy(out_conf,in_conf);
     
     //if we accelerate draw also momenta and position
@@ -81,10 +81,10 @@ namespace nissa
 	    //if we need to accelerate allocate auxiliary fields
 	    for(int id=0;id<evol_pars.naux_fields;id++)
 	      {
-		phi[id]=nissa_malloc("phi",loc_vol+bord_vol,su3);
-		phi_old[id]=nissa_malloc("phi_old",loc_vol+bord_vol,su3);
-		pi[id]=nissa_malloc("pi",loc_vol+bord_vol,su3);
-		pi_old[id]=nissa_malloc("pi_old",loc_vol+bord_vol,su3);
+		phi[id]=nissa_malloc("phi",locVol+bord_vol,su3);
+		phi_old[id]=nissa_malloc("phi_old",locVol+bord_vol,su3);
+		pi[id]=nissa_malloc("pi",locVol+bord_vol,su3);
+		pi_old[id]=nissa_malloc("pi_old",locVol+bord_vol,su3);
 	      }
 	    
 	    //generate FACC fields and momenta

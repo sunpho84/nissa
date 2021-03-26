@@ -77,7 +77,7 @@ namespace nissa
     for(int p=0;p<2;p++)
       for(int mu=0;mu<NDIM;mu++)
 	if(dirs[mu])
-	  NISSA_PARALLEL_LOOP(A,0,loc_volh)
+	  NISSA_PARALLEL_LOOP(A,0,locVolh)
 	    {
 	      //compute the staples needed to smear
 	      stout_link_staples sto_ste;
@@ -114,8 +114,8 @@ namespace nissa
 	eo_ptr<quad_su3> in,out;
     	for(int eo=0;eo<2;eo++)
 	  {
-	    in[eo]=nissa_malloc("in",loc_volh+bord_volh+edge_volh,quad_su3);
-	    out[eo]=nissa_malloc("out",loc_volh+bord_volh+edge_volh,quad_su3);
+	    in[eo]=nissa_malloc("in",locVolh+bord_volh+edge_volh,quad_su3);
+	    out[eo]=nissa_malloc("out",locVolh+bord_volh+edge_volh,quad_su3);
 	    vector_copy(in[eo],ext_in[eo]);
 	  }
 	
@@ -149,7 +149,7 @@ namespace nissa
     (*out)=nissa_malloc("out**",nlev+1,eo_ptr<quad_su3>);
     (*out)[0]=in;
     for(int i=1;i<=nlev;i++)
-      for(int eo=0;eo<2;eo++) (*out)[i][eo]=nissa_malloc("out",loc_volh+bord_volh+edge_volh,quad_su3);
+      for(int eo=0;eo<2;eo++) (*out)[i][eo]=nissa_malloc("out",locVolh+bord_volh+edge_volh,quad_su3);
   }
   
   //free all the stack of allocated smeared conf
@@ -178,11 +178,11 @@ namespace nissa
     
     eo_ptr<quad_su3> Lambda;
     for(int eo=0;eo<2;eo++)
-      Lambda[eo]=nissa_malloc("Lambda",loc_volh+bord_volh+edge_volh,quad_su3);
+      Lambda[eo]=nissa_malloc("Lambda",locVolh+bord_volh+edge_volh,quad_su3);
     
     for(int p=0;p<2;p++)
       for(int mu=0;mu<NDIM;mu++)
-	NISSA_PARALLEL_LOOP(A,0,loc_volh)
+	NISSA_PARALLEL_LOOP(A,0,locVolh)
 	  {
 	    //compute the ingredients needed to smear
 	    stout_link_staples sto_ste;
@@ -222,7 +222,7 @@ namespace nissa
 	for(int nu=0;nu<4;nu++)
 	  if(mu!=nu)
 	    {
-	      NISSA_PARALLEL_LOOP(A,0,loc_volh)        //   b1 --<-- f1 -->-- +
+	      NISSA_PARALLEL_LOOP(A,0,locVolh)        //   b1 --<-- f1 -->-- +
 		{                                      //    |        |       |
 		  int f1=loceo_neighup[ p][ A][mu];    //    V   B    |   F   V     ^
 		  int f2=loceo_neighup[ p][ A][nu];    //    |        |       |     m

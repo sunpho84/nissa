@@ -44,10 +44,10 @@ namespace nissa
     if(all)
       {
 	communicate_lx_spinspin_borders(in);
-	ending=loc_vol+bord_vol;
+	ending=locVol+bord_vol;
       }
     else
-      ending=loc_vol;
+      ending=locVol;
     
     for(int ivol=0;ivol<ending;ivol++)
       for(int id_si=0;id_si<4;id_si++)

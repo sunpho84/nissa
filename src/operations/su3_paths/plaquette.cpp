@@ -38,10 +38,10 @@ namespace nissa
     loc_plaq[0]=loc_plaq[1]=0;
     for(int mu=0;mu<NDIM;mu++)
       {
-	int B=loclx_neighup[A][mu];
+	int B=loclxNeighup[A][mu];
 	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
-	    int C=loclx_neighup[A][nu];
+	    int C=loclxNeighup[A][nu];
 	    su3 ABD,ACD;
 	    unsafe_su3_prod_su3(ABD,conf[A][mu],conf[B][nu]);
 	    unsafe_su3_prod_su3(ACD,conf[A][nu],conf[C][mu]);
@@ -75,11 +75,11 @@ namespace nissa
   {
     
     //summ temporal and spatial separately
-    complex *point_plaq=nissa_malloc("point_plaq",loc_vol,complex);
+    complex *point_plaq=nissa_malloc("point_plaq",locVol,complex);
     communicate_lx_quad_su3_borders(conf);
     
     //loop over all the lattice
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       point_plaquette_lx_conf(point_plaq[ivol],conf,ivol);
     NISSA_PARALLEL_LOOP_END;
     
@@ -88,8 +88,8 @@ namespace nissa
     
     //reduce as complex and normalize
     complex temp;
-    glb_reduce(&temp,point_plaq,loc_vol);
-    for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glb_vol*3*3);
+    glb_reduce(&temp,point_plaq,locVol);
+    for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glbVol*3*3);
     
     nissa_free(point_plaq);
   }
@@ -98,13 +98,13 @@ namespace nissa
   {
     
     //summ temporal and spatial separately
-    complex *point_plaq=nissa_malloc("point_plaq",loc_vol,complex);
+    complex *point_plaq=nissa_malloc("point_plaq",locVol,complex);
     communicate_ev_and_od_quad_su3_borders(conf);
     
     //loop over all the lattice
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  point_plaquette_eo_conf(point_plaq[loclx_of_loceo[par][ieo]],conf,par,ieo);
 	NISSA_PARALLEL_LOOP_END;
       }
@@ -114,8 +114,8 @@ namespace nissa
     
     //reduce as complex and normalize
     complex temp;
-    glb_reduce(&temp,point_plaq,loc_vol);
-    for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glb_vol*3*3);
+    glb_reduce(&temp,point_plaq,locVol);
+    for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glbVol*3*3);
     
     nissa_free(point_plaq);
   }

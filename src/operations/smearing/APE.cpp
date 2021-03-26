@@ -17,8 +17,8 @@ namespace nissa
   void ape_smear_conf(quad_su3* smear_conf,quad_su3* origi_conf,double alpha,int nstep,bool* dirs,int min_staple_dir)
   {
     
-    quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-    if(origi_conf!=smear_conf) double_vector_copy((double*)smear_conf,(double*)origi_conf,loc_vol*sizeof(quad_su3)/sizeof(double));
+    quad_su3 *temp_conf=nissa_malloc("temp_conf",locVol+bord_vol+edge_vol,quad_su3);
+    if(origi_conf!=smear_conf) double_vector_copy((double*)smear_conf,(double*)origi_conf,locVol*sizeof(quad_su3)/sizeof(double));
     
     char listed_dirs[21]="";
     for(int mu=0;mu<NDIM;mu++)
@@ -33,12 +33,12 @@ namespace nissa
     for(int istep=0;istep<nstep;istep++)
       {
 	verbosity_lv3_master_printf("APE spatial smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
-	double_vector_copy((double*)temp_conf,(double*)smear_conf,loc_vol*sizeof(quad_su3)/sizeof(double));
+	double_vector_copy((double*)temp_conf,(double*)smear_conf,locVol*sizeof(quad_su3)/sizeof(double));
 	
 	//communicate the borders
 	communicate_lx_quad_su3_edges(temp_conf);
 	
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  for(int mu=0;mu<NDIM;mu++)
 	    if(dirs[mu])
 	      {
@@ -49,14 +49,14 @@ namespace nissa
 		  if(nu!=mu)                              //  |   |   | mu
 		    {                                     //  D---A---B
 		      int A=ivol;                         //   nu
-		      int B=loclx_neighup[A][nu];
-		      int F=loclx_neighup[A][mu];
+		      int B=loclxNeighup[A][nu];
+		      int F=loclxNeighup[A][mu];
 		      unsafe_su3_prod_su3(temp1,temp_conf[A][nu],temp_conf[B][mu]);
 		      unsafe_su3_prod_su3_dag(temp2,temp1,temp_conf[F][nu]);
 		      su3_summ(stap,stap,temp2);
 		      
-		      int D=loclx_neighdw[A][nu];
-		      int E=loclx_neighup[D][mu];
+		      int D=loclxNeighdw[A][nu];
+		      int E=loclxNeighup[D][mu];
 		      unsafe_su3_dag_prod_su3(temp1,temp_conf[D][nu],temp_conf[D][mu]);
 		      unsafe_su3_prod_su3(temp2,temp1,temp_conf[E][nu]);
 		      su3_summ(stap,stap,temp2);

@@ -23,18 +23,18 @@ namespace nissa
     int niter=nitermax;
     int riter=0;
     int rniter=5;
-    spin *p=nissa_malloc("p",loc_volh+bord_volh,spin);
-    spin *r=nissa_malloc("r",loc_volh,spin);
-    spin *s=nissa_malloc("s",loc_volh,spin);
-    spin *temp1=nissa_malloc("temp1",loc_volh+bord_volh,spin);
-    spin *temp2=nissa_malloc("temp2",loc_volh+bord_volh,spin);
+    spin *p=nissa_malloc("p",locVolh+bord_volh,spin);
+    spin *r=nissa_malloc("r",locVolh,spin);
+    spin *s=nissa_malloc("s",locVolh,spin);
+    spin *temp1=nissa_malloc("temp1",locVolh+bord_volh,spin);
+    spin *temp2=nissa_malloc("temp2",locVolh+bord_volh,spin);
     
     ///////////////// prepare the internal source /////////////////
     
     if(guess==NULL) vector_reset(sol);
     else vector_copy(sol,guess);
     
-    const int n=loc_volh*sizeof(spin)/sizeof(double);
+    const int n=locVolh*sizeof(spin)/sizeof(double);
     
     //external loop, used if the internal exceed the maximal number of iterations
     double lambda; //(r_(k+1),r_(k+1))
@@ -107,26 +107,26 @@ namespace nissa
     
     //prepare the e/o split version of the source
     eo_ptr<spin> source_eos;
-    source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spin);
-    source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spin);
+    source_eos[0]=nissa_malloc("source_eos0",locVolh+bord_volh,spin);
+    source_eos[1]=nissa_malloc("source_eos1",locVolh+bord_volh,spin);
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
     eo_ptr<spin> solution_eos;
-    solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spin);
-    solution_eos[1]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spin);
+    solution_eos[0]=nissa_malloc("solution_eos_0",locVolh+bord_volh,spin);
+    solution_eos[1]=nissa_malloc("solution_eos_0",locVolh+bord_volh,spin);
     
     ///////////////////////////////////// invert with e/o improvement ///////////////////////////////////
     
-    spin *varphi=nissa_malloc("varphi",loc_volh+bord_volh,spin);
+    spin *varphi=nissa_malloc("varphi",locVolh+bord_volh,spin);
     
     //Equation (8.a)
-    spin *temp=nissa_malloc("temp",loc_volh+bord_volh,spin);
+    spin *temp=nissa_malloc("temp",locVolh+bord_volh,spin);
     inv_tmDee_or_oo_eos(temp,qu,source_eos[EVN]);
     
     //Equation (8.b)
     tmn2Doe_eos(varphi,temp,qu.bc);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
       for(int id=0;id<2;id++)
 	for(int ri=0;ri<2;ri++)
 	  { //gamma5 is explicitely wrote
@@ -146,7 +146,7 @@ namespace nissa
     
     //Equation (10)
     tmn2Deo_eos(varphi,solution_eos[ODD],qu.bc);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
       for(int id=0;id<4;id++)
 	for(int ri=0;ri<2;ri++)
 	  varphi[ivol][id][ri]=source_eos[EVN][ivol][id][ri]+varphi[ivol][id][ri]*0.5;

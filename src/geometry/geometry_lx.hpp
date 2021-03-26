@@ -17,7 +17,7 @@
  #define ONLY_INSTANTIATION
 #endif
 
-#define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<loc_vol;a++)
+#define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<locVol;a++)
 
 namespace nissa
 {
@@ -27,35 +27,33 @@ namespace nissa
   //nomenclature:
   //-glb is relative to the global grid
   //-loc to the local one
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords glb_size,loc_size;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glb_vol,glb_spat_vol,glb_volh;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t loc_vol,loc_spat_vol,loc_volh;
-  EXTERN_GEOMETRY_LX int64_t bulk_vol,non_bw_surf_vol,non_fw_surf_vol;
-  EXTERN_GEOMETRY_LX int64_t surf_vol,bw_surf_vol,fw_surf_vol;
-  EXTERN_GEOMETRY_LX int64_t vsurf_vol,vsurf_volh;
-  EXTERN_GEOMETRY_LX int64_t vdir_bord_vol,vdir_bord_volh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords glbSize,locSize;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glbVol,glbSpatVol,glbVolh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t locVol,locSpatVol,locVolh;
+  EXTERN_GEOMETRY_LX int64_t bulkVol,nonBwSurfVol,nonFwSurfVol;
+  EXTERN_GEOMETRY_LX int64_t surfVol,bwSurfVol,fwSurfVol;
   EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
   //-lx is lexicografic
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *glb_coord_of_loclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *loc_coord_of_loclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblx_of_loclx;
-  EXTERN_GEOMETRY_LX int *glblx_of_bordlx;
-  EXTERN_GEOMETRY_LX int *loclx_of_bordlx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflx_of_bordlx;
-  EXTERN_GEOMETRY_LX int *glblx_of_edgelx;
-  EXTERN_GEOMETRY_LX int *loclx_of_bulklx;
-  EXTERN_GEOMETRY_LX int *loclx_of_surflx;
-  EXTERN_GEOMETRY_LX int *loclx_of_non_bw_surflx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclx_of_non_fw_surflx;
-  EXTERN_GEOMETRY_LX int *loclx_of_bw_surflx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclx_of_fw_surflx;
-  EXTERN_GEOMETRY_LX int lx_geom_inited;
   //box, division in 2^NDIM of the lattice
   EXTERN_GEOMETRY_LX coords box_coord[1<<NDIM];
   EXTERN_GEOMETRY_LX coords box_size[1<<NDIM];
   CUDA_MANAGED EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *glbCoordOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *locCoordOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblxOfLoclx;
+  EXTERN_GEOMETRY_LX int *glblxOfBordlx;
+  EXTERN_GEOMETRY_LX int *loclxOfBordlx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfBordlx;
+  EXTERN_GEOMETRY_LX int *glblxOfEdgelx;
+  EXTERN_GEOMETRY_LX int *loclxOfBulklx;
+  EXTERN_GEOMETRY_LX int *loclxOfSurflx;
+  EXTERN_GEOMETRY_LX int *loclxOfNonBwSurflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclxOfNonFwSurflx;
+  EXTERN_GEOMETRY_LX int *loclxOfBwSurflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclxOfFwSurflx;
+  EXTERN_GEOMETRY_LX int lxGeomInited;
   //neighbours of local volume + borders
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *loclx_neighdw,*loclx_neighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *loclxNeighdw,*loclxNeighup;
   EXTERN_GEOMETRY_LX coords *loclx_neigh[2];
   //ranks
   EXTERN_GEOMETRY_LX coords fix_nranks;
@@ -144,7 +142,7 @@ namespace nissa
   
   //get mirrorized coord
   inline int get_mirrorized_site_coord(int c,int mu,bool flip)
-  {return (glb_size[mu]+(1-2*flip)*c)%glb_size[mu];}
+  {return (glbSize[mu]+(1-2*flip)*c)%glbSize[mu];}
   
   //get mirrorized coords according to a bit decomposition of imir
   inline void get_mirrorized_site_coords(coords cmir,coords c,int imir)

@@ -24,7 +24,7 @@ namespace nissa
     
     if(in==out) crash("in==out!");
     
-    NISSA_PARALLEL_LOOP(X,0,loc_volh)
+    NISSA_PARALLEL_LOOP(X,0,locVolh)
       {
 	 apply_point_twisted_clover_term_to_halfspincolor_128(&(out[X][0*NDIRAC/2]),+mu,kappa,&(Cl[X][0*NDIRAC/2]),&(in[X][0*NDIRAC/2]));
 	 apply_point_twisted_clover_term_to_halfspincolor_128(&(out[X][1*NDIRAC/2]),-mu,kappa,&(Cl[X][1*NDIRAC/2]),&(in[X][1*NDIRAC/2]));
@@ -43,7 +43,7 @@ namespace nissa
     int high=0,low=1;
     if(dag) std::swap(low,high);
     
-    NISSA_PARALLEL_LOOP(X,0,loc_volh)
+    NISSA_PARALLEL_LOOP(X,0,locVolh)
       {
 	typedef halfspincolor_128 hs;
     	unsafe_halfspincolor_halfspincolor_times_halfspincolor_128 (((hs*)(out[X]))[high],invCl[X][high],((hs*)(in[X]))[high]);

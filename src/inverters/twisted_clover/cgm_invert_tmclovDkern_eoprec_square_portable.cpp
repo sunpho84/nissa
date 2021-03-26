@@ -15,14 +15,14 @@ namespace nissa
     tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl_odd,invCl_evn,mu,in);
     
     if(diag_coeff!=0)
-      double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,diag_coeff,sizeof(spincolor)/sizeof(double)*loc_volh);
+      double_vector_summassign_double_vector_prod_double((double*)out,(double*)in,diag_coeff,sizeof(spincolor)/sizeof(double)*locVolh);
   }
 }
 
 
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
-#define BULK_VOL loc_volh
+#define BULK_VOL locVolh
 #define BORD_VOL bord_volh
 
 #define APPLY_OPERATOR apply_tmclovDkern_cgm_kernel

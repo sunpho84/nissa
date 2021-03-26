@@ -109,7 +109,7 @@ namespace nissa
     double arg=0;
     for(int mu=1;mu<NDIM;mu++)
       {
-	double step=bc[mu]*M_PI/glb_size[mu];
+	double step=bc[mu]*M_PI/glbSize[mu];
 	arg+=step*rel_coord_of_loclx(ivol,mu);
       }
     return arg;
@@ -121,7 +121,7 @@ namespace nissa
     //compute space and time factor
     double arg=get_space_arg(ivol,le.bc);
     int t=rel_time_of_loclx(ivol);
-    if(follow_chris_or_nazario==follow_nazario and t>=glb_size[0]/2) t=glb_size[0]-t;
+    if(follow_chris_or_nazario==follow_nazario and t>=glbSize[0]/2) t=glbSize[0]-t;
     double ext=exp(t*lep_energy[ilepton]);
     
     //compute full exponential (notice the factor -1)
@@ -135,7 +135,7 @@ namespace nissa
     //compute space and time factor
     double arg=get_space_arg(ivol,bc);
     int t=rel_time_of_loclx(ivol);
-    if(follow_chris_or_nazario==follow_nazario and t>=glb_size[0]/2) t=glb_size[0]-t;
+    if(follow_chris_or_nazario==follow_nazario and t>=glbSize[0]/2) t=glbSize[0]-t;
     double ext=exp(t*neu_energy[ilepton]);
     
     //compute full exponential (notice the factor +1)
@@ -148,7 +148,7 @@ namespace nissa
   {
     
     vector_reset(prop);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	complex ph;
 	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
@@ -181,7 +181,7 @@ namespace nissa
 	//(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
 	for(int mu=0;mu<NDIM;mu++)
 	  if(dirs[mu])
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
 		{
 		  //phases
@@ -190,14 +190,14 @@ namespace nissa
 		  phase[1]=sin(le.bc[mu]*M_PI);
 		  
 		  //find neighbors
-		  int ifw=loclx_neighup[ivol][mu];
-		  int ibw=loclx_neighdw[ivol][mu];
+		  int ifw=loclxNeighup[ivol][mu];
+		  int ibw=loclxNeighdw[ivol][mu];
 		  
 		  //compute phase factor
 		  spinspin ph_bw,ph_fw;
 		  
 		  //transport down and up
-		  if(rel_coord_of_loclx(ivol,mu)==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phase);
+		  if(rel_coord_of_loclx(ivol,mu)==glbSize[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phase);
 		  else spinspin_copy(ph_fw,temp_lep[ifw]);
 		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phase);
 		  else spinspin_copy(ph_bw,temp_lep[ibw]);
@@ -232,7 +232,7 @@ namespace nissa
       {
 	for(int mu=0;mu<NDIM;mu++)
 	  if(dirs[mu])
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
 		{
 		  spinspin temp1,temp2;
@@ -331,7 +331,7 @@ namespace nissa
   void attach_leptonic_contr(spinspin* hadr,int iprop,int ilepton,int orie,int rl,int ext_ind)
   {
     
-    complex *loc_contr=nissa_malloc("loc_contr",glb_size[0],complex);
+    complex *loc_contr=nissa_malloc("loc_contr",glbSize[0],complex);
     vector_reset(loc_contr);
     
     //get the lepton info and prop
@@ -370,12 +370,12 @@ namespace nissa
     for(int ins=0;ins<nmeslep_weak_ins;ins++)
       {
 	//define a local storage
-	spinspin mesolep_loc_contr[loc_size[0]];
-	for(int i=0;i<loc_size[0];i++) spinspin_put_to_zero(mesolep_loc_contr[i]);
+	spinspin mesolep_loc_contr[locSize[0]];
+	for(int i=0;i<locSize[0];i++) spinspin_put_to_zero(mesolep_loc_contr[i]);
 	
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
-	    int t=loc_coord_of_loclx[ivol][0];
+	    int t=locCoordOfLoclx[ivol][0];
 	    
 	    //multiply lepton side on the right (source) side
 	    spinspin la;
@@ -403,10 +403,10 @@ namespace nissa
 	
 	//save projection on LO
 	for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
-	  NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
+	  NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])
 	    {
-	      int glb_t=loc_t+rank_coord[0]*loc_size[0];
-	      int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
+	      int glb_t=loc_t+rank_coord[0]*locSize[0];
+	      int ilnp=(glb_t>=glbSize[0]/2); //select the lepton/neutrino projector
 	      
 	      spinspin td;
 	      crash("#warning unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);");
@@ -416,8 +416,8 @@ namespace nissa
 	      trace_spinspin_with_dirac(mesolep,dtd,meslep_proj_gamma+ig_proj);
 	      
 	      //summ the average
-	      int i=glb_t+glb_size[0]*(ig_proj+nmeslep_proj*(list_weak_ind_contr[ins]+nindep_meslep_weak*ext_ind));
-	      complex_summ_the_prod_double(meslep_contr[i],mesolep,1.0/glb_spat_vol); //here to remove the statistical average on xw
+	      int i=glb_t+glbSize[0]*(ig_proj+nmeslep_proj*(list_weak_ind_contr[ins]+nindep_meslep_weak*ext_ind));
+	      complex_summ_the_prod_double(meslep_contr[i],mesolep,1.0/glbSpatVol); //here to remove the statistical average on xw
 	    }
 	NISSA_PARALLEL_LOOP_END;
 	if(IS_MASTER_THREAD) nmeslep_contr_made+=nmeslep_proj;

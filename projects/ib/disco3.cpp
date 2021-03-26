@@ -25,7 +25,7 @@ namespace mel
   void local_mel(double* out,spincolor* source,int igamma,spincolor* prop)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	spincolor t;
 	unsafe_dirac_prod_spincolor(t,base_gamma+igamma,prop[ivol]);
@@ -34,7 +34,7 @@ namespace mel
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    complex_vector_glb_collapse(out,buffer,loc_vol);
+    complex_vector_glb_collapse(out,buffer,locVol);
   }
   
   //compute the matrix element of the conserved current between two propagators. If asking to revert, g5 is inserted between the two propagators
@@ -52,10 +52,10 @@ namespace mel
     communicate_lx_spincolor_borders(prop);
     communicate_lx_quad_su3_borders(conf);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	{
-	  int ivol_fw=loclx_neighup[ivol][mu];
+	  int ivol_fw=loclxNeighup[ivol][mu];
 	  spincolor f,Gf;
 	  complex c;
 	  
@@ -81,7 +81,7 @@ namespace mel
   void global_product(double* out,spin1field* a,spin1field* b)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	complex_put_to_zero(buffer[ivol]);
 	for(int mu=0;mu<NDIM;mu++)
@@ -90,7 +90,7 @@ namespace mel
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    complex_vector_glb_collapse(out,buffer,loc_vol);
+    complex_vector_glb_collapse(out,buffer,locVol);
   }
 }
 
@@ -218,7 +218,7 @@ void compute_propagators(spincolor** phi,spincolor* eta,int nm,quad_su3* conf,do
 {
   
   //source and solution for the solver
-  spincolor *source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
+  spincolor *source=nissa_malloc("source",locVol+bord_vol,spincolor);
   
   //prepare the source
   vector_copy(source,eta);
@@ -463,15 +463,15 @@ void in_main(int narg,char **arg)
   if(not is_power_of_2(nhits_to_do)) crash("NHits must be a pwer of 2, is %d",nhits_to_do);
   
   //allocate the source and prop
-  spincolor *eta=nissa_malloc("eta",loc_vol+bord_vol,spincolor);
+  spincolor *eta=nissa_malloc("eta",locVol+bord_vol,spincolor);
   spincolor *phi[nm];
   for(int im=0;im<nm;im++)
-    phi[im]=nissa_malloc("phi",loc_vol+bord_vol,spincolor);
+    phi[im]=nissa_malloc("phi",locVol+bord_vol,spincolor);
   
-  spincolor *sum_eta=nissa_malloc("sum_eta",loc_vol+bord_vol,spincolor);
+  spincolor *sum_eta=nissa_malloc("sum_eta",locVol+bord_vol,spincolor);
   spincolor *sum_phi[nm];
   for(int im=0;im<nm;im++)
-    sum_phi[im]=nissa_malloc("sum_phi",loc_vol+bord_vol,spincolor);
+    sum_phi[im]=nissa_malloc("sum_phi",locVol+bord_vol,spincolor);
   
   //compute the tadpole coefficient
   momentum_t tadpole_coeff;
@@ -486,23 +486,23 @@ void in_main(int narg,char **arg)
   //conf
   int nconfs,nanalyzed_confs=0;
   read_str_int("NGaugeConfs",&nconfs);
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
   
   //currents
   spin1field *J_stoch[nm];
   spin1field *J_stoch_sum[nm];
   for(int im=0;im<nm;im++)
     {
-      J_stoch[im]=nissa_malloc("J_stoch",loc_vol+bord_vol,spin1field);
-      J_stoch_sum[im]=nissa_malloc("J_stoch_sum",loc_vol+bord_vol,spin1field);
+      J_stoch[im]=nissa_malloc("J_stoch",locVol+bord_vol,spin1field);
+      J_stoch_sum[im]=nissa_malloc("J_stoch_sum",locVol+bord_vol,spin1field);
     }
-  spin1field *xi=nissa_malloc("xi",loc_vol+bord_vol,spin1field);
+  spin1field *xi=nissa_malloc("xi",locVol+bord_vol,spin1field);
   
   //buffer for local matrix element
-  mel::buffer=nissa_malloc("loc_mel::buffer",loc_vol,complex);
+  mel::buffer=nissa_malloc("loc_mel::buffer",locVol,complex);
   
   //propagator used for tadpole
-  spincolor *tadpole_prop=nissa_malloc("tadpole_prop",loc_vol+bord_vol,spincolor);
+  spincolor *tadpole_prop=nissa_malloc("tadpole_prop",locVol+bord_vol,spincolor);
   
   /////////////////////////////////////////////////////////////////
   
@@ -547,7 +547,7 @@ void in_main(int narg,char **arg)
 	  generate_undiluted_source(eta,RND_GAUSS,ALL_TIMES);
 	  
 	  //summ it to the total
-	  double_vector_summassign((double*)sum_eta,(double*)eta,loc_vol*sizeof(spincolor)/sizeof(double));
+	  double_vector_summassign((double*)sum_eta,(double*)eta,locVol*sizeof(spincolor)/sizeof(double));
 	  
 	  /////////////////////////////////////////////////////////////////
 	  
@@ -557,11 +557,11 @@ void in_main(int narg,char **arg)
 	  for(int im=0;im<nm;im++)
 	    {
 	      //summ phi
-	      double_vector_summassign((double*)(sum_phi[im]),(double*)(phi[im]),loc_vol*sizeof(spincolor)/sizeof(double));
+	      double_vector_summassign((double*)(sum_phi[im]),(double*)(phi[im]),locVol*sizeof(spincolor)/sizeof(double));
 	      
 	      //compute all currents
 	      mel::conserved_vector_current_mel(J_stoch[im],eta,conf,r,phi[im]);
-	      double_vector_summassign((double*)(J_stoch_sum[im]),(double*)(J_stoch[im]),loc_vol*sizeof(spin1field)/sizeof(double));
+	      double_vector_summassign((double*)(J_stoch_sum[im]),(double*)(J_stoch[im]),locVol*sizeof(spin1field)/sizeof(double));
 	      
 	      complex temp;
 	      
@@ -597,7 +597,7 @@ void in_main(int narg,char **arg)
 	  if(is_power_of_2(ihit))
 	    for(int im=0;im<nm;im++)
 	      {
-		double_vector_prod_double((double*)xi,(double*)(J_stoch_sum[im]),1.0/ihit,sizeof(spin1field)*loc_vol/sizeof(double));
+		double_vector_prod_double((double*)xi,(double*)(J_stoch_sum[im]),1.0/ihit,sizeof(spin1field)*locVol/sizeof(double));
 		const std::string path=combine("%s/J_stoch_m%d_nhits%d",outfolder,im,ihit);
 		write_real_vector(path,xi,64,"Current");
 	      }

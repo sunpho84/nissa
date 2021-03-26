@@ -64,16 +64,16 @@ namespace nissa
 	}
     
     /// Local storage
-    complex *loc_contr=get_reducing_buffer<complex>(loc_vol*nIdg0*nWicks);
+    complex *loc_contr=get_reducing_buffer<complex>(locVol*nIdg0*nWicks);
     vector_reset(loc_contr);
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	/// Distance from source
-	const int dt=(glb_coord_of_loclx[ivol][0]-source_coord+glb_size[0])%glb_size[0];
+	const int dt=(glbCoordOfLoclx[ivol][0]-source_coord+glbSize[0])%glbSize[0];
 	
 	/// Determine whether we are in the first half
-	const bool first_half=(dt<=glb_size[0]/2);
+	const bool first_half=(dt<=glbSize[0]/2);
 	
 	//Compute the projector, gi*gj*(1 or g0)
 	dirac_matr proj[nIdg0];
@@ -139,15 +139,15 @@ namespace nissa
 			}
 		    
 		    /// Local time
-		    const int loc_t=loc_coord_of_loclx[ivol][0];
+		    const int loc_t=locCoordOfLoclx[ivol][0];
 		    
 		    /// Local spatial id
-		    const int loc_ispat=ivol%loc_spat_vol;
+		    const int loc_ispat=ivol%locSpatVol;
 		    
 		    for(int iWick=0;iWick<nWicks;iWick++)
 		      {
 			/// Index in the local elements: we put space most internally, and local time most externally
-			const int iloc=loc_ispat+loc_spat_vol*(iWick+nWicks*loc_t);
+			const int iloc=loc_ispat+locSpatVol*(iWick+nWicks*loc_t);
 			
 			complex term;
 			unsafe_complex_prod(term,AC_proj[iWick],fact[al_si][al_so]);
@@ -160,32 +160,32 @@ namespace nissa
     THREAD_BARRIER();
     
     /// Number of local elements
-    const int nloc=nWicks*loc_vol;
+    const int nloc=nWicks*locVol;
     
     /// Number of slices to be taken
-    const int nslices=nWicks*glb_size[0];
+    const int nslices=nWicks*glbSize[0];
     
     /// Number of local slices referring to the elements
-    const int nloc_slices=nWicks*loc_size[0];
+    const int nloc_slices=nWicks*locSize[0];
     
     /// Offset of each local slice w.r.t. globals
-    const int loc_offset=nWicks*glb_coord_of_loclx[0][0];
+    const int loc_offset=nWicks*glbCoordOfLoclx[0][0];
     
-    complex unshifted_glb_contr[glb_size[0]*nWicks];
+    complex unshifted_glb_contr[glbSize[0]*nWicks];
     glb_reduce(unshifted_glb_contr,loc_contr,nloc,nslices,nloc_slices,loc_offset);
     
-    for(int glb_t=0;glb_t<glb_size[0];glb_t++)
+    for(int glb_t=0;glb_t<glbSize[0];glb_t++)
       for(int iWick=0;iWick<nWicks;iWick++)
 	{
 	  /// Distance from source
 	  const int dt=
-	    (glb_t-source_coord+glb_size[0])%glb_size[0];
+	    (glb_t-source_coord+glbSize[0])%glbSize[0];
 	  
 	  /// Input index
 	  const int iin=iWick+nWicks*glb_t;
 	  
 	  /// Argument of the phase
-	  const double arg=3*temporal_bc*M_PI*dt/glb_size[0];
+	  const double arg=3*temporal_bc*M_PI*dt/glbSize[0];
 	  
 	  /// Phase
 	  const complex phase={cos(arg),sin(arg)};
@@ -201,10 +201,10 @@ namespace nissa
 				  const double& temporal_bc)
   {
     /// Uncombined contraction, with the two Wick contractions separately
-    complex contr_per_Wick[glb_size[0]*2];
+    complex contr_per_Wick[glbSize[0]*2];
     compute_baryon_2pts_proj_contr(contr_per_Wick,5,5,Ql,Qd,Ql,source_coord,temporal_bc);
     
-    for(int t=0;t<glb_size[0];t++)
+    for(int t=0;t<glbSize[0];t++)
       complex_subt(contr[t],contr_per_Wick[0+2*t],contr_per_Wick[1+2*t]);
   }
 }

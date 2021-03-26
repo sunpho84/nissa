@@ -23,7 +23,7 @@ namespace nissa
   void gluonic_force_finish_computation(quad_su3* F,quad_su3* conf)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  su3 temp;
@@ -127,8 +127,8 @@ namespace nissa
     if(VERBOSITY_LV2)
       {
 	double norm=0;
-	norm+=double_vector_glb_norm2(F,loc_vol);
-	master_printf("  Gluonic force average norm: %lg\n",sqrt(norm/glb_vol));
+	norm+=double_vector_glb_norm2(F,locVol);
+	master_printf("  Gluonic force average norm: %lg\n",sqrt(norm/glbVol));
       }
     
     STOP_TIMING(gluon_force_time);

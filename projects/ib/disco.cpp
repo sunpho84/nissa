@@ -379,7 +379,7 @@ struct FieldRngOf
   RngView getRngViewOnGlbSiteIRndReal(const int& glblx,const int& irnd_real_per_site)
   {
     //Computes the number in the stream of reals
-    const uint64_t irnd_double=offsetReal+glblx+glb_vol*irnd_real_per_site;
+    const uint64_t irnd_double=offsetReal+glblx+glbVol*irnd_real_per_site;
     
     //Computes the offset in the rng stream
     const uint64_t irnd_uint32_t=2*irnd_double;
@@ -419,10 +419,10 @@ struct FieldRngOf
   {
     enforce_single_usage();
     
-    NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
+    NISSA_PARALLEL_LOOP(loclx,0,locVol)
       {
 	//Finds the global site of local one
-	const int& glblx=glblx_of_loclx[loclx];
+	const int& glblx=glblxOfLoclx[loclx];
 	_fillSite((double*)(out+loclx),glblx);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -545,29 +545,29 @@ void init_simulation(int narg,char **arg)
   
   read_str_int("NGaugeConf",&ngauge_conf);
   
-  glb_conf=nissa_malloc("glb_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  glb_conf=nissa_malloc("glb_conf",locVol+bord_vol+edge_vol,quad_su3);
   if(useSme)
-    ape_conf=nissa_malloc("ape_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+    ape_conf=nissa_malloc("ape_conf",locVol+bord_vol+edge_vol,quad_su3);
   
   if(cSW!=0.0)
     {
-      Cl=nissa_malloc("Cl",loc_vol,clover_term_t);
-      invCl=nissa_malloc("invCl",loc_vol,inv_clover_term_t);
+      Cl=nissa_malloc("Cl",locVol,clover_term_t);
+      invCl=nissa_malloc("invCl",locVol,inv_clover_term_t);
     }
   
-  source_ptr=nissa_malloc("source_ptr",glb_size[0],spincolor*);
-  for(int t=0;t<glb_size[0];t++)
-    source(t)=nissa_malloc("source",loc_vol+bord_vol,spincolor);
+  source_ptr=nissa_malloc("source_ptr",glbSize[0],spincolor*);
+  for(int t=0;t<glbSize[0];t++)
+    source(t)=nissa_malloc("source",locVol+bord_vol,spincolor);
   
-  temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+  temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
   
-  loc_contr=nissa_malloc("loc_contr",loc_vol,complex);
-  temp_contr=nissa_malloc("temp_contr",glb_size[0],complex);
+  loc_contr=nissa_malloc("loc_contr",locVol,complex);
+  temp_contr=nissa_malloc("temp_contr",glbSize[0],complex);
   
-  prop_ptr=nissa_malloc("prop_ptr",2*glb_size[0],spincolor*);
-  for(int t=0;t<glb_size[0];t++)
+  prop_ptr=nissa_malloc("prop_ptr",2*glbSize[0],spincolor*);
+  for(int t=0;t<glbSize[0];t++)
     for(int r=0;r<2;r++)
-      prop(t,r)=nissa_malloc("prop",loc_vol+bord_vol,spincolor);
+      prop(t,r)=nissa_malloc("prop",locVol+bord_vol,spincolor);
   
   field_rng_stream.init(seed);
   
@@ -604,11 +604,11 @@ void close()
   if(useSme)
     nissa_free(ape_conf);
   
-  for(int t=0;t<glb_size[0];t++)
+  for(int t=0;t<glbSize[0];t++)
     for(int r=0;r<2;r++)
       nissa_free(prop(t,r));
   nissa_free(prop_ptr);
-  for(int t=0;t<glb_size[0];t++)
+  for(int t=0;t<glbSize[0];t++)
     nissa_free(source(t));
   nissa_free(source_ptr);
   nissa_free(temp);
@@ -733,9 +733,9 @@ void skipConf()
   iconf++;
   
   if(useNewGenerator)
-    field_rng_stream.skipDrawers<spincolor>(nhits*glb_size[0]);
+    field_rng_stream.skipDrawers<spincolor>(nhits*glbSize[0]);
   else
-    for(int i=0;i<nhits*glb_size[0];i++)
+    for(int i=0;i<nhits*glbSize[0];i++)
       generate_undiluted_source(source(0),RND_Z4,0);
 }
 
@@ -785,9 +785,9 @@ void fill_source(const int glbT)
   auto source_filler=field_rng_stream.getDrawer<spincolor>();
   source_filler.fillField(source(glbT));
   
-  NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
+  NISSA_PARALLEL_LOOP(loclx,0,locVol)
     {
-      if(glbT==glb_coord_of_loclx[loclx][0])
+      if(glbT==glbCoordOfLoclx[loclx][0])
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
 	    z4Transform(source(glbT)[loclx][id][ic]);//BoxMullerTransform(source[loclx][id][ic]);
@@ -820,7 +820,7 @@ void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,dirac_matr* g
 {
   vector_reset(loc_contr);
   
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     {
       spincolor gs;
       unsafe_dirac_prod_spincolor(gs,gamma,prop(glbT,r2)[ivol]);
@@ -828,26 +828,26 @@ void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,dirac_matr* g
     }
   NISSA_PARALLEL_LOOP_END;
   
-  complex glb_contr[glb_size[0]];
-  glb_reduce(glb_contr,loc_contr,loc_vol,glb_size[0],loc_size[0],glb_coord_of_loclx[0][0]);
+  complex glb_contr[glbSize[0]];
+  glb_reduce(glb_contr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
   
-  for(int t=0;t<glb_size[0];t++)
+  for(int t=0;t<glbSize[0];t++)
     {
-      const int dt=(t+glb_size[0]-glbT)%glb_size[0];
+      const int dt=(t+glbSize[0]-glbT)%glbSize[0];
       complex_copy(conn_contr[dt],glb_contr[t]);
     }
 }
 
 void compute_inserted_contr(double* contr,spincolor* propBw,spincolor* propFw,dirac_matr* gamma)
 {
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,locVol)
     {
       unsafe_dirac_prod_spincolor(temp[ivol],gamma,propFw[ivol]);
     }
   NISSA_PARALLEL_LOOP_END;
   set_borders_invalid(temp);
   
-  complex_vector_glb_scalar_prod(contr,(complex*)propBw,(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
+  complex_vector_glb_scalar_prod(contr,(complex*)propBw,(complex*)temp,locVol*sizeof(spincolor)/sizeof(complex));
 }
 
 void analyzeConf()
@@ -868,7 +868,7 @@ void analyzeConf()
       prepare_time-=take_time();
       
       //Fill sources
-      for(int glbT=0;glbT<glb_size[0];glbT++)
+      for(int glbT=0;glbT<glbSize[0];glbT++)
 	{
 	  // Fill the source
 	  if(useNewGenerator)
@@ -883,19 +883,19 @@ void analyzeConf()
       
       //Compute props
       prop_time-=take_time();
-      for(int glbT=0;glbT<glb_size[0];glbT++)
+      for(int glbT=0;glbT<glbSize[0];glbT++)
 	for(int r=0;r<2;r++)
 	  get_prop(glbT,r);
       prop_time+=take_time();
       
       //Compute disco
       disco_time-=take_time();
-      complex disco_contr[2][glb_size[0]];
+      complex disco_contr[2][glbSize[0]];
       for(int r=0;r<2;r++)
-	for(int glbT=0;glbT<glb_size[0];glbT++)
+	for(int glbT=0;glbT<glbSize[0];glbT++)
 	  {
 	    prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
-	    complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,loc_vol*sizeof(spincolor)/sizeof(complex));
+	    complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,locVol*sizeof(spincolor)/sizeof(complex));
 	  }
       disco_time+=take_time();
       
@@ -903,21 +903,21 @@ void analyzeConf()
       for(int r=0;r<2;r++)
 	{
 	  master_fprintf(disco_contr_file,"\n# hit %d , r %d\n\n",ihit,r);
-	  for(int t=0;t<glb_size[0];t++)
+	  for(int t=0;t<glbSize[0];t++)
 	    master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][t][RE],disco_contr[r][t][IM]);
 	}
       
       //Compute S0P5
       S0P5_time-=take_time();
-      complex S0P5_contr[2][2][glb_size[0]];
+      complex S0P5_contr[2][2][glbSize[0]];
       for(int r1=0;r1<2;r1++)
 	for(int r2=0;r2<2;r2++)
-	  for(int glbT=0;glbT<glb_size[0];glbT++)
+	  for(int glbT=0;glbT<glbSize[0];glbT++)
 	    {
 	      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
 	      
 	      complex_put_to_zero(S0P5_contr[r1][r2][glbT]);
-	      for(int t=0;t<glb_size[0];t++)
+	      for(int t=0;t<glbSize[0];t++)
 		complex_summassign(S0P5_contr[r1][r2][glbT],temp_contr[t]);
 	    }
       S0P5_time+=take_time();
@@ -927,20 +927,20 @@ void analyzeConf()
 	for(int r2=0;r2<2;r2++)
 	  {
 	    master_fprintf(S0P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-	    for(int t=0;t<glb_size[0];t++)
+	    for(int t=0;t<glbSize[0];t++)
 	      master_fprintf(S0P5_contr_file,"%.16lg %.16lg\n",S0P5_contr[r1][r2][t][RE],S0P5_contr[r1][r2][t][IM]);
 	  }
       
       //Compute P5P5_SS and 0S
       P5P5_with_ins_time-=take_time();
-      complex P5P5_SS_contr[2][2][2][2][glb_size[0]];
-      memset(P5P5_SS_contr,0,sizeof(complex)*2*2*2*2*glb_size[0]);
-      complex P5P5_0S_contr[2][2][2][glb_size[0]];
-      memset(P5P5_0S_contr,0,sizeof(complex)*2*2*2*glb_size[0]);
-      for(int dT=0;dT<glb_size[0];dT++)
-	for(int glbT1=0;glbT1<glb_size[0];glbT1++)
+      complex P5P5_SS_contr[2][2][2][2][glbSize[0]];
+      memset(P5P5_SS_contr,0,sizeof(complex)*2*2*2*2*glbSize[0]);
+      complex P5P5_0S_contr[2][2][2][glbSize[0]];
+      memset(P5P5_0S_contr,0,sizeof(complex)*2*2*2*glbSize[0]);
+      for(int dT=0;dT<glbSize[0];dT++)
+	for(int glbT1=0;glbT1<glbSize[0];glbT1++)
 	  {
-	    int glbT2=(glbT1+dT)%glb_size[0];
+	    int glbT2=(glbT1+dT)%glbSize[0];
 	    complex c[2][2];
 	    for(int r1=0;r1<2;r1++)
 	      for(int r2=0;r2<2;r2++)
@@ -972,10 +972,10 @@ void analyzeConf()
 	    for(int r2f=0;r2f<2;r2f++)
 	      {
 		master_fprintf(P5P5_SS_contr_file,"\n# hit %d , r1b %d , r2b %d , r1f %d , r2f %d\n\n",ihit,r1b,r2b,r1f,r2f);
-		for(int t=0;t<glb_size[0];t++)
+		for(int t=0;t<glbSize[0];t++)
 		  master_fprintf(P5P5_SS_contr_file,"%.16lg %.16lg\n",
-				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][RE]/glb_size[0],
-				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][IM]/glb_size[0]);
+				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][RE]/glbSize[0],
+				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][IM]/glbSize[0]);
 	      }
       
       //Print P5P5_0S
@@ -984,10 +984,10 @@ void analyzeConf()
 	  for(int r2f=0;r2f<2;r2f++)
 	    {
 	      master_fprintf(P5P5_0S_contr_file,"\n# hit %d , rb %d , r1f %d , r2f %d\n\n",ihit,rb,r1f,r2f);
-	      for(int t=0;t<glb_size[0];t++)
+	      for(int t=0;t<glbSize[0];t++)
 		master_fprintf(P5P5_0S_contr_file,"%.16lg %.16lg\n",
-			       P5P5_0S_contr[rb][r1f][r2f][t][RE]/glb_size[0],
-			       P5P5_0S_contr[rb][r1f][r2f][t][IM]/glb_size[0]);
+			       P5P5_0S_contr[rb][r1f][r2f][t][RE]/glbSize[0],
+			       P5P5_0S_contr[rb][r1f][r2f][t][IM]/glbSize[0]);
 	    }
       
       P5P5_with_ins_time+=take_time();
@@ -998,19 +998,19 @@ void analyzeConf()
 	{
 	  if(withoutWithSme)
 	    for(int r1=0;r1<2;r1++)
-	      for(int glbT=0;glbT<glb_size[0];glbT++)
+	      for(int glbT=0;glbT<glbSize[0];glbT++)
 		gaussian_smearing(prop(glbT,r1),prop(glbT,r1),ape_conf,kappaSme,nSme);
 	  
 	  for(int r1=0;r1<2;r1++)
 	    for(int r2=0;r2<2;r2++)
-	      for(int glbT=0;glbT<glb_size[0];glbT++)
+	      for(int glbT=0;glbT<glbSize[0];glbT++)
 		{
 		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
 		  
 		  FILE* outFile=withoutWithSme?P5P5_contr_sme_file:P5P5_contr_file;
 		  
 		  master_fprintf(outFile,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-		  for(int t=0;t<glb_size[0];t++)
+		  for(int t=0;t<glbSize[0];t++)
 		    master_fprintf(outFile,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
 		}
 	}
