@@ -89,10 +89,10 @@ namespace nissa
 	    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
 	      for(int co_so=0;co_so<NCOL;co_so++)
 		for(int co_si=0;co_si<NCOL;co_si++)
-		  {
-		    master_printf("Copying: ivol=%d co_si=%d co_so=%d sp_si=%d sp_so=%d \n",ivol,co_si,co_so,sp_si,sp_so);
+		  // {
+		  //   master_printf("Copying: ivol=%d co_si=%d co_so=%d sp_si=%d sp_so=%d \n",ivol,co_si,co_so,sp_si,sp_so);
 		    complex_copy(p[i][co_si][co_so][sp_si][sp_so],Q[i][co_so+NCOL*sp_so][ivol][sp_si][co_si]);
-		  }
+		  // }
 	
 	//Color source
 	for(int b_so=0;b_so<NCOL;b_so++)
