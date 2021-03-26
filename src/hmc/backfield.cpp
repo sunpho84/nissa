@@ -157,15 +157,17 @@ namespace nissa
   //     }
   // }
   
-  //add the antiperiodic condition on the on dir mu
-  void add_antiperiodic_condition_to_backfield(eo_ptr<quad_u1> S,int mu)
+  // Add the antiperiodic condition on the on dir mu
+  void add_antiperiodic_condition_to_backfield(eo_ptr<quad_u1>& S,const int& mu)
   {
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol_eo,0,locVolh)
 	  {
-	    if(glbCoordOfLoclx[loclx_of_loceo[par][ivol_eo]][mu]==(glbSize[mu]-1))
-	      complex_prodassign_double(S[par][ivol_eo][mu],-1);
+	    const double arg=-1.0*M_PI/glbSize[mu];
+	    const complex c={cos(arg),sin(arg)};
+	    
+	    complex_prodassign(S[par][ivol_eo][mu],c);
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	
