@@ -3,7 +3,6 @@
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/complex.cpp \
 	%D%/dirac.cpp \
-	%D%/dsfmt.cpp \
 	%D%/float_128.cpp \
 	%D%/float_256.cpp \
 	%D%/metadynamics.cpp \
@@ -16,7 +15,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 include_HEADERS+= \
 	%D%/complex.hpp \
 	%D%/dirac.hpp \
-	%D%/dsfmt.hpp \
 	%D%/float_128.hpp \
 	%D%/float_256.hpp \
 	%D%/high_prec.hpp \

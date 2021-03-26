@@ -115,7 +115,6 @@
 #include "linalgs/linalgs.hpp"
 #include "linalgs/reduce.hpp"
 
-#include "measures/contract/baryon.hpp"
 #include "measures/contract/optimized_mesons_2pts.hpp"
 
 #include "measures/fermions/magnetization.hpp"
@@ -128,6 +127,7 @@
 #include "measures/fermions/spectral_projectors.hpp"
 #include "measures/fermions/spinpol.hpp"
 #include "measures/fermions/stag.hpp"
+#include "measures/fermions/tm_corr_op.hpp"
 #include "measures/fermions/tm_tuning.hpp"
 #include "measures/fermions/zumba.hpp"
 
@@ -138,7 +138,6 @@
 
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
-#include "new_types/dsfmt.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/float_256.hpp"
 #include "new_types/high_prec.hpp"

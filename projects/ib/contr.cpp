@@ -283,7 +283,7 @@ namespace nissa
 	    const int igSi=iProjGroup[1];
 	    
 	    complex contr[glb_size[0]*nWicks];
-	    compute_baryon_2pts_proj_contr(contr,igSo,igSi,Q1.sp,Q2.sp,Q3.sp,source_coord[0],temporal_bc);
+	    tm_corr_op::compute_baryon_2pts_proj_contr(contr,igSo,igSi,Q1.sp,Q2.sp,Q3.sp,source_coord[0],temporal_bc);
 	    
 	    for(int dt=0;dt<glb_size[0];dt++)
 	      for(int iWick=0;iWick<nWicks;iWick++)

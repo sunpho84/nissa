@@ -7,8 +7,6 @@
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
 
-#include "measures/contract/baryon.hpp"
-
 namespace nissa
 {
   /// Compute G*gammaX

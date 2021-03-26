@@ -1,8 +1,9 @@
 ####################################### measures ##################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/contract/baryon.cpp \
 	%D%/contract/optimized_mesons_2pts.cpp \
+	%D%/contract/tm_meson_2pts.cpp \
+	%D%/contract/tm_baryon.cpp \
 	%D%/fermions/mesons.cpp \
 	%D%/fermions/magnetization.cpp \
 	%D%/fermions/minmax_eigenvalues.cpp \
@@ -22,7 +23,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gauge/watusso.cpp
 
 include_HEADERS+= \
-	%D%/contract/baryon.hpp \
 	%D%/contract/optimized_mesons_2pts.hpp \
 	%D%/fermions/fermionic_meas.hpp \
 	%D%/fermions/mesons.hpp \
