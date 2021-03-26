@@ -57,13 +57,10 @@ namespace nissa
 		    /// Which rank hosts the source
 		    int whichRank;
 		    
-		    /// Local coordinates
-		    coords locSourceCoords;
+		    /// Local site
+		    int locSourcePos;
 		    
-		    get_loclx_and_rank_of_coord(locSourceCoords,&whichRank,glbSourceCoords);
-		    
-		    /// Local source position
-		    const int locSourcePos=loclx_of_coord(locSourceCoords);
+		    get_loclx_and_rank_of_coord(&locSourcePos,&whichRank,glbSourceCoords);
 		    
 		    if(rank==whichRank)
 		      source[locSourcePos][idirac][icol][RE]=1;
