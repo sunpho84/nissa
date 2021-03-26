@@ -159,6 +159,8 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
+    master_printf("DEBUG finished filling\n");
+    
     /// Number of local elements
     const int nloc=nWicks*locVol;
     
@@ -204,6 +206,7 @@ namespace nissa
     complex contr_per_Wick[glbSize[0]*2];
     compute_baryon_2pts_proj_contr(contr_per_Wick,5,5,Ql,Qd,Ql,source_coord,temporal_bc);
     
+    master_printf("DEBUG combining Wicks\n");
     for(int t=0;t<glbSize[0];t++)
       complex_subt(contr[t],contr_per_Wick[0+2*t],contr_per_Wick[1+2*t]);
   }

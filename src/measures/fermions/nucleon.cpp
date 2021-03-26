@@ -71,19 +71,23 @@ namespace nissa
 	    for(int ilikeFlav=0;ilikeFlav<nflavs;ilikeFlav++)
 	      for(int idislikeFlav=0;idislikeFlav<nflavs;idislikeFlav++)
 		{
+		  master_printf("Computing %d %d\n",ilikeFlav,idislikeFlav);
 		  complex tempCorr[glbSize[0]];
 		  tm_corr_op::compute_nucleon_2pts_contr(tempCorr,
 							 prop+NDIRAC*NCOL*ilikeFlav,
 							 prop+NDIRAC*NCOL*idislikeFlav,
 							 glbSourceCoords[0],-1);
+		  
+		  master_printf("Summing %d %d\n",ilikeFlav,idislikeFlav);
 		  for(int t=0;t<glbSize[0];t++)
-		    complex_copy(corr[t+glbSize[0]*(ilikeFlav+nflavs*idislikeFlav)],tempCorr[t]);
+		    complex_summassign(corr[t+glbSize[0]*(ilikeFlav+nflavs*idislikeFlav)],tempCorr[t]);
 		}
 	  }
 	
 	for(int ilikeFlav=0;ilikeFlav<nflavs;ilikeFlav++)
 	  for(int idislikeFlav=0;idislikeFlav<nflavs;idislikeFlav++)
 	    {
+	      master_printf("Printing %d %d\n",ilikeFlav,idislikeFlav);
 	      master_fprintf(file," # conf %d ; like1 = %d ; dislike = %d ; like2 = %d\n",
 			     iconf,ilikeFlav,idislikeFlav,ilikeFlav);
 	      
