@@ -10,6 +10,8 @@
 #include "new_types/su3.hpp"
 #include "nucleon.hpp"
 #include "operations/gauge_fixing.hpp"
+#include "operations/smearing/APE.hpp"
+#include "operations/smearing/gaussian.hpp"
 #include "routines/mpi_routines.hpp"
 #include "stag.hpp"
 
@@ -26,6 +28,11 @@ namespace nissa
     
     /// Source
     spincolor* source=nissa_malloc("source",locVol+bord_vol,spincolor);
+    
+    /// Smearing conf
+    quad_su3* smearingConf=nissa_malloc("smearingConf",locVol+bord_vol,quad_su3);
+    paste_eo_parts_into_lx_vector(smearingConf,conf);
+    ape_smear_conf(smearingConf,smearingConf,0.25,20,all_other_dirs[0],1);
     
     /// Propagators
     spincolor*** prop;
@@ -53,7 +60,6 @@ namespace nissa
 	    coords glbSourceCoords;
 	    generate_random_coord(glbSourceCoords);
 	    
-	    for(int iflav=0;iflav<nflavs;iflav++)
 	      for(int idirac=0;idirac<NDIRAC;idirac++)
 		for(int icol=0;icol<NCOL;icol++)
 		  {
@@ -69,8 +75,19 @@ namespace nissa
 		    
 		    if(rank==whichRank)
 		      source[locSourcePos][idirac][icol][RE]=1;
+		    set_borders_invalid(source);
 		    
-		    tmCorrOp.inv(prop[iflav][icol+NCOL*idirac],source,iflav);
+		    const double gaussKappa=0.5;
+		    const int gaussNSme=30;
+		    gaussian_smearing(source,source,smearingConf,gaussKappa,gaussNSme);
+		    
+		    for(int iflav=0;iflav<nflavs;iflav++)
+		      {
+			spincolor* p=prop[iflav][icol+NCOL*idirac];
+			tmCorrOp.inv(p,source,iflav);
+			
+			gaussian_smearing(p,p,smearingConf,gaussKappa,gaussNSme);
+		      }
 		  }
 	    
 	    for(int ilikeFlav=0;ilikeFlav<nflavs;ilikeFlav++)
@@ -116,6 +133,8 @@ namespace nissa
     nissa_free(prop);
     
     nissa_free(corr);
+    
+    nissa_free(smearingConf);
     
     close_file(file);
   }
