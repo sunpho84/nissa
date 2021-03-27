@@ -162,7 +162,7 @@
 %token TK_RE_POT_CH
 %token TK_IM_POT_CH
 %token TK_ELEC_CHARGE
-//smooth method
+;//smooth method
 %token TK_SMOOTH_METHOD
 %token TK_SPACE_OR_TIME
 %token TK_SPACE
@@ -229,6 +229,10 @@
 //nucleon corr
 %type <nucleon_corr_meas> nucleon_corr_meas
 %token TK_MEAS_NUCLEON_CORRS
+%token TK_GAUSS_SME_NSTEPS
+%token TK_GAUSS_SME_KAPPA
+%token TK_APE_SME_NSTEPS
+%token TK_APE_SME_ALPHA
 //putpourri
 %type <fermionic_putpourri_meas> fermionic_putpourri_meas
 %token TK_MEAS_PUTPOURRI
@@ -562,6 +566,10 @@ nucleon_corr_meas: TK_MEAS_NUCLEON_CORRS {$$=new nucleon_corr_meas_pars_t();}
                  | nucleon_corr_meas ncopies {$$->ncopies=$2;}
                  | nucleon_corr_meas noise_type {$$->rnd_type=$2;}
                  | nucleon_corr_meas nhits {$$->nhits=$2;}
+                 | nucleon_corr_meas TK_GAUSS_SME_NSTEPS '=' int_numb {$$->gaussSmeNSteps=$4;}
+                 | nucleon_corr_meas TK_GAUSS_SME_KAPPA '=' double_numb {$$->gaussSmeKappa=$4;}
+                 | nucleon_corr_meas TK_APE_SME_NSTEPS '=' int_numb {$$->apeSmeNSteps=$4;}
+                 | nucleon_corr_meas TK_APE_SME_ALPHA '=' double_numb {$$->apeSmeAlpha=$4;}
 ;
 
 ////////////////////////////////////////////////// MESON CORR //////////////////////////////////////////////////

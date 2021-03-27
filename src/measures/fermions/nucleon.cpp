@@ -32,7 +32,7 @@ namespace nissa
     /// Smearing conf
     quad_su3* smearingConf=nissa_malloc("smearingConf",locVol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_vector(smearingConf,conf);
-    ape_smear_conf(smearingConf,smearingConf,0.25,20,all_other_dirs[0],1);
+    ape_smear_conf(smearingConf,smearingConf,meas_pars.apeSmeAlpha,meas_pars.apeSmeNSteps,all_other_dirs[0],1);
     
     /// Propagators
     spincolor*** prop;
@@ -77,16 +77,14 @@ namespace nissa
 		      source[locSourcePos][idirac][icol][RE]=1;
 		    set_borders_invalid(source);
 		    
-		    const double gaussKappa=0.5;
-		    const int gaussNSme=30;
-		    gaussian_smearing(source,source,smearingConf,gaussKappa,gaussNSme);
+		    gaussian_smearing(source,source,smearingConf,meas_pars.gaussSmeKappa,meas_pars.gaussSmeNSteps);
 		    
 		    for(int iflav=0;iflav<nflavs;iflav++)
 		      {
 			spincolor* p=prop[iflav][icol+NCOL*idirac];
 			tmCorrOp.inv(p,source,iflav);
 			
-			gaussian_smearing(p,p,smearingConf,gaussKappa,gaussNSme);
+			gaussian_smearing(p,p,smearingConf,meas_pars.gaussSmeKappa,meas_pars.gaussSmeNSteps);
 		      }
 		  }
 	    
@@ -145,7 +143,12 @@ namespace nissa
     std::ostringstream os;
     
     os<<"MeasNucleonCorrs\n";
+    
     if(is_nonstandard() or full) os<<base_fermionic_meas_t::get_str(full);
+    if(gaussSmeKappa!=def_gaussSmeKappa() or full) os<<"GaussSmeKappa\t=\t"<<gaussSmeKappa<<"\n";
+    if(gaussSmeNSteps!=def_gaussSmeNSteps() or full) os<<"GaussSmeNSteps\t=\t"<<gaussSmeNSteps<<"\n";
+    if(apeSmeAlpha!=def_apeSmeAlpha() or full) os<<"ApeSmeAlpha\t=\t"<<apeSmeAlpha<<"\n";
+    if(apeSmeNSteps!=def_apeSmeNSteps() or full) os<<"ApeSmeNSteps\t=\t"<<apeSmeNSteps<<"\n";
     
     return os.str();
   }
