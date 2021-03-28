@@ -110,7 +110,7 @@ namespace nissa
       /// Index of the data
       __host__ __device__ int64_t idx(const int icol,const int64_t ivol_eo) const
       {
-	return ivol_eo+loc_volh*icol;
+	return ivol_eo+locVolh*icol;
 	//return icol+NCOL*ivol_eo;
       }
       
@@ -130,7 +130,7 @@ namespace nissa
       const int64_t n;
       
       /// Default constructor
-      gpu_color() : n(NCOL*(loc_volh+bord_volh))
+      gpu_color() : n(NCOL*(locVolh+bord_volh))
       {
       }
       
@@ -151,7 +151,7 @@ namespace nissa
       {
 	std::unique_ptr<Compl<T>[]> buf(new Compl<T>[n]);
 	
-	for(int64_t ivol_eo=0;ivol_eo<loc_volh;ivol_eo++)
+	for(int64_t ivol_eo=0;ivol_eo<locVolh;ivol_eo++)
 	  for(int icol=0;icol<NCOL;icol++)
 	    {
 	      const int64_t iout=idx(icol,ivol_eo);
@@ -174,7 +174,7 @@ namespace nissa
 	gpu_to_cpu(&buf[0],data,n);
 	
 	for(int icol=0;icol<NCOL;icol++)
-	  for(int64_t ivol_eo=0;ivol_eo<loc_volh;ivol_eo++)
+	  for(int64_t ivol_eo=0;ivol_eo<locVolh;ivol_eo++)
 	    {
 	      const int64_t iin=idx(icol,ivol_eo);
 	      complex& temp=out[ivol_eo][icol];
@@ -198,9 +198,9 @@ namespace nissa
       /// Index
       __host__ __device__ int64_t idx(const int mu,const int icol1,const int icol2,const int ieo,const int64_t ivol_eo) const
       {
-	return ivol_eo+loc_volh*(ieo+2*(icol2+NCOL*(icol1+NCOL*mu)));
-	//return ivol_eo+loc_volh*(ieo+2*(mu+NDIM*(icol2+NCOL*icol1)));
-	//return icol2+NCOL*(icol1+NCOL*(mu+NDIM*(ivol_eo+loc_volh*ieo)));
+	return ivol_eo+locVolh*(ieo+2*(icol2+NCOL*(icol1+NCOL*mu)));
+	//return ivol_eo+locVolh*(ieo+2*(mu+NDIM*(icol2+NCOL*icol1)));
+	//return icol2+NCOL*(icol1+NCOL*(mu+NDIM*(ivol_eo+locVolh*ieo)));
       }
       
       /// Access to the data
@@ -219,7 +219,7 @@ namespace nissa
       const int64_t n;
       
       /// Default constructor
-      gpu_links() : n(NDIM*NCOL*NCOL*2*(loc_volh+bord_volh))
+      gpu_links() : n(NDIM*NCOL*NCOL*2*(locVolh+bord_volh))
       {
       }
       
@@ -241,7 +241,7 @@ namespace nissa
 	std::unique_ptr<Compl<T>[]> buf(new Compl<T>[n]);
 	
 	for(int ieo=0;ieo<2;ieo++)
-	  for(int64_t ivol_eo=0;ivol_eo<loc_volh;ivol_eo++)
+	  for(int64_t ivol_eo=0;ivol_eo<locVolh;ivol_eo++)
 	    for(int mu=0;mu<NDIM;mu++)
 	      for(int icol1=0;icol1<NCOL;icol1++)
 		for(int icol2=0;icol2<NCOL;icol2++)
@@ -269,7 +269,7 @@ namespace nissa
 	  for(int icol1=0;icol1<NCOL;icol1++)
 	    for(int icol2=0;icol2<NCOL;icol2++)
 	      for(int ieo=0;ieo<2;ieo++)
-		for(int64_t ivol_eo=0;ivol_eo<loc_volh;ivol_eo++)
+		for(int64_t ivol_eo=0;ivol_eo<locVolh;ivol_eo++)
 		  {
 		    const int64_t iin=idx(mu,icol1,icol2,ieo,ivol_eo);
 		    complex& temp=out[ieo][ivol_eo][mu][icol1][icol2];
@@ -285,7 +285,7 @@ namespace nissa
     {
       
       const int64_t ivol_out=blockIdx.x*blockDim.x+threadIdx.x;
-      if(ivol_out<loc_volh)
+      if(ivol_out<locVolh)
 	{
 	  for(int ic=0;ic<NCOL;ic++)
 	    out(ic,ivol_out)=0.0;
@@ -334,7 +334,7 @@ namespace nissa
 	{
 	  master_printf("nthreads: %d\n",ngpu_threads);
       const dim3 block_dimension(ngpu_threads);
-      const dim3 grid_dimension((loc_volh+ngpu_threads)/ngpu_threads);
+      const dim3 grid_dimension((locVolh+ngpu_threads)/ngpu_threads);
       
       double init=take_time();
       int n=100;
@@ -351,7 +351,7 @@ namespace nissa
       
       double each=(end-init)/n;
       const int nflops_per_site=8*8*9*2;
-      master_printf("Time for the improved operator: %lg s, per site: %lg s, Gflops: %lg\n",each,each/loc_volh,nflops_per_site/each*loc_volh*1e-9);
+      master_printf("Time for the improved operator: %lg s, per site: %lg s, Gflops: %lg\n",each,each/locVolh,nflops_per_site/each*locVolh*1e-9);
 	}
       out.export_to_cpu(_out);
       
