@@ -1,12 +1,14 @@
 #include <nissa.hpp>
 
+#include "base/quda_bridge.hpp"
+
 using namespace nissa;
 
 double rel_diff_norm(spincolor *test,spincolor *ref)
 {
-  double_vector_subtassign((double*)test,(double*)ref,loc_vol*sizeof(spincolor)/sizeof(double));
-  const double norm2_diff=double_vector_glb_norm2(test,loc_vol);
-  const double norm2_ref=double_vector_glb_norm2(ref,loc_vol);
+  double_vector_subtassign((double*)test,(double*)ref,locVol*sizeof(spincolor)/sizeof(double));
+  const double norm2_diff=double_vector_glb_norm2(test,locVol);
+  const double norm2_ref=double_vector_glb_norm2(ref,locVol);
   const double res=sqrt(norm2_diff/norm2_ref);
   
   return res;
@@ -20,9 +22,9 @@ void in_main(int narg,char **arg)
   
   start_loc_rnd_gen(235235);
   
-  spincolor *in=nissa_malloc("in",loc_vol,spincolor);
-  spincolor *out=nissa_malloc("out",loc_vol,spincolor);
-  spincolor *tmp=nissa_malloc("tmp",loc_vol,spincolor);
+  spincolor *in=nissa_malloc("in",locVol,spincolor);
+  spincolor *out=nissa_malloc("out",locVol,spincolor);
+  spincolor *tmp=nissa_malloc("tmp",locVol,spincolor);
   
   /// First test: load a spincolor and unload it
   generate_undiluted_source(in,RND_Z2,-1);
@@ -34,8 +36,8 @@ void in_main(int narg,char **arg)
   
   /// Second test: apply the dirac operator
   
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
-  spincolor *out_nissa=nissa_malloc("out_nissa",loc_vol,spincolor);
+  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+  spincolor *out_nissa=nissa_malloc("out_nissa",locVol,spincolor);
   
   generate_hot_lx_conf(conf);
   master_printf("plaq: %lg\n",global_plaquette_lx_conf(conf));
@@ -50,7 +52,7 @@ void in_main(int narg,char **arg)
   safe_dirac_prod_spincolor(out_nissa,base_gamma+5,out_nissa);
   
   master_printf("comparing\n");
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  for(int ivol=0;ivol<locVol;ivol++)
     for(int id=0;id<NDIRAC;id++)
       for(int ic=0;ic<NCOL;ic++)
 	for(int ri=0;ri<2;ri++)

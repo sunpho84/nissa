@@ -11,6 +11,7 @@
 #include "new_types/su3_op.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
+#include "threads/threads.hpp"
 
 namespace quda_iface
 {
@@ -59,13 +60,13 @@ namespace quda_iface
 	
 	/////////////////////////////////////////////////////////////////
 	
-	quda_of_loclx=nissa_malloc("quda_of_loclx",loc_vol,int);
-	loclx_of_quda=nissa_malloc("loclx_of_quda",loc_vol,int);
+	quda_of_loclx=nissa_malloc("quda_of_loclx",locVol,int);
+	loclx_of_quda=nissa_malloc("loclx_of_quda",locVol,int);
 	
-	for(int ivol=0;ivol<loc_vol;ivol++)
+	for(int ivol=0;ivol<locVol;ivol++)
 	  {
-	    const coords& c=loc_coord_of_loclx[ivol];
-	    const coords& l=loc_size;
+	    const coords& c=locCoordOfLoclx[ivol];
+	    const coords& l=locSize;
 	    
 	    int itmp=0;
 	    for(int mu=0;mu<NDIM;mu++)
@@ -73,20 +74,20 @@ namespace quda_iface
 		const int nu=std::array<int,NDIM>{0,3,2,1}[mu];
 		itmp=itmp*l[nu]+c[nu];
 	      }
-	    const int quda=loclx_parity[ivol]*loc_volh+itmp/2;
+	    const int quda=loclx_parity[ivol]*locVolh+itmp/2;
 	    
-	    if(quda<0 or quda>=loc_vol)
-	      crash("quda %d remapping to ivol %d not in range [0,%d]",quda,ivol,loc_vol);
+	    if(quda<0 or quda>=locVol)
+	      crash("quda %d remapping to ivol %d not in range [0,%d]",quda,ivol,locVol);
 	    
 	    quda_of_loclx[ivol]=quda;
 	    loclx_of_quda[quda]=ivol;
 	  }
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  quda_conf[mu]=nissa_malloc("gauge_cuda",loc_vol,su3);
+	  quda_conf[mu]=nissa_malloc("gauge_cuda",locVol,su3);
 	
-	spincolor_in=nissa_malloc("spincolor_in",loc_vol,spincolor);
-	spincolor_out=nissa_malloc("spincolor_out",loc_vol,spincolor);
+	spincolor_in=nissa_malloc("spincolor_in",locVol,spincolor);
+	spincolor_out=nissa_malloc("spincolor_out",locVol,spincolor);
 	
 	////////////////////////////// verbosity ///////////////////////////////////
 	
@@ -112,7 +113,7 @@ namespace quda_iface
 	gauge_param=newQudaGaugeParam();
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  gauge_param.X[mu]=loc_size[std::array<int,NDIM>{1,2,3,0}[mu]];
+	  gauge_param.X[mu]=locSize[std::array<int,NDIM>{1,2,3,0}[mu]];
 	
 	gauge_param.anisotropy=1.0;
 	
@@ -137,7 +138,7 @@ namespace quda_iface
 	gauge_param.ga_pad=0;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    int surf_size=loc_vol/loc_size[mu]/2;
+	    int surf_size=locVol/locSize[mu]/2;
 	    gauge_param.ga_pad=std::max(gauge_param.ga_pad,surf_size);
 	  }
 	
@@ -255,8 +256,7 @@ namespace quda_iface
   {
     master_printf("%s\n",__FUNCTION__);
     
-    
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	const int iquda=quda_of_loclx[ivol];
 	
@@ -273,8 +273,7 @@ namespace quda_iface
   {
     master_printf("%s\n",__FUNCTION__);
     
-    
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	const int iquda=quda_of_loclx[ivol];
 	spincolor_copy(out[iquda],in[ivol]);
@@ -289,8 +288,7 @@ namespace quda_iface
   {
     master_printf("%s\n",__FUNCTION__);
     
-    
-    NISSA_PARALLEL_LOOP(iquda,0,loc_vol)
+    NISSA_PARALLEL_LOOP(iquda,0,locVol)
       {
 	const int ivol=loclx_of_quda[iquda];
 	spincolor_copy(out[ivol],in[iquda]);
