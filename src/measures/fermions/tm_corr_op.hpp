@@ -9,6 +9,7 @@
 #include "geometry/geometry_lx.hpp"
 #include "hmc/theory_pars.hpp"
 #include "operations/su3_paths/clover_term.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 #include "inverters/twisted_clover/cg_invert_tmclovD_eoprec.hpp"
 #include "inverters/twisted_mass/cg_invert_tmD_eoprec.hpp"
 #include "new_types/su3_op.hpp"
@@ -67,6 +68,8 @@ namespace nissa
 	  const quark_content_t& q=tp.quarks[iflav];
 	  add_backfield_without_stagphases_to_conf(conf,tp.backfield[iflav]);
 	  master_printf("Adding backfield %d\n",iflav);
+	  
+	  master_printf("Plaquette: %.16lg\n",global_plaquette_lx_conf(conf));
 	  
 	  if(q.cSW)
 	    {

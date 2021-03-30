@@ -18,7 +18,6 @@ namespace nissa
   //initialize an u(1) field to unity
   void init_backfield_to_id(eo_ptr<quad_u1> S)
   {
-    
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
@@ -38,7 +37,6 @@ namespace nissa
   //multiply a background field by the imaginary chemical potential
   void add_im_pot_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content)
   {
-    
     double im_pot=quark_content->im_pot*M_PI/glbSize[0];
     const double c=cos(im_pot),s=sin(im_pot);
     
@@ -57,7 +55,9 @@ namespace nissa
   
   //compute args for non-present quantization
   CUDA_HOST_AND_DEVICE void get_args_of_null_quantization(coords phase,int ivol,int mu,int nu)
-  {phase[0]=phase[1]=phase[2]=phase[3]=0;}
+  {
+    phase[0]=phase[1]=phase[2]=phase[3]=0;
+  }
   
   //compute args for 1/L2 quantization
   CUDA_HOST_AND_DEVICE void get_args_of_one_over_L2_quantization(coords phase,int ivol,int mu,int nu)
@@ -98,7 +98,6 @@ namespace nissa
   //mu nu refers to the entry of F_mu_nu involved
   void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content,double em_str,int quantization,int mu,int nu)
   {
-    
     double phase=2*em_str*quark_content->charge*M_PI/glbSize[mu]/glbSize[nu];
     
     if(quantization==2 and glbSize[mu]%4!=0)
