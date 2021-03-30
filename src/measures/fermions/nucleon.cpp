@@ -27,7 +27,9 @@ namespace nissa
     const int nflavs=theory_pars.nflavs();
     
     /// Source
-    spincolor* source=nissa_malloc("source",locVol+bord_vol,spincolor);
+    spincolor** source=nissa_malloc("source",NDIRAC*NCOL,spincolor*);
+    for(int idc=0;idc<NDIRAC*NCOL;idc++)
+      source[idc]=nissa_malloc("source[]",locVol+bord_vol,spincolor);
     
     /// Smearing conf
     quad_su3* smearingConf=nissa_malloc("smearingConf",locVol+bord_vol,quad_su3);
@@ -60,33 +62,35 @@ namespace nissa
 	    coords glbSourceCoords;
 	    generate_random_coord(glbSourceCoords);
 	    
-	      for(int idirac=0;idirac<NDIRAC;idirac++)
-		for(int icol=0;icol<NCOL;icol++)
-		  {
-		    vector_reset(source);
-		    
-		    /// Which rank hosts the source
-		    int whichRank;
-		    
-		    /// Local site
-		    int locSourcePos;
-		    
-		    get_loclx_and_rank_of_coord(&locSourcePos,&whichRank,glbSourceCoords);
-		    
-		    if(rank==whichRank)
-		      source[locSourcePos][idirac][icol][RE]=1;
-		    set_borders_invalid(source);
-		    
-		    gaussian_smearing(source,source,smearingConf,meas_pars.gaussSmeKappa,meas_pars.gaussSmeNSteps);
-		    
-		    for(int iflav=0;iflav<nflavs;iflav++)
-		      {
-			spincolor* p=prop[iflav][icol+NCOL*idirac];
-			tmCorrOp.inv(p,source,iflav);
-			
-			gaussian_smearing(p,p,smearingConf,meas_pars.gaussSmeKappa,meas_pars.gaussSmeNSteps);
-		      }
-		  }
+	    /// Which rank hosts the source
+	    int whichRank;
+	    
+	    /// Local site
+	    int locSourcePos;
+	    
+	    get_loclx_and_rank_of_coord(&locSourcePos,&whichRank,glbSourceCoords);
+	    
+	    for(int idirac=0;idirac<NDIRAC;idirac++)
+	      for(int icol=0;icol<NCOL;icol++)
+		{
+		  spincolor* &s=source[icol+NCOL*idirac];
+		  vector_reset(s);
+		  
+		  if(rank==whichRank)
+		    s[locSourcePos][idirac][icol][RE]=1;
+		  set_borders_invalid(s);
+		  
+		  gaussian_smearing(s,s,smearingConf,meas_pars.gaussSmeKappa,meas_pars.gaussSmeNSteps);
+		}
+	    
+	    for(int iflav=0;iflav<nflavs;iflav++)
+	      for(int idc=0;idc<NDIRAC*NCOL;idc++)
+		{
+		  spincolor* p=prop[iflav][idc];
+		  tmCorrOp.inv(p,source[idc],iflav);
+		  
+		  gaussian_smearing(p,p,smearingConf,meas_pars.gaussSmeKappa,meas_pars.gaussSmeNSteps);
+		}
 	    
 	    for(int ilikeFlav=0;ilikeFlav<nflavs;ilikeFlav++)
 	      for(int idislikeFlav=0;idislikeFlav<nflavs;idislikeFlav++)

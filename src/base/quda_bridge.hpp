@@ -27,7 +27,7 @@ namespace quda_iface
 
 namespace nissa
 {
-  EXTERN_QUDA_BRIDGE int use_quda INIT_TO(true);
+  EXTERN_QUDA_BRIDGE int use_quda INIT_TO(false);
 }
 
 namespace quda_iface
