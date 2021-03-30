@@ -124,6 +124,8 @@ namespace nissa
 	    }
       }
     
+    for(int idc=0;idc<NDIRAC*NCOL;idc++)
+      nissa_free(source[idc]);
     nissa_free(source);
     
     for(int iflav=0;iflav<nflavs;iflav++)
