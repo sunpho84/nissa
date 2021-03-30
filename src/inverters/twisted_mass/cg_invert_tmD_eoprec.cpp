@@ -10,6 +10,9 @@
 #ifdef USE_DDALPHAAMG
  #include "base/DDalphaAMG_bridge.hpp"
 #endif
+#ifdef USE_QUDA
+ #include "base/quda_bridge.hpp"
+#endif
 #include "base/vectors.hpp"
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
@@ -124,49 +127,94 @@ namespace nissa
   
   void inv_tmD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mass,int nitermax,double residue,spincolor *source_lx)
   {
+    enum SolverType{NATIVE_SOLVER
+#ifdef USE_TMLQCD
+      ,TMLQCD_SOLVER
+#endif
+#ifdef USE_DDALPHAAMG
+      ,DDALPHAAMG_SOLVER
+#endif
+#ifdef USE_QUDA
+      ,QUDA_SOLVER
+#endif
+    };
+    
+    
+    /// Take note of whther we want to use an external solver
+    SolverType solverType=NATIVE_SOLVER;
+    
+      //DD case
+#ifdef USE_DDALPHAAMG
+      if(use_DD and fabs(mass)<=DD::max_mass)
+	solverType=DDALPHAAMG_SOLVER;
+#endif
+    
+#ifdef USE_QUDA
+      if(use_quda)
+	solverType=QUDA_SOLVER;
+#endif
     
 #ifdef USE_TMLQCD
     if(use_tmLQCD)
       {
 	crash("Not yet");
+	soverType=TMLQCD_SOLVER;
       }
-    else
 #endif
-      //DD case
+    
+    double cSW=0;
+    
+    switch(solverType)
+      {
+	// DDalphaamg
 #ifdef USE_DDALPHAAMG
-      if(use_DD and fabs(mass)<=DD::max_mass)
-	{
-	  double cSW=0;
-	  DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
-	  
-	  //check solution
-	  spincolor *temp_lx=nissa_malloc("temp",locVol,spincolor);
-	  apply_tmQ(temp_lx,conf_lx,kappa,mass,solution_lx);
-	  
-	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	     for(int id=0;id<NDIRAC;id++)
-	       for(int ic=0;ic<NCOL;ic++)
-		 for(int ri=0;ri<2;ri++)
-		     temp_lx[ivol][id][ic][ri]-=source_lx[ivol][id][ic][ri]*(id<2?+1:-1);
-	  NISSA_PARALLEL_LOOP_END;
-	  THREAD_BARRIER();
-	  
-	  //compute the norm and print it
-	  double sonorm2=double_vector_glb_norm2(source_lx,locVol);
-	  double norm2=double_vector_glb_norm2(temp_lx,locVol);
-	  master_printf("check solution: %lg\n",norm2/sonorm2);
-	  nissa_free(temp_lx);
-	   // for(int ivol=0;ivol<loc_vol;ivol++)
-	  //   for(int id=0;id<4;id++)
-	  //     for(int ic=0;ic<3;ic++)
-	  // 	for(int ri=0;ri<2;ri++)
-	  // 	  printf("anna %d %d %d %d %16.16lg\n",ivol,id,ic,ri,solution_lx[ivol][id][ic][ri]);
-	}
-      else
+      case DDALPHAAMG_SOLVER:
+	DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
+	break;
 #endif
 	
-	//fallback to naive implementation
+	// Quda
+#ifdef USE_QUDA
+      case QUDA_SOLVER:
+	quda_iface::apply_tmD(solution_lx,conf_lx,kappa,mass,source_lx);
+	break;
+#endif
+	
+	// TmLQCD
+#ifdef USE_TMLQCD
+      case tmLQCD_SOLVER:
+	crash("Not yet implemented");
+	break;
+#endif
+	
+	
+      case NATIVE_SOLVER:
 	inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);
+	break;
+      }
+    
+    //check solution
+    spincolor *temp_lx=nissa_malloc("temp",locVol,spincolor);
+    apply_tmQ(temp_lx,conf_lx,kappa,mass,solution_lx);
+    
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      for(int id=0;id<NDIRAC;id++)
+	for(int ic=0;ic<NCOL;ic++)
+	  for(int ri=0;ri<2;ri++)
+	    temp_lx[ivol][id][ic][ri]-=source_lx[ivol][id][ic][ri]*(id<2?+1:-1);
+    NISSA_PARALLEL_LOOP_END;
+    THREAD_BARRIER();
+    
+    //compute the norm and print it
+    double sonorm2=double_vector_glb_norm2(source_lx,locVol);
+    double norm2=double_vector_glb_norm2(temp_lx,locVol);
+    master_printf("check solution: %lg\n",norm2/sonorm2);
+    nissa_free(temp_lx);
+    // for(int ivol=0;ivol<loc_vol;ivol++)
+    //   for(int id=0;id<4;id++)
+    //     for(int ic=0;ic<3;ic++)
+    // 	for(int ri=0;ri<2;ri++)
+    // 	  printf("anna %d %d %d %d %16.16lg\n",ivol,id,ic,ri,solution_lx[ivol][id][ic][ri]);
   }
 }
 
