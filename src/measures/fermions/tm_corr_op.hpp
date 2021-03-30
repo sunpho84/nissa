@@ -80,7 +80,15 @@ namespace nissa
     /// Command to invert
     void inv(spincolor *out,spincolor *in,const int iflav)
     {
+      master_printf("Before setting quark:\n");
+      if(is_master_rank())
+	su3_print(conf[0][0]);
+      
       set_for_quark(iflav);
+      
+      master_printf("After setting quark:\n");
+      if(is_master_rank())
+	su3_print(conf[0][0]);
       
       const quark_content_t& q=tp.quarks[iflav];
       
