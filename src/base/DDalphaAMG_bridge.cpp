@@ -200,7 +200,7 @@ namespace DD
   {
     if(check_kappa_changed(kappa) or check_cSW_changed(cSW))
       {
-	master_printf("Reinitializing\n");
+	master_printf("Kappa or cSW changed, reinitializing\n");
 	finalize();
       }
     
@@ -252,13 +252,9 @@ namespace DD
     
     //block_size
     if(block_size_set)
-      {
-	block_size_set=false;
-	
-	for(int ilev=0;ilev<nlevels;ilev++)
-	  for(int idir=0;idir<4;idir++)
-	    params.block_lattice[ilev][idir]=block_size[ilev][idir];
-      }
+      for(int ilev=0;ilev<nlevels;ilev++)
+	for(int idir=0;idir<4;idir++)
+	  params.block_lattice[ilev][idir]=block_size[ilev][idir];
     
     //overwrite pars in any case
     params.print=1;
