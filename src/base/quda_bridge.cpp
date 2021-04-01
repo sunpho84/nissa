@@ -48,6 +48,27 @@ namespace quda_iface
     return out;
   }
   
+  /// Set the verbosity
+  void set_quda_verbosity()
+  {
+    switch(verbosity_lv)
+      {
+      case 0:
+	inv_param.verbosity=QUDA_SILENT;
+	break;
+      case 1:
+	inv_param.verbosity=QUDA_SUMMARIZE;
+	break;
+      case 2:
+	inv_param.verbosity=QUDA_VERBOSE;
+	break;
+      default:
+	inv_param.verbosity=QUDA_DEBUG_VERBOSE;
+      }
+    
+    setVerbosityQuda(QUDA_SUMMARIZE,"# QUDA: ",stdout);
+  }
+  
   /// Initialize QUDA
   void initialize()
   {
@@ -89,24 +110,7 @@ namespace quda_iface
 	spincolor_in=nissa_malloc("spincolor_in",locVol,spincolor);
 	spincolor_out=nissa_malloc("spincolor_out",locVol,spincolor);
 	
-	////////////////////////////// verbosity ///////////////////////////////////
-	
-	switch(verbosity_lv)
-	  {
-	  case 0:
-	    inv_param.verbosity=QUDA_SILENT;
-	    break;
-	  case 1:
-	    inv_param.verbosity=QUDA_SUMMARIZE;
-	    break;
-	  case 2:
-	    inv_param.verbosity=QUDA_VERBOSE;
-	    break;
-	  default:
-	    inv_param.verbosity=QUDA_DEBUG_VERBOSE;
-	  }
-	
-	setVerbosityQuda(QUDA_SUMMARIZE,"# QUDA: ",stdout);
+	set_quda_verbosity();
 	
 	/////////////////////////// gauge params ////////////////////////////////
 	
@@ -377,7 +381,6 @@ namespace quda_iface
     
     inv_param.inv_type=QUDA_CG_INVERTER;
     inv_param.solve_type=QUDA_NORMERR_PC_SOLVE;
-    inv_param.verbosity=QUDA_DEBUG_VERBOSE;
     
     //minus due to different gamma5 definition
     inv_param.mu=-mu/(2.0*kappa); /// Check kappa
@@ -387,6 +390,8 @@ namespace quda_iface
     inv_param.tol=sqrt(residue);
     inv_param.maxiter=niter;
     inv_param.Ls=1;
+    
+    set_quda_verbosity();
     
     remap_nissa_to_quda(spincolor_in,source);
     
