@@ -153,7 +153,7 @@ namespace quda_iface
 	inv_param.Ls=1;
 	
 	inv_param.dagger=QUDA_DAG_NO;
-	inv_param.mass_normalization=QUDA_KAPPA_NORMALIZATION;
+	inv_param.mass_normalization=QUDA_MASS_NORMALIZATION; ///Check
 	inv_param.solver_normalization=QUDA_DEFAULT_NORMALIZATION;
 	
 	inv_param.pipeline=0;
@@ -383,10 +383,11 @@ namespace quda_iface
     inv_param.solve_type=QUDA_NORMERR_PC_SOLVE;
     
     //minus due to different gamma5 definition
-    inv_param.mu=-mu/(2.0*kappa); /// Check kappa
+    inv_param.mu=-mu;// /(2.0*kappa); /// Check kappa
     inv_param.epsilon=0.0;
     
     inv_param.twist_flavor=QUDA_TWIST_SINGLET;
+    master_printf("Residue: %lg\n",residue);
     inv_param.tol=sqrt(residue);
     inv_param.maxiter=niter;
     inv_param.Ls=1;
