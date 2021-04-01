@@ -285,8 +285,6 @@ namespace quda_iface
   /// Reorder spinor from QUDA format
   void remap_quda_to_nissa(spincolor *out,spincolor *in)
   {
-    master_printf("%s\n",__FUNCTION__);
-    
     NISSA_PARALLEL_LOOP(iquda,0,locVol)
       {
 	const int ivol=loclx_of_quda[iquda];
@@ -309,7 +307,7 @@ namespace quda_iface
     
     double plaq;
     plaqQuda(&plaq);
-    master_printf("loaded, plaquette: %lg\n",plaq);
+    master_printf("loaded, plaquette: %.16lg\n",plaq);
   }
   
   /// Sets the sloppy precision
@@ -369,19 +367,24 @@ namespace quda_iface
   
   void invert_tmD(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mu,int niter,double residue,spincolor *source)
   {
-    inv_param.kappa=kappa;
-    
-    // set_sloppy_prec(optr->sloppy_precision);
-    
     load_conf(conf);
     
-    // _setOneFlavourSolverParam(optr->kappa, 
-    // 			      optr->c_sw, 
-    // 			      optr->mu, 
-    // 			      optr->solver,
-    // 			      optr->even_odd_flag,
-    // 			      optr->eps_sq,
-    // 			      optr->maxiter);
+    inv_param.kappa=kappa;
+    
+    inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
+    inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN_ASYMMETRIC;
+    inv_param.solution_type=QUDA_MAT_SOLUTION;
+    
+    inv_param.inv_type=QUDA_CG_INVERTER;
+    
+    //minus due to different gamma5 definition
+    inv_param.mu=-mu/(2.0*kappa); /// Check kappa
+    inv_param.epsilon=0.0;
+    
+    inv_param.twist_flavor=QUDA_TWIST_SINGLET;
+    inv_param.tol=sqrt(residue);
+    inv_param.maxiter=niter;
+    inv_param.Ls=1;
     
     remap_nissa_to_quda(spincolor_in,source);
     
