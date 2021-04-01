@@ -39,7 +39,7 @@ namespace quda_iface
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in);
   void remap_nissa_to_quda(spincolor *out,spincolor *in);
   void remap_quda_to_nissa(spincolor *out,spincolor *in);
-  void invert_tmD(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mu,int niter,double residue,spincolor *source);
+  void solve(spincolor *sol,quad_su3 *conf,double kappa,double mu,int niter,double residue,spincolor *source);
 }
 
 #undef INIT_TO

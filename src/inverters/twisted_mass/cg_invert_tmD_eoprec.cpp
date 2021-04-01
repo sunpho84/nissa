@@ -176,7 +176,7 @@ namespace nissa
 	// Quda
 #ifdef USE_QUDA
       case QUDA_SOLVER:
-	quda_iface::apply_tmD(solution_lx,conf_lx,kappa,mass,source_lx);
+	quda_iface::solve(solution_lx,conf_lx,kappa,mass,nitermax,residue,source_lx);
 	break;
 #endif
 	
