@@ -171,17 +171,40 @@ namespace DD
     else master_printf("DD: No import needed\n");
   }
   
-  //initialize the bridge with DDalphaAMG
-  void initialize(double kappa,double cSW,double mu)
+  /// Check if cSW is changed
+  bool check_cSW_changed(const double& cSW)
   {
-    //check if cSW agreeing, when inited already
-    if(inited and cSW!=init_params.csw)
+    /// Check if cSW is changed
+    const bool cSW_changed=(inited and cSW!=init_params.csw);
+    
+    if(cSW_changed)
+      master_printf("DD: cSW changed from %lg to %lg\n",init_params.csw,cSW);
+    
+    return cSW_changed;
+  }
+  
+  /// Check if kappa or cSW are changed
+  bool check_kappa_changed(const double& kappa)
+  {
+    /// Check if kappa is changed
+    const bool kappa_changed=(inited and kappa!=init_params.kappa);
+    
+    if(kappa_changed)
+      master_printf("DD: kappa changed from %lg to %lg\n",init_params.kappa,kappa);
+    
+    return kappa_changed;
+  }
+  
+  /// Initialize the bridge with DDalphaAMG, for the given kappa and cSW
+  void initialize(const double& kappa,const double& cSW,const double& mu)
+  {
+    if(check_kappa_changed(kappa) or check_cSW_changed(cSW))
       {
-	master_printf("DD: cSW changed from %lg to %lg, reinitializing\n",init_params.csw,cSW);
+	master_printf("Reinitializing\n");
 	finalize();
       }
     
-    if(!inited)
+    if(not inited)
       {
 	master_printf("DD: Not initialized, initializing\n");
 	
