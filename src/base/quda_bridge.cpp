@@ -377,6 +377,7 @@ namespace quda_iface
     
     inv_param.inv_type=QUDA_CG_INVERTER;
     inv_param.solve_type=QUDA_DIRECT_SOLVE;
+    inv_param.verbosity=QUDA_DEBUG_VERBOSE;
     
     //minus due to different gamma5 definition
     inv_param.mu=-mu/(2.0*kappa); /// Check kappa
