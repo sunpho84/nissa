@@ -369,9 +369,11 @@ namespace quda_iface
     remap_quda_to_nissa(out,spincolor_out);
   }
   
-  void solve(spincolor *sol,quad_su3 *conf,double kappa,double mu,int niter,double residue,spincolor *source)
+  void solve(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
+    master_printf("A Residue: %lg\n",residue);
     load_conf(conf);
+    master_printf("B Residue: %lg\n",residue);
     
     inv_param.kappa=kappa;
     
