@@ -371,9 +371,7 @@ namespace quda_iface
   
   void solve(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
-    master_printf("A Residue: %lg\n",residue);
     load_conf(conf);
-    master_printf("B Residue: %lg\n",residue);
     
     inv_param.kappa=kappa;
     
@@ -389,7 +387,6 @@ namespace quda_iface
     inv_param.epsilon=0.0;
     
     inv_param.twist_flavor=QUDA_TWIST_SINGLET;
-    master_printf("Residue: %lg\n",residue);
     inv_param.tol=sqrt(residue);
     inv_param.maxiter=niter;
     inv_param.Ls=1;
