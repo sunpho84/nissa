@@ -143,7 +143,8 @@ namespace quda_iface
 	gauge_param.reconstruct_sloppy=QUDA_RECONSTRUCT_NO;
 	gauge_param.reconstruct_precondition=QUDA_RECONSTRUCT_NO;
 	gauge_param.reconstruct_refinement_sloppy=QUDA_RECONSTRUCT_NO;
-	gauge_param.staggered_phase_applied=QUDA_STAGGERED_PHASE_MILC;
+	gauge_param.staggered_phase_type=QUDA_STAGGERED_PHASE_MILC;
+	gauge_param.staggered_phase_applied=true;
 	
 	gauge_param.gauge_fix=QUDA_GAUGE_FIXED_NO;
 	
