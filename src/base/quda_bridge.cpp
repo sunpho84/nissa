@@ -196,7 +196,6 @@ namespace quda_iface
 	inv_param.clover_cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
 	
 	inv_param.preserve_source=QUDA_PRESERVE_SOURCE_YES;
-	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
 	inv_param.dirac_order=QUDA_DIRAC_ORDER;
 	
 	inv_param.input_location=QUDA_CPU_FIELD_LOCATION;
@@ -431,6 +430,7 @@ namespace quda_iface
     inv_param.kappa=kappa;
     
     inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
+    inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
     inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN_ASYMMETRIC;
     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
@@ -462,6 +462,7 @@ namespace quda_iface
     load_conf(conf);
     
     inv_param.dslash_type=QUDA_STAGGERED_DSLASH;
+    inv_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
     inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN_ASYMMETRIC;
     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
