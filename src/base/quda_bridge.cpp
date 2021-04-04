@@ -463,7 +463,7 @@ namespace quda_iface
     
     inv_param.dslash_type=QUDA_STAGGERED_DSLASH;
     inv_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
-    inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN_ASYMMETRIC;
+    inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
     inv_param.inv_type=QUDA_CG_INVERTER;
