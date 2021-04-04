@@ -9,6 +9,7 @@
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "linalgs/linalgs.hpp"
+#include "routines/ios.hpp"
 
 //this is the famous trick to invert the full D matrix using e/o precond: sol[ODD]=1/m*(source[ODD]-Doe*sol[EVN])
 
@@ -21,7 +22,6 @@ namespace nissa
       ,QUDA_SOLVER
 #endif
     };
-    
     
     /// Take note of whther we want to use an external solver
     SolverType solverType=NATIVE_SOLVER;
@@ -36,6 +36,7 @@ namespace nissa
 	// Quda
 #ifdef USE_QUDA
       case QUDA_SOLVER:
+	master_printf("Using QUDA here, %s\n",__FUNCTION__);
 	quda_iface::solve_stD(sol,conf,m,niter,residue,source);
 	break;
 #endif
