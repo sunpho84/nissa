@@ -1,14 +1,16 @@
 #ifndef _QUDA_BRIDGE_HPP
 #define _QUDA_BRIDGE_HPP
 
-#include <quda.h>
-
 #ifndef EXTERN_QUDA_BRIDGE
  #define EXTERN_QUDA_BRIDGE extern
  #define INIT_TO(var)
 #else
  #define INIT_TO(var) =var
 #endif
+
+#include <quda.h>
+
+#include "geometry/geometry_eo.hpp"
 
 namespace quda_iface
 {
@@ -39,7 +41,8 @@ namespace quda_iface
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in);
   void remap_nissa_to_quda(spincolor *out,spincolor *in);
   void remap_quda_to_nissa(spincolor *out,spincolor *in);
-  void solve(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source);
+  void solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source);
+  void solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source);
 }
 
 #undef INIT_TO

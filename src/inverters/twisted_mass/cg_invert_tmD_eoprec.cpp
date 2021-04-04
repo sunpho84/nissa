@@ -176,7 +176,7 @@ namespace nissa
 	// Quda
 #ifdef USE_QUDA
       case QUDA_SOLVER:
-	quda_iface::solve(solution_lx,conf_lx,kappa,mass,nitermax,residue,source_lx);
+	quda_iface::solve_tmD(solution_lx,conf_lx,kappa,mass,nitermax,residue,source_lx);
 	break;
 #endif
 	
@@ -186,7 +186,6 @@ namespace nissa
 	crash("Not yet implemented");
 	break;
 #endif
-	
 	
       case NATIVE_SOLVER:
 	inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);

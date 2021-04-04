@@ -27,6 +27,10 @@ namespace quda_iface
   /// Conf used to remap
   quda_conf_t quda_conf{};
   
+  /// Color used to remap
+  color *color_in=nullptr;
+  color *color_out=nullptr;
+  
   /// Spincolor used to remap
   spincolor *spincolor_in=nullptr;
   spincolor *spincolor_out=nullptr;
@@ -109,6 +113,9 @@ namespace quda_iface
 	
 	spincolor_in=nissa_malloc("spincolor_in",locVol,spincolor);
 	spincolor_out=nissa_malloc("spincolor_out",locVol,spincolor);
+	
+	color_in=nissa_malloc("color_in",locVol,color);
+	color_out=nissa_malloc("color_out",locVol,color);
 	
 	set_quda_verbosity();
 	
@@ -238,6 +245,9 @@ namespace quda_iface
 	nissa_free(spincolor_in);
 	nissa_free(spincolor_out);
 	
+	nissa_free(color_in);
+	nissa_free(color_out);
+	
 	//free the clover and gauge conf
 	freeGaugeQuda();
 	freeCloverQuda();
@@ -257,8 +267,6 @@ namespace quda_iface
   /// Reorder conf into QUDA format
   void remap_nissa_to_quda(quda_conf_t out,quad_su3 *in)
   {
-    master_printf("%s\n",__FUNCTION__);
-    
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	const int iquda=quda_of_loclx[ivol];
@@ -271,11 +279,26 @@ namespace quda_iface
     THREAD_BARRIER();
   }
   
-  /// Reorder spinor to QUDA format
+  /// Reorder conf into QUDA format
+  void remap_nissa_to_quda(quda_conf_t out,eo_ptr<quad_su3> in)
+  {
+    for(int par=0;par<2;par++)
+      NISSA_PARALLEL_LOOP(ivolh,0,locVolh)
+	{
+	  const int ivol=loclx_of_loceo[par][ivolh];
+	  const int iquda=quda_of_loclx[ivol];
+	
+	for(int nu=0;nu<NDIM;nu++)
+	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[par][ivolh][nu]);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    THREAD_BARRIER();
+  }
+  
+  /// Reorder spincolor to QUDA format
   void remap_nissa_to_quda(spincolor *out,spincolor *in)
   {
-    master_printf("%s\n",__FUNCTION__);
-    
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	const int iquda=quda_of_loclx[ivol];
@@ -286,7 +309,22 @@ namespace quda_iface
     THREAD_BARRIER();
   }
   
-  /// Reorder spinor from QUDA format
+  /// Reorder color to QUDA format
+  void remap_nissa_to_quda(color *out,eo_ptr<color> in)
+  {
+    for(int par=0;par<2;par++)
+      NISSA_PARALLEL_LOOP(ivolh,0,locVolh)
+	{
+	  const int ivol=loclx_of_loceo[par][ivolh];
+	  const int iquda=quda_of_loclx[ivol];
+	  color_copy(out[iquda],in[par][ivolh]);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    THREAD_BARRIER();
+  }
+  
+  /// Reorder spincolor from QUDA format
   void remap_quda_to_nissa(spincolor *out,spincolor *in)
   {
     NISSA_PARALLEL_LOOP(iquda,0,locVol)
@@ -299,8 +337,25 @@ namespace quda_iface
     set_borders_invalid(out);
   }
   
+  /// Reorder color from QUDA format
+  void remap_quda_to_nissa(eo_ptr<color> out,color *in)
+  {
+    NISSA_PARALLEL_LOOP(iquda,0,locVol)
+      {
+	const int ivol=loclx_of_quda[iquda];
+	const int par=loclx_parity[ivol];
+	const int ivolh=loceo_of_loclx[ivol];
+	color_copy(out[par][ivolh],in[iquda]);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    for(int par=0;par<2;par++)
+      set_borders_invalid(out[par]);
+  }
+  
   /// Load a gauge conf
-  void load_conf(quad_su3 *nissa_conf)
+  template<typename T>
+  void load_conf(T nissa_conf)
   {
     master_printf("freeing the QUDA gauge conf\n");
     freeGaugeQuda();
@@ -369,7 +424,7 @@ namespace quda_iface
     remap_quda_to_nissa(out,spincolor_out);
   }
   
-  void solve(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
+  void solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
     load_conf(conf);
     
@@ -383,7 +438,7 @@ namespace quda_iface
     inv_param.solve_type=QUDA_NORMERR_PC_SOLVE;
     
     //minus due to different gamma5 definition
-    inv_param.mu=-mu;// /(2.0*kappa); /// Check kappa
+    inv_param.mu=-mu;
     inv_param.epsilon=0.0;
     
     inv_param.twist_flavor=QUDA_TWIST_SINGLET;
@@ -400,5 +455,34 @@ namespace quda_iface
     master_printf("# QUDA solved in: %i iter / %g secs = %g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
     
     remap_quda_to_nissa(sol,spincolor_out);
+  }
+  
+  void solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source)
+  {
+    load_conf(conf);
+    
+    inv_param.dslash_type=QUDA_STAGGERED_DSLASH;
+    inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN_ASYMMETRIC;
+    inv_param.solution_type=QUDA_MAT_SOLUTION;
+    
+    inv_param.inv_type=QUDA_CG_INVERTER;
+    inv_param.solve_type=QUDA_NORMERR_PC_SOLVE;
+    
+    //minus due to different gamma5 definition
+    inv_param.mass=mass;
+    
+    inv_param.tol=sqrt(residue);
+    inv_param.maxiter=niter;
+    inv_param.Ls=1;
+    
+    set_quda_verbosity();
+    
+    remap_nissa_to_quda(color_in,source);
+    
+    invertQuda(color_out,color_in,&inv_param);
+    
+    master_printf("# QUDA solved in: %i iter / %g secs = %g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
+    
+    remap_quda_to_nissa(sol,color_out);
   }
 }
