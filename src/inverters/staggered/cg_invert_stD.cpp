@@ -4,7 +4,10 @@
 
 #include "cg_invert_evn_stD.hpp"
 
-#include "base/quda_bridge.hpp"
+#ifdef USE_QUDA
+# include "base/quda_bridge.hpp"
+#endif
+
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_eo.hpp"
