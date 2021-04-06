@@ -8,17 +8,25 @@
  #define INIT_TO(var) =var
 #endif
 
-#include <quda.h>
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
+#ifdef USE_QUDA
+# include <quda.h>
+#endif
 
 #include "geometry/geometry_eo.hpp"
 
 namespace quda_iface
 {
+#ifdef USE_QUDA
   EXTERN_QUDA_BRIDGE QudaGaugeParam  gauge_param;
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_param;
   
   EXTERN_QUDA_BRIDGE QudaMultigridParam quda_mg_param;
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_mg_param;
+#endif
   
   EXTERN_QUDA_BRIDGE void* quda_mg_preconditioner INIT_TO(nullptr);
   
