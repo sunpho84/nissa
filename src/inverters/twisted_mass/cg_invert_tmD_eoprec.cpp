@@ -4,15 +4,9 @@
 
 #include <string.h>
 
-#ifdef USE_TMLQCD
- #include "base/tmLQCD_bridge.hpp"
-#endif
-#ifdef USE_DDALPHAAMG
- #include "base/DDalphaAMG_bridge.hpp"
-#endif
-#ifdef USE_QUDA
- #include "base/quda_bridge.hpp"
-#endif
+#include "base/DDalphaAMG_bridge.hpp"
+#include "base/quda_bridge.hpp"
+#include "base/tmLQCD_bridge.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
@@ -127,93 +121,39 @@ namespace nissa
   
   void inv_tmD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mass,int nitermax,double residue,spincolor *source_lx)
   {
-    enum SolverType{NATIVE_SOLVER
-#ifdef USE_TMLQCD
-      ,TMLQCD_SOLVER
-#endif
-#ifdef USE_DDALPHAAMG
-      ,DDALPHAAMG_SOLVER
-#endif
-#ifdef USE_QUDA
-      ,QUDA_SOLVER
-#endif
-    };
+    /// Keep track of convergence
+    bool solved=false;
     
+    if(checkIfQudaAvailableAndRequired() and not solved)
+      solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,mass,nitermax,residue,source_lx);
     
-    /// Take note of whther we want to use an external solver
-    SolverType solverType=NATIVE_SOLVER;
-    
-      //DD case
-#ifdef USE_DDALPHAAMG
-      if(use_DD and fabs(mass)<=DD::max_mass)
-	solverType=DDALPHAAMG_SOLVER;
-#endif
-    
-#ifdef USE_QUDA
-      if(use_quda)
-	solverType=QUDA_SOLVER;
-#endif
-    
-#ifdef USE_TMLQCD
-    if(use_tmLQCD)
+    if(checkIfDDalphaAvailableAndRequired(mass) and not solved)
       {
-	crash("Not yet");
-	soverType=TMLQCD_SOLVER;
+	const double cSW=0;
+	solved=DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
       }
-#endif
     
-    double cSW=0;
-    
-    switch(solverType)
-      {
-	// DDalphaamg
-#ifdef USE_DDALPHAAMG
-      case DDALPHAAMG_SOLVER:
-	DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
-	break;
-#endif
+    if(checkIfTmLQCDAvailableAndRequired() and not solved)
+      crash("Not yet implemented");
 	
-	// Quda
-#ifdef USE_QUDA
-      case QUDA_SOLVER:
-	quda_iface::solve_tmD(solution_lx,conf_lx,kappa,mass,nitermax,residue,source_lx);
-	break;
-#endif
-	
-	// TmLQCD
-#ifdef USE_TMLQCD
-      case tmLQCD_SOLVER:
-	crash("Not yet implemented");
-	break;
-#endif
-	
-      case NATIVE_SOLVER:
-	inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);
-	break;
-      }
+    if(not solved)
+      inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);
     
     //check solution
-    spincolor *temp_lx=nissa_malloc("temp",locVol,spincolor);
-    apply_tmQ(temp_lx,conf_lx,kappa,mass,solution_lx);
+    spincolor *residueVec=nissa_malloc("temp",locVol,spincolor);
+    apply_tmQ(residueVec,conf_lx,kappa,mass,solution_lx);
+    safe_dirac_prod_spincolor(residueVec,base_gamma+5,residueVec);
+    double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol*sizeof(spincolor)/sizeof(double));
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int id=0;id<NDIRAC;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    temp_lx[ivol][id][ic][ri]-=source_lx[ivol][id][ic][ri]*(id<2?+1:-1);
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+    /// Source L2 norm
+    const double sourceNorm2=double_vector_glb_norm2(source_lx,locVol);
     
-    //compute the norm and print it
-    double sonorm2=double_vector_glb_norm2(source_lx,locVol);
-    double norm2=double_vector_glb_norm2(temp_lx,locVol);
-    master_printf("check solution: %lg\n",norm2/sonorm2);
-    nissa_free(temp_lx);
-    // for(int ivol=0;ivol<loc_vol;ivol++)
-    //   for(int id=0;id<4;id++)
-    //     for(int ic=0;ic<3;ic++)
-    // 	for(int ri=0;ri<2;ri++)
-    // 	  printf("anna %d %d %d %d %16.16lg\n",ivol,id,ic,ri,solution_lx[ivol][id][ic][ri]);
+    /// Residue L2 norm
+    const double residueNorm2=double_vector_glb_norm2(residueVec,locVol);
+    
+    master_printf("check solution, residue: %lg, target one: %lg\n",residueNorm2/sourceNorm2,residue);
+    
+    nissa_free(residueVec);
   }
 }
 

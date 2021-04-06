@@ -425,7 +425,7 @@ namespace quda_iface
     remap_quda_to_nissa(out,spincolor_out);
   }
   
-  void solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
+  bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
     load_conf(conf);
     
@@ -457,9 +457,12 @@ namespace quda_iface
     master_printf("# QUDA solved in: %i iter / %g secs = %g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
     
     remap_quda_to_nissa(sol,spincolor_out);
+    
+    // Might return actual result of the convergence with some proper error handling?
+    return true;
   }
   
-  void solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source)
+  bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source)
   {
     load_conf(conf);
     
@@ -488,5 +491,7 @@ namespace quda_iface
     master_printf("# QUDA solved in: %i iter / %g secs = %g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
     
     remap_quda_to_nissa(sol,color_out);
+    
+    return true;
   }
 }

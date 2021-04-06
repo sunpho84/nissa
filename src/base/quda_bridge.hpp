@@ -30,6 +30,17 @@ namespace quda_iface
 namespace nissa
 {
   EXTERN_QUDA_BRIDGE int use_quda INIT_TO(false);
+  
+  /// If Quda is available, check if requested
+  constexpr inline bool checkIfQudaAvailableAndRequired()
+  {
+#ifdef USE_QUDA
+    if(USE_QUDA)
+      return true;
+    else
+#endif
+      return false;
+  }
 }
 
 namespace quda_iface
@@ -41,8 +52,8 @@ namespace quda_iface
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in);
   void remap_nissa_to_quda(spincolor *out,spincolor *in);
   void remap_quda_to_nissa(spincolor *out,spincolor *in);
-  void solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source);
-  void solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source);
+  bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source);
+  bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source);
 }
 
 #undef INIT_TO
