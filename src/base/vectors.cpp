@@ -26,11 +26,15 @@ namespace nissa
 {
   //return the pointer to the nissa vect
   nissa_vect* get_vect(void *v)
-  {return (nissa_vect*)v-1;}
+  {
+    return (nissa_vect*)v-1;
+  }
   
   //return the name of the vector
   char *get_vect_name(void *v)
-  {return get_vect(v)->tag;}
+  {
+    return get_vect(v)->tag;
+  }
   
   //print the content of an nissa vect
   void vect_content_fprintf(FILE *fout,nissa_vect *vect)

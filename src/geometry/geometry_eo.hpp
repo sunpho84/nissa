@@ -18,21 +18,19 @@
 
 namespace nissa
 {
-  //Structure to hold an even/old field
+  /// Structure to hold an even/old field
   template <typename T>
   struct eo_ptr
   {
     /// Type representing a pointer to type T
     using Tptr=T*;
     
-    /// Type representing a pair of pointers
-    using Tptr2=Tptr[2];
-    
     /// Inner pointer pairs
     Tptr data[2];
     
     /// Access to data[i]
-    CUDA_HOST_AND_DEVICE Tptr& operator[](const int i)
+    CUDA_HOST_AND_DEVICE
+    Tptr& operator[](const int i)
     {
       static_assert(std::is_trivially_copyable<eo_ptr<T>>::value,"not trivially copyable");
       return data[i];
@@ -45,7 +43,10 @@ namespace nissa
     }
     
     /// Create from a pair of pointers
-    CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) : data{a,b} {}
+    CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) :
+      data{a,b}
+    {
+    }
     
     /// Default creator
     CUDA_HOST_AND_DEVICE eo_ptr()
