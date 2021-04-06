@@ -13,6 +13,7 @@
 
 #define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<locVolh;a++)
 
+#include "base/metaprogramming.hpp"
 #include "geometry_lx.hpp"
 #include "new_types/su3.hpp"
 
@@ -28,19 +29,14 @@ namespace nissa
     /// Inner pointer pairs
     Tptr data[2];
     
-    /// Access to data[i]
+    /// Constant access to data[i]
     CUDA_HOST_AND_DEVICE
-    Tptr& operator[](const int i)
+    const Tptr& operator[](const int i) const
     {
-      static_assert(std::is_trivially_copyable<eo_ptr<T>>::value,"not trivially copyable");
       return data[i];
     }
     
-    /// Constant access to data[i]
-    CUDA_HOST_AND_DEVICE const Tptr& operator[](const int i) const
-    {
-      return data[i];
-    }
+    PROVIDE_ALSO_NON_CONST_METHOD(operator[]);
     
     /// Create from a pair of pointers
     CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) :
