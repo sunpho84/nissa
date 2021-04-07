@@ -9,7 +9,7 @@
 
 #include "bench.hpp"
 #include "debug.hpp"
-#include "memory_manager.hpp"
+#include <memory/memoryManager.hpp>
 #include "random.hpp"
 #include "vectors.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -73,7 +73,7 @@ namespace nissa
 	printf("For a total of %zu bytes\n",compute_vect_memory_usage());
       }
     
-    delete cpu_memory_manager;
+    delete cpuMemoryManager;
 #ifdef USE_CUDA
     delete gpu_memory_manager;
 #endif

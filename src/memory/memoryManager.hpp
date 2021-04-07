@@ -19,11 +19,13 @@
 
 #include <base/debug.hpp>
 #include <base/metaprogramming.hpp>
+#include <memory/storLoc.hpp>
 #include <routines/ios.hpp>
 #include <new_types/value_with_extreme.hpp>
 
 namespace nissa
 {
+  /// Type of memory
   enum class MemoryType{CPU ///< Memory allocated on CPU side
 #ifdef USE_CUDA
 			,GPU ///< Memory allocated on GPU side
@@ -336,7 +338,7 @@ namespace nissa
     }
   };
   
-  EXTERN_MEMORY_MANAGER CPUMemoryManager *cpu_memory_manager;
+  EXTERN_MEMORY_MANAGER CPUMemoryManager *cpuMemoryManager;
   
 #ifdef USE_CUDA
   
@@ -370,9 +372,56 @@ namespace nissa
     }
   };
   
-  EXTERN_MEMORY_MANAGER GPUMemoryManager *gpu_memory_manager;
+  EXTERN_MEMORY_MANAGER GPUMemoryManager *gpuMemoryManager;
 
 #endif
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Wraps the memory manager
+  ///
+  /// Forward definition
+  template <StorLoc>
+  struct MemoryManageWrapper;
+  
+  /// Use memory manager
+  ///
+  /// CPU case
+  template <>
+  struct MemoryManageWrapper<StorLoc::ON_CPU>
+  {
+    /// Returns the cpu memory manager
+    static auto& get()
+    {
+      return cpuMemoryManager;
+    }
+  };
+  
+  /// Use memory manager
+  ///
+  /// GPU case
+  template <>
+  struct MemoryManageWrapper<StorLoc::ON_GPU>
+  {
+    /// Returns the gpu memory manager
+    static auto& get()
+    {
+      return
+#ifdef USE_CUDA
+	gpuMemoryManager
+#else
+	cpuMemoryManager
+#endif
+  ;
+    }
+  };
+  
+  /// Gets the appropriate memory manager
+  template <StorLoc SL>
+  inline auto memoryManager()
+  {
+    return MemoryManageWrapper<SL>::get();
+  }
 }
 
 #undef EXTERN_MEMORY_MANAGER

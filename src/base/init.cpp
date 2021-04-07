@@ -21,7 +21,7 @@
 #include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/git_info.hpp"
-#include "base/memory_manager.hpp"
+#include <memory/memoryManager.hpp>
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 
@@ -135,9 +135,9 @@ namespace nissa
     initialize_main_vect();
     
     //initialize the memory manager
-    cpu_memory_manager=new CPUMemoryManager;
+    cpuMemoryManager=new CPUMemoryManager;
 #ifdef USE_CUDA
-    gpu_memory_manager=new GPUMemoryManager;
+    gpuMemoryManager=new GPUMemoryManager;
 #endif
     
     //initialize global variables

@@ -1,8 +1,5 @@
 ########################################### base sources ##################################
 
-#add nissa library
-lib_LIBRARIES=$(top_builddir)/lib/libnissa.a
-
 %D%/git_info.hpp: $(top_srcdir)/.git/HEAD $(top_srcdir)/.git/index $(top_srcdir)/config/get_git_info.sh Makefile
 	@echo "Reading git version"
 	@$(top_srcdir)/config/get_git_info.sh $(top_srcdir) > $@
@@ -12,12 +9,11 @@ $(top_srcdir)/.git/index:
 
 BUILT_SOURCES=%D%/git_info.hpp
 
-__top_builddir__lib_libnissa_a_SOURCES= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/bench.cpp \
 	%D%/close.cpp \
 	%D%/debug.cpp \
 	%D%/init.cpp \
-	%D%/memory_manager.cpp \
 	%D%/random.cpp \
 	%D%/vectors.cpp
 include_HEADERS+= \
@@ -27,7 +23,6 @@ include_HEADERS+= \
 	%D%/debug.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
-	%D%/memory_manager.hpp \
 	%D%/random.hpp \
 	%D%/vectors.hpp
 
