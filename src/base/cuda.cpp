@@ -24,6 +24,7 @@ namespace nissa
 	cudaGetDeviceProperties(&deviceProp,i);
 	printf(" rank %d CUDA Enabled device %d/%d: %d.%d\n",rank,i,nDevices,deviceProp.major,deviceProp.minor);
       }
+    
     //assumes that if we are seeing multiple gpus, there are nDevices ranks to attach to each of it
     if(nDevices!=1)
       {
