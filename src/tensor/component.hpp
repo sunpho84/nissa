@@ -78,18 +78,114 @@ namespace nissa
   
   /// Transposed of a row
   template <>
-  constexpr RwCl transp<ROW> =
+  inline constexpr RwCl transp<ROW> =
     CLN;
   
   /// Transposed of a column
   template <>
-  constexpr RwCl transp<CLN> =
+  inline RwCl transp<CLN> =
     ROW;
   
   /// Transposed of any
   template <>
-  constexpr RwCl transp<ANY> =
+  inline constexpr RwCl transp<ANY> =
     ANY;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  // Component
+  
+  /// Tensor component defined by base type S
+  template <typename S,
+	    RwCl RC=ROW,
+	    int Which=0>
+  struct TensorComp
+  {
+    /// Transposed component
+    using Transp=
+      TensorComp<S,transp<RC>,Which>;
+    
+    /// Base type
+    using Base=
+      S;
+    
+    /// Value type
+    using Index=
+      typename S::Index;
+    
+    /// Value
+    Index i;
+    
+    /// Row or column
+    static constexpr
+    RwCl rC=
+      RC;
+    
+    /// Index of the component
+    static constexpr
+    int which=
+      Which;
+    
+    /// Check if the size is known at compile time
+    static constexpr
+    bool SizeIsKnownAtCompileTime=
+      Base::sizeAtCompileTime!=DYNAMIC;
+  
+  /// Init from value
+  INLINE_FUNCTION CUDA_HOST_DEVICE
+    // explicit
+    constexpr TensorComp(const Index& i=0) : i(i)
+    {
+    }
+    
+    /// Convert to actual reference
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    operator Index&()
+    {
+      return
+	i;
+    }
+    
+    /// Convert to actual reference with const attribute
+    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
+    operator const Index&()
+      const
+    {
+      return
+	i;
+    }
+    
+    /// Convert to actual reference with const attribute
+    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
+    const Index& operator()()
+      const
+    {
+      return
+	i;
+    }
+    
+    PROVIDE_ALSO_NON_CONST_METHOD_GPU(operator());
+    
+    /// Transposed index
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    auto transp()
+      const
+    {
+      return
+	Transp{i};
+    }
+    
+    /// Assignment operator
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    TensorComp& operator=(const Index& oth)
+    {
+      i=oth;
+      
+      return
+	*this;
+    }
+  };
+  
   
 }
 
