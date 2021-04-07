@@ -13,9 +13,9 @@
 
 #define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<locVolh;a++)
 
-#include "base/metaprogramming.hpp"
-#include "geometry_lx.hpp"
-#include "new_types/su3.hpp"
+#include <metaProgramming/nonConstMethod.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <new_types/su3.hpp>
 
 namespace nissa
 {

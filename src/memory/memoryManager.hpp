@@ -18,7 +18,7 @@
 #endif
 
 #include <base/debug.hpp>
-#include <base/metaprogramming.hpp>
+#include <metaProgramming/crtp.hpp>
 #include <memory/storLoc.hpp>
 #include <routines/ios.hpp>
 #include <new_types/value_with_extreme.hpp>
