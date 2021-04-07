@@ -25,7 +25,7 @@ namespace nissa
   /// A const method NAME must be already present Example
   ///
   /// \code
-  // class ciccio
+  // class nissa
   /// {
   ///   double e{0};
   ///
@@ -44,7 +44,7 @@ namespace nissa
   template <typename...Ts> /* Type of all arguments                  */	\
   decltype(auto) NAME(Ts&&...ts) /*!< Arguments                      */ \
   {									\
-    return remove_const_if_ref(as_const(*this).NAME(std::forward<Ts>(ts)...)); \
+    return remove_const_if_ref(std::as_const(*this).NAME(std::forward<Ts>(ts)...)); \
   }
 }
 
