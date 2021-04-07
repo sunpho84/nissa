@@ -136,7 +136,11 @@
 #include <measures/gauge/topological_charge.hpp>
 #include <measures/gauge/watusso.hpp>
 
+#include <metaProgramming/crtp.hpp>
 #include <metaProgramming/inliner.hpp>
+#include <metaProgramming/nonConstMethod.hpp>
+#include <metaProgramming/refOrVal.hpp>
+#include <metaProgramming/tuple.hpp>
 #include <metaProgramming/unrolledFor.hpp>
 
 #include <new_types/complex.hpp>
