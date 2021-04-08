@@ -304,7 +304,6 @@ NHBHits DEBUG_PRINTF("Found NHBHits\n");return TK_NHB_HITS;
 NHBSweeps DEBUG_PRINTF("Found NHBSweeps\n");return TK_NHB_SWEEPS;
 NOVHits DEBUG_PRINTF("Found NOVHits\n");return TK_NOV_HITS;
 NOVSweeps DEBUG_PRINTF("Found NOVSweeps\n");return TK_NOV_SWEEPS;
-UseFacc DEBUG_PRINTF("Found UseFacc\n");return TK_USE_FACC;
 UseHMC DEBUG_PRINTF("Found UseHMC\n");return TK_USE_HMC;
 
  /* analysis pars */

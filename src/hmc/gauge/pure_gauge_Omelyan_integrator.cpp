@@ -15,7 +15,6 @@
 
 #include "gluonic_action.hpp"
 #include "gluonic_force.hpp"
-#include "MFACC_fields.hpp"
 
 #include "pure_gauge_Omelyan_integrator.hpp"
 
@@ -24,12 +23,9 @@
 #ifdef DEBUG
 namespace nissa
 {
-  double pure_gauge_action(quad_su3 *conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,quad_su3 *H,su3 **phi,su3 **pi);
+  double pure_gauge_action(quad_su3 *conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,quad_su3 *H);
 }
 #endif
-
-int evolve_SU3=1;
-int evolve_FACC=1;
 
 namespace nissa
 {
@@ -41,7 +37,7 @@ namespace nissa
     verbosity_lv2_master_printf("Evolving momenta with pure gauge force, dt=%lg\n",dt);
     
     //allocate force and compute it
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
+    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol.nastyConvert(),quad_su3):ext_F;
     compute_gluonic_force_lx_conf(F,conf,theory_pars);
     
     //evolve
@@ -51,11 +47,11 @@ namespace nissa
   }
   
   //same but with acceleration
-  void evolve_momenta_and_FACC_momenta(quad_su3* H,su3** pi,quad_su3* conf,su3** phi,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul,double dt,quad_su3* ext_F)
+  void evolve_momenta(quad_su3* H,quad_su3* conf,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul,double dt,quad_su3* ext_F)
   {
     verbosity_lv2_master_printf("Evolving momenta and FACC momenta, dt=%lg\n",dt);
     
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
+    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol.nastyConvert(),quad_su3):ext_F;
     
 #ifdef DEBUG
     vector_reset(F);
@@ -64,7 +60,7 @@ namespace nissa
     //store initial link and compute action
     su3 sto;
     su3_copy(sto,conf[0][0]);
-    double act_ori=pure_gauge_action(conf,*theory_pars,*simul,H,phi,pi);
+    double act_ori=pure_gauge_action(conf,*theory_pars,*simul,H);
     
     //store derivative
     su3 nu_plus,nu_minus;
@@ -107,19 +103,14 @@ namespace nissa
 #endif
     
     //compute the various contribution to the QCD force
-    if(evolve_SU3)
-      {
-	//compute without TA
-	vector_reset(F);
-	compute_gluonic_force_lx_conf_do_not_finish(F,conf,theory_pars);
-	summ_the_MFACC_momenta_QCD_force(F,conf,simul->kappa,pi,simul->naux_fields);
-	summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
-	
-	//finish the calculation
-	gluonic_force_finish_computation(F,conf);
-	
-	evolve_lx_momenta_with_force(H,F,dt);
-      }
+    //compute without TA
+    vector_reset(F);
+    compute_gluonic_force_lx_conf_do_not_finish(F,conf,theory_pars);
+    
+    //finish the calculation
+    gluonic_force_finish_computation(F,conf);
+    
+    evolve_lx_momenta_with_force(H,F,dt);
     
 #ifdef DEBUG
     master_printf("checking TOTAL gauge force\n");
@@ -134,52 +125,7 @@ namespace nissa
     //crash("anna");
 #endif
     
-    //evolve FACC momenta
-    if(evolve_FACC) evolve_MFACC_momenta(pi,phi,simul->naux_fields,dt);
-    
     if(ext_F==NULL) nissa_free(F);
-  }
-  
-  //combine the two fields evolution
-  void evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(quad_su3 *conf,su3 **phi,quad_su3 *H,su3 **pi,int naux_fields,double kappa,int niter,double residue,double dt)
-  {
-    if(evolve_FACC) evolve_MFACC_fields(phi,naux_fields,conf,kappa,pi,dt);
-    if(evolve_SU3) evolve_lx_conf_with_accelerated_momenta(conf,conf,H,kappa,niter,residue,dt);
-  }
-  
-  //integrator for pure gauge
-  void Omelyan_pure_gauge_FACC_evolver(quad_su3* H,quad_su3* conf,su3** pi,su3** phi,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul)
-  {
-    const int niter_max=1000000;
-    
-    //macro step or micro step
-    double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,
-      ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
-    int nsteps=simul->nmd_steps;
-    
-    quad_su3 *F=nissa_malloc("F",locVol,quad_su3);
-    
-    evolve_momenta_and_FACC_momenta(H,pi,conf,phi,theory_pars,simul,ldt,F);
-    
-    //         Main loop
-    for(int istep=0;istep<nsteps;istep++)
-      {
-	verbosity_lv1_master_printf("Omelyan step %d/%d\n",istep+1,nsteps);
-	
-	//decide if last step is final or not
-	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
-	
-	evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(conf,phi,H,pi,simul->naux_fields,simul->kappa,niter_max,simul->residue,dth);
-	evolve_momenta_and_FACC_momenta(H,pi,conf,phi,theory_pars,simul,uml2dt,F);
-	
-	evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(conf,phi,H,pi,simul->naux_fields,simul->kappa,niter_max,simul->residue,dth);
-	evolve_momenta_and_FACC_momenta(H,pi,conf,phi,theory_pars,simul,last_dt,F);
-	
-	//normalize the configuration
-	unitarize_lx_conf_maximal_trace_projecting(conf);
-      }
-    
-    nissa_free(F);
   }
   
   //integrator for pure gauge
@@ -189,7 +135,7 @@ namespace nissa
     double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
     int nsteps=simul->nmd_steps;
     
-    quad_su3 *F=nissa_malloc("F",locVol,quad_su3);
+    quad_su3 *F=nissa_malloc("F",locVol.nastyConvert(),quad_su3);
     
     //first evolve for momenta
     evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,ldt,F);

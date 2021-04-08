@@ -1,7 +1,6 @@
 ######################################## dirac operators#####################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/momenta/MFACC.cpp \
 	%D%/stD/dirac_operator_stD.cpp \
 	%D%/tmD_eoprec/dirac_operator_tmD_eoprec.cpp \
 	%D%/tmQ/dirac_operator_tmQ.cpp \
@@ -26,7 +25,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/tmQ2/dirac_operator_tmQ2_128.cpp
 
 include_HEADERS+= \
-	%D%/momenta/MFACC.hpp \
 	%D%/stD/dirac_operator_stD.hpp\
 	%D%/tmD_eoprec/dirac_operator_tmD_eoprec.hpp \
 	%D%/tmD_eoprec/dirac_operator_tmD_eoprec_128.hpp \

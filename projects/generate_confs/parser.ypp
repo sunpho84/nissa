@@ -313,7 +313,6 @@
 %token TK_NHB_SWEEPS
 %token TK_NOV_HITS
 %token TK_NOV_SWEEPS
-%token TK_USE_FACC
 %token TK_USE_HMC
 //gauge conf parameters
 %token TK_GAUGE_CONF
@@ -724,10 +723,6 @@ global_quenched_evolve_pars: TK_QUENCHED_EVOLUTION {driver->run_mode=driver_t::E
                   | global_quenched_evolve_pars TK_TRAJ_LENGTH '=' double_numb {driver->quenched_evol_pars.traj_length=$4;}
                   | global_quenched_evolve_pars TK_SKIP_METRO '=' int_numb {driver->quenched_evol_pars.skip_mtest_ntraj=$4;}
                   | global_quenched_evolve_pars TK_NSTEPS '=' int_numb {driver->quenched_evol_pars.nmd_steps=$4;}
-                  | global_quenched_evolve_pars TK_USE_FACC '=' int_numb {driver->quenched_evol_pars.use_facc=$4;}
-                  | global_quenched_evolve_pars TK_KAPPA '=' double_numb {driver->quenched_evol_pars.kappa=$4;}
-                  | global_quenched_evolve_pars TK_RESIDUE '=' double_numb {driver->quenched_evol_pars.residue=$4;}
-                  | global_quenched_evolve_pars TK_NAUX_FIELDS '=' int_numb {driver->quenched_evol_pars.naux_fields=$4;}
                   | global_quenched_evolve_pars TK_NHB_SWEEPS '=' int_numb {driver->quenched_evol_pars.nhb_sweeps=$4;}
                   | global_quenched_evolve_pars TK_NHB_HITS '=' int_numb {driver->quenched_evol_pars.nhb_hits=$4;}
                   | global_quenched_evolve_pars TK_NOV_SWEEPS '=' int_numb {driver->quenched_evol_pars.nov_sweeps=$4;}

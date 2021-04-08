@@ -29,7 +29,6 @@
 #include <communicate/communicate.hpp>
 #include <communicate/edges.hpp>
 
-#include <dirac_operators/momenta/MFACC.hpp>
 #include <dirac_operators/stD/dirac_operator_stD.hpp>
 #include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp>
 #include <dirac_operators/tmQ/dirac_operator_tmQ.hpp>
@@ -72,7 +71,6 @@
 #include <hmc/gauge/gluonic_force.hpp>
 #include <hmc/gauge/pure_gauge_hmc_step.hpp>
 #include <hmc/gauge/pure_gauge_Omelyan_integrator.hpp>
-#include <hmc/gauge/pure_gauge_implicit_integrator.hpp>
 #include <hmc/gauge/topological_action.hpp>
 #include <hmc/gauge/topological_force.hpp>
 #include <hmc/gauge/Symanzik_force.hpp>
