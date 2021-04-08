@@ -49,7 +49,7 @@ namespace nissa
     if(ext_invCl_lx) invCl_lx=ext_invCl_lx;
     else
       {
-	invCl_lx=nissa_malloc("invCl",locVol,inv_clover_term_t);
+	invCl_lx=nissa_malloc("invCl",locVol.nastyConvert(),inv_clover_term_t);
 	invert_twisted_clover_term(invCl_lx,mass,kappa,Cl_lx);
       }
     
@@ -109,7 +109,7 @@ namespace nissa
     paste_eo_parts_into_lx_vector(solution_lx,solution_eos);
     
     //check for residual
-    spincolor *check_res=nissa_malloc("check_res",locVol+bord_vol,spincolor);
+    spincolor *check_res=nissa_malloc("check_res",(locVol+bord_vol).nastyConvert(),spincolor);
     //multiply by g5*D
     apply_tmclovQ(check_res,conf_lx,kappa,Cl_lx,mass,solution_lx);
     //remove g5 and take the difference with source
@@ -118,12 +118,12 @@ namespace nissa
 	const double mg5[2]={-1,1};
 	for(int high_low=0;high_low<2;high_low++)
 	  for(int id=high_low*NDIRAC/2;id<(high_low+1)*NDIRAC/2;id++)
-	    color_summ_the_prod_double(check_res[ivol][id],source_lx[ivol][id],mg5[high_low]);
+	    color_summ_the_prod_double(check_res[ivol.nastyConvert()][id],source_lx[ivol.nastyConvert()][id],mg5[high_low]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(check_res);
     //compute residual and print
-    double real_residue=double_vector_glb_norm2(check_res,locVol)/double_vector_glb_norm2(source_lx,locVol);
+    double real_residue=double_vector_glb_norm2(check_res,locVol.nastyConvert())/double_vector_glb_norm2(source_lx,locVol.nastyConvert());
     if(real_residue>residue*1.1) master_printf("WARNING preconditioned tmclovD solver, asked for residual: %lg, obtained %lg\n\n",residue,real_residue);
     
     nissa_free(check_res);
@@ -209,27 +209,27 @@ namespace nissa
 	  DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
 	  
 	  //check solution
-	  spincolor *temp_lx=nissa_malloc("temp",locVol,spincolor);
+	  spincolor *temp_lx=nissa_malloc("temp",locVol.nastyConvert(),spincolor);
 	  apply_tmclovQ(temp_lx,conf_lx,kappa,Cl_lx,mass,solution_lx);
 	  
 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	     for(int id=0;id<NDIRAC;id++)
 	       for(int ic=0;ic<NCOL;ic++)
 		 for(int ri=0;ri<2;ri++)
-		     temp_lx[ivol][id][ic][ri]-=source_lx[ivol][id][ic][ri]*(id<2?+1:-1);
+		     temp_lx[ivol.nastyConvert()][id][ic][ri]-=source_lx[ivol.nastyConvert()][id][ic][ri]*(id<2?+1:-1);
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
 	  
 	  //compute the norm and print it
-	  double sonorm2=double_vector_glb_norm2(source_lx,locVol);
-	  double norm2=double_vector_glb_norm2(temp_lx,locVol);
+	  double sonorm2=double_vector_glb_norm2(source_lx,locVol.nastyConvert());
+	  double norm2=double_vector_glb_norm2(temp_lx,locVol.nastyConvert());
 	  master_printf("check solution: %lg\n",norm2/sonorm2);
 	  nissa_free(temp_lx);
 	   // for(int ivol=0;ivol<loc_vol;ivol++)
 	  //   for(int id=0;id<4;id++)
 	  //     for(int ic=0;ic<3;ic++)
 	  // 	for(int ri=0;ri<2;ri++)
-	  // 	  printf("anna %d %d %d %d %16.16lg\n",ivol,id,ic,ri,solution_lx[ivol][id][ic][ri]);
+	  // 	  printf("anna %d %d %d %d %16.16lg\n",ivol,id,ic,ri,solution_lx[ivol.nastyConvert()][id][ic][ri]);
 	}
       else
 #endif

@@ -157,13 +157,13 @@ namespace nissa
   //put g5
   void tmDkern_eoprec_eos_put_together_and_include_gamma5(spincolor* out,spincolor* temp)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       for(int id=0;id<NDIRAC/2;id++)
 	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
 	    { //gamma5 is explicitely implemented
-	      out[ivol][id  ][ic][ri]=+temp[ivol][id  ][ic][ri]-out[ivol][id  ][ic][ri]*0.25;
-	      out[ivol][id+NDIRAC/2][ic][ri]=-temp[ivol][id+NDIRAC/2][ic][ri]+out[ivol][id+2][ic][ri]*0.25;
+	      out[ieo][id  ][ic][ri]=+temp[ieo][id  ][ic][ri]-out[ieo][id  ][ic][ri]*0.25;
+	      out[ieo][id+NDIRAC/2][ic][ri]=-temp[ieo][id+NDIRAC/2][ic][ri]+out[ieo][id+2][ic][ri]*0.25;
 	    }
     NISSA_PARALLEL_LOOP_END;
     

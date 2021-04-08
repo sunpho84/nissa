@@ -562,7 +562,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	locSize[mu]=glbSize[mu];
-	glbVol*=glbSize[mu];
+	glbVol*=(int64_t)glbSize[mu]; //Nasty
       }
     glbSpatVol=glbVol/(int64_t)glbSize[0];
     //glb_vol2=(double)glbVol*glbVol;
@@ -577,7 +577,7 @@ namespace nissa
     
     //check that lattice is commensurable with the grid
     //and check wether the mu dir is parallelized or not
-    int ok=(glbVol%nranks==0);
+    bool ok=(glbVol%(int64_t)nranks==0l);
     if(!ok) crash("The lattice is incommensurable with nranks!");
     
     for(int mu=0;mu<NDIM;mu++)
@@ -599,8 +599,8 @@ namespace nissa
     
     //calculate the local volume
     for(int mu=0;mu<NDIM;mu++) locSize[mu]=glbSize[mu]/nrank_dir[mu];
-    locVol=(glbVol/nranks).nastyConvert();
-    locSpatVol=locVol/locSize[0];
+    locVol=(glbVol/(int64_t)nranks).nastyConvert(); //nasty
+    locSpatVol=locVol/(int64_t)locSize[0]; //nasty
     //loc_vol2=(double)locVol*locVol;
     
     //calculate bulk size
@@ -608,13 +608,13 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       if(paral_dir[mu])
 	{
-	  bulkVol*=locSize[mu]-2;
-	  nonBwSurfVol*=locSize[mu]-1;
+	  bulkVol*=(int64_t)(locSize[mu]-2); //nasty
+	  nonBwSurfVol*=(int64_t)(locSize[mu]-1); //nasty
 	}
       else
 	{
-	  bulkVol*=locSize[mu];
-	  nonBwSurfVol*=locSize[mu];
+	  bulkVol*=(int64_t)locSize[mu];//nasty
+	  nonBwSurfVol*=(int64_t)locSize[mu]; //nasty
 	}
     nonFwSurfVol=nonBwSurfVol;
     fwSurfVol=bwSurfVol=locVol-nonBwSurfVol;
@@ -626,7 +626,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	//bord size along the mu dir
-	if(paral_dir[mu]) bord_dir_vol[mu]=locVol/locSize[mu];
+	if(paral_dir[mu]) bord_dir_vol[mu]=locVol/(int64_t)locSize[mu]; //nasty
 	else bord_dir_vol[mu]=0;
 	
 	//total bord
@@ -647,7 +647,7 @@ namespace nissa
       for(int nu=mu+1;nu<NDIM;nu++)
 	{
 	  //edge among the i and j dir
-	  if(paral_dir[mu] && paral_dir[nu]) edge_dir_vol[iedge]=bord_dir_vol[mu]/locSize[nu];
+	  if(paral_dir[mu] && paral_dir[nu]) edge_dir_vol[iedge]=bord_dir_vol[mu]/(int64_t)locSize[nu]; //nasty
 	  else edge_dir_vol[iedge]=0;
 	  
 	  //total edge
@@ -658,8 +658,8 @@ namespace nissa
 	    edge_offset[iedge]=edge_offset[iedge-1]+edge_dir_vol[iedge-1];
 	  iedge++;
 	}
-    edge_vol*=4;
-    edge_volh=(edge_vol/2).nastyConvert();
+    edge_vol*=4l; //nasty
+    edge_volh=(edge_vol/2l).nastyConvert(); //nasty
     master_printf("Edge vol: %d\n",edge_vol);
       
     //set edge numb

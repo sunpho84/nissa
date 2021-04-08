@@ -12,10 +12,10 @@
 /// as in this example
 /// \code
 /// template <typename D,
-///           SFINAE_ON_TEMPLATE_ARG(IsSame<D,int>)>
+///           ENABLE_THIS_TEMPLATE_IF(std::is_same<D,int>::value)>
 /// void foo(D i) {} // fails if D is not int
 /// \endcode
-#define SFINAE_ON_TEMPLATE_ARG(...)	\
+#define ENABLE_THIS_TEMPLATE_IF(...)			\
   std::enable_if_t<(__VA_ARGS__),void*> =nullptr
 
 #endif

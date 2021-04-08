@@ -12,7 +12,7 @@
 
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
-#define BULK_VOL locVol
+#define BULK_VOL locVol.nastyConvert()
 #define BORD_VOL bord_vol
 
 #define APPLY_OPERATOR apply_tmQ2_m2_RL
@@ -65,7 +65,7 @@ namespace nissa
       for(int id1=2;id1<4;id1++)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ri=0;ri<2;ri++)
-	    source[ivol][id1][ic1][ri]*=-1;
+	    source[ivol.nastyConvert()][id1][ic1][ri]*=-1;
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
@@ -74,7 +74,7 @@ namespace nissa
       for(int id1=2;id1<4;id1++)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ri=0;ri<2;ri++)
-	    source[ivol][id1][ic1][ri]*=-1;
+	    source[ivol.nastyConvert()][id1][ic1][ri]*=-1;
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(source);
   }

@@ -15,8 +15,8 @@ namespace nissa
     if(timeslice>=0 and timeslice<glbSize[0])
       {
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  if(glbCoordOfLoclx[ivol][0]!=timeslice)
-	    memset(prop_out[ivol],0,sizeof(prop_type));
+	  if(glbCoordOfLoclx[ivol.nastyConvert()][0]!=timeslice)
+	    memset(prop_out[ivol.nastyConvert()],0,sizeof(prop_type));
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(prop_out);
       }

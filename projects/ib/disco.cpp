@@ -376,10 +376,11 @@ struct FieldRngOf
   
   /// Returns a view on a specific site and real number
   CUDA_HOST_AND_DEVICE
-  RngView getRngViewOnGlbSiteIRndReal(const int& glblx,const int& irnd_real_per_site)
+  RngView getRngViewOnGlbSiteIRndReal(const GlbLxSite& glblx,const int& irnd_real_per_site)
   {
     //Computes the number in the stream of reals
-    const uint64_t irnd_double=offsetReal+glblx+glbVol*irnd_real_per_site;
+    const uint64_t irnd_double=
+      offsetReal+glblx.nastyConvert()+glbVol.nastyConvert()*irnd_real_per_site;
     
     //Computes the offset in the rng stream
     const uint64_t irnd_uint32_t=2*irnd_double;
@@ -389,7 +390,7 @@ struct FieldRngOf
   
   //Fill a specific site
   CUDA_HOST_AND_DEVICE
-  void _fillSite(double* reals,const uint64_t glblx)
+  void _fillSite(double* reals,const GlbLxSite& glblx)
   {
     for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
       {
@@ -422,8 +423,8 @@ struct FieldRngOf
     NISSA_PARALLEL_LOOP(loclx,0,locVol)
       {
 	//Finds the global site of local one
-	const int& glblx=glblxOfLoclx[loclx];
-	_fillSite((double*)(out+loclx),glblx);
+	const GlbLxSite glblx=glblxOfLoclx[loclx.nastyConvert()];
+	_fillSite((double*)(out+loclx.nastyConvert()),glblx);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -545,29 +546,29 @@ void init_simulation(int narg,char **arg)
   
   read_str_int("NGaugeConf",&ngauge_conf);
   
-  glb_conf=nissa_malloc("glb_conf",locVol+bord_vol+edge_vol,quad_su3);
+  glb_conf=nissa_malloc("glb_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
   if(useSme)
-    ape_conf=nissa_malloc("ape_conf",locVol+bord_vol+edge_vol,quad_su3);
+    ape_conf=nissa_malloc("ape_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
   
   if(cSW!=0.0)
     {
-      Cl=nissa_malloc("Cl",locVol,clover_term_t);
-      invCl=nissa_malloc("invCl",locVol,inv_clover_term_t);
+      Cl=nissa_malloc("Cl",locVol.nastyConvert(),clover_term_t);
+      invCl=nissa_malloc("invCl",locVol.nastyConvert(),inv_clover_term_t);
     }
   
   source_ptr=nissa_malloc("source_ptr",glbSize[0],spincolor*);
   for(int t=0;t<glbSize[0];t++)
-    source(t)=nissa_malloc("source",locVol+bord_vol,spincolor);
+    source(t)=nissa_malloc("source",(locVol+bord_vol).nastyConvert(),spincolor);
   
-  temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
+  temp=nissa_malloc("temp",(locVol+bord_vol).nastyConvert(),spincolor);
   
-  loc_contr=nissa_malloc("loc_contr",locVol,complex);
+  loc_contr=nissa_malloc("loc_contr",locVol.nastyConvert(),complex);
   temp_contr=nissa_malloc("temp_contr",glbSize[0],complex);
   
   prop_ptr=nissa_malloc("prop_ptr",2*glbSize[0],spincolor*);
   for(int t=0;t<glbSize[0];t++)
     for(int r=0;r<2;r++)
-      prop(t,r)=nissa_malloc("prop",locVol+bord_vol,spincolor);
+      prop(t,r)=nissa_malloc("prop",(locVol+bord_vol).nastyConvert(),spincolor);
   
   field_rng_stream.init(seed);
   
@@ -787,12 +788,12 @@ void fill_source(const int glbT)
   
   NISSA_PARALLEL_LOOP(loclx,0,locVol)
     {
-      if(glbT==glbCoordOfLoclx[loclx][0])
+      if(glbT==glbCoordOfLoclx[loclx.nastyConvert()][0])
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
-	    z4Transform(source(glbT)[loclx][id][ic]);//BoxMullerTransform(source[loclx][id][ic]);
+	    z4Transform(source(glbT)[loclx.nastyConvert()][id][ic]);//BoxMullerTransform(source[loclx][id][ic]);
       else
-	spincolor_put_to_zero(source(glbT)[loclx]);
+	spincolor_put_to_zero(source(glbT)[loclx.nastyConvert()]);
     }
   NISSA_PARALLEL_LOOP_END;
   
@@ -823,13 +824,13 @@ void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,dirac_matr* g
   NISSA_PARALLEL_LOOP(ivol,0,locVol)
     {
       spincolor gs;
-      unsafe_dirac_prod_spincolor(gs,gamma,prop(glbT,r2)[ivol]);
-      spincolor_scalar_prod(loc_contr[ivol],prop(glbT,r1)[ivol],gs);
+      unsafe_dirac_prod_spincolor(gs,gamma,prop(glbT,r2)[ivol.nastyConvert()]);
+      spincolor_scalar_prod(loc_contr[ivol.nastyConvert()],prop(glbT,r1)[ivol.nastyConvert()],gs);
     }
   NISSA_PARALLEL_LOOP_END;
   
   complex glb_contr[glbSize[0]];
-  glb_reduce(glb_contr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+  glb_reduce(glb_contr,loc_contr,locVol.nastyConvert(),glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
   
   for(int t=0;t<glbSize[0];t++)
     {
@@ -842,12 +843,12 @@ void compute_inserted_contr(double* contr,spincolor* propBw,spincolor* propFw,di
 {
   NISSA_PARALLEL_LOOP(ivol,0,locVol)
     {
-      unsafe_dirac_prod_spincolor(temp[ivol],gamma,propFw[ivol]);
+      unsafe_dirac_prod_spincolor(temp[ivol.nastyConvert()],gamma,propFw[ivol.nastyConvert()]);
     }
   NISSA_PARALLEL_LOOP_END;
   set_borders_invalid(temp);
   
-  complex_vector_glb_scalar_prod(contr,(complex*)propBw,(complex*)temp,locVol*sizeof(spincolor)/sizeof(complex));
+  complex_vector_glb_scalar_prod(contr,(complex*)propBw,(complex*)temp,locVol.nastyConvert()*sizeof(spincolor)/sizeof(complex));
 }
 
 void analyzeConf()
@@ -895,7 +896,7 @@ void analyzeConf()
 	for(int glbT=0;glbT<glbSize[0];glbT++)
 	  {
 	    prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
-	    complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,locVol*sizeof(spincolor)/sizeof(complex));
+	    complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,locVol.nastyConvert()*sizeof(spincolor)/sizeof(complex));
 	  }
       disco_time+=take_time();
       

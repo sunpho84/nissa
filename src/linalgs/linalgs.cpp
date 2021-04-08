@@ -361,8 +361,8 @@ namespace nissa
   {
     for(int eo=0;eo<2;eo++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-	  get_color_from_su3(out[eo][ivol],in[eo][ivol],ic_source);
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+	  get_color_from_su3(out[eo][ieo],in[eo][ieo],ic_source);
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(out[eo]);
       }
@@ -372,8 +372,8 @@ namespace nissa
   {
     for(int eo=0;eo<2;eo++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-	  put_color_into_su3(out[eo][ivol],in[eo][ivol],ic_source);
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+	  put_color_into_su3(out[eo][ieo],in[eo][ieo],ic_source);
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(out[eo]);
       }
@@ -384,7 +384,7 @@ namespace nissa
   void get_color_from_colorspinspin(color* out,colorspinspin* in,int id1,int id2)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      get_color_from_colorspinspin(out[ivol],in[ivol],id1,id2);
+      get_color_from_colorspinspin(out[ivol.nastyConvert()],in[ivol.nastyConvert()],id1,id2);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
@@ -392,7 +392,7 @@ namespace nissa
   void put_color_into_colorspinspin(colorspinspin* out,color* in,int id1,int id2)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      put_color_into_colorspinspin(out[ivol],in[ivol],id1,id2);
+      put_color_into_colorspinspin(out[ivol.nastyConvert()],in[ivol.nastyConvert()],id1,id2);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
@@ -402,7 +402,7 @@ namespace nissa
   void get_color_from_spincolor(color* out,spincolor* in,int id)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      get_color_from_spincolor(out[ivol],in[ivol],id);
+      get_color_from_spincolor(out[ivol.nastyConvert()],in[ivol.nastyConvert()],id);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
@@ -410,7 +410,7 @@ namespace nissa
   void put_color_into_spincolor(spincolor* out,color* in,int id)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      put_color_into_spincolor(out[ivol],in[ivol],id);
+      put_color_into_spincolor(out[ivol.nastyConvert()],in[ivol.nastyConvert()],id);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
@@ -420,7 +420,7 @@ namespace nissa
   void get_spincolor_from_colorspinspin(spincolor* out,colorspinspin* in,int id)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      get_spincolor_from_colorspinspin(out[ivol],in[ivol],id);
+      get_spincolor_from_colorspinspin(out[ivol.nastyConvert()],in[ivol.nastyConvert()],id);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
@@ -428,7 +428,7 @@ namespace nissa
   void put_spincolor_into_colorspinspin(colorspinspin* out,spincolor* in,int id)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      put_spincolor_into_colorspinspin(out[ivol],in[ivol],id);
+      put_spincolor_into_colorspinspin(out[ivol.nastyConvert()],in[ivol.nastyConvert()],id);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
@@ -438,7 +438,7 @@ namespace nissa
   void get_spincolor_from_su3spinspin(spincolor* out,su3spinspin* in,int id,int ic)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      get_spincolor_from_su3spinspin(out[ivol],in[ivol],id,ic);
+      get_spincolor_from_su3spinspin(out[ivol.nastyConvert()],in[ivol.nastyConvert()],id,ic);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
@@ -446,7 +446,7 @@ namespace nissa
   void put_spincolor_into_su3spinspin(su3spinspin* out,spincolor* in,int id,int ic)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      put_spincolor_into_su3spinspin(out[ivol],in[ivol],id,ic);
+      put_spincolor_into_su3spinspin(out[ivol.nastyConvert()],in[ivol.nastyConvert()],id,ic);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
@@ -456,7 +456,7 @@ namespace nissa
   void safe_dirac_prod_spincolor(spincolor* out,dirac_matr* m,spincolor* in)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      safe_dirac_prod_spincolor(out[ivol],m,in[ivol]);
+      safe_dirac_prod_spincolor(out[ivol.nastyConvert()],m,in[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
@@ -464,7 +464,7 @@ namespace nissa
   void safe_dirac_prod_colorspinspin(colorspinspin* out,dirac_matr* m,colorspinspin* in)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      safe_dirac_prod_colorspinspin(out[ivol],m,in[ivol]);
+      safe_dirac_prod_colorspinspin(out[ivol.nastyConvert()],m,in[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
@@ -475,7 +475,7 @@ namespace nissa
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int ic=0;ic<3;ic++)
-	rotate_spinspin_to_physical_basis(s[ivol][ic],rsi,rso);
+	rotate_spinspin_to_physical_basis(s[ivol.nastyConvert()][ic],rsi,rso);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(s);
   }
@@ -485,7 +485,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int ic1=0;ic1<3;ic1++)
 	for(int ic2=0;ic2<3;ic2++)
-	  rotate_spinspin_to_physical_basis(s[ivol][ic1][ic2],rsi,rso);
+	  rotate_spinspin_to_physical_basis(s[ivol.nastyConvert()][ic1][ic2],rsi,rso);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(s);
   }
@@ -494,14 +494,14 @@ namespace nissa
   void quad_su3_nissa_to_ildg_reord_in_place(quad_su3* in)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      quad_su3_nissa_to_ildg_reord(in[ivol],in[ivol]);
+      quad_su3_nissa_to_ildg_reord(in[ivol.nastyConvert()],in[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }
   void quad_su3_ildg_to_nissa_reord_in_place(quad_su3* in)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      quad_su3_ildg_to_nissa_reord(in[ivol],in[ivol]);
+      quad_su3_ildg_to_nissa_reord(in[ivol.nastyConvert()],in[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }

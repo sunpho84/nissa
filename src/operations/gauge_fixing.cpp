@@ -28,15 +28,15 @@
 namespace nissa
 {
   //apply the passed transformation to the point
-  CUDA_HOST_AND_DEVICE void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
+  CUDA_HOST_AND_DEVICE void local_gauge_transform(quad_su3 *conf,su3 g,const LocLxSite& ivol)
   {
     // for each dir...
     for(int mu=0;mu<NDIM;mu++)
       {
-        int b=loclxNeighdw[ivol][mu];
+        int b=loclxNeighdw[ivol.nastyConvert()][mu];
         
         //perform local gauge transform
-        safe_su3_prod_su3(conf[ivol][mu],g,conf[ivol][mu]);
+        safe_su3_prod_su3(conf[ivol.nastyConvert()][mu],g,conf[ivol.nastyConvert()][mu]);
         safe_su3_prod_su3_dag(conf[b][mu],conf[b][mu],g);
       }
   }
@@ -53,8 +53,8 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  su3 temp;
-	  unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclxNeighup[ivol][mu]]);
-	  unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
+	  unsafe_su3_prod_su3_dag(temp,uin[ivol.nastyConvert()][mu],g[loclxNeighup[ivol.nastyConvert()][mu]]);
+	  unsafe_su3_prod_su3(uout[ivol.nastyConvert()][mu],g[ivol.nastyConvert()],temp);
 	}
     NISSA_PARALLEL_LOOP_END;
     
@@ -70,12 +70,12 @@ namespace nissa
     
     //transform
     for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    su3 temp;
-	    unsafe_su3_prod_su3_dag(temp,uin[par][ivol][mu],g[!par][loceo_neighup[par][ivol][mu]]);
-	    unsafe_su3_prod_su3(uout[par][ivol][mu],g[par][ivol],temp);
+	    unsafe_su3_prod_su3_dag(temp,uin[par][ieo][mu],g[!par][loceo_neighup[par][ieo][mu]]);
+	    unsafe_su3_prod_su3(uout[par][ieo][mu],g[par][ieo],temp);
 	  }
     NISSA_PARALLEL_LOOP_END;
     
@@ -93,8 +93,8 @@ namespace nissa
     
     //transform
     for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-	safe_su3_prod_color(out[par][ivol],g[par][ivol],in[par][ivol]);
+      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+	safe_su3_prod_color(out[par][ieo],g[par][ieo],in[par][ieo]);
     NISSA_PARALLEL_LOOP_END;
     
     //invalidate borders
@@ -115,8 +115,8 @@ namespace nissa
     if(rank_coord[0]==0)
       {
 	NISSA_LOC_VOL_LOOP(ivol)
-	  if(glbCoordOfLoclx[ivol][0]==0)
-	    su3_put_to_id(fixm[ivol]);
+	  if(glbCoordOfLoclx[ivol.nastyConvert()][0]==0)
+	    su3_put_to_id(fixm[ivol.nastyConvert()]);
       }
     else
       if(nrank_dir[0]>1)
@@ -158,28 +158,28 @@ namespace nissa
   ////////////////////////////////////// Landau or Coulomb gauges ///////////////////////////////////////////////////////
   
   //compute the functional on a single point
-  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,int ivol,int start_mu)
+  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,const LocLxSite& ivol,int start_mu)
   {
     double F=0;
     
     for(int mu=start_mu;mu<NDIM;mu++)
       {
-	F-=su3_real_trace(conf[ivol][mu]);
-	F-=su3_real_trace(conf[loclxNeighdw[ivol][mu]][mu]);
+	F-=su3_real_trace(conf[ivol.nastyConvert()][mu]);
+	F-=su3_real_trace(conf[loclxNeighdw[ivol.nastyConvert()][mu]][mu]);
       }
     
     return F;
   }
   
   //derivative of the functional
-  CUDA_HOST_AND_DEVICE void compute_Landau_or_Coulomb_functional_der(su3 out,quad_su3 *conf,int ivol,int start_mu)
+  CUDA_HOST_AND_DEVICE void compute_Landau_or_Coulomb_functional_der(su3 out,quad_su3 *conf,const LocLxSite& ivol,int start_mu)
   {
     su3_put_to_zero(out);
     
     for(int mu=start_mu;mu<NDIM;mu++)
       {
-	su3_summassign(out,conf[ivol][mu]);
-	su3_summassign_su3_dag(out,conf[loclxNeighdw[ivol][mu]][mu]);
+	su3_summassign(out,conf[ivol.nastyConvert()][mu]);
+	su3_summassign_su3_dag(out,conf[loclxNeighdw[ivol.nastyConvert()][mu]][mu]);
       }
   }
   
@@ -188,22 +188,22 @@ namespace nissa
   {
     
     double *loc_F=ext_loc_F;
-    if(ext_loc_F==NULL) loc_F=nissa_malloc("loc_F",locVol,double);
+    if(ext_loc_F==NULL) loc_F=nissa_malloc("loc_F",locVol.nastyConvert(),double);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
-	if(F_offset) loc_F[ivol]=-F_offset[ivol];
-	else         loc_F[ivol]=0;
+	if(F_offset) loc_F[ivol.nastyConvert()]=-F_offset[ivol.nastyConvert()];
+	else         loc_F[ivol.nastyConvert()]=0;
 	
 	for(int mu=start_mu;mu<NDIM;mu++)
-	  loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
+	  loc_F[ivol.nastyConvert()]-=su3_real_trace(conf[ivol.nastyConvert()][mu]);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //collapse
     double F;
-    glb_reduce(&F,loc_F,locVol);
+    glb_reduce(&F,loc_F,locVol.nastyConvert());
     if(ext_loc_F==NULL) nissa_free(loc_F);
     
     return F;
@@ -215,7 +215,7 @@ namespace nissa
     
     communicate_lx_quad_su3_borders(conf);
     
-    double *loc_omega=nissa_malloc("loc_omega",locVol,double);
+    double *loc_omega=nissa_malloc("loc_omega",locVol.nastyConvert(),double);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
@@ -224,24 +224,24 @@ namespace nissa
 	
 	for(int mu=start_mu;mu<NDIM;mu++)
 	  {
-	    su3_subtassign(delta,conf[ivol][mu]);
-	    su3_summassign(delta,conf[loclxNeighdw[ivol][mu]][mu]);
+	    su3_subtassign(delta,conf[ivol.nastyConvert()][mu]);
+	    su3_summassign(delta,conf[loclxNeighdw[ivol.nastyConvert()][mu]][mu]);
 	  }
 	
 	//take 2 the traceless anti-hermitian part
 	su3 delta_TA;
 	unsafe_su3_traceless_anti_hermitian_part(delta_TA,delta);
-	loc_omega[ivol]=4*su3_norm2(delta_TA);
+	loc_omega[ivol.nastyConvert()]=4*su3_norm2(delta_TA);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     //global reduction
     double omega;
-    glb_reduce(&omega,loc_omega,locVol);
+    glb_reduce(&omega,loc_omega,locVol.nastyConvert());
     nissa_free(loc_omega);
     
-    return omega/glbVol/NCOL;
+    return omega/glbVol()/NCOL;
   }
   
   //do all the fixing
@@ -252,7 +252,7 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    int ivol=loclx_of_loceo[eo][ieo];
+	    LocLxSite ivol=loclx_of_loceo[eo][ieo];
 	    
 	    //compute the derivative
 	    su3 temp;
@@ -267,14 +267,14 @@ namespace nissa
 	    su3_unitarize_maximal_trace_projecting(g,ref);
 	    
 	    //square probabilistically
-	    double p=rnd_get_unif(loc_rnd_gen+ivol,0,1);
+	    double p=rnd_get_unif(loc_rnd_gen+ivol.nastyConvert(),0,1);
 	    if(p<overrelax_prob) safe_su3_prod_su3(g,g,g);
 	    
 	    //transform
 	    local_gauge_transform(fixed_conf,g,ivol);
 	    
 	    //store the change
-	    safe_su3_prod_su3(fixer[ivol],g,fixer[ivol]);
+	    safe_su3_prod_su3(fixer[ivol.nastyConvert()],g,fixer[ivol.nastyConvert()]);
 	    
 	    //lower external border must be sync.ed with upper internal border of lower node
 	    //  upper internal border with same parity must be sent using buf_up[mu][par]
@@ -283,9 +283,9 @@ namespace nissa
 	    //    ""     ""      ""   ""   opp.    "     "  "  sent using buf_dw[mu][par]
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
-		int f=loclxNeighup[ivol][mu];
-		int b=loclxNeighdw[ivol][mu];
-		if(f>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-locVolh],fixed_conf[ivol][mu]);
+		int f=loclxNeighup[ivol.nastyConvert()][mu];
+		int b=loclxNeighdw[ivol.nastyConvert()][mu];
+		if(f>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-locVolh],fixed_conf[ivol.nastyConvert()][mu]);
 		if(b>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-locVolh],fixed_conf[b][mu]);
 	      }
 	  }
@@ -298,12 +298,12 @@ namespace nissa
 	
 	//read out
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  if(loclx_parity[ivol]!=eo)
+	  if(loclx_parity[ivol.nastyConvert()]!=eo)
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
-		int f=loclxNeighup[ivol][mu];
-		int b=loclxNeighdw[ivol][mu];
-		if(f>=locVol) su3_copy(fixed_conf[ivol][mu],((su3*)recv_buf)[loceo_of_loclx[f]-locVolh]);
+		int f=loclxNeighup[ivol.nastyConvert()][mu];
+		int b=loclxNeighdw[ivol.nastyConvert()][mu];
+		if(f>=locVol) su3_copy(fixed_conf[ivol.nastyConvert()][mu],((su3*)recv_buf)[loceo_of_loclx[f]-locVolh]);
 		if(b>=locVol) su3_copy(fixed_conf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-locVolh]);
 	      }
 	NISSA_PARALLEL_LOOP_END;
@@ -330,7 +330,7 @@ namespace nissa
 	double den=0;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    double p=2*M_PI*glbCoordOfLoclx[imom][mu]/glbSize[mu];
+	    double p=2*M_PI*glbCoordOfLoclx[imom.nastyConvert()][mu]/glbSize[mu];
 	    den+=sqr(sin(0.5*p));
 	  }
 	den*=4;
@@ -340,7 +340,7 @@ namespace nissa
 	if(fabs(den)>1e-10) fact/=den;
 	
 	//put the factor
-	su3_prodassign_double(der[imom],fact);
+	su3_prodassign_double(der[imom.nastyConvert()],fact);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
@@ -355,8 +355,8 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	su3 temp;
-	su3_prod_double(temp,der[ivol],-0.5*alpha);
-	safe_anti_hermitian_exact_exponentiate(g[ivol],temp);
+	su3_prod_double(temp,der[ivol.nastyConvert()],-0.5*alpha);
+	safe_anti_hermitian_exact_exponentiate(g[ivol.nastyConvert()],temp);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(g);
@@ -368,7 +368,7 @@ namespace nissa
     
     //add current transformation
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      safe_su3_prod_su3(fixer_out[ivol],g[ivol],fixer_in[ivol]);
+      safe_su3_prod_su3(fixer_out[ivol.nastyConvert()],g[ivol.nastyConvert()],fixer_in[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(fixer_out);
   }
@@ -384,11 +384,11 @@ namespace nissa
     double alpha=alpha_def;
     
     //store original fixer
-    su3 *ori_fixer=nissa_malloc("ori_fixer",locVol+bord_vol,su3);
+    su3 *ori_fixer=nissa_malloc("ori_fixer",(locVol+bord_vol).nastyConvert(),su3);
     vector_copy(ori_fixer,fixer);
     
     //current transform
-    su3 *g=nissa_malloc("g",locVol,su3);
+    su3 *g=nissa_malloc("g",locVol.nastyConvert(),su3);
     
     //int nneg_pos_vert=0;
     int iter=0;
@@ -487,9 +487,9 @@ namespace nissa
   {
     using namespace GCG;
     
-    prev_der=nissa_malloc("prev_der",locVol,su3);
-    s=nissa_malloc("s",locVol,su3);
-    accum=nissa_malloc("accum",locVol,double);
+    prev_der=nissa_malloc("prev_der",locVol.nastyConvert(),su3);
+    s=nissa_malloc("s",locVol.nastyConvert(),su3);
+    accum=nissa_malloc("accum",locVol.nastyConvert(),double);
     
     vector_reset(prev_der);
     vector_reset(s);
@@ -516,11 +516,11 @@ namespace nissa
       {
 	//denominator
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  accum[ivol]=real_part_of_trace_su3_prod_su3_dag(prev_der[ivol],prev_der[ivol]);
+	  accum[ivol.nastyConvert()]=real_part_of_trace_su3_prod_su3_dag(prev_der[ivol.nastyConvert()],prev_der[ivol.nastyConvert()]);
 	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	double den;
-	glb_reduce(&den,accum,locVol);
+	glb_reduce(&den,accum,locVol.nastyConvert());
 	VERBOSITY_MASTER_PRINTF("den: %lg\n",den);
 	
 	//numerator
@@ -528,14 +528,14 @@ namespace nissa
 	  if(den>1e-6) //means that |DA|<1e-12
 	    {
 	      su3 temp;
-	      su3_subt(temp,der[ivol],prev_der[ivol]);
-	      accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],temp);
+	      su3_subt(temp,der[ivol.nastyConvert()],prev_der[ivol.nastyConvert()]);
+	      accum[ivol.nastyConvert()]=real_part_of_trace_su3_prod_su3_dag(der[ivol.nastyConvert()],temp);
 	    }
-	  else accum[ivol]=real_part_of_trace_su3_prod_su3_dag(der[ivol],der[ivol]);
+	  else accum[ivol.nastyConvert()]=real_part_of_trace_su3_prod_su3_dag(der[ivol.nastyConvert()],der[ivol.nastyConvert()]);
 	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	double num;
-	glb_reduce(&num,accum,locVol);
+	glb_reduce(&num,accum,locVol.nastyConvert());
 	VERBOSITY_MASTER_PRINTF("num: %lg\n",num);
 	
 	//compute beta
@@ -557,7 +557,7 @@ namespace nissa
     //store prev_der, increase s (der) and store prev_s
     vector_copy(prev_der,der);
     if(iter%10==0) vector_copy(s,der);
-    else           double_vector_summ_double_vector_prod_double((double*)s,(double*)der,(double*)s,beta,locVol*sizeof(su3)/sizeof(double));
+    else           double_vector_summ_double_vector_prod_double((double*)s,(double*)der,(double*)s,beta,locVol.nastyConvert()*sizeof(su3)/sizeof(double));
   }
   
   //do all the fixing exponentiating
@@ -569,13 +569,13 @@ namespace nissa
     
     
     //take the derivative
-    su3 *der=nissa_malloc("der",locVol,su3);
+    su3 *der=nissa_malloc("der",locVol.nastyConvert(),su3);
     communicate_lx_quad_su3_borders(fixed_conf);
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	su3 temp;
 	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,gauge);
-	unsafe_su3_traceless_anti_hermitian_part(der[ivol],temp);
+	unsafe_su3_traceless_anti_hermitian_part(der[ivol.nastyConvert()],temp);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
@@ -590,7 +590,7 @@ namespace nissa
     su3 *v=(use_GCG?s:der);
     
     //take the exponent with alpha
-    su3 *g=nissa_malloc("g",locVol,su3);
+    su3 *g=nissa_malloc("g",locVol.nastyConvert(),su3);
     
     //set alpha
     double alpha;
@@ -629,18 +629,18 @@ namespace nissa
     quad_su3 *ori_conf=ext_conf;
     if(fixed_conf==ori_conf)
       {
-	ori_conf=nissa_malloc("ori_conf",locVol+bord_vol+edge_vol,quad_su3);
+	ori_conf=nissa_malloc("ori_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
 	vector_copy(ori_conf,ext_conf);
       }
     vector_copy(fixed_conf,ext_conf);
     
     //fixing transformation
-    su3 *fixer=nissa_malloc("fixer",locVol+bord_vol,su3);
+    su3 *fixer=nissa_malloc("fixer",(locVol+bord_vol).nastyConvert(),su3);
     NISSA_LOC_VOL_LOOP(ivol)
-      su3_put_to_id(fixer[ivol]);
+      su3_put_to_id(fixer[ivol.nastyConvert()]);
     set_borders_invalid(fixer);
     
-    double *F_offset=nissa_malloc("F_offset",locVol,double);
+    double *F_offset=nissa_malloc("F_offset",locVol.nastyConvert(),double);
     double prec,func;
     bool really_get_out=check_Landau_or_Coulomb_gauge_fixed(prec,func,fixed_conf,pars->gauge,pars->target_precision,F_offset);
     int iter=0,nskipped_adapt=0;
@@ -690,7 +690,7 @@ namespace nissa
 	//now we put the fixer on su3, and make a real transformation
 	//on the basis of what we managed to fix
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  su3_unitarize_explicitly_inverting(fixer[ivol],fixer[ivol]);
+	  su3_unitarize_explicitly_inverting(fixer[ivol.nastyConvert()],fixer[ivol.nastyConvert()]);
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(fixer);
 	gauge_transform_conf(fixed_conf,fixer,ori_conf);
@@ -719,11 +719,11 @@ namespace nissa
   {
     
     //allocate fixing matrix
-    su3 *fixm=nissa_malloc("fixm",locVol+bord_vol,su3);
+    su3 *fixm=nissa_malloc("fixm",(locVol+bord_vol).nastyConvert(),su3);
     
     //extract random SU(3) matrix
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
+      su3_put_to_rnd(fixm[ivol.nastyConvert()],loc_rnd_gen[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(fixm);
     
@@ -742,7 +742,7 @@ namespace nissa
     
     //extract random SU(3) matrix
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_put_to_rnd(fixm[loclx_parity[ivol]][loceo_of_loclx[ivol]],loc_rnd_gen[ivol]);
+      su3_put_to_rnd(fixm[loclx_parity[ivol.nastyConvert()]][loceo_of_loclx[ivol.nastyConvert()]],loc_rnd_gen[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     for(int eo=0;eo<2;eo++)
       set_borders_invalid(fixm[eo]);

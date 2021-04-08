@@ -11,24 +11,24 @@
 namespace nissa
 {
   //gather the whole field on a single rank, reordering data
-  void vector_gather(char *glb,char *loc,size_t bps,int dest_rank)
+  void vector_gather(char *glb,char *loc,const int64_t& bps,int dest_rank)
   {
     if(dest_rank==rank)
       {
 	//copy local data
-	memcpy(glb+rank*locVol*bps,loc,locVol*bps);
+	memcpy(glb+(rank*locVol*bps).nastyConvert(),loc,(locVol*bps).nastyConvert());
 	
 	//open incoming communications for non-local data
 	MPI_Request req[nranks-1];
 	int ireq=0;
 	for(int irank=0;irank<nranks;irank++)
 	  if(irank!=rank)
-	    MPI_Irecv(glb+irank*locVol*bps,locVol*bps,MPI_CHAR,irank,239+irank,MPI_COMM_WORLD,&(req[ireq++]));
+	    MPI_Irecv(glb+(irank*locVol*bps).nastyConvert(),(locVol*bps).nastyConvert(),MPI_CHAR,irank,239+irank,MPI_COMM_WORLD,&(req[ireq++]));
 	//wait all incoming data
 	MPI_Waitall(ireq,req,MPI_STATUS_IGNORE);
 	
 	//reorder data
-	int *ord=nissa_malloc("ord",glbVol,int);
+	int *ord=nissa_malloc("ord",glbVol.nastyConvert(),int);
 	int r[4];
 	for(r[0]=0;r[0]<nrank_dir[0];r[0]++)
 	  for(r[1]=0;r[1]<nrank_dir[1];r[1]++)
@@ -45,14 +45,14 @@ namespace nissa
 			    int g[4];
 			    for(int mu=0;mu<4;mu++) g[mu]=r[mu]*locSize[mu]+l[mu];
 			    
-			    int ivol=locVol*irank+loclx_of_coord(l);
+			    const LocLxSite ivol=locVol*irank+loclx_of_coord(l);
 			    int glb_site=glblx_of_coord(g);
 			    
-			    ord[ivol]=glb_site;
+			    ord[ivol.nastyConvert()]=glb_site;
 			  }
 		}
 	
-	reorder_vector(glb,ord,glbVol,bps);
+	reorder_vector(glb,ord,glbVol.nastyConvert(),bps);
 	
 	nissa_free(ord);
       }
@@ -60,7 +60,7 @@ namespace nissa
       {
 	//send non-local data
 	MPI_Request req;
-	MPI_Isend(loc,locVol*bps,MPI_CHAR,dest_rank,239+rank,MPI_COMM_WORLD,&req);
+	MPI_Isend(loc,(locVol*bps).nastyConvert(),MPI_CHAR,dest_rank,239+rank,MPI_COMM_WORLD,&req);
 	MPI_Waitall(1,&req,MPI_STATUS_IGNORE);
       }
   }

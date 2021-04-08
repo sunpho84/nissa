@@ -27,7 +27,7 @@ namespace nissa
       link_id=gx*4+mu;
       int lx,rx;
       get_loclx_and_rank_of_glblx(&lx,&rx,gx);
-      ord=((rank+nranks-rx)%nranks*locVol+lx)*4+mu; //sort according to recv rank
+      ord=((rank+nranks-rx)%nranks*locVol.nastyConvert()+lx)*4+mu; //sort according to recv rank
     }
   };
   

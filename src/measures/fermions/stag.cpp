@@ -154,8 +154,9 @@ namespace nissa
 	{
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
-	      int sign=1,ivol=loclx_of_loceo[eo][ieo];
-	      for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1) and (glbCoordOfLoclx[ivol][mu]&0x1));
+	      int sign=1;
+	      const LocLxSite ivol=loclx_of_loceo[eo][ieo];
+	      for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1) and (glbCoordOfLoclx[ivol.nastyConvert()][mu]&0x1));
 	      color_prod_double(source[eo][ieo],source[eo][ieo],sign);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -199,7 +200,7 @@ namespace nissa
 	      }
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
-	  glb_reduce(&res_fw_bw[fw_bw],point_result,locVol);
+	  glb_reduce(&res_fw_bw[fw_bw],point_result,locVol.nastyConvert());
 	  
 	  //DEB_STAG("fw_bw=%d mu=%d, RE=%lg IM=%lg\n",fw_bw,mu,res_fw_bw[fw_bw][RE],res_fw_bw[fw_bw][IM]);
 	  
@@ -227,7 +228,7 @@ namespace nissa
       
       //final reduction
       complex temp;
-      glb_reduce(&temp,point_result,locVol);
+      glb_reduce(&temp,point_result,locVol.nastyConvert());
       if(IS_MASTER_THREAD) complex_summassign(out,temp);
     }
     
@@ -269,10 +270,10 @@ namespace nissa
       for(int eo=0;eo<2;eo++)
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    int ivol=loclx_of_loceo[eo][ieo];
+	    const LocLxSite ivol=loclx_of_loceo[eo][ieo];
 	    complex prod;
 	    color_scalar_prod(prod,eta[eo][ieo],quark[eo][ieo]);
-	    complex_summassign(dens[ivol],prod);
+	    complex_summassign(dens[ivol.nastyConvert()],prod);
 	  }
       NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
@@ -293,10 +294,10 @@ namespace nissa
 	{
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
-	      int ivol=loclx_of_loceo[par][ieo];
+	      const LocLxSite ivol=loclx_of_loceo[par][ieo];
 	      
 	      color_put_to_zero(out[par][ieo]);
-	      if(t<0  or  t>=glbSize[0]  or  glbCoordOfLoclx[ivol][0]==t)
+	      if(t<0  or  t>=glbSize[0]  or  glbCoordOfLoclx[ivol.nastyConvert()][0]==t)
 		for(int mu=0;mu<NDIM;mu++)
 		  {
 		    color temp;

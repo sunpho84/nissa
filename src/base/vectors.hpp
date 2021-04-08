@@ -87,7 +87,7 @@ namespace nissa
   void vect_content_fprintf(FILE *fout,nissa_vect *vect);
   void vect_content_printf(nissa_vect *vect);
   void print_all_vect_content();
-  void reorder_vector(char *vect,int *order,int nel,int sel);
+  void reorder_vector(char *vect,int *order,const int64_t& nel,const int64_t& sel);
   void set_borders_invalid(void *data);
   void set_borders_valid(void *data);
   void set_edges_invalid(void *data);

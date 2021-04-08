@@ -347,7 +347,7 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  int bordlx=bordlx_of_surflx(loclx,mu);
-	  if(bordlx!=-1) surflxOfBordlx[bordlx]=loclx;
+	  if(bordlx!=-1) surflxOfBordlx[bordlx]=loclx.nastyConvert();
 	}
   }
   
@@ -364,17 +364,17 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  if(paral_dir[mu])
 	    {
-	      if(locCoordOfLoclx[ivol][mu]==locSize[mu]-1) is_bulk=is_non_fw_surf=false;
-	      if(locCoordOfLoclx[ivol][mu]==0)              is_bulk=is_non_bw_surf=false;
+	      if(locCoordOfLoclx[ivol.nastyConvert()][mu]==locSize[mu]-1) is_bulk=is_non_fw_surf=false;
+	      if(locCoordOfLoclx[ivol.nastyConvert()][mu]==0)              is_bulk=is_non_bw_surf=false;
 	    }
 	
 	//mark it
-	if(is_bulk) loclxOfBulklx[(ibulk++).nastyConvert()]=ivol;
-	else        loclxOfSurflx[(isurf++).nastyConvert()]=ivol;
-	if(is_non_fw_surf) loclxOfNonFwSurflx[(inon_fw_surf++).nastyConvert()]=ivol;
-	else               loclxOfFwSurflx[(ifw_surf++).nastyConvert()]=ivol;
-	if(is_non_bw_surf) loclxOfNonBwSurflx[(inon_bw_surf++).nastyConvert()]=ivol;
-	else               loclxOfBwSurflx[(ibw_surf++).nastyConvert()]=ivol;
+	if(is_bulk) loclxOfBulklx[(ibulk++).nastyConvert()]=ivol.nastyConvert();
+	else        loclxOfSurflx[(isurf++).nastyConvert()]=ivol.nastyConvert();
+	if(is_non_fw_surf) loclxOfNonFwSurflx[(inon_fw_surf++).nastyConvert()]=ivol.nastyConvert();
+	else               loclxOfFwSurflx[(ifw_surf++).nastyConvert()]=ivol.nastyConvert();
+	if(is_non_bw_surf) loclxOfNonBwSurflx[(inon_bw_surf++).nastyConvert()]=ivol.nastyConvert();
+	else               loclxOfBwSurflx[(ibw_surf++).nastyConvert()]=ivol.nastyConvert();
       }
     
     if(ibulk!=bulkVol) crash("mismatch in bulk id");
@@ -438,8 +438,8 @@ namespace nissa
     find_bulk_sites();
     
     //allocate a buffer large enough to allow communications of su3spinspin lx border
-    recv_buf_size=std::max(recv_buf_size,bord_vol*sizeof(su3spinspin));
-    send_buf_size=std::max(send_buf_size,bord_vol*sizeof(su3spinspin));
+    recv_buf_size=std::max(recv_buf_size,(int64_t)(bord_vol*sizeof(su3spinspin)));
+    send_buf_size=std::max(send_buf_size,(int64_t)(bord_vol*sizeof(su3spinspin)));
     
     //create the sweepers but do not fully initialize
     Wilson_sweeper=new gauge_sweeper_t;
@@ -570,40 +570,43 @@ namespace nissa
     if(!lxGeomInited) set_lx_geometry();
     
     //first of all, defines the local momenta for the various directions
-    NISSA_LOC_VOL_LOOP(imom)
-    {
-      k2[imom]=ktilde2[imom]=0;
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  k[imom][mu]=M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu])/glbSize[mu];
-	  ktilde[imom][mu]=sin(k[imom][mu]);
-	  
-	  k2[imom]+=k[imom][mu]*k[imom][mu];
-	  ktilde2[imom]+=ktilde[imom][mu]*ktilde[imom][mu];
-	}
-    }
+    NISSA_LOC_VOL_LOOP(_imom)
+      {
+	auto imom=_imom.nastyConvert();
+	k2[imom]=ktilde2[imom]=0;
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    k[imom][mu]=M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu])/glbSize[mu];
+	    ktilde[imom][mu]=sin(k[imom][mu]);
+	    
+	    k2[imom]+=k[imom][mu]*k[imom][mu];
+	    ktilde2[imom]+=ktilde[imom][mu]*ktilde[imom][mu];
+	  }
+      }
   }
   
   //return the staggered phases for a given site
-  CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(coords ph,int ivol)
+  CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(coords ph,const LocLxSite& ivol)
   {
     ph[0]=1;
     for(int mu=1;mu<NDIM;mu++)
-      ph[mu]=ph[mu-1]*(1-2*(glbCoordOfLoclx[ivol][mu-1]%2));
+      ph[mu]=ph[mu-1]*(1-2*(glbCoordOfLoclx[ivol.nastyConvert()][mu-1]%2));
   }
   
   //return the staggered phases for a given site
-  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(int ivol,int mu)
+  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,int mu)
   {
     int ph=1;
     for(int nu=1;nu<=mu;nu++)
-      ph*=(1-2*(glbCoordOfLoclx[ivol][nu-1]%2));
+      ph*=(1-2*(glbCoordOfLoclx[ivol.nastyConvert()][nu-1]%2));
     return ph;
   }
   
   //check that passed argument is between 0 and 15
   inline void crash_if_not_hypercubic_red(int hyp_red)
-  {if(hyp_red<0 or hyp_red>=16) crash("%d not a hyperucbic reduced point",hyp_red);}
+  {
+    if(hyp_red<0 or hyp_red>=16) crash("%d not a hyperucbic reduced point",hyp_red);
+  }
   
   //return the coordinates inside the hypercube
   void red_coords_of_hypercubic_red_point(coords h,int hyp_red)

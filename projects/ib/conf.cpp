@@ -32,9 +32,9 @@ namespace nissa
       {
 	master_printf("Allocating confs\n");
 	
-	glb_conf=nissa_malloc("glb_conf",locVol+bord_vol+edge_vol,quad_su3);
-	inner_conf=nissa_malloc("inner_conf",locVol+bord_vol+edge_vol,quad_su3);
-	ape_smeared_conf=nissa_malloc("ape_smeared_conf",locVol+bord_vol+edge_vol,quad_su3);
+	glb_conf=nissa_malloc("glb_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+	inner_conf=nissa_malloc("inner_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+	ape_smeared_conf=nissa_malloc("ape_smeared_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
       }
     else
       master_printf("Skipping allocating confs\n");

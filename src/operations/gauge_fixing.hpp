@@ -1,6 +1,7 @@
 #ifndef _GAUGE_FIXING_HPP
 #define _GAUGE_FIXING_HPP
 
+#include "geometry/geometry_eo.hpp"
 #include "io/input.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"

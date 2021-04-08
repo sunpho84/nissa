@@ -19,7 +19,7 @@
  #define ONLY_INSTANTIATION
 #endif
 
-#define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<locVol;a++)
+#define NISSA_LOC_VOL_LOOP(a) for(LocLxSite a=0;a<locVol;a++)
 
 namespace nissa
 {
@@ -107,8 +107,8 @@ namespace nissa
 #endif
     ;
   
-  CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(coords ph,int ivol);
-  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(int ivol,int mu);
+  CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(coords ph,const LocLxSite& ivol);
+  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,int mu);
   
   int bordlx_of_coord(int *x,int mu);
   int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);

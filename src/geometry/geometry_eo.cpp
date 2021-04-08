@@ -133,8 +133,8 @@ namespace nissa
 		  int iedge_site=0;
 		  for(int b_eo=0;b_eo<bord_volh;b_eo++)
 		    {
-		      int ivol=loclx_of_loceo[par][locVolh+b_eo];
-		      if(loclx_neigh[!vmu][ivol][mu]>=0 and loclx_neigh[!vmu][ivol][mu]<locVol and loclx_neigh[vnu][ivol][nu]>=locVol+bord_vol) edge_pos_disp[iedge_site++]=b_eo;
+		      const LocLxSite ivol=loclx_of_loceo[par][locVolh+b_eo];
+		      if(loclx_neigh[!vmu][ivol.nastyConvert()][mu]>=0 and loclx_neigh[!vmu][ivol.nastyConvert()][mu]<locVol and loclx_neigh[vnu][ivol.nastyConvert()][nu]>=locVol+bord_vol) edge_pos_disp[iedge_site++]=b_eo;
 		    }
 		  if(iedge_site!=eo_edge_size) crash("iedge_site=%d did not arrive to eo_edge_size=%d",iedge_site,eo_edge_size);
 		  
@@ -196,10 +196,10 @@ namespace nissa
     {
       int save=1;
       for(int mu=0;mu<NDIM;mu++)
-	save=save and glbCoordOfLoclx[ivol][mu]%2==0;
+	save=save and glbCoordOfLoclx[ivol.nastyConvert()][mu]%2==0;
       
       if(!save)
-	memset(vec[loclx_parity[ivol]][loceo_of_loclx[ivol]],0,sizeof(color));
+	memset(vec[loclx_parity[ivol.nastyConvert()]][loceo_of_loclx[ivol.nastyConvert()]],0,sizeof(color));
     }
   }
 }

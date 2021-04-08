@@ -24,7 +24,9 @@
 namespace nissa
 {
   int compare_movement_link_id(const void *a,const void *b)
-  {return ((movement_link_id*)a)->ord-((movement_link_id*)b)->ord;}
+  {
+    return ((movement_link_id*)a)->ord-((movement_link_id*)b)->ord;
+  }
   
   //add a forward move
   void paths_calculation_structure::move_forward(int mu)
@@ -422,7 +424,7 @@ namespace nissa
   {
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_put_to_id(out[ivol]);
+      su3_put_to_id(out[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     coords_t t;
     c->push_back(t);
@@ -452,15 +454,15 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    su3 temp;
-	    unsafe_su3_prod_su3_dag(temp,out[ivol],conf[ivol][mu]);
-	    unsafe_su3_prod_su3(out[ivol],conf[ivol][mu],temp);
+	    unsafe_su3_prod_su3_dag(temp,out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu]);
+	    unsafe_su3_prod_su3(out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu],temp);
 	  }
 	NISSA_PARALLEL_LOOP_END;
       }
     else
       {
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  safe_su3_prod_su3_dag(out[ivol],out[ivol],conf[ivol][mu]);
+	  safe_su3_prod_su3_dag(out[ivol.nastyConvert()],out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu]);
 	NISSA_PARALLEL_LOOP_END;
       }
     
@@ -483,15 +485,15 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    su3 temp;
-	    unsafe_su3_prod_su3(temp,out[ivol],conf[ivol][mu]);
-	    unsafe_su3_dag_prod_su3(out[ivol],conf[ivol][mu],temp);
+	    unsafe_su3_prod_su3(temp,out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu]);
+	    unsafe_su3_dag_prod_su3(out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu],temp);
 	  }
 	NISSA_PARALLEL_LOOP_END;
       }
     else
       {
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  safe_su3_prod_su3(out[ivol],out[ivol],conf[ivol][mu]);
+	  safe_su3_prod_su3(out[ivol.nastyConvert()],out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu]);
 	NISSA_PARALLEL_LOOP_END;
       }
     THREAD_BARRIER();

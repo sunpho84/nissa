@@ -64,9 +64,9 @@ namespace nissa
       {
 	
 	// temp = i * D * in
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int ic=0;ic<NCOL;ic++)
-	    assign_complex_prod_i(temp[eo][ivol][ic]);
+	    assign_complex_prod_i(temp[eo][ieo][ic]);
 	NISSA_PARALLEL_LOOP_END;
 	
 	// out = (i * D - m * g5 X id) * in

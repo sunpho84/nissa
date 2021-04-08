@@ -35,7 +35,7 @@ namespace nissa
   void compute_tens_dens_topo_correlation(complex *spinpol_dens,complex *tens_dens,double *topo_dens)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      complex_prod_double(spinpol_dens[ivol],tens_dens[ivol],topo_dens[ivol]);
+      complex_prod_double(spinpol_dens[ivol.nastyConvert()],tens_dens[ivol.nastyConvert()],topo_dens[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }
@@ -61,11 +61,11 @@ namespace nissa
     FILE *fout=open_file(mp->path,conf_created?"w":"a");
     
     //allocate tens and spinpol
-    complex *tens_dens=nissa_malloc("tens_dens",locVol+bord_vol,complex);
-    complex *spinpol_dens=nissa_malloc("spinpol_dens",locVol,complex);
+    complex *tens_dens=nissa_malloc("tens_dens",(locVol+bord_vol).nastyConvert(),complex);
+    complex *spinpol_dens=nissa_malloc("spinpol_dens",locVol.nastyConvert(),complex);
     //allocate point and local results
     eo_ptr<double> topo_dens;
-    for(int i=0;i<2;i++) topo_dens[i]=nissa_malloc("topo_dens",locVol,double);
+    for(int i=0;i<2;i++) topo_dens[i]=nissa_malloc("topo_dens",locVol.nastyConvert(),double);
     //operator applied to a field
     eo_ptr<color> chiop={nissa_malloc("chiop_EVN",locVolh+bord_volh,color),nissa_malloc("chiop_ODD",locVolh+bord_volh,color)};
     //temporary vectors
@@ -86,7 +86,7 @@ namespace nissa
       }
     
     //allocate the smoothed conf
-    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",locVol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
     //allocate the fermion (possibly stouted) conf
     eo_ptr<quad_su3> ferm_conf;
@@ -106,8 +106,8 @@ namespace nissa
 	int ntot_phi=ind_copy_flav_hit_meas(ncopies-1,nflavs-1,nhits-1,nmeas-1)+1;
 	color *eta[ntot_eta];
 	color *phi[ntot_phi];
-	for(int is=0;is<ntot_eta;is++) eta[is]=nissa_malloc("eta",locVol+bord_vol,color);
-	for(int is=0;is<ntot_phi;is++) phi[is]=nissa_malloc("phi",locVol+bord_vol,color);
+	for(int is=0;is<ntot_eta;is++) eta[is]=nissa_malloc("eta",(locVol+bord_vol).nastyConvert(),color);
+	for(int is=0;is<ntot_phi;is++) phi[is]=nissa_malloc("phi",(locVol+bord_vol).nastyConvert(),color);
 	
 	//fill all the sources
 	for(int icopy=0;icopy<ncopies;icopy++)
@@ -209,7 +209,7 @@ namespace nissa
 		    if(gauge_ferm_conf==0) topo_conf=smoothed_conf;
 		    else
 		      {
-			topo_conf=nissa_malloc("TempConf",locVol+bord_vol+edge_vol,quad_su3);
+			topo_conf=nissa_malloc("TempConf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
 			paste_eo_parts_into_lx_vector(topo_conf,ferm_conf);
 		      }
 		    plaq[gauge_ferm_conf]=global_plaquette_lx_conf(topo_conf);
@@ -217,8 +217,8 @@ namespace nissa
 		    if(gauge_ferm_conf) nissa_free(topo_conf);
 		    
 		    //total topological charge
-		    glb_reduce(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],locVol);
-		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens[gauge_ferm_conf],locVol);
+		    glb_reduce(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],locVol.nastyConvert());
+		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens[gauge_ferm_conf],locVol.nastyConvert());
 		  }
 		
 		for(int icopy=0;icopy<ncopies;icopy++)
@@ -237,15 +237,15 @@ namespace nissa
 			
 			//compute the average tensorial density
 			complex tens;
-			double_vector_prodassign_double((double*)tens_dens,1.0/(glbVol*nhits),locVol*2);
-			glb_reduce(&tens,tens_dens,locVol);
+			double_vector_prodassign_double((double*)tens_dens,1.0/(glbVol()*nhits),locVol.nastyConvert()*2);
+			glb_reduce(&tens,tens_dens,locVol.nastyConvert());
 			
 			//compute correlation with topocharge
 			complex spinpol;
 			for(int gauge_ferm_conf=0;gauge_ferm_conf<2;gauge_ferm_conf++)
 			  {
 			    compute_tens_dens_topo_correlation(spinpol_dens,tens_dens,topo_dens[gauge_ferm_conf]);
-			    glb_reduce(&spinpol,spinpol_dens,locVol);
+			    glb_reduce(&spinpol,spinpol_dens,locVol.nastyConvert());
 			    
 			    master_fprintf(fout,"%d\t",iconf);
 			    master_fprintf(fout,"%d\t",icopy);
@@ -307,7 +307,7 @@ namespace nissa
 	if(tp->stout_pars.nlevels)
 	  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
 	
-	color *temp_flow=nissa_malloc("temp_flow",locVol+bord_vol,color);
+	color *temp_flow=nissa_malloc("temp_flow",(locVol+bord_vol).nastyConvert(),color);
 	
 	for(int icopy=0;icopy<ncopies;icopy++)
 	  for(int ihit=0;ihit<nhits;ihit++)
@@ -354,7 +354,7 @@ namespace nissa
 		    if(gauge_ferm_conf==0) topo_conf=smoothed_conf;
 		    else
 		      {
-			topo_conf=nissa_malloc("TempConf",locVol+bord_vol+edge_vol,quad_su3);
+			topo_conf=nissa_malloc("TempConf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
 			paste_eo_parts_into_lx_vector(topo_conf,ferm_conf);
 		      }
 		    plaq[gauge_ferm_conf]=global_plaquette_lx_conf(topo_conf);
@@ -362,8 +362,8 @@ namespace nissa
 		    if(gauge_ferm_conf) nissa_free(topo_conf);
 		    
 		    //total topological charge
-		    glb_reduce(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],locVol);
-		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens[gauge_ferm_conf],locVol);
+		    glb_reduce(&tot_charge[gauge_ferm_conf],topo_dens[gauge_ferm_conf],locVol.nastyConvert());
+		    tot_charge2[gauge_ferm_conf]=double_vector_glb_norm2(topo_dens[gauge_ferm_conf],locVol.nastyConvert());
 		  }
 		
 		for(int icopy=0;icopy<ncopies;icopy++)
@@ -382,15 +382,15 @@ namespace nissa
 			
 			//compute the average tensorial density
 			complex tens;
-			double_vector_prodassign_double((double*)tens_dens,1.0/(glbVol*nhits),locVol*2);
-			glb_reduce(&tens,tens_dens,locVol);
+			double_vector_prodassign_double((double*)tens_dens,1.0/(glbVol()*nhits),locVol.nastyConvert()*2);
+			glb_reduce(&tens,tens_dens,locVol.nastyConvert());
 			
 			//compute correlation with topocharge
 			complex spinpol;
 			for(int gauge_ferm_conf=0;gauge_ferm_conf<2;gauge_ferm_conf++)
 			  {
 			    compute_tens_dens_topo_correlation(spinpol_dens,tens_dens,topo_dens[gauge_ferm_conf]);
-			    glb_reduce(&spinpol,spinpol_dens,locVol);
+			    glb_reduce(&spinpol,spinpol_dens,locVol.nastyConvert());
 			    
 			    master_fprintf(fout,"%d\t",iconf);
 			    master_fprintf(fout,"%d\t",icopy);

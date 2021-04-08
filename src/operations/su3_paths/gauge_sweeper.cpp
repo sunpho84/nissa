@@ -61,7 +61,7 @@ namespace nissa
     if(par_geom_inited) crash("parity checkboard already initialized");
     par_geom_inited=true;
     gpar=ext_gpar;
-    ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",NDIM*locVol,int);
+    ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",NDIM*locVol.nastyConvert(),int);
     nsite_per_box_dir_par=nissa_malloc("nsite_per_box_dir_par",(1<<NDIM)*NDIM*gpar,int);
     
     //find the elements of all boxes
@@ -97,7 +97,7 @@ namespace nissa
   //check that everything is hit once and only once
   void gauge_sweeper_t::check_hit_exactly_once()
   {
-    coords *hit=nissa_malloc("hit",locVol,coords);
+    coords *hit=nissa_malloc("hit",locVol.nastyConvert(),coords);
     vector_reset(hit);
     
     //mark what we hit
@@ -108,17 +108,17 @@ namespace nissa
 	  {
 	    for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];ibox_dir_par++)
 	      {
-		int ivol=ivol_of_box_dir_par[ibox_dir_par+ibase];
+		const LocLxSite ivol=ivol_of_box_dir_par[ibox_dir_par+ibase];
 		if(ivol>=locVol) crash("ibox %d ibox_par %d ibase %d ivol %d",ibox,ibox_dir_par,ibase,ivol);
-		hit[ivol][dir]++;
+		hit[ivol.nastyConvert()][dir]++;
 	      }
 	    ibase+=nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];
 	  }
     
     //check to have hit everything
-    for(int ivol=0;ivol<locVol;ivol++)
+    for(LocLxSite ivol=0;ivol<locVol;ivol++)
       for(int mu=0;mu<NDIM;mu++)
-	if(hit[ivol][mu]!=1) crash("missing hit ivol %d mu %d",ivol,mu);
+	if(hit[ivol.nastyConvert()][mu]!=1) crash("missing hit ivol %d mu %d",ivol,mu);
     
     nissa_free(hit);
   }
@@ -126,7 +126,7 @@ namespace nissa
   //check that everything is hit without overlapping
   void gauge_sweeper_t::check_hit_in_the_exact_order()
   {
-    int *hit=nissa_malloc("hit",NDIM*locVol+max_cached_link,int);
+    int *hit=nissa_malloc("hit",(NDIM*locVol+max_cached_link).nastyConvert(),int);
     int ibase=0;
     for(int ibox=0;ibox<(1<<NDIM);ibox++)
       for(int dir=0;dir<NDIM;dir++)
@@ -138,19 +138,19 @@ namespace nissa
               //at second iter check that none of them is internally used
               for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];ibox_dir_par++)
                 {
-                  int ivol=ivol_of_box_dir_par[ibox_dir_par+ibase];
+                  const LocLxSite ivol=ivol_of_box_dir_par[ibox_dir_par+ibase];
                   
                   if(iter==0)
                     {
-                      hit[dir+NDIM*ivol]=par+1;
+                      hit[dir+NDIM*ivol.nastyConvert()]=par+1;
 		      
                       if(0)
 			{
-			  printf("ibox %d dir %d par %d hitting %d, ivol %d{%d",
+			  printf("ibox %d dir %d par %d hitting %ld, ivol %ld{%d",
 				 ibox,dir,par,
-				 dir+NDIM*ivol,ivol,
-				 locCoordOfLoclx[ivol][0]);
-			  for(int mu=1;mu<NDIM;mu++) printf(",%d",locCoordOfLoclx[ivol][mu]);
+				 dir+NDIM*ivol(),ivol(),
+				 locCoordOfLoclx[ivol.nastyConvert()][0]);
+			  for(int mu=1;mu<NDIM;mu++) printf(",%d",locCoordOfLoclx[ivol.nastyConvert()][mu]);
 			  printf("};%d\n",dir);
 			}
                     }
@@ -164,8 +164,8 @@ namespace nissa
                         
 			if(0)
 			  {
-			    printf("ibox %d dir %d par %d link[%d], ivol %d{%d",ibox,dir,par,ihit,ivol,locCoordOfLoclx[ivol][0]);
-			    for(int mu=1;mu<NDIM;mu++) printf(",%d",locCoordOfLoclx[ivol][mu]);
+			    printf("ibox %d dir %d par %d link[%d], ivol %ld{%d",ibox,dir,par,ihit,ivol(),locCoordOfLoclx[ivol.nastyConvert()][0]);
+			    for(int mu=1;mu<NDIM;mu++) printf(",%d",locCoordOfLoclx[ivol.nastyConvert()][mu]);
 			    printf("}: %d",link>=NDIM*locVol?-1:locCoordOfLoclx[link/NDIM][0]);
 			    for(int mu=0;mu<NDIM;mu++) printf(",%d",link>=NDIM*locVol?-1:locCoordOfLoclx[link/NDIM][mu]);
 			    printf(";%d\n",link>=NDIM*locVol?-1:link%NDIM);
@@ -174,8 +174,8 @@ namespace nissa
                         if(hit[link]!=0)
 			  {
 			    char message[1024],*ap=message;
-			    ap+=sprintf(message,"ivol %d:{%d",ivol,locCoordOfLoclx[ivol][0]);
-			    for(int mu=1;mu<NDIM;mu++) ap+=sprintf(ap,",%d",locCoordOfLoclx[ivol][mu]);
+			    ap+=sprintf(message,"ivol %ld:{%d",ivol(),locCoordOfLoclx[ivol.nastyConvert()][0]);
+			    for(int mu=1;mu<NDIM;mu++) ap+=sprintf(ap,",%d",locCoordOfLoclx[ivol.nastyConvert()][mu]);
 			    ap+=sprintf(ap,"} ibox %d dir %d par %d got hit by %d link %d [site %d: {%d",
 					ibox,dir,par,ihit,link,link/NDIM,
 					link>=NDIM*locVol?-1:locCoordOfLoclx[link/NDIM][0]);
@@ -192,7 +192,7 @@ namespace nissa
   }
   
   //init the list of staples
-  void gauge_sweeper_t::init_staples(int ext_nlinks_per_staples_of_link,void(*ext_add_staples_per_link)(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu),void (*ext_compute_staples)(su3 staples,su3 *links,int *ilinks,double C1))
+  void gauge_sweeper_t::init_staples(int ext_nlinks_per_staples_of_link,void(*ext_add_staples_per_link)(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,const LocLxSite& ivol,int mu),void (*ext_compute_staples)(su3 staples,su3 *links,int *ilinks,double C1))
   {
     //take external nlinks and mark
     if(!par_geom_inited) crash("call geom initializer before");
@@ -203,7 +203,7 @@ namespace nissa
     compute_staples=ext_compute_staples;
     
     //allocate
-    ilink_per_staples=nissa_malloc("ilink_per_staples",nlinks_per_staples_of_link*NDIM*locVol,int);
+    ilink_per_staples=nissa_malloc("ilink_per_staples",nlinks_per_staples_of_link*NDIM*locVol.nastyConvert(),int);
     all_to_all_gathering_list_t *gl[1<<NDIM];
     for(int ibox=0;ibox<(1<<NDIM);ibox++) gl[ibox]=new all_to_all_gathering_list_t;
     add_staples_required_links(gl);
@@ -265,7 +265,7 @@ namespace nissa
 	//mark packing to be have been inited and allocate
 	packing_inited=true;
 	compute_staples_packed=ext_compute_staples_packed;
-	packing_link_source_dest=nissa_malloc("packing_link_source_dest",2*(nlinks_per_staples_of_link*NDIM*locVol+1),int);
+	packing_link_source_dest=nissa_malloc("packing_link_source_dest",2*(nlinks_per_staples_of_link*NDIM*locVol.nastyConvert()+1),int);
 	
 	int ibase=0;
 	int max_packing_link_nel=0;
@@ -358,9 +358,9 @@ namespace nissa
   }
   
   //add all links needed for a certain site
-  void add_Symanzik_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
+  void add_Symanzik_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,const LocLxSite& ivol,int mu)
   {
-    int *A=glbCoordOfLoclx[ivol];                            //       P---O---N
+    int *A=glbCoordOfLoclx[ivol.nastyConvert()];                            //       P---O---N
     coords B,C,/*D,*/E,F,G,H,I,J,K,L,M,/*N,*/O,P;               //       |   |   |
     //find coord mu                                             //   H---G---F---E---D
     K[mu]=L[mu]=M[mu]=(A[mu]-1+glbSize[mu])%glbSize[mu];      //   |   |   |   |   |
@@ -593,9 +593,9 @@ namespace nissa
   }
   
   //add all links needed for a certain site
-  void add_Wilson_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
+  void add_Wilson_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,const LocLxSite& ivol,int mu)
   {
-    int *A=glbCoordOfLoclx[ivol];
+    int *A=glbCoordOfLoclx[ivol.nastyConvert()];
     coords B,F,G,J;                                         //       G---F---E
     //find coord mu                                         //       |   |   |
     J[mu]=B[mu]=A[mu];                                      //       J---A---B

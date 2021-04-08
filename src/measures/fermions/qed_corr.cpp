@@ -33,9 +33,9 @@ namespace nissa
     void get_eo_photon(eo_ptr<spin1field> out,gauge_info photon)
     {
       //allocate lx version of photon field
-      spin1field *photon_eta=nissa_malloc("photon_eta",locVol+bord_vol,spin1field);
-      spin1field *photon_field=nissa_malloc("photon_field",locVol+bord_vol,spin1field);
-      spin1field *photon_phi=nissa_malloc("photon_phi",locVol+bord_vol,spin1field);
+      spin1field *photon_eta=nissa_malloc("photon_eta",(locVol+bord_vol).nastyConvert(),spin1field);
+      spin1field *photon_field=nissa_malloc("photon_field",(locVol+bord_vol).nastyConvert(),spin1field);
+      spin1field *photon_phi=nissa_malloc("photon_phi",(locVol+bord_vol).nastyConvert(),spin1field);
       
       //generate source and stochastich propagator
       generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
@@ -211,7 +211,7 @@ namespace nissa
 		      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 			{
 			  // int ivol=loclx_of_loceo[par][ieo];
-			  // int t=(glb_coord_of_loclx[ivol][0]+glb_size[0]-tso)%glb_size[0];
+			  // int t=(glb_coord_of_loclx[ivol.nastyConvert()][0]+glb_size[0]-tso)%glb_size[0];
 			  // for(int ic=0;ic<NCOL;ic++)
 			  //   complex_summ_the_conj1_prod(loc_contr[t+glb_size[0]*(icontr+contr_map.size()*(iflav+nflavs*jflav))],
 			  // 				A[par][ieo][ic],B[par][ieo][ic]);
@@ -225,7 +225,7 @@ namespace nissa
 	crash("#warning if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect(glb_contr,contr_tot_size);");
 	
 	//print
-	double norm=1.0/(meas_pars.nhits*glbSpatVol);
+	double norm=1.0/(meas_pars.nhits*glbSpatVol());
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  for(int jflav=0;jflav<nflavs;jflav++)
 	    {
@@ -255,7 +255,7 @@ namespace nissa
     // 	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
     // 	  {
     // 	    int ivol=loclx_of_loceo[par][ieo];
-    // 	    if(glb_coord_of_loclx[ivol][0]==glb_size[0]/2)
+    // 	    if(glb_coord_of_loclx[ivol.nastyConvert()][0]==glb_size[0]/2)
     // 	      color_copy(temp_source[par][ieo],M[0][par][ieo]);
     // 	  }
     //  NISSA_PARALLEL_LOOP_END;
@@ -279,9 +279,9 @@ namespace nissa
 	  
     // 	  complex temp;
     // 	  color_scalar_prod(temp,M[0][par][ieo],f);
-    // 	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol][0]],temp);
+    // 	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol.nastyConvert()][0]],temp);
     // 	  color_scalar_prod(temp,M[0][par][ieo],b);
-    // 	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol][0]],temp);
+    // 	  complex_summassign(loc_contr[glb_coord_of_loclx[ivol.nastyConvert()][0]],temp);
     // 	}
     // NISSA_PARALLEL_LOOP_END;
     // rem_backfield_from_conf(conf,theory_pars.backfield[0]);

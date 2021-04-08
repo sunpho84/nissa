@@ -12,7 +12,7 @@
 
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
-#define BULK_VOL locVol
+#define BULK_VOL locVol.nastyConvert()
 #define BORD_VOL bord_vol
 
 #define APPLY_OPERATOR apply_tmQ2_RL
@@ -26,7 +26,7 @@
 //#define cg_finish_communicating_borders finish_communicating_ev_color_borders
 
 #define CG_ADDITIONAL_VECTORS_ALLOCATION()                              \
-  BASETYPE *t=nissa_malloc("DD_temp",locVol+bord_vol,BASETYPE);
+  BASETYPE *t=nissa_malloc("DD_temp",BULK_VOL+BORD_VOL,BASETYPE);
 #define CG_ADDITIONAL_VECTORS_FREE()            \
   nissa_free(t);
 

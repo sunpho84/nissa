@@ -122,14 +122,11 @@ namespace nissa
     if(loc_rnd_gen_inited==1) crash("local random generator already initialized!");
     
     //check the grid to be initiaized
-    if(locVol==0) crash("grid not initalized!");
+    if(locVol==0l) crash("grid not initalized!"); //nasty
     
     //Generate the true seed
     if(glb_rnd_gen_inited==0) start_glb_rnd_gen(seed);
     int internal_seed=(int)rnd_get_unif(&glb_rnd_gen,0,RAND_MAX-glbVol());
-    
-    LocLxSite a;
-    a++;
     
     //allocate the grid of random generator, one for site
     loc_rnd_gen=nissa_malloc("Loc_rnd_gen",locVol(),rnd_gen);

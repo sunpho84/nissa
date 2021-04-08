@@ -49,9 +49,9 @@ namespace nissa
     else
       ending=locVol;
     
-    for(int ivol=0;ivol<ending;ivol++)
+    for(LocLxSite ivol=0;ivol<ending;ivol++)
       for(int id_si=0;id_si<4;id_si++)
-	memcpy(out[ivol][id_si],in[ivol][id_si][id_so],sizeof(complex));
+	memcpy(out[ivol.nastyConvert()][id_si],in[ivol.nastyConvert()][id_si][id_so],sizeof(complex));
     
     if(all) set_borders_valid(out);
     else    set_borders_invalid(out);
@@ -61,7 +61,7 @@ namespace nissa
   {
     NISSA_LOC_VOL_LOOP(ivol)
       for(int id_si=0;id_si<4;id_si++)
-	memcpy(out[ivol][id_si][id_so],in[ivol][id_si],sizeof(complex));
+	memcpy(out[ivol.nastyConvert()][id_si][id_so],in[ivol.nastyConvert()][id_si],sizeof(complex));
     set_borders_invalid(out);
   }
 }

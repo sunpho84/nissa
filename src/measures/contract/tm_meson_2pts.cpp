@@ -14,7 +14,7 @@ namespace nissa
 					 const int source_coord)
   {
     /// Local storage
-    complex *loc_contr=get_reducing_buffer<complex>(locVol);
+    complex *loc_contr=get_reducing_buffer<complex>(locVol());
     
     /// Gamma matrix
     dirac_matr g=base_gamma[igamma]*base_gamma[5];
@@ -22,15 +22,15 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	spincolor temp;
-	unsafe_dirac_prod_spincolor(temp,&g,fw[ivol]);
-	spincolor_scalar_prod(loc_contr[ivol],bw[ivol],temp);
+	unsafe_dirac_prod_spincolor(temp,&g,fw[ivol.nastyConvert()]);
+	spincolor_scalar_prod(loc_contr[ivol.nastyConvert()],bw[ivol.nastyConvert()],temp);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
     /// Temporary contraction
     complex unshiftedGlbContr[glbSize[0]];
-    glb_reduce(unshiftedGlbContr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+    glb_reduce(unshiftedGlbContr,loc_contr,locVol(),glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
     
     for(int glb_t=0;glb_t<glbSize[0];glb_t++)
       {

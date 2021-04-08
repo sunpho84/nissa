@@ -18,10 +18,10 @@ namespace nissa
   {
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
-    spincolor *eta=nissa_malloc("eta",locVol+bord_vol,spincolor);
-    spincolor *phi=nissa_malloc("phi",locVol+bord_vol,spincolor);
-    spincolor *phi_ins_S=nissa_malloc("phi_ins_S",locVol+bord_vol,spincolor);
-    spincolor *phi_ins_P=nissa_malloc("phi_ins_P",locVol+bord_vol,spincolor);
+    spincolor *eta=nissa_malloc("eta",(locVol+bord_vol).nastyConvert(),spincolor);
+    spincolor *phi=nissa_malloc("phi",(locVol+bord_vol).nastyConvert(),spincolor);
+    spincolor *phi_ins_S=nissa_malloc("phi_ins_S",(locVol+bord_vol).nastyConvert(),spincolor);
+    spincolor *phi_ins_P=nissa_malloc("phi_ins_P",(locVol+bord_vol).nastyConvert(),spincolor);
     
     /// Store the contractions
     const int ncorr_kind=6;
@@ -83,7 +83,7 @@ namespace nissa
 	      for(int ic=0;ic<ncorr_kind;ic++)
 		{
 		  complex c;
-		  complex_prod_double(c,contr[t+glbSize[0]*ic],1.0/(meas_pars.nhits*glbSpatVol));
+		  complex_prod_double(c,contr[t+glbSize[0]*ic],1.0/(meas_pars.nhits*glbSpatVol()));
 		  master_fprintf(file,"\t%+.16lg , %+.16lg",c[RE],c[IM]);
 		}
 	      master_fprintf(file,"\n");

@@ -50,7 +50,7 @@ namespace nissa
     double norm=pot/(M_PI*M_PI*128);
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
-	safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],norm);
+	safe_su3_hermitian_prod_double(F[ivol.nastyConvert()][mu],F[ivol.nastyConvert()][mu],norm);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(F);

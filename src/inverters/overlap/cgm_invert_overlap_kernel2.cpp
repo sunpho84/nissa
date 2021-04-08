@@ -11,7 +11,7 @@
 
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
-#define BULK_VOL locVol
+#define BULK_VOL locVol.nastyConvert()
 #define BORD_VOL bord_vol
 
 #define APPLY_OPERATOR apply_overlap_kernel2

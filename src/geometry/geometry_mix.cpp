@@ -16,7 +16,7 @@
 namespace nissa
 {
   //separate the even and odd part of a vector
-  void split_lx_vector_into_eo_parts_internal(eo_ptr<void> out_eo,void* in_lx,size_t bps)
+  void split_lx_vector_into_eo_parts_internal(eo_ptr<void> out_eo,void* in_lx,int64_t bps)
   {
     
     START_TIMING(remap_time,nremap);
@@ -33,7 +33,7 @@ namespace nissa
   }
   
   //separate the even and odd part of a vector
-  void get_evn_or_odd_part_of_lx_vector_internal(void* out_ev_or_od,void* in_lx,size_t bps,int par)
+  void get_evn_or_odd_part_of_lx_vector_internal(void* out_ev_or_od,void* in_lx,int64_t bps,int par)
   {
     
     START_TIMING(remap_time,nremap);
@@ -50,7 +50,7 @@ namespace nissa
   }
   
   //paste the even and odd parts of a vector into a full lx vector
-  void paste_eo_parts_into_lx_vector_internal(void* out_lx,eo_ptr<void> in_eo,size_t bps)
+  void paste_eo_parts_into_lx_vector_internal(void* out_lx,eo_ptr<void> in_eo,int64_t bps)
   {
     
     START_TIMING(remap_time,nremap);
@@ -69,7 +69,7 @@ namespace nissa
   /////////////////////
   
   //remap using a certain local remapper
-  void remap_vector_internal(char* out,char* in,size_t bps,int* dest_of_source,int length)
+  void remap_vector_internal(char* out,char* in,int64_t bps,int* dest_of_source,int length)
   {
     
     START_TIMING(remap_time,nremap);

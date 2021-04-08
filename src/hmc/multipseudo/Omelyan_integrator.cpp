@@ -31,7 +31,7 @@ namespace nissa
     verbosity_lv2_master_printf("Evolving lx momenta with topological force, dt=%lg\n",dt);
     
     //allocate force and compute it
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
+    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol.nastyConvert(),quad_su3):ext_F;
     compute_topological_force_lx_conf(F,conf,topars);
     
     //evolve
@@ -45,8 +45,8 @@ namespace nissa
     verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
     
     //reorder
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol+edge_vol,quad_su3);
-    quad_su3 *lx_H=nissa_malloc("lx_H",locVol,quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *lx_H=nissa_malloc("lx_H",locVol.nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     paste_eo_parts_into_lx_vector(lx_H,eo_H);
     
@@ -64,7 +64,7 @@ namespace nissa
     double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
       dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
     int nsteps=simul->ngauge_substeps;
-    quad_su3 *aux_F=nissa_malloc("aux_F",locVol,quad_su3);
+    quad_su3 *aux_F=nissa_malloc("aux_F",locVol.nastyConvert(),quad_su3);
     
     topotential_pars_t *topars=&(theory_pars->topotential_pars);
     
@@ -101,8 +101,8 @@ namespace nissa
   //wrapper
   void Omelyan_pure_gauge_evolver_eo_conf(eo_ptr<quad_su3> H_eo,eo_ptr<quad_su3> conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
   {
-    quad_su3 *H_lx=nissa_malloc("H_lx",locVol,quad_su3);
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *H_lx=nissa_malloc("H_lx",locVol.nastyConvert(),quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
     
     paste_eo_parts_into_lx_vector(H_lx,H_eo);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
@@ -205,11 +205,11 @@ namespace nissa
     //evolve
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int mu=0;mu<NDIM;mu++)
 	    for(int ic1=0;ic1<NCOL;ic1++)
 	      for(int ic2=0;ic2<NCOL;ic2++)
-		complex_subt_the_prod_idouble(H[par][ivol][mu][ic1][ic2],F[par][ivol][mu][ic1][ic2],dt);
+		complex_subt_the_prod_idouble(H[par][ieo][mu][ic1][ic2],F[par][ieo][mu][ic1][ic2],dt);
 	NISSA_PARALLEL_LOOP_END;
 	
         nissa_free(F[par]);

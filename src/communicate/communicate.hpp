@@ -86,9 +86,9 @@ namespace nissa
     //communication in progress
     int comm_in_prog;
     //local size
-    uint64_t nbytes_per_site;
+    int64_t nbytes_per_site;
     //size of the message
-    uint64_t tot_mess_size;
+    int64_t tot_mess_size;
     //offsets
     int send_offset[8],message_length[8],recv_offset[8];
     
@@ -104,7 +104,7 @@ namespace nissa
   EXTERN_COMMUNICATE int use_async_communications;
   
   //buffers
-  EXTERN_COMMUNICATE uint64_t recv_buf_size,send_buf_size;
+  EXTERN_COMMUNICATE int64_t recv_buf_size,send_buf_size;
   CUDA_MANAGED EXTERN_COMMUNICATE char *recv_buf,*send_buf;
   
 #define DEFINE_COMM(T) EXTERN_COMMUNICATE comm_t NAME3(lx,T,comm),NAME3(eo,T,comm)

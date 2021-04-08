@@ -52,7 +52,7 @@ namespace nissa
   {
     master_printf("Computing the scalar product between %s and %s\n",pr_dag.c_str(),pr.c_str());
     
-    complex *loc=nissa_malloc("loc",locVol,complex);
+    complex *loc=nissa_malloc("loc",locVol.nastyConvert(),complex);
     vector_reset(loc);
     
     for(int idc_so=0;idc_so<nso_spi*nso_col;idc_so++)
@@ -63,14 +63,14 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    complex t;
-	    spincolor_scalar_prod(t,q_dag[ivol],q[ivol]);
-	    complex_summassign(loc[ivol],t);
+	    spincolor_scalar_prod(t,q_dag[ivol.nastyConvert()],q[ivol.nastyConvert()]);
+	    complex_summassign(loc[ivol.nastyConvert()],t);
 	  }
 	NISSA_PARALLEL_LOOP_END;
       }
     THREAD_BARRIER();
     
-    glb_reduce((complex*)res,loc,locVol);
+    glb_reduce((complex*)res,loc,locVol.nastyConvert());
     
     nissa_free(loc);
   }
@@ -132,8 +132,8 @@ namespace nissa
 			    
 			    complex c={0,0};
 			    for(int a=0;a<NCOL;a++)
-			      complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			    complex_summ_the_prod(loc_contr[ivol],c,AB);
+			      complex_summ_the_conj1_prod(c,q1[ivol.nastyConvert()][k][a],q2[ivol.nastyConvert()][l][a]);
+			    complex_summ_the_prod(loc_contr[ivol.nastyConvert()],c,AB);
 			  }
 		      }
 		    NISSA_PARALLEL_LOOP_END;
@@ -142,7 +142,7 @@ namespace nissa
 	    
 	    THREAD_BARRIER();
 	    complex temp_contr[glbSize[0]];
-	    glb_reduce(temp_contr,loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+	    glb_reduce(temp_contr,loc_contr,locVol.nastyConvert(),glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
 	    
 	    for(int t=0;t<glbSize[0];t++)
 	      complex_copy(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbSize[0]-source_coord[0])%glbSize[0])],temp_contr[t]);
@@ -625,25 +625,25 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
-		int ivol_fw=loclxNeighup[ivol][mu];
+		int ivol_fw=loclxNeighup[ivol.nastyConvert()][mu];
 		spincolor f,Gf;
 		complex c;
 		
 		//piece psi_ivol U_ivol psi_fw
-		unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ivol_fw]);
+		unsafe_su3_prod_spincolor(f,conf[ivol.nastyConvert()][mu],Qfw[ivol_fw]);
 		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
 		dirac_subt_the_prod_spincolor(Gf,GAMMA+mu,f);
-		spincolor_scalar_prod(c,Qbw[ivol],Gf);
+		spincolor_scalar_prod(c,Qbw[ivol.nastyConvert()],Gf);
 		complex_prodassign(c,g.entr[iso_spi_bw]);
-		complex_summ_the_prod_idouble(si[ivol][mu],c,-0.5);
+		complex_summ_the_prod_idouble(si[ivol.nastyConvert()][mu],c,-0.5);
 		
 		//piece psi_fw U_ivol^dag psi_ivol
-		unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],Qfw[ivol]);
+		unsafe_su3_dag_prod_spincolor(f,conf[ivol.nastyConvert()][mu],Qfw[ivol.nastyConvert()]);
 		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
 		dirac_summ_the_prod_spincolor(Gf,GAMMA+mu,f);
 		spincolor_scalar_prod(c,Qbw[ivol_fw],Gf);
 		complex_prodassign(c,g.entr[iso_spi_bw]);
-		complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
+		complex_summ_the_prod_idouble(si[ivol.nastyConvert()][mu],c,+0.5);
 	      }
 	  NISSA_PARALLEL_LOOP_END;
 	}
@@ -681,9 +681,9 @@ namespace nissa
 		spincolor temp;
 		complex c;
 		
-		unsafe_dirac_prod_spincolor(temp,GAMMA+mu,Qfw[ivol]);
-		spincolor_scalar_prod(c,Qbw[ivol],temp);
-		complex_summ_the_prod(si[ivol][mu],c,g.entr[iso_spi_fw]);
+		unsafe_dirac_prod_spincolor(temp,GAMMA+mu,Qfw[ivol.nastyConvert()]);
+		spincolor_scalar_prod(c,Qbw[ivol.nastyConvert()],temp);
+		complex_summ_the_prod(si[ivol.nastyConvert()][mu],c,g.entr[iso_spi_fw]);
 	      }
 	  NISSA_PARALLEL_LOOP_END;
 	}
@@ -723,7 +723,7 @@ namespace nissa
 	//allocate
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
-	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),locVol,spin1field);
+	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),locVol.nastyConvert(),spin1field);
 	vector_reset(sides[side_name]);
 
       
@@ -759,7 +759,7 @@ namespace nissa
 	if(sides.find(right_with_photon)!=sides.end()) rp=sides[right_with_photon];
 	else
 	  {
-	    sides[right_with_photon]=rp=nissa_malloc(right_with_photon.c_str(),locVol,spin1field);
+	    sides[right_with_photon]=rp=nissa_malloc(right_with_photon.c_str(),locVol.nastyConvert(),spin1field);
 	    multiply_by_tlSym_gauge_propagator(rp,sides[h.right],photon);
 	  }
       }

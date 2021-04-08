@@ -50,9 +50,9 @@ namespace nissa
     ///////////////////////////////// methods ///////////////////////
     
     //routine used to add paths (pointer to external function is stored here for thread commodity used)
-    void(*add_staples_per_link)(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu);
+    void(*add_staples_per_link)(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,const LocLxSite& ivol,int mu);
     void init_staples(int ext_nlinks_per_staples_of_link,void(*ext_add_staples_per_link)
-                      (int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu),
+                      (int *ilink_to_be_used,all_to_all_gathering_list_t &gat,const LocLxSite& ivol,int mu),
                       void (*ext_compute_staples)(su3 staples,su3 *links,int *ilinks,double C1));
     void add_staples_required_links(all_to_all_gathering_list_t **gl);
     
@@ -68,7 +68,7 @@ namespace nissa
     void init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(coords ivol_coord,int dir));
     
     //sweep the conf
-    void sweep_conf(quad_su3 *conf,void (*update_fun)(su3 out,su3 staples,int ivol,int mu,void *pars),void *pars)
+    void sweep_conf(quad_su3 *conf,void (*update_fun)(su3 out,su3 staples,const LocLxSite& ivol,int mu,void *pars),void *pars)
     {
       MANDATORY_PARALLEL;
       
@@ -103,8 +103,8 @@ namespace nissa
 		      compute_staples(staples,(su3*)conf,ilink_per_staples+nlinks_per_staples_of_link*ibox_dir_par,C1);
 		    
 		    //find new link
-		    int ivol=ivol_of_box_dir_par[ibox_dir_par];
-		    update_fun(conf[ivol][dir],staples,ivol,dir,pars);
+		    const LocLxSite ivol=ivol_of_box_dir_par[ibox_dir_par];
+		    update_fun(conf[ivol.nastyConvert()][dir],staples,ivol,dir,pars);
 		  }
 		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();

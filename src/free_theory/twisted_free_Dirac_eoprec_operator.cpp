@@ -202,12 +202,12 @@ namespace nissa
     inv_tmDee_or_oo_eos(temp,qu,out);
     tmDee_or_oo_eos(temp,qu,in);
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       for(int id=0;id<2;id++)
 	for(int ri=0;ri<2;ri++)
 	  { //gamma5 is explicitely implemented
-	    out[ivol][id  ][ri]=+temp[ivol][id  ][ri]-out[ivol][id  ][ri]*0.25;
-	    out[ivol][id+2][ri]=-temp[ivol][id+2][ri]+out[ivol][id+2][ri]*0.25;
+	    out[ieo][id  ][ri]=+temp[ieo][id  ][ri]-out[ieo][id  ][ri]*0.25;
+	    out[ieo][id+2][ri]=-temp[ieo][id+2][ri]+out[ieo][id+2][ri]*0.25;
 	  }
     NISSA_PARALLEL_LOOP_END;
     

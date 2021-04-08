@@ -29,16 +29,16 @@ namespace nissa
     int en=(sign>0) ? 0 : locSize[mu]-1 ;
     
     //loop over orthogonal dirs
-    int perp_vol=locVol/locSize[mu];
+    const LocLxSite perp_vol=locVol/locSize[mu];
     NISSA_PARALLEL_LOOP(iperp,0,perp_vol)
       {
 	//find coords
-	int jperp=iperp;
+	LocLxSite jperp=iperp;
 	coords x;
 	for(int inu=2;inu>=0;inu--)
 	  {
 	    int nu=perp_dir[mu][inu];
-	    x[nu]=jperp%locSize[nu];
+	    x[nu]=(jperp%locSize[nu]).nastyConvert();
 	    jperp/=locSize[nu];
 	  }
 	

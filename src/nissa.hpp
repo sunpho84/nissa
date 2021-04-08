@@ -138,6 +138,7 @@
 #include <metaProgramming/nonConstMethod.hpp>
 #include <metaProgramming/refOrVal.hpp>
 #include <metaProgramming/tuple.hpp>
+#include <metaProgramming/typeConversion.hpp>
 #include <metaProgramming/unrolledFor.hpp>
 
 #include <new_types/complex.hpp>

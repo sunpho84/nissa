@@ -224,7 +224,7 @@ namespace nissa
 	    out[imom.nastyConvert()][mu][IM]=eout(mu).imag();
 	  }
 #else
-	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
+	spin_prod_double(out[imom.nastyConvert()],in[imom.nastyConvert()],sqrt(prop[0][0][RE]));
 #endif
 	
 	//verify g.f condition

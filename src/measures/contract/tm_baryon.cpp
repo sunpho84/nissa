@@ -64,13 +64,13 @@ namespace nissa
 	}
     
     /// Local storage
-    complex *loc_contr=get_reducing_buffer<complex>(locVol*nIdg0*nWicks);
+    complex *loc_contr=get_reducing_buffer<complex>(locVol()*nIdg0*nWicks);
     vector_reset(loc_contr);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	/// Distance from source
-	const int dt=(glbCoordOfLoclx[ivol][0]-source_coord+glbSize[0])%glbSize[0];
+	const int dt=(glbCoordOfLoclx[ivol.nastyConvert()][0]-source_coord+glbSize[0])%glbSize[0];
 	
 	/// Determine whether we are in the first half
 	const bool first_half=(dt<=glbSize[0]/2);
@@ -89,7 +89,7 @@ namespace nissa
 	    for(int sp_si=0;sp_si<NDIRAC;sp_si++)
 	      for(int co_so=0;co_so<NCOL;co_so++)
 		for(int co_si=0;co_si<NCOL;co_si++)
-		  complex_copy(p[i][co_si][co_so][sp_si][sp_so],Q[i][co_so+NCOL*sp_so][ivol][sp_si][co_si]);
+		  complex_copy(p[i][co_si][co_so][sp_si][sp_so],Q[i][co_so+NCOL*sp_so][ivol.nastyConvert()][sp_si][co_si]);
 	
 	//Color source
 	for(int b_so=0;b_so<NCOL;b_so++)
@@ -139,19 +139,19 @@ namespace nissa
 			}
 		    
 		    /// Local time
-		    const int loc_t=locCoordOfLoclx[ivol][0];
+		    const int loc_t=locCoordOfLoclx[ivol.nastyConvert()][0];
 		    
 		    /// Local spatial id
-		    const int loc_ispat=ivol%locSpatVol;
+		    const LocLxSite loc_ispat=ivol%locSpatVol;
 		    
 		    for(int iWick=0;iWick<nWicks;iWick++)
 		      {
 			/// Index in the local elements: we put space most internally, and local time most externally
-			const int iloc=loc_ispat+locSpatVol*(iWick+nWicks*loc_t);
+			const LocLxSite iloc=loc_ispat+locSpatVol*(iWick+nWicks*loc_t);
 			
 			complex term;
 			unsafe_complex_prod(term,AC_proj[iWick],fact[al_si][al_so]);
-			complex_summ_the_prod(loc_contr[iloc],term,p2[b_si][b_so][be_si][be_so]);
+			complex_summ_the_prod(loc_contr[iloc.nastyConvert()],term,p2[b_si][b_so][be_si][be_so]);
 		      }
 		  }
 	    }
@@ -160,7 +160,7 @@ namespace nissa
     THREAD_BARRIER();
     
     /// Number of local elements
-    const int nloc=nWicks*locVol;
+    const int64_t nloc=nWicks*locVol.nastyConvert();
     
     /// Number of slices to be taken
     const int nslices=nWicks*glbSize[0];

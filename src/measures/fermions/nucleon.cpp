@@ -29,10 +29,10 @@ namespace nissa
     /// Source
     spincolor** source=nissa_malloc("source",NDIRAC*NCOL,spincolor*);
     for(int idc=0;idc<NDIRAC*NCOL;idc++)
-      source[idc]=nissa_malloc("source[]",locVol+bord_vol,spincolor);
+      source[idc]=nissa_malloc("source[]",(locVol+bord_vol).nastyConvert(),spincolor);
     
     /// Smearing conf
-    quad_su3* smearingConf=nissa_malloc("smearingConf",locVol+bord_vol,quad_su3);
+    quad_su3* smearingConf=nissa_malloc("smearingConf",(locVol+bord_vol).nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(smearingConf,conf);
     ape_smear_conf(smearingConf,smearingConf,meas_pars.apeSmeAlpha,meas_pars.apeSmeNSteps,all_other_dirs[0],1);
     
@@ -43,7 +43,7 @@ namespace nissa
       {
 	prop[iflav]=nissa_malloc("prop[iflav]",NDIRAC*NCOL,spincolor*);
 	for(int idc=0;idc<NDIRAC*NCOL;idc++)
-	  prop[iflav][idc]=nissa_malloc("prop[iflav][idc]",locVol+bord_vol,spincolor);
+	  prop[iflav][idc]=nissa_malloc("prop[iflav][idc]",(locVol+bord_vol).nastyConvert(),spincolor);
       }
     
     /// Operations for the propagator

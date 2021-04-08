@@ -370,7 +370,7 @@ namespace nissa
 	  {
 	    double norm=glbSize[list_dirs[0]];
 	    for(int idir=1;idir<ndirs;idir++) norm*=glbSize[idir];
-	    double_vector_prod_double((double*)out,(double*)out,1/norm,2*ncpp*locVol);
+	    double_vector_prod_double((double*)out,(double*)out,1/norm,2*ncpp*locVol.nastyConvert());
 	  }
 	
 	nissa_free(buf);

@@ -41,14 +41,26 @@ namespace nissa
   CUDA_MANAGED EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
   CUDA_MANAGED EXTERN_PARS int nso_spi,nso_col;
   CUDA_MANAGED EXTERN_PARS coords source_coord;
+
   CUDA_HOST_AND_DEVICE inline int rel_coord_of_glb_coord(int c,int mu)
-  {return (glbSize[mu]+c-source_coord[mu])%glbSize[mu];}
+  {
+    return (glbSize[mu]+c-source_coord[mu])%glbSize[mu];
+  }
+  
   inline int rel_time_of_glb_time(int t)
-  {return rel_coord_of_glb_coord(t,0);}
-  CUDA_HOST_AND_DEVICE inline int rel_coord_of_loclx(int loclx,int mu)
-  {return rel_coord_of_glb_coord(glbCoordOfLoclx[loclx][mu],mu);}
-  CUDA_HOST_AND_DEVICE inline int rel_time_of_loclx(int loclx)
-  {return rel_coord_of_loclx(loclx,0);}
+  {
+    return rel_coord_of_glb_coord(t,0);
+  }
+  
+  CUDA_HOST_AND_DEVICE inline int rel_coord_of_loclx(const LocLxSite& loclx,int mu)
+  {
+    return rel_coord_of_glb_coord(glbCoordOfLoclx[loclx.nastyConvert()][mu],mu);
+  }
+  
+  CUDA_HOST_AND_DEVICE inline int rel_time_of_loclx(const LocLxSite& loclx)
+  {
+    return rel_coord_of_loclx(loclx,0);
+  }
   
   //convention on gospel
   const int follow_chris=0,follow_nazario=1;
@@ -182,7 +194,10 @@ namespace nissa
   //local pion or muon current?
   EXTERN_PARS int loc_hadr_curr INIT_TO(false);
   inline void read_loc_hadr_curr()
-  {read_str_int("LocHadrCurr",&loc_hadr_curr);}
+  {
+    read_str_int("LocHadrCurr",&loc_hadr_curr);
+  }
+
   EXTERN_PARS int loc_muon_curr INIT_TO(false);
   inline void read_loc_muon_curr()
   {read_str_int("LocMuonCurr",&loc_muon_curr);}

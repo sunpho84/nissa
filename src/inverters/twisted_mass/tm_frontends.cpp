@@ -21,22 +21,22 @@ namespace nissa
   {
     
     //allocate temporary source
-    spincolor *temp_source=nissa_malloc("temp_source",locVol+bord_vol,spincolor);
+    spincolor *temp_source=nissa_malloc("temp_source",(locVol+bord_vol).nastyConvert(),spincolor);
     //allocate temp_vec
     std::array<spincolor*,2> temp_vec;
-    temp_vec[0]=nissa_malloc("temp_vec[0]",locVol+bord_vol,spincolor);
-    temp_vec[1]=nissa_malloc("temp_vec[1]",locVol+bord_vol,spincolor);
+    temp_vec[0]=nissa_malloc("temp_vec[0]",(locVol+bord_vol).nastyConvert(),spincolor);
+    temp_vec[1]=nissa_malloc("temp_vec[1]",(locVol+bord_vol).nastyConvert(),spincolor);
     //allocate nmass spincolors, for the cgm solutions
     spincolor **cgm_solution;
     cgm_solution=nissa_malloc("cgm_solution",nmass,spincolor*);
-    for(int imass=0;imass<nmass;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution[imass]",locVol+bord_vol,spincolor);
+    for(int imass=0;imass<nmass;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution[imass]",(locVol+bord_vol).nastyConvert(),spincolor);
     
     //loop over the source dirac and color index
     for(int id=0;id<4;id++)
       for(int ic=0;ic<NCOL;ic++)
 	{
 	  NISSA_LOC_VOL_LOOP(ivol)
-	    get_spincolor_from_su3spinspin(temp_source[ivol],source[ivol],id,ic);
+	    get_spincolor_from_su3spinspin(temp_source[ivol.nastyConvert()],source[ivol.nastyConvert()],id,ic);
 	  set_borders_invalid(temp_source);
 	  
 	  double init_time=take_time();
@@ -52,7 +52,7 @@ namespace nissa
 	      for(int r=0;r<2;r++)
 		{
 		  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-		    put_spincolor_into_su3spinspin(prop[r][imass][ivol],temp_vec[r][ivol],id,ic);
+		    put_spincolor_into_su3spinspin(prop[r][imass][ivol.nastyConvert()],temp_vec[r][ivol.nastyConvert()],id,ic);
 		  NISSA_PARALLEL_LOOP_END;
 		  set_borders_invalid(prop[r]);
 		}

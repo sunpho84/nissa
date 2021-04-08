@@ -35,13 +35,13 @@ namespace nissa
   {
     
     tmn2Doe_eos(varphi,conf_eos,eq8a);
-    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       for(int id=0;id<NDIRAC/2;id++)
 	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
 	    { //gamma5 is explicitly wrote
-	      varphi[ivol][id  ][ic][ri]=+source_odd[ivol][id  ][ic][ri]+varphi[ivol][id  ][ic][ri]*0.5;
-	      varphi[ivol][id+2][ic][ri]=-source_odd[ivol][id+2][ic][ri]-varphi[ivol][id+2][ic][ri]*0.5;
+	      varphi[ieo][id  ][ic][ri]=+source_odd[ieo][id  ][ic][ri]+varphi[ieo][id  ][ic][ri]*0.5;
+	      varphi[ieo][id+2][ic][ri]=-source_odd[ieo][id+2][ic][ri]-varphi[ieo][id+2][ic][ri]*0.5;
 	    }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(varphi);
@@ -52,11 +52,11 @@ namespace nissa
   {
     
     tmn2Deo_eos(varphi,conf_eos,sol_odd);
-    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       for(int id=0;id<NDIRAC;id++)
 	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
-	    varphi[ivol][id][ic][ri]=source_evn[ivol][id][ic][ri]+varphi[ivol][id][ic][ri]*0.5;
+	    varphi[ieo][id][ic][ri]=source_evn[ieo][id][ic][ri]+varphi[ieo][id][ic][ri]*0.5;
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(varphi);
   }
@@ -140,16 +140,16 @@ namespace nissa
       inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);
     
     //check solution
-    spincolor *residueVec=nissa_malloc("temp",locVol,spincolor);
+    spincolor *residueVec=nissa_malloc("temp",locVol.nastyConvert(),spincolor);
     apply_tmQ(residueVec,conf_lx,kappa,mass,solution_lx);
     safe_dirac_prod_spincolor(residueVec,base_gamma+5,residueVec);
-    double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol*sizeof(spincolor)/sizeof(double));
+    double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol.nastyConvert()*sizeof(spincolor)/sizeof(double));
     
     /// Source L2 norm
-    const double sourceNorm2=double_vector_glb_norm2(source_lx,locVol);
+    const double sourceNorm2=double_vector_glb_norm2(source_lx,locVol.nastyConvert());
     
     /// Residue L2 norm
-    const double residueNorm2=double_vector_glb_norm2(residueVec,locVol);
+    const double residueNorm2=double_vector_glb_norm2(residueVec,locVol.nastyConvert());
     
     master_printf("check solution, residue: %lg, target one: %lg\n",residueNorm2/sourceNorm2,residue);
     

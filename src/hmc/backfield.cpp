@@ -20,12 +20,12 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
-		S[par][ivol][mu][0]=1;
-		S[par][ivol][mu][1]=0;
+		S[par][ieo][mu][0]=1;
+		S[par][ieo][mu][1]=0;
 	      }
 	  }
 	NISSA_PARALLEL_LOOP_END;
@@ -54,20 +54,20 @@ namespace nissa
   }
   
   //compute args for non-present quantization
-  CUDA_HOST_AND_DEVICE void get_args_of_null_quantization(coords phase,int ivol,int mu,int nu)
+  CUDA_HOST_AND_DEVICE void get_args_of_null_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
   {
     phase[0]=phase[1]=phase[2]=phase[3]=0;
   }
   
   //compute args for 1/L2 quantization
-  CUDA_HOST_AND_DEVICE void get_args_of_one_over_L2_quantization(coords phase,int ivol,int mu,int nu)
+  CUDA_HOST_AND_DEVICE void get_args_of_one_over_L2_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
   {
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
     
     //take absolute coords
-    int xmu=glbCoordOfLoclx[ivol][mu];
-    int xnu=glbCoordOfLoclx[ivol][nu];
+    int xmu=glbCoordOfLoclx[ivol.nastyConvert()][mu];
+    int xnu=glbCoordOfLoclx[ivol.nastyConvert()][nu];
     if(xmu>=glbSize[mu]/2) xmu-=glbSize[mu];
     if(xnu>=glbSize[nu]/2) xnu-=glbSize[nu];
     
@@ -77,21 +77,21 @@ namespace nissa
   }
   
   //compute args for half-half quantization
-  CUDA_HOST_AND_DEVICE void get_args_of_half_half_quantization(coords phase,int ivol,int mu,int nu)
+  CUDA_HOST_AND_DEVICE void get_args_of_half_half_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
   {
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
     
     //take absolute coords
-    int xmu=glbCoordOfLoclx[ivol][mu];
-    if(xmu<=glbSize[mu]/2) xmu=glbCoordOfLoclx[ivol][mu]-glbSize[mu]/4;
-    else                    xmu=3*glbSize[mu]/4-glbCoordOfLoclx[ivol][mu];
+    int xmu=glbCoordOfLoclx[ivol.nastyConvert()][mu];
+    if(xmu<=glbSize[mu]/2) xmu=glbCoordOfLoclx[ivol.nastyConvert()][mu]-glbSize[mu]/4;
+    else                    xmu=3*glbSize[mu]/4-glbCoordOfLoclx[ivol.nastyConvert()][mu];
     
     //define the arguments of exponentials
     phase[nu]=xmu;
   }
   
-  CUDA_MANAGED void (*get_args_of_quantization[3])(coords,int,int,int)=
+  CUDA_MANAGED void (*get_args_of_quantization[3])(coords,const LocLxSite&,int,int)=
   {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
   
   //multiply a background field by a constant em field
@@ -179,13 +179,13 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    coords ph;
-	    get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
+	    get_stagphase_of_lx(ph,loclx_of_loceo[par][ieo]);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
-	      su3_prodassign_double(conf[par][ivol][mu],ph[mu]);
+	      su3_prodassign_double(conf[par][ieo][mu],ph[mu]);
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -204,23 +204,23 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    coords ph;
-	    if(with_without==0) get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
+	    if(with_without==0) get_stagphase_of_lx(ph,loclx_of_loceo[par][ieo]);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
 		//switch add/rem
 		complex f;
-		if(add_rem==0) complex_copy(f,u1[par][ivol][mu]);
-		else           complex_conj(f,u1[par][ivol][mu]);
+		if(add_rem==0) complex_copy(f,u1[par][ieo][mu]);
+		else           complex_conj(f,u1[par][ieo][mu]);
 		
 		//switch phase
 		if(with_without==0) complex_prodassign_double(f,ph[mu]);
 		
 		//put the coeff
-		safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],f);
+		safe_su3_prod_complex(conf[par][ieo][mu],conf[par][ieo][mu],f);
 	      }
 	  }
 	NISSA_PARALLEL_LOOP_END;

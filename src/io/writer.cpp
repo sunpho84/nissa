@@ -32,9 +32,9 @@ namespace nissa
     if(mess!=NULL) ILDG_File_write_all_messages(file,mess);
     
     //compute float or double site
-    size_t nreals_loc=nreals_per_site*locVol;
-    size_t nbytes_per_real=nbits/8;
-    size_t nbytes_per_site=nreals_per_site*nbytes_per_real;
+    const size_t nreals_loc=nreals_per_site*locVol();
+    const size_t nbytes_per_real=nbits/8;
+    const size_t nbytes_per_site=nreals_per_site*nbytes_per_real;
     
     //buffer to reorder data in ILDG format and change endianness
     char *buffer=nissa_malloc("buffer",nreals_loc*nbytes_per_real,char);
@@ -146,7 +146,7 @@ namespace nissa
   //read an ildg conf and split it into e/o parts
   void paste_eo_parts_and_write_ildg_gauge_conf(std::string path,eo_ptr<quad_su3> eo_conf,size_t prec,ILDG_message *mess=NULL)
   {
-    quad_su3 *lx_conf=nissa_malloc("temp_conf",locVol,quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("temp_conf",locVol.nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     write_ildg_gauge_conf(path,lx_conf,prec,mess);
     nissa_free(lx_conf);

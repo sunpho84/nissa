@@ -10,7 +10,7 @@
 
 namespace nissa
 {
-  void paste_eo_parts_into_lx_vector_internal(void *out_lx,eo_ptr<void> in_eo,size_t bps);
+  void paste_eo_parts_into_lx_vector_internal(void *out_lx,eo_ptr<void> in_eo,int64_t bps);
   
   template <class T> void paste_eo_parts_into_lx_vector(T *out_lx,eo_ptr<T> in_eo)
   {
@@ -19,7 +19,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  void split_lx_vector_into_eo_parts_internal(eo_ptr<void> out_eo,void *in_lx,size_t bps);
+  void split_lx_vector_into_eo_parts_internal(eo_ptr<void> out_eo,void *in_lx,int64_t bps);
   
   template <class T> void split_lx_vector_into_eo_parts(eo_ptr<T> out_eo,T *in_lx)
   {
@@ -28,7 +28,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  void get_evn_or_odd_part_of_lx_vector_internal(void *out_ev_or_od,void *in_lx,size_t bps,int par);
+  void get_evn_or_odd_part_of_lx_vector_internal(void *out_ev_or_od,void *in_lx,int64_t bps,int par);
   
   template <class T> void get_evn_or_odd_part_of_lx_vector(T *out_eo,T *in_lx,int par)
   {
@@ -37,7 +37,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  void remap_vector_internal(char *out,char *in,size_t bps,int *dest_of_source,int length);
+  void remap_vector_internal(char *out,char *in,int64_t bps,int *dest_of_source,int length);
   
   // template <class T> void remap_Leb_ev_or_od_to_loc_vector(T *out,T *in,int par)
   // {remap_vector_internal((char*)out,(char*)in,sizeof(T),loceo_of_Lebeo[par],loc_volh);}

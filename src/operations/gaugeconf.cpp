@@ -47,23 +47,23 @@ namespace nissa
     int L=glbSize[d1];
     
     //allocate destinations and sources
-    coords *xto=nissa_malloc("xto",locVol,coords);
-    coords *xfr=nissa_malloc("xfr",locVol,coords);
+    coords *xto=nissa_malloc("xto",locVol.nastyConvert(),coords);
+    coords *xfr=nissa_malloc("xfr",locVol.nastyConvert(),coords);
     
     //scan all local sites to see where to send and from where to expect data
     NISSA_LOC_VOL_LOOP(ivol)
     {
       //copy 0 and axis coord to "to" and "from" sites
-      xto[ivol][0]=xfr[ivol][0]=glbCoordOfLoclx[ivol][0];
-      xto[ivol][axis]=xfr[ivol][axis]=glbCoordOfLoclx[ivol][axis];
+      xto[ivol.nastyConvert()][0]=xfr[ivol.nastyConvert()][0]=glbCoordOfLoclx[ivol.nastyConvert()][0];
+      xto[ivol.nastyConvert()][axis]=xfr[ivol.nastyConvert()][axis]=glbCoordOfLoclx[ivol.nastyConvert()][axis];
       
       //find reamining coord of "to" site
-      xto[ivol][d1]=(L-glbCoordOfLoclx[ivol][d2])%L;
-      xto[ivol][d2]=glbCoordOfLoclx[ivol][d1];
+      xto[ivol.nastyConvert()][d1]=(L-glbCoordOfLoclx[ivol.nastyConvert()][d2])%L;
+      xto[ivol.nastyConvert()][d2]=glbCoordOfLoclx[ivol.nastyConvert()][d1];
       
       //find remaining coord of "from" site
-      xfr[ivol][d1]=glbCoordOfLoclx[ivol][d2];
-      xfr[ivol][d2]=(L-glbCoordOfLoclx[ivol][d1])%L;
+      xfr[ivol.nastyConvert()][d1]=glbCoordOfLoclx[ivol.nastyConvert()][d2];
+      xfr[ivol.nastyConvert()][d2]=(L-glbCoordOfLoclx[ivol.nastyConvert()][d1])%L;
     }
     
     //call the remapping
@@ -101,19 +101,19 @@ namespace nissa
     int d3=axis;
     
     //allocate a temporary conf with borders
-    quad_su3 *temp_conf=nissa_malloc("temp_conf",locVol+bord_vol,quad_su3);
-    memcpy(temp_conf,in,locVol*sizeof(quad_su3));
+    quad_su3 *temp_conf=nissa_malloc("temp_conf",(locVol+bord_vol).nastyConvert(),quad_su3);
+    memcpy(temp_conf,in,locVol.nastyConvert()*sizeof(quad_su3));
     communicate_lx_quad_su3_borders(temp_conf);
     
     //now reorder links
     NISSA_LOC_VOL_LOOP(ivol)
     {
       //copy temporal direction and axis
-      memcpy(out[ivol][d0],temp_conf[ivol][d0],sizeof(su3));
-      memcpy(out[ivol][d3],temp_conf[ivol][d3],sizeof(su3));
+      memcpy(out[ivol.nastyConvert()][d0],temp_conf[ivol.nastyConvert()][d0],sizeof(su3));
+      memcpy(out[ivol.nastyConvert()][d3],temp_conf[ivol.nastyConvert()][d3],sizeof(su3));
       //swap the other two
-      unsafe_su3_hermitian(out[ivol][d1],temp_conf[loclxNeighdw[ivol][d2]][d2]);
-      memcpy(out[ivol][d2],temp_conf[ivol][d1],sizeof(su3));
+      unsafe_su3_hermitian(out[ivol.nastyConvert()][d1],temp_conf[loclxNeighdw[ivol.nastyConvert()][d2]][d2]);
+      memcpy(out[ivol.nastyConvert()][d2],temp_conf[ivol.nastyConvert()][d1],sizeof(su3));
     }
     
     //rotate rigidly
@@ -130,12 +130,14 @@ namespace nissa
 	theta[idir][1]=sin(theta_in_pi[idir]*M_PI/glbSize[idir]);
       }
     
-    int nsite=locVol;
+    LocLxSite nsite=locVol;
     if(putonbords) nsite+=bord_vol;
     if(putonedges) nsite+=edge_vol;
     
-    for(int ivol=0;ivol<nsite;ivol++)
-      for(int idir=0;idir<NDIM;idir++) safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
+    NISSA_PARALLEL_LOOP(ivol,0,nsite)
+      for(int idir=0;idir<NDIM;idir++)
+	safe_su3_prod_complex(conf[ivol.nastyConvert()][idir],conf[ivol.nastyConvert()][idir],theta[idir]);
+    NISSA_PARALLEL_LOOP_END;
     
     if(!putonbords) set_borders_invalid(conf);
     if(!putonedges) set_edges_invalid(conf);
@@ -172,9 +174,9 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_LOC_VOLH_LOOP(ivol)
+	NISSA_LOC_VOLH_LOOP(ieo)
 	  for(int mu=0;mu<NDIM;mu++)
-	    su3_put_to_id(conf[par][ivol][mu]);
+	    su3_put_to_id(conf[par][ieo][mu]);
 	
 	set_borders_invalid(conf[par]);
       }
@@ -203,7 +205,7 @@ namespace nissa
   {
     NISSA_LOC_VOL_LOOP(ivol)
       for(int mu=0;mu<NDIM;mu++)
-	su3_put_to_id(conf[ivol][mu]);
+	su3_put_to_id(conf[ivol.nastyConvert()][mu]);
     
     set_borders_invalid(conf);
   }
@@ -215,7 +217,7 @@ namespace nissa
     
     NISSA_LOC_VOL_LOOP(ivol)
       for(int mu=0;mu<NDIM;mu++)
-	su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
+	su3_put_to_rnd(conf[ivol.nastyConvert()][mu],loc_rnd_gen[ivol.nastyConvert()]);
     
     set_borders_invalid(conf);
   }
@@ -224,27 +226,27 @@ namespace nissa
   void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
   {
     //results
-    double* loc_avg=nissa_malloc("loc_avg",locVol,double);
-    double* loc_max=nissa_malloc("loc_max",locVol,double);
-    int64_t* loc_nbroken=nissa_malloc("loc_nbroken",locVol,int64_t);
+    double* loc_avg=nissa_malloc("loc_avg",locVol.nastyConvert(),double);
+    double* loc_max=nissa_malloc("loc_max",locVol.nastyConvert(),double);
+    int64_t* loc_nbroken=nissa_malloc("loc_nbroken",locVol.nastyConvert(),int64_t);
     
     NISSA_LOC_VOL_LOOP(ivol)
       for(int idir=0;idir<NDIM;idir++)
 	{
-	  const double err=su3_get_non_unitariness(conf[ivol][idir]);
+	  const double err=su3_get_non_unitariness(conf[ivol.nastyConvert()][idir]);
 	  
 	  //compute average and max deviation
-	  loc_avg[ivol]=err;
-	  loc_max[ivol]=err;
-	  loc_nbroken[ivol]=(err>1e-13);
+	  loc_avg[ivol.nastyConvert()]=err;
+	  loc_max[ivol.nastyConvert()]=err;
+	  loc_nbroken[ivol.nastyConvert()]=(err>1e-13);
 	}
     
-    glb_reduce(&result.average_diff,loc_avg,locVol);
-    result.average_diff/=glbVol*NDIM;
+    glb_reduce(&result.average_diff,loc_avg,locVol.nastyConvert());
+    result.average_diff/=glbVol()*NDIM;
     
     master_printf("Warning, max is undefined\n");
     //glb_reduce(&result.max_diff,loc_max,loc_vol,max_to_be_implemented);
-    glb_reduce(&result.nbroken_links,loc_nbroken,locVol);
+    glb_reduce(&result.nbroken_links,loc_nbroken,locVol.nastyConvert());
     
     nissa_free(loc_avg);
     nissa_free(loc_max);
@@ -260,8 +262,8 @@ namespace nissa
       for(int idir=0;idir<NDIM;idir++)
 	{
 	  su3 t;
-	  su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
-	  su3_copy(conf[ivol][idir],t);
+	  su3_unitarize_orthonormalizing(t,conf[ivol.nastyConvert()][idir]);
+	  su3_copy(conf[ivol.nastyConvert()][idir],t);
 	}
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(conf);
@@ -275,7 +277,7 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
-        su3_unitarize_maximal_trace_projecting(conf[ivol][mu],conf[ivol][mu]);
+        su3_unitarize_maximal_trace_projecting(conf[ivol.nastyConvert()][mu],conf[ivol.nastyConvert()][mu]);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(conf);
@@ -289,9 +291,9 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-        NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+        NISSA_PARALLEL_LOOP(ieo,0,locVolh)
           for(int mu=0;mu<NDIM;mu++)
-            su3_unitarize_maximal_trace_projecting(conf[par][ivol][mu],conf[par][ivol][mu]);
+            su3_unitarize_maximal_trace_projecting(conf[par][ieo][mu],conf[par][ieo][mu]);
 	NISSA_PARALLEL_LOOP_END;
         
         set_borders_invalid(conf[par]);
@@ -301,10 +303,15 @@ namespace nissa
   }
   
   //overrelax an lx configuration
-  void overrelax_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
-  {su3_find_overrelaxed(out,out,staple,((int*)pars)[0]);}
+  void overrelax_lx_conf_handle(su3 out,su3 staple,const LocLxSite& ivol,int mu,void *pars)
+  {
+    su3_find_overrelaxed(out,out,staple,((int*)pars)[0]);
+  }
+  
   void overrelax_lx_conf(quad_su3* conf,gauge_sweeper_t* sweeper,int nhits)
-  {sweeper->sweep_conf(conf,overrelax_lx_conf_handle,(void*)&nhits);}
+  {
+    sweeper->sweep_conf(conf,overrelax_lx_conf_handle,(void*)&nhits);
+  }
   
   //same for heatbath
   namespace heatbath_lx_conf_ns
@@ -315,23 +322,35 @@ namespace nissa
       int nhits;
       pars_t(double beta,int nhits) : beta(beta),nhits(nhits){}
     };
-    void handle(su3 out,su3 staple,int ivol,int mu,void *pars)
-    {su3_find_heatbath(out,out,staple,((pars_t*)pars)->beta,((pars_t*)pars)->nhits,loc_rnd_gen+ivol);}
+    
+    void handle(su3 out,su3 staple,const LocLxSite& ivol,int mu,void *pars)
+    {
+      su3_find_heatbath(out,out,staple,((pars_t*)pars)->beta,((pars_t*)pars)->nhits,loc_rnd_gen+ivol.nastyConvert());
+    }
   }
+  
   void heatbath_lx_conf(quad_su3* conf,gauge_sweeper_t* sweeper,double beta,int nhits)
-  {heatbath_lx_conf_ns::pars_t pars(beta,nhits);sweeper->sweep_conf(conf,heatbath_lx_conf_ns::handle,&pars);}
+  {
+    heatbath_lx_conf_ns::pars_t pars(beta,nhits);
+    sweeper->sweep_conf(conf,heatbath_lx_conf_ns::handle,&pars);
+  }
   
   //same for cooling
-  void cool_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
-  {su3_unitarize_maximal_trace_projecting_iteration(out,staple);}
+  void cool_lx_conf_handle(su3 out,su3 staple,const LocLxSite& ivol,int mu,void *pars)
+  {
+    su3_unitarize_maximal_trace_projecting_iteration(out,staple);
+  }
+  
   void cool_lx_conf(quad_su3* conf,gauge_sweeper_t* sweeper)
-  {sweeper->sweep_conf(conf,cool_lx_conf_handle,NULL);}
+  {
+    sweeper->sweep_conf(conf,cool_lx_conf_handle,NULL);
+  }
   
   //measure the average gauge energy
   void average_gauge_energy(double* energy,quad_su3* conf)
   {
     communicate_lx_quad_su3_edges(conf);
-    double *loc_energy=nissa_malloc("energy",locVol,double);
+    double *loc_energy=nissa_malloc("energy",locVol.nastyConvert(),double);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
@@ -339,7 +358,7 @@ namespace nissa
 	as2t_su3 leaves;
 	four_leaves_point(leaves,conf,ivol);
 	
-	loc_energy[ivol]=0.0;
+	loc_energy[ivol.nastyConvert()]=0.0;
 	for(int i=0;i<NDIM*(NDIM-1)/2;i++)
 	  {
 	    su3 A;
@@ -347,14 +366,14 @@ namespace nissa
 	    su3_prodassign_double(A,1.0/8.0); //factor 1/2 for the antihermitian, 1/4 for average leave
 	    complex temp;
 	    trace_su3_prod_su3(temp,A,A);
-	    loc_energy[ivol]-=temp[RE];
+	    loc_energy[ivol.nastyConvert()]-=temp[RE];
 	  }
-	loc_energy[ivol]/=glbVol;
+	loc_energy[ivol.nastyConvert()]/=glbVol();
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
     
-    glb_reduce(energy,loc_energy,locVol);
+    glb_reduce(energy,loc_energy,locVol.nastyConvert());
     
     nissa_free(loc_energy);
   }

@@ -26,26 +26,26 @@ namespace nissa
     
     
     //compute squared pieces
-    squared_staples_t *squared_staples=nissa_malloc("squared_staples",locVol+bord_vol,squared_staples_t);
+    squared_staples_t *squared_staples=nissa_malloc("squared_staples",(locVol+bord_vol).nastyConvert(),squared_staples_t);
     compute_squared_staples_lx_conf(squared_staples,conf);
     
     //compute rectangular pieces
-    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",locVol+bord_vol,rectangular_staples_t);
+    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",(locVol+bord_vol).nastyConvert(),rectangular_staples_t);
     compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  //summ the six terms of squares
-	  su3_summ(out[ivol][mu],squared_staples[ivol][mu][0],squared_staples[ivol][mu][1]);
-	  for(int iterm=2;iterm<6;iterm++) su3_summassign(out[ivol][mu],squared_staples[ivol][mu][iterm]);
-	  safe_su3_hermitian_prod_double(out[ivol][mu],out[ivol][mu],w0);
+	  su3_summ(out[ivol.nastyConvert()][mu],squared_staples[ivol.nastyConvert()][mu][0],squared_staples[ivol.nastyConvert()][mu][1]);
+	  for(int iterm=2;iterm<6;iterm++) su3_summassign(out[ivol.nastyConvert()][mu],squared_staples[ivol.nastyConvert()][mu][iterm]);
+	  safe_su3_hermitian_prod_double(out[ivol.nastyConvert()][mu],out[ivol.nastyConvert()][mu],w0);
 	  
 	  //summ the six terms of rectangles
 	  su3 temp;
-	  su3_summ(temp,rectangular_staples[ivol][mu][0],rectangular_staples[ivol][mu][1]);
-	  for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,rectangular_staples[ivol][mu][iterm]);
-	  su3_summ_the_hermitian_prod_double(out[ivol][mu],temp,w1);
+	  su3_summ(temp,rectangular_staples[ivol.nastyConvert()][mu][0],rectangular_staples[ivol.nastyConvert()][mu][1]);
+	  for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,rectangular_staples[ivol.nastyConvert()][mu][iterm]);
+	  su3_summ_the_hermitian_prod_double(out[ivol.nastyConvert()][mu],temp,w1);
 	}
     NISSA_PARALLEL_LOOP_END;
     

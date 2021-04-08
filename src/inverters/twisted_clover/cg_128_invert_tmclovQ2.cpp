@@ -11,7 +11,7 @@
 #define BASETYPE_128 spincolor_128
 
 #define NDOUBLES_PER_SITE 24
-#define BULK_SIZE locVol
+#define BULK_SIZE locVol.nastyConvert()
 #define BORD_SIZE bord_vol
 
 #define APPLY_OPERATOR_128 apply_tmclovQ2_128

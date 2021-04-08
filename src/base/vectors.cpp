@@ -407,9 +407,9 @@ namespace nissa
   }
   
   //reorder a vector according to the specified order
-  void reorder_vector(char* vect,int* order,int nel,int sel)
+  void reorder_vector(char* vect,int* order,const int64_t& nel,const int64_t& sel)
   {
-    char *buf=nissa_malloc("buf",(int64_t)sel*nel,char);
+    char *buf=nissa_malloc("buf",sel*nel,char);
     
     //copy in the buffer
     NISSA_PARALLEL_LOOP(sour,0,nel)

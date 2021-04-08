@@ -12,7 +12,7 @@ namespace nissa
   void Wilson_action(double *action,double plaq,double beta)
   {
     verbosity_lv2_master_printf("Computing Wilson gauge action\n");
-    (*action)=beta*6*(1-plaq)*glbVol;
+    (*action)=beta*6*(1-plaq)*glbVol();
   }
   
   //eo wrapper

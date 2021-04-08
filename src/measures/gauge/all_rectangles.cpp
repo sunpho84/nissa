@@ -93,7 +93,7 @@ namespace nissa
     int imu01=0,cmp_vol_max=0;
     std::array<vector_remap_t*,12> remap;
     std::array<su3*,12> transp_conf;
-    su3 *pre_transp_conf_holder=nissa_malloc("pre_transp_conf_holder",locVol,su3);
+    su3 *pre_transp_conf_holder=nissa_malloc("pre_transp_conf_holder",locVol.nastyConvert(),su3);
     for(int mu0=0;mu0<4;mu0++)
       for(int imu1=0;imu1<3;imu1++)
 	{
@@ -104,14 +104,14 @@ namespace nissa
 	  //compute competing volume
 	  prp_vol[imu01]=glbSize[mu0]*glbSize[mu1]*((int)ceil((double)glbSize[mu2]*glbSize[mu3]/nranks));
 	  int min_vol=prp_vol[imu01]*rank,max_vol=min_vol+prp_vol[imu01];
-	  if(min_vol>=glbVol) min_vol=glbVol;
-	  if(max_vol>=glbVol) max_vol=glbVol;
+	  if(min_vol>=glbVol) min_vol=glbVol.nastyConvert();
+	  if(max_vol>=glbVol) max_vol=glbVol.nastyConvert();
 	  cmp_vol[imu01]=max_vol-min_vol;
 	  cmp_vol_max=std::max(cmp_vol_max,cmp_vol[imu01]);
 	  
 	  //define the six remapper
 	  int pars[3]={mu0,imu1,prp_vol[imu01]};
-	  remap[imu01]=new vector_remap_t(locVol,index_transp,pars);
+	  remap[imu01]=new vector_remap_t(locVol(),index_transp,pars);
 	  if(remap[imu01]->nel_in!=cmp_vol[imu01]) crash("expected %d obtained %d",cmp_vol[imu01],remap[imu01]->nel_in);
 	  
 	  //allocate transp conf
@@ -124,7 +124,7 @@ namespace nissa
     su3 *post_transp_conf_holder=nissa_malloc("post_transp_conf_holder",cmp_vol_max,su3);
     
     //hyp or APE smear the conf
-    quad_su3 *sme_conf=nissa_malloc("sme_conf",locVol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *sme_conf=nissa_malloc("sme_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
     for(int mu0=0;mu0<NDIM;mu0++)
       {
 	vector_copy(sme_conf,ori_conf);
@@ -133,7 +133,7 @@ namespace nissa
 	
 	//store temporal links and send them
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  su3_copy(pre_transp_conf_holder[ivol],sme_conf[ivol][mu0]);
+	  su3_copy(pre_transp_conf_holder[ivol.nastyConvert()],sme_conf[ivol.nastyConvert()][mu0]);
 	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	for(int imu1=0;imu1<NDIM-1;imu1++)
@@ -163,7 +163,7 @@ namespace nissa
 		int mu1=perp_dir[mu0][imu1];
 		int imu01=mu0*(NDIM-1)+imu1;
 		NISSA_PARALLEL_LOOP(ivol,0,locVol)
-		  su3_copy(pre_transp_conf_holder[ivol],sme_conf[ivol][mu1]);
+		  su3_copy(pre_transp_conf_holder[ivol.nastyConvert()],sme_conf[ivol.nastyConvert()][mu1]);
 		NISSA_PARALLEL_LOOP_END;
 		THREAD_BARRIER();
 		remap[imu01]->remap(post_transp_conf_holder,pre_transp_conf_holder,sizeof(su3));
@@ -317,7 +317,7 @@ namespace nissa
 			      iconf,
 			      dir_name[mu1_l[imu01]],isme*pars->spat_smear_pars.meas_each_nsmooth,dd+pars->Dmin,
 			      dir_name[mu0_l[imu01]],dt+pars->Tmin,
-			      all_rectangles_glb[irect++]/(3*glbVol));
+			      all_rectangles_glb[irect++]/(3*glbVol()));
 		    }
 	    fclose(fout);
 	  }
@@ -367,7 +367,7 @@ namespace nissa
 	
 	//reset the Tpath link product
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  su3_put_to_id(T_path[ivol]);
+	  su3_put_to_id(T_path[ivol.nastyConvert()]);
 	  NISSA_PARALLEL_LOOP_END;
 	
 	//move along T up to Tmax
@@ -375,7 +375,7 @@ namespace nissa
 	  {
 	    //take the product
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	      safe_su3_prod_su3(T_path[ivol],T_path[ivol],sme_conf[ivol][0]);
+	      safe_su3_prod_su3(T_path[ivol.nastyConvert()],T_path[ivol.nastyConvert()],sme_conf[ivol.nastyConvert()][0]);
 	      NISSA_PARALLEL_LOOP_END;
 	    set_borders_invalid(T_path);
 	    
@@ -394,7 +394,7 @@ namespace nissa
 		  
 		  //copy T_path
 		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-		    su3_copy(TS_path[ivol],T_path[ivol]);
+		    su3_copy(TS_path[ivol.nastyConvert()],T_path[ivol.nastyConvert()]);
 		    NISSA_PARALLEL_LOOP_END;
 		  
 		  //move along i up to Dmax
@@ -402,7 +402,7 @@ namespace nissa
 		    {
 		      //take the product
 		      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-			safe_su3_prod_su3(TS_path[ivol],TS_path[ivol],sme_conf[ivol][i]);
+			safe_su3_prod_su3(TS_path[ivol.nastyConvert()],TS_path[ivol.nastyConvert()],sme_conf[ivol.nastyConvert()][i]);
 			NISSA_PARALLEL_LOOP_END;
 		      set_borders_invalid(TS_path);
 		      
@@ -414,7 +414,7 @@ namespace nissa
 			{
 			  //copy TS_path
 			  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-			    su3_copy(closed_path[ivol],TS_path[ivol]);
+			    su3_copy(closed_path[ivol.nastyConvert()],TS_path[ivol.nastyConvert()]);
 			    NISSA_PARALLEL_LOOP_END;
 			  set_borders_invalid(closed_path);
 			  
@@ -426,7 +426,7 @@ namespace nissa
 			      
 			      //take the product with dag
 			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-				safe_su3_prod_su3_dag(closed_path[ivol],closed_path[ivol],sme_conf[ivol][0]);
+				safe_su3_prod_su3_dag(closed_path[ivol.nastyConvert()],closed_path[ivol.nastyConvert()],sme_conf[ivol.nastyConvert()][0]);
 				NISSA_PARALLEL_LOOP_END;
 			      set_borders_invalid(closed_path);
 			    }
@@ -439,15 +439,15 @@ namespace nissa
 			      
 			      //take the product with dag
 			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-				safe_su3_prod_su3_dag(closed_path[ivol],closed_path[ivol],sme_conf[ivol][i]);
+				safe_su3_prod_su3_dag(closed_path[ivol.nastyConvert()],closed_path[ivol.nastyConvert()],sme_conf[ivol.nastyConvert()][i]);
 				NISSA_PARALLEL_LOOP_END;
 			      set_borders_invalid(closed_path);
 			    }
 			  
 			  //take the trace and store it in the point contribution
 			  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-			    point_path[ivol]=
-			    closed_path[ivol][0][0][RE]+closed_path[ivol][1][1][RE]+closed_path[ivol][2][2][RE];
+			    point_path[ivol.nastyConvert()]=
+			    closed_path[ivol.nastyConvert()][0][0][RE]+closed_path[ivol.nastyConvert()][1][1][RE]+closed_path[ivol.nastyConvert()][2][2][RE];
 			    NISSA_PARALLEL_LOOP_END;
 			  
 			  //reduce among all threads and ranks and summ it
@@ -484,7 +484,7 @@ namespace nissa
   
   void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,eo_ptr<quad_su3> conf_eo,int iconf,int create_output_file)
   {
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     //check that we do not exceed geometry

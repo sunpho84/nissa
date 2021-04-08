@@ -327,7 +327,7 @@ int generate_new_conf(int itraj)
       //always new conf
       acc=true;
       
-      quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol,quad_su3);
+      quad_su3 *lx_conf=nissa_malloc("lx_conf",(locVol+bord_vol).nastyConvert(),quad_su3);
       paste_eo_parts_into_lx_vector(lx_conf,conf);
       
       gauge_sweeper_t *sweeper=get_sweeper(drv->sea_theory().gauge_action_name);
@@ -384,7 +384,7 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars,eo_ptr<quad_su3> conf,int ico
   FILE *file=open_file(path,conf_created?"w":"a");
   
   //paste into a temporary
-  quad_su3 *temp_conf=nissa_malloc("smoothed_conf",locVol+bord_vol+edge_vol,quad_su3);
+  quad_su3 *temp_conf=nissa_malloc("smoothed_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
   paste_eo_parts_into_lx_vector(temp_conf,conf);
   
   if(not pars.use_smooth)
@@ -429,7 +429,7 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,eo_ptr<quad_su3> eo_conf,boo
   verbosity_lv1_master_printf("Measuring Polyakov loop correlators\n");
   
   //merge conf
-  quad_su3 *lx_conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
+  quad_su3 *lx_conf=nissa_malloc("conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
   paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
   
   crash("tobexixed");
@@ -690,15 +690,15 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",locVol,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVol.nastyConvert(),clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   {
-    spincolor *out_lx=nissa_malloc("out",locVol,spincolor);
-    spincolor *in_r_lx=nissa_malloc("in_r",locVol+bord_vol,spincolor);
-    quad_su3 *conf_lx=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
-    clover_term_t *Cl_lx=nissa_malloc("Cl",locVol+bord_vol+edge_vol,clover_term_t);
+    spincolor *out_lx=nissa_malloc("out",locVol.nastyConvert(),spincolor);
+    spincolor *in_r_lx=nissa_malloc("in_r",(locVol+bord_vol).nastyConvert(),spincolor);
+    quad_su3 *conf_lx=nissa_malloc("conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    clover_term_t *Cl_lx=nissa_malloc("Cl",(locVol+bord_vol+edge_vol).nastyConvert(),clover_term_t);
     paste_eo_parts_into_lx_vector(conf_lx,conf);
     paste_eo_parts_into_lx_vector(in_r_lx,in_r);
     paste_eo_parts_into_lx_vector(Cl_lx,Cl);
@@ -1619,7 +1619,7 @@ void in_main(int narg,char **arg)
   print_stat("stout smearing",sto_time,nsto);
   print_stat("stout remapping",sto_remap_time,nsto_remap);
   print_stat("compute gluon force",gluon_force_time,ngluon_force,((drv->sea_theory().gauge_action_name!=WILSON_GAUGE_ACTION)?
-								  flops_per_link_gauge_tlSym:flops_per_link_gauge_Wilson)*NDIM*locVol);
+								  flops_per_link_gauge_tlSym:flops_per_link_gauge_Wilson)*NDIM*locVol());
   print_stat("compute quark force (overhead)",quark_force_over_time,nquark_force_over);
   print_stat("evolve the gauge conf with momenta",conf_evolve_time,nconf_evolve);
   print_stat("remap geometry of vectors",remap_time,nremap);

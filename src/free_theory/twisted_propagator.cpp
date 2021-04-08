@@ -73,7 +73,7 @@ namespace nissa
   }
   
   //takes the dirac operator of fixed momentum
-  void mom_space_twisted_operator_of_imom(spinspin out,tm_quark_info qu,int imom,tm_basis_t base)
+  void mom_space_twisted_operator_of_imom(spinspin out,tm_quark_info qu,const LocLxSite& imom,tm_basis_t base)
   {
     //takes the momenta part and M
     momentum_t sin_mom;

@@ -88,9 +88,9 @@ namespace quda_iface
 	quda_of_loclx=nissa_malloc("quda_of_loclx",locVol.nastyConvert(),int);
 	loclx_of_quda=nissa_malloc("loclx_of_quda",locVol.nastyConvert(),int);
 	
-	for(int ivol=0;ivol<locVol;ivol++)
+	for(LocLxSite ivol=0;ivol<locVol;ivol++)
 	  {
-	    const coords& c=locCoordOfLoclx[ivol];
+	    const coords& c=locCoordOfLoclx[ivol.nastyConvert()];
 	    const coords& l=locSize;
 	    
 	    int itmp=0;
@@ -99,13 +99,13 @@ namespace quda_iface
 		const int nu=std::array<int,NDIM>{0,3,2,1}[mu];
 		itmp=itmp*l[nu]+c[nu];
 	      }
-	    const int quda=loclx_parity[ivol]*locVolh+itmp/2;
+	    const int quda=loclx_parity[ivol.nastyConvert()]*locVolh+itmp/2;
 	    
 	    if(quda<0 or quda>=locVol)
 	      crash("quda %d remapping to ivol %d not in range [0,%d]",quda,ivol,locVol);
 	    
-	    quda_of_loclx[ivol]=quda;
-	    loclx_of_quda[quda]=ivol;
+	    quda_of_loclx[ivol.nastyConvert()]=quda;
+	    loclx_of_quda[quda]=ivol.nastyConvert();
 	  }
 	
 	for(int mu=0;mu<NDIM;mu++)
@@ -275,12 +275,12 @@ namespace quda_iface
   /// Reorder conf into QUDA format
   void remap_nissa_to_quda(quda_conf_t out,quad_su3 *in)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol.nastyConvert())
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
-	const int iquda=quda_of_loclx[ivol];
+	const int iquda=quda_of_loclx[ivol.nastyConvert()];
 	
 	for(int nu=0;nu<NDIM;nu++)
-	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[ivol][nu]);
+	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[ivol.nastyConvert()][nu]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -293,8 +293,8 @@ namespace quda_iface
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(ivolh,0,locVolh)
 	{
-	  const int ivol=loclx_of_loceo[par][ivolh];
-	  const int iquda=quda_of_loclx[ivol];
+	  const LocLxSite ivol=loclx_of_loceo[par][ivolh];
+	  const int iquda=quda_of_loclx[ivol.nastyConvert()];
 	
 	for(int nu=0;nu<NDIM;nu++)
 	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[par][ivolh][nu]);
@@ -307,10 +307,10 @@ namespace quda_iface
   /// Reorder spincolor to QUDA format
   void remap_nissa_to_quda(spincolor *out,spincolor *in)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol.nastyConvert())
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
-	const int iquda=quda_of_loclx[ivol];
-	spincolor_copy(out[iquda],in[ivol]);
+	const int iquda=quda_of_loclx[ivol.nastyConvert()];
+	spincolor_copy(out[iquda],in[ivol.nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -323,8 +323,8 @@ namespace quda_iface
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(ivolh,0,locVolh)
 	{
-	  const int ivol=loclx_of_loceo[par][ivolh];
-	  const int iquda=quda_of_loclx[ivol];
+	  const LocLxSite ivol=loclx_of_loceo[par][ivolh];
+	  const int iquda=quda_of_loclx[ivol.nastyConvert()];
 	  color_copy(out[iquda],in[par][ivolh]);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -337,8 +337,8 @@ namespace quda_iface
   {
     NISSA_PARALLEL_LOOP(iquda,0,locVol.nastyConvert())
       {
-	const int ivol=loclx_of_quda[iquda];
-	spincolor_copy(out[ivol],in[iquda]);
+	const LocLxSite ivol=loclx_of_quda[iquda];
+	spincolor_copy(out[ivol.nastyConvert()],in[iquda]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -350,9 +350,9 @@ namespace quda_iface
   {
     NISSA_PARALLEL_LOOP(iquda,0,locVol.nastyConvert())
       {
-	const int ivol=loclx_of_quda[iquda];
-	const int par=loclx_parity[ivol];
-	const int ivolh=loceo_of_loclx[ivol];
+	const LocLxSite ivol=loclx_of_quda[iquda];
+	const int par=loclx_parity[ivol.nastyConvert()];
+	const int ivolh=loceo_of_loclx[ivol.nastyConvert()];
 	color_copy(out[par][ivolh],in[iquda]);
       }
     NISSA_PARALLEL_LOOP_END;

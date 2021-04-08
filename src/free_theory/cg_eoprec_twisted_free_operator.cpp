@@ -126,12 +126,12 @@ namespace nissa
     
     //Equation (8.b)
     tmn2Doe_eos(varphi,temp,qu.bc);
-    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       for(int id=0;id<2;id++)
 	for(int ri=0;ri<2;ri++)
 	  { //gamma5 is explicitely wrote
-	    varphi[ivol][id  ][ri]=+source_eos[ODD][ivol][id  ][ri]+varphi[ivol][id  ][ri]*0.5;
-	    varphi[ivol][id+2][ri]=-source_eos[ODD][ivol][id+2][ri]-varphi[ivol][id+2][ri]*0.5;
+	    varphi[ieo][id  ][ri]=+source_eos[ODD][ieo][id  ][ri]+varphi[ieo][id  ][ri]*0.5;
+	    varphi[ieo][id+2][ri]=-source_eos[ODD][ieo][id+2][ri]-varphi[ieo][id+2][ri]*0.5;
 	  }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(varphi);
@@ -146,10 +146,10 @@ namespace nissa
     
     //Equation (10)
     tmn2Deo_eos(varphi,solution_eos[ODD],qu.bc);
-    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       for(int id=0;id<4;id++)
 	for(int ri=0;ri<2;ri++)
-	  varphi[ivol][id][ri]=source_eos[EVN][ivol][id][ri]+varphi[ivol][id][ri]*0.5;
+	  varphi[ieo][id][ri]=source_eos[EVN][ieo][id][ri]+varphi[ieo][id][ri]*0.5;
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(varphi);
     inv_tmDee_or_oo_eos(solution_eos[EVN],qu,varphi);

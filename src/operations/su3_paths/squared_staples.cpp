@@ -19,7 +19,7 @@
 namespace nissa
 {
   //compute the staples along a particular dir, for a single site
-  CUDA_HOST_AND_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,eo_ptr<quad_su3> eo_conf,int A,int mu)
+  CUDA_HOST_AND_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,eo_ptr<quad_su3> eo_conf,const LocLxSite& A,int mu)
   {
     su3_put_to_zero(staple);
     
@@ -27,21 +27,21 @@ namespace nissa
     for(int inu=0;inu<NDIM-1;inu++)                //  E---F---C
       {                                            //  |   |   | mu
 	int nu=perp_dir[mu][inu];                  //  D---A---B
-	int p=loclx_parity[A];                     //        nu
-	int B=loclxNeighup[A][nu];
-	int F=loclxNeighup[A][mu];
-	unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
+	int p=loclx_parity[A.nastyConvert()];                     //        nu
+	int B=loclxNeighup[A.nastyConvert()][nu];
+	int F=loclxNeighup[A.nastyConvert()][mu];
+	unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A.nastyConvert()]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
 	unsafe_su3_prod_su3_dag(temp2,temp1,                            eo_conf[!p][loceo_of_loclx[F]][nu]);
 	su3_summ(staple,staple,temp2);
 	
-	int D=loclxNeighdw[A][nu];
+	int D=loclxNeighdw[A.nastyConvert()][nu];
 	int E=loclxNeighup[D][mu];
 	unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][loceo_of_loclx[D]][nu],eo_conf[!p][loceo_of_loclx[D]][mu]);
 	unsafe_su3_prod_su3(    temp2,temp1,                             eo_conf[ p][loceo_of_loclx[E]][nu]);
 	su3_summ(staple,staple,temp2);
       }
   }
-  void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,int A,int mu)
+  void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,const LocLxSite& A,int mu)
   {
     if(!check_edges_valid(lx_conf)) crash("communicate edges externally");
     
@@ -51,13 +51,13 @@ namespace nissa
     for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
       {                                               //  |   |   | mu
 	int nu=perp_dir[mu][inu];                     //  D---A---B
-	int B=loclxNeighup[A][nu];                   //        nu
-	int F=loclxNeighup[A][mu];
-	unsafe_su3_prod_su3(    temp1,lx_conf[A][nu],lx_conf[B][mu]);
+	int B=loclxNeighup[A.nastyConvert()][nu];                   //        nu
+	int F=loclxNeighup[A.nastyConvert()][mu];
+	unsafe_su3_prod_su3(    temp1,lx_conf[A.nastyConvert()][nu],lx_conf[B][mu]);
 	unsafe_su3_prod_su3_dag(temp2,temp1,         lx_conf[F][nu]);
 	su3_summ(staple,staple,temp2);
 	
-	int D=loclxNeighdw[A][nu];
+	int D=loclxNeighdw[A.nastyConvert()][nu];
 	int E=loclxNeighup[D][mu];
 	unsafe_su3_dag_prod_su3(temp1,lx_conf[D][nu],lx_conf[D][mu]);
 	unsafe_su3_prod_su3(    temp2,temp1,         lx_conf[E][nu]);
@@ -66,10 +66,17 @@ namespace nissa
   }
   
   //compute the staples along all the four dirs
-  void compute_point_summed_squared_staples_eo_conf(quad_su3 staple,eo_ptr<quad_su3> eo_conf,int A)
-  {for(int mu=0;mu<4;mu++) compute_point_summed_squared_staples_eo_conf_single_dir(staple[mu],eo_conf,A,mu);}
-  void compute_point_summed_squared_staples_lx_conf(quad_su3 staple,quad_su3 *lx_conf,int A)
-  {for(int mu=0;mu<4;mu++) compute_point_summed_squared_staples_lx_conf_single_dir(staple[mu],lx_conf,A,mu);}
+  void compute_point_summed_squared_staples_eo_conf(quad_su3 staple,eo_ptr<quad_su3> eo_conf,const LocLxSite& A)
+  {
+    for(int mu=0;mu<4;mu++)
+      compute_point_summed_squared_staples_eo_conf_single_dir(staple[mu],eo_conf,A,mu);
+  }
+  
+  void compute_point_summed_squared_staples_lx_conf(quad_su3 staple,quad_su3 *lx_conf,const LocLxSite& A)
+  {
+    for(int mu=0;mu<4;mu++)
+      compute_point_summed_squared_staples_lx_conf_single_dir(staple[mu],lx_conf,A,mu);
+  }
   
   //compute the summ of all the staples for the whole conf
   void compute_summed_squared_staples_eo_conf(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf)
@@ -78,7 +85,7 @@ namespace nissa
     communicate_eo_quad_su3_edges(eo_conf);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      compute_point_summed_squared_staples_eo_conf(F[loclx_parity[ivol]][loceo_of_loclx[ivol]],eo_conf,ivol);
+      compute_point_summed_squared_staples_eo_conf(F[loclx_parity[ivol.nastyConvert()]][loceo_of_loclx[ivol.nastyConvert()]],eo_conf,ivol);
     NISSA_PARALLEL_LOOP_END;
     
     for(int par=0;par<2;par++) set_borders_invalid(F[par]);
@@ -115,7 +122,7 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP(ibulk,0,nonFwSurfVol)
 	    {
 	      su3 temp;
-	      int A=loclxOfNonFwSurflx[ibulk],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
+	      int A=loclxOfNonFwSurflx[ibulk.nastyConvert()],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
 	      unsafe_su3_prod_su3(    temp,conf[A][nu],conf[B][mu]);
 	      unsafe_su3_prod_su3_dag(out[A][mu][3+inu],temp,conf[F][nu]);
 	    }
@@ -130,7 +137,7 @@ namespace nissa
     STOP_TIMING(tot_comm_time);
     
     //copy the received forward border (stored in the second half of receiving buf) on its destination
-    if(IS_MASTER_THREAD) memcpy(conf+locVol+bord_volh,((quad_su3*)recv_buf)+bord_volh,sizeof(quad_su3)*bord_volh);
+    if(IS_MASTER_THREAD) memcpy(conf+locVol.nastyConvert()+bord_volh,((quad_su3*)recv_buf)+bord_volh,sizeof(quad_su3)*bord_volh);
     THREAD_BARRIER();
   }
 
@@ -145,7 +152,7 @@ namespace nissa
 	  int nu=perp_dir[mu][inu];
 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
-	      int D=loclxOfFwSurflx[ifw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
+	      int D=loclxOfFwSurflx[ifw_surf.nastyConvert()],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
 	      su3 temp;
 	      unsafe_su3_dag_prod_su3(temp,conf[D][nu],conf[D][mu]);
 	      unsafe_su3_prod_su3(out[A][mu][inu],temp,conf[E][nu]);
@@ -166,7 +173,7 @@ namespace nissa
 	    int inu=(nu<mu)?nu:nu-1;
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(((quad_su3*)send_buf)[ibord][mu],out[locVol+ibord][mu][inu]); //one contribution per link in the border
+	      su3_copy(((quad_su3*)send_buf)[ibord.nastyConvert()][mu],out[(locVol+ibord).nastyConvert()][mu][inu]); //one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -191,7 +198,7 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP(inon_fw_surf,0,nonFwSurfVol)
 	    {
 	      su3 temp;
-	      int D=loclxOfNonFwSurflx[inon_fw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
+	      int D=loclxOfNonFwSurflx[inon_fw_surf.nastyConvert()],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
 	      unsafe_su3_dag_prod_su3(temp,conf[D][nu],conf[D][mu]);
 	      unsafe_su3_prod_su3(out[A][mu][inu],temp,conf[E][nu]);
 	    }
@@ -210,7 +217,7 @@ namespace nissa
 	  //obtained looping A on forward surface
 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
-	      int A=loclxOfFwSurflx[ifw_surf],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
+	      int A=loclxOfFwSurflx[ifw_surf.nastyConvert()],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
 	      su3 temp;
 	      unsafe_su3_prod_su3(    temp,conf[A][nu],conf[B][mu]);
 	      unsafe_su3_prod_su3_dag(out[A][mu][3+inu],temp,conf[F][nu]);
@@ -234,7 +241,7 @@ namespace nissa
 	    int inu=(nu<mu)?nu:nu-1;
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(out[surflxOfBordlx[ibord]][mu][inu],((quad_su3*)recv_buf)[ibord][mu]); //one contribution per link in the border
+	      su3_copy(out[surflxOfBordlx[ibord.nastyConvert()]][mu][inu],((quad_su3*)recv_buf)[ibord.nastyConvert()][mu]); //one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -262,16 +269,16 @@ namespace nissa
   {
     
     //compute pieces
-    squared_staples_t *squared_staples=nissa_malloc("squared_staples",locVol+bord_vol,squared_staples_t);
+    squared_staples_t *squared_staples=nissa_malloc("squared_staples",(locVol+bord_vol).nastyConvert(),squared_staples_t);
     compute_squared_staples_lx_conf(squared_staples,conf);
     
     //summ
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<4;mu++)
 	{
-	  su3_copy(out[ivol][mu],squared_staples[ivol][mu][0]);
+	  su3_copy(out[ivol.nastyConvert()][mu],squared_staples[ivol.nastyConvert()][mu][0]);
 	  for(int iterm=1;iterm<6;iterm++)
-	    su3_summassign(out[ivol][mu],squared_staples[ivol][mu][iterm]);
+	    su3_summassign(out[ivol.nastyConvert()][mu],squared_staples[ivol.nastyConvert()][mu][iterm]);
 	}
     NISSA_PARALLEL_LOOP_END;
     

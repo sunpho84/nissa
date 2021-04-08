@@ -22,12 +22,12 @@ namespace nissa
     
     for(int eo=0;eo<2;eo++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
 	      su3 temp;
-	      unsafe_su3_prod_su3(temp,conf[eo][ivol][mu],F[eo][ivol][mu]);
-	      unsafe_su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
+	      unsafe_su3_prod_su3(temp,conf[eo][ieo][mu],F[eo][ieo][mu]);
+	      unsafe_su3_traceless_anti_hermitian_part(F[eo][ieo][mu],temp);
 	    }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -126,7 +126,7 @@ namespace nissa
       {
 	double norm=0;
 	for(int par=0;par<2;par++) norm+=double_vector_glb_norm2(F[par],locVolh);
-	master_printf("  Quark force average norm: %lg\n",sqrt(norm/glbVol));
+	master_printf("  Quark force average norm: %lg\n",sqrt(norm/glbVol()));
       }
   }
 }

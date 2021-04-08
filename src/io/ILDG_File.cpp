@@ -310,15 +310,15 @@ namespace nissa
       }
     
     //find rank and loclx
-    irank_ILDG=iglb_ILDG/locVol;
-    iloc_ILDG=iglb_ILDG%locVol;
+    irank_ILDG=iglb_ILDG/locVol.nastyConvert();
+    iloc_ILDG=iglb_ILDG%locVol.nastyConvert();
   }
   
   //define the remapping from the layout having in each rank a consecutive block of data holding a
   //consecutive piece of ildg data to canonical lx
   void index_from_ILDG_remapping(int &irank_lx,int &iloc_lx,int iloc_ILDG,void *pars)
   {
-    int iglb_ILDG=rank*locVol+iloc_ILDG;
+    int iglb_ILDG=rank*locVol.nastyConvert()+iloc_ILDG;
     
     //find global coords in ildg ordering
     coords xto;
@@ -554,8 +554,8 @@ namespace nissa
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
     
     //reorder data to the appropriate place
-    vector_remap_t *rem=new vector_remap_t(locVol,index_from_ILDG_remapping,NULL);
-    rem->remap(data,buf,header.data_length/glbVol);
+    vector_remap_t *rem=new vector_remap_t(locVol(),index_from_ILDG_remapping,NULL);
+    rem->remap(data,buf,header.data_length/glbVol());
     delete rem;
     
     nissa_free(buf);
@@ -600,9 +600,9 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    int nu=scidac_mapping[mu];
-	    idest=idest*locSize[nu]+locCoordOfLoclx[isour][nu];
+	    idest=idest*locSize[nu]+locCoordOfLoclx[isour.nastyConvert()][nu];
 	  }
-	memcpy(buf+nbytes_per_site*idest,data+nbytes_per_site*isour,nbytes_per_site);
+	memcpy(buf+nbytes_per_site*idest,data+nbytes_per_site*isour(),nbytes_per_site);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
@@ -654,8 +654,8 @@ namespace nissa
     ILDG_File_set_position(file,new_pos,SEEK_SET);
     
     //reorder data to the appropriate place
-    vector_remap_t *rem=new vector_remap_t(locVol,index_to_ILDG_remapping,NULL);
-    rem->remap(buf,data,data_length/glbVol);
+    vector_remap_t *rem=new vector_remap_t(locVol(),index_to_ILDG_remapping,NULL);
+    rem->remap(buf,data,data_length/glbVol());
     delete rem;
     
     //write
@@ -674,7 +674,7 @@ namespace nissa
   void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type)
   {
     //prepare the header and write it
-    const uint64_t data_length=nbytes_per_site*glbVol;
+    const uint64_t data_length=nbytes_per_site*glbVol();
     ILDG_header header=ILDG_File_build_record_header(0,0,type,data_length);
     ILDG_File_write_record_header(file,header);
     

@@ -9,9 +9,13 @@
 ///
 /// \brief Implements the size of a tensor component
 
+#include <stdint.h>
+
 #include <base/cuda.hpp>
 #include <metaProgramming/inliner.hpp>
 #include <metaProgramming/nonConstMethod.hpp>
+#include <metaProgramming/sfinae.hpp>
+#include <metaProgramming/typeConversion.hpp>
 
 namespace nissa
 {
@@ -148,8 +152,10 @@ namespace nissa
     }
     
     /// Init from value
+    template <typename T=Index,
+	      ENABLE_THIS_TEMPLATE_IF(isSafeNumericConversion<Index,T>)>
     INLINE_FUNCTION CUDA_HOST_DEVICE
-    constexpr TensorComp(const Index& i=0) : i(i)
+    constexpr TensorComp(T&& i=0) : i(i)
     {
     }
     

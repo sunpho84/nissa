@@ -33,38 +33,39 @@ namespace nissa
       =U(A,mu)U(B,nu)(U(A,nu)U^(C,mu))^=U(AB,munu)*U^(AC,numu)
   */
   
-  CUDA_HOST_AND_DEVICE void point_plaquette_lx_conf(complex loc_plaq,quad_su3 *conf,int A)
+  CUDA_HOST_AND_DEVICE void point_plaquette_lx_conf(complex loc_plaq,quad_su3 *conf,const LocLxSite& A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
     for(int mu=0;mu<NDIM;mu++)
       {
-	int B=loclxNeighup[A][mu];
+	int B=loclxNeighup[A.nastyConvert()][mu];
 	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
-	    int C=loclxNeighup[A][nu];
+	    int C=loclxNeighup[A.nastyConvert()][nu];
 	    su3 ABD,ACD;
-	    unsafe_su3_prod_su3(ABD,conf[A][mu],conf[B][nu]);
-	    unsafe_su3_prod_su3(ACD,conf[A][nu],conf[C][mu]);
+	    unsafe_su3_prod_su3(ABD,conf[A.nastyConvert()][mu],conf[B][nu]);
+	    unsafe_su3_prod_su3(ACD,conf[A.nastyConvert()][nu],conf[C][mu]);
 	    
 	    int ts=(mu!=0&&nu!=0);
 	    loc_plaq[ts]+=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
 	  }
       }
   }
-  CUDA_HOST_AND_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,int par,int A)
+  
+  CUDA_HOST_AND_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,int par,const LocLxSite& A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
     for(int mu=0;mu<NDIM;mu++)
       {
-	int B=loceo_neighup[par][A][mu];
+	int B=loceo_neighup[par][A.nastyConvert()][mu];
 	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
-	    int C=loceo_neighup[par][A][nu];
+	    int C=loceo_neighup[par][A.nastyConvert()][nu];
 	    su3 ABD,ACD;
-	    unsafe_su3_prod_su3(ABD,conf[par][A][mu],conf[!par][B][nu]);
-	    unsafe_su3_prod_su3(ACD,conf[par][A][nu],conf[!par][C][mu]);
+	    unsafe_su3_prod_su3(ABD,conf[par][A.nastyConvert()][mu],conf[!par][B][nu]);
+	    unsafe_su3_prod_su3(ACD,conf[par][A.nastyConvert()][nu],conf[!par][C][mu]);
 	    
-	    int ts=(mu!=0&&nu!=0);
+	    int ts=(mu!=0 and nu!=0);
 	    loc_plaq[ts]+=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
 	  }
       }
@@ -75,12 +76,12 @@ namespace nissa
   {
     
     //summ temporal and spatial separately
-    complex *point_plaq=nissa_malloc("point_plaq",locVol,complex);
+    complex *point_plaq=nissa_malloc("point_plaq",locVol.nastyConvert(),complex);
     communicate_lx_quad_su3_borders(conf);
     
     //loop over all the lattice
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      point_plaquette_lx_conf(point_plaq[ivol],conf,ivol);
+      point_plaquette_lx_conf(point_plaq[ivol.nastyConvert()],conf,ivol);
     NISSA_PARALLEL_LOOP_END;
     
     //wait to have filled all the point array
@@ -88,8 +89,8 @@ namespace nissa
     
     //reduce as complex and normalize
     complex temp;
-    glb_reduce(&temp,point_plaq,locVol);
-    for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glbVol*3*3);
+    glb_reduce(&temp,point_plaq,locVol.nastyConvert());
+    for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glbVol()*3*3);
     
     nissa_free(point_plaq);
   }
@@ -98,7 +99,7 @@ namespace nissa
   {
     
     //summ temporal and spatial separately
-    complex *point_plaq=nissa_malloc("point_plaq",locVol,complex);
+    complex *point_plaq=nissa_malloc("point_plaq",locVol.nastyConvert(),complex);
     communicate_ev_and_od_quad_su3_borders(conf);
     
     //loop over all the lattice
@@ -114,8 +115,8 @@ namespace nissa
     
     //reduce as complex and normalize
     complex temp;
-    glb_reduce(&temp,point_plaq,locVol);
-    for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glbVol*3*3);
+    glb_reduce(&temp,point_plaq,locVol.nastyConvert());
+    for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glbVol()*3*3);
     
     nissa_free(point_plaq);
   }

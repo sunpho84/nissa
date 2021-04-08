@@ -92,7 +92,7 @@ int nflavs;
 		    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 		      {
 			// int ivol=loclx_of_loceo[eo][ieo];
-			// int t=(glb_coord_of_loclx[ivol][0]-tso+glb_size[0])%glb_size[0];
+			// int t=(glb_coord_of_loclx[ivol.nastyConvert()][0]-tso+glb_size[0])%glb_size[0];
 			// for(int ic=0;ic<NCOL;ic++)
 			//   complex_summ_the_conj1_prod(loc_corr[icombo(iflav,iop,t)],quark[0][eo][ieo][ic],quark[iop][eo][ieo][ic]);
 		      }
@@ -127,7 +127,7 @@ int nflavs;
     nop=meas_pars.mesons.size();
     nflavs=tp.nflavs();
     ncombo=icombo(nflavs-1,nop-1,glbSize[0]-1)+1;
-    double norm=1.0/(meas_pars.nhits*glbSpatVol);
+    double norm=1.0/(meas_pars.nhits*glbSpatVol());
     complex *corr=nissa_malloc("corr",ncombo,complex);
     
     compute_meson_corr(corr,ext_conf,&tp,&meas_pars);

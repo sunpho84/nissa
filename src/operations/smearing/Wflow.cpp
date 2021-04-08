@@ -35,7 +35,7 @@ namespace nissa
 	      for(int inu=0;inu<NDIM-1;inu++)
 		{
 		  int nu=perp_dir[mu][inu];
-		  int A=ivol,B=loclxNeighup[A][nu],D=loclxNeighdw[A][nu],E=loclxNeighup[D][mu],F=loclxNeighup[A][mu];
+		  int A=ivol.nastyConvert(),B=loclxNeighup[A][nu],D=loclxNeighdw[A][nu],E=loclxNeighup[D][mu],F=loclxNeighup[A][mu];
 		  unsafe_su3_prod_su3(       temp, conf[A][nu],conf[B][mu]);
 		  su3_summ_the_prod_su3_dag(staple,temp,       conf[F][nu]);
 		  unsafe_su3_dag_prod_su3(temp,    conf[D][nu],conf[D][mu]);
@@ -44,7 +44,7 @@ namespace nissa
 	      
 	      //build Omega
 	      su3 omega;
-	      unsafe_su3_prod_su3_dag(omega,staple,conf[ivol][mu]);
+	      unsafe_su3_prod_su3_dag(omega,staple,conf[ivol.nastyConvert()][mu]);
 	      
 	      //compute Q and weight (the minus is there due to original stout)
 	      su3 iQ,Q;
@@ -52,8 +52,8 @@ namespace nissa
 	      su3_prod_idouble(Q,iQ,-RK_wn[iter]*dt); //putting here the integration time
 	      
 	      //combine old and new
-	      su3_prod_double(arg[ivol][mu],arg[ivol][mu],RK_wo[iter]);
-	      su3_summassign(arg[ivol][mu],Q);
+	      su3_prod_double(arg[ivol.nastyConvert()][mu],arg[ivol.nastyConvert()][mu],RK_wo[iter]);
+	      su3_summassign(arg[ivol.nastyConvert()][mu],Q);
 	    }
       NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
@@ -69,8 +69,8 @@ namespace nissa
 	  if(dirs[mu])
 	    {
 	      su3 expiQ;
-	      safe_hermitian_exact_i_exponentiate(expiQ,arg[ivol][mu]);
-	      safe_su3_prod_su3(conf[ivol][mu],expiQ,conf[ivol][mu]);
+	      safe_hermitian_exact_i_exponentiate(expiQ,arg[ivol.nastyConvert()][mu]);
+	      safe_su3_prod_su3(conf[ivol.nastyConvert()][mu],expiQ,conf[ivol.nastyConvert()][mu]);
 	    }
       NISSA_PARALLEL_LOOP_END;
       set_borders_invalid(conf);
@@ -81,7 +81,7 @@ namespace nissa
   void Wflow_lx_conf(quad_su3* conf,double dt,bool* dirs)
   {
     //storage for staples
-    quad_su3 *arg=nissa_malloc("arg",locVol,quad_su3);
+    quad_su3 *arg=nissa_malloc("arg",locVol.nastyConvert(),quad_su3);
     vector_reset(arg);
     
     //we write the 4 terms of the Runge Kutta scheme iteratively

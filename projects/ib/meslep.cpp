@@ -104,7 +104,7 @@ namespace nissa
   }
   
   //compute phase exponent for space part: vec{p}*\vec{x}
-  CUDA_HOST_AND_DEVICE double get_space_arg(int ivol,const momentum_t bc)
+  CUDA_HOST_AND_DEVICE double get_space_arg(const LocLxSite& ivol,const momentum_t bc)
   {
     double arg=0;
     for(int mu=1;mu<NDIM;mu++)
@@ -116,7 +116,7 @@ namespace nissa
   }
   
   //compute the phase for lepton on its sink
-  CUDA_HOST_AND_DEVICE void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info le)
+  CUDA_HOST_AND_DEVICE void get_lepton_sink_phase_factor(complex out,const LocLxSite& ivol,int ilepton,tm_quark_info le)
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,le.bc);
@@ -130,7 +130,7 @@ namespace nissa
   }
   
   //compute the phase for antineutrino - the orientation is that of the muon (as above)
-  CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,const momentum_t bc)
+  CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,LocLxSite& ivol,int ilepton,const momentum_t bc)
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,bc);
@@ -152,7 +152,7 @@ namespace nissa
       {
 	complex ph;
 	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
-	spinspin_put_to_diag(prop[ivol],ph);
+	spinspin_put_to_diag(prop[ivol.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(prop);
@@ -190,8 +190,8 @@ namespace nissa
 		  phase[1]=sin(le.bc[mu]*M_PI);
 		  
 		  //find neighbors
-		  int ifw=loclxNeighup[ivol][mu];
-		  int ibw=loclxNeighdw[ivol][mu];
+		  int ifw=loclxNeighup[ivol.nastyConvert()][mu];
+		  int ibw=loclxNeighdw[ivol.nastyConvert()][mu];
 		  
 		  //compute phase factor
 		  spinspin ph_bw,ph_fw;
@@ -208,7 +208,7 @@ namespace nissa
 		  spinspin_prodassign_idouble(ph_bw,-0.5*dirs[mu]);
 		  
 		  //fix insertion of the current
-		  safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
+		  safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol.nastyConvert()][mu]);
 		  safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
 		  
 		  //summ and subtract the two
@@ -219,12 +219,12 @@ namespace nissa
 		  //put GAMMA on the summ
 		  spinspin temp_P;
 		  unsafe_spinspin_prod_dirac(temp_P,fw_P_bw,&GAMMA);
-		  spinspin_summassign(prop[ivol],temp_P);
+		  spinspin_summassign(prop[ivol.nastyConvert()],temp_P);
 		  
 		  //put gmu on the diff
 		  spinspin temp_M;
 		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma+igamma_of_mu[mu]);
-		  spinspin_summassign(prop[ivol],temp_M);
+		  spinspin_summassign(prop[ivol.nastyConvert()],temp_M);
 		}
 	NISSA_PARALLEL_LOOP_END;
       }
@@ -236,9 +236,9 @@ namespace nissa
 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
 		{
 		  spinspin temp1,temp2;
-		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+igamma_of_mu[mu]);
-		  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
-		  spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
+		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol.nastyConvert()],base_gamma+igamma_of_mu[mu]);
+		  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol.nastyConvert()][mu]);
+		  spinspin_summ_the_prod_idouble(prop[ivol.nastyConvert()],temp2,1);
 		}
 	NISSA_PARALLEL_LOOP_END;
       }
@@ -375,11 +375,11 @@ namespace nissa
 	
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
-	    int t=locCoordOfLoclx[ivol][0];
+	    //int t=locCoordOfLoclx[ivol.nastyConvert()][0];
 	    
 	    //multiply lepton side on the right (source) side
 	    spinspin la;
-	    unsafe_spinspin_prod_dirac(la,lept[ivol],base_gamma+list_weak_insl[ins]);
+	    unsafe_spinspin_prod_dirac(la,lept[ivol.nastyConvert()],base_gamma+list_weak_insl[ins]);
 	    
 	    //include 4*(1-5)/2/2=(1-5) coming from the two neturino projector+(1-g5) weak lepton structure
 	    //the second /2 comes from sqr(1/sqrt(2)) of 1502.00257
@@ -392,7 +392,7 @@ namespace nissa
 	    
 	    //trace hadron side
 	    complex h;
-	    trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma+ins);
+	    trace_spinspin_with_dirac(h,hadr[ivol.nastyConvert()],weak_ins_hadr_gamma+ins);
 	    
 	    //combine mesolep
 	    complex_prodassign(h,ph);
@@ -417,7 +417,7 @@ namespace nissa
 	      
 	      //summ the average
 	      int i=glb_t+glbSize[0]*(ig_proj+nmeslep_proj*(list_weak_ind_contr[ins]+nindep_meslep_weak*ext_ind));
-	      complex_summ_the_prod_double(meslep_contr[i],mesolep,1.0/glbSpatVol); //here to remove the statistical average on xw
+	      complex_summ_the_prod_double(meslep_contr[i],mesolep,1.0/glbSpatVol()); //here to remove the statistical average on xw
 	    }
 	NISSA_PARALLEL_LOOP_END;
 	if(IS_MASTER_THREAD) nmeslep_contr_made+=nmeslep_proj;

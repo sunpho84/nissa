@@ -32,7 +32,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(ieo,0,locVolh)
         {
-          int ivol=loclx_of_loceo[par][ieo];
+          const LocLxSite ivol=loclx_of_loceo[par][ieo];
           
           //summ the contribution of the derivative in mu and nu directions
           int rho_list[2]={mu,nu};
@@ -42,25 +42,25 @@ namespace nissa
               
               int iup_eo=loceo_neighup[par][ieo][rho];
               int idw_eo=loceo_neighdw[par][ieo][rho];
-              int idw_lx=loclxNeighdw[ivol][rho];
+              int idw_lx=loclxNeighdw[ivol.nastyConvert()][rho];
               
               color v;
               complex t;
               
               //mu component of x
-              //int ix=glb_coord_of_loclx[ivol][1];
+              //int ix=glb_coord_of_loclx[ivol.nastyConvert()][1];
               
               //forward derivative
               unsafe_su3_prod_color(v,conf[par][ieo][rho],chi[!par][iup_eo]);
               color_scalar_prod(t,rnd[par][ieo],v);
-              complex_summ_the_prod_double(point_magn[ivol],t,arg[ivol][rho]);
+              complex_summ_the_prod_double(point_magn[ivol.nastyConvert()],t,arg[ivol.nastyConvert()][rho]);
               //compute also the projected current
-	      crash("#warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[ivol][rho]");
+	      crash("#warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[ivol.nastyConvert()][rho]");
               
               //backward derivative: note that we should multiply for -arg*(-U^+)
               unsafe_su3_dag_prod_color(v,conf[!par][idw_eo][rho],chi[!par][idw_eo]);
               color_scalar_prod(t,rnd[par][ieo],v);
-	      complex_summ_the_prod_double(point_magn[ivol],t,arg[idw_lx][rho]);
+	      complex_summ_the_prod_double(point_magn[ivol.nastyConvert()],t,arg[idw_lx][rho]);
               //compute also the projected current
 	      crash("#warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[idw_lx][rho]");
             }
@@ -74,7 +74,7 @@ namespace nissa
     
     //reduce across all nodes and threads
     complex temp;
-    glb_reduce(&temp,point_magn,locVol);
+    glb_reduce(&temp,point_magn,locVol.nastyConvert());
     
     //add normalization, corresponding to all factors relative to derivative with respects to "b": 
     //-quark_deg/4 coming from the determinant
@@ -84,7 +84,7 @@ namespace nissa
     //and a minus because F=-logZ
     if(IS_MASTER_THREAD)
       {
-        double coeff=-quark->deg*2*M_PI*quark->charge/(4.0*glbVol*2*glbSize[mu]*glbSize[nu]);
+        double coeff=-quark->deg*2.0*M_PI*quark->charge/(4.0*glbVol()*2*glbSize[mu]*glbSize[nu]);
         complex_prod_idouble(*magn,temp,coeff);
         for(int x=0;x<glbSize[1];x++) complex_prod_idouble(magn_proj_x[x],temp_proj_x[x],coeff);
       }
@@ -102,13 +102,13 @@ namespace nissa
     eo_ptr<color> chi={nissa_malloc("chi_EVN",locVolh+bord_volh,color),nissa_malloc("chi_ODD",locVolh+bord_volh,color)};
     
     //we need to store phases
-    coords *arg=nissa_malloc("arg",locVol+bord_vol,coords);
+    coords *arg=nissa_malloc("arg",(locVol+bord_vol).nastyConvert(),coords);
     NISSA_PARALLEL_LOOP(ivol,0,locVol+bord_vol)
-      get_args_of_quantization[quantization](arg[ivol],ivol,mu,nu);
+      get_args_of_quantization[quantization](arg[ivol.nastyConvert()],ivol,mu,nu);
     NISSA_PARALLEL_LOOP_END;
     
     //array to store magnetization on single site (actually storing backward contrib at displaced site)
-    complex *point_magn=nissa_malloc("app",locVol,complex);
+    complex *point_magn=nissa_malloc("app",locVol.nastyConvert(),complex);
     
     //we add backfield externally because we need them for derivative
     add_backfield_with_stagphases_to_conf(conf,u1b);

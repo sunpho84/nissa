@@ -42,7 +42,7 @@ namespace nissa
     
     //allocate dec2 conf
     su3 **dec2_conf=new su3*[idec2_remap];
-    for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",locVol+bord_vol+edge_vol,su3);
+    for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",(locVol+bord_vol+edge_vol).nastyConvert(),su3);
     
     //loop over external index
     for(int mu=0;mu<4;mu++)
@@ -60,29 +60,29 @@ namespace nissa
 	      {
 		//take original link
 		su3 temp0;
-		su3_prod_double(temp0,conf[A][mu],1-alpha2);
+		su3_prod_double(temp0,conf[A.nastyConvert()][mu],1-alpha2);
 		
 		//staple and temporary links
 		su3 stap,temp1,temp2;
 		
 		//staple in the positive dir
-		int B=loclxNeighup[A][eta];
-		int F=loclxNeighup[A][mu];
-		unsafe_su3_prod_su3(temp1,conf[A][eta],conf[B][mu]);
-		unsafe_su3_prod_su3_dag(stap,temp1,conf[F][eta]);
+		const LocLxSite B=loclxNeighup[A.nastyConvert()][eta];
+		const LocLxSite F=loclxNeighup[A.nastyConvert()][mu];
+		unsafe_su3_prod_su3(temp1,conf[A.nastyConvert()][eta],conf[B.nastyConvert()][mu]);
+		unsafe_su3_prod_su3_dag(stap,temp1,conf[F.nastyConvert()][eta]);
 		
 		//staple in the negative dir
-		int D=loclxNeighdw[A][eta];
-		int E=loclxNeighup[D][mu];
-		unsafe_su3_dag_prod_su3(temp1,conf[D][eta],conf[D][mu]);
-		unsafe_su3_prod_su3(temp2,temp1,conf[E][eta]);
+		const LocLxSite D=loclxNeighdw[A.nastyConvert()][eta];
+		const LocLxSite E=loclxNeighup[D.nastyConvert()][mu];
+		unsafe_su3_dag_prod_su3(temp1,conf[D.nastyConvert()][eta],conf[D.nastyConvert()][mu]);
+		unsafe_su3_prod_su3(temp2,temp1,conf[E.nastyConvert()][eta]);
 		su3_summ(stap,stap,temp2);
 		
 		//summ the two staples with appropriate coef
 		su3_summ_the_prod_double(temp0,stap,alpha2/2);
 		
 		//project the resulting link onto su3
-		su3_unitarize_maximal_trace_projecting(dec2_conf[ire0][A],temp0);
+		su3_unitarize_maximal_trace_projecting(dec2_conf[ire0][A.nastyConvert()],temp0);
 	      }
 	    NISSA_PARALLEL_LOOP_END;
 	    
@@ -97,7 +97,7 @@ namespace nissa
     
     //allocate dec1 conf
     su3 **dec1_conf=new su3*[idec1_remap];
-    for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",locVol+bord_vol+edge_vol,su3);
+    for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",(locVol+bord_vol+edge_vol).nastyConvert(),su3);
     
     //loop over external index
     for(int mu=0;mu<4;mu++)
@@ -113,7 +113,7 @@ namespace nissa
 	    {
 	      //take original link
 	      su3 temp0;
-	      su3_prod_double(temp0,conf[A][mu],1-alpha1);
+	      su3_prod_double(temp0,conf[A.nastyConvert()][mu],1-alpha1);
 	      
 	      //reset the staple
 	      su3 stap;
@@ -130,14 +130,14 @@ namespace nissa
 		  int ire2=dec2_remap_index[mu][rho][nu];
 		  
 		  //staple in the positive dir
-		  int B=loclxNeighup[A][rho];
-		  int F=loclxNeighup[A][mu];
-		  unsafe_su3_prod_su3(temp1,dec2_conf[ire1][A],dec2_conf[ire2][B]);
+		  int B=loclxNeighup[A.nastyConvert()][rho];
+		  int F=loclxNeighup[A.nastyConvert()][mu];
+		  unsafe_su3_prod_su3(temp1,dec2_conf[ire1][A.nastyConvert()],dec2_conf[ire2][B]);
 		  unsafe_su3_prod_su3_dag(temp2,temp1,dec2_conf[ire1][F]);
 		  su3_summ(stap,stap,temp2);
 		  
 		  //staple in the negative dir
-		  int D=loclxNeighdw[A][rho];
+		  int D=loclxNeighdw[A.nastyConvert()][rho];
 		  int E=loclxNeighup[D][mu];
 		  unsafe_su3_dag_prod_su3(temp1,dec2_conf[ire1][D],dec2_conf[ire2][D]);
 		  unsafe_su3_prod_su3(temp2,temp1,dec2_conf[ire1][E]);
@@ -146,7 +146,7 @@ namespace nissa
 	      
 	      //summ the two staples with appropriate coef and project the resulting link onto su3
 	      su3_summ_the_prod_double(temp0,stap,alpha1/4);
-	      su3_unitarize_maximal_trace_projecting(dec1_conf[ire0][A],temp0);
+	      su3_unitarize_maximal_trace_projecting(dec1_conf[ire0][A.nastyConvert()],temp0);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
 	  
@@ -171,7 +171,7 @@ namespace nissa
 	    {
 	      //take original link
 	      su3 temp0;
-	      su3_prod_double(temp0,conf[A][mu],1-alpha0);
+	      su3_prod_double(temp0,conf[A.nastyConvert()][mu],1-alpha0);
 	      
 	      //reset the staple
 	      su3 stap;
@@ -188,14 +188,14 @@ namespace nissa
 		  int ire2=dec1_remap_index[mu][nu];
 		  
 		  //staple in the positive dir
-		  int B=loclxNeighup[A][nu];
-		  int F=loclxNeighup[A][mu];
-		  unsafe_su3_prod_su3(temp1,dec1_conf[ire1][A],dec1_conf[ire2][B]);
+		  int B=loclxNeighup[A.nastyConvert()][nu];
+		  int F=loclxNeighup[A.nastyConvert()][mu];
+		  unsafe_su3_prod_su3(temp1,dec1_conf[ire1][A.nastyConvert()],dec1_conf[ire2][B]);
 		  unsafe_su3_prod_su3_dag(temp2,temp1,dec1_conf[ire1][F]);
 		  su3_summ(stap,stap,temp2);
 		  
 		  //staple in the negative dir
-		  int D=loclxNeighdw[A][nu];
+		  int D=loclxNeighdw[A.nastyConvert()][nu];
 		  int E=loclxNeighup[D][mu];
 		  unsafe_su3_dag_prod_su3(temp1,dec1_conf[ire1][D],dec1_conf[ire2][D]);
 		  unsafe_su3_prod_su3(temp2,temp1,dec1_conf[ire1][E]);
@@ -204,14 +204,14 @@ namespace nissa
 	      
 	      //summ the two staples with appropriate coef and project the resulting link onto su3
 	      su3_summ_the_prod_double(temp0,stap,alpha0/6);
-	      su3_unitarize_maximal_trace_projecting(sm_conf[A][mu],temp0);
+	      su3_unitarize_maximal_trace_projecting(sm_conf[A.nastyConvert()][mu],temp0);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
 	}
       else
       if(sm_conf!=conf)
 	NISSA_PARALLEL_LOOP(A,0,locVol)
-	  su3_copy(sm_conf[A][mu],conf[A][mu]);
+	  su3_copy(sm_conf[A.nastyConvert()][mu],conf[A.nastyConvert()][mu]);
     NISSA_PARALLEL_LOOP_END;
     
     //invalid borders

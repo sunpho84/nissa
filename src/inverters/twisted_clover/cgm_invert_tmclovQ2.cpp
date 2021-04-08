@@ -15,7 +15,7 @@
 #define BASETYPE spincolor
 
 #define NDOUBLES_PER_SITE 24
-#define BULK_VOL locVol
+#define BULK_VOL locVol.nastyConvert()
 #define BORD_VOL bord_vol
 
 #define APPLY_OPERATOR apply_tmclovQ2_m2
@@ -56,10 +56,10 @@ namespace nissa
   void inv_tmclovDQ_cgm(spincolor **sol,quad_su3 *conf,double kappa,clover_term_t *Cl,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
   {
     //put the g5
-    NISSA_LOC_VOL_LOOP(ivol) for(int id1=2;id1<NDIRAC;id1++) for(int ic1=0;ic1<NCOL;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
+    NISSA_LOC_VOL_LOOP(ivol) for(int id1=2;id1<NDIRAC;id1++) for(int ic1=0;ic1<NCOL;ic1++) for(int ri=0;ri<2;ri++) source[ivol.nastyConvert()][id1][ic1][ri]*=-1;
     set_borders_invalid(source);
     inv_tmclovQ2_cgm(sol,conf,kappa,Cl,m,nmass,niter_max,req_res,source);
-    NISSA_LOC_VOL_LOOP(ivol) for(int id1=2;id1<NDIRAC;id1++) for(int ic1=0;ic1<NCOL;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
+    NISSA_LOC_VOL_LOOP(ivol) for(int id1=2;id1<NDIRAC;id1++) for(int ic1=0;ic1<NCOL;ic1++) for(int ri=0;ri<2;ri++) source[ivol.nastyConvert()][id1][ic1][ri]*=-1;
     set_borders_invalid(source);
   }
 }

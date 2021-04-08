@@ -36,13 +36,13 @@ namespace nissa
 	//compute phase exponent
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	safe_spinspin_prod_complex(out[ivol],out[ivol],ph);
+	safe_spinspin_prod_complex(out[ivol.nastyConvert()],out[ivol.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -68,13 +68,13 @@ namespace nissa
 	//compute phase exponent
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
 	
 	//compute the phase and put 1/vol
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	safe_spinspin_prod_complex(out[ivol],in[ivol],ph);
+	safe_spinspin_prod_complex(out[ivol.nastyConvert()],in[ivol.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -92,8 +92,10 @@ namespace nissa
     int s=sign[source_or_sink]*include_phases;
     
     //multiply by exp(i sign*(p_mu-p_nu)/2)
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
+    NISSA_PARALLEL_LOOP(_imom,0,locVol)
       {
+	const int64_t imom=_imom.nastyConvert();
+	
 	complex ph[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
 	  {
@@ -128,7 +130,7 @@ namespace nissa
 	//compute phase exponent
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  arg+=dirs[mu]*steps[mu]*glbCoordOfLoclx[ivol][mu];
+	  arg+=dirs[mu]*steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
@@ -136,7 +138,7 @@ namespace nissa
 	//adapt the phase
 	for(int mu=0;mu<NDIM;mu++)
 	  for(int nu=0;nu<NDIM;nu++)
-	    safe_complex_prod(out[ivol][mu][nu],out[ivol][mu][nu],ph);
+	    safe_complex_prod(out[ivol.nastyConvert()][mu][nu],out[ivol.nastyConvert()][mu][nu],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -162,7 +164,7 @@ namespace nissa
 	//compute phase exponent
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
@@ -170,7 +172,7 @@ namespace nissa
 	//adapt the phase
 	for(int mu=0;mu<NDIM;mu++)
 	  for(int nu=0;nu<NDIM;nu++)
-	    safe_complex_prod(out[ivol][mu][nu],in[ivol][mu][nu],ph);
+	    safe_complex_prod(out[ivol.nastyConvert()][mu][nu],in[ivol.nastyConvert()][mu][nu],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -184,7 +186,7 @@ namespace nissa
 	complex ph[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    double pmu=sign[source_or_sink]*dirs[mu]*M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu]*include_phases)/glbSize[mu];
+	    double pmu=sign[source_or_sink]*dirs[mu]*M_PI*(2*glbCoordOfLoclx[imom.nastyConvert()][mu]+bc[mu]*include_phases)/glbSize[mu];
 	    double pmuh=pmu*0.5;
 	    ph[mu][RE]=cos(pmuh);
 	    ph[mu][IM]=sin(pmuh);
@@ -193,8 +195,8 @@ namespace nissa
 	for(int mu=0;mu<4;mu++)
 	  for(int nu=0;nu<4;nu++)
 	    {
-	      safe_complex_prod      (out[imom][mu][nu],out[imom][mu][nu],ph[mu]);
-	      safe_complex_conj2_prod(out[imom][mu][nu],out[imom][mu][nu],ph[nu]);
+	      safe_complex_prod      (out[imom.nastyConvert()][mu][nu],out[imom.nastyConvert()][mu][nu],ph[mu]);
+	      safe_complex_conj2_prod(out[imom.nastyConvert()][mu][nu],out[imom.nastyConvert()][mu][nu],ph[nu]);
 	    }
       }
     NISSA_PARALLEL_LOOP_END;
@@ -214,14 +216,14 @@ namespace nissa
 	complex ph[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    double pmu=dirs[mu]*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu]*include_phases)/glbSize[mu];
+	    double pmu=dirs[mu]*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx[imom.nastyConvert()][mu]+bc[mu]*include_phases)/glbSize[mu];
 	    double pmuh=pmu*0.5;
 	    ph[mu][RE]=cos(pmuh);
 	    ph[mu][IM]=sin(pmuh);
 	  }
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  safe_complex_prod(out[imom][mu],in[imom][mu],ph[mu]);
+	  safe_complex_prod(out[imom.nastyConvert()][mu],in[imom.nastyConvert()][mu],ph[mu]);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
@@ -241,14 +243,14 @@ namespace nissa
 	//compute phase exponent
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
 	for(int mu=0;mu<NDIM;mu++)
-	  safe_complex_prod(out[ivol][mu],out[ivol][mu],ph);
+	  safe_complex_prod(out[ivol.nastyConvert()][mu],out[ivol.nastyConvert()][mu],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -273,14 +275,14 @@ namespace nissa
 	//compute phase exponent
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
 	for(int mu=0;mu<NDIM;mu++)
-	  safe_complex_prod(out[ivol][mu],in[ivol][mu],ph);
+	  safe_complex_prod(out[ivol.nastyConvert()][mu],in[ivol.nastyConvert()][mu],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
@@ -294,14 +296,14 @@ namespace nissa
 	complex ph[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    double pmu=dirs[mu]*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu]*include_phases)/glbSize[mu];
+	    double pmu=dirs[mu]*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx[imom.nastyConvert()][mu]+bc[mu]*include_phases)/glbSize[mu];
 	    double pmuh=pmu*0.5;
 	    ph[mu][RE]=cos(pmuh);
 	    ph[mu][IM]=sin(pmuh);
 	  }
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  safe_complex_prod(out[imom][mu],out[imom][mu],ph[mu]);
+	  safe_complex_prod(out[imom.nastyConvert()][mu],out[imom.nastyConvert()][mu],ph[mu]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -328,14 +330,14 @@ namespace nissa
 	//compute phase exponent
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
 	for(int id=0;id<NDIRAC;id++)
-	  safe_complex_prod(out[ivol][id],out[ivol][id],ph);
+	  safe_complex_prod(out[ivol.nastyConvert()][id],out[ivol.nastyConvert()][id],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -359,14 +361,14 @@ namespace nissa
 	//compute phase exponent
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
 	for(int id=0;id<NDIRAC;id++)
-	  safe_complex_prod(out[ivol][id],in[ivol][id],ph);
+	  safe_complex_prod(out[ivol.nastyConvert()][id],in[ivol.nastyConvert()][id],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -396,7 +398,7 @@ namespace nissa
 	//compute phase exponent
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
@@ -404,7 +406,7 @@ namespace nissa
 	//adapt the phase
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
-	    safe_complex_prod(out[ivol][id][ic],out[ivol][id][ic],ph);
+	    safe_complex_prod(out[ivol.nastyConvert()][id][ic],out[ivol.nastyConvert()][id][ic],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -429,7 +431,7 @@ namespace nissa
 	//compute phase exponent
 	double arg=0;
 	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol][mu];
+	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
@@ -437,7 +439,7 @@ namespace nissa
 	//adapt the phase
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
-	    safe_complex_prod(out[ivol][id][ic],in[ivol][id][ic],ph);
+	    safe_complex_prod(out[ivol.nastyConvert()][id][ic],in[ivol.nastyConvert()][id][ic],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);

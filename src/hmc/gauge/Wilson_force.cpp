@@ -25,10 +25,10 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    for(int mu=0;mu<NDIM;mu++)
-	      safe_su3_hermitian_prod_double(F[par][ivol][mu],F[par][ivol][mu],r);
+	      safe_su3_hermitian_prod_double(F[par][ieo][mu],F[par][ieo][mu],r);
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -48,7 +48,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	for(int mu=0;mu<NDIM;mu++)
-	  safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);
+	  safe_su3_hermitian_prod_double(F[ivol.nastyConvert()][mu],F[ivol.nastyConvert()][mu],r);
       }
     NISSA_PARALLEL_LOOP_END;
     
