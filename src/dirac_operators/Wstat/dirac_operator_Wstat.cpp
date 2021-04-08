@@ -18,8 +18,10 @@ namespace nissa
     communicate_lx_spincolor_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
-    NISSA_PARALLEL_LOOP(x,0,locVol)
+    NISSA_PARALLEL_LOOP(_x,0,locVol)
       {
+	auto x=_x.nastyConvert();
+	
 	int xmu=glbCoordOfLoclx[x][mu];
 	int dist=abs(xmu-xmu_start);
 	int ori=(xmu==xmu_start);

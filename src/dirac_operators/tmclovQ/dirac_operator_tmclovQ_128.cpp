@@ -20,8 +20,10 @@ namespace nissa
     
     double kcf=1/(2*kappa);
     
-    NISSA_PARALLEL_LOOP(X,0,locVol)
+    NISSA_PARALLEL_LOOP(_X,0,locVol)
       {
+	auto X=_X.nastyConvert();
+	
 	int Xup,Xdw;
 	color_128 temp_c0,temp_c1,temp_c2,temp_c3;
 	

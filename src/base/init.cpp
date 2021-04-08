@@ -564,8 +564,8 @@ namespace nissa
 	locSize[mu]=glbSize[mu];
 	glbVol*=glbSize[mu];
       }
-    glbSpatVol=glbVol/glbSize[0];
-    glb_vol2=(double)glbVol*glbVol;
+    glbSpatVol=glbVol/(int64_t)glbSize[0];
+    //glb_vol2=(double)glbVol*glbVol;
     
     master_printf("Global lattice:\t%d",glbSize[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glbSize[mu]);
@@ -599,9 +599,9 @@ namespace nissa
     
     //calculate the local volume
     for(int mu=0;mu<NDIM;mu++) locSize[mu]=glbSize[mu]/nrank_dir[mu];
-    locVol=glbVol/nranks;
+    locVol=(glbVol/nranks).nastyConvert();
     locSpatVol=locVol/locSize[0];
-    loc_vol2=(double)locVol*locVol;
+    //loc_vol2=(double)locVol*locVol;
     
     //calculate bulk size
     bulkVol=nonBwSurfVol=1;
@@ -630,7 +630,7 @@ namespace nissa
 	else bord_dir_vol[mu]=0;
 	
 	//total bord
-	bord_volh+=bord_dir_vol[mu];
+	bord_volh+=bord_dir_vol[mu].nastyConvert();
 	
 	//summ of the border extent up to dir mu
 	if(mu>0) bord_offset[mu]=bord_offset[mu-1]+bord_dir_vol[mu-1];
@@ -659,7 +659,7 @@ namespace nissa
 	  iedge++;
 	}
     edge_vol*=4;
-    edge_volh=edge_vol/2;
+    edge_volh=(edge_vol/2).nastyConvert();
     master_printf("Edge vol: %d\n",edge_vol);
       
     //set edge numb

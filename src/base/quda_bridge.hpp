@@ -1,22 +1,22 @@
 #ifndef _QUDA_BRIDGE_HPP
 #define _QUDA_BRIDGE_HPP
 
-#ifndef EXTERN_QUDA_BRIDGE
- #define EXTERN_QUDA_BRIDGE extern
- #define INIT_TO(var)
-#else
- #define INIT_TO(var) =var
-#endif
-
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
+#endif
+
+#ifndef EXTERN_QUDA_BRIDGE
+ #define EXTERN_QUDA_BRIDGE extern
+ #define INIT_QUDA_BRIDGE_TO(var)
+#else
+ #define INIT_QUDA_BRIDGE_TO(var) =var
 #endif
 
 #ifdef USE_QUDA
 # include <quda.h>
 #endif
 
-#include "geometry/geometry_eo.hpp"
+#include <geometry/geometry_eo.hpp>
 
 namespace quda_iface
 {
@@ -28,16 +28,16 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_mg_param;
 #endif
   
-  EXTERN_QUDA_BRIDGE void* quda_mg_preconditioner INIT_TO(nullptr);
+  EXTERN_QUDA_BRIDGE void* quda_mg_preconditioner INIT_QUDA_BRIDGE_TO(nullptr);
   
-  EXTERN_QUDA_BRIDGE bool inited INIT_TO(false);
+  EXTERN_QUDA_BRIDGE bool inited INIT_QUDA_BRIDGE_TO(false);
 }
 
-#include "new_types/su3.hpp"
+#include <new_types/su3.hpp>
 
 namespace nissa
 {
-  EXTERN_QUDA_BRIDGE int use_quda INIT_TO(false);
+  EXTERN_QUDA_BRIDGE int use_quda INIT_QUDA_BRIDGE_TO(false);
   
   /// If Quda is available, check if requested
   constexpr inline bool checkIfQudaAvailableAndRequired()
@@ -64,7 +64,7 @@ namespace quda_iface
   bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source);
 }
 
-#undef INIT_TO
+#undef INIT_QUDA_BRIDGE_TO
 #undef EXTERN_QUDA_BRIDGE
 
 #endif

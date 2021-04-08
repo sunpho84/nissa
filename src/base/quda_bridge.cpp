@@ -3,15 +3,15 @@
 #endif
 
 #define EXTERN_QUDA_BRIDGE
- #include "quda_bridge.hpp"
+# include <base/quda_bridge.hpp>
 
-#include "base/cuda.hpp"
-#include "base/vectors.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "new_types/su3_op.hpp"
-#include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
+#include <base/cuda.hpp>
+#include <base/vectors.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <new_types/su3_op.hpp>
+#include <routines/ios.hpp>
+#include <routines/mpi_routines.hpp>
+#include <threads/threads.hpp>
 
 namespace quda_iface
 {
@@ -85,8 +85,8 @@ namespace quda_iface
 	
 	/////////////////////////////////////////////////////////////////
 	
-	quda_of_loclx=nissa_malloc("quda_of_loclx",locVol,int);
-	loclx_of_quda=nissa_malloc("loclx_of_quda",locVol,int);
+	quda_of_loclx=nissa_malloc("quda_of_loclx",locVol.nastyConvert(),int);
+	loclx_of_quda=nissa_malloc("loclx_of_quda",locVol.nastyConvert(),int);
 	
 	for(int ivol=0;ivol<locVol;ivol++)
 	  {
@@ -109,13 +109,13 @@ namespace quda_iface
 	  }
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  quda_conf[mu]=nissa_malloc("gauge_cuda",locVol,su3);
+	  quda_conf[mu]=nissa_malloc("gauge_cuda",locVol.nastyConvert(),su3);
 	
-	spincolor_in=nissa_malloc("spincolor_in",locVol,spincolor);
-	spincolor_out=nissa_malloc("spincolor_out",locVol,spincolor);
+	spincolor_in=nissa_malloc("spincolor_in",locVol.nastyConvert(),spincolor);
+	spincolor_out=nissa_malloc("spincolor_out",locVol.nastyConvert(),spincolor);
 	
-	color_in=nissa_malloc("color_in",locVol,color);
-	color_out=nissa_malloc("color_out",locVol,color);
+	color_in=nissa_malloc("color_in",locVol.nastyConvert(),color);
+	color_out=nissa_malloc("color_out",locVol.nastyConvert(),color);
 	
 	set_quda_verbosity();
 	
@@ -151,7 +151,7 @@ namespace quda_iface
 	gauge_param.ga_pad=0;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    int surf_size=locVol/locSize[mu]/2;
+	    int surf_size=locVol.nastyConvert()/locSize[mu]/2;
 	    gauge_param.ga_pad=std::max(gauge_param.ga_pad,surf_size);
 	  }
 	
@@ -275,7 +275,7 @@ namespace quda_iface
   /// Reorder conf into QUDA format
   void remap_nissa_to_quda(quda_conf_t out,quad_su3 *in)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol.nastyConvert())
       {
 	const int iquda=quda_of_loclx[ivol];
 	
@@ -307,7 +307,7 @@ namespace quda_iface
   /// Reorder spincolor to QUDA format
   void remap_nissa_to_quda(spincolor *out,spincolor *in)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    NISSA_PARALLEL_LOOP(ivol,0,locVol.nastyConvert())
       {
 	const int iquda=quda_of_loclx[ivol];
 	spincolor_copy(out[iquda],in[ivol]);
@@ -335,7 +335,7 @@ namespace quda_iface
   /// Reorder spincolor from QUDA format
   void remap_quda_to_nissa(spincolor *out,spincolor *in)
   {
-    NISSA_PARALLEL_LOOP(iquda,0,locVol)
+    NISSA_PARALLEL_LOOP(iquda,0,locVol.nastyConvert())
       {
 	const int ivol=loclx_of_quda[iquda];
 	spincolor_copy(out[ivol],in[iquda]);
@@ -348,7 +348,7 @@ namespace quda_iface
   /// Reorder color from QUDA format
   void remap_quda_to_nissa(eo_ptr<color> out,color *in)
   {
-    NISSA_PARALLEL_LOOP(iquda,0,locVol)
+    NISSA_PARALLEL_LOOP(iquda,0,locVol.nastyConvert())
       {
 	const int ivol=loclx_of_quda[iquda];
 	const int par=loclx_parity[ivol];

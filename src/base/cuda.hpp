@@ -2,14 +2,14 @@
 #define _CUDA_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+ #include <config.hpp>
 #endif
 #ifndef EXTERN_CUDA
 
 #define EXTERN_CUDA extern
- #define INIT_TO(var)
+ #define INIT_CUDA_TO(var)
 #else
- #define INIT_TO(var) =var
+ #define INIT_CUDA_TO(var) =var
 #endif
 
 namespace nissa
@@ -60,6 +60,6 @@ namespace nissa
 #define CUDA_HOST_DEVICE CUDA_HOST CUDA_DEVICE
 
 #undef EXTERN_CUDA
-#undef INIT_TO
+#undef INIT_CUDA_TO
 
 #endif

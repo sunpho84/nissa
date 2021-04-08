@@ -58,11 +58,11 @@ namespace nissa
     if(Leb_geom_inited) crash("Lebesgue Geometry already initialized!");
     Leb_geom_inited=true;
     
-    loclx_of_Leblx=nissa_malloc("loclx_of_Leblx",locVol+bord_vol+edge_vol,int);
-    Leblx_of_loclx=nissa_malloc("Leblx_of_loclx",locVol+bord_vol+edge_vol,int);
-    Leblx_neighup=nissa_malloc("Leblx_neighup",locVol,coords);
-    Leblx_neighdw=nissa_malloc("Leblx_neighdw",locVol,coords);
-    Leblx_parity=nissa_malloc("Leblx_parity",locVol+bord_vol+edge_vol,int);
+    loclx_of_Leblx=nissa_malloc("loclx_of_Leblx",(locVol+bord_vol+edge_vol).nastyConvert(),int);
+    Leblx_of_loclx=nissa_malloc("Leblx_of_loclx",(locVol+bord_vol+edge_vol).nastyConvert(),int);
+    Leblx_neighup=nissa_malloc("Leblx_neighup",locVol.nastyConvert(),coords);
+    Leblx_neighdw=nissa_malloc("Leblx_neighdw",locVol.nastyConvert(),coords);
+    Leblx_parity=nissa_malloc("Leblx_parity",(locVol+bord_vol+edge_vol).nastyConvert(),int);
     surfLeblx_of_bordLeblx=nissa_malloc("surfLeblx_of_Bordlx",bord_vol,int);
     
     //get nmax_fact

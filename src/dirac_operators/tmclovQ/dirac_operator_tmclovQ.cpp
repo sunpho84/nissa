@@ -2,10 +2,10 @@
  #include "config.hpp"
 #endif
 
-#include "new_types/su3_op.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "linalgs/linalgs.hpp"
+#include "new_types/su3_op.hpp"
 #include "operations/su3_paths/clover_term.hpp"
 #include "threads/threads.hpp"
 
@@ -19,8 +19,10 @@ namespace nissa
     
     double kcf=1/(2*kappa);
     
-    NISSA_PARALLEL_LOOP(X,0,locVol)
+    NISSA_PARALLEL_LOOP(_X,0,locVol)
       {
+	auto X=_X.nastyConvert();
+	
 	int Xup,Xdw;
 	color temp_c0,temp_c1,temp_c2,temp_c3;
 	

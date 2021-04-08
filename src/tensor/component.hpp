@@ -9,6 +9,10 @@
 ///
 /// \brief Implements the size of a tensor component
 
+#include <base/cuda.hpp>
+#include <metaProgramming/inliner.hpp>
+#include <metaProgramming/nonConstMethod.hpp>
+
 namespace nissa
 {
   /////////////////////////////////////////////////////////////////
@@ -19,12 +23,12 @@ namespace nissa
   constexpr int DYNAMIC=-1;
   
   /// Specify the size at compile time
-  template <typename Size,
-	    Size SIZE=DYNAMIC>
+  template <typename I,
+	    I SIZE=DYNAMIC>
   struct TensorCompSize
   {
     /// Value beyond end
-    static constexpr Size sizeAtCompileTime=
+    static constexpr I sizeAtCompileTime=
       SIZE;
   };
   
@@ -40,7 +44,7 @@ namespace nissa
       {
 	/// Predicate result
 	static constexpr bool value=
-	  (T::SizeIsKnownAtCompileTime==Comp);
+	  (T::sizeIsKnownAtCompileTime==Comp);
       };
     };
   }
@@ -126,20 +130,32 @@ namespace nissa
     int which=
       Which;
     
+    /// Size at compile time
+    static constexpr Base sizeAtCompileTime=
+      Base::sizeAtCompileTime;
+    
     /// Check if the size is known at compile time
     static constexpr
-    bool SizeIsKnownAtCompileTime=
-      Base::sizeAtCompileTime!=DYNAMIC;
-  
-  /// Init from value
-  INLINE_FUNCTION CUDA_HOST_DEVICE
-    // explicit
+    bool sizeIsKnownAtCompileTime=
+      sizeAtCompileTime!=DYNAMIC;
+    
+    /// Returns the size at compile time, with assert
+    static constexpr Base sizeAtCompileTimeAssertingNotDynamic()
+    {
+      static_assert(sizeIsKnownAtCompileTime,"Size not known at compile time!");
+      
+      return sizeAtCompileTime;
+    }
+    
+    /// Init from value
+    INLINE_FUNCTION CUDA_HOST_DEVICE
     constexpr TensorComp(const Index& i=0) : i(i)
     {
     }
     
     /// Convert to actual reference
     INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    explicit
     operator Index&()
     {
       return
@@ -148,6 +164,7 @@ namespace nissa
     
     /// Convert to actual reference with const attribute
     INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
+    explicit
     operator const Index&()
       const
     {
@@ -164,7 +181,18 @@ namespace nissa
 	i;
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_GPU(operator());
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator(),CUDA_HOST_DEVICE);
+    
+    /// Convert to actual reference with const attribute, to be remoed
+    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
+    const Index& nastyConvert()
+      const
+    {
+      return
+	i;
+    }
+    
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(nastyConvert,CUDA_HOST_DEVICE);
     
     /// Transposed index
     INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
@@ -184,9 +212,123 @@ namespace nissa
       return
 	*this;
     }
+    
+#define PROVIDE_POSTFIX_OP(OP)				\
+    /*! Self OP operator */				\
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr		\
+    TensorComp operator OP(int)				\
+    {							\
+      /*! Keep result */				\
+      TensorComp res=i;					\
+							\
+      i OP;						\
+      							\
+      return						\
+	res;						\
+    }
+    
+    PROVIDE_POSTFIX_OP(++)
+    PROVIDE_POSTFIX_OP(--)
+    
+#undef PROVIDE_POSTFIX_OP
+    
+#define PROVIDE_SELFOP_WITH_OTHER(OP)			\
+    /*! Assignment OP operator */			\
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr		\
+    TensorComp& operator OP ## =(const TensorComp& oth)	\
+      {							\
+	i OP ## =oth.i;					\
+							\
+	return						\
+	*this;						\
+    }
+    
+    PROVIDE_SELFOP_WITH_OTHER(+)
+    PROVIDE_SELFOP_WITH_OTHER(-)
+    PROVIDE_SELFOP_WITH_OTHER(*)
+    PROVIDE_SELFOP_WITH_OTHER(/)
+    
+#undef PROVIDE_SELFOP_WITH_OTHER
+    
+#define PROVIDE_BINARY_OP(OP,RESULT_TYPE...)				\
+    /*! Combine with other */						\
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr				\
+    friend RESULT_TYPE operator OP(const TensorComp& first,const TensorComp& second) \
+    {									\
+      return								\
+	first.i OP second.i;						\
+    }
+    
+    PROVIDE_BINARY_OP(+,TensorComp<S,RC,Which>);
+    PROVIDE_BINARY_OP(-,TensorComp<S,RC,Which>);
+    PROVIDE_BINARY_OP(*,TensorComp<S,RC,Which>);
+    PROVIDE_BINARY_OP(/,TensorComp<S,RC,Which>);
+    PROVIDE_BINARY_OP(%,TensorComp<S,RC,Which>);
+    
+    PROVIDE_BINARY_OP(==,bool);
+    PROVIDE_BINARY_OP(!=,bool);
+    PROVIDE_BINARY_OP(<,bool);
+    PROVIDE_BINARY_OP(<=,bool);
+    PROVIDE_BINARY_OP(>,bool);
+    PROVIDE_BINARY_OP(>=,bool);
+    
+#undef PROVIDE_BINARY_OP
   };
+
+  /// Promotes the argument i to a COMPONENT, through a function with given NAME
+#define DECLARE_COMPONENT_FACTORY(NAME,COMPONENT...)		\
+  template <typename T>						\
+  static INLINE_FUNCTION constexpr CUDA_HOST_DEVICE		\
+  COMPONENT NAME(T&& i)						\
+  {								\
+    return							\
+      COMPONENT(i);						\
+  }
   
+  /// Declare a component with no special feature
+  ///
+  /// The component has no row/column tag or index, so it can be
+  /// included only once in a tensor
+#define DECLARE_COMPONENT(NAME,TYPE,SIZE/*,FACTORY*/)		\
+  DECLARE_COMPONENT_SIGNATURE(NAME,TYPE,SIZE);			\
+  								\
+  /*! NAME component */						\
+  using NAME=							\
+    TensorComp<NAME ## Signature,ANY,0>/*;*/			\
+								\
+    /*DECLARE_COMPONENT_FACTORY(FACTORY,NAME)*/
   
+  /// Declare a component which can be included more than once
+  ///
+  /// The component has a row/column tag, and an additional index, so
+  /// it can be included twice in a tensor
+#define DECLARE_ROW_OR_CLN_COMPONENT(NAME,TYPE,SIZE/*,FACTORY*/)	\
+  DECLARE_COMPONENT_SIGNATURE(NAME,TYPE,SIZE);			\
+  								\
+  /*! NAME component */						\
+  template <RwCl RC=ROW,					\
+	    int Which=0>					\
+  using NAME ## RC=TensorComp<NAME ## Signature,RC,Which>;	\
+								\
+  /*! Row kind of NAME component */				\
+  using NAME ## Row=NAME ## RC<ROW,0>;				\
+								\
+  /*! Column kind of NAME component */				\
+  using NAME ## Cln=NAME ## RC<CLN,0>;				\
+  								\
+  /*! Default NAME component is Row */				\
+  using NAME=NAME ## Row/*;*/					\
+  								\
+    /*DECLARE_COMPONENT_FACTORY(FACTORY ## Row,NAME ## Row);*/	\
+								\
+    /*DECLARE_COMPONENT_FACTORY(FACTORY ## Cln,NAME ## Cln);*/	\
+								\
+    /*DECLARE_COMPONENT_FACTORY(FACTORY,NAME)*/
+  
+  /////////////////////////////////////////////////////////////////
+  
+  #define FOR_ALL_COMPONENT_VALUES(TYPE,NAME)	\
+  for(TYPE NAME=0;NAME<TYPE::sizeAtCompileTimeAssertingIfDynamic();NAME++)
 }
 
 #endif

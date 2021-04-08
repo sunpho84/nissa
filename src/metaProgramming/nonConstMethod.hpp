@@ -39,13 +39,17 @@ namespace nissa
   ///   PROVIDE_ALSO_NON_CONST_METHOD(get);
   /// };
   /// \endcode
-#define PROVIDE_ALSO_NON_CONST_METHOD(NAME)				\
+#define PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(NAME,ATTRIB)		\
   /*! Overload the \c NAME const method passing all args             */ \
   template <typename...Ts> /* Type of all arguments                  */	\
+  ATTRIB								\
   decltype(auto) NAME(Ts&&...ts) /*!< Arguments                      */ \
   {									\
     return remove_const_if_ref(std::as_const(*this).NAME(std::forward<Ts>(ts)...)); \
   }
+  
+#define PROVIDE_ALSO_NON_CONST_METHOD(NAME)		\
+  PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(NAME,)
 }
 
 #endif

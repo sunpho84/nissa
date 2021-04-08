@@ -27,8 +27,8 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  su3 temp;
-	  unsafe_su3_prod_su3(temp,conf[ivol][mu],F[ivol][mu]);
-	  unsafe_su3_traceless_anti_hermitian_part(F[ivol][mu],temp);
+	  unsafe_su3_prod_su3(temp,conf[ivol.nastyConvert()][mu],F[ivol.nastyConvert()][mu]);
+	  unsafe_su3_traceless_anti_hermitian_part(F[ivol.nastyConvert()][mu],temp);
 	}
     NISSA_PARALLEL_LOOP_END;
     
@@ -127,8 +127,8 @@ namespace nissa
     if(VERBOSITY_LV2)
       {
 	double norm=0;
-	norm+=double_vector_glb_norm2(F,locVol);
-	master_printf("  Gluonic force average norm: %lg\n",sqrt(norm/glbVol));
+	norm+=double_vector_glb_norm2(F,locVol.nastyConvert());
+	master_printf("  Gluonic force average norm: %lg\n",sqrt(norm/glbVol.nastyConvert()));
       }
     
     STOP_TIMING(gluon_force_time);

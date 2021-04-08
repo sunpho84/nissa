@@ -25,8 +25,10 @@ namespace nissa
   //if the momentum has to be removed return 0, otherwise return 1
   //cancel the zero modes for all spatial when UNNO_ALEMANNA prescription asked
   //or if PECIONA prescription and full zero mode
-  CUDA_HOST_AND_DEVICE bool zero_mode_subtraction_mask(gauge_info gl,int imom)
+  CUDA_HOST_AND_DEVICE bool zero_mode_subtraction_mask(gauge_info gl,const LocLxSite& _imom)
   {
+    auto imom=_imom.nastyConvert();
+    
     bool res=false;
     
     switch(gl.zms)
@@ -43,13 +45,13 @@ namespace nissa
   }
   
   //cancel the mode if it is zero according to the prescription
-  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1prop prop,gauge_info gl,int imom)
+  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1prop prop,gauge_info gl,const LocLxSite& imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
     for(int mu=0;mu<4;mu++) for(int nu=0;nu<4;nu++) for(int reim=0;reim<2;reim++) prop[mu][nu][reim]*=m;
     return !m;
   }
-  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1field prop,gauge_info gl,int imom)
+  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1field prop,gauge_info gl,const LocLxSite& imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
     //if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
@@ -59,7 +61,7 @@ namespace nissa
   }
   
   //compute the tree level Symanzik gauge propagator in the momentum space according to P.Weisz
-  CUDA_HOST_AND_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,int imom)
+  CUDA_HOST_AND_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,const LocLxSite& imom)
   {
     double c1=gl.c1,c12=c1*c1,c13=c12*c1;
     int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
@@ -71,7 +73,7 @@ namespace nissa
     double ktpo2[4][4],ktso2[4][4];
     for(int mu=0;mu<4;mu++)
       {
-	k[mu]=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
+	k[mu]=M_PI*(2*glbCoordOfLoclx[imom.nastyConvert()][mu]+gl.bc[mu])/glbSize[mu];
 	kt[mu]=2*sin(k[mu]/2);
 	kt2_dir[mu]=kt[mu]*kt[mu];
 	kt4_dir[mu]=kt2_dir[mu]*kt2_dir[mu];
@@ -119,7 +121,7 @@ namespace nissa
 	      for(int si=0;si<4;si++)
 		prop[mu][nu][RE]+=(kt[si]*kron_delta[mu][nu]-kt[nu]*kron_delta[mu][si])*kt[si]*A[si][nu];
 	      
-	      prop[mu][nu][RE]/=kt2*kt2*glbVol;
+	      prop[mu][nu][RE]/=kt2*kt2*glbVol();
 	      prop[mu][nu][IM]=0;
 	    }
       }
@@ -139,7 +141,7 @@ namespace nissa
   {
     
     NISSA_PARALLEL_LOOP(imom,0,locVol)
-      mom_space_tlSym_gauge_propagator_of_imom(prop[imom],gl,imom);
+      mom_space_tlSym_gauge_propagator_of_imom(prop[imom.nastyConvert()],gl,imom);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(prop);
   }
@@ -151,7 +153,7 @@ namespace nissa
       {
 	spin1prop prop;
 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
-	safe_spinspin_prod_spin(out[imom],prop,in[imom]);
+	safe_spinspin_prod_spin(out[imom.nastyConvert()],prop,in[imom.nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -181,8 +183,8 @@ namespace nissa
 	
 	for(int id=0;id<NDIRAC;id++)
 	  {
-	    ein(id).real(in[imom][id][RE]);
-	    ein(id).imag(in[imom][id][IM]);
+	    ein(id).real(in[imom.nastyConvert()][id][RE]);
+	    ein(id).imag(in[imom.nastyConvert()][id][IM]);
 	  }
 	
 	Matrix4d sqrt_eprop;
@@ -218,8 +220,8 @@ namespace nissa
 	Vector4cd eout=sqrt_eprop*ein;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    out[imom][mu][RE]=eout(mu).real();
-	    out[imom][mu][IM]=eout(mu).imag();
+	    out[imom.nastyConvert()][mu][RE]=eout(mu).real();
+	    out[imom.nastyConvert()][mu][IM]=eout(mu).imag();
 	  }
 #else
 	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
@@ -229,12 +231,12 @@ namespace nissa
 	double tr=0.0,nre=0.0,nim=0.0;
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    double kmu=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
+	    double kmu=M_PI*(2*glbCoordOfLoclx[imom.nastyConvert()][mu]+gl.bc[mu])/glbSize[mu];
 	    double ktmu=2*sin(kmu/2);
 	    
-	    tr+=out[imom][mu][RE]*ktmu;
-	    nre+=sqr(out[imom][mu][RE]);
-	    nim+=sqr(out[imom][mu][IM]);
+	    tr+=out[imom.nastyConvert()][mu][RE]*ktmu;
+	    nre+=sqr(out[imom.nastyConvert()][mu][RE]);
+	    nim+=sqr(out[imom.nastyConvert()][mu][IM]);
 	  }
       }
     NISSA_PARALLEL_LOOP_END;
@@ -249,7 +251,7 @@ namespace nissa
       {
 	spin1prop prop;
 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
-	safe_spinspin_prod_spinspin(out[imom],prop,out[imom]);
+	safe_spinspin_prod_spinspin(out[imom.nastyConvert()],prop,out[imom.nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -270,7 +272,7 @@ namespace nissa
     //fill with Z2
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
-	comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z2);
+	comp_get_rnd(eta[ivol.nastyConvert()][mu],&(loc_rnd_gen[ivol.nastyConvert()]),RND_Z2);
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(eta);
   }
@@ -289,8 +291,8 @@ namespace nissa
     multiply_mom_space_sqrt_tlSym_gauge_propagator(photon,photon,gl);
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
-	spin_prodassign_double(photon[imom],sqrtf(glbVol));
-	cancel_if_zero_mode(photon[imom],gl,imom);
+	spin_prodassign_double(photon[imom.nastyConvert()],sqrtf(glbVol()));
+	cancel_if_zero_mode(photon[imom.nastyConvert()],gl,imom);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(photon);
@@ -312,8 +314,8 @@ namespace nissa
     multiply_mom_space_tlSym_gauge_propagator(out,out,gl);
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
-	spin_prodassign_double(out[imom],glbVol);
-	cancel_if_zero_mode(out[imom],gl,imom);
+	spin_prodassign_double(out[imom.nastyConvert()],glbVol());
+	cancel_if_zero_mode(out[imom.nastyConvert()],gl,imom);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -334,7 +336,7 @@ namespace nissa
   void compute_tadpole(double *tadpole,gauge_info photon)
   {
     double tad_time=-take_time();
-    spin1prop *gprop=nissa_malloc("gprop",locVol,spin1prop);
+    spin1prop *gprop=nissa_malloc("gprop",locVol.nastyConvert(),spin1prop);
     compute_x_space_tlSym_gauge_propagator_by_fft(gprop,photon);
     for(int mu=0;mu<NDIM;mu++) tadpole[mu]=broadcast(gprop[0][mu][mu][RE]);
     nissa_free(gprop);

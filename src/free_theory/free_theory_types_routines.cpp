@@ -40,7 +40,7 @@ namespace nissa
   {
     int all=check_borders_allocated((void*)in,0);
     
-    int ending;
+    LocLxSite ending;
     if(all)
       {
 	communicate_lx_spinspin_borders(in);

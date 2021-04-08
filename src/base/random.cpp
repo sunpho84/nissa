@@ -7,16 +7,16 @@
 #include <stdlib.h>
 
 #define EXTERN_RANDOM
- #include "base/random.hpp"
+ #include <base/random.hpp>
 
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "new_types/complex.hpp"
-#include "new_types/su3_op.hpp"
-#include "routines/ios.hpp"
-#include "routines/math_routines.hpp"
+#include <base/debug.hpp>
+#include <base/vectors.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <new_types/complex.hpp>
+#include <new_types/su3_op.hpp>
+#include <routines/ios.hpp>
+#include <routines/math_routines.hpp>
 
 namespace nissa
 {
@@ -126,15 +126,18 @@ namespace nissa
     
     //Generate the true seed
     if(glb_rnd_gen_inited==0) start_glb_rnd_gen(seed);
-    int internal_seed=(int)rnd_get_unif(&glb_rnd_gen,0,RAND_MAX-glbVol);
+    int internal_seed=(int)rnd_get_unif(&glb_rnd_gen,0,RAND_MAX-glbVol());
+    
+    LocLxSite a;
+    a++;
     
     //allocate the grid of random generator, one for site
-    loc_rnd_gen=nissa_malloc("Loc_rnd_gen",locVol,rnd_gen);
-    for(int ivol=0;ivol<locVol;ivol++)
+    loc_rnd_gen=nissa_malloc("Loc_rnd_gen",locVol(),rnd_gen);
+    for(LocLxSite ivol=0;ivol<locVol;ivol++)
       {
-	int loc_seed=internal_seed+glblxOfLoclx[ivol];
-	if(loc_seed<0) crash("something went wrong with local seed: %d + %d = %d",internal_seed,glblxOfLoclx[ivol],loc_seed);
-	start_rnd_gen(&(loc_rnd_gen[ivol]),loc_seed);
+	int loc_seed=internal_seed+glblxOfLoclx[ivol.nastyConvert()];
+	if(loc_seed<0) crash("something went wrong with local seed: %d + %d = %d",internal_seed,glblxOfLoclx[ivol.nastyConvert()],loc_seed);
+	start_rnd_gen(&(loc_rnd_gen[ivol.nastyConvert()]),loc_seed);
       }
     loc_rnd_gen_inited=1;
     master_printf("Grid of local random generators initialized with internal seed: %d\n",internal_seed);
@@ -277,7 +280,7 @@ namespace nissa
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int i=0;i<dps;i++)
-	v[ivol*dps+i]=rnd_get_unif(&(loc_rnd_gen[ivol]),min,max);
+	v[(ivol*dps+i).nastyConvert()]=rnd_get_unif(&(loc_rnd_gen[ivol.nastyConvert()]),min,max);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(v);
@@ -288,7 +291,7 @@ namespace nissa
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int i=0;i<nps;i++)
-	v[ivol*nps+i]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
+	v[(ivol*nps+i).nastyConvert()]=rnd_get_pm_one(&(loc_rnd_gen[ivol.nastyConvert()]));
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(v);
@@ -301,13 +304,13 @@ namespace nissa
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+      if(glbCoordOfLoclx[ivol.nastyConvert()][0]==twall or twall<0)
 	{
-	  comp_get_rnd(source[ivol][0][0][0][0],&(loc_rnd_gen[ivol]),rtype);
+	  comp_get_rnd(source[ivol.nastyConvert()][0][0][0][0],&(loc_rnd_gen[ivol.nastyConvert()]),rtype);
 	  for(int c=0;c<NCOL;c++)
 	    for(int d=0;d<NDIRAC;d++)
 	      if(c or d)
-		memcpy(source[ivol][c][c][d][d],source[ivol][0][0][0][0],sizeof(complex));
+		memcpy(source[ivol.nastyConvert()][c][c][d][d],source[ivol.nastyConvert()][0][0][0][0],sizeof(complex));
 	  }
     NISSA_PARALLEL_LOOP_END;
     
@@ -321,12 +324,12 @@ namespace nissa
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+      if(glbCoordOfLoclx[ivol.nastyConvert()][0]==twall or twall<0)
 	for(int ic=0;ic<NCOL;ic++)
 	  {
-	    comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
+	    comp_get_rnd(source[ivol.nastyConvert()][ic][0][0],&(loc_rnd_gen[ivol.nastyConvert()]),rtype);
 	    for(int d=1;d<NDIRAC;d++)
-	      memcpy(source[ivol][ic][d][d],source[ivol][ic][0][0],sizeof(complex));
+	      memcpy(source[ivol.nastyConvert()][ic][d][d],source[ivol.nastyConvert()][ic][0][0],sizeof(complex));
 	  }
     NISSA_PARALLEL_LOOP_END;
     
@@ -339,10 +342,10 @@ namespace nissa
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+      if(glbCoordOfLoclx[ivol.nastyConvert()][0]==twall or twall<0)
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
+	    comp_get_rnd(source[ivol.nastyConvert()][id][ic],&(loc_rnd_gen[ivol.nastyConvert()]),rtype);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
@@ -354,9 +357,9 @@ namespace nissa
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ilx,0,locVol)
-      if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
+      if(twall<0 or glbCoordOfLoclx[ilx.nastyConvert()][dir]==twall)
 	for(int ic=0;ic<NCOL;ic++)
-	  comp_get_rnd(source[ilx][ic],&(loc_rnd_gen[ilx]),rtype);
+	  comp_get_rnd(source[ilx.nastyConvert()][ic],&(loc_rnd_gen[ilx.nastyConvert()]),rtype);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
@@ -440,8 +443,8 @@ namespace nissa
     
     if(islocal)
       {
-	int ivol=loclx_of_coord(lx);
-	su3_put_to_id(source[loclx_parity[ivol]][loceo_of_loclx[ivol]]);
+	LocLxSite ivol=loclx_of_coord(lx);
+	su3_put_to_id(source[loclx_parity[ivol.nastyConvert()]][loceo_of_loclx[ivol.nastyConvert()]]);
       }
     
     for(int par=0;par<2;par++) set_borders_invalid(source[par]);

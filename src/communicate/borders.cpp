@@ -68,9 +68,9 @@ namespace nissa
 	  int idir=bf*NDIM+mu;
 	  
 	  //set the parameters
-	  comm.send_offset[idir]=(bord_offset[mu]+bord_volh*(!bf))*comm.nbytes_per_site/div_coeff;
-	  comm.message_length[idir]=bord_dir_vol[mu]*comm.nbytes_per_site/div_coeff;
-	  comm.recv_offset[idir]=(bord_offset[mu]+bord_volh*bf)*comm.nbytes_per_site/div_coeff;
+	  comm.send_offset[idir]=(bord_offset[mu].nastyConvert()+bord_volh*(!bf))*comm.nbytes_per_site/div_coeff;
+	  comm.message_length[idir]=bord_dir_vol[mu].nastyConvert()*comm.nbytes_per_site/div_coeff;
+	  comm.recv_offset[idir]=(bord_offset[mu].nastyConvert()+bord_volh*bf)*comm.nbytes_per_site/div_coeff;
 	  comm.recv_rank[idir]=rank_neigh [bf][mu];
 	  comm.send_rank[idir]=rank_neigh[!bf][mu];
 	}
@@ -180,14 +180,14 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol+locVol));
+	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol+locVol).nastyConvert());
 	
 	//check buffer size matching
 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
 	  crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
 	
 	//the buffer is already ordered as the vec border
-	memcpy((char*)vec+locVol*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
+	memcpy((char*)vec+(locVol*comm.nbytes_per_site).nastyConvert(),recv_buf,comm.tot_mess_size);
       }
     
     //we do not sync, because typically we will set borders as valid
@@ -372,9 +372,9 @@ namespace nissa
     //the buffer is lx ordered
     NISSA_PARALLEL_LOOP(ibord_lx,0,bord_vol)
       {
-	int dest_lx=locVol+ibord_lx;
-	int par=loclx_parity[dest_lx];
-	int dest_eo=loceo_of_loclx[dest_lx];
+	LocLxSite dest_lx=locVol+ibord_lx;
+	int par=loclx_parity[dest_lx.nastyConvert()];
+	int dest_eo=loceo_of_loclx[dest_lx.nastyConvert()];
 	memcpy((char*)(vec[par])+dest_eo*comm.nbytes_per_site,recv_buf+ibord_lx*comm.nbytes_per_site,comm.nbytes_per_site);
       }
     NISSA_PARALLEL_LOOP_END;

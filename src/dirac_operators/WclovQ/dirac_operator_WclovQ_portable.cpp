@@ -16,8 +16,10 @@ namespace nissa
     communicate_lx_quad_su3_borders(conf);
     
     double kcf=1/(2*kappa);
-    NISSA_PARALLEL_LOOP(X,0,locVol)
+    NISSA_PARALLEL_LOOP(_X,0,locVol)
       {
+	auto X=_X.nastyConvert();
+
 	int Xup,Xdw;
 	color temp_c0,temp_c1,temp_c2,temp_c3;
 	

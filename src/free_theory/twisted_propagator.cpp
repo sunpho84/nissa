@@ -60,12 +60,12 @@ namespace nissa
   ////////////////////////////////////////////// twisted propagator in momentum space ////////////////////////////////////////////
   
   //return sin(p), \sum sin(p)^2, \sum sin(p/2)^2
-  CUDA_HOST_AND_DEVICE void get_component_of_twisted_propagator_of_imom(momentum_t sin_mom,double &sin2_mom,double &sin2_momh,tm_quark_info qu,int imom)
+  CUDA_HOST_AND_DEVICE void get_component_of_twisted_propagator_of_imom(momentum_t sin_mom,double &sin2_mom,double &sin2_momh,tm_quark_info qu,const LocLxSite& imom)
   {
     sin2_mom=sin2_momh=0;
     for(int mu=0;mu<NDIM;mu++)
       {
-	double p=M_PI*(2*glbCoordOfLoclx[imom][mu]+qu.bc[mu])/glbSize[mu];
+	double p=M_PI*(2*glbCoordOfLoclx[imom.nastyConvert()][mu]+qu.bc[mu])/glbSize[mu];
 	sin_mom[mu]=sin(p);
 	sin2_mom+=sqr(sin_mom[mu]);
 	sin2_momh+=sqr(sin(p/2));
@@ -90,7 +90,7 @@ namespace nissa
   }
   
   //single momentum - normalisation is such that D*S=1/vol
-  CUDA_HOST_AND_DEVICE void mom_space_twisted_propagator_of_imom(spinspin prop,tm_quark_info qu,int imom,tm_basis_t base)
+  CUDA_HOST_AND_DEVICE void mom_space_twisted_propagator_of_imom(spinspin prop,tm_quark_info qu,const LocLxSite& imom,tm_basis_t base)
   {
     //takes the momenta part
     momentum_t sin_mom;
@@ -108,10 +108,10 @@ namespace nissa
     bool zmp=((fabs(qu.mass)<tol) /* null twisted mass*/ and (fabs(qu.kappa-1.0/8)<tol)) /* null Wilson mass */;
     for(int mu=0;mu<NDIM;mu++) zmp&=(fabs(qu.bc[mu])<tol);  //fully periodic
     
-    bool zm_time=(glbCoordOfLoclx[imom][0]==0);
+    bool zm_time=(glbCoordOfLoclx[imom.nastyConvert()][0]==0);
     bool zm_spat=true;
     for(int mu=1;mu<NDIM;mu++)
-      zm_spat&=(glbCoordOfLoclx[imom][mu]==0);
+      zm_spat&=(glbCoordOfLoclx[imom.nastyConvert()][mu]==0);
     
     bool ONLY_4D=true; /* false= UNNO_ALEMANNA, true=PECIONA*/
     bool zm_sub;
@@ -129,7 +129,7 @@ namespace nissa
     else
       {
 	//for efficiency
-	double rep_den=1/den/glbVol;
+	double rep_den=1/den/glbVol();
 	
 	double c0[2]; c0[MAX_TWIST_BASE]=qu.mass;      c0[WILSON_BASE]=M;
 	double c5[2]; c5[MAX_TWIST_BASE]=M*tau3[qu.r]; c5[WILSON_BASE]=-qu.mass*tau3[qu.r];
@@ -230,7 +230,7 @@ namespace nissa
   {
     
     NISSA_PARALLEL_LOOP(imom,0,locVol)
-      mom_space_twisted_propagator_of_imom(prop[imom],qu,imom,base);
+      mom_space_twisted_propagator_of_imom(prop[imom.nastyConvert()],qu,imom,base);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(prop);
@@ -254,8 +254,9 @@ namespace nissa
     //square (including normalisation)
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
-	safe_spinspin_prod_spinspin(sq_prop[imom],sq_prop[imom],sq_prop[imom]);
-	spinspin_prodassign_double(sq_prop[imom],glbVol);
+	auto& s=sq_prop[imom.nastyConvert()];
+	safe_spinspin_prod_spinspin(s,s,s);
+	spinspin_prodassign_double(s,glbVol());
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -275,7 +276,7 @@ namespace nissa
       {									\
 	spinspin prop;							\
 	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
-	NAME2(safe_spinspin_prod,TYPE)(out[imom],prop,in[imom]);	\
+	NAME2(safe_spinspin_prod,TYPE)(out[imom.nastyConvert()],prop,in[imom.nastyConvert()]);	\
       }									\
     NISSA_PARALLEL_LOOP_END;						\
 									\
@@ -290,7 +291,7 @@ namespace nissa
       {									\
 	spinspin prop;							\
 	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
-	NAME3(safe,TYPE,prod_spinspin)(out[imom],in[imom],prop);	\
+	NAME3(safe,TYPE,prod_spinspin)(out[imom.nastyConvert()],in[imom.nastyConvert()],prop);	\
       }									\
     NISSA_PARALLEL_LOOP_END;						\
 									\
@@ -312,8 +313,8 @@ namespace nissa
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,tm_quark_info qu,tm_basis_t base)
   {
     //source and temp prop
-    spin *tsource=nissa_malloc("tsource",locVol+bord_vol,spin);
-    spin *tprop=nissa_malloc("tprop",locVol,spin);
+    spin *tsource=nissa_malloc("tsource",(locVol+bord_vol).nastyConvert(),spin);
+    spin *tprop=nissa_malloc("tprop",locVol.nastyConvert(),spin);
     
     //loop over the source index
     for(int id_so=0;id_so<NDIRAC;id_so++)
@@ -333,7 +334,7 @@ namespace nissa
   void compute_x_space_twisted_propagator_by_inv(spinspin *prop,tm_quark_info qu,tm_basis_t base)
   {
     //allocate a source
-    spinspin *delta=nissa_malloc("delta",locVol+bord_vol,spinspin);
+    spinspin *delta=nissa_malloc("delta",(locVol+bord_vol).nastyConvert(),spinspin);
     vector_reset(delta);
     if(rank==0) spinspin_put_to_id(delta[0]);
     set_borders_invalid(delta);

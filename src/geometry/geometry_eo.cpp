@@ -49,14 +49,14 @@ namespace nissa
     REM_2 if(!ok) crash("local lattice size odd!");
     
     //set half the vol, bord and edge size
-    glbVolh=glbVol/2;
-    locVolh=locVol/2;
+    glbVolh=(glbVol/2).nastyConvert();
+    locVolh=(locVol/2).nastyConvert();
     
     //set the parity
-    loclx_parity=nissa_malloc("loclx_parity",locVol+bord_vol+edge_vol,int);
+    loclx_parity=nissa_malloc("loclx_parity",(locVol+bord_vol+edge_vol).nastyConvert(),int);
     ignore_borders_communications_warning(loclx_parity);
     
-    loceo_of_loclx=nissa_malloc("loceo_of_loclx",locVol+bord_vol+edge_vol,int);
+    loceo_of_loclx=nissa_malloc("loceo_of_loclx",(locVol+bord_vol+edge_vol).nastyConvert(),int);
     ignore_borders_communications_warning(loceo_of_loclx);
     
     for(int par=0;par<2;par++) loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",locVolh+bord_volh+edge_volh,int);
@@ -103,7 +103,7 @@ namespace nissa
     for(int bordlx=0;bordlx<bord_vol;bordlx++)
       {
 	int surflx=surflxOfBordlx[bordlx];
-	surfeo_of_bordeo[loclx_parity[surflx]][loceo_of_loclx[bordlx+locVol]-locVolh]=loceo_of_loclx[surflx];
+	surfeo_of_bordeo[loclx_parity[surflx]][loceo_of_loclx[(bordlx+locVol).nastyConvert()]-locVolh]=loceo_of_loclx[surflx];
       }
     
     master_printf("E/O Geometry intialized\n");
@@ -155,7 +155,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       for(int nu=mu+1;nu<NDIM;nu++)
 	{
-	  MPI_Type_contiguous(locVol/locSize[mu]/locSize[nu]/2,*base,&(MPI_EDGE_RECE[iedge]));
+	  MPI_Type_contiguous(locVol.nastyConvert()/locSize[mu]/locSize[nu]/2,*base,&(MPI_EDGE_RECE[iedge]));
 	  MPI_Type_commit(&(MPI_EDGE_RECE[iedge]));
 	  iedge++;
 	}

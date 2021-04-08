@@ -23,7 +23,7 @@ namespace nissa
     
     //split
     NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      memcpy((char*)(out_eo[loclx_parity[loclx]])+bps*loceo_of_loclx[loclx],(char*)in_lx+bps*loclx,bps);
+      memcpy((char*)(out_eo[loclx_parity[loclx.nastyConvert()]])+bps*loceo_of_loclx[loclx.nastyConvert()],(char*)in_lx+(bps*loclx).nastyConvert(),bps);
     NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);
@@ -40,8 +40,8 @@ namespace nissa
     
     //get
     NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      if(loclx_parity[loclx]==par)
-	memcpy((char*)out_ev_or_od+bps*loceo_of_loclx[loclx],(char*)in_lx+bps*loclx,bps);
+      if(loclx_parity[loclx.nastyConvert()]==par)
+	memcpy((char*)out_ev_or_od+bps*loceo_of_loclx[loclx.nastyConvert()],(char*)in_lx+(bps*loclx).nastyConvert(),bps);
     NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);

@@ -2,7 +2,7 @@
 #define _GEOMETRY_LX_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+ #include <config.hpp>
 #endif
 
 #ifdef USE_MPI
@@ -10,7 +10,9 @@
 #endif
 
 #include <stdint.h>
+
 #include <routines/math_routines.hpp>
+#include <tensor/component.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
  #define EXTERN_GEOMETRY_LX extern
@@ -21,6 +23,15 @@
 
 namespace nissa
 {
+  DECLARE_COMPONENT(Direction,int,NDIM);
+  
+#define FOR_ALL_DIRECTIONS(NAME)		\
+  FOR_ALL_COMPONENT_VALUES(Direction,NAME)
+  
+  DECLARE_COMPONENT(GlbLxSite,int64_t,DYNAMIC);
+  
+  DECLARE_COMPONENT(LocLxSite,int64_t,DYNAMIC);
+  
   typedef int coords[NDIM];
   typedef double momentum_t[NDIM];
   
@@ -28,11 +39,12 @@ namespace nissa
   //-glb is relative to the global grid
   //-loc to the local one
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords glbSize,locSize;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glbVol,glbSpatVol,glbVolh;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t locVol,locSpatVol,locVolh;
-  EXTERN_GEOMETRY_LX int64_t bulkVol,nonBwSurfVol,nonFwSurfVol;
-  EXTERN_GEOMETRY_LX int64_t surfVol,bwSurfVol,fwSurfVol;
-  EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbLxSite glbVol,glbSpatVol;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LocLxSite locVol,locSpatVol;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glbVolh,locVolh;
+  EXTERN_GEOMETRY_LX LocLxSite bulkVol,nonBwSurfVol,nonFwSurfVol;
+  EXTERN_GEOMETRY_LX LocLxSite surfVol,bwSurfVol,fwSurfVol;
+  //EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
   //-lx is lexicografic
   //box, division in 2^NDIM of the lattice
   EXTERN_GEOMETRY_LX coords box_coord[1<<NDIM];
@@ -67,10 +79,11 @@ namespace nissa
   EXTERN_GEOMETRY_LX coords paral_dir;
   //size of the border and edges
   EXTERN_GEOMETRY_LX int bord_vol,bord_volh;
-  EXTERN_GEOMETRY_LX int edge_vol,edge_volh;
+  EXTERN_GEOMETRY_LX LocLxSite edge_vol;
+  EXTERN_GEOMETRY_LX int edge_volh;
   //size along various dir
-  EXTERN_GEOMETRY_LX int bord_dir_vol[NDIM],bord_offset[NDIM];
-  EXTERN_GEOMETRY_LX int edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
+  EXTERN_GEOMETRY_LX LocLxSite bord_dir_vol[NDIM],bord_offset[NDIM];
+  EXTERN_GEOMETRY_LX LocLxSite edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
   CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   //mapping of ILDG data
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords scidac_mapping;

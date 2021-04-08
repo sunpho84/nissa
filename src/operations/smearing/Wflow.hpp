@@ -96,11 +96,11 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++) dirs[mu]=ext_dirs[mu];
       //allocate confs
       for(int iter=0;iter<nint_steps;iter++)
-	conf[iter]=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
+	conf[iter]=nissa_malloc("conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
       //alllocate staple
-      arg=nissa_malloc("arg",locVol,quad_su3);
+      arg=nissa_malloc("arg",locVol.nastyConvert(),quad_su3);
       
-      nd=locVol*sizeof(T)/sizeof(double);
+      nd=locVol.nastyConvert()*sizeof(T)/sizeof(double);
     }
     
     //add or remove backfield
@@ -147,11 +147,12 @@ namespace nissa
     //creator
     fermion_flower_t(double dt,bool *ext_dirs) : internal_fermion_flower_t<T,nint_steps>(dt,ext_dirs)
     {
-      df0=nissa_malloc("df0",locVol+bord_vol,T);
-      df1=nissa_malloc("df1",locVol+bord_vol,T);
-      df2=nissa_malloc("df2",locVol+bord_vol,T);
-      f1=nissa_malloc("f1",locVol+bord_vol,T);
-      f2=nissa_malloc("f2",locVol+bord_vol,T);
+      auto size=(locVol+bord_vol).nastyConvert();
+      df0=nissa_malloc("df0",size,T);
+      df1=nissa_malloc("df1",size,T);
+      df2=nissa_malloc("df2",size,T);
+      f1=nissa_malloc("f1",size,T);
+      f2=nissa_malloc("f2",size,T);
     }
     
     //flow a field
@@ -204,8 +205,10 @@ namespace nissa
     //creator
     fermion_adjoint_flower_t(double dt,bool *ext_dirs) : internal_fermion_flower_t<T,nint_steps>(dt,ext_dirs)
     {
-      l2=nissa_malloc("l2",locVol+bord_vol,T);
-      l1=nissa_malloc("l1",locVol+bord_vol,T);
+      auto size=(locVol+bord_vol).nastyConvert();
+      
+      l2=nissa_malloc("l2",size,T);
+      l1=nissa_malloc("l1",size,T);
     }
     
     //flow a field

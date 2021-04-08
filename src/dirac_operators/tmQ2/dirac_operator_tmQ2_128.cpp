@@ -15,7 +15,7 @@ namespace nissa
   void apply_tmQ2_RL_128(spincolor_128 *out,quad_su3 *conf,double kappa,spincolor_128 *ext_temp,int RL,double mu,spincolor_128 *in)
   {
     spincolor_128 *temp=ext_temp;
-    if(ext_temp==NULL) temp=nissa_malloc("tempQ",locVol+bord_vol,spincolor_128);
+    if(ext_temp==NULL) temp=nissa_malloc("tempQ",(locVol+bord_vol).nastyConvert(),spincolor_128);
     
     if(RL==1) crash("left not implmented");
     

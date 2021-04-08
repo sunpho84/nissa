@@ -23,8 +23,8 @@ namespace nissa
       };
     
     //parameters of the finder
-    const int mat_size=locVol*NCOL*NDIRAC;
-    const int mat_size_to_allocate=(locVol+bord_vol)*NCOL*NDIRAC;
+    const int mat_size=locVol.nastyConvert()*NCOL*NDIRAC;
+    const int mat_size_to_allocate=(locVol+bord_vol).nastyConvert()*NCOL*NDIRAC;
     const int niter_max=100000000;
     master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     

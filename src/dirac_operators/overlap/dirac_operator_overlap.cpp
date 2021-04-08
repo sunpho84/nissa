@@ -49,12 +49,12 @@ namespace nissa
     complex &lambda_max=lambda[MAX];
     
     int niter_max=1000000;
-    int mat_size=locVol*NCOL*NDIRAC; //physical volume
-    int mat_size_to_allocate=(locVol+bord_vol)*NCOL*NDIRAC; //volume to allocate
+    int mat_size=locVol.nastyConvert()*NCOL*NDIRAC; //physical volume
+    int mat_size_to_allocate=(locVol+bord_vol).nastyConvert()*NCOL*NDIRAC; //volume to allocate
     
     complex *eigen_vector=nissa_malloc("eigen_vector",mat_size_to_allocate,complex); // here we save the eigen vector, although it is not used in this function
     
-    spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
+    spincolor *temp=nissa_malloc("temp",(locVol+bord_vol).nastyConvert(),spincolor);
     
     // Application of H^2 to a spincolor vector and then cast to a complex vector
     const auto imp_mat=[conf,temp,mass_overlap](complex *out_lx,complex *in_lx)
@@ -89,13 +89,13 @@ namespace nissa
   void verify_rat_approx_for_overlap(quad_su3 *conf_lx,rat_approx_t &appr,double mass_overlap,double residue)
   {
     //generates the source and gets its norm
-    spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
+    spincolor *in=nissa_malloc("in",(locVol+bord_vol).nastyConvert(),spincolor);
     generate_undiluted_source(in,RND_GAUSS,-1);
-    double nin=double_vector_glb_norm2(in,locVol);
+    double nin=double_vector_glb_norm2(in,locVol.nastyConvert());
     
     //temporary and output
-    spincolor *tmp=nissa_malloc("tmp",locVol+bord_vol,spincolor);
-    spincolor *out=nissa_malloc("out",locVol+bord_vol,spincolor);
+    spincolor *tmp=nissa_malloc("tmp",(locVol+bord_vol).nastyConvert(),spincolor);
+    spincolor *out=nissa_malloc("out",(locVol+bord_vol).nastyConvert(),spincolor);
     
     ///apply twice the sign operator
     int niter_max=10000000;
@@ -105,8 +105,8 @@ namespace nissa
     apply_overlap_kernel(out,conf_lx,mass_overlap,tmp);
     
     //subtracts the results from the source and gets its norm
-    double_vector_subtassign((double*)out,(double*)in,sizeof(spincolor)/sizeof(double)*locVol);
-    double nout=double_vector_glb_norm2(out,locVol);
+    double_vector_subtassign((double*)out,(double*)in,sizeof(spincolor)/sizeof(double)*locVol.nastyConvert());
+    double nout=double_vector_glb_norm2(out,locVol.nastyConvert());
     
     master_printf("Norm of the source: %.16lg\n",sqrt(nin));
     master_printf("Norm of the difference: %.16lg\n",sqrt(nout));
@@ -125,7 +125,7 @@ namespace nissa
     
     int niter_max=1000000;
     
-    spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
+    spincolor *temp=nissa_malloc("temp",(locVol+bord_vol).nastyConvert(),spincolor);
     
     // sum the constant and all the shifts
     summ_src_and_all_inv_overlap_kernel2_cgm(temp,conf,mass_overlap,appr,niter_max,req_res,in);
@@ -135,7 +135,7 @@ namespace nissa
     
     // here we apply g5 to out and we add the input vector, thus now out = in + g_5 sign(H) in = ( Id + g5*sign(H) ) in = D_ov in
     // this is horrible but fast (cit. Sunpho)
-    NISSA_PARALLEL_LOOP(X,0,locVol)
+    NISSA_PARALLEL_LOOP(X,0,locVol.nastyConvert())
       for(int c=0;c<NCOL;c++)
 	{
 	  out[X][0][c][0]=+out[X][0][c][0]+(1.0+mass)*in[X][0][c][0];
