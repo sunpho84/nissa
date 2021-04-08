@@ -80,16 +80,16 @@ int main(int narg,char **arg)
   init_grid(T,L);
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
   
   FILE *fin=find_conf_beginning(arg[3]);
-  int rc=fread(conf,sizeof(quad_su3),glbVol,fin);
+  int rc=fread(conf,sizeof(quad_su3),glbVol(),fin);
   if(rc!=glbVol) crash("Unable to read, returned: %d",rc);
   close_file(fin);
   
   //convert and reorder
-  if(little_endian) change_endianness((double*)conf,(double*)conf,glbVol*sizeof(quad_su3)/sizeof(double));
-  vector_remap_t(locVol,index_from_ILDG_remapping,NULL).remap(conf,conf,sizeof(quad_su3));
+  if(little_endian) change_endianness((double*)conf,(double*)conf,glbVol()*sizeof(quad_su3)/sizeof(double));
+  vector_remap_t(locVol(),index_from_ILDG_remapping,NULL).remap(conf,conf,sizeof(quad_su3));
   quad_su3_ildg_to_nissa_reord_in_place(conf);
   
   //perform unitarity test

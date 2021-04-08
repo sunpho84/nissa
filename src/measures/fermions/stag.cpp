@@ -33,13 +33,13 @@ namespace nissa
 	{
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
-	      int up=loceo_neighup[eo][ieo][mu];
-	      int dw=loceo_neighdw[eo][ieo][mu];
-	      color_put_to_zero(out[eo][ieo]);
-	      if(side==BOTH or side==UP) su3_summ_the_prod_color(out[eo][ieo],conf[eo][ieo][mu],in[!eo][up]);
-	      if(side==BOTH or side==DW) su3_dag_summ_the_prod_color(out[eo][ieo],conf[!eo][dw][mu],in[!eo][dw]);
+	      int up=loceo_neighup[eo][ieo.nastyConvert()][mu];
+	      int dw=loceo_neighdw[eo][ieo.nastyConvert()][mu];
+	      color_put_to_zero(out[eo][ieo.nastyConvert()]);
+	      if(side==BOTH or side==UP) su3_summ_the_prod_color(out[eo][ieo.nastyConvert()],conf[eo][ieo.nastyConvert()][mu],in[!eo][up]);
+	      if(side==BOTH or side==DW) su3_dag_summ_the_prod_color(out[eo][ieo.nastyConvert()],conf[!eo][dw][mu],in[!eo][dw]);
 	      
-	      if(side==BOTH) color_prod_double(out[eo][ieo],out[eo][ieo],0.5);
+	      if(side==BOTH) color_prod_double(out[eo][ieo.nastyConvert()],out[eo][ieo.nastyConvert()],0.5);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
 	  set_borders_invalid(out[eo]);
@@ -60,7 +60,7 @@ namespace nissa
       //allocate temp
       eo_ptr<color> temp;
       for(int par=0;par<2;par++)
-	temp[par]=nissa_malloc("temp",locVolh+bord_volh,color);
+	temp[par]=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),color);
       
       //reset out
       for(int par=0;par<2;par++) vector_reset(out[par]);
@@ -77,8 +77,8 @@ namespace nissa
       //summ diagonal and normalize
       for(int par=0;par<2;par++)
 	{
-	  double_vector_summassign_double_vector_prod_double((double*)(out[par]),(double*)(in[par]),-2*NDIM,locVolh);
-	  double_vector_prodassign_double((double*)(out[par]),0.5,locVolh);
+	  double_vector_summassign_double_vector_prod_double((double*)(out[par]),(double*)(in[par]),-2*NDIM,locVolh.nastyConvert());
+	  double_vector_prodassign_double((double*)(out[par]),0.5,locVolh.nastyConvert());
 	}
       
       //free
@@ -133,12 +133,12 @@ namespace nissa
 	      
 	      //apply and summ
 	      apply_shift_op_single_perm(single_perm,internal_temp,conf,list_dir,in);
-	      for(int eo=0;eo<2;eo++) double_vector_summassign((double*)(out[eo]),(double*)(single_perm[eo]),locVolh*sizeof(color)/sizeof(double));
+	      for(int eo=0;eo<2;eo++) double_vector_summassign((double*)(out[eo]),(double*)(single_perm[eo]),locVolh.nastyConvert()*sizeof(color)/sizeof(double));
 	    }
 	  while(std::next_permutation(list_dir.begin(),list_dir.end()));
 	  
 	  //final normalization
-	  for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(out[eo]),(double*)(out[eo]),1.0/nperm,locVolh*sizeof(color)/sizeof(double));
+	  for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(out[eo]),(double*)(out[eo]),1.0/nperm,locVolh.nastyConvert()*sizeof(color)/sizeof(double));
 	  
 	  rem_backfield_without_stagphases_from_conf(conf,u1b);
 	}
@@ -155,9 +155,9 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
 	      int sign=1;
-	      const LocLxSite ivol=loclx_of_loceo[eo][ieo];
+	      const LocLxSite ivol=loclx_of_loceo[eo][ieo.nastyConvert()];
 	      for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1) and (glbCoordOfLoclx[ivol.nastyConvert()][mu]&0x1));
-	      color_prod_double(source[eo][ieo],source[eo][ieo],sign);
+	      color_prod_double(source[eo][ieo.nastyConvert()],source[eo][ieo.nastyConvert()],sign);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
 	  set_borders_invalid(source[eo]);
@@ -192,11 +192,11 @@ namespace nissa
 		eo_ptr<color> right_fw_bw[2]={right,left};
 		
 		color v;
-		unsafe_su3_prod_color(v,conf[par][ieo][mu],right_fw_bw[fw_bw][!par][loceo_neighup[par][ieo][mu]]);
+		unsafe_su3_prod_color(v,conf[par][ieo.nastyConvert()][mu],right_fw_bw[fw_bw][!par][loceo_neighup[par][ieo.nastyConvert()][mu]]);
 		complex t;
-		if(fw_bw==0) color_scalar_prod(t,right_fw_bw[!fw_bw][par][ieo],v);
-		else         color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo]);
-		complex_summassign(point_result[loclx_of_loceo[par][ieo]],t);
+		if(fw_bw==0) color_scalar_prod(t,right_fw_bw[!fw_bw][par][ieo.nastyConvert()],v);
+		else         color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo.nastyConvert()]);
+		complex_summassign(point_result[loclx_of_loceo[par][ieo.nastyConvert()]],t);
 	      }
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
@@ -222,7 +222,7 @@ namespace nissa
       for(int par=0;par<2;par++)
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int ic=0;ic<3;ic++)
-	    complex_summ_the_conj1_prod(point_result[loclx_of_loceo[par][ieo]],A[par][ieo][ic],B[par][ieo][ic]);
+	    complex_summ_the_conj1_prod(point_result[loclx_of_loceo[par][ieo.nastyConvert()]],A[par][ieo.nastyConvert()][ic],B[par][ieo.nastyConvert()][ic]);
       NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
       
@@ -247,11 +247,11 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
 	      color temp;
-	      unsafe_su3_prod_color(temp,conf[par][ieo][0],in[!par][loceo_neighup[par][ieo][0]]);
-	      int idw=loceo_neighdw[par][ieo][0];
+	      unsafe_su3_prod_color(temp,conf[par][ieo.nastyConvert()][0],in[!par][loceo_neighup[par][ieo.nastyConvert()][0]]);
+	      int idw=loceo_neighdw[par][ieo.nastyConvert()][0];
 	      if(ord%2==0) su3_dag_subt_the_prod_color(temp,conf[!par][idw][0],in[!par][idw]);
 	      else         su3_dag_summ_the_prod_color(temp,conf[!par][idw][0],in[!par][idw]);
-	      color_prod_double(out[par][ieo],temp,0.5);
+	      color_prod_double(out[par][ieo.nastyConvert()],temp,0.5);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
 	  set_borders_invalid(out[par]);
@@ -270,19 +270,22 @@ namespace nissa
       for(int eo=0;eo<2;eo++)
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    const LocLxSite ivol=loclx_of_loceo[eo][ieo];
+	    const LocLxSite ivol=loclx_of_loceo[eo][ieo.nastyConvert()];
 	    complex prod;
-	    color_scalar_prod(prod,eta[eo][ieo],quark[eo][ieo]);
+	    color_scalar_prod(prod,eta[eo][ieo.nastyConvert()],quark[eo][ieo.nastyConvert()]);
 	    complex_summassign(dens[ivol.nastyConvert()],prod);
 	  }
       NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
     }
     
-    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars)
-    {if(aux[0]) complex_copy(out,aux[par][ieo][mu]);else complex_put_to_real(out,1);}
+    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,const LocEoSite& ieo,int mu,void *pars)
+    {
+      if(aux[0]) complex_copy(out,aux[par][ieo.nastyConvert()][mu]);else complex_put_to_real(out,1);
+    }
+    
     //insert an external current
-    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars)
+    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,const LocEoSite& ieo,int mu,void *pars),int t,void *pars)
     {
       
       add_backfield_with_stagphases_to_conf(conf,theory_pars->backfield[iflav]);
@@ -294,27 +297,27 @@ namespace nissa
 	{
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
-	      const LocLxSite ivol=loclx_of_loceo[par][ieo];
+	      const LocLxSite ivol=loclx_of_loceo[par][ieo.nastyConvert()];
 	      
-	      color_put_to_zero(out[par][ieo]);
+	      color_put_to_zero(out[par][ieo.nastyConvert()]);
 	      if(t<0  or  t>=glbSize[0]  or  glbCoordOfLoclx[ivol.nastyConvert()][0]==t)
 		for(int mu=0;mu<NDIM;mu++)
 		  {
 		    color temp;
 		    
-		    int iup=loceo_neighup[par][ieo][mu];
+		    int iup=loceo_neighup[par][ieo.nastyConvert()][mu];
 		    complex cf;
 		    get_curr(cf,curr,par,ieo,mu,pars);
 		    complex_prodassign(cf,fact_fw);
-		    unsafe_su3_prod_color(temp,conf[par][ieo][mu],in[!par][iup]);
-		    color_summ_the_prod_complex(out[par][ieo],temp,cf);
+		    unsafe_su3_prod_color(temp,conf[par][ieo.nastyConvert()][mu],in[!par][iup]);
+		    color_summ_the_prod_complex(out[par][ieo.nastyConvert()],temp,cf);
 		    
-		    int idw=loceo_neighdw[par][ieo][mu];
+		    int idw=loceo_neighdw[par][ieo.nastyConvert()][mu];
 		    complex cb;
 		    get_curr(cb,curr,!par,idw,mu,pars);
 		    complex_prodassign(cb,fact_bw);
 		    unsafe_su3_dag_prod_color(temp,conf[!par][idw][mu],in[!par][idw]);
-		    color_subt_the_prod_complex(out[par][ieo],temp,cb);
+		    color_subt_the_prod_complex(out[par][ieo.nastyConvert()],temp,cb);
 		  }
 	    }
 	  NISSA_PARALLEL_LOOP_END;

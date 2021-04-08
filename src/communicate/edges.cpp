@@ -139,7 +139,7 @@ namespace nissa
 	    for(int par=0;par<2;par++)
 	      {
 		//check_edges_allocated(data);
-		int min_size=nbytes_per_site*(edge_volh+bord_volh+locVolh);
+		int64_t min_size=nbytes_per_site*(edge_volh+bord_volh+locVolh).nastyConvert();
 		crash_if_edges_not_allocated(data[par],min_size);
 		
 		//"v" refer to the verse of the dir
@@ -157,8 +157,8 @@ namespace nissa
 			    
 			    //Send the (mu,nu) internal edge to the nu rank as (mu,-nu) external edge
 			    //Receive the (mu,-nu) external edge from the -nu rank (mu,nu) internal edge
-			    LocLxSite ext_edge_recv_start=(locVolh+bord_volh+edge_volh/4*(vmu*2+!vnu)+edge_offset[iedge]/2)*nbytes_per_site;
-			    int int_edge_send_start=locVolh*nbytes_per_site;
+			    LocLxSite ext_edge_recv_start=(locVolh+bord_volh+edge_volh/4*(vmu*2+!vnu)+edge_offset[iedge].nastyConvert()/2).nastyConvert()*nbytes_per_site;
+			    int int_edge_send_start=locVolh.nastyConvert()*nbytes_per_site;
 			    MPI_Irecv((char*)(data[par])+ext_edge_recv_start.nastyConvert(),1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu][nu],imessage,cart_comm,request+(nrequest++));
 			    MPI_Isend((char*)(data[par])+int_edge_send_start,1,MPI_EDGES_SEND[icomm_send],rank_neigh[vnu][nu],imessage,cart_comm,request+(nrequest++));
 			    

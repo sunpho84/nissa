@@ -29,17 +29,17 @@ namespace nissa
 	    {
 	      NISSA_PARALLEL_LOOP(A,0,locVolh)
 		{
-		  const LocLxSite ivol=loclx_of_loceo[par][A];
+		  const LocLxSite ivol=loclx_of_loceo[par][A.nastyConvert()];
 		  
 		  //compute forward staple starting from A
-		  int B=loceo_neighup[par][A][nu],D=loceo_neighdw[par][A][nu];
-		  int E=loceo_neighup[!par][D][mu],F=loceo_neighup[par][A][mu];
+		  int B=loceo_neighup[par][A.nastyConvert()][nu],D=loceo_neighdw[par][A.nastyConvert()][nu];
+		  int E=loceo_neighup[!par][D][mu],F=loceo_neighup[par][A.nastyConvert()][mu];
 		  su3 ABC,ABCF;
-		  unsafe_su3_prod_su3(ABC,conf[par][A][nu],conf[!par][B][mu]);
+		  unsafe_su3_prod_su3(ABC,conf[par][A.nastyConvert()][nu],conf[!par][B][mu]);
 		  unsafe_su3_prod_su3_dag(ABCF,ABC,conf[!par][F][nu]);
 		  
 		  //taking the trace we summ to plaq_summ (only if nu>mu)
-		  if(nu>mu) point_shapes[ivol.nastyConvert()][RE]+=real_part_of_trace_su3_prod_su3_dag(ABCF,conf[par][A][mu]);
+		  if(nu>mu) point_shapes[ivol.nastyConvert()][RE]+=real_part_of_trace_su3_prod_su3_dag(ABCF,conf[par][A.nastyConvert()][mu]);
 		  
 		  //compute backward staple starting from A
 		  su3 ADE,ADEF;

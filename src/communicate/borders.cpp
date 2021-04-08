@@ -268,14 +268,14 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_volh+locVolh));
+	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_volh+locVolh).nastyConvert());
 	
 	//check buffer size matching
 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
 	  crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
 	
 	//the buffer is already ordered as the vec border
-	memcpy((char*)vec+locVolh*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
+	memcpy((char*)vec+locVolh.nastyConvert()*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
       }
     
     //we do not sync, because typically we will set borders as valid
@@ -361,7 +361,7 @@ namespace nissa
   {
     
     //check border allocation
-    int min_size=comm.nbytes_per_site*(bord_volh+locVolh);
+    int min_size=comm.nbytes_per_site*(bord_volh+locVolh).nastyConvert();
     crash_if_borders_not_allocated(vec[EVN],min_size);
     crash_if_borders_not_allocated(vec[ODD],min_size);
     
@@ -513,7 +513,7 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	int min_size=comm.nbytes_per_site*(bord_volh+locVolh);
+	int min_size=comm.nbytes_per_site*(bord_volh+locVolh).nastyConvert();
 	crash_if_borders_not_allocated(vec,min_size);
 	
 	//check buffer size matching
@@ -521,7 +521,7 @@ namespace nissa
 	  crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
 	
 	//the buffer is already ordered as the vec border
-	memcpy((char*)vec+locVolh*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
+	memcpy((char*)vec+locVolh.nastyConvert()*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
       }
     
     //we do not sync, because typically we will set borders as valid

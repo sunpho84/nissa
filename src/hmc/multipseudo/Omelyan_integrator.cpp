@@ -125,7 +125,7 @@ namespace nissa
     verbosity_lv2_master_printf("Evolving momenta with quark force, dt=%lg\n",dt);
     
     //allocate forces
-    eo_ptr<quad_su3> F={nissa_malloc("F0",locVolh,quad_su3),nissa_malloc("F1",locVolh,quad_su3)};
+    eo_ptr<quad_su3> F={nissa_malloc("F0",locVolh.nastyConvert(),quad_su3),nissa_malloc("F1",locVolh.nastyConvert(),quad_su3)};
     
     //compute the force
     compute_quark_force(F,conf,pf,theory_pars,rat_appr,simul_pars->md_residue);
@@ -209,7 +209,7 @@ namespace nissa
 	  for(int mu=0;mu<NDIM;mu++)
 	    for(int ic1=0;ic1<NCOL;ic1++)
 	      for(int ic2=0;ic2<NCOL;ic2++)
-		complex_subt_the_prod_idouble(H[par][ieo][mu][ic1][ic2],F[par][ieo][mu][ic1][ic2],dt);
+		complex_subt_the_prod_idouble(H[par][ieo.nastyConvert()][mu][ic1][ic2],F[par][ieo.nastyConvert()][mu][ic1][ic2],dt);
 	NISSA_PARALLEL_LOOP_END;
 	
         nissa_free(F[par]);

@@ -242,10 +242,10 @@ void init_simulation(char *path)
   ////////////////////////// allocate stuff ////////////////////////
   
   //allocate the conf
-  conf[0]=nissa_malloc("conf_e",locVolh+bord_volh+edge_volh,quad_su3);
-  conf[1]=nissa_malloc("conf_o",locVolh+bord_volh+edge_volh,quad_su3);
-  new_conf[0]=nissa_malloc("new_conf_e",locVolh+bord_volh+edge_volh,quad_su3);
-  new_conf[1]=nissa_malloc("new_conf_o",locVolh+bord_volh+edge_volh,quad_su3);
+  conf[0]=nissa_malloc("conf_e",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
+  conf[1]=nissa_malloc("conf_o",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
+  new_conf[0]=nissa_malloc("new_conf_e",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
+  new_conf[1]=nissa_malloc("new_conf_o",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
   
   //////////////////////// initialize stuff ////////////////////
   
@@ -685,7 +685,7 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
 {
   eo_ptr<spincolor> out;
   for(int eo=0;eo<2;eo++)
-    out[eo]=nissa_malloc("out",locVolh,spincolor);
+    out[eo]=nissa_malloc("out",locVolh.nastyConvert(),spincolor);
   
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
@@ -713,7 +713,7 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
   
   complex act_eo[2];
   for(int eo=0;eo<2;eo++)
-    complex_vector_glb_scalar_prod(act_eo[eo],(complex*)(in_l[eo]),(complex*)(out[eo]),locVolh*sizeof(spincolor)/sizeof(complex));
+    complex_vector_glb_scalar_prod(act_eo[eo],(complex*)(in_l[eo]),(complex*)(out[eo]),locVolh.nastyConvert()*sizeof(spincolor)/sizeof(complex));
   
   chromo_operator_remove_cSW(Cl,cSW);
   
@@ -732,8 +732,8 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
 namespace nissa
 {
   void compute_clover_staples_insertions(eo_ptr<as2t_su3> cl_insertion,eo_ptr<spincolor> X,eo_ptr<spincolor> Y);
-  CUDA_HOST_AND_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,int eo,int ieo,int dir);
-  CUDA_HOST_AND_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,int ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW);
+  CUDA_HOST_AND_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,int eo,const LocEoSite& ieo,int dir);
+  CUDA_HOST_AND_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,const LocEoSite& ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW);
 }
 
 void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
@@ -742,13 +742,13 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_
   
   eo_ptr<quad_su3> an;
   for(int eo=0;eo<2;eo++)
-    an[eo]=nissa_malloc("an",locVolh,quad_su3);
+    an[eo]=nissa_malloc("an",locVolh.nastyConvert(),quad_su3);
   
   for(int eo=0;eo<2;eo++)
     NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       for(int dir=0;dir<NDIM;dir++)
 	{
-	  su3& out=an[eo][ieo][dir];
+	  su3& out=an[eo][ieo.nastyConvert()][dir];
 	  su3_put_to_zero(out);
 	  
 	  decltype(in_r) in[2]={in_l,in_r};
@@ -767,7 +767,7 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_
     {
       eo_ptr<as2t_su3> cl_insertion;
       for(int eo=0;eo<2;eo++)
-	cl_insertion[eo]=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
+	cl_insertion[eo]=nissa_malloc("insertion",(locVolh+bord_volh+edge_volh).nastyConvert(),as2t_su3);
       compute_clover_staples_insertions(cl_insertion,in_l,in_r);
       
       for(int eo=0;eo<2;eo++)
@@ -777,7 +777,7 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_
 	      su3 cl_staples;
 	      get_clover_staples(cl_staples,conf,eo,ieo,ext_dir,cl_insertion,cSW);
 	      
-	      su3_summ_the_prod_double(an[eo][ieo][dir],cl_staples,-cSW/8);
+	      su3_summ_the_prod_double(an[eo][ieo.nastyConvert()][dir],cl_staples,-cSW/8);
 	    }
       NISSA_PARALLEL_LOOP_END;
       
@@ -801,7 +801,7 @@ void test_xQx()
   
   eo_ptr<spincolor> in;
   for(int eo=0;eo<2;eo++)
-    in[eo]=nissa_malloc("in",locVolh,spincolor);
+    in[eo]=nissa_malloc("in",locVolh.nastyConvert(),spincolor);
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1);
   
   //store initial link and compute action
@@ -822,27 +822,27 @@ void test_xQx()
 
 double xQhatx(spincolor *in,double kappa,double mass,double cSW)
 {
-  spincolor *out=nissa_malloc("out",locVolh,spincolor);
-  spincolor *temp=nissa_malloc("temp",locVolh,spincolor);
+  spincolor *out=nissa_malloc("out",locVolh.nastyConvert(),spincolor);
+  spincolor *temp=nissa_malloc("temp",locVolh.nastyConvert(),spincolor);
   
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh.nastyConvert(),inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
   tmclovDkern_eoprec_eos(out,temp,conf,kappa,Cl[ODD],invCl[EVN],false,mass,in);
   
   complex act;
-  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,locVolh*sizeof(spincolor)/sizeof(complex));
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,locVolh.nastyConvert()*sizeof(spincolor)/sizeof(complex));
   
   chromo_operator_remove_cSW(Cl,cSW);
   
@@ -856,7 +856,7 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQhatx_der_old(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
+void xQhatx_der_old(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
 {
   spincolor temp;
   
@@ -865,34 +865,34 @@ void xQhatx_der_old(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,dou
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh.nastyConvert(),inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
-  spincolor *temp1=nissa_malloc("temp1",locVolh,spincolor);
-  spincolor *temp2=nissa_malloc("temp2",locVolh,spincolor);
+  spincolor *temp1=nissa_malloc("temp1",locVolh.nastyConvert(),spincolor);
+  spincolor *temp2=nissa_malloc("temp2",locVolh.nastyConvert(),spincolor);
   tmn2Deo_eos(temp2,conf,in);
   
-  NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
     for(int id=0;id<NDIRAC/2;id++)
       for(int ic=0;ic<NCOL;ic++)
 	for(int ri=0;ri<2;ri++)
 	  { //gamma5 is explicitely implemented
-	    temp2[ivol][id  ][ic][ri]*=+0.5;
-	    temp2[ivol][id+NDIRAC/2][ic][ri]*=-0.5;
+	    temp2[ieo.nastyConvert()][id  ][ic][ri]*=+0.5;
+	    temp2[ieo.nastyConvert()][id+NDIRAC/2][ic][ri]*=-0.5;
 	  }
   NISSA_PARALLEL_LOOP_END;
   inv_tmclovDee_or_oo_eos(temp1,invCl[EVN],true,temp2);
   //inv_tmclovDee_or_oo_eos(temp2,invCl[EVN],false,temp1);
   
-  int iup=loceo_neighup[eo][ieo][dir];
+  int iup=loceo_neighup[eo][ieo.nastyConvert()][dir];
   unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[iup]);
   dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[dir],in[iup]);
   //safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
@@ -900,7 +900,7 @@ void xQhatx_der_old(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,dou
   for(int ic1=0;ic1<NCOL;ic1++)
     for(int ic2=0;ic2<NCOL;ic2++)
       for(int id=0;id<NDIRAC;id++)
-	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],temp1[ieo][id][ic2]);
+	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],temp1[ieo.nastyConvert()][id][ic2]);
 }
 
 void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
@@ -908,28 +908,28 @@ void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double 
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh.nastyConvert(),inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
   //allocate each terms of the expansion
   eo_ptr<spincolor> _X;
-  spincolor *temp=nissa_malloc("temp",locVolh+bord_volh,spincolor);
+  spincolor *temp=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),spincolor);
   for(int eo=0;eo<2;eo++)
-    _X[eo]=nissa_malloc("_X",locVolh+bord_volh,spincolor);
+    _X[eo]=nissa_malloc("_X",(locVolh+bord_volh).nastyConvert(),spincolor);
   
   vector_copy(_X[ODD],in);
   
   tmn2Deo_eos(temp,conf,_X[ODD]);
   inv_tmclovDee_or_oo_eos(_X[EVN],invCl[EVN],true,temp); //Remove -2 and add -1
-  double_vector_prodassign_double((double*)(_X[EVN]),0.5,locVolh*sizeof(spincolor)/sizeof(double));
+  double_vector_prodassign_double((double*)(_X[EVN]),0.5,locVolh.nastyConvert()*sizeof(spincolor)/sizeof(double));
   
   xQx_der(an,eo,ieo,dir,_X,_X,kappa,mass,cSW);
   
@@ -950,7 +950,7 @@ void test_xQhatx()
   //generate_cold_eo_conf(conf);
   generate_hot_eo_conf(conf);
   
-  spincolor *in=nissa_malloc("in",locVolh,spincolor);
+  spincolor *in=nissa_malloc("in",locVolh.nastyConvert(),spincolor);
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
@@ -971,21 +971,21 @@ void test_xQhatx()
 
 double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
 {
-  spincolor *out=nissa_malloc("out",locVolh,spincolor);
-  spincolor *temp1=nissa_malloc("temp1",locVolh,spincolor);
-  spincolor *temp2=nissa_malloc("temp2",locVolh,spincolor);
+  spincolor *out=nissa_malloc("out",locVolh.nastyConvert(),spincolor);
+  spincolor *temp1=nissa_malloc("temp1",locVolh.nastyConvert(),spincolor);
+  spincolor *temp2=nissa_malloc("temp2",locVolh.nastyConvert(),spincolor);
   
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh.nastyConvert(),inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
@@ -994,7 +994,7 @@ double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
   rem_backfield_without_stagphases_from_conf(conf,drv->theories[0].backfield[0]);
   
   complex act;
-  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,locVolh*sizeof(spincolor)/sizeof(complex));
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,locVolh.nastyConvert()*sizeof(spincolor)/sizeof(complex));
   
   chromo_operator_remove_cSW(Cl,cSW);
   
@@ -1018,24 +1018,24 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh.nastyConvert(),inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
   //allocate each terms of the expansion
   eo_ptr<spincolor> _X,_Y;
-  spincolor *temp=nissa_malloc("temp",locVolh+bord_volh,spincolor);
+  spincolor *temp=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),spincolor);
   for(int eo=0;eo<2;eo++)
     {
-      _X[eo]=nissa_malloc("_X",locVolh+bord_volh,spincolor);
-      _Y[eo]=nissa_malloc("_Y",locVolh+bord_volh,spincolor);
+      _X[eo]=nissa_malloc("_X",(locVolh+bord_volh).nastyConvert(),spincolor);
+      _Y[eo]=nissa_malloc("_Y",(locVolh+bord_volh).nastyConvert(),spincolor);
     }
   
   add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
@@ -1044,11 +1044,11 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   
   tmn2Deo_eos(temp,conf,_X[ODD]);
   inv_tmclovDee_or_oo_eos(_X[EVN],invCl[EVN],true,temp); //Remove -2 and add -1
-  double_vector_prodassign_double((double*)(_X[EVN]),0.5,locVolh*sizeof(spincolor)/sizeof(double));
+  double_vector_prodassign_double((double*)(_X[EVN]),0.5,locVolh.nastyConvert()*sizeof(spincolor)/sizeof(double));
   
   tmn2Deo_eos(temp,conf,_Y[ODD]);
   inv_tmclovDee_or_oo_eos(_Y[EVN],invCl[EVN],false,temp);
-  double_vector_prodassign_double((double*)(_Y[EVN]),0.5,locVolh*sizeof(spincolor)/sizeof(double));
+  double_vector_prodassign_double((double*)(_Y[EVN]),0.5,locVolh.nastyConvert()*sizeof(spincolor)/sizeof(double));
   rem_backfield_without_stagphases_from_conf(conf,drv->theories[0].backfield[0]);
   
   xQx_der(an,eo,ieo,dir,_X,_Y,kappa,mass,cSW);
@@ -1079,7 +1079,7 @@ void test_xQ2hatx()
   //generate_cold_eo_conf(conf);
   generate_hot_eo_conf(conf);
   
-  spincolor *in=nissa_malloc("in",locVolh,spincolor);
+  spincolor *in=nissa_malloc("in",locVolh.nastyConvert(),spincolor);
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
@@ -1106,7 +1106,7 @@ void test_xQ2hatx()
 //     for(int ic=0;ic<NCOL;ic++)
 //       complex_summassign(out[id][ic][id][ic],d);
   
-//   int X=loclx_of_loceo[eo][ieo];
+//   int X=loclx_of_loceo[eo][ieo.nastyConvert()];
   
 //   for(int mu=0;mu<NDIM;mu++)
 //     {
@@ -1183,11 +1183,11 @@ double xQ2eex(double kappa,double mass,double cSW)
   //Preparre clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
-  double *loc_act=nissa_malloc("loc_act",locVolh,double);
+  double *loc_act=nissa_malloc("loc_act",locVolh.nastyConvert(),double);
   
   NISSA_PARALLEL_LOOP(ieo,0,locVolh)
     {
@@ -1196,7 +1196,7 @@ double xQ2eex(double kappa,double mass,double cSW)
       	{
   	  halfspincolor_halfspincolor e;
 	  
-      	  fill_point_twisted_clover_term(e,x_high_low,Cl[EVN][ieo],mass,kappa);
+      	  fill_point_twisted_clover_term(e,x_high_low,Cl[EVN][ieo.nastyConvert()],mass,kappa);
 	  
       	  matrix_determinant(d[x_high_low],(complex*)e,NDIRAC*NCOL/2);
 	}
@@ -1205,7 +1205,7 @@ double xQ2eex(double kappa,double mass,double cSW)
       complex p;
       unsafe_complex_prod(p,d[0],d[1]);
       
-      loc_act[ieo]=log(complex_norm2(p));
+      loc_act[ieo.nastyConvert()]=log(complex_norm2(p));
     }
   NISSA_PARALLEL_LOOP_END;
   
@@ -1213,32 +1213,32 @@ double xQ2eex(double kappa,double mass,double cSW)
     nissa_free(Cl[eo]);
   
   double act;
-  glb_reduce(&act,loc_act,locVolh);
+  glb_reduce(&act,loc_act,locVolh.nastyConvert());
   
   nissa_free(loc_act);
   
   return act;
 }
 
-void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cSW)
+void xQ2eex_der(su3 an,int eo,const LocEoSite& ieo,int dir,double kappa,double mass,double cSW)
 {
   //Prepare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
   eo_ptr<inv_clover_term_t> invCl;
   for(int eo=0;eo<2;eo++)
     {
-      invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
+      invCl[eo]=nissa_malloc("invCl",locVolh.nastyConvert(),inv_clover_term_t);
       invert_twisted_clover_term(invCl[eo],mass,kappa,Cl[eo]);
     }
   
   /////////////////////////////////////////////////////////////////
   
-  as2t_su3 *insertion=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
+  as2t_su3 *insertion=nissa_malloc("insertion",(locVolh+bord_volh+edge_volh).nastyConvert(),as2t_su3);
   
   NISSA_PARALLEL_LOOP(jeo,0,locVolh)
     {
@@ -1248,7 +1248,7 @@ void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cS
 	    int ipair=edge_numb[mu][nu];
 	    dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
 	    
-	    su3& ins=insertion[jeo][ipair];
+	    su3& ins=insertion[jeo.nastyConvert()][ipair];
 	    
 	    for(int ic1=0;ic1<NCOL;ic1++)
 	      for(int ic2=0;ic2<NCOL;ic2++)
@@ -1263,7 +1263,7 @@ void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cS
 			int jd=m.pos[id];
 			int jw=jd-2*x_high_low;
 			
-			complex_summ_the_prod(ins[ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
+			complex_summ_the_prod(ins[ic1][ic2],c,invCl[EVN][jeo.nastyConvert()][x_high_low][jw][ic1][iw][ic2]);
 		      }
 		}
 	    
@@ -1278,9 +1278,9 @@ void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cS
     {
       int nu=perp_dir[dir][inu];
       
-      int xpmu=loceo_neighup[eo][ieo][dir];
-      int xmnu=loceo_neighdw[eo][ieo][nu];
-      int xpnu=loceo_neighup[eo][ieo][nu];
+      int xpmu=loceo_neighup[eo][ieo.nastyConvert()][dir];
+      int xmnu=loceo_neighdw[eo][ieo.nastyConvert()][nu];
+      int xpnu=loceo_neighup[eo][ieo.nastyConvert()][nu];
       int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
       int xpmupnu=loceo_neighup[!eo][xpmu][nu];
       
@@ -1300,8 +1300,8 @@ void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cS
   	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
   	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
   	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
-  	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
-  	  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo.nastyConvert()][nu]);
+  	  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo.nastyConvert()][ipair]);
 	  
   	  su3_summassign(an,u);
 	  
@@ -1314,7 +1314,7 @@ void xQ2eex_der(su3 an,int eo,int ieo,int dir,double kappa,double mass,double cS
   	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
   	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
   	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
-  	  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
+  	  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo.nastyConvert()][ipair]);
 	  
   	  su3_subtassign(an,v);
   	}
@@ -1356,13 +1356,13 @@ void test_xQ2eex()
 
 double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
 {
-  spincolor *out=nissa_malloc("out",locVolh,spincolor);
+  spincolor *out=nissa_malloc("out",locVolh.nastyConvert(),spincolor);
   // spincolor *temp1=nissa_malloc("temp1",loc_volh,spincolor);
   
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
@@ -1372,7 +1372,7 @@ double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
   // tmclovDee_or_oo_eos(out,kappa,Cl[EVN],true,mass,temp1);
   
   complex act;
-  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,locVolh*sizeof(spincolor)/sizeof(complex));
+  complex_vector_glb_scalar_prod(act,(complex*)in,(complex*)out,locVolh.nastyConvert()*sizeof(spincolor)/sizeof(complex));
   
   chromo_operator_remove_cSW(Cl,cSW);
   
@@ -1387,12 +1387,12 @@ double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,double mass,double cSW)
+void xQee_inv_x_der(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *X,double kappa,double mass,double cSW)
 {
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
   for(int eo=0;eo<2;eo++)
-    Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
   chromo_operator(Cl,conf);
   chromo_operator_include_cSW(Cl,cSW);
   
@@ -1412,32 +1412,32 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
       }
   
   /////////////////////////////////////////////////////////////////
-  as2t_su3 *insertion=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
+  as2t_su3 *insertion=nissa_malloc("insertion",(locVolh+bord_volh+edge_volh).nastyConvert(),as2t_su3);
   
   NISSA_PARALLEL_LOOP(ieo,0,locVolh)
     {
       int ipair=0;
       
-      as2t_su3_put_to_zero(insertion[ieo]);
+      as2t_su3_put_to_zero(insertion[ieo.nastyConvert()]);
       
       for(int mu=0;mu<NDIM;mu++)
 	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
 	    spincolor tempX;
 	    // spincolor tempY;
-	    unsafe_dirac_prod_spincolor(tempX,&m[ipair],X[ieo]);
-	    // unsafe_dirac_prod_spincolor(tempY,m+ipair,Y[ieo]);
+	    unsafe_dirac_prod_spincolor(tempX,&m[ipair],X[ieo.nastyConvert()]);
+	    // unsafe_dirac_prod_spincolor(tempY,m+ipair,Y[ieo.nastyConvert()]);
 	    
 	    for(int ic1=0;ic1<NCOL;ic1++)
 	      for(int ic2=0;ic2<NCOL;ic2++)
 		for(int id=0;id<NDIRAC;id++)
 		  {
-		    complex_summ_the_conj2_prod(insertion[ieo][ipair][ic1][ic2],tempX[id][ic1],X[ieo][id][ic2]);
-		    //complex_summ_the_conj2_prod(iX[ic1][ic2],Y[ieo][id][ic1],X[ieo][id][ic2]);
-		    // complex_summ_the_conj2_prod(iY[ic1][ic2],X[ieo][id][ic1],Y[ieo][id][ic2]);
+		    complex_summ_the_conj2_prod(insertion[ieo.nastyConvert()][ipair][ic1][ic2],tempX[id][ic1],X[ieo.nastyConvert()][id][ic2]);
+		    //complex_summ_the_conj2_prod(iX[ic1][ic2],Y[ieo.nastyConvert()][id][ic1],X[ieo.nastyConvert()][id][ic2]);
+		    // complex_summ_the_conj2_prod(iY[ic1][ic2],X[ieo.nastyConvert()][id][ic1],Y[ieo.nastyConvert()][id][ic2]);
 		  }
 	    
-	    // su3_print(insertion[ieo][ipair]);
+	    // su3_print(insertion[ieo.nastyConvert()][ipair]);
 	    // master_printf("\n");
 	    
 	    ipair++;
@@ -1451,9 +1451,9 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
     {
       int nu=perp_dir[dir][inu];
       
-      int xpmu=loceo_neighup[eo][ieo][dir];
-      int xmnu=loceo_neighdw[eo][ieo][nu];
-      int xpnu=loceo_neighup[eo][ieo][nu];
+      int xpmu=loceo_neighup[eo][ieo.nastyConvert()][dir];
+      int xmnu=loceo_neighdw[eo][ieo.nastyConvert()][nu];
+      int xpnu=loceo_neighup[eo][ieo.nastyConvert()][nu];
       int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
       int xpmupnu=loceo_neighup[!eo][xpmu][nu];
       
@@ -1471,8 +1471,8 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
 	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
 	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
 	  if(i==2 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
-	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo][nu]);
-	  if(i==3 and eo==ODD) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
+	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo.nastyConvert()][nu]);
+	  if(i==3 and eo==ODD) safe_su3_prod_su3(u,u,insertion[ieo.nastyConvert()][ipair]);
 	  
 	  // master_printf("u:\n");
 	  // su3_print(u);
@@ -1487,7 +1487,7 @@ void xQee_inv_x_der(su3 an,int eo,int ieo,int dir,spincolor *X,double kappa,doub
 	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
 	  if(i==2 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
 	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
-	  if(i==3 and eo==ODD) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
+	  if(i==3 and eo==ODD) safe_su3_prod_su3(v,v,insertion[ieo.nastyConvert()][ipair]);
 	  
 	  // master_printf("v:\n");
 	  // su3_print(v);
@@ -1514,7 +1514,7 @@ void test_xQinv_eex()
   generate_cold_eo_conf(conf);
   //generate_hot_eo_conf(conf);
   
-  spincolor *in=nissa_malloc("in",locVolh,spincolor);
+  spincolor *in=nissa_malloc("in",locVolh.nastyConvert(),spincolor);
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
@@ -1613,7 +1613,7 @@ void in_main(int narg,char **arg)
   
   /////////////////////////////////////// timings /////////////////////////////////
   
-  print_stat("apply non vectorized staggered operator",portable_stD_app_time,nportable_stD_app,1158*locVolh);
+  print_stat("apply non vectorized staggered operator",portable_stD_app_time,nportable_stD_app,1158*locVolh());
   print_stat("cgm invert (overhead)",cgm_inv_over_time,ncgm_inv);
   print_stat("cg invert (overhead)",cg_inv_over_time,ncg_inv);
   print_stat("stout smearing",sto_time,nsto);

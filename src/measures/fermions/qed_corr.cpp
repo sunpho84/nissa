@@ -47,9 +47,23 @@ namespace nissa
       nissa_free(photon_eta);
     }
     
-    void insert_tadpole_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
-    void insert_conserved_current_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=((int*)pars)[mu];out[IM]=0;}
-    void insert_time_conserved_vector_current_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars){out[RE]=(mu==0);out[IM]=0;}
+    void insert_tadpole_handle(complex out,eo_ptr<spin1field> aux,int par,const LocEoSite& ieo,int mu,void *pars)
+    {
+      out[RE]=((double*)pars)[mu];
+      out[IM]=0;
+    }
+    
+    void insert_conserved_current_handle(complex out,eo_ptr<spin1field> aux,int par,const LocEoSite& ieo,int mu,void *pars)
+    {
+      out[RE]=((int*)pars)[mu];
+      out[IM]=0;
+    }
+    
+    void insert_time_conserved_vector_current_handle(complex out,eo_ptr<spin1field> aux,int par,const LocEoSite& ieo,int mu,void *pars)
+    {
+      out[RE]=(mu==0);
+      out[IM]=0;
+    }
     
     //insert the tadpol
     void insert_tadpole(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t* theory_pars,int iflav,eo_ptr<color> in,double* tad,int t)
@@ -119,11 +133,11 @@ namespace nissa
     
     //allocate
     const int nflavs=theory_pars.nflavs();
-    eo_ptr<spin1field> photon_field={nissa_malloc("photon_phi_ev",locVolh+bord_volh,spin1field),nissa_malloc("photon_phi_od",locVolh+bord_volh,spin1field)};
+    eo_ptr<spin1field> photon_field={nissa_malloc("photon_phi_ev",(locVolh+bord_volh).nastyConvert(),spin1field),nissa_malloc("photon_phi_od",(locVolh+bord_volh).nastyConvert(),spin1field)};
     eo_ptr<color> M[nprop_t*nflavs];
     for(int i=0;i<nprop_t*nflavs;i++)
       for(int par=0;par<2;par++)
-	M[i][par]=nissa_malloc(combine("M_%d_%d",i,par).c_str(),locVolh+bord_volh,color);
+	M[i][par]=nissa_malloc(combine("M_%d_%d",i,par).c_str(),(locVolh+bord_volh).nastyConvert(),color);
     
     //write the map of how to build props
     std::vector<ins_map_t> prop_build(nprop_t);

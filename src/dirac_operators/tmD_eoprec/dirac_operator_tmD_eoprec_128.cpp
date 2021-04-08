@@ -24,8 +24,10 @@ namespace nissa
     if(eooe==0) communicate_od_spincolor_128_borders(in);
     else        communicate_ev_spincolor_128_borders(in);
     
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
+    NISSA_PARALLEL_LOOP(_X,0,locVolh)
       {
+	const auto X=_X.nastyConvert();
+	/////////////////////////////////////////////////////////////////
 	int Xup,Xdw;
 	color_128 temp_c0,temp_c1,temp_c2,temp_c3;
 	
@@ -131,8 +133,8 @@ namespace nissa
 	  const complex z={1/(2*kappa),mu};
 	  const complex z_conj={1/(2*kappa),-mu};
 	  
-	  for(int id=0;id<2;id++) unsafe_complex_64_prod_128(out[X][id][ic],z,in[X][id][ic]);
-	  for(int id=2;id<4;id++) unsafe_complex_64_prod_128(out[X][id][ic],z_conj,in[X][id][ic]);
+	  for(int id=0;id<2;id++) unsafe_complex_64_prod_128(out[X.nastyConvert()][id][ic],z,in[X.nastyConvert()][id][ic]);
+	  for(int id=2;id<4;id++) unsafe_complex_64_prod_128(out[X.nastyConvert()][id][ic],z_conj,in[X.nastyConvert()][id][ic]);
 	}
     NISSA_PARALLEL_LOOP_END;
     
@@ -152,8 +154,8 @@ namespace nissa
 	  const complex z={+a*nrm,-b*nrm};
 	  const complex zconj={+a*nrm,+b*nrm};
 	  
-	  for(int id=0;id<2;id++) unsafe_complex_64_prod_128(out[X][id][ic],z,in[X][id][ic]);
-	  for(int id=2;id<4;id++) unsafe_complex_64_prod_128(out[X][id][ic],zconj,in[X][id][ic]);
+	  for(int id=0;id<2;id++) unsafe_complex_64_prod_128(out[X.nastyConvert()][id][ic],z,in[X.nastyConvert()][id][ic]);
+	  for(int id=2;id<4;id++) unsafe_complex_64_prod_128(out[X.nastyConvert()][id][ic],zconj,in[X.nastyConvert()][id][ic]);
 	}
     NISSA_PARALLEL_LOOP_END;
     
@@ -170,10 +172,10 @@ namespace nissa
 	    {
 	      //gamma5 is explicitely implemented
 	      float_128 t;
-	      float_64_prod_128(t,-0.25,out[ieo][id  ][ic][ri]);
-	      float_128_summ(out[ieo][id  ][ic][ri],t,temp[ieo][id  ][ic][ri]);
-	      float_64_prod_128(t,0.25,out[ieo][id+2][ic][ri]);
-	      float_128_subt(out[ieo][id+2][ic][ri],t,temp[ieo][id+2][ic][ri]);
+	      float_64_prod_128(t,-0.25,out[ieo.nastyConvert()][id  ][ic][ri]);
+	      float_128_summ(out[ieo.nastyConvert()][id  ][ic][ri],t,temp[ieo.nastyConvert()][id  ][ic][ri]);
+	      float_64_prod_128(t,0.25,out[ieo.nastyConvert()][id+2][ic][ri]);
+	      float_128_subt(out[ieo.nastyConvert()][id+2][ic][ri],t,temp[ieo.nastyConvert()][id+2][ic][ri]);
 	    }
     NISSA_PARALLEL_LOOP_END;
     

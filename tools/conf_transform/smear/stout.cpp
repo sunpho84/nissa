@@ -16,9 +16,9 @@ void new_cool_eo_conf(eo_ptr<quad_su3> eo_conf,int over_flag,double over_exp)
 	  {
 	    //compute the staple
 	    su3 staple;
-	    compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
+	    compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo.nastyConvert()],mu);
 	    //find the link that maximize the plaquette
-	    su3_unitarize_maximal_trace_projecting_iteration(eo_conf[par][ieo][mu],staple);
+	    su3_unitarize_maximal_trace_projecting_iteration(eo_conf[par][ieo.nastyConvert()][mu],staple);
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(eo_conf[par]);
@@ -33,8 +33,8 @@ void unitarize_conf_max(eo_ptr<quad_su3> conf)
 	  for(int idir=0;idir<4;idir++)
 	    {
 	      su3 t;
-	      su3_unitarize_orthonormalizing(t,conf[par][ieo][idir]);
-	      su3_copy(conf[par][ieo][idir],t);
+	      su3_unitarize_orthonormalizing(t,conf[par][ieo.nastyConvert()][idir]);
+	      su3_copy(conf[par][ieo.nastyConvert()][idir],t);
 	    }
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(conf[par]);
@@ -60,8 +60,8 @@ void in_main(int narg,char **arg)
   
   //////////////////////////// read the conf /////////////////////////////
   
-  eo_ptr<quad_su3> conf={nissa_malloc("conf_e",locVolh+bord_volh+edge_volh,quad_su3),
-			 nissa_malloc("conf_o",locVolh+bord_volh+edge_volh,quad_su3)};
+  eo_ptr<quad_su3> conf={nissa_malloc("conf_e",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3),
+			 nissa_malloc("conf_o",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3)};
   
   //read the conf and write plaquette
   ILDG_message mess;

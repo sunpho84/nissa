@@ -36,8 +36,8 @@ namespace nissa
     typedef eo_ptr<color> field_t;
 #define NEW_FIELD_T(A)					\
     field_t A;						\
-    A[0]=nissa_malloc(#A,locVolh+bord_volh,color);	\
-    A[1]=nissa_malloc(#A,locVolh+bord_volh,color)
+    A[0]=nissa_malloc(#A,(locVolh+bord_volh).nastyConvert(),color);	\
+    A[1]=nissa_malloc(#A,(locVolh+bord_volh).nastyConvert(),color)
 #define DELETE_FIELD_T(A)				\
     nissa_free(A[0]);					\
     nissa_free(A[1]);
@@ -68,8 +68,8 @@ namespace nissa
     void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double residue,eo_ptr<color> source);
     void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,theory_pars_t *pars,int iflav,double residue,eo_ptr<color> source);
     void mult_dMdmu(eo_ptr<color> out,theory_pars_t *theory_pars,eo_ptr<quad_su3> conf,int iflav,int ord,eo_ptr<color> in);
-    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars);
-    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
+    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,const LocEoSite& ieo,int mu,void *pars);
+    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,const LocEoSite& ieo,int mu,void *pars),int t,void *pars=NULL);
     void summ_the_trace(double *out,complex *point_result,eo_ptr<color> A,eo_ptr<color> B);
     
     enum shift_orie_t{UP,DW,BOTH};
@@ -84,8 +84,8 @@ namespace nissa
       //Allocate temp
       eo_ptr<color> temp[2];
       for(int itemp=0;itemp<2;itemp++)
-      for(int eo=0;eo<2;eo++)
-	temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
+	for(int eo=0;eo<2;eo++)
+	  temp[itemp][eo]=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),color);
       
       //Form the mask and shift
       int shift=(spin^taste);

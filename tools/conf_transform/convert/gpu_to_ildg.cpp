@@ -9,7 +9,9 @@ using namespace nissa;
 int L,T;
 
 int snum(int x,int y,int z,int t)
-{return (x+y*L+z*L*L+t*L*L*L)/2;}
+{
+  return (x+y*L+z*L*L+t*L*L*L)/2;
+}
 
 void read_complex(complex out,FILE *in)
 {
@@ -42,7 +44,7 @@ int main(int narg,char **arg)
 
   //////////////////////////////// read the file /////////////////////////
 
-  su3 *in_conf=nissa_malloc("in_conf",4*locVol,su3);
+  su3 *in_conf=nissa_malloc("in_conf",4*locVol.nastyConvert(),su3);
   
   //open the file
   FILE *fin=fopen(arg[3],"r");
@@ -56,14 +58,14 @@ int main(int narg,char **arg)
   //read the data
   NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
-      read_su3(in_conf[ivol*4+mu],fin);
+      read_su3(in_conf[ivol.nastyConvert()*4+mu],fin);
   
   //close the file
   fclose(fin);
   
   ////////////////////////////// convert conf ////////////////////////////
   
-  quad_su3 *out_conf=nissa_malloc("out_conf",locVol,quad_su3);
+  quad_su3 *out_conf=nissa_malloc("out_conf",locVol.nastyConvert(),quad_su3);
   
   //reorder data
   int map_mu[4]={1,2,3,0};
@@ -74,13 +76,13 @@ int main(int narg,char **arg)
 	  {
 	    int sum=x+y+z+t;
 	    int even=sum%2;
-	    int num=even*locVolh + snum(x,y,z,t);
+	    int num=even*locVolh() + snum(x,y,z,t);
 	    
 	    coords c={t,x,y,z};
 	    int ivol=loclx_of_coord(c);
 	    
 	    for(int mu=0;mu<4;mu++)
-	      su3_copy(out_conf[ivol][map_mu[mu]],in_conf[mu*locVol+num]);
+	      su3_copy(out_conf[ivol][map_mu[mu]],in_conf[mu*locVol()+num]);
 	  }
   
   nissa_free(in_conf);

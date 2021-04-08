@@ -9,7 +9,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //work also on borders and edges if allocated and valid
-    int ending=locVol;
+    LocLxSite ending=locVol;
     if(check_borders_allocated(lx_conf,0) && check_borders_valid(lx_conf)) ending+=bord_vol;
     if(check_edges_allocated(lx_conf,0) && check_edges_valid(lx_conf)) ending+=edge_vol;
     
@@ -18,22 +18,22 @@ namespace nissa
 	int d=0;
 	
 	//phase in direction 1 is always 0 so nothing has to be done in that dir
-	//if(d%2==1) su3_prod_double(lx_conf[ivol][1],lx_conf[ivol][1],-1);
+	//if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][1],lx_conf[ivol.nastyConvert()][1],-1);
 	
 	//direction 2
-	d+=glbCoordOfLoclx[ivol][1];
-	if(d%2==1) su3_prod_double(lx_conf[ivol][2],lx_conf[ivol][2],-1);
+	d+=glbCoordOfLoclx[ivol.nastyConvert()][1];
+	if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][2],lx_conf[ivol.nastyConvert()][2],-1);
 	
 	//direction 3
-	d+=glbCoordOfLoclx[ivol][2];
-	if(d%2==1) su3_prod_double(lx_conf[ivol][3],lx_conf[ivol][3],-1);
+	d+=glbCoordOfLoclx[ivol.nastyConvert()][2];
+	if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][3],lx_conf[ivol.nastyConvert()][3],-1);
 	
 	//direction 0
-	d+=glbCoordOfLoclx[ivol][3];
+	d+=glbCoordOfLoclx[ivol.nastyConvert()][3];
 	
 	//putting the anti-periodic condition on the temporal border
-	if(glbCoordOfLoclx[ivol][0]==glbSize[0]-1) d+=1;
-	if(d%2==1) su3_prod_double(lx_conf[ivol][0],lx_conf[ivol][0],-1);
+	if(glbCoordOfLoclx[ivol.nastyConvert()][0]==glbSize[0]-1) d+=1;
+	if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][0],lx_conf[ivol.nastyConvert()][0],-1);
       }
     NISSA_PARALLEL_LOOP_END;
     

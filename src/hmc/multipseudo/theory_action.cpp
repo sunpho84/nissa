@@ -24,12 +24,12 @@ namespace nissa
   // Compute the action in the root tm case
   double compute_root_tm_clov_action(eo_ptr<quad_su3> eo_conf,eo_ptr<quad_u1> u1b,rat_approx_t *rat,quark_content_t q,double residue,spincolor *pf)
   {
-    spincolor *chi=nissa_malloc("chi",locVolh+bord_volh,spincolor);
+    spincolor *chi=nissa_malloc("chi",(locVolh+bord_volh).nastyConvert(),spincolor);
     
     //allocate or not clover term and inverse evn clover term
     eo_ptr<clover_term_t> Cl={NULL,NULL};
-    for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
-    inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
+    for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
+    inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",locVolh.nastyConvert(),inv_clover_term_t);
     chromo_operator(Cl,eo_conf);
     chromo_operator_include_cSW(Cl,q.cSW);
     invert_twisted_clover_term(invCl_evn,q.mass,q.kappa,Cl[EVN]);
@@ -47,7 +47,7 @@ namespace nissa
     
     // Takes scalar product with the pseudofermion
     double action;
-    double_vector_glb_scalar_prod(&action,(double*)pf,(double*)chi,locVolh*sizeof(spincolor)/sizeof(double));
+    double_vector_glb_scalar_prod(&action,(double*)pf,(double*)chi,locVolh.nastyConvert()*sizeof(spincolor)/sizeof(double));
     
     nissa_free(chi);
     nissa_free(invCl_evn);
@@ -59,14 +59,14 @@ namespace nissa
   // Compute the action in the root staggered case
   double compute_root_st_action(eo_ptr<quad_su3> eo_conf,eo_ptr<quad_u1> u1b,rat_approx_t *rat,double residue,color *pf)
   {
-    color *chi=nissa_malloc("chi",locVolh,color);
+    color *chi=nissa_malloc("chi",locVolh.nastyConvert(),color);
     
     add_backfield_with_stagphases_to_conf(eo_conf,u1b);
     summ_src_and_all_inv_stD2ee_m2_cgm(chi,eo_conf,rat,1000000,residue,pf);
     rem_backfield_with_stagphases_from_conf(eo_conf,u1b);
     
     double action;
-    double_vector_glb_scalar_prod(&action,(double*)chi,(double*)chi,locVolh*sizeof(color)/sizeof(double));
+    double_vector_glb_scalar_prod(&action,(double*)chi,(double*)chi,locVolh.nastyConvert()*sizeof(color)/sizeof(double));
     
     nissa_free(chi);
     

@@ -100,19 +100,19 @@ void compute_density(FILE *fout,color *source,coords *source_pos)
   
   NISSA_LOC_VOL_LOOP(ivol)
     {
-      int t=glbCoordOfLoclx[ivol][0];
+      int t=glbCoordOfLoclx[ivol.nastyConvert()][0];
       
       //get site norm
       double n=0.0;
       for(int ic=0;ic<NCOL;ic++)
 	for(int ri=0;ri<2;ri++)
-	  n+=sqr(source[ivol][ic][ri]);
+	  n+=sqr(source[ivol.nastyConvert()][ic][ri]);
       
       //compute distance
       int rho=0.0;
       for(int mu=1;mu<NDIM;mu++)
 	{
-	  int xmu=(glbCoordOfLoclx[ivol][mu]-source_pos[t][mu]+glbSize[mu])%glbSize[mu];
+	  int xmu=(glbCoordOfLoclx[ivol.nastyConvert()][mu]-source_pos[t][mu]+glbSize[mu])%glbSize[mu];
 	  if(xmu>=glbSize[mu]/2) xmu-=glbSize[mu];
 	  rho+=sqr(xmu);
 	}
@@ -161,7 +161,7 @@ void in_main(int narg,char **arg)
   //read conf
   char conf_path[1024];
   read_str_str("Conf",conf_path,1024);
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
   read_ildg_gauge_conf(conf,conf_path);
   
   //read APE smearing pars
@@ -195,7 +195,7 @@ void in_main(int narg,char **arg)
   master_fprintf(fout,"\n");
   
   //set the source
-  color *source=nissa_malloc("source",locVol+bord_vol,color);
+  color *source=nissa_malloc("source",(locVol+bord_vol).nastyConvert(),color);
   vector_reset(source);
   coords source_pos[glbSize[0]];
   for(int t=0;t<glbSize[0];t++)

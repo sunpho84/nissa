@@ -68,7 +68,7 @@ namespace nissa
     
     int each=VERBOSITY_LV3?1:10;
     
-    const int prob_size=BULK_VOL*NDOUBLES_PER_SITE;
+    const auto prob_size=BULK_VOL*NDOUBLES_PER_SITE;
     
     //macro to be defined externally, allocating all the required additional vectors
     CGM_ADDITIONAL_VECTORS_ALLOCATION();

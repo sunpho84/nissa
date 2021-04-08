@@ -32,7 +32,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(ieo,0,locVolh)
         {
-          const LocLxSite ivol=loclx_of_loceo[par][ieo];
+          const LocLxSite ivol=loclx_of_loceo[par][ieo.nastyConvert()];
           
           //summ the contribution of the derivative in mu and nu directions
           int rho_list[2]={mu,nu};
@@ -40,8 +40,8 @@ namespace nissa
             {
               int rho=rho_list[irho];
               
-              int iup_eo=loceo_neighup[par][ieo][rho];
-              int idw_eo=loceo_neighdw[par][ieo][rho];
+              int iup_eo=loceo_neighup[par][ieo.nastyConvert()][rho];
+              int idw_eo=loceo_neighdw[par][ieo.nastyConvert()][rho];
               int idw_lx=loclxNeighdw[ivol.nastyConvert()][rho];
               
               color v;
@@ -51,15 +51,15 @@ namespace nissa
               //int ix=glb_coord_of_loclx[ivol.nastyConvert()][1];
               
               //forward derivative
-              unsafe_su3_prod_color(v,conf[par][ieo][rho],chi[!par][iup_eo]);
-              color_scalar_prod(t,rnd[par][ieo],v);
+              unsafe_su3_prod_color(v,conf[par][ieo.nastyConvert()][rho],chi[!par][iup_eo]);
+              color_scalar_prod(t,rnd[par][ieo.nastyConvert()],v);
               complex_summ_the_prod_double(point_magn[ivol.nastyConvert()],t,arg[ivol.nastyConvert()][rho]);
               //compute also the projected current
 	      crash("#warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[ivol.nastyConvert()][rho]");
               
               //backward derivative: note that we should multiply for -arg*(-U^+)
               unsafe_su3_dag_prod_color(v,conf[!par][idw_eo][rho],chi[!par][idw_eo]);
-              color_scalar_prod(t,rnd[par][ieo],v);
+              color_scalar_prod(t,rnd[par][ieo.nastyConvert()],v);
 	      complex_summ_the_prod_double(point_magn[ivol.nastyConvert()],t,arg[idw_lx][rho]);
               //compute also the projected current
 	      crash("#warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[idw_lx][rho]");
@@ -99,7 +99,7 @@ namespace nissa
     int mu=1,nu=2;
     
     //allocate source and propagator
-    eo_ptr<color> chi={nissa_malloc("chi_EVN",locVolh+bord_volh,color),nissa_malloc("chi_ODD",locVolh+bord_volh,color)};
+    eo_ptr<color> chi={nissa_malloc("chi_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("chi_ODD",(locVolh+bord_volh).nastyConvert(),color)};
     
     //we need to store phases
     coords *arg=nissa_malloc("arg",(locVol+bord_vol).nastyConvert(),coords);
@@ -132,7 +132,7 @@ namespace nissa
   void magnetization(complex *magn,complex *magn_proj_x,rnd_t rnd_type,eo_ptr<quad_su3> conf,int quantization,eo_ptr<quad_u1> u1b,quark_content_t *quark,double residue)
   {
     //allocate source and generate it
-    eo_ptr<color> rnd={nissa_malloc("rnd_EVN",locVolh+bord_volh,color),nissa_malloc("rnd_ODD",locVolh+bord_volh,color)};
+    eo_ptr<color> rnd={nissa_malloc("rnd_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("rnd_ODD",(locVolh+bord_volh).nastyConvert(),color)};
     generate_fully_undiluted_eo_source(rnd,rnd_type,-1);
     
     //call inner function

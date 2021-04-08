@@ -13,7 +13,7 @@
 #define BASETYPE_128 spincolor_128
 
 #define NDOUBLES_PER_SITE 24
-#define BULK_SIZE locVolh
+#define BULK_SIZE locVolh.nastyConvert()
 #define BORD_SIZE bord_volh
 
 #define APPLY_OPERATOR_128 tmDkern_eoprec_square_eos_128

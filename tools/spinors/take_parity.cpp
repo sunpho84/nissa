@@ -22,7 +22,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  spincolor *sp=nissa_malloc("sp",locVol,spincolor);
+  spincolor *sp=nissa_malloc("sp",locVol.nastyConvert(),spincolor);
   int ispinor=0;
   ILDG_File fin=ILDG_File_open_for_read(pathin);
   ILDG_File fout=ILDG_File_open_for_write(pathout);
@@ -37,8 +37,8 @@ int main(int narg,char **arg)
 	{
 	  read_real_vector(sp,fin,head);
 	  NISSA_LOC_VOL_LOOP(ivol)
-	    if(loclx_parity[ivol]!=parity)
-	      spincolor_put_to_zero(sp[ivol]);
+	    if(loclx_parity[ivol.nastyConvert()]!=parity)
+	      spincolor_put_to_zero(sp[ivol.nastyConvert()]);
 	  write_real_vector(fout,sp,64,head.type);
 	  ispinor++;
 	}

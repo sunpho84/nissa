@@ -74,8 +74,8 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    su3 temp;
-	    unsafe_su3_prod_su3_dag(temp,uin[par][ieo][mu],g[!par][loceo_neighup[par][ieo][mu]]);
-	    unsafe_su3_prod_su3(uout[par][ieo][mu],g[par][ieo],temp);
+	    unsafe_su3_prod_su3_dag(temp,uin[par][ieo.nastyConvert()][mu],g[!par][loceo_neighup[par][ieo.nastyConvert()][mu]]);
+	    unsafe_su3_prod_su3(uout[par][ieo.nastyConvert()][mu],g[par][ieo.nastyConvert()],temp);
 	  }
     NISSA_PARALLEL_LOOP_END;
     
@@ -94,7 +94,7 @@ namespace nissa
     //transform
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	safe_su3_prod_color(out[par][ieo],g[par][ieo],in[par][ieo]);
+	safe_su3_prod_color(out[par][ieo.nastyConvert()],g[par][ieo.nastyConvert()],in[par][ieo.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     
     //invalidate borders
@@ -252,7 +252,7 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    LocLxSite ivol=loclx_of_loceo[eo][ieo];
+	    LocLxSite ivol=loclx_of_loceo[eo][ieo.nastyConvert()];
 	    
 	    //compute the derivative
 	    su3 temp;
@@ -285,8 +285,8 @@ namespace nissa
 	      {
 		int f=loclxNeighup[ivol.nastyConvert()][mu];
 		int b=loclxNeighdw[ivol.nastyConvert()][mu];
-		if(f>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-locVolh],fixed_conf[ivol.nastyConvert()][mu]);
-		if(b>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-locVolh],fixed_conf[b][mu]);
+		if(f>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f]-locVolh.nastyConvert()],fixed_conf[ivol.nastyConvert()][mu]);
+		if(b>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b]-locVolh.nastyConvert()],fixed_conf[b][mu]);
 	      }
 	  }
 	NISSA_PARALLEL_LOOP_END;
@@ -303,8 +303,8 @@ namespace nissa
 	      {
 		int f=loclxNeighup[ivol.nastyConvert()][mu];
 		int b=loclxNeighdw[ivol.nastyConvert()][mu];
-		if(f>=locVol) su3_copy(fixed_conf[ivol.nastyConvert()][mu],((su3*)recv_buf)[loceo_of_loclx[f]-locVolh]);
-		if(b>=locVol) su3_copy(fixed_conf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-locVolh]);
+		if(f>=locVol) su3_copy(fixed_conf[ivol.nastyConvert()][mu],((su3*)recv_buf)[loceo_of_loclx[f]-locVolh.nastyConvert()]);
+		if(b>=locVol) su3_copy(fixed_conf[b][mu],((su3*)recv_buf)[loceo_of_loclx[b]-locVolh.nastyConvert()]);
 	      }
 	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
@@ -738,7 +738,7 @@ namespace nissa
   {
     
     //allocate fixing matrix
-    eo_ptr<su3> fixm={nissa_malloc("fixm_e",locVolh+bord_volh,su3),nissa_malloc("fixm_o",locVolh+bord_volh,su3)};
+    eo_ptr<su3> fixm={nissa_malloc("fixm_e",(locVolh+bord_volh).nastyConvert(),su3),nissa_malloc("fixm_o",(locVolh+bord_volh).nastyConvert(),su3)};
     
     //extract random SU(3) matrix
     NISSA_PARALLEL_LOOP(ivol,0,locVol)

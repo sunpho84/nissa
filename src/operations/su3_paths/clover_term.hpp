@@ -31,7 +31,7 @@ namespace nissa
   {
     /*master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/
     for(int eo=0;eo<2;eo++)
-      double_vector_prod_double((double*)(Cl[eo]),(double*)(Cl[eo]),chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old),sizeof(clover_term_t)/sizeof(double)*locVolh);
+      double_vector_prod_double((double*)(Cl[eo]),(double*)(Cl[eo]),chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old),sizeof(clover_term_t)/sizeof(double)*locVolh.nastyConvert());
   }
   
   // inline void chromo_operator_include_cSW(clover_term_t *Cl,double cSW)

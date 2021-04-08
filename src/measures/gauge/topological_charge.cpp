@@ -488,8 +488,8 @@ namespace nissa
 	  }
 	else
 	  {
-	    conf[0]=nissa_malloc("stout_conf_e",locVolh+bord_volh+edge_volh,quad_su3);
-	    conf[1]=nissa_malloc("stout_conf_o",locVolh+bord_volh+edge_volh,quad_su3);
+	    conf[0]=nissa_malloc("stout_conf_e",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
+	    conf[1]=nissa_malloc("stout_conf_o",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
 	    stout_smear(conf,ext_conf,&stout_pars);
 	  }
 	

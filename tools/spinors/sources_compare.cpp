@@ -38,8 +38,8 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  spincolor *source=nissa_malloc("source",locVol,spincolor);
-  spincolor *smeared_source=nissa_malloc("smeared_source",locVol,spincolor);
+  spincolor *source=nissa_malloc("source",locVol.nastyConvert(),spincolor);
+  spincolor *smeared_source=nissa_malloc("smeared_source",locVol.nastyConvert(),spincolor);
   read_real_vector(source,source_path,tag);
   read_real_vector(smeared_source,smeared_source_path,tag);
   
@@ -56,7 +56,7 @@ void in_main(int narg,char **arg)
   // master_printf("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
   
   //check the norm
-  double source_norm=double_vector_glb_norm2(source,locVol);
+  double source_norm=double_vector_glb_norm2(source,locVol.nastyConvert());
   if(fabs(source_norm-1.0)>1e-10)
     crash("Norm %lg, needs to be 1, excess of %lg",source_norm,source_norm-1.0);
   

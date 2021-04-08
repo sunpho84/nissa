@@ -22,7 +22,7 @@ void in_main(int narg,char **arg)
   spincolor *in[nspinors];
   for(int i=0;i<nspinors;i++)
     {
-      in[i]=nissa_malloc("in",locVol,spincolor);
+      in[i]=nissa_malloc("in",locVol.nastyConvert(),spincolor);
       for(int j=0;j<locVol*4*3*2;j++) ((double*)(in[i]))[j]=9;
     }
   int i=0;

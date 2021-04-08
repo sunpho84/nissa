@@ -2,20 +2,20 @@
  #include "config.hpp"
 #endif
 
+#if FFT_TYPE == FFTW_FFT
+# include <fftw3.h>
+#endif
 #include <math.h>
 #include <string.h>
-#if FFT_TYPE == FFTW_FFT
- #include <fftw3.h>
-#endif
 
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "linalgs/linalgs.hpp"
-#include "operations/remap_vector.hpp"
-#include "routines/ios.hpp"
-#include "routines/math_routines.hpp"
-#include "routines/mpi_routines.hpp"
+#include <base/debug.hpp>
+#include <base/vectors.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <linalgs/linalgs.hpp>
+#include <operations/remap_vector.hpp>
+#include <routines/ios.hpp>
+#include <routines/math_routines.hpp>
+#include <routines/mpi_routines.hpp>
 
 namespace nissa
 {

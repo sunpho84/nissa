@@ -26,9 +26,20 @@ namespace nissa
   {
     const int nPHIETA=2,PHI=0,ETA=1;
     int ncopies,nflavs,nhits,nmeas,nops;
-    int ind_copy_hit(int icopy,int ihit){return ihit+nhits*icopy;}
-    int ind_copy_flav_hit_meas(int icopy,int iflav,int ihit,int imeas){return imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy));}
-    int ind_copy_flav_hit_phieta(int icopy,int iflav,int ihit,int iPHIETA){return iPHIETA+nPHIETA*(ihit+nhits*(iflav+nflavs*icopy));}
+    int ind_copy_hit(int icopy,int ihit)
+    {
+      return ihit+nhits*icopy;
+    }
+    
+    int ind_copy_flav_hit_meas(int icopy,int iflav,int ihit,int imeas)
+    {
+      return imeas+nmeas*(ihit+nhits*(iflav+nflavs*icopy));
+    }
+    
+    int ind_copy_flav_hit_phieta(int icopy,int iflav,int ihit,int iPHIETA)
+    {
+      return iPHIETA+nPHIETA*(ihit+nhits*(iflav+nflavs*icopy));
+    }
   }
   
   //make the complex-double product
@@ -67,12 +78,12 @@ namespace nissa
     eo_ptr<double> topo_dens;
     for(int i=0;i<2;i++) topo_dens[i]=nissa_malloc("topo_dens",locVol.nastyConvert(),double);
     //operator applied to a field
-    eo_ptr<color> chiop={nissa_malloc("chiop_EVN",locVolh+bord_volh,color),nissa_malloc("chiop_ODD",locVolh+bord_volh,color)};
+    eo_ptr<color> chiop={nissa_malloc("chiop_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("chiop_ODD",(locVolh+bord_volh).nastyConvert(),color)};
     //temporary vectors
     eo_ptr<color> temp[2];
     for(int itemp=0;itemp<2;itemp++)
       for(int eo=0;eo<2;eo++)
-	temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
+	temp[itemp][eo]=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),color);
     
     //Create the mask
     int mask[nops],shift[nops];
@@ -90,7 +101,7 @@ namespace nissa
     paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
     //allocate the fermion (possibly stouted) conf
     eo_ptr<quad_su3> ferm_conf;
-    for(int eo=0;eo<2;eo++) ferm_conf[eo]=nissa_malloc("ferm_conf",locVolh+bord_volh+edge_volh,quad_su3);
+    for(int eo=0;eo<2;eo++) ferm_conf[eo]=nissa_malloc("ferm_conf",(locVolh+bord_volh).nastyConvert()+edge_volh,quad_su3);
     
     //allocate sources, to be flown
     ncopies=mp->ncopies;
@@ -99,8 +110,8 @@ namespace nissa
     
     if(mp->use_adjoint_flow)
       {
-	eo_ptr<color> temp_eta={nissa_malloc("eta_EVN",locVolh+bord_volh,color),nissa_malloc("eta_ODD",locVolh+bord_volh,color)};
-	eo_ptr<color> temp_phi={nissa_malloc("phi_EVN",locVolh+bord_volh,color),nissa_malloc("phi_ODD",locVolh+bord_volh,color)};
+	eo_ptr<color> temp_eta={nissa_malloc("eta_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("eta_ODD",(locVolh+bord_volh).nastyConvert(),color)};
+	eo_ptr<color> temp_phi={nissa_malloc("phi_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("phi_ODD",(locVolh+bord_volh).nastyConvert(),color)};
 	
 	int ntot_eta=ind_copy_hit(ncopies-1,nhits-1)+1;
 	int ntot_phi=ind_copy_flav_hit_meas(ncopies-1,nflavs-1,nhits-1,nmeas-1)+1;
@@ -300,7 +311,7 @@ namespace nissa
 	eo_ptr<color> fields[nfields];
 	for(int ifield=0;ifield<nfields;ifield++)
 	  for(int eo=0;eo<2;eo++)
-	    fields[ifield][eo]=nissa_malloc("field",locVolh+bord_volh,color);
+	    fields[ifield][eo]=nissa_malloc("field",(locVolh+bord_volh).nastyConvert(),color);
 	
 	//create the fermionic conf
 	for(int eo=0;eo<2;eo++) vector_copy(ferm_conf[eo],glu_conf[eo]);

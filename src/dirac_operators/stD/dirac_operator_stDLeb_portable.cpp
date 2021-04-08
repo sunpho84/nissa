@@ -2,11 +2,12 @@
  #include "config.hpp"
 #endif
 
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
-#include "geometry/geometry_Leb.hpp"
-#include "new_types/su3_op.hpp"
-#include "threads/threads.hpp"
+#include <base/bench.hpp>
+#include <base/vectors.hpp>
+#include <communicate/borders.hpp>
+#include <geometry/geometry_Leb.hpp>
+#include <new_types/su3_op.hpp>
+#include <threads/threads.hpp>
 
 namespace nissa
 {
@@ -19,21 +20,21 @@ namespace nissa
     NISSA_PARALLEL_LOOP(io,0,locVolh)
       {
 	//neighbours search
-	int evup0=Lebeo_neighup[ODD][io][0];
-	int evdw0=Lebeo_neighdw[ODD][io][0];
+	int evup0=Lebeo_neighup[ODD][io.nastyConvert()][0];
+	int evdw0=Lebeo_neighdw[ODD][io.nastyConvert()][0];
 	
-	//derivative in the time direction - without self-summ
-	unsafe_su3_prod_color(      out[io],conf[ODD][io   ][0],in[evup0]);
-	su3_dag_subt_the_prod_color(out[io],conf[EVN][evdw0][0],in[evdw0]);
+	//derivative in the time directio.nastyConvert()n - without self-summ
+	unsafe_su3_prod_color(      out[io.nastyConvert()],conf[ODD][io.nastyConvert()   ][0],in[evup0]);
+	su3_dag_subt_the_prod_color(out[io.nastyConvert()],conf[EVN][evdw0][0],in[evdw0]);
 	
-	//derivatives in the spatial direction - with self summ
+	//derivatives in the spatial directio.nastyConvert()n - with self summ
 	for(int mu=1;mu<4;mu++)
 	  {
-	    int evup=Lebeo_neighup[ODD][io][mu];
-	    int evdw=Lebeo_neighdw[ODD][io][mu];
+	    int evup=Lebeo_neighup[ODD][io.nastyConvert()][mu];
+	    int evdw=Lebeo_neighdw[ODD][io.nastyConvert()][mu];
 	    
-	    su3_summ_the_prod_color(    out[io],conf[ODD][io  ][mu],in[evup]);
-	    su3_dag_subt_the_prod_color(out[io],conf[EVN][evdw][mu],in[evdw]);
+	    su3_summ_the_prod_color(    out[io.nastyConvert()],conf[ODD][io.nastyConvert()  ][mu],in[evup]);
+	    su3_dag_subt_the_prod_color(out[io.nastyConvert()],conf[EVN][evdw][mu],in[evdw]);
 	  }
       }
     NISSA_PARALLEL_LOOP_END;
@@ -49,7 +50,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(io,0,locVolh)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
-	  out[io][ic][ri]*=0.5;
+	  out[io.nastyConvert()][ic][ri]*=0.5;
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
@@ -64,25 +65,25 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ie,0,locVolh)
       {
 	//neighbours search
-	int odup0=Lebeo_neighup[EVN][ie][0];
-	int oddw0=Lebeo_neighdw[EVN][ie][0];
+	int odup0=Lebeo_neighup[EVN][ie.nastyConvert()][0];
+	int oddw0=Lebeo_neighdw[EVN][ie.nastyConvert()][0];
 	
 	//derivative in the time direction - without self-summ
-	unsafe_su3_prod_color(      out[ie],conf[EVN][ie   ][0],in[odup0]);
-	su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw0][0],in[oddw0]);
+	unsafe_su3_prod_color(      out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()   ][0],in[odup0]);
+	su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[ODD][oddw0][0],in[oddw0]);
 	
 	//derivatives in the spatial direction - with self summ
 	for(int mu=1;mu<4;mu++)
 	  {
-	    int odup=Lebeo_neighup[EVN][ie][mu];
-	    int oddw=Lebeo_neighdw[EVN][ie][mu];
+	    int odup=Lebeo_neighup[EVN][ie.nastyConvert()][mu];
+	    int oddw=Lebeo_neighdw[EVN][ie.nastyConvert()][mu];
 	    
-	    su3_summ_the_prod_color(    out[ie],conf[EVN][ie  ][mu],in[odup]);
-	    su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw][mu],in[oddw]);
+	    su3_summ_the_prod_color(    out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()  ][mu],in[odup]);
+	    su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[ODD][oddw][mu],in[oddw]);
 	  }
 	
 	//Doe contains 1/2, we put an additional one
-	color_prod_double(out[ie],out[ie],0.25);
+	color_prod_double(out[ie.nastyConvert()],out[ie.nastyConvert()],0.25);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -106,14 +107,14 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(io,0,locVolh)
       {
-	color_put_to_zero(temp[io]);
+	color_put_to_zero(temp[io.nastyConvert()]);
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    int evup=Lebeo_neighup[ODD][io][mu];
-	    int evdw=Lebeo_neighdw[ODD][io][mu];
+	    int evup=Lebeo_neighup[ODD][io.nastyConvert()][mu];
+	    int evdw=Lebeo_neighdw[ODD][io.nastyConvert()][mu];
 	    
-	    su3_dag_subt_the_prod_color(temp[io],conf[ODD][io][mu     ],in[evdw]);
-	    su3_summ_the_prod_color(    temp[io],conf[ODD][io][NDIM+mu],in[evup]);
+	    su3_dag_subt_the_prod_color(temp[io.nastyConvert()],conf[ODD][io.nastyConvert()][mu     ],in[evdw]);
+	    su3_summ_the_prod_color(    temp[io.nastyConvert()],conf[ODD][io.nastyConvert()][NDIM+mu],in[evup]);
 	  }
       }
     NISSA_PARALLEL_LOOP_END;
@@ -124,14 +125,14 @@ namespace nissa
     //we still apply Deo, but then we put a - because we should apply Doe^+=-Deo
     NISSA_PARALLEL_LOOP(ie,0,locVolh)
       {
-	color_put_to_zero(out[ie]);
+	color_put_to_zero(out[ie.nastyConvert()]);
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    int odup=Lebeo_neighup[EVN][ie][mu];
-	    int oddw=Lebeo_neighdw[EVN][ie][mu];
+	    int odup=Lebeo_neighup[EVN][ie.nastyConvert()][mu];
+	    int oddw=Lebeo_neighdw[EVN][ie.nastyConvert()][mu];
 	    
-	    su3_dag_subt_the_prod_color(out[ie],conf[EVN][ie][mu     ],temp[oddw]);
-	    su3_summ_the_prod_color(    out[ie],conf[EVN][ie][NDIM+mu],temp[odup]);
+	    su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()][mu     ],temp[oddw]);
+	    su3_summ_the_prod_color(    out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()][NDIM+mu],temp[odup]);
 	  }
       }
     NISSA_PARALLEL_LOOP_END;
@@ -141,7 +142,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ie,0,locVolh)
 	  for(int ic=0;ic<NCOL;ic++)
 	    for(int ri=0;ri<2;ri++)
-	      out[ie][ic][ri]=mass2*in[ie][ic][ri]-out[ie][ic][ri]*0.25;
+	      out[ie.nastyConvert()][ic][ri]=mass2*in[ie.nastyConvert()][ic][ri]-out[ie.nastyConvert()][ic][ri]*0.25;
 	NISSA_PARALLEL_LOOP_END;
       }
     else
@@ -149,7 +150,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ie,0,locVolh)
 	  for(int ic=0;ic<NCOL;ic++)
 	    for(int ri=0;ri<2;ri++)
-	      out[ie][ic][ri]*=-0.25;
+	      out[ie.nastyConvert()][ic][ri]*=-0.25;
 	NISSA_PARALLEL_LOOP_END;
       }
     set_borders_invalid(out);

@@ -16,7 +16,7 @@ int main(int narg,char **arg)
   init_grid(T,L);
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
   read_ildg_gauge_conf(conf,arg[3]);
   
   //////////////////////////// write the conf ////////////////////////////

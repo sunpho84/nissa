@@ -21,7 +21,7 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int mu=0;mu<NDIM;mu++)
-	    herm_put_to_gauss(H[par][ieo][mu],&(loc_rnd_gen[loclx_of_loceo[par][ieo]]),1);
+	    herm_put_to_gauss(H[par][ieo.nastyConvert()][mu],&(loc_rnd_gen[loclx_of_loceo[par][ieo.nastyConvert()]]),1);
 	NISSA_PARALLEL_LOOP_END;
 	
 	set_borders_invalid(H[par]);

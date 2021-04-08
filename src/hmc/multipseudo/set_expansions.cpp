@@ -50,7 +50,7 @@ namespace nissa
     inv_clover_term_t *invCl_evn=NULL;
     if(ferm_discretiz::include_clover(quark->discretiz))
       {
-	invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
+	invCl_evn=nissa_malloc("invCl_evn",locVolh.nastyConvert(),inv_clover_term_t);
 	chromo_operator_include_cSW(Cl,quark->cSW);
 	invert_twisted_clover_term(invCl_evn,quark->mass,quark->kappa,Cl[EVN]);
       }
@@ -189,7 +189,7 @@ namespace nissa
     eo_ptr<clover_term_t> Cl{NULL,NULL};
     if(theory_pars->clover_to_be_computed())
       {
-	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
 	chromo_operator(Cl,eo_conf);
       }
     

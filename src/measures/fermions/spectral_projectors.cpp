@@ -24,14 +24,14 @@ namespace nissa
     const bool min_max=0;
     
     //identity backfield
-    eo_ptr<quad_u1> u1b={nissa_malloc("u1b",locVolh+bord_volh,quad_u1),nissa_malloc("u1b",locVolh+bord_volh,quad_u1)};
+    eo_ptr<quad_u1> u1b={nissa_malloc("u1b",(locVolh+bord_volh).nastyConvert(),quad_u1),nissa_malloc("u1b",(locVolh+bord_volh).nastyConvert(),quad_u1)};
     init_backfield_to_id(u1b);
     
     //temporary vectors
-    eo_ptr<color> tmpvec_eo={nissa_malloc("tmpvec_eo_EVN",locVolh+bord_volh,color),nissa_malloc("tmpvec_eo_ODD",locVolh+bord_volh,color)};
+    eo_ptr<color> tmpvec_eo={nissa_malloc("tmpvec_eo_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("tmpvec_eo_ODD",(locVolh+bord_volh).nastyConvert(),color)};
     
     //results of the g5 application
-    eo_ptr<color> eigvec_g5_eo={nissa_malloc("eigvec_g5_EVN",locVolh+bord_volh,color),nissa_malloc("eigvec_g5_ODD",locVolh+bord_volh,color)};
+    eo_ptr<color> eigvec_g5_eo={nissa_malloc("eigvec_g5_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("eigvec_g5_ODD",(locVolh+bord_volh).nastyConvert(),color)};
     color *eigvec_g5_lx=nissa_malloc("eigvec_g5",(locVol+bord_vol).nastyConvert(),color);
     
     //launch the eigenfinder
@@ -81,7 +81,7 @@ namespace nissa
     int neigs=meas_pars.neigs;
     
     //smooth is implemented only for lx
-    eo_ptr<quad_su3> conf_eo={nissa_malloc("conf_eo_EVN",locVolh+bord_volh+edge_volh,quad_su3),nissa_malloc("conf_eo_ODD",locVolh+bord_volh+edge_volh,quad_su3)};
+    eo_ptr<quad_su3> conf_eo={nissa_malloc("conf_eo_EVN",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3),nissa_malloc("conf_eo_ODD",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3)};
     split_lx_vector_into_eo_parts(conf_eo,conf_lx);
     
     // allocate auxiliary vectors

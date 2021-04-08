@@ -362,7 +362,7 @@ namespace nissa
     for(int eo=0;eo<2;eo++)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  get_color_from_su3(out[eo][ieo],in[eo][ieo],ic_source);
+	  get_color_from_su3(out[eo][ieo.nastyConvert()],in[eo][ieo.nastyConvert()],ic_source);
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(out[eo]);
       }
@@ -373,7 +373,7 @@ namespace nissa
     for(int eo=0;eo<2;eo++)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  put_color_into_su3(out[eo][ieo],in[eo][ieo],ic_source);
+	  put_color_into_su3(out[eo][ieo.nastyConvert()],in[eo][ieo.nastyConvert()],ic_source);
 	NISSA_PARALLEL_LOOP_END;
 	set_borders_invalid(out[eo]);
       }

@@ -20,7 +20,7 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  double *v=nissa_malloc("v",locVol*nbps,double);
+  double *v=nissa_malloc("v",locVol()*nbps,double);
   ILDG_File fin=ILDG_File_open_for_read(pathin);
   bool found=false;
   do

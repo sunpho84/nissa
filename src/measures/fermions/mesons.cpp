@@ -34,15 +34,15 @@ int nflavs;
     
     //allocate
     eo_ptr<color> ori_source,source,sol,quark[nop],temp[2];
-    for(int eo=0;eo<2;eo++) ori_source[eo]=nissa_malloc("ori_source",locVolh+bord_volh,color);
-    for(int eo=0;eo<2;eo++) source[eo]=nissa_malloc("source",locVolh+bord_volh,color);
-    for(int eo=0;eo<2;eo++) sol[eo]=nissa_malloc("sol",locVolh+bord_volh,color);
+    for(int eo=0;eo<2;eo++) ori_source[eo]=nissa_malloc("ori_source",(locVolh+bord_volh).nastyConvert(),color);
+    for(int eo=0;eo<2;eo++) source[eo]=nissa_malloc("source",(locVolh+bord_volh).nastyConvert(),color);
+    for(int eo=0;eo<2;eo++) sol[eo]=nissa_malloc("sol",(locVolh+bord_volh).nastyConvert(),color);
     for(int iop=0;iop<nop;iop++)
       for(int eo=0;eo<2;eo++)
-	quark[iop][eo]=nissa_malloc("quark",locVolh+bord_volh,color);
+	quark[iop][eo]=nissa_malloc("quark",(locVolh+bord_volh).nastyConvert(),color);
     for(int itemp=0;itemp<2;itemp++)
       for(int eo=0;eo<2;eo++)
-	temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
+	temp[itemp][eo]=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),color);
     complex *loc_corr=new complex[ncombo];
     memset(loc_corr,0,sizeof(complex)*ncombo);
     

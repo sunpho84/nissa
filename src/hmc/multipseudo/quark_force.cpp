@@ -26,8 +26,8 @@ namespace nissa
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
 	      su3 temp;
-	      unsafe_su3_prod_su3(temp,conf[eo][ieo][mu],F[eo][ieo][mu]);
-	      unsafe_su3_traceless_anti_hermitian_part(F[eo][ieo][mu],temp);
+	      unsafe_su3_prod_su3(temp,conf[eo][ieo.nastyConvert()][mu],F[eo][ieo.nastyConvert()][mu]);
+	      unsafe_su3_traceless_anti_hermitian_part(F[eo][ieo.nastyConvert()][mu],temp);
 	    }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -44,8 +44,8 @@ namespace nissa
     for(int iflav=0;iflav<tp->nflavs();iflav++) clover_to_be_computed|=ferm_discretiz::include_clover(tp->quarks[iflav].discretiz);
     if(clover_to_be_computed)
       {
-	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
-	invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
+	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
+	invCl_evn=nissa_malloc("invCl_evn",locVolh.nastyConvert(),inv_clover_term_t);
 	chromo_operator(Cl,conf);
       }
     
@@ -125,7 +125,7 @@ namespace nissa
     if(VERBOSITY_LV2)
       {
 	double norm=0;
-	for(int par=0;par<2;par++) norm+=double_vector_glb_norm2(F[par],locVolh);
+	for(int par=0;par<2;par++) norm+=double_vector_glb_norm2(F[par],locVolh.nastyConvert());
 	master_printf("  Quark force average norm: %lg\n",sqrt(norm/glbVol()));
       }
   }

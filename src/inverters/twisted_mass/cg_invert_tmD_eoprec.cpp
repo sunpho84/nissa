@@ -40,8 +40,8 @@ namespace nissa
 	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
 	    { //gamma5 is explicitly wrote
-	      varphi[ieo][id  ][ic][ri]=+source_odd[ieo][id  ][ic][ri]+varphi[ieo][id  ][ic][ri]*0.5;
-	      varphi[ieo][id+2][ic][ri]=-source_odd[ieo][id+2][ic][ri]-varphi[ieo][id+2][ic][ri]*0.5;
+	      varphi[ieo.nastyConvert()][id  ][ic][ri]=+source_odd[ieo.nastyConvert()][id  ][ic][ri]+varphi[ieo.nastyConvert()][id  ][ic][ri]*0.5;
+	      varphi[ieo.nastyConvert()][id+2][ic][ri]=-source_odd[ieo.nastyConvert()][id+2][ic][ri]-varphi[ieo.nastyConvert()][id+2][ic][ri]*0.5;
 	    }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(varphi);
@@ -56,7 +56,7 @@ namespace nissa
       for(int id=0;id<NDIRAC;id++)
 	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
-	    varphi[ieo][id][ic][ri]=source_evn[ieo][id][ic][ri]+varphi[ieo][id][ic][ri]*0.5;
+	    varphi[ieo.nastyConvert()][id][ic][ri]=source_evn[ieo.nastyConvert()][id][ic][ri]+varphi[ieo.nastyConvert()][id][ic][ri]*0.5;
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(varphi);
   }
@@ -68,30 +68,30 @@ namespace nissa
     
     //prepare the e/o split version of the source
     eo_ptr<spincolor> source_eos;
-    source_eos[0]=nissa_malloc("source_eos0",locVolh+bord_volh,spincolor);
-    source_eos[1]=nissa_malloc("source_eos1",locVolh+bord_volh,spincolor);
+    source_eos[0]=nissa_malloc("source_eos0",(locVolh+bord_volh).nastyConvert(),spincolor);
+    source_eos[1]=nissa_malloc("source_eos1",(locVolh+bord_volh).nastyConvert(),spincolor);
     
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
     eo_ptr<spincolor> solution_eos;
-    solution_eos[0]=nissa_malloc("solution_eos_0",locVolh+bord_volh,spincolor);
-    solution_eos[1]=nissa_malloc("solution_eos_1",locVolh+bord_volh,spincolor);
+    solution_eos[0]=nissa_malloc("solution_eos_0",(locVolh+bord_volh).nastyConvert(),spincolor);
+    solution_eos[1]=nissa_malloc("solution_eos_1",(locVolh+bord_volh).nastyConvert(),spincolor);
     
     //prepare the e/o split version of the conf
     eo_ptr<quad_su3> conf_eos;
-    conf_eos[0]=nissa_malloc("conf_eos_0",locVolh+bord_volh,quad_su3);
-    conf_eos[1]=nissa_malloc("conf_eos_1",locVolh+bord_volh,quad_su3);
+    conf_eos[0]=nissa_malloc("conf_eos_0",(locVolh+bord_volh).nastyConvert(),quad_su3);
+    conf_eos[1]=nissa_malloc("conf_eos_1",(locVolh+bord_volh).nastyConvert(),quad_su3);
     split_lx_vector_into_eo_parts(conf_eos,conf_lx);
     
     ///////////////////////////////////// invert with e/o preconditioning ///////////////////////////////////
     
     //Equation (8.a)
-    spincolor *temp=nissa_malloc("temp",locVolh+bord_volh,spincolor);
+    spincolor *temp=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),spincolor);
     inv_tmDee_or_oo_eos(temp,kappa,mass,source_eos[EVN]);
     
     //Prepare the source according to Equation (8.b)
-    spincolor *varphi=nissa_malloc("varphi",locVolh+bord_volh,spincolor);
+    spincolor *varphi=nissa_malloc("varphi",(locVolh+bord_volh).nastyConvert(),spincolor);
     inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,temp,source_eos[ODD]);
     
     //Equation (9) using solution_eos[EVN] as temporary vector

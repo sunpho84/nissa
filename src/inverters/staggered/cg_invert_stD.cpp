@@ -26,11 +26,11 @@ namespace nissa
       {
 	inv_evn_stD_cg(sol[EVN],guess,conf,m,niter,residue,source);
 	apply_st2Doe(sol[ODD],conf,sol[EVN]);
-	double_vector_linear_comb((double*)(sol[ODD]),(double*)(source[ODD]),1/m,(double*)(sol[ODD]),-0.5/m,locVolh*6);
+	double_vector_linear_comb((double*)(sol[ODD]),(double*)(source[ODD]),1/m,(double*)(sol[ODD]),-0.5/m,locVolh.nastyConvert()*6);
       }
     
     //check solution
-    eo_ptr<color> residueVec={nissa_malloc("temp_evn",locVolh,color),nissa_malloc("temp_odd",locVolh,color)};
+    eo_ptr<color> residueVec={nissa_malloc("temp_evn",locVolh.nastyConvert(),color),nissa_malloc("temp_odd",locVolh.nastyConvert(),color)};
     apply_stD(residueVec,conf,m,sol);
     
     /// Source L2 norm
@@ -41,9 +41,9 @@ namespace nissa
     
     for(int eo=0;eo<2;eo++)
       {
-	double_vector_subtassign((double*)residueVec[eo],(double*)source[eo],locVolh*sizeof(color)/sizeof(double));
+	double_vector_subtassign((double*)residueVec[eo],(double*)source[eo],locVolh.nastyConvert()*sizeof(color)/sizeof(double));
 	
-	sourceNorm2+=double_vector_glb_norm2(source[eo],locVolh);
+	sourceNorm2+=double_vector_glb_norm2(source[eo],locVolh.nastyConvert());
         residueNorm2+=double_vector_glb_norm2(residueVec[eo],locVol.nastyConvert());
       }
     

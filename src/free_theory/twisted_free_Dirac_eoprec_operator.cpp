@@ -29,8 +29,10 @@ namespace nissa
 	phases[mu][IM]=sin(M_PI*bc[mu]);
       }
     
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
+    NISSA_PARALLEL_LOOP(_X,0,locVolh)
       {
+	const auto X=_X.nastyConvert();
+	
 	int Xup,Xdw;
 	
 	complex temp_c0,temp_c1;
@@ -162,8 +164,10 @@ namespace nissa
     
     if(in==out) crash("in==out!");
     
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
+    NISSA_PARALLEL_LOOP(_X,0,locVolh)
       {
+	const auto X=_X.nastyConvert();
+	
 	const complex z={1/(2*qu.kappa),qu.mass};
 	
 	for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id],in[X][id],z);
@@ -181,8 +185,10 @@ namespace nissa
     if(in==out) crash("in==out!");
     const double a=1/(2*qu.kappa),b=qu.mass,nrm=1/(a*a+b*b);
     
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
+    NISSA_PARALLEL_LOOP(_X,0,locVolh)
       {
+	const auto X=_X.nastyConvert();
+	
 	const complex z={+a*nrm,-b*nrm};
 	for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id],in[X][id],z);
 	for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id],in[X][id],z);
@@ -205,9 +211,10 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       for(int id=0;id<2;id++)
 	for(int ri=0;ri<2;ri++)
-	  { //gamma5 is explicitely implemented
-	    out[ieo][id  ][ri]=+temp[ieo][id  ][ri]-out[ieo][id  ][ri]*0.25;
-	    out[ieo][id+2][ri]=-temp[ieo][id+2][ri]+out[ieo][id+2][ri]*0.25;
+	  {
+	    //gamma5 is explicitely implemented
+	    out[ieo.nastyConvert()][id  ][ri]=+temp[ieo.nastyConvert()][id  ][ri]-out[ieo.nastyConvert()][id  ][ri]*0.25;
+	    out[ieo.nastyConvert()][id+2][ri]=-temp[ieo.nastyConvert()][id+2][ri]+out[ieo.nastyConvert()][id+2][ri]*0.25;
 	  }
     NISSA_PARALLEL_LOOP_END;
     

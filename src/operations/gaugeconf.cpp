@@ -293,7 +293,7 @@ namespace nissa
       {
         NISSA_PARALLEL_LOOP(ieo,0,locVolh)
           for(int mu=0;mu<NDIM;mu++)
-            su3_unitarize_maximal_trace_projecting(conf[par][ieo][mu],conf[par][ieo][mu]);
+            su3_unitarize_maximal_trace_projecting(conf[par][ieo.nastyConvert()][mu],conf[par][ieo.nastyConvert()][mu]);
 	NISSA_PARALLEL_LOOP_END;
         
         set_borders_invalid(conf[par]);

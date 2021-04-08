@@ -13,8 +13,8 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("Conf",locVol+bord_vol,quad_su3);
-  quad_su3 *fix_conf=nissa_malloc("Conf2",locVol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("Conf",(locVol+bord_vol).nastyConvert(),quad_su3);
+  quad_su3 *fix_conf=nissa_malloc("Conf2",(locVol+bord_vol).nastyConvert(),quad_su3);
   
   read_ildg_gauge_conf(conf,arg[3]);
   communicate_lx_quad_su3_borders(conf);

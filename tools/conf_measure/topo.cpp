@@ -80,8 +80,8 @@ void unitarize_conf_max(quad_su3* conf)
     for(int idir=0;idir<4;idir++)
       {
 	su3 t;
-	su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
-	su3_copy(conf[ivol][idir],t);
+	su3_unitarize_orthonormalizing(t,conf[ivol.nastyConvert()][idir]);
+	su3_copy(conf[ivol.nastyConvert()][idir],t);
       }
   NISSA_PARALLEL_LOOP_END;
   set_borders_invalid(conf);
@@ -111,7 +111,7 @@ void in_main(int narg,char **arg)
   
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
   
   //read the conf and write plaquette
   ILDG_message mess;

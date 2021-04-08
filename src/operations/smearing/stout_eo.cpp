@@ -22,7 +22,7 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,eo_ptr<quad_su3> conf,int p,const LocEoSite& A,int mu,double rho)
   {
     //put staples to zero
     su3_put_to_zero(staples);
@@ -32,13 +32,13 @@ namespace nissa
     for(int nu=0;nu<4;nu++)                   //  E---F---C
       if(nu!=mu)                              //  |   |   | mu
 	{                                     //  D---A---B
-	  int B=loceo_neighup[p][A][nu];      //        nu
-	  int F=loceo_neighup[p][A][mu];
-	  unsafe_su3_prod_su3(    temp1,conf[p][A][nu],conf[!p][B][mu]);
+	  int B=loceo_neighup[p][A.nastyConvert()][nu];      //        nu
+	  int F=loceo_neighup[p][A.nastyConvert()][mu];
+	  unsafe_su3_prod_su3(    temp1,conf[p][A.nastyConvert()][nu],conf[!p][B][mu]);
 	  unsafe_su3_prod_su3_dag(temp2,temp1,         conf[!p][F][nu]);
 	  su3_summ_the_prod_double(staples,temp2,rho);
 	  
-	  int D=loceo_neighdw[p][A][nu];
+	  int D=loceo_neighdw[p][A.nastyConvert()][nu];
 	  int E=loceo_neighup[!p][D][mu];
 	  unsafe_su3_dag_prod_su3(temp1,conf[!p][D][nu],conf[!p][D][mu]);
 	  unsafe_su3_prod_su3(    temp2,temp1,          conf[ p][E][nu]);
@@ -49,13 +49,13 @@ namespace nissa
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   
   //partial derivative of the force
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,eo_ptr<quad_su3> conf,int p,const LocEoSite& A,int mu,double rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,p,A,mu,rho);
     
     //build Omega (eq. 2.b)
-    unsafe_su3_prod_su3_dag(out->Omega,out->C,conf[p][A][mu]);
+    unsafe_su3_prod_su3_dag(out->Omega,out->C,conf[p][A.nastyConvert()][mu]);
     
     //compute Q (eq. 2.a)
     su3 iQ;
@@ -86,7 +86,7 @@ namespace nissa
 	      //exp(iQ)*U (eq. 3)
 	      su3 expiQ;
 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
+	      unsafe_su3_prod_su3(out[p][A.nastyConvert()][mu],expiQ,in[p][A.nastyConvert()][mu]);
 	    }
         NISSA_PARALLEL_LOOP_END;
 	
@@ -114,8 +114,8 @@ namespace nissa
 	eo_ptr<quad_su3> in,out;
     	for(int eo=0;eo<2;eo++)
 	  {
-	    in[eo]=nissa_malloc("in",locVolh+bord_volh+edge_volh,quad_su3);
-	    out[eo]=nissa_malloc("out",locVolh+bord_volh+edge_volh,quad_su3);
+	    in[eo]=nissa_malloc("in",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
+	    out[eo]=nissa_malloc("out",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
 	    vector_copy(in[eo],ext_in[eo]);
 	  }
 	
@@ -149,7 +149,7 @@ namespace nissa
     (*out)=nissa_malloc("out**",nlev+1,eo_ptr<quad_su3>);
     (*out)[0]=in;
     for(int i=1;i<=nlev;i++)
-      for(int eo=0;eo<2;eo++) (*out)[i][eo]=nissa_malloc("out",locVolh+bord_volh+edge_volh,quad_su3);
+      for(int eo=0;eo<2;eo++) (*out)[i][eo]=nissa_malloc("out",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
   }
   
   //free all the stack of allocated smeared conf
@@ -178,7 +178,7 @@ namespace nissa
     
     eo_ptr<quad_su3> Lambda;
     for(int eo=0;eo<2;eo++)
-      Lambda[eo]=nissa_malloc("Lambda",locVolh+bord_volh+edge_volh,quad_su3);
+      Lambda[eo]=nissa_malloc("Lambda",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
     
     for(int p=0;p<2;p++)
       for(int mu=0;mu<NDIM;mu++)
@@ -193,7 +193,7 @@ namespace nissa
 	    hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
 	    
 	    //compute the Lambda
-	    stouted_force_compute_Lambda(Lambda[p][A][mu],conf[p][A][mu],F[p][A][mu],&ing);
+	    stouted_force_compute_Lambda(Lambda[p][A.nastyConvert()][mu],conf[p][A.nastyConvert()][mu],F[p][A.nastyConvert()][mu],&ing);
 	    
 	    //exp(iQ)
 	    su3 expiQ;
@@ -201,14 +201,14 @@ namespace nissa
 	    
 	    //first piece of eq. (75)
 	    su3 temp1;
-	    unsafe_su3_prod_su3(temp1,F[p][A][mu],expiQ);
+	    unsafe_su3_prod_su3(temp1,F[p][A.nastyConvert()][mu],expiQ);
 	    //second piece of eq. (75)
 	    su3 temp2,temp3;
-	    unsafe_su3_dag_prod_su3(temp2,sto_ste.C,Lambda[p][A][mu]);
+	    unsafe_su3_dag_prod_su3(temp2,sto_ste.C,Lambda[p][A.nastyConvert()][mu]);
 	    su3_prod_idouble(temp3,temp2,1);
 	    
 	    //put together first and second piece
-	    su3_summ(F[p][A][mu],temp1,temp3);
+	    su3_summ(F[p][A.nastyConvert()][mu],temp1,temp3);
 	  }
     NISSA_PARALLEL_LOOP_END;
     
@@ -224,9 +224,9 @@ namespace nissa
 	    {
 	      NISSA_PARALLEL_LOOP(A,0,locVolh)        //   b1 --<-- f1 -->-- +
 		{                                      //    |        |       |
-		  int f1=loceo_neighup[ p][ A][mu];    //    V   B    |   F   V     ^
-		  int f2=loceo_neighup[ p][ A][nu];    //    |        |       |     m
-		  int f3=A;                            //  b23 -->-- f3 --<-- f2    u
+		  int f1=loceo_neighup[ p][ A.nastyConvert()][mu];    //    V   B    |   F   V     ^
+		  int f2=loceo_neighup[ p][ A.nastyConvert()][nu];    //    |        |       |     m
+		  int f3=A.nastyConvert();                            //  b23 -->-- f3 --<-- f2    u
 		  int b1=loceo_neighdw[!p][f1][nu];    //             A             +  nu ->
 		  int b2=loceo_neighdw[ p][b1][mu];
 		  int b3=b2;
@@ -237,37 +237,37 @@ namespace nissa
 		  unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
 		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[p][f3][nu]);
 		  unsafe_su3_prod_su3(temp3,temp2,Lambda[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+		  su3_summ_the_prod_idouble(F[p][A.nastyConvert()][mu],temp3,-rho);
 		  
 		  //second term, insertion on b2 along mu
 		  unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
 		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b2][mu]);
 		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+		  su3_summ_the_prod_idouble(F[p][A.nastyConvert()][mu],temp3,-rho);
 		  
 		  //third term, insertion on b1 along nu
 		  unsafe_su3_dag_prod_su3(temp1,conf[p][b1][nu],Lambda[p][b1][nu]);
 		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][b2][mu]);
 		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+		  su3_summ_the_prod_idouble(F[p][A.nastyConvert()][mu],temp3,-rho);
 		  
 		  //fourth term, insertion on b3 along nu
 		  unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
 		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b3][nu]);
 		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
+		  su3_summ_the_prod_idouble(F[p][A.nastyConvert()][mu],temp3,+rho);
 		  
 		  //fifth term, insertion on f1 along nu
 		  unsafe_su3_prod_su3(temp1,Lambda[!p][f1][nu],conf[!p][f1][nu]);
 		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][f2][mu]);
 		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
+		  su3_summ_the_prod_idouble(F[p][A.nastyConvert()][mu],temp3,+rho);
 		  
 		  //sixth term, insertion on f2 along mu
 		  unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
 		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][f2][mu]);
 		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+		  su3_summ_the_prod_idouble(F[p][A.nastyConvert()][mu],temp3,-rho);
 		}
 	      NISSA_PARALLEL_LOOP_END;
 	    }

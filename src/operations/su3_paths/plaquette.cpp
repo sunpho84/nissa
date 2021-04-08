@@ -52,7 +52,7 @@ namespace nissa
       }
   }
   
-  CUDA_HOST_AND_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,int par,const LocLxSite& A)
+  CUDA_HOST_AND_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,int par,const LocEoSite& A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
     for(int mu=0;mu<NDIM;mu++)
@@ -106,7 +106,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  point_plaquette_eo_conf(point_plaq[loclx_of_loceo[par][ieo]],conf,par,ieo);
+	  point_plaquette_eo_conf(point_plaq[loclx_of_loceo[par][ieo.nastyConvert()]],conf,par,ieo);
 	NISSA_PARALLEL_LOOP_END;
       }
     

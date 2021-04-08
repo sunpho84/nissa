@@ -16,7 +16,7 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
       {
 	su3 zero;
 	su3_put_to_id(zero);
-	su3_subt_the_prod_su3_dag(zero,conf[ivol][idir],conf[ivol][idir]);
+	su3_subt_the_prod_su3_dag(zero,conf[ivol.nastyConvert()][idir],conf[ivol.nastyConvert()][idir]);
 	
 	double r=real_part_of_trace_su3_prod_su3_dag(zero,zero)/18;
 	
@@ -25,14 +25,14 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
 	if(0)
 	if(r>1.e-30)
 	  {
-	    master_printf("diff %d %d %d %d   %d   %lg\n",glbCoordOfLoclx[ivol][0],glbCoordOfLoclx[ivol][1],
-			  glbCoordOfLoclx[ivol][2],glbCoordOfLoclx[ivol][3],idir,r);
-	    su3_print(conf[ivol][idir]);
+	    master_printf("diff %d %d %d %d   %d   %lg\n",glbCoordOfLoclx[ivol.nastyConvert()][0],glbCoordOfLoclx[ivol.nastyConvert()][1],
+			  glbCoordOfLoclx[ivol.nastyConvert()][2],glbCoordOfLoclx[ivol.nastyConvert()][3],idir,r);
+	    su3_print(conf[ivol.nastyConvert()][idir]);
 	    for(int i=0;i<3;i++)
 	      for(int j=i;j<3;j++)
 		{
 		  complex t;
-		  color_scalar_prod(t,conf[ivol][idir][i],conf[ivol][idir][j]);
+		  color_scalar_prod(t,conf[ivol.nastyConvert()][idir][i],conf[ivol.nastyConvert()][idir][j]);
 		  
 		  if(fabs(t[0])>1.e-15 && fabs(t[0]-1)>1.e-15)
 		    {
@@ -41,10 +41,10 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
 		      //search for orthogonals
 		      for(int jvol=0;jvol<locVol*4*9-18;jvol++)
 			{
-			  color_scalar_prod(t,conf[ivol][idir][i],(*((color*)((complex*)conf+jvol))));
+			  color_scalar_prod(t,conf[ivol.nastyConvert()][idir][i],(*((color*)((complex*)conf+jvol))));
 			  if(fabs(t[0])<=1.e-15)
-			    printf(" %d orth to %d (%d %d %d), prod: %lg %lg\n",
-				   ivol,jvol,jvol/36,(jvol%36)/9,jvol%9,t[0],t[1]);
+			    printf(" %ld orth to %d (%d %d %d), prod: %lg %lg\n",
+				   ivol(),jvol,jvol/36,(jvol%36)/9,jvol%9,t[0],t[1]);
 			}
 		    }
 		}
@@ -53,8 +53,8 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
   
   double glb_max=0,glb_avg=0;
   MPI_Reduce(&loc_avg,&glb_avg,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  MPI_Reduce(&loc_max,&glb_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);  
-  glb_avg/=4*glbVol;
+  MPI_Reduce(&loc_max,&glb_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+  glb_avg/=4*glbVol();
   
   glb_avg=sqrt(glb_avg);
   glb_max=sqrt(glb_max);
@@ -87,7 +87,7 @@ int main(int narg,char **arg)
   int nconf;
   read_str_int("NGaugeConf",&nconf);
 
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
   
   for(int iconf=0;iconf<nconf;iconf++)
     {

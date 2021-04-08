@@ -16,7 +16,7 @@ namespace nissa
     //summ the square of H
     double glb_action_eo[2];
     for(int eo=0;eo<2;eo++)
-      double_vector_glb_scalar_prod(&(glb_action_eo[eo]),(double*)(H[eo]),(double*)(H[eo]),sizeof(quad_su3)/sizeof(double)*locVolh);
+      double_vector_glb_scalar_prod(&(glb_action_eo[eo]),(double*)(H[eo]),(double*)(H[eo]),sizeof(quad_su3)/sizeof(double)*locVolh.nastyConvert());
     
     return (glb_action_eo[EVN]+glb_action_eo[ODD])/2;
   }

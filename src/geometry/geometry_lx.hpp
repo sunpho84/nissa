@@ -32,6 +32,10 @@ namespace nissa
   
   DECLARE_COMPONENT(LocLxSite,int64_t,DYNAMIC);
   
+  DECLARE_COMPONENT(GlbEoSite,int64_t,DYNAMIC);
+  
+  DECLARE_COMPONENT(LocEoSite,int64_t,DYNAMIC);
+  
   typedef int coords[NDIM];
   typedef double momentum_t[NDIM];
   
@@ -41,10 +45,10 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords glbSize,locSize;
   CUDA_MANAGED EXTERN_GEOMETRY_LX GlbLxSite glbVol,glbSpatVol;
   CUDA_MANAGED EXTERN_GEOMETRY_LX LocLxSite locVol,locSpatVol;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glbVolh,locVolh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbEoSite glbVolh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LocEoSite locVolh;
   EXTERN_GEOMETRY_LX LocLxSite bulkVol,nonBwSurfVol,nonFwSurfVol;
   EXTERN_GEOMETRY_LX LocLxSite surfVol,bwSurfVol,fwSurfVol;
-  //EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
   //-lx is lexicografic
   //box, division in 2^NDIM of the lattice
   EXTERN_GEOMETRY_LX coords box_coord[1<<NDIM];

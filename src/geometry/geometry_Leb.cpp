@@ -129,10 +129,10 @@ namespace nissa
       {
 	for(int eo=0;eo<2;eo++)
 	  {
-	    loceo_of_Lebeo[eo]=nissa_malloc("loceo_of_Lebeo",locVolh+bord_volh+edge_volh,int);
-	    Lebeo_of_loceo[eo]=nissa_malloc("Lebeo_of_loceo",locVolh+bord_volh+edge_volh,int);
-	    Lebeo_neighup[eo]=nissa_malloc("Lebeo_neighup",locVolh,coords);
-	    Lebeo_neighdw[eo]=nissa_malloc("Lebeo_neighdw",locVolh,coords);
+	    loceo_of_Lebeo[eo]=nissa_malloc("loceo_of_Lebeo",(locVolh+bord_volh).nastyConvert()+edge_volh,int);
+	    Lebeo_of_loceo[eo]=nissa_malloc("Lebeo_of_loceo",(locVolh+bord_volh).nastyConvert()+edge_volh,int);
+	    Lebeo_neighup[eo]=nissa_malloc("Lebeo_neighup",locVolh.nastyConvert(),coords);
+	    Lebeo_neighdw[eo]=nissa_malloc("Lebeo_neighdw",locVolh.nastyConvert(),coords);
 	  }
 	
 	int iLebeo[2]={0,0};

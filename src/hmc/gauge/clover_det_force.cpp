@@ -24,14 +24,14 @@ namespace nissa
 	//Prepare clover
 	eo_ptr<clover_term_t> Cl;
 	for(int eo=0;eo<2;eo++)
-	  Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+	  Cl[eo]=nissa_malloc("Cl",locVolh.nastyConvert(),clover_term_t);
 	chromo_operator(Cl,eo_conf);
 	
 	eo_ptr<inv_clover_term_t> invCl;
 	for(int eo=0;eo<2;eo++)
-	  invCl[eo]=nissa_malloc("invCl",locVolh,inv_clover_term_t);
+	  invCl[eo]=nissa_malloc("invCl",locVolh.nastyConvert(),inv_clover_term_t);
 	
-	as2t_su3 *insertion=nissa_malloc("insertion",locVolh+bord_volh+edge_volh,as2t_su3);
+	as2t_su3 *insertion=nissa_malloc("insertion",(locVolh+bord_volh+edge_volh).nastyConvert(),as2t_su3);
 	for(auto& q : quark_content)
 	  {
 	    const double cSW=q.cSW;
@@ -53,7 +53,7 @@ namespace nissa
 			  int ipair=edge_numb[mu][nu];
 			  dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
 			  
-			  su3& ins=insertion[jeo][ipair];
+			  su3& ins=insertion[jeo.nastyConvert()][ipair];
 			  
 			  for(int ic1=0;ic1<NCOL;ic1++)
 			    for(int ic2=0;ic2<NCOL;ic2++)
@@ -68,7 +68,7 @@ namespace nissa
 				      int jd=m.pos[id];
 				      int jw=jd-2*x_high_low;
 				      
-				      complex_summ_the_prod(ins[ic1][ic2],c,invCl[EVN][jeo][x_high_low][jw][ic1][iw][ic2]);
+				      complex_summ_the_prod(ins[ic1][ic2],c,invCl[EVN][jeo.nastyConvert()][x_high_low][jw][ic1][iw][ic2]);
 				    }
 			      }
 			  
@@ -93,9 +93,9 @@ namespace nissa
 			    {
 			      int nu=perp_dir[mu][inu];
 			      
-			      int xpmu=loceo_neighup[eo][ieo][mu];
-			      int xmnu=loceo_neighdw[eo][ieo][nu];
-			      int xpnu=loceo_neighup[eo][ieo][nu];
+			      int xpmu=loceo_neighup[eo][ieo.nastyConvert()][mu];
+			      int xmnu=loceo_neighdw[eo][ieo.nastyConvert()][nu];
+			      int xpnu=loceo_neighup[eo][ieo.nastyConvert()][nu];
 			      int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
 			      int xpmupnu=loceo_neighup[!eo][xpmu][nu];
 			      
@@ -115,8 +115,8 @@ namespace nissa
 				  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
 				  safe_su3_prod_su3_dag(u,u,eo_conf[!eo][xpnu][mu]);
 				  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
-				  safe_su3_prod_su3_dag(u,u,eo_conf[eo][ieo][nu]);
-				  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo][ipair]);
+				  safe_su3_prod_su3_dag(u,u,eo_conf[eo][ieo.nastyConvert()][nu]);
+				  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo.nastyConvert()][ipair]);
 				  
 				  su3_summassign(contr,u);
 				  
@@ -129,7 +129,7 @@ namespace nissa
 				  safe_su3_prod_su3_dag(v,v,eo_conf[!eo][xmnu][mu]);
 				  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
 				  safe_su3_prod_su3(v,v,eo_conf[!eo][xmnu][nu]);
-				  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo][ipair]);
+				  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo.nastyConvert()][ipair]);
 				  
 				  su3_subtassign(contr,v);
 				}

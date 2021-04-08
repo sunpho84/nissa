@@ -368,10 +368,10 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       {
-	int ilx=loclx_of_loceo[par][ieo];
+	int ilx=loclx_of_loceo[par][ieo.nastyConvert()];
 	if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
 	  for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ieo][ic],&(loc_rnd_gen[ilx]),rtype);
+	    comp_get_rnd(source[ieo.nastyConvert()][ic],&(loc_rnd_gen[ilx]),rtype);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -387,11 +387,11 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       {
-	int ilx=loclx_of_loceo[par][ieo];
+	int ilx=loclx_of_loceo[par][ieo.nastyConvert()];
 	if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
 	  for(int id=0;id<NDIRAC;id++)
 	    for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ieo][id][ic],&(loc_rnd_gen[ilx]),rtype);
+	    comp_get_rnd(source[ieo.nastyConvert()][id][ic],&(loc_rnd_gen[ilx]),rtype);
       }
     NISSA_PARALLEL_LOOP_END;
     

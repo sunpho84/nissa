@@ -65,7 +65,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////// read the file /////////////////////////
   
-  quad_su3 *in_conf=nissa_malloc("in_conf",locVol,quad_su3);
+  quad_su3 *in_conf=nissa_malloc("in_conf",locVol.nastyConvert(),quad_su3);
   
   int file_size=get_file_size(in_conf_name);
   master_printf("File size: %d\n",file_size);
@@ -92,7 +92,7 @@ int main(int narg,char **arg)
   printf("%s %d\n",crypto,rc);
   
   //Skip the whole header
-  int header_size=file_size-glbVol*sizeof(quad_su3);
+  int header_size=file_size-glbVol()*sizeof(quad_su3);
   master_printf("Header size: %d\n",header_size);
   rc=fseek(fin,header_size,SEEK_SET);
   if(rc)
@@ -110,17 +110,17 @@ int main(int narg,char **arg)
       {
 	// master_printf("trying to read ivol %d mu %d, point in the file: %d\n",ivol,mu,ftell(fin));
 	
-	read_from_binary_file(in_conf[ivol][mu],fin);
+	read_from_binary_file(in_conf[ivol.nastyConvert()][mu],fin);
 	
 	if(ivol==0)
 	  {
-	    double t=real_part_of_trace_su3_prod_su3_dag(in_conf[ivol][mu],in_conf[ivol][mu]);
+	    double t=real_part_of_trace_su3_prod_su3_dag(in_conf[ivol.nastyConvert()][mu],in_conf[ivol.nastyConvert()][mu]);
 	    complex c;
-	    su3_det(c,in_conf[ivol][mu]);
+	    su3_det(c,in_conf[ivol.nastyConvert()][mu]);
 	    master_printf("Det-1 = %d %d, %lg %lg\n",ivol,mu,c[RE]-1,c[IM]);
 	    
 	    master_printf("Tr(U^dag U) - 3 = %d %d, %lg\n",ivol,mu,t-3);
-	    su3_print(in_conf[ivol][mu]);
+	    su3_print(in_conf[ivol.nastyConvert()][mu]);
 	  }
       }
   
@@ -148,7 +148,7 @@ int main(int narg,char **arg)
   
   ////////////////////////////// convert conf ////////////////////////////
   
-  quad_su3 *out_conf=nissa_malloc("out_conf",locVol,quad_su3);
+  quad_su3 *out_conf=nissa_malloc("out_conf",locVol.nastyConvert(),quad_su3);
   
   //reorder data
   for(int t=0;t<glbSize[0];t++)
@@ -159,9 +159,9 @@ int main(int narg,char **arg)
 	    int num=snum(x,y,z,t);
 	    
 	    coords c={t,x,y,z};
-	    int ivol=loclx_of_coord(c);
+	    const LocLxSite ivol=loclx_of_coord(c);
 	    
-	    for(int mu=0;mu<NDIM;mu++) su3_copy(out_conf[ivol][mu],in_conf[num][mu]);
+	    for(int mu=0;mu<NDIM;mu++) su3_copy(out_conf[ivol.nastyConvert()][mu],in_conf[num][mu]);
 	  }
   
   nissa_free(in_conf);
@@ -169,26 +169,26 @@ int main(int narg,char **arg)
   ////////////////////////////// check everything /////////////////////////////
   
   int nfail1=0,nfail2=0;
-  for(int ivol=0;ivol<locVol;ivol++)
+  for(LocLxSite ivol=0;ivol<locVol;ivol++)
     for(int mu=0;mu<NDIM;mu++)
       {
   	//check U(3)
-  	double t=real_part_of_trace_su3_prod_su3_dag(out_conf[ivol][mu],out_conf[ivol][mu]);
+  	double t=real_part_of_trace_su3_prod_su3_dag(out_conf[ivol.nastyConvert()][mu],out_conf[ivol.nastyConvert()][mu]);
   	if(fabs(t-3)>3.e-15)
   	  //if(fabs(t-3)>3.e-7)
   	  {
   	    // master_printf("%d %d, %lg\n",ivol,mu,t-3.0);
-  	    // su3_print(out_conf[ivol][mu]);
+  	    // su3_print(out_conf[ivol.nastyConvert()][mu]);
 	    nfail1++;
   	  }
 	
 	//check SU(3)
 	complex c;
-	su3_det(c,out_conf[ivol][mu]);
+	su3_det(c,out_conf[ivol.nastyConvert()][mu]);
 	if(fabs(c[RE]-1)>3.e-15 or fabs(c[IM])>3.e-15)
 	  {
 	    // master_printf("%d %d, %lg %lg\n",ivol,mu,c[RE]-1.0,c[IM]);
-	    // su3_print(out_conf[ivol][mu]);
+	    // su3_print(out_conf[ivol.nastyConvert()][mu]);
 	    nfail2++;
 	  }
       }

@@ -58,7 +58,7 @@ namespace nissa
     //paste
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(eo,0,locVolh)
-	memcpy((char*)out_lx+bps*loclx_of_loceo[par][eo],(char*)(in_eo[par])+bps*eo,bps);
+	memcpy((char*)out_lx+bps*loclx_of_loceo[par][eo.nastyConvert()],(char*)(in_eo[par])+bps*eo.nastyConvert(),bps);
     NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);

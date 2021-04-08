@@ -10,7 +10,7 @@ void index_from_Neo_to_lx(int &rank_out,int &iel_out,int iel_in,void *pars)
   int mu_ord[4]={0,3,2,1};
   
   //decript from, cls order
-  int glb_site_sour=iel_in+rank*8*locVolh;
+  int glb_site_sour=iel_in+rank*8*locVolh();
   int shift_comp=glb_site_sour%2;
   glb_site_sour/=2;
   int mu=mu_ord[glb_site_sour%4];
@@ -57,20 +57,20 @@ void conf_convert(char *outpath,char *inpath)
   plaq/=3;
   
   //seek to the correct point
-  fseek(fin,24+rank*sizeof(quad_su3)*locVol,SEEK_SET);
+  fseek(fin,24+rank*sizeof(quad_su3)*locVol(),SEEK_SET);
   MPI_Barrier(MPI_COMM_WORLD);
 
   //read
-  char *buf=nissa_malloc("buf",locVol*sizeof(quad_su3),char);
-  nr=fread(buf,sizeof(quad_su3),locVol,fin);
+  char *buf=nissa_malloc("buf",locVol.nastyConvert()*sizeof(quad_su3),char);
+  nr=fread(buf,sizeof(quad_su3),locVol(),fin);
   if(nr!=locVol) crash("did not success in reading the conf");
   MPI_Barrier(MPI_COMM_WORLD);
  
   //if needed convert the endianess of the conf
-  if(!little_endian) change_endianness((double*)buf,(double*)buf,locVol*4*18);
+  if(!little_endian) change_endianness((double*)buf,(double*)buf,locVol.nastyConvert()*4*18);
   
   //reorder
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
   remapper->remap(conf,buf,sizeof(su3));
 
   //compute the plaquette online
@@ -104,7 +104,7 @@ void in_main(int narg,char **arg)
   init_grid(T,L);
   
   //init the remapper
-  remapper=new vector_remap_t(4*locVol,index_from_Neo_to_lx,NULL);
+  remapper=new vector_remap_t(4*locVol(),index_from_Neo_to_lx,NULL);
   
   //read the number of gauge configurations
   int N;

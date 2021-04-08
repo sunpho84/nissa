@@ -51,7 +51,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////// read the file /////////////////////////
   
-  quad_su3 *in_conf=nissa_malloc("in_conf",locVol,quad_su3);
+  quad_su3 *in_conf=nissa_malloc("in_conf",locVol.nastyConvert(),quad_su3);
   
   //init messages
   ILDG_message mess;
@@ -73,7 +73,7 @@ int main(int narg,char **arg)
   
   ////////////////////////////// convert conf ////////////////////////////
   
-  quad_su3 *out_conf=nissa_malloc("out_conf",locVol,quad_su3);
+  quad_su3 *out_conf=nissa_malloc("out_conf",locVol.nastyConvert(),quad_su3);
   
   //reorder data
   for(int t=0;t<glbSize[0];t++)
@@ -105,7 +105,7 @@ int main(int narg,char **arg)
       for(int icol=0;icol<NCOL;icol++)
 	for(int jcol=0;jcol<NCOL;jcol++)
 	  {
-	    complex& c=out_conf[ivol][mu][icol][jcol];
+	    complex& c=out_conf[ivol.nastyConvert()][mu][icol][jcol];
 	    complex d;
 	    if(little_endian)
 	      change_endianness((double*)d,(double*)c,sizeof(complex)/sizeof(double));
@@ -126,7 +126,7 @@ int main(int narg,char **arg)
   //write the data
   NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<NDIM;mu++)
-	write_to_binary_file(fout,out_conf[ivol][mu]);
+	write_to_binary_file(fout,out_conf[ivol.nastyConvert()][mu]);
   
   //close the file
   fclose(fout);

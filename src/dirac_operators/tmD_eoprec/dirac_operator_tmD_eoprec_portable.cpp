@@ -17,8 +17,9 @@ namespace nissa
     if(eooe==0) communicate_od_spincolor_borders(in);
     else        communicate_ev_spincolor_borders(in);
     
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
+    NISSA_PARALLEL_LOOP(_X,0,locVolh)
       {
+	const auto X=_X.nastyConvert();
 	int Xup,Xdw;
 	color temp_c0,temp_c1,temp_c2,temp_c3;
 	
@@ -127,8 +128,8 @@ namespace nissa
 	{
 	  const complex z={1/(2*kappa),mu};
 	  
-	  for(int id=0;id<NDIRAC/2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
-	  for(int id=NDIRAC/2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
+	  for(int id=0;id<NDIRAC/2;id++) unsafe_complex_prod(out[X.nastyConvert()][id][ic],in[X.nastyConvert()][id][ic],z);
+	  for(int id=NDIRAC/2;id<4;id++) unsafe_complex_conj2_prod(out[X.nastyConvert()][id][ic],in[X.nastyConvert()][id][ic],z);
 	}
     NISSA_PARALLEL_LOOP_END;
     
@@ -146,8 +147,8 @@ namespace nissa
 	  const double a=1/(2*kappa),b=mu,nrm=a*a+b*b;
 	  const complex z={+a/nrm,-b/nrm};
 	  
-	  for(int id=0;id<NDIRAC/2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
-	  for(int id=NDIRAC/2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
+	  for(int id=0;id<NDIRAC/2;id++) unsafe_complex_prod(out[X.nastyConvert()][id][ic],in[X.nastyConvert()][id][ic],z);
+	  for(int id=NDIRAC/2;id<4;id++) unsafe_complex_conj2_prod(out[X.nastyConvert()][id][ic],in[X.nastyConvert()][id][ic],z);
 	}
     NISSA_PARALLEL_LOOP_END;
     
@@ -162,8 +163,8 @@ namespace nissa
 	for(int ic=0;ic<NCOL;ic++)
 	  for(int ri=0;ri<2;ri++)
 	    { //gamma5 is explicitely implemented
-	      out[ieo][id  ][ic][ri]=+temp[ieo][id  ][ic][ri]-out[ieo][id  ][ic][ri]*0.25;
-	      out[ieo][id+NDIRAC/2][ic][ri]=-temp[ieo][id+NDIRAC/2][ic][ri]+out[ieo][id+2][ic][ri]*0.25;
+	      out[ieo.nastyConvert()][id  ][ic][ri]=+temp[ieo.nastyConvert()][id  ][ic][ri]-out[ieo.nastyConvert()][id  ][ic][ri]*0.25;
+	      out[ieo.nastyConvert()][id+NDIRAC/2][ic][ri]=-temp[ieo.nastyConvert()][id+NDIRAC/2][ic][ri]+out[ieo.nastyConvert()][id+2][ic][ri]*0.25;
 	    }
     NISSA_PARALLEL_LOOP_END;
     
