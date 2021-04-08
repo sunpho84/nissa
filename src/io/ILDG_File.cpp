@@ -501,12 +501,12 @@ namespace nissa
     ILDG_File_view normal_view=ILDG_File_get_current_view(file);
     
     //create scidac view and set it
-    ILDG_File_view scidac_view=ILDG_File_create_scidac_mapped_view(file,header.data_length/glbVol);
+    ILDG_File_view scidac_view=ILDG_File_create_scidac_mapped_view(file,header.data_length/glbVol());
     ILDG_File_set_view(file,scidac_view);
     
     //read
     MPI_Status status;
-    decript_MPI_error(MPI_File_read_at_all(file,0,data,locVol,scidac_view.etype,&status),"while reading");
+    decript_MPI_error(MPI_File_read_at_all(file,0,data,locVol(),scidac_view.etype,&status),"while reading");
     
     //count read bytes
     size_t nbytes_read=MPI_Get_count_size_t(status);
@@ -520,18 +520,18 @@ namespace nissa
     unset_mapped_types(scidac_view.etype,scidac_view.ftype);
     
     //reorder
-    int *order=nissa_malloc("order",locVol,int);
+    int *order=nissa_malloc("order",locVol.nastyConvert(),int);
     NISSA_LOC_VOL_LOOP(idest)
     {
       int isour=0;
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  int nu=scidac_mapping[mu];
-	  isour=isour*locSize[nu]+locCoordOfLoclx[idest][nu];
+	  isour=isour*locSize[nu]+locCoordOfLoclx[idest.nastyConvert()][nu];
 	}
-      order[isour]=idest;
+	  order[isour]=idest.nastyConvert();
     }
-    reorder_vector((char*)data,order,locVol,header.data_length/glbVol);
+    reorder_vector((char*)data,order,locVol.nastyConvert(),header.data_length/glbVol());
     nissa_free(order);
     
 #else
@@ -620,16 +620,16 @@ namespace nissa
     ILDG_File_view normal_view=ILDG_File_get_current_view(file);
     
     //create scidac view and set it
-    int nbytes_per_site=data_length/locVol;
+    int nbytes_per_site=data_length/locVol.nastyConvert();
     ILDG_File_view scidac_view=ILDG_File_create_scidac_mapped_view(file,nbytes_per_site);
     ILDG_File_set_view(file,scidac_view);
     
     //reorder
-    remap_to_write_ildg_data(buf,(char*)data,data_length/glbVol);
+    remap_to_write_ildg_data(buf,(char*)data,data_length/glbVol());
     
     //write and free buf
     MPI_Status status;
-    decript_MPI_error(MPI_File_write_at_all(file,0,buf,locVol,scidac_view.etype,&status),"while writing");
+    decript_MPI_error(MPI_File_write_at_all(file,0,buf,locVol.nastyConvert(),scidac_view.etype,&status),"while writing");
     
     //sync
     MPI_File_sync(file);
