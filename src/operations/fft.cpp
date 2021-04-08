@@ -27,7 +27,7 @@ namespace nissa
   //it will put data in YZTX order, etc
   void data_coordinate_order_shift(complex *data,int ncpp,int mu0)
   {
-    int *pos=nissa_malloc("Pos",locVol,int);
+    int *pos=nissa_malloc("Pos",locVol.nastyConvert(),int);
     
     //order of directions
     int in_mu[4] ={mu0,(mu0+1)%4,(mu0+2)%4,(mu0+3)%4};
@@ -53,7 +53,7 @@ namespace nissa
 	    }
     
     //apply reordering
-    reorder_vector((char*)data,pos,locVol,sizeof(complex)*ncpp);
+    reorder_vector((char*)data,pos,locVol(),sizeof(complex)*ncpp);
     
     nissa_free(pos);
   }
@@ -314,7 +314,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	//perform the 1d fft (slower dir)
-	if(dirs[mu]) fft1d(out,out,ncpp*locVol/locSize[mu],mu,sign,normalize);
+	if(dirs[mu]) fft1d(out,out,ncpp*locVol()/locSize[mu],mu,sign,normalize);
 	
 	//for the time being we stick to transpose the data
 	data_coordinate_order_shift(out,ncpp,mu);
