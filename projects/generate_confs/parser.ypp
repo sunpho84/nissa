@@ -333,7 +333,6 @@
 
 commands:
         | commands command
-        | command
 ;
 
 command: global_specify
