@@ -2,14 +2,13 @@
 #define _TENSOR_HPP
 
 #ifdef HAVE_CONFIG_H
-# include "config.hpp"
+# include <config.hpp>
 #endif
 
 /// \file tensor.hpp
 ///
 /// \brief Implements all functionalities of tensors
 
-//#include <tensors/tensorDecl.hpp>
 #include <memory/memoryManager.hpp>
 #include <memory/storLoc.hpp>
 
@@ -30,8 +29,7 @@ namespace nissa
   struct Tensor<TensorComps<TC...>,F,SL>
   {
     /// Fundamental type
-    using Fund=
-      F;
+    using Fund=F;
     
     /// Components
     using Comps=
@@ -85,8 +83,7 @@ namespace nissa
     const auto& compSize()
       const
     {
-      return
-	std::get<Tv>(dynamicSizes);
+      return std::get<Tv>(dynamicSizes);
     }
     
     /// Calculate the index - no more components to parse
@@ -94,8 +91,7 @@ namespace nissa
     Index orderedCompsIndex(Index outer) ///< Value of all the outer components
       const
     {
-      return
-	outer;
+      return outer;
     }
     
     /// Calculate index iteratively
@@ -124,7 +120,6 @@ namespace nissa
       const auto thisSize=
 	compSize<Tv>();
       
-      //cout<<"thisSize: "<<thisSize<<endl;
       /// Value of the index when including this component
       const auto thisVal=
 	outer*thisSize+thisComp;
@@ -163,8 +158,7 @@ namespace nissa
     decltype(auto) getDataPtr()
       const
     {
-      return
-	data;
+      return data;
     }
     
     PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(getDataPtr,CUDA_HOST_DEVICE);
@@ -197,7 +191,7 @@ namespace nissa
     void allocateData()
     {
       data=memoryManager<SL>()->template provide<Fund>(storageSize);
-      LOGGER<<"Allocated: "<<data<<endl;
+      master_printf("Allocated: %p",data);
     }
     
     /// Initialize the tensor with the knowledge of the dynamic size
@@ -259,48 +253,6 @@ namespace nissa
     {
       memoryManager<SL>()->release(data);
     }
-    
-    // /// HACK
-    // ///
-    // /// \todo Why is a hack?
-    // template <typename...Dyn>
-    // CUDA_HOST_DEVICE
-    // Tensor(Fund* oth,
-    // 	 const Size& size,
-    // 	 const Dyn&...dynamicSizes) :
-    //   dynamicSizes(dynamicSizes...),data(oth,size)
-    // {
-    // }
-    
-    // /// Build from a generic expression
-    // template <typename T>
-    // explicit Tensor(const Expr<T>& oth)
-    // {
-    //   *this=
-    // 	oth;
-    // }
-    
-    // /// Provide trivial access to the fundamental data
-    // INLINE_FUNCTION
-    // decltype(auto) trivialAccess(const Index& i)
-    //   const
-    // {
-    //   return
-    // 	data[i];
-    // }
-    
-    //PROVIDE_ALSO_NON_CONST_METHOD(trivialAccess);
-    
-    /// Gets access to the inner data
-    // const Fund* getRawAccess()
-    //   const
-    // {
-    //   return
-    // 	&trivialAccess(0);
-    // }
-    
-    // PROVIDE_ALSO_NON_CONST_METHOD(getRawAccess);
-    
     /// Evaluate, returning a reference to the fundamental type
     template <typename...TD,
 	      ENABLE_THIS_TEMPLATE_IF(sizeof...(TD)==sizeof...(TC))>
@@ -312,7 +264,7 @@ namespace nissa
 	__trap();
 #else
       if constexpr(SL==StorLoc::ON_GPU)
-	CRASHER<<"Cannot access device memory from host"<<endl;
+	crash("Cannot access device memory from host");
 #endif
       // /// Check that we are not accessing device memory from the host
       // constexpr bool accessDeviceMemoryOnHost=(SL==StorLoc::ON_GPU) and not CompilingForDevice;
@@ -326,7 +278,7 @@ namespace nissa
       return data[index(std::make_tuple(td...))];
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_GPU(eval);
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
     
     /// Temporary implementation
     template <typename...TD>
@@ -336,59 +288,9 @@ namespace nissa
       return eval(td...);
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_GPU(operator());
-    
-#if 0
-    /// We need to rethink this in the perspective of the partial evaluation
-    
-    /// Provides a _subscribe method
-#define PROVIDE__SUBSCRIBE_METHOD(CONST_ATTR,CONST_AS_BOOL)		\
-    /*! Operator to take a const reference to a given list of comps  */	\
-    /*!                                                              */ \
-    /*! This method should not be called directly: it will be called */	\
-    /*! by the [] operator of Expr base class                        */	\
-    template <typename _STC>						\
-    CUDA_HOST_DEVICE INLINE_FUNCTION					\
-    auto _subscribe(_STC&& sTc) const /*!< Subscribed components */	\
-    {									\
-      /*! Subscribed components */					\
-      using STC=std::decay_t<_STC>;					\
-									\
-      return								\
-	TensorSlice<CONST_AS_BOOL,THIS,SubsComps>			\
-	(*this,std::forwaSubsComps(cFeat.deFeat()));				\
-    }
-    
-    /// Provide subscribe operator when returning a reference
-    ///
-    /// \todo move to tag dispatch, so we can avoid the horrible sfinae subtleties
-#define PROVIDE_SUBSCRIBE_OPERATOR(CONST_ATTR,CONST_AS_BOOL)		\
-    /*! Operator to take a const reference to a given component */	\
-    template <typename C,						\
-	      typename Cp=Comps,					\
-	      ENABLE_THIS_TEMPLATE_IF(TupleHasType<C,Cp>)>		\
-    CUDA_HOST_DEVICE INLINE_FUNCTION					\
-    auto operator[](const TensorCompFeat<C>& cFeat)			\
-      CONST_ATTR							\
-    {									\
-      /*! Subscribed components */					\
-      using SubsComps=							\
-	TensorComps<C>;							\
-									\
-      return								\
-	TensorSlice<CONST_AS_BOOL,THIS,SubsComps>(*this,SubsComps(cFeat.deFeat())); \
-    }
-    
-    PROVIDE_SUBSCRIBE_OPERATOR(/* not const */, false);
-    PROVIDE_SUBSCRIBE_OPERATOR(const, true);
-    
-#undef PROVIDE_SUBSCRIBE_OPERATOR
-    
-    #endif
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator(),CUDA_HOST_DEVICE);
     
   };
-  
-#undef THIS
 }
 
 #endif

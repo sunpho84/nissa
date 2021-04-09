@@ -21,7 +21,7 @@
 
 #define CUDA_MANAGED
 
-#define CUDA_HOST_AND_DEVICE
+#define CUDA_HOST_DEVICE
 
 #define NACTIVE_THREADS ((thread_pool_locked)?1:nthreads)
 #define MANDATORY_PARALLEL if(nthreads>1 && thread_pool_locked) crash("this cannot be called when threads are locked")

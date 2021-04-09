@@ -165,7 +165,7 @@ namespace nissa
     }
     
     /// Convert to actual reference with const attribute
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
     const Index& toPod() const
     {
       return i;

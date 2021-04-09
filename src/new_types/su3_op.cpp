@@ -46,7 +46,7 @@ namespace nissa
   CUDA_MANAGED int su3_sub_gr_indices[3][2]={{0,1},{1,2},{0,2}};
   
   //make unitary maximazing Trace(out*M^dag)
-  CUDA_HOST_AND_DEVICE void su3_unitarize_maximal_trace_projecting(su3 out,const su3 M,const double precision,const int niter_max)
+  CUDA_HOST_DEVICE void su3_unitarize_maximal_trace_projecting(su3 out,const su3 M,const double precision,const int niter_max)
   {
     //initialize the guess with the identity - proved to be faster than any good guess,
     //because iterations are so good
@@ -188,7 +188,7 @@ namespace nissa
   //exact exponential of i times the *****passed hermitian matrix Q*****
   //algorithm taken from hep­lat/0311018
   //the stored f are relative to c0
-  CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q)
+  CUDA_HOST_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q)
   {
     //copy Q
     su3_copy(out.Q,Q);

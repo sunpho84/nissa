@@ -111,8 +111,8 @@ namespace nissa
 #endif
     ;
   
-  CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(coords ph,const LocLxSite& ivol);
-  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,int mu);
+  CUDA_HOST_DEVICE void get_stagphase_of_lx(coords ph,const LocLxSite& ivol);
+  CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,int mu);
   
   int bordlx_of_coord(int *x,int mu);
   int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
@@ -131,13 +131,13 @@ namespace nissa
   int glblx_of_diff(int b,int c);
   int glblx_of_summ(int b,int c);
   int glblx_opp(int b);
-  CUDA_HOST_AND_DEVICE int loclx_of_coord(coords x);
+  CUDA_HOST_DEVICE int loclx_of_coord(coords x);
   inline int loclx_of_coord_list(int x0,int x1,int x2,int x3)
   {
     coords c={x0,x1,x2,x3};
     return loclx_of_coord(c);
   }
-  CUDA_HOST_AND_DEVICE int lx_of_coord(coords x,coords s);
+  CUDA_HOST_DEVICE int lx_of_coord(coords x,coords s);
   int vol_of_lx(coords size);
   int rank_hosting_glblx(int gx);
   int rank_hosting_site_of_coord(coords x);

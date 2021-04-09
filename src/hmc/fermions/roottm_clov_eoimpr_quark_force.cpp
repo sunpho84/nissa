@@ -17,7 +17,7 @@
 namespace nissa
 {
   /// Derivative of xQy
-  CUDA_HOST_AND_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,int eo,const LocEoSite& ieo,int dir)
+  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,int eo,const LocEoSite& ieo,int dir)
   {
     int ineoup=loceo_neighup[eo][ieo.nastyConvert()][dir];
     
@@ -73,7 +73,7 @@ namespace nissa
   }
   
   // Compute the clover staples
-  CUDA_HOST_AND_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,const LocEoSite& ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW)
+  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,const LocEoSite& ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW)
   {
     su3_put_to_zero(stap);
     

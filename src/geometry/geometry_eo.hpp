@@ -30,7 +30,7 @@ namespace nissa
     Tptr data[2];
     
     /// Constant access to data[i]
-    CUDA_HOST_AND_DEVICE
+    CUDA_HOST_DEVICE
     const Tptr& operator[](const int i) const
     {
       return data[i];
@@ -39,24 +39,24 @@ namespace nissa
     PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator[],CUDA_HOST_DEVICE);
     
     /// Create from a pair of pointers
-    CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) :
+    CUDA_HOST_DEVICE eo_ptr(Tptr a,Tptr b) :
       data{a,b}
     {
     }
     
     /// Default creator
-    CUDA_HOST_AND_DEVICE eo_ptr()
+    CUDA_HOST_DEVICE eo_ptr()
     {
     }
     
     /// Check whether the two ptr are equals
-    CUDA_HOST_AND_DEVICE bool operator==(const eo_ptr& oth) const
+    CUDA_HOST_DEVICE bool operator==(const eo_ptr& oth) const
     {
       return oth[0]==data[0] and oth[1]==data[1];
     }
     
     /// Check whether the two ptr are different
-    CUDA_HOST_AND_DEVICE bool operator!=(const eo_ptr& oth) const
+    CUDA_HOST_DEVICE bool operator!=(const eo_ptr& oth) const
     {
       return not ((*this)==oth);
     }

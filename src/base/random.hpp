@@ -46,9 +46,9 @@ namespace nissa
   void color_put_to_gauss(color H,rnd_gen *gen,double sigma);
   void convert_text_to_rnd_gen(rnd_gen *gen,const char *text);
   void convert_rnd_gen_to_text(char *text,rnd_gen *gen,int size);
-  CUDA_HOST_AND_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
-  CUDA_HOST_AND_DEVICE int rnd_get_pm_one(rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_t rtype);
+  CUDA_HOST_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
+  CUDA_HOST_DEVICE int rnd_get_pm_one(rnd_gen *gen);
+  CUDA_HOST_DEVICE void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_t rtype);
   void generate_delta_eo_source(eo_ptr<su3> source,int *x);
   void generate_delta_source(su3spinspin *source,int *x);
   void generate_colorspindiluted_source(su3spinspin *source,enum rnd_t rtype,int twall);
@@ -61,17 +61,17 @@ namespace nissa
   void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,int twall,int dir=0);
   void generate_fully_undiluted_eo_source(spincolor *source,enum rnd_t rtype,int twall,int par,int dir=0);
   void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir=0);
-  CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma);
+  CUDA_HOST_DEVICE void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma);
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
   void generate_random_coord(coords c);
-  CUDA_HOST_AND_DEVICE void rnd_get_Z2(complex out,rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void rnd_get_Z4(complex out,rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void rnd_get_ZN(complex out,rnd_gen *gen,int N);
-  CUDA_HOST_AND_DEVICE inline void rnd_get_Z3(complex out,rnd_gen *gen)
+  CUDA_HOST_DEVICE void rnd_get_Z2(complex out,rnd_gen *gen);
+  CUDA_HOST_DEVICE void rnd_get_Z4(complex out,rnd_gen *gen);
+  CUDA_HOST_DEVICE void rnd_get_ZN(complex out,rnd_gen *gen,int N);
+  CUDA_HOST_DEVICE inline void rnd_get_Z3(complex out,rnd_gen *gen)
   {rnd_get_ZN(out,gen,3);}
   double rnd_get_gauss_double(rnd_gen *gen,double ave=0,double sig=1);
-  CUDA_HOST_AND_DEVICE void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig);
+  CUDA_HOST_DEVICE void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig);
   void start_glb_rnd_gen(const char *text);
   void start_glb_rnd_gen(int seed);
   void start_loc_rnd_gen(int seed);
@@ -79,7 +79,7 @@ namespace nissa
   void start_rnd_gen(rnd_gen *out,int seed);
   void stop_loc_rnd_gen();
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd);
+  CUDA_HOST_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd);
   
   //read from /dev/urandom
   template <typename T>

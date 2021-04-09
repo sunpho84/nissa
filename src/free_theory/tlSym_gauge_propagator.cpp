@@ -25,7 +25,7 @@ namespace nissa
   //if the momentum has to be removed return 0, otherwise return 1
   //cancel the zero modes for all spatial when UNNO_ALEMANNA prescription asked
   //or if PECIONA prescription and full zero mode
-  CUDA_HOST_AND_DEVICE bool zero_mode_subtraction_mask(gauge_info gl,const LocLxSite& _imom)
+  CUDA_HOST_DEVICE bool zero_mode_subtraction_mask(gauge_info gl,const LocLxSite& _imom)
   {
     auto imom=_imom.nastyConvert();
     
@@ -45,13 +45,13 @@ namespace nissa
   }
   
   //cancel the mode if it is zero according to the prescription
-  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1prop prop,gauge_info gl,const LocLxSite& imom)
+  CUDA_HOST_DEVICE bool cancel_if_zero_mode(spin1prop prop,gauge_info gl,const LocLxSite& imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
     for(int mu=0;mu<4;mu++) for(int nu=0;nu<4;nu++) for(int reim=0;reim<2;reim++) prop[mu][nu][reim]*=m;
     return !m;
   }
-  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1field prop,gauge_info gl,const LocLxSite& imom)
+  CUDA_HOST_DEVICE bool cancel_if_zero_mode(spin1field prop,gauge_info gl,const LocLxSite& imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
     //if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
@@ -61,7 +61,7 @@ namespace nissa
   }
   
   //compute the tree level Symanzik gauge propagator in the momentum space according to P.Weisz
-  CUDA_HOST_AND_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,const LocLxSite& imom)
+  CUDA_HOST_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,const LocLxSite& imom)
   {
     double c1=gl.c1,c12=c1*c1,c13=c12*c1;
     int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};

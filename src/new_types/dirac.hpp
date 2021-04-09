@@ -82,7 +82,7 @@ namespace nissa
   }
   
   //Assign to the first dirac matrixes the product of the second and the third
-  CUDA_HOST_AND_DEVICE inline void dirac_prod(dirac_matr *out,const dirac_matr *in1,const dirac_matr *in2)
+  CUDA_HOST_DEVICE inline void dirac_prod(dirac_matr *out,const dirac_matr *in1,const dirac_matr *in2)
   {
     dirac_matr temp; //this is needed to avoid to overwrite one of the input
     

@@ -38,10 +38,10 @@ namespace nissa
     printf("\n");
   }
   
-  CUDA_HOST_AND_DEVICE inline void spin_put_to_zero(spin s)
+  CUDA_HOST_DEVICE inline void spin_put_to_zero(spin s)
   {for(int i=0;i<NDIRAC;i++) complex_put_to_zero(s[i]);}
   
-  CUDA_HOST_AND_DEVICE inline void spin_copy(spin out,const spin in)
+  CUDA_HOST_DEVICE inline void spin_copy(spin out,const spin in)
   {for(int i=0;i<NDIRAC;i++) complex_copy(out[i],in[i]);}
   inline void spin_conj(spin out,const spin in)
   {for(int i=0;i<NDIRAC;i++) complex_conj(out[i],in[i]);}
@@ -55,9 +55,9 @@ namespace nissa
   inline void spin_subtassign(spin a,const spin b)
   {spin_subt(a,a,b);}
   
-  CUDA_HOST_AND_DEVICE inline void spin_prod_double(spin a,const spin b,double c)
+  CUDA_HOST_DEVICE inline void spin_prod_double(spin a,const spin b,double c)
   {for(int i=0;i<NDIRAC;i++) complex_prod_double(a[i],b[i],c);}
-  CUDA_HOST_AND_DEVICE inline void spin_prodassign_double(spin a,double b)
+  CUDA_HOST_DEVICE inline void spin_prodassign_double(spin a,double b)
   {spin_prod_double(a,a,b);}
   
   inline void spin_summ_the_complex_prod(spin a,const spin b,const complex c)
@@ -70,7 +70,7 @@ namespace nissa
   inline void spin_subt_the_complex_conj2_prod(spin a,const spin b,const complex c)
   {for(int i=0;i<NDIRAC;i++) complex_subt_the_conj2_prod(a[i],b[i],c);}
   
-  CUDA_HOST_AND_DEVICE inline void spinspin_copy(spinspin b,const spinspin a) {for(int i=0;i<NDIRAC;i++) spin_copy(b[i],a[i]);}
+  CUDA_HOST_DEVICE inline void spinspin_copy(spinspin b,const spinspin a) {for(int i=0;i<NDIRAC;i++) spin_copy(b[i],a[i]);}
   
   inline void unsafe_spinspin_hermitian(spinspin b,const spinspin a)
   {
@@ -85,10 +85,10 @@ namespace nissa
     spinspin_copy(b,temp);
   }
   
-  CUDA_HOST_AND_DEVICE inline void spinspin_put_to_zero(spinspin a)
+  CUDA_HOST_DEVICE inline void spinspin_put_to_zero(spinspin a)
   {for(int i=0;i<NDIRAC;i++) spin_put_to_zero(a[i]);}
   
-  CUDA_HOST_AND_DEVICE inline void spinspin_put_to_diag(spinspin a,const complex b)
+  CUDA_HOST_DEVICE inline void spinspin_put_to_diag(spinspin a,const complex b)
   {
     spinspin_put_to_zero(a);
     for(int id=0;id<NDIRAC;id++)
@@ -112,29 +112,29 @@ namespace nissa
     spinspin_put_to_diag(a,o);
   }
   
-  CUDA_HOST_AND_DEVICE inline void spinspin_summ(spinspin a,const spinspin b,const spinspin c)
+  CUDA_HOST_DEVICE inline void spinspin_summ(spinspin a,const spinspin b,const spinspin c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ(a[id1][id2],b[id1][id2],c[id1][id2]);}
-  CUDA_HOST_AND_DEVICE inline void spinspin_subt(spinspin a,const spinspin b,const spinspin c)
+  CUDA_HOST_DEVICE inline void spinspin_subt(spinspin a,const spinspin b,const spinspin c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_subt(a[id1][id2],b[id1][id2],c[id1][id2]);}
   inline void spinspin_summassign(spinspin a,const spinspin b)
   {spinspin_summ(a,a,b);}
   inline void spinspin_subtassign(spinspin a,const spinspin b)
   {spinspin_subt(a,a,b);}
   
-  CUDA_HOST_AND_DEVICE inline void spinspin_prod_double(spinspin a,const spinspin b,double c)
+  CUDA_HOST_DEVICE inline void spinspin_prod_double(spinspin a,const spinspin b,double c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_prod_double(a[id1][id2],b[id1][id2],c);}
-  CUDA_HOST_AND_DEVICE inline void spinspin_prodassign_double(spinspin a,double b)
+  CUDA_HOST_DEVICE inline void spinspin_prodassign_double(spinspin a,double b)
   {spinspin_prod_double(a,a,b);}
-  CUDA_HOST_AND_DEVICE inline void spinspin_summ_the_prod_double(spinspin a,const spinspin b,double c)
+  CUDA_HOST_DEVICE inline void spinspin_summ_the_prod_double(spinspin a,const spinspin b,double c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ_the_prod_double(a[id1][id2],b[id1][id2],c);}
-  CUDA_HOST_AND_DEVICE inline void spinspin_prod_idouble(spinspin a,const spinspin b,double c)
+  CUDA_HOST_DEVICE inline void spinspin_prod_idouble(spinspin a,const spinspin b,double c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_prod_idouble(a[id1][id2],b[id1][id2],c);}
-  CUDA_HOST_AND_DEVICE inline void spinspin_prodassign_idouble(spinspin a,double b)
+  CUDA_HOST_DEVICE inline void spinspin_prodassign_idouble(spinspin a,double b)
   {spinspin_prod_idouble(a,a,b);}
-  CUDA_HOST_AND_DEVICE inline void spinspin_summ_the_prod_idouble(spinspin a,const spinspin b,double c)
+  CUDA_HOST_DEVICE inline void spinspin_summ_the_prod_idouble(spinspin a,const spinspin b,double c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ_the_prod_idouble(a[id1][id2],b[id1][id2],c);}
   
-  CUDA_HOST_AND_DEVICE inline void spinspin_summ_the_complex_prod(spinspin a,const spinspin b,const complex c)
+  CUDA_HOST_DEVICE inline void spinspin_summ_the_complex_prod(spinspin a,const spinspin b,const complex c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ_the_prod(a[id1][id2],b[id1][id2],c);}
   inline void spinspin_subt_the_complex_prod(spinspin a,const spinspin b,const complex c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_subt_the_prod(a[id1][id2],b[id1][id2],c);}
@@ -146,12 +146,12 @@ namespace nissa
   inline void spinspin_subt_the_complex_conj2_prod(spinspin a,const spinspin b,const complex c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_subt_the_conj2_prod(a[id1][id2],b[id1][id2],c);}
   
-  CUDA_HOST_AND_DEVICE inline void unsafe_spinspin_prod_complex(spinspin a,const spinspin b,const complex c)
+  CUDA_HOST_DEVICE inline void unsafe_spinspin_prod_complex(spinspin a,const spinspin b,const complex c)
   {
     spinspin_put_to_zero(a);
     spinspin_summ_the_complex_prod(a,b,c);
   }
-  CUDA_HOST_AND_DEVICE inline void safe_spinspin_prod_complex(spinspin a,const spinspin b,const complex c)
+  CUDA_HOST_DEVICE inline void safe_spinspin_prod_complex(spinspin a,const spinspin b,const complex c)
   {
     spinspin d;
     unsafe_spinspin_prod_complex(d,b,c);
@@ -209,14 +209,14 @@ namespace nissa
   }
   
   //product of two spinspins
-  CUDA_HOST_AND_DEVICE inline void spinspin_summ_the_spinspin_dag_prod(spinspin out,const spinspin a,const spinspin b)
+  CUDA_HOST_DEVICE inline void spinspin_summ_the_spinspin_dag_prod(spinspin out,const spinspin a,const spinspin b)
   {
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
 	for(int id=0;id<NDIRAC;id++)
 	  complex_summ_the_conj2_prod(out[id1][id2],a[id1][id],b[id2][id]);
   }
-  CUDA_HOST_AND_DEVICE inline void unsafe_spinspin_prod_spinspin_dag(spinspin out,const spinspin a,const spinspin b)
+  CUDA_HOST_DEVICE inline void unsafe_spinspin_prod_spinspin_dag(spinspin out,const spinspin a,const spinspin b)
   {
     memset(out,0,sizeof(spinspin));
     spinspin_summ_the_spinspin_dag_prod(out,a,b);
@@ -227,7 +227,7 @@ namespace nissa
     unsafe_spinspin_prod_spinspin_dag(c,a,b);
     memcpy(out,c,sizeof(spinspin));
   }
-  CUDA_HOST_AND_DEVICE inline void spinspin_summ_the_spinspin_prod(spinspin out,const spinspin a,const spinspin b)
+  CUDA_HOST_DEVICE inline void spinspin_summ_the_spinspin_prod(spinspin out,const spinspin a,const spinspin b)
   {
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
@@ -241,12 +241,12 @@ namespace nissa
 	for(int id=0;id<NDIRAC;id++)
 	  complex_subt_the_prod(out[id1][id2],a[id1][id],b[id][id2]);
   }
-  CUDA_HOST_AND_DEVICE inline void unsafe_spinspin_prod_spinspin(spinspin out,const spinspin a,const spinspin b)
+  CUDA_HOST_DEVICE inline void unsafe_spinspin_prod_spinspin(spinspin out,const spinspin a,const spinspin b)
   {
     memset(out,0,sizeof(spinspin));
     spinspin_summ_the_spinspin_prod(out,a,b);
   }
-  CUDA_HOST_AND_DEVICE inline void safe_spinspin_prod_spinspin(spinspin out,const spinspin a,const spinspin b)
+  CUDA_HOST_DEVICE inline void safe_spinspin_prod_spinspin(spinspin out,const spinspin a,const spinspin b)
   {
     spinspin c;
     unsafe_spinspin_prod_spinspin(c,a,b);
@@ -276,13 +276,13 @@ namespace nissa
   }
   
   //Summ the passed gamma multiplied by a double to spinspin
-  CUDA_HOST_AND_DEVICE inline void spinspin_dirac_summ_the_prod_double(spinspin out,const dirac_matr *in,double r)
+  CUDA_HOST_DEVICE inline void spinspin_dirac_summ_the_prod_double(spinspin out,const dirac_matr *in,double r)
   {
     //This is the line on the matrix
     for(int ig=0;ig<NDIRAC;ig++)
       complex_summ_the_prod_double(out[ig][in->pos[ig]],in->entr[ig],r);
   }
-  CUDA_HOST_AND_DEVICE inline void spinspin_dirac_summ_the_prod_idouble(spinspin out,const dirac_matr *in,double r)
+  CUDA_HOST_DEVICE inline void spinspin_dirac_summ_the_prod_idouble(spinspin out,const dirac_matr *in,double r)
   {
     for(int ig=0;ig<NDIRAC;ig++)
       complex_summ_the_prod_idouble(out[ig][in->pos[ig]],in->entr[ig],r);
@@ -306,7 +306,7 @@ namespace nissa
   {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_complex(out,in,c);}
   
   //out=m*in
-  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_spinspin(spinspin out,const dirac_matr *m,const spinspin in)
+  CUDA_HOST_DEVICE inline void unsafe_dirac_prod_spinspin(spinspin out,const dirac_matr *m,const spinspin in)
   {
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
@@ -334,7 +334,7 @@ namespace nissa
   {spinspin temp;unsafe_dirac_prod_spinspin_transp(temp,m,in);spinspin_copy(out,temp);}
   
   //out=m*in^+
-  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_spinspin_dag(spinspin out,const dirac_matr *m,const spinspin in)
+  CUDA_HOST_DEVICE inline void unsafe_dirac_prod_spinspin_dag(spinspin out,const dirac_matr *m,const spinspin in)
   {
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
@@ -344,7 +344,7 @@ namespace nissa
   {spinspin temp;unsafe_dirac_prod_spinspin_dag(temp,m,in);spinspin_copy(out,temp);}
   
   //out=in*m
-  CUDA_HOST_AND_DEVICE inline void unsafe_spinspin_prod_dirac(spinspin out,const spinspin in,const dirac_matr *m)
+  CUDA_HOST_DEVICE inline void unsafe_spinspin_prod_dirac(spinspin out,const spinspin in,const dirac_matr *m)
   {
     spinspin_put_to_zero(out);
     for(int id1=0;id1<NDIRAC;id1++)
@@ -355,14 +355,14 @@ namespace nissa
   {spinspin temp;unsafe_spinspin_prod_dirac(temp,in,m);spinspin_copy(out,temp);}
   
   //prouduct of spinspin and spin
-  CUDA_HOST_AND_DEVICE inline void unsafe_spinspin_prod_spin(spin out,const spinspin a,spin b)
+  CUDA_HOST_DEVICE inline void unsafe_spinspin_prod_spin(spin out,const spinspin a,spin b)
   {
     memset(out,0,sizeof(spin));
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
 	complex_summ_the_prod(out[id1],a[id1][id2],b[id2]);
   }
-  CUDA_HOST_AND_DEVICE inline void safe_spinspin_prod_spin(spin out,const spinspin a,spin b)
+  CUDA_HOST_DEVICE inline void safe_spinspin_prod_spin(spin out,const spinspin a,spin b)
   {
     spin c;
     unsafe_spinspin_prod_spin(c,a,b);
@@ -370,14 +370,14 @@ namespace nissa
   }
   
   //prouduct of spin and spinspin
-  CUDA_HOST_AND_DEVICE inline void unsafe_spin_prod_spinspin(spin out,const spin a,const spinspin b)
+  CUDA_HOST_DEVICE inline void unsafe_spin_prod_spinspin(spin out,const spin a,const spinspin b)
   {
     memset(out,0,sizeof(spin));
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
 	complex_summ_the_prod(out[id1],a[id2],b[id2][id1]);
   }
-  CUDA_HOST_AND_DEVICE inline void safe_spin_prod_spinspin(spin out,const spin a,const spinspin b)
+  CUDA_HOST_DEVICE inline void safe_spin_prod_spinspin(spin out,const spin a,const spinspin b)
   {
     spin c;
     unsafe_spin_prod_spinspin(c,a,b);
@@ -385,18 +385,18 @@ namespace nissa
   }
   
   //Trace of the product of two spinspins
-  CUDA_HOST_AND_DEVICE inline void summ_the_trace_prod_spinspins(complex c,const spinspin a,const spinspin b)
+  CUDA_HOST_DEVICE inline void summ_the_trace_prod_spinspins(complex c,const spinspin a,const spinspin b)
   {
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
 	complex_summ_the_prod(c,a[id1][id2],b[id2][id1]);
   }
-  CUDA_HOST_AND_DEVICE inline void trace_prod_spinspins(complex c,const spinspin a,const spinspin b)
+  CUDA_HOST_DEVICE inline void trace_prod_spinspins(complex c,const spinspin a,const spinspin b)
   {
     c[0]=c[1]=0;
     summ_the_trace_prod_spinspins(c,a,b);
   }
-  CUDA_HOST_AND_DEVICE inline void trace_spinspin_with_dirac(complex out,const spinspin s,const dirac_matr *m)
+  CUDA_HOST_DEVICE inline void trace_spinspin_with_dirac(complex out,const spinspin s,const dirac_matr *m)
   {
     complex_put_to_zero(out);
     for(int id1=0;id1<NDIRAC;id1++)
@@ -421,7 +421,7 @@ namespace nissa
   // | 2 3 | 1 - | - 1 | + 1 | 1 + |
   // -------------------------------
   // so just have to specify which is the block which rotate as +-i
-  CUDA_HOST_AND_DEVICE inline void rotate_spinspin_to_physical_basis(spinspin s,int rsi,int rso)
+  CUDA_HOST_DEVICE inline void rotate_spinspin_to_physical_basis(spinspin s,int rsi,int rso)
   {
     const int list_prb[4]={0,1,2,3},list_mrb[4]={3,2,1,0}; //plus and minus rotating blocks
     const int so_shft[4]={0,2,0,2},si_shft[4]={0,0,2,2};   //start of dirac indexes defining blocks

@@ -19,7 +19,7 @@ namespace nissa
   //keep trace if generating photon is needed
   EXTERN_PROP int need_photon INIT_TO(0);
 
-  CUDA_HOST_AND_DEVICE
+  CUDA_HOST_DEVICE
   inline int so_sp_col_ind(const int& sp,const int& col)
   {
     return col+nso_col*sp;
@@ -53,13 +53,13 @@ namespace nissa
     //spincolor data
     spincolor** sp;
     
-    CUDA_HOST_AND_DEVICE
+    CUDA_HOST_DEVICE
     spincolor* const &operator[](const int i) const
     {
       return sp[i];
     }
     
-    CUDA_HOST_AND_DEVICE
+    CUDA_HOST_DEVICE
     spincolor* &operator[](const int i)
     {
       return sp[i];
@@ -193,7 +193,7 @@ namespace nissa
   void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator(int ihit);
-  //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
+  //CUDA_HOST_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
   void generate_lepton_propagators();
   void propagators_fft(int ihit);
   

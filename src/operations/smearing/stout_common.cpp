@@ -18,7 +18,7 @@
 namespace nissa
 {
   //compute the lambda entering the force remapping
-  CUDA_HOST_AND_DEVICE void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,hermitian_exp_ingredients *ing)
+  CUDA_HOST_DEVICE void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,hermitian_exp_ingredients *ing)
   {
     complex b[2][3];
     

@@ -54,13 +54,13 @@ namespace nissa
   }
   
   //compute args for non-present quantization
-  CUDA_HOST_AND_DEVICE void get_args_of_null_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
+  CUDA_HOST_DEVICE void get_args_of_null_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
   {
     phase[0]=phase[1]=phase[2]=phase[3]=0;
   }
   
   //compute args for 1/L2 quantization
-  CUDA_HOST_AND_DEVICE void get_args_of_one_over_L2_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
+  CUDA_HOST_DEVICE void get_args_of_one_over_L2_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
   {
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
@@ -77,7 +77,7 @@ namespace nissa
   }
   
   //compute args for half-half quantization
-  CUDA_HOST_AND_DEVICE void get_args_of_half_half_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
+  CUDA_HOST_DEVICE void get_args_of_half_half_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
   {
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;

@@ -104,7 +104,7 @@ namespace nissa
   }
   
   //compute phase exponent for space part: vec{p}*\vec{x}
-  CUDA_HOST_AND_DEVICE double get_space_arg(const LocLxSite& ivol,const momentum_t bc)
+  CUDA_HOST_DEVICE double get_space_arg(const LocLxSite& ivol,const momentum_t bc)
   {
     double arg=0;
     for(int mu=1;mu<NDIM;mu++)
@@ -116,7 +116,7 @@ namespace nissa
   }
   
   //compute the phase for lepton on its sink
-  CUDA_HOST_AND_DEVICE void get_lepton_sink_phase_factor(complex out,const LocLxSite& ivol,int ilepton,tm_quark_info le)
+  CUDA_HOST_DEVICE void get_lepton_sink_phase_factor(complex out,const LocLxSite& ivol,int ilepton,tm_quark_info le)
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,le.bc);
@@ -130,7 +130,7 @@ namespace nissa
   }
   
   //compute the phase for antineutrino - the orientation is that of the muon (as above)
-  CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,LocLxSite& ivol,int ilepton,const momentum_t bc)
+  CUDA_HOST_DEVICE void get_antineutrino_source_phase_factor(complex out,LocLxSite& ivol,int ilepton,const momentum_t bc)
   {
     //compute space and time factor
     double arg=get_space_arg(ivol,bc);

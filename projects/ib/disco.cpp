@@ -34,13 +34,13 @@ enum RunMode{INITIALIZING,SEARCHING_CONF,ANALYZING_CONF,STOP};
 RunMode runMode{INITIALIZING};
 const char stop_path[]="stop";
 
-CUDA_HOST_AND_DEVICE
+CUDA_HOST_DEVICE
 spincolor* &prop(const int t,const int r)
 {
   return prop_ptr[r+2*t];
 }
 
-CUDA_HOST_AND_DEVICE
+CUDA_HOST_DEVICE
 spincolor* &source(const int t)
 {
   return source_ptr[t];
@@ -66,14 +66,14 @@ struct Arr
   T data[N];
   
   /// Access to internal data, constant attribute
-  CUDA_HOST_AND_DEVICE
+  CUDA_HOST_DEVICE
   const T& operator[](const int& i) const
   {
     return data[i];
   }
   
   /// Access to internal data
-  CUDA_HOST_AND_DEVICE
+  CUDA_HOST_DEVICE
   T& operator[](const int& i)
   {
     return data[i];
@@ -129,7 +129,7 @@ namespace Sitmo
     Arr<uint64_t,4>;
   
   /// Encrypts the input
-  CUDA_HOST_AND_DEVICE
+  CUDA_HOST_DEVICE
   inline Word encrypt(const Key& key,  ///< Key to encrypt
 		      Word x)          ///< Input to encrypt
   {
@@ -202,7 +202,7 @@ namespace Sitmo
     struct State : public Sitmo::Word
     {
       /// Increment of a certain amount
-      CUDA_HOST_AND_DEVICE
+      CUDA_HOST_DEVICE
       State operator+(const uint64_t& z) const
       {
 	/// Result
@@ -284,7 +284,7 @@ namespace Sitmo
     }
     
     /// Generate a number with a given offset w.r.t current state
-    CUDA_HOST_AND_DEVICE
+    CUDA_HOST_DEVICE
     ResultType generateNth(const uint64_t& offset)
     {
       union
@@ -334,14 +334,14 @@ struct RngView
   }
   
   //Constructor
-  CUDA_HOST_AND_DEVICE
+  CUDA_HOST_DEVICE
   RngView(Sitmo::Rng& ref,const uint64_t& irng) :
     ref(ref),irng(irng)
   {
   }
   
   /// Returns an uint32
-  CUDA_HOST_AND_DEVICE
+  CUDA_HOST_DEVICE
   uint32_t operator()()
   {
     return ref.generateNth(irng++);
@@ -375,7 +375,7 @@ struct FieldRngOf
   }
   
   /// Returns a view on a specific site and real number
-  CUDA_HOST_AND_DEVICE
+  CUDA_HOST_DEVICE
   RngView getRngViewOnGlbSiteIRndReal(const GlbLxSite& glblx,const int& irnd_real_per_site)
   {
     //Computes the number in the stream of reals
@@ -389,7 +389,7 @@ struct FieldRngOf
   }
   
   //Fill a specific site
-  CUDA_HOST_AND_DEVICE
+  CUDA_HOST_DEVICE
   void _fillSite(double* reals,const GlbLxSite& glblx)
   {
     for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
@@ -497,7 +497,7 @@ void BoxMullerTransform(complex out,const complex ave=zero_complex,const complex
   out[IM]=r*sin(q)*sig[IM]+ave[IM];
 }
 
-CUDA_HOST_AND_DEVICE
+CUDA_HOST_DEVICE
 void z4Transform(complex out)
 {
   for(int ri=0;ri<2;ri++)

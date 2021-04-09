@@ -60,7 +60,7 @@ namespace nissa
   ////////////////////////////////////////////// twisted propagator in momentum space ////////////////////////////////////////////
   
   //return sin(p), \sum sin(p)^2, \sum sin(p/2)^2
-  CUDA_HOST_AND_DEVICE void get_component_of_twisted_propagator_of_imom(momentum_t sin_mom,double &sin2_mom,double &sin2_momh,tm_quark_info qu,const LocLxSite& imom)
+  CUDA_HOST_DEVICE void get_component_of_twisted_propagator_of_imom(momentum_t sin_mom,double &sin2_mom,double &sin2_momh,tm_quark_info qu,const LocLxSite& imom)
   {
     sin2_mom=sin2_momh=0;
     for(int mu=0;mu<NDIM;mu++)
@@ -90,7 +90,7 @@ namespace nissa
   }
   
   //single momentum - normalisation is such that D*S=1/vol
-  CUDA_HOST_AND_DEVICE void mom_space_twisted_propagator_of_imom(spinspin prop,tm_quark_info qu,const LocLxSite& imom,tm_basis_t base)
+  CUDA_HOST_DEVICE void mom_space_twisted_propagator_of_imom(spinspin prop,tm_quark_info qu,const LocLxSite& imom,tm_basis_t base)
   {
     //takes the momenta part
     momentum_t sin_mom;

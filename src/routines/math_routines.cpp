@@ -91,7 +91,7 @@ namespace nissa
   }
   
   //recursive call - see below
-  CUDA_HOST_AND_DEVICE void determinant(complex d,complex *m,int *s,int n,int N)
+  CUDA_HOST_DEVICE void determinant(complex d,complex *m,int *s,int n,int N)
   {
     switch(n)
       {
@@ -125,7 +125,7 @@ namespace nissa
   }
   
   //compute the determinant of a NxN matrix through a recursive formula or eigen
-  CUDA_HOST_AND_DEVICE void matrix_determinant(complex d,complex *m,int n)
+  CUDA_HOST_DEVICE void matrix_determinant(complex d,complex *m,int n)
   {
 #if USE_EIGEN
     using cpp_complex=std::complex<double>;

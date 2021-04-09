@@ -47,7 +47,7 @@ namespace nissa
     in order to have the anti-symmetric part, use
     the routine inside "clover_term"
   */
-  CUDA_HOST_AND_DEVICE void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,const LocLxSite& _X)
+  CUDA_HOST_DEVICE void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,const LocLxSite& _X)
   {
     //if(!check_edges_valid(conf[0])) crash("communicate edges externally");
     
