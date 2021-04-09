@@ -36,7 +36,7 @@ namespace nissa
       return data[i];
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD(operator[]);
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator[],CUDA_HOST_DEVICE);
     
     /// Create from a pair of pointers
     CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) :

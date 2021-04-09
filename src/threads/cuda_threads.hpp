@@ -2,7 +2,7 @@
 #define _CUDA_THREADS_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+ #include <config.hpp>
 #endif
 
 #include <base/init.hpp>
@@ -20,7 +20,7 @@
 #define IS_MASTER_THREAD (1)
 // #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) for(int64_t INDEX=EXT_START;INDEX<EXT_END;INDEX++)
 // #define NISSA_PARALLEL_LOOP_END
-#define NISSA_PARALLEL_LOOP_EXP(INDEX,EXT_START,EXT_END) cuda_parallel_for(__LINE__,__FILE__,EXT_START,EXT_END,[=] __host__ __device__ (const uint64_t& INDEX){
+#define NISSA_PARALLEL_LOOP_EXP(INDEX,EXT_START,EXT_END) cuda_parallel_for(__LINE__,__FILE__,EXT_START,EXT_END,[=] __host__ __device__ (const std::common_type_t<decltype((EXT_END)),decltype((EXT_START))>& INDEX){
 #define NISSA_PARALLEL_LOOP_END_EXP })
 #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) NISSA_PARALLEL_LOOP_EXP(INDEX,EXT_START,EXT_END)
 #define NISSA_PARALLEL_LOOP_END NISSA_PARALLEL_LOOP_END_EXP
@@ -59,7 +59,8 @@ namespace nissa
   {
     const auto length=(max-min);
     const dim3 block_dimension(NUM_THREADS);
-    const dim3 grid_dimension((length+block_dimension.x-1)/block_dimension.x);
+    int i=(toPod(length+block_dimension.x-1)/block_dimension.x);
+    const dim3 grid_dimension(i);
     
     extern int rank,verbosity_lv;
     const bool print=(verbosity_lv>=2 and rank==0);

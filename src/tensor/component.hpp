@@ -159,43 +159,43 @@ namespace nissa
     {
     }
     
-    /// Convert to actual reference
+    /// Convert to actual reference with const attribute
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    const Index& toPod() const
+    {
+      return i;
+    }
+    
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(toPod,CUDA_HOST_DEVICE);
+    
+    /// Convert to actual reference with const attribute
     INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
-    explicit
-    operator Index&()
+    explicit operator const Index&() const
     {
-      return
-	i;
+      return toPod();
+    }
+    
+    /// Convert to actual reference
+    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
+    explicit operator Index&()
+    {
+      return toPod();
     }
     
     /// Convert to actual reference with const attribute
     INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
-    explicit
-    operator const Index&()
-      const
+    const Index& operator()() const
     {
-      return
-	i;
-    }
-    
-    /// Convert to actual reference with const attribute
-    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
-    const Index& operator()()
-      const
-    {
-      return
-	i;
+      return toPod();
     }
     
     PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator(),CUDA_HOST_DEVICE);
     
     /// Convert to actual reference with const attribute, to be remoed
     INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
-    const Index& nastyConvert()
-      const
+    const Index& nastyConvert() const
     {
-      return
-	i;
+      return toPod();
     }
     
     PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(nastyConvert,CUDA_HOST_DEVICE);

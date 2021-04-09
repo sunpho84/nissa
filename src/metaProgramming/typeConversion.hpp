@@ -7,6 +7,12 @@
 
 #include <stdint.h>
 #include <type_traits>
+#include <utility>
+
+#include <metaProgramming/hasMethod.hpp>
+#include <metaProgramming/inliner.hpp>
+#include <metaProgramming/sfinae.hpp>
+
 
 namespace nissa
 {
@@ -30,6 +36,7 @@ namespace nissa
     }
     
     DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(int64_t,int)
+    DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM(int64_t,unsigned int)
     
 #undef DECLARE_SAFE_THE_NUMERIC_CONVERSION_TO_FROM
   }
@@ -41,6 +48,26 @@ namespace nissa
 	    typename T2>
   static constexpr bool isSafeNumericConversion=
     internal::_isSafeNumericConversion((std::decay_t<T1>*)nullptr,(std::decay_t<T2>*)nullptr);
+  
+  DECLARE_HAS_MEMBER(toPod);
+  
+  /// Convert to Pod: generic case doing nothing
+  template <typename T,
+	    ENABLE_THIS_TEMPLATE_IF(not hasMember_toPod<T>)>
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  decltype(auto) toPod(T&& t)
+  {
+    return std::forward<T>(t);
+  }
+  
+  /// Convert to Pod: generic case doing nothing
+  template <typename T,
+	    ENABLE_THIS_TEMPLATE_IF(hasMember_toPod<T>)>
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  decltype(auto) toPod(T&& t)
+  {
+    return t.toPod();
+  }
 }
 
 #endif

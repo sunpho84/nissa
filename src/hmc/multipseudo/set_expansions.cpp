@@ -6,20 +6,19 @@
 
 #include <memory>
 
-#include "base/random.hpp"
-#include "base/cuda_test.hpp"
-#include "communicate/communicate.hpp"
-#include "dirac_operators/stD/dirac_operator_stD.hpp"
-#include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
-#include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
-#include "hmc/hmc.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "linalgs/linalgs.hpp"
-#include "new_types/rat_approx.hpp"
-#include "new_types/su3.hpp"
-#include "operations/remez/remez_algorithm.hpp"
-#include "operations/su3_paths/clover_term.hpp"
-#include "routines/mpi_routines.hpp"
+#include <base/random.hpp>
+#include <communicate/communicate.hpp>
+#include <dirac_operators/stD/dirac_operator_stD.hpp>
+#include <dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp>
+#include <hmc/multipseudo/multipseudo_rhmc_step.hpp>
+#include <hmc/hmc.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <linalgs/linalgs.hpp>
+#include <new_types/rat_approx.hpp>
+#include <new_types/su3.hpp>
+#include <operations/remez/remez_algorithm.hpp>
+#include <operations/su3_paths/clover_term.hpp>
+#include <routines/mpi_routines.hpp>
 
 namespace nissa
 {
@@ -59,17 +58,6 @@ namespace nissa
     int iter=0;
     int is_increasing=1;
     double old_eig_max;
-    
-#if THREADS_TYPE == CUDA_THREADS
-    const char DOE_TEST[]="DOE_TEST";
-    if(getenv(DOE_TEST)!=NULL)
-      {
-	gpu::cuda_test<double>(out.stag,eo_conf,in.stag);
-	gpu::cuda_test<float>(out.stag,eo_conf,in.stag);
-      }
-    else
-      master_printf("to run the test export %s\n",DOE_TEST);
-#endif
     
     do
       {

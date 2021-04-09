@@ -336,7 +336,7 @@ namespace nissa
     
     //get the lepton info and prop
     tm_quark_info le=get_lepton_info(ilepton,orie,rl);
-    spinspin *lept=L[iprop];
+    //spinspin *lept=L[iprop];
     
     //get the projectors
     spinspin promu[2],pronu[2];
@@ -373,32 +373,32 @@ namespace nissa
 	spinspin mesolep_loc_contr[locSize[0]];
 	for(int i=0;i<locSize[0];i++) spinspin_put_to_zero(mesolep_loc_contr[i]);
 	
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    //int t=locCoordOfLoclx[ivol.nastyConvert()][0];
+	// NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	//   {
+	//     //int t=locCoordOfLoclx[ivol.nastyConvert()][0];
 	    
-	    //multiply lepton side on the right (source) side
-	    spinspin la;
-	    unsafe_spinspin_prod_dirac(la,lept[ivol.nastyConvert()],base_gamma+list_weak_insl[ins]);
+	//     //multiply lepton side on the right (source) side
+	//     spinspin la;
+	//     unsafe_spinspin_prod_dirac(la,lept[ivol.nastyConvert()],base_gamma+list_weak_insl[ins]);
 	    
-	    //include 4*(1-5)/2/2=(1-5) coming from the two neturino projector+(1-g5) weak lepton structure
-	    //the second /2 comes from sqr(1/sqrt(2)) of 1502.00257
-	    spinspin l;
-	    unsafe_spinspin_prod_dirac(l,la,&neutr_1m_g5_proj);
+	//     //include 4*(1-5)/2/2=(1-5) coming from the two neturino projector+(1-g5) weak lepton structure
+	//     //the second /2 comes from sqr(1/sqrt(2)) of 1502.00257
+	//     spinspin l;
+	//     unsafe_spinspin_prod_dirac(l,la,&neutr_1m_g5_proj);
 	    
-	    //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
-	    complex ph;
-	    get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
+	//     //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
+	//     complex ph;
+	//     get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	    
-	    //trace hadron side
-	    complex h;
-	    trace_spinspin_with_dirac(h,hadr[ivol.nastyConvert()],weak_ins_hadr_gamma+ins);
+	//     //trace hadron side
+	//     complex h;
+	//     trace_spinspin_with_dirac(h,hadr[ivol.nastyConvert()],weak_ins_hadr_gamma+ins);
 	    
-	    //combine mesolep
-	    complex_prodassign(h,ph);
-	    crash("#warning spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h");
-	  }
-	NISSA_PARALLEL_LOOP_END;
+	//     //combine mesolep
+	//     complex_prodassign(h,ph);
+	//     crash("#warning spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h");
+	//   }
+	// NISSA_PARALLEL_LOOP_END;
 	crash("#warning glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));");
 	
 	//save projection on LO
@@ -409,7 +409,7 @@ namespace nissa
 	      int ilnp=(glb_t>=glbSize[0]/2); //select the lepton/neutrino projector
 	      
 	      spinspin td;
-	      crash("#warning unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);");
+	      //crash("#warning unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);");
 	      spinspin dtd;
 	      unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 	      complex mesolep;

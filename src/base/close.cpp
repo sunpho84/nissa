@@ -1,4 +1,3 @@
-#include "linalgs/reduce.hpp"
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
@@ -7,25 +6,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bench.hpp"
-#include "debug.hpp"
+#include <base/bench.hpp>
+#include <base/debug.hpp>
+#include <base/random.hpp>
+#include <base/vectors.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <geometry/geometry_Leb.hpp>
+#include <hmc/gauge/Symanzik_force.hpp>
+#include <hmc/gauge/Symanzik_action.hpp>
+#include <linalgs/reduce.hpp>
 #include <memory/memoryManager.hpp>
-#include "random.hpp"
-#include "vectors.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_Leb.hpp"
-#include "hmc/gauge/Symanzik_force.hpp"
-#include "hmc/gauge/Symanzik_action.hpp"
-#include "operations/remap_vector.hpp"
-#include "routines/ios.hpp"
+#include <operations/remap_vector.hpp>
+#include <routines/ios.hpp>
 
 #if FFT_TYPE == FFTW_FFT
  #include <fftw3.h>
 #endif
 
 #ifdef USE_QUDA
- #include "base/quda_bridge.hpp"
+ #include <base/quda_bridge.hpp>
 #endif
 
 namespace nissa
@@ -75,7 +75,7 @@ namespace nissa
     
     delete cpuMemoryManager;
 #ifdef USE_CUDA
-    delete gpu_memory_manager;
+    delete gpuMemoryManager;
 #endif
     
     tot_time+=take_time();

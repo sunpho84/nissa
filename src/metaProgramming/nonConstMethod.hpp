@@ -3,6 +3,9 @@
 
 #include <utility>
 
+#include <base/cuda.hpp>
+#include <metaProgramming/inliner.hpp>
+
 namespace nissa
 {
   /// Returns true if T is a const lvalue reference
@@ -11,6 +14,7 @@ namespace nissa
   
   /// Returns the type without "const" attribute if it is a reference
   template <typename T>
+  INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
   decltype(auto) remove_const_if_ref(T&& t)
   {
     using Tv=std::remove_const_t<std::remove_reference_t<T>>;

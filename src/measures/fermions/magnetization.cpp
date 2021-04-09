@@ -20,13 +20,14 @@ namespace nissa
   //please note that the conf must hold backfield
   void magnetization(complex* magn,complex* magn_proj_x,eo_ptr<quad_su3> conf,quark_content_t* quark,eo_ptr<color> rnd,eo_ptr<color> chi,complex* point_magn,coords* arg,int mu,int nu)
   {
+    crash("see below");
     
     communicate_ev_and_od_color_borders(chi);
     vector_reset(point_magn);
     
     //allocate a thread-local reduction
-    complex thr_magn_proj_x[glbSize[1]];
-    for(int i=0;i<glbSize[1];i++) thr_magn_proj_x[i][RE]=thr_magn_proj_x[i][IM]=0;
+    //complex thr_magn_proj_x[glbSize[1]];
+    //for(int i=0;i<glbSize[1];i++) thr_magn_proj_x[i][RE]=thr_magn_proj_x[i][IM]=0;
     
     //summ the results of the derivative
     for(int par=0;par<2;par++)
@@ -55,14 +56,17 @@ namespace nissa
               color_scalar_prod(t,rnd[par][ieo.nastyConvert()],v);
               complex_summ_the_prod_double(point_magn[ivol.nastyConvert()],t,arg[ivol.nastyConvert()][rho]);
               //compute also the projected current
+#ifndef USE_CUDA
 	      crash("#warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[ivol.nastyConvert()][rho]");
-              
+#endif
               //backward derivative: note that we should multiply for -arg*(-U^+)
               unsafe_su3_dag_prod_color(v,conf[!par][idw_eo][rho],chi[!par][idw_eo]);
               color_scalar_prod(t,rnd[par][ieo.nastyConvert()],v);
 	      complex_summ_the_prod_double(point_magn[ivol.nastyConvert()],t,arg[idw_lx][rho]);
               //compute also the projected current
+#ifndef USE_CUDA
 	      crash("#warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[idw_lx][rho]");
+#endif
             }
         }
     NISSA_PARALLEL_LOOP_END;
