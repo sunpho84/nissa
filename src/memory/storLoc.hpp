@@ -38,6 +38,16 @@ namespace nissa
     CompilingForDevice?
     StorLoc::ON_GPU:
     StorLoc::ON_CPU;
+  
+  /// Default storage
+  constexpr StorLoc DefaultStorage=
+    StorLoc::
+#ifdef USE_CUDA
+    ON_GPU
+#else
+    ON_CPU
+#endif
+    ;
 }
 
 #endif
