@@ -86,7 +86,7 @@ int main(int narg,char **arg)
   //nconf
   int nconf;
   read_str_int("NGaugeConf",&nconf);
-
+  
   quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
   
   for(int iconf=0;iconf<nconf;iconf++)
@@ -94,16 +94,16 @@ int main(int narg,char **arg)
       read_str(filename,1024);
       test_unitarity(fout,conf,filename);
     }
-
+  
   close_input();
-
+  
   ///////////////////////////////////////////
   
   if(rank==0) fclose(fout);
   
   nissa_free(conf);
-
+  
   close_nissa();
-
+  
   return 0;
 }

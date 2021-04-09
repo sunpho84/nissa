@@ -134,6 +134,7 @@
 #include <measures/gauge/watusso.hpp>
 
 #include <metaProgramming/crtp.hpp>
+#include <metaProgramming/hasMethod.hpp>
 #include <metaProgramming/inliner.hpp>
 #include <metaProgramming/nonConstMethod.hpp>
 #include <metaProgramming/refOrVal.hpp>
