@@ -13,7 +13,7 @@
 
 #include <new_types/coords.hpp>
 #include <routines/math_routines.hpp>
-#include <tensor/component.hpp>
+#include <tensor/tensor.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
  #define EXTERN_GEOMETRY_LX extern
@@ -54,7 +54,7 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords *glbCoordOfLoclx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords *locCoordOfLoclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblxOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<TensorComps<LocLxSite>,GlbLxSite> glblxOfLoclx;
   EXTERN_GEOMETRY_LX int *glblxOfBordlx;
   EXTERN_GEOMETRY_LX int *loclxOfBordlx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfBordlx;

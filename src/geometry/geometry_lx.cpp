@@ -1,22 +1,22 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+ #include <config.hpp>
 #endif
 
 #include <math.h>
 #include <string.h>
 
 #define EXTERN_GEOMETRY_LX
- #include "geometry_lx.hpp"
+ #include <geometry/geometry_lx.hpp>
 
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
-#include "new_types/su3.hpp"
-#include "operations/remap_vector.hpp"
-#include "operations/su3_paths/gauge_sweeper.hpp"
-#include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
+#include <base/debug.hpp>
+#include <base/vectors.hpp>
+#include <communicate/communicate.hpp>
+#include <new_types/su3.hpp>
+#include <operations/remap_vector.hpp>
+#include <operations/su3_paths/gauge_sweeper.hpp>
+#include <routines/ios.hpp>
+#include <routines/mpi_routines.hpp>
+#include <threads/threads.hpp>
 
 namespace nissa
 {
@@ -277,32 +277,36 @@ namespace nissa
 	//subtract by one if dir is parallelized
 	coords x;
 	coord_of_lx(x,ivol,extended_box_size);
-	for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) x[mu]--;
+	for(int mu=0;mu<NDIM;mu++)
+	  if(paral_dir[mu])
+	    x[mu]--;
 	
 	//check if it is defined
-	int iloc=full_lx_of_coords(x);
+	const LocLxSite iloc=full_lx_of_coords(x);
+	
 	if(iloc!=-1)
 	  {
 	    //compute global coordinates, assigning
 	    for(int nu=0;nu<NDIM;nu++)
-	      glbCoordOfLoclx[iloc][nu]=(x[nu]+rank_coord[nu]*locSize[nu]+glbSize[nu])%glbSize[nu];
+	      glbCoordOfLoclx[iloc.nastyConvert()][nu]=(x[nu]+rank_coord[nu]*locSize[nu]+glbSize[nu])%glbSize[nu];
 	    
 	    //find the global index
-	    int iglb=glblx_of_coord(glbCoordOfLoclx[iloc]);
+	    const int iglb=glblx_of_coord(glbCoordOfLoclx[iloc.nastyConvert()]);
 	    
 	    //if it is on the bulk store it
 	    if(iloc<locVol)
 	      {
-		for(int nu=0;nu<NDIM;nu++) locCoordOfLoclx[iloc][nu]=x[nu];
-		glblxOfLoclx[iloc]=iglb;
+		for(int nu=0;nu<NDIM;nu++)
+		  locCoordOfLoclx[iloc.nastyConvert()][nu]=x[nu];
+		glblxOfLoclx(iloc)=iglb;
 	      }
 	    
 	    //if it is on the border store it
-	    if(iloc>=locVol&&iloc<locVol+bord_vol)
+	    if(iloc>=locVol and iloc<locVol+bord_vol)
 	      {
 		const LocLxSite ibord=iloc-locVol;
 		glblxOfBordlx[ibord.nastyConvert()]=iglb;
-		loclxOfBordlx[ibord.nastyConvert()]=iloc;
+		loclxOfBordlx[ibord.nastyConvert()]=iloc.nastyConvert();
 	      }
 	    
 	    //if it is on the edge store it
@@ -310,7 +314,6 @@ namespace nissa
 	      {
 		const LocLxSite iedge=iloc-locVol-bord_vol;
 		glblxOfEdgelx[iedge.nastyConvert()]=iglb;
-		//loclx_of_edgelx[iedge]=iloc;
 	      }
 	  }
       }
@@ -409,7 +412,7 @@ namespace nissa
     ignore_borders_communications_warning(loclxNeighdw);
     
     //local to global
-    glblxOfLoclx=nissa_malloc("glblx_of_loclx",locVol.nastyConvert(),int);
+    glblxOfLoclx.allocate(locVol);
     
     //borders
     glblxOfBordlx=nissa_malloc("glblx_of_bordlx",bord_vol,int);
