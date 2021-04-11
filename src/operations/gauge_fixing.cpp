@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "base/debug.hpp"
-#include "base/random.hpp"
+#include "random/randomGenerate.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"

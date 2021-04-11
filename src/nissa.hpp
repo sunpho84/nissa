@@ -10,7 +10,7 @@
 #include <base/close.hpp>
 #include <base/debug.hpp>
 #include <base/init.hpp>
-#include <base/random.hpp>
+
 #ifdef USE_TMLQCD
  #include <base/tmLQCD_bridge.hpp>
 #endif
@@ -179,6 +179,9 @@
 #include <operations/su3_paths/squared_staples.hpp>
 
 #include <operations/vector_gather.hpp>
+
+#include <random/randomGenerate.hpp>
+#include <random/systemRandom.hpp>
 
 #include <routines/ios.hpp>
 #include <routines/math_routines.hpp>

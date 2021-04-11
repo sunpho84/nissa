@@ -8,7 +8,7 @@
 #include "dirac_operator_overlap_kernel2.hpp"
 #include "linalgs/linalgs.hpp"
 
-#include "base/random.hpp"
+#include "random/randomGenerate.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "communicate/borders.hpp"

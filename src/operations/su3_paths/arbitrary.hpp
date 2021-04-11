@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <deque>
 
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "routines/ios.hpp"
+#include <base/debug.hpp>
+#include <base/vectors.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <routines/ios.hpp>
 
 #define START_PATH_FLAG 1
 #define DAG_LINK_FLAG 2
@@ -98,25 +98,37 @@ namespace nissa
     int *links_to_send_list,*ind_nonloc_links_list;
     
     //commands
-    void start_new_path_from_loclx(int lx) {
-      pos=glblxOfLoclx[lx];
-      link_for_movements[cur_mov]=START_PATH_FLAG;};
-    void summ_to_previous_path() {
-      if(cur_path==0) crash("cannot summ to path number 0");
+    void start_new_path_from_loclx(const LocLxSite& lx)
+    {
+      pos=glblxOfLoclx(lx).nastyConvert();
+      link_for_movements[cur_mov]=START_PATH_FLAG;
+    };
+    
+    void summ_to_previous_path()
+    {
+      if(cur_path==0)
+	crash("cannot summ to path number 0");
+      
       //if not already set, diminuish the number of paths
       if(!(link_for_movements[cur_mov]&SUMM_TO_PREVIOUS_PATH_FLAG)) cur_path--;
-      link_for_movements[cur_mov]+=SUMM_TO_PREVIOUS_PATH_FLAG;      
+      link_for_movements[cur_mov]+=SUMM_TO_PREVIOUS_PATH_FLAG;
     }
-    void switch_to_next_step() {
+    
+    void switch_to_next_step()
+    {
       cur_mov++;
       if(cur_mov>ntot_mov) crash("exceded (%d) the number of allocatec movements, %d",cur_mov,ntot_mov);
-      link_for_movements[cur_mov]=0;}
+      link_for_movements[cur_mov]=0;
+    }
+    
     void move_forward(int mu);
     void move_backward(int mu);
-    void stop_current_path() {
+    void stop_current_path()
+    {
       cur_path++;
       if(cur_path>npaths) crash("exceded (%d) the number of allocated paths, %d",cur_path,npaths);
     }
+    
     void finished_last_path();
     void gather_nonloc_start(MPI_Request *request,int &irequest,su3 *nonloc_links);
     void gather_nonloc_finish(MPI_Request *request,int &irequest,su3 *send_buff);

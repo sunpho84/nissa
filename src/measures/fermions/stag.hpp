@@ -1,7 +1,7 @@
 #ifndef _STAG_HPP
 #define _STAG_HPP
 
-#include "base/random.hpp"
+#include "random/randomGenerate.hpp"
 #include "base/vectors.hpp"
 #include "hmc/theory_pars.hpp"
 

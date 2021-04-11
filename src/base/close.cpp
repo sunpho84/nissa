@@ -8,7 +8,6 @@
 
 #include <base/bench.hpp>
 #include <base/debug.hpp>
-#include <base/random.hpp>
 #include <base/vectors.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
@@ -18,6 +17,7 @@
 #include <linalgs/reduce.hpp>
 #include <memory/memoryManager.hpp>
 #include <operations/remap_vector.hpp>
+#include <random/randomGenerate.hpp>
 #include <routines/ios.hpp>
 
 #if FFT_TYPE == FFTW_FFT

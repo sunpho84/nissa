@@ -14,7 +14,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/close.cpp \
 	%D%/debug.cpp \
 	%D%/init.cpp \
-	%D%/random.cpp \
 	%D%/vectors.cpp
 include_HEADERS+= \
 	%D%/bench.hpp \
@@ -22,7 +21,6 @@ include_HEADERS+= \
 	%D%/debug.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
-	%D%/random.hpp \
 	%D%/vectors.hpp
 
 if USE_TMLQCD

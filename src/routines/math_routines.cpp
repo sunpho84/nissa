@@ -4,7 +4,7 @@
 
 #include <math.h>
 
-#include "base/random.hpp"
+#include "random/randomGenerate.hpp"
 #include "new_types/complex.hpp"
 
 #if USE_EIGEN

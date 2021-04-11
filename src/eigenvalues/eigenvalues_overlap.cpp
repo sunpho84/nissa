@@ -2,7 +2,7 @@
  #include "config.hpp"
 #endif
 
-#include <base/random.hpp>
+#include <random/randomGenerate.hpp>
 #include <dirac_operators/overlap/dirac_operator_overlap.hpp>
 #include <eigenvalues/eigenvalues.hpp>
 

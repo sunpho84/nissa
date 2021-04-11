@@ -1,68 +1,15 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-
 #define EXTERN_RANDOM
- #include <base/random.hpp>
+# include <random/randomGenerate.hpp>
 
-#include <base/debug.hpp>
 #include <base/vectors.hpp>
-#include <geometry/geometry_lx.hpp>
-#include <geometry/geometry_eo.hpp>
-#include <new_types/complex.hpp>
 #include <new_types/su3_op.hpp>
-#include <routines/ios.hpp>
-#include <routines/math_routines.hpp>
 
 namespace nissa
 {
-  // template <typename IMin,
-  // 	    typename IMax,
-  // 	    typename F>
-  // __global__
-  // void cudageneric_kernel(const IMin &min,
-  // 			   const IMax &max,
-  // 			   F f)
-  // {
-  //   const auto i=min+blockIdx.x*blockDim.x+threadIdx.x;
-  //   if(i<max)
-  //     f(loclx_neighdw[0][0]);
-  // }
-  
-  // void rrr()
-  // {
-  //   const dim3 block_dimension(NUM_THREADS);
-  //   const dim3 grid_dimension((1+block_dimension.x-1)/block_dimension.x);
-  //   cudageneric_kernel<<<grid_dimension,block_dimension>>>(0, 1, [=] __host__ __device__(int){});
-  // }
-  
-  CUDA_HOST_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
-  
-  //initialize a random number generator
-  void start_rnd_gen(rnd_gen *out,int seed)
-  {
-    const int im1=2147483563,ia1=40014;
-    const int iq1=53668,ir1=12211;
-    int j,k;
-    
-    //initialization
-    out->idum=seed;
-    out->idum=std::max(out->idum+1,1);
-    out->idum2=out->idum;
-    for(j=RAN2_NTAB+7;j>=0;j--)
-      {
-	k=out->idum/iq1;
-	out->idum=ia1*(out->idum-k*iq1)-k*ir1;
-	if(out->idum<0) out->idum+=im1;
-	if(j<RAN2_NTAB) out->iv[j]=out->idum;
-      }
-    out->iy=out->iv[0];
-  }
-  
   //print all the entries of the random generator into a string
   void convert_rnd_gen_to_text(char *text,rnd_gen *gen,int size)
   {
@@ -132,8 +79,11 @@ namespace nissa
     loc_rnd_gen=nissa_malloc("Loc_rnd_gen",locVol(),rnd_gen);
     for(LocLxSite ivol=0;ivol<locVol;ivol++)
       {
-	int loc_seed=internal_seed+glblxOfLoclx[ivol.nastyConvert()];
-	if(loc_seed<0) crash("something went wrong with local seed: %d + %d = %d",internal_seed,glblxOfLoclx[ivol.nastyConvert()],loc_seed);
+	/// Reference to global site
+	const GlbLxSite& glbLx=glblxOfLoclx(ivol);
+	
+	int loc_seed=internal_seed+glbLx();
+	if(loc_seed<0) crash("something went wrong with local seed: %d + %d = %d",internal_seed,glbLx,loc_seed);
 	start_rnd_gen(&(loc_rnd_gen[ivol.nastyConvert()]),loc_seed);
       }
     loc_rnd_gen_inited=1;
@@ -155,33 +105,6 @@ namespace nissa
     
     nissa_free(loc_rnd_gen);
     loc_rnd_gen_inited=0;
-  }
-  
-  //standard ran2 from numerical recipes
-  CUDA_HOST_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max)
-  {
-    const int im1=2147483563,im2=2147483399,imm1=im1-1,ia1=40014,ia2=40692;
-    const int iq1=53668,iq2=52774,ir1=12211,ir2=3791,ndiv=1+imm1/RAN2_NTAB;
-    const double am=1.0/im1,eps=1.2e-7,rnmx=1-eps;
-    int j,k;
-    double out;
-    
-    k=gen->idum/iq1;
-    gen->idum=ia1*(gen->idum-k*iq1)-k*ir1;
-    if(gen->idum<0) gen->idum+=im1;
-    
-    k=gen->idum2/iq2;
-    gen->idum2=ia2*(gen->idum2-k*iq2)-k*ir2;
-    if(gen->idum2<0) gen->idum2+=im2;
-    
-    j=gen->iy/ndiv;
-    gen->iy=gen->iv[j]-gen->idum2;
-    gen->iv[j]=gen->idum;
-    if(gen->iy<0) gen->iy+=imm1;
-    
-    out=nissa_min(am*gen->iy,rnmx);
-    
-    return out*(max-min)+min;
   }
   
   //generate a random postion

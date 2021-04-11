@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "routines/ios.hpp"
-#include "base/random.hpp"
+#include "random/randomGenerate.hpp"
 
 namespace nissa
 {

@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#include <base/random.hpp>
+#include <random/randomGenerate.hpp>
 #include <communicate/communicate.hpp>
 #include <dirac_operators/stD/dirac_operator_stD.hpp>
 #include <dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp>

@@ -22,7 +22,6 @@
 #include "base/debug.hpp"
 #include "base/git_info.hpp"
 #include <memory/memoryManager.hpp>
-#include "base/random.hpp"
 #include "base/vectors.hpp"
 
 #include "communicate/borders.hpp"
@@ -38,6 +37,7 @@
 #include "geometry/geometry_Leb.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/high_prec.hpp"
+#include "random/randomGenerate.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #include "routines/mpi_routines.hpp"

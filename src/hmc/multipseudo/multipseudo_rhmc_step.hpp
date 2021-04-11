@@ -1,7 +1,7 @@
 #ifndef _MULTIPSEUDO_RHMC_STEP_HPP
 #define _MULTIPSEUDO_RHMC_STEP_HPP
 
-#include "base/random.hpp"
+#include "random/randomGenerate.hpp"
 #include "hmc/theory_pars.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/rat_approx.hpp"

@@ -2,7 +2,7 @@
  #include "config.hpp"
 #endif
 
-#include "base/random.hpp"
+#include "random/randomGenerate.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "linalgs/linalgs.hpp"

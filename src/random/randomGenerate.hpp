@@ -4,11 +4,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "new_types/su3.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
+#include <geometry/geometry_eo.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <new_types/su3.hpp>
+#include <random/ran2Gen.hpp>
+#include <threads/threads.hpp>
 
 #ifndef EXTERN_RANDOM
  #define EXTERN_RANDOM extern
@@ -27,15 +27,6 @@ namespace nissa
   //Source type
   enum source_t{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
   
-  //The structure for the random generator
-  struct rnd_gen
-  {
-    int idum;
-    int idum2;
-    int iv[RAN2_NTAB];
-    int iy;
-  };
-  
   //random generator stuff
   EXTERN_RANDOM rnd_gen glb_rnd_gen;
   EXTERN_RANDOM bool glb_rnd_gen_inited;
@@ -52,8 +43,12 @@ namespace nissa
   void generate_delta_eo_source(eo_ptr<su3> source,int *x);
   void generate_delta_source(su3spinspin *source,int *x);
   void generate_colorspindiluted_source(su3spinspin *source,enum rnd_t rtype,int twall);
+  
   inline void generate_spincolordiluted_source(su3spinspin *source,enum rnd_t rtype,int twall)
-  {generate_colorspindiluted_source(source,rtype,twall);}
+  {
+    generate_colorspindiluted_source(source,rtype,twall);
+  }
+  
   void generate_spindiluted_source(colorspinspin *source,enum rnd_t rtype,int twall);
   void generate_undiluted_source(spincolor *source,enum rnd_t rtype,int twall);
   void generate_fully_undiluted_lx_source(color *source,enum rnd_t rtype,int twall,int dir=0);
@@ -69,36 +64,19 @@ namespace nissa
   CUDA_HOST_DEVICE void rnd_get_Z4(complex out,rnd_gen *gen);
   CUDA_HOST_DEVICE void rnd_get_ZN(complex out,rnd_gen *gen,int N);
   CUDA_HOST_DEVICE inline void rnd_get_Z3(complex out,rnd_gen *gen)
-  {rnd_get_ZN(out,gen,3);}
+  {
+    rnd_get_ZN(out,gen,3);
+  }
+  
   double rnd_get_gauss_double(rnd_gen *gen,double ave=0,double sig=1);
   CUDA_HOST_DEVICE void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig);
   void start_glb_rnd_gen(const char *text);
   void start_glb_rnd_gen(int seed);
   void start_loc_rnd_gen(int seed);
   void start_loc_rnd_gen(const char *mess);
-  void start_rnd_gen(rnd_gen *out,int seed);
   void stop_loc_rnd_gen();
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
   CUDA_HOST_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd);
-  
-  //read from /dev/urandom
-  template <typename T>
-  void get_system_random(T &t)
-  {
-    const int size=sizeof(T);
-    
-    if(is_master_rank())
-      {
-	const char path[]="/dev/urandom";
-	int fd=open(path,O_RDONLY);
-	if(fd==-1) crash("Opening %s",path);
-	
-	int rc=read(fd,&t,size);
-        if(rc!=size) crash("reading %zu bytes from %s, obtained: %d",size,path,rc);
-	if(close(fd)==-1) crash("Closing %s",path);
-    }
-    MPI_Bcast(&t,size,MPI_CHAR,master_rank,MPI_COMM_WORLD);
-  }
 }
 
 #undef EXTERN_RANDOM
