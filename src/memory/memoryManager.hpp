@@ -20,8 +20,8 @@
 #include <base/debug.hpp>
 #include <metaProgramming/crtp.hpp>
 #include <memory/storLoc.hpp>
-#include <routines/ios.hpp>
 #include <new_types/value_with_extreme.hpp>
+#include <routines/ios.hpp>
 
 namespace nissa
 {
@@ -281,7 +281,7 @@ namespace nissa
     /// Print to a stream
     void printStatistics()
     {
-      master_printf("Maximal memory cached: %ld bytes, currently used: %ld bytes, maximally used: %ld, number of reused: %ld\n",
+      master_printf("Maximal memory cached: %ld bytes, currently used: %ld bytes, maximally used: %ld bytes, number of reused: %ld\n",
 		    cachedSize.extreme(),(Size)cachedSize,usedSize.extreme(),nCachedReused);
     }
     
