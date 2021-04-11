@@ -37,3 +37,5 @@ tools/Makefile.in
 /test/projects/spectral_projectors/conf*
 /test/projects/spectral_projectors/full_input
 /.cache/
+/tools/.cache/
+/test/projects/min_max_eigenvalue/
