@@ -2,7 +2,7 @@
 #define _MEMORY_MANAGER_HPP
 
 #ifdef HAVE_CONFIG_H
- #include <config.hpp>
+# include <config.hpp>
 #endif
 
 #include <map>
@@ -10,11 +10,11 @@
 #include <cstdint>
 
 #ifdef USE_CUDA
- #include <cuda_runtime.h>
+# include <cuda_runtime.h>
 #endif
 
 #ifndef EXTERN_MEMORY_MANAGER
- #define EXTERN_MEMORY_MANAGER extern
+# define EXTERN_MEMORY_MANAGER extern
 #endif
 
 #include <base/debug.hpp>
@@ -281,8 +281,8 @@ namespace nissa
     /// Print to a stream
     void printStatistics()
     {
-      master_printf("Maximal memory cached: %ld bytes, currently used: %ld bytes, number of reused: %ld\n",
-		    cachedSize.extreme(),(Size)cachedSize,nCachedReused);
+      master_printf("Maximal memory cached: %ld bytes, currently used: %ld bytes, maximally used: %ld, number of reused: %ld\n",
+		    cachedSize.extreme(),(Size)cachedSize,usedSize.extreme(),nCachedReused);
     }
     
     /// Create the memory manager
