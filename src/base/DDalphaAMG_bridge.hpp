@@ -1,7 +1,7 @@
 #ifndef _DDALPHAAMG_HPP
 #define _DDALPHAAMG_HPP
 
-#include "new_types/su3.hpp"
+#include <new_types/su3.hpp>
 
 #ifndef EXTERN_DD_BRIDGE
  #define EXTERN_DD_BRIDGE extern
@@ -16,7 +16,17 @@ namespace DD
   
   void finalize();
   void read_DDalphaAMG_pars();
+  
+#ifdef USE_DDALPHAAMG
   int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false);
+#else
+  inline int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false)
+  {
+    crash("Not implemented");
+    
+    return 0;
+  }
+#endif
 }
 
 namespace nissa

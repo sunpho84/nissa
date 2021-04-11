@@ -422,8 +422,9 @@ struct FieldRngOf
     
     NISSA_PARALLEL_LOOP(loclx,0,locVol)
       {
-	//Finds the global site of local one
-	const GlbLxSite glblx=glblxOfLoclx[loclx.nastyConvert()];
+	/// Global site of local one
+	const GlbLxSite& glblx=glblxOfLoclx(loclx);
+	
 	_fillSite((double*)(out+loclx.nastyConvert()),glblx);
       }
     NISSA_PARALLEL_LOOP_END;

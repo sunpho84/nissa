@@ -28,7 +28,7 @@
 #define NISSA_VECT_ALIGNMENT 16
 
 #define nissa_malloc(a,b,c) (c*)internal_nissa_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
-#define nissa_free(a) internal_nissa_free((char**)&(a),__FILE__,__LINE__)
+#define nissa_free(a) internal_nissa_free(a,__FILE__,__LINE__)
 
 #define CRASH_IF_NOT_ALIGNED(a,b) MACRO_GUARD(if((long long int)(void*)a%b!=0) crash("alignement problem");)
 #define IF_MAIN_VECT_NOT_INITIALIZED() if(main_arr!=((char*)&main_vect)+sizeof(nissa_vect))
@@ -80,7 +80,15 @@ namespace nissa
   void crash_if_edges_not_allocated(void *v,int min_size);
   void ignore_borders_communications_warning(void *data);
   void initialize_main_vect();
-  void internal_nissa_free(char **arr,const char *file,int line);
+  
+  void _internal_nissa_free(char** arr,const char *file,int line);
+  
+  /// Deallocate a pointer
+  template <typename T>
+  void internal_nissa_free(T* &arr,const char *file,int line)
+  {
+    _internal_nissa_free((char**)&arr,file,line);
+  }
   void vector_copy(void *a,const void *b);
   void vector_reset(void *a);
   void last_vect_content_printf();

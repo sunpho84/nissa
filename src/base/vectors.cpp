@@ -356,7 +356,7 @@ namespace nissa
   }
   
   //release a vector
-  void internal_nissa_free(char **arr,const char *file,int line)
+  void _internal_nissa_free(char **arr,const char *file,int line)
   {
     //sync so all thread are not using the vector
     THREAD_BARRIER();

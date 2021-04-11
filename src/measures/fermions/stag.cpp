@@ -1,20 +1,19 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
-#include "random/randomGenerate.hpp"
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "hmc/backfield.hpp"
-#include "hmc/theory_pars.hpp"
-#include "inverters/staggered/cg_invert_stD.hpp"
-#include "linalgs/linalgs.hpp"
-#include "linalgs/reduce.hpp"
-#include "new_types/su3.hpp"
-#include "measures/fermions/fermionic_meas.hpp"
-
-#include "stag.hpp"
+#include <random/randomGenerate.hpp>
+#include <base/vectors.hpp>
+#include <communicate/borders.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <hmc/backfield.hpp>
+#include <hmc/theory_pars.hpp>
+#include <inverters/staggered/cg_invert_stD.hpp>
+#include <linalgs/linalgs.hpp>
+#include <linalgs/reduce.hpp>
+#include <new_types/su3.hpp>
+#include <measures/fermions/fermionic_meas.hpp>
+#include <measures/fermions/stag.hpp>
 
 namespace nissa
 {
@@ -82,9 +81,8 @@ namespace nissa
 	}
       
       //free
-      for(int icopy=0;icopy<2;icopy++)
-	for(int par=0;par<2;par++)
-	  nissa_free(temp[icopy][par]);
+      for(int par=0;par<2;par++)
+	nissa_free(temp[par]);
     }
     
     //apply the operator

@@ -717,7 +717,8 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
   
   chromo_operator_remove_cSW(Cl,cSW);
   
-  nissa_free(Cl);
+  for(int eo=0;eo<2;eo++)
+    nissa_free(Cl[eo]);
   
   complex act;
   complex_summ(act,act_eo[EVN],act_eo[ODD]);
@@ -813,7 +814,8 @@ void test_xQx()
   
   master_printf("Comparing derivative of xQx for link %d %d %d\n",(int)eo,ieo,dir);
   
-  nissa_free(in);
+  for(int eo=0;eo<2;eo++)
+    nissa_free(in[eo]);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -846,7 +848,8 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
   
   chromo_operator_remove_cSW(Cl,cSW);
   
-  nissa_free(Cl);
+  for(int eo=0;eo<2;eo++)
+    nissa_free(Cl[eo]);
   
   master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
   

@@ -505,7 +505,6 @@ namespace nissa
     nissa_free(loclxNeighup);
     nissa_free(loclxNeighdw);
     
-    nissa_free(glblxOfLoclx);
     nissa_free(glblxOfBordlx);
     nissa_free(loclxOfBordlx);
     nissa_free(surflxOfBordlx);

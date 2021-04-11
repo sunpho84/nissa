@@ -1,23 +1,23 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+ #include <config.hpp>
 #endif
 
 #include <string.h>
 
-#include "base/DDalphaAMG_bridge.hpp"
-#include "base/quda_bridge.hpp"
-#include "base/tmLQCD_bridge.hpp"
-#include "base/vectors.hpp"
-#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
-#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_mix.hpp"
-#include "linalgs/linalgs.hpp"
-#include "routines/ios.hpp"
-#include "threads/threads.hpp"
+#include <base/DDalphaAMG_bridge.hpp>
+#include <base/quda_bridge.hpp>
+#include <base/tmLQCD_bridge.hpp>
+#include <base/vectors.hpp>
+#include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp>
+#include <dirac_operators/tmQ/dirac_operator_tmQ.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <geometry/geometry_mix.hpp>
+#include <linalgs/linalgs.hpp>
+#include <routines/ios.hpp>
+#include <threads/threads.hpp>
 
-#include "cg_64_invert_tmD_eoprec.hpp"
-#include "cg_128_invert_tmD_eoprec.hpp"
+#include <inverters/twisted_mass/cg_64_invert_tmD_eoprec.hpp>
+#include <inverters/twisted_mass/cg_128_invert_tmD_eoprec.hpp>
 
 namespace nissa
 {

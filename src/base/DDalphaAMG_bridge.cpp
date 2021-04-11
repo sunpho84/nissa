@@ -1,21 +1,21 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <DDalphaAMG.h>
 
-#include "base/debug.hpp"
-#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "io/checksum.hpp"
-#include "io/input.hpp"
-#include "new_types/su3.hpp"
-#include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
+#include <base/debug.hpp>
+#include <dirac_operators/tmQ/dirac_operator_tmQ.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <io/checksum.hpp>
+#include <io/input.hpp>
+#include <new_types/su3.hpp>
+#include <routines/ios.hpp>
+#include <routines/mpi_routines.hpp>
+#include <threads/threads.hpp>
 
 #define EXTERN_DD_BRIDGE
- #include "DDalphaAMG_bridge.hpp"
+# include <base/DDalphaAMG_bridge.hpp>
 
 namespace DD
 {
