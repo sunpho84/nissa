@@ -330,7 +330,8 @@ namespace nissa
     }
     
     /// Properly free
-    void deAllocateRaw(void* &ptr)
+    template <typename T>
+    void deAllocateRaw(T* &ptr)
     {
       verbosity_lv3_master_printf("Freeing from CPU memory %p\n",ptr);
       free(ptr);
@@ -364,7 +365,8 @@ namespace nissa
     }
     
     /// Properly free
-    void deAllocateRaw(void* &ptr)
+    template <typename T>
+    void deAllocateRaw(T* &ptr)
     {
       master_printf("Freeing from GPU memory %p\n",ptr);
       decript_cuda_error(cudaFree(ptr),"Freeing from GPU");
