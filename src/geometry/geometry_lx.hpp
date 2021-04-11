@@ -2,7 +2,7 @@
 #define _GEOMETRY_LX_HPP
 
 #ifdef HAVE_CONFIG_H
- #include <config.hpp>
+# include <config.hpp>
 #endif
 
 #ifdef USE_MPI
@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 
+#include <new_types/coords.hpp>
 #include <routines/math_routines.hpp>
 #include <tensor/component.hpp>
 
@@ -35,9 +36,6 @@ namespace nissa
   DECLARE_COMPONENT(GlbEoSite,int64_t,DYNAMIC);
   
   DECLARE_COMPONENT(LocEoSite,int64_t,DYNAMIC);
-  
-  typedef int coords[NDIM];
-  typedef double momentum_t[NDIM];
   
   //nomenclature:
   //-glb is relative to the global grid
@@ -71,13 +69,6 @@ namespace nissa
   //neighbours of local volume + borders
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords *loclxNeighdw,*loclxNeighup;
   EXTERN_GEOMETRY_LX coords *loclx_neigh[2];
-  //ranks
-  EXTERN_GEOMETRY_LX coords fix_nranks;
-  EXTERN_GEOMETRY_LX int rank,nranks,cart_rank;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords rank_coord;
-  EXTERN_GEOMETRY_LX coords rank_neigh[2],rank_neighdw,rank_neighup;
-  EXTERN_GEOMETRY_LX coords plan_rank,line_rank,line_coord_rank;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords nrank_dir;
   EXTERN_GEOMETRY_LX int grid_inited;
   EXTERN_GEOMETRY_LX int nparal_dir;
   EXTERN_GEOMETRY_LX coords paral_dir;

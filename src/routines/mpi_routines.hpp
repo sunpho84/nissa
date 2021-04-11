@@ -4,9 +4,9 @@
 #include <mpi.h>
 #include <algorithm>
 
-#include "geometry/geometry_lx.hpp"
-#include "math_routines.hpp"
-#include "new_types/float_128.hpp"
+#include <routines/math_routines.hpp>
+#include <new_types/coords.hpp>
+#include <new_types/float_128.hpp>
 
 #ifndef EXTERN_MPI
  #define EXTERN_MPI extern
@@ -19,6 +19,13 @@ namespace nissa
 {
   struct rat_approx_t;
   
+  //ranks
+  EXTERN_MPI coords fix_nranks;
+  EXTERN_MPI int rank,nranks,cart_rank;
+  CUDA_MANAGED EXTERN_MPI coords rank_coord;
+  EXTERN_MPI coords rank_neigh[2],rank_neighdw,rank_neighup;
+  EXTERN_MPI coords plan_rank,line_rank,line_coord_rank;
+  CUDA_MANAGED EXTERN_MPI coords nrank_dir;
   //basic mpi types
   EXTERN_MPI MPI_Datatype MPI_FLOAT_128;
   EXTERN_MPI MPI_Datatype MPI_COMPLEX_128;

@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 
-#include "base/debug.hpp"
-#include "new_types/complex.hpp"
-#include "routines/mpi_routines.hpp"
+#include <base/debug.hpp>
+#include <new_types/complex.hpp>
+#include <routines/mpi_routines.hpp>
 
 #if THREADS_TYPE == OPENMP_THREADS
  #include <omp.h>
