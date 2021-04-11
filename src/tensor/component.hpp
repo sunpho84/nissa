@@ -107,7 +107,7 @@ namespace nissa
   
   DEFINE_FEATURE(TensorCompFeat);
   
-  /// Tensor component defined by base type S
+  /// Tensor component defined by signature type S
   template <typename S,
 	    RwCl RC=ROW,
 	    int Which=0>
@@ -118,8 +118,8 @@ namespace nissa
     using Transp=
       TensorComp<S,transp<RC>,Which>;
     
-    /// Base type
-    using Base=
+    /// Signature type
+    using Signature=
       S;
     
     /// Value type
@@ -140,8 +140,8 @@ namespace nissa
       Which;
     
     /// Size at compile time
-    static constexpr Base sizeAtCompileTime=
-      Base::sizeAtCompileTime;
+    static constexpr Index sizeAtCompileTime=
+      Signature::sizeAtCompileTime;
     
     /// Check if the size is known at compile time
     static constexpr
@@ -149,7 +149,7 @@ namespace nissa
       sizeAtCompileTime!=DYNAMIC;
     
     /// Returns the size at compile time, with assert
-    static constexpr Base sizeAtCompileTimeAssertingNotDynamic()
+    static constexpr Index sizeAtCompileTimeAssertingNotDynamic()
     {
       static_assert(sizeIsKnownAtCompileTime,"Size not known at compile time!");
       
