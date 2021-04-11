@@ -11,6 +11,7 @@
 
 #include <memory/memoryManager.hpp>
 #include <memory/storLoc.hpp>
+#include <tensor/tensorStorage.hpp>
 
 namespace nissa
 {
@@ -19,14 +20,16 @@ namespace nissa
   /// Forward definition to capture actual components
   template <typename Comps,
 	    typename Fund=double,
-	    StorLoc SL=DefaultStorage>
+	    StorLoc SL=DefaultStorage,
+	    Stackable IsStackable=Stackable::MIGHT_GO_ON_STACK>
   struct Tensor;
   
   /// Tensor
   template <typename F,
 	    StorLoc SL,
-	    typename...TC>
-  struct Tensor<TensorComps<TC...>,F,SL>
+	    typename...TC,
+	    Stackable IsStackable>
+  struct Tensor<TensorComps<TC...>,F,SL,IsStackable>
   {
     /// Fundamental type
     using Fund=F;
@@ -57,15 +60,15 @@ namespace nissa
     
     /// Static size
     static constexpr Index staticSize=
-      ((TC::SizeIsKnownAtCompileTime?
-	TC::Base::sizeAtCompileTime:
+      ((TC::sizeIsKnownAtCompileTime?
+	TC::sizeAtCompileTime:
        Index{1})*...);
     
     /// Size of the Tv component
     ///
     /// Case in which the component size is known at compile time
     template <typename Tv,
-	      ENABLE_THIS_TEMPLATE_IF(Tv::SizeIsKnownAtCompileTime)>
+	      ENABLE_THIS_TEMPLATE_IF(Tv::sizeIsKnownAtCompileTime)>
     CUDA_HOST_DEVICE INLINE_FUNCTION
     constexpr auto compSize()
       const
@@ -78,7 +81,7 @@ namespace nissa
     ///
     /// Case in which the component size is not knwon at compile time
     template <typename Tv,
-	      ENABLE_THIS_TEMPLATE_IF(not Tv::SizeIsKnownAtCompileTime)>
+	      ENABLE_THIS_TEMPLATE_IF(not Tv::sizeIsKnownAtCompileTime)>
     constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
     const auto& compSize()
       const
@@ -117,12 +120,12 @@ namespace nissa
 	std::decay_t<T>;
       
       /// Size of this component
-      const auto thisSize=
-	compSize<Tv>();
+      const Index thisSize=
+	compSize<Tv>()();
       
       /// Value of the index when including this component
-      const auto thisVal=
-	outer*thisSize+thisComp;
+      const Index thisVal=
+	outer*thisSize+thisComp();
       
       return
 	orderedCompsIndex(thisVal,innerComps...);
@@ -147,18 +150,19 @@ namespace nissa
     static constexpr Index storageSizeAtCompileTime=
       allCompsAreStatic?(Index)staticSize:(Index)DYNAMIC;
     
-    /// Actual storage
-    Fund* data;
+    /// Storage type
+    using StorageType=
+      TensorStorage<Fund,storageSizeAtCompileTime,SL,IsStackable>;
     
-    /// Size of the storage
-    const Index storageSize;
+    /// Actual storage
+    StorageType storage;
     
     /// Returns the pointer to the data
     CUDA_HOST_DEVICE
     decltype(auto) getDataPtr()
       const
     {
-      return data;
+      return storage.getDataPtr();
     }
     
     PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(getDataPtr,CUDA_HOST_DEVICE);
@@ -179,7 +183,7 @@ namespace nissa
     template <typename...Td,
 	      typename...T>
     CUDA_HOST_DEVICE
-    TensorComps<Td...> initializeDynSizes(TensorComps<Td...>*,
+    TensorComps<Td...> _initializeDynSizes(TensorComps<Td...>*,
 					  T&&...in)
     {
       static_assert(sizeof...(T)==sizeof...(Td),"Number of passed dynamic sizes not matching the needed one");
@@ -187,31 +191,28 @@ namespace nissa
       return {std::get<Td>(std::make_tuple(in...))...};
     }
     
-    /// Allocate the data
-    void allocateData()
-    {
-      data=memoryManager<SL>()->template provide<Fund>(storageSize);
-      master_printf("Allocated: %p",data);
-    }
-    
-    /// Initialize the tensor with the knowledge of the dynamic size
+    /// Allocate the storage
     template <typename...TD>
-    explicit Tensor(const TensorCompFeat<TD>&...tdFeat) :
-      dynamicSizes{initializeDynSizes((DynamicComps*)nullptr,tdFeat.deFeat()...)},
-      storageSize(staticSize*(tdFeat.deFeat()*...))
+    void allocate(const TensorCompFeat<TD>&...tdFeat)
     {
-      allocateData();
+      dynamicSizes=_initializeDynSizes((DynamicComps*)nullptr,tdFeat.deFeat()...);
+      
+      const Size sizeToAllocate=(staticSize*(tdFeat.deFeat()*...))();
+      
+      storage.allocate(sizeToAllocate);
     }
     
-    /// Initialize the tensor when no dynamic component is present
-    // template <typename...TD,
-    // 	      ENABLE_THIS_TEMPLATE_IF(sizeof...(TD)==0)>
-    Tensor() :
-      dynamicSizes{},
-      storageSize(storageSizeAtCompileTime)
+    /// Initialize the tensor with the knowledge of the dynamic sizes
+    template <typename...TD>
+    explicit Tensor(TD&&...td)
     {
-      static_assert(allCompsAreStatic,"Cannot allocate without knowledge of the dynamic sizes");
-      allocateData();
+      allocate(std::forward<TD>(td)...);
+    }
+    
+    /// Initialize the tensor whithout allocating
+    Tensor() :
+      dynamicSizes{}
+    {
     }
     
     /// Initialize the tensor when sizes are passed as a TensorComps
@@ -226,8 +227,7 @@ namespace nissa
     CUDA_HOST_DEVICE
     Tensor(Tensor<TensorComps<TC...>,Fund,SL>&& oth) :
       dynamicSizes(oth.dynamicSizes),
-      data(std::move(oth.data)),
-      storageSize(oth.storageSize)
+      storage(std::move(oth.data))
     {
       oth.data=nullptr;
     }
@@ -236,7 +236,7 @@ namespace nissa
     Tensor& operator=(Tensor&& oth)
     {
       std::swap(dynamicSizes,oth.dynamicSizes);
-      std::swap(data,oth.data);
+      std::swap(storage,oth.data);
       
       return *this;
     }
@@ -251,8 +251,8 @@ namespace nissa
     
     ~Tensor()
     {
-      memoryManager<SL>()->release(data);
     }
+    
     /// Evaluate, returning a reference to the fundamental type
     template <typename...TD,
 	      ENABLE_THIS_TEMPLATE_IF(sizeof...(TD)==sizeof...(TC))>
@@ -275,12 +275,12 @@ namespace nissa
       // static_assert(not accessDeviceMemoryOnHost,"Cannot access device memory from host");
       // static_assert(not accessHostMemoryOnDevice,"Cannot access host memory from device");
       
-      return data[index(std::make_tuple(td...))];
+      return storage[index(std::make_tuple(td...))];
     }
     
     PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
     
-    /// Temporary implementation
+    /// Temporary implementation, in which all components must be specified
     template <typename...TD>
     CUDA_HOST_DEVICE INLINE_FUNCTION
     const Fund& operator()(const TD&...td) const

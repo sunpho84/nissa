@@ -185,6 +185,7 @@
 #include <routines/mpi_routines.hpp>
 
 #include <tensor/component.hpp>
+#include <tensor/tensor.hpp>
 
 #include <threads/threads.hpp>
 
