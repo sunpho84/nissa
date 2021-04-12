@@ -148,8 +148,6 @@ void in_main(int narg,char **arg)
 {
   if(narg<3) crash("Use %s L T",arg[0]);
   
-  use_Leb_geom=1;
-  
   //grid
   int L=atoi(arg[1]),T=atoi(arg[2]);
   init_grid(T,L);
