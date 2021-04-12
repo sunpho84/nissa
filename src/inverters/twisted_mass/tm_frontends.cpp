@@ -21,15 +21,15 @@ namespace nissa
   {
     
     //allocate temporary source
-    spincolor *temp_source=nissa_malloc("temp_source",(locVol+bord_vol).nastyConvert(),spincolor);
+    spincolor *temp_source=nissa_malloc("temp_source",locVolWithBord.nastyConvert(),spincolor);
     //allocate temp_vec
     std::array<spincolor*,2> temp_vec;
-    temp_vec[0]=nissa_malloc("temp_vec[0]",(locVol+bord_vol).nastyConvert(),spincolor);
-    temp_vec[1]=nissa_malloc("temp_vec[1]",(locVol+bord_vol).nastyConvert(),spincolor);
+    temp_vec[0]=nissa_malloc("temp_vec[0]",locVolWithBord.nastyConvert(),spincolor);
+    temp_vec[1]=nissa_malloc("temp_vec[1]",locVolWithBord.nastyConvert(),spincolor);
     //allocate nmass spincolors, for the cgm solutions
     spincolor **cgm_solution;
     cgm_solution=nissa_malloc("cgm_solution",nmass,spincolor*);
-    for(int imass=0;imass<nmass;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution[imass]",(locVol+bord_vol).nastyConvert(),spincolor);
+    for(int imass=0;imass<nmass;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution[imass]",locVolWithBord.nastyConvert(),spincolor);
     
     //loop over the source dirac and color index
     for(int id=0;id<4;id++)

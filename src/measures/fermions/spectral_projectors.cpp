@@ -32,7 +32,7 @@ namespace nissa
     
     //results of the g5 application
     eo_ptr<color> eigvec_g5_eo={nissa_malloc("eigvec_g5_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("eigvec_g5_ODD",(locVolh+bord_volh).nastyConvert(),color)};
-    color *eigvec_g5_lx=nissa_malloc("eigvec_g5",(locVol+bord_vol).nastyConvert(),color);
+    color *eigvec_g5_lx=nissa_malloc("eigvec_g5",locVolWithBord.nastyConvert(),color);
     
     //launch the eigenfinder
     double eig_time=-take_time();
@@ -92,7 +92,7 @@ namespace nissa
     
     color **eigvec=nissa_malloc("eigvec",neigs,color*);
     for(int ieig=0;ieig<neigs;ieig++)
-      eigvec[ieig]=nissa_malloc("eigvec_ieig",(locVol+bord_vol).nastyConvert(),color);
+      eigvec[ieig]=nissa_malloc("eigvec_ieig",locVolWithBord.nastyConvert(),color);
     
     // reset vectors
     vector_reset(charge_cut);
@@ -163,7 +163,7 @@ namespace nissa
     
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf);
     
     //loop on smooth

@@ -1,20 +1,19 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <math.h>
 
-#include "base/bench.hpp"
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
-#include "linalgs/linalgs.hpp"
-#include "new_types/su3_op.hpp"
+#include <base/bench.hpp>
+#include <base/debug.hpp>
+#include <base/vectors.hpp>
+#include <communicate/borders.hpp>
+#include <linalgs/linalgs.hpp>
+#include <new_types/su3_op.hpp>
 
-#include "dirac_operator_stDLeb_portable.cpp"
-#include "dirac_operator_stD_portable.cpp"
-#include "dirac_operator_stD_32_portable.cpp"
-#include "measures/fermions/stag.hpp"
+#include <dirac_operators/stD/dirac_operator_stD_portable.cpp>
+#include <dirac_operators/stD/dirac_operator_stD_32_portable.cpp>
+#include <measures/fermions/stag.hpp>
 
 namespace nissa
 {

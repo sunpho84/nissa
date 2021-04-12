@@ -44,7 +44,7 @@ namespace nissa
     if(all)
       {
 	communicate_lx_spinspin_borders(in);
-	ending=locVol+bord_vol;
+	ending=locVolWithBord;
       }
     else
       ending=locVol;

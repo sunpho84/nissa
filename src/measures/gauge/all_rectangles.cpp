@@ -124,7 +124,7 @@ namespace nissa
     su3 *post_transp_conf_holder=nissa_malloc("post_transp_conf_holder",cmp_vol_max,su3);
     
     //hyp or APE smear the conf
-    quad_su3 *sme_conf=nissa_malloc("sme_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *sme_conf=nissa_malloc("sme_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     for(int mu0=0;mu0<NDIM;mu0++)
       {
 	vector_copy(sme_conf,ori_conf);
@@ -484,7 +484,7 @@ namespace nissa
   
   void measure_all_rectangular_paths(all_rects_meas_pars_t *pars,eo_ptr<quad_su3> conf_eo,int iconf,int create_output_file)
   {
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     //check that we do not exceed geometry

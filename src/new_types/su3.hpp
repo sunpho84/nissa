@@ -32,7 +32,6 @@ namespace nissa
   
   typedef color su3[NCOL];
   typedef su3 quad_su3[NDIM];
-  typedef su3 oct_su3[2*NDIM];
   
   typedef colorspinspin su3spinspin[NCOL];
   

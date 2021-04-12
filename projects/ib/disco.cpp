@@ -547,9 +547,9 @@ void init_simulation(int narg,char **arg)
   
   read_str_int("NGaugeConf",&ngauge_conf);
   
-  glb_conf=nissa_malloc("glb_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+  glb_conf=nissa_malloc("glb_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
   if(useSme)
-    ape_conf=nissa_malloc("ape_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    ape_conf=nissa_malloc("ape_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
   
   if(cSW!=0.0)
     {
@@ -559,9 +559,9 @@ void init_simulation(int narg,char **arg)
   
   source_ptr=nissa_malloc("source_ptr",glbSize[0],spincolor*);
   for(int t=0;t<glbSize[0];t++)
-    source(t)=nissa_malloc("source",(locVol+bord_vol).nastyConvert(),spincolor);
+    source(t)=nissa_malloc("source",locVolWithBord.nastyConvert(),spincolor);
   
-  temp=nissa_malloc("temp",(locVol+bord_vol).nastyConvert(),spincolor);
+  temp=nissa_malloc("temp",locVolWithBord.nastyConvert(),spincolor);
   
   loc_contr=nissa_malloc("loc_contr",locVol.nastyConvert(),complex);
   temp_contr=nissa_malloc("temp_contr",glbSize[0],complex);
@@ -569,7 +569,7 @@ void init_simulation(int narg,char **arg)
   prop_ptr=nissa_malloc("prop_ptr",2*glbSize[0],spincolor*);
   for(int t=0;t<glbSize[0];t++)
     for(int r=0;r<2;r++)
-      prop(t,r)=nissa_malloc("prop",(locVol+bord_vol).nastyConvert(),spincolor);
+      prop(t,r)=nissa_malloc("prop",locVolWithBord.nastyConvert(),spincolor);
   
   field_rng_stream.init(seed);
   

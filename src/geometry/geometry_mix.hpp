@@ -3,10 +3,9 @@
 
 #include <unistd.h>
 
-#include "geometry_eo.hpp"
-#include "geometry_Leb.hpp"
+#include <geometry/geometry_eo.hpp>
 
-#include "new_types/su3.hpp"
+#include <new_types/su3.hpp>
 
 namespace nissa
 {
@@ -38,17 +37,6 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   void remap_vector_internal(char *out,char *in,int64_t bps,int *dest_of_source,int length);
-  
-  // template <class T> void remap_Leb_ev_or_od_to_loc_vector(T *out,T *in,int par)
-  // {remap_vector_internal((char*)out,(char*)in,sizeof(T),loceo_of_Lebeo[par],loc_volh);}
-  // template <class T> void remap_Lebeo_to_loceo_vector(T **out,T **in)
-  // {for(int eo=0;eo<2;eo++) remap_Leb_ev_or_od_to_loc_vector(out[eo],in[eo],eo);}
-  // template <class T> void remap_loc_ev_or_od_to_Leb_vector(T *out,T *in,int par)
-  // {remap_vector_internal((char*)out,(char*)in,sizeof(T),Lebeo_of_loceo[par],loc_volh);}
-  // template <class T> void remap_loceo_to_Lebeo_vector(T **out,T **in)
-  // {for(int eo=0;eo<2;eo++) remap_loc_ev_or_od_to_Leb_vector(out[eo],in[eo],eo);}
-  
-  // void remap_loceo_conf_to_Lebeo_oct(oct_su3 *out,quad_su3 **in,int par);
 }
 
 #endif

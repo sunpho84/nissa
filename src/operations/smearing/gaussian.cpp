@@ -50,10 +50,10 @@ namespace nissa
     else								\
       {									\
 	TYPE *temp=ext_temp;						\
-	if(temp==NULL) temp=nissa_malloc("temp",(locVol+bord_vol).nastyConvert(),TYPE); \
+	if(temp==NULL) temp=nissa_malloc("temp",locVolWithBord.nastyConvert(),TYPE); \
 									\
 	TYPE *H=ext_H;							\
-	if(ext_H==NULL) H=nissa_malloc("H",(locVol+bord_vol).nastyConvert(),TYPE);	\
+	if(ext_H==NULL) H=nissa_malloc("H",locVolWithBord.nastyConvert(),TYPE);	\
 									\
 	double norm_fact=1/(1+2*(kappa[1]+kappa[2]+kappa[3]));		\
 									\
@@ -99,12 +99,12 @@ namespace nissa
     else
       {
 	//copy to a temp buffer
-	TYPE *temp1=nissa_malloc("temp",(locVol+bord_vol).nastyConvert(),TYPE);
+	TYPE *temp1=nissa_malloc("temp",locVolWithBord.nastyConvert(),TYPE);
 	vector_copy(temp1,origi_sc);
 	
 	//allocate two temp vectors for gaussian
-	TYPE *temp2=nissa_malloc("temp2",(locVol+bord_vol).nastyConvert(),TYPE);
-	TYPE *temp3=nissa_malloc("temp3",(locVol+bord_vol).nastyConvert(),TYPE);
+	TYPE *temp2=nissa_malloc("temp2",locVolWithBord.nastyConvert(),TYPE);
+	TYPE *temp3=nissa_malloc("temp3",locVolWithBord.nastyConvert(),TYPE);
 	
 	//reset the output
 	vector_reset(smear_sc);

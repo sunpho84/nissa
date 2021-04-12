@@ -230,7 +230,7 @@ namespace nissa
     START_TIMING(bflw_time,nbflw_tot);
     
     //the flown conf
-    quad_su3 *flown_conf=nissa_malloc("flown_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *flown_conf=nissa_malloc("flown_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     vector_copy(flown_conf,conf);
     
     //the recursive flower, need to cache backward integration
@@ -269,7 +269,7 @@ namespace nissa
     START_TIMING(flw_time,nflw_tot);
     
     //the flown conf
-    quad_su3 *flown_conf=nissa_malloc("flown_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *flown_conf=nissa_malloc("flown_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     vector_copy(flown_conf,conf);
     
     //the flower, need to cache integration
@@ -327,13 +327,13 @@ namespace nissa
 	conf=get_updated_conf(0.0,theta,ext_conf);
       }
     
-    spincolor* ori=nissa_malloc("ori",(locVol+bord_vol).nastyConvert(),spincolor);
+    spincolor* ori=nissa_malloc("ori",locVolWithBord.nastyConvert(),spincolor);
     build_source(ori,&source_terms,isou);
     
     spin1field *ext_field=nullptr;
     if(inser==EXT_FIELD)
       {
-	ext_field=nissa_malloc("ext_field",(locVol+bord_vol).nastyConvert(),spin1field);
+	ext_field=nissa_malloc("ext_field",locVolWithBord.nastyConvert(),spin1field);
 	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
       }
     
@@ -506,9 +506,9 @@ namespace nissa
   //allocate the photon fields
   void allocate_photon_fields()
   {
-    photon_eta=nissa_malloc("photon_eta",(locVol+bord_vol).nastyConvert(),spin1field);
-    photon_field=nissa_malloc("photon_field",(locVol+bord_vol).nastyConvert(),spin1field);
-    photon_phi=nissa_malloc("photon_phi",(locVol+bord_vol).nastyConvert(),spin1field);
+    photon_eta=nissa_malloc("photon_eta",locVolWithBord.nastyConvert(),spin1field);
+    photon_field=nissa_malloc("photon_field",locVolWithBord.nastyConvert(),spin1field);
+    photon_phi=nissa_malloc("photon_phi",locVolWithBord.nastyConvert(),spin1field);
   }
   
   //free the photon fields
@@ -742,7 +742,7 @@ namespace nissa
   void propagators_fft(int ihit)
   {
     
-    spincolor *qtilde=nissa_malloc("qtilde",(locVol+bord_vol).nastyConvert(),spincolor);
+    spincolor *qtilde=nissa_malloc("qtilde",locVolWithBord.nastyConvert(),spincolor);
     
     int nf=fft_filterer.size();
     spincolor *qfilt[nf];

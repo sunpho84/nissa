@@ -1,12 +1,12 @@
 #ifdef HAVE_CONFIG_H
- #include <config.hpp>
+# include <config.hpp>
 #endif
 
 #include <math.h>
 #include <string.h>
 
 #define EXTERN_GEOMETRY_LX
- #include <geometry/geometry_lx.hpp>
+# include <geometry/geometry_lx.hpp>
 
 #include <base/debug.hpp>
 #include <base/vectors.hpp>
@@ -20,20 +20,20 @@
 
 namespace nissa
 {
-  //Return the index of site of coord x in the border mu,nu
-  int edgelx_of_coord(int *x,int mu,int nu)
+  /// Return the index of site of coord x in the 2d space obtained projecting away mu and nu
+  int lineLxOfDoublyProjectedCoords(int *x,int mu,int nu)
   {
     int ilx=0;
     
     for(int rho=0;rho<NDIM;rho++)
-      if(rho!=mu && rho!=nu)
+      if(rho!=mu and rho!=nu)
 	ilx=ilx*locSize[rho]+x[rho];
     
     return ilx;
   }
   
-  //Return the index of site of coord x in the border mu
-  int bordlx_of_coord(int *x,int mu)
+  /// Return the index of site of coord x in the 3d space obtained projecting away mu
+  int spatLxOfProjectedCoords(int *x,int mu)
   {
     int ilx=0;
     for(int nu=0;nu<NDIM;nu++)
@@ -211,8 +211,8 @@ namespace nissa
 	if(is)
 	  {
 	    if(is_bord[mu]==-1)
-	      return (locVol+bord_offset[mu]+bordlx_of_coord(x,mu)).nastyConvert();             //backward border comes first
-	    if(is_bord[mu]==+1) return (locVol+bord_vol/2+bord_offset[mu]+bordlx_of_coord(x,mu)).nastyConvert();  //forward border comes after
+	      return (locVol()+bord_offset[mu]()+spatLxOfProjectedCoords(x,mu));             //backward border comes first
+	    if(is_bord[mu]==+1) return (locVolWithBord()/2+bord_offset[mu]()+spatLxOfProjectedCoords(x,mu));  //forward border comes after
 	    crash("if is bord should not arrive here %d %d %d %d",ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
 	  }
       }
@@ -235,10 +235,10 @@ namespace nissa
 	  if(is)
 	    {
 	      int iedge=edge_numb[mu][nu];
-	      if((is_bord[al]==-1)&&(is_bord[be]==-1)) return (locVol+bord_vol+edge_offset[iedge]+0*edge_vol/4+edgelx_of_coord(x,mu,nu)).nastyConvert();
-	      if((is_bord[al]==-1)&&(is_bord[be]==+1)) return (locVol+bord_vol+edge_offset[iedge]+1*edge_vol/4+edgelx_of_coord(x,mu,nu)).nastyConvert();
-	      if((is_bord[al]==+1)&&(is_bord[be]==-1)) return (locVol+bord_vol+edge_offset[iedge]+2*edge_vol/4+edgelx_of_coord(x,mu,nu)).nastyConvert();
-	      if((is_bord[al]==+1)&&(is_bord[be]==+1)) return (locVol+bord_vol+edge_offset[iedge]+3*edge_vol/4+edgelx_of_coord(x,mu,nu)).nastyConvert();
+	      if((is_bord[al]==-1)&&(is_bord[be]==-1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+0*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
+	      if((is_bord[al]==-1)&&(is_bord[be]==+1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+1*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
+	      if((is_bord[al]==+1)&&(is_bord[be]==-1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+2*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
+	      if((is_bord[al]==+1)&&(is_bord[be]==+1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+3*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
 	      crash("Edge: %d, mu=%d, nu=%d %d %d %d %d",iedge,mu,nu,ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
 	    }
 	}
@@ -247,15 +247,17 @@ namespace nissa
   }
   
   //return the border site adiacent at surface
-  int bordlx_of_surflx(const LocLxSite& _loclx,int mu)
+  BordLxSite bordlx_of_surflx(const LocLxSite& _loclx,int mu)
   {
     auto loclx=_loclx.nastyConvert();
     
     if(!paral_dir[mu]) return -1;
     if(locSize[mu]<2) crash("not working if one dir is smaller than 2");
     
-    if(locCoordOfLoclx[loclx][mu]==0) return (loclxNeighdw[loclx][mu]-locVol).nastyConvert();
-    if(locCoordOfLoclx[loclx][mu]==locSize[mu]-1) return (loclxNeighup[loclx][mu]-locVol).nastyConvert();
+    if(locCoordOfLoclx[loclx][mu]==0)
+      return bordLxSiteOfExtendedLocLxSize(loclxNeighdw[loclx][mu]);
+    if(locCoordOfLoclx[loclx][mu]==locSize[mu]-1)
+      return bordLxSiteOfExtendedLocLxSize(loclxNeighup[loclx][mu]);
     
     return -1;
   }
@@ -290,8 +292,8 @@ namespace nissa
 	    for(int nu=0;nu<NDIM;nu++)
 	      glbCoordOfLoclx[iloc.nastyConvert()][nu]=(x[nu]+rank_coord[nu]*locSize[nu]+glbSize[nu])%glbSize[nu];
 	    
-	    //find the global index
-	    const int iglb=glblx_of_coord(glbCoordOfLoclx[iloc.nastyConvert()]);
+	    /// Global index
+	    const GlbLxSite iglb=glblx_of_coord(glbCoordOfLoclx[iloc.nastyConvert()]);
 	    
 	    //if it is on the bulk store it
 	    if(iloc<locVol)
@@ -302,18 +304,18 @@ namespace nissa
 	      }
 	    
 	    //if it is on the border store it
-	    if(iloc>=locVol and iloc<locVol+bord_vol)
+	    if(iloc>=locVol and iloc<locVolWithBord)
 	      {
-		const LocLxSite ibord=iloc-locVol;
-		glblxOfBordlx[ibord.nastyConvert()]=iglb;
-		loclxOfBordlx[ibord.nastyConvert()]=iloc.nastyConvert();
+		const BordLxSite& ibord=bordLxSiteOfExtendedLocLxSize(iloc);
+		glblxOfBordlx(ibord)=iglb;
+		loclxOfBordlx(ibord)=iloc.nastyConvert();
 	      }
 	    
 	    //if it is on the edge store it
-	    if(iloc>=locVol+bord_vol)
+	    if(iloc>=locVolWithBord)
 	      {
-		const LocLxSite iedge=iloc-locVol-bord_vol;
-		glblxOfEdgelx[iedge.nastyConvert()]=iglb;
+		const EdgeLxSite iedge=edgeLxSiteOfExtendedLocLxSize(iloc);
+		glblxOfEdgelx(iedge)=iglb;
 	      }
 	  }
       }
@@ -323,7 +325,7 @@ namespace nissa
   void find_neighbouring_sites()
   {
     //loop over the four directions
-    for(LocLxSite ivol=0;ivol<locVol+bord_vol+edge_vol;ivol++)
+    for(LocLxSite ivol=0;ivol<locVolWithBordAndEdge;ivol++)
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  //copy the coords
@@ -349,8 +351,8 @@ namespace nissa
     NISSA_LOC_VOL_LOOP(loclx)
       for(int mu=0;mu<NDIM;mu++)
 	{
-	  int bordlx=bordlx_of_surflx(loclx,mu);
-	  if(bordlx!=-1) surflxOfBordlx[bordlx]=loclx.nastyConvert();
+	  const BordLxSite bordlx=bordlx_of_surflx(loclx,mu);
+	  if(bordlx!=-1) loclxSiteAdjacentToBordLx(bordlx)=loclx;
 	}
   }
   
@@ -358,7 +360,8 @@ namespace nissa
   void find_bulk_sites()
   {
     //check surfacity
-    LocLxSite ibulk=0,inon_fw_surf=0,inon_bw_surf=0;
+    BulkLxSite ibulk=0;
+    LocLxSite inon_fw_surf=0,inon_bw_surf=0;
     LocLxSite isurf=0,ifw_surf=0,ibw_surf=0;
     NISSA_LOC_VOL_LOOP(ivol)
       {
@@ -372,12 +375,11 @@ namespace nissa
 	    }
 	
 	//mark it
-	if(is_bulk) loclxOfBulklx[(ibulk++).nastyConvert()]=ivol.nastyConvert();
-	else        loclxOfSurflx[(isurf++).nastyConvert()]=ivol.nastyConvert();
-	if(is_non_fw_surf) loclxOfNonFwSurflx[(inon_fw_surf++).nastyConvert()]=ivol.nastyConvert();
-	else               loclxOfFwSurflx[(ifw_surf++).nastyConvert()]=ivol.nastyConvert();
-	if(is_non_bw_surf) loclxOfNonBwSurflx[(inon_bw_surf++).nastyConvert()]=ivol.nastyConvert();
-	else               loclxOfBwSurflx[(ibw_surf++).nastyConvert()]=ivol.nastyConvert();
+	if(is_bulk) loclxOfBulklx(ibulk++)=ivol;
+	if(is_non_fw_surf) loclxOfNonFwSurflx(inon_fw_surf++)=ivol;
+	else               loclxOfFwSurflx(ifw_surf++)=ivol;
+	if(is_non_bw_surf) loclxOfNonBwSurflx(inon_bw_surf++)=ivol;
+	else               loclxOfBwSurflx(ibw_surf++)=ivol;
       }
     
     if(ibulk!=bulkVol) crash("mismatch in bulk id");
@@ -403,9 +405,9 @@ namespace nissa
     memcpy(rank_neigh[1],rank_neighup,sizeof(coords));
     
     locCoordOfLoclx=nissa_malloc("loc_coord_of_loclx",locVol.nastyConvert(),coords);
-    glbCoordOfLoclx=nissa_malloc("glb_coord_of_loclx",(locVol+bord_vol+edge_vol).nastyConvert(),coords);
-    loclx_neigh[0]=loclxNeighdw=nissa_malloc("loclx_neighdw",(locVol+bord_vol+edge_vol).nastyConvert(),coords);
-    loclx_neigh[1]=loclxNeighup=nissa_malloc("loclx_neighup",(locVol+bord_vol+edge_vol).nastyConvert(),coords);  
+    glbCoordOfLoclx=nissa_malloc("glb_coord_of_loclx",locVolWithBordAndEdge.nastyConvert(),coords);
+    loclx_neigh[0]=loclxNeighdw=nissa_malloc("loclx_neighdw",locVolWithBordAndEdge.nastyConvert(),coords);
+    loclx_neigh[1]=loclxNeighup=nissa_malloc("loclx_neighup",locVolWithBordAndEdge.nastyConvert(),coords);
     ignore_borders_communications_warning(locCoordOfLoclx);
     ignore_borders_communications_warning(glbCoordOfLoclx);
     ignore_borders_communications_warning(loclxNeighup);
@@ -415,20 +417,19 @@ namespace nissa
     glblxOfLoclx.allocate(locVol);
     
     //borders
-    glblxOfBordlx=nissa_malloc("glblx_of_bordlx",bord_vol,int);
-    loclxOfBordlx=nissa_malloc("loclx_of_bordlx",bord_vol,int);
-    surflxOfBordlx=nissa_malloc("surflx_of_bordlx",bord_vol,int);
+    glblxOfBordlx.allocate(bord_vol);
+    loclxOfBordlx.allocate(bord_vol);
+    loclxSiteAdjacentToBordLx.allocate(bord_vol);
     
     //bulk and surfs
-    loclxOfBulklx=nissa_malloc("loclx_of_bulklx",bulkVol.nastyConvert(),int);
-    loclxOfSurflx=nissa_malloc("loclx_of_surflx",surfVol.nastyConvert(),int);
-    loclxOfNonBwSurflx=nissa_malloc("loclx_of_non_bw_surflx",nonBwSurfVol.nastyConvert(),int);
-    loclxOfNonFwSurflx=nissa_malloc("loclx_of_non_fw_surflx",nonFwSurfVol.nastyConvert(),int);
-    loclxOfBwSurflx=nissa_malloc("loclx_of_bw_surflx",bwSurfVol.nastyConvert(),int);
-    loclxOfFwSurflx=nissa_malloc("loclx_of_fw_surflx",fwSurfVol.nastyConvert(),int);
+    loclxOfBulklx.allocate(bulkVol);
+    loclxOfNonBwSurflx.allocate(nonBwSurfVol);
+    loclxOfNonFwSurflx.allocate(nonFwSurfVol);
+    loclxOfBwSurflx.allocate(bwSurfVol);
+    loclxOfFwSurflx.allocate(fwSurfVol);
     
     //edges
-    glblxOfEdgelx=nissa_malloc("glblx_of_edgelx",edge_vol.nastyConvert(),int);
+    glblxOfEdgelx.allocate(edge_vol);
     
     //label the sites and neighbours
     label_all_sites();
@@ -441,8 +442,8 @@ namespace nissa
     find_bulk_sites();
     
     //allocate a buffer large enough to allow communications of su3spinspin lx border
-    recv_buf_size=std::max(recv_buf_size,(int64_t)(bord_vol*sizeof(su3spinspin)));
-    send_buf_size=std::max(send_buf_size,(int64_t)(bord_vol*sizeof(su3spinspin)));
+    recv_buf_size=std::max(recv_buf_size,(int64_t)(bord_vol()*sizeof(su3spinspin)));
+    send_buf_size=std::max(send_buf_size,(int64_t)(bord_vol()*sizeof(su3spinspin)));
     
     //create the sweepers but do not fully initialize
     Wilson_sweeper=new gauge_sweeper_t;
@@ -504,18 +505,6 @@ namespace nissa
     nissa_free(glbCoordOfLoclx);
     nissa_free(loclxNeighup);
     nissa_free(loclxNeighdw);
-    
-    nissa_free(glblxOfBordlx);
-    nissa_free(loclxOfBordlx);
-    nissa_free(surflxOfBordlx);
-    nissa_free(glblxOfEdgelx);
-    
-    nissa_free(loclxOfBulklx);
-    nissa_free(loclxOfSurflx);
-    nissa_free(loclxOfNonFwSurflx);
-    nissa_free(loclxOfFwSurflx);
-    nissa_free(loclxOfNonBwSurflx);
-    nissa_free(loclxOfBwSurflx);
     
     delete Wilson_sweeper;
     delete Symanzik_sweeper;

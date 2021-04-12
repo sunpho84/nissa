@@ -45,7 +45,7 @@ namespace nissa
     verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
     
     //reorder
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     quad_su3 *lx_H=nissa_malloc("lx_H",locVol.nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     paste_eo_parts_into_lx_vector(lx_H,eo_H);
@@ -102,7 +102,7 @@ namespace nissa
   void Omelyan_pure_gauge_evolver_eo_conf(eo_ptr<quad_su3> H_eo,eo_ptr<quad_su3> conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
   {
     quad_su3 *H_lx=nissa_malloc("H_lx",locVol.nastyConvert(),quad_su3);
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     
     paste_eo_parts_into_lx_vector(H_lx,H_eo);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);

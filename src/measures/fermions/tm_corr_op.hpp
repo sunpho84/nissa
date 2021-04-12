@@ -106,15 +106,15 @@ namespace nissa
       for(auto& q : tp.quarks)
 	need_clov|=(q.cSW!=0);
       
-      tmp=nissa_malloc("tmp",(locVol+bord_vol).nastyConvert(),spincolor);
+      tmp=nissa_malloc("tmp",locVolWithBord.nastyConvert(),spincolor);
       
-      conf=nissa_malloc("conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+      conf=nissa_malloc("conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
       paste_eo_parts_into_lx_vector(conf,ext_conf);
       
       if(need_clov)
 	{
-	  Cl=nissa_malloc("Cl",(locVol+bord_vol).nastyConvert(),clover_term_t);
-	  invCl=nissa_malloc("invCl",(locVol+bord_vol).nastyConvert(),inv_clover_term_t);
+	  Cl=nissa_malloc("Cl",locVolWithBord.nastyConvert(),clover_term_t);
+	  invCl=nissa_malloc("invCl",locVolWithBord.nastyConvert(),inv_clover_term_t);
 	  chromo_operator(Cl,conf);
 	}
     }

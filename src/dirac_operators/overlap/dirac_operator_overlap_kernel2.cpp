@@ -1,17 +1,17 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <math.h>
 
-#include "dirac_operator_overlap_kernel_portable.hpp"
-#include "dirac_operator_overlap_kernel2.hpp"
-#include "linalgs/linalgs.hpp"
+#include <dirac_operators/overlap/dirac_operator_overlap_kernel_portable.hpp>
+#include <dirac_operators/overlap/dirac_operator_overlap_kernel2.hpp>
+#include <linalgs/linalgs.hpp>
 
-#include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "threads/threads.hpp"
+#include <base/vectors.hpp>
+#include <communicate/communicate.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <threads/threads.hpp>
 
 namespace nissa
 {
@@ -19,7 +19,7 @@ namespace nissa
   void apply_overlap_kernel2(spincolor* out,quad_su3* conf,double M,spincolor* ext_temp,double  diag_coeff,spincolor* in)
   {
     spincolor *temp=ext_temp;
-    if(temp==NULL) temp=nissa_malloc("tempQ",(locVol+bord_vol).nastyConvert(),spincolor);
+    if(temp==NULL) temp=nissa_malloc("tempQ",locVolWithBord.nastyConvert(),spincolor);
     
     apply_overlap_kernel(temp,conf,M,in);
     apply_overlap_kernel(out,conf,M,temp);

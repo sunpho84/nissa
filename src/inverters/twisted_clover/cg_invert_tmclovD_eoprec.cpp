@@ -109,7 +109,7 @@ namespace nissa
     paste_eo_parts_into_lx_vector(solution_lx,solution_eos);
     
     //check for residual
-    spincolor *check_res=nissa_malloc("check_res",(locVol+bord_vol).nastyConvert(),spincolor);
+    spincolor *check_res=nissa_malloc("check_res",locVolWithBord.nastyConvert(),spincolor);
     //multiply by g5*D
     apply_tmclovQ(check_res,conf_lx,kappa,Cl_lx,mass,solution_lx);
     //remove g5 and take the difference with source

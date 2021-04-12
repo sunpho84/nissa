@@ -33,9 +33,9 @@ namespace nissa
     void get_eo_photon(eo_ptr<spin1field> out,gauge_info photon)
     {
       //allocate lx version of photon field
-      spin1field *photon_eta=nissa_malloc("photon_eta",(locVol+bord_vol).nastyConvert(),spin1field);
-      spin1field *photon_field=nissa_malloc("photon_field",(locVol+bord_vol).nastyConvert(),spin1field);
-      spin1field *photon_phi=nissa_malloc("photon_phi",(locVol+bord_vol).nastyConvert(),spin1field);
+      spin1field *photon_eta=nissa_malloc("photon_eta",locVolWithBord.nastyConvert(),spin1field);
+      spin1field *photon_field=nissa_malloc("photon_field",locVolWithBord.nastyConvert(),spin1field);
+      spin1field *photon_phi=nissa_malloc("photon_phi",locVolWithBord.nastyConvert(),spin1field);
       
       //generate source and stochastich propagator
       generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);

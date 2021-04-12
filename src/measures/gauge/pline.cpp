@@ -51,7 +51,7 @@ namespace nissa
   {
     
     //compute untraced loops
-    su3 *u=nissa_malloc("u",(locVol+bord_vol).nastyConvert(),su3);
+    su3 *u=nissa_malloc("u",locVolWithBord.nastyConvert(),su3);
     field_untraced_polyakov_loop_lx_conf(u,conf,mu);
     
     //trace
@@ -283,7 +283,7 @@ namespace nissa
   //definition in case of eo conf
   void average_polyakov_loop_eo_conf(complex tra,eo_ptr<quad_su3> eo_conf,int mu)
   {
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",(locVol+bord_vol).nastyConvert(),quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",locVolWithBord.nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     
     average_polyakov_loop_lx_conf(tra,lx_conf,mu);

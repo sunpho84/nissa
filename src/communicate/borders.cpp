@@ -1,21 +1,20 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <mpi.h>
 #include <string.h>
 
-#include "base/bench.hpp"
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_Leb.hpp"
-#include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
+#include <base/bench.hpp>
+#include <base/debug.hpp>
+#include <base/vectors.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <routines/ios.hpp>
+#include <routines/mpi_routines.hpp>
+#include <threads/threads.hpp>
 
-#include "communicate.hpp"
+#include <communicate/communicate.hpp>
 
 /*
   general remark: fill the send buf exactly in the same way in which the local border is ordered (bw{0,1,2,3},
@@ -59,7 +58,7 @@ namespace nissa
     
     //copy nbytes_per_site and compute total size
     comm.nbytes_per_site=nbytes_per_site;
-    comm.tot_mess_size=comm.nbytes_per_site*bord_vol/div_coeff;
+    comm.tot_mess_size=comm.nbytes_per_site*bord_vol()/div_coeff;
     
     //direction of the halo in receiving node: surface is ordered opposite of halo
     for(int bf=0;bf<2;bf++)
@@ -165,8 +164,8 @@ namespace nissa
     
     //copy one by one the surface of vec inside the sending buffer
     NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
-      memcpy(send_buf+comm.nbytes_per_site*ibord,
-	     (char*)vec+surflxOfBordlx[ibord]*comm.nbytes_per_site,
+      memcpy(send_buf+comm.nbytes_per_site*ibord(),
+	     (char*)vec+loclxSiteAdjacentToBordLx(ibord)()*comm.nbytes_per_site,
 	     comm.nbytes_per_site);
     NISSA_PARALLEL_LOOP_END;
     
@@ -180,7 +179,7 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol+locVol).nastyConvert());
+	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol()+locVol()));
 	
 	//check buffer size matching
 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
@@ -344,10 +343,10 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ibord_lx,0,bord_vol)
       {
 	//convert lx indexing to eo
-	int source_lx=surflxOfBordlx[ibord_lx];
-	int par=loclx_parity[source_lx];
-	int source_eo=loceo_of_loclx[source_lx];
-	memcpy(send_buf+ibord_lx*comm.nbytes_per_site,(char*)(vec[par])+source_eo*comm.nbytes_per_site,
+	const LocLxSite& source_lx=loclxSiteAdjacentToBordLx(ibord_lx);
+	int par=loclx_parity[source_lx.nastyConvert()];
+	int source_eo=loceo_of_loclx[source_lx.nastyConvert()];
+	memcpy(send_buf+ibord_lx()*comm.nbytes_per_site,(char*)(vec[par])+source_eo*comm.nbytes_per_site,
 	       comm.nbytes_per_site);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -370,12 +369,12 @@ namespace nissa
       crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
     
     //the buffer is lx ordered
-    NISSA_PARALLEL_LOOP(ibord_lx,0,bord_vol)
+    NISSA_PARALLEL_LOOP(bordLxSite,0,bord_vol)
       {
-	LocLxSite dest_lx=locVol+ibord_lx;
+	const LocLxSite dest_lx=extenedLocLxSiteOfBordLxSite(bordLxSite);
 	int par=loclx_parity[dest_lx.nastyConvert()];
 	int dest_eo=loceo_of_loclx[dest_lx.nastyConvert()];
-	memcpy((char*)(vec[par])+dest_eo*comm.nbytes_per_site,recv_buf+ibord_lx*comm.nbytes_per_site,comm.nbytes_per_site);
+	memcpy((char*)(vec[par])+dest_eo*comm.nbytes_per_site,recv_buf+bordLxSite()*comm.nbytes_per_site,comm.nbytes_per_site);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -402,7 +401,7 @@ namespace nissa
   //finish communicating
   void finish_communicating_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm)
   {
-    if(comm.comm_in_prog && nparal_dir>0)
+    if(comm.comm_in_prog and nparal_dir>0)
       {
 	
 	//take time and make some output
@@ -427,211 +426,4 @@ namespace nissa
     finish_communicating_ev_and_od_borders(vec,comm);
   }
   
-  ///////////////////////////////////////////// Lebeo ///////////////////////////////////////////
-  
-  /////////////////////////////////////// communicating Leblx vec ///////////////////////////////////
-  
-  //fill the sending buf using the data inside an LebLeblx vec
-  void fill_sending_buf_with_Leblx_vec(comm_t &comm,void *vec)
-  {
-    
-    //check buffer size matching
-    if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-      crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
-    
-    //copy one by one the surface of vec inside the sending buffer
-    NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
-      memcpy(send_buf+comm.nbytes_per_site*ibord,
-	     (char*)vec+surfLeblx_of_bordLeblx[ibord]*comm.nbytes_per_site,
-	     comm.nbytes_per_site);
-    NISSA_PARALLEL_LOOP_END;
-    
-    //wait that all threads filled their portion
-    THREAD_BARRIER();
-  }
-  
-  //extract the information from receiving buffer and put them inside an Leblx vec
-  void fill_Leblx_bord_with_receiving_buf(void *vec,comm_t &comm)
-  {fill_lx_bord_with_receiving_buf(vec,comm);}
-  
-  //start communication using an Leblx border
-  void start_communicating_Leblx_borders(comm_t &comm,void *vec)
-  {
-    if(!check_borders_valid(vec) && nparal_dir>0)
-      {
-	
-	//take time and write some debug output
-	START_TIMING(tot_comm_time,ntot_comm);
-	verbosity_lv3_master_printf("Start communication of Leblx borders of %s\n",get_vect_name((void*)vec));
-	
-	//fill the communicator buffer, start the communication and take time
-	fill_sending_buf_with_Leblx_vec(comm,vec);
-	comm_start(comm);
-	STOP_TIMING(tot_comm_time);
-      }
-  }
-  
-  //finish communicating
-  void finish_communicating_Leblx_borders(void *vec,comm_t &comm)
-  {finish_communicating_lx_borders(vec,comm);}
-  
-  //merge the two
-  void communicate_Leblx_borders(void *vec,comm_t &comm)
-  {
-    if(!check_borders_valid(vec))
-      {
-	verbosity_lv3_master_printf("Sync communication of Leblx borders of %s\n",get_vect_name((void*)vec));
-	
-	start_communicating_Leblx_borders(comm,vec);
-	finish_communicating_Leblx_borders(vec,comm);
-      }
-  }
-  
-  /////////////////////////////////////// communicating e/o vec //////////////////////////////////////
-  
-  //fill the sending buf using the data inside an ev or odd vec
-  void fill_sending_buf_with_Leb_ev_or_od_vec(comm_t &comm,void *vec,int eo)
-  {
-    
-    //check buffer size matching
-    if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
-      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
-    
-    //copy one by one the surface of vec inside the sending buffer
-    NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
-      memcpy(send_buf+ibord*comm.nbytes_per_site,
-	     (char*)vec+Lebeo_of_loceo[eo][surfeo_of_bordeo[eo][ibord]]*comm.nbytes_per_site,comm.nbytes_per_site);
-    NISSA_PARALLEL_LOOP_END;
-    
-    //wait that all threads filled their portion
-    THREAD_BARRIER();
-  }
-  
-  //extract the information from receiving buffer and put them inside an even or odd vec
-  void fill_Leb_ev_or_od_bord_with_receiving_buf(void *vec,comm_t &comm)
-  {
-    
-    if(IS_MASTER_THREAD)
-      {
-	int min_size=comm.nbytes_per_site*(bord_volh+locVolh).nastyConvert();
-	crash_if_borders_not_allocated(vec,min_size);
-	
-	//check buffer size matching
-	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
-	  crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
-	
-	//the buffer is already ordered as the vec border
-	memcpy((char*)vec+locVolh.nastyConvert()*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
-      }
-    
-    //we do not sync, because typically we will set borders as valid
-  }
-  
-  //start communication using an ev or od border
-  void start_communicating_Leb_ev_or_od_borders(comm_t &comm,void *vec,int eo)
-  {
-    if(!check_borders_valid(vec) && nparal_dir>0)
-      {
-	
-	//take time and output debugging info
-	START_TIMING(tot_comm_time,ntot_comm);
-	verbosity_lv3_master_printf("Starting communication of ev or od borders of %s\n",get_vect_name((void*)vec));
-	
-	//fill the communicator buffer, start the communication and take time
-	fill_sending_buf_with_Leb_ev_or_od_vec(comm,vec,eo);
-	comm_start(comm);
-	STOP_TIMING(tot_comm_time);
-      }
-  }
-  
-  //finish communicating
-  void finish_communicating_Leb_ev_or_od_borders(void *vec,comm_t &comm)
-  {
-    if(!check_borders_valid(vec) && nparal_dir>0)
-      {
-	
-	//take time and make some output
-	START_TIMING(tot_comm_time,ntot_comm);
-	verbosity_lv3_master_printf("Finish communication of ev or od borders of %s\n",get_vect_name((void*)vec));
-	
-	//wait communication to finish, fill back the vector and take time
-	comm_wait(comm);
-	fill_Leb_ev_or_od_bord_with_receiving_buf(vec,comm);
-	STOP_TIMING(tot_comm_time);
-	
-	//set border not valid: this auto sync
-	set_borders_valid(vec);
-      }
-  }
-  
-  //merge the two
-  void communicate_Leb_ev_or_od_borders(void *vec,comm_t &comm,int eo)
-  {
-    if(!check_borders_valid(vec) && nparal_dir>0)
-      {
-	verbosity_lv3_master_printf("Sync communication of ev or od borders of %s\n",get_vect_name((void*)vec));
-	
-	start_communicating_Leb_ev_or_od_borders(comm,vec,eo);
-	finish_communicating_Leb_ev_or_od_borders(vec,comm);
-      }
-  }
-  
-  /////////////////////////////////////// communicating e&o vec //////////////////////////////////////
-  
-  //fill the sending buf using the data inside an ev and odd vec, using Leblx style inside buf
-  void fill_sending_buf_with_Leb_ev_and_od_vec(comm_t &comm,eo_ptr<void> vec)
-  {
-    
-    //check buffer size matching
-    if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
-    
-    //copy one by one the surface of vec inside the sending buffer
-    NISSA_PARALLEL_LOOP(ibord_loclx,0,bord_vol)
-      {
-	//convert Leblx indexing to eo
-	int source_loclx=surflxOfBordlx[ibord_loclx];
-	int par=loclx_parity[source_loclx];
-	int source_eo=loceo_of_loclx[source_loclx];
-	int source_Lebeo=Lebeo_of_loceo[par][source_eo];
-	memcpy(send_buf+ibord_loclx*comm.nbytes_per_site,(char*)(vec[par])+source_Lebeo*comm.nbytes_per_site,
-	       comm.nbytes_per_site);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    //wait that all threads filled their portion
-    THREAD_BARRIER();
-  }
-  
-  //extract the information from receiving buffer and put them inside an even or odd vec
-  void fill_Leb_ev_and_od_bord_with_receiving_buf(eo_ptr<void> vec,comm_t &comm)
-  {fill_ev_and_od_bord_with_receiving_buf(vec,comm);}
-  
-  //start communication using an ev and od border
-  void start_communicating_Leb_ev_and_od_borders(comm_t &comm,eo_ptr<void> vec)
-  {
-    if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && nparal_dir>0)
-      {
-	
-	//take time and output debugging info
-	START_TIMING(tot_comm_time,ntot_comm);
-	verbosity_lv3_master_printf("Starting communication of Leb ev and od borders of %s\n",get_vect_name((void*)(vec[0])));
-	
-	//fill the communicator buffer, start the communication and take time
-	fill_sending_buf_with_Leb_ev_and_od_vec(comm,vec);
-	comm_start(comm);
-	STOP_TIMING(tot_comm_time);
-      }
-  }
-  
-  //finish communicating
-  void finish_communicating_Leb_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm)
-  {finish_communicating_ev_and_od_borders(vec,comm);}
-  
-  //merge the two
-  void communicate_Leb_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm)
-  {
-    start_communicating_Leb_ev_and_od_borders(comm,vec);
-    finish_communicating_Leb_ev_and_od_borders(vec,comm);
-  }
 }

@@ -79,7 +79,7 @@ namespace nissa
   //multiply by the 2-links Laplace operator
   void Laplace_operator_2_links(color* out,quad_su3* conf,bool* dirs,color* in)
   {
-    color *temp=nissa_malloc("temp",(locVol+bord_vol).nastyConvert(),color);
+    color *temp=nissa_malloc("temp",locVolWithBord.nastyConvert(),color);
     int64_t nentries=locVol.nastyConvert()*sizeof(color)/sizeof(double);
     
     vector_reset(out);
@@ -128,7 +128,7 @@ namespace nissa
     NAME3(communicate_lx,TYPE,borders)(in);                             \
     communicate_lx_quad_su3_borders(conf);                              \
                                                                         \
-    TYPE *temp=nissa_malloc("temp",(locVol+bord_vol).nastyConvert(),TYPE);              \
+    TYPE *temp=nissa_malloc("temp",locVolWithBord.nastyConvert(),TYPE);              \
     vector_reset(temp);                                                 \
                                                                         \
     NISSA_PARALLEL_LOOP(_ix,0,locVol)                                   \

@@ -51,7 +51,7 @@ namespace nissa
       
       //resize
       levs.resize(ns+1);
-      for(int i=0;i<ns;i++) levs[i].conf=nissa_malloc("conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+      for(int i=0;i<ns;i++) levs[i].conf=nissa_malloc("conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
       
       //set units of Wflow
       for(int il=0;il<nl();il++)

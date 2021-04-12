@@ -313,7 +313,7 @@ namespace nissa
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,tm_quark_info qu,tm_basis_t base)
   {
     //source and temp prop
-    spin *tsource=nissa_malloc("tsource",(locVol+bord_vol).nastyConvert(),spin);
+    spin *tsource=nissa_malloc("tsource",locVolWithBord.nastyConvert(),spin);
     spin *tprop=nissa_malloc("tprop",locVol.nastyConvert(),spin);
     
     //loop over the source index
@@ -334,7 +334,7 @@ namespace nissa
   void compute_x_space_twisted_propagator_by_inv(spinspin *prop,tm_quark_info qu,tm_basis_t base)
   {
     //allocate a source
-    spinspin *delta=nissa_malloc("delta",(locVol+bord_vol).nastyConvert(),spinspin);
+    spinspin *delta=nissa_malloc("delta",locVolWithBord.nastyConvert(),spinspin);
     vector_reset(delta);
     if(rank==0) spinspin_put_to_id(delta[0]);
     set_borders_invalid(delta);

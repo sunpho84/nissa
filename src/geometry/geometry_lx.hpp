@@ -37,66 +37,154 @@ namespace nissa
   
   DECLARE_COMPONENT(LocEoSite,int64_t,DYNAMIC);
   
+  DECLARE_COMPONENT(BordLxSite,int64_t,DYNAMIC);
+  
+  // DECLARE_COMPONENT(SurfLxSite,int64_t,DYNAMIC);
+  
+  DECLARE_COMPONENT(EdgeLxSite,int64_t,DYNAMIC);
+  
+  DECLARE_COMPONENT(BulkLxSite,int64_t,DYNAMIC);
+  
   //nomenclature:
   //-glb is relative to the global grid
   //-loc to the local one
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords glbSize,locSize;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbLxSite glbVol,glbSpatVol;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LocLxSite locVol,locSpatVol;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbEoSite glbVolh;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LocEoSite locVolh;
-  EXTERN_GEOMETRY_LX LocLxSite bulkVol,nonBwSurfVol,nonFwSurfVol;
+  
+  /// Global lattice hcube sizes
+  EXTERN_GEOMETRY_LX coords glbSize;
+  
+  /// Local lattice hcube sizes
+  EXTERN_GEOMETRY_LX coords locSize;
+  
+  /// Global 4D volume
+  EXTERN_GEOMETRY_LX GlbLxSite glbVol;
+  
+  /// Global spatial volume
+  EXTERN_GEOMETRY_LX GlbLxSite glbSpatVol;
+  
+  /// Local 4D volume
+  EXTERN_GEOMETRY_LX LocLxSite locVol;
+  
+  /// Local spatial volume
+  EXTERN_GEOMETRY_LX LocLxSite locSpatVol;
+  
+  /// Half the global volume
+  EXTERN_GEOMETRY_LX GlbEoSite glbVolh;
+  
+  /// Half the local volume
+  EXTERN_GEOMETRY_LX LocEoSite locVolh;
+  
+  /// Bulk local volume
+  EXTERN_GEOMETRY_LX BulkLxSite bulkVol;
+  
+  EXTERN_GEOMETRY_LX LocLxSite nonBwSurfVol,nonFwSurfVol;
   EXTERN_GEOMETRY_LX LocLxSite surfVol,bwSurfVol,fwSurfVol;
   //-lx is lexicografic
   //box, division in 2^NDIM of the lattice
   EXTERN_GEOMETRY_LX coords box_coord[1<<NDIM];
   EXTERN_GEOMETRY_LX coords box_size[1<<NDIM];
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *glbCoordOfLoclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *locCoordOfLoclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<TensorComps<LocLxSite>,GlbLxSite> glblxOfLoclx;
-  EXTERN_GEOMETRY_LX int *glblxOfBordlx;
-  EXTERN_GEOMETRY_LX int *loclxOfBordlx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfBordlx;
-  EXTERN_GEOMETRY_LX int *glblxOfEdgelx;
-  EXTERN_GEOMETRY_LX int *loclxOfBulklx;
-  EXTERN_GEOMETRY_LX int *loclxOfSurflx;
-  EXTERN_GEOMETRY_LX int *loclxOfNonBwSurflx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclxOfNonFwSurflx;
-  EXTERN_GEOMETRY_LX int *loclxOfBwSurflx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *loclxOfFwSurflx;
+  EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
+  EXTERN_GEOMETRY_LX coords *glbCoordOfLoclx;
+  EXTERN_GEOMETRY_LX coords *locCoordOfLoclx;
+  
+  /// Global site given the local site
+  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,GlbLxSite> glblxOfLoclx;
+  
+  /// Global site given the border site
+  EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,GlbLxSite> glblxOfBordlx;
+  
+  /// Local site given the borders site
+  EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,LocLxSite> loclxOfBordlx;
+  
+  /// Local site adjacent to a given border site
+  EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,LocLxSite> loclxSiteAdjacentToBordLx;
+  
+  /// Global site corresponding to edge sites
+  EXTERN_GEOMETRY_LX Tensor<OfComps<EdgeLxSite>,GlbLxSite> glblxOfEdgelx;
+  
+  /// Local site corresponding to bulk site
+  EXTERN_GEOMETRY_LX Tensor<OfComps<BulkLxSite>,LocLxSite> loclxOfBulklx;
+  
+  /// Local site given a Non-Backward site on the surface
+  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,LocLxSite> loclxOfNonBwSurflx;
+  
+  /// Local site given a Non-Forwward site on the surface
+  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,LocLxSite> loclxOfNonFwSurflx;
+  
+  /// Local site given a Backward site on the surface
+  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,LocLxSite> loclxOfBwSurflx;
+  
+  /// Local site given a Forwward site on the surface
+  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,LocLxSite> loclxOfFwSurflx;
+  
+  /// Return the local site beyond the local volume, corresponding to the passed border id
+  INLINE_FUNCTION LocLxSite extenedLocLxSiteOfBordLxSite(const BordLxSite& bordLxSite)
+  {
+    return locVol+bordLxSite();
+  }
+  
+  /// Return the border id given the local site beyond the local volume
+  INLINE_FUNCTION BordLxSite bordLxSiteOfExtendedLocLxSize(const LocLxSite& locLxSite)
+  {
+    return locLxSite()-locVol();
+  }
+  
   EXTERN_GEOMETRY_LX int lxGeomInited;
+  
   //neighbours of local volume + borders
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords *loclxNeighdw,*loclxNeighup;
+  EXTERN_GEOMETRY_LX coords *loclxNeighdw,*loclxNeighup;
   EXTERN_GEOMETRY_LX coords *loclx_neigh[2];
   EXTERN_GEOMETRY_LX int grid_inited;
   EXTERN_GEOMETRY_LX int nparal_dir;
   EXTERN_GEOMETRY_LX coords paral_dir;
   //size of the border and edges
-  EXTERN_GEOMETRY_LX int bord_vol,bord_volh;
-  EXTERN_GEOMETRY_LX LocLxSite edge_vol;
+  
+  /// Size of the border
+  EXTERN_GEOMETRY_LX BordLxSite bord_vol;
+  
+  /// Size of the local volume exteneded with border
+  EXTERN_GEOMETRY_LX LocLxSite locVolWithBord;
+  
+  /// Size of the local volume exteneded with border and edge
+  EXTERN_GEOMETRY_LX LocLxSite locVolWithBordAndEdge;
+  
+  /// Return the edge id given the local site beyond the local volume and border
+  INLINE_FUNCTION EdgeLxSite edgeLxSiteOfExtendedLocLxSize(const LocLxSite& locLxSite)
+  {
+    return locLxSite()-locVolWithBord();
+  }
+  
+  EXTERN_GEOMETRY_LX int bord_volh;
+  
+  /// Size of the edges
+  EXTERN_GEOMETRY_LX EdgeLxSite edge_vol;
+  
   EXTERN_GEOMETRY_LX int edge_volh;
-  //size along various dir
-  EXTERN_GEOMETRY_LX LocLxSite bord_dir_vol[NDIM],bord_offset[NDIM];
+  
+  /// Border volume along various direction
+  EXTERN_GEOMETRY_LX BordLxSite bord_dir_vol[NDIM];
+  
+  /// Offset inside the border volume where the specific direction starts
+  EXTERN_GEOMETRY_LX BordLxSite bord_offset[NDIM];
+  
   EXTERN_GEOMETRY_LX LocLxSite edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
+  EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   //mapping of ILDG data
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords scidac_mapping;
+  EXTERN_GEOMETRY_LX coords scidac_mapping;
   //perpendicular dir
   EXTERN_GEOMETRY_LX bool all_dirs[NDIM];
   EXTERN_GEOMETRY_LX bool only_dir[NDIM][NDIM];
   EXTERN_GEOMETRY_LX bool all_other_dirs[NDIM][NDIM];
   EXTERN_GEOMETRY_LX bool all_other_spat_dirs[NDIM][NDIM];
 #if NDIM >= 2
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
+  EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
 #endif
 #if NDIM >= 3
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int perp2_dir[NDIM][NDIM-1][NDIM-2];
+  EXTERN_GEOMETRY_LX int perp2_dir[NDIM][NDIM-1][NDIM-2];
 #endif
 #if NDIM >= 4
   EXTERN_GEOMETRY_LX int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];
 #endif
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int igamma_of_mu[4]
+  EXTERN_GEOMETRY_LX int igamma_of_mu[4]
 #ifndef ONLY_INSTANTIATION
   ={4,1,2,3}
 #endif
@@ -105,14 +193,14 @@ namespace nissa
   CUDA_HOST_DEVICE void get_stagphase_of_lx(coords ph,const LocLxSite& ivol);
   CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,int mu);
   
-  int bordlx_of_coord(int *x,int mu);
-  int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
+  int spatLxOfProjectedCoords(int *x,int mu);
+  int spatLxOfProjectedCoordsList(int x0,int x1,int x2,int x3,int mu);
   void coord_of_lx(coords x,int ilx,coords s);
   void coord_of_rank(coords c,int irank);
   inline void coord_copy(coords out,coords in){for(int mu=0;mu<NDIM;mu++) out[mu]=in[mu];};
   inline void coord_summ(coords s,coords a1,coords a2,coords l){for(int mu=0;mu<NDIM;mu++) s[mu]=(a1[mu]+a2[mu])%l[mu];}
   inline void coord_summassign(coords s,coords a,coords l){coord_summ(s,s,a,l);}
-  int edgelx_of_coord(int *x,int mu,int nu);
+  int lineLxOfDoublyProjectedCoords(int *x,int mu,int nu);
   int full_lx_of_coords_list(const int t,const int x,const int y,const int z);
   int glblx_neighdw(int gx,int mu);
   int glblx_neighup(int gx,int mu);

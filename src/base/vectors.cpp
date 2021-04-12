@@ -266,14 +266,14 @@ namespace nissa
 	
 	//define returned pointer and check for its alignement
 	return_malloc_ptr=(void*)(last_vect+1);
-	int64_t offset=((int64_t)(return_malloc_ptr))%NISSA_VECT_ALIGNMENT;
+	const int64_t offset=((int64_t)(return_malloc_ptr))%NISSA_VECT_ALIGNMENT;
 	if(offset!=0)
 	  crash("memory alignment problem, vector %s has %d offset",tag,offset);
 	
 	//if borders or edges are allocated, set appropriate flag
-	if(nel==(locVol+bord_vol) || nel==(locVolh+bord_volh))
+	if(nel==(locVol()+bord_vol()) or nel==(locVolh+bord_volh))
 	  set_vect_flag_non_blocking(return_malloc_ptr,BORDERS_ALLOCATED);
-	if(nel==(locVol+bord_vol+edge_vol) || nel==(locVolh+bord_volh+edge_volh))
+	if(nel==(locVol()+bord_vol()+edge_vol) or nel==(locVolh+bord_volh+edge_volh))
 	  set_vect_flag_non_blocking(return_malloc_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
 	
 	//Update the amount of required memory

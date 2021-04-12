@@ -101,7 +101,7 @@ namespace nissa
     int d3=axis;
     
     //allocate a temporary conf with borders
-    quad_su3 *temp_conf=nissa_malloc("temp_conf",(locVol+bord_vol).nastyConvert(),quad_su3);
+    quad_su3 *temp_conf=nissa_malloc("temp_conf",locVolWithBord.nastyConvert(),quad_su3);
     memcpy(temp_conf,in,locVol.nastyConvert()*sizeof(quad_su3));
     communicate_lx_quad_su3_borders(temp_conf);
     
@@ -131,8 +131,8 @@ namespace nissa
       }
     
     LocLxSite nsite=locVol;
-    if(putonbords) nsite+=bord_vol;
-    if(putonedges) nsite+=edge_vol;
+    if(putonbords) nsite=locVolWithBord;
+    if(putonedges) nsite=locVolWithBordAndEdge;
     
     NISSA_PARALLEL_LOOP(ivol,0,nsite)
       for(int idir=0;idir<NDIM;idir++)

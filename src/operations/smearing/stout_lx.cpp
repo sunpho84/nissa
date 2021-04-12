@@ -72,7 +72,7 @@ namespace nissa
     quad_su3 *in;
     if(out==ext_in)
       {
-	in=nissa_malloc("in",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+	in=nissa_malloc("in",locVolWithBordAndEdge.nastyConvert(),quad_su3);
 	vector_copy(in,ext_in);
       }
     else in=ext_in;
@@ -112,7 +112,7 @@ namespace nissa
 	break;
       default:
 	//allocate temp
-	quad_su3 *ext_temp=nissa_malloc("temp",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+	quad_su3 *ext_temp=nissa_malloc("temp",locVolWithBordAndEdge.nastyConvert(),quad_su3);
 	
 	quad_su3 *in=ext_in,*ptr[2]={ext_temp,ext_out};
 	
@@ -141,7 +141,7 @@ namespace nissa
     (*out)=nissa_malloc("out*",nlev+1,quad_su3*);
     (*out)[0]=in;
     for(int i=1;i<=nlev;i++)
-      (*out)[i]=nissa_malloc("out",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+      (*out)[i]=nissa_malloc("out",locVolWithBordAndEdge.nastyConvert(),quad_su3);
   }
   
   //free all the stack of allocated smeared conf
@@ -167,7 +167,7 @@ namespace nissa
   {
     communicate_lx_quad_su3_edges(conf);
     
-    quad_su3 *Lambda=nissa_malloc("Lambda",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *Lambda=nissa_malloc("Lambda",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     
     for(int mu=0;mu<NDIM;mu++)
       NISSA_PARALLEL_LOOP(A,0,locVol)

@@ -18,10 +18,10 @@ namespace nissa
   {
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
-    spincolor *eta=nissa_malloc("eta",(locVol+bord_vol).nastyConvert(),spincolor);
-    spincolor *phi=nissa_malloc("phi",(locVol+bord_vol).nastyConvert(),spincolor);
-    spincolor *phi_ins_S=nissa_malloc("phi_ins_S",(locVol+bord_vol).nastyConvert(),spincolor);
-    spincolor *phi_ins_P=nissa_malloc("phi_ins_P",(locVol+bord_vol).nastyConvert(),spincolor);
+    spincolor *eta=nissa_malloc("eta",locVolWithBord.nastyConvert(),spincolor);
+    spincolor *phi=nissa_malloc("phi",locVolWithBord.nastyConvert(),spincolor);
+    spincolor *phi_ins_S=nissa_malloc("phi_ins_S",locVolWithBord.nastyConvert(),spincolor);
+    spincolor *phi_ins_P=nissa_malloc("phi_ins_P",locVolWithBord.nastyConvert(),spincolor);
     
     /// Store the contractions
     const int ncorr_kind=6;

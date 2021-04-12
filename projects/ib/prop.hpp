@@ -69,7 +69,7 @@ namespace nissa
     {
       sp=nissa_malloc("sp",nso_spi*nso_col,spincolor*);
       for(int i=0;i<nso_spi*nso_col;i++)
-	sp[i]=nissa_malloc("sp",(locVol+bord_vol).nastyConvert(),spincolor);
+	sp[i]=nissa_malloc("sp",locVolWithBord.nastyConvert(),spincolor);
     }
     
     //initialize as a propagator
@@ -165,7 +165,7 @@ namespace nissa
   EXTERN_PROP spincolor *loop_source;
   inline void allocate_loop_source()
   {
-    loop_source=nissa_malloc("loop_source",(locVol+bord_vol).nastyConvert(),spincolor);
+    loop_source=nissa_malloc("loop_source",locVolWithBord.nastyConvert(),spincolor);
   }
   
   inline void free_loop_source()

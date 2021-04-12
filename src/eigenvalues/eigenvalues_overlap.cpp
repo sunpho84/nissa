@@ -1,10 +1,10 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
-#include <random/randomGenerate.hpp>
 #include <dirac_operators/overlap/dirac_operator_overlap.hpp>
 #include <eigenvalues/eigenvalues.hpp>
+#include <random/randomGenerate.hpp>
 
 namespace nissa
 {
@@ -24,7 +24,7 @@ namespace nissa
     
     //parameters of the finder
     const int mat_size=locVol.nastyConvert()*NCOL*NDIRAC;
-    const int mat_size_to_allocate=(locVol+bord_vol).nastyConvert()*NCOL*NDIRAC;
+    const int mat_size_to_allocate=locVolWithBord.nastyConvert()*NCOL*NDIRAC;
     const int niter_max=100000000;
     master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     

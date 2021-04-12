@@ -348,6 +348,11 @@ namespace nissa
   using TensorComps=
     std::tuple<Tc...>;
   
+  /// Alias to make it easier to understand tensor instantiation
+  template <typename...Tc>
+  using OfComps=
+    TensorComps<Tc...>;
+  
   /// Returns the number of components of a tensComp
   template <typename T>
   constexpr int nOfComps=

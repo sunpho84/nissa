@@ -169,7 +169,7 @@ namespace nissa
   void total_topological_charge_eo_conf(double* tot_charge,eo_ptr<quad_su3> eo_conf)
   {
     //convert to lx
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     
     total_topological_charge_lx_conf(tot_charge,lx_conf);
@@ -334,7 +334,7 @@ namespace nissa
     quad_su3 *smoothed_conf;
     if(preserve_unsmoothed)
       {
-	smoothed_conf=nissa_malloc("smoothed_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+	smoothed_conf=nissa_malloc("smoothed_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
 	vector_copy(smoothed_conf,unsmoothed_conf);
       }
     else smoothed_conf=unsmoothed_conf;
@@ -376,7 +376,7 @@ namespace nissa
   
   void measure_topology_eo_conf(top_meas_pars_t &pars,eo_ptr<quad_su3> unsmoothed_conf_eo,int iconf,bool conf_created)
   {
-    quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(unsmoothed_conf_lx,unsmoothed_conf_eo);
     measure_topology_lx_conf(pars,unsmoothed_conf_lx,iconf,conf_created,false);
     nissa_free(unsmoothed_conf_lx);
@@ -385,7 +385,7 @@ namespace nissa
   //compute the topological staples site by site
   void topological_staples(quad_su3* staples,quad_su3* conf)
   {
-    as2t_su3 *leaves=nissa_malloc("leaves",(locVol+bord_vol+edge_vol).nastyConvert(),as2t_su3);
+    as2t_su3 *leaves=nissa_malloc("leaves",locVolWithBordAndEdge.nastyConvert(),as2t_su3);
     
     //compute the clover-shape paths
     four_leaves(leaves,conf);

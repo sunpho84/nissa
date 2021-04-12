@@ -12,7 +12,7 @@
 
 #define NDOUBLES_PER_SITE 24
 #define BULK_SIZE locVol.nastyConvert()
-#define BORD_SIZE bord_vol
+#define BORD_SIZE bord_vol.nastyConvert()
 
 #define APPLY_OPERATOR_128 apply_tmQ2_RL_128
 #define APPLY_OPERATOR apply_tmQ2_RL

@@ -72,7 +72,7 @@ namespace nissa
     FILE *fout=open_file(mp->path,conf_created?"w":"a");
     
     //allocate tens and spinpol
-    complex *tens_dens=nissa_malloc("tens_dens",(locVol+bord_vol).nastyConvert(),complex);
+    complex *tens_dens=nissa_malloc("tens_dens",locVolWithBord.nastyConvert(),complex);
     complex *spinpol_dens=nissa_malloc("spinpol_dens",locVol.nastyConvert(),complex);
     //allocate point and local results
     eo_ptr<double> topo_dens;
@@ -97,7 +97,7 @@ namespace nissa
       }
     
     //allocate the smoothed conf
-    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *smoothed_conf=nissa_malloc("smoothed_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(smoothed_conf,glu_conf);
     //allocate the fermion (possibly stouted) conf
     eo_ptr<quad_su3> ferm_conf;
@@ -117,8 +117,8 @@ namespace nissa
 	int ntot_phi=ind_copy_flav_hit_meas(ncopies-1,nflavs-1,nhits-1,nmeas-1)+1;
 	color *eta[ntot_eta];
 	color *phi[ntot_phi];
-	for(int is=0;is<ntot_eta;is++) eta[is]=nissa_malloc("eta",(locVol+bord_vol).nastyConvert(),color);
-	for(int is=0;is<ntot_phi;is++) phi[is]=nissa_malloc("phi",(locVol+bord_vol).nastyConvert(),color);
+	for(int is=0;is<ntot_eta;is++) eta[is]=nissa_malloc("eta",locVolWithBord.nastyConvert(),color);
+	for(int is=0;is<ntot_phi;is++) phi[is]=nissa_malloc("phi",locVolWithBord.nastyConvert(),color);
 	
 	//fill all the sources
 	for(int icopy=0;icopy<ncopies;icopy++)
@@ -220,7 +220,7 @@ namespace nissa
 		    if(gauge_ferm_conf==0) topo_conf=smoothed_conf;
 		    else
 		      {
-			topo_conf=nissa_malloc("TempConf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+			topo_conf=nissa_malloc("TempConf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
 			paste_eo_parts_into_lx_vector(topo_conf,ferm_conf);
 		      }
 		    plaq[gauge_ferm_conf]=global_plaquette_lx_conf(topo_conf);
@@ -318,7 +318,7 @@ namespace nissa
 	if(tp->stout_pars.nlevels)
 	  stout_smear(ferm_conf,ferm_conf,&tp->stout_pars);
 	
-	color *temp_flow=nissa_malloc("temp_flow",(locVol+bord_vol).nastyConvert(),color);
+	color *temp_flow=nissa_malloc("temp_flow",locVolWithBord.nastyConvert(),color);
 	
 	for(int icopy=0;icopy<ncopies;icopy++)
 	  for(int ihit=0;ihit<nhits;ihit++)
@@ -365,7 +365,7 @@ namespace nissa
 		    if(gauge_ferm_conf==0) topo_conf=smoothed_conf;
 		    else
 		      {
-			topo_conf=nissa_malloc("TempConf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+			topo_conf=nissa_malloc("TempConf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
 			paste_eo_parts_into_lx_vector(topo_conf,ferm_conf);
 		      }
 		    plaq[gauge_ferm_conf]=global_plaquette_lx_conf(topo_conf);

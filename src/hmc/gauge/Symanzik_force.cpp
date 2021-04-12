@@ -26,11 +26,11 @@ namespace nissa
     
     
     //compute squared pieces
-    squared_staples_t *squared_staples=nissa_malloc("squared_staples",(locVol+bord_vol).nastyConvert(),squared_staples_t);
+    squared_staples_t *squared_staples=nissa_malloc("squared_staples",locVolWithBord.nastyConvert(),squared_staples_t);
     compute_squared_staples_lx_conf(squared_staples,conf);
     
     //compute rectangular pieces
-    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",(locVol+bord_vol).nastyConvert(),rectangular_staples_t);
+    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",locVolWithBord.nastyConvert(),rectangular_staples_t);
     compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)

@@ -102,7 +102,7 @@ namespace nissa
   
   void chromo_operator(eo_ptr<clover_term_t> Cl_eo,eo_ptr<quad_su3> conf_eo)
   {
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     clover_term_t *Cl_lx=nissa_malloc("Cl_lx",locVol.nastyConvert(),clover_term_t);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     chromo_operator(Cl_lx,conf_lx);

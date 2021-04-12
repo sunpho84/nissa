@@ -99,8 +99,8 @@ namespace nissa
     //copy lower surface into sending buf to be sent to dw nodes
     //obtained scanning on first half of the border, and storing them
     //in the first half of sending buf
-    NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
-      quad_su3_copy(((quad_su3*)send_buf)[ibord],conf[surflxOfBordlx[ibord]]);
+    NISSA_PARALLEL_LOOP(ibord,0,bord_vol/2)
+      quad_su3_copy(((quad_su3*)send_buf)[ibord.nastyConvert()],conf[loclxSiteAdjacentToBordLx(ibord).nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     
     //filling finished
@@ -122,7 +122,7 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP(ibulk,0,nonFwSurfVol)
 	    {
 	      su3 temp;
-	      int A=loclxOfNonFwSurflx[ibulk.nastyConvert()],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
+	      int A=loclxOfNonFwSurflx(ibulk).nastyConvert(),B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
 	      unsafe_su3_prod_su3(    temp,conf[A][nu],conf[B][mu]);
 	      unsafe_su3_prod_su3_dag(out[A][mu][3+inu],temp,conf[F][nu]);
 	    }
@@ -152,7 +152,7 @@ namespace nissa
 	  int nu=perp_dir[mu][inu];
 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
-	      int D=loclxOfFwSurflx[ifw_surf.nastyConvert()],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
+	      int D=loclxOfFwSurflx(ifw_surf).nastyConvert(),A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
 	      su3 temp;
 	      unsafe_su3_dag_prod_su3(temp,conf[D][nu],conf[D][mu]);
 	      unsafe_su3_prod_su3(out[A][mu][inu],temp,conf[E][nu]);
@@ -173,7 +173,7 @@ namespace nissa
 	    int inu=(nu<mu)?nu:nu-1;
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(((quad_su3*)send_buf)[ibord.nastyConvert()][mu],out[(locVol+ibord).nastyConvert()][mu][inu]); //one contribution per link in the border
+	      su3_copy(((quad_su3*)send_buf)[ibord.nastyConvert()][mu],out[extenedLocLxSiteOfBordLxSite(ibord).nastyConvert()][mu][inu]); //one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -198,7 +198,7 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP(inon_fw_surf,0,nonFwSurfVol)
 	    {
 	      su3 temp;
-	      int D=loclxOfNonFwSurflx[inon_fw_surf.nastyConvert()],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
+	      int D=loclxOfNonFwSurflx(inon_fw_surf).nastyConvert(),A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
 	      unsafe_su3_dag_prod_su3(temp,conf[D][nu],conf[D][mu]);
 	      unsafe_su3_prod_su3(out[A][mu][inu],temp,conf[E][nu]);
 	    }
@@ -217,7 +217,7 @@ namespace nissa
 	  //obtained looping A on forward surface
 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
-	      int A=loclxOfFwSurflx[ifw_surf.nastyConvert()],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
+	      int A=loclxOfFwSurflx(ifw_surf).nastyConvert(),B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
 	      su3 temp;
 	      unsafe_su3_prod_su3(    temp,conf[A][nu],conf[B][mu]);
 	      unsafe_su3_prod_su3_dag(out[A][mu][3+inu],temp,conf[F][nu]);
@@ -241,7 +241,7 @@ namespace nissa
 	    int inu=(nu<mu)?nu:nu-1;
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(out[surflxOfBordlx[ibord.nastyConvert()]][mu][inu],((quad_su3*)recv_buf)[ibord.nastyConvert()][mu]); //one contribution per link in the border
+	      su3_copy(out[loclxSiteAdjacentToBordLx(ibord).nastyConvert()][mu][inu],((quad_su3*)recv_buf)[ibord.nastyConvert()][mu]); //one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -269,7 +269,7 @@ namespace nissa
   {
     
     //compute pieces
-    squared_staples_t *squared_staples=nissa_malloc("squared_staples",(locVol+bord_vol).nastyConvert(),squared_staples_t);
+    squared_staples_t *squared_staples=nissa_malloc("squared_staples",locVolWithBord.nastyConvert(),squared_staples_t);
     compute_squared_staples_lx_conf(squared_staples,conf);
     
     //summ

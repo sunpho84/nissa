@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
 #include <mpi.h>
@@ -9,30 +9,29 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-#include "base/bench.hpp"
-#include "base/debug.hpp"
+#include <base/bench.hpp>
+#include <base/debug.hpp>
 #ifdef USE_TMLQCD
- #include "base/tmLQCD_bridge.hpp"
+ #include <base/tmLQCD_bridge.hpp>
 #endif
 #ifdef USE_DDALPHAAMG
- #include "base/DDalphaAMG_bridge.hpp"
+ #include <base/DDalphaAMG_bridge.hpp>
 #endif
 #ifdef USE_QUDA
- #include "base/quda_bridge.hpp"
+ #include <base/quda_bridge.hpp>
 #endif
-#include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
-#include "eigenvalues/eigenvalues.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_Leb.hpp"
-#include "io/ILDG_File.hpp"
-#include "new_types/high_prec.hpp"
-#include "new_types/su3.hpp"
-#include "routines/ios.hpp"
+#include <base/vectors.hpp>
+#include <communicate/communicate.hpp>
+#include <eigenvalues/eigenvalues.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <io/ILDG_File.hpp>
+#include <new_types/high_prec.hpp>
+#include <new_types/su3.hpp>
+#include <routines/ios.hpp>
 
 #define EXTERN_INPUT
-#include "input.hpp"
+# include <io/input.hpp>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -432,7 +431,6 @@ namespace nissa
     tags.push_back(triple_tag("verbosity_lv",                  verbosity_lv));
     tags.push_back(triple_tag("use_128_bit_precision",         use_128_bit_precision));
     tags.push_back(triple_tag("use_eo_geom",		       use_eo_geom));
-    tags.push_back(triple_tag("use_Leb_geom",		       use_Leb_geom));
     tags.push_back(triple_tag("use_async_communications",      use_async_communications));
     tags.push_back(triple_tag("warn_if_not_disallocated",      warn_if_not_disallocated));
     tags.push_back(triple_tag("warn_if_not_communicated",      warn_if_not_communicated));

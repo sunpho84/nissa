@@ -384,7 +384,7 @@ namespace nissa
     double alpha=alpha_def;
     
     //store original fixer
-    su3 *ori_fixer=nissa_malloc("ori_fixer",(locVol+bord_vol).nastyConvert(),su3);
+    su3 *ori_fixer=nissa_malloc("ori_fixer",locVolWithBord.nastyConvert(),su3);
     vector_copy(ori_fixer,fixer);
     
     //current transform
@@ -629,13 +629,13 @@ namespace nissa
     quad_su3 *ori_conf=ext_conf;
     if(fixed_conf==ori_conf)
       {
-	ori_conf=nissa_malloc("ori_conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+	ori_conf=nissa_malloc("ori_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
 	vector_copy(ori_conf,ext_conf);
       }
     vector_copy(fixed_conf,ext_conf);
     
     //fixing transformation
-    su3 *fixer=nissa_malloc("fixer",(locVol+bord_vol).nastyConvert(),su3);
+    su3 *fixer=nissa_malloc("fixer",locVolWithBord.nastyConvert(),su3);
     NISSA_LOC_VOL_LOOP(ivol)
       su3_put_to_id(fixer[ivol.nastyConvert()]);
     set_borders_invalid(fixer);
@@ -719,7 +719,7 @@ namespace nissa
   {
     
     //allocate fixing matrix
-    su3 *fixm=nissa_malloc("fixm",(locVol+bord_vol).nastyConvert(),su3);
+    su3 *fixm=nissa_malloc("fixm",locVolWithBord.nastyConvert(),su3);
     
     //extract random SU(3) matrix
     NISSA_PARALLEL_LOOP(ivol,0,locVol)

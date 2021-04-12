@@ -53,23 +53,26 @@ namespace nissa
     locVolh=(locVol/2).nastyConvert();
     
     //set the parity
-    loclx_parity=nissa_malloc("loclx_parity",(locVol+bord_vol+edge_vol).nastyConvert(),int);
+    loclx_parity=nissa_malloc("loclx_parity",locVolWithBordAndEdge.nastyConvert(),int);
     ignore_borders_communications_warning(loclx_parity);
     
-    loceo_of_loclx=nissa_malloc("loceo_of_loclx",(locVol+bord_vol+edge_vol).nastyConvert(),int);
+    loceo_of_loclx=nissa_malloc("loceo_of_loclx",locVolWithBordAndEdge.nastyConvert(),int);
     ignore_borders_communications_warning(loceo_of_loclx);
     
-    for(int par=0;par<2;par++) loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",(locVolh+bord_volh).nastyConvert()+edge_volh,int);
-    for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",(locVolh+bord_volh).nastyConvert()+edge_volh,coords);
-    for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",(locVolh+bord_volh).nastyConvert()+edge_volh,coords);
-    for(int par=0;par<2;par++) surfeo_of_bordeo[par]=nissa_malloc("surfeo_of_bordeo",bord_volh,int);
-    for(int par=0;par<2;par++) ignore_borders_communications_warning(loclx_of_loceo[par]);
-    for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighup[par]);
-    for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighdw[par]);
+    for(int par=0;par<2;par++)
+      {
+	loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",(locVolh+bord_volh).nastyConvert()+edge_volh,int);
+	loceo_neighup[par]=nissa_malloc("loceo_neighup",(locVolh+bord_volh).nastyConvert()+edge_volh,coords);
+	loceo_neighdw[par]=nissa_malloc("loceo_neighdw",(locVolh+bord_volh).nastyConvert()+edge_volh,coords);
+	surfeo_of_bordeo[par]=nissa_malloc("surfeo_of_bordeo",bord_volh,int);
+	ignore_borders_communications_warning(loclx_of_loceo[par]);
+	ignore_borders_communications_warning(loceo_neighup[par]);
+	ignore_borders_communications_warning(loceo_neighdw[par]);
+      }
     
     //Label the sites
     int iloc_eo[2]={0,0};
-    for(int loclx=0;loclx<locVol+bord_vol+edge_vol;loclx++)
+    for(int loclx=0;loclx<locVolWithBordAndEdge;loclx++)
       {
 	//fix parity of local index
 	int par=loclx_parity[loclx]=glb_coord_parity(glbCoordOfLoclx[loclx]);
@@ -81,7 +84,7 @@ namespace nissa
       }
     
     //Fix the movements among e/o ordered sites
-    for(int loclx=0;loclx<locVol+bord_vol+edge_vol;loclx++)
+    for(int loclx=0;loclx<locVolWithBordAndEdge;loclx++)
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  //take parity and e/o corresponding site
@@ -90,20 +93,21 @@ namespace nissa
 	  
 	  //up movements
 	  int loclx_up=loclxNeighup[loclx][mu];
-	  if(loclx_up>=0 and loclx_up<locVol+bord_vol+edge_vol)
+	  if(loclx_up>=0 and loclx_up<locVolWithBordAndEdge)
 	    loceo_neighup[par][loceo][mu]=loceo_of_loclx[loclx_up];
 	  
 	  //dw movements
 	  int loclx_dw=loclxNeighdw[loclx][mu];
-	  if(loclx_dw>=0 and loclx_dw<locVol+bord_vol+edge_vol)
+	  if(loclx_dw>=0 and loclx_dw<locVolWithBordAndEdge)
 	    loceo_neighdw[par][loceo][mu]=loceo_of_loclx[loclx_dw];
 	}
     
     //finds how to fill the borders with surface
-    for(int bordlx=0;bordlx<bord_vol;bordlx++)
+    for(BordLxSite bordlx=0;bordlx<bord_vol;bordlx++)
       {
-	int surflx=surflxOfBordlx[bordlx];
-	surfeo_of_bordeo[loclx_parity[surflx]][loceo_of_loclx[(bordlx+locVol).nastyConvert()]-locVolh.nastyConvert()]=loceo_of_loclx[surflx];
+	const LocLxSite& surflx=loclxSiteAdjacentToBordLx(bordlx);
+	const LocLxSite& loclx=extenedLocLxSiteOfBordLxSite(bordlx);
+	surfeo_of_bordeo[loclx_parity[surflx.nastyConvert()]][loceo_of_loclx[loclx.nastyConvert()]-locVolh.nastyConvert()]=loceo_of_loclx[surflx.nastyConvert()];
       }
     
     master_printf("E/O Geometry intialized\n");
@@ -134,9 +138,11 @@ namespace nissa
 		  for(int b_eo=0;b_eo<bord_volh;b_eo++)
 		    {
 		      const LocLxSite ivol=loclx_of_loceo[par][(locVolh+b_eo).nastyConvert()];
-		      if(loclx_neigh[!vmu][ivol.nastyConvert()][mu]>=0 and loclx_neigh[!vmu][ivol.nastyConvert()][mu]<locVol and loclx_neigh[vnu][ivol.nastyConvert()][nu]>=locVol+bord_vol) edge_pos_disp[iedge_site++]=b_eo;
+		      if(loclx_neigh[!vmu][ivol.nastyConvert()][mu]>=0 and loclx_neigh[!vmu][ivol.nastyConvert()][mu]<locVol and loclx_neigh[vnu][ivol.nastyConvert()][nu]>=locVolWithBord)
+			edge_pos_disp[iedge_site++]=b_eo;
 		    }
-		  if(iedge_site!=eo_edge_size) crash("iedge_site=%d did not arrive to eo_edge_size=%d",iedge_site,eo_edge_size);
+		  if(iedge_site!=eo_edge_size)
+		    crash("iedge_site=%d did not arrive to eo_edge_size=%d",iedge_site,eo_edge_size);
 		  
 		  MPI_Type_indexed(eo_edge_size(),single,edge_pos_disp,*base,&(MPI_EO_EDGES_SEND[icomm]));
 		  //commit the mess

@@ -96,7 +96,7 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++) dirs[mu]=ext_dirs[mu];
       //allocate confs
       for(int iter=0;iter<nint_steps;iter++)
-	conf[iter]=nissa_malloc("conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+	conf[iter]=nissa_malloc("conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
       //alllocate staple
       arg=nissa_malloc("arg",locVol.nastyConvert(),quad_su3);
       
@@ -147,7 +147,7 @@ namespace nissa
     //creator
     fermion_flower_t(double dt,bool *ext_dirs) : internal_fermion_flower_t<T,nint_steps>(dt,ext_dirs)
     {
-      auto size=(locVol+bord_vol).nastyConvert();
+      const auto size=locVolWithBord.nastyConvert();
       df0=nissa_malloc("df0",size,T);
       df1=nissa_malloc("df1",size,T);
       df2=nissa_malloc("df2",size,T);
@@ -205,7 +205,7 @@ namespace nissa
     //creator
     fermion_adjoint_flower_t(double dt,bool *ext_dirs) : internal_fermion_flower_t<T,nint_steps>(dt,ext_dirs)
     {
-      auto size=(locVol+bord_vol).nastyConvert();
+      const auto size=locVolWithBord.nastyConvert();
       
       l2=nissa_malloc("l2",size,T);
       l1=nissa_malloc("l1",size,T);

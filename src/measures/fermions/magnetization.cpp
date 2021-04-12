@@ -106,8 +106,8 @@ namespace nissa
     eo_ptr<color> chi={nissa_malloc("chi_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("chi_ODD",(locVolh+bord_volh).nastyConvert(),color)};
     
     //we need to store phases
-    coords *arg=nissa_malloc("arg",(locVol+bord_vol).nastyConvert(),coords);
-    NISSA_PARALLEL_LOOP(ivol,0,locVol+bord_vol)
+    coords *arg=nissa_malloc("arg",locVolWithBord.nastyConvert(),coords);
+    NISSA_PARALLEL_LOOP(ivol,0,locVolWithBord)
       get_args_of_quantization[quantization](arg[ivol.nastyConvert()],ivol,mu,nu);
     NISSA_PARALLEL_LOOP_END;
     

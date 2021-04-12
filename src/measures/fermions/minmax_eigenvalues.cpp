@@ -71,7 +71,7 @@ namespace nissa
     master_fprintf(fout," # iconf: %d\n",iconf);
     
     //zero smooth time of the conf
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",(locVol+bord_vol).nastyConvert(),quad_su3);
+    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVolWithBord.nastyConvert(),quad_su3);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     //parameters of the measure
@@ -88,7 +88,7 @@ namespace nissa
     spincolor *temp=nissa_malloc("temp",locVol.nastyConvert(),spincolor);
     complex *buffer=nissa_malloc("buffer",locVol.nastyConvert(),complex);
     for(int ieig=0;ieig<neigs;ieig++)
-      eigvec[ieig]=nissa_malloc("eig",(locVol+bord_vol).nastyConvert(),spincolor);
+      eigvec[ieig]=nissa_malloc("eig",locVolWithBord.nastyConvert(),spincolor);
     
     //loop on smooth
     int nsmooth=0;

@@ -42,7 +42,7 @@ namespace nissa
     
     //allocate dec2 conf
     su3 **dec2_conf=new su3*[idec2_remap];
-    for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",(locVol+bord_vol+edge_vol).nastyConvert(),su3);
+    for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",locVolWithBordAndEdge.nastyConvert(),su3);
     
     //loop over external index
     for(int mu=0;mu<4;mu++)
@@ -97,7 +97,7 @@ namespace nissa
     
     //allocate dec1 conf
     su3 **dec1_conf=new su3*[idec1_remap];
-    for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",(locVol+bord_vol+edge_vol).nastyConvert(),su3);
+    for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",locVolWithBordAndEdge.nastyConvert(),su3);
     
     //loop over external index
     for(int mu=0;mu<4;mu++)

@@ -1,52 +1,51 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
 #ifdef USE_MPI
- #include <mpi.h>
+# include <mpi.h>
 #endif
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 
 #if HIGH_PREC_TYPE == GMP_HIGH_PREC
- #include <gmpxx.h>
+# include <gmpxx.h>
 #endif
 
 #ifdef USE_CUDA
- #include "base/cuda.hpp"
+# include <base/cuda.hpp>
 #endif
 
-#include "base/DDalphaAMG_bridge.hpp"
-#include "base/bench.hpp"
-#include "base/debug.hpp"
-#include "base/git_info.hpp"
+#include <base/DDalphaAMG_bridge.hpp>
+#include <base/bench.hpp>
+#include <base/debug.hpp>
+#include <base/git_info.hpp>
 #include <memory/memoryManager.hpp>
-#include "base/vectors.hpp"
+#include <base/vectors.hpp>
 
-#include "communicate/borders.hpp"
-#include "communicate/communicate.hpp"
+#include <communicate/borders.hpp>
+#include <communicate/communicate.hpp>
 
-#include "eigenvalues/eigenvalues.hpp"
+#include <eigenvalues/eigenvalues.hpp>
 
-#include "io/input.hpp"
-#include "io/endianness.hpp"
+#include <io/input.hpp>
+#include <io/endianness.hpp>
 
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_Leb.hpp"
-#include "new_types/dirac.hpp"
-#include "new_types/high_prec.hpp"
-#include "random/randomGenerate.hpp"
-#include "routines/ios.hpp"
-#include "routines/math_routines.hpp"
-#include "routines/mpi_routines.hpp"
+#include <geometry/geometry_eo.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <new_types/dirac.hpp>
+#include <new_types/high_prec.hpp>
+#include <random/randomGenerate.hpp>
+#include <routines/ios.hpp>
+#include <routines/math_routines.hpp>
+#include <routines/mpi_routines.hpp>
 
 #include <unistd.h>
 #include <sys/ioctl.h>
 
 #ifdef USE_QUDA
- #include "base/quda_bridge.hpp"
+# include <base/quda_bridge.hpp>
 #endif
 
 //test to remove limit 2
@@ -69,7 +68,7 @@ namespace nissa
     int is_terminal=isatty(STDOUT_FILENO);
     if(!is_terminal) width=message_width+10;
     
-    //set the bordr
+    //set the border
     if(width>=message_width)
       {
 	int n=(width-message_width)/2;
@@ -213,7 +212,6 @@ namespace nissa
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
     use_128_bit_precision=NISSA_DEFAULT_USE_128_BIT_PRECISION;
     use_eo_geom=NISSA_DEFAULT_USE_EO_GEOM;
-    use_Leb_geom=NISSA_DEFAULT_USE_LEB_GEOM;
     warn_if_not_disallocated=NISSA_DEFAULT_WARN_IF_NOT_DISALLOCATED;
     warn_if_not_communicated=NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
@@ -604,7 +602,8 @@ namespace nissa
     //loc_vol2=(double)locVol*locVol;
     
     //calculate bulk size
-    bulkVol=nonBwSurfVol=1;
+    bulkVol=1;
+    nonBwSurfVol=1;
     for(int mu=0;mu<NDIM;mu++)
       if(paral_dir[mu])
 	{
@@ -618,7 +617,7 @@ namespace nissa
 	}
     nonFwSurfVol=nonBwSurfVol;
     fwSurfVol=bwSurfVol=locVol-nonBwSurfVol;
-    surfVol=locVol-bulkVol;
+    surfVol=locVol()-bulkVol();
     
     //calculate the border size
     bord_volh=0;
@@ -626,7 +625,8 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	//bord size along the mu dir
-	if(paral_dir[mu]) bord_dir_vol[mu]=locVol/(int64_t)locSize[mu]; //nasty
+	if(paral_dir[mu])
+	  bord_dir_vol[mu]=locVol()/(int64_t)locSize[mu];
 	else bord_dir_vol[mu]=0;
 	
 	//total bord
@@ -636,6 +636,7 @@ namespace nissa
 	if(mu>0) bord_offset[mu]=bord_offset[mu-1]+bord_dir_vol[mu-1];
       }
     bord_vol=2*bord_volh;
+    locVolWithBord=locVol()+bord_vol();
     
     init_boxes();
     
@@ -647,11 +648,12 @@ namespace nissa
       for(int nu=mu+1;nu<NDIM;nu++)
 	{
 	  //edge among the i and j dir
-	  if(paral_dir[mu] && paral_dir[nu]) edge_dir_vol[iedge]=bord_dir_vol[mu]/(int64_t)locSize[nu]; //nasty
+	  if(paral_dir[mu] and paral_dir[nu])
+	    edge_dir_vol[iedge]=bord_dir_vol[mu]()/(int64_t)locSize[nu];
 	  else edge_dir_vol[iedge]=0;
 	  
 	  //total edge
-	  edge_vol+=edge_dir_vol[iedge];
+	  edge_vol+=edge_dir_vol[iedge].nastyConvert();
 	  
 	  //summ of the border extent up to dir i
 	  if(iedge>0)
@@ -715,7 +717,6 @@ namespace nissa
     set_lx_geometry();
     
     if(use_eo_geom) set_eo_geometry();
-    if(use_Leb_geom) set_Leb_geometry();
     
     ///////////////////////////////////// start communicators /////////////////////////////////
     
@@ -741,7 +742,6 @@ namespace nissa
     set_lx_comm(lx_halfspincolor_comm,sizeof(halfspincolor));
     set_lx_comm(lx_colorspinspin_comm,sizeof(colorspinspin));
     set_lx_comm(lx_su3spinspin_comm,sizeof(su3spinspin));
-    set_lx_comm(lx_oct_su3_comm,sizeof(oct_su3));
     
     //setup all lx edges communicators
 #ifdef USE_MPI
@@ -761,8 +761,6 @@ namespace nissa
 	set_eo_comm(eo_single_halfspincolor_comm,sizeof(single_halfspincolor));
 	set_eo_comm(eo_quad_su3_comm,sizeof(quad_su3));
 	set_eo_comm(eo_su3_comm,sizeof(su3));
-	
-	set_eo_comm(eo_oct_su3_comm,sizeof(oct_su3));
 	
 #ifdef USE_MPI
 	set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);

@@ -1,14 +1,13 @@
 #ifndef _DIRAC_OPERATOR_STD_HPP
 #define _DIRAC_OPERATOR_STD_HPP
 
-#include "geometry/geometry_eo.hpp"
-#include "new_types/su3.hpp"
+#include <geometry/geometry_eo.hpp>
+#include <new_types/su3.hpp>
 
 namespace nissa
 {
   void apply_st2Doe(color *out,eo_ptr<quad_su3> conf,color *in);
   void apply_stD2ee_m2(color *out,eo_ptr<quad_su3> conf,color *temp,double mass2,color *in);
-  void apply_stD2Leb_ee_m2(color *out,eo_ptr<oct_su3> conf,color *temp,double mass2,color *in);
   void apply_stD2ee_m2_32(single_color *out,eo_ptr<single_quad_su3> conf,single_color *temp,float mass2,single_color *in);
   void apply_stDeo_half(color *out,eo_ptr<quad_su3> conf,color *in);
   void apply_stDoe(color *out,eo_ptr<quad_su3> conf,color *in);
