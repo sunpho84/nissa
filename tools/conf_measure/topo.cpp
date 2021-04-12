@@ -111,7 +111,7 @@ void in_main(int narg,char **arg)
   
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol+edge_vol).nastyConvert(),quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
   
   //read the conf and write plaquette
   ILDG_message mess;

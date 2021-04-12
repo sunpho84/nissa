@@ -25,7 +25,7 @@ void index_from_lx_to_Neo(int &rank_out,int &iel_out,int iel_in,void *pars)
 
 void conf_convert(char *outpath,char *inpath)
 {
-  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVolWithBord.nastyConvert(),quad_su3);
   read_ildg_gauge_conf(conf,inpath);
   
   //compute and convert the plaquette

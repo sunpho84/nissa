@@ -161,7 +161,7 @@ void in_main(int narg,char **arg)
   //read conf
   char conf_path[1024];
   read_str_str("Conf",conf_path,1024);
-  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVolWithBord.nastyConvert(),quad_su3);
   read_ildg_gauge_conf(conf,conf_path);
   
   //read APE smearing pars
@@ -195,7 +195,7 @@ void in_main(int narg,char **arg)
   master_fprintf(fout,"\n");
   
   //set the source
-  color *source=nissa_malloc("source",(locVol+bord_vol).nastyConvert(),color);
+  color *source=nissa_malloc("source",locVolWithBord.nastyConvert(),color);
   vector_reset(source);
   coords source_pos[glbSize[0]];
   for(int t=0;t<glbSize[0];t++)

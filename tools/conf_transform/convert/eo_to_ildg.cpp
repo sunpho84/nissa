@@ -70,7 +70,7 @@ void conf_convert(char *outpath,char *inpath)
   if(!little_endian) change_endianness((double*)buf,(double*)buf,locVol.nastyConvert()*4*18);
   
   //reorder
-  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVolWithBord.nastyConvert(),quad_su3);
   remapper->remap(conf,buf,sizeof(su3));
 
   //compute the plaquette online

@@ -105,17 +105,17 @@ void bench_Wils()
 {
   
   //conf
-  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVolWithBord.nastyConvert(),quad_su3);
   generate_hot_lx_conf(conf);
   
   //in
-  spincolor *in=nissa_malloc("in",(locVol+bord_vol).nastyConvert(),spincolor);
+  spincolor *in=nissa_malloc("in",locVolWithBord.nastyConvert(),spincolor);
   generate_fully_undiluted_eo_source(in, RND_GAUSS,-1,EVN);
   
   //temp and out
-  spincolor *temp=nissa_malloc("temp",(locVol+bord_vol).nastyConvert(),spincolor);
-  spincolor *out=nissa_malloc("out",(locVol+bord_vol).nastyConvert(),spincolor);
-  spincolor *outrec=nissa_malloc("outrec",(locVol+bord_vol).nastyConvert(),spincolor);
+  spincolor *temp=nissa_malloc("temp",locVolWithBord.nastyConvert(),spincolor);
+  spincolor *out=nissa_malloc("out",locVolWithBord.nastyConvert(),spincolor);
+  spincolor *outrec=nissa_malloc("outrec",locVolWithBord.nastyConvert(),spincolor);
   
   int nbench=500;
   double mu=1,kappa=0.2;

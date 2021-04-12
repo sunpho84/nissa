@@ -87,7 +87,7 @@ int main(int narg,char **arg)
   int nconf;
   read_str_int("NGaugeConf",&nconf);
   
-  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVolWithBord.nastyConvert(),quad_su3);
   
   for(int iconf=0;iconf<nconf;iconf++)
     {

@@ -80,7 +80,7 @@ int main(int narg,char **arg)
   init_grid(T,L);
   //////////////////////////// read the conf /////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("conf",(locVol+bord_vol).nastyConvert(),quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVolWithBord.nastyConvert(),quad_su3);
   
   FILE *fin=find_conf_beginning(arg[3]);
   int rc=fread(conf,sizeof(quad_su3),glbVol(),fin);
