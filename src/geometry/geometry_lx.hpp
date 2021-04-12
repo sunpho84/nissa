@@ -39,8 +39,6 @@ namespace nissa
   
   DECLARE_COMPONENT(BordLxSite,int64_t,DYNAMIC);
   
-  // DECLARE_COMPONENT(SurfLxSite,int64_t,DYNAMIC);
-  
   DECLARE_COMPONENT(EdgeLxSite,int64_t,DYNAMIC);
   
   DECLARE_COMPONENT(BulkLxSite,int64_t,DYNAMIC);
@@ -62,7 +60,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX GlbLxSite glbSpatVol;
   
   /// Local 4D volume
-  EXTERN_GEOMETRY_LX LocLxSite locVol;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LocLxSite locVol;
   
   /// Local spatial volume
   EXTERN_GEOMETRY_LX LocLxSite locSpatVol;
@@ -96,7 +94,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,LocLxSite> loclxOfBordlx;
   
   /// Local site adjacent to a given border site
-  EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,LocLxSite> loclxSiteAdjacentToBordLx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,LocLxSite> loclxSiteAdjacentToBordLx;
   
   /// Global site corresponding to edge sites
   EXTERN_GEOMETRY_LX Tensor<OfComps<EdgeLxSite>,GlbLxSite> glblxOfEdgelx;

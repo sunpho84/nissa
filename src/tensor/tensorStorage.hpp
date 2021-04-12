@@ -277,13 +277,14 @@ namespace nissa
     
     /// Access to a sepcific value via subscribe operator
     template <typename T>                  // Subscribed component type
+    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
     const Fund& operator[](const T& t)   ///< Subscribed component
       const
     {
       return data.innerStorage[t];
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD(operator[]);
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator[],CUDA_HOST_DEVICE);
   };
 }
 

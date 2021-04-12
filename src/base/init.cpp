@@ -660,10 +660,12 @@ namespace nissa
 	    edge_offset[iedge]=edge_offset[iedge-1]+edge_dir_vol[iedge-1];
 	  iedge++;
 	}
-    edge_vol*=4l; //nasty
+    edge_vol*=4;
     edge_volh=(edge_vol/2l).nastyConvert(); //nasty
     master_printf("Edge vol: %d\n",edge_vol);
-      
+    
+    locVolWithBordAndEdge=locVolWithBord+edge_vol();
+    
     //set edge numb
     {
       int iedge=0;

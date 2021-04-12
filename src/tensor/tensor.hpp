@@ -282,7 +282,7 @@ namespace nissa
     
     /// Temporary implementation, in which all components must be specified
     template <typename...TD>
-    CUDA_HOST_DEVICE INLINE_FUNCTION
+    CUDA_HOST_DEVICE constexpr INLINE_FUNCTION
     const Fund& operator()(const TD&...td) const
     {
       return eval(td...);

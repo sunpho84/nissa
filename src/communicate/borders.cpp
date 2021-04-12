@@ -157,7 +157,6 @@ namespace nissa
   //fill the sending buf using the data inside an lx vec
   void fill_sending_buf_with_lx_vec(comm_t &comm,void *vec)
   {
-    
     //check buffer size matching
     if(comm.tot_mess_size!=comm.nbytes_per_site*bordVol)
       crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bordVol);
