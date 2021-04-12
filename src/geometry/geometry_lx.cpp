@@ -404,6 +404,21 @@ namespace nissa
     memcpy(rank_neigh[0],rank_neighdw,sizeof(coords));
     memcpy(rank_neigh[1],rank_neighup,sizeof(coords));
     
+    //borders
+    glblxOfBordlx.allocate(bordVol);
+    loclxOfBordlx.allocate(bordVol);
+    loclxSiteAdjacentToBordLx.allocate(bordVol);
+    
+    //bulk and surfs
+    loclxOfBulklx.allocate(bulkVol);
+    loclxOfNonBwSurflx.allocate(nonBwSurfVol);
+    loclxOfNonFwSurflx.allocate(nonFwSurfVol);
+    loclxOfBwSurflx.allocate(bwSurfVol);
+    loclxOfFwSurflx.allocate(fwSurfVol);
+    
+    //edges
+    glblxOfEdgelx.allocate(edge_vol);
+    
     locCoordOfLoclx=nissa_malloc("loc_coord_of_loclx",locVol.nastyConvert(),coords);
     glbCoordOfLoclx=nissa_malloc("glb_coord_of_loclx",locVolWithBordAndEdge.nastyConvert(),coords);
     loclx_neigh[0]=loclxNeighdw=nissa_malloc("loclx_neighdw",locVolWithBordAndEdge.nastyConvert(),coords);
