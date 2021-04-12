@@ -10,8 +10,8 @@ namespace nissa
     
     //work also on borders and edges if allocated and valid
     LocLxSite ending=locVol;
-    if(check_borders_allocated(lx_conf,0) && check_borders_valid(lx_conf)) ending+=bord_vol;
-    if(check_edges_allocated(lx_conf,0) && check_edges_valid(lx_conf)) ending+=edge_vol;
+    if(check_borders_allocated(lx_conf,0) and check_borders_valid(lx_conf)) ending=locVolWithBord;
+    if(check_edges_allocated(lx_conf,0) and check_edges_valid(lx_conf)) ending=locVolWithBordAndEdge;
     
     NISSA_PARALLEL_LOOP(ivol,0,ending)
       {
