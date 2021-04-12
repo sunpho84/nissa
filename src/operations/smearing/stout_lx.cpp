@@ -20,7 +20,7 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,const LocLxSite& A,int mu,double rho)
+  CUDA_HOST_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,const LocLxSite& A,const Direction& mu,double rho)
   {
     //put staples to zero
     su3_put_to_zero(staples);
@@ -29,19 +29,19 @@ namespace nissa
     su3 temp1,temp2;
     for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
       {                                               //  |   |   | mu
-	int nu=perp_dir[mu][inu];                     //  D---A---B
-	  int B=loclxNeighup[A.nastyConvert()][nu];                 //        nu
-	  int F=loclxNeighup[A.nastyConvert()][mu];
-	  unsafe_su3_prod_su3(    temp1,conf[A.nastyConvert()][nu],conf[B][mu]);
-	  unsafe_su3_prod_su3_dag(temp2,temp1,      conf[F][nu]);
-	  su3_summ_the_prod_double(staples,temp2,rho);
-	  
-	  int D=loclxNeighdw[A.nastyConvert()][nu];
-	  int E=loclxNeighup[D][mu];
-	  unsafe_su3_dag_prod_su3(temp1,conf[D][nu],conf[D][mu]);
-	  unsafe_su3_prod_su3(    temp2,temp1,      conf[E][nu]);
-	  su3_summ_the_prod_double(staples,temp2,rho);
-	}
+	const Direction nu=perp_dir[mu.nastyConvert()][inu];                     //  D---A---B
+	const LocLxSite& B=loclxNeighup(A,nu);                 //        nu
+	const LocLxSite& F=loclxNeighup(A,mu);
+	unsafe_su3_prod_su3(    temp1,conf[A.nastyConvert()][nu.nastyConvert()],conf[B.nastyConvert()][mu.nastyConvert()]);
+	unsafe_su3_prod_su3_dag(temp2,temp1,      conf[F.nastyConvert()][nu.nastyConvert()]);
+	su3_summ_the_prod_double(staples,temp2,rho);
+	
+	const LocLxSite& D=loclxNeighdw(A,nu);
+	const LocLxSite& E=loclxNeighup(D,mu);
+	unsafe_su3_dag_prod_su3(temp1,conf[D.nastyConvert()][nu.nastyConvert()],conf[D.nastyConvert()][mu.nastyConvert()]);
+	unsafe_su3_prod_su3(    temp2,temp1,      conf[E.nastyConvert()][nu.nastyConvert()]);
+	su3_summ_the_prod_double(staples,temp2,rho);
+      }
   }
   
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
@@ -205,56 +205,56 @@ namespace nissa
     //compute the third piece of eq. (75)
     communicate_lx_quad_su3_edges(Lambda);
     
-    for(int mu=0;mu<NDIM;mu++)
-      for(int nu=0;nu<NDIM;nu++)
+    FOR_ALL_DIRECTIONS(mu)
+      for(Direction nu=0;nu<NDIM;nu++)
 	if(mu!=nu)
 	  {
 	    NISSA_PARALLEL_LOOP(A,0,locVol)     //   b1 --<-- f1 -->-- +
 	      {                                  //    |        |       |
-		int f1=loclxNeighup[ A.nastyConvert()][mu];    //    V   B    |   F   V     ^
-		int f2=loclxNeighup[ A.nastyConvert()][nu];    //    |        |       |     m
-		int f3=A.nastyConvert();                        //  b23 -->-- f3 --<-- f2    u
-		int b1=loclxNeighdw[f1][nu];    //             A             +  nu ->
-		int b2=loclxNeighdw[b1][mu];
-		int b3=b2;
+		const LocLxSite& f1=loclxNeighup(A,mu);    //    V   B    |   F   V     ^
+		const LocLxSite& f2=loclxNeighup(A,nu);    //    |        |       |     m
+		const LocLxSite& f3=A;                        //  b23 -->-- f3 --<-- f2    u
+		const LocLxSite& b1=loclxNeighdw(f1,nu);    //             A             +  nu ->
+		const LocLxSite& b2=loclxNeighdw(b1,mu);
+		const LocLxSite& b3=b2;
 		
 		su3 temp1,temp2,temp3;
 		
 		//first term, insertion on f3 along nu
-		unsafe_su3_prod_su3_dag(temp1,conf[f1][nu],conf[f2][mu]);
-		unsafe_su3_prod_su3_dag(temp2,temp1,conf[f3][nu]);
-		unsafe_su3_prod_su3(temp3,temp2,Lambda[f3][nu]);
-		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu],temp3,-rho);
+		unsafe_su3_prod_su3_dag(temp1,conf[f1.nastyConvert()][nu.nastyConvert()],conf[f2.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3_dag(temp2,temp1,conf[f3.nastyConvert()][nu.nastyConvert()]);
+		unsafe_su3_prod_su3(temp3,temp2,Lambda[f3.nastyConvert()][nu.nastyConvert()]);
+		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu.nastyConvert()],temp3,-rho);
 		
 		//second term, insertion on b2 along mu
-		unsafe_su3_dag_prod_su3_dag(temp1,conf[b1][nu],conf[b2][mu]);
-		unsafe_su3_prod_su3(temp2,temp1,Lambda[b2][mu]);
-		unsafe_su3_prod_su3(temp3,temp2,conf[b3][nu]);
-		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu],temp3,-rho);
+		unsafe_su3_dag_prod_su3_dag(temp1,conf[b1.nastyConvert()][nu.nastyConvert()],conf[b2.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3(temp2,temp1,Lambda[b2.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3(temp3,temp2,conf[b3.nastyConvert()][nu.nastyConvert()]);
+		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu.nastyConvert()],temp3,-rho);
 		
 		//third term, insertion on b1 along nu
-		unsafe_su3_dag_prod_su3(temp1,conf[b1][nu],Lambda[b1][nu]);
-		unsafe_su3_prod_su3_dag(temp2,temp1,conf[b2][mu]);
-		unsafe_su3_prod_su3(temp3,temp2,conf[b3][nu]);
-		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu],temp3,-rho);
+		unsafe_su3_dag_prod_su3(temp1,conf[b1.nastyConvert()][nu.nastyConvert()],Lambda[b1.nastyConvert()][nu.nastyConvert()]);
+		unsafe_su3_prod_su3_dag(temp2,temp1,conf[b2.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3(temp3,temp2,conf[b3.nastyConvert()][nu.nastyConvert()]);
+		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu.nastyConvert()],temp3,-rho);
 		
 		//fourth term, insertion on b3 along nu
-		unsafe_su3_dag_prod_su3_dag(temp1,conf[b1][nu],conf[b2][mu]);
-		unsafe_su3_prod_su3(temp2,temp1,Lambda[b3][nu]);
-		unsafe_su3_prod_su3(temp3,temp2,conf[b3][nu]);
-		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu],temp3,+rho);
+		unsafe_su3_dag_prod_su3_dag(temp1,conf[b1.nastyConvert()][nu.nastyConvert()],conf[b2.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3(temp2,temp1,Lambda[b3.nastyConvert()][nu.nastyConvert()]);
+		unsafe_su3_prod_su3(temp3,temp2,conf[b3.nastyConvert()][nu.nastyConvert()]);
+		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu.nastyConvert()],temp3,+rho);
 		
 		//fifth term, insertion on f1 along nu
-		unsafe_su3_prod_su3(temp1,Lambda[f1][nu],conf[f1][nu]);
-		unsafe_su3_prod_su3_dag(temp2,temp1,conf[f2][mu]);
-		unsafe_su3_prod_su3_dag(temp3,temp2,conf[f3][nu]);
-		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu],temp3,+rho);
+		unsafe_su3_prod_su3(temp1,Lambda[f1.nastyConvert()][nu.nastyConvert()],conf[f1.nastyConvert()][nu.nastyConvert()]);
+		unsafe_su3_prod_su3_dag(temp2,temp1,conf[f2.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3_dag(temp3,temp2,conf[f3.nastyConvert()][nu.nastyConvert()]);
+		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu.nastyConvert()],temp3,+rho);
 		
 		//sixth term, insertion on f2 along mu
-		unsafe_su3_prod_su3_dag(temp1,conf[f1][nu],conf[f2][mu]);
-		unsafe_su3_prod_su3(temp2,temp1,Lambda[f2][mu]);
-		unsafe_su3_prod_su3_dag(temp3,temp2,conf[f3][nu]);
-		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu],temp3,-rho);
+		unsafe_su3_prod_su3_dag(temp1,conf[f1.nastyConvert()][nu.nastyConvert()],conf[f2.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3(temp2,temp1,Lambda[f2.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3_dag(temp3,temp2,conf[f3.nastyConvert()][nu.nastyConvert()]);
+		su3_summ_the_prod_idouble(F[A.nastyConvert()][mu.nastyConvert()],temp3,-rho);
 	      }
 	    NISSA_PARALLEL_LOOP_END;
 	  }

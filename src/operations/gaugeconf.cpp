@@ -75,51 +75,6 @@ namespace nissa
     nissa_free(xto);
   }
   
-  /*
-    rotate the gauge configuration anti-clockwise by 90 degrees
-    this is more complicated than a single vector because of link swaps
-    therefore the rotation is accomplished through 2 separates steps
-    
-    .---.---.---.     .---.---.---.       .---.---.---.
-    |           |     |           |       |           |
-    .   B 3 C   .     .   B 2'C   .       .   C 4'D   .
-    |   2   4   |     |   1   3   |       |   3   1   |
-    .   A 1 D   .     .   A 4'D   .       .   B 2'A   .
-    |           |     |           |       |           |
-    O---.---.---.     O---.---.---.       O---.---.---.
-    
-    d2
-    O d1
-    
-  */
-  
-  void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis)
-  {
-    int d0=0;
-    int d1=1+(axis-1+1)%3;
-    int d2=1+(axis-1+2)%3;
-    int d3=axis;
-    
-    //allocate a temporary conf with borders
-    quad_su3 *temp_conf=nissa_malloc("temp_conf",locVolWithBord.nastyConvert(),quad_su3);
-    memcpy(temp_conf,in,locVol.nastyConvert()*sizeof(quad_su3));
-    communicate_lx_quad_su3_borders(temp_conf);
-    
-    //now reorder links
-    NISSA_LOC_VOL_LOOP(ivol)
-    {
-      //copy temporal direction and axis
-      memcpy(out[ivol.nastyConvert()][d0],temp_conf[ivol.nastyConvert()][d0],sizeof(su3));
-      memcpy(out[ivol.nastyConvert()][d3],temp_conf[ivol.nastyConvert()][d3],sizeof(su3));
-      //swap the other two
-      unsafe_su3_hermitian(out[ivol.nastyConvert()][d1],temp_conf[loclxNeighdw[ivol.nastyConvert()][d2]][d2]);
-      memcpy(out[ivol.nastyConvert()][d2],temp_conf[ivol.nastyConvert()][d1],sizeof(su3));
-    }
-    
-    //rotate rigidly
-    ac_rotate_vector(out,out,axis,sizeof(quad_su3));
-  }
-  
   //put boundary conditions on the gauge conf
   void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges)
   {

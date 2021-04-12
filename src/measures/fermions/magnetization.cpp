@@ -43,7 +43,7 @@ namespace nissa
               
               int iup_eo=loceo_neighup[par][ieo.nastyConvert()][rho];
               int idw_eo=loceo_neighdw[par][ieo.nastyConvert()][rho];
-              int idw_lx=loclxNeighdw[ivol.nastyConvert()][rho];
+              const LocLxSite& idw_lx=loclxNeighdw(ivol,Direction(rho)); //nasty
               
               color v;
               complex t;
@@ -62,7 +62,7 @@ namespace nissa
               //backward derivative: note that we should multiply for -arg*(-U^+)
               unsafe_su3_dag_prod_color(v,conf[!par][idw_eo][rho],chi[!par][idw_eo]);
               color_scalar_prod(t,rnd[par][ieo.nastyConvert()],v);
-	      complex_summ_the_prod_double(point_magn[ivol.nastyConvert()],t,arg[idw_lx][rho]);
+	      complex_summ_the_prod_double(point_magn[ivol.nastyConvert()],t,arg[idw_lx.nastyConvert()][rho]);
               //compute also the projected current
 #ifndef USE_CUDA
 	      crash("#warning reimplement complex_summ_the_prod_double(thr_magn_proj_x[ix],t,arg[idw_lx][rho]");

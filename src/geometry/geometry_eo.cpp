@@ -84,22 +84,22 @@ namespace nissa
       }
     
     //Fix the movements among e/o ordered sites
-    for(int loclx=0;loclx<locVolWithBordAndEdge;loclx++)
-      for(int mu=0;mu<NDIM;mu++)
+    for(LocLxSite loclx=0;loclx<locVolWithBordAndEdge;loclx++)
+      FOR_ALL_DIRECTIONS(mu)
 	{
 	  //take parity and e/o corresponding site
-	  int par=loclx_parity[loclx];
-	  int loceo=loceo_of_loclx[loclx];
+	  int par=loclx_parity[loclx.nastyConvert()];
+	  int loceo=loceo_of_loclx[loclx.nastyConvert()];
 	  
 	  //up movements
-	  int loclx_up=loclxNeighup[loclx][mu];
-	  if(loclx_up>=0 and loclx_up<locVolWithBordAndEdge)
-	    loceo_neighup[par][loceo][mu]=loceo_of_loclx[loclx_up];
+	  const LocLxSite& loclxUp=loclxNeighup(loclx,mu);
+	  if(loclxUp>=0 and loclxUp<locVolWithBordAndEdge)
+	    loceo_neighup[par][loceo][mu.nastyConvert()]=loceo_of_loclx[loclxUp.nastyConvert()];
 	  
 	  //dw movements
-	  int loclx_dw=loclxNeighdw[loclx][mu];
-	  if(loclx_dw>=0 and loclx_dw<locVolWithBordAndEdge)
-	    loceo_neighdw[par][loceo][mu]=loceo_of_loclx[loclx_dw];
+	  const LocLxSite& loclxDw=loclxNeighdw(loclx,mu);
+	  if(loclxDw>=0 and loclxDw<locVolWithBordAndEdge)
+	    loceo_neighdw[par][loceo][mu.nastyConvert()]=loceo_of_loclx[loclxDw.nastyConvert()];
 	}
     
     //finds how to fill the borders with surface
@@ -120,16 +120,16 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       for(int vmu=0;vmu<2;vmu++)
-	for(int mu=0;mu<NDIM;mu++)
+	FOR_ALL_DIRECTIONS(mu)
 	  for(int vnu=0;vnu<2;vnu++)
-	    for(int nu=mu+1;nu<NDIM;nu++)
-	      if(paral_dir[mu] and paral_dir[nu])
+	    for(Direction nu=mu+1;nu<NDIM;nu++)
+	      if(paral_dir[mu.nastyConvert()] and paral_dir[nu.nastyConvert()])
 		{
-		  int iedge=edge_numb[mu][nu];
+		  int iedge=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 		  int icomm=((par*2+vmu)*2+vnu)*NDIM*(NDIM-1)/2+iedge;
 		  
 		  //the sending edge might be a mess
-		  const LocEoSite eo_edge_size=locVolh/locSize[mu]/locSize[nu];
+		  const LocEoSite eo_edge_size=locVolh/locSize[mu.nastyConvert()]/locSize[nu.nastyConvert()];
 		  int *edge_pos_disp=nissa_malloc("edge_disp",eo_edge_size.nastyConvert(),int);
 		  int *single=nissa_malloc("single",eo_edge_size.nastyConvert(),int);
 		  for(int iedge_eo=0;iedge_eo<eo_edge_size;iedge_eo++) single[iedge_eo]=1;
@@ -138,7 +138,7 @@ namespace nissa
 		  for(int b_eo=0;b_eo<bord_volh;b_eo++)
 		    {
 		      const LocLxSite ivol=loclx_of_loceo[par][(locVolh+b_eo).nastyConvert()];
-		      if(loclx_neigh[!vmu][ivol.nastyConvert()][mu]>=0 and loclx_neigh[!vmu][ivol.nastyConvert()][mu]<locVol and loclx_neigh[vnu][ivol.nastyConvert()][nu]>=locVolWithBord)
+		      if(loclxNeigh(!vmu)(ivol,mu)>=0 and loclxNeigh(!vmu)(ivol,mu)<locVol and loclxNeigh(vnu)(ivol,nu)>=locVolWithBord)
 			edge_pos_disp[iedge_site++]=b_eo;
 		    }
 		  if(iedge_site!=eo_edge_size)

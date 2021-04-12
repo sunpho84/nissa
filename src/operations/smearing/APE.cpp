@@ -39,26 +39,26 @@ namespace nissa
 	communicate_lx_quad_su3_edges(temp_conf);
 	
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  for(int mu=0;mu<NDIM;mu++)
-	    if(dirs[mu])
+	  FOR_ALL_DIRECTIONS(mu)
+	  if(dirs[mu.nastyConvert()])
 	      {
 		//calculate staples
 		su3 stap,temp1,temp2;
 		su3_put_to_zero(stap);
-		for(int nu=min_staple_dir;nu<NDIM;nu++)   //  E---F---C
-		  if(nu!=mu)                              //  |   |   | mu
-		    {                                     //  D---A---B
-		      const LocLxSite A=ivol;             //   nu
-		      const LocLxSite B=loclxNeighup[A.nastyConvert()][nu];
-		      const LocLxSite F=loclxNeighup[A.nastyConvert()][mu];
-		      unsafe_su3_prod_su3(temp1,temp_conf[A.nastyConvert()][nu],temp_conf[B.nastyConvert()][mu]);
-		      unsafe_su3_prod_su3_dag(temp2,temp1,temp_conf[F.nastyConvert()][nu]);
+		for(Direction nu=min_staple_dir;nu<NDIM;nu++)    //  E---F---C
+		  if(nu!=mu)                                     //  |   |   | mu
+		    {                                            //  D---A---B
+		      const LocLxSite& A=ivol;                   //   nu
+		      const LocLxSite& B=loclxNeighup(A,nu);
+		      const LocLxSite& F=loclxNeighup(A,mu);
+		      unsafe_su3_prod_su3(temp1,temp_conf[A.nastyConvert()][nu.nastyConvert()],temp_conf[B.nastyConvert()][mu.nastyConvert()]);
+		      unsafe_su3_prod_su3_dag(temp2,temp1,temp_conf[F.nastyConvert()][nu.nastyConvert()]);
 		      su3_summ(stap,stap,temp2);
 		      
-		      const LocLxSite D=loclxNeighdw[A.nastyConvert()][nu];
-		      const LocLxSite E=loclxNeighup[D.nastyConvert()][mu];
-		      unsafe_su3_dag_prod_su3(temp1,temp_conf[D.nastyConvert()][nu],temp_conf[D.nastyConvert()][mu]);
-		      unsafe_su3_prod_su3(temp2,temp1,temp_conf[E.nastyConvert()][nu]);
+		      const LocLxSite& D=loclxNeighdw(A,nu);
+		      const LocLxSite& E=loclxNeighup(D,mu);
+		      unsafe_su3_dag_prod_su3(temp1,temp_conf[D.nastyConvert()][nu.nastyConvert()],temp_conf[D.nastyConvert()][mu.nastyConvert()]);
+		      unsafe_su3_prod_su3(temp2,temp1,temp_conf[E.nastyConvert()][nu.nastyConvert()]);
 		      su3_summ(stap,stap,temp2);
 		    }
 		
@@ -68,9 +68,9 @@ namespace nissa
 		  for(int icol2=0;icol2<NCOL;icol2++)
 		    for(int ri=0;ri<2;ri++)
 		      //prop_link[icol1][icol2][ri]=(1-alpha)*temp_conf[ivol.nastyConvert()][mu][icol1][icol2][ri]+alpha/6*stap[icol1][icol2][ri];
-		      prop_link[icol1][icol2][ri]=temp_conf[ivol.nastyConvert()][mu][icol1][icol2][ri]+alpha*stap[icol1][icol2][ri];
+		      prop_link[icol1][icol2][ri]=temp_conf[ivol.nastyConvert()][mu.nastyConvert()][icol1][icol2][ri]+alpha*stap[icol1][icol2][ri];
 		
-		su3_unitarize_maximal_trace_projecting(smear_conf[ivol.nastyConvert()][mu],prop_link);
+		su3_unitarize_maximal_trace_projecting(smear_conf[ivol.nastyConvert()][mu.nastyConvert()],prop_link);
 	      }
 	NISSA_PARALLEL_LOOP_END;
 	

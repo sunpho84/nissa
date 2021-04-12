@@ -45,37 +45,37 @@ namespace nissa
     for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",locVolWithBordAndEdge.nastyConvert(),su3);
     
     //loop over external index
-    for(int mu=0;mu<4;mu++)
-      //loop over the first decoration index
+    FOR_ALL_DIRECTIONS(mu)
+    //loop over the first decoration index
       for(int inu=0;inu<3;inu++)
 	//loop over the second decoration index
 	for(int irho=0;irho<2;irho++)
 	  {
 	    //find the remapped index
-	    int nu=perp_dir[mu][inu],rho=perp2_dir[mu][inu][irho],eta=perp3_dir[mu][inu][irho][0];
-	    int ire0=dec2_remap_index[mu][nu][rho];
+	    const Direction nu=perp_dir[mu.nastyConvert()][inu],rho=perp2_dir[mu.nastyConvert()][inu][irho],eta=perp3_dir[mu.nastyConvert()][inu][irho][0];
+	    int ire0=dec2_remap_index[mu.nastyConvert()][nu.nastyConvert()][rho.nastyConvert()];
 	    
 	    //loop over local volume
 	    NISSA_PARALLEL_LOOP(A,0,locVol)
 	      {
 		//take original link
 		su3 temp0;
-		su3_prod_double(temp0,conf[A.nastyConvert()][mu],1-alpha2);
+		su3_prod_double(temp0,conf[A.nastyConvert()][mu.nastyConvert()],1-alpha2);
 		
 		//staple and temporary links
 		su3 stap,temp1,temp2;
 		
 		//staple in the positive dir
-		const LocLxSite B=loclxNeighup[A.nastyConvert()][eta];
-		const LocLxSite F=loclxNeighup[A.nastyConvert()][mu];
-		unsafe_su3_prod_su3(temp1,conf[A.nastyConvert()][eta],conf[B.nastyConvert()][mu]);
-		unsafe_su3_prod_su3_dag(stap,temp1,conf[F.nastyConvert()][eta]);
+		const LocLxSite& B=loclxNeighup(A,eta);
+		const LocLxSite& F=loclxNeighup(A,mu);
+		unsafe_su3_prod_su3(temp1,conf[A.nastyConvert()][eta.nastyConvert()],conf[B.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3_dag(stap,temp1,conf[F.nastyConvert()][eta.nastyConvert()]);
 		
 		//staple in the negative dir
-		const LocLxSite D=loclxNeighdw[A.nastyConvert()][eta];
-		const LocLxSite E=loclxNeighup[D.nastyConvert()][mu];
-		unsafe_su3_dag_prod_su3(temp1,conf[D.nastyConvert()][eta],conf[D.nastyConvert()][mu]);
-		unsafe_su3_prod_su3(temp2,temp1,conf[E.nastyConvert()][eta]);
+		const LocLxSite& D=loclxNeighdw(A,eta);
+		const LocLxSite& E=loclxNeighup(D,mu);
+		unsafe_su3_dag_prod_su3(temp1,conf[D.nastyConvert()][eta.nastyConvert()],conf[D.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3(temp2,temp1,conf[E.nastyConvert()][eta.nastyConvert()]);
 		su3_summ(stap,stap,temp2);
 		
 		//summ the two staples with appropriate coef
@@ -100,20 +100,20 @@ namespace nissa
     for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",locVolWithBordAndEdge.nastyConvert(),su3);
     
     //loop over external index
-    for(int mu=0;mu<4;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       //loop over the first decoration index
       for(int inu=0;inu<3;inu++)
 	{
 	  //find the remapped index
-	  int nu=perp_dir[mu][inu];
-	  int ire0=dec1_remap_index[mu][nu];
+	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	  int ire0=dec1_remap_index[mu.nastyConvert()][nu.nastyConvert()];
 	  
 	  //loop over local volume
 	  NISSA_PARALLEL_LOOP(A,0,locVol)
 	    {
 	      //take original link
 	      su3 temp0;
-	      su3_prod_double(temp0,conf[A.nastyConvert()][mu],1-alpha1);
+	      su3_prod_double(temp0,conf[A.nastyConvert()][mu.nastyConvert()],1-alpha1);
 	      
 	      //reset the staple
 	      su3 stap;
@@ -125,22 +125,22 @@ namespace nissa
 		  su3 temp1,temp2;
 		  
 		  //find the two remampped indices
-		  int rho=perp2_dir[mu][inu][irho];
-		  int ire1=dec2_remap_index[rho][nu][mu];
-		  int ire2=dec2_remap_index[mu][rho][nu];
+		  const Direction rho=perp2_dir[mu.nastyConvert()][inu][irho];
+		  int ire1=dec2_remap_index[rho.nastyConvert()][nu.nastyConvert()][mu.nastyConvert()];
+		  int ire2=dec2_remap_index[mu.nastyConvert()][rho.nastyConvert()][nu.nastyConvert()];
 		  
 		  //staple in the positive dir
-		  int B=loclxNeighup[A.nastyConvert()][rho];
-		  int F=loclxNeighup[A.nastyConvert()][mu];
-		  unsafe_su3_prod_su3(temp1,dec2_conf[ire1][A.nastyConvert()],dec2_conf[ire2][B]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,dec2_conf[ire1][F]);
+		  const LocLxSite& B=loclxNeighup(A,rho);
+		  const LocLxSite& F=loclxNeighup(A,mu);
+		  unsafe_su3_prod_su3(temp1,dec2_conf[ire1][A.nastyConvert()],dec2_conf[ire2][B.nastyConvert()]);
+		  unsafe_su3_prod_su3_dag(temp2,temp1,dec2_conf[ire1][F.nastyConvert()]);
 		  su3_summ(stap,stap,temp2);
 		  
 		  //staple in the negative dir
-		  int D=loclxNeighdw[A.nastyConvert()][rho];
-		  int E=loclxNeighup[D][mu];
-		  unsafe_su3_dag_prod_su3(temp1,dec2_conf[ire1][D],dec2_conf[ire2][D]);
-		  unsafe_su3_prod_su3(temp2,temp1,dec2_conf[ire1][E]);
+		  const LocLxSite& D=loclxNeighdw(A,rho);
+		  const LocLxSite& E=loclxNeighup(D,mu);
+		  unsafe_su3_dag_prod_su3(temp1,dec2_conf[ire1][D.nastyConvert()],dec2_conf[ire2][D.nastyConvert()]);
+		  unsafe_su3_prod_su3(temp2,temp1,dec2_conf[ire1][E.nastyConvert()]);
 		  su3_summ(stap,stap,temp2);
 		}
 	      
@@ -163,15 +163,15 @@ namespace nissa
     verbosity_lv2_master_printf("Zero level decoration\n");
     
     //loop over external index
-    for(int mu=0;mu<4;mu++)
-      if(dirs[mu])
+    FOR_ALL_DIRECTIONS(mu)
+      if(dirs[mu.nastyConvert()])
 	{
 	  //loop over local volume
 	  NISSA_PARALLEL_LOOP(A,0,locVol)
 	    {
 	      //take original link
 	      su3 temp0;
-	      su3_prod_double(temp0,conf[A.nastyConvert()][mu],1-alpha0);
+	      su3_prod_double(temp0,conf[A.nastyConvert()][mu.nastyConvert()],1-alpha0);
 	      
 	      //reset the staple
 	      su3 stap;
@@ -180,38 +180,38 @@ namespace nissa
 	      //loop over the first decoration index
 	      for(int inu=0;inu<3;inu++)
 		{
-		  int nu=perp_dir[mu][inu];
+		  const Direction nu=perp_dir[mu.nastyConvert()][inu];
 		  su3 temp1,temp2;
 		  
 		  //find the two remampped indices
-		  int ire1=dec1_remap_index[nu][mu];
-		  int ire2=dec1_remap_index[mu][nu];
+		  int ire1=dec1_remap_index[nu.nastyConvert()][mu.nastyConvert()];
+		  int ire2=dec1_remap_index[mu.nastyConvert()][nu.nastyConvert()];
 		  
 		  //staple in the positive dir
-		  int B=loclxNeighup[A.nastyConvert()][nu];
-		  int F=loclxNeighup[A.nastyConvert()][mu];
-		  unsafe_su3_prod_su3(temp1,dec1_conf[ire1][A.nastyConvert()],dec1_conf[ire2][B]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,dec1_conf[ire1][F]);
+		  const LocLxSite& B=loclxNeighup(A,nu);
+		  const LocLxSite& F=loclxNeighup(A,mu);
+		  unsafe_su3_prod_su3(temp1,dec1_conf[ire1][A.nastyConvert()],dec1_conf[ire2][B.nastyConvert()]);
+		  unsafe_su3_prod_su3_dag(temp2,temp1,dec1_conf[ire1][F.nastyConvert()]);
 		  su3_summ(stap,stap,temp2);
 		  
 		  //staple in the negative dir
-		  int D=loclxNeighdw[A.nastyConvert()][nu];
-		  int E=loclxNeighup[D][mu];
-		  unsafe_su3_dag_prod_su3(temp1,dec1_conf[ire1][D],dec1_conf[ire2][D]);
-		  unsafe_su3_prod_su3(temp2,temp1,dec1_conf[ire1][E]);
+		  const LocLxSite& D=loclxNeighdw(A,nu);
+		  const LocLxSite& E=loclxNeighup(D,mu);
+		  unsafe_su3_dag_prod_su3(temp1,dec1_conf[ire1][D.nastyConvert()],dec1_conf[ire2][D.nastyConvert()]);
+		  unsafe_su3_prod_su3(temp2,temp1,dec1_conf[ire1][E.nastyConvert()]);
 		  su3_summ(stap,stap,temp2);
 		}
 	      
 	      //summ the two staples with appropriate coef and project the resulting link onto su3
 	      su3_summ_the_prod_double(temp0,stap,alpha0/6);
-	      su3_unitarize_maximal_trace_projecting(sm_conf[A.nastyConvert()][mu],temp0);
+	      su3_unitarize_maximal_trace_projecting(sm_conf[A.nastyConvert()][mu.nastyConvert()],temp0);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
 	}
       else
       if(sm_conf!=conf)
 	NISSA_PARALLEL_LOOP(A,0,locVol)
-	  su3_copy(sm_conf[A.nastyConvert()][mu],conf[A.nastyConvert()][mu]);
+	  su3_copy(sm_conf[A.nastyConvert()][mu.nastyConvert()],conf[A.nastyConvert()][mu.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     
     //invalid borders

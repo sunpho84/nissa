@@ -23,14 +23,14 @@ namespace nissa
 									\
     NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
       {									\
-	for(int mu=1;mu<NDIM;mu++)					\
+	for(Direction mu=1;mu<NDIM;mu++)				\
 	  {								\
-	    int ivup=loclxNeighup[ivol.nastyConvert()][mu];				\
-	    int ivdw=loclxNeighdw[ivol.nastyConvert()][mu];				\
+	    const LocLxSite& ivup=loclxNeighup(ivol,mu);		\
+	    const LocLxSite& ivdw=loclxNeighdw(ivol,mu);		\
 	    TYPE temp;							\
-	    NAME2(unsafe_su3_prod,TYPE)(temp,conf[ivol.nastyConvert()][mu],in[ivup]); \
-	    NAME2(su3_dag_summ_the_prod,TYPE)(temp,conf[ivdw][mu],in[ivdw]);	\
-	    NAME2(TYPE,summ_the_prod_double)(H[ivol.nastyConvert()],temp,kappa[mu]);		\
+	    NAME2(unsafe_su3_prod,TYPE)(temp,conf[ivol.nastyConvert()][mu.nastyConvert()],in[ivup.nastyConvert()]); \
+	    NAME2(su3_dag_summ_the_prod,TYPE)(temp,conf[ivdw.nastyConvert()][mu.nastyConvert()],in[ivdw.nastyConvert()]); \
+	    NAME2(TYPE,summ_the_prod_double)(H[ivol.nastyConvert()],temp,kappa[mu.nastyConvert()]); \
 	  }								\
       }									\
     NISSA_PARALLEL_LOOP_END;						\

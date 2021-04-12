@@ -339,7 +339,7 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
 #define FOR_ALL_COMPONENT_VALUES(TYPE,NAME)				\
-  for(TYPE NAME=0;NAME<TYPE::sizeAtCompileTimeAssertingIfDynamic();NAME++)
+  for(TYPE NAME=0;NAME<TYPE::sizeAtCompileTimeAssertingNotDynamic();NAME++)
   
   /////////////////////////////////////////////////////////////////
   

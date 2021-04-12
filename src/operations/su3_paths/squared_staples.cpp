@@ -19,29 +19,29 @@
 namespace nissa
 {
   //compute the staples along a particular dir, for a single site
-  CUDA_HOST_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,eo_ptr<quad_su3> eo_conf,const LocLxSite& A,int mu)
+  CUDA_HOST_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,eo_ptr<quad_su3> eo_conf,const LocLxSite& A,const Direction& mu)
   {
     su3_put_to_zero(staple);
     
     su3 temp1,temp2;
     for(int inu=0;inu<NDIM-1;inu++)                //  E---F---C
       {                                            //  |   |   | mu
-	int nu=perp_dir[mu][inu];                  //  D---A---B
+	const Direction nu=perp_dir[mu.nastyConvert()][inu];                  //  D---A---B
 	int p=loclx_parity[A.nastyConvert()];                     //        nu
-	int B=loclxNeighup[A.nastyConvert()][nu];
-	int F=loclxNeighup[A.nastyConvert()][mu];
-	unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A.nastyConvert()]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
-	unsafe_su3_prod_su3_dag(temp2,temp1,                            eo_conf[!p][loceo_of_loclx[F]][nu]);
+	const LocLxSite& B=loclxNeighup(A,nu);
+	const LocLxSite& F=loclxNeighup(A,mu);
+	unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A.nastyConvert()]][nu.nastyConvert()],eo_conf[!p][loceo_of_loclx[B.nastyConvert()]][mu.nastyConvert()]);
+	unsafe_su3_prod_su3_dag(temp2,temp1,                            eo_conf[!p][loceo_of_loclx[F.nastyConvert()]][nu.nastyConvert()]);
 	su3_summ(staple,staple,temp2);
 	
-	int D=loclxNeighdw[A.nastyConvert()][nu];
-	int E=loclxNeighup[D][mu];
-	unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][loceo_of_loclx[D]][nu],eo_conf[!p][loceo_of_loclx[D]][mu]);
-	unsafe_su3_prod_su3(    temp2,temp1,                             eo_conf[ p][loceo_of_loclx[E]][nu]);
+	const LocLxSite& D=loclxNeighdw(A,nu);
+	const LocLxSite& E=loclxNeighup(D,mu);
+	unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][loceo_of_loclx[D.nastyConvert()]][nu.nastyConvert()],eo_conf[!p][loceo_of_loclx[D.nastyConvert()]][mu.nastyConvert()]);
+	unsafe_su3_prod_su3(    temp2,temp1,                             eo_conf[ p][loceo_of_loclx[E.nastyConvert()]][nu.nastyConvert()]);
 	su3_summ(staple,staple,temp2);
       }
   }
-  void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,const LocLxSite& A,int mu)
+  void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,const LocLxSite& A,const Direction& mu)
   {
     if(!check_edges_valid(lx_conf)) crash("communicate edges externally");
     
@@ -50,17 +50,17 @@ namespace nissa
     su3 temp1,temp2;
     for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
       {                                               //  |   |   | mu
-	int nu=perp_dir[mu][inu];                     //  D---A---B
-	int B=loclxNeighup[A.nastyConvert()][nu];                   //        nu
-	int F=loclxNeighup[A.nastyConvert()][mu];
-	unsafe_su3_prod_su3(    temp1,lx_conf[A.nastyConvert()][nu],lx_conf[B][mu]);
-	unsafe_su3_prod_su3_dag(temp2,temp1,         lx_conf[F][nu]);
+	const Direction nu=perp_dir[mu.nastyConvert()][inu];                     //  D---A---B
+	const LocLxSite& B=loclxNeighup(A,nu);                   //        nu
+	const LocLxSite& F=loclxNeighup(A,mu);
+	unsafe_su3_prod_su3(    temp1,lx_conf[A.nastyConvert()][nu.nastyConvert()],lx_conf[B.nastyConvert()][mu.nastyConvert()]);
+	unsafe_su3_prod_su3_dag(temp2,temp1,         lx_conf[F.nastyConvert()][nu.nastyConvert()]);
 	su3_summ(staple,staple,temp2);
 	
-	int D=loclxNeighdw[A.nastyConvert()][nu];
-	int E=loclxNeighup[D][mu];
-	unsafe_su3_dag_prod_su3(temp1,lx_conf[D][nu],lx_conf[D][mu]);
-	unsafe_su3_prod_su3(    temp2,temp1,         lx_conf[E][nu]);
+	const LocLxSite& D=loclxNeighdw(A,nu);
+	const LocLxSite& E=loclxNeighup(D,mu);
+	unsafe_su3_dag_prod_su3(temp1,lx_conf[D.nastyConvert()][nu.nastyConvert()],lx_conf[D.nastyConvert()][mu.nastyConvert()]);
+	unsafe_su3_prod_su3(    temp2,temp1,         lx_conf[E.nastyConvert()][nu.nastyConvert()]);
 	su3_summ(staple,staple,temp2);
       }
   }
@@ -115,16 +115,16 @@ namespace nissa
   // 2) compute non_fwsurf fw staples that are always local
   void squared_staples_lx_conf_compute_non_fw_surf_fw_staples(squared_staples_t *out,quad_su3 *conf,int thread_id)
   {
-    for(int mu=0;mu<4;mu++) //link direction
+    FOR_ALL_DIRECTIONS(mu)//link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
+	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
 	  NISSA_PARALLEL_LOOP(ibulk,0,nonFwSurfVol)
 	    {
 	      su3 temp;
-	      int A=loclxOfNonFwSurflx(ibulk).nastyConvert(),B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
-	      unsafe_su3_prod_su3(    temp,conf[A][nu],conf[B][mu]);
-	      unsafe_su3_prod_su3_dag(out[A][mu][3+inu],temp,conf[F][nu]);
+	      const LocLxSite& A=loclxOfNonFwSurflx(ibulk),B=loclxNeighup(A,nu),F=loclxNeighup(A,mu);
+	      unsafe_su3_prod_su3(    temp,conf[A.nastyConvert()][nu.nastyConvert()],conf[B.nastyConvert()][mu.nastyConvert()]);
+	      unsafe_su3_prod_su3_dag(out[A.nastyConvert()][mu.nastyConvert()][3+inu],temp,conf[F.nastyConvert()][nu.nastyConvert()]);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
 	}
@@ -147,15 +147,15 @@ namespace nissa
     //compute backward staples to be sent to up nodes
     //obtained scanning D on fw_surf and storing data as they come
     for(int inu=0;inu<3;inu++) //staple direction
-      for(int mu=0;mu<4;mu++) //link direction
+      FOR_ALL_DIRECTIONS(mu) //link direction
 	{
-	  int nu=perp_dir[mu][inu];
+	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
-	      int D=loclxOfFwSurflx(ifw_surf).nastyConvert(),A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
+	      const LocLxSite& D=loclxOfFwSurflx(ifw_surf),A=loclxNeighup(D,nu),E=loclxNeighup(D,mu);
 	      su3 temp;
-	      unsafe_su3_dag_prod_su3(temp,conf[D][nu],conf[D][mu]);
-	      unsafe_su3_prod_su3(out[A][mu][inu],temp,conf[E][nu]);
+	      unsafe_su3_dag_prod_su3(temp,conf[D.nastyConvert()][nu.nastyConvert()],conf[D.nastyConvert()][mu.nastyConvert()]);
+	      unsafe_su3_prod_su3(out[A.nastyConvert()][mu.nastyConvert()][inu],temp,conf[E.nastyConvert()][nu.nastyConvert()]);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
 	}
@@ -189,18 +189,18 @@ namespace nissa
   // 5) compute non_fw_surf bw staples
   void squared_staples_lx_conf_compute_non_fw_surf_bw_staples(squared_staples_t *out,quad_su3 *conf,int thread_id)
   {
-    for(int mu=0;mu<4;mu++) //link direction
+    FOR_ALL_DIRECTIONS(mu) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
+	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
 	  
 	  //obtained scanning D on fw_surf
 	  NISSA_PARALLEL_LOOP(inon_fw_surf,0,nonFwSurfVol)
 	    {
 	      su3 temp;
-	      int D=loclxOfNonFwSurflx(inon_fw_surf).nastyConvert(),A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
-	      unsafe_su3_dag_prod_su3(temp,conf[D][nu],conf[D][mu]);
-	      unsafe_su3_prod_su3(out[A][mu][inu],temp,conf[E][nu]);
+	      const LocLxSite& D=loclxOfNonFwSurflx(inon_fw_surf),A=loclxNeighup(D,nu),E=loclxNeighup(D,mu);
+	      unsafe_su3_dag_prod_su3(temp,conf[D.nastyConvert()][nu.nastyConvert()],conf[D.nastyConvert()][mu.nastyConvert()]);
+	      unsafe_su3_prod_su3(out[A.nastyConvert()][mu.nastyConvert()][inu],temp,conf[E.nastyConvert()][nu.nastyConvert()]);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
 	}
@@ -209,18 +209,18 @@ namespace nissa
   // 6) compute fw_surf fw staples
   void squared_staples_lx_conf_compute_fw_surf_fw_staples(squared_staples_t *out,quad_su3 *conf,int thread_id)
   {
-    for(int mu=0;mu<4;mu++) //link direction
+    FOR_ALL_DIRECTIONS(mu) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
+	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
 	  
 	  //obtained looping A on forward surface
 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
-	      int A=loclxOfFwSurflx(ifw_surf).nastyConvert(),B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
+	      const LocLxSite& A=loclxOfFwSurflx(ifw_surf),B=loclxNeighup(A,nu),F=loclxNeighup(A,mu);
 	      su3 temp;
-	      unsafe_su3_prod_su3(    temp,conf[A][nu],conf[B][mu]);
-	      unsafe_su3_prod_su3_dag(out[A][mu][3+inu],temp,conf[F][nu]);
+	      unsafe_su3_prod_su3(    temp,conf[A.nastyConvert()][nu.nastyConvert()],conf[B.nastyConvert()][mu.nastyConvert()]);
+	      unsafe_su3_prod_su3_dag(out[A.nastyConvert()][mu.nastyConvert()][3+inu],temp,conf[F.nastyConvert()][nu.nastyConvert()]);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
 	}

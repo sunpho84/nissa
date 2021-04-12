@@ -25,9 +25,9 @@ namespace nissa
   su3_summ_the_prod_su3_dag(OUT,TEMP,C);
   
 #define COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp) \
-  COMPUTE_RECT_FW_STAPLE(out[A][mu][3+inu],sq_staples[A][nu][imu],conf[B][mu],conf[F][nu],temp); /*bw sq staple*/ \
-  SUMM_RECT_FW_STAPLE(out[A][mu][3+inu],conf[A][nu],sq_staples[B][mu][3+inu],conf[F][nu],temp);  /*fw sq staple*/ \
-  SUMM_RECT_FW_STAPLE(out[A][mu][3+inu],conf[A][nu],conf[B][mu],sq_staples[F][nu][3+imu],temp);  /*fw sq staple*/
+  COMPUTE_RECT_FW_STAPLE(out[A.nastyConvert()][mu.nastyConvert()][3+inu],sq_staples[A.nastyConvert()][nu.nastyConvert()][imu],conf[B.nastyConvert()][mu.nastyConvert()],conf[F.nastyConvert()][nu.nastyConvert()],temp); /*bw sq staple*/ \
+  SUMM_RECT_FW_STAPLE(out[A.nastyConvert()][mu.nastyConvert()][3+inu],conf[A.nastyConvert()][nu.nastyConvert()],sq_staples[B.nastyConvert()][mu.nastyConvert()][3+inu],conf[F.nastyConvert()][nu.nastyConvert()],temp);  /*fw sq staple*/ \
+  SUMM_RECT_FW_STAPLE(out[A.nastyConvert()][mu.nastyConvert()][3+inu],conf[A.nastyConvert()][nu.nastyConvert()],conf[B.nastyConvert()][mu.nastyConvert()],sq_staples[F.nastyConvert()][nu.nastyConvert()][3+imu],temp);  /*fw sq staple*/
   
 #define COMPUTE_RECT_BW_STAPLE(OUT,A,B,C,TEMP)	\
   unsafe_su3_dag_prod_su3(TEMP,A,B);		\
@@ -37,9 +37,9 @@ namespace nissa
   su3_summ_the_prod_su3(OUT,TEMP,C);
   
 #define COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp) \
-  COMPUTE_RECT_BW_STAPLE(out[A][mu][inu],sq_staples[D][nu][imu],conf[D][mu],conf[E][nu],temp); /*bw sq staple*/ \
-  SUMM_RECT_BW_STAPLE(out[A][mu][inu],conf[D][nu],sq_staples[D][mu][inu],conf[E][nu],temp);    /*bw sq staple*/ \
-  SUMM_RECT_BW_STAPLE(out[A][mu][inu],conf[D][nu],conf[D][mu],sq_staples[E][nu][3+imu],temp);  /*fw sq staple*/
+  COMPUTE_RECT_BW_STAPLE(out[A.nastyConvert()][mu.nastyConvert()][inu],sq_staples[D.nastyConvert()][nu.nastyConvert()][imu],conf[D.nastyConvert()][mu.nastyConvert()],conf[E.nastyConvert()][nu.nastyConvert()],temp); /*bw sq staple*/ \
+  SUMM_RECT_BW_STAPLE(out[A.nastyConvert()][mu.nastyConvert()][inu],conf[D.nastyConvert()][nu.nastyConvert()],sq_staples[D.nastyConvert()][mu.nastyConvert()][inu],conf[E.nastyConvert()][nu.nastyConvert()],temp);    /*bw sq staple*/ \
+  SUMM_RECT_BW_STAPLE(out[A.nastyConvert()][mu.nastyConvert()][inu],conf[D.nastyConvert()][nu.nastyConvert()],conf[D.nastyConvert()][mu.nastyConvert()],sq_staples[E.nastyConvert()][nu.nastyConvert()][3+imu],temp);  /*fw sq staple*/
   
   // 1) start communicating lower surface forward staples
   void rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(squared_staples_t *sq_staples,int thread_id)
@@ -73,16 +73,16 @@ namespace nissa
   // 2) compute non_fwsurf fw staples that are always local
   void rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(rectangular_staples_t *out,quad_su3 *conf,squared_staples_t *sq_staples,int thread_id)
   {
-    for(int mu=0;mu<4;mu++) //link direction
+    FOR_ALL_DIRECTIONS(mu) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
-	  int imu=(mu<nu)?mu:mu-1;
+	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	  const int imu=((mu<nu)?mu:mu-1)(); //nasty
 	  
 	  NISSA_PARALLEL_LOOP(ibulk,0,nonFwSurfVol)
 	    {
 	      su3 temp; //three staples in clocwise order
-	      int A=loclxOfNonFwSurflx(ibulk).nastyConvert(),B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
+	      const LocLxSite& A=loclxOfNonFwSurflx(ibulk),B=loclxNeighup(A,nu),F=loclxNeighup(A,mu);
 	      COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -117,15 +117,15 @@ namespace nissa
     //compute backward staples to be sent to up nodes
     //obtained scanning D on fw_surf and storing data as they come
     for(int inu=0;inu<3;inu++) //staple direction
-      for(int mu=0;mu<4;mu++) //link direction
+      FOR_ALL_DIRECTIONS(mu) //link direction
 	{
-	  int nu=perp_dir[mu][inu];
-	  int imu=(mu<nu)?mu:mu-1;
+	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	  const int imu=((mu<nu)?mu:mu-1)(); //nasty
 	  
 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
 	      su3 temp;
-	      const int D=loclxOfFwSurflx(ifw_surf).nastyConvert(),A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
+	      const LocLxSite& D=loclxOfFwSurflx(ifw_surf),A=loclxNeighup(D,nu),E=loclxNeighup(D,mu);
 	      COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -160,17 +160,17 @@ namespace nissa
   // 5) compute non_fw_surf bw staples
   void rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(rectangular_staples_t *out,quad_su3 *conf,squared_staples_t *sq_staples,int thread_id)
   {
-    for(int mu=0;mu<4;mu++) //link direction
+    FOR_ALL_DIRECTIONS(mu) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
-	  int imu=(mu<nu)?mu:mu-1;
+	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	  const int imu=((mu<nu)?mu:mu-1)();
 	  
 	  //obtained scanning D on fw_surf
 	  NISSA_PARALLEL_LOOP(inon_fw_surf,0,nonFwSurfVol)
 	    {
 	      su3 temp;
-	      int D=loclxOfNonFwSurflx(inon_fw_surf).nastyConvert(),A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
+	      const LocLxSite& D=loclxOfNonFwSurflx(inon_fw_surf),A=loclxNeighup(D,nu),E=loclxNeighup(D,mu);
 	      COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -180,17 +180,17 @@ namespace nissa
   // 6) compute fw_surf fw staples
   void rectangular_staples_lx_conf_compute_fw_surf_fw_staples(rectangular_staples_t *out,quad_su3 *conf,squared_staples_t *sq_staples,int thread_id)
   {
-    for(int mu=0;mu<4;mu++) //link direction
+    FOR_ALL_DIRECTIONS(mu) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  int nu=perp_dir[mu][inu];
-	  int imu=(mu<nu)?mu:mu-1;
+	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	  const int imu=((mu<nu)?mu:mu-1)();
 	  
 	  //obtained looping A on forward surface
 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
 	      su3 temp;
-	      int A=loclxOfFwSurflx(ifw_surf).nastyConvert(),B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
+	      const LocLxSite& A=loclxOfFwSurflx(ifw_surf),B=loclxNeighup(A,nu),F=loclxNeighup(A,mu);
 	      COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
 	    }
 	  NISSA_PARALLEL_LOOP_END;

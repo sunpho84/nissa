@@ -36,17 +36,17 @@ namespace nissa
   CUDA_HOST_DEVICE void point_plaquette_lx_conf(complex loc_plaq,quad_su3 *conf,const LocLxSite& A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       {
-	int B=loclxNeighup[A.nastyConvert()][mu];
-	for(int nu=mu+1;nu<NDIM;nu++)
+	const LocLxSite& B=loclxNeighup(A,mu);
+	for(Direction nu=mu+1;nu<NDIM;nu++)
 	  {
-	    int C=loclxNeighup[A.nastyConvert()][nu];
+	    const LocLxSite& C=loclxNeighup(A,nu);
 	    su3 ABD,ACD;
-	    unsafe_su3_prod_su3(ABD,conf[A.nastyConvert()][mu],conf[B][nu]);
-	    unsafe_su3_prod_su3(ACD,conf[A.nastyConvert()][nu],conf[C][mu]);
+	    unsafe_su3_prod_su3(ABD,conf[A.nastyConvert()][mu.nastyConvert()],conf[B.nastyConvert()][nu.nastyConvert()]);
+	    unsafe_su3_prod_su3(ACD,conf[A.nastyConvert()][nu.nastyConvert()],conf[C.nastyConvert()][mu.nastyConvert()]);
 	    
-	    int ts=(mu!=0&&nu!=0);
+	    int ts=(mu!=0 and nu!=0);
 	    loc_plaq[ts]+=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
 	  }
       }

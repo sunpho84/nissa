@@ -42,9 +42,9 @@ namespace nissa
   CUDA_MANAGED EXTERN_PARS int nso_spi,nso_col;
   CUDA_MANAGED EXTERN_PARS coords source_coord;
 
-  CUDA_HOST_DEVICE inline int rel_coord_of_glb_coord(int c,int mu)
+  CUDA_HOST_DEVICE inline int rel_coord_of_glb_coord(int c,const Direction& mu)
   {
-    return (glbSize[mu]+c-source_coord[mu])%glbSize[mu];
+    return (glbSize[mu.nastyConvert()]+c-source_coord[mu.nastyConvert()])%glbSize[mu.nastyConvert()];
   }
   
   inline int rel_time_of_glb_time(int t)
@@ -52,9 +52,9 @@ namespace nissa
     return rel_coord_of_glb_coord(t,0);
   }
   
-  CUDA_HOST_DEVICE inline int rel_coord_of_loclx(const LocLxSite& loclx,int mu)
+  CUDA_HOST_DEVICE inline int rel_coord_of_loclx(const LocLxSite& loclx,const Direction& mu)
   {
-    return rel_coord_of_glb_coord(glbCoordOfLoclx[loclx.nastyConvert()][mu],mu);
+    return rel_coord_of_glb_coord(glbCoordOfLoclx[loclx.nastyConvert()][mu.nastyConvert()],mu);
   }
   
   CUDA_HOST_DEVICE inline int rel_time_of_loclx(const LocLxSite& loclx)

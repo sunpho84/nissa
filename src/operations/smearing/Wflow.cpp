@@ -26,25 +26,25 @@ namespace nissa
       
       //add the new argument of the exponential to the old one
       NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	for(int mu=0;mu<NDIM;mu++)
-	  if(dirs[mu])
+	FOR_ALL_DIRECTIONS(mu)
+	  if(dirs[mu.nastyConvert()])
 	    {
 	      //compute the new contribution
 	      su3 staple,temp;
 	      su3_put_to_zero(staple);
 	      for(int inu=0;inu<NDIM-1;inu++)
 		{
-		  int nu=perp_dir[mu][inu];
-		  int A=ivol.nastyConvert(),B=loclxNeighup[A][nu],D=loclxNeighdw[A][nu],E=loclxNeighup[D][mu],F=loclxNeighup[A][mu];
-		  unsafe_su3_prod_su3(       temp, conf[A][nu],conf[B][mu]);
-		  su3_summ_the_prod_su3_dag(staple,temp,       conf[F][nu]);
-		  unsafe_su3_dag_prod_su3(temp,    conf[D][nu],conf[D][mu]);
-		  su3_summ_the_prod_su3(staple,    temp,       conf[E][nu]);
+		  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+		  const LocLxSite& A=ivol,B=loclxNeighup(A,nu),D=loclxNeighdw(A,nu),E=loclxNeighup(D,mu),F=loclxNeighup(A,mu);
+		  unsafe_su3_prod_su3(       temp, conf[A.nastyConvert()][nu.nastyConvert()],conf[B.nastyConvert()][mu.nastyConvert()]);
+		  su3_summ_the_prod_su3_dag(staple,temp,       conf[F.nastyConvert()][nu.nastyConvert()]);
+		  unsafe_su3_dag_prod_su3(temp,    conf[D.nastyConvert()][nu.nastyConvert()],conf[D.nastyConvert()][mu.nastyConvert()]);
+		  su3_summ_the_prod_su3(staple,    temp,       conf[E.nastyConvert()][nu.nastyConvert()]);
 		}
 	      
 	      //build Omega
 	      su3 omega;
-	      unsafe_su3_prod_su3_dag(omega,staple,conf[ivol.nastyConvert()][mu]);
+	      unsafe_su3_prod_su3_dag(omega,staple,conf[ivol.nastyConvert()][mu.nastyConvert()]);
 	      
 	      //compute Q and weight (the minus is there due to original stout)
 	      su3 iQ,Q;
@@ -52,8 +52,8 @@ namespace nissa
 	      su3_prod_idouble(Q,iQ,-RK_wn[iter]*dt); //putting here the integration time
 	      
 	      //combine old and new
-	      su3_prod_double(arg[ivol.nastyConvert()][mu],arg[ivol.nastyConvert()][mu],RK_wo[iter]);
-	      su3_summassign(arg[ivol.nastyConvert()][mu],Q);
+	      su3_prod_double(arg[ivol.nastyConvert()][mu.nastyConvert()],arg[ivol.nastyConvert()][mu.nastyConvert()],RK_wo[iter]);
+	      su3_summassign(arg[ivol.nastyConvert()][mu.nastyConvert()],Q);
 	    }
       NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();

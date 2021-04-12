@@ -71,31 +71,29 @@ namespace nissa
     communicate_lx_quad_su3_edges(conf);
     vector_reset(point_shapes);
     
-    for(int mu=0;mu<4;mu++) //link dir
-      for(int nu=0;nu<4;nu++) //staple dir
+    FOR_ALL_DIRECTIONS(mu) //link dir
+      FOR_ALL_DIRECTIONS(nu) //staple dir
 	if(nu!=mu)
 	  {
 	    NISSA_PARALLEL_LOOP(A,0,locVol)
 	      {
-		const LocLxSite ivol=A;
-		
 		//compute forward staple starting from A
-		int B=loclxNeighup[A.nastyConvert()][nu],D=loclxNeighdw[A.nastyConvert()][nu];
-		int E=loclxNeighup[D][mu],F=loclxNeighup[A.nastyConvert()][mu];
+		const LocLxSite& B=loclxNeighup(A,nu),D=loclxNeighdw(A,nu);
+		const LocLxSite& E=loclxNeighup(D,mu),F=loclxNeighup(A,mu);
 		su3 ABC,ABCF;
-		unsafe_su3_prod_su3(ABC,conf[A.nastyConvert()][nu],conf[B][mu]);
-		unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
+		unsafe_su3_prod_su3(ABC,conf[A.nastyConvert()][nu.nastyConvert()],conf[B.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F.nastyConvert()][nu.nastyConvert()]);
 		
 		//taking the trace we summ to plaq_summ (only if nu>mu)
-		if(nu>mu) point_shapes[ivol.nastyConvert()][RE]+=real_part_of_trace_su3_prod_su3_dag(ABCF,conf[A.nastyConvert()][mu]);
+		if(nu>mu) point_shapes[A.nastyConvert()][RE]+=real_part_of_trace_su3_prod_su3_dag(ABCF,conf[A.nastyConvert()][mu.nastyConvert()]);
 		
 		//compute backward staple starting from A
 		su3 ADE,ADEF;
-		unsafe_su3_dag_prod_su3(ADE,conf[D][nu],conf[D][mu]);
-		unsafe_su3_prod_su3(ADEF,ADE,conf[E][nu]);
+		unsafe_su3_dag_prod_su3(ADE,conf[D.nastyConvert()][nu.nastyConvert()],conf[D.nastyConvert()][mu.nastyConvert()]);
+		unsafe_su3_prod_su3(ADEF,ADE,conf[E.nastyConvert()][nu.nastyConvert()]);
 		
 		//taking the trace we summ to rect_summ
-		point_shapes[ivol.nastyConvert()][IM]+=real_part_of_trace_su3_prod_su3_dag(ABCF,ADEF);
+		point_shapes[A.nastyConvert()][IM]+=real_part_of_trace_su3_prod_su3_dag(ABCF,ADEF);
 	      }
 	    NISSA_PARALLEL_LOOP_END;
 	  }

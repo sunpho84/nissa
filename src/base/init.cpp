@@ -144,7 +144,7 @@ namespace nissa
     eo_geom_inited=0;
     loc_rnd_gen_inited=0;
     glb_rnd_gen_inited=0;
-    grid_inited=0;
+    gridInited=0;
     for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=nrank_dir[mu]=0;
     
     //check endianness
@@ -542,8 +542,8 @@ namespace nissa
     double time_init=-take_time();
     master_printf("\nInitializing grid, geometry and communications\n");
     
-    if(grid_inited==1) crash("grid already intialized!");
-    grid_inited=1;
+    if(gridInited==1) crash("grid already intialized!");
+    gridInited=1;
     
     //set the volume
     if(T>0 and L>0)

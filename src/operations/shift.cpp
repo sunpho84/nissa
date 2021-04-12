@@ -17,7 +17,7 @@
 namespace nissa
 {
   //shift an su3 vector of a single step along the mu axis, in the positive or negative dir
-  void su3_vec_single_shift(su3* u,int mu,int sign)
+  void su3_vec_single_shift(su3* u,const Direction& mu,int sign)
   {
     
     //communicate borders
@@ -25,11 +25,11 @@ namespace nissa
     
     //choose start, end and step
     int sh=(sign>0) ? -1 : +1;
-    int st=(sign>0) ? locSize[mu]-1 : 0;
-    int en=(sign>0) ? 0 : locSize[mu]-1 ;
+    int st=(sign>0) ? locSize[mu.nastyConvert()]-1 : 0;
+    int en=(sign>0) ? 0 : locSize[mu.nastyConvert()]-1 ;
     
     //loop over orthogonal dirs
-    const LocLxSite perp_vol=locVol/locSize[mu];
+    const LocLxSite perp_vol=locVol/locSize[mu.nastyConvert()];
     NISSA_PARALLEL_LOOP(iperp,0,perp_vol)
       {
 	//find coords
@@ -37,38 +37,38 @@ namespace nissa
 	coords x;
 	for(int inu=2;inu>=0;inu--)
 	  {
-	    int nu=perp_dir[mu][inu];
+	    int nu=perp_dir[mu.nastyConvert()][inu];
 	    x[nu]=(jperp%locSize[nu]).nastyConvert();
 	    jperp/=locSize[nu];
 	  }
 	
 	//loop along the dir
-	x[mu]=st;
+	x[mu.nastyConvert()]=st;
 	
 	//make a buffer in the case in which this dir is not parallelized
 	su3 buf;
-	int isite=loclx_of_coord(x);
-	if(nrank_dir[mu]==1)
-	  su3_copy(buf,u[isite]);
+	LocLxSite isite=loclx_of_coord(x);
+	if(nrank_dir[mu.nastyConvert()]==1)
+	  su3_copy(buf,u[isite.nastyConvert()]);
 	
 	//loop on remaining dir
 	do
 	  {
 	    //find the site and the neighbour
-	    int ineigh=(sign>0) ? loclxNeighdw[isite][mu] : loclxNeighup[isite][mu];
+	    const LocLxSite& ineigh=(sign>0) ? loclxNeighdw(isite,mu) : loclxNeighup(isite,mu);
 	    
 	    //copy the neighbour in the site
-	    su3_copy(u[isite],u[ineigh]);
+	    su3_copy(u[isite.nastyConvert()],u[ineigh.nastyConvert()]);
 	    
 	    //advance
-	    x[mu]+=sh;
-	    if(x[mu]!=en+sh) isite=ineigh;
+	    x[mu.nastyConvert()]+=sh;
+	    if(x[mu.nastyConvert()]!=en+sh) isite=ineigh;
 	  }
-	while(x[mu]!=en+sh);
+	while(x[mu.nastyConvert()]!=en+sh);
 	
 	//if dir not parallelized, restore end
-	if(nrank_dir[mu]==1)
-	  su3_copy(u[isite],buf);
+	if(nrank_dir[mu.nastyConvert()]==1)
+	  su3_copy(u[isite.nastyConvert()],buf);
       }
     NISSA_PARALLEL_LOOP_END;
     

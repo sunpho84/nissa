@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void apply_tmclovQ(spincolor *out,quad_su3 *conf,double kappa,clover_term_t *Cl,double mu,spincolor *in);
+  void apply_tmclovQ(spincolor *out,quad_su3 *conf,double kappa,clover_term_t *Cl,double mass,spincolor *in);
 }
 
 #endif

@@ -161,7 +161,6 @@ namespace nissa
   //insert the photon on the source side
   void insert_photon_on_the_source(spinspin* prop,spin1field* A,int* dirs,tm_quark_info le,int twall)
   {
-    
     //select A
     communicate_lx_spin1field_borders(A);
     
@@ -170,7 +169,7 @@ namespace nissa
     communicate_lx_spinspin_borders(temp_lep);
     vector_reset(prop);
     
-    if(!loc_muon_curr)
+    if(not loc_muon_curr)
       {
 	dirac_matr GAMMA;
 	if(twisted_run>0) dirac_prod_double(&GAMMA,base_gamma+0,1);
@@ -179,37 +178,37 @@ namespace nissa
 	//prepare each propagator for a single lepton
 	//by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
 	//(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
-	for(int mu=0;mu<NDIM;mu++)
-	  if(dirs[mu])
+	FOR_ALL_DIRECTIONS(mu)
+	  if(dirs[mu.nastyConvert()])
 	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
 		{
 		  //phases
 		  complex phase;
-		  phase[0]=cos(le.bc[mu]*M_PI);
-		  phase[1]=sin(le.bc[mu]*M_PI);
+		  phase[0]=cos(le.bc[mu.nastyConvert()]*M_PI);
+		  phase[1]=sin(le.bc[mu.nastyConvert()]*M_PI);
 		  
 		  //find neighbors
-		  int ifw=loclxNeighup[ivol.nastyConvert()][mu];
-		  int ibw=loclxNeighdw[ivol.nastyConvert()][mu];
+		  const LocLxSite& ifw=loclxNeighup(ivol,mu);
+		  const LocLxSite& ibw=loclxNeighdw(ivol,mu);
 		  
 		  //compute phase factor
 		  spinspin ph_bw,ph_fw;
 		  
 		  //transport down and up
-		  if(rel_coord_of_loclx(ivol,mu)==glbSize[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phase);
-		  else spinspin_copy(ph_fw,temp_lep[ifw]);
-		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phase);
-		  else spinspin_copy(ph_bw,temp_lep[ibw]);
+		  if(rel_coord_of_loclx(ivol,mu)==glbSize[mu.nastyConvert()]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw.nastyConvert()],phase);
+		  else spinspin_copy(ph_fw,temp_lep[ifw.nastyConvert()]);
+		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw.nastyConvert()],phase);
+		  else spinspin_copy(ph_bw,temp_lep[ibw.nastyConvert()]);
 		  
 		  //fix coefficients, i is inserted here!
 		  //also dir selection is made here
-		  spinspin_prodassign_idouble(ph_fw,+0.5*dirs[mu]);
-		  spinspin_prodassign_idouble(ph_bw,-0.5*dirs[mu]);
+		  spinspin_prodassign_idouble(ph_fw,+0.5*dirs[mu.nastyConvert()]);
+		  spinspin_prodassign_idouble(ph_bw,-0.5*dirs[mu.nastyConvert()]);
 		  
 		  //fix insertion of the current
-		  safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol.nastyConvert()][mu]);
-		  safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
+		  safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol.nastyConvert()][mu.nastyConvert()]);
+		  safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw.nastyConvert()][mu.nastyConvert()]);
 		  
 		  //summ and subtract the two
 		  spinspin fw_M_bw,fw_P_bw;
@@ -223,7 +222,7 @@ namespace nissa
 		  
 		  //put gmu on the diff
 		  spinspin temp_M;
-		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma+igamma_of_mu[mu]);
+		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma+igamma_of_mu[mu.nastyConvert()]);
 		  spinspin_summassign(prop[ivol.nastyConvert()],temp_M);
 		}
 	NISSA_PARALLEL_LOOP_END;

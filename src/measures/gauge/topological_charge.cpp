@@ -47,56 +47,52 @@ namespace nissa
     in order to have the anti-symmetric part, use
     the routine inside "clover_term"
   */
-  CUDA_HOST_DEVICE void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,const LocLxSite& _X)
+  CUDA_HOST_DEVICE void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,const LocLxSite& X)
   {
     //if(!check_edges_valid(conf[0])) crash("communicate edges externally");
     
-    const int64_t X=_X.nastyConvert();
-    
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       {
-	int A=loclxNeighup[X][mu];
-	int D=loclxNeighdw[X][mu];
+	const LocLxSite& A=loclxNeighup(X,mu);
+	const LocLxSite& D=loclxNeighdw(X,mu);
         
-	for(int nu=mu+1;nu<NDIM;nu++)
+	for(Direction nu=mu+1;nu<NDIM;nu++)
 	  {
-	    int munu=edge_numb[mu][nu];
+	    const int munu=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 	    
-	    int B=loclxNeighup[X][nu];
-	    int F=loclxNeighdw[X][nu];
+	    const LocLxSite& B=loclxNeighup(X,nu);
+	    const LocLxSite& F=loclxNeighdw(X,nu);
             
-	    int C=loclxNeighup[D][nu];
-	    int E=loclxNeighdw[D][nu];
+	    const LocLxSite& C=loclxNeighup(D,nu);
+	    const LocLxSite& E=loclxNeighdw(D,nu);
             
-	    int G=loclxNeighdw[A][nu];
+	    const LocLxSite& G=loclxNeighdw(A,nu);
             
 	    su3 temp1,temp2;
 	    
 	    //Leaf 1
-	    unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);           //    B--<--Y
-	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);             //    |  1  |
-	    unsafe_su3_prod_su3_dag(leaves_summ[munu],temp2,conf[X][nu]); //    |     |
+	    unsafe_su3_prod_su3(temp1,conf[X.nastyConvert()][mu.nastyConvert()],conf[A.nastyConvert()][nu.nastyConvert()]);           //    B--<--Y
+	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[B.nastyConvert()][mu.nastyConvert()]);             //    |  1  |
+	    unsafe_su3_prod_su3_dag(leaves_summ[munu],temp2,conf[X.nastyConvert()][nu.nastyConvert()]); //    |     |
 	    /*                                                 */         //    X-->--A
             
 	    //Leaf 2
-	    unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);       //    C--<--B
-	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);             //    |  2  |
-	    unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);                 //    |     |
+	    unsafe_su3_prod_su3_dag(temp1,conf[X.nastyConvert()][nu.nastyConvert()],conf[C.nastyConvert()][mu.nastyConvert()]);       //    C--<--B
+	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[D.nastyConvert()][nu.nastyConvert()]);             //    |  2  |
+	    unsafe_su3_prod_su3(temp1,temp2,conf[D.nastyConvert()][mu.nastyConvert()]);                 //    |     |
 	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);          //    D-->--X
             
 	    //Leaf 3
-	    unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);    //   D--<--X
-	    unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);                  //   |  3  |
-	    unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);                  //   |     |
+	    unsafe_su3_dag_prod_su3_dag(temp1,conf[D.nastyConvert()][mu.nastyConvert()],conf[E.nastyConvert()][nu.nastyConvert()]);    //   D--<--X
+	    unsafe_su3_prod_su3(temp2,temp1,conf[E.nastyConvert()][mu.nastyConvert()]);                  //   |  3  |
+	    unsafe_su3_prod_su3(temp1,temp2,conf[F.nastyConvert()][nu.nastyConvert()]);                  //   |     |
 	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);           //   E-->--F
             
 	    //Leaf 4
-	    unsafe_su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);         //  X--<--A
-	    unsafe_su3_prod_su3(temp2,temp1,conf[G][nu]);                   //  |  4  |
-	    unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][mu]);               //  |     |
+	    unsafe_su3_dag_prod_su3(temp1,conf[F.nastyConvert()][nu.nastyConvert()],conf[F.nastyConvert()][mu.nastyConvert()]);         //  X--<--A
+	    unsafe_su3_prod_su3(temp2,temp1,conf[G.nastyConvert()][nu.nastyConvert()]);                   //  |  4  |
+	    unsafe_su3_prod_su3_dag(temp1,temp2,conf[X.nastyConvert()][mu.nastyConvert()]);               //  |     |
 	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);            //  F-->--G
-            
-	    munu++;
 	  }
       }
   }
@@ -408,63 +404,63 @@ namespace nissa
     
     //loop on the three different combinations of plans
     vector_reset(staples);
-    NISSA_PARALLEL_LOOP(_A,0,locVol)
+    NISSA_PARALLEL_LOOP(A,0,locVol)
       {
-	const int64_t A=_A.nastyConvert();
-	
 	//list the plan and coefficients for each staples
 	const int plan_perp[4][3]={{ 5, 4, 3},{ 5, 2, 1},{ 4, 2, 0},{ 3, 1, 0}};
 	const int plan_sign[4][3]={{+1,-1,+1},{-1,+1,-1},{+1,-1,+1},{-1,+1,-1}};
 	
-	for(int mu=0;mu<NDIM;mu++) //link direction
+	FOR_ALL_DIRECTIONS(mu)                         //link direction
 	  for(int inu=0;inu<NDIM-1;inu++)              //  E---F---C
 	    {                                          //  |   |   | mu
-	      int nu=perp_dir[mu][inu];                //  D---A---B
+	      const Direction nu=perp_dir[mu.nastyConvert()][inu];                //  D---A---B //nasty
 	      //this gives the other pair element      //        nu
-	      int iplan=plan_perp[mu][inu];
+	      int iplan=plan_perp[mu.nastyConvert()][inu];
 	      
 	      //takes neighbours
-	      int B=loclxNeighup[A][nu];
-	      int C=loclxNeighup[B][mu];
-	      int D=loclxNeighdw[A][nu];
-	      int E=loclxNeighup[D][mu];
-	      int F=loclxNeighup[A][mu];
+	      const LocLxSite& B=loclxNeighup(A,nu);
+	      const LocLxSite& C=loclxNeighup(B,mu);
+	      const LocLxSite& D=loclxNeighdw(A,nu);
+	      const LocLxSite& E=loclxNeighup(D,mu);
+	      const LocLxSite& F=loclxNeighup(A,mu);
 	      
 	      //compute ABC, BCF and the full SU(3) staple, ABCF
 	      su3 ABC,BCF,ABCF;
-	      unsafe_su3_prod_su3(ABC,conf[A][nu],conf[B][mu]);
-	      unsafe_su3_prod_su3_dag(BCF,conf[B][mu],conf[F][nu]);
-	      unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
+	      unsafe_su3_prod_su3(ABC,conf[A.nastyConvert()][nu.nastyConvert()],conf[B.nastyConvert()][mu.nastyConvert()]);
+	      unsafe_su3_prod_su3_dag(BCF,conf[B.nastyConvert()][mu.nastyConvert()],conf[F.nastyConvert()][nu.nastyConvert()]);
+	      unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F.nastyConvert()][nu.nastyConvert()]);
 	      
 	      //compute ADE, DEF and the full SU(3) staple, ADEF
 	      su3 ADE,DEF,ADEF;
-	      unsafe_su3_dag_prod_su3(ADE,conf[D][nu],conf[D][mu]);
-	      unsafe_su3_prod_su3(DEF,conf[D][mu],conf[E][nu]);
-	      unsafe_su3_prod_su3(ADEF,ADE,conf[E][nu]);
+	      unsafe_su3_dag_prod_su3(ADE,conf[D.nastyConvert()][nu.nastyConvert()],conf[D.nastyConvert()][mu.nastyConvert()]);
+	      unsafe_su3_prod_su3(DEF,conf[D.nastyConvert()][mu.nastyConvert()],conf[E.nastyConvert()][nu.nastyConvert()]);
+	      unsafe_su3_prod_su3(ADEF,ADE,conf[E.nastyConvert()][nu.nastyConvert()]);
 	      
 	      //local summ and temp
 	      su3 loc_staples,temp;
 	      su3_put_to_zero(loc_staples);
 	      //insert the leave in the four possible forward positions
 	      
-	      unsafe_su3_prod_su3(loc_staples,leaves[A][iplan],ABCF);     //insertion on A
-	      unsafe_su3_prod_su3(temp,conf[A][nu],leaves[B][iplan]);
+	      unsafe_su3_prod_su3(loc_staples,leaves[A.nastyConvert()][iplan],ABCF);     //insertion on A
+	      unsafe_su3_prod_su3(temp,conf[A.nastyConvert()][nu.nastyConvert()],leaves[B.nastyConvert()][iplan]);
 	      su3_summ_the_prod_su3(loc_staples,temp,BCF);                //insertion on B
-	      unsafe_su3_prod_su3(temp,ABC,leaves[C][iplan]);
-	      su3_summ_the_prod_su3_dag(loc_staples,temp,conf[F][nu]);    //insertion on C
-	      su3_summ_the_prod_su3(loc_staples,ABCF,leaves[F][iplan]);   //insertion on F
+	      unsafe_su3_prod_su3(temp,ABC,leaves[C.nastyConvert()][iplan]);
+	      su3_summ_the_prod_su3_dag(loc_staples,temp,conf[F.nastyConvert()][nu.nastyConvert()]);    //insertion on C
+	      su3_summ_the_prod_su3(loc_staples,ABCF,leaves[F.nastyConvert()][iplan]);   //insertion on F
 	      
 	      //insert the leave in the four possible backward positions
-	      su3_summ_the_dag_prod_su3(loc_staples,leaves[A][iplan],ADEF);    //insertion on A
-	      unsafe_su3_dag_prod_su3_dag(temp,conf[D][nu],leaves[D][iplan]);
+	      su3_summ_the_dag_prod_su3(loc_staples,leaves[A.nastyConvert()][iplan],ADEF);    //insertion on A
+	      unsafe_su3_dag_prod_su3_dag(temp,conf[D.nastyConvert()][nu.nastyConvert()],leaves[D.nastyConvert()][iplan]);
 	      su3_summ_the_prod_su3(loc_staples,temp,DEF);                     //insertion on D
-	      unsafe_su3_prod_su3_dag(temp,ADE,leaves[E][iplan]);
-	      su3_summ_the_prod_su3(loc_staples,temp,conf[E][nu]);             //insertion on E
-	      su3_summ_the_prod_su3_dag(loc_staples,ADEF,leaves[F][iplan]);    //insertion on F
+	      unsafe_su3_prod_su3_dag(temp,ADE,leaves[E.nastyConvert()][iplan]);
+	      su3_summ_the_prod_su3(loc_staples,temp,conf[E.nastyConvert()][nu.nastyConvert()]);             //insertion on E
+	      su3_summ_the_prod_su3_dag(loc_staples,ADEF,leaves[F.nastyConvert()][iplan]);    //insertion on F
 	      
 	      //summ or subtract, according to the coefficient
-	      if(plan_sign[mu][inu]==+1) su3_summassign(staples[A][mu],loc_staples);
-	      else                       su3_subtassign(staples[A][mu],loc_staples);
+	      if(plan_sign[mu.nastyConvert()][inu]==+1)
+		su3_summassign(staples[A.nastyConvert()][mu.nastyConvert()],loc_staples);
+	      else
+		su3_subtassign(staples[A.nastyConvert()][mu.nastyConvert()],loc_staples);
 	    }
       }
     NISSA_PARALLEL_LOOP_END;

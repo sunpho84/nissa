@@ -74,7 +74,7 @@ namespace nissa
       const
     {
       return
-	Tv::Base::sizeAtCompileTime;
+	Tv::sizeAtCompileTime;
     }
     
     /// Size of the Tv component
@@ -91,7 +91,7 @@ namespace nissa
     
     /// Calculate the index - no more components to parse
     constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
-    Index orderedCompsIndex(Index outer) ///< Value of all the outer components
+    const Index& orderedCompsIndex(const Index& outer) ///< Value of all the outer components
       const
     {
       return outer;
@@ -110,7 +110,7 @@ namespace nissa
     template <typename T,
     	      typename...Tp>
     constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
-    Index orderedCompsIndex(Index outer,        ///< Value of all the outer components
+    Index orderedCompsIndex(const Index& outer, ///< Value of all the outer components
 			    T&& thisComp,       ///< Currently parsed component
 			    Tp&&...innerComps)  ///< Inner components
       const
@@ -121,7 +121,7 @@ namespace nissa
       
       /// Size of this component
       const Index thisSize=
-	compSize<Tv>()();
+	compSize<Tv>();
       
       /// Value of the index when including this component
       const Index thisVal=

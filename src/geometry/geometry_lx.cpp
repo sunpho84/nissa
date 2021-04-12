@@ -246,18 +246,18 @@ namespace nissa
     return -1;
   }
   
-  //return the border site adiacent at surface
-  BordLxSite bordlx_of_surflx(const LocLxSite& _loclx,int mu)
+  /// Returns the border site adiacent at surface
+  BordLxSite bordlx_of_surflx(const LocLxSite& _loclx,const Direction& mu)
   {
     auto loclx=_loclx.nastyConvert();
     
-    if(!paral_dir[mu]) return -1;
-    if(locSize[mu]<2) crash("not working if one dir is smaller than 2");
+    if(!paral_dir[mu.nastyConvert()]) return -1;
+    if(locSize[mu.nastyConvert()]<2) crash("not working if one dir is smaller than 2");
     
-    if(locCoordOfLoclx[loclx][mu]==0)
-      return bordLxSiteOfExtendedLocLxSize(loclxNeighdw[loclx][mu]);
-    if(locCoordOfLoclx[loclx][mu]==locSize[mu]-1)
-      return bordLxSiteOfExtendedLocLxSize(loclxNeighup[loclx][mu]);
+    if(locCoordOfLoclx[loclx][mu.nastyConvert()]==0)
+      return bordLxSiteOfExtendedLocLxSize(loclxNeighdw(_loclx,mu));
+    if(locCoordOfLoclx[loclx][mu.nastyConvert()]==locSize[mu.nastyConvert()]-1)
+      return bordLxSiteOfExtendedLocLxSize(loclxNeighup(_loclx,mu));
     
     return -1;
   }
@@ -326,22 +326,23 @@ namespace nissa
   {
     //loop over the four directions
     for(LocLxSite ivol=0;ivol<locVolWithBordAndEdge;ivol++)
-      for(int mu=0;mu<NDIM;mu++)
+      FOR_ALL_DIRECTIONS(mu)
 	{
 	  //copy the coords
 	  coords n;
-	  for(int nu=0;nu<NDIM;nu++) n[nu]=glbCoordOfLoclx[ivol.nastyConvert()][nu]-locSize[nu]*rank_coord[nu];
+	  for(int nu=0;nu<NDIM;nu++)
+	    n[nu]=glbCoordOfLoclx[ivol.nastyConvert()][nu]-locSize[nu]*rank_coord[nu];
 	  
 	  //move forward
-	  n[mu]++;
-	  int nup=full_lx_of_coords(n);
+	  n[mu.nastyConvert()]++;
+	  int nup=full_lx_of_coords(n); //nasty
 	  //move backward
-	  n[mu]-=2;
+	  n[mu.nastyConvert()]-=2;
 	  int ndw=full_lx_of_coords(n);
 	  
 	  //if "local" assign it (automatically -1 otherwise)
-	  loclxNeighup[ivol.nastyConvert()][mu]=nup;
-	  loclxNeighdw[ivol.nastyConvert()][mu]=ndw;
+	  loclxNeighup(ivol,mu)=nup;
+	  loclxNeighdw(ivol,mu)=ndw;
 	}
   }
   
@@ -396,7 +397,7 @@ namespace nissa
     if(lxGeomInited==1) crash("cartesian geometry already intialized!");
     lxGeomInited=1;
     
-    if(grid_inited!=1) crash("grid not initialized!");
+    if(gridInited!=1) crash("grid not initialized!");
     
     //find the rank of the neighbour in the various dir
     for(int mu=0;mu<NDIM;mu++)
@@ -421,12 +422,10 @@ namespace nissa
     
     locCoordOfLoclx=nissa_malloc("loc_coord_of_loclx",locVol.nastyConvert(),coords);
     glbCoordOfLoclx=nissa_malloc("glb_coord_of_loclx",locVolWithBordAndEdge.nastyConvert(),coords);
-    loclx_neigh[0]=loclxNeighdw=nissa_malloc("loclx_neighdw",locVolWithBordAndEdge.nastyConvert(),coords);
-    loclx_neigh[1]=loclxNeighup=nissa_malloc("loclx_neighup",locVolWithBordAndEdge.nastyConvert(),coords);
+    loclxNeighdw.allocate(locVolWithBordAndEdge);
+    loclxNeighup.allocate(locVolWithBordAndEdge);
     ignore_borders_communications_warning(locCoordOfLoclx);
     ignore_borders_communications_warning(glbCoordOfLoclx);
-    ignore_borders_communications_warning(loclxNeighup);
-    ignore_borders_communications_warning(loclxNeighdw);
     
     //local to global
     glblxOfLoclx.allocate(locVol);
@@ -518,8 +517,6 @@ namespace nissa
     
     nissa_free(locCoordOfLoclx);
     nissa_free(glbCoordOfLoclx);
-    nissa_free(loclxNeighup);
-    nissa_free(loclxNeighdw);
     
     delete Wilson_sweeper;
     delete Symanzik_sweeper;

@@ -128,10 +128,23 @@ namespace nissa
   
   EXTERN_GEOMETRY_LX int lxGeomInited;
   
-  //neighbours of local volume + borders
-  EXTERN_GEOMETRY_LX coords *loclxNeighdw,*loclxNeighup;
-  EXTERN_GEOMETRY_LX coords *loclx_neigh[2];
-  EXTERN_GEOMETRY_LX int grid_inited;
+  /// Neighbours in the backward direction
+  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocLxSite> loclxNeighdw;
+  
+  /// Neighbours in the forwkward direction
+  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocLxSite> loclxNeighup;
+  
+  INLINE_FUNCTION
+  const Tensor<OfComps<LocLxSite,Direction>,LocLxSite>& loclxNeigh(int verse) //nasty
+  {
+    const Tensor<OfComps<LocLxSite,Direction>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
+    
+    return *ref[verse];
+  }
+  
+  /// Keep track of whether the grid is initialized
+  EXTERN_GEOMETRY_LX bool gridInited;
+  
   EXTERN_GEOMETRY_LX int nparal_dir;
   EXTERN_GEOMETRY_LX coords paral_dir;
   //size of the border and edges

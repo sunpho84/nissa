@@ -12,8 +12,8 @@
 
 namespace nissa
 {
-  //covariant shift backward: i=i+mu
-  void cshift_bw(color *out,quad_su3 *conf,int mu,color *in,bool reset_first=true)
+  /// Covariant shift backward: i=i+mu
+  void cshift_bw(color *out,quad_su3 *conf,const Direction& mu,color *in,bool reset_first=true)
   {
     
     communicate_lx_color_borders(in);
@@ -22,14 +22,14 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	if(reset_first) color_put_to_zero(out[ivol.nastyConvert()]);
-	su3_summ_the_prod_color(out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu],in[loclxNeighup[ivol.nastyConvert()][mu]]);
+	su3_summ_the_prod_color(out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu.nastyConvert()],in[loclxNeighup(ivol,mu).nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
-  //covariant shift forward: i=i-mu
-  void cshift_fw(color *out,quad_su3 *conf,int mu,color *in,bool reset_first=true)
+  /// Covariant shift forward: i=i-mu
+  void cshift_fw(color *out,quad_su3 *conf,const Direction& mu,color *in,bool reset_first=true)
   {
     
     communicate_lx_color_borders(in);
@@ -38,14 +38,14 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	if(reset_first) color_put_to_zero(out[ivol.nastyConvert()]);
-	su3_dag_summ_the_prod_color(out[ivol.nastyConvert()],conf[loclxNeighdw[ivol.nastyConvert()][mu]][mu],in[loclxNeighdw[ivol.nastyConvert()][mu]]);
+	su3_dag_summ_the_prod_color(out[ivol.nastyConvert()],conf[loclxNeighdw(ivol,mu).nastyConvert()][mu.nastyConvert()],in[loclxNeighdw(ivol,mu).nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
   //covariant shift backward: i=i+mu
-  void cshift_bw(spincolor *out,quad_su3 *conf,int mu,spincolor *in,bool reset_first=true)
+  void cshift_bw(spincolor *out,quad_su3 *conf,const Direction& mu,spincolor *in,bool reset_first=true)
   {
     
     communicate_lx_spincolor_borders(in);
@@ -54,14 +54,14 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	if(reset_first) spincolor_put_to_zero(out[ivol.nastyConvert()]);
-	su3_summ_the_prod_spincolor(out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu],in[loclxNeighup[ivol.nastyConvert()][mu]]);
+	su3_summ_the_prod_spincolor(out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu.nastyConvert()],in[loclxNeighup(ivol,mu).nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
   //covariant shift forward: i=i-mu
-  void cshift_fw(spincolor *out,quad_su3 *conf,int mu,spincolor *in,bool reset_first=true)
+  void cshift_fw(spincolor *out,quad_su3 *conf,const Direction& mu,spincolor *in,bool reset_first=true)
   {
     
     communicate_lx_spincolor_borders(in);
@@ -70,7 +70,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	if(reset_first) spincolor_put_to_zero(out[ivol.nastyConvert()]);
-	su3_dag_summ_the_prod_spincolor(out[ivol.nastyConvert()],conf[loclxNeighdw[ivol.nastyConvert()][mu]][mu],in[loclxNeighdw[ivol.nastyConvert()][mu]]);
+	su3_dag_summ_the_prod_spincolor(out[ivol.nastyConvert()],conf[loclxNeighdw(ivol,mu).nastyConvert()][mu.nastyConvert()],in[loclxNeighdw(ivol,mu).nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -122,23 +122,22 @@ namespace nissa
   }
   
 #define APPLY_NABLA_I(TYPE)                                             \
-  void apply_nabla_i(TYPE* out,TYPE* in,quad_su3* conf,int mu) \
+  void apply_nabla_i(TYPE* out,TYPE* in,quad_su3* conf,const Direction& mu) \
   {                                                                     \
-                                                                        \
+  									\
     NAME3(communicate_lx,TYPE,borders)(in);                             \
     communicate_lx_quad_su3_borders(conf);                              \
-                                                                        \
-    TYPE *temp=nissa_malloc("temp",locVolWithBord.nastyConvert(),TYPE);              \
+    									\
+    TYPE *temp=nissa_malloc("temp",locVolWithBord.nastyConvert(),TYPE);	\
     vector_reset(temp);                                                 \
                                                                         \
-    NISSA_PARALLEL_LOOP(_ix,0,locVol)                                   \
+    NISSA_PARALLEL_LOOP(ix,0,locVol)					\
       {                                                                 \
-        int ix=_ix.nastyConvert(),Xup,Xdw;				\
-        Xup=loclxNeighup[ix][mu];					\
-        Xdw=loclxNeighdw[ix][mu];					\
+        const LocLxSite& Xup=loclxNeighup(ix,mu);			\
+        const LocLxSite& Xdw=loclxNeighdw(ix,mu);			\
 									\
-        NAME2(unsafe_su3_prod,TYPE)(      temp[ix],conf[ix][mu] ,in[Xup]); \
-        NAME2(su3_dag_subt_the_prod,TYPE)(temp[ix],conf[Xdw][mu],in[Xdw]); \
+        NAME2(unsafe_su3_prod,TYPE)(      temp[ix.nastyConvert()],conf[ix.nastyConvert()][mu.nastyConvert()] ,in[Xup.nastyConvert()]); \
+        NAME2(su3_dag_subt_the_prod,TYPE)(temp[ix.nastyConvert()],conf[Xdw.nastyConvert()][mu.nastyConvert()],in[Xdw.nastyConvert()]); \
       }                                                                 \
     NISSA_PARALLEL_LOOP_END;						\
     									\
@@ -153,28 +152,28 @@ namespace nissa
   APPLY_NABLA_I(colorspinspin)
   APPLY_NABLA_I(su3spinspin)
   
-  void insert_external_source_handle(complex out,spin1field *aux,const LocLxSite& ivol,int mu,void *pars)
+  void insert_external_source_handle(complex out,spin1field *aux,const LocLxSite& ivol,const Direction& mu,void *pars)
   {
     bool *dirs=(bool*)pars;
-    if(dirs[mu]==0)
+    if(dirs[mu.nastyConvert()]==0)
       complex_put_to_zero(out);
     else
       {
-	if(aux) complex_copy(out,aux[ivol.nastyConvert()][mu]);
+	if(aux) complex_copy(out,aux[ivol.nastyConvert()][mu.nastyConvert()]);
 	else
 	  complex_put_to_real(out,1);
       }
   }
   
-  void insert_tadpole_handle(complex out,spin1field *aux,const LocLxSite& ivol,int mu,void *pars)
+  void insert_tadpole_handle(complex out,spin1field *aux,const LocLxSite& ivol,const Direction& mu,void *pars)
   {
-    out[RE]=((double*)pars)[mu];
+    out[RE]=((double*)pars)[mu.nastyConvert()];
     out[IM]=0;
   }
   
-  void insert_conserved_current_handle(complex out,spin1field *aux,const LocLxSite& ivol,int mu,void *pars)
+  void insert_conserved_current_handle(complex out,spin1field *aux,const LocLxSite& ivol,const Direction& mu,void *pars)
   {
-    out[RE]=((bool*)pars)[mu];
+    out[RE]=((bool*)pars)[mu.nastyConvert()];
     out[IM]=0;
   }
   
@@ -184,7 +183,7 @@ namespace nissa
   /*insert the operator:  \sum_mu  [*/					\
   /* f_fw * ( GAMMA - gmu) A_{x,mu} U_{x,mu} \delta{x',x+mu} + f_bw * ( GAMMA + gmu) A_{x-mu,mu} U^+_{x-mu,mu} \delta{x',x-mu}]*/ \
   /* for tm GAMMA should be -i g5 tau3[r], defined through the macro above, for Wilson id */		\
-  void insert_vector_vertex(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,complex fact_fw,complex fact_bw,dirac_matr *GAMMA,void(*get_curr)(complex,spin1field*,const LocLxSite&,int,void*),int t,void *pars=NULL) \
+  void insert_vector_vertex(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,complex fact_fw,complex fact_bw,dirac_matr *GAMMA,void(*get_curr)(complex,spin1field*,const LocLxSite&,const Direction&,void*),int t,void *pars=NULL) \
   {									\
 									\
   /*reset the output and communicate borders*/				\
@@ -195,43 +194,43 @@ namespace nissa
 									\
   NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
     if(t==-1 or glbCoordOfLoclx[ivol.nastyConvert()][0]==t)				\
-    for(int mu=0;mu<NDIM;mu++)						\
-      {									\
-	/*find neighbors*/						\
-	int ifw=loclxNeighup[ivol.nastyConvert()][mu];					\
-	int ibw=loclxNeighdw[ivol.nastyConvert()][mu];					\
-									\
-	/*transport down and up*/					\
-	TYPE fw,bw;							\
-	NAME2(unsafe_su3_prod,TYPE)(fw,conf[ivol.nastyConvert()][mu],in[ifw]);		\
-	NAME2(unsafe_su3_dag_prod,TYPE)(bw,conf[ibw][mu],in[ibw]);	\
-									\
-	/*weight the two pieces*/					\
-	NAME2(TYPE,prodassign_complex)(fw,fact_fw);			\
-	NAME2(TYPE,prodassign_complex)(bw,fact_bw);			\
-									\
-	/*insert the current*/						\
-	complex fw_curr,bw_curr;					\
-	get_curr(fw_curr,curr,ivol,mu,pars);				\
-	get_curr(bw_curr,curr,ibw,mu,pars);				\
-	NAME2(TYPE,prodassign_complex)(fw,fw_curr);			\
-	NAME2(TYPE,prodassign_complex)(bw,bw_curr);			\
-									\
-	/*summ and subtract the two*/					\
-	TYPE bw_M_fw,bw_P_fw;						\
-	NAME2(TYPE,subt)(bw_M_fw,bw,fw);				\
-	NAME2(TYPE,summ)(bw_P_fw,bw,fw);				\
-									\
-	/*put GAMMA on the summ*/					\
-	TYPE GAMMA_bw_P_fw;						\
-	NAME2(unsafe_dirac_prod,TYPE)(GAMMA_bw_P_fw,GAMMA,bw_P_fw);	\
-	NAME2(TYPE,summassign)(out[ivol.nastyConvert()],GAMMA_bw_P_fw);		\
-									\
-	/*put gmu on the difference*/					\
-	TYPE gmu_bw_M_fw;						\
-	NAME2(unsafe_dirac_prod,TYPE)(gmu_bw_M_fw,base_gamma+igamma_of_mu[mu],bw_M_fw); \
-	NAME2(TYPE,summassign)(out[ivol.nastyConvert()],gmu_bw_M_fw);			\
-      }									\
+      FOR_ALL_DIRECTIONS(mu)						\
+	{								\
+	  /*find neighbors*/						\
+	  const LocLxSite& ifw=loclxNeighup(ivol,mu);			\
+	  const LocLxSite& ibw=loclxNeighdw(ivol,mu);			\
+	  								\
+	  /*transport down and up*/					\
+	  TYPE fw,bw;							\
+	  NAME2(unsafe_su3_prod,TYPE)(fw,conf[ivol.nastyConvert()][mu.nastyConvert()],in[ifw.nastyConvert()]); \
+	  NAME2(unsafe_su3_dag_prod,TYPE)(bw,conf[ibw.nastyConvert()][mu.nastyConvert()],in[ibw.nastyConvert()]); \
+	  								\
+	  /*weight the two pieces*/					\
+	  NAME2(TYPE,prodassign_complex)(fw,fact_fw);			\
+	  NAME2(TYPE,prodassign_complex)(bw,fact_bw);			\
+	  								\
+	  /*insert the current*/					\
+	  complex fw_curr,bw_curr;					\
+	  get_curr(fw_curr,curr,ivol,mu,pars);				\
+	  get_curr(bw_curr,curr,ibw,mu,pars);				\
+	  NAME2(TYPE,prodassign_complex)(fw,fw_curr);			\
+	  NAME2(TYPE,prodassign_complex)(bw,bw_curr);			\
+	  								\
+	  /*summ and subtract the two*/					\
+	  TYPE bw_M_fw,bw_P_fw;						\
+	  NAME2(TYPE,subt)(bw_M_fw,bw,fw);				\
+	  NAME2(TYPE,summ)(bw_P_fw,bw,fw);				\
+	  								\
+	  /*put GAMMA on the summ*/					\
+	  TYPE GAMMA_bw_P_fw;						\
+	  NAME2(unsafe_dirac_prod,TYPE)(GAMMA_bw_P_fw,GAMMA,bw_P_fw);	\
+	  NAME2(TYPE,summassign)(out[ivol.nastyConvert()],GAMMA_bw_P_fw); \
+	  								\
+	  /*put gmu on the difference*/					\
+	  TYPE gmu_bw_M_fw;						\
+	  NAME2(unsafe_dirac_prod,TYPE)(gmu_bw_M_fw,base_gamma+igamma_of_mu[mu.nastyConvert()],bw_M_fw); \
+	  NAME2(TYPE,summassign)(out[ivol.nastyConvert()],gmu_bw_M_fw);	\
+	}								\
   NISSA_PARALLEL_LOOP_END;						\
 									\
   set_borders_invalid(out);						\
@@ -279,11 +278,11 @@ namespace nissa
     set_borders_invalid(out);						\
   }									\
   									\
-  /*multiply with an imaginary factor*/					\
-  void prop_multiply_with_idouble(TYPE* out,double f) \
+  /*! Multiply with an imaginary factor*/				\
+  void prop_multiply_with_idouble(TYPE* out,double f)			\
   {									\
     NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
-      NAME2(TYPE,prodassign_idouble)(out[ivol.nastyConvert()],f);			\
+      NAME2(TYPE,prodassign_idouble)(out[ivol.nastyConvert()],f);	\
     NISSA_PARALLEL_LOOP_END;						\
     set_borders_invalid(out);						\
   }									\
