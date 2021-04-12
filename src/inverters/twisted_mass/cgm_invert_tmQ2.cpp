@@ -13,7 +13,7 @@
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
 #define BULK_VOL locVol.nastyConvert()
-#define BORD_VOL bord_vol.nastyConvert()
+#define BORD_VOL bordVol.nastyConvert()
 
 #define APPLY_OPERATOR apply_tmQ2_m2_RL
 #define CGM_OPERATOR_PARAMETERS conf,kappa,t,RL,

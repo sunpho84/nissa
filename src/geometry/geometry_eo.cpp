@@ -103,7 +103,7 @@ namespace nissa
 	}
     
     //finds how to fill the borders with surface
-    for(BordLxSite bordlx=0;bordlx<bord_vol;bordlx++)
+    for(BordLxSite bordlx=0;bordlx<bordVol;bordlx++)
       {
 	const LocLxSite& surflx=loclxSiteAdjacentToBordLx(bordlx);
 	const LocLxSite& loclx=extenedLocLxSiteOfBordLxSite(bordlx);

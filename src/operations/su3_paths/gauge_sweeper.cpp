@@ -226,7 +226,7 @@ namespace nissa
     
     //check cached
     verbosity_lv3_master_printf("Max cached links: %d\n",max_cached_link);
-    if(max_cached_link>bord_vol()+edge_vol()) crash("larger buffer needed [really? recheck this]");
+    if(max_cached_link>bordVol()+edge_vol()) crash("larger buffer needed [really? recheck this]");
     
     //perform two checks
     check_hit_exactly_once();

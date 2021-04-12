@@ -12,7 +12,7 @@
 
 #define NDOUBLES_PER_SITE 24
 #define BULK_VOL locVol.nastyConvert()
-#define BORD_VOL bord_vol.nastyConvert()
+#define BORD_VOL bordVol.nastyConvert()
 
 #define APPLY_OPERATOR apply_tmclovQ2
 #define CG_OPERATOR_PARAMETERS conf,kappa,Cl,temp,mu,

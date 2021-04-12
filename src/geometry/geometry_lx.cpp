@@ -417,9 +417,9 @@ namespace nissa
     glblxOfLoclx.allocate(locVol);
     
     //borders
-    glblxOfBordlx.allocate(bord_vol);
-    loclxOfBordlx.allocate(bord_vol);
-    loclxSiteAdjacentToBordLx.allocate(bord_vol);
+    glblxOfBordlx.allocate(bordVol);
+    loclxOfBordlx.allocate(bordVol);
+    loclxSiteAdjacentToBordLx.allocate(bordVol);
     
     //bulk and surfs
     loclxOfBulklx.allocate(bulkVol);
@@ -442,8 +442,8 @@ namespace nissa
     find_bulk_sites();
     
     //allocate a buffer large enough to allow communications of su3spinspin lx border
-    recv_buf_size=std::max(recv_buf_size,(int64_t)(bord_vol()*sizeof(su3spinspin)));
-    send_buf_size=std::max(send_buf_size,(int64_t)(bord_vol()*sizeof(su3spinspin)));
+    recv_buf_size=std::max(recv_buf_size,(int64_t)(bordVol()*sizeof(su3spinspin)));
+    send_buf_size=std::max(send_buf_size,(int64_t)(bordVol()*sizeof(su3spinspin)));
     
     //create the sweepers but do not fully initialize
     Wilson_sweeper=new gauge_sweeper_t;

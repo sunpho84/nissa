@@ -298,7 +298,8 @@ namespace nissa
       memset(delayed_thread_barrier,0,nthreads*sizeof(int));
       delay_rnd_gen=(rnd_gen*)malloc(nthreads*sizeof(rnd_gen));
       int delay_base_seed=time(0);
-      for(unsigned int i=0;i<nthreads;i++) start_rnd_gen(delay_rnd_gen+i,delay_base_seed+i);
+      for(unsigned int i=0;i<(unsigned int)nthreads;i++)
+	start_rnd_gen(delay_rnd_gen+i,delay_base_seed+i);
 #endif
       
       //distinguish master thread from the others

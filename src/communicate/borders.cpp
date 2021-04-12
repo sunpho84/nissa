@@ -58,7 +58,7 @@ namespace nissa
     
     //copy nbytes_per_site and compute total size
     comm.nbytes_per_site=nbytes_per_site;
-    comm.tot_mess_size=comm.nbytes_per_site*bord_vol()/div_coeff;
+    comm.tot_mess_size=comm.nbytes_per_site*bordVol()/div_coeff;
     
     //direction of the halo in receiving node: surface is ordered opposite of halo
     for(int bf=0;bf<2;bf++)
@@ -159,11 +159,11 @@ namespace nissa
   {
     
     //check buffer size matching
-    if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-      crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
+    if(comm.tot_mess_size!=comm.nbytes_per_site*bordVol)
+      crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bordVol);
     
     //copy one by one the surface of vec inside the sending buffer
-    NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+    NISSA_PARALLEL_LOOP(ibord,0,bordVol)
       memcpy(send_buf+comm.nbytes_per_site*ibord(),
 	     (char*)vec+loclxSiteAdjacentToBordLx(ibord)()*comm.nbytes_per_site,
 	     comm.nbytes_per_site);
@@ -179,11 +179,11 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol()+locVol()));
+	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bordVol()+locVol()));
 	
 	//check buffer size matching
-	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-	  crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
+	if(comm.tot_mess_size!=comm.nbytes_per_site*bordVol)
+	  crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bordVol);
 	
 	//the buffer is already ordered as the vec border
 	memcpy((char*)vec+(locVol*comm.nbytes_per_site).nastyConvert(),recv_buf,comm.tot_mess_size);
@@ -336,11 +336,11 @@ namespace nissa
   {
     
     //check buffer size matching
-    if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
+    if(comm.tot_mess_size!=comm.nbytes_per_site*bordVol)
+      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bordVol);
     
     //copy one by one the surface of vec inside the sending buffer
-    NISSA_PARALLEL_LOOP(ibord_lx,0,bord_vol)
+    NISSA_PARALLEL_LOOP(ibord_lx,0,bordVol)
       {
 	//convert lx indexing to eo
 	const LocLxSite& source_lx=loclxSiteAdjacentToBordLx(ibord_lx);
@@ -365,11 +365,11 @@ namespace nissa
     crash_if_borders_not_allocated(vec[ODD],min_size);
     
     //check buffer size matching
-    if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
+    if(comm.tot_mess_size!=comm.nbytes_per_site*bordVol)
+      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bordVol);
     
     //the buffer is lx ordered
-    NISSA_PARALLEL_LOOP(bordLxSite,0,bord_vol)
+    NISSA_PARALLEL_LOOP(bordLxSite,0,bordVol)
       {
 	const LocLxSite dest_lx=extenedLocLxSiteOfBordLxSite(bordLxSite);
 	int par=loclx_parity[dest_lx.nastyConvert()];

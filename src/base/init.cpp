@@ -635,8 +635,8 @@ namespace nissa
 	//summ of the border extent up to dir mu
 	if(mu>0) bord_offset[mu]=bord_offset[mu-1]+bord_dir_vol[mu-1];
       }
-    bord_vol=2*bord_volh;
-    locVolWithBord=locVol()+bord_vol();
+    bordVol=2*bord_volh;
+    locVolWithBord=locVol()+bordVol();
     
     init_boxes();
     
@@ -686,7 +686,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) master_printf("%d ",mu);
     if(nparal_dir==0) master_printf("(none)");
     master_printf("\n");
-    master_printf("Border size: %d\n",bord_vol);
+    master_printf("Border size: %d\n",bordVol);
     for(int mu=0;mu<NDIM;mu++)
       verbosity_lv3_master_printf("Border offset for dir %d: %d\n",mu,bord_offset[mu]);
     

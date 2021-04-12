@@ -99,7 +99,7 @@ namespace nissa
     //copy lower surface into sending buf to be sent to dw nodes
     //obtained scanning on first half of the border, and storing them
     //in the first half of sending buf
-    NISSA_PARALLEL_LOOP(ibord,0,bord_vol/2)
+    NISSA_PARALLEL_LOOP(ibord,0,bordVol/2)
       quad_su3_copy(((quad_su3*)send_buf)[ibord.nastyConvert()],conf[loclxSiteAdjacentToBordLx(ibord).nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     

@@ -139,7 +139,7 @@ namespace nissa
   //size of the border and edges
   
   /// Size of the border
-  EXTERN_GEOMETRY_LX BordLxSite bord_vol;
+  EXTERN_GEOMETRY_LX BordLxSite bordVol;
   
   /// Size of the local volume exteneded with border
   EXTERN_GEOMETRY_LX LocLxSite locVolWithBord;
