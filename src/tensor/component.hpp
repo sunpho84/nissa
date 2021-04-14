@@ -34,8 +34,11 @@ namespace nissa
   struct TensorCompSize
   {
     /// Value beyond end
-    static constexpr I sizeAtCompileTime=
-      SIZE;
+    CUDA_HOST_DEVICE
+    static constexpr I sizeAtCompileTime()
+    {
+      return SIZE;
+    }
   };
   
   namespace predicate
@@ -61,17 +64,34 @@ namespace nissa
   
   /// Define the signature for a componenent convertible to TYPE of given NAME and SIZE
   ///
-  /// The specified name is suffixed with "Signature", to allow the
-  /// Definition of the actual component with the expected name
-#define DECLARE_COMPONENT_SIGNATURE(NAME,TYPE,LENGTH)		\
-  /*! Signature for the NAME component */			\
-  struct NAME ## Signature :					\
+  /// Common part
+#define _COMPONENT_SIGNATURE_BODY(NAME,TYPE,LENGTH)		\
     public TensorCompSize<TYPE,LENGTH>				\
   {								\
     /*! Type used for the index */				\
     using Index=						\
       TYPE;							\
   }
+  
+  /// Define the signature for a componenent convertible to TYPE of given NAME and SIZE
+  ///
+  /// The specified name is suffixed with "Signature", to allow the
+  /// Definition of the actual component with the expected name
+#define DECLARE_COMPONENT_SIGNATURE(NAME,TYPE,LENGTH)		\
+  /*! Signature for the NAME component */			\
+  struct NAME ## Signature :					\
+  _COMPONENT_SIGNATURE_BODY(NAME,TYPE,LENGTH)
+  
+  // Signature
+  
+  /// Define the signature for a componenent convertible to TYPE of given NAME and SIZE
+  ///
+  /// Templated case
+#define DECLARE_TEMPLATED_COMPONENT_SIGNATURE(NAME,LENGTH)	\
+  /*! Signature for the NAME component */			\
+  template <typename T>						\
+  struct NAME ## Signature :					\
+  _COMPONENT_SIGNATURE_BODY(NAME,T,LENGTH)
   
   /////////////////////////////////////////////////////////////////
   
@@ -140,20 +160,23 @@ namespace nissa
       Which;
     
     /// Size at compile time
-    static constexpr Index sizeAtCompileTime=
-      Signature::sizeAtCompileTime;
+    CUDA_HOST_DEVICE
+    static constexpr Index sizeAtCompileTime()
+    {
+      return Signature::sizeAtCompileTime();
+    }
     
     /// Check if the size is known at compile time
     static constexpr
     bool sizeIsKnownAtCompileTime=
-      sizeAtCompileTime!=DYNAMIC;
+      sizeAtCompileTime()!=DYNAMIC;
     
     /// Returns the size at compile time, with assert
     static constexpr Index sizeAtCompileTimeAssertingNotDynamic()
     {
       static_assert(sizeIsKnownAtCompileTime,"Size not known at compile time!");
       
-      return sizeAtCompileTime;
+      return sizeAtCompileTime();
     }
     
     /// Init from value
@@ -258,6 +281,7 @@ namespace nissa
     PROVIDE_SELFOP_WITH_OTHER(-)
     PROVIDE_SELFOP_WITH_OTHER(*)
     PROVIDE_SELFOP_WITH_OTHER(/)
+    PROVIDE_SELFOP_WITH_OTHER(%)
     
 #undef PROVIDE_SELFOP_WITH_OTHER
     
@@ -285,35 +309,35 @@ namespace nissa
     
 #undef PROVIDE_BINARY_OP
   };
-
-  /// Promotes the argument i to a COMPONENT, through a function with given NAME
-#define DECLARE_COMPONENT_FACTORY(NAME,COMPONENT...)		\
-  template <typename T>						\
-  static INLINE_FUNCTION constexpr CUDA_HOST_DEVICE		\
-  COMPONENT NAME(T&& i)						\
-  {								\
-    return							\
-      COMPONENT(i);						\
-  }
   
   /// Declare a component with no special feature
   ///
   /// The component has no row/column tag or index, so it can be
   /// included only once in a tensor
-#define DECLARE_COMPONENT(NAME,TYPE,SIZE/*,FACTORY*/)		\
+#define DECLARE_COMPONENT(NAME,TYPE,SIZE)			\
   DECLARE_COMPONENT_SIGNATURE(NAME,TYPE,SIZE);			\
   								\
   /*! NAME component */						\
   using NAME=							\
-    TensorComp<NAME ## Signature,ANY,0>/*;*/			\
-								\
-    /*DECLARE_COMPONENT_FACTORY(FACTORY,NAME)*/
+    TensorComp<NAME ## Signature,ANY,0>
+  
+  /// Declare a template component
+  ///
+  /// The component has no row/column tag or index, so it can be
+  /// included only once in a tensor
+#define DECLARE_TEMPLATED_COMPONENT(NAME,SIZE)			\
+  DECLARE_TEMPLATED_COMPONENT_SIGNATURE(NAME,SIZE);		\
+  								\
+  /*! NAME component */						\
+  template <typename T>						\
+  using NAME=							\
+    TensorComp<NAME ## Signature<T>,ANY,0>
   
   /// Declare a component which can be included more than once
   ///
   /// The component has a row/column tag, and an additional index, so
   /// it can be included twice in a tensor
-#define DECLARE_ROW_OR_CLN_COMPONENT(NAME,TYPE,SIZE/*,FACTORY*/)	\
+#define DECLARE_ROW_OR_CLN_COMPONENT(NAME,TYPE,SIZE)		\
   DECLARE_COMPONENT_SIGNATURE(NAME,TYPE,SIZE);			\
   								\
   /*! NAME component */						\

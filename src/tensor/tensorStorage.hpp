@@ -53,7 +53,7 @@ namespace nissa
       
       /// Returns the pointer to data
       CUDA_HOST_DEVICE
-      decltype(auto) getDataPtr() const
+      Fund getDataPtr() const
       {
 	return innerStorage;
       }
@@ -149,7 +149,7 @@ namespace nissa
       }
       
       /// Storage
-      Fund data[StaticSize];
+      Fund innerStorage[StaticSize];
       
       /// Return the pointer to inner data
       INLINE_FUNCTION CUDA_HOST_DEVICE
@@ -157,7 +157,7 @@ namespace nissa
 	const
       {
 	return
-	  data;
+	  innerStorage;
       }
       
       PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(getDataPtr,CUDA_HOST_DEVICE);
@@ -202,7 +202,7 @@ namespace nissa
     
     /// Returns the pointer to data
     CUDA_HOST_DEVICE
-    decltype(auto) getDataPtr() const
+    Fund* getDataPtr() const
     {
       return data.getDataPtr();
     }

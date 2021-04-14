@@ -6,9 +6,11 @@
 #endif
 
 #include <fcntl.h>
+#include <mpi.h>
 #include <unistd.h>
 
-#include <routines/mpi_routines.hpp>
+#include <base/debug.hpp>
+#include <routines/rank.hpp>
 
 namespace nissa
 {

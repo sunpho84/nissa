@@ -10,8 +10,8 @@
 
 #include <base/debug.hpp>
 #include <new_types/complex.hpp>
+#include <new_types/dirac.hpp>
 #include <random/systemRandom.hpp>
-#include <routines/mpi_routines.hpp>
 
 #if THREADS_TYPE == OPENMP_THREADS
  #include <omp.h>

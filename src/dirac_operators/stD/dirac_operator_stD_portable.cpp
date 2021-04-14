@@ -20,21 +20,21 @@ namespace nissa
     NISSA_PARALLEL_LOOP(io,0,locVolh)
       {
 	//neighbours search
-	int evup0=loceo_neighup[ODD][io.nastyConvert()][0];
-	int evdw0=loceo_neighdw[ODD][io.nastyConvert()][0];
+	int evup0=loceo_neighup[ODD][io.nastyConvert()](timeDirection).nastyConvert();
+	int evdw0=loceo_neighdw[ODD][io.nastyConvert()](timeDirection).nastyConvert();
 	
 	//derivative in the time directio.nastyConvert()n - without self-summ
 	unsafe_su3_prod_color(      out[io.nastyConvert()],conf[ODD][io.nastyConvert()   ][0],in[evup0]);
 	su3_dag_subt_the_prod_color(out[io.nastyConvert()],conf[EVN][evdw0][0],in[evdw0]);
 	
 	//derivatives in the spatial directio.nastyConvert()n - with self summ
-	for(int mu=1;mu<4;mu++)
+	for(Direction mu=1;mu<NDIM;mu++)
 	  {
-	    int evup=loceo_neighup[ODD][io.nastyConvert()][mu];
-	    int evdw=loceo_neighdw[ODD][io.nastyConvert()][mu];
+	    int evup=loceo_neighup[ODD][io.nastyConvert()](mu).nastyConvert();
+	    int evdw=loceo_neighdw[ODD][io.nastyConvert()](mu).nastyConvert();
 	    
-	    su3_summ_the_prod_color(    out[io.nastyConvert()],conf[ODD][io.nastyConvert()  ][mu],in[evup]);
-	    su3_dag_subt_the_prod_color(out[io.nastyConvert()],conf[EVN][evdw][mu],in[evdw]);
+	    su3_summ_the_prod_color(    out[io.nastyConvert()],conf[ODD][io.nastyConvert()  ][mu.nastyConvert()],in[evup]);
+	    su3_dag_subt_the_prod_color(out[io.nastyConvert()],conf[EVN][evdw][mu.nastyConvert()],in[evdw]);
 	  }
       }
     NISSA_PARALLEL_LOOP_END;
@@ -65,21 +65,21 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ie,0,locVolh)
       {
 	//neighbours search
-	int odup0=loceo_neighup[EVN][ie.nastyConvert()][0];
-	int oddw0=loceo_neighdw[EVN][ie.nastyConvert()][0];
+	int odup0=loceo_neighup[EVN][ie.nastyConvert()](timeDirection).nastyConvert();
+	int oddw0=loceo_neighdw[EVN][ie.nastyConvert()](timeDirection).nastyConvert();
 	
 	//derivative in the time direction - without self-summ
 	unsafe_su3_prod_color(      out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()   ][0],in[odup0]);
 	su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[ODD][oddw0][0],in[oddw0]);
 	
 	//derivatives in the spatial direction - with self summ
-	for(int mu=1;mu<4;mu++)
+	for(Direction mu=1;mu<NDIM;mu++)
 	  {
-	    int odup=loceo_neighup[EVN][ie.nastyConvert()][mu];
-	    int oddw=loceo_neighdw[EVN][ie.nastyConvert()][mu];
+	    int odup=loceo_neighup[EVN][ie.nastyConvert()](mu).nastyConvert();
+	    int oddw=loceo_neighdw[EVN][ie.nastyConvert()](mu).nastyConvert();
 	    
-	    su3_summ_the_prod_color(    out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()  ][mu],in[odup]);
-	    su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[ODD][oddw][mu],in[oddw]);
+	    su3_summ_the_prod_color(    out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()  ][mu()],in[odup]);
+	    su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[ODD][oddw][mu()],in[oddw]);
 	  }
 	
 	//Doe contains 1/2, we put an additional one
@@ -108,21 +108,21 @@ namespace nissa
     NISSA_PARALLEL_LOOP_EXP(io,0,locVolh)
       {
 	//neighbours search
-	int evup0=loceo_neighup[ODD][io.nastyConvert()][0];
-	int evdw0=loceo_neighdw[ODD][io.nastyConvert()][0];
+	int evup0=loceo_neighup[ODD][io.nastyConvert()](timeDirection).nastyConvert();
+	int evdw0=loceo_neighdw[ODD][io.nastyConvert()](timeDirection).nastyConvert();
 	
 	//derivative in the time direction - without self-summ
 	unsafe_su3_prod_color(      temp[io.nastyConvert()],conf[ODD][io.nastyConvert()   ][0],in[evup0]);
 	su3_dag_subt_the_prod_color(temp[io.nastyConvert()],conf[EVN][evdw0][0],in[evdw0]);
 	
 	//derivatives in the spatial direction - with self summ
-	for(int mu=1;mu<NDIM;mu++)
+	for(Direction mu=1;mu<NDIM;mu++)
 	  {
-	    int evup=loceo_neighup[ODD][io.nastyConvert()][mu];
-	    int evdw=loceo_neighdw[ODD][io.nastyConvert()][mu];
+	    int evup=loceo_neighup[ODD][io.nastyConvert()](mu).nastyConvert();
+	    int evdw=loceo_neighdw[ODD][io.nastyConvert()](mu).nastyConvert();
 	    
-	    su3_summ_the_prod_color(    temp[io.nastyConvert()],conf[ODD][io.nastyConvert()  ][mu],in[evup]);
-	    su3_dag_subt_the_prod_color(temp[io.nastyConvert()],conf[EVN][evdw][mu],in[evdw]);
+	    su3_summ_the_prod_color(    temp[io.nastyConvert()],conf[ODD][io.nastyConvert()  ][mu.nastyConvert()],in[evup]);
+	    su3_dag_subt_the_prod_color(temp[io.nastyConvert()],conf[EVN][evdw][mu.nastyConvert()],in[evdw]);
 	  }
       }
     NISSA_PARALLEL_LOOP_END_EXP;
@@ -133,19 +133,19 @@ namespace nissa
     //we still apply Deo, but then we put a - because we should apply Doe^+=-Deo
     NISSA_PARALLEL_LOOP_EXP(ie,0,locVolh)
       {
-	int odup0=loceo_neighup[EVN][ie.nastyConvert()][0];
-	int oddw0=loceo_neighdw[EVN][ie.nastyConvert()][0];
+	int odup0=loceo_neighup[EVN][ie.nastyConvert()](timeDirection).nastyConvert();
+	int oddw0=loceo_neighdw[EVN][ie.nastyConvert()](timeDirection).nastyConvert();
 	
 	unsafe_su3_prod_color(      out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()   ][0],temp[odup0]);
 	su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[ODD][oddw0][0],temp[oddw0]);
 	
-	for(int mu=1;mu<4;mu++)
+	for(Direction mu=1;mu<NDIM;mu++)
 	  {
-	    int odup=loceo_neighup[EVN][ie.nastyConvert()][mu];
-	    int oddw=loceo_neighdw[EVN][ie.nastyConvert()][mu];
+	    int odup=loceo_neighup[EVN][ie.nastyConvert()](mu).nastyConvert();
+	    int oddw=loceo_neighdw[EVN][ie.nastyConvert()](mu).nastyConvert();
 	    
-	    su3_summ_the_prod_color(    out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()  ][mu],temp[odup]);
-	    su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[ODD][oddw][mu],temp[oddw]);
+	    su3_summ_the_prod_color(    out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()  ][mu.nastyConvert()],temp[odup]);
+	    su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[ODD][oddw][mu.nastyConvert()],temp[oddw]);
 	  }
       }
     NISSA_PARALLEL_LOOP_END_EXP;

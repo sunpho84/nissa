@@ -1,22 +1,22 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
 
 #ifdef USE_MPI
- #include <mpi.h>
+# include <mpi.h>
 #endif
 
 #define EXTERN_MPI
- #include "mpi_routines.hpp"
+# include <routines/mpi_routines.hpp>
 
-#include "geometry/geometry_lx.hpp"
-#include "linalgs/linalgs.hpp"
-#include "linalgs/reduce.hpp"
-#include "new_types/complex.hpp"
-#include "new_types/float_128.hpp"
-#include "new_types/rat_approx.hpp"
-#include "routines/ios.hpp"
-#include "threads/threads.hpp"
+#include <geometry/geometry_lx.hpp>
+#include <linalgs/linalgs.hpp>
+#include <linalgs/reduce.hpp>
+#include <new_types/complex.hpp>
+#include <new_types/float_128.hpp>
+#include <new_types/rat_approx.hpp>
+#include <routines/ios.hpp>
+#include <threads/threads.hpp>
 
 namespace nissa
 {
@@ -85,47 +85,47 @@ namespace nissa
   void create_MPI_cartesian_grid()
   {
 #ifdef USE_MPI
-    coords periods;
+    int periods[NDIM];
     for(int mu=0;mu<NDIM;mu++) periods[mu]=1;
-    MPI_Cart_create(MPI_COMM_WORLD,NDIM,nrank_dir,periods,1,&cart_comm);
+    MPI_Cart_create(MPI_COMM_WORLD,NDIM,(int*)nrank_dir.getDataPtr(),periods,1,&cart_comm); //nasty
     //takes rank and ccord of local rank
     MPI_Comm_rank(cart_comm,&cart_rank);
-    MPI_Cart_coords(cart_comm,cart_rank,NDIM,rank_coord);
+    MPI_Cart_coords(cart_comm,cart_rank,NDIM,(int*)rank_coord.getDataPtr()); //nasty
     
     //create communicator along plan
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       {
-	coords split_plan;
-	coords proj_rank_coord;
-	for(int nu=0;nu<NDIM;nu++)
+	Coords<int> split_plan;
+	RankCoords proj_rank_coord;
+	FOR_ALL_DIRECTIONS(nu)
 	  {
-	    split_plan[nu]=(nu==mu) ? 0 : 1;
-	    proj_rank_coord[nu]=(nu==mu) ? 0 : rank_coord[nu];
+	    split_plan(nu)=(nu==mu) ? 0 : 1;
+	    proj_rank_coord(nu)=(nu==mu) ? 0 : rank_coord(nu);
 	  }
-	MPI_Cart_sub(cart_comm,split_plan,&(plan_comm[mu]));
-	MPI_Comm_rank(plan_comm[mu],&(plan_rank[mu]));
-	if(plan_rank[mu]!=rank_of_coord(proj_rank_coord))
+	MPI_Cart_sub(cart_comm,(int*)split_plan.getDataPtr(),&(plan_comm[mu.nastyConvert()])); //nasty
+	MPI_Comm_rank(plan_comm[mu.nastyConvert()],&(plan_rank(mu)()));
+	if(plan_rank(mu)!=rank_of_coord(proj_rank_coord))
 	  crash("Plan communicator has messed up coord: %d and rank %d (implement reorder!)",
-		rank_of_coord(proj_rank_coord),plan_rank[mu]);
+		rank_of_coord(proj_rank_coord),plan_rank(mu)());
       }
     
     //create communicator along line
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       {
 	//split the communicator
-	coords split_line;
-	memset(split_line,0,sizeof(coords));
-	split_line[mu]=1;
-	MPI_Cart_sub(cart_comm,split_line,&(line_comm[mu]));
+	int split_line[NDIM];
+	memset(split_line,0,sizeof(int)*NDIM);
+	split_line[mu()]=1;
+	MPI_Cart_sub(cart_comm,split_line,&(line_comm[mu()]));
 	
 	//get rank id
-	MPI_Comm_rank(line_comm[mu],&(line_rank[mu]));
+	MPI_Comm_rank(line_comm[mu()],&(line_rank(mu)()));
 	
 	//get rank coord along line comm
-	MPI_Cart_coords(line_comm[mu],line_rank[mu],1,&(line_coord_rank[mu]));
+	MPI_Cart_coords(line_comm[mu()],line_rank(mu)(),1,&(line_coord_rank(mu)()));
 	
 	//check communicator
-	if(line_rank[mu]!=rank_coord[mu] || line_rank[mu]!=line_coord_rank[mu])
+	if(line_rank(mu)!=rank_coord(mu) or line_rank(mu)!=line_coord_rank(mu))
 	  crash("Line communicator has messed up coord and rank (implement reorder!)");
       }
 #else
@@ -207,10 +207,6 @@ namespace nissa
     MPI_Op_create((MPI_User_function*)MPI_COMPLEX_128_SUM_routine,1,&MPI_COMPLEX_128_SUM);
 #endif
   }
-  
-  //broadcast a coord
-  void coords_broadcast(coords c)
-  {MPI_Bcast(c,NDIM,MPI_INT,master_rank,MPI_COMM_WORLD);}
   
   //ceil to next multiple of eight
   MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos)

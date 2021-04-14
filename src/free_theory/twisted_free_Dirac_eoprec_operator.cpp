@@ -199,7 +199,7 @@ namespace nissa
   }
   
   //implement Koo defined in equation (7) 
-  void tmDkern_eoprec_eos(spin *out,spin *temp,tm_quark_info qu,spin *in)
+  void tmDkern_eoprec_eos(spin *out,spin *temp,const tm_quark_info qu,spin *in)
   {
     
     tmn2Deo_eos(out,in,qu.bc);
@@ -222,7 +222,7 @@ namespace nissa
   }
   
   //square of Koo
-  void tmDkern_eoprec_square_eos(spin *out,spin *temp1,spin *temp2,tm_quark_info qu,spin *in)
+  void tmDkern_eoprec_square_eos(spin *out,spin *temp1,spin *temp2,const tm_quark_info& qu,spin *in)
   {
     tm_quark_info mqu=qu;
     mqu.mass*=-1;

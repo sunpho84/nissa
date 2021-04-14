@@ -20,147 +20,72 @@
 
 namespace nissa
 {
-  /// Return the index of site of coord x in the 2d space obtained projecting away mu and nu
-  int lineLxOfDoublyProjectedCoords(int *x,int mu,int nu)
-  {
-    int ilx=0;
-    
-    for(int rho=0;rho<NDIM;rho++)
-      if(rho!=mu and rho!=nu)
-	ilx=ilx*locSize[rho]+x[rho];
-    
-    return ilx;
-  }
-  
-  /// Return the index of site of coord x in the 3d space obtained projecting away mu
-  int spatLxOfProjectedCoords(int *x,int mu)
-  {
-    int ilx=0;
-    for(int nu=0;nu<NDIM;nu++)
-      if(nu!=mu)
-	ilx=ilx*locSize[nu]+x[nu];
-    
-    return ilx;
-  }
-  
-  //Return the index of site of coord x in a box of sides s
-  CUDA_HOST_DEVICE int lx_of_coord(coords x,coords s)
-  {
-    int ilx=0;
-    
-    for(int mu=0;mu<NDIM;mu++)
-      ilx=ilx*s[mu]+x[mu];
-    
-    return ilx;
-  }
-  void coord_of_lx(coords x,int ilx,coords s)
-  {
-    for(int mu=NDIM-1;mu>=0;mu--)
-      {
-	x[mu]=ilx%s[mu];
-	ilx/=s[mu];
-      }
-  }
-  
-  //return the volume of a given box
-  int vol_of_lx(coords size)
-  {
-    int vol=1;
-    for(int mu=0;mu<NDIM;mu++) vol*=size[mu];
-    return vol;
-  }
-  
   //wrappers
-  CUDA_HOST_DEVICE int loclx_of_coord(coords x)
-  {return lx_of_coord(x,locSize);}
-  
-  //wrappers
-  int glblx_of_coord(coords x)
-  {return lx_of_coord(x,glbSize);}
-  int glblx_of_coord_list(int a,int b,int c,int d)
-  {coords co={a,b,c,d};return glblx_of_coord(co);}
-  //combine two points
-  int glblx_of_comb(int b,int wb,int c,int wc)
+  CUDA_HOST_DEVICE LocLxSite loclx_of_coord(const LocCoords& x)
   {
-    coords co;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	co[mu]=glbCoordOfLoclx[b][mu]*wb+glbCoordOfLoclx[c][mu]*wc;
-	while(co[mu]<0) co[mu]+=glbSize[mu];
-	co[mu]%=glbSize[mu];
-      }
-    
-    return glblx_of_coord(co);
+    return lx_of_coord<LocLxSite>(x,locSize);
   }
-  
-  void glb_coord_of_glblx(coords x,int gx)
-  {
-    for(int mu=NDIM-1;mu>=0;mu--)
-      {
-	int next=gx/glbSize[mu];
-	x[mu]=gx-next*glbSize[mu];
-	gx=next;
-      }
-  }
-  
-  int glblx_of_diff(int b,int c)
-  {return glblx_of_comb(b,+1,c,-1);}
-  
-  int glblx_of_summ(int b,int c)
-  {return glblx_of_comb(b,+1,c,+1);}
-  
-  int glblx_opp(int b)
-  {return glblx_of_diff(0,b);}
   
   //Return the coordinate of the rank containing the global coord
-  void rank_coord_of_site_of_coord(coords rank_coord,coords glb_coord)
-  {for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=glb_coord[mu]/locSize[mu];}
+  void rank_coord_of_site_of_coord(RankCoords& rank_coord,const GlbCoords& glb_coord)
+  {
+    FOR_ALL_DIRECTIONS(mu)
+      rank_coord(mu)=glb_coord(mu)()/locSize(mu)();
+  }
   
   //Return the rank of passed coord
-  int rank_of_coord(coords x)
-  {return lx_of_coord(x,nrank_dir);}
-  void coord_of_rank(coords c,int x)
-  {coord_of_lx(c,x,nrank_dir);}
+  Rank rank_of_coord(const RankCoords& x)
+  {
+    return lx_of_coord<Rank>(x,nrank_dir);
+  }
+  
+  void coord_of_rank(RankCoords& c,const Rank& x)
+  {
+    coord_of_lx(c,x,nrank_dir);
+  }
   
   //Return the rank containing the global coordinates
-  int rank_hosting_site_of_coord(coords x)
+  Rank rank_hosting_site_of_coord(const GlbCoords& x)
   {
-    coords p;
+    RankCoords p;
     rank_coord_of_site_of_coord(p,x);
     
     return rank_of_coord(p);
   }
+  
   //Return the rank containing the glblx passed
-  int rank_hosting_glblx(int gx)
+  Rank rank_hosting_glblx(const GlbLxSite& gx)
   {
-    coords c;
+    GlbCoords c;
+    
     glb_coord_of_glblx(c,gx);
+    
     return rank_hosting_site_of_coord(c);
   }
   
   //Return the local site and rank containing the global coordinates
-  void get_loclx_and_rank_of_coord(int *ivol,int *rank,coords g)
+  void get_loclx_and_rank_of_coord(LocLxSite& ivol,Rank& rank,const GlbCoords& g)
   {
-    coords l,p;
-    for(int mu=0;mu<NDIM;mu++)
+    LocCoords l;
+    RankCoords p;
+    FOR_ALL_DIRECTIONS(mu)
       {
-	p[mu]=g[mu]/locSize[mu];
-	l[mu]=g[mu]-p[mu]*locSize[mu];
+	p(mu)=g(mu)()/locSize(mu)();
+	l(mu)=g(mu)()%locSize(mu)();
       }
     
-    (*rank)=rank_of_coord(p);
-    (*ivol)=loclx_of_coord(l);
+    rank=rank_of_coord(p);
+    ivol=loclx_of_coord(l);
   }
   
-  //Return the global index of site addressed by rank and loclx
-  int get_glblx_of_rank_and_loclx(int irank,int loclx)
+  GlbLxSite get_glblx_of_rank_and_loclx(const int irank,const LocLxSite& loclx)
   {
-    coords p;
+    RankCoords p;
     coord_of_rank(p,irank);
-    
-    int iglblx=0;
-    for(int mu=0;mu<NDIM;mu++)
-      iglblx=iglblx*glbSize[mu]+locCoordOfLoclx[loclx][mu];
+    crash("I believe it's wrong");
+    GlbLxSite iglblx=0;
+    FOR_ALL_DIRECTIONS(mu)
+      iglblx=iglblx*glbSize(mu)()+locCoordOfLoclx(loclx,mu)();
     
     return iglblx;
   }
@@ -169,77 +94,80 @@ namespace nissa
   //if the coordinates are local, return the index according to the function loclx_of_coord
   //if exactly one of the coordinate is just out return its index according to bordlx_of_coord, incremented of previous border and loc_vol
   //if exactly two coordinates are outside, return its index according to edgelx_of_coord, incremented as before stated
-  int full_lx_of_coords(coords ext_x)
+  LocLxSite full_lx_of_coords(const LocCoords& ext_x)
   {
     //pseudo-localize it
-    coords x;
-    for(int mu=0;mu<NDIM;mu++)
+    LocCoords x;
+    FOR_ALL_DIRECTIONS(mu)
       {
-	x[mu]=ext_x[mu];
-	while(x[mu]<0) x[mu]+=glbSize[mu];
-	while(x[mu]>=glbSize[mu]) x[mu]-=glbSize[mu];
+	x(mu)=ext_x(mu);
+	while(x(mu)<0) x(mu)+=glbSize(mu)();
+	while(x(mu)>=glbSize(mu)()) x(mu)-=glbSize(mu)();
       }
     
     //check locality
     int isloc=1;
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       {
-	isloc&=(x[mu]>=0);
-	isloc&=(x[mu]<locSize[mu]);
+	isloc&=(x(mu)>=0);
+	isloc&=(x(mu)<locSize(mu));
       }
     
-    if(isloc) return loclx_of_coord(x);
+    if(isloc)
+      return loclx_of_coord(x);
     
     //check borderity
-    coords is_bord;
-    for(int mu=0;mu<NDIM;mu++)
+    Coords<int> is_bord;
+    FOR_ALL_DIRECTIONS(mu)
       {
-	is_bord[mu]=0;
-	if(paral_dir[mu])
+	is_bord(mu)=0;
+	if(paral_dir(mu))
 	  {
-	    if(x[mu]==glbSize[mu]-1) is_bord[mu]=-1;
-	    if(x[mu]==locSize[mu]) is_bord[mu]=+1;
+	    if(x(mu)==glbSize(mu)()-1) is_bord(mu)=-1;
+	    if(x(mu)==locSize(mu)) is_bord(mu)=+1;
 	  }
       }
     
     //check if it is in one of the NDIM forward or backward borders
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       {
-	bool is=is_bord[mu];
-	for(int inu=0;inu<NDIM-1;inu++) is&=(is_bord[perp_dir[mu][inu]]==0);
+	int is=is_bord(mu);
+	for(int inu=0;inu<NDIM-1;inu++)
+	  is&=(is_bord(Direction(perp_dir[mu.nastyConvert()][inu]))==0);
 	
 	if(is)
 	  {
-	    if(is_bord[mu]==-1)
-	      return (locVol()+bord_offset[mu]()+spatLxOfProjectedCoords(x,mu));             //backward border comes first
-	    if(is_bord[mu]==+1) return (locVolWithBord()/2+bord_offset[mu]()+spatLxOfProjectedCoords(x,mu));  //forward border comes after
-	    crash("if is bord should not arrive here %d %d %d %d",ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
+	    if(is_bord(mu)==-1)
+	      return (locVol()+bord_offset[mu()]+spatLxOfProjectedCoords(x,mu));             //backward border comes first
+	    if(is_bord(mu)==+1) return (locVolWithBord()/2+bord_offset[mu()]+spatLxOfProjectedCoords(x,mu));  //forward border comes after
+	    crash("if is bord should not arrive here");//nasty %d %d %d %d",ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
 	  }
       }
     
     //check if it is in one of the NDIM*(NDIM-1)/2 --,-+,+-,++ edges
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       for(int inu=0;inu<NDIM-1;inu++)
 	{
-	  int nu=perp_dir[mu][inu];
+	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
 	  
 	  //order mu,nu
-	  int al=(mu<nu)?mu:nu;
-	  int be=(mu>nu)?mu:nu;
+	  const Direction al=(mu<nu)?mu:nu;
+	  const Direction be=(mu>nu)?mu:nu;
 	  
-	  bool is=is_bord[mu]&&is_bord[nu];
+	  bool is=is_bord(mu) and is_bord(nu);
 #if NDIM>=3
-	  for(int irho=0;irho<NDIM-2;irho++) is&=(is_bord[perp2_dir[mu][inu][irho]]==0);
+	  for(int irho=0;irho<NDIM-2;irho++)
+	    is&=(is_bord(perp2_dir[mu.nastyConvert()][inu][irho])==0);
 #endif
 	  
 	  if(is)
 	    {
-	      int iedge=edge_numb[mu][nu];
-	      if((is_bord[al]==-1)&&(is_bord[be]==-1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+0*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
-	      if((is_bord[al]==-1)&&(is_bord[be]==+1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+1*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
-	      if((is_bord[al]==+1)&&(is_bord[be]==-1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+2*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
-	      if((is_bord[al]==+1)&&(is_bord[be]==+1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+3*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
-	      crash("Edge: %d, mu=%d, nu=%d %d %d %d %d",iedge,mu,nu,ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
+	      int iedge=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
+	      if((is_bord(al)==-1) and (is_bord(be)==-1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+0*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
+	      if((is_bord(al)==-1) and (is_bord(be)==+1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+1*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
+	      if((is_bord(al)==+1) and (is_bord(be)==-1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+2*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
+	      if((is_bord(al)==+1) and (is_bord(be)==+1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+3*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
+	      crash("Edge: %d, mu=%d, nu=%d %d %d %d %d",iedge,mu(),nu(),ext_x(Direction(0))(),ext_x(Direction(1))(),ext_x(Direction(2))(),ext_x(Direction(3))());
 	    }
 	}
     
@@ -247,17 +175,17 @@ namespace nissa
   }
   
   /// Returns the border site adiacent at surface
-  BordLxSite bordlx_of_surflx(const LocLxSite& _loclx,const Direction& mu)
+  BordLxSite bordlx_of_surflx(const LocLxSite& loclx,const Direction& mu)
   {
-    auto loclx=_loclx.nastyConvert();
+    if(not paral_dir(mu))
+      return -1;
+    if(locSize(mu)<2)
+      crash("not working if one dir is smaller than 2");
     
-    if(!paral_dir[mu.nastyConvert()]) return -1;
-    if(locSize[mu.nastyConvert()]<2) crash("not working if one dir is smaller than 2");
-    
-    if(locCoordOfLoclx[loclx][mu.nastyConvert()]==0)
-      return bordLxSiteOfExtendedLocLxSize(loclxNeighdw(_loclx,mu));
-    if(locCoordOfLoclx[loclx][mu.nastyConvert()]==locSize[mu.nastyConvert()]-1)
-      return bordLxSiteOfExtendedLocLxSize(loclxNeighup(_loclx,mu));
+    if(locCoordOfLoclx(loclx,mu)==0)
+      return bordLxSiteOfExtendedLocLxSize(loclxNeighdw(loclx,mu));
+    if(locCoordOfLoclx(loclx,mu)==locSize(mu)-1)
+      return bordLxSiteOfExtendedLocLxSize(loclxNeighup(loclx,mu));
     
     return -1;
   }
@@ -266,22 +194,22 @@ namespace nissa
   void label_all_sites()
   {
     //defined a box extending over borders/edges
-    int extended_box_vol=1;
-    coords extended_box_size;
-    for(int mu=0;mu<NDIM;mu++)
+    LocLxSite extended_box_vol=1;
+    LocCoords extended_box_size;
+    FOR_ALL_DIRECTIONS(mu)
       {
-	extended_box_size[mu]=paral_dir[mu]*2+locSize[mu];
-	extended_box_vol*=extended_box_size[mu];
+	extended_box_size(mu)=paral_dir(mu)*2+locSize(mu);
+	extended_box_vol*=extended_box_size(mu)();
       }
     
-    for(int ivol=0;ivol<extended_box_vol;ivol++)
+    for(LocLxSite ivol=0;ivol<extended_box_vol;ivol++)
       {
 	//subtract by one if dir is parallelized
-	coords x;
+	LocCoords x;
 	coord_of_lx(x,ivol,extended_box_size);
-	for(int mu=0;mu<NDIM;mu++)
-	  if(paral_dir[mu])
-	    x[mu]--;
+	FOR_ALL_DIRECTIONS(mu)
+	  if(paral_dir(mu))
+	    x(mu)--;
 	
 	//check if it is defined
 	const LocLxSite iloc=full_lx_of_coords(x);
@@ -289,17 +217,20 @@ namespace nissa
 	if(iloc!=-1)
 	  {
 	    //compute global coordinates, assigning
-	    for(int nu=0;nu<NDIM;nu++)
-	      glbCoordOfLoclx[iloc.nastyConvert()][nu]=(x[nu]+rank_coord[nu]*locSize[nu]+glbSize[nu])%glbSize[nu];
+	    FOR_ALL_DIRECTIONS(nu)
+	      glbCoordOfLoclx(iloc,nu)=(x(nu)()+rank_coord(nu)()*locSize(nu)()+glbSize(nu)())%glbSize(nu)();
 	    
 	    /// Global index
-	    const GlbLxSite iglb=glblx_of_coord(glbCoordOfLoclx[iloc.nastyConvert()]);
+	    GlbCoords g;
+	    FOR_ALL_DIRECTIONS(mu)
+	      g(mu)=glbCoordOfLoclx(iloc,mu);
+	    const GlbLxSite iglb=glblx_of_coord(g);
 	    
 	    //if it is on the bulk store it
 	    if(iloc<locVol)
 	      {
-		for(int nu=0;nu<NDIM;nu++)
-		  locCoordOfLoclx[iloc.nastyConvert()][nu]=x[nu];
+		FOR_ALL_DIRECTIONS(nu)
+		  locCoordOfLoclx(iloc,nu)=x(nu);
 		glblxOfLoclx(iloc)=iglb;
 	      }
 	    
@@ -308,7 +239,7 @@ namespace nissa
 	      {
 		const BordLxSite& ibord=bordLxSiteOfExtendedLocLxSize(iloc);
 		glblxOfBordlx(ibord)=iglb;
-		loclxOfBordlx(ibord)=iloc.nastyConvert();
+		loclxOfBordlx(ibord)=iloc;
 	      }
 	    
 	    //if it is on the edge store it
@@ -329,16 +260,16 @@ namespace nissa
       FOR_ALL_DIRECTIONS(mu)
 	{
 	  //copy the coords
-	  coords n;
-	  for(int nu=0;nu<NDIM;nu++)
-	    n[nu]=glbCoordOfLoclx[ivol.nastyConvert()][nu]-locSize[nu]*rank_coord[nu];
+	  LocCoords n;
+	  FOR_ALL_DIRECTIONS(nu)
+	    n(nu)=glbCoordOfLoclx(ivol,nu)()-locSize(nu)()*rank_coord(nu)();
 	  
 	  //move forward
-	  n[mu.nastyConvert()]++;
-	  int nup=full_lx_of_coords(n); //nasty
+	  n(mu)++;
+	  const LocLxSite nup=full_lx_of_coords(n); //nasty
 	  //move backward
-	  n[mu.nastyConvert()]-=2;
-	  int ndw=full_lx_of_coords(n);
+	  n(mu)-=2;
+	  const LocLxSite ndw=full_lx_of_coords(n);
 	  
 	  //if "local" assign it (automatically -1 otherwise)
 	  loclxNeighup(ivol,mu)=nup;
@@ -350,7 +281,7 @@ namespace nissa
   void find_surf_of_bord()
   {
     NISSA_LOC_VOL_LOOP(loclx)
-      for(int mu=0;mu<NDIM;mu++)
+      FOR_ALL_DIRECTIONS(mu)
 	{
 	  const BordLxSite bordlx=bordlx_of_surflx(loclx,mu);
 	  if(bordlx!=-1) loclxSiteAdjacentToBordLx(bordlx)=loclx;
@@ -368,11 +299,11 @@ namespace nissa
       {
 	//find if it is on bulk or non_fw or non_bw surf
 	int is_bulk=true,is_non_fw_surf=true,is_non_bw_surf=true;
-	for(int mu=0;mu<NDIM;mu++)
-	  if(paral_dir[mu])
+	FOR_ALL_DIRECTIONS(mu)
+	  if(paral_dir(mu))
 	    {
-	      if(locCoordOfLoclx[ivol.nastyConvert()][mu]==locSize[mu]-1) is_bulk=is_non_fw_surf=false;
-	      if(locCoordOfLoclx[ivol.nastyConvert()][mu]==0)              is_bulk=is_non_bw_surf=false;
+	      if(locCoordOfLoclx(ivol,mu)==locSize(mu)-1) is_bulk=is_non_fw_surf=false;
+	      if(locCoordOfLoclx(ivol,mu)==0)              is_bulk=is_non_bw_surf=false;
 	    }
 	
 	//mark it
@@ -400,10 +331,14 @@ namespace nissa
     if(gridInited!=1) crash("grid not initialized!");
     
     //find the rank of the neighbour in the various dir
-    for(int mu=0;mu<NDIM;mu++)
-      MPI_Cart_shift(cart_comm,mu,1,&(rank_neighdw[mu]),&(rank_neighup[mu]));
-    memcpy(rank_neigh[0],rank_neighdw,sizeof(coords));
-    memcpy(rank_neigh[1],rank_neighup,sizeof(coords));
+    FOR_ALL_DIRECTIONS(mu)
+      MPI_Cart_shift(cart_comm,mu(),1,&(rank_neighdw(mu)()),&(rank_neighup(mu)()));
+    
+    FOR_ALL_DIRECTIONS(mu)
+      {
+	rank_neigh[0](mu)=rank_neighdw(mu);
+	rank_neigh[1](mu)=rank_neighup(mu);
+      }
     
     //borders
     glblxOfBordlx.allocate(bordVol);
@@ -420,12 +355,10 @@ namespace nissa
     //edges
     glblxOfEdgelx.allocate(edge_vol);
     
-    locCoordOfLoclx=nissa_malloc("loc_coord_of_loclx",locVol.nastyConvert(),coords);
-    glbCoordOfLoclx=nissa_malloc("glb_coord_of_loclx",locVolWithBordAndEdge.nastyConvert(),coords);
+    locCoordOfLoclx.allocate(locVol);
+    glbCoordOfLoclx.allocate(locVolWithBordAndEdge);
     loclxNeighdw.allocate(locVolWithBordAndEdge);
     loclxNeighup.allocate(locVolWithBordAndEdge);
-    ignore_borders_communications_warning(locCoordOfLoclx);
-    ignore_borders_communications_warning(glbCoordOfLoclx);
     
     //local to global
     glblxOfLoclx.allocate(locVol);
@@ -465,43 +398,17 @@ namespace nissa
     
     //set locd geom (one of the dimension local and fastest running, the other as usual)
     max_locd_size=0;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	remap_lx_to_locd[mu]=remap_locd_to_lx[mu]=NULL;
-	max_locd_perp_size_per_dir[mu]=(glbVol.nastyConvert()/glbSize[mu]+nranks-1)/nranks;
-	locd_perp_size_per_dir[mu]=(int)std::min((int64_t)max_locd_perp_size_per_dir[mu],glbVol.nastyConvert()/glbSize[mu]-max_locd_perp_size_per_dir[mu]*rank);
-	verbosity_lv3_master_printf("rank %d locd_perp_size_per_dir[%d]: %d\n",rank,mu,locd_perp_size_per_dir[mu]);
-	locd_size_per_dir[mu]=locd_perp_size_per_dir[mu]*glbSize[mu];
-	max_locd_size=std::max(max_locd_size,locd_size_per_dir[mu]);
+    FOR_ALL_DIRECTIONS(mu)
+      {//nasty
+	remap_lx_to_locd[mu()]=remap_locd_to_lx[mu()]=NULL;
+	max_locd_perp_size_per_dir(mu)=(glbVol()/glbSize(mu)()+nranks-1)/nranks;
+	locd_perp_size_per_dir(mu)=(int)std::min((int64_t)max_locd_perp_size_per_dir(mu),glbVol()/glbSize(mu)()-max_locd_perp_size_per_dir(mu)*rank);
+	verbosity_lv3_master_printf("rank %d locd_perp_size_per_dir[%d]: %d\n",rank,mu,locd_perp_size_per_dir(mu));
+	locd_size_per_dir(mu)=locd_perp_size_per_dir(mu)*glbSize(mu).nastyConvert();
+	max_locd_size=std::max(max_locd_size,locd_size_per_dir(mu));
       }
     
     master_printf("Cartesian geometry intialized\n");
-  }
-  
-  //global movements
-  int glblx_neighup(int gx,int mu)
-  {
-    coords c;
-    glb_coord_of_glblx(c,gx);
-    c[mu]=(c[mu]+1)%glbSize[mu];
-    
-    return glblx_of_coord(c);
-  }
-  int glblx_neighdw(int gx,int mu)
-  {
-    coords c;
-    glb_coord_of_glblx(c,gx);
-    c[mu]=(c[mu]+glbSize[mu]-1)%glbSize[mu];
-    
-    return glblx_of_coord(c);
-  }
-  
-  //wrapper for a previous defined function
-  void get_loclx_and_rank_of_glblx(int *lx,int *rx,int gx)
-  {
-    coords c;
-    glb_coord_of_glblx(c,gx);
-    get_loclx_and_rank_of_coord(lx,rx,c);
   }
   
   //unset cartesian geometry
@@ -515,9 +422,6 @@ namespace nissa
     nissa_free(recv_buf);
     nissa_free(send_buf);
     
-    nissa_free(locCoordOfLoclx);
-    nissa_free(glbCoordOfLoclx);
-    
     delete Wilson_sweeper;
     delete Symanzik_sweeper;
   }
@@ -527,23 +431,23 @@ namespace nissa
   {
     //Various type useful for edges and sub-borders
     MPI_Datatype MPI_3_SLICE;
-    MPI_Type_contiguous(locSize[3],*base,&MPI_3_SLICE);
+    MPI_Type_contiguous(locSize(3)(),*base,&MPI_3_SLICE);
     
     ///////////define the sender for the 6 kinds of edges////////////
     //the 01 sender, that is simply a vector of L[2] vector of L[3] 
-    MPI_Type_contiguous(locSize[2]*locSize[3],*base,&(MPI_EDGE_SEND[0]));
-    //the 02 sender is a vector of L[1] segment of length L[3] (already defined) separated by L[2] of them
-    MPI_Type_vector(locSize[1],1,locSize[2],MPI_3_SLICE,&(MPI_EDGE_SEND[1]));
-    //the 03 sender is a vector of length L[1]xL[2] of single elements, separated by L[3] of them
-    MPI_Type_vector(locSize[1]*locSize[2],1,locSize[3],*base,&(MPI_EDGE_SEND[2]));
-    //the 12 sender should be equal to the 02 sender, with 1->0
-    MPI_Type_vector(locSize[0],1,locSize[2],MPI_3_SLICE,&(MPI_EDGE_SEND[3]));
-    //the 13 sender should be equal to the 03 sender, with 1->0
-    MPI_Type_vector(locSize[0]*locSize[2],1,locSize[3],*base,&(MPI_EDGE_SEND[4]));
-    //the 23 sender should be equal to the 03 sender with 1<->2
-    MPI_Type_vector(locSize[0]*locSize[1],1,locSize[3],*base,&(MPI_EDGE_SEND[5]));
-    //Commit
-    for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGE_SEND[iedge]));
+      MPI_Type_contiguous(locSize(2)()*locSize(3)(),*base,&(MPI_EDGE_SEND[0]));
+      //the 02 sender is a vector of L[1] segment of length L[3] (already defined) separated by L[2] of them
+      MPI_Type_vector(locSize(1)(),1,locSize(2)(),MPI_3_SLICE,&(MPI_EDGE_SEND[1]));
+      //the 03 sender is a vector of length L[1]xL[2] of single elements, separated by L[3] of them
+      MPI_Type_vector(locSize(1)()*locSize(2)(),1,locSize(3)(),*base,&(MPI_EDGE_SEND[2]));
+      //the 12 sender should be equal to the 02 sender, with 1->0
+      MPI_Type_vector(locSize(0)(),1,locSize(2)(),MPI_3_SLICE,&(MPI_EDGE_SEND[3]));
+      //the 13 sender should be equal to the 03 sender, with 1->0
+      MPI_Type_vector(locSize(0)()*locSize(2)(),1,locSize(3)(),*base,&(MPI_EDGE_SEND[4]));
+      //the 23 sender should be equal to the 03 sender with 1<->2
+      MPI_Type_vector(locSize(0)()*locSize(1)(),1,locSize(3)(),*base,&(MPI_EDGE_SEND[5]));
+      //Commit
+      for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGE_SEND[iedge]));
   }
   
   //definitions of lexical ordered receivers for edges
@@ -551,10 +455,10 @@ namespace nissa
   {
     //define the NDIM*(NDIM-1)/2 edges receivers, which are contiguous in memory
     int iedge=0;
-    for(int mu=0;mu<NDIM;mu++)
-      for(int nu=mu+1;nu<NDIM;nu++)
+    FOR_ALL_DIRECTIONS(mu)
+      for(Direction nu=mu+1;nu<NDIM;nu++)
 	{
-	  MPI_Type_contiguous(locVol.nastyConvert()/locSize[mu]/locSize[nu],*base,&(MPI_EDGE_RECE[iedge]));
+	  MPI_Type_contiguous(locVol()/locSize(mu)()/locSize(nu)(),*base,&(MPI_EDGE_RECE[iedge]));
 	  MPI_Type_commit(&(MPI_EDGE_RECE[iedge]));
 	  iedge++;
 	}
@@ -567,83 +471,41 @@ namespace nissa
     initialize_lx_edge_receivers_of_kind(MPI_EDGE_RECE,base);
   }
   
-  //define all the local lattice momenta
-  void define_local_momenta(momentum_t *k,double *k2,momentum_t *ktilde,double *ktilde2,momentum_t bc)
-  {
-    if(!lxGeomInited) set_lx_geometry();
+  // //define all the local lattice momenta
+  // void define_local_momenta(momentum_t *k,double *k2,momentum_t *ktilde,double *ktilde2,momentum_t bc)
+  // {
+  //   if(!lxGeomInited) set_lx_geometry();
     
-    //first of all, defines the local momenta for the various directions
-    NISSA_LOC_VOL_LOOP(_imom)
-      {
-	auto imom=_imom.nastyConvert();
-	k2[imom]=ktilde2[imom]=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    k[imom][mu]=M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu])/glbSize[mu];
-	    ktilde[imom][mu]=sin(k[imom][mu]);
+  //   //first of all, defines the local momenta for the various directions
+  //   NISSA_LOC_VOL_LOOP(_imom)
+  //     {
+  // 	auto imom=_imom.nastyConvert();
+  // 	k2[imom]=ktilde2[imom]=0;
+  // 	FOR_ALL_DIRECTIONS(mu)
+  // 	  {
+  // 	    k[imom](mu)=M_PI*(2*glbCoordOfLoclx[imom](mu)+bc(mu))/glbSize(mu);
+  // 	    ktilde[imom](mu)=sin(k[imom](mu));
 	    
-	    k2[imom]+=k[imom][mu]*k[imom][mu];
-	    ktilde2[imom]+=ktilde[imom][mu]*ktilde[imom][mu];
-	  }
-      }
-  }
+  // 	    k2[imom]+=k[imom](mu)*k[imom](mu);
+  // 	    ktilde2[imom]+=ktilde[imom](mu)*ktilde[imom](mu);
+  // 	  }
+  //     }
+  // }
   
   //return the staggered phases for a given site
-  CUDA_HOST_DEVICE void get_stagphase_of_lx(coords ph,const LocLxSite& ivol)
+  CUDA_HOST_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol)
   {
-    ph[0]=1;
-    for(int mu=1;mu<NDIM;mu++)
-      ph[mu]=ph[mu-1]*(1-2*(glbCoordOfLoclx[ivol.nastyConvert()][mu-1]%2));
+    ph(0)=1;
+    for(Direction mu=1;mu<NDIM;mu++)
+      ph(mu)=ph(mu-1)*(1-2*(glbCoordOfLoclx(ivol,mu-1)()%2));
   }
   
   //return the staggered phases for a given site
-  CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,int mu)
+  CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,const Direction& mu)
   {
     int ph=1;
-    for(int nu=1;nu<=mu;nu++)
-      ph*=(1-2*(glbCoordOfLoclx[ivol.nastyConvert()][nu-1]%2));
+    for(Direction nu=1;nu<=mu;nu++)
+      ph*=(1-2*(glbCoordOfLoclx(ivol,nu-1)%2))();
     return ph;
-  }
-  
-  //check that passed argument is between 0 and 15
-  inline void crash_if_not_hypercubic_red(int hyp_red)
-  {
-    if(hyp_red<0 or hyp_red>=16) crash("%d not a hyperucbic reduced point",hyp_red);
-  }
-  
-  //return the coordinates inside the hypercube
-  void red_coords_of_hypercubic_red_point(coords h,int hyp_red)
-  {
-    crash_if_not_hypercubic_red(hyp_red);
-    
-    for(int mu=NDIM-1;mu>=0;mu--)
-      {
-	h[mu]=hyp_red%2;
-	hyp_red/=2;
-      }
-  }
-  
-  //takes the NDIM coordinates of the hypercube vertex one by one
-  void lx_coords_of_hypercube_vertex(coords lx,int hyp_cube)
-  {
-    for(int mu=NDIM-1;mu>=0;mu--)
-      {
-	lx[mu]=2*(hyp_cube%(locSize[mu]/2));
-	hyp_cube/=locSize[mu]/2;
-      }
-  }
-  
-  //return the point of passed coords in the hypercube
-  int hypercubic_red_point_of_red_coords(coords h)
-  {
-    int hyp=0;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	if(h[mu]<0||h[mu]>=2) crash("coordinate %d not in the range [0,1]",h[mu]);
-	hyp*=2;
-	hyp+=h[mu];
-      }
-    
-    return hyp;
   }
 }

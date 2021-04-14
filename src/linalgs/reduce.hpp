@@ -1,11 +1,16 @@
 #ifndef _REDUCE_HPP
 #define _REDUCE_HPP
 
+#ifdef HAVE_CONFIG_H
+# include <config.hpp>
+#endif
+
 #include <cstdint>
 
-#include "base/vectors.hpp"
-#include "routines/ios.hpp"
-#include "threads/threads.hpp"
+#include <base/vectors.hpp>
+#include <routines/ios.hpp>
+#include <routines/mpi_routines.hpp>
+#include <threads/threads.hpp>
 
 #ifndef EXTERN_REDUCE
  #define EXTERN_REDUCE extern

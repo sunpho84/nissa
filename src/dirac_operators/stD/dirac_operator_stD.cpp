@@ -12,7 +12,6 @@
 #include <new_types/su3_op.hpp>
 
 #include <dirac_operators/stD/dirac_operator_stD_portable.cpp>
-#include <dirac_operators/stD/dirac_operator_stD_32_portable.cpp>
 #include <measures/fermions/stag.hpp>
 
 namespace nissa

@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #define EXTERN_QUDA_BRIDGE
@@ -90,14 +90,17 @@ namespace quda_iface
 	
 	for(LocLxSite ivol=0;ivol<locVol;ivol++)
 	  {
-	    const coords& c=locCoordOfLoclx[ivol.nastyConvert()];
-	    const coords& l=locSize;
+	    LocCoords c;
+	    FOR_ALL_DIRECTIONS(mu)
+	      c(mu)=locCoordOfLoclx(ivol,mu);
+	    
+	    const LocCoords& l=locSize;
 	    
 	    int itmp=0;
-	    for(int mu=0;mu<NDIM;mu++)
+	    FOR_ALL_DIRECTIONS(mu)
 	      {
-		const int nu=std::array<int,NDIM>{0,3,2,1}[mu];
-		itmp=itmp*l[nu]+c[nu];
+		const Direction nu=std::array<int,NDIM>{0,3,2,1}[mu()];
+		itmp=itmp*l(nu)()+c(nu)();
 	      }
 	    const int quda=loclx_parity[ivol.nastyConvert()]*locVolh()+itmp/2;
 	    
@@ -108,8 +111,8 @@ namespace quda_iface
 	    loclx_of_quda[quda]=ivol.nastyConvert();
 	  }
 	
-	for(int mu=0;mu<NDIM;mu++)
-	  quda_conf[mu]=nissa_malloc("gauge_cuda",locVol.nastyConvert(),su3);
+	FOR_ALL_DIRECTIONS(mu)
+	  quda_conf[mu()]=nissa_malloc("gauge_cuda",locVol.nastyConvert(),su3);
 	
 	spincolor_in=nissa_malloc("spincolor_in",locVol.nastyConvert(),spincolor);
 	spincolor_out=nissa_malloc("spincolor_out",locVol.nastyConvert(),spincolor);
@@ -123,8 +126,8 @@ namespace quda_iface
 	
 	gauge_param=newQudaGaugeParam();
 	
-	for(int mu=0;mu<NDIM;mu++)
-	  gauge_param.X[mu]=locSize[std::array<int,NDIM>{1,2,3,0}[mu]];
+	FOR_ALL_DIRECTIONS(mu)
+	  gauge_param.X[mu()]=locSize(std::array<Direction,NDIM>{1,2,3,0}[mu()])();
 	
 	gauge_param.anisotropy=1.0;
 	
@@ -149,9 +152,9 @@ namespace quda_iface
 	gauge_param.gauge_fix=QUDA_GAUGE_FIXED_NO;
 	
 	gauge_param.ga_pad=0;
-	for(int mu=0;mu<NDIM;mu++)
+	FOR_ALL_DIRECTIONS(mu)
 	  {
-	    int surf_size=locVol.nastyConvert()/locSize[mu]/2;
+	    const int surf_size=locVol.nastyConvert()/locSize(mu).nastyConvert()/2;
 	    gauge_param.ga_pad=std::max(gauge_param.ga_pad,surf_size);
 	  }
 	
@@ -212,8 +215,8 @@ namespace quda_iface
 	quda_mg_param=newQudaMultigridParam();
 	
 	int grid[NDIM];
-	for(int mu=0;mu<NDIM;mu++)
-	  grid[mu]=nrank_dir[std::array<int,NDIM>{1,2,3,0}[mu]];
+	FOR_ALL_DIRECTIONS(mu)
+	  grid[mu()]=nrank_dir(std::array<Direction,NDIM>{1,2,3,0}[mu()])();
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
@@ -247,8 +250,8 @@ namespace quda_iface
 	    quda_mg_preconditioner=NULL;
 	  }
 	
-	for(int mu=0;mu<NDIM;mu++)
-	  nissa_free(quda_conf[mu]);
+	FOR_ALL_DIRECTIONS(mu)
+	  nissa_free(quda_conf[mu()]);
 	
 	nissa_free(spincolor_in);
 	nissa_free(spincolor_out);
@@ -279,8 +282,8 @@ namespace quda_iface
       {
 	const int iquda=quda_of_loclx[ivol.nastyConvert()];
 	
-	for(int nu=0;nu<NDIM;nu++)
-	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[ivol.nastyConvert()][nu]);
+	for(Direction nu=0;nu<NDIM;nu++)
+	  su3_copy(out[std::array<Direction,NDIM>{3,0,1,2}[nu()]()][iquda],in[ivol.nastyConvert()][nu()]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -296,8 +299,8 @@ namespace quda_iface
 	  const LocLxSite ivol=loclx_of_loceo[par][ieo.nastyConvert()];
 	  const int iquda=quda_of_loclx[ivol.nastyConvert()];
 	
-	for(int nu=0;nu<NDIM;nu++)
-	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[par][ieo.nastyConvert()][nu]);
+	for(Direction nu=0;nu<NDIM;nu++)
+	  su3_copy(out[std::array<Direction,NDIM>{3,0,1,2}[nu()]()][iquda],in[par][ieo.nastyConvert()][nu()]);
       }
     NISSA_PARALLEL_LOOP_END;
     

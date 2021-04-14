@@ -18,13 +18,22 @@ namespace nissa
   {
     double kappa;
     double mass;
-    momentum_t bc;
+    Momentum bc;
     double zmp;
     int r;
     tm_quark_info(double kappa,double mass,int r,double theta) :
-      kappa(kappa),mass(mass),zmp(0),r(r) {bc[0]=1;for(int mu=1;mu<NDIM;mu++) bc[mu]=theta;}
-    tm_quark_info(double kappa,double mass,int r,momentum_t _bc) :
-      kappa(kappa),mass(mass),zmp(0),r(r) {for(int mu=0;mu<NDIM;mu++) bc[mu]=_bc[mu];}
+      kappa(kappa),mass(mass),zmp(0),r(r)
+    {
+      bc(timeDirection)=1;
+      for(Direction mu=1;mu<NDIM;mu++)
+	bc(mu)=theta;
+    }
+    tm_quark_info(double kappa,double mass,int r,const Momentum& _bc) :
+      kappa(kappa),mass(mass),zmp(0),r(r)
+    {
+      for(Direction mu=0;mu<NDIM;mu++)
+	bc(mu)=_bc(mu);
+    }
     tm_quark_info() {}
   };
   
@@ -33,13 +42,14 @@ namespace nissa
     zero_mode_sub_t zms;
     double alpha;
     double c1;
-    momentum_t bc;
+    Momentum bc;
     gauge_info()
     {
       zms=UNNO_ALEMANNA;
       alpha=LANDAU_ALPHA;
       c1=WILSON_C1;
-      for(int mu=0;mu<NDIM;mu++) bc[mu]=0;
+      for(Direction mu=0;mu<NDIM;mu++)
+	bc(mu)=0;
     }
 };
   

@@ -83,6 +83,6 @@ namespace nissa
   void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t *quark_content,double em_str,int q,int mu,int nu);
   void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t *quark_content,em_field_pars_t &em_field_pars);
   
-  CUDA_MANAGED extern void (*get_args_of_quantization[3])(coords,const LocLxSite&,int,int);
+  CUDA_MANAGED extern void (*get_args_of_quantization[3])(LocCoords,const LocLxSite&,int,int);
 }
 #endif

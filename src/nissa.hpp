@@ -185,6 +185,7 @@
 #include <routines/ios.hpp>
 #include <routines/math_routines.hpp>
 #include <routines/mpi_routines.hpp>
+#include <routines/rank.hpp>
 
 #include <tensor/component.hpp>
 #include <tensor/tensor.hpp>

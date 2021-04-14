@@ -51,44 +51,45 @@ namespace nissa
 	    MPI_Status status[NDIM*(NDIM-1)*4];
 	    LocLxSite send,rece;
 	    int imessage=0;
-	    coords x;
-	    memset(x,0,sizeof(coords));
+	    LocCoords x;
+	    FOR_ALL_DIRECTIONS(mu)
+	      x(mu)=0;
 	    
-	    for(int idir=0;idir<NDIM;idir++)
-	      for(int jdir=idir+1;jdir<NDIM;jdir++)
-		if(paral_dir[idir] and paral_dir[jdir])
+	    FOR_ALL_DIRECTIONS(idir)
+	      for(Direction jdir=idir+1;jdir<NDIM;jdir++)
+		if(paral_dir(idir) and paral_dir(jdir))
 		  {
-		    int iedge=edge_numb[idir][jdir];
-		    int pos_edge_offset;
+		    int iedge=edge_numb[idir.nastyConvert()][jdir.nastyConvert()];
+		    LocLxSite pos_edge_offset;
 		    
 		    //take the starting point of the border
-		    x[jdir]=locSize[jdir]-1;
-		    pos_edge_offset=spatLxOfProjectedCoords(x,idir);
-		    x[jdir]=0;
+		    x(jdir)=locSize(jdir)-1;
+		    pos_edge_offset=spatLxOfProjectedCoords<LocLxSite>(x,idir);
+		    x(jdir)=0;
 		    
 		    //Send the i-j- internal edge to the j- rank as i-j+ external edge
-		    send=(locVol.nastyConvert()+bord_offset[idir].nastyConvert())*nbytes_per_site;
+		    send=(locVol.nastyConvert()+bord_offset[idir.nastyConvert()].nastyConvert())*nbytes_per_site;
 		    rece=(locVol.nastyConvert()+bordVol.nastyConvert()+edge_offset[iedge].nastyConvert()+edge_vol.nastyConvert()/4)*nbytes_per_site;
-		    MPI_Irecv(data+rece.nastyConvert(),1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
-		    MPI_Isend(data+send.nastyConvert(),1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
+		    MPI_Irecv(data+rece.nastyConvert(),1,MPI_EDGES_RECE[iedge],rank_neighup(jdir)(),imessage,cart_comm,request+(nrequest++));
+		    MPI_Isend(data+send.nastyConvert(),1,MPI_EDGES_SEND[iedge],rank_neighdw(jdir)(),imessage++,cart_comm,request+(nrequest++));
 		    
 		    //Send the i-j+ internal edge to the j+ rank as i-j- external edge
-		    send=(locVol.nastyConvert()+bord_offset[idir].nastyConvert()+pos_edge_offset)*nbytes_per_site;
+		    send=(locVol.nastyConvert()+bord_offset[idir.nastyConvert()].nastyConvert()+pos_edge_offset)*nbytes_per_site;
 		    rece=(locVol.nastyConvert()+bordVol.nastyConvert()+edge_offset[iedge])*nbytes_per_site;
-		    MPI_Irecv(data+rece.nastyConvert(),1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
-		    MPI_Isend(data+send.nastyConvert(),1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
+		    MPI_Irecv(data+rece.nastyConvert(),1,MPI_EDGES_RECE[iedge],rank_neighdw(jdir)(),imessage,cart_comm,request+(nrequest++));
+		    MPI_Isend(data+send.nastyConvert(),1,MPI_EDGES_SEND[iedge],rank_neighup(jdir)(),imessage++,cart_comm,request+(nrequest++));
 		    
 		    //Send the i+j- internal edge to the j- rank as i+j+ external edge
-		    send=(locVol.nastyConvert()+bord_offset[idir].nastyConvert()+bordVol.nastyConvert()/2)*nbytes_per_site;
+		    send=(locVol.nastyConvert()+bord_offset[idir.nastyConvert()].nastyConvert()+bordVol.nastyConvert()/2)*nbytes_per_site;
 		    rece=(locVol+bordVol.nastyConvert()+edge_offset[iedge].nastyConvert()+3*edge_vol.nastyConvert()/4)*nbytes_per_site;
-		    MPI_Irecv(data+rece.nastyConvert(),1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
-		    MPI_Isend(data+send.nastyConvert(),1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
+		    MPI_Irecv(data+rece.nastyConvert(),1,MPI_EDGES_RECE[iedge],rank_neighup(jdir)(),imessage,cart_comm,request+(nrequest++));
+		    MPI_Isend(data+send.nastyConvert(),1,MPI_EDGES_SEND[iedge],rank_neighdw(jdir)(),imessage++,cart_comm,request+(nrequest++));
 		    
 		    //Send the i+j+ internal edge to the j+ rank as i+j- external edge
-		    send=(locVol.nastyConvert()+bord_offset[idir].nastyConvert()+bordVol.nastyConvert()/2+pos_edge_offset)*nbytes_per_site;
+		    send=(locVol.nastyConvert()+bord_offset[idir.nastyConvert()].nastyConvert()+bordVol.nastyConvert()/2+pos_edge_offset)*nbytes_per_site;
 		    rece=(locVol+bordVol.nastyConvert()+edge_offset[iedge].nastyConvert()+edge_vol.nastyConvert()/2)*nbytes_per_site;
-		    MPI_Irecv(data+rece.nastyConvert(),1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
-		    MPI_Isend(data+send.nastyConvert(),1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
+		    MPI_Irecv(data+rece.nastyConvert(),1,MPI_EDGES_RECE[iedge],rank_neighdw(jdir)(),imessage,cart_comm,request+(nrequest++));
+		    MPI_Isend(data+send.nastyConvert(),1,MPI_EDGES_SEND[iedge],rank_neighup(jdir)(),imessage++,cart_comm,request+(nrequest++));
 		    imessage++;
 		  }
 	    
@@ -124,9 +125,9 @@ namespace nissa
 	  {
 	    int nrequest=0;
 	    int nrequest_tot=0;
-	    for(int mu=0;mu<NDIM;mu++)
-	      for(int nu=mu+1;nu<NDIM;nu++)
-		if(paral_dir[mu] && paral_dir[nu])
+	    FOR_ALL_DIRECTIONS(mu)
+	      for(Direction nu=mu+1;nu<NDIM;nu++)
+		if(paral_dir(mu) and paral_dir(nu))
 		  nrequest_tot+=16;
 	    
 	    MPI_Request request[nrequest_tot];
@@ -143,12 +144,12 @@ namespace nissa
 		
 		//"v" refer to the verse of the dir
 		for(int vmu=0;vmu<2;vmu++)
-		  for(int mu=0;mu<NDIM;mu++)
+		  FOR_ALL_DIRECTIONS(mu)
 		    for(int vnu=0;vnu<2;vnu++)
-		      for(int nu=mu+1;nu<NDIM;nu++)
-			if(paral_dir[mu] && paral_dir[nu])
+		      for(Direction nu=mu+1;nu<NDIM;nu++)
+			if(paral_dir(mu) and paral_dir(nu))
 			  {
-			    int iedge=edge_numb[mu][nu];
+			    const int iedge=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 			    
 			    //communicators verse refers to the internal edge
 			    int icomm_send=((par*2+vmu)*2+vnu)*6+iedge;
@@ -158,8 +159,8 @@ namespace nissa
 			    //Receive the (mu,-nu) external edge from the -nu rank (mu,nu) internal edge
 			    LocLxSite ext_edge_recv_start=(locVolh+bord_volh+edge_volh/4*(vmu*2+!vnu)+edge_offset[iedge].nastyConvert()/2).nastyConvert()*nbytes_per_site;
 			    int int_edge_send_start=locVolh.nastyConvert()*nbytes_per_site;
-			    MPI_Irecv((char*)(data[par])+ext_edge_recv_start.nastyConvert(),1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu][nu],imessage,cart_comm,request+(nrequest++));
-			    MPI_Isend((char*)(data[par])+int_edge_send_start,1,MPI_EDGES_SEND[icomm_send],rank_neigh[vnu][nu],imessage,cart_comm,request+(nrequest++));
+			    MPI_Irecv((char*)(data[par])+ext_edge_recv_start.nastyConvert(),1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu](nu)(),imessage,cart_comm,request+(nrequest++));
+			    MPI_Isend((char*)(data[par])+int_edge_send_start,1,MPI_EDGES_SEND[icomm_send],rank_neigh[vnu](nu)(),imessage,cart_comm,request+(nrequest++));
 			    
 			    imessage++;
 			  }

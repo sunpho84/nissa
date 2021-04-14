@@ -6,9 +6,9 @@
 
 namespace nissa
 {
-  void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,momentum_t bc);
-  void tmn2Doe_eos(spin *out,spin *in,momentum_t bc);
-  void tmn2Deo_eos(spin *out,spin *in,momentum_t bc);
+  void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,Momentum bc);
+  void tmn2Doe_eos(spin *out,spin *in,Momentum bc);
+  void tmn2Deo_eos(spin *out,spin *in,Momentum bc);
   void tmDee_or_oo_eos(spin *out,tm_quark_info qu,spin *in);
   void inv_tmDee_or_oo_eos(spin *out,tm_quark_info qu,spin *in);
   void tmDkern_eoprec_eos(spin *out,spin *temp,tm_quark_info qu,spin *in);

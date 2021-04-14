@@ -8,6 +8,7 @@
 #include <base/bench.hpp>
 #include <base/debug.hpp>
 #include <base/vectors.hpp>
+#include <communicate/borders.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <routines/ios.hpp>
@@ -62,16 +63,16 @@ namespace nissa
     
     //direction of the halo in receiving node: surface is ordered opposite of halo
     for(int bf=0;bf<2;bf++)
-      for(int mu=0;mu<NDIM;mu++)
+      for(Direction mu=0;mu<NDIM;mu++)
 	{
-	  int idir=bf*NDIM+mu;
+	  int idir=(bf*NDIM+mu).nastyConvert();
 	  
 	  //set the parameters
-	  comm.send_offset[idir]=(bord_offset[mu].nastyConvert()+bord_volh*(!bf))*comm.nbytes_per_site/div_coeff;
-	  comm.message_length[idir]=bord_dir_vol[mu].nastyConvert()*comm.nbytes_per_site/div_coeff;
-	  comm.recv_offset[idir]=(bord_offset[mu].nastyConvert()+bord_volh*bf)*comm.nbytes_per_site/div_coeff;
-	  comm.recv_rank[idir]=rank_neigh [bf][mu];
-	  comm.send_rank[idir]=rank_neigh[!bf][mu];
+	  comm.send_offset[idir]=(bord_offset[mu.nastyConvert()]()+bord_volh*(!bf))*comm.nbytes_per_site/div_coeff;
+	  comm.message_length[idir]=bord_dir_vol[mu.nastyConvert()].nastyConvert()*comm.nbytes_per_site/div_coeff;
+	  comm.recv_offset[idir]=(bord_offset[mu.nastyConvert()].nastyConvert()+bord_volh*bf)*comm.nbytes_per_site/div_coeff;
+	  comm.recv_rank[idir]=rank_neigh [bf](mu)();
+	  comm.send_rank[idir]=rank_neigh[!bf](mu)();
 	}
     
     comm_setup(comm);
@@ -87,7 +88,7 @@ namespace nissa
   {if(!comm.initialized) crash("using uninitialized communicator!");}
   
   //start the communications
-  void comm_start(comm_t &comm,int *dir_comm=NULL,int tot_size=-1)
+  void comm_start(comm_t &comm,const Coords<bool>& dir_comm,int tot_size)
   {
     
     //check initialization
@@ -100,13 +101,13 @@ namespace nissa
       {
 	comm.nrequest=0;
 	
-	for(int idir=0;idir<2*NDIM;idir++)
-	  if(paral_dir[idir%NDIM] && (dir_comm==NULL||dir_comm[idir]))
+	for(Direction idir=0;idir<2*NDIM;idir++)
+	  if(paral_dir(idir%NDIM) and dir_comm(idir))
 	    {
 	      //exchanging the lower surface, from the first half of sending node to the second half of receiving node
-	      MPI_Irecv(recv_buf+comm.recv_offset[idir],comm.message_length[idir],MPI_CHAR,comm.recv_rank[idir],
+	      MPI_Irecv(recv_buf+comm.recv_offset[idir()],comm.message_length[idir()],MPI_CHAR,comm.recv_rank[idir()],
 			comm.imessage,cart_comm,comm.requests+(comm.nrequest++));
-	      MPI_Isend(send_buf+comm.send_offset[idir],comm.message_length[idir],MPI_CHAR,comm.send_rank[idir],
+	      MPI_Isend(send_buf+comm.send_offset[idir()],comm.message_length[idir()],MPI_CHAR,comm.send_rank[idir()],
 			comm.imessage,cart_comm,comm.requests+(comm.nrequest++));
 	    }
       }
@@ -194,7 +195,7 @@ namespace nissa
   //start communication using an lx border
   void start_communicating_lx_borders(comm_t &comm,void *vec)
   {
-    if(!check_borders_valid(vec) && nparal_dir>0)
+    if(!check_borders_valid(vec) and nparal_dir>0)
       {
 	
 	//take time and write some debug output
@@ -203,7 +204,11 @@ namespace nissa
 	
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_lx_vec(comm,vec);
-	comm_start(comm);
+	
+	Coords<bool> yesInAllDirs; //nasty nasty
+	FOR_ALL_DIRECTIONS(mu)
+	  yesInAllDirs(mu)=1;
+	comm_start(comm,yesInAllDirs);
 	STOP_TIMING(tot_comm_time);
       }
   }
@@ -291,7 +296,10 @@ namespace nissa
 	
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_ev_or_od_vec(comm,vec,eo);
-	comm_start(comm);
+	Coords<bool> yesInAllDirs; //nasty nasty
+	FOR_ALL_DIRECTIONS(mu)
+	  yesInAllDirs(mu)=1;
+	comm_start(comm,yesInAllDirs);
 	STOP_TIMING(tot_comm_time);
       }
   }
@@ -392,7 +400,10 @@ namespace nissa
 	
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_ev_and_od_vec(comm,vec);
-	comm_start(comm);
+	Coords<bool> yesInAllDirs; //nasty nasty
+	FOR_ALL_DIRECTIONS(mu)
+	  yesInAllDirs(mu)=1;
+	comm_start(comm,yesInAllDirs);
 	STOP_TIMING(tot_comm_time);
       }
   }

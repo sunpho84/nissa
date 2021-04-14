@@ -302,18 +302,19 @@ namespace nissa
   }
   
   //add links to the buffer of the conf if needed
-  int all_to_all_gathering_list_t::add_conf_link_for_paths(coords g,int mu)
+  int all_to_all_gathering_list_t::add_conf_link_for_paths(const GlbCoords& g,const Direction& mu)
   {
     //find rank and local position
-    int ivol,irank;
-    get_loclx_and_rank_of_coord(&ivol,&irank,g);
-    int ilink_asked=NDIM*ivol+mu;
+    LocLxSite ivol;
+    Rank irank;
+    get_loclx_and_rank_of_coord(ivol,irank,g);
+    int ilink_asked=(NDIM*ivol+mu()).nastyConvert();
     
     //if it is local, return local position
     if(irank==rank) return ilink_asked;
     else
       {
-	int irank_link_asked=ilink_asked*nranks+irank;
+	int irank_link_asked=ilink_asked*nranks+irank();
 	
 	//if it is non local search it in the list of to-be-gathered
 	all_to_all_gathering_list_t::iterator it=this->find(irank_link_asked);

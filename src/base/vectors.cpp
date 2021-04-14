@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <mpi.h>
@@ -10,6 +10,7 @@
 
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #include "routines/mpi_routines.hpp"

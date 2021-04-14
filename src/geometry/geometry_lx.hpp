@@ -13,6 +13,7 @@
 
 #include <new_types/coords.hpp>
 #include <routines/math_routines.hpp>
+#include <routines/mpi_routines.hpp>
 #include <tensor/tensor.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
@@ -24,18 +25,23 @@
 
 namespace nissa
 {
-  DECLARE_COMPONENT(Direction,int,NDIM);
-  
-#define FOR_ALL_DIRECTIONS(NAME)		\
-  FOR_ALL_COMPONENT_VALUES(Direction,NAME)
-  
   DECLARE_COMPONENT(GlbLxSite,int64_t,DYNAMIC);
+  
+  /// Global coordinates of a site
+  using GlbCoords=Coords<GlbLxSite>;
+  
+  /// Global coordinate
+  using GlbCoord=GlbLxSite;
   
   DECLARE_COMPONENT(LocLxSite,int64_t,DYNAMIC);
   
-  DECLARE_COMPONENT(GlbEoSite,int64_t,DYNAMIC);
+  /// Local coordinate
+  using LocCoord=LocLxSite;
   
-  DECLARE_COMPONENT(LocEoSite,int64_t,DYNAMIC);
+  /// Local coordinates of a site
+  using LocCoords=Coords<LocLxSite>;
+  
+  DECLARE_COMPONENT(GlbEoSite,int64_t,DYNAMIC);
   
   DECLARE_COMPONENT(BordLxSite,int64_t,DYNAMIC);
   
@@ -48,10 +54,10 @@ namespace nissa
   //-loc to the local one
   
   /// Global lattice hcube sizes
-  EXTERN_GEOMETRY_LX coords glbSize;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbCoords glbSize;
   
   /// Local lattice hcube sizes
-  EXTERN_GEOMETRY_LX coords locSize;
+  EXTERN_GEOMETRY_LX LocCoords locSize;
   
   /// Global 4D volume
   EXTERN_GEOMETRY_LX GlbLxSite glbVol;
@@ -68,21 +74,29 @@ namespace nissa
   /// Half the global volume
   EXTERN_GEOMETRY_LX GlbEoSite glbVolh;
   
-  /// Half the local volume
-  EXTERN_GEOMETRY_LX LocEoSite locVolh;
-  
   /// Bulk local volume
   EXTERN_GEOMETRY_LX BulkLxSite bulkVol;
   
-  EXTERN_GEOMETRY_LX LocLxSite nonBwSurfVol,nonFwSurfVol;
-  EXTERN_GEOMETRY_LX LocLxSite surfVol,bwSurfVol,fwSurfVol;
-  //-lx is lexicografic
-  //box, division in 2^NDIM of the lattice
-  EXTERN_GEOMETRY_LX coords box_coord[1<<NDIM];
-  EXTERN_GEOMETRY_LX coords box_size[1<<NDIM];
-  EXTERN_GEOMETRY_LX int nsite_per_box[1<<NDIM];
-  EXTERN_GEOMETRY_LX coords *glbCoordOfLoclx;
-  EXTERN_GEOMETRY_LX coords *locCoordOfLoclx;
+  /// Number of sites not on the backward surface
+  EXTERN_GEOMETRY_LX LocLxSite nonBwSurfVol;
+  
+  /// Number of sites not on the forward surface
+  EXTERN_GEOMETRY_LX LocLxSite nonFwSurfVol;
+  
+  /// Number of site on the surface (not in the bulk)
+  EXTERN_GEOMETRY_LX LocLxSite surfVol;
+  
+  /// Number of sites on the backward surface
+  EXTERN_GEOMETRY_LX LocLxSite bwSurfVol;
+  
+  /// Number of sites on the forward surface
+  EXTERN_GEOMETRY_LX LocLxSite fwSurfVol;
+  
+  /// Global coordinates of local sites
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,GlbCoord> glbCoordOfLoclx;
+  
+  /// Local coordinates of local sites
+  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocCoord> locCoordOfLoclx;
   
   /// Global site given the local site
   EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,GlbLxSite> glblxOfLoclx;
@@ -126,15 +140,13 @@ namespace nissa
     return locLxSite()-locVol();
   }
   
-  EXTERN_GEOMETRY_LX int lxGeomInited;
-  
   /// Neighbours in the backward direction
-  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocLxSite> loclxNeighdw;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocLxSite> loclxNeighdw;
   
   /// Neighbours in the forwkward direction
-  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocLxSite> loclxNeighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocLxSite> loclxNeighup;
   
-  INLINE_FUNCTION
+  INLINE_FUNCTION CUDA_HOST_DEVICE
   const Tensor<OfComps<LocLxSite,Direction>,LocLxSite>& loclxNeigh(int verse) //nasty
   {
     const Tensor<OfComps<LocLxSite,Direction>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
@@ -145,9 +157,13 @@ namespace nissa
   /// Keep track of whether the grid is initialized
   EXTERN_GEOMETRY_LX bool gridInited;
   
-  EXTERN_GEOMETRY_LX int nparal_dir;
-  EXTERN_GEOMETRY_LX coords paral_dir;
-  //size of the border and edges
+  /// Keep track of whether the lexicographic geometry is initialized
+  EXTERN_GEOMETRY_LX bool lxGeomInited;
+  
+  /// Number of parallelized directions
+  EXTERN_GEOMETRY_LX Direction nparal_dir;
+  
+  EXTERN_GEOMETRY_LX Coords<bool> paral_dir;
   
   /// Size of the border
   EXTERN_GEOMETRY_LX BordLxSite bordVol;
@@ -179,8 +195,10 @@ namespace nissa
   
   EXTERN_GEOMETRY_LX LocLxSite edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
   EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
-  //mapping of ILDG data
-  EXTERN_GEOMETRY_LX coords scidac_mapping;
+  
+  /// Mapping of ILDG direction w.r.t native
+  EXTERN_GEOMETRY_LX Coords<Direction> scidac_mapping;
+  
   //perpendicular dir
   EXTERN_GEOMETRY_LX bool all_dirs[NDIM];
   EXTERN_GEOMETRY_LX bool only_dir[NDIM][NDIM];
@@ -201,61 +219,144 @@ namespace nissa
 #endif
     ;
   
-  CUDA_HOST_DEVICE void get_stagphase_of_lx(coords ph,const LocLxSite& ivol);
+  CUDA_HOST_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol);
   CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,int mu);
   
-  int spatLxOfProjectedCoords(int *x,int mu);
-  int spatLxOfProjectedCoordsList(int x0,int x1,int x2,int x3,int mu);
-  void coord_of_lx(coords x,int ilx,coords s);
-  void coord_of_rank(coords c,int irank);
-  inline void coord_copy(coords out,coords in){for(int mu=0;mu<NDIM;mu++) out[mu]=in[mu];};
-  inline void coord_summ(coords s,coords a1,coords a2,coords l){for(int mu=0;mu<NDIM;mu++) s[mu]=(a1[mu]+a2[mu])%l[mu];}
-  inline void coord_summassign(coords s,coords a,coords l){coord_summ(s,s,a,l);}
-  int lineLxOfDoublyProjectedCoords(int *x,int mu,int nu);
-  int full_lx_of_coords_list(const int t,const int x,const int y,const int z);
-  int glblx_neighdw(int gx,int mu);
-  int glblx_neighup(int gx,int mu);
-  int glblx_of_comb(int b,int wb,int c,int wc);
-  int glblx_of_coord(coords x);
-  int glblx_of_coord_list(int x0,int x1,int x2,int x3);
-  int glblx_of_diff(int b,int c);
-  int glblx_of_summ(int b,int c);
-  int glblx_opp(int b);
-  CUDA_HOST_DEVICE int loclx_of_coord(coords x);
-  inline int loclx_of_coord_list(int x0,int x1,int x2,int x3)
+  /// Return the index of site of coord x in the 3d space obtained projecting away mu
+  template <typename LxSite>
+  LxSite spatLxOfProjectedCoords(const LocCoords& x,const Direction& mu)
   {
-    coords c={x0,x1,x2,x3};
+    LxSite ilx=0;
+    
+    FOR_ALL_DIRECTIONS(nu)
+      if(nu!=mu)
+	ilx=ilx*locSize(nu)+x(nu);
+    
+    return ilx;
+  }
+  
+  /// Given a lx site ilx, determine its coordinates in the box of size s
+  template <typename LxSite>
+  void coord_of_lx(Coords<LxSite>& x,LxSite /*Don't make it const ref*/ ilx,const Coords<LxSite>& s)
+  {
+    for(Direction mu=NDIM-1;mu>=0;mu--)
+      {
+	x(mu)=ilx%s(mu);
+	ilx/=s(mu);
+      }
+  }
+  
+  void coord_of_rank(Coords<int>& c,const int& irank); //nasty
+  
+  /// Return the index of site of coord x in the 2d space obtained projecting away mu and nu
+  template <typename LxSite>
+  LxSite lineLxOfDoublyProjectedCoords(const Coords<LxSite>& x,const Direction& mu,const Direction& nu)
+  {
+    LxSite ilx=0;
+    
+    FOR_ALL_DIRECTIONS(rho)
+      if(rho!=mu and rho!=nu)
+	ilx=ilx*locSize(rho)+x(rho);
+    
+    return ilx;
+  }
+  
+  /// Return the index of site of coord x in a box of sides s
+  CUDA_HOST_DEVICE template <typename LxSite>
+  LxSite lx_of_coord(const Coords<LxSite>& x,const Coords<LxSite>& s)
+  {
+    LxSite ilx=0;
+    
+    FOR_ALL_DIRECTIONS(mu)
+      ilx=ilx*(s(mu)+x(mu));
+    
+    return ilx;
+  }
+  
+  /// Returns the global index of a site of coords x
+  INLINE_FUNCTION
+  GlbLxSite glblx_of_coord(const GlbCoords& x)
+  {
+    return lx_of_coord(x,glbSize);
+  }
+  
+  /// Returns the global index of a site of a list of coords
+  INLINE_FUNCTION
+  GlbLxSite glblx_of_coord_list(const GlbCoord& x0,const GlbCoord& x1,const GlbCoord& x2,const GlbCoord& x3)
+  {
+    GlbCoords c;
+    
+    c(Direction(0))=x0;
+    c(Direction(1))=x1;
+    c(Direction(2))=x2;
+    c(Direction(3))=x3;
+    
+    return glblx_of_coord(c);
+  }
+  
+  CUDA_HOST_DEVICE LocLxSite loclx_of_coord(const LocCoords& x);
+  
+  inline LocLxSite loclx_of_coord_list(const LocCoord& x0,const LocCoord& x1,const LocCoord& x2,const LocCoord& x3)
+  {
+    LocCoords c;
+    
+    c(Direction(0))=x0;
+    c(Direction(1))=x1;
+    c(Direction(2))=x2;
+    c(Direction(3))=x3;
+    
     return loclx_of_coord(c);
   }
-  CUDA_HOST_DEVICE int lx_of_coord(coords x,coords s);
-  int vol_of_lx(coords size);
-  int rank_hosting_glblx(int gx);
-  int rank_hosting_site_of_coord(coords x);
-  int rank_of_coord(coords x);
-  void get_loclx_and_rank_of_coord(int *ivol,int *rank,coords g);
-  void get_loclx_and_rank_of_glblx(int *lx,int *rx,int gx);
-  int get_glblx_of_rank_and_loclx(int irank,int loclx);
-  void glb_coord_of_glblx(coords x,int gx);
+  
+  /// Return the volume of a given box
+  template <typename I>
+  I vol_of_lx(const Coords<I>& size)
+  {
+    I vol=1;
+    
+    FOR_ALL_DIRECTIONS(mu)
+      vol*=size(mu);
+    
+    return vol;
+  }
+  
+  Rank rank_hosting_glblx(const GlbLxSite gx);
+  Rank rank_hosting_site_of_coord(const GlbCoords& x);
+  Rank rank_of_coord(const RankCoords& x);
+  void get_loclx_and_rank_of_coord(LocLxSite& ivol,Rank& rank,const GlbCoords& g);
+  
+  /// Return the global index of site addressed by rank and loclx
+  GlbLxSite get_glblx_of_rank_and_loclx(const int irank,const LocLxSite& loclx);
+  
+  /// Given a global lx site, returns its coordinates
+  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  void glb_coord_of_glblx(GlbCoords& x,GlbLxSite /*Don't make it const reference*/ glbLx)
+  {
+    for(Direction mu=NDIM-1;mu>=0;mu--)
+      {
+	x(mu)=(glbLx()%glbSize(mu)());
+	glbLx/=glbSize(mu)();
+      }
+  }
+  
   void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
   void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base);
-  void rank_coord_of_site_of_coord(coords rank_coord,coords glb_coord);
+  void rank_coord_of_site_of_coord(RankCoords& rank_coord,const GlbCoords& glb_coord);
   void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
   void set_lx_geometry();
   void unset_lx_geometry();
-  void get_mirrorized_site_coords(coords cmir,coords c,int imir);
-  void red_coords_of_hypercubic_red_point(coords h,int hyp_red);
-  void lx_coords_of_hypercube_vertex(coords lx,int hyp_cube);
-  int hypercubic_red_point_of_red_coords(coords h);
   
-  //get mirrorized coord
-  inline int get_mirrorized_site_coord(int c,int mu,bool flip)
-  {return (glbSize[mu]+(1-2*flip)*c)%glbSize[mu];}
+  /// Gets mirrorized coord
+  inline GlbCoord get_mirrorized_site_coord(const GlbCoord& c,const Direction& mu,const bool flip)
+  { //nasty rename making it clear that refers to glb
+    return (glbSize(mu)+(1-2*flip)*c)%glbSize(mu);
+  }
   
   //get mirrorized coords according to a bit decomposition of imir
-  inline void get_mirrorized_site_coords(coords cmir,coords c,int imir)
+  inline void get_mirrorized_site_coords(GlbCoords& cmir,const GlbCoords& c,const int imir)
   {
-    for(int mu=0;mu<NDIM;mu++)
-      cmir[mu]=get_mirrorized_site_coord(c[mu],mu,get_bit(imir,mu));
+    FOR_ALL_DIRECTIONS(mu)
+      cmir(mu)=get_mirrorized_site_coord(c(mu),mu,get_bit(imir,mu()));
   }
 }
 

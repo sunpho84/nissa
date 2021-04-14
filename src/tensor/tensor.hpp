@@ -61,7 +61,7 @@ namespace nissa
     /// Static size
     static constexpr Index staticSize=
       ((TC::sizeIsKnownAtCompileTime?
-	TC::sizeAtCompileTime:
+	TC::sizeAtCompileTime():
        Index{1})*...);
     
     /// Size of the Tv component
@@ -70,11 +70,11 @@ namespace nissa
     template <typename Tv,
 	      ENABLE_THIS_TEMPLATE_IF(Tv::sizeIsKnownAtCompileTime)>
     CUDA_HOST_DEVICE INLINE_FUNCTION
-    constexpr auto compSize()
+    constexpr const typename Tv::Index compSize()
       const
     {
       return
-	Tv::sizeAtCompileTime;
+	Tv::sizeAtCompileTime();
     }
     
     /// Size of the Tv component
@@ -83,10 +83,10 @@ namespace nissa
     template <typename Tv,
 	      ENABLE_THIS_TEMPLATE_IF(not Tv::sizeIsKnownAtCompileTime)>
     constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
-    const auto& compSize()
+    const typename Tv::Index& compSize()
       const
     {
-      return std::get<Tv>(dynamicSizes);
+      return std::get<Tv>(dynamicSizes)();
     }
     
     /// Calculate the index - no more components to parse
@@ -159,7 +159,7 @@ namespace nissa
     
     /// Returns the pointer to the data
     CUDA_HOST_DEVICE
-    decltype(auto) getDataPtr()
+    const Fund* getDataPtr()
       const
     {
       return storage.getDataPtr();

@@ -17,7 +17,7 @@
 namespace nissa
 {
   //invert Koo defined in equation (7)
-  void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,tm_quark_info qu,int nitermax,double residue,spin *source)
+  void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,const tm_quark_info qu,int nitermax,double residue,spin *source)
   {
     
     int niter=nitermax;

@@ -7,6 +7,7 @@
 #include <routines/math_routines.hpp>
 #include <new_types/coords.hpp>
 #include <new_types/float_128.hpp>
+#include <routines/rank.hpp>
 
 #ifndef EXTERN_MPI
  #define EXTERN_MPI extern
@@ -19,13 +20,17 @@ namespace nissa
 {
   struct rat_approx_t;
   
+  DECLARE_COMPONENT(Rank,int,DYNAMIC);
+  
+  /// Coordinates of a rank
+  using RankCoords=Coords<Rank>;
+  
   //ranks
-  EXTERN_MPI coords fix_nranks;
-  EXTERN_MPI int rank,nranks,cart_rank;
-  CUDA_MANAGED EXTERN_MPI coords rank_coord;
-  EXTERN_MPI coords rank_neigh[2],rank_neighdw,rank_neighup;
-  EXTERN_MPI coords plan_rank,line_rank,line_coord_rank;
-  CUDA_MANAGED EXTERN_MPI coords nrank_dir;
+  EXTERN_MPI RankCoords fix_nranks;
+  CUDA_MANAGED EXTERN_MPI RankCoords rank_coord;
+  EXTERN_MPI RankCoords rank_neigh[2],rank_neighdw,rank_neighup;
+  EXTERN_MPI RankCoords plan_rank,line_rank,line_coord_rank;
+  CUDA_MANAGED EXTERN_MPI RankCoords nrank_dir;
   //basic mpi types
   EXTERN_MPI MPI_Datatype MPI_FLOAT_128;
   EXTERN_MPI MPI_Datatype MPI_COMPLEX_128;
@@ -52,8 +57,6 @@ namespace nissa
   EXTERN_MPI MPI_Comm cart_comm;
   EXTERN_MPI MPI_Comm plan_comm[NDIM];
   EXTERN_MPI MPI_Comm line_comm[NDIM];
-  
-  EXTERN_MPI int master_rank INIT_MPI_TO(=0);
   
 #define DEFINE_MPI_DATATYPE_OF(T,MPI_T)		\
   /*! MPI Datatype corresponding to T */	\
@@ -110,7 +113,14 @@ namespace nissa
 #undef DEFINE_MPI_OP_DISPATCHER
   
   size_t MPI_Get_count_size_t(MPI_Status &status);
-  void coords_broadcast(coords c);
+  //broadcast a coord
+  template <typename I>
+  void coords_broadcast(Coords<I>& c)
+  {
+    crash("");
+    //MPI_Bcast(c,NDIM,MPI_INT,master_rank,MPI_COMM_WORLD);
+  }
+  
   void get_MPI_nranks();
   void get_MPI_rank();
   void init_MPI_thread(int narg,char **arg);
@@ -129,11 +139,6 @@ namespace nissa
   uint64_t ceil_to_next_eight_multiple(uint64_t pos);
   uint64_t diff_with_next_eight_multiple(uint64_t pos);
 #endif
-  
-  inline bool is_master_rank()
-  {
-    return rank==master_rank;
-  }
   
   std::string MPI_get_processor_name();
 }

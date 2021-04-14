@@ -11,7 +11,7 @@
 
 #define NISSA_DEFAULT_USE_EO_GEOM 1
 
-#define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<locVolh;a++)
+#define NISSA_LOC_VOLH_LOOP(a) for(LocEoSite a=0;a<locVolh;a++)
 
 #include <geometry/geometry_lx.hpp>
 #include <metaProgramming/nonConstMethod.hpp>
@@ -19,6 +19,11 @@
 
 namespace nissa
 {
+  DECLARE_COMPONENT(LocEoSite,int64_t,DYNAMIC);
+  
+  /// Half the local volume
+  EXTERN_GEOMETRY_EO LocEoSite locVolh;
+  
   /// Structure to hold an even/old field
   template <typename T>
   struct eo_ptr
@@ -67,14 +72,14 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loceo_of_loclx;
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> loclx_of_loceo;
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> surfeo_of_bordeo;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<coords> loceo_neighup;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<coords> loceo_neighdw;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<Coords<LocEoSite>> loceo_neighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<Coords<LocEoSite>> loceo_neighdw;
   EXTERN_GEOMETRY_EO int eo_geom_inited;
   EXTERN_GEOMETRY_EO int use_eo_geom;
   
   void filter_hypercube_origin_sites(color **vec);
   int glblx_parity(int glx);
-  int glb_coord_parity(coords c);
+  int glb_coord_parity(GlbCoords c);
   void initialize_eo_edge_receivers_of_kind(MPI_Datatype *MPI_EDGES_RECE,MPI_Datatype *base);
   void initialize_eo_edge_senders_of_kind(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datatype *base);
   void set_eo_edge_senders_and_receivers(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datatype *MPI_EO_EDGES_RECE,MPI_Datatype *base);

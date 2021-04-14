@@ -108,13 +108,13 @@ namespace nissa
   }
   
   //generate a random postion
-  void generate_random_coord(coords c)
+  void generate_random_coord(GlbCoords& c)
   {
-    coords temp;
-    for(int mu=0;mu<NDIM;mu++)
+    GlbCoords temp;
+    FOR_ALL_DIRECTIONS(mu)
       {
-	if(IS_MASTER_THREAD) temp[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize[mu]));
-	THREAD_BROADCAST(c[mu],temp[mu]);
+	if(IS_MASTER_THREAD) temp(mu)=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize(mu)()));
+	THREAD_BROADCAST(c(mu),temp(mu));
       }
   }
   

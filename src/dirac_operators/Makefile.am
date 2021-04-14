@@ -9,7 +9,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/tmQ/reconstruct_tm_doublet.cpp \
 	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.cpp \
 	%D%/tmclovQ/reconstruct_tmclov_doublet.cpp \
-	%D%/Wstat/dirac_operator_Wstat.cpp \
 	%D%/WclovQ/dirac_operator_WclovQ.cpp \
 	%D%/WclovQ2/dirac_operator_WclovQ2.cpp \
 	%D%/tmclovQ/dirac_operator_tmclovQ.cpp \
@@ -38,7 +37,6 @@ include_HEADERS+= \
 	%D%/tmclovQ/dirac_operator_tmclovQ.hpp \
 	%D%/tmclovQ/dirac_operator_tmclovQ_128.hpp \
 	%D%/tmclovQ/reconstruct_tmclov_doublet.hpp \
-	%D%/Wstat/dirac_operator_Wstat.hpp \
 	%D%/WclovQ/dirac_operator_WclovQ.hpp \
 	%D%/WclovQ2/dirac_operator_WclovQ2.hpp \
 	%D%/tmclovQ2/dirac_operator_tmclovQ2.hpp \

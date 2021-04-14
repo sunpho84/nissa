@@ -13,7 +13,7 @@
 
 namespace nissa
 {
-  void comm_start(comm_t &comm,int *dir_comm=NULL,int tot_size=-1);
+  void comm_start(comm_t &comm,const Coords<bool>& dir_comm,int tot_size=-1);
   void communicate_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm);
   void communicate_ev_or_od_borders(void *vec,comm_t &comm,int eo);
   void communicate_lx_borders(void *vec,comm_t &comm);
