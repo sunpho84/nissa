@@ -875,146 +875,151 @@ void analyzeConf()
 	    fill_source(glbT);
 	  else
 	    generate_undiluted_source(source(glbT),RND_Z4,glbT);
-	  
-	  // Smear it
-	  gaussian_smearing(source(glbT),source(glbT),ape_conf,kappaSme,nSme);
 	}
       prepare_time+=take_time();
       
-      //Compute props
-      prop_time-=take_time();
-      for(int glbT=0;glbT<glbSize[0];glbT++)
-	for(int r=0;r<2;r++)
-	  get_prop(glbT,r);
-      prop_time+=take_time();
-      
-      //Compute disco
-      disco_time-=take_time();
-      complex disco_contr[2][glbSize[0]];
-      for(int r=0;r<2;r++)
-	for(int glbT=0;glbT<glbSize[0];glbT++)
-	  {
-	    prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
-	    complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,locVol*sizeof(spincolor)/sizeof(complex));
-	  }
-      disco_time+=take_time();
-      
-      //Print disco
-      for(int r=0;r<2;r++)
+      for(int isme=0;isme<(useSme?2:1);isme++)
 	{
-	  master_fprintf(disco_contr_file,"\n# hit %d , r %d\n\n",ihit,r);
-	  for(int t=0;t<glbSize[0];t++)
-	    master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][t][RE],disco_contr[r][t][IM]);
-	}
-      
-      //Compute S0P5
-      S0P5_time-=take_time();
-      complex S0P5_contr[2][2][glbSize[0]];
-      for(int r1=0;r1<2;r1++)
-	for(int r2=0;r2<2;r2++)
+	  //Compute props
+	  prop_time-=take_time();
 	  for(int glbT=0;glbT<glbSize[0];glbT++)
-	    {
-	      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
-	      
-	      complex_put_to_zero(S0P5_contr[r1][r2][glbT]);
-	      for(int t=0;t<glbSize[0];t++)
-		complex_summassign(S0P5_contr[r1][r2][glbT],temp_contr[t]);
-	    }
-      S0P5_time+=take_time();
-      
-      //Print S0P5
-      for(int r1=0;r1<2;r1++)
-	for(int r2=0;r2<2;r2++)
-	  {
-	    master_fprintf(S0P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-	    for(int t=0;t<glbSize[0];t++)
-	      master_fprintf(S0P5_contr_file,"%.16lg %.16lg\n",S0P5_contr[r1][r2][t][RE],S0P5_contr[r1][r2][t][IM]);
-	  }
-      
-      //Compute P5P5_SS and 0S
-      P5P5_with_ins_time-=take_time();
-      complex P5P5_SS_contr[2][2][2][2][glbSize[0]];
-      memset(P5P5_SS_contr,0,sizeof(complex)*2*2*2*2*glbSize[0]);
-      complex P5P5_0S_contr[2][2][2][glbSize[0]];
-      memset(P5P5_0S_contr,0,sizeof(complex)*2*2*2*glbSize[0]);
-      for(int dT=0;dT<glbSize[0];dT++)
-	for(int glbT1=0;glbT1<glbSize[0];glbT1++)
-	  {
-	    int glbT2=(glbT1+dT)%glbSize[0];
-	    complex c[2][2];
-	    for(int r1=0;r1<2;r1++)
-	      for(int r2=0;r2<2;r2++)
-		compute_inserted_contr(c[r1][r2],prop(glbT2,!r2),prop(glbT1,r1),base_gamma+5);
-	    
-	    //prop with other source, to compute 0S
-	    complex spect[2];
 	    for(int r=0;r<2;r++)
-	      compute_inserted_contr(spect[r],source(glbT2),prop(glbT1,r),base_gamma+0);
-	    
-	    //SS
-	    for(int r1f=0;r1f<2;r1f++)
-	      for(int r2f=0;r2f<2;r2f++)
-		for(int r1b=0;r1b<2;r1b++)
-		  for(int r2b=0;r2b<2;r2b++)
-		    complex_summ_the_conj1_prod(P5P5_SS_contr[r1b][r2b][r1f][r2f][dT],c[r1b][r2b],c[r1f][r2f]);
-	    
-	    //0S
-	    for(int r1f=0;r1f<2;r1f++)
-	      for(int r2f=0;r2f<2;r2f++)
-		for(int rb=0;rb<2;rb++)
-		  complex_summ_the_conj1_prod(P5P5_0S_contr[rb][r1f][r2f][dT],spect[rb],c[r1f][r2f]);
-	  }
-      
-      //Print P5P5_SS
-      for(int r1b=0;r1b<2;r1b++)
-	for(int r2b=0;r2b<2;r2b++)
-	  for(int r1f=0;r1f<2;r1f++)
-	    for(int r2f=0;r2f<2;r2f++)
-	      {
-		master_fprintf(P5P5_SS_contr_file,"\n# hit %d , r1b %d , r2b %d , r1f %d , r2f %d\n\n",ihit,r1b,r2b,r1f,r2f);
-		for(int t=0;t<glbSize[0];t++)
-		  master_fprintf(P5P5_SS_contr_file,"%.16lg %.16lg\n",
-				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][RE]/glbSize[0],
-				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][IM]/glbSize[0]);
-	      }
-      
-      //Print P5P5_0S
-      for(int rb=0;rb<2;rb++)
-	for(int r1f=0;r1f<2;r1f++)
-	  for(int r2f=0;r2f<2;r2f++)
-	    {
-	      master_fprintf(P5P5_0S_contr_file,"\n# hit %d , rb %d , r1f %d , r2f %d\n\n",ihit,rb,r1f,r2f);
-	      for(int t=0;t<glbSize[0];t++)
-		master_fprintf(P5P5_0S_contr_file,"%.16lg %.16lg\n",
-			       P5P5_0S_contr[rb][r1f][r2f][t][RE]/glbSize[0],
-			       P5P5_0S_contr[rb][r1f][r2f][t][IM]/glbSize[0]);
-	    }
-      
-      P5P5_with_ins_time+=take_time();
-      
-      //Compute and print P5P5
-      P5P5_time-=take_time();
-      for(int withoutWithSme=0;withoutWithSme<(useSme?2:1);withoutWithSme++)
-	{
-	  if(withoutWithSme)
-	    for(int r1=0;r1<2;r1++)
-	      for(int glbT=0;glbT<glbSize[0];glbT++)
-		gaussian_smearing(prop(glbT,r1),prop(glbT,r1),ape_conf,kappaSme,nSme);
+	      get_prop(glbT,r);
+	  prop_time+=take_time();
 	  
+	  //Compute disco
+	  disco_time-=take_time();
+	  complex disco_contr[2][glbSize[0]];
+	  for(int r=0;r<2;r++)
+	    for(int glbT=0;glbT<glbSize[0];glbT++)
+	      {
+		prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
+		complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,locVol*sizeof(spincolor)/sizeof(complex));
+	      }
+	  disco_time+=take_time();
+	  
+	  //Print disco
+	  for(int r=0;r<2;r++)
+	    {
+	      master_fprintf(disco_contr_file,"\n# sme %d , hit %d , r %d\n\n",isme,ihit,r);
+	      for(int t=0;t<glbSize[0];t++)
+		master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][t][RE],disco_contr[r][t][IM]);
+	    }
+	  
+	  //Compute S0P5
+	  S0P5_time-=take_time();
+	  complex S0P5_contr[2][2][glbSize[0]];
 	  for(int r1=0;r1<2;r1++)
 	    for(int r2=0;r2<2;r2++)
 	      for(int glbT=0;glbT<glbSize[0];glbT++)
 		{
-		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
+		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
 		  
-		  FILE* outFile=withoutWithSme?P5P5_contr_sme_file:P5P5_contr_file;
-		  
-		  master_fprintf(outFile,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
+		  complex_put_to_zero(S0P5_contr[r1][r2][glbT]);
 		  for(int t=0;t<glbSize[0];t++)
-		    master_fprintf(outFile,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
+		    complex_summassign(S0P5_contr[r1][r2][glbT],temp_contr[t]);
 		}
+	  S0P5_time+=take_time();
+	  
+	  //Print S0P5
+	  for(int r1=0;r1<2;r1++)
+	    for(int r2=0;r2<2;r2++)
+	      {
+		master_fprintf(S0P5_contr_file,"\n# sme %d , hit %d , r1 %d , r2 %d\n\n",isme,ihit,r1,r2);
+		for(int t=0;t<glbSize[0];t++)
+		  master_fprintf(S0P5_contr_file,"%.16lg %.16lg\n",S0P5_contr[r1][r2][t][RE],S0P5_contr[r1][r2][t][IM]);
+	      }
+	  
+	  //Compute P5P5_SS and 0S
+	  P5P5_with_ins_time-=take_time();
+	  complex P5P5_SS_contr[2][2][2][2][glbSize[0]];
+	  memset(P5P5_SS_contr,0,sizeof(complex)*2*2*2*2*glbSize[0]);
+	  complex P5P5_0S_contr[2][2][2][glbSize[0]];
+	  memset(P5P5_0S_contr,0,sizeof(complex)*2*2*2*glbSize[0]);
+	  for(int dT=0;dT<glbSize[0];dT++)
+	    for(int glbT1=0;glbT1<glbSize[0];glbT1++)
+	      {
+		int glbT2=(glbT1+dT)%glbSize[0];
+		complex c[2][2];
+		for(int r1=0;r1<2;r1++)
+		  for(int r2=0;r2<2;r2++)
+		    compute_inserted_contr(c[r1][r2],prop(glbT2,!r2),prop(glbT1,r1),base_gamma+5);
+		
+		//prop with other source, to compute 0S
+		complex spect[2];
+		for(int r=0;r<2;r++)
+		  compute_inserted_contr(spect[r],source(glbT2),prop(glbT1,r),base_gamma+0);
+		
+		//SS
+		for(int r1f=0;r1f<2;r1f++)
+		  for(int r2f=0;r2f<2;r2f++)
+		    for(int r1b=0;r1b<2;r1b++)
+		      for(int r2b=0;r2b<2;r2b++)
+			complex_summ_the_conj1_prod(P5P5_SS_contr[r1b][r2b][r1f][r2f][dT],c[r1b][r2b],c[r1f][r2f]);
+		
+		//0S
+		for(int r1f=0;r1f<2;r1f++)
+		  for(int r2f=0;r2f<2;r2f++)
+		    for(int rb=0;rb<2;rb++)
+		      complex_summ_the_conj1_prod(P5P5_0S_contr[rb][r1f][r2f][dT],spect[rb],c[r1f][r2f]);
+	      }
+	  
+	  //Print P5P5_SS
+	  for(int r1b=0;r1b<2;r1b++)
+	    for(int r2b=0;r2b<2;r2b++)
+	      for(int r1f=0;r1f<2;r1f++)
+		for(int r2f=0;r2f<2;r2f++)
+		  {
+		    master_fprintf(P5P5_SS_contr_file,"\n# sme %d , hit %d , r1b %d , r2b %d , r1f %d , r2f %d\n\n",isme,ihit,r1b,r2b,r1f,r2f);
+		    for(int t=0;t<glbSize[0];t++)
+		      master_fprintf(P5P5_SS_contr_file,"%.16lg %.16lg\n",
+				     P5P5_SS_contr[r1b][r2b][r1f][r2f][t][RE]/glbSize[0],
+				     P5P5_SS_contr[r1b][r2b][r1f][r2f][t][IM]/glbSize[0]);
+		  }
+	  
+	  //Print P5P5_0S
+	  for(int rb=0;rb<2;rb++)
+	    for(int r1f=0;r1f<2;r1f++)
+	      for(int r2f=0;r2f<2;r2f++)
+		{
+		  master_fprintf(P5P5_0S_contr_file,"\n# sme %d , hit %d , rb %d , r1f %d , r2f %d\n\n",isme,ihit,rb,r1f,r2f);
+		  for(int t=0;t<glbSize[0];t++)
+		    master_fprintf(P5P5_0S_contr_file,"%.16lg %.16lg\n",
+				   P5P5_0S_contr[rb][r1f][r2f][t][RE]/glbSize[0],
+				   P5P5_0S_contr[rb][r1f][r2f][t][IM]/glbSize[0]);
+		}
+	  
+	  P5P5_with_ins_time+=take_time();
+	  
+	  //Compute and print P5P5
+	  P5P5_time-=take_time();
+	  for(int withoutWithSme=0;withoutWithSme<(useSme?2:1);withoutWithSme++)
+	    {
+	      if(withoutWithSme)
+		for(int r1=0;r1<2;r1++)
+		  for(int glbT=0;glbT<glbSize[0];glbT++)
+		    gaussian_smearing(prop(glbT,r1),prop(glbT,r1),ape_conf,kappaSme,nSme);
+	      
+	      for(int r1=0;r1<2;r1++)
+		for(int r2=0;r2<2;r2++)
+		  for(int glbT=0;glbT<glbSize[0];glbT++)
+		    {
+		      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
+		      
+		      FILE* outFile=withoutWithSme?P5P5_contr_sme_file:P5P5_contr_file;
+		      
+		      master_fprintf(outFile,"\n# sme %d , hit %d , r1 %d , r2 %d\n\n",isme,ihit,r1,r2);
+		      for(int t=0;t<glbSize[0];t++)
+			master_fprintf(outFile,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
+		    }
+	    }
+	  P5P5_time+=take_time();
 	}
-      P5P5_time+=take_time();
+      
+      // Smear it
+      if(useSme)
+	for(int glbT=0;glbT<glbSize[0];glbT++)
+	  gaussian_smearing(source(glbT),source(glbT),ape_conf,kappaSme,nSme);
     }
   
   close_file(disco_contr_file);
