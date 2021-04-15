@@ -948,7 +948,7 @@ void analyzeConf()
 		//prop with other source, to compute 0S
 		complex spect[2];
 		for(int r=0;r<2;r++)
-		  compute_inserted_contr(spect[r],source(glbT2),prop(glbT1,r),base_gamma+0);
+		  compute_inserted_contr(spect[r],source(glbT2),prop(glbT1,r),base_gamma+5);
 		
 		//SS
 		for(int r1f=0;r1f<2;r1f++)
