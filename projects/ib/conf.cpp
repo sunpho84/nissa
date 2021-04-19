@@ -97,7 +97,8 @@ namespace nissa
     //check if the inner conf is valid or not
     static quad_su3 *stored_conf=NULL;
     static double stored_charge=0;
-    Momentum stored_theta;
+    static Momentum stored_theta;
+    
     if(not inner_conf_valid) master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
     
     //check ref conf
