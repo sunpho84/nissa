@@ -5,6 +5,7 @@
 #if FFT_TYPE == FFTW_FFT
 # include <fftw3.h>
 #endif
+
 #include <math.h>
 #include <string.h>
 
