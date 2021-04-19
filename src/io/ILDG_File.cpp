@@ -271,16 +271,20 @@ namespace nissa
     decript_MPI_error(MPI_Type_commit(&view.etype),"while committing etype");
     
     //remap coordinates and starting points to the scidac mapping
-    coords mapped_start,mapped_glb_size,mapped_loc_size;
+    GlbCoords mapped_start;
+    GlbCoords mapped_glb_size;
+    LocCoords mapped_loc_size;
     FOR_ALL_DIRECTIONS(mu)
       {
-	mapped_glb_size[mu]=glbSize[scidac_mapping[mu]];
-	mapped_loc_size[mu]=locSize[scidac_mapping[mu]];
-	mapped_start[mu]=mapped_loc_size[mu]*rank_coord[scidac_mapping[mu]];
+	const Direction& nu=scidac_mapping(mu);
+	
+	mapped_glb_size(mu)=glbSize(nu);
+	mapped_loc_size(mu)=locSize(nu);
+	mapped_start(mu)=mapped_loc_size(mu)*rank_coord(nu)();
       }
     
     //full type
-    decript_MPI_error(MPI_Type_create_subarray(NDIM,mapped_glb_size,mapped_loc_size,mapped_start,MPI_ORDER_C,
+    decript_MPI_error(MPI_Type_create_subarray(NDIM,mapped_glb_size.getDataPtr(),mapped_loc_size.getDataPtr(),mapped_start.getDataPtr(),MPI_ORDER_C,
 					       view.etype,&view.ftype),"while creating subarray type");
     decript_MPI_error(MPI_Type_commit(&view.ftype),"while committing ftype");
     
@@ -523,13 +527,13 @@ namespace nissa
     int *order=nissa_malloc("order",locVol.nastyConvert(),int);
     NISSA_LOC_VOL_LOOP(idest)
     {
-      int isour=0;
+      LocLxSite isour=0;
       FOR_ALL_DIRECTIONS(mu)
 	{
-	  int nu=scidac_mapping[mu];
-	  isour=isour*locSize[nu]+locCoordOfLoclx[idest.nastyConvert()][nu];
+	  const Direction& nu=scidac_mapping(mu);
+	  isour=isour*locSize(nu)+locCoordOfLoclx(idest,nu);
 	}
-	  order[isour]=idest.nastyConvert();
+	  order[isour.nastyConvert()]=idest.nastyConvert();
     }
     reorder_vector((char*)data,order,locVol.nastyConvert(),header.data_length/glbVol());
     nissa_free(order);

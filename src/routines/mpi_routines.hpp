@@ -113,12 +113,16 @@ namespace nissa
 #undef DEFINE_MPI_OP_DISPATCHER
   
   size_t MPI_Get_count_size_t(MPI_Status &status);
+  
   //broadcast a coord
   template <typename I>
   void coords_broadcast(Coords<I>& c)
   {
-    crash("");
-    //MPI_Bcast(c,NDIM,MPI_INT,master_rank,MPI_COMM_WORLD);
+    FOR_ALL_DIRECTIONS(mu)
+      {
+	auto& ref=c(mu)();
+	MPI_Bcast(&ref,NDIM,MPI_Datatype_of<std::decay_t<decltype(ref)>>(),master_rank,MPI_COMM_WORLD);
+      }
   }
   
   void get_MPI_nranks();
