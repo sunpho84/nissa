@@ -69,7 +69,7 @@ namespace nissa
     
     /// Add to the list of used memory
     void pushToUsed(void* ptr,
-		    const Size size)
+		    const Size& size)
     {
       used[ptr]=size;
       
@@ -103,7 +103,7 @@ namespace nissa
     
     /// Adds a memory to cache
     void pushToCache(void* ptr,          ///< Memory to cache
-		     const Size size)    ///< Memory size
+		     const Size& size)    ///< Memory size
     {
       cached[size].push_back(ptr);
       
@@ -114,7 +114,7 @@ namespace nissa
     
     /// Check if a pointer is suitably aligned
     static bool isAligned(const void* ptr,
-			  const Size alignment)
+			  const Size& alignment)
     {
       return reinterpret_cast<uintptr_t>(ptr)%alignment==0;
     }
@@ -189,8 +189,8 @@ namespace nissa
     
     /// Allocate or get from cache after computing the proper size
     template <class T>
-    T* provide(const Size nel,
-	       const Size alignment=DEFAULT_ALIGNMENT)
+    T* provide(const Size& nel,
+	       const Size& alignment=DEFAULT_ALIGNMENT)
     {
       /// Total size to allocate
       const Size size=sizeof(T)*nel;
@@ -257,10 +257,10 @@ namespace nissa
       while(el!=cached.end())
 	{
 	  /// Number of elements to free
-	  const Size n=el->second.size();
+	  const Size& n=el->second.size();
 	  
 	  /// Size to be removed
-	  const Size size=el->first;
+	  const Size& size=el->first;
 	  
 	  // Increment before erasing
 	  el++;
@@ -281,8 +281,8 @@ namespace nissa
     /// Print to a stream
     void printStatistics()
     {
-      master_printf("Maximal memory cached: %ld bytes, currently used: %ld bytes, maximally used: %ld bytes, number of reused: %ld\n",
-		    cachedSize.extreme(),(Size)cachedSize,usedSize.extreme(),nCachedReused);
+      master_printf("Maximal memory used: %ld bytes, number of allocation: %ld, current memory used: %ld bytes, number of reused: %ld\n",
+		    usedSize.extreme(),nAlloc,cachedSize.extreme(),(Size)cachedSize,nCachedReused);
     }
     
     /// Create the memory manager
@@ -312,15 +312,15 @@ namespace nissa
     /// Get memory
     ///
     /// Call the system routine which allocate memory
-    void* allocateRaw(const Size size,        ///< Amount of memory to allocate
-		      const Size alignment)   ///< Required alignment
+    void* allocateRaw(const Size& size,        ///< Amount of memory to allocate
+		      const Size& alignment)   ///< Required alignment
     {
       /// Result
       void* ptr=nullptr;
       
       /// Returned condition
       verbosity_lv3_master_printf("Allocating size %zu on CPU, ",size);
-      int rc=posix_memalign(&ptr,alignment,size);
+      const int rc=posix_memalign(&ptr,alignment,size);
       if(rc) crash("Failed to allocate %ld CPU memory with alignement %ld",size,alignment);
       verbosity_lv3_master_printf("ptr: %p\n",ptr);
       
@@ -349,8 +349,8 @@ namespace nissa
     /// Get memory on GPU
     ///
     /// Call the system routine which allocate memory
-    void* allocateRaw(const Size size,        ///< Amount of memory to allocate
-		      const Size alignment)   ///< Required alignment
+    void* allocateRaw(const Size& size,        ///< Amount of memory to allocate
+		      const Size& alignment)   ///< Required alignment
     {
       /// Result
       void* ptr=nullptr;

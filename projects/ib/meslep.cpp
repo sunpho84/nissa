@@ -1,7 +1,7 @@
 #include <nissa.hpp>
 
 #define EXTERN_MESLEP
- #include "meslep.hpp"
+# include "meslep.hpp"
 
 #include "prop.hpp"
 
@@ -10,18 +10,20 @@ namespace nissa
   //read all the parameters to contract with leptons
   void read_meslep_contr_pars()
   {
-    crash("");
-    // //Leptons
-    // if(twisted_run) read_str_int("NMesLepQ1Q2LepmassMesMass",&nquark_lep_combos);
-    // else            read_str_int("NMesLepQ1Q2LepkappaMesMass",&nquark_lep_combos);
+    //Leptons
+    if(twisted_run) read_str_int("NMesLepQ1Q2LepmassMesMass",&nquark_lep_combos);
+    else            read_str_int("NMesLepQ1Q2LepkappaMesMass",&nquark_lep_combos);
     
-    // if(nquark_lep_combos)  read_gospel_convention();
+    if(nquark_lep_combos)  read_gospel_convention();
     
-    // lep_contr_iq1=nissa_malloc("lep_contr_iq1",nquark_lep_combos,int);
-    // lep_contr_iq2=nissa_malloc("lep_contr_iq2",nquark_lep_combos,int);
-    // leps=nissa_malloc("leps",nquark_lep_combos,tm_quark_info);
-    // lep_energy=nissa_malloc("lep_energy",nquark_lep_combos,double);
-    // neu_energy=nissa_malloc("neu_energy",nquark_lep_combos,double);
+    lep_contr_iq1=nissa_malloc("lep_contr_iq1",nquark_lep_combos,int);
+    lep_contr_iq2=nissa_malloc("lep_contr_iq2",nquark_lep_combos,int);
+    leps=nissa_malloc("leps",nquark_lep_combos,tm_quark_info);
+    lep_energy=nissa_malloc("lep_energy",nquark_lep_combos,double);
+    neu_energy=nissa_malloc("neu_energy",nquark_lep_combos,double);
+    
+    if(nquark_lep_combos)
+      crash("");
     // for(int il=0;il<nquark_lep_combos;il++)
     //   {
     // 	//read quarks identfiying the mesons

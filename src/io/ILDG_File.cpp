@@ -279,9 +279,9 @@ namespace nissa
       {
 	const Direction& nu=scidac_mapping(mu);
 	
-	mapped_glb_size[mu()]=glbSize(nu);
-	mapped_loc_size[mu()]=locSize(nu);
-	mapped_start[mu()]=mapped_loc_size(mu)*rank_coord(nu)();
+	mapped_glb_size[mu()]=glbSize(nu).nastyConvert();
+	mapped_loc_size[mu()]=locSize(nu).nastyConvert();
+	mapped_start[mu()]=mapped_loc_size[mu.nastyConvert()]*rank_coord(nu)();
       }
     
     //full type
