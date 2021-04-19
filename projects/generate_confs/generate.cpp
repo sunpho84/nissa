@@ -230,10 +230,10 @@ void init_simulation(char *path)
   if(drv->theories.size()==0) crash("need to specify a theory");
   
   //geometry
-  glbSize[0]=drv->T;
-  glbSize[1]=drv->LX;
-  glbSize[2]=drv->LY;
-  glbSize[3]=drv->LZ;
+  _glbSize(Direction(0))=drv->T;
+  _glbSize(xDirection)=drv->LX;
+  _glbSize(yDirection)=drv->LY;
+  _glbSize(zDirection)=drv->LZ;
   init_grid(0,0);
   
   top_meas_time=nissa_malloc("top_meas_time",drv->top_meas.size(),double);
@@ -242,10 +242,10 @@ void init_simulation(char *path)
   ////////////////////////// allocate stuff ////////////////////////
   
   //allocate the conf
-  conf[0]=nissa_malloc("conf_e",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
-  conf[1]=nissa_malloc("conf_o",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
-  new_conf[0]=nissa_malloc("new_conf_e",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
-  new_conf[1]=nissa_malloc("new_conf_o",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
+  conf[0]=nissa_malloc("conf_e",locVolhWithBordAndEdge.nastyConvert(),quad_su3);
+  conf[1]=nissa_malloc("conf_o",locVolhWithBordAndEdge.nastyConvert(),quad_su3);
+  new_conf[0]=nissa_malloc("new_conf_e",locVolhWithBordAndEdge.nastyConvert(),quad_su3);
+  new_conf[1]=nissa_malloc("new_conf_o",locVolhWithBordAndEdge.nastyConvert(),quad_su3);
   
   //////////////////////// initialize stuff ////////////////////
   
@@ -410,7 +410,7 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars,eo_ptr<quad_su3> conf,int ico
 	  
 	  //get internal parameters
 	  smooth_pars_t::space_or_time_t &space_or_time=pars.smooth_pars.space_or_time;
-	  bool* dirs=smooth_pars_t::get_dirs(space_or_time);
+	  const Coords<bool> dirs=smooth_pars_t::get_dirs(space_or_time);
 	  int staple_min_dir=smooth_pars_t::get_staple_min_dir(space_or_time);
 	  
 	  finished=smooth_lx_conf_until_next_meas(temp_conf,pars.smooth_pars,nsmooth,dirs,staple_min_dir);
@@ -494,7 +494,7 @@ void measurements(eo_ptr<quad_su3> temp,eo_ptr<quad_su3> conf,int iconf,int acc,
     if(drv->any_fermionic_measure_is_due(itheory,iconf))
       {
 	//smear
-	stout_smear(temp,conf,&(drv->theories[itheory].stout_pars));
+	stout_smear(temp,conf,drv->theories[itheory].stout_pars);
 	
 	RANGE_FERMIONIC_MEAS(drv,fermionic_putpourri);
 	RANGE_FERMIONIC_MEAS(drv,quark_rendens);
@@ -596,9 +596,9 @@ bool check_if_continue()
 // computing numerically
 template <typename F,
 	  typename...Ts>
-void get_num(su3 nu,int eo,int ieo,int dir,F& act,Ts&&...ts)
+void get_num(su3 nu,const Parity& eo,const LocEoSite& ieo,const Direction& dir,F& act,Ts&&...ts)
 {
-  su3& l=conf[eo][ieo][dir];
+  su3& l=conf[eo][ieo.nastyConvert()][dir.nastyConvert()];
   su3 sto;
   su3_copy(sto,l);
   double act_ori=act(ts...);
@@ -643,19 +643,19 @@ void get_num(su3 nu,int eo,int ieo,int dir,F& act,Ts&&...ts)
 /// computing analytically
 template <typename F,
 	  typename...Ts>
-void get_an(su3 an,int eo,int ieo,int dir,F& der,Ts&&...ts)
+void get_an(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,F& der,Ts&&...ts)
 {
   der(an,eo,ieo,dir,ts...);
   
   su3 r1;
-  unsafe_su3_prod_su3(r1,conf[eo][ieo][dir],an);
+  unsafe_su3_prod_su3(r1,conf[eo][ieo.nastyConvert()][dir.nastyConvert()],an);
   unsafe_su3_traceless_anti_hermitian_part(an,r1);
 }
 
 template <typename FNu,
 	  typename FAn,
 	  typename...Ts>
-void compare(int eo,int ieo,int dir,FNu fnu,FAn fan,Ts...ts)
+void compare(const Parity& eo,const LocEoSite& ieo,const Direction& dir,FNu fnu,FAn fan,Ts...ts)
 {
   su3 nu;
   get_num(nu,eo,ieo,dir,fnu,ts...);
@@ -674,8 +674,8 @@ void compare(int eo,int ieo,int dir,FNu fnu,FAn fan,Ts...ts)
   master_printf("Norm of the difference: %lg\n",sqrt(su3_norm2(diff)));
 }
 
-int EO;
-int DIR;
+Parity EO;
+Direction DIR;
 
 /////////////////////////////////////////////////////////////////
 
@@ -721,7 +721,7 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
     nissa_free(Cl[eo]);
   
   complex act;
-  complex_summ(act,act_eo[EVN],act_eo[ODD]);
+  complex_summ(act,act_eo[EVN.nastyConvert()],act_eo[ODD.nastyConvert()]);
   master_printf("%.16lg %.16lg\n",act[RE],act[IM]);
   
   for(int eo=0;eo<2;eo++)
@@ -733,11 +733,11 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
 namespace nissa
 {
   void compute_clover_staples_insertions(eo_ptr<as2t_su3> cl_insertion,eo_ptr<spincolor> X,eo_ptr<spincolor> Y);
-  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,int eo,const LocEoSite& ieo,int dir);
-  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,const LocEoSite& ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW);
+  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,const Parity& eo,const LocEoSite& ieo,const Direction& dir);
+  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,const Parity& eo,const LocEoSite& ieo,const Direction& mu,eo_ptr<as2t_su3> cl_insertion,const double& cSW);
 }
 
-void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
+void xQx_der(su3 ext_an,const Parity& ext_eo,const LocEoSite& ext_ieo,const Direction& ext_dir,eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
 {
   add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
   
@@ -767,11 +767,12 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_
   if(cSW!=0)
     {
       eo_ptr<as2t_su3> cl_insertion;
-      for(int eo=0;eo<2;eo++)
-	cl_insertion[eo]=nissa_malloc("insertion",(locVolh+bord_volh+edge_volh).nastyConvert(),as2t_su3);
+      
+      FOR_BOTH_PARITIES(eo)
+	cl_insertion[eo]=nissa_malloc("insertion",locVolhWithBordAndEdge.nastyConvert(),as2t_su3);
       compute_clover_staples_insertions(cl_insertion,in_l,in_r);
       
-      for(int eo=0;eo<2;eo++)
+      FOR_BOTH_PARITIES(eo)
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int dir=0;dir<NDIM;dir++)
 	    {
@@ -786,7 +787,7 @@ void xQx_der(su3 ext_an,int ext_eo,int ext_ieo,int ext_dir,eo_ptr<spincolor> in_
 	nissa_free(cl_insertion[eo]);
     }
   
-  su3_copy(ext_an,an[ext_eo][ext_ieo][ext_dir]);
+  su3_copy(ext_an,an[ext_eo][ext_ieo.nastyConvert()][ext_dir.nastyConvert()]);
 }
 
 void test_xQx()
@@ -806,9 +807,9 @@ void test_xQx()
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1);
   
   //store initial link and compute action
-  const bool eo=EO;
-  const int ieo=0;
-  const int dir=DIR;
+  const Parity eo=EO;
+  const LocEoSite ieo=0;
+  const Direction dir=DIR;
   
   compare(eo,ieo,dir,xQx,xQx_der,in,in,kappa,mass,cSW);
   
@@ -859,7 +860,7 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQhatx_der_old(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
+void xQhatx_der_old(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,spincolor *in,double kappa,double mass,double cSW)
 {
   spincolor temp;
   
@@ -895,9 +896,9 @@ void xQhatx_der_old(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *in,dou
   inv_tmclovDee_or_oo_eos(temp1,invCl[EVN],true,temp2);
   //inv_tmclovDee_or_oo_eos(temp2,invCl[EVN],false,temp1);
   
-  int iup=loceo_neighup[eo][ieo.nastyConvert()][dir];
-  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[iup]);
-  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[dir],in[iup]);
+  const LocEoSite& iup=loceo_neighup(eo,ieo,dir);
+  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[iup.nastyConvert()]);
+  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(dir),in[iup.nastyConvert()]);
   //safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
   
   for(int ic1=0;ic1<NCOL;ic1++)
@@ -906,7 +907,7 @@ void xQhatx_der_old(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *in,dou
 	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],temp1[ieo.nastyConvert()][id][ic2]);
 }
 
-void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
+void xQhatx_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,spincolor *in,double kappa,double mass,double cSW)
 {
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
@@ -924,9 +925,9 @@ void xQhatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double 
   
   //allocate each terms of the expansion
   eo_ptr<spincolor> _X;
-  spincolor *temp=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),spincolor);
+  spincolor *temp=nissa_malloc("temp",locVolhWithBord.nastyConvert(),spincolor);
   for(int eo=0;eo<2;eo++)
-    _X[eo]=nissa_malloc("_X",(locVolh+bord_volh).nastyConvert(),spincolor);
+    _X[eo]=nissa_malloc("_X",locVolhWithBord.nastyConvert(),spincolor);
   
   vector_copy(_X[ODD],in);
   
@@ -957,9 +958,9 @@ void test_xQhatx()
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
-  const bool eo=EVN;
-  const int ieo=1;
-  const int dir=1;
+  const Parity eo=EVN;
+  const LocEoSite ieo=1;
+  const Direction dir=1;
   
   compare(eo,ieo,dir,xQhatx,xQhatx_der,in,kappa,mass,cSW);
   
@@ -1016,7 +1017,7 @@ double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double mass,double cSW)
+void xQ2hatx_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,spincolor *in,double kappa,double mass,double cSW)
 {
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
@@ -1034,11 +1035,11 @@ void xQ2hatx_der(su3 an,int eo,int ieo,int dir,spincolor *in,double kappa,double
   
   //allocate each terms of the expansion
   eo_ptr<spincolor> _X,_Y;
-  spincolor *temp=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),spincolor);
+  spincolor *temp=nissa_malloc("temp",locVolhWithBord.nastyConvert(),spincolor);
   for(int eo=0;eo<2;eo++)
     {
-      _X[eo]=nissa_malloc("_X",(locVolh+bord_volh).nastyConvert(),spincolor);
-      _Y[eo]=nissa_malloc("_Y",(locVolh+bord_volh).nastyConvert(),spincolor);
+      _X[eo]=nissa_malloc("_X",locVolhWithBord.nastyConvert(),spincolor);
+      _Y[eo]=nissa_malloc("_Y",locVolhWithBord.nastyConvert(),spincolor);
     }
   
   add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
@@ -1086,9 +1087,9 @@ void test_xQ2hatx()
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
-  const bool eo=ODD;
-  const int ieo=1;
-  const int dir=DIR;
+  const Parity eo=ODD;
+  const LocEoSite ieo=1;
+  const Direction dir=DIR;
   
   compare(eo,ieo,dir,xQ2hatx,xQ2hatx_der,in,kappa,mass,cSW);
   
@@ -1223,7 +1224,7 @@ double xQ2eex(double kappa,double mass,double cSW)
   return act;
 }
 
-void xQ2eex_der(su3 an,int eo,const LocEoSite& ieo,int dir,double kappa,double mass,double cSW)
+void xQ2eex_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,double kappa,double mass,double cSW)
 {
   //Prepare clover
   eo_ptr<clover_term_t> Cl;
@@ -1241,15 +1242,15 @@ void xQ2eex_der(su3 an,int eo,const LocEoSite& ieo,int dir,double kappa,double m
   
   /////////////////////////////////////////////////////////////////
   
-  as2t_su3 *insertion=nissa_malloc("insertion",(locVolh+bord_volh+edge_volh).nastyConvert(),as2t_su3);
+  as2t_su3 *insertion=nissa_malloc("insertion",locVolhWithBordAndEdge.nastyConvert(),as2t_su3);
   
   NISSA_PARALLEL_LOOP(jeo,0,locVolh)
     {
-      for(int mu=0;mu<NDIM;mu++)
-    	for(int nu=mu+1;nu<NDIM;nu++)
+      FOR_ALL_DIRECTIONS(mu)
+    	for(Direction nu=mu+1;nu<NDIM;nu++)
 	  {
-	    int ipair=edge_numb[mu][nu];
-	    dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
+	    const int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
+	    dirac_matr m=dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]);
 	    
 	    su3& ins=insertion[jeo.nastyConvert()][ipair];
 	    
@@ -1279,15 +1280,15 @@ void xQ2eex_der(su3 an,int eo,const LocEoSite& ieo,int dir,double kappa,double m
   
   for(int inu=0;inu<NDIM-1;inu++)
     {
-      int nu=perp_dir[dir][inu];
+      const Direction nu=perp_dir[dir.nastyConvert()][inu];
       
-      int xpmu=loceo_neighup[eo][ieo.nastyConvert()][dir];
-      int xmnu=loceo_neighdw[eo][ieo.nastyConvert()][nu];
-      int xpnu=loceo_neighup[eo][ieo.nastyConvert()][nu];
-      int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
-      int xpmupnu=loceo_neighup[!eo][xpmu][nu];
+      const LocEoSite& xpmu=loceo_neighup(eo,ieo,dir);
+      const LocEoSite& xmnu=loceo_neighdw(eo,ieo,nu);
+      const LocEoSite& xpnu=loceo_neighup(eo,ieo,nu);
+      const LocEoSite& xpmumnu=loceo_neighdw(1-eo,xpmu,nu);
+      const LocEoSite& xpmupnu=loceo_neighup(1-eo,xpmu,nu);
       
-      int ipair=edge_numb[dir][nu];
+      const int ipair=edge_numb[dir.nastyConvert()][nu.nastyConvert()];
       
       for(int i=0;i<2;i++)
   	{
@@ -1298,12 +1299,12 @@ void xQ2eex_der(su3 an,int eo,const LocEoSite& ieo,int dir,double kappa,double m
 	  else       sign=-1.0;
 	  
   	  su3_put_to_diag(u,sign);
-  	  if(i==0 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
-  	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
-  	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
-  	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
-  	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
-  	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo.nastyConvert()][nu]);
+  	  if(i==0 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmu.nastyConvert()][ipair]);
+  	  safe_su3_prod_su3(u,u,conf[1-eo][xpmu.nastyConvert()][nu.nastyConvert()]);
+  	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu.nastyConvert()][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,conf[1-eo][xpnu.nastyConvert()][dir.nastyConvert()]);
+  	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu.nastyConvert()][ipair]);
+  	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo.nastyConvert()][nu.nastyConvert()]);
   	  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo.nastyConvert()][ipair]);
 	  
   	  su3_summassign(an,u);
@@ -1311,12 +1312,12 @@ void xQ2eex_der(su3 an,int eo,const LocEoSite& ieo,int dir,double kappa,double m
   	  su3 v;
 	  
   	  su3_put_to_diag(v,sign);
-  	  if(i==0 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
-  	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
-  	  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
-  	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
-  	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
-  	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
+  	  if(i==0 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmu.nastyConvert()][ipair]);
+  	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu.nastyConvert()][nu.nastyConvert()]);
+  	  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmumnu.nastyConvert()][ipair]);
+  	  safe_su3_prod_su3_dag(v,v,conf[1-eo][xmnu.nastyConvert()][dir.nastyConvert()]);
+  	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xmnu.nastyConvert()][ipair]);
+  	  safe_su3_prod_su3(v,v,conf[1-eo][xmnu.nastyConvert()][nu.nastyConvert()]);
   	  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo.nastyConvert()][ipair]);
 	  
   	  su3_subtassign(an,v);
@@ -1344,9 +1345,9 @@ void test_xQ2eex()
   generate_hot_eo_conf(conf);
   
   //store initial link and compute action
-  const bool eo=EO;
-  const int ieo=1;
-  const int dir=DIR;
+  const Parity eo=EO;
+  const LocEoSite ieo=1;
+  const Direction dir=DIR;
   
   compare(eo,ieo,dir,xQ2eex,xQ2eex_der,kappa,mass,cSW);
   
@@ -1390,7 +1391,7 @@ double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQee_inv_x_der(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *X,double kappa,double mass,double cSW)
+void xQee_inv_x_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,spincolor *X,double kappa,double mass,double cSW)
 {
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
@@ -1403,11 +1404,11 @@ void xQee_inv_x_der(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *X,doub
   // tmclovDee_or_oo_eos(Y,kappa,Cl[EVN],true,mass,X);
   
   std::array<dirac_matr,6> m;
-  for(int mu=0;mu<NDIM;mu++)
-    for(int nu=mu+1;nu<NDIM;nu++)
+  FOR_ALL_DIRECTIONS(mu)
+    for(Direction nu=mu+1;nu<NDIM;nu++)
       {
-	int ipair=edge_numb[mu][nu];
-	m[ipair]=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
+	int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
+	m[ipair]=dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]);
 	dirac_prod_double(&m[ipair],&m[ipair],-cSW/4);
 	  
 	  // print_dirac(m+ipair);
@@ -1415,7 +1416,7 @@ void xQee_inv_x_der(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *X,doub
       }
   
   /////////////////////////////////////////////////////////////////
-  as2t_su3 *insertion=nissa_malloc("insertion",(locVolh+bord_volh+edge_volh).nastyConvert(),as2t_su3);
+  as2t_su3 *insertion=nissa_malloc("insertion",locVolhWithBordAndEdge.nastyConvert(),as2t_su3);
   
   NISSA_PARALLEL_LOOP(ieo,0,locVolh)
     {
@@ -1452,15 +1453,15 @@ void xQee_inv_x_der(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *X,doub
   
   for(int inu=0;inu<NDIM-1;inu++)
     {
-      int nu=perp_dir[dir][inu];
+      const Direction nu=perp_dir[dir.nastyConvert()][inu];
       
-      int xpmu=loceo_neighup[eo][ieo.nastyConvert()][dir];
-      int xmnu=loceo_neighdw[eo][ieo.nastyConvert()][nu];
-      int xpnu=loceo_neighup[eo][ieo.nastyConvert()][nu];
-      int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
-      int xpmupnu=loceo_neighup[!eo][xpmu][nu];
+      const LocEoSite& xpmu=loceo_neighup(eo,ieo,dir);
+      const LocEoSite& xmnu=loceo_neighdw(eo,ieo,nu);
+      const LocEoSite& xpnu=loceo_neighup(eo,ieo,nu);
+      const LocEoSite& xpmumnu=loceo_neighdw(1-eo,xpmu,nu);
+      const LocEoSite& xpmupnu=loceo_neighup(1-eo,xpmu,nu);
       
-      int ipair=edge_numb[dir][nu];
+      const int ipair=edge_numb[dir.nastyConvert()][nu.nastyConvert()];
       
       for(int i=0;i<4;i++)
 	{
@@ -1469,12 +1470,12 @@ void xQee_inv_x_der(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *X,doub
 	  su3 u;
 	  
 	  su3_put_to_id(u);
-	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
-	  safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
-	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
-	  safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
-	  if(i==2 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
-	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo.nastyConvert()][nu]);
+	  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmu.nastyConvert()][ipair]);
+	  safe_su3_prod_su3(u,u,conf[1-eo][xpmu.nastyConvert()][nu.nastyConvert()]);
+	  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmupnu.nastyConvert()][ipair]);
+	  safe_su3_prod_su3_dag(u,u,conf[1-eo][xpnu.nastyConvert()][dir.nastyConvert()]);
+	  if(i==2 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpnu.nastyConvert()][ipair]);
+	  safe_su3_prod_su3_dag(u,u,conf[eo][ieo.nastyConvert()][nu.nastyConvert()]);
 	  if(i==3 and eo==ODD) safe_su3_prod_su3(u,u,insertion[ieo.nastyConvert()][ipair]);
 	  
 	  // master_printf("u:\n");
@@ -1484,12 +1485,12 @@ void xQee_inv_x_der(su3 an,int eo,const LocEoSite& ieo,int dir,spincolor *X,doub
 	  su3 v;
 	  
 	  su3_put_to_id(v);
-	  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
-	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
-	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
-	  safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
-	  if(i==2 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
-	  safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
+	  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmu.nastyConvert()][ipair]);
+	  safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu.nastyConvert()][nu.nastyConvert()]);
+	  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmumnu.nastyConvert()][ipair]);
+	  safe_su3_prod_su3_dag(v,v,conf[1-eo][xmnu.nastyConvert()][dir.nastyConvert()]);
+	  if(i==2 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xmnu.nastyConvert()][ipair]);
+	  safe_su3_prod_su3(v,v,conf[1-eo][xmnu.nastyConvert()][nu.nastyConvert()]);
 	  if(i==3 and eo==ODD) safe_su3_prod_su3(v,v,insertion[ieo.nastyConvert()][ipair]);
 	  
 	  // master_printf("v:\n");
@@ -1521,9 +1522,9 @@ void test_xQinv_eex()
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
-  const bool eo=EVN;
-  const int ieo=1;
-  const int dir=1;
+  const Parity eo=EVN;
+  const LocEoSite ieo=1;
+  const Direction dir=1;
   
   compare(eo,ieo,dir,xQee_inv_x,xQee_inv_x_der,in,kappa,mass,cSW);
   

@@ -24,26 +24,26 @@ namespace nissa
   //compute the polyakov loop, for each site of the lattice
   void field_untraced_polyakov_loop_lx_conf(su3* u,quad_su3* conf,int mu)
   {
+    crash("reimplement");
+    // communicate_lx_quad_su3_borders(conf);
     
-    communicate_lx_quad_su3_borders(conf);
+    // //reset the link product
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   su3_put_to_id(u[ivol.nastyConvert()]);
+    // NISSA_PARALLEL_LOOP_END;
+    // THREAD_BARRIER();
     
-    //reset the link product
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_put_to_id(u[ivol.nastyConvert()]);
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
-    
-    //move along +mu
-    for(int i=0;i<glbSize[mu];i++)
-      {
-	//take the product
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  safe_su3_prod_su3(u[ivol.nastyConvert()],u[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu]);
-	NISSA_PARALLEL_LOOP_END;
-	set_borders_invalid(u);
+    // //move along +mu
+    // for(int i=0;i<glbSize[mu];i++)
+    //   {
+    // 	//take the product
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  safe_su3_prod_su3(u[ivol.nastyConvert()],u[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu]);
+    // 	NISSA_PARALLEL_LOOP_END;
+    // 	set_borders_invalid(u);
 	
-	su3_vec_single_shift(u,mu,+1);
-      }
+    // 	su3_vec_single_shift(u,mu,+1);
+    //   }
   }
   
   //compute the trace of the polyakov loop, but do not reduce over space

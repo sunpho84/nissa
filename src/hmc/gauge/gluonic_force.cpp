@@ -24,11 +24,11 @@ namespace nissa
   {
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
+      FOR_ALL_DIRECTIONS(mu)
 	{
 	  su3 temp;
-	  unsafe_su3_prod_su3(temp,conf[ivol.nastyConvert()][mu],F[ivol.nastyConvert()][mu]);
-	  unsafe_su3_traceless_anti_hermitian_part(F[ivol.nastyConvert()][mu],temp);
+	  unsafe_su3_prod_su3(temp,conf[ivol.nastyConvert()][mu.nastyConvert()],F[ivol.nastyConvert()][mu.nastyConvert()]);
+	  unsafe_su3_traceless_anti_hermitian_part(F[ivol.nastyConvert()][mu.nastyConvert()],temp);
 	}
     NISSA_PARALLEL_LOOP_END;
     

@@ -87,7 +87,8 @@ namespace nissa
     quad_su3 buff;
     quad_su3_copy(buff,in);
     
-    for(int mu=0;mu<NDIM;mu++) su3_copy(out[(mu+NDIM-1)%NDIM],buff[mu]);
+    FOR_ALL_DIRECTIONS(mu)
+      su3_copy(out[(mu.nastyConvert()+NDIM-1)%NDIM],buff[mu.nastyConvert()]);
   }
   
   CUDA_HOST_DEVICE inline void quad_su3_ildg_to_nissa_reord(quad_su3 out,const quad_su3 in)
@@ -95,7 +96,7 @@ namespace nissa
     quad_su3 buff;
     quad_su3_copy(buff,in);
     
-    for(int mu=0;mu<NDIM;mu++) su3_copy(out[(mu+1)%NDIM],buff[mu]);
+    FOR_ALL_DIRECTIONS(mu) su3_copy(out[(mu.nastyConvert()+1)%NDIM],buff[mu.nastyConvert()]);
   }
   
   ////////////////////////////////// Operations between colors //////////////////////////
@@ -730,8 +731,13 @@ namespace nissa
       for(size_t icol2=0;icol2<NCOL;icol2++)
 	safe_complex_prod(invU[icol1][icol2],invU[icol1][icol2],rec_det);
   }
+  
   inline void safe_su3_explicit_inverse(su3 invU,const su3 U)
-  {su3 tempU;unsafe_su3_explicit_inverse(tempU,U);su3_copy(invU,tempU);}
+  {
+    su3 tempU;
+    unsafe_su3_explicit_inverse(tempU,U);
+    su3_copy(invU,tempU);
+  }
   
   //summ of the squared norm of the entries
   CUDA_HOST_DEVICE inline double su3_norm2(const su3 U)
@@ -832,6 +838,7 @@ namespace nissa
   }
   
   void su3_find_overrelaxed(su3 out,const su3 in,const su3 staple,int nov_hits);
+  
   void su3_overrelax(su3 out,const su3 in,const double w,const double *coeff,const int ord);
   
   //overrelax the link using approximated exponentiation
@@ -935,11 +942,15 @@ namespace nissa
   
   //perform maximal projection trace up to reaching the machine precision
   CUDA_HOST_DEVICE void su3_unitarize_maximal_trace_projecting(su3 out,const su3 M,const double precision=5e-15,int niter_max=20000);
-  CUDA_HOST_DEVICE inline void su3_unitarize_maximal_trace_projecting(su3 out,const double precision=5e-15,int niter_max=20000)
-  {su3_unitarize_maximal_trace_projecting(out,out,precision,niter_max);}
   
-  void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,int par,int ieo,int mu);
-  void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu);
+  CUDA_HOST_DEVICE inline void su3_unitarize_maximal_trace_projecting(su3 out,const double precision=5e-15,int niter_max=20000)
+  {
+    su3_unitarize_maximal_trace_projecting(out,out,precision,niter_max);
+  }
+  
+  void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,const Parity& par,const LocEoSite& ieo,const Direction& mu);
+  
+  void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,const LocLxSite& ivol,const Direction& mu);
   
   ////////////////////// products between su3 and color //////////////////
   

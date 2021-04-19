@@ -197,10 +197,14 @@ void init_simulation(int narg,char **arg)
       read_int(&tins);
       master_printf("Read variable 'Tins' with value: %d\n",tins);
       
-      double kappa=0.125,mass=0.0,charge=0,theta[NDIM],residue=1e-16;
+      double kappa=0.125,mass=0.0,charge=0,residue=1e-16;
       char ext_field_path[32]="";
-      theta[0]=temporal_bc;
-      for(int mu=1;mu<NDIM;mu++) theta[mu]=0;
+      
+      Momentum theta;
+      theta(timeDirection)=temporal_bc;
+      FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	theta(mu)=0;
+      
       int r=0,store_prop=0;
       
       bool decripted=false;
@@ -270,7 +274,11 @@ void init_simulation(int narg,char **arg)
 	  
 	  read_theta(theta);
 	}
-      double kappa_asymm[4]={0.0,kappa1,kappa2,kappa3};
+      Momentum kappa_asymm;
+      kappa_asymm(Direction(0))=0.0;
+      kappa_asymm(xDirection)=kappa1;
+      kappa_asymm(yDirection)=kappa2;
+      kappa_asymm(zDirection)=kappa3;
       
       //everything else
       if(not decripted)
@@ -347,7 +355,7 @@ void init_simulation(int narg,char **arg)
   
   nmeslep_corr=nquark_lep_combos*nindep_meslep_weak;
   meslep_hadr_part=nissa_malloc("hadr",locVol.nastyConvert(),spinspin);
-  meslep_contr=nissa_malloc("meslep_contr",glbSize[0]*nindep_meslep_weak*nmeslep_proj*nmeslep_corr,complex);
+  meslep_contr=nissa_malloc("meslep_contr",glbTimeSize()*nindep_meslep_weak*nmeslep_proj*nmeslep_corr,complex);
   
   allocate_bar2pts_contr();
   

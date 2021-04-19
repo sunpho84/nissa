@@ -17,13 +17,13 @@
 namespace nissa
 {
   /// Derivative of xQy
-  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,int eo,const LocEoSite& ieo,int dir)
+  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,const Parity& eo,const LocEoSite& ieo,const Direction& mu)
   {
-    int ineoup=loceo_neighup[eo][ieo.nastyConvert()][dir];
+    const LocEoSite& ineoup=loceo_neighup(eo,ieo,mu);
     
     spincolor temp;
-    spincolor_copy(temp,a[!eo][ineoup]);
-    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[dir],a[!eo][ineoup]);
+    spincolor_copy(temp,a[(1-eo).nastyConvert()][ineoup.nastyConvert()]);
+    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(mu),a[(1-eo).nastyConvert()][ineoup.nastyConvert()]);
     safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
     
     for(int ic1=0;ic1<NCOL;ic1++)
@@ -45,11 +45,11 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(jeo,0,locVolh)
 	  {
-	    for(int mu=0;mu<NDIM;mu++)
-	      for(int nu=mu+1;nu<NDIM;nu++)
+	    FOR_ALL_DIRECTIONS(mu)
+	      for(Direction nu=mu+1;nu<NDIM;nu++)
 		{
-		  int ipair=edge_numb[mu][nu];
-		  dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]));
+		  int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
+		  dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]));
 		  
 		  su3& ins=cl_insertion[eo][jeo.nastyConvert()][ipair];
 		  spincolor tempX,tempY;
@@ -73,49 +73,49 @@ namespace nissa
   }
   
   // Compute the clover staples
-  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,int eo,const LocEoSite& ieo,int dir,eo_ptr<as2t_su3> cl_insertion,double cSW)
+  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,const Parity& eo,const LocEoSite& ieo,const Direction& mu,eo_ptr<as2t_su3> cl_insertion,const double& cSW)
   {
     su3_put_to_zero(stap);
     
     for(int inu=0;inu<NDIM-1;inu++)
       {
-	int nu=perp_dir[dir][inu];
+	const Direction nu=perp_dir[mu.nastyConvert()][inu];
 	
-	int xpmu=loceo_neighup[eo][ieo.nastyConvert()][dir];
-	int xmnu=loceo_neighdw[eo][ieo.nastyConvert()][nu];
-	int xpnu=loceo_neighup[eo][ieo.nastyConvert()][nu];
-	int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
-	int xpmupnu=loceo_neighup[!eo][xpmu][nu];
+	const LocEoSite xpmu=loceo_neighup(eo,ieo,mu);
+	const LocEoSite xmnu=loceo_neighdw(eo,ieo,nu);
+	const LocEoSite xpnu=loceo_neighup(eo,ieo,nu);
+	const LocEoSite xpmumnu=loceo_neighdw(1-eo,xpmu,nu);
+	const LocEoSite xpmupnu=loceo_neighup(1-eo,xpmu,nu);
 	
-	int ipair=edge_numb[dir][nu];
+	const int& ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 	
 	for(int i=0;i<4;i++)
 	  {
 	    double sign;
-	    if(dir<nu) sign=+1.0;
-	    else       sign=-1.0;
+	    if(mu<nu) sign=+1.0;
+	    else      sign=-1.0;
 	    
 	    su3 u;
 	    
 	    su3_put_to_diag(u,sign);
-	    if(i==0) safe_su3_prod_su3(u,u,cl_insertion[!eo][xpmu][ipair]);
-	    safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
-	    if(i==1) safe_su3_prod_su3(u,u,cl_insertion[eo][xpmupnu][ipair]);
-	    safe_su3_prod_su3_dag(u,u,conf[!eo][xpnu][dir]);
-	    if(i==2) safe_su3_prod_su3(u,u,cl_insertion[!eo][xpnu][ipair]);
-	    safe_su3_prod_su3_dag(u,u,conf[eo][ieo.nastyConvert()][nu]);
+	    if(i==0) safe_su3_prod_su3(u,u,cl_insertion[(1-eo).nastyConvert()][xpmu.nastyConvert()][ipair]);
+	    safe_su3_prod_su3(u,u,conf[(1-eo).nastyConvert()][xpmu.nastyConvert()][nu.nastyConvert()]);
+	    if(i==1) safe_su3_prod_su3(u,u,cl_insertion[eo][xpmupnu.nastyConvert()][ipair]);
+	    safe_su3_prod_su3_dag(u,u,conf[(1-eo).nastyConvert()][xpnu.nastyConvert()][mu.nastyConvert()]);
+	    if(i==2) safe_su3_prod_su3(u,u,cl_insertion[(1-eo).nastyConvert()][xpnu.nastyConvert()][ipair]);
+	    safe_su3_prod_su3_dag(u,u,conf[eo][ieo.nastyConvert()][nu.nastyConvert()]);
 	    if(i==3) safe_su3_prod_su3(u,u,cl_insertion[eo][ieo.nastyConvert()][ipair]);
 	    su3_summassign(stap,u);
 	    
 	    su3 v;
 	    
 	    su3_put_to_diag(v,sign);
-	    if(i==0) safe_su3_prod_su3(v,v,cl_insertion[!eo][xpmu][ipair]);
-	    safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
-	    if(i==1) safe_su3_prod_su3(v,v,cl_insertion[eo][xpmumnu][ipair]);
-	    safe_su3_prod_su3_dag(v,v,conf[!eo][xmnu][dir]);
-	    if(i==2) safe_su3_prod_su3(v,v,cl_insertion[!eo][xmnu][ipair]);
-	    safe_su3_prod_su3(v,v,conf[!eo][xmnu][nu]);
+	    if(i==0) safe_su3_prod_su3(v,v,cl_insertion[(1-eo).nastyConvert()][xpmu.nastyConvert()][ipair]);
+	    safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu.nastyConvert()][nu.nastyConvert()]);
+	    if(i==1) safe_su3_prod_su3(v,v,cl_insertion[eo][xpmumnu.nastyConvert()][ipair]);
+	    safe_su3_prod_su3_dag(v,v,conf[(1-eo).nastyConvert()][xmnu.nastyConvert()][mu.nastyConvert()]);
+	    if(i==2) safe_su3_prod_su3(v,v,cl_insertion[(1-eo).nastyConvert()][xmnu.nastyConvert()][ipair]);
+	    safe_su3_prod_su3(v,v,conf[(1-eo).nastyConvert()][xmnu.nastyConvert()][nu.nastyConvert()]);
 	    if(i==3) safe_su3_prod_su3(v,v,cl_insertion[eo][ieo.nastyConvert()][ipair]);
 	    su3_subtassign(stap,v);
 	  }
@@ -130,15 +130,15 @@ namespace nissa
     
     //allocate each terms of the expansion
     eo_ptr<spincolor*>Y,X;
-    spincolor *temp=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),spincolor);
+    spincolor *temp=nissa_malloc("temp",locVolhWithBord.nastyConvert(),spincolor);
     for(int eo=0;eo<2;eo++)
       {
 	X[eo]=nissa_malloc("X[eo]",appr->degree(),spincolor*);
 	Y[eo]=nissa_malloc("Y[eo]",appr->degree(),spincolor*);
 	for(int iterm=0;iterm<appr->degree();iterm++)
 	  {
-	    Y[eo][iterm]=nissa_malloc("Y",(locVolh+bord_volh).nastyConvert(),spincolor);
-	    X[eo][iterm]=nissa_malloc("X",(locVolh+bord_volh).nastyConvert(),spincolor);
+	    Y[eo][iterm]=nissa_malloc("Y",locVolhWithBord.nastyConvert(),spincolor);
+	    X[eo][iterm]=nissa_malloc("X",locVolhWithBord.nastyConvert(),spincolor);
 	  }
       }
     
@@ -184,23 +184,23 @@ namespace nissa
       {
 	const double weight=appr->weights[iterm];
 	
-	for(int eo=0;eo<2;eo++)
+	FOR_BOTH_PARITIES(par)
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	    for(int mu=0;mu<NDIM;mu++)
+	    FOR_ALL_DIRECTIONS(mu)
 	      {
-		int ineoup=loceo_neighup[eo][ieo.nastyConvert()][mu];
+		const LocEoSite& ineoup=loceo_neighup(par,ieo,mu);
 		
 		su3 contr;
 		su3_put_to_zero(contr);
 		
 		for(int i=0;i<2;i++)
 		  {
-		    spincolor& a=((i==0)?X[!eo]:Y[!eo])[iterm][ineoup];
-		    spincolor& b=((i==0)?Y[eo]:X[eo])[iterm][ieo.nastyConvert()];
+		    spincolor& a=((i==0)?X[(1-par).nastyConvert()]:Y[(1-par).nastyConvert()])[iterm][ineoup.nastyConvert()];
+		    spincolor& b=((i==0)?Y[par]:X[par])[iterm][ieo.nastyConvert()];
 		    
 		    spincolor temp;
 		    spincolor_copy(temp,a);
-		    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu[mu],a);
+		    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(mu),a);
 		    safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
 		    
 		    for(int ic1=0;ic1<NCOL;ic1++)
@@ -210,8 +210,8 @@ namespace nissa
 		  }
 		
 		complex w;
-		complex_prod_double(w,u1b[eo][ieo.nastyConvert()][mu],weight);
-		su3_summ_the_prod_complex(F[eo][ieo.nastyConvert()][mu],contr,w);
+		complex_prod_double(w,u1b[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()],weight);
+		su3_summ_the_prod_complex(F[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()],contr,w);
 	      }
 	NISSA_PARALLEL_LOOP_END;
       }
@@ -225,7 +225,7 @@ namespace nissa
 	
 	eo_ptr<as2t_su3> cl_insertion;
 	for(int eo=0;eo<2;eo++)
-	  cl_insertion[eo]=nissa_malloc("insertion",(locVolh+bord_volh).nastyConvert()+edge_volh,as2t_su3);
+	  cl_insertion[eo]=nissa_malloc("insertion",locVolhWithBordAndEdge.nastyConvert(),as2t_su3);
 	
 	for(int iterm=0;iterm<appr->degree();iterm++)
 	  {

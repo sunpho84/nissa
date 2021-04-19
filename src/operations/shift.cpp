@@ -25,30 +25,30 @@ namespace nissa
     
     //choose start, end and step
     int sh=(sign>0) ? -1 : +1;
-    int st=(sign>0) ? locSize[mu.nastyConvert()]-1 : 0;
-    int en=(sign>0) ? 0 : locSize[mu.nastyConvert()]-1 ;
+    const LocCoord st=(sign>0) ? locSize(mu)-1 : 0;
+    const LocCoord en=(sign>0) ? 0 : locSize(mu)-1 ;
     
     //loop over orthogonal dirs
-    const LocLxSite perp_vol=locVol/locSize[mu.nastyConvert()];
+    const LocLxSite perp_vol=locVol/locSize(mu);
     NISSA_PARALLEL_LOOP(iperp,0,perp_vol)
       {
 	//find coords
 	LocLxSite jperp=iperp;
-	coords x;
+	LocCoords x;
 	for(int inu=2;inu>=0;inu--)
 	  {
-	    int nu=perp_dir[mu.nastyConvert()][inu];
-	    x[nu]=(jperp%locSize[nu]).nastyConvert();
-	    jperp/=locSize[nu];
+	    const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	    x(nu)=jperp%locSize(nu);
+	    jperp/=locSize(nu);
 	  }
 	
 	//loop along the dir
-	x[mu.nastyConvert()]=st;
+	x(mu)=st;
 	
 	//make a buffer in the case in which this dir is not parallelized
 	su3 buf;
 	LocLxSite isite=loclx_of_coord(x);
-	if(nrank_dir[mu.nastyConvert()]==1)
+	if(nrank_dir(mu)==1)
 	  su3_copy(buf,u[isite.nastyConvert()]);
 	
 	//loop on remaining dir
@@ -61,13 +61,14 @@ namespace nissa
 	    su3_copy(u[isite.nastyConvert()],u[ineigh.nastyConvert()]);
 	    
 	    //advance
-	    x[mu.nastyConvert()]+=sh;
-	    if(x[mu.nastyConvert()]!=en+sh) isite=ineigh;
+	    x(mu)+=sh;
+	    if(x(mu)!=en+sh)
+	      isite=ineigh;
 	  }
-	while(x[mu.nastyConvert()]!=en+sh);
+	while(x(mu)!=en+sh);
 	
 	//if dir not parallelized, restore end
-	if(nrank_dir[mu.nastyConvert()]==1)
+	if(nrank_dir(mu)==1)
 	  su3_copy(u[isite.nastyConvert()],buf);
       }
     NISSA_PARALLEL_LOOP_END;

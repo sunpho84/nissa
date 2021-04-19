@@ -26,23 +26,22 @@ namespace nissa
     space_or_time_t def_space_or_time(){return SPACETIME;}
     
     //returns the directions to smooth according to parameter
-    static bool* get_dirs(space_or_time_t space_or_time)
+    static Coords<bool> get_dirs(const space_or_time_t& space_or_time)
     {
-      bool* res=NULL;
+      Coords<bool> res;
       
       switch(space_or_time)
       {
       case SPACE:
-	res=all_other_dirs[0];
+	res.nastyCopy(all_other_dirs[0]);
 	break;
       case TIME:
-	res=only_dir[0];
+	res.nastyCopy(only_dir[0]);
 	break;
       case SPACETIME:
-	res=all_dirs;
+	res.nastyCopy(all_dirs);
 	break;
       default:
-	res=NULL;
 	crash("Unknown type");
       }
       
@@ -50,7 +49,7 @@ namespace nissa
     }
     
     //returns the minimal staple direction according to parameter
-    static int get_staple_min_dir(space_or_time_t space_or_time)
+    static int get_staple_min_dir(const space_or_time_t& space_or_time)
     {
       int res=0;
       
@@ -74,7 +73,7 @@ namespace nissa
     }
     
     //convert a space_or_time_t into a str
-    inline std::string space_or_time_str_from_name(space_or_time_t space_or_time)
+    inline std::string space_or_time_str_from_name(const space_or_time_t& space_or_time)
     {
       std::string res;
       
@@ -167,9 +166,9 @@ namespace nissa
     {}
   };
   
-  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,bool *dirs=all_dirs,int staple_min_dir=0);
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,bool *dirs=all_dirs,int staple_min_dir=0);
-  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,bool *dirs=all_dirs,int staple_min_dir=0);
+  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,const Coords<bool>& dirs=all_dirs,const Direction& staple_min_dir=timeDirection);
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const Coords<bool>& dirs=all_dirs,const Direction& staple_min_dir=timeDirection);
+  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const Coords<bool>& dirs=all_dirs,const Direction& staple_min_dir=timeDirection);
 }
 
 #endif

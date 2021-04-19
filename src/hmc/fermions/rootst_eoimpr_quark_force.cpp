@@ -27,8 +27,8 @@ namespace nissa
     color **v_o=nissa_malloc("v_o",nterms,color*),**chi_e=nissa_malloc("chi_e",nterms,color*);
     for(int iterm=0;iterm<nterms;iterm++)
       {
-	v_o[iterm]=nissa_malloc("v_o",(locVolh+bord_volh).nastyConvert(),color);
-	chi_e[iterm]=nissa_malloc("chi_e",(locVolh+bord_volh).nastyConvert(),color);
+	v_o[iterm]=nissa_malloc("v_o",locVolhWithBord.nastyConvert(),color);
+	chi_e[iterm]=nissa_malloc("chi_e",locVolhWithBord.nastyConvert(),color);
       }
     
     //add the background fields
@@ -57,21 +57,21 @@ namespace nissa
 	const double weight=appr->weights[iterm];
 	
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	for(int mu=0;mu<NDIM;mu++)
+	FOR_ALL_DIRECTIONS(mu)
 	  for(int ic1=0;ic1<NCOL;ic1++)
 	    for(int ic2=0;ic2<NCOL;ic2++)
 	      {
 		complex temp1,temp2;
 		
 		//this is for ieo=EVN
-		unsafe_complex_conj2_prod(temp1,v_o[iterm][loceo_neighup[EVN][ieo.nastyConvert()][mu]][ic1],chi_e[iterm][ieo.nastyConvert()][ic2]);
-		unsafe_complex_prod(temp2,temp1,u1b[EVN][ieo.nastyConvert()][mu]);
-		complex_summ_the_prod_double(F[EVN][ieo.nastyConvert()][mu][ic1][ic2],temp2,weight*get_stagphase_of_lx(loclx_of_loceo[EVN][ieo.nastyConvert()],mu));
+		unsafe_complex_conj2_prod(temp1,v_o[iterm][loceo_neighup(EVN,ieo,mu).nastyConvert()][ic1],chi_e[iterm][ieo.nastyConvert()][ic2]);
+		unsafe_complex_prod(temp2,temp1,u1b[EVN][ieo.nastyConvert()][mu.nastyConvert()]);
+		complex_summ_the_prod_double(F[EVN][ieo.nastyConvert()][mu.nastyConvert()][ic1][ic2],temp2,weight*get_stagphase_of_lx(loclx_of_loceo(EVN,ieo),mu));
 		
 		//this is for ieo=ODD
-		unsafe_complex_conj2_prod(temp1,chi_e[iterm][loceo_neighup[ODD][ieo.nastyConvert()][mu]][ic1],v_o[iterm][ieo.nastyConvert()][ic2]);
-		unsafe_complex_prod(temp2,temp1,u1b[ODD][ieo.nastyConvert()][mu]);
-		complex_subt_the_prod_double(F[ODD][ieo.nastyConvert()][mu][ic1][ic2],temp2,weight*get_stagphase_of_lx(loclx_of_loceo[ODD][ieo.nastyConvert()],mu));
+		unsafe_complex_conj2_prod(temp1,chi_e[iterm][loceo_neighup(ODD,ieo,mu).nastyConvert()][ic1],v_o[iterm][ieo.nastyConvert()][ic2]);
+		unsafe_complex_prod(temp2,temp1,u1b[ODD][ieo.nastyConvert()][mu.nastyConvert()]);
+		complex_subt_the_prod_double(F[ODD][ieo.nastyConvert()][mu.nastyConvert()][ic1][ic2],temp2,weight*get_stagphase_of_lx(loclx_of_loceo(ODD,ieo),mu));
 	      }
 	NISSA_PARALLEL_LOOP_END;
       }

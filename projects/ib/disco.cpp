@@ -35,15 +35,15 @@ RunMode runMode{INITIALIZING};
 const char stop_path[]="stop";
 
 CUDA_HOST_DEVICE
-spincolor* &prop(const int t,const int r)
+spincolor* &prop(const GlbCoord& t,const int r)
 {
-  return prop_ptr[r+2*t];
+  return prop_ptr[r+2*t.nastyConvert()];
 }
 
 CUDA_HOST_DEVICE
-spincolor* &source(const int t)
+spincolor* &source(const GlbCoord& t)
 {
-  return source_ptr[t];
+  return source_ptr[t.nastyConvert()];
 }
 
 CUDA_MANAGED complex* loc_contr;
@@ -557,17 +557,17 @@ void init_simulation(int narg,char **arg)
       invCl=nissa_malloc("invCl",locVol.nastyConvert(),inv_clover_term_t);
     }
   
-  source_ptr=nissa_malloc("source_ptr",glbSize[0],spincolor*);
-  for(int t=0;t<glbSize[0];t++)
+  source_ptr=nissa_malloc("source_ptr",glbTimeSize.nastyConvert(),spincolor*);
+  FOR_ALL_GLB_TIMES(t)
     source(t)=nissa_malloc("source",locVolWithBord.nastyConvert(),spincolor);
   
   temp=nissa_malloc("temp",locVolWithBord.nastyConvert(),spincolor);
   
   loc_contr=nissa_malloc("loc_contr",locVol.nastyConvert(),complex);
-  temp_contr=nissa_malloc("temp_contr",glbSize[0],complex);
+  temp_contr=nissa_malloc("temp_contr",glbTimeSize.nastyConvert(),complex);
   
-  prop_ptr=nissa_malloc("prop_ptr",2*glbSize[0],spincolor*);
-  for(int t=0;t<glbSize[0];t++)
+  prop_ptr=nissa_malloc("prop_ptr",2*glbTimeSize.nastyConvert(),spincolor*);
+  for(int t=0;t<glbTimeSize;t++)
     for(int r=0;r<2;r++)
       prop(t,r)=nissa_malloc("prop",locVolWithBord.nastyConvert(),spincolor);
   
@@ -606,11 +606,11 @@ void close()
   if(useSme)
     nissa_free(ape_conf);
   
-  for(int t=0;t<glbSize[0];t++)
+  for(int t=0;t<glbTimeSize;t++)
     for(int r=0;r<2;r++)
       nissa_free(prop(t,r));
   nissa_free(prop_ptr);
-  for(int t=0;t<glbSize[0];t++)
+  for(int t=0;t<glbTimeSize;t++)
     nissa_free(source(t));
   nissa_free(source_ptr);
   nissa_free(temp);
@@ -724,8 +724,15 @@ void setup_conf()
   if(useSme)
     ape_smear_conf(ape_conf,glb_conf,apeAlpha,nApe,all_other_spat_dirs[0],1);
   
-  momentum_t old_theta={0,0,0,0};
-  momentum_t theta={1,0,0,0};
+  Momentum old_theta;
+  FOR_ALL_DIRECTIONS(mu)
+    old_theta(mu)=0.0;
+  
+  Momentum theta;
+  theta(timeDirection)=1.0;
+  FOR_ALL_SPATIAL_DIRECTIONS(mu)
+    theta(mu)=0.0;
+  
   adapt_theta(glb_conf,old_theta,theta,0,0);
   prepare_time+=take_time();
 }
@@ -735,9 +742,9 @@ void skipConf()
   iconf++;
   
   if(useNewGenerator)
-    field_rng_stream.skipDrawers<spincolor>(nhits*glbSize[0]);
+    field_rng_stream.skipDrawers<spincolor>(nhits*glbTimeSize());
   else
-    for(int i=0;i<nhits*glbSize[0];i++)
+    for(int i=0;i<nhits*glbTimeSize;i++)
       generate_undiluted_source(source(0),RND_Z4,0);
 }
 
@@ -789,7 +796,7 @@ void fill_source(const int glbT)
   
   NISSA_PARALLEL_LOOP(loclx,0,locVol)
     {
-      if(glbT==glbCoordOfLoclx[loclx.nastyConvert()][0])
+      if(glbT==glbCoordOfLoclx(loclx,timeDirection))
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
 	    z4Transform(source(glbT)[loclx.nastyConvert()][id][ic]);//BoxMullerTransform(source[loclx][id][ic]);
@@ -818,7 +825,7 @@ void get_prop(const int& t,const int& r)
   safe_dirac_prod_spincolor(p,(tau3[r]==-1)?&Pminus:&Pplus,prop(t,r));
 }
 
-void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,dirac_matr* gamma)
+void compute_conn_contr(complex* conn_contr,int r1,int r2,const GlbCoord& glbT,dirac_matr* gamma)
 {
   vector_reset(loc_contr);
   
@@ -830,13 +837,13 @@ void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,dirac_matr* g
     }
   NISSA_PARALLEL_LOOP_END;
   
-  complex glb_contr[glbSize[0]];
-  glb_reduce(glb_contr,loc_contr,locVol.nastyConvert(),glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+  complex glb_contr[glbTimeSize.nastyConvert()];
+  glb_reduce(glb_contr,loc_contr,locVol.nastyConvert(),glbTimeSize(),locTimeSize(),glbCoordOfLoclx(LocLxSite(0),timeDirection)());
   
-  for(int t=0;t<glbSize[0];t++)
+  FOR_ALL_GLB_TIMES(t)
     {
-      const int dt=(t+glbSize[0]-glbT)%glbSize[0];
-      complex_copy(conn_contr[dt],glb_contr[t]);
+      const GlbCoord dt=(t+glbTimeSize-glbT)%glbTimeSize;
+      complex_copy(conn_contr[dt.nastyConvert()],glb_contr[t.nastyConvert()]);
     }
 }
 
@@ -870,7 +877,7 @@ void analyzeConf()
       prepare_time-=take_time();
       
       //Fill sources
-      for(int glbT=0;glbT<glbSize[0];glbT++)
+      for(int glbT=0;glbT<glbTimeSize;glbT++)
 	{
 	  // Fill the source
 	  if(useNewGenerator)
@@ -885,16 +892,16 @@ void analyzeConf()
       
       //Compute props
       prop_time-=take_time();
-      for(int glbT=0;glbT<glbSize[0];glbT++)
+      for(int glbT=0;glbT<glbTimeSize;glbT++)
 	for(int r=0;r<2;r++)
 	  get_prop(glbT,r);
       prop_time+=take_time();
       
       //Compute disco
       disco_time-=take_time();
-      complex disco_contr[2][glbSize[0]];
+      complex disco_contr[2][glbTimeSize.nastyConvert()];
       for(int r=0;r<2;r++)
-	for(int glbT=0;glbT<glbSize[0];glbT++)
+	for(int glbT=0;glbT<glbTimeSize;glbT++)
 	  {
 	    prop_multiply_with_gamma(temp,5,prop(glbT,r),-1);
 	    complex_vector_glb_scalar_prod(disco_contr[r][glbT],(complex*)source(glbT),(complex*)temp,locVol.nastyConvert()*sizeof(spincolor)/sizeof(complex));
@@ -905,21 +912,21 @@ void analyzeConf()
       for(int r=0;r<2;r++)
 	{
 	  master_fprintf(disco_contr_file,"\n# hit %d , r %d\n\n",ihit,r);
-	  for(int t=0;t<glbSize[0];t++)
+	  for(int t=0;t<glbTimeSize;t++)
 	    master_fprintf(disco_contr_file,"%.16lg %.16lg\n",disco_contr[r][t][RE],disco_contr[r][t][IM]);
 	}
       
       //Compute S0P5
       S0P5_time-=take_time();
-      complex S0P5_contr[2][2][glbSize[0]];
+      complex S0P5_contr[2][2][glbTimeSize.nastyConvert()];
       for(int r1=0;r1<2;r1++)
 	for(int r2=0;r2<2;r2++)
-	  for(int glbT=0;glbT<glbSize[0];glbT++)
+	  for(int glbT=0;glbT<glbTimeSize;glbT++)
 	    {
 	      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
 	      
 	      complex_put_to_zero(S0P5_contr[r1][r2][glbT]);
-	      for(int t=0;t<glbSize[0];t++)
+	      for(int t=0;t<glbTimeSize;t++)
 		complex_summassign(S0P5_contr[r1][r2][glbT],temp_contr[t]);
 	    }
       S0P5_time+=take_time();
@@ -929,20 +936,20 @@ void analyzeConf()
 	for(int r2=0;r2<2;r2++)
 	  {
 	    master_fprintf(S0P5_contr_file,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-	    for(int t=0;t<glbSize[0];t++)
+	    for(int t=0;t<glbTimeSize;t++)
 	      master_fprintf(S0P5_contr_file,"%.16lg %.16lg\n",S0P5_contr[r1][r2][t][RE],S0P5_contr[r1][r2][t][IM]);
 	  }
       
       //Compute P5P5_SS and 0S
       P5P5_with_ins_time-=take_time();
-      complex P5P5_SS_contr[2][2][2][2][glbSize[0]];
-      memset(P5P5_SS_contr,0,sizeof(complex)*2*2*2*2*glbSize[0]);
-      complex P5P5_0S_contr[2][2][2][glbSize[0]];
-      memset(P5P5_0S_contr,0,sizeof(complex)*2*2*2*glbSize[0]);
-      for(int dT=0;dT<glbSize[0];dT++)
-	for(int glbT1=0;glbT1<glbSize[0];glbT1++)
+      complex P5P5_SS_contr[2][2][2][2][glbTimeSize.nastyConvert()];
+      memset(P5P5_SS_contr,0,sizeof(complex)*2*2*2*2*glbTimeSize.nastyConvert());
+      complex P5P5_0S_contr[2][2][2][glbTimeSize.nastyConvert()];
+      memset(P5P5_0S_contr,0,sizeof(complex)*2*2*2*glbTimeSize.nastyConvert());
+      FOR_ALL_GLB_TIMES(dT)
+	FOR_ALL_GLB_TIMES(glbT1)
 	  {
-	    int glbT2=(glbT1+dT)%glbSize[0];
+	    const GlbCoord glbT2=(glbT1+dT)%glbTimeSize;
 	    complex c[2][2];
 	    for(int r1=0;r1<2;r1++)
 	      for(int r2=0;r2<2;r2++)
@@ -958,13 +965,13 @@ void analyzeConf()
 	      for(int r2f=0;r2f<2;r2f++)
 		for(int r1b=0;r1b<2;r1b++)
 		  for(int r2b=0;r2b<2;r2b++)
-		    complex_summ_the_conj1_prod(P5P5_SS_contr[r1b][r2b][r1f][r2f][dT],c[r1b][r2b],c[r1f][r2f]);
+		    complex_summ_the_conj1_prod(P5P5_SS_contr[r1b][r2b][r1f][r2f][dT.nastyConvert()],c[r1b][r2b],c[r1f][r2f]);
 	    
 	    //0S
 	    for(int r1f=0;r1f<2;r1f++)
 	      for(int r2f=0;r2f<2;r2f++)
 		for(int rb=0;rb<2;rb++)
-		  complex_summ_the_conj1_prod(P5P5_0S_contr[rb][r1f][r2f][dT],spect[rb],c[r1f][r2f]);
+		  complex_summ_the_conj1_prod(P5P5_0S_contr[rb][r1f][r2f][dT.nastyConvert()],spect[rb],c[r1f][r2f]);
 	  }
       
       //Print P5P5_SS
@@ -974,10 +981,10 @@ void analyzeConf()
 	    for(int r2f=0;r2f<2;r2f++)
 	      {
 		master_fprintf(P5P5_SS_contr_file,"\n# hit %d , r1b %d , r2b %d , r1f %d , r2f %d\n\n",ihit,r1b,r2b,r1f,r2f);
-		for(int t=0;t<glbSize[0];t++)
+		for(int t=0;t<glbTimeSize;t++)
 		  master_fprintf(P5P5_SS_contr_file,"%.16lg %.16lg\n",
-				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][RE]/glbSize[0],
-				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][IM]/glbSize[0]);
+				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][RE]/glbTimeSize(),
+				 P5P5_SS_contr[r1b][r2b][r1f][r2f][t][IM]/glbTimeSize());
 	      }
       
       //Print P5P5_0S
@@ -986,10 +993,10 @@ void analyzeConf()
 	  for(int r2f=0;r2f<2;r2f++)
 	    {
 	      master_fprintf(P5P5_0S_contr_file,"\n# hit %d , rb %d , r1f %d , r2f %d\n\n",ihit,rb,r1f,r2f);
-	      for(int t=0;t<glbSize[0];t++)
+	      for(int t=0;t<glbTimeSize;t++)
 		master_fprintf(P5P5_0S_contr_file,"%.16lg %.16lg\n",
-			       P5P5_0S_contr[rb][r1f][r2f][t][RE]/glbSize[0],
-			       P5P5_0S_contr[rb][r1f][r2f][t][IM]/glbSize[0]);
+			       P5P5_0S_contr[rb][r1f][r2f][t][RE]/glbTimeSize(),
+			       P5P5_0S_contr[rb][r1f][r2f][t][IM]/glbTimeSize());
 	    }
       
       P5P5_with_ins_time+=take_time();
@@ -1000,19 +1007,19 @@ void analyzeConf()
 	{
 	  if(withoutWithSme)
 	    for(int r1=0;r1<2;r1++)
-	      for(int glbT=0;glbT<glbSize[0];glbT++)
+	      FOR_ALL_GLB_TIMES(glbT)
 		gaussian_smearing(prop(glbT,r1),prop(glbT,r1),ape_conf,kappaSme,nSme);
 	  
 	  for(int r1=0;r1<2;r1++)
 	    for(int r2=0;r2<2;r2++)
-	      for(int glbT=0;glbT<glbSize[0];glbT++)
+	      FOR_ALL_GLB_TIMES(glbT)
 		{
 		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
 		  
 		  FILE* outFile=withoutWithSme?P5P5_contr_sme_file:P5P5_contr_file;
 		  
 		  master_fprintf(outFile,"\n# hit %d , r1 %d , r2 %d\n\n",ihit,r1,r2);
-		  for(int t=0;t<glbSize[0];t++)
+		  for(int t=0;t<glbTimeSize;t++)
 		    master_fprintf(outFile,"%.16lg %.16lg\n",temp_contr[t][RE],temp_contr[t][IM]);
 		}
 	}

@@ -39,7 +39,7 @@ namespace nissa
   //allocate mesonic contractions
   void allocate_mes2pts_contr()
   {
-    mes2pts_contr_size=glbSize[0]*mes_gamma_list.size()*mes2pts_contr_map.size();
+    mes2pts_contr_size=glbTimeSize()*mes_gamma_list.size()*mes2pts_contr_map.size();
     mes2pts_contr=nissa_malloc("mes2pts_contr",mes2pts_contr_size,complex);
   }
   
@@ -141,11 +141,11 @@ namespace nissa
 	      }
 	    
 	    THREAD_BARRIER();
-	    complex temp_contr[glbSize[0]];
-	    glb_reduce(temp_contr,loc_contr,locVol.nastyConvert(),glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+	    complex temp_contr[glbTimeSize.nastyConvert()];
+	    glb_reduce(temp_contr,loc_contr,locVol.nastyConvert(),glbTimeSize(),locTimeSize(),glbCoordOfLoclx(LocLxSite(0),timeDirection)());
 	    
-	    for(int t=0;t<glbSize[0];t++)
-	      complex_copy(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbSize[0]-source_coord[0])%glbSize[0])],temp_contr[t]);
+	    FOR_ALL_GLB_TIMES(t)
+	      complex_copy(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbTimeSize-source_coord(timeDirection))%glbTimeSize)],temp_contr[t.nastyConvert()]);
 	  }
       }
     
@@ -282,10 +282,10 @@ namespace nissa
 	    const int igSo=iProjGroup[0];
 	    const int igSi=iProjGroup[1];
 	    
-	    complex contr[glbSize[0]*nWicks];
-	    tm_corr_op::compute_baryon_2pts_proj_contr(contr,igSo,igSi,Q1.sp,Q2.sp,Q3.sp,source_coord[0],temporal_bc);
+	    complex contr[glbTimeSize.nastyConvert()*nWicks];
+	    tm_corr_op::compute_baryon_2pts_proj_contr(contr,igSo,igSi,Q1.sp,Q2.sp,Q3.sp,source_coord(timeDirection),temporal_bc);
 	    
-	    for(int dt=0;dt<glbSize[0];dt++)
+	    for(int dt=0;dt<glbTimeSize;dt++)
 	      for(int iWick=0;iWick<nWicks;iWick++)
 		{
 		  /// Input index
@@ -539,7 +539,7 @@ namespace nissa
 	{
 	  //open output
 	  FILE *fout=list.open(combine("%s/bar_contr_%s_%s",outfolder,(dir_exc==0)?"dir":"exc",bar2pts_contr_map[icombo].name.c_str()));
-	  for(int t=0;t<glbSize[0];t++)
+	  for(int t=0;t<glbTimeSize;t++)
 	    {
 	      //normalize for nsources and 1+g0
 	      complex c;
@@ -565,7 +565,7 @@ namespace nissa
 	    FILE *fout=list.open(combine("%s/bar_alt_contr_%s_proj_%d_Wick_%d",outfolder,bar2pts_contr_map[icombo].name.c_str(),iProj,iWick));
 	    
 	    master_fprintf(fout,"# proj %d\n",iProj);
-	    for(int t=0;t<glbSize[0];t++)
+	    for(int t=0;t<glbTimeSize;t++)
 	      {
 		//normalize for nsources and 1+g0
 		complex c;
@@ -595,12 +595,14 @@ namespace nissa
     if(revert)
       {
 	dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
-	for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
+	FOR_ALL_DIRECTIONS(mu)
+	  dirac_prod(GAMMA+mu.nastyConvert(),base_gamma+5,base_gamma+igamma_of_mu(mu));
       }
     else
       {
 	GAMMA[4]=temp_gamma;
-	for(int mu=0;mu<NDIM;mu++) GAMMA[mu]=base_gamma[igamma_of_mu[mu]];
+	FOR_ALL_DIRECTIONS(mu)
+	  GAMMA[mu.nastyConvert()]=base_gamma[igamma_of_mu(mu)];
       }
     
     dirac_matr g;
@@ -658,9 +660,9 @@ namespace nissa
     vector_reset(si);
     
     dirac_matr *GAMMA=nissa_malloc("GAMMA",NDIM,dirac_matr);
-    for(int mu=0;mu<NDIM;mu++)
-      if(revert) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
-      else       GAMMA[mu]=base_gamma[igamma_of_mu[mu]];
+	FOR_ALL_DIRECTIONS(mu)
+      if(revert) dirac_prod(GAMMA+mu.nastyConvert(),base_gamma+5,base_gamma+igamma_of_mu(mu));
+      else       GAMMA[mu.nastyConvert()]=base_gamma[igamma_of_mu(mu)];
     
     dirac_matr g;
     if(revert) dirac_prod(&g,ext_g,base_gamma+5);
@@ -697,9 +699,10 @@ namespace nissa
     if(loc_hadr_curr) vector_current_mel(si,&g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
     else
       {
-	double plain_bc[NDIM];
-	plain_bc[0]=temporal_bc;
-	for(int mu=1;mu<NDIM;mu++) plain_bc[mu]=0.0;
+	Momentum plain_bc;
+	plain_bc(timeDirection)=temporal_bc;
+	FOR_ALL_SPATIAL_DIRECTIONS(i)
+	  plain_bc(i)=0.0;
 	quad_su3 *conf=get_updated_conf(Q[prop_name_fw].charge,plain_bc,glb_conf);
 	int r=Q[prop_name_fw].r;
 	conserved_vector_current_mel(conf,si,&g,r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);

@@ -29,28 +29,18 @@ namespace nissa
 	
 	//reorder data
 	int *ord=nissa_malloc("ord",glbVol.nastyConvert(),int);
-	int r[4];
-	for(r[0]=0;r[0]<nrank_dir[0];r[0]++)
-	  for(r[1]=0;r[1]<nrank_dir[1];r[1]++)
-	    for(r[2]=0;r[2]<nrank_dir[2];r[2]++)
-	      for(r[3]=0;r[3]<nrank_dir[3];r[3]++)
-		{
-		  int irank=rank_of_coord(r);
-		  int l[4];
-		  for(l[0]=0;l[0]<locSize[0];l[0]++)
-		    for(l[1]=0;l[1]<locSize[1];l[1]++)
-		      for(l[2]=0;l[2]<locSize[2];l[2]++)
-			for(l[3]=0;l[3]<locSize[3];l[3]++)
-			  {
-			    int g[4];
-			    for(int mu=0;mu<4;mu++) g[mu]=r[mu]*locSize[mu]+l[mu];
+	RankCoords r;
+	for(Rank irank=0;irank<nranks;irank++)
+	  for(LocLxSite ivol=0;ivol<locVol;ivol++)
+	    {
+	      GlbCoords g;
+	      FOR_ALL_DIRECTIONS(mu)
+		g(mu)=r(mu)()*locSize(mu)()+locCoordOfLoclx(ivol,mu)();
 			    
-			    const LocLxSite ivol=locVol*irank+loclx_of_coord(l);
-			    int glb_site=glblx_of_coord(g);
+	      const GlbLxSite& glb_site=glblx_of_coord(g);
 			    
-			    ord[ivol.nastyConvert()]=glb_site;
-			  }
-		}
+	      ord[ivol.nastyConvert()]=glb_site.nastyConvert();
+	    }
 	
 	reorder_vector(glb,ord,glbVol.nastyConvert(),bps);
 	
@@ -85,55 +75,57 @@ namespace nissa
   //ipercubicly mirrorize an already gathered vector
   void gathered_vector_mirrorize(double *vec,int dps)
   {
-    if(glbSize[0]%2 || glbSize[1]%2) crash("Error, impossible to mirrorize if sites are odds");
+    crash("reimplement");
+    // if(glbSize[0]%2 or glbSize[1]%2) crash("Error, impossible to mirrorize if sites are odds");
     
-    int TH=glbSize[0]/2;
-    int LH=glbSize[1]/2;
+    // int TH=glbSize[0]/2;
+    // int LH=glbSize[1]/2;
     
-    int x[4];
-    for(x[0]=0;x[0]<=TH;x[0]++)
-      for(x[1]=0;x[1]<=LH;x[1]++)
-	for(x[2]=0;x[2]<=LH;x[2]++)
-	  for(x[3]=0;x[3]<=LH;x[3]++)
-	    {
-	      //find ipercubic mirrored partners
-	      int ivol[8];
-	      for(int imirr=0;imirr<8;imirr++)
-		{
-		  int xmirr[4];
-		  for(int mu=0;mu<4;mu++)
-		    xmirr[mu]=(imirr & (1<<mu)) ? (glbSize[mu]-x[mu])%glbSize[mu] : x[mu];
-		  ivol[imirr]=glblx_of_coord(xmirr);
-		}
+    // int x[4];
+    // for(x[0]=0;x[0]<=TH;x[0]++)
+    //   for(x[1]=0;x[1]<=LH;x[1]++)
+    // 	for(x[2]=0;x[2]<=LH;x[2]++)
+    // 	  for(x[3]=0;x[3]<=LH;x[3]++)
+    // 	    {
+    // 	      //find ipercubic mirrored partners
+    // 	      int ivol[8];
+    // 	      for(int imirr=0;imirr<8;imirr++)
+    // 		{
+    // 		  int xmirr[4];
+    // 		  for(int mu=0;mu<4;mu++)
+    // 		    xmirr[mu]=(imirr & (1<<mu)) ? (glbSize[mu]-x[mu])%glbSize[mu] : x[mu];
+    // 		  ivol[imirr]=glblx_of_coord(xmirr);
+    // 		}
 	      
-	      //average
-	      average_list_of_gathered_vector_sites(vec,ivol,8,dps);
-	    }
+    // 	      //average
+    // 	      average_list_of_gathered_vector_sites(vec,ivol,8,dps);
+    // 	    }
   }
   
   //symmetrize an already gathered vector
   void gathered_vector_cubic_symmetrize(double *vec,int dps)
   {
-    if(glbSize[0]%2 || glbSize[1]%2) crash("Error, impossible to symmetrize if sites are odds");
+    crash("reimplement");
+    // if(glbSize[0]%2 || glbSize[1]%2) crash("Error, impossible to symmetrize if sites are odds");
     
-    int TH=glbSize[0]/2;
-    int LH=glbSize[1]/2;
+    // int TH=glbSize[0]/2;
+    // int LH=glbSize[1]/2;
     
-    int perm[6][3]={{1,2,3},{2,3,1},{3,1,2},{1,3,2},{3,2,1},{2,1,3}};
+    // int perm[6][3]={{1,2,3},{2,3,1},{3,1,2},{1,3,2},{3,2,1},{2,1,3}};
     
-    int x[4];
-    for(x[0]=0;x[0]<=TH;x[0]++)
-      for(x[1]=0;x[1]<=LH;x[1]++)
-	for(x[2]=0;x[2]<=x[1];x[2]++)
-	  for(x[3]=0;x[3]<=x[2];x[3]++)
-	    {
-	      //find cubic partners
-	      int ivol[6];
-	      for(int iperm=0;iperm<6;iperm++)
-		ivol[iperm]=glblx_of_coord_list(x[0],x[perm[iperm][0]],x[perm[iperm][1]],x[perm[iperm][2]]);
+    // int x[4];
+    // for(x[0]=0;x[0]<=TH;x[0]++)
+    //   for(x[1]=0;x[1]<=LH;x[1]++)
+    // 	for(x[2]=0;x[2]<=x[1];x[2]++)
+    // 	  for(x[3]=0;x[3]<=x[2];x[3]++)
+    // 	    {
+    // 	      //find cubic partners
+    // 	      int ivol[6];
+    // 	      for(int iperm=0;iperm<6;iperm++)
+    // 		ivol[iperm]=glblx_of_coord_list(x[0],x[perm[iperm][0]],x[perm[iperm][1]],x[perm[iperm][2]]);
 	      
-	      //average
-	      average_list_of_gathered_vector_sites(vec,ivol,6,dps);
-	    }
+    // 	      //average
+    // 	      average_list_of_gathered_vector_sites(vec,ivol,6,dps);
+    // 	    }
   }
 }

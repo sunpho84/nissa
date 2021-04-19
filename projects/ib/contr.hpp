@@ -48,10 +48,10 @@ namespace nissa
   void print_mes2pts_contr(int n=nhits,int force_append=false,int skip_inner_header=false,const std::string &alternative_header_template="");
   void free_mes2pts_contr();
   
-  inline int ind_mes2pts_contr(int iquark_combo,int ihadr_contr,int t)
+  inline int ind_mes2pts_contr(int iquark_combo,int ihadr_contr,const GlbCoord& t)
   {
     return
-      (t+glbSize[0]*
+      (t()+glbTimeSize()*
        (ihadr_contr+mes_gamma_list.size()*
 	iquark_combo));
   }
@@ -118,10 +118,10 @@ namespace nissa
   void print_bar2pts_contr();
   void free_bar2pts_contr();
   
-  inline int ind_bar2pts_contr(int icombo,int dir_exc,int t)
+  inline int ind_bar2pts_contr(int icombo,int dir_exc,const GlbCoord& t)
   {
     return
-      (t+glbSize[0]*
+      (t()+glbTimeSize()*
        (dir_exc+2*
 	icombo));
   }
@@ -144,10 +144,10 @@ namespace nissa
   void compute_bar2pts_alt_contr();
   void print_bar2pts_alt_contr();
   void free_bar2pts_alt_contr();
-  inline int ind_bar2pts_alt_contr(int icombo,int iWick,int iProj,int t)
+  inline int ind_bar2pts_alt_contr(int icombo,int iWick,int iProj,const GlbCoord& t)
   {
     return
-      (t+glbSize[0]*
+      (t()+glbTimeSize()*
        (iProj+NBAR_ALT_PROJ*
 	(iWick+2*
 	 icombo)));

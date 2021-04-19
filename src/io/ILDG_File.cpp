@@ -272,7 +272,7 @@ namespace nissa
     
     //remap coordinates and starting points to the scidac mapping
     coords mapped_start,mapped_glb_size,mapped_loc_size;
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       {
 	mapped_glb_size[mu]=glbSize[scidac_mapping[mu]];
 	mapped_loc_size[mu]=locSize[scidac_mapping[mu]];
@@ -299,38 +299,38 @@ namespace nissa
   
   //define the reampping from lx in order to have in each rank a consecutive block of data
   //holding a consecutive piece of ildg data
-  void index_to_ILDG_remapping(int &irank_ILDG,int &iloc_ILDG,int iloc_lx,void *pars)
+  void index_to_ILDG_remapping(Rank &irank_ILDG,LocLxSite &iloc_ILDG,const LocLxSite& iloc_lx,void *pars)
   {
     //find global index in ildg transposed ordering
-    int iglb_ILDG=0;
-    for(int mu=0;mu<NDIM;mu++)
+    GlbLxSite iglb_ILDG=0;
+    FOR_ALL_DIRECTIONS(mu)
       {
-	int nu=scidac_mapping[mu];
-	iglb_ILDG=iglb_ILDG*glbSize[nu]+glbCoordOfLoclx[iloc_lx][nu];
+	const Direction& nu=scidac_mapping(mu);
+	iglb_ILDG=iglb_ILDG*glbSize(nu)+glbCoordOfLoclx(iloc_lx,nu);
       }
     
     //find rank and loclx
-    irank_ILDG=iglb_ILDG/locVol.nastyConvert();
-    iloc_ILDG=iglb_ILDG%locVol.nastyConvert();
+    irank_ILDG=iglb_ILDG()/locVol.nastyConvert();
+    iloc_ILDG=iglb_ILDG()%locVol.nastyConvert();
   }
   
   //define the remapping from the layout having in each rank a consecutive block of data holding a
   //consecutive piece of ildg data to canonical lx
-  void index_from_ILDG_remapping(int &irank_lx,int &iloc_lx,int iloc_ILDG,void *pars)
+  void index_from_ILDG_remapping(Rank &irank_lx,LocLxSite &iloc_lx,const LocLxSite& iloc_ILDG,void *pars)
   {
-    int iglb_ILDG=rank*locVol.nastyConvert()+iloc_ILDG;
+    GlbLxSite iglb_ILDG=rank*locVol()+iloc_ILDG();
     
-    //find global coords in ildg ordering
-    coords xto;
-    for(int mu=NDIM-1;mu>=0;mu--)
+    // Global coords in ildg ordering
+    GlbCoords xto;
+    for(Direction mu=NDIM-1;mu>=0;mu--)
       {
-	int nu=scidac_mapping[mu];
-	xto[nu]=iglb_ILDG%glbSize[nu];
-	iglb_ILDG/=glbSize[nu];
+	const Direction& nu=scidac_mapping(mu);
+	xto(nu)=iglb_ILDG%glbSize(nu);
+	iglb_ILDG/=glbSize(nu);
       }
     
     //convert to rank and loclx
-    get_loclx_and_rank_of_coord(&iloc_lx,&irank_lx,xto);
+    get_loclx_and_rank_of_coord(iloc_lx,irank_lx,xto);
   }
   
   ////////////////////////////////////////////////// read and write ////////////////////////////////////////
@@ -524,7 +524,7 @@ namespace nissa
     NISSA_LOC_VOL_LOOP(idest)
     {
       int isour=0;
-      for(int mu=0;mu<NDIM;mu++)
+      FOR_ALL_DIRECTIONS(mu)
 	{
 	  int nu=scidac_mapping[mu];
 	  isour=isour*locSize[nu]+locCoordOfLoclx[idest.nastyConvert()][nu];
@@ -596,13 +596,13 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(isour,0,locVol)
       {
-	int64_t idest=0;
-	for(int mu=0;mu<NDIM;mu++)
+	LocLxSite idest=0;
+	FOR_ALL_DIRECTIONS(mu)
 	  {
-	    int nu=scidac_mapping[mu];
-	    idest=idest*locSize[nu]+locCoordOfLoclx[isour.nastyConvert()][nu];
+	    const Direction& nu=scidac_mapping(mu);
+	    idest=idest*locSize(nu)+locCoordOfLoclx(isour,nu);
 	  }
-	memcpy(buf+nbytes_per_site*idest,data+nbytes_per_site*isour(),nbytes_per_site);
+	memcpy(buf+nbytes_per_site*idest(),data+nbytes_per_site*isour(),nbytes_per_site);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();

@@ -25,8 +25,10 @@ int nflavs;
   }
   
   //compute the index where to store
-  inline int icombo(int iflav,int iop,int t)
-  {return t+glbSize[0]*(iop+nop*iflav);}
+  inline int icombo(const int& iflav,const int& iop,const GlbCoord& t)
+  {
+    return t()+glbTimeSize()*(iop+nop*iflav);
+  }
   
   //compute correlation functions for staggered mesons, arbitary taste and spin
   void compute_meson_corr(complex* corr,eo_ptr<quad_su3> conf,theory_pars_t* tp,meson_corr_meas_pars_t* meas_pars)
@@ -34,15 +36,15 @@ int nflavs;
     
     //allocate
     eo_ptr<color> ori_source,source,sol,quark[nop],temp[2];
-    for(int eo=0;eo<2;eo++) ori_source[eo]=nissa_malloc("ori_source",(locVolh+bord_volh).nastyConvert(),color);
-    for(int eo=0;eo<2;eo++) source[eo]=nissa_malloc("source",(locVolh+bord_volh).nastyConvert(),color);
-    for(int eo=0;eo<2;eo++) sol[eo]=nissa_malloc("sol",(locVolh+bord_volh).nastyConvert(),color);
+    for(int eo=0;eo<2;eo++) ori_source[eo]=nissa_malloc("ori_source",locVolhWithBord.nastyConvert(),color);
+    for(int eo=0;eo<2;eo++) source[eo]=nissa_malloc("source",locVolhWithBord.nastyConvert(),color);
+    for(int eo=0;eo<2;eo++) sol[eo]=nissa_malloc("sol",locVolhWithBord.nastyConvert(),color);
     for(int iop=0;iop<nop;iop++)
       for(int eo=0;eo<2;eo++)
-	quark[iop][eo]=nissa_malloc("quark",(locVolh+bord_volh).nastyConvert(),color);
+	quark[iop][eo]=nissa_malloc("quark",locVolhWithBord.nastyConvert(),color);
     for(int itemp=0;itemp<2;itemp++)
       for(int eo=0;eo<2;eo++)
-	temp[itemp][eo]=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),color);
+	temp[itemp][eo]=nissa_malloc("temp",locVolhWithBord.nastyConvert(),color);
     complex *loc_corr=new complex[ncombo];
     memset(loc_corr,0,sizeof(complex)*ncombo);
     
@@ -68,7 +70,7 @@ int nflavs;
 	    
 	    //generate tso
 	    int tso;
-	    if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
+	    if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glbTimeSize());
 	    THREAD_BROADCAST(tso,tso);
 	    verbosity_lv2_master_printf("tsource: %d\n",tso);
 	    
@@ -126,7 +128,7 @@ int nflavs;
   {
     nop=meas_pars.mesons.size();
     nflavs=tp.nflavs();
-    ncombo=icombo(nflavs-1,nop-1,glbSize[0]-1)+1;
+    ncombo=icombo(nflavs-1,nop-1,glbTimeSize-1)+1;
     double norm=1.0/(meas_pars.nhits*glbSpatVol());
     complex *corr=nissa_malloc("corr",ncombo,complex);
     
@@ -141,7 +143,7 @@ int nflavs;
 	  int taste=meas_pars.mesons[iop].second;
 	  master_fprintf(file," # conf %d ; iop %d , spin %d , taste %d ; flv = %d , m = %lg\n",
 			 iconf,iop,spin,taste,iflav,tp.quarks[iflav].mass);
-	  for(int t=0;t<glbSize[0];t++)
+	  for(int t=0;t<glbTimeSize;t++)
 	    {
 	      int ic=icombo(iflav,iop,t);
 	      master_fprintf(file,"%d %+16.16lg %+16.16lg\n",t,corr[ic][RE]*norm,corr[ic][IM]*norm);

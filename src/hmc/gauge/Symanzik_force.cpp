@@ -34,18 +34,18 @@ namespace nissa
     compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
+      FOR_ALL_DIRECTIONS(mu)
 	{
 	  //summ the six terms of squares
-	  su3_summ(out[ivol.nastyConvert()][mu],squared_staples[ivol.nastyConvert()][mu][0],squared_staples[ivol.nastyConvert()][mu][1]);
-	  for(int iterm=2;iterm<6;iterm++) su3_summassign(out[ivol.nastyConvert()][mu],squared_staples[ivol.nastyConvert()][mu][iterm]);
-	  safe_su3_hermitian_prod_double(out[ivol.nastyConvert()][mu],out[ivol.nastyConvert()][mu],w0);
+	  su3_summ(out[ivol.nastyConvert()][mu.nastyConvert()],squared_staples[ivol.nastyConvert()][mu.nastyConvert()][0],squared_staples[ivol.nastyConvert()][mu.nastyConvert()][1]);
+	  for(int iterm=2;iterm<6;iterm++) su3_summassign(out[ivol.nastyConvert()][mu.nastyConvert()],squared_staples[ivol.nastyConvert()][mu.nastyConvert()][iterm]);
+	  safe_su3_hermitian_prod_double(out[ivol.nastyConvert()][mu.nastyConvert()],out[ivol.nastyConvert()][mu.nastyConvert()],w0);
 	  
 	  //summ the six terms of rectangles
 	  su3 temp;
-	  su3_summ(temp,rectangular_staples[ivol.nastyConvert()][mu][0],rectangular_staples[ivol.nastyConvert()][mu][1]);
-	  for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,rectangular_staples[ivol.nastyConvert()][mu][iterm]);
-	  su3_summ_the_hermitian_prod_double(out[ivol.nastyConvert()][mu],temp,w1);
+	  su3_summ(temp,rectangular_staples[ivol.nastyConvert()][mu.nastyConvert()][0],rectangular_staples[ivol.nastyConvert()][mu.nastyConvert()][1]);
+	  for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,rectangular_staples[ivol.nastyConvert()][mu.nastyConvert()][iterm]);
+	  su3_summ_the_hermitian_prod_double(out[ivol.nastyConvert()][mu.nastyConvert()],temp,w1);
 	}
     NISSA_PARALLEL_LOOP_END;
     

@@ -31,7 +31,7 @@ namespace nissa
 	for(int eo=0;eo<2;eo++)
 	  invCl[eo]=nissa_malloc("invCl",locVolh.nastyConvert(),inv_clover_term_t);
 	
-	as2t_su3 *insertion=nissa_malloc("insertion",(locVolh+bord_volh+edge_volh).nastyConvert(),as2t_su3);
+	as2t_su3 *insertion=nissa_malloc("insertion",locVolhWithBordAndEdge.nastyConvert(),as2t_su3);
 	for(auto& q : quark_content)
 	  {
 	    const double cSW=q.cSW;
@@ -47,11 +47,11 @@ namespace nissa
 		
 		NISSA_PARALLEL_LOOP(jeo,0,locVolh)
 		  {
-		    for(int mu=0;mu<NDIM;mu++)
-		      for(int nu=mu+1;nu<NDIM;nu++)
+		    FOR_ALL_DIRECTIONS(mu)
+		      for(Direction nu=mu+1;nu<NDIM;nu++)
 			{
-			  int ipair=edge_numb[mu][nu];
-			  dirac_matr m=dirac_prod(base_gamma[igamma_of_mu[mu]],base_gamma[igamma_of_mu[nu]]);
+			  int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
+			  dirac_matr m=dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]);
 			  
 			  su3& ins=insertion[jeo.nastyConvert()][ipair];
 			  
@@ -81,25 +81,25 @@ namespace nissa
 		
 		//communicate_e o_as2t_su3_edges(cl_insertion[]);
 		
-		for(int eo=0;eo<2;eo++)
+		FOR_BOTH_PARITIES(par)
 		  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 		    {
-		      for(int mu=0;mu<NDIM;mu++)
+		      FOR_ALL_DIRECTIONS(mu)
 			{
 			  su3 contr;
 			  su3_put_to_zero(contr);
 			  
 			  for(int inu=0;inu<NDIM-1;inu++)
 			    {
-			      int nu=perp_dir[mu][inu];
+			      const Direction nu=perp_dir[mu.nastyConvert()][inu];
 			      
-			      int xpmu=loceo_neighup[eo][ieo.nastyConvert()][mu];
-			      int xmnu=loceo_neighdw[eo][ieo.nastyConvert()][nu];
-			      int xpnu=loceo_neighup[eo][ieo.nastyConvert()][nu];
-			      int xpmumnu=loceo_neighdw[!eo][xpmu][nu];
-			      int xpmupnu=loceo_neighup[!eo][xpmu][nu];
+			      const LocEoSite xpmu=loceo_neighup(par,ieo,mu);
+			      const LocEoSite xmnu=loceo_neighdw(par,ieo,nu);
+			      const LocEoSite xpnu=loceo_neighup(par,ieo,nu);
+			      const LocEoSite xpmumnu=loceo_neighdw((1-par),xpmu,nu);
+			      const LocEoSite xpmupnu=loceo_neighup((1-par),xpmu,nu);
 			      
-			      int ipair=edge_numb[mu][nu];
+			      int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 			      
 			      for(int i=0;i<2;i++)
 				{
@@ -110,26 +110,26 @@ namespace nissa
 				  else       sign=-1.0;
 				  
 				  su3_put_to_diag(u,sign);
-				  if(i==0 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpmu][ipair]);
-				  safe_su3_prod_su3(u,u,eo_conf[!eo][xpmu][nu]);
-				  if(i==0 and eo==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu][ipair]);
-				  safe_su3_prod_su3_dag(u,u,eo_conf[!eo][xpnu][mu]);
-				  if(i==1 and eo==ODD) safe_su3_prod_su3(u,u,insertion[xpnu][ipair]);
-				  safe_su3_prod_su3_dag(u,u,eo_conf[eo][ieo.nastyConvert()][nu]);
-				  if(i==1 and eo==EVN) safe_su3_prod_su3(u,u,insertion[ieo.nastyConvert()][ipair]);
+				  if(i==0 and par==ODD) safe_su3_prod_su3(u,u,insertion[xpmu.nastyConvert()][ipair]);
+				  safe_su3_prod_su3(u,u,eo_conf[(1-par).nastyConvert()][xpmu.nastyConvert()][nu.nastyConvert()]);
+				  if(i==0 and par==EVN) safe_su3_prod_su3(u,u,insertion[xpmupnu.nastyConvert()][ipair]);
+				  safe_su3_prod_su3_dag(u,u,eo_conf[(1-par).nastyConvert()][xpnu.nastyConvert()][mu.nastyConvert()]);
+				  if(i==1 and par==ODD) safe_su3_prod_su3(u,u,insertion[xpnu.nastyConvert()][ipair]);
+				  safe_su3_prod_su3_dag(u,u,eo_conf[par][ieo.nastyConvert()][nu.nastyConvert()]);
+				  if(i==1 and par==EVN) safe_su3_prod_su3(u,u,insertion[ieo.nastyConvert()][ipair]);
 				  
 				  su3_summassign(contr,u);
 				  
 				  su3 v;
 				  
 				  su3_put_to_diag(v,sign);
-				  if(i==0 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xpmu][ipair]);
-				  safe_su3_prod_su3_dag(v,v,eo_conf[eo][xpmumnu][nu]);
-				  if(i==0 and eo==EVN) safe_su3_prod_su3(v,v,insertion[xpmumnu][ipair]);
-				  safe_su3_prod_su3_dag(v,v,eo_conf[!eo][xmnu][mu]);
-				  if(i==1 and eo==ODD) safe_su3_prod_su3(v,v,insertion[xmnu][ipair]);
-				  safe_su3_prod_su3(v,v,eo_conf[!eo][xmnu][nu]);
-				  if(i==1 and eo==EVN) safe_su3_prod_su3(v,v,insertion[ieo.nastyConvert()][ipair]);
+				  if(i==0 and par==ODD) safe_su3_prod_su3(v,v,insertion[xpmu.nastyConvert()][ipair]);
+				  safe_su3_prod_su3_dag(v,v,eo_conf[par][xpmumnu.nastyConvert()][nu.nastyConvert()]);
+				  if(i==0 and par==EVN) safe_su3_prod_su3(v,v,insertion[xpmumnu.nastyConvert()][ipair]);
+				  safe_su3_prod_su3_dag(v,v,eo_conf[(1-par).nastyConvert()][xmnu.nastyConvert()][mu.nastyConvert()]);
+				  if(i==1 and par==ODD) safe_su3_prod_su3(v,v,insertion[xmnu.nastyConvert()][ipair]);
+				  safe_su3_prod_su3(v,v,eo_conf[(1-par).nastyConvert()][xmnu.nastyConvert()][nu.nastyConvert()]);
+				  if(i==1 and par==EVN) safe_su3_prod_su3(v,v,insertion[ieo.nastyConvert()][ipair]);
 				  
 				  su3_subtassign(contr,v);
 				}

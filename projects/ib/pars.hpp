@@ -40,26 +40,28 @@ namespace nissa
   
   CUDA_MANAGED EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
   CUDA_MANAGED EXTERN_PARS int nso_spi,nso_col;
-  CUDA_MANAGED EXTERN_PARS coords source_coord;
+  CUDA_MANAGED EXTERN_PARS GlbCoords source_coord;
 
-  CUDA_HOST_DEVICE inline int rel_coord_of_glb_coord(int c,const Direction& mu)
+  template <typename C>
+  CUDA_HOST_DEVICE inline
+  C rel_coord_of_glb_coord(const C& c,const Direction& mu)
   {
-    return (glbSize[mu.nastyConvert()]+c-source_coord[mu.nastyConvert()])%glbSize[mu.nastyConvert()];
+    return (glbSize(mu)+c-source_coord(mu))%glbSize(mu);
   }
   
-  inline int rel_time_of_glb_time(int t)
+  inline GlbCoord rel_time_of_glb_time(const GlbCoord& t)
   {
     return rel_coord_of_glb_coord(t,0);
   }
   
-  CUDA_HOST_DEVICE inline int rel_coord_of_loclx(const LocLxSite& loclx,const Direction& mu)
+  CUDA_HOST_DEVICE inline GlbCoord rel_coord_of_loclx(const LocLxSite& loclx,const Direction& mu)
   {
-    return rel_coord_of_glb_coord(glbCoordOfLoclx[loclx.nastyConvert()][mu.nastyConvert()],mu);
+    return rel_coord_of_glb_coord(glbCoordOfLoclx(loclx,mu),mu);
   }
   
-  CUDA_HOST_DEVICE inline int rel_time_of_loclx(const LocLxSite& loclx)
+  CUDA_HOST_DEVICE inline GlbCoord rel_time_of_loclx(const LocLxSite& loclx)
   {
-    return rel_coord_of_loclx(loclx,0);
+    return rel_coord_of_loclx(loclx,timeDirection);
   }
   
   //convention on gospel
@@ -100,14 +102,25 @@ namespace nissa
   }
   
   EXTERN_PARS gauge_info photon;
-  EXTERN_PARS double tadpole[NDIM];
+  EXTERN_PARS Momentum tadpole;
   
   //holds the range of FFT moms
   struct fft_mom_range_t
   {
-    coords offs;
-    coords width;
+    GlbCoords offs;
+    GlbCoords width;
+    
+    fft_mom_range_t()
+    {
+    }
+    
+    fft_mom_range_t(const fft_mom_range_t& oth)
+    {
+      offs.nastyCopy(oth.offs);
+      width.nastyCopy(oth.width);
+    }
   };
+  
   //list of propagators to fft
   EXTERN_PARS std::vector<std::string> fft_prop_list;
   
@@ -247,19 +260,20 @@ namespace nissa
   EXTERN_PARS std::string stop_path INIT_TO("stop");
   
   //read the theta, iso or not
-  inline void read_theta(double *theta)
+  inline void read_theta(Momentum& theta)
   {
     if(iso_theta)
       {
-	read_double(&theta[1]);
-	for(int mu=2;mu<NDIM;mu++) theta[mu]=theta[1];
-	master_printf("Read variable 'Theta' with value: %lg\n",theta[1]);
+	read_double(&theta(xDirection));
+	master_printf("Read variable 'Theta' with value: %lg\n",theta(xDirection));
+	for(Direction mu=2;mu<NDIM;mu++)
+	  theta(mu)=theta(xDirection);
       }
     else
-      for(int mu=1;mu<NDIM;mu++)
+      FOR_ALL_SPATIAL_DIRECTIONS(mu)
 	{
-	  read_double(&theta[mu]);
-	  master_printf("Read variable 'Theta[%d]' with value: %lg\n",mu,theta[mu]);
+	  read_double(&theta(mu));
+	  master_printf("Read variable 'Theta[%d]' with value: %lg\n",mu,theta(mu));
 	}
   }
   

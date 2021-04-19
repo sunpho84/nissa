@@ -13,7 +13,7 @@ namespace nissa
   const double FEYNMAN_ALPHA=1,LANDAU_ALPHA=0;
   const double WILSON_C1=0,TLSYM_C1=-1.0/12;
   
-  
+  /// Information on a twisted mass quark
   struct tm_quark_info
   {
     double kappa;
@@ -21,19 +21,30 @@ namespace nissa
     Momentum bc;
     double zmp;
     int r;
-    tm_quark_info(double kappa,double mass,int r,double theta) :
+    
+    void nastyCopy(const tm_quark_info& oth)
+    {
+      kappa=oth.kappa;
+      mass=oth.mass;
+      bc.nastyCopy(oth.bc);
+      zmp=oth.zmp;
+      r=oth.r;
+    }
+    
+    tm_quark_info(const double& kappa,const double& mass,const int& r,const double& theta) :
       kappa(kappa),mass(mass),zmp(0),r(r)
     {
       bc(timeDirection)=1;
       for(Direction mu=1;mu<NDIM;mu++)
 	bc(mu)=theta;
     }
-    tm_quark_info(double kappa,double mass,int r,const Momentum& _bc) :
+      
+    tm_quark_info(const double& kappa,const double& mass,const int& r,const Momentum& _bc) :
       kappa(kappa),mass(mass),zmp(0),r(r)
     {
-      for(Direction mu=0;mu<NDIM;mu++)
-	bc(mu)=_bc(mu);
+      bc.nastyCopy(_bc);
     }
+      
     tm_quark_info() {}
   };
   
@@ -43,11 +54,13 @@ namespace nissa
     double alpha;
     double c1;
     Momentum bc;
+    
     gauge_info()
     {
       zms=UNNO_ALEMANNA;
       alpha=LANDAU_ALPHA;
       c1=WILSON_C1;
+      
       for(Direction mu=0;mu<NDIM;mu++)
 	bc(mu)=0;
     }

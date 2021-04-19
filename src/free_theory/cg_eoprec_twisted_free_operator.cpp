@@ -17,17 +17,17 @@
 namespace nissa
 {
   //invert Koo defined in equation (7)
-  void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,const tm_quark_info qu,int nitermax,double residue,spin *source)
+  void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,const tm_quark_info& qu,int nitermax,double residue,spin *source)
   {
     
     int niter=nitermax;
     int riter=0;
     int rniter=5;
-    spin *p=nissa_malloc("p",(locVolh+bord_volh).nastyConvert(),spin);
+    spin *p=nissa_malloc("p",locVolhWithBord.nastyConvert(),spin);
     spin *r=nissa_malloc("r",locVolh.nastyConvert(),spin);
     spin *s=nissa_malloc("s",locVolh.nastyConvert(),spin);
-    spin *temp1=nissa_malloc("temp1",(locVolh+bord_volh).nastyConvert(),spin);
-    spin *temp2=nissa_malloc("temp2",(locVolh+bord_volh).nastyConvert(),spin);
+    spin *temp1=nissa_malloc("temp1",locVolhWithBord.nastyConvert(),spin);
+    spin *temp2=nissa_malloc("temp2",locVolhWithBord.nastyConvert(),spin);
     
     ///////////////// prepare the internal source /////////////////
     
@@ -101,27 +101,26 @@ namespace nissa
     nissa_free(temp2);
   }
   
-  //Invert twisted mass operator using e/o preconditioning.
-  void inv_tmD_cg_eoprec_eos(spin *solution_lx,spin *guess_Koo,tm_quark_info qu,int nitermax,double residue,spin *source_lx)
+  void inv_tmD_cg_eoprec_eos(spin *solution_lx,spin *guess_Koo,const tm_quark_info& qu,int nitermax,double residue,spin *source_lx)
   {
     
     //prepare the e/o split version of the source
     eo_ptr<spin> source_eos;
-    source_eos[0]=nissa_malloc("source_eos0",(locVolh+bord_volh).nastyConvert(),spin);
-    source_eos[1]=nissa_malloc("source_eos1",(locVolh+bord_volh).nastyConvert(),spin);
+    source_eos[0]=nissa_malloc("source_eos0",locVolhWithBord.nastyConvert(),spin);
+    source_eos[1]=nissa_malloc("source_eos1",locVolhWithBord.nastyConvert(),spin);
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
     eo_ptr<spin> solution_eos;
-    solution_eos[0]=nissa_malloc("solution_eos_0",(locVolh+bord_volh).nastyConvert(),spin);
-    solution_eos[1]=nissa_malloc("solution_eos_0",(locVolh+bord_volh).nastyConvert(),spin);
+    solution_eos[0]=nissa_malloc("solution_eos_0",locVolhWithBord.nastyConvert(),spin);
+    solution_eos[1]=nissa_malloc("solution_eos_0",locVolhWithBord.nastyConvert(),spin);
     
     ///////////////////////////////////// invert with e/o improvement ///////////////////////////////////
     
-    spin *varphi=nissa_malloc("varphi",(locVolh+bord_volh).nastyConvert(),spin);
+    spin *varphi=nissa_malloc("varphi",locVolhWithBord.nastyConvert(),spin);
     
     //Equation (8.a)
-    spin *temp=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),spin);
+    spin *temp=nissa_malloc("temp",locVolhWithBord.nastyConvert(),spin);
     inv_tmDee_or_oo_eos(temp,qu,source_eos[EVN]);
     
     //Equation (8.b)
@@ -138,7 +137,8 @@ namespace nissa
     
     //Equation (9) using solution_eos[EVN] as temporary vector
     inv_tmDkern_eoprec_square_eos(temp,guess_Koo,qu,nitermax,residue,varphi);
-    tm_quark_info mqu=qu;
+    tm_quark_info mqu;
+    mqu.nastyCopy(qu);
     mqu.mass*=-1;
     tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],mqu,temp);
     if(guess_Koo!=NULL) vector_copy(guess_Koo,temp); //if a guess was passed, return new one

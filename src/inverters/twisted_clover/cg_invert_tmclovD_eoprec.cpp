@@ -55,19 +55,19 @@ namespace nissa
     
     //prepare the e/o split version of the source
     eo_ptr<spincolor> source_eos;
-    source_eos[0]=nissa_malloc("source_eos0",(locVolh+bord_volh).nastyConvert(),spincolor);
-    source_eos[1]=nissa_malloc("source_eos1",(locVolh+bord_volh).nastyConvert(),spincolor);
+    source_eos[0]=nissa_malloc("source_eos0",locVolhWithBord.nastyConvert(),spincolor);
+    source_eos[1]=nissa_malloc("source_eos1",locVolhWithBord.nastyConvert(),spincolor);
     split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
     eo_ptr<spincolor> solution_eos;
-    solution_eos[0]=nissa_malloc("solution_eos_0",(locVolh+bord_volh).nastyConvert(),spincolor);
-    solution_eos[1]=nissa_malloc("solution_eos_1",(locVolh+bord_volh).nastyConvert(),spincolor);
+    solution_eos[0]=nissa_malloc("solution_eos_0",locVolhWithBord.nastyConvert(),spincolor);
+    solution_eos[1]=nissa_malloc("solution_eos_1",locVolhWithBord.nastyConvert(),spincolor);
     
     //prepare the e/o split version of the conf
     eo_ptr<quad_su3> conf_eos;
-    conf_eos[0]=nissa_malloc("conf_eos_0",(locVolh+bord_volh).nastyConvert(),quad_su3);
-    conf_eos[1]=nissa_malloc("conf_eos_1",(locVolh+bord_volh).nastyConvert(),quad_su3);
+    conf_eos[0]=nissa_malloc("conf_eos_0",locVolhWithBord.nastyConvert(),quad_su3);
+    conf_eos[1]=nissa_malloc("conf_eos_1",locVolhWithBord.nastyConvert(),quad_su3);
     split_lx_vector_into_eo_parts(conf_eos,conf_lx);
     
     //prepare the e/o split version of the clover term
@@ -83,11 +83,11 @@ namespace nissa
     ///////////////////////////////////// invert with e/o preconditioning ///////////////////////////////////
     
     //Equation (8.a)
-    spincolor *temp=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),spincolor);
+    spincolor *temp=nissa_malloc("temp",locVolhWithBord.nastyConvert(),spincolor);
     inv_tmclovDee_or_oo_eos(temp,invCl_evn,false,source_eos[EVN]);
     
     //Equation (8.b)
-    spincolor *varphi=nissa_malloc("varphi",(locVolh+bord_volh).nastyConvert(),spincolor);
+    spincolor *varphi=nissa_malloc("varphi",locVolhWithBord.nastyConvert(),spincolor);
     inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,temp,source_eos[ODD]);
     
     //Equation (9) using solution_eos[EVN] as temporary vector

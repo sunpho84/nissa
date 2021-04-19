@@ -155,7 +155,7 @@ namespace nissa
     spincolor *Wils;
     
     //fill to random
-    void fill(enum rnd_t rtype=RND_GAUSS,int twall=-1,int par=EVN,int dir=0)
+    void fill(enum rnd_t rtype=RND_GAUSS,int twall=-1,const Parity& par=EVN,const Direction& dir=0)
     {
       if(is_stag) generate_fully_undiluted_eo_source(stag,rtype,twall,par,dir);
       else generate_fully_undiluted_eo_source(Wils,rtype,twall,par,dir);
@@ -191,13 +191,13 @@ namespace nissa
       
       if(is_stag)
 	{
-	  stag=nissa_malloc(name,(locVolh+bord_volh).nastyConvert(),color);
+	  stag=nissa_malloc(name,locVolhWithBord.nastyConvert(),color);
 	  double_ptr=(double*)stag;
 	  ndoubles=locVolh()*NCOL*2;
 	}
       else
 	{
-	  Wils=nissa_malloc(name,(locVolh+bord_volh).nastyConvert(),spincolor);
+	  Wils=nissa_malloc(name,locVolhWithBord.nastyConvert(),spincolor);
 	  double_ptr=(double*)Wils;
 	  ndoubles=locVolh()*4*NCOL*2;
 	}

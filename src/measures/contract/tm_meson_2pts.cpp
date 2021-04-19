@@ -11,7 +11,7 @@ namespace nissa
 					 spincolor *bw,
 					 spincolor *fw,
 					 const int& igamma,
-					 const int source_coord)
+					 const GlbCoord& source_coord)
   {
     /// Local storage
     complex *loc_contr=get_reducing_buffer<complex>(locVol());
@@ -29,16 +29,16 @@ namespace nissa
     THREAD_BARRIER();
     
     /// Temporary contraction
-    complex unshiftedGlbContr[glbSize[0]];
-    glb_reduce(unshiftedGlbContr,loc_contr,locVol(),glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
+    complex unshiftedGlbContr[glbTimeSize.nastyConvert()];
+    glb_reduce(unshiftedGlbContr,loc_contr,locVol(),glbTimeSize(),locTimeSize(),glbCoordOfLoclx(LocLxSite(0),timeDirection)());
     
-    for(int glb_t=0;glb_t<glbSize[0];glb_t++)
+    for(GlbCoord glb_t=0;glb_t<glbTimeSize;glb_t++)
       {
 	/// Distance from source
-	const int dt=
-	  (glb_t-source_coord+glbSize[0])%glbSize[0];
+	const GlbCoord dt=
+	  (glb_t-source_coord+glbTimeSize)%glbTimeSize;
 	
-	complex_copy(contr[dt],unshiftedGlbContr[glb_t]);
+	complex_copy(contr[dt()],unshiftedGlbContr[glb_t.nastyConvert()]);
       }
     
   }

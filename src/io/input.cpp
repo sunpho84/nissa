@@ -275,13 +275,13 @@ namespace nissa
   }
   
   //Read 4 doubles checking the tag
-  void read_str_momentum_t(const char *exp_str,momentum_t in)
+  void read_str_momentum_t(const char *exp_str,Momentum& in)
   {
     expect_str(exp_str);
-    for(int i=0;i<4;i++)
-      read_double(in+i);
+    FOR_ALL_DIRECTIONS(i)
+      read_double(&in(i));
     
-    verbosity_lv1_master_printf("Read variable '%s' with value: %.16lg %.16lg %.16lg %.16lg\n",exp_str,in[0],in[1],in[2],in[3]);
+    verbosity_lv1_master_printf("Read variable '%s' with value: %.16lg %.16lg %.16lg %.16lg\n",exp_str,in(Direction(0)),in(xDirection),in(yDirection),in(zDirection));
   }
   
   //Read a double checking the tag
@@ -417,8 +417,10 @@ namespace nissa
 	crash("unkwnon how to print %s",type.c_str());
       }
       const std::string get_tag(int &a){return "%d";}
+      const std::string get_tag(bool &a){return "%d";}
       
-      template <class T> triple_tag(std::string name,T &val) : name(name),type(get_tag(val)),size(sizeof(T)),pointer(&val) {}
+      template <class T> triple_tag(std::string name,T &val) :
+	name(name),type(get_tag(val)),size(sizeof(T)),pointer(&val) {}
     };
   }
   
@@ -434,10 +436,10 @@ namespace nissa
     tags.push_back(triple_tag("use_async_communications",      use_async_communications));
     tags.push_back(triple_tag("warn_if_not_disallocated",      warn_if_not_disallocated));
     tags.push_back(triple_tag("warn_if_not_communicated",      warn_if_not_communicated));
-    tags.push_back(triple_tag("set_t_nranks",		       fix_nranks[0]));
-    tags.push_back(triple_tag("set_x_nranks",		       fix_nranks[1]));
-    tags.push_back(triple_tag("set_y_nranks",		       fix_nranks[2]));
-    tags.push_back(triple_tag("set_z_nranks",		       fix_nranks[3]));
+    tags.push_back(triple_tag("set_t_nranks",		       fix_nranks(Direction(0))()));
+    tags.push_back(triple_tag("set_x_nranks",		       fix_nranks(xDirection)()));
+    tags.push_back(triple_tag("set_y_nranks",		       fix_nranks(yDirection)()));
+    tags.push_back(triple_tag("set_z_nranks",		       fix_nranks(zDirection)()));
     tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
     tags.push_back(triple_tag("perform_benchmark",             perform_benchmark));
 #if HIGH_PREC_TYPE==GMP_HIGH_PREC

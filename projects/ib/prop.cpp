@@ -33,7 +33,7 @@ namespace nissa
   }
   
   //get a propagator inverting on "in"
-  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,double residue,double *theta)
+  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double charge,double residue,const Momentum& theta)
   {
     
     //rotate the source index - the propagator rotate AS the sign of mass term
@@ -92,23 +92,23 @@ namespace nissa
 	
 	//compute relative coords
 	bool is_spat_orig=true;
-	coords rel_c;
-	for(int mu=0;mu<NDIM;mu++)
+	GlbCoords rel_c;
+	FOR_ALL_SPATIAL_DIRECTIONS(mu)
 	  {
-	    rel_c[mu]=rel_coord_of_loclx(ivol,mu);
-	    if(mu) is_spat_orig&=(rel_c[mu]==0);
+	    rel_c(mu)=rel_coord_of_loclx(ivol,mu);
+	    if(mu()) is_spat_orig&=(rel_c(mu)==0);
 	  }
 	
 	//dilute in space
 	int mask=1;
-	for(int mu=0;mu<NDIM;mu++) mask&=(rel_c[mu]%diluted_spat_source==0);
+	FOR_ALL_SPATIAL_DIRECTIONS(mu) mask&=(rel_c(mu)%diluted_spat_source==0);
 	
 	//fill colour and spin index 0
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
-	      if(stoch_source and mask and (sou->tins==-1 or rel_c[0]==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol.nastyConvert()]),sou->noise_type);
-	      if(!stoch_source and is_spat_orig and (sou->tins==-1 or rel_c[0]==sou->tins)) complex_put_to_real(c[id_si][ic_si],1);
+	      if(stoch_source and mask and (sou->tins==-1 or rel_c(timeDirection)==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol.nastyConvert()]),sou->noise_type);
+	      if(!stoch_source and is_spat_orig and (sou->tins==-1 or rel_c(timeDirection)==sou->tins)) complex_put_to_real(c[id_si][ic_si],1);
 	    }
 	
 	//fill other spin indices
@@ -136,21 +136,20 @@ namespace nissa
   }
   
   //insert the photon on the source side
-  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool* dirs)
+  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,const GlbCoord& t,const Coords<bool>& dirs)
   {
-    
     if(in==out) crash("in==out");
     
     vector_reset(out);
     
-    for(int mu=0;mu<NDIM;mu++)
-      if(dirs[mu])
+    FOR_ALL_SPATIAL_DIRECTIONS(mu)
+      if(dirs(mu))
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  if(t==-1 or glbCoordOfLoclx[ivol.nastyConvert()][0]==t)
+	  if(t==-1 or glbCoordOfLoclx(ivol,timeDirection)==t)
 	    {
 	      spincolor temp1,temp2;
-	      unsafe_dirac_prod_spincolor(temp1,base_gamma+igamma_of_mu[mu],in[ivol.nastyConvert()]);
-	      unsafe_spincolor_prod_complex(temp2,temp1,curr[ivol.nastyConvert()][mu]);
+	      unsafe_dirac_prod_spincolor(temp1,base_gamma+igamma_of_mu(mu),in[ivol.nastyConvert()]);
+	      unsafe_spincolor_prod_complex(temp2,temp1,curr[ivol.nastyConvert()][mu.nastyConvert()]);
 	      spincolor_summ_the_prod_idouble(out[ivol.nastyConvert()],temp2,1);
 	    }
     NISSA_PARALLEL_LOOP_END;
@@ -159,7 +158,7 @@ namespace nissa
   }
   
   //insert the external source
-  void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc)
+  void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,const GlbCoord& t,int r,const Coords<bool>& dirs,int loc)
   {
     if(loc) insert_external_loc_source(out,curr,ori,t,dirs);
     else
@@ -168,14 +167,14 @@ namespace nissa
   }
   
   //insert the tadpole
-  void insert_tadpole(spincolor *out,quad_su3 *conf,spincolor *ori,int t,int r)
+  void insert_tadpole(spincolor *out,quad_su3 *conf,spincolor *ori,const GlbCoord& t,int r)
   {
     if(twisted_run>0) insert_tm_tadpole(loop_source,conf,ori,r,tadpole,t);
     else              insert_Wilson_tadpole(loop_source,conf,ori,tadpole,t);
   }
   
   //insert the conserved current
-  void insert_conserved_current(spincolor *out,quad_su3 *conf,spincolor *ori,int t,int r,bool *dirs)
+  void insert_conserved_current(spincolor *out,quad_su3 *conf,spincolor *ori,const GlbCoord& t,int r,const Coords<bool>& dirs)
   {
     if(twisted_run>0) insert_tm_conserved_current(loop_source,conf,ori,r,dirs,t);
     else              insert_Wilson_conserved_current(loop_source,conf,ori,dirs,t);
@@ -183,7 +182,7 @@ namespace nissa
   
   //smear the propagator
   template <typename T>
-  void smear_prop(spincolor *out,quad_su3 *conf,spincolor *ori,int t,T kappa,int nlevels)
+  void smear_prop(spincolor *out,quad_su3 *conf,spincolor *ori,const GlbCoord& t,const T& kappa,int nlevels)
   {
     
     //nb: the smearing radius is given by
@@ -198,24 +197,26 @@ namespace nissa
   }
   
   //phase the propagator
-  void phase_prop(spincolor* out,spincolor* ori,int t,double* th)
+  void phase_prop(spincolor* out,spincolor* ori,const GlbCoord& t,const Momentum& th)
   {
-    
-    for(int mu=1;mu<NDIM;mu++) if(fabs((int)(th[mu]/2)-th[mu]/2)>1e-10) crash("Error: phase %lg must be an even integer",th[mu]);
+    FOR_ALL_SPATIAL_DIRECTIONS(mu)
+      if(fabs((int)(th(mu)/2)-th(mu)/2)>1e-10)
+	crash("Error: phase %lg must be an even integer",th(mu));
     
     vector_reset(out);
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute x*p
 	double arg=0.0;
-	for(int mu=1;mu<NDIM;mu++) arg+=M_PI*th[mu]*rel_coord_of_loclx(ivol,mu)/glbSize[mu]; //N.B: valid only if source is on origin...
+	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	  arg+=M_PI*th(mu)*rel_coord_of_loclx(ivol,mu)()/glbSize(mu)(); //N.B: valid only if source is on origin...
 	
 	//compute exp(ip)
 	complex factor;
 	complex_iexp(factor,arg);
 	
 	//put the phase
-	if(t==-1 or glbCoordOfLoclx[ivol.nastyConvert()][0]==t)
+	if(t==-1 or glbCoordOfLoclx(ivol,timeDirection)==t)
 	  unsafe_spincolor_prod_complex(out[ivol.nastyConvert()],ori[ivol.nastyConvert()],factor);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -224,7 +225,7 @@ namespace nissa
   }
   
   //backward flow the propagator
-  void back_flow_prop(spincolor* out,quad_su3* conf,spincolor* ori,int t,double dt,int nflows)
+  void back_flow_prop(spincolor* out,quad_su3* conf,spincolor* ori,const GlbCoord& t,double dt,int nflows)
   {
     
     START_TIMING(bflw_time,nbflw_tot);
@@ -263,7 +264,7 @@ namespace nissa
   }
   
   //flow the propagator
-  void flow_prop(spincolor* out,quad_su3* conf,spincolor* ori,int t,double dt,int nflows)
+  void flow_prop(spincolor* out,quad_su3* conf,spincolor* ori,const GlbCoord& t,double dt,int nflows)
   {
     
     START_TIMING(flw_time,nflw_tot);
@@ -310,12 +311,12 @@ namespace nissa
   }
   
   //generate a sequential source
-  void generate_source(insertion_t inser,char *ext_field_path,int r,double charge,double kappa,double* kappa_asymm,double *theta,std::vector<source_term_t>& source_terms,int isou,int t)
+  void generate_source(insertion_t inser,char *ext_field_path,int r,double charge,double kappa,const Momentum& kappa_asymm,const Momentum& theta,std::vector<source_term_t>& source_terms,int isou,const GlbCoord& t)
   {
     source_time-=take_time();
     
-    int rel_t=t;
-    if(rel_t!=-1) rel_t=(t+source_coord[0])%glbSize[0];
+    GlbCoord rel_t=t;
+    if(rel_t!=-1) rel_t=(t+source_coord(timeDirection))%glbSize(timeDirection);
     
     quad_su3 *conf;
     if(not is_smearing_ins(inser)) conf=get_updated_conf(charge,theta,glb_conf);
@@ -439,8 +440,8 @@ namespace nissa
 	  }
 	
 	//write info on mass and r
-	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta[1],q.theta[2],q.theta[3]);
-	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta[1],q.theta[2],q.theta[3]);
+	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta(xDirection),q.theta(yDirection),q.theta(zDirection));
+	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta(xDirection),q.theta(yDirection),q.theta(zDirection));
 	
 	//compute the inverse clover term, if needed
 	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
@@ -582,13 +583,14 @@ namespace nissa
       {
 	//sum_mu -sign*2*pi*p_mu*y_mu/L_mu
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++) arg+=-fft_sign*2*M_PI*glbCoordOfLoclx[imom.nastyConvert()][mu]*source_coord[mu]/glbSize[mu];
+	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	  arg+=-fft_sign*2*M_PI*glbCoordOfLoclx(imom,mu)()*source_coord(mu)()/glbSize(mu)();
 	
 	complex f={cos(arg),sin(arg)};
 	spincolor_prodassign_complex(qtilde[imom.nastyConvert()],f);
 	
 	// spincolor_put_to_zero(qtilde[imom]);
-	// for(int mu=0;mu<4;mu++) qtilde[imom][mu][0][0]=glb_coord_of_loclx[imom][mu];
+	// for(int mu=0;mu<4;mu++) qtilde[imom](mu)(timeDirection)(timeDirection)=glb_coord_of_loclx[imom](mu);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -606,23 +608,23 @@ namespace nissa
     if(not file_exists("mom_list.txt")) fout=open_file(path_list,"w");
     
     //store the list of filtered
-    std::set<int> list_of_filtered;;
+    std::set<GlbLxSite> list_of_filtered;;
     
     //scattering list
     all_to_all_scattering_list_t sl;
     for(auto &f : fft_mom_range_list)
-      for(int vol=vol_of_lx(f.first.width),ifilt=0;ifilt<vol;ifilt++)
+      for(GlbLxSite vol=vol_of_lx(f.first.width),ifilt=0;ifilt<vol;ifilt++)
 	{
 	  //gets the coordinate in the filtering volume
-	  coords c;
+	  GlbCoords c;
 	  coord_of_lx(c,ifilt,f.first.width);
 	  coord_summassign(c,f.first.offs,glbSize);
 	  
 	  //compute p~4/p~2^2
 	  double pt2=0,pt4=0;
-	  for(int mu=0;mu<NDIM;mu++)
+	  FOR_ALL_SPATIAL_DIRECTIONS(mu)
 	    {
-	      double pmu=M_PI*(2*c[mu]+(mu==0)*temporal_bc)/glbSize[mu];
+	      double pmu=M_PI*(2*c(mu)()+(mu==0)*temporal_bc)/glbSize(mu)();
 	      double ptmu=sin(pmu);
 	      pt2+=sqr(ptmu);
 	      pt4+=pow(ptmu,4.0);
@@ -633,27 +635,29 @@ namespace nissa
 	    for(int imir=0;imir<pow(2,NDIM);imir++)
 	      {
 		//get mirrorized
-		coords cmir;
-		for(int mu=0;mu<NDIM;mu++)
-		  cmir[mu]=get_mirrorized_site_coord(c[mu]+(mu==0 and get_bit(imir,0) and temporal_bc==ANTIPERIODIC_BC),mu,get_bit(imir,mu));
+		GlbCoords cmir;
+		FOR_ALL_SPATIAL_DIRECTIONS(mu)
+		  cmir(mu)=get_mirrorized_site_coord(c(mu)+(mu==0 and get_bit(imir,0) and temporal_bc==ANTIPERIODIC_BC),mu,get_bit(imir,mu()));
 		
 		//check if not already collected
-		int iglb=glblx_of_coord(cmir);
+		const GlbLxSite iglb=glblx_of_coord(cmir);
 		if(list_of_filtered.find(iglb)==list_of_filtered.end())
 		  {
 		    //print momentum coordinates
 		    if(fout)
 		      {
-			for(int mu=0;mu<NDIM;mu++)
-			  if(cmir[mu]<glbSize[mu]/2) master_fprintf(fout,"%d ",cmir[mu]);
-			  else                        master_fprintf(fout,"%d ",cmir[mu]-glbSize[mu]);
+			FOR_ALL_SPATIAL_DIRECTIONS(mu)
+			  if(cmir(mu)<glbSize(mu)/2) master_fprintf(fout,"%d ",cmir(mu));
+			  else                        master_fprintf(fout,"%d ",cmir(mu)-glbSize(mu));
 			master_fprintf(fout,"\n");
 		      }
 		    
 		    //search where data is stored
-		    int wrank,iloc;
-		    get_loclx_and_rank_of_coord(&iloc,&wrank,cmir); //the remapper will leave holes
-		    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks));
+		    Rank wrank;
+		    LocLxSite iloc;
+		    get_loclx_and_rank_of_coord(iloc,wrank,cmir); //the remapper will leave holes
+		    if(rank==wrank)
+		      sl.push_back(std::make_pair(iloc(),list_of_filtered.size()*nranks));
 		    
 		    list_of_filtered.insert(iglb);
 		  }
@@ -701,21 +705,21 @@ namespace nissa
 	return std::make_tuple(res,eof);
       };
     
-    std::set<int> list_of_filtered;;
+    std::set<GlbLxSite> list_of_filtered;;
     
     all_to_all_scattering_list_t sl;
     bool ended=false;
     while(not ended)
       {
-	coords c;
-	for(int mu=0;mu<NDIM;mu++)
+	GlbCoords c;
+	FOR_ALL_SPATIAL_DIRECTIONS(mu)
 	  {
 	    int cmu;
 	    bool emu;
 	    
 	    std::tie(cmu,emu)=do_on_master(read_int);
 	    
-	    c[mu]=(cmu+glbSize[mu])%glbSize[mu];
+	    c(mu)=(cmu+glbSize(mu))%glbSize(mu);
 	    
 	    ended|=emu;
 	  }
@@ -723,11 +727,13 @@ namespace nissa
 	if(not ended)
 	  {
 	    //search where data is stored
-	    int wrank,iloc;
-	    get_loclx_and_rank_of_coord(&iloc,&wrank,c);
-	    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks));
+	    Rank wrank;
+	    LocLxSite iloc;
+	    get_loclx_and_rank_of_coord(iloc,wrank,c);
+	    if(rank==wrank)
+	      sl.push_back(std::make_pair(iloc(),list_of_filtered.size()*nranks));
 	    
-	    int iglb=glblx_of_coord(c);
+	    const GlbLxSite iglb=glblx_of_coord(c);
 	    list_of_filtered.insert(iglb);
 	  }
       }

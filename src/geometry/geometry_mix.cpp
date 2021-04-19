@@ -22,7 +22,7 @@ namespace nissa
     
     //split
     NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      memcpy((char*)(out_eo[loclx_parity[loclx.nastyConvert()]])+bps*loceo_of_loclx[loclx.nastyConvert()],(char*)in_lx+(bps*loclx).nastyConvert(),bps);
+      memcpy((char*)(out_eo[loclx_parity(loclx).nastyConvert()])+bps*loceo_of_loclx(loclx)(),(char*)in_lx+(bps*loclx).nastyConvert(),bps);
     NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);
@@ -32,15 +32,15 @@ namespace nissa
   }
   
   //separate the even and odd part of a vector
-  void get_evn_or_odd_part_of_lx_vector_internal(void* out_ev_or_od,void* in_lx,int64_t bps,int par)
+  void get_evn_or_odd_part_of_lx_vector_internal(void* out_ev_or_od,void* in_lx,int64_t bps,const Parity& par)
   {
-    
     START_TIMING(remap_time,nremap);
     
+    crash("This is wrong");
     //get
     NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      if(loclx_parity[loclx.nastyConvert()]==par)
-	memcpy((char*)out_ev_or_od+bps*loceo_of_loclx[loclx.nastyConvert()],(char*)in_lx+(bps*loclx).nastyConvert(),bps);
+      if(loclx_parity(loclx)==par)
+	memcpy((char*)out_ev_or_od+bps*loceo_of_loclx(loclx)(),(char*)in_lx+bps*loclx(),bps);
     NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);
@@ -53,11 +53,11 @@ namespace nissa
   {
     
     START_TIMING(remap_time,nremap);
-    
+    crash("This is wrong");
     //paste
-    for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(eo,0,locVolh)
-	memcpy((char*)out_lx+bps*loclx_of_loceo[par][eo.nastyConvert()],(char*)(in_eo[par])+bps*eo.nastyConvert(),bps);
+    FOR_BOTH_PARITIES(par)
+      NISSA_PARALLEL_LOOP(loceo,0,locVolh)
+      memcpy((char*)out_lx+bps*loclx_of_loceo(par,loceo)(),(char*)(in_eo[par.nastyConvert()])+bps*loceo(),bps); 
     NISSA_PARALLEL_LOOP_END;
     
     STOP_TIMING(remap_time);

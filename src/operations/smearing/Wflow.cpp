@@ -15,7 +15,7 @@ namespace nissa
   namespace Wflow
   {
     //we add with the new weight the previous one multiplied by the old weight
-    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,bool *dirs,int iter)
+    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,const Coords<bool>& dirs,int iter)
     {
       
       communicate_lx_quad_su3_edges(conf);
@@ -27,7 +27,7 @@ namespace nissa
       //add the new argument of the exponential to the old one
       NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	FOR_ALL_DIRECTIONS(mu)
-	  if(dirs[mu.nastyConvert()])
+	  if(dirs(mu))
 	    {
 	      //compute the new contribution
 	      su3 staple,temp;
@@ -60,17 +60,17 @@ namespace nissa
     }
     
     //update the conf according to exp(i arg) conf_
-    void update_conf(quad_su3 *arg,quad_su3 *conf,bool *dirs)
+    void update_conf(quad_su3 *arg,quad_su3 *conf,const Coords<bool>& dirs)
     {
       
       //integrate
       NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	for(int mu=0;mu<NDIM;mu++)
-	  if(dirs[mu])
+	FOR_ALL_DIRECTIONS(mu)
+	  if(dirs(mu))
 	    {
 	      su3 expiQ;
-	      safe_hermitian_exact_i_exponentiate(expiQ,arg[ivol.nastyConvert()][mu]);
-	      safe_su3_prod_su3(conf[ivol.nastyConvert()][mu],expiQ,conf[ivol.nastyConvert()][mu]);
+	      safe_hermitian_exact_i_exponentiate(expiQ,arg[ivol.nastyConvert()][mu.nastyConvert()]);
+	      safe_su3_prod_su3(conf[ivol.nastyConvert()][mu.nastyConvert()],expiQ,conf[ivol.nastyConvert()][mu.nastyConvert()]);
 	    }
       NISSA_PARALLEL_LOOP_END;
       set_borders_invalid(conf);
@@ -78,7 +78,7 @@ namespace nissa
   }
   
   //flow for the given time for a dt using 1006.4518 appendix C
-  void Wflow_lx_conf(quad_su3* conf,double dt,bool* dirs)
+  void Wflow_lx_conf(quad_su3* conf,double dt,const Coords<bool>& dirs)
   {
     //storage for staples
     quad_su3 *arg=nissa_malloc("arg",locVol.nastyConvert(),quad_su3);

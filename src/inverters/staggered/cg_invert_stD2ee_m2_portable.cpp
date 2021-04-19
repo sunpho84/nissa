@@ -12,7 +12,7 @@
 #define BASETYPE color
 #define NDOUBLES_PER_SITE 6
 #define BULK_VOL locVolh.nastyConvert()
-#define BORD_VOL bord_volh
+#define BORD_VOL bordVolh.nastyConvert()
 
 #define APPLY_OPERATOR apply_stD2ee_m2
 #define CG_OPERATOR_PARAMETERS conf,t,m2,

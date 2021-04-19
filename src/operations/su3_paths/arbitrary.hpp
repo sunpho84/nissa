@@ -22,12 +22,16 @@ namespace nissa
     int mov;
     int link_id;
     int ord;
-    void set(int ext_mov,int gx,int mu){
+    void set(int ext_mov,const GlbLxSite& gx,const Direction& mu)
+    {
       mov=ext_mov;
-      link_id=gx*4+mu;
-      int lx,rx;
-      get_loclx_and_rank_of_glblx(&lx,&rx,gx);
-      ord=((rank+nranks-rx)%nranks*locVol.nastyConvert()+lx)*4+mu; //sort according to recv rank
+      link_id=gx()*NDIM+mu();
+      LocLxSite lx;
+      Rank rx;
+      GlbCoords gc;
+      glb_coord_of_glblx(gc,gx);
+      get_loclx_and_rank_of_coord(lx,rx,gc);
+      ord=((rank+nranks-rx())%nranks*locVol.nastyConvert()+lx())*NDIM+mu(); //sort according to recv rank
     }
   };
   
@@ -88,7 +92,8 @@ namespace nissa
     
     //current global movement (link), path and position
     int cur_path,cur_mov;
-    int pos;
+    
+    GlbLxSite pos;
     
     //relevant for MPI part
     int finished_last_path_flag;
@@ -121,8 +126,8 @@ namespace nissa
       link_for_movements[cur_mov]=0;
     }
     
-    void move_forward(int mu);
-    void move_backward(int mu);
+    void move_forward(const Direction& mu);
+    void move_backward(const Direction& mu);
     void stop_current_path()
     {
       cur_path++;
@@ -146,20 +151,48 @@ namespace nissa
   
   ////////////////////////////////////////////////////////////
   
-  struct coords_t{
-    coords c;
-    int &operator[](int i){return c[i];}
-    bool operator==(coords_t in){bool out=true;for(int i=0;i<NDIM;i++) out&=(c[i]==in.c[i]);return out;}
-    bool operator!=(coords_t i){return !((*this)==i);}
-    coords_t(){memset(c,0,sizeof(coords));}
-    coords_t(const coords_t &o){memcpy(c,o.c,sizeof(coords));}
+  struct Movement // nasty
+  {
+    GlbCoords c;
+    
+    GlbCoord& operator[](const Direction& i)
+    {
+      return c(i);
+    }
+    
+    bool operator==(const Movement& in) const
+    {
+      bool out=true;
+      
+      for(Direction mu=0;mu<NDIM;mu++)
+	out&=(c(mu)==in.c(mu));
+      
+      return out;
+    }
+    
+    bool operator!=(const Movement& oth) const
+    {
+      return not ((*this)==oth);
+    }
+    
+    Movement()
+    {
+      for(Direction mu=0;mu<NDIM;mu++)
+	c(mu)=0;
+    }
+    
+    Movement(const Movement &oth)
+    {
+      c.nastyCopy(oth.c);
+    }
   };
-  typedef std::deque<coords_t> path_drawing_t;
+  
+  typedef std::deque<Movement> path_drawing_t;
   
   void init_su3_path(path_drawing_t *c,su3 *out);
-  void elong_su3_path_BW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,bool both_sides=false);
-  void elong_su3_path_FW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,bool both_sides=false);
-  void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,int len,bool both_sides=false);
+  void elong_su3_path_BW(path_drawing_t *c,su3 *out,quad_su3 *conf,const Direction& mu,bool both_sides=false);
+  void elong_su3_path_FW(path_drawing_t *c,su3 *out,quad_su3 *conf,const Direction& mu,bool both_sides=false);
+  void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,const Direction& mu,int len,bool both_sides=false);
   
   //direction and length
   typedef std::pair<int,int> path_step_pars_t;

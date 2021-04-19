@@ -17,105 +17,104 @@ namespace nissa
   //Refers to the doc: "doc/eo_inverter.lyx" for explenations
   
   //apply even-odd or odd-even part of tmD, multiplied by -2
-  void tmn2Deo_or_tmn2Doe_eos_128(spincolor_128* out,eo_ptr<quad_su3> conf,int eooe,spincolor_128* in)
+  void tmn2Deo_or_tmn2Doe_eos_128(spincolor_128* out,eo_ptr<quad_su3> conf,const Parity& eooe,spincolor_128* in)
   {
     communicate_ev_and_od_quad_su3_borders(conf);
     
     if(eooe==0) communicate_od_spincolor_128_borders(in);
     else        communicate_ev_spincolor_128_borders(in);
     
-    NISSA_PARALLEL_LOOP(_X,0,locVolh)
+    NISSA_PARALLEL_LOOP(X,0,locVolh)
       {
-	const auto X=_X.nastyConvert();
 	/////////////////////////////////////////////////////////////////
 	int Xup,Xdw;
 	color_128 temp_c0,temp_c1,temp_c2,temp_c3;
 	
 	//Forward 0
-	Xup=loceo_neighup[eooe][X](Direction(0)).nastyConvert();
+	Xup=loceo_neighup(eooe,X,Direction(0)).nastyConvert();
 	color_128_summ(temp_c0,in[Xup][0],in[Xup][2]);
 	color_128_summ(temp_c1,in[Xup][1],in[Xup][3]);
-	unsafe_su3_prod_color_128(out[X][0],conf[eooe][X][0],temp_c0);
-	unsafe_su3_prod_color_128(out[X][1],conf[eooe][X][0],temp_c1);
-	color_128_copy(out[X][2],out[X][0]);
-	color_128_copy(out[X][3],out[X][1]);
+	unsafe_su3_prod_color_128(out[X.nastyConvert()][0],conf[eooe.nastyConvert()][X.nastyConvert()][0],temp_c0);
+	unsafe_su3_prod_color_128(out[X.nastyConvert()][1],conf[eooe.nastyConvert()][X.nastyConvert()][0],temp_c1);
+	color_128_copy(out[X.nastyConvert()][2],out[X.nastyConvert()][0]);
+	color_128_copy(out[X.nastyConvert()][3],out[X.nastyConvert()][1]);
 	
 	//Backward 0
-	Xdw=loceo_neighdw[eooe][X](Direction(0)).nastyConvert();
+	Xdw=loceo_neighdw(eooe,X,Direction(0)).nastyConvert();
 	color_128_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
 	color_128_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
-	unsafe_su3_dag_prod_color_128(temp_c2,conf[!eooe][Xdw][0],temp_c0);
-	unsafe_su3_dag_prod_color_128(temp_c3,conf[!eooe][Xdw][0],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_subtassign(out[X][2],temp_c2);
-	color_128_subtassign(out[X][3],temp_c3);
+	unsafe_su3_dag_prod_color_128(temp_c2,conf[(1-eooe).nastyConvert()][Xdw][0],temp_c0);
+	unsafe_su3_dag_prod_color_128(temp_c3,conf[(1-eooe).nastyConvert()][Xdw][0],temp_c1);
+	color_128_summassign(out[X.nastyConvert()][0],temp_c2);
+	color_128_summassign(out[X.nastyConvert()][1],temp_c3);
+	color_128_subtassign(out[X.nastyConvert()][2],temp_c2);
+	color_128_subtassign(out[X.nastyConvert()][3],temp_c3);
 	
 	//Forward 1
-	Xup=loceo_neighup[eooe][X](Direction(1)).nastyConvert();
+	Xup=loceo_neighup(eooe,X,xDirection).nastyConvert();
 	color_128_isumm(temp_c0,in[Xup][0],in[Xup][3]);
 	color_128_isumm(temp_c1,in[Xup][1],in[Xup][2]);
-	unsafe_su3_prod_color_128(temp_c2,conf[eooe][X][1],temp_c0);
-	unsafe_su3_prod_color_128(temp_c3,conf[eooe][X][1],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_isubtassign(out[X][2],temp_c3);
-	color_128_isubtassign(out[X][3],temp_c2);
+	unsafe_su3_prod_color_128(temp_c2,conf[eooe.nastyConvert()][X.nastyConvert()][1],temp_c0);
+	unsafe_su3_prod_color_128(temp_c3,conf[eooe.nastyConvert()][X.nastyConvert()][1],temp_c1);
+	color_128_summassign(out[X.nastyConvert()][0],temp_c2);
+	color_128_summassign(out[X.nastyConvert()][1],temp_c3);
+	color_128_isubtassign(out[X.nastyConvert()][2],temp_c3);
+	color_128_isubtassign(out[X.nastyConvert()][3],temp_c2);
 	
 	//Backward 1
-	Xdw=loceo_neighdw[eooe][X](Direction(1)).nastyConvert();
+	Xdw=loceo_neighdw(eooe,X,xDirection).nastyConvert();
 	color_128_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
 	color_128_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
-	unsafe_su3_dag_prod_color_128(temp_c2,conf[!eooe][Xdw][1],temp_c0);
-	unsafe_su3_dag_prod_color_128(temp_c3,conf[!eooe][Xdw][1],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_isummassign(out[X][2],temp_c3);
-	color_128_isummassign(out[X][3],temp_c2);
+	unsafe_su3_dag_prod_color_128(temp_c2,conf[(1-eooe).nastyConvert()][Xdw][1],temp_c0);
+	unsafe_su3_dag_prod_color_128(temp_c3,conf[(1-eooe).nastyConvert()][Xdw][1],temp_c1);
+	color_128_summassign(out[X.nastyConvert()][0],temp_c2);
+	color_128_summassign(out[X.nastyConvert()][1],temp_c3);
+	color_128_isummassign(out[X.nastyConvert()][2],temp_c3);
+	color_128_isummassign(out[X.nastyConvert()][3],temp_c2);
 	
 	//Forward 2
-	Xup=loceo_neighup[eooe][X](Direction(2)).nastyConvert();
+	Xup=loceo_neighup(eooe,X,yDirection).nastyConvert();
 	color_128_summ(temp_c0,in[Xup][0],in[Xup][3]);
 	color_128_subt(temp_c1,in[Xup][1],in[Xup][2]);
-	unsafe_su3_prod_color_128(temp_c2,conf[eooe][X][2],temp_c0);
-	unsafe_su3_prod_color_128(temp_c3,conf[eooe][X][2],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_subtassign(out[X][2],temp_c3);
-	color_128_summassign(out[X][3],temp_c2);
+	unsafe_su3_prod_color_128(temp_c2,conf[eooe.nastyConvert()][X.nastyConvert()][2],temp_c0);
+	unsafe_su3_prod_color_128(temp_c3,conf[eooe.nastyConvert()][X.nastyConvert()][2],temp_c1);
+	color_128_summassign(out[X.nastyConvert()][0],temp_c2);
+	color_128_summassign(out[X.nastyConvert()][1],temp_c3);
+	color_128_subtassign(out[X.nastyConvert()][2],temp_c3);
+	color_128_summassign(out[X.nastyConvert()][3],temp_c2);
 	
 	//Backward 2
-	Xdw=loceo_neighdw[eooe][X](Direction(2)).nastyConvert();
+	Xdw=loceo_neighdw(eooe,X,yDirection).nastyConvert();
 	color_128_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
 	color_128_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
-	unsafe_su3_dag_prod_color_128(temp_c2,conf[!eooe][Xdw][2],temp_c0);
-	unsafe_su3_dag_prod_color_128(temp_c3,conf[!eooe][Xdw][2],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_summassign(out[X][2],temp_c3);
-	color_128_subtassign(out[X][3],temp_c2);
+	unsafe_su3_dag_prod_color_128(temp_c2,conf[(1-eooe).nastyConvert()][Xdw][2],temp_c0);
+	unsafe_su3_dag_prod_color_128(temp_c3,conf[(1-eooe).nastyConvert()][Xdw][2],temp_c1);
+	color_128_summassign(out[X.nastyConvert()][0],temp_c2);
+	color_128_summassign(out[X.nastyConvert()][1],temp_c3);
+	color_128_summassign(out[X.nastyConvert()][2],temp_c3);
+	color_128_subtassign(out[X.nastyConvert()][3],temp_c2);
 	
 	//Forward 3
-	Xup=loceo_neighup[eooe][X](Direction(3)).nastyConvert();
+	Xup=loceo_neighup(eooe,X,zDirection).nastyConvert();
 	color_128_isumm(temp_c0,in[Xup][0],in[Xup][2]);
 	color_128_isubt(temp_c1,in[Xup][1],in[Xup][3]);
-	unsafe_su3_prod_color_128(temp_c2,conf[eooe][X][3],temp_c0);
-	unsafe_su3_prod_color_128(temp_c3,conf[eooe][X][3],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_isubtassign(out[X][2],temp_c2);
-	color_128_isummassign(out[X][3],temp_c3);
+	unsafe_su3_prod_color_128(temp_c2,conf[eooe.nastyConvert()][X.nastyConvert()][3],temp_c0);
+	unsafe_su3_prod_color_128(temp_c3,conf[eooe.nastyConvert()][X.nastyConvert()][3],temp_c1);
+	color_128_summassign(out[X.nastyConvert()][0],temp_c2);
+	color_128_summassign(out[X.nastyConvert()][1],temp_c3);
+	color_128_isubtassign(out[X.nastyConvert()][2],temp_c2);
+	color_128_isummassign(out[X.nastyConvert()][3],temp_c3);
 	
 	//Backward 3
-	Xdw=loceo_neighdw[eooe][X](Direction(3)).nastyConvert();
+	Xdw=loceo_neighdw(eooe,X,zDirection).nastyConvert();
 	color_128_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
 	color_128_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
-	unsafe_su3_dag_prod_color_128(temp_c2,conf[!eooe][Xdw][3],temp_c0);
-	unsafe_su3_dag_prod_color_128(temp_c3,conf[!eooe][Xdw][3],temp_c1);
-	color_128_summassign(out[X][0],temp_c2);
-	color_128_summassign(out[X][1],temp_c3);
-	color_128_isummassign(out[X][2],temp_c2);
-	color_128_isubtassign(out[X][3],temp_c3);
+	unsafe_su3_dag_prod_color_128(temp_c2,conf[(1-eooe).nastyConvert()][Xdw][3],temp_c0);
+	unsafe_su3_dag_prod_color_128(temp_c3,conf[(1-eooe).nastyConvert()][Xdw][3],temp_c1);
+	color_128_summassign(out[X.nastyConvert()][0],temp_c2);
+	color_128_summassign(out[X.nastyConvert()][1],temp_c3);
+	color_128_isummassign(out[X.nastyConvert()][2],temp_c2);
+	color_128_isubtassign(out[X.nastyConvert()][3],temp_c3);
       }
     NISSA_PARALLEL_LOOP_END;
     

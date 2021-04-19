@@ -1,3 +1,4 @@
+
 #ifdef HAVE_CONFIG_H
 # include <config.hpp>
 #endif
@@ -90,6 +91,18 @@ namespace nissa
     return iglblx;
   }
   
+  /// Return the index of site of coord x in the 3d space obtained projecting away mu
+  LocLxSite spatLxOfProjectedCoords(const LocCoords& x,const Direction& mu)
+  {
+    LocLxSite ilx=0;
+    
+    FOR_ALL_DIRECTIONS(nu)
+      if(nu!=mu)
+	ilx=ilx*locSize(nu)+x(nu);
+    
+    return ilx;
+  }
+  
   //return the index of the site of passed "pseudolocal" coordinate
   //if the coordinates are local, return the index according to the function loclx_of_coord
   //if exactly one of the coordinate is just out return its index according to bordlx_of_coord, incremented of previous border and loc_vol
@@ -137,9 +150,14 @@ namespace nissa
 	
 	if(is)
 	  {
+	    /// Projected index
+	    const auto iInsideDirBoord=+spatLxOfProjectedCoords(x,mu)();
+	    const BordLxSite iInsideOrieBord=bord_offset(mu)+iInsideDirBoord;
+	    
 	    if(is_bord(mu)==-1)
-	      return (locVol()+bord_offset[mu()]+spatLxOfProjectedCoords(x,mu));             //backward border comes first
-	    if(is_bord(mu)==+1) return (locVolWithBord()/2+bord_offset[mu()]+spatLxOfProjectedCoords(x,mu));  //forward border comes after
+	      return extenedLocLxSiteOfBordLxSite(iInsideOrieBord);             //backward border comes first
+	    if(is_bord(mu)==+1)
+	      return extenedLocLxSiteOfBordLxSite(bordVol()/2+iInsideOrieBord);  //forward border comes after
 	    crash("if is bord should not arrive here");//nasty %d %d %d %d",ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
 	  }
       }
@@ -157,7 +175,7 @@ namespace nissa
 	  bool is=is_bord(mu) and is_bord(nu);
 #if NDIM>=3
 	  for(int irho=0;irho<NDIM-2;irho++)
-	    is&=(is_bord(perp2_dir[mu.nastyConvert()][inu][irho])==0);
+	    is&=(is_bord(Direction(perp2_dir[mu.nastyConvert()][inu][irho]))==0);
 #endif
 	  
 	  if(is)
@@ -167,7 +185,7 @@ namespace nissa
 	      if((is_bord(al)==-1) and (is_bord(be)==+1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+1*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
 	      if((is_bord(al)==+1) and (is_bord(be)==-1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+2*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
 	      if((is_bord(al)==+1) and (is_bord(be)==+1)) return (locVolWithBord+edge_offset[iedge].nastyConvert()+3*edge_vol.nastyConvert()/4+lineLxOfDoublyProjectedCoords(x,mu,nu)).nastyConvert();
-	      crash("Edge: %d, mu=%d, nu=%d %d %d %d %d",iedge,mu(),nu(),ext_x(Direction(0))(),ext_x(Direction(1))(),ext_x(Direction(2))(),ext_x(Direction(3))());
+	      crash("Edge: %d, mu=%d, nu=%d %d %d %d %d",iedge,mu(),nu(),ext_x(Direction(0))(),ext_x(xDirection)(),ext_x(yDirection)(),ext_x(zDirection)());
 	    }
 	}
     
@@ -275,6 +293,24 @@ namespace nissa
 	  loclxNeighup(ivol,mu)=nup;
 	  loclxNeighdw(ivol,mu)=ndw;
 	}
+  }
+  
+  GlbLxSite glblxNeighup(const GlbLxSite& gx,const Direction& mu)
+  {
+    GlbCoords c;
+    glb_coord_of_glblx(c,gx);
+    c(mu)=(c(mu)+1)%glbSize(mu);
+    
+    return glblx_of_coord(c);
+  }
+  
+  GlbLxSite glblxNeighdw(const GlbLxSite& gx,const Direction& mu)
+  {
+    GlbCoords c;
+    glb_coord_of_glblx(c,gx);
+    c(mu)=(c(mu)+glbSize(mu)-1)%glbSize(mu);
+    
+    return glblx_of_coord(c);
   }
   
   //finds how to fill the borders with opposite surface (up b->dw s)
@@ -429,23 +465,28 @@ namespace nissa
   //definitions of lexical ordered senders for edges
   void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base)
   {
+    const Direction T=0;
+    const Direction X=1;
+    const Direction Y=2;
+    const Direction Z=3;
+    
     //Various type useful for edges and sub-borders
     MPI_Datatype MPI_3_SLICE;
-    MPI_Type_contiguous(locSize(3)(),*base,&MPI_3_SLICE);
+    MPI_Type_contiguous(locSize(Z)(),*base,&MPI_3_SLICE);
     
     ///////////define the sender for the 6 kinds of edges////////////
-    //the 01 sender, that is simply a vector of L[2] vector of L[3] 
-      MPI_Type_contiguous(locSize(2)()*locSize(3)(),*base,&(MPI_EDGE_SEND[0]));
-      //the 02 sender is a vector of L[1] segment of length L[3] (already defined) separated by L[2] of them
-      MPI_Type_vector(locSize(1)(),1,locSize(2)(),MPI_3_SLICE,&(MPI_EDGE_SEND[1]));
-      //the 03 sender is a vector of length L[1]xL[2] of single elements, separated by L[3] of them
-      MPI_Type_vector(locSize(1)()*locSize(2)(),1,locSize(3)(),*base,&(MPI_EDGE_SEND[2]));
-      //the 12 sender should be equal to the 02 sender, with 1->0
-      MPI_Type_vector(locSize(0)(),1,locSize(2)(),MPI_3_SLICE,&(MPI_EDGE_SEND[3]));
-      //the 13 sender should be equal to the 03 sender, with 1->0
-      MPI_Type_vector(locSize(0)()*locSize(2)(),1,locSize(3)(),*base,&(MPI_EDGE_SEND[4]));
-      //the 23 sender should be equal to the 03 sender with 1<->2
-      MPI_Type_vector(locSize(0)()*locSize(1)(),1,locSize(3)(),*base,&(MPI_EDGE_SEND[5]));
+    //the 01 sender, that is simply a vector of L[Y] vector of L[Z] 
+      MPI_Type_contiguous(locSize(Y)()*locSize(Z)(),*base,&(MPI_EDGE_SEND[0]));
+      //the 0Y sender is a vector of L[1] segment of length L[Z] (already defined) separated by L[Y] of them
+      MPI_Type_vector(locSize(X)(),1,locSize(Y)(),MPI_3_SLICE,&(MPI_EDGE_SEND[1]));
+      //the 0Z sender is a vector of length L[1]xL[Y] of single elements, separated by L[Z] of them
+      MPI_Type_vector(locSize(X)()*locSize(Y)(),1,locSize(Z)(),*base,&(MPI_EDGE_SEND[2]));
+      //the 1Y sender should be equal to the 0Y sender, with 1->0
+      MPI_Type_vector(locSize(T)(),1,locSize(Y)(),MPI_3_SLICE,&(MPI_EDGE_SEND[3]));
+      //the 1Z sender should be equal to the 0Z sender, with 1->0
+      MPI_Type_vector(locSize(T)()*locSize(Y)(),1,locSize(Z)(),*base,&(MPI_EDGE_SEND[4]));
+      //the YZ sender should be equal to the 0Z sender with 1<->Y
+      MPI_Type_vector(locSize(T)()*locSize(X)(),1,locSize(Z)(),*base,&(MPI_EDGE_SEND[5]));
       //Commit
       for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGE_SEND[iedge]));
   }
@@ -492,15 +533,13 @@ namespace nissa
   //     }
   // }
   
-  //return the staggered phases for a given site
   CUDA_HOST_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol)
   {
-    ph(0)=1;
+    ph(timeDirection)=1;
     for(Direction mu=1;mu<NDIM;mu++)
       ph(mu)=ph(mu-1)*(1-2*(glbCoordOfLoclx(ivol,mu-1)()%2));
   }
   
-  //return the staggered phases for a given site
   CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,const Direction& mu)
   {
     int ph=1;

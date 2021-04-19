@@ -29,17 +29,20 @@ namespace nissa
   }
   
   //add a forward move
-  void paths_calculation_structure::move_forward(int mu)
+  void paths_calculation_structure::move_forward(const Direction& mu)
   {
     //check not to have passed the max number of steps
     if(cur_mov==ntot_mov) crash("exceded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
     //find global pos
-    int nx=glblx_neighup(pos,mu);
+    const GlbLxSite& nx=glblxNeighup(pos,mu);
     //search rank hosting site and loclx
-    int lx,rx;
-    get_loclx_and_rank_of_glblx(&lx,&rx,pos);
+    LocLxSite lx;
+    Rank rx;
+    get_loclx_and_rank_of_glblx(lx,rx,pos);
+    
     //if local link, mark it, otherwise add to the list of non-locals
-    if(rx==rank) link_for_movements[cur_mov]+=(lx*4+mu)<<nposs_path_flags;
+    if(rx==rank)
+      link_for_movements[cur_mov]+=(lx()*NDIM+mu())<<nposs_path_flags;
     else
       {
 	movements_nonloc_links_id_list=(movement_link_id*)realloc(movements_nonloc_links_id_list,sizeof(movement_link_id)*(nnonloc_links+1));
@@ -52,19 +55,22 @@ namespace nissa
   }
   
   //add a backward move
-  void paths_calculation_structure::move_backward(int mu)
+  void paths_calculation_structure::move_backward(const Direction& mu)
   {
     //mark backward move
     link_for_movements[cur_mov]+=DAG_LINK_FLAG;
     //check not to have passed the max number of steps
     if(cur_mov==ntot_mov) crash("exceeded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
+    
     //find global pos
-    int nx=glblx_neighdw(pos,mu);
+    const GlbLxSite& nx=glblxNeighdw(pos,mu);
     //search rank hosting site and loclx
-    int lx,rx;
-    get_loclx_and_rank_of_glblx(&lx,&rx,nx);
+    LocLxSite lx;
+    Rank rx;
+    get_loclx_and_rank_of_glblx(lx,rx,nx);
     //if local link, mark it, otherwise add to the list of non-locals
-    if(rx==rank) link_for_movements[cur_mov]+=(lx*4+mu)<<nposs_path_flags;
+    if(rx==rank)
+      link_for_movements[cur_mov]+=(lx()*NDIM+mu())<<nposs_path_flags;
     else
       {
 	movements_nonloc_links_id_list=(movement_link_id*)realloc(movements_nonloc_links_id_list,sizeof(movement_link_id)*(nnonloc_links+1));
@@ -127,8 +133,8 @@ namespace nissa
 	for(int ilink=0;ilink<nind_nonloc_links;ilink++)
 	  {
 	    int t=ind_nonloc_links_list[ilink];
-	    int gx=t>>2;
-	    int rx=rank_hosting_glblx(gx);
+	    const GlbLxSite gx=t>>2;
+	    const Rank rx=rank_hosting_glblx(gx);
 	    if(rx==rank_to_recv) nlinks_to_recv++;
 	  }
 	
@@ -144,17 +150,18 @@ namespace nissa
 	for(int ilink=0;ilink<nind_nonloc_links;ilink++)
 	  {
 	    int t=ind_nonloc_links_list[ilink];
-	    int gx=t>>2;
-	    int mu=t%4;
+	    const GlbLxSite gx=t>>2;
+	    const Direction& mu=t%4;
 	    
 	    //get lx and rank hosting the site
-	    int lx,rx;
-	    get_loclx_and_rank_of_glblx(&lx,&rx,gx);
+	    LocLxSite lx;
+	    Rank rx;
+	    get_loclx_and_rank_of_glblx(lx,rx,gx);
 	    
 	    //copy in the list if appropriate rank
 	    if(rx==rank_to_recv)
 	      {
-		links_to_ask[nlinks_to_recv]=lx*4+mu;
+		links_to_ask[nlinks_to_recv]=lx()*NDIM+mu();
 		nlinks_to_recv++;
 	      }
 	  }
@@ -270,9 +277,11 @@ namespace nissa
     for(int ilink=0;ilink<ntot_links_to_send;ilink++)
       {
 	int t=links_to_send_list[ilink];
-	int lx=t/4,mu=t%4;
-	int p=loclx_parity[lx],eo=loceo_of_loclx[lx];
-	su3_copy(send_buff[ilink],conf[p][eo][mu]);
+	const LocLxSite lx=t/NDIM;
+	const Direction mu=t%NDIM;
+	const Parity& p=loclx_parity(lx);
+	const LocEoSite& eo=loceo_of_loclx(lx);
+	su3_copy(send_buff[ilink],conf[p.nastyConvert()][eo.nastyConvert()][mu.nastyConvert()]);
       }
     
     //finish the communications
@@ -398,10 +407,12 @@ namespace nissa
 	if(nonloc) link=nonloc_links+ilink;
 	else
 	  {
-	    int lx=ilink/4,mu=ilink%4;
-	    int p=loclx_parity[lx],eo=loceo_of_loclx[lx];
+	    const LocLxSite& lx=ilink/NDIM;
+	    const Direction& mu=ilink%NDIM;
+	    const Parity& p=loclx_parity(lx);
+	    const LocEoSite& eo=loceo_of_loclx(lx);
 	    
-	    link=conf[p][eo]+mu;
+	    link=conf[p.nastyConvert()][eo.nastyConvert()]+mu.nastyConvert();
 	  }
 	
 	//multiply for the link or the link daggered
@@ -426,7 +437,8 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       su3_put_to_id(out[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
-    coords_t t;
+    
+    Movement t;
     c->push_back(t);
     
     set_borders_invalid(out);
@@ -442,7 +454,7 @@ namespace nissa
   }
   
   //elong backward
-  void elong_su3_path_BW(path_drawing_t* c,su3* out,quad_su3* conf,int mu,bool both_sides)
+  void elong_su3_path_BW(path_drawing_t* c,su3* out,quad_su3* conf,const Direction& mu,bool both_sides)
   {
     
     if(both_sides) crash_if_end_diff_from_start(c);
@@ -454,19 +466,19 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    su3 temp;
-	    unsafe_su3_prod_su3_dag(temp,out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu]);
-	    unsafe_su3_prod_su3(out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu],temp);
+	    unsafe_su3_prod_su3_dag(temp,out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu.nastyConvert()]);
+	    unsafe_su3_prod_su3(out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu.nastyConvert()],temp);
 	  }
 	NISSA_PARALLEL_LOOP_END;
       }
     else
       {
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  safe_su3_prod_su3_dag(out[ivol.nastyConvert()],out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu]);
+	  safe_su3_prod_su3_dag(out[ivol.nastyConvert()],out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu.nastyConvert()]);
 	NISSA_PARALLEL_LOOP_END;
       }
     
-    coords_t t(c->back());
+    Movement t(c->back());
     t[mu]--;
     c->push_back(t);
     if(both_sides) c->push_front(t);
@@ -475,7 +487,7 @@ namespace nissa
   }
   
   //elong forward
-  void elong_su3_path_FW(path_drawing_t* c,su3* out,quad_su3* conf,int mu,bool both_sides)
+  void elong_su3_path_FW(path_drawing_t* c,su3* out,quad_su3* conf,const Direction& mu,bool both_sides)
   {
     
     if(both_sides) crash_if_end_diff_from_start(c);
@@ -485,20 +497,20 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
 	    su3 temp;
-	    unsafe_su3_prod_su3(temp,out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu]);
-	    unsafe_su3_dag_prod_su3(out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu],temp);
+	    unsafe_su3_prod_su3(temp,out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu.nastyConvert()]);
+	    unsafe_su3_dag_prod_su3(out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu.nastyConvert()],temp);
 	  }
 	NISSA_PARALLEL_LOOP_END;
       }
     else
       {
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  safe_su3_prod_su3(out[ivol.nastyConvert()],out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu]);
+	  safe_su3_prod_su3(out[ivol.nastyConvert()],out[ivol.nastyConvert()],conf[ivol.nastyConvert()][mu.nastyConvert()]);
 	NISSA_PARALLEL_LOOP_END;
       }
     THREAD_BARRIER();
     
-    coords_t t(c->back());
+    Movement t(c->back());
     t[mu]++;
     c->push_back(t);
     if(both_sides) c->push_front(t);
@@ -507,13 +519,14 @@ namespace nissa
   }
   
   //elong of a certain numer of steps in a certain oriented direction: -1=BW, +1=FW
-  void elong_su3_path(path_drawing_t* c,su3* out,quad_su3* conf,int mu,int len,bool both_sides)
+  void elong_su3_path(path_drawing_t* c,su3* out,quad_su3* conf,const Direction& mu,int len,bool both_sides)
   {
     //pointer to avoid branch
-    void (*fun)(path_drawing_t*,su3*,quad_su3*,int,bool)=((len<0)?elong_su3_path_BW:elong_su3_path_FW);
+    void (*fun)(path_drawing_t*,su3*,quad_su3*,const Direction&,bool)=((len<0)?elong_su3_path_BW:elong_su3_path_FW);
     
     //call the appropriate number of times
-    for(int l=0;l<abs(len);l++) fun(c,out,conf,mu,both_sides);
+    for(int l=0;l<abs(len);l++)
+      fun(c,out,conf,mu,both_sides);
   }
   
   //elong a path following a number of macro-steps

@@ -20,7 +20,10 @@ namespace nissa
   
   //include the factor cSW - note that we include the factor "-1/4" here
   inline double chromo_operator_factor(double cSW)
-  {return -cSW/4;}
+  {
+    return -cSW/4;
+  }
+  
   inline void chromo_operator_adjust_cSW(clover_term_t *Cl,double cSW_new,double cSW_old)
   {
     /*master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/
@@ -37,9 +40,14 @@ namespace nissa
   // inline void chromo_operator_include_cSW(clover_term_t *Cl,double cSW)
   // {double_vector_prod_double((double*)Cl,(double*)Cl,-cSW/4,sizeof(clover_term_t)/sizeof(double)*loc_vol);}
   template <class T> void chromo_operator_include_cSW(T Cl,double cSW)
-  {chromo_operator_adjust_cSW(Cl,cSW+1e-16,-4);}
+  {
+    chromo_operator_adjust_cSW(Cl,cSW+1e-16,-4);
+  }
+  
   template <class T> void chromo_operator_remove_cSW(T Cl,double cSW)
-  {chromo_operator_adjust_cSW(Cl,-4,cSW+1e-16);}
+  {
+    chromo_operator_adjust_cSW(Cl,-4,cSW+1e-16);
+  }
   
   template <class T1,class T2> void clover_term(T1 Cl,double cSW,T2 conf)
   {

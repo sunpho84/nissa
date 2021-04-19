@@ -76,11 +76,11 @@ namespace nissa
     eo_ptr<quad_su3> sme_conf;
     for(int eo=0;eo<2;eo++)
       sme_conf[eo]=(theory_pars.stout_pars.nlevels!=0)?
-	nissa_malloc("sme_conf",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3):out_conf[eo];
+	nissa_malloc("sme_conf",locVolhWithBordAndEdge.nastyConvert(),quad_su3):out_conf[eo];
     if(theory_pars.stout_pars.nlevels!=0)
       {
 	verbosity_lv2_master_printf("Stouting the links for pseudo-fermions generation and initial action computation\n");
-	stout_smear(sme_conf,out_conf,&(theory_pars.stout_pars));
+	stout_smear(sme_conf,out_conf,theory_pars.stout_pars);
 	
 	verbosity_lv2_master_printf("Original plaquette: %16.16lg\n",global_plaquette_eo_conf(out_conf));
 	verbosity_lv2_master_printf("Stouted plaquette: %16.16lg\n",global_plaquette_eo_conf(sme_conf));
@@ -108,7 +108,7 @@ namespace nissa
     if(theory_pars.stout_pars.nlevels!=0)
       {
 	verbosity_lv2_master_printf("Stouting the links for final action computation\n");
-	stout_smear(sme_conf,out_conf,&(theory_pars.stout_pars));
+	stout_smear(sme_conf,out_conf,theory_pars.stout_pars);
       }
     
     //compute final action

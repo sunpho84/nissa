@@ -13,19 +13,19 @@
 
 namespace nissa
 {
-  void comm_start(comm_t &comm,const Coords<bool>& dir_comm,int tot_size=-1);
+  void comm_start(comm_t &comm,const Coords<bool>& dir_comm,const int64_t& tot_size=-1);
   void communicate_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm);
-  void communicate_ev_or_od_borders(void *vec,comm_t &comm,int eo);
+  void communicate_ev_or_od_borders(void *vec,comm_t &comm,const Parity& eo);
   void communicate_lx_borders(void *vec,comm_t &comm);
   void comm_wait(comm_t &comm);
   void finish_communicating_ev_and_od_borders(eo_ptr<void> vec,comm_t &comm);
   void finish_communicating_ev_or_od_borders(void *vec,comm_t &comm);
   void finish_communicating_lx_borders(void *vec,comm_t &comm);
   void start_communicating_ev_and_od_borders(comm_t &comm,eo_ptr<void> vec);
-  void start_communicating_ev_or_od_borders(comm_t &comm,void *vec,int eo);
+  void start_communicating_ev_or_od_borders(comm_t &comm,void *vec,const Parity& eo);
   void start_communicating_lx_borders(comm_t &comm,void *vec);
   void fill_buffered_sending_buf_with_ev_and_od_vec(comm_t &comm,eo_ptr<void> vec);
-  void fill_buffered_sending_buf_with_ev_or_od_vec(comm_t &comm,void *vec,int eo);
+  void fill_buffered_sending_buf_with_ev_or_od_vec(comm_t &comm,void *vec,const Parity& eo);
   void fill_buffered_sending_buf_with_lx_vec(comm_t &comm,void *vec);
   void fill_ev_and_od_bord_with_buffered_receiving_buf(eo_ptr<void> vec,comm_t &comm);
   void fill_ev_or_od_bord_with_buffered_receiving_buf(void *vec,comm_t &comm);
@@ -33,15 +33,15 @@ namespace nissa
   void comm_set(comm_t &comm);
   void set_eo_comm(comm_t &comm,int nbytes_per_site);
   void set_lx_comm(comm_t &comm,int nbytes_per_site);
-  void set_lx_or_eo_comm(comm_t &comm,int lx_eo,int nbytes_per_site);
+  void set_lx_or_eo_comm(comm_t &comm,const bool& lx_eo,int nbytes_per_site);
   void comm_unset(comm_t &comm);
   
   #define DEFINE_EO_BORDERS_ROUTINES(TYPE)				\
   inline void NAME3(communicate_ev_and_od,TYPE,borders)(eo_ptr<TYPE> s)	\
   {communicate_ev_and_od_borders({s[EVN],s[ODD]},NAME3(lx,TYPE,comm));}	\
-  inline void NAME3(communicate_ev_or_od,TYPE,borders)(TYPE *s,int eo)	\
+  inline void NAME3(communicate_ev_or_od,TYPE,borders)(TYPE *s,const Parity& eo)	\
   {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),eo);}		\
-  inline void NAME3(start_communicating_ev_or_od,TYPE,borders)(TYPE *s,int eo) \
+  inline void NAME3(start_communicating_ev_or_od,TYPE,borders)(TYPE *s,const Parity& eo) \
   {start_communicating_ev_or_od_borders(NAME3(eo,TYPE,comm),s,eo);}	\
   inline void NAME3(finish_communicating_ev_or_od,TYPE,borders)(TYPE *s) \
   {finish_communicating_ev_or_od_borders(s,NAME3(eo,TYPE,comm));}	\

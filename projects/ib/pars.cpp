@@ -1,7 +1,7 @@
 #include <nissa.hpp>
 
 #define EXTERN_PARS
-#include "pars.hpp"
+# include "pars.hpp"
 
 #include "prop.hpp"
 #include "conf.hpp"
@@ -247,18 +247,17 @@ namespace nissa
 		read_int(&T[1]);
 		
 		//init the offset and width from range interval
-		fft_mom_range.offs[0]=T[0];
-		fft_mom_range.width[0]=T[1]-T[0]+1;
-		for(int i=1;i<NDIM;i++)
+		fft_mom_range.offs(timeDirection)=T[0];
+		fft_mom_range.width(timeDirection)=T[1]-T[0]+1;
+		for(Direction i=1;i<NDIM;i++)
 		  {
-		    fft_mom_range.offs[i]=L[0];
-		    fft_mom_range.width[i]=L[1]-L[0]+1;
+		    fft_mom_range.offs(i)=L[0];
+		    fft_mom_range.width(i)=L[1]-L[0]+1;
 		  }
 		
 		//read the democratic filter
 		double p4_fr_p22_max;
 		read_str_double("P4FrP22Max",&p4_fr_p22_max);
-		
 		fft_mom_range_list.push_back(std::make_pair(fft_mom_range,p4_fr_p22_max));
 	      }
 	    

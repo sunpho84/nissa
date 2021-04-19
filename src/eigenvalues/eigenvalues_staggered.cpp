@@ -16,7 +16,7 @@ namespace nissa
   {
     add_backfield_with_stagphases_to_conf(conf,u1b);
     
-    color *temp=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),color);
+    color *temp=nissa_malloc("temp",locVolhWithBord.nastyConvert(),color);
     
     //Application of the staggered Operator
     const auto imp_mat=[conf,&temp,mass2](complex *out_e,complex *in_e)
@@ -31,7 +31,7 @@ namespace nissa
     
     //parameters of the finder
     const int mat_size=locVolh()*NCOL;
-    const int mat_size_to_allocate=(locVolh+bord_volh)()*NCOL;
+    const int mat_size_to_allocate=locVolhWithBord()*NCOL;
     const int niter_max=100000000;
     master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
@@ -51,9 +51,8 @@ namespace nissa
   //computes the spectrum of the staggered iD operator
   void find_eigenvalues_staggered_iD(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double residue,int wspace_size)
   {
-    
-    eo_ptr<color> temp_in_eo={nissa_malloc("temp_in_eo_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("temp_in_eo_ODD",(locVolh+bord_volh).nastyConvert(),color)};
-    eo_ptr<color> temp_out_eo={nissa_malloc("temp_out_eo_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("temp_out_eo_ODD",(locVolh+bord_volh).nastyConvert(),color)};
+    eo_ptr<color> temp_in_eo={nissa_malloc("temp_in_eo_EVN",locVolhWithBord.nastyConvert(),color),nissa_malloc("temp_in_eo_ODD",locVolhWithBord.nastyConvert(),color)};
+    eo_ptr<color> temp_out_eo={nissa_malloc("temp_out_eo_EVN",locVolhWithBord.nastyConvert(),color),nissa_malloc("temp_out_eo_ODD",locVolhWithBord.nastyConvert(),color)};
     
     const auto imp_mat=[conf,u1b,&temp_in_eo,&temp_out_eo](complex *out,complex *in)
       {
@@ -85,7 +84,7 @@ namespace nissa
     
     //parameters of the finder
     const int mat_size=2*locVolh()*NCOL;
-    const int mat_size_to_allocate=2*((locVolh+bord_volh).nastyConvert())*NCOL;
+    const int mat_size_to_allocate=2*(locVolhWithBord.nastyConvert())*NCOL;
     const int niter_max=100000000;
     master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
@@ -107,9 +106,9 @@ namespace nissa
   //computes the spectrum of the staggered Adams operator (iD_st - Gamma5 m_Adams)
   void find_eigenvalues_staggered_Adams(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double mass,double m_Adams,double residue,int wspace_size)
   {
-    eo_ptr<color> temp={nissa_malloc("temp_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("temp_ODD",(locVolh+bord_volh).nastyConvert(),color)};
-    eo_ptr<color> temp_in_eo = {nissa_malloc("temp_in_eo_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("temp_in_eo_ODD",(locVolh+bord_volh).nastyConvert(),color)};
-    eo_ptr<color> temp_out_eo = {nissa_malloc("temp_out_eo_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("temp_out_eo_ODD",(locVolh+bord_volh).nastyConvert(),color)};
+    eo_ptr<color> temp={nissa_malloc("temp_EVN",locVolhWithBord.nastyConvert(),color),nissa_malloc("temp_ODD",locVolhWithBord.nastyConvert(),color)};
+    eo_ptr<color> temp_in_eo = {nissa_malloc("temp_in_eo_EVN",locVolhWithBord.nastyConvert(),color),nissa_malloc("temp_in_eo_ODD",locVolhWithBord.nastyConvert(),color)};
+    eo_ptr<color> temp_out_eo = {nissa_malloc("temp_out_eo_EVN",locVolhWithBord.nastyConvert(),color),nissa_malloc("temp_out_eo_ODD",locVolhWithBord.nastyConvert(),color)};
     
     //Application of the staggered Operator
     const auto imp_mat=[conf,u1b,&temp,&temp_in_eo,&temp_out_eo,mass,m_Adams](complex *out,complex *in)
@@ -129,7 +128,7 @@ namespace nissa
     
     //parameters of the finder
     const int mat_size=2*locVolh()*NCOL;
-    const int mat_size_to_allocate=2*((locVolh+bord_volh).nastyConvert())*NCOL;
+    const int mat_size_to_allocate=2*(locVolhWithBord.nastyConvert())*NCOL;
     const int niter_max=100000000;
     master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     
@@ -152,9 +151,9 @@ namespace nissa
   //computes the spectrum of the staggered Adams operator (Eps D_st - Gamma5 m_Adams), where Eps = Gamma5 x Gamma5.
   void find_eigenvalues_staggered_AdamsII(color **eigvec,complex *eigval,int neigs,bool min_max,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double mass,double m_Adams,double residue,int wspace_size)
   {
-    eo_ptr<color> temp={nissa_malloc("temp_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("temp_ODD",(locVolh+bord_volh).nastyConvert(),color)};
-    eo_ptr<color> temp_in_eo={nissa_malloc("temp_in_eo_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("temp_in_eo_ODD",(locVolh+bord_volh).nastyConvert(),color)};
-    eo_ptr<color> temp_out_eo={nissa_malloc("temp_out_eo_EVN",(locVolh+bord_volh).nastyConvert(),color),nissa_malloc("temp_out_eo_ODD",(locVolh+bord_volh).nastyConvert(),color)};
+    eo_ptr<color> temp={nissa_malloc("temp_EVN",locVolhWithBord.nastyConvert(),color),nissa_malloc("temp_ODD",locVolhWithBord.nastyConvert(),color)};
+    eo_ptr<color> temp_in_eo={nissa_malloc("temp_in_eo_EVN",locVolhWithBord.nastyConvert(),color),nissa_malloc("temp_in_eo_ODD",locVolhWithBord.nastyConvert(),color)};
+    eo_ptr<color> temp_out_eo={nissa_malloc("temp_out_eo_EVN",locVolhWithBord.nastyConvert(),color),nissa_malloc("temp_out_eo_ODD",locVolhWithBord.nastyConvert(),color)};
     
     //Application of the staggered Operator
     const auto imp_mat=
@@ -175,7 +174,7 @@ namespace nissa
     
     //parameters of the finder
     const int mat_size=2*locVolh()*NCOL;
-    const int mat_size_to_allocate=2*((locVolh+bord_volh).nastyConvert())*NCOL;
+    const int mat_size_to_allocate=2*(locVolhWithBord.nastyConvert())*NCOL;
     const int niter_max=100000000;
     master_printf("mat_size=%d, mat_size_to_allocate=%d\n",mat_size,mat_size_to_allocate);
     

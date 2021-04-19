@@ -14,18 +14,18 @@ namespace nissa
 {
   //perform ape smearing
   //be sure not to have border condition added
-  void ape_smear_conf(quad_su3* smear_conf,quad_su3* origi_conf,double alpha,int nstep,bool* dirs,int min_staple_dir)
+  void ape_smear_conf(quad_su3* smear_conf,quad_su3* origi_conf,double alpha,int nstep,const Coords<bool>& dirs,const Direction& min_staple_dir)
   {
     
     quad_su3 *temp_conf=nissa_malloc("temp_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     if(origi_conf!=smear_conf) double_vector_copy((double*)smear_conf,(double*)origi_conf,locVol.nastyConvert()*sizeof(quad_su3)/sizeof(double));
     
     char listed_dirs[21]="";
-    for(int mu=0;mu<NDIM;mu++)
-      if(dirs[mu])
+    FOR_ALL_DIRECTIONS(mu)
+      if(dirs(mu))
 	{
 	  char temp[3];
-	  snprintf(temp,3,"%d ",mu);
+	  snprintf(temp,3,"%d ",mu());
 	  strncat(listed_dirs,temp,20);
 	}
     verbosity_lv1_master_printf("APE { %s} smearing with alpha=%g, %d iterations\n",listed_dirs,alpha,nstep);
@@ -40,7 +40,7 @@ namespace nissa
 	
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  FOR_ALL_DIRECTIONS(mu)
-	  if(dirs[mu.nastyConvert()])
+	    if(dirs(mu))
 	      {
 		//calculate staples
 		su3 stap,temp1,temp2;

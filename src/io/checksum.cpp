@@ -121,19 +121,19 @@ namespace nissa
     
     NISSA_LOC_VOL_LOOP(ivol)
       {
-	int *x=locCoordOfLoclx[ivol.nastyConvert()];
-	int *X=glbCoordOfLoclx[ivol.nastyConvert()];
-	uint32_t loc_ivol=x[0],glb_ivol=X[0];
-	for(int mu=NDIM-1;mu>0;mu--)
+	uint32_t loc_ivol=locCoordOfLoclx(ivol,timeDirection)();
+	uint32_t glb_ivol=glbCoordOfLoclx(ivol,timeDirection)();
+	for(Direction mu=NDIM-1;mu>0;mu--)
 	  {
-	    loc_ivol=loc_ivol*locSize[mu]+x[mu];
-	    glb_ivol=glb_ivol*glbSize[mu]+X[mu];
+	    loc_ivol=(loc_ivol*locSize(mu)+locCoordOfLoclx(ivol,mu))();
+	    glb_ivol=(glb_ivol*glbSize(mu)+glbCoordOfLoclx(ivol,mu))();
 	  }
 	uint32_t crc_rank[2]={glb_ivol%29,glb_ivol%31};
 	
 	uint32_t temp=ildg_crc32(0,(unsigned char*)data+bps*loc_ivol,bps);
 	
-	for(int i=0;i<2;i++) loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
+	for(int i=0;i<2;i++)
+	  loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
       }
     
     MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
@@ -146,14 +146,15 @@ namespace nissa
     
     NISSA_LOC_VOL_LOOP(ivol)
       {
-	int *X=glbCoordOfLoclx[ivol.nastyConvert()];
-	uint32_t ildg_ivol=X[0];
-	for(int mu=NDIM-1;mu>0;mu--) ildg_ivol=ildg_ivol*glbSize[mu]+X[mu];
+	uint32_t ildg_ivol=glbCoordOfLoclx(ivol,timeDirection)();
+	for(Direction mu=NDIM-1;mu>0;mu--)
+	  ildg_ivol=(ildg_ivol*glbSize(mu)+glbCoordOfLoclx(ivol,mu))();
 	uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
 	
 	const uint32_t temp=ildg_crc32_fix_endianness(0,(unsigned char*)data+bps*ivol(),bps,prec);
 	
-	for(int i=0;i<2;i++) loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
+	for(int i=0;i<2;i++)
+	  loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
       }
     
     MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);

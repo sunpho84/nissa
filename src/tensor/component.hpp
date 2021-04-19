@@ -247,6 +247,8 @@ namespace nissa
 	*this;
     }
     
+    /////////////////////////////////////////////////////////////////
+    
 #define PROVIDE_POSTFIX_OP(OP)				\
     /*! Self OP operator */				\
     INLINE_FUNCTION CUDA_HOST_DEVICE constexpr		\
@@ -266,6 +268,8 @@ namespace nissa
     
 #undef PROVIDE_POSTFIX_OP
     
+    /////////////////////////////////////////////////////////////////
+    
 #define PROVIDE_SELFOP_WITH_OTHER(OP)			\
     /*! Assignment OP operator */			\
     INLINE_FUNCTION CUDA_HOST_DEVICE constexpr		\
@@ -284,6 +288,23 @@ namespace nissa
     PROVIDE_SELFOP_WITH_OTHER(%)
     
 #undef PROVIDE_SELFOP_WITH_OTHER
+    
+    /////////////////////////////////////////////////////////////////
+    
+#define PROVIDE_SELF_OP(OP)				\
+    /*! Self OP operator */				\
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr		\
+    TensorComp operator OP()				\
+    {							\
+      return OP i;						\
+    }
+    
+    PROVIDE_SELF_OP(+)
+    PROVIDE_SELF_OP(-)
+    
+#undef PROVIDE_SELF_OP
+    
+    /////////////////////////////////////////////////////////////////
     
 #define PROVIDE_BINARY_OP(OP,RESULT_TYPE...)				\
     /*! Combine with other */						\

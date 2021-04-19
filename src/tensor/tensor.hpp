@@ -89,6 +89,11 @@ namespace nissa
       return std::get<Tv>(dynamicSizes)();
     }
     
+    void nastyCopy(const Tensor& oth)
+    {
+      storage=oth.storage;
+    }
+    
     /// Calculate the index - no more components to parse
     constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
     const Index& orderedCompsIndex(const Index& outer) ///< Value of all the outer components
@@ -204,12 +209,14 @@ namespace nissa
     
     /// Initialize the tensor with the knowledge of the dynamic sizes
     template <typename...TD>
+    CUDA_HOST_DEVICE constexpr
     explicit Tensor(TD&&...td)
     {
       allocate(std::forward<TD>(td)...);
     }
     
     /// Initialize the tensor whithout allocating
+    CUDA_HOST_DEVICE constexpr
     Tensor() :
       dynamicSizes{}
     {
@@ -217,6 +224,7 @@ namespace nissa
     
     /// Initialize the tensor when sizes are passed as a TensorComps
     template <typename...C>
+    CUDA_HOST_DEVICE constexpr
     explicit Tensor(const TensorComps<C...>& tc) :
       Tensor(std::get<C>(tc)...)
     {
@@ -224,12 +232,11 @@ namespace nissa
     }
     
     /// Move constructor
-    CUDA_HOST_DEVICE
+    CUDA_HOST_DEVICE constexpr
     Tensor(Tensor<TensorComps<TC...>,Fund,SL>&& oth) :
       dynamicSizes(oth.dynamicSizes),
-      storage(std::move(oth.data))
+      storage(std::move(oth.storage))
     {
-      oth.data=nullptr;
     }
     
     /// Move assignment
@@ -248,10 +255,6 @@ namespace nissa
     //   static_cast<Expr<Tensor,Comps>>(*this)=
     //   	static_cast<const Expr<Tensor,Comps>&>(oth);
     // }
-    
-    ~Tensor()
-    {
-    }
     
     /// Evaluate, returning a reference to the fundamental type
     template <typename...TD,

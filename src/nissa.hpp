@@ -40,8 +40,6 @@
 #include <dirac_operators/overlap/dirac_operator_overlap_kernel_portable.hpp>
 #include <dirac_operators/overlap/dirac_operator_overlap_kernel2.hpp>
 #include <dirac_operators/overlap/dirac_operator_overlap.hpp>
-#include <dirac_operators/Wstat/dirac_operator_Wstat.hpp>
-#include <dirac_operators/WclovQ/dirac_operator_WclovQ.hpp>
 #include <dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp>
 #include <dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp>
 #include <dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp>

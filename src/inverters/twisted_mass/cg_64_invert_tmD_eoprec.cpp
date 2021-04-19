@@ -17,7 +17,7 @@
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
 #define BULK_VOL locVolh.nastyConvert()
-#define BORD_VOL bord_volh
+#define BORD_VOL bordVolh.nastyConvert()
 
 #define APPLY_OPERATOR tmDkern_eoprec_square_eos
 #define CG_OPERATOR_PARAMETERS temp1,temp2,conf,kappa,mass,

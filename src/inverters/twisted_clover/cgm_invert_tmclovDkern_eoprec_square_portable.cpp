@@ -23,7 +23,7 @@ namespace nissa
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
 #define BULK_VOL locVolh.nastyConvert()
-#define BORD_VOL bord_volh
+#define BORD_VOL bordVolh.nastyConvert()
 
 #define APPLY_OPERATOR apply_tmclovDkern_cgm_kernel
 #define CGM_OPERATOR_PARAMETERS t1,t2,conf,kappa,Cl_odd,invCl_evn,mu,

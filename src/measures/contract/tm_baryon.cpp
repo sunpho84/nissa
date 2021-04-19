@@ -29,7 +29,7 @@ namespace nissa
 				      spincolor** Q1,
 				      spincolor** Q2,
 				      spincolor** Q3,
-				      const int source_coord,
+				      const GlbCoord& source_coord,
 				      const double& temporal_bc)
   {
     /// Pack the three propagators
@@ -70,10 +70,10 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	/// Distance from source
-	const int dt=(glbCoordOfLoclx[ivol.nastyConvert()][0]-source_coord+glbSize[0])%glbSize[0];
+	const GlbCoord dt=(glbCoordOfLoclx(ivol,timeDirection)-source_coord+glbTimeSize)%glbTimeSize;
 	
 	/// Determine whether we are in the first half
-	const bool first_half=(dt<=glbSize[0]/2);
+	const bool first_half=(dt<=glbTimeSize/2);
 	
 	//Compute the projector, gi*gj*(1 or g0)
 	dirac_matr proj[nIdg0];
@@ -139,7 +139,7 @@ namespace nissa
 			}
 		    
 		    /// Local time
-		    const int loc_t=locCoordOfLoclx[ivol.nastyConvert()][0];
+		    const LocCoord loc_t=locCoordOfLoclx(ivol,timeDirection);
 		    
 		    /// Local spatial id
 		    const LocLxSite loc_ispat=ivol%locSpatVol;
@@ -163,48 +163,48 @@ namespace nissa
     const int64_t nloc=nWicks*locVol.nastyConvert();
     
     /// Number of slices to be taken
-    const int nslices=nWicks*glbSize[0];
+    const int nslices=nWicks*glbTimeSize();
     
     /// Number of local slices referring to the elements
-    const int nloc_slices=nWicks*locSize[0];
+    const int nloc_slices=nWicks*locTimeSize();
     
     /// Offset of each local slice w.r.t. globals
-    const int loc_offset=nWicks*glbCoordOfLoclx[0][0];
+    const int loc_offset=nWicks*glbCoordOfLoclx(LocLxSite(0),timeDirection)();
     
-    complex unshifted_glb_contr[glbSize[0]*nWicks];
+    complex unshifted_glb_contr[glbTimeSize()*nWicks];
     glb_reduce(unshifted_glb_contr,loc_contr,nloc,nslices,nloc_slices,loc_offset);
     
-    for(int glb_t=0;glb_t<glbSize[0];glb_t++)
+    for(int glb_t=0;glb_t<glbTimeSize;glb_t++)
       for(int iWick=0;iWick<nWicks;iWick++)
 	{
 	  /// Distance from source
-	  const int dt=
-	    (glb_t-source_coord+glbSize[0])%glbSize[0];
+	  const GlbCoord dt=
+	    (glb_t-source_coord+glbTimeSize)%glbTimeSize;
 	  
 	  /// Input index
 	  const int iin=iWick+nWicks*glb_t;
 	  
 	  /// Argument of the phase
-	  const double arg=3*temporal_bc*M_PI*dt/glbSize[0];
+	  const double arg=3*temporal_bc*M_PI*dt()/glbTimeSize();
 	  
 	  /// Phase
 	  const complex phase={cos(arg),sin(arg)};
 	  
-	  unsafe_complex_prod(contr[iWick+nWicks*dt],unshifted_glb_contr[iin],phase);
+	  unsafe_complex_prod(contr[iWick+nWicks*dt.nastyConvert()],unshifted_glb_contr[iin],phase);
 	}
   }
   
   void tm_corr_op::compute_nucleon_2pts_contr(complex* contr,
-				  spincolor** Ql,
-				  spincolor** Qd,
-				  const int source_coord,
-				  const double& temporal_bc)
+					      spincolor** Ql,
+					      spincolor** Qd,
+					      const GlbCoord& source_coord,
+					      const double& temporal_bc)
   {
     /// Uncombined contraction, with the two Wick contractions separately
-    complex contr_per_Wick[glbSize[0]*2];
+    complex contr_per_Wick[glbTimeSize.nastyConvert()*2];
     compute_baryon_2pts_proj_contr(contr_per_Wick,5,5,Ql,Qd,Ql,source_coord,temporal_bc);
     
-    for(int t=0;t<glbSize[0];t++)
+    for(int t=0;t<glbTimeSize;t++)
       complex_subt(contr[t],contr_per_Wick[0+2*t],contr_per_Wick[1+2*t]);
   }
 }

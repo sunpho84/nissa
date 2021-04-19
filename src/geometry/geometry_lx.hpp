@@ -23,6 +23,8 @@
 
 #define NISSA_LOC_VOL_LOOP(a) for(LocLxSite a=0;a<locVol;a++)
 
+#define FOR_ALL_GLB_TIMES(t) for(GlbCoord t=0;t<glbTimeSize;t++)
+
 namespace nissa
 {
   DECLARE_COMPONENT(GlbLxSite,int64_t,DYNAMIC);
@@ -53,12 +55,28 @@ namespace nissa
   //-glb is relative to the global grid
   //-loc to the local one
   
-  /// Global lattice hcube sizes
-  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbCoords glbSize;
+  /// Global lattice hcube sizes, internal implementation
+  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbCoords _glbSize;
+  
+  /// Global size
+  inline const GlbCoords& glbSize=
+    _glbSize;
+  
+  /// Global size in time direction
+  inline const GlbCoord& glbTimeSize=
+    glbSize(timeDirection);
   
   /// Local lattice hcube sizes
-  EXTERN_GEOMETRY_LX LocCoords locSize;
+  EXTERN_GEOMETRY_LX LocCoords _locSize;
   
+  /// Local size
+  inline const LocCoords& locSize=
+    _locSize;
+  
+  /// Local size in time direction
+  inline const LocCoord& locTimeSize=
+    locSize(timeDirection);
+    
   /// Global 4D volume
   EXTERN_GEOMETRY_LX GlbLxSite glbVol;
   
@@ -140,6 +158,12 @@ namespace nissa
     return locLxSite()-locVol();
   }
   
+  /// Up neighobour of a global site in the mu direction
+  GlbLxSite glblxNeighup(const GlbLxSite& gx,const Direction& mu);
+  
+  /// Down neighobour of a global site in the mu direction
+  GlbLxSite glblxNeighdw(const GlbLxSite& gx,const Direction& mu);
+  
   /// Neighbours in the backward direction
   CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocLxSite> loclxNeighdw;
   
@@ -180,18 +204,14 @@ namespace nissa
     return locLxSite()-locVolWithBord();
   }
   
-  EXTERN_GEOMETRY_LX int bord_volh;
-  
   /// Size of the edges
   EXTERN_GEOMETRY_LX EdgeLxSite edge_vol;
   
-  EXTERN_GEOMETRY_LX int edge_volh;
-  
   /// Border volume along various direction
-  EXTERN_GEOMETRY_LX BordLxSite bord_dir_vol[NDIM];
+  EXTERN_GEOMETRY_LX Coords<BordLxSite> bord_dir_vol;
   
   /// Offset inside the border volume where the specific direction starts
-  EXTERN_GEOMETRY_LX BordLxSite bord_offset[NDIM];
+  EXTERN_GEOMETRY_LX Coords<BordLxSite> bord_offset;
   
   EXTERN_GEOMETRY_LX LocLxSite edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
   EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
@@ -200,10 +220,10 @@ namespace nissa
   EXTERN_GEOMETRY_LX Coords<Direction> scidac_mapping;
   
   //perpendicular dir
-  EXTERN_GEOMETRY_LX bool all_dirs[NDIM];
-  EXTERN_GEOMETRY_LX bool only_dir[NDIM][NDIM];
-  EXTERN_GEOMETRY_LX bool all_other_dirs[NDIM][NDIM];
-  EXTERN_GEOMETRY_LX bool all_other_spat_dirs[NDIM][NDIM];
+  EXTERN_GEOMETRY_LX Coords<bool> all_dirs;
+  EXTERN_GEOMETRY_LX Coords<bool> only_dir[NDIM];
+  EXTERN_GEOMETRY_LX Coords<bool> all_other_dirs[NDIM];
+  EXTERN_GEOMETRY_LX Coords<bool> all_other_spat_dirs[NDIM];
 #if NDIM >= 2
   EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
 #endif
@@ -213,27 +233,20 @@ namespace nissa
 #if NDIM >= 4
   EXTERN_GEOMETRY_LX int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];
 #endif
-  EXTERN_GEOMETRY_LX int igamma_of_mu[4]
+  EXTERN_GEOMETRY_LX Coords<int> igamma_of_mu;
 #ifndef ONLY_INSTANTIATION
   ={4,1,2,3}
 #endif
     ;
   
+  /// Return the staggered phases for a given site
   CUDA_HOST_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol);
-  CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,int mu);
+  
+  /// Return the staggered phases for a given site
+  CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,const Direction& mu);
   
   /// Return the index of site of coord x in the 3d space obtained projecting away mu
-  template <typename LxSite>
-  LxSite spatLxOfProjectedCoords(const LocCoords& x,const Direction& mu)
-  {
-    LxSite ilx=0;
-    
-    FOR_ALL_DIRECTIONS(nu)
-      if(nu!=mu)
-	ilx=ilx*locSize(nu)+x(nu);
-    
-    return ilx;
-  }
+  LocLxSite spatLxOfProjectedCoords(const LocCoords& x,const Direction& mu);
   
   /// Given a lx site ilx, determine its coordinates in the box of size s
   template <typename LxSite>
@@ -287,9 +300,9 @@ namespace nissa
     GlbCoords c;
     
     c(Direction(0))=x0;
-    c(Direction(1))=x1;
-    c(Direction(2))=x2;
-    c(Direction(3))=x3;
+    c(xDirection)=x1;
+    c(yDirection)=x2;
+    c(zDirection)=x3;
     
     return glblx_of_coord(c);
   }
@@ -301,9 +314,9 @@ namespace nissa
     LocCoords c;
     
     c(Direction(0))=x0;
-    c(Direction(1))=x1;
-    c(Direction(2))=x2;
-    c(Direction(3))=x3;
+    c(xDirection)=x1;
+    c(yDirection)=x2;
+    c(zDirection)=x3;
     
     return loclx_of_coord(c);
   }
@@ -323,13 +336,14 @@ namespace nissa
   Rank rank_hosting_glblx(const GlbLxSite gx);
   Rank rank_hosting_site_of_coord(const GlbCoords& x);
   Rank rank_of_coord(const RankCoords& x);
+  
   void get_loclx_and_rank_of_coord(LocLxSite& ivol,Rank& rank,const GlbCoords& g);
   
   /// Return the global index of site addressed by rank and loclx
   GlbLxSite get_glblx_of_rank_and_loclx(const int irank,const LocLxSite& loclx);
   
   /// Given a global lx site, returns its coordinates
-  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  CUDA_HOST_DEVICE INLINE_FUNCTION
   void glb_coord_of_glblx(GlbCoords& x,GlbLxSite /*Don't make it const reference*/ glbLx)
   {
     for(Direction mu=NDIM-1;mu>=0;mu--)
@@ -337,6 +351,15 @@ namespace nissa
 	x(mu)=(glbLx()%glbSize(mu)());
 	glbLx/=glbSize(mu)();
       }
+  }
+  
+  /// Given a global lx site, returns the local coordinates and the rank hosting it
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void get_loclx_and_rank_of_glblx(LocLxSite& ivol,Rank& rank,const GlbLxSite& g)
+  {
+    GlbCoords c;
+    glb_coord_of_glblx(c,g);
+    get_loclx_and_rank_of_coord(ivol,rank,c);
   }
   
   void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);

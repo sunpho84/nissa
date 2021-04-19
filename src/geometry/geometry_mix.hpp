@@ -27,9 +27,9 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  void get_evn_or_odd_part_of_lx_vector_internal(void *out_ev_or_od,void *in_lx,int64_t bps,int par);
+  void get_evn_or_odd_part_of_lx_vector_internal(void *out_ev_or_od,void *in_lx,int64_t bps,const Parity& par);
   
-  template <class T> void get_evn_or_odd_part_of_lx_vector(T *out_eo,T *in_lx,int par)
+  template <class T> void get_evn_or_odd_part_of_lx_vector(T *out_eo,T *in_lx,const Parity& par)
   {
     get_evn_or_odd_part_of_lx_vector_internal(out_eo,in_lx,sizeof(T),par);
   }

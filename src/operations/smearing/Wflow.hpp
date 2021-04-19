@@ -16,17 +16,17 @@ namespace nissa
 {
   namespace Wflow
   {
-    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,bool *dirs,int iter);
-    void update_conf(quad_su3 *arg,quad_su3 *conf,bool *dirs);
+    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,const Coords<bool>& dirs,int iter);
+    void update_conf(quad_su3 *arg,quad_su3 *conf,const Coords<bool>& dirs);
     
     //call the 2-links Laplace operator, for staggered fields
-    inline void Laplace_operator_switch(color *out,quad_su3 *c,bool *dirs,color *in)
+    inline void Laplace_operator_switch(color *out,quad_su3 *c,const Coords<bool>& dirs,color *in)
     {
       Laplace_operator_2_links(out,c,dirs,in);
     }
     
     //call the 1-link Laplace operator, for non-staggered fields
-    inline void Laplace_operator_switch(spincolor *out,quad_su3 *c,bool *dirs,spincolor *in)
+    inline void Laplace_operator_switch(spincolor *out,quad_su3 *c,const Coords<bool>& dirs,spincolor *in)
     {
       Laplace_operator(out,c,dirs,in);
     }
@@ -81,19 +81,23 @@ namespace nissa
   {
     int nd;
     
-    //time step
+    // Time step
     double dt;
     //the steps
     quad_su3 *conf[nint_steps];
-    //dirs to smear
-    bool dirs[NDIM];
-    //storage for staples
+    
+    /// Dirs to smear
+    Coords<bool> dirs;
+    
+    /// Storage for staples
     quad_su3 *arg;
-    //creator
-    internal_fermion_flower_t(double dt,bool *ext_dirs) : dt(dt)
+    
+    /// Creator
+    internal_fermion_flower_t(const double& dt,const Coords<bool>& ext_dirs) : dt(dt)
     {
       //copy dirs
-      for(int mu=0;mu<NDIM;mu++) dirs[mu]=ext_dirs[mu];
+      dirs.nastyCopy(ext_dirs);
+      
       //allocate confs
       for(int iter=0;iter<nint_steps;iter++)
 	conf[iter]=nissa_malloc("conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
@@ -145,7 +149,7 @@ namespace nissa
     T *df0,*df1,*df2,*f1,*f2;
     
     //creator
-    fermion_flower_t(double dt,bool *ext_dirs) : internal_fermion_flower_t<T,nint_steps>(dt,ext_dirs)
+    fermion_flower_t(double dt,const Coords<bool>& ext_dirs) : internal_fermion_flower_t<T,nint_steps>(dt,ext_dirs)
     {
       const auto size=locVolWithBord.nastyConvert();
       df0=nissa_malloc("df0",size,T);
@@ -203,7 +207,7 @@ namespace nissa
     T *l1,*l2;
     
     //creator
-    fermion_adjoint_flower_t(double dt,bool *ext_dirs) : internal_fermion_flower_t<T,nint_steps>(dt,ext_dirs)
+    fermion_adjoint_flower_t(double dt,const Coords<bool>& ext_dirs) : internal_fermion_flower_t<T,nint_steps>(dt,ext_dirs)
     {
       const auto size=locVolWithBord.nastyConvert();
       
@@ -241,7 +245,7 @@ namespace nissa
     }
   };
   
-  void Wflow_lx_conf(quad_su3 *conf,double dt,bool *dirs=all_dirs);
+  void Wflow_lx_conf(quad_su3 *conf,double dt,const Coords<bool>& dirs=all_dirs);
 }
 
 #endif

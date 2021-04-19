@@ -17,11 +17,11 @@ namespace nissa
   //generate momenta using guassian hermitean matrix generator
   void generate_hmc_momenta(eo_ptr<quad_su3> H)
   {
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  for(int mu=0;mu<NDIM;mu++)
-	    herm_put_to_gauss(H[par][ieo.nastyConvert()][mu],&(loc_rnd_gen[loclx_of_loceo[par][ieo.nastyConvert()]]),1);
+	  FOR_ALL_DIRECTIONS(mu)
+	  herm_put_to_gauss(H[par][ieo.nastyConvert()][mu.nastyConvert()],&(loc_rnd_gen[loclx_of_loceo(par,ieo).nastyConvert()]),1);
 	NISSA_PARALLEL_LOOP_END;
 	
 	set_borders_invalid(H[par]);
@@ -32,8 +32,8 @@ namespace nissa
   {
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
-	herm_put_to_gauss(H[ivol.nastyConvert()][mu],&(loc_rnd_gen[ivol.nastyConvert()]),1);
+      FOR_ALL_DIRECTIONS(mu)
+      herm_put_to_gauss(H[ivol.nastyConvert()][mu.nastyConvert()],&(loc_rnd_gen[ivol.nastyConvert()]),1);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(H);

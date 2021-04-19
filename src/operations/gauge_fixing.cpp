@@ -64,18 +64,17 @@ namespace nissa
   //e/o version
   void gauge_transform_conf(eo_ptr<quad_su3> uout,eo_ptr<su3> g,eo_ptr<quad_su3> uin)
   {
-    
     //communicate borders
     communicate_ev_and_od_su3_borders(g);
     
     //transform
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	for(int mu=0;mu<NDIM;mu++)
+	FOR_ALL_DIRECTIONS(mu)
 	  {
 	    su3 temp;
-	    unsafe_su3_prod_su3_dag(temp,uin[par][ieo.nastyConvert()][mu],g[!par][loceo_neighup[par][ieo.nastyConvert()][mu]]);
-	    unsafe_su3_prod_su3(uout[par][ieo.nastyConvert()][mu],g[par][ieo.nastyConvert()],temp);
+	    unsafe_su3_prod_su3_dag(temp,uin[par][ieo.nastyConvert()][mu.nastyConvert()],g[(1-par)][loceo_neighup(par,ieo,mu).nastyConvert()]);
+	    unsafe_su3_prod_su3(uout[par][ieo.nastyConvert()][mu.nastyConvert()],g[par][ieo.nastyConvert()],temp);
 	  }
     NISSA_PARALLEL_LOOP_END;
     
@@ -87,12 +86,11 @@ namespace nissa
   //transform a color field
   void gauge_transform_color(eo_ptr<color> out,eo_ptr<su3> g,eo_ptr<color> in)
   {
-    
     //communicate borders
     communicate_ev_and_od_su3_borders(g);
     
     //transform
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	safe_su3_prod_color(out[par][ieo.nastyConvert()],g[par][ieo.nastyConvert()],in[par][ieo.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
@@ -105,54 +103,56 @@ namespace nissa
   //determine the gauge transformation bringing to temporal gauge with T-1 timeslice diferent from id
   void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   {
-    int loc_slice_area=locSize[1]*locSize[2]*locSize[3];
-    su3 *buf=NULL;
+    crash("reimplement");
+    // const LocLxSite& loc_slice_area=locSpatVol;
+    // su3 *buf=NULL;
     
-    //if the number of ranks in the 0 dir is greater than 1 allocate room for border
-    if(nrank_dir[0]>1) buf=nissa_malloc("buf",loc_slice_area,su3);
+    // //if the number of ranks in the 0 dir is greater than 1 allocate room for border
+    // if(nrank_dir(timeDirection)>1)
+    //   buf=nissa_malloc("buf",loc_slice_area,su3);
     
-    //if we are on first rank slice put to identity the t=0 slice, otherwise receive it from previous rank slice
-    if(rank_coord[0]==0)
-      {
-	NISSA_LOC_VOL_LOOP(ivol)
-	  if(glbCoordOfLoclx[ivol.nastyConvert()][0]==0)
-	    su3_put_to_id(fixm[ivol.nastyConvert()]);
-      }
-    else
-      if(nrank_dir[0]>1)
-	MPI_Recv((void*)fixm,loc_slice_area,MPI_SU3,rank_neighdw[0],252,cart_comm,MPI_STATUS_IGNORE);
+    // //if we are on first rank slice put to identity the t=0 slice, otherwise receive it from previous rank slice
+    // if(rank_coord[0]==0)
+    //   {
+    // 	NISSA_LOC_VOL_LOOP(ivol)
+    // 	  if(glbCoordOfLoclx[ivol.nastyConvert()][0]==0)
+    // 	    su3_put_to_id(fixm[ivol.nastyConvert()]);
+    //   }
+    // else
+    //   if(nrank_dir[0]>1)
+    // 	MPI_Recv((void*)fixm,loc_slice_area,MPI_SU3,rank_neighdw[0],252,cart_comm,MPI_STATUS_IGNORE);
     
-    //now go ahead along t
-    int c[NDIM];
-    //loop over spatial slice
-    for(c[1]=0;c[1]<locSize[1];c[1]++)
-      for(c[2]=0;c[2]<locSize[2];c[2]++)
-	for(c[3]=0;c[3]<locSize[3];c[3]++)
-	  {
-	    //bulk
-	    for(c[0]=1;c[0]<locSize[0];c[0]++)
-	      {
-		int icurr=loclx_of_coord(c);
-		c[0]--;int iback=loclx_of_coord(c);c[0]++;
+    // //now go ahead along t
+    // int c[NDIM];
+    // //loop over spatial slice
+    // for(c[1]=0;c[1]<locSize[1];c[1]++)
+    //   for(c[2]=0;c[2]<locSize[2];c[2]++)
+    // 	for(c[3]=0;c[3]<locSize[3];c[3]++)
+    // 	  {
+    // 	    //bulk
+    // 	    for(c[0]=1;c[0]<locSize[0];c[0]++)
+    // 	      {
+    // 		int icurr=loclx_of_coord(c);
+    // 		c[0]--;int iback=loclx_of_coord(c);c[0]++;
 		
-		unsafe_su3_prod_su3(fixm[icurr],fixm[iback],u[iback][0]);
-	      }
-	    //border
-	    if(nrank_dir[0]>1)
-	      {
-		c[0]=locSize[0]-1;int iback=loclx_of_coord(c);
-		c[0]=0;int icurr=loclx_of_coord(c);
+    // 		unsafe_su3_prod_su3(fixm[icurr],fixm[iback],u[iback][0]);
+    // 	      }
+    // 	    //border
+    // 	    if(nrank_dir[0]>1)
+    // 	      {
+    // 		c[0]=locSize[0]-1;int iback=loclx_of_coord(c);
+    // 		c[0]=0;int icurr=loclx_of_coord(c);
 		
-		unsafe_su3_prod_su3(buf[icurr],fixm[iback],u[iback][0]);
-	      }
+    // 		unsafe_su3_prod_su3(buf[icurr],fixm[iback],u[iback][0]);
+    // 	      }
 	    
-	  }
+    // 	  }
     
-    //if we are not on last slice of rank send g to next slice
-    if(rank_coord[0]!=(nrank_dir[0]-1) && nrank_dir[0]>1)
-      MPI_Send((void*)buf,loc_slice_area,MPI_SU3,rank_neighup[0],252,cart_comm);
+    // //if we are not on last slice of rank send g to next slice
+    // if(rank_coord[0]!=(nrank_dir[0]-1) && nrank_dir[0]>1)
+    //   MPI_Send((void*)buf,loc_slice_area,MPI_SU3,rank_neighup[0],252,cart_comm);
     
-    if(nrank_dir[0]>1) nissa_free(buf);
+    // if(nrank_dir[0]>1) nissa_free(buf);
   }
   
   ////////////////////////////////////// Landau or Coulomb gauges ///////////////////////////////////////////////////////
@@ -246,11 +246,11 @@ namespace nissa
   //do all the fixing
   void Landau_or_Coulomb_gauge_fixing_overrelax(quad_su3 *fixed_conf,LC_gauge_fixing_pars_t::gauge_t gauge,double overrelax_prob,su3 *fixer,quad_su3 *ori_conf)
   {
-    for(int eo=0;eo<2;eo++)
+    FOR_BOTH_PARITIES(eo)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    const LocLxSite ivol=loclx_of_loceo[eo][ieo.nastyConvert()];
+	    const LocLxSite ivol=loclx_of_loceo(eo,ieo);
 	    
 	    //compute the derivative
 	    su3 temp;
@@ -283,26 +283,30 @@ namespace nissa
 	      {
 		const LocLxSite& f=loclxNeighup(ivol,mu);
 		const LocLxSite& b=loclxNeighdw(ivol,mu);
-		if(f>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[f.nastyConvert()]-locVolh.nastyConvert()],fixed_conf[ivol.nastyConvert()][mu.nastyConvert()]);
-		if(b>=locVol) su3_copy(((su3*)send_buf)[loceo_of_loclx[b.nastyConvert()]-locVolh.nastyConvert()],fixed_conf[b.nastyConvert()][mu.nastyConvert()]);
+		if(f>=locVol) su3_copy(((su3*)send_buf)[bordEoSiteOfExtendedLocEoSize(loceo_of_loclx(f)).nastyConvert()],fixed_conf[ivol.nastyConvert()][mu.nastyConvert()]);
+		if(b>=locVol) su3_copy(((su3*)send_buf)[bordEoSiteOfExtendedLocEoSize(loceo_of_loclx(b)).nastyConvert()],fixed_conf[b.nastyConvert()][mu.nastyConvert()]);
 	      }
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	
 	//communicate
-	comm_start(eo_su3_comm);
+	Coords<bool> yesInAllDirs; //nasty nasty
+	FOR_ALL_DIRECTIONS(mu)
+	  yesInAllDirs(mu)=1;
+
+	comm_start(eo_su3_comm,yesInAllDirs);
 	comm_wait(eo_su3_comm);
 	
 	//read out
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  if(loclx_parity[ivol.nastyConvert()]!=eo)
+	  if(loclx_parity(ivol)!=eo)
 	    FOR_ALL_DIRECTIONS(mu)
 	      {
 		const LocLxSite& f=loclxNeighup(ivol,mu);
 		const LocLxSite& b=loclxNeighdw(ivol,mu);
-		if(f>=locVol) su3_copy(fixed_conf[ivol.nastyConvert()][mu.nastyConvert()],((su3*)recv_buf)[loceo_of_loclx[f.nastyConvert()]-locVolh.nastyConvert()]);
-		if(b>=locVol) su3_copy(fixed_conf[b.nastyConvert()][mu.nastyConvert()],((su3*)recv_buf)[loceo_of_loclx[b.nastyConvert()]-locVolh.nastyConvert()]);
+		if(f>=locVol) su3_copy(fixed_conf[ivol.nastyConvert()][mu.nastyConvert()],((su3*)recv_buf)[bordEoSiteOfExtendedLocEoSize(loceo_of_loclx(f)).nastyConvert()]);
+		if(b>=locVol) su3_copy(fixed_conf[b.nastyConvert()][mu.nastyConvert()],((su3*)recv_buf)[bordEoSiteOfExtendedLocEoSize(loceo_of_loclx(b)).nastyConvert()]);
 	      }
 	NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
@@ -314,7 +318,6 @@ namespace nissa
   //put the Fourier Acceleration kernel of eq.3.6 of C.Davies paper
   void Fourier_accelerate_derivative(su3 *der)
   {
-    
     //Fourier Transform
     fft4d(der,FFT_MINUS,FFT_NORMALIZE);
     
@@ -326,9 +329,9 @@ namespace nissa
       {
 	//compute 4*\sum_mu sin^2(2*pi*ip_mu)
 	double den=0;
-	for(int mu=0;mu<NDIM;mu++)
+	FOR_ALL_DIRECTIONS(mu)
 	  {
-	    double p=2*M_PI*glbCoordOfLoclx[imom.nastyConvert()][mu]/glbSize[mu];
+	    const double p=2*M_PI*glbCoordOfLoclx(imom,mu)()/glbSize(mu)();
 	    den+=sqr(sin(0.5*p));
 	  }
 	den*=4;
@@ -736,19 +739,19 @@ namespace nissa
   {
     
     //allocate fixing matrix
-    eo_ptr<su3> fixm={nissa_malloc("fixm_e",(locVolh+bord_volh).nastyConvert(),su3),nissa_malloc("fixm_o",(locVolh+bord_volh).nastyConvert(),su3)};
+    eo_ptr<su3> fixm={nissa_malloc("fixm_e",locVolWithBord.nastyConvert(),su3),nissa_malloc("fixm_o",locVolhWithBord.nastyConvert(),su3)};
     
     //extract random SU(3) matrix
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_put_to_rnd(fixm[loclx_parity[ivol.nastyConvert()]][loceo_of_loclx[ivol.nastyConvert()]],loc_rnd_gen[ivol.nastyConvert()]);
+      su3_put_to_rnd(fixm[loclx_parity(ivol).nastyConvert()][loceo_of_loclx(ivol).nastyConvert()],loc_rnd_gen[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
-    for(int eo=0;eo<2;eo++)
+    FOR_BOTH_PARITIES(eo)
       set_borders_invalid(fixm[eo]);
     
     //apply the transformation
     gauge_transform_conf(conf_out,fixm,conf_in);
     
     //free fixing matrix
-    for(int eo=0;eo<2;eo++) nissa_free(fixm[eo]);
+    FOR_BOTH_PARITIES(eo) nissa_free(fixm[eo]);
   }
 }

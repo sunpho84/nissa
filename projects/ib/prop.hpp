@@ -33,15 +33,15 @@ namespace nissa
     bool is_source;
     
     double kappa;
-    double kappa_asymm[NDIM];
+    Momentum kappa_asymm;
     double mass;
     int r;
     double charge;
-    double theta[NDIM];
+    Momentum theta;
     
     insertion_t insertion;
     std::vector<source_term_t> source_terms;
-    int tins;
+    GlbCoord tins;
     double residue;
     bool store;
     
@@ -73,16 +73,18 @@ namespace nissa
     }
     
     //initialize as a propagator
-    void init_as_propagator(insertion_t _insertion,const std::vector<source_term_t>& _source_terms,int _tins,double _residue,double _kappa,const double* _kappa_asymm,double _mass,char *_ext_field_path,int _r,double _charge,double *_theta,bool _store)
+    void init_as_propagator(insertion_t _insertion,const std::vector<source_term_t>& _source_terms,const GlbCoord& _tins,double _residue,double _kappa,const Momentum& _kappa_asymm,double _mass,char *_ext_field_path,int _r,double _charge,const Momentum& _theta,bool _store)
     {
       is_source=false;
       
       kappa=_kappa;
-      for(int mu=0;mu<NDIM;mu++) kappa_asymm[mu]=_kappa_asymm[mu];
+      FOR_ALL_DIRECTIONS(mu)
+	kappa_asymm(mu)=_kappa_asymm(mu);
       mass=_mass;
       r=_r;
       charge=_charge;
-      for(int mu=0;mu<NDIM;mu++) theta[mu]=_theta[mu];
+      FOR_ALL_DIRECTIONS(mu)
+	theta(mu)=_theta(mu);
       insertion=_insertion;
       source_terms=_source_terms;
       tins=_tins;
@@ -96,7 +98,7 @@ namespace nissa
     }
     
     //initialize as a source
-    void init_as_source(rnd_t _noise_type,int _tins,int _r,bool _store)
+    void init_as_source(rnd_t _noise_type,const GlbCoord& _tins,int _r,bool _store)
     {
       is_source=true;
       
@@ -107,12 +109,12 @@ namespace nissa
       alloc_spincolor();
     }
     
-    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double* kappa_asymm, double mass,char *ext_field_path,int r,double charge,double *theta,bool store)
+    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,const GlbCoord& tins,double residue,double kappa,const Momentum& kappa_asymm,double mass,char *ext_field_path,int r,double charge,const Momentum& theta,bool store)
     {
       init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store);
     }
     
-    qprop_t(rnd_t noise_type,int tins,int r,bool store)
+    qprop_t(rnd_t noise_type,const GlbCoord& tins,int r,bool store)
     {
       init_as_source(noise_type,tins,r,store);
     }
@@ -185,12 +187,12 @@ namespace nissa
   void free_photon_fields();
   CUDA_MANAGED EXTERN_PROP spinspin *temp_lep;
   
-  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,double *theta);
+  void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,const Momentum& theta);
   void generate_original_source(qprop_t *sou);
   void generate_original_sources(int ihit,bool skip_io=false);
-  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool *dirs);
-  void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc);
-  void generate_source(insertion_t inser,int r,double charge,double kappa,double *theta,spincolor *ori,int t);
+  void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,const GlbCoord& t,const Coords<bool>& dirs);
+  void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,const GlbCoord& t,int r,const Coords<bool>& dirs,int loc);
+  void generate_source(insertion_t inser,int r,double charge,double kappa,const Momentum& theta,spincolor *ori,const GlbCoord& t);
   void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator(int ihit);
   //CUDA_HOST_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
@@ -216,8 +218,8 @@ namespace nissa
   {
     master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
     generate_random_coord(source_coord);
-    if(stoch_source) master_printf(" source time: %d\n",source_coord[0]);
-    else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
+    if(stoch_source) master_printf(" source time: %d\n",source_coord(timeDirection)());
+    else             master_printf(" point source coords: %d %d %d %d\n",source_coord(Direction(0))(),source_coord(xDirection)(),source_coord(yDirection)(),source_coord(zDirection)());
   }
   
   inline void generate_propagators(int ihit)

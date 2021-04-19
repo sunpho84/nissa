@@ -18,15 +18,13 @@ namespace nissa
   //initialize an u(1) field to unity
   void init_backfield_to_id(eo_ptr<quad_u1> S)
   {
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+	  FOR_ALL_DIRECTIONS(mu)
 	  {
-	    for(int mu=0;mu<NDIM;mu++)
-	      {
-		S[par][ieo.nastyConvert()][mu][0]=1;
-		S[par][ieo.nastyConvert()][mu][1]=0;
-	      }
+	    S[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()][0]=1;
+	    S[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()][1]=0;
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -37,15 +35,15 @@ namespace nissa
   //multiply a background field by the imaginary chemical potential
   void add_im_pot_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content)
   {
-    double im_pot=quark_content->im_pot*M_PI/glbSize[0];
+    const double im_pot=quark_content->im_pot*M_PI/glbTimeSize();
     const double c=cos(im_pot),s=sin(im_pot);
     
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    const complex ph={c,s};
-	    safe_complex_prod(S[par][ieo.nastyConvert()][0],S[par][ieo.nastyConvert()][0],ph);
+	    safe_complex_prod(S[par.nastyConvert()][ieo.nastyConvert()][0],S[par.nastyConvert()][ieo.nastyConvert()][0],ph);
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -54,68 +52,74 @@ namespace nissa
   }
   
   //compute args for non-present quantization
-  CUDA_HOST_DEVICE void get_args_of_null_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
+  CUDA_HOST_DEVICE void get_args_of_null_quantization(GlbCoords& phase,const LocLxSite& ivol,const Direction& mu,const Direction& nu)
   {
-    phase[0]=phase[1]=phase[2]=phase[3]=0;
+    FOR_ALL_DIRECTIONS(mu)
+      phase(mu)=0;
   }
   
   //compute args for 1/L2 quantization
-  CUDA_HOST_DEVICE void get_args_of_one_over_L2_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
+  CUDA_HOST_DEVICE void get_args_of_one_over_L2_quantization(GlbCoords& phase,const LocLxSite& ivol,const Direction& mu,const Direction& nu)
   {
     //reset
-    phase[0]=phase[1]=phase[2]=phase[3]=0;
+    FOR_ALL_DIRECTIONS(mu)
+      phase(mu)=0;
     
     //take absolute coords
-    int xmu=glbCoordOfLoclx[ivol.nastyConvert()][mu];
-    int xnu=glbCoordOfLoclx[ivol.nastyConvert()][nu];
-    if(xmu>=glbSize[mu]/2) xmu-=glbSize[mu];
-    if(xnu>=glbSize[nu]/2) xnu-=glbSize[nu];
+    GlbCoord xmu=glbCoordOfLoclx(ivol,mu);
+    GlbCoord xnu=glbCoordOfLoclx(ivol,nu);
+    if(xmu>=glbSize(mu)/2) xmu-=glbSize(mu);
+    if(xnu>=glbSize(nu)/2) xnu-=glbSize(nu);
     
     //define the arguments of exponentials
-    if(xmu==glbSize[mu]/2-1) phase[mu]=-xnu*glbSize[mu];
-    phase[nu]=xmu;
+    if(xmu==glbSize(mu)/2-1)
+      phase(mu)=-xnu*glbSize(mu);
+    phase(nu)=xmu;
   }
   
   //compute args for half-half quantization
-  CUDA_HOST_DEVICE void get_args_of_half_half_quantization(coords phase,const LocLxSite& ivol,int mu,int nu)
+  CUDA_HOST_DEVICE void get_args_of_half_half_quantization(GlbCoords& phase,const LocLxSite& ivol,const Direction& mu,const Direction& nu)
   {
     //reset
-    phase[0]=phase[1]=phase[2]=phase[3]=0;
+    FOR_ALL_DIRECTIONS(mu)
+      phase(mu)=0;
     
     //take absolute coords
-    int xmu=glbCoordOfLoclx[ivol.nastyConvert()][mu];
-    if(xmu<=glbSize[mu]/2) xmu=glbCoordOfLoclx[ivol.nastyConvert()][mu]-glbSize[mu]/4;
-    else                    xmu=3*glbSize[mu]/4-glbCoordOfLoclx[ivol.nastyConvert()][mu];
+    GlbCoord xmu=glbCoordOfLoclx(ivol,mu);
+    if(xmu<=glbSize(mu)/2)
+      xmu=glbCoordOfLoclx(ivol,mu)-glbSize(mu)/4;
+    else
+      xmu=3*glbSize(mu)/4-glbCoordOfLoclx(ivol,mu);
     
     //define the arguments of exponentials
-    phase[nu]=xmu;
+    phase(nu)=xmu;
   }
   
-  CUDA_MANAGED void (*get_args_of_quantization[3])(coords,const LocLxSite&,int,int)=
-  {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
+  CUDA_MANAGED void (*get_args_of_quantization[3])(GlbCoords& phase,const LocLxSite& ivol,const Direction& mu,const Direction& nu)=
+    {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
   
   //multiply a background field by a constant em field
   //mu nu refers to the entry of F_mu_nu involved
-  void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content,double em_str,int quantization,int mu,int nu)
+  void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content,double em_str,int quantization,const Direction& mu,const Direction& nu)
   {
-    double phase=2*em_str*quark_content->charge*M_PI/glbSize[mu]/glbSize[nu];
+    const double phase=2*em_str*quark_content->charge*M_PI/glbSize(mu)()/glbSize(nu)();
     
-    if(quantization==2 and glbSize[mu]%4!=0)
-      crash("for half-half quantization global size in %d direction must be multiple of 4, it is %d",mu,glbSize[mu]);
+    if(quantization==2 and glbSize(mu)%4!=0)
+      crash("for half-half quantization global size in %d direction must be multiple of 4, it is %ld",mu(),glbSize(mu)());
     
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    //compute arg
-	    coords arg;
-	    get_args_of_quantization[quantization](arg,loclx_of_loceo[par][ieo.nastyConvert()],mu,nu);
+	    GlbCoords arg;
+	    get_args_of_quantization[quantization](arg,loclx_of_loceo(par,ieo),mu,nu);
 	    
 	    //compute u1phase and multiply
-	    for(int rho=0;rho<4;rho++)
+	    FOR_ALL_DIRECTIONS(rho)
 	      {
-		complex u1phase={cos(phase*arg[rho]),sin(phase*arg[rho])};
-		safe_complex_prod(S[par][ieo.nastyConvert()][rho],S[par][ieo.nastyConvert()][rho],u1phase);
+		complex u1phase={cos(phase*arg(rho)()),sin(phase*arg(rho)())};
+		safe_complex_prod(S[par][ieo.nastyConvert()][rho.nastyConvert()],S[par][ieo.nastyConvert()][rho.nastyConvert()],u1phase);
 	      }
 	  }
 	NISSA_PARALLEL_LOOP_END;
@@ -149,7 +153,7 @@ namespace nissa
   //        {
   //          coords ph;
   //          get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol_eo]);
-  //          for(int mu=0;mu<NDIM;mu++) complex_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
+  //          FOR_ALL_DIRECTIONS(mu) complex_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
   //        }
   //      NISSA_PARALLEL_LOOP_END;
   //      set_borders_invalid(S);
@@ -157,16 +161,16 @@ namespace nissa
   // }
   
   // Add the antiperiodic condition on the on dir mu
-  void add_antiperiodic_condition_to_backfield(eo_ptr<quad_u1>& S,const int& mu)
+  void add_antiperiodic_condition_to_backfield(eo_ptr<quad_u1>& S,const Direction& mu)
   {
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    const double arg=-1.0*M_PI/glbSize[mu];
+	    const double arg=-1.0*M_PI/glbSize(mu)();
 	    const complex c={cos(arg),sin(arg)};
 	    
-	    complex_prodassign(S[par][ieo.nastyConvert()][mu],c);
+	    complex_prodassign(S[par][ieo.nastyConvert()][mu.nastyConvert()],c);
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -177,15 +181,15 @@ namespace nissa
   //multiply the configuration for stagphases
   void add_or_rem_stagphases_to_conf(eo_ptr<quad_su3> conf)
   {
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    coords ph;
-	    get_stagphase_of_lx(ph,loclx_of_loceo[par][ieo.nastyConvert()]);
+	    Coords<int> ph;
+	    get_stagphase_of_lx(ph,loclx_of_loceo(par,ieo));
 	    
-	    for(int mu=0;mu<NDIM;mu++)
-	      su3_prodassign_double(conf[par][ieo.nastyConvert()][mu],ph[mu]);
+	    FOR_ALL_DIRECTIONS(mu)
+	      su3_prodassign_double(conf[par][ieo.nastyConvert()][mu.nastyConvert()],ph(mu));
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -202,25 +206,26 @@ namespace nissa
     conf[0]=_conf[0];
     conf[1]=_conf[1];
     
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    coords ph;
-	    if(with_without==0) get_stagphase_of_lx(ph,loclx_of_loceo[par][ieo.nastyConvert()]);
+	    Coords<int> ph;
+	    if(with_without==0)
+	      get_stagphase_of_lx(ph,loclx_of_loceo(par,ieo));
 	    
-	    for(int mu=0;mu<NDIM;mu++)
+	    FOR_ALL_DIRECTIONS(mu)
 	      {
 		//switch add/rem
 		complex f;
-		if(add_rem==0) complex_copy(f,u1[par][ieo.nastyConvert()][mu]);
-		else           complex_conj(f,u1[par][ieo.nastyConvert()][mu]);
+		if(add_rem==0) complex_copy(f,u1[par][ieo.nastyConvert()][mu.nastyConvert()]);
+		else           complex_conj(f,u1[par][ieo.nastyConvert()][mu.nastyConvert()]);
 		
 		//switch phase
-		if(with_without==0) complex_prodassign_double(f,ph[mu]);
+		if(with_without==0) complex_prodassign_double(f,ph(mu));
 		
 		//put the coeff
-		safe_su3_prod_complex(conf[par][ieo.nastyConvert()][mu],conf[par][ieo.nastyConvert()][mu],f);
+		safe_su3_prod_complex(conf[par][ieo.nastyConvert()][mu.nastyConvert()],conf[par][ieo.nastyConvert()][mu.nastyConvert()],f);
 	      }
 	  }
 	NISSA_PARALLEL_LOOP_END;
@@ -234,26 +239,26 @@ namespace nissa
   {
     verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
     
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    int ilx=loclx_of_loceo[par][ieo.nastyConvert()];
-	    coords ph;
-	    if(with_without==0) get_stagphase_of_lx(ph,ilx);
+	    const LocLxSite ilx=loclx_of_loceo(par,ieo);
+	    Coords<int> ph;
+	    get_stagphase_of_lx(ph,ilx);
 	    
-	    for(int mu=0;mu<NDIM;mu++)
+	    FOR_ALL_DIRECTIONS(mu)
 	      {
 		//switch add/rem
 		complex f;
-		if(add_rem==0) complex_copy(f,u1[par][ieo.nastyConvert()][mu]);
-		else           complex_conj(f,u1[par][ieo.nastyConvert()][mu]);
+		if(add_rem==0) complex_copy(f,u1[par][ieo.nastyConvert()][mu.nastyConvert()]);
+		else           complex_conj(f,u1[par][ieo.nastyConvert()][mu.nastyConvert()]);
 		
 		//switch phase
-		if(with_without==0) complex_prodassign_double(f,ph[mu]);
+		if(with_without==0) complex_prodassign_double(f,ph(mu));
 		
 		//put the coeff
-		safe_su3_prod_complex(conf[ilx][mu],conf[ilx][mu],f);
+		safe_su3_prod_complex(conf[ilx.nastyConvert()][mu.nastyConvert()],conf[ilx.nastyConvert()][mu.nastyConvert()],f);
 	      }
 	  }
 	NISSA_PARALLEL_LOOP_END;

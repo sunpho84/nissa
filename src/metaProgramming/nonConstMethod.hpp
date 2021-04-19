@@ -11,6 +11,24 @@ namespace nissa
   /// Returns true if T is a const lvalue reference
   template <typename T>
   constexpr bool is_const_lvalue_reference_v=std::is_lvalue_reference<T>::value and std::is_const<std::remove_reference_t<T>>::value;
+
+  template <typename T>
+  T* remove_const_if_ref_or_pointer(const T* a)
+  {
+    return (T*)a;
+  }
+  
+  template <typename T>
+  decltype(auto) remove_const_if_ref_or_pointer(T&& a)
+  {
+    return a;
+  }
+  
+  template <typename T>
+  T& remove_const_if_ref_or_pointer(const T& a)
+  {
+    return (T&)a;
+  }
   
   /// Returns the type without "const" attribute if it is a reference
   template <typename T>
@@ -49,7 +67,7 @@ namespace nissa
   ATTRIB								\
   decltype(auto) NAME(Ts&&...ts) /*!< Arguments                      */ \
   {									\
-    return remove_const_if_ref(std::as_const(*this).NAME(std::forward<Ts>(ts)...)); \
+    return remove_const_if_ref_or_pointer(std::as_const(*this).NAME(std::forward<Ts>(ts)...)); \
   }
   
 #define PROVIDE_ALSO_NON_CONST_METHOD(NAME)		\

@@ -24,7 +24,7 @@ namespace nissa
   // Compute the action in the root tm case
   double compute_root_tm_clov_action(eo_ptr<quad_su3> eo_conf,eo_ptr<quad_u1> u1b,rat_approx_t *rat,quark_content_t q,double residue,spincolor *pf)
   {
-    spincolor *chi=nissa_malloc("chi",(locVolh+bord_volh).nastyConvert(),spincolor);
+    spincolor *chi=nissa_malloc("chi",locVolhWithBord.nastyConvert(),spincolor);
     
     //allocate or not clover term and inverse evn clover term
     eo_ptr<clover_term_t> Cl={NULL,NULL};

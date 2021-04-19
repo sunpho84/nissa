@@ -20,7 +20,7 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,const LocLxSite& A,const Direction& mu,double rho)
+  CUDA_HOST_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,const LocLxSite& A,const Direction& mu,const double& rho)
   {
     //put staples to zero
     su3_put_to_zero(staples);
@@ -46,13 +46,13 @@ namespace nissa
   
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   //partial derivative of the force
-  CUDA_HOST_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *conf,const LocLxSite& A,int mu,double rho)
+  CUDA_HOST_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *conf,const LocLxSite& A,const Direction& mu,const double& rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,A,mu,rho);
     
     //build Omega (eq. 2.b)
-    unsafe_su3_prod_su3_dag(out->Omega,out->C,conf[A.nastyConvert()][mu]);
+    unsafe_su3_prod_su3_dag(out->Omega,out->C,conf[A.nastyConvert()][mu.nastyConvert()]);
     
     //compute Q (eq. 2.a)
     su3 iQ;
@@ -61,7 +61,7 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  void stout_smear_single_level(quad_su3* out,quad_su3* ext_in,double rho,bool* dirs)
+  void stout_smear_single_level(quad_su3* out,quad_su3* ext_in,const double& rho,const Coords<bool>& dirs)
   {
     
     START_TIMING(sto_time,nsto);
@@ -77,8 +77,8 @@ namespace nissa
       }
     else in=ext_in;
     
-    for(int mu=0;mu<NDIM;mu++)
-      if(dirs[mu])
+    FOR_ALL_DIRECTIONS(mu)
+      if(dirs(mu))
 	NISSA_PARALLEL_LOOP(A,0,locVol)
 	  {
 	    //compute the staples needed to smear
@@ -88,7 +88,7 @@ namespace nissa
 	    //exp(iQ)*U (eq. 3)
 	    su3 expiQ;
 	    safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-	    unsafe_su3_prod_su3(out[A.nastyConvert()][mu],expiQ,in[A.nastyConvert()][mu]);
+	    unsafe_su3_prod_su3(out[A.nastyConvert()][mu.nastyConvert()],expiQ,in[A.nastyConvert()][mu.nastyConvert()]);
 	  }
     NISSA_PARALLEL_LOOP_END;
     
@@ -100,14 +100,14 @@ namespace nissa
   }
   
   //smear n times, using only one additional vectors
-  void stout_smear(quad_su3* ext_out,quad_su3* ext_in,stout_pars_t* stout_pars,bool* dirs)
+  void stout_smear(quad_su3* ext_out,quad_su3* ext_in,const stout_pars_t& stout_pars,const Coords<bool>& dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_lx_conf(ext_in));
-    switch(stout_pars->nlevels)
+    switch(stout_pars.nlevels)
       {
       case 0:if(ext_out!=ext_in) vector_copy(ext_out,ext_in);break;
       case 1:
-	stout_smear_single_level(ext_out,ext_in,stout_pars->rho,dirs);
+	stout_smear_single_level(ext_out,ext_in,stout_pars.rho,dirs);
 	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_lx_conf(ext_out));
 	break;
       default:
@@ -117,12 +117,12 @@ namespace nissa
 	quad_su3 *in=ext_in,*ptr[2]={ext_temp,ext_out};
 	
 	//if the distance is even, first pass must use temp as out
-	quad_su3 *out=ptr[!(stout_pars->nlevels%2==0)];
-	quad_su3 *temp=ptr[(stout_pars->nlevels%2==0)];
+	quad_su3 *out=ptr[!(stout_pars.nlevels%2==0)];
+	quad_su3 *temp=ptr[(stout_pars.nlevels%2==0)];
 	
-	for(int i=0;i<stout_pars->nlevels;i++)
+	for(int i=0;i<stout_pars.nlevels;i++)
 	  {
-	    stout_smear_single_level(out,in,stout_pars->rho,dirs);
+	    stout_smear_single_level(out,in,stout_pars.rho,dirs);
 	    verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_lx_conf(out));
 	    //next input is current output
 	    in=out;
@@ -152,24 +152,24 @@ namespace nissa
   }
   
   //smear iteratively retainig all the stack
-  void stout_smear_whole_stack(quad_su3** out,quad_su3* in,stout_pars_t* stout_pars,bool* dirs)
+  void stout_smear_whole_stack(quad_su3** out,quad_su3* in,const stout_pars_t& stout_pars,const Coords<bool>& dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_lx_conf(out[0]));
-    for(int i=1;i<=stout_pars->nlevels;i++)
+    for(int i=1;i<=stout_pars.nlevels;i++)
       {
-	stout_smear_single_level(out[i],out[i-1],stout_pars->rho,dirs);
+	stout_smear_single_level(out[i],out[i-1],stout_pars.rho,dirs);
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_lx_conf(out[i]));
       }
   }
   
   //remap the force to one smearing level less
-  void stouted_force_remap_step(quad_su3* F,quad_su3* conf,double rho)
+  void stouted_force_remap_step(quad_su3* F,quad_su3* conf,const double& rho)
   {
     communicate_lx_quad_su3_edges(conf);
     
     quad_su3 *Lambda=nissa_malloc("Lambda",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       NISSA_PARALLEL_LOOP(A,0,locVol)
 	{
 	  //compute the ingredients needed to smear
@@ -181,7 +181,7 @@ namespace nissa
 	  hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
 	  
 	  //compute the Lambda
-	  stouted_force_compute_Lambda(Lambda[A.nastyConvert()][mu],conf[A.nastyConvert()][mu],F[A.nastyConvert()][mu],&ing);
+	  stouted_force_compute_Lambda(Lambda[A.nastyConvert()][mu.nastyConvert()],conf[A.nastyConvert()][mu.nastyConvert()],F[A.nastyConvert()][mu.nastyConvert()],&ing);
 	  
 	  //exp(iQ)
 	  su3 expiQ;
@@ -189,14 +189,14 @@ namespace nissa
 	  
 	  //first piece of eq. (75)
 	  su3 temp1;
-	  unsafe_su3_prod_su3(temp1,F[A.nastyConvert()][mu],expiQ);
+	  unsafe_su3_prod_su3(temp1,F[A.nastyConvert()][mu.nastyConvert()],expiQ);
 	  //second piece of eq. (75)
 	  su3 temp2,temp3;
-	  unsafe_su3_dag_prod_su3(temp2,sto_ste.C,Lambda[A.nastyConvert()][mu]);
+	  unsafe_su3_dag_prod_su3(temp2,sto_ste.C,Lambda[A.nastyConvert()][mu.nastyConvert()]);
 	  su3_prod_idouble(temp3,temp2,1);
 	  
 	  //put together first and second piece
-	  su3_summ(F[A.nastyConvert()][mu],temp1,temp3);
+	  su3_summ(F[A.nastyConvert()][mu.nastyConvert()],temp1,temp3);
 	}
     NISSA_PARALLEL_LOOP_END;
     
@@ -262,15 +262,15 @@ namespace nissa
   }
   
   //remap iteratively the force, adding the missing pieces of the chain rule derivation
-  void stouted_force_remap(quad_su3* F,quad_su3** sme_conf,stout_pars_t* stout_pars)
+  void stouted_force_remap(quad_su3* F,quad_su3** sme_conf,const stout_pars_t& stout_pars)
   {
     
     START_TIMING(sto_remap_time,nsto_remap);
     
-    for(int i=stout_pars->nlevels-1;i>=0;i--)
+    for(int i=stout_pars.nlevels-1;i>=0;i--)
       {
-	verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i+1,stout_pars->nlevels);
-	stouted_force_remap_step(F,sme_conf[i],stout_pars->rho);
+	verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i+1,stout_pars.nlevels);
+	stouted_force_remap_step(F,sme_conf[i],stout_pars.rho);
       }
     
     STOP_TIMING(sto_remap_time);

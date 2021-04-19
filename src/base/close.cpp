@@ -34,10 +34,10 @@ namespace nissa
     master_printf("Closing nissa\n");
     
     //unset remappers
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       {
-	if(remap_lx_to_locd[mu]) delete remap_lx_to_locd[mu];
-	if(remap_locd_to_lx[mu]) delete remap_locd_to_lx[mu];
+	if(remap_lx_to_locd[mu.nastyConvert()]) delete remap_lx_to_locd[mu.nastyConvert()];
+	if(remap_locd_to_lx[mu.nastyConvert()]) delete remap_locd_to_lx[mu.nastyConvert()];
       }
     
 #ifdef USE_QUDA

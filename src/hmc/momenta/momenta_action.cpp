@@ -15,10 +15,10 @@ namespace nissa
   {
     //summ the square of H
     double glb_action_eo[2];
-    for(int eo=0;eo<2;eo++)
-      double_vector_glb_scalar_prod(&(glb_action_eo[eo]),(double*)(H[eo]),(double*)(H[eo]),sizeof(quad_su3)/sizeof(double)*locVolh.nastyConvert());
+    FOR_BOTH_PARITIES(par)
+      double_vector_glb_scalar_prod(&(glb_action_eo[par.nastyConvert()]),(double*)(H[par]),(double*)(H[par]),sizeof(quad_su3)/sizeof(double)*locVolh.nastyConvert());
     
-    return (glb_action_eo[EVN]+glb_action_eo[ODD])/2;
+    return (glb_action_eo[EVN.nastyConvert()]+glb_action_eo[ODD.nastyConvert()])/2;
   }
   
   //lx version

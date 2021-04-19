@@ -85,12 +85,12 @@ namespace nissa
 	    "<field>diracFermion</field>\n"
 	    "<precision>%zu</precision>\n"
 	    "<flavours>%d</flavours>\n"
-	    "<lx>%d</lx>\n"
-	    "<ly>%d</ly>\n"
-	    "<lz>%d</lz>\n"
-	    "<lt>%d</lt>\n"
+	    "<lx>%ld</lx>\n"
+	    "<ly>%ld</ly>\n"
+	    "<lz>%ld</lz>\n"
+	    "<lt>%ld</lt>\n"
 	    "</etmcFormat>",
-	    prec,1,glbSize[3],glbSize[2],glbSize[1],glbSize[0]);
+	    prec,1,glbSize(zDirection)(),glbSize(yDirection)(),glbSize(xDirection)(),glbSize(Direction(0))());
     ILDG_File_write_text_record(file,"etmc-propagator-format",propagator_format_message);
 #endif
     
@@ -121,12 +121,12 @@ namespace nissa
 	    "  <version>1.0</version>\n"
 	    "  <field>su3gauge</field>\n"
 	    "  <precision>%zu</precision>\n"
-	    "  <lx>%d</lx>\n"
-	    "  <ly>%d</ly>\n"
-	    "  <lz>%d</lz>\n"
-	    "  <lt>%d</lt>\n"
+	    "  <lx>%ld</lx>\n"
+	    "  <ly>%ld</ly>\n"
+	    "  <lz>%ld</lz>\n"
+	    "  <lt>%ld</lt>\n"
 	    "</ildgFormat>",
-	    prec,glbSize[3],glbSize[2],glbSize[1],glbSize[0]);
+	    prec,glbSize(zDirection)(),glbSize(yDirection)(),glbSize(xDirection)(),glbSize(Direction(0))());
     ILDG_File_write_text_record(file,"ildg-format",ildg_format_message);
 #endif
     

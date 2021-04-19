@@ -50,7 +50,7 @@ namespace nissa
     tm_corr_op tmCorrOp(conf,meas_pars.residue,theory_pars);
     
     /// Correlation function
-    complex* corr=nissa_malloc("corr",glbSize[0]*nflavs*nflavs,complex);
+    complex* corr=nissa_malloc("corr",glbTimeSize.nastyConvert()*nflavs*nflavs,complex);
     
     for(int icopy=0;icopy<meas_pars.ncopies;icopy++)
       {
@@ -59,16 +59,16 @@ namespace nissa
 	for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 	  {
 	    /// Position of the source
-	    coords glbSourceCoords;
+	    GlbCoords glbSourceCoords;
 	    generate_random_coord(glbSourceCoords);
 	    
 	    /// Which rank hosts the source
-	    int whichRank;
+	    Rank whichRank;
 	    
 	    /// Local site
-	    int locSourcePos;
+	    LocLxSite locSourcePos;
 	    
-	    get_loclx_and_rank_of_coord(&locSourcePos,&whichRank,glbSourceCoords);
+	    get_loclx_and_rank_of_coord(locSourcePos,whichRank,glbSourceCoords);
 	    
 	    for(int idirac=0;idirac<NDIRAC;idirac++)
 	      for(int icol=0;icol<NCOL;icol++)
@@ -77,7 +77,7 @@ namespace nissa
 		  vector_reset(s);
 		  
 		  if(rank==whichRank)
-		    s[locSourcePos][idirac][icol][RE]=1;
+		    s[locSourcePos.nastyConvert()][idirac][icol][RE]=1;
 		  set_borders_invalid(s);
 		  
 		  gaussian_smearing(s,s,smearingConf,meas_pars.gaussSmeKappa,meas_pars.gaussSmeNSteps);
@@ -96,15 +96,15 @@ namespace nissa
 	      for(int idislikeFlav=0;idislikeFlav<nflavs;idislikeFlav++)
 		{
 		  master_printf("Computing %d %d\n",ilikeFlav,idislikeFlav);
-		  complex tempCorr[glbSize[0]];
+		  complex tempCorr[glbTimeSize.nastyConvert()];
 		  tm_corr_op::compute_nucleon_2pts_contr(tempCorr,
 							 prop[ilikeFlav],
 							 prop[idislikeFlav],
-							 glbSourceCoords[0],-1);
+							 glbSourceCoords(timeDirection),-1);
 		  
 		  master_printf("Summing %d %d\n",ilikeFlav,idislikeFlav);
-		  for(int t=0;t<glbSize[0];t++)
-		    complex_summassign(corr[t+glbSize[0]*(ilikeFlav+nflavs*idislikeFlav)],tempCorr[t]);
+		  FOR_ALL_GLB_TIMES(t)
+		    complex_summassign(corr[t.nastyConvert()+glbTimeSize.nastyConvert()*(ilikeFlav+nflavs*idislikeFlav)],tempCorr[t.nastyConvert()]);
 		}
 	  }
 	
@@ -115,10 +115,10 @@ namespace nissa
 	      master_fprintf(file," # conf %d ; like1 = %d ; dislike = %d ; like2 = %d\n",
 			     iconf,ilikeFlav,idislikeFlav,ilikeFlav);
 	      
-	      for(int t=0;t<glbSize[0];t++)
+	      FOR_ALL_GLB_TIMES(t)
 		{
 		  complex c;
-		  complex_prod_double(c,corr[t+glbSize[0]*(ilikeFlav+nflavs*idislikeFlav)],1.0/meas_pars.nhits);
+		  complex_prod_double(c,corr[t.nastyConvert()+glbTimeSize.nastyConvert()*(ilikeFlav+nflavs*idislikeFlav)],1.0/meas_pars.nhits);
 		  master_fprintf(file,"%d %+.16lg %+.16lg\n",t,c[RE],c[IM]);
 		}
 	    }

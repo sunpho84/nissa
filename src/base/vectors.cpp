@@ -272,9 +272,9 @@ namespace nissa
 	  crash("memory alignment problem, vector %s has %d offset",tag,offset);
 	
 	//if borders or edges are allocated, set appropriate flag
-	if(nel==(locVol()+bordVol()) or nel==(locVolh+bord_volh))
+	if(nel==(locVol()+bordVol()) or nel==locVolWithBord)
 	  set_vect_flag_non_blocking(return_malloc_ptr,BORDERS_ALLOCATED);
-	if(nel==(locVol()+bordVol()+edge_vol) or nel==(locVolh+bord_volh+edge_volh))
+	if(nel==(locVol()+bordVol()+edge_vol) or nel==locVolhWithBordAndEdge)
 	  set_vect_flag_non_blocking(return_malloc_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
 	
 	//Update the amount of required memory

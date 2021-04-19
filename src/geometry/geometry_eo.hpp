@@ -5,10 +5,6 @@
  #define EXTERN_GEOMETRY_EO extern
 #endif
 
-//ODD/EVN
-#define EVN 0
-#define ODD 1
-
 #define NISSA_DEFAULT_USE_EO_GEOM 1
 
 #define NISSA_LOC_VOLH_LOOP(a) for(LocEoSite a=0;a<locVolh;a++)
@@ -21,8 +17,33 @@ namespace nissa
 {
   DECLARE_COMPONENT(LocEoSite,int64_t,DYNAMIC);
   
+  DECLARE_COMPONENT(BordEoSite,int64_t,DYNAMIC);
+  
+  DECLARE_COMPONENT(EdgeEoSite,int64_t,DYNAMIC);
+  
+  DECLARE_COMPONENT(Parity,int32_t,2);
+  
+  constexpr Parity EVN=0;
+  
+  constexpr Parity ODD=1;
+  
+#define FOR_BOTH_PARITIES(NAME)			\
+  FOR_ALL_COMPONENT_VALUES(Parity,NAME)
+  
   /// Half the local volume
   EXTERN_GEOMETRY_EO LocEoSite locVolh;
+  
+  /// Half the border volume
+  EXTERN_GEOMETRY_EO BordEoSite bordVolh;
+  
+  /// "Half" the edge volume
+  EXTERN_GEOMETRY_EO EdgeEoSite edgeVolh;
+  
+  /// Size of half the local volume exteneded with border
+  EXTERN_GEOMETRY_EO LocEoSite locVolhWithBord;
+  
+  /// Size of half the local volume exteneded with border and edge
+  EXTERN_GEOMETRY_EO LocEoSite locVolhWithBordAndEdge;
   
   /// Structure to hold an even/old field
   template <typename T>
@@ -36,12 +57,17 @@ namespace nissa
     
     /// Constant access to data[i]
     CUDA_HOST_DEVICE
-    const Tptr& operator[](const int i) const
+    const Tptr& operator[](const Parity& i) const
     {
-      return data[i];
+      return data[i()];
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator[],CUDA_HOST_DEVICE);
+    /// Non-Constant access to data[i]
+    CUDA_HOST_DEVICE
+    Tptr& operator[](const Parity& i)
+    {
+      return data[i()];
+    }
     
     /// Create from a pair of pointers
     CUDA_HOST_DEVICE eo_ptr(Tptr a,Tptr b) :
@@ -67,19 +93,65 @@ namespace nissa
     }
   };
   
+  /// Structure to hold an even/old field
+  template <typename Tc,
+	    typename Fund>
+  struct EoTensor
+  {
+    /// Type representing a pointer to type T
+    using Tptr=Tensor<Tc,Fund>;
+    
+    /// Inner pointer pairs
+    Tptr data[2];
+    
+    /// Constant access to data[i]
+    CUDA_HOST_DEVICE
+    const Tptr& operator[](const int i) const
+    {
+      return data[i];
+    }
+    
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator[],CUDA_HOST_DEVICE);
+    
+    /// Create from a pair of pointers
+    template <typename...ITc>
+    CUDA_HOST_DEVICE EoTensor(const TensorCompFeat<ITc>&...tc)
+    {
+      for(int eo=0;eo<2;eo++)
+	data[eo].allocate(tc.deFeat()...);
+    }
+    
+    /// Default creator
+    CUDA_HOST_DEVICE EoTensor()
+    {
+    }
+  };
+  
   //-eo is even-odd
-  CUDA_MANAGED EXTERN_GEOMETRY_EO int *loclx_parity;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO int *loceo_of_loclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> loclx_of_loceo;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> surfeo_of_bordeo;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<Coords<LocEoSite>> loceo_neighup;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<Coords<LocEoSite>> loceo_neighdw;
-  EXTERN_GEOMETRY_EO int eo_geom_inited;
-  EXTERN_GEOMETRY_EO int use_eo_geom;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<LocLxSite>,Parity> loclx_parity;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<LocLxSite>,LocEoSite> loceo_of_loclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<Parity,LocEoSite>,LocLxSite> loclx_of_loceo;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<Parity,BordEoSite>,LocEoSite> surfeo_of_bordeo;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<Parity,LocEoSite,Direction>,LocEoSite> loceo_neighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<Parity,LocEoSite,Direction>,LocEoSite> loceo_neighdw;
+  EXTERN_GEOMETRY_EO bool eo_geom_inited;
+  EXTERN_GEOMETRY_EO bool use_eo_geom;
+  
+  /// Return the border id given the local site beyond the local e/o volume
+  INLINE_FUNCTION BordEoSite bordEoSiteOfExtendedLocEoSize(const LocEoSite& locEoSite)
+  {
+    return locEoSite()-locVolh();
+  }
+  
+    /// Return the local site beyond the e/o local volume, corresponding to the passed border id
+  INLINE_FUNCTION LocEoSite extenedLocEoSiteOfBordEoSite(const BordEoSite& bordEoSite)
+  {
+    return locVolh+bordEoSite();
+  }
   
   void filter_hypercube_origin_sites(color **vec);
-  int glblx_parity(int glx);
-  int glb_coord_parity(GlbCoords c);
+  Parity glblx_parity(const GlbLxSite& glx);
+  Parity glb_coord_parity(const GlbCoords& c);
   void initialize_eo_edge_receivers_of_kind(MPI_Datatype *MPI_EDGES_RECE,MPI_Datatype *base);
   void initialize_eo_edge_senders_of_kind(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datatype *base);
   void set_eo_edge_senders_and_receivers(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datatype *MPI_EO_EDGES_RECE,MPI_Datatype *base);

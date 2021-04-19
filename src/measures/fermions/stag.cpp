@@ -20,23 +20,22 @@ namespace nissa
   namespace stag
   {
     //summ a single shift
-    void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side)
+    void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,const Direction& mu,eo_ptr<color> in,shift_orie_t side)
     {
-      
       if(in==out) crash("in==out");
       
       communicate_ev_and_od_color_borders(in);
       communicate_ev_and_od_quad_su3_borders(conf);
       
-      for(int eo=0;eo<2;eo++)
+      FOR_BOTH_PARITIES(eo)
 	{
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
-	      int up=loceo_neighup[eo][ieo.nastyConvert()][mu];
-	      int dw=loceo_neighdw[eo][ieo.nastyConvert()][mu];
+	      const LocEoSite& up=loceo_neighup(eo,ieo,mu);
+	      const LocEoSite& dw=loceo_neighdw(eo,ieo,mu);
 	      color_put_to_zero(out[eo][ieo.nastyConvert()]);
-	      if(side==BOTH or side==UP) su3_summ_the_prod_color(out[eo][ieo.nastyConvert()],conf[eo][ieo.nastyConvert()][mu],in[!eo][up]);
-	      if(side==BOTH or side==DW) su3_dag_summ_the_prod_color(out[eo][ieo.nastyConvert()],conf[!eo][dw][mu],in[!eo][dw]);
+	      if(side==BOTH or side==UP) su3_summ_the_prod_color(out[eo][ieo.nastyConvert()],conf[eo][ieo.nastyConvert()][mu.nastyConvert()],in[(1-eo).nastyConvert()][up.nastyConvert()]);
+	      if(side==BOTH or side==DW) su3_dag_summ_the_prod_color(out[eo][ieo.nastyConvert()],conf[(1-eo).nastyConvert()][dw.nastyConvert()][mu.nastyConvert()],in[(1-eo).nastyConvert()][dw.nastyConvert()]);
 	      
 	      if(side==BOTH) color_prod_double(out[eo][ieo.nastyConvert()],out[eo][ieo.nastyConvert()],0.5);
 	    }
@@ -46,9 +45,9 @@ namespace nissa
     }
     
     //apply a single shift
-    void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side)
+    void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,const Direction& mu,eo_ptr<color> in,shift_orie_t side)
     {
-      for(int eo=0;eo<2;eo++) vector_reset(out[eo]);
+      FOR_BOTH_PARITIES(eo) vector_reset(out[eo]);
       summ_covariant_shift(out,conf,mu,in,side);
     }
     
@@ -59,7 +58,7 @@ namespace nissa
       //allocate temp
       eo_ptr<color> temp;
       for(int par=0;par<2;par++)
-	temp[par]=nissa_malloc("temp",(locVolh+bord_volh).nastyConvert(),color);
+	temp[par]=nissa_malloc("temp",locVolhWithBord.nastyConvert(),color);
       
       //reset out
       for(int par=0;par<2;par++) vector_reset(out[par]);
@@ -67,7 +66,7 @@ namespace nissa
       //shift and summ in both orientation
       shift_orie_t orie_list[2]={UP,DW};
       for(int iorie=0;iorie<2;iorie++)
-	for(int mu=0;mu<NDIM;mu++)
+	FOR_ALL_DIRECTIONS(mu)
 	  {
 	    apply_covariant_shift(temp,conf,mu,in,orie_list[iorie]);
 	    summ_covariant_shift(out,conf,mu,temp,orie_list[iorie]);
@@ -86,17 +85,17 @@ namespace nissa
     }
     
     //apply the operator
-    void apply_shift_op_single_perm(eo_ptr<color> out,eo_ptr<color> temp,eo_ptr<quad_su3> conf,std::vector<int> &list_dir,eo_ptr<color> in)
+    void apply_shift_op_single_perm(eo_ptr<color> out,eo_ptr<color> temp,eo_ptr<quad_su3> conf,const std::vector<Direction> &list_dir,eo_ptr<color> in)
     {
       //make a temporary copy
-      for(int eo=0;eo<2;eo++) vector_copy(temp[eo],in[eo]);
+      FOR_BOTH_PARITIES(eo) vector_copy(temp[eo],in[eo]);
       
-      for(std::vector<int>::iterator mu_it=list_dir.begin();mu_it!=list_dir.end();mu_it++)
+      for(auto mu_it=list_dir.begin();mu_it!=list_dir.end();mu_it++)
 	{
 	  //write comment, copy and communicate
-	  verbosity_lv2_master_printf(" shift %d\n",*mu_it);
+	  verbosity_lv2_master_printf(" shift %d\n",(*mu_it)());
 	  if(mu_it!=list_dir.begin())
-	    for(int eo=0;eo<2;eo++)
+	    FOR_BOTH_PARITIES(eo)
 	      vector_copy(temp[eo],out[eo]);
 	  
 	  //make the shift
@@ -108,9 +107,9 @@ namespace nissa
     void apply_shift_op(eo_ptr<color> out,eo_ptr<color> single_perm,eo_ptr<color> internal_temp,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,int shift,eo_ptr<color> in)
     {
       //make a list that can be easily permuted
-      std::vector<int> list_dir;
-      for(int mu=0;mu<NDIM;mu++)
-	if((shift>>mu)&0x1)
+      std::vector<Direction> list_dir;
+      FOR_ALL_DIRECTIONS(mu)
+	if((shift>>mu())&0x1)
 	  list_dir.push_back(mu);
       std::sort(list_dir.begin(),list_dir.end());
       
@@ -120,27 +119,27 @@ namespace nissa
 	  
 	  //summ all perms
 	  int nperm=0;
-	  for(int eo=0;eo<2;eo++) vector_reset(out[eo]);
+	  FOR_BOTH_PARITIES(eo) vector_reset(out[eo]);
 	  do
 	    {
 	      //incrementing the number of permutations
 	      verbosity_lv2_master_printf("Considering permutation %d:",nperm);
-	      for(std::vector<int>::iterator it=list_dir.begin();it!=list_dir.end();it++) verbosity_lv2_master_printf(" %d",*it);
+	      for(auto it=list_dir.begin();it!=list_dir.end();it++) verbosity_lv2_master_printf(" %d",*it);
 	      verbosity_lv2_master_printf("\n");
 	      nperm++;
 	      
 	      //apply and summ
 	      apply_shift_op_single_perm(single_perm,internal_temp,conf,list_dir,in);
-	      for(int eo=0;eo<2;eo++) double_vector_summassign((double*)(out[eo]),(double*)(single_perm[eo]),locVolh.nastyConvert()*sizeof(color)/sizeof(double));
+	      FOR_BOTH_PARITIES(eo) double_vector_summassign((double*)(out[eo]),(double*)(single_perm[eo]),locVolh.nastyConvert()*sizeof(color)/sizeof(double));
 	    }
 	  while(std::next_permutation(list_dir.begin(),list_dir.end()));
 	  
 	  //final normalization
-	  for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(out[eo]),(double*)(out[eo]),1.0/nperm,locVolh.nastyConvert()*sizeof(color)/sizeof(double));
+	  FOR_BOTH_PARITIES(eo) double_vector_prod_double((double*)(out[eo]),(double*)(out[eo]),1.0/nperm,locVolh.nastyConvert()*sizeof(color)/sizeof(double));
 	  
 	  rem_backfield_without_stagphases_from_conf(conf,u1b);
 	}
-      else for(int eo=0;eo<2;eo++) vector_copy(out[eo],in[eo]);
+      else FOR_BOTH_PARITIES(eo) vector_copy(out[eo],in[eo]);
     }
     
     //add the phases
@@ -148,13 +147,13 @@ namespace nissa
     {
       
       //put the phases
-      for(int eo=0;eo<2;eo++)
+      FOR_BOTH_PARITIES(eo)
 	{
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
 	      int sign=1;
-	      const LocLxSite ivol=loclx_of_loceo[eo][ieo.nastyConvert()];
-	      for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1) and (glbCoordOfLoclx[ivol.nastyConvert()][mu]&0x1));
+	      const LocLxSite ivol=loclx_of_loceo(eo,ieo);
+	      FOR_ALL_DIRECTIONS(mu) sign*=1-2*(((mask>>mu())&0x1) and (glbCoordOfLoclx(ivol,mu)()&0x1));
 	      color_prod_double(source[eo][ieo.nastyConvert()],source[eo][ieo.nastyConvert()],sign);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -174,7 +173,7 @@ namespace nissa
     
     //compute the matrix element of the derivative of the dirac operator between two vectors
     //forward and backward derivative are stored separately, for a reason
-    void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result)
+    void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,const Direction& mu,eo_ptr<color> right,complex *point_result)
     {
       
       communicate_ev_and_od_color_borders(left);
@@ -184,17 +183,17 @@ namespace nissa
       for(int fw_bw=0;fw_bw<2;fw_bw++)
 	{
 	  vector_reset(point_result);
-	  for(int par=0;par<2;par++)
+	  FOR_BOTH_PARITIES(par)
 	    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	      {
 		eo_ptr<color> right_fw_bw[2]={right,left};
 		
 		color v;
-		unsafe_su3_prod_color(v,conf[par][ieo.nastyConvert()][mu],right_fw_bw[fw_bw][!par][loceo_neighup[par][ieo.nastyConvert()][mu]]);
+		unsafe_su3_prod_color(v,conf[par][ieo.nastyConvert()][mu.nastyConvert()],right_fw_bw[fw_bw][(1-par).nastyConvert()][loceo_neighup(par,ieo,mu).nastyConvert()]);
 		complex t;
 		if(fw_bw==0) color_scalar_prod(t,right_fw_bw[!fw_bw][par][ieo.nastyConvert()],v);
 		else         color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo.nastyConvert()]);
-		complex_summassign(point_result[loclx_of_loceo[par][ieo.nastyConvert()]],t);
+		complex_summassign(point_result[loclx_of_loceo(par,ieo).nastyConvert()],t);
 	      }
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
@@ -206,7 +205,7 @@ namespace nissa
     }
     
     //fill a source
-    void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type)
+    void fill_source(eo_ptr<color> src,const GlbCoord& twall,rnd_t noise_type)
     {
       generate_fully_undiluted_eo_source(src,noise_type,twall);
     }
@@ -217,10 +216,10 @@ namespace nissa
       
       //compute results for single points
       vector_reset(point_result);
-      for(int par=0;par<2;par++)
+      FOR_BOTH_PARITIES(par)
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int ic=0;ic<3;ic++)
-	    complex_summ_the_conj1_prod(point_result[loclx_of_loceo[par][ieo.nastyConvert()]],A[par][ieo.nastyConvert()][ic],B[par][ieo.nastyConvert()][ic]);
+	    complex_summ_the_conj1_prod(point_result[loclx_of_loceo(par,ieo).nastyConvert()],A[par][ieo.nastyConvert()][ic],B[par][ieo.nastyConvert()][ic]);
       NISSA_PARALLEL_LOOP_END;
       THREAD_BARRIER();
       
@@ -240,19 +239,19 @@ namespace nissa
       communicate_ev_and_od_quad_su3_borders(conf);
       communicate_ev_and_od_color_borders(in);
       
-      for(int par=0;par<2;par++)
+      FOR_BOTH_PARITIES(par)
 	{
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
 	      color temp;
-	      unsafe_su3_prod_color(temp,conf[par][ieo.nastyConvert()][0],in[!par][loceo_neighup[par][ieo.nastyConvert()][0]]);
-	      int idw=loceo_neighdw[par][ieo.nastyConvert()][0];
-	      if(ord%2==0) su3_dag_subt_the_prod_color(temp,conf[!par][idw][0],in[!par][idw]);
-	      else         su3_dag_summ_the_prod_color(temp,conf[!par][idw][0],in[!par][idw]);
-	      color_prod_double(out[par][ieo.nastyConvert()],temp,0.5);
+	      unsafe_su3_prod_color(temp,conf[par][ieo.nastyConvert()][0],in[(1-par).nastyConvert()][loceo_neighup(par,ieo,timeDirection).nastyConvert()]);
+	      const LocEoSite& idw=loceo_neighdw(par,ieo,timeDirection);
+	      if(ord%2==0) su3_dag_subt_the_prod_color(temp,conf[(1-par).nastyConvert()][idw.nastyConvert()][timeDirection()],in[(1-par).nastyConvert()][idw.nastyConvert()]);
+	      else         su3_dag_summ_the_prod_color(temp,conf[(1-par).nastyConvert()][idw.nastyConvert()][timeDirection()],in[(1-par).nastyConvert()][idw.nastyConvert()]);
+	      color_prod_double(out[par.nastyConvert()][ieo.nastyConvert()],temp,0.5);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
-	  set_borders_invalid(out[par]);
+	  set_borders_invalid(out[par.nastyConvert()]);
 	}
       
       rem_backfield_with_stagphases_from_conf(conf,theory_pars->backfield[iflav]);
@@ -265,10 +264,10 @@ namespace nissa
       apply_shift_op(quark,temp0,temp1,conf,backfield,shift,chi);
       put_stag_phases(quark,mask);
       
-      for(int eo=0;eo<2;eo++)
+      FOR_BOTH_PARITIES(eo)
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    const LocLxSite ivol=loclx_of_loceo[eo][ieo.nastyConvert()];
+	    const LocLxSite& ivol=loclx_of_loceo(eo,ieo);
 	    complex prod;
 	    color_scalar_prod(prod,eta[eo][ieo.nastyConvert()],quark[eo][ieo.nastyConvert()]);
 	    complex_summassign(dens[ivol.nastyConvert()],prod);
@@ -277,49 +276,51 @@ namespace nissa
       THREAD_BARRIER();
     }
     
-    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,const LocEoSite& ieo,int mu,void *pars)
+    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Direction& mu,void *pars)
     {
-      if(aux[0]) complex_copy(out,aux[par][ieo.nastyConvert()][mu]);else complex_put_to_real(out,1);
+      if(aux[0])
+	complex_copy(out,aux[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()]);
+      else
+	complex_put_to_real(out,1);
     }
     
     //insert an external current
-    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,const LocEoSite& ieo,int mu,void *pars),int t,void *pars)
+    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,const Parity& par,const LocEoSite& ieo,const Direction& mu,void *pars),const GlbCoord& t,void *pars)
     {
-      
       add_backfield_with_stagphases_to_conf(conf,theory_pars->backfield[iflav]);
       communicate_ev_and_od_quad_su3_borders(conf);
       communicate_ev_and_od_color_borders(in);
       if(curr[0]) communicate_ev_and_od_spin1field_borders(curr);
       
-      for(int par=0;par<2;par++)
+      FOR_BOTH_PARITIES(par)
 	{
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
-	      const LocLxSite ivol=loclx_of_loceo[par][ieo.nastyConvert()];
+	      const LocLxSite ivol=loclx_of_loceo(par,ieo);
 	      
-	      color_put_to_zero(out[par][ieo.nastyConvert()]);
-	      if(t<0  or  t>=glbSize[0]  or  glbCoordOfLoclx[ivol.nastyConvert()][0]==t)
-		for(int mu=0;mu<NDIM;mu++)
+	      color_put_to_zero(out[par.nastyConvert()][ieo.nastyConvert()]);
+	      if(t<0  or  t>=glbTimeSize or glbCoordOfLoclx(ivol,timeDirection)==t)
+		FOR_ALL_DIRECTIONS(mu)
 		  {
 		    color temp;
 		    
-		    int iup=loceo_neighup[par][ieo.nastyConvert()][mu];
+		    const LocEoSite& iup=loceo_neighup(par,ieo,mu);
 		    complex cf;
 		    get_curr(cf,curr,par,ieo,mu,pars);
 		    complex_prodassign(cf,fact_fw);
-		    unsafe_su3_prod_color(temp,conf[par][ieo.nastyConvert()][mu],in[!par][iup]);
-		    color_summ_the_prod_complex(out[par][ieo.nastyConvert()],temp,cf);
+		    unsafe_su3_prod_color(temp,conf[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()],in[(1-par).nastyConvert()][iup.nastyConvert()]);
+		    color_summ_the_prod_complex(out[par.nastyConvert()][ieo.nastyConvert()],temp,cf);
 		    
-		    int idw=loceo_neighdw[par][ieo.nastyConvert()][mu];
+		    const LocEoSite& idw=loceo_neighdw(par,ieo,mu);
 		    complex cb;
-		    get_curr(cb,curr,!par,idw,mu,pars);
+		    get_curr(cb,curr,(1-par),idw,mu,pars);
 		    complex_prodassign(cb,fact_bw);
-		    unsafe_su3_dag_prod_color(temp,conf[!par][idw][mu],in[!par][idw]);
-		    color_subt_the_prod_complex(out[par][ieo.nastyConvert()],temp,cb);
+		    unsafe_su3_dag_prod_color(temp,conf[(1-par).nastyConvert()][idw.nastyConvert()][mu.nastyConvert()],in[(1-par).nastyConvert()][idw.nastyConvert()]);
+		    color_subt_the_prod_complex(out[par.nastyConvert()][ieo.nastyConvert()],temp,cb);
 		  }
 	    }
 	  NISSA_PARALLEL_LOOP_END;
-	  set_borders_invalid(out[par]);
+	  set_borders_invalid(out[par.nastyConvert()]);
 	}
       
       rem_backfield_with_stagphases_from_conf(conf,theory_pars->backfield[iflav]);

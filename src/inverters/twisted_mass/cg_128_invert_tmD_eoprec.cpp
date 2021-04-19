@@ -14,7 +14,7 @@
 
 #define NDOUBLES_PER_SITE 24
 #define BULK_SIZE locVolh.nastyConvert()
-#define BORD_SIZE bord_volh
+#define BORD_SIZE bordVolh.nastyConvert()
 
 #define APPLY_OPERATOR_128 tmDkern_eoprec_square_eos_128
 //parameters of the operator

@@ -169,6 +169,7 @@ namespace nissa
   {
     setup_knowing_where_to_send(sl);
   }
+  
   void all_to_all_comm_t::setup_knowing_where_to_send(const all_to_all_scattering_list_t &sl)
   {
     

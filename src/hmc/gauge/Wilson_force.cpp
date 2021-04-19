@@ -27,8 +27,8 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    for(int mu=0;mu<NDIM;mu++)
-	      safe_su3_hermitian_prod_double(F[par][ieo.nastyConvert()][mu],F[par][ieo.nastyConvert()][mu],r);
+	    FOR_ALL_DIRECTIONS(mu)
+	      safe_su3_hermitian_prod_double(F[par][ieo.nastyConvert()][mu.nastyConvert()],F[par][ieo.nastyConvert()][mu.nastyConvert()],r);
 	  }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -39,7 +39,6 @@ namespace nissa
   //lx version
   void Wilson_force_lx_conf(quad_su3* F,quad_su3* conf,double beta)
   {
-    
     verbosity_lv1_master_printf("Computing Wilson force (lx)\n");
     
     double r=-beta/NCOL;
@@ -47,8 +46,8 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
-	for(int mu=0;mu<NDIM;mu++)
-	  safe_su3_hermitian_prod_double(F[ivol.nastyConvert()][mu],F[ivol.nastyConvert()][mu],r);
+	FOR_ALL_DIRECTIONS(mu)
+	  safe_su3_hermitian_prod_double(F[ivol.nastyConvert()][mu.nastyConvert()],F[ivol.nastyConvert()][mu.nastyConvert()],r);
       }
     NISSA_PARALLEL_LOOP_END;
     

@@ -13,7 +13,7 @@ namespace nissa
 {
   //apply kappa*H
 #define DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(TYPE)			\
-  void NAME2(gaussian_smearing_apply_kappa_H,TYPE)(TYPE* H,double* kappa,quad_su3* conf,TYPE* in) \
+  void NAME2(gaussian_smearing_apply_kappa_H,TYPE)(TYPE* H,const Momentum& kappa,quad_su3* conf,TYPE* in) \
   {									\
 									\
     NAME3(communicate_lx,TYPE,borders)(in);				\
@@ -30,7 +30,7 @@ namespace nissa
 	    TYPE temp;							\
 	    NAME2(unsafe_su3_prod,TYPE)(temp,conf[ivol.nastyConvert()][mu.nastyConvert()],in[ivup.nastyConvert()]); \
 	    NAME2(su3_dag_summ_the_prod,TYPE)(temp,conf[ivdw.nastyConvert()][mu.nastyConvert()],in[ivdw.nastyConvert()]); \
-	    NAME2(TYPE,summ_the_prod_double)(H[ivol.nastyConvert()],temp,kappa[mu.nastyConvert()]); \
+	    NAME2(TYPE,summ_the_prod_double)(H[ivol.nastyConvert()],temp,kappa(mu)); \
 	  }								\
       }									\
     NISSA_PARALLEL_LOOP_END;						\
@@ -40,7 +40,7 @@ namespace nissa
 
 //gaussian smearing
 #define DEFINE_GAUSSIAN_SMEARING(TYPE)					\
-  void gaussian_smearing(TYPE* smear_sc,TYPE* origi_sc,quad_su3* conf,double* kappa,int niter,TYPE* ext_temp,TYPE* ext_H) \
+  void gaussian_smearing(TYPE* smear_sc,TYPE* origi_sc,quad_su3* conf,const Momentum& kappa,int niter,TYPE* ext_temp,TYPE* ext_H) \
   {									\
     if(niter<1)								\
       {									\
@@ -55,9 +55,9 @@ namespace nissa
 	TYPE *H=ext_H;							\
 	if(ext_H==NULL) H=nissa_malloc("H",locVolWithBord.nastyConvert(),TYPE);	\
 									\
-	double norm_fact=1/(1+2*(kappa[1]+kappa[2]+kappa[3]));		\
+	double norm_fact=1/(1+2*(kappa(xDirection)+kappa(yDirection)+kappa(zDirection))); \
 									\
-	verbosity_lv2_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g}, %d iterations\n",kappa[1],kappa[2],kappa[3],niter); \
+	verbosity_lv2_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g}, %d iterations\n",kappa(xDirection),kappa(yDirection),kappa(zDirection),niter); \
 									\
 	/*iter 0*/							\
 	double_vector_copy((double*)temp,(double*)origi_sc,locVol.nastyConvert()*sizeof(TYPE)/sizeof(double)); \
@@ -65,7 +65,7 @@ namespace nissa
 	/*loop over gaussian iterations*/				\
 	for(int iter=0;iter<niter;iter++)				\
 	  {								\
-	    verbosity_lv3_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g} iteration %d of %d\n",kappa[1],kappa[2],kappa[3],iter,niter); \
+	    verbosity_lv3_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g} iteration %d of %d\n",kappa(xDirection),kappa(yDirection),kappa(zDirection),iter,niter); \
 									\
 	    /*apply kappa*H*/						\
 	    NAME2(gaussian_smearing_apply_kappa_H,TYPE)(H,kappa,conf,temp); \
@@ -93,9 +93,13 @@ namespace nissa
   DEFINE_GAUSSIAN_SMEARING(color)
     
   //smear with a polynomial of H
-  template <class TYPE> void gaussian_smearing(TYPE *smear_sc,TYPE *origi_sc,quad_su3 *conf,double kappa,int nterm,double *coeff,int *exponent)
+  template <class TYPE> void gaussian_smearing(TYPE *smear_sc,TYPE *origi_sc,quad_su3 *conf,double kappa,int nterm,double* coeff,int *exponent)
   {
-    if(nterm==0||(nterm==1&&exponent[0]==0&&coeff[0]==1)){if(smear_sc!=origi_sc) vector_copy(smear_sc,origi_sc);}
+    if(nterm==0 or (nterm==1 and exponent[0]==0 and coeff[0]==1))
+      {
+	if(smear_sc!=origi_sc)
+	  vector_copy(smear_sc,origi_sc);
+      }
     else
       {
 	//copy to a temp buffer

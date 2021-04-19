@@ -17,10 +17,10 @@ namespace nissa
   {
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
+      FOR_ALL_DIRECTIONS(mu)
         for(int ic1=0;ic1<NCOL;ic1++)
           for(int ic2=0;ic2<NCOL;ic2++)
-            complex_subt_the_prod_idouble(H[ivol.nastyConvert()][mu][ic1][ic2],F[ivol.nastyConvert()][mu][ic1][ic2],dt);
+            complex_subt_the_prod_idouble(H[ivol.nastyConvert()][mu.nastyConvert()][ic1][ic2],F[ivol.nastyConvert()][mu.nastyConvert()][ic1][ic2],dt);
     NISSA_PARALLEL_LOOP_END;
     
     THREAD_BARRIER();
@@ -36,13 +36,13 @@ namespace nissa
     
     //evolve
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
+      FOR_ALL_DIRECTIONS(mu)
 	{
 	  su3 t1,t2;
-	  su3_prod_double(t1,H[ivol.nastyConvert()][mu],dt);
+	  su3_prod_double(t1,H[ivol.nastyConvert()][mu.nastyConvert()],dt);
 	  safe_hermitian_exact_i_exponentiate(t2,t1);
           
-	  safe_su3_prod_su3(lx_conf[ivol.nastyConvert()][mu],t2,lx_conf[ivol.nastyConvert()][mu]);
+	  safe_su3_prod_su3(lx_conf[ivol.nastyConvert()][mu.nastyConvert()],t2,lx_conf[ivol.nastyConvert()][mu.nastyConvert()]);
 	}
     NISSA_PARALLEL_LOOP_END;
     

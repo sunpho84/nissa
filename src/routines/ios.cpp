@@ -224,14 +224,14 @@ namespace nissa
     if(is_master_rank())
       {
 	//header
-	if(op_sour>=0 && op_sink>=0 && (!skip_header)) fprintf(fout," # %s%s%s\n",tag,gtag[op_sink],gtag[op_sour]);
-	for(int tempt=0;tempt<glbSize[0];tempt++)
+	if(op_sour>=0 and op_sink>=0 and (not skip_header)) fprintf(fout," # %s%s%s\n",tag,gtag[op_sink],gtag[op_sour]);
+	FOR_ALL_GLB_TIMES(tempt)
 	  {
 	    //shift
-	    int t=tempt+twall;
-	    if(t>=glbSize[0]) t-=glbSize[0];
+	    GlbCoord t=tempt+twall;
+	    if(t>=glbTimeSize) t-=glbTimeSize;
 	    
-	    fprintf(fout,"%+16.016g\t%+16.016g\n",contr[t][0]*norm,contr[t][1]*norm);
+	    fprintf(fout,"%+.16g\t%+.16g\n",contr[t.nastyConvert()][0]*norm,contr[t.nastyConvert()][1]*norm);
 	  }
       }
   }
@@ -243,7 +243,7 @@ namespace nissa
       for(int icontr=0;icontr<ncontr;icontr++)
 	{
 	  fprintf(fout,"\n");
-	  print_contraction_to_file(fout,op_sour[icontr],op_sink[icontr],contr+icontr*glbSize[0],twall,tag,norm,skip_header);
+	  print_contraction_to_file(fout,op_sour[icontr],op_sink[icontr],contr+icontr*glbTimeSize(),twall,tag,norm,skip_header);
 	}
   }
 }

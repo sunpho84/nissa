@@ -47,10 +47,10 @@ namespace nissa
       }
     
     //normalize
-    double norm=pot/(M_PI*M_PI*128);
+    const double norm=pot/(M_PI*M_PI*128);
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
-	safe_su3_hermitian_prod_double(F[ivol.nastyConvert()][mu],F[ivol.nastyConvert()][mu],norm);
+      FOR_ALL_DIRECTIONS(mu)
+      safe_su3_hermitian_prod_double(F[ivol.nastyConvert()][mu.nastyConvert()],F[ivol.nastyConvert()][mu.nastyConvert()],norm);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(F);
@@ -70,13 +70,13 @@ namespace nissa
         stout_smear_conf_stack_allocate(&sme_conf,conf,pars->stout_pars.nlevels);
         
         //smear iteratively retaining all the stack
-        stout_smear_whole_stack(sme_conf,conf,&(pars->stout_pars));
+        stout_smear_whole_stack(sme_conf,conf,pars->stout_pars);
         
         //compute the force in terms of the most smeared conf
 	compute_topological_force_lx_conf_internal(F,sme_conf[pars->stout_pars.nlevels],pars);
 	
         //remap the force backward
-        stouted_force_remap(F,sme_conf,&(pars->stout_pars));
+        stouted_force_remap(F,sme_conf,pars->stout_pars);
 	
 	//now free the stack of confs
         stout_smear_conf_stack_free(&sme_conf,pars->stout_pars.nlevels);

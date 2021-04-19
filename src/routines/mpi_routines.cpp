@@ -86,7 +86,8 @@ namespace nissa
   {
 #ifdef USE_MPI
     int periods[NDIM];
-    for(int mu=0;mu<NDIM;mu++) periods[mu]=1;
+    FOR_ALL_DIRECTIONS(mu)
+      periods[mu()]=1;
     MPI_Cart_create(MPI_COMM_WORLD,NDIM,(int*)nrank_dir.getDataPtr(),periods,1,&cart_comm); //nasty
     //takes rank and ccord of local rank
     MPI_Comm_rank(cart_comm,&cart_rank);
@@ -130,7 +131,7 @@ namespace nissa
       }
 #else
     cart_rank=plan_rank=line_rank=0;
-    for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=planline_coord[mu]=0;
+    FOR_ALL_DIRECTIONS(mu) rank_coord[mu]=planline_coord[mu]=0;
 #endif
   }
   

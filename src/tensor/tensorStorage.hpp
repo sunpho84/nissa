@@ -5,11 +5,12 @@
 # include <config.hpp>
 #endif
 
+/// \file tensorStorage.hpp
+
 #include <memory/memoryManager.hpp>
 #include <memory/storLoc.hpp>
 #include <tensor/component.hpp>
 
-/// \file tensorStorage.hpp
 
 namespace nissa
 {
@@ -72,6 +73,7 @@ namespace nissa
       }
       
       /// Default constructor
+      CUDA_HOST_DEVICE constexpr
       DynamicStorage() :
 	isRef(true),
 	innerStorage(nullptr),
@@ -163,16 +165,16 @@ namespace nissa
       PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(getDataPtr,CUDA_HOST_DEVICE);
       
       /// Constructor: since the data is statically allocated, we need to do nothing
-      CUDA_HOST_DEVICE
+      CUDA_HOST_DEVICE constexpr
       StackStorage(const Size& size=0)
       {
       }
       
       /// Copy constructor
-      CUDA_HOST_DEVICE
+      CUDA_HOST_DEVICE constexpr
       explicit StackStorage(const StackStorage& oth)
       {
-	memcpy(this->data,oth.data,StaticSize);
+	memcpy(this->innerStorage,oth.innerStorage,StaticSize);
       }
       
       // /// Move constructor is deleted
@@ -202,7 +204,7 @@ namespace nissa
     
     /// Returns the pointer to data
     CUDA_HOST_DEVICE
-    Fund* getDataPtr() const
+    const Fund* getDataPtr() const
     {
       return data.getDataPtr();
     }
@@ -224,6 +226,7 @@ namespace nissa
     }
     
     /// Construct taking the size to allocate
+    CUDA_HOST_DEVICE constexpr
     TensorStorage(const Size& size) ///< Size to allocate
       : data(size)
     {
@@ -239,13 +242,13 @@ namespace nissa
     }
     
     /// Default constructor
-    CUDA_HOST_DEVICE
+    CUDA_HOST_DEVICE constexpr
     TensorStorage()
     {
     }
     
     /// Copy constructor
-    CUDA_HOST_DEVICE
+    CUDA_HOST_DEVICE constexpr
     TensorStorage(const TensorStorage& oth) :
       data(oth.data)
     {

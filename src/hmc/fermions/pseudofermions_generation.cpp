@@ -33,7 +33,7 @@ namespace nissa
     add_backfield_without_stagphases_to_conf(conf,u1b);
     if(2*rat->num==rat->den)
       {
-	spincolor *tmp=nissa_malloc("tmp1",(locVolh+bord_volh).nastyConvert(),spincolor);
+	spincolor *tmp=nissa_malloc("tmp1",locVolhWithBord.nastyConvert(),spincolor);
 	tmclovDkern_eoprec_eos(pf,tmp,conf,q.kappa,Cl[ODD],invCl_evn,false,q.mass,eta);
 	nissa_free(tmp);
       }

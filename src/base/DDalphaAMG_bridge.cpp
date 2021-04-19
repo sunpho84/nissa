@@ -29,16 +29,20 @@ namespace DD
   bool setup_valid=false;
   bool inited=false;
   bool block_size_set=false;
-  nissa::coords block_size[MAX_MG_LEVELS];
+  int block_size[MAX_MG_LEVELS][NDIM];
   
-  //remap swapping x and z
-  void remap_coord(nissa::coords out,const nissa::coords in)
-  {for(int mu=0;mu<NDIM;mu++) out[mu]=in[nissa::scidac_mapping[mu]];}
+  /// Remap swapping x and z
+  void remap_coord(int out[],const int in[])
+  {
+    FOR_ALL_DIRECTIONS(mu)
+      out[mu]=in[nissa::scidac_mapping(nissa::Direction(mu))()];
+  }
   
   //return the coordinate transposed
+  
   static int cart_coords(MPI_Comm comm,int ext_rank,int maxdims,int c[])
   {
-    nissa::coords int_c;
+    int int_c[NDIM];
     int stat=MPI_Cart_coords(comm,ext_rank,maxdims,int_c);
     remap_coord(c,int_c);
     return stat;
@@ -47,18 +51,22 @@ namespace DD
   //return the rank of remapped coordinate
   static int cart_rank(MPI_Comm comm,const int ext_c[],int *ext_rank)
   {
-    nissa::coords c;
+    int c[NDIM];
     remap_coord(c,ext_c);
     return MPI_Cart_rank(comm,c,ext_rank);
   }
   
   //return the index of the configuration
   static int conf_index_fct(int t,int z,int y,int x,int mu)
-  {return sizeof(nissa::su3)/sizeof(double)*(nissa::scidac_mapping[mu]+NDIM*nissa::loclx_of_coord_list(t,x,y,z));}
+  {
+    return sizeof(nissa::su3)/sizeof(double)*(nissa::scidac_mapping(nissa::Direction(mu))()+NDIM*nissa::loclx_of_coord_list(t,x,y,z)());
+  }
   
   //return the index inside a spincolor
   static int vector_index_fct(int t,int z,int y,int x)
-  {return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclx_of_coord_list(t,x,y,z);}
+  {
+    return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclx_of_coord_list(t,x,y,z)();
+  }
   
   //read the nissa configuration file
   void read_DDalphaAMG_pars()
@@ -123,7 +131,7 @@ namespace DD
 		    for(int ilev=0;ilev<nlevels;ilev++)
 		      for(int idir=0;idir<4;idir++)
 			{
-			  int jdir=nissa::scidac_mapping[idir];
+			  int jdir=nissa::scidac_mapping(nissa::Direction(idir))();
 			  nissa::read_int(&block_size[ilev][jdir]);
 			  master_printf("DD: block_size[%d][%d*]=%d\n",ilev,jdir,block_size[ilev][jdir]);
 			}
@@ -214,17 +222,23 @@ namespace DD
 	init_params.Cart_rank=cart_rank;
 	
 	//sizes and coord
-	remap_coord(init_params.global_lattice,nissa::glbSize);
-	remap_coord(init_params.procs,nissa::nrank_dir);
+	int glbSize[NDIM],nrank_dir[NDIM];
+	FOR_ALL_DIRECTIONS(mu)
+	  {
+	    glbSize[mu]=nissa::glbSize(nissa::Direction(mu))();
+	    nrank_dir[mu]=nissa::nrank_dir(nissa::Direction(mu))();
+	  }
+	remap_coord(init_params.global_lattice,glbSize);
+	remap_coord(init_params.procs,nrank_dir);
 	
 	//block size and theta
 	for(int dir=0;dir<NDIM;dir++)
 	  {
-	    int jdir=nissa::scidac_mapping[dir];
+	    int jdir=nissa::scidac_mapping(nissa::Direction(dir)).nastyConvert();
 	    init_params.block_lattice[dir]=
-	      (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%2==0)?
-	       (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%4==0)?4:2):
-	       (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%3==0)?3:1));
+	      (((glbSize[jdir]/nrank_dir[jdir])%2==0)?
+	       (((glbSize[jdir]/nrank_dir[jdir])%4==0)?4:2):
+	       (((glbSize[jdir]/nrank_dir[jdir])%3==0)?3:1));
 	    if(block_size_set) init_params.block_lattice[dir]=block_size[0][dir];
 	    master_printf("Dir %d block size: %d\n",dir,init_params.block_lattice[dir]);
 	    init_params.theta[dir]=0;

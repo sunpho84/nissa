@@ -224,13 +224,13 @@ namespace nissa
   }
   
   //generate a spindiluted vector according to the passed type
-  void generate_colorspindiluted_source(su3spinspin* source,enum rnd_t rtype,int twall)
+  void generate_colorspindiluted_source(su3spinspin* source,enum rnd_t rtype,const GlbCoord& tWall)
   {
     //reset
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol.nastyConvert()][0]==twall or twall<0)
+      if(glbCoordOfLoclx(ivol,timeDirection)==tWall or tWall<0)
 	{
 	  comp_get_rnd(source[ivol.nastyConvert()][0][0][0][0],&(loc_rnd_gen[ivol.nastyConvert()]),rtype);
 	  for(int c=0;c<NCOL;c++)
@@ -244,13 +244,13 @@ namespace nissa
   }
   
   //generate a spindiluted vector according to the passed type
-  void generate_spindiluted_source(colorspinspin* source,enum rnd_t rtype,int twall)
+  void generate_spindiluted_source(colorspinspin* source,enum rnd_t rtype,const GlbCoord& tWall)
   {
     //reset
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol.nastyConvert()][0]==twall or twall<0)
+      if(glbCoordOfLoclx(ivol,timeDirection)==tWall or tWall<0)
 	for(int ic=0;ic<NCOL;ic++)
 	  {
 	    comp_get_rnd(source[ivol.nastyConvert()][ic][0][0],&(loc_rnd_gen[ivol.nastyConvert()]),rtype);
@@ -263,12 +263,12 @@ namespace nissa
   }
   
   //generate an undiluted vector according to the passed type
-  void generate_undiluted_source(spincolor* source,enum rnd_t rtype,int twall)
+  void generate_undiluted_source(spincolor* source,enum rnd_t rtype,const GlbCoord& tWall)
   {
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol.nastyConvert()][0]==twall or twall<0)
+      if(glbCoordOfLoclx(ivol,timeDirection)==tWall or tWall<0)
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ivol.nastyConvert()][id][ic],&(loc_rnd_gen[ivol.nastyConvert()]),rtype);
@@ -278,12 +278,12 @@ namespace nissa
   }
   
   //generate a fully undiluted source
-  void generate_fully_undiluted_lx_source(color* source,enum rnd_t rtype,int twall,int dir)
+  void generate_fully_undiluted_lx_source(color* source,enum rnd_t rtype,const GlbCoord& tWall,const Direction& dir)
   {
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ilx,0,locVol)
-      if(twall<0 or glbCoordOfLoclx[ilx.nastyConvert()][dir]==twall)
+      if(tWall<0 or glbCoordOfLoclx(ilx,dir)==tWall)
 	for(int ic=0;ic<NCOL;ic++)
 	  comp_get_rnd(source[ilx.nastyConvert()][ic],&(loc_rnd_gen[ilx.nastyConvert()]),rtype);
     NISSA_PARALLEL_LOOP_END;
@@ -291,89 +291,88 @@ namespace nissa
     set_borders_invalid(source);
   }
   //eo version
-  void generate_fully_undiluted_eo_source(color* source,enum rnd_t rtype,int twall,int par,int dir)
+  void generate_fully_undiluted_eo_source(color* source,enum rnd_t rtype,const GlbCoord& tWall,const Parity& par,const Direction& dir)
   {
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       {
-	int ilx=loclx_of_loceo[par][ieo.nastyConvert()];
-	if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
+	const LocLxSite& ilx=loclx_of_loceo(par,ieo);
+	if(tWall<0 or glbCoordOfLoclx(ilx,dir)==tWall)
 	  for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ieo.nastyConvert()][ic],&(loc_rnd_gen[ilx]),rtype);
+	    comp_get_rnd(source[ieo.nastyConvert()][ic],&(loc_rnd_gen[ilx.nastyConvert()]),rtype);
       }
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
   }
-  void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,int twall,int dir)
-  {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
+  
+  void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,const GlbCoord& tWall,const Direction& dir)
+  {
+    for(Parity par=0;par<2;par++)
+      generate_fully_undiluted_eo_source(source[par],rtype,tWall,par,dir);
+  }
   
   //same for spincolor
-  void generate_fully_undiluted_eo_source(spincolor* source,enum rnd_t rtype,int twall,int par,int dir)
+  void generate_fully_undiluted_eo_source(spincolor* source,enum rnd_t rtype,const GlbCoord& tWall,const Parity& par,const Direction& dir)
   {
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ieo,0,locVolh)
       {
-	int ilx=loclx_of_loceo[par][ieo.nastyConvert()];
-	if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
+	const LocLxSite& ilx=loclx_of_loceo(par,ieo);
+	if(tWall<0 or glbCoordOfLoclx(ilx,dir)==tWall)
 	  for(int id=0;id<NDIRAC;id++)
 	    for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ieo.nastyConvert()][id][ic],&(loc_rnd_gen[ilx]),rtype);
+	    comp_get_rnd(source[ieo.nastyConvert()][id][ic],&(loc_rnd_gen[ilx.nastyConvert()]),rtype);
       }
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(source);
   }
-  void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir)
-  {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
+  
+  void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,const GlbCoord& tWall,const Direction& dir)
+  {
+    for(Parity par=0;par<2;par++)
+      generate_fully_undiluted_eo_source(source[par],rtype,tWall,par,dir);
+  }
   
   //generate a delta source
-  void generate_delta_source(su3spinspin* source,int* x)
+  void generate_delta_source(su3spinspin* source,const GlbCoords& x)
   {
     //reset
     vector_reset(source);
     
-    int islocal=1;
-    coords lx;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	lx[mu]=x[mu]-rank_coord[mu]*locSize[mu];
-	islocal&=(lx[mu]>=0);
-	islocal&=(lx[mu]<locSize[mu]);
-      }
+    LocLxSite ivol;
+    Rank where;
     
-    if(islocal)
-      for(int id=0;id<4;id++)
+    get_loclx_and_rank_of_coord(ivol,where,x);
+    
+    if(rank==where)
+      for(int id=0;id<NDIRAC;id++)
 	for(int ic=0;ic<NCOL;ic++)
-	  source[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
+	  source[ivol.nastyConvert()][ic][ic][id][id][0]=1;
     
     set_borders_invalid(source);
   }
   
   //generate a delta source
-  void generate_delta_eo_source(eo_ptr<su3> source,int* x)
+  void generate_delta_eo_source(eo_ptr<su3> source,const GlbCoords& x)
   {
     //reset
-    for(int par=0;par<2;par++) vector_reset(source[par]);
+    for(int par=0;par<2;par++)
+      vector_reset(source[par]);
     
-    int islocal=1;
-    coords lx;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-        lx[mu]=x[mu]-rank_coord[mu]*locSize[mu];
-        islocal&=(lx[mu]>=0);
-        islocal&=(lx[mu]<locSize[mu]);
-      }
+    LocLxSite ivol;
+    Rank where;
     
-    if(islocal)
-      {
-	LocLxSite ivol=loclx_of_coord(lx);
-	su3_put_to_id(source[loclx_parity[ivol.nastyConvert()]][loceo_of_loclx[ivol.nastyConvert()]]);
-      }
+    get_loclx_and_rank_of_coord(ivol,where,x);
     
-    for(int par=0;par<2;par++) set_borders_invalid(source[par]);
+    if(rank==where)
+      su3_put_to_id(source[loclx_parity(ivol).nastyConvert()][loceo_of_loclx(ivol).nastyConvert()]);
+    
+    for(int par=0;par<2;par++)
+      set_borders_invalid(source[par]);
   }
   
     //Taken from M.D'Elia

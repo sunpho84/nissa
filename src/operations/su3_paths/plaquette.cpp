@@ -52,18 +52,18 @@ namespace nissa
       }
   }
   
-  CUDA_HOST_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,int par,const LocEoSite& A)
+  CUDA_HOST_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,const Parity& par,const LocEoSite& A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
-    for(int mu=0;mu<NDIM;mu++)
+    FOR_ALL_DIRECTIONS(mu)
       {
-	int B=loceo_neighup[par][A.nastyConvert()][mu];
-	for(int nu=mu+1;nu<NDIM;nu++)
+	const LocEoSite& B=loceo_neighup(par,A,mu);
+	for(Direction nu=mu+1;nu<NDIM;nu++)
 	  {
-	    int C=loceo_neighup[par][A.nastyConvert()][nu];
+	    const LocEoSite& C=loceo_neighup(par,A,nu);
 	    su3 ABD,ACD;
-	    unsafe_su3_prod_su3(ABD,conf[par][A.nastyConvert()][mu],conf[!par][B][nu]);
-	    unsafe_su3_prod_su3(ACD,conf[par][A.nastyConvert()][nu],conf[!par][C][mu]);
+	    unsafe_su3_prod_su3(ABD,conf[par][A.nastyConvert()][mu.nastyConvert()],conf[(1-par).nastyConvert()][B.nastyConvert()][nu.nastyConvert()]);
+	    unsafe_su3_prod_su3(ACD,conf[par][A.nastyConvert()][nu.nastyConvert()],conf[(1-par).nastyConvert()][C.nastyConvert()][mu.nastyConvert()]);
 	    
 	    int ts=(mu!=0 and nu!=0);
 	    loc_plaq[ts]+=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
@@ -97,16 +97,15 @@ namespace nissa
   
   void global_plaquette_eo_conf(double* totplaq,eo_ptr<quad_su3> conf)
   {
-    
     //summ temporal and spatial separately
     complex *point_plaq=nissa_malloc("point_plaq",locVol.nastyConvert(),complex);
     communicate_ev_and_od_quad_su3_borders(conf);
     
     //loop over all the lattice
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  point_plaquette_eo_conf(point_plaq[loclx_of_loceo[par][ieo.nastyConvert()]],conf,par,ieo);
+	  point_plaquette_eo_conf(point_plaq[loclx_of_loceo(par,ieo).nastyConvert()],conf,par,ieo);
 	NISSA_PARALLEL_LOOP_END;
       }
     

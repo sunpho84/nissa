@@ -18,7 +18,7 @@ namespace nissa
 {
   //smear a conf using hyp
   //warning, the input conf needs to have edges allocate!
-  void hyp_smear_conf(quad_su3* sm_conf,quad_su3* conf,double alpha0,double alpha1,double alpha2,bool* dirs)
+  void hyp_smear_conf(quad_su3* sm_conf,quad_su3* conf,double alpha0,double alpha1,double alpha2,const Coords<bool>& dirs)
   {
 #if NDIM == 4
     
@@ -164,7 +164,7 @@ namespace nissa
     
     //loop over external index
     FOR_ALL_DIRECTIONS(mu)
-      if(dirs[mu.nastyConvert()])
+      if(dirs(mu))
 	{
 	  //loop over local volume
 	  NISSA_PARALLEL_LOOP(A,0,locVol)

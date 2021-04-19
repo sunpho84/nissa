@@ -23,11 +23,11 @@ namespace nissa
     for(int eo=0;eo<2;eo++)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  for(int mu=0;mu<NDIM;mu++)
+	  FOR_ALL_DIRECTIONS(mu)
 	    {
 	      su3 temp;
-	      unsafe_su3_prod_su3(temp,conf[eo][ieo.nastyConvert()][mu],F[eo][ieo.nastyConvert()][mu]);
-	      unsafe_su3_traceless_anti_hermitian_part(F[eo][ieo.nastyConvert()][mu],temp);
+	      unsafe_su3_prod_su3(temp,conf[eo][ieo.nastyConvert()][mu.nastyConvert()],F[eo][ieo.nastyConvert()][mu.nastyConvert()]);
+	      unsafe_su3_traceless_anti_hermitian_part(F[eo][ieo.nastyConvert()][mu.nastyConvert()],temp);
 	    }
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -107,13 +107,13 @@ namespace nissa
 	stout_smear_conf_stack_allocate(&sme_conf,conf,nlevls);
 	
 	//smear iteratively retaining all the stack
-	stout_smear_whole_stack(sme_conf,conf,&(physics->stout_pars));
+	stout_smear_whole_stack(sme_conf,conf,physics->stout_pars);
 	
 	//compute the force in terms of the most smeared conf
 	compute_quark_force_no_stout_remapping(F,sme_conf[nlevls],pf,physics,appr,residue);
 	
 	//remap the force backward
-	stouted_force_remap(F,sme_conf,&(physics->stout_pars));
+	stouted_force_remap(F,sme_conf,physics->stout_pars);
 	
 	//now free the stack of confs
 	stout_smear_conf_stack_free(&sme_conf,nlevls);

@@ -81,7 +81,7 @@ namespace nissa
     return energy;
   }
   void ac_rotate_vector(void *out,void *in,int axis,size_t bps);
-  void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbords,int putonedges);
+  void adapt_theta(quad_su3 *conf,Momentum& old_theta,const Momentum& put_theta,const bool& putonbords,const bool& putonedges);
   void cool_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper);
   void generate_cold_eo_conf(eo_ptr<quad_su3> conf);
   void generate_hot_eo_conf(eo_ptr<quad_su3> conf);
@@ -89,8 +89,8 @@ namespace nissa
   void generate_hot_lx_conf(quad_su3 *conf);
   void heatbath_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper,double beta,int nhits);
   void overrelax_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper,int nhits);
-  void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
-  void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
+  void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,const bool& putonbords,const bool& putonedges);
+  void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,const bool& putonbords,const bool& putonedges);
   void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf);
   void unitarize_lx_conf_orthonormalizing(quad_su3 *conf);
   void unitarize_lx_conf_maximal_trace_projecting(quad_su3 *conf);

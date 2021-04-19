@@ -17,9 +17,9 @@ namespace nissa
   {
     //allocate
     single_color *ssource=nissa_malloc("ssource",locVolh.nastyConvert(),single_color);
-    single_color *schi_e=nissa_malloc("schi_e",(locVolh+bord_volh).nastyConvert(),single_color);
-    eo_ptr<single_quad_su3> seo_conf={nissa_malloc("single_conf",(locVolh+bord_volh).nastyConvert(),single_quad_su3),
-				   nissa_malloc("single_conf",(locVolh+bord_volh).nastyConvert(),single_quad_su3)};
+    single_color *schi_e=nissa_malloc("schi_e",locVolhWithBord.nastyConvert(),single_color);
+    eo_ptr<single_quad_su3> seo_conf={nissa_malloc("single_conf",locVolhWithBord.nastyConvert(),single_quad_su3),
+				   nissa_malloc("single_conf",locVolhWithBord.nastyConvert(),single_quad_su3)};
     //convert forward
     for(int par=0;par<2;par++) double_vector_to_single((float*)(seo_conf[par]),(double*)(eo_conf[par]),locVolh.nastyConvert()*sizeof(quad_su3)/sizeof(double));
     double_vector_to_single((float*)ssource,(double*)source,locVolh.nastyConvert()*sizeof(color)/sizeof(double));
@@ -38,9 +38,9 @@ namespace nissa
     //allocate
     single_color *spf=nissa_malloc("spf",locVolh.nastyConvert(),single_color);
     single_color *schi_e[nterms];
-    for(int iterm=0;iterm<nterms;iterm++) schi_e[iterm]=nissa_malloc("schi_e",(locVolh+bord_volh).nastyConvert(),single_color);
-    eo_ptr<single_quad_su3> seo_conf={nissa_malloc("single_conf",(locVolh+bord_volh).nastyConvert(),single_quad_su3),
-				   nissa_malloc("single_conf",(locVolh+bord_volh).nastyConvert(),single_quad_su3)};
+    for(int iterm=0;iterm<nterms;iterm++) schi_e[iterm]=nissa_malloc("schi_e",locVolhWithBord.nastyConvert(),single_color);
+    eo_ptr<single_quad_su3> seo_conf={nissa_malloc("single_conf",locVolhWithBord.nastyConvert(),single_quad_su3),
+				   nissa_malloc("single_conf",locVolhWithBord.nastyConvert(),single_quad_su3)};
     //convert forward
     for(int par=0;par<2;par++) double_vector_to_single((float*)(seo_conf[par]),(double*)(eo_conf[par]),locVolh.nastyConvert()*sizeof(quad_su3)/sizeof(double));
     double_vector_to_single((float*)spf,(double*)pf,locVolh.nastyConvert()*sizeof(color)/sizeof(double));

@@ -92,11 +92,12 @@ namespace nissa
   }
   
   //take a set of theta, charge and photon field, and update the conf
-  quad_su3* get_updated_conf(double charge,double *theta,quad_su3 *in_conf)
+  quad_su3* get_updated_conf(double charge,const Momentum& theta,quad_su3 *in_conf)
   {
     //check if the inner conf is valid or not
     static quad_su3 *stored_conf=NULL;
-    static double stored_charge=0,stored_theta[NDIM];
+    static double stored_charge=0;
+    Momentum stored_theta;
     if(not inner_conf_valid) master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
     
     //check ref conf
@@ -114,11 +115,13 @@ namespace nissa
       }
     //check theta
     bool same_theta=true;
-    for(int mu=0;mu<NDIM;mu++) same_theta&=(theta[mu]==stored_theta[mu]);
+    FOR_ALL_DIRECTIONS(mu)
+      same_theta&=(theta(mu)==stored_theta(mu));
+    
     if(not same_theta)
       {
 	master_printf("Inner conf is invalid (theta changed from {%lg,%lg,%lg,%lg} to {%lg,%lg,%lg,%lg}\n",
-		      stored_theta[0],stored_theta[1],stored_theta[2],stored_theta[3],theta[0],theta[1],theta[2],theta[3]);
+		      stored_theta(Direction(0)),stored_theta(xDirection),stored_theta(yDirection),stored_theta(zDirection),theta(Direction(0)),theta(xDirection),theta(yDirection),theta(zDirection));
 	inner_conf_valid=false;
       }
     
@@ -130,8 +133,9 @@ namespace nissa
 	vector_copy(inner_conf,in_conf);
 	
 	//put momentum
-	momentum_t old_theta;
-	old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
+	Momentum old_theta;
+	FOR_ALL_DIRECTIONS(mu)
+	  old_theta(mu)=0.0;
 	adapt_theta(inner_conf,old_theta,theta,0,0);
 	
 	//include the photon field, with correct charge
@@ -141,7 +145,8 @@ namespace nissa
     //update value and set valid
     stored_conf=in_conf;
     stored_charge=charge;
-    for(int mu=0;mu<NDIM;mu++) stored_theta[mu]=theta[mu];
+    FOR_ALL_DIRECTIONS(mu)
+      stored_theta(mu)=theta(mu);
     inner_conf_valid=true;
     
     return inner_conf;
@@ -186,7 +191,7 @@ namespace nissa
   {
     for(int ihit=a;ihit<b;ihit++)
       {
-	coords coord;
+	GlbCoords coord;
 	generate_random_coord(coord);
 	if(need_photon) generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
 	generate_original_sources(ihit,true);

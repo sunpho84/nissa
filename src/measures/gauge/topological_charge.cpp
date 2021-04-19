@@ -204,51 +204,54 @@ namespace nissa
   }
   
   //finding the index to put only 1/16 of the data
-  int index_to_topo_corr_remapping(int iloc_lx)
+  GlbLxSite index_to_topo_corr_remapping(const LocLxSite& iloc_lx)
   {
-    int subcube=0,subcube_el=0;
-    int subcube_size[NDIM][2],subcube_coord[NDIM],subcube_el_coord[NDIM];
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	subcube_size[mu][0]=glbSize[mu]/2+1;
-	subcube_size[mu][1]=glbSize[mu]/2-1;
-	
-	//take global coord and identify subcube
-	int glx_mu=glbCoordOfLoclx[iloc_lx][mu];
-	subcube_coord[mu]=(glx_mu>=subcube_size[mu][0]);
-	subcube=subcube*2+subcube_coord[mu];
-	
-	//identify also the local coord
-	subcube_el_coord[mu]=glx_mu-subcube_coord[mu]*subcube_size[mu][0];
-	subcube_el=subcube_el*subcube_size[mu][subcube_coord[mu]]+subcube_el_coord[mu];
-      }
+    crash("reimplement");
     
-    //summ the smaller-index cubes
-    coords nsubcubes_per_dir;
-    for(int mu=0;mu<NDIM;mu++) nsubcubes_per_dir[mu]=2;
-    int minind_cube_vol=0;
-    for(int isubcube=0;isubcube<subcube;isubcube++)
-      {
-	//get coords
-	coords c;
-	coord_of_lx(c,isubcube,nsubcubes_per_dir);
-	//compute vol
-	int subcube_vol=1;
-	for(int mu=0;mu<NDIM;mu++) subcube_vol*=subcube_size[mu][c[mu]];
-	minind_cube_vol+=subcube_vol;
-      }
+    // int subcube=0,subcube_el=0;
+    // int subcube_size[NDIM][2],subcube_coord[NDIM],subcube_el_coord[NDIM];
+    // FOR_ALL_DIRECTIONS(mu)
+    //   {
+    // 	subcube_size[mu][0]=glbSize[mu]/2+1;
+    // 	subcube_size[mu][1]=glbSize[mu]/2-1;
+	
+    // 	//take global coord and identify subcube
+    // 	int glx_mu=glbCoordOfLoclx[iloc_lx][mu];
+    // 	subcube_coord[mu]=(glx_mu>=subcube_size[mu][0]);
+    // 	subcube=subcube*2+subcube_coord[mu];
+	
+    // 	//identify also the local coord
+    // 	subcube_el_coord[mu]=glx_mu-subcube_coord[mu]*subcube_size[mu][0];
+    // 	subcube_el=subcube_el*subcube_size[mu][subcube_coord[mu]]+subcube_el_coord[mu];
+    //   }
     
-    return subcube_el+minind_cube_vol;
+    // //summ the smaller-index cubes
+    // coords nsubcubes_per_dir;
+    // FOR_ALL_DIRECTIONS(mu) nsubcubes_per_dir[mu]=2;
+    // int minind_cube_vol=0;
+    // for(int isubcube=0;isubcube<subcube;isubcube++)
+    //   {
+    // 	//get coords
+    // 	coords c;
+    // 	coord_of_lx(c,isubcube,nsubcubes_per_dir);
+    // 	//compute vol
+    // 	int subcube_vol=1;
+    // 	FOR_ALL_DIRECTIONS(mu) subcube_vol*=subcube_size[mu][c[mu]];
+    // 	minind_cube_vol+=subcube_vol;
+    //   }
+    
+    // return subcube_el+minind_cube_vol;
+    return 0;
   }
   
   //wrapper
-  void index_to_topo_corr_remapping(int &irank,int &iloc,int iloc_lx,void *pars)
+  void index_to_topo_corr_remapping(Rank &irank,LocLxSite &iloc,const LocLxSite& iloc_lx,void *pars)
   {
-    int iglb=index_to_topo_corr_remapping(iloc_lx);
+    const GlbLxSite iglb=index_to_topo_corr_remapping(iloc_lx);
     
     //find rank and loclx
-    irank=(iglb/locVol).nastyConvert();
-    iloc=(iglb%locVol).nastyConvert();
+    irank=(iglb()/locVol)();
+    iloc=(iglb()%locVol)();
   }
   
   //store only 1/16 of the file
@@ -285,7 +288,8 @@ namespace nissa
     
     //find which piece has to write data
     int64_t tot_data=1;
-    for(int mu=0;mu<NDIM;mu++) tot_data*=glbSize[mu]/2+1;
+    FOR_ALL_DIRECTIONS(mu)
+      tot_data*=glbSize(mu)()/2+1;
     
     //fix possible exceding boundary
     int64_t istart=std::min(tot_data,(locVol*rank).nastyConvert());
@@ -484,9 +488,9 @@ namespace nissa
 	  }
 	else
 	  {
-	    conf[0]=nissa_malloc("stout_conf_e",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
-	    conf[1]=nissa_malloc("stout_conf_o",(locVolh+bord_volh+edge_volh).nastyConvert(),quad_su3);
-	    stout_smear(conf,ext_conf,&stout_pars);
+	    conf[0]=nissa_malloc("stout_conf_e",locVolhWithBordAndEdge.nastyConvert(),quad_su3);
+	    conf[1]=nissa_malloc("stout_conf_o",locVolhWithBordAndEdge.nastyConvert(),quad_su3);
+	    stout_smear(conf,ext_conf,stout_pars);
 	  }
 	
 	//compute topocharge

@@ -37,103 +37,106 @@ namespace nissa
 {
   void ac_rotate_vector(void *out,void *in,int axis,size_t bps)
   {
-    //find the two swapping direction
-    int d1=1+(axis-1+1)%3;
-    int d2=1+(axis-1+2)%3;
+    crash("reimplement");
+    // //find the two swapping direction
+    // int d1=1+(axis-1+1)%3;
+    // int d2=1+(axis-1+2)%3;
     
-    //check that the two directions have the same size and that we are not asking 0 as axis
-    if(glbSize[d1]!=glbSize[d2]) crash("Rotation works only if dir %d and %d have the same size!",glbSize[d1],glbSize[d2]);
-    if(axis==0) crash("Error, only spatial rotations implemented");
-    int L=glbSize[d1];
+    // //check that the two directions have the same size and that we are not asking 0 as axis
+    // if(glbSize[d1]!=glbSize[d2]) crash("Rotation works only if dir %d and %d have the same size!",glbSize[d1],glbSize[d2]);
+    // if(axis==0) crash("Error, only spatial rotations implemented");
+    // int L=glbSize[d1];
     
-    //allocate destinations and sources
-    coords *xto=nissa_malloc("xto",locVol.nastyConvert(),coords);
-    coords *xfr=nissa_malloc("xfr",locVol.nastyConvert(),coords);
+    // //allocate destinations and sources
+    // coords *xto=nissa_malloc("xto",locVol.nastyConvert(),coords);
+    // coords *xfr=nissa_malloc("xfr",locVol.nastyConvert(),coords);
     
-    //scan all local sites to see where to send and from where to expect data
-    NISSA_LOC_VOL_LOOP(ivol)
-    {
-      //copy 0 and axis coord to "to" and "from" sites
-      xto[ivol.nastyConvert()][0]=xfr[ivol.nastyConvert()][0]=glbCoordOfLoclx[ivol.nastyConvert()][0];
-      xto[ivol.nastyConvert()][axis]=xfr[ivol.nastyConvert()][axis]=glbCoordOfLoclx[ivol.nastyConvert()][axis];
+    // //scan all local sites to see where to send and from where to expect data
+    // NISSA_LOC_VOL_LOOP(ivol)
+    // {
+    //   //copy 0 and axis coord to "to" and "from" sites
+    //   xto[ivol.nastyConvert()][0]=xfr[ivol.nastyConvert()][0]=glbCoordOfLoclx[ivol.nastyConvert()][0];
+    //   xto[ivol.nastyConvert()][axis]=xfr[ivol.nastyConvert()][axis]=glbCoordOfLoclx[ivol.nastyConvert()][axis];
       
-      //find reamining coord of "to" site
-      xto[ivol.nastyConvert()][d1]=(L-glbCoordOfLoclx[ivol.nastyConvert()][d2])%L;
-      xto[ivol.nastyConvert()][d2]=glbCoordOfLoclx[ivol.nastyConvert()][d1];
+    //   //find reamining coord of "to" site
+    //   xto[ivol.nastyConvert()][d1]=(L-glbCoordOfLoclx[ivol.nastyConvert()][d2])%L;
+    //   xto[ivol.nastyConvert()][d2]=glbCoordOfLoclx[ivol.nastyConvert()][d1];
       
-      //find remaining coord of "from" site
-      xfr[ivol.nastyConvert()][d1]=glbCoordOfLoclx[ivol.nastyConvert()][d2];
-      xfr[ivol.nastyConvert()][d2]=(L-glbCoordOfLoclx[ivol.nastyConvert()][d1])%L;
-    }
+    //   //find remaining coord of "from" site
+    //   xfr[ivol.nastyConvert()][d1]=glbCoordOfLoclx[ivol.nastyConvert()][d2];
+    //   xfr[ivol.nastyConvert()][d2]=(L-glbCoordOfLoclx[ivol.nastyConvert()][d1])%L;
+    // }
     
-    //call the remapping
-    //remap_vector((char*)out,(char*)in,xto,xfr,bps);
-    crash("to be reimplemented");
+    // //call the remapping
+    // //remap_vector((char*)out,(char*)in,xto,xfr,bps);
+    // crash("to be reimplemented");
     
-    //free vectors
-    nissa_free(xfr);
-    nissa_free(xto);
+    // //free vectors
+    // nissa_free(xfr);
+    // nissa_free(xto);
   }
   
   //put boundary conditions on the gauge conf
-  void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges)
+  void put_boundaries_conditions(quad_su3 *conf,const Momentum& theta_in_pi,const bool& putOnBords,const bool& putOnEdges)
   {
     complex theta[NDIM];
-    for(int idir=0;idir<NDIM;idir++)
+    FOR_ALL_DIRECTIONS(idir)
       {
-	theta[idir][0]=cos(theta_in_pi[idir]*M_PI/glbSize[idir]);
-	theta[idir][1]=sin(theta_in_pi[idir]*M_PI/glbSize[idir]);
+	theta[idir.nastyConvert()][0]=cos(theta_in_pi(idir)*M_PI/glbSize(idir)());
+	theta[idir.nastyConvert()][1]=sin(theta_in_pi(idir)*M_PI/glbSize(idir)());
       }
     
     LocLxSite nsite=locVol;
-    if(putonbords) nsite=locVolWithBord;
-    if(putonedges) nsite=locVolWithBordAndEdge;
+    if(putOnBords) nsite=locVolWithBord;
+    if(putOnEdges) nsite=locVolWithBordAndEdge;
     
     NISSA_PARALLEL_LOOP(ivol,0,nsite)
-      for(int idir=0;idir<NDIM;idir++)
-	safe_su3_prod_complex(conf[ivol.nastyConvert()][idir],conf[ivol.nastyConvert()][idir],theta[idir]);
+      FOR_ALL_DIRECTIONS(idir)
+        safe_su3_prod_complex(conf[ivol.nastyConvert()][idir.nastyConvert()],conf[ivol.nastyConvert()][idir.nastyConvert()],theta[idir.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     
-    if(!putonbords) set_borders_invalid(conf);
-    if(!putonedges) set_edges_invalid(conf);
+    if(not putOnBords) set_borders_invalid(conf);
+    if(not putOnEdges) set_edges_invalid(conf);
   }
   
-  void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges)
+  void rem_boundaries_conditions(quad_su3 *conf,const Momentum& theta_in_pi,const bool& putOnBords,const bool& putOnEdges)
   {
-    momentum_t minus_theta_in_pi={-theta_in_pi[0],-theta_in_pi[1],-theta_in_pi[2],-theta_in_pi[3]};
-    put_boundaries_conditions(conf,minus_theta_in_pi,putonbords,putonedges);
+    Momentum minus_theta_in_pi;
+    FOR_ALL_DIRECTIONS(mu)
+      minus_theta_in_pi(mu)=-theta_in_pi(mu);
+    put_boundaries_conditions(conf,minus_theta_in_pi,putOnBords,putOnEdges);
   }
   
   //Adapt the border condition
-  void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbords,int putonedges)
+  void adapt_theta(quad_su3 *conf,Momentum& old_theta,const Momentum& put_theta,const bool& putOnBords,const bool& putOnEdges)
   {
-    momentum_t diff_theta;
+    Momentum diff_theta;
     int adapt=0;
     
-    for(int idir=0;idir<NDIM;idir++)
+    FOR_ALL_DIRECTIONS(mu)
       {
-	adapt=adapt || (old_theta[idir]!=put_theta[idir]);
-	diff_theta[idir]=put_theta[idir]-old_theta[idir];
-	old_theta[idir]=put_theta[idir];
+	adapt=adapt or (old_theta(mu)!=put_theta(mu));
+	diff_theta(mu)=put_theta(mu)-old_theta(mu);
+	old_theta(mu)=put_theta(mu);
       }
     
     if(adapt)
       {
-	master_printf("Necessary to add boundary condition: %f %f %f %f\n",diff_theta[0],diff_theta[1],diff_theta[2],diff_theta[3]);
-	put_boundaries_conditions(conf,diff_theta,putonbords,putonedges);
+	master_printf("Necessary to add boundary condition: %lg %lg %lg %lg\n",diff_theta(Direction(0)),diff_theta(xDirection),diff_theta(yDirection),diff_theta(zDirection));
+	put_boundaries_conditions(conf,diff_theta,putOnBords,putOnEdges);
       }
   }
   
   //generate an identical conf
   void generate_cold_eo_conf(eo_ptr<quad_su3> conf)
   {
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_LOC_VOLH_LOOP(ieo)
-	  for(int mu=0;mu<NDIM;mu++)
-	    su3_put_to_id(conf[par][ieo][mu]);
+	  FOR_ALL_DIRECTIONS(mu)
+	    su3_put_to_id(conf[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()]);
 	
-	set_borders_invalid(conf[par]);
+	set_borders_invalid(conf[par.nastyConvert()]);
       }
   }
   
@@ -142,16 +145,16 @@ namespace nissa
   {
     if(loc_rnd_gen_inited==0) crash("random number generator not inited");
     
-    for(int par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       {
 	NISSA_LOC_VOLH_LOOP(ieo)
-        {
-	  int ilx=loclx_of_loceo[par][ieo];
-	  for(int mu=0;mu<NDIM;mu++)
-	    su3_put_to_rnd(conf[par][ieo][mu],loc_rnd_gen[ilx]);
-	}
+	  {
+	    const LocLxSite& ilx=loclx_of_loceo(par,ieo);
+	    FOR_ALL_DIRECTIONS(mu)
+	      su3_put_to_rnd(conf[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()],loc_rnd_gen[ilx.nastyConvert()]);
+	  }
 	
-	set_borders_invalid(conf[par]);
+	set_borders_invalid(conf[par.nastyConvert()]);
       }
   }
   
@@ -159,8 +162,8 @@ namespace nissa
   void generate_cold_lx_conf(quad_su3 *conf)
   {
     NISSA_LOC_VOL_LOOP(ivol)
-      for(int mu=0;mu<NDIM;mu++)
-	su3_put_to_id(conf[ivol.nastyConvert()][mu]);
+      FOR_ALL_DIRECTIONS(mu)
+	su3_put_to_id(conf[ivol.nastyConvert()][mu.nastyConvert()]);
     
     set_borders_invalid(conf);
   }
@@ -168,11 +171,12 @@ namespace nissa
   //generate a random conf
   void generate_hot_lx_conf(quad_su3 *conf)
   {
-    if(loc_rnd_gen_inited==0) crash("random number generator not inited");
+    if(loc_rnd_gen_inited==0)
+      crash("random number generator not inited");
     
     NISSA_LOC_VOL_LOOP(ivol)
-      for(int mu=0;mu<NDIM;mu++)
-	su3_put_to_rnd(conf[ivol.nastyConvert()][mu],loc_rnd_gen[ivol.nastyConvert()]);
+      FOR_ALL_DIRECTIONS(mu)
+	su3_put_to_rnd(conf[ivol.nastyConvert()][mu.nastyConvert()],loc_rnd_gen[ivol.nastyConvert()]);
     
     set_borders_invalid(conf);
   }
@@ -231,8 +235,8 @@ namespace nissa
     START_TIMING(unitarize_time,nunitarize);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
-        su3_unitarize_maximal_trace_projecting(conf[ivol.nastyConvert()][mu],conf[ivol.nastyConvert()][mu]);
+      FOR_ALL_DIRECTIONS(mu)
+        su3_unitarize_maximal_trace_projecting(conf[ivol.nastyConvert()][mu.nastyConvert()],conf[ivol.nastyConvert()][mu.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(conf);
@@ -247,8 +251,8 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
         NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-          for(int mu=0;mu<NDIM;mu++)
-            su3_unitarize_maximal_trace_projecting(conf[par][ieo.nastyConvert()][mu],conf[par][ieo.nastyConvert()][mu]);
+          FOR_ALL_DIRECTIONS(mu)
+            su3_unitarize_maximal_trace_projecting(conf[par][ieo.nastyConvert()][mu.nastyConvert()],conf[par][ieo.nastyConvert()][mu.nastyConvert()]);
 	NISSA_PARALLEL_LOOP_END;
         
         set_borders_invalid(conf[par]);

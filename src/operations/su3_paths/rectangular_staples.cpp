@@ -47,17 +47,17 @@ namespace nissa
     //copy lower surface into sending buf to be sent to dw nodes
     //obtained scanning on first half of the border, and storing them
     //in the first half of sending buf
-    for(int nu=0;nu<4;nu++) //border and staple direction
-      if(paral_dir[nu])
+    FOR_ALL_DIRECTIONS(nu) //border and staple direction
+      if(paral_dir(nu))
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    int mu=perp_dir[nu][imu];
-	    int inu=(nu<mu)?nu:nu-1;
+	    const Direction mu=perp_dir[nu.nastyConvert()][imu];
+	    const int inu=((nu<mu)?nu:nu-1)();
 	    
-	    const BordLxSite bordStart=bord_offset[nu];
+	    const BordLxSite& bordStart=bord_offset(nu);
 	    
-	    NISSA_PARALLEL_LOOP(ibord,bordStart,bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(((quad_su3*)send_buf)[ibord.nastyConvert()][mu],sq_staples[loclxSiteAdjacentToBordLx(ibord).nastyConvert()][mu][3+inu]); //one contribution per link in the border
+	    NISSA_PARALLEL_LOOP(ibord,bordStart,bord_offset(nu)+bord_dir_vol(nu))
+	      su3_copy(((quad_su3*)send_buf)[ibord.nastyConvert()][mu.nastyConvert()],sq_staples[loclxSiteAdjacentToBordLx(ibord).nastyConvert()][mu.nastyConvert()][3+inu]); //one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -66,8 +66,9 @@ namespace nissa
     
     //start communication of lower surf to backward nodes
     STOP_TIMING(tot_comm_time);
-    int dir_comm[8]={0,0,0,0,1,1,1,1},tot_size=bord_volh*sizeof(quad_su3);
-    comm_start(lx_quad_su3_comm,dir_comm,tot_size);
+    //int dir_comm[8]={0,0,0,0,1,1,1,1},tot_size=bordVolh()*sizeof(quad_su3);
+    crash("is this working? need to check");
+    //comm_start(lx_quad_su3_comm,dir_comm,tot_size);
   }
   
   // 2) compute non_fwsurf fw staples that are always local
@@ -96,15 +97,17 @@ namespace nissa
     STOP_TIMING(tot_comm_time);
     
     //copy the received forward border (stored in the second half of receiving buf) to its destination
-    for(int nu=0;nu<4;nu++) //border and staple direction
-      if(paral_dir[nu])
+    FOR_ALL_DIRECTIONS(nu) //border and staple direction
+      if(paral_dir(nu))
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    int mu=perp_dir[nu][imu];
-	    int inu=(nu<mu)?nu:nu-1;
+	    const Direction mu=perp_dir[nu.nastyConvert()][imu];
+	    const int inu=((nu<mu)?nu:nu-1).nastyConvert();
 	    
-	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(sq_staples[extenedLocLxSiteOfBordLxSite(ibord).nastyConvert()][mu][3+inu],((quad_su3*)recv_buf)[ibord.nastyConvert()][mu]); //one contribution per link in the border
+	    const BordLxSite start=bordVolh.nastyConvert()+bord_offset(nu);
+	    const BordLxSite end=bordVolh.nastyConvert()+bord_offset(nu)+bord_dir_vol(nu);//nasty
+	    NISSA_PARALLEL_LOOP(ibord,start,end)
+	      su3_copy(sq_staples[extenedLocLxSiteOfBordLxSite(ibord).nastyConvert()][mu.nastyConvert()][3+inu],((quad_su3*)recv_buf)[ibord.nastyConvert()][mu.nastyConvert()]); //one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -136,15 +139,17 @@ namespace nissa
     
     //copy in send buf, obtained scanning second half of each parallelized direction external border and
     //copying the three perpendicular links staple
-    for(int nu=0;nu<4;nu++) //border and staple direction
-      if(paral_dir[nu])
+    FOR_ALL_DIRECTIONS(nu)
+      if(paral_dir(nu))
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    int mu=perp_dir[nu][imu];
-	    int inu=(nu<mu)?nu:nu-1;
+	    const Direction mu=perp_dir[nu.nastyConvert()][imu];
+	    const int inu=((nu<mu)?nu:nu-1).nastyConvert();
+	    const BordLxSite beg=bordVol/2+bord_offset(nu);
+	    const BordLxSite end=bordVol/2+bord_offset(nu)+bord_dir_vol(nu);
 	    
-	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(((quad_su3*)send_buf)[ibord.nastyConvert()][mu],out[extenedLocLxSiteOfBordLxSite(ibord).nastyConvert()][mu][inu]); //one contribution per link in the border
+	    NISSA_PARALLEL_LOOP(ibord,beg,end)
+	      su3_copy(((quad_su3*)send_buf)[ibord.nastyConvert()][mu.nastyConvert()],out[extenedLocLxSiteOfBordLxSite(ibord).nastyConvert()][mu.nastyConvert()][inu]); //one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     
@@ -152,9 +157,12 @@ namespace nissa
     THREAD_BARRIER();
     
     //start communication of fw surf backward staples to forward nodes
+    //int dir_comm[8]={1,1,1,1,0,0,0,0};
+    crash("why 8 when 4 normally?");
+    const int64_t tot_size=bordVolh()*sizeof(quad_su3);
+    
     START_TIMING(tot_comm_time,ntot_comm);
-    int dir_comm[8]={1,1,1,1,0,0,0,0},tot_size=bord_volh*sizeof(quad_su3);
-    comm_start(lx_quad_su3_comm,dir_comm,tot_size);
+    comm_start(lx_quad_su3_comm,all_dirs,tot_size);
   }
   
   // 5) compute non_fw_surf bw staples
@@ -204,15 +212,15 @@ namespace nissa
     STOP_TIMING(tot_comm_time);
     
     //copy the received backward staples (stored on first half of receiving buf) on bw_surf sites
-    for(int nu=0;nu<4;nu++) //staple and fw bord direction
-      if(paral_dir[nu])
+    FOR_ALL_DIRECTIONS(nu) //staple and fw bord direction
+      if(paral_dir(nu))
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    int mu=perp_dir[nu][imu];
-	    int inu=(nu<mu)?nu:nu-1;
+	    const Direction mu=perp_dir[nu.nastyConvert()][imu];
+	    const int inu=((nu<mu)?nu:nu-1).nastyConvert();
 	    
-	    NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
-	      su3_copy(out[loclxSiteAdjacentToBordLx(ibord).nastyConvert()][mu][inu],((quad_su3*)recv_buf)[ibord.nastyConvert()][mu]);//one contribution per link in the border
+	    NISSA_PARALLEL_LOOP(ibord,bord_offset(nu),bord_offset(nu)+bord_dir_vol(nu))
+	      su3_copy(out[loclxSiteAdjacentToBordLx(ibord).nastyConvert()][mu.nastyConvert()][inu],((quad_su3*)recv_buf)[ibord.nastyConvert()][mu.nastyConvert()]);//one contribution per link in the border
 	    NISSA_PARALLEL_LOOP_END;
 	  }
     

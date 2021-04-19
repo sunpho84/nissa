@@ -25,7 +25,7 @@ namespace nissa
     
     /// Store the contractions
     const int ncorr_kind=6;
-    complex* contr=nissa_malloc("contr",ncorr_kind*glbSize[0],complex);
+    complex* contr=nissa_malloc("contr",ncorr_kind*glbTimeSize.nastyConvert(),complex);
     vector_reset(contr);
     
     /// Operations to compute correlators with twisted mass
@@ -42,18 +42,14 @@ namespace nissa
 					  iflav+1,tp.nflavs(),icopy+1,ncopies);
 	  
 	  //Source time
-	  coords source_coord;
+	  GlbCoords source_coord;
 	  generate_random_coord(source_coord);
 	  
 	  const int& nhits=meas_pars.nhits;
 	  for(int hit=0;hit<nhits;hit++)
 	    {
-	      //Random source
-	      coords coord;
-	      generate_random_coord(coord);
-	      
 	      //Source time
-	      generate_undiluted_source(eta,meas_pars.rnd_type,source_coord[0]);
+	      generate_undiluted_source(eta,meas_pars.rnd_type,source_coord(timeDirection));
 	      
 	      op.inv(phi,eta,iflav);
 	      op.ins(phi_ins_P,5,phi);
@@ -62,10 +58,10 @@ namespace nissa
 	      
 	      auto c=[&](spincolor* oth,int ig,const int icontr)
 	      {
-		complex* temp_contr=new complex[glbSize[0]];
-		tm_corr_op::undiluted_meson_contr(temp_contr,phi,oth,ig,source_coord[0]);
-		for(int t=0;t<glbSize[0];t++)
-		  complex_summassign(contr[t+glbSize[0]*icontr],temp_contr[t]);
+		complex* temp_contr=new complex[glbTimeSize.nastyConvert()];
+		tm_corr_op::undiluted_meson_contr(temp_contr,phi,oth,ig,source_coord(timeDirection));
+		FOR_ALL_GLB_TIMES(t)
+		  complex_summassign(contr[t.nastyConvert()+glbTimeSize.nastyConvert()*icontr],temp_contr[t.nastyConvert()]);
 		
 		delete[] temp_contr;
 	      };
@@ -79,13 +75,13 @@ namespace nissa
 	    }
 	  
 	  //output
-	  for(int t=0;t<glbSize[0];t++)
+	  FOR_ALL_GLB_TIMES(t)
 	    {
 	      master_fprintf(file,"%d  ",t);
 	      for(int ic=0;ic<ncorr_kind;ic++)
 		{
 		  complex c;
-		  complex_prod_double(c,contr[t+glbSize[0]*ic],1.0/(meas_pars.nhits*glbSpatVol()));
+		  complex_prod_double(c,contr[t.nastyConvert()+glbTimeSize.nastyConvert()*ic],1.0/(meas_pars.nhits*glbSpatVol()));
 		  master_fprintf(file,"\t%+.16lg , %+.16lg",c[RE],c[IM]);
 		}
 	      master_fprintf(file,"\n");

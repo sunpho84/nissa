@@ -15,7 +15,7 @@
 namespace nissa
 {
   //interpret free index as source or sink
-  void pass_spinspin_from_mom_to_x_space(spinspin* out,spinspin* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
+  void pass_spinspin_from_mom_to_x_space(spinspin* out,spinspin* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
     
     //compute the main part of the fft
@@ -25,18 +25,17 @@ namespace nissa
     fft4d((complex*)out,(complex*)in,dirs,sizeof(spinspin)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t _steps;
-    double *steps=_steps;
-    for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+    Momentum steps;
+    FOR_ALL_DIRECTIONS(mu)
+      steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute phase exponent
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
+	FOR_ALL_DIRECTIONS(mu)
+	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
@@ -49,7 +48,7 @@ namespace nissa
   }
   
   //interprets free index as source or sink (see above)
-  void pass_spinspin_from_x_to_mom_space(spinspin* out,spinspin* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
+  void pass_spinspin_from_x_to_mom_space(spinspin* out,spinspin* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
     
     //-1 if sink, +1 if source
@@ -57,18 +56,17 @@ namespace nissa
     int s=sign[source_or_sink]*include_phases;
     
     //compute steps
-    momentum_t _steps;
-    double *steps=_steps;
-    for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+    Momentum steps;
+    FOR_ALL_DIRECTIONS(mu)
+      steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute phase exponent
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
+	FOR_ALL_DIRECTIONS(mu)
+	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase and put 1/vol
 	complex ph={cos(arg),sin(arg)};
@@ -84,7 +82,7 @@ namespace nissa
   }
   
   //see above
-  void pass_spin1prop_from_mom_to_x_space(spin1prop* out,spin1prop* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
+  void pass_spin1prop_from_mom_to_x_space(spin1prop* out,spin1prop* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
     
     //+1 if sink, -1 if source
@@ -92,24 +90,22 @@ namespace nissa
     int s=sign[source_or_sink]*include_phases;
     
     //multiply by exp(i sign*(p_mu-p_nu)/2)
-    NISSA_PARALLEL_LOOP(_imom,0,locVol)
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
-	const int64_t imom=_imom.nastyConvert();
-	
 	complex ph[NDIM];
-	for(int mu=0;mu<NDIM;mu++)
+	FOR_ALL_DIRECTIONS(mu)
 	  {
-	    double pmu=dirs[mu]*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu]*include_phases)/glbSize[mu];
+	    double pmu=dirs(mu)*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx(imom,mu)()+bc(mu)*include_phases)/glbSize(mu)();
 	    double pmuh=pmu*0.5;
-	    ph[mu][RE]=cos(pmuh);
-	    ph[mu][IM]=sin(pmuh);
+	    ph[mu.nastyConvert()][RE]=cos(pmuh);
+	    ph[mu.nastyConvert()][IM]=sin(pmuh);
 	  }
 	
-	for(int mu=0;mu<NDIM;mu++)
-	  for(int nu=0;nu<NDIM;nu++)
+	FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRECTIONS(nu)
 	    {
-	      safe_complex_prod      (out[imom][mu][nu],in[imom][mu][nu],ph[mu]);
-	      safe_complex_conj2_prod(out[imom][mu][nu],out[imom][mu][nu],ph[nu]);
+	      safe_complex_prod      (out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],in[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph[mu.nastyConvert()]);
+	      safe_complex_conj2_prod(out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph[nu.nastyConvert()]);
 	    }
       }
     NISSA_PARALLEL_LOOP_END;
@@ -119,33 +115,32 @@ namespace nissa
     fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t _steps;
-    double *steps=_steps;
-    for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=s*bc[mu]*M_PI/glbSize[mu];
+    Momentum steps;
+    FOR_ALL_DIRECTIONS(mu)
+      steps(mu)=s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute phase exponent
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  arg+=dirs[mu]*steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
+	FOR_ALL_DIRECTIONS(mu)
+	  arg+=dirs(mu)*steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	for(int mu=0;mu<NDIM;mu++)
-	  for(int nu=0;nu<NDIM;nu++)
-	    safe_complex_prod(out[ivol.nastyConvert()][mu][nu],out[ivol.nastyConvert()][mu][nu],ph);
+	FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRECTIONS(nu)
+	    safe_complex_prod(out[ivol.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],out[ivol.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
   //see previous note
-  void pass_spin1prop_from_x_to_mom_space(spin1prop* out,spin1prop* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
+  void pass_spin1prop_from_x_to_mom_space(spin1prop* out,spin1prop* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
     
     //-1 if sink, +1 if source
@@ -153,26 +148,25 @@ namespace nissa
     int s=sign[source_or_sink]*include_phases;
     
     //compute steps
-    momentum_t _steps;
-    double *steps=_steps;
-    for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=s*dirs[mu]*bc[mu]*M_PI/glbSize[mu];
+    Momentum steps;
+    FOR_ALL_DIRECTIONS(mu)
+      steps(mu)=s*dirs(mu)*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute phase exponent
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
+	FOR_ALL_DIRECTIONS(mu)
+	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	for(int mu=0;mu<NDIM;mu++)
-	  for(int nu=0;nu<NDIM;nu++)
-	    safe_complex_prod(out[ivol.nastyConvert()][mu][nu],in[ivol.nastyConvert()][mu][nu],ph);
+	FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRECTIONS(nu)
+	    safe_complex_prod(out[ivol.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],in[ivol.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
@@ -184,26 +178,26 @@ namespace nissa
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	complex ph[NDIM];
-	for(int mu=0;mu<NDIM;mu++)
+	FOR_ALL_DIRECTIONS(mu)
 	  {
-	    double pmu=sign[source_or_sink]*dirs[mu]*M_PI*(2*glbCoordOfLoclx[imom.nastyConvert()][mu]+bc[mu]*include_phases)/glbSize[mu];
-	    double pmuh=pmu*0.5;
-	    ph[mu][RE]=cos(pmuh);
-	    ph[mu][IM]=sin(pmuh);
+	    const double pmu=sign[source_or_sink]*dirs(mu)*M_PI*(2*glbCoordOfLoclx(imom,mu)()+bc(mu)*include_phases)/glbSize(mu)();
+	    const double pmuh=pmu*0.5;
+	    ph[mu.nastyConvert()][RE]=cos(pmuh);
+	    ph[mu.nastyConvert()][IM]=sin(pmuh);
 	  }
 	
-	for(int mu=0;mu<4;mu++)
-	  for(int nu=0;nu<4;nu++)
+	FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRECTIONS(nu)
 	    {
-	      safe_complex_prod      (out[imom.nastyConvert()][mu][nu],out[imom.nastyConvert()][mu][nu],ph[mu]);
-	      safe_complex_conj2_prod(out[imom.nastyConvert()][mu][nu],out[imom.nastyConvert()][mu][nu],ph[nu]);
+	      safe_complex_prod      (out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph[mu.nastyConvert()]);
+	      safe_complex_conj2_prod(out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph[nu.nastyConvert()]);
 	    }
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
-  void pass_spin1field_from_mom_to_x_space(spin1field* out,spin1field* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
+  void pass_spin1field_from_mom_to_x_space(spin1field* out,spin1field* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
     
     //+1 if sink, -1 if source
@@ -214,16 +208,16 @@ namespace nissa
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	complex ph[NDIM];
-	for(int mu=0;mu<NDIM;mu++)
+	FOR_ALL_DIRECTIONS(mu)
 	  {
-	    double pmu=dirs[mu]*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx[imom.nastyConvert()][mu]+bc[mu]*include_phases)/glbSize[mu];
-	    double pmuh=pmu*0.5;
-	    ph[mu][RE]=cos(pmuh);
-	    ph[mu][IM]=sin(pmuh);
+	    const double pmu=dirs(mu)*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx(imom,mu)()+bc(mu)*include_phases)/glbSize(mu)();
+	    const double pmuh=pmu*0.5;
+	    ph[mu.nastyConvert()][RE]=cos(pmuh);
+	    ph[mu.nastyConvert()][IM]=sin(pmuh);
 	  }
 	
-	for(int mu=0;mu<NDIM;mu++)
-	  safe_complex_prod(out[imom.nastyConvert()][mu],in[imom.nastyConvert()][mu],ph[mu]);
+	FOR_ALL_DIRECTIONS(mu)
+	  safe_complex_prod(out[imom.nastyConvert()][mu.nastyConvert()],in[imom.nastyConvert()][mu.nastyConvert()],ph[mu.nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
@@ -232,31 +226,30 @@ namespace nissa
     fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1field)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t _steps;
-    double *steps=_steps;
-    for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+    Momentum steps;
+    FOR_ALL_DIRECTIONS(mu)
+      steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute phase exponent
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
+	FOR_ALL_DIRECTIONS(mu)
+	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	for(int mu=0;mu<NDIM;mu++)
-	  safe_complex_prod(out[ivol.nastyConvert()][mu],out[ivol.nastyConvert()][mu],ph);
+	FOR_ALL_DIRECTIONS(mu)
+	  safe_complex_prod(out[ivol.nastyConvert()][mu.nastyConvert()],out[ivol.nastyConvert()][mu.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
-  void pass_spin1field_from_x_to_mom_space(spin1field* out,spin1field* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
+  void pass_spin1field_from_x_to_mom_space(spin1field* out,spin1field* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
     
     //-1 if sink, +1 if source
@@ -264,25 +257,24 @@ namespace nissa
     int s=sign[source_or_sink]*include_phases;
     
     //compute steps
-    momentum_t _steps;
-    double *steps=_steps;
-    for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+    Momentum steps;
+    FOR_ALL_DIRECTIONS(mu)
+      steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute phase exponent
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
+	FOR_ALL_DIRECTIONS(mu)
+	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	for(int mu=0;mu<NDIM;mu++)
-	  safe_complex_prod(out[ivol.nastyConvert()][mu],in[ivol.nastyConvert()][mu],ph);
+	FOR_ALL_DIRECTIONS(mu)
+	  safe_complex_prod(out[ivol.nastyConvert()][mu.nastyConvert()],in[ivol.nastyConvert()][mu.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
@@ -294,22 +286,22 @@ namespace nissa
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	complex ph[NDIM];
-	for(int mu=0;mu<NDIM;mu++)
+	FOR_ALL_DIRECTIONS(mu)
 	  {
-	    double pmu=dirs[mu]*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx[imom.nastyConvert()][mu]+bc[mu]*include_phases)/glbSize[mu];
+	    const double pmu=dirs(mu)*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx(imom,mu)()+bc(mu)*include_phases)/glbSize(mu)();
 	    double pmuh=pmu*0.5;
-	    ph[mu][RE]=cos(pmuh);
-	    ph[mu][IM]=sin(pmuh);
+	    ph[mu.nastyConvert()][RE]=cos(pmuh);
+	    ph[mu.nastyConvert()][IM]=sin(pmuh);
 	  }
 	
-	for(int mu=0;mu<NDIM;mu++)
-	  safe_complex_prod(out[imom.nastyConvert()][mu],out[imom.nastyConvert()][mu],ph[mu]);
+	FOR_ALL_DIRECTIONS(mu)
+	  safe_complex_prod(out[imom.nastyConvert()][mu.nastyConvert()],out[imom.nastyConvert()][mu.nastyConvert()],ph[mu.nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(out);
   }
   
-  void pass_spin_from_mom_to_x_space(spin* out,spin* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
+  void pass_spin_from_mom_to_x_space(spin* out,spin* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
     
     int _sign[2]={-1,+1},*sign=_sign;
@@ -319,18 +311,17 @@ namespace nissa
     fft4d((complex*)out,(complex*)in,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t _steps;
-    double *steps=_steps;
-    for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+    Momentum steps;
+    FOR_ALL_DIRECTIONS(mu)
+      steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute phase exponent
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
+	FOR_ALL_DIRECTIONS(mu)
+	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
@@ -343,25 +334,24 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  void pass_spin_from_x_to_mom_space(spin* out,spin* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
+  void pass_spin_from_x_to_mom_space(spin* out,spin* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
     
     int _sign[2]={+1,-1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
        
     //compute steps
-    momentum_t _steps;
-    double *steps=_steps;
-    for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+    Momentum steps;
+    FOR_ALL_DIRECTIONS(mu)
+      steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute phase exponent
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
+	FOR_ALL_DIRECTIONS(mu)
+	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
@@ -377,7 +367,7 @@ namespace nissa
     fft4d((complex*)out,(complex*)out,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],1);
   }
   
-  void pass_spincolor_from_mom_to_x_space(spincolor* out,spincolor* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
+  void pass_spincolor_from_mom_to_x_space(spincolor* out,spincolor* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
     
     int _sign[2]={-1,+1},*sign=_sign;
@@ -387,18 +377,17 @@ namespace nissa
     fft4d((complex*)out,(complex*)in,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
-    momentum_t _steps;
-    double *steps=_steps;
-    for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+    Momentum steps;
+    FOR_ALL_DIRECTIONS(mu)
+      steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute phase exponent
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
+	FOR_ALL_DIRECTIONS(mu)
+	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
@@ -413,25 +402,24 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  void pass_spincolor_from_x_to_mom_space(spincolor* out,spincolor* in,bool* dirs,double* bc,int source_or_sink,bool include_phases)
+  void pass_spincolor_from_x_to_mom_space(spincolor* out,spincolor* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
     
     int _sign[2]={+1,-1},*sign=_sign;
     int s=sign[source_or_sink]*include_phases;
     
     //compute steps
-    momentum_t _steps;
-    double *steps=_steps;
-    for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+    Momentum steps;
+    FOR_ALL_DIRECTIONS(mu)
+      steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	//compute phase exponent
 	double arg=0;
-	for(int mu=0;mu<NDIM;mu++)
-	  arg+=steps[mu]*glbCoordOfLoclx[ivol.nastyConvert()][mu];
+	FOR_ALL_DIRECTIONS(mu)
+	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};

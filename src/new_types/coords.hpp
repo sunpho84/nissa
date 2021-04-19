@@ -14,10 +14,20 @@ namespace nissa
   /// Temporal direction
   constexpr Direction timeDirection=0;
   
-  //DECLARE_TEMPLATED_COMPONENT(Coords,NDIM);
+  /// X direction
+  constexpr Direction xDirection=1;
+  
+  /// Y direction
+  constexpr Direction yDirection=2;
+  
+  /// Z direction
+  constexpr Direction zDirection=3;
   
 #define FOR_ALL_DIRECTIONS(NAME)		\
   FOR_ALL_COMPONENT_VALUES(Direction,NAME)
+  
+#define FOR_ALL_SPATIAL_DIRECTIONS(NAME)	\
+  for(Direction NAME=1;NAME<NDIM;NAME++)
   
   template <typename T>
   using Coords=Tensor<OfComps<Direction>,T>;

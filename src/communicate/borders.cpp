@@ -53,7 +53,7 @@ namespace nissa
   
   //set up a communicator for lx or eo borders
   //first NDIM communicate to forward nodes, last four to backward nodes
-  void set_lx_or_eo_comm(comm_t &comm,int lx_eo,int nbytes_per_site)
+  void set_lx_or_eo_comm(comm_t &comm,const bool& lx_eo,int nbytes_per_site)
   {
     int div_coeff=(lx_eo==0)?1:2; //dividing coeff
     
@@ -68,9 +68,9 @@ namespace nissa
 	  int idir=(bf*NDIM+mu).nastyConvert();
 	  
 	  //set the parameters
-	  comm.send_offset[idir]=(bord_offset[mu.nastyConvert()]()+bord_volh*(!bf))*comm.nbytes_per_site/div_coeff;
-	  comm.message_length[idir]=bord_dir_vol[mu.nastyConvert()].nastyConvert()*comm.nbytes_per_site/div_coeff;
-	  comm.recv_offset[idir]=(bord_offset[mu.nastyConvert()].nastyConvert()+bord_volh*bf)*comm.nbytes_per_site/div_coeff;
+	  comm.send_offset[idir]=((bord_offset(mu)()+bordVolh*(!bf))*comm.nbytes_per_site/div_coeff)();
+	  comm.message_length[idir]=bord_dir_vol(mu).nastyConvert()*comm.nbytes_per_site/div_coeff;
+	  comm.recv_offset[idir]=((bord_offset(mu).nastyConvert()+bordVolh*bf)*comm.nbytes_per_site/div_coeff)();
 	  comm.recv_rank[idir]=rank_neigh [bf](mu)();
 	  comm.send_rank[idir]=rank_neigh[!bf](mu)();
 	}
@@ -79,18 +79,25 @@ namespace nissa
   }
   
   void set_lx_comm(comm_t &comm,int nbytes_per_site)
-  {set_lx_or_eo_comm(comm,0,nbytes_per_site);}
+  {
+    set_lx_or_eo_comm(comm,0,nbytes_per_site);
+  }
+  
   void set_eo_comm(comm_t &comm,int nbytes_per_site)
-  {set_lx_or_eo_comm(comm,1,nbytes_per_site);}
+  {
+    set_lx_or_eo_comm(comm,1,nbytes_per_site);
+  }
   
   //check that the communicator is initialized
   void crash_if_not_initialized(comm_t &comm)
-  {if(!comm.initialized) crash("using uninitialized communicator!");}
+  {
+    if(not comm.initialized)
+      crash("using uninitialized communicator!");
+  }
   
   //start the communications
-  void comm_start(comm_t &comm,const Coords<bool>& dir_comm,int tot_size)
+  void comm_start(comm_t &comm,const Coords<bool>& dir_comm,const int64_t& tot_size)
   {
-    
     //check initialization
     crash_if_not_initialized(comm);
     
@@ -248,17 +255,16 @@ namespace nissa
   /////////////////////////////////////// communicating e/o vec //////////////////////////////////////
   
   //fill the sending buf using the data inside an ev or odd vec
-  void fill_sending_buf_with_ev_or_od_vec(comm_t &comm,void *vec,int eo)
+  void fill_sending_buf_with_ev_or_od_vec(comm_t &comm,void *vec,const Parity& eo)
   {
-    
     //check buffer size matching
-    if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
-      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
+    if(comm.tot_mess_size!=comm.nbytes_per_site*bordVolh)
+      crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bordVolh);
     
     //copy one by one the surface of vec inside the sending buffer
-    NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
-      memcpy(send_buf+ibord*comm.nbytes_per_site,
-	     (char*)vec+surfeo_of_bordeo[eo][ibord]*comm.nbytes_per_site,comm.nbytes_per_site);
+    NISSA_PARALLEL_LOOP(ibord,0,bordVolh)
+      memcpy(send_buf+ibord()*comm.nbytes_per_site,
+	     (char*)vec+surfeo_of_bordeo(eo,ibord)()*comm.nbytes_per_site,comm.nbytes_per_site);
     NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads filled their portion
@@ -271,11 +277,11 @@ namespace nissa
     
     if(IS_MASTER_THREAD)
       {
-	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_volh+locVolh).nastyConvert());
+	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bordVolh()+locVolh).nastyConvert());
 	
 	//check buffer size matching
-	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_volh)
-	  crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bord_volh);
+	if(comm.tot_mess_size!=comm.nbytes_per_site*bordVolh)
+	  crash("wrong buffer size (%d) for %d border)",comm.tot_mess_size,comm.nbytes_per_site*bordVolh);
 	
 	//the buffer is already ordered as the vec border
 	memcpy((char*)vec+locVolh.nastyConvert()*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
@@ -285,7 +291,7 @@ namespace nissa
   }
   
   //start communication using an ev or od border
-  void start_communicating_ev_or_od_borders(comm_t &comm,void *vec,int eo)
+  void start_communicating_ev_or_od_borders(comm_t &comm,void *vec,const Parity& eo)
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
@@ -325,7 +331,7 @@ namespace nissa
   }
   
   //merge the two
-  void communicate_ev_or_od_borders(void *vec,comm_t &comm,int eo)
+  void communicate_ev_or_od_borders(void *vec,comm_t &comm,const Parity& eo)
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
@@ -351,9 +357,9 @@ namespace nissa
       {
 	//convert lx indexing to eo
 	const LocLxSite& source_lx=loclxSiteAdjacentToBordLx(ibord_lx);
-	int par=loclx_parity[source_lx.nastyConvert()];
-	int source_eo=loceo_of_loclx[source_lx.nastyConvert()];
-	memcpy(send_buf+ibord_lx()*comm.nbytes_per_site,(char*)(vec[par])+source_eo*comm.nbytes_per_site,
+	const Parity& par=loclx_parity(source_lx);
+	const LocEoSite& source_eo=loceo_of_loclx(source_lx);
+	memcpy(send_buf+ibord_lx()*comm.nbytes_per_site,(char*)(vec[par])+source_eo()*comm.nbytes_per_site,
 	       comm.nbytes_per_site);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -367,7 +373,7 @@ namespace nissa
   {
     
     //check border allocation
-    int min_size=comm.nbytes_per_site*(bord_volh+locVolh).nastyConvert();
+    int min_size=comm.nbytes_per_site*(bordVolh()+locVolh());
     crash_if_borders_not_allocated(vec[EVN],min_size);
     crash_if_borders_not_allocated(vec[ODD],min_size);
     
@@ -379,9 +385,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP(bordLxSite,0,bordVol)
       {
 	const LocLxSite dest_lx=extenedLocLxSiteOfBordLxSite(bordLxSite);
-	int par=loclx_parity[dest_lx.nastyConvert()];
-	int dest_eo=loceo_of_loclx[dest_lx.nastyConvert()];
-	memcpy((char*)(vec[par])+dest_eo*comm.nbytes_per_site,recv_buf+bordLxSite()*comm.nbytes_per_site,comm.nbytes_per_site);
+	const Parity& par=loclx_parity(dest_lx);
+	const LocEoSite& dest_eo=loceo_of_loclx(dest_lx);
+	memcpy((char*)(vec[par])+dest_eo()*comm.nbytes_per_site,recv_buf+bordLxSite()*comm.nbytes_per_site,comm.nbytes_per_site);
       }
     NISSA_PARALLEL_LOOP_END;
     
