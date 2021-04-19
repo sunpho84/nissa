@@ -37,7 +37,7 @@ int main(int narg,char **arg)
 	{
 	  read_real_vector(sp,fin,head);
 	  NISSA_LOC_VOL_LOOP(ivol)
-	    if(loclx_parity[ivol.nastyConvert()]!=parity)
+	    if(loclx_parity(ivol)!=parity)
 	      spincolor_put_to_zero(sp[ivol.nastyConvert()]);
 	  write_real_vector(fout,sp,64,head.type);
 	  ispinor++;

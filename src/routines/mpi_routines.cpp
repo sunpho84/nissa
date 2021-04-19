@@ -65,7 +65,7 @@ namespace nissa
   void get_MPI_nranks()
   {
 #ifdef USE_MPI
-    MPI_Comm_size(MPI_COMM_WORLD,&nranks);
+    MPI_Comm_size(MPI_COMM_WORLD,&_nranks);
 #else
     nranks=1;
 #endif
@@ -75,7 +75,7 @@ namespace nissa
   void get_MPI_rank()
   {
 #ifdef USE_MPI
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Comm_rank(MPI_COMM_WORLD,&_rank);
 #else
     rank=0;
 #endif
@@ -90,7 +90,7 @@ namespace nissa
       periods[mu()]=1;
     MPI_Cart_create(MPI_COMM_WORLD,NDIM,(int*)nrank_dir.getDataPtr(),periods,1,&cart_comm); //nasty
     //takes rank and ccord of local rank
-    MPI_Comm_rank(cart_comm,&cart_rank);
+    MPI_Comm_rank(cart_comm,&_cart_rank);
     MPI_Cart_coords(cart_comm,cart_rank,NDIM,(int*)rank_coord.getDataPtr()); //nasty
     
     //create communicator along plan

@@ -15,24 +15,24 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ivol,0,ending)
       {
-	int d=0;
+	GlbCoord d=0;
 	
 	//phase in direction 1 is always 0 so nothing has to be done in that dir
 	//if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][1],lx_conf[ivol.nastyConvert()][1],-1);
 	
-	//direction 2
-	d+=glbCoordOfLoclx[ivol.nastyConvert()][1];
+	//direction 1
+	d+=glbCoordOfLoclx(ivol,xDirection);
 	if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][2],lx_conf[ivol.nastyConvert()][2],-1);
 	
-	//direction 3
-	d+=glbCoordOfLoclx[ivol.nastyConvert()][2];
+	//direction 2
+	d+=glbCoordOfLoclx(ivol,yDirection);
 	if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][3],lx_conf[ivol.nastyConvert()][3],-1);
 	
-	//direction 0
-	d+=glbCoordOfLoclx[ivol.nastyConvert()][3];
+	//direction 3
+	d+=glbCoordOfLoclx(ivol,zDirection);
 	
 	//putting the anti-periodic condition on the temporal border
-	if(glbCoordOfLoclx[ivol.nastyConvert()][0]==glbSize[0]-1) d+=1;
+	if(glbCoordOfLoclx(ivol,timeDirection)==glbTimeSize-1) d+=1;
 	if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][0],lx_conf[ivol.nastyConvert()][0],-1);
       }
     NISSA_PARALLEL_LOOP_END;

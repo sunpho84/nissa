@@ -5,22 +5,28 @@ using namespace nissa;
 int T,L;
 vector_remap_t *remapper;
 
-void index_from_lx_to_Neo(int &rank_out,int &iel_out,int iel_in,void *pars)
+void index_from_lx_to_Neo(Rank &rank_out,LocLxSite &iel_out,const LocLxSite& iel_in,void *pars)
 {
-  int mu_ord[4]={0,3,2,1};
-  int ilx=iel_in/4;
-  int mu=iel_in-ilx*4;
+  Coords<Direction> mu_ord;
+  mu_ord(timeDirection)=0;
+  mu_ord(xDirection)=zDirection;
+  mu_ord(yDirection)=yDirection;
+  mu_ord(zDirection)=xDirection;
+  const LocLxSite ilx=iel_in/NDIM;
+  const Direction mu=(int)(iel_in()%NDIM);
   
   //odd sites goes with themseleves
-  int shift_comp=(loclx_parity[ilx]==0);
+  const bool shift_comp=(loclx_parity(ilx)==0);
   
-  coords g;
-  for(int nu=0;nu<4;nu++) g[mu_ord[nu]]=glbCoordOfLoclx[ilx][nu];
-  if(shift_comp) g[mu_ord[mu]]=(g[mu_ord[mu]]+1)%glbSize[mu_ord[mu]];
+  GlbCoords g;
+  FOR_ALL_DIRECTIONS(nu)
+    g(mu_ord(nu))=glbCoordOfLoclx(ilx,nu);
+  if(shift_comp)
+    g(mu_ord(mu))=(g(mu_ord(mu))+1)%glbSize(mu_ord(mu));
   
-  int glb_site_dest=(glblx_of_coord(g)/2)*8+mu_ord[mu]*2+shift_comp;
+  int glb_site_dest=(glblx_of_coord(g)()/2)*8+mu_ord(mu)()*2+shift_comp;
   rank_out=glb_site_dest/(8*locVolh());
-  iel_out=glb_site_dest-rank_out*8*locVolh();
+  iel_out=glb_site_dest-rank_out()*8*locVolh();
 }
 
 void conf_convert(char *outpath,char *inpath)
@@ -30,20 +36,27 @@ void conf_convert(char *outpath,char *inpath)
   
   //compute and convert the plaquette
   double plaq=global_plaquette_lx_conf(conf)*3;
-  if(!little_endian) change_endianness(&plaq,&plaq,1);
+  if(not little_endian) change_endianness(&plaq,&plaq,1);
   
   //convert the lattice size
-  coords temp;
-  if(!little_endian) change_endianness((uint32_t*)temp,(uint32_t*)glbSize,4);
-  else               memcpy(temp,glbSize,sizeof(coords));
+  GlbCoords temp;
+  FOR_ALL_DIRECTIONS(mu)
+    if(not little_endian)
+      change_endianness(temp(mu)(),glbSize(mu)());
+    else
+      temp(mu)=glbSize(mu);
   
   //write the header
   FILE *fout=fopen(outpath,"w");
   if(rank==0)
     {
       int nw;
-      nw=fwrite(temp,sizeof(coords),1,fout);
-      if(nw!=1) crash("did not success in writing");
+      FOR_ALL_DIRECTIONS(mu)
+	{
+	  const int c=temp(mu)();
+	  nw=fwrite(&c,sizeof(int),1,fout);
+	  if(nw!=1) crash("did not success in writing");
+	}
       nw=fwrite(&plaq,sizeof(double),1,fout);
       if(nw!=1) crash("did not success in writing");
     }

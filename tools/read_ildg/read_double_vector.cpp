@@ -45,14 +45,14 @@ void in_main(int narg,char **arg)
   
   //print
   FILE *fout=open_file(pathout,"w");
-  for(int ivol=0;ivol<locVol;ivol++)
+  for(LocLxSite ivol=0;ivol<locVol;ivol++)
     for(int i=0;i<nbps;i++)
-      fprintf(fout,"%d %d %d %d  %d  %+16.16lg\n",
-	      glbCoordOfLoclx[ivol][0],
-	      glbCoordOfLoclx[ivol][1],
-	      glbCoordOfLoclx[ivol][2],
-	      glbCoordOfLoclx[ivol][3],
-	      i,v[ivol*nbps+i]);
+      fprintf(fout,"%ld %ld %ld %ld  %d  %+.16lg\n",
+	      glbCoordOfLoclx(ivol,timeDirection)(),
+	      glbCoordOfLoclx(ivol,xDirection)(),
+	      glbCoordOfLoclx(ivol,yDirection)(),
+	      glbCoordOfLoclx(ivol,zDirection)(),
+	      i,v[ivol.nastyConvert()*nbps+i]);
   
   close_file(fout);
   

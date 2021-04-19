@@ -10,10 +10,37 @@
 
 namespace nissa
 {
-  //ranks
-  EXTERN_RANK int rank,nranks,cart_rank;
+  /// Total number of ranks
+  ///
+  /// Internal implementation
+  EXTERN_RANK int _nranks;
   
-  EXTERN_RANK int master_rank INIT_RANK_TO(=0);
+  /// Total number of ranks
+  inline constexpr const int& nranks=_nranks;
+  
+  /// This rank
+  ///
+  /// Internal implementation
+  EXTERN_RANK int _rank;
+  
+  /// This rank
+  inline constexpr const int& rank=_rank;
+  
+  /// Master rank which prints
+  ///
+  /// Internal implementation
+  EXTERN_RANK int _master_rank INIT_RANK_TO(=0);
+  
+  /// Master rank which prints
+  inline constexpr const int& master_rank=_master_rank;
+  
+  /// Cartesian rank. Is this used anywhere?
+  ///
+  /// Internal implementation
+  EXTERN_RANK int _cart_rank;
+  
+  /// Cartesian rank. Is this used anywhere?
+  inline constexpr const int& cart_rank=_cart_rank;
   
   /// Return whether this is master rank
   inline bool is_master_rank()

@@ -49,7 +49,7 @@
 
 namespace nissa
 {
-  extern int rank;
+  extern int _rank;
   
   EXTERN_IOS int verb_call;
   EXTERN_IOS int verbosity_lv;

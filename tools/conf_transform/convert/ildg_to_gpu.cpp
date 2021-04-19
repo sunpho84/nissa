@@ -8,8 +8,10 @@ using namespace nissa;
 
 int L,T;
 
-int snum(int x,int y,int z,int t)
-{return (x+y*L+z*L*L+t*L*L*L)/2;}
+GlbLxSite snum(const GlbCoord& x,const GlbCoord& y,const GlbCoord& z,const GlbCoord& t)
+{
+  return (x+y*L+z*L*L+t*L*L*L)/2;
+}
 
 void write_complex(FILE *out,complex in)
 {if(fprintf(out,"(%16.16lg,%16.16lg)\n",in[0],in[1])<0) crash("writing complex");}
@@ -53,20 +55,19 @@ int main(int narg,char **arg)
   
   //reorder the conf
   int map_mu[4]={1,2,3,0};
-  for(int t=0;t<T;t++)
-    for(int z=0;z<L;z++)
-      for(int y=0;y<L;y++)
-	for(int x=0;x<L;x++)
+  for(GlbCoord t=0;t<glbSize(Direction(0));t++)
+    for(GlbCoord z=0;z<glbSize(Direction(3));z++)
+      for(GlbCoord y=0;y<glbSize(Direction(2));y++)
+	for(GlbCoord x=0;x<glbSize(Direction(1));x++)
 	  {
-	    int sum=x+y+z+t;
-	    int even=sum%2;
-	    int num=even*locVolh() + snum(x,y,z,t);
+	    const GlbCoord sum=x+y+z+t;
+	    const Parity even=(int)(sum()%2);
+	    const GlbLxSite num=even()*locVolh()+snum(x,y,z,t);
 	    
-	    coords c={t,x,y,z};
-	    int ivol=loclx_of_coord(c);
+	    const GlbLxSite ivol=glblx_of_coord_list(t,x,y,z);
 	    
-	    for(int mu=0;mu<4;mu++)
-	      su3_copy(out_conf[mu*locVol()+num],in_conf[ivol][map_mu[mu]]);
+	    FOR_ALL_DIRECTIONS(mu)
+	      su3_copy(out_conf[mu()*locVol()+num()],in_conf[ivol.nastyConvert()][map_mu[mu.nastyConvert()]]);
 	  }
   
   nissa_free(in_conf);

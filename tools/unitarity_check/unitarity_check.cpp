@@ -25,8 +25,8 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
 	if(0)
 	if(r>1.e-30)
 	  {
-	    master_printf("diff %d %d %d %d   %d   %lg\n",glbCoordOfLoclx[ivol.nastyConvert()][0],glbCoordOfLoclx[ivol.nastyConvert()][1],
-			  glbCoordOfLoclx[ivol.nastyConvert()][2],glbCoordOfLoclx[ivol.nastyConvert()][3],idir,r);
+	    master_printf("diff %d %d %d %d   %d   %lg\n",glbCoordOfLoclx(ivol,Direction(0))(),glbCoordOfLoclx(ivol,Direction(1))(),
+			  glbCoordOfLoclx(ivol,Direction(2))(),glbCoordOfLoclx(ivol,Direction(3))(),idir,r);
 	    su3_print(conf[ivol.nastyConvert()][idir]);
 	    for(int i=0;i<3;i++)
 	      for(int j=i;j<3;j++)

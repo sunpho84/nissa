@@ -116,7 +116,7 @@ namespace nissa
   void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
   void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
   void index_to_ILDG_remapping(Rank& irank_ILDG,LocLxSite& iloc_ILDG,int iloc_lx,void *pars);
-  void index_from_ILDG_remapping(Rank& irank_lx,LocLxSite& iloc_lx,int iloc_ILDG,void *pars);
+  void index_from_ILDG_remapping(Rank& irank_lx,LocLxSite& iloc_lx,const LocLxSite& iloc_ILDG,void *pars);
   
   //Writes a field to a file (data is a vector of loc_vol) with no frill
   template <typename T>

@@ -47,7 +47,7 @@ namespace nissa
     nissa_free(b);
     
     master_printf("time to copy %d Mbytes: %lg, %lg Mbs\n",mem_size/1024/1024,
-		  bench_time,mem_size/1024/1024/bench_time);
+		  bench_time,mem_size/1024.0/1024/bench_time);
   }
   
   //benchmark the net speed

@@ -5,31 +5,38 @@ using namespace nissa;
 int T,L;
 vector_remap_t *remapper;
 
-void index_from_Neo_to_lx(int &rank_out,int &iel_out,int iel_in,void *pars)
+void index_from_Neo_to_lx(Rank &rank_out,LocLxSite &iel_out,const LocLxSite& iel_in,void *pars)
 {
-  int mu_ord[4]={0,3,2,1};
+  Coords<Direction> mu_ord;
+  mu_ord(timeDirection)=timeDirection;
+  mu_ord(xDirection)=zDirection;
+  mu_ord(yDirection)=yDirection;
+  mu_ord(zDirection)=xDirection;
   
   //decript from, cls order
-  int glb_site_sour=iel_in+rank*8*locVolh();
-  int shift_comp=glb_site_sour%2;
+  GlbLxSite glb_site_sour=iel_in()+rank*8*locVol()/2;
+  const Parity shift_comp=(int)(glb_site_sour.nastyConvert()%2);
   glb_site_sour/=2;
-  int mu=mu_ord[glb_site_sour%4];
+
+  const Direction mu_sour=(int)(glb_site_sour()%4);
+  const Direction mu=mu_ord(mu_sour);
   glb_site_sour/=4;
   glb_site_sour*=2;
   if(glblx_parity(glb_site_sour)==0) glb_site_sour++;
-
+  
   //check
   if(glb_site_sour>=glbVol) crash("%d>=%d impossible!",glb_site_sour,glbVol);
   
   //get coords
-  coords g;
+  GlbCoords g;
   glb_coord_of_glblx(g,glb_site_sour);
-  std::swap(g[1],g[3]); //only 1 and 3 must be switched
-  if(shift_comp) g[mu]=(g[mu]+glbSize[mu]-1)%glbSize[mu];
+  std::swap(g(xDirection),g(zDirection)); //only 1 and 3 must be switched
+  if(shift_comp())
+    g(mu)=(g(mu)+glbSize(mu)-1)%glbSize(mu);
   
   //get final results
-  get_loclx_and_rank_of_coord(&iel_out,&rank_out,g);
-  iel_out=iel_out*4+mu;
+  get_loclx_and_rank_of_coord(iel_out,rank_out,g);
+  iel_out=iel_out*4+mu();
 }
 
 void conf_convert(char *outpath,char *inpath)
@@ -40,8 +47,8 @@ void conf_convert(char *outpath,char *inpath)
   
   //read header
   int nr;
-  coords temp;
-  nr=fread(temp,sizeof(coords),1,fin);
+  int temp[NDIM];
+  nr=fread(temp,sizeof(int),NDIM,fin);
   if(nr!=1) crash("did not success in reading");
   double plaq;
   nr=fread(&plaq,sizeof(double),1,fin);
@@ -50,7 +57,8 @@ void conf_convert(char *outpath,char *inpath)
   
   //if needed convert the lattice size to check
   if(!little_endian) change_endianness((uint32_t*)temp,(uint32_t*)temp,4);
-  if(temp[0]!=glbSize[0]||temp[1]!=glbSize[1]) crash("conf of size %dx%d, expecting %dx%d",temp[0],temp[1],glbSize[0],glbSize[1]);
+  if(temp[0]!=glbTimeSize or temp[1]!=glbSize(xDirection))
+    crash("conf of size %dx%d, expecting %dx%d",temp[0],temp[1],glbTimeSize(),glbSize(xDirection)());
   
   //convert the plaquette
   if(!little_endian) change_endianness(plaq);

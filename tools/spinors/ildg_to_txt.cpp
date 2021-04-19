@@ -49,19 +49,19 @@ void in_main(int narg,char **arg)
   //print
   FILE *fout=open_file(pathout,"w");
   for(int i=0;i<nspinors;i++)
-    for(int ivol=0;ivol<locVol;ivol++)
+    for(LocLxSite ivol=0;ivol<locVol;ivol++)
       for(int id_si=0;id_si<4;id_si++)
 	for(int ic_si=0;ic_si<3;ic_si++)
-	  fprintf(fout,"%d  %d %d %d %d  %d %d  %+16.16lg %+16.16lg\n",
+	  fprintf(fout,"%d  %ld %ld %ld %ld  %d %d  %+16.16lg %+16.16lg\n",
 		  i,
-		  glbCoordOfLoclx[ivol][0],
-		  glbCoordOfLoclx[ivol][1],
-		  glbCoordOfLoclx[ivol][2],
-		  glbCoordOfLoclx[ivol][3],
+	      glbCoordOfLoclx(ivol,timeDirection)(),
+	      glbCoordOfLoclx(ivol,xDirection)(),
+	      glbCoordOfLoclx(ivol,yDirection)(),
+	      glbCoordOfLoclx(ivol,zDirection)(),
 		  id_si,
 		  ic_si,
-		  in[i][ivol][id_si][ic_si][RE],
-		  in[i][ivol][id_si][ic_si][IM]);
+		  in[i][ivol.nastyConvert()][id_si][ic_si][RE],
+		  in[i][ivol.nastyConvert()][id_si][ic_si][IM]);
   
   close_file(fout);
   
