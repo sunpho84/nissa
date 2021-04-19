@@ -281,7 +281,7 @@ namespace nissa
     LxSite ilx=0;
     
     FOR_ALL_DIRECTIONS(mu)
-      ilx=ilx*(s(mu)+x(mu));
+      ilx=ilx*s(mu)+x(mu);
     
     return ilx;
   }

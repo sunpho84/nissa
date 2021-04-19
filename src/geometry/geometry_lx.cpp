@@ -119,7 +119,7 @@ namespace nissa
       }
     
     //check locality
-    int isloc=1;
+    bool isloc=true;
     FOR_ALL_DIRECTIONS(mu)
       {
 	isloc&=(x(mu)>=0);
@@ -232,7 +232,7 @@ namespace nissa
 	//check if it is defined
 	const LocLxSite iloc=full_lx_of_coords(x);
 	
-	if(iloc!=-1)
+	  if(iloc!=-1)
 	  {
 	    //compute global coordinates, assigning
 	    FOR_ALL_DIRECTIONS(nu)
@@ -285,6 +285,7 @@ namespace nissa
 	  //move forward
 	  n(mu)++;
 	  const LocLxSite nup=full_lx_of_coords(n); //nasty
+	  
 	  //move backward
 	  n(mu)-=2;
 	  const LocLxSite ndw=full_lx_of_coords(n);

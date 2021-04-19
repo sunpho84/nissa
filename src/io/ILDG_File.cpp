@@ -271,20 +271,21 @@ namespace nissa
     decript_MPI_error(MPI_Type_commit(&view.etype),"while committing etype");
     
     //remap coordinates and starting points to the scidac mapping
-    GlbCoords mapped_start;
-    GlbCoords mapped_glb_size;
-    LocCoords mapped_loc_size;
+    int mapped_start[NDIM];
+    int mapped_glb_size[NDIM];
+    int mapped_loc_size[NDIM];
+    
     FOR_ALL_DIRECTIONS(mu)
       {
 	const Direction& nu=scidac_mapping(mu);
 	
-	mapped_glb_size(mu)=glbSize(nu);
-	mapped_loc_size(mu)=locSize(nu);
-	mapped_start(mu)=mapped_loc_size(mu)*rank_coord(nu)();
+	mapped_glb_size[mu()]=glbSize(nu);
+	mapped_loc_size[mu()]=locSize(nu);
+	mapped_start[mu()]=mapped_loc_size(mu)*rank_coord(nu)();
       }
     
     //full type
-    decript_MPI_error(MPI_Type_create_subarray(NDIM,mapped_glb_size.getDataPtr(),mapped_loc_size.getDataPtr(),mapped_start.getDataPtr(),MPI_ORDER_C,
+    decript_MPI_error(MPI_Type_create_subarray(NDIM,mapped_glb_size,mapped_loc_size,mapped_start,MPI_ORDER_C,
 					       view.etype,&view.ftype),"while creating subarray type");
     decript_MPI_error(MPI_Type_commit(&view.ftype),"while committing ftype");
     

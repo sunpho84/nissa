@@ -19,7 +19,7 @@ namespace nissa
   //constructor
   gauge_sweeper_t::gauge_sweeper_t()
   {
-    crash("");
+    master_printf("WARNING, gauge sweeper not working");
     // //mark not to have inited geom and staples
     // comm_init_time=comp_time=comm_time=0;
     // staples_inited=par_geom_inited=packing_inited=false;
@@ -98,6 +98,7 @@ namespace nissa
   //check that everything is hit once and only once
   void gauge_sweeper_t::check_hit_exactly_once()
   {
+    crash("");
     // coords *hit=nissa_malloc("hit",locVol.nastyConvert(),coords);
     // vector_reset(hit);
     
@@ -127,6 +128,7 @@ namespace nissa
   //check that everything is hit without overlapping
   void gauge_sweeper_t::check_hit_in_the_exact_order()
   {
+    crash("");
     // int *hit=nissa_malloc("hit",(NDIM*locVol+max_cached_link).nastyConvert(),int);
     // int ibase=0;
     // for(int ibox=0;ibox<(1<<NDIM);ibox++)
@@ -195,6 +197,7 @@ namespace nissa
   //init the list of staples
   void gauge_sweeper_t::init_staples(int ext_nlinks_per_staples_of_link,void(*ext_add_staples_per_link)(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,const LocLxSite& ivol,int mu),void (*ext_compute_staples)(su3 staples,su3 *links,int *ilinks,double C1))
   {
+    crash("");
     // //take external nlinks and mark
     // if(!par_geom_inited) crash("call geom initializer before");
     // if(staples_inited) crash("staples already initialized");
