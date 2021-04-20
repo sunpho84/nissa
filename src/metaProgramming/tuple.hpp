@@ -18,14 +18,16 @@ namespace nissa
   /// Internal implementation working out a single type, forward
   /// declaration
   template <bool,
-	    typename>
+	    typename,
+	    int>
   struct _TupleFilter;
   
   /// Filter a tuple on the basis of a predicate
   ///
   /// True case, in which the type is filtered
-  template <typename T>
-  struct _TupleFilter<true,T>
+  template <typename T,
+	    int I>
+  struct _TupleFilter<true,T,I>
   {
     /// Helper type, used to cat the results
     using type=std::tuple<T>;
@@ -36,7 +38,7 @@ namespace nissa
     /// Construct, taking a tuple type and filtering the valid casis
     template <typename Tp>
     _TupleFilter(Tp&& t) : ///< Tuple to filter
-      value{std::get<T>(t)}
+      value{std::get<I>(t)}
     {
     }
   };
@@ -44,8 +46,9 @@ namespace nissa
   /// Filter a tuple on the basis of a predicate
   ///
   /// True case, in which the type is filtered out
-  template <typename T>
-  struct _TupleFilter<false,T>
+  template <typename T,
+	    int I>
+  struct _TupleFilter<false,T,I>
   {
     /// Helper empty type, used to cat the results
     using type=std::tuple<>;
@@ -61,11 +64,23 @@ namespace nissa
   };
   
   /// Returns a tuple, filtering out the non needed types
+  ///
+  /// Internal implementation, preparing the sequence
+  template <template <class> class F,          // Predicate to be applied on the types
+	    typename...T,                      // Types contained in the tuple to be filtered
+	    int...I>
+  auto _tupleFilter(const std::tuple<T...>& t,              ///< Tuple to filter
+		    const std::integer_sequence<int,I...>*)  ///< Sequence used to get the elements
+  {
+    return std::tuple_cat(_TupleFilter<F<T>::value,T,I>{t}.value...);
+  }
+  
+  /// Returns a tuple, filtering out the non needed types
   template <template <class> class F,          // Predicate to be applied on the types
 	    typename...T>                      // Types contained in the tuple to be filtered
   auto tupleFilter(const std::tuple<T...>& t) ///< Tuple to filter
   {
-    return std::tuple_cat(_TupleFilter<F<T>::value,T>{t}.value...);
+    return _tupleFilter<F>(t,(std::make_integer_sequence<int,sizeof...(T)>*)nullptr);
   }
   
   /// Type obtained applying the predicate filter F on the tuple T
@@ -131,6 +146,41 @@ namespace nissa
   template <typename TupleToSearch,
 	    typename TupleBeingSearched>
   using TupleCommonTypes=TupleFilter<TypeIsInList<1,TupleToSearch>::template t,TupleBeingSearched>;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace details
+  {
+    /// Tuple with unique types from a list
+    ///
+    /// Internal implementation, default case
+    template <typename T,
+	      typename... Ts>
+    struct _UniqueTuple
+    {
+      using type=T;
+    };
+    
+    /// Tuple with unique types from a list
+    ///
+    /// Internal implementation
+    template <typename... Ts,
+	      typename U,
+	      typename... Us>
+    struct _UniqueTuple<std::tuple<Ts...>,U,Us...>
+      : std::conditional_t<(std::is_same_v<U,Ts> || ...),
+			   _UniqueTuple<std::tuple<Ts...>,Us...>,
+			   _UniqueTuple<std::tuple<Ts...,U>,Us...>>
+    {
+    };
+  }
+  
+  /// Tuple with unique types from a list
+  ///
+  /// Based on https://stackoverflow.com/a/57528226
+  template <typename...Ts>
+  using UniqueTuple=
+    typename details::_UniqueTuple<std::tuple<>,Ts...>::type;
 }
 
 #endif

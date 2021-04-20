@@ -53,7 +53,7 @@ namespace nissa
     
     /// List of all dynamically allocated components
     using DynamicComps=
-      TupleFilter<predicate::SizeIsKnownAtCompileTime<false>::t,TensorComps<TC...>>;
+      TupleFilter<predicate::SizeIsKnownAtCompileTime<false>::t,UniqueTuple<TC...>>;
     
     /// Sizes of the dynamic components
     DynamicComps dynamicSizes;
@@ -96,7 +96,7 @@ namespace nissa
     
     /// Calculate the index - no more components to parse
     constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
-    const Index& orderedCompsIndex(const Index& outer) ///< Value of all the outer components
+    const Index& _index(const Index& outer) ///< Value of all the outer components
       const
     {
       return outer;
@@ -115,7 +115,7 @@ namespace nissa
     template <typename T,
     	      typename...Tp>
     constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
-    Index orderedCompsIndex(const Index& outer, ///< Value of all the outer components
+    Index _index(const Index& outer, ///< Value of all the outer components
 			    T&& thisComp,       ///< Currently parsed component
 			    Tp&&...innerComps)  ///< Inner components
       const
@@ -133,18 +133,16 @@ namespace nissa
 	outer*thisSize+thisComp();
       
       return
-	orderedCompsIndex(thisVal,innerComps...);
+	_index(thisVal,innerComps...);
     }
     
-    /// Intermediate layer to reorder the passed components
-    template <typename...T>
+    /// Dispatch the internal index calculation
+    ///
+    /// This works when the passed components are already well ordered
     constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
-    Index index(const TensorComps<T...>& comps)
-      const
+    Index index(const TC&...comps) const
     {
-      /// Build the index reordering the components
-      return
-	orderedCompsIndex(0,std::get<TC>(comps)...);
+      return _index(Index(0),comps...);
     }
     
     /// Determine whether the components are all static, or not
@@ -262,6 +260,13 @@ namespace nissa
     CUDA_HOST_DEVICE INLINE_FUNCTION
     const Fund& eval(const TD&...td) const
     {
+      return eval(std::get<TC>(std::make_tuple(td...))...);
+    }
+    
+    /// Evaluate, returning a reference to the fundamental type
+    CUDA_HOST_DEVICE INLINE_FUNCTION
+    const Fund& eval(const TC&...tc) const
+    {
 #ifdef COMPILING_FOR_DEVICE
       if constexpr(SL==StorLoc::ON_CPU)
 	__trap();
@@ -278,12 +283,12 @@ namespace nissa
       // static_assert(not accessDeviceMemoryOnHost,"Cannot access device memory from host");
       // static_assert(not accessHostMemoryOnDevice,"Cannot access host memory from device");
       
-      return storage[index(std::make_tuple(td...))];
+      return storage[index(tc...)];
     }
     
     PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
     
-    /// Temporary implementation, in which all components must be specified
+    /// Full list of indices passed, not necessarily in the same order
     template <typename...TD>
     CUDA_HOST_DEVICE constexpr INLINE_FUNCTION
     const Fund& operator()(const TD&...td) const
