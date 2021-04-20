@@ -27,7 +27,7 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      safe_su3_hermitian_prod_double(F[par][ieo.nastyConvert()][mu.nastyConvert()],F[par][ieo.nastyConvert()][mu.nastyConvert()],r);
 	  }
 	NISSA_PARALLEL_LOOP_END;
@@ -46,7 +46,7 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  safe_su3_hermitian_prod_double(F[ivol.nastyConvert()][mu.nastyConvert()],F[ivol.nastyConvert()][mu.nastyConvert()],r);
       }
     NISSA_PARALLEL_LOOP_END;

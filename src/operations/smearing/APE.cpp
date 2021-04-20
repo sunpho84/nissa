@@ -14,14 +14,14 @@ namespace nissa
 {
   //perform ape smearing
   //be sure not to have border condition added
-  void ape_smear_conf(quad_su3* smear_conf,quad_su3* origi_conf,double alpha,int nstep,const Coords<bool>& dirs,const Direction& min_staple_dir)
+  void ape_smear_conf(quad_su3* smear_conf,quad_su3* origi_conf,double alpha,int nstep,const Coords<bool>& dirs,const Dir& min_staple_dir)
   {
     
     quad_su3 *temp_conf=nissa_malloc("temp_conf",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     if(origi_conf!=smear_conf) double_vector_copy((double*)smear_conf,(double*)origi_conf,locVol.nastyConvert()*sizeof(quad_su3)/sizeof(double));
     
     char listed_dirs[21]="";
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       if(dirs(mu))
 	{
 	  char temp[3];
@@ -39,13 +39,13 @@ namespace nissa
 	communicate_lx_quad_su3_edges(temp_conf);
 	
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRS(mu)
 	    if(dirs(mu))
 	      {
 		//calculate staples
 		su3 stap,temp1,temp2;
 		su3_put_to_zero(stap);
-		for(Direction nu=min_staple_dir;nu<NDIM;nu++)    //  E---F---C
+		for(Dir nu=min_staple_dir;nu<NDIM;nu++)    //  E---F---C
 		  if(nu!=mu)                                     //  |   |   | mu
 		    {                                            //  D---A---B
 		      const LocLxSite& A=ivol;                   //   nu

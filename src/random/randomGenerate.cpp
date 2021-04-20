@@ -111,7 +111,7 @@ namespace nissa
   void generate_random_coord(GlbCoords& c)
   {
     GlbCoords temp;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	if(IS_MASTER_THREAD) temp(mu)=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize(mu)()));
 	THREAD_BROADCAST(c(mu),temp(mu));
@@ -230,7 +230,7 @@ namespace nissa
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx(ivol,timeDirection)==tWall or tWall<0)
+      if(glbCoordOfLoclx(ivol,tDir)==tWall or tWall<0)
 	{
 	  comp_get_rnd(source[ivol.nastyConvert()][0][0][0][0],&(loc_rnd_gen[ivol.nastyConvert()]),rtype);
 	  for(int c=0;c<NCOL;c++)
@@ -250,7 +250,7 @@ namespace nissa
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx(ivol,timeDirection)==tWall or tWall<0)
+      if(glbCoordOfLoclx(ivol,tDir)==tWall or tWall<0)
 	for(int ic=0;ic<NCOL;ic++)
 	  {
 	    comp_get_rnd(source[ivol.nastyConvert()][ic][0][0],&(loc_rnd_gen[ivol.nastyConvert()]),rtype);
@@ -268,7 +268,7 @@ namespace nissa
     vector_reset(source);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx(ivol,timeDirection)==tWall or tWall<0)
+      if(glbCoordOfLoclx(ivol,tDir)==tWall or tWall<0)
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
 	    comp_get_rnd(source[ivol.nastyConvert()][id][ic],&(loc_rnd_gen[ivol.nastyConvert()]),rtype);
@@ -278,7 +278,7 @@ namespace nissa
   }
   
   //generate a fully undiluted source
-  void generate_fully_undiluted_lx_source(color* source,enum rnd_t rtype,const GlbCoord& tWall,const Direction& dir)
+  void generate_fully_undiluted_lx_source(color* source,enum rnd_t rtype,const GlbCoord& tWall,const Dir& dir)
   {
     vector_reset(source);
     
@@ -291,7 +291,7 @@ namespace nissa
     set_borders_invalid(source);
   }
   //eo version
-  void generate_fully_undiluted_eo_source(color* source,enum rnd_t rtype,const GlbCoord& tWall,const Parity& par,const Direction& dir)
+  void generate_fully_undiluted_eo_source(color* source,enum rnd_t rtype,const GlbCoord& tWall,const Parity& par,const Dir& dir)
   {
     vector_reset(source);
     
@@ -307,14 +307,14 @@ namespace nissa
     set_borders_invalid(source);
   }
   
-  void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,const GlbCoord& tWall,const Direction& dir)
+  void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,const GlbCoord& tWall,const Dir& dir)
   {
     for(Parity par=0;par<2;par++)
       generate_fully_undiluted_eo_source(source[par],rtype,tWall,par,dir);
   }
   
   //same for spincolor
-  void generate_fully_undiluted_eo_source(spincolor* source,enum rnd_t rtype,const GlbCoord& tWall,const Parity& par,const Direction& dir)
+  void generate_fully_undiluted_eo_source(spincolor* source,enum rnd_t rtype,const GlbCoord& tWall,const Parity& par,const Dir& dir)
   {
     vector_reset(source);
     
@@ -331,9 +331,9 @@ namespace nissa
     set_borders_invalid(source);
   }
   
-  void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,const GlbCoord& tWall,const Direction& dir)
+  void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,const GlbCoord& tWall,const Dir& dir)
   {
-    for(Parity par=0;par<2;par++)
+    FOR_BOTH_PARITIES(par)
       generate_fully_undiluted_eo_source(source[par],rtype,tWall,par,dir);
   }
   

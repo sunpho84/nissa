@@ -725,12 +725,12 @@ void setup_conf()
     ape_smear_conf(ape_conf,glb_conf,apeAlpha,nApe,all_other_spat_dirs[0],1);
   
   Momentum old_theta;
-  FOR_ALL_DIRECTIONS(mu)
+  FOR_ALL_DIRS(mu)
     old_theta(mu)=0.0;
   
   Momentum theta;
-  theta(timeDirection)=1.0;
-  FOR_ALL_SPATIAL_DIRECTIONS(mu)
+  theta(tDir)=1.0;
+  FOR_ALL_SPATIAL_DIRS(mu)
     theta(mu)=0.0;
   
   adapt_theta(glb_conf,old_theta,theta,0,0);
@@ -796,7 +796,7 @@ void fill_source(const int glbT)
   
   NISSA_PARALLEL_LOOP(loclx,0,locVol)
     {
-      if(glbT==glbCoordOfLoclx(loclx,timeDirection))
+      if(glbT==glbCoordOfLoclx(loclx,tDir))
 	for(int id=0;id<NDIRAC;id++)
 	  for(int ic=0;ic<NCOL;ic++)
 	    z4Transform(source(glbT)[loclx.nastyConvert()][id][ic]);//BoxMullerTransform(source[loclx][id][ic]);
@@ -838,7 +838,7 @@ void compute_conn_contr(complex* conn_contr,int r1,int r2,const GlbCoord& glbT,d
   NISSA_PARALLEL_LOOP_END;
   
   complex glb_contr[glbTimeSize.nastyConvert()];
-  glb_reduce(glb_contr,loc_contr,locVol.nastyConvert(),glbTimeSize(),locTimeSize(),glbCoordOfLoclx(LocLxSite(0),timeDirection)());
+  glb_reduce(glb_contr,loc_contr,locVol.nastyConvert(),glbTimeSize(),locTimeSize(),glbCoordOfLoclx(LocLxSite(0),tDir)());
   
   FOR_ALL_GLB_TIMES(t)
     {

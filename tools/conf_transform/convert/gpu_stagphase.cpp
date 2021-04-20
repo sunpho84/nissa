@@ -21,18 +21,18 @@ namespace nissa
 	//if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][1],lx_conf[ivol.nastyConvert()][1],-1);
 	
 	//direction 1
-	d+=glbCoordOfLoclx(ivol,xDirection);
+	d+=glbCoordOfLoclx(ivol,xDir);
 	if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][2],lx_conf[ivol.nastyConvert()][2],-1);
 	
 	//direction 2
-	d+=glbCoordOfLoclx(ivol,yDirection);
+	d+=glbCoordOfLoclx(ivol,yDir);
 	if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][3],lx_conf[ivol.nastyConvert()][3],-1);
 	
 	//direction 3
-	d+=glbCoordOfLoclx(ivol,zDirection);
+	d+=glbCoordOfLoclx(ivol,zDir);
 	
 	//putting the anti-periodic condition on the temporal border
-	if(glbCoordOfLoclx(ivol,timeDirection)==glbTimeSize-1) d+=1;
+	if(glbCoordOfLoclx(ivol,tDir)==glbTimeSize-1) d+=1;
 	if(d%2==1) su3_prod_double(lx_conf[ivol.nastyConvert()][0],lx_conf[ivol.nastyConvert()][0],-1);
       }
     NISSA_PARALLEL_LOOP_END;

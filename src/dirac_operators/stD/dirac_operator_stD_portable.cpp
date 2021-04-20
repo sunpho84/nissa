@@ -20,15 +20,15 @@ namespace nissa
     NISSA_PARALLEL_LOOP(io,0,locVolh)
       {
 	//neighbours search
-	const LocEoSite& evup0=loceo_neighup(ODD,io,timeDirection);
-	const LocEoSite& evdw0=loceo_neighdw(ODD,io,timeDirection);
+	const LocEoSite& evup0=loceo_neighup(ODD,io,tDir);
+	const LocEoSite& evdw0=loceo_neighdw(ODD,io,tDir);
 	
 	//derivative in the time directio.nastyConvert()n - without self-summ
 	unsafe_su3_prod_color(      out[io.nastyConvert()],conf[ODD][io.nastyConvert()   ][0],in[evup0.nastyConvert()]);
 	su3_dag_subt_the_prod_color(out[io.nastyConvert()],conf[EVN][evdw0.nastyConvert()][0],in[evdw0.nastyConvert()]);
 	
 	//derivatives in the spatial directio.nastyConvert()n - with self summ
-	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	FOR_ALL_SPATIAL_DIRS(mu)
 	  {
 	    const LocEoSite& evup=loceo_neighup(ODD,io,mu);
 	    const LocEoSite& evdw=loceo_neighdw(ODD,io,mu);
@@ -65,15 +65,15 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ie,0,locVolh)
       {
 	//neighbours search
-	const int odup0=loceo_neighup(EVN,ie,timeDirection).nastyConvert();
-	const int oddw0=loceo_neighdw(EVN,ie,timeDirection).nastyConvert();
+	const int odup0=loceo_neighup(EVN,ie,tDir).nastyConvert();
+	const int oddw0=loceo_neighdw(EVN,ie,tDir).nastyConvert();
 	
 	//derivative in the time direction - without self-summ
 	unsafe_su3_prod_color(      out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()   ][0],in[odup0]);
 	su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[ODD][oddw0][0],in[oddw0]);
 	
 	//derivatives in the spatial direction - with self summ
-	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	FOR_ALL_SPATIAL_DIRS(mu)
 	  {
 	    int odup=loceo_neighup(EVN,ie,mu).nastyConvert();
 	    int oddw=loceo_neighdw(EVN,ie,mu).nastyConvert();
@@ -108,15 +108,15 @@ namespace nissa
     NISSA_PARALLEL_LOOP_EXP(io,0,locVolh)
       {
 	//neighbours search
-	const int evup0=loceo_neighup(ODD,io,timeDirection).nastyConvert();
-	const int evdw0=loceo_neighdw(ODD,io,timeDirection).nastyConvert();
+	const int evup0=loceo_neighup(ODD,io,tDir).nastyConvert();
+	const int evdw0=loceo_neighdw(ODD,io,tDir).nastyConvert();
 	
 	//derivative in the time direction - without self-summ
 	unsafe_su3_prod_color(      temp[io.nastyConvert()],conf[ODD][io.nastyConvert()   ][0],in[evup0]);
 	su3_dag_subt_the_prod_color(temp[io.nastyConvert()],conf[EVN][evdw0][0],in[evdw0]);
 	
 	//derivatives in the spatial direction - with self summ
-	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	FOR_ALL_SPATIAL_DIRS(mu)
 	  {
 	    const int evup=loceo_neighup(ODD,io,mu).nastyConvert();
 	    const int evdw=loceo_neighdw(ODD,io,mu).nastyConvert();
@@ -133,13 +133,13 @@ namespace nissa
     //we still apply Deo, but then we put a - because we should apply Doe^+=-Deo
     NISSA_PARALLEL_LOOP_EXP(ie,0,locVolh)
       {
-	const int odup0=loceo_neighup(EVN,ie,timeDirection).nastyConvert();
-	const int oddw0=loceo_neighdw(EVN,ie,timeDirection).nastyConvert();
+	const int odup0=loceo_neighup(EVN,ie,tDir).nastyConvert();
+	const int oddw0=loceo_neighdw(EVN,ie,tDir).nastyConvert();
 	
 	unsafe_su3_prod_color(      out[ie.nastyConvert()],conf[EVN][ie.nastyConvert()   ][0],temp[odup0]);
 	su3_dag_subt_the_prod_color(out[ie.nastyConvert()],conf[ODD][oddw0][0],temp[oddw0]);
 	
-	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	FOR_ALL_SPATIAL_DIRS(mu)
 	  {
 	    const int odup=loceo_neighup(EVN,ie,mu).nastyConvert();
 	    const int oddw=loceo_neighdw(EVN,ie,mu).nastyConvert();

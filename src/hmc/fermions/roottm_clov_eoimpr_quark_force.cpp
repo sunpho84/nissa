@@ -17,7 +17,7 @@
 namespace nissa
 {
   /// Derivative of xQy
-  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,const Parity& eo,const LocEoSite& ieo,const Direction& mu)
+  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,const Parity& eo,const LocEoSite& ieo,const Dir& mu)
   {
     const LocEoSite& ineoup=loceo_neighup(eo,ieo,mu);
     
@@ -45,8 +45,8 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(jeo,0,locVolh)
 	  {
-	    FOR_ALL_DIRECTIONS(mu)
-	      for(Direction nu=mu+1;nu<NDIM;nu++)
+	    FOR_ALL_DIRS(mu)
+	      for(Dir nu=mu+1;nu<NDIM;nu++)
 		{
 		  int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 		  dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]));
@@ -73,13 +73,13 @@ namespace nissa
   }
   
   // Compute the clover staples
-  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,const Parity& eo,const LocEoSite& ieo,const Direction& mu,eo_ptr<as2t_su3> cl_insertion,const double& cSW)
+  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,const Parity& eo,const LocEoSite& ieo,const Dir& mu,eo_ptr<as2t_su3> cl_insertion,const double& cSW)
   {
     su3_put_to_zero(stap);
     
     for(int inu=0;inu<NDIM-1;inu++)
       {
-	const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	const Dir nu=perp_dir[mu.nastyConvert()][inu];
 	
 	const LocEoSite xpmu=loceo_neighup(eo,ieo,mu);
 	const LocEoSite xmnu=loceo_neighdw(eo,ieo,nu);
@@ -186,7 +186,7 @@ namespace nissa
 	
 	FOR_BOTH_PARITIES(par)
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      {
 		const LocEoSite& ineoup=loceo_neighup(par,ieo,mu);
 		

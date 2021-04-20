@@ -26,8 +26,8 @@ namespace nissa
   EXTERN_REMAP int64_t max_locd_size;
   EXTERN_REMAP Coords<int64_t> locd_size_per_dir;
   
-  void remap_lx_vector_to_locd(void *out,void *in,int nbytes,const Direction& mu);
-  void remap_locd_vector_to_lx(void *out,void *in,int nbytes,const Direction& mu);
+  void remap_lx_vector_to_locd(void *out,void *in,int nbytes,const Dir& mu);
+  void remap_locd_vector_to_lx(void *out,void *in,int nbytes,const Dir& mu);
 }
 
 #endif

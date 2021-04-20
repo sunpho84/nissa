@@ -142,10 +142,10 @@ namespace nissa
 	    
 	    THREAD_BARRIER();
 	    complex temp_contr[glbTimeSize.nastyConvert()];
-	    glb_reduce(temp_contr,loc_contr,locVol.nastyConvert(),glbTimeSize(),locTimeSize(),glbCoordOfLoclx(LocLxSite(0),timeDirection)());
+	    glb_reduce(temp_contr,loc_contr,locVol.nastyConvert(),glbTimeSize(),locTimeSize(),glbCoordOfLoclx(LocLxSite(0),tDir)());
 	    
 	    FOR_ALL_GLB_TIMES(t)
-	      complex_copy(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbTimeSize-source_coord(timeDirection))%glbTimeSize)],temp_contr[t.nastyConvert()]);
+	      complex_copy(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbTimeSize-source_coord(tDir))%glbTimeSize)],temp_contr[t.nastyConvert()]);
 	  }
       }
     
@@ -283,7 +283,7 @@ namespace nissa
 	    const int igSi=iProjGroup[1];
 	    
 	    complex contr[glbTimeSize.nastyConvert()*nWicks];
-	    tm_corr_op::compute_baryon_2pts_proj_contr(contr,igSo,igSi,Q1.sp,Q2.sp,Q3.sp,source_coord(timeDirection),temporal_bc);
+	    tm_corr_op::compute_baryon_2pts_proj_contr(contr,igSo,igSi,Q1.sp,Q2.sp,Q3.sp,source_coord(tDir),temporal_bc);
 	    
 	    for(int dt=0;dt<glbTimeSize;dt++)
 	      for(int iWick=0;iWick<nWicks;iWick++)
@@ -595,13 +595,13 @@ namespace nissa
     if(revert)
       {
 	dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  dirac_prod(GAMMA+mu.nastyConvert(),base_gamma+5,base_gamma+igamma_of_mu(mu));
       }
     else
       {
 	GAMMA[4]=temp_gamma;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  GAMMA[mu.nastyConvert()]=base_gamma[igamma_of_mu(mu)];
       }
     
@@ -625,7 +625,7 @@ namespace nissa
 	  communicate_lx_quad_su3_borders(conf);
 	  
 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      {
 		const LocLxSite& ivol_fw=loclxNeighup(ivol,mu);
 		spincolor f,Gf;
@@ -660,7 +660,7 @@ namespace nissa
     vector_reset(si);
     
     dirac_matr *GAMMA=nissa_malloc("GAMMA",NDIM,dirac_matr);
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
       if(revert) dirac_prod(GAMMA+mu.nastyConvert(),base_gamma+5,base_gamma+igamma_of_mu(mu));
       else       GAMMA[mu.nastyConvert()]=base_gamma[igamma_of_mu(mu)];
     
@@ -700,8 +700,8 @@ namespace nissa
     else
       {
 	Momentum plain_bc;
-	plain_bc(timeDirection)=temporal_bc;
-	FOR_ALL_SPATIAL_DIRECTIONS(i)
+	plain_bc(tDir)=temporal_bc;
+	FOR_ALL_SPATIAL_DIRS(i)
 	  plain_bc(i)=0.0;
 	quad_su3 *conf=get_updated_conf(Q[prop_name_fw].charge,plain_bc,glb_conf);
 	int r=Q[prop_name_fw].r;

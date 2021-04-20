@@ -29,7 +29,7 @@ namespace nissa
     double p2=0,p4=0;
     GlbCoords c;
     glb_coord_of_glblx(c,imom);
-    FOR_ALL_SPATIAL_DIRECTIONS(mu)
+    FOR_ALL_SPATIAL_DIRS(mu)
       {
 	double p=M_PI*(2*c(mu)()+qu.bc(mu))/glbSize(mu)();
 	double sinph=sin(p/2);
@@ -53,7 +53,7 @@ namespace nissa
     double sinh2E=0;
     GlbCoords c;
     glb_coord_of_glblx(c,imom);
-   FOR_ALL_SPATIAL_DIRECTIONS(mu)
+   FOR_ALL_SPATIAL_DIRS(mu)
       sinh2E+=sqr(sin(M_PI*(2*c(mu)()+bc(mu))/glbSize(mu)()));
     
     return asinh(sqrt(sinh2E));
@@ -65,7 +65,7 @@ namespace nissa
   CUDA_HOST_DEVICE void get_component_of_twisted_propagator_of_imom(Momentum& sin_mom,double &sin2_mom,double &sin2_momh,const tm_quark_info& qu,const LocLxSite& imom)
   {
     sin2_mom=sin2_momh=0;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	const double p=M_PI*(2*glbCoordOfLoclx(imom,mu)()+qu.bc(mu))/glbSize(mu)();
 	sin_mom(mu)=sin(p);
@@ -93,7 +93,7 @@ namespace nissa
     
     //fill the pieces
     spinspin_put_to_diag(out,c0[base]);
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       spinspin_dirac_summ_the_prod_idouble(out,base_gamma+igamma_of_mu(mu),sin_mom(mu));
     spinspin_dirac_summ_the_prod_idouble(out,&base_gamma[5],c5[base]);
   }
@@ -115,12 +115,12 @@ namespace nissa
     
     const double tol=1e-14;
     bool zmp=((fabs(qu.mass)<tol) /* null twisted mass*/ and (fabs(qu.kappa-1.0/8)<tol)) /* null Wilson mass */;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       zmp&=(fabs(qu.bc(mu))<tol);  //fully periodic
     
-    const bool zm_time=(glbCoordOfLoclx(imom,timeDirection)==0);
+    const bool zm_time=(glbCoordOfLoclx(imom,tDir)==0);
     bool zm_spat=true;
-    FOR_ALL_SPATIAL_DIRECTIONS(mu)
+    FOR_ALL_SPATIAL_DIRS(mu)
       zm_spat&=(glbCoordOfLoclx(imom,mu)==0);
     
     bool ONLY_4D=true; /* false= UNNO_ALEMANNA, true=PECIONA*/
@@ -150,7 +150,7 @@ namespace nissa
 	c5[WILSON_BASE]=-qu.mass*tau3[qu.r];
 	
 	spinspin_dirac_summ_the_prod_double(prop,&base_gamma[0],c0[base]*rep_den);
-	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	FOR_ALL_SPATIAL_DIRS(mu)
 	  spinspin_dirac_summ_the_prod_idouble(prop,base_gamma+igamma_of_mu(mu),-sin_mom(mu)*rep_den);
 	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[5],c5[base]*rep_den);
       }
@@ -170,7 +170,7 @@ namespace nissa
     double sin2_momh=-sqr(sinh(e/2));
     GlbCoords c;
     glb_coord_of_glblx(c,imom);
-   FOR_ALL_SPATIAL_DIRECTIONS(mu)
+   FOR_ALL_SPATIAL_DIRS(mu)
       {
 	const double p=M_PI*(2*c(mu)()+qu.bc(mu))/glbSize(mu)();
 	sin_mom(mu)=sin(p);
@@ -190,8 +190,8 @@ namespace nissa
     
     spinspin_put_to_diag(proj,c0[base]);
     int se[2]={-1,+1},sp[2]={+1,-1},s5[2]={-1,+1}; //we put here implicitly the difference of g5 with Nazario
-    spinspin_dirac_summ_the_prod_double(proj,base_gamma+igamma_of_mu(timeDirection),se[tilded]*sinh(e));
-    FOR_ALL_SPATIAL_DIRECTIONS(mu)
+    spinspin_dirac_summ_the_prod_double(proj,base_gamma+igamma_of_mu(tDir),se[tilded]*sinh(e));
+    FOR_ALL_SPATIAL_DIRS(mu)
       spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+igamma_of_mu(mu),sp[tilded]*sin_mom(mu));
     spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+5,s5[tilded]*c5[base]);
     
@@ -206,10 +206,10 @@ namespace nissa
     double abse=naive_massless_quark_energy(bc,imom);
     double e=esign*abse;
     
-    spinspin_dirac_prod_double(proj,base_gamma+igamma_of_mu(timeDirection),-sinh(e));
+    spinspin_dirac_prod_double(proj,base_gamma+igamma_of_mu(tDir),-sinh(e));
     GlbCoords c;
     glb_coord_of_glblx(c,imom);
-    FOR_ALL_SPATIAL_DIRECTIONS(mu)
+    FOR_ALL_SPATIAL_DIRS(mu)
       spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+igamma_of_mu(mu),sin(M_PI*(2*c(mu)()+bc(mu))/glbSize(mu)()));
     
     return abse;
@@ -235,7 +235,7 @@ namespace nissa
     double e=twisted_on_shell_operator_of_imom(osp,qu,imom,tilde[par_apar],1,base);
     unsafe_spinspin_prod_spin(wf,osp,ompg0_eig[!par_apar][s]);
     spin_prodassign_double(wf,1/sqrt(qu.mass+sinh(e)));
-    int ig[2]={0,igamma_of_mu(timeDirection)};
+    int ig[2]={0,igamma_of_mu(tDir)};
     safe_dirac_prod_spin(wf,base_gamma+ig[par_apar],wf);
   }
   

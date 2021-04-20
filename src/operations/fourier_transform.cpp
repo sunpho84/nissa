@@ -26,7 +26,7 @@ namespace nissa
     
     //compute steps
     Momentum steps;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
@@ -34,7 +34,7 @@ namespace nissa
       {
 	//compute phase exponent
 	double arg=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
@@ -57,7 +57,7 @@ namespace nissa
     
     //compute steps
     Momentum steps;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
@@ -65,7 +65,7 @@ namespace nissa
       {
 	//compute phase exponent
 	double arg=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase and put 1/vol
@@ -93,7 +93,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	complex ph[NDIM];
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    double pmu=dirs(mu)*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx(imom,mu)()+bc(mu)*include_phases)/glbSize(mu)();
 	    double pmuh=pmu*0.5;
@@ -101,8 +101,8 @@ namespace nissa
 	    ph[mu.nastyConvert()][IM]=sin(pmuh);
 	  }
 	
-	FOR_ALL_DIRECTIONS(mu)
-	  FOR_ALL_DIRECTIONS(nu)
+	FOR_ALL_DIRS(mu)
+	  FOR_ALL_DIRS(nu)
 	    {
 	      safe_complex_prod      (out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],in[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph[mu.nastyConvert()]);
 	      safe_complex_conj2_prod(out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph[nu.nastyConvert()]);
@@ -116,7 +116,7 @@ namespace nissa
     
     //compute steps
     Momentum steps;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       steps(mu)=s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
@@ -124,15 +124,15 @@ namespace nissa
       {
 	//compute phase exponent
 	double arg=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  arg+=dirs(mu)*steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	FOR_ALL_DIRECTIONS(mu)
-	  FOR_ALL_DIRECTIONS(nu)
+	FOR_ALL_DIRS(mu)
+	  FOR_ALL_DIRS(nu)
 	    safe_complex_prod(out[ivol.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],out[ivol.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -149,7 +149,7 @@ namespace nissa
     
     //compute steps
     Momentum steps;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       steps(mu)=s*dirs(mu)*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
@@ -157,15 +157,15 @@ namespace nissa
       {
 	//compute phase exponent
 	double arg=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	FOR_ALL_DIRECTIONS(mu)
-	  FOR_ALL_DIRECTIONS(nu)
+	FOR_ALL_DIRS(mu)
+	  FOR_ALL_DIRS(nu)
 	    safe_complex_prod(out[ivol.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],in[ivol.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -178,7 +178,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	complex ph[NDIM];
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    const double pmu=sign[source_or_sink]*dirs(mu)*M_PI*(2*glbCoordOfLoclx(imom,mu)()+bc(mu)*include_phases)/glbSize(mu)();
 	    const double pmuh=pmu*0.5;
@@ -186,8 +186,8 @@ namespace nissa
 	    ph[mu.nastyConvert()][IM]=sin(pmuh);
 	  }
 	
-	FOR_ALL_DIRECTIONS(mu)
-	  FOR_ALL_DIRECTIONS(nu)
+	FOR_ALL_DIRS(mu)
+	  FOR_ALL_DIRS(nu)
 	    {
 	      safe_complex_prod      (out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph[mu.nastyConvert()]);
 	      safe_complex_conj2_prod(out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],out[imom.nastyConvert()][mu.nastyConvert()][nu.nastyConvert()],ph[nu.nastyConvert()]);
@@ -208,7 +208,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	complex ph[NDIM];
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    const double pmu=dirs(mu)*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx(imom,mu)()+bc(mu)*include_phases)/glbSize(mu)();
 	    const double pmuh=pmu*0.5;
@@ -216,7 +216,7 @@ namespace nissa
 	    ph[mu.nastyConvert()][IM]=sin(pmuh);
 	  }
 	
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  safe_complex_prod(out[imom.nastyConvert()][mu.nastyConvert()],in[imom.nastyConvert()][mu.nastyConvert()],ph[mu.nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -227,7 +227,7 @@ namespace nissa
     
     //compute steps
     Momentum steps;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
@@ -235,14 +235,14 @@ namespace nissa
       {
 	//compute phase exponent
 	double arg=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  safe_complex_prod(out[ivol.nastyConvert()][mu.nastyConvert()],out[ivol.nastyConvert()][mu.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -258,7 +258,7 @@ namespace nissa
     
     //compute steps
     Momentum steps;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
@@ -266,14 +266,14 @@ namespace nissa
       {
 	//compute phase exponent
 	double arg=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  safe_complex_prod(out[ivol.nastyConvert()][mu.nastyConvert()],in[ivol.nastyConvert()][mu.nastyConvert()],ph);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -286,7 +286,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	complex ph[NDIM];
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    const double pmu=dirs(mu)*sign[source_or_sink]*M_PI*(2*glbCoordOfLoclx(imom,mu)()+bc(mu)*include_phases)/glbSize(mu)();
 	    double pmuh=pmu*0.5;
@@ -294,7 +294,7 @@ namespace nissa
 	    ph[mu.nastyConvert()][IM]=sin(pmuh);
 	  }
 	
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  safe_complex_prod(out[imom.nastyConvert()][mu.nastyConvert()],out[imom.nastyConvert()][mu.nastyConvert()],ph[mu.nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -312,7 +312,7 @@ namespace nissa
     
     //compute steps
     Momentum steps;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
@@ -320,7 +320,7 @@ namespace nissa
       {
 	//compute phase exponent
 	double arg=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
@@ -342,7 +342,7 @@ namespace nissa
        
     //compute steps
     Momentum steps;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
@@ -350,7 +350,7 @@ namespace nissa
       {
 	//compute phase exponent
 	double arg=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
@@ -378,7 +378,7 @@ namespace nissa
     
     //compute steps
     Momentum steps;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
@@ -386,7 +386,7 @@ namespace nissa
       {
 	//compute phase exponent
 	double arg=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase
@@ -410,7 +410,7 @@ namespace nissa
     
     //compute steps
     Momentum steps;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       steps(mu)=dirs(mu)*s*bc(mu)*M_PI/glbSize(mu)();
     
     //add the fractional phase
@@ -418,7 +418,7 @@ namespace nissa
       {
 	//compute phase exponent
 	double arg=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  arg+=steps(mu)*glbCoordOfLoclx(ivol,mu)();
 	
 	//compute the phase

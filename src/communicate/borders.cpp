@@ -63,7 +63,7 @@ namespace nissa
     
     //direction of the halo in receiving node: surface is ordered opposite of halo
     for(int bf=0;bf<2;bf++)
-      for(Direction mu=0;mu<NDIM;mu++)
+      for(Dir mu=0;mu<NDIM;mu++)
 	{
 	  int idir=(bf*NDIM+mu).nastyConvert();
 	  
@@ -108,7 +108,7 @@ namespace nissa
       {
 	comm.nrequest=0;
 	
-	for(Direction idir=0;idir<2*NDIM;idir++)
+	for(Dir idir=0;idir<2*NDIM;idir++)
 	  if(paral_dir(idir%NDIM) and dir_comm(idir))
 	    {
 	      //exchanging the lower surface, from the first half of sending node to the second half of receiving node
@@ -213,7 +213,7 @@ namespace nissa
 	fill_sending_buf_with_lx_vec(comm,vec);
 	
 	Coords<bool> yesInAllDirs; //nasty nasty
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  yesInAllDirs(mu)=1;
 	comm_start(comm,yesInAllDirs);
 	STOP_TIMING(tot_comm_time);
@@ -303,7 +303,7 @@ namespace nissa
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_ev_or_od_vec(comm,vec,eo);
 	Coords<bool> yesInAllDirs; //nasty nasty
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  yesInAllDirs(mu)=1;
 	comm_start(comm,yesInAllDirs);
 	STOP_TIMING(tot_comm_time);
@@ -407,7 +407,7 @@ namespace nissa
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_ev_and_od_vec(comm,vec);
 	Coords<bool> yesInAllDirs; //nasty nasty
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  yesInAllDirs(mu)=1;
 	comm_start(comm,yesInAllDirs);
 	STOP_TIMING(tot_comm_time);

@@ -10,7 +10,7 @@ int main(int narg,char **arg)
   if(narg<7) crash("use: %s T X Y Z file_in file_out",arg[0]);
 
   for(int mu=0;mu<4;mu++)
-    _glbSize(Direction(mu))=atoi(arg[mu+1]);
+    _glbSize(Dir(mu))=atoi(arg[mu+1]);
 
   //Init the MPI grid 
   init_grid(0,0);

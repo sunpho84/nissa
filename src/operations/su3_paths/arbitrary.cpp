@@ -29,7 +29,7 @@ namespace nissa
   }
   
   //add a forward move
-  void paths_calculation_structure::move_forward(const Direction& mu)
+  void paths_calculation_structure::move_forward(const Dir& mu)
   {
     //check not to have passed the max number of steps
     if(cur_mov==ntot_mov) crash("exceded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
@@ -55,7 +55,7 @@ namespace nissa
   }
   
   //add a backward move
-  void paths_calculation_structure::move_backward(const Direction& mu)
+  void paths_calculation_structure::move_backward(const Dir& mu)
   {
     //mark backward move
     link_for_movements[cur_mov]+=DAG_LINK_FLAG;
@@ -151,7 +151,7 @@ namespace nissa
 	  {
 	    int t=ind_nonloc_links_list[ilink];
 	    const GlbLxSite gx=t>>2;
-	    const Direction& mu=t%4;
+	    const Dir& mu=t%4;
 	    
 	    //get lx and rank hosting the site
 	    LocLxSite lx;
@@ -278,7 +278,7 @@ namespace nissa
       {
 	int t=links_to_send_list[ilink];
 	const LocLxSite lx=t/NDIM;
-	const Direction mu=t%NDIM;
+	const Dir mu=t%NDIM;
 	const Parity& p=loclx_parity(lx);
 	const LocEoSite& eo=loceo_of_loclx(lx);
 	su3_copy(send_buff[ilink],conf[p.nastyConvert()][eo.nastyConvert()][mu.nastyConvert()]);
@@ -408,7 +408,7 @@ namespace nissa
 	else
 	  {
 	    const LocLxSite& lx=ilink/NDIM;
-	    const Direction& mu=ilink%NDIM;
+	    const Dir& mu=ilink%NDIM;
 	    const Parity& p=loclx_parity(lx);
 	    const LocEoSite& eo=loceo_of_loclx(lx);
 	    
@@ -454,7 +454,7 @@ namespace nissa
   }
   
   //elong backward
-  void elong_su3_path_BW(path_drawing_t* c,su3* out,quad_su3* conf,const Direction& mu,bool both_sides)
+  void elong_su3_path_BW(path_drawing_t* c,su3* out,quad_su3* conf,const Dir& mu,bool both_sides)
   {
     
     if(both_sides) crash_if_end_diff_from_start(c);
@@ -487,7 +487,7 @@ namespace nissa
   }
   
   //elong forward
-  void elong_su3_path_FW(path_drawing_t* c,su3* out,quad_su3* conf,const Direction& mu,bool both_sides)
+  void elong_su3_path_FW(path_drawing_t* c,su3* out,quad_su3* conf,const Dir& mu,bool both_sides)
   {
     
     if(both_sides) crash_if_end_diff_from_start(c);
@@ -519,10 +519,10 @@ namespace nissa
   }
   
   //elong of a certain numer of steps in a certain oriented direction: -1=BW, +1=FW
-  void elong_su3_path(path_drawing_t* c,su3* out,quad_su3* conf,const Direction& mu,int len,bool both_sides)
+  void elong_su3_path(path_drawing_t* c,su3* out,quad_su3* conf,const Dir& mu,int len,bool both_sides)
   {
     //pointer to avoid branch
-    void (*fun)(path_drawing_t*,su3*,quad_su3*,const Direction&,bool)=((len<0)?elong_su3_path_BW:elong_su3_path_FW);
+    void (*fun)(path_drawing_t*,su3*,quad_su3*,const Dir&,bool)=((len<0)?elong_su3_path_BW:elong_su3_path_FW);
     
     //call the appropriate number of times
     for(int l=0;l<abs(len);l++)

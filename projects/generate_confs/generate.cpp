@@ -230,10 +230,10 @@ void init_simulation(char *path)
   if(drv->theories.size()==0) crash("need to specify a theory");
   
   //geometry
-  _glbSize(Direction(0))=drv->T;
-  _glbSize(xDirection)=drv->LX;
-  _glbSize(yDirection)=drv->LY;
-  _glbSize(zDirection)=drv->LZ;
+  _glbSize(Dir(0))=drv->T;
+  _glbSize(xDir)=drv->LX;
+  _glbSize(yDir)=drv->LY;
+  _glbSize(zDir)=drv->LZ;
   init_grid(0,0);
   
   top_meas_time=nissa_malloc("top_meas_time",drv->top_meas.size(),double);
@@ -596,7 +596,7 @@ bool check_if_continue()
 // computing numerically
 template <typename F,
 	  typename...Ts>
-void get_num(su3 nu,const Parity& eo,const LocEoSite& ieo,const Direction& dir,F& act,Ts&&...ts)
+void get_num(su3 nu,const Parity& eo,const LocEoSite& ieo,const Dir& dir,F& act,Ts&&...ts)
 {
   su3& l=conf[eo][ieo.nastyConvert()][dir.nastyConvert()];
   su3 sto;
@@ -643,7 +643,7 @@ void get_num(su3 nu,const Parity& eo,const LocEoSite& ieo,const Direction& dir,F
 /// computing analytically
 template <typename F,
 	  typename...Ts>
-void get_an(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,F& der,Ts&&...ts)
+void get_an(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,F& der,Ts&&...ts)
 {
   der(an,eo,ieo,dir,ts...);
   
@@ -655,7 +655,7 @@ void get_an(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,F&
 template <typename FNu,
 	  typename FAn,
 	  typename...Ts>
-void compare(const Parity& eo,const LocEoSite& ieo,const Direction& dir,FNu fnu,FAn fan,Ts...ts)
+void compare(const Parity& eo,const LocEoSite& ieo,const Dir& dir,FNu fnu,FAn fan,Ts...ts)
 {
   su3 nu;
   get_num(nu,eo,ieo,dir,fnu,ts...);
@@ -675,7 +675,7 @@ void compare(const Parity& eo,const LocEoSite& ieo,const Direction& dir,FNu fnu,
 }
 
 Parity EO;
-Direction DIR;
+Dir DIR;
 
 /////////////////////////////////////////////////////////////////
 
@@ -733,11 +733,11 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
 namespace nissa
 {
   void compute_clover_staples_insertions(eo_ptr<as2t_su3> cl_insertion,eo_ptr<spincolor> X,eo_ptr<spincolor> Y);
-  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,const Parity& eo,const LocEoSite& ieo,const Direction& dir);
-  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,const Parity& eo,const LocEoSite& ieo,const Direction& mu,eo_ptr<as2t_su3> cl_insertion,const double& cSW);
+  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,const Parity& eo,const LocEoSite& ieo,const Dir& dir);
+  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,const Parity& eo,const LocEoSite& ieo,const Dir& mu,eo_ptr<as2t_su3> cl_insertion,const double& cSW);
 }
 
-void xQx_der(su3 ext_an,const Parity& ext_eo,const LocEoSite& ext_ieo,const Direction& ext_dir,eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
+void xQx_der(su3 ext_an,const Parity& ext_eo,const LocEoSite& ext_ieo,const Dir& ext_dir,eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
 {
   add_backfield_without_stagphases_to_conf(conf,drv->theories[0].backfield[0]);
   
@@ -809,7 +809,7 @@ void test_xQx()
   //store initial link and compute action
   const Parity eo=EO;
   const LocEoSite ieo=0;
-  const Direction dir=DIR;
+  const Dir dir=DIR;
   
   compare(eo,ieo,dir,xQx,xQx_der,in,in,kappa,mass,cSW);
   
@@ -860,7 +860,7 @@ double xQhatx(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQhatx_der_old(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,spincolor *in,double kappa,double mass,double cSW)
+void xQhatx_der_old(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,spincolor *in,double kappa,double mass,double cSW)
 {
   spincolor temp;
   
@@ -907,7 +907,7 @@ void xQhatx_der_old(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction
 	complex_subt_the_conj2_prod(an[ic1][ic2],temp[id][ic1],temp1[ieo.nastyConvert()][id][ic2]);
 }
 
-void xQhatx_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,spincolor *in,double kappa,double mass,double cSW)
+void xQhatx_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,spincolor *in,double kappa,double mass,double cSW)
 {
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
@@ -960,7 +960,7 @@ void test_xQhatx()
   //store initial link and compute action
   const Parity eo=EVN;
   const LocEoSite ieo=1;
-  const Direction dir=1;
+  const Dir dir=1;
   
   compare(eo,ieo,dir,xQhatx,xQhatx_der,in,kappa,mass,cSW);
   
@@ -1017,7 +1017,7 @@ double xQ2hatx(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQ2hatx_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,spincolor *in,double kappa,double mass,double cSW)
+void xQ2hatx_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,spincolor *in,double kappa,double mass,double cSW)
 {
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
@@ -1089,7 +1089,7 @@ void test_xQ2hatx()
   //store initial link and compute action
   const Parity eo=ODD;
   const LocEoSite ieo=1;
-  const Direction dir=DIR;
+  const Dir dir=DIR;
   
   compare(eo,ieo,dir,xQ2hatx,xQ2hatx_der,in,kappa,mass,cSW);
   
@@ -1224,7 +1224,7 @@ double xQ2eex(double kappa,double mass,double cSW)
   return act;
 }
 
-void xQ2eex_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,double kappa,double mass,double cSW)
+void xQ2eex_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,double kappa,double mass,double cSW)
 {
   //Prepare clover
   eo_ptr<clover_term_t> Cl;
@@ -1246,8 +1246,8 @@ void xQ2eex_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& di
   
   NISSA_PARALLEL_LOOP(jeo,0,locVolh)
     {
-      FOR_ALL_DIRECTIONS(mu)
-    	for(Direction nu=mu+1;nu<NDIM;nu++)
+      FOR_ALL_DIRS(mu)
+    	for(Dir nu=mu+1;nu<NDIM;nu++)
 	  {
 	    const int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 	    dirac_matr m=dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]);
@@ -1280,7 +1280,7 @@ void xQ2eex_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& di
   
   for(int inu=0;inu<NDIM-1;inu++)
     {
-      const Direction nu=perp_dir[dir.nastyConvert()][inu];
+      const Dir nu=perp_dir[dir.nastyConvert()][inu];
       
       const LocEoSite& xpmu=loceo_neighup(eo,ieo,dir);
       const LocEoSite& xmnu=loceo_neighdw(eo,ieo,nu);
@@ -1347,7 +1347,7 @@ void test_xQ2eex()
   //store initial link and compute action
   const Parity eo=EO;
   const LocEoSite ieo=1;
-  const Direction dir=DIR;
+  const Dir dir=DIR;
   
   compare(eo,ieo,dir,xQ2eex,xQ2eex_der,kappa,mass,cSW);
   
@@ -1391,7 +1391,7 @@ double xQee_inv_x(spincolor *in,double kappa,double mass,double cSW)
   return act[RE];
 }
 
-void xQee_inv_x_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction& dir,spincolor *X,double kappa,double mass,double cSW)
+void xQee_inv_x_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,spincolor *X,double kappa,double mass,double cSW)
 {
   /// Preprare clover
   eo_ptr<clover_term_t> Cl;
@@ -1404,8 +1404,8 @@ void xQee_inv_x_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction
   // tmclovDee_or_oo_eos(Y,kappa,Cl[EVN],true,mass,X);
   
   std::array<dirac_matr,6> m;
-  FOR_ALL_DIRECTIONS(mu)
-    for(Direction nu=mu+1;nu<NDIM;nu++)
+  FOR_ALL_DIRS(mu)
+    for(Dir nu=mu+1;nu<NDIM;nu++)
       {
 	int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 	m[ipair]=dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]);
@@ -1453,7 +1453,7 @@ void xQee_inv_x_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Direction
   
   for(int inu=0;inu<NDIM-1;inu++)
     {
-      const Direction nu=perp_dir[dir.nastyConvert()][inu];
+      const Dir nu=perp_dir[dir.nastyConvert()][inu];
       
       const LocEoSite& xpmu=loceo_neighup(eo,ieo,dir);
       const LocEoSite& xmnu=loceo_neighdw(eo,ieo,nu);
@@ -1524,7 +1524,7 @@ void test_xQinv_eex()
   //store initial link and compute action
   const Parity eo=EVN;
   const LocEoSite ieo=1;
-  const Direction dir=1;
+  const Dir dir=1;
   
   compare(eo,ieo,dir,xQee_inv_x,xQee_inv_x_der,in,kappa,mass,cSW);
   

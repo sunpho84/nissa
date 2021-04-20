@@ -9,36 +9,36 @@
 
 namespace nissa
 {
-  DECLARE_COMPONENT(Direction,int,NDIM);
+  DECLARE_COMPONENT(Dir,int,NDIM);
   
   /// Temporal direction
-  constexpr Direction timeDirection=0;
+  constexpr Dir tDir=0;
   
   /// X direction
-  constexpr Direction xDirection=1;
+  constexpr Dir xDir=1;
   
   /// Y direction
-  constexpr Direction yDirection=2;
+  constexpr Dir yDir= 2;
   
   /// Z direction
-  constexpr Direction zDirection=3;
+  constexpr Dir zDir=3;
   
-#define FOR_ALL_DIRECTIONS(NAME)		\
-  FOR_ALL_COMPONENT_VALUES(Direction,NAME)
+#define FOR_ALL_DIRS(NAME)		\
+  FOR_ALL_COMPONENT_VALUES(Dir,NAME)
   
-#define FOR_ALL_SPATIAL_DIRECTIONS(NAME)	\
-  for(Direction NAME=1;NAME<NDIM;NAME++)
+#define FOR_ALL_SPATIAL_DIRS(NAME)	\
+  for(Dir NAME=1;NAME<NDIM;NAME++)
   
   template <typename T>
-  using Coords=Tensor<OfComps<Direction>,T>;
+  using Coords=Tensor<OfComps<Dir>,T>;
   
-  using Momentum=Tensor<OfComps<Direction>,double>;
+  using Momentum=Tensor<OfComps<Dir>,double>;
   
   /// Copy coordinates
   template <typename T>
   void coord_copy(Coords<T>& out,const Coords<T>& in)
   {
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       out(mu)=in(mu);
   }
   
@@ -46,7 +46,7 @@ namespace nissa
   template <typename T>
   void coord_summ(Coords<T>& s,const Coords<T>& a1,const Coords<T>& a2,const Coords<T>& l)
   {
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       s(mu)=(a1(mu)+a2(mu))%l(mu);
   }
   

@@ -23,7 +23,7 @@ namespace nissa
 									\
     NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
       {									\
-	for(Direction mu=1;mu<NDIM;mu++)				\
+	FOR_ALL_SPATIAL_DIRS(mu)					\
 	  {								\
 	    const LocLxSite& ivup=loclxNeighup(ivol,mu);		\
 	    const LocLxSite& ivdw=loclxNeighdw(ivol,mu);		\
@@ -55,9 +55,9 @@ namespace nissa
 	TYPE *H=ext_H;							\
 	if(ext_H==NULL) H=nissa_malloc("H",locVolWithBord.nastyConvert(),TYPE);	\
 									\
-	double norm_fact=1/(1+2*(kappa(xDirection)+kappa(yDirection)+kappa(zDirection))); \
+	double norm_fact=1/(1+2*(kappa(xDir)+kappa(yDir)+kappa(zDir))); \
 									\
-	verbosity_lv2_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g}, %d iterations\n",kappa(xDirection),kappa(yDirection),kappa(zDirection),niter); \
+	verbosity_lv2_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g}, %d iterations\n",kappa(xDir),kappa(yDir),kappa(zDir),niter); \
 									\
 	/*iter 0*/							\
 	double_vector_copy((double*)temp,(double*)origi_sc,locVol.nastyConvert()*sizeof(TYPE)/sizeof(double)); \
@@ -65,7 +65,7 @@ namespace nissa
 	/*loop over gaussian iterations*/				\
 	for(int iter=0;iter<niter;iter++)				\
 	  {								\
-	    verbosity_lv3_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g} iteration %d of %d\n",kappa(xDirection),kappa(yDirection),kappa(zDirection),iter,niter); \
+	    verbosity_lv3_master_printf("GAUSSIAN smearing with kappa={%g,%g,%g} iteration %d of %d\n",kappa(xDir),kappa(yDir),kappa(zDir),iter,niter); \
 									\
 	    /*apply kappa*H*/						\
 	    NAME2(gaussian_smearing_apply_kappa_H,TYPE)(H,kappa,conf,temp); \

@@ -139,7 +139,7 @@ namespace nissa
     }
     
     //update the lowest conf using in chain the superior ones
-    int update(int nWflow,const Coords<bool>& dirs=all_dirs,const Direction& staple_min_dir=timeDirection)
+    int update(int nWflow,const Coords<bool>& dirs=all_dirs,const Dir& staple_min_dir=tDir)
     {
       int nevol=0;
       

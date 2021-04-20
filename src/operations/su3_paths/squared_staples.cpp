@@ -19,14 +19,14 @@
 namespace nissa
 {
   //compute the staples along a particular dir, for a single site
-  CUDA_HOST_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,eo_ptr<quad_su3> eo_conf,const LocLxSite& A,const Direction& mu)
+  CUDA_HOST_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,eo_ptr<quad_su3> eo_conf,const LocLxSite& A,const Dir& mu)
   {
     su3_put_to_zero(staple);
     
     su3 temp1,temp2;
     for(int inu=0;inu<NDIM-1;inu++)                //  E---F---C
       {                                            //  |   |   | mu
-	const Direction nu=perp_dir[mu.nastyConvert()][inu];                  //  D---A---B
+	const Dir nu=perp_dir[mu.nastyConvert()][inu];                  //  D---A---B
 	const Parity& p=loclx_parity(A);                     //        nu
 	const LocLxSite& B=loclxNeighup(A,nu);
 	const LocLxSite& F=loclxNeighup(A,mu);
@@ -41,7 +41,7 @@ namespace nissa
 	su3_summ(staple,staple,temp2);
       }
   }
-  void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,const LocLxSite& A,const Direction& mu)
+  void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,const LocLxSite& A,const Dir& mu)
   {
     if(not check_edges_valid(lx_conf)) crash("communicate edges externally");
     
@@ -50,7 +50,7 @@ namespace nissa
     su3 temp1,temp2;
     for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
       {                                               //  |   |   | mu
-	const Direction nu=perp_dir[mu.nastyConvert()][inu];                     //  D---A---B
+	const Dir nu=perp_dir[mu.nastyConvert()][inu];                     //  D---A---B
 	const LocLxSite& B=loclxNeighup(A,nu);                   //        nu
 	const LocLxSite& F=loclxNeighup(A,mu);
 	unsafe_su3_prod_su3(    temp1,lx_conf[A.nastyConvert()][nu.nastyConvert()],lx_conf[B.nastyConvert()][mu.nastyConvert()]);
@@ -118,10 +118,10 @@ namespace nissa
   // 2) compute non_fwsurf fw staples that are always local
   void squared_staples_lx_conf_compute_non_fw_surf_fw_staples(squared_staples_t *out,quad_su3 *conf,int thread_id)
   {
-    FOR_ALL_DIRECTIONS(mu)//link direction
+    FOR_ALL_DIRS(mu)//link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	  const Dir nu=perp_dir[mu.nastyConvert()][inu];
 	  NISSA_PARALLEL_LOOP(ibulk,0,nonFwSurfVol)
 	    {
 	      su3 temp;
@@ -151,9 +151,9 @@ namespace nissa
     //compute backward staples to be sent to up nodes
     //obtained scanning D on fw_surf and storing data as they come
     for(int inu=0;inu<3;inu++) //staple direction
-      FOR_ALL_DIRECTIONS(mu) //link direction
+      FOR_ALL_DIRS(mu) //link direction
 	{
-	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	  const Dir nu=perp_dir[mu.nastyConvert()][inu];
 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
 	    {
 	      const LocLxSite& D=loclxOfFwSurflx(ifw_surf),A=loclxNeighup(D,nu),E=loclxNeighup(D,mu);
@@ -169,11 +169,11 @@ namespace nissa
     
     //copy in send buf, obtained scanning second half of each parallelized direction external border and
     //copying the three perpendicular links staple
-    FOR_ALL_DIRECTIONS(nu)//border and staple direction
+    FOR_ALL_DIRS(nu)//border and staple direction
       if(paral_dir(nu))
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    const Direction mu=perp_dir[nu.nastyConvert()][imu];
+	    const Dir mu=perp_dir[nu.nastyConvert()][imu];
 	    const int inu=((nu<mu)?nu:nu-1).nastyConvert();
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bordVol/2+bord_offset(nu),bordVol/2+bord_offset(nu)+bord_dir_vol(nu))
@@ -195,10 +195,10 @@ namespace nissa
   // 5) compute non_fw_surf bw staples
   void squared_staples_lx_conf_compute_non_fw_surf_bw_staples(squared_staples_t *out,quad_su3 *conf,int thread_id)
   {
-    FOR_ALL_DIRECTIONS(mu) //link direction
+    FOR_ALL_DIRS(mu) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	  const Dir nu=perp_dir[mu.nastyConvert()][inu];
 	  
 	  //obtained scanning D on fw_surf
 	  NISSA_PARALLEL_LOOP(inon_fw_surf,0,nonFwSurfVol)
@@ -215,10 +215,10 @@ namespace nissa
   // 6) compute fw_surf fw staples
   void squared_staples_lx_conf_compute_fw_surf_fw_staples(squared_staples_t *out,quad_su3 *conf,int thread_id)
   {
-    FOR_ALL_DIRECTIONS(mu) //link direction
+    FOR_ALL_DIRS(mu) //link direction
       for(int inu=0;inu<3;inu++) //staple direction
 	{
-	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	  const Dir nu=perp_dir[mu.nastyConvert()][inu];
 	  
 	  //obtained looping A on forward surface
 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
@@ -239,11 +239,11 @@ namespace nissa
     STOP_TIMING(tot_comm_time);
     
     //copy the received backward staples (stored on first half of receiving buf) on bw_surf sites
-    FOR_ALL_DIRECTIONS(nu) //staple and fw bord direction
+    FOR_ALL_DIRS(nu) //staple and fw bord direction
       if(paral_dir(nu))
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
-	    const Direction mu=perp_dir[nu.nastyConvert()][imu];
+	    const Dir mu=perp_dir[nu.nastyConvert()][imu];
 	    const int inu=((nu<mu)?nu:nu-1).nastyConvert();
 	    
 	    NISSA_PARALLEL_LOOP(ibord,bord_offset(nu),bord_offset(nu)+bord_dir_vol(nu))

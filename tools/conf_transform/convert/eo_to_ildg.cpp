@@ -7,19 +7,19 @@ vector_remap_t *remapper;
 
 void index_from_Neo_to_lx(Rank &rank_out,LocLxSite &iel_out,const LocLxSite& iel_in,void *pars)
 {
-  Coords<Direction> mu_ord;
-  mu_ord(timeDirection)=timeDirection;
-  mu_ord(xDirection)=zDirection;
-  mu_ord(yDirection)=yDirection;
-  mu_ord(zDirection)=xDirection;
+  Coords<Dir> mu_ord;
+  mu_ord(tDir)=tDir;
+  mu_ord(xDir)=zDir;
+  mu_ord(yDir)=yDir;
+  mu_ord(zDir)=xDir;
   
   //decript from, cls order
   GlbLxSite glb_site_sour=iel_in()+rank*8*locVol()/2;
   const Parity shift_comp=(int)(glb_site_sour.nastyConvert()%2);
   glb_site_sour/=2;
 
-  const Direction mu_sour=(int)(glb_site_sour()%4);
-  const Direction mu=mu_ord(mu_sour);
+  const Dir mu_sour=(int)(glb_site_sour()%4);
+  const Dir mu=mu_ord(mu_sour);
   glb_site_sour/=4;
   glb_site_sour*=2;
   if(glblx_parity(glb_site_sour)==0) glb_site_sour++;
@@ -30,7 +30,7 @@ void index_from_Neo_to_lx(Rank &rank_out,LocLxSite &iel_out,const LocLxSite& iel
   //get coords
   GlbCoords g;
   glb_coord_of_glblx(g,glb_site_sour);
-  std::swap(g(xDirection),g(zDirection)); //only 1 and 3 must be switched
+  std::swap(g(xDir),g(zDir)); //only 1 and 3 must be switched
   if(shift_comp())
     g(mu)=(g(mu)+glbSize(mu)-1)%glbSize(mu);
   
@@ -57,8 +57,8 @@ void conf_convert(char *outpath,char *inpath)
   
   //if needed convert the lattice size to check
   if(!little_endian) change_endianness((uint32_t*)temp,(uint32_t*)temp,4);
-  if(temp[0]!=glbTimeSize or temp[1]!=glbSize(xDirection))
-    crash("conf of size %dx%d, expecting %dx%d",temp[0],temp[1],glbTimeSize(),glbSize(xDirection)());
+  if(temp[0]!=glbTimeSize or temp[1]!=glbSize(xDir))
+    crash("conf of size %dx%d, expecting %dx%d",temp[0],temp[1],glbTimeSize(),glbSize(xDir)());
   
   //convert the plaquette
   if(!little_endian) change_endianness(plaq);

@@ -181,7 +181,7 @@ namespace nissa
     // 	//prepare each propagator for a single lepton
     // 	//by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
     // 	//(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
-    // 	FOR_ALL_DIRECTIONS(mu)
+    // 	FOR_ALL_DIRS(mu)
     // 	  if(dirs[mu.nastyConvert()])
     // 	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
     // 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)

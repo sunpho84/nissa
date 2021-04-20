@@ -292,7 +292,7 @@ namespace nissa
   }
   
   //return a cooled copy of the passed link
-  void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,const Parity& par,const LocEoSite& ieo,const Direction& mu)
+  void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,const Parity& par,const LocEoSite& ieo,const Dir& mu)
     {
     //compute the staple
     su3 staple;
@@ -301,7 +301,7 @@ namespace nissa
     //find the link that maximize the plaquette
     su3_unitarize_maximal_trace_projecting(u,staple);
   }
-  inline void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,const LocLxSite& ivol,const Direction& mu)
+  inline void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,const LocLxSite& ivol,const Dir& mu)
   {
     //compute the staple
     su3 staple;

@@ -34,7 +34,7 @@ namespace nissa
 	  for(LocLxSite ivol=0;ivol<locVol;ivol++)
 	    {
 	      GlbCoords g;
-	      FOR_ALL_DIRECTIONS(mu)
+	      FOR_ALL_DIRS(mu)
 		g(mu)=r(mu)()*locSize(mu)()+locCoordOfLoclx(ivol,mu)();
 			    
 	      const GlbLxSite& glb_site=glblx_of_coord(g);

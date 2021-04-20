@@ -80,7 +80,7 @@ namespace nissa
 		
     // 		//get coords in the local size, and parity
     // 		coords ivol_coord;
-    // 		FOR_ALL_DIRECTIONS(mu) ivol_coord[mu]=box_size[0][mu]*box_coord[ibox][mu]+isub_coord[mu];
+    // 		FOR_ALL_DIRS(mu) ivol_coord[mu]=box_size[0][mu]*box_coord[ibox][mu]+isub_coord[mu];
     // 		int site_par=par_comp(ivol_coord,dir);
     // 		if(site_par>=gpar||site_par<0) crash("obtained par %d while expecting in the range [0,%d]",par,gpar-1);
 		
@@ -119,7 +119,7 @@ namespace nissa
     
     // //check to have hit everything
     // for(LocLxSite ivol=0;ivol<locVol;ivol++)
-    //   FOR_ALL_DIRECTIONS(mu)
+    //   FOR_ALL_DIRS(mu)
     // 	if(hit[ivol.nastyConvert()][mu]!=1) crash("missing hit ivol %d mu %d",ivol,mu);
     
     // nissa_free(hit);
@@ -170,7 +170,7 @@ namespace nissa
     // 			    printf("ibox %d dir %d par %d link[%d], ivol %ld{%d",ibox,dir,par,ihit,ivol(),locCoordOfLoclx[ivol.nastyConvert()][0]);
     // 			    for(int mu=1;mu<NDIM;mu++) printf(",%d",locCoordOfLoclx[ivol.nastyConvert()][mu]);
     // 			    printf("}: %d",link>=NDIM*locVol?-1:locCoordOfLoclx[link/NDIM][0]);
-    // 			    FOR_ALL_DIRECTIONS(mu) printf(",%d",link>=NDIM*locVol?-1:locCoordOfLoclx[link/NDIM][mu]);
+    // 			    FOR_ALL_DIRS(mu) printf(",%d",link>=NDIM*locVol?-1:locCoordOfLoclx[link/NDIM][mu]);
     // 			    printf(";%d\n",link>=NDIM*locVol?-1:link%NDIM);
     // 			  }
 			
@@ -358,7 +358,7 @@ namespace nissa
   // int Symanzik_par(coords ivol_coord,int dir)
   // {
     // int site_par=0;
-    // FOR_ALL_DIRECTIONS(mu) site_par+=((mu==dir)?2:1)*ivol_coord[mu];
+    // FOR_ALL_DIRS(mu) site_par+=((mu==dir)?2:1)*ivol_coord[mu];
     
     // site_par=site_par%NDIM;
     
@@ -579,7 +579,7 @@ namespace nissa
     //   {
     // 	verbosity_lv3_master_printf("Initializing Symanzik sweeper\n");
     // 	//checking consistency for gauge_sweeper initialization
-    // 	FOR_ALL_DIRECTIONS(mu) if(locSize[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,locSize[mu]);
+    // 	FOR_ALL_DIRS(mu) if(locSize[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,locSize[mu]);
     // 	//initialize the Symanzik sweeper
     // 	const int nlinks_per_Symanzik_staples_of_link=(NDIM-1)*2*(3+5*3)-(NDIM-1)*8+2;
     // 	Symanzik_sweeper->init_box_dir_par_geometry(4,Symanzik_par);
@@ -590,10 +590,10 @@ namespace nissa
   ///////////////////////////////////////// Wilson ////////////////////////////////////////
   
   //compute the parity according to the Wilson requirements
-  int Wilson_par(const LocCoords& ivol_coord,const Direction& dir)
+  int Wilson_par(const LocCoords& ivol_coord,const Dir& dir)
   {
 //     int site_par=0;
-//     FOR_ALL_DIRECTIONS(mu) site_par+=ivol_coord[mu];
+//     FOR_ALL_DIRS(mu) site_par+=ivol_coord[mu];
     
 //     site_par=site_par%2;
     
@@ -684,7 +684,7 @@ namespace nissa
     //   {
     // 	verbosity_lv3_master_printf("Initializing Wilson sweeper\n");
     // 	//checking consistency for gauge_sweeper initialization
-    // 	FOR_ALL_DIRECTIONS(mu) if(locSize[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,locSize[mu]);
+    // 	FOR_ALL_DIRS(mu) if(locSize[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,locSize[mu]);
     // 	//initialize the Wilson sweeper
     // 	Wilson_sweeper->init_box_dir_par_geometry(2,Wilson_par);
     // 	const int nlinks_per_Wilson_staples_of_link=6*(NDIM-1);

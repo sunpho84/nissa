@@ -29,10 +29,10 @@ namespace nissa
   {
     bool res=false;
     
-    const GlbCoord& X=glbCoordOfLoclx(imom,xDirection);
-    const GlbCoord& Y=glbCoordOfLoclx(imom,yDirection);
-    const GlbCoord& Z=glbCoordOfLoclx(imom,zDirection);
-    const GlbCoord& T=glbCoordOfLoclx(imom,Direction(0));
+    const GlbCoord& X=glbCoordOfLoclx(imom,xDir);
+    const GlbCoord& Y=glbCoordOfLoclx(imom,yDir);
+    const GlbCoord& Z=glbCoordOfLoclx(imom,zDir);
+    const GlbCoord& T=glbCoordOfLoclx(imom,Dir(0));
     
     switch(gl.zms)
       {
@@ -62,7 +62,7 @@ namespace nissa
     
     //if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
     //if(gl.zms==ONLY_100 &&m==1) printf("leaving mode %d=(%d,%d,%d,%d)\n",glblx_of_loclx[imom],glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       for(int reim=0;reim<2;reim++)
 	prop[mu.nastyConvert()][reim]*=m;
     
@@ -79,7 +79,7 @@ namespace nissa
     Momentum k,kt;
     double kt2=0,kt4=0,kt6=0;
     Momentum kt2_dir,kt4_dir,kt6_dir;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	k(mu)=M_PI*(2*glbCoordOfLoclx(imom,mu)()+gl.bc(mu))/glbSize(mu)();
 	kt(mu)=2*sin(k(mu)/2);
@@ -93,12 +93,12 @@ namespace nissa
     
     //product and sums of kt2 over direction differents from mu and nu
     double ktpo2[4][4],ktso2[4][4];
-    FOR_ALL_DIRECTIONS(mu)
-      FOR_ALL_DIRECTIONS(nu)
+    FOR_ALL_DIRS(mu)
+      FOR_ALL_DIRS(nu)
 	{
 	  ktpo2[mu()][nu()]=1;
 	  ktso2[mu()][nu()]=0;
-	  FOR_ALL_DIRECTIONS(rho)
+	  FOR_ALL_DIRS(rho)
 	    if(mu!=rho and nu!=rho)
 	      {
 		ktpo2[mu()][nu()]*=kt2_dir(rho);
@@ -114,7 +114,7 @@ namespace nissa
       {
 	//Deltakt
 	double Deltakt=(kt2-c1*kt4)*(kt2-c1*(kt22+kt4)+0.5*c12*(kt23+2*kt6-kt2*kt4));
-	FOR_ALL_DIRECTIONS(rho)
+	FOR_ALL_DIRS(rho)
 	  Deltakt-=4*c13*kt4_dir(rho)*ktpo2[rho()][rho()];
 	
 	//A
@@ -124,11 +124,11 @@ namespace nissa
 	    A[mu][nu]=(1-kron_delta[mu][nu])/Deltakt*(kt22-c1*kt2*(2*kt4+kt2*ktso2[mu][nu])+c12*(kt42+kt2*kt4*ktso2[mu][nu]+kt22*ktpo2[mu][nu]));
 	
 	//Prop
-	FOR_ALL_DIRECTIONS(mu)
-	  FOR_ALL_DIRECTIONS(nu)
+	FOR_ALL_DIRS(mu)
+	  FOR_ALL_DIRS(nu)
 	    {
 	      prop[mu.nastyConvert()][nu.nastyConvert()][RE]=gl.alpha*kt(mu)*kt(nu);
-	      FOR_ALL_DIRECTIONS(si)
+	      FOR_ALL_DIRS(si)
 		prop[mu.nastyConvert()][nu.nastyConvert()][RE]+=(kt(si)*kron_delta[mu.nastyConvert()][nu.nastyConvert()]-kt(nu)*kron_delta[mu.nastyConvert()][si.nastyConvert()])*kt(si)*A[si.nastyConvert()][nu.nastyConvert()];
 	      
 	      prop[mu.nastyConvert()][nu.nastyConvert()][RE]/=kt2*kt2*glbVol();
@@ -187,8 +187,8 @@ namespace nissa
 	//copy in the eigen strucures
 	Vector4cd ein;
 	Matrix4d eprop;
-	FOR_ALL_DIRECTIONS(mu)
-	  FOR_ALL_DIRECTIONS(nu)
+	FOR_ALL_DIRS(mu)
+	  FOR_ALL_DIRS(nu)
 	  eprop(mu(),nu())=prop[mu.nastyConvert()][nu.nastyConvert()][RE];
 	
 	for(int id=0;id<NDIRAC;id++)
@@ -215,7 +215,7 @@ namespace nissa
 	
 	/// Compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
 	Vector4d sqrt_eva;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  sqrt_eva(mu())=sqrt(fabs(eva(mu())));
 	
 	sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
@@ -230,7 +230,7 @@ namespace nissa
 	
 	//product with in, store
 	Vector4cd eout=sqrt_eprop*ein;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    out[imom.nastyConvert()][mu.nastyConvert()][RE]=eout(mu()).real();
 	    out[imom.nastyConvert()][mu.nastyConvert()][IM]=eout(mu()).imag();
@@ -241,7 +241,7 @@ namespace nissa
 	
 	//verify g.f condition
 	double tr=0.0,nre=0.0,nim=0.0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    const double kmu=M_PI*(2*glbCoordOfLoclx(imom,mu)()+gl.bc(mu))/glbSize(mu)();
 	    const double ktmu=2*sin(kmu/2);
@@ -282,7 +282,7 @@ namespace nissa
     
     //fill with Z2
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
         comp_get_rnd(eta[ivol.nastyConvert()][mu.nastyConvert()],&(loc_rnd_gen[ivol.nastyConvert()]),RND_Z2);
     NISSA_PARALLEL_LOOP_END;
     
@@ -352,13 +352,13 @@ namespace nissa
     
     compute_x_space_tlSym_gauge_propagator_by_fft(gprop,photon);
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       tadpole(mu)=broadcast(gprop[0][mu.nastyConvert()][mu.nastyConvert()][RE]);
     
     nissa_free(gprop);
     
     tad_time+=take_time();
     
-    master_printf("Tadpole: (%lg,%lg,%lg,%lg), time to compute: %lg s\n",tadpole(Direction(0)),tadpole(xDirection),tadpole(yDirection),tadpole(zDirection),tad_time);
+    master_printf("Tadpole: (%lg,%lg,%lg,%lg), time to compute: %lg s\n",tadpole(Dir(0)),tadpole(xDir),tadpole(yDir),tadpole(zDir),tad_time);
   }
 }

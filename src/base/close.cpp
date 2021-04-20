@@ -34,7 +34,7 @@ namespace nissa
     master_printf("Closing nissa\n");
     
     //unset remappers
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	if(remap_lx_to_locd[mu.nastyConvert()]) delete remap_lx_to_locd[mu.nastyConvert()];
 	if(remap_locd_to_lx[mu.nastyConvert()]) delete remap_locd_to_lx[mu.nastyConvert()];

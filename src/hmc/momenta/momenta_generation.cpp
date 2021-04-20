@@ -20,7 +20,7 @@ namespace nissa
     FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRS(mu)
 	  herm_put_to_gauss(H[par][ieo.nastyConvert()][mu.nastyConvert()],&(loc_rnd_gen[loclx_of_loceo(par,ieo).nastyConvert()]),1);
 	NISSA_PARALLEL_LOOP_END;
 	
@@ -32,7 +32,7 @@ namespace nissa
   {
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
       herm_put_to_gauss(H[ivol.nastyConvert()][mu.nastyConvert()],&(loc_rnd_gen[ivol.nastyConvert()]),1);
     NISSA_PARALLEL_LOOP_END;
     

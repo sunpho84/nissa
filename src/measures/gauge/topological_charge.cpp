@@ -51,12 +51,12 @@ namespace nissa
   {
     //if(!check_edges_valid(conf[0])) crash("communicate edges externally");
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	const LocLxSite& A=loclxNeighup(X,mu);
 	const LocLxSite& D=loclxNeighdw(X,mu);
         
-	for(Direction nu=mu+1;nu<NDIM;nu++)
+	for(Dir nu=mu+1;nu<NDIM;nu++)
 	  {
 	    const int munu=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 	    
@@ -210,7 +210,7 @@ namespace nissa
     
     // int subcube=0,subcube_el=0;
     // int subcube_size[NDIM][2],subcube_coord[NDIM],subcube_el_coord[NDIM];
-    // FOR_ALL_DIRECTIONS(mu)
+    // FOR_ALL_DIRS(mu)
     //   {
     // 	subcube_size[mu][0]=glbSize[mu]/2+1;
     // 	subcube_size[mu][1]=glbSize[mu]/2-1;
@@ -227,7 +227,7 @@ namespace nissa
     
     // //summ the smaller-index cubes
     // coords nsubcubes_per_dir;
-    // FOR_ALL_DIRECTIONS(mu) nsubcubes_per_dir[mu]=2;
+    // FOR_ALL_DIRS(mu) nsubcubes_per_dir[mu]=2;
     // int minind_cube_vol=0;
     // for(int isubcube=0;isubcube<subcube;isubcube++)
     //   {
@@ -236,7 +236,7 @@ namespace nissa
     // 	coord_of_lx(c,isubcube,nsubcubes_per_dir);
     // 	//compute vol
     // 	int subcube_vol=1;
-    // 	FOR_ALL_DIRECTIONS(mu) subcube_vol*=subcube_size[mu][c[mu]];
+    // 	FOR_ALL_DIRS(mu) subcube_vol*=subcube_size[mu][c[mu]];
     // 	minind_cube_vol+=subcube_vol;
     //   }
     
@@ -288,7 +288,7 @@ namespace nissa
     
     //find which piece has to write data
     int64_t tot_data=1;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       tot_data*=glbSize(mu)()/2+1;
     
     //fix possible exceding boundary
@@ -414,10 +414,10 @@ namespace nissa
 	const int plan_perp[4][3]={{ 5, 4, 3},{ 5, 2, 1},{ 4, 2, 0},{ 3, 1, 0}};
 	const int plan_sign[4][3]={{+1,-1,+1},{-1,+1,-1},{+1,-1,+1},{-1,+1,-1}};
 	
-	FOR_ALL_DIRECTIONS(mu)                         //link direction
+	FOR_ALL_DIRS(mu)                         //link direction
 	  for(int inu=0;inu<NDIM-1;inu++)              //  E---F---C
 	    {                                          //  |   |   | mu
-	      const Direction nu=perp_dir[mu.nastyConvert()][inu];                //  D---A---B //nasty
+	      const Dir nu=perp_dir[mu.nastyConvert()][inu];                //  D---A---B //nasty
 	      //this gives the other pair element      //        nu
 	      int iplan=plan_perp[mu.nastyConvert()][inu];
 	      

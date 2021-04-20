@@ -275,7 +275,7 @@ namespace nissa
     int mapped_glb_size[NDIM];
     int mapped_loc_size[NDIM];
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	const Direction& nu=scidac_mapping(mu);
 	
@@ -308,9 +308,9 @@ namespace nissa
   {
     //find global index in ildg transposed ordering
     GlbLxSite iglb_ILDG=0;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
-	const Direction& nu=scidac_mapping(mu);
+	const Dir& nu=scidac_mapping(mu);
 	iglb_ILDG=iglb_ILDG*glbSize(nu)+glbCoordOfLoclx(iloc_lx,nu);
       }
     
@@ -327,9 +327,9 @@ namespace nissa
     
     // Global coords in ildg ordering
     GlbCoords xto;
-    for(Direction mu=NDIM-1;mu>=0;mu--)
+    for(Dir mu=NDIM-1;mu>=0;mu--)
       {
-	const Direction& nu=scidac_mapping(mu);
+	const Dir& nu=scidac_mapping(mu);
 	xto(nu)=iglb_ILDG%glbSize(nu);
 	iglb_ILDG/=glbSize(nu);
       }
@@ -529,7 +529,7 @@ namespace nissa
     NISSA_LOC_VOL_LOOP(idest)
     {
       LocLxSite isour=0;
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	{
 	  const Direction& nu=scidac_mapping(mu);
 	  isour=isour*locSize(nu)+locCoordOfLoclx(idest,nu);
@@ -602,9 +602,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP(isour,0,locVol)
       {
 	LocLxSite idest=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
-	    const Direction& nu=scidac_mapping(mu);
+	    const Dir& nu=scidac_mapping(mu);
 	    idest=idest*locSize(nu)+locCoordOfLoclx(isour,nu);
 	  }
 	memcpy(buf+nbytes_per_site*idest(),data+nbytes_per_site*isour(),nbytes_per_site);

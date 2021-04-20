@@ -36,10 +36,10 @@ namespace nissa
   CUDA_HOST_DEVICE void point_plaquette_lx_conf(complex loc_plaq,quad_su3 *conf,const LocLxSite& A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	const LocLxSite& B=loclxNeighup(A,mu);
-	for(Direction nu=mu+1;nu<NDIM;nu++)
+	for(Dir nu=mu+1;nu<NDIM;nu++)
 	  {
 	    const LocLxSite& C=loclxNeighup(A,nu);
 	    su3 ABD,ACD;
@@ -55,10 +55,10 @@ namespace nissa
   CUDA_HOST_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,const Parity& par,const LocEoSite& A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	const LocEoSite& B=loceo_neighup(par,A,mu);
-	for(Direction nu=mu+1;nu<NDIM;nu++)
+	for(Dir nu=mu+1;nu<NDIM;nu++)
 	  {
 	    const LocEoSite& C=loceo_neighup(par,A,nu);
 	    su3 ABD,ACD;

@@ -34,7 +34,7 @@ namespace DD
   /// Remap swapping x and z
   void remap_coord(int out[],const int in[])
   {
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       out[mu]=in[nissa::scidac_mapping(nissa::Direction(mu))()];
   }
   
@@ -59,7 +59,7 @@ namespace DD
   //return the index of the configuration
   static int conf_index_fct(int t,int z,int y,int x,int mu)
   {
-    return sizeof(nissa::su3)/sizeof(double)*(nissa::scidac_mapping(nissa::Direction(mu))()+NDIM*nissa::loclx_of_coord_list(t,x,y,z)());
+    return sizeof(nissa::su3)/sizeof(double)*(nissa::scidac_mapping(nissa::Dir(mu))()+NDIM*nissa::loclx_of_coord_list(t,x,y,z)());
   }
   
   //return the index inside a spincolor
@@ -131,7 +131,7 @@ namespace DD
 		    for(int ilev=0;ilev<nlevels;ilev++)
 		      for(int idir=0;idir<4;idir++)
 			{
-			  int jdir=nissa::scidac_mapping(nissa::Direction(idir))();
+			  int jdir=nissa::scidac_mapping(nissa::Dir(idir))();
 			  nissa::read_int(&block_size[ilev][jdir]);
 			  master_printf("DD: block_size[%d][%d*]=%d\n",ilev,jdir,block_size[ilev][jdir]);
 			}
@@ -223,7 +223,7 @@ namespace DD
 	
 	//sizes and coord
 	int glbSize[NDIM],nrank_dir[NDIM];
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    glbSize[mu]=nissa::glbSize(nissa::Direction(mu))();
 	    nrank_dir[mu]=nissa::nrank_dir(nissa::Direction(mu))();
@@ -234,7 +234,7 @@ namespace DD
 	//block size and theta
 	for(int dir=0;dir<NDIM;dir++)
 	  {
-	    int jdir=nissa::scidac_mapping(nissa::Direction(dir)).nastyConvert();
+	    int jdir=nissa::scidac_mapping(nissa::Dir(dir)).nastyConvert();
 	    init_params.block_lattice[dir]=
 	      (((glbSize[jdir]/nrank_dir[jdir])%2==0)?
 	       (((glbSize[jdir]/nrank_dir[jdir])%4==0)?4:2):

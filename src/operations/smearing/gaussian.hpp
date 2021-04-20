@@ -19,8 +19,8 @@ namespace nissa
   void gaussian_smearing(T *smear_sc,T *origi_sc,quad_su3 *conf,double kappa_iso,int niter,T *ext_temp=NULL,T *ext_H=NULL)
   {
     Momentum kappa;
-    kappa(timeDirection)=0.0;
-    FOR_ALL_SPATIAL_DIRECTIONS(mu)
+    kappa(tDir)=0.0;
+    FOR_ALL_SPATIAL_DIRS(mu)
       kappa(mu)=kappa_iso;
   
     gaussian_smearing(smear_sc,origi_sc,conf,kappa,niter,ext_temp,ext_H);

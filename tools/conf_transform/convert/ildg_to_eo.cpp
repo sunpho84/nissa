@@ -7,19 +7,19 @@ vector_remap_t *remapper;
 
 void index_from_lx_to_Neo(Rank &rank_out,LocLxSite &iel_out,const LocLxSite& iel_in,void *pars)
 {
-  Coords<Direction> mu_ord;
-  mu_ord(timeDirection)=0;
-  mu_ord(xDirection)=zDirection;
-  mu_ord(yDirection)=yDirection;
-  mu_ord(zDirection)=xDirection;
+  Coords<Dir> mu_ord;
+  mu_ord(tDir)=0;
+  mu_ord(xDir)=zDir;
+  mu_ord(yDir)=yDir;
+  mu_ord(zDir)=xDir;
   const LocLxSite ilx=iel_in/NDIM;
-  const Direction mu=(int)(iel_in()%NDIM);
+  const Dir mu=(int)(iel_in()%NDIM);
   
   //odd sites goes with themseleves
   const bool shift_comp=(loclx_parity(ilx)==0);
   
   GlbCoords g;
-  FOR_ALL_DIRECTIONS(nu)
+  FOR_ALL_DIRS(nu)
     g(mu_ord(nu))=glbCoordOfLoclx(ilx,nu);
   if(shift_comp)
     g(mu_ord(mu))=(g(mu_ord(mu))+1)%glbSize(mu_ord(mu));
@@ -40,7 +40,7 @@ void conf_convert(char *outpath,char *inpath)
   
   //convert the lattice size
   GlbCoords temp;
-  FOR_ALL_DIRECTIONS(mu)
+  FOR_ALL_DIRS(mu)
     if(not little_endian)
       change_endianness(temp(mu)(),glbSize(mu)());
     else
@@ -51,7 +51,7 @@ void conf_convert(char *outpath,char *inpath)
   if(rank==0)
     {
       int nw;
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	{
 	  const int c=temp(mu)();
 	  nw=fwrite(&c,sizeof(int),1,fout);

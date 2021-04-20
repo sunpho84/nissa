@@ -34,8 +34,8 @@ namespace nissa
     tm_quark_info(const double& kappa,const double& mass,const int& r,const double& theta) :
       kappa(kappa),mass(mass),zmp(0),r(r)
     {
-      bc(timeDirection)=1;
-      for(Direction mu=1;mu<NDIM;mu++)
+      bc(tDir)=1;
+      for(Dir mu=1;mu<NDIM;mu++)
 	bc(mu)=theta;
     }
       
@@ -61,7 +61,7 @@ namespace nissa
       alpha=LANDAU_ALPHA;
       c1=WILSON_C1;
       
-      for(Direction mu=0;mu<NDIM;mu++)
+      for(Dir mu=0;mu<NDIM;mu++)
 	bc(mu)=0;
     }
 };

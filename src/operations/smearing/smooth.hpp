@@ -166,9 +166,9 @@ namespace nissa
     {}
   };
   
-  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,const Coords<bool>& dirs=all_dirs,const Direction& staple_min_dir=timeDirection);
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const Coords<bool>& dirs=all_dirs,const Direction& staple_min_dir=timeDirection);
-  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const Coords<bool>& dirs=all_dirs,const Direction& staple_min_dir=timeDirection);
+  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,const Coords<bool>& dirs=all_dirs,const Dir& staple_min_dir=tDir);
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const Coords<bool>& dirs=all_dirs,const Dir& staple_min_dir=tDir);
+  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const Coords<bool>& dirs=all_dirs,const Dir& staple_min_dir=tDir);
 }
 
 #endif

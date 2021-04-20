@@ -13,7 +13,7 @@ namespace nissa
   //all to all communicators initializing structure
   struct all_to_all_gathering_list_t : std::map<int,int>
   {
-    int add_conf_link_for_paths(const GlbCoords& g,const Direction& mu);
+    int add_conf_link_for_paths(const GlbCoords& g,const Dir& mu);
   };
   
   using all_to_all_scattering_list_t=std::vector<std::pair<int,int>>;

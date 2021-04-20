@@ -22,7 +22,7 @@ namespace nissa
     int mov;
     int link_id;
     int ord;
-    void set(int ext_mov,const GlbLxSite& gx,const Direction& mu)
+    void set(int ext_mov,const GlbLxSite& gx,const Dir& mu)
     {
       mov=ext_mov;
       link_id=gx()*NDIM+mu();
@@ -126,8 +126,8 @@ namespace nissa
       link_for_movements[cur_mov]=0;
     }
     
-    void move_forward(const Direction& mu);
-    void move_backward(const Direction& mu);
+    void move_forward(const Dir& mu);
+    void move_backward(const Dir& mu);
     void stop_current_path()
     {
       cur_path++;
@@ -155,7 +155,7 @@ namespace nissa
   {
     GlbCoords c;
     
-    GlbCoord& operator[](const Direction& i)
+    GlbCoord& operator[](const Dir& i)
     {
       return c(i);
     }
@@ -164,7 +164,7 @@ namespace nissa
     {
       bool out=true;
       
-      for(Direction mu=0;mu<NDIM;mu++)
+      for(Dir mu=0;mu<NDIM;mu++)
 	out&=(c(mu)==in.c(mu));
       
       return out;
@@ -177,7 +177,7 @@ namespace nissa
     
     Movement()
     {
-      for(Direction mu=0;mu<NDIM;mu++)
+      for(Dir mu=0;mu<NDIM;mu++)
 	c(mu)=0;
     }
     
@@ -190,9 +190,9 @@ namespace nissa
   typedef std::deque<Movement> path_drawing_t;
   
   void init_su3_path(path_drawing_t *c,su3 *out);
-  void elong_su3_path_BW(path_drawing_t *c,su3 *out,quad_su3 *conf,const Direction& mu,bool both_sides=false);
-  void elong_su3_path_FW(path_drawing_t *c,su3 *out,quad_su3 *conf,const Direction& mu,bool both_sides=false);
-  void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,const Direction& mu,int len,bool both_sides=false);
+  void elong_su3_path_BW(path_drawing_t *c,su3 *out,quad_su3 *conf,const Dir& mu,bool both_sides=false);
+  void elong_su3_path_FW(path_drawing_t *c,su3 *out,quad_su3 *conf,const Dir& mu,bool both_sides=false);
+  void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,const Dir& mu,int len,bool both_sides=false);
   
   //direction and length
   typedef std::pair<int,int> path_step_pars_t;

@@ -49,7 +49,7 @@ namespace nissa
 	  for(int hit=0;hit<nhits;hit++)
 	    {
 	      //Source time
-	      generate_undiluted_source(eta,meas_pars.rnd_type,source_coord(timeDirection));
+	      generate_undiluted_source(eta,meas_pars.rnd_type,source_coord(tDir));
 	      
 	      op.inv(phi,eta,iflav);
 	      op.ins(phi_ins_P,5,phi);
@@ -59,7 +59,7 @@ namespace nissa
 	      auto c=[&](spincolor* oth,int ig,const int icontr)
 	      {
 		complex* temp_contr=new complex[glbTimeSize.nastyConvert()];
-		tm_corr_op::undiluted_meson_contr(temp_contr,phi,oth,ig,source_coord(timeDirection));
+		tm_corr_op::undiluted_meson_contr(temp_contr,phi,oth,ig,source_coord(tDir));
 		FOR_ALL_GLB_TIMES(t)
 		  complex_summassign(contr[t.nastyConvert()+glbTimeSize.nastyConvert()*icontr],temp_contr[t.nastyConvert()]);
 		

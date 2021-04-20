@@ -20,7 +20,7 @@ namespace nissa
   namespace stag
   {
     //summ a single shift
-    void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,const Direction& mu,eo_ptr<color> in,shift_orie_t side)
+    void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,const Dir& mu,eo_ptr<color> in,shift_orie_t side)
     {
       if(in==out) crash("in==out");
       
@@ -45,7 +45,7 @@ namespace nissa
     }
     
     //apply a single shift
-    void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,const Direction& mu,eo_ptr<color> in,shift_orie_t side)
+    void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,const Dir& mu,eo_ptr<color> in,shift_orie_t side)
     {
       FOR_BOTH_PARITIES(eo) vector_reset(out[eo]);
       summ_covariant_shift(out,conf,mu,in,side);
@@ -66,7 +66,7 @@ namespace nissa
       //shift and summ in both orientation
       shift_orie_t orie_list[2]={UP,DW};
       for(int iorie=0;iorie<2;iorie++)
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    apply_covariant_shift(temp,conf,mu,in,orie_list[iorie]);
 	    summ_covariant_shift(out,conf,mu,temp,orie_list[iorie]);
@@ -85,7 +85,7 @@ namespace nissa
     }
     
     //apply the operator
-    void apply_shift_op_single_perm(eo_ptr<color> out,eo_ptr<color> temp,eo_ptr<quad_su3> conf,const std::vector<Direction> &list_dir,eo_ptr<color> in)
+    void apply_shift_op_single_perm(eo_ptr<color> out,eo_ptr<color> temp,eo_ptr<quad_su3> conf,const std::vector<Dir> &list_dir,eo_ptr<color> in)
     {
       //make a temporary copy
       FOR_BOTH_PARITIES(eo) vector_copy(temp[eo],in[eo]);
@@ -107,8 +107,8 @@ namespace nissa
     void apply_shift_op(eo_ptr<color> out,eo_ptr<color> single_perm,eo_ptr<color> internal_temp,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,int shift,eo_ptr<color> in)
     {
       //make a list that can be easily permuted
-      std::vector<Direction> list_dir;
-      FOR_ALL_DIRECTIONS(mu)
+      std::vector<Dir> list_dir;
+      FOR_ALL_DIRS(mu)
 	if((shift>>mu())&0x1)
 	  list_dir.push_back(mu);
       std::sort(list_dir.begin(),list_dir.end());
@@ -153,7 +153,7 @@ namespace nissa
 	    {
 	      int sign=1;
 	      const LocLxSite ivol=loclx_of_loceo(eo,ieo);
-	      FOR_ALL_DIRECTIONS(mu) sign*=1-2*(((mask>>mu())&0x1) and (glbCoordOfLoclx(ivol,mu)()&0x1));
+	      FOR_ALL_DIRS(mu) sign*=1-2*(((mask>>mu())&0x1) and (glbCoordOfLoclx(ivol,mu)()&0x1));
 	      color_prod_double(source[eo][ieo.nastyConvert()],source[eo][ieo.nastyConvert()],sign);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -173,7 +173,7 @@ namespace nissa
     
     //compute the matrix element of the derivative of the dirac operator between two vectors
     //forward and backward derivative are stored separately, for a reason
-    void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,const Direction& mu,eo_ptr<color> right,complex *point_result)
+    void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,const Dir& mu,eo_ptr<color> right,complex *point_result)
     {
       
       communicate_ev_and_od_color_borders(left);
@@ -244,10 +244,10 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	    {
 	      color temp;
-	      unsafe_su3_prod_color(temp,conf[par][ieo.nastyConvert()][0],in[(1-par).nastyConvert()][loceo_neighup(par,ieo,timeDirection).nastyConvert()]);
-	      const LocEoSite& idw=loceo_neighdw(par,ieo,timeDirection);
-	      if(ord%2==0) su3_dag_subt_the_prod_color(temp,conf[(1-par).nastyConvert()][idw.nastyConvert()][timeDirection()],in[(1-par).nastyConvert()][idw.nastyConvert()]);
-	      else         su3_dag_summ_the_prod_color(temp,conf[(1-par).nastyConvert()][idw.nastyConvert()][timeDirection()],in[(1-par).nastyConvert()][idw.nastyConvert()]);
+	      unsafe_su3_prod_color(temp,conf[par][ieo.nastyConvert()][0],in[(1-par).nastyConvert()][loceo_neighup(par,ieo,tDir).nastyConvert()]);
+	      const LocEoSite& idw=loceo_neighdw(par,ieo,tDir);
+	      if(ord%2==0) su3_dag_subt_the_prod_color(temp,conf[(1-par).nastyConvert()][idw.nastyConvert()][tDir()],in[(1-par).nastyConvert()][idw.nastyConvert()]);
+	      else         su3_dag_summ_the_prod_color(temp,conf[(1-par).nastyConvert()][idw.nastyConvert()][tDir()],in[(1-par).nastyConvert()][idw.nastyConvert()]);
 	      color_prod_double(out[par.nastyConvert()][ieo.nastyConvert()],temp,0.5);
 	    }
 	  NISSA_PARALLEL_LOOP_END;
@@ -276,7 +276,7 @@ namespace nissa
       THREAD_BARRIER();
     }
     
-    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Direction& mu,void *pars)
+    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Dir& mu,void *pars)
     {
       if(aux[0])
 	complex_copy(out,aux[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()]);
@@ -285,7 +285,7 @@ namespace nissa
     }
     
     //insert an external current
-    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,const Parity& par,const LocEoSite& ieo,const Direction& mu,void *pars),const GlbCoord& t,void *pars)
+    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,const Parity& par,const LocEoSite& ieo,const Dir& mu,void *pars),const GlbCoord& t,void *pars)
     {
       add_backfield_with_stagphases_to_conf(conf,theory_pars->backfield[iflav]);
       communicate_ev_and_od_quad_su3_borders(conf);
@@ -299,8 +299,8 @@ namespace nissa
 	      const LocLxSite ivol=loclx_of_loceo(par,ieo);
 	      
 	      color_put_to_zero(out[par.nastyConvert()][ieo.nastyConvert()]);
-	      if(t<0  or  t>=glbTimeSize or glbCoordOfLoclx(ivol,timeDirection)==t)
-		FOR_ALL_DIRECTIONS(mu)
+	      if(t<0  or  t>=glbTimeSize or glbCoordOfLoclx(ivol,tDir)==t)
+		FOR_ALL_DIRS(mu)
 		  {
 		    color temp;
 		    

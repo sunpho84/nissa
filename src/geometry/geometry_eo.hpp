@@ -132,8 +132,8 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<LocLxSite>,LocEoSite> loceo_of_loclx;
   CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<Parity,LocEoSite>,LocLxSite> loclx_of_loceo;
   CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<Parity,BordEoSite>,LocEoSite> surfeo_of_bordeo;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<Parity,LocEoSite,Direction>,LocEoSite> loceo_neighup;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<Parity,LocEoSite,Direction>,LocEoSite> loceo_neighdw;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<Parity,LocEoSite,Dir>,LocEoSite> loceo_neighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO Tensor<OfComps<Parity,LocEoSite,Dir>,LocEoSite> loceo_neighdw;
   EXTERN_GEOMETRY_EO bool eo_geom_inited;
   EXTERN_GEOMETRY_EO bool use_eo_geom;
   

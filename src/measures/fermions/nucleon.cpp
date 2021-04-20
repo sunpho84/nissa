@@ -100,7 +100,7 @@ namespace nissa
 		  tm_corr_op::compute_nucleon_2pts_contr(tempCorr,
 							 prop[ilikeFlav],
 							 prop[idislikeFlav],
-							 glbSourceCoords(timeDirection),-1);
+							 glbSourceCoords(tDir),-1);
 		  
 		  master_printf("Summing %d %d\n",ilikeFlav,idislikeFlav);
 		  FOR_ALL_GLB_TIMES(t)

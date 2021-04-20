@@ -78,12 +78,12 @@ namespace nissa
       is_source=false;
       
       kappa=_kappa;
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	kappa_asymm(mu)=_kappa_asymm(mu);
       mass=_mass;
       r=_r;
       charge=_charge;
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	theta(mu)=_theta(mu);
       insertion=_insertion;
       source_terms=_source_terms;
@@ -218,8 +218,8 @@ namespace nissa
   {
     master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
     generate_random_coord(source_coord);
-    if(stoch_source) master_printf(" source time: %d\n",source_coord(timeDirection)());
-    else             master_printf(" point source coords: %d %d %d %d\n",source_coord(Direction(0))(),source_coord(xDirection)(),source_coord(yDirection)(),source_coord(zDirection)());
+    if(stoch_source) master_printf(" source time: %d\n",source_coord(tDir)());
+    else             master_printf(" point source coords: %d %d %d %d\n",source_coord(Dir(0))(),source_coord(xDir)(),source_coord(yDir)(),source_coord(zDir)());
   }
   
   inline void generate_propagators(int ihit)

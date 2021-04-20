@@ -51,11 +51,11 @@ namespace nissa
   
   void generate_spindiluted_source(colorspinspin *source,enum rnd_t rtype,const GlbCoord& tWall);
   void generate_undiluted_source(spincolor *source,enum rnd_t rtype,const GlbCoord& tWall);
-  void generate_fully_undiluted_lx_source(color *source,enum rnd_t rtype,const GlbCoord& tWall,const Direction& dir=0);
-  void generate_fully_undiluted_eo_source(color *source,enum rnd_t rtype,const GlbCoord& tWall,const Parity& par,const Direction& dir=timeDirection);
-  void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,const GlbCoord& tWall,const Direction& dir=0);
-  void generate_fully_undiluted_eo_source(spincolor *source,enum rnd_t rtype,const GlbCoord& tWall,const Parity& par,const Direction& dir=0);
-  void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,const GlbCoord& tWall,const Direction& dir=0);
+  void generate_fully_undiluted_lx_source(color *source,enum rnd_t rtype,const GlbCoord& tWall,const Dir& dir=0);
+  void generate_fully_undiluted_eo_source(color *source,enum rnd_t rtype,const GlbCoord& tWall,const Parity& par,const Dir& dir=tDir);
+  void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,const GlbCoord& tWall,const Dir& dir=0);
+  void generate_fully_undiluted_eo_source(spincolor *source,enum rnd_t rtype,const GlbCoord& tWall,const Parity& par,const Dir& dir=0);
+  void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,const GlbCoord& tWall,const Dir& dir=0);
   CUDA_HOST_DEVICE void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma);
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);

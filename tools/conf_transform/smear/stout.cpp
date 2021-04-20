@@ -7,7 +7,7 @@ int L,T;
 void new_cool_eo_conf(eo_ptr<quad_su3> eo_conf,int over_flag,double over_exp)
 {
   //loop on parity and directions
-  FOR_ALL_DIRECTIONS(mu)
+  FOR_ALL_DIRS(mu)
     FOR_BOTH_PARITIES(par)
       {
 	communicate_eo_quad_su3_edges(eo_conf);

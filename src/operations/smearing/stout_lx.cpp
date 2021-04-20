@@ -20,7 +20,7 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,const LocLxSite& A,const Direction& mu,const double& rho)
+  CUDA_HOST_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,const LocLxSite& A,const Dir& mu,const double& rho)
   {
     //put staples to zero
     su3_put_to_zero(staples);
@@ -29,7 +29,7 @@ namespace nissa
     su3 temp1,temp2;
     for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
       {                                               //  |   |   | mu
-	const Direction nu=perp_dir[mu.nastyConvert()][inu];                     //  D---A---B
+	const Dir nu=perp_dir[mu.nastyConvert()][inu];                     //  D---A---B
 	const LocLxSite& B=loclxNeighup(A,nu);                 //        nu
 	const LocLxSite& F=loclxNeighup(A,mu);
 	unsafe_su3_prod_su3(    temp1,conf[A.nastyConvert()][nu.nastyConvert()],conf[B.nastyConvert()][mu.nastyConvert()]);
@@ -46,7 +46,7 @@ namespace nissa
   
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   //partial derivative of the force
-  CUDA_HOST_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *conf,const LocLxSite& A,const Direction& mu,const double& rho)
+  CUDA_HOST_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *conf,const LocLxSite& A,const Dir& mu,const double& rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,A,mu,rho);
@@ -77,7 +77,7 @@ namespace nissa
       }
     else in=ext_in;
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       if(dirs(mu))
 	NISSA_PARALLEL_LOOP(A,0,locVol)
 	  {
@@ -169,7 +169,7 @@ namespace nissa
     
     quad_su3 *Lambda=nissa_malloc("Lambda",locVolWithBordAndEdge.nastyConvert(),quad_su3);
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       NISSA_PARALLEL_LOOP(A,0,locVol)
 	{
 	  //compute the ingredients needed to smear
@@ -205,8 +205,8 @@ namespace nissa
     //compute the third piece of eq. (75)
     communicate_lx_quad_su3_edges(Lambda);
     
-    FOR_ALL_DIRECTIONS(mu)
-      for(Direction nu=0;nu<NDIM;nu++)
+    FOR_ALL_DIRS(mu)
+      for(Dir nu=0;nu<NDIM;nu++)
 	if(mu!=nu)
 	  {
 	    NISSA_PARALLEL_LOOP(A,0,locVol)     //   b1 --<-- f1 -->-- +

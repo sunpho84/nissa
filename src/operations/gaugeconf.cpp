@@ -80,7 +80,7 @@ namespace nissa
   void put_boundaries_conditions(quad_su3 *conf,const Momentum& theta_in_pi,const bool& putOnBords,const bool& putOnEdges)
   {
     complex theta[NDIM];
-    FOR_ALL_DIRECTIONS(idir)
+    FOR_ALL_DIRS(idir)
       {
 	theta[idir.nastyConvert()][0]=cos(theta_in_pi(idir)*M_PI/glbSize(idir)());
 	theta[idir.nastyConvert()][1]=sin(theta_in_pi(idir)*M_PI/glbSize(idir)());
@@ -91,7 +91,7 @@ namespace nissa
     if(putOnEdges) nsite=locVolWithBordAndEdge;
     
     NISSA_PARALLEL_LOOP(ivol,0,nsite)
-      FOR_ALL_DIRECTIONS(idir)
+      FOR_ALL_DIRS(idir)
         safe_su3_prod_complex(conf[ivol.nastyConvert()][idir.nastyConvert()],conf[ivol.nastyConvert()][idir.nastyConvert()],theta[idir.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     
@@ -102,7 +102,7 @@ namespace nissa
   void rem_boundaries_conditions(quad_su3 *conf,const Momentum& theta_in_pi,const bool& putOnBords,const bool& putOnEdges)
   {
     Momentum minus_theta_in_pi;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       minus_theta_in_pi(mu)=-theta_in_pi(mu);
     put_boundaries_conditions(conf,minus_theta_in_pi,putOnBords,putOnEdges);
   }
@@ -113,7 +113,7 @@ namespace nissa
     Momentum diff_theta;
     int adapt=0;
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	adapt=adapt or (old_theta(mu)!=put_theta(mu));
 	diff_theta(mu)=put_theta(mu)-old_theta(mu);
@@ -122,7 +122,7 @@ namespace nissa
     
     if(adapt)
       {
-	master_printf("Necessary to add boundary condition: %lg %lg %lg %lg\n",diff_theta(Direction(0)),diff_theta(xDirection),diff_theta(yDirection),diff_theta(zDirection));
+	master_printf("Necessary to add boundary condition: %lg %lg %lg %lg\n",diff_theta(Dir(0)),diff_theta(xDir),diff_theta(yDir),diff_theta(zDir));
 	put_boundaries_conditions(conf,diff_theta,putOnBords,putOnEdges);
       }
   }
@@ -133,7 +133,7 @@ namespace nissa
     FOR_BOTH_PARITIES(par)
       {
 	NISSA_LOC_VOLH_LOOP(ieo)
-	  FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRS(mu)
 	    su3_put_to_id(conf[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()]);
 	
 	set_borders_invalid(conf[par.nastyConvert()]);
@@ -150,7 +150,7 @@ namespace nissa
 	NISSA_LOC_VOLH_LOOP(ieo)
 	  {
 	    const LocLxSite& ilx=loclx_of_loceo(par,ieo);
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      su3_put_to_rnd(conf[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()],loc_rnd_gen[ilx.nastyConvert()]);
 	  }
 	
@@ -162,7 +162,7 @@ namespace nissa
   void generate_cold_lx_conf(quad_su3 *conf)
   {
     NISSA_LOC_VOL_LOOP(ivol)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	su3_put_to_id(conf[ivol.nastyConvert()][mu.nastyConvert()]);
     
     set_borders_invalid(conf);
@@ -175,7 +175,7 @@ namespace nissa
       crash("random number generator not inited");
     
     NISSA_LOC_VOL_LOOP(ivol)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	su3_put_to_rnd(conf[ivol.nastyConvert()][mu.nastyConvert()],loc_rnd_gen[ivol.nastyConvert()]);
     
     set_borders_invalid(conf);
@@ -235,7 +235,7 @@ namespace nissa
     START_TIMING(unitarize_time,nunitarize);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
         su3_unitarize_maximal_trace_projecting(conf[ivol.nastyConvert()][mu.nastyConvert()],conf[ivol.nastyConvert()][mu.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     
@@ -251,7 +251,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
         NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-          FOR_ALL_DIRECTIONS(mu)
+          FOR_ALL_DIRS(mu)
             su3_unitarize_maximal_trace_projecting(conf[par][ieo.nastyConvert()][mu.nastyConvert()],conf[par][ieo.nastyConvert()][mu.nastyConvert()]);
 	NISSA_PARALLEL_LOOP_END;
         

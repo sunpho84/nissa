@@ -45,14 +45,14 @@ namespace nissa
     for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",locVolWithBordAndEdge.nastyConvert(),su3);
     
     //loop over external index
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
     //loop over the first decoration index
       for(int inu=0;inu<3;inu++)
 	//loop over the second decoration index
 	for(int irho=0;irho<2;irho++)
 	  {
 	    //find the remapped index
-	    const Direction nu=perp_dir[mu.nastyConvert()][inu],rho=perp2_dir[mu.nastyConvert()][inu][irho],eta=perp3_dir[mu.nastyConvert()][inu][irho][0];
+	    const Dir nu=perp_dir[mu.nastyConvert()][inu],rho=perp2_dir[mu.nastyConvert()][inu][irho],eta=perp3_dir[mu.nastyConvert()][inu][irho][0];
 	    int ire0=dec2_remap_index[mu.nastyConvert()][nu.nastyConvert()][rho.nastyConvert()];
 	    
 	    //loop over local volume
@@ -100,12 +100,12 @@ namespace nissa
     for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",locVolWithBordAndEdge.nastyConvert(),su3);
     
     //loop over external index
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       //loop over the first decoration index
       for(int inu=0;inu<3;inu++)
 	{
 	  //find the remapped index
-	  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	  const Dir nu=perp_dir[mu.nastyConvert()][inu];
 	  int ire0=dec1_remap_index[mu.nastyConvert()][nu.nastyConvert()];
 	  
 	  //loop over local volume
@@ -125,7 +125,7 @@ namespace nissa
 		  su3 temp1,temp2;
 		  
 		  //find the two remampped indices
-		  const Direction rho=perp2_dir[mu.nastyConvert()][inu][irho];
+		  const Dir rho=perp2_dir[mu.nastyConvert()][inu][irho];
 		  int ire1=dec2_remap_index[rho.nastyConvert()][nu.nastyConvert()][mu.nastyConvert()];
 		  int ire2=dec2_remap_index[mu.nastyConvert()][rho.nastyConvert()][nu.nastyConvert()];
 		  
@@ -163,7 +163,7 @@ namespace nissa
     verbosity_lv2_master_printf("Zero level decoration\n");
     
     //loop over external index
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       if(dirs(mu))
 	{
 	  //loop over local volume
@@ -180,7 +180,7 @@ namespace nissa
 	      //loop over the first decoration index
 	      for(int inu=0;inu<3;inu++)
 		{
-		  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+		  const Dir nu=perp_dir[mu.nastyConvert()][inu];
 		  su3 temp1,temp2;
 		  
 		  //find the two remampped indices

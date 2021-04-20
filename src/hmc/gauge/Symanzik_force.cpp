@@ -34,7 +34,7 @@ namespace nissa
     compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	{
 	  //summ the six terms of squares
 	  su3_summ(out[ivol.nastyConvert()][mu.nastyConvert()],squared_staples[ivol.nastyConvert()][mu.nastyConvert()][0],squared_staples[ivol.nastyConvert()][mu.nastyConvert()][1]);

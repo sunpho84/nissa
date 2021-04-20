@@ -13,7 +13,7 @@
 namespace nissa
 {
   /// Covariant shift backward: i=i+mu
-  void cshift_bw(color *out,quad_su3 *conf,const Direction& mu,color *in,bool reset_first=true)
+  void cshift_bw(color *out,quad_su3 *conf,const Dir& mu,color *in,bool reset_first=true)
   {
     
     communicate_lx_color_borders(in);
@@ -29,7 +29,7 @@ namespace nissa
   }
   
   /// Covariant shift forward: i=i-mu
-  void cshift_fw(color *out,quad_su3 *conf,const Direction& mu,color *in,bool reset_first=true)
+  void cshift_fw(color *out,quad_su3 *conf,const Dir& mu,color *in,bool reset_first=true)
   {
     
     communicate_lx_color_borders(in);
@@ -45,7 +45,7 @@ namespace nissa
   }
   
   //covariant shift backward: i=i+mu
-  void cshift_bw(spincolor *out,quad_su3 *conf,const Direction& mu,spincolor *in,bool reset_first=true)
+  void cshift_bw(spincolor *out,quad_su3 *conf,const Dir& mu,spincolor *in,bool reset_first=true)
   {
     
     communicate_lx_spincolor_borders(in);
@@ -61,7 +61,7 @@ namespace nissa
   }
   
   //covariant shift forward: i=i-mu
-  void cshift_fw(spincolor *out,quad_su3 *conf,const Direction& mu,spincolor *in,bool reset_first=true)
+  void cshift_fw(spincolor *out,quad_su3 *conf,const Dir& mu,spincolor *in,bool reset_first=true)
   {
     
     communicate_lx_spincolor_borders(in);
@@ -85,7 +85,7 @@ namespace nissa
     vector_reset(out);
     
     int ndirs=0;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       if(dirs(mu))
 	{
 	  ndirs++;
@@ -109,7 +109,7 @@ namespace nissa
     vector_reset(out);
     
     int ndirs=0;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       if(dirs(mu))
 	{
 	  ndirs++;
@@ -122,7 +122,7 @@ namespace nissa
   }
   
 #define APPLY_NABLA_I(TYPE)                                             \
-  void apply_nabla_i(TYPE* out,TYPE* in,quad_su3* conf,const Direction& mu) \
+  void apply_nabla_i(TYPE* out,TYPE* in,quad_su3* conf,const Dir& mu) \
   {                                                                     \
   									\
     NAME3(communicate_lx,TYPE,borders)(in);                             \
@@ -152,7 +152,7 @@ namespace nissa
   APPLY_NABLA_I(colorspinspin)
   APPLY_NABLA_I(su3spinspin)
   
-  void insert_external_source_handle(complex out,spin1field *aux,const LocLxSite& ivol,const Direction& mu,void *pars)
+  void insert_external_source_handle(complex out,spin1field *aux,const LocLxSite& ivol,const Dir& mu,void *pars)
   {
     const Coords<bool>& dirs=*(Coords<bool>*)pars;
     if(dirs(mu)==0)
@@ -165,13 +165,13 @@ namespace nissa
       }
   }
   
-  void insert_tadpole_handle(complex out,spin1field *aux,const LocLxSite& ivol,const Direction& mu,void *pars)
+  void insert_tadpole_handle(complex out,spin1field *aux,const LocLxSite& ivol,const Dir& mu,void *pars)
   {
     out[RE]=(*(const Momentum*)pars)(mu);
     out[IM]=0;
   }
   
-  void insert_conserved_current_handle(complex out,spin1field *aux,const LocLxSite& ivol,const Direction& mu,void *pars)
+  void insert_conserved_current_handle(complex out,spin1field *aux,const LocLxSite& ivol,const Dir& mu,void *pars)
   {
     out[RE]=(*(const Coords<bool>*)pars)(mu);
     out[IM]=0;
@@ -183,7 +183,7 @@ namespace nissa
   /*insert the operator:  \sum_mu  [*/					\
   /* f_fw * ( GAMMA - gmu) A_{x,mu} U_{x,mu} \delta{x',x+mu} + f_bw * ( GAMMA + gmu) A_{x-mu,mu} U^+_{x-mu,mu} \delta{x',x-mu}]*/ \
   /* for tm GAMMA should be -i g5 tau3[r], defined through the macro above, for Wilson id */		\
-  void insert_vector_vertex(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,complex fact_fw,complex fact_bw,dirac_matr *GAMMA,void(*get_curr)(complex,spin1field*,const LocLxSite&,const Direction&,void*),const GlbCoord& t,void *pars=NULL) \
+  void insert_vector_vertex(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,complex fact_fw,complex fact_bw,dirac_matr *GAMMA,void(*get_curr)(complex,spin1field*,const LocLxSite&,const Dir&,void*),const GlbCoord& t,void *pars=NULL) \
   {									\
 									\
   /*reset the output and communicate borders*/				\
@@ -193,8 +193,8 @@ namespace nissa
   if(curr) communicate_lx_spin1field_borders(curr);			\
 									\
   NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
-    if(t==-1 or glbCoordOfLoclx(ivol,timeDirection)==t)			\
-      FOR_ALL_DIRECTIONS(mu)						\
+    if(t==-1 or glbCoordOfLoclx(ivol,tDir)==t)			\
+      FOR_ALL_DIRS(mu)						\
 	{								\
 	  /*find neighbors*/						\
 	  const LocLxSite& ifw=loclxNeighup(ivol,mu);			\
@@ -272,7 +272,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
       {									\
 	NAME2(safe_dirac_prod,TYPE)(out[ivol.nastyConvert()],base_gamma+ig,in[ivol.nastyConvert()]); \
-	NAME2(TYPE,prodassign_double)(out[ivol.nastyConvert()],(twall==-1 or glbCoordOfLoclx(ivol,timeDirection)==twall)); \
+	NAME2(TYPE,prodassign_double)(out[ivol.nastyConvert()],(twall==-1 or glbCoordOfLoclx(ivol,tDir)==twall)); \
       }									\
     NISSA_PARALLEL_LOOP_END;						\
     set_borders_invalid(out);						\

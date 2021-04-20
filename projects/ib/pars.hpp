@@ -44,7 +44,7 @@ namespace nissa
 
   template <typename C>
   CUDA_HOST_DEVICE inline
-  C rel_coord_of_glb_coord(const C& c,const Direction& mu)
+  C rel_coord_of_glb_coord(const C& c,const Dir& mu)
   {
     return (glbSize(mu)+c-source_coord(mu))%glbSize(mu);
   }
@@ -54,14 +54,14 @@ namespace nissa
     return rel_coord_of_glb_coord(t,0);
   }
   
-  CUDA_HOST_DEVICE inline GlbCoord rel_coord_of_loclx(const LocLxSite& loclx,const Direction& mu)
+  CUDA_HOST_DEVICE inline GlbCoord rel_coord_of_loclx(const LocLxSite& loclx,const Dir& mu)
   {
     return rel_coord_of_glb_coord(glbCoordOfLoclx(loclx,mu),mu);
   }
   
   CUDA_HOST_DEVICE inline GlbCoord rel_time_of_loclx(const LocLxSite& loclx)
   {
-    return rel_coord_of_loclx(loclx,timeDirection);
+    return rel_coord_of_loclx(loclx,tDir);
   }
   
   //convention on gospel
@@ -264,13 +264,13 @@ namespace nissa
   {
     if(iso_theta)
       {
-	read_double(&theta(xDirection));
-	master_printf("Read variable 'Theta' with value: %lg\n",theta(xDirection));
-	for(Direction mu=2;mu<NDIM;mu++)
-	  theta(mu)=theta(xDirection);
+	read_double(&theta(xDir));
+	master_printf("Read variable 'Theta' with value: %lg\n",theta(xDir));
+	for(Dir mu=2;mu<NDIM;mu++)
+	  theta(mu)=theta(xDir);
       }
     else
-      FOR_ALL_SPATIAL_DIRECTIONS(mu)
+      FOR_ALL_SPATIAL_DIRS(mu)
 	{
 	  read_double(&theta(mu));
 	  master_printf("Read variable 'Theta[%d]' with value: %lg\n",mu,theta(mu));

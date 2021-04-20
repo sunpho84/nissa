@@ -26,7 +26,7 @@ namespace nissa
       
       //add the new argument of the exponential to the old one
       NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  if(dirs(mu))
 	    {
 	      //compute the new contribution
@@ -34,7 +34,7 @@ namespace nissa
 	      su3_put_to_zero(staple);
 	      for(int inu=0;inu<NDIM-1;inu++)
 		{
-		  const Direction nu=perp_dir[mu.nastyConvert()][inu];
+		  const Dir nu=perp_dir[mu.nastyConvert()][inu];
 		  const LocLxSite& A=ivol,B=loclxNeighup(A,nu),D=loclxNeighdw(A,nu),E=loclxNeighup(D,mu),F=loclxNeighup(A,mu);
 		  unsafe_su3_prod_su3(       temp, conf[A.nastyConvert()][nu.nastyConvert()],conf[B.nastyConvert()][mu.nastyConvert()]);
 		  su3_summ_the_prod_su3_dag(staple,temp,       conf[F.nastyConvert()][nu.nastyConvert()]);
@@ -65,7 +65,7 @@ namespace nissa
       
       //integrate
       NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  if(dirs(mu))
 	    {
 	      su3 expiQ;

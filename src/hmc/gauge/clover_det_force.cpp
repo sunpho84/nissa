@@ -47,8 +47,8 @@ namespace nissa
 		
 		NISSA_PARALLEL_LOOP(jeo,0,locVolh)
 		  {
-		    FOR_ALL_DIRECTIONS(mu)
-		      for(Direction nu=mu+1;nu<NDIM;nu++)
+		    FOR_ALL_DIRS(mu)
+		      for(Dir nu=mu+1;nu<NDIM;nu++)
 			{
 			  int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 			  dirac_matr m=dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]);
@@ -84,14 +84,14 @@ namespace nissa
 		FOR_BOTH_PARITIES(par)
 		  NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 		    {
-		      FOR_ALL_DIRECTIONS(mu)
+		      FOR_ALL_DIRS(mu)
 			{
 			  su3 contr;
 			  su3_put_to_zero(contr);
 			  
 			  for(int inu=0;inu<NDIM-1;inu++)
 			    {
-			      const Direction nu=perp_dir[mu.nastyConvert()][inu];
+			      const Dir nu=perp_dir[mu.nastyConvert()][inu];
 			      
 			      const LocEoSite xpmu=loceo_neighup(par,ieo,mu);
 			      const LocEoSite xmnu=loceo_neighdw(par,ieo,nu);

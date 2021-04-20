@@ -49,7 +49,7 @@ namespace nissa
     //normalize
     const double norm=pot/(M_PI*M_PI*128);
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
       safe_su3_hermitian_prod_double(F[ivol.nastyConvert()][mu.nastyConvert()],F[ivol.nastyConvert()][mu.nastyConvert()],norm);
     NISSA_PARALLEL_LOOP_END;
     

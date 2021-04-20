@@ -17,7 +17,7 @@ namespace nissa
   {
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
         for(int ic1=0;ic1<NCOL;ic1++)
           for(int ic2=0;ic2<NCOL;ic2++)
             complex_subt_the_prod_idouble(H[ivol.nastyConvert()][mu.nastyConvert()][ic1][ic2],F[ivol.nastyConvert()][mu.nastyConvert()][ic1][ic2],dt);
@@ -36,7 +36,7 @@ namespace nissa
     
     //evolve
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	{
 	  su3 t1,t2;
 	  su3_prod_double(t1,H[ivol.nastyConvert()][mu.nastyConvert()],dt);

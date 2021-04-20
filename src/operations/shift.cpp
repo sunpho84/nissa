@@ -17,7 +17,7 @@
 namespace nissa
 {
   //shift an su3 vector of a single step along the mu axis, in the positive or negative dir
-  void su3_vec_single_shift(su3* u,const Direction& mu,int sign)
+  void su3_vec_single_shift(su3* u,const Dir& mu,int sign)
   {
     
     //communicate borders
@@ -37,7 +37,7 @@ namespace nissa
 	LocCoords x;
 	for(int inu=2;inu>=0;inu--)
 	  {
-	    const Direction nu=perp_dir[mu.nastyConvert()][inu];
+	    const Dir nu=perp_dir[mu.nastyConvert()][inu];
 	    x(nu)=jperp%locSize(nu);
 	    jperp/=locSize(nu);
 	  }

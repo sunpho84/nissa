@@ -34,7 +34,7 @@ namespace nissa
 	color temp_c0,temp_c1,temp_c2,temp_c3;
 	
 	//Forward 0
-	Xup=loclxNeighup(_X,Direction(0)).nastyConvert();
+	Xup=loclxNeighup(_X,Dir(0)).nastyConvert();
 	color_summ(temp_c0,in[Xup][0],in[Xup][2]);
 	color_summ(temp_c1,in[Xup][1],in[Xup][3]);
 	unsafe_su3_prod_color(out[X][0],conf[X][0],temp_c0);
@@ -43,7 +43,7 @@ namespace nissa
 	color_copy(out[X][3],out[X][1]);
 	
 	//Backward 0
-	Xdw=loclxNeighdw(_X,Direction(0)).nastyConvert();
+	Xdw=loclxNeighdw(_X,Dir(0)).nastyConvert();
 	color_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
 	color_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
 	unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][0],temp_c0);
@@ -54,7 +54,7 @@ namespace nissa
 	color_subtassign(out[X][3],temp_c3);
 	
 	//Forward 1
-	Xup=loclxNeighup(_X,xDirection).nastyConvert();
+	Xup=loclxNeighup(_X,xDir).nastyConvert();
 	color_isumm(temp_c0,in[Xup][0],in[Xup][3]);
 	color_isumm(temp_c1,in[Xup][1],in[Xup][2]);
 	unsafe_su3_prod_color(temp_c2,conf[X][1],temp_c0);
@@ -65,7 +65,7 @@ namespace nissa
 	color_isubtassign(out[X][3],temp_c2);
 	
 	//Backward 1
-	Xdw=loclxNeighdw(_X,xDirection).nastyConvert();
+	Xdw=loclxNeighdw(_X,xDir).nastyConvert();
 	color_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
 	color_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
 	unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][1],temp_c0);
@@ -76,7 +76,7 @@ namespace nissa
 	color_isummassign(out[X][3],temp_c2);
 	
 	//Forward 2
-	Xup=loclxNeighup(_X,yDirection).nastyConvert();
+	Xup=loclxNeighup(_X,yDir).nastyConvert();
 	color_summ(temp_c0,in[Xup][0],in[Xup][3]);
 	color_subt(temp_c1,in[Xup][1],in[Xup][2]);
 	unsafe_su3_prod_color(temp_c2,conf[X][2],temp_c0);
@@ -87,7 +87,7 @@ namespace nissa
 	color_summassign(out[X][3],temp_c2);
 	
 	//Backward 2
-	Xdw=loclxNeighdw(_X,yDirection).nastyConvert();
+	Xdw=loclxNeighdw(_X,yDir).nastyConvert();
 	color_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
 	color_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
 	unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][2],temp_c0);
@@ -98,7 +98,7 @@ namespace nissa
 	color_subtassign(out[X][3],temp_c2);
 	
 	//Forward 3
-	Xup=loclxNeighup(_X,zDirection).nastyConvert();
+	Xup=loclxNeighup(_X,zDir).nastyConvert();
 	color_isumm(temp_c0,in[Xup][0],in[Xup][2]);
 	color_isubt(temp_c1,in[Xup][1],in[Xup][3]);
 	unsafe_su3_prod_color(temp_c2,conf[X][3],temp_c0);
@@ -109,7 +109,7 @@ namespace nissa
 	color_isummassign(out[X][3],temp_c3);
 	
 	//Backward 3
-	Xdw=loclxNeighdw(_X,zDirection).nastyConvert();
+	Xdw=loclxNeighdw(_X,zDir).nastyConvert();
 	color_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
 	color_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
 	unsafe_su3_dag_prod_color(temp_c2,conf[Xdw][3],temp_c0);

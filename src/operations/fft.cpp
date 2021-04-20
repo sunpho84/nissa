@@ -32,7 +32,7 @@ namespace nissa
     
     //order of directions
     Coords<Direction> in_mu,out_mu;
-    FOR_ALL_DIRECTIONS(i)
+    FOR_ALL_DIRS(i)
       {
 	in_mu(i)=(mu0+i)%NDIM;
 	out_mu(i)=(mu0+i+1)%NDIM;
@@ -45,7 +45,7 @@ namespace nissa
 	LocLxSite in=0;
 	LocLxSite out=0;
 	
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    in=in*locSize(in_mu(mu))+locCoordOfLoclx(iVol,in_mu(mu));
 	    out=out*locSize(out_mu(mu))+locCoordOfLoclx(iVol,out_mu(mu));
@@ -315,7 +315,7 @@ namespace nissa
     if(out!=in) vector_copy(out,in);
     
     //perform the fft in each direction
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	//perform the 1d fft (slower dir)
 	if(dirs(mu)) fft1d(out,out,ncpp*locVol()/locSize(mu)(),mu,sign,normalize);
@@ -334,9 +334,9 @@ namespace nissa
       vector_copy(out,in);
     
     //list all dirs
-    Direction list_dirs[NDIM];
+    Dir list_dirs[NDIM];
     int ndirs=0;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       if(ext_dirs(mu))
 	list_dirs[ndirs++]=mu;
     
@@ -362,7 +362,7 @@ namespace nissa
 	//transpose each dir in turn and take fft
 	for(int idir=0;idir<ndirs;idir++)
 	  {
-	    const Direction& mu=list_dirs[idir];
+	    const Dir& mu=list_dirs[idir];
 	    verbosity_lv2_master_printf("FFT-ing dimension %d/%d=%d\n",idir+1,ndirs,mu);
 	    remap_lx_vector_to_locd(buf,out,ncpp*sizeof(complex),mu);
 	    

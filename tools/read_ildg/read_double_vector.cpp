@@ -48,10 +48,10 @@ void in_main(int narg,char **arg)
   for(LocLxSite ivol=0;ivol<locVol;ivol++)
     for(int i=0;i<nbps;i++)
       fprintf(fout,"%ld %ld %ld %ld  %d  %+.16lg\n",
-	      glbCoordOfLoclx(ivol,timeDirection)(),
-	      glbCoordOfLoclx(ivol,xDirection)(),
-	      glbCoordOfLoclx(ivol,yDirection)(),
-	      glbCoordOfLoclx(ivol,zDirection)(),
+	      glbCoordOfLoclx(ivol,tDir)(),
+	      glbCoordOfLoclx(ivol,xDir)(),
+	      glbCoordOfLoclx(ivol,yDir)(),
+	      glbCoordOfLoclx(ivol,zDir)(),
 	      i,v[ivol.nastyConvert()*nbps+i]);
   
   close_file(fout);

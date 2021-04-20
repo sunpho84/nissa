@@ -6,7 +6,7 @@
 #endif
 
 #ifdef USE_MPI
- #include <mpi.h>
+# include <mpi.h>
 #endif
 
 #include <stdint.h>
@@ -17,8 +17,8 @@
 #include <tensor/tensor.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
- #define EXTERN_GEOMETRY_LX extern
- #define ONLY_INSTANTIATION
+# define EXTERN_GEOMETRY_LX extern
+# define ONLY_INSTANTIATION
 #endif
 
 #define NISSA_LOC_VOL_LOOP(a) for(LocLxSite a=0;a<locVol;a++)
@@ -64,7 +64,7 @@ namespace nissa
   
   /// Global size in time direction
   inline const GlbCoord& glbTimeSize=
-    glbSize(timeDirection);
+    glbSize(tDir);
   
   /// Local lattice hcube sizes
   EXTERN_GEOMETRY_LX LocCoords _locSize;
@@ -75,7 +75,7 @@ namespace nissa
   
   /// Local size in time direction
   inline const LocCoord& locTimeSize=
-    locSize(timeDirection);
+    locSize(tDir);
     
   /// Global 4D volume
   EXTERN_GEOMETRY_LX GlbLxSite glbVol;
@@ -111,10 +111,10 @@ namespace nissa
   EXTERN_GEOMETRY_LX LocLxSite fwSurfVol;
   
   /// Global coordinates of local sites
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,GlbCoord> glbCoordOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,GlbCoord> glbCoordOfLoclx;
   
   /// Local coordinates of local sites
-  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocCoord> locCoordOfLoclx;
+  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,LocCoord> locCoordOfLoclx;
   
   /// Global site given the local site
   EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,GlbLxSite> glblxOfLoclx;
@@ -159,21 +159,21 @@ namespace nissa
   }
   
   /// Up neighobour of a global site in the mu direction
-  GlbLxSite glblxNeighup(const GlbLxSite& gx,const Direction& mu);
+  GlbLxSite glblxNeighup(const GlbLxSite& gx,const Dir& mu);
   
   /// Down neighobour of a global site in the mu direction
-  GlbLxSite glblxNeighdw(const GlbLxSite& gx,const Direction& mu);
+  GlbLxSite glblxNeighdw(const GlbLxSite& gx,const Dir& mu);
   
   /// Neighbours in the backward direction
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocLxSite> loclxNeighdw;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighdw;
   
   /// Neighbours in the forwkward direction
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Direction>,LocLxSite> loclxNeighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighup;
   
   INLINE_FUNCTION CUDA_HOST_DEVICE
-  const Tensor<OfComps<LocLxSite,Direction>,LocLxSite>& loclxNeigh(int verse) //nasty
+  const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(int verse) //nasty
   {
-    const Tensor<OfComps<LocLxSite,Direction>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
+    const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
     
     return *ref[verse];
   }
@@ -185,7 +185,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX bool lxGeomInited;
   
   /// Number of parallelized directions
-  EXTERN_GEOMETRY_LX Direction nparal_dir;
+  EXTERN_GEOMETRY_LX Dir nparal_dir;
   
   EXTERN_GEOMETRY_LX Coords<bool> paral_dir;
   
@@ -217,7 +217,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   
   /// Mapping of ILDG direction w.r.t native
-  EXTERN_GEOMETRY_LX Coords<Direction> scidac_mapping;
+  EXTERN_GEOMETRY_LX Coords<Dir> scidac_mapping;
   
   //perpendicular dir
   EXTERN_GEOMETRY_LX Coords<bool> all_dirs;
@@ -243,16 +243,16 @@ namespace nissa
   CUDA_HOST_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol);
   
   /// Return the staggered phases for a given site
-  CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,const Direction& mu);
+  CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,const Dir& mu);
   
   /// Return the index of site of coord x in the 3d space obtained projecting away mu
-  LocLxSite spatLxOfProjectedCoords(const LocCoords& x,const Direction& mu);
+  LocLxSite spatLxOfProjectedCoords(const LocCoords& x,const Dir& mu);
   
   /// Given a lx site ilx, determine its coordinates in the box of size s
   template <typename LxSite>
   void coord_of_lx(Coords<LxSite>& x,LxSite /*Don't make it const ref*/ ilx,const Coords<LxSite>& s)
   {
-    for(Direction mu=NDIM-1;mu>=0;mu--)
+    for(Dir mu=NDIM-1;mu>=0;mu--)
       {
 	x(mu)=ilx%s(mu);
 	ilx/=s(mu);
@@ -263,11 +263,11 @@ namespace nissa
   
   /// Return the index of site of coord x in the 2d space obtained projecting away mu and nu
   template <typename LxSite>
-  LxSite lineLxOfDoublyProjectedCoords(const Coords<LxSite>& x,const Direction& mu,const Direction& nu)
+  LxSite lineLxOfDoublyProjectedCoords(const Coords<LxSite>& x,const Dir& mu,const Dir& nu)
   {
     LxSite ilx=0;
     
-    FOR_ALL_DIRECTIONS(rho)
+    FOR_ALL_DIRS(rho)
       if(rho!=mu and rho!=nu)
 	ilx=ilx*locSize(rho)+x(rho);
     
@@ -280,7 +280,7 @@ namespace nissa
   {
     LxSite ilx=0;
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       ilx=ilx*s(mu)+x(mu);
     
     return ilx;
@@ -299,10 +299,10 @@ namespace nissa
   {
     GlbCoords c;
     
-    c(Direction(0))=x0;
-    c(xDirection)=x1;
-    c(yDirection)=x2;
-    c(zDirection)=x3;
+    c(Dir(0))=x0;
+    c(xDir)=x1;
+    c(yDir)=x2;
+    c(zDir)=x3;
     
     return glblx_of_coord(c);
   }
@@ -313,10 +313,10 @@ namespace nissa
   {
     LocCoords c;
     
-    c(Direction(0))=x0;
-    c(xDirection)=x1;
-    c(yDirection)=x2;
-    c(zDirection)=x3;
+    c(Dir(0))=x0;
+    c(xDir)=x1;
+    c(yDir)=x2;
+    c(zDir)=x3;
     
     return loclx_of_coord(c);
   }
@@ -327,7 +327,7 @@ namespace nissa
   {
     I vol=1;
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       vol*=size(mu);
     
     return vol;
@@ -346,7 +346,7 @@ namespace nissa
   CUDA_HOST_DEVICE INLINE_FUNCTION
   void glb_coord_of_glblx(GlbCoords& x,GlbLxSite /*Don't make it const reference*/ glbLx)
   {
-    for(Direction mu=NDIM-1;mu>=0;mu--)
+    for(Dir mu=NDIM-1;mu>=0;mu--)
       {
 	x(mu)=(glbLx()%glbSize(mu)());
 	glbLx/=glbSize(mu)();
@@ -370,7 +370,7 @@ namespace nissa
   void unset_lx_geometry();
   
   /// Gets mirrorized coord
-  inline GlbCoord get_mirrorized_site_coord(const GlbCoord& c,const Direction& mu,const bool flip)
+  inline GlbCoord get_mirrorized_site_coord(const GlbCoord& c,const Dir& mu,const bool flip)
   { //nasty rename making it clear that refers to glb
     return (glbSize(mu)+(1-2*flip)*c)%glbSize(mu);
   }
@@ -378,7 +378,7 @@ namespace nissa
   //get mirrorized coords according to a bit decomposition of imir
   inline void get_mirrorized_site_coords(GlbCoords& cmir,const GlbCoords& c,const int imir)
   {
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       cmir(mu)=get_mirrorized_site_coord(c(mu),mu,get_bit(imir,mu()));
   }
 }

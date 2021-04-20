@@ -52,11 +52,11 @@ namespace nissa
 	    LocLxSite send,rece;
 	    int imessage=0;
 	    LocCoords x;
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      x(mu)=0;
 	    
-	    FOR_ALL_DIRECTIONS(idir)
-	      for(Direction jdir=idir+1;jdir<NDIM;jdir++)
+	    FOR_ALL_DIRS(idir)
+	      for(Dir jdir=idir+1;jdir<NDIM;jdir++)
 		if(paral_dir(idir) and paral_dir(jdir))
 		  {
 		    int iedge=edge_numb[idir.nastyConvert()][jdir.nastyConvert()];
@@ -125,8 +125,8 @@ namespace nissa
 	  {
 	    int nrequest=0;
 	    int nrequest_tot=0;
-	    FOR_ALL_DIRECTIONS(mu)
-	      for(Direction nu=mu+1;nu<NDIM;nu++)
+	    FOR_ALL_DIRS(mu)
+	      for(Dir nu=mu+1;nu<NDIM;nu++)
 		if(paral_dir(mu) and paral_dir(nu))
 		  nrequest_tot+=16;
 	    
@@ -144,9 +144,9 @@ namespace nissa
 		
 		//"v" refer to the verse of the dir
 		for(int vmu=0;vmu<2;vmu++)
-		  FOR_ALL_DIRECTIONS(mu)
+		  FOR_ALL_DIRS(mu)
 		    for(int vnu=0;vnu<2;vnu++)
-		      for(Direction nu=mu+1;nu<NDIM;nu++)
+		      for(Dir nu=mu+1;nu<NDIM;nu++)
 			if(paral_dir(mu) and paral_dir(nu))
 			  {
 			    const int iedge=edge_numb[mu.nastyConvert()][nu.nastyConvert()];

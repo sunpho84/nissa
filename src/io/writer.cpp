@@ -90,7 +90,7 @@ namespace nissa
 	    "<lz>%ld</lz>\n"
 	    "<lt>%ld</lt>\n"
 	    "</etmcFormat>",
-	    prec,1,glbSize(zDirection)(),glbSize(yDirection)(),glbSize(xDirection)(),glbSize(Direction(0))());
+	    prec,1,glbSize(zDir)(),glbSize(yDir)(),glbSize(xDir)(),glbSize(Dir(0))());
     ILDG_File_write_text_record(file,"etmc-propagator-format",propagator_format_message);
 #endif
     
@@ -126,7 +126,7 @@ namespace nissa
 	    "  <lz>%ld</lz>\n"
 	    "  <lt>%ld</lt>\n"
 	    "</ildgFormat>",
-	    prec,glbSize(zDirection)(),glbSize(yDirection)(),glbSize(xDirection)(),glbSize(Direction(0))());
+	    prec,glbSize(zDir)(),glbSize(yDir)(),glbSize(xDir)(),glbSize(Dir(0))());
     ILDG_File_write_text_record(file,"ildg-format",ildg_format_message);
 #endif
     

@@ -55,10 +55,10 @@ int main(int narg,char **arg)
   
   //reorder the conf
   int map_mu[4]={1,2,3,0};
-  for(GlbCoord t=0;t<glbSize(Direction(0));t++)
-    for(GlbCoord z=0;z<glbSize(Direction(3));z++)
-      for(GlbCoord y=0;y<glbSize(Direction(2));y++)
-	for(GlbCoord x=0;x<glbSize(Direction(1));x++)
+  for(GlbCoord t=0;t<glbSize(Dir(0));t++)
+    for(GlbCoord z=0;z<glbSize(Dir(3));z++)
+      for(GlbCoord y=0;y<glbSize(Dir(2));y++)
+	for(GlbCoord x=0;x<glbSize(Dir(1));x++)
 	  {
 	    const GlbCoord sum=x+y+z+t;
 	    const Parity even=(int)(sum()%2);
@@ -66,7 +66,7 @@ int main(int narg,char **arg)
 	    
 	    const GlbLxSite ivol=glblx_of_coord_list(t,x,y,z);
 	    
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      su3_copy(out_conf[mu()*locVol()+num()],in_conf[ivol.nastyConvert()][map_mu[mu.nastyConvert()]]);
 	  }
   

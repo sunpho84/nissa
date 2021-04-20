@@ -31,7 +31,7 @@ namespace nissa
   CUDA_HOST_DEVICE void local_gauge_transform(quad_su3 *conf,su3 g,const LocLxSite& ivol)
   {
     // for each dir...
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
         const LocLxSite& b=loclxNeighdw(ivol,mu);
         
@@ -50,7 +50,7 @@ namespace nissa
     
     //transform
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	{
 	  su3 temp;
 	  unsafe_su3_prod_su3_dag(temp,uin[ivol.nastyConvert()][mu.nastyConvert()],g[loclxNeighup(ivol,mu).nastyConvert()]);
@@ -70,7 +70,7 @@ namespace nissa
     //transform
     FOR_BOTH_PARITIES(par)
       NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    su3 temp;
 	    unsafe_su3_prod_su3_dag(temp,uin[par][ieo.nastyConvert()][mu.nastyConvert()],g[(1-par)][loceo_neighup(par,ieo,mu).nastyConvert()]);
@@ -108,7 +108,7 @@ namespace nissa
     // su3 *buf=NULL;
     
     // //if the number of ranks in the 0 dir is greater than 1 allocate room for border
-    // if(nrank_dir(timeDirection)>1)
+    // if(nrank_dir(tDir)>1)
     //   buf=nissa_malloc("buf",loc_slice_area,su3);
     
     // //if we are on first rank slice put to identity the t=0 slice, otherwise receive it from previous rank slice
@@ -158,11 +158,11 @@ namespace nissa
   ////////////////////////////////////// Landau or Coulomb gauges ///////////////////////////////////////////////////////
   
   // Ccompute the functional on a single point
-  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,const LocLxSite& ivol,const Direction& start_mu)
+  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,const LocLxSite& ivol,const Dir& start_mu)
   {
     double F=0;
     
-    for(Direction mu=start_mu;mu<NDIM;mu++)
+    for(Dir mu=start_mu;mu<NDIM;mu++)
       {
 	F-=su3_real_trace(conf[ivol.nastyConvert()][mu.nastyConvert()]);
 	F-=su3_real_trace(conf[loclxNeighdw(ivol,mu).nastyConvert()][mu.nastyConvert()]);
@@ -172,11 +172,11 @@ namespace nissa
   }
   
   /// Derivative of the functional
-  CUDA_HOST_DEVICE void compute_Landau_or_Coulomb_functional_der(su3 out,quad_su3 *conf,const LocLxSite& ivol,const Direction& start_mu)
+  CUDA_HOST_DEVICE void compute_Landau_or_Coulomb_functional_der(su3 out,quad_su3 *conf,const LocLxSite& ivol,const Dir& start_mu)
   {
     su3_put_to_zero(out);
     
-    for(Direction mu=start_mu;mu<NDIM;mu++)
+    for(Dir mu=start_mu;mu<NDIM;mu++)
       {
 	su3_summassign(out,conf[ivol.nastyConvert()][mu.nastyConvert()]);
 	su3_summassign_su3_dag(out,conf[loclxNeighdw(ivol,mu).nastyConvert()][mu.nastyConvert()]);
@@ -184,7 +184,7 @@ namespace nissa
   }
   
   //compute the functional that gets minimised
-  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,const Direction& start_mu,const double *F_offset=NULL,double *ext_loc_F=NULL)
+  double compute_Landau_or_Coulomb_functional(quad_su3 *conf,const Dir& start_mu,const double *F_offset=NULL,double *ext_loc_F=NULL)
   {
     
     double *loc_F=ext_loc_F;
@@ -195,7 +195,7 @@ namespace nissa
 	if(F_offset) loc_F[ivol.nastyConvert()]=-F_offset[ivol.nastyConvert()];
 	else         loc_F[ivol.nastyConvert()]=0;
 	
-	for(Direction mu=start_mu;mu<NDIM;mu++)
+	for(Dir mu=start_mu;mu<NDIM;mu++)
 	  loc_F[ivol.nastyConvert()]-=su3_real_trace(conf[ivol.nastyConvert()][mu.nastyConvert()]);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -210,7 +210,7 @@ namespace nissa
   }
   
   //compute the quality of the Landau or Coulomb gauge fixing
-  double compute_Landau_or_Coulomb_gauge_fixing_quality(quad_su3 *conf,const Direction& start_mu)
+  double compute_Landau_or_Coulomb_gauge_fixing_quality(quad_su3 *conf,const Dir& start_mu)
   {
     communicate_lx_quad_su3_borders(conf);
     
@@ -221,7 +221,7 @@ namespace nissa
 	su3 delta;
 	su3_put_to_zero(delta);
 	
-	for(Direction mu=start_mu;mu<NDIM;mu++)
+	for(Dir mu=start_mu;mu<NDIM;mu++)
 	  {
 	    su3_subtassign(delta,conf[ivol.nastyConvert()][mu.nastyConvert()]);
 	    su3_summassign(delta,conf[loclxNeighdw(ivol,mu).nastyConvert()][mu.nastyConvert()]);
@@ -254,7 +254,7 @@ namespace nissa
 	    
 	    //compute the derivative
 	    su3 temp;
-	    compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,Direction((int)gauge)); //nasty
+	    compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,Dir((int)gauge)); //nasty
 	    
 	    //dagger
 	    su3 ref;
@@ -279,7 +279,7 @@ namespace nissa
 	    //    ""     ""      ""   ""   opp.    "     "  "  recv using buf_up[mu][!par]
 	    //  lower external   ""   ""   same    "     "  "  recv using buf_dw[mu][!par]
 	    //    ""     ""      ""   ""   opp.    "     "  "  sent using buf_dw[mu][par]
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      {
 		const LocLxSite& f=loclxNeighup(ivol,mu);
 		const LocLxSite& b=loclxNeighdw(ivol,mu);
@@ -292,7 +292,7 @@ namespace nissa
 	
 	//communicate
 	Coords<bool> yesInAllDirs; //nasty nasty
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  yesInAllDirs(mu)=1;
 
 	comm_start(eo_su3_comm,yesInAllDirs);
@@ -301,7 +301,7 @@ namespace nissa
 	//read out
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  if(loclx_parity(ivol)!=eo)
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      {
 		const LocLxSite& f=loclxNeighup(ivol,mu);
 		const LocLxSite& b=loclxNeighdw(ivol,mu);
@@ -329,7 +329,7 @@ namespace nissa
       {
 	//compute 4*\sum_mu sin^2(2*pi*ip_mu)
 	double den=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    const double p=2*M_PI*glbCoordOfLoclx(imom,mu)()/glbSize(mu)();
 	    den+=sqr(sin(0.5*p));
@@ -575,7 +575,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	su3 temp;
-	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,Direction((int)gauge)); //nasty
+	compute_Landau_or_Coulomb_functional_der(temp,fixed_conf,ivol,Dir((int)gauge)); //nasty
 	unsafe_su3_traceless_anti_hermitian_part(der[ivol.nastyConvert()],temp);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -611,8 +611,8 @@ namespace nissa
   //check if gauge fixed or not
   bool check_Landau_or_Coulomb_gauge_fixed(double &prec,double &func,quad_su3 *fixed_conf,LC_gauge_fixing_pars_t::gauge_t gauge,double target_prec,double *loc_F)
   {
-    prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fixed_conf,Direction((int)gauge)); //nasty
-    func=compute_Landau_or_Coulomb_functional(fixed_conf,Direction((int)gauge),NULL,loc_F); //nasty
+    prec=compute_Landau_or_Coulomb_gauge_fixing_quality(fixed_conf,Dir((int)gauge)); //nasty
+    func=compute_Landau_or_Coulomb_functional(fixed_conf,Dir((int)gauge),NULL,loc_F); //nasty
     bool get_out=(prec<=target_prec);
     return get_out;
   }

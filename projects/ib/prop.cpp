@@ -93,7 +93,7 @@ namespace nissa
 	//compute relative coords
 	bool is_spat_orig=true;
 	GlbCoords rel_c;
-	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	FOR_ALL_SPATIAL_DIRS(mu)
 	  {
 	    rel_c(mu)=rel_coord_of_loclx(ivol,mu);
 	    if(mu()) is_spat_orig&=(rel_c(mu)==0);
@@ -101,14 +101,14 @@ namespace nissa
 	
 	//dilute in space
 	int mask=1;
-	FOR_ALL_SPATIAL_DIRECTIONS(mu) mask&=(rel_c(mu)%diluted_spat_source==0);
+	FOR_ALL_SPATIAL_DIRS(mu) mask&=(rel_c(mu)%diluted_spat_source==0);
 	
 	//fill colour and spin index 0
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
-	      if(stoch_source and mask and (sou->tins==-1 or rel_c(timeDirection)==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol.nastyConvert()]),sou->noise_type);
-	      if(!stoch_source and is_spat_orig and (sou->tins==-1 or rel_c(timeDirection)==sou->tins)) complex_put_to_real(c[id_si][ic_si],1);
+	      if(stoch_source and mask and (sou->tins==-1 or rel_c(tDir)==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol.nastyConvert()]),sou->noise_type);
+	      if(!stoch_source and is_spat_orig and (sou->tins==-1 or rel_c(tDir)==sou->tins)) complex_put_to_real(c[id_si][ic_si],1);
 	    }
 	
 	//fill other spin indices
@@ -142,10 +142,10 @@ namespace nissa
     
     vector_reset(out);
     
-    FOR_ALL_SPATIAL_DIRECTIONS(mu)
+    FOR_ALL_SPATIAL_DIRS(mu)
       if(dirs(mu))
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  if(t==-1 or glbCoordOfLoclx(ivol,timeDirection)==t)
+	  if(t==-1 or glbCoordOfLoclx(ivol,tDir)==t)
 	    {
 	      spincolor temp1,temp2;
 	      unsafe_dirac_prod_spincolor(temp1,base_gamma+igamma_of_mu(mu),in[ivol.nastyConvert()]);
@@ -199,7 +199,7 @@ namespace nissa
   //phase the propagator
   void phase_prop(spincolor* out,spincolor* ori,const GlbCoord& t,const Momentum& th)
   {
-    FOR_ALL_SPATIAL_DIRECTIONS(mu)
+    FOR_ALL_SPATIAL_DIRS(mu)
       if(fabs((int)(th(mu)/2)-th(mu)/2)>1e-10)
 	crash("Error: phase %lg must be an even integer",th(mu));
     
@@ -208,7 +208,7 @@ namespace nissa
       {
 	//compute x*p
 	double arg=0.0;
-	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	FOR_ALL_SPATIAL_DIRS(mu)
 	  arg+=M_PI*th(mu)*rel_coord_of_loclx(ivol,mu)()/glbSize(mu)(); //N.B: valid only if source is on origin...
 	
 	//compute exp(ip)
@@ -216,7 +216,7 @@ namespace nissa
 	complex_iexp(factor,arg);
 	
 	//put the phase
-	if(t==-1 or glbCoordOfLoclx(ivol,timeDirection)==t)
+	if(t==-1 or glbCoordOfLoclx(ivol,tDir)==t)
 	  unsafe_spincolor_prod_complex(out[ivol.nastyConvert()],ori[ivol.nastyConvert()],factor);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -316,7 +316,7 @@ namespace nissa
     source_time-=take_time();
     
     GlbCoord rel_t=t;
-    if(rel_t!=-1) rel_t=(t+source_coord(timeDirection))%glbSize(timeDirection);
+    if(rel_t!=-1) rel_t=(t+source_coord(tDir))%glbSize(tDir);
     
     quad_su3 *conf;
     if(not is_smearing_ins(inser)) conf=get_updated_conf(charge,theta,glb_conf);
@@ -440,8 +440,8 @@ namespace nissa
 	  }
 	
 	//write info on mass and r
-	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta(xDirection),q.theta(yDirection),q.theta(zDirection));
-	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta(xDirection),q.theta(yDirection),q.theta(zDirection));
+	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta(xDir),q.theta(yDir),q.theta(zDir));
+	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta(xDir),q.theta(yDir),q.theta(zDir));
 	
 	//compute the inverse clover term, if needed
 	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
@@ -583,7 +583,7 @@ namespace nissa
       {
 	//sum_mu -sign*2*pi*p_mu*y_mu/L_mu
 	double arg=0;
-	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	FOR_ALL_SPATIAL_DIRS(mu)
 	  arg+=-fft_sign*2*M_PI*glbCoordOfLoclx(imom,mu)()*source_coord(mu)()/glbSize(mu)();
 	
 	complex f={cos(arg),sin(arg)};
@@ -622,7 +622,7 @@ namespace nissa
 	  
 	  //compute p~4/p~2^2
 	  double pt2=0,pt4=0;
-	  FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	  FOR_ALL_SPATIAL_DIRS(mu)
 	    {
 	      double pmu=M_PI*(2*c(mu)()+(mu==0)*temporal_bc)/glbSize(mu)();
 	      double ptmu=sin(pmu);
@@ -636,7 +636,7 @@ namespace nissa
 	      {
 		//get mirrorized
 		GlbCoords cmir;
-		FOR_ALL_SPATIAL_DIRECTIONS(mu)
+		FOR_ALL_SPATIAL_DIRS(mu)
 		  cmir(mu)=get_mirrorized_site_coord(c(mu)+(mu==0 and get_bit(imir,0) and temporal_bc==ANTIPERIODIC_BC),mu,get_bit(imir,mu()));
 		
 		//check if not already collected
@@ -646,7 +646,7 @@ namespace nissa
 		    //print momentum coordinates
 		    if(fout)
 		      {
-			FOR_ALL_SPATIAL_DIRECTIONS(mu)
+			FOR_ALL_SPATIAL_DIRS(mu)
 			  if(cmir(mu)<glbSize(mu)/2) master_fprintf(fout,"%d ",cmir(mu));
 			  else                        master_fprintf(fout,"%d ",cmir(mu)-glbSize(mu));
 			master_fprintf(fout,"\n");
@@ -712,7 +712,7 @@ namespace nissa
     while(not ended)
       {
 	GlbCoords c;
-	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	FOR_ALL_SPATIAL_DIRS(mu)
 	  {
 	    int cmu;
 	    bool emu;

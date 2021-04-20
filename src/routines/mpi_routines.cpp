@@ -86,7 +86,7 @@ namespace nissa
   {
 #ifdef USE_MPI
     int periods[NDIM];
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       periods[mu()]=1;
     MPI_Cart_create(MPI_COMM_WORLD,NDIM,(int*)nrank_dir.getDataPtr(),periods,1,&cart_comm); //nasty
     //takes rank and ccord of local rank
@@ -94,11 +94,11 @@ namespace nissa
     MPI_Cart_coords(cart_comm,cart_rank,NDIM,(int*)rank_coord.getDataPtr()); //nasty
     
     //create communicator along plan
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	Coords<int> split_plan;
 	RankCoords proj_rank_coord;
-	FOR_ALL_DIRECTIONS(nu)
+	FOR_ALL_DIRS(nu)
 	  {
 	    split_plan(nu)=(nu==mu) ? 0 : 1;
 	    proj_rank_coord(nu)=(nu==mu) ? 0 : rank_coord(nu);
@@ -111,7 +111,7 @@ namespace nissa
       }
     
     //create communicator along line
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	//split the communicator
 	int split_line[NDIM];
@@ -131,7 +131,7 @@ namespace nissa
       }
 #else
     cart_rank=plan_rank=line_rank=0;
-    FOR_ALL_DIRECTIONS(mu) rank_coord[mu]=planline_coord[mu]=0;
+    FOR_ALL_DIRS(mu) rank_coord[mu]=planline_coord[mu]=0;
 #endif
   }
   

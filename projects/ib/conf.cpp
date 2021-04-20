@@ -116,13 +116,13 @@ namespace nissa
       }
     //check theta
     bool same_theta=true;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       same_theta&=(theta(mu)==stored_theta(mu));
     
     if(not same_theta)
       {
 	master_printf("Inner conf is invalid (theta changed from {%lg,%lg,%lg,%lg} to {%lg,%lg,%lg,%lg}\n",
-		      stored_theta(Direction(0)),stored_theta(xDirection),stored_theta(yDirection),stored_theta(zDirection),theta(Direction(0)),theta(xDirection),theta(yDirection),theta(zDirection));
+		      stored_theta(Dir(0)),stored_theta(xDir),stored_theta(yDir),stored_theta(zDir),theta(Dir(0)),theta(xDir),theta(yDir),theta(zDir));
 	inner_conf_valid=false;
       }
     
@@ -135,7 +135,7 @@ namespace nissa
 	
 	//put momentum
 	Momentum old_theta;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  old_theta(mu)=0.0;
 	adapt_theta(inner_conf,old_theta,theta,0,0);
 	
@@ -146,7 +146,7 @@ namespace nissa
     //update value and set valid
     stored_conf=in_conf;
     stored_charge=charge;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       stored_theta(mu)=theta(mu);
     inner_conf_valid=true;
     

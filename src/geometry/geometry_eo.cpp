@@ -20,7 +20,7 @@ namespace nissa
   Parity glb_coord_parity(const GlbCoords& c)
   {
     GlbCoord sum=0;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       sum+=c(mu);
     
     return static_cast<int>(sum()%2);
@@ -44,7 +44,7 @@ namespace nissa
     
     //check that all local sizes are multiples of 2
     bool ok=true;
-   FOR_ALL_DIRECTIONS(mu)
+   FOR_ALL_DIRS(mu)
      ok&=(locSize(mu)%2==0);
     
     if(not ok)
@@ -86,7 +86,7 @@ namespace nissa
     
     //Fix the movements among e/o ordered sites
     for(LocLxSite loclx=0;loclx<locVolWithBordAndEdge;loclx++)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	{
 	  //take parity and e/o corresponding site
 	  const Parity& par=loclx_parity(loclx);
@@ -121,9 +121,9 @@ namespace nissa
   {
     FOR_BOTH_PARITIES(par)
       for(int vmu=0;vmu<2;vmu++)
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  for(int vnu=0;vnu<2;vnu++)
-	    for(Direction nu=mu+1;nu<NDIM;nu++)
+	    for(Dir nu=mu+1;nu<NDIM;nu++)
 	      if(paral_dir(mu) and paral_dir(nu))
 		{
 		  int iedge=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
@@ -159,8 +159,8 @@ namespace nissa
   {
     //define the NDIM*(NDIM-1)/2 edges receivers, which are contiguous in memory
     int iedge=0;
-   FOR_ALL_DIRECTIONS(mu)
-      for(Direction nu=mu+1;nu<NDIM;nu++)
+   FOR_ALL_DIRS(mu)
+      for(Dir nu=mu+1;nu<NDIM;nu++)
 	{
 	  MPI_Type_contiguous(locVol()/locSize(mu)()/locSize(nu)()/2,*base,&(MPI_EDGE_RECE[iedge]));
 	  MPI_Type_commit(&(MPI_EDGE_RECE[iedge]));
@@ -192,7 +192,7 @@ namespace nissa
     NISSA_LOC_VOL_LOOP(ivol)
     {
       int save=1;
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	save=save and glbCoordOfLoclx(ivol,mu)%2==0;
       
       if(not save)

@@ -118,7 +118,7 @@ namespace nissa
   template <typename I>
   void coords_broadcast(Coords<I>& c)
   {
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	auto& ref=c(mu)();
 	MPI_Bcast(&ref,NDIM,MPI_Datatype_of<std::decay_t<decltype(ref)>>(),master_rank,MPI_COMM_WORLD);

@@ -21,7 +21,7 @@ namespace nissa
     else        communicate_ev_spin_borders(in);
     
     std::array<complex,4> phases;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	phases[mu.nastyConvert()][RE]=cos(M_PI*bc(mu));
 	phases[mu.nastyConvert()][IM]=sin(M_PI*bc(mu));
@@ -34,10 +34,10 @@ namespace nissa
 	complex temp_c0,temp_c1;
 	
 	//Forward 0
-	Xup=loceo_neighup(eooe,X,Direction(0));
+	Xup=loceo_neighup(eooe,X,Dir(0));
 	complex_summ(temp_c0,in[Xup.nastyConvert()][0],in[Xup.nastyConvert()][2]);
 	complex_summ(temp_c1,in[Xup.nastyConvert()][1],in[Xup.nastyConvert()][3]);
-	if(glbCoordOfLoclx(loclx_of_loceo(1-eooe,Xup),Direction(0))==0)
+	if(glbCoordOfLoclx(loclx_of_loceo(1-eooe,Xup),Dir(0))==0)
 	  {
 	    safe_complex_prod(temp_c0,temp_c0,phases[0]);
 	    safe_complex_prod(temp_c1,temp_c1,phases[0]);
@@ -48,10 +48,10 @@ namespace nissa
 	complex_copy(out[X.nastyConvert()][3],out[X.nastyConvert()][1]);
 	
 	//Backward 0
-	Xdw=loceo_neighdw(eooe,X,Direction(0));
+	Xdw=loceo_neighdw(eooe,X,Dir(0));
 	complex_subt(temp_c0,in[Xdw.nastyConvert()][0],in[Xdw.nastyConvert()][2]);
 	complex_subt(temp_c1,in[Xdw.nastyConvert()][1],in[Xdw.nastyConvert()][3]);
-	if(glbCoordOfLoclx(loclx_of_loceo(eooe,X),Direction(0))==0)
+	if(glbCoordOfLoclx(loclx_of_loceo(eooe,X),Dir(0))==0)
 	  {
 	    safe_complex_conj2_prod(temp_c0,temp_c0,phases[0]);
 	    safe_complex_conj2_prod(temp_c1,temp_c1,phases[0]);
@@ -62,10 +62,10 @@ namespace nissa
 	complex_subtassign(out[X.nastyConvert()][3],temp_c1);
 	
 	//Forward 1
-	Xup=loceo_neighup(eooe,X,xDirection);
+	Xup=loceo_neighup(eooe,X,xDir);
 	complex_isumm(temp_c0,in[Xup.nastyConvert()][0],in[Xup.nastyConvert()][3]);
 	complex_isumm(temp_c1,in[Xup.nastyConvert()][1],in[Xup.nastyConvert()][2]);
-	if(glbCoordOfLoclx(loclx_of_loceo(1-eooe,Xup),xDirection)==0)
+	if(glbCoordOfLoclx(loclx_of_loceo(1-eooe,Xup),xDir)==0)
 	  {
 	    safe_complex_prod(temp_c0,temp_c0,phases[1]);
 	    safe_complex_prod(temp_c1,temp_c1,phases[1]);
@@ -76,10 +76,10 @@ namespace nissa
 	complex_isubtassign(out[X.nastyConvert()][3],temp_c0);
 	
 	//Backward 1
-	Xdw=loceo_neighdw(eooe,X,xDirection);
+	Xdw=loceo_neighdw(eooe,X,xDir);
 	complex_isubt(temp_c0,in[Xdw.nastyConvert()][0],in[Xdw.nastyConvert()][3]);
 	complex_isubt(temp_c1,in[Xdw.nastyConvert()][1],in[Xdw.nastyConvert()][2]);
-	if(glbCoordOfLoclx(loclx_of_loceo(eooe,X),xDirection)==0)
+	if(glbCoordOfLoclx(loclx_of_loceo(eooe,X),xDir)==0)
 	  {
 	    safe_complex_conj2_prod(temp_c0,temp_c0,phases[1]);
 	    safe_complex_conj2_prod(temp_c1,temp_c1,phases[1]);
@@ -90,10 +90,10 @@ namespace nissa
 	complex_isummassign(out[X.nastyConvert()][3],temp_c0);
 	
 	//Forward 2
-	Xup=loceo_neighup(eooe,X,yDirection);
+	Xup=loceo_neighup(eooe,X,yDir);
 	complex_summ(temp_c0,in[Xup.nastyConvert()][0],in[Xup.nastyConvert()][3]);
 	complex_subt(temp_c1,in[Xup.nastyConvert()][1],in[Xup.nastyConvert()][2]);
-	if(glbCoordOfLoclx(loclx_of_loceo(1-eooe,X),yDirection)==0)
+	if(glbCoordOfLoclx(loclx_of_loceo(1-eooe,X),yDir)==0)
 	  {
 	    safe_complex_prod(temp_c0,temp_c0,phases[2]);
 	    safe_complex_prod(temp_c1,temp_c1,phases[2]);
@@ -104,10 +104,10 @@ namespace nissa
 	complex_summassign(out[X.nastyConvert()][3],temp_c0);
 	
 	//Backward 2
-	Xdw=loceo_neighdw(eooe,X,yDirection);
+	Xdw=loceo_neighdw(eooe,X,yDir);
 	complex_subt(temp_c0,in[Xdw.nastyConvert()][0],in[Xdw.nastyConvert()][3]);
 	complex_summ(temp_c1,in[Xdw.nastyConvert()][1],in[Xdw.nastyConvert()][2]);
-	if(glbCoordOfLoclx(loclx_of_loceo(eooe,X),yDirection)==0)
+	if(glbCoordOfLoclx(loclx_of_loceo(eooe,X),yDir)==0)
 	  {
 	    safe_complex_conj2_prod(temp_c0,temp_c0,phases[2]);
 	    safe_complex_conj2_prod(temp_c1,temp_c1,phases[2]);
@@ -118,10 +118,10 @@ namespace nissa
 	complex_subtassign(out[X.nastyConvert()][3],temp_c0);
 	
 	//Forward 3
-	Xup=loceo_neighup(eooe,X,zDirection);
+	Xup=loceo_neighup(eooe,X,zDir);
 	complex_isumm(temp_c0,in[Xup.nastyConvert()][0],in[Xup.nastyConvert()][2]);
 	complex_isubt(temp_c1,in[Xup.nastyConvert()][1],in[Xup.nastyConvert()][3]);
-	if(glbCoordOfLoclx(loclx_of_loceo(1-eooe,X),zDirection)==0)
+	if(glbCoordOfLoclx(loclx_of_loceo(1-eooe,X),zDir)==0)
 	  {
 	    safe_complex_prod(temp_c0,temp_c0,phases[3]);
 	    safe_complex_prod(temp_c1,temp_c1,phases[3]);
@@ -132,10 +132,10 @@ namespace nissa
 	complex_isummassign(out[X.nastyConvert()][3],temp_c1);
 	
 	//Backward 3
-	Xdw=loceo_neighdw(eooe,X,zDirection);
+	Xdw=loceo_neighdw(eooe,X,zDir);
 	complex_isubt(temp_c0,in[Xdw.nastyConvert()][0],in[Xdw.nastyConvert()][2]);
 	complex_isumm(temp_c1,in[Xdw.nastyConvert()][1],in[Xdw.nastyConvert()][3]);
-	if(glbCoordOfLoclx(loclx_of_loceo(eooe,X),zDirection)==0)
+	if(glbCoordOfLoclx(loclx_of_loceo(eooe,X),zDir)==0)
 	  {
 	    safe_complex_conj2_prod(temp_c0,temp_c0,phases[3]);
 	    safe_complex_conj2_prod(temp_c1,temp_c1,phases[3]);

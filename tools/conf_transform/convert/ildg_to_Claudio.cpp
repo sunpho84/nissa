@@ -15,7 +15,7 @@ unsigned char c[MD5_DIGEST_LENGTH];
 
 GlbLxSite snum(const GlbCoord& x,const GlbCoord& y,const GlbCoord& z,const GlbCoord& t)
 {
-  return (t+x*glbSize(timeDirection)+y*glbSize(xDirection)*glbSize(timeDirection)+z*glbSize(yDirection)*glbSize(xDirection)*glbSize(timeDirection));
+  return (t+x*glbSize(tDir)+y*glbSize(xDir)*glbSize(tDir)+z*glbSize(yDir)*glbSize(xDir)*glbSize(tDir));
 }
 
 void write_to_binary_file(FILE *fp,su3 A)
@@ -39,10 +39,10 @@ int main(int narg,char **arg)
   
   if(narg<7) crash("use: %s T LX LY LZ file_in file_out",arg[0]);
   
-  _glbSize(Direction(0))=atoi(arg[1]);
-  _glbSize(Direction(1))=atoi(arg[2]);
-  _glbSize(Direction(2))=atoi(arg[3]);
-  _glbSize(Direction(3))=atoi(arg[4]);
+  _glbSize(Dir(0))=atoi(arg[1]);
+  _glbSize(Dir(1))=atoi(arg[2]);
+  _glbSize(Dir(2))=atoi(arg[3]);
+  _glbSize(Dir(3))=atoi(arg[4]);
   in_conf_name=arg[5];
   out_conf_name=arg[6];
   
@@ -76,16 +76,16 @@ int main(int narg,char **arg)
   quad_su3 *out_conf=nissa_malloc("out_conf",locVol.nastyConvert(),quad_su3);
   
   //reorder data
-  for(GlbCoord t=0;t<glbSize(Direction(0));t++)
-    for(GlbCoord z=0;z<glbSize(Direction(3));z++)
-      for(GlbCoord y=0;y<glbSize(Direction(2));y++)
-	for(GlbCoord x=0;x<glbSize(Direction(1));x++)
+  for(GlbCoord t=0;t<glbSize(Dir(0));t++)
+    for(GlbCoord z=0;z<glbSize(Dir(3));z++)
+      for(GlbCoord y=0;y<glbSize(Dir(2));y++)
+	for(GlbCoord x=0;x<glbSize(Dir(1));x++)
 	  {
 	    const GlbLxSite num=snum(x,y,z,t);
 	    
 	    const GlbLxSite ivol=glblx_of_coord_list(t,x,y,z);
 	    
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      su3_copy(out_conf[num.nastyConvert()][mu.nastyConvert()],in_conf[ivol.nastyConvert()][mu.nastyConvert()]);
 	  }
   
@@ -95,7 +95,7 @@ int main(int narg,char **arg)
   FILE *fout=open_file(out_conf_name,"w");
   if(fout==NULL) crash("while opening %s",out_conf_name);
   
-  fprintf(fout,"4 %ld %ld %ld %ld %d ",glbSize(Direction(0))(),glbSize(Direction(1))(),glbSize(Direction(2))(),glbSize(Direction(3))(),itraj);
+  fprintf(fout,"4 %ld %ld %ld %ld %d ",glbSize(Dir(0))(),glbSize(Dir(1))(),glbSize(Dir(2))(),glbSize(Dir(3))(),itraj);
   
   char res[2*MD5_DIGEST_LENGTH+1]="";
 #ifdef USE_SSL

@@ -303,7 +303,7 @@ namespace nissa
   }
   
   //add links to the buffer of the conf if needed
-  int all_to_all_gathering_list_t::add_conf_link_for_paths(const GlbCoords& g,const Direction& mu)
+  int all_to_all_gathering_list_t::add_conf_link_for_paths(const GlbCoords& g,const Dir& mu)
   {
     //find rank and local position
     LocLxSite ivol;

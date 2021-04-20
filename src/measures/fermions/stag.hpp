@@ -11,12 +11,12 @@ namespace nissa
   inline int form_stag_op_pattern(int ispin,int itaste)
   {
     int res=0;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	int p=0;
-	for(Direction nu=0;nu<mu;nu++)
+	for(Dir nu=0;nu<mu;nu++)
 	  p+=(itaste>>nu())&1;
-	for(Direction nu=mu+1;nu<NDIM;nu++)
+	for(Dir nu=mu+1;nu<NDIM;nu++)
 	  p+=(ispin>>nu())&1;
 	p&=1;
 	
@@ -67,17 +67,17 @@ namespace nissa
       if(ihit==meas_pars.nhits-1) PRINT(A)
       
     void fill_source(eo_ptr<color> src,const GlbCoord& twall,rnd_t noise_type);
-    void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,const Direction& mu,eo_ptr<color> right,complex *point_result);
+    void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,const Dir& mu,eo_ptr<color> right,complex *point_result);
     void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,double m,double residue,eo_ptr<color> source);
     void mult_Minv(eo_ptr<color> prop,eo_ptr<quad_su3> conf,theory_pars_t *pars,int iflav,double residue,eo_ptr<color> source);
     void mult_dMdmu(eo_ptr<color> out,theory_pars_t *theory_pars,eo_ptr<quad_su3> conf,int iflav,int ord,eo_ptr<color> in);
-    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Direction& mu,void *pars);
-    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,const Parity& par,const LocEoSite& ieo,const Direction& mu,void *pars),const GlbCoord& t,void *pars=NULL);
+    void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Dir& mu,void *pars);
+    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,const Parity& par,const LocEoSite& ieo,const Dir& mu,void *pars),const GlbCoord& t,void *pars=NULL);
     void summ_the_trace(double *out,complex *point_result,eo_ptr<color> A,eo_ptr<color> B);
     
     enum shift_orie_t{UP,DW,BOTH};
-    void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,const Direction& mu,eo_ptr<color> in,shift_orie_t side=BOTH);
-    void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,const Direction& mu,eo_ptr<color> in,shift_orie_t side);
+    void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,const Dir& mu,eo_ptr<color> in,shift_orie_t side=BOTH);
+    void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,const Dir& mu,eo_ptr<color> in,shift_orie_t side);
     void apply_shift_op(eo_ptr<color> out,eo_ptr<color> single_perm,eo_ptr<color> internal_temp,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,int shift,eo_ptr<color> in);
     
     void put_stag_phases(eo_ptr<color> source,int mask);

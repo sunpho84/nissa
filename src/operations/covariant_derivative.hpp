@@ -7,9 +7,9 @@
 
 namespace nissa
 {
-  void apply_nabla_i(spincolor *out,spincolor *in,quad_su3 *conf,const Direction& mu);
-  void apply_nabla_i(colorspinspin *out,colorspinspin *in,quad_su3 *conf,const Direction& mu);
-  void apply_nabla_i(su3spinspin *out,su3spinspin *in,quad_su3 *conf,const Direction& mu);
+  void apply_nabla_i(spincolor *out,spincolor *in,quad_su3 *conf,const Dir& mu);
+  void apply_nabla_i(colorspinspin *out,colorspinspin *in,quad_su3 *conf,const Dir& mu);
+  void apply_nabla_i(su3spinspin *out,su3spinspin *in,quad_su3 *conf,const Dir& mu);
   
   void insert_tm_tadpole(spincolor *out,quad_su3 *conf,spincolor *in,int r,const Momentum& tad,const GlbCoord& t);
   void insert_tm_tadpole(colorspinspin *out,quad_su3 *conf,colorspinspin *in,int r,const Momentum& tad,const GlbCoord& t);

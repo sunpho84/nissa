@@ -22,14 +22,14 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_DEVICE void stout_smear_compute_weighted_staples(su3 staples,eo_ptr<quad_su3> conf,const Parity& p,const LocEoSite& A,const Direction& mu,const double& rho)
+  CUDA_HOST_DEVICE void stout_smear_compute_weighted_staples(su3 staples,eo_ptr<quad_su3> conf,const Parity& p,const LocEoSite& A,const Dir& mu,const double& rho)
   {
     //put staples to zero
     su3_put_to_zero(staples);
     
     //summ the 6 staples, each weighted with rho (eq. 1)
     su3 temp1,temp2;
-    FOR_ALL_DIRECTIONS(nu)                    //  E---F---C
+    FOR_ALL_DIRS(nu)                    //  E---F---C
       if(nu!=mu)                              //  |   |   | mu
 	{                                     //  D---A---B
 	  const LocEoSite& B=loceo_neighup(p,A,nu);      //        nu
@@ -49,7 +49,7 @@ namespace nissa
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   
   //partial derivative of the force
-  CUDA_HOST_DEVICE void stout_smear_compute_staples(stout_link_staples *out,eo_ptr<quad_su3> conf,const Parity& p,const LocEoSite& A,const Direction& mu,const double& rho)
+  CUDA_HOST_DEVICE void stout_smear_compute_staples(stout_link_staples *out,eo_ptr<quad_su3> conf,const Parity& p,const LocEoSite& A,const Dir& mu,const double& rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,p,A,mu,rho);
@@ -74,7 +74,7 @@ namespace nissa
     //allocate a temporary conf if going to smear iteratively or out==ext_in
     
     FOR_BOTH_PARITIES(p)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
         if(dirs(mu))
 	  NISSA_PARALLEL_LOOP(A,0,locVolh)
 	    {
@@ -180,7 +180,7 @@ namespace nissa
       Lambda[eo]=nissa_malloc("Lambda",locVolhWithBordAndEdge.nastyConvert(),quad_su3);
     
     FOR_BOTH_PARITIES(p)
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	NISSA_PARALLEL_LOOP(A,0,locVolh)
 	  {
 	    //compute the ingredients needed to smear
@@ -218,8 +218,8 @@ namespace nissa
     communicate_eo_quad_su3_edges(Lambda);
     
     FOR_BOTH_PARITIES(p)
-      FOR_ALL_DIRECTIONS(mu)
-        FOR_ALL_DIRECTIONS(nu)
+      FOR_ALL_DIRS(mu)
+        FOR_ALL_DIRS(nu)
 	  if(mu!=nu)
 	    {
 	      NISSA_PARALLEL_LOOP(A,0,locVolh)        //   b1 --<-- f1 -->-- +

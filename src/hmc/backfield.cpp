@@ -21,7 +21,7 @@ namespace nissa
     FOR_BOTH_PARITIES(par)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRS(mu)
 	  {
 	    S[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()][0]=1;
 	    S[par.nastyConvert()][ieo.nastyConvert()][mu.nastyConvert()][1]=0;
@@ -52,17 +52,17 @@ namespace nissa
   }
   
   //compute args for non-present quantization
-  CUDA_HOST_DEVICE void get_args_of_null_quantization(GlbCoords& phase,const LocLxSite& ivol,const Direction& mu,const Direction& nu)
+  CUDA_HOST_DEVICE void get_args_of_null_quantization(GlbCoords& phase,const LocLxSite& ivol,const Dir& mu,const Dir& nu)
   {
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       phase(mu)=0;
   }
   
   //compute args for 1/L2 quantization
-  CUDA_HOST_DEVICE void get_args_of_one_over_L2_quantization(GlbCoords& phase,const LocLxSite& ivol,const Direction& mu,const Direction& nu)
+  CUDA_HOST_DEVICE void get_args_of_one_over_L2_quantization(GlbCoords& phase,const LocLxSite& ivol,const Dir& mu,const Dir& nu)
   {
     //reset
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       phase(mu)=0;
     
     //take absolute coords
@@ -78,10 +78,10 @@ namespace nissa
   }
   
   //compute args for half-half quantization
-  CUDA_HOST_DEVICE void get_args_of_half_half_quantization(GlbCoords& phase,const LocLxSite& ivol,const Direction& mu,const Direction& nu)
+  CUDA_HOST_DEVICE void get_args_of_half_half_quantization(GlbCoords& phase,const LocLxSite& ivol,const Dir& mu,const Dir& nu)
   {
     //reset
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       phase(mu)=0;
     
     //take absolute coords
@@ -95,12 +95,12 @@ namespace nissa
     phase(nu)=xmu;
   }
   
-  CUDA_MANAGED void (*get_args_of_quantization[3])(GlbCoords& phase,const LocLxSite& ivol,const Direction& mu,const Direction& nu)=
+  CUDA_MANAGED void (*get_args_of_quantization[3])(GlbCoords& phase,const LocLxSite& ivol,const Dir& mu,const Dir& nu)=
     {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
   
   //multiply a background field by a constant em field
   //mu nu refers to the entry of F_mu_nu involved
-  void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content,double em_str,int quantization,const Direction& mu,const Direction& nu)
+  void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content,double em_str,int quantization,const Dir& mu,const Dir& nu)
   {
     const double phase=2*em_str*quark_content->charge*M_PI/glbSize(mu)()/glbSize(nu)();
     
@@ -116,7 +116,7 @@ namespace nissa
 	    get_args_of_quantization[quantization](arg,loclx_of_loceo(par,ieo),mu,nu);
 	    
 	    //compute u1phase and multiply
-	    FOR_ALL_DIRECTIONS(rho)
+	    FOR_ALL_DIRS(rho)
 	      {
 		complex u1phase={cos(phase*arg(rho)()),sin(phase*arg(rho)())};
 		safe_complex_prod(S[par][ieo.nastyConvert()][rho.nastyConvert()],S[par][ieo.nastyConvert()][rho.nastyConvert()],u1phase);
@@ -153,7 +153,7 @@ namespace nissa
   //        {
   //          coords ph;
   //          get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol_eo]);
-  //          FOR_ALL_DIRECTIONS(mu) complex_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
+  //          FOR_ALL_DIRS(mu) complex_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
   //        }
   //      NISSA_PARALLEL_LOOP_END;
   //      set_borders_invalid(S);
@@ -161,7 +161,7 @@ namespace nissa
   // }
   
   // Add the antiperiodic condition on the on dir mu
-  void add_antiperiodic_condition_to_backfield(eo_ptr<quad_u1>& S,const Direction& mu)
+  void add_antiperiodic_condition_to_backfield(eo_ptr<quad_u1>& S,const Dir& mu)
   {
     FOR_BOTH_PARITIES(par)
       {
@@ -188,7 +188,7 @@ namespace nissa
 	    Coords<int> ph;
 	    get_stagphase_of_lx(ph,loclx_of_loceo(par,ieo));
 	    
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      su3_prodassign_double(conf[par][ieo.nastyConvert()][mu.nastyConvert()],ph(mu));
 	  }
 	NISSA_PARALLEL_LOOP_END;
@@ -214,7 +214,7 @@ namespace nissa
 	    if(with_without==0)
 	      get_stagphase_of_lx(ph,loclx_of_loceo(par,ieo));
 	    
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      {
 		//switch add/rem
 		complex f;
@@ -247,7 +247,7 @@ namespace nissa
 	    Coords<int> ph;
 	    get_stagphase_of_lx(ph,ilx);
 	    
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      {
 		//switch add/rem
 		complex f;

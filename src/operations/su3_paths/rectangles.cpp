@@ -23,8 +23,8 @@ namespace nissa
     vector_reset(point_shapes);
     
     FOR_BOTH_PARITIES(par)
-      FOR_ALL_DIRECTIONS(mu) //link dir
-	FOR_ALL_DIRECTIONS(nu) //staple dir
+      FOR_ALL_DIRS(mu) //link dir
+	FOR_ALL_DIRS(nu) //staple dir
 	  if(nu!=mu)
 	    {
 	      NISSA_PARALLEL_LOOP(A,0,locVolh)
@@ -72,8 +72,8 @@ namespace nissa
     communicate_lx_quad_su3_edges(conf);
     vector_reset(point_shapes);
     
-    FOR_ALL_DIRECTIONS(mu) //link dir
-      FOR_ALL_DIRECTIONS(nu) //staple dir
+    FOR_ALL_DIRS(mu) //link dir
+      FOR_ALL_DIRS(nu) //staple dir
 	if(nu!=mu)
 	  {
 	    NISSA_PARALLEL_LOOP(A,0,locVol)
@@ -133,7 +133,7 @@ namespace nissa
     //loop over time
     NISSA_PARALLEL_LOOP(loc_t,0,locTimeSize)
       for(LocLxSite ivol=loc_t*locSpatVol;ivol<(loc_t+1)*locSpatVol;ivol++)
-	complex_summassign(loc_shapes[glbCoordOfLoclx(ivol,timeDirection).nastyConvert()],point_shapes[ivol.nastyConvert()]);
+	complex_summassign(loc_shapes[glbCoordOfLoclx(ivol,tDir).nastyConvert()],point_shapes[ivol.nastyConvert()]);
     NISSA_PARALLEL_LOOP_END;
     nissa_free(point_shapes);
     

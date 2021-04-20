@@ -155,7 +155,7 @@ namespace nissa
     spincolor *Wils;
     
     //fill to random
-    void fill(enum rnd_t rtype=RND_GAUSS,int twall=-1,const Parity& par=EVN,const Direction& dir=0)
+    void fill(enum rnd_t rtype=RND_GAUSS,int twall=-1,const Parity& par=EVN,const Dir& dir=0)
     {
       if(is_stag) generate_fully_undiluted_eo_source(stag,rtype,twall,par,dir);
       else generate_fully_undiluted_eo_source(Wils,rtype,twall,par,dir);

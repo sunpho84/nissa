@@ -47,19 +47,19 @@ namespace nissa
       nissa_free(photon_eta);
     }
     
-    void insert_tadpole_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Direction& mu,void *pars)
+    void insert_tadpole_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Dir& mu,void *pars)
     {
       out[RE]=((double*)pars)[mu.nastyConvert()];
       out[IM]=0;
     }
     
-    void insert_conserved_current_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Direction& mu,void *pars)
+    void insert_conserved_current_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Dir& mu,void *pars)
     {
       out[RE]=((int*)pars)[mu.nastyConvert()];
       out[IM]=0;
     }
     
-    void insert_time_conserved_vector_current_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Direction& mu,void *pars)
+    void insert_time_conserved_vector_current_handle(complex out,eo_ptr<spin1field> aux,const Parity& par,const LocEoSite& ieo,const Dir& mu,void *pars)
     {
       out[RE]=(mu==0);
       out[IM]=0;
@@ -124,7 +124,7 @@ namespace nissa
     // //set photon
     // gauge_info photon;
     // photon.alpha=FEYNMAN_ALPHA;
-    // FOR_ALL_DIRECTIONS(mu) photon.bc[mu]=0;
+    // FOR_ALL_DIRS(mu) photon.bc[mu]=0;
     // photon.c1=C1_WILSON;
     // photon.zms=UNNO_ALEMANNA;
     

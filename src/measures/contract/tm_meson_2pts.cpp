@@ -30,7 +30,7 @@ namespace nissa
     
     /// Temporary contraction
     complex unshiftedGlbContr[glbTimeSize.nastyConvert()];
-    glb_reduce(unshiftedGlbContr,loc_contr,locVol(),glbTimeSize(),locTimeSize(),glbCoordOfLoclx(LocLxSite(0),timeDirection)());
+    glb_reduce(unshiftedGlbContr,loc_contr,locVol(),glbTimeSize(),locTimeSize(),glbCoordOfLoclx(LocLxSite(0),tDir)());
     
     for(GlbCoord glb_t=0;glb_t<glbTimeSize;glb_t++)
       {

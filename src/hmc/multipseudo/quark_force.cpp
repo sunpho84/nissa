@@ -23,7 +23,7 @@ namespace nissa
     for(int eo=0;eo<2;eo++)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRS(mu)
 	    {
 	      su3 temp;
 	      unsafe_su3_prod_su3(temp,conf[eo][ieo.nastyConvert()][mu.nastyConvert()],F[eo][ieo.nastyConvert()][mu.nastyConvert()]);

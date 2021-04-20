@@ -278,10 +278,10 @@ namespace nissa
   void read_str_momentum_t(const char *exp_str,Momentum& in)
   {
     expect_str(exp_str);
-    FOR_ALL_DIRECTIONS(i)
+    FOR_ALL_DIRS(i)
       read_double(&in(i));
     
-    verbosity_lv1_master_printf("Read variable '%s' with value: %.16lg %.16lg %.16lg %.16lg\n",exp_str,in(Direction(0)),in(xDirection),in(yDirection),in(zDirection));
+    verbosity_lv1_master_printf("Read variable '%s' with value: %.16lg %.16lg %.16lg %.16lg\n",exp_str,in(Dir(0)),in(xDir),in(yDir),in(zDir));
   }
   
   //Read a double checking the tag
@@ -436,10 +436,10 @@ namespace nissa
     tags.push_back(triple_tag("use_async_communications",      use_async_communications));
     tags.push_back(triple_tag("warn_if_not_disallocated",      warn_if_not_disallocated));
     tags.push_back(triple_tag("warn_if_not_communicated",      warn_if_not_communicated));
-    tags.push_back(triple_tag("set_t_nranks",		       fix_nranks(Direction(0))()));
-    tags.push_back(triple_tag("set_x_nranks",		       fix_nranks(xDirection)()));
-    tags.push_back(triple_tag("set_y_nranks",		       fix_nranks(yDirection)()));
-    tags.push_back(triple_tag("set_z_nranks",		       fix_nranks(zDirection)()));
+    tags.push_back(triple_tag("set_t_nranks",		       fix_nranks(Dir(0))()));
+    tags.push_back(triple_tag("set_x_nranks",		       fix_nranks(xDir)()));
+    tags.push_back(triple_tag("set_y_nranks",		       fix_nranks(yDir)()));
+    tags.push_back(triple_tag("set_z_nranks",		       fix_nranks(zDir)()));
     tags.push_back(triple_tag("ignore_ILDG_magic_number",      ignore_ILDG_magic_number));
     tags.push_back(triple_tag("perform_benchmark",             perform_benchmark));
 #if HIGH_PREC_TYPE==GMP_HIGH_PREC

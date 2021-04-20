@@ -8,7 +8,7 @@
 
 namespace nissa
 {
-  void su3_vec_single_shift(su3 *u,const Direction& mu,int sign);
+  void su3_vec_single_shift(su3 *u,const Dir& mu,int sign);
 }
 
 #endif

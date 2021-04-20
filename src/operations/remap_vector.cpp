@@ -37,11 +37,11 @@ namespace nissa
   //compute the remapping index to make dir mu local
   void index_make_loc_dir(Rank &irank_locld,LocLxSite &iloc_locld,const LocLxSite& iloc_lx,void *pars)
   {
-    const Direction mu=((int*)pars)[0];
+    const Dir mu=((int*)pars)[0];
     const int prp_max_vol=((int*)pars)[1];
     GlbLxSite glb_perp_site=0;
     
-    FOR_ALL_DIRECTIONS(nu)
+    FOR_ALL_DIRS(nu)
       if(mu!=nu)
 	glb_perp_site=glb_perp_site*glbSize(nu)+glbCoordOfLoclx(iloc_lx,nu);
     
@@ -55,7 +55,7 @@ namespace nissa
   {
     LocLxSite iloc_locld=ext_iloc_locld;
     
-    const Direction mu=((int*)pars)[0];
+    const Dir mu=((int*)pars)[0];
     const int prp_max_vol=((int*)pars)[1];
     
     GlbCoords c;
@@ -64,7 +64,7 @@ namespace nissa
     iloc_locld/=glbSize(mu)();
     
     GlbLxSite glb_perp_site=iloc_locld()+rank*prp_max_vol;
-    for(Direction nu=NDIM-1;nu>=0;nu--)
+    for(Dir nu=NDIM-1;nu>=0;nu--)
       if(mu!=nu)
 	{
 	  c(nu)=glb_perp_site%glbSize(nu);
@@ -74,7 +74,7 @@ namespace nissa
   }
   
   //remap to locd
-  void remap_lx_vector_to_locd(void *out,void *in,int nbytes,const Direction& mu)
+  void remap_lx_vector_to_locd(void *out,void *in,int nbytes,const Dir& mu)
   {
     const int64_t m=max_locd_perp_size_per_dir(mu);
     if((int64_t)(int32_t)(m)!=m)
@@ -86,7 +86,7 @@ namespace nissa
     remap_lx_to_locd[mu()]->remap(out,in,nbytes);
   }
   
-  void remap_locd_vector_to_lx(void *out,void *in,int nbytes,const Direction& mu)
+  void remap_locd_vector_to_lx(void *out,void *in,int nbytes,const Dir& mu)
   {
     const int64_t m=max_locd_perp_size_per_dir(mu);
     if((int64_t)(int32_t)(m)!=m)

@@ -201,8 +201,8 @@ void init_simulation(int narg,char **arg)
       char ext_field_path[32]="";
       
       Momentum theta;
-      theta(timeDirection)=temporal_bc;
-      FOR_ALL_SPATIAL_DIRECTIONS(mu)
+      theta(tDir)=temporal_bc;
+      FOR_ALL_SPATIAL_DIRS(mu)
 	theta(mu)=0;
       
       int r=0,store_prop=0;
@@ -275,10 +275,10 @@ void init_simulation(int narg,char **arg)
 	  read_theta(theta);
 	}
       Momentum kappa_asymm;
-      kappa_asymm(Direction(0))=0.0;
-      kappa_asymm(xDirection)=kappa1;
-      kappa_asymm(yDirection)=kappa2;
-      kappa_asymm(zDirection)=kappa3;
+      kappa_asymm(Dir(0))=0.0;
+      kappa_asymm(xDir)=kappa1;
+      kappa_asymm(yDir)=kappa2;
+      kappa_asymm(zDir)=kappa3;
       
       //everything else
       if(not decripted)

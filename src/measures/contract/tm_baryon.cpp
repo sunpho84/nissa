@@ -70,7 +70,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	/// Distance from source
-	const GlbCoord dt=(glbCoordOfLoclx(ivol,timeDirection)-source_coord+glbTimeSize)%glbTimeSize;
+	const GlbCoord dt=(glbCoordOfLoclx(ivol,tDir)-source_coord+glbTimeSize)%glbTimeSize;
 	
 	/// Determine whether we are in the first half
 	const bool first_half=(dt<=glbTimeSize/2);
@@ -139,7 +139,7 @@ namespace nissa
 			}
 		    
 		    /// Local time
-		    const LocCoord loc_t=locCoordOfLoclx(ivol,timeDirection);
+		    const LocCoord loc_t=locCoordOfLoclx(ivol,tDir);
 		    
 		    /// Local spatial id
 		    const LocLxSite loc_ispat=ivol%locSpatVol;
@@ -169,7 +169,7 @@ namespace nissa
     const int nloc_slices=nWicks*locTimeSize();
     
     /// Offset of each local slice w.r.t. globals
-    const int loc_offset=nWicks*glbCoordOfLoclx(LocLxSite(0),timeDirection)();
+    const int loc_offset=nWicks*glbCoordOfLoclx(LocLxSite(0),tDir)();
     
     complex unshifted_glb_contr[glbTimeSize()*nWicks];
     glb_reduce(unshifted_glb_contr,loc_contr,nloc,nslices,nloc_slices,loc_offset);

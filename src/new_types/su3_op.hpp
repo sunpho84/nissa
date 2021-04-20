@@ -87,7 +87,7 @@ namespace nissa
     quad_su3 buff;
     quad_su3_copy(buff,in);
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       su3_copy(out[(mu.nastyConvert()+NDIM-1)%NDIM],buff[mu.nastyConvert()]);
   }
   
@@ -96,7 +96,7 @@ namespace nissa
     quad_su3 buff;
     quad_su3_copy(buff,in);
     
-    FOR_ALL_DIRECTIONS(mu) su3_copy(out[(mu.nastyConvert()+1)%NDIM],buff[mu.nastyConvert()]);
+    FOR_ALL_DIRS(mu) su3_copy(out[(mu.nastyConvert()+1)%NDIM],buff[mu.nastyConvert()]);
   }
   
   ////////////////////////////////// Operations between colors //////////////////////////
@@ -948,9 +948,9 @@ namespace nissa
     su3_unitarize_maximal_trace_projecting(out,out,precision,niter_max);
   }
   
-  void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,const Parity& par,const LocEoSite& ieo,const Direction& mu);
+  void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,const Parity& par,const LocEoSite& ieo,const Dir& mu);
   
-  void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,const LocLxSite& ivol,const Direction& mu);
+  void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,const LocLxSite& ivol,const Dir& mu);
   
   ////////////////////// products between su3 and color //////////////////
   

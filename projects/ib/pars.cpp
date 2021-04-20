@@ -247,9 +247,9 @@ namespace nissa
 		read_int(&T[1]);
 		
 		//init the offset and width from range interval
-		fft_mom_range.offs(timeDirection)=T[0];
-		fft_mom_range.width(timeDirection)=T[1]-T[0]+1;
-		for(Direction i=1;i<NDIM;i++)
+		fft_mom_range.offs(tDir)=T[0];
+		fft_mom_range.width(tDir)=T[1]-T[0]+1;
+		for(Dir i=1;i<NDIM;i++)
 		  {
 		    fft_mom_range.offs(i)=L[0];
 		    fft_mom_range.width(i)=L[1]-L[0]+1;

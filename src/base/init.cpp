@@ -146,7 +146,7 @@ namespace nissa
     glb_rnd_gen_inited=0;
     gridInited=0;
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       rank_coord(mu)=nrank_dir(mu)=0;
     
     //check endianness
@@ -155,15 +155,15 @@ namespace nissa
     else master_printf("System endianness: big (BG, etc)\n");
     
     //set scidac mapping
-    scidac_mapping(timeDirection)=0;
-    FOR_ALL_DIRECTIONS(mu)
+    scidac_mapping(tDir)=0;
+    FOR_ALL_DIRS(mu)
       scidac_mapping(mu)=(NDIM-mu).nastyConvert(); // nasty?
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       all_dirs(mu)=true;
     
-    FOR_ALL_DIRECTIONS(mu)
-      FOR_ALL_DIRECTIONS(nu)
+    FOR_ALL_DIRS(mu)
+      FOR_ALL_DIRS(nu)
 	{
 	  only_dir[mu.nastyConvert()](nu)=(mu==nu); //nasty
 	  all_other_dirs[mu.nastyConvert()](nu)=(mu!=nu);
@@ -171,22 +171,22 @@ namespace nissa
 	}
     //perpendicular dir
 #if NDIM >= 2
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
-	Direction nu=0;
+	Dir nu=0;
 	for(int inu=0;inu<NDIM-1;inu++)
 	  {
 	    if(nu==mu) nu++;
 	    perp_dir[mu.nastyConvert()][inu]=nu.nastyConvert();
 #if NDIM >= 3
-	    Direction rho=0;
+	    Dir rho=0;
 	    for(int irho=0;irho<NDIM-2;irho++)
 	      {
 		for(int t=0;t<2;t++)
 		  if(rho==mu or rho==nu) rho++;
 		perp2_dir[mu.nastyConvert()][inu][irho]=rho.nastyConvert();
 #if NDIM >= 4
-		Direction sig=0;
+		Dir sig=0;
 		for(int isig=0;isig<NDIM-3;isig++)
 		  {
 		    for(int t=0;t<3;t++) if(sig==mu||sig==nu||sig==rho) sig++;
@@ -222,7 +222,7 @@ namespace nissa
     warn_if_not_communicated=NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       fix_nranks(mu)=0;
     
 #ifdef USE_DDALPHAAMG
@@ -284,7 +284,7 @@ namespace nissa
   I bulk_volume(const Coords<I>& L)
   {
     I intvol=1;
-    Direction mu=0;
+    Dir mu=0;
     
     do
       {
@@ -307,7 +307,7 @@ namespace nissa
   {
     Coords<I> X;
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       X(mu)=L(mu)()/R(mu)();
     
     return bulk_volume<I>(X);
@@ -320,10 +320,10 @@ namespace nissa
   int compute_border_variance(const Coords<CL>& L,const Coords<CP>& P,int factorize_processor)
   {
     int S2B=0,SB=0;
-    FOR_ALL_DIRECTIONS(ib)
+    FOR_ALL_DIRS(ib)
       {
 	int B=1;
-	for(Direction mu=0;mu<NDIM;mu++)
+	for(Dir mu=0;mu<NDIM;mu++)
 	  if(mu!=ib)
 	    B*=(factorize_processor ?
 		(L(mu)()/P(mu)()) :
@@ -343,12 +343,12 @@ namespace nissa
   {
     //if we want to repartition one dir we must take this into account
     GlbCoords L;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       L(mu)=ext_L(mu);
     
     //compute total and local volume
     int V=1; //nasty
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       V*=L(mu)();
     int LV=V/NR;
     
@@ -376,7 +376,7 @@ namespace nissa
     
     //check that we did not asked to fix in an impossible way
     int res_NR=NR;
-    for(Direction mu=0;mu<NDIM;mu++)
+    for(Dir mu=0;mu<NDIM;mu++)
       {
 	int nmin_dir=1;
 	if(use_eo_geom) nmin_dir*=2;
@@ -396,10 +396,10 @@ namespace nissa
     if(NR==1 or NR==V)
       {
         if(NR==1)
-	  FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRS(mu)
 	    mR(mu)=1;
         else
-	  FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRS(mu)
 	    mR(mu)=L(mu)();
       }
     else
@@ -429,14 +429,14 @@ namespace nissa
 	//find the partition which minimize the surface and the surface variance
 	int min_surf_LV=-1;
 	int icombo=0;
-	FOR_ALL_DIRECTIONS(mu)
+	FOR_ALL_DIRS(mu)
 	  mR(mu)=-1;
 	
 	do
 	  {
 	    //number of ranks in each direction for current partitioning
             RankCoords R;
-	    FOR_ALL_DIRECTIONS(mu)
+	    FOR_ALL_DIRS(mu)
 	      R(mu)=1;
 	    
 	    //compute mask factor
@@ -449,7 +449,7 @@ namespace nissa
 	    do
 	      {
 		//find the direction: this is given by the ifact digit of icombo wrote in base NDIM
-		const Direction mu=(icombo/mask)%NDIM;
+		const Dir mu=(icombo/mask)%NDIM;
 		
 		//if we are factorizing local lattice, rank factor is given by list_fact, otherwise L/list_fact
 		R(mu)*=list_fact[ifact];
@@ -465,7 +465,7 @@ namespace nissa
 	    while(valid_partitioning && ifact>=0);
 	    
 	    if(valid_partitioning)
-	      FOR_ALL_DIRECTIONS(mu)
+	      FOR_ALL_DIRS(mu)
 		{
 		  //if we are factorizing reciprocal lattice, convert back to rank grid
 		  if(not factorize_rank) R(mu)=L(mu)()/R(mu)();
@@ -508,7 +508,7 @@ namespace nissa
 		if(new_minimal)
 		  {
 		    min_surf_LV=surf_LV;
-		    FOR_ALL_DIRECTIONS(mu) mR(mu)=R(mu);
+		    FOR_ALL_DIRS(mu) mR(mu)=R(mu);
 		    something_found=1;
 		  }
 		
@@ -543,8 +543,8 @@ namespace nissa
     //set the volume
     if(T>0 and L>0)
       {
-	_glbSize(timeDirection)=T;
-	FOR_ALL_SPATIAL_DIRECTIONS(mu)
+	_glbSize(tDir)=T;
+	FOR_ALL_SPATIAL_DIRS(mu)
 	  _glbSize(mu)=L;
       }
     
@@ -553,13 +553,13 @@ namespace nissa
     
     //calculate global volume
     glbVol=1;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       glbVol*=glbSize(mu).nastyConvert(); //Nasty
     glbSpatVol=glbVol/glbTimeSize();
     //glb_vol2=(double)glbVol*glbVol;
     
     master_printf("Global lattice:\t%d",glbTimeSize());
-    FOR_ALL_SPATIAL_DIRECTIONS(mu)
+    FOR_ALL_SPATIAL_DIRS(mu)
       master_printf("x%d",glbSize(mu)());
     master_printf(" = %d\n",glbVol());
     master_printf("Number of running ranks: %d\n",nranks);
@@ -573,7 +573,7 @@ namespace nissa
     if(not ok)
       crash("The lattice is incommensurable with nranks!");
     
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       {
 	ok&=(nrank_dir(mu)>0);
 	if(not ok)
@@ -585,8 +585,8 @@ namespace nissa
 	nparal_dir+=paral_dir(mu);
       }
     
-    master_printf("Creating grid:\t%d",nrank_dir(timeDirection));
-    for(Direction mu=1;mu<NDIM;mu++)
+    master_printf("Creating grid:\t%d",nrank_dir(tDir));
+    for(Dir mu=1;mu<NDIM;mu++)
       master_printf("x%d",nrank_dir(mu)());
     master_printf("\n");
     
@@ -594,7 +594,7 @@ namespace nissa
     create_MPI_cartesian_grid();
     
     //calculate the local volume
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       _locSize(mu)=glbSize(mu)()/nrank_dir(mu)();
     locVol=(glbVol/(int64_t)nranks).nastyConvert(); //nasty
     locSpatVol=locVol/locTimeSize(); //nasty
@@ -603,7 +603,7 @@ namespace nissa
     //calculate bulk size
     bulkVol=1;
     nonBwSurfVol=1;
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       if(paral_dir(mu))
 	{
 	  bulkVol*=(locSize(mu)-2).nastyConvert(); //nasty
@@ -620,8 +620,8 @@ namespace nissa
     
     //calculate the border size
     bordVolh=0;
-    bord_offset(timeDirection)=0;
-    FOR_ALL_DIRECTIONS(mu)
+    bord_offset(tDir)=0;
+    FOR_ALL_DIRS(mu)
       {
 	//bord size along the mu dir
 	if(paral_dir(mu))
@@ -643,8 +643,8 @@ namespace nissa
     edge_vol=0;
     edge_offset[0]=0;
     int iedge=0;
-    FOR_ALL_DIRECTIONS(mu)
-      for(Direction nu=mu+1;nu<NDIM;nu++)
+    FOR_ALL_DIRS(mu)
+      for(Dir nu=mu+1;nu<NDIM;nu++)
 	{
 	  //edge among the i and j dir
 	  if(paral_dir(mu) and paral_dir(nu))
@@ -669,10 +669,10 @@ namespace nissa
     //set edge numb
     {
       int iedge=0;
-      FOR_ALL_DIRECTIONS(mu)
+      FOR_ALL_DIRS(mu)
 	{
 	  edge_numb[mu.nastyConvert()][mu.nastyConvert()]=-1;
-	  for(Direction nu=mu+1;nu<NDIM;nu++)
+	  for(Dir nu=mu+1;nu<NDIM;nu++)
 	    {
 	      edge_numb[mu.nastyConvert()][nu.nastyConvert()]=edge_numb[nu.nastyConvert()][mu.nastyConvert()]=iedge;
 	      iedge++;
@@ -682,17 +682,17 @@ namespace nissa
     
     //print information
     master_printf("Local volume\t%d",locTimeSize.nastyConvert());
-    for(Direction mu=1;mu<NDIM;mu++)
+    for(Dir mu=1;mu<NDIM;mu++)
       master_printf("x%d",locSize(mu).nastyConvert());
     master_printf(" = %d\n",locVol);
     master_printf("List of parallelized dirs:\t");
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       if(paral_dir(mu))
 	master_printf("%d ",mu);
     if(nparal_dir==0) master_printf("(none)");
     master_printf("\n");
     master_printf("Border size: %d\n",bordVol);
-    FOR_ALL_DIRECTIONS(mu)
+    FOR_ALL_DIRS(mu)
       verbosity_lv3_master_printf("Border offset for dir %d: %d\n",mu,bord_offset(mu).nastyConvert());
     
     //print orderd list of the rank names
@@ -706,8 +706,8 @@ namespace nissa
 	  {
 	    if(irank==rank)
 	      {
-		printf("Rank %d of %d running on processor %s: %d (%d",rank,nranks,proc_name,cart_rank,rank_coord(timeDirection).nastyConvert());
-		for(Direction mu=1;mu<NDIM;mu++)
+		printf("Rank %d of %d running on processor %s: %d (%d",rank,nranks,proc_name,cart_rank,rank_coord(tDir).nastyConvert());
+		for(Dir mu=1;mu<NDIM;mu++)
 		  printf(" %d",rank_coord(mu).nastyConvert());
 		printf(")\n");
 	      }

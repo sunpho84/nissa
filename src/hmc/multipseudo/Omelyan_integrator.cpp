@@ -206,7 +206,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  FOR_ALL_DIRECTIONS(mu)
+	  FOR_ALL_DIRS(mu)
 	    for(int ic1=0;ic1<NCOL;ic1++)
 	      for(int ic2=0;ic2<NCOL;ic2++)
 		complex_subt_the_prod_idouble(H[par][ieo.nastyConvert()][mu.nastyConvert()][ic1][ic2],F[par][ieo.nastyConvert()][mu.nastyConvert()][ic1][ic2],dt);
