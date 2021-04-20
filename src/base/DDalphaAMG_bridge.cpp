@@ -9,6 +9,7 @@
 #include <geometry/geometry_lx.hpp>
 #include <io/checksum.hpp>
 #include <io/input.hpp>
+#include <new_types/coords.hpp>
 #include <new_types/su3.hpp>
 #include <routines/ios.hpp>
 #include <routines/mpi_routines.hpp>
@@ -34,8 +35,8 @@ namespace DD
   /// Remap swapping x and z
   void remap_coord(int out[],const int in[])
   {
-    FOR_ALL_DIRS(mu)
-      out[mu]=in[nissa::scidac_mapping(nissa::Direction(mu))()];
+    for(int mu=0;mu<NDIM;mu++)
+      out[mu]=in[nissa::scidac_mapping(nissa::Dir(mu))()];
   }
   
   //return the coordinate transposed
@@ -223,10 +224,10 @@ namespace DD
 	
 	//sizes and coord
 	int glbSize[NDIM],nrank_dir[NDIM];
-	FOR_ALL_DIRS(mu)
+	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    glbSize[mu]=nissa::glbSize(nissa::Direction(mu))();
-	    nrank_dir[mu]=nissa::nrank_dir(nissa::Direction(mu))();
+	    glbSize[mu]=nissa::glbSize(nissa::Dir(mu))();
+	    nrank_dir[mu]=nissa::nrank_dir(nissa::Dir(mu))();
 	  }
 	remap_coord(init_params.global_lattice,glbSize);
 	remap_coord(init_params.procs,nrank_dir);
