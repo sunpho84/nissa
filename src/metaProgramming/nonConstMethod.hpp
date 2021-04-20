@@ -13,18 +13,21 @@ namespace nissa
   constexpr bool is_const_lvalue_reference_v=std::is_lvalue_reference<T>::value and std::is_const<std::remove_reference_t<T>>::value;
 
   template <typename T>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
   T* remove_const_if_ref_or_pointer(const T* a)
   {
     return (T*)a;
   }
   
   template <typename T>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
   decltype(auto) remove_const_if_ref_or_pointer(T&& a)
   {
     return a;
   }
   
   template <typename T>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
   T& remove_const_if_ref_or_pointer(const T& a)
   {
     return (T&)a;

@@ -137,9 +137,10 @@ namespace nissa
     
     //Equation (9) using solution_eos[EVN] as temporary vector
     inv_tmDkern_eoprec_square_eos(temp,guess_Koo,qu,nitermax,residue,varphi);
-    tm_quark_info mqu;
-    mqu.nastyCopy(qu);
+    
+    tm_quark_info mqu=qu;
     mqu.mass*=-1;
+    
     tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],mqu,temp);
     if(guess_Koo!=NULL) vector_copy(guess_Koo,temp); //if a guess was passed, return new one
     nissa_free(temp);

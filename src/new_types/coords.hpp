@@ -12,16 +12,16 @@ namespace nissa
   DECLARE_COMPONENT(Dir,int,NDIM);
   
   /// Temporal direction
-  constexpr Dir tDir=0;
+  inline CUDA_DEVICE Dir tDir=0;
   
   /// X direction
-  constexpr Dir xDir=1;
+  inline CUDA_DEVICE Dir xDir=1;
   
   /// Y direction
-  constexpr Dir yDir= 2;
+  inline CUDA_DEVICE Dir yDir= 2;
   
   /// Z direction
-  constexpr Dir zDir=3;
+  inline CUDA_DEVICE Dir zDir=3;
   
 #define FOR_ALL_DIRS(NAME)		\
   FOR_ALL_COMPONENT_VALUES(Dir,NAME)

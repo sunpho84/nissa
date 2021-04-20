@@ -89,6 +89,7 @@ namespace nissa
       return std::get<Tv>(dynamicSizes)();
     }
     
+    constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
     void nastyCopy(const Tensor& oth)
     {
       storage=oth.storage;

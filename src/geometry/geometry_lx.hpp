@@ -55,19 +55,15 @@ namespace nissa
   //-glb is relative to the global grid
   //-loc to the local one
   
-  /// Global lattice hcube sizes, internal implementation
-  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbCoords _glbSize;
-  
-  /// Global size
-  inline const GlbCoords& glbSize=
-    _glbSize;
+  /// Global lattice hcube sizes
+  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbCoords glbSize;
   
   /// Global size in time direction
   inline const GlbCoord& glbTimeSize=
     glbSize(tDir);
   
   /// Local lattice hcube sizes
-  EXTERN_GEOMETRY_LX LocCoords _locSize;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LocCoords _locSize;
   
   /// Local size
   inline const LocCoords& locSize=
@@ -78,7 +74,7 @@ namespace nissa
     locSize(tDir);
     
   /// Global 4D volume
-  EXTERN_GEOMETRY_LX GlbLxSite glbVol;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbLxSite glbVol;
   
   /// Global spatial volume
   EXTERN_GEOMETRY_LX GlbLxSite glbSpatVol;
@@ -233,11 +229,7 @@ namespace nissa
 #if NDIM >= 4
   EXTERN_GEOMETRY_LX int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];
 #endif
-  EXTERN_GEOMETRY_LX Coords<int> igamma_of_mu;
-#ifndef ONLY_INSTANTIATION
-  ={4,1,2,3}
-#endif
-    ;
+  EXTERN_GEOMETRY_LX CUDA_MANAGED Coords<int> igamma_of_mu;
   
   /// Return the staggered phases for a given site
   CUDA_HOST_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol);
@@ -275,7 +267,8 @@ namespace nissa
   }
   
   /// Return the index of site of coord x in a box of sides s
-  CUDA_HOST_DEVICE template <typename LxSite>
+  template <typename LxSite>
+  CUDA_HOST_DEVICE constexpr
   LxSite lx_of_coord(const Coords<LxSite>& x,const Coords<LxSite>& s)
   {
     LxSite ilx=0;

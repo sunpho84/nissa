@@ -222,8 +222,7 @@ namespace nissa
   //square of Koo
   void tmDkern_eoprec_square_eos(spin *out,spin *temp1,spin *temp2,const tm_quark_info& qu,spin *in)
   {
-    tm_quark_info mqu;
-    mqu.nastyCopy(qu);
+    tm_quark_info mqu=qu;
     mqu.mass*=-1;
     
     tmDkern_eoprec_eos(temp1,temp2,mqu, in   );

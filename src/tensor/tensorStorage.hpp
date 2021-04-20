@@ -89,7 +89,7 @@ namespace nissa
       }
       
       /// "Copy" constructor, actually taking a reference
-      CUDA_HOST_DEVICE
+      constexpr CUDA_HOST_DEVICE
       DynamicStorage(const DynamicStorage& oth) :
 	isRef(true),
 	dynSize(oth.dynSize),
@@ -120,11 +120,23 @@ namespace nissa
       }
       
       /// Move assignment
+      CUDA_HOST_DEVICE constexpr
       DynamicStorage& operator=(DynamicStorage&& oth)
       {
 	std::swap(isRef,oth.isRef);
 	std::swap(innerStorage,oth.innerStorage);
 	std::swap(dynSize,oth.dynSize);
+	
+	return *this;
+      }
+      
+      /// Copy assignment
+      CUDA_HOST_DEVICE constexpr
+      DynamicStorage& operator=(const DynamicStorage& oth)
+      {
+	isRef=oth.isRef;
+	innerStorage=oth.innerStorage;
+	dynSize=oth.dynSize;
 	
 	return *this;
       }
@@ -262,7 +274,7 @@ namespace nissa
     }
     
     /// Copy assignemnt
-    CUDA_HOST_DEVICE
+    CUDA_HOST_DEVICE constexpr
     TensorStorage& operator=(const TensorStorage& oth)
     {
       data=oth.data;

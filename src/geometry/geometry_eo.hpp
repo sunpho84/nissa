@@ -23,9 +23,9 @@ namespace nissa
   
   DECLARE_COMPONENT(Parity,int32_t,2);
   
-  constexpr Parity EVN=0;
+  inline CUDA_DEVICE Parity EVN=0;
   
-  constexpr Parity ODD=1;
+  inline CUDA_DEVICE Parity ODD=1;
   
 #define FOR_BOTH_PARITIES(NAME)			\
   FOR_ALL_COMPONENT_VALUES(Parity,NAME)

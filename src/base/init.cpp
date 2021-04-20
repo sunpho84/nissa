@@ -162,6 +162,11 @@ namespace nissa
     FOR_ALL_DIRS(mu)
       all_dirs(mu)=true;
     
+    igamma_of_mu(tDir)=4;
+    igamma_of_mu(xDir)=1;
+    igamma_of_mu(yDir)=2;
+    igamma_of_mu(zDir)=3;
+    
     FOR_ALL_DIRS(mu)
       FOR_ALL_DIRS(nu)
 	{
@@ -543,13 +548,13 @@ namespace nissa
     //set the volume
     if(T>0 and L>0)
       {
-	_glbSize(tDir)=T;
+	glbSize(tDir)=T;
 	FOR_ALL_SPATIAL_DIRS(mu)
-	  _glbSize(mu)=L;
+	  glbSize(mu)=L;
       }
     
     //broadcast the global sizes
-    coords_broadcast(_glbSize);
+    coords_broadcast(glbSize);
     
     //calculate global volume
     glbVol=1;

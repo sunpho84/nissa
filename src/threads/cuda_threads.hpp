@@ -6,6 +6,7 @@
 #endif
 
 #include <base/init.hpp>
+#include <routines/rank.hpp>
 
 #define NUM_THREADS 128
 
@@ -62,7 +63,7 @@ namespace nissa
     int i=(toPod(length+block_dimension.x-1)/block_dimension.x);
     const dim3 grid_dimension(i);
     
-    extern int rank,verbosity_lv;
+    extern int verbosity_lv;
     const bool print=(verbosity_lv>=2 and rank==0);
     if(print)
       printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
