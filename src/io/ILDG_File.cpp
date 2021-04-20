@@ -277,7 +277,7 @@ namespace nissa
     
     FOR_ALL_DIRS(mu)
       {
-	const Direction& nu=scidac_mapping(mu);
+	const Dir& nu=scidac_mapping(mu);
 	
 	mapped_glb_size[mu()]=glbSize(nu).nastyConvert();
 	mapped_loc_size[mu()]=locSize(nu).nastyConvert();
@@ -531,7 +531,7 @@ namespace nissa
       LocLxSite isour=0;
       FOR_ALL_DIRS(mu)
 	{
-	  const Direction& nu=scidac_mapping(mu);
+	  const Dir& nu=scidac_mapping(mu);
 	  isour=isour*locSize(nu)+locCoordOfLoclx(idest,nu);
 	}
 	  order[isour.nastyConvert()]=idest.nastyConvert();

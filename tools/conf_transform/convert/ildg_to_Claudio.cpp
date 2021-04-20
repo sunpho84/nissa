@@ -39,10 +39,10 @@ int main(int narg,char **arg)
   
   if(narg<7) crash("use: %s T LX LY LZ file_in file_out",arg[0]);
   
-  _glbSize(Dir(0))=atoi(arg[1]);
-  _glbSize(Dir(1))=atoi(arg[2]);
-  _glbSize(Dir(2))=atoi(arg[3]);
-  _glbSize(Dir(3))=atoi(arg[4]);
+  glbSize(Dir(0))=atoi(arg[1]);
+  glbSize(Dir(1))=atoi(arg[2]);
+  glbSize(Dir(2))=atoi(arg[3]);
+  glbSize(Dir(3))=atoi(arg[4]);
   in_conf_name=arg[5];
   out_conf_name=arg[6];
   

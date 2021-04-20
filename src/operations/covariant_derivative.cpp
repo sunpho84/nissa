@@ -228,7 +228,7 @@ namespace nissa
 	  								\
 	  /*put gmu on the difference*/					\
 	  TYPE gmu_bw_M_fw;						\
-	  NAME2(unsafe_dirac_prod,TYPE)(gmu_bw_M_fw,base_gamma+igamma_of_mu(mu),bw_M_fw); \
+	  NAME2(unsafe_dirac_prod,TYPE)(gmu_bw_M_fw,base_gamma+igamma_of_mu(mu).nastyConvert(),bw_M_fw); \
 	  NAME2(TYPE,summassign)(out[ivol.nastyConvert()],gmu_bw_M_fw);	\
 	}								\
   NISSA_PARALLEL_LOOP_END;						\

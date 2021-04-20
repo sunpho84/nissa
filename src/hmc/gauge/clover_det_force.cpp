@@ -51,7 +51,7 @@ namespace nissa
 		      for(Dir nu=mu+1;nu<NDIM;nu++)
 			{
 			  int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
-			  dirac_matr m=dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]);
+			  dirac_matr m=dirac_prod(base_gamma[igamma_of_mu(mu).nastyConvert()],base_gamma[igamma_of_mu(nu).nastyConvert()]);
 			  
 			  su3& ins=insertion[jeo.nastyConvert()][ipair];
 			  

@@ -530,7 +530,7 @@ namespace nissa
 	while(icombo<ncombo);
       }
     
-    if(!something_found) crash("no valid partitioning found");
+    if(not something_found) crash("no valid partitioning found");
   }
   
   //initialize MPI grid
@@ -600,7 +600,7 @@ namespace nissa
     
     //calculate the local volume
     FOR_ALL_DIRS(mu)
-      _locSize(mu)=glbSize(mu)()/nrank_dir(mu)();
+      locSize(mu)=glbSize(mu)()/nrank_dir(mu)();
     locVol=(glbVol/(int64_t)nranks).nastyConvert(); //nasty
     locSpatVol=locVol/locTimeSize(); //nasty
     //loc_vol2=(double)locVol*locVol;
@@ -686,8 +686,8 @@ namespace nissa
     }
     
     //print information
-    master_printf("Local volume\t%d",locTimeSize.nastyConvert());
-    for(Dir mu=1;mu<NDIM;mu++)
+    master_printf("Local volume\t%d",locTimeSize());
+    FOR_ALL_SPATIAL_DIRS(mu)
       master_printf("x%d",locSize(mu).nastyConvert());
     master_printf(" = %d\n",locVol);
     master_printf("List of parallelized dirs:\t");

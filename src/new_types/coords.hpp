@@ -29,9 +29,11 @@ namespace nissa
 #define FOR_ALL_SPATIAL_DIRS(NAME)	\
   for(Dir NAME=1;NAME<NDIM;NAME++)
   
+  /// Coordinates
   template <typename T>
   using Coords=Tensor<OfComps<Dir>,T>;
   
+  /// Momementum
   using Momentum=Tensor<OfComps<Dir>,double>;
   
   /// Copy coordinates
@@ -56,6 +58,25 @@ namespace nissa
   {
     coord_summ(s,s,a,l);
   }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Clifford algebra elements nasty remove from here
+#define NGAMMA 15
+  
+  DECLARE_COMPONENT(Gamma,int,NGAMMA);
+
+  inline CUDA_DEVICE Gamma GammaId=0;
+  
+  inline CUDA_DEVICE Gamma GammaX=1;
+  
+  inline CUDA_DEVICE Gamma GammaY=2;
+  
+  inline CUDA_DEVICE Gamma GammaZ=3;
+  
+  inline CUDA_DEVICE Gamma GammaT=4;
+  
+  inline CUDA_DEVICE Gamma Gamma5=5;
 }
 
 #endif

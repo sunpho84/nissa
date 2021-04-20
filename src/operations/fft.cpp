@@ -26,12 +26,12 @@ namespace nissa
   //if normal ordering TXYZ is present and you pass mu0=0,
   //it will put data in XYZT order. Than if called with mu0=1
   //it will put data in YZTX order, etc
-  void data_coordinate_order_shift(complex *data,int ncpp,const Direction& mu0)
+  void data_coordinate_order_shift(complex *data,int ncpp,const Dir& mu0)
   {
     int *pos=nissa_malloc("Pos",locVol.nastyConvert(),int);
     
     //order of directions
-    Coords<Direction> in_mu,out_mu;
+    Coords<Dir> in_mu,out_mu;
     FOR_ALL_DIRS(i)
       {
 	in_mu(i)=(mu0+i)%NDIM;
@@ -67,7 +67,7 @@ namespace nissa
   //  2) ft is done on the odd length blocks (not needed if data length is a power of 2)
   //  3) Lanczos lemma is implemented on the local data
   //  4) Lanczos lemma is applied on non-local data (if needed)
-  void fft1d(complex *out,complex *in,int ncpp,const Direction& mu,double sign,int normalize)
+  void fft1d(complex *out,complex *in,int ncpp,const Dir& mu,double sign,int normalize)
   {
     
     //allocate the buffer to send data

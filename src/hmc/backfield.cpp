@@ -35,7 +35,7 @@ namespace nissa
   //multiply a background field by the imaginary chemical potential
   void add_im_pot_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content)
   {
-    const double im_pot=quark_content->im_pot*M_PI/glbTimeSize();
+    const double im_pot=quark_content->im_pot*M_PI/glbSize(tDir).nastyConvert();
     const double c=cos(im_pot),s=sin(im_pot);
     
     FOR_BOTH_PARITIES(par)

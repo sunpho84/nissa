@@ -1,7 +1,7 @@
 #include <nissa.hpp>
 
 #define EXTERN_CONTR
- #include "contr.hpp"
+# include "contr.hpp"
 
 #include <set>
 
@@ -596,13 +596,13 @@ namespace nissa
       {
 	dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
 	FOR_ALL_DIRS(mu)
-	  dirac_prod(GAMMA+mu.nastyConvert(),base_gamma+5,base_gamma+igamma_of_mu(mu));
+	  dirac_prod(GAMMA+mu.nastyConvert(),base_gamma+5,base_gamma+igamma_of_mu(mu).nastyConvert());
       }
     else
       {
 	GAMMA[4]=temp_gamma;
 	FOR_ALL_DIRS(mu)
-	  GAMMA[mu.nastyConvert()]=base_gamma[igamma_of_mu(mu)];
+	  GAMMA[mu.nastyConvert()]=base_gamma[igamma_of_mu(mu).nastyConvert()];
       }
     
     dirac_matr g;
@@ -661,8 +661,8 @@ namespace nissa
     
     dirac_matr *GAMMA=nissa_malloc("GAMMA",NDIM,dirac_matr);
 	FOR_ALL_DIRS(mu)
-      if(revert) dirac_prod(GAMMA+mu.nastyConvert(),base_gamma+5,base_gamma+igamma_of_mu(mu));
-      else       GAMMA[mu.nastyConvert()]=base_gamma[igamma_of_mu(mu)];
+      if(revert) dirac_prod(GAMMA+mu.nastyConvert(),base_gamma+5,base_gamma+igamma_of_mu(mu).nastyConvert());
+      else       GAMMA[mu.nastyConvert()]=base_gamma[igamma_of_mu(mu).nastyConvert()];
     
     dirac_matr g;
     if(revert) dirac_prod(&g,ext_g,base_gamma+5);

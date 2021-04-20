@@ -299,7 +299,7 @@ namespace nissa
 	      const LocLxSite ivol=loclx_of_loceo(par,ieo);
 	      
 	      color_put_to_zero(out[par.nastyConvert()][ieo.nastyConvert()]);
-	      if(t<0  or  t>=glbTimeSize or glbCoordOfLoclx(ivol,tDir)==t)
+	      if(t<0 or t>=glbSize(tDir)() or glbCoordOfLoclx(ivol,tDir)==t)
 		FOR_ALL_DIRS(mu)
 		  {
 		    color temp;

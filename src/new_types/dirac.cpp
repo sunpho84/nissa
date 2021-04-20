@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #define EXTERN_DIRAC
@@ -82,8 +82,8 @@ namespace nissa
 	spinspin_put_to_id(opg[mu]);
 	spinspin_put_to_id(omg[mu]);
 	
-	spinspin_dirac_summ_the_prod_double(opg[mu],&(base_gamma[igamma_of_mu(Dir(mu))]),+1);
-	spinspin_dirac_summ_the_prod_double(omg[mu],&(base_gamma[igamma_of_mu(Dir(mu))]),-1);
+	spinspin_dirac_summ_the_prod_double(opg[mu],&(base_gamma[igamma_of_mu(Dir(mu)).nastyConvert()]),+1);
+	spinspin_dirac_summ_the_prod_double(omg[mu],&(base_gamma[igamma_of_mu(Dir(mu)).nastyConvert()]),-1);
       }
   }
 }

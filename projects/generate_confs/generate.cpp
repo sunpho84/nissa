@@ -230,10 +230,10 @@ void init_simulation(char *path)
   if(drv->theories.size()==0) crash("need to specify a theory");
   
   //geometry
-  _glbSize(Dir(0))=drv->T;
-  _glbSize(xDir)=drv->LX;
-  _glbSize(yDir)=drv->LY;
-  _glbSize(zDir)=drv->LZ;
+  glbSize(Dir(0))=drv->T;
+  glbSize(xDir)=drv->LX;
+  glbSize(yDir)=drv->LY;
+  glbSize(zDir)=drv->LZ;
   init_grid(0,0);
   
   top_meas_time=nissa_malloc("top_meas_time",drv->top_meas.size(),double);
@@ -898,7 +898,7 @@ void xQhatx_der_old(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,
   
   const LocEoSite& iup=loceo_neighup(eo,ieo,dir);
   unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[iup.nastyConvert()]);
-  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(dir),in[iup.nastyConvert()]);
+  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(dir).nastyConvert(),in[iup.nastyConvert()]);
   //safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
   
   for(int ic1=0;ic1<NCOL;ic1++)
@@ -1250,7 +1250,7 @@ void xQ2eex_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,doub
     	for(Dir nu=mu+1;nu<NDIM;nu++)
 	  {
 	    const int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
-	    dirac_matr m=dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]);
+	    dirac_matr m=dirac_prod(base_gamma[igamma_of_mu(mu).nastyConvert()],base_gamma[igamma_of_mu(nu).nastyConvert()]);
 	    
 	    su3& ins=insertion[jeo.nastyConvert()][ipair];
 	    
@@ -1408,7 +1408,7 @@ void xQee_inv_x_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,
     for(Dir nu=mu+1;nu<NDIM;nu++)
       {
 	int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
-	m[ipair]=dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]);
+	m[ipair]=dirac_prod(base_gamma[igamma_of_mu(mu).nastyConvert()],base_gamma[igamma_of_mu(nu).nastyConvert()]);
 	dirac_prod_double(&m[ipair],&m[ipair],-cSW/4);
 	  
 	  // print_dirac(m+ipair);

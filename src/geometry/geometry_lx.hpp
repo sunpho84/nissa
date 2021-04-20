@@ -58,21 +58,17 @@ namespace nissa
   /// Global lattice hcube sizes
   CUDA_MANAGED EXTERN_GEOMETRY_LX GlbCoords glbSize;
   
+  /// Local lattice hcube sizes
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LocCoords locSize;
+  
   /// Global size in time direction
   inline const GlbCoord& glbTimeSize=
     glbSize(tDir);
   
-  /// Local lattice hcube sizes
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LocCoords _locSize;
-  
-  /// Local size
-  inline const LocCoords& locSize=
-    _locSize;
-  
   /// Local size in time direction
   inline const LocCoord& locTimeSize=
     locSize(tDir);
-    
+  
   /// Global 4D volume
   CUDA_MANAGED EXTERN_GEOMETRY_LX GlbLxSite glbVol;
   
@@ -83,7 +79,7 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX LocLxSite locVol;
   
   /// Local spatial volume
-  EXTERN_GEOMETRY_LX LocLxSite locSpatVol;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LocLxSite locSpatVol;
   
   /// Half the global volume
   EXTERN_GEOMETRY_LX GlbEoSite glbVolh;
@@ -110,7 +106,7 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,GlbCoord> glbCoordOfLoclx;
   
   /// Local coordinates of local sites
-  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,LocCoord> locCoordOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,LocCoord> locCoordOfLoclx;
   
   /// Global site given the local site
   EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,GlbLxSite> glblxOfLoclx;
@@ -210,26 +206,34 @@ namespace nissa
   EXTERN_GEOMETRY_LX Coords<BordLxSite> bord_offset;
   
   EXTERN_GEOMETRY_LX LocLxSite edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
-  EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   
   /// Mapping of ILDG direction w.r.t native
-  EXTERN_GEOMETRY_LX Coords<Dir> scidac_mapping;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords<Dir> scidac_mapping;
   
   //perpendicular dir
   EXTERN_GEOMETRY_LX Coords<bool> all_dirs;
   EXTERN_GEOMETRY_LX Coords<bool> only_dir[NDIM];
   EXTERN_GEOMETRY_LX Coords<bool> all_other_dirs[NDIM];
   EXTERN_GEOMETRY_LX Coords<bool> all_other_spat_dirs[NDIM];
+  
 #if NDIM >= 2
-  EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
 #endif
+  
 #if NDIM >= 3
   EXTERN_GEOMETRY_LX int perp2_dir[NDIM][NDIM-1][NDIM-2];
 #endif
+  
 #if NDIM >= 4
   EXTERN_GEOMETRY_LX int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];
 #endif
-  EXTERN_GEOMETRY_LX CUDA_MANAGED Coords<int> igamma_of_mu;
+  
+  EXTERN_GEOMETRY_LX CUDA_MANAGED Coords<Gamma> igamma_of_mu
+#ifndef ONLY_INSTANTIATION
+  ={GammmaT,GammaX,GammaY,GammaZ}
+#endif
+    ;
   
   /// Return the staggered phases for a given site
   CUDA_HOST_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol);

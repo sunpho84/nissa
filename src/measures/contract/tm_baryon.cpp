@@ -70,10 +70,10 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	/// Distance from source
-	const GlbCoord dt=(glbCoordOfLoclx(ivol,tDir)-source_coord+glbTimeSize)%glbTimeSize;
+	const GlbCoord dt=(glbCoordOfLoclx(ivol,tDir)-source_coord+glbSize(tDir))%glbSize(tDir);
 	
 	/// Determine whether we are in the first half
-	const bool first_half=(dt<=glbTimeSize/2);
+	const bool first_half=(dt<=glbSize(tDir)/2);
 	
 	//Compute the projector, gi*gj*(1 or g0)
 	dirac_matr proj[nIdg0];

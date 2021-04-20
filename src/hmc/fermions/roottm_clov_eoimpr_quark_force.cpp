@@ -23,7 +23,7 @@ namespace nissa
     
     spincolor temp;
     spincolor_copy(temp,a[(1-eo).nastyConvert()][ineoup.nastyConvert()]);
-    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(mu),a[(1-eo).nastyConvert()][ineoup.nastyConvert()]);
+    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(mu).nastyConvert(),a[(1-eo).nastyConvert()][ineoup.nastyConvert()]);
     safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
     
     for(int ic1=0;ic1<NCOL;ic1++)
@@ -49,7 +49,7 @@ namespace nissa
 	      for(Dir nu=mu+1;nu<NDIM;nu++)
 		{
 		  int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
-		  dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu(mu)],base_gamma[igamma_of_mu(nu)]));
+		  dirac_matr m=dirac_prod(base_gamma[5],dirac_prod(base_gamma[igamma_of_mu(mu).nastyConvert()],base_gamma[igamma_of_mu(nu).nastyConvert()]));
 		  
 		  su3& ins=cl_insertion[eo][jeo.nastyConvert()][ipair];
 		  spincolor tempX,tempY;
@@ -200,7 +200,7 @@ namespace nissa
 		    
 		    spincolor temp;
 		    spincolor_copy(temp,a);
-		    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(mu),a);
+		    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(mu).nastyConvert(),a);
 		    safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
 		    
 		    for(int ic1=0;ic1<NCOL;ic1++)

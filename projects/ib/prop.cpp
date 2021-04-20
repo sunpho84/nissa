@@ -1,7 +1,7 @@
 #include <nissa.hpp>
 
 #define EXTERN_PROP
- #include "prop.hpp"
+# include "prop.hpp"
 
 #include <set>
 #include <tuple>
@@ -148,7 +148,7 @@ namespace nissa
 	  if(t==-1 or glbCoordOfLoclx(ivol,tDir)==t)
 	    {
 	      spincolor temp1,temp2;
-	      unsafe_dirac_prod_spincolor(temp1,base_gamma+igamma_of_mu(mu),in[ivol.nastyConvert()]);
+	      unsafe_dirac_prod_spincolor(temp1,base_gamma+igamma_of_mu(mu).nastyConvert(),in[ivol.nastyConvert()]);
 	      unsafe_spincolor_prod_complex(temp2,temp1,curr[ivol.nastyConvert()][mu.nastyConvert()]);
 	      spincolor_summ_the_prod_idouble(out[ivol.nastyConvert()],temp2,1);
 	    }
