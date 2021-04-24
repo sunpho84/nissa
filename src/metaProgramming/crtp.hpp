@@ -10,12 +10,13 @@ namespace nissa
   struct Crtp
   {
     /// Crtp access the type
+    CUDA_HOST_DEVICE
     const T& crtp() const
     {
       return *static_cast<const T*>(this);
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD(crtp);
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(crtp,CUDA_HOST_DEVICE);
   };
 }
 

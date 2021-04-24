@@ -181,6 +181,25 @@ namespace nissa
   template <typename...Ts>
   using UniqueTuple=
     typename details::_UniqueTuple<std::tuple<>,Ts...>::type;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Get the list elements from
+  template <typename...Tout,
+	    typename...Tin>
+  auto tupleGetMany(const std::tuple<Tin...>& in)
+  {
+    return std::make_tuple(std::get<Tout>(in)...);
+  }
+  
+  /// Get the list elements from
+  template <typename...Tout,
+	    typename...Tin>
+  void tupleFillWithSubset(std::tuple<Tout...>& out,
+			   const std::tuple<Tin...>& in)
+  {
+    out=tupleGetMany<Tout...>(in);
+  }
 }
 
 #endif

@@ -60,7 +60,7 @@ namespace nissa
   
   /// Local lattice hcube sizes
   CUDA_MANAGED EXTERN_GEOMETRY_LX LocCoords locSize;
-  
+
   /// Global size in time direction
   inline const GlbCoord& glbTimeSize=
     glbSize(tDir);
@@ -162,13 +162,13 @@ namespace nissa
   /// Neighbours in the forwkward direction
   CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighup;
   
-  INLINE_FUNCTION CUDA_HOST_DEVICE
-  const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(int verse) //nasty
-  {
-    const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
+  // INLINE_FUNCTION CUDA_HOST_DEVICE
+  // const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(int verse) //nasty
+  // {
+  //   const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
     
-    return *ref[verse];
-  }
+  //   return *ref[verse];
+  // }
   
   /// Keep track of whether the grid is initialized
   EXTERN_GEOMETRY_LX bool gridInited;
@@ -287,7 +287,7 @@ namespace nissa
   INLINE_FUNCTION
   GlbLxSite glblx_of_coord(const GlbCoords& x)
   {
-    return lx_of_coord(x,glbSize);
+    return lx_of_coord<GlbLxSite>(x,glbSize);
   }
   
   /// Returns the global index of a site of a list of coords

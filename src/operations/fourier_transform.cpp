@@ -17,7 +17,6 @@ namespace nissa
   //interpret free index as source or sink
   void pass_spinspin_from_mom_to_x_space(spinspin* out,spinspin* in,const Coords<bool>& dirs,const Momentum& bc,int source_or_sink,bool include_phases)
   {
-    
     //compute the main part of the fft
     //+1 if sink, -1 if source
     int sign[2]={-1,+1};

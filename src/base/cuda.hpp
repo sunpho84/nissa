@@ -24,7 +24,7 @@ namespace nissa
   /// True or false depending on whether we are compiling on device
   [[ maybe_unused ]]
   constexpr bool CompilingForDevice=
-#ifdef COMPILING_FOR_DEVICE
+#ifdef __CUDA_ARCH__
     true
 #else
     false
