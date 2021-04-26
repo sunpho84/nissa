@@ -15,7 +15,7 @@
 
 namespace nissa
 {
-#define TENSOR Tensor<TensorComps<TC...>,F,SL,true>
+#define TENSOR Tensor<TensorComps<TC...>,F,SL,TensorDynamicity::DYNAMIC_TENSOR>
 #define BASE_TENSOR BaseTensor<TENSOR,TensorComps<TC...>,F>
   
   /// Tensor
@@ -51,26 +51,41 @@ namespace nissa
     
     /// Allocate the storage
     template <typename...TD>
-    CUDA_HOST_DEVICE constexpr
+    constexpr
     void allocate(const TensorComps<TD...>& td)
     {
+      this->indexComputer.setDynamicSizes(td);
       storageSize=this->indexComputer.maxVal();
       storage=memoryManager<SL>()->template provide<Fund>(storageSize);
     }
     
+    /// Allocate the storage when sizes are passed as a list of TensorComp
+    template <typename...TDfeat>
+    constexpr
+    void allocate(const TensorCompFeat<TDfeat>&...tdFeat)
+    {
+      allocate(std::make_tuple(tdFeat.deFeat()...));
+    }
+    
     /// Initialize the tensor with the knowledge of the dynamic sizes
     template <typename...TD>
-    CUDA_HOST_DEVICE constexpr
+    constexpr
     explicit Tensor(const TensorComps<TD...>& td)
     {
       allocate(td);
     }
     
+    /// Initialize the tensor without allocating
+    constexpr
+    explicit Tensor()
+    {
+    }
+    
     /// Initialize the tensor when sizes are passed as a list of TensorComp
-    template <typename...TD>
-    CUDA_HOST_DEVICE constexpr
-    explicit Tensor(const TensorComp<TD>&...td) :
-      Tensor(std::make_tuple(td...))
+    template <typename...TDfeat>
+    constexpr
+    explicit Tensor(const TensorCompFeat<TDfeat>&...td) :
+      Tensor(std::make_tuple(td.deFeat()...))
     {
     }
     

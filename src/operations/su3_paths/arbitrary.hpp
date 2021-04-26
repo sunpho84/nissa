@@ -177,13 +177,14 @@ namespace nissa
     
     Movement()
     {
-      for(Dir mu=0;mu<NDIM;mu++)
+      FOR_ALL_DIRS(mu)
 	c(mu)=0;
     }
     
     Movement(const Movement &oth)
     {
-      c.nastyCopy(oth.c);
+      FOR_ALL_DIRS(mu)
+	c(mu)=oth.c(mu);
     }
   };
   

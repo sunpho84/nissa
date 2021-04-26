@@ -17,8 +17,10 @@ namespace nissa
 {
   void tmn2Deo_or_tmn2Doe_eos(spin *out,const Parity& eooe,spin *in,const Momentum& bc)
   {
-    if(eooe==0) communicate_od_spin_borders(in);
-    else        communicate_ev_spin_borders(in);
+    if(eooe==EVN)
+      communicate_od_spin_borders(in);
+    else
+      communicate_ev_spin_borders(in);
     
     std::array<complex,4> phases;
     FOR_ALL_DIRS(mu)
@@ -153,12 +155,12 @@ namespace nissa
   //wrappers
   void tmn2Doe_eos(spin *out,spin *in,const Momentum& bc)
   {
-    tmn2Deo_or_tmn2Doe_eos(out,1,in,bc);
+    tmn2Deo_or_tmn2Doe_eos(out,ODD,in,bc);
   }
   
   void tmn2Deo_eos(spin *out,spin *in,const Momentum& bc)
   {
-    tmn2Deo_or_tmn2Doe_eos(out,0,in,bc);
+    tmn2Deo_or_tmn2Doe_eos(out,EVN,in,bc);
   }
   
   //implement ee or oo part of Dirac operator, equation(3)

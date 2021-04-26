@@ -30,11 +30,12 @@ namespace nissa
   for(Dir NAME=1;NAME<NDIM;NAME++)
   
   /// Coordinates
-  template <typename T>
-  using Coords=Tensor<OfComps<Dir>,T>;
+  template <typename T,
+	    StorLoc SL=DefaultStorage>
+  using Coords=Tensor<OfComps<Dir>,T,SL,TensorDynamicity::STACKED_TENSOR>;
   
   /// Momementum
-  using Momentum=Tensor<OfComps<Dir>,double>;
+  using Momentum=Tensor<OfComps<Dir>,double,DefaultStorage,TensorDynamicity::STACKED_TENSOR>;
   
   /// Copy coordinates
   template <typename T>

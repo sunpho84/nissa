@@ -28,15 +28,16 @@ namespace nissa
     
     /// Set the dynamic sizes
     template <typename...TD>
+    CUDA_HOST_DEVICE
     void setDynamicSizes(const TensorComps<TD...>& td)
     {
       static_assert(sizeof...(TD)==std::tuple_size_v<DynamicComps>,"Cannot allocate without knowledge of all the dynamic sizes");
       
-      tupleFillWithSubset(this->indexComputer.dynamicSizes,td);
+      tupleFillWithSubset(dynamicSizes,td);
     }
     
     /// Static component maximal value
-    static constexpr Index staticMaxValue=
+    static constexpr Index staticPartMaxValue=
       ((TC::sizeIsKnownAtCompileTime?
 	TC::sizeAtCompileTime():
        Index{1})*...);
@@ -78,9 +79,9 @@ namespace nissa
     static constexpr bool allCompsAreStatic=
       std::is_same<DynamicComps,std::tuple<>>::value;
     
-    /// Computes the maximal value size at compile time, if known
-    static constexpr Index maxValAtCompileTime=
-      allCompsAreStatic?(Index)staticMaxValue:(Index)DYNAMIC;
+    // /// Computes the maximal value size at compile time, if known
+    // static constexpr Index maxValAtCompileTime=
+    //   allCompsAreStatic?(Index)staticPartMaxValue:(Index)DYNAMIC;
     
     /// Compute the maximal value at compile time
     constexpr Index maxVal()

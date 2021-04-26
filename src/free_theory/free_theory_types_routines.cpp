@@ -11,7 +11,10 @@ namespace nissa
   gauge_info create_tlSym_gauge_info(const double& alpha,const Momentum& bc,const double& c1=-1.0/12)
   {
     gauge_info out;
-    out.bc.nastyCopy(bc);
+    
+    FOR_ALL_DIRS(mu)
+      out.bc(mu)=bc(mu);
+    
     out.alpha=alpha;
     out.c1=c1;
     
@@ -26,7 +29,8 @@ namespace nissa
   tm_quark_info create_twisted_quark_info(const double& kappa,const double& mass,const Momentum& bc,const int& r,const double& zmp=0)
   {
     tm_quark_info out;
-    out.bc.nastyCopy(bc);
+    FOR_ALL_DIRS(mu)
+      out.bc(mu)=bc(mu);
     out.kappa=kappa;
     out.zmp=zmp;
     out.mass=mass;

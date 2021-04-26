@@ -116,8 +116,11 @@ namespace nissa
     
     fft_mom_range_t(const fft_mom_range_t& oth)
     {
-      offs.nastyCopy(oth.offs);
-      width.nastyCopy(oth.width);
+      FOR_ALL_DIRS(mu)
+	{
+	  offs(mu)=oth.offs(mu);
+	  width(mu)=oth.width(mu);
+	}
     }
   };
   

@@ -162,13 +162,13 @@ namespace nissa
   /// Neighbours in the forwkward direction
   CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighup;
   
-  // INLINE_FUNCTION CUDA_HOST_DEVICE
-  // const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(int verse) //nasty
-  // {
-  //   const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
-    
-  //   return *ref[verse];
-  // }
+  INLINE_FUNCTION CUDA_HOST_DEVICE
+  const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(int verse) //nasty
+  {
+     const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
+     
+     return *ref[verse];
+  }
   
   /// Keep track of whether the grid is initialized
   EXTERN_GEOMETRY_LX bool gridInited;

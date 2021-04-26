@@ -30,7 +30,10 @@ namespace nissa
     {
       kappa=oth.kappa;
       mass=oth.mass;
-      bc.nastyCopy(oth.bc);
+      
+      FOR_ALL_DIRS(mu)
+	bc(mu)=oth.bc(mu);
+      
       zmp=oth.zmp;
       r=oth.r;
     }
@@ -48,9 +51,10 @@ namespace nissa
     tm_quark_info(const double& kappa,const double& mass,const int& r,const Momentum& _bc) :
       kappa(kappa),mass(mass),zmp(0),r(r)
     {
-      bc.nastyCopy(_bc);
+      FOR_ALL_DIRS(mu)
+	bc(mu)=_bc(mu);
     }
-      
+    
     tm_quark_info() {}
   };
   
@@ -76,7 +80,9 @@ namespace nissa
       zms=oth.zms;
       alpha=oth.alpha;
       c1=oth.c1;
-      bc.nastyCopy(oth.bc);
+      
+      FOR_ALL_DIRS(mu)
+	bc(mu)=oth.bc(mu);
     }
 };
   

@@ -96,7 +96,8 @@ namespace nissa
     internal_fermion_flower_t(const double& dt,const Coords<bool>& ext_dirs) : dt(dt)
     {
       //copy dirs
-      dirs.nastyCopy(ext_dirs);
+      FOR_ALL_DIRS(mu)
+	dirs(mu)=ext_dirs(mu);
       
       //allocate confs
       for(int iter=0;iter<nint_steps;iter++)

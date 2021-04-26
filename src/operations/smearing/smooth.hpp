@@ -30,16 +30,17 @@ namespace nissa
     {
       Coords<bool> res;
       
+      FOR_ALL_DIRS(mu)
       switch(space_or_time)
       {
       case SPACE:
-	res.nastyCopy(all_other_dirs[0]);
+	res(mu)=all_other_dirs[0](mu);
 	break;
       case TIME:
-	res.nastyCopy(only_dir[0]);
+	res(mu)=only_dir[0](mu);
 	break;
       case SPACETIME:
-	res.nastyCopy(all_dirs);
+	res(mu)=all_dirs(mu);
 	break;
       default:
 	crash("Unknown type");

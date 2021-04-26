@@ -15,7 +15,7 @@
 
 namespace nissa
 {
-#define TENSOR Tensor<TensorComps<TC...>,F,SL,false>
+#define TENSOR Tensor<TensorComps<TC...>,F,SL,TensorDynamicity::STACKED_TENSOR>
 #define BASE_TENSOR BaseTensor<TENSOR,TensorComps<TC...>,F>
   
   /// Tensor
@@ -44,7 +44,7 @@ namespace nissa
     
     /// Storage size
     static constexpr Size storageSize=
-      IndexComputer<Comps>::maxValAtCompileTime;
+      IndexComputer<Comps>::staticPartMaxValue;
     
     /// Copy constructor
     constexpr CUDA_HOST_DEVICE INLINE_FUNCTION

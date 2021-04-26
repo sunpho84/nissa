@@ -88,10 +88,10 @@ namespace nissa
     int periods[NDIM];
     FOR_ALL_DIRS(mu)
       periods[mu()]=1;
-    MPI_Cart_create(MPI_COMM_WORLD,NDIM,(int*)nrank_dir.getDataPtr(),periods,1,&cart_comm); //nasty
+    MPI_Cart_create(MPI_COMM_WORLD,NDIM,(int*)nrank_dir.storage,periods,1,&cart_comm); //nasty
     //takes rank and ccord of local rank
     MPI_Comm_rank(cart_comm,&_cart_rank);
-    MPI_Cart_coords(cart_comm,cart_rank,NDIM,(int*)rank_coord.getDataPtr()); //nasty
+    MPI_Cart_coords(cart_comm,cart_rank,NDIM,(int*)rank_coord.storage); //nasty
     
     //create communicator along plan
     FOR_ALL_DIRS(mu)
@@ -103,7 +103,7 @@ namespace nissa
 	    split_plan(nu)=(nu==mu) ? 0 : 1;
 	    proj_rank_coord(nu)=(nu==mu) ? 0 : rank_coord(nu);
 	  }
-	MPI_Cart_sub(cart_comm,(int*)split_plan.getDataPtr(),&(plan_comm[mu.nastyConvert()])); //nasty
+	MPI_Cart_sub(cart_comm,(int*)split_plan.storage,&(plan_comm[mu.nastyConvert()])); //nasty
 	MPI_Comm_rank(plan_comm[mu.nastyConvert()],&(plan_rank(mu)()));
 	if(plan_rank(mu)!=rank_of_coord(proj_rank_coord))
 	  crash("Plan communicator has messed up coord: %d and rank %d (implement reorder!)",
