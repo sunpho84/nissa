@@ -24,7 +24,7 @@ namespace nissa
       TupleFilter<predicate::SizeIsKnownAtCompileTime<false>::t,UniqueTuple<TC...>>;
     
     /// Sizes of the dynamic components
-    DynamicComps dynamicSizes{};
+    DynamicComps dynamicSizes;
     
     /// Set the dynamic sizes
     template <typename...TD>

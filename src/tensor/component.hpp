@@ -179,11 +179,17 @@ namespace nissa
       return sizeAtCompileTime();
     }
     
+    /// Default constructor
+    INLINE_FUNCTION CUDA_HOST_DEVICE
+    constexpr TensorComp()
+    {
+    }
+    
     /// Init from value
     template <typename T=Index,
 	      ENABLE_THIS_TEMPLATE_IF(isSafeNumericConversion<Index,T>)>
     INLINE_FUNCTION CUDA_HOST_DEVICE
-    constexpr TensorComp(T&& i=0) : i(i)
+    constexpr TensorComp(T&& i) : i(i)
     {
     }
     
