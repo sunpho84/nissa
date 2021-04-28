@@ -161,16 +161,6 @@ namespace nissa
     }
     
     PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
-    
-    /// Full list of indices passed, not necessarily in the same order
-    template <typename...TD>
-    CUDA_HOST_DEVICE constexpr INLINE_FUNCTION
-    const Fund& operator()(const TD&...td) const
-    {
-      return eval(td...);
-    }
-    
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator(),CUDA_HOST_DEVICE);
   };
 }
 
