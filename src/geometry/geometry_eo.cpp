@@ -113,6 +113,13 @@ namespace nissa
     
     master_printf("E/O Geometry intialized\n");
     
+    loclx_parity.consolidate();
+    loceo_of_loclx.consolidate();
+    loclx_of_loceo.consolidate();
+    surfeo_of_bordeo.consolidate();
+    loceo_neighup.consolidate();
+    loceo_neighdw.consolidate();
+    
     eo_geom_inited=1;
   }
   
@@ -182,6 +189,13 @@ namespace nissa
       crash("asking to unset never initialized E/O Geometry!");
     
     master_printf("Unsetting E/O Geometry\n");
+    
+    loclx_parity.dealloc();
+    loceo_of_loclx.dealloc();
+    loclx_of_loceo.dealloc();
+    surfeo_of_bordeo.dealloc();
+    loceo_neighup.dealloc();
+    loceo_neighdw.dealloc();
     
     eo_geom_inited=0;
   }
