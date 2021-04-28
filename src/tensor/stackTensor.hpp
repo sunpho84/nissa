@@ -55,6 +55,15 @@ namespace nissa
     
     /// Actual storage
     Fund storage[storageSize];
+    
+    /// Evaluate, returning a reference to the fundamental type
+    CUDA_HOST_DEVICE INLINE_FUNCTION
+    const Fund& eval(const TC&...tc) const
+    {
+      return storage[this->indexComputer(tc...)];
+    }
+    
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
   };
 }
 
