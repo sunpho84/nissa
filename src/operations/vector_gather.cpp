@@ -31,16 +31,19 @@ namespace nissa
 	int *ord=nissa_malloc("ord",glbVol.nastyConvert(),int);
 	RankCoords r;
 	for(Rank irank=0;irank<nranks;irank++)
-	  for(LocLxSite ivol=0;ivol<locVol;ivol++)
-	    {
-	      GlbCoords g;
-	      FOR_ALL_DIRS(mu)
-		g(mu)=r(mu)()*locSize(mu)()+locCoordOfLoclx(ivol,mu)();
-			    
-	      const GlbLxSite& glb_site=glblx_of_coord(g);
-			    
-	      ord[ivol.nastyConvert()]=glb_site.nastyConvert();
-	    }
+	  {
+	    coord_of_rank(r,irank);
+	    for(LocLxSite ivol=0;ivol<locVol;ivol++)
+	      {
+		GlbCoords g;
+		FOR_ALL_DIRS(mu)
+		  g(mu)=r(mu)()*locSize(mu)()+locCoordOfLoclx(ivol,mu)();
+		
+		const GlbLxSite& glb_site=glblx_of_coord(g);
+		
+		ord[ivol.nastyConvert()]=glb_site.nastyConvert();
+	      }
+	  }
 	
 	reorder_vector(glb,ord,glbVol.nastyConvert(),bps);
 	

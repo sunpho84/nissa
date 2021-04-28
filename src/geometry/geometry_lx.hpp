@@ -255,7 +255,7 @@ namespace nissa
       }
   }
   
-  void coord_of_rank(Coords<int>& c,const int& irank); //nasty
+  void coord_of_rank(RankCoords& c,const Rank& x); //nasty
   
   /// Return the index of site of coord x in the 2d space obtained projecting away mu and nu
   template <typename LxSite>
