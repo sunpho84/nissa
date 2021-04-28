@@ -48,48 +48,12 @@ namespace nissa
     /// Index computer
     IC indexComputer;
     
-    /// Evaluate, returning a reference to the fundamental type
-    ///
-    /// Case in which the components are not yet correctly ordered
-    template <typename...TD,
-	      ENABLE_THIS_TEMPLATE_IF(sizeof...(TD)==sizeof...(TC))>
-    CUDA_HOST_DEVICE INLINE_FUNCTION
-    const Fund& eval(const TD&...td) const
-    {
-      return eval(std::get<TC>(std::make_tuple(td...))...);
-    }
-    
-    /// Evaluate, returning a reference to the fundamental type
-    CUDA_HOST_DEVICE INLINE_FUNCTION
-    const Fund& eval(const TC&...tc) const
-    {
-// #ifdef COMPILING_FOR_DEVICE
-//       if constexpr(SL==StorLoc::ON_CPU)
-// 	__trap();
-// #else
-//       if constexpr(SL==StorLoc::ON_GPU)
-// 	crash("Cannot access device memory from host");
-// #endif
-      // /// Check that we are not accessing device memory from the host
-      // constexpr bool accessDeviceMemoryOnHost=(SL==StorLoc::ON_GPU) and not CompilingForDevice;
-      
-      // /// Check that we are not accessing host memory on device
-      // constexpr bool accessHostMemoryOnDevice=(SL==StorLoc::ON_CPU) and CompilingForDevice;
-      
-      // static_assert(not accessDeviceMemoryOnHost,"Cannot access device memory from host");
-      // static_assert(not accessHostMemoryOnDevice,"Cannot access host memory from device");
-      
-      return this->crtp().storage[indexComputer(tc...)];
-    }
-    
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
-    
     /// Full list of indices passed, not necessarily in the same order
     template <typename...TD>
     CUDA_HOST_DEVICE constexpr INLINE_FUNCTION
     const Fund& operator()(const TD&...td) const
     {
-      return eval(td...);
+      return this->crtp().eval(td...);
     }
     
     PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator(),CUDA_HOST_DEVICE);
