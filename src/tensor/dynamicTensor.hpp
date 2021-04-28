@@ -54,6 +54,9 @@ namespace nissa
     constexpr
     void allocate(const TensorComps<TD...>& td)
     {
+      if(allocated)
+	crash("Already allocated");
+      
       this->indexComputer.setDynamicSizes(td);
       storageSize=this->indexComputer.maxVal();
       storage=memoryManager<SL>()->template provide<Fund>(storageSize);
@@ -77,8 +80,9 @@ namespace nissa
     
     /// Initialize the tensor without allocating
     constexpr
-    explicit Tensor()
+    Tensor()
     {
+      allocated=false;
     }
     
     /// Initialize the tensor when sizes are passed as a list of TensorComp

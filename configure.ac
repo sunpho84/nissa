@@ -435,7 +435,11 @@ Number of colors    : $ncol"
 
 if test "$with_threads_type" = "cuda"
 then
-	CPPFLAGS="-dc --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
+     case "$CXX" in
+     	  nvcc) CPPFLAGS="-dc --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS";;
+     	  clang++) CPPFLAGS="-xcuda $CPPFLAGS";;
+     	  *) AC_MSG_ERROR(["Unkwnown how to compile cuda code with $CXX"])
+     esac
 fi
 
 #macros to concatenate

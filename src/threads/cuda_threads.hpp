@@ -21,7 +21,7 @@
 #define IS_MASTER_THREAD (1)
 // #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) for(int64_t INDEX=EXT_START;INDEX<EXT_END;INDEX++)
 // #define NISSA_PARALLEL_LOOP_END
-#define NISSA_PARALLEL_LOOP_EXP(INDEX,EXT_START,EXT_END) cuda_parallel_for(__LINE__,__FILE__,EXT_START,EXT_END,[=] __host__ __device__ (const std::common_type_t<decltype((EXT_END)),decltype((EXT_START))>& INDEX){
+#define NISSA_PARALLEL_LOOP_EXP(INDEX,EXT_START,EXT_END) cuda_parallel_for(__LINE__,__FILE__,EXT_START,EXT_END,[=] __device__ (const std::common_type_t<decltype((EXT_END)),decltype((EXT_START))>& INDEX) mutable{
 #define NISSA_PARALLEL_LOOP_END_EXP })
 #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) NISSA_PARALLEL_LOOP_EXP(INDEX,EXT_START,EXT_END)
 #define NISSA_PARALLEL_LOOP_END NISSA_PARALLEL_LOOP_END_EXP

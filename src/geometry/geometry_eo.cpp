@@ -1,11 +1,11 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <string.h>
 
 #define EXTERN_GEOMETRY_EO
- #include "geometry_eo.hpp"
+# include "geometry_eo.hpp"
 
 #include "base/debug.hpp"
 #include "base/vectors.hpp"

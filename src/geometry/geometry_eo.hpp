@@ -1,8 +1,15 @@
 #ifndef _GEOMETRY_EO_HPP
 #define _GEOMETRY_EO_HPP
 
+#ifdef HAVE_CONFIG_H
+# include <config.hpp>
+#endif
+
 #ifndef EXTERN_GEOMETRY_EO
- #define EXTERN_GEOMETRY_EO extern
+# define EXTERN_GEOMETRY_EO extern
+# define INIT_GEOMETRY_EO(ARGS...)
+#else
+# define INIT_GEOMETRY_EO(ARGS...) (ARGS)
 #endif
 
 #define NISSA_DEFAULT_USE_EO_GEOM 1
