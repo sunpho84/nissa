@@ -14,6 +14,7 @@
 #include <new_types/coords.hpp>
 #include <routines/math_routines.hpp>
 #include <routines/mpi_routines.hpp>
+#include <tensor/lookupTable.hpp>
 #include <tensor/tensor.hpp>
 
 #ifndef EXTERN_GEOMETRY_LX
@@ -103,10 +104,10 @@ namespace nissa
   EXTERN_GEOMETRY_LX LocLxSite fwSurfVol;
   
   /// Global coordinates of local sites
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,GlbCoord> glbCoordOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,GlbCoord> glbCoordOfLoclx;
   
   /// Local coordinates of local sites
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,LocCoord> locCoordOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocCoord> locCoordOfLoclx;
   
   /// Global site given the local site
   EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,GlbLxSite> glblxOfLoclx;
@@ -118,7 +119,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,LocLxSite> loclxOfBordlx;
   
   /// Local site adjacent to a given border site
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,LocLxSite> loclxSiteAdjacentToBordLx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<BordLxSite>,LocLxSite> loclxSiteAdjacentToBordLx;
   
   /// Global site corresponding to edge sites
   EXTERN_GEOMETRY_LX Tensor<OfComps<EdgeLxSite>,GlbLxSite> glblxOfEdgelx;
@@ -157,15 +158,15 @@ namespace nissa
   GlbLxSite glblxNeighdw(const GlbLxSite& gx,const Dir& mu);
   
   /// Neighbours in the backward direction
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighdw;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighdw;
   
   /// Neighbours in the forwkward direction
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighup;
   
   INLINE_FUNCTION CUDA_HOST_DEVICE
-  const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(int verse) //nasty
+  const LookupTable<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(int verse) //nasty
   {
-     const Tensor<OfComps<LocLxSite,Dir>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
+    const LookupTable<OfComps<LocLxSite,Dir>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
      
      return *ref[verse];
   }

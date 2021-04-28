@@ -445,6 +445,12 @@ namespace nissa
 	max_locd_size=std::max(max_locd_size,locd_size_per_dir(mu));
       }
     
+    glbCoordOfLoclx.consolidate();
+    locCoordOfLoclx.consolidate();
+    loclxSiteAdjacentToBordLx.consolidate();
+    loclxNeighdw.consolidate();
+    loclxNeighup.consolidate();
+    
     master_printf("Cartesian geometry intialized\n");
   }
   
@@ -456,6 +462,12 @@ namespace nissa
     master_printf("Unsetting cartesian geometry\n");
     lxGeomInited=0;
     
+    glbCoordOfLoclx.dealloc();
+    locCoordOfLoclx.dealloc();
+    loclxSiteAdjacentToBordLx.dealloc();
+    loclxNeighdw.dealloc();
+    loclxNeighup.dealloc();
+
     nissa_free(recv_buf);
     nissa_free(send_buf);
     
