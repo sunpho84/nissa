@@ -12,6 +12,8 @@
 #include <memory/memoryManager.hpp>
 #include <memory/storLoc.hpp>
 #include <metaProgramming/crtp.hpp>
+#include <metaProgramming/refOrVal.hpp>
+#include <tensor/expr.hpp>
 #include <tensor/indexComputer.hpp>
 
 namespace nissa
@@ -23,12 +25,21 @@ namespace nissa
 	    typename Comps,
 	    typename Fund=double>
   struct BaseTensor;
+
+  namespace details
+  {
+    constexpr ExprFlags _BaseTensorFlags=
+      EXPR_FLAG_MASKS::EVAL_TO_REF|
+      EXPR_FLAG_MASKS::STORE_BY_REF;
+  }
   
   /// Tensor
   template <typename T,
 	    typename...TC,
 	    typename F>
-  struct BaseTensor<T,TensorComps<TC...>,F> : Crtp<T>
+  struct BaseTensor<T,TensorComps<TC...>,F>
+    : Expr<T,TensorComps<TC...>,F,
+	   details::_BaseTensorFlags> // Here we pass the external expression on purpose
   {
     /// Fundamental type
     using Fund=F;
@@ -47,16 +58,6 @@ namespace nissa
     
     /// Index computer
     IC indexComputer;
-    
-    /// Full list of indices passed, not necessarily in the same order
-    template <typename...TD>
-    CUDA_HOST_DEVICE constexpr INLINE_FUNCTION
-    const Fund& operator()(const TD&...td) const
-    {
-      return this->crtp().eval(td...);
-    }
-    
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator(),CUDA_HOST_DEVICE);
   };
   
   /////////////////////////////////////////////////////////////////
