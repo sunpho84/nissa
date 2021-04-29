@@ -39,7 +39,7 @@ namespace nissa
   FOR_ALL_COMPONENT_VALUES(Parity,NAME)
   
   /// Half the local volume
-  EXTERN_GEOMETRY_EO LocEoSite locVolh;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO LocEoSite locVolh;
   
   /// Half the border volume
   EXTERN_GEOMETRY_EO BordEoSite bordVolh;

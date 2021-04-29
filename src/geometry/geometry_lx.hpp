@@ -110,7 +110,7 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocCoord> locCoordOfLoclx;
   
   /// Global site given the local site
-  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,GlbLxSite> glblxOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite>,GlbLxSite> glblxOfLoclx;
   
   /// Global site given the border site
   EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,GlbLxSite> glblxOfBordlx;
@@ -131,13 +131,13 @@ namespace nissa
   EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,LocLxSite> loclxOfNonBwSurflx;
   
   /// Local site given a Non-Forwward site on the surface
-  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,LocLxSite> loclxOfNonFwSurflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite>,LocLxSite> loclxOfNonFwSurflx;
   
   /// Local site given a Backward site on the surface
   EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,LocLxSite> loclxOfBwSurflx;
   
   /// Local site given a Forwward site on the surface
-  EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,LocLxSite> loclxOfFwSurflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite>,LocLxSite> loclxOfFwSurflx;
   
   /// Return the local site beyond the local volume, corresponding to the passed border id
   INLINE_FUNCTION LocLxSite extenedLocLxSiteOfBordLxSite(const BordLxSite& bordLxSite)
@@ -223,7 +223,7 @@ namespace nissa
 #endif
   
 #if NDIM >= 3
-  EXTERN_GEOMETRY_LX int perp2_dir[NDIM][NDIM-1][NDIM-2];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int perp2_dir[NDIM][NDIM-1][NDIM-2];
 #endif
   
 #if NDIM >= 4
@@ -331,7 +331,7 @@ namespace nissa
     return vol;
   }
   
-  Rank rank_hosting_glblx(const GlbLxSite gx);
+  Rank rank_hosting_glblx(const GlbLxSite& gx);
   Rank rank_hosting_site_of_coord(const GlbCoords& x);
   Rank rank_of_coord(const RankCoords& x);
   

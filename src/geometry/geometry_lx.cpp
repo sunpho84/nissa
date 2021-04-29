@@ -1,4 +1,3 @@
-
 #ifdef HAVE_CONFIG_H
 # include <config.hpp>
 #endif
@@ -446,10 +445,13 @@ namespace nissa
       }
     
     glbCoordOfLoclx.consolidate();
+    glblxOfLoclx.consolidate();
     locCoordOfLoclx.consolidate();
     loclxSiteAdjacentToBordLx.consolidate();
     loclxNeighdw.consolidate();
     loclxNeighup.consolidate();
+    loclxOfFwSurflx.consolidate();
+    loclxOfNonFwSurflx.consolidate();
     
     master_printf("Cartesian geometry intialized\n");
   }
@@ -463,11 +465,14 @@ namespace nissa
     lxGeomInited=0;
     
     glbCoordOfLoclx.dealloc();
+    glblxOfLoclx.dealloc();
     locCoordOfLoclx.dealloc();
     loclxSiteAdjacentToBordLx.dealloc();
     loclxNeighdw.dealloc();
     loclxNeighup.dealloc();
-
+    loclxOfFwSurflx.dealloc();
+    loclxOfNonFwSurflx.dealloc();
+    
     nissa_free(recv_buf);
     nissa_free(send_buf);
     
@@ -478,30 +483,25 @@ namespace nissa
   //definitions of lexical ordered senders for edges
   void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base)
   {
-    const Dir T=0;
-    const Dir X=1;
-    const Dir Y=2;
-    const Dir Z=3;
-    
     //Various type useful for edges and sub-borders
     MPI_Datatype MPI_3_SLICE;
-    MPI_Type_contiguous(locSize(Z)(),*base,&MPI_3_SLICE);
+    MPI_Type_contiguous(locSize(zDir)(),*base,&MPI_3_SLICE);
     
     ///////////define the sender for the 6 kinds of edges////////////
-    //the 01 sender, that is simply a vector of L[Y] vector of L[Z] 
-      MPI_Type_contiguous(locSize(Y)()*locSize(Z)(),*base,&(MPI_EDGE_SEND[0]));
-      //the 0Y sender is a vector of L[1] segment of length L[Z] (already defined) separated by L[Y] of them
-      MPI_Type_vector(locSize(X)(),1,locSize(Y)(),MPI_3_SLICE,&(MPI_EDGE_SEND[1]));
-      //the 0Z sender is a vector of length L[1]xL[Y] of single elements, separated by L[Z] of them
-      MPI_Type_vector(locSize(X)()*locSize(Y)(),1,locSize(Z)(),*base,&(MPI_EDGE_SEND[2]));
-      //the 1Y sender should be equal to the 0Y sender, with 1->0
-      MPI_Type_vector(locSize(T)(),1,locSize(Y)(),MPI_3_SLICE,&(MPI_EDGE_SEND[3]));
-      //the 1Z sender should be equal to the 0Z sender, with 1->0
-      MPI_Type_vector(locSize(T)()*locSize(Y)(),1,locSize(Z)(),*base,&(MPI_EDGE_SEND[4]));
-      //the YZ sender should be equal to the 0Z sender with 1<->Y
-      MPI_Type_vector(locSize(T)()*locSize(X)(),1,locSize(Z)(),*base,&(MPI_EDGE_SEND[5]));
-      //Commit
-      for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGE_SEND[iedge]));
+    //the 01 sender, that is simply a vector of L[Y] vector of L[Z]
+    MPI_Type_contiguous(locSize(yDir)()*locSize(zDir)(),*base,&(MPI_EDGE_SEND[0]));
+    //the 0Y sender is a vector of L[1] segment of length L[Z] (already defined) separated by L[Y] of them
+    MPI_Type_vector(locSize(xDir)(),1,locSize(yDir)(),MPI_3_SLICE,&(MPI_EDGE_SEND[1]));
+    //the 0Z sender is a vector of length L[1]xL[Y] of single elements, separated by L[Z] of them
+    MPI_Type_vector(locSize(xDir)()*locSize(yDir)(),1,locSize(zDir)(),*base,&(MPI_EDGE_SEND[2]));
+    //the 1Y sender should be equal to the 0Y sender, with 1->0
+    MPI_Type_vector(locSize(tDir)(),1,locSize(yDir)(),MPI_3_SLICE,&(MPI_EDGE_SEND[3]));
+    //the 1Z sender should be equal to the 0Z sender, with 1->0
+    MPI_Type_vector(locSize(tDir)()*locSize(yDir)(),1,locSize(zDir)(),*base,&(MPI_EDGE_SEND[4]));
+    //the YZ sender should be equal to the 0Z sender with 1<->Y
+    MPI_Type_vector(locSize(tDir)()*locSize(xDir)(),1,locSize(zDir)(),*base,&(MPI_EDGE_SEND[5]));
+    //Commit
+    for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGE_SEND[iedge]));
   }
   
   //definitions of lexical ordered receivers for edges
