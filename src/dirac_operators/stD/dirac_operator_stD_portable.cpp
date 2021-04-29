@@ -11,6 +11,11 @@
 
 namespace nissa
 {
+  void apply_stD2ee_m2_32(single_color *out,eo_ptr<single_quad_su3> conf,single_color* temp, float mass2,single_color*in)
+  {
+    crash("ciao");
+  }
+  
   void apply_st2Doe(color* out,eo_ptr<quad_su3> conf,color* in)
   {
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))

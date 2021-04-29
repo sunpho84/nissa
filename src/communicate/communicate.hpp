@@ -71,6 +71,10 @@
  #define EXTERN_COMMUNICATE extern
 #endif
 
+#ifdef HAVE_CONFIG_H
+# include <config.hpp>
+#endif
+
 namespace nissa
 {
 #ifdef USE_MPI
@@ -105,7 +109,8 @@ namespace nissa
   
   //buffers
   EXTERN_COMMUNICATE int64_t recv_buf_size,send_buf_size;
-  CUDA_MANAGED EXTERN_COMMUNICATE char *recv_buf,*send_buf;
+  CUDA_MANAGED EXTERN_COMMUNICATE char *recv_buf;
+  CUDA_MANAGED EXTERN_COMMUNICATE char *send_buf;
   
 #define DEFINE_COMM(T) EXTERN_COMMUNICATE comm_t NAME3(lx,T,comm),NAME3(eo,T,comm)
   
