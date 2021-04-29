@@ -958,7 +958,7 @@ void test_xQhatx()
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
-  const Parity eo=EVN;
+  const Parity eo=0;
   const LocEoSite ieo=1;
   const Dir dir=1;
   
@@ -1087,7 +1087,7 @@ void test_xQ2hatx()
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
-  const Parity eo=ODD;
+  const Parity eo=1;
   const LocEoSite ieo=1;
   const Dir dir=DIR;
   
@@ -1522,7 +1522,7 @@ void test_xQinv_eex()
   generate_fully_undiluted_eo_source(in,RND_GAUSS,-1,ODD);
   
   //store initial link and compute action
-  const Parity eo=EVN;
+  const Parity eo=0;
   const LocEoSite ieo=1;
   const Dir dir=1;
   
