@@ -118,11 +118,6 @@ AX_OPENMP
 
 #cuda
 AX_CHECK_CUDA
-AM_CONDITIONAL([USE_CUDA],[test "$CXX" == "nvcc"])
-if test "$CXX" == "nvcc"
-then
-	AC_DEFINE([USE_CUDA],1,"Using CUDA")
-fi
 
 #threads
 AC_DEFINE([NO_THREADS],[0],["No thread parallelization used"])
@@ -160,18 +155,21 @@ case "$with_threads_type" in
 		CUDA_HOST="__host__"
 		CUDA_DEVICE="__device__"
 		CUDA_HOST_DEVICE="__host__ __device__"
+		AC_DEFINE([USE_CUDA],1,"Using CUDA")
 	    else
 		AC_MSG_ERROR(["Asked to enable Cuda when the framework has not been found"])
 	     fi;;
       *) AC_MSG_ERROR(["Unkwnown threads type ${withval}"])
 esac
 AM_CONDITIONAL([USE_OPENMP_THREADS], [test x$with_threads_type = xopenmp])
+AM_CONDITIONAL([USE_CUDA], [test x$with_threads_type = xcuda])
 AM_CONDITIONAL([USE_CUDA_THREADS], [test x$with_threads_type = xcuda])
 AC_DEFINE_UNQUOTED([THREADS_TYPE],${THREADS_TYPE},[Kind of thread parallelization])
 AC_DEFINE_UNQUOTED([CUDA_MANAGED],${CUDA_MANAGED},[Whether to use managed memory])
 AC_DEFINE_UNQUOTED([CUDA_HOST],${CUDA_HOST},[Whether this function is HOST only])
 AC_DEFINE_UNQUOTED([CUDA_DEVICE],${CUDA_DEVICE},[Whether to duplicate functions for DEVICE only])
 AC_DEFINE_UNQUOTED([CUDA_HOST_DEVICE],${CUDA_HOST_DEVICE},[Whether to duplicate functions for host and device])
+
 AH_VERBATIM([COMPILING_FOR_DEVICE],
 #ifdef __CUDA_ARCH__
  
