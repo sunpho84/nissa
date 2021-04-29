@@ -8,6 +8,21 @@
 
 namespace nissa
 {
+  namespace details
+  {
+    template <bool IsConst,
+	      typename T>
+    using _ConditionalConst=
+      std::conditional_t<IsConst,const T,T>;
+  }
+  
+  template <bool IsConst,
+	    typename T>
+  using ConditionalConst=
+    details::_ConditionalConst<IsConst,std::remove_const_t<T>>;
+  
+  /////////////////////////////////////////////////////////////////
+  
   /// Returns true if T is a const lvalue reference
   template <typename T>
   constexpr bool is_const_lvalue_reference_v=std::is_lvalue_reference<T>::value and std::is_const<std::remove_reference_t<T>>::value;

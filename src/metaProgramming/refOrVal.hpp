@@ -5,9 +5,18 @@
 
 namespace nissa
 {
-  /// If the type is an l-value reference, provide the type T&, otherwise wih T
-  template <typename T>
-  using ref_or_val_t=std::conditional_t<std::is_lvalue_reference<T>::value,T&,T>;
+  namespace details
+  {
+    template <bool IsRef,
+	      typename T>
+    using _ConditionalRef=
+      std::conditional_t<IsRef,T&,T>;
+  }
+  
+  template <bool IsRef,
+	    typename T>
+  using ConditionalRef=
+    details::_ConditionalRef<IsRef,std::remove_reference_t<T>>;
 }
 
 #endif
