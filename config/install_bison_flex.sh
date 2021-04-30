@@ -10,7 +10,7 @@ cd ..
 rm -fr bison*
 
 #flex
-git clone git@github.com:westes/flex.git
+git clone https://github.com/westes/flex
 cd flex*
 ./autogen.sh
 ./configure --prefix=$HOME
