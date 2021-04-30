@@ -25,7 +25,7 @@ namespace nissa
 	const int64_t stride=(nper_slice+1)/2;				\
 	const int64_t nreductions_per_slice=nper_slice/2;		\
 	const int64_t nreductions=nreductions_per_slice*nslices;	\
-	verbosity_lv2_master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld\n",nper_slice,stride,nreductions_per_slice,nreductions); \
+	verbosity_lv3_master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld\n",nper_slice,stride,nreductions_per_slice,nreductions); \
 	NISSA_PARALLEL_LOOP(ireduction,0,nreductions)			\
 	  {								\
 	    const int64_t islice=ireduction%nslices;			\
