@@ -43,6 +43,7 @@ namespace nissa
   
   /// Returns the type without "const" attribute if it is a reference
   template <typename T>
+  CUDA_HOST_AND_DEVICE
   decltype(auto) remove_const_if_ref(T&& t)
   {
     using Tv=std::remove_const_t<std::remove_reference_t<T>>;
@@ -79,6 +80,14 @@ namespace nissa
   /*! Overload the \c NAME const method passing all args             */ \
   template <typename...Ts> /* Type of all arguments                  */	\
   decltype(auto) NAME(Ts&&...ts) /*!< Arguments                      */ \
+  {									\
+    return remove_const_if_ref(as_const(*this).NAME(std::forward<Ts>(ts)...)); \
+  }
+  
+#define PROVIDE_ALSO_NON_CONST_METHOD_GPU(NAME)				\
+  /*! Overload the \c NAME const method passing all args             */ \
+  template <typename...Ts> /* Type of all arguments                  */	\
+  CUDA_HOST_AND_DEVICE decltype(auto) NAME(Ts&&...ts) /*!< Arguments     */ \
   {									\
     return remove_const_if_ref(as_const(*this).NAME(std::forward<Ts>(ts)...)); \
   }
