@@ -719,6 +719,9 @@ namespace nissa
     
     ///////////////////////////////////// start communicators /////////////////////////////////
     
+    reducing_buffer=nullptr;
+    reducing_buffer_size=0;
+    
     ncomm_allocated=0;
     
     //allocate only now buffers, so we should have finalized its size
