@@ -36,6 +36,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_Leb.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/high_prec.hpp"
 #include "routines/ios.hpp"

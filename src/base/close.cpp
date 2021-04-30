@@ -1,4 +1,3 @@
-#include "linalgs/reduce.hpp"
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
@@ -17,6 +16,7 @@
 #include "geometry/geometry_Leb.hpp"
 #include "hmc/gauge/Symanzik_force.hpp"
 #include "hmc/gauge/Symanzik_action.hpp"
+#include "linalgs/reduce.hpp"
 #include "operations/remap_vector.hpp"
 #include "routines/ios.hpp"
 
