@@ -48,24 +48,28 @@ namespace nissa
   namespace
   {
     /// Implement oth=first
+    CUDA_HOST_AND_DEVICE
     inline void int64_t_copy(int64_t& oth,const int64_t& first)
     {
       oth=first;
     }
     
     /// Implement oth+=first
+    CUDA_HOST_AND_DEVICE
     inline void int64_t_summassign(int64_t& oth,const int64_t& first)
     {
       oth+=first;
     }
     
     /// Implement oth=first
+    CUDA_HOST_AND_DEVICE
     inline void double_copy(double& oth,const double& first)
     {
       oth=first;
     }
     
     /// Implements oth+=first
+    CUDA_HOST_AND_DEVICE
     inline void double_summassign(double& oth,const double& first)
     {
       oth+=first;
