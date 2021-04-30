@@ -68,8 +68,10 @@ namespace nissa
 	   line,file,(int64_t)min,(int64_t)max,block_dimension.x,grid_dimension.x);
     
     if(length>0)
-      cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,std::forward<F>(f));
-    thread_barrier_internal();
+      {
+	cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,std::forward<F>(f));
+	thread_barrier_internal();
+      }
     if(print)
       printf(" finished\n");
   }
