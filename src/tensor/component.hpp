@@ -243,14 +243,26 @@ namespace nissa
 	Transp{i};
     }
     
+    /// Forbid assignement to a temporary
+    TensorComp& operator=(const TensorComp& oth) && = delete;
+    TensorComp& operator=(TensorComp& oth) && = delete;
+    
     /// Assignment operator
     INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
-    TensorComp& operator=(const Index& oth)
+    TensorComp& operator=(const Index& oth) &
     {
       i=oth;
       
       return
 	*this;
+    }
+    
+    /// Assignment operator of a TensComp
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    TensorComp& operator=(const TensorComp& oth) &
+    {
+      return
+	(*this)=oth.i;
     }
     
     /////////////////////////////////////////////////////////////////
