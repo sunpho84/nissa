@@ -245,7 +245,6 @@ namespace nissa
     
     /// Forbid assignement to a temporary
     TensorComp& operator=(const TensorComp& oth) && = delete;
-    TensorComp& operator=(TensorComp& oth) && = delete;
     
     /// Assignment operator
     INLINE_FUNCTION CUDA_HOST_DEVICE constexpr

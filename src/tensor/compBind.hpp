@@ -14,64 +14,91 @@
 namespace nissa
 {
   template <typename E,
+	    typename TC,
 	    typename BC,
-	    bool EvalToConstFlag>
+	    ExprFlags _Flags>
   struct _CompBinderFactory;
   
   template <typename E,
-	    typename...TC,
-	    typename F,
-	    ExprFlags _Flags,
-	    typename... BCs,
-	    bool EvalToConstFlag>
-  struct _CompBinderFactory<Expr<E,TensorComps<TC...>,F,_Flags> // E
-			    ,TensorComps<BCs...>,              // BC
-			    EvalToConstFlag>
+	    typename...TCs,
+	    typename...BCs,
+	    ExprFlags _Flags>
+  struct _CompBinderFactory<E,TensorComps<TCs...>,TensorComps<BCs...>,_Flags>
   {
     using BoundExpressionComponents=
-      TensorComps<TC...>;
+      TensorComps<TCs...>;
     
     using BoundExpression=
-      ConditionalRef<getStoreByRef<_Flags>,E>;
+      ConditionalRef<getStoreByRef<_Flags>
+      ,ConditionalConst<getEvalToConst<_Flags>,E>>;
     
     using _BoundComponents=
       TensorComps<BCs...>;
     
-    //using CompBinder CompBinder<BOUND_EXPRESSION,BOUND_COMPONENTS>
+    using BoundFund=
+      typename E::Fund;
+    
     using FilteredComponents=
       TupleFilterOut<_BoundComponents,
 		     BoundExpressionComponents>;
     
-    static constexpr ExprFlags Flags=
-      unsetStoreByRef<addEvalToConstIf<EvalToConstFlag,_Flags>>;
-    
     struct _CompBinder :
-      Expr<_CompBinder,FilteredComponents,F,Flags>
+      Expr<_CompBinder,FilteredComponents,BoundFund,setStoreByRefTo<false,_Flags>>
     {
-      using Comps=FilteredComponents;
+      using Comps=
+	FilteredComponents;
       
       using BoundComponents=
 	_BoundComponents;
       
-      using Fund=F;
+      /// Fundamental type of the expression
+      using Fund=
+	BoundFund;
       
+      /// Fundamental type, possibly with constant attribute if required via flags
+      using MaybeConstFund=
+	ConditionalConst<getEvalToConst<_Flags>,const Fund>;
+      
+      /// Possibly constant fundamental type, possibly referencing
+      using MaybeConstMaybeRefToFund=
+	ConditionalRef<getEvalToRef<_Flags>,MaybeConstFund>;
+      
+      /// Bound expression
       BoundExpression boundExpression;
       
+      /// Components that have been bound
       BoundComponents boundComponents;
       
+      /// Constant access, returning constant reference or type
       template <typename...TD>
       CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-      decltype(auto) eval(const TD&...td) const
+      const MaybeConstMaybeRefToFund eval(const TD&...td) const
       {
 	return boundExpression.eval(std::get<BCs>(boundComponents)...,td...);
       }
       
-      PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
+      /// Non const access, possibly still returning a constant reference
+      template <typename...TD>
+      CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+      MaybeConstMaybeRefToFund eval(const TD&...td)
+      {
+	return boundExpression.eval(std::get<BCs>(boundComponents)...,td...);
+      }
       
-      _CompBinder(BoundExpression boundExpression,
+      /// Copy constructor
+      template <typename T>
+      _CompBinder(T&& boundExpression,
 		 const BoundComponents& boundComponents) :
 	boundExpression(boundExpression),
 	boundComponents(boundComponents)
+	{
+	}
+      
+      /// Move constructor
+      template <typename T>
+      _CompBinder(_CompBinder&& oth) :
+	boundExpression(std::move(boundExpression)),
+	boundComponents(std::move(boundComponents))
 	{
 	}
     };
@@ -79,35 +106,50 @@ namespace nissa
   
   template <typename E,
 	    typename BC,
-	    bool EvalToConstFlag>
+	    ExprFlags Flags>
   using CompBinder=
-    typename _CompBinderFactory<E,BC,EvalToConstFlag>::_CompBinder;
+    typename _CompBinderFactory<E,typename E::Comps,BC,Flags>::_CompBinder;
   
-  template <typename E,
+  template <typename _E,
 	    typename...BCs>
-  auto compBind(ExprFeat<E>& eFeat,
+  auto compBind(_E&& e,
 		const TensorComps<BCs...>& bc)
   {
-    constexpr bool doNotEvalToConst=false;
+    using E=std::remove_const_t<std::decay_t<_E>>;
     
-    return CompBinder<E,TensorComps<BCs...>,doNotEvalToConst>(eFeat.deFeat().crtp(),bc);
+    constexpr bool storeByRef=
+		std::is_lvalue_reference_v<decltype(e)>;
+    
+    constexpr bool needsToBeMoveConstructed=
+		std::is_rvalue_reference_v<decltype(e)>;
+    
+    constexpr bool isVal=
+		not std::is_reference_v<decltype(e)>;
+    
+    constexpr bool canBeMoveConstructed=
+		std::is_move_constructible_v<E>;
+    
+    constexpr bool canBeCopyConstructed=
+		std::is_copy_constructible_v<E>;
+    
+    constexpr bool passAsConst=
+		std::is_const_v<std::remove_reference_t<decltype(e)>>;
+    
+    static_assert(canBeMoveConstructed or not needsToBeMoveConstructed,"Would need to move-construct, but the move constructor is not available");
+    
+    static_assert(canBeCopyConstructed or not isVal,
+		  "Would need to copy-construct, but the copy constructor is not available or the inner object must be stored by ref");
+    
+    static_assert((not getStoreByRef<E::Flags>) or not isVal,
+		  "Would need to store by val, but the inner object flags indicated to store by ref");
+    
+    constexpr ExprFlags Flags
+		=setStoreByRefTo<storeByRef
+		,addEvalToConstIf<passAsConst,E::Flags>>;
+    
+    return
+      CompBinder<E,TensorComps<BCs...>,Flags>(std::forward<_E>(e),bc);
   }
-  
-//     :
-//   fare struttura più grossa dove definire ordinatamente tutto questo,
-//       e type dentro
-//           ?
-// #define BOUND_EXPRESSION_COMPONENTS 
-
-
-//           template <typename E, typename... TC, typename F, typename... BCs>
-//           struct COMP_BINDER
-//       : Expr<CompBinder<E, TensorComps<BCs...>>, typename E::Comps>,
-//       typename E::Fund > {
-//     using Comps=TupleFilterOut<TensorComps<BCs...>,typename E::Comps>;
-    
-//     using Fund=typename E::Fund;
-//   };
 }
 
 #endif
