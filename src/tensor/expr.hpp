@@ -16,31 +16,44 @@ namespace nissa
   using ExprFlags=
     uint32_t;
   
-  enum EXPR_FLAG_MASKS : uint32_t{STORE_BY_REF=1,
-				  EVAL_TO_REF=2,
-				  EVAL_TO_CONST=4};
+  namespace EXPR_FLAG_MASKS
+  {
+    enum : ExprFlags{STORE_BY_REF=1,
+		     EVAL_TO_REF=2,
+		     EVAL_TO_CONST=4};
+  }
   
 #define DECLARE_EXPR_FLAG_UTILITIES(FLAG_NAME,MASK_NAME)		\
 									\
   template <ExprFlags Flags>						\
-  constexpr bool get ## FLAG_NAME=(Flags & EXPR_FLAG_MASKS::MASK_NAME);	\
+  constexpr bool get ## FLAG_NAME=					\
+    (Flags & EXPR_FLAG_MASKS::MASK_NAME);				\
 									\
   template <ExprFlags Flags>						\
-  constexpr bool unset ## FLAG_NAME=(Flags & ~EXPR_FLAG_MASKS::MASK_NAME); \
+  constexpr ExprFlags unset ## FLAG_NAME=				\
+    (Flags & ~EXPR_FLAG_MASKS::MASK_NAME);				\
 									\
   template <bool B,							\
 	    ExprFlags Flags>						\
-  constexpr bool rem ## FLAG_NAME ## If=				\
+  constexpr ExprFlags rem ## FLAG_NAME ## If=				\
     B?									\
     unset ## FLAG_NAME<Flags>:						\
     Flags;								\
 									\
   template <ExprFlags Flags>						\
-  constexpr bool set ## FLAG_NAME=(Flags | EXPR_FLAG_MASKS::MASK_NAME);	\
+  constexpr ExprFlags set ## FLAG_NAME=					\
+    (Flags | EXPR_FLAG_MASKS::MASK_NAME);				\
 									\
   template <bool B,							\
 	    ExprFlags Flags>						\
-  constexpr bool add ## FLAG_NAME ## If=				\
+  constexpr ExprFlags set ## FLAG_NAME ## To=				\
+    B?									\
+    unset ## FLAG_NAME<Flags>:						\
+    set ## FLAG_NAME<Flags>;						\
+									\
+  template <bool B,							\
+	    ExprFlags Flags>						\
+  constexpr ExprFlags add ## FLAG_NAME ## If=				\
     B?									\
     set ## FLAG_NAME<Flags>:						\
     Flags								\
