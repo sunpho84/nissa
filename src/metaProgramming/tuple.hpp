@@ -86,7 +86,8 @@ namespace nissa
   /// Type obtained applying the predicate filter F on the tuple T
   template <template <class> class F,
 	    typename T>
-  using TupleFilter=decltype(tupleFilter<F>(T{}));
+  using TupleFilter=
+    decltype(tupleFilter<F>(T{}));
   
   /////////////////////////////////////////////////////////////////
   
@@ -200,6 +201,98 @@ namespace nissa
   {
     out=tupleGetMany<Tout...>(in);
   }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace details
+  {
+    /// Filter the first occurrence of type F
+    ///
+    /// Forward declare the internal implementation
+    template <typename Scanned,
+	      typename ToBeScanned,
+	      typename F>
+    struct _TupleFilterType;
+    
+    /// Filter the first occurrence of type F
+    ///
+    /// Case in which we have just found the type F
+    template <typename...Ss,
+	      typename...Ts,
+	      typename F>
+    struct _TupleFilterType<std::tuple<Ss...>,
+			    std::tuple<F,Ts...>,
+			    F>
+    {
+      /// Resulting type is the union of the scanned and to be scanned types
+      using type=
+	std::tuple<Ss...,Ts...>;
+  };
+    
+    /// Filter the first occurrence of type F
+    ///
+    /// Case in which we have not yet found the type F
+    template <typename...Ss,
+	      typename T1,
+	      typename...Ts,
+	      typename F>
+    struct _TupleFilterType<std::tuple<Ss...>,
+			    std::tuple<T1,Ts...>,
+			    F>
+    {
+    static_assert(sizeof...(Ss),"Components to be filtered not available among the tuple types");
+    
+    /// Add the current type in the scanned list and moves on
+    using type=
+      typename _TupleFilterType<std::tuple<Ss...,T1>,std::tuple<Ts...>,F>::type;
+  };
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Filter the first occurrence of all types of the tuple \c Filter out of the tuple \ToBeFiltered
+    ///
+    /// Forward declare the internal implementation
+    template <typename ToBeFiltered,
+	      typename Filter>
+    struct _TupleFilterAllTypes;
+    
+    /// Filter the first occurrence of all types of the tuple \c Filter out of the tuple \ToBeFiltered
+    ///
+    /// Empty filter case
+    template <typename ToBeFiltered>
+    struct _TupleFilterAllTypes<ToBeFiltered,
+				std::tuple<>>
+    {
+    /// Result type is identical to \c ToBefiltered
+    using type=
+      ToBeFiltered;
+  };
+    
+    /// Filter the first occurrence of all types of the tuple \c Filter out of the tuple \ToBeFiltered
+    ///
+    /// Multiple types in the filter
+    template <typename ToBeFiltered,
+	      typename F1,
+	      typename...Fs>
+    struct _TupleFilterAllTypes<ToBeFiltered,
+				std::tuple<F1,Fs...>>
+    {
+      /// Iterate filtering one type at the time
+      using type=
+	typename _TupleFilterAllTypes<_TupleFilterType<std::tuple<>,
+						       ToBeFiltered,
+						       F1>,
+				      std::tuple<Fs...>>::type;
+    };
+  }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Filter the first occurrence of all types of the tuple \c Filter out of the tuple \ToBeFiltered
+  template <typename ToBeFiltered,
+	    typename Filter>
+  using TupleFilterAllTypes=
+    typename details::_TupleFilterAllTypes<ToBeFiltered,Filter>::type;
 }
 
 #endif
