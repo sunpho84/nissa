@@ -279,9 +279,9 @@ namespace nissa
     {
       /// Iterate filtering one type at the time
       using type=
-	typename _TupleFilterAllTypes<_TupleFilterType<std::tuple<>,
-						       ToBeFiltered,
-						       F1>,
+	typename _TupleFilterAllTypes<typename _TupleFilterType<std::tuple<>,
+								ToBeFiltered,
+								F1>::type,
 				      std::tuple<Fs...>>::type;
     };
   }

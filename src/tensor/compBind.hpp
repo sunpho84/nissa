@@ -16,14 +16,20 @@ namespace nissa
   template <typename E,
 	    typename TC,
 	    typename BC,
+	    typename IC,
 	    ExprFlags _Flags>
   struct _CompBinderFactory;
   
   template <typename E,
 	    typename...TCs,
 	    typename...BCs,
+	    size_t...ICs,
 	    ExprFlags _Flags>
-  struct _CompBinderFactory<E,TensorComps<TCs...>,TensorComps<BCs...>,_Flags>
+  struct _CompBinderFactory<E,
+			    TensorComps<TCs...>,
+			    TensorComps<BCs...>,
+			    std::index_sequence<ICs...>,
+			    _Flags>
   {
     using BoundExpressionComponents=
       TensorComps<TCs...>;
@@ -39,8 +45,8 @@ namespace nissa
       typename E::Fund;
     
     using FilteredComponents=
-      TupleFilterOut<_BoundComponents,
-		     BoundExpressionComponents>;
+      TupleFilterAllTypes<BoundExpressionComponents,
+			  _BoundComponents>;
     
     struct _CompBinder :
       Expr<_CompBinder,FilteredComponents,BoundFund,setStoreByRefTo<false,_Flags>>
@@ -74,7 +80,7 @@ namespace nissa
       CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
       const MaybeConstMaybeRefToFund eval(const TD&...td) const
       {
-	return boundExpression.eval(std::get<BCs>(boundComponents)...,td...);
+	return boundExpression.eval(std::get<ICs>(boundComponents)...,td...);
       }
       
       /// Non const access, possibly still returning a constant reference
@@ -82,7 +88,7 @@ namespace nissa
       CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
       MaybeConstMaybeRefToFund eval(const TD&...td)
       {
-	return boundExpression.eval(std::get<BCs>(boundComponents)...,td...);
+	return boundExpression.eval(std::get<ICs>(boundComponents)...,td...);
       }
       
       /// Copy constructor
@@ -108,7 +114,11 @@ namespace nissa
 	    typename BC,
 	    ExprFlags Flags>
   using CompBinder=
-    typename _CompBinderFactory<E,typename E::Comps,BC,Flags>::_CompBinder;
+    typename _CompBinderFactory<E,
+				typename E::Comps,
+				BC,
+				std::make_index_sequence<std::tuple_size_v<BC>>,
+				Flags>::_CompBinder;
   
   template <typename _E,
 	    typename...BCs>
