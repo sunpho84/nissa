@@ -48,8 +48,8 @@ namespace nissa
 	    ExprFlags Flags>						\
   constexpr ExprFlags set ## FLAG_NAME ## To=				\
     B?									\
-    unset ## FLAG_NAME<Flags>:						\
-    set ## FLAG_NAME<Flags>;						\
+    set ## FLAG_NAME<Flags>:						\
+    unset ## FLAG_NAME<Flags>;						\
 									\
   template <bool B,							\
 	    ExprFlags Flags>						\
