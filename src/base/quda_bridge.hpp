@@ -51,17 +51,25 @@ namespace nissa
   }
 }
 
+#ifdef USE_QUDA
+# define QUDA_API
+# define QUDA_ESCAPE_IF_NOT_AVAILABLE
+#else
+# define QUDA_API inline
+# define QUDA_ESCAPE_IF_NOT_AVAILABLE {crash("Quda not available!");}
+#endif
+
 namespace quda_iface
 {
   using namespace nissa;
   
-  void initialize();
-  void finalize();
-  void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in);
-  void remap_nissa_to_quda(spincolor *out,spincolor *in);
-  void remap_quda_to_nissa(spincolor *out,spincolor *in);
-  bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source);
-  bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source);
+  QUDA_API void initialize() QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  QUDA_API void finalize() QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  QUDA_API void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  QUDA_API void remap_nissa_to_quda(spincolor *out,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  QUDA_API void remap_quda_to_nissa(spincolor *out,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  QUDA_API bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  QUDA_API bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
 }
 
 #undef INIT_QUDA_BRIDGE_TO
