@@ -113,7 +113,7 @@ namespace nissa
   
   /// Transposed of a column
   template <>
-  inline RwCl transp<CLN> =
+  inline constexpr RwCl transp<CLN> =
     ROW;
   
   /// Transposed of any

@@ -187,6 +187,8 @@
 #include <routines/rank.hpp>
 
 #include <tensor/component.hpp>
+#include <tensor/compBind.hpp>
+#include <tensor/field.hpp>
 #include <tensor/tensor.hpp>
 
 #include <threads/threads.hpp>
