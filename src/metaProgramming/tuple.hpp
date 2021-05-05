@@ -240,7 +240,7 @@ namespace nissa
 			    std::tuple<T1,Ts...>,
 			    F>
     {
-    static_assert(sizeof...(Ss),"Components to be filtered not available among the tuple types");
+      static_assert(sizeof...(Ts),"Components to be filtered not available among the tuple types");
     
     /// Add the current type in the scanned list and moves on
     using type=
