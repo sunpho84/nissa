@@ -137,6 +137,7 @@
 #include <metaProgramming/refOrVal.hpp>
 #include <metaProgramming/tuple.hpp>
 #include <metaProgramming/typeConversion.hpp>
+#include <metaProgramming/universalReference.hpp>
 #include <metaProgramming/unrolledFor.hpp>
 
 #include <new_types/complex.hpp>

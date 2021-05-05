@@ -88,7 +88,8 @@ namespace nissa
   {
     static constexpr ExprFlags Flags=_Flags;
     
-    using Comps=TensorComps<TC...>;
+    using Comps=
+      TensorComps<TC...>;
     
     using Fund=F;
     
@@ -101,21 +102,55 @@ namespace nissa
       ConditionalRef<getEvalToRef<Flags>,
 		     const Fund>;
     
-    /// Full list of indices passed
     template <typename...TD>
+    struct _EvalHelper
+    {
+      using ResidualComps=
+	TupleFilterAllTypes<Comps,std::tuple<TD...>>;
+      
+      static constexpr int nResidualComps=
+	std::tuple_size_v<ResidualComps>;
+      
+      static constexpr bool fullyEval=
+	nResidualComps==0;
+    };
+    
+    /// Full list of indices passed
+    template <typename...TD,
+	      ENABLE_THIS_TEMPLATE_IF(_EvalHelper<TD...>::fullyEval)>
     CUDA_HOST_DEVICE constexpr INLINE_FUNCTION
     ConstEvaluatedType operator()(const TD&...td) const
     {
-      return this->crtp().eval(td...);
+      return
+	this->crtp().eval(td...);
     }
     
     /// Full list of indices passed, non constant version
-    template <typename...TD>
+    template <typename...TD,
+	      ENABLE_THIS_TEMPLATE_IF(_EvalHelper<TD...>::fullyEval)>
     CUDA_HOST_DEVICE constexpr INLINE_FUNCTION
     EvaluatedType operator()(const TD&...td)
     {
       return this->crtp().eval(td...);
     }
+    
+    /////////////////////////////////////////////////////////////////
+    
+#define DECLARE_PARTIAL_EVAL(ATTRIB)					\
+    /* Partial list of indices passed */				\
+    template <typename...TD,						\
+	      ENABLE_THIS_TEMPLATE_IF(not _EvalHelper<TD...>::fullyEval)> \
+    CUDA_HOST_DEVICE constexpr INLINE_FUNCTION				\
+    auto operator()(const TD&...td) ATTRIB				\
+    {									\
+      return								\
+	compBind(this->crtp(),std::make_tuple(td...));				\
+    }
+    
+    DECLARE_PARTIAL_EVAL(const);
+    DECLARE_PARTIAL_EVAL(/* non const */);
+    
+#undef DECLARE_PARTIAL_EVAL
   };
 }
 

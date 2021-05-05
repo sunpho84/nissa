@@ -125,7 +125,8 @@ namespace nissa
   auto compBind(_E&& e,
 		const TensorComps<BCs...>& bc)
   {
-    using E=std::remove_const_t<std::decay_t<_E>>;
+    using E=
+      std::remove_const_t<std::decay_t<_E>>;
     
     constexpr bool storeByRef=
 		std::is_lvalue_reference_v<decltype(e)>;
@@ -160,6 +161,18 @@ namespace nissa
     return
       CompBinder<E,TensorComps<BCs...>,Flags>(std::forward<_E>(e),bc);
   }
+  
+  template <typename E,
+	    typename BC,
+	    ExprFlags Flags,
+	    typename...BCs>
+  auto compBinda(const CompBinder<E,BC,Flags>& cb,
+		const TensorComps<BCs...>& bcs)
+  {
+    static_assert(sizeof...(BCs)==0,"");
+    return combBind(cb.boundExpression,std::tuple_cat(cb.boundComponents,bcs));
+  }
+
 }
 
 #endif
