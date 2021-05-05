@@ -8,6 +8,7 @@
 /// \file compBind.hpp
 
 #include <metaProgramming/refOrVal.hpp>
+#include <metaProgramming/universalReference.hpp>
 #include <tensor/component.hpp>
 #include <tensor/expr.hpp>
 
@@ -91,39 +92,56 @@ namespace nissa
 	return boundExpression.eval(std::get<ICs>(boundComponents)...,td...);
       }
       
-      /// Copy constructor
+      
+      /// Construct
       template <typename T>
       _CompBinder(T&& boundExpression,
-		 const BoundComponents& boundComponents) :
-	boundExpression(boundExpression),
+		  const BoundComponents& boundComponents) :
+	boundExpression(std::forward<T>(boundExpression)),
 	boundComponents(boundComponents)
-	{
-	}
+      {
+      }
       
       /// Move constructor
-      template <typename T>
       _CompBinder(_CompBinder&& oth) :
-	boundExpression(std::move(boundExpression)),
-	boundComponents(std::move(boundComponents))
-	{
-	}
+	boundExpression(std::move(oth.boundExpression)),
+	boundComponents(std::move(oth.boundComponents))
+      {
+      }
     };
   };
+  
+#define _CBF					\
+  _CompBinderFactory<E,				\
+		     typename E::Comps,		\
+		     BC,						\
+		     std::make_index_sequence<std::tuple_size_v<BC>>,	\
+		     Flags>::_CompBinder
   
   template <typename E,
 	    typename BC,
 	    ExprFlags Flags>
-  using CompBinder=
-    typename _CompBinderFactory<E,
-				typename E::Comps,
-				BC,
-				std::make_index_sequence<std::tuple_size_v<BC>>,
-				Flags>::_CompBinder;
+  struct CompBinder : _CBF
+  {
+    using CBF=
+      typename _CBF;
+    
+#undef _CBF
+    
+    using CBF::CBF;
+    
+    using BoundComponents=
+      typename CBF::BoundComponents;
+    
+    using Fund=
+      typename CBF::Fund;
+  };
   
   template <typename _E,
 	    typename...BCs>
   auto compBind(_E&& e,
-		const TensorComps<BCs...>& bc)
+		const TensorComps<BCs...>& bc,
+		UNIVERSAL_REFERENCE_CONSTRUCTOR_UNPRIORITIZE)
   {
     using E=
       std::remove_const_t<std::decay_t<_E>>;
@@ -166,13 +184,11 @@ namespace nissa
 	    typename BC,
 	    ExprFlags Flags,
 	    typename...BCs>
-  auto compBinda(const CompBinder<E,BC,Flags>& cb,
+  auto compBind(const CompBinder<E,BC,Flags>& cb,
 		const TensorComps<BCs...>& bcs)
   {
-    static_assert(sizeof...(BCs)==0,"");
-    return combBind(cb.boundExpression,std::tuple_cat(cb.boundComponents,bcs));
+    return compBind(cb.boundExpression,std::tuple_cat(cb.boundComponents,bcs));
   }
-
 }
 
 #endif
