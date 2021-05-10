@@ -6,7 +6,11 @@
 #endif
 
 /// Universal constructor unprioritize
-#define UNIVERSAL_REFERENCE_CONSTRUCTOR_UNPRIORITIZE ...
+#define UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR ...
+
+/// Forward the member of the Type, see https://en.cppreference.com/w/cpp/utility/forward
+#define FORWARD_MEMBER_VAR(TYPE,OBJ,MEMBER_VAR)		\
+  std::forward<decltype(std::forward<TYPE>(OBJ).MEMBER_VAR)>(OBJ.MEMBER_VAR)
 
 namespace nissa
 {

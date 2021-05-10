@@ -35,7 +35,7 @@ namespace nissa
     using BoundExpressionComponents=
       TensorComps<TCs...>;
     
-    using BoundExpression=
+    using _BoundExpression=
       ConditionalRef<getStoreByRef<_Flags>
       ,ConditionalConst<getEvalToConst<_Flags>,E>>;
     
@@ -57,6 +57,9 @@ namespace nissa
       
       using BoundComponents=
 	_BoundComponents;
+      
+      using BoundExpression=
+	_BoundExpression;
       
       /// Fundamental type of the expression
       using Fund=
@@ -92,7 +95,6 @@ namespace nissa
 	return boundExpression.eval(std::get<ICs>(boundComponents)...,td...);
       }
       
-      
       /// Construct
       template <typename T>
       _CompBinder(T&& boundExpression,
@@ -104,9 +106,17 @@ namespace nissa
       
       /// Move constructor
       _CompBinder(_CompBinder&& oth) :
-	boundExpression(std::move(oth.boundExpression)),
-	boundComponents(std::move(oth.boundComponents))
+	boundExpression(FORWARD_MEMBER_VAR(_CompBinder,oth,boundExpression)),
+	boundComponents(oth.boundComponents)
       {
+      }
+      
+      /// Copy constructor
+      _CompBinder(const _CompBinder& oth) :
+	boundExpression(oth.boundExpression),
+	boundComponents(oth.boundComponents)
+      {
+	static_assert(std::is_lvalue_reference_v<BoundExpression>,"Makes no sense");
       }
     };
   };
@@ -133,36 +143,37 @@ namespace nissa
     using BoundComponents=
       typename CBF::BoundComponents;
     
+    using BoundExpression=
+      typename CBF::BoundExpression;
+    
     using Fund=
       typename CBF::Fund;
   };
   
   template <typename _E,
-	    typename...BCs>
-  auto compBind(_E&& e,
-		const TensorComps<BCs...>& bc,
-		UNIVERSAL_REFERENCE_CONSTRUCTOR_UNPRIORITIZE)
+	    typename ACTUAL_TYPE> /// corresponding to decltype(e)
+  struct _CompBinderTraits
   {
     using E=
       std::remove_const_t<std::decay_t<_E>>;
     
-    constexpr bool storeByRef=
-		std::is_lvalue_reference_v<decltype(e)>;
+    static constexpr bool storeByRef=
+		std::is_lvalue_reference_v<ACTUAL_TYPE>;
     
-    constexpr bool needsToBeMoveConstructed=
-		std::is_rvalue_reference_v<decltype(e)>;
+    static constexpr bool needsToBeMoveConstructed=
+		std::is_rvalue_reference_v<ACTUAL_TYPE>;
     
-    constexpr bool isVal=
-		not std::is_reference_v<decltype(e)>;
+    static constexpr bool isVal=
+		not std::is_reference_v<ACTUAL_TYPE>;
     
-    constexpr bool canBeMoveConstructed=
+    static constexpr bool canBeMoveConstructed=
 		std::is_move_constructible_v<E>;
     
-    constexpr bool canBeCopyConstructed=
+    static constexpr bool canBeCopyConstructed=
 		std::is_copy_constructible_v<E>;
     
-    constexpr bool passAsConst=
-		std::is_const_v<std::remove_reference_t<decltype(e)>>;
+    static constexpr bool passAsConst=
+		std::is_const_v<std::remove_reference_t<ACTUAL_TYPE>>;
     
     static_assert(canBeMoveConstructed or not needsToBeMoveConstructed,"Would need to move-construct, but the move constructor is not available");
     
@@ -172,12 +183,21 @@ namespace nissa
     static_assert((not getStoreByRef<E::Flags>) or not isVal,
 		  "Would need to store by val, but the inner object flags indicated to store by ref");
     
-    constexpr ExprFlags Flags
+    static constexpr ExprFlags Flags
 		=setStoreByRefTo<storeByRef
 		,addEvalToConstIf<passAsConst,E::Flags>>;
+  };
+  
+  template <typename _E,
+	    typename...BCs>
+  auto compBind(_E&& e,
+		const TensorComps<BCs...>& bc,
+		UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
+  {
+    using CH=_CompBinderTraits<_E,decltype(e)>;
     
     return
-      CompBinder<E,TensorComps<BCs...>,Flags>(std::forward<_E>(e),bc);
+      CompBinder<typename CH::E,TensorComps<BCs...>,CH::Flags>(std::forward<_E>(e),bc);
   }
   
   template <typename E,
