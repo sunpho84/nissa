@@ -104,21 +104,21 @@ namespace nissa
   ///
   /// Forward declaration
   template <RwCl>
-  RwCl transp;
+  RwCl transpRwCl;
   
   /// Transposed of a row
   template <>
-  inline constexpr RwCl transp<ROW> =
+  inline constexpr RwCl transpRwCl<ROW> =
     CLN;
   
   /// Transposed of a column
   template <>
-  inline constexpr RwCl transp<CLN> =
+  inline constexpr RwCl transpRwCl<CLN> =
     ROW;
   
   /// Transposed of any
   template <>
-  inline constexpr RwCl transp<ANY> =
+  inline constexpr RwCl transpRwCl<ANY> =
     ANY;
   
   /////////////////////////////////////////////////////////////////
@@ -136,7 +136,7 @@ namespace nissa
   {
     /// Transposed component
     using Transp=
-      TensorComp<S,transp<RC>,Which>;
+      TensorComp<S,transpRwCl<RC>,Which>;
     
     /// Signature type
     using Signature=
@@ -521,16 +521,11 @@ namespace nissa
     template <typename...TC>
     struct _TransposeTensorComps<TensorComps<TC...>>
     {
-      /// Chekc if the the component list contains the transposed
-      template <typename T>
-      static constexpr bool isMatrixOnComponent=
-	tupleHasType<TensorComps<TC...>,T,1>;
-      
-      /// Returns a given components, or its transposed if it is misisng
-      template <typename T,
-		typename TranspTc=typename T::Transp>
+      /// Returns a given components, or its transposed if it is missing
+      template <typename C,
+		typename TranspC=typename C::Transp>
       using ConditionallyTransposeComp=
-	std::conditional_t<isMatrixOnComponent<T>,TranspTc,T>;
+	std::conditional_t<tupleHasType<TensorComps<TC...>,TranspC,1>,C,TranspC>;
       
       /// Resulting type
       using type=

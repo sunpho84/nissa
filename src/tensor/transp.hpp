@@ -1,11 +1,11 @@
-#ifndef _CONJ_HPP
-#define _CONJ_HPP
+#ifndef _TRANSP_HPP
+#define _TRANSP_HPP
 
 #ifdef HAVE_CONFIG_H
 # include <config.hpp>
 #endif
 
-/// \file conj.hpp
+/// \file transp.hpp
 
 #include <metaProgramming/universalReference.hpp>
 #include <tensor/expr.hpp>
@@ -13,25 +13,17 @@
 
 namespace nissa
 {
-  DECLARE_COMPONENT(Complex,int,2);
-  
-  /// Real component index
-  constexpr inline Complex Re=0;
-  
-  /// Imaginary component index
-  constexpr inline Complex Im=1;
-  
-  /// Conjugator of an expression
+  /// Transposer of an expression
   template <typename T,
 	    ExprFlags _Flags>
-  struct Conj : Expr<Conj<T,_Flags>,
+  struct Transp : Expr<Transp<T,_Flags>,
 		     typename T::Comps,
 		     typename T::Fund,
 		     unsetEvalToRef<setStoreByRefTo<false,_Flags>>>
   {
     /// Components
     using Comps=
-      typename T::Comps;
+      TransposeTensorComps<typename T::Comps>;
     
     /// Fundamental type of the expression
     using Fund=
@@ -50,39 +42,31 @@ namespace nissa
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
     Fund eval(const TD&...td) const
     {
-      const Complex& reIm=
-	std::get<Complex>(std::make_tuple(td...));
-      
-      decltype(auto) val=boundExpression.eval(td...);
-      
-      if(reIm==0)
-	return val;
-      else
-	return -val;
+      return boundExpression(td.transp()...);
     }
     
     /// Construct
     template <typename C>
-    Conj(C&& boundExpression) :
+    Transp(C&& boundExpression) :
       boundExpression(std::forward<C>(boundExpression))
     {
     }
     
     /// Move constructor
-    Conj(Conj&& oth) :
-      boundExpression(FORWARD_MEMBER_VAR(Conj,oth,boundExpression))
+    Transp(Transp&& oth) :
+      boundExpression(FORWARD_MEMBER_VAR(Transp,oth,boundExpression))
     {
     }
   };
   
   template <typename _E>
-  auto conj(_E&& e,
-	    UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
+  auto transp(_E&& e,
+	      UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
   {
     using CH=
       RefCatcherHelper<_E,decltype(e)>;
     
-    return Conj<typename CH::E,CH::Flags>(std::forward<_E>(e));
+    return Transp<typename CH::E,CH::Flags>(std::forward<_E>(e));
   }
 }
 
