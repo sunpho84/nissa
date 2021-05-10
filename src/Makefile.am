@@ -1,4 +1,10 @@
-include_HEADERS=nissa.hpp
+include_HEADERS=
+bin_PROGRAMS=
+BUILT_SOURCES=
+CLEANFILES=
+assembly_reports=
+
+include_HEADERS+=nissa.hpp
 
 #add nissa library
 lib_LIBRARIES=$(top_builddir)/lib/libnissa.a
