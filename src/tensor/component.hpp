@@ -243,6 +243,15 @@ namespace nissa
 	Transp{i};
     }
     
+    /// Dagger index, alias for transposed
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    auto dag()
+      const
+    {
+      return
+	transp();
+    }
+    
     /// Forbid assignement to a temporary
     TensorComp& operator=(const TensorComp& oth) && = delete;
     
