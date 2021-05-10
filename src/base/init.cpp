@@ -157,7 +157,7 @@ namespace nissa
     //set scidac mapping
     scidac_mapping(tDir)=0;
     FOR_ALL_DIRS(mu)
-      scidac_mapping(mu)=(NDIM-mu).nastyConvert(); // nasty?
+      scidac_mapping(mu)=((NDIM-mu)%NDIM);
     
     FOR_ALL_DIRS(mu)
       all_dirs(mu)=true;
