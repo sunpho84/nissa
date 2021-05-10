@@ -129,13 +129,15 @@ namespace nissa
     /// Evaluate, returning a reference to the fundamental type
     ///
     /// Case in which the components are not yet correctly ordered
-    template <typename...TD,
-	      ENABLE_THIS_TEMPLATE_IF(sizeof...(TD)==sizeof...(TC))>
-    CUDA_HOST_DEVICE INLINE_FUNCTION
-    const Fund& eval(const TD&...td) const
-    {
-      return eval(std::get<TC>(std::make_tuple(td...))...);
-    }
+    /// COMMENTED BECAUSE TAKEN INTO ACCOUNT BY Expr, but maybe we want to move it here
+    /// If an expr has no problem accepting unordered components
+    // template <typename...TD,
+    // 	      ENABLE_THIS_TEMPLATE_IF(sizeof...(TD)==sizeof...(TC))>
+    // CUDA_HOST_DEVICE INLINE_FUNCTION
+    // const Fund& eval(const TD&...td) const
+    // {
+    //   return eval(std::get<TC>(std::make_tuple(td...))...);
+    // }
     
     /// Evaluate, returning a reference to the fundamental type
     CUDA_HOST_DEVICE INLINE_FUNCTION

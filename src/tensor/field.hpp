@@ -10,9 +10,14 @@
 
 namespace nissa
 {
-    template <typename TC,
+  namespace AllocateBord
+  {
+    enum : bool{NO,YES};
+  }
+  
+  template <typename TC,
 	    typename F,
-	    bool WithBord=false>
+	    bool WithBord=AllocateBord::NO>
   struct LxField;
   
   namespace details
@@ -40,9 +45,9 @@ namespace nissa
     
     mutable Tensor<Comps,F,DefaultStorage> data;
     
-    /// Allocate the field
-    template <typename...TD>
-    void allocate(const TD&...td)
+    /// Allocate the storage when sizes are passed as a list of TensorComp
+    template <typename...TDfeat>
+    void allocate(const TensorCompFeat<TDfeat>&...tdFeat)
     {
       if(not lxGeomInited)
 	crash("Needs to initialize lx geometry first");
@@ -50,7 +55,20 @@ namespace nissa
       const LocLxSite sitesToAllocate=
 	WithBord?locVolWithBord:locVol;
       
-      data.allocate(sitesToAllocate,td...);
+      data.allocate(sitesToAllocate,tdFeat.deFeat()...);
+    }
+    
+    // /// Constructor which does not specifies the sizes
+    /// Should not be needed
+    // LxField()
+    // {
+    // }
+    
+    /// Constructor which specifies the sizes
+    template <typename...TDfeat>
+    LxField(const TensorCompFeat<TDfeat>&...tdFeat)
+    {
+      allocate(tdFeat...);
     }
     
     // Evaluate, returning a reference to the fundamental type
@@ -70,6 +88,16 @@ namespace nissa
       crash("not yet implemented");
     }
   };
+  
+  /// Creates an lx field with the constrctor parameters
+  template <typename TC,
+	    bool WithBord=AllocateBord::NO,
+	    typename F=double,
+	    typename...Args>
+  auto createLxField(Args&&...args)
+  {
+    return LxField<TC,F,AllocateBord::NO>(std::forward<Args>(args)...);
+  }
 }
 
 #endif
