@@ -141,6 +141,12 @@ namespace nissa
     };
   };
   
+  template <typename Tp,
+	    typename T,
+	    int N=1>
+  constexpr bool tupleHasType=
+    TypeIsInList<N,Tp>::template t<T>::value;
+  
   /////////////////////////////////////////////////////////////////
   
   /// Returns a tuple containing all types common to the two tuples

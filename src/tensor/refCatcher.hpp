@@ -11,6 +11,7 @@
 
 namespace nissa
 {
+  /// Helper to determine all parameters to implement reference inside an expression
   template <typename _E,
 	    typename ACTUAL_TYPE> /// corresponding to decltype(e)
   struct RefCatcherHelper

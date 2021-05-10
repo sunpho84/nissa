@@ -513,26 +513,44 @@ namespace nissa
     ///
     /// Actual implementation, forward declaration
     template <typename TC>
-    struct _TensorCompsTransp;
+    struct _TransposeTensorComps;
     
     /// Transposes a list of components
     ///
     /// Actual implementation
-    template <typename...S,
-	      RwCl...RC,
-	      int...Which>
-    struct _TensorCompsTransp<TensorComps<TensorComp<S,RC,Which>...>>
+    template <typename...TC>
+    struct _TransposeTensorComps<TensorComps<TC...>>
     {
+      /// Chekc if the the component list contains the transposed
+      template <typename T>
+      static constexpr bool isMatrixOnComponent=
+	tupleHasType<TensorComps<TC...>,T,1>;
+      
+      /// Returns a given components, or its transposed if it is misisng
+      template <typename T,
+		typename TranspTc=typename T::Transp>
+      using ConditionallyTransposeComp=
+	std::conditional_t<isMatrixOnComponent<T>,TranspTc,T>;
+      
       /// Resulting type
       using type=
-	TensorComps<TensorComp<S,transp<RC>,Which>...>;
+	TensorComps<ConditionallyTransposeComp<TC>...>;
     };
   }
   
   /// Transposes a list of components
+  ///
+  /// - If a component is not of ROW/CLN case, it is left unchanged
+  /// - If a ROW/CLN component is matched with a CLN/ROW one, it is left unchanged
+  /// - If a ROW/CLN component is not matched, it is transposed
+  ///
+  /// \example
+  ///
+  /// using T=TensorComps<Complex,ColorRow,ColorCln,SpinRow>
+  /// using U=TransposeTensorcomps<T>; //TensorComps<Complex,ColorRow,ColorCln,SpinCln>
   template <typename TC>
-  using TensorCompsTransp=
-    typename impl::_TensorCompsTransp<TC>::type;
+  using TransposeTensorComps=
+    typename impl::_TransposeTensorComps<TC>::type;
 }
 
 #endif
