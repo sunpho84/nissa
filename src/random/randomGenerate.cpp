@@ -114,7 +114,7 @@ namespace nissa
     FOR_ALL_DIRS(mu)
       {
 	if(IS_MASTER_THREAD) temp(mu)=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize(mu)()));
-	THREAD_BROADCAST(c(mu),temp(mu));
+	THREAD_BROADCAST(c(mu)(),temp(mu)());
       }
   }
   
