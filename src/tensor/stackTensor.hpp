@@ -25,7 +25,7 @@ namespace nissa
   struct TENSOR :
       BASE_TENSOR
   {
-    // using Base=BASE_TENSOR;
+    using Base=BASE_TENSOR;
     
 #undef BASE_TENSOR
 #undef TENSOR
@@ -56,14 +56,22 @@ namespace nissa
     /// Actual storage
     Fund storage[storageSize];
     
-    /// Evaluate, returning a reference to the fundamental type
-    CUDA_HOST_DEVICE INLINE_FUNCTION
-    const Fund& eval(const TC&...tc) const
-    {
-      return storage[this->indexComputer(tc...)];
-    }
+#define PROVIDE_ORDERED_EVALUATOR(ATTRIB)					\
+    /*! Evaluate, returning a reference to the fundamental type */	\
+    template <typename...TD,						\
+	      ENABLE_THIS_TEMPLATE_IF(std::is_same_v<TD,TC> && ...)>	\
+    CUDA_HOST_DEVICE INLINE_FUNCTION					\
+    ATTRIB Fund& orderedEval(const TD&...td) ATTRIB				\
+    {									\
+									\
+      return storage[this->indexComputer(td...)];			\
+    }									\
     
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
+    PROVIDE_ORDERED_EVALUATOR(/* not const */);
+    
+    PROVIDE_ORDERED_EVALUATOR(const);
+    
+#undef PROVIDE_ORDERED_EVALUATOR
   };
 }
 

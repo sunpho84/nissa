@@ -20,7 +20,8 @@ namespace nissa
   {
     enum : ExprFlags{STORE_BY_REF=1,
 		     EVAL_TO_REF=2,
-		     EVAL_TO_CONST=4};
+		     EVAL_TO_CONST=4,
+		     NEEDS_ORDERED_COMPS_TO_EVAL=8};
   }
   
 #define DECLARE_EXPR_FLAG_UTILITIES(FLAG_NAME,MASK_NAME)		\
@@ -65,9 +66,11 @@ namespace nissa
   
   DECLARE_EXPR_FLAG_UTILITIES(EvalToConst,EVAL_TO_CONST);
   
+  DECLARE_EXPR_FLAG_UTILITIES(NeedsOrderedCompsToEval,NEEDS_ORDERED_COMPS_TO_EVAL);
+  
 #undef DECLARE_EXPR_FLAG_UTILITIES
   
-  /////////////////////////////////////////////////////////////////  
+  /////////////////////////////////////////////////////////////////
   
   DEFINE_FEATURE(ExprFeat);
   
@@ -86,71 +89,105 @@ namespace nissa
     ExprFeat<Expr<T,TensorComps<TC...>,F,_Flags>>,
     Crtp<T>
   {
+    /// Inner flags
     static constexpr ExprFlags Flags=_Flags;
     
+    /// Components
     using Comps=
       TensorComps<TC...>;
     
+    /// Fundamental type
     using Fund=F;
     
+    /// Returned type when evaluating non-const
     using EvaluatedType=
       ConditionalRef<getEvalToRef<Flags>,
 		     ConditionalConst<getEvalToConst<Flags>,
 				      Fund>>;
     
+    /// Evaluated type when evaluating const
     using ConstEvaluatedType=
       ConditionalRef<getEvalToRef<Flags>,
 		     const Fund>;
     
+    /// Decide which types are left when calling
     template <typename...TD>
-    struct _EvalHelper
+    struct _CallHelper
     {
+      //// Leftover components
       using ResidualComps=
 	TupleFilterAllTypes<Comps,std::tuple<TD...>>;
       
+      /// Number of numerical components left
       static constexpr int nResidualComps=
 	std::tuple_size_v<ResidualComps>;
       
-      static constexpr bool fullyEval=
-	nResidualComps==0;
+      /// Decide if full or partial call
+      static constexpr bool fullCall=
+	(nResidualComps==0);
     };
     
-    /// Full list of indices passed
-    template <typename...TD,
-	      ENABLE_THIS_TEMPLATE_IF(_EvalHelper<TD...>::fullyEval)>
-    CUDA_HOST_DEVICE constexpr INLINE_FUNCTION
-    ConstEvaluatedType operator()(const TD&...td) const
-    {
-      return
-	this->crtp().eval(td...);
+#define DECLARE_UNORDERED_EVAL(ATTRIB)					\
+    									\
+    /*! Evaluate, returning a reference to the fundamental type    */	\
+    /*!								   */	\
+    /*! Case in which the components are not yet correctly ordered */	\
+    /*! If an expr has no problem accepting unordered components   */	\
+    template <typename...TD,						\
+	      ENABLE_THIS_TEMPLATE_IF((sizeof...(TD)==sizeof...(TC)) and \
+				      getNeedsOrderedCompsToEval<Flags>)> \
+    CUDA_HOST_DEVICE INLINE_FUNCTION					\
+    decltype(auto) eval(const TD&...td) ATTRIB				\
+    {									\
+      return								\
+	this->crtp().orderedEval(std::get<TC>(std::make_tuple(td...))...); \
     }
     
-    /// Full list of indices passed, non constant version
-    template <typename...TD,
-	      ENABLE_THIS_TEMPLATE_IF(_EvalHelper<TD...>::fullyEval)>
-    CUDA_HOST_DEVICE constexpr INLINE_FUNCTION
-    EvaluatedType operator()(const TD&...td)
-    {
-      return this->crtp().eval(td...);
-    }
+    DECLARE_UNORDERED_EVAL(const);
+    
+    DECLARE_UNORDERED_EVAL(/* not const*/ );
+    
+#undef DECLARE_UNORDERED_EVAL
     
     /////////////////////////////////////////////////////////////////
     
-#define DECLARE_PARTIAL_EVAL(ATTRIB)					\
+#define DECLARE_FULL_CALL(RETURNED_TYPE,ATTRIB)				\
+    									\
+    /*! Full list of indices passed */					\
+    template <typename...TD,						\
+	      ENABLE_THIS_TEMPLATE_IF(_CallHelper<TD...>::fullCall)>	\
+    CUDA_HOST_DEVICE constexpr INLINE_FUNCTION				\
+    RETURNED_TYPE operator()(const TD&...td) ATTRIB			\
+    {									\
+    return								\
+      this->crtp().eval(td...);						\
+    }
+    
+    DECLARE_FULL_CALL(ConstEvaluatedType,const);
+    
+    DECLARE_FULL_CALL(EvaluatedType,/* non const */);
+    
+#undef DECLARE_FULL_CALL
+    
+    /////////////////////////////////////////////////////////////////
+    
+#define DECLARE_PARTIAL_CALL(ATTRIB)					\
+									\
     /* Partial list of indices passed */				\
     template <typename...TD,						\
-	      ENABLE_THIS_TEMPLATE_IF(not _EvalHelper<TD...>::fullyEval)> \
+	      ENABLE_THIS_TEMPLATE_IF(not _CallHelper<TD...>::fullCall)> \
     CUDA_HOST_DEVICE constexpr INLINE_FUNCTION				\
     auto operator()(const TD&...td) ATTRIB				\
     {									\
       return								\
-	compBind(this->crtp(),std::make_tuple(td...));				\
+	compBind(this->crtp(),std::make_tuple(td...));			\
     }
     
-    DECLARE_PARTIAL_EVAL(const);
-    DECLARE_PARTIAL_EVAL(/* non const */);
+    DECLARE_PARTIAL_CALL(const);
     
-#undef DECLARE_PARTIAL_EVAL
+    DECLARE_PARTIAL_CALL(/* non const */);
+    
+#undef DECLARE_PARTIAL_CALL
   };
 }
 

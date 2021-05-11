@@ -25,12 +25,13 @@ namespace nissa
 	    typename Comps,
 	    typename Fund=double>
   struct BaseTensor;
-
+  
   namespace details
   {
     constexpr ExprFlags _BaseTensorFlags=
       EXPR_FLAG_MASKS::EVAL_TO_REF|
-      EXPR_FLAG_MASKS::STORE_BY_REF;
+      EXPR_FLAG_MASKS::STORE_BY_REF|
+      EXPR_FLAG_MASKS::NEEDS_ORDERED_COMPS_TO_EVAL;
   }
   
   /// Tensor

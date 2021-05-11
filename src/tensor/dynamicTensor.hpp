@@ -126,22 +126,8 @@ namespace nissa
     //   	static_cast<const Expr<Tensor,Comps>&>(oth);
     // }
     
-    /// Evaluate, returning a reference to the fundamental type
-    ///
-    /// Case in which the components are not yet correctly ordered
-    /// COMMENTED BECAUSE TAKEN INTO ACCOUNT BY Expr, but maybe we want to move it here
-    /// If an expr has no problem accepting unordered components
-    // template <typename...TD,
-    // 	      ENABLE_THIS_TEMPLATE_IF(sizeof...(TD)==sizeof...(TC))>
-    // CUDA_HOST_DEVICE INLINE_FUNCTION
-    // const Fund& eval(const TD&...td) const
-    // {
-    //   return eval(std::get<TC>(std::make_tuple(td...))...);
-    // }
-    
-    /// Evaluate, returning a reference to the fundamental type
-    CUDA_HOST_DEVICE INLINE_FUNCTION
-    const Fund& eval(const TC&...tc) const
+    /// Check that we are accessing device vector only on device code
+    void assertCorrectEvaluationStorage() const
     {
 #ifdef COMPILING_FOR_DEVICE
       if constexpr(SL==StorLoc::ON_CPU)
@@ -150,19 +136,25 @@ namespace nissa
       if constexpr(SL==StorLoc::ON_GPU)
 	crash("Cannot access device memory from host");
 #endif
-      // /// Check that we are not accessing device memory from the host
-      // constexpr bool accessDeviceMemoryOnHost=(SL==StorLoc::ON_GPU) and not CompilingForDevice;
-      
-      // /// Check that we are not accessing host memory on device
-      // constexpr bool accessHostMemoryOnDevice=(SL==StorLoc::ON_CPU) and CompilingForDevice;
-      
-      // static_assert(not accessDeviceMemoryOnHost,"Cannot access device memory from host");
-      // static_assert(not accessHostMemoryOnDevice,"Cannot access host memory from device");
-      
-      return storage[this->indexComputer(tc...)];
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
+#define PROVIDE_ORDERED_EVALUATOR(ATTRIB)					\
+    /*! Evaluate, returning a reference to the fundamental type */	\
+    template <typename...TD,						\
+	      ENABLE_THIS_TEMPLATE_IF(std::is_same_v<TD,TC> && ...)>	\
+    CUDA_HOST_DEVICE INLINE_FUNCTION					\
+    ATTRIB Fund& orderedEval(const TD&...td) ATTRIB				\
+    {									\
+      assertCorrectEvaluationStorage();					\
+									\
+      return storage[this->indexComputer(td...)];			\
+    }									\
+    
+    PROVIDE_ORDERED_EVALUATOR(/* not const */);
+    
+    PROVIDE_ORDERED_EVALUATOR(const);
+    
+#undef PROVIDE_ORDERED_EVALUATOR
   };
 }
 
