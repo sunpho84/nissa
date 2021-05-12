@@ -139,6 +139,10 @@ namespace nissa
     using Transp=
       TensorComp<S,transpRwCl<RC>,Which>;
     
+    /// Non column version
+    using NonCol=
+      TensorComp<S,((RC==ANY)?ANY:ROW),Which>;
+    
     /// Signature type
     using Signature=
       S;
