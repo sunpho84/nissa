@@ -18,6 +18,7 @@
 #include <metaProgramming/sfinae.hpp>
 #include <metaProgramming/tuple.hpp>
 #include <metaProgramming/typeConversion.hpp>
+#include <metaProgramming/unrolledFor.hpp>
 
 namespace nissa
 {
@@ -180,16 +181,16 @@ namespace nissa
     }
     
     /// Default constructor
-    INLINE_FUNCTION CUDA_HOST_DEVICE
-    constexpr TensorComp()
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    TensorComp()
     {
     }
     
     /// Init from value
     template <typename T=Index,
 	      ENABLE_THIS_TEMPLATE_IF(isSafeNumericConversion<Index,T>)>
-    INLINE_FUNCTION CUDA_HOST_DEVICE
-    constexpr TensorComp(T&& i) : i(i)
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    TensorComp(T&& i) : i(i)
     {
     }
     
@@ -411,6 +412,24 @@ namespace nissa
   
 #define FOR_ALL_COMPONENT_VALUES(TYPE,NAME)				\
   for(TYPE NAME=0;NAME<TYPE::sizeAtCompileTimeAssertingNotDynamic();NAME++)
+  
+#define UNROLLED_FOR_COMPONENT_VALUES_IN_RANGE(TYPE,NAME,MIN,MAX,CORE...) \
+  unrolledFor<MIN,MAX>([&](const TYPE& NAME) INLINE_ATTRIBUTE \
+  {									\
+    CORE;								\
+  })
+  
+#define FOR_ALL_COMPONENT_VALUES_STARTING_AT(TYPE,NAME,MIN,CORE...)	\
+  FOR_COMPONENT_VALUES_IN_RANGE(TYPE,NAME,MIN,TYPE::sizeAtCompileTimeAssertingNotDynamic(),CORE)
+  
+#define UNROLLED_FOR_ALL_COMPONENT_VALUES_STARTING_AT(TYPE,NAME,MIN,CORE...)	\
+  UNROLLED_FOR_COMPONENT_VALUES_IN_RANGE(TYPE,NAME,MIN,TYPE::sizeAtCompileTimeAssertingNotDynamic(),CORE)
+  
+#define FOR_ALL_COMPONENT_VALUES(TYPE,NAME,CORE...)			\
+  FOR_ALL_COMPONENT_VALUES_STARTING_AT(TYPE,NAME,0,CORE)
+  
+#define UNROLLED_FOR_ALL_COMPONENT_VALUES(TYPE,NAME,CORE...)			\
+  UNROLLED_FOR_ALL_COMPONENT_VALUES_STARTING_AT(TYPE,NAME,0,CORE)
   
   /////////////////////////////////////////////////////////////////
   

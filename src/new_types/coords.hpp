@@ -23,13 +23,19 @@ namespace nissa
   /// Z direction
   inline CUDA_DEVICE Dir zDir=3;
   
-#define FOR_ALL_DIRS(NAME)		\
-  FOR_ALL_COMPONENT_VALUES(Dir,NAME)
+#define FOR_ALL_DIRS(NAME,CORE...)		\
+  FOR_ALL_COMPONENT_VALUES(Dir,NAME,CORE)
   
-#define FOR_ALL_SPATIAL_DIRS(NAME)	\
-  for(Dir NAME=1;NAME<NDIM;NAME++)
+#define UNROLL_FOR_ALL_DIRS(NAME,CORE...)	\
+  FOR_ALL_COMPONENT_VALUES(Dir,NAME,CORE)
   
-  /// Coordinates
+#define FOR_ALL_SPATIAL_DIRS(NAME,CORE...)				\
+  FOR_ALL_COMPONENT_VALUES_STARTING_AT(Dir,NAME,1,CORE)
+  
+#define UNROLL_FOR_ALL_SPATIAL_DIRS(NAME,CORE...)				\
+  UNROLL_FOR_ALL_COMPONENT_VALUES_STARTING_AT(Dir,NAME,1,CORE)
+  
+   /// Coordinates
   template <typename T,
 	    StorLoc SL=DefaultStorage>
   using Coords=Tensor<OfComps<Dir>,T,SL,TensorDynamicity::STACKED_TENSOR>;

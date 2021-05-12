@@ -25,9 +25,9 @@ namespace nissa
     /// unrolling without any recursion
     template <typename F,
 	      typename...Args>
-    INLINE_FUNCTION CUDA_HOST_DEVICE
-    int call(F&& f,          ///< Function to be called
-	     Args&&...args)  ///< Calling arguments
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    int call(const F& f,          ///< Function to be called
+	     Args&&...args)       ///< Calling arguments
     {
       f(std::forward<Args>(args)...);
       

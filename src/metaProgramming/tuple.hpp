@@ -156,6 +156,12 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  /// Type of the tuple obtained catting all passed tuples
+  template <typename...TP>
+  using TupleCat=decltype(std::tuple_cat(*(TP*)nullptr...));
+  
+  /////////////////////////////////////////////////////////////////
+  
   namespace details
   {
     /// Tuple with unique types from a list

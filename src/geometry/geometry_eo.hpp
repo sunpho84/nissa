@@ -35,8 +35,11 @@ namespace nissa
   
   inline CUDA_DEVICE Parity ODD=1;
   
-#define FOR_BOTH_PARITIES(NAME)			\
-  FOR_ALL_COMPONENT_VALUES(Parity,NAME)
+#define FOR_BOTH_PARITIES(NAME,CORE...)		\
+  FOR_ALL_COMPONENT_VALUES(Parity,NAME,CORE)
+  
+#define UNROLL_FOR_BOTH_PARITIES(NAME,CORE...)		\
+  UNROLL_FOR_ALL_COMPONENT_VALUES(Parity,NAME,CORE)
   
   /// Half the local volume
   CUDA_MANAGED EXTERN_GEOMETRY_EO LocEoSite locVolh;
