@@ -140,7 +140,7 @@ namespace nissa
       TensorComp<S,transpRwCl<RC>,Which>;
     
     /// Non column version
-    using NonCol=
+    using NonCln=
       TensorComp<S,((RC==ANY)?ANY:ROW),Which>;
     
     /// Signature type
@@ -566,6 +566,41 @@ namespace nissa
   template <typename TC>
   using TransposeTensorComps=
     typename impl::_TransposeTensorComps<TC>::type;
+  
+  
+  namespace internal
+  {
+    /// Independent components of a set of TensorComponents
+    ///
+    /// Internal implementation, forward declararation
+    template <typename Tc>
+    struct _IndependentComponents;
+    
+    /// Independent components of a set of TensorComponents
+    ///
+    /// Internal implementation
+    template <typename...Tc>
+    struct _IndependentComponents<TensorComps<Tc...>>
+    {
+      /// Returned type
+      using type=
+	UniqueTuple<typename Tc::NonCln...>;
+    };
+  }
+  
+  /// Independent components of a set of TensorComponents
+  ///
+  ///
+  /// Only Row version is returned, even if only Col is present
+  ///
+  /// \example
+  ///
+  /// IndependentComponents<TensorComps<ColorRow,ColorCln>,TensorComps<SpinCln>>; /// TensorComps<ColorRow,SpinRow>
+  ///
+  template <typename...TP>
+  using IndependentComponents=
+    typename internal::_IndependentComponents<TupleCat<TP...>>::type;
+  
 }
 
 #endif
