@@ -191,6 +191,7 @@
 #include <tensor/conj.hpp>
 #include <tensor/dag.hpp>
 #include <tensor/field.hpp>
+#include <tensor/prod.hpp>
 #include <tensor/refCatcher.hpp>
 #include <tensor/tensor.hpp>
 #include <tensor/transp.hpp>
