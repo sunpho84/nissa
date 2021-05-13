@@ -17,9 +17,9 @@ namespace nissa
   template <typename T,
 	    ExprFlags _Flags>
   struct Transp : Expr<Transp<T,_Flags>,
-		     typename T::Comps,
-		     typename T::Fund,
-		     unsetEvalToRef<setStoreByRefTo<false,_Flags>>>
+		       TransposeTensorComps<typename T::Comps>,
+		       typename T::Fund,
+		       unsetEvalToRef<unsetStoreByRef<_Flags>>>
   {
     /// Components
     using Comps=

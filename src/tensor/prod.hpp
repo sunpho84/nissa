@@ -13,151 +13,94 @@
 
 namespace nissa
 {
-  /// Product of two expressions
-  template <typename T1,
-	    typename T2,
-	    ExprFlags _Flags>
-  struct Prod : Expr<Prod<T1,T2,_Flags>,
-		     typename T1::Comps,
-		     typename T1::Fund,
-		     unsetEvalToRef<setStoreByRefTo<false,_Flags>>>
-  {
-  };
-  
   namespace internal
   {
-    template <typename TH,
-	      typename TT,
+    template <typename TT,
 	      typename TP1,
 	      typename TP2>
     struct _ProdComponents;
     
-    template <typename TH,
+    template <typename...S,
+	      RwCl...RCA,
+	      int...Which,
 	      typename TP1,
 	      typename TP2>
-    struct _ProdComponents<TH,TensorComps<>,TP1,TP2>
-    {
-      using type=TH;
-    };
-    
-    template <typename...TcHead,
-	      typename ThisS,
-	      int ThisWhich,
-	      typename...TcTail,
-	      typename TP1,
-	      typename TP2>
-    struct _ProdComponents<TensorComps<TcHead...>,
-			   TensorComps<TensorComp<ThisS,ANY,ThisWhich>,
-				       TcTail...>,
+    struct _ProdComponents<TensorComps<TensorComp<S,RCA,Which>...>,
 			   TP1,
 			   TP2>
     {
-      using type=
-	typename _ProdComponents<TensorComps<TcHead...,TensorComp<ThisS,ANY,ThisWhich>>,
-				 TensorComps<TcTail...>,
-				 TP1,
-				 TP2>::type;
-    };
-    
-    template <typename Tc,
-	      typename TP>
-    struct TensorCompsContainsRowClnComp;
-    
-    template <typename S,
-	      int Which,
-	      typename...TP>
-    struct TensorCompsContainsRowClnComp<TensorComp<S,ROW,Which>,TensorComps<TP...>>
-    {
-      template <RwCl RC>
-      static constexpr bool hasOne=
-	((std::is_same_v<TensorComp<S,RC,Which>,TP>)+...)==1;
-      
-      static constexpr bool hasRow=
-	hasOne<ROW>;
-      
-      static constexpr bool hasCln=
-	hasOne<CLN>;
-      
-      static constexpr bool hasRowAndCln=
-	hasRow and hasCln;
-    };
-    
-    template <typename Tc,
-	      typename TP>
-    constexpr bool hasRowComp=
-      TensorCompsContainsRowClnComp<Tc,TP>::hasRow;
-    
-    template <typename Tc,
-	      typename TP>
-    constexpr bool hasClnComp=
-      TensorCompsContainsRowClnComp<Tc,TP>::hasCln;
-    
-    template <typename Tc,
-	      typename TP>
-    constexpr bool hasRowAndClnComp=
-      TensorCompsContainsRowClnComp<Tc,TP>::hasRowAndCol;
-    
-    template <typename...TcHead,
-	      typename ThisS,
-	      int ThisWhich,
-	      typename...TcTail,
-	      typename TP1,
-	      typename TP2>
-    struct _ProdComponents<TensorComps<TcHead...>,
-			   TensorComps<TensorComp<ThisS,ROW,ThisWhich>,
-				       TcTail...>,
-			   TP1,
-			   TP2>
-    {
-      using ThisComp=
-	TensorComp<ThisS,ROW,ThisWhich>;
-      
+      template <typename  _S,
+		int _Which>
       static constexpr bool contract=
-	hasClnComp<ThisComp,TP1> and
-	hasRowComp<ThisComp,TP2>;
+	tupleHasType<TP1,TensorComp<_S,CLN,_Which>,1> and
+	tupleHasType<TP2,TensorComp<_S,ROW,_Which>,1>;
       
-      template <RwCl RC>
-      struct _ResHas;
+      template <typename TC>
+      struct _Res;
       
-      template <>
-      struct _ResHas<ROW>
+      template <typename _S,
+		int _Which>
+      struct _Res<TensorComp<_S,ROW,_Which>>
       {
-	static constexpr bool value=
-	  hasRowComp<ThisComp,TP1> or (hasRowComp<ThisComp,TP2> and not contract);
+	using ThisRow=
+	  TensorComp<_S,ROW,_Which>;
+	
+	using ThisCln=
+	  TensorComp<_S,CLN,_Which>;
+	
+	static constexpr bool resHasRow=
+	  tupleHasType<TP1,ThisRow,1> or (tupleHasType<TP2,ThisRow,1> and not contract<_S,_Which>);
+	
+	static constexpr bool resHasCln=
+	  tupleHasType<TP2,ThisCln,1> or (tupleHasType<TP1,ThisCln,1> and not contract<_S,_Which>);
+	
+	using type=
+	  TupleCat<std::conditional_t<resHasRow,TensorComps<ThisRow>,TensorComps<>>,
+		   std::conditional_t<resHasCln,TensorComps<ThisCln>,TensorComps<>>>;
       };
       
-      template <>
-      struct _ResHas<CLN>
+      template <typename _S,
+		int _Which>
+      struct _Res<TensorComp<_S,ANY,_Which>>
       {
-	static constexpr bool value=
-	  hasClnComp<ThisComp,TP2> or (hasClnComp<ThisComp,TP1> and not contract);
+	using type=
+	  TensorComps<TensorComp<_S,ANY,_Which>>;
       };
-      
-      template <RwCl RC>
-      static constexpr bool resHas=
-	_ResHas<RC>::value;
-      
-      template <RwCl RC>
-      using _ThisCompConditionallyInclude=
-	std::conditional_t<resHas<RC>,TensorComps<TensorComp<ThisS,RC,ThisWhich>>,TensorComps<>>;
       
       using type=
-	typename _ProdComponents<TupleCat<TensorComps<TcHead...>,
-					  _ThisCompConditionallyInclude<ROW>,
-					  _ThisCompConditionallyInclude<CLN>>,
-				 TensorComps<TcTail...>,
-				 TP1,
-				 TP2>::type;
+	TupleCat<typename _Res<TensorComp<S,RCA,Which>>::type...>;
     };
   }
   
   template <typename TC1,
 	    typename TC2>
   using ProdComps=
-    typename internal::_ProdComponents<TensorComps<>,
-				       IndependentComponents<TC1,TC2>,
+    typename internal::_ProdComponents<IndependentComponents<TC1,TC2>,
 				       TC1,TC2>::type;
-
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Product of two expressions
+  template <typename T1,
+	    typename T2,
+	    typename _Comps,
+	    typename _Fund,
+	    ExprFlags _Flags>
+  struct Prod : Expr<Prod<T1,T2,_Comps,_Fund,_Flags>,
+		     _Comps,
+		     _Fund,
+		     _Flags>
+  {
+    using Comps=
+      _Comps;
+        
+    using Fund=
+      _Fund;
+    
+    static constexpr ExprFlags Flags=
+      _Flags;
+  };
+  
   template <typename _E1,
 	    typename _E2>
   auto prod(_E1&& e1,
@@ -179,13 +122,13 @@ namespace nissa
     using F=
       decltype(F1()*F2());
     
-    using Comps1=
-      typename CH1::E::Comps;
+    using E1=
+      typename CH1::E;
     
-    using Comps2=
-      typename CH2::E::Comps;
+    using E2=
+      typename CH2::E;
     
-    return ProdComps<Comps1,Comps2>();
+    return;// Prod<E1,E2, ExprFlags _Flags>
   }
 }
 
