@@ -95,6 +95,9 @@ namespace nissa
       
       crash("not yet implemented");
     }
+    
+    using Expr<LxField<TensorComps<TC...>,F,WithBord>,
+	       TensorComps<LocLxSite,TC...>,F,details::_FieldFlags>::operator=;
   };
   
   /// Creates an lx field with the constrctor parameters
