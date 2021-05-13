@@ -188,6 +188,14 @@ namespace nissa
     DECLARE_PARTIAL_CALL(/* non const */);
     
 #undef DECLARE_PARTIAL_CALL
+    
+    template <typename Oth>
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    T& operator=(const ExprFeat<Oth>& rhs)
+    {
+      return assign(this->crtp(),rhs.deFeat().crtp());
+    }
+    
   };
 }
 

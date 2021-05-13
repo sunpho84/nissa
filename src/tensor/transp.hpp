@@ -37,6 +37,13 @@ namespace nissa
     /// Bound expression
     BoundExpression boundExpression;
     
+    /// Dynamic sizes
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    decltype(auto) getDynamicSizes() const
+    {
+      return boundExpression.getDynamicSizes();
+    }
+    
     /// Evaluate
     template <typename...TD>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr

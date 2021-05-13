@@ -59,6 +59,14 @@ namespace nissa
     
     /// Index computer
     IC indexComputer;
+    
+    /// Dynamic sizes
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    decltype(auto) getDynamicSizes() const
+    {
+      return
+	indexComputer.dynamicSizes;
+    }
   };
   
   /////////////////////////////////////////////////////////////////

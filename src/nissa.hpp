@@ -186,11 +186,13 @@
 #include <routines/mpi_routines.hpp>
 #include <routines/rank.hpp>
 
+#include <tensor/assign.hpp>
 #include <tensor/component.hpp>
 #include <tensor/compBind.hpp>
 #include <tensor/conj.hpp>
 #include <tensor/dag.hpp>
 #include <tensor/field.hpp>
+#include <tensor/loopOnAllComponents.hpp>
 #include <tensor/prod.hpp>
 #include <tensor/refCatcher.hpp>
 #include <tensor/tensor.hpp>

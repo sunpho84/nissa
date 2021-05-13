@@ -158,7 +158,8 @@ namespace nissa
   
   /// Type of the tuple obtained catting all passed tuples
   template <typename...TP>
-  using TupleCat=decltype(std::tuple_cat(*(TP*)nullptr...));
+  using TupleCat=
+    decltype(std::tuple_cat(*(TP*)nullptr...));
   
   /////////////////////////////////////////////////////////////////
   

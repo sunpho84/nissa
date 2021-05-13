@@ -45,6 +45,14 @@ namespace nissa
     
     mutable Tensor<Comps,F,DefaultStorage> data;
     
+    /// Dynamic sizes
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    decltype(auto) getDynamicSizes() const
+    {
+      return
+	data.getDynamicSizes();
+    }
+    
     /// Allocate the storage when sizes are passed as a list of TensorComp
     template <typename...TDfeat>
     void allocate(const TensorCompFeat<TDfeat>&...tdFeat)

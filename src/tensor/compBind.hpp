@@ -56,6 +56,13 @@ namespace nissa
       using Comps=
 	FilteredComponents;
       
+      /// Dynamic sizes
+      CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+      decltype(auto) getDynamicSizes() const
+      {
+	return boundExpression.getDynamicSizes();
+      }
+      
       using BoundComponents=
 	_BoundComponents;
       
@@ -157,10 +164,13 @@ namespace nissa
 		const TensorComps<BCs...>& bc,
 		UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
   {
-    using CH=RefCatcherHelper<_E,decltype(e)>;
+    using CH=
+      RefCatcherHelper<_E,decltype(e)>;
     
     return
-      CompBinder<typename CH::E,TensorComps<BCs...>,CH::Flags>(std::forward<_E>(e),bc);
+      CompBinder<typename CH::E,
+		 TensorComps<BCs...>,
+		 CH::Flags>(std::forward<_E>(e),bc);
   }
   
   template <typename E,
