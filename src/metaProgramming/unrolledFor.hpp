@@ -37,40 +37,70 @@ namespace nissa
     /// Unroll a loop
     ///
     /// Actual implementation
-    template <int...Is,
+    template <int offset,
+	      int...Is,
 	      typename F>
-    INLINE_FUNCTION CUDA_HOST_DEVICE
-    void unrolledForInternal(std::integer_sequence<int,Is...>,F&& f)
+    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    void unrollForInternal(std::integer_sequence<int,Is...>,
+			     const F& f)
     {
       /// Dummy initialized list, discarded at compile time
       ///
       /// The attribute avoids compiler warning.
       [[ maybe_unused ]]
-	auto list=
-	{call(std::forward<F>(f),Is)...,0};
+      auto list=
+	{call(f,Is+offset)...,0};
     }
   }
   
   /// Unroll a loop, wrapping the actual implementation
-  template <int N,
+  template <int min,
+	    int max,
 	    typename F>
-  INLINE_FUNCTION
-  void unrolledFor(F&& f)
+  INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+  void unrollFor(const F& f)
   {
-    resources::unrolledForInternal(std::make_integer_sequence<int,N>{},std::forward<F>(f));
+    resources::unrollForInternal<min>(std::make_integer_sequence<int,max-min>{},f);
   }
+  
+  /// Unroll a loop in the range [min,max)
+  ///
+  /// The called function must take as a first argument the iteration
+  template <int min,                               // Minimal value
+	    int max,                               // Maximal (excluded) value
+	    typename F,                            // Type of the function
+	    typename...Args>                       // Types of the arguments to pass
+  INLINE_FUNCTION void unrollFor2(F f,             ///< Function to cal
+				    Args&&...args)   ///< Arguments to pass
+  {
+    /// Current value
+    constexpr int cur=
+      min;
+    
+    /// Next value
+    constexpr int next=
+      cur+1;
+    
+    // Exec the function
+    f(cur,std::forward<Args>(args)...);
+    
+    // Iterates on the loop
+    if constexpr(next<max)
+      unrollFor2<next,max,F,Args...>(f,std::forward<Args>(args)...);
+  }
+  
   
 #ifdef COMPILING_FOR_DEVICE
   
   /// Uses nvcc builtin
   ///
   /// \todo move it to a dedicated macro to call the proper bultin
-#define UNROLLED_FOR(I,N)	\
-  PRAGMA(unroll N)				\
-  for(int I=0;I<N;I++)				\
+#define UNROLL_FOR(I,MIN,MAX)			\
+  PRAGMA(unroll (MAX-MIN))			\
+  for(int I=MIN;I<MAX;I++)				\
     {
   
-# define UNROLLED_FOR_END			\
+# define UNROLL_FOR_END			\
   }
   
 #else
@@ -78,11 +108,11 @@ namespace nissa
   /// Create an unrolled for
   ///
   /// Hides the complexity
-# define UNROLLED_FOR(I,N)			\
-  unrolledFor<N>([&](const auto& I) INLINE_ATTRIBUTE {
+# define UNROLL_FOR(TYPE,NAME,MIN,MAX)			\
+  unrollFor<MIN,MAX>([&](const TYPE& NAME) INLINE_ATTRIBUTE {
   
   /// Finish an unrolled for
-# define UNROLLED_FOR_END })
+# define UNROLL_FOR_END })
   
 #endif
 }
