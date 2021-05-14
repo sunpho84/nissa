@@ -18,7 +18,8 @@ namespace nissa
   
   namespace EXPR_FLAG_MASKS
   {
-    enum : ExprFlags{STORE_BY_REF=1,
+    enum : ExprFlags{NONE=0,
+		     STORE_BY_REF=1,
 		     EVAL_TO_REF=2,
 		     EVAL_TO_CONST=4};
   }

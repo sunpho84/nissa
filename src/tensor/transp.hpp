@@ -81,10 +81,13 @@ namespace nissa
   };
   
   /// Returns the transposer of e
-  template <typename _E>
+  template <typename _E,
+	    UNPRIORITIZE_DEFAULT_VERSION_TEMPLATE_PARS>
   auto transp(_E&& e,
-	      UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
+	      UNPRIORITIZE_DEFAULT_VERSION_ARGS)
   {
+    UNPRIORITIZE_DEFAULT_VERSION_ARGS_CHECK;
+    
     /// Decayed type
     using E=
       std::decay_t<_E>;
@@ -99,6 +102,15 @@ namespace nissa
     
     return
       Transposer<decltype(e),Comps,EvalTo>(std::forward<_E>(e));
+  }
+  
+  /// Returns the transposer of e
+  template <typename _E,
+	    ENABLE_THIS_TEMPLATE_IF(isTransposer<_E>)>
+  auto transp(_E&& e)
+  {
+    return
+      e.nestedExpr;
   }
 }
 

@@ -8,7 +8,7 @@
 /// \file prod.hpp
 
 #include <metaProgramming/universalReference.hpp>
-#include <tensor/unaryExpr.hpp>
+#include <tensor/nnaryExpr.hpp>
 
 namespace nissa
 {
@@ -79,20 +79,40 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+#define THIS					\
+  Prod<_E1,_E2,_Comps,_EvalTo>
+  
+#define NNEX					\
+  NnaryExpr<THIS,				\
+	    std::tuple<_E1,_E2>,		\
+	    _Comps,				\
+	    _EvalTo>
+  
   /// Product of two expressions
-  template <typename T1,
-	    typename T2,
+  template <typename _E1,
+	    typename _E2,
 	    typename _Comps,
-	    typename _Fund>
-  struct Prod : Expr<Prod<T1,T2,_Comps,_Fund>,
-		     _Comps,
-		     _Fund>
+	    typename _EvalTo>
+  struct Prod : NNEX
   {
+    /// Import the nnary expression
+    using NnEx=
+      NNEX;
+    
+#undef UNEX
+#undef THIS
+    
+    /// Components
     using Comps=
       _Comps;
-        
-    using Fund=
-      _Fund;
+    
+    /// Returned type when evaluating the expression
+    using EvalTo=
+      _EvalTo;
+    
+    /// Expression flags
+    static constexpr ExprFlags Flags=
+      EXPR_FLAG_MASKS::NONE;
   };
   
   template <typename _E1,
