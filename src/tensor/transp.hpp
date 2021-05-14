@@ -12,22 +12,26 @@
 
 namespace nissa
 {
+  DEFINE_FEATURE(TransposerFeat);
   
 #define THIS					\
-  Transp<_E,_Comps,_Fund>
+  Transposer<_E,_Comps,_EvalTo>
 
 #define UNEX					\
     UnaryExpr<THIS,				\
 	      _E,				\
 	      _Comps,				\
-	      _Fund>
+	      _EvalTo>
   
-  /// Transposer of an expression
+  /// Transposeroser of an expression
   template <typename _E,
 	    typename _Comps,
-	    typename _Fund>
-  struct Transp : UNEX
+	    typename _EvalTo>
+  struct Transposer :
+    TransposerFeat<THIS>,
+    UNEX
   {
+    /// Import the unary expression
     using UnEx=
       UNEX;
     
@@ -39,8 +43,8 @@ namespace nissa
       _Comps;
     
     /// Fundamental type of the expression
-    using Fund=
-      _Fund;
+    using EvalTo=
+      _EvalTo;
     
     /// Expression flags
     static constexpr ExprFlags Flags=
@@ -64,33 +68,37 @@ namespace nissa
     
     /// Construct
     template <typename C>
-    Transp(C&& boundExpression) :
+    Transposer(C&& boundExpression) :
       UnEx(std::forward<C>(boundExpression))
     {
     }
     
     /// Move constructor
-    Transp(Transp&& oth) :
-      UnEx(FORWARD_MEMBER_VAR(Transp,oth,boundExpression))
+    Transposer(Transposer&& oth) :
+      UnEx(FORWARD_MEMBER_VAR(Transposer,oth,boundExpression))
     {
     }
   };
   
+  /// Returns the transposer of e
   template <typename _E>
   auto transp(_E&& e,
 	      UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
   {
+    /// Decayed type
     using E=
       std::decay_t<_E>;
     
-    using Fund=
-      typename E::Fund;
+    /// Type returned when evaluating
+    using EvalTo=
+      typename E::EvalTo;
     
+    /// Components
     using Comps=
       TransposeTensorComps<typename E::Comps>;
     
     return
-      Transp<decltype(e),Comps,Fund>(std::forward<_E>(e));
+      Transposer<decltype(e),Comps,EvalTo>(std::forward<_E>(e));
   }
 }
 

@@ -24,17 +24,17 @@ namespace nissa
 	    typename _IC,
 	    typename _E,
 	    typename _Comps,
-	    typename _Fund>
+	    typename _EvalTo>
   struct CompBinder;
   
 #define THIS					\
-  CompBinder<_BC,std::index_sequence<ICs...>,_E,_Comps,_Fund>
+  CompBinder<_BC,std::index_sequence<ICs...>,_E,_Comps,_EvalTo>
 
 #define UNEX					\
     UnaryExpr<THIS,				\
 	      _E,				\
 	      _Comps,				\
-	      _Fund>
+	      _EvalTo>
   
   /// Component binder
   ///
@@ -42,7 +42,7 @@ namespace nissa
 	    size_t...ICs,
 	    typename _E,
 	    typename _Comps,
-	    typename _Fund>
+	    typename _EvalTo>
   struct THIS :
     CompBindFeat<THIS>,
     UNEX
@@ -58,9 +58,9 @@ namespace nissa
     using Comps=
       _Comps;
     
-    /// Fundamental type of the expression
-    using Fund=
-      _Fund;
+    /// Type returned when evaluating the expression
+    using EvalTo=
+      _EvalTo;
     
     /// Expression flags
     static constexpr ExprFlags Flags=
@@ -125,9 +125,9 @@ namespace nissa
     using E=
       std::decay_t<_E>;
     
-    /// Fundamental type of the expression
-    using Fund=
-      typename E::Fund;
+    /// Type returned when evaluating the expression
+    using EvalTo=
+      typename E::EvalTo;
     
     /// Components to bind
     using BoundComps=
@@ -142,7 +142,7 @@ namespace nissa
 		 std::make_index_sequence<sizeof...(BCs)>,
 		 decltype(e),
 		 Comps,
-		 Fund>(std::forward<_E>(e),bc);
+		 EvalTo>(std::forward<_E>(e),bc);
   }
   
   template <typename CB,

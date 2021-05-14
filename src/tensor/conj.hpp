@@ -23,18 +23,18 @@ namespace nissa
   DEFINE_FEATURE(ConjugatorFeat);
   
 #define THIS					\
-  Conjugator<_E,_Comps,_Fund>
+  Conjugator<_E,_Comps,_EvalTo>
   
 #define UNEX					\
     UnaryExpr<THIS,				\
 	      _E,				\
 	      _Comps,				\
-	      _Fund>
+	      _EvalTo>
   
   /// Conjugator of an expression
   template <typename _E,
 	    typename _Comps,
-	    typename _Fund>
+	    typename _EvalTo>
   struct Conjugator :
     ConjugatorFeat<THIS>,
     UNEX
@@ -50,9 +50,9 @@ namespace nissa
     using Comps=
       _Comps;
     
-    /// Fundamental type of the expression
-    using Fund=
-      _Fund;
+    /// Type returned when evaluating
+    using EvalTo=
+      _EvalTo;
     
     /// Expression flags
     static constexpr ExprFlags Flags=
@@ -61,7 +61,7 @@ namespace nissa
     /// Evaluate
     template <typename...TD>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    Fund eval(const TD&...td) const
+    EvalTo eval(const TD&...td) const
     {
       /// Compute the real or imaginary component
       const ComplId& reIm=
@@ -101,15 +101,15 @@ namespace nissa
       std::decay_t<_E>;
     
     /// Fundamental type
-    using Fund=
-      typename E::Fund;
+    using EvalTo=
+      typename E::EvalTo;
     
     /// Components
     using Comps=
       typename E::Comps;
       
     return
-      Conjugator<decltype(e),Comps,Fund>(std::forward<_E>(e));
+      Conjugator<decltype(e),Comps,EvalTo>(std::forward<_E>(e));
   }
 }
 

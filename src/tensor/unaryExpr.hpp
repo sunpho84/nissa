@@ -12,6 +12,7 @@
 
 namespace nissa
 {
+  /// Unary expression needed to capture 1 argument
   template <typename T,  // Derived class
 	    typename _E, // Nested expression, as it is passed to constructor
 	    typename TC,
@@ -19,6 +20,7 @@ namespace nissa
   struct UnaryExpr :
     Expr<T,TC,F>
   {
+    /// Type of the nested expression
     using NestedExpr=
       ExprRefOrVal<_E>;
     
@@ -40,11 +42,15 @@ namespace nissa
       return nestedExpression.getDynamicSizes();
     }
     
-    template <typename U>
-    UnaryExpr(U&& u) :
-      nestedExpression(std::forward<U>(u))
+    /// Constructor for the nested expression
+    template <typename...U>
+    UnaryExpr(U&&...u) :
+      nestedExpression(std::forward<U>(u)...)
     {
     }
+    
+    /// Import assignemnt operator
+    using Expr<T,TC,F>::operator=;
   };
 }
 

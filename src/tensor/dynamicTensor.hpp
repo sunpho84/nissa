@@ -25,14 +25,16 @@ namespace nissa
   struct TENSOR :
     BASE_TENSOR
   {
+    /// Import base tensor
     using Base=
       BASE_TENSOR;
     
 #undef BASE_TENSOR
 #undef TENSOR
     
-    /// Fundamental type
-    using Fund=typename Base::Fund;
+    /// Returned type when evaluating the expression
+    using EvalTo=
+      typename Base::EvalTo;
     
     /// Components
     using Comps=
@@ -44,7 +46,7 @@ namespace nissa
       std::tuple_element_t<I,Comps>;
     
     /// Storage
-    Fund* storage;
+    EvalTo* storage;
     
     /// Storage size
     Size storageSize;
@@ -61,7 +63,7 @@ namespace nissa
       
       this->indexComputer.setDynamicSizes(td);
       storageSize=this->indexComputer.maxVal();
-      storage=memoryManager<SL>()->template provide<Fund>(storageSize);
+      storage=memoryManager<SL>()->template provide<EvalTo>(storageSize);
     }
     
     /// Allocate the storage when sizes are passed as a list of TensorComp
@@ -105,7 +107,7 @@ namespace nissa
     
     // /// Move constructor
     // CUDA_HOST_DEVICE constexpr
-    // Tensor(Tensor<TensorComps<TC...>,Fund,SL>&& oth) :
+    // Tensor(Tensor<TensorComps<TC...>,EvalTo,SL>&& oth) :
     //   dynamicSizes(oth.dynamicSizes),
     //   storage(std::move(oth.storage))
     // {
@@ -145,7 +147,7 @@ namespace nissa
     template <typename...TD,						\
 	      ENABLE_THIS_TEMPLATE_IF(std::is_same_v<TD,TC> && ...)>	\
     CUDA_HOST_DEVICE INLINE_FUNCTION					\
-    ATTRIB Fund& orderedEval(const TD&...td) ATTRIB				\
+    ATTRIB EvalTo& orderedEval(const TD&...td) ATTRIB				\
     {									\
       assertCorrectEvaluationStorage();					\
 									\

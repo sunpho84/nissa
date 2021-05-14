@@ -33,8 +33,8 @@ namespace nissa
   struct BaseTensor<T,TensorComps<TC...>,F>
     : Expr<T,TensorComps<TC...>,F> // Here we pass the external expression on purpose
   {
-    /// Fundamental type
-    using Fund=
+    /// Type returned when evaluating the expression
+    using EvalTo=
       F;
     
     /// Components
@@ -98,7 +98,8 @@ namespace nissa
 	      StorLoc SL>
     struct _TensorStackedDecider
     {
-      using IC=IndexComputer<TC>;
+      using IC=
+	IndexComputer<TC>;
       
       static constexpr auto staticSize=
 	IC::staticPartMaxValue*sizeof(Fund);

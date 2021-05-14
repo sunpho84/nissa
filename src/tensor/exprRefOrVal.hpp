@@ -43,11 +43,11 @@ namespace nissa
       static_assert(canBeCopyConstructed or not isVal,
 		    "Would need to copy-construct, but the copy constructor is not available or the inner object must be stored by ref");
       
-      static_assert((not getStoreByRef<E::Flags>) or not isVal,
-		    "Would need to store by val, but the inner object flags indicated to store by ref");
+      // static_assert((not getStoreByRef<E::Flags>) or not isVal,
+      // 		    "Would need to store by val, but the inner object flags indicated to store by ref");
       
-      static constexpr ExprFlags Flags
-      =setStoreByRefTo<storeByRef
+      static constexpr ExprFlags Flags=
+	setStoreByRefTo<storeByRef
 		       ,addEvalToConstIf<passAsConst,E::Flags>>;
       
       using type=

@@ -6,7 +6,7 @@
 #endif
 
 #include <geometry/geometry_lx.hpp>
-#include <tensor/expr.hpp>
+#include <tensor/unaryExpr.hpp>
 
 namespace nissa
 {
@@ -15,45 +15,53 @@ namespace nissa
     enum : bool{NO,YES};
   }
   
-  template <typename TC,
-	    typename F,
-	    bool WithBord=AllocateBord::NO>
-  struct LxField;
+#define THIS \
+  LxField<_Comps,_F,_WithBord>
   
-  template <typename...TC,
-	    typename F,
-	    bool WithBord>
-  struct LxField<TensorComps<TC...>,F,WithBord> :
-    Expr<LxField<TensorComps<TC...>,F,WithBord>,
-	 TensorComps<LocLxSite,TC...>,F>
+#define UNEX							\
+  UnaryExpr<THIS,						\
+	    Tensor<_Comps,_F,DefaultStorage>,			\
+	    _Comps,						\
+	    _F>
+  
+  /// Lexicographic field
+  template <typename _Comps,
+	    typename _F,
+	    bool _WithBord=AllocateBord::NO>
+  struct LxField :
+    UNEX
   {
+    /// Import unary expression
+    using UnEx=
+      UNEX;
+    
+#undef UNEX
+#undef THIS
+    
     /// Store or not the border
     static constexpr bool withBord=
-      WithBord;
+      _WithBord;
     
     /// Components
     using Comps=
-      TensorComps<LocLxSite,TC...>;
+      _Comps;
     
     /// Fundamental type
-    using Fund=
-      F;
+    using EvalTo=
+      _F;
     
     /// Expression flags
     static constexpr ExprFlags Flags=
       EXPR_FLAG_MASKS::EVAL_TO_REF|
       EXPR_FLAG_MASKS::STORE_BY_REF;
     
-    /// Inner data, mutable to allow border exchange
-    mutable Tensor<Comps,F,DefaultStorage> data;
-    
-    /// Dynamic sizes
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    decltype(auto) getDynamicSizes() const
-    {
-      return
-	data.getDynamicSizes();
-    }
+    // /// Dynamic sizes
+    // CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    // decltype(auto) getDynamicSizes() const
+    // {
+    //   return
+    // 	this-.getDynamicSizes();
+    // }
     
     /// Allocate the storage when sizes are passed as a list of TensorComp
     template <typename...TDfeat>
@@ -64,9 +72,9 @@ namespace nissa
       
       /// Counts the site to allocate
       const LocLxSite sitesToAllocate=
-	WithBord?locVolWithBord:locVol;
+	withBord?locVolWithBord:locVol;
       
-      data.allocate(sitesToAllocate,tdFeat.deFeat()...);
+      this->nestedExpression.allocate(sitesToAllocate,tdFeat.deFeat()...);
     }
     
     /// Constructor which specifies the sizes
@@ -76,15 +84,21 @@ namespace nissa
       allocate(tdFeat...);
     }
     
-    // Evaluate, returning a reference to the fundamental type
-    template <typename...TCs>
-    CUDA_HOST_DEVICE INLINE_FUNCTION
-    const Fund& eval(const TCs&...tcs) const
-    {
-      return data.eval(tcs...);
+#define DECLARE_EVAL(ATTRIB)						\
+    /*! Evaluate, returning a reference to the fundamental type */	\
+    template <typename...TCs>						\
+    CUDA_HOST_DEVICE INLINE_FUNCTION					\
+    decltype(auto) eval(const TCs&...tcs) ATTRIB			\
+    {									\
+      return								\
+	this->nestedExpression.eval(tcs...);				\
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
+    DECLARE_EVAL(const);
+    
+    DECLARE_EVAL(/* non const */);
+    
+#undef DECLARE_EVAL
     
     void communicateBorders()
     {
@@ -93,9 +107,22 @@ namespace nissa
       crash("not yet implemented");
     }
     
-    using Expr<LxField<TensorComps<TC...>,F,WithBord>,
-	       TensorComps<LocLxSite,TC...>,F>::operator=;
+    /// Import assignemnt operator
+    using UnEx::operator=;
   };
+  
+  namespace internal
+  {
+    template <typename TC>
+    struct _LxFieldComps;
+    
+    template <typename...TC>
+    struct _LxFieldComps<TensorComps<TC...>>
+    {
+      using type=
+	TensorComps<LocLxSite,TC...>;
+    };
+  }
   
   /// Creates an lx field with the constrctor parameters
   template <typename TC,
@@ -104,8 +131,12 @@ namespace nissa
 	    typename...Args>
   auto lxField(Args&&...args)
   {
+    /// Components obtained when adding spacetime index
+    using LxFieldComps=
+      typename internal::_LxFieldComps<TC>::type;
+    
     return
-      LxField<TC,F,AllocateBord::NO>(std::forward<Args>(args)...);
+      LxField<LxFieldComps,F,AllocateBord::NO>(std::forward<Args>(args)...);
   }
 }
 
