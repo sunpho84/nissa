@@ -11,151 +11,108 @@
 #include <metaProgramming/universalReference.hpp>
 #include <tensor/component.hpp>
 #include <tensor/expr.hpp>
-#include <tensor/refCatcher.hpp>
+#include <tensor/unaryExpr.hpp>
 
 namespace nissa
 {
-  template <typename E,
-	    typename TC,
-	    typename BC,
-	    typename IC,
-	    ExprFlags _Flags>
-  struct _CompBinderFactory;
+  DEFINE_FEATURE(CompBindFeat);
   
-  template <typename E,
-	    typename...TCs,
-	    typename...BCs,
+  /// Component binder
+  ///
+  /// Forward declaration to capture the index sequence
+  template <typename _BC,
+	    typename _IC,
+	    typename _E,
+	    typename _Comps,
+	    typename _Fund>
+  struct CompBinder;
+  
+#define THIS					\
+  CompBinder<_BC,std::index_sequence<ICs...>,_E,_Comps,_Fund>
+
+#define UNEX					\
+    UnaryExpr<THIS,				\
+	      _E,				\
+	      _Comps,				\
+	      _Fund>
+  
+  /// Component binder
+  ///
+  template <typename _BC,
 	    size_t...ICs,
-	    ExprFlags _Flags>
-  struct _CompBinderFactory<E,
-			    TensorComps<TCs...>,
-			    TensorComps<BCs...>,
-			    std::index_sequence<ICs...>,
-			    _Flags>
+	    typename _E,
+	    typename _Comps,
+	    typename _Fund>
+  struct THIS :
+    CompBindFeat<THIS>,
+    UNEX
   {
-    using BoundExpressionComponents=
-      TensorComps<TCs...>;
+    /// Import the unary expression
+    using UnEx=
+      UNEX;
     
-    using _BoundExpression=
-      ConditionalRef<getStoreByRef<_Flags>
-      ,ConditionalConst<getEvalToConst<_Flags>,E>>;
+#undef UNEX
+#undef THIS
     
-    using _BoundComponents=
-      TensorComps<BCs...>;
+    /// Components
+    using Comps=
+      _Comps;
     
-    using BoundFund=
-      typename E::Fund;
-    
-    using FilteredComponents=
-      TupleFilterAllTypes<BoundExpressionComponents,
-			  _BoundComponents>;
-    
-    struct _CompBinder :
-      Expr<_CompBinder,FilteredComponents,BoundFund,setStoreByRefTo<false,_Flags>>
-    {
-      using Comps=
-	FilteredComponents;
-      
-      /// Dynamic sizes
-      CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-      decltype(auto) getDynamicSizes() const
-      {
-	return boundExpression.getDynamicSizes();
-      }
-      
-      using BoundComponents=
-	_BoundComponents;
-      
-      using BoundExpression=
-	_BoundExpression;
-      
-      /// Fundamental type of the expression
-      using Fund=
-	BoundFund;
-      
-      /// Fundamental type, possibly with constant attribute if required via flags
-      using MaybeConstFund=
-	ConditionalConst<getEvalToConst<_Flags>,const Fund>;
-      
-      /// Possibly constant fundamental type, possibly referencing
-      using MaybeConstMaybeRefToFund=
-	ConditionalRef<getEvalToRef<_Flags>,MaybeConstFund>;
-      
-      /// Bound expression
-      BoundExpression boundExpression;
-      
-      /// Components that have been bound
-      BoundComponents boundComponents;
-      
-      /// Constant access, returning constant reference or type
-      template <typename...TD>
-      CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-      const MaybeConstMaybeRefToFund eval(const TD&...td) const
-      {
-	return boundExpression.eval(std::get<ICs>(boundComponents)...,td...);
-      }
-      
-      /// Non const access, possibly still returning a constant reference
-      template <typename...TD>
-      CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-      MaybeConstMaybeRefToFund eval(const TD&...td)
-      {
-	return boundExpression.eval(std::get<ICs>(boundComponents)...,td...);
-      }
-      
-      /// Construct
-      template <typename T>
-      _CompBinder(T&& boundExpression,
-		  const BoundComponents& boundComponents) :
-	boundExpression(std::forward<T>(boundExpression)),
-	boundComponents(boundComponents)
-      {
-      }
-      
-      /// Move constructor
-      _CompBinder(_CompBinder&& oth) :
-	boundExpression(FORWARD_MEMBER_VAR(_CompBinder,oth,boundExpression)),
-	boundComponents(oth.boundComponents)
-      {
-      }
-      
-      /// Copy constructor
-      _CompBinder(const _CompBinder& oth) :
-	boundExpression(oth.boundExpression),
-	boundComponents(oth.boundComponents)
-      {
-	static_assert(std::is_lvalue_reference_v<BoundExpression>,"Makes no sense");
-      }
-    };
-  };
-  
-#define _CBF					\
-  _CompBinderFactory<E,				\
-		     typename E::Comps,		\
-		     BC,						\
-		     std::make_index_sequence<std::tuple_size_v<BC>>,	\
-		     Flags>::_CompBinder
-  
-  template <typename E,
-	    typename BC,
-	    ExprFlags Flags>
-  struct CompBinder : _CBF
-  {
-    using CBF=
-      typename _CBF;
-    
-#undef _CBF
-    
-    using CBF::CBF;
-    
-    using BoundComponents=
-      typename CBF::BoundComponents;
-    
-    using BoundExpression=
-      typename CBF::BoundExpression;
-    
+    /// Fundamental type of the expression
     using Fund=
-      typename CBF::Fund;
+      _Fund;
+    
+    /// Expression flags
+    static constexpr ExprFlags Flags=
+      UnEx::NestedFlags;
+    
+    /// List of bound components
+    using BoundComps=
+      _BC;
+    
+    /// Components that have been bound
+    BoundComps boundComps;
+    
+#define DECLARE_EVAL(ATTRIB)						\
+									\
+    /*! Constant access, returning ATTRIB reference or type */		\
+    template <typename...TD>						\
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr				\
+    decltype(auto) eval(const TD&...td) ATTRIB				\
+    {									\
+      return								\
+	this->nestedExpression.eval(std::get<ICs>(boundComps)...,td...); \
+    }
+    
+    DECLARE_EVAL(const);
+    
+    DECLARE_EVAL(/*non const*/);
+    
+#undef DECLARE_EVAL
+    
+    /// Construct
+    template <typename T>
+    CompBinder(T&& boundExpression,
+	       const BoundComps& boundComps) :
+      UnEx(std::forward<T>(boundExpression)),
+      boundComps(boundComps)
+    {
+    }
+    
+    /// Move constructor
+    CompBinder(CompBinder&& oth) :
+      UnEx(FORWARD_MEMBER_VAR(CompBinder,oth,nestedExpression)),
+      boundComps(oth.boundComps)
+    {
+    }
+    
+    /// Copy constructor
+    CompBinder(const CompBinder& oth) :
+      UnEx(oth.nestedExpression),
+      boundComps(oth.boundComps)
+    {
+      static_assert(std::is_lvalue_reference_v<typename UnEx::BoundExpression>,"It makes no sense");
+    }
   };
   
   template <typename _E,
@@ -164,23 +121,38 @@ namespace nissa
 		const TensorComps<BCs...>& bc,
 		UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
   {
-    using CH=
-      RefCatcherHelper<_E,decltype(e)>;
+    /// Base passed type
+    using E=
+      std::decay_t<_E>;
     
+    /// Fundamental type of the expression
+    using Fund=
+      typename E::Fund;
+    
+    /// Components to bind
+    using BoundComps=
+      TensorComps<BCs...>;
+    
+    /// Visible components
+    using Comps=
+      TupleFilterAllTypes<typename E::Comps,
+			  BoundComps>;
     return
-      CompBinder<typename CH::E,
-		 TensorComps<BCs...>,
-		 CH::Flags>(std::forward<_E>(e),bc);
+      CompBinder<BoundComps,
+		 std::make_index_sequence<sizeof...(BCs)>,
+		 decltype(e),
+		 Comps,
+		 Fund>(std::forward<_E>(e),bc);
   }
   
-  template <typename E,
-	    typename BC,
-	    ExprFlags Flags,
+  template <typename CB,
 	    typename...BCs>
-  auto compBind(const CompBinder<E,BC,Flags>& cb,
+  auto compBind(const CompBindFeat<CB>& cb,
 		const TensorComps<BCs...>& bcs)
   {
-    return compBind(cb.boundExpression,std::tuple_cat(cb.boundComponents,bcs));
+    return
+      compBind(cb.defeat().nestedExpression,
+	       std::tuple_cat(cb.deFeat().boundComps,bcs));
   }
 }
 

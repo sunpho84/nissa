@@ -8,8 +8,7 @@
 /// \file conj.hpp
 
 #include <metaProgramming/universalReference.hpp>
-#include <tensor/expr.hpp>
-#include <tensor/refCatcher.hpp>
+#include <tensor/unaryExpr.hpp>
 
 namespace nissa
 {
@@ -21,29 +20,42 @@ namespace nissa
   /// Imaginary component index
   constexpr inline Complex Im=1;
   
+  DEFINE_FEATURE(ConjFeat);
+  
+#define THIS					\
+  Conj<_E,_Comps,_Fund>
+  
+#define UNEX					\
+    UnaryExpr<THIS,				\
+	      _E,				\
+	      _Comps,				\
+	      _Fund>
+  
   /// Conjugator of an expression
-  template <typename T,
-	    ExprFlags _Flags>
-  struct Conj : Expr<Conj<T,_Flags>,
-		     typename T::Comps,
-		     typename T::Fund,
-		     unsetEvalToRef<setStoreByRefTo<false,_Flags>>>
+  template <typename _E,
+	    typename _Comps,
+	    typename _Fund>
+  struct Conj :
+    ConjFeat<THIS>,
+    UNEX
   {
+    using UnEx=
+      UNEX;
+    
+#undef UNEX
+#undef THIS
+    
     /// Components
     using Comps=
-      typename T::Comps;
+      _Comps;
     
     /// Fundamental type of the expression
     using Fund=
-      typename T::Fund;
+      _Fund;
     
-    /// Type of the bound expression
-    using BoundExpression=
-      ConditionalRef<getStoreByRef<_Flags>
-      ,ConditionalConst<getEvalToConst<_Flags>,T>>;
-    
-    /// Bound expression
-    BoundExpression boundExpression;
+    /// Expression flags
+    static constexpr ExprFlags Flags=
+      unsetEvalToRef<setStoreByRefTo<false,UnEx::NestedFlags>>;
     
     /// Evaluate
     template <typename...TD>
@@ -53,7 +65,8 @@ namespace nissa
       const Complex& reIm=
 	std::get<Complex>(std::make_tuple(td...));
       
-      decltype(auto) val=boundExpression.eval(td...);
+      decltype(auto) val=
+	this->nestedExpression.eval(td...);
       
       if(reIm==0)
 	return val;
@@ -63,26 +76,34 @@ namespace nissa
     
     /// Construct
     template <typename C>
-    Conj(C&& boundExpression) :
-      boundExpression(std::forward<C>(boundExpression))
+    Conj(C&& conjExpression) :
+      UnEx(std::forward<C>(conjExpression))
     {
     }
     
     /// Move constructor
     Conj(Conj&& oth) :
-      boundExpression(FORWARD_MEMBER_VAR(Conj,oth,boundExpression))
+      UnEx(FORWARD_MEMBER_VAR(Conj,oth,nestedExpression))
     {
     }
   };
   
+  /// Takes the conjugate of e
   template <typename _E>
   auto conj(_E&& e,
 	    UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
   {
-    using CH=
-      RefCatcherHelper<_E,decltype(e)>;
+    using E=
+      std::decay_t<_E>;
     
-    return Conj<typename CH::E,CH::Flags>(std::forward<_E>(e));
+    using Fund=
+      typename E::Fund;
+    
+    using Comps=
+      typename E::Comps;
+      
+    return
+      Conj<decltype(e),Comps,Fund>(std::forward<_E>(e));
   }
 }
 

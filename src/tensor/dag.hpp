@@ -7,17 +7,19 @@
 
 /// \file dag.hpp
 
+#include <utility>
+
 #include <metaProgramming/universalReference.hpp>
-#include <tensor/expr.hpp>
-#include <tensor/refCatcher.hpp>
 
 namespace nissa
 {
+  /// Take the hermitean conjugate of e
   template <typename _E>
   auto dag(_E&& e,
 	   UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
   {
-    return transp(conj(std::forward<_E>(e)));
+    return
+      transp(conj(std::forward<_E>(e)));
   }
 }
 

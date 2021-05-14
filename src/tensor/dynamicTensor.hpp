@@ -25,7 +25,8 @@ namespace nissa
   struct TENSOR :
     BASE_TENSOR
   {
-    using Base=BASE_TENSOR;
+    using Base=
+      BASE_TENSOR;
     
 #undef BASE_TENSOR
 #undef TENSOR
@@ -34,7 +35,8 @@ namespace nissa
     using Fund=typename Base::Fund;
     
     /// Components
-    using Comps=typename Base::Comps;
+    using Comps=
+      typename Base::Comps;
     
     /// Get the I-th component
     template <int I>

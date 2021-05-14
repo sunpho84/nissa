@@ -8,8 +8,7 @@
 /// \file prod.hpp
 
 #include <metaProgramming/universalReference.hpp>
-#include <tensor/expr.hpp>
-#include <tensor/refCatcher.hpp>
+#include <tensor/unaryExpr.hpp>
 
 namespace nissa
 {
@@ -84,21 +83,16 @@ namespace nissa
   template <typename T1,
 	    typename T2,
 	    typename _Comps,
-	    typename _Fund,
-	    ExprFlags _Flags>
-  struct Prod : Expr<Prod<T1,T2,_Comps,_Fund,_Flags>,
+	    typename _Fund>
+  struct Prod : Expr<Prod<T1,T2,_Comps,_Fund>,
 		     _Comps,
-		     _Fund,
-		     _Flags>
+		     _Fund>
   {
     using Comps=
       _Comps;
         
     using Fund=
       _Fund;
-    
-    static constexpr ExprFlags Flags=
-      _Flags;
   };
   
   template <typename _E1,
@@ -107,28 +101,29 @@ namespace nissa
 	    _E2&& e2,
 	    UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
   {
-    using CH1=
-      RefCatcherHelper<_E1,decltype(e1)>;
+    // using CH1=
+    //   RefCatcherHelper<_E1,decltype(e1)>;
     
-    using CH2=
-      RefCatcherHelper<_E2,decltype(e2)>;
+    // using CH2=
+    //   RefCatcherHelper<_E2,decltype(e2)>;
     
-    using F1=
-      typename CH1::E::Fund;
+    // using F1=
+    //   typename CH1::E::Fund;
     
-    using F2=
-      typename CH2::E::Fund;
+    // using F2=
+    //   typename CH2::E::Fund;
     
-    using F=
-      decltype(F1()*F2());
+    // using F=
+    //   decltype(F1()*F2());
     
-    using E1=
-      typename CH1::E;
+    // using E1=
+    //   typename CH1::E;
     
-    using E2=
-      typename CH2::E;
+    // using E2=
+    //   typename CH2::E;
     
-    return;// Prod<E1,E2, ExprFlags _Flags>
+    // return ProdComps<typename E1::Comps,typename E2::Comps>();//Prod<E1,E2,ProdComps<E1,E2>, ExprFlags _Flags>
+    /////////////////////////////////////////////////////////////////
   }
 }
 

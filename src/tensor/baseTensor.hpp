@@ -26,28 +26,25 @@ namespace nissa
 	    typename Fund=double>
   struct BaseTensor;
   
-  namespace details
-  {
-    constexpr ExprFlags _BaseTensorFlags=
-      EXPR_FLAG_MASKS::EVAL_TO_REF|
-      EXPR_FLAG_MASKS::STORE_BY_REF|
-      EXPR_FLAG_MASKS::NEEDS_ORDERED_COMPS_TO_EVAL;
-  }
-  
   /// Tensor
   template <typename T,
 	    typename...TC,
 	    typename F>
   struct BaseTensor<T,TensorComps<TC...>,F>
-    : Expr<T,TensorComps<TC...>,F,
-	   details::_BaseTensorFlags> // Here we pass the external expression on purpose
+    : Expr<T,TensorComps<TC...>,F> // Here we pass the external expression on purpose
   {
     /// Fundamental type
-    using Fund=F;
+    using Fund=
+      F;
     
     /// Components
     using Comps=
       TensorComps<TC...>;
+    
+    /// Expression flags
+    static constexpr ExprFlags Flags=
+      EXPR_FLAG_MASKS::EVAL_TO_REF|
+      EXPR_FLAG_MASKS::STORE_BY_REF;
     
     /// Get the I-th component
     template <int I>
@@ -67,6 +64,27 @@ namespace nissa
       return
 	indexComputer.dynamicSizes;
     }
+    
+#define DECLARE_UNORDERED_EVAL(ATTRIB)					\
+    									\
+    /*! Evaluate, returning a reference to the fundamental type    */	\
+    /*!								   */	\
+    /*! Case in which the components are not yet correctly ordered */	\
+    /*! If an expr has no problem accepting unordered components   */	\
+    template <typename...TD,						\
+	      ENABLE_THIS_TEMPLATE_IF((sizeof...(TD)==sizeof...(TC)))> \
+    CUDA_HOST_DEVICE INLINE_FUNCTION					\
+    decltype(auto) eval(const TD&...td) ATTRIB				\
+    {									\
+      return								\
+	this->crtp().orderedEval(std::get<TC>(std::make_tuple(td...))...); \
+    }
+    
+    DECLARE_UNORDERED_EVAL(const);
+    
+    DECLARE_UNORDERED_EVAL(/* not const*/ );
+    
+#undef DECLARE_UNORDERED_EVAL
   };
   
   /////////////////////////////////////////////////////////////////

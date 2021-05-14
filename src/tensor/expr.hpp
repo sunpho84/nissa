@@ -77,38 +77,23 @@ namespace nissa
   /// Base type to catch a tensorial expression
   template <typename T,
 	    typename TC,
-	    typename F,
-	    ExprFlags Flags>
+	    typename F>
   struct Expr;
   
   template <typename T,
 	    typename...TC,
-	    typename F,
-	    ExprFlags _Flags>
-  struct Expr<T,TensorComps<TC...>,F,_Flags> :
-    ExprFeat<Expr<T,TensorComps<TC...>,F,_Flags>>,
+	    typename F>
+  struct Expr<T,TensorComps<TC...>,F> :
+    ExprFeat<Expr<T,TensorComps<TC...>,F>>,
     Crtp<T>
   {
-    /// Inner flags
-    static constexpr ExprFlags Flags=_Flags;
-    
     /// Components
     using Comps=
       TensorComps<TC...>;
     
     /// Fundamental type
-    using Fund=F;
-    
-    /// Returned type when evaluating non-const
-    using EvaluatedType=
-      ConditionalRef<getEvalToRef<Flags>,
-		     ConditionalConst<getEvalToConst<Flags>,
-				      Fund>>;
-    
-    /// Evaluated type when evaluating const
-    using ConstEvaluatedType=
-      ConditionalRef<getEvalToRef<Flags>,
-		     const Fund>;
+    using Fund=
+      F;
     
     /// Decide which types are left when calling
     template <typename...TD>
@@ -127,45 +112,23 @@ namespace nissa
 	(nResidualComps==0);
     };
     
-#define DECLARE_UNORDERED_EVAL(ATTRIB)					\
-    									\
-    /*! Evaluate, returning a reference to the fundamental type    */	\
-    /*!								   */	\
-    /*! Case in which the components are not yet correctly ordered */	\
-    /*! If an expr has no problem accepting unordered components   */	\
-    template <typename...TD,						\
-	      ENABLE_THIS_TEMPLATE_IF((sizeof...(TD)==sizeof...(TC)) and \
-				      getNeedsOrderedCompsToEval<Flags>)> \
-    CUDA_HOST_DEVICE INLINE_FUNCTION					\
-    decltype(auto) eval(const TD&...td) ATTRIB				\
-    {									\
-      return								\
-	this->crtp().orderedEval(std::get<TC>(std::make_tuple(td...))...); \
-    }
-    
-    DECLARE_UNORDERED_EVAL(const);
-    
-    DECLARE_UNORDERED_EVAL(/* not const*/ );
-    
-#undef DECLARE_UNORDERED_EVAL
-    
     /////////////////////////////////////////////////////////////////
     
-#define DECLARE_FULL_CALL(RETURNED_TYPE,ATTRIB)				\
+#define DECLARE_FULL_CALL(ATTRIB)					\
     									\
     /*! Full list of indices passed */					\
     template <typename...TD,						\
 	      ENABLE_THIS_TEMPLATE_IF(_CallHelper<TD...>::fullCall)>	\
     CUDA_HOST_DEVICE constexpr INLINE_FUNCTION				\
-    RETURNED_TYPE operator()(const TD&...td) ATTRIB			\
+    decltype(auto) operator()(const TD&...td) ATTRIB			\
     {									\
     return								\
       this->crtp().eval(td...);						\
     }
     
-    DECLARE_FULL_CALL(ConstEvaluatedType,const);
+    DECLARE_FULL_CALL(const);
     
-    DECLARE_FULL_CALL(EvaluatedType,/* non const */);
+    DECLARE_FULL_CALL(/* non const */);
     
 #undef DECLARE_FULL_CALL
     
@@ -195,7 +158,6 @@ namespace nissa
     {
       return assign(this->crtp(),rhs.deFeat().crtp());
     }
-    
   };
 }
 

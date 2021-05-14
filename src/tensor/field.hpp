@@ -20,29 +20,31 @@ namespace nissa
 	    bool WithBord=AllocateBord::NO>
   struct LxField;
   
-  namespace details
-  {
-    constexpr ExprFlags _FieldFlags=
-      EXPR_FLAG_MASKS::EVAL_TO_REF|
-      EXPR_FLAG_MASKS::STORE_BY_REF;
-  }
-  
   template <typename...TC,
 	    typename F,
 	    bool WithBord>
   struct LxField<TensorComps<TC...>,F,WithBord> :
     Expr<LxField<TensorComps<TC...>,F,WithBord>,
-	 TensorComps<LocLxSite,TC...>,F,details::_FieldFlags>
+	 TensorComps<LocLxSite,TC...>,F>
   {
+    /// Store or not the border
     static constexpr bool withBord=
       WithBord;
     
+    /// Components
     using Comps=
       TensorComps<LocLxSite,TC...>;
     
+    /// Fundamental type
     using Fund=
       F;
     
+    /// Expression flags
+    static constexpr ExprFlags Flags=
+      EXPR_FLAG_MASKS::EVAL_TO_REF|
+      EXPR_FLAG_MASKS::STORE_BY_REF;
+    
+    /// Inner data, mutable to allow border exchange
     mutable Tensor<Comps,F,DefaultStorage> data;
     
     /// Dynamic sizes
@@ -60,17 +62,12 @@ namespace nissa
       if(not lxGeomInited)
 	crash("Needs to initialize lx geometry first");
       
+      /// Counts the site to allocate
       const LocLxSite sitesToAllocate=
 	WithBord?locVolWithBord:locVol;
       
       data.allocate(sitesToAllocate,tdFeat.deFeat()...);
     }
-    
-    // /// Constructor which does not specifies the sizes
-    /// Should not be needed
-    // LxField()
-    // {
-    // }
     
     /// Constructor which specifies the sizes
     template <typename...TDfeat>
@@ -97,7 +94,7 @@ namespace nissa
     }
     
     using Expr<LxField<TensorComps<TC...>,F,WithBord>,
-	       TensorComps<LocLxSite,TC...>,F,details::_FieldFlags>::operator=;
+	       TensorComps<LocLxSite,TC...>,F>::operator=;
   };
   
   /// Creates an lx field with the constrctor parameters
@@ -105,9 +102,10 @@ namespace nissa
 	    bool WithBord=AllocateBord::NO,
 	    typename F=double,
 	    typename...Args>
-  auto createLxField(Args&&...args)
+  auto lxField(Args&&...args)
   {
-    return LxField<TC,F,AllocateBord::NO>(std::forward<Args>(args)...);
+    return
+      LxField<TC,F,AllocateBord::NO>(std::forward<Args>(args)...);
   }
 }
 

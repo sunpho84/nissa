@@ -8,60 +8,70 @@
 /// \file transp.hpp
 
 #include <metaProgramming/universalReference.hpp>
-#include <tensor/expr.hpp>
-#include <tensor/refCatcher.hpp>
+#include <tensor/unaryExpr.hpp>
 
 namespace nissa
 {
+  
+#define THIS					\
+  Transp<_E,_Comps,_Fund>
+
+#define UNEX					\
+    UnaryExpr<THIS,				\
+	      _E,				\
+	      _Comps,				\
+	      _Fund>
+  
   /// Transposer of an expression
-  template <typename T,
-	    ExprFlags _Flags>
-  struct Transp : Expr<Transp<T,_Flags>,
-		       TransposeTensorComps<typename T::Comps>,
-		       typename T::Fund,
-		       unsetEvalToRef<unsetStoreByRef<_Flags>>>
+  template <typename _E,
+	    typename _Comps,
+	    typename _Fund>
+  struct Transp : UNEX
   {
+    using UnEx=
+      UNEX;
+    
+#undef UNEX
+#undef THIS
+    
     /// Components
     using Comps=
-      TransposeTensorComps<typename T::Comps>;
+      _Comps;
     
     /// Fundamental type of the expression
     using Fund=
-      typename T::Fund;
+      _Fund;
     
-    /// Type of the bound expression
-    using BoundExpression=
-      ConditionalRef<getStoreByRef<_Flags>
-      ,ConditionalConst<getEvalToConst<_Flags>,T>>;
+    /// Expression flags
+    static constexpr ExprFlags Flags=
+      unsetStoreByRef<UnEx::NestedFlags>;
     
-    /// Bound expression
-    BoundExpression boundExpression;
-    
-    /// Dynamic sizes
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    decltype(auto) getDynamicSizes() const
-    {
-      return boundExpression.getDynamicSizes();
+#define DECLARE_EVAL(ATTRIB)				\
+    /*! Evaluate */					\
+    template <typename...TD>				\
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr		\
+    decltype(auto) eval(const TD&...td) ATTRIB		\
+    {							\
+      return						\
+	this->nestedExpression(td.transp()...);		\
     }
     
-    /// Evaluate
-    template <typename...TD>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    Fund eval(const TD&...td) const
-    {
-      return boundExpression(td.transp()...);
-    }
+    DECLARE_EVAL(const);
+    
+    DECLARE_EVAL(/*non const*/);
+    
+#undef DECLARE_EVAL
     
     /// Construct
     template <typename C>
     Transp(C&& boundExpression) :
-      boundExpression(std::forward<C>(boundExpression))
+      UnEx(std::forward<C>(boundExpression))
     {
     }
     
     /// Move constructor
     Transp(Transp&& oth) :
-      boundExpression(FORWARD_MEMBER_VAR(Transp,oth,boundExpression))
+      UnEx(FORWARD_MEMBER_VAR(Transp,oth,boundExpression))
     {
     }
   };
@@ -70,10 +80,17 @@ namespace nissa
   auto transp(_E&& e,
 	      UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
   {
-    using CH=
-      RefCatcherHelper<_E,decltype(e)>;
+    using E=
+      std::decay_t<_E>;
     
-    return Transp<typename CH::E,CH::Flags>(std::forward<_E>(e));
+    using Fund=
+      typename E::Fund;
+    
+    using Comps=
+      TransposeTensorComps<typename E::Comps>;
+    
+    return
+      Transp<decltype(e),Comps,Fund>(std::forward<_E>(e));
   }
 }
 
