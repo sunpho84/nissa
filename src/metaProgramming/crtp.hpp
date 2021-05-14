@@ -9,14 +9,20 @@ namespace nissa
   template <typename T>
   struct Crtp
   {
-    /// Crtp access the type
-    CUDA_HOST_DEVICE
-    const T& crtp() const
-    {
-      return *static_cast<const T*>(this);
+#define PROVIDE_CRTP(ATTRIB)			\
+    /*! Crtp access the type */			\
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr	\
+    ATTRIB T& crtp() ATTRIB			\
+    {						\
+      return					\
+	*static_cast<ATTRIB T*>(this);		\
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(crtp,CUDA_HOST_DEVICE);
+    PROVIDE_CRTP(const);
+    
+    PROVIDE_CRTP(/* not const*/ );
+    
+#undef PROVIDE_CRTP
   };
 }
 

@@ -66,8 +66,11 @@ namespace nissa
 	  TensorComps<TensorComp<_S,ANY,_Which>>;
       };
       
-      using type=
+      using VisibleComps=
 	TupleCat<typename _Res<TensorComp<S,RCA,Which>>::type...>;
+      
+      using ContractedComps=
+	TupleCat<std::conditional_t<contract<S,Which>,TensorComps<TensorComp<S,ROW,Which>>,TensorComps<>>...>;
     };
   }
   
@@ -121,6 +124,16 @@ namespace nissa
 	    _E2&& e2,
 	    UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
   {
+    using PC=
+      ProdComps<typename _E1::Comps,
+		typename _E2::Comps>;
+    
+    using _Comps=
+      typename PC::VisibleComps;
+    
+    using _ContractedComps=
+      typename PC::ContractedComps;
+    
     // using CH1=
     //   RefCatcherHelper<_E1,decltype(e1)>;
     

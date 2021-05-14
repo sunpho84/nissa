@@ -131,6 +131,7 @@ namespace nissa
     // }
     
     /// Check that we are accessing device vector only on device code
+    CUDA_HOST_DEVICE INLINE_FUNCTION
     void assertCorrectEvaluationStorage() const
     {
 #ifdef COMPILING_FOR_DEVICE
@@ -147,7 +148,7 @@ namespace nissa
     template <typename...TD,						\
 	      ENABLE_THIS_TEMPLATE_IF(std::is_same_v<TD,TC> && ...)>	\
     CUDA_HOST_DEVICE INLINE_FUNCTION					\
-    ATTRIB EvalTo& orderedEval(const TD&...td) ATTRIB				\
+    ATTRIB EvalTo& orderedEval(const TD&...td) ATTRIB			\
     {									\
       assertCorrectEvaluationStorage();					\
 									\

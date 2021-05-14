@@ -73,7 +73,7 @@ namespace nissa
     /*! If an expr has no problem accepting unordered components   */	\
     template <typename...TD,						\
 	      ENABLE_THIS_TEMPLATE_IF((sizeof...(TD)==sizeof...(TC)))> \
-    CUDA_HOST_DEVICE INLINE_FUNCTION					\
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr					\
     decltype(auto) eval(const TD&...td) ATTRIB				\
     {									\
       return								\
