@@ -12,7 +12,7 @@
 
 namespace nissa
 {
-  DEFINE_FEATURE(TransposerFeat);
+  DEFINE_FEATURE(Transposer);
   
 #define THIS					\
   Transposer<_E,_Comps,_EvalTo>
@@ -57,7 +57,7 @@ namespace nissa
     decltype(auto) eval(const TD&...td) ATTRIB		\
     {							\
       return						\
-	this->nestedExpression(td.transp()...);		\
+	this->nestedExpr(td.transp()...);		\
     }
     
     DECLARE_EVAL(const);

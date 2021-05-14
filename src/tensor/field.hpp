@@ -74,7 +74,7 @@ namespace nissa
       const LocLxSite sitesToAllocate=
 	withBord?locVolWithBord:locVol;
       
-      this->nestedExpression.allocate(sitesToAllocate,tdFeat.deFeat()...);
+      this->nestedExpr.allocate(sitesToAllocate,tdFeat.deFeat()...);
     }
     
     /// Constructor which specifies the sizes
@@ -91,7 +91,7 @@ namespace nissa
     decltype(auto) eval(const TCs&...tcs) ATTRIB			\
     {									\
       return								\
-	this->nestedExpression.eval(tcs...);				\
+	this->nestedExpr.eval(tcs...);					\
     }
     
     DECLARE_EVAL(const);

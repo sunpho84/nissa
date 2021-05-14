@@ -69,7 +69,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  DEFINE_FEATURE(ExprFeat);
+  DEFINE_FEATURE(Expr);
   
   /// Base type to catch a tensorial expression
   template <typename T,

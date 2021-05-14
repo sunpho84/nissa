@@ -15,11 +15,21 @@
 namespace nisssa
 {
   /// Define a feature
-#define DEFINE_FEATURE(FEATURE_NAME)			\
-  template <typename Defeated>				\
-  struct FEATURE_NAME					\
-  {							\
-    PROVIDE_DEFEAT_METHOD(Defeated);			\
+#define DEFINE_FEATURE(FEATURE_NAME)					\
+									\
+  /*! Type to be used to detect a feature */				\
+  struct FEATURE_NAME ## Tag						\
+  {									\
+  };									\
+									\
+  template <typename E>							\
+  constexpr bool is ## FEATURE_NAME=					\
+    std::is_base_of<FEATURE_NAME ## Tag,std::decay_t<E>>::value;	\
+									\
+  template <typename Defeated>						\
+  struct FEATURE_NAME ## Feat : FEATURE_NAME ## Tag			\
+  {									\
+    PROVIDE_DEFEAT_METHOD(Defeated);					\
   }
   
   /// Provides the method to cast to the featuring class

@@ -15,7 +15,7 @@
 
 namespace nissa
 {
-  DEFINE_FEATURE(CompBindFeat);
+  DEFINE_FEATURE(CompBinder);
   
   /// Component binder
   ///
@@ -44,7 +44,7 @@ namespace nissa
 	    typename _Comps,
 	    typename _EvalTo>
   struct THIS :
-    CompBindFeat<THIS>,
+    CompBinderFeat<THIS>,
     UNEX
   {
     /// Import the unary expression
@@ -81,7 +81,7 @@ namespace nissa
     decltype(auto) eval(const TD&...td) ATTRIB				\
     {									\
       return								\
-	this->nestedExpression.eval(std::get<ICs>(boundComps)...,td...); \
+	this->nestedExpr.eval(std::get<ICs>(boundComps)...,td...);	\
     }
     
     DECLARE_EVAL(const);
@@ -115,6 +115,7 @@ namespace nissa
     }
   };
   
+  /// Binds a subset of components
   template <typename _E,
 	    typename...BCs>
   auto compBind(_E&& e,
@@ -145,9 +146,10 @@ namespace nissa
 		 EvalTo>(std::forward<_E>(e),bc);
   }
   
+  /// Rebind an already bound set expression
   template <typename CB,
 	    typename...BCs>
-  auto compBind(const CompBindFeat<CB>& cb,
+  auto compBind(const CompBinderFeat<CB>& cb,
 		const TensorComps<BCs...>& bcs)
   {
     return

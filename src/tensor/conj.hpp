@@ -20,7 +20,7 @@ namespace nissa
   /// Imaginary component index
   constexpr inline ComplId Im=1;
   
-  DEFINE_FEATURE(ConjugatorFeat);
+  DEFINE_FEATURE(Conjugator);
   
 #define THIS					\
   Conjugator<_E,_Comps,_EvalTo>
@@ -69,7 +69,7 @@ namespace nissa
       
       /// Nested result
       decltype(auto) nestedRes=
-	this->nestedExpression.eval(td...);
+	this->nestedExpr.eval(td...);
       
       if(reIm==0)
 	return nestedRes;
@@ -86,16 +86,19 @@ namespace nissa
     
     /// Move constructor
     Conjugator(Conjugator&& oth) :
-      UnEx(FORWARD_MEMBER_VAR(Conjugator,oth,nestedExpression))
+      UnEx(FORWARD_MEMBER_VAR(Conjugator,oth,nestedExpr))
     {
     }
   };
   
   /// Takes the conjugate of e
-  template <typename _E>
+  template <typename _E,
+	    UNPRIORITIZE_DEFAULT_VERSION_TEMPLATE_PARS>
   auto conj(_E&& e,
-	    UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
+	    UNPRIORITIZE_DEFAULT_VERSION_ARGS)
   {
+    UNPRIORITIZE_DEFAULT_VERSION_ARGS_CHECK;
+    
     /// Base expression
     using E=
       std::decay_t<_E>;
@@ -110,6 +113,15 @@ namespace nissa
       
     return
       Conjugator<decltype(e),Comps,EvalTo>(std::forward<_E>(e));
+  }
+  
+  /// Remove conjugate from a conjugator
+  template <typename E,
+	    ENABLE_THIS_TEMPLATE_IF(isConjugator<E>)>
+  auto conj(E&& e)
+  {
+    return
+      e.nestedExpr;
   }
 }
 

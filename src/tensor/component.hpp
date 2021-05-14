@@ -126,7 +126,7 @@ namespace nissa
   
   // Component
   
-  DEFINE_FEATURE(TensorCompFeat);
+  DEFINE_FEATURE(TensorComp);
   
   /// Tensor component defined by signature type S
   template <typename S,

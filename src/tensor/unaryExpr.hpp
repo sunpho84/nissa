@@ -25,7 +25,7 @@ namespace nissa
       ExprRefOrVal<_E>;
     
     /// Nested expression
-    NestedExpr nestedExpression;
+    NestedExpr nestedExpr;
     
     /// Nested fundamental type
     using NestedFund=
@@ -39,13 +39,13 @@ namespace nissa
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) getDynamicSizes() const
     {
-      return nestedExpression.getDynamicSizes();
+      return nestedExpr.getDynamicSizes();
     }
     
     /// Constructor for the nested expression
     template <typename...U>
     UnaryExpr(U&&...u) :
-      nestedExpression(std::forward<U>(u)...)
+      nestedExpr(std::forward<U>(u)...)
     {
     }
     
