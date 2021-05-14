@@ -20,8 +20,7 @@ namespace nissa
   {
     enum : ExprFlags{STORE_BY_REF=1,
 		     EVAL_TO_REF=2,
-		     EVAL_TO_CONST=4,
-		     NEEDS_ORDERED_COMPS_TO_EVAL=8};
+		     EVAL_TO_CONST=4};
   }
   
 #define DECLARE_EXPR_FLAG_UTILITIES(FLAG_NAME,MASK_NAME)		\
@@ -65,8 +64,6 @@ namespace nissa
   DECLARE_EXPR_FLAG_UTILITIES(EvalToRef,EVAL_TO_REF);
   
   DECLARE_EXPR_FLAG_UTILITIES(EvalToConst,EVAL_TO_CONST);
-  
-  DECLARE_EXPR_FLAG_UTILITIES(NeedsOrderedCompsToEval,NEEDS_ORDERED_COMPS_TO_EVAL);
   
 #undef DECLARE_EXPR_FLAG_UTILITIES
   

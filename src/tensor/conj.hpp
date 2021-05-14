@@ -12,18 +12,18 @@
 
 namespace nissa
 {
-  DECLARE_COMPONENT(Complex,int,2);
+  DECLARE_COMPONENT(ComplId,int,2);
   
   /// Real component index
-  constexpr inline Complex Re=0;
+  constexpr inline ComplId Re=0;
   
   /// Imaginary component index
-  constexpr inline Complex Im=1;
+  constexpr inline ComplId Im=1;
   
-  DEFINE_FEATURE(ConjFeat);
+  DEFINE_FEATURE(ConjugatorFeat);
   
 #define THIS					\
-  Conj<_E,_Comps,_Fund>
+  Conjugator<_E,_Comps,_Fund>
   
 #define UNEX					\
     UnaryExpr<THIS,				\
@@ -35,10 +35,11 @@ namespace nissa
   template <typename _E,
 	    typename _Comps,
 	    typename _Fund>
-  struct Conj :
-    ConjFeat<THIS>,
+  struct Conjugator :
+    ConjugatorFeat<THIS>,
     UNEX
   {
+    /// Import unary expression
     using UnEx=
       UNEX;
     
@@ -62,28 +63,30 @@ namespace nissa
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
     Fund eval(const TD&...td) const
     {
-      const Complex& reIm=
-	std::get<Complex>(std::make_tuple(td...));
+      /// Compute the real or imaginary component
+      const ComplId& reIm=
+	std::get<ComplId>(std::make_tuple(td...));
       
-      decltype(auto) val=
+      /// Nested result
+      decltype(auto) nestedRes=
 	this->nestedExpression.eval(td...);
       
       if(reIm==0)
-	return val;
+	return nestedRes;
       else
-	return -val;
+	return -nestedRes;
     }
     
     /// Construct
     template <typename C>
-    Conj(C&& conjExpression) :
+    Conjugator(C&& conjExpression) :
       UnEx(std::forward<C>(conjExpression))
     {
     }
     
     /// Move constructor
-    Conj(Conj&& oth) :
-      UnEx(FORWARD_MEMBER_VAR(Conj,oth,nestedExpression))
+    Conjugator(Conjugator&& oth) :
+      UnEx(FORWARD_MEMBER_VAR(Conjugator,oth,nestedExpression))
     {
     }
   };
@@ -93,17 +96,20 @@ namespace nissa
   auto conj(_E&& e,
 	    UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
   {
+    /// Base expression
     using E=
       std::decay_t<_E>;
     
+    /// Fundamental type
     using Fund=
       typename E::Fund;
     
+    /// Components
     using Comps=
       typename E::Comps;
       
     return
-      Conj<decltype(e),Comps,Fund>(std::forward<_E>(e));
+      Conjugator<decltype(e),Comps,Fund>(std::forward<_E>(e));
   }
 }
 
