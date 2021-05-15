@@ -160,6 +160,8 @@ namespace nissa
     PROVIDE_ORDERED_EVALUATOR(const);
     
 #undef PROVIDE_ORDERED_EVALUATOR
+    
+    using Base::operator=;
   };
 }
 

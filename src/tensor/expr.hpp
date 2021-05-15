@@ -154,7 +154,8 @@ namespace nissa
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
     T& operator=(const ExprFeat<Oth>& rhs)
     {
-      return assign(this->crtp(),rhs.deFeat().crtp());
+      return
+	assign(this->crtp(),rhs.deFeat().crtp());
     }
   };
 }

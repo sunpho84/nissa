@@ -85,6 +85,8 @@ namespace nissa
     DECLARE_UNORDERED_EVAL(/* not const*/ );
     
 #undef DECLARE_UNORDERED_EVAL
+    
+    using Expr<T,TensorComps<TC...>,F>::operator=;
   };
   
   /////////////////////////////////////////////////////////////////
