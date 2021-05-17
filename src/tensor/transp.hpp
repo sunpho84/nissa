@@ -75,7 +75,7 @@ namespace nissa
     
     /// Move constructor
     Transposer(Transposer&& oth) :
-      UnEx(FORWARD_MEMBER_VAR(Transposer,oth,boundExpression))
+      UnEx(FORWARD_MEMBER_VAR(Transposer,oth,nestedExpr))
     {
     }
   };
