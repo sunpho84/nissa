@@ -27,7 +27,8 @@ include_HEADERS+= \
 	%D%/pars.hpp \
 	%D%/prop.hpp
 
-assembly_reports+=%D%/conf.s
+assembly_reports+=\
+	%D%/testNewExpr.s
 
  # __top_builddir__bin_checks_ib_SOURCES=%D%/checks.cpp
  # __top_builddir__bin_checks_ib_LDADD=$(LDADD)
