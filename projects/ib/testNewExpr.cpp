@@ -10,11 +10,19 @@ void in_main(int narg,char** arg)
       v(mu,cr)=cr()+NCOL*mu();
   
   /// Scalar product on color index
-  Tensor<OfComps<Dir>> res;
-  res=transp(v)*v;
+  Tensor<OfComps<Dir>> res1;
+  res1=transp(v)*v;
   
-  master_printf("%lg\n",res(Dir(0))); //5
-  master_printf("%lg\n",res(Dir(1))); //50
+  master_printf("%lg\n",res1(Dir(0))); //5
+  master_printf("%lg\n",res1(Dir(1))); //50
+  
+  /// Outer product on color index
+  Tensor<OfComps<Dir,ColorRow,ColorCln>> res2;
+  res2=v*transp(v);
+  
+  /// Comp by comp product on color index
+  Tensor<OfComps<Dir,ColorRow>> res3;
+  res3=v*v;
 }
 
 int main(int narg,char** arg)
