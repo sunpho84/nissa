@@ -158,6 +158,11 @@ namespace nissa
 	assign(this->crtp(),rhs.deFeat().crtp());
     }
   };
+  
+  /// Declares a strategy to be used for tag dispatch, see example on loopOnAllComponents
+#define DECLARE_STRATEGY(NAME,FLAG_NAME)		\
+  using NAME=						\
+    const std::integral_constant<int,FLAG_NAME>*
 }
 
 #endif

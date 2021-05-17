@@ -5,6 +5,8 @@
 #include "dirac.hpp"
 #include "spin.hpp"
 
+#include <tensor/component.hpp>
+
 #if NCOL == 3
  #define CRASH_IF_NOT_3COL()
 #else
@@ -44,6 +46,14 @@ namespace nissa
   typedef single_color single_halfspincolor[2];
   typedef single_color single_spincolor[NDIRAC];
   typedef single_su3 single_quad_su3[NDIRAC];
+  
+DECLARE_ROW_OR_CLN_COMPONENT(Color,int,NCOL);
+
+#define FOR_ALL_ROW_COLORS(NAME)		\
+  FOR_ALL_COMPONENT_VALUES(ColorRow,NAME)
+  
+#define FOR_ALL_CLN_COLORS(NAME)		\
+  FOR_ALL_COMPONENT_VALUES(ColorCln,NAME)
 }
 
 #endif
