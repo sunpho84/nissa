@@ -14,11 +14,34 @@ namespace nissa
 {
   DECLARE_COMPONENT(ComplId,int,2);
   
+#define FOR_REIM_PARTS(NAME)		\
+  FOR_ALL_COMPONENT_VALUES(ComplId,NAME)
+  
   /// Real component index
-  constexpr inline ComplId Re=0;
+#define Re ComplId(0)
   
   /// Imaginary component index
-  constexpr inline ComplId Im=1;
+#define Im ComplId(1)
+  
+  /// Returns the real part, subscribing the complex component to Re value
+  template <typename _E>
+  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  decltype(auto) real(_E&& e)
+  {
+    return
+      e(Re);
+  }
+  
+  /// Returns the imaginary part, subscribing the complex component to Im value
+  template <typename _E>
+  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  decltype(auto) imag(_E&& e)
+  {
+    return
+      e(Im);
+  }
+  
+  /////////////////////////////////////////////////////////////////
   
   DEFINE_FEATURE(Conjugator);
   

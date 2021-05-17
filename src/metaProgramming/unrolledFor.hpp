@@ -95,9 +95,9 @@ namespace nissa
   /// Uses nvcc builtin
   ///
   /// \todo move it to a dedicated macro to call the proper bultin
-#define UNROLL_FOR(I,MIN,MAX)			\
-  PRAGMA(unroll (MAX-MIN))			\
-  for(int I=MIN;I<MAX;I++)				\
+# define UNROLL_FOR(TYPE,NAME,MIN,MAX)			\
+  PRAGMA(unroll (MAX-MIN))				\
+  for(TYPE NAME=MIN;I<MAX;I++)				\
     {
   
 # define UNROLL_FOR_END			\
@@ -109,7 +109,7 @@ namespace nissa
   ///
   /// Hides the complexity
 # define UNROLL_FOR(TYPE,NAME,MIN,MAX)			\
-  unrollFor<MIN,MAX>([&](const TYPE& NAME) INLINE_ATTRIBUTE {
+  unrollFor2<MIN,MAX>([&](const TYPE& NAME) INLINE_ATTRIBUTE {
   
   /// Finish an unrolled for
 # define UNROLL_FOR_END })

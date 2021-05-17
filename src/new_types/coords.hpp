@@ -11,6 +11,10 @@ namespace nissa
 {
   DECLARE_COMPONENT(Dir,int,NDIM);
   
+  /// Convenient alias for Dir
+  using Lorentz=
+    Dir;
+  
   /// Temporal direction
   inline CUDA_DEVICE Dir tDir=0;
   

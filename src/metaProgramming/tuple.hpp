@@ -276,10 +276,10 @@ namespace nissa
     struct _TupleFilterAllTypes<ToBeFiltered,
 				std::tuple<>>
     {
-    /// Result type is identical to \c ToBefiltered
-    using type=
-      ToBeFiltered;
-  };
+      /// Result type is identical to \c ToBefiltered
+      using type=
+	ToBeFiltered;
+    };
     
     /// Filter the first occurrence of all types of the tuple \c Filter out of the tuple \ToBeFiltered
     ///
