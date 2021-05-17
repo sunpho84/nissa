@@ -1,10 +1,10 @@
 #ifndef _LOOPONALLCOMPONENTS_HPP
 #define _LOOPONALLCOMPONENTS_HPP
 
-#include <tensor/component.hpp>
-
 #include <metaProgramming/inliner.hpp>
 #include <metaProgramming/unrolledFor.hpp>
+
+#include <tensor/expr.hpp>
 
 namespace nissa
 {
@@ -18,26 +18,29 @@ namespace nissa
 	      typename F,
 	      typename...Lc>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    void _loopOnAllComponentsValues(const TensorComps<Hc,Tc...>* comps,
-				    const TensorComps<DC...>& dynamicSizes,
-				    F&& f,
-				    const Lc&...loopedComps);
+    void _loopOnAllComponents(const TensorComps<Hc,Tc...>* comps,
+			      const TensorComps<DC...>& dynamicSizes,
+			      F&& f,
+			      const Lc&...loopedComps);
     
     template <typename...DC,
 	      typename F,
 	      typename...Lc>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    void _loopOnAllComponentsValues(const TensorComps<>*,
-				    const TensorComps<DC...>& dynamicSizes,
-				    F&& f,
-				    const Lc&...loopedComps);
+    void _loopOnAllComponents(const TensorComps<>*,
+			      const TensorComps<DC...>& dynamicSizes,
+			      F&& f,
+			      const Lc&...loopedComps);
     
     /////////////////////////////////////////////////////////////////
     
+    /// Decide the strategy to loop on a component
     struct _LoopUnrollStrategy
     {
+      /// Possible strategies
       enum{STATIC_UNROLL,STATIC_DONT_UNROLL,DYNAMIC};
       
+      /// Decides the strategy for a given component
       template <typename Tc>
       using GetForComp=
 	std::integral_constant<int,
@@ -47,105 +50,108 @@ namespace nissa
 			       ?STATIC_DONT_UNROLL
 			       :STATIC_UNROLL)>*;
       
-      using StaticUnroll=
-	const std::integral_constant<int,STATIC_UNROLL>*;
+      DECLARE_STRATEGY(StaticUnroll,STATIC_UNROLL);
       
-      using StaticDontUnroll=
-	const std::integral_constant<int,STATIC_DONT_UNROLL>*;
+      DECLARE_STRATEGY(StaticDontUnroll,STATIC_DONT_UNROLL);
       
-      using Dynamic=
-	const std::integral_constant<int,DYNAMIC>*;
+      DECLARE_STRATEGY(Dynamic,DYNAMIC);
     };
     
+    /// Dynamic component: no unroll, needs to get the component size from the dynamic components
     template <typename Hc,
 	      typename...Tc,
 	      typename...DC,
 	      typename F,
 	      typename...Lc>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    void _loopOnAllComponentsValues(_LoopUnrollStrategy::Dynamic,
-				    const TensorComps<Hc,Tc...>* comps,
-				    const TensorComps<DC...>& dynamicSizes,
-				    F&& f,
-				    const Lc&...loopedComps)
+    void _loopOnAllComponents(_LoopUnrollStrategy::Dynamic,
+			      const TensorComps<Hc,Tc...>* comps,
+			      const TensorComps<DC...>& dynamicSizes,
+			      F&& f,
+			      const Lc&...loopedComps)
       {
 	for(Hc hc=0;hc<std::get<Hc>(dynamicSizes);hc++)
-	  _loopOnAllComponentsValues((const TensorComps<Tc...>*)nullptr,
-				     dynamicSizes,
-				     std::forward<F>(f),
-				     loopedComps...,hc);
+	  _loopOnAllComponents((const TensorComps<Tc...>*)nullptr,
+			       dynamicSizes,
+			       std::forward<F>(f),
+			       loopedComps...,hc);
       }
     
+    /// Static component, but too large: reads the size from the type itself, but don't unroll
     template <typename Hc,
 	      typename...Tc,
 	      typename...DC,
 	      typename F,
 	      typename...Lc>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    void _loopOnAllComponentsValues(_LoopUnrollStrategy::StaticDontUnroll,
-				    const TensorComps<Hc,Tc...>* comps,
-				    const TensorComps<DC...>& dynamicSizes,
-				    F&& f,
-				    const Lc&...loopedComps)
+    void _loopOnAllComponents(_LoopUnrollStrategy::StaticDontUnroll,
+			      const TensorComps<Hc,Tc...>* comps,
+			      const TensorComps<DC...>& dynamicSizes,
+			      F&& f,
+			      const Lc&...loopedComps)
       {
 	for(Hc hc=0;hc<Hc::sizeAtCompileTimeAssertingNotDynamic();hc++)
-	  _loopOnAllComponentsValues((const TensorComps<Tc...>*)nullptr,
-				     dynamicSizes,
-				     std::forward<F>(f),
-				     loopedComps...,hc);
+	  _loopOnAllComponents((const TensorComps<Tc...>*)nullptr,
+			       dynamicSizes,
+			       std::forward<F>(f),
+			       loopedComps...,hc);
       }
     
+    /// Static component to be unrolled
     template <typename Hc,
 	      typename...Tc,
 	      typename...DC,
 	      typename F,
 	      typename...Lc>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    void _loopOnAllComponentsValues(_LoopUnrollStrategy::StaticUnroll,
-				    const TensorComps<Hc,Tc...>* comps,
-				    const TensorComps<DC...>& dynamicSizes,
-				    F&& f,
-				    const Lc&...loopedComps)
-      {
-	UNROLL_FOR(Hc,hc,0,Hc::sizeAtCompileTimeAssertingNotDynamic())
-	  _loopOnAllComponentsValues((const TensorComps<Tc...>*)nullptr,
-				     dynamicSizes,
-				     std::forward<F>(f),
-				     loopedComps...,hc);
+    void _loopOnAllComponents(_LoopUnrollStrategy::StaticUnroll,
+			      const TensorComps<Hc,Tc...>* comps,
+			      const TensorComps<DC...>& dynamicSizes,
+			      F&& f,
+			      const Lc&...loopedComps)
+    {
+      UNROLL_FOR(Hc,hc,0,Hc::sizeAtCompileTimeAssertingNotDynamic())
+	  _loopOnAllComponents((const TensorComps<Tc...>*)nullptr,
+			       dynamicSizes,
+			       std::forward<F>(f),
+			       loopedComps...,hc);
 	UNROLL_FOR_END;
       }
     
+    /// Dispatch the loop on component Hc
     template <typename Hc,
 	      typename...Tc,
 	      typename...DC,
 	      typename F,
 	      typename...Lc>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    void _loopOnAllComponentsValues(const TensorComps<Hc,Tc...>* comps,
-				    const TensorComps<DC...>& dynamicSizes,
-				    F&& f,
-				    const Lc&...loopedComps)
+    void _loopOnAllComponents(const TensorComps<Hc,Tc...>* comps,
+			      const TensorComps<DC...>& dynamicSizes,
+			      F&& f,
+			      const Lc&...loopedComps)
       {
-	_loopOnAllComponentsValues((_LoopUnrollStrategy::GetForComp<Hc>)nullptr,
-				   comps,
-				   dynamicSizes,
-				   std::forward<F>(f),
-				   loopedComps...);
+	_loopOnAllComponents(_LoopUnrollStrategy::GetForComp<Hc>(),
+			     comps,
+			     dynamicSizes,
+			     std::forward<F>(f),
+			     loopedComps...);
       }
     
+    ///No more component to dispatch, execure the function
     template <typename...DC,
 	      typename F,
 	      typename...Lc>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    void _loopOnAllComponentsValues(const TensorComps<>*,
-				    const TensorComps<DC...>& dynamicSizes,
-				    F&& f,
-				    const Lc&...loopedComps)
+    void _loopOnAllComponents(const TensorComps<>*,
+			      const TensorComps<DC...>& dynamicSizes,
+			      F&& f,
+			      const Lc&...loopedComps)
     {
       f(loopedComps...);
     }
   }
   
+  /// Loops on all values of all components
   template <typename TC,
 	    typename...DC,
 	    typename F>
@@ -153,9 +159,9 @@ namespace nissa
   void loopOnAllComponents(const TensorComps<DC...>& dynamicSizes,
 			   F&& f)
   {
-    internal::_loopOnAllComponentsValues((const TC*)nullptr,
-					 dynamicSizes,
-					 std::forward<F>(f));
+    internal::_loopOnAllComponents((const TC*)nullptr,
+				   dynamicSizes,
+				   std::forward<F>(f));
   }
 }
 

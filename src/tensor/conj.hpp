@@ -91,37 +91,75 @@ namespace nissa
     }
   };
   
-  /// Takes the conjugate of e
-  template <typename _E,
-	    UNPRIORITIZE_DEFAULT_VERSION_TEMPLATE_PARS>
-  auto conj(_E&& e,
-	    UNPRIORITIZE_DEFAULT_VERSION_ARGS)
+  namespace internal
   {
-    UNPRIORITIZE_DEFAULT_VERSION_ARGS_CHECK;
-    
-    /// Base expression
-    using E=
-      std::decay_t<_E>;
-    
-    /// Fundamental type
-    using EvalTo=
-      typename E::EvalTo;
-    
-    /// Components
-    using Comps=
-      typename E::Comps;
+    /// Decide the strategy to take a conjugate
+    struct _ConjStrategy
+    {
+      /// Possible strategies
+      enum{NO_COMPL,IS_CONJUGATOR,DEFAULT};
       
-    return
-      Conjugator<decltype(e),Comps,EvalTo>(std::forward<_E>(e));
-  }
+      /// Get the strategy for expression E
+      template <typename E>
+      using GetForExpr=
+	std::integral_constant<int,
+	(not tupleHasType<typename E::Comps,ComplId>)?
+	NO_COMPL:
+	    ((isConjugator<E>)?
+	      IS_CONJUGATOR:
+	     DEFAULT)>*;
+      
+      DECLARE_STRATEGY(NoCompl,NO_COMPL);
+      
+      DECLARE_STRATEGY(IsConjugator,IS_CONJUGATOR);
+      
+      DECLARE_STRATEGY(Default,DEFAULT);
+    };
+    
+    /// No conjugate is present
+    template <typename _E>
+    decltype(auto) _conj(_E&& e,
+			 _ConjStrategy::NoCompl)
+    {
+      return e;
+    }
+    
+    /// Returns the original expression
+    template <typename _E>
+    decltype(auto) _conj(_E&& e,
+			 _ConjStrategy::IsConjugator)
+    {
+      return e.nestedExpr;
+    }
+    
+    /// Takes the conjugate of e
+    template <typename _E>
+    auto _conj(_E&& e,
+	       _ConjStrategy::Default)
+    {
+      /// Base expression
+      using E=
+	std::decay_t<_E>;
+      
+      /// Fundamental type
+      using EvalTo=
+	typename E::EvalTo;
+      
+      /// Components
+      using Comps=
+	typename E::Comps;
+      
+      return
+	Conjugator<decltype(e),Comps,EvalTo>(std::forward<_E>(e));
+    }
+  };
   
-  /// Remove conjugate from a conjugator
-  template <typename E,
-	    ENABLE_THIS_TEMPLATE_IF(isConjugator<E>)>
-  auto conj(E&& e)
+  /// Dispatch the correct conjugation
+  template <typename _E>
+  decltype(auto) conj(_E&& e)
   {
     return
-      e.nestedExpr;
+      internal::_conj(std::forward<_E>(e),internal::_ConjStrategy::GetForExpr<std::decay_t<_E>>());
   }
 }
 
