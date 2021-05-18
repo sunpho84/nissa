@@ -142,6 +142,21 @@ namespace nissa
     static constexpr ExprFlags Flags=
       EXPR_FLAG_MASKS::NONE;
     
+    /// List of all dynamically allocated components
+    using DynamicComps=
+      GetDynamicCompsOfTensorComps<Comps>;
+    
+    /// Sizes of the dynamic components
+    DynamicComps dynamicSizes;
+    
+    /// Dynamic sizes
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    decltype(auto) getDynamicSizes() const
+    {
+      return
+	dynamicSizes;
+    }
+    
     /// Detect complex component
     static constexpr bool isComplProd=
       tupleHasType<Comps,ComplId>;
@@ -236,9 +251,10 @@ namespace nissa
       /// Result
       EvalTo res(0);
       
-      loopOnAllComponents<_ContractedComps>(TensorComps<>(),
+      loopOnAllComponents<_ContractedComps>(getDynamicSizes(),
 					    [this,&res,&td...](const auto&...args) INLINE_ATTRIBUTE
       {
+	/// Gets the complex index
 	const ComplId cId=
 	  std::get<ComplId>(std::make_tuple(td...));
 	
@@ -249,18 +265,22 @@ namespace nissa
 	std::get<ComplId>(fullArgs)=
 	  Re;
 	
+	/// Compute the real part of argument 0
 	const auto re0=
 	  this->_evalIthArg<0>(fullArgs);
 	  
+	/// Compute the real part of argument 1
 	const auto re1=
 	  this->_evalIthArg<1>(fullArgs);
 	
 	std::get<ComplId>(fullArgs)=
 	  Im;
 	
+	/// Compute the imaginary part of argument 0
 	const auto im0=
 	  this->_evalIthArg<0>(fullArgs);
 	  
+	/// Compute the imaginary part of argument 1
 	const auto im1=
 	  this->_evalIthArg<1>(fullArgs);
 	
@@ -289,11 +309,23 @@ namespace nissa
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
     EvalTo eval(const TD&...td) const
     {
-      return _eval(typename _EvalStrategy::Get(),
-		   td...);
+      return
+	_eval(typename _EvalStrategy::Get(),
+	      td...);
     }
     
-    using NnEx::NnEx;
+    /// Construct
+    template <typename E1,
+	      typename E2,
+	      typename...Td>
+    Producer(E1&& e1,
+	     E2&& e2,
+	     const TensorComps<Td...>& dc) :
+      NnEx(std::forward<E1>(e1),
+	   std::forward<E2>(e2)),
+      dynamicSizes(dc)
+    {
+    }
   };
   
   template <typename _E1,
@@ -313,10 +345,17 @@ namespace nissa
     using E2=
       std::decay_t<_E2>;
     
+    /// First argument components
+    using C1=
+      typename E1::Comps;
+    
+    /// Second argument components
+    using C2=
+      typename E2::Comps;
+    
     /// Computes the product components
     using PCC=
-      internal::_ProdCompsComputer<typename E1::Comps,
-				   typename E2::Comps>;
+      internal::_ProdCompsComputer<C1,C2>;
     
     /// Gets the visible comps
     using VisibleComps=
@@ -326,24 +365,37 @@ namespace nissa
     using ContractedComps=
       typename PCC::ContractedComps;
     
+    /// First expression fundamental type
     using EvalTo1=
       typename E1::EvalTo;
     
+    /// Second expression fundamental type
     using EvalTo2=
       typename E2::EvalTo;
     
+    /// Determine the fundamental type of the product
     using _EvalTo=
       decltype(EvalTo1()*EvalTo2());
     
-    return
+    /// Resulting type
+    using Res=
       Producer<ContractedComps,
 	       decltype(e1),
 	       decltype(e2),
 	       VisibleComps,
-	       _EvalTo>(std::forward<_E1>(e1),
-			std::forward<_E2>(e2));
+	       _EvalTo>;
+    
+    /// Resulting dynamic components
+    const auto& dc=
+      dynamicCompsCombiner<typename Res::DynamicComps>(std::make_tuple(e1.getDynamicSizes(),e2.getDynamicSizes()));
+    
+    return
+      Res(std::forward<_E1>(e1),
+	  std::forward<_E2>(e2),
+	  dc);
   }
   
+  /// Catch the product operator
   template <typename _E1,
 	    typename _E2>
   auto operator*(const ExprFeat<_E1>& e1,

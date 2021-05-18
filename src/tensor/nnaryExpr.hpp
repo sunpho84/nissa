@@ -64,6 +64,55 @@ namespace nissa
     /// Import assignemnt operator
     using Expr<T,TC,F>::operator=;
   };
+  
+  /// Combine the dynamic components of a tuple of dynamic comps, filling with each occurrence
+  template <typename DcsOut,
+	    typename..._DcsIn>
+  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  auto dynamicCompsCombiner(const std::tuple<_DcsIn...>& dcsIns)
+  {
+    using DcsIns=
+      std::tuple<_DcsIn...>;
+    
+    /// Result
+    DcsOut dcsOut;
+    
+    UNROLL_FOR(int,i,0,2)
+      {
+	EXEC_FOR_ALL_TUPLE_IDS(IDcsIn,DcsIns,
+			       
+			       /// Input component on which we loop
+			       using DcsIn=
+			         std::tuple_element_t<IDcsIn,DcsIns>;
+			       
+			       /// List of dynamic components in common with result
+			       using DcsCommonToOut=
+			         TupleCommonTypes<DcsOut,DcsIn>;
+			       
+			       /// Value of all dynamic components
+			       decltype(auto) dcsIn=
+			         std::get<IDcsIn>(dcsIns);
+				 
+			       EXEC_FOR_ALL_TUPLE_IDS(IDcIn,DcsCommonToOut,
+						      
+						      const auto& dcIn=
+						        std::get<IDcIn>(dcsIn);
+						      
+						      auto& dcOut=
+						        std::get<IDcIn>(dcsOut);
+						      
+						      if(i==0)
+							dcOut=dcIn;
+						      else
+							if(dcOut!=dcIn)
+							  crash("unmatched dynamic comps among expressions");
+						      ));
+      }
+    UNROLL_FOR_END;
+    
+    return
+      dcsOut;
+  }
 }
 
 #endif
