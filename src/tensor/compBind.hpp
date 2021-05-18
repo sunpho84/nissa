@@ -146,7 +146,7 @@ namespace nissa
 		 EvalTo>(std::forward<_E>(e),bc);
   }
   
-  /// Rebind an already bound set expression
+  /// Rebind an already bound expression
   template <typename CB,
 	    typename...BCs>
   auto compBind(const CompBinderFeat<CB>& cb,

@@ -12,7 +12,7 @@
 
 namespace nissa
 {
-  /// NNary expression needed to capture n arguments
+  /// Nnary expression needed to capture n arguments
   template <typename T,   // Derived class
 	    typename _Es, // Nested expressions, in a tuple as passed to constructor
 	    typename TC,

@@ -501,11 +501,12 @@ namespace nissa
   using TensorCompsFilterAny=
     typename impl::_TensorCompsFilterRwCl<RwCl::ANY,TC>::type;
   
-  /// Gets the dynamic components of a tensComps
+  /// Gets the value of the dynamic components of a tensComps
   template <typename TC>
   constexpr decltype(auto) getDynamicCompsOfTensorComps(TC&& tc)
   {
-    return tupleFilter<predicate::SizeIsKnownAtCompileTime<false>::t>(std::forward<TC>(tc));
+    return
+      tupleFilter<predicate::SizeIsKnownAtCompileTime<false>::t>(std::forward<TC>(tc));
   }
   
   /// Gets the dynamic component types of a TensorComps

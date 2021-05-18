@@ -8,7 +8,7 @@
 
 namespace nissa
 {
-   //structure to cool
+  //structure to cool
   struct cool_pars_t
   {
     gauge_action_name_t gauge_action;
