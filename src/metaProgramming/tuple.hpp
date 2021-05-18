@@ -9,6 +9,8 @@
 #include <type_traits>
 #include <utility>
 
+#include <metaProgramming/inliner.hpp>
+#include <metaProgramming/unrolledFor.hpp>
 #include <routines/math_routines.hpp>
 
 namespace nissa
@@ -152,7 +154,8 @@ namespace nissa
   /// Returns a tuple containing all types common to the two tuples
   template <typename TupleToSearch,
 	    typename TupleBeingSearched>
-  using TupleCommonTypes=TupleFilter<TypeIsInList<1,TupleToSearch>::template t,TupleBeingSearched>;
+  using TupleCommonTypes=
+    TupleFilter<TypeIsInList<1,TupleToSearch>::template t,TupleBeingSearched>;
   
   /////////////////////////////////////////////////////////////////
   
@@ -321,6 +324,50 @@ namespace nissa
 	    typename Filter>
   using TupleFilterAllTypes=
     typename details::_TupleFilterAllTypes<ToBeFiltered,Filter>::type;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  template <typename TP,
+	    typename F,
+	    size_t...Is>
+  void _execForAllTupleTypes(F&& f,
+			     std::index_sequence<Is...>)
+  {
+    [[maybe_unused]]
+    auto l=
+      {nissa::resources::call(f,((std::tuple_element_t<Is,TP>*)nullptr))...,0};
+  }
+  
+#define EXEC_FOR_ALL_TUPLE_TYPES(T,TP,CORE...)			\
+  _execForAllTupleTypes<TP>([&](auto* t) INLINE_ATTRIBUTE	\
+  {								\
+    using T=							\
+      std::decay_t<decltype(*t)>;				\
+    								\
+    CORE;							\
+  },std::make_index_sequence<std::tuple_size_v<TP>>())
+  
+  /////////////////////////////////////////////////////////////////
+  
+  template <typename TP,
+	    typename F,
+	    size_t...Is>
+  void _execForAllTupleIds(F&& f,
+			     std::index_sequence<Is...>)
+  {
+    [[maybe_unused]]
+    auto l=
+      {nissa::resources::call(f,std::integral_constant<int,Is>())...,0};
+  }
+  
+#define EXEC_FOR_ALL_TUPLE_IDS(I,TP,CORE...)			\
+  _execForAllTupleIds<TP>([&](auto t) INLINE_ATTRIBUTE		\
+  {								\
+    static constexpr size_t I=					\
+      std::decay_t<decltype(t)>::value;				\
+    								\
+    CORE;							\
+  },std::make_index_sequence<std::tuple_size_v<TP>>())
 }
 
 #endif
