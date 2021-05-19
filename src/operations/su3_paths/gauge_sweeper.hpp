@@ -7,7 +7,6 @@
 
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
-    #include "communicate/borders.hpp"
 #include "communicate/all_to_all.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
 #include "new_types/su3.hpp"
@@ -100,6 +99,9 @@ namespace nissa
       int ibase=0;
       for(int ibox=0;ibox<(1<<NDIM);ibox++)
 	{
+	  for(int dir=0;dir<NDIM;dir++)
+	    for(int par=0;par<gpar;par++)
+	      {
 	  //communicate needed links
 	  if(IS_MASTER_THREAD) comm_time-=take_time();
 	  box_comm[ibox]->communicate(conf,conf,sizeof(su3),NULL,NULL,ibox+100);
@@ -108,10 +110,6 @@ namespace nissa
 	      comm_time+=take_time();
 	      comp_time-=take_time();
 	    }
-	  for(int dir=0;dir<NDIM;dir++)
-	    for(int par=0;par<gpar;par++)
-	      {
-      communicate_lx_quad_su3_borders(conf);
 		int box_dir_par_size=nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];
 		
 		//pack
@@ -152,7 +150,6 @@ namespace nissa
 		
 		//increment the box-dir-par subset
 		ibase+=box_dir_par_size;
-      set_borders_invalid(conf);
 	      }
 	  if(IS_MASTER_THREAD) comp_time+=take_time();
 	}
