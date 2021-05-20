@@ -50,11 +50,11 @@ namespace nissa
 			       ?STATIC_DONT_UNROLL
 			       :STATIC_UNROLL)>*;
       
-      DECLARE_STRATEGY(StaticUnroll,STATIC_UNROLL);
+      DECLARE_DISPATCH_STRATEGY(StaticUnroll,STATIC_UNROLL);
       
-      DECLARE_STRATEGY(StaticDontUnroll,STATIC_DONT_UNROLL);
+      DECLARE_DISPATCH_STRATEGY(StaticDontUnroll,STATIC_DONT_UNROLL);
       
-      DECLARE_STRATEGY(Dynamic,DYNAMIC);
+      DECLARE_DISPATCH_STRATEGY(Dynamic,DYNAMIC);
     };
     
     /// Dynamic component: no unroll, needs to get the component size from the dynamic components

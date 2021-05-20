@@ -7,6 +7,7 @@
 
 /// \file nnaryExpr.hpp
 
+#include <base/debug.hpp>
 #include <tensor/expr.hpp>
 #include <tensor/exprRefOrVal.hpp>
 
@@ -16,6 +17,7 @@ namespace nissa
   template <typename T,   // Derived class
 	    typename _Es, // Nested expressions, in a tuple as passed to constructor
 	    typename TC,
+	    typename _CompsMeldBarriers,
 	    typename F>
   struct NnaryExpr;
   
@@ -23,9 +25,10 @@ namespace nissa
   template <typename T,     // Derived class
 	    typename..._Es, // Nested expressions, as it is passed to constructor
 	    typename TC,
+	    typename _CompsMeldBarriers,
 	    typename F>
-  struct NnaryExpr<T,std::tuple<_Es...>,TC,F> :
-    Expr<T,TC,F>
+  struct NnaryExpr<T,std::tuple<_Es...>,TC,_CompsMeldBarriers,F> :
+    Expr<T,TC,_CompsMeldBarriers,F>
   {
     /// Type of the nested expressions
     using NestedExprs=
@@ -62,7 +65,7 @@ namespace nissa
     }
     
     /// Import assignemnt operator
-    using Expr<T,TC,F>::operator=;
+    using Expr<T,TC,_CompsMeldBarriers,F>::operator=;
   };
   
   /// Combine the dynamic components of a tuple of dynamic comps, filling with each occurrence

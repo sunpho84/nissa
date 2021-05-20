@@ -10,6 +10,7 @@
 #include <metaProgramming/crtp.hpp>
 #include <metaProgramming/refOrVal.hpp>
 #include <tensor/component.hpp>
+#include <tensor/meldComps.hpp>
 
 namespace nissa
 {
@@ -75,19 +76,28 @@ namespace nissa
   /// Base type to catch a tensorial expression
   template <typename T,
 	    typename TC,
+	    typename MB,
 	    typename F>
   struct Expr;
   
   template <typename T,
-	    typename...TC,
+	    typename...TCs,
+	    size_t...MBs,
 	    typename F>
-  struct Expr<T,TensorComps<TC...>,F> :
-    ExprFeat<Expr<T,TensorComps<TC...>,F>>,
+  struct Expr<T,
+	      TensorComps<TCs...>,
+	      TensorCompsMeldBarriers<MBs...>,
+	      F> :
+    ExprFeat<Expr<T,TensorComps<TCs...>,TensorCompsMeldBarriers<MBs...>,F>>,
     Crtp<T>
   {
     /// Components
     using Comps=
-      TensorComps<TC...>;
+      TensorComps<TCs...>;
+    
+    /// Fuse-component barriers
+    using CompsMeldBarriers=
+      TensorCompsMeldBarriers<MBs...>;
     
     /// Fundamental type
     using Fund=
@@ -158,11 +168,6 @@ namespace nissa
 	assign(this->crtp(),rhs.deFeat().crtp());
     }
   };
-  
-  /// Declares a strategy to be used for tag dispatch, see example on loopOnAllComponents
-#define DECLARE_STRATEGY(NAME,FLAG_NAME)		\
-  using NAME=						\
-    const std::integral_constant<int,FLAG_NAME>*
 }
 
 #endif

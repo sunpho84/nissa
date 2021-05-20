@@ -371,6 +371,22 @@ namespace nissa
       details::_firstOccurrenceOfType<T>((std::tuple<Tps...>*)nullptr);
   }
   
+  /// Returns the first occurrence of the first list of types in the argument tuple
+  template <typename...T,
+	    typename...Tps>
+  constexpr auto firstOccurrenceOfTypes(const std::tuple<T...>&,
+					 const std::tuple<Tps...>&)
+  {
+    return
+      std::index_sequence<firstOccurrenceInTypesOfType<T,Tps...>()...>{};
+  }
+  
+  /// Returns the first occurrence of the first list of types in the argument tuple
+  template <typename ToFind,
+	    typename ToBeSearched>
+  using FirstOccurrenceOfTypes=
+    decltype(firstOccurrenceOfTypes(ToFind{},ToBeSearched{}));
+  
   /////////////////////////////////////////////////////////////////
   
   /// Filter the first occurrence of all types of the tuple \c Filter out of the tuple \ToBeFiltered

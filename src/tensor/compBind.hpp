@@ -24,16 +24,18 @@ namespace nissa
 	    typename _IC,
 	    typename _E,
 	    typename _Comps,
+	    typename _CompsMeldBarriers,
 	    typename _EvalTo>
   struct CompBinder;
   
 #define THIS					\
-  CompBinder<_BC,std::index_sequence<ICs...>,_E,_Comps,_EvalTo>
+  CompBinder<_BC,std::index_sequence<ICs...>,_E,_Comps,_CompsMeldBarriers,_EvalTo>
 
 #define UNEX					\
     UnaryExpr<THIS,				\
 	      _E,				\
 	      _Comps,				\
+	      _CompsMeldBarriers,		\
 	      _EvalTo>
   
   /// Component binder
@@ -42,6 +44,7 @@ namespace nissa
 	    size_t...ICs,
 	    typename _E,
 	    typename _Comps,
+	    typename _CompsMeldBarriers,
 	    typename _EvalTo>
   struct THIS :
     CompBinderFeat<THIS>,
@@ -57,6 +60,10 @@ namespace nissa
     /// Components
     using Comps=
       _Comps;
+    
+    /// Barrier to meld components
+    using CompsMeldBarriers=
+      _CompsMeldBarriers;
     
     /// Type returned when evaluating the expression
     using EvalTo=
@@ -138,11 +145,17 @@ namespace nissa
     using Comps=
       TupleFilterAllTypes<typename E::Comps,
 			  BoundComps>;
+    
+    /// Barriers between fusable components
+    using CompsMeldBarriers=
+      GetTensorCompsMeldBarriersFromPureRemapping<Comps,typename E::Comps,typename E::CompsMeldBarriers>;
+    
     return
       CompBinder<BoundComps,
 		 std::make_index_sequence<sizeof...(BCs)>,
 		 decltype(e),
 		 Comps,
+		 CompsMeldBarriers,
 		 EvalTo>(std::forward<_E>(e),bc);
   }
   

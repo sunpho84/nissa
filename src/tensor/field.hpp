@@ -17,11 +17,12 @@ namespace nissa
   
 #define THIS \
   LxField<_Comps,_F,_WithBord>
-  
+
 #define UNEX							\
   UnaryExpr<THIS,						\
 	    Tensor<_Comps,_F,DefaultStorage>,			\
 	    _Comps,						\
+	    EmptyCompsMeldBarriers,					\
 	    _F>
   
   /// Lexicographic field
@@ -45,6 +46,10 @@ namespace nissa
     /// Components
     using Comps=
       _Comps;
+    
+    /// Barrier to meld components
+    using CompsMeldBarriers=
+      EmptyCompsMeldBarriers;
     
     /// Fundamental type
     using EvalTo=

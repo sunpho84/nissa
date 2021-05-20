@@ -26,20 +26,40 @@ namespace nissa
 	    typename Fund=double>
   struct BaseTensor;
   
+#define THIS					\
+  Conjugator<_E,_Comps,_EvalTo>
+  
+#define EX					\
+  Expr<T,					\
+       TensorComps<TCs...>,			\
+       EmptyCompsMeldBarriers,			\
+       F>
+  
   /// Tensor
   template <typename T,
-	    typename...TC,
+	    typename...TCs,
 	    typename F>
-  struct BaseTensor<T,TensorComps<TC...>,F>
-    : Expr<T,TensorComps<TC...>,F> // Here we pass the external expression on purpose
+  struct BaseTensor<T,TensorComps<TCs...>,F>
+    : EX // Here we pass the external expression on purpose
   {
+    /// Import expression
+    using Ex=
+      EX;
+    
+#undef EX
+#undef THIS
+    
     /// Type returned when evaluating the expression
     using EvalTo=
       F;
     
     /// Components
     using Comps=
-      TensorComps<TC...>;
+      TensorComps<TCs...>;
+    
+    /// Barrier to meld components
+    using CompsMeldBarriers=
+      EmptyCompsMeldBarriers;
     
     /// Expression flags
     static constexpr ExprFlags Flags=
@@ -52,7 +72,7 @@ namespace nissa
       std::tuple_element_t<I,Comps>;
     
     /// Index computer type
-    using IC=IndexComputer<TensorComps<TC...>>;
+    using IC=IndexComputer<TensorComps<TCs...>>;
     
     /// Index computer
     IC indexComputer;
@@ -71,13 +91,13 @@ namespace nissa
     /*!								   */	\
     /*! Case in which the components are not yet correctly ordered */	\
     /*! If an expr has no problem accepting unordered components   */	\
-    template <typename...TD,						\
-	      ENABLE_THIS_TEMPLATE_IF((sizeof...(TD)==sizeof...(TC)))> \
+    template <typename...TDs,						\
+	      ENABLE_THIS_TEMPLATE_IF((sizeof...(TDs)==sizeof...(TCs)))> \
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr					\
-    decltype(auto) eval(const TD&...td) ATTRIB				\
+    decltype(auto) eval(const TDs&...tds) ATTRIB				\
     {									\
       return								\
-	this->crtp().orderedEval(std::get<TC>(std::make_tuple(td...))...); \
+	this->crtp().orderedEval(std::get<TCs>(std::make_tuple(tds...))...); \
     }
     
     DECLARE_UNORDERED_EVAL(const);
@@ -86,7 +106,8 @@ namespace nissa
     
 #undef DECLARE_UNORDERED_EVAL
     
-    using Expr<T,TensorComps<TC...>,F>::operator=;
+    /// Import assignement operator from ex
+    using Ex::operator=;
   };
   
   /////////////////////////////////////////////////////////////////

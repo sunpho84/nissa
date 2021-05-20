@@ -208,155 +208,105 @@ namespace nissa
   using CompsMeldBarriersInsert=
     typename internal::_CompsMeldBarriersInsert<NComps,EmptyCompsMeldBarriers,KnownBarriers,BarriersToInsert>::type;
   
-  inline void a()
+  /////////////////////////////////////////////////////////////////
+  
+  namespace internal
+  {
+    template <size_t PrevOutPosInIn,
+	      size_t NScannedCompsOut,
+	      typename MBsOut,
+	      typename OutPosInIn,
+	      typename MBsIn>
+    struct _GetTensorCompsMeldBarriersFromPureRemapping3;
+    
+    template <size_t PrevOutPosInIn,
+	      size_t NScannedCompsOut,
+	      size_t...MBsOut,
+	      size_t HeadOutPosInIn,
+	      size_t...TailOutPosInIn,
+	      size_t...MBsIn>
+    struct _GetTensorCompsMeldBarriersFromPureRemapping3<PrevOutPosInIn,
+							 NScannedCompsOut,
+							 TensorCompsMeldBarriers<MBsOut...>,
+							 std::index_sequence<HeadOutPosInIn,TailOutPosInIn...>,
+							 TensorCompsMeldBarriers<MBsIn...>>
     {
-      using A=
-	TensorCompsMeldBarriers<1,2,5>;
-      using B=
-	TensorCompsMeldBarriers<11,12>;
+      static constexpr bool insertBarrier=
+	(PrevOutPosInIn+1!=HeadOutPosInIn) or
+	((PrevOutPosInIn==MBsIn)||...);
       
-      using C=CompsMeldBarriersInsert<13,A,B>;
+      using NextMBsOut=
+	std::conditional_t<insertBarrier,
+			   TensorCompsMeldBarriers<MBsOut...,NScannedCompsOut>,
+			   TensorCompsMeldBarriers<MBsOut...>>;
       
-      auto c=C{};
-    }
-
-  
-  // template <typename HeadKnownBarriers,
-  // 	    typename TailKnownBarriers,
-  // 	    typename BarriersToInsert>
-  // struct _TensorCompsMeldBarriersInsert;
-  
-  // template <size_t...HeadKnownBarriers,
-  // 	    size_t...TailKnownBarriers>
-  // struct _TensorCompsMeldBarriersInsert<TensorCompsMeldBarriers<HeadKnownBarriers...>,
-  // 					TensorCompsMeldBarriers<TailKnownBarriers...>,
-  // 					TensorCompsMeldBarriers<>>
-  // {
-  //   using type=
-  //     TensorCompsMeldBarriers<HeadKnownBarriers...,TailKnownBarriers...>;
-  // };
-  
-  // template <typename HeadKnownBarriers,
-  // 	    typename TailKnownBarriers,
-  // 	    size_t BarrierToInsert>
-  // struct _TensorCompsMeldBarriersInserter;
-  
-  // template <size_t...HeadKnownBarriers,
-  // 	    size_t BarrierToInsert>
-  // struct _TensorCompsMeldBarriersInserter<TensorCompsMeldBarriers<HeadKnownBarriers...>,
-  // 					  TensorCompsMeldBarriers<>,
-  // 					  BarrierToInsert>
-  // {
-  //   using type=
-  //     TensorCompsMeldBarriers<HeadKnownBarriers...,BarrierToInsert>;
-  // };
-  
-//   template <size_t...HeadKnownBarriers,
-// 	    size_t ThisKnownBarrier,
-// 	    size_t...TailKnownBarriers,
-// 	    size_t BarrierToInsert>
-//   struct _TensorCompsMeldBarriersInserter<TensorCompsMeldBarriers<HeadKnownBarriers...>,
-// 					  TensorCompsMeldBarriers<ThisKnownBarrier,TailKnownBarriers...>,
-// 					  BarrierToInsert>
-//   {
-//     static constexpr bool insertHere=
-//       ThisKnownBarrier==BarrierToInsert;
+      using type=
+	typename _GetTensorCompsMeldBarriersFromPureRemapping3<HeadOutPosInIn,
+							       NScannedCompsOut+1,
+							       NextMBsOut,
+							       std::index_sequence<TailOutPosInIn...>,
+							       TensorCompsMeldBarriers<MBsIn...>>::type;
+    };
     
-//     static constexpr bool insertHere=
-//       ThisKnownBarrier>BarrierToInsert;
+    template <size_t PrevOutPosInIn,
+	      size_t NScannedCompsOut,
+	      size_t...MBsOut,
+	      size_t...MBsIn>
+    struct _GetTensorCompsMeldBarriersFromPureRemapping3<PrevOutPosInIn,
+							 NScannedCompsOut,
+							 TensorCompsMeldBarriers<MBsOut...>,
+							 std::index_sequence<>,
+							 TensorCompsMeldBarriers<MBsIn...>>
+    {
+      static constexpr bool insertBarrier=
+	((PrevOutPosInIn==MBsIn)||...);
+      
+      using type=
+	std::conditional_t<insertBarrier,
+			   TensorCompsMeldBarriers<MBsOut...,NScannedCompsOut>,
+			   TensorCompsMeldBarriers<MBsOut...>>;
+    };
     
-//     using type=
-//       std::conditional_t<insertHere,
-// 			 TensorCompsMeldBarriers<HeadKnownBarriers...,BarrierToInsert,ThisKnownBarrier,TailKnownBarriers...>,
-// 			 typename _TensorCompsMeldBarriersInserter<TensorCompsMeldBarriers<HeadKnownBarriers...,ThisKnownBarrier>,
-// 								   TensorCompsMeldBarriers<TailKnownBarriers...>,
-// 								   BarrierToInsert>::type>;
-//   };
-  
-  
-//   template <size_t...KnownBarriers,
-// 	    bool InserHere>
-//   struct _TensorCompsMeldBarriersInsert<TensorCompsMeldBarriers<KnownBarriers...>,
-// 					TensorCompsMeldBarriers<>,
-// 					TensorCompsMeldBarriers<>,
-// 					InserHere>
-//   {
-//     using type=
-//       TensorCompsMeldBarriers<KnownBarriers...>;
-//   };
-  
-//   template <size_t...HeadKnownBarriers,
-// 	    size_t KnonwBarrierProcessedHere,
-// 	    size_t...TailKnownBarriers,
-// 	    size_t BarrierToInsertHere,
-// 	    size_t...TailBarriersToInsert>
-//   struct _TensorCompsMeldBarriersInsert<TensorCompsMeldBarriers<HeadKnownBarriers...>,
-// 					TensorCompsMeldBarriers<KnonwBarrierProcessedHere,TailKnownBarriers...>,
-// 					TensorCompsMeldBarriers<BarrierToInsertHere,TailBarriersToInsert...>,
-// 					false>
-//   {
-  
-//     using type=
-//       _TensorCompsMeldBarriersInsert<TensorCompsMeldBarriers<HeadKnownBarriers...,KnonwBarrierProcessedHere>,
-// 				     TensorCompsMeldBarriers<TailKnownBarriers...>,
-// 				     TensorCompsMeldBarriers<BarrierToInsertHere,TailBarriersToInsert...>,
-// 				     false>;
-//   };
-  
-//   template <typename KnownBarriers,
-// 	    typename BarriersToInsert>
-//   struct _TensorCompsMeldBarriersI;
-  
-//   template <size_t NC,
-// 	    size_t MB,
-// 	    size_t...MBs>
-//   constexpr std::pair<bool,size_t> ifAndWhereToInsertInCompsMeldBarriersImpl(TensorCompsMeldBarriers<MBs...>)
-//   {
-//     constexpr bool insert=
-//       (MB and ((MBs!=MB)&...) and (MB!=NC));
+    template <typename OutPosInIn,
+	      typename MBsIn>
+    struct _GetTensorCompsMeldBarriersFromPureRemapping2;
     
-//     constexpr size_t pos=
-//       ((size_t)(MBs<MB)+...);
+    template <size_t HeadOutPosInIn,
+	      size_t...TailOutPosInIn,
+	      typename MBsIn>
+    struct _GetTensorCompsMeldBarriersFromPureRemapping2<std::index_sequence<HeadOutPosInIn,TailOutPosInIn...>,MBsIn>
+    {
+      using type=
+	typename _GetTensorCompsMeldBarriersFromPureRemapping3<HeadOutPosInIn,
+							       1,
+							       EmptyCompsMeldBarriers,
+							       std::index_sequence<TailOutPosInIn...>,
+							       MBsIn>::type;
+    };
     
-//     return {insert,pos};
-//   }
-
-//   template <size_t MB,
-// 	    size_t Pos>
-//   struct MBToInsert
-//   {
-//   };
-  
-//   template <size_t NC,
-// 	    size_t MB,
-// 	    size_t...MBs>
-//   constexpr auto ifAndWhereToInsertInCompsMeldBarriers(TensorCompsMeldBarriers<MBs...> mbs)
-//   {
-//     constexpr auto probe=
-//       ifAndWhereToInsertInCompsMeldBarriersImpl<NC,MB>(mbs);
+    template <typename TcOut,
+	      typename TcIn,
+	      typename MBsIn>
+    struct _GetTensorCompsMeldBarriersFromPureRemapping;
     
-//     if constexpr(std::get<0>(probe))
-//       return
-// 	std::tuple<MBToInsert<MB,std::get<1>(probe)>>{};
-//     else
-//       return std::tuple<>{};
-//   }
+    template <typename TcOut,
+	      typename TcIn,
+	      size_t...MBsIn>
+    struct _GetTensorCompsMeldBarriersFromPureRemapping<TcOut,TcIn,TensorCompsMeldBarriers<MBsIn...>>
+    {
+      using OutPosInIn=
+	FirstOccurrenceOfTypes<TcOut,TcIn>;
+      
+      using type=
+	typename _GetTensorCompsMeldBarriersFromPureRemapping2<OutPosInIn,TensorCompsMeldBarriers<MBsIn...,std::tuple_size_v<TcIn>>>::type;
+    };
+  }
   
-//   template <size_t NC,
-// 	    size_t...KMBs,
-// 	    size_t...IMBs>
-//   constexpr auto findWhereToInsertInCompsMeldBarriers(TensorCompsMeldBarriers<KMBs...> knownMBs,
-// 						      TensorCompsMeldBarriers<IMBs...> toInsertMBs)
-//   {
-//     constexpr auto whereToInsert(std::tuple_cat(ifAndWhereToInsertInCompsMeldBarriers<NC,IMBs>(knownMBs)))
-//     template <size_t...KnownBarriers,
-// 	    size_t...BarriersToInsert>
-//   struct _TensorCompsMeldBarriersI<TensorCompsMeldBarriers<KnownBarriers...>,
-// 				   TensorCompsMeldBarriers<BarriersToInsert...>>
-//   {
-//     using IsPresent=
-//       std::integer_sequence<bool,isPresentInCompsMeldBarriers<BarriersToInsert>(TensorCompsMeldBarriers<KnownBarriers...>{})...>;
-// };
+  template <typename TcOut,
+	    typename TcIn,
+	    typename MBsIn>
+  using GetTensorCompsMeldBarriersFromPureRemapping=
+    typename internal::_GetTensorCompsMeldBarriersFromPureRemapping<TcOut,TcIn,MBsIn>::type;
 }
 
 #endif

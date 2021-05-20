@@ -46,17 +46,19 @@ namespace nissa
   DEFINE_FEATURE(Conjugator);
   
 #define THIS					\
-  Conjugator<_E,_Comps,_EvalTo>
+  Conjugator<_E,_Comps,_CompsMeldBarriers,_EvalTo>
   
 #define UNEX					\
     UnaryExpr<THIS,				\
 	      _E,				\
 	      _Comps,				\
+	      _CompsMeldBarriers,		\
 	      _EvalTo>
   
   /// Conjugator of an expression
   template <typename _E,
 	    typename _Comps,
+	    typename _CompsMeldBarriers,
 	    typename _EvalTo>
   struct Conjugator :
     ConjugatorFeat<THIS>,
@@ -72,6 +74,10 @@ namespace nissa
     /// Components
     using Comps=
       _Comps;
+    
+    /// Barrier to meld components
+    using CompsMeldBarriers=
+      _CompsMeldBarriers;
     
     /// Type returned when evaluating
     using EvalTo=
@@ -132,11 +138,11 @@ namespace nissa
 	      IS_CONJUGATOR:
 	     DEFAULT)>*;
       
-      DECLARE_STRATEGY(NoCompl,NO_COMPL);
+      DECLARE_DISPATCH_STRATEGY(NoCompl,NO_COMPL);
       
-      DECLARE_STRATEGY(IsConjugator,IS_CONJUGATOR);
+      DECLARE_DISPATCH_STRATEGY(IsConjugator,IS_CONJUGATOR);
       
-      DECLARE_STRATEGY(Default,DEFAULT);
+      DECLARE_DISPATCH_STRATEGY(Default,DEFAULT);
     };
     
     /// No conjugate is present
@@ -144,7 +150,8 @@ namespace nissa
     decltype(auto) _conj(_E&& e,
 			 _ConjStrategy::NoCompl)
     {
-      return e;
+      return
+	e;
     }
     
     /// Returns the original expression
@@ -152,7 +159,8 @@ namespace nissa
     decltype(auto) _conj(_E&& e,
 			 _ConjStrategy::IsConjugator)
     {
-      return e.nestedExpr;
+      return
+	e.nestedExpr;
     }
     
     /// Takes the conjugate of e
@@ -172,8 +180,18 @@ namespace nissa
       using Comps=
 	typename E::Comps;
       
+      /// Position of complex component
+      static constexpr size_t complPos=
+	firstOccurrenceOfType<ComplId>(Comps{});
+      
+      /// Barriers between fusable components
+      using CompsMeldBarriers=
+	CompsMeldBarriersInsert<std::tuple_size_v<Comps>,
+	typename E::CompsMeldBarriers,
+	TensorCompsMeldBarriers<complPos,complPos+1>>;
+      
       return
-	Conjugator<decltype(e),Comps,EvalTo>(std::forward<_E>(e));
+	Conjugator<decltype(e),Comps,CompsMeldBarriers,EvalTo>(std::forward<_E>(e));
     }
   };
   

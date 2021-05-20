@@ -105,12 +105,13 @@ namespace nissa
   DEFINE_FEATURE(Producer);
   
 #define THIS					\
-  Producer<_ContractedComps,_E1,_E2,_Comps,_EvalTo>
+  Producer<_ContractedComps,_E1,_E2,_Comps,_CompsMeldBarriers,_EvalTo>
   
 #define NNEX					\
   NnaryExpr<THIS,				\
 	    std::tuple<_E1,_E2>,		\
 	    _Comps,				\
+	    _CompsMeldBarriers,		\
 	    _EvalTo>
   
   /// Product of two expressions
@@ -118,6 +119,7 @@ namespace nissa
 	    typename _E1,
 	    typename _E2,
 	    typename _Comps,
+	    typename _CompsMeldBarriers,
 	    typename _EvalTo>
   struct Producer :
     ProducerFeat<THIS>,
@@ -212,9 +214,9 @@ namespace nissa
 			       NON_COMPL_PROD:
 			       COMPL_PROD)>*;
       
-      DECLARE_STRATEGY(NonComplProd,NON_COMPL_PROD);
+      DECLARE_DISPATCH_STRATEGY(NonComplProd,NON_COMPL_PROD);
       
-      DECLARE_STRATEGY(ComplProd,COMPL_PROD);
+      DECLARE_DISPATCH_STRATEGY(ComplProd,COMPL_PROD);
     };
     
     /// Evaluate for non complex expressions
@@ -377,12 +379,19 @@ namespace nissa
     using _EvalTo=
       decltype(EvalTo1()*EvalTo2());
     
+#warning incomplete
+    
+    /// Fusable comps
+    using CompsMeldBarriers=
+      EmptyCompsMeldBarriers;
+    
     /// Resulting type
     using Res=
       Producer<ContractedComps,
 	       decltype(e1),
 	       decltype(e2),
 	       VisibleComps,
+	       CompsMeldBarriers,
 	       _EvalTo>;
     
     /// Resulting dynamic components
