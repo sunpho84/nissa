@@ -258,7 +258,7 @@ namespace nissa
       /// Resulting type is the union of the scanned and to be scanned types
       using type=
 	std::tuple<Ss...,Ts...>;
-  };
+    };
     
     /// Filter the first occurrence of type F
     ///
@@ -315,6 +315,60 @@ namespace nissa
 								F1>::type,
 				      std::tuple<Fs...>>::type;
     };
+  }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace details
+  {
+    /// Returns the first occurrence of the first type in the tuple type
+    ///
+    /// Internal implementation
+    template <typename T,
+	      typename...Tps>
+    constexpr size_t _firstOccurrenceOfType(std::tuple<Tps...>*)
+    {
+      /// Compare the passed type
+      constexpr bool is[]=
+	{std::is_same_v<Tps,T>...};
+      
+      /// Returned position
+      size_t pos=0;
+      
+      while(pos<sizeof...(Tps) and
+	    not is[pos])
+	pos++;
+      
+      return
+	pos;
+    }
+  }
+  
+  /// Returns the first occurrence of the first type in the other types, passed as arguments
+  template <typename T,
+	    typename...Tps>
+  constexpr size_t firstOccurrenceOfType(const Tps&...)
+  {
+    return
+      details::_firstOccurrenceOfType<T>((std::tuple<Tps...>*)nullptr);
+  }
+  
+  /// Returns the first occurrence of the first type in the type, not passed as arguments
+  template <typename T,
+	    typename...Tps>
+  constexpr size_t firstOccurrenceInTypesOfType()
+  {
+    return
+      details::_firstOccurrenceOfType<T>((std::tuple<Tps...>*)nullptr);
+  }
+  
+  /// Returns the first occurrence of the first type in the argument tuple
+  template <typename T,
+	    typename...Tps>
+  constexpr size_t firstOccurrenceOfType(const std::tuple<Tps...>&)
+  {
+    return
+      details::_firstOccurrenceOfType<T>((std::tuple<Tps...>*)nullptr);
   }
   
   /////////////////////////////////////////////////////////////////
