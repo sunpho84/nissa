@@ -12,6 +12,15 @@ void test(Tensor<OfComps<LocLxSite,ColorRow,ComplId>>& v,
   res1=real(dag(v)*z);
   ASM_BOOKMARK_END("scalProd");
   
+  auto prod=dag(v)*z;
+
+  using T=decltype(dag(v))::CompsMeldBarriers;
+  auto t=T{};
+  
+  std::tuple<nissa::TensorComp<nissa::LocLxSiteSignature, nissa::ANY, 0>,
+             nissa::TensorComp<nissa::ComplIdSignature, nissa::ANY, 0>>
+      ciccio = decltype(prod)::Comps();
+
   master_printf("%lg\n",res1(LocLxSite(0))); //55
   //master_printf("%lg\n",res1(LocLxSite(1))); //50
   

@@ -83,28 +83,12 @@ namespace nissa
     };
   }
   
-    /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+  /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
   template <typename TcOut,
 	    typename TcIn,
 	    typename MBsIn>
   using GetTensorCompsMeldBarriersFromPureRemapping=
     typename internal::_GetTensorCompsMeldBarriersFromPureRemapping<TcOut,TcIn,MBsIn>::type;
-  
-  // inline void test()
-  // {
-  //   using A=
-  //     TensorComps<char,int,size_t,double>;
-  //   using B=
-  //     TensorComps<char,int,double,size_t>;
-    
-  //   using C=
-  //     std::index_sequence<1>;
-    
-  //   using D=
-  //     GetTensorCompsMeldBarriersFromPureRemapping<A,B,C>;
-    
-  //   auto d=D{};
-  // }
   
   /////////////////////////////////////////////////////////////////
   
@@ -192,16 +176,6 @@ namespace nissa
 	    typename BarriersToInsert>
   using CompsMeldBarriersInsert=
     typename internal::_CompsMeldBarriersInsert<KnownBarriers,BarriersToInsert>::type;
-  
-  // inline void test2()
-  // {
-  //   using A=TensorCompsMeldBarriers<0,1,3,4>;
-  //   using B=TensorCompsMeldBarriers<3,5,6>;
-    
-  //   using C=CompsMeldBarriersInsert<A,B>;
-    
-  //   auto c=C{};
-  // }
 }
 
 #endif
