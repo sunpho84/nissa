@@ -25,191 +25,6 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  // namespace internal
-  // {
-  //   /// Decide the strategy to take a conjugate
-  //   struct _CompsMeldBarrierInsertStrategy
-  //   {
-  //     /// Possible strategies
-  //     enum{DROP,SHIFT_ONE,INSERT_ONE,SHIFT_ALL,INSERT_ALL};
-      
-  //     /// Get the strategy
-  //     template <size_t NComps,
-  // 		size_t ThisKnownBarrier,
-  // 		size_t...TailKnownBarriers,
-  // 		size_t HeadBarrierToInsert,
-  // 		size_t...TailBarriersToInsert>
-  //     static constexpr int _getForCompMeldBarrier(TensorCompsMeldBarriers<ThisKnownBarrier,TailKnownBarriers...>,
-  // 						 TensorCompsMeldBarriers<HeadBarrierToInsert,TailBarriersToInsert...>)
-  //     {
-  // 	if constexpr(HeadBarrierToInsert==ThisKnownBarrier or HeadBarrierToInsert==0 or HeadBarrierToInsert==NComps)
-  // 	  return DROP;
-  // 	else
-  // 	  if constexpr(HeadBarrierToInsert<ThisKnownBarrier)
-  // 	    return INSERT_ONE;
-  // 	  else
-  // 	    return SHIFT_ONE;
-  //     }
-      
-  //     /// Get the strategy when at the end of known barriers
-  //     template <size_t NComps,
-  // 		size_t HeadBarrierToInsert,
-  // 		size_t...TailBarriersToInsert>
-  //     static constexpr int _getForCompMeldBarrier(TensorCompsMeldBarriers<>,
-  // 						 TensorCompsMeldBarriers<HeadBarrierToInsert,TailBarriersToInsert...>)
-  //     {
-  // 	if constexpr(HeadBarrierToInsert==0 or HeadBarrierToInsert==NComps)
-  // 	  return DROP;
-  // 	else
-  // 	  if constexpr(((TailBarriersToInsert==NComps)||...))
-  // 	    return INSERT_ONE;
-  // 	  else
-  // 	    return INSERT_ALL;
-  //     }
-      
-  //     /// Get the strategy when at the end of barriers to insert
-  //     template <size_t NComps,
-  // 		size_t...KnownBarriers>
-  //     static constexpr int _getForCompMeldBarrier(TensorCompsMeldBarriers<KnownBarriers...>,
-  // 						 TensorCompsMeldBarriers<>)
-  //     {
-  // 	return SHIFT_ALL;
-  //     }
-      
-  //     /// Get the strategy for expression E
-  //     template <size_t NComps,
-  // 		typename KnownBarriers,
-  // 		typename BarriersToInsert>
-  //   using GetForCompMeldBarrier=
-  // 	std::integral_constant<int,
-  // 			       _getForCompMeldBarrier<NComps>(KnownBarriers{},BarriersToInsert{})>*;
-      
-  //     DECLARE_DISPATCH_STRATEGY(Drop,DROP);
-      
-  //     DECLARE_DISPATCH_STRATEGY(ShiftOne,SHIFT_ONE);
-      
-  //     DECLARE_DISPATCH_STRATEGY(ShiftAll,SHIFT_ALL);
-      
-  //     DECLARE_DISPATCH_STRATEGY(InsertOne,INSERT_ONE);
-      
-  //     DECLARE_DISPATCH_STRATEGY(InsertAll,INSERT_ALL);
-  //   };
-    
-  //   /// Insert a set of barriers in the known list
-  //   ///
-  //   /// Internal implementation, forward declaration
-  //   template <size_t NComps,
-  // 	      typename HeadKnownBarriers,
-  // 	      typename TailKnownBarriers,
-  // 	      typename BarriersToInsert,
-  // 	      typename Strategy=_CompsMeldBarrierInsertStrategy::GetForCompMeldBarrier<NComps,TailKnownBarriers,BarriersToInsert>>
-  //   struct _CompsMeldBarriersInsert;
-    
-  //   /// Drop next barrier to be inserted
-  //   template <size_t NComps,
-  // 	      typename HeadKnownBarriers,
-  // 	      typename TailKnownBarriers,
-  // 	      size_t HeadBarrierToInsert,
-  // 	      size_t...TailBarriersToInsert>
-  //   struct _CompsMeldBarriersInsert<NComps,
-  // 				   HeadKnownBarriers,
-  // 				   TailKnownBarriers,
-  // 				   TensorCompsMeldBarriers<HeadBarrierToInsert,TailBarriersToInsert...>,
-  // 				   _CompsMeldBarrierInsertStrategy::Drop>
-  //   {
-  //     using type=
-  // 	typename _CompsMeldBarriersInsert<NComps,
-  // 					 HeadKnownBarriers,
-  // 					 TailKnownBarriers,
-  // 					 TensorCompsMeldBarriers<TailBarriersToInsert...>>::type;
-  //   };
-    
-  //   /// Shift one knonw barrier to be processed into the processed list
-  //   template <size_t NComps,
-  // 	      size_t...HeadKnownBarriers,
-  // 	      size_t ThisKnownBarrier,
-  // 	      size_t...TailKnownBarriers,
-  // 	      typename BarriersToInsert>
-  //   struct _CompsMeldBarriersInsert<NComps,
-  // 				   TensorCompsMeldBarriers<HeadKnownBarriers...>,
-  // 				   TensorCompsMeldBarriers<ThisKnownBarrier,TailKnownBarriers...>,
-  // 				   BarriersToInsert,
-  // 				   _CompsMeldBarrierInsertStrategy::ShiftOne>
-  //   {
-  //     using type=
-  // 	typename _CompsMeldBarriersInsert<NComps,
-  // 					 TensorCompsMeldBarriers<HeadKnownBarriers...,ThisKnownBarrier>,
-  // 					 TensorCompsMeldBarriers<TailKnownBarriers...>,
-  // 					 BarriersToInsert>::type;
-  //   };
-    
-  //   /// Shift all residual knonw barriers to be processed into the processed list
-  //   template <size_t NComps,
-  // 	      size_t...HeadKnownBarriers,
-  // 	      size_t...TailKnownBarriers>
-  //   struct _CompsMeldBarriersInsert<NComps,
-  // 				   TensorCompsMeldBarriers<HeadKnownBarriers...>,
-  // 				   TensorCompsMeldBarriers<TailKnownBarriers...>,
-  // 				   TensorCompsMeldBarriers<>,
-  // 				   _CompsMeldBarrierInsertStrategy::ShiftAll>
-  //   {
-  //     using type=
-  // 	TensorCompsMeldBarriers<HeadKnownBarriers...,TailKnownBarriers...>;
-  //   };
-    
-  //   /// Check if the barrier is in range
-  //   template <size_t HeadBarrierToInsert,
-  // 	      size_t NComps>
-  //   static constexpr bool _CompsMeldBarrierIsInRange=
-  //     HeadBarrierToInsert!=0 and HeadBarrierToInsert<NComps;
-    
-  //   /// Insert one barrier
-  //   template <size_t NComps,
-  // 	      size_t...KnownBarriers,
-  // 	      size_t...TailKnownBarriers,
-  // 	      size_t HeadBarrierToInsert,
-  // 	      size_t...TailBarriersToInsert>
-  //   struct _CompsMeldBarriersInsert<NComps,
-  // 				   TensorCompsMeldBarriers<KnownBarriers...>,
-  // 				   TensorCompsMeldBarriers<TailKnownBarriers...>,
-  // 				   TensorCompsMeldBarriers<HeadBarrierToInsert,TailBarriersToInsert...>,
-  // 				   _CompsMeldBarrierInsertStrategy::InsertOne>
-  //   {
-  //     static_assert(_CompsMeldBarrierIsInRange<HeadBarrierToInsert,NComps>,"Trying to insert outside admitted range");
-      
-  //     using type=
-  // 	typename _CompsMeldBarriersInsert<NComps,
-  // 					 TensorCompsMeldBarriers<KnownBarriers...,HeadBarrierToInsert>,
-  // 					 TensorCompsMeldBarriers<TailKnownBarriers...>,
-  // 					 TensorCompsMeldBarriers<TailBarriersToInsert...>>::type;
-  //   };
-    
-  //   /// Insert all residual barriers
-  //   template <size_t NComps,
-  // 	      size_t...KnownBarriers,
-  // 	      size_t...BarriersToInsert>
-  //   struct _CompsMeldBarriersInsert<NComps,
-  // 				   TensorCompsMeldBarriers<KnownBarriers...>,
-  // 				   TensorCompsMeldBarriers<>,
-  // 				   TensorCompsMeldBarriers<BarriersToInsert...>,
-  // 				   _CompsMeldBarrierInsertStrategy::InsertAll>
-  //   {
-  //     static_assert((_CompsMeldBarrierIsInRange<BarriersToInsert,NComps>&&...),"Trying to insert outside admitted range");
-      
-  //     using type=
-  // 	TensorCompsMeldBarriers<KnownBarriers...,BarriersToInsert...>;
-  //   };
-  // }
-  
-  // /// Insert a set of barriers in the known list
-  // template <size_t NComps,
-  // 	    typename KnownBarriers,
-  // 	    typename BarriersToInsert>
-  // using CompsMeldBarriersInsert=
-  //   typename internal::_CompsMeldBarriersInsert<NComps,EmptyCompsMeldBarriers,KnownBarriers,BarriersToInsert>::type;
-  
-  /////////////////////////////////////////////////////////////////
-  
   namespace internal
   {
     /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
@@ -275,118 +90,118 @@ namespace nissa
   using GetTensorCompsMeldBarriersFromPureRemapping=
     typename internal::_GetTensorCompsMeldBarriersFromPureRemapping<TcOut,TcIn,MBsIn>::type;
   
-  inline void test()
+  // inline void test()
+  // {
+  //   using A=
+  //     TensorComps<char,int,size_t,double>;
+  //   using B=
+  //     TensorComps<char,int,double,size_t>;
+    
+  //   using C=
+  //     std::index_sequence<1>;
+    
+  //   using D=
+  //     GetTensorCompsMeldBarriersFromPureRemapping<A,B,C>;
+    
+  //   auto d=D{};
+  // }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace internal
   {
-    using A=
-      TensorComps<char,int,size_t,double>;
-    using B=
-      TensorComps<char,int,double,size_t>;
+    template <typename K,
+	      typename I>
+    struct _CompsMeldBarriersInsert;
     
-    using C=
-      std::index_sequence<1>;
-    
-    using D=
-      GetTensorCompsMeldBarriersFromPureRemapping<A,B,C>;
-    
-    auto d=D{};
+    template <size_t...K,
+	      size_t...In>
+    struct _CompsMeldBarriersInsert<TensorCompsMeldBarriers<K...>,TensorCompsMeldBarriers<In...>>
+    {
+      static constexpr size_t nK=
+	sizeof...(K);
+      
+      static constexpr size_t nIn=
+	sizeof...(In);
+      
+      static constexpr size_t n=
+	nK+nIn;
+      
+      static constexpr std::array<size_t,nK> k=
+	{K...};
+      
+      static constexpr std::array<size_t,nIn> in=
+	{In...};
+      
+      static constexpr size_t finished=
+	std::numeric_limits<size_t>::max();
+      
+      template <size_t IK,
+		size_t IIn,
+		typename MBsOut,
+		bool GiveResult=((IK+IIn)==n)>
+      struct Gather;
+      
+      template <size_t IK,
+		size_t IIn,
+		typename MBsOut>
+      struct Gather<IK,IIn,MBsOut,true>
+      {
+	using type=
+	  MBsOut;
+      };
+      
+      template <size_t IK,
+		size_t IIn,
+		size_t...IOut>
+      struct Gather<IK,IIn,TensorCompsMeldBarriers<IOut...>,false>
+      {
+	static constexpr size_t tK=
+	  (IK<nK)?k[IK]:finished;
+	
+	static constexpr size_t tIn=
+	  (IIn<nIn)?in[IIn]:finished;
+	
+	static_assert(tK!=finished or tIn!=finished,"How possible!");
+	
+	static constexpr bool shiftK=
+	  (tK<=tIn);
+	
+	static constexpr bool shiftIn=
+	  (tIn<=tK);
+	
+	static constexpr size_t IKNext=
+	  shiftK?(IK+1):IK;
+	
+	static constexpr size_t IInNext=
+	  shiftIn?(IIn+1):IIn;
+	
+	static constexpr size_t IOutNext=
+	  (tK<tIn)?tK:tIn;
+	
+	using type=
+	  typename Gather<IKNext,IInNext,TensorCompsMeldBarriers<IOut...,IOutNext>>::type;
+      };
+      
+      using type=
+	typename Gather<0,0,std::index_sequence<>>::type;
+    };
   }
   
-namespace internal
-{
-  template <typename K,
-	    typename I>
-  struct _CompsMeldBarriersInsert;
-
-  template <size_t...K,
-	    size_t...In>
-  struct _CompsMeldBarriersInsert<TensorCompsMeldBarriers<K...>,TensorCompsMeldBarriers<In...>>
-  {
-    static constexpr size_t nK=
-      sizeof...(K);
-    
-    static constexpr size_t nIn=
-      sizeof...(In);
-    
-    static constexpr size_t n=
-      nK+nIn;
-    
-    static constexpr std::array<size_t,nK> k=
-      {K...};
-    
-    static constexpr std::array<size_t,nIn> in=
-      {In...};
-
-    static constexpr size_t finished=
-      std::numeric_limits<size_t>::max();
-    
-    template <size_t IK,
-	      size_t IIn,
-	      typename MBsOut,
-	      bool GiveResult=((IK+IIn)==n)>
-    struct Gather;
-    
-    template <size_t IK,
-	      size_t IIn,
-	      typename MBsOut>
-    struct Gather<IK,IIn,MBsOut,true>
-    {
-      using type=
-	MBsOut;
-    };
-    
-    template <size_t IK,
-	      size_t IIn,
-	      size_t...IOut>
-    struct Gather<IK,IIn,TensorCompsMeldBarriers<IOut...>,false>
-    {
-      static constexpr size_t tK=
-	(IK<nK)?k[IK]:finished;
-      
-      static constexpr size_t tIn=
-		  (IIn<nIn)?in[IIn]:finished;
-	  
-      static_assert(tK!=finished or tIn!=finished,"How possible!");
-      
-      static constexpr bool shiftK=
-	(tK<=tIn);
-      
-      static constexpr bool shiftIn=
-	(tIn<=tK);
-      
-      static constexpr size_t IKNext=
-		  shiftK?(IK+1):IK;
-      
-      static constexpr size_t IInNext=
-		  shiftIn?(IIn+1):IIn;
-      
-      static constexpr size_t IOutNext=
-		  (tK<tIn)?tK:tIn;
-      
-      using type=
-	typename Gather<IKNext,IInNext,TensorCompsMeldBarriers<IOut...,IOutNext>>::type;
-    };
-    
-    using type=
-      typename Gather<0,0,std::index_sequence<>>::type;
-  };
-}
-
   template <typename KnownBarriers,
 	    typename BarriersToInsert>
   using CompsMeldBarriersInsert=
     typename internal::_CompsMeldBarriersInsert<KnownBarriers,BarriersToInsert>::type;
   
-  inline void test2()
-  {
-    using A=TensorCompsMeldBarriers<0,1,3,4>;
-    using B=TensorCompsMeldBarriers<3,5,6>;
+  // inline void test2()
+  // {
+  //   using A=TensorCompsMeldBarriers<0,1,3,4>;
+  //   using B=TensorCompsMeldBarriers<3,5,6>;
     
-    using C=CompsMeldBarriersInsert<A,B>;
+  //   using C=CompsMeldBarriersInsert<A,B>;
     
-    auto c=C{};
-  }
-  
-  
+  //   auto c=C{};
+  // }
 }
 
 #endif

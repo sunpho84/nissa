@@ -186,8 +186,7 @@ namespace nissa
       
       /// Barriers between fusable components
       using CompsMeldBarriers=
-	CompsMeldBarriersInsert<std::tuple_size_v<Comps>,
-	typename E::CompsMeldBarriers,
+	CompsMeldBarriersInsert<typename E::CompsMeldBarriers,
 	TensorCompsMeldBarriers<complPos,complPos+1>>;
       
       return
