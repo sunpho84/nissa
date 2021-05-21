@@ -397,6 +397,49 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  namespace internal
+  {
+    /// Convert a tuple of integral constants of the same kind into an integral sequence
+    ///
+    /// Internal implementation, forward declaration
+    template <typename TP,
+	      typename T>
+    struct _TupleOfIntegralConstantsToIntegerSequence;
+    
+    /// Convert a tuple of integral constants of the same kind into an integral sequence
+    ///
+    /// Internal implementation, capturing non-null tuple
+    template <typename T,
+	      T...Is>
+    struct _TupleOfIntegralConstantsToIntegerSequence<std::tuple<std::integral_constant<T,Is>...>,T>
+    {
+      /// Resulting sequence
+      using type=
+	std::integer_sequence<T,Is...>;
+    };
+    
+    /// Convert a tuple of integral constants of the same kind into an integral sequence
+    ///
+    /// Internal implementation, capturing null tuple
+    template <typename T>
+    struct _TupleOfIntegralConstantsToIntegerSequence<std::tuple<>,T>
+    {
+      /// Resulting null sequence
+      using type=
+	std::integer_sequence<T>;
+    };
+  }
+  
+  /// Convert a tuple of integral constants of the same kind into an integral sequence
+  ///
+  /// Gives visibility to internal implementation
+  template <typename TP,
+	    typename T>
+  using TupleOfIntegralConstantsToIntegerSequence=
+    typename internal::_TupleOfIntegralConstantsToIntegerSequence<TP,T>::type;
+  
+  /////////////////////////////////////////////////////////////////
+  
   template <typename TP,
 	    typename F,
 	    size_t...Is>
