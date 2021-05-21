@@ -94,84 +94,124 @@ namespace nissa
   
   namespace internal
   {
-    template <typename K,
-	      typename I>
+    /// Insert barriers into an existing list
+    ///
+    /// Internal implementation, forward declaration
+    template <typename KBs,  // Known barriers in an index_sequence
+	      typename InBs> // Barriers to be inserted in an index sequence
     struct _CompsMeldBarriersInsert;
     
-    template <size_t...K,
-	      size_t...In>
-    struct _CompsMeldBarriersInsert<TensorCompsMeldBarriers<K...>,TensorCompsMeldBarriers<In...>>
+    /// Insert barriers into an existing list
+    ///
+    /// Internal implementation, proceeds by scanning the two list in
+    /// turns, taking the smaller unique of each one in turn
+    template <size_t...KBs,  // Known Barriers
+	      size_t...InBs> // Barriers to insert
+    struct _CompsMeldBarriersInsert<TensorCompsMeldBarriers<KBs...>,TensorCompsMeldBarriers<InBs...>>
     {
-      static constexpr size_t nK=
-	sizeof...(K);
+      /// Number of known barriers
+      static constexpr size_t nKBs=
+	sizeof...(KBs);
       
-      static constexpr size_t nIn=
-	sizeof...(In);
+      /// Number of barriers to be inserted
+      static constexpr size_t nInBs=
+	sizeof...(InBs);
       
-      static constexpr size_t n=
-	nK+nIn;
+      /// Total number of barriers to scan
+      static constexpr size_t nTotBs=
+	nKBs+nInBs;
       
-      static constexpr std::array<size_t,nK> k=
-	{K...};
+      /// Known barriers in an array
+      static constexpr std::array<size_t,nKBs> kBs=
+	{KBs...};
       
-      static constexpr std::array<size_t,nIn> in=
-	{In...};
+      /// Barriers to be inserted in an array
+      static constexpr std::array<size_t,nInBs> inBs=
+	{InBs...};
       
-      static constexpr size_t finished=
+      /// Value to be used when going beyond the end of an array
+      static constexpr size_t BEYOND_THE_END=
 	std::numeric_limits<size_t>::max();
       
-      template <size_t IK,
-		size_t IIn,
-		typename MBsOut,
-		bool GiveResult=((IK+IIn)==n)>
-      struct Gather;
+      /// Possible result of whether has finished
+      enum HasFinished:bool{NO,YES};
       
-      template <size_t IK,
-		size_t IIn,
+      /// Iteratively insert the elements in turn
+      ///
+      /// Forward declaration, determining implicitly whether to stop recursion
+      template <size_t IKBs,
+		size_t IInBs,
+		typename MBsOut,
+		HasFinished=((IKBs+IInBs)==nTotBs)?HasFinished::YES:HasFinished::NO>
+      struct InsertIter;
+      
+      /// Iteratively insert the elements in turn, stopping case
+      template <size_t IKBs,
+		size_t IInBs,
 		typename MBsOut>
-      struct Gather<IK,IIn,MBsOut,true>
+      struct InsertIter<IKBs,
+			IInBs,
+			MBsOut,
+			HasFinished::YES>
       {
+	/// Return the input type
 	using type=
 	  MBsOut;
       };
       
-      template <size_t IK,
-		size_t IIn,
-		size_t...IOut>
-      struct Gather<IK,IIn,TensorCompsMeldBarriers<IOut...>,false>
+      /// Iteratively insert the elements in turn
+      template <size_t IKBs,
+		size_t IInBs,
+		size_t...IOutBs>
+      struct InsertIter<IKBs,
+			IInBs,
+			TensorCompsMeldBarriers<IOutBs...>,
+			HasFinished::NO>
       {
-	static constexpr size_t tK=
-	  (IK<nK)?k[IK]:finished;
+	/// Currently scanned known barrier
+	static constexpr size_t thisKB=
+	  (IKBs<nKBs)?kBs[IKBs]:BEYOND_THE_END;
 	
-	static constexpr size_t tIn=
-	  (IIn<nIn)?in[IIn]:finished;
+	/// Currently scanned barrier to insert
+	static constexpr size_t thisInB=
+	  (IInBs<nInBs)?inBs[IInBs]:BEYOND_THE_END;
 	
-	static_assert(tK!=finished or tIn!=finished,"How possible!");
+	/// Determine which barrier to insert
+	static constexpr size_t thisBarrierToInsert=
+	  std::min(thisKB,thisInB);
 	
-	static constexpr bool shiftK=
-	  (tK<=tIn);
+	static_assert(thisKB!=BEYOND_THE_END or thisInB!=BEYOND_THE_END,"How possible!");
 	
-	static constexpr bool shiftIn=
-	  (tIn<=tK);
+	/// Check whether we need to shift the index of the known barrier
+	static constexpr bool hasToShiftKB=
+	  (thisKB==thisBarrierToInsert);
 	
-	static constexpr size_t IKNext=
-	  shiftK?(IK+1):IK;
+	/// Check whether we need to shift the index of the input barriers
+	static constexpr bool hasToShiftIn=
+	  (thisInB==thisBarrierToInsert);
 	
-	static constexpr size_t IInNext=
-	  shiftIn?(IIn+1):IIn;
+	/// Index of the next known barrier
+	static constexpr size_t iNextKB=
+	  hasToShiftKB?(IKBs+1):IKBs;
 	
-	static constexpr size_t IOutNext=
-	  (tK<tIn)?tK:tIn;
+	/// Index of the next barrier to insert
+	static constexpr size_t iNextInB=
+	  hasToShiftIn?(IInBs+1):IInBs;
 	
+	/// Resulting type
 	using type=
-	  typename Gather<IKNext,IInNext,TensorCompsMeldBarriers<IOut...,IOutNext>>::type;
+	  typename InsertIter<iNextKB,
+			      iNextInB,
+			      TensorCompsMeldBarriers<IOutBs...,thisBarrierToInsert>>::type;
       };
       
+      /// Resulting type
       using type=
-	typename Gather<0,0,std::index_sequence<>>::type;
+	typename InsertIter<0,0,std::index_sequence<>>::type;
     };
   }
   
+  /// Insert barriers into an existing list
   template <typename KnownBarriers,
 	    typename BarriersToInsert>
   using CompsMeldBarriersInsert=
