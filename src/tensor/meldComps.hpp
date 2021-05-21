@@ -210,103 +210,205 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  // namespace internal
+  // {
+  //   template <size_t PrevOutPosInIn,
+  // 	      size_t NScannedCompsOut,
+  // 	      typename MBsOut,
+  // 	      typename OutPosInIn,
+  // 	      typename MBsIn>
+  //   struct _GetTensorCompsMeldBarriersFromPureRemapping3;
+    
+  //   template <size_t PrevOutPosInIn,
+  // 	      size_t NScannedCompsOut,
+  // 	      size_t...MBsOut,
+  // 	      size_t HeadOutPosInIn,
+  // 	      size_t...TailOutPosInIn,
+  // 	      size_t...MBsIn>
+  //   struct _GetTensorCompsMeldBarriersFromPureRemapping3<PrevOutPosInIn,
+  // 							 NScannedCompsOut,
+  // 							 TensorCompsMeldBarriers<MBsOut...>,
+  // 							 std::index_sequence<HeadOutPosInIn,TailOutPosInIn...>,
+  // 							 TensorCompsMeldBarriers<MBsIn...>>
+  //   {
+  //     static constexpr bool insertBarrier=
+  // 	(PrevOutPosInIn+1!=HeadOutPosInIn) or
+  // 	((PrevOutPosInIn==MBsIn)||...);
+      
+  //     using NextMBsOut=
+  // 	std::conditional_t<insertBarrier,
+  // 			   TensorCompsMeldBarriers<MBsOut...,NScannedCompsOut>,
+  // 			   TensorCompsMeldBarriers<MBsOut...>>;
+      
+  //     using type=
+  // 	typename _GetTensorCompsMeldBarriersFromPureRemapping3<HeadOutPosInIn,
+  // 							       NScannedCompsOut+1,
+  // 							       NextMBsOut,
+  // 							       std::index_sequence<TailOutPosInIn...>,
+  // 							       TensorCompsMeldBarriers<MBsIn...>>::type;
+  //   };
+    
+  //   template <size_t PrevOutPosInIn,
+  // 	      size_t NScannedCompsOut,
+  // 	      size_t...MBsOut,
+  // 	      size_t...MBsIn>
+  //   struct _GetTensorCompsMeldBarriersFromPureRemapping3<PrevOutPosInIn,
+  // 							 NScannedCompsOut,
+  // 							 TensorCompsMeldBarriers<MBsOut...>,
+  // 							 std::index_sequence<>,
+  // 							 TensorCompsMeldBarriers<MBsIn...>>
+  //   {
+  //     static constexpr bool insertBarrier=
+  // 	((PrevOutPosInIn==MBsIn)||...);
+      
+  //     using type=
+  // 	std::conditional_t<insertBarrier,
+  // 			   TensorCompsMeldBarriers<MBsOut...,NScannedCompsOut>,
+  // 			   TensorCompsMeldBarriers<MBsOut...>>;
+  //   };
+    
+  //   /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+  //   ///
+  //   /// Nested internal implementation, forward declaration
+  //   template <typename OutPosInIn,
+  // 	      typename MBsIn>
+  //   struct _GetTensorCompsMeldBarriersFromPureRemapping2;
+    
+  //   /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+  //   ///
+  //   /// Nested internal implementation, distinguish the first component from the others, taking note of its position, and call the nested structure to 
+  //   template <size_t HeadOutPosInIn,
+  // 	      size_t...TailOutPosInIn,
+  // 	      typename MBsIn>
+  //   struct _GetTensorCompsMeldBarriersFromPureRemapping2<std::index_sequence<HeadOutPosInIn,TailOutPosInIn...>,MBsIn>
+  //   {
+  //     static constexpr size_t NScannedComps=1;
+      
+  //     using type=
+  // 	typename _GetTensorCompsMeldBarriersFromPureRemapping3<HeadOutPosInIn,
+  // 							       NScannedComps,
+  // 							       EmptyCompsMeldBarriers,
+  // 							       std::index_sequence<TailOutPosInIn...>,
+  // 							       MBsIn>::type;
+  //   };
+    
+  //   /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+  //   ///
+  //   /// Internal implementation, forward declaration
+  //   template <typename TcOut,
+  // 	      typename TcIn,
+  // 	      typename MBsIn>
+  //   struct _GetTensorCompsMeldBarriersFromPureRemapping;
+    
+  //   /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+  //   ///
+  //   /// Internal implementation, preliminary operation: append the number of components to the output,
+  //   /// precompute the mapping between the components, and extract the resulting type
+  //   template <typename TcOut,
+  // 	      typename TcIn,
+  // 	      size_t...MBsIn>
+  //   struct _GetTensorCompsMeldBarriersFromPureRemapping<TcOut,TcIn,TensorCompsMeldBarriers<MBsIn...>>
+  //   {
+  //     /// Gets the positions in the input of the outputs
+  //     using OutPositionsInIn=
+  // 	FirstOccurrenceOfTypes<TcOut,TcIn>;
+      
+  //     /// Result
+  //     using type=
+  // 	typename _GetTensorCompsMeldBarriersFromPureRemapping2<OutPositionsInIn,
+  // 							       TensorCompsMeldBarriers<MBsIn...,std::tuple_size_v<TcIn>>>::type;
+  //   };
+  // }
+  
+  // /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+  // template <typename TcOut,
+  // 	    typename TcIn,
+  // 	    typename MBsIn>
+  // using GetTensorCompsMeldBarriersFromPureRemapping=
+  //   typename internal::_GetTensorCompsMeldBarriersFromPureRemapping<TcOut,TcIn,MBsIn>::type;
+  
+  /////////////////////////////////////////////////////////////////
+  
   namespace internal
   {
-    template <size_t PrevOutPosInIn,
-	      size_t NScannedCompsOut,
-	      typename MBsOut,
-	      typename OutPosInIn,
-	      typename MBsIn>
-    struct _GetTensorCompsMeldBarriersFromPureRemapping3;
-    
-    template <size_t PrevOutPosInIn,
-	      size_t NScannedCompsOut,
-	      size_t...MBsOut,
-	      size_t HeadOutPosInIn,
-	      size_t...TailOutPosInIn,
-	      size_t...MBsIn>
-    struct _GetTensorCompsMeldBarriersFromPureRemapping3<PrevOutPosInIn,
-							 NScannedCompsOut,
-							 TensorCompsMeldBarriers<MBsOut...>,
-							 std::index_sequence<HeadOutPosInIn,TailOutPosInIn...>,
-							 TensorCompsMeldBarriers<MBsIn...>>
-    {
-      static constexpr bool insertBarrier=
-	(PrevOutPosInIn+1!=HeadOutPosInIn) or
-	((PrevOutPosInIn==MBsIn)||...);
-      
-      using NextMBsOut=
-	std::conditional_t<insertBarrier,
-			   TensorCompsMeldBarriers<MBsOut...,NScannedCompsOut>,
-			   TensorCompsMeldBarriers<MBsOut...>>;
-      
-      using type=
-	typename _GetTensorCompsMeldBarriersFromPureRemapping3<HeadOutPosInIn,
-							       NScannedCompsOut+1,
-							       NextMBsOut,
-							       std::index_sequence<TailOutPosInIn...>,
-							       TensorCompsMeldBarriers<MBsIn...>>::type;
-    };
-    
-    template <size_t PrevOutPosInIn,
-	      size_t NScannedCompsOut,
-	      size_t...MBsOut,
-	      size_t...MBsIn>
-    struct _GetTensorCompsMeldBarriersFromPureRemapping3<PrevOutPosInIn,
-							 NScannedCompsOut,
-							 TensorCompsMeldBarriers<MBsOut...>,
-							 std::index_sequence<>,
-							 TensorCompsMeldBarriers<MBsIn...>>
-    {
-      static constexpr bool insertBarrier=
-	((PrevOutPosInIn==MBsIn)||...);
-      
-      using type=
-	std::conditional_t<insertBarrier,
-			   TensorCompsMeldBarriers<MBsOut...,NScannedCompsOut>,
-			   TensorCompsMeldBarriers<MBsOut...>>;
-    };
-    
-    template <typename OutPosInIn,
-	      typename MBsIn>
-    struct _GetTensorCompsMeldBarriersFromPureRemapping2;
-    
-    template <size_t HeadOutPosInIn,
-	      size_t...TailOutPosInIn,
-	      typename MBsIn>
-    struct _GetTensorCompsMeldBarriersFromPureRemapping2<std::index_sequence<HeadOutPosInIn,TailOutPosInIn...>,MBsIn>
-    {
-      using type=
-	typename _GetTensorCompsMeldBarriersFromPureRemapping3<HeadOutPosInIn,
-							       1,
-							       EmptyCompsMeldBarriers,
-							       std::index_sequence<TailOutPosInIn...>,
-							       MBsIn>::type;
-    };
-    
+    /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+    ///
+    /// Internal implementation, forward declaration
     template <typename TcOut,
 	      typename TcIn,
-	      typename MBsIn>
+	      typename MBsIn,
+	      typename OutPositionsInIn=
+	      FirstOccurrenceOfTypes<TcOut,TcIn>,
+	      typename II=std::make_index_sequence<std::tuple_size_v<TcOut>-1>>
     struct _GetTensorCompsMeldBarriersFromPureRemapping;
     
-    template <typename TcOut,
-	      typename TcIn,
-	      size_t...MBsIn>
-    struct _GetTensorCompsMeldBarriersFromPureRemapping<TcOut,TcIn,TensorCompsMeldBarriers<MBsIn...>>
+    /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+    ///
+    /// Internal implementation
+    template <typename...TcOut,
+	      typename...TcIns,
+	      size_t...MBsIns,
+	      size_t...OutPositionsInIn,
+	      size_t...IIs>
+    struct _GetTensorCompsMeldBarriersFromPureRemapping<TensorComps<TcOut...>,
+							 TensorComps<TcIns...>,
+							 TensorCompsMeldBarriers<MBsIns...>,
+							 std::index_sequence<OutPositionsInIn...>,
+							 std::index_sequence<IIs...>>
     {
-      using OutPosInIn=
-	FirstOccurrenceOfTypes<TcOut,TcIn>;
+      /// Put the positions of output components into the input one into an array (for whatever reason, a c-array is not welcome)
+      static constexpr std::array<size_t,sizeof...(OutPositionsInIn)> outPositionsInIn=
+	{OutPositionsInIn...};
       
+      /// Put the positions of input barriers into an array
+      static constexpr size_t mBsIns[]=
+	{MBsIns...};
+      
+      /// Check if a barrier must be included between IPrev and IPrev+1
+      template <size_t IPrev>
+      static constexpr bool insertBarrier=
+	(outPositionsInIn[IPrev]+1!=outPositionsInIn[IPrev+1]) or
+	((outPositionsInIn[IPrev+1]==MBsIns)||...);
+      
+      /// If a barrier is needed, returns a tuple with the integral constant, otherwise an empty one
+      template <size_t IPrev>
+      using OptionalBarrier=
+	std::conditional_t<insertBarrier<IPrev>,
+			   std::tuple<std::integral_constant<size_t,IPrev+1>>,
+			   std::tuple<>>;
+      
+      /// Put together the possible barriers in a single tuple
+      using BarriersInATuple=
+	TupleCat<OptionalBarrier<IIs>...>;
+      
+      /// Resulting type obtained flattening the tuple of optional barriers
       using type=
-	typename _GetTensorCompsMeldBarriersFromPureRemapping2<OutPosInIn,TensorCompsMeldBarriers<MBsIn...,std::tuple_size_v<TcIn>>>::type;
+	TupleOfIntegralConstantsToIntegerSequence<BarriersInATuple,size_t>;
     };
   }
   
+    /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
   template <typename TcOut,
 	    typename TcIn,
 	    typename MBsIn>
   using GetTensorCompsMeldBarriersFromPureRemapping=
     typename internal::_GetTensorCompsMeldBarriersFromPureRemapping<TcOut,TcIn,MBsIn>::type;
+  
+  inline void test()
+  {
+    using A=
+      TensorComps<char,int,size_t,double>;
+    using B=
+      TensorComps<char,int,double,size_t>;
+    
+    using C=
+      std::index_sequence<1>;
+    
+    using D=
+      GetTensorCompsMeldBarriersFromPureRemapping<A,B,C>;
+
+    auto d=D{};
+  }
 }
 
 #endif
