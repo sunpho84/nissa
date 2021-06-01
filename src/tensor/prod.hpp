@@ -136,6 +136,16 @@ namespace nissa
     using Comps=
       _Comps;
     
+    /// I-th Nested Expression type
+    template <size_t I>
+    using NestedExpr=
+      std::decay_t<typename NnEx::template NestedExpr<I>>;
+    
+    template <size_t I>
+    using NonContractedSubComps=
+      TupleFilterAllTypes<typename NestedExpr<I>::Comps,
+			  std::conditional_t<I==0,TransposeTensorComps<_ContractedComps>,_ContractedComps>>;
+    
     /// Returned type when evaluating the expression
     using EvalTo=
       _EvalTo;
@@ -163,42 +173,60 @@ namespace nissa
     static constexpr bool isComplProd=
       tupleHasType<Comps,ComplId>;
     
-    /// Evaluate the I-th argument
-    template <size_t I,
-	      typename...Args>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    decltype(auto) _evalIthArgFilteredList(const Args&...args) const
-    {
-      return
-	this->template nestedExpr<I>()(args...);
-    }
-    
     /// Evaluate the I-th argument, expanding the tuple containing the arguments into a list
-    template <size_t I,
-	      typename...Args>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    decltype(auto) _evalIthArgFiltered(const TensorComps<Args...> arg) const
+    template <typename...Comps,
+	      typename Arg>
+    static CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    decltype(auto) _evalArgFiltered(const TensorComps<Comps...> comps,
+				       Arg&& arg)
     {
       return
-	_evalIthArgFilteredList<I>(std::get<Args>(arg)...);
+	arg(std::get<Comps>(comps)...);
     }
     
     /// Evaluate the I-th argument, gathering only the components that need actually be passed to the subexpr
-    template <size_t I,
-	      typename...Args>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
-    decltype(auto) _evalIthArg(const TensorComps<Args...> args) const
+    template <typename NonContractedCompsOfArg,
+	      typename NonContractedComps,
+	      typename ContractedCompsToPassToArg,
+	      typename Arg>
+    static CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    decltype(auto) _evalArgAfterFiltering(const NonContractedComps& nonContractedComps,
+			    const ContractedCompsToPassToArg contractedCompsToPassToArg,
+			    Arg&& arg)
     {
-      /// I-th Nested Expression type
-      using NestedExprI=
-	std::decay_t<typename NnEx::template NestedExpr<I>>;
-      
-      /// Components of the subexpression
-      using SubComps=
-	typename NestedExprI::Comps;
-      
       return
-	_evalIthArgFiltered<I>(tupleGetSubset<SubComps>(args));
+	_evalArgFiltered(std::tuple_cat(tupleGetSubset<NonContractedCompsOfArg>(nonContractedComps),contractedCompsToPassToArg),std::forward<Arg>(arg));
+    }
+    
+    /// Returns the contracted components in the format needed to evaluate the argument
+    ///
+    /// If the argument is the first one, we need to transpose the
+    /// components, if it is the second, we need not
+    template <size_t I,
+	      typename...ContractedComps>
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    static auto getContractedCompsForArg(const ContractedComps...contractedComps)
+    {
+      if constexpr(I==0)
+	return
+	  std::make_tuple(contractedComps.transp()...);
+      else
+	return
+	  std::make_tuple(contractedComps...);
+    }
+    
+    /// Evaluate the required argument, getting the contracted components in the proprer shape
+    template <size_t I,
+	      typename NonContractedComps,
+	      typename...ContractedComps>
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    decltype(auto) _evalArg(const NonContractedComps& nonContractedComps,
+			    const ContractedComps...contractedComps) const
+    {
+      return
+	_evalArgAfterFiltering<NonContractedSubComps<I>>(nonContractedComps,
+							 getContractedCompsForArg<I>(contractedComps...),
+							 this->template nestedExpr<I>());
     }
     
     /// Decide the strategy to evaluate
@@ -219,88 +247,135 @@ namespace nissa
       DECLARE_DISPATCH_STRATEGY(ComplProd,COMPL_PROD);
     };
     
+    DECLARE_COMPONENT(SubExpr,int,2);
+    
     /// Evaluate for non complex expressions
-    template <typename...TD>
+    template <typename...NCCs>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
     EvalTo _eval(typename _EvalStrategy::NonComplProd,
-		 const TD&...td) const
+		 const NCCs&...nCCs) const
     {
       /// Result
       EvalTo res(0);
       
       loopOnAllComponents<_ContractedComps>(TensorComps<>(),
-					    [this,&res,&td...](const auto&...args) INLINE_ATTRIBUTE
+					    [this,&res,nCCs=std::make_tuple(nCCs...)](const auto&...cCs) INLINE_ATTRIBUTE
       {
-	/// Put together all arguments
-	const auto fullArgs=
-	  std::make_tuple(td...,args...,args.transp()...);
+	/// First argument
+	const auto f=
+	  _evalArg<0>(nCCs,cCs...);
+	
+	/// Second argument
+	const auto s=
+	  _evalArg<1>(nCCs,cCs...);
 	
 	res+=
-	  this->_evalIthArg<0>(fullArgs)*
-	  this->_evalIthArg<1>(fullArgs);
+	  f*s;
 	});
       
       return
 	res;
     }
     
+    /// Replace the complex index in the list with the passed one
+    ///
+    /// Internal implementation
+    template <size_t...HeadPos,    // Positions before complex id
+	      size_t ComplPos,     // Position of complex id
+	      size_t...TailPos,    // Positions after complex id
+	      typename NCCs>       // Non contracted comps
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    auto _getNonContractedCompsForComplProdPart(std::index_sequence<HeadPos...>,
+						std::index_sequence<ComplPos>,
+						std::index_sequence<TailPos...>,
+						const ComplId& cId,
+						const NCCs& nCCs) const
+    {
+      return
+	std::make_tuple(std::get<HeadPos>(nCCs)...,cId,std::get<TailPos+ComplPos+1>(nCCs)...);
+    }
+    
+    /// Replace the complex index in the list with the passed one
+    template <typename NCCs>      // Non contracted comps
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    auto _getNonContractedCompsForComplProdPart(const ComplId& cId,
+						const NCCs& nCCs) const
+    {
+      /// Get the position of complex index
+      constexpr size_t complPos=
+	firstOccurrenceOfType<ComplId>(NCCs{});
+	
+      return
+	_getNonContractedCompsForComplProdPart(std::make_index_sequence<complPos>{},
+					       std::index_sequence<complPos>{},
+					       std::make_index_sequence<std::tuple_size_v<NCCs>-1-complPos>{},
+					       cId,
+					       nCCs);
+    }
+    
+    /// Evaluate for complex expressions, dispatching the components to real and imaginary part
+    template <typename NCCs,     // Non contracted comps
+	      typename...CCs>      // Contracted comps
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    EvalTo _evalComplProd(const NCCs& nCCs,
+			  const CCs&...cCs) const
+    {
+      /// Non contracted components needed to evaluate the real part
+      const auto nCCsRe=
+	_getNonContractedCompsForComplProdPart(Re,nCCs);
+      
+      /// Non contracted components needed to evaluate the imag part
+      const auto nCCsIm=
+	_getNonContractedCompsForComplProdPart(Im,nCCs);
+      
+      /// Compute the real part of argument 0
+      decltype(auto) re0=
+	_evalArg<0>(nCCsRe,cCs...);
+      
+      /// Compute the real part of argument 1
+      decltype(auto) re1=
+	_evalArg<1>(nCCsRe,cCs...);
+      
+      /// Compute the imag part of argument 0
+      decltype(auto) im0=
+	_evalArg<0>(nCCsIm,cCs...);
+      
+      /// Compute the imag part of argument 1
+      decltype(auto) im1=
+	_evalArg<1>(nCCsIm,cCs...);
+      
+      /// Get the position of complex index
+      const ComplId& cId=
+	std::get<ComplId>(nCCs);
+      
+      if(cId==Re)
+	return
+	  re0*re1
+	  -
+	  im0*im1;
+      else
+	return
+	  re0*im1
+	  +
+	  im0*re1;
+    }
+    
     /// Evaluate for complex expressions
-    template <typename...TD>
+    template <typename...NCCs>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
     EvalTo _eval(typename _EvalStrategy::ComplProd,
-		 const TD&...td) const
+		 const NCCs&...nCCs) const
     {
       /// Result
       EvalTo res(0);
       
       loopOnAllComponents<_ContractedComps>(getDynamicSizes(),
-					    [this,&res,&td...](const auto&...args) INLINE_ATTRIBUTE
+					    [this,&res,&nCCs...](const auto&...cCs) INLINE_ATTRIBUTE
       {
-	/// Gets the complex index
-	const ComplId cId=
-	  std::get<ComplId>(std::make_tuple(td...));
-	
-	/// Put together all arguments
-	auto fullArgs=
-	  std::make_tuple(td...,args...,args.transp()...);
-	
-	std::get<ComplId>(fullArgs)=
-	  Re;
-	
-	/// Compute the real part of argument 0
-	const auto re0=
-	  this->_evalIthArg<0>(fullArgs);
-	  
-	/// Compute the real part of argument 1
-	const auto re1=
-	  this->_evalIthArg<1>(fullArgs);
-	
-	std::get<ComplId>(fullArgs)=
-	  Im;
-	
-	/// Compute the imaginary part of argument 0
-	const auto im0=
-	  this->_evalIthArg<0>(fullArgs);
-	  
-	/// Compute the imaginary part of argument 1
-	const auto im1=
-	  this->_evalIthArg<1>(fullArgs);
-	
-	if(cId==Re)
-	  {
-	    res+=
-	      re0*re1;
-	    res-=
-	      im0*im1;
-	  }
-	else
-	  {
-	    res+=
-	      re0*im1;
-	    res+=
-	      im0*re1;
-	  }
-	});
+	res+=
+	  _evalComplProd(std::make_tuple(nCCs...),
+			 cCs...);
+      });
       
       return
 	res;
