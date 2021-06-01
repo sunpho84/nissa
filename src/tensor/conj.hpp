@@ -18,10 +18,10 @@ namespace nissa
   FOR_ALL_COMPONENT_VALUES(ComplId,NAME)
   
   /// Real component index
-#define Re ComplId(0)
+  inline constexpr ComplId Re{0};
   
   /// Imaginary component index
-#define Im ComplId(1)
+  inline constexpr ComplId Im{1};
   
   /// Returns the real part, subscribing the complex component to Re value
   template <typename _E>
