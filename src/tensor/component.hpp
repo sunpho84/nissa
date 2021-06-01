@@ -186,7 +186,9 @@ namespace nissa
     
     /// Default constructor
     INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
-    TensorComp() =default;
+    TensorComp() : i(0)
+    {
+    }
     
     /// Init from value
     template <typename T=Index,
