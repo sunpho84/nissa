@@ -11,6 +11,7 @@
 #include <metaProgramming/refOrVal.hpp>
 #include <tensor/component.hpp>
 #include <tensor/meldComps.hpp>
+#include <tensor/tensorDecl.hpp>
 
 namespace nissa
 {
@@ -160,12 +161,25 @@ namespace nissa
     
 #undef DECLARE_PARTIAL_CALL
     
+    /// Call the assign function
     template <typename Oth>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
     T& operator=(const ExprFeat<Oth>& rhs)
     {
       return
 	assign(this->crtp(),rhs.deFeat().crtp());
+    }
+    
+    /// Returns the closed expression
+    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    auto close() const
+    {
+      Tensor<Comps,Fund> out(this->crtp().getDynamicSizes());
+      
+      out=this->crtp();
+      
+      return
+	out;
     }
   };
 }
