@@ -6,27 +6,15 @@ void test(Tensor<OfComps<LocLxSite,ColorRow,ComplId>>& v,
 	  Tensor<OfComps<LocLxSite,ColorRow,ComplId>>& z)
 {
   /// Scalar product on color index
-  Tensor<OfComps<LocLxSite>> res1;
-  res1.allocate(locVol);
+  Tensor<OfComps<LocLxSite>> res1(locVol);
   ASM_BOOKMARK_BEGIN("scalProd");
   res1=real(dag(v)*z);
   ASM_BOOKMARK_END("scalProd");
   
-  auto prod=dag(v)*z;
-
-  using T=decltype(dag(v))::CompsMeldBarriers;
-  auto t=T{};
-  
-  std::tuple<nissa::TensorComp<nissa::LocLxSiteSignature, nissa::ANY, 0>,
-             nissa::TensorComp<nissa::ComplIdSignature, nissa::ANY, 0>>
-      ciccio = decltype(prod)::Comps();
-
   master_printf("%lg\n",res1(LocLxSite(0))); //55
-  //master_printf("%lg\n",res1(LocLxSite(1))); //50
   
   /// Outer product on color index
-  Tensor<OfComps<LocLxSite,ColorRow,ColorCln,ComplId>> res2;
-  res2.allocate(locVol);
+  Tensor<OfComps<LocLxSite,ColorRow,ColorCln,ComplId>> res2(locVol);
   ASM_BOOKMARK_BEGIN("outerProd");
   res2=v*dag(z);
   ASM_BOOKMARK_END("outerProd");
@@ -34,13 +22,24 @@ void test(Tensor<OfComps<LocLxSite,ColorRow,ComplId>>& v,
   master_printf("%lg\n",res2(LocLxSite(0),ColorRow(0),ColorCln(0),Re)); //1
   
   /// Comp by comp product on color index
-  Tensor<OfComps<LocLxSite,ColorRow,ComplId>> res3;
-  res3.allocate(locVol);
+  Tensor<OfComps<LocLxSite,ColorRow,ComplId>> res3(locVol);
   ASM_BOOKMARK_BEGIN("compByCompProd");
   res3=v*z;
   ASM_BOOKMARK_END("compByCompProd");
   
   master_printf("%lg\n",res3(LocLxSite(0),ColorRow(0),Re)); //-1
+}
+
+void test2(Tensor<OfComps<LocLxSite,ColorRow,ColorCln>>& v,
+	  Tensor<OfComps<LocLxSite,ColorRow,ColorCln>>& z)
+{
+  /// Matrix product
+  Tensor<OfComps<LocLxSite>> res1;
+  res1.allocate(locVol);
+  ASM_BOOKMARK_BEGIN("scalProd");
+  Tensor<OfComps<LocLxSite,ColorRow,ColorCln>> c;
+  c=v*z;
+  ASM_BOOKMARK_END("scalProd");
 }
 
 void in_main(int narg,char** arg)
