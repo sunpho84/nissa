@@ -21,8 +21,8 @@ namespace quda_iface
   using namespace nissa;
   
   /// Lookup tables to map from nissa to quda and vice-versa
-  int* loclx_of_quda=nullptr;
-  int* quda_of_loclx=nullptr;
+  CUDA_MANAGED int* loclx_of_quda=nullptr;
+  CUDA_MANAGED int* quda_of_loclx=nullptr;
   
   /// Conf used to remap
   quda_conf_t quda_conf{};
@@ -270,10 +270,11 @@ namespace quda_iface
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
+	const int remap_dir[]={3,0,1,2};
 	const int iquda=quda_of_loclx[ivol];
 	
 	for(int nu=0;nu<NDIM;nu++)
-	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[ivol][nu]);
+	  su3_copy(out[remap_dir[nu]][iquda],in[ivol][nu]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -286,11 +287,12 @@ namespace quda_iface
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(ivolh,0,locVolh)
 	{
+	  const int remap_dir[]={3,0,1,2};
 	  const int ivol=loclx_of_loceo[par][ivolh];
 	  const int iquda=quda_of_loclx[ivol];
 	
 	for(int nu=0;nu<NDIM;nu++)
-	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[par][ivolh][nu]);
+	  su3_copy(out[remap_dir[nu]][iquda],in[par][ivolh][nu]);
       }
     NISSA_PARALLEL_LOOP_END;
     
