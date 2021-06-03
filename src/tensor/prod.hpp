@@ -150,6 +150,10 @@ namespace nissa
     using EvalTo=
       _EvalTo;
     
+    /// List of all contracted components
+    using ContractedComps=
+      _ContractedComps;
+    
     /// Expression flags
     static constexpr ExprFlags Flags=
       EXPR_FLAG_MASKS::NONE;

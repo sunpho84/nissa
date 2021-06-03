@@ -52,7 +52,7 @@ namespace nissa
 							 std::index_sequence<OutPositionsInIn...>,
 							 std::index_sequence<IIs...>>
     {
-      /// Put the positions of output components into the input one into an array (for whatever reason, a c-array is not welcome)
+      /// Positions of output components as found in the input one into an array (for whatever reason, a c-array is not welcome)
       static constexpr std::array<size_t,sizeof...(OutPositionsInIn)> outPositionsInIn=
 	{OutPositionsInIn...};
       
