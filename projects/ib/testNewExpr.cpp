@@ -31,7 +31,7 @@ void test(Tensor<OfComps<LocLxSite,ColorRow,ComplId>>& v,
 }
 
 void test2(Tensor<OfComps<LocLxSite,ColorRow,ColorCln>>& v,
-	  Tensor<OfComps<LocLxSite,ColorRow,ColorCln>>& z)
+	   Tensor<OfComps<LocLxSite,ColorRow,ColorCln>>& z)
 {
   /// Matrix product
   Tensor<OfComps<LocLxSite>> res1;
@@ -40,6 +40,73 @@ void test2(Tensor<OfComps<LocLxSite,ColorRow,ColorCln>>& v,
   Tensor<OfComps<LocLxSite,ColorRow,ColorCln>> c;
   c=v*z;
   ASM_BOOKMARK_END("scalProd");
+}
+
+DECLARE_ROW_OR_CLN_COMPONENT(Spin,int,NDIRAC);
+
+template <bool IsComplProd,
+	  typename PComp,
+	  typename...FirstComps,
+	  typename...ContractedComps,
+	  size_t...I>
+constexpr int process(TensorComps<FirstComps...>,
+			 TensorComps<ContractedComps...>,
+			 std::index_sequence<I...>)
+{
+  constexpr bool isContracted=
+    (std::is_same_v<typename ContractedComps::Transp,PComp>||...);
+  
+  constexpr bool isComplInComplProd=
+	      std::is_same_v<ComplId,PComp> and IsComplProd;
+  
+  constexpr int pos=
+	      ((std::is_same_v<PComp,FirstComps>?(I+1):0)+...)-1;
+  
+  constexpr int res=
+	      (isContracted or isComplInComplProd)?
+	      -1:
+              pos;
+  
+  return
+    res;
+}
+
+template <bool IsComplProd,
+	  typename...PComps,
+	  typename...FirstComps,
+	  typename...ContractedComps>
+constexpr auto process(TensorComps<PComps...>,
+		       TensorComps<FirstComps...>,
+		       TensorComps<ContractedComps...>)
+{
+  return std::integer_sequence<int,
+			       process<IsComplProd,PComps>(TensorComps<FirstComps...>{},
+                                                           TensorComps<ContractedComps...>{},
+                                                           std::make_index_sequence<sizeof...(FirstComps)>{})...>{};
+}
+
+template <typename P>
+constexpr auto process()
+{
+  using PC=
+    typename P::Comps;
+  
+  using C1=
+    typename P::template NestedExpr<0>::Comps;
+  
+  using CC=
+    typename P::ContractedComps;
+  
+  return process<P::isComplProd>(PC{},C1{},CC{});
+}
+
+void test3(Tensor<OfComps<SpinRow,ColorRow,ColorCln,SpinCln,ComplId,LocLxSite>>& v,
+	   Tensor<OfComps<ColorRow,ColorCln,SpinRow,ComplId,LocLxSite>>& z)
+{
+  const auto p=v*z;
+  using P=decltype(p);
+
+  const std::integer_sequence<int, 0, 1, -1, -1, 5> pr = process<P>();
 }
 
 void in_main(int narg,char** arg)
