@@ -44,45 +44,120 @@ void test2(Tensor<OfComps<LocLxSite,ColorRow,ColorCln>>& v,
 
 DECLARE_ROW_OR_CLN_COMPONENT(Spin,int,NDIRAC);
 
-template <bool IsComplProd,
-	  typename PComp,
-	  typename...FirstComps,
-	  typename...ContractedComps,
+namespace nissa
+{
+  namespace internal
+  {
+    /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+    ///
+    /// Internal implementation, forward declaration
+    template <typename TcOut,
+	      typename TcIn1,
+	      typename TcIn2,
+	      typename MBsIn1,
+	      typename MBsIn2,
+	      typename OutPositionsInIn1,
+	      typename OutPositionsInIn2,
+	      typename II=std::make_index_sequence<std::tuple_size_v<TcOut>-1>>
+    struct _GetTensorCompsMeldBarriersForProd;
+    
+    /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+    ///
+    /// Internal implementation
+    template <typename...TcOut,
+	      typename...TcIns1,
+	      typename...TcIns2,
+	      size_t...MBsIns1,
+	      size_t...MBsIns2,
+	      size_t...OutPositionsInIn1,
+	      size_t...OutPositionsInIn2,
+	      size_t...IIs>
+    struct _GetTensorCompsMeldBarriersForProd<TensorComps<TcOut...>,
+					      TensorComps<TcIns1...>,
+					      TensorComps<TcIns2...>,
+					      TensorCompsMeldBarriers<MBsIns1...>,
+					      TensorCompsMeldBarriers<MBsIns2...>,
+					      std::index_sequence<OutPositionsInIn1...>,
+					      std::index_sequence<OutPositionsInIn2...>,
+					      std::index_sequence<IIs...>>
+    {
+      /// Positions of output components as found in the input one into an array (for whatever reason, a c-array is not welcome)
+      static constexpr std::array<size_t,sizeof...(OutPositionsInIn1)> outPositionsInIn1=
+	{OutPositionsInIn1...};
+      
+      /// Positions of output components as found in the input one into an array (for whatever reason, a c-array is not welcome)
+      static constexpr std::array<size_t,sizeof...(OutPositionsInIn2)> outPositionsInIn2=
+	{OutPositionsInIn2...};
+      
+      /// Put the positions of input barriers into an array
+      static constexpr size_t mBsIns1[]=
+	{MBsIns1...};
+      
+      /// Put the positions of input barriers into an array
+      static constexpr size_t mBsIns2[]=
+	{MBsIns2...};
+      
+      /// Check if a barrier must be included between IPrev and IPrev+1
+      template <size_t IPrev>
+      static constexpr bool insertBarrier=
+	(outPositionsInIn1[IPrev]+1!=outPositionsInIn1[IPrev+1] and not
+	 (outPositionsInIn1[IPrev]==outPositionsInIn1[IPrev] and outPositionsInIn1[IPrev]==sizeof...(TcIns1))) or
+	((outPositionsInIn1[IPrev+1]==MBsIns1)||...) or
+	(outPositionsInIn2[IPrev]+1!=outPositionsInIn2[IPrev+1] and not
+	 (outPositionsInIn2[IPrev]==outPositionsInIn2[IPrev] and outPositionsInIn2[IPrev]==sizeof...(TcIns2))) or
+	((outPositionsInIn2[IPrev+1]==MBsIns2)||...);
+      
+      /// If a barrier is needed, returns a tuple with the integral constant, otherwise an empty one
+      template <size_t IPrev>
+      using OptionalBarrier=
+	std::conditional_t<insertBarrier<IPrev>,
+			   std::tuple<std::integral_constant<size_t,IPrev+1>>,
+			   std::tuple<>>;
+      
+      /// Put together the possible barriers in a single tuple
+      using BarriersInATuple=
+	TupleCat<OptionalBarrier<IIs>...>;
+      
+      /// Resulting type obtained flattening the tuple of optional barriers
+      using type=
+	TupleOfIntegralConstantsToIntegerSequence<BarriersInATuple,size_t>;
+    };
+  }
+}
+
+template <typename PComp,
+	  typename...Comps,
+	  typename...ExcludedComps,
 	  size_t...I>
-constexpr int process(TensorComps<FirstComps...>,
-			 TensorComps<ContractedComps...>,
+constexpr size_t process(TensorComps<Comps...>,
+			 TensorComps<ExcludedComps...>,
 			 std::index_sequence<I...>)
 {
-  constexpr bool isContracted=
-    (std::is_same_v<typename ContractedComps::Transp,PComp>||...);
+  constexpr bool isExcluded=
+    (std::is_same_v<ExcludedComps,PComp>||...);
   
-  constexpr bool isComplInComplProd=
-	      std::is_same_v<ComplId,PComp> and IsComplProd;
+  constexpr size_t pos=
+	      firstOccurrenceOfType<PComp>(Comps{}...);
   
-  constexpr int pos=
-	      ((std::is_same_v<PComp,FirstComps>?(I+1):0)+...)-1;
-  
-  constexpr int res=
-	      (isContracted or isComplInComplProd)?
-	      -1:
+  constexpr size_t res=
+	      isExcluded?
+	      sizeof...(I):
               pos;
   
   return
     res;
 }
 
-template <bool IsComplProd,
-	  typename...PComps,
+template <typename...PComps,
 	  typename...FirstComps,
 	  typename...ContractedComps>
 constexpr auto process(TensorComps<PComps...>,
 		       TensorComps<FirstComps...>,
 		       TensorComps<ContractedComps...>)
 {
-  return std::integer_sequence<int,
-			       process<IsComplProd,PComps>(TensorComps<FirstComps...>{},
-                                                           TensorComps<ContractedComps...>{},
-                                                           std::make_index_sequence<sizeof...(FirstComps)>{})...>{};
+  return std::index_sequence<process<PComps>(TensorComps<FirstComps...>{},
+    TensorComps<ContractedComps...>{},
+    std::make_index_sequence<sizeof...(FirstComps)>{})...>{};
 }
 
 template <typename P>
@@ -91,14 +166,41 @@ constexpr auto process()
   using PC=
     typename P::Comps;
   
-  using C1=
-    typename P::template NestedExpr<0>::Comps;
+  using F1=
+    typename P::template NestedExpr<0>;
   
-  using CC=
+  using C1=
+    typename F1::Comps;
+  
+  using M1=
+    typename F1::CompsMeldBarriers;
+  
+  using F2=
+    typename P::template NestedExpr<1>;
+  
+  using C2=
+    typename F2::Comps;
+  
+  using M2=
+    typename F2::CompsMeldBarriers;
+  
+  using CC2=
     typename P::ContractedComps;
   
-  return process<P::isComplProd>(PC{},C1{},CC{});
+  using CC1=
+    TransposeTensorComps<CC2>;
+  
+  using P1=
+    decltype(process(PC{},C1{},CC1{}));
+  
+  using P2=
+    decltype(process(PC{},C2{},CC2{}));
+
+  using MM=typename internal::_GetTensorCompsMeldBarriersForProd<PC,C1,C2,M1,M2,P1,P2>::type;
+  
+  return MM{};
 }
+
 
 void test3(Tensor<OfComps<SpinRow,ColorRow,ColorCln,SpinCln,ComplId,LocLxSite>>& v,
 	   Tensor<OfComps<ColorRow,ColorCln,SpinRow,ComplId,LocLxSite>>& z)
@@ -106,7 +208,7 @@ void test3(Tensor<OfComps<SpinRow,ColorRow,ColorCln,SpinCln,ComplId,LocLxSite>>&
   const auto p=v*z;
   using P=decltype(p);
 
-  const std::integer_sequence<int, 0, 1, -1, -1, 5> pr = process<P>();
+  const auto pf=process<P>();
 }
 
 void in_main(int narg,char** arg)
