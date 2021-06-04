@@ -267,11 +267,11 @@ namespace nissa
       {
 	/// First argument
 	const auto f=
-	  _evalArg<0>(nCCs,cCs...);
+	  this->_evalArg<0>(nCCs,cCs...);
 	
 	/// Second argument
 	const auto s=
-	  _evalArg<1>(nCCs,cCs...);
+	  this->_evalArg<1>(nCCs,cCs...);
 	
 	res+=
 	  f*s;
@@ -377,8 +377,8 @@ namespace nissa
 					    [this,&res,&nCCs...](const auto&...cCs) INLINE_ATTRIBUTE
       {
 	res+=
-	  _evalComplProd(std::make_tuple(nCCs...),
-			 cCs...);
+	  this->_evalComplProd(std::make_tuple(nCCs...),
+			       cCs...);
       });
       
       return

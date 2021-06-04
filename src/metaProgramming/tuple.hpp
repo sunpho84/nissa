@@ -353,15 +353,6 @@ namespace nissa
       details::_firstOccurrenceOfType<T>((std::tuple<Tps...>*)nullptr);
   }
   
-  /// Returns the first occurrence of the first type in the other types, passed as arguments
-  template <typename T,
-	    typename...Tps>
-  constexpr size_t firstOccurrenceOfType(const std::tuple<Tps>&...)
-  {
-    return
-      details::_firstOccurrenceOfType<T>((std::tuple<Tps...>*)nullptr);
-  }
-  
   /// Returns the first occurrence of the first type in the type, not passed as arguments
   template <typename T,
 	    typename...Tps>
