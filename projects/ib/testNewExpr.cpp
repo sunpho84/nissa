@@ -48,64 +48,64 @@ namespace nissa
 {
   namespace internal
   {
+    /// Internal implementation
+    template <size_t NotPresentVal,
+	      typename MBsIn,
+	      typename OutPositionsInIn>
+    struct _GetInsertBarrierForSubExpr;
+    
+    /// Internal implementation
+    template <size_t NotPresentVal,
+	      size_t...MBsIn,
+	      size_t...OutPositionsInIn>
+    struct _GetInsertBarrierForSubExpr<NotPresentVal,
+				       std::index_sequence<MBsIn...>,
+				       std::index_sequence<OutPositionsInIn...>>
+    {
+      /// Positions of output components as found in the input one into an array (for whatever reason, a c-array is not welcome)
+      static constexpr std::array<size_t,sizeof...(OutPositionsInIn)> outPositionsInIn=
+	{OutPositionsInIn...};
+      
+      /// Put the positions of input barriers into an array
+      static constexpr size_t mBsIn[]=
+	{MBsIn...};
+      
+      /// Check if a barrier must be included between IPrev and IPrev+1
+      template <size_t IPrev>
+      static constexpr bool insertBarrier=
+	(outPositionsInIn[IPrev]+1!=outPositionsInIn[IPrev+1] and not
+	 (outPositionsInIn[IPrev]==outPositionsInIn[IPrev] and outPositionsInIn[IPrev]==NotPresentVal)) or
+	((outPositionsInIn[IPrev+1]==MBsIn)||...);
+    };
+    
     /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
     ///
     /// Internal implementation, forward declaration
     template <typename TcOut,
-	      typename TcIn1,
-	      typename TcIn2,
-	      typename MBsIn1,
-	      typename MBsIn2,
-	      typename OutPositionsInIn1,
-	      typename OutPositionsInIn2,
-	      typename II=std::make_index_sequence<std::tuple_size_v<TcOut>-1>>
+	      typename TcIns,
+	      typename MBsIns,
+	      typename OutPositionsInIns,
+	      typename IcOuts=std::make_index_sequence<std::tuple_size_v<TcOut>-1>>
     struct _GetTensorCompsMeldBarriersForProd;
     
     /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
     ///
     /// Internal implementation
     template <typename...TcOut,
-	      typename...TcIns1,
-	      typename...TcIns2,
-	      size_t...MBsIns1,
-	      size_t...MBsIns2,
-	      size_t...OutPositionsInIn1,
-	      size_t...OutPositionsInIn2,
-	      size_t...IIs>
+	      typename...TcIns,
+	      typename...MBsIns,
+	      typename...OutPositionsInIns,
+	      size_t...IcOuts>
     struct _GetTensorCompsMeldBarriersForProd<TensorComps<TcOut...>,
-					      TensorComps<TcIns1...>,
-					      TensorComps<TcIns2...>,
-					      TensorCompsMeldBarriers<MBsIns1...>,
-					      TensorCompsMeldBarriers<MBsIns2...>,
-					      std::index_sequence<OutPositionsInIn1...>,
-					      std::index_sequence<OutPositionsInIn2...>,
-					      std::index_sequence<IIs...>>
+					      std::tuple<TcIns...>,
+					      std::tuple<MBsIns...>,
+					      std::tuple<OutPositionsInIns...>,
+					      std::index_sequence<IcOuts...>>
     {
-      /// Positions of output components as found in the input one into an array (for whatever reason, a c-array is not welcome)
-      static constexpr std::array<size_t,sizeof...(OutPositionsInIn1)> outPositionsInIn1=
-	{OutPositionsInIn1...};
-      
-      /// Positions of output components as found in the input one into an array (for whatever reason, a c-array is not welcome)
-      static constexpr std::array<size_t,sizeof...(OutPositionsInIn2)> outPositionsInIn2=
-	{OutPositionsInIn2...};
-      
-      /// Put the positions of input barriers into an array
-      static constexpr size_t mBsIns1[]=
-	{MBsIns1...};
-      
-      /// Put the positions of input barriers into an array
-      static constexpr size_t mBsIns2[]=
-	{MBsIns2...};
-      
       /// Check if a barrier must be included between IPrev and IPrev+1
       template <size_t IPrev>
       static constexpr bool insertBarrier=
-	(outPositionsInIn1[IPrev]+1!=outPositionsInIn1[IPrev+1] and not
-	 (outPositionsInIn1[IPrev]==outPositionsInIn1[IPrev] and outPositionsInIn1[IPrev]==sizeof...(TcIns1))) or
-	((outPositionsInIn1[IPrev+1]==MBsIns1)||...) or
-	(outPositionsInIn2[IPrev]+1!=outPositionsInIn2[IPrev+1] and not
-	 (outPositionsInIn2[IPrev]==outPositionsInIn2[IPrev] and outPositionsInIn2[IPrev]==sizeof...(TcIns2))) or
-	((outPositionsInIn2[IPrev+1]==MBsIns2)||...);
+	(_GetInsertBarrierForSubExpr<std::tuple_size_v<TcIns>,MBsIns,OutPositionsInIns>::template insertBarrier<IPrev>||...);
       
       /// If a barrier is needed, returns a tuple with the integral constant, otherwise an empty one
       template <size_t IPrev>
@@ -116,7 +116,7 @@ namespace nissa
       
       /// Put together the possible barriers in a single tuple
       using BarriersInATuple=
-	TupleCat<OptionalBarrier<IIs>...>;
+	TupleCat<OptionalBarrier<IcOuts>...>;
       
       /// Resulting type obtained flattening the tuple of optional barriers
       using type=
@@ -196,7 +196,7 @@ constexpr auto process()
   using P2=
     decltype(process(PC{},C2{},CC2{}));
 
-  using MM=typename internal::_GetTensorCompsMeldBarriersForProd<PC,C1,C2,M1,M2,P1,P2>::type;
+  using MM=typename internal::_GetTensorCompsMeldBarriersForProd<PC,std::tuple<C1,C2>,std::tuple<M1,M2>,std::tuple<P1,P2>>::type;
   
   return MM{};
 }
