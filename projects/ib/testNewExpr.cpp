@@ -86,7 +86,7 @@ namespace nissa
 	      typename MBsIns,
 	      typename OutPositionsInIns,
 	      typename IcOuts=std::make_index_sequence<std::tuple_size_v<TcOut>-1>>
-    struct _GetTensorCompsMeldBarriersForProd;
+    struct _GetTensorCompsMeldBarriersFromCompsRemapping;
     
     /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
     ///
@@ -96,7 +96,7 @@ namespace nissa
 	      typename...MBsIns,
 	      typename...OutPositionsInIns,
 	      size_t...IcOuts>
-    struct _GetTensorCompsMeldBarriersForProd<TensorComps<TcOut...>,
+    struct _GetTensorCompsMeldBarriersFromCompsRemapping<TensorComps<TcOut...>,
 					      std::tuple<TcIns...>,
 					      std::tuple<MBsIns...>,
 					      std::tuple<OutPositionsInIns...>,
@@ -125,39 +125,69 @@ namespace nissa
   }
 }
 
-template <typename PComp,
-	  typename...Comps,
-	  typename...ExcludedComps,
-	  size_t...I>
-constexpr size_t process(TensorComps<Comps...>,
-			 TensorComps<ExcludedComps...>,
-			 std::index_sequence<I...>)
+namespace nissa
 {
-  constexpr bool isExcluded=
-    (std::is_same_v<ExcludedComps,PComp>||...);
+  namespace internal
+  {
+    /// Gets the mapping between product components and one of its factor
+    ///
+    /// Forward implementation
+    template <typename FCs, // Factor components
+	      typename ECs> // Excluded (contracted) components
+    struct _CompsRemappingForProductFactor;
+    
+    /// Gets the mapping between product components and one of its factor
+    ///
+    /// Invariant are passed as structure template arguments, while
+    /// the product arguments are scanned from the Getter substruct
+    template <typename...FactorComps,
+	      typename...ExcludedComps>
+    struct _CompsRemappingForProductFactor<TensorComps<FactorComps...>,
+		    TensorComps<ExcludedComps...>>
+    {
+      /// Tag to be used for "excluded" is the same of not found, that is, val beyond the end
+      static constexpr size_t notFoundTag=
+	sizeof...(FactorComps);
+      
+      /// Check if a given component is in the excluded list
+      template <typename PComp>
+      static constexpr bool isExcluded=
+	(std::is_same_v<ExcludedComps,PComp>||...);
+      
+      /// Take the position of the given component in the factor components
+      template <typename PComp>
+      static constexpr size_t pos=
+	firstOccurrenceOfType<PComp>(FactorComps{}...);
+      
+      /// Returns the position, or value past end if not found or excluded
+      template <typename PComp>
+      static constexpr size_t value=
+	isExcluded<PComp>?
+	notFoundTag:
+	pos<PComp>;
+      
+      /// Produce the resulting list
+      ///
+      /// Forward declaration
+      template <typename PComps>
+      struct _Getter;
+      
+      /// Produce the resulting list
+      template <typename...PComps>
+      struct _Getter<TensorComps<PComps...>>
+      {
+	/// Resulting type
+	using type=
+	  std::index_sequence<value<PComps>...>;
+      };
+    };
+  }
   
-  constexpr size_t pos=
-	      firstOccurrenceOfType<PComp>(Comps{}...);
-  
-  constexpr size_t res=
-	      isExcluded?
-	      sizeof...(I):
-              pos;
-  
-  return
-    res;
-}
-
-template <typename...PComps,
-	  typename...FirstComps,
-	  typename...ContractedComps>
-constexpr auto process(TensorComps<PComps...>,
-		       TensorComps<FirstComps...>,
-		       TensorComps<ContractedComps...>)
-{
-  return std::index_sequence<process<PComps>(TensorComps<FirstComps...>{},
-    TensorComps<ContractedComps...>{},
-    std::make_index_sequence<sizeof...(FirstComps)>{})...>{};
+  template <typename PComps,
+	    typename FactorComps,
+	    typename ExcludedComps>
+  using CompsRemappingForProductFactor=
+    typename internal::_CompsRemappingForProductFactor<FactorComps,ExcludedComps>::template _Getter<PComps>::type;
 }
 
 template <typename P>
@@ -191,18 +221,30 @@ constexpr auto process()
     TransposeMatrixTensorComps<CC2>;
   
   using P1=
-    decltype(process(PC{},C1{},CC1{}));
+    CompsRemappingForProductFactor<PC,C1,CC1>;
   
   using P2=
-    decltype(process(PC{},C2{},CC2{}));
+    CompsRemappingForProductFactor<PC,C2,CC2>;
 
-  using MM=typename internal::_GetTensorCompsMeldBarriersForProd<PC,std::tuple<C1,C2>,std::tuple<M1,M2>,std::tuple<P1,P2>>::type;
+  using MM=typename internal::_GetTensorCompsMeldBarriersFromCompsRemapping<PC,std::tuple<C1,C2>,std::tuple<M1,M2>,std::tuple<P1,P2>>::type;
   
   return MM{};
 }
 
 
 void test3(Tensor<OfComps<SpinRow,ColorRow,ColorCln,SpinCln,ComplId,LocLxSite>>& v,
+	   Tensor<OfComps<ColorRow,ColorCln,SpinRow,ComplId,LocLxSite>>& z)
+{
+  const auto p=v*z;
+  using P=decltype(p);
+  
+  const auto c=typename P::Comps{};
+  const auto d=typename decltype(v*z)::CompsMeldBarriers{};
+  
+  const auto pf=process<P>();
+}
+
+void test4(Tensor<OfComps<SpinRow,ColorRow,ColorCln,SpinCln,ComplId,LocLxSite>>& v,
 	   Tensor<OfComps<ColorRow,ColorCln,SpinRow,ComplId,LocLxSite>>& z)
 {
   const auto p=v*z;
