@@ -188,7 +188,7 @@ constexpr auto process()
     typename P::ContractedComps;
   
   using CC1=
-    TransposeTensorComps<CC2>;
+    TransposeMatrixTensorComps<CC2>;
   
   using P1=
     decltype(process(PC{},C1{},CC1{}));

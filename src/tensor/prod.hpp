@@ -144,7 +144,7 @@ namespace nissa
     template <size_t I>
     using NonContractedSubComps=
       TupleFilterAllTypes<typename NestedExpr<I>::Comps,
-			  std::conditional_t<I==0,TransposeTensorComps<_ContractedComps>,_ContractedComps>>;
+			  std::conditional_t<I==0,TransposeMatrixTensorComps<_ContractedComps>,_ContractedComps>>;
     
     /// Returned type when evaluating the expression
     using EvalTo=

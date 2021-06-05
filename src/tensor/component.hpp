@@ -536,11 +536,38 @@ namespace nissa
     template <typename TC>
     struct _TransposeTensorComps;
     
-    /// Transposes a list of components
+    /// Transposes a list of components, considering the components as matrix
     ///
     /// Actual implementation
     template <typename...TC>
     struct _TransposeTensorComps<TensorComps<TC...>>
+    {
+      /// Resulting type
+      using type=
+	TensorComps<typename TC::Transp...>;
+    };
+  }
+  
+  /// Transposes a list of components
+  template <typename TC>
+  using TransposeTensorComps=
+    typename impl::_TransposeTensorComps<TC>::type;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace impl
+  {
+    /// Transposes a list of components, considering the components as matrix
+    ///
+    /// Actual implementation, forward declaration
+    template <typename TC>
+    struct _TransposeMatrixTensorComps;
+    
+    /// Transposes a list of components, considering the components as matrix
+    ///
+    /// Actual implementation
+    template <typename...TC>
+    struct _TransposeMatrixTensorComps<TensorComps<TC...>>
     {
       /// Returns a given components, or its transposed if it is missing
       template <typename C,
@@ -554,7 +581,7 @@ namespace nissa
     };
   }
   
-  /// Transposes a list of components
+  /// Transposes a list of components, considering the components as matrix
   ///
   /// - If a component is not of ROW/CLN case, it is left unchanged
   /// - If a ROW/CLN component is matched with a CLN/ROW one, it is left unchanged
@@ -565,9 +592,10 @@ namespace nissa
   /// using T=TensorComps<Complex,ColorRow,ColorCln,SpinRow>
   /// using U=TransposeTensorcomps<T>; //TensorComps<Complex,ColorRow,ColorCln,SpinCln>
   template <typename TC>
-  using TransposeTensorComps=
-    typename impl::_TransposeTensorComps<TC>::type;
+  using TransposeMatrixTensorComps=
+    typename impl::_TransposeMatrixTensorComps<TC>::type;
   
+  /////////////////////////////////////////////////////////////////
   
   namespace internal
   {

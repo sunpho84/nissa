@@ -104,7 +104,7 @@ namespace nissa
     
     /// Components
     using Comps=
-      TransposeTensorComps<typename E::Comps>;
+      TransposeMatrixTensorComps<typename E::Comps>;
     
     /// Barriers between fusable components, obtained faking transposition of comps
     using CompsMeldBarriers=
