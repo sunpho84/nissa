@@ -30,6 +30,8 @@ namespace nissa
     /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
     ///
     /// Internal implementation, forward declaration
+    ///
+    /// \todo rewrite this int terms of the more generic implementation below
     template <typename TcOut,
 	      typename TcIn,
 	      typename MBsIn,
@@ -89,6 +91,86 @@ namespace nissa
 	    typename MBsIn>
   using GetTensorCompsMeldBarriersFromPureRemapping=
     typename internal::_GetTensorCompsMeldBarriersFromPureRemapping<TcOut,TcIn,MBsIn>::type;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace internal
+  {
+    /// Internal implementation
+    template <size_t NotPresentVal,
+	      typename MBsIn,
+	      typename OutPositionsInIn>
+    struct _GetInsertBarrierForSubExpr;
+    
+    /// Internal implementation
+    template <size_t NotPresentVal,
+	      size_t...MBsIn,
+	      size_t...OutPositionsInIn>
+    struct _GetInsertBarrierForSubExpr<NotPresentVal,
+				       std::index_sequence<MBsIn...>,
+				       std::index_sequence<OutPositionsInIn...>>
+    {
+      /// Positions of output components as found in the input one into an array (for whatever reason, a c-array is not welcome)
+      static constexpr std::array<size_t,sizeof...(OutPositionsInIn)> outPositionsInIn=
+	{OutPositionsInIn...};
+      
+      /// Put the positions of input barriers into an array
+      static constexpr size_t mBsIn[]=
+	{MBsIn...};
+      
+      /// Check if a barrier must be included between IPrev and IPrev+1
+      template <size_t IPrev>
+      static constexpr bool insertBarrier=
+	(outPositionsInIn[IPrev]+1!=outPositionsInIn[IPrev+1] and not
+	 (outPositionsInIn[IPrev]==outPositionsInIn[IPrev] and outPositionsInIn[IPrev]==NotPresentVal)) or
+	((outPositionsInIn[IPrev+1]==MBsIn)||...);
+    };
+    
+    /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+    ///
+    /// Internal implementation, forward declaration
+    template <typename TcOut,
+	      typename TcIns,
+	      typename MBsIns,
+	      typename OutPositionsInIns,
+	      typename IcOuts=std::make_index_sequence<std::tuple_size_v<TcOut>-1>>
+    struct _GetTensorCompsMeldBarriersFromCompsRemapping;
+    
+    /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
+    ///
+    /// Internal implementation
+    template <typename...TcOut,
+	      typename...TcIns,
+	      typename...MBsIns,
+	      typename...OutPositionsInIns,
+	      size_t...IcOuts>
+    struct _GetTensorCompsMeldBarriersFromCompsRemapping<TensorComps<TcOut...>,
+					      std::tuple<TcIns...>,
+					      std::tuple<MBsIns...>,
+					      std::tuple<OutPositionsInIns...>,
+					      std::index_sequence<IcOuts...>>
+    {
+      /// Check if a barrier must be included between IPrev and IPrev+1
+      template <size_t IPrev>
+      static constexpr bool insertBarrier=
+	(_GetInsertBarrierForSubExpr<std::tuple_size_v<TcIns>,MBsIns,OutPositionsInIns>::template insertBarrier<IPrev>||...);
+      
+      /// If a barrier is needed, returns a tuple with the integral constant, otherwise an empty one
+      template <size_t IPrev>
+      using OptionalBarrier=
+	std::conditional_t<insertBarrier<IPrev>,
+			   std::tuple<std::integral_constant<size_t,IPrev+1>>,
+			   std::tuple<>>;
+      
+      /// Put together the possible barriers in a single tuple
+      using BarriersInATuple=
+	TupleCat<OptionalBarrier<IcOuts>...>;
+      
+      /// Resulting type obtained flattening the tuple of optional barriers
+      using type=
+	TupleOfIntegralConstantsToIntegerSequence<BarriersInATuple,size_t>;
+    };
+  }
   
   /////////////////////////////////////////////////////////////////
   

@@ -102,6 +102,131 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  namespace internal
+  {
+    /// Gets the mapping between product components and one of its factor
+    ///
+    /// Forward implementation
+    template <typename FCs, // Factor components
+	      typename ECs> // Excluded (contracted) components
+    struct _CompsRemappingForProductFactor;
+    
+    /// Gets the mapping between product components and one of its factor
+    ///
+    /// Invariant are passed as structure template arguments, while
+    /// the product arguments are scanned from the Getter substruct
+    template <typename...FactorComps,
+	      typename...ExcludedComps>
+    struct _CompsRemappingForProductFactor<TensorComps<FactorComps...>,
+					   TensorComps<ExcludedComps...>>
+    {
+      /// Tag to be used for "excluded" is the same of not found, that is, val beyond the end
+      static constexpr size_t notFoundTag=
+	sizeof...(FactorComps);
+      
+      /// Check if a given component is in the excluded list
+      template <typename PComp>
+      static constexpr bool isExcluded=
+	(std::is_same_v<ExcludedComps,PComp>||...);
+      
+      /// Take the position of the given component in the factor components
+      template <typename PComp>
+      static constexpr size_t pos=
+	firstOccurrenceOfType<PComp>(FactorComps{}...);
+      
+      /// Returns the position, or value past end if not found or excluded
+      template <typename PComp>
+      static constexpr size_t value=
+	isExcluded<PComp>?
+	notFoundTag:
+	pos<PComp>;
+      
+      /// Produce the resulting list
+      ///
+      /// Forward declaration
+      template <typename PComps>
+      struct _Getter;
+      
+      /// Produce the resulting list
+      template <typename...PComps>
+      struct _Getter<TensorComps<PComps...>>
+      {
+	/// Resulting type
+	using type=
+	  std::index_sequence<value<PComps>...>;
+      };
+    };
+    
+    /// Gets the mapping between product components and its factors
+    ///
+    /// Internal implementation, forward declaration
+    template <typename PCs, // Product components
+	      typename Fs,  // Factors
+	      typename CCs, // Excluded (contracted) components
+	      typename Is=  // Integer sequence to scan both args
+	      std::index_sequence<0,1>>
+    struct _GetCompsMeldBarriersForProduct;
+    
+    /// Gets the mapping between product components and its factors
+    ///
+    /// Internal implementation
+    /// The original implementation, with unrolled factors, can be
+    /// found on testNewExpr.cpp at commit 481b4908
+    template <typename PCs, // Product components
+	      typename Fs,  // Factors
+	      typename CCs, // Excluded (contracted) components
+	      size_t...Is>  // Integer sequence to scan both args
+    struct _GetCompsMeldBarriersForProduct<PCs,Fs,CCs,std::index_sequence<Is...>>
+    {
+      /// I-th Factor
+      template <size_t I>
+      using F=
+	typename std::tuple_element_t<I,Fs>;
+      
+      /// I-th Factor Components
+      template <size_t I>
+      using C=
+	typename F<I>::Comps;
+      
+      /// I-th Factor meld barriers
+      template <size_t I>
+      using M=
+	typename F<I>::CompsMeldBarriers;
+      
+      /// Components to exclude
+      ///
+      /// N.B: Second arguments needs to exclude the contracted
+      /// components, first factor needs to exclude transposed ones
+      template <size_t I>
+      using EC=
+	std::conditional_t<I==0,
+			   TransposeMatrixTensorComps<CCs>,
+			   CCs>;
+      
+      /// I-th remapping
+      template <size_t I>
+      using Remap=
+	typename _CompsRemappingForProductFactor<C<I>,EC<I>>::template _Getter<PCs>::type;
+      
+      /// Resulting barriers
+      using type=
+	typename internal::_GetTensorCompsMeldBarriersFromCompsRemapping<PCs,
+									 std::tuple<C<Is>...>,
+									 std::tuple<M<Is>...>,
+									 std::tuple<Remap<Is>...>>::type;
+    };
+  }
+  
+  /// Gets the mapping between product components and its factors
+  template <typename PCs, // Product components
+	    typename F1,  // First factor
+	    typename F2,  // Second factor
+	    typename CCs> // Excluded (contracted) components>
+  using GetCompsMeldBarriersForProduct=
+    typename internal::_GetCompsMeldBarriersForProduct<PCs,std::tuple<F1,F2>,CCs>::type;
+  
+  /////////////////////////////////////////////////////////////////
+  
   DEFINE_FEATURE(Producer);
   
 #define THIS					\
@@ -462,7 +587,7 @@ namespace nissa
     
     /// Fusable comps
     using CompsMeldBarriers=
-      EmptyCompsMeldBarriers;
+      GetCompsMeldBarriersForProduct<VisibleComps,E1,E2,ContractedComps>;
     
     /// Resulting type
     using Res=
