@@ -132,7 +132,7 @@ namespace nissa
       /// Take the position of the given component in the factor components
       template <typename PComp>
       static constexpr size_t pos=
-	firstOccurrenceOfType<PComp>(FactorComps{}...);
+	firstOccurrenceOfTypeInList<PComp,FactorComps...>;
       
       /// Returns the position, or value past end if not found or excluded
       template <typename PComp>
@@ -210,15 +210,43 @@ namespace nissa
       using Remap=
 	typename _CompsRemappingForProductFactor<C<I>,EC<I>>::template _Getter<PCs>::type;
       
-      /// Resulting barriers
-      using type=
+      /// Resulting barriers from remapping
+      using RemapBarr=
 	typename internal::_GetTensorCompsMeldBarriersFromCompsRemapping<PCs,
 									 std::tuple<C<Is>...>,
 									 std::tuple<M<Is>...>,
 									 std::tuple<Remap<Is>...>>::type;
       
-#warning needs to take into account iscomplprod
-    };
+      /// Position of the complex component
+      static constexpr size_t complPos=
+	firstOccurrenceOfTypeInTuple<ComplId,PCs>;
+      
+      /// Insert a barrier to avoid melding complex component
+      static constexpr auto _insertComplBarr(std::bool_constant<true>)
+      {
+	using ComplProdBarr=
+	  std::index_sequence<complPos,complPos+1>;
+	
+	using type=
+	  CompsMeldBarriersInsert<RemapBarr,ComplProdBarr>;
+	
+	return
+	  type{};
+      }
+      
+      /// Do not insert a barrier to avoid melding complex component
+      static constexpr auto _insertComplBarr(std::bool_constant<false>)
+      {
+	using type=
+	  RemapBarr;
+	
+	return type{};
+      };
+      
+      /// Iclude a barrier to avoid melding complex component if this is a complex product
+      using type=
+	decltype(_insertComplBarr(std::bool_constant<isComplProd>()));
+   };
   }
   
   /// Gets the mapping between product components and its factors
@@ -438,7 +466,7 @@ namespace nissa
     {
       /// Get the position of complex index
       constexpr size_t complPos=
-	firstOccurrenceOfType<ComplId>(NCCs{});
+	firstOccurrenceOfTypeInTuple<ComplId,NCCs>;
 	
       return
 	_getNonContractedCompsForComplProdPart(std::make_index_sequence<complPos>{},

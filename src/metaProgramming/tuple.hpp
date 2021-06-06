@@ -319,73 +319,80 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  namespace details
+  /// Inspects a tuple
+  ///
+  /// Forward declaration
+  template <typename TP>
+  struct TupleInspect;
+    
+  /// Inspect a tuple
+  template <typename...TPs>
+  struct TupleInspect<std::tuple<TPs...>>
   {
-    /// Returns the first occurrence of the first type in the tuple type
+    /// Returns the first occurrence of the type
     ///
     /// Internal implementation
-    template <typename T,
-	      typename...Tps>
-    constexpr size_t _firstOccurrenceOfType(std::tuple<Tps...>*)
+    template <typename T>
+    static constexpr size_t _firstOccurrenceOfType()
     {
       /// Compare the passed type
       constexpr bool is[]=
-	{std::is_same_v<Tps,T>...};
+	{std::is_same_v<TPs,T>...};
       
       /// Returned position
       size_t pos=0;
       
-      while(pos<sizeof...(Tps) and
-	    not is[pos])
+      while(pos<sizeof...(TPs) and
+	      not is[pos])
 	pos++;
       
       return
 	pos;
     }
-  }
-  
-  /// Returns the first occurrence of the first type in the other types, passed as arguments
-  template <typename T,
-	    typename...Tps>
-  constexpr size_t firstOccurrenceOfType(const Tps&...)
-  {
-    return
-      details::_firstOccurrenceOfType<T>((std::tuple<Tps...>*)nullptr);
-  }
-  
-  /// Returns the first occurrence of the first type in the type, not passed as arguments
-  template <typename T,
-	    typename...Tps>
-  constexpr size_t firstOccurrenceInTypesOfType()
-  {
-    return
-      details::_firstOccurrenceOfType<T>((std::tuple<Tps...>*)nullptr);
-  }
+    
+    /// Returns the first occurrence of the type
+    template <typename T>
+    static constexpr size_t firstOccurrenceOfType=
+      _firstOccurrenceOfType<T>();
+    
+    /// Returns the first occurrence of the types
+    template <typename...T>
+    using FirstOccurrenceOfTypes=
+      std::index_sequence<firstOccurrenceOfType<T>...>;
+    
+    /// Returns the first occurrence of the types incapsulated in the tuple
+    ///
+    /// Internal implementation
+    template <typename...OTPs>
+    static constexpr auto _firstOccurrenceOfTupleTypes(std::tuple<OTPs...>*)
+    {
+      return
+	FirstOccurrenceOfTypes<OTPs...>{};
+    }
+    
+    /// Returns the first occurrence of the types incapsulated in the tuple
+    template <typename OTP>
+    using FirstOccurrenceOfTupleTypes=
+      decltype(_firstOccurrenceOfTupleTypes((OTP*)nullptr));
+  };
   
   /// Returns the first occurrence of the first type in the argument tuple
   template <typename T,
-	    typename...Tps>
-  constexpr size_t firstOccurrenceOfType(const std::tuple<Tps...>&)
-  {
-    return
-      details::_firstOccurrenceOfType<T>((std::tuple<Tps...>*)nullptr);
-  }
+	    typename Tp>
+  constexpr size_t firstOccurrenceOfTypeInTuple=
+    TupleInspect<Tp>::template firstOccurrenceOfType<T>;
+  
+  /// Returns the first occurrence of the first type in the list
+  template <typename T,
+	    typename...Tp>
+  constexpr size_t firstOccurrenceOfTypeInList=
+    TupleInspect<std::tuple<Tp...>>::template firstOccurrenceOfType<T>;
   
   /// Returns the first occurrence of the first list of types in the argument tuple
-  template <typename...T,
-	    typename...Tps>
-  constexpr auto firstOccurrenceOfTypes(const std::tuple<T...>&,
-					 const std::tuple<Tps...>&)
-  {
-    return
-      std::index_sequence<firstOccurrenceInTypesOfType<T,Tps...>()...>{};
-  }
-  
-  /// Returns the first occurrence of the first list of types in the argument tuple
-  template <typename ToFind,
-	    typename ToBeSearched>
+  template <typename TupleTypesToSearch,
+	    typename TupleToInspect>
   using FirstOccurrenceOfTypes=
-    decltype(firstOccurrenceOfTypes(ToFind{},ToBeSearched{}));
+    typename TupleInspect<TupleToInspect>::template FirstOccurrenceOfTupleTypes<TupleTypesToSearch>;
   
   /////////////////////////////////////////////////////////////////
   

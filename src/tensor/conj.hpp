@@ -182,7 +182,7 @@ namespace nissa
       
       /// Position of complex component
       static constexpr size_t complPos=
-	firstOccurrenceOfType<ComplId>(Comps{});
+	firstOccurrenceOfTypeInTuple<ComplId,Comps>;
       
       /// Barriers between fusable components
       using CompsMeldBarriers=

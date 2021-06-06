@@ -280,11 +280,22 @@ namespace nissa
 	static constexpr size_t iNextInB=
 	  hasToShiftIn?(IInBs+1):IInBs;
 	
+	/// Insert only if not zero, or beyond the end
+	static constexpr bool insert=
+	  thisBarrierToInsert>0 and
+	  thisBarrierToInsert<BEYOND_THE_END;
+	
+	/// This iteration result
+	using ThisIter=
+	  std::conditional_t<insert,
+	  TensorCompsMeldBarriers<IOutBs...,thisBarrierToInsert>,
+	  TensorCompsMeldBarriers<IOutBs...>>;
+	
 	/// Resulting type
 	using type=
 	  typename InsertIter<iNextKB,
 			      iNextInB,
-			      TensorCompsMeldBarriers<IOutBs...,thisBarrierToInsert>>::type;
+			      ThisIter>::type;
       };
       
       /// Resulting type
