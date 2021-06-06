@@ -160,10 +160,11 @@ namespace nissa
     /// Gets the mapping between product components and its factors
     ///
     /// Internal implementation, forward declaration
-    template <typename PCs, // Product components
-	      typename Fs,  // Factors
-	      typename CCs, // Excluded (contracted) components
-	      typename Is=  // Integer sequence to scan both args
+    template <typename PCs,     // Product components
+	      typename Fs,      // Factors
+	      typename CCs,     // Excluded (contracted) components
+	      bool isComplProd, // Takes note if this is complex product
+	      typename Is=      // Integer sequence to scan both args
 	      std::index_sequence<0,1>>
     struct _GetCompsMeldBarriersForProduct;
     
@@ -172,11 +173,12 @@ namespace nissa
     /// Internal implementation
     /// The original implementation, with unrolled factors, can be
     /// found on testNewExpr.cpp at commit 481b4908
-    template <typename PCs, // Product components
-	      typename Fs,  // Factors
-	      typename CCs, // Excluded (contracted) components
-	      size_t...Is>  // Integer sequence to scan both args
-    struct _GetCompsMeldBarriersForProduct<PCs,Fs,CCs,std::index_sequence<Is...>>
+    template <typename PCs,     // Product components
+	      typename Fs,      // Factors
+	      typename CCs,     // Excluded (contracted) components
+	      bool isComplProd, // Takes note if this is complex product
+	      size_t...Is>      // Integer sequence to scan both args
+    struct _GetCompsMeldBarriersForProduct<PCs,Fs,CCs,isComplProd,std::index_sequence<Is...>>
     {
       /// I-th Factor
       template <size_t I>
@@ -214,23 +216,26 @@ namespace nissa
 									 std::tuple<C<Is>...>,
 									 std::tuple<M<Is>...>,
 									 std::tuple<Remap<Is>...>>::type;
+      
+#warning needs to take into account iscomplprod
     };
   }
   
   /// Gets the mapping between product components and its factors
-  template <typename PCs, // Product components
-	    typename F1,  // First factor
-	    typename F2,  // Second factor
-	    typename CCs> // Excluded (contracted) components>
+  template <typename PCs,     // Product components
+	    typename F1,      // First factor
+	    typename F2,      // Second factor
+	    typename CCs,     // Excluded (contracted) components
+	    bool isComplProd> // Takes note if this is complex product
   using GetCompsMeldBarriersForProduct=
-    typename internal::_GetCompsMeldBarriersForProduct<PCs,std::tuple<F1,F2>,CCs>::type;
+    typename internal::_GetCompsMeldBarriersForProduct<PCs,std::tuple<F1,F2>,CCs,isComplProd>::type;
   
   /////////////////////////////////////////////////////////////////
   
   DEFINE_FEATURE(Producer);
   
 #define THIS					\
-  Producer<_ContractedComps,_E1,_E2,_Comps,_CompsMeldBarriers,_EvalTo>
+  Producer<_ContractedComps,_E1,_E2,_Comps,_CompsMeldBarriers,_isComplProd,_EvalTo>
   
 #define NNEX					\
   NnaryExpr<THIS,				\
@@ -245,6 +250,7 @@ namespace nissa
 	    typename _E2,
 	    typename _Comps,
 	    typename _CompsMeldBarriers,
+	    bool _isComplProd,
 	    typename _EvalTo>
   struct Producer :
     ProducerFeat<THIS>,
@@ -298,9 +304,9 @@ namespace nissa
 	dynamicSizes;
     }
     
-    /// Detect complex component
+    /// Takes note wheter this is complex product
     static constexpr bool isComplProd=
-      tupleHasType<Comps,ComplId>;
+      _isComplProd;
     
     /// Evaluate the I-th argument, expanding the tuple containing the arguments into a list
     template <typename...Comps,
@@ -583,11 +589,14 @@ namespace nissa
     using _EvalTo=
       decltype(EvalTo1()*EvalTo2());
     
-#warning incomplete
+    /// Detect complex product
+    static constexpr bool isComplProd=
+      tupleHasType<C1,ComplId> and
+      tupleHasType<C2,ComplId>;
     
     /// Fusable comps
     using CompsMeldBarriers=
-      GetCompsMeldBarriersForProduct<VisibleComps,E1,E2,ContractedComps>;
+      GetCompsMeldBarriersForProduct<VisibleComps,E1,E2,ContractedComps,isComplProd>;
     
     /// Resulting type
     using Res=
@@ -596,6 +605,7 @@ namespace nissa
 	       decltype(e2),
 	       VisibleComps,
 	       CompsMeldBarriers,
+	       isComplProd,
 	       _EvalTo>;
     
     /// Resulting dynamic components
