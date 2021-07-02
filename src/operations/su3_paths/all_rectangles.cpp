@@ -132,7 +132,7 @@ namespace nissa
     for(int mu0=0;mu0<NDIM;mu0++)
       {
 	vector_copy(sme_conf,ori_conf);
-	smooth_lx_conf(sme_conf,pars->temp_smear_pars,only_dir[0]);
+	smooth_lx_conf(sme_conf,pars->temp_smear_pars,only_dir[mu0]);
 	verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
 	
 	//store temporal links and send them
@@ -154,7 +154,7 @@ namespace nissa
 	int imeas=0;
 	do
 	  {
-	    finished=smooth_lx_conf_until_next_meas(sme_conf,pars->spat_smear_pars,nsmooth,all_other_dirs[mu0]);
+	    finished=smooth_lx_conf_until_next_meas(sme_conf,pars->spat_smear_pars,nsmooth,all_other_dirs[mu0],1);
 	    verbosity_lv1_master_printf("Plaquette after %d perp to dir nsmooth %d: %16.16lg\n",
 					imeas,mu0,nsmooth,global_plaquette_lx_conf(sme_conf));
 	    

@@ -44,7 +44,7 @@ namespace nissa
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,int *dirs,int staple_min_dir)
   {
     for(int ismooth=0;ismooth<sp.nsmooth();ismooth++)
-      smooth_lx_conf_one_step(smoothed_conf,sp);
+      smooth_lx_conf_one_step(smoothed_conf,sp,dirs);
   }
   
   std::string smooth_pars_t::get_str(bool full)
