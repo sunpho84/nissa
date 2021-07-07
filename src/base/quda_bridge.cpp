@@ -117,7 +117,7 @@ namespace quda_iface
 	    int& geo_block_size_mu=quda_mg_param.geo_block_size[level][mu];
 	    
 	    const int nu=
-	      nissa::scidac_mapping[mu];
+	      (mu+1)%NDIM;
 	    
 	    int extent=glbSize[nu];
 	    
