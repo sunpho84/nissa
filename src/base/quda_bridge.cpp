@@ -260,34 +260,34 @@ namespace quda_iface
 		      "can be passed to the a Lanczos type solver!\n",
 		      level);
 	    
-	  //   mg_eig_param[level].n_ev;=quda_input.mg_eig_nEv[level];
-	  // mg_eig_param[level].n_kr=quda_input.mg_eig_nKr[level];
-	  // mg_eig_param[level].n_conv=quda_input.mg_n_vec[level];
-	  // mg_eig_param[level].require_convergence=quda_input.mg_eig_require_convergence[level];
-	  
-	  // mg_eig_param[level].tol=quda_input.mg_eig_tol[level];
-	  // mg_eig_param[level].check_interval=quda_input.mg_eig_check_interval[level];
-	  // mg_eig_param[level].max_restarts=quda_input.mg_eig_max_restarts[level];
-	  // // in principle this can be set to a different precision, but we always
-	  // // use double precision in the outer solver
-	  // mg_eig_param[level].cuda_prec_ritz=QUDA_DOUBLE_PRECISION;
-	  
-	  // // this seems to be set to NO in multigrid_invert_test
-	  // mg_eig_param[level].compute_svd=QUDA_BOOLEAN_NO;
-	  // mg_eig_param[level].use_norm_op=quda_input.mg_eig_use_normop[level]; 
-	  // mg_eig_param[level].use_dagger=quda_input.mg_eig_use_dagger[level];
-	  // mg_eig_param[level].use_poly_acc=quda_input.mg_eig_use_poly_acc[level]; 
-	  // mg_eig_param[level].poly_deg=quda_input.mg_eig_poly_deg[level];
-	  // mg_eig_param[level].a_min=quda_input.mg_eig_amin[level];
-	  // mg_eig_param[level].a_max=quda_input.mg_eig_amax[level];
-	  
-	  // set file i/o parameters
-	  // Give empty strings, Multigrid will handle IO.
-	  strcpy(mg_eig_param[level].vec_infile, "");
-	  strcpy(mg_eig_param[level].vec_outfile, "");
-	  strncpy(mg_eig_param[level].QUDA_logfile, "quda_eig.log", 512);
-	  
-	  quda_mg_param.eig_param[level]=&(mg_eig_param[level]);
+	    //   mg_eig_param[level].n_ev;=quda_input.mg_eig_nEv[level];
+	    // mg_eig_param[level].n_kr=quda_input.mg_eig_nKr[level];
+	    // mg_eig_param[level].n_conv=quda_input.mg_n_vec[level];
+	    // mg_eig_param[level].require_convergence=quda_input.mg_eig_require_convergence[level];
+	    
+	    // mg_eig_param[level].tol=quda_input.mg_eig_tol[level];
+	    // mg_eig_param[level].check_interval=quda_input.mg_eig_check_interval[level];
+	    // mg_eig_param[level].max_restarts=quda_input.mg_eig_max_restarts[level];
+	    // // in principle this can be set to a different precision, but we always
+	    // // use double precision in the outer solver
+	    // mg_eig_param[level].cuda_prec_ritz=QUDA_DOUBLE_PRECISION;
+	    
+	    // // this seems to be set to NO in multigrid_invert_test
+	    // mg_eig_param[level].compute_svd=QUDA_BOOLEAN_NO;
+	    // mg_eig_param[level].use_norm_op=quda_input.mg_eig_use_normop[level]; 
+	    // mg_eig_param[level].use_dagger=quda_input.mg_eig_use_dagger[level];
+	    // mg_eig_param[level].use_poly_acc=quda_input.mg_eig_use_poly_acc[level]; 
+	    // mg_eig_param[level].poly_deg=quda_input.mg_eig_poly_deg[level];
+	    // mg_eig_param[level].a_min=quda_input.mg_eig_amin[level];
+	    // mg_eig_param[level].a_max=quda_input.mg_eig_amax[level];
+	    
+	    // set file i/o parameters
+	    // Give empty strings, Multigrid will handle IO.
+	    strcpy(mg_eig_param[level].vec_infile, "");
+	    strcpy(mg_eig_param[level].vec_outfile, "");
+	    strncpy(mg_eig_param[level].QUDA_logfile, "quda_eig.log", 512);
+	    
+	    quda_mg_param.eig_param[level]=&(mg_eig_param[level]);
 	  }
 	else
 	  {
@@ -689,8 +689,6 @@ namespace quda_iface
     
     remap_nissa_to_quda(spincolor_in,source);
     
-    set_quda_mg_param();
-    
     if(1)
       {
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
@@ -707,8 +705,13 @@ namespace quda_iface
 	// this under/overrelaxation parameter is not related to the ones
 	// used in the MG
 	inv_param.omega=1.0;
-	
-	//if( check_quda_mg_setup_state(&quda_mg_setup_state, &quda_gauge_state, &quda_input) == TM_QUDA_MG_SETUP_RESET ){
+      }
+    
+    set_quda_mg_param();
+    
+    //if( check_quda_mg_setup_state(&quda_mg_setup_state, &quda_gauge_state, &quda_input) == TM_QUDA_MG_SETUP_RESET ){
+    if(1)
+      {
 	double atime=take_time();
 	if(quda_mg_preconditioner!=NULL)
 	  {
