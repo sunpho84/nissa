@@ -299,9 +299,12 @@ namespace quda_iface
     quda_mg_param.compute_null_vector=QUDA_COMPUTE_NULL_VECTOR_YES;
     quda_mg_param.generate_all_levels=QUDA_BOOLEAN_YES;
     
-    quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_TRUE;//quda_input.mg_run_low_mode_check;
-    quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_TRUE;
-    quda_mg_param.run_verify=QUDA_BOOLEAN_TRUE;
+    // quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_TRUE;//quda_input.mg_run_low_mode_check;
+    // quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_TRUE;
+    // quda_mg_param.run_verify=QUDA_BOOLEAN_TRUE;
+    quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_FALSE;//quda_input.mg_run_low_mode_check;
+    quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
+    quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
     
     mg_inv_param->verbosity=QUDA_SUMMARIZE;
     mg_inv_param->verbosity=QUDA_VERBOSE;
