@@ -18,6 +18,7 @@ __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/debug.cpp \
 	%D%/init.cpp \
 	%D%/memory_manager.cpp \
+	%D%/multiGridParams.cpp \
 	%D%/random.cpp \
 	%D%/vectors.cpp
 include_HEADERS+= \
@@ -28,6 +29,7 @@ include_HEADERS+= \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
 	%D%/memory_manager.hpp \
+	%D%/multiGridParams.hpp \
 	%D%/random.hpp \
 	%D%/vectors.hpp
 
