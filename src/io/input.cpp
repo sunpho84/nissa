@@ -449,7 +449,7 @@ namespace nissa
     tags.push_back(triple_tag("use_tmLQCD",		       use_tmLQCD));
 #endif
 #ifdef USE_DDALPHAAMG
-    tags.push_back(triple_tag("use_DDalphaAMG",		       use_DD));
+    tags.push_back(triple_tag("use_DDalphaAMG",		       multiGrid::use_multiGrid));
 #endif
 #ifdef USE_QUDA
     tags.push_back(triple_tag("use_QUDA",		       use_quda));

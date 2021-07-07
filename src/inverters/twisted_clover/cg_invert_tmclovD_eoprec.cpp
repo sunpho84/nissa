@@ -202,9 +202,9 @@ namespace nissa
 #endif
       //DD case
 #ifdef USE_DDALPHAAMG
-      if(use_DD and fabs(mass)<=DD::max_mass)
+      if(multiGrid::use_multiGrid and fabs(mass)<=multiGrid::max_mass)
 	{
-	  master_printf("max_mass: %lg<= mass: %lg, using DD\n",DD::max_mass,mass);
+	  master_printf("max_mass: %lg<= mass: %lg, using DD\n",multiGrid::max_mass,mass);
 	  
 	  DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
 	  

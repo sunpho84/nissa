@@ -127,7 +127,7 @@ namespace nissa
     if(checkIfQudaAvailableAndRequired() and not solved)
       solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,mass,nitermax,residue,source_lx);
     
-    if(checkIfDDalphaAvailableAndRequired(mass) and not solved)
+    if(multiGrid::checkIfDDalphaAvailableAndRequired(mass) and not solved)
       {
 	const double cSW=0;
 	solved=DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);

@@ -20,16 +20,10 @@
 namespace DD
 {
   DDalphaAMG_init init_params;
-  int &nlevels=init_params.number_of_levels;
   DDalphaAMG_parameters params;
-  int nsetups[MAX_MG_LEVELS];
-  int smoother_iterations;
-  double mu_factor[MAX_MG_LEVELS];
   DDalphaAMG_status status;
   bool setup_valid=false;
   bool inited=false;
-  bool block_size_set=false;
-  nissa::coords block_size[MAX_MG_LEVELS];
   
   //remap swapping x and z
   void remap_coord(nissa::coords out,const nissa::coords in)
@@ -59,84 +53,6 @@ namespace DD
   //return the index inside a spincolor
   static int vector_index_fct(int t,int z,int y,int x)
   {return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclx_of_coord_list(t,x,y,z);}
-  
-  //read the nissa configuration file
-  void read_DDalphaAMG_pars()
-  {
-    char path[]="DDalphaAMG_pars";
-    
-    smoother_iterations=4;
-    
-    nlevels=3;
-    
-    for(int ilev=0;ilev<nlevels;ilev++) nsetups[ilev]=4;
-    for(int ilev=0;ilev<nlevels;ilev++) mu_factor[ilev]=1;
-    
-    if(nissa::file_exists(path))
-      {
-	nissa::open_input(path);
-	int nr;
-	
-	do
-	  {
-	    char tag[100];
-	    nr=nissa::read_var_catcherr(tag,"%s",100);
-	    
-	    if(nr>=1)
-	      {
-		//number of levels
-		if(strcasecmp(tag,"nlevels")==0)
-		  {
-		    nissa::read_int(&nlevels);
-		    master_printf("DD: read nlevels=%d\n",nlevels);
-		  }
-		//number of smoother iterations
-		if(strcasecmp(tag,"smoother_iterations")==0)
-		  {
-		    nissa::read_int(&smoother_iterations);
-		    master_printf("DD: read smoother_iterations=%d\n",smoother_iterations);
-		  }
-		//maximal mass
-		if(strcasecmp(tag,"max_mass")==0)
-		  {
-		    nissa::read_double(&max_mass);
-		    master_printf("DD: read max_mass=%lg\n",max_mass);
-		  }
-		//number of setups
-		if(strcasecmp(tag,"nsetups")==0)
-		  for(int ilev=0;ilev<nlevels;ilev++)
-		    {
-		      nissa::read_int(&nsetups[ilev]);
-		      master_printf("DD: read nsetups[%d]=%d\n",ilev,nsetups[ilev]);
-		    }
-		//factor to increase mass in setup
-		if(strcasecmp(tag,"mu_factor")==0)
-		  for(int ilev=0;ilev<nlevels;ilev++)
-		    {
-		      nissa::read_double(&mu_factor[ilev]);
-		      master_printf("DD: read mu_factor[%d]=%lg\n",ilev,mu_factor[ilev]);
-		    }
-		//size of the blocks
-		if(strcasecmp(tag,"block_size")==0)
-		  {
-		    block_size_set=true;
-		    for(int ilev=0;ilev<nlevels;ilev++)
-		      for(int idir=0;idir<4;idir++)
-			{
-			  int jdir=nissa::scidac_mapping[idir];
-			  nissa::read_int(&block_size[ilev][jdir]);
-			  master_printf("DD: block_size[%d][%d*]=%d\n",ilev,jdir,block_size[ilev][jdir]);
-			}
-		    }
-	      }
-	    else master_printf("Finished reading the file '%s'\n",path);
-	  }
-	while(nr==1);
-	
-	nissa::close_input();
-      }
-    else master_printf("No '%s' file present, using standard configuration\n",path);
-  }
   
   //import a gauge configuration
   void import_gauge_conf(nissa::quad_su3 *conf)
@@ -212,6 +128,7 @@ namespace DD
 	init_params.comm_cart=nissa::cart_comm;
 	init_params.Cart_coords=cart_coords;
 	init_params.Cart_rank=cart_rank;
+	init_params.number_of_levels=nissa::multiGrid::nlevels;
 	
 	//sizes and coord
 	remap_coord(init_params.global_lattice,nissa::glbSize);
@@ -225,7 +142,8 @@ namespace DD
 	      (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%2==0)?
 	       (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%4==0)?4:2):
 	       (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%3==0)?3:1));
-	    if(block_size_set) init_params.block_lattice[dir]=block_size[0][dir];
+	    if(nissa::multiGrid::block_size_set)
+	      init_params.block_lattice[dir]=nissa::multiGrid::block_size[0][dir];
 	    master_printf("Dir %d block size: %d\n",dir,init_params.block_lattice[dir]);
 	    init_params.theta[dir]=0;
 	  }
@@ -249,6 +167,8 @@ namespace DD
     
     //to recheck
     DDalphaAMG_get_parameters(&params);
+    
+    using namespace nissa::multiGrid;
     
     //block_size
     if(block_size_set)

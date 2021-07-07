@@ -25,7 +25,8 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_param;
   
   EXTERN_QUDA_BRIDGE QudaMultigridParam quda_mg_param;
-  EXTERN_QUDA_BRIDGE QudaInvertParam inv_mg_param;
+  //EXTERN_QUDA_BRIDGE QudaInvertParam inv_mg_param;
+  EXTERN_QUDA_BRIDGE QudaEigParam mg_eig_param[QUDA_MAX_MG_LEVEL];
 #endif
   
   EXTERN_QUDA_BRIDGE void* quda_mg_preconditioner INIT_TO(nullptr);
