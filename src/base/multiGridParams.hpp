@@ -1,7 +1,6 @@
 #ifndef _MULTIGRIDPARAMS_HPP
 #define _MULTIGRIDPARAMS_HPP
 
-#include "DDalphaAMG.h"
 #include "geometry/geometry_lx.hpp"
 
 #ifndef EXTERN_MULTIGRID
@@ -9,6 +8,10 @@
  #define INIT_TO(var)
 #else
  #define INIT_TO(var) =var
+#endif
+
+#ifndef MAX_MG_LEVELS
+# define MAX_MG_LEVELS 4
 #endif
 
 namespace nissa
