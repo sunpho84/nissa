@@ -691,7 +691,7 @@ namespace quda_iface
     
     set_quda_mg_param();
     
-    if(0)
+    if(1)
       {
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
 	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
