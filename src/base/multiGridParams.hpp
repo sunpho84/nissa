@@ -16,6 +16,8 @@
 
 namespace nissa
 {
+  void read_DDalphaAMG_pars();
+  
   namespace multiGrid
   {
     EXTERN_MULTIGRID int nlevels INIT_TO(1);
@@ -27,8 +29,6 @@ namespace nissa
     EXTERN_MULTIGRID nissa::coords block_size[MAX_MG_LEVELS];
     
     EXTERN_MULTIGRID int use_multiGrid INIT_TO(1);
-    
-    void read_DDalphaAMG_pars();
     
     /// If DDalphaamg is available, check if requested and if the mass is below the maximal
     inline bool checkIfDDalphaAvailableAndRequired(const double& mass)
