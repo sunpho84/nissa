@@ -259,7 +259,7 @@ namespace nissa
     init_high_precision();
     
 #if defined USE_DDALPHAAMG or USE_QUDA
-    multiGrid::read_DDalphaAMG_pars();
+    read_DDalphaAMG_pars();
 #endif
     
     //initialize the base of the gamma matrices
