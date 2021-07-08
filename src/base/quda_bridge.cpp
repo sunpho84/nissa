@@ -187,10 +187,10 @@ namespace quda_iface
 	nissa_free(quda_of_loclx);
 	
 	// destroys the preconditioner if it was created
-	if(quda_mg_preconditioner!=NULL)
+	if(quda_mg_preconditioner!=nullptr)
 	  {
 	    destroyMultigridQuda(quda_mg_preconditioner);
-	    quda_mg_preconditioner=NULL;
+	    quda_mg_preconditioner=nullptr;
 	  }
 	
 	for(int mu=0;mu<NDIM;mu++)
@@ -449,15 +449,36 @@ namespace quda_iface
     
     if(multiGrid::use_multiGrid)
       {
+	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	inv_param.preconditioner=quda_mg_preconditioner;
+	
 	inv_mg_param=inv_param;
 	
-	const int& nlevels=multiGrid::nlevels;
+	inv_mg_param.Ls=1;
+	inv_mg_param.sp_pad=0;
+	inv_mg_param.cl_pad=0;
+	
+	inv_mg_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
+	inv_mg_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
+	inv_mg_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
+	inv_mg_param.dirac_order=QUDA_DIRAC_ORDER;
+	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
+	
+	inv_mg_param.input_location=QUDA_CPU_FIELD_LOCATION;
+	inv_mg_param.output_location=QUDA_CPU_FIELD_LOCATION;
+	
+	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
+	inv_mg_param.solution_type=QUDA_MAT_SOLUTION;
+	
+	inv_mg_param.dagger=QUDA_DAG_NO;
 	
 	quda_mg_param.setup_type=QUDA_NULL_VECTOR_SETUP;
 	quda_mg_param.pre_orthonormalize=QUDA_BOOLEAN_NO;
 	quda_mg_param.post_orthonormalize=QUDA_BOOLEAN_YES;
 	
+	const int& nlevels=multiGrid::nlevels;
 	quda_mg_param.n_level=nlevels;
+	
 	for(int level=0;level<nlevels;level++)
 	  {
 	    // set file i/o parameters
@@ -659,7 +680,7 @@ namespace quda_iface
 	quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
 	quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
 	
-	inv_mg_param.preconditioner=quda_mg_preconditioner;
+	inv_mg_param.preconditioner=nullptr;
 	inv_mg_param.verbosity=QUDA_SUMMARIZE;
 	inv_mg_param.verbosity=QUDA_VERBOSE;
 	
@@ -680,7 +701,6 @@ namespace quda_iface
 	// used in the MG
 	inv_param.omega=1.0;
       }
-    
   }
   
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
