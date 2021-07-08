@@ -524,7 +524,6 @@ namespace quda_iface
 	quda_mg_param.coarse_solver_ca_lambda_min[level]=0.0;
 	quda_mg_param.coarse_solver_ca_lambda_max[level]=-1.0;
 	
-	
 	// set the MG EigSolver parameters, almost equivalent to
 	// setEigParam from QUDA's multigrid_invert_test, except
 	// for cuda_prec_ritz (on 20190822)
@@ -684,7 +683,7 @@ namespace quda_iface
 	set_quda_mg_param();
 	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	inv_param.preconditioner=quda_mg_preconditioner;
-
+	
 	inv_mg_param.preconditioner=nullptr;
 	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
 	inv_mg_param.verbosity=QUDA_VERBOSE;
@@ -706,6 +705,8 @@ namespace quda_iface
     set_inverter_pars(kappa,mu,niter,residue);
     
     remap_nissa_to_quda(spincolor_in,source);
+    
+    printf("%d %d is QUDA_DIRECT_SOLVE %d?\n",inv_param.solve_type,inv_mg_param.solve_type,QUDA_DIRECT_SOLVE);
     
     if(is_master_rank())
       printQudaInvertParam(&inv_param);
