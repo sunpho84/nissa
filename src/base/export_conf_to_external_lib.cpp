@@ -20,11 +20,11 @@ namespace nissa
       {
 	//check inited
 	bool export_since_new=(check_old[i]==0);
-	if(not export_needed and export_since_new) master_printf("DD: Old checksum 0, need to export the conf\n");
+	if(not export_needed and export_since_new) master_printf("external library: Old checksum 0, need to export the conf\n");
 	export_needed|=export_since_new;
 	//check diff
 	bool export_since_diff=(check_old[i]!=check_cur[i]);
-	if(not export_needed and export_since_diff) master_printf("DD: Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
+	if(not export_needed and export_since_diff) master_printf("external library Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
 	export_needed|=export_since_diff;
 	//save
 	check_old[i]=check_cur[i];
@@ -48,7 +48,7 @@ namespace nissa
 	multiGrid::setup_valid=false;
 	
 	if(export_result)
-	  verbosity_lv1_master_printf("DD: conf set, plaquette %e\n",DD::status.info);
+	  verbosity_lv1_master_printf("external library conf set, plaquette %e\n",plaq);
 	else
 	  crash("configuration updating did not run correctly");
       }
