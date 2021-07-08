@@ -691,8 +691,9 @@ namespace quda_iface
     inv_param.verbosity=get_quda_verbosity();
     
     remap_nissa_to_quda(spincolor_in,source);
-    
-    if(1)
+
+    const int use_multigrid=0;
+    if(use_multigrid)
       {
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
 	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
@@ -708,40 +709,8 @@ namespace quda_iface
 	// this under/overrelaxation parameter is not related to the ones
 	// used in the MG
 	inv_param.omega=1.0;
-      }
-    
-    set_quda_mg_param();
-    
-    //if( check_quda_mg_setup_state(&quda_mg_setup_state, &quda_gauge_state, &quda_input) == TM_QUDA_MG_SETUP_RESET ){
-    if(1)
-      {
-	double atime=take_time();
-	if(quda_mg_preconditioner!=NULL)
-	  {
-	    master_printf("# QUDA: Destroying MG Preconditioner Setup\n");
-	    destroyMultigridQuda(quda_mg_preconditioner);
-	    //reset_quda_mg_setup_state(&quda_mg_setup_state);
-	    quda_mg_preconditioner = NULL;
-	  }
-	master_printf("# QUDA: Performing MG Preconditioner Setup\n");
-	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
-	inv_param.preconditioner=quda_mg_preconditioner;
-	//set_quda_mg_setup_state(&quda_mg_setup_state, &quda_gauge_state);
-	master_printf("# QUDA: MG Preconditioner Setup took %.3f seconds\n",take_time()-atime);
-	//   }
-	// else if ( check_quda_mg_setup_state(&quda_mg_setup_state, &quda_gauge_state, &quda_input) == TM_QUDA_MG_SETUP_UPDATE )  {
-	//   tm_debug_printf(0,0,"# QUDA: Updating MG Preconditioner Setup for gauge %d\n", quda_gauge_state.gauge_id);
-	// #ifdef TM_QUDA_EXPERIMENTAL
-	//       if( quda_input.mg_eig_preserve_deflation == QUDA_BOOLEAN_YES ){
-	//         tm_debug_printf(0,0,"# QUDA: Deflation subspace for gauge %d will be re-used!\n", quda_gauge_state.gauge_id);
-	//       }
-	// #endif
-	//  double atime = gettime();
-	//  updateMultigridQuda(quda_mg_preconditioner, &quda_mg_param);
-	//  set_quda_mg_setup_state(&quda_mg_setup_state, &quda_gauge_state);
-	//  tm_debug_printf(0,1,"# QUDA: MG Preconditioner Setup Update took %.3f seconds\n", gettime()-atime);
-	// } else {
-	//  tm_debug_printf(0,0,"# QUDA: Reusing MG Preconditioner Setup for gauge %d\n", quda_gauge_state.gauge_id);
+	
+	set_quda_mg_param();
       }
     
     if(is_master_rank())
