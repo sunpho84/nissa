@@ -6,7 +6,6 @@
 #endif
 
 #ifdef USE_DDALPHAAMG
-# include "DDalphaAMG.h"
 # include "base/DDalphaAMG_bridge.hpp"
 #endif
 

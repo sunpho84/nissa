@@ -1,7 +1,9 @@
 #ifndef _DDALPHAAMG_HPP
 #define _DDALPHAAMG_HPP
 
-#include <DDalphaAMG.h>
+#ifdef USE_DDALPHAAMG
+# include <DDalphaAMG.h>
+#endif
 
 #include "new_types/su3.hpp"
 #include "base/multiGridParams.hpp"
