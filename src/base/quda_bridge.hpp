@@ -38,13 +38,13 @@ namespace quda_iface
 
 namespace nissa
 {
-  EXTERN_QUDA_BRIDGE int use_quda INIT_TO(false);
+  EXTERN_QUDA_BRIDGE int use_quda INIT_TO(true);
   
   /// If Quda is available, check if requested
-  constexpr inline bool checkIfQudaAvailableAndRequired()
+  inline bool checkIfQudaAvailableAndRequired()
   {
 #ifdef USE_QUDA
-    if(USE_QUDA)
+    if(use_quda)
       return true;
     else
 #endif

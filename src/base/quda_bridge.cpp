@@ -691,9 +691,8 @@ namespace quda_iface
     inv_param.verbosity=get_quda_verbosity();
     
     remap_nissa_to_quda(spincolor_in,source);
-
-    const int use_multigrid=0;
-    if(use_multigrid)
+    
+    if(multiGrid::use_multiGrid)
       {
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
 	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
