@@ -1,6 +1,10 @@
 #ifndef _DDALPHAAMG_HPP
 #define _DDALPHAAMG_HPP
 
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #ifdef USE_DDALPHAAMG
 # include <DDalphaAMG.h>
 #endif
@@ -17,7 +21,9 @@
 
 namespace DD
 {
+#ifdef USE_DDALPHAAMG
   EXTERN_DD_BRIDGE DDalphaAMG_status status;
+#endif
   
   void finalize();
 #ifdef USE_DDALPHAAMG
