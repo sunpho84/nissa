@@ -157,9 +157,9 @@ namespace quda_iface
 	
 	inv_param=newQudaInvertParam();
 	
-	//inv_mg_param=newQudaInvertParam();
+	inv_mg_param=newQudaInvertParam();
 	quda_mg_param=newQudaMultigridParam();
-	quda_mg_param.invert_param=&inv_param;
+	quda_mg_param.invert_param=&inv_mg_param;
 	
 	for(int level=0;level<QUDA_MAX_MG_LEVEL;level++)
 	  mg_eig_param[level]=newQudaEigParam();
@@ -449,6 +449,8 @@ namespace quda_iface
     
     if(multiGrid::use_multiGrid)
       {
+	inv_mg_param=inv_param;
+	
 	const int& nlevels=multiGrid::nlevels;
 	
 	quda_mg_param.setup_type=QUDA_NULL_VECTOR_SETUP;
@@ -657,11 +659,11 @@ namespace quda_iface
 	quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
 	quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
 	
-	inv_param.preconditioner=quda_mg_preconditioner;
-	inv_param.verbosity=QUDA_SUMMARIZE;
-	inv_param.verbosity=QUDA_VERBOSE;
+	inv_mg_param.preconditioner=quda_mg_preconditioner;
+	inv_mg_param.verbosity=QUDA_SUMMARIZE;
+	inv_mg_param.verbosity=QUDA_VERBOSE;
 	
-	inv_param.solve_type=QUDA_DIRECT_SOLVE;
+	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
 	
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
 	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
