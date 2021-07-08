@@ -16,6 +16,7 @@ __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/bench.cpp \
 	%D%/close.cpp \
 	%D%/debug.cpp \
+	%D%/export_conf_to_external_lib.cpp \
 	%D%/init.cpp \
 	%D%/memory_manager.cpp \
 	%D%/multiGridParams.cpp \
