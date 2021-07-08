@@ -3,6 +3,7 @@
 #endif
 
 #include <base/export_conf_to_external_lib.hpp>
+#include <base/multiGridParams.hpp>
 
 namespace nissa
 {
