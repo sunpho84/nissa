@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "base/debug.hpp"
+#include "base/random.hpp"
 #include "new_types/complex.hpp"
 #include "routines/mpi_routines.hpp"
 
@@ -86,7 +87,6 @@ namespace nissa
   //read from a file, opened only on master rank
   template <class T> T master_fscan(FILE *stream,const char *tag)
   {
-    
     int thread_id=
 #if THREADS_TYPE == OPENMP_THREADS
       omp_get_thread_num()
