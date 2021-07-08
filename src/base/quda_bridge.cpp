@@ -155,56 +155,7 @@ namespace quda_iface
 	    gauge_param.ga_pad=std::max(gauge_param.ga_pad,surf_size);
 	  }
 	
-	///////////////////////////// inverter parameters ////////////////////////////////////
-	
 	inv_param=newQudaInvertParam();
-	
-	inv_param.Ls=1;
-	
-	inv_param.dagger=QUDA_DAG_NO;
-	inv_param.mass_normalization=QUDA_MASS_NORMALIZATION; ///Check
-	inv_param.solver_normalization=QUDA_DEFAULT_NORMALIZATION;
-	
-	inv_param.pipeline=0;
-	inv_param.gcrNkrylov=20;
-	
-	inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
-	inv_param.tol_hq=0.1;
-	inv_param.reliable_delta=1e-3; // ignored by multi-shift solver
-	inv_param.use_sloppy_partial_accumulator=0;
-	
-	// domain decomposition preconditioner parameters
-	inv_param.inv_type_precondition=QUDA_CG_INVERTER;
-	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
-	inv_param.precondition_cycle=1;
-	inv_param.tol_precondition=0.1;
-	inv_param.maxiter_precondition=10;
-	inv_param.verbosity_precondition=get_quda_verbosity();
-	
-	inv_param.omega=1.0;
-	
-	inv_param.cpu_prec=QUDA_DOUBLE_PRECISION;
-	inv_param.cuda_prec=QUDA_DOUBLE_PRECISION;
-	inv_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
-	inv_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
-	inv_param.cuda_prec_precondition=QUDA_HALF_PRECISION;
-	
-	inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
-	inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
-	inv_param.clover_cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
-	inv_param.clover_cuda_prec_precondition=QUDA_HALF_PRECISION;
-	inv_param.clover_cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
-	
-	inv_param.preserve_source=QUDA_PRESERVE_SOURCE_YES;
-	inv_param.dirac_order=QUDA_DIRAC_ORDER;
-	
-	inv_param.input_location=QUDA_CPU_FIELD_LOCATION;
-	inv_param.output_location=QUDA_CPU_FIELD_LOCATION;
-	
-	inv_param.tune=QUDA_TUNE_YES;
-	
-	inv_param.sp_pad=0;
-	inv_param.cl_pad=0;
 	
 	//inv_mg_param=newQudaInvertParam();
 	quda_mg_param=newQudaMultigridParam();
@@ -220,238 +171,6 @@ namespace quda_iface
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
 	initQuda(iCudaDevice);
-	
-	if(multiGrid::use_multiGrid)
-	  {
-	    const int& nlevels=multiGrid::nlevels;
-	    
-	    quda_mg_param.setup_type=QUDA_NULL_VECTOR_SETUP;
-	    quda_mg_param.pre_orthonormalize=QUDA_BOOLEAN_NO;
-	    quda_mg_param.post_orthonormalize=QUDA_BOOLEAN_YES;
-	    
-	    quda_mg_param.n_level=nlevels;
-	    for(int level=0;level<nlevels;level++)
-	      {
-		// set file i/o parameters
-		strcpy(quda_mg_param.vec_infile[level],"");
-		strcpy(quda_mg_param.vec_outfile[level],"");
-		
-		for(int mu=0;mu<NDIM;mu++)
-		  {
-		    const int ext_block_size_mu=multiGrid::block_size[level][mu];
-		    int& geo_block_size_mu=quda_mg_param.geo_block_size[level][mu];
-		    
-		    const int nu=
-		      (mu+1)%NDIM;
-		    
-		    int extent=glbSize[nu];
-		    
-		    //determine how many lattice sites remain at the current level
-		    for(int k=level;k>0;k--)
-		      extent=extent/quda_mg_param.geo_block_size[k-1][mu];
-		    
-		    //for the coarsest level, the block size is always set to 1
-		    if(level==nlevels-1)
-		      quda_mg_param.geo_block_size[level][mu]=1;
-		    else
-		      {
-			//the block size for this level and dimension has been set non-zero in the input file
-			//we respect this no matter what
-			if(ext_block_size_mu!=0)
-			  quda_mg_param.geo_block_size[level][mu]=ext_block_size_mu;
-			else
-			  {
-			    // on all levels, we try to use a block size of 4^4 and compute the
-			    // number of fine or aggregate lattice sites on a given level,
-			    // resulting in block sizes of:
-			    // - 4 if the extent is larger or equal to 16 and
-			    // - 2 otherwise
-			    // When an extent is divisible by three, smaller or equal to 24 and when we're
-			    // not on the finest grid [and the user has explicitly enabled support
-			    // for these block lengths  (and therefore also adjusted QUDA to instantiate them)],
-			    // we use a block length of 3.
-			    // If aggregation using an even number of lattice points (if size 3 is disabled)
-			    // is not possible or if the extent is 1 or some divisible only by some prime number
-			    // other than 3 or 2, we use a block size of 1
-			    int even_block_size=4;
-			    if(extent<16)
-			      even_block_size=2;
-			    
-			    // special treatment of size 24 lattice extents on the fine grid
-			    if(extent<=24 and extent%3==0)// and quda_input.mg_enable_size_three_blocks)
-			      geo_block_size_mu=3;
-			    else
-			      if(extent%even_block_size==0)
-				geo_block_size_mu=even_block_size;
-			      else
-				geo_block_size_mu=1;
-			  }
-		      }
-		    
-		    verbosity_lv1_master_printf("# QUDA: MG level %d, extent of (xyzt) dim %d: %d\n",level,mu,extent);
-		    verbosity_lv1_master_printf("# QUDA: MG aggregation size set to: %d\n",geo_block_size_mu);
-		    
-		    //check that all lattice extents are even after blocking on all levels
-		    if(level < nlevels-1 and (extent/geo_block_size_mu%2))
-		      crash("MG level %d, dim %d (xyzt) has extent %d. Block size of %d would result "
-			    "in odd extent on level %d, aborting!\n"
-			    "Adjust your block sizes or parallelisation, all local lattice extents on all levels must be even!\n",
-			    level,mu,extent, geo_block_size_mu,level+1);
-		    
-		  }
-		
-		/// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
-		
-		quda_mg_param.verbosity[level]=get_quda_verbosity();
-		quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
-		quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
-		
-		quda_mg_param.num_setup_iter[level]=1;  //Experimental - keep this set to 1
-		quda_mg_param.setup_tol[level]=5e-6;    //Usually around 5e-6 is good.
-		quda_mg_param.setup_maxiter[level]=750; //500-1000 should work for most systems
-		// If doing twisted mass, we can scale the twisted mass on the coarser grids
-		// which significantly increases speed of convergence as a result of making
-		// the coarsest grid solve a lot better conditioned.
-		// Dean Howarth has some RG arguments on why the coarse mass parameter should be
-		// rescaled for the coarse operator to be optimal.
-		if(fabs(inv_param.mu)>0)
-		  {
-		    quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
-		    master_printf("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
-		  }
-		
-		//Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
-		quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
-		quda_mg_param.coarse_solver_tol[level]=0.25;          //Suggest setting each level to 0.25
-		quda_mg_param.coarse_solver_maxiter[level]=50;        //Suggest setting in the range 8-100
-		quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
-		quda_mg_param.n_vec[level]=24;                        //24 or 32 is supported presently
-		quda_mg_param.nu_pre[level]=0;                        //Suggest setting to 0
-		quda_mg_param.nu_post[level]=8;                       //Suggest setting to 8
-		
-		//Always set to QUDA_MG_CYCLE_RECURSIVE (this sets the MG cycles to be a K-cycle which is generally superior to a V-cycle for non-Hermitian systems)
-		quda_mg_param.cycle_type[level]=QUDA_MG_CYCLE_RECURSIVE;
-		//Set to QUDA_CUDA_FIELD_LOCATION for all levels
-		quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
-		quda_mg_param.setup_location[level]=QUDA_CUDA_FIELD_LOCATION;
-		
-		quda_mg_param.smoother[level]=QUDA_CA_GCR_INVERTER;   //Set to QUDA_CA_GCR_INVERTER for each level
-		quda_mg_param.smoother_tol[level]=0.25;               //Suggest setting each level to 0.25
-		quda_mg_param.smoother_schwarz_cycle[level]=1;        //Experimental, set to 1 for each level
-		//Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
-		quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
-		//Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
-		quda_mg_param.smoother_schwarz_type[level]=QUDA_INVALID_SCHWARZ;
-		quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
-		
-		// when the Schwarz-alternating smoother is used, this can be set to NO, otherwise it must be YES
-		quda_mg_param.global_reduction[level]=QUDA_BOOLEAN_YES;
-		
-		// set to QUDA_MAT_SOLUTION to inject a full field into coarse grid
-		// set to QUDA_MATPC_SOLUTION to inject single parity field into coarse grid
-		// if we are using an outer even-odd preconditioned solve, then we
-		// use single parity injection into the coarse grid
-		quda_mg_param.coarse_grid_solution_type[level]=
-		  (inv_param.solve_type==QUDA_DIRECT_PC_SOLVE?QUDA_MATPC_SOLUTION:QUDA_MAT_SOLUTION);
-		quda_mg_param.omega[level]=0.9;  //Set to 0.8-1.0
-		
-		quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
-		
-		quda_mg_param.setup_ca_basis[level]     =QUDA_POWER_BASIS;
-		quda_mg_param.setup_ca_basis_size[level]=4;
-		quda_mg_param.setup_ca_lambda_min[level]=0.0;
-		quda_mg_param.setup_ca_lambda_max[level]=-1.0;
-		
-		quda_mg_param.coarse_solver_ca_basis[level]=QUDA_POWER_BASIS;
-		quda_mg_param.coarse_solver_ca_basis_size[level]=4;
-		quda_mg_param.coarse_solver_ca_lambda_min[level]=0.0;
-		quda_mg_param.coarse_solver_ca_lambda_max[level]=-1.0;
-		
-		
-		// set the MG EigSolver parameters, almost equivalent to
-		// setEigParam from QUDA's multigrid_invert_test, except
-		// for cuda_prec_ritz (on 20190822)
-		if(0)//quda_input.mg_use_eig_solver[level]==QUDA_BOOLEAN_YES )
-		  {
-		    quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
-		    mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
-		    mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
-		    
-		    if((mg_eig_param[level].eig_type==QUDA_EIG_TR_LANCZOS or
-			mg_eig_param[level].eig_type==QUDA_EIG_IR_ARNOLDI)
-		       and not(mg_eig_param[level].spectrum==QUDA_SPECTRUM_LR_EIG or
-			       mg_eig_param[level].spectrum==QUDA_SPECTRUM_SR_EIG))
-		      crash("ERROR: MG level %d: Only real spectrum type (LR or SR)"
-			    "can be passed to the a Lanczos type solver!\n",
-			    level);
-		    
-		    //   mg_eig_param[level].n_ev;=quda_input.mg_eig_nEv[level];
-		    // mg_eig_param[level].n_kr=quda_input.mg_eig_nKr[level];
-		    // mg_eig_param[level].n_conv=quda_input.mg_n_vec[level];
-		    // mg_eig_param[level].require_convergence=quda_input.mg_eig_require_convergence[level];
-		    
-		    // mg_eig_param[level].tol=quda_input.mg_eig_tol[level];
-		    // mg_eig_param[level].check_interval=quda_input.mg_eig_check_interval[level];
-		    // mg_eig_param[level].max_restarts=quda_input.mg_eig_max_restarts[level];
-		    // // in principle this can be set to a different precision, but we always
-		    // // use double precision in the outer solver
-		    // mg_eig_param[level].cuda_prec_ritz=QUDA_DOUBLE_PRECISION;
-		    
-		    // // this seems to be set to NO in multigrid_invert_test
-		    // mg_eig_param[level].compute_svd=QUDA_BOOLEAN_NO;
-		    // mg_eig_param[level].use_norm_op=quda_input.mg_eig_use_normop[level]; 
-		    // mg_eig_param[level].use_dagger=quda_input.mg_eig_use_dagger[level];
-		    // mg_eig_param[level].use_poly_acc=quda_input.mg_eig_use_poly_acc[level]; 
-		    // mg_eig_param[level].poly_deg=quda_input.mg_eig_poly_deg[level];
-		    // mg_eig_param[level].a_min=quda_input.mg_eig_amin[level];
-		    // mg_eig_param[level].a_max=quda_input.mg_eig_amax[level];
-		    
-		    // set file i/o parameters
-		    // Give empty strings, Multigrid will handle IO.
-		    strcpy(mg_eig_param[level].vec_infile, "");
-		    strcpy(mg_eig_param[level].vec_outfile, "");
-		    strncpy(mg_eig_param[level].QUDA_logfile, "quda_eig.log", 512);
-		    
-		    quda_mg_param.eig_param[level]=&(mg_eig_param[level]);
-		  }
-		else
-		  {
-		    quda_mg_param.eig_param[level]=NULL;
-		    quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_NO;
-		  }
-	      }
-	    
-	    quda_mg_param.compute_null_vector=QUDA_COMPUTE_NULL_VECTOR_YES;
-	    quda_mg_param.generate_all_levels=QUDA_BOOLEAN_YES;
-	    
-	    // quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_TRUE;//quda_input.mg_run_low_mode_check;
-	    // quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_TRUE;
-	    // quda_mg_param.run_verify=QUDA_BOOLEAN_TRUE;
-	    quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_FALSE;//quda_input.mg_run_low_mode_check;
-	    quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
-	    quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
-	    
-	    inv_param.preconditioner=quda_mg_preconditioner;
-	    inv_param.verbosity=QUDA_SUMMARIZE;
-	    inv_param.verbosity=QUDA_VERBOSE;
-	    
-	    inv_param.solve_type=QUDA_DIRECT_SOLVE;
-	    	    
-	    // coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
-	    if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
-	      inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
-	    inv_param.inv_type=QUDA_GCR_INVERTER;
-	    inv_param.gcrNkrylov=10; //from default in read_input.l
-	    inv_param.inv_type_precondition=QUDA_MG_INVERTER;
-	    inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
-	    inv_param.reliable_delta=1e-5; //from default in read_input.l
-	    inv_param.precondition_cycle=1;
-	    inv_param.tol_precondition=1e-1;
-	    inv_param.maxiter_precondition=1;
-	    // this under/overrelaxation parameter is not related to the ones
-	    // used in the MG
-	    inv_param.omega=1.0;
-	  }
 	
 	inited=1;
       }
@@ -659,10 +378,8 @@ namespace quda_iface
     remap_quda_to_nissa(out,spincolor_out);
   }
   
-  bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
+  void set_inverter_pars(const double& kappa,const double& mu,const int& niter,const double& residue)
   {
-    load_conf(conf);
-    
     inv_param.kappa=kappa;
     
     inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
@@ -683,6 +400,292 @@ namespace quda_iface
     inv_param.Ls=1;
     
     inv_param.verbosity=get_quda_verbosity();
+    inv_param.Ls=1;
+    
+    inv_param.dagger=QUDA_DAG_NO;
+    inv_param.mass_normalization=QUDA_MASS_NORMALIZATION; ///Check
+    inv_param.solver_normalization=QUDA_DEFAULT_NORMALIZATION;
+    
+    inv_param.pipeline=0;
+    inv_param.gcrNkrylov=20;
+    
+    inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
+    inv_param.tol_hq=0.1;
+    inv_param.reliable_delta=1e-3; // ignored by multi-shift solver
+    inv_param.use_sloppy_partial_accumulator=0;
+    
+    // domain decomposition preconditioner parameters
+    inv_param.inv_type_precondition=QUDA_CG_INVERTER;
+    inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
+    inv_param.precondition_cycle=1;
+    inv_param.tol_precondition=0.1;
+    inv_param.maxiter_precondition=10;
+    inv_param.verbosity_precondition=get_quda_verbosity();
+    
+    inv_param.omega=1.0;
+    
+    inv_param.cpu_prec=QUDA_DOUBLE_PRECISION;
+    inv_param.cuda_prec=QUDA_DOUBLE_PRECISION;
+    inv_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.cuda_prec_precondition=QUDA_HALF_PRECISION;
+    
+    inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
+    inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
+    inv_param.clover_cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.clover_cuda_prec_precondition=QUDA_HALF_PRECISION;
+    inv_param.clover_cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
+    
+    inv_param.preserve_source=QUDA_PRESERVE_SOURCE_YES;
+    inv_param.dirac_order=QUDA_DIRAC_ORDER;
+    
+    inv_param.input_location=QUDA_CPU_FIELD_LOCATION;
+    inv_param.output_location=QUDA_CPU_FIELD_LOCATION;
+    
+    inv_param.tune=QUDA_TUNE_YES;
+    
+    inv_param.sp_pad=0;
+    inv_param.cl_pad=0;
+    
+    if(multiGrid::use_multiGrid)
+      {
+	const int& nlevels=multiGrid::nlevels;
+	
+	quda_mg_param.setup_type=QUDA_NULL_VECTOR_SETUP;
+	quda_mg_param.pre_orthonormalize=QUDA_BOOLEAN_NO;
+	quda_mg_param.post_orthonormalize=QUDA_BOOLEAN_YES;
+	
+	quda_mg_param.n_level=nlevels;
+	for(int level=0;level<nlevels;level++)
+	  {
+	    // set file i/o parameters
+	    strcpy(quda_mg_param.vec_infile[level],"");
+	    strcpy(quda_mg_param.vec_outfile[level],"");
+	    
+	    for(int mu=0;mu<NDIM;mu++)
+	      {
+		const int ext_block_size_mu=multiGrid::block_size[level][mu];
+		int& geo_block_size_mu=quda_mg_param.geo_block_size[level][mu];
+		
+		const int nu=
+		  (mu+1)%NDIM;
+		
+		int extent=glbSize[nu];
+		
+		//determine how many lattice sites remain at the current level
+		for(int k=level;k>0;k--)
+		  extent=extent/quda_mg_param.geo_block_size[k-1][mu];
+		
+		//for the coarsest level, the block size is always set to 1
+		if(level==nlevels-1)
+		  quda_mg_param.geo_block_size[level][mu]=1;
+		else
+		  {
+		    //the block size for this level and dimension has been set non-zero in the input file
+		    //we respect this no matter what
+		    if(ext_block_size_mu!=0)
+		      quda_mg_param.geo_block_size[level][mu]=ext_block_size_mu;
+		    else
+		      {
+			// on all levels, we try to use a block size of 4^4 and compute the
+			// number of fine or aggregate lattice sites on a given level,
+			// resulting in block sizes of:
+			// - 4 if the extent is larger or equal to 16 and
+			// - 2 otherwise
+			// When an extent is divisible by three, smaller or equal to 24 and when we're
+			// not on the finest grid [and the user has explicitly enabled support
+			// for these block lengths  (and therefore also adjusted QUDA to instantiate them)],
+			// we use a block length of 3.
+			// If aggregation using an even number of lattice points (if size 3 is disabled)
+			// is not possible or if the extent is 1 or some divisible only by some prime number
+			// other than 3 or 2, we use a block size of 1
+			int even_block_size=4;
+			if(extent<16)
+			  even_block_size=2;
+			
+			// special treatment of size 24 lattice extents on the fine grid
+			if(extent<=24 and extent%3==0)// and quda_input.mg_enable_size_three_blocks)
+			  geo_block_size_mu=3;
+			else
+			  if(extent%even_block_size==0)
+			    geo_block_size_mu=even_block_size;
+			  else
+			    geo_block_size_mu=1;
+		      }
+		  }
+		
+		verbosity_lv1_master_printf("# QUDA: MG level %d, extent of (xyzt) dim %d: %d\n",level,mu,extent);
+		verbosity_lv1_master_printf("# QUDA: MG aggregation size set to: %d\n",geo_block_size_mu);
+		
+		//check that all lattice extents are even after blocking on all levels
+		if(level < nlevels-1 and (extent/geo_block_size_mu%2))
+		  crash("MG level %d, dim %d (xyzt) has extent %d. Block size of %d would result "
+			"in odd extent on level %d, aborting!\n"
+			"Adjust your block sizes or parallelisation, all local lattice extents on all levels must be even!\n",
+			level,mu,extent, geo_block_size_mu,level+1);
+		
+	      }
+	    
+	    /// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
+	    
+	    quda_mg_param.verbosity[level]=get_quda_verbosity();
+	    quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
+	    quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
+	    
+	    quda_mg_param.num_setup_iter[level]=1;  //Experimental - keep this set to 1
+	    quda_mg_param.setup_tol[level]=5e-6;    //Usually around 5e-6 is good.
+	    quda_mg_param.setup_maxiter[level]=750; //500-1000 should work for most systems
+	    // If doing twisted mass, we can scale the twisted mass on the coarser grids
+	    // which significantly increases speed of convergence as a result of making
+	    // the coarsest grid solve a lot better conditioned.
+	    // Dean Howarth has some RG arguments on why the coarse mass parameter should be
+	    // rescaled for the coarse operator to be optimal.
+	    if(fabs(inv_param.mu)>0)
+	      {
+		quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
+		master_printf("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
+	      }
+	    
+	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
+	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
+	    quda_mg_param.coarse_solver_tol[level]=0.25;          //Suggest setting each level to 0.25
+	    quda_mg_param.coarse_solver_maxiter[level]=50;        //Suggest setting in the range 8-100
+	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
+	    quda_mg_param.n_vec[level]=24;                        //24 or 32 is supported presently
+	    quda_mg_param.nu_pre[level]=0;                        //Suggest setting to 0
+	    quda_mg_param.nu_post[level]=8;                       //Suggest setting to 8
+	    
+	    //Always set to QUDA_MG_CYCLE_RECURSIVE (this sets the MG cycles to be a K-cycle which is generally superior to a V-cycle for non-Hermitian systems)
+	    quda_mg_param.cycle_type[level]=QUDA_MG_CYCLE_RECURSIVE;
+	    //Set to QUDA_CUDA_FIELD_LOCATION for all levels
+	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
+	    quda_mg_param.setup_location[level]=QUDA_CUDA_FIELD_LOCATION;
+	    
+	    quda_mg_param.smoother[level]=QUDA_CA_GCR_INVERTER;   //Set to QUDA_CA_GCR_INVERTER for each level
+	    quda_mg_param.smoother_tol[level]=0.25;               //Suggest setting each level to 0.25
+	    quda_mg_param.smoother_schwarz_cycle[level]=1;        //Experimental, set to 1 for each level
+	    //Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
+	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
+	    //Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
+	    quda_mg_param.smoother_schwarz_type[level]=QUDA_INVALID_SCHWARZ;
+	    quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
+	    
+	    // when the Schwarz-alternating smoother is used, this can be set to NO, otherwise it must be YES
+	    quda_mg_param.global_reduction[level]=QUDA_BOOLEAN_YES;
+	    
+	    // set to QUDA_MAT_SOLUTION to inject a full field into coarse grid
+	    // set to QUDA_MATPC_SOLUTION to inject single parity field into coarse grid
+	    // if we are using an outer even-odd preconditioned solve, then we
+	    // use single parity injection into the coarse grid
+	    quda_mg_param.coarse_grid_solution_type[level]=
+	      (inv_param.solve_type==QUDA_DIRECT_PC_SOLVE?QUDA_MATPC_SOLUTION:QUDA_MAT_SOLUTION);
+	    quda_mg_param.omega[level]=0.9;  //Set to 0.8-1.0
+	    
+	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
+	    
+	    quda_mg_param.setup_ca_basis[level]     =QUDA_POWER_BASIS;
+	    quda_mg_param.setup_ca_basis_size[level]=4;
+	    quda_mg_param.setup_ca_lambda_min[level]=0.0;
+	    quda_mg_param.setup_ca_lambda_max[level]=-1.0;
+	    
+	    quda_mg_param.coarse_solver_ca_basis[level]=QUDA_POWER_BASIS;
+	    quda_mg_param.coarse_solver_ca_basis_size[level]=4;
+	    quda_mg_param.coarse_solver_ca_lambda_min[level]=0.0;
+	    quda_mg_param.coarse_solver_ca_lambda_max[level]=-1.0;
+	    
+	    
+	    // set the MG EigSolver parameters, almost equivalent to
+	    // setEigParam from QUDA's multigrid_invert_test, except
+	    // for cuda_prec_ritz (on 20190822)
+	    if(0)//quda_input.mg_use_eig_solver[level]==QUDA_BOOLEAN_YES )
+	      {
+		quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
+		mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
+		mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
+		
+		if((mg_eig_param[level].eig_type==QUDA_EIG_TR_LANCZOS or
+		    mg_eig_param[level].eig_type==QUDA_EIG_IR_ARNOLDI)
+		   and not(mg_eig_param[level].spectrum==QUDA_SPECTRUM_LR_EIG or
+			   mg_eig_param[level].spectrum==QUDA_SPECTRUM_SR_EIG))
+		  crash("ERROR: MG level %d: Only real spectrum type (LR or SR)"
+			"can be passed to the a Lanczos type solver!\n",
+			level);
+		
+		//   mg_eig_param[level].n_ev;=quda_input.mg_eig_nEv[level];
+		// mg_eig_param[level].n_kr=quda_input.mg_eig_nKr[level];
+		// mg_eig_param[level].n_conv=quda_input.mg_n_vec[level];
+		// mg_eig_param[level].require_convergence=quda_input.mg_eig_require_convergence[level];
+		
+		// mg_eig_param[level].tol=quda_input.mg_eig_tol[level];
+		// mg_eig_param[level].check_interval=quda_input.mg_eig_check_interval[level];
+		// mg_eig_param[level].max_restarts=quda_input.mg_eig_max_restarts[level];
+		// // in principle this can be set to a different precision, but we always
+		// // use double precision in the outer solver
+		// mg_eig_param[level].cuda_prec_ritz=QUDA_DOUBLE_PRECISION;
+		
+		// // this seems to be set to NO in multigrid_invert_test
+		// mg_eig_param[level].compute_svd=QUDA_BOOLEAN_NO;
+		// mg_eig_param[level].use_norm_op=quda_input.mg_eig_use_normop[level]; 
+		// mg_eig_param[level].use_dagger=quda_input.mg_eig_use_dagger[level];
+		// mg_eig_param[level].use_poly_acc=quda_input.mg_eig_use_poly_acc[level]; 
+		// mg_eig_param[level].poly_deg=quda_input.mg_eig_poly_deg[level];
+		// mg_eig_param[level].a_min=quda_input.mg_eig_amin[level];
+		// mg_eig_param[level].a_max=quda_input.mg_eig_amax[level];
+		
+		// set file i/o parameters
+		// Give empty strings, Multigrid will handle IO.
+		strcpy(mg_eig_param[level].vec_infile, "");
+		strcpy(mg_eig_param[level].vec_outfile, "");
+		strncpy(mg_eig_param[level].QUDA_logfile, "quda_eig.log", 512);
+		
+		quda_mg_param.eig_param[level]=&(mg_eig_param[level]);
+	      }
+	    else
+	      {
+		quda_mg_param.eig_param[level]=NULL;
+		quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_NO;
+	      }
+	  }
+	
+	quda_mg_param.compute_null_vector=QUDA_COMPUTE_NULL_VECTOR_YES;
+	quda_mg_param.generate_all_levels=QUDA_BOOLEAN_YES;
+	
+	// quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_TRUE;//quda_input.mg_run_low_mode_check;
+	// quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_TRUE;
+	// quda_mg_param.run_verify=QUDA_BOOLEAN_TRUE;
+	quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_FALSE;//quda_input.mg_run_low_mode_check;
+	quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
+	quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
+	
+	inv_param.preconditioner=quda_mg_preconditioner;
+	inv_param.verbosity=QUDA_SUMMARIZE;
+	inv_param.verbosity=QUDA_VERBOSE;
+	
+	inv_param.solve_type=QUDA_DIRECT_SOLVE;
+	
+	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
+	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
+	  inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
+	inv_param.inv_type=QUDA_GCR_INVERTER;
+	inv_param.gcrNkrylov=10; //from default in read_input.l
+	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
+	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
+	inv_param.reliable_delta=1e-5; //from default in read_input.l
+	inv_param.precondition_cycle=1;
+	inv_param.tol_precondition=1e-1;
+	inv_param.maxiter_precondition=1;
+	// this under/overrelaxation parameter is not related to the ones
+	// used in the MG
+	inv_param.omega=1.0;
+      }
+    
+  }
+  
+  bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
+  {
+    load_conf(conf);
+    
+    set_inverter_pars(kappa,mu,niter,residue);
     
     remap_nissa_to_quda(spincolor_in,source);
     
