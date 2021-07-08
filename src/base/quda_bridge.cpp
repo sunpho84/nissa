@@ -400,10 +400,9 @@ namespace quda_iface
     inv_param.Ls=1;
     
     inv_param.verbosity=get_quda_verbosity();
-    inv_param.Ls=1;
     
     inv_param.dagger=QUDA_DAG_NO;
-    inv_param.mass_normalization=QUDA_MASS_NORMALIZATION; ///Check
+    inv_param.mass_normalization=QUDA_MASS_NORMALIZATION;
     inv_param.solver_normalization=QUDA_DEFAULT_NORMALIZATION;
     
     inv_param.pipeline=0;
@@ -411,7 +410,7 @@ namespace quda_iface
     
     inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
     inv_param.tol_hq=0.1;
-    inv_param.reliable_delta=1e-3; // ignored by multi-shift solver
+    inv_param.reliable_delta=1e-3;
     inv_param.use_sloppy_partial_accumulator=0;
     
     // domain decomposition preconditioner parameters
@@ -449,25 +448,44 @@ namespace quda_iface
     
     if(multiGrid::use_multiGrid)
       {
-	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
-	inv_param.preconditioner=quda_mg_preconditioner;
-	
 	inv_mg_param=inv_param;
 	
-	inv_mg_param.Ls=1;
-	inv_mg_param.sp_pad=0;
-	inv_mg_param.cl_pad=0;
+	inv_param.preconditioner=quda_mg_preconditioner;
+	inv_mg_param.preconditioner=nullptr;
+	
+	inv_param.verbosity=QUDA_VERBOSE;
+	inv_mg_param.verbosity=QUDA_VERBOSE;
+	
+	//inv_param.solve_type=QUDA_NORMERR_PC_SOLVE;
+	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
+	
+	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
+	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
+	  inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
+	
+	inv_param.inv_type=QUDA_GCR_INVERTER;
+	inv_param.gcrNkrylov=10; //from default in read_input.l
+	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
+	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
+	inv_param.reliable_delta=1e-5; //from default in read_input.l
+	inv_param.precondition_cycle=1;
+	inv_param.tol_precondition=1e-1;
+	inv_param.maxiter_precondition=1;
+	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
+	// this under/overrelaxation parameter is not related to the ones
+	// used in the MG
+	inv_param.omega=1.0;
+	
+	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	
 	inv_mg_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
 	inv_mg_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
 	inv_mg_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
 	inv_mg_param.dirac_order=QUDA_DIRAC_ORDER;
-	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
 	
 	inv_mg_param.input_location=QUDA_CPU_FIELD_LOCATION;
 	inv_mg_param.output_location=QUDA_CPU_FIELD_LOCATION;
 	
-	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
 	inv_mg_param.solution_type=QUDA_MAT_SOLUTION;
 	
 	inv_mg_param.dagger=QUDA_DAG_NO;
@@ -679,27 +697,6 @@ namespace quda_iface
 	quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_FALSE;//quda_input.mg_run_low_mode_check;
 	quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
 	quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
-	
-	inv_mg_param.preconditioner=nullptr;
-	inv_mg_param.verbosity=QUDA_SUMMARIZE;
-	inv_mg_param.verbosity=QUDA_VERBOSE;
-	
-	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
-	
-	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
-	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
-	  inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
-	inv_param.inv_type=QUDA_GCR_INVERTER;
-	inv_param.gcrNkrylov=10; //from default in read_input.l
-	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
-	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
-	inv_param.reliable_delta=1e-5; //from default in read_input.l
-	inv_param.precondition_cycle=1;
-	inv_param.tol_precondition=1e-1;
-	inv_param.maxiter_precondition=1;
-	// this under/overrelaxation parameter is not related to the ones
-	// used in the MG
-	inv_param.omega=1.0;
       }
   }
   
