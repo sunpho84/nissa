@@ -680,10 +680,6 @@ namespace quda_iface
 	inv_param.solve_type=QUDA_DIRECT_SOLVE;
 	inv_param.omega=1.0;
 	
-	set_quda_mg_param();
-	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
-	inv_param.preconditioner=quda_mg_preconditioner;
-	
 	inv_mg_param.preconditioner=nullptr;
 	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
 	inv_mg_param.verbosity=QUDA_VERBOSE;
@@ -695,6 +691,10 @@ namespace quda_iface
 	inv_mg_param.output_location=QUDA_CPU_FIELD_LOCATION;
 	inv_mg_param.solution_type=QUDA_MAT_SOLUTION;
 	inv_mg_param.dagger=QUDA_DAG_NO;
+	
+	set_quda_mg_param();
+	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	inv_param.preconditioner=quda_mg_preconditioner;
       }
   }
   
