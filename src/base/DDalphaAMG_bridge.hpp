@@ -1,6 +1,8 @@
 #ifndef _DDALPHAAMG_HPP
 #define _DDALPHAAMG_HPP
 
+#include <DDalphaAMG.h>
+
 #include "new_types/su3.hpp"
 #include "base/multiGridParams.hpp"
 
@@ -13,6 +15,8 @@
 
 namespace DD
 {
+  EXTERN_DD_BRIDGE DDalphaAMG_status status;
+  
   void finalize();
 #ifdef USE_DDALPHAAMG
   int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false);

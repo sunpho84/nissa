@@ -2,9 +2,8 @@
  #include "config.hpp"
 #endif
 
-#include <DDalphaAMG.h>
-
 #include "base/debug.hpp"
+#include "base/export_conf_to_external_lib.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "io/checksum.hpp"
@@ -21,8 +20,6 @@ namespace DD
 {
   DDalphaAMG_init init_params;
   DDalphaAMG_parameters params;
-  DDalphaAMG_status status;
-  bool setup_valid=false;
   bool inited=false;
   
   //remap swapping x and z
@@ -53,39 +50,6 @@ namespace DD
   //return the index inside a spincolor
   static int vector_index_fct(int t,int z,int y,int x)
   {return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclx_of_coord_list(t,x,y,z);}
-  
-  //import a gauge configuration
-  void import_gauge_conf(nissa::quad_su3 *conf)
-  {
-    static nissa::checksum check_old={0,0},check_cur;
-    //compute checksum
-    nissa::checksum_compute_nissa_data(check_cur,conf,sizeof(nissa::quad_su3),sizeof(double)*8);
-    
-    //verify if import needed
-    bool import=false;
-    for(int i=0;i<2;i++)
-      {
-	//check inited
-	bool import_as_new=(check_old[i]==0);
-	if(!import and import_as_new) master_printf("DD: Old checksum 0, need to import the conf\n");
-	import|=import_as_new;
-	//check diff
-	bool import_as_diff=(check_old[i]!=check_cur[i]);
-	if(!import and import_as_diff) master_printf("DD: Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
-	import|=import_as_diff;
-	//save
-	check_old[i]=check_cur[i];
-      }
-    
-    if(import)
-      {
-	DDalphaAMG_set_configuration((double*)conf,&status);
-	if(status.success) verbosity_lv1_master_printf("DD: conf set, plaquette %e\n",status.info);
-	else crash("configuration updating did not run correctly");
-	setup_valid=false;
-      }
-    else master_printf("DD: No import needed\n");
-  }
   
   /// Check if cSW is changed
   bool check_cSW_changed(const double& cSW)
@@ -224,8 +188,10 @@ namespace DD
   //setup DD if needed
   void update_setup()
   {
+    bool& setup_valid=nissa::multiGrid::setup_valid;
+    
     //full setup
-    if(!setup_valid)
+    if(not setup_valid)
       {
 	master_printf("DD: Starting a new setup\n");
 	DDalphaAMG_setup(&status);
@@ -247,7 +213,7 @@ namespace DD
   int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared)
   {
     initialize(kappa,cSW,mu);
-    import_gauge_conf(conf);
+    nissa::export_gauge_conf_to_external_lib(conf);
     update_setup();
     
     //else DDalphaAMG_update_setup(int iterations, DDalphaAMG_status *mg_status)

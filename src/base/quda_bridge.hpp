@@ -1,13 +1,6 @@
 #ifndef _QUDA_BRIDGE_HPP
 #define _QUDA_BRIDGE_HPP
 
-#ifndef EXTERN_QUDA_BRIDGE
- #define EXTERN_QUDA_BRIDGE extern
- #define INIT_TO(var)
-#else
- #define INIT_TO(var) =var
-#endif
-
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
@@ -16,10 +9,21 @@
 # include <quda.h>
 #endif
 
+#include "routines/ios.hpp"
 #include "geometry/geometry_eo.hpp"
+
+#ifndef EXTERN_QUDA_BRIDGE
+ #define EXTERN_QUDA_BRIDGE extern
+ #define INIT_TO(var)
+#else
+ #define INIT_TO(var) =var
+#endif
 
 namespace quda_iface
 {
+  using su3_ptr=nissa::su3*;
+  using quda_conf_t=su3_ptr[NDIM];
+  
 #ifdef USE_QUDA
   EXTERN_QUDA_BRIDGE QudaGaugeParam  gauge_param;
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_param;
@@ -27,6 +31,10 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE QudaMultigridParam quda_mg_param;
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_mg_param;
   EXTERN_QUDA_BRIDGE QudaEigParam mg_eig_param[QUDA_MAX_MG_LEVEL];
+  
+  /// Conf used to remap
+  EXTERN_QUDA_BRIDGE quda_conf_t quda_conf INIT_TO({});
+  
 #endif
   
   EXTERN_QUDA_BRIDGE void* quda_mg_preconditioner INIT_TO(nullptr);
@@ -71,6 +79,23 @@ namespace quda_iface
   QUDA_API void remap_quda_to_nissa(spincolor *out,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   QUDA_API bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   QUDA_API bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  
+  /// Load a gauge conf
+  template<typename T>
+  double load_conf(T nissa_conf)
+  {
+    master_printf("freeing the QUDA gauge conf\n");
+    freeGaugeQuda();
+    
+    remap_nissa_to_quda(quda_conf,nissa_conf);
+    master_printf("loading to QUDA the gauge conf\n");
+    loadGaugeQuda((void*)quda_conf,&gauge_param);
+    
+    double plaq;
+    plaqQuda(&plaq);
+    
+    return plaq;
+  }
 }
 
 #undef QUDA_API

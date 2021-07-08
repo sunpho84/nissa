@@ -6,6 +6,7 @@
  #include "quda_bridge.hpp"
 
 #include "base/cuda.hpp"
+#include "base/export_conf_to_external_lib.hpp"
 #include "base/multiGridParams.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -16,17 +17,11 @@
 
 namespace quda_iface
 {
-  using su3_ptr=su3*;
-  using quda_conf_t=su3_ptr[NDIM];
-  
   using namespace nissa;
   
   /// Lookup tables to map from nissa to quda and vice-versa
   int* loclx_of_quda=nullptr;
   int* quda_of_loclx=nullptr;
-  
-  /// Conf used to remap
-  quda_conf_t quda_conf{};
   
   /// Color used to remap
   color *color_in=nullptr;
@@ -307,22 +302,6 @@ namespace quda_iface
       set_borders_invalid(out[par]);
   }
   
-  /// Load a gauge conf
-  template<typename T>
-  void load_conf(T nissa_conf)
-  {
-    master_printf("freeing the QUDA gauge conf\n");
-    freeGaugeQuda();
-    
-    remap_nissa_to_quda(quda_conf,nissa_conf);
-    master_printf("loading to QUDA the gauge conf\n");
-    loadGaugeQuda((void*)quda_conf,&gauge_param);
-    
-    double plaq;
-    plaqQuda(&plaq);
-    master_printf("loaded, plaquette: %.16lg\n",plaq);
-  }
-  
   /// Sets the sloppy precision
   void set_sloppy_prec(const QudaPrecision sloppy_prec)
   {
@@ -358,7 +337,7 @@ namespace quda_iface
   /// Apply the dirac operator
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
   {
-    load_conf(conf);
+    export_gauge_conf_to_external_lib(conf);
     
     master_printf("setting pars\n");
     
@@ -690,14 +669,24 @@ namespace quda_iface
 	inv_mg_param.dagger=QUDA_DAG_NO;
 	
 	set_quda_mg_param();
-	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
-	inv_param.preconditioner=quda_mg_preconditioner;
+	
+	bool& setup_valid=multiGrid::setup_valid;
+	if(not setup_valid)
+	  {
+	    if(quda_mg_preconditioner!=nullptr)
+	      destroyMultigridQuda(quda_mg_preconditioner);
+	    
+	    quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	    inv_param.preconditioner=quda_mg_preconditioner;
+	    
+	    setup_valid=true;
+	  }
       }
   }
   
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
-    load_conf(conf);
+    export_gauge_conf_to_external_lib(conf);
     
     set_inverter_pars(kappa,mu,niter,residue);
     
@@ -718,7 +707,7 @@ namespace quda_iface
   
   bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source)
   {
-    load_conf(conf);
+    crash("export_gauge_conf_to_external_lib(conf)"); // eo_ptr structure not supported
     
     inv_param.dslash_type=QUDA_STAGGERED_DSLASH;
     inv_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
