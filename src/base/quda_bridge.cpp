@@ -569,6 +569,9 @@ namespace quda_iface
   
   void set_inverter_pars(const double& kappa,const double& mu,const int& niter,const double& residue)
   {
+    master_printf("Settng pars for kappa=%lg mu=%lg niter=%d residue=%lg\n",
+		  kappa,mu,niter,residue);
+    
     inv_param.kappa=kappa;
     
     inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
