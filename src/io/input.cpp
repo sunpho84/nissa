@@ -20,6 +20,7 @@
 #ifdef USE_QUDA
  #include "base/quda_bridge.hpp"
 #endif
+#include "base/multiGridParams.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "eigenvalues/eigenvalues.hpp"
