@@ -25,6 +25,7 @@ include_HEADERS+= \
 	%D%/bench.hpp \
 	%D%/close.hpp \
 	%D%/cuda_test.hpp \
+	%D%/export_conf_to_external_lib.hpp \
 	%D%/debug.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \

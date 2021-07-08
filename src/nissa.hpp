@@ -9,6 +9,7 @@
 #include "base/bench.hpp"
 #include "base/close.hpp"
 #include "base/debug.hpp"
+#include "base/export_conf_to_external_lib.hpp"
 #include "base/init.hpp"
 #include "base/metaprogramming.hpp"
 #include "base/multiGridParams.hpp"
