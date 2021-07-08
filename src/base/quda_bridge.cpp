@@ -661,9 +661,6 @@ namespace quda_iface
 	inv_mg_param=inv_param;
 	inv_param.verbosity=QUDA_VERBOSE;
 	
-	//to go?
-	//inv_param.solve_type=QUDA_NORMERR_PC_SOLVE;
-	
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
 	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
 	  inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
@@ -705,8 +702,6 @@ namespace quda_iface
     set_inverter_pars(kappa,mu,niter,residue);
     
     remap_nissa_to_quda(spincolor_in,source);
-    
-    printf("%d %d is QUDA_DIRECT_SOLVE %d?\n",inv_param.solve_type,inv_mg_param.solve_type,QUDA_DIRECT_SOLVE);
     
     if(is_master_rank())
       printQudaInvertParam(&inv_param);
