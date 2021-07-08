@@ -448,7 +448,7 @@ namespace nissa
 #ifdef USE_TMLQCD
     tags.push_back(triple_tag("use_tmLQCD",		       use_tmLQCD));
 #endif
-#ifdef USE_DDALPHAAMG
+#if defined USE_DDALPHAAMG or defined USE_QUDA
     tags.push_back(triple_tag("use_DDalphaAMG",		       multiGrid::use_multiGrid));
 #endif
 #ifdef USE_QUDA
