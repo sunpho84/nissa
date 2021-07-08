@@ -662,6 +662,7 @@ namespace quda_iface
 	inv_mg_param=inv_param;
 	inv_param.verbosity=QUDA_VERBOSE;
 	
+	//to go?
 	//inv_param.solve_type=QUDA_NORMERR_PC_SOLVE;
 	
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
@@ -677,14 +678,13 @@ namespace quda_iface
 	inv_param.tol_precondition=1e-1;
 	inv_param.maxiter_precondition=1;
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
-	// this under/overrelaxation parameter is not related to the ones
-	// used in the MG
+	inv_param.solve_type=QUDA_DIRECT_SOLVE;
 	inv_param.omega=1.0;
 	
 	set_quda_mg_param();
 	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	inv_param.preconditioner=quda_mg_preconditioner;
-	
+
 	inv_mg_param.preconditioner=nullptr;
 	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
 	inv_mg_param.verbosity=QUDA_VERBOSE;
