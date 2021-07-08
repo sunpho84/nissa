@@ -673,6 +673,8 @@ namespace quda_iface
 	bool& setup_valid=multiGrid::setup_valid;
 	if(not setup_valid)
 	  {
+	    master_printf("QUDA multigrid setup not valid\n");
+	    
 	    if(quda_mg_preconditioner!=nullptr)
 	      destroyMultigridQuda(quda_mg_preconditioner);
 	    
