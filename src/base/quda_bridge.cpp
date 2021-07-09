@@ -571,8 +571,10 @@ namespace quda_iface
   
   void set_inverter_pars(const double& kappa,const double& mu,const int& niter,const double& residue)
   {
-    master_printf("Settng pars for kappa=%lg mu=%lg niter=%d residue=%lg\n",
-		  kappa,mu,niter,residue);
+    master_printf("Setting pars for kappa=%lg\n",kappa);
+    master_printf(" mu=%lg\n",mu);
+    master_printf(" niter=%d\n",niter);
+    master_printf(" residue=%lg\n",residue);
     
     inv_param.kappa=kappa;
     
