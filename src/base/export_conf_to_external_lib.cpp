@@ -37,8 +37,8 @@ namespace nissa
 	check_old[i]=check_cur[i];
       }
     
-    if(export_needed)
-      {
+//     if(export_needed)
+//       {
 // 	bool export_result;
 // 	double plaq=0.0;
 	
@@ -48,19 +48,19 @@ namespace nissa
 // #endif
 	
 #ifdef USE_QUDA
-	// export_result=true;
+// 	export_result=true;
 	// plaq=
 	  quda_iface::load_conf(conf);
 #endif
 	
-    // 	multiGrid::setup_valid=false;
+// 	multiGrid::setup_valid=false;
 	
-    // 	if(export_result)
-    // 	  verbosity_lv1_master_printf("external library conf set, plaquette %e\n",plaq);
-    // 	else
-    // 	  crash("configuration updating did not run correctly");
-      }
-    else master_printf("No import needed\n");
+// 	if(export_result)
+// 	  verbosity_lv1_master_printf("external library conf set, plaquette %e\n",plaq);
+// 	else
+// 	  crash("configuration updating did not run correctly");
+//       }
+//     else master_printf("No import needed\n");
     
     return export_needed;
   }
