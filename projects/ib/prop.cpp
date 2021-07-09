@@ -56,6 +56,7 @@ namespace nissa
     else
       {
 	quad_su3 *conf=get_updated_conf(charge,theta,glb_conf);
+	export_gauge_conf_to_external_lib(conf);
 	
 	master_printf("   inverting explicitly\n");
 	if(clover_run) inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
