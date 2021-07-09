@@ -53,10 +53,10 @@ namespace nissa
 	
 	multiGrid::setup_valid=false;
 	
-    // 	if(export_result)
-    // 	  verbosity_lv1_master_printf("external library conf set, plaquette %e\n",plaq);
-    // 	else
-    // 	  crash("configuration updating did not run correctly");
+	if(export_result)
+	  verbosity_lv1_master_printf("external library conf set, plaquette %e\n",plaq);
+	else
+	  crash("configuration updating did not run correctly");
       }
     else master_printf("No import needed\n");
     
