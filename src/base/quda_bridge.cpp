@@ -365,7 +365,7 @@ namespace quda_iface
   /// Apply the dirac operator
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
   {
-    //export_gauge_conf_to_external_lib(conf);
+    export_gauge_conf_to_external_lib(conf);
     
     master_printf("setting pars\n");
     
@@ -716,8 +716,7 @@ namespace quda_iface
   
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
-    load_conf(conf);
-    //export_gauge_conf_to_external_lib(conf);
+    export_gauge_conf_to_external_lib(conf);
     
     set_inverter_pars(kappa,mu,niter,residue);
     

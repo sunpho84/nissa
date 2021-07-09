@@ -20,7 +20,7 @@
 namespace nissa
 {
   /// Keep track of the exported conf
-  //bool export_gauge_conf_to_external_lib(quad_su3 *conf);
+  bool export_gauge_conf_to_external_lib(quad_su3 *conf);
 }
 
 #endif
