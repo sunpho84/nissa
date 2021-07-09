@@ -51,7 +51,7 @@ namespace nissa
 	  quda_iface::load_conf(conf);
 #endif
 	
-    // 	multiGrid::setup_valid=false;
+	multiGrid::setup_valid=false;
 	
     // 	if(export_result)
     // 	  verbosity_lv1_master_printf("external library conf set, plaquette %e\n",plaq);
