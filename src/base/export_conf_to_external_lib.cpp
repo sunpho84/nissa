@@ -11,13 +11,13 @@ namespace nissa
   {
     static checksum check_old={0,0},check_cur;
     
+    //compute checksum
+    checksum_compute_nissa_data(check_cur,conf,sizeof(quad_su3),sizeof(double)*8);
+    
 #ifdef USE_QUDA
     quda_iface::load_conf(conf);
     return true;
 #endif
-    
-    //compute checksum
-    checksum_compute_nissa_data(check_cur,conf,sizeof(quad_su3),sizeof(double)*8);
     
     //verify if export needed
     bool export_needed=false;
