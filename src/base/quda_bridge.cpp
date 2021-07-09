@@ -695,7 +695,17 @@ namespace quda_iface
   
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
+    master_printf("Setting pars for kappa=%lg\n",kappa);
+    master_printf(" mu=%lg\n",mu);
+    master_printf(" niter=%d\n",niter);
+    master_printf(" residue=%lg\n",residue);
+    
     export_gauge_conf_to_external_lib(conf);
+    
+    master_printf("Setting pars for kappa=%lg\n",kappa);
+    master_printf(" mu=%lg\n",mu);
+    master_printf(" niter=%d\n",niter);
+    master_printf(" residue=%lg\n",residue);
     
     set_inverter_pars(kappa,mu,niter,residue);
     
