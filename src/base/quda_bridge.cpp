@@ -27,6 +27,12 @@ namespace quda_iface
   color *color_in=nullptr;
   color *color_out=nullptr;
   
+  using su3_ptr=nissa::su3*;
+  using quda_conf_t=su3_ptr[NDIM];
+  
+  /// Conf used to remap
+  quda_conf_t quda_conf{};
+  
   /// Spincolor used to remap
   spincolor *spincolor_in=nullptr;
   spincolor *spincolor_out=nullptr;
@@ -303,6 +309,23 @@ namespace quda_iface
       set_borders_invalid(out[par]);
   }
   
+  /// Load a gauge conf
+  template<typename T>
+  double load_conf(T nissa_conf)
+  {
+    master_printf("freeing the QUDA gauge conf\n");
+    freeGaugeQuda();
+    
+    remap_nissa_to_quda(quda_conf,nissa_conf);
+    master_printf("loading to QUDA the gauge conf\n");
+    loadGaugeQuda((void*)quda_conf,&gauge_param);
+    
+    double plaq;
+    plaqQuda(&plaq);
+    
+    return plaq;
+  }
+  
   /// Sets the sloppy precision
   void set_sloppy_prec(const QudaPrecision sloppy_prec)
   {
@@ -338,7 +361,7 @@ namespace quda_iface
   /// Apply the dirac operator
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
   {
-    export_gauge_conf_to_external_lib(conf);
+    //export_gauge_conf_to_external_lib(conf);
     
     master_printf("setting pars\n");
     
@@ -692,7 +715,8 @@ namespace quda_iface
   
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
-    export_gauge_conf_to_external_lib(conf);
+    load_conf(conf);
+    //export_gauge_conf_to_external_lib(conf);
     
     set_inverter_pars(kappa,mu,niter,residue);
     
