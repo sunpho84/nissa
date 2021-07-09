@@ -30,7 +30,7 @@ namespace nissa
     
     EXTERN_MULTIGRID bool setup_valid INIT_TO(false);
     EXTERN_MULTIGRID int use_multiGrid INIT_TO(1);
-    EXTERN_MULTIGRID bool use_deflated_solver INIT_TO(false);
+    EXTERN_MULTIGRID int use_deflated_solver INIT_TO(0);
     
     /// If DDalphaamg is available, check if requested and if the mass is below the maximal
     inline bool checkIfDDalphaAvailableAndRequired(const double& mass)
