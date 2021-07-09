@@ -467,8 +467,8 @@ namespace quda_iface
 	quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
 	
 	quda_mg_param.num_setup_iter[level]=1;  //Experimental - keep this set to 1
-	quda_mg_param.setup_tol[level]=5e-6;    //Usually around 5e-6 is good.
-	quda_mg_param.setup_maxiter[level]=750; //500-1000 should work for most systems
+	quda_mg_param.setup_tol[level]=5e-7;    //Usually around 5e-6 is good.
+	quda_mg_param.setup_maxiter[level]=1000; //500-1000 should work for most systems
 	// If doing twisted mass, we can scale the twisted mass on the coarser grids
 	// which significantly increases speed of convergence as a result of making
 	// the coarsest grid solve a lot better conditioned.
@@ -482,10 +482,10 @@ namespace quda_iface
 	
 	//Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
-	quda_mg_param.coarse_solver_tol[level]=0.25;          //Suggest setting each level to 0.25
+	quda_mg_param.coarse_solver_tol[level]=(level+1==nlevels)?0.46:0.22;          //Suggest setting each level to 0.25
 	quda_mg_param.coarse_solver_maxiter[level]=50;        //Suggest setting in the range 8-100
 	quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
-	quda_mg_param.n_vec[level]=24;                        //24 or 32 is supported presently
+	quda_mg_param.n_vec[level]=(level==0)?24:32;          //24 or 32 is supported presently
 	quda_mg_param.nu_pre[level]=0;                        //Suggest setting to 0
 	quda_mg_param.nu_post[level]=8;                       //Suggest setting to 8
 	
@@ -495,9 +495,9 @@ namespace quda_iface
 	quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	quda_mg_param.setup_location[level]=QUDA_CUDA_FIELD_LOCATION;
 	
-	quda_mg_param.smoother[level]=QUDA_CA_GCR_INVERTER;   //Set to QUDA_CA_GCR_INVERTER for each level
-	quda_mg_param.smoother_tol[level]=0.25;               //Suggest setting each level to 0.25
-	quda_mg_param.smoother_schwarz_cycle[level]=1;        //Experimental, set to 1 for each level
+	quda_mg_param.smoother[level]=QUDA_CA_GCR_INVERTER;     //Set to QUDA_CA_GCR_INVERTER for each level
+	quda_mg_param.smoother_tol[level]=0.22;                 //Suggest setting each level to 0.25
+	quda_mg_param.smoother_schwarz_cycle[level]=1;          //Experimental, set to 1 for each level
 	//Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
 	quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
 	//Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
@@ -513,7 +513,7 @@ namespace quda_iface
 	// use single parity injection into the coarse grid
 	quda_mg_param.coarse_grid_solution_type[level]=
 	  (inv_param.solve_type==QUDA_DIRECT_PC_SOLVE?QUDA_MATPC_SOLUTION:QUDA_MAT_SOLUTION);
-	quda_mg_param.omega[level]=0.9;  //Set to 0.8-1.0
+	quda_mg_param.omega[level]=0.85;  //Set to 0.8-1.0
 	
 	quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	
@@ -530,7 +530,7 @@ namespace quda_iface
 	// set the MG EigSolver parameters, almost equivalent to
 	// setEigParam from QUDA's multigrid_invert_test, except
 	// for cuda_prec_ritz (on 20190822)
-	if(0)//quda_input.mg_use_eig_solver[level]==QUDA_BOOLEAN_YES )
+	if((level+1==nlevels))
 	  {
 	    quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
 	    mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
@@ -544,26 +544,23 @@ namespace quda_iface
 		    "can be passed to the a Lanczos type solver!\n",
 		    level);
 	    
-	    //   mg_eig_param[level].n_ev;=quda_input.mg_eig_nEv[level];
-	    // mg_eig_param[level].n_kr=quda_input.mg_eig_nKr[level];
-	    // mg_eig_param[level].n_conv=quda_input.mg_n_vec[level];
-	    // mg_eig_param[level].require_convergence=quda_input.mg_eig_require_convergence[level];
+	    mg_eig_param[level].n_ev=800;
+	    mg_eig_param[level].n_kr=1200;
+	    mg_eig_param[level].n_conv=800;
+	    mg_eig_param[level].require_convergence=QUDA_BOOLEAN_TRUE;
 	    
-	    // mg_eig_param[level].tol=quda_input.mg_eig_tol[level];
-	    // mg_eig_param[level].check_interval=quda_input.mg_eig_check_interval[level];
-	    // mg_eig_param[level].max_restarts=quda_input.mg_eig_max_restarts[level];
-	    // // in principle this can be set to a different precision, but we always
-	    // // use double precision in the outer solver
-	    // mg_eig_param[level].cuda_prec_ritz=QUDA_DOUBLE_PRECISION;
+	    mg_eig_param[level].tol=1e-4;
+	    mg_eig_param[level].check_interval=QUDA_BOOLEAN_FALSE;
+	    mg_eig_param[level].max_restarts=10;
+	    mg_eig_param[level].cuda_prec_ritz=QUDA_DOUBLE_PRECISION;
 	    
-	    // // this seems to be set to NO in multigrid_invert_test
-	    // mg_eig_param[level].compute_svd=QUDA_BOOLEAN_NO;
-	    // mg_eig_param[level].use_norm_op=quda_input.mg_eig_use_normop[level]; 
-	    // mg_eig_param[level].use_dagger=quda_input.mg_eig_use_dagger[level];
-	    // mg_eig_param[level].use_poly_acc=quda_input.mg_eig_use_poly_acc[level]; 
-	    // mg_eig_param[level].poly_deg=quda_input.mg_eig_poly_deg[level];
-	    // mg_eig_param[level].a_min=quda_input.mg_eig_amin[level];
-	    // mg_eig_param[level].a_max=quda_input.mg_eig_amax[level];
+	    mg_eig_param[level].compute_svd=QUDA_BOOLEAN_FALSE;
+	    mg_eig_param[level].use_norm_op=QUDA_BOOLEAN_TRUE;
+	    mg_eig_param[level].use_dagger=QUDA_BOOLEAN_FALSE;
+	    mg_eig_param[level].use_poly_acc=QUDA_BOOLEAN_TRUE;
+	    mg_eig_param[level].poly_deg=100;
+	    mg_eig_param[level].a_min=6e-2;
+	    mg_eig_param[level].a_max=8.0;
 	    
 	    // set file i/o parameters
 	    // Give empty strings, Multigrid will handle IO.
@@ -575,7 +572,7 @@ namespace quda_iface
 	  }
 	else
 	  {
-	    quda_mg_param.eig_param[level]=NULL;
+	    quda_mg_param.eig_param[level]=nullptr;
 	    quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_NO;
 	  }
       }
