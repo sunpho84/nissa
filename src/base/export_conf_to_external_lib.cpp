@@ -47,14 +47,14 @@ namespace nissa
 	
 #ifdef USE_QUDA
 	export_result=true;
-	plaq=
-	  quda_iface::load_conf(conf);
+	plaq=quda_iface::load_conf(conf);
 #endif
 	
 	multiGrid::setup_valid=false;
 	
 	if(export_result)
-	  verbosity_lv1_master_printf("external library conf set, plaquette %lg\n",plaq);
+	  verbosity_lv1_master_printf("external library conf set\n");
+	//verbosity_lv1_master_printf("external library conf set, plaquette %lg\n",plaq);
 	else
 	  crash("configuration updating did not run correctly");
       }
