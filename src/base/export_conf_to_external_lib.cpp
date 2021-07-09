@@ -47,7 +47,8 @@ namespace nissa
 	
 #ifdef USE_QUDA
 	export_result=true;
-	plaq=quda_iface::load_conf(conf);
+	//plaq=
+	  quda_iface::load_conf(conf);
 #endif
 	
 	multiGrid::setup_valid=false;
