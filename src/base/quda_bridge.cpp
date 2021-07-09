@@ -303,23 +303,6 @@ namespace quda_iface
       set_borders_invalid(out[par]);
   }
   
-  /// Load a gauge conf
-  template<typename T>
-  double load_conf(T nissa_conf)
-  {
-    master_printf("freeing the QUDA gauge conf\n");
-    freeGaugeQuda();
-    
-    remap_nissa_to_quda(quda_conf,nissa_conf);
-    master_printf("loading to QUDA the gauge conf\n");
-    loadGaugeQuda((void*)quda_conf,&gauge_param);
-    
-    double plaq;
-    plaqQuda(&plaq);
-    
-    return plaq;
-  }
-  
   /// Sets the sloppy precision
   void set_sloppy_prec(const QudaPrecision sloppy_prec)
   {

@@ -78,12 +78,28 @@ namespace quda_iface
   QUDA_API void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   QUDA_API void remap_nissa_to_quda(spincolor *out,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   QUDA_API void remap_quda_to_nissa(spincolor *out,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
-  // QUDA_API void remap_nissa_to_quda(quda_conf_t out,quad_su3 *in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
-  // QUDA_API void remap_nissa_to_quda(quda_conf_t out,eo_ptr<quad_su3> in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  QUDA_API void remap_nissa_to_quda(quda_conf_t out,quad_su3 *in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  QUDA_API void remap_nissa_to_quda(quda_conf_t out,eo_ptr<quad_su3> in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   
   QUDA_API bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   QUDA_API bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   
+  /// Load a gauge conf
+  template<typename T>
+  double load_conf(T nissa_conf)
+  {
+    master_printf("freeing the QUDA gauge conf\n");
+    freeGaugeQuda();
+    
+    remap_nissa_to_quda(quda_conf,nissa_conf);
+    master_printf("loading to QUDA the gauge conf\n");
+    loadGaugeQuda((void*)quda_conf,&gauge_param);
+    
+    double plaq;
+    plaqQuda(&plaq);
+    
+    return plaq;
+  }
 }
 
 #undef QUDA_API
