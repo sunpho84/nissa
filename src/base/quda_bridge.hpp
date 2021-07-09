@@ -21,6 +21,9 @@
 
 namespace quda_iface
 {
+  using su3_ptr=nissa::su3*;
+  using quda_conf_t=su3_ptr[NDIM];
+  
 #ifdef USE_QUDA
   EXTERN_QUDA_BRIDGE QudaGaugeParam  gauge_param;
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_param;
@@ -34,6 +37,9 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE void* quda_mg_preconditioner INIT_QUDA_BRIDGE_TO(=nullptr);
   
   EXTERN_QUDA_BRIDGE bool inited INIT_QUDA_BRIDGE_TO(=false);
+  
+  /// Conf used to remap
+  EXTERN_QUDA_BRIDGE quda_conf_t quda_conf INIT_QUDA_BRIDGE_TO({});
 }
 
 #include "new_types/su3.hpp"
@@ -76,6 +82,23 @@ namespace quda_iface
   
   QUDA_API bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   QUDA_API bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  
+  /// Load a gauge conf
+  template<typename T>
+  double load_conf(T nissa_conf)
+  {
+    master_printf("freeing the QUDA gauge conf\n");
+    freeGaugeQuda();
+    
+    remap_nissa_to_quda(quda_conf,nissa_conf);
+    master_printf("loading to QUDA the gauge conf\n");
+    loadGaugeQuda((void*)quda_conf,&gauge_param);
+    
+    double plaq;
+    plaqQuda(&plaq);
+    
+    return plaq;
+  }
   
 }
 

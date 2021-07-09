@@ -27,12 +27,6 @@ namespace quda_iface
   color *color_in=nullptr;
   color *color_out=nullptr;
   
-  using su3_ptr=nissa::su3*;
-  using quda_conf_t=su3_ptr[NDIM];
-  
-  /// Conf used to remap
-  quda_conf_t quda_conf{};
-  
   /// Spincolor used to remap
   spincolor *spincolor_in=nullptr;
   spincolor *spincolor_out=nullptr;
@@ -311,23 +305,6 @@ namespace quda_iface
     
     for(int par=0;par<2;par++)
       set_borders_invalid(out[par]);
-  }
-  
-  /// Load a gauge conf
-  template<typename T>
-  double load_conf(T nissa_conf)
-  {
-    master_printf("freeing the QUDA gauge conf\n");
-    freeGaugeQuda();
-    
-    remap_nissa_to_quda(quda_conf,nissa_conf);
-    master_printf("loading to QUDA the gauge conf\n");
-    loadGaugeQuda((void*)quda_conf,&gauge_param);
-    
-    double plaq;
-    plaqQuda(&plaq);
-    
-    return plaq;
   }
   
   /// Sets the sloppy precision
