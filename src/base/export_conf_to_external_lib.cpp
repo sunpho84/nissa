@@ -46,8 +46,8 @@ namespace nissa
 #endif
 	
 #ifdef USE_QUDA
-// 	export_result=true;
-// 	plaq=
+	export_result=true;
+	plaq=
 	  quda_iface::load_conf(conf);
 #endif
 	
