@@ -451,6 +451,7 @@ namespace nissa
 #endif
 #if defined USE_DDALPHAAMG or defined USE_QUDA
     tags.push_back(triple_tag("use_DDalphaAMG",		       multiGrid::use_multiGrid));
+    tags.push_back(triple_tag("use_deflated_solver",	       multiGrid::use_deflated_solver));
 #endif
 #ifdef USE_QUDA
     tags.push_back(triple_tag("use_QUDA",		       use_quda));
