@@ -14,9 +14,9 @@
 
 #ifndef EXTERN_QUDA_BRIDGE
  #define EXTERN_QUDA_BRIDGE extern
- #define INIT_TO(var)
+ #define INIT_QUDA_BRIDGE_TO(cond)
 #else
- #define INIT_TO(var) =var
+ #define INIT_QUDA_BRIDGE_TO(cond) cond
 #endif
 
 namespace quda_iface
@@ -33,20 +33,20 @@ namespace quda_iface
   EXTERN_QUDA_BRIDGE QudaEigParam mg_eig_param[QUDA_MAX_MG_LEVEL];
   
   /// Conf used to remap
-  EXTERN_QUDA_BRIDGE quda_conf_t quda_conf INIT_TO({});
+  EXTERN_QUDA_BRIDGE quda_conf_t quda_conf INIT_QUDA_BRIDGE_TO({});
   
 #endif
   
-  EXTERN_QUDA_BRIDGE void* quda_mg_preconditioner INIT_TO(nullptr);
+  EXTERN_QUDA_BRIDGE void* quda_mg_preconditioner INIT_QUDA_BRIDGE_TO(=nullptr);
   
-  EXTERN_QUDA_BRIDGE bool inited INIT_TO(false);
+  EXTERN_QUDA_BRIDGE bool inited INIT_QUDA_BRIDGE_TO(=false);
 }
 
 #include "new_types/su3.hpp"
 
 namespace nissa
 {
-  EXTERN_QUDA_BRIDGE int use_quda INIT_TO(true);
+  EXTERN_QUDA_BRIDGE int use_quda INIT_QUDA_BRIDGE_TO(=true);
   
   /// If Quda is available, check if requested
   inline bool checkIfQudaAvailableAndRequired()
@@ -104,7 +104,7 @@ namespace quda_iface
 #undef QUDA_API
 #undef QUDA_ESCAPE_IF_NOT_AVAILABLE
 
-#undef INIT_TO
+#undef INIT_QUDA_BRIDGE_TO
 #undef EXTERN_QUDA_BRIDGE
 
 #endif

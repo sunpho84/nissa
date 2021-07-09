@@ -103,7 +103,8 @@ namespace quda_iface
 	  }
 	
 	for(int mu=0;mu<NDIM;mu++)
-	  quda_conf[mu]=nissa_malloc("gauge_cuda",locVol,su3);
+	  quda_conf[mu]=nissa_malloc("quda_conf",locVol,su3);
+	master_printf("allocating quda_conf\n");
 	
 	spincolor_in=nissa_malloc("spincolor_in",locVol,spincolor);
 	spincolor_out=nissa_malloc("spincolor_out",locVol,spincolor);
