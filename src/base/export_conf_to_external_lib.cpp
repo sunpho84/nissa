@@ -7,17 +7,24 @@
 
 namespace nissa
 {
+  namespace export_checkusms
+  {
+    checksum check_old={0,0};
+  }
+  
   bool export_gauge_conf_to_external_lib(quad_su3 *conf)
   {
-    static checksum check_old={0,0},check_cur;
-    
     //compute checksum
+    checksum check_cur;
     checksum_compute_nissa_data(check_cur,conf,sizeof(quad_su3),sizeof(double)*8);
+    master_printf("%#010x %#010x\n",check_cur[0],check_cur[1]);
     
     //verify if export needed
     bool export_needed=false;
     for(int i=0;i<2;i++)
       {
+	using export_checkusms::check_old;
+	
 	//check inited
 	bool export_since_new=(check_old[i]==0);
 	if(not export_needed and export_since_new) master_printf("external library: Old checksum 0, need to export the conf\n");
@@ -30,15 +37,10 @@ namespace nissa
 	check_old[i]=check_cur[i];
       }
     
-#ifdef USE_QUDA
-    quda_iface::load_conf(conf);
-    return true;
-#endif
-    
     if(export_needed)
       {
 	bool export_result;
-	double plaq=0.0;
+	// double plaq=0.0;
 	
 #ifdef USE_DDALPHAAMG
 	DDalphaAMG_set_configuration((double*)conf,&DD::status);
@@ -47,13 +49,13 @@ namespace nissa
 	
 #ifdef USE_QUDA
 	export_result=true;
-	plaq=quda_iface::load_conf(conf);
+	quda_iface::load_conf(conf);
 #endif
 	
 	multiGrid::setup_valid=false;
 	
 	if(export_result)
-	  verbosity_lv1_master_printf("external library conf set, plaquette %e\n",plaq);
+	  verbosity_lv1_master_printf("external library conf set\n");
 	else
 	  crash("configuration updating did not run correctly");
       }
