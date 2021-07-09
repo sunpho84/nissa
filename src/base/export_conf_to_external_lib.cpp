@@ -28,10 +28,6 @@ namespace nissa
     
     verbosity_lv1_master_printf("external library conf set, plaquette %e\n",plaq);
     
-    plaq=quda_iface::load_conf(conf);
-    
-    verbosity_lv1_master_printf("external library conf set, plaquette %e\n",plaq);
-    
     return export_needed;
     
     
