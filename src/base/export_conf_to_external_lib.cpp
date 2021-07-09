@@ -9,7 +9,7 @@ namespace nissa
 {
   bool export_gauge_conf_to_external_lib(quad_su3 *conf)
   {
-    plaq=quda_iface::load_conf(conf);
+    quda_iface::load_conf(conf);
 
     return true;
     
