@@ -88,8 +88,8 @@ namespace quda_iface
   template<typename T>
   double load_conf(T nissa_conf)
   {
-    // master_printf("freeing the QUDA gauge conf\n");
-    // freeGaugeQuda();
+    master_printf("freeing the QUDA gauge conf\n");
+    freeGaugeQuda();
     
     remap_nissa_to_quda(quda_conf,nissa_conf);
     master_printf("loading to QUDA the gauge conf\n");
