@@ -40,10 +40,10 @@ namespace nissa
 	bool export_result;
 	double plaq=0.0;
 	
-// #ifdef USE_DDALPHAAMG
-// 	DDalphaAMG_set_configuration((double*)conf,&DD::status);
-// 	export_result=not DD::status.success;
-// #endif
+#ifdef USE_DDALPHAAMG
+	DDalphaAMG_set_configuration((double*)conf,&DD::status);
+	export_result=not DD::status.success;
+#endif
 	
 #ifdef USE_QUDA
 // 	export_result=true;
