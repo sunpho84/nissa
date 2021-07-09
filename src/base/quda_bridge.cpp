@@ -27,12 +27,6 @@ namespace quda_iface
   color *color_in=nullptr;
   color *color_out=nullptr;
   
-  using su3_ptr=nissa::su3*;
-  using quda_conf_t=su3_ptr[NDIM];
-  
-  /// Conf used to remap
-  quda_conf_t quda_conf{};
-  
   /// Spincolor used to remap
   spincolor *spincolor_in=nullptr;
   spincolor *spincolor_out=nullptr;

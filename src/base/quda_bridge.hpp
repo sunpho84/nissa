@@ -21,13 +21,20 @@
 
 namespace quda_iface
 {
+  using su3_ptr=nissa::su3*;
+  using quda_conf_t=su3_ptr[NDIM];
+  
 #ifdef USE_QUDA
+  
   EXTERN_QUDA_BRIDGE QudaGaugeParam  gauge_param;
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_param;
   
   EXTERN_QUDA_BRIDGE QudaMultigridParam quda_mg_param;
   EXTERN_QUDA_BRIDGE QudaInvertParam inv_mg_param;
   EXTERN_QUDA_BRIDGE QudaEigParam mg_eig_param[QUDA_MAX_MG_LEVEL];
+  
+  /// Conf used to remap
+  EXTERN_QUDA_BRIDGE quda_conf_t quda_conf INIT_QUDA_BRIDGE_TO({});
   
 #endif
   
