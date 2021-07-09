@@ -14,11 +14,6 @@ namespace nissa
     //compute checksum
     checksum_compute_nissa_data(check_cur,conf,sizeof(quad_su3),sizeof(double)*8);
     
-#ifdef USE_QUDA
-    quda_iface::load_conf(conf);
-    return true;
-#endif
-    
     //verify if export needed
     bool export_needed=false;
     for(int i=0;i<2;i++)
@@ -34,6 +29,11 @@ namespace nissa
 	//save
 	check_old[i]=check_cur[i];
       }
+    
+#ifdef USE_QUDA
+    quda_iface::load_conf(conf);
+    return true;
+#endif
     
     if(export_needed)
       {
