@@ -126,8 +126,9 @@ namespace nissa
     
     if(checkIfQudaAvailableAndRequired() and not solved)
       {
+	const double cSW=0;
 	double quda_call_time=take_time();
-	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,mass,nitermax,residue,source_lx);
+	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
 	master_printf("calling quda to solve took %lg s\n",take_time()-quda_call_time);
       }
     

@@ -80,7 +80,7 @@ namespace quda_iface
   QUDA_API void remap_nissa_to_quda(quda_conf_t out,quad_su3 *in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   QUDA_API void remap_nissa_to_quda(quda_conf_t out,eo_ptr<quad_su3> in) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   
-  QUDA_API bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
+  QUDA_API bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   QUDA_API bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source) QUDA_ESCAPE_IF_NOT_AVAILABLE;
   
   /// Load a gauge conf
@@ -99,7 +99,6 @@ namespace quda_iface
     
     return plaq;
   }
-  
 }
 
 #undef QUDA_API

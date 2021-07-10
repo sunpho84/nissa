@@ -569,7 +569,7 @@ namespace quda_iface
     quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
   }
   
-  void set_inverter_pars(const double& kappa,const double& mu,const int& niter,const double& residue)
+  void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue)
   {
     master_printf("Setting pars for kappa=%lg\n",kappa);
     master_printf(" mu=%lg\n",mu);
@@ -578,9 +578,25 @@ namespace quda_iface
     
     inv_param.kappa=kappa;
     
-    inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
+    if(csw>0.0)
+      {
+	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
+	inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
+	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
+	inv_param.clover_coeff=csw*kappa;
+	inv_param.compute_clover=1;
+	inv_param.compute_clover_inverse=1;
+      }
+    else
+      {
+	inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
+	inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN_ASYMMETRIC;
+	inv_param.clover_coeff=0;
+	inv_param.compute_clover=0;
+	inv_param.compute_clover_inverse=0;
+      }
+    
     inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
-    inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN_ASYMMETRIC;
     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
     inv_param.inv_type=QUDA_CG_INVERTER;
@@ -693,14 +709,14 @@ namespace quda_iface
       }
   }
   
-  bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& mu,const int& niter,const double& residue,spincolor *source)
+  bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
     master_printf("Setting pars for kappa=%lg\n",kappa);
     master_printf(" mu=%lg\n",mu);
     master_printf(" niter=%d\n",niter);
     master_printf(" residue=%lg\n",residue);
     
-    double export_time=take_time();
+    const double export_time=take_time();
     export_gauge_conf_to_external_lib(conf);
     master_printf("time to export to external library: %lg s\n",take_time()-export_time);
     
@@ -709,24 +725,31 @@ namespace quda_iface
     master_printf(" niter=%d\n",niter);
     master_printf(" residue=%lg\n",residue);
     
-    double set_par_time=take_time();
-    set_inverter_pars(kappa,mu,niter,residue);
+    const double set_par_time=take_time();
+    set_inverter_pars(kappa,csw,mu,niter,residue);
     master_printf("time to set inverter parameters: %lg s\n",take_time()-set_par_time);
     
-    double remap_in_time=take_time();
+    const double remap_in_time=take_time();
     remap_nissa_to_quda(spincolor_in,source);
     master_printf("time to remap rhs to quda: %lg s\n",take_time()-remap_in_time);
     
     if(is_master_rank())
       printQudaInvertParam(&inv_param);
     
-    double solution_time=take_time();
+    if(csw>0)
+      {
+	const double load_clover_time=take_time();
+	loadCloverQuda(nullptr,nullptr,&inv_param);
+	master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
+      }
+    
+    const double solution_time=take_time();
     invertQuda(spincolor_out,spincolor_in,&inv_param);
     master_printf("Solution time: %lg s\n",take_time()-solution_time);
     
     master_printf("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
     
-    double remap_out_time=take_time();
+    const double remap_out_time=take_time();
     remap_quda_to_nissa(sol,spincolor_out);
     master_printf("time to remap solution from quda: %lg s\n",take_time()-remap_out_time);
     
