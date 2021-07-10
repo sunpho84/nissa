@@ -635,7 +635,7 @@ namespace nissa
 		//get mirrorized
 		coords cmir;
 		for(int mu=0;mu<NDIM;mu++)
-		cmir[mu]=get_mirrorized_site_coord(c[mu]+(mu==0 and get_bit(imir,0) and temporal_bc==ANTIPERIODIC_BC),mu,get_bit(imir,mu));
+		  cmir[mu]=get_mirrorized_site_coord(c[mu]+(mu==0 and get_bit(imir,0) and temporal_bc==ANTIPERIODIC_BC),mu,get_bit(imir,mu));
 		
 		//check if not already collected
 		int iglb=glblx_of_coord(cmir);

@@ -133,6 +133,7 @@ namespace nissa
     /// Keep track of convergence
     bool solved=false;
     
+#ifdef USE_QUDA
     if(checkIfQudaAvailableAndRequired() and not solved)
       {
 	const double cSW=0;
@@ -140,16 +141,21 @@ namespace nissa
 	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
 	master_printf("calling quda to solve took %lg s\n",take_time()-quda_call_time);
       }
+#endif
     
+#ifdef USE_DDALPHAAMG
     if(multiGrid::checkIfDDalphaAvailableAndRequired(mass) and not solved)
       {
 	const double cSW=0;
 	solved=DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
       }
-    
+#endif
+
+#ifdef USE_TMLQCD
     if(checkIfTmLQCDAvailableAndRequired() and not solved)
       crash("Not yet implemented");
-	
+#endif
+    
     if(not solved)
       inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);
     
