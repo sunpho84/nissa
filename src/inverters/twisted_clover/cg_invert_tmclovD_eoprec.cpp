@@ -150,15 +150,19 @@ namespace nissa
     /// Keep track of convergence
     bool solved=false;
     
+#ifdef USE_QUDA
     if(checkIfQudaAvailableAndRequired() and not solved)
       {
 	double quda_call_time=take_time();
 	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
 	master_printf("calling quda to solve took %lg s\n",take_time()-quda_call_time);
       }
-    
+#endif
+
+#ifdef USE_DDALPHAAMG
     if(multiGrid::checkIfDDalphaAvailableAndRequired(mass) and not solved)
       solved=DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
+#endif
     
     // if(checkIfTmLQCDAvailableAndRequired() and not solved)
     //   {
