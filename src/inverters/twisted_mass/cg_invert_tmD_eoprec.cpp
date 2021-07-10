@@ -140,6 +140,7 @@ namespace nissa
       inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);
     
     //check solution
+    double check_time=take_time();
     spincolor *residueVec=nissa_malloc("temp",locVol,spincolor);
     apply_tmQ(residueVec,conf_lx,kappa,mass,solution_lx);
     safe_dirac_prod_spincolor(residueVec,base_gamma+5,residueVec);
@@ -151,7 +152,7 @@ namespace nissa
     /// Residue L2 norm
     const double residueNorm2=double_vector_glb_norm2(residueVec,locVol);
     
-    master_printf("check solution, residue: %lg, target one: %lg\n",residueNorm2/sourceNorm2,residue);
+    master_printf("check solution, residue: %lg, target one: %lg checked in %lg s\n",residueNorm2/sourceNorm2,residue,take_time()-check_time);
     
     nissa_free(residueVec);
   }
