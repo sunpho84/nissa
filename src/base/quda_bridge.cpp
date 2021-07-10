@@ -720,7 +720,9 @@ namespace quda_iface
     if(is_master_rank())
       printQudaInvertParam(&inv_param);
     
+    double solution_time=take_time();
     invertQuda(spincolor_out,spincolor_in,&inv_param);
+    master_printf("Solution time: %lg s\n",take_time()-solution_time);
     
     master_printf("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
     
