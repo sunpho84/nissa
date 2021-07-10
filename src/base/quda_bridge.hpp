@@ -9,8 +9,10 @@
 # include <quda.h>
 #endif
 
+#include "base/multiGridParams.hpp"
 #include "routines/ios.hpp"
 #include "geometry/geometry_eo.hpp"
+
 
 #ifndef EXTERN_QUDA_BRIDGE
  #define EXTERN_QUDA_BRIDGE extern

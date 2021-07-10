@@ -4,9 +4,18 @@
 
 #include <string.h>
 
-#include "base/DDalphaAMG_bridge.hpp"
-#include "base/quda_bridge.hpp"
-#include "base/tmLQCD_bridge.hpp"
+#ifdef USE_TMLQCD
+# include "base/tmLQCD_bridge.hpp"
+#endif
+
+#ifdef USE_QUDA
+# include "base/quda_bridge.hpp"
+#endif
+
+#ifdef USE_DDALPHAAMG
+# include "base/DDalphaAMG_bridge.hpp"
+#endif
+
 #include "base/vectors.hpp"
 #include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
