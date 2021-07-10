@@ -700,16 +700,22 @@ namespace quda_iface
     master_printf(" niter=%d\n",niter);
     master_printf(" residue=%lg\n",residue);
     
+    double export_time=take_time();
     export_gauge_conf_to_external_lib(conf);
+    master_printf("time to export to external library: %lg s\n",take_time()-export_time);
     
     master_printf("Setting pars for kappa=%lg\n",kappa);
     master_printf(" mu=%lg\n",mu);
     master_printf(" niter=%d\n",niter);
     master_printf(" residue=%lg\n",residue);
     
+    double set_par_time=take_time();
     set_inverter_pars(kappa,mu,niter,residue);
+    master_printf("time to set inverter parameters: %lg s\n",take_time()-set_par_time);
     
+    double remap_in_time=take_time();
     remap_nissa_to_quda(spincolor_in,source);
+    master_printf("time to remap rhs to quda: %lg s\n",take_time()-remap_in_time);
     
     if(is_master_rank())
       printQudaInvertParam(&inv_param);
@@ -718,7 +724,9 @@ namespace quda_iface
     
     master_printf("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
     
+    double remap_out_time=take_time();
     remap_quda_to_nissa(sol,spincolor_out);
+    master_printf("time to remap solution from quda: %lg s\n",take_time()-remap_out_time);
     
     // Might return actual result of the convergence with some proper error handling?
     return true;
