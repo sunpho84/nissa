@@ -489,16 +489,6 @@ namespace quda_iface
 	quda_mg_param.num_setup_iter[level]=1;  //Experimental - keep this set to 1
 	quda_mg_param.setup_tol[level]=5e-7;    //Usually around 5e-6 is good.
 	quda_mg_param.setup_maxiter[level]=1000; //500-1000 should work for most systems
-	// If doing twisted mass, we can scale the twisted mass on the coarser grids
-	// which significantly increases speed of convergence as a result of making
-	// the coarsest grid solve a lot better conditioned.
-	// Dean Howarth has some RG arguments on why the coarse mass parameter should be
-	// rescaled for the coarse operator to be optimal.
-	if(fabs(inv_param.mu)>0)
-	  {
-	    quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
-	    master_printf("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
-	  }
 	
 	//Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
@@ -606,6 +596,42 @@ namespace quda_iface
     quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_FALSE;//quda_input.mg_run_low_mode_check;
     quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
     quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
+    
+    inv_param.dagger=QUDA_DAG_NO;
+    inv_param.mass_normalization=QUDA_MASS_NORMALIZATION;
+    inv_param.solver_normalization=QUDA_DEFAULT_NORMALIZATION;
+    
+    inv_param.cpu_prec=QUDA_DOUBLE_PRECISION;
+    inv_param.cuda_prec=QUDA_DOUBLE_PRECISION;
+    inv_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.cuda_prec_precondition=QUDA_HALF_PRECISION;
+    
+    inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
+    inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
+    inv_param.clover_cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.clover_cuda_prec_precondition=QUDA_HALF_PRECISION;
+    inv_param.clover_cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
+    
+    inv_param.preserve_source=QUDA_PRESERVE_SOURCE_YES;
+    inv_param.dirac_order=QUDA_DIRAC_ORDER;
+    
+    inv_param.input_location=QUDA_CPU_FIELD_LOCATION;
+    inv_param.output_location=QUDA_CPU_FIELD_LOCATION;
+    
+    inv_param.tune=QUDA_TUNE_YES;
+    
+    inv_param.sp_pad=0;
+    inv_param.cl_pad=0;
+    
+    inv_param.Ls=1;
+    
+    inv_param.verbosity=get_quda_verbosity();
+    
+    inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
+    inv_param.tol_hq=0.1;
+    inv_param.reliable_delta=1e-3;
+    inv_param.use_sloppy_partial_accumulator=0;
   }
   
   void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue)
@@ -645,24 +671,25 @@ namespace quda_iface
     inv_param.mu=-mu;
     inv_param.epsilon=0.0;
     
+    // If doing twisted mass, we can scale the twisted mass on the coarser grids
+    // which significantly increases speed of convergence as a result of making
+    // the coarsest grid solve a lot better conditioned.
+    // Dean Howarth has some RG arguments on why the coarse mass parameter should be
+    // rescaled for the coarse operator to be optimal.
+    for(int level=0;level<multiGrid::nlevels;level++)
+      if(fabs(inv_param.mu)>0)
+	{
+	  quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
+	  master_printf("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
+	}
+      else
+	quda_mg_param.mu_factor[level]=1.0;
+    
     inv_param.twist_flavor=QUDA_TWIST_SINGLET;
     inv_param.tol=sqrt(residue);
     inv_param.maxiter=niter;
-    inv_param.Ls=1;
-    
-    inv_param.verbosity=get_quda_verbosity();
-    
-    inv_param.dagger=QUDA_DAG_NO;
-    inv_param.mass_normalization=QUDA_MASS_NORMALIZATION;
-    inv_param.solver_normalization=QUDA_DEFAULT_NORMALIZATION;
-    
     inv_param.pipeline=0;
     inv_param.gcrNkrylov=20;
-    
-    inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
-    inv_param.tol_hq=0.1;
-    inv_param.reliable_delta=1e-3;
-    inv_param.use_sloppy_partial_accumulator=0;
     
     // domain decomposition preconditioner parameters
     inv_param.inv_type_precondition=QUDA_CG_INVERTER;
@@ -673,29 +700,6 @@ namespace quda_iface
     inv_param.verbosity_precondition=get_quda_verbosity();
     
     inv_param.omega=1.0;
-    
-    inv_param.cpu_prec=QUDA_DOUBLE_PRECISION;
-    inv_param.cuda_prec=QUDA_DOUBLE_PRECISION;
-    inv_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
-    inv_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
-    inv_param.cuda_prec_precondition=QUDA_HALF_PRECISION;
-    
-    inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
-    inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
-    inv_param.clover_cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
-    inv_param.clover_cuda_prec_precondition=QUDA_HALF_PRECISION;
-    inv_param.clover_cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
-    
-    inv_param.preserve_source=QUDA_PRESERVE_SOURCE_YES;
-    inv_param.dirac_order=QUDA_DIRAC_ORDER;
-    
-    inv_param.input_location=QUDA_CPU_FIELD_LOCATION;
-    inv_param.output_location=QUDA_CPU_FIELD_LOCATION;
-    
-    inv_param.tune=QUDA_TUNE_YES;
-    
-    inv_param.sp_pad=0;
-    inv_param.cl_pad=0;
     
     if(multiGrid::use_multiGrid)
       {
