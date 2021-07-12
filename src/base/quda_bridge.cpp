@@ -489,6 +489,16 @@ namespace quda_iface
 	quda_mg_param.num_setup_iter[level]=1;  //Experimental - keep this set to 1
 	quda_mg_param.setup_tol[level]=5e-7;    //Usually around 5e-6 is good.
 	quda_mg_param.setup_maxiter[level]=1000; //500-1000 should work for most systems
+	// If doing twisted mass, we can scale the twisted mass on the coarser grids
+	// which significantly increases speed of convergence as a result of making
+	// the coarsest grid solve a lot better conditioned.
+	// Dean Howarth has some RG arguments on why the coarse mass parameter should be
+	// rescaled for the coarse operator to be optimal.
+	if(fabs(inv_param.mu)>0)
+	  {
+	    quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
+	    master_printf("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
+	  }
 	
 	//Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
@@ -596,7 +606,10 @@ namespace quda_iface
     quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_FALSE;//quda_input.mg_run_low_mode_check;
     quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
     quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
-    
+  }
+  
+  void set_base_inverter_pars()
+  {
     inv_param.dagger=QUDA_DAG_NO;
     inv_param.mass_normalization=QUDA_MASS_NORMALIZATION;
     inv_param.solver_normalization=QUDA_DEFAULT_NORMALIZATION;
@@ -670,20 +683,6 @@ namespace quda_iface
     //minus due to different gamma5 definition
     inv_param.mu=-mu;
     inv_param.epsilon=0.0;
-    
-    // If doing twisted mass, we can scale the twisted mass on the coarser grids
-    // which significantly increases speed of convergence as a result of making
-    // the coarsest grid solve a lot better conditioned.
-    // Dean Howarth has some RG arguments on why the coarse mass parameter should be
-    // rescaled for the coarse operator to be optimal.
-    for(int level=0;level<multiGrid::nlevels;level++)
-      if(fabs(inv_param.mu)>0)
-	{
-	  quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
-	  master_printf("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
-	}
-      else
-	quda_mg_param.mu_factor[level]=1.0;
     
     inv_param.twist_flavor=QUDA_TWIST_SINGLET;
     inv_param.tol=sqrt(residue);
@@ -762,6 +761,8 @@ namespace quda_iface
     const double export_time=take_time();
     const bool exported=export_gauge_conf_to_external_lib(conf);
     master_printf("time to export to external library: %lg s\n",take_time()-export_time);
+    
+    set_base_inverter_pars();
     
     if(exported and csw>0)
       {
