@@ -96,10 +96,10 @@ namespace quda_iface
     master_printf("loading to QUDA the gauge conf\n");
     loadGaugeQuda((void*)quda_conf,&gauge_param);
     
-    double plaq;
-    plaqQuda(&plaq);
+    double plaq[3];
+    plaqQuda(plaq);
     
-    return plaq;
+    return plaq[0];
   }
 }
 

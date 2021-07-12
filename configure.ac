@@ -267,6 +267,7 @@ AC_ARG_ENABLE(parpack-debug,
 	AS_HELP_STRING([--enable-parpack-debug],[Enable parpack debug]),
 	enable_parpack_debug="${enableval}",
 	enable_parpack_debug="no")
+
 if test "$enable_parpack_debug" == "yes"
 then
 	AC_DEFINE([ENABLE_PARPACK_DEBUG],1,[Enable debugging parpack])
@@ -280,6 +281,17 @@ AX_SUBPACKAGE(lime,lime.h,lime,limeReaderNextRecord,LIME)
 #################### QUDA ####################
 
 AX_SUBPACKAGE(quda,quda.h,cuda quda,cuMemcpy freeGaugeQuda,QUDA)
+
+AC_ARG_ENABLE(quda_bypass,
+	AS_HELP_STRING([--enable-quda-bypass],[Avoid linking quda]),
+	enable_quda_bypass="${enableval}",
+	enable_quda_bypass="no")
+
+if test "$enable_quda_bypass" == "yes"
+then
+	LIBS=$(echo $LIBS|sed 's|-lquda||g;s|-lcuda||g')
+	AC_DEFINE([ENABLE_QUDA_BYPASS],1,[Enable quda bypass])
+fi
 
 #################### tmLQCD ####################
 

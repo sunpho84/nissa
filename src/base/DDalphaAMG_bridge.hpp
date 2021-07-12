@@ -14,9 +14,9 @@
 
 #ifndef EXTERN_DD_BRIDGE
  #define EXTERN_DD_BRIDGE extern
- #define INIT_TO(var)
+ #define INIT_DD_BRIDGE_TO(var)
 #else
- #define INIT_TO(var) =var
+ #define INIT_DD_BRIDGE_TO(var) =var
 #endif
 
 namespace DD
@@ -39,6 +39,6 @@ namespace DD
 }
 
 #undef EXTERN_DD_BRIDGE
-#undef INIT_TO
+#undef INIT_DD_BRIDGE_TO
 
 #endif

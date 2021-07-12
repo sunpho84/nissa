@@ -38,7 +38,7 @@ namespace nissa
     if(export_needed)
       {
 	bool export_result;
-	// double plaq=0.0;
+	double plaq=0.0;
 	
 #ifdef USE_DDALPHAAMG
 	DDalphaAMG_set_configuration((double*)conf,&DD::status);
@@ -47,16 +47,16 @@ namespace nissa
 	
 #ifdef USE_QUDA
 	export_result=true;
-	//plaq=
+	plaq=
 	  quda_iface::load_conf(conf);
 #endif
 	
 	multiGrid::setup_valid=false;
 	
-	// if(export_result)
-	//   verbosity_lv1_master_printf("external library conf set, plaquette %lg\n",plaq);
-	// else
-	//   crash("configuration updating did not run correctly");
+	if(export_result)
+	  verbosity_lv1_master_printf("external library conf set, plaquette %lg\n",plaq);
+	else
+	  crash("configuration updating did not run correctly");
       }
     else master_printf("No import needed\n");
     

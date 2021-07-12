@@ -15,6 +15,45 @@
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 
+#ifdef ENABLE_QUDA_BYPASS
+
+extern "C"
+{
+#define QUDA_BYPASS(RET,ARGS...)			\
+  ARGS							\
+  {							\
+    master_printf("Faking %s\n",__PRETTY_FUNCTION__);\
+    						     \
+    return RET;					     \
+  }
+  
+  QUDA_BYPASS(,void setVerbosityQuda(QudaVerbosity verbosity,const char prefix[],FILE *outfile))
+  QUDA_BYPASS({},QudaGaugeParam newQudaGaugeParam(void))
+  QUDA_BYPASS({},QudaInvertParam newQudaInvertParam(void))
+  QUDA_BYPASS({},QudaMultigridParam newQudaMultigridParam(void))
+  QUDA_BYPASS({},QudaEigParam newQudaEigParam(void))
+  QUDA_BYPASS(,void initCommsGridQuda(int nDim, const int *dims, QudaCommsMap func, void *fdata))
+  QUDA_BYPASS(,void initQuda(int device))
+  QUDA_BYPASS(,void destroyMultigridQuda(void *mg_instance))
+  QUDA_BYPASS(,void freeGaugeQuda(void))
+  QUDA_BYPASS(,void freeCloverQuda(void))
+  QUDA_BYPASS(,void endQuda(void))
+  QUDA_BYPASS(,void MatQuda(void *h_out, void *h_in, QudaInvertParam *inv_param))
+  QUDA_BYPASS({},void* newMultigridQuda(QudaMultigridParam *param))
+  QUDA_BYPASS(,void loadCloverQuda(void *h_clover, void *h_clovinv,QudaInvertParam *inv_param))
+  QUDA_BYPASS(,void invertQuda(void *h_x, void *h_b, QudaInvertParam *param))
+  QUDA_BYPASS(,void printQudaInvertParam(QudaInvertParam *param))
+  QUDA_BYPASS(,void loadGaugeQuda(void *h_gauge, QudaGaugeParam *param))
+  QUDA_BYPASS(,void plaqQuda(double plaq[3]))
+}
+
+namespace nissa
+{
+  int iCudaDevice;
+}
+
+#endif
+
 namespace quda_iface
 {
   using namespace nissa;

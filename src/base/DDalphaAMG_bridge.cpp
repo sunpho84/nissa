@@ -2,6 +2,9 @@
  #include "config.hpp"
 #endif
 
+#define EXTERN_DD_BRIDGE
+# include "DDalphaAMG_bridge.hpp"
+
 #include "base/debug.hpp"
 #include "base/export_conf_to_external_lib.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
@@ -12,9 +15,6 @@
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
-
-#define EXTERN_DD_BRIDGE
- #include "DDalphaAMG_bridge.hpp"
 
 namespace DD
 {
