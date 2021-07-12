@@ -59,8 +59,8 @@ namespace quda_iface
   using namespace nissa;
   
   /// Lookup tables to map from nissa to quda and vice-versa
-  int* loclx_of_quda=nullptr;
-  int* quda_of_loclx=nullptr;
+  CUDA_MANAGED int* loclx_of_quda=nullptr;
+  CUDA_MANAGED int* quda_of_loclx=nullptr;
   
   /// Color used to remap
   color *color_in=nullptr;
@@ -261,7 +261,10 @@ namespace quda_iface
 	const int iquda=quda_of_loclx[ivol];
 	
 	for(int nu=0;nu<NDIM;nu++)
-	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[ivol][nu]);
+	  {
+	    const int out_dir=(nu+NDIM-1)%NDIM;
+	    su3_copy(out[out_dir][iquda],in[ivol][nu]);
+	  }
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -278,7 +281,10 @@ namespace quda_iface
 	  const int iquda=quda_of_loclx[ivol];
 	
 	for(int nu=0;nu<NDIM;nu++)
-	  su3_copy(out[std::array<int,NDIM>{3,0,1,2}[nu]][iquda],in[par][ivolh][nu]);
+	  {
+	    const int out_dir=(nu+NDIM-1)%NDIM;
+	    su3_copy(out[out_dir][iquda],in[par][ivolh][nu]);
+	  }
       }
     NISSA_PARALLEL_LOOP_END;
     
