@@ -756,8 +756,15 @@ namespace quda_iface
     master_printf(" residue=%lg\n",residue);
     
     const double export_time=take_time();
-    export_gauge_conf_to_external_lib(conf);
+    const bool exported=export_gauge_conf_to_external_lib(conf);
     master_printf("time to export to external library: %lg s\n",take_time()-export_time);
+    
+    if(exported and csw>0)
+      {
+	const double load_clover_time=take_time();
+	loadCloverQuda(nullptr,nullptr,&inv_param);
+	master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
+      }
     
     master_printf("Setting pars for kappa=%lg\n",kappa);
     master_printf(" mu=%lg\n",mu);
@@ -774,13 +781,6 @@ namespace quda_iface
     
     if(is_master_rank())
       printQudaInvertParam(&inv_param);
-    
-    if(csw>0)
-      {
-	const double load_clover_time=take_time();
-	loadCloverQuda(nullptr,nullptr,&inv_param);
-	master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
-      }
     
     const double solution_time=take_time();
     invertQuda(spincolor_out,spincolor_in,&inv_param);
