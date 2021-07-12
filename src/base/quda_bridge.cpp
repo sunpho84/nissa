@@ -752,6 +752,10 @@ namespace quda_iface
     
     set_base_inverter_pars();
     
+    const double set_par_time=take_time();
+    set_inverter_pars(kappa,csw,mu,niter,residue);
+    master_printf("time to set inverter parameters: %lg s\n",take_time()-set_par_time);
+    
     if(exported and csw>0)
       {
 	const double load_clover_time=take_time();
@@ -759,19 +763,15 @@ namespace quda_iface
 	master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
       }
     
-    const double set_par_time=take_time();
-    set_inverter_pars(kappa,csw,mu,niter,residue);
-    master_printf("time to set inverter parameters: %lg s\n",take_time()-set_par_time);
-    
-    const double remap_in_time=take_time();
-    remap_nissa_to_quda(spincolor_in,source);
-    master_printf("time to remap rhs to quda: %lg s\n",take_time()-remap_in_time);
-    
     if(multiGrid::use_multiGrid)
       setup_quda_multigrid();
     
     if(is_master_rank())
       printQudaInvertParam(&inv_param);
+    
+    const double remap_in_time=take_time();
+    remap_nissa_to_quda(spincolor_in,source);
+    master_printf("time to remap rhs to quda: %lg s\n",take_time()-remap_in_time);
     
     const double solution_time=take_time();
     invertQuda(spincolor_out,spincolor_in,&inv_param);
