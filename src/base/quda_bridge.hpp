@@ -94,7 +94,7 @@ namespace quda_iface
     
     remap_nissa_to_quda(quda_conf,nissa_conf);
     master_printf("loading to QUDA the gauge conf\n");
-    loadGaugeQuda((void*)quda_conf,&gauge_param);
+    loadGaugeQuda((void*)&quda_conf[0],&gauge_param);
     
     double plaq[3];
     plaqQuda(plaq);
