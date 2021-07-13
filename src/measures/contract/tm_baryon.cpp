@@ -64,6 +64,12 @@ namespace nissa
     complex *loc_contr=get_reducing_buffer<complex>(locVol*nIdg0*nWicks);
     vector_reset(loc_contr);
     
+    //Compute the projector, gi*gj*(1 or g0)
+    dirac_matr proj[nIdg0];
+    const int g_of_id_g0[nIdg0]={0,4};
+    for(int idg0=0;idg0<nIdg0;idg0++)
+      proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
+    
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	/// Distance from source
@@ -71,12 +77,6 @@ namespace nissa
 	
 	/// Determine whether we are in the first half
 	const bool first_half=(dt<=glbSize[0]/2);
-	
-	//Compute the projector, gi*gj*(1 or g0)
-	dirac_matr proj[nIdg0];
-	const int g_of_id_g0[nIdg0]={0,4};
-	for(int idg0=0;idg0<nIdg0;idg0++)
-	  proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
 	
 	//Takes a slice
 	su3spinspin p[3];
