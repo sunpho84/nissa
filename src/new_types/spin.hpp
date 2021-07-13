@@ -306,17 +306,17 @@ namespace nissa
   {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_complex(out,in,c);}
   
   //out=m*in
-  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_spinspin(spinspin out,const dirac_matr *m,const spinspin in)
+  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_spinspin(spinspin out,const dirac_matr& m,const spinspin in)
   {
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
-	unsafe_complex_prod(out[id1][id2],m->entr[id1],in[m->pos[id1]][id2]);
+	unsafe_complex_prod(out[id1][id2],m.entr[id1],in[m.pos[id1]][id2]);
   }
-  inline void safe_dirac_prod_spinspin(spinspin out,const dirac_matr *m,const spinspin in)
+  inline void safe_dirac_prod_spinspin(spinspin out,const dirac_matr& m,const spinspin in)
   {spinspin temp;unsafe_dirac_prod_spinspin(temp,m,in);spinspin_copy(out,temp);}
   
   //out+=m*in
-  inline void spinspin_dirac_summ_the_prod_spinspin(spinspin out,const dirac_matr *in,const spinspin c)
+  inline void spinspin_dirac_summ_the_prod_spinspin(spinspin out,const dirac_matr& in,const spinspin c)
   {
     spinspin temp;
     unsafe_dirac_prod_spinspin(temp,in,c);
@@ -324,34 +324,34 @@ namespace nissa
   }
   
   //out=m*in^t
-  inline void unsafe_dirac_prod_spinspin_transp(spinspin out,const dirac_matr *m,const spinspin in)
+  inline void unsafe_dirac_prod_spinspin_transp(spinspin out,const dirac_matr& m,const spinspin in)
   {
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
-	unsafe_complex_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
+	unsafe_complex_prod(out[id1][id2],m.entr[id1],in[id2][m.pos[id1]]);
   }
-  inline void safe_dirac_prod_spinspin_transp(spinspin out,const dirac_matr *m,const spinspin in)
+  inline void safe_dirac_prod_spinspin_transp(spinspin out,const dirac_matr& m,const spinspin in)
   {spinspin temp;unsafe_dirac_prod_spinspin_transp(temp,m,in);spinspin_copy(out,temp);}
   
   //out=m*in^+
-  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_spinspin_dag(spinspin out,const dirac_matr *m,const spinspin in)
+  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_spinspin_dag(spinspin out,const dirac_matr& m,const spinspin in)
   {
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
-	unsafe_complex_conj2_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
+	unsafe_complex_conj2_prod(out[id1][id2],m.entr[id1],in[id2][m.pos[id1]]);
   }
-  inline void safe_dirac_prod_spinspin_dag(spinspin out,const dirac_matr *m,const spinspin in)
+  inline void safe_dirac_prod_spinspin_dag(spinspin out,const dirac_matr& m,const spinspin in)
   {spinspin temp;unsafe_dirac_prod_spinspin_dag(temp,m,in);spinspin_copy(out,temp);}
   
   //out=in*m
-  CUDA_HOST_AND_DEVICE inline void unsafe_spinspin_prod_dirac(spinspin out,const spinspin in,const dirac_matr *m)
+  CUDA_HOST_AND_DEVICE inline void unsafe_spinspin_prod_dirac(spinspin out,const spinspin in,const dirac_matr& m)
   {
     spinspin_put_to_zero(out);
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
-	unsafe_complex_prod(out[id1][m->pos[id2]],in[id1][id2],m->entr[id2]);
+	unsafe_complex_prod(out[id1][m.pos[id2]],in[id1][id2],m.entr[id2]);
   }
-  inline void safe_spinspin_prod_dirac(spinspin out,const spinspin in,const dirac_matr *m)
+  inline void safe_spinspin_prod_dirac(spinspin out,const spinspin in,const dirac_matr& m)
   {spinspin temp;unsafe_spinspin_prod_dirac(temp,in,m);spinspin_copy(out,temp);}
   
   //prouduct of spinspin and spin
@@ -396,20 +396,20 @@ namespace nissa
     c[0]=c[1]=0;
     summ_the_trace_prod_spinspins(c,a,b);
   }
-  CUDA_HOST_AND_DEVICE inline void trace_spinspin_with_dirac(complex out,const spinspin s,const dirac_matr *m)
+  CUDA_HOST_AND_DEVICE inline void trace_spinspin_with_dirac(complex out,const spinspin s,const dirac_matr& m)
   {
     complex_put_to_zero(out);
     for(int id1=0;id1<NDIRAC;id1++)
-      complex_summ_the_prod(out,m->entr[id1],s[m->pos[id1]][id1]);
+      complex_summ_the_prod(out,m.entr[id1],s[m.pos[id1]][id1]);
   }
   
   //dirac*spin
-  inline void unsafe_dirac_prod_spin(spin out,const dirac_matr *m,const spin in)
-  {for(int id1=0;id1<NDIRAC;id1++) unsafe_complex_prod(out[id1],m->entr[id1],in[m->pos[id1]]);}
-  inline void safe_dirac_prod_spin(spin out,const dirac_matr *m,const spin in){spin tmp;unsafe_dirac_prod_spin(tmp,m,in);spin_copy(out,tmp);}
-  inline void unsafe_spin_prod_dirac(spin out,const spin in,const dirac_matr *m)
-  {spin_put_to_zero(out);for(int id1=0;id1<NDIRAC;id1++) complex_summ_the_prod(out[m->pos[id1]],in[id1],m->entr[id1]);}
-  inline void safe_spin_prod_spin(spin out,const spin in,const dirac_matr *m){spin tmp;unsafe_spin_prod_dirac(tmp,in,m);spin_copy(out,tmp);}
+  inline void unsafe_dirac_prod_spin(spin out,const dirac_matr& m,const spin in)
+  {for(int id1=0;id1<NDIRAC;id1++) unsafe_complex_prod(out[id1],m.entr[id1],in[m.pos[id1]]);}
+  inline void safe_dirac_prod_spin(spin out,const dirac_matr& m,const spin in){spin tmp;unsafe_dirac_prod_spin(tmp,m,in);spin_copy(out,tmp);}
+  inline void unsafe_spin_prod_dirac(spin out,const spin in,const dirac_matr& m)
+  {spin_put_to_zero(out);for(int id1=0;id1<NDIRAC;id1++) complex_summ_the_prod(out[m.pos[id1]],in[id1],m.entr[id1]);}
+  inline void safe_spin_prod_spin(spin out,const spin in,const dirac_matr& m){spin tmp;unsafe_spin_prod_dirac(tmp,in,m);spin_copy(out,tmp);}
   
   //Rotate left and right by (1+-ig5)/sqrt(2)
   //We distinguish for types of rotations, ir=rsink*2+rsource

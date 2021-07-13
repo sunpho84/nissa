@@ -206,7 +206,7 @@ namespace nissa
     unsafe_spinspin_prod_spin(wf,osp,ompg0_eig[!par_apar][s]);
     spin_prodassign_double(wf,1/sqrt(qu.mass+sinh(e)));
     int ig[2]={0,igamma_of_mu[0]};
-    safe_dirac_prod_spin(wf,base_gamma+ig[par_apar],wf);
+    safe_dirac_prod_spin(wf,base_gamma[ig[par_apar]],wf);
   }
   
   //same for naive massless fermions

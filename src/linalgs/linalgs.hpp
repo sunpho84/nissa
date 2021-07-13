@@ -102,8 +102,8 @@ namespace nissa
   void quadruple_vector_glb_scalar_prod(float_128 a,float_128 *b,float_128 *c,int n);
   void quadruple_vector_subt_from_double_vector(float_128 *a,double *b,float_128 *c,int n);
   void quadruple_vector_summassign_double_vector(float_128 *a,double *b,int n);
-  void safe_dirac_prod_spincolor(spincolor *out,dirac_matr *m,spincolor *in);
-  void safe_dirac_prod_colorspinspin(colorspinspin *out,dirac_matr *m,colorspinspin *in);
+  void safe_dirac_prod_spincolor(spincolor *out,const dirac_matr&m,spincolor *in);
+  void safe_dirac_prod_colorspinspin(colorspinspin *out,const dirac_matr&m,colorspinspin *in);
   void rotate_vol_colorspinspin_to_physical_basis(colorspinspin *s,int rsi,int rso);
   void rotate_vol_su3spinspin_to_physical_basis(su3spinspin *s,int rsi,int rso);
   void quad_su3_nissa_to_ildg_reord_in_place(quad_su3 *conf);

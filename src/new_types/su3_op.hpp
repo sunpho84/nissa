@@ -221,7 +221,7 @@ namespace nissa
   }
   
   //inverse of and su3
-  CUDA_HOST_AND_DEVICE inline void su2_inv(double &a,double &b,double &c,double &d, const double a0,const double b0,const double c0,const double d0)
+  CUDA_HOST_AND_DEVICE inline void su2_inv(double &a,double &b,double &c,double &d,const double a0,const double b0,const double c0,const double d0)
   {a=a0;b=-b0;c=-c0;d=-d0;}
   
   //return the overrelaxing
@@ -1131,25 +1131,25 @@ namespace nissa
   inline CUDA_HOST_AND_DEVICE void spincolor_summ_the_prod_idouble(spincolor a,const spincolor b,const double c) {for(size_t i=0;i<NDIRAC;i++) color_summ_the_prod_idouble(a[i],b[i],c);}
   
   //dirac*spincolor
-  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_spincolor(spincolor out,const dirac_matr *m,const spincolor in)
-  {for(size_t id1=0;id1<NDIRAC;id1++) unsafe_color_prod_complex(out[id1],in[m->pos[id1]],m->entr[id1]);}
+  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_spincolor(spincolor out,const dirac_matr& m,const spincolor in)
+  {for(size_t id1=0;id1<NDIRAC;id1++) unsafe_color_prod_complex(out[id1],in[m.pos[id1]],m.entr[id1]);}
   
-  CUDA_HOST_AND_DEVICE inline void dirac_summ_the_prod_spincolor(spincolor out,const dirac_matr *m,const spincolor in)
-  {for(size_t id1=0;id1<NDIRAC;id1++) color_summ_the_prod_complex(out[id1],in[m->pos[id1]],m->entr[id1]);}
+  CUDA_HOST_AND_DEVICE inline void dirac_summ_the_prod_spincolor(spincolor out,const dirac_matr& m,const spincolor in)
+  {for(size_t id1=0;id1<NDIRAC;id1++) color_summ_the_prod_complex(out[id1],in[m.pos[id1]],m.entr[id1]);}
   
-  CUDA_HOST_AND_DEVICE inline void dirac_subt_the_prod_spincolor(spincolor out,const dirac_matr *m,const spincolor in)
-  {for(size_t id1=0;id1<NDIRAC;id1++) color_subt_the_prod_complex(out[id1],in[m->pos[id1]],m->entr[id1]);}
+  CUDA_HOST_AND_DEVICE inline void dirac_subt_the_prod_spincolor(spincolor out,const dirac_matr& m,const spincolor in)
+  {for(size_t id1=0;id1<NDIRAC;id1++) color_subt_the_prod_complex(out[id1],in[m.pos[id1]],m.entr[id1]);}
   
   //spincolor*dirac
-  inline void unsafe_spincolor_prod_dirac(spincolor out,const spincolor in,const dirac_matr *m)
-  {spincolor_put_to_zero(out);for(size_t id1=0;id1<NDIRAC;id1++) color_summ_the_prod_complex(out[m->pos[id1]],in[id1],m->entr[id1]);}
+  inline void unsafe_spincolor_prod_dirac(spincolor out,const spincolor in,const dirac_matr& m)
+  {spincolor_put_to_zero(out);for(size_t id1=0;id1<NDIRAC;id1++) color_summ_the_prod_complex(out[m.pos[id1]],in[id1],m.entr[id1]);}
   
   //dirac*spincolor
-  CUDA_HOST_AND_DEVICE inline void safe_dirac_prod_spincolor(spincolor out,const dirac_matr *m,const spincolor in)
+  CUDA_HOST_AND_DEVICE inline void safe_dirac_prod_spincolor(spincolor out,const dirac_matr& m,const spincolor in)
   {spincolor tmp;unsafe_dirac_prod_spincolor(tmp,m,in);spincolor_copy(out,tmp);}
   
   //spincolor*dirac
-  inline void safe_spincolor_prod_dirac(spincolor out,const spincolor in,const dirac_matr *m)
+  inline void safe_spincolor_prod_dirac(spincolor out,const spincolor in,const dirac_matr& m)
   {spincolor tmp;unsafe_spincolor_prod_dirac(tmp,in,m);spincolor_copy(out,tmp);}
   
   //su3*spincolor
@@ -1204,53 +1204,53 @@ namespace nissa
   }
   
   //su3^*gamma*spincolor
-  inline void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,const su3 U,const dirac_matr *m,const spincolor in)
+  inline void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
     for(size_t id1=0;id1<NDIRAC;id1++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
+	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m.entr[id1],in[m.pos[id1]][ic]);
 	unsafe_su3_dag_prod_color(out[id1],U,tmp);
       }
   }
   
-  inline void unsafe_su3_dag_dirac_summ_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr *m,const spincolor in)
+  inline void unsafe_su3_dag_dirac_summ_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
     for(size_t id1=0;id1<NDIRAC;id1++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
+	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m.entr[id1],in[m.pos[id1]][ic]);
 	su3_dag_summ_the_prod_color(out[id1],U,tmp);
       }
   }
   
   //su3*dirac*spincolor
-  inline void unsafe_su3_dirac_prod_spincolor(spincolor out,const su3 U,const dirac_matr *m,const spincolor in)
+  inline void unsafe_su3_dirac_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
     for(size_t id1=0;id1<NDIRAC;id1++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
+	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m.entr[id1],in[m.pos[id1]][ic]);
 	unsafe_su3_prod_color(out[id1],U,tmp);
       }
   }
   
-  inline void unsafe_su3_dirac_subt_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr *m,const spincolor in)
+  inline void unsafe_su3_dirac_subt_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
     for(size_t id1=0;id1<NDIRAC;id1++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
+	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m.entr[id1],in[m.pos[id1]][ic]);
 	su3_subt_the_prod_color(out[id1],U,tmp);
       }
   }
   
-  inline void unsafe_su3_dirac_summ_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr *m,const spincolor in)
+  inline void unsafe_su3_dirac_summ_the_prod_spincolor(spincolor out,const su3 U,const dirac_matr& m,const spincolor in)
   {
     color tmp;
     for(size_t id1=0;id1<NDIRAC;id1++)
       {
-	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
+	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m.entr[id1],in[m.pos[id1]][ic]);
 	su3_summ_the_prod_color(out[id1],U,tmp);
       }
   }
@@ -1322,13 +1322,13 @@ namespace nissa
 	    complex_summ_the_conj1_prod(a[c1][id_si][id_so],b[c2][c1],c[c2][id_si][id_so]);
   }
   
-  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_colorspinspin(colorspinspin out,const dirac_matr *m,const colorspinspin in)
+  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_colorspinspin(colorspinspin out,const dirac_matr& m,const colorspinspin in)
   {for(int ic=0;ic<NCOL;ic++) unsafe_dirac_prod_spinspin(out[ic],m,in[ic]);}
-  CUDA_HOST_AND_DEVICE inline void safe_dirac_prod_colorspinspin(colorspinspin out,const dirac_matr *m,const colorspinspin in)
+  CUDA_HOST_AND_DEVICE inline void safe_dirac_prod_colorspinspin(colorspinspin out,const dirac_matr& m,const colorspinspin in)
   {colorspinspin temp;unsafe_dirac_prod_colorspinspin(temp,m,in);colorspinspin_copy(out,temp);}
-  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_su3spinspin(su3spinspin out,const dirac_matr *m,const su3spinspin in)
+  CUDA_HOST_AND_DEVICE inline void unsafe_dirac_prod_su3spinspin(su3spinspin out,const dirac_matr& m,const su3spinspin in)
   {for(int ic=0;ic<NCOL;ic++) unsafe_dirac_prod_colorspinspin(out[ic],m,in[ic]);}
-  CUDA_HOST_AND_DEVICE inline void safe_dirac_prod_su3spinspin(su3spinspin out,const dirac_matr *m,const su3spinspin in)
+  CUDA_HOST_AND_DEVICE inline void safe_dirac_prod_su3spinspin(su3spinspin out,const dirac_matr& m,const su3spinspin in)
   {su3spinspin temp;unsafe_dirac_prod_su3spinspin(temp,m,in);su3spinspin_copy(out,temp);}
   
   //////////////////////////////// get and put ///////////////////////////////////

@@ -805,7 +805,7 @@ void get_prop(const int& t,const int& r)
 {
   spincolor* p=prop(t,r);
   
-  safe_dirac_prod_spincolor(temp,(tau3[r]==-1)?&Pminus:&Pplus,source(t));
+  safe_dirac_prod_spincolor(temp,(tau3[r]==-1)?Pminus:Pplus,source(t));
   if(cSW==0.0)
     inv_tmD_cg_eoprec(p,NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
   else
@@ -813,10 +813,10 @@ void get_prop(const int& t,const int& r)
       invert_twisted_clover_term(invCl,mass*tau3[r],kappa,Cl);
       inv_tmclovD_cg_eoprec(p,NULL,glb_conf,kappa,Cl,invCl,cSW,mass*tau3[r],1000000,residue,temp);
     }
-  safe_dirac_prod_spincolor(p,(tau3[r]==-1)?&Pminus:&Pplus,prop(t,r));
+  safe_dirac_prod_spincolor(p,(tau3[r]==-1)?Pminus:Pplus,prop(t,r));
 }
 
-void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,dirac_matr* gamma)
+void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,const dirac_matr& gamma)
 {
   vector_reset(loc_contr);
   
@@ -838,7 +838,7 @@ void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,dirac_matr* g
     }
 }
 
-void compute_inserted_contr(double* contr,spincolor* propBw,spincolor* propFw,dirac_matr* gamma)
+void compute_inserted_contr(double* contr,spincolor* propBw,spincolor* propFw,const dirac_matr& gamma)
 {
   NISSA_PARALLEL_LOOP(ivol,0,locVol)
     {
@@ -913,7 +913,7 @@ void analyzeConf()
 	    for(int r2=0;r2<2;r2++)
 	      for(int glbT=0;glbT<glbSize[0];glbT++)
 		{
-		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+5);
+		  compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma[5]);
 		  
 		  complex_put_to_zero(S0P5_contr[r1][r2][glbT]);
 		  for(int t=0;t<glbSize[0];t++)
@@ -943,12 +943,12 @@ void analyzeConf()
 		complex c[2][2];
 		for(int r1=0;r1<2;r1++)
 		  for(int r2=0;r2<2;r2++)
-		    compute_inserted_contr(c[r1][r2],prop(glbT2,!r2),prop(glbT1,r1),base_gamma+5);
+		    compute_inserted_contr(c[r1][r2],prop(glbT2,!r2),prop(glbT1,r1),base_gamma[5]);
 		
 		//prop with other source, to compute 0S
 		complex spect[2];
 		for(int r=0;r<2;r++)
-		  compute_inserted_contr(spect[r],source(glbT2),prop(glbT1,r),base_gamma+5);
+		  compute_inserted_contr(spect[r],source(glbT2),prop(glbT1,r),base_gamma[5]);
 		
 		//SS
 		for(int r1f=0;r1f<2;r1f++)
@@ -1004,7 +1004,7 @@ void analyzeConf()
 		for(int r2=0;r2<2;r2++)
 		  for(int glbT=0;glbT<glbSize[0];glbT++)
 		    {
-		      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma+0);
+		      compute_conn_contr(temp_contr,r1,r2,glbT,base_gamma[0]);
 		      
 		      FILE* outFile=withoutWithSme?P5P5_contr_sme_file:P5P5_contr_file;
 		      

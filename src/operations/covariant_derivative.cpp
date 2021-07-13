@@ -179,13 +179,13 @@ namespace nissa
     out[IM]=0;
   }
   
-#define DEF_TM_GAMMA(r) dirac_matr GAMMA;dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[r])
+#define DEF_TM_GAMMA(r) dirac_matr GAMMA=dirac_prod_idouble(base_gamma[5],-tau3[r])
   
 #define INSERT_VECTOR_VERTEX(TYPE)					\
   /*insert the operator:  \sum_mu  [*/					\
   /* f_fw * ( GAMMA - gmu) A_{x,mu} U_{x,mu} \delta{x',x+mu} + f_bw * ( GAMMA + gmu) A_{x-mu,mu} U^+_{x-mu,mu} \delta{x',x-mu}]*/ \
   /* for tm GAMMA should be -i g5 tau3[r], defined through the macro above, for Wilson id */		\
-  void insert_vector_vertex(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,complex fact_fw,complex fact_bw,dirac_matr *GAMMA,void(*get_curr)(complex,spin1field*,int,int,const void*),int t,const void *pars=NULL) \
+  void insert_vector_vertex(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,complex fact_fw,complex fact_bw,const dirac_matr& GAMMA,void(*get_curr)(complex,spin1field*,int,int,const void*),int t,const void *pars=NULL) \
   {									\
 									\
   /*reset the output and communicate borders*/				\
@@ -230,7 +230,7 @@ namespace nissa
 									\
 	/*put gmu on the difference*/					\
 	TYPE gmu_bw_M_fw;						\
-	NAME2(unsafe_dirac_prod,TYPE)(gmu_bw_M_fw,base_gamma+igamma_of_mu[mu],bw_M_fw); \
+	NAME2(unsafe_dirac_prod,TYPE)(gmu_bw_M_fw,base_gamma[igamma_of_mu[mu]],bw_M_fw); \
 	NAME2(TYPE,summassign)(out[ivol],gmu_bw_M_fw);			\
       }									\
   NISSA_PARALLEL_LOOP_END;						\
@@ -239,41 +239,41 @@ namespace nissa
   }									\
   									\
   /*insert the tadpole*/						\
-  void insert_tadpole(TYPE* out,quad_su3* conf,TYPE* in,dirac_matr* GAMMA,const momentum_t& tad,int t) \
+  void insert_tadpole(TYPE* out,quad_su3* conf,TYPE* in,const dirac_matr& GAMMA,const momentum_t& tad,int t) \
   {									\
     /*call with no source insertion, plus between fw and bw, and a global -0.25*/ \
     complex fw_factor={-0.25,0},bw_factor={-0.25,0};	/* see below for hte minus convention*/ \
     insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_tadpole_handle,t,&tad); \
   }									\
-  void insert_Wilson_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,const momentum_t& tad,int t){insert_tadpole(out,conf,in,base_gamma+0,tad,t);} \
-  void insert_tm_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,int r,const momentum_t& tad,int t){DEF_TM_GAMMA(r); insert_tadpole(out,conf,in,&GAMMA,tad,t);} \
+  void insert_Wilson_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,const momentum_t& tad,int t){insert_tadpole(out,conf,in,base_gamma[0],tad,t);} \
+  void insert_tm_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,int r,const momentum_t& tad,int t){DEF_TM_GAMMA(r); insert_tadpole(out,conf,in,GAMMA,tad,t);} \
   									\
   /*insert the external source, that is one of the two extrema of the stoch prop*/ \
-  void insert_external_source(TYPE* out,quad_su3* conf,spin1field* curr,TYPE* in,dirac_matr* GAMMA,const which_dir_t& dirs,int t) \
+  void insert_external_source(TYPE* out,quad_su3* conf,spin1field* curr,TYPE* in,const dirac_matr& GAMMA,const which_dir_t& dirs,int t) \
   {									\
     /*call with source insertion, minus between fw and bw, and a global -i*0.5 - the minus comes from definition in eq.11 of 1303.4896*/ \
     complex fw_factor={0,-0.5},bw_factor={0,+0.5};			\
     insert_vector_vertex(out,conf,curr,in,fw_factor,bw_factor,GAMMA,insert_external_source_handle,t,&dirs); \
   }									\
-  void insert_Wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,const which_dir_t& dirs,int t){insert_external_source(out,conf,curr,in,base_gamma+0,dirs,t);} \
-  void insert_tm_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int r,const which_dir_t& dirs,int t){DEF_TM_GAMMA(r);insert_external_source(out,conf,curr,in,&GAMMA,dirs,t);} \
+  void insert_Wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,const which_dir_t& dirs,int t){insert_external_source(out,conf,curr,in,base_gamma[0],dirs,t);} \
+  void insert_tm_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int r,const which_dir_t& dirs,int t){DEF_TM_GAMMA(r);insert_external_source(out,conf,curr,in,GAMMA,dirs,t);} \
 									\
   /*insert the conserved time current*/ \
-  void insert_conserved_current(TYPE* out,quad_su3* conf,TYPE* in,dirac_matr* GAMMA,const which_dir_t& dirs,int t) \
+  void insert_conserved_current(TYPE* out,quad_su3* conf,TYPE* in,const dirac_matr& GAMMA,const which_dir_t& dirs,int t) \
   {									\
     /*call with no source insertion, minus between fw and bw, and a global 0.5*/ \
     complex fw_factor={-0.5,0},bw_factor={+0.5,0}; /* follow eq.11.43 of Gattringer*/		\
     insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_conserved_current_handle,t,&dirs); \
   }									\
-  void insert_Wilson_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,const which_dir_t& dirs,int t){insert_conserved_current(out,conf,in,base_gamma+0,dirs,t);} \
-  void insert_tm_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int r,const which_dir_t& dirs,int t){DEF_TM_GAMMA(r);insert_conserved_current(out,conf,in,&GAMMA,dirs,t);} \
+  void insert_Wilson_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,const which_dir_t& dirs,int t){insert_conserved_current(out,conf,in,base_gamma[0],dirs,t);} \
+  void insert_tm_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int r,const which_dir_t& dirs,int t){DEF_TM_GAMMA(r);insert_conserved_current(out,conf,in,GAMMA,dirs,t);} \
 									\
   /*multiply with gamma*/						\
   void prop_multiply_with_gamma(TYPE* out,int ig,TYPE* in,int twall) \
   {									\
     NISSA_PARALLEL_LOOP(ivol,0,locVol)					\
       {									\
-	NAME2(safe_dirac_prod,TYPE)(out[ivol],base_gamma+ig,in[ivol]); \
+	NAME2(safe_dirac_prod,TYPE)(out[ivol],base_gamma[ig],in[ivol]); \
 	NAME2(TYPE,prodassign_double)(out[ivol],(twall==-1 or glbCoordOfLoclx[ivol][0]==twall)); \
       }									\
     NISSA_PARALLEL_LOOP_END;						\

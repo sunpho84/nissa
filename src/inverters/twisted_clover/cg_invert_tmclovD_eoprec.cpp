@@ -228,7 +228,7 @@ namespace nissa
     double check_time=take_time();
     spincolor *residueVec=nissa_malloc("temp",locVol,spincolor);
     apply_tmclovQ(residueVec,conf_lx,kappa,Cl_lx,mass,solution_lx);
-    safe_dirac_prod_spincolor(residueVec,base_gamma+5,residueVec);
+    safe_dirac_prod_spincolor(residueVec,base_gamma[5],residueVec);
     double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol*sizeof(spincolor)/sizeof(double));
     
     /// Source L2 norm

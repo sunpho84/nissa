@@ -37,7 +37,8 @@ namespace nissa
   {
     
     //rotate the source index - the propagator rotate AS the sign of mass term
-    if(twisted_run>0) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
+    if(twisted_run>0)
+      safe_dirac_prod_spincolor(in,(tau3[r]==-1)?Pminus:Pplus,in);
     
     //invert
     START_TIMING(inv_time,ninv_tot);
@@ -67,7 +68,8 @@ namespace nissa
     STOP_TIMING(inv_time);
     
     //rotate the sink index
-    if(twisted_run>0) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
+    if(twisted_run>0)
+      safe_dirac_prod_spincolor(out,(tau3[r]==-1)?Pminus:Pplus,out);
   }
   
   //generate a source, wither a wall or a point in the origin
@@ -152,7 +154,7 @@ namespace nissa
 	  if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
 	    {
 	      spincolor temp1,temp2;
-	      unsafe_dirac_prod_spincolor(temp1,base_gamma+igamma_of_mu[mu],in[ivol]);
+	      unsafe_dirac_prod_spincolor(temp1,base_gamma[igamma_of_mu[mu]],in[ivol]);
 	      unsafe_spincolor_prod_complex(temp2,temp1,curr[ivol][mu]);
 	      spincolor_summ_the_prod_idouble(out[ivol],temp2,1);
 	    }

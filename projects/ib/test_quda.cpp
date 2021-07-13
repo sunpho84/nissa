@@ -49,7 +49,7 @@ void in_main(int narg,char **arg)
   quda_iface::apply_tmD(out,conf,kappa,mu,in);
   apply_tmQ(out_nissa,conf,kappa,mu,in);
   
-  safe_dirac_prod_spincolor(out_nissa,base_gamma+5,out_nissa);
+  safe_dirac_prod_spincolor(out_nissa,base_gamma[5],out_nissa);
   
   master_printf("comparing\n");
   for(int ivol=0;ivol<locVol;ivol++)

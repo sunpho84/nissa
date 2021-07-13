@@ -173,8 +173,8 @@ namespace nissa
     if(!loc_muon_curr)
       {
 	dirac_matr GAMMA;
-	if(twisted_run>0) dirac_prod_double(&GAMMA,base_gamma+0,1);
-	else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
+	if(twisted_run>0) GAMMA=dirac_prod_double(base_gamma[0],1);
+	else GAMMA=dirac_prod_idouble(base_gamma[5],-tau3[le.r]);
 	
 	//prepare each propagator for a single lepton
 	//by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
@@ -218,12 +218,12 @@ namespace nissa
 		  
 		  //put GAMMA on the summ
 		  spinspin temp_P;
-		  unsafe_spinspin_prod_dirac(temp_P,fw_P_bw,&GAMMA);
+		  unsafe_spinspin_prod_dirac(temp_P,fw_P_bw,GAMMA);
 		  spinspin_summassign(prop[ivol],temp_P);
 		  
 		  //put gmu on the diff
 		  spinspin temp_M;
-		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma+igamma_of_mu[mu]);
+		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma[igamma_of_mu[mu]]);
 		  spinspin_summassign(prop[ivol],temp_M);
 		}
 	NISSA_PARALLEL_LOOP_END;
@@ -236,7 +236,7 @@ namespace nissa
 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
 		{
 		  spinspin temp1,temp2;
-		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+igamma_of_mu[mu]);
+		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma[igamma_of_mu[mu]]);
 		  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
 		  spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
 		}
@@ -348,24 +348,23 @@ namespace nissa
     else naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,-1);
     if(follow_chris_or_nazario==follow_chris)
       for(int i=0;i<2;i++)
-	safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+igamma_of_mu[0]);
+	safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma[igamma_of_mu[0]]);
     
     //compute the right part of the leptonic loop: G0 G^dag
     dirac_matr meslep_proj_gamma[nmeslep_proj];
     for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
       {
 	int ig=meslep_projs[ig_proj];
-	dirac_matr temp_gamma;
-	dirac_herm(&temp_gamma,base_gamma+ig);
-	dirac_prod(meslep_proj_gamma+ig_proj,base_gamma+igamma_of_mu[0],&temp_gamma);
+	const dirac_matr temp_gamma=dirac_herm(base_gamma[ig]);
+	meslep_proj_gamma[ig_proj]=base_gamma[igamma_of_mu[0]]*temp_gamma;
       }
     //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - no dagger, no commutator because it's on the LO leptonic part
     dirac_matr weak_ins_hadr_gamma[nmeslep_weak_ins];
-    for(int ins=0;ins<nmeslep_weak_ins;ins++) dirac_prod(weak_ins_hadr_gamma+ins,base_gamma+5,base_gamma+list_weak_insq[ins]);
+    for(int ins=0;ins<nmeslep_weak_ins;ins++)
+      weak_ins_hadr_gamma[ins]=base_gamma[5]*base_gamma[list_weak_insq[ins]];
     
     //define the combined weak projectors (see below)
-    dirac_matr neutr_1m_g5_proj;
-    dirac_subt(&neutr_1m_g5_proj,base_gamma+0,base_gamma+5);
+    dirac_matr neutr_1m_g5_proj=dirac_subt(base_gamma[0],base_gamma[5]);
     
     for(int ins=0;ins<nmeslep_weak_ins;ins++)
       {
@@ -379,12 +378,12 @@ namespace nissa
 	    
 	    //multiply lepton side on the right (source) side
 	    spinspin la;
-	    unsafe_spinspin_prod_dirac(la,lept[ivol],base_gamma+list_weak_insl[ins]);
+	    unsafe_spinspin_prod_dirac(la,lept[ivol],base_gamma[list_weak_insl[ins]]);
 	    
 	    //include 4*(1-5)/2/2=(1-5) coming from the two neturino projector+(1-g5) weak lepton structure
 	    //the second /2 comes from sqr(1/sqrt(2)) of 1502.00257
 	    spinspin l;
-	    unsafe_spinspin_prod_dirac(l,la,&neutr_1m_g5_proj);
+	    unsafe_spinspin_prod_dirac(l,la,neutr_1m_g5_proj);
 	    
 	    //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
 	    complex ph;
@@ -392,7 +391,7 @@ namespace nissa
 	    
 	    //trace hadron side
 	    complex h;
-	    trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma+ins);
+	    trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma[ins]);
 	    
 	    //combine mesolep
 	    complex_prodassign(h,ph);
@@ -413,7 +412,7 @@ namespace nissa
 	      spinspin dtd;
 	      unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 	      complex mesolep;
-	      trace_spinspin_with_dirac(mesolep,dtd,meslep_proj_gamma+ig_proj);
+	      trace_spinspin_with_dirac(mesolep,dtd,meslep_proj_gamma[ig_proj]);
 	      
 	      //summ the average
 	      int i=glb_t+glbSize[0]*(ig_proj+nmeslep_proj*(list_weak_ind_contr[ins]+nindep_meslep_weak*ext_ind));

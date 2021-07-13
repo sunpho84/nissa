@@ -217,10 +217,9 @@ namespace nissa
   //set Cg5=ig2g4g5
   void set_Cg5()
   {
-    dirac_matr g2g4,C;
-    dirac_prod(&g2g4,base_gamma+2,base_gamma+4);
-    dirac_prod_idouble(&C,&g2g4,1);
-    dirac_prod(&Cg5,&C,base_gamma+5);
+    const dirac_matr g2g4=base_gamma[2]*base_gamma[4];
+    const dirac_matr C=dirac_prod_idouble(g2g4,1.0);
+    Cg5=dirac_prod(C,base_gamma[5]);
   }
   
   //allocate bariionic contr
@@ -580,7 +579,7 @@ namespace nissa
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //compute the matrix element of the conserved current between two propagators. If asking to revert, g5 is inserted between the two propagators
-  void conserved_vector_current_mel(quad_su3* conf,spin1field* si,dirac_matr* ext_g,int r,const char* name_bw,const char* name_fw,bool revert)
+  void conserved_vector_current_mel(quad_su3* conf,spin1field* si,const dirac_matr& ext_g,int r,const char* name_bw,const char* name_fw,bool revert)
   {
     
     vector_reset(si);
@@ -588,14 +587,15 @@ namespace nissa
     //compute the gammas
     dirac_matr* GAMMA=nissa_malloc("GAMMA",5,dirac_matr);
     dirac_matr temp_gamma;
-    if(twisted_run>0)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[r]);
+    if(twisted_run>0)	temp_gamma=dirac_prod_idouble(base_gamma[5],-tau3[r]);
     else                temp_gamma=base_gamma[0];
     
     //Add g5 on the gamma, only if asked to revert
     if(revert)
       {
-	dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
-	for(int mu=0;mu<NDIM;mu++) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
+	GAMMA[4]=base_gamma[5]*temp_gamma;
+	for(int mu=0;mu<NDIM;mu++)
+	 GAMMA[mu]=base_gamma[5]*base_gamma[igamma_of_mu[mu]];
       }
     else
       {
@@ -604,8 +604,8 @@ namespace nissa
       }
     
     dirac_matr g;
-    if(revert) dirac_prod(&g,ext_g,base_gamma+5);
-    else       g=*ext_g;
+    if(revert) g=dirac_prod(ext_g,base_gamma[5]);
+    else       g=ext_g;
     
     for(int iso_spi_bw=0;iso_spi_bw<nso_spi;iso_spi_bw++)
       for(int iso_col=0;iso_col<nso_col;iso_col++)
@@ -631,16 +631,16 @@ namespace nissa
 		
 		//piece psi_ivol U_ivol psi_fw
 		unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ivol_fw]);
-		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
-		dirac_subt_the_prod_spincolor(Gf,GAMMA+mu,f);
+		unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
+		dirac_subt_the_prod_spincolor(Gf,GAMMA[mu],f);
 		spincolor_scalar_prod(c,Qbw[ivol],Gf);
 		complex_prodassign(c,g.entr[iso_spi_bw]);
 		complex_summ_the_prod_idouble(si[ivol][mu],c,-0.5);
 		
 		//piece psi_fw U_ivol^dag psi_ivol
 		unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],Qfw[ivol]);
-		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
-		dirac_summ_the_prod_spincolor(Gf,GAMMA+mu,f);
+		unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
+		dirac_summ_the_prod_spincolor(Gf,GAMMA[mu],f);
 		spincolor_scalar_prod(c,Qbw[ivol_fw],Gf);
 		complex_prodassign(c,g.entr[iso_spi_bw]);
 		complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
@@ -652,19 +652,19 @@ namespace nissa
   }
   
   //compute the matrix element of the current between two propagators
-  void vector_current_mel(spin1field* si,dirac_matr* ext_g,int r,const char* id_Qbw,const char* id_Qfw,bool revert)
+  void vector_current_mel(spin1field* si,const dirac_matr& ext_g,int r,const char* id_Qbw,const char* id_Qfw,bool revert)
   {
     
     vector_reset(si);
     
     dirac_matr *GAMMA=nissa_malloc("GAMMA",NDIM,dirac_matr);
     for(int mu=0;mu<NDIM;mu++)
-      if(revert) dirac_prod(GAMMA+mu,base_gamma+5,base_gamma+igamma_of_mu[mu]);
+      if(revert) GAMMA[mu]=base_gamma[5]*base_gamma[igamma_of_mu[mu]];
       else       GAMMA[mu]=base_gamma[igamma_of_mu[mu]];
     
     dirac_matr g;
-    if(revert) dirac_prod(&g,ext_g,base_gamma+5);
-    else       g=*ext_g;
+    if(revert) g=dirac_prod(ext_g,base_gamma[5]);
+    else       g=ext_g;
     
     for(int iso_spi_fw=0;iso_spi_fw<nso_spi;iso_spi_fw++)
       for(int iso_col=0;iso_col<nso_col;iso_col++)
@@ -681,7 +681,7 @@ namespace nissa
 		spincolor temp;
 		complex c;
 		
-		unsafe_dirac_prod_spincolor(temp,GAMMA+mu,Qfw[ivol]);
+		unsafe_dirac_prod_spincolor(temp,GAMMA[mu],Qfw[ivol]);
 		spincolor_scalar_prod(c,Qbw[ivol],temp);
 		complex_summ_the_prod(si[ivol][mu],c,g.entr[iso_spi_fw]);
 	      }
@@ -692,9 +692,9 @@ namespace nissa
   }
   
   //compute local or conserved vector current matrix element
-  void local_or_conserved_vector_current_mel(spin1field *si,dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert)
+  void local_or_conserved_vector_current_mel(spin1field *si,const dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert)
   {
-    if(loc_hadr_curr) vector_current_mel(si,&g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
+    if(loc_hadr_curr) vector_current_mel(si,g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
     else
       {
 	momentum_t plain_bc;
@@ -702,7 +702,7 @@ namespace nissa
 	for(int mu=1;mu<NDIM;mu++) plain_bc[mu]=0.0;
 	quad_su3 *conf=get_updated_conf(Q[prop_name_fw].charge,plain_bc,glb_conf);
 	int r=Q[prop_name_fw].r;
-	conserved_vector_current_mel(conf,si,&g,r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
+	conserved_vector_current_mel(conf,si,g,r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
       }
   }
   
@@ -714,7 +714,6 @@ namespace nissa
     
     //allocate all sides
     std::map<std::string,spin1field*> sides;
-
     
     //loop over sides
     for(size_t iside=0;iside<handcuffs_side_map.size();iside++)

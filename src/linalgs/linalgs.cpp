@@ -453,7 +453,7 @@ namespace nissa
   
   ////////////////// spincolor algebra/////////////////////
   
-  void safe_dirac_prod_spincolor(spincolor* out,dirac_matr* m,spincolor* in)
+  void safe_dirac_prod_spincolor(spincolor* out,const dirac_matr& m,spincolor* in)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       safe_dirac_prod_spincolor(out[ivol],m,in[ivol]);
@@ -461,7 +461,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  void safe_dirac_prod_colorspinspin(colorspinspin* out,dirac_matr* m,colorspinspin* in)
+  void safe_dirac_prod_colorspinspin(colorspinspin* out,const dirac_matr& m,colorspinspin* in)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       safe_dirac_prod_colorspinspin(out[ivol],m,in[ivol]);

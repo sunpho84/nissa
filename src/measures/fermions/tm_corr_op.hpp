@@ -87,10 +87,10 @@ namespace nissa
       
       const quark_content_t& q=tp.quarks[iflav];
       
-      safe_dirac_prod_spincolor(tmp,&Pplus,in);
+      safe_dirac_prod_spincolor(tmp,Pplus,in);
       if(q.cSW) inv_tmclovD_cg_eoprec(out,NULL,conf,q.kappa,Cl,invCl,q.cSW,q.mass,1000000,residue,tmp);
       else inv_tmD_cg_eoprec(out,NULL,conf,q.kappa,q.mass,1000000,residue,tmp);
-      safe_dirac_prod_spincolor(out,&Pplus,out);
+      safe_dirac_prod_spincolor(out,Pplus,out);
     }
     
     /// Constructor

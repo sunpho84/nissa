@@ -12,7 +12,7 @@ namespace nissa
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
-	unsafe_dirac_prod_spincolor(out[ivol],base_gamma+igamma,in[ivol]);
+	unsafe_dirac_prod_spincolor(out[ivol],base_gamma[igamma],in[ivol]);
       }
     NISSA_PARALLEL_LOOP_END;
     
