@@ -24,7 +24,7 @@
 namespace quda_iface
 {
   using su3_ptr=nissa::su3*;
-  using quda_conf_t=su3_ptr[NDIM];
+  using quda_conf_t=nissa::my_array<su3_ptr,NDIM>;
   
 #ifdef USE_QUDA
   EXTERN_QUDA_BRIDGE QudaGaugeParam  gauge_param;
