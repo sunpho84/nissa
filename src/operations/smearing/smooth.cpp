@@ -25,7 +25,11 @@ namespace nissa
   //smooth a configuration until measure is due
   bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const which_dir_t& dirs,int staple_min_dir)
   {
-    if(sp.method==smooth_pars_t::COOLING and dirs!=all_dirs) crash("not implemented");
+    bool diff=false;
+    for(int mu=0;mu<NDIM;mu++)
+      diff|=dirs[mu]!=all_dirs[mu];
+    
+    if(sp.method==smooth_pars_t::COOLING and diff) crash("not implemented");
     
     const int next_nsmooth_meas=sp.next_nsmooth_meas(nsmooth);
     const bool finished=(next_nsmooth_meas>sp.nsmooth());
