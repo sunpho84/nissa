@@ -21,9 +21,26 @@
 
 namespace nissa
 {
-  typedef std::array<bool,NDIM> which_dir_t;
-  typedef std::array<int,NDIM> coords_t;
-  typedef std::array<double,NDIM> momentum_t;
+  template <typename T,
+	    size_t N>
+  struct my_array
+  {
+    T data[N];
+    
+    CUDA_HOST_AND_DEVICE inline T& operator[](const size_t i)
+    {
+      return data[i];
+    }
+    
+    CUDA_HOST_AND_DEVICE const inline T& operator[](const size_t i) const 
+    {
+      return data[i];
+    }
+  };
+  
+  typedef my_array<bool,NDIM> which_dir_t;
+  typedef my_array<int,NDIM> coords_t;
+  typedef my_array<double,NDIM> momentum_t;
   
   //nomenclature:
   //-glb is relative to the global grid
