@@ -64,7 +64,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma);
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
-  void generate_random_coord(coords c);
+  coords_t generate_random_coord();
   CUDA_HOST_AND_DEVICE void rnd_get_Z2(complex out,rnd_gen *gen);
   CUDA_HOST_AND_DEVICE void rnd_get_Z4(complex out,rnd_gen *gen);
   CUDA_HOST_AND_DEVICE void rnd_get_ZN(complex out,rnd_gen *gen,int N);

@@ -9,7 +9,7 @@
 namespace nissa
 {
   //smooth a configuration for one step
-  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,bool *dirs,int staple_min_dir)
+  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs,int staple_min_dir)
   {
     verbosity_lv3_master_printf("smoothing one step\n");
     switch(sp.method)
@@ -23,7 +23,7 @@ namespace nissa
   }
   
   //smooth a configuration until measure is due
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,bool *dirs,int staple_min_dir)
+  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const which_dir_t& dirs,int staple_min_dir)
   {
     if(sp.method==smooth_pars_t::COOLING and dirs!=all_dirs) crash("not implemented");
     
@@ -42,7 +42,7 @@ namespace nissa
   }
   
   //smooth a configuration as imposed
-  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,bool *dirs,int staple_min_dir)
+  void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs,int staple_min_dir)
   {
     for(int ismooth=0;ismooth<sp.nsmooth();ismooth++)
       smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);

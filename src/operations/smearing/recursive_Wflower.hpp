@@ -112,7 +112,7 @@ namespace nissa
     }
     
     //evolve until nWflow
-    int update_level(int is,int nWflow,bool *dirs=all_dirs)
+    int update_level(int is,int nWflow,const which_dir_t& dirs=all_dirs)
     {
       int nevol=0;
       
@@ -139,7 +139,7 @@ namespace nissa
     }
     
     //update the lowest conf using in chain the superior ones
-    int update(int nWflow,bool *dirs=all_dirs,int staple_min_dir=0)
+    int update(int nWflow,const which_dir_t& dirs=all_dirs,int staple_min_dir=0)
     {
       int nevol=0;
       

@@ -37,7 +37,7 @@ namespace nissa
     
     if(export_needed)
       {
-	bool export_result;
+	bool export_result=false;
 	double plaq=0.0;
 	
 #ifdef USE_DDALPHAAMG

@@ -59,8 +59,7 @@ namespace nissa
 	for(int ihit=0;ihit<meas_pars.nhits;ihit++)
 	  {
 	    /// Position of the source
-	    coords glbSourceCoords;
-	    generate_random_coord(glbSourceCoords);
+	    coords_t glbSourceCoords=generate_random_coord();
 	    
 	    /// Which rank hosts the source
 	    int whichRank;
@@ -68,7 +67,7 @@ namespace nissa
 	    /// Local site
 	    int locSourcePos;
 	    
-	    get_loclx_and_rank_of_coord(&locSourcePos,&whichRank,glbSourceCoords);
+	    get_loclx_and_rank_of_coord(locSourcePos,whichRank,glbSourceCoords);
 	    
 	    for(int idirac=0;idirac<NDIRAC;idirac++)
 	      for(int icol=0;icol<NCOL;icol++)

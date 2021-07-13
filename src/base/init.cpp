@@ -275,7 +275,7 @@ namespace nissa
   }
   
   //compute internal volume
-  int bulk_volume(int *L)
+  int bulk_volume(const coords_t& L)
   {
     int intvol=1,mu=0;
     do
@@ -291,15 +291,15 @@ namespace nissa
   }
   
   //compute the bulk volume of the local lattice, given by L/R
-  int bulk_recip_lat_volume(int *R,int *L)
+  int bulk_recip_lat_volume(const coords_t& R,const coords_t& L)
   {
-    coords X;
+    coords_t X;
     for(int mu=0;mu<NDIM;mu++) X[mu]=L[mu]/R[mu];
     return bulk_volume(X);
   }
   
   //compute the variance of the border
-  int compute_border_variance(int *L,int *P,int factorize_processor)
+  int compute_border_variance(const coords_t& L,const coords_t& P,int factorize_processor)
   {
     int S2B=0,SB=0;
     for(int ib=0;ib<NDIM;ib++)
@@ -317,13 +317,13 @@ namespace nissa
   }
   
   //find the grid minimizing the surface
-  void find_minimal_surface_grid(int *mR,int *ext_L,int NR)
+  void find_minimal_surface_grid(coords_t& mR,const coords_t& ext_L,int NR)
   {
-    coords additionally_parallelize_dir;
+    coords_t additionally_parallelize_dir;
     for(int mu=0;mu<NDIM;mu++) additionally_parallelize_dir[mu]=0;
     
     //if we want to repartition one dir we must take this into account
-    coords L;
+    coords_t L;
     for(int mu=0;mu<NDIM;mu++) L[mu]=additionally_parallelize_dir[mu]?ext_L[mu]/2:ext_L[mu];
     
     //compute total and local volume
@@ -410,7 +410,7 @@ namespace nissa
 	do
 	  {
 	    //number of ranks in each direction for current partitioning
-            coords R;
+            coords_t R;
             for(int mu=0;mu<NDIM;mu++) R[mu]=1;
 	    
 	    //compute mask factor
@@ -513,13 +513,13 @@ namespace nissa
       }
     
     //get coords of cube ans box size
-    coords nboxes;
+    coords_t nboxes;
     for(int mu=0;mu<NDIM;mu++) nboxes[mu]=2;
     for(int ibox=0;ibox<(1<<NDIM);ibox++)
       {
 	//coords
 	verbosity_lv3_master_printf("Box %d coord [ ",ibox);
-	coord_of_lx(box_coord[ibox],ibox,nboxes);
+	box_coord[ibox]=coord_of_lx(ibox,nboxes);
 	for(int mu=0;mu<NDIM;mu++) verbosity_lv3_master_printf("%d ",box_coord[ibox][mu]);
       
 	//size

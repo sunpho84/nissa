@@ -226,14 +226,13 @@ namespace nissa
       }
     
     //summ the smaller-index cubes
-    coords nsubcubes_per_dir;
+    coords_t nsubcubes_per_dir;
     for(int mu=0;mu<NDIM;mu++) nsubcubes_per_dir[mu]=2;
     int minind_cube_vol=0;
     for(int isubcube=0;isubcube<subcube;isubcube++)
       {
 	//get coords
-	coords c;
-	coord_of_lx(c,isubcube,nsubcubes_per_dir);
+	coords_t c=coord_of_lx(isubcube,nsubcubes_per_dir);
 	//compute vol
 	int subcube_vol=1;
 	for(int mu=0;mu<NDIM;mu++) subcube_vol*=subcube_size[mu][c[mu]];

@@ -16,14 +16,14 @@ namespace nissa
   EXTERN_GEOMETRY_LEB int *Leblx_of_loclx;
   EXTERN_GEOMETRY_LEB int *loclx_of_Leblx;
   EXTERN_GEOMETRY_LEB int *Leblx_parity;
-  EXTERN_GEOMETRY_LEB coords *Leblx_neighup;
-  EXTERN_GEOMETRY_LEB coords *Leblx_neighdw;
+  EXTERN_GEOMETRY_LEB coords_t *Leblx_neighup;
+  EXTERN_GEOMETRY_LEB coords_t *Leblx_neighdw;
   CUDA_MANAGED EXTERN_GEOMETRY_LEB int *surfLeblx_of_bordLeblx;
   
   CUDA_MANAGED EXTERN_GEOMETRY_LEB int *Lebeo_of_loceo[2];
   CUDA_MANAGED EXTERN_GEOMETRY_LEB int *loceo_of_Lebeo[2];
-  CUDA_MANAGED EXTERN_GEOMETRY_LEB coords *Lebeo_neighup[2];
-  CUDA_MANAGED EXTERN_GEOMETRY_LEB coords *Lebeo_neighdw[2];
+  CUDA_MANAGED EXTERN_GEOMETRY_LEB coords_t *Lebeo_neighup[2];
+  CUDA_MANAGED EXTERN_GEOMETRY_LEB coords_t *Lebeo_neighdw[2];
   
   EXTERN_GEOMETRY_LEB int Leb_geom_inited;
   EXTERN_GEOMETRY_LEB int use_Leb_geom;

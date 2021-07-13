@@ -14,7 +14,7 @@ namespace nissa
 {
   //perform ape smearing
   //be sure not to have border condition added
-  void ape_smear_conf(quad_su3* smear_conf,quad_su3* origi_conf,double alpha,int nstep,bool* dirs,int min_staple_dir)
+  void ape_smear_conf(quad_su3* smear_conf,quad_su3* origi_conf,double alpha,int nstep,const which_dir_t& dirs,int min_staple_dir)
   {
     
     quad_su3 *temp_conf=nissa_malloc("temp_conf",locVol+bord_vol+edge_vol,quad_su3);

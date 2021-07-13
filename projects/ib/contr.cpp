@@ -697,7 +697,7 @@ namespace nissa
     if(loc_hadr_curr) vector_current_mel(si,&g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
     else
       {
-	double plain_bc[NDIM];
+	momentum_t plain_bc;
 	plain_bc[0]=temporal_bc;
 	for(int mu=1;mu<NDIM;mu++) plain_bc[mu]=0.0;
 	quad_su3 *conf=get_updated_conf(Q[prop_name_fw].charge,plain_bc,glb_conf);

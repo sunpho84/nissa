@@ -197,7 +197,8 @@ void init_simulation(int narg,char **arg)
       read_int(&tins);
       master_printf("Read variable 'Tins' with value: %d\n",tins);
       
-      double kappa=0.125,mass=0.0,charge=0,theta[NDIM],residue=1e-16;
+      double kappa=0.125,mass=0.0,charge=0,residue=1e-16;
+      momentum_t theta;
       char ext_field_path[32]="";
       theta[0]=temporal_bc;
       for(int mu=1;mu<NDIM;mu++) theta[mu]=0;

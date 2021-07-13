@@ -92,7 +92,7 @@ namespace nissa
   }
   
   //take a set of theta, charge and photon field, and update the conf
-  quad_su3* get_updated_conf(double charge,double *theta,quad_su3 *in_conf)
+  quad_su3* get_updated_conf(double charge,const momentum_t& theta,quad_su3 *in_conf)
   {
     //check if the inner conf is valid or not
     static quad_su3 *stored_conf=NULL;
@@ -186,8 +186,7 @@ namespace nissa
   {
     for(int ihit=a;ihit<b;ihit++)
       {
-	coords coord;
-	generate_random_coord(coord);
+	[[maybe_unused]] coords_t coord=generate_random_coord();
 	if(need_photon) generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
 	generate_original_sources(ihit,true);
       }

@@ -305,7 +305,7 @@ namespace nissa
   }
   
   //perform the fft in all directions
-  void fft4d(complex *out,complex *in,bool *dirs,int ncpp,double sign,int normalize)
+  void fft4d(complex *out,complex *in,const which_dir_t& dirs,int ncpp,double sign,int normalize)
   {
     //copy input in the output (if they differ!)
     if(out!=in) vector_copy(out,in);
@@ -323,7 +323,7 @@ namespace nissa
   
 #else
   
-  void fft4d(complex* out,complex* in,bool* ext_dirs,int ncpp,double sign,int normalize)
+  void fft4d(complex* out,complex* in,const which_dir_t& ext_dirs,int ncpp,double sign,int normalize)
   {
     
     //first of all put in to out
@@ -343,7 +343,7 @@ namespace nissa
 	fftw_plan *plans=nissa_malloc("plans",ndirs,fftw_plan);
 	if(IS_MASTER_THREAD)
 	  for(int idir=0;idir<ndirs;idir++)
-	    plans[idir]=fftw_plan_many_dft(1,glbSize+list_dirs[idir],ncpp,buf,NULL,ncpp,1,buf,NULL,ncpp,1,sign,FFTW_ESTIMATE);
+	    plans[idir]=fftw_plan_many_dft(1,&glbSize[list_dirs[idir]],ncpp,buf,NULL,ncpp,1,buf,NULL,ncpp,1,sign,FFTW_ESTIMATE);
 	THREAD_BARRIER();
 	
 	//transpose each dir in turn and take fft

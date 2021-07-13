@@ -21,7 +21,7 @@
 namespace nissa
 {
   //compute the parity of a global site
-  int glb_coord_parity(coords c)
+  int glb_coord_parity(const coords_t& c)
   {
     int par=0;
     for(int mu=0;mu<NDIM;mu++) par+=c[mu];
@@ -29,10 +29,10 @@ namespace nissa
     
     return par;
   }
-  int glblx_parity(int glx)
+  
+  int glblx_parity(const int& glx)
   {
-    coords c;
-    glb_coord_of_glblx(c,glx);
+    const coords_t c=glb_coord_of_glblx(glx);
     
     return glb_coord_parity(c);
   }
@@ -60,8 +60,8 @@ namespace nissa
     ignore_borders_communications_warning(loceo_of_loclx);
     
     for(int par=0;par<2;par++) loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",locVolh+bord_volh+edge_volh,int);
-    for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",locVolh+bord_volh+edge_volh,coords);
-    for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",locVolh+bord_volh+edge_volh,coords);
+    for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",locVolh+bord_volh+edge_volh,coords_t);
+    for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",locVolh+bord_volh+edge_volh,coords_t);
     for(int par=0;par<2;par++) surfeo_of_bordeo[par]=nissa_malloc("surfeo_of_bordeo",bord_volh,int);
     for(int par=0;par<2;par++) ignore_borders_communications_warning(loclx_of_loceo[par]);
     for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighup[par]);

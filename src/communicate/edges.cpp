@@ -52,8 +52,8 @@ namespace nissa
 	    MPI_Status status[NDIM*(NDIM-1)*4];
 	    int send,rece;
 	    int imessage=0;
-	    coords x;
-	    memset(x,0,sizeof(coords));
+	    coords_t x;
+	    memset(&x,0,sizeof(coords_t));
 	    
 	    for(int idir=0;idir<NDIM;idir++)
 	      for(int jdir=idir+1;jdir<NDIM;jdir++)

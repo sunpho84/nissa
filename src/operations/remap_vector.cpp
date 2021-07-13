@@ -48,7 +48,7 @@ namespace nissa
   void index_unmake_loc_dir(int &irank_lx,int &iloc_lx,int iloc_locld,void *pars)
   {
     int mu=((int*)pars)[0],prp_max_vol=((int*)pars)[1];
-    coords c;
+    coords_t c;
     c[mu]=iloc_locld%glbSize[mu];
     iloc_locld/=glbSize[mu];
     int glb_perp_site=iloc_locld+rank*prp_max_vol;
@@ -58,7 +58,7 @@ namespace nissa
 	  c[nu]=glb_perp_site%glbSize[nu];
 	  glb_perp_site/=glbSize[nu];
 	}
-    get_loclx_and_rank_of_coord(&iloc_lx,&irank_lx,c);
+    get_loclx_and_rank_of_coord(iloc_lx,irank_lx,c);
   }
   
   //remap to locd

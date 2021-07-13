@@ -29,20 +29,20 @@ namespace nissa
 	
 	//reorder data
 	int *ord=nissa_malloc("ord",glbVol,int);
-	int r[4];
+	coords_t r;
 	for(r[0]=0;r[0]<nrank_dir[0];r[0]++)
 	  for(r[1]=0;r[1]<nrank_dir[1];r[1]++)
 	    for(r[2]=0;r[2]<nrank_dir[2];r[2]++)
 	      for(r[3]=0;r[3]<nrank_dir[3];r[3]++)
 		{
 		  int irank=rank_of_coord(r);
-		  int l[4];
+		  coords_t l;
 		  for(l[0]=0;l[0]<locSize[0];l[0]++)
 		    for(l[1]=0;l[1]<locSize[1];l[1]++)
 		      for(l[2]=0;l[2]<locSize[2];l[2]++)
 			for(l[3]=0;l[3]<locSize[3];l[3]++)
 			  {
-			    int g[4];
+			    coords_t g;
 			    for(int mu=0;mu<4;mu++) g[mu]=r[mu]*locSize[mu]+l[mu];
 			    
 			    int ivol=locVol*irank+loclx_of_coord(l);
@@ -100,7 +100,7 @@ namespace nissa
 	      int ivol[8];
 	      for(int imirr=0;imirr<8;imirr++)
 		{
-		  int xmirr[4];
+		  coords_t xmirr;
 		  for(int mu=0;mu<4;mu++)
 		    xmirr[mu]=(imirr & (1<<mu)) ? (glbSize[mu]-x[mu])%glbSize[mu] : x[mu];
 		  ivol[imirr]=glblx_of_coord(xmirr);

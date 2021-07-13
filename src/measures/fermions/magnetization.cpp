@@ -18,9 +18,8 @@ namespace nissa
 {
   //compute the magnetization starting from chi and rnd
   //please note that the conf must hold backfield
-  void magnetization(complex* magn,complex* magn_proj_x,eo_ptr<quad_su3> conf,quark_content_t* quark,eo_ptr<color> rnd,eo_ptr<color> chi,complex* point_magn,coords* arg,int mu,int nu)
+  void magnetization(complex* magn,complex* magn_proj_x,eo_ptr<quad_su3> conf,quark_content_t* quark,eo_ptr<color> rnd,eo_ptr<color> chi,complex* point_magn,coords_t* arg,int mu,int nu)
   {
-    
     communicate_ev_and_od_color_borders(chi);
     vector_reset(point_magn);
     
@@ -102,9 +101,9 @@ namespace nissa
     eo_ptr<color> chi={nissa_malloc("chi_EVN",locVolh+bord_volh,color),nissa_malloc("chi_ODD",locVolh+bord_volh,color)};
     
     //we need to store phases
-    coords *arg=nissa_malloc("arg",locVol+bord_vol,coords);
+    coords_t *arg=nissa_malloc("arg",locVol+bord_vol,coords_t);
     NISSA_PARALLEL_LOOP(ivol,0,locVol+bord_vol)
-      get_args_of_quantization[quantization](arg[ivol],ivol,mu,nu);
+      arg[ivol]=get_args_of_quantization[quantization](ivol,mu,nu);
     NISSA_PARALLEL_LOOP_END;
     
     //array to store magnetization on single site (actually storing backward contrib at displaced site)

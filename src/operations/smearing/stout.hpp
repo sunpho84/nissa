@@ -54,9 +54,9 @@ namespace nissa
   
   CUDA_HOST_AND_DEVICE void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,hermitian_exp_ingredients *ing);
   //eo
-  void stout_smear_whole_stack(eo_ptr<quad_su3> *out,eo_ptr<quad_su3> in,stout_pars_t *stout_pars,bool *dirs=all_dirs);
-  void stout_smear(eo_ptr<quad_su3> ext_out,eo_ptr<quad_su3> ext_in,stout_pars_t *stout_pars,bool *dirs=all_dirs);
-  void stout_smear_single_level(eo_ptr<quad_su3> out,eo_ptr<quad_su3> ext_in,double rho,bool *dirs=all_dirs);
+  void stout_smear_whole_stack(eo_ptr<quad_su3> *out,eo_ptr<quad_su3> in,stout_pars_t *stout_pars,const which_dir_t& dirs=all_dirs);
+  void stout_smear(eo_ptr<quad_su3> ext_out,eo_ptr<quad_su3> ext_in,stout_pars_t *stout_pars,const which_dir_t& dirs=all_dirs);
+  void stout_smear_single_level(eo_ptr<quad_su3> out,eo_ptr<quad_su3> ext_in,double rho,const which_dir_t& dirs=all_dirs);
   CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho);
   CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho);
   void stout_smear_conf_stack_allocate(eo_ptr<quad_su3> **out,eo_ptr<quad_su3> in,int nlev);
@@ -65,9 +65,9 @@ namespace nissa
   void stouted_force_remap(eo_ptr<quad_su3> F,eo_ptr<quad_su3> *sme_conf,stout_pars_t *stout_pars);
   void stouted_force_remap_step(eo_ptr<quad_su3> *F,eo_ptr<quad_su3> *conf,double rho);
   //lx
-  void stout_smear_whole_stack(quad_su3 **out,quad_su3 *in,stout_pars_t *stout_pars,bool *dirs=all_dirs);
-  void stout_smear(quad_su3 *ext_out,quad_su3 *ext_in,stout_pars_t *stout_pars,bool *dirs=all_dirs);
-  void stout_smear_single_level(quad_su3 *out,quad_su3 *ext_in,double rho,bool *dirs=all_dirs);
+  void stout_smear_whole_stack(quad_su3 **out,quad_su3 *in,stout_pars_t *stout_pars,const which_dir_t& dirs=all_dirs);
+  void stout_smear(quad_su3 *ext_out,quad_su3 *ext_in,stout_pars_t *stout_pars,const which_dir_t& dirs=all_dirs);
+  void stout_smear_single_level(quad_su3 *out,quad_su3 *ext_in,double rho,const which_dir_t& dirs=all_dirs);
   CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *conf,int p,int A,int mu,double rho);
   CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,int p,int A,int mu,double rho);
   void stout_smear_conf_stack_allocate(quad_su3 ***out,quad_su3 *in,int nlev);

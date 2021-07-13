@@ -34,7 +34,7 @@ namespace nissa
       {
 	//find coords
 	int jperp=iperp;
-	coords x;
+	coords_t x;
 	for(int inu=2;inu>=0;inu--)
 	  {
 	    int nu=perp_dir[mu][inu];

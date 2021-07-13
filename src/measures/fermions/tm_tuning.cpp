@@ -42,16 +42,11 @@ namespace nissa
 					  iflav+1,tp.nflavs(),icopy+1,ncopies);
 	  
 	  //Source time
-	  coords source_coord;
-	  generate_random_coord(source_coord);
+	  coords_t source_coord=generate_random_coord();
 	  
 	  const int& nhits=meas_pars.nhits;
 	  for(int hit=0;hit<nhits;hit++)
 	    {
-	      //Random source
-	      coords coord;
-	      generate_random_coord(coord);
-	      
 	      //Source time
 	      generate_undiluted_source(eta,meas_pars.rnd_type,source_coord[0]);
 	      

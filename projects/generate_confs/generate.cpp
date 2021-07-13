@@ -410,7 +410,7 @@ void measure_gauge_obs(gauge_obs_meas_pars_t &pars,eo_ptr<quad_su3> conf,int ico
 	  
 	  //get internal parameters
 	  smooth_pars_t::space_or_time_t &space_or_time=pars.smooth_pars.space_or_time;
-	  bool* dirs=smooth_pars_t::get_dirs(space_or_time);
+	  const which_dir_t& dirs=smooth_pars_t::get_dirs(space_or_time);
 	  int staple_min_dir=smooth_pars_t::get_staple_min_dir(space_or_time);
 	  
 	  finished=smooth_lx_conf_until_next_meas(temp_conf,pars.smooth_pars,nsmooth,dirs,staple_min_dir);

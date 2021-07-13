@@ -123,8 +123,8 @@ namespace quda_iface
 	
 	for(int ivol=0;ivol<locVol;ivol++)
 	  {
-	    const coords& c=locCoordOfLoclx[ivol];
-	    const coords& l=locSize;
+	    const coords_t& c=locCoordOfLoclx[ivol];
+	    const coords_t& l=locSize;
 	    
 	    int itmp=0;
 	    for(int mu=0;mu<NDIM;mu++)

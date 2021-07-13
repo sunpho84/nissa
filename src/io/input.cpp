@@ -277,11 +277,11 @@ namespace nissa
   }
   
   //Read 4 doubles checking the tag
-  void read_str_momentum_t(const char *exp_str,momentum_t in)
+  void read_str_momentum_t(const char *exp_str,momentum_t& in)
   {
     expect_str(exp_str);
     for(int i=0;i<4;i++)
-      read_double(in+i);
+      read_double(&in[i]);
     
     verbosity_lv1_master_printf("Read variable '%s' with value: %.16lg %.16lg %.16lg %.16lg\n",exp_str,in[0],in[1],in[2],in[3]);
   }

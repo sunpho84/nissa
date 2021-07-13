@@ -15,7 +15,7 @@ namespace nissa
   namespace Wflow
   {
     //we add with the new weight the previous one multiplied by the old weight
-    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,bool *dirs,int iter)
+    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,const which_dir_t& dirs,int iter)
     {
       
       communicate_lx_quad_su3_edges(conf);
@@ -60,7 +60,7 @@ namespace nissa
     }
     
     //update the conf according to exp(i arg) conf_
-    void update_conf(quad_su3 *arg,quad_su3 *conf,bool *dirs)
+    void update_conf(quad_su3 *arg,quad_su3 *conf,const which_dir_t& dirs)
     {
       
       //integrate
@@ -78,7 +78,7 @@ namespace nissa
   }
   
   //flow for the given time for a dt using 1006.4518 appendix C
-  void Wflow_lx_conf(quad_su3* conf,double dt,bool* dirs)
+  void Wflow_lx_conf(quad_su3* conf,double dt,const which_dir_t& dirs)
   {
     //storage for staples
     quad_su3 *arg=nissa_malloc("arg",locVol,quad_su3);

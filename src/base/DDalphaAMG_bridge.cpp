@@ -23,13 +23,13 @@ namespace DD
   bool inited=false;
   
   //remap swapping x and z
-  void remap_coord(nissa::coords out,const nissa::coords in)
+  void remap_coord(int* out,const int* in)
   {for(int mu=0;mu<NDIM;mu++) out[mu]=in[nissa::scidac_mapping[mu]];}
   
   //return the coordinate transposed
   static int cart_coords(MPI_Comm comm,int ext_rank,int maxdims,int c[])
   {
-    nissa::coords int_c;
+    int int_c[NDIM];
     int stat=MPI_Cart_coords(comm,ext_rank,maxdims,int_c);
     remap_coord(c,int_c);
     return stat;
@@ -38,7 +38,7 @@ namespace DD
   //return the rank of remapped coordinate
   static int cart_rank(MPI_Comm comm,const int ext_c[],int *ext_rank)
   {
-    nissa::coords c;
+    int c[NDIM];
     remap_coord(c,ext_c);
     return MPI_Cart_rank(comm,c,ext_rank);
   }
@@ -95,8 +95,8 @@ namespace DD
 	init_params.number_of_levels=nissa::multiGrid::nlevels;
 	
 	//sizes and coord
-	remap_coord(init_params.global_lattice,nissa::glbSize);
-	remap_coord(init_params.procs,nissa::nrank_dir);
+	remap_coord(init_params.global_lattice,&nissa::glbSize[0]);
+	remap_coord(init_params.procs,&nissa::nrank_dir[0]);
 	
 	//block size and theta
 	for(int dir=0;dir<NDIM;dir++)

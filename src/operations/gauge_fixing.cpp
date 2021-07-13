@@ -123,7 +123,7 @@ namespace nissa
 	MPI_Recv((void*)fixm,loc_slice_area,MPI_SU3,rank_neighdw[0],252,cart_comm,MPI_STATUS_IGNORE);
     
     //now go ahead along t
-    int c[NDIM];
+    coords_t c;
     //loop over spatial slice
     for(c[1]=0;c[1]<locSize[1];c[1]++)
       for(c[2]=0;c[2]<locSize[2];c[2]++)

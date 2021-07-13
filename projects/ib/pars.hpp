@@ -40,7 +40,7 @@ namespace nissa
   
   CUDA_MANAGED EXTERN_PARS int diluted_spi_source,diluted_col_source,diluted_spat_source;
   CUDA_MANAGED EXTERN_PARS int nso_spi,nso_col;
-  CUDA_MANAGED EXTERN_PARS coords source_coord;
+  CUDA_MANAGED EXTERN_PARS coords_t source_coord;
   CUDA_HOST_AND_DEVICE inline int rel_coord_of_glb_coord(int c,int mu)
   {return (glbSize[mu]+c-source_coord[mu])%glbSize[mu];}
   inline int rel_time_of_glb_time(int t)
@@ -88,13 +88,13 @@ namespace nissa
   }
   
   EXTERN_PARS gauge_info photon;
-  EXTERN_PARS double tadpole[NDIM];
+  EXTERN_PARS momentum_t tadpole;
   
   //holds the range of FFT moms
   struct fft_mom_range_t
   {
-    coords offs;
-    coords width;
+    coords_t offs;
+    coords_t width;
   };
   //list of propagators to fft
   EXTERN_PARS std::vector<std::string> fft_prop_list;
@@ -232,7 +232,7 @@ namespace nissa
   EXTERN_PARS std::string stop_path INIT_TO("stop");
   
   //read the theta, iso or not
-  inline void read_theta(double *theta)
+  inline void read_theta(momentum_t& theta)
   {
     if(iso_theta)
       {

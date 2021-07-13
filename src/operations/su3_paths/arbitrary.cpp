@@ -35,7 +35,7 @@ namespace nissa
     int nx=glblx_neighup(pos,mu);
     //search rank hosting site and loclx
     int lx,rx;
-    get_loclx_and_rank_of_glblx(&lx,&rx,pos);
+    get_loclx_and_rank_of_glblx(lx,rx,pos);
     //if local link, mark it, otherwise add to the list of non-locals
     if(rx==rank) link_for_movements[cur_mov]+=(lx*4+mu)<<nposs_path_flags;
     else
@@ -60,7 +60,7 @@ namespace nissa
     int nx=glblx_neighdw(pos,mu);
     //search rank hosting site and loclx
     int lx,rx;
-    get_loclx_and_rank_of_glblx(&lx,&rx,nx);
+    get_loclx_and_rank_of_glblx(lx,rx,nx);
     //if local link, mark it, otherwise add to the list of non-locals
     if(rx==rank) link_for_movements[cur_mov]+=(lx*4+mu)<<nposs_path_flags;
     else
@@ -147,7 +147,7 @@ namespace nissa
 	    
 	    //get lx and rank hosting the site
 	    int lx,rx;
-	    get_loclx_and_rank_of_glblx(&lx,&rx,gx);
+	    get_loclx_and_rank_of_glblx(lx,rx,gx);
 	    
 	    //copy in the list if appropriate rank
 	    if(rx==rank_to_recv)
@@ -424,7 +424,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       su3_put_to_id(out[ivol]);
     NISSA_PARALLEL_LOOP_END;
-    coords_t t;
+    coords_summable_t t;
     c->push_back(t);
     
     set_borders_invalid(out);
@@ -464,7 +464,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP_END;
       }
     
-    coords_t t(c->back());
+    coords_summable_t t(c->back());
     t[mu]--;
     c->push_back(t);
     if(both_sides) c->push_front(t);
@@ -496,7 +496,7 @@ namespace nissa
       }
     THREAD_BARRIER();
     
-    coords_t t(c->back());
+    coords_summable_t t(c->back());
     t[mu]++;
     c->push_back(t);
     if(both_sides) c->push_front(t);

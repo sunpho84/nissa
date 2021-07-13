@@ -71,7 +71,7 @@ namespace nissa
     int mu1=perp_dir[mu0][imu1],mu2=perp2_dir[mu0][imu1][0],mu3=perp2_dir[mu0][imu1][1];
     
     //find dest in the global indexing
-    int *g=glbCoordOfLoclx[iloc_lx];
+    const coords_t& g=glbCoordOfLoclx[iloc_lx];
     int glb_dest_site=g[mu1]+glbSize[mu1]*(g[mu0]+glbSize[mu0]*(g[mu2]+glbSize[mu2]*g[mu3]));
     irank_transp=glb_dest_site/prp_vol;
     iloc_transp=glb_dest_site-irank_transp*prp_vol;

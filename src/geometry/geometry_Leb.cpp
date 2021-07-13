@@ -15,10 +15,12 @@
 namespace nissa
 {
   //return the loclx coordinate of a Leblx
-  void loclx_coord_of_Leblx(coords c,const Leb_factors_t &factors,int Leblx)
+  coords_t loclx_coord_of_Leblx(const Leb_factors_t &factors,int Leblx)
   {
+    coords_t c;
+    
     int nfactors=factors.size();
-    coords t1,t2,t3;
+    coords_t t1,t2,t3;
     
     //init
     for(int i=0;i<NDIM;i++)
@@ -49,6 +51,8 @@ namespace nissa
 	  c[mu]=x_mixed_base[mu][j]+factors[t3[mu]][mu]*c[mu];
 	  t3[mu]=(t3[mu]+nfactors-1)%nfactors;
 	}
+    
+    return c;
   }
   
   //init the Lebesgue geometry
@@ -60,8 +64,8 @@ namespace nissa
     
     loclx_of_Leblx=nissa_malloc("loclx_of_Leblx",locVol+bord_vol+edge_vol,int);
     Leblx_of_loclx=nissa_malloc("Leblx_of_loclx",locVol+bord_vol+edge_vol,int);
-    Leblx_neighup=nissa_malloc("Leblx_neighup",locVol,coords);
-    Leblx_neighdw=nissa_malloc("Leblx_neighdw",locVol,coords);
+    Leblx_neighup=nissa_malloc("Leblx_neighup",locVol,coords_t);
+    Leblx_neighdw=nissa_malloc("Leblx_neighdw",locVol,coords_t);
     Leblx_parity=nissa_malloc("Leblx_parity",locVol+bord_vol+edge_vol,int);
     surfLeblx_of_bordLeblx=nissa_malloc("surfLeblx_of_Bordlx",bord_vol,int);
     
@@ -101,8 +105,7 @@ namespace nissa
     //fill Leblx of loclx and the opposite
     for(int Leblx=0;Leblx<locVol;Leblx++)
       {
-	coords c;
-	loclx_coord_of_Leblx(c,factors,Leblx);
+	const coords_t c=loclx_coord_of_Leblx(factors,Leblx);
 	int loclx=loclx_of_coord(c);
 	loclx_of_Leblx[Leblx]=loclx;
 	Leblx_of_loclx[loclx]=Leblx;
@@ -131,8 +134,8 @@ namespace nissa
 	  {
 	    loceo_of_Lebeo[eo]=nissa_malloc("loceo_of_Lebeo",locVolh+bord_volh+edge_volh,int);
 	    Lebeo_of_loceo[eo]=nissa_malloc("Lebeo_of_loceo",locVolh+bord_volh+edge_volh,int);
-	    Lebeo_neighup[eo]=nissa_malloc("Lebeo_neighup",locVolh,coords);
-	    Lebeo_neighdw[eo]=nissa_malloc("Lebeo_neighdw",locVolh,coords);
+	    Lebeo_neighup[eo]=nissa_malloc("Lebeo_neighup",locVolh,coords_t);
+	    Lebeo_neighdw[eo]=nissa_malloc("Lebeo_neighdw",locVolh,coords_t);
 	  }
 	
 	int iLebeo[2]={0,0};

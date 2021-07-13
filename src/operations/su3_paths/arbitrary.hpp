@@ -26,7 +26,7 @@ namespace nissa
       mov=ext_mov;
       link_id=gx*4+mu;
       int lx,rx;
-      get_loclx_and_rank_of_glblx(&lx,&rx,gx);
+      get_loclx_and_rank_of_glblx(lx,rx,gx);
       ord=((rank+nranks-rx)%nranks*locVol+lx)*4+mu; //sort according to recv rank
     }
   };
@@ -134,15 +134,18 @@ namespace nissa
   
   ////////////////////////////////////////////////////////////
   
-  struct coords_t{
-    coords c;
+  struct coords_summable_t{
+    coords_t c;
     int &operator[](int i){return c[i];}
-    bool operator==(coords_t in){bool out=true;for(int i=0;i<NDIM;i++) out&=(c[i]==in.c[i]);return out;}
-    bool operator!=(coords_t i){return !((*this)==i);}
-    coords_t(){memset(c,0,sizeof(coords));}
-    coords_t(const coords_t &o){memcpy(c,o.c,sizeof(coords));}
+    bool operator==(coords_summable_t in){bool out=true;for(int i=0;i<NDIM;i++) out&=(c[i]==in.c[i]);return out;}
+    bool operator!=(coords_summable_t i){return !((*this)==i);}
+    coords_summable_t(){memset(&c,0,sizeof(coords_t));}
+    coords_summable_t(const coords_summable_t &o)
+    {
+      c=o.c;
+    }
   };
-  typedef std::deque<coords_t> path_drawing_t;
+  typedef std::deque<coords_summable_t> path_drawing_t;
   
   void init_su3_path(path_drawing_t *c,su3 *out);
   void elong_su3_path_BW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,bool both_sides=false);

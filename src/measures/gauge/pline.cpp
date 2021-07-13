@@ -329,11 +329,11 @@ namespace nissa
   }
   
   //compute the Pline daggered_stemming from x_start along dir mu
-  void compute_Pline_dag_point(su3 *pline,quad_su3 *conf,int mu,coords glb_x_start)
+  void compute_Pline_dag_point(su3 *pline,quad_su3 *conf,int mu,const coords_t& glb_x_start)
   {
     //get the rank and loc site x
     int loc_x_start,rank_hosting_x;
-    get_loclx_and_rank_of_coord(&loc_x_start,&rank_hosting_x,glb_x_start);
+    get_loclx_and_rank_of_coord(loc_x_start,rank_hosting_x,glb_x_start);
     
     //reset the link product, putting id at x_start
     vector_reset(pline);
@@ -418,7 +418,7 @@ namespace nissa
   }
   
   //version with pline by a point
-  void compute_Wstat_prop_point(su3spinspin *prop,quad_su3 *conf,int mu,coords x_start)
+  void compute_Wstat_prop_point(su3spinspin *prop,quad_su3 *conf,int mu,const coords_t& x_start)
   {
     su3 *pline=nissa_malloc("pline",locVol+bord_vol,su3);
     

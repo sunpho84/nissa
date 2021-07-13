@@ -54,14 +54,19 @@ namespace nissa
   }
   
   //compute args for non-present quantization
-  CUDA_HOST_AND_DEVICE void get_args_of_null_quantization(coords phase,int ivol,int mu,int nu)
+  CUDA_HOST_AND_DEVICE coords_t get_args_of_null_quantization(const int& ivol,const int& mu,const int& nu)
   {
+    coords_t phase;
     phase[0]=phase[1]=phase[2]=phase[3]=0;
+    
+    return phase;
   }
   
   //compute args for 1/L2 quantization
-  CUDA_HOST_AND_DEVICE void get_args_of_one_over_L2_quantization(coords phase,int ivol,int mu,int nu)
+  CUDA_HOST_AND_DEVICE coords_t get_args_of_one_over_L2_quantization(const int& ivol,const int& mu,const int& nu)
   {
+    coords_t phase;
+    
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
     
@@ -74,11 +79,15 @@ namespace nissa
     //define the arguments of exponentials
     if(xmu==glbSize[mu]/2-1) phase[mu]=-xnu*glbSize[mu];
     phase[nu]=xmu;
+    
+    return phase;
   }
   
   //compute args for half-half quantization
-  CUDA_HOST_AND_DEVICE void get_args_of_half_half_quantization(coords phase,int ivol,int mu,int nu)
+  CUDA_HOST_AND_DEVICE coords_t get_args_of_half_half_quantization(const int& ivol,const int& mu,const int& nu)
   {
+    coords_t phase;
+    
     //reset
     phase[0]=phase[1]=phase[2]=phase[3]=0;
     
@@ -89,9 +98,11 @@ namespace nissa
     
     //define the arguments of exponentials
     phase[nu]=xmu;
+    
+    return phase;
   }
   
-  CUDA_MANAGED void (*get_args_of_quantization[3])(coords,int,int,int)=
+  CUDA_MANAGED coords_t (*get_args_of_quantization[3])(const int&,const int&,const int&)=
   {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
   
   //multiply a background field by a constant em field
@@ -108,8 +119,7 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    //compute arg
-	    coords arg;
-	    get_args_of_quantization[quantization](arg,loclx_of_loceo[par][ieo],mu,nu);
+	    const coords_t arg=get_args_of_quantization[quantization](loclx_of_loceo[par][ieo],mu,nu);
 	    
 	    //compute u1phase and multiply
 	    for(int rho=0;rho<4;rho++)
@@ -181,8 +191,7 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
 	  {
-	    coords ph;
-	    get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
+	    const coords_t ph=get_stagphase_of_lx(loclx_of_loceo[par][ivol]);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      su3_prodassign_double(conf[par][ivol][mu],ph[mu]);
@@ -206,8 +215,8 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
 	  {
-	    coords ph;
-	    if(with_without==0) get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol]);
+	    coords_t ph;
+	    if(with_without==0) ph=get_stagphase_of_lx(loclx_of_loceo[par][ivol]);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
@@ -239,8 +248,8 @@ namespace nissa
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
 	    int ilx=loclx_of_loceo[par][ieo];
-	    coords ph;
-	    if(with_without==0) get_stagphase_of_lx(ph,ilx);
+	    coords_t ph;
+	    if(with_without==0) ph=get_stagphase_of_lx(ilx);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {

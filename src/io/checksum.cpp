@@ -121,8 +121,8 @@ namespace nissa
     
     NISSA_LOC_VOL_LOOP(ivol)
       {
-	int *x=locCoordOfLoclx[ivol];
-	int *X=glbCoordOfLoclx[ivol];
+	const coords_t& x=locCoordOfLoclx[ivol];
+	const coords_t& X=glbCoordOfLoclx[ivol];
 	uint32_t loc_ivol=x[0],glb_ivol=X[0];
 	for(int mu=NDIM-1;mu>0;mu--)
 	  {
@@ -146,7 +146,7 @@ namespace nissa
     
     NISSA_LOC_VOL_LOOP(ivol)
       {
-	int *X=glbCoordOfLoclx[ivol];
+	const coords_t& X=glbCoordOfLoclx[ivol];
 	uint32_t ildg_ivol=X[0];
 	for(int mu=NDIM-1;mu>0;mu--) ildg_ivol=ildg_ivol*glbSize[mu]+X[mu];
 	uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};

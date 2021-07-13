@@ -27,8 +27,7 @@ namespace nissa
     double mass=qu.mass;
     double m2=m0*m0+mass*mass;
     double p2=0,p4=0;
-    coords c;
-    glb_coord_of_glblx(c,imom);
+    coords_t c=glb_coord_of_glblx(imom);
     for(int mu=1;mu<NDIM;mu++)
       {
 	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSize[mu];
@@ -48,11 +47,10 @@ namespace nissa
   }
   
   //compute the energy of a naive massless fermion
-  double naive_massless_quark_energy(momentum_t bc,int imom)
+  double naive_massless_quark_energy(const momentum_t& bc,int imom)
   {
     double sinh2E=0;
-    coords c;
-    glb_coord_of_glblx(c,imom);
+    const coords_t c=glb_coord_of_glblx(imom);
     for(int mu=1;mu<NDIM;mu++) sinh2E+=sqr(sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
     return asinh(sqrt(sinh2E));
   }
@@ -60,7 +58,7 @@ namespace nissa
   ////////////////////////////////////////////// twisted propagator in momentum space ////////////////////////////////////////////
   
   //return sin(p), \sum sin(p)^2, \sum sin(p/2)^2
-  CUDA_HOST_AND_DEVICE void get_component_of_twisted_propagator_of_imom(momentum_t sin_mom,double &sin2_mom,double &sin2_momh,tm_quark_info qu,int imom)
+  CUDA_HOST_AND_DEVICE void get_component_of_twisted_propagator_of_imom(momentum_t& sin_mom,double &sin2_mom,double &sin2_momh,tm_quark_info qu,int imom)
   {
     sin2_mom=sin2_momh=0;
     for(int mu=0;mu<NDIM;mu++)
@@ -151,8 +149,7 @@ namespace nissa
     momentum_t sin_mom;
     double sin2_mom=-sqr(sinh(e));
     double sin2_momh=-sqr(sinh(e/2));
-    coords c;
-    glb_coord_of_glblx(c,imom);
+    const coords_t c=glb_coord_of_glblx(imom);
     for(int mu=1;mu<NDIM;mu++)
       {
 	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSize[mu];
@@ -175,15 +172,14 @@ namespace nissa
   }
   
   //same for the naive fermions
-  double naive_massless_on_shell_operator_of_imom(spinspin proj,momentum_t bc,int imom,int esign)
+  double naive_massless_on_shell_operator_of_imom(spinspin proj,const momentum_t& bc,int imom,int esign)
   {
     if(esign!=-1&&esign!=+1) crash("illegal energy sign\"%d\"",esign);
     double abse=naive_massless_quark_energy(bc,imom);
     double e=esign*abse;
     
     spinspin_dirac_prod_double(proj,base_gamma+igamma_of_mu[0],-sinh(e));
-    coords c;
-    glb_coord_of_glblx(c,imom);
+    const coords_t c=glb_coord_of_glblx(imom);
     for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+igamma_of_mu[mu],sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
     
     return abse;
@@ -214,7 +210,7 @@ namespace nissa
   }
   
   //same for naive massless fermions
-  void naive_massless_wavefunction_of_imom(spin wf,momentum_t bc,int imom,int par_apar,int s)
+  void naive_massless_wavefunction_of_imom(spin wf,const momentum_t& bc,int imom,int par_apar,int s)
   {
     //particle:  u_r(+p)=-D(iE,p) \phi^tilde_r/sqrt(sinh(e))
     //aparticle: v_r(-p)=-D(-iE,p) \phi_r/sqrt(sinh(e))

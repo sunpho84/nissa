@@ -45,7 +45,7 @@ namespace nissa
       alpha(def_alpha()) {}
   };
   
-  void ape_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,bool *dir=all_dirs,int min_staple_dir=0);
+  void ape_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,const which_dir_t& dirs=all_dirs,int min_staple_dir=0);
   inline void ape_single_dir_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int mu,int min_staple_dir=0)
   {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,only_dir[mu],min_staple_dir);}
   inline void ape_perp_dir_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int mu,int min_staple_dir=0)

@@ -16,7 +16,7 @@
 namespace nissa
 {
   //apply even-odd or odd-even part of tmD, multiplied by -2
-  void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,momentum_t bc)
+  void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,const momentum_t& bc)
   {
     
     if(eooe==0) communicate_od_spin_borders(in);
@@ -153,8 +153,12 @@ namespace nissa
   }
   
   //wrappers
-  void tmn2Doe_eos(spin *out,spin *in,momentum_t bc){tmn2Deo_or_tmn2Doe_eos(out,1,in,bc);}
-  void tmn2Deo_eos(spin *out,spin *in,momentum_t bc){tmn2Deo_or_tmn2Doe_eos(out,0,in,bc);}
+  void tmn2Doe_eos(spin *out,spin *in,const momentum_t& bc)
+  {
+    tmn2Deo_or_tmn2Doe_eos(out,1,in,bc);
+  }
+  
+  void tmn2Deo_eos(spin *out,spin *in,const momentum_t& bc){tmn2Deo_or_tmn2Doe_eos(out,0,in,bc);}
   
   //implement ee or oo part of Dirac operator, equation(3)
   void tmDee_or_oo_eos(spin *out,tm_quark_info qu,spin *in)

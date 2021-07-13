@@ -271,7 +271,7 @@ namespace nissa
     decript_MPI_error(MPI_Type_commit(&view.etype),"while committing etype");
     
     //remap coordinates and starting points to the scidac mapping
-    coords mapped_start,mapped_glb_size,mapped_loc_size;
+    coords_t mapped_start,mapped_glb_size,mapped_loc_size;
     for(int mu=0;mu<NDIM;mu++)
       {
 	mapped_glb_size[mu]=glbSize[scidac_mapping[mu]];
@@ -280,7 +280,7 @@ namespace nissa
       }
     
     //full type
-    decript_MPI_error(MPI_Type_create_subarray(NDIM,mapped_glb_size,mapped_loc_size,mapped_start,MPI_ORDER_C,
+    decript_MPI_error(MPI_Type_create_subarray(NDIM,&mapped_glb_size[0],&mapped_loc_size[0],&mapped_start[0],MPI_ORDER_C,
 					       view.etype,&view.ftype),"while creating subarray type");
     decript_MPI_error(MPI_Type_commit(&view.ftype),"while committing ftype");
     
@@ -321,7 +321,7 @@ namespace nissa
     int iglb_ILDG=rank*locVol+iloc_ILDG;
     
     //find global coords in ildg ordering
-    coords xto;
+    coords_t xto;
     for(int mu=NDIM-1;mu>=0;mu--)
       {
 	int nu=scidac_mapping[mu];
@@ -330,7 +330,7 @@ namespace nissa
       }
     
     //convert to rank and loclx
-    get_loclx_and_rank_of_coord(&iloc_lx,&irank_lx,xto);
+    get_loclx_and_rank_of_coord(iloc_lx,irank_lx,xto);
   }
   
   ////////////////////////////////////////////////// read and write ////////////////////////////////////////

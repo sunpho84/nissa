@@ -42,7 +42,7 @@ namespace nissa
       else crash("Unkwnown photon discretization: %s",photon_discrete_str);
     
     //compute the tadpole summing all momentum
-    compute_tadpole(tadpole,photon);
+    tadpole=compute_tadpole(photon);
   }
   
   //meson tags

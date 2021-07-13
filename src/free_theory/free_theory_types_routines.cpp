@@ -8,23 +8,25 @@
 
 namespace nissa
 {
-  gauge_info create_tlSym_gauge_info(double alpha,momentum_t bc,double c1=-1.0/12)
+  gauge_info create_tlSym_gauge_info(double alpha,const momentum_t& bc,double c1=-1.0/12)
   {
     gauge_info out;
-    memcpy(out.bc,bc,sizeof(momentum_t));
+    out.bc=bc;
     out.alpha=alpha;
     out.c1=c1;
     
     return out;
   }
   
-  gauge_info create_Wilson_gauge_info(double alpha,momentum_t bc)
-  {return create_tlSym_gauge_info(alpha,bc,0);}
+  gauge_info create_Wilson_gauge_info(double alpha,const momentum_t& bc)
+  {
+    return create_tlSym_gauge_info(alpha,bc,0);
+  }
   
-  tm_quark_info create_twisted_quark_info(double kappa,double mass,momentum_t bc,int r,double zmp=0)
+  tm_quark_info create_twisted_quark_info(double kappa,double mass,const momentum_t& bc,int r,double zmp=0)
   {
     tm_quark_info out;
-    memcpy(out.bc,bc,sizeof(momentum_t));
+    out.bc=bc;
     out.kappa=kappa;
     out.zmp=zmp;
     out.mass=mass;
@@ -33,8 +35,10 @@ namespace nissa
     return out;
   }
   
-  tm_quark_info create_Wilson_quark_info(double kappa,momentum_t bc)
-  {return create_twisted_quark_info(kappa,0,bc,0);}
+  tm_quark_info create_Wilson_quark_info(double kappa,const momentum_t& bc)
+  {
+    return create_twisted_quark_info(kappa,0,bc,0);
+  }
   
   void get_spin_from_spinspin(spin *out,spinspin *in,int id_so)
   {

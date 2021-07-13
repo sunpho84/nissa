@@ -185,14 +185,17 @@ namespace nissa
   }
   
   //generate a random postion
-  void generate_random_coord(coords c)
+  coords_t generate_random_coord()
   {
-    coords temp;
+    coords_t c;
+    coords_t temp;
     for(int mu=0;mu<NDIM;mu++)
       {
 	if(IS_MASTER_THREAD) temp[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize[mu]));
 	THREAD_BROADCAST(c[mu],temp[mu]);
       }
+    
+    return c;
   }
   
   //return a numer between 0 and 1
@@ -407,7 +410,7 @@ namespace nissa
     vector_reset(source);
     
     int islocal=1;
-    coords lx;
+    coords_t lx;
     for(int mu=0;mu<NDIM;mu++)
       {
 	lx[mu]=x[mu]-rank_coord[mu]*locSize[mu];
@@ -430,7 +433,7 @@ namespace nissa
     for(int par=0;par<2;par++) vector_reset(source[par]);
     
     int islocal=1;
-    coords lx;
+    coords_t lx;
     for(int mu=0;mu<NDIM;mu++)
       {
         lx[mu]=x[mu]-rank_coord[mu]*locSize[mu];

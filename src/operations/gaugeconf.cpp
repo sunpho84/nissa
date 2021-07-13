@@ -47,8 +47,8 @@ namespace nissa
     int L=glbSize[d1];
     
     //allocate destinations and sources
-    coords *xto=nissa_malloc("xto",locVol,coords);
-    coords *xfr=nissa_malloc("xfr",locVol,coords);
+    coords_t *xto=nissa_malloc("xto",locVol,coords_t);
+    coords_t *xfr=nissa_malloc("xfr",locVol,coords_t);
     
     //scan all local sites to see where to send and from where to expect data
     NISSA_LOC_VOL_LOOP(ivol)
@@ -121,7 +121,7 @@ namespace nissa
   }
   
   //put boundary conditions on the gauge conf
-  void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges)
+  void put_boundaries_conditions(quad_su3 *conf,const momentum_t& theta_in_pi,int putonbords,int putonedges)
   {
     complex theta[NDIM];
     for(int idir=0;idir<NDIM;idir++)
@@ -141,14 +141,14 @@ namespace nissa
     if(!putonedges) set_edges_invalid(conf);
   }
   
-  void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges)
+  void rem_boundaries_conditions(quad_su3 *conf,const momentum_t& theta_in_pi,int putonbords,int putonedges)
   {
-    momentum_t minus_theta_in_pi={-theta_in_pi[0],-theta_in_pi[1],-theta_in_pi[2],-theta_in_pi[3]};
+    const momentum_t minus_theta_in_pi={-theta_in_pi[0],-theta_in_pi[1],-theta_in_pi[2],-theta_in_pi[3]};
     put_boundaries_conditions(conf,minus_theta_in_pi,putonbords,putonedges);
   }
   
   //Adapt the border condition
-  void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbords,int putonedges)
+  void adapt_theta(quad_su3 *conf,momentum_t& old_theta,const momentum_t& put_theta,int putonbords,int putonedges)
   {
     momentum_t diff_theta;
     int adapt=0;

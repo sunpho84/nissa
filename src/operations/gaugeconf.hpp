@@ -82,7 +82,7 @@ namespace nissa
   }
   void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis);
   void ac_rotate_vector(void *out,void *in,int axis,size_t bps);
-  void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbords,int putonedges);
+  void adapt_theta(quad_su3 *conf,momentum_t& old_theta,const momentum_t& put_theta,int putonbords,int putonedges);
   void cool_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper);
   void generate_cold_eo_conf(eo_ptr<quad_su3> conf);
   void generate_hot_eo_conf(eo_ptr<quad_su3> conf);
