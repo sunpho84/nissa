@@ -71,18 +71,22 @@ namespace nissa
   }
   
   //generate a source, wither a wall or a point in the origin
-  void generate_original_source(qprop_t& sou)
+  void generate_original_source(qprop_t* sou)
   {
+    
     //consistency check
     if(not stoch_source and (not diluted_spi_source or not diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
     
     //reset all to begin
-    for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou.sp[i]);
+    for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
     
     spincolor **sou_proxy=nissa_malloc("sou_proxy",nso_spi*nso_col,spincolor*);
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
-	sou_proxy[so_sp_col_ind(id_so,ic_so)]=sou.sp[so_sp_col_ind(id_so,ic_so)];
+	sou_proxy[so_sp_col_ind(id_so,ic_so)]=sou->sp[so_sp_col_ind(id_so,ic_so)];
+    
+    const rnd_t noise_type=sou->noise_type;
+    const int tins=sou->tins;
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
@@ -106,8 +110,8 @@ namespace nissa
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
-	      if(stoch_source and mask and (sou.tins==-1 or rel_c[0]==sou.tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),sou.noise_type);
-	      if(not stoch_source and is_spat_orig and (sou.tins==-1 or rel_c[0]==sou.tins)) complex_put_to_real(c[id_si][ic_si],1);
+	      if(stoch_source and mask and (tins==-1 or rel_c[0]==tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),noise_type);
+	      if(not stoch_source and is_spat_orig and (tins==-1 or rel_c[0]==tins)) complex_put_to_real(c[id_si][ic_si],1);
 	    }
 	
 	//fill other spin indices
@@ -125,11 +129,11 @@ namespace nissa
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
-	  spincolor *s=sou.sp[so_sp_col_ind(id_so,ic_so)];
+	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
 	  set_borders_invalid(s);
 	  ori_source_norm2+=double_vector_glb_norm2(s,locVol);
 	}
-    if(IS_MASTER_THREAD) sou.ori_source_norm2=ori_source_norm2;
+    if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
     
     nissa_free(sou_proxy);
   }
@@ -380,7 +384,7 @@ namespace nissa
       {
 	std::string &name=ori_source_name_list[i];
 	master_printf("Generating source \"%s\"\n",name.c_str());
-	qprop_t q=Q[name];
+	qprop_t *q=&Q[name];
 	generate_original_source(q);
 	
 	if(not skip_io)
@@ -391,7 +395,7 @@ namespace nissa
 		std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
 		
 		int isou=so_sp_col_ind(id_so,ic_so);
-		spincolor *sou=q[isou];
+		spincolor *sou=(*q)[isou];
 		
 		//if the prop exists read it
 		if(file_exists(path))
@@ -406,7 +410,7 @@ namespace nissa
 		    master_printf("  file %s not available, skipping loading\n",path.c_str());
 		    
 		    //and store if needed
-		    if(q.store)
+		    if(q->store)
 		      {
 			master_printf("  writing the source dirac index %d, color %d\n",id_so,ic_so);
 			START_TIMING(store_prop_time,nstore_prop);
