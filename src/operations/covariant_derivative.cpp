@@ -239,14 +239,14 @@ namespace nissa
   }									\
   									\
   /*insert the tadpole*/						\
-  void insert_tadpole(TYPE* out,quad_su3* conf,TYPE* in,dirac_matr* GAMMA,const momentum_tt& tad,int t) \
+  void insert_tadpole(TYPE* out,quad_su3* conf,TYPE* in,dirac_matr* GAMMA,const momentum_t& tad,int t) \
   {									\
     /*call with no source insertion, plus between fw and bw, and a global -0.25*/ \
     complex fw_factor={-0.25,0},bw_factor={-0.25,0};	/* see below for hte minus convention*/ \
     insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_tadpole_handle,t,&tad); \
   }									\
-  void insert_Wilson_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,const momentum_tt& tad,int t){insert_tadpole(out,conf,in,base_gamma+0,tad,t);} \
-  void insert_tm_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,int r,const momentum_tt& tad,int t){DEF_TM_GAMMA(r); insert_tadpole(out,conf,in,&GAMMA,tad,t);} \
+  void insert_Wilson_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,const momentum_t& tad,int t){insert_tadpole(out,conf,in,base_gamma+0,tad,t);} \
+  void insert_tm_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,int r,const momentum_t& tad,int t){DEF_TM_GAMMA(r); insert_tadpole(out,conf,in,&GAMMA,tad,t);} \
   									\
   /*insert the external source, that is one of the two extrema of the stoch prop*/ \
   void insert_external_source(TYPE* out,quad_su3* conf,spin1field* curr,TYPE* in,dirac_matr* GAMMA,const which_dir_t& dirs,int t) \
