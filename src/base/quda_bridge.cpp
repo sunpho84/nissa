@@ -294,10 +294,6 @@ namespace quda_iface
   /// Reorder spincolor to QUDA format
   void remap_nissa_to_quda(spincolor *out,spincolor *in)
   {
-    master_printf("out %p in %p\n",out,in);
-    master_printf("out %ld in %ld\n",nissa::get_vect(out)->nel,nissa::get_vect(in)->nel);
-    master_printf("out %s in %s\n",nissa::get_vect(out)->tag,nissa::get_vect(in)->tag);
-    
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	const int iquda=quda_of_loclx[ivol];
@@ -758,9 +754,7 @@ namespace quda_iface
     
     set_base_inverter_pars();
     
-    const double set_par_time=take_time();
     set_inverter_pars(kappa,csw,mu,niter,residue);
-    master_printf("time to set inverter parameters: %lg s\n",take_time()-set_par_time);
     
     if(exported and csw>0)
       {
