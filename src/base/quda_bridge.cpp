@@ -15,6 +15,8 @@
 #include "routines/mpi_routines.hpp"
 #include "threads/threads.hpp"
 
+#                      include "hmc/backfield.hpp"
+
 #ifdef ENABLE_QUDA_BYPASS
 
 extern "C"
@@ -179,7 +181,7 @@ namespace quda_iface
 	gauge_param.reconstruct_precondition=QUDA_RECONSTRUCT_NO;
 	gauge_param.reconstruct_refinement_sloppy=QUDA_RECONSTRUCT_NO;
 	gauge_param.staggered_phase_type=QUDA_STAGGERED_PHASE_MILC;
-	gauge_param.staggered_phase_applied=true;
+	gauge_param.staggered_phase_applied=false;//true;
 	
 	gauge_param.gauge_fix=QUDA_GAUGE_FIXED_NO;
 	
@@ -790,7 +792,10 @@ namespace quda_iface
   bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source)
   {
     const double export_time=take_time();
+    
+    add_or_rem_stagphases_to_conf(conf);
     const bool exported=export_gauge_conf_to_external_lib(conf);
+    add_or_rem_stagphases_to_conf(conf);
     master_printf("time to export (%d) to external library: %lg s\n",exported,take_time()-export_time);
     
     set_base_inverter_pars();
