@@ -47,7 +47,7 @@ namespace nissa
         residueNorm2+=double_vector_glb_norm2(residueVec[eo],locVol);
       }
     
-    master_printf("check solution, residue: %lg, target one: %lg\n",residueNorm2/sourceNorm2,residue);
+    master_printf("check solution, residue: %lg/%lg=%lg, target one: %lg\n",residueNorm2,sourceNorm2,residueNorm2/sourceNorm2,residue);
     
     for(int eo=0;eo<2;eo++)
       nissa_free(residueVec[eo]);
