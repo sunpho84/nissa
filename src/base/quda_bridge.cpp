@@ -795,7 +795,7 @@ namespace quda_iface
   
   bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source)
   {
-    crash("export_gauge_conf_to_external_lib(conf)"); // eo_ptr structure not supported
+    export_gauge_conf_to_external_lib(conf);
     
     inv_param.dslash_type=QUDA_STAGGERED_DSLASH;
     inv_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;

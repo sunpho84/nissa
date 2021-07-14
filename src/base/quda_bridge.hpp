@@ -13,7 +13,6 @@
 #include "routines/ios.hpp"
 #include "geometry/geometry_eo.hpp"
 
-
 #ifndef EXTERN_QUDA_BRIDGE
  #define EXTERN_QUDA_BRIDGE extern
  #define INIT_QUDA_BRIDGE_TO(cond)
@@ -96,7 +95,7 @@ namespace quda_iface
     master_printf("loading to QUDA the gauge conf\n");
     loadGaugeQuda((void*)&quda_conf[0],&gauge_param);
     
-    double plaq[3];
+    double plaq[3]={}; //to avoid warning when quda not available
     plaqQuda(plaq);
     
     return plaq[0];

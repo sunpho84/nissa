@@ -185,6 +185,11 @@ namespace DD
     DDalphaAMG_update_parameters(&params,&status);
   }
   
+  void set_configuration(nissa::quad_su3* conf)
+  {
+    DDalphaAMG_set_configuration((double*)conf,&DD::status);
+  }
+  
   //setup DD if needed
   void update_setup()
   {

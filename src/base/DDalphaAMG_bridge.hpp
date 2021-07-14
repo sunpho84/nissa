@@ -9,6 +9,7 @@
 # include <DDalphaAMG.h>
 #endif
 
+#include "geometry/geometry_eo.hpp"
 #include "new_types/su3.hpp"
 #include "base/multiGridParams.hpp"
 
@@ -27,15 +28,33 @@ namespace DD
   
   void finalize();
 #ifdef USE_DDALPHAAMG
+
   int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false);
+
+  void set_configuration(nissa::quad_su3* conf);
+  
 #else
+  
   inline int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false)
   {
-    crash("Not implemented");
+    crash("Not available");
     
     return 0;
   }
+  
+  inline void set_configuration(nissa::quad_su3* conf)
+  {
+    crash("Not available");
+  }
+  
 #endif
+  
+  
+  inline void set_configuration(nissa::eo_ptr<nissa::quad_su3> conf)
+  {
+    crash("Not implemented");
+  }
+  
 }
 
 #undef EXTERN_DD_BRIDGE

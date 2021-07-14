@@ -73,7 +73,7 @@ namespace nissa
 	
 	//compute checksum
 	checksum comp_check;
-	checksum_compute_nissa_data(comp_check,out,nbytes_per_site_read,(single_double_flag+1)*32);
+	checksum_compute_nissa_data(comp_check,out,(single_double_flag+1)*32);
 	
 	//print the comparison between checksums
 	master_printf("Checksums computed:  %#010x %#010x\n",comp_check[0],comp_check[1]);
