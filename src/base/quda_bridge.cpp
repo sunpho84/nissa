@@ -451,7 +451,7 @@ namespace quda_iface
 	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
 	inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
-	inv_param.clover_coeff=csw*kappa;
+	inv_param.clover_coeff=csw;
 	inv_param.compute_clover=1;
 	inv_param.compute_clover_inverse=1;
       }
