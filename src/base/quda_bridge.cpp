@@ -631,7 +631,7 @@ namespace quda_iface
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
 	    quda_mg_param.n_vec[level]=(level==0)?24:32;          //24 or 32 is supported presently
 	    quda_mg_param.nu_pre[level]=0;                        //Suggest setting to 0
-	    quda_mg_param.nu_post[level]=8;                       //Suggest setting to 8
+	    quda_mg_param.nu_post[level]=(level==0)?7:4;          //Suggest setting to 8
 	    
 	    //Always set to QUDA_MG_CYCLE_RECURSIVE (this sets the MG cycles to be a K-cycle which is generally superior to a V-cycle for non-Hermitian systems)
 	    quda_mg_param.cycle_type[level]=QUDA_MG_CYCLE_RECURSIVE;
@@ -667,7 +667,7 @@ namespace quda_iface
 	    quda_mg_param.setup_ca_lambda_max[level]=-1.0;
 	    
 	    quda_mg_param.coarse_solver_ca_basis[level]=QUDA_POWER_BASIS;
-	    quda_mg_param.coarse_solver_ca_basis_size[level]=4;
+	    quda_mg_param.coarse_solver_ca_basis_size[level]=10;
 	    quda_mg_param.coarse_solver_ca_lambda_min[level]=0.0;
 	    quda_mg_param.coarse_solver_ca_lambda_max[level]=-1.0;
 	    
