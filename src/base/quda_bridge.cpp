@@ -813,7 +813,7 @@ namespace quda_iface
     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
     inv_param.inv_type=QUDA_CG_INVERTER;
-    inv_param.solve_type=QUDA_NORMOP_PC_SOLVE;
+    inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;
     inv_param.dagger=QUDA_DAG_NO;
     
     //minus due to different gamma5 definition
