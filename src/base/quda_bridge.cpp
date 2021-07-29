@@ -3,7 +3,7 @@
 #endif
 
 #define EXTERN_QUDA_BRIDGE
- #include "quda_bridge.hpp"
+# include "quda_bridge.hpp"
 
 #include "base/cuda.hpp"
 #include "base/export_conf_to_external_lib.hpp"
@@ -54,6 +54,13 @@ namespace nissa
   int iCudaDevice;
 }
 
+#endif
+
+#ifndef USE_CUDA
+namespace nissa
+{
+  int iCudaDevice;
+}
 #endif
 
 namespace quda_iface
@@ -173,7 +180,7 @@ namespace quda_iface
 	gauge_param.cpu_prec=QUDA_DOUBLE_PRECISION;
 	gauge_param.cuda_prec=QUDA_DOUBLE_PRECISION;
 	gauge_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
-	gauge_param.cuda_prec_precondition=QUDA_HALF_PRECISION;
+	gauge_param.cuda_prec_precondition=QUDA_HALF_PRECISION; //check
 	gauge_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
 	
 	gauge_param.reconstruct=QUDA_RECONSTRUCT_NO;
@@ -420,10 +427,10 @@ namespace quda_iface
     inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
     inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
     inv_param.clover_cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
-    inv_param.clover_cuda_prec_precondition=QUDA_HALF_PRECISION;
     inv_param.clover_cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.clover_cuda_prec_precondition=QUDA_HALF_PRECISION;
     
-    inv_param.preserve_source=QUDA_PRESERVE_SOURCE_YES;
+    inv_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
     inv_param.dirac_order=QUDA_DIRAC_ORDER;
     
     inv_param.input_location=QUDA_CPU_FIELD_LOCATION;
@@ -453,14 +460,14 @@ namespace quda_iface
 	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
 	inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
-	inv_param.clover_coeff=csw;
+	inv_param.clover_coeff=csw*kappa;
 	inv_param.compute_clover=1;
 	inv_param.compute_clover_inverse=1;
       }
     else
       {
 	inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
-	inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN_ASYMMETRIC;
+	inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;//QUDA_MATPC_EVEN_EVEN_ASYMMETRIC; //maybe even even
 	inv_param.clover_coeff=0;
 	inv_param.compute_clover=0;
 	inv_param.compute_clover_inverse=0;
