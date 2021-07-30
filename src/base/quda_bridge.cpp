@@ -512,7 +512,7 @@ namespace quda_iface
 	inv_param.gcrNkrylov=10; //from default in read_input.l
 	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
 	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
-	inv_param.reliable_delta=1e-5; //from default in read_input.l
+	inv_param.reliable_delta=1e-10;
 	inv_param.precondition_cycle=1;
 	inv_param.tol_precondition=1e-1;
 	inv_param.maxiter_precondition=1;
@@ -661,7 +661,8 @@ namespace quda_iface
 	    // if we are using an outer even-odd preconditioned solve, then we
 	    // use single parity injection into the coarse grid
 	    quda_mg_param.coarse_grid_solution_type[level]=
-	      (inv_param.solve_type==QUDA_DIRECT_PC_SOLVE?QUDA_MATPC_SOLUTION:QUDA_MAT_SOLUTION);
+	      QUDA_MATPC_SOLUTION;
+	    //(inv_param.solve_type==QUDA_DIRECT_PC_SOLVE?QUDA_MATPC_SOLUTION:QUDA_MAT_SOLUTION);
 	    quda_mg_param.omega[level]=0.85;  //Set to 0.8-1.0
 	    
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
