@@ -350,6 +350,13 @@ namespace quda_iface
 	const int par=loclx_parity[ivol];
 	const int ivolh=loceo_of_loclx[ivol];
 	color_copy(out[par][ivolh],in[iquda]);
+	    for(int ic=0;ic<NCOL;ic++)
+	      for(int ri=0;ri<2;ri++)
+		{
+		  const double& f=in[iquda][ic][ri];
+		  if(fabs(f))
+		    printf("REMA %d %d %d %d %d %lg\n",iquda,par,ivol,ic,ri,f);
+		}
       }
     NISSA_PARALLEL_LOOP_END;
     
