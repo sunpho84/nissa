@@ -778,7 +778,18 @@ namespace quda_iface
       setup_quda_multigrid();
     
     if(is_master_rank())
-      printQudaInvertParam(&inv_param);
+      {
+	printQudaGaugeParam(&gauge_param);
+	printQudaInvertParam(&inv_param);
+	
+	if(multiGrid::use_multiGrid)
+	  {
+	    master_printf("multigrid pars:\n");
+	    printQudaInvertParam(&inv_mg_param);
+	    master_printf("multigrid pars:\n");
+	    printQudaMultigridParam(&quda_mg_param);
+	  }
+      }
     
     const double remap_in_time=take_time();
     remap_nissa_to_quda(spincolor_in,source);
