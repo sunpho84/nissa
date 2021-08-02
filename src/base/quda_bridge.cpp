@@ -845,7 +845,8 @@ namespace quda_iface
     
     remap_nissa_to_quda(color_in,source);
     
-    invertQuda(color_out,color_in,&inv_param);
+    //invertQuda(color_out,color_in,&inv_param);
+    MatQuda(color_out,color_in,&inv_param);
     
     master_printf("# QUDA solved in: %i iter / %g secs=%g Gflops\n",inv_param.iter,inv_param.secs,inv_param.gflops/inv_param.secs);
     
