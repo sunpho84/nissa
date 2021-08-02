@@ -179,9 +179,9 @@ namespace quda_iface
 	
 	gauge_param.cpu_prec=QUDA_DOUBLE_PRECISION;
 	gauge_param.cuda_prec=QUDA_DOUBLE_PRECISION;
-	gauge_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
-	gauge_param.cuda_prec_precondition=QUDA_HALF_PRECISION; //check
-	gauge_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
+	gauge_param.cuda_prec_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
+	gauge_param.cuda_prec_precondition=QUDA_DOUBLE_PRECISION;//QUDA_HALF_PRECISION; //check
+	gauge_param.cuda_prec_refinement_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
 	
 	gauge_param.reconstruct=QUDA_RECONSTRUCT_12;
 	gauge_param.reconstruct_sloppy=QUDA_RECONSTRUCT_8;
@@ -420,15 +420,15 @@ namespace quda_iface
     
     inv_param.cpu_prec=QUDA_DOUBLE_PRECISION;
     inv_param.cuda_prec=QUDA_DOUBLE_PRECISION;
-    inv_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
-    inv_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
-    inv_param.cuda_prec_precondition=QUDA_HALF_PRECISION;
+    inv_param.cuda_prec_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
+    inv_param.cuda_prec_refinement_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
+    inv_param.cuda_prec_precondition=QUDA_DOUBLE_PRECISION;//QUDA_HALF_PRECISION;
     
     inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
     inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
-    inv_param.clover_cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
-    inv_param.clover_cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
-    inv_param.clover_cuda_prec_precondition=QUDA_HALF_PRECISION;
+    inv_param.clover_cuda_prec_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
+    inv_param.clover_cuda_prec_refinement_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
+    inv_param.clover_cuda_prec_precondition=QUDA_DOUBLE_PRECISION;//QUDA_HALF_PRECISION;
     
     inv_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
     inv_param.dirac_order=QUDA_DIRAC_ORDER;
@@ -612,7 +612,7 @@ namespace quda_iface
 	    /// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
 	    
 	    quda_mg_param.verbosity[level]=get_quda_verbosity();
-	    quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
+	    quda_mg_param.precision_null[level]=QUDA_DOUBLE_PRECISION;//QUDA_HALF_PRECISION;
 	    quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
 	    
 	    quda_mg_param.num_setup_iter[level]=1;  //Experimental - keep this set to 1
@@ -652,7 +652,7 @@ namespace quda_iface
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
 	    //Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
 	    quda_mg_param.smoother_schwarz_type[level]=QUDA_INVALID_SCHWARZ;
-	    quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
+	    quda_mg_param.smoother_halo_precision[level]=QUDA_DOUBLE_PRECISION;//QUDA_HALF_PRECISION;
 	    
 	    // when the Schwarz-alternating smoother is used, this can be set to NO, otherwise it must be YES
 	    quda_mg_param.global_reduction[level]=QUDA_BOOLEAN_YES;
