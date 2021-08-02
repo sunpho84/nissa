@@ -811,7 +811,11 @@ namespace quda_iface
   
   bool solve_stD(eo_ptr<color> sol,eo_ptr<quad_su3> conf,const double& mass,const int& niter,const double& residue,eo_ptr<color> source)
   {
-    gauge_param.reconstruct=QUDA_RECONSTRUCT_NO;
+    gauge_param.reconstruct=
+      gauge_param.reconstruct_sloppy=
+      gauge_param.reconstruct_precondition=
+      gauge_param.reconstruct_refinement_sloppy=
+      QUDA_RECONSTRUCT_NO;
     const double export_time=take_time();
     
     add_or_rem_stagphases_to_conf(conf);
