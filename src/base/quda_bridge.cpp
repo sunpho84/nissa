@@ -183,10 +183,10 @@ namespace quda_iface
 	gauge_param.cuda_prec_precondition=QUDA_HALF_PRECISION; //check
 	gauge_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
 	
-	gauge_param.reconstruct=QUDA_RECONSTRUCT_NO;
-	gauge_param.reconstruct_sloppy=QUDA_RECONSTRUCT_NO;
-	gauge_param.reconstruct_precondition=QUDA_RECONSTRUCT_NO;
-	gauge_param.reconstruct_refinement_sloppy=QUDA_RECONSTRUCT_NO;
+	gauge_param.reconstruct=QUDA_RECONSTRUCT_12;
+	gauge_param.reconstruct_sloppy=QUDA_RECONSTRUCT_8;
+	gauge_param.reconstruct_precondition=QUDA_RECONSTRUCT_8;
+	gauge_param.reconstruct_refinement_sloppy=QUDA_RECONSTRUCT_8;
 	gauge_param.staggered_phase_type=QUDA_STAGGERED_PHASE_MILC;
 	gauge_param.staggered_phase_applied=false;//true;
 	
@@ -447,7 +447,7 @@ namespace quda_iface
     
     inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
     inv_param.tol_hq=0.1;
-    inv_param.reliable_delta=1e-3;
+    inv_param.reliable_delta=1e-4;
     inv_param.use_sloppy_partial_accumulator=0;
   }
   
@@ -487,7 +487,7 @@ namespace quda_iface
     inv_param.tol=sqrt(residue);
     inv_param.maxiter=niter;
     inv_param.pipeline=0;
-    inv_param.gcrNkrylov=20;
+    inv_param.gcrNkrylov=24;
     
     // domain decomposition preconditioner parameters
     inv_param.inv_type_precondition=QUDA_CG_INVERTER;
@@ -628,11 +628,12 @@ namespace quda_iface
 		quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
 		master_printf("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
 	      }
+	    quda_mg_param.mu_factor[nlevels-1]=6; //HACK
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
-	    quda_mg_param.coarse_solver_tol[level]=(level+1==nlevels)?0.46:0.22;          //Suggest setting each level to 0.25
-	    quda_mg_param.coarse_solver_maxiter[level]=50;        //Suggest setting in the range 8-100
+	    quda_mg_param.coarse_solver_tol[level]=(level==0)?0.25:0.46;          //Suggest setting each level to 0.25
+	    quda_mg_param.coarse_solver_maxiter[level]=(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
 	    quda_mg_param.n_vec[level]=(level==0)?24:32;          //24 or 32 is supported presently
 	    quda_mg_param.nu_pre[level]=0;                        //Suggest setting to 0
@@ -645,7 +646,7 @@ namespace quda_iface
 	    quda_mg_param.setup_location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
 	    quda_mg_param.smoother[level]=QUDA_CA_GCR_INVERTER;     //Set to QUDA_CA_GCR_INVERTER for each level
-	    quda_mg_param.smoother_tol[level]=0.22;                 //Suggest setting each level to 0.25
+	    quda_mg_param.smoother_tol[level]=(level==nlevels+1)?0.25:0.46;                 //Suggest setting each level to 0.25
 	    quda_mg_param.smoother_schwarz_cycle[level]=1;          //Experimental, set to 1 for each level
 	    //Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
@@ -668,7 +669,7 @@ namespace quda_iface
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
 	    quda_mg_param.setup_ca_basis[level]     =QUDA_POWER_BASIS;
-	    quda_mg_param.setup_ca_basis_size[level]=4;
+	    quda_mg_param.setup_ca_basis_size[level]=(level+1==nlevels)?10:4;
 	    quda_mg_param.setup_ca_lambda_min[level]=0.0;
 	    quda_mg_param.setup_ca_lambda_max[level]=-1.0;
 	    
