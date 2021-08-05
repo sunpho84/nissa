@@ -179,9 +179,9 @@ namespace quda_iface
 	
 	gauge_param.cpu_prec=QUDA_DOUBLE_PRECISION;
 	gauge_param.cuda_prec=QUDA_DOUBLE_PRECISION;
-	gauge_param.cuda_prec_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
-	gauge_param.cuda_prec_precondition=QUDA_DOUBLE_PRECISION;//QUDA_HALF_PRECISION; //check
-	gauge_param.cuda_prec_refinement_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
+	gauge_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
+	gauge_param.cuda_prec_precondition=QUDA_HALF_PRECISION; //check
+	gauge_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
 	
 	gauge_param.reconstruct=QUDA_RECONSTRUCT_12;
 	gauge_param.reconstruct_sloppy=QUDA_RECONSTRUCT_8;
@@ -427,15 +427,15 @@ namespace quda_iface
     
     inv_param.cpu_prec=QUDA_DOUBLE_PRECISION;
     inv_param.cuda_prec=QUDA_DOUBLE_PRECISION;
-    inv_param.cuda_prec_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
-    inv_param.cuda_prec_refinement_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
-    inv_param.cuda_prec_precondition=QUDA_DOUBLE_PRECISION;//QUDA_HALF_PRECISION;
+    inv_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.cuda_prec_precondition=QUDA_HALF_PRECISION;
     
     inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
     inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
-    inv_param.clover_cuda_prec_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
-    inv_param.clover_cuda_prec_refinement_sloppy=QUDA_DOUBLE_PRECISION;//QUDA_SINGLE_PRECISION;
-    inv_param.clover_cuda_prec_precondition=QUDA_DOUBLE_PRECISION;//QUDA_HALF_PRECISION;
+    inv_param.clover_cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.clover_cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
+    inv_param.clover_cuda_prec_precondition=QUDA_HALF_PRECISION;
     
     inv_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
     inv_param.dirac_order=QUDA_DIRAC_ORDER;
@@ -468,8 +468,8 @@ namespace quda_iface
 	inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
 	inv_param.clover_coeff=csw*kappa;
-	inv_param.compute_clover=1;
-	inv_param.compute_clover_inverse=1;
+	inv_param.compute_clover=0;
+	inv_param.compute_clover_inverse=0;
       }
     else
       {
@@ -528,6 +528,8 @@ namespace quda_iface
 	inv_param.omega=1.0;
 	
 	inv_mg_param.preconditioner=nullptr;
+	inv_mg_param.inv_type=QUDA_GCR_INVERTER;
+	inv_mg_param.maxiter=1000;
 	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
 	inv_mg_param.verbosity=QUDA_VERBOSE;
 	inv_mg_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
@@ -619,7 +621,7 @@ namespace quda_iface
 	    /// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
 	    
 	    quda_mg_param.verbosity[level]=get_quda_verbosity();
-	    quda_mg_param.precision_null[level]=QUDA_DOUBLE_PRECISION;//QUDA_HALF_PRECISION;
+	    quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
 	    quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
 	    
 	    quda_mg_param.num_setup_iter[level]=1;  //Experimental - keep this set to 1
@@ -635,7 +637,6 @@ namespace quda_iface
 		quda_mg_param.mu_factor[level]=multiGrid::mu_factor[level];
 		master_printf("# QUDA: MG setting coarse mu scaling factor on level %d to %lf\n", level, quda_mg_param.mu_factor[level]);
 	      }
-	    quda_mg_param.mu_factor[nlevels-1]=6; //HACK
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
@@ -659,7 +660,7 @@ namespace quda_iface
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
 	    //Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
 	    quda_mg_param.smoother_schwarz_type[level]=QUDA_INVALID_SCHWARZ;
-	    quda_mg_param.smoother_halo_precision[level]=QUDA_DOUBLE_PRECISION;//QUDA_HALF_PRECISION;
+	    quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
 	    
 	    // when the Schwarz-alternating smoother is used, this can be set to NO, otherwise it must be YES
 	    quda_mg_param.global_reduction[level]=QUDA_BOOLEAN_YES;
