@@ -430,12 +430,14 @@ namespace quda_iface
     inv_param.cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
     inv_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
     inv_param.cuda_prec_precondition=QUDA_HALF_PRECISION;
+    inv_param.cuda_prec_eigensolver=QUDA_SINGLE_PRECISION;
     
     inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
     inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
     inv_param.clover_cuda_prec_sloppy=QUDA_SINGLE_PRECISION;
     inv_param.clover_cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
     inv_param.clover_cuda_prec_precondition=QUDA_HALF_PRECISION;
+    inv_param.clover_cuda_prec_eigensolver=QUDA_SINGLE_PRECISION;
     
     inv_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
     inv_param.dirac_order=QUDA_DIRAC_ORDER;
@@ -519,6 +521,7 @@ namespace quda_iface
 	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
 	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
 	inv_param.reliable_delta=1e-10;
+	inv_param.reliable_delta_refinement=1e-10;
 	inv_param.precondition_cycle=1;
 	inv_param.tol_precondition=1e-1;
 	inv_param.maxiter_precondition=1;
@@ -654,7 +657,7 @@ namespace quda_iface
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    quda_mg_param.setup_location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
-	    quda_mg_param.smoother[level]=QUDA_CA_GCR_INVERTER;     //Set to QUDA_CA_GCR_INVERTER for each level
+	    quda_mg_param.smoother[level]=QUDA_CA_GCR_INVERTER;
 	    quda_mg_param.smoother_tol[level]=(level+1==nlevels)?0.25:0.22;                 //Suggest setting each level to 0.25
 	    quda_mg_param.smoother_schwarz_cycle[level]=1;          //Experimental, set to 1 for each level
 	    //Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
