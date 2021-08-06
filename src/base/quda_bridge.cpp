@@ -508,7 +508,6 @@ namespace quda_iface
     
     if(multiGrid::use_multiGrid)
       {
-	inv_mg_param=inv_param;
 	inv_param.verbosity=QUDA_VERBOSE;
 	
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
@@ -525,8 +524,10 @@ namespace quda_iface
 	inv_param.maxiter_precondition=1;
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
 	inv_param.solve_type=QUDA_DIRECT_SOLVE;
+	
 	inv_param.omega=1.0;
 	
+	inv_mg_param=inv_param;
 	inv_mg_param.preconditioner=nullptr;
 	inv_mg_param.inv_type=QUDA_GCR_INVERTER;
 	inv_mg_param.maxiter=1000;
