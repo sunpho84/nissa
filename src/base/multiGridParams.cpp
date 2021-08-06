@@ -6,11 +6,11 @@
 #include "io/input.hpp"
 
 #define EXTERN_MULTIGRID
- #include "multiGridParams.hpp"
+# include "multiGridParams.hpp"
 
 namespace nissa
 {
-  //read the nissa configuration file
+  /// read the multigrid configuration file
   void read_DDalphaAMG_pars()
   {
     using namespace multiGrid;
@@ -82,6 +82,14 @@ namespace nissa
 			  master_printf("DD: block_size[%d][%d*]=%d\n",ilev,jdir,block_size[ilev][jdir]);
 			}
 		    }
+#ifdef USE_QUDA
+		//size of the blocks
+		if(strcasecmp(tag,"nEigenvectors")==0)
+		  {
+		    nissa::read_int(&nEigenvectors);
+		    master_printf("DD: nEigenvectors=%d\n",nEigenvectors);
+		  }
+#endif
 	      }
 	    else master_printf("Finished reading the file '%s'\n",path);
 	  }

@@ -175,7 +175,7 @@ namespace quda_iface
 	gauge_param.type=QUDA_WILSON_LINKS;
 	gauge_param.gauge_order=QUDA_QDP_GAUGE_ORDER;
 	
-	gauge_param.t_boundary=QUDA_PERIODIC_T;
+	gauge_param.t_boundary=QUDA_ANTI_PERIODIC_T;
 	
 	gauge_param.cpu_prec=QUDA_DOUBLE_PRECISION;
 	gauge_param.cuda_prec=QUDA_DOUBLE_PRECISION;
@@ -703,9 +703,11 @@ namespace quda_iface
 			"can be passed to the a Lanczos type solver!\n",
 			level);
 		
-		mg_eig_param[level].n_ev=800;
-		mg_eig_param[level].n_kr=1200;
-		mg_eig_param[level].n_conv=800;
+		using nissa::multiGrid::nEigenvectors;
+		
+		mg_eig_param[level].n_ev=nEigenvectors;
+		mg_eig_param[level].n_kr=nEigenvectors*1.5;
+		mg_eig_param[level].n_conv=nEigenvectors;
 		mg_eig_param[level].require_convergence=QUDA_BOOLEAN_TRUE;
 		
 		mg_eig_param[level].tol=1e-4;
