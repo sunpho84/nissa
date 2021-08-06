@@ -784,9 +784,6 @@ namespace quda_iface
 	master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
       }
     
-    if(multiGrid::use_multiGrid)
-      setup_quda_multigrid();
-    
     if(is_master_rank())
       {
 	master_printf("--- gauge pars: ---\n");
@@ -804,6 +801,9 @@ namespace quda_iface
 	    printQudaEigParam(mg_eig_param+multiGrid::nlevels-1);
 	  }
       }
+    
+    if(multiGrid::use_multiGrid)
+      setup_quda_multigrid();
     
     const double remap_in_time=take_time();
     remap_nissa_to_quda(spincolor_in,source);
