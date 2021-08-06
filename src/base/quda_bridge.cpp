@@ -789,15 +789,19 @@ namespace quda_iface
     
     if(is_master_rank())
       {
+	master_printf("--- gauge pars: ---\n");
 	printQudaGaugeParam(&gauge_param);
+	master_printf("--- inv pars: ---\n");
 	printQudaInvertParam(&inv_param);
 	
 	if(multiGrid::use_multiGrid)
 	  {
-	    master_printf("multigrid pars:\n");
+	    master_printf("--- inv_mg pars: ---\n");
 	    printQudaInvertParam(&inv_mg_param);
-	    master_printf("multigrid pars:\n");
+	    master_printf("--- multigrid pars: ---\n");
 	    printQudaMultigridParam(&quda_mg_param);
+	    master_printf("-- -eig pars: ---\n");
+	    printQudaEigParam(mg_eig_param+multiGrid::nlevels-1);
 	  }
       }
     
