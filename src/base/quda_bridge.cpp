@@ -693,6 +693,7 @@ namespace quda_iface
 	      {
 		quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
 		mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
+		mg_eig_param[level].check_interval=5;
 		mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
 		
 		if((mg_eig_param[level].eig_type==QUDA_EIG_TR_LANCZOS or
