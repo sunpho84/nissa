@@ -470,7 +470,7 @@ namespace quda_iface
 	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
 	inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
-	inv_param.clover_coeff=csw*kappa;
+	inv_param.clover_csw=csw;//clover_coeff=csw*kappa;
 	inv_param.compute_clover=0;
 	inv_param.compute_clover_inverse=0;
       }
@@ -545,6 +545,7 @@ namespace quda_iface
 	inv_mg_param.output_location=QUDA_CPU_FIELD_LOCATION;
 	inv_mg_param.solution_type=QUDA_MAT_SOLUTION;
 	inv_mg_param.dagger=QUDA_DAG_NO;
+	inv_mg_param.mass=0.5/kappa-4; //boh
 	
 	quda_mg_param.setup_type=QUDA_NULL_VECTOR_SETUP;
 	quda_mg_param.pre_orthonormalize=QUDA_BOOLEAN_NO;
