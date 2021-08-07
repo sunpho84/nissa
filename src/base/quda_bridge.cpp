@@ -624,7 +624,7 @@ namespace quda_iface
 	    
 	    /// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
 	    
-	    quda_mg_param.verbosity[level]=get_quda_verbosity();
+	    quda_mg_param.verbosity[level]=QUDA_VERBOSE;//get_quda_verbosity();
 	    quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
 	    quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
 	    
@@ -698,6 +698,7 @@ namespace quda_iface
 	    if(level+1==nlevels and multiGrid::use_deflated_solver)
 	      {
 		quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
+		mg_eig_param[level].verbosity=
 		mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
 		mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
 		
