@@ -763,7 +763,7 @@ namespace quda_iface
     if(not setup_valid)
       {
 	master_printf("QUDA multigrid setup not valid\n");
-	load_clover_term(&inv_param);
+	load_clover_term(&inv_mg_param);
 	
 	
 	if(quda_mg_preconditioner!=nullptr)
@@ -791,7 +791,7 @@ namespace quda_iface
     if(exported and csw>0)
       {
 	const double load_clover_time=take_time();
-	loadCloverQuda(nullptr,nullptr,&inv_param);
+	loadCloverQuda(nullptr,nullptr,&inv_mg_param);
 	master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
       }
     
