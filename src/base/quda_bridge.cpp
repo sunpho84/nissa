@@ -409,7 +409,7 @@ namespace quda_iface
     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
     //minus due to different gamma5 definition
-    inv_param.mu=-mu;
+    inv_param.mu=mu;
     inv_param.epsilon=0.0;
     
     inv_param.twist_flavor=QUDA_TWIST_SINGLET;
