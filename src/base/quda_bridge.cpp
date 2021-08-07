@@ -624,7 +624,7 @@ namespace quda_iface
 	    
 	    /// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
 	    
-	    quda_mg_param.verbosity[level]=QUDA_VERBOSE;//get_quda_verbosity();
+	    quda_mg_param.verbosity[level]=QUDA_DEBUG_VERBOSE;//QUDA_VERBOSE;//get_quda_verbosity();
 	    quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
 	    quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
 	    
@@ -766,7 +766,9 @@ namespace quda_iface
 	if(quda_mg_preconditioner!=nullptr)
 	  destroyMultigridQuda(quda_mg_preconditioner);
 	
+	master_printf("mg setup due:\n");
 	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
+	master_printf("mg setup done!\n");
 	inv_param.preconditioner=quda_mg_preconditioner;
 	
 	setup_valid=true;
@@ -799,9 +801,9 @@ namespace quda_iface
 	
 	if(multiGrid::use_multiGrid)
 	  {
-	    master_printf("--- inv_mg pars: ---\n");
+	    master_printf("--- inv_mg pars: %p ---\n",inv_mg_param);
 	    printQudaInvertParam(&inv_mg_param);
-	    master_printf("--- multigrid pars: ---\n");
+	    master_printf("--- multigrid pars: %p internal %p ---\n",quda_mg_param,quda_mg_param.invert_param);
 	    printQudaMultigridParam(&quda_mg_param);
 	    master_printf("-- -eig pars: ---\n");
 	    printQudaEigParam(mg_eig_param+multiGrid::nlevels-1);
