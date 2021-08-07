@@ -183,11 +183,15 @@ namespace quda_iface
 	gauge_param.cuda_prec_precondition=QUDA_HALF_PRECISION; //check
 	gauge_param.cuda_prec_refinement_sloppy=QUDA_SINGLE_PRECISION;
 	
-	gauge_param.reconstruct=QUDA_RECONSTRUCT_12;
-	gauge_param.reconstruct_sloppy=QUDA_RECONSTRUCT_8;
-	gauge_param.reconstruct_precondition=QUDA_RECONSTRUCT_8;
-	gauge_param.reconstruct_refinement_sloppy=QUDA_RECONSTRUCT_8;
+	gauge_param.reconstruct=QUDA_RECONSTRUCT_NO;//QUDA_RECONSTRUCT_12;
+	gauge_param.reconstruct_sloppy=QUDA_RECONSTRUCT_NO;
+	gauge_param.reconstruct_precondition=QUDA_RECONSTRUCT_NO;
+	gauge_param.reconstruct_refinement_sloppy=QUDA_RECONSTRUCT_NO;
+<<<<<<< Updated upstream
 	gauge_param.staggered_phase_type=QUDA_STAGGERED_PHASE_NO;
+=======
+	gauge_param.staggered_phase_type=QUDA_STAGGERED_PHASE_MILC;
+>>>>>>> Stashed changes
 	gauge_param.staggered_phase_applied=false;//true;
 	
 	gauge_param.gauge_fix=QUDA_GAUGE_FIXED_NO;
