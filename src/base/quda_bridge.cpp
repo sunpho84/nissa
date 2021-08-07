@@ -539,7 +539,7 @@ namespace quda_iface
 	inv_mg_param.verbosity=QUDA_VERBOSE;
 	inv_mg_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
 	inv_mg_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
-	inv_mg_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;//QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
+	inv_mg_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
 	inv_mg_param.dirac_order=QUDA_DIRAC_ORDER;
 	inv_mg_param.input_location=QUDA_CPU_FIELD_LOCATION;
 	inv_mg_param.output_location=QUDA_CPU_FIELD_LOCATION;
