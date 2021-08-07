@@ -624,7 +624,7 @@ namespace quda_iface
 	    
 	    /// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
 	    
-	    quda_mg_param.verbosity[level]=QUDA_DEBUG_VERBOSE;//QUDA_VERBOSE;//get_quda_verbosity();
+	    quda_mg_param.verbosity[level]=QUDA_VERBOSE;//get_quda_verbosity();
 	    quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
 	    quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
 	    
