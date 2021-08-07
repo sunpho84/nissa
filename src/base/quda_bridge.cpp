@@ -482,7 +482,7 @@ namespace quda_iface
 	inv_param.compute_clover_inverse=0;
       }
     
-    inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
+    inv_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;//QUDA_CHIRAL_GAMMA_BASIS;
     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
     inv_param.inv_type=QUDA_CG_INVERTER;
@@ -525,7 +525,7 @@ namespace quda_iface
 	inv_param.precondition_cycle=1;
 	inv_param.tol_precondition=1e-1;
 	inv_param.maxiter_precondition=1;
-	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
+	inv_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;//QUDA_CHIRAL_GAMMA_BASIS;
 	inv_param.solve_type=QUDA_DIRECT_SOLVE;
 	
 	inv_param.omega=1.0;
