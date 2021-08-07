@@ -646,7 +646,7 @@ namespace quda_iface
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
 	    constexpr double t[3]={0.25,0.22,0.46};
 	    quda_mg_param.coarse_solver_tol[level]=t[level];          //Suggest setting each level to 0.25
-	    quda_mg_param.coarse_solver_maxiter[level]=(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
+	    quda_mg_param.coarse_solver_maxiter[level]=100;//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
 	    quda_mg_param.n_vec[level]=(level==0)?24:32;          //24 or 32 is supported presently
 	    quda_mg_param.nu_pre[level]=0;                        //Suggest setting to 0
