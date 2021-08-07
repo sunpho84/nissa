@@ -698,7 +698,6 @@ namespace quda_iface
 	    if(level+1==nlevels and multiGrid::use_deflated_solver)
 	      {
 		quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
-		mg_eig_param[level].verbosity=
 		mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
 		mg_eig_param[level].spectrum=QUDA_SPECTRUM_SR_EIG;
 		
