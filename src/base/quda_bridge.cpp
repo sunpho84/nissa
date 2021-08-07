@@ -259,6 +259,7 @@ namespace quda_iface
   void load_clover_term(QudaInvertParam* inv_param)
   {
     freeCloverQuda();
+    master_printf("LOADING THE CLOVER TERM\n");
     loadCloverQuda(NULL,NULL,inv_param);
   }
   
@@ -762,6 +763,8 @@ namespace quda_iface
     if(not setup_valid)
       {
 	master_printf("QUDA multigrid setup not valid\n");
+	load_clover_term(&inv_param);
+	
 	
 	if(quda_mg_preconditioner!=nullptr)
 	  destroyMultigridQuda(quda_mg_preconditioner);
