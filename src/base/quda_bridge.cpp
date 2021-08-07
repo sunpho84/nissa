@@ -1006,18 +1006,18 @@ namespace quda_iface
   {
     const double export_time=take_time();
     const bool exported=export_gauge_conf_to_external_lib(conf);
-    master_printf("time to export to external library: %lg s\n",take_time()-export_time);
-    
-    set_base_inverter_pars();
-    
-    set_inverter_pars(kappa,csw,mu,niter,residue);
-    
     if(exported and csw>0)
       {
 	const double load_clover_time=take_time();
 	loadCloverQuda(nullptr,nullptr,&inv_param);
 	master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
       }
+    
+    master_printf("time to export to external library: %lg s\n",take_time()-export_time);
+    
+    set_base_inverter_pars();
+    
+    set_inverter_pars(kappa,csw,mu,niter,residue);
     
     if(is_master_rank())
       {
