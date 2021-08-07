@@ -545,6 +545,7 @@ namespace quda_iface
 	inv_mg_param.output_location=QUDA_CPU_FIELD_LOCATION;
 	inv_mg_param.solution_type=QUDA_MAT_SOLUTION;
 	inv_mg_param.dagger=QUDA_DAG_NO;
+	inv_mg_param.mu=mu; //boh
 	inv_mg_param.mass=0.5/kappa-4; //boh
 	
 	quda_mg_param.setup_type=QUDA_NULL_VECTOR_SETUP;
