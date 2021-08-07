@@ -446,7 +446,7 @@ namespace quda_iface
     inv_param.input_location=QUDA_CPU_FIELD_LOCATION;
     inv_param.output_location=QUDA_CPU_FIELD_LOCATION;
     
-    inv_param.tune=QUDA_TUNE_YES;
+    //inv_param.tune=QUDA_TUNE_YES;
     
     inv_param.sp_pad=0;
     inv_param.cl_pad=0;
@@ -501,10 +501,10 @@ namespace quda_iface
     
     // domain decomposition preconditioner parameters
     inv_param.inv_type_precondition=QUDA_CG_INVERTER;
-    inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
+    //inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
     inv_param.precondition_cycle=1;
     inv_param.tol_precondition=0.1;
-    inv_param.maxiter_precondition=10;
+    //inv_param.maxiter_precondition=10;
     inv_param.verbosity_precondition=get_quda_verbosity();
     
     inv_param.omega=1.0;
@@ -534,6 +534,7 @@ namespace quda_iface
 	inv_mg_param=inv_param;
 	inv_mg_param.preconditioner=nullptr;
 	inv_mg_param.inv_type=QUDA_GCR_INVERTER;
+	inv_mg_param.inv_type_precondition=QUDA_INVALID_INVERTER;
 	inv_mg_param.maxiter=1000;
 	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
 	inv_mg_param.verbosity=QUDA_VERBOSE;
@@ -649,7 +650,7 @@ namespace quda_iface
 	    quda_mg_param.coarse_solver_tol[level]=t[level];          //Suggest setting each level to 0.25
 	    quda_mg_param.coarse_solver_maxiter[level]=100;//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
-	    quda_mg_param.n_vec[level]=(level==0)?24:32;          //24 or 32 is supported presently
+	    quda_mg_param.n_vec[level]=(level==1)?32:24;          //24 or 32 is supported presently
 	    quda_mg_param.nu_pre[level]=0;                        //Suggest setting to 0
 	    quda_mg_param.nu_post[level]=(level==0)?7:4;          //Suggest setting to 8
 	    
@@ -667,7 +668,7 @@ namespace quda_iface
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
 	    //Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
 	    quda_mg_param.smoother_schwarz_type[level]=QUDA_INVALID_SCHWARZ;
-	    quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
+	    //quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
 	    
 	    // when the Schwarz-alternating smoother is used, this can be set to NO, otherwise it must be YES
 	    quda_mg_param.global_reduction[level]=QUDA_BOOLEAN_YES;
@@ -754,6 +755,7 @@ namespace quda_iface
 	quda_mg_param.run_low_mode_check=QUDA_BOOLEAN_FALSE;//quda_input.mg_run_low_mode_check;
 	quda_mg_param.run_oblique_proj_check=QUDA_BOOLEAN_FALSE;
 	quda_mg_param.run_verify=QUDA_BOOLEAN_FALSE;
+	quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
       }
   }
   
