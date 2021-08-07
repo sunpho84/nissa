@@ -763,8 +763,6 @@ namespace quda_iface
     if(not setup_valid)
       {
 	master_printf("QUDA multigrid setup not valid\n");
-	load_clover_term(&inv_param);
-	
 	
 	if(quda_mg_preconditioner!=nullptr)
 	  destroyMultigridQuda(quda_mg_preconditioner);
