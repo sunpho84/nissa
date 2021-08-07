@@ -409,7 +409,7 @@ namespace quda_iface
     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
     //minus due to different gamma5 definition
-    inv_param.mu=mu;
+    inv_param.mu=-mu;
     inv_param.epsilon=0.0;
     
     inv_param.twist_flavor=QUDA_TWIST_SINGLET;
@@ -470,7 +470,7 @@ namespace quda_iface
 	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
 	inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
-	inv_param.clover_csw=csw;//clover_coeff=csw*kappa;
+	inv_param.clover_coeff=csw*kappa;
 	inv_param.compute_clover=0;
 	inv_param.compute_clover_inverse=0;
       }
@@ -545,8 +545,6 @@ namespace quda_iface
 	inv_mg_param.output_location=QUDA_CPU_FIELD_LOCATION;
 	inv_mg_param.solution_type=QUDA_MAT_SOLUTION;
 	inv_mg_param.dagger=QUDA_DAG_NO;
-	inv_mg_param.mu=mu; //boh
-	inv_mg_param.mass=0.5/kappa-4; //boh
 	
 	quda_mg_param.setup_type=QUDA_NULL_VECTOR_SETUP;
 	quda_mg_param.pre_orthonormalize=QUDA_BOOLEAN_NO;
@@ -779,6 +777,232 @@ namespace quda_iface
 	setup_valid=true;
       }
   }
+
+  void sanfoPrint(QudaMultigridParam& i)
+  {
+    int nlev=i.n_level;
+    printf("n_level: %d\n",i.n_level);
+    for(int ilev=0;ilev<nlev;ilev++)
+      for(int idim=0;idim<4;idim++)
+	printf("geo_block_size: %d\n",i.geo_block_size[ilev][idim]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("spin_block_size: %d\n",i.spin_block_size[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("n_vec: %d\n",i.n_vec[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("precision_null: %d\n",i.precision_null[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("n_block_ortho: %d\n",i.n_block_ortho[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("verbosity: %d\n",i.verbosity[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("setup_inv_type: %d\n",i.setup_inv_type[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("num_setup_iter: %d\n",i.num_setup_iter[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("setup_tol: %lg\n",i.setup_tol[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("setup_maxiter: %d\n",i.setup_maxiter[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("setup_maxiter_refresh: %d\n",i.setup_maxiter_refresh[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("setup_ca_basis: %d\n",i.setup_ca_basis[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("setup_ca_basis_size: %d\n",i.setup_ca_basis_size[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("setup_ca_lambda_min: %lg\n",i.setup_ca_lambda_min[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("setup_ca_lambda_max: %lg\n",i.setup_ca_lambda_max[ilev]);
+    printf("setup_type: %d\n",i.setup_type);
+    printf("pre_orthonormalize: %d\n",i.pre_orthonormalize);
+    printf("post_orthonormalize: %d\n",i.post_orthonormalize);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("coarse_solver: %d\n",i.coarse_solver[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("coarse_solver_tol: %lg\n",i.coarse_solver_tol[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("coarse_solver_maxiter: %d\n",i.coarse_solver_maxiter[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("coarse_solver_ca_basis: %d\n",i.coarse_solver_ca_basis[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("coarse_solver_ca_basis_size: %d\n",i.coarse_solver_ca_basis_size[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("coarse_solver_ca_lambda_min: %lg\n",i.coarse_solver_ca_lambda_min[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("coarse_solver_ca_lambda_max: %lg\n",i.coarse_solver_ca_lambda_max[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("smoother: %d\n",i.smoother[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("smoother_tol: %lg\n",i.smoother_tol[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("nu_pre: %d\n",i.nu_pre[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("nu_post: %d\n",i.nu_post[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("omega: %lg\n",i.omega[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("smoother_halo_precision: %d\n",i.smoother_halo_precision[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("smoother_schwarz_type: %d\n",i.smoother_schwarz_type[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("smoother_schwarz_cycle: %d\n",i.smoother_schwarz_cycle[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("coarse_grid_solution_type: %d\n",i.coarse_grid_solution_type[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("smoother_solve_type: %d\n",i.smoother_solve_type[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("cycle_type: %d\n",i.cycle_type[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("global_reduction: %d\n",i.global_reduction[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("location: %d\n",i.location[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("setup_location: %d\n",i.setup_location[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("use_eig_solver: %d\n",i.use_eig_solver[ilev]);
+    printf("setup_minimize_memory: %d\n",i.setup_minimize_memory);
+    printf("compute_null_vector: %d\n",i.compute_null_vector);
+    printf("generate_all_levels: %d\n",i.generate_all_levels);
+    printf("run_verify: %d\n",i.run_verify);
+    printf("run_low_mode_check: %d\n",i.run_low_mode_check);
+    printf("run_oblique_proj_check: %d\n",i.run_oblique_proj_check);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("vec_load: %d\n",i.vec_load[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("vec_infile: %s\n",i.vec_infile[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("vec_store: %d\n",i.vec_store[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("vec_outfile: %s\n",i.vec_outfile[ilev]);
+    printf("coarse_guess: %d\n",i.coarse_guess);
+    printf("preserve_deflation: %d\n",i.preserve_deflation);
+    printf("gflops: %lg\n",i.gflops);
+    printf("secs: %lg\n",i.secs);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("mu_factor: %lg\n",i.mu_factor[ilev]);
+    for(int ilev=0;ilev<nlev;ilev++)
+      printf("transfer_type: %d\n",i.transfer_type[ilev]);
+    printf("use_mma: %d\n",i.use_mma);
+    printf("thin_update_only: %d\n",i.thin_update_only);
+  }
+
+  void sanfoPrint(QudaInvertParam& i)
+  {
+    printf("input_location: %d\n",i.input_location);
+    printf("output_location: %d\n",i.output_location);
+    printf("dslash_type: %d\n",i.dslash_type);
+    printf("inv_type: %d\n",i.inv_type);
+    printf("mass: %lg\n",i.mass);
+    printf("kappa: %lg\n",i.kappa);
+    printf("m5: %lg\n",i.m5);
+    printf("Ls: %d\n",i.Ls);
+    printf("eofa_shift: %lg\n",i.eofa_shift);
+    printf("eofa_pm: %d\n",i.eofa_pm);
+    printf("mq1: %lg\n",i.mq1);
+    printf("mq2: %lg\n",i.mq2);
+    printf("mq3: %lg\n",i.mq3);
+    printf("mu: %lg\n",i.mu);
+    printf("epsilon: %lg\n",i.epsilon);
+    printf("twist_flavor: %d\n",i.twist_flavor);
+    printf("laplace3D: %d\n",i.laplace3D);
+    printf("tol: %lg\n",i.tol);
+    printf("tol_restart: %lg\n",i.tol_restart);
+    printf("tol_hq: %lg\n",i.tol_hq);
+    printf("compute_true_res: %d\n",i.compute_true_res);
+    printf("true_res: %lg\n",i.true_res);
+    printf("true_res_hq: %lg\n",i.true_res_hq);
+    printf("maxiter: %d\n",i.maxiter);
+    printf("reliable_delta: %lg\n",i.reliable_delta);
+    printf("reliable_delta_refinement: %lg\n",i.reliable_delta_refinement);
+    printf("use_alternative_reliable: %d\n",i.use_alternative_reliable);
+    printf("use_sloppy_partial_accumulator: %d\n",i.use_sloppy_partial_accumulator);
+    printf("solution_accumulator_pipeline: %d\n",i.solution_accumulator_pipeline);
+    printf("max_res_increase: %d\n",i.max_res_increase);
+    printf("max_res_increase_total: %d\n",i.max_res_increase_total);
+    printf("max_hq_res_increase: %d\n",i.max_hq_res_increase);
+    printf("max_hq_res_restart_total: %d\n",i.max_hq_res_restart_total);
+    printf("heavy_quark_check: %d\n",i.heavy_quark_check);
+    printf("pipeline: %d\n",i.pipeline);
+    printf("num_offset: %d\n",i.num_offset);
+    printf("num_src: %d\n",i.num_src);
+    printf("num_src_per_sub_partition: %d\n",i.num_src_per_sub_partition);
+    for(int idim=0;idim<4;idim++)
+      printf("split_grid: %d\n",i.split_grid[idim]);
+    printf("overlap: %d\n",i.overlap);
+    printf("compute_action: %d\n",i.compute_action);
+    printf("solution_type: %d\n",i.solution_type);
+    printf("solve_type: %d\n",i.solve_type);
+    printf("matpc_type: %d\n",i.matpc_type);
+    printf("dagger: %d\n",i.dagger);
+    printf("mass_normalization: %d\n",i.mass_normalization);
+    printf("solver_normalization: %d\n",i.solver_normalization);
+    printf("preserve_source: %d\n",i.preserve_source);
+    printf("cpu_prec: %d\n",i.cpu_prec);
+    printf("cuda_prec: %d\n",i.cuda_prec);
+    printf("cuda_prec_sloppy: %d\n",i.cuda_prec_sloppy);
+    printf("cuda_prec_refinement_sloppy: %d\n",i.cuda_prec_refinement_sloppy);
+    printf("cuda_prec_precondition: %d\n",i.cuda_prec_precondition);
+    printf("cuda_prec_eigensolver: %d\n",i.cuda_prec_eigensolver);
+    printf("dirac_order: %d\n",i.dirac_order);
+    printf("gamma_basis: %d\n",i.gamma_basis);
+    printf("clover_location: %d\n",i.clover_location);
+    printf("clover_cpu_prec: %d\n",i.clover_cpu_prec);
+    printf("clover_cuda_prec: %d\n",i.clover_cuda_prec);
+    printf("clover_cuda_prec_sloppy: %d\n",i.clover_cuda_prec_sloppy);
+    printf("clover_cuda_prec_refinement_sloppy: %d\n",i.clover_cuda_prec_refinement_sloppy);
+    printf("clover_cuda_prec_precondition: %d\n",i.clover_cuda_prec_precondition);
+    printf("clover_cuda_prec_eigensolver: %d\n",i.clover_cuda_prec_eigensolver);
+    printf("clover_order: %d\n",i.clover_order);
+    printf("use_init_guess: %d\n",i.use_init_guess);
+    printf("clover_coeff: %lg\n",i.clover_coeff);
+    printf("clover_rho: %lg\n",i.clover_rho);
+    printf("compute_clover_trlog: %d\n",i.compute_clover_trlog);
+    printf("compute_clover: %d\n",i.compute_clover);
+    printf("compute_clover_inverse: %d\n",i.compute_clover_inverse);
+    printf("return_clover: %d\n",i.return_clover);
+    printf("return_clover_inverse: %d\n",i.return_clover_inverse);
+    printf("verbosity: %d\n",i.verbosity);
+    printf("sp_pad: %d\n",i.sp_pad);
+    printf("cl_pad: %d\n",i.cl_pad);
+    printf("iter: %d\n",i.iter);
+    printf("gflops: %lg\n",i.gflops);
+    printf("secs: %lg\n",i.secs);
+    printf("tune: %d\n",i.tune);
+    printf("Nsteps: %d\n",i.Nsteps);
+    printf("gcrNkrylov: %d\n",i.gcrNkrylov);
+    printf("inv_type_precondition: %d\n",i.inv_type_precondition);
+    printf("deflate: %d\n",i.deflate);
+    printf("dslash_type_precondition: %d\n",i.dslash_type_precondition);
+    printf("verbosity_precondition: %d\n",i.verbosity_precondition);
+    printf("tol_precondition: %lg\n",i.tol_precondition);
+    printf("maxiter_precondition: %d\n",i.maxiter_precondition);
+    printf("omega: %lg\n",i.omega);
+    printf("ca_basis: %d\n",i.ca_basis);
+    printf("ca_lambda_min: %lg\n",i.ca_lambda_min);
+    printf("ca_lambda_max: %lg\n",i.ca_lambda_max);
+    printf("precondition_cycle: %d\n",i.precondition_cycle);
+    printf("schwarz_type: %d\n",i.schwarz_type);
+    printf("residual_type: %d\n",i.residual_type);
+    printf("cuda_prec_ritz: %d\n",i.cuda_prec_ritz);
+    printf("n_ev: %d\n",i.n_ev);
+    printf("max_search_dim: %d\n",i.max_search_dim);
+    printf("rhs_idx: %d\n",i.rhs_idx);
+    printf("deflation_grid: %d\n",i.deflation_grid);
+    printf("eigenval_tol: %lg\n",i.eigenval_tol);
+    printf("eigcg_max_restarts: %d\n",i.eigcg_max_restarts);
+    printf("max_restart_num: %d\n",i.max_restart_num);
+    printf("inc_tol: %lg\n",i.inc_tol);
+    printf("make_resident_solution: %d\n",i.make_resident_solution);
+    printf("use_resident_solution: %d\n",i.use_resident_solution);
+    printf("chrono_make_resident: %d\n",i.chrono_make_resident);
+    printf("chrono_replace_last: %d\n",i.chrono_replace_last);
+    printf("chrono_use_resident: %d\n",i.chrono_use_resident);
+    printf("chrono_max_dim: %d\n",i.chrono_max_dim);
+    printf("chrono_index: %d\n",i.chrono_index);
+    printf("chrono_precision: %d\n",i.chrono_precision);
+    printf("extlib_type: %d\n",i.extlib_type);
+    printf("native_blas_lapack: %d\n",i.native_blas_lapack);
+  }
   
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
@@ -809,7 +1033,15 @@ namespace quda_iface
 	    master_printf("--- inv_mg pars: %p kappa %lg mu %lg mass %lg---\n",&inv_mg_param,inv_mg_param.kappa,inv_mg_param.mu,inv_mg_param.mass);
 	    printQudaInvertParam(&inv_mg_param);
 	    master_printf("--- multigrid pars: %p internal %p ---\n",&quda_mg_param,quda_mg_param.invert_param);
-	    printQudaMultigridParam(&quda_mg_param);
+	    //printQudaMultigridParam(&quda_mg_param);
+	    master_printf("AAAAAA\n");
+	    if(is_master_rank())
+	      sanfoPrint(*quda_mg_param.invert_param);
+	    master_printf("AAAAAA\n");
+	    if(is_master_rank())
+	      sanfoPrint(quda_mg_param);
+	    master_printf("AAAAAA\n");
+	    
 	    master_printf("-- -eig pars: ---\n");
 	    printQudaEigParam(mg_eig_param+multiGrid::nlevels-1);
 	  }
