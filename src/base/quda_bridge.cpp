@@ -187,7 +187,7 @@ namespace quda_iface
 	gauge_param.reconstruct_sloppy=QUDA_RECONSTRUCT_8;
 	gauge_param.reconstruct_precondition=QUDA_RECONSTRUCT_8;
 	gauge_param.reconstruct_refinement_sloppy=QUDA_RECONSTRUCT_8;
-	gauge_param.staggered_phase_type=QUDA_STAGGERED_PHASE_MILC;
+	gauge_param.staggered_phase_type=QUDA_STAGGERED_PHASE_NO;
 	gauge_param.staggered_phase_applied=false;//true;
 	
 	gauge_param.gauge_fix=QUDA_GAUGE_FIXED_NO;
@@ -644,7 +644,8 @@ namespace quda_iface
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
-	    quda_mg_param.coarse_solver_tol[level]=(level+1==nlevels)?0.46:0.25;          //Suggest setting each level to 0.25
+	    constexpr double t[3]={0.25,0.22,0.46};
+	    quda_mg_param.coarse_solver_tol[level]=t[level];          //Suggest setting each level to 0.25
 	    quda_mg_param.coarse_solver_maxiter[level]=(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
 	    quda_mg_param.n_vec[level]=(level==0)?24:32;          //24 or 32 is supported presently
@@ -657,7 +658,8 @@ namespace quda_iface
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    quda_mg_param.setup_location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
-	    quda_mg_param.smoother[level]=QUDA_CA_GCR_INVERTER;
+	    quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
+	    quda_mg_param.smoother[level]=(level+1==nlevels)?QUDA_MR_INVERTER:QUDA_CA_GCR_INVERTER;
 	    quda_mg_param.smoother_tol[level]=(level+1==nlevels)?0.25:0.22;                 //Suggest setting each level to 0.25
 	    quda_mg_param.smoother_schwarz_cycle[level]=1;          //Experimental, set to 1 for each level
 	    //Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
@@ -681,7 +683,7 @@ namespace quda_iface
 	    quda_mg_param.location[level]=QUDA_CUDA_FIELD_LOCATION;
 	    
 	    quda_mg_param.setup_ca_basis[level]     =QUDA_POWER_BASIS;
-	    quda_mg_param.setup_ca_basis_size[level]=(level+1==nlevels)?10:4;
+	    quda_mg_param.setup_ca_basis_size[level]=4;//(level+1==nlevels)?10:4;
 	    quda_mg_param.setup_ca_lambda_min[level]=0.0;
 	    quda_mg_param.setup_ca_lambda_max[level]=-1.0;
 	    
