@@ -763,7 +763,7 @@ namespace quda_iface
     if(not setup_valid)
       {
 	master_printf("QUDA multigrid setup not valid\n");
-	load_clover_term(&inv_mg_param);
+	load_clover_term(&inv_param);
 	
 	
 	if(quda_mg_preconditioner!=nullptr)
@@ -791,7 +791,7 @@ namespace quda_iface
     if(exported and csw>0)
       {
 	const double load_clover_time=take_time();
-	loadCloverQuda(nullptr,nullptr,&inv_mg_param);
+	loadCloverQuda(nullptr,nullptr,&inv_param);
 	master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
       }
     
@@ -804,7 +804,7 @@ namespace quda_iface
 	
 	if(multiGrid::use_multiGrid)
 	  {
-	    master_printf("--- inv_mg pars: %p ---\n",&inv_mg_param);
+	    master_printf("--- inv_mg pars: %p kappa %lg mu %lg mass %lg---\n",&inv_mg_param,inv_mg_param.kappa,inv_mg_param.mu,inv_mg_param.mass);
 	    printQudaInvertParam(&inv_mg_param);
 	    master_printf("--- multigrid pars: %p internal %p ---\n",&quda_mg_param,quda_mg_param.invert_param);
 	    printQudaMultigridParam(&quda_mg_param);
