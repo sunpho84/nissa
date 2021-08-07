@@ -803,7 +803,7 @@ namespace quda_iface
 	  {
 	    master_printf("--- inv_mg pars: %p ---\n",inv_mg_param);
 	    printQudaInvertParam(&inv_mg_param);
-	    master_printf("--- multigrid pars: %p internal %p ---\n",quda_mg_param,quda_mg_param.invert_param);
+	    master_printf("--- multigrid pars: %p internal %p ---\n",&quda_mg_param,quda_mg_param.invert_param);
 	    printQudaMultigridParam(&quda_mg_param);
 	    master_printf("-- -eig pars: ---\n");
 	    printQudaEigParam(mg_eig_param+multiGrid::nlevels-1);
