@@ -123,7 +123,7 @@ namespace nissa
       static constexpr bool insertBarrier=
 	(outPositionsInIn[IPrev]+1!=outPositionsInIn[IPrev+1] and not
 	 (outPositionsInIn[IPrev]==outPositionsInIn[IPrev] and outPositionsInIn[IPrev]==NotPresentVal)) or
-	((outPositionsInIn[IPrev+1]==MBsIn)||...);
+	((outPositionsInIn[IPrev+1]==MBsIn) or...);
     };
     
     /// Computes the Component melding barriers starting from the knowledge of in-out comps and the in barriers
@@ -309,6 +309,210 @@ namespace nissa
 	    typename BarriersToInsert>
   using CompsMeldBarriersInsert=
     typename internal::_CompsMeldBarriersInsert<KnownBarriers,BarriersToInsert>::type;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace internal
+  {
+    template <typename Res,
+	      typename RemainingComps,
+	      typename PartiallyProcessedRule,
+	      typename Rules,
+	      typename MB,
+	      size_t I>
+    struct Process;
+    
+    // /// Generic case
+    // template <typename...ResComps,
+    // 	      typename ThisComp,
+    // 	      typename...RemainingComps,
+    // 	      typename...ProcessedCompsInTheRule,
+    // 	      typename ProcessingCompInTheRule,
+    // 	      typename...OtherCompsInTheRule,
+    // 	      typename...OtherRules,
+    // 	      size_t ThisBarrier,
+    // 	      size_t...NextBarriers,
+    // 	      size_t I>
+    // struct Process<TensorComps<ResComps...>,
+    // 		   TensorComps<ThisComp,RemainingComps...>,
+    // 		   TensorComps<ProcessedCompsInTheRule...>,
+    // 		   std::tuple<std::tuple<ProcessingCompInTheRule,OtherCompsInTheRule...>,OtherRules...>,
+    // 		   std::index_sequence<ThisBarrier,NextBarriers...>,
+    // 		   I>;
+    
+    /// No more rules to process
+    template <typename...ResComps,
+	      typename...RemainingComps,
+	      typename MB,
+	      size_t I>
+    struct Process<TensorComps<ResComps...>,
+		   TensorComps<RemainingComps...>,
+		   TensorComps<>,
+		   std::tuple<>,
+		   MB,
+		   I>
+    {
+      using type=
+	TensorComps<ResComps...,RemainingComps...>;
+    };
+    
+    template <typename MB,
+	      size_t I>
+    struct ProcessBarrier;
+    
+    /// No more barrier
+    template <size_t I>
+    struct ProcessBarrier<std::index_sequence<>,I>
+    {
+      using NextMB=
+	std::index_sequence<>;
+      
+      template <bool>
+      static constexpr bool assertValid=
+	true;
+    };
+    
+    /// Not matched barrier
+    template <size_t ThisBarrier,
+	      size_t..._NextBarriers,
+	      size_t I>
+    struct ProcessBarrier<std::index_sequence<ThisBarrier,_NextBarriers...>,I>
+    {
+      using NextMB=
+	std::index_sequence<ThisBarrier,_NextBarriers...>;
+      
+      static_assert(I<ThisBarrier,"How can have we passed?");
+      
+      /// No barrier present
+      template <bool>
+      static constexpr bool assertValid=
+	true;
+    };
+    
+    /// Matched barrier
+    template <size_t..._NextBarriers,
+	      size_t I>
+    struct ProcessBarrier<std::index_sequence<I,_NextBarriers...>,I>
+    {
+      using NextMB=
+	std::index_sequence<_NextBarriers...>;
+      
+      /// The barrier is valid only if we are not matching the rule
+      template <bool MatchedRule>
+      static constexpr bool assertValid=
+	not MatchedRule;
+    };
+    
+    /// Generic case
+    template <typename..._ResComps,
+	      typename ThisComp,
+	      typename...RemainingComps,
+	      typename...ProcessedCompsInTheRule,
+	      typename ProcessingCompInTheRule,
+	      typename...OtherCompsInTheRule,
+	      typename...OtherRules,
+	      typename MB,
+	      size_t I>
+    struct Process<TensorComps<_ResComps...>,
+		   TensorComps<ThisComp,RemainingComps...>,
+		   TensorComps<ProcessedCompsInTheRule...>,
+		   std::tuple<std::tuple<ProcessingCompInTheRule,OtherCompsInTheRule...>,OtherRules...>,
+		   MB,
+		   I>
+    {
+      static constexpr bool ruleIsPartiallyMatched=
+	(sizeof...(ProcessedCompsInTheRule)>0);
+      
+      static constexpr bool ruleIsMatching=
+	std::is_same_v<ThisComp,ProcessingCompInTheRule>;
+      
+      static_assert(ruleIsMatching or not ruleIsPartiallyMatched,"A partially matched rule cannot be broken");
+      
+      static constexpr bool ruleIsFullyMatched=
+	ruleIsMatching and sizeof...(OtherCompsInTheRule)==0;
+      
+      using PB=
+	ProcessBarrier<MB,I>;
+      
+      using ResComps=
+	std::conditional_t<ruleIsMatching,
+			   std::conditional_t<ruleIsFullyMatched,
+					      TensorComps<_ResComps...,std::tuple<ProcessedCompsInTheRule...,ProcessingCompInTheRule>>,
+					      TensorComps<_ResComps...>>,
+			   TensorComps<_ResComps...,ThisComp>>;
+      
+      using ProcessedCompsInTheRuleT=
+	std::conditional_t<ruleIsFullyMatched,
+			   TensorComps<>,
+			   std::conditional_t<ruleIsMatching,
+					      std::tuple<ProcessedCompsInTheRule...,ProcessingCompInTheRule>,
+					      std::tuple<ProcessedCompsInTheRule...>>>;
+      
+      using ThisRuleT=
+	std::conditional_t<ruleIsMatching,
+			   std::tuple<OtherCompsInTheRule...>,
+			   std::tuple<ProcessingCompInTheRule,OtherCompsInTheRule...>>;
+      
+      using NextRulesT=
+	std::conditional_t<ruleIsFullyMatched,
+			   std::tuple<OtherRules...>,
+			   std::tuple<ThisRuleT,OtherRules...>>;
+      
+      static_assert(PB::template assertValid<ruleIsPartiallyMatched>,"Invalid melding according to barrier: the melding is crossing a barrier");
+      
+      using type=
+	typename Process<ResComps,TensorComps<RemainingComps...>,ProcessedCompsInTheRuleT,NextRulesT,typename PB::NextMB,I+1>::type;
+    };
+  }
+  
+  /// Generic case
+  template <typename Comps,
+	    typename Rules,
+	    typename MB>
+  using Process=
+    typename internal::Process<TensorComps<>,
+			       Comps,
+			       std::tuple<>,
+			       Rules,
+			       MB,0>::type;
+  
+  void fuf()
+  {
+    using Comps=
+      std::tuple<int,double,char,char*>;
+    
+    using Rules=
+      std::tuple<std::tuple<double,char>>;
+    
+    using MB=
+      std::index_sequence<1,3>;
+    
+    auto a=
+      Process<Comps,Rules,MB>();
+  }
+  
+  
+  // template <typename TC,
+  // 	    typename Ms,
+  // 	    typename MB>
+  // struct CompsMeld;
+  
+  // template <typename...Tc,
+  // 	    typename...Ms,
+  // 	    size_t...MB>
+  // struct CompsMeld<TensorComps<Tc...>,
+  // 		   std::tuple<Ms...>,
+  // 		   std::index_sequence<MB...>>
+  // {
+  //   static constexpr size_t NMelded=
+  //     (std::tuple_size_v<Ms>+...);
+    
+    
+  //   static constexpr size_t NOut=
+  //     sizeof...(Tc)-NMelded;
+    
+  //   //assertValidMelding(std::tuple<)
+  
 }
 
 #endif
