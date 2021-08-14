@@ -314,154 +314,160 @@ namespace nissa
   
   namespace internal
   {
+    /// Check that a barrier is not crossed when melding
+    ///
+    /// Forward declaration
+    /// I is the actual melded component The melding is valid if no
+    /// barrier is present, or if I is not in the barriers list
+    template <typename MB,
+	      size_t I>
+    struct MeldBarrierChecker;
+    
+    /// Check that a barrier is not crossed when melding
+    ///
+    /// No more barrier
+    template <size_t I>
+    struct MeldBarrierChecker<std::index_sequence<>,I>
+    {
+      /// Since no barrier is present, the meld is valid
+      template <bool>
+      static constexpr bool assertValidMeld=
+	true;
+    };
+    
+    /// Check that a barrier is not crossed when melding
+    ///
+    /// Case in which we are melding a component which is not barriered
+    template <size_t ThisBarrier,
+	      size_t..._NextBarriers,
+	      size_t I>
+    struct MeldBarrierChecker<std::index_sequence<ThisBarrier,_NextBarriers...>,I>
+    {
+      /// Prepare next barriers, with all the passed ones
+      using NextMB=
+	std::index_sequence<ThisBarrier,_NextBarriers...>;
+      
+      static_assert(I<ThisBarrier,"How can have we passed?");
+      
+      /// Since the barrier is not matched, the melding is valid
+      template <bool>
+      static constexpr bool assertValidMeld=
+	true;
+    };
+    
+    /// Check that a barrier is not crossed when melding
+    ///
+    /// Case in which we are melding a component which is barriered
+    template <size_t..._NextBarriers,
+	      size_t I>
+    struct MeldBarrierChecker<std::index_sequence<I,_NextBarriers...>,I>
+    {
+      /// Prepare next barriers, with all the remaining ones
+      using NextMB=
+	std::index_sequence<_NextBarriers...>;
+      
+      /// The barrier is valid only if we are not matching the rule
+      template <bool MatchedRule>
+      static constexpr bool assertValidMeld=
+	not MatchedRule;
+    };
+    
+    /// Meld components according to a list of rules, and the list of barriers
+    ///
+    /// Internal implementation, forward declaration
     template <typename Res,
 	      typename RemainingComps,
 	      typename PartiallyProcessedRule,
 	      typename Rules,
 	      typename MB,
 	      size_t I>
-    struct Process;
+    struct _CompsMelder;
     
-    // /// Generic case
-    // template <typename...ResComps,
-    // 	      typename ThisComp,
-    // 	      typename...RemainingComps,
-    // 	      typename...ProcessedCompsInTheRule,
-    // 	      typename ProcessingCompInTheRule,
-    // 	      typename...OtherCompsInTheRule,
-    // 	      typename...OtherRules,
-    // 	      size_t ThisBarrier,
-    // 	      size_t...NextBarriers,
-    // 	      size_t I>
-    // struct Process<TensorComps<ResComps...>,
-    // 		   TensorComps<ThisComp,RemainingComps...>,
-    // 		   TensorComps<ProcessedCompsInTheRule...>,
-    // 		   std::tuple<std::tuple<ProcessingCompInTheRule,OtherCompsInTheRule...>,OtherRules...>,
-    // 		   std::index_sequence<ThisBarrier,NextBarriers...>,
-    // 		   I>;
-    
-    /// No more rules to process
-    template <typename...ResComps,
-	      typename...RemainingComps,
-	      typename MB,
-	      size_t I>
-    struct Process<TensorComps<ResComps...>,
-		   TensorComps<RemainingComps...>,
-		   TensorComps<>,
-		   std::tuple<>,
-		   MB,
-		   I>
+    /// Meld components according to a list of rules, and the list of barriers
+    ///
+    /// No more rules to process: returns the final result
+    template <typename...ResComps,          // Partial result
+	      typename...RemainingComps,    // Remaining components, to be flushed
+	      typename MB,                  // Memory barriers, to be discarded
+	      size_t I>                     // Component index, to be discarded
+    struct _CompsMelder<TensorComps<ResComps...>,
+			    TensorComps<RemainingComps...>,
+			    TensorComps<>,
+			    std::tuple<>,
+			    MB,
+			    I>
     {
+      /// Result obtained concatenating the partial result and the remaining components
       using type=
 	TensorComps<ResComps...,RemainingComps...>;
     };
     
-    template <typename MB,
-	      size_t I>
-    struct ProcessBarrier;
-    
-    /// No more barrier
-    template <size_t I>
-    struct ProcessBarrier<std::index_sequence<>,I>
-    {
-      using NextMB=
-	std::index_sequence<>;
-      
-      template <bool>
-      static constexpr bool assertValid=
-	true;
-    };
-    
-    /// Not matched barrier
-    template <size_t ThisBarrier,
-	      size_t..._NextBarriers,
-	      size_t I>
-    struct ProcessBarrier<std::index_sequence<ThisBarrier,_NextBarriers...>,I>
-    {
-      using NextMB=
-	std::index_sequence<ThisBarrier,_NextBarriers...>;
-      
-      static_assert(I<ThisBarrier,"How can have we passed?");
-      
-      /// No barrier present
-      template <bool>
-      static constexpr bool assertValid=
-	true;
-    };
-    
-    /// Matched barrier
-    template <size_t..._NextBarriers,
-	      size_t I>
-    struct ProcessBarrier<std::index_sequence<I,_NextBarriers...>,I>
-    {
-      using NextMB=
-	std::index_sequence<_NextBarriers...>;
-      
-      /// The barrier is valid only if we are not matching the rule
-      template <bool MatchedRule>
-      static constexpr bool assertValid=
-	not MatchedRule;
-    };
-    
-    /// Generic case
-    template <typename..._ResComps,
-	      typename ThisComp,
-	      typename...RemainingComps,
-	      typename...ProcessedCompsInTheRule,
-	      typename ProcessingCompInTheRule,
-	      typename...OtherCompsInTheRule,
-	      typename...OtherRules,
+    /// Meld components according to a list of rules, and the list of barriers
+    ///
+    /// Case in which at least one component has still to be matched
+    template <typename...InResComps,
+	      typename HeadComp,
+	      typename...TailComps,
+	      typename...HeadRuleMatchedComps,
+	      typename HeadRuleHeadComp,
+	      typename...HeadRuleTailComps,
+	      typename...TailRules,
 	      typename MB,
 	      size_t I>
-    struct Process<TensorComps<_ResComps...>,
-		   TensorComps<ThisComp,RemainingComps...>,
-		   TensorComps<ProcessedCompsInTheRule...>,
-		   std::tuple<std::tuple<ProcessingCompInTheRule,OtherCompsInTheRule...>,OtherRules...>,
-		   MB,
-		   I>
+    struct _CompsMelder<TensorComps<InResComps...>,
+			TensorComps<HeadComp,TailComps...>,
+			TensorComps<HeadRuleMatchedComps...>,
+			std::tuple<std::tuple<HeadRuleHeadComp,HeadRuleTailComps...>,TailRules...>,
+			MB,
+			I>
     {
+      /// If the number of processed components in the rule is greater
+      /// than 0, we are in the middle of processing a rule, so a
+      /// barrier cannot take place
       static constexpr bool ruleIsPartiallyMatched=
-	(sizeof...(ProcessedCompsInTheRule)>0);
+	(sizeof...(HeadRuleMatchedComps)>0);
       
+      /// The rule is matched if HeadComp equals HeadRuleHeadComp
       static constexpr bool ruleIsMatching=
-	std::is_same_v<ThisComp,ProcessingCompInTheRule>;
+	std::is_same_v<HeadComp,HeadRuleHeadComp>;
       
       static_assert(ruleIsMatching or not ruleIsPartiallyMatched,"A partially matched rule cannot be broken");
       
+      /// Check if the component is fully matched
       static constexpr bool ruleIsFullyMatched=
-	ruleIsMatching and sizeof...(OtherCompsInTheRule)==0;
+	ruleIsMatching and sizeof...(HeadRuleTailComps)==0;
       
-      using PB=
-	ProcessBarrier<MB,I>;
+      /// Instantiate a meld barrier checker
+      using MBC=
+	MeldBarrierChecker<MB,I>;
       
-      using ResComps=
-	std::conditional_t<ruleIsMatching,
-			   std::conditional_t<ruleIsFullyMatched,
-					      TensorComps<_ResComps...,std::tuple<ProcessedCompsInTheRule...,ProcessingCompInTheRule>>,
-					      TensorComps<_ResComps...>>,
-			   TensorComps<_ResComps...,ThisComp>>;
+      /// Component to be created if fully matched - to be replaced with a passed one!
+      using OutCompIfFullyMatched=
+	std::tuple<HeadRuleMatchedComps...,HeadRuleHeadComp>;
       
-      using ProcessedCompsInTheRuleT=
+      using OutResCompsList=
+	std::conditional_t<ruleIsFullyMatched,
+			   TensorComps<InResComps...,OutCompIfFullyMatched>,
+			   TensorComps<InResComps...>>;
+      
+      using ProcessedCompsInTheRule=
 	std::conditional_t<ruleIsFullyMatched,
 			   TensorComps<>,
 			   std::conditional_t<ruleIsMatching,
-					      std::tuple<ProcessedCompsInTheRule...,ProcessingCompInTheRule>,
-					      std::tuple<ProcessedCompsInTheRule...>>>;
-      
-      using ThisRuleT=
-	std::conditional_t<ruleIsMatching,
-			   std::tuple<OtherCompsInTheRule...>,
-			   std::tuple<ProcessingCompInTheRule,OtherCompsInTheRule...>>;
-      
-      using NextRulesT=
+					      std::tuple<HeadRuleMatchedComps...,HeadRuleHeadComp>,
+					      std::tuple<HeadRuleMatchedComps...>>>;
+		
+      using NextRules=
 	std::conditional_t<ruleIsFullyMatched,
-			   std::tuple<OtherRules...>,
-			   std::tuple<ThisRuleT,OtherRules...>>;
+			   std::tuple<TailRules...>,
+			   std::conditional_t<ruleIsMatching,
+					      std::tuple<std::tuple<HeadRuleTailComps...>,TailRules...>,
+					      std::tuple<std::tuple<HeadRuleHeadComp,HeadRuleTailComps...>,TailRules...>>>;
       
-      static_assert(PB::template assertValid<ruleIsPartiallyMatched>,"Invalid melding according to barrier: the melding is crossing a barrier");
+      static_assert(MBC::template assertValidMeld<ruleIsPartiallyMatched>,"Invalid melding according to barrier: the melding is crossing a barrier");
       
       using type=
-	typename Process<ResComps,TensorComps<RemainingComps...>,ProcessedCompsInTheRuleT,NextRulesT,typename PB::NextMB,I+1>::type;
+	typename _CompsMelder<OutResCompsList,TensorComps<TailComps...>,ProcessedCompsInTheRule,NextRules,typename MBC::NextMB,I+1>::type;
     };
   }
   
@@ -470,11 +476,11 @@ namespace nissa
 	    typename Rules,
 	    typename MB>
   using Process=
-    typename internal::Process<TensorComps<>,
-			       Comps,
-			       std::tuple<>,
-			       Rules,
-			       MB,0>::type;
+    typename internal::_CompsMelder<TensorComps<>,
+					Comps,
+					std::tuple<>,
+					Rules,
+					MB,0>::type;
   
   void fuf()
   {
