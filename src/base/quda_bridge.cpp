@@ -413,6 +413,7 @@ namespace quda_iface
 	inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
 	inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
 	inv_param.cl_pad=0;
+	inv_param.dirac_order=QUDA_DIRAC_ORDER;
 	loadCloverQuda(NULL,NULL,&inv_param);
       }
     else
