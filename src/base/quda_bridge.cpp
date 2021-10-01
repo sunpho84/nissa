@@ -411,6 +411,7 @@ namespace quda_iface
 	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
 	inv_param.clover_coeff=csw*kappa;
 	inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
+	inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
 	loadCloverQuda(NULL,NULL,&inv_param);
       }
     else
