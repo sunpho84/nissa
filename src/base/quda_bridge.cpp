@@ -447,6 +447,7 @@ namespace quda_iface
     
     inv_param.kappa=kappa;
     set_base_inverter_pars();
+    inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
     if(csw>0.0)
       {
 	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
