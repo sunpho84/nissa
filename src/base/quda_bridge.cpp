@@ -398,14 +398,24 @@ namespace quda_iface
   }
   
   /// Apply the dirac operator
-  void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
+  void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double csw,double mu,spincolor *in)
   {
     export_gauge_conf_to_external_lib(conf);
     
     master_printf("setting pars\n");
     
     inv_param.kappa=kappa;
-    inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
+    if(csw>0.0)
+      {
+	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
+	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
+	inv_param.clover_coeff=csw*kappa;
+      }
+    else
+      {
+	inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
+      }
+    
     inv_param.solution_type=QUDA_MAT_SOLUTION;
     
     //minus due to different gamma5 definition
