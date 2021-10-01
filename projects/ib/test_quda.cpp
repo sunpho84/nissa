@@ -45,9 +45,16 @@ void in_main(int narg,char **arg)
   vector_reset(in);
   in[0][0][0][0]=1.0;
   
-  const double kappa=0.125,mu=0.0;
-  quda_iface::apply_tmD(out,conf,kappa,mu,in);
-  apply_tmQ(out_nissa,conf,kappa,mu,in);
+  const double kappa=0.1325,csw=1.345,mu=0.243;
+  quda_iface::apply_tmD(out,conf,kappa,csw,mu,in);
+  
+  clover_term_t *Cl=nissa_malloc("Cl",locVol,clover_term_t);
+  inv_clover_term_t *invCl=nissa_malloc("invCl",locVol,inv_clover_term_t);
+  clover_term(Cl,csw,conf);
+  invert_twisted_clover_term(invCl,mu*tau3[0],kappa,Cl);
+  apply_tmclovQ(out_nissa,conf,kappa,Cl,mu,in);
+  nissa_free(invCl);
+  nissa_free(Cl);
   
   safe_dirac_prod_spincolor(out_nissa,base_gamma[5],out_nissa);
   
