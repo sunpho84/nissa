@@ -22,9 +22,9 @@ void in_main(int narg,char **arg)
   
   start_loc_rnd_gen(235235);
   
-  spincolor *in=nissa_malloc("in",locVol,spincolor);
-  spincolor *out=nissa_malloc("out",locVol,spincolor);
-  spincolor *tmp=nissa_malloc("tmp",locVol,spincolor);
+  spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
+  spincolor *out=nissa_malloc("out",locVol+bord_vol,spincolor);
+  spincolor *tmp=nissa_malloc("tmp",locVol+bord_vol,spincolor);
   
   /// First test: load a spincolor and unload it
   generate_undiluted_source(in,RND_Z2,-1);
@@ -37,7 +37,7 @@ void in_main(int narg,char **arg)
   /// Second test: apply the dirac operator
   
   quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
-  spincolor *out_nissa=nissa_malloc("out_nissa",locVol,spincolor);
+  spincolor *out_nissa=nissa_malloc("out_nissa",locVol+bord_vol,spincolor);
   
   generate_hot_lx_conf(conf);
   master_printf("plaq: %lg\n",global_plaquette_lx_conf(conf));
