@@ -410,6 +410,7 @@ namespace quda_iface
 	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
 	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
 	inv_param.clover_coeff=csw*kappa;
+	loadCloverQuda(NULL,NULL,&inv_param);
       }
     else
       {
