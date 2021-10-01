@@ -36,7 +36,7 @@ void in_main(int narg,char **arg)
   
   /// Second test: apply the dirac operator
   
-  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
   spincolor *out_nissa=nissa_malloc("out_nissa",locVol,spincolor);
   
   generate_hot_lx_conf(conf);
