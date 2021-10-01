@@ -397,44 +397,6 @@ namespace quda_iface
     sloppy_prec;
   }
   
-  /// Apply the dirac operator
-  void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double csw,double mu,spincolor *in)
-  {
-    export_gauge_conf_to_external_lib(conf);
-    
-    master_printf("setting pars\n");
-    
-    inv_param.kappa=kappa;
-    if(csw>0.0)
-      {
-	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
-	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
-	inv_param.clover_coeff=csw*kappa;
-	inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
-	inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
-	inv_param.cl_pad=0;
-	inv_param.dirac_order=QUDA_DIRAC_ORDER;
-	loadCloverQuda(NULL,NULL,&inv_param);
-      }
-    else
-      {
-	inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
-      }
-    
-    inv_param.solution_type=QUDA_MAT_SOLUTION;
-    
-    //minus due to different gamma5 definition
-    inv_param.mu=-mu;
-    inv_param.epsilon=0.0;
-    
-    inv_param.twist_flavor=QUDA_TWIST_SINGLET;
-    inv_param.Ls=1;
-    
-    remap_nissa_to_quda(spincolor_in,in);
-    MatQuda(spincolor_out,spincolor_in,&inv_param);
-    remap_quda_to_nissa(out,spincolor_out);
-  }
-  
   void set_base_inverter_pars()
   {
     inv_param.dagger=QUDA_DAG_NO;
@@ -474,6 +436,46 @@ namespace quda_iface
     inv_param.tol_hq=0.1;
     inv_param.reliable_delta=1e-4;
     inv_param.use_sloppy_partial_accumulator=0;
+  }
+  
+  /// Apply the dirac operator
+  void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double csw,double mu,spincolor *in)
+  {
+    export_gauge_conf_to_external_lib(conf);
+    
+    master_printf("setting pars\n");
+    
+    inv_param.kappa=kappa;
+    set_base_inverter_pars();
+    if(csw>0.0)
+      {
+	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
+	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
+	inv_param.clover_coeff=csw*kappa;
+	// inv_param.clover_cpu_prec=QUDA_DOUBLE_PRECISION;
+	// inv_param.clover_cuda_prec=QUDA_DOUBLE_PRECISION;
+	// inv_param.cl_pad=0;
+	// inv_param.dirac_order=QUDA_DIRAC_ORDER;
+	
+	loadCloverQuda(NULL,NULL,&inv_param);
+      }
+    else
+      {
+	inv_param.dslash_type=QUDA_TWISTED_MASS_DSLASH;
+      }
+    
+    inv_param.solution_type=QUDA_MAT_SOLUTION;
+    
+    //minus due to different gamma5 definition
+    inv_param.mu=-mu;
+    inv_param.epsilon=0.0;
+    
+    inv_param.twist_flavor=QUDA_TWIST_SINGLET;
+    inv_param.Ls=1;
+    
+    remap_nissa_to_quda(spincolor_in,in);
+    MatQuda(spincolor_out,spincolor_in,&inv_param);
+    remap_quda_to_nissa(out,spincolor_out);
   }
   
   void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue)
