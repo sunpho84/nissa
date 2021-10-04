@@ -23,6 +23,8 @@ namespace nissa
     
     for(int ilev=0;ilev<nlevels;ilev++) nsetups[ilev]=4;
     for(int ilev=0;ilev<nlevels;ilev++) mu_factor[ilev]=1;
+    for(int ilev=0;ilev<nlevels;ilev++) nu_pre[ilev]=0;
+    for(int ilev=0;ilev<nlevels;ilev++) nu_post[ilev]=7;
     
     if(nissa::file_exists(path))
       {
@@ -83,7 +85,21 @@ namespace nissa
 			}
 		    }
 #ifdef USE_QUDA
-		//size of the blocks
+		//orthogonalization before
+		if(strcasecmp(tag,"nu_pre")==0)
+		  for(int ilev=0;ilev<nlevels;ilev++)
+		    {
+		      nissa::read_int(&nu_pre[ilev]);
+		      master_printf("DD: read nu_pre[%d]=%lg\n",ilev,nu_pre[ilev]);
+		    }
+		//orthogonalization before
+		if(strcasecmp(tag,"nu_post")==0)
+		  for(int ilev=0;ilev<nlevels;ilev++)
+		    {
+		      nissa::read_int(&nu_post[ilev]);
+		      master_printf("DD: read nu_post[%d]=%lg\n",ilev,nu_post[ilev]);
+		    }
+		//number of eigenvectors
 		if(strcasecmp(tag,"nEigenvectors")==0)
 		  {
 		    nissa::read_int(&nEigenvectors);
