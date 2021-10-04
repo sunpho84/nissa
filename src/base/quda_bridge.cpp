@@ -669,8 +669,8 @@ namespace quda_iface
 	    quda_mg_param.coarse_solver_maxiter[level]=100;//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
 	    quda_mg_param.n_vec[level]=(level==1)?32:24;          //24 or 32 is supported presently
-	    quda_mg_param.nu_pre[level]=0;                        //Suggest setting to 0
-	    quda_mg_param.nu_post[level]=(level==0)?7:4;          //Suggest setting to 8
+	    quda_mg_param.nu_pre[level]=nissa::multiGrid::nu_pre[level];            //Suggest setting to 0
+	    quda_mg_param.nu_post[level]=nissa::multiGrid::nu_post[level];          //Suggest setting to 8
 	    
 	    //Always set to QUDA_MG_CYCLE_RECURSIVE (this sets the MG cycles to be a K-cycle which is generally superior to a V-cycle for non-Hermitian systems)
 	    quda_mg_param.cycle_type[level]=QUDA_MG_CYCLE_RECURSIVE;

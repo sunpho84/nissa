@@ -24,6 +24,8 @@ namespace nissa
     EXTERN_MULTIGRID int nsetups[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int smoother_iterations;
     EXTERN_MULTIGRID double mu_factor[MAX_MG_LEVELS];
+    EXTERN_MULTIGRID int nu_pre[MAX_MG_LEVELS];
+    EXTERN_MULTIGRID int nu_post[MAX_MG_LEVELS];
     EXTERN_MULTIGRID double max_mass INIT_TO(1e300);
     EXTERN_MULTIGRID bool block_size_set INIT_TO(false);
     EXTERN_MULTIGRID nissa::coords_t block_size[MAX_MG_LEVELS];
