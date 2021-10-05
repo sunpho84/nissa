@@ -448,7 +448,7 @@ namespace quda_iface
     inv_param.kappa=kappa;
     set_base_inverter_pars();
     inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
-    if(csw>0.0)
+    if(csw)
       {
 	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
 	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
@@ -1032,7 +1032,7 @@ namespace quda_iface
     
     set_inverter_pars(kappa,csw,mu,niter,residue);
     
-    if(exported and csw>0)
+    if(exported and csw)
       {
 	const double load_clover_time=take_time();
 	freeCloverQuda();
@@ -1055,10 +1055,10 @@ namespace quda_iface
 	    printQudaMultigridParam(&quda_mg_param);
 	    master_printf("AAAAAA\n");
 	    if(is_master_rank())
-	      sanfoPrint(*quda_mg_param.invert_param);
+	      sanfoPrint(quda_mg_param);
 	    master_printf("AAAAAA\n");
 	    if(is_master_rank())
-	      sanfoPrint(quda_mg_param);
+	      sanfoPrint(*quda_mg_param.invert_param);
 	    master_printf("AAAAAA\n");
 	    
 	    master_printf("-- -eig pars: ---\n");
