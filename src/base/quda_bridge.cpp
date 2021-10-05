@@ -258,9 +258,10 @@ namespace quda_iface
   /// Loads the clover term
   void load_clover_term(QudaInvertParam* inv_param)
   {
+    const double load_clover_time=take_time();
     freeCloverQuda();
-    master_printf("LOADING THE CLOVER TERM\n");
-    loadCloverQuda(NULL,NULL,inv_param);
+    loadCloverQuda(nullptr,nullptr,inv_param);
+    master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
   }
   
   /// Reorder conf into QUDA format
@@ -479,7 +480,7 @@ namespace quda_iface
     remap_quda_to_nissa(out,spincolor_out);
   }
   
-  void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue)
+  void set_inverter_pars(const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,const bool& exported)
   {
     inv_param.kappa=kappa;
     
@@ -526,6 +527,9 @@ namespace quda_iface
     inv_param.verbosity_precondition=get_quda_verbosity();
     
     inv_param.omega=1.0;
+    
+    if(exported and csw)
+      load_clover_term(&inv_param);
     
     if(multiGrid::use_multiGrid)
       {
@@ -1030,15 +1034,7 @@ namespace quda_iface
     
     set_base_inverter_pars();
     
-    set_inverter_pars(kappa,csw,mu,niter,residue);
-    
-    if(exported and csw)
-      {
-	const double load_clover_time=take_time();
-	freeCloverQuda();
-	loadCloverQuda(nullptr,nullptr,&inv_param);
-	master_printf("Time for loadCloverQuda: %lg\n",take_time()-load_clover_time);
-      }
+    set_inverter_pars(kappa,csw,mu,niter,residue,exported);
     
     if(is_master_rank())
       {
