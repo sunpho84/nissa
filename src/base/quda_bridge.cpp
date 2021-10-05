@@ -352,13 +352,16 @@ namespace quda_iface
 	const int par=loclx_parity[ivol];
 	const int ivolh=loceo_of_loclx[ivol];
 	color_copy(out[par][ivolh],in[iquda]);
-	    for(int ic=0;ic<NCOL;ic++)
-	      for(int ri=0;ri<2;ri++)
-		{
-		  const double& f=in[iquda][ic][ri];
-		  if(fabs(f))
-		    printf("REMA %d %d %d %d %d %lg\n",iquda,par,ivol,ic,ri,f);
-		}
+	
+#ifdef DEBUG_QUDA
+	for(int ic=0;ic<NCOL;ic++)
+	  for(int ri=0;ri<2;ri++)
+	    {
+	      const double& f=in[iquda][ic][ri];
+	      if(fabs(f))
+		printf("REMA %d %d %d %d %d %lg\n",iquda,par,ivol,ic,ri,f);
+	    }
+#endif
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -444,7 +447,9 @@ namespace quda_iface
   {
     export_gauge_conf_to_external_lib(conf);
     
+#ifdef DEBUG_QUDA
     master_printf("setting pars\n");
+#endif
     
     inv_param.kappa=kappa;
     set_base_inverter_pars();
@@ -533,7 +538,7 @@ namespace quda_iface
     
     if(multiGrid::use_multiGrid)
       {
-	inv_param.verbosity=QUDA_VERBOSE;
+	inv_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
 	
 	// coarsening does not support QUDA_MATPC_EVEN_EVEN_ASYMMETRIC
 	if(inv_param.matpc_type==QUDA_MATPC_EVEN_EVEN_ASYMMETRIC)
@@ -559,7 +564,7 @@ namespace quda_iface
 	inv_mg_param.inv_type_precondition=QUDA_INVALID_INVERTER;
 	inv_mg_param.maxiter=1000;
 	inv_mg_param.solve_type=QUDA_DIRECT_SOLVE;
-	inv_mg_param.verbosity=QUDA_VERBOSE;
+	inv_mg_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
 	inv_mg_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
 	inv_mg_param.preserve_source=QUDA_PRESERVE_SOURCE_NO;
 	inv_mg_param.gamma_basis=QUDA_DEGRAND_ROSSI_GAMMA_BASIS;
@@ -648,7 +653,7 @@ namespace quda_iface
 	    
 	    /// Default value from: https://github.com/lattice/quda/wiki/Multigrid-Solver
 	    
-	    quda_mg_param.verbosity[level]=QUDA_VERBOSE;//get_quda_verbosity();
+	    quda_mg_param.verbosity[level]=get_quda_verbosity();
 	    quda_mg_param.precision_null[level]=QUDA_HALF_PRECISION;
 	    quda_mg_param.setup_inv_type[level]=QUDA_CG_INVERTER;//QUDA_BICGSTAB_INVERTER or QUDA_CG_INVERTER generally preferred
 	    
@@ -1036,6 +1041,7 @@ namespace quda_iface
     
     set_inverter_pars(kappa,csw,mu,niter,residue,exported);
     
+#ifdef DEBUG_QUDA
     if(is_master_rank())
       {
 	master_printf("--- gauge pars: ---\n");
@@ -1061,6 +1067,7 @@ namespace quda_iface
 	    printQudaEigParam(mg_eig_param+multiGrid::nlevels-1);
 	  }
       }
+#endif
     
     if(multiGrid::use_multiGrid)
       setup_quda_multigrid();
