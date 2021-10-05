@@ -528,7 +528,7 @@ namespace quda_iface
     //inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
     inv_param.precondition_cycle=1;
     inv_param.tol_precondition=0.1;
-    //inv_param.maxiter_precondition=10;
+    inv_param.maxiter_precondition=10;
     inv_param.verbosity_precondition=get_quda_verbosity();
     
     inv_param.omega=1.0;
