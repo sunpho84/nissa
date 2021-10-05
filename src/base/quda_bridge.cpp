@@ -1052,7 +1052,7 @@ namespace quda_iface
 	    master_printf("--- inv_mg pars: %p kappa %lg mu %lg mass %lg---\n",&inv_mg_param,inv_mg_param.kappa,inv_mg_param.mu,inv_mg_param.mass);
 	    printQudaInvertParam(&inv_mg_param);
 	    master_printf("--- multigrid pars: %p internal %p ---\n",&quda_mg_param,quda_mg_param.invert_param);
-	    //printQudaMultigridParam(&quda_mg_param);
+	    printQudaMultigridParam(&quda_mg_param);
 	    master_printf("AAAAAA\n");
 	    if(is_master_rank())
 	      sanfoPrint(*quda_mg_param.invert_param);

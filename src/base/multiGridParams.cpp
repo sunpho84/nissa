@@ -90,14 +90,14 @@ namespace nissa
 		  for(int ilev=0;ilev<nlevels;ilev++)
 		    {
 		      nissa::read_int(&nu_pre[ilev]);
-		      master_printf("DD: read nu_pre[%d]=%lg\n",ilev,nu_pre[ilev]);
+		      master_printf("DD: read nu_pre[%d]=%d\n",ilev,nu_pre[ilev]);
 		    }
 		//orthogonalization before
 		if(strcasecmp(tag,"nu_post")==0)
 		  for(int ilev=0;ilev<nlevels;ilev++)
 		    {
 		      nissa::read_int(&nu_post[ilev]);
-		      master_printf("DD: read nu_post[%d]=%lg\n",ilev,nu_post[ilev]);
+		      master_printf("DD: read nu_post[%d]=%d\n",ilev,nu_post[ilev]);
 		    }
 		//number of eigenvectors
 		if(strcasecmp(tag,"nEigenvectors")==0)
