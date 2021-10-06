@@ -533,7 +533,8 @@ namespace quda_iface
     
     inv_param.omega=1.0;
     
-    if(exported and csw)
+    if(// exported and
+       csw)
       load_clover_term(&inv_param);
     
     if(multiGrid::use_multiGrid)

@@ -57,9 +57,9 @@ namespace nissa
 	      op.ins(phi_ins_P,5,phi);
 	      op.inv(phi_ins_P,phi_ins_P,iflav,0);
 	      op.inv(phi_ins_S,phi,iflav,0);
-	      export_conf::export_bypass=export_conf::FORCE_EXPORT;
+	      // export_conf::export_bypass=export_conf::FORCE_EXPORT;
 	      op.inv(phi_r,eta,iflav,1);
-	      export_conf::export_bypass=export_conf::NO_BYPASS;
+	      //export_conf::export_bypass=export_conf::NO_BYPASS;
 	      
 	      auto c=[&](spincolor* oth,int ig,const int icontr)
 	      {
@@ -77,6 +77,7 @@ namespace nissa
 	      c(phi_ins_P,5,5);
 	      c(phi_ins_P,4,6);
 	    }
+	      export_conf::export_bypass=export_conf::NO_BYPASS;
 	  
 	  //output
 	  for(int t=0;t<glbSize[0];t++)
