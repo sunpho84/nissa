@@ -52,14 +52,18 @@ namespace nissa
 	      //Source time
 	      generate_undiluted_source(eta,meas_pars.rnd_type,source_coord[0]);
 	      
+	      if(hit%2==1)
+		{
+		  op.inv(phi_r,eta,iflav,1);
+		  export_conf::export_bypass=export_conf::AVOID_EXPORT;
+		}
 	      op.inv(phi,eta,iflav,0);
 	      export_conf::export_bypass=export_conf::AVOID_EXPORT;
 	      op.ins(phi_ins_P,5,phi);
 	      op.inv(phi_ins_P,phi_ins_P,iflav,0);
 	      op.inv(phi_ins_S,phi,iflav,0);
-	      // export_conf::export_bypass=export_conf::FORCE_EXPORT;
-	      op.inv(phi_r,eta,iflav,1);
-	      //export_conf::export_bypass=export_conf::NO_BYPASS;
+	      if(hit%2==0)
+		op.inv(phi_r,eta,iflav,1);
 	      
 	      auto c=[&](spincolor* oth,int ig,const int icontr)
 	      {
@@ -77,7 +81,7 @@ namespace nissa
 	      c(phi_ins_P,5,5);
 	      c(phi_ins_P,4,6);
 	    }
-	      export_conf::export_bypass=export_conf::NO_BYPASS;
+	  export_conf::export_bypass=export_conf::NO_BYPASS;
 	  
 	  //output
 	  for(int t=0;t<glbSize[0];t++)
