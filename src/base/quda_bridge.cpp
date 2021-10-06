@@ -491,7 +491,6 @@ namespace quda_iface
     
     if(csw>0.0)
       {
-	master_printf("SETTING\n");
 	inv_param.dslash_type=QUDA_TWISTED_CLOVER_DSLASH;
 	inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	inv_param.clover_order=QUDA_PACKED_CLOVER_ORDER;
@@ -805,8 +804,13 @@ namespace quda_iface
 	
 	setup_valid=true;
       }
+    else
+      {
+	master_printf("Updating mg\n");
+	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+      }
   }
-
+  
   void sanfoPrint(QudaMultigridParam& i)
   {
     int nlev=i.n_level;
