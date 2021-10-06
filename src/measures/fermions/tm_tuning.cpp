@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "base/export_conf_to_external_lib.hpp"
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_mix.hpp"
@@ -20,11 +21,12 @@ namespace nissa
     
     spincolor *eta=nissa_malloc("eta",locVol+bord_vol,spincolor);
     spincolor *phi=nissa_malloc("phi",locVol+bord_vol,spincolor);
+    spincolor *phi_r=nissa_malloc("phi_r",locVol+bord_vol,spincolor);
     spincolor *phi_ins_S=nissa_malloc("phi_ins_S",locVol+bord_vol,spincolor);
     spincolor *phi_ins_P=nissa_malloc("phi_ins_P",locVol+bord_vol,spincolor);
     
     /// Store the contractions
-    const int ncorr_kind=6;
+    const int ncorr_kind=7;
     complex* contr=nissa_malloc("contr",ncorr_kind*glbSize[0],complex);
     vector_reset(contr);
     
@@ -50,10 +52,11 @@ namespace nissa
 	      //Source time
 	      generate_undiluted_source(eta,meas_pars.rnd_type,source_coord[0]);
 	      
-	      op.inv(phi,eta,iflav);
+	      op.inv(phi,eta,iflav,0);
+	      op.inv(phi_r,eta,iflav,1);
 	      op.ins(phi_ins_P,5,phi);
-	      op.inv(phi_ins_P,phi_ins_P,iflav);
-	      op.inv(phi_ins_S,phi,iflav);
+	      op.inv(phi_ins_P,phi_ins_P,iflav,0);
+	      op.inv(phi_ins_S,phi,iflav,0);
 	      
 	      auto c=[&](spincolor* oth,int ig,const int icontr)
 	      {
@@ -64,13 +67,17 @@ namespace nissa
 	      };
 	      
 	      c(phi,5,0);
-	      c(phi,4,1);
-	      c(phi_ins_S,5,2);
-	      c(phi_ins_S,4,3);
-	      c(phi_ins_P,5,4);
-	      c(phi_ins_P,4,5);
+	      c(phi_r,5,1);
+	      c(phi,4,2);
+	      c(phi_ins_S,5,3);
+	      c(phi_ins_S,4,4);
+	      c(phi_ins_P,5,5);
+	      c(phi_ins_P,4,6);
+	      
+	      nissa::export_conf::bypass_export_and_check=true;
 	    }
 	  
+	      nissa::export_conf::bypass_export_and_check=false;
 	  //output
 	  for(int t=0;t<glbSize[0];t++)
 	    {
@@ -91,6 +98,7 @@ namespace nissa
     
     nissa_free(eta);
     nissa_free(phi);
+    nissa_free(phi_r);
     nissa_free(phi_ins_S);
     nissa_free(phi_ins_P);
     

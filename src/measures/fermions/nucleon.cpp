@@ -86,7 +86,7 @@ namespace nissa
 	      for(int idc=0;idc<NDIRAC*NCOL;idc++)
 		{
 		  spincolor* p=prop[iflav][idc];
-		  tmCorrOp.inv(p,source[idc],iflav);
+		  tmCorrOp.inv(p,source[idc],iflav,0);
 		  
 		  gaussian_smearing(p,p,smearingConf,meas_pars.gaussSmeKappa,meas_pars.gaussSmeNSteps);
 		}

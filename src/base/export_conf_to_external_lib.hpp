@@ -28,6 +28,7 @@ namespace nissa
 {
   namespace export_conf
   {
+    EXTERN_EXPORT_CONF bool bypass_export_and_check INIT_EXPORT_CONF_TO(=false);
     EXTERN_EXPORT_CONF checksum check_old INIT_EXPORT_CONF_TO(={0,0});
   }
   
@@ -37,6 +38,9 @@ namespace nissa
   {
     using export_conf::check_old;
     
+    if(export_conf::bypass_export_and_check)
+      return false;
+	
     checksum check_cur;
     
     //compute checksum
