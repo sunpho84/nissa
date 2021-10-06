@@ -788,6 +788,10 @@ namespace quda_iface
   
   void setup_quda_multigrid()
   {
+    static double storedMu=0;
+    static double storedKappa=0;
+    static double storedCloverCoeff=0;
+    
     bool& setup_valid=multiGrid::setup_valid;
     if(not setup_valid)
       {
@@ -804,10 +808,19 @@ namespace quda_iface
 	setup_valid=true;
       }
     else
-      {
-	master_printf("Updating mg\n");
-	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
-      }
+      if(storedMu!=inv_param.mu or
+	 storedKappa!=inv_param.kappa or
+	 storedCloverCoeff!=inv_param.clover_coeff)
+	{
+	  master_printf("Updating mg\n");
+	  updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+	}
+      else
+	master_printf("No need to update the multigrid\n");
+    
+    storedMu=inv_param.mu;
+    storedKappa=inv_param.kappa;
+    storedCloverCoeff=inv_param.clover_coeff;
   }
   
   void sanfoPrint(QudaMultigridParam& i)
