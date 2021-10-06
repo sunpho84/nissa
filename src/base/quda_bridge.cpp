@@ -533,7 +533,7 @@ namespace quda_iface
     
     inv_param.omega=1.0;
     
-    if(// exported and
+    if(exported and
        csw)
       load_clover_term(&inv_param);
     
@@ -804,11 +804,11 @@ namespace quda_iface
 	
 	setup_valid=true;
       }
-    else
-      {
-	master_printf("Updating mg\n");
-	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
-      }
+    // else
+    //   {
+    // 	master_printf("Updating mg\n");
+    // 	updateMultigridQuda(quda_mg_preconditioner,&quda_mg_param);
+    //   }
   }
   
   void sanfoPrint(QudaMultigridParam& i)
