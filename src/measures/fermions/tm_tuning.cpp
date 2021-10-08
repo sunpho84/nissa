@@ -26,7 +26,7 @@ namespace nissa
     spincolor *phi_ins_P=nissa_malloc("phi_ins_P",locVol+bord_vol,spincolor);
     
     /// Store the contractions
-    const int ncorr_kind=7;
+    const int ncorr_kind=8;
     complex* contr=nissa_malloc("contr",ncorr_kind*glbSize[0],complex);
     vector_reset(contr);
     
@@ -75,11 +75,12 @@ namespace nissa
 	      
 	      c(phi,5,0);
 	      c(phi_r,5,1);
-	      c(phi,4,2);
-	      c(phi_ins_S,5,3);
-	      c(phi_ins_S,4,4);
-	      c(phi_ins_P,5,5);
-	      c(phi_ins_P,4,6);
+	      c(phi_r,0,2);
+	      c(phi,4,3);
+	      c(phi_ins_S,5,4);
+	      c(phi_ins_S,4,5);
+	      c(phi_ins_P,5,6);
+	      c(phi_ins_P,4,7);
 	    }
 	  export_conf::export_bypass=export_conf::NO_BYPASS;
 	  
