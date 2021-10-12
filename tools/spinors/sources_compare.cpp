@@ -51,7 +51,7 @@ void in_main(int narg,char **arg)
   //     iglb_max=glblx_of_loclx[ivol];
   // NISSA_PARALLEL_LOOP_END;
   // MPI_Allreduce(MPI_IN_PLACE,&iglb_max,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-  coords g;
+  coords_t g;
   // glb_coord_of_glblx(g,iglb_max);
   // master_printf("Source location: %d %d %d %d\n",g[0],g[1],g[2],g[3]);
   

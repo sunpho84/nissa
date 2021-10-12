@@ -2,7 +2,7 @@
 
 using namespace nissa;
 
-void compute_gaussianity_pars(double* x,color* source,int maxpow,coords* source_pos)
+void compute_gaussianity_pars(double* x,color* source,int maxpow,coords_t* source_pos)
 {
   #warning
 
@@ -94,7 +94,7 @@ struct dens_t
 typedef std::map<int,dens_t> mapdens_t;
 
 //compute the density distribution
-void compute_density(FILE *fout,color *source,coords *source_pos)
+void compute_density(FILE *fout,color *source,coords_t *source_pos)
 {
   mapdens_t density[glbSize[0]];
   
@@ -197,16 +197,16 @@ void in_main(int narg,char **arg)
   //set the source
   color *source=nissa_malloc("source",locVol+bord_vol,color);
   vector_reset(source);
-  coords source_pos[glbSize[0]];
+  coords_t source_pos[glbSize[0]];
   for(int t=0;t<glbSize[0];t++)
     {
       //generate coords and fix t
-      generate_random_coord(source_pos[t]);
+      source_pos[t]=generate_random_coord();
       source_pos[t][0]=t;
       
       //get loclx and rank
       int l,r;
-      get_loclx_and_rank_of_coord(&l,&r,source_pos[t]);
+      get_loclx_and_rank_of_coord(l,r,source_pos[t]);
       
       //put the source only if on correct rank
       if(rank==r) source[l][0][0]=1;
