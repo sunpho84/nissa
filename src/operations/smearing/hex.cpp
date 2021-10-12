@@ -67,14 +67,14 @@ namespace nissa
   /// Hex smear the conf
   void hex_smear_conf(quad_su3* sm_conf,quad_su3* conf,const double& alpha1,const double& alpha2,const double& alpha3)
   {
-    constexpr int nDecLevels=4;
-    constexpr int nDecsPerLevel[]=
+    const int nDecLevels=4;
+    const int nDecsPerLevel[]=
       {NDIM,
        NDIM*(NDIM-1),
        NDIM*(NDIM-1),
        NDIM};
     
-    constexpr int nDecTot=
+    const int nDecTot=
 		nDecsPerLevel[0]+nDecsPerLevel[1]+nDecsPerLevel[2]+nDecsPerLevel[3];
     su3* linksAllDecs[nDecTot];
     
@@ -87,7 +87,7 @@ namespace nissa
       linksDecsPerLev[iDecLev]=linksDecsPerLev[iDecLev-1]+nDecsPerLevel[iDecLev-1];
     
     auto communicateDecsForLev=
-      [linksDecsPerLev](const int& iLev)
+      [linksDecsPerLev,nDecsPerLevel](const int& iLev)
       {
 	for(int iDec=0;iDec<nDecsPerLevel[iLev];iDec++)
 	  {
