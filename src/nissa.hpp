@@ -158,6 +158,7 @@
 #include "operations/remez/remez_algorithm.hpp"
 #include "operations/shift.hpp"
 #include "operations/smearing/APE.hpp"
+#include "operations/smearing/hex.hpp"
 #include "operations/smearing/HYP.hpp"
 #include "operations/smearing/Wflow.hpp"
 #include "operations/smearing/gaussian.hpp"

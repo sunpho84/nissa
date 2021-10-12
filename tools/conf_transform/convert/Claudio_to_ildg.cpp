@@ -158,7 +158,7 @@ int main(int narg,char **arg)
 	  {
 	    int num=snum(x,y,z,t);
 	    
-	    coords c={t,x,y,z};
+	    coords_t c={t,x,y,z};
 	    int ivol=loclx_of_coord(c);
 	    
 	    for(int mu=0;mu<NDIM;mu++) su3_copy(out_conf[ivol][mu],in_conf[num][mu]);

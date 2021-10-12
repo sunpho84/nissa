@@ -14,7 +14,7 @@ void index_from_lx_to_Neo(int &rank_out,int &iel_out,int iel_in,void *pars)
   //odd sites goes with themseleves
   int shift_comp=(loclx_parity[ilx]==0);
   
-  coords g;
+  coords_t g;
   for(int nu=0;nu<4;nu++) g[mu_ord[nu]]=glbCoordOfLoclx[ilx][nu];
   if(shift_comp) g[mu_ord[mu]]=(g[mu_ord[mu]]+1)%glbSize[mu_ord[mu]];
   
@@ -33,16 +33,16 @@ void conf_convert(char *outpath,char *inpath)
   if(!little_endian) change_endianness(&plaq,&plaq,1);
   
   //convert the lattice size
-  coords temp;
-  if(!little_endian) change_endianness((uint32_t*)temp,(uint32_t*)glbSize,4);
-  else               memcpy(temp,glbSize,sizeof(coords));
+  coords_t temp;
+  if(!little_endian) change_endianness((uint32_t*)&temp[0],(uint32_t*)&glbSize[0],4);
+  else               temp=glbSize;
   
   //write the header
   FILE *fout=fopen(outpath,"w");
   if(rank==0)
     {
       int nw;
-      nw=fwrite(temp,sizeof(coords),1,fout);
+      nw=fwrite(&temp[0],sizeof(coords_t),1,fout);
       if(nw!=1) crash("did not success in writing");
       nw=fwrite(&plaq,sizeof(double),1,fout);
       if(nw!=1) crash("did not success in writing");

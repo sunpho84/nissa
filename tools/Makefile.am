@@ -15,6 +15,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/create/create_hot \
 	$(top_builddir)/tools/conf_transform/gaugefix/landau \
 	$(top_builddir)/tools/conf_transform/gaugefix/random \
+	$(top_builddir)/tools/conf_transform/smear/hex \
 	$(top_builddir)/tools/conf_transform/smear/stout \
 	$(top_builddir)/tools/conf_transform/edit/build_from_raw \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data \
@@ -52,6 +53,7 @@ __top_builddir__tools_read_ildg_read_double_vector_SOURCES=read_ildg/read_double
 __top_builddir__tools_conf_transform_create_create_hot_SOURCES=conf_transform/create/create_hot.cpp
 __top_builddir__tools_conf_transform_gaugefix_landau_SOURCES=conf_transform/gaugefix/landau.cpp
 __top_builddir__tools_conf_transform_gaugefix_random_SOURCES=conf_transform/gaugefix/random.cpp
+__top_builddir__tools_conf_transform_smear_hex_SOURCES=conf_transform/smear/hex.cpp
 __top_builddir__tools_conf_transform_smear_stout_SOURCES=conf_transform/smear/stout.cpp
 __top_builddir__tools_conf_transform_edit_build_from_raw_SOURCES=conf_transform/edit/build_from_raw.cpp
 __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES=conf_transform/edit/grab_ildg_data.cpp

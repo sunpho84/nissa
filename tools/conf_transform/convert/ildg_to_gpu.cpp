@@ -62,7 +62,7 @@ int main(int narg,char **arg)
 	    int even=sum%2;
 	    int num=even*locVolh + snum(x,y,z,t);
 	    
-	    coords c={t,x,y,z};
+	    coords_t c={t,x,y,z};
 	    int ivol=loclx_of_coord(c);
 	    
 	    for(int mu=0;mu<4;mu++)
