@@ -16,226 +16,180 @@
 
 namespace nissa
 {
-  /// Hex smear the conf
-  void hex_smear_conf(quad_su3* sm_conf,quad_su3* conf,const double& alpha0,const double& alpha1,const double& alpha2,const which_dir_t& dirs)
+  template <typename LIn,
+	    typename...A>
+  void sme(su3* lOut,const double& alpha,const LIn& V,su3* U,const int& mu,const A&...a)
   {
-    constexpr int nDec0=NDIM;
-    constexpr int nDec1=NDIM*(NDIM-1);
-    constexpr int nDec2=NDIM*(NDIM-1);
-    constexpr int nDec3=NDIM;
+    vector_reset(lOut);
     
-    constexpr int nDec=
-		nDec0+nDec1+nDec2+nDec3;
-    su3* links[nDec];
+    for(int sigma=0;sigma<NDIM;sigma++)
+      {
+	bool toDo=true;
+	for(const auto& i : {mu,a...})
+	  toDo&=(i!=sigma);
+	
+	if(toDo)
+	  NISSA_PARALLEL_LOOP(iVol,0,locVol)
+	    {
+	      su3 temp;
+	      
+	      const int muUp=loclxNeighup[iVol][mu];
+	      
+	      unsafe_su3_prod_su3(temp,V(sigma,mu,a...)[iVol],V(mu,a...,sigma)[loclxNeighup[iVol][sigma]]);
+	      su3_summ_the_prod_su3_dag(lOut[iVol],temp,V(sigma,mu,a...)[muUp]);
+	      
+	      const int sigmaDw=loclxNeighdw[iVol][sigma];
+	      const int sigmaDwMuUp=loclxNeighdw[muUp][sigma];
+	      
+	      unsafe_su3_dag_prod_su3(temp,V(sigma,mu,a...)[sigmaDw],V(mu,a...,sigma)[sigmaDw]);
+	      su3_summ_the_prod_su3(lOut[iVol],temp,V(sigma,mu,a...)[sigmaDwMuUp]);
+	    }
+	NISSA_PARALLEL_LOOP_END;
+      }
     
-    for(int iDec=0;iDec<nDec;iDec++)
-      links[iDec]=nissa_malloc("Dec",locVol+bord_vol+edge_vol,su3);
+    NISSA_PARALLEL_LOOP(iVol,0,locVol)
+      {
+	su3 temp1,temp2;
+	
+	unsafe_su3_prod_su3_dag(temp1,lOut[iVol],U[iVol]);
+	unsafe_su3_traceless_anti_hermitian_part(temp2,temp1);
+	
+	su3 Q;
+	unsafe_su3_traceless_anti_hermitian_part(Q,temp2);
+	su3_prodassign_idouble(Q,-alpha/2);
+	
+	safe_hermitian_exact_i_exponentiate(Q,Q);
+	unsafe_su3_prod_su3(lOut[iVol],Q,U[iVol]);
+      }
+    NISSA_PARALLEL_LOOP_END;
+  }
+  
+  /// Hex smear the conf
+  void hex_smear_conf(quad_su3* sm_conf,quad_su3* conf,const double& alpha1,const double& alpha2,const double& alpha3)
+  {
+    constexpr int nDecLevels=4;
+    constexpr int nDecsPerLevel[]=
+      {NDIM,
+       NDIM*(NDIM-1),
+       NDIM*(NDIM-1),
+       NDIM};
     
-    //fill the dec2 and dec1 remapping table
-    int dec2_remap_index[NDIM][NDIM][NDIM]={};
-    int dec1_remap_index[NDIM][NDIM]={};
-    int idec2_remap=0,idec1_remap=0;
-    for(int mu=0;mu<NDIM;mu++)
-      for(int inu=0;inu<NDIM-1;inu++)
-	{
-	  for(int irho=0;irho<NDIM-2;irho++)
-	    dec2_remap_index[mu][perp_dir[mu][inu]][perp2_dir[mu][inu][irho]]=idec2_remap++;
-	  dec1_remap_index[mu][perp_dir[mu][inu]]=idec1_remap++;
-	}
+    constexpr int nDecTot=
+		nDecsPerLevel[0]+nDecsPerLevel[1]+nDecsPerLevel[2]+nDecsPerLevel[3];
+    su3* linksAllDecs[nDecTot];
     
-    //communicate borders and edges of original conf
-    communicate_lx_quad_su3_edges(conf);
+    for(int iDec=0;iDec<nDecTot;iDec++)
+      linksAllDecs[iDec]=nissa_malloc("Dec",locVol+bord_vol+edge_vol,su3);
     
-    /////////////////////////////////////// second level decoration /////////////////////////////////
+    su3** linksDecsPerLev[nDecLevels];
+    linksDecsPerLev[0]=linksAllDecs;
+    for(int iDecLev=1;iDecLev<nDecLevels;iDecLev++)
+      linksDecsPerLev[iDecLev]=linksDecsPerLev[iDecLev-1]+nDecsPerLevel[iDecLev-1];
     
-    verbosity_lv2_master_printf("Second level decoration\n");
-    
-    //allocate dec2 conf
-    su3 **dec2_conf=new su3*[idec2_remap];
-    for(int idec2=0;idec2<idec2_remap;idec2++)
-      dec2_conf[idec2]=nissa_malloc("dec2_conf",locVol+bord_vol+edge_vol,su3);
-    
-    //loop over external index
-    for(int mu=0;mu<NDIM;mu++)
-      //loop over the first decoration index
-      for(int inu=0;inu<NDIM-1;inu++)
-	//loop over the second decoration index
-	for(int irho=0;irho<NDIM-2;irho++)
+    auto communicateDecsForLev=
+      [linksDecsPerLev](const int& iLev)
+      {
+	for(int iDec=0;iDec<nDecsPerLevel[iLev];iDec++)
 	  {
-	    //find the remapped index
-	    int nu=perp_dir[mu][inu],rho=perp2_dir[mu][inu][irho],eta=perp3_dir[mu][inu][irho][0];
-	    int ire0=dec2_remap_index[mu][nu][rho];
-	    
-	    //loop over local volume
-	    NISSA_PARALLEL_LOOP(A,0,locVol)
-	      {
-		//take original link
-		su3 temp0;
-		su3_prod_double(temp0,conf[A][mu],1-alpha2);
-		
-		//staple and temporary links
-		su3 stap,temp1,temp2;
-		
-		//staple in the positive dir
-		int B=loclxNeighup[A][eta];
-		int F=loclxNeighup[A][mu];
-		unsafe_su3_prod_su3(temp1,conf[A][eta],conf[B][mu]);
-		unsafe_su3_prod_su3_dag(stap,temp1,conf[F][eta]);
-		
-		//staple in the negative dir
-		int D=loclxNeighdw[A][eta];
-		int E=loclxNeighup[D][mu];
-		unsafe_su3_dag_prod_su3(temp1,conf[D][eta],conf[D][mu]);
-		unsafe_su3_prod_su3(temp2,temp1,conf[E][eta]);
-		su3_summ(stap,stap,temp2);
-		
-		//summ the two staples with appropriate coef
-		su3_summ_the_prod_double(temp0,stap,alpha2/2);
-		
-		//project the resulting link onto su3
-		su3_unitarize_maximal_trace_projecting(dec2_conf[ire0][A],temp0);
-	      }
-	    NISSA_PARALLEL_LOOP_END;
-	    
-	    //communicate borders for future usage
-	    set_borders_invalid(dec2_conf[ire0]);
-	    communicate_lx_su3_edges(dec2_conf[ire0]);
+	    su3* o=linksDecsPerLev[iLev][iDec];
+	    set_borders_invalid(o);
+	    communicate_lx_su3_edges(o);
 	  }
+      };
     
-    /////////////////////////////////////// first level decoration /////////////////////////////////
+    /////////////////////////////////////////////////////////////////
     
-    verbosity_lv2_master_printf("First level decoration\n");
+    /// Level0
     
-    //allocate dec1 conf
-    su3 **dec1_conf=new su3*[idec1_remap];
-    for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",locVol+bord_vol+edge_vol,su3);
+    const auto links0=
+      [links0List=linksDecsPerLev[0]](const int& mu,auto...) //swallow all other dirs
+      {
+	return
+	  links0List[mu];
+      };
     
-    //loop over external index
-    for(int mu=0;mu<4;mu++)
-      //loop over the first decoration index
-      for(int inu=0;inu<3;inu++)
-	{
-	  //find the remapped index
-	  int nu=perp_dir[mu][inu];
-	  int ire0=dec1_remap_index[mu][nu];
-	  
-	  //loop over local volume
-	  NISSA_PARALLEL_LOOP(A,0,locVol)
-	    {
-	      //take original link
-	      su3 temp0;
-	      su3_prod_double(temp0,conf[A][mu],1-alpha1);
-	      
-	      //reset the staple
-	      su3 stap;
-	      su3_put_to_zero(stap);
-	      
-	      //loop over the second decoration index
-	      for(int irho=0;irho<2;irho++)
-		{
-		  su3 temp1,temp2;
-		  
-		  //find the two remampped indices
-		  int rho=perp2_dir[mu][inu][irho];
-		  int ire1=dec2_remap_index[rho][nu][mu];
-		  int ire2=dec2_remap_index[mu][rho][nu];
-		  
-		  //staple in the positive dir
-		  int B=loclxNeighup[A][rho];
-		  int F=loclxNeighup[A][mu];
-		  unsafe_su3_prod_su3(temp1,dec2_conf[ire1][A],dec2_conf[ire2][B]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,dec2_conf[ire1][F]);
-		  su3_summ(stap,stap,temp2);
-		  
-		  //staple in the negative dir
-		  int D=loclxNeighdw[A][rho];
-		  int E=loclxNeighup[D][mu];
-		  unsafe_su3_dag_prod_su3(temp1,dec2_conf[ire1][D],dec2_conf[ire2][D]);
-		  unsafe_su3_prod_su3(temp2,temp1,dec2_conf[ire1][E]);
-		  su3_summ(stap,stap,temp2);
-		}
-	      
-	      //summ the two staples with appropriate coef and project the resulting link onto su3
-	      su3_summ_the_prod_double(temp0,stap,alpha1/4);
-	      su3_unitarize_maximal_trace_projecting(dec1_conf[ire0][A],temp0);
-	    }
-	  NISSA_PARALLEL_LOOP_END;
-	  
-	  //communicate borders for future usage
-	  set_borders_invalid(dec1_conf[ire0]);
-	  communicate_lx_su3_edges(dec1_conf[ire0]);
-	}
-    
-    //free dec2
-    for(int idec2=0;idec2<idec2_remap;idec2++) nissa_free(dec2_conf[idec2]);
-    
-    /////////////////////////////////////// zero level decoration /////////////////////////////////
-    
-    verbosity_lv2_master_printf("Zero level decoration\n");
-    
-    //loop over external index
-    for(int mu=0;mu<4;mu++)
-      if(dirs[mu])
-	{
-	  //loop over local volume
-	  NISSA_PARALLEL_LOOP(A,0,locVol)
-	    {
-	      //take original link
-	      su3 temp0;
-	      su3_prod_double(temp0,conf[A][mu],1-alpha0);
-	      
-	      //reset the staple
-	      su3 stap;
-	      su3_put_to_zero(stap);
-	      
-	      //loop over the first decoration index
-	      for(int inu=0;inu<3;inu++)
-		{
-		  int nu=perp_dir[mu][inu];
-		  su3 temp1,temp2;
-		  
-		  //find the two remampped indices
-		  int ire1=dec1_remap_index[nu][mu];
-		  int ire2=dec1_remap_index[mu][nu];
-		  
-		  //staple in the positive dir
-		  int B=loclxNeighup[A][nu];
-		  int F=loclxNeighup[A][mu];
-		  unsafe_su3_prod_su3(temp1,dec1_conf[ire1][A],dec1_conf[ire2][B]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,dec1_conf[ire1][F]);
-		  su3_summ(stap,stap,temp2);
-		  
-		  //staple in the negative dir
-		  int D=loclxNeighdw[A][nu];
-		  int E=loclxNeighup[D][mu];
-		  unsafe_su3_dag_prod_su3(temp1,dec1_conf[ire1][D],dec1_conf[ire2][D]);
-		  unsafe_su3_prod_su3(temp2,temp1,dec1_conf[ire1][E]);
-		  su3_summ(stap,stap,temp2);
-		}
-	      
-	      //summ the two staples with appropriate coef and project the resulting link onto su3
-	      su3_summ_the_prod_double(temp0,stap,alpha0/6);
-	      su3_unitarize_maximal_trace_projecting(sm_conf[A][mu],temp0);
-	    }
-	  NISSA_PARALLEL_LOOP_END;
-	}
-      else
-      if(sm_conf!=conf)
-	NISSA_PARALLEL_LOOP(A,0,locVol)
-	  su3_copy(sm_conf[A][mu],conf[A][mu]);
+    NISSA_PARALLEL_LOOP(A,0,locVol)
+      for(int mu=0;mu<NDIM;mu++)
+	su3_copy(links0(mu)[A],conf[A][mu]);
     NISSA_PARALLEL_LOOP_END;
     
-    //invalid borders
+    communicateDecsForLev(0);
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Level1
+    
+    const auto links1=
+      [links1List=linksDecsPerLev[1]](const int& mu,const int& nu,const int& rho)
+      {
+	const int e=15^((1<<mu)+(1<<nu)+(1<<rho));
+	const int sigma=(e==2)+2*(e==4)+3*(e==8);
+	const int iSigma=sigma-(sigma>mu); /// Subtract 1 if sigma>mu since we don't store mu==sigma
+	
+	return
+	  links1List[iSigma+(NDIM-1)*mu];
+      };
+    
+    for(int mu=0;mu<NDIM;mu++)
+      for(int iNu=0;iNu<NDIM-1;iNu++)
+	for(int iRho=0;iRho<NDIM-2;iRho++)
+	  {
+	    const int nu=perp_dir[mu][iNu];
+	    const int rho=perp2_dir[mu][iNu][iRho];
+	    
+	    if(rho>nu)
+	      sme(links1(mu,nu,rho),alpha3,links0,links0(mu),mu,nu,rho);
+	  }
+    
+    communicateDecsForLev(1);
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Level2
+    
+    const auto links2=
+      [links2List=linksDecsPerLev[2]](const int& mu,const int& nu)
+      {
+	const int iNu=
+	  nu-(nu>mu); /// Subtract 1 if sigma>mu since we don't store mu==sigma
+	
+	return
+	  links2List[iNu+(NDIM-1)*mu];
+      };
+    
+    for(int mu=0;mu<NDIM;mu++)
+      for(int iNu=0;iNu<NDIM-1;iNu++)
+	{
+	  const int nu=perp_dir[mu][iNu];
+	  sme(links2(mu,nu),alpha2,links1,links0(mu),mu,nu);
+	}
+    
+    communicateDecsForLev(2);
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Level3
+    
+    const auto links3=
+      [links3List=linksDecsPerLev[3]](const int& mu)
+      {
+	return
+	  links3List[mu];
+      };
+    
+    for(int mu=0;mu<NDIM;mu++)
+      sme(links3(mu),alpha1,links2,links0(mu),mu);
+    
+    /////////////////////////////////////////////////////////////////
+    
+    for(int mu=0;mu<NDIM;mu++)
+      NISSA_PARALLEL_LOOP(A,0,locVol)
+	su3_copy(sm_conf[A][mu],links3(mu)[A]);
+    NISSA_PARALLEL_LOOP_END;
+    
     set_borders_invalid(sm_conf);
     
-    //free dec1
-    for(int idec1=0;idec1<idec1_remap;idec1++) nissa_free(dec1_conf[idec1]);
-    
-    delete[] dec1_conf;
-    delete[] dec2_conf;
-    
-#else
-    crash("Ndim=%d cannot use HYP",NDIM);
-#endif
+    for(int iDec=0;iDec<nDecTot;iDec++)
+      nissa_free(linksAllDecs[iDec]);
   }
 }

@@ -12,6 +12,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/source.cpp \
 	%D%/smearing/APE.cpp \
 	%D%/smearing/gaussian.cpp \
+	%D%/smearing/hex.cpp \
 	%D%/smearing/HYP.cpp \
 	%D%/smearing/smooth.cpp \
 	%D%/smearing/stout_common.cpp \
@@ -40,6 +41,7 @@ include_HEADERS+= \
 	%D%/smearing/APE.hpp \
 	%D%/smearing/cooling.hpp \
 	%D%/smearing/gaussian.hpp \
+	%D%/smearing/hex.hpp \
 	%D%/smearing/HYP.hpp \
 	%D%/smearing/recursive_Wflower.hpp \
 	%D%/smearing/smooth.hpp \
