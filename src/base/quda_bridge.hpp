@@ -69,15 +69,18 @@ namespace nissa
 # define QUDA_ESCAPE_IF_NOT_AVAILABLE(ARGS...) {crash("Quda not available!"); ARGS}
 #endif
 
-namespace quda_iface
-{
-  using namespace nissa;
-  
-  QUDA_API void initialize() QUDA_ESCAPE_IF_NOT_AVAILABLE();
-  QUDA_API void finalize() QUDA_ESCAPE_IF_NOT_AVAILABLE();
+#ifndef USE_QUDA
   QUDA_API void freeGaugeQuda() QUDA_ESCAPE_IF_NOT_AVAILABLE();
   QUDA_API void plaqQuda(double*) QUDA_ESCAPE_IF_NOT_AVAILABLE();
   QUDA_API void loadGaugeQuda(void*,void*) QUDA_ESCAPE_IF_NOT_AVAILABLE();
+#endif
+
+namespace quda_iface
+{
+  using namespace nissa;
+
+  QUDA_API void initialize() QUDA_ESCAPE_IF_NOT_AVAILABLE();
+  QUDA_API void finalize() QUDA_ESCAPE_IF_NOT_AVAILABLE();
   QUDA_API void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double csw,double mu,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE();
   QUDA_API void remap_nissa_to_quda(spincolor *out,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE();
   QUDA_API void remap_quda_to_nissa(spincolor *out,spincolor *in) QUDA_ESCAPE_IF_NOT_AVAILABLE();
