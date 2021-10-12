@@ -13,7 +13,7 @@
 #include <string.h>
 
 //implementation of hep-lat/0607006, Capitani et al. Appendix A.4
-
+//normalization taken from 1011.2711
 namespace nissa
 {
   template <typename LIn,
@@ -56,7 +56,7 @@ namespace nissa
 	
 	su3 Q;
 	unsafe_su3_traceless_anti_hermitian_part(Q,temp2);
-	su3_prodassign_idouble(Q,-alpha/2);
+	su3_prodassign_idouble(Q,-alpha);
 	
 	safe_hermitian_exact_i_exponentiate(Q,Q);
 	unsafe_su3_prod_su3(lOut[iVol],Q,U[iVol]);
@@ -138,7 +138,7 @@ namespace nissa
 	    const int rho=perp2_dir[mu][iNu][iRho];
 	    
 	    if(rho>nu)
-	      sme(links1(mu,nu,rho),alpha3,links0,links0(mu),mu,nu,rho);
+	      sme(links1(mu,nu,rho),alpha3/2,links0,links0(mu),mu,nu,rho);
 	  }
     
     communicateDecsForLev(1);
@@ -161,7 +161,7 @@ namespace nissa
       for(int iNu=0;iNu<NDIM-1;iNu++)
 	{
 	  const int nu=perp_dir[mu][iNu];
-	  sme(links2(mu,nu),alpha2,links1,links0(mu),mu,nu);
+	  sme(links2(mu,nu),alpha2/4,links1,links0(mu),mu,nu);
 	}
     
     communicateDecsForLev(2);
@@ -178,7 +178,7 @@ namespace nissa
       };
     
     for(int mu=0;mu<NDIM;mu++)
-      sme(links3(mu),alpha1,links2,links0(mu),mu);
+      sme(links3(mu),alpha1/6,links2,links0(mu),mu);
     
     /////////////////////////////////////////////////////////////////
     
