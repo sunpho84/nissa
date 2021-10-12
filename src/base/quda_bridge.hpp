@@ -63,7 +63,7 @@ namespace nissa
 
 #ifdef USE_QUDA
 # define QUDA_API
-# define QUDA_ESCAPE_IF_NOT_AVAILABLE
+# define QUDA_ESCAPE_IF_NOT_AVAILABLE(ARGS...)
 #else
 # define QUDA_API inline
 # define QUDA_ESCAPE_IF_NOT_AVAILABLE(ARGS...) {crash("Quda not available!"); ARGS}
