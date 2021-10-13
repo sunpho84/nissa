@@ -755,8 +755,8 @@ namespace quda_iface
 		mg_eig_param[level].use_dagger=QUDA_BOOLEAN_FALSE;
 		mg_eig_param[level].use_poly_acc=QUDA_BOOLEAN_TRUE;
 		mg_eig_param[level].poly_deg=100;
-		mg_eig_param[level].a_min=6e-2;
-		mg_eig_param[level].a_max=8.0;
+		mg_eig_param[level].a_min=multiGrid::eig_min;
+		mg_eig_param[level].a_max=multiGrid::eig_max;
 		
 		// set file i/o parameters
 		// Give empty strings, Multigrid will handle IO.

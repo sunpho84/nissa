@@ -105,6 +105,18 @@ namespace nissa
 		    nissa::read_int(&nEigenvectors);
 		    master_printf("DD: nEigenvectors=%d\n",nEigenvectors);
 		  }
+		//minimal eigenvalue
+		if(strcasecmp(tag,"eig_min")==0)
+		  {
+		    nissa::read_double(&eig_min);
+		    master_printf("DD: read eig_min=%lg\n",eig_min);
+		  }
+		//maximal eigenvalue
+		if(strcasecmp(tag,"eig_max")==0)
+		  {
+		    nissa::read_double(&eig_max);
+		    master_printf("DD: read eig_max=%lg\n",eig_max);
+		  }
 #endif
 	      }
 	    else master_printf("Finished reading the file '%s'\n",path);

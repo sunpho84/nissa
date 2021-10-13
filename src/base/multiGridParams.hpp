@@ -33,7 +33,8 @@ namespace nissa
     EXTERN_MULTIGRID bool setup_valid INIT_TO(false);
     EXTERN_MULTIGRID int use_multiGrid INIT_TO(1);
     EXTERN_MULTIGRID int use_deflated_solver INIT_TO(0);
-    EXTERN_MULTIGRID int nEigenvectors INIT_TO(100);
+    EXTERN_MULTIGRID double eig_min INIT_TO(6e-2);
+    EXTERN_MULTIGRID double eig_max INIT_TO(8);
     
     /// If DDalphaamg is available, check if requested and if the mass is below the maximal
     inline bool checkIfDDalphaAvailableAndRequired(const double& mass)
