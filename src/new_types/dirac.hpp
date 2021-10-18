@@ -229,7 +229,7 @@ namespace nissa
     int so;
     idirac_pair_t(int si,int so) : si(si),so(so) {}
   };
-  }
+}
 
 #undef EXTERN_DIRAC
 
