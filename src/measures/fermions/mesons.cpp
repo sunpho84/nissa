@@ -105,8 +105,7 @@ namespace
 		      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 			{
 			  int ivol=loclx_of_loceo[eo][ieo];
-			  for(int ic=0;ic<NCOL;ic++)
-			    unsafe_complex_conj1_prod(loc_contr[ivol],quark0s[iop_si][eo][ieo][ic],quark[iop_so][eo][ieo][ic]);
+			  color_scalar_prod(loc_contr[ivol],quark0s[iop_si][eo][ieo],quark[iop_so][eo][ieo]);
 			}
 		      NISSA_PARALLEL_LOOP_END;
 		      THREAD_BARRIER();
