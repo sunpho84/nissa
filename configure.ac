@@ -430,11 +430,11 @@ AC_MSG_RESULT([enabling number of dimension... $ndim])
 #external solver
 if test x"$enable_quda" == x"yes" -o x"$enable_DDalphaAMG" == x"yes"
 then
+	AC_DEFINE_UNQUOTED([USE_EXTERNAL_SOLVER],1,[Use an external solver])
 	use_external_solver="yes"
 else
 	use_external_solver="no"
 fi
-AC_DEFINE_UNQUOTED([USE_EXTERNAL_SOLVER],$use_external_solver,[Use an external solver])
 AM_CONDITIONAL([USE_EXTERNAL_SOLVER],[test "$use_external_solver" == "yes"])
 
 #number of colors
