@@ -427,6 +427,10 @@ AM_CONDITIONAL([NDIM2], [test x$ndim = x2])
 AC_DEFINE_UNQUOTED([NDIM],$ndim,[Number of dimensions])
 AC_MSG_RESULT([enabling number of dimension... $ndim])
 
+#external library
+AM_CONDITIONAL([USE_EXTERNAL_SOLVER], [test "$enable_quda" == "yes" -o "$enable_DDalphaAMG" == "yes"]
+
+
 #number of colors
 AC_ARG_ENABLE(ncol,
         AS_HELP_STRING([--enable-ncol=n],[Set number of colors [Default: 3]]),

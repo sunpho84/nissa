@@ -16,17 +16,16 @@ __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/bench.cpp \
 	%D%/close.cpp \
 	%D%/debug.cpp \
-	%D%/export_conf_to_external_lib.cpp \
 	%D%/init.cpp \
 	%D%/memory_manager.cpp \
 	%D%/multiGridParams.cpp \
 	%D%/random.cpp \
 	%D%/vectors.cpp
+
 include_HEADERS+= \
 	%D%/bench.hpp \
 	%D%/close.hpp \
 	%D%/cuda_test.hpp \
-	%D%/export_conf_to_external_lib.hpp \
 	%D%/debug.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
@@ -61,4 +60,11 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/quda_bridge.cpp
 include_HEADERS+= \
 	%D%/quda_bridge.hpp
+endif
+
+if USE_EXTERNAL_SOLVER
+__top_builddir__lib_libnissa_a_SOURCES+= \
+	%D%/export_conf_to_external_lib.cpp
+include_HEADERS+= \
+	%D%/export_conf_to_external_lib.hpp
 endif
