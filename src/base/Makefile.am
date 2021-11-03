@@ -64,7 +64,7 @@ endif
 
 if USE_EXTERNAL_SOLVER
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/export_conf_to_external_lib.cpp
+	%D%/export_conf_to_external_solver.cpp
 include_HEADERS+= \
-	%D%/export_conf_to_external_lib.hpp
+	%D%/export_conf_to_external_solver.hpp
 endif
