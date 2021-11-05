@@ -1,5 +1,5 @@
-#ifndef _EXPORT_CONF_TO_EXTERNAL_LIB_HPP
-#define _EXPORT_CONF_TO_EXTERNAL_LIB_HPP
+#ifndef _EXPORT_CONF_TO_EXTERNAL_SOLVER_HPP
+#define _EXPORT_CONF_TO_EXTERNAL_SOLVER_HPP
 
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
@@ -35,7 +35,7 @@ namespace nissa
   
   /// Keep track of the exported conf
   template <typename T>
-  bool export_gauge_conf_to_external_lib(const T& conf)
+  bool export_gauge_conf_to_external_solver(const T& conf)
   {
     using namespace export_conf;
     

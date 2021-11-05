@@ -40,6 +40,5 @@ namespace nissa
 	
 	complex_copy(contr[dt],unshiftedGlbContr[glb_t]);
       }
-    
   }
 }

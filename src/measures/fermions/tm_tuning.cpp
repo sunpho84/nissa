@@ -2,7 +2,9 @@
  #include "config.hpp"
 #endif
 
-#include "base/export_conf_to_external_lib.hpp"
+#ifdef USE_EXTERNAL_SOLVER
+# include "base/export_conf_to_external_solver.hpp"
+#endif
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_mix.hpp"
@@ -55,10 +57,14 @@ namespace nissa
 	      if(hit%2==1)
 		{
 		  op.inv(phi_r,eta,iflav,1);
+#ifdef USE_EXTERNAL_SOLVER
 		  export_conf::export_bypass=export_conf::AVOID_EXPORT;
+#endif
 		}
 	      op.inv(phi,eta,iflav,0);
+#ifdef USE_EXTERNAL_SOLVER
 	      export_conf::export_bypass=export_conf::AVOID_EXPORT;
+#endif
 	      op.ins(phi_ins_P,5,phi);
 	      op.inv(phi_ins_P,phi_ins_P,iflav,0);
 	      op.inv(phi_ins_S,phi,iflav,0);
@@ -82,8 +88,9 @@ namespace nissa
 	      c(phi_ins_P,5,6);
 	      c(phi_ins_P,4,7);
 	    }
+#ifdef USE_EXTERNAL_SOLVER
 	  export_conf::export_bypass=export_conf::NO_BYPASS;
-	  
+#endif	  
 	  //output
 	  for(int t=0;t<glbSize[0];t++)
 	    {

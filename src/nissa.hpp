@@ -9,23 +9,25 @@
 #include "base/bench.hpp"
 #include "base/close.hpp"
 #include "base/debug.hpp"
-#include "base/export_conf_to_external_lib.hpp"
+#ifdef USE_EXTERNAL_SOLVER
+# include "base/export_conf_to_external_solver.hpp"
+#endif
 #include "base/init.hpp"
 #include "base/metaprogramming.hpp"
 #include "base/multiGridParams.hpp"
 #include "base/random.hpp"
 #ifdef USE_TMLQCD
- #include "base/tmLQCD_bridge.hpp"
+# include "base/tmLQCD_bridge.hpp"
 #endif
 #ifdef USE_DDALPHAAMG
- #include "base/DDalphaAMG_bridge.hpp"
+# include "base/DDalphaAMG_bridge.hpp"
 #endif
 #ifdef USE_QUDA
  #include "base/quda_bridge.hpp"
 #endif
 #include "base/vectors.hpp"
 #ifdef USE_CUDA
- #include "base/cuda.hpp"
+# include "base/cuda.hpp"
 #endif
 
 #include "communicate/borders.hpp"

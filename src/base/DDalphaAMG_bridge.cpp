@@ -6,7 +6,7 @@
 # include "DDalphaAMG_bridge.hpp"
 
 #include "base/debug.hpp"
-#include "base/export_conf_to_external_lib.hpp"
+#include "base/export_conf_to_external_solver.hpp"
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "io/checksum.hpp"
@@ -218,7 +218,7 @@ namespace DD
   int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared)
   {
     initialize(kappa,cSW,mu);
-    nissa::export_gauge_conf_to_external_lib(conf);
+    nissa::export_gauge_conf_to_external_solver(conf);
     update_setup();
     
     //else DDalphaAMG_update_setup(int iterations, DDalphaAMG_status *mg_status)
