@@ -6,7 +6,7 @@
 # include "quda_bridge.hpp"
 
 #include "base/cuda.hpp"
-#include "base/export_conf_to_external_lib.hpp"
+#include "base/export_conf_to_external_solver.hpp"
 #include "base/multiGridParams.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -445,7 +445,7 @@ namespace quda_iface
   /// Apply the dirac operator
   void apply_tmD(spincolor *out,quad_su3 *conf,double kappa,double csw,double mu,spincolor *in)
   {
-    export_gauge_conf_to_external_lib(conf);
+    export_gauge_conf_to_external_solver(conf);
     
 #ifdef DEBUG_QUDA
     master_printf("setting pars\n");
@@ -1052,7 +1052,7 @@ namespace quda_iface
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
     const double export_time=take_time();
-    const bool exported=export_gauge_conf_to_external_lib(conf);
+    const bool exported=export_gauge_conf_to_external_solver(conf);
     master_printf("time to export to external library: %lg s\n",take_time()-export_time);
     
     set_base_inverter_pars();
@@ -1118,7 +1118,7 @@ namespace quda_iface
     const double export_time=take_time();
     
     add_or_rem_stagphases_to_conf(conf);
-    const bool exported=export_gauge_conf_to_external_lib(conf);
+    const bool exported=export_gauge_conf_to_external_solver(conf);
     add_or_rem_stagphases_to_conf(conf);
     master_printf("time to export (%d) to external library: %lg s\n",exported,take_time()-export_time);
     
