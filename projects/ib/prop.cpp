@@ -527,7 +527,6 @@ namespace nissa
   //wrapper to generate a stochastic propagator
   void generate_photon_stochastic_propagator(int ihit)
   {
-    
     photon_prop_time-=take_time();
     
     //generate source and stochastich propagator
