@@ -205,18 +205,18 @@ namespace nissa
   
   EXTERN_PROP std::vector<fft_filterer_t> fft_filterer;
   
-  inline void start_hit(int ihit)
+  inline void start_hit(int ihit,bool skip_io=false)
   {
     master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
     source_coord=generate_random_coord();
     if(stoch_source) master_printf(" source time: %d\n",source_coord[0]);
     else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
+    if(need_photon) generate_photon_stochastic_propagator(ihit);
+    generate_original_sources(ihit);
   }
   
   inline void generate_propagators(int ihit)
   {
-    if(need_photon) generate_photon_stochastic_propagator(ihit);
-    generate_original_sources(ihit);
     if(nquark_lep_combos) generate_lepton_propagators();
     generate_quark_propagators(ihit);
   }
