@@ -212,7 +212,7 @@ namespace nissa
     if(stoch_source) master_printf(" source time: %d\n",source_coord[0]);
     else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
     if(need_photon) generate_photon_stochastic_propagator(ihit);
-    generate_original_sources(ihit);
+    generate_original_sources(ihit,skip_io);
   }
   
   inline void generate_propagators(int ihit)
