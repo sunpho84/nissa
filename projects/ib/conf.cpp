@@ -249,6 +249,7 @@ namespace nissa
 		    {
 		      ok_conf=false;
 		      master_printf("Somebody acquired the lock on %s\n",run_file);
+		      skip_conf();
 		    }
 		}
 	    }
