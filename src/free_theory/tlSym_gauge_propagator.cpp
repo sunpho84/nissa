@@ -159,9 +159,10 @@ namespace nissa
   
   void multiply_mom_space_sqrt_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
   {
-    
+#ifndef USE_EIGEN
     if(gl.alpha!=FEYNMAN_ALPHA or gl.c1!=0)
       crash("Eigen required when out of Wilson regularisation in the Feynaman gauge");
+#endif
     
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
