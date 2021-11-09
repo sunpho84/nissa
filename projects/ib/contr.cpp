@@ -718,14 +718,12 @@ namespace nissa
     //loop over sides
     for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
       {
-	  crash("check race");
 	//allocate
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
 	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),locVol,spin1field);
 	vector_reset(sides[side_name]);
-
-      
+	
 	//check r are the same (that is, opposite!)
 	if(twisted_run and (not loc_hadr_curr)) {
 	  if(Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
@@ -739,13 +737,12 @@ namespace nissa
 	if(ig!=5 and !diluted_spi_source) crash("ig %d not available if not diluting in spin",ig);
 	//dirac_prod(&g,base_gamma+5,base_gamma+ig);
 	g=base_gamma[ig];
-		
+	
 	//compute the matrix element
 	local_or_conserved_vector_current_mel(si,g,h.bw,h.fw,revert);
 	
 	//if(h.store) store_spin1field(combine("%s/handcuff_side_%s",outfolder,h.name.c_str()),si);
       }
-
     
     //add the photon
     for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
@@ -764,20 +761,24 @@ namespace nissa
       }
     
     //compute the hands
-    // NISSA_PARALLEL_LOOP(ihand,0, (int)handcuffs_map.size())
-    //   if(sides.find(handcuffs_map[ihand].left)==sides.end() or
-    // 	 sides.find(handcuffs_map[ihand].right)==sides.end())
-    // 	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
-    //   else
-    // 	{
-	  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  //   for(int mu=0;mu<NDIM;mu++)
-	  //     complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
-	  // 			    sides[handcuffs_map[ihand].left][ivol][mu],
-	  // 			    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
-	  // NISSA_PARALLEL_LOOP_END;
-    // 	}
-    // NISSA_PARALLEL_LOOP_END;
+    for(int ihand=0;ihand<handcuffs_map.size();ihand++)
+      if(sides.find(handcuffs_map[ihand].left)==sides.end() or
+	 sides.find(handcuffs_map[ihand].right)==sides.end())
+	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
+      else
+	{
+	  vector_reset(loc_contr);
+	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	    for(int mu=0;mu<NDIM;mu++)
+	      complex_summ_the_prod(loc_contr[ivol],
+				    sides[handcuffs_map[ihand].left][ivol][mu],
+				    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
+	  NISSA_PARALLEL_LOOP_END;
+	  
+	  complex temp[1];
+	  glb_reduce(temp,loc_contr,locVol);
+	  complex_summassign(handcuffs_contr[ind_handcuffs_contr(ihand)],temp[0]);
+	}
     
     //free
     for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)
@@ -793,7 +794,9 @@ namespace nissa
   
   //free handcuff contractions
   void free_handcuffs_contr()
-  {nissa_free(handcuffs_contr);}
+  {
+    nissa_free(handcuffs_contr);
+  }
   
   //print handcuffs contractions
   void print_handcuffs_contr()
@@ -804,7 +807,7 @@ namespace nissa
     contr_print_time-=take_time();
     
     //Open if size different from zero
-    FILE *fout=NULL;
+    FILE *fout=nullptr;
     if(handcuffs_map.size()) fout=list.open(combine("%s/handcuffs",outfolder));
     
     for(size_t icombo=0;icombo<handcuffs_map.size();icombo++)
