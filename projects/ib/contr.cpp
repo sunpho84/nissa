@@ -714,13 +714,16 @@ namespace nissa
     
     //allocate all sides
     std::map<std::string,spin1field*> sides;
-    
+     //store source norm for all sides
+    std::map<std::string,double> normSides;
+   
     //loop over sides
     for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
       {
 	//allocate
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
+        normSides.insert({side_name,Q[h.fw].ori_source_norm2*Q[h.bw].ori_source_norm2});
 	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),locVol,spin1field);
 	vector_reset(sides[side_name]);
 	
@@ -734,7 +737,7 @@ namespace nissa
 	dirac_matr g;
 	int ig=::abs(handcuffs_side_map[iside].igamma);
 	int revert=(handcuffs_side_map[iside].igamma>=0); //reverting only if positive ig asked
-	if(ig!=5 and !diluted_spi_source) crash("ig %d not available if not diluting in spin",ig);
+	if(ig!=5 and not diluted_spi_source) crash("ig %d not available if not diluting in spin",ig);
 	//dirac_prod(&g,base_gamma+5,base_gamma+ig);
 	g=base_gamma[ig];
 	
@@ -770,14 +773,17 @@ namespace nissa
 	  vector_reset(loc_contr);
 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	    for(int mu=0;mu<NDIM;mu++)
-	      complex_summ_the_prod(loc_contr[ivol],
+	      complex_subt_the_prod(loc_contr[ivol],
 				    sides[handcuffs_map[ihand].left][ivol][mu],
 				    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
 	  NISSA_PARALLEL_LOOP_END;
 	  
+          double normalization=glbSpatVol*144.0;
+          normalization/=sqrt((double)normSides[handcuffs_map[ihand].left]*normSides[handcuffs_map[ihand].right]);
+	  
 	  complex temp[1];
 	  glb_reduce(temp,loc_contr,locVol);
-	  complex_summassign(handcuffs_contr[ind_handcuffs_contr(ihand)],temp[0]);
+	  complex_summ_the_prod_double(handcuffs_contr[ind_handcuffs_contr(ihand)],temp[0],normalization);
 	}
     
     //free
