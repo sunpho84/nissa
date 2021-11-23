@@ -16,11 +16,11 @@ namespace nissa
   
   struct tm_quark_info
   {
-    double kappa;
-    double mass;
-    momentum_t bc;
-    double zmp;
-    int r;
+    double kappa{};
+    double mass{};
+    momentum_t bc{};
+    double zmp{};
+    int r{1};
     
     tm_quark_info(double kappa,double mass,int r,double theta) :
       kappa(kappa),mass(mass),zmp(0),r(r)

@@ -1,6 +1,7 @@
 bin_PROGRAMS+= \
 	$(top_builddir)/bin/ib \
-	$(top_builddir)/bin/disco
+	$(top_builddir)/bin/disco \
+	$(top_builddir)/bin/checks
 
 # $(top_builddir)/bin/checks_ib
 # $(top_builddir)/bin/EU3_source
@@ -9,7 +10,6 @@ bin_PROGRAMS+= \
 #	$(top_builddir)/bin/mel
 #	$(top_builddir)/bin/disco
 #	$(top_builddir)/bin/test_prop
-#	$(top_builddir)/bin/checks
 #	$(top_builddir)/bin/check_fftw
 
 common_sources= \
@@ -34,9 +34,9 @@ bin_PROGRAMS+= \
  __top_builddir__bin_test_quda_LDFLAGS=$(LDFLAGS)
 endif
 
- # __top_builddir__bin_checks_ib_SOURCES=%D%/checks.cpp
- # __top_builddir__bin_checks_ib_LDADD=$(LDADD)
- # __top_builddir__bin_checks_ib_LDFLAGS=$(LDFLAGS)
+__top_builddir__bin_checks_SOURCES=%D%/checks.cpp
+__top_builddir__bin_checks_LDADD=$(LDADD)
+__top_builddir__bin_checks_LDFLAGS=$(LDFLAGS)
 
 __top_builddir__bin_ib_SOURCES=%D%/ib.cpp $(common_sources)
 __top_builddir__bin_ib_LDADD=$(LDADD)
