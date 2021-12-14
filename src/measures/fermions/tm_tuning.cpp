@@ -39,7 +39,7 @@ namespace nissa
     for(int icopy=0;icopy<ncopies;icopy++)
       for(int iflav=0;iflav<tp.nflavs();iflav++)
 	{
-	  master_fprintf(file," # conf %d ; flv = %d , m = %lg , k = %lg , cSW = %lg\n",
+	  master_fprintf(file," # conf %d ; flv = %d , m = %.16lg , k = %.16lg , cSW = %.16lg\n",
 			 iconf,iflav,tp.quarks[iflav].mass,tp.quarks[iflav].kappa,tp.quarks[iflav].cSW);
 	  
 	  verbosity_lv2_master_printf("Evaluating tm tuning for flavor %d/%d, ncopies %d/%d\n",
