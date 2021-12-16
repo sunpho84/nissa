@@ -82,8 +82,8 @@ namespace nissa
     if(stoch_source and use_new_generator)
       {
 	drawer=std::make_unique<FieldRngOf<spincolor>>(field_rng_stream.getDrawer<spincolor>());
-	if(noise_type!=RND_Z4)
-	  crash("Noise type different from Z4 not implemented yet");
+	if(noise_type!=RND_Z4 and noise_type!=RND_Z2)
+	  crash("Noise type different from Z4 or Z2 not implemented yet");
 	
 	if(skipOnly)
 	  return;
@@ -131,7 +131,12 @@ namespace nissa
 		      drawer->fillLocSite(c,ivol);
 		      for(int id=0;id<NDIRAC;id++)
 			for(int ic=0;ic<NCOL;ic++)
-			  z4Transform(c[id][ic]);
+			  {
+			    if(noise_type==RND_Z4)
+			      z4Transform(c[id][ic]);
+			    else
+			      z2Transform(c[id][ic]);
+			  }
 		    }
 		  else
 		    comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),noise_type);
