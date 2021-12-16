@@ -226,7 +226,7 @@ namespace nissa
     if(need_photon)
       {
 	if(skip)
-	  generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
+	  generate_photon_source(photon_eta);
 	else
 	  generate_photon_stochastic_propagator(ihit);
       }
