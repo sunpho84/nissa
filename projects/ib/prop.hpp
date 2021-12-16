@@ -219,7 +219,8 @@ namespace nissa
 	    source_coord[mu]=c[0]*glbSize[mu];
 	  }
       }
-    source_coord=generate_random_coord();
+    else
+      source_coord=generate_random_coord();
     
     if(stoch_source) master_printf(" source time: %d\n",source_coord[0]);
     else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
