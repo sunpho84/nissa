@@ -387,7 +387,7 @@ namespace nissa
       NISSA_PARALLEL_LOOP(loclx,0,locVol)
 	{
 	  const int& glblx=glblxOfLoclx[loclx];
-	  fillGlbSite(out[glblx],glblx);
+	  fillGlbSite(out[loclx],glblx);
 	}
       NISSA_PARALLEL_LOOP_END;
       

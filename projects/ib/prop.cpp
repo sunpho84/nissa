@@ -343,7 +343,7 @@ namespace nissa
       {
 	auto source_filler=field_rng_stream.getDrawer<spin1field>();
 	source_filler.fillField(photon_eta);
-  
+	
 	NISSA_PARALLEL_LOOP(loclx,0,locVol)
 	  {
 	    for(int mu=0;mu<NDIM;mu++)
