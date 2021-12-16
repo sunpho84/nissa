@@ -16,6 +16,7 @@
 #include "base/metaprogramming.hpp"
 #include "base/multiGridParams.hpp"
 #include "base/random.hpp"
+#include "base/sitmo.hpp"
 #ifdef USE_TMLQCD
 # include "base/tmLQCD_bridge.hpp"
 #endif
