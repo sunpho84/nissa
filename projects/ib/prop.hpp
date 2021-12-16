@@ -183,6 +183,7 @@ namespace nissa
   void generate_original_sources(int ihit,bool skip_io=false);
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool *dirs);
   void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc);
+  void generate_photon_source(spin1field *photon_eta);
   void generate_source(insertion_t inser,int r,double charge,double kappa,const momentum_t& theta,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator(int ihit);
@@ -208,7 +209,18 @@ namespace nissa
   inline void start_hit(int ihit,bool skip=false)
   {
     master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
+    if(use_new_generator)
+      {
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    using C=double[1];
+	    C c;
+	    field_rng_stream.drawScalar(c);
+	    source_coord[mu]=c[0]*glbSize[mu];
+	  }
+      }
     source_coord=generate_random_coord();
+    
     if(stoch_source) master_printf(" source time: %d\n",source_coord[0]);
     else             master_printf(" point source coords: %d %d %d %d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
     if(need_photon)

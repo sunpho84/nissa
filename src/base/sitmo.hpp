@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <random>
 
+#include <base/vectors.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <threads/threads.hpp>
 
@@ -342,16 +343,25 @@ namespace nissa
       return RngView(rng,irnd_uint32_t);
     }
     
-    //Fill a specific site
+    /// Fill a specific site
     CUDA_HOST_AND_DEVICE
-    void _fillSite(double* reals,const uint64_t glblx)
+    void fillGlbSite(T& out,const uint64_t glblx)
     {
       for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
 	{
 	  auto view=getRngViewOnGlbSiteIRndReal(glblx,irnd_real);
 	  
-	  reals[irnd_real]=distr(view);
+	  ((double*)out)[irnd_real]=distr(view);
 	}
+    }
+    
+    /// Fill a specific site given its local index
+    CUDA_HOST_AND_DEVICE
+    void fillLocSite(T& out,const uint64_t loclx)
+    {
+      //Finds the global site of local one
+      const int& glblx=glblxOfLoclx[loclx];
+      fillGlbSite(out,glblx);
     }
     
     void enforce_single_usage()
@@ -361,24 +371,23 @@ namespace nissa
       used=true;
     }
     
-    //Fill with origin
-    void fillWithOrigin(T out)
+    /// Fill with origin
+    void fillWithOrigin(T& out)
     {
       enforce_single_usage();
       
-      _fillSite(out,0);
+      fillGlbSite(out,0);
     }
     
-    //Fill all sites
+    /// Fill all sites
     void fillField(T* out)
     {
       enforce_single_usage();
       
       NISSA_PARALLEL_LOOP(loclx,0,locVol)
 	{
-	  //Finds the global site of local one
 	  const int& glblx=glblxOfLoclx[loclx];
-	  _fillSite((double*)(out+loclx),glblx);
+	  fillGlbSite(out[glblx],glblx);
 	}
       NISSA_PARALLEL_LOOP_END;
       
@@ -447,10 +456,16 @@ namespace nissa
   }
   
   CUDA_HOST_AND_DEVICE
+  inline void z2Transform(double& out)
+  {
+    out=(out>0.5)?M_SQRT1_2:-M_SQRT1_2;
+  }
+  
+  CUDA_HOST_AND_DEVICE
   inline void z4Transform(complex out)
   {
     for(int ri=0;ri<2;ri++)
-      out[ri]=(out[ri]>0.5)?M_SQRT1_2:-M_SQRT1_2;
+      z2Transform(out[ri]);
   }
 }
 

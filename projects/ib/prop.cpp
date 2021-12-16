@@ -3,6 +3,7 @@
 #define EXTERN_PROP
  #include "prop.hpp"
 
+#include <memory>
 #include <set>
 #include <tuple>
 
@@ -73,8 +74,20 @@ namespace nissa
   }
   
   //generate a source, wither a wall or a point in the origin
-  void generate_original_source(qprop_t* sou)
+  void generate_original_source(qprop_t* sou,bool skipOnly)
   {
+    const rnd_t noise_type=sou->noise_type;
+    
+    std::unique_ptr<FieldRngOf<spincolor>> drawer;
+    if(stoch_source and use_new_generator)
+      {
+	drawer=std::make_unique<FieldRngOf<spincolor>>(field_rng_stream.getDrawer<spincolor>());
+	if(noise_type!=RND_Z4)
+	  crash("Noise type different from Z4 not implemented yet");
+	
+	if(skipOnly)
+	  return;
+      }
     
     //consistency check
     if(not stoch_source and (not diluted_spi_source or not diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
@@ -87,7 +100,6 @@ namespace nissa
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	sou_proxy[so_sp_col_ind(id_so,ic_so)]=sou->sp[so_sp_col_ind(id_so,ic_so)];
     
-    const rnd_t noise_type=sou->noise_type;
     const int tins=sou->tins;
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
@@ -112,7 +124,18 @@ namespace nissa
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
-	      if(stoch_source and mask and (tins==-1 or rel_c[0]==tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),noise_type);
+	      if(stoch_source and mask and (tins==-1 or rel_c[0]==tins))
+		{
+		  if(use_new_generator)
+		    {
+		      drawer->fillLocSite(c,ivol);
+		      for(int id=0;id<NDIRAC;id++)
+			for(int ic=0;ic<NCOL;ic++)
+			  z4Transform(c[id][ic]);
+		    }
+		  else
+		    comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol]),noise_type);
+		}
 	      if(not stoch_source and is_spat_orig and (tins==-1 or rel_c[0]==tins)) complex_put_to_real(c[id_si][ic_si],1);
 	    }
 	
@@ -314,6 +337,26 @@ namespace nissa
     set_borders_invalid(out);
   }
   
+  void generate_photon_source(spin1field *photon_eta)
+  {
+    if(use_new_generator)
+      {
+	auto source_filler=field_rng_stream.getDrawer<spin1field>();
+	source_filler.fillField(photon_eta);
+  
+	NISSA_PARALLEL_LOOP(loclx,0,locVol)
+	  {
+	    for(int mu=0;mu<NDIM;mu++)
+	      z4Transform(photon_eta[loclx][mu]);
+	  }
+	NISSA_PARALLEL_LOOP_END;
+	
+	set_borders_invalid(photon_eta);
+      }
+    else
+      generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
+  }
+  
   //generate a sequential source
   void generate_source(insertion_t inser,char *ext_field_path,int r,double charge,double kappa,double* kappa_asymm,const momentum_t& theta,std::vector<source_term_t>& source_terms,int isou,int t)
   {
@@ -379,7 +422,7 @@ namespace nissa
   }
   
   //Generate all the original sources
-  void generate_original_sources(int ihit,bool skip_io)
+  void generate_original_sources(int ihit,bool skipOnly)
   {
     
     for(size_t i=0;i<ori_source_name_list.size();i++)
@@ -387,9 +430,9 @@ namespace nissa
 	std::string &name=ori_source_name_list[i];
 	master_printf("Generating source \"%s\"\n",name.c_str());
 	qprop_t *q=&Q[name];
-	generate_original_source(q);
+	generate_original_source(q,skipOnly);
 	
-	if(not skip_io)
+	if(not skipOnly)
 	  for(int id_so=0;id_so<nso_spi;id_so++)
 	    for(int ic_so=0;ic_so<nso_col;ic_so++)
 	      {
@@ -529,11 +572,11 @@ namespace nissa
   {
     photon_prop_time-=take_time();
     
-    //generate source and stochastich propagator
-    master_printf("Generating photon stochastic propagator\n");
-    generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
+    generate_photon_source(photon_eta);
     
-    //generate the photon field
+    //generate source and stochastich propagator
+    master_printf("Generating photon stochastic propagator\n"); 
+    multiply_by_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
     multiply_by_sqrt_tlSym_gauge_propagator(photon_field,photon_eta,photon);
     
     std::vector<std::pair<std::string,spin1field*> > name_field;

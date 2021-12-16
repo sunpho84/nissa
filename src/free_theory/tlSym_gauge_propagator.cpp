@@ -6,6 +6,7 @@
 #include "base/random.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/spin.hpp"
 #include "operations/fourier_transform.hpp"
 #include "routines/mpi_routines.hpp"
@@ -226,19 +227,21 @@ namespace nissa
 	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
 #endif
 	
-	//verify g.f condition
-	double tr=0.0,nre=0.0,nim=0.0;
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    double kmu=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
-	    double ktmu=2*sin(kmu/2);
+	// //verify g.f condition
+	// double tr=0.0,nre=0.0,nim=0.0;
+	// for(int mu=0;mu<NDIM;mu++)
+	//   {
+	//     double kmu=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
+	//     double ktmu=2*sin(kmu/2);
 	    
-	    tr+=out[imom][mu][RE]*ktmu;
-	    nre+=sqr(out[imom][mu][RE]);
-	    nim+=sqr(out[imom][mu][IM]);
-	  }
+	//     tr+=out[imom][mu][RE]*ktmu;
+	//     nre+=sqr(out[imom][mu][RE]);
+	//     nim+=sqr(out[imom][mu][IM]);
+	//   }
       }
     NISSA_PARALLEL_LOOP_END;
+    
+    
     set_borders_invalid(out);
   }
   
@@ -267,7 +270,6 @@ namespace nissa
   //generate a stochastic gauge propagator source
   void generate_stochastic_tlSym_gauge_propagator_source(spin1field* eta)
   {
-    
     //fill with Z2
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)

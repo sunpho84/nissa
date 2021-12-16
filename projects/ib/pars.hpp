@@ -17,6 +17,10 @@ namespace nissa
 #define PERIODIC_BC 0
 #define ANTIPERIODIC_BC 1
   
+  /// New generator
+  EXTERN_PARS int use_new_generator;
+  EXTERN_PARS FieldRngStream field_rng_stream;
+  
   //Twisted run
   EXTERN_PARS int twisted_run;
   EXTERN_PARS tm_basis_t base;
@@ -147,7 +151,19 @@ namespace nissa
   {
     int seed;
     read_str_int("Seed",&seed);
-    start_loc_rnd_gen(seed);
+
+    if(seed<0)
+      {
+	seed=-seed;
+	use_new_generator=false;
+	master_printf("Reverting to the old rng\n");
+	start_loc_rnd_gen(seed);
+      }
+    else
+      {
+	use_new_generator=true;
+	field_rng_stream.init(seed);
+      }
   }
   
   //flag to simulate in the free theory
