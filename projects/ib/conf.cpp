@@ -59,6 +59,201 @@ namespace nissa
     conf_allocated=false;
   }
   
+  using Su3=Tensor<OfComps<ColorRow,ColorCln,ComplId>,double>;
+  
+  using ComplDouble=Tensor<OfComps<ComplId>,double>;
+  
+  //The product of two complex number
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void unsafeComplexProd(A&& a,
+			 const B& b,
+			 const C& c)
+  {
+    double t=b(Re)*c(Re)-b(Im)*c(Im);
+    a(Im)=b(Re)*c(Im)+b(Im)*c(Re);
+    a(Re)=t;
+  }
+  
+  //The product of a complex number by the conjugate of the second
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void unsafeComplexConj2Prod(A&& a,
+			      const B& b,
+			      const C& c)
+  {
+    //ASM_BOOKMARK_BEGIN("unsafeComplexConj2Prod");
+    unsafeComplexProd(a,b,conj(c));
+    // a(Re)=+b(Re)*c(Re)+b(Im)*c(Im);
+    // a(Im)=-b(Re)*c(Im)+b(Im)*c(Re);
+    //ASM_BOOKMARK_END("unsafeComplexConj2Prod");
+  }
+  
+  void u(complex a,
+	 const complex b,
+	 const complex c)
+  {
+    ASM_BOOKMARK_BEGIN("unsafe_complex_conj2_prod");
+    unsafe_complex_conj2_prod(a,b,c);
+    ASM_BOOKMARK_END("unsafe_complex_conj2_prod");
+  }
+  
+  void u(su3 a,
+	 const su3 b,
+	 const su3 c)
+  {
+    ASM_BOOKMARK_BEGIN("safe_su3_prod_su3_dag");
+    safe_su3_prod_su3_dag(a,b,c);
+    ASM_BOOKMARK_END("safe_su3_prod_su3_dag");
+  }
+  
+  void u(Tensor<OfComps<ComplId>,double>& a,
+	 const Tensor<OfComps<ComplId>,double>& b,
+	 const Tensor<OfComps<ComplId>,double>& c)
+  {
+    ASM_BOOKMARK_BEGIN("unsafeComplexConj2Prod");
+    unsafeComplexConj2Prod(a,b,c);
+    ASM_BOOKMARK_END("unsafeComplexConj2Prod");
+  }
+  
+  //Summ to the output the product of two complex number
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void complexSummTheProd(A&& a,
+						  const B& b,
+						  const C& c)
+  {
+    const double t=b(Re)*c(Re)-b(Im)*c(Im);
+    a(Im)+=b(Re)*c(Im)+b(Im)*c(Re);
+    a(Re)+=t;
+  }
+  
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void complexSummTheConj2Prod(A&& a,
+			       const B& b,
+			       const C& c)
+  {
+    const double t=+b(Re)*c(Re)+b(Im)*c(Im);
+    a(Im)+=-b(Re)*c(Im)+b(Im)*c(Re);
+    a(Re)+=t;
+  }
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void complexCopy(A&& a,
+		   const B& b)
+  {
+    UNROLL_FOR_ALL_COMPONENT_VALUES(ComplId,reim)
+      a(reim)=b(reim);
+    UNROLL_FOR_END;
+  }
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_DEVICE inline void complexSummassign(A&& a,
+						 const B& b)
+  {
+    UNROLL_FOR_ALL_COMPONENT_VALUES(ComplId,reim)
+      a(reim)+=b(reim);
+    UNROLL_FOR_END;
+  }
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void su3Copy(A&& a,
+	       const B& b)
+  {
+    UNROLL_FOR_ALL_COMPONENT_VALUES(ColorRow,ir)
+      UNROLL_FOR_ALL_COMPONENT_VALUES(ColorCln,ic)
+      complexCopy(a(ir,ic),b(ir,ic));
+    UNROLL_FOR_END;
+    UNROLL_FOR_END;
+  }
+  
+  //Product of two su3 matrixes
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void unsafeSu3ProdSu3(A&& a,
+			const B& b,
+			const C& c)
+  {
+    // unrollFor<NCOL>([&](const ColorRow& colRowOut) INLINE_ATTRIBUTE
+    // {
+    //   unrollFor<NCOL>([&](const ColorCln& colClnOut) INLINE_ATTRIBUTE
+    //   {
+    // 	  unsafeComplexProd(a(colRowOut,colClnOut),b(colRowOut,ColorCln(0)),c(ColorRow(0),colClnOut));
+    // 	  for(int itemp=1;itemp<NCOL;itemp++)
+    // 	    complexSummTheProd(a(colRowOut,colClnOut),b(colRowOut,ColorCln(itemp)),c(ColorRow(itemp),colClnOut));
+    //   });
+    // });
+    UNROLL_FOR_ALL_COMPONENT_VALUES(ColorRow,colRowOut)
+      UNROLL_FOR_ALL_COMPONENT_VALUES(ColorCln,colClnOut)
+      {
+	unsafeComplexProd(a(colRowOut,colClnOut),b(colRowOut,ColorCln(0)),c(ColorRow(0),colClnOut));
+	for(int itemp=1;itemp<NCOL;itemp++)
+	  complexSummTheProd(a(colRowOut,colClnOut),b(colRowOut,ColorCln(itemp)),c(ColorRow(itemp),colClnOut));
+      }
+    UNROLL_FOR_END;
+    UNROLL_FOR_END;
+  }
+  
+  //Product of two su3 matrixes
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void unsafeSu3ProdSu3Dag(A&& a,
+			   const B& b,
+			   const C& c)
+  {
+    unsafeSu3ProdSu3(a,b,dag(c));
+    // FOR_ALL_COMPONENT_VALUES(ColorRow,colRowOut)
+    //   FOR_ALL_COMPONENT_VALUES(ColorCln,colClnOut)
+    // 	{
+    // 	  unsafeComplexConj2Prod(a(colRowOut,colClnOut),b(colRowOut,ColorCln(0)),c(colClnOut.transp(),ColorCln(0)));
+    // 	  for(int jc=1;jc<NCOL;jc++)
+    // 	    complexSummTheConj2Prod(a(colRowOut,colClnOut),b(colRowOut,ColorCln(jc)),c(colClnOut.transp(),ColorCln(jc)));
+    // 	}
+  }
+  
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void safeSu3ProdSu3Dag(A&& a,
+			 const B& b,
+			 const C& c)
+  {
+    Su3 d;
+    unsafeSu3ProdSu3Dag(d,b,c);
+    su3Copy(a,d);
+  }
+  
+  //return the trace of an su3 matrix
+  template <typename A,
+	    typename B>
+  CUDA_HOST_DEVICE INLINE_FUNCTION
+  void su3Trace(A&& tr,
+		const B& m)
+  {
+    complexCopy(tr,m(ColorRow(0),ColorCln(0)));
+    for(int ic=1;ic<NCOL;ic++)
+      complexSummassign(tr,m(ColorRow(ic),ColorCln(ic)));
+  }
+  
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {
@@ -79,6 +274,104 @@ namespace nissa
     
     //if clover term is included, compute it
     if(clover_run) clover_term(Cl,glb_cSW,conf);
+    
+    //// DEBUG
+    master_printf("DEBUG plaquette: %+16.16lg\n",global_plaquette_lx_conf(conf));
+    
+    auto newConf=lxField<OfComps<Dir,ColorRow,ColorCln,ComplId>,AllocateBord::YES>();
+    
+    for(LocLxSite site=0;site<locVol;site++)
+      FOR_ALL_DIRS(dir)
+	FOR_ALL_ROW_COLORS(rowCol)
+          FOR_ALL_CLN_COLORS(clnCol)
+	    FOR_REIM_PARTS(reIm)
+	      newConf(site,dir,rowCol,clnCol,reIm)=conf[site()][dir()][rowCol()][clnCol()][reIm()];
+    
+    auto plaquettes=lxField<OfComps<>>();
+    FOR_ALL_DIRS(dir)
+      for(Dir otherDir=dir+1;otherDir<NDIM;otherDir++)
+	{
+	  auto lowerPart=(newConf(dir)*newConf(otherDir)).close();
+	  auto upperPart=(newConf(otherDir)*newConf(dir)).close();
+	  
+	  auto c=(lowerPart*dag(upperPart));
+	  
+	  /// Occorre implementare lo shift, la traccia, la somma, l'autosomma, poi la riduzione
+    ASM_BOOKMARK_BEGIN("ciccione");
+	  plaquettes=real(c(ColorRow(0),ColorCln(0)));
+    ASM_BOOKMARK_END("ciccione");
+	}
+    printf("%lg\n",plaquettes(LocLxSite(0)));
+    // auto oldConf=lxField<OfComps<Dir,ColorRow,ColorCln,ComplId>,AllocateBord::YES>();
+    // auto newField=lxField<OfComps<ColorRow,ComplId>,AllocateBord::YES>();
+    
+    // prod(oldConf,newConf);
+
+    // conj(conj(oldConf))=newConf;
+    
+    Tensor<OfComps<Dir,ColorRow>> rt;
+    for (Dir mu = 0; mu < Dir ::sizeAtCompileTimeAssertingNotDynamic(); mu++)
+      for(ColorRow cr=0;cr<3;cr++)
+	rt(mu,cr)=cr()+3*mu();
+    Tensor<OfComps<Dir,ColorCln>> ct;
+    FOR_ALL_DIRS(mu)
+      for(ColorCln cc=0;cc<3;cc++)
+	ct(mu,cc)=cc()+3*mu();
+    
+    Tensor<OfComps<Dir>> res;
+    ASM_BOOKMARK_BEGIN("prod");
+    res=prod(ct,rt);
+    ASM_BOOKMARK_END("prod");
+    master_printf("%lg\n",res(Dir(0)));
+    master_printf("%lg\n",res(Dir(1)));
+    
+    crash("");
+    // newConf=dag(oldConf);
+    
+    // typename decltype(newConf)::Fund a;
+
+    
+    // loopOnAllComponents<typename decltype(newConf)::Comps>(newConf.data.indexComputer.dynamicSizes,[](auto...){});
+      //decltype(prod(newConf,newField)) b="ciao";
+
+
+    
+    //TransposeTensorComps<decltype(newConf)::Comps> t="ciao";
+    
+    NISSA_LOC_VOL_LOOP(ivol)
+      FOR_ALL_DIRS(mu)
+      FOR_ALL_COMPONENT_VALUES(ColorRow,colRow)
+      FOR_ALL_COMPONENT_VALUES(ColorCln,colCol)
+      FOR_ALL_COMPONENT_VALUES(ComplId,reIm)
+      {
+	newConf(ivol,mu,colRow,colCol,reIm)=
+	  conf[ivol.nastyConvert()][mu.nastyConvert()][colRow.nastyConvert()][colCol.nastyConvert()][reIm.nastyConvert()];
+      }
+    
+    ComplDouble r;
+    FOR_ALL_COMPONENT_VALUES(ComplId,reim)
+      r(ComplId(reim))=0;
+    
+    NISSA_LOC_VOL_LOOP(ivol)
+      FOR_ALL_DIRS(mu)
+      FOR_ALL_DIRS(nu)
+      if(mu>nu)
+	{
+        Su3 p;
+	
+	unsafeSu3ProdSu3(p,newConf(ivol,mu),newConf(loclxNeighup(ivol,mu),nu));
+	safeSu3ProdSu3Dag(p,p,newConf(loclxNeighup(ivol,nu),mu));
+	
+	ASM_BOOKMARK_BEGIN("safeSu3ProdSu3Dag");
+	safeSu3ProdSu3Dag(p,p,newConf(ivol,nu));
+	ASM_BOOKMARK_END("safeSu3ProdSu3Dag");
+	
+	ComplDouble c;
+	su3Trace(c,p);
+	complexSummassign(r,c);
+      }
+        //// DEBUG
+    master_printf("DEBUG2 plaquette: %+16.16lg\n",r(Re)/18/glbVol());
     
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)

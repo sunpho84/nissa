@@ -17,11 +17,11 @@ namespace nissa
 #define FOR_REIM_PARTS(NAME)		\
   FOR_ALL_COMPONENT_VALUES(ComplId,NAME)
   
-  /// Real component index
-  inline constexpr ComplId Re{0};
+  /// Real component index - we cannot rely on a constexpr inline as the compiler does not propagate it correctly
+#define Re ComplId(0)
   
   /// Imaginary component index
-  inline constexpr ComplId Im{1};
+#define Im ComplId(1)
   
   /// Returns the real part, subscribing the complex component to Re value
   template <typename _E>
@@ -29,6 +29,7 @@ namespace nissa
   decltype(auto) real(_E&& e)
   {
     return
+      //e(ComplId(0));
       e(Re);
   }
   

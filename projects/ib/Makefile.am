@@ -29,6 +29,8 @@ include_HEADERS+= \
 
 assembly_reports+=\
 	%D%/testNewExpr.s
+assembly_reports+=\
+	%D%/conf.s
 
  # __top_builddir__bin_checks_ib_SOURCES=%D%/checks.cpp
  # __top_builddir__bin_checks_ib_LDADD=$(LDADD)
