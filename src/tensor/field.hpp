@@ -22,7 +22,7 @@ namespace nissa
   UnaryExpr<THIS,						\
 	    Tensor<_Comps,_F,DefaultStorage>,			\
 	    _Comps,						\
-	    EmptyCompsMeldBarriers,					\
+	    EmptyCompsMeldBarriers,				\
 	    _F>
   
   /// Lexicographic field

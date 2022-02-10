@@ -54,6 +54,9 @@ namespace nissa
     using UnEx=
       UNEX;
     
+    /// Import assignemnt operator
+    using UNEX::operator=;
+    
 #undef UNEX
 #undef THIS
     

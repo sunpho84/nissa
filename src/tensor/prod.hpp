@@ -97,7 +97,7 @@ namespace nissa
 	      typename TC2>
     using _ProdCompsComputer=
       _ProdCompsClassifierImpl<IndependentComponents<TC1,TC2>,
-			   TC1,TC2>;
+			       TC1,TC2>;
   }
   
   /////////////////////////////////////////////////////////////////
