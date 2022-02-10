@@ -32,7 +32,6 @@ namespace nissa
 #define EX					\
   Expr<T,					\
        TensorComps<TCs...>,			\
-       EmptyCompsMeldBarriers,			\
        F>
   
   /// Tensor
@@ -56,10 +55,6 @@ namespace nissa
     /// Components
     using Comps=
       TensorComps<TCs...>;
-    
-    /// Barrier to meld components
-    using CompsMeldBarriers=
-      EmptyCompsMeldBarriers;
     
     /// Expression flags
     static constexpr ExprFlags Flags=

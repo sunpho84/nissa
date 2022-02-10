@@ -2,6 +2,7 @@
 #define _LOOPONALLCOMPONENTS_HPP
 
 #include <metaProgramming/inliner.hpp>
+#include <metaProgramming/dispatchStrategy.hpp>
 #include <metaProgramming/unrolledFor.hpp>
 
 #include <tensor/expr.hpp>

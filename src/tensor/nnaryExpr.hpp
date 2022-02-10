@@ -17,7 +17,6 @@ namespace nissa
   template <typename T,   // Derived class
 	    typename _Es, // Nested expressions, in a tuple as passed to constructor
 	    typename TC,
-	    typename _CompsMeldBarriers,
 	    typename F>
   struct NnaryExpr;
   
@@ -25,10 +24,9 @@ namespace nissa
   template <typename T,     // Derived class
 	    typename..._Es, // Nested expressions, as it is passed to constructor
 	    typename TC,
-	    typename _CompsMeldBarriers,
 	    typename F>
-  struct NnaryExpr<T,std::tuple<_Es...>,TC,_CompsMeldBarriers,F> :
-    Expr<T,TC,_CompsMeldBarriers,F>
+  struct NnaryExpr<T,std::tuple<_Es...>,TC,F> :
+    Expr<T,TC,F>
   {
     /// Type of the nested expressions
     using NestedExprs=
@@ -65,7 +63,7 @@ namespace nissa
     }
     
     /// Import assignemnt operator
-    using Expr<T,TC,_CompsMeldBarriers,F>::operator=;
+    using Expr<T,TC,F>::operator=;
   };
   
   /// Combine the dynamic components of a tuple of dynamic comps, filling with each occurrence
@@ -86,23 +84,23 @@ namespace nissa
 			       
 			       /// Input component on which we loop
 			       using DcsIn=
-			         std::tuple_element_t<IDcsIn,DcsIns>;
+			       std::tuple_element_t<IDcsIn,DcsIns>;
 			       
 			       /// List of dynamic components in common with result
 			       using DcsCommonToOut=
-			         TupleCommonTypes<DcsOut,DcsIn>;
+			       TupleCommonTypes<DcsOut,DcsIn>;
 			       
 			       /// Value of all dynamic components
 			       decltype(auto) dcsIn=
-			         std::get<IDcsIn>(dcsIns);
+			       std::get<IDcsIn>(dcsIns);
 				 
 			       EXEC_FOR_ALL_TUPLE_IDS(IDcIn,DcsCommonToOut,
 						      
 						      const auto& dcIn=
-						        std::get<IDcIn>(dcsIn);
+						      std::get<IDcIn>(dcsIn);
 						      
 						      auto& dcOut=
-						        std::get<IDcIn>(dcsOut);
+						      std::get<IDcIn>(dcsOut);
 						      
 						      if(i==0)
 							dcOut=dcIn;

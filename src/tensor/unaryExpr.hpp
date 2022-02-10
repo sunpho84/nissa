@@ -16,10 +16,9 @@ namespace nissa
   template <typename T,  // Derived class
 	    typename _E, // Nested expression, as it is passed to constructor
 	    typename TC,
-	    typename MB,
 	    typename F>
   struct UnaryExpr :
-    Expr<T,TC,MB,F>
+    Expr<T,TC,F>
   {
     /// Type of the nested expression
     using NestedExpr=
@@ -51,7 +50,7 @@ namespace nissa
     }
     
     /// Import assignemnt operator
-    using Expr<T,TC,MB,F>::operator=;
+    using Expr<T,TC,F>::operator=;
   };
 }
 

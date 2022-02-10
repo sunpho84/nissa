@@ -15,19 +15,17 @@ namespace nissa
   DEFINE_FEATURE(Transposer);
   
 #define THIS					\
-  Transposer<_E,_Comps,_CompsMeldBarriers,_EvalTo>
+  Transposer<_E,_Comps,_EvalTo>
 
 #define UNEX					\
     UnaryExpr<THIS,				\
 	      _E,				\
 	      _Comps,				\
-	      _CompsMeldBarriers,		\
 	      _EvalTo>
   
   /// Transposeroser of an expression
   template <typename _E,
 	    typename _Comps,
-	    typename _CompsMeldBarriers,
 	    typename _EvalTo>
   struct Transposer :
     TransposerFeat<THIS>,
@@ -43,10 +41,6 @@ namespace nissa
     /// Components
     using Comps=
       _Comps;
-    
-    /// Barrier to meld components
-    using CompsMeldBarriers=
-      _CompsMeldBarriers;
     
     /// Fundamental type of the expression
     using EvalTo=
@@ -106,12 +100,8 @@ namespace nissa
     using Comps=
       TransposeMatrixTensorComps<typename E::Comps>;
     
-    /// Barriers between fusable components, obtained faking transposition of comps
-    using CompsMeldBarriers=
-      GetTensorCompsMeldBarriersFromPureRemapping<TransposeTensorComps<typename E::Comps>,typename E::Comps,typename E::CompsMeldBarriers>;
-    
     return
-      Transposer<decltype(e),Comps,CompsMeldBarriers,EvalTo>(std::forward<_E>(e));
+      Transposer<decltype(e),Comps,EvalTo>(std::forward<_E>(e));
   }
   
   /// Returns the transposer of e

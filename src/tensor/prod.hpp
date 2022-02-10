@@ -156,120 +156,19 @@ namespace nissa
 	  std::index_sequence<value<PComps>...>;
       };
     };
-    
-    /// Gets the mapping between product components and its factors
-    ///
-    /// Internal implementation, forward declaration
-    template <typename PCs,     // Product components
-	      typename Fs,      // Factors
-	      typename CCs,     // Excluded (contracted) components
-	      bool isComplProd, // Takes note if this is complex product
-	      typename Is=      // Integer sequence to scan both args
-	      std::index_sequence<0,1>>
-    struct _GetCompsMeldBarriersForProduct;
-    
-    /// Gets the mapping between product components and its factors
-    ///
-    /// Internal implementation
-    /// The original implementation, with unrolled factors, can be
-    /// found on testNewExpr.cpp at commit 481b4908
-    template <typename PCs,     // Product components
-	      typename Fs,      // Factors
-	      typename CCs,     // Excluded (contracted) components
-	      bool isComplProd, // Takes note if this is complex product
-	      size_t...Is>      // Integer sequence to scan both args
-    struct _GetCompsMeldBarriersForProduct<PCs,Fs,CCs,isComplProd,std::index_sequence<Is...>>
-    {
-      /// I-th Factor
-      template <size_t I>
-      using F=
-	typename std::tuple_element_t<I,Fs>;
-      
-      /// I-th Factor Components
-      template <size_t I>
-      using C=
-	typename F<I>::Comps;
-      
-      /// I-th Factor meld barriers
-      template <size_t I>
-      using M=
-	typename F<I>::CompsMeldBarriers;
-      
-      /// Components to exclude
-      ///
-      /// N.B: Second arguments needs to exclude the contracted
-      /// components, first factor needs to exclude transposed ones
-      template <size_t I>
-      using EC=
-	std::conditional_t<I==0,
-			   TransposeMatrixTensorComps<CCs>,
-			   CCs>;
-      
-      /// I-th remapping
-      template <size_t I>
-      using Remap=
-	typename _CompsRemappingForProductFactor<C<I>,EC<I>>::template _Getter<PCs>::type;
-      
-      /// Resulting barriers from remapping
-      using RemapBarr=
-	typename internal::_GetTensorCompsMeldBarriersFromCompsRemapping<PCs,
-									 std::tuple<C<Is>...>,
-									 std::tuple<M<Is>...>,
-									 std::tuple<Remap<Is>...>>::type;
-      
-      /// Position of the complex component
-      static constexpr size_t complPos=
-	firstOccurrenceOfTypeInTuple<ComplId,PCs>;
-      
-      /// Insert a barrier to avoid melding complex component
-      static constexpr auto _insertComplBarr(std::bool_constant<true>)
-      {
-	using ComplProdBarr=
-	  std::index_sequence<complPos,complPos+1>;
-	
-	using type=
-	  CompsMeldBarriersInsert<RemapBarr,ComplProdBarr>;
-	
-	return
-	  type{};
-      }
-      
-      /// Do not insert a barrier to avoid melding complex component
-      static constexpr auto _insertComplBarr(std::bool_constant<false>)
-      {
-	using type=
-	  RemapBarr;
-	
-	return type{};
-      };
-      
-      /// Include a barrier to avoid melding complex component if this is a complex product
-      using type=
-	decltype(_insertComplBarr(std::bool_constant<isComplProd>()));
-   };
   }
-  
-  /// Gets the mapping between product components and its factors
-  template <typename PCs,     // Product components
-	    typename F1,      // First factor
-	    typename F2,      // Second factor
-	    typename CCs,     // Excluded (contracted) components
-	    bool isComplProd> // Takes note if this is complex product
-  using GetCompsMeldBarriersForProduct=
-    typename internal::_GetCompsMeldBarriersForProduct<PCs,std::tuple<F1,F2>,CCs,isComplProd>::type;
   
   /////////////////////////////////////////////////////////////////
   
   DEFINE_FEATURE(Producer);
   
 #define THIS					\
-  Producer<_ContractedComps,_E1,_E2,_Comps,_CompsMeldBarriers,_isComplProd,_EvalTo>
+  Producer<_ContractedComps,_E1,_E2,_Comps,_isComplProd,_EvalTo>
   
 #define NNEX					\
   NnaryExpr<THIS,				\
 	    std::tuple<_E1,_E2>,		\
 	    _Comps,				\
-	    _CompsMeldBarriers,		\
 	    _EvalTo>
   
   /// Product of two expressions
@@ -277,7 +176,6 @@ namespace nissa
 	    typename _E1,
 	    typename _E2,
 	    typename _Comps,
-	    typename _CompsMeldBarriers,
 	    bool _isComplProd,
 	    typename _EvalTo>
   struct Producer :
@@ -294,10 +192,6 @@ namespace nissa
     /// Components
     using Comps=
       _Comps;
-    
-    /// Barrier to meld components
-    using CompsMeldBarriers=
-      _CompsMeldBarriers;
     
     /// I-th Nested Expression type
     template <size_t I>
@@ -626,17 +520,12 @@ namespace nissa
       tupleHasType<C1,ComplId> and
       tupleHasType<C2,ComplId>;
     
-    /// Fusable comps
-    using CompsMeldBarriers=
-      GetCompsMeldBarriersForProduct<VisibleComps,E1,E2,ContractedComps,isComplProd>;
-    
     /// Resulting type
     using Res=
       Producer<ContractedComps,
 	       decltype(e1),
 	       decltype(e2),
 	       VisibleComps,
-	       CompsMeldBarriers,
 	       isComplProd,
 	       _EvalTo>;
     

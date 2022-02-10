@@ -10,7 +10,6 @@
 #include <metaProgramming/crtp.hpp>
 #include <metaProgramming/refOrVal.hpp>
 #include <tensor/component.hpp>
-#include <tensor/meldComps.hpp>
 #include <tensor/tensorDecl.hpp>
 
 namespace nissa
@@ -77,28 +76,21 @@ namespace nissa
   /// Base type to catch a tensorial expression
   template <typename T,
 	    typename TC,
-	    typename MB,
 	    typename F>
   struct Expr;
   
   template <typename T,
 	    typename...TCs,
-	    size_t...MBs,
 	    typename F>
   struct Expr<T,
 	      TensorComps<TCs...>,
-	      TensorCompsMeldBarriers<MBs...>,
 	      F> :
-    ExprFeat<Expr<T,TensorComps<TCs...>,TensorCompsMeldBarriers<MBs...>,F>>,
+    ExprFeat<Expr<T,TensorComps<TCs...>,F>>,
     Crtp<T>
   {
     /// Components
     using Comps=
       TensorComps<TCs...>;
-    
-    /// Fuse-component barriers
-    using CompsMeldBarriers=
-      TensorCompsMeldBarriers<MBs...>;
     
     /// Fundamental type
     using Fund=

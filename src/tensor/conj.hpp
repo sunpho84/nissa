@@ -8,6 +8,7 @@
 /// \file conj.hpp
 
 #include <metaProgramming/universalReference.hpp>
+#include <metaProgramming/dispatchStrategy.hpp>
 #include <tensor/unaryExpr.hpp>
 
 namespace nissa
@@ -47,19 +48,17 @@ namespace nissa
   DEFINE_FEATURE(Conjugator);
   
 #define THIS					\
-  Conjugator<_E,_Comps,_CompsMeldBarriers,_EvalTo>
+  Conjugator<_E,_Comps,_EvalTo>
   
 #define UNEX					\
     UnaryExpr<THIS,				\
 	      _E,				\
 	      _Comps,				\
-	      _CompsMeldBarriers,		\
 	      _EvalTo>
   
   /// Conjugator of an expression
   template <typename _E,
 	    typename _Comps,
-	    typename _CompsMeldBarriers,
 	    typename _EvalTo>
   struct Conjugator :
     ConjugatorFeat<THIS>,
@@ -75,10 +74,6 @@ namespace nissa
     /// Components
     using Comps=
       _Comps;
-    
-    /// Barrier to meld components
-    using CompsMeldBarriers=
-      _CompsMeldBarriers;
     
     /// Type returned when evaluating
     using EvalTo=
@@ -181,17 +176,12 @@ namespace nissa
       using Comps=
 	typename E::Comps;
       
-      /// Position of complex component
-      static constexpr size_t complPos=
-	firstOccurrenceOfTypeInTuple<ComplId,Comps>;
-      
-      /// Barriers between fusable components
-      using CompsMeldBarriers=
-	CompsMeldBarriersInsert<typename E::CompsMeldBarriers,
-	TensorCompsMeldBarriers<complPos,complPos+1>>;
+      // /// Position of complex component
+      // static constexpr size_t complPos=
+      // 	firstOccurrenceOfTypeInTuple<ComplId,Comps>;
       
       return
-	Conjugator<decltype(e),Comps,CompsMeldBarriers,EvalTo>(std::forward<_E>(e));
+	Conjugator<decltype(e),Comps,EvalTo>(std::forward<_E>(e));
     }
   };
   
