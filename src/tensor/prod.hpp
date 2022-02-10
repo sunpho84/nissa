@@ -243,7 +243,7 @@ namespace nissa
 	return type{};
       };
       
-      /// Iclude a barrier to avoid melding complex component if this is a complex product
+      /// Include a barrier to avoid melding complex component if this is a complex product
       using type=
 	decltype(_insertComplBarr(std::bool_constant<isComplProd>()));
    };
@@ -294,6 +294,10 @@ namespace nissa
     /// Components
     using Comps=
       _Comps;
+    
+    /// Barrier to meld components
+    using CompsMeldBarriers=
+      _CompsMeldBarriers;
     
     /// I-th Nested Expression type
     template <size_t I>

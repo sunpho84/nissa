@@ -492,7 +492,8 @@ namespace nissa
     
     using MB=
       std::index_sequence<1,3>;
-    
+
+    [[maybe_unused]]
     auto a=
       Process<Comps,Rules,MB>();
   }

@@ -11,6 +11,8 @@ namespace nissa
 {
   DECLARE_COMPONENT(Dir,int,NDIM);
   
+  DECLARE_COMPONENT(PerpDir,int,NDIM-1);
+  
   /// Convenient alias for Dir
   using Lorentz=
     Dir;
@@ -29,6 +31,9 @@ namespace nissa
   
 #define FOR_ALL_DIRS(NAME)		\
   FOR_ALL_COMPONENT_VALUES(Dir,NAME)
+  
+#define FOR_ALL_PERP_DIRS(NAME)		\
+  FOR_ALL_COMPONENT_VALUES(PerpDir,NAME)
   
 #define UNROLL_FOR_ALL_DIRS(NAME,CORE...)	\
   FOR_ALL_COMPONENT_VALUES(Dir,NAME,CORE)

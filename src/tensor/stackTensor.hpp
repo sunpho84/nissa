@@ -57,14 +57,15 @@ namespace nissa
     /// Actual storage
     Fund storage[storageSize];
     
-#define PROVIDE_ORDERED_EVALUATOR(ATTRIB)					\
+    /// THIS MIGHT BE MOVED TO A EVALUATOR FEATURE
+
+#define PROVIDE_ORDERED_EVALUATOR(ATTRIB)				\
     /*! Evaluate, returning a reference to the fundamental type */	\
     template <typename...TD,						\
 	      ENABLE_THIS_TEMPLATE_IF(std::is_same_v<TD,TC> && ...)>	\
     CUDA_HOST_DEVICE INLINE_FUNCTION					\
-    ATTRIB Fund& orderedEval(const TD&...td) ATTRIB				\
+    ATTRIB Fund& orderedEval(const TD&...td) ATTRIB			\
     {									\
-									\
       return storage[this->indexComputer(td...)];			\
     }									\
     

@@ -61,7 +61,7 @@ namespace nissa
   
   /// Local lattice hcube sizes
   CUDA_MANAGED EXTERN_GEOMETRY_LX LocCoords locSize;
-
+  
   /// Global size in time direction
   inline const GlbCoord& glbTimeSize=
     glbSize(tDir);
