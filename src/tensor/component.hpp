@@ -159,6 +159,10 @@ namespace nissa
     RwCl rC=
       RC;
     
+    /// Define if this component is of matrix type (row or column)
+    static constexpr bool isMatrix=
+      RC!=ANY;
+    
     /// Index of the component
     static constexpr
     int which=

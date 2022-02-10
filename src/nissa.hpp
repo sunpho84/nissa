@@ -195,6 +195,7 @@
 #include <tensor/loopOnAllComponents.hpp>
 #include <tensor/prod.hpp>
 #include <tensor/tensor.hpp>
+#include <tensor/trace.hpp>
 #include <tensor/transp.hpp>
 #include <tensor/unaryExpr.hpp>
 

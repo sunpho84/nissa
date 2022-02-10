@@ -321,18 +321,18 @@ namespace nissa
       
       loopOnAllComponents<_ContractedComps>(TensorComps<>(),
 					    [this,&res,nCCs=std::make_tuple(nCCs...)](const auto&...cCs) INLINE_ATTRIBUTE
-      {
-	/// First argument
-	const auto f=
-	  this->_evalArg<0>(nCCs,cCs...);
-	
-	/// Second argument
-	const auto s=
-	  this->_evalArg<1>(nCCs,cCs...);
-	
-	res+=
-	  f*s;
-	});
+					    {
+					      /// First argument
+					      const auto f=
+						this->template _evalArg<0>(nCCs,cCs...);
+					      
+					      /// Second argument
+					      const auto s=
+						this->template _evalArg<1>(nCCs,cCs...);
+					      
+					      res+=
+						f*s;
+					    });
       
       return
 	res;

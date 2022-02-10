@@ -287,7 +287,12 @@ namespace nissa
 	    FOR_REIM_PARTS(reIm)
 	      newConf(site,dir,rowCol,clnCol,reIm)=conf[site()][dir()][rowCol()][clnCol()][reIm()];
     
-    auto plaquettes=lxField<OfComps<>>();
+  // using ToBeFiltered = std::tuple<TensorComp<LocLxSiteSignature, ANY, 0>, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0>, TensorComp<ComplIdSignature, ANY, 0> >;
+  // using Filter = std::tuple<std::tuple<TensorComp<ComplIdSignature, ANY, 0>, TensorComp<LocLxSiteSignature, ANY, 0> >, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0> >;
+
+  // using aa=typename TupleFilterAllTypes<ToBeFiltered,Filter>::type;
+  
+  auto plaquettes=lxField<OfComps<>>();
     FOR_ALL_DIRS(dir)
       for(Dir otherDir=dir+1;otherDir<NDIM;otherDir++)
 	{
@@ -296,18 +301,13 @@ namespace nissa
 	  
 	  auto c=(lowerPart*dag(upperPart));
 	  
-	  /// Occorre implementare lo shift, la traccia, la somma, l'autosomma, poi la riduzione
+	  /// Occorre implementare lo shift, la somma, l'autosomma, poi la riduzione
     ASM_BOOKMARK_BEGIN("ciccione");
-	  plaquettes=real(c(ColorRow(0),ColorCln(0)));
+    plaquettes=real(trace(c));
     ASM_BOOKMARK_END("ciccione");
 	}
     printf("%lg\n",plaquettes(LocLxSite(0)));
-    // auto oldConf=lxField<OfComps<Dir,ColorRow,ColorCln,ComplId>,AllocateBord::YES>();
-    // auto newField=lxField<OfComps<ColorRow,ComplId>,AllocateBord::YES>();
     
-    // prod(oldConf,newConf);
-
-    // conj(conj(oldConf))=newConf;
     
     Tensor<OfComps<Dir,ColorRow>> rt;
     for (Dir mu = 0; mu < Dir ::sizeAtCompileTimeAssertingNotDynamic(); mu++)
