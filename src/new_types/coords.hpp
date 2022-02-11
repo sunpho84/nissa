@@ -9,6 +9,14 @@
 
 namespace nissa
 {
+  DECLARE_COMPONENT(Orientation,int,2);
+  
+  /// Bakcward direction
+#define BACW Orientation(0)
+  
+  /// Forward direction
+#define FORW Orientation(1)
+    
   DECLARE_COMPONENT(Dir,int,NDIM);
   
   DECLARE_COMPONENT(PerpDir,int,NDIM-1);
@@ -18,16 +26,16 @@ namespace nissa
     Dir;
   
   /// Temporal direction
-  inline CUDA_DEVICE Dir tDir=0;
+#define tDir Dir(0)
   
   /// X direction
-  inline CUDA_DEVICE Dir xDir=1;
+#define xDir Dir(1)
   
   /// Y direction
-  inline CUDA_DEVICE Dir yDir= 2;
+#define yDir Dir(2)
   
   /// Z direction
-  inline CUDA_DEVICE Dir zDir=3;
+#define zDir Dir(3)
   
 #define FOR_ALL_DIRS(NAME)		\
   FOR_ALL_COMPONENT_VALUES(Dir,NAME)

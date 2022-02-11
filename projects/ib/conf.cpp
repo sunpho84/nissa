@@ -289,22 +289,22 @@ namespace nissa
     
   // using ToBeFiltered = std::tuple<TensorComp<LocLxSiteSignature, ANY, 0>, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0>, TensorComp<ComplIdSignature, ANY, 0> >;
   // using Filter = std::tuple<std::tuple<TensorComp<ComplIdSignature, ANY, 0>, TensorComp<LocLxSiteSignature, ANY, 0> >, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0> >;
-
   // using aa=typename TupleFilterAllTypes<ToBeFiltered,Filter>::type;
   
   auto plaquettes=lxField<OfComps<>>();
     FOR_ALL_DIRS(dir)
       for(Dir otherDir=dir+1;otherDir<NDIM;otherDir++)
 	{
-	  auto lowerPart=(newConf(dir)*newConf(otherDir)).close();
-	  auto upperPart=(newConf(otherDir)*newConf(dir)).close();
+	  // auto r=std::decay<decltype(std::get<1>(t.nestedExprs))>::Comps{};
+	  auto lowerPart=(newConf(dir)*shiftDw(newConf(otherDir),dir)).close();
+	  auto upperPart=(newConf(otherDir)*shiftDw(newConf(dir),otherDir)).close();
 	  
 	  auto c=(lowerPart*dag(upperPart));
 	  
 	  /// Occorre implementare lo shift, la somma, l'autosomma, poi la riduzione
-    ASM_BOOKMARK_BEGIN("ciccione");
-    plaquettes=real(trace(c));
-    ASM_BOOKMARK_END("ciccione");
+	  ASM_BOOKMARK_BEGIN("ciccione");
+	  plaquettes=real(trace(c));
+	  ASM_BOOKMARK_END("ciccione");
 	}
     printf("%lg\n",plaquettes(LocLxSite(0)));
     

@@ -164,11 +164,11 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighup;
   
   INLINE_FUNCTION CUDA_HOST_DEVICE
-  const LookupTable<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(int verse) //nasty
+  const LookupTable<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(const Orientation& ori) //nasty
   {
     const LookupTable<OfComps<LocLxSite,Dir>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
      
-     return *ref[verse];
+     return *ref[ori.nastyConvert()];
   }
   
   /// Keep track of whether the grid is initialized

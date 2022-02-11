@@ -106,7 +106,7 @@ namespace nissa
     /// Move constructor
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
     CompBinder(CompBinder&& oth) :
-      UnEx(FORWARD_MEMBER_VAR(CompBinder,oth,nestedExpression)),
+      UnEx(FORWARD_MEMBER_VAR(CompBinder,oth,nestedExpr)),
       boundComps(oth.boundComps)
     {
     }

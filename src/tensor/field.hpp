@@ -15,6 +15,8 @@ namespace nissa
     enum : bool{NO,YES};
   }
   
+  DEFINE_FEATURE(Field);
+  
 #define THIS \
   LxField<_Comps,_F,_WithBord>
 
@@ -29,6 +31,7 @@ namespace nissa
 	    typename _F,
 	    bool _WithBord=AllocateBord::NO>
   struct LxField :
+    FieldFeat<THIS>,
     UNEX
   {
     /// Import unary expression
