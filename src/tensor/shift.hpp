@@ -66,7 +66,6 @@ namespace nissa
       return t.deFeat();
     }
     
-    template <typename T>
     CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) processComp(const LocLxSite& lxSite) const
     {
@@ -122,8 +121,8 @@ namespace nissa
     return shift(std::forward<_E>(_e),NAME,dir);			\
   }
   
-  PROVIDE_SHIFT_IN_ORIENTATION(FORW,Up)
-  PROVIDE_SHIFT_IN_ORIENTATION(BACW,Dw)
+  PROVIDE_SHIFT_IN_ORIENTATION(BACW,Up)
+  PROVIDE_SHIFT_IN_ORIENTATION(FORW,Dw)
   
 #undef PROVIDE_SHIFT_IN_ORIENTATION
 }
