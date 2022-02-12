@@ -40,7 +40,7 @@ namespace nissa
     static constexpr Index staticPartMaxValue=
       ((TC::sizeIsKnownAtCompileTime?
 	TC::sizeAtCompileTime():
-       Index{1})*...);
+       Index{1})*...*1);
     
     /// Size of the Tv component
     ///
