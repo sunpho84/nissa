@@ -6,6 +6,7 @@
 #endif
 
 #include <geometry/geometry_lx.hpp>
+#include <tensor/loopOnAllComponents.hpp>
 #include <tensor/unaryExpr.hpp>
 
 namespace nissa
@@ -18,7 +19,7 @@ namespace nissa
   DEFINE_FEATURE(Field);
   
 #define THIS \
-  LxField<_Comps,_F,_WithBord>
+  LxField<_Comps,_F,_BaseComps,_WithBord>
 
 #define UNEX							\
   UnaryExpr<THIS,						\
@@ -29,6 +30,7 @@ namespace nissa
   /// Lexicographic field
   template <typename _Comps,
 	    typename _F,
+	    typename _BaseComps,
 	    bool _WithBord=AllocateBord::NO>
   struct LxField :
     FieldFeat<THIS>,
@@ -48,6 +50,10 @@ namespace nissa
     /// Components
     using Comps=
       _Comps;
+    
+    /// Components without the spacetime
+    using BaseComps=
+      _BaseComps;
     
     /// Fundamental type
     using EvalTo=
@@ -78,6 +84,27 @@ namespace nissa
 	withBord?locVolWithBord:locVol;
       
       this->nestedExpr.allocate(sitesToAllocate,tdFeat.deFeat()...);
+    }
+    
+    /// This reduction is really basic
+    auto globalReduce() const
+    {
+      /// \todo Missing dynamic sizes
+      Tensor<BaseComps,_F,DefaultStorage> res;
+      ;
+      
+      /// \todo One should spearate inner comps and outer comps, and separate the loops
+      
+      loopOnAllComponents<BaseComps>(this->nestedExpr.getDynamicSizes(),
+				     [this,&res](const auto...comps)
+				     {
+				       res(comps...)=0.0;
+				       
+				       for(LocLxSite site=0;site<locVol;site++)
+					 res(comps...)+=this->nestedExpr(comps...,site);
+				     });
+      
+      return res;
     }
     
     /// Constructor which specifies the sizes
@@ -139,7 +166,7 @@ namespace nissa
       typename internal::_LxFieldComps<TC>::type;
     
     return
-      LxField<LxFieldComps,F,AllocateBord::NO>(std::forward<Args>(args)...);
+      LxField<LxFieldComps,F,TC,AllocateBord::NO>(std::forward<Args>(args)...);
   }
 }
 
