@@ -290,9 +290,11 @@ namespace nissa
   // using ToBeFiltered = std::tuple<TensorComp<LocLxSiteSignature, ANY, 0>, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0>, TensorComp<ComplIdSignature, ANY, 0> >;
   // using Filter = std::tuple<std::tuple<TensorComp<ComplIdSignature, ANY, 0>, TensorComp<LocLxSiteSignature, ANY, 0> >, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0> >;
   // using aa=typename TupleFilterAllTypes<ToBeFiltered,Filter>::type;
-
-    double p=0.0;
-  auto plaquettes=lxField<OfComps<>>();
+    
+    auto plaquettes=lxField<OfComps<>>();
+    for(LocLxSite site=0;site<locVol;site++)
+      plaquettes(site)=0.0;
+    
     FOR_ALL_DIRS(dir)
       for(Dir otherDir=dir+1;otherDir<NDIM;otherDir++)
 	{
@@ -318,14 +320,12 @@ namespace nissa
 	  
 	  
 	  ASM_BOOKMARK_BEGIN("ciccione");
-	  plaquettes=real(trace(c));
-	  const double glbPlaq=plaquettes.globalReduce()();
-	  p+=glbPlaq;
+	  plaquettes=plaquettes+real(trace(c));
 	  //printf("%lg\n",glbPlaq);
 	  ASM_BOOKMARK_END("ciccione");
 	}
-    printf("%.16lg\n",p/glbVol()/6/3);
-    
+    const double glbPlaq=plaquettes.globalReduce()();
+    printf("%.16lg\n",glbPlaq/glbVol()/6/3);
     
     Tensor<OfComps<Dir,ColorRow>> rt;
     for (Dir mu = 0; mu < Dir ::sizeAtCompileTimeAssertingNotDynamic(); mu++)

@@ -35,10 +35,10 @@ namespace nissa
     /// First nested expression
     NestedExprs nestedExprs;
     
-#define DECLARE_NESTED_EXPR(ATTRIB)	\
+#define DECLARE_NESTED_EXPR(ATTRIB)		\
     /*! Returns the I-th nested expression */	\
     template <size_t I>				\
-    decltype(auto) nestedExpr() ATTRIB	\
+    decltype(auto) nestedExpr() ATTRIB		\
     {						\
       return					\
 	std::get<I>(nestedExprs);		\
@@ -62,7 +62,7 @@ namespace nissa
     {
     }
     
-    /// Import assignemnt operator
+    /// Import assignement operator
     using Expr<T,TC,F>::operator=;
   };
   

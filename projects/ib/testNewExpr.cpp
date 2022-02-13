@@ -45,23 +45,6 @@ void test2(Tensor<OfComps<LocLxSite,ColorRow,ColorCln>>& v,
 DECLARE_ROW_OR_CLN_COMPONENT(Spin,int,NDIRAC);
 
 
-void test3(Tensor<OfComps<SpinRow,ColorRow,ColorCln,SpinCln,ComplId,LocLxSite>>& v,
-	   Tensor<OfComps<ColorRow,ColorCln,SpinRow,ComplId,LocLxSite>>& z)
-{
-  const auto p=v*z;
-  using P=decltype(p);
-  
-  const auto c=typename P::Comps{};
-  const auto d=typename decltype(v*z)::CompsMeldBarriers{};
-}
-
-void test4(Tensor<OfComps<SpinRow,ColorRow,ColorCln,SpinCln,ComplId,LocLxSite>>& v,
-	   Tensor<OfComps<ColorRow,ColorCln,SpinRow,ComplId,LocLxSite>>& z)
-{
-  const auto p=v*z;
-  using P=decltype(p);
-}
-
 void in_main(int narg,char** arg)
 {
   init_grid(4,4);
