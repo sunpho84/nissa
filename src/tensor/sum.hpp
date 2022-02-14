@@ -191,7 +191,7 @@ namespace nissa
       Summer<Comps,
 	     decltype(e1),
 	     decltype(e2),
-	       _EvalTo>;
+	     _EvalTo>;
     
     /// Resulting dynamic components
     const auto& dc=

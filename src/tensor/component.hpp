@@ -623,7 +623,6 @@ namespace nissa
   
   /// Independent components of a set of TensorComponents
   ///
-  ///
   /// Only Row version is returned, even if only Col is present
   ///
   /// \example

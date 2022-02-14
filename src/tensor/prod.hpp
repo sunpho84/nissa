@@ -14,90 +14,53 @@
 
 namespace nissa
 {
-  namespace internal
+  namespace ProdComponentsDeducer
   {
-    /// Classifies the components, determining which one are visible or contracted
-    ///
-    /// Internal implementation, forward declaration
-    template <typename TT,
-	      typename TP1,
-	      typename TP2>
-    struct _ProdCompsClassifierImpl;
-    
-    /// Classifies the components, determining which one are visible or contracted
-    template <typename...S,
-	      RwCl...RCA,
-	      int...Which,
-	      typename TP1,
-	      typename TP2>
-    struct _ProdCompsClassifierImpl<TensorComps<TensorComp<S,RCA,Which>...>,
-				    TP1,
-				    TP2>
+    /// Check if a certain component is contracted or visible
+    template <RwCl RC,
+	      typename C,
+	      typename...O>
+    struct CheckComp
     {
-      /// Detect if component with signature _S and index _Which is contracted
-      template <typename  _S,
-		int _Which>
-      static constexpr bool contract=
-	tupleHasType<TP1,TensorComp<_S,CLN,_Which>,1> and
-	tupleHasType<TP2,TensorComp<_S,ROW,_Which>,1>;
+      static constexpr bool isContracted=
+	(C::rC==RC and (std::is_same_v<typename C::Transp,O>||...));
       
-      /// Classifies the component TC
-      ///
-      /// Forward declaration
-      template <typename TC>
-      struct _Classify;
+      using Visible=
+	std::conditional_t<isContracted,std::tuple<>,std::tuple<C>>;
       
-      /// Classifies a row component
-      template <typename _S,
-		int _Which>
-      struct _Classify<TensorComp<_S,ROW,_Which>>
-      {
-	/// This component, in row format
-	using ThisRow=
-	  TensorComp<_S,ROW,_Which>;
-	
-	/// This component, in cln format
-	using ThisCln=
-	  TensorComp<_S,CLN,_Which>;
-	
-	/// Determine if the result has the row component
-	static constexpr bool resHasRow=
-	  tupleHasType<TP1,ThisRow,1> or (tupleHasType<TP2,ThisRow,1> and not contract<_S,_Which>);
-	
-	/// Determine if the result has the cln component
-	static constexpr bool resHasCln=
-	  tupleHasType<TP2,ThisCln,1> or (tupleHasType<TP1,ThisCln,1> and not contract<_S,_Which>);
-	
-	/// Put together the two components
-	using VisibleComps=
-	  TupleCat<std::conditional_t<resHasRow,TensorComps<ThisRow>,TensorComps<>>,
-		   std::conditional_t<resHasCln,TensorComps<ThisCln>,TensorComps<>>>;
-      };
-      
-      /// Classifies a non row-cln component
-      template <typename _S,
-		int _Which>
-      struct _Classify<TensorComp<_S,ANY,_Which>>
-      {
-	
-	using VisibleComps=
-	  TensorComps<TensorComp<_S,ANY,_Which>>;
-      };
-      
-      /// Cat all visible components
-      using VisibleComps=
-	TupleCat<typename _Classify<TensorComp<S,RCA,Which>>::VisibleComps...>;
-      
-      /// Cat all contracted components
-      using ContractedComps=
-	TupleCat<std::conditional_t<contract<S,Which>,TensorComps<TensorComp<S,ROW,Which>>,TensorComps<>>...>;
+      using Contracted=
+	std::conditional_t<not isContracted,std::tuple<>,std::tuple<typename C::Transp>>;
     };
     
-    template <typename TC1,
-	      typename TC2>
-    using _ProdCompsComputer=
-      _ProdCompsClassifierImpl<IndependentComponents<TC1,TC2>,
-			       TC1,TC2>;
+    /// Product component deducer
+    ///
+    /// Takes as argument the components of the first factor, the
+    /// components of the second factor, and puts in the output the
+    /// visible and contracted components separately
+    ///
+    /// Forward declaration
+    template <typename A,
+	      typename B>
+    struct Deducer;
+    
+    /// Product component deducer
+    template <typename...TA,
+	      typename...TB>
+    struct Deducer<TensorComps<TA...>,TensorComps<TB...>>
+    {
+      template <typename A>
+      using FirstCase=CheckComp<CLN,A,TB...>;
+      
+      template <typename B>
+      using SecondCase=CheckComp<ROW,B,TA...>;
+      
+      using VisibleComps=
+	UniqueTupleFromTuple<TupleCat<typename FirstCase<TA>::Visible...,
+				      typename SecondCase<TB>::Visible...>>;
+      
+      using ContractedComps=
+	TupleCat<typename FirstCase<TA>::Contracted...>;
+    };
   }
   
   /////////////////////////////////////////////////////////////////
@@ -493,7 +456,7 @@ namespace nissa
     
     /// Computes the product components
     using PCC=
-      internal::_ProdCompsComputer<C1,C2>;
+      ProdComponentsDeducer::Deducer<C1,C2>;
     
     /// Gets the visible comps
     using VisibleComps=
