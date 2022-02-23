@@ -30,8 +30,11 @@ void write_to_binary_file(FILE *fp,su3 A)
 void index(int &irank_to,int &iel_to,int iel_fr,void *pars)
 {
   const coords_t& c=glbCoordOfLoclx[iel_fr];
+  
   int num=snum(c[1],c[2],c[3],c[0]);
-  irank_to=iel_to/locVol;
+  
+  irank_to=num/locVol;
+  
   iel_to=num-irank_to*locVol;
 }
 
@@ -59,7 +62,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////// read the file /////////////////////////
   
-  quad_su3 *in_conf=nissa_malloc("in_conf",locVol,quad_su3);
+  quad_su3 *in_conf=nissa_malloc("in_conf",locVol+bord_vol,quad_su3);
   
   //init messages
   ILDG_message mess;
@@ -96,34 +99,60 @@ int main(int narg,char **arg)
       if(fout==NULL) crash("while opening %s",out_conf_name);
       
       fprintf(fout,"4 %d %d %d %d %d ",glbSize[0],glbSize[1],glbSize[2],glbSize[3],itraj);
+    }
   
-      char res[2*MD5_DIGEST_LENGTH+1]="";
+  char res[2*MD5_DIGEST_LENGTH+1]="";
 #ifdef USE_SSL
-      if(nranks==1)
+  
+  if(rank==0)
+    MD5_Init(&mdContext);
+  
+  int prevRank=0;
+  for(int gvol=0;gvol<glbVol;gvol++)
+    {
+      int irank,ivol;
+      get_loclx_and_rank_of_coord(ivol,irank,glb_coord_of_glblx(gvol));
+      if(prevRank!=irank)
 	{
-	  MD5_Init(&mdContext);
-	  NISSA_LOC_VOL_LOOP(ivol)
-	    for(int mu=0;mu<NDIM;mu++)
-	      for(int icol=0;icol<NCOL;icol++)
-		for(int jcol=0;jcol<NCOL;jcol++)
-		  {
-		    complex& c=out_conf[ivol][mu][icol][jcol];
-		    complex d;
-		    if(little_endian)
-		      change_endianness((double*)d,(double*)c,sizeof(complex)/sizeof(double));
-		    else
-		      complex_copy(d,c);
-		    MD5_Update(&mdContext,d,sizeof(complex));
-		  }
-	  MD5_Final(c,&mdContext);
-	  
-	  for(int r=0;r<MD5_DIGEST_LENGTH;r++)
-	    sprintf(&(res[2*r]), "%02x", c[r]);
-	  res[2*MD5_DIGEST_LENGTH]='\0';
-	  
-	  master_printf("res: %s\n",res);
+	  if(prevRank==rank) MPI_Send(&mdContext,sizeof(MD5_CTX),MPI_CHAR,irank,12,MPI_COMM_WORLD);
+	  if(irank==rank) MPI_Recv(&mdContext,sizeof(MD5_CTX),MPI_CHAR,prevRank,12,MPI_COMM_WORLD,MPI_STATUSES_IGNORE);
 	}
+      prevRank=irank;
+      
+      if(rank==irank)
+	for(int mu=0;mu<NDIM;mu++)
+	  for(int icol=0;icol<NCOL;icol++)
+	    for(int jcol=0;jcol<NCOL;jcol++)
+	      {
+		complex& c=out_conf[ivol][mu][icol][jcol];
+		complex d;
+		if(little_endian)
+		  change_endianness((double*)d,(double*)c,sizeof(complex)/sizeof(double));
+		else
+		  complex_copy(d,c);
+		MD5_Update(&mdContext,d,sizeof(complex));
+	      }
+    }
+  
+  if(prevRank!=0)
+    {
+      if(prevRank==rank) MPI_Send(&mdContext,sizeof(MD5_CTX),MPI_CHAR,0,12,MPI_COMM_WORLD);
+      if(0==rank) MPI_Recv(&mdContext,sizeof(MD5_CTX),MPI_CHAR,prevRank,12,MPI_COMM_WORLD,MPI_STATUSES_IGNORE);
+    }
+  
+  if(rank==0)
+    MD5_Final(c,&mdContext);
+  MPI_Bcast(c,sizeof(c),MPI_CHAR,0,MPI_COMM_WORLD);
+  
+  for(int r=0;r<MD5_DIGEST_LENGTH;r++)
+    sprintf(&(res[2*r]), "%02x", c[r]);
+  res[2*MD5_DIGEST_LENGTH]='\0';
+  
+  master_printf("res: %s\n",res);
 #endif
+  
+  if(rank==0)
+    {
       fprintf(fout,"%s\n",res);
       fclose(fout);
     }
@@ -133,12 +162,16 @@ int main(int narg,char **arg)
     {
       if(rank==iRank)
 	{
-	  fout=open_file(out_conf_name,"a");
+	  fout=fopen(out_conf_name,"a");
+	  if(fout==nullptr)
+	    crash("Unable to open for append %s",out_conf_name);
+	  
 	  //write the data
 	  NISSA_LOC_VOL_LOOP(ivol)
-	    for(int mu=0;mu<NDIM;mu++)
-	      write_to_binary_file(fout,out_conf[ivol][mu]);
-	  
+	    {
+	      for(int mu=0;mu<NDIM;mu++)
+		write_to_binary_file(fout,out_conf[ivol][mu]);
+	    }
 	  //close the file
 	  fclose(fout);
 	}
