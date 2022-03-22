@@ -348,4 +348,24 @@ namespace nissa
     
     return tadpole;
   }
+  
+  //compute the energy of an off-shell gluon
+  double gluon_energy(gauge_info gl,const double virt,const int imom)
+  {
+    if(gl.c1!=WILSON_C1)
+      crash("Implemented only for Wilson gluons");
+    
+    double p2=0;
+    coords_t c=glb_coord_of_glblx(imom);
+    for(int mu=1;mu<NDIM;mu++)
+      {
+	double p=M_PI*(2*c[mu]+gl.bc[mu])/glbSize[mu];
+	p2+=sqr(2*sin(p/2));
+      }
+    
+    double four_sinh2_Eh=p2+sqr(2*sinh(virt/2));
+    if(four_sinh2_Eh<0) master_printf("WARNING, negative squared energy %lg\n",four_sinh2_Eh);
+    
+    return 2*asinh(sqrt(four_sinh2_Eh/4));
+  }
 }

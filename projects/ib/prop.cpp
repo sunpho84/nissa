@@ -398,7 +398,7 @@ namespace nissa
   }
   
   //generate a sequential source
-  void generate_source(insertion_t inser,char *ext_field_path,int r,double charge,double kappa,double* kappa_asymm,const momentum_t& theta,std::vector<source_term_t>& source_terms,int isou,int t)
+  void generate_source(insertion_t inser,char *ext_field_path,double mass,int r,double charge,double kappa,double* kappa_asymm,const momentum_t& theta,std::vector<source_term_t>& source_terms,int isou,int t)
   {
     source_time-=take_time();
     
@@ -424,13 +424,44 @@ namespace nissa
 	ext_field=nissa_malloc("ext_field",locVol+bord_vol,spin1field);
 	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
       }
-
-    enum class BwFw {BW,FW};
-    auto vphotonInsertCurr=[](const BwFw bwFw,const int nu)
+    
+    auto HeavyTheta=[](const int x)
     {
-      return [bwFw,nu](complex ph,const int ivol,const int mu)
+      return ((x>=0)+(x>0))/2.0;
+    };
+    
+    /// Function to insert the virtual photon emission projection
+    enum class BwFw {BW,FW};
+    auto vphotonInsertCurr=[mass,HeavyTheta,theta](const BwFw bwFw,const int nu)
+    {
+      const double Eg=gluon_energy(photon,mass,0);
+      
+      return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu)
       {
+	double a=0.0;
+	for(int mu=1;mu<NDIM;mu++)
+	  a+=glbCoordOfLoclx[ivol][mu]*M_PI*theta[mu]/glbSize[mu];
+	complex_iexp(ph,a);
 	
+	if(mu==nu)
+	  {
+	    const int TH=glbSize[0]/2;
+	    const int t=(glbSize[0]+glbCoordOfLoclx[ivol][0]-source_coord[0])%glbSize[0];
+	    
+	    const double f1= //eq.3.8 of reph.pdf
+	      (bwFw==BwFw::BW)?
+	      exp(-(TH+t)*Eg):
+	      exp(-(TH-t)*Eg);
+	    
+	    const double f2=
+	      (bwFw==BwFw::BW)?
+	      exp((TH-t)*Eg):
+	      exp(-(3*TH-t)*Eg);
+	    
+	    complex_prodassign_double(ph,HeavyTheta(TH-t)*f1+HeavyTheta(t-TH)*f2);
+	  }
+	else
+	  complex_put_to_zero(ph);
       };
     };
     
@@ -573,7 +604,7 @@ namespace nissa
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
 	      int isou=so_sp_col_ind(id_so,ic_so);
-	      generate_source(insertion,q.ext_field_path,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
+	      generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
 	      spincolor *sol=q[isou];
 	      
 	      //combine the filename

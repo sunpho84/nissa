@@ -17,6 +17,7 @@ namespace nissa
   void multiply_by_sqrt_tlSym_gauge_propagator(spin1field *out,spin1field *in,gauge_info gl);
   void multiply_by_tlSym_gauge_propagator(spin1field *out,spin1field *in,gauge_info gl);
   momentum_t compute_tadpole(gauge_info photon);
+  double gluon_energy(gauge_info gl,const double virt,const int imom);
 }
 
 #endif
