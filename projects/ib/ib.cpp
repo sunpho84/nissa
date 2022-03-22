@@ -237,6 +237,27 @@ void init_simulation(int narg,char **arg)
 	  read_theta(theta);
 	}
       
+      bool vph=false;
+      for(const auto& possIns : {VPHOTON0,VPHOTON1,VPHOTON2,VPHOTON3,
+				 VBHOTON0,VBHOTON1,VBHOTON2,VBHOTON3})
+	vph|=(strcasecmp(ins,ins_tag[possIns])==0);
+      
+      if(vph)
+	{
+	  decripted=true;
+	  
+	  read_double(&mass);
+	  master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	  
+	  read_double(&kappa);
+	  master_printf("Read variable 'Kappa' with value: %lg\n",kappa);
+	  
+	  read_int(&r);
+	  master_printf("Read variable 'R' with value: %d\n",r);
+	  
+	  read_theta(theta);
+	}
+      
       //read smearing
       if(strcasecmp(ins,ins_tag[SMEARING])==0 or strcasecmp(ins,ins_tag[WFLOW])==0 or strcasecmp(ins,ins_tag[BACK_WFLOW])==0)
 	{

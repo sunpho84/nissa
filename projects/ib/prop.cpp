@@ -191,6 +191,31 @@ namespace nissa
     set_borders_invalid(out);
   }
   
+  //insert a field in the current
+  template <typename F>
+  void insert_external_loc_source(spincolor *out,F currCalc,spincolor *in,int t)
+  {
+    
+    if(in==out) crash("in==out");
+    
+    vector_reset(out);
+    
+    for(int mu=0;mu<NDIM;mu++)
+      NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
+	  {
+	    spincolor temp1,temp2;
+	    unsafe_dirac_prod_spincolor(temp1,base_gamma[igamma_of_mu[mu]],in[ivol]);
+	    complex curr;
+	    currCalc(curr,ivol,mu);
+	    unsafe_spincolor_prod_complex(temp2,temp1,curr);
+	    spincolor_summ_the_prod_idouble(out[ivol],temp2,1);
+	  }
+    NISSA_PARALLEL_LOOP_END;
+    
+    set_borders_invalid(out);
+  }
+  
   //insert the external source
   void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,const which_dir_t& dirs,int loc)
   {
@@ -198,6 +223,16 @@ namespace nissa
     else
       if(twisted_run>0) insert_tm_external_source(out,conf,curr,ori,r,dirs,t);
       else              insert_Wilson_external_source(out,conf,curr,ori,dirs,t);
+  }
+  
+  //insert the external source
+  template <typename F>
+  void insert_external_source(spincolor *out,quad_su3 *conf,F currCalc,spincolor *ori,int t,int r,int loc)
+  {
+    if(loc) insert_external_loc_source(out,currCalc,ori,t);
+    else
+      if(twisted_run>0) insert_tm_external_source(out,conf,currCalc,ori,r,t);
+      else              insert_Wilson_external_source(out,conf,currCalc,ori,t);
   }
   
   //insert the tadpole
@@ -389,6 +424,15 @@ namespace nissa
 	ext_field=nissa_malloc("ext_field",locVol+bord_vol,spin1field);
 	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
       }
+
+    enum class BwFw {BW,FW};
+    auto vphotonInsertCurr=[](const BwFw bwFw,const int nu)
+    {
+      return [bwFw,nu](complex ph,const int ivol,const int mu)
+      {
+	
+      };
+    };
     
     master_printf("Inserting r: %d\n",r);
     switch(inser)
@@ -402,6 +446,14 @@ namespace nissa
       case PHOTON1:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[1],loc_hadr_curr);break;
       case PHOTON2:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[2],loc_hadr_curr);break;
       case PHOTON3:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[3],loc_hadr_curr);break;
+      case VBHOTON0:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::BW,0),ori,rel_t,r,loc_hadr_curr);break;
+      case VBHOTON1:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::BW,1),ori,rel_t,r,loc_hadr_curr);break;
+      case VBHOTON2:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::BW,2),ori,rel_t,r,loc_hadr_curr);break;
+      case VBHOTON3:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::BW,3),ori,rel_t,r,loc_hadr_curr);break;
+      case VPHOTON0:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::FW,0),ori,rel_t,r,loc_hadr_curr);break;
+      case VPHOTON1:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::FW,1),ori,rel_t,r,loc_hadr_curr);break;
+      case VPHOTON2:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::FW,2),ori,rel_t,r,loc_hadr_curr);break;
+      case VPHOTON3:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::FW,3),ori,rel_t,r,loc_hadr_curr);break;
       case PHOTON_PHI:insert_external_source(loop_source,conf,photon_phi,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case PHOTON_ETA:insert_external_source(loop_source,conf,photon_eta,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case TADPOLE:insert_tadpole(loop_source,conf,ori,rel_t,r);break;
