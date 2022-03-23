@@ -362,10 +362,10 @@ namespace nissa
 	double p=M_PI*(2*c[mu]+gl.bc[mu])/glbSize[mu];
 	p2+=sqr(2*sin(p/2));
       }
-    
-    double four_sinh2_Eh=p2+sqr(2*sinh(virt/2));
+
+    double four_sinh2_Eh= sqr(2.0*asinh( sqrt(p2)/2 )) +sqr(virt);
     if(four_sinh2_Eh<0) master_printf("WARNING, negative squared energy %lg\n",four_sinh2_Eh);
     
-    return 2*asinh(sqrt(four_sinh2_Eh/4));
+    return sqrt(four_sinh2_Eh);
   }
 }
