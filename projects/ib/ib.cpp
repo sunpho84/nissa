@@ -143,8 +143,8 @@ void init_simulation(int narg,char **arg)
       if(Q.find(name)!=Q.end()) crash("name \'%s\' already included",name);
       
       //ins name
-      char ins[3];
-      read_str(ins,2);
+      char ins[INS_TAG_MAX_LENGTH+1];
+      read_str(ins,INS_TAG_MAX_LENGTH);
       master_printf("Read variable 'Ins' with value: %s\n",ins);
       
       //source_name
