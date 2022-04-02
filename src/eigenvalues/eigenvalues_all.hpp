@@ -6,7 +6,7 @@
 #endif
 
 #ifdef USE_EIGEN
- #include <eigen3/Eigen/Dense>
+ #include <Eigen/Dense>
 #endif
 
 #include "base/debug.hpp"
