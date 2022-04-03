@@ -434,15 +434,28 @@ namespace nissa
     enum class BwFw {BW,FW};
     auto vphotonInsertCurr=[mass,HeavyTheta,theta](const BwFw bwFw,const int nu)
     {
-      const double Eg=gluon_energy(photon,mass,0);
+
+     
+      gauge_info insPhoton;
+      insPhoton.alpha=photon.alpha;
+      insPhoton.bc[0]=0;
+      for(int mu=1;mu<NDIM;mu++)
+	insPhoton.bc[mu]=theta[mu];
+      insPhoton.c1=WILSON_C1;
+      insPhoton.zms=photon.zms;
+      
+      const double Eg=gluon_energy(insPhoton,mass,0);
       master_printf("Photon Energy Eg: %lg\n",Eg);
 
       
       return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu, const double fwbw_phase)
       {
 	double a=0.0;
-	for(int mmu=1;mmu<NDIM;mmu++)
-	  a+= (glbCoordOfLoclx[ivol][mmu] +0.5*fwbw_phase*(mmu==mu))*2.0*sin(0.5*M_PI*theta[mmu]/glbSize[mmu]);
+
+	for(int rho=1;rho<NDIM;rho++)
+	  a+= (glbCoordOfLoclx[ivol][rho] +0.5*fwbw_phase*(rho==mu))*M_PI*theta[rho]/glbSize[rho];
+
+
 	complex_iexp(ph,a);
 	
 	if(mu==nu)
