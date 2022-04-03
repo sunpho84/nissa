@@ -207,7 +207,7 @@ namespace nissa
 	    spincolor temp1,temp2;
 	    unsafe_dirac_prod_spincolor(temp1,base_gamma[igamma_of_mu[mu]],in[ivol]);
 	    complex curr;
-	    currCalc(curr,ivol,mu);
+	    currCalc(curr,ivol,mu, 0.0);
 	    unsafe_spincolor_prod_complex(temp2,temp1,curr);
 	    spincolor_summ_the_prod_idouble(out[ivol],temp2,1);
 	  }
@@ -435,12 +435,14 @@ namespace nissa
     auto vphotonInsertCurr=[mass,HeavyTheta,theta](const BwFw bwFw,const int nu)
     {
       const double Eg=gluon_energy(photon,mass,0);
+      master_printf("Photon Energy Eg: %lg\n",Eg);
+
       
-      return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu)
+      return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu, const double fwbw_phase)
       {
 	double a=0.0;
-	for(int mu=1;mu<NDIM;mu++)
-	  a+=glbCoordOfLoclx[ivol][mu]*M_PI*theta[mu]/glbSize[mu];
+	for(int mmu=1;mmu<NDIM;mmu++)
+	  a+= (glbCoordOfLoclx[ivol][mmu] +0.5*fwbw_phase*(mmu==mu))*2.0*sin(0.5*M_PI*theta[mmu]/glbSize[mmu]);
 	complex_iexp(ph,a);
 	
 	if(mu==nu)
