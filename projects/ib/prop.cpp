@@ -473,8 +473,8 @@ namespace nissa
 	    const double h1=HeavyTheta(TH-t);
 	    const double h2=HeavyTheta(t-TH);
 	    
-	    if(fabs(h1-1.0)>1e-8 or fabs(h1)>1e-8) crash("h1: %lg site %d",h1,ivol);
-	    if(fabs(h2-1.0)>1e-8 or fabs(h2)>1e-8) crash("h2: %lg site %d",h2,ivol);
+	    if(fabs(h1-1.0)>1e-8 and fabs(h1)>1e-8) crash("h1: %lg site %d",h1,ivol);
+	    if(fabs(h2-1.0)>1e-8 and fabs(h2)>1e-8) crash("h2: %lg site %d",h2,ivol);
 	    
 	    complex_prodassign_double(ph,h1*f1+h2*f2);
 	  }
