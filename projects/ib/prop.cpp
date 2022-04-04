@@ -443,6 +443,7 @@ namespace nissa
       insPhoton.zms=photon.zms;
       
       const double Eg=gluon_energy(insPhoton,mass,0);
+      master_printf("Eg: %lg\n",Eg);
       
       return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu)
       {
@@ -466,7 +467,16 @@ namespace nissa
 	      exp((TH-t)*Eg):
 	      exp(-(3*TH-t)*Eg);
 	    
-	    complex_prodassign_double(ph,HeavyTheta(TH-t)*f1+HeavyTheta(t-TH)*f2);
+	    if(fabs(f1-1.0)>1e-8) master_printf("check %lg\n",f1);
+	    if(fabs(f2-1.0)>1e-8) master_printf("check %lg\n",f2);
+	    
+	    const double h1=HeavyTheta(TH-t);
+	    const double h2=HeavyTheta(t-TH);
+	    
+	    if(fabs(h1-1.0)>1e-8 or fabs(h1)>1e-8) crash("h1: %lg site %d",h1,ivol);
+	    if(fabs(h2-1.0)>1e-8 or fabs(h2)>1e-8) crash("h2: %lg site %d",h2,ivol);
+	    
+	    complex_prodassign_double(ph,h1*f1+h2*f2);
 	  }
 	else
 	  complex_put_to_zero(ph);
