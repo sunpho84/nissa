@@ -171,7 +171,7 @@ namespace nissa
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
 	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
-	  master_printf("eta (0): %lg %lg\n",s[0][RE],s[1][RE]);
+	  master_printf("eta (0): %lg %lg\n",s[0][0][0][RE],s[0][0][0][IM]);
 	  fft4d((complex*)temp,(complex*)s,NDIRAC*NCOL,FFT_PLUS,FFT_NO_NORMALIZE);
 	  
 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
@@ -185,7 +185,7 @@ namespace nissa
 	  
 	  master_printf("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
 	  if(rank==0)
-	    n[0][RE]-=(double)NDIRAC*NCOL*((tins==-1)?glbVol:glbSpatVol)/nso_spi/nso_col/2;
+	    n[0][RE]-=(double)NDIRAC*NCOL*((tins==-1)?glbVol:glbSpatVol)/nso_spi/nso_col;
 	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
 	  
 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
