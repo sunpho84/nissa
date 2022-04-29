@@ -187,6 +187,12 @@ namespace nissa
 	    n[0][RE]-=(double)NDIRAC*NCOL*((tins==-1)?glbVol:glbSpatVol)/nso_spi/nso_col/2;
 	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
 	  
+	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	    {
+	      n[ivol][RE]*=n[ivol][RE];
+	    }
+	  NISSA_PARALLEL_LOOP_END;
+	  
 	  complex res[1];
 	  glb_reduce(res,n,locVol);
 	  
