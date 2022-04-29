@@ -464,7 +464,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE
   inline void z2Transform(complex out)
   {
-    out[RE]=(out[RE]>0.5)?M_SQRT1_2:-M_SQRT1_2;
+    out[RE]=(out[RE]>0.5)?+1:-1;
     out[IM]=0.0;
   }
   
