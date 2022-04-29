@@ -166,7 +166,7 @@ namespace nissa
     if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
     
     complex *n=nissa_malloc("n",locVol,complex);
-    spincolor *temp=nissa_malloc("temp",locVol,spincolor);
+    spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
     for(int id_so=0;id_so<nso_spi;id_so++)
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	{
