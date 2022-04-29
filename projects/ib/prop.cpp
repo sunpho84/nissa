@@ -182,9 +182,9 @@ namespace nissa
 	    
 	  fft4d(n,n,1,FFT_MINUS,FFT_NORMALIZE);
 	  
-	  master_printf("eta+ eta (0): %lg\n",n[0][RE]);
+	  master_printf("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
 	  if(rank==0)
-	    n[0][RE]-=NDIRAC*NCOL*glbVol;
+	    n[0][RE]-=(double)NDIRAC*NCOL*((tins==-1)?glbVol:glbSpatVol)/nso_spi/nso_col/2;
 	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
 	  
 	  complex res[1];
