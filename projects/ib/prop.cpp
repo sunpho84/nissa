@@ -183,9 +183,11 @@ namespace nissa
 	  
 	  fft4d(n,n,1,FFT_MINUS,FFT_NORMALIZE);
 	  
+	  const int64_t nPoints=((tins==-1)?glbVol:glbSpatVol);
+	  
 	  master_printf("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
 	  if(rank==0)
-	    n[0][RE]-=(double)NDIRAC*NCOL*((tins==-1)?glbVol:glbSpatVol)/nso_spi/nso_col;
+	    n[0][RE]-=(double)NDIRAC*NCOL*nPoints/nso_spi/nso_col;
 	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
 	  
 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
@@ -198,6 +200,13 @@ namespace nissa
 	  glb_reduce(res,n,locVol);
 	  
 	  master_printf("Res: %lg\n",res[0][RE]);
+	  
+	  double exp=(double)NDIRAC*NCOL*sqr(nPoints)/(nso_spi*nso_col);
+	  master_printf("Exp: %lg\n",exp);
+	  
+	  double dev=res[0][RE]/exp-1;
+	  
+	  master_printf("Dev: %lg\n",dev);
 	}
     
     nissa_free(temp);
