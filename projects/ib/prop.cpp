@@ -165,52 +165,52 @@ namespace nissa
 	}
     if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
     
-    complex *n=nissa_malloc("n",locVol,complex);
-    spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
-    for(int id_so=0;id_so<nso_spi;id_so++)
-      for(int ic_so=0;ic_so<nso_col;ic_so++)
-	{
-	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
-	  master_printf("eta (0): %lg %lg\n",s[0][0][0][RE],s[0][0][0][IM]);
-	  fft4d((complex*)temp,(complex*)s,NDIRAC*NCOL,FFT_PLUS,FFT_NO_NORMALIZE);
+    // complex *n=nissa_malloc("n",locVol,complex);
+    // spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
+    // for(int id_so=0;id_so<nso_spi;id_so++)
+    //   for(int ic_so=0;ic_so<nso_col;ic_so++)
+    // 	{
+    // 	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
+    // 	  master_printf("eta (0): %lg %lg\n",s[0][0][0][RE],s[0][0][0][IM]);
+    // 	  fft4d((complex*)temp,(complex*)s,NDIRAC*NCOL,FFT_PLUS,FFT_NO_NORMALIZE);
 	  
-	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	    {
-	      n[ivol][RE]=spincolor_norm2(temp[ivol]);
-	      n[ivol][IM]=0;
-	    }
-	  NISSA_PARALLEL_LOOP_END;
+    // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	    {
+    // 	      n[ivol][RE]=spincolor_norm2(temp[ivol]);
+    // 	      n[ivol][IM]=0;
+    // 	    }
+    // 	  NISSA_PARALLEL_LOOP_END;
 	  
-	  fft4d(n,n,1,FFT_MINUS,FFT_NORMALIZE);
+    // 	  fft4d(n,n,1,FFT_MINUS,FFT_NORMALIZE);
 	  
-	  const int64_t nPoints=((tins==-1)?glbVol:glbSpatVol);
+    // 	  const int64_t nPoints=((tins==-1)?glbVol:glbSpatVol);
 	  
-	  master_printf("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
-	  if(rank==0)
-	    n[0][RE]-=(double)NDIRAC*NCOL*nPoints/nso_spi/nso_col;
-	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
+    // 	  master_printf("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
+    // 	  if(rank==0)
+    // 	    n[0][RE]-=(double)NDIRAC*NCOL*nPoints/nso_spi/nso_col;
+    // 	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
 	  
-	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	    {
-	      n[ivol][RE]*=n[ivol][RE];
-	    }
-	  NISSA_PARALLEL_LOOP_END;
+    // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	    {
+    // 	      n[ivol][RE]*=n[ivol][RE];
+    // 	    }
+    // 	  NISSA_PARALLEL_LOOP_END;
 	  
-	  complex res[1];
-	  glb_reduce(res,n,locVol);
+    // 	  complex res[1];
+    // 	  glb_reduce(res,n,locVol);
 	  
-	  master_printf("Res: %lg\n",res[0][RE]);
+    // 	  master_printf("Res: %lg\n",res[0][RE]);
 	  
-	  double exp=(double)NDIRAC*NCOL*sqr(nPoints)/(nso_spi*nso_col);
-	  master_printf("Exp: %lg\n",exp);
+    // 	  double exp=(double)NDIRAC*NCOL*sqr(nPoints)/(nso_spi*nso_col);
+    // 	  master_printf("Exp: %lg\n",exp);
 	  
-	  double dev=res[0][RE]/exp-1;
+    // 	  double dev=res[0][RE]/exp-1;
 	  
-	  master_printf("Dev: %lg\n",dev);
-	}
+    // 	  master_printf("Dev: %lg\n",dev);
+    // 	}
     
-    nissa_free(temp);
-    nissa_free(n);
+    // nissa_free(temp);
+    // nissa_free(n);
     
     nissa_free(sou_proxy);
   }
