@@ -38,7 +38,7 @@ namespace nissa
     EXTERN_MULTIGRID double eig_max INIT_TO(8);
     
     /// If DDalphaamg is available, check if requested and if the mass is below the maximal
-    inline bool checkIfDDalphaAvailableAndRequired(const double& mass)
+    inline bool checkIfMultiGridAvailableAndRequired(const double& mass)
     {
 #if defined USE_DDALPHAAMG or USE_QUDA
       if(use_multiGrid and fabs(mass)<=max_mass)
