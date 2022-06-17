@@ -724,7 +724,7 @@ namespace quda_iface
 	    // set the MG EigSolver parameters, almost equivalent to
 	    // setEigParam from QUDA's multigrid_invert_test, except
 	    // for cuda_prec_ritz (on 20190822)
-	    if(level+1==nlevels and multiGrid::use_deflated_solver and inv_param.mass<multiGrid::max_mass_for_deflation)
+	    if(level+1==nlevels and multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation)
 	      {
 		quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
 		mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
