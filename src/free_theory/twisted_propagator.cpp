@@ -147,14 +147,14 @@ namespace nissa
     double e=esign*abse;
     
     momentum_t sin_mom;
-    double sin2_mom=-sqr(sinh(e));
+    //double sin2_mom=-sqr(sinh(e));
     double sin2_momh=-sqr(sinh(e/2));
     const coords_t c=glb_coord_of_glblx(imom);
     for(int mu=1;mu<NDIM;mu++)
       {
 	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSize[mu];
 	sin_mom[mu]=sin(p);
-	sin2_mom+=sqr(sin_mom[mu]);
+	//sin2_mom+=sqr(sin_mom[mu]);
 	sin2_momh+=sqr(sin(p/2));
       }
     double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
