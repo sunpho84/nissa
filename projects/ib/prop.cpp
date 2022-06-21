@@ -499,7 +499,7 @@ namespace nissa
 	  a+=glbCoordOfLoclx[ivol][rho]*M_PI*theta[rho]/glbSize[rho];
 	complex_iexp(ph,a);
 	
-	if(fabs(a)>1e-10) crash("How can it bee");
+	if(fabs(a)>1e-10) crash("How can it be, a=%lg",a);
 	
 	if(mu==nu)
 	  {
