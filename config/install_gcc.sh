@@ -34,23 +34,23 @@ cd ../../
 rm -fr mpc*
 
 #gcc
-wget ftp://ftp.uvsq.fr/pub/gcc/releases/gcc-6.3.0/gcc-6.3.0.tar.bz2 -O -|tar xjf -
-cd gcc*/
-mkdir build
-cd build
-../configure --prefix=$HOME --enable-languages=c,c++ --with-gmp=$HOME
-make -j 8
-make install
-cd ../../
-rm -fr gcc*
+#wget ftp://ftp.uvsq.fr/pub/gcc/releases/gcc-6.3.0/gcc-6.3.0.tar.bz2 -O -|tar xjf -
+#cd gcc*/
+#mkdir build
+#cd build
+#../configure --prefix=$HOME --enable-languages=c,c++ --with-gmp=$HOME
+#make -j 8
+#make install
+#cd ../../
+#rm -fr gcc*
 
 #openmpi
-wget http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.gz -O -|tar xzf -
-cd openmpi*
-mkdir build
-cd build
-../configure --prefix=$HOME
-make -j 8
-make install
-cd ../../
-rm -fr openmpi*
+#wget http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.gz -O -|tar xzf -
+#cd openmpi*
+#mkdir build
+#cd build
+#../configure --prefix=$HOME
+#make -j 8
+#make install
+#cd ../../
+#rm -fr openmpi*

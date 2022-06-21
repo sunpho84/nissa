@@ -445,18 +445,25 @@ namespace nissa
       insPhoton.zms=photon.zms;
       
       const double Eg=gluon_energy(insPhoton,mass,0);
-      master_printf("Photon Energy Eg: %lg\n",Eg);
-
+     
       
       return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu, const double fwbw_phase)
       {
 	double a=0.0;
 
-	for(int rho=1;rho<NDIM;rho++)
-	  a+= (glbCoordOfLoclx[ivol][rho] +0.5*fwbw_phase*(rho==mu))*M_PI*theta[rho]/glbSize[rho];
-
+	a+= -3*0.5*fwbw_phase*M_PI*theta[mu]/glbSize[mu];
 
 	complex_iexp(ph,a);
+
+	//multiply ph by a factor -i to take into account difference between 2006.05358 and 1303.4896 in the definition of conserved vec current.
+
+	//complex min_imag;
+	//min_imag[0] = 0.0;
+	//min_imag[1] = -1.0;
+
+	complex_prodassign_idouble(ph, -1.0);
+
+	//safe_complex_prod(ph,ph,min_imag);
 	
 	if(mu==nu)
 	  {
