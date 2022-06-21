@@ -64,8 +64,8 @@ namespace nissa
 	      spincolor_prodassign_complex(bw,fact_bw);
 	      complex fw_curr,bw_curr;
 	      
-	      currCalc(fw_curr,ivol,mu);
-	      currCalc(bw_curr,ibw,mu);
+	      currCalc(fw_curr,ivol,mu,1.0);
+	      currCalc(bw_curr,ibw,mu,-1.0);
 	      
 	      spincolor_prodassign_complex(fw,fw_curr);
 	      spincolor_prodassign_complex(bw,bw_curr);

@@ -254,7 +254,7 @@ namespace nissa
 	    spincolor temp1,temp2;
 	    unsafe_dirac_prod_spincolor(temp1,base_gamma[igamma_of_mu[mu]],in[ivol]);
 	    complex curr;
-	    currCalc(curr,ivol,mu);
+	    currCalc(curr,ivol,mu,0.0);
 	    unsafe_spincolor_prod_complex(temp2,temp1,curr);
 	    spincolor_summ_the_prod_idouble(out[ivol],temp2,1);
 	  }
@@ -492,14 +492,12 @@ namespace nissa
       const double Eg=gluon_energy(insPhoton,mass,0);
       master_printf("Eg: %lg\n",Eg);
       
-      return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu)
+      return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu,const double fwbw_phase)
       {
-	double a=0.0;
-	for(int rho=1;rho<NDIM;rho++)
-	  a+=glbCoordOfLoclx[ivol][rho]*M_PI*theta[rho]/glbSize[rho];
-	complex_iexp(ph,a);
+	const double a=-3*0.5*fwbw_phase*M_PI*theta[mu]/glbSize[mu];
 	
-	if(fabs(a)>1e-10) crash("How can it be, a=%lg",a);
+	complex_iexp(ph,a);
+	complex_prodassign_idouble(ph,-1.0);
 	
 	if(mu==nu)
 	  {
@@ -516,14 +514,8 @@ namespace nissa
 	      exp((TH-t)*Eg):
 	      exp(-(3*TH-t)*Eg);
 	    
-	    if(fabs(f1-1.0)>1e-8) master_printf("check %lg\n",f1);
-	    if(fabs(f2-1.0)>1e-8) master_printf("check %lg\n",f2);
-	    
 	    const double h1=HeavyTheta(TH-t);
 	    const double h2=HeavyTheta(t-TH);
-	    
-	    if(fabs(h1-1.0)>1e-8 and fabs(h1)>1e-8) crash("h1: %lg site %d",h1,ivol);
-	    if(fabs(h2-1.0)>1e-8 and fabs(h2)>1e-8) crash("h2: %lg site %d",h2,ivol);
 	    
 	    complex_prodassign_double(ph,h1*f1+h2*f2);
 	  }
