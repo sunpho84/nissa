@@ -165,6 +165,53 @@ namespace nissa
 	}
     if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
     
+    // complex *n=nissa_malloc("n",locVol,complex);
+    // spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
+    // for(int id_so=0;id_so<nso_spi;id_so++)
+    //   for(int ic_so=0;ic_so<nso_col;ic_so++)
+    // 	{
+    // 	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
+    // 	  master_printf("eta (0): %lg %lg\n",s[0][0][0][RE],s[0][0][0][IM]);
+    // 	  fft4d((complex*)temp,(complex*)s,NDIRAC*NCOL,FFT_PLUS,FFT_NO_NORMALIZE);
+	  
+    // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	    {
+    // 	      n[ivol][RE]=spincolor_norm2(temp[ivol]);
+    // 	      n[ivol][IM]=0;
+    // 	    }
+    // 	  NISSA_PARALLEL_LOOP_END;
+	  
+    // 	  fft4d(n,n,1,FFT_MINUS,FFT_NORMALIZE);
+	  
+    // 	  const int64_t nPoints=((tins==-1)?glbVol:glbSpatVol);
+	  
+    // 	  master_printf("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
+    // 	  if(rank==0)
+    // 	    n[0][RE]-=(double)NDIRAC*NCOL*nPoints/nso_spi/nso_col;
+    // 	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
+	  
+    // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	    {
+    // 	      n[ivol][RE]*=n[ivol][RE];
+    // 	    }
+    // 	  NISSA_PARALLEL_LOOP_END;
+	  
+    // 	  complex res[1];
+    // 	  glb_reduce(res,n,locVol);
+	  
+    // 	  master_printf("Res: %lg\n",res[0][RE]);
+	  
+    // 	  double exp=(double)NDIRAC*NCOL*sqr(nPoints)/(nso_spi*nso_col);
+    // 	  master_printf("Exp: %lg\n",exp);
+	  
+    // 	  double dev=res[0][RE]/exp-1;
+	  
+    // 	  master_printf("Dev: %lg\n",dev);
+    // 	}
+    
+    // nissa_free(temp);
+    // nissa_free(n);
+    
     nissa_free(sou_proxy);
   }
   
@@ -445,7 +492,6 @@ namespace nissa
       insPhoton.zms=photon.zms;
       
       const double Eg=gluon_energy(insPhoton,mass,0);
-     
       
       return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu, const double fwbw_phase)
       {
@@ -465,6 +511,8 @@ namespace nissa
 
 	//safe_complex_prod(ph,ph,min_imag);
 	
+	if(fabs(a)>1e-10) crash("How can it be, a=%lg",a);
+	
 	if(mu==nu)
 	  {
 	    const int TH=glbSize[0]/2;
@@ -480,7 +528,16 @@ namespace nissa
 	      exp((TH-t)*Eg):
 	      exp(-(3*TH-t)*Eg);
 	    
-	    complex_prodassign_double(ph,HeavyTheta(TH-t)*f1+HeavyTheta(t-TH)*f2);
+	    if(fabs(f1-1.0)>1e-8) master_printf("check %lg\n",f1);
+	    if(fabs(f2-1.0)>1e-8) master_printf("check %lg\n",f2);
+	    
+	    const double h1=HeavyTheta(TH-t);
+	    const double h2=HeavyTheta(t-TH);
+	    
+	    if(fabs(h1-1.0)>1e-8 and fabs(h1)>1e-8) crash("h1: %lg site %d",h1,ivol);
+	    if(fabs(h2-1.0)>1e-8 and fabs(h2)>1e-8) crash("h2: %lg site %d",h2,ivol);
+	    
+	    complex_prodassign_double(ph,h1*f1+h2*f2);
 	  }
 	else
 	  complex_put_to_zero(ph);

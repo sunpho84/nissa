@@ -58,6 +58,12 @@ namespace nissa
 		    nissa::read_double(&max_mass);
 		    master_printf("DD: read max_mass=%lg\n",max_mass);
 		  }
+		//maximal mass to be used for deflation
+		if(strcasecmp(tag,"max_mass_for_deflation")==0)
+		  {
+		    nissa::read_double(&max_mass_for_deflation);
+		    master_printf("DD: read max_mass_for_deflation=%lg\n",max_mass_for_deflation);
+		  }
 		//number of setups
 		if(strcasecmp(tag,"nsetups")==0)
 		  for(int ilev=0;ilev<nlevels;ilev++)
