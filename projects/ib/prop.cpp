@@ -490,7 +490,6 @@ namespace nissa
       insPhoton.zms=photon.zms;
       
       const double Eg=gluon_energy(insPhoton,mass,0);
-      master_printf("Eg: %lg\n",Eg);
       
       return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu,const double fwbw_phase)
       {
