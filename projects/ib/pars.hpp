@@ -245,9 +245,11 @@ namespace nissa
       else crash("Unknown theta tag: %s",theta_tag);
   }
   
-  //handle to stop
+  //handle to stop, running and finished
   EXTERN_PARS std::string stop_path INIT_TO("stop");
-  
+  EXTERN_PARS std::string running_filename INIT_TO("running");
+  EXTERN_PARS std::string finished_filename INIT_TO("finished");
+   
   //read the theta, iso or not
   inline void read_theta(momentum_t& theta)
   {
