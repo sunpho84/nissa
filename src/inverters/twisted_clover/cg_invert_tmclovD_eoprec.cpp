@@ -150,18 +150,22 @@ namespace nissa
     /// Keep track of convergence
     bool solved=false;
     
+#ifdef USE_QUDA
+    {
+      double call_time=take_time();
+      solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
+      master_printf("calling quda to solve took %lg s\n",take_time()-call_time);
+    }
+#endif
+    
+#ifdef USE_DDALPHAAMG
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
       {
 	double call_time=take_time();
-#ifdef USE_QUDA
-	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
-#elif defined(USE_DDALPHAAMG)
 	solved=DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
-#elif
-	crash("How is it possible");
-#endif
-	master_printf("calling multigrid to solve took %lg s\n",take_time()-call_time);
+	master_printf("calling DDalphaAMG to solve took %lg s\n",take_time()-call_time);
       }
+#endif
     
     // if(checkIfTmLQCDAvailableAndRequired() and not solved)
     //   {
