@@ -1054,7 +1054,7 @@ namespace quda_iface
   {
     const double export_time=take_time();
     const bool exported=export_gauge_conf_to_external_solver(conf);
-    master_printf("time to export to external library: %lg s\n",take_time()-export_time);
+    master_printf("time to export to the conf to quda: %lg s\n",take_time()-export_time);
     
     set_base_inverter_pars();
     
