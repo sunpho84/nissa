@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "endianness.hpp"
+#include "routines/ios.hpp"
 #include "geometry/geometry_eo.hpp"
 
 namespace nissa
@@ -62,6 +63,8 @@ namespace nissa
   template <typename T>
   void checksum_compute_nissa_data(uint32_t *check,const T& data,int prec)
   {
+    const double init_time=take_time();
+    
     uint32_t loc_check[2]={0,0};
     
     NISSA_LOC_VOL_LOOP(ivol)
@@ -77,6 +80,8 @@ namespace nissa
       }
     
     MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
+    
+    master_printf("time to compute checksum: %lg\n",take_time()-init_time);
   }
 }
 
