@@ -359,37 +359,37 @@ namespace quda_iface
       set_borders_invalid(out[par]);
   }
   
-  /// Sets the sloppy precision
-  void set_sloppy_prec(const QudaPrecision sloppy_prec)
-  {
-    master_printf("Quda sloppy precision: ");
+  // /// Sets the sloppy precision
+  // void set_sloppy_prec(const QudaPrecision sloppy_prec)
+  // {
+  //   master_printf("Quda sloppy precision: ");
     
-    switch(sloppy_prec)
-      {
-      case QUDA_DOUBLE_PRECISION:
-	master_printf("double");
-	break;
-      case QUDA_SINGLE_PRECISION:
-	master_printf("single");
-	break;
-      case QUDA_HALF_PRECISION:
-	master_printf("half");
-	break;
-      case QUDA_QUARTER_PRECISION:
-	master_printf("quarter");
-	break;
-      case QUDA_INVALID_PRECISION:
-	crash("invalid precision");
-      };
-    master_printf("\n");
+  //   switch(sloppy_prec)
+  //     {
+  //     case QUDA_DOUBLE_PRECISION:
+  // 	master_printf("double");
+  // 	break;
+  //     case QUDA_SINGLE_PRECISION:
+  // 	master_printf("single");
+  // 	break;
+  //     case QUDA_HALF_PRECISION:
+  // 	master_printf("half");
+  // 	break;
+  //     case QUDA_QUARTER_PRECISION:
+  // 	master_printf("quarter");
+  // 	break;
+  //     case QUDA_INVALID_PRECISION:
+  // 	crash("invalid precision");
+  //     };
+  //   master_printf("\n");
   
-  gauge_param.cuda_prec_sloppy=
-    gauge_param.cuda_prec_refinement_sloppy=
-    inv_param.cuda_prec_sloppy=
-    inv_param.clover_cuda_prec_sloppy=
-    inv_param.clover_cuda_prec_refinement_sloppy=
-    sloppy_prec;
-  }
+  // gauge_param.cuda_prec_sloppy=
+  //   gauge_param.cuda_prec_refinement_sloppy=
+  //   inv_param.cuda_prec_sloppy=
+  //   inv_param.clover_cuda_prec_sloppy=
+  //   inv_param.clover_cuda_prec_refinement_sloppy=
+  //   sloppy_prec;
+  // }
   
   void set_base_inverter_pars()
   {
@@ -452,8 +452,8 @@ namespace quda_iface
     master_printf("setting pars\n");
 #endif
     
-    inv_param.kappa=kappa;
     set_base_inverter_pars();
+    inv_param.kappa=kappa;
     inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
     if(csw)
       {
@@ -804,7 +804,6 @@ namespace quda_iface
 	master_printf("mg setup due:\n");
 	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	master_printf("mg setup done!\n");
-	inv_param.preconditioner=quda_mg_preconditioner;
 	
 	setup_valid=true;
       }
@@ -818,6 +817,8 @@ namespace quda_iface
 	}
       else
 	master_printf("No need to update the multigrid\n");
+    
+    inv_param.preconditioner=quda_mg_preconditioner;
     
     storedMu=inv_param.mu;
     storedKappa=inv_param.kappa;
