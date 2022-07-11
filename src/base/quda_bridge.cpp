@@ -160,7 +160,6 @@ namespace quda_iface
 	color_in=nissa_malloc("color_in",locVol,color);
 	color_out=nissa_malloc("color_out",locVol,color);
 	
-	inv_param.verbosity=get_quda_verbosity();
 	setVerbosityQuda(QUDA_SUMMARIZE,"# QUDA: ",stdout);
 	
 	/////////////////////////// gauge params ////////////////////////////////
@@ -198,15 +197,6 @@ namespace quda_iface
 	    int surf_size=locVol/locSize[mu]/2;
 	    gauge_param.ga_pad=std::max(gauge_param.ga_pad,surf_size);
 	  }
-	
-	inv_param=newQudaInvertParam();
-	
-	inv_mg_param=newQudaInvertParam();
-	quda_mg_param=newQudaMultigridParam();
-	quda_mg_param.invert_param=&inv_mg_param;
-	
-	for(int level=0;level<QUDA_MAX_MG_LEVEL;level++)
-	  mg_eig_param[level]=newQudaEigParam();
 	
 	int grid[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
@@ -403,6 +393,17 @@ namespace quda_iface
   
   void set_base_inverter_pars()
   {
+    inv_param=newQudaInvertParam();
+    
+    inv_param.verbosity=get_quda_verbosity();
+    
+    inv_mg_param=newQudaInvertParam();
+    quda_mg_param=newQudaMultigridParam();
+    quda_mg_param.invert_param=&inv_mg_param;
+    
+    for(int level=0;level<QUDA_MAX_MG_LEVEL;level++)
+      mg_eig_param[level]=newQudaEigParam();
+    
     inv_param.dagger=QUDA_DAG_NO;
     inv_param.mass_normalization=QUDA_MASS_NORMALIZATION;
     inv_param.solver_normalization=QUDA_DEFAULT_NORMALIZATION;
