@@ -7,6 +7,7 @@
 
 #include "base/debug.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "routines/ios.hpp"
 
 namespace nissa
 {
@@ -92,6 +93,8 @@ namespace nissa
   //compute the checksum of ildg data (little endianness, time is slower index)
   void checksum_compute_ildg_data(uint32_t *check,void *data,size_t bps)
   {
+    const double init_time=take_time();
+    
     uint32_t loc_check[2]={0,0};
     
     NISSA_LOC_VOL_LOOP(ivol)
@@ -112,5 +115,7 @@ namespace nissa
       }
     
     MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
+    
+    master_printf("time to compute checksum using cpp version: %lg (%s)\n",take_time()-init_time,__PRETTY_FUNCTION__);
   }
 }

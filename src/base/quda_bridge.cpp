@@ -1054,7 +1054,8 @@ namespace quda_iface
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
     const double export_time=take_time();
-    const bool exported=export_gauge_conf_to_external_solver(conf);
+    const bool exported=
+      export_gauge_conf_to_external_solver(conf);
     master_printf("time to export to the conf to quda: %lg s\n",take_time()-export_time);
     
     set_base_inverter_pars();
