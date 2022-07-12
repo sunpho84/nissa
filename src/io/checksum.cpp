@@ -71,6 +71,7 @@ namespace nissa
 #define DO4(buf) DO2(buf);DO2(buf);
 #define DO8(buf) DO4(buf);DO4(buf);
   
+    CUDA_HOST_AND_DEVICE
   uint32_t ildg_crc32(uint32_t crc,const unsigned char *buf,size_t len)
   {
     if(buf==0) return 0L;

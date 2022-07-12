@@ -1,6 +1,10 @@
 #ifndef _CHECKSUM_HPP
 #define _CHECKSUM_HPP
 
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #include <stdint.h>
 #include <string.h>
 
@@ -16,18 +20,22 @@ namespace nissa
 {
   typedef uint32_t checksum[2];
   
+  CUDA_HOST_AND_DEVICE
   uint32_t ildg_crc32(uint32_t crc,const unsigned char *buf,size_t len);
+  
   void checksum_compute_ildg_data(uint32_t *check,void *data,size_t bps);
   
   namespace checksum_getter
   {
     template <typename T>
+    CUDA_HOST_AND_DEVICE
     auto get_data(const T* data,const int& ivol,const size_t bps=sizeof(T))
     {
       return (const char*)data+bps*ivol;
     }
     
     template <typename T>
+    CUDA_HOST_AND_DEVICE
     auto get_data(const eo_ptr<T>& data,const int& ivol,const size_t bps=sizeof(T))
     {
       const int eo=loclx_parity[ivol];
@@ -38,25 +46,36 @@ namespace nissa
   }
   
   template <typename T>
+  CUDA_HOST_AND_DEVICE
   uint32_t ildg_crc32_fix_endianness(uint32_t crc,const T *buf,int prec,const size_t bps=sizeof(T))
   {
     if(little_endian)
       {
-	unsigned char temp_buf[bps];
-	switch(prec)
+	uint32_t res=0;
+	
+	// Swap endianness, compute and put back endianness
+	for(int iter=0;iter<2;iter++)
 	  {
-	  case 64:
-	    change_endianness((double*)temp_buf,(double*)buf,bps/sizeof(double),0);
-	    break;
-	  case 32:
-	    change_endianness((float*)temp_buf,(float*)buf,bps/sizeof(float),0);
-	    break;
-	  default:
-	    crash("unknown precision %d",prec);
-	    break;
+	    switch(prec)
+	      {
+	      case 64:
+		change_endianness((double*)buf,(double*)buf,bps/sizeof(double),0);
+		break;
+	      case 32:
+		change_endianness((float*)buf,(float*)buf,bps/sizeof(float),0);
+		break;
+	      default:
+#ifndef COMPILING_FOR_DEVICE
+		crash("unknown precision %d",prec);
+#endif
+		break;
+	      }
+	    
+	    if(iter==0)
+	      res=ildg_crc32(crc,(unsigned char*)buf,bps);
 	  }
 	
-	return ildg_crc32(crc,temp_buf,bps);
+	return res;
       }
     else
       return ildg_crc32(crc,(unsigned char*)buf,bps);
@@ -99,6 +118,13 @@ namespace nissa
       memcpy(loc_res[islice],buf[islice*nori_per_slice],sizeof(T));
   }
   
+  CUDA_HOST_AND_DEVICE
+  inline void checksumReducer(checksum& res,const checksum& acc)
+    {
+      for(int i=0;i<2;i++)
+	res[i]^=acc[i];
+    }
+  
   template <typename T>
   void checksum_compute_nissa_data(checksum& check,const T& data,int prec,const size_t bps=sizeof(T))
   {
@@ -122,11 +148,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     
     checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,[]CUDA_DEVICE(checksum& res,const checksum& acc)
-    {
-      for(int i=0;i<2;i++)
-	res[i]^=acc[i];
-    });
+    locReduce(&loc_check,buff,locVol,1,checksumReducer);
     
     MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
     
