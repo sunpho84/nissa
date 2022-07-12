@@ -32,7 +32,9 @@ namespace nissa
     return out;
   }
   
-  template <class T> buffer_t &operator>>(buffer_t &in,T &out)
+  template <class T>
+  CUDA_HOST_AND_DEVICE
+  buffer_t &operator>>(buffer_t &in,T &out)
   {
     in.read((char*)&out,sizeof(T));
     if(!little_endian) change_endianness(out);
