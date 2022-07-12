@@ -130,9 +130,12 @@ namespace nissa
   {
     const double init_time=take_time();
     
+    master_printf("   allocating buffer\n");
     checksum* buff=get_reducing_buffer<checksum>(locVol);
     
     // uint32_t loc_check[2]={0,0};
+    
+    master_printf("   entering loop\n");
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
@@ -147,9 +150,12 @@ namespace nissa
       }
     NISSA_PARALLEL_LOOP_END;
     
+    master_printf("   starting local reducion\n");
+    
     checksum loc_check;
     locReduce(&loc_check,buff,locVol,1,checksumReducer);
     
+    master_printf("   starting global reductiond\n");
     MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
     
     master_printf("time to compute checksum: %lg (%s) %zu bps\n",take_time()-init_time,__PRETTY_FUNCTION__,bps);
