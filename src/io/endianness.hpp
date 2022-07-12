@@ -37,6 +37,7 @@ namespace nissa
     change_endianness((float*)dest,(float*)sour,nints,verbose);
   }
   
+  CUDA_HOST_AND_DEVICE
   inline void change_endianness(int *dest,int *sour,int nints,int verbose=1)
   {
     change_endianness((float*)dest,(float*)sour,nints,verbose);
