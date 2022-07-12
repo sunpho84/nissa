@@ -8,6 +8,8 @@
 # include "base/tmLQCD_bridge.hpp"
 #endif
 
+# include "base/multiGridParams.hpp"
+
 #ifdef USE_QUDA
 # include "base/quda_bridge.hpp"
 #endif
