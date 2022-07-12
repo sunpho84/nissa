@@ -85,6 +85,8 @@ namespace nissa
 	    typename F>
   void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F f)
   {
+    master_printf("%s function\n",__PRETTY_FUNCTION__);
+    
     if(n%nslices)
       crash("number of elements %ld not divisible by number of slices %d",n,nslices);
     
@@ -114,7 +116,7 @@ namespace nissa
 	
 	nper_slice=stride;
       }
-
+    
     master_printf("redcuction ended\n");
     
     for(int islice=0;islice<nslices;islice++)
