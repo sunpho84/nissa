@@ -38,19 +38,34 @@ namespace nissa
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
+  namespace
+  {
+    template <typename T>
+    CUDA_HOST_AND_DEVICE
+    inline void swap(T& a,T& b)
+    {
+      T tmp=a;
+      a=b;
+      b=tmp;
+    }
+  }
+  
   //revert the endianness of doubles
   CUDA_HOST_AND_DEVICE
   void change_endianness(double *dest,double *sour,int ndoubles,int verbose)
   {
+#ifndef COMPILING_FOR_DEVICE
     if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d doubles\n",ndoubles);
+#endif
+    
     for(int idouble=0;idouble<ndoubles;idouble++)
       {
 	double_reverter_t temp;
 	temp.d=sour[idouble];
-	std::swap(temp.c[0],temp.c[7]);
-	std::swap(temp.c[1],temp.c[6]);
-	std::swap(temp.c[2],temp.c[5]);
-	std::swap(temp.c[3],temp.c[4]);
+	swap(temp.c[0],temp.c[7]);
+	swap(temp.c[1],temp.c[6]);
+	swap(temp.c[2],temp.c[5]);
+	swap(temp.c[3],temp.c[4]);
 	dest[idouble]=temp.d;
       }
   }
@@ -59,13 +74,16 @@ namespace nissa
   CUDA_HOST_AND_DEVICE
   void change_endianness(float *dest,float *sour,int nfloats,int verbose)
   {
+#ifndef COMPILING_FOR_DEVICE
     if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d floats\n",nfloats);
+#endif
+    
     for(int ifloat=0;ifloat<nfloats;ifloat++)
       {
 	float_reverter_t temp;
 	temp.f=sour[ifloat];
-	std::swap(temp.c[0],temp.c[3]);
-	std::swap(temp.c[1],temp.c[2]);
+	swap(temp.c[0],temp.c[3]);
+	swap(temp.c[1],temp.c[2]);
 	dest[ifloat]=temp.f;
       }
   }
@@ -73,12 +91,15 @@ namespace nissa
   CUDA_HOST_AND_DEVICE
   void change_endianness(uint16_t *dest,uint16_t *sour,int nshorts,int verbose)
   {
+#ifndef COMPILING_FOR_DEVICE
     if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d uint16_t\n",nshorts);
+#endif
+    
     for(int ishort=0;ishort<nshorts;ishort++)
       {
 	uint16_t_reverter_t temp;
 	temp.u=sour[ishort];
-	std::swap(temp.c[0],temp.c[1]);
+	swap(temp.c[0],temp.c[1]);
 	dest[ishort]=temp.u;
       }
   }
