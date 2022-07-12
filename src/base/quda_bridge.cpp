@@ -537,7 +537,7 @@ namespace quda_iface
     if(exported and csw)
       load_clover_term(&inv_param);
     
-    if(multiGrid::use_multiGrid)
+    if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
       {
 	inv_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
 	
@@ -1069,7 +1069,7 @@ namespace quda_iface
 	master_printf("--- inv pars: ---\n");
 	printQudaInvertParam(&inv_param);
 	
-	if(multiGrid::use_multiGrid)
+	if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
 	  {
 	    master_printf("--- inv_mg pars: %p kappa %lg mu %lg mass %lg---\n",&inv_mg_param,inv_mg_param.kappa,inv_mg_param.mu,inv_mg_param.mass);
 	    printQudaInvertParam(&inv_mg_param);
@@ -1089,7 +1089,7 @@ namespace quda_iface
       }
 #endif
     
-    if(multiGrid::use_multiGrid)
+    if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
       setup_quda_multigrid();
     
     const double remap_in_time=take_time();
