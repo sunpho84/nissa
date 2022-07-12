@@ -8,6 +8,10 @@
 #include "routines/ios.hpp"
 #include "geometry/geometry_eo.hpp"
 
+
+
+#include "linalgs/reduce.hpp"
+
 namespace nissa
 {
   typedef uint32_t checksum[2];
@@ -58,24 +62,71 @@ namespace nissa
       return ildg_crc32(crc,(unsigned char*)buf,bps);
   }
   
+  template <typename T,
+	    typename F>
+  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F f)
+  {
+    if(n%nslices)
+      crash("number of elements %ld not divisible by number of slices %d",n,nslices);
+    
+    const int64_t nori_per_slice=n/nslices;
+    int64_t nper_slice=n/nslices;
+    verbosity_lv2_master_printf("n: %lld, nslices: %d, nori_per_slice: %lld nper_slice: %ld\n",nslices,nori_per_slice,nper_slice);
+    
+    while(nper_slice>1)
+      {
+	const int64_t stride=(nper_slice+1)/2;
+	const int64_t nreductions_per_slice=nper_slice/2;
+	const int64_t nreductions=nreductions_per_slice*nslices;
+	verbosity_lv3_master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld\n",nper_slice,stride,nreductions_per_slice,nreductions);
+	
+	NISSA_PARALLEL_LOOP(ireduction,0,nreductions)
+	  {
+	    const int64_t islice=ireduction%nslices;
+	    const int64_t ireduction_in_slice=ireduction/nslices;
+	    const int64_t first=ireduction_in_slice+nori_per_slice*islice;
+	    const int64_t second=first+stride;
+	    
+	    f(buf[first],buf[second]);
+	  }
+	NISSA_PARALLEL_LOOP_END;
+	THREAD_BARRIER();
+	
+	nper_slice=stride;
+      }
+    
+    for(int islice=0;islice<nslices;islice++)
+      memcpy(loc_res[islice],buf[islice*nori_per_slice],sizeof(T));
+  }
+  
   template <typename T>
-  void checksum_compute_nissa_data(uint32_t *check,const T& data,int prec,const size_t bps=sizeof(T))
+  void checksum_compute_nissa_data(checksum& check,const T& data,int prec,const size_t bps=sizeof(T))
   {
     const double init_time=take_time();
     
-    uint32_t loc_check[2]={0,0};
+    checksum* buff=get_reducing_buffer<checksum>(locVol);
     
-    NISSA_LOC_VOL_LOOP(ivol)
+    // uint32_t loc_check[2]={0,0};
+    
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	const coords_t& X=glbCoordOfLoclx[ivol];
 	uint32_t ildg_ivol=X[0];
 	for(int mu=NDIM-1;mu>0;mu--) ildg_ivol=ildg_ivol*glbSize[mu]+X[mu];
 	uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
 	
-	uint32_t temp=ildg_crc32_fix_endianness(0,checksum_getter::get_data(data,ivol),prec,bps);
+	uint32_t temp=ildg_crc32_fix_endianness(0,checksum_getter::get_data(data,ivol,bps),prec,bps);
 	
-	for(int i=0;i<2;i++) loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
+	for(int i=0;i<2;i++) buff[ivol][i]=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
       }
+    NISSA_PARALLEL_LOOP_END;
+    
+    checksum loc_check;
+    locReduce(&loc_check,buff,locVol,1,[]CUDA_DEVICE(checksum& res,const checksum& acc)
+    {
+      for(int i=0;i<2;i++)
+	res[i]^=acc[i];
+    });
     
     MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
     
