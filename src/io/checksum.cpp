@@ -116,6 +116,6 @@ namespace nissa
     
     MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
     
-    master_printf("time to compute checksum using cpp version: %lg (%s)\n",take_time()-init_time,__PRETTY_FUNCTION__);
+    master_printf("time to compute checksum using cpp version: %lg (%s), %zu bps\n",take_time()-init_time,__PRETTY_FUNCTION__,bps);
   }
 }
