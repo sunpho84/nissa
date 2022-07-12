@@ -770,12 +770,15 @@ namespace nissa
 	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
       else
 	{
+	  const auto& left=sides[handcuffs_map[ihand].left];
+	  const auto& right=sides[handcuffs_map[ihand].right+"_photon"];
+	  
 	  vector_reset(loc_contr);
 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	    for(int mu=0;mu<NDIM;mu++)
 	      complex_subt_the_prod(loc_contr[ivol],
-				    sides[handcuffs_map[ihand].left][ivol][mu],
-				    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
+				    left[ivol][mu],
+				    right[ivol][mu]);
 	  NISSA_PARALLEL_LOOP_END;
 	  
           double normalization=glbSpatVol*144.0;

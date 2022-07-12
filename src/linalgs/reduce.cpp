@@ -10,7 +10,7 @@ namespace nissa
   
 #define DEFINE_LOC_REDUCE_OF(TYPE)					\
   /*! Reduce a vector of */						\
-  void loc_reduce(TYPE* loc_res,TYPE* buf,int64_t n,int nslices) \
+  void loc_reduce(TYPE* loc_res,TYPE* buf,int64_t n,int nslices)	\
   {									\
 									\
     if(n%nslices)							\

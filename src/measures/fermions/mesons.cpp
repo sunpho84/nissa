@@ -36,7 +36,9 @@ namespace
   void compute_meson_corr(complex* corr,eo_ptr<quad_su3> conf,theory_pars_t* tp,meson_corr_meas_pars_t* meas_pars)
   {
     //allocate
-    eo_ptr<color> ori_source,source,sol,quark[nop],quark0s[nop],temp[2];
+    eo_ptr<color> ori_source,source,sol,temp[2];
+    eo_ptr<color> *quark=new eo_ptr<color>[nop],*quark0s=new eo_ptr<color>[nop];
+    
     for(int eo=0;eo<2;eo++) ori_source[eo]=nissa_malloc("ori_source",locVolh+bord_volh,color);
     for(int eo=0;eo<2;eo++) source[eo]=nissa_malloc("source",locVolh+bord_volh,color);
     for(int eo=0;eo<2;eo++) sol[eo]=nissa_malloc("sol",locVolh+bord_volh,color);
@@ -142,6 +144,9 @@ namespace
     for(int itemp=0;itemp<2;itemp++)
       for(int eo=0;eo<2;eo++)
 	nissa_free(temp[itemp][eo]);
+    
+    delete[] quark;
+    delete[] quark0s;
   }
   
   //compute and print

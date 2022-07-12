@@ -116,7 +116,7 @@ namespace nissa
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ(a[id1][id2],b[id1][id2],c[id1][id2]);}
   CUDA_HOST_AND_DEVICE inline void spinspin_subt(spinspin a,const spinspin b,const spinspin c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_subt(a[id1][id2],b[id1][id2],c[id1][id2]);}
-  inline void spinspin_summassign(spinspin a,const spinspin b)
+  CUDA_HOST_AND_DEVICE inline void spinspin_summassign(spinspin a,const spinspin b)
   {spinspin_summ(a,a,b);}
   inline void spinspin_subtassign(spinspin a,const spinspin b)
   {spinspin_subt(a,a,b);}
