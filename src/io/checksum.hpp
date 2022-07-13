@@ -170,7 +170,7 @@ namespace nissa
   
   template <typename T,
 	    typename F>
-  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F&& f)
+  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F f)
   {
     master_printf("%s function\n",__PRETTY_FUNCTION__);
     
@@ -214,7 +214,7 @@ namespace nissa
   }
   
   CUDA_HOST_AND_DEVICE
-  __attribute__((always_inline))
+  inline __attribute__((always_inline))
   void checksum_reducer(checksum& first,const checksum& second)
   {
     for(int i=0;i<2;i++)
