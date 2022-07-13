@@ -133,7 +133,7 @@ namespace nissa
     }
   
   template <typename T>
-  void checksum_compute_nissa_data(checksum& check,const T& data,int prec,const size_t bps=sizeof(T))
+  void checksum_compute_nissa_data(checksum& check,const T& data,int prec,const size_t bps=sizeof(decltype(checksum_getter::get_data(data,0,0))))
   {
     const double init_time=take_time();
     
