@@ -253,11 +253,6 @@ namespace nissa
 	res[i]^=acc[i];
     });
     
-    master_printf("   starting global reductiond\n");
-    const double init_glbred_time=take_time();
-    MPI_Allreduce(loc_check.data,check.data,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
-    master_printf("   finished glb reducing buffer, took %lg s\n",take_time()-init_glbred_time);
-    
     {
     master_printf("   testing global reduction\n");
     const double init_glbred_time=take_time();
@@ -265,6 +260,11 @@ namespace nissa
     MPI_Allreduce(a,b,2,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
     master_printf("   finished test, took %lg s\n",take_time()-init_glbred_time);
     }
+    
+    master_printf("   starting global reduction\n");
+    const double init_glbred_time=take_time();
+    MPI_Allreduce(loc_check.data,check.data,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
+    master_printf("   finished glb reducing buffer, took %lg s\n",take_time()-init_glbred_time);
     
     master_printf("time to compute checksum: %lg (%s) %zu bps\n",take_time()-init_time,__PRETTY_FUNCTION__,bps);
   }
