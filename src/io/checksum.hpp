@@ -35,10 +35,10 @@ namespace nissa
     }
     
     CUDA_HOST_AND_DEVICE
-    inline checksum& operator+=(const checksum& oth)
+    __attribute__((always_inline)) checksum& operator+=(const checksum& oth)
     {
       for(int i=0;i<2;i++)
-	data[i]^=oth[i];
+	data[i]^=oth.data[i];
       
       return *this;
     }
@@ -235,8 +235,6 @@ namespace nissa
     
     master_printf("   allocating buffer\n");
     checksum* buff=get_reducing_buffer<checksum>(locVol);
-    
-    // uint32_t loc_check[2]={0,0};
     
     master_printf("   entering loop\n");
     
