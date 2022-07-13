@@ -83,7 +83,7 @@ namespace nissa
   
   template <typename T,
 	    typename F>
-  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F f)
+  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F&& f)
   {
     master_printf("%s function\n",__PRETTY_FUNCTION__);
     
@@ -102,7 +102,8 @@ namespace nissa
 	//verbosity_lv3_
 	  master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld\n",nper_slice,stride,nreductions_per_slice,nreductions);
 	
-	NISSA_PARALLEL_LOOP(ireduction,0,nreductions)
+	  //NISSA_PARALLEL_LOOP
+	  for(int ireduction=0;ireduction<nreductions;ireduction++)
 	  {
 	    const int64_t islice=ireduction%nslices;
 	    const int64_t ireduction_in_slice=ireduction/nslices;
@@ -111,7 +112,7 @@ namespace nissa
 	    
 	    f(buf[first],buf[second]);
 	  }
-	NISSA_PARALLEL_LOOP_END;
+	  //NISSA_PARALLEL_LOOP_END;
 	THREAD_BARRIER();
 	
 	nper_slice=stride;
