@@ -35,6 +35,8 @@ namespace nissa
   //endianness
   CUDA_MANAGED EXTERN_ENDIANNESS int little_endian;
   
+  void check_endianness();
+  
   namespace
   {
     template <typename T>
