@@ -213,6 +213,14 @@ namespace nissa
       loc_res[islice]=buf[islice*nori_per_slice];
   }
   
+  CUDA_HOST_AND_DEVICE
+  __attribute__((always_inline))
+  void checksum_reducer(checksum& first,const checksum& second)
+  {
+    for(int i=0;i<2;i++)
+      first.data[i]^=second.data[i];
+  }
+  
   template <typename T>
   void checksum_compute_nissa_data(checksum& check,const T& data,int prec,const size_t bps)
   {
@@ -220,6 +228,7 @@ namespace nissa
     
     master_printf("   allocating buffer\n");
     checksum* buff=get_reducing_buffer<checksum>(locVol);
+    master_printf("   finished allocating the buffer, took %lg s\n",take_time()-init_time);
     
     master_printf("   entering loop\n");
     
@@ -243,17 +252,15 @@ namespace nissa
     
     master_printf("   finished filling the buffer, took %lg s\n",take_time()-init_fill_time);
     
-    master_printf("   starting local reducion\n");
+    master_printf("   starting local reduction\n");
     
     checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,[]CUDA_DEVICE(checksum& res,const checksum& acc)
-    {
-      for(int i=0;i<2;i++)
-	res[i]^=acc[i];
-    });
+    locReduce(&loc_check,buff,locVol,1,checksum_reducer);
     
     master_printf("   starting global reductiond\n");
+    const double init_glbred_time=take_time();
     MPI_Allreduce(loc_check.data,check.data,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
+    master_printf("   finished glb reducing buffer, took %lg s\n",take_time()-init_glbred_time);
     
     master_printf("time to compute checksum: %lg (%s) %zu bps\n",take_time()-init_time,__PRETTY_FUNCTION__,bps);
   }
