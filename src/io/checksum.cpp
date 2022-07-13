@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <unistd.h>
 
+#include "checksum.hpp"
+
 #include "base/debug.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "routines/ios.hpp"
