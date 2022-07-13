@@ -94,7 +94,7 @@ namespace nissa
   }
   
   CUDA_HOST_AND_DEVICE
-  inline void change_endianness(uint16_t *dest,uint16_t *sour,int nshorts,int verbose)
+  inline void change_endianness(uint16_t *dest,uint16_t *sour,int nshorts,int verbose=1)
   {
 #ifndef COMPILING_FOR_DEVICE
     if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d uint16_t\n",nshorts);
@@ -112,14 +112,14 @@ namespace nissa
   ////////////////////Copy a vector of floats to doubles. Sweep is reversed to avoid overwriting////////////////
   
   //Do not change endianness
-  inline void floats_to_doubles_same_endianness(double *dest,float *sour,int n,int verbose)
+  inline void floats_to_doubles_same_endianness(double *dest,float *sour,int n,int verbose=1)
   {
     if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles\n",n);
     for(int i=n-1;i>=0;i--) dest[i]=(double)(sour[i]);
   }
   
   //Change endianness
-  inline void floats_to_doubles_changing_endianness(double *dest,float *sour,int n,int verbose)
+  inline void floats_to_doubles_changing_endianness(double *dest,float *sour,int n,int verbose=1)
   {
     if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles changing endianness (two steps\n",n);
     floats_to_doubles_same_endianness(dest,sour,n,verbose);
@@ -129,14 +129,14 @@ namespace nissa
   ////////////////////Copy a vector of doubles to floats. Sweep is direct, to avoid overwriting////////////////
   
   //Do not change the endianness
-  inline void doubles_to_floats_same_endianness(float *dest,double *sour,int n,int verbose)
+  inline void doubles_to_floats_same_endianness(float *dest,double *sour,int n,int verbose=1)
   {
     if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats\n",n);
     for(int i=0;i<n;i++) dest[i]=(float)(sour[i]);
   }
   
   //Change endianness
-  inline void doubles_to_floats_changing_endianness(float *dest,double *sour,int n,int verbose)
+  inline void doubles_to_floats_changing_endianness(float *dest,double *sour,int n,int verbose=1)
   {
     if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats changing endianness (two steps)\n",n);
     doubles_to_floats_same_endianness(dest,sour,n,verbose);
