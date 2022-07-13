@@ -45,8 +45,7 @@ namespace nissa
     uint64_t nbytes_per_site_double=nreals_per_site*sizeof(double);
     
     //read the checksum
-    checksum read_check={0,0};
-    ILDG_File_read_checksum(read_check,file);
+    const checksum read_check=ILDG_File_read_checksum(file);
     
     //check precision
     int single_double_flag=-1;

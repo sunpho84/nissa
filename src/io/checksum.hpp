@@ -18,7 +18,31 @@
 
 namespace nissa
 {
-  typedef uint32_t checksum[2];
+  struct checksum
+  {
+    uint32_t data[2];
+    
+    CUDA_HOST_AND_DEVICE
+    inline uint32_t& operator[](const int i)
+    {
+      return data[i];
+    }
+    
+    CUDA_HOST_AND_DEVICE
+    inline const uint32_t& operator[](const int i) const
+    {
+      return data[i];
+    }
+    
+    CUDA_HOST_AND_DEVICE
+    inline checksum& operator+=(const checksum& oth)
+    {
+      for(int i=0;i<2;i++)
+	data[i]^=oth[i];
+      
+      return *this;
+    }
+  };
   
   void checksum_compute_ildg_data(uint32_t *check,void *data,size_t bps);
   
@@ -153,9 +177,8 @@ namespace nissa
       return ildg_crc32(crc,(unsigned char*)buf,bps);
   }
   
-  template <typename T,
-	    typename F>
-  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F&& f)
+  template <typename T>
+  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices)
   {
     master_printf("%s function\n",__PRETTY_FUNCTION__);
     
@@ -172,8 +195,7 @@ namespace nissa
 	const int64_t stride=(nper_slice+1)/2;
 	const int64_t nreductions_per_slice=nper_slice/2;
 	const int64_t nreductions=nreductions_per_slice*nslices;
-	//verbosity_lv3_
-	master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld \n",nper_slice,stride,nreductions_per_slice,nreductions);
+	verbosity_lv3_master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld \n",nper_slice,stride,nreductions_per_slice,nreductions);
 	  
 	  
 	  NISSA_PARALLEL_LOOP(ireduction,0,nreductions)
@@ -183,8 +205,7 @@ namespace nissa
 	    const int64_t first=ireduction_in_slice+nori_per_slice*islice;
 	    const int64_t second=first+stride;
 	    
-      for(int i=0;i<2;i++)
-	buf[first][i]^=buf[second][i];
+	    buf[first]+=buf[second];
 	    // f(buf[first],buf[second]);
 	  }
 	  NISSA_PARALLEL_LOOP_END;
@@ -197,7 +218,7 @@ namespace nissa
     master_printf("reduction ended, took %lg s\n",take_time()-init_time);
     
     for(int islice=0;islice<nslices;islice++)
-      memcpy(loc_res[islice],buf[islice*nori_per_slice],sizeof(T));
+      loc_res[islice]=buf[islice*nori_per_slice];
   }
   
   CUDA_HOST_AND_DEVICE
@@ -242,10 +263,10 @@ namespace nissa
     master_printf("   starting local reducion\n");
     
     checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,checksumReducer);
+    locReduce(&loc_check,buff,locVol,1);
     
     master_printf("   starting global reductiond\n");
-    MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
+    MPI_Allreduce(loc_check.data,check.data,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
     
     master_printf("time to compute checksum: %lg (%s) %zu bps\n",take_time()-init_time,__PRETTY_FUNCTION__,bps);
   }
