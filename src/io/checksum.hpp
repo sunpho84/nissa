@@ -27,6 +27,8 @@ namespace nissa
   
   namespace checksum_getter
   {
+    constexpr size_t max_buf_size=sizeof(quad_su3);
+    
     template <typename T>
     CUDA_HOST_AND_DEVICE
     auto get_data(const T* data,const int& ivol,const size_t bps=sizeof(T))
@@ -51,31 +53,24 @@ namespace nissa
   {
     if(little_endian)
       {
-	uint32_t res=0;
+	unsigned char tmp[checksum_getter::max_buf_size];
 	
-	// Swap endianness, compute and put back endianness
-	for(int iter=0;iter<2;iter++)
+	switch(prec)
 	  {
-	    switch(prec)
-	      {
-	      case 64:
-		change_endianness((double*)buf,(double*)buf,bps/sizeof(double),0);
+	  case 64:
+	    change_endianness((double*)tmp,(double*)buf,bps/sizeof(double),0);
+	    break;
+	  case 32:
+	    change_endianness((float*)tmp,(float*)buf,bps/sizeof(float),0);
 		break;
-	      case 32:
-		change_endianness((float*)buf,(float*)buf,bps/sizeof(float),0);
-		break;
-	      default:
+	  default:
 #ifndef COMPILING_FOR_DEVICE
-		crash("unknown precision %d",prec);
+	    crash("unknown precision %d",prec);
 #endif
-		break;
-	      }
-	    
-	    if(iter==0)
-	      res=ildg_crc32(crc,(unsigned char*)buf,bps);
+	    break;
 	  }
 	
-	return res;
+	return ildg_crc32(crc,tmp,bps);
       }
     else
       return ildg_crc32(crc,(unsigned char*)buf,bps);
@@ -94,15 +89,15 @@ namespace nissa
     int64_t nper_slice=n/nslices;
     verbosity_lv2_master_printf("n: %lld, nslices: %d, nori_per_slice: %lld nper_slice: %ld\n",nslices,nori_per_slice,nper_slice);
     
+    const double init_time=take_time();
     while(nper_slice>1)
       {
 	const int64_t stride=(nper_slice+1)/2;
 	const int64_t nreductions_per_slice=nper_slice/2;
 	const int64_t nreductions=nreductions_per_slice*nslices;
 	//verbosity_lv3_
-	  master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld ",nper_slice,stride,nreductions_per_slice,nreductions);
+	master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld \n",nper_slice,stride,nreductions_per_slice,nreductions);
 	  
-	  const double init_time=take_time();
 	  
 	  NISSA_PARALLEL_LOOP(ireduction,0,nreductions)
 	  {
@@ -118,12 +113,11 @@ namespace nissa
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
 	  
-	  master_printf("%lg s\n",take_time()-init_time);
 	  
 	nper_slice=stride;
       }
     
-    master_printf("reduction ended\n");
+    master_printf("reduction ended, took %lg s\n",init_time-take_time());
     
     for(int islice=0;islice<nslices;islice++)
       memcpy(loc_res[islice],buf[islice*nori_per_slice],sizeof(T));
@@ -137,7 +131,7 @@ namespace nissa
     }
   
   template <typename T>
-  void checksum_compute_nissa_data(checksum& check,const T& data,int prec,const size_t bps=sizeof(decltype(checksum_getter::get_data(std::declval<T>(),0,0))))
+  void checksum_compute_nissa_data(checksum& check,const T& data,int prec,const size_t bps)
   {
     const double init_time=take_time();
     
@@ -147,6 +141,9 @@ namespace nissa
     // uint32_t loc_check[2]={0,0};
     
     master_printf("   entering loop\n");
+    
+    if(bps>checksum_getter::max_buf_size)
+      crash("please increase the buf size to hold %zu bps",bps);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
