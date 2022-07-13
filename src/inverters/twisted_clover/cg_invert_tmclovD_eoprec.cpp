@@ -242,7 +242,7 @@ namespace nissa
 	/// Residue L2 norm
 	const double residueNorm2=double_vector_glb_norm2(residueVec,locVol);
 	
-	master_printf("check solution, residue: %lg, target one: %lg checked in %lg s\n",residueNorm2/sourceNorm2,residue,take_time()-check_time);
+	master_printf("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",sourceNorm2,residueNorm2/sourceNorm2,residue,take_time()-check_time);
 	
 	nissa_free(residueVec);
       }
