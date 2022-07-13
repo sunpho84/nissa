@@ -158,13 +158,13 @@ namespace nissa
     spinspin_copy(a,d);
   }
   
-  inline void unsafe_spinspin_prod_complex_conj2(spinspin a,const spinspin b,const complex c)
+  CUDA_HOST_AND_DEVICE inline void unsafe_spinspin_prod_complex_conj2(spinspin a,const spinspin b,const complex c)
   {
     complex d;
     complex_conj(d,c);
     unsafe_spinspin_prod_complex(a,b,d);
   }
-  inline void safe_spinspin_prod_complex_conj2(spinspin a,const spinspin b,const complex c)
+  CUDA_HOST_AND_DEVICE inline void safe_spinspin_prod_complex_conj2(spinspin a,const spinspin b,const complex c)
   {
     complex d;
     complex_conj(d,c);
