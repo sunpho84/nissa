@@ -118,6 +118,20 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  template <typename T>
+  CUDA_HOST_AND_DEVICE
+  void reduceSummer(T& out,const T& in)
+  {
+    out+=in;
+  }
+  
+  template <>
+  CUDA_HOST_AND_DEVICE
+  inline void reduceSummer(complex& out,const complex& in)
+  {
+    complex_summassign(out,in);
+  }
+  
   /// Reduce a vector over all nodes
   template <typename T>
   void glb_reduce(T* glb_res,T* buf,int64_t nloc,const int nslices=1,const int nloc_slices=1,const int loc_offset=0)
@@ -127,7 +141,7 @@ namespace nissa
     
     locReduce(loc_res+loc_offset,buf,nloc,nloc_slices,[] CUDA_DEVICE (auto& res,const auto& acc)  __attribute__((always_inline))
     {
-      res+=acc;
+      reduceSummer(res,acc);
     });
     
     non_loc_reduce(glb_res,loc_res,nslices);
