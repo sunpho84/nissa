@@ -109,7 +109,9 @@ namespace nissa
 	    const int64_t first=ireduction_in_slice+nori_per_slice*islice;
 	    const int64_t second=first+stride;
 	    
-	    f(buf[first],buf[second]);
+      for(int i=0;i<2;i++)
+	buf[first][i]^=buf[second][i];
+	    // f(buf[first],buf[second]);
 	  }
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
