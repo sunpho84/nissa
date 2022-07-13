@@ -170,7 +170,7 @@ namespace nissa
   
   template <typename T,
 	    typename F>
-  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F f)
+  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F&& f)
   {
     master_printf("%s function\n",__PRETTY_FUNCTION__);
     
@@ -213,14 +213,6 @@ namespace nissa
       loc_res[islice]=buf[islice*nori_per_slice];
   }
   
-  CUDA_HOST_AND_DEVICE
-  inline __attribute__((always_inline))
-  void checksum_reducer(checksum& first,const checksum& second)
-  {
-    for(int i=0;i<2;i++)
-      first.data[i]^=second.data[i];
-  }
-  
   template <typename T>
   void checksum_compute_nissa_data(checksum& check,const T& data,int prec,const size_t bps)
   {
@@ -255,7 +247,11 @@ namespace nissa
     master_printf("   starting local reduction\n");
     
     checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,checksum_reducer);
+    locReduce(&loc_check,buff,locVol,1,[] CUDA_DEVICE (checksum& res,const checksum& acc) //  __attribute__((always_inline))
+    {
+      for(int i=0;i<2;i++)
+	res[i]^=acc[i];
+    });
     
     master_printf("   starting global reductiond\n");
     const double init_glbred_time=take_time();
