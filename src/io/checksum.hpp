@@ -247,7 +247,7 @@ namespace nissa
     master_printf("   starting local reduction\n");
     
     checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,[] CUDA_DEVICE (checksum& res,const checksum& acc) //  __attribute__((always_inline))
+    locReduce(&loc_check,buff,locVol,1,[] CUDA_DEVICE (checksum& res,const checksum& acc)  __attribute__((always_inline))
     {
       for(int i=0;i<2;i++)
 	res[i]^=acc[i];
