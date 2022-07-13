@@ -51,7 +51,7 @@ namespace nissa
   
   //revert the endianness of doubles
   CUDA_HOST_AND_DEVICE
-  inline void change_endianness(double *dest,double *sour,int ndoubles,int verbose)
+  inline void change_endianness(double *dest,double *sour,int ndoubles,int verbose=1)
   {
 #ifndef COMPILING_FOR_DEVICE
     if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d doubles\n",ndoubles);
@@ -71,7 +71,7 @@ namespace nissa
   
   //revert the endianness of floats
   CUDA_HOST_AND_DEVICE
-  inline void change_endianness(float *dest,float *sour,int nfloats,int verbose)
+  inline void change_endianness(float *dest,float *sour,int nfloats,int verbose=1)
   {
 #ifndef COMPILING_FOR_DEVICE
     if(verbose) verbosity_lv3_master_printf("Reverting the endianness of %d floats\n",nfloats);
