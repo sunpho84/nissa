@@ -71,6 +71,34 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  template <typename T>
+  CUDA_HOST_AND_DEVICE
+  void reduceSummer(T& out,const T& in)
+  {
+    out+=in;
+  }
+  
+  template <>
+  CUDA_HOST_AND_DEVICE
+  inline void reduceSummer(complex& out,const complex& in)
+  {
+    complex_summassign(out,in);
+  }
+  
+  template <typename T>
+  CUDA_HOST_AND_DEVICE
+  void reduceAssigner(T& out,const T& in)
+  {
+    out=in;
+  }
+  
+  template <>
+  CUDA_HOST_AND_DEVICE
+  inline void reduceAssigner(complex& out,const complex& in)
+  {
+    complex_copy(out,in);
+  }
+  
   template <typename T,
 	    typename F>
   void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F&& f)
@@ -113,24 +141,10 @@ namespace nissa
     master_printf("reduction ended, took %lg s\n",take_time()-init_time);
     
     for(int islice=0;islice<nslices;islice++)
-      loc_res[islice]=buf[islice*nori_per_slice];
+      reduceAssigner(loc_res[islice],buf[islice*nori_per_slice]);
   }
   
   /////////////////////////////////////////////////////////////////
-  
-  template <typename T>
-  CUDA_HOST_AND_DEVICE
-  void reduceSummer(T& out,const T& in)
-  {
-    out+=in;
-  }
-  
-  template <>
-  CUDA_HOST_AND_DEVICE
-  inline void reduceSummer(complex& out,const complex& in)
-  {
-    complex_summassign(out,in);
-  }
   
   /// Reduce a vector over all nodes
   template <typename T>
