@@ -145,6 +145,8 @@ namespace nissa
     if(bps>checksum_getter::max_buf_size)
       crash("please increase the buf size to hold %zu bps",bps);
     
+    const double init_fill_time=take_time();
+    
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	const coords_t& X=glbCoordOfLoclx[ivol];
@@ -157,6 +159,8 @@ namespace nissa
 	for(int i=0;i<2;i++) buff[ivol][i]=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
       }
     NISSA_PARALLEL_LOOP_END;
+    
+    master_printf("   finished filling the buffer, took %lg s\n",take_time()-init_fill_time);
     
     master_printf("   starting local reducion\n");
     
