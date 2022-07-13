@@ -85,6 +85,8 @@ namespace nissa
     complex_summassign(out,in);
   }
   
+  /////////////////////////////////////////////////////////////////
+  
   template <typename T>
   CUDA_HOST_AND_DEVICE
   void reduceAssigner(T& out,const T& in)
@@ -98,6 +100,8 @@ namespace nissa
   {
     complex_copy(out,in);
   }
+  
+  /////////////////////////////////////////////////////////////////
   
   template <typename T,
 	    typename F>
@@ -128,14 +132,12 @@ namespace nissa
 	    const int64_t first=ireduction_in_slice+nori_per_slice*islice;
 	    const int64_t second=first+stride;
 	    
-	    //buf[first]+=buf[second];
 	    f(buf[first],buf[second]);
 	  }
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
 	  
-	  
-	nper_slice=stride;
+	  nper_slice=stride;
       }
     
     master_printf("reduction ended, took %lg s\n",take_time()-init_time);

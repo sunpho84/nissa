@@ -229,6 +229,7 @@ namespace nissa
     
     if(check_inversion_residue)
       {
+    THREAD_BARRIER();
 	//check solution
 	double check_time=take_time();
 	spincolor *residueVec=nissa_malloc("temp",locVol,spincolor);
