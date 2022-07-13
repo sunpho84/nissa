@@ -100,7 +100,9 @@ namespace nissa
 	const int64_t nreductions_per_slice=nper_slice/2;
 	const int64_t nreductions=nreductions_per_slice*nslices;
 	//verbosity_lv3_
-	  master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld\n",nper_slice,stride,nreductions_per_slice,nreductions);
+	  master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld ",nper_slice,stride,nreductions_per_slice,nreductions);
+	  
+	  const double init_time=take_time();
 	  
 	  NISSA_PARALLEL_LOOP(ireduction,0,nreductions)
 	  {
@@ -115,11 +117,13 @@ namespace nissa
 	  }
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
-	
+	  
+	  master_printf("%lg s\n",take_time()-init_time);
+	  
 	nper_slice=stride;
       }
     
-    master_printf("redcuction ended\n");
+    master_printf("reduction ended\n");
     
     for(int islice=0;islice<nslices;islice++)
       memcpy(loc_res[islice],buf[islice*nori_per_slice],sizeof(T));
