@@ -117,7 +117,7 @@ namespace nissa
 	nper_slice=stride;
       }
     
-    master_printf("reduction ended, took %lg s\n",init_time-take_time());
+    master_printf("reduction ended, took %lg s\n",take_time()-init_time);
     
     for(int islice=0;islice<nslices;islice++)
       memcpy(loc_res[islice],buf[islice*nori_per_slice],sizeof(T));
