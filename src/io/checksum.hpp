@@ -33,15 +33,6 @@ namespace nissa
     {
       return data[i];
     }
-    
-    CUDA_HOST_AND_DEVICE
-    __attribute__((always_inline)) checksum& operator+=(const checksum& oth)
-    {
-      for(int i=0;i<2;i++)
-	data[i]^=oth.data[i];
-      
-      return *this;
-    }
   };
   
   void checksum_compute_ildg_data(uint32_t *check,void *data,size_t bps);
@@ -177,8 +168,9 @@ namespace nissa
       return ildg_crc32(crc,(unsigned char*)buf,bps);
   }
   
-  template <typename T>
-  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices)
+  template <typename T,
+	    typename F>
+  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F&& f)
   {
     master_printf("%s function\n",__PRETTY_FUNCTION__);
     
@@ -196,17 +188,17 @@ namespace nissa
 	const int64_t nreductions_per_slice=nper_slice/2;
 	const int64_t nreductions=nreductions_per_slice*nslices;
 	verbosity_lv3_master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld \n",nper_slice,stride,nreductions_per_slice,nreductions);
-	  
-	  
-	  NISSA_PARALLEL_LOOP(ireduction,0,nreductions)
+	
+	
+	NISSA_PARALLEL_LOOP(ireduction,0,nreductions)
 	  {
 	    const int64_t islice=ireduction%nslices;
 	    const int64_t ireduction_in_slice=ireduction/nslices;
 	    const int64_t first=ireduction_in_slice+nori_per_slice*islice;
 	    const int64_t second=first+stride;
 	    
-	    buf[first]+=buf[second];
-	    // f(buf[first],buf[second]);
+	    //buf[first]+=buf[second];
+	    f(buf[first],buf[second]);
 	  }
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
@@ -220,13 +212,6 @@ namespace nissa
     for(int islice=0;islice<nslices;islice++)
       loc_res[islice]=buf[islice*nori_per_slice];
   }
-  
-  CUDA_HOST_AND_DEVICE
-  inline void checksumReducer(checksum& res,const checksum& acc)
-    {
-      for(int i=0;i<2;i++)
-	res[i]^=acc[i];
-    }
   
   template <typename T>
   void checksum_compute_nissa_data(checksum& check,const T& data,int prec,const size_t bps)
@@ -261,7 +246,11 @@ namespace nissa
     master_printf("   starting local reducion\n");
     
     checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1);
+    locReduce(&loc_check,buff,locVol,1,[]CUDA_DEVICE(checksum& res,const checksum& acc)
+    {
+      for(int i=0;i<2;i++)
+	res[i]^=acc[i];
+    });
     
     master_printf("   starting global reductiond\n");
     MPI_Allreduce(loc_check.data,check.data,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
