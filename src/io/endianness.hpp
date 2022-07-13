@@ -88,6 +88,12 @@ namespace nissa
   }
   
   CUDA_HOST_AND_DEVICE
+  inline void change_endianness(uint32_t *dest,uint32_t *sour,int nints,int verbose=1)
+  {
+    change_endianness((float*)dest,(float*)sour,nints,verbose);
+  }
+  
+  CUDA_HOST_AND_DEVICE
   inline void change_endianness(uint16_t *dest,uint16_t *sour,int nshorts,int verbose)
   {
 #ifndef COMPILING_FOR_DEVICE
