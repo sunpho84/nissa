@@ -238,7 +238,7 @@ namespace nissa
     THREAD_BARRIER();
 	//check solution
 	double check_time=take_time();
-	spincolor *residueVec=nissa_malloc("temp",locVol,spincolor);
+	spincolor *residueVec=nissa_malloc("residueVec",locVol,spincolor);
 	checksum check;
 	checksum_compute_nissa_data(check,solution_lx,64,sizeof(spincolor));
 	master_printf("checksum of the solution %x %x\n",check[0],check[1]);
@@ -260,18 +260,18 @@ namespace nissa
 	const double resn=spincolor_norm2(residueVec[0]);
 	double resnt=0;
 	for(int ivol=0;ivol<locVol;ivol++)
-	  spincolor_norm2(residueVec[0]);
+	  spincolor_norm2(residueVec[ivol]);
 	double resntg;
 	MPI_Allreduce(&resnt,&resntg,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	
-	/// Source L2 norm
-	const double sourceNorm2=double_vector_glb_norm2(source_lx,locVol);
 	
 	/// Residue L2 norm
 	const double residueNorm2=double_vector_glb_norm2(residueVec,locVol);
 	
+	/// Source L2 norm
+	const double sourceNorm2=double_vector_glb_norm2(source_lx,locVol);
+	
 	master_printf("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",sourceNorm2,residueNorm2/sourceNorm2,residue,take_time()-check_time);
-	printf("check: %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
+	printf("check rank %d %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",rank,sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
 	nissa_free(residueVec);
       }
   }
