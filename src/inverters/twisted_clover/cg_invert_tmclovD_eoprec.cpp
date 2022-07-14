@@ -246,6 +246,8 @@ namespace nissa
 	const double sou=source_lx[0][0][0][0];
 	const double sol=solution_lx[0][0][0][0];
 	apply_tmclovQ(residueVec,conf_lx,kappa,Cl_lx,mass,solution_lx);
+	checksum_compute_nissa_data(check,residueVec,64,sizeof(spincolor));
+	master_printf("checksum of the residue %x %x\n",check[0],check[1]);
 	const double res=residueVec[0][0][0][0];
 	safe_dirac_prod_spincolor(residueVec,base_gamma[5],residueVec);
 	const double res5=residueVec[0][0][0][0];
