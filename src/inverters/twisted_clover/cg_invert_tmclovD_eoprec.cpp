@@ -267,7 +267,7 @@ namespace nissa
 	      {
 		found=true;
 		const coords_t c=locCoordOfLoclx[ivol];
-		master_printf("found first exceeding at %d %d %d %d\n",c[0],c[1],c[2],c[3]);
+		master_printf("found first exceeding, %lg at %d %d %d %d\n",contr,c[0],c[1],c[2],c[3]);
 	      }
 	    resnt+=contr;
 	  }
