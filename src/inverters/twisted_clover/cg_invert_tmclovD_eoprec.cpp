@@ -263,7 +263,7 @@ namespace nissa
 	for(int ivol=0;ivol<locVol;ivol++)
 	  {
 	    const double contr=spincolor_norm2(residueVec[ivol]);
-	    if(found==false and contr>1e-6)
+	    if(found==false and contr>1e-4)
 	      {
 		found=true;
 		const coords_t c=locCoordOfLoclx[ivol];
