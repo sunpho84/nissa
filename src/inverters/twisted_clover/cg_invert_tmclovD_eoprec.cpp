@@ -259,8 +259,18 @@ namespace nissa
 	const double ress=residueVec[0][0][0][0];
 	const double resn=spincolor_norm2(residueVec[0]);
 	double resnt=0;
+	bool found=false;
 	for(int ivol=0;ivol<locVol;ivol++)
-	  resnt+=spincolor_norm2(residueVec[ivol]);
+	  {
+	    const double contr=spincolor_norm2(residueVec[ivol]);
+	    if(found==false and contr>1e-6)
+	      {
+		found=true;
+		const coords_t c=locCoordOfLoclx[ivol];
+		master_printf("found first exceeding at %d %d %d %d\n",c[0],c[1],c[2],c[3]);
+	      }
+	    resnt+=contr;
+	  }
 	double resntg;
 	MPI_Allreduce(&resnt,&resntg,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	
