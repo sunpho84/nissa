@@ -257,6 +257,12 @@ namespace nissa
 	const double res5=residueVec[0][0][0][0];
 	double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol*sizeof(spincolor)/sizeof(double));
 	const double ress=residueVec[0][0][0][0];
+	const double resn=spincolor_norm2(residueVec[0]);
+	double resnt=0;
+	for(int ivol=0;ivol<locVol;ivol++)
+	  spincolor_norm2(residueVec[0]);
+	double resntg;
+	MPI_Allreduce(&resnt,&resntg,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	
 	/// Source L2 norm
 	const double sourceNorm2=double_vector_glb_norm2(source_lx,locVol);
@@ -265,7 +271,7 @@ namespace nissa
 	const double residueNorm2=double_vector_glb_norm2(residueVec,locVol);
 	
 	master_printf("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",sourceNorm2,residueNorm2/sourceNorm2,residue,take_time()-check_time);
-	master_printf("check: %lg %lg %lg %lg %lg %lg %lg %lg\n",sou,sol,sola,soll,res,res1,res5,ress);
+	printf("check: %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
 	nissa_free(residueVec);
       }
   }
