@@ -34,6 +34,12 @@
 
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 
+
+
+
+
+#include "io/checksum.hpp"
+
 namespace nissa
 {
   //Refers to the tmD_eoprec
@@ -233,6 +239,10 @@ namespace nissa
 	//check solution
 	double check_time=take_time();
 	spincolor *residueVec=nissa_malloc("temp",locVol,spincolor);
+	checksum check;
+	checksum_compute_nissa_data(check,solution_lx,64,sizeof(spincolor));
+	master_printf("checksum of the solution %x %x\n",check[0],check[1]);
+	
 	const double sou=source_lx[0][0][0][0];
 	const double sol=solution_lx[0][0][0][0];
 	apply_tmclovQ(residueVec,conf_lx,kappa,Cl_lx,mass,solution_lx);
@@ -241,7 +251,7 @@ namespace nissa
 	const double res5=residueVec[0][0][0][0];
 	double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol*sizeof(spincolor)/sizeof(double));
 	const double ress=residueVec[0][0][0][0];
-
+	
 	/// Source L2 norm
 	const double sourceNorm2=double_vector_glb_norm2(source_lx,locVol);
 	
