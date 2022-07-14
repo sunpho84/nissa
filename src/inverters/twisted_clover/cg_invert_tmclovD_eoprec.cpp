@@ -251,6 +251,8 @@ namespace nissa
 	const double soll=solution_lx[locVol][0][0][0];
 	checksum_compute_nissa_data(check,residueVec,64,sizeof(spincolor));
 	master_printf("checksum of the residue %x %x\n",check[0],check[1]);
+	checksum_compute_nissa_data(check,solution_lx+bord_vol,64,sizeof(spincolor));
+	master_printf("checksum of the solution shifted by bord %x %x\n",check[0],check[1]);
 	const double res=residueVec[0][0][0][0];
 	const double res1=residueVec[loclx_of_coord_list(1,1,1,1)][0][0][0];
 	safe_dirac_prod_spincolor(residueVec,base_gamma[5],residueVec);
