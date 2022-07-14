@@ -246,9 +246,12 @@ namespace nissa
 	const double sou=source_lx[0][0][0][0];
 	const double sol=solution_lx[0][0][0][0];
 	apply_tmclovQ(residueVec,conf_lx,kappa,Cl_lx,mass,solution_lx);
+	const double sola=solution_lx[0][0][0][0];
+	const double soll=solution_lx[locVol][0][0][0];
 	checksum_compute_nissa_data(check,residueVec,64,sizeof(spincolor));
 	master_printf("checksum of the residue %x %x\n",check[0],check[1]);
 	const double res=residueVec[0][0][0][0];
+	const double res1=residueVec[loclx_of_coord_list(1,1,1,1)][0][0][0];
 	safe_dirac_prod_spincolor(residueVec,base_gamma[5],residueVec);
 	const double res5=residueVec[0][0][0][0];
 	double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol*sizeof(spincolor)/sizeof(double));
@@ -261,7 +264,7 @@ namespace nissa
 	const double residueNorm2=double_vector_glb_norm2(residueVec,locVol);
 	
 	master_printf("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",sourceNorm2,residueNorm2/sourceNorm2,residue,take_time()-check_time);
-	master_printf("check: %lg %lg %lg %lg %lg\n",sou,sol,res,res5,ress);
+	master_printf("check: %lg %lg %lg %lg %lg %lg %lg %lg\n",sou,sol,sola,soll,res,res1,res5,ress);
 	nissa_free(residueVec);
       }
   }
