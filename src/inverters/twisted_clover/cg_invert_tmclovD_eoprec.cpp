@@ -249,6 +249,8 @@ namespace nissa
 	apply_tmclovQ(residueVec,conf_lx,kappa,Cl_lx,mass,solution_lx);
 	const double sola=solution_lx[0][0][0][0];
 	const double soll=solution_lx[locVol][0][0][0];
+	checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
+	master_printf("checksum of the clover %x %x\n",check[0],check[1]);
 	checksum_compute_nissa_data(check,residueVec,64,sizeof(spincolor));
 	master_printf("checksum of the residue %x %x\n",check[0],check[1]);
 	checksum_compute_nissa_data(check,solution_lx+bord_vol,64,sizeof(spincolor));
