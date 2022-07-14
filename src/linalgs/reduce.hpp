@@ -159,7 +159,7 @@ namespace nissa
     {
       reduceSummer(res,acc);
     });
-    
+    printf("rank %d local reduction %lg\n",rank,loc_res[0]);
     non_loc_reduce(glb_res,loc_res,nslices);
   }
 }

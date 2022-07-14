@@ -245,6 +245,7 @@ namespace nissa
 	
 	const double sou=source_lx[0][0][0][0];
 	const double sol=solution_lx[0][0][0][0];
+	set_borders_invalid(solution_lx);
 	apply_tmclovQ(residueVec,conf_lx,kappa,Cl_lx,mass,solution_lx);
 	const double sola=solution_lx[0][0][0][0];
 	const double soll=solution_lx[locVol][0][0][0];
