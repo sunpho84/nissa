@@ -19,7 +19,10 @@ namespace nissa
     
     double kcf=1/(2*kappa);
     
-    NISSA_PARALLEL_LOOP(X,0,locVol)
+    master_printf("WARNING\n");
+    
+    //NISSA_PARALLEL_LOOP(X,0,locVol)
+    for(int X=0;X<locVol;X++)
       {
 	int Xup,Xdw;
 	color temp_c0,temp_c1,temp_c2,temp_c3;
@@ -130,7 +133,7 @@ namespace nissa
 	    out[X][3][c][1]=-Clin[3][c][1]+0.5*temp[3][c][1]-kcf*in[X][3][c][1]+mu*in[X][3][c][0];
 	  }
       }
-    NISSA_PARALLEL_LOOP_END;
+    //NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
