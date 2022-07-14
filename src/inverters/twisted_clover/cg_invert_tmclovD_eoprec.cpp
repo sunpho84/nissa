@@ -260,7 +260,7 @@ namespace nissa
 	const double resn=spincolor_norm2(residueVec[0]);
 	double resnt=0;
 	for(int ivol=0;ivol<locVol;ivol++)
-	  spincolor_norm2(residueVec[ivol]);
+	  resnt+=spincolor_norm2(residueVec[ivol]);
 	double resntg;
 	MPI_Allreduce(&resnt,&resntg,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	
