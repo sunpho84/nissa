@@ -166,12 +166,12 @@ namespace nissa
     master_printf("filling filling filling\n");
     
     //copy one by one the surface of vec inside the sending buffer
-    //NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
-    for(int ibord=0;ibord<bord_vol;ibord++)
+    NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+    // for(int ibord=0;ibord<bord_vol;ibord++)
       memcpy(send_buf+comm.nbytes_per_site*ibord,
 	     (char*)vec+surflxOfBordlx[ibord]*comm.nbytes_per_site,
 	     comm.nbytes_per_site);
-    //NISSA_PARALLEL_LOOP_END;
+    NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads filled their portion
     THREAD_BARRIER();
@@ -180,12 +180,13 @@ namespace nissa
   //extract the information from receiving buffer and put them inside an lx vec
   void fill_lx_bord_with_receiving_buf(void *vec,comm_t &comm)
   {
-    for(int ibord=0;ibord<bord_vol;ibord++)
-      //    NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+    // for(int ibord=0;ibord<bord_vol;ibord++)
+    NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
       memcpy((char*)vec+(locVol*comm.nbytes_per_site)+comm.nbytes_per_site*ibord,
 	     recv_buf+comm.nbytes_per_site*ibord,
 	     comm.nbytes_per_site);
-    //NISSA_PARALLEL_LOOP_END;
+    NISSA_PARALLEL_LOOP_END;
+    THREAD_BARRIER();
     
     // if(IS_MASTER_THREAD)
     //   {

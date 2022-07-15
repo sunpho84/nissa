@@ -48,6 +48,8 @@ namespace nissa
     cudaDeviceSynchronize();
   }
   
+  double take_time();
+  
   template <typename IMin,
 	    typename IMax,
 	    typename F>
@@ -61,20 +63,25 @@ namespace nissa
     const dim3 block_dimension(NUM_THREADS);
     const dim3 grid_dimension((length+block_dimension.x-1)/block_dimension.x);
     
+    double initTime=0;
     extern int rank,verbosity_lv;
     const bool print=(verbosity_lv>=1// 2
 		      and rank==0);
     if(print)
-      printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
+      {
+	printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
 	   line,file,(int64_t)min,(int64_t)max,block_dimension.x,grid_dimension.x);
+	take_time();
+      }
     
     if(length>0)
       {
 	cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,std::forward<F>(f));
 	thread_barrier_internal();
       }
+    
     if(print)
-      printf(" finished\n");
+      printf(" finished in %lg s\n",take_time()-initTime);
   }
   
   inline void cache_flush()
