@@ -136,6 +136,8 @@ namespace nissa
     
     int ivolIncr,rankIncr;
     get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
+    master_printf("putting boundary on conf of ptr: %p\n",conf);
+    
     if(rank==rankIncr)
       {
 	printf("bef\n");

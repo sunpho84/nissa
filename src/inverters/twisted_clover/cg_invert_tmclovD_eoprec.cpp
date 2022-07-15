@@ -157,6 +157,8 @@ namespace nissa
   {
     const int incrSite=533223;
     
+    master_printf("conf_lx pointer: %p\n",conf_lx);
+    
     if(rank==0)
       {
 	printf("at the beginning there was\n");
