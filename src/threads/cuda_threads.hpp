@@ -62,7 +62,8 @@ namespace nissa
     const dim3 grid_dimension((length+block_dimension.x-1)/block_dimension.x);
     
     extern int rank,verbosity_lv;
-    const bool print=(verbosity_lv>=2 and rank==0);
+    const bool print=(verbosity_lv>=1// 2
+		      and rank==0);
     if(print)
       printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
 	   line,file,(int64_t)min,(int64_t)max,block_dimension.x,grid_dimension.x);
