@@ -153,6 +153,12 @@ namespace nissa
   
   void inv_tmclovD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,clover_term_t *Cl_lx,inv_clover_term_t *ext_invCl_lx,double cSW,double mass,int nitermax,double residue,spincolor *source_lx)
   {
+    {
+      checksum check;
+      checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
+      master_printf("initial checksum of the clover %x %x\n",check[0],check[1]);
+    }
+    
     /// Keep track of convergence
     bool solved=false;
     

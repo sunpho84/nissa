@@ -91,11 +91,13 @@ namespace nissa
   }
   void chromo_operator(clover_term_t* Cl,quad_su3* conf)
   {
-    if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing Chromo operator\n");
+    master_printf("Computing Chromo operator\n");
     communicate_lx_quad_su3_edges(conf);
-    NISSA_PARALLEL_LOOP(X,0,locVol)
+    master_printf("clover_term.cpp WARNING\n");
+    //NISSA_PARALLEL_LOOP(X,0,locVol)
+    NISSA_LOC_VOL_LOOP(X)
       point_chromo_operator(Cl[X],conf,X);
-    NISSA_PARALLEL_LOOP_END;
+    //NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(Cl);
   }
