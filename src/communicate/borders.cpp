@@ -240,7 +240,8 @@ namespace nissa
   {
     if(!check_borders_valid(vec))
       {
-	verbosity_lv3_master_printf("Sync communication of lx borders of %s\n",get_vect_name((void*)vec));
+	//verbosity_lv3_
+	  master_printf("Sync communication of lx borders of %s\n",get_vect_name((void*)vec));
 	
 	start_communicating_lx_borders(comm,vec);
 	finish_communicating_lx_borders(vec,comm);
