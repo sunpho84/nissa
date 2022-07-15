@@ -134,9 +134,23 @@ namespace nissa
     if(putonbords) nsite+=bord_vol;
     if(putonedges) nsite+=edge_vol;
     
-    for(int ivol=0;ivol<nsite;ivol++)
-      for(int idir=0;idir<NDIM;idir++) safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
+    int ivolIncr,rankIncr;
+    get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
+    if(rank==rankIncr)
+      {
+	printf("bef\n");
+	su3_print(conf[ivolIncr][0]);
+      }
     
+    NISSA_PARALLEL_LOOP(ivol,0,nsite)
+      for(int idir=0;idir<NDIM;idir++) safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
+    NISSA_PARALLEL_LOOP_END;
+    
+    if(rank==rankIncr)
+      {
+	printf("aft\n");
+	su3_print(conf[ivolIncr][0]);
+      }
     if(!putonbords) set_borders_invalid(conf);
     if(!putonedges) set_edges_invalid(conf);
   }

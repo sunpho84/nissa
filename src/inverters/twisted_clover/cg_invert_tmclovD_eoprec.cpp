@@ -297,6 +297,15 @@ namespace nissa
 	master_printf("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",sourceNorm2,residueNorm2/sourceNorm2,residue,take_time()-check_time);
 	printf("check rank %d %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",rank,sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
 	nissa_free(residueVec);
+	
+    int ivolIncr,rankIncr;
+    get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
+    if(rank==rankIncr)
+      {
+	printf("now\n");
+	su3_print(conf_lx[ivolIncr][0]);
+      }
+	
       }
   }
 }
