@@ -177,7 +177,7 @@ namespace nissa
       {
 	printf("at the beginning there was\n");
 	su3_print(conf_lx[incrSite][0]);
-	su3_put_to_zero(conf_lx[incrSite][0]);
+	su3_put_to_id(conf_lx[incrSite][0]);
 	printf("darkness\n");
 	su3_print(conf_lx[incrSite][0]);
       }

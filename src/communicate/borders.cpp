@@ -177,20 +177,25 @@ namespace nissa
   //extract the information from receiving buffer and put them inside an lx vec
   void fill_lx_bord_with_receiving_buf(void *vec,comm_t &comm)
   {
+    NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+      memcpy((char*)vec+(locVol*comm.nbytes_per_site)+comm.nbytes_per_site*ibord,
+	     recv_buf+comm.nbytes_per_site*ibord,
+	     comm.nbytes_per_site);
+    NISSA_PARALLEL_LOOP_END;
     
-    if(IS_MASTER_THREAD)
-      {
-	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol+locVol));
+    // if(IS_MASTER_THREAD)
+    //   {
+    // 	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol+locVol));
 	
-	//check buffer size matching
-	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-	  crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
+    // 	//check buffer size matching
+    // 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
+    // 	  crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
 	
-	//the buffer is already ordered as the vec border
-	memcpy((char*)vec+locVol*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
-      }
+    // 	//the buffer is already ordered as the vec border
+    // 	memcpy((char*)vec+locVol*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
+    //   }
     
-    //we do not sync, because typically we will set borders as valid
+    // //we do not sync, because typically we will set borders as valid
   }
   
   //start communication using an lx border
