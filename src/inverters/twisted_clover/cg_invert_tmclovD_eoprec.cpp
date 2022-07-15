@@ -155,18 +155,24 @@ namespace nissa
   
   void inv_tmclovD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,clover_term_t *Cl_lx,inv_clover_term_t *ext_invCl_lx,double cSW,double mass,int nitermax,double residue,spincolor *source_lx)
   {
-    int ivolIncr,rankIncr;
-    get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
+    const int incrSite=533223;
     
-    if(rank==rankIncr)
+    if(rank==0)
       {
 	printf("at the beginning there was\n");
-	su3_print(conf_lx[ivolIncr][0]);
-	su3_put_to_zero(conf_lx[ivolIncr][0]);
+	su3_print(conf_lx[incrSite][0]);
+	su3_put_to_zero(conf_lx[incrSite][0]);
 	printf("darkness\n");
-	su3_print(conf_lx[ivolIncr][0]);
+	su3_print(conf_lx[incrSite][0]);
       }
+    set_borders_invalid(conf_lx);
+    communicate_lx_quad_su3_borders(conf_lx);
     
+    if(rank==0)
+      {
+	printf("then, light came\n");
+	su3_print(conf_lx[incrSite][0]);
+      }
     
     {
       checksum check;
@@ -311,10 +317,10 @@ namespace nissa
 	printf("check rank %d %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",rank,sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
 	nissa_free(residueVec);
 	
-    if(rank==rankIncr)
+    if(rank==0)
       {
 	printf("now\n");
-	su3_print(conf_lx[ivolIncr][0]);
+	su3_print(conf_lx[incrSite][0]);
       }
 	
       }

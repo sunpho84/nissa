@@ -150,7 +150,10 @@ namespace nissa
       {
 	printf("aft\n");
 	su3_print(conf[ivolIncr][0]);
+	printf("bord valid: %d\n",check_borders_valid(conf));
       }
+    
+    
     if(!putonbords) set_borders_invalid(conf);
     if(!putonedges) set_edges_invalid(conf);
   }
