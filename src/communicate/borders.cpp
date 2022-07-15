@@ -163,12 +163,15 @@ namespace nissa
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
       crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
     
+    master_printf("filling filling filling\n");
+    
     //copy one by one the surface of vec inside the sending buffer
-    NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+    //NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+    for(int ibord=0;ibord<bord_vol;ibord++)
       memcpy(send_buf+comm.nbytes_per_site*ibord,
 	     (char*)vec+surflxOfBordlx[ibord]*comm.nbytes_per_site,
 	     comm.nbytes_per_site);
-    NISSA_PARALLEL_LOOP_END;
+    //NISSA_PARALLEL_LOOP_END;
     
     //wait that all threads filled their portion
     THREAD_BARRIER();
