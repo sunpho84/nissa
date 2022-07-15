@@ -180,11 +180,12 @@ namespace nissa
   //extract the information from receiving buffer and put them inside an lx vec
   void fill_lx_bord_with_receiving_buf(void *vec,comm_t &comm)
   {
-    NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+    for(int ibord=0;ibord<bord_vol;ibord++)
+      //    NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
       memcpy((char*)vec+(locVol*comm.nbytes_per_site)+comm.nbytes_per_site*ibord,
 	     recv_buf+comm.nbytes_per_site*ibord,
 	     comm.nbytes_per_site);
-    NISSA_PARALLEL_LOOP_END;
+    //NISSA_PARALLEL_LOOP_END;
     
     // if(IS_MASTER_THREAD)
     //   {
