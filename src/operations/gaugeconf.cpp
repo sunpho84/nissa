@@ -140,7 +140,7 @@ namespace nissa
     
     if(rank==rankIncr)
       {
-	printf("bef\n");
+	printf("before phasing the bulk of the conf on rank %d is:\n",rank);
 	su3_print(conf[ivolIncr][0]);
       }
     
@@ -150,7 +150,7 @@ namespace nissa
     
     if(rank==rankIncr)
       {
-	printf("aft\n");
+	printf("after phasing the bulk of the conf on rank %d is:\n",rank);
 	su3_print(conf[ivolIncr][0]);
 	printf("bord valid: %d\n",check_borders_valid(conf));
       }
