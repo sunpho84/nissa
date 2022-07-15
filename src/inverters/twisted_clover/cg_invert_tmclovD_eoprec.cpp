@@ -248,6 +248,8 @@ namespace nissa
 	checksum check;
 	checksum_compute_nissa_data(check,solution_lx,64,sizeof(spincolor));
 	master_printf("checksum of the solution %x %x\n",check[0],check[1]);
+	checksum_compute_nissa_data(check,conf_lx,64,sizeof(quad_su3));
+	master_printf("checksum of the conf %x %x\n",check[0],check[1]);
 	
 	const double sou=source_lx[0][0][0][0];
 	const double sol=solution_lx[0][0][0][0];
@@ -262,7 +264,7 @@ namespace nissa
 	checksum_compute_nissa_data(check,solution_lx+bord_vol,64,sizeof(spincolor));
 	master_printf("checksum of the solution shifted by bord %x %x\n",check[0],check[1]);
 	const double res=residueVec[0][0][0][0];
-	const double res1=residueVec[loclx_of_coord_list(1,1,1,1)][0][0][0];
+	const double res1=residueVec[loclx_of_coord_list(0,8,23,7)][0][0][0];
 	safe_dirac_prod_spincolor(residueVec,base_gamma[5],residueVec);
 	const double res5=residueVec[0][0][0][0];
 	double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol*sizeof(spincolor)/sizeof(double));
