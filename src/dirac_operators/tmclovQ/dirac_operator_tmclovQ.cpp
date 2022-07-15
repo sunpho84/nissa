@@ -19,12 +19,12 @@ namespace nissa
     
     double kcf=1/(2*kappa);
     
-    master_printf("WARNING\n");
+    // master_printf("WARNING\n");
     
-    //NISSA_PARALLEL_LOOP(X,0,locVol)
-    for(int X=0;X<locVol;X++)
+    NISSA_PARALLEL_LOOP(X,0,locVol)
+    // for(int X=0;X<locVol;X++)
       {
-	const bool p=(X==loclx_of_coord_list(0,8,23,7));
+	// const bool p=(X==loclx_of_coord_list(0,8,23,7));
 	
 	int Xup,Xdw;
 	color temp_c0,temp_c1,temp_c2,temp_c3;
@@ -32,8 +32,8 @@ namespace nissa
 	//Clover term
 	spincolor Clin;
 	unsafe_apply_point_chromo_operator_to_spincolor(Clin,Cl[X],in[X]);
-	if(p)
-	  master_printf("CCC X=%d Clin[X]=%lg Cl[X]=%lg in[X]=%lg\n",X,Clin[0][0][0],Cl[X][0][0][0][0],in[X][0][0][0]);
+	// if(p)
+	//   master_printf("CCC X=%d Clin[X]=%lg Cl[X]=%lg in[X]=%lg\n",X,Clin[0][0][0],Cl[X][0][0][0][0],in[X][0][0][0]);
 	
 	spincolor temp;
 	
@@ -45,8 +45,8 @@ namespace nissa
 	unsafe_su3_prod_color(temp[3],conf[X][0],temp_c1);
 	color_copy(temp[0],temp[2]);
 	color_copy(temp[1],temp[3]);
-	if(p)
-	  master_printf("CCC Xup=%d temp[0]=%lg conf[X]=%lg in[Xup]=%lg\n",Xup,temp[0][0][0],conf[X][0][0][0][0],in[Xup][0][0][0]);
+	// if(p)
+	//   master_printf("CCC Xup=%d temp[0]=%lg conf[X]=%lg in[Xup]=%lg\n",Xup,temp[0][0][0],conf[X][0][0][0][0],in[Xup][0][0][0]);
 	
 	//Backward 0
 	Xdw=loclxNeighdw[X][0];
@@ -58,8 +58,8 @@ namespace nissa
 	color_summassign(temp[1],temp_c3);
 	color_subtassign(temp[2],temp_c2);
 	color_subtassign(temp[3],temp_c3);
-	if(p)
-	  master_printf("CCC Xdw=%d temp[0]=%lg conf[Xdw]=%lg in[Xdw]=%lg\n",Xdw,temp[0][0][0],conf[Xdw][0][0][0][0],in[Xdw][0][0][0]);
+	// if(p)
+	//   master_printf("CCC Xdw=%d temp[0]=%lg conf[Xdw]=%lg in[Xdw]=%lg\n",Xdw,temp[0][0][0],conf[Xdw][0][0][0][0],in[Xdw][0][0][0]);
 	
 	//Forward 1
 	Xup=loclxNeighup[X][1];
@@ -71,8 +71,8 @@ namespace nissa
 	color_summassign(temp[1],temp_c3);
 	color_isubtassign(temp[2],temp_c3);
 	color_isubtassign(temp[3],temp_c2);
-	if(p)
-	  master_printf("CCC Xup=%d temp[0]=%lg conf[X]=%lg in[Xup]=%lg\n",Xup,temp[0][0][0],conf[X][0][0][0][0],in[Xup][0][0][0]);
+	// if(p)
+	//   master_printf("CCC Xup=%d temp[0]=%lg conf[X]=%lg in[Xup]=%lg\n",Xup,temp[0][0][0],conf[X][0][0][0][0],in[Xup][0][0][0]);
 	
 	//Backward 1
 	Xdw=loclxNeighdw[X][1];
@@ -84,8 +84,8 @@ namespace nissa
 	color_summassign(temp[1],temp_c3);
 	color_isummassign(temp[2],temp_c3);
 	color_isummassign(temp[3],temp_c2);
-	if(p)
-	  master_printf("CCC Xdw=%d temp[0]=%lg conf[Xdw]=%lg in[Xdw]=%lg\n",Xdw,temp[0][0][0],conf[Xdw][0][0][0][0],in[Xdw][0][0][0]);
+	// if(p)
+	//   master_printf("CCC Xdw=%d temp[0]=%lg conf[Xdw]=%lg in[Xdw]=%lg\n",Xdw,temp[0][0][0],conf[Xdw][0][0][0][0],in[Xdw][0][0][0]);
 	
 	//Forward 2
 	Xup=loclxNeighup[X][2];
@@ -97,8 +97,8 @@ namespace nissa
 	color_summassign(temp[1],temp_c3);
 	color_subtassign(temp[2],temp_c3);
 	color_summassign(temp[3],temp_c2);
-	if(p)
-	  master_printf("CCC Xup=%d temp[0]=%lg conf[X]=%lg in[Xup]=%lg\n",Xup,temp[0][0][0],conf[X][0][0][0][0],in[Xup][0][0][0]);
+	// if(p)
+	//   master_printf("CCC Xup=%d temp[0]=%lg conf[X]=%lg in[Xup]=%lg\n",Xup,temp[0][0][0],conf[X][0][0][0][0],in[Xup][0][0][0]);
 	
 	//Backward 2
 	Xdw=loclxNeighdw[X][2];
@@ -110,8 +110,8 @@ namespace nissa
 	color_summassign(temp[1],temp_c3);
 	color_summassign(temp[2],temp_c3);
 	color_subtassign(temp[3],temp_c2);
-	if(p)
-	  master_printf("CCC Xdw=%d temp[0]=%lg conf[Xdw]=%lg in[Xdw]=%lg\n",Xdw,temp[0][0][0],conf[Xdw][0][0][0][0],in[Xdw][0][0][0]);
+	// if(p)
+	//   master_printf("CCC Xdw=%d temp[0]=%lg conf[Xdw]=%lg in[Xdw]=%lg\n",Xdw,temp[0][0][0],conf[Xdw][0][0][0][0],in[Xdw][0][0][0]);
 	
 	//Forward 3
 	Xup=loclxNeighup[X][3];
@@ -123,8 +123,8 @@ namespace nissa
 	color_summassign(temp[1],temp_c3);
 	color_isubtassign(temp[2],temp_c2);
 	color_isummassign(temp[3],temp_c3);
-	if(p)
-	  master_printf("CCC Xup=%d temp[0]=%lg conf[X]=%lg in[Xup]=%lg\n",Xup,temp[0][0][0],conf[X][0][0][0][0],in[Xup][0][0][0]);
+	// if(p)
+	//   master_printf("CCC Xup=%d temp[0]=%lg conf[X]=%lg in[Xup]=%lg\n",Xup,temp[0][0][0],conf[X][0][0][0][0],in[Xup][0][0][0]);
 	
 	//Backward 3
 	Xdw=loclxNeighdw[X][3];
@@ -136,8 +136,8 @@ namespace nissa
 	color_summassign(temp[1],temp_c3);
 	color_isummassign(temp[2],temp_c2);
 	color_isubtassign(temp[3],temp_c3);
-	if(p)
-	  master_printf("CCC Xdw=%d temp[0]=%lg conf[Xdw]=%lg in[Xdw]=%lg\n",Xdw,temp[0][0][0],conf[Xdw][0][0][0][0],in[Xdw][0][0][0]);
+	// if(p)
+	//   master_printf("CCC Xdw=%d temp[0]=%lg conf[Xdw]=%lg in[Xdw]=%lg\n",Xdw,temp[0][0][0],conf[Xdw][0][0][0][0],in[Xdw][0][0][0]);
 	
 	//Put the -1/2 factor on derivative and the gamma5
 	//ok this is horrible, but fast
@@ -153,11 +153,10 @@ namespace nissa
 	    out[X][3][c][1]=-Clin[3][c][1]+0.5*temp[3][c][1]-kcf*in[X][3][c][1]+mu*in[X][3][c][0];
 	  }
 	
-	if(p)
-	  master_printf("CCC X=%d out[X]=%lg Clin[0]=%lg temp[X]=%lg in[Xup]=%lg\n",X,out[X][0][0][0],Clin[0][0][0],temp[0][0][0],in[X][0][0][0]);
-
+	// if(p)
+	//   master_printf("CCC X=%d out[X]=%lg Clin[0]=%lg temp[X]=%lg in[Xup]=%lg\n",X,out[X][0][0][0],Clin[0][0][0],temp[0][0][0],in[X][0][0][0]);
       }
-    //NISSA_PARALLEL_LOOP_END;
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
