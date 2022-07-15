@@ -155,6 +155,19 @@ namespace nissa
   
   void inv_tmclovD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,clover_term_t *Cl_lx,inv_clover_term_t *ext_invCl_lx,double cSW,double mass,int nitermax,double residue,spincolor *source_lx)
   {
+    int ivolIncr,rankIncr;
+    get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
+    
+    if(rank==rankIncr)
+      {
+	printf("at the beginning there was\n");
+	su3_print(conf_lx[ivolIncr][0]);
+	su3_put_to_zero(conf_lx[ivolIncr][0]);
+	printf("darkness\n");
+	su3_print(conf_lx[ivolIncr][0]);
+      }
+    
+    
     {
       checksum check;
       checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
@@ -298,8 +311,6 @@ namespace nissa
 	printf("check rank %d %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",rank,sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
 	nissa_free(residueVec);
 	
-    int ivolIncr,rankIncr;
-    get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
     if(rank==rankIncr)
       {
 	printf("now\n");
