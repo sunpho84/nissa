@@ -156,45 +156,45 @@ namespace nissa
   void inv_tmclovD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,clover_term_t *Cl_lx,inv_clover_term_t *ext_invCl_lx,double cSW,double mass,int nitermax,double residue,spincolor *source_lx)
   {
     //memset(send_buf,0,send_buf_size);
-    memset(recv_buf,0,recv_buf_size);
+    //memset(recv_buf,0,recv_buf_size);
     
-    {
-    int ivolIncr,rankIncr;
-    get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
-    if(rank==rankIncr)
-      {
-	printf("at the beginning of the solver, the bulk of the conf on rank %d is:\n",rank);
-	su3_print(conf_lx[ivolIncr][0]);
-      }
+  //   {
+  //   int ivolIncr,rankIncr;
+  //   get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
+  //   if(rank==rankIncr)
+  //     {
+  // 	printf("at the beginning of the solver, the bulk of the conf on rank %d is:\n",rank);
+  // 	su3_print(conf_lx[ivolIncr][0]);
+  //     }
     
-  }
+  // }
     
-    const int incrSite=533223;
+  //   const int incrSite=533223;
     
-    master_printf("conf_lx pointer: %p\n",conf_lx);
+  //   master_printf("conf_lx pointer: %p\n",conf_lx);
     
-    if(rank==0)
-      {
-	printf("at the beginning there was\n");
-	su3_print(conf_lx[incrSite][0]);
-	su3_put_to_id(conf_lx[incrSite][0]);
-	printf("darkness\n");
-	su3_print(conf_lx[incrSite][0]);
-      }
-    set_borders_invalid(conf_lx);
-    communicate_lx_quad_su3_borders(conf_lx);
+  //   if(rank==0)
+  //     {
+  // 	printf("at the beginning there was\n");
+  // 	su3_print(conf_lx[incrSite][0]);
+  // 	su3_put_to_id(conf_lx[incrSite][0]);
+  // 	printf("darkness\n");
+  // 	su3_print(conf_lx[incrSite][0]);
+  //     }
+  //   set_borders_invalid(conf_lx);
+  //   communicate_lx_quad_su3_borders(conf_lx);
     
-    if(rank==0)
-      {
-	printf("then, light came\n");
-	su3_print(conf_lx[incrSite][0]);
-      }
+  //   if(rank==0)
+  //     {
+  // 	printf("then, light came\n");
+  // 	su3_print(conf_lx[incrSite][0]);
+  //     }
     
-    {
-      checksum check;
-      checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
-      master_printf("initial checksum of the clover %x %x\n",check[0],check[1]);
-    }
+  //   {
+  //     checksum check;
+  //     checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
+  //     master_printf("initial checksum of the clover %x %x\n",check[0],check[1]);
+  //   }
     
     /// Keep track of convergence
     bool solved=false;
@@ -278,36 +278,36 @@ namespace nissa
     
     if(check_inversion_residue)
       {
-    THREAD_BARRIER();
+    // THREAD_BARRIER();
 	//check solution
 	double check_time=take_time();
 	spincolor *residueVec=nissa_malloc("residueVec",locVol,spincolor);
-	checksum check;
-	checksum_compute_nissa_data(check,solution_lx,64,sizeof(spincolor));
-	master_printf("checksum of the solution %x %x\n",check[0],check[1]);
-	checksum_compute_nissa_data(check,conf_lx,64,sizeof(quad_su3));
-	master_printf("checksum of the conf %x %x\n",check[0],check[1]);
+	// checksum check;
+	// checksum_compute_nissa_data(check,solution_lx,64,sizeof(spincolor));
+	// master_printf("checksum of the solution %x %x\n",check[0],check[1]);
+	// checksum_compute_nissa_data(check,conf_lx,64,sizeof(quad_su3));
+	// master_printf("checksum of the conf %x %x\n",check[0],check[1]);
 	
-	const double sou=source_lx[0][0][0][0];
-	const double sol=solution_lx[0][0][0][0];
-	set_borders_invalid(solution_lx);
+	// const double sou=source_lx[0][0][0][0];
+	// const double sol=solution_lx[0][0][0][0];
+	// set_borders_invalid(solution_lx);
 	apply_tmclovQ(residueVec,conf_lx,kappa,Cl_lx,mass,solution_lx);
-	const double sola=solution_lx[0][0][0][0];
-	const double soll=solution_lx[locVol][0][0][0];
-	checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
-	master_printf("checksum of the clover %x %x\n",check[0],check[1]);
-	checksum_compute_nissa_data(check,residueVec,64,sizeof(spincolor));
-	master_printf("checksum of the residue %x %x\n",check[0],check[1]);
-	checksum_compute_nissa_data(check,solution_lx+bord_vol,64,sizeof(spincolor));
-	master_printf("checksum of the solution shifted by bord %x %x\n",check[0],check[1]);
-	const double res=residueVec[0][0][0][0];
-	const double res1=residueVec[loclx_of_coord_list(0,8,23,7)][0][0][0];
+	// const double sola=solution_lx[0][0][0][0];
+	// const double soll=solution_lx[locVol][0][0][0];
+	// checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
+	// master_printf("checksum of the clover %x %x\n",check[0],check[1]);
+	// checksum_compute_nissa_data(check,residueVec,64,sizeof(spincolor));
+	// master_printf("checksum of the residue %x %x\n",check[0],check[1]);
+	// checksum_compute_nissa_data(check,solution_lx+bord_vol,64,sizeof(spincolor));
+	// master_printf("checksum of the solution shifted by bord %x %x\n",check[0],check[1]);
+	// const double res=residueVec[0][0][0][0];
+	// const double res1=residueVec[loclx_of_coord_list(0,8,23,7)][0][0][0];
 	safe_dirac_prod_spincolor(residueVec,base_gamma[5],residueVec);
-	const double res5=residueVec[0][0][0][0];
+	// const double res5=residueVec[0][0][0][0];
 	double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol*sizeof(spincolor)/sizeof(double));
-	const double ress=residueVec[0][0][0][0];
-	const double resn=spincolor_norm2(residueVec[0]);
-	double resnt=0;
+	// const double ress=residueVec[0][0][0][0];
+	// const double resn=spincolor_norm2(residueVec[0]);
+	// double resnt=0;
 	bool found=false;
 	for(int ivol=0;ivol<locVol;ivol++)
 	  {
@@ -316,12 +316,13 @@ namespace nissa
 	      {
 		found=true;
 		const coords_t c=locCoordOfLoclx[ivol];
-		master_printf("found first exceeding, %lg at %d %d %d %d\n",contr,c[0],c[1],c[2],c[3]);
+		// master_
+		printf("rank %d found first exceeding, %lg at %d %d %d %d\n",rank,contr,c[0],c[1],c[2],c[3]);
 	      }
-	    resnt+=contr;
+	    // resnt+=contr;
 	  }
-	double resntg;
-	MPI_Allreduce(&resnt,&resntg,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	// double resntg;
+	// MPI_Allreduce(&resnt,&resntg,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	
 	/// Residue L2 norm
 	const double residueNorm2=double_vector_glb_norm2(residueVec,locVol);
@@ -330,14 +331,14 @@ namespace nissa
 	const double sourceNorm2=double_vector_glb_norm2(source_lx,locVol);
 	
 	master_printf("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",sourceNorm2,residueNorm2/sourceNorm2,residue,take_time()-check_time);
-	printf("check rank %d %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",rank,sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
+	// printf("check rank %d %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",rank,sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
 	nissa_free(residueVec);
 	
-    if(rank==0)
-      {
-	printf("now\n");
-	su3_print(conf_lx[incrSite][0]);
-      }
+    // if(rank==0)
+    //   {
+    // 	printf("now\n");
+    // 	su3_print(conf_lx[incrSite][0]);
+    //   }
 	
       }
   }

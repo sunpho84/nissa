@@ -138,22 +138,22 @@ namespace nissa
     get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
     master_printf("putting boundary on conf of ptr: %p\n",conf);
     
-    if(rank==rankIncr)
-      {
-	printf("before phasing the bulk of the conf on rank %d is:\n",rank);
-	su3_print(conf[ivolIncr][0]);
-      }
+    // if(rank==rankIncr)
+    //   {
+    // 	printf("before phasing the bulk of the conf on rank %d is:\n",rank);
+    // 	su3_print(conf[ivolIncr][0]);
+    //   }
     
     NISSA_PARALLEL_LOOP(ivol,0,nsite)
       for(int idir=0;idir<NDIM;idir++) safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
     NISSA_PARALLEL_LOOP_END;
     
-    if(rank==rankIncr)
-      {
-	printf("after phasing the bulk of the conf on rank %d is:\n",rank);
-	su3_print(conf[ivolIncr][0]);
-	printf("bord valid: %d\n",check_borders_valid(conf));
-      }
+    // if(rank==rankIncr)
+    //   {
+    // 	printf("after phasing the bulk of the conf on rank %d is:\n",rank);
+    // 	su3_print(conf[ivolIncr][0]);
+    // 	printf("bord valid: %d\n",check_borders_valid(conf));
+    //   }
     
     
     if(!putonbords) set_borders_invalid(conf);
@@ -262,7 +262,12 @@ namespace nissa
     result.average_diff/=glbVol*NDIM;
     
     master_printf("Warning, max is undefined\n");
-    //glb_reduce(&result.max_diff,loc_max,loc_vol,max_to_be_implemented);
+    glbReduce(&result.max_diff,loc_max,locVol,
+	      [] CUDA_DEVICE (double& res,const double& acc)  __attribute__((always_inline))
+	      {
+		if(acc>res)
+		  res=acc;
+	      });
     glb_reduce(&result.nbroken_links,loc_nbroken,locVol);
     
     nissa_free(loc_avg);
