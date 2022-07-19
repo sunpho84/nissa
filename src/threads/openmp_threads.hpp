@@ -32,11 +32,11 @@
 #define THREAD_ID omp_get_thread_num()
  
 #ifdef THREAD_DEBUG
- #define THREAD_BARRIER_FORCE() thread_barrier_internal()
- #define THREAD_BARRIER()       if(!thread_pool_locked) thread_barrier_with_check(__FILE__,__LINE__)
+# define THREAD_BARRIER_FORCE() /* thread_barrier_internal() */
+# define THREAD_BARRIER()       /* if(!thread_pool_locked) thread_barrier_with_check(__FILE__,__LINE__) */
 #else
- #define THREAD_BARRIER_FORCE() thread_barrier_internal()
- #define THREAD_BARRIER()       if(!thread_pool_locked) thread_barrier_without_check()
+# define THREAD_BARRIER_FORCE() /* thread_barrier_internal() */
+# define THREAD_BARRIER()       /* if(!thread_pool_locked) thread_barrier_without_check() */
 #endif
  
 #define IS_MASTER_THREAD (THREAD_ID==0)
