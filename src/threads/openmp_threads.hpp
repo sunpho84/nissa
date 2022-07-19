@@ -43,7 +43,7 @@
 
 #define NISSA_PARALLEL_LOOP(INDEX,START,END)			\
   _Pragma("omp parallel for")					\
-  NISSA_CHUNK_LOOP(INDEX,START,END,THREAD_ID,NACTIVE_THREADS){
+  for(std::common_type_t<std::decay_t<decltype(START)>,std::decay_t<decltype(END)>> INDEX=START;INDEX<END;INDEX++){
 #define NISSA_PARALLEL_LOOP_END }
   
 #define THREAD_ATOMIC_EXEC(inst) do{THREAD_BARRIER();inst;THREAD_BARRIER();}while(0)
