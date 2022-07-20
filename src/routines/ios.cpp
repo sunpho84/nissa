@@ -61,7 +61,12 @@ namespace nissa
     
     va_list ap;
     va_start(ap,format);
-    if(is_master_rank() && IS_MASTER_THREAD) ret=vfprintf(stream,format,ap);
+    if(is_master_rank() and IS_MASTER_THREAD)
+      {
+	ret=vfprintf(stream,format,ap);
+	if(prepend_time and format[strlen(format)-1]=='\n')
+	  printf("%lg s\n",take_time());
+      }
     va_end(ap);
     
     return ret;

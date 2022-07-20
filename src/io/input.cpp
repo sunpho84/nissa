@@ -430,6 +430,7 @@ namespace nissa
     char path[1024]="nissa_config";
     
     std::vector<triple_tag> tags;
+    tags.push_back(triple_tag("prepend_time",                  prepend_time));
     tags.push_back(triple_tag("verbosity_lv",                  verbosity_lv));
     tags.push_back(triple_tag("use_128_bit_precision",         use_128_bit_precision));
     tags.push_back(triple_tag("check_inversion_residue",       check_inversion_residue));
