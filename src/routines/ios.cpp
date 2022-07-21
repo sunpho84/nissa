@@ -65,7 +65,7 @@ namespace nissa
       {
 	ret=vfprintf(stream,format,ap);
 	if(prepend_time and format[strlen(format)-1]=='\n')
-	  printf("%lg s\n",take_time());
+	  printf("%lg s:\t",take_time());
       }
     va_end(ap);
     
