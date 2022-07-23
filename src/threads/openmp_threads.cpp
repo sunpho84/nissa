@@ -136,19 +136,10 @@ namespace nissa
       //get the number of threads and thread id
       nthreads=omp_get_num_threads();
       master_printf("Using %u threads\n",nthreads);
-      
-      //define delayed thread behavior (also this needed before sanity check, otherwise barrier would fail)
-#if THREAD_DEBUG>=2
-      delayed_thread_barrier=(int*)malloc(nthreads*sizeof(int));
-      memset(delayed_thread_barrier,0,nthreads*sizeof(int));
-      delay_rnd_gen=(rnd_gen*)malloc(nthreads*sizeof(rnd_gen));
-      int delay_base_seed=time(0);
-      for(unsigned int i=0;i<nthreads;i++) start_rnd_gen(delay_rnd_gen+i,delay_base_seed+i);
-#endif
-      
-      //distinguish master thread from the others
-      main_function(narg,arg);
     }
+    
+    main_function(narg,arg);
+    
   }
 }
 
