@@ -12,7 +12,6 @@
 #include "remez_algorithm.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
-#include "threads/threads.hpp"
 
 namespace nissa
 {
@@ -134,85 +133,81 @@ namespace nissa
       
     */
       
-    if(IS_MASTER_THREAD)
+    int exch[n];
+    
+    //find the max of the row (Linf norm)
+    for(int i=0;i<n;i++)
       {
-	int exch[n];
-	
-	//find the max of the row (Linf norm)
-	for(int i=0;i<n;i++)
+	exch[i]=i;
+	float_high_prec_t row_norm=0.0;
+	for(int j=0;j<n;j++)
 	  {
-	    exch[i]=i;
-	    float_high_prec_t row_norm=0.0;
-	    for(int j=0;j<n;j++)
-	      {
-		float_high_prec_t q;
-		q=abs(A[i*n+j]);
-		if(row_norm<q) row_norm=q;
-	      }
-	    if(row_norm==0.0) crash("num row norm");
-	    x[i]=1/row_norm;
+	    float_high_prec_t q;
+	    q=abs(A[i*n+j]);
+	    if(row_norm<q) row_norm=q;
 	  }
-	
-	//loop over the rows
-	for(int k=0;k<n-1;k++)
+	if(row_norm==0.0) crash("num row norm");
+	x[i]=1/row_norm;
+      }
+    
+    //loop over the rows
+    for(int k=0;k<n-1;k++)
+      {
+	//find the pivot
+	float_high_prec_t big=0.0;
+	int ipiv=0;
+	for(int i=k;i<n;i++)
 	  {
-	    //find the pivot
-	    float_high_prec_t big=0.0;
-	    int ipiv=0;
-	    for(int i=k;i<n;i++)
+	    int ip=exch[i];
+	    int ipk=n*ip+k;
+	    float_high_prec_t size=abs(A[ipk])*x[ip];
+	    if(size>big)
 	      {
-		int ip=exch[i];
-		int ipk=n*ip+k;
-		float_high_prec_t size=abs(A[ipk])*x[ip];
-		if(size>big)
-		  {
-		    big=size;
-		    ipiv=i;
-		  }
-	      }
-	    if(big.get_d()==0.0) crash("null big: %d",ipiv);
-	    
-	    std::swap(exch[ipiv],exch[k]);
-	    
-	    //pivotize
-	    float_high_prec_t pivot=A[n*exch[k]+k];
-	    for(int i=k+1;i<n;i++)
-	      {
-		A[n*exch[i]+k]/=pivot; //compute x to normalize other rows
-		for(int j=k+1;j<n;j++) //subtract from the other rows
-		  A[n*exch[i]+j]-=A[n*exch[i]+k]*A[n*exch[k]+j];
+		big=size;
+		ipiv=i;
 	      }
 	  }
-	if(A[n*exch[n-1]+n-1]==0.0) crash("last element null");
+	if(big.get_d()==0.0) crash("null big: %d",ipiv);
 	
-	//build solution
-	for(int i=0;i<n;i++)
-	  {
-	    x[i]=b[exch[i]];
-	    for(int j=0;j<i;j++) x[i]-=A[n*exch[i]+j]*x[j];
-	  }
+	std::swap(exch[ipiv],exch[k]);
 	
-	//normalize with stored x
-	for(int i=n-1;i>=0;i--)
+	//pivotize
+	float_high_prec_t pivot=A[n*exch[k]+k];
+	for(int i=k+1;i<n;i++)
 	  {
-	    for(int j=i+1;j<n;j++) x[i]-=A[n*exch[i]+j]*x[j];
-	    x[i]/=A[n*exch[i]+i];
+	    A[n*exch[i]+k]/=pivot; //compute x to normalize other rows
+	    for(int j=k+1;j<n;j++) //subtract from the other rows
+	      A[n*exch[i]+j]-=A[n*exch[i]+k]*A[n*exch[k]+j];
 	  }
       }
-    THREAD_BARRIER();
+    if(A[n*exch[n-1]+n-1]==0.0) crash("last element null");
+    
+    //build solution
+    for(int i=0;i<n;i++)
+      {
+	x[i]=b[exch[i]];
+	for(int j=0;j<i;j++) x[i]-=A[n*exch[i]+j]*x[j];
+      }
+    
+    //normalize with stored x
+    for(int i=n-1;i>=0;i--)
+      {
+	for(int j=i+1;j<n;j++) x[i]-=A[n*exch[i]+j]*x[j];
+	x[i]/=A[n*exch[i]+i];
+      }
     
     /*
-    for(int i=0;i<n;i++)
+      for(int i=0;i<n;i++)
       printf("LU %d %lg\n",i,x[i].get_d());
-    for(int i=0;i<n;i++)
+      for(int i=0;i<n;i++)
       {
-	float_high_prec_t d=x[i]-xcg[i];
-	printf("DIFF %d %lg\n",i,d.get_d());
+      float_high_prec_t d=x[i]-xcg[i];
+      printf("DIFF %d %lg\n",i,d.get_d());
       }
-    printf("Exp: %lg\n",pow(2.0,-high_prec_nbits()));
+      printf("Exp: %lg\n",pow(2.0,-high_prec_nbits()));
     */
-
-    }
+    
+  }
   
   //find nmax_err_points+1 extrema of Chebyshev polynomial
   void rat_approx_finder_t::find_cheb()
@@ -237,117 +232,109 @@ namespace nissa
   void rat_approx_finder_t::new_step(int iter)
   {
     
-    float_high_prec_t *yy=NULL;
-    THREAD_BROADCAST_PTR(yy,new float_high_prec_t[nmax_err_points]);
-    THREAD_BARRIER();
-    if(IS_MASTER_THREAD)
+    float_high_prec_t yy[nmax_err_points];
+    eclose=1e30;
+    farther=0.0;
+    
+    //set left extrema
+    float_high_prec_t zero0=minimum;
+    
+    for(int i=0;i<nmax_err_points;i++)
       {
-	eclose=1e30;
-	farther=0.0;
+	//takes extrema
+	float_high_prec_t zero1=zero[i],xm=xmax[i];
+	if(i==nmax_err_points-1) zero1=maximum;
 	
-	//set left extrema
-	float_high_prec_t zero0=minimum;
-	
-	for(int i=0;i<nmax_err_points;i++)
+	//check if we can move in one of the dirs
+	float_high_prec_t ym=get_abs_err(xm);
+	float_high_prec_t q=step[i];
+	float_high_prec_t xn=xm+q;
+	float_high_prec_t yn;
+	if(xn<zero0||!(xn<zero1)) // Cannot skip over adjacent boundaries
 	  {
-	    //takes extrema
-	    float_high_prec_t zero1=zero[i],xm=xmax[i];
-	    if(i==nmax_err_points-1) zero1=maximum;
-	    
-	    //check if we can move in one of the dirs
-	    float_high_prec_t ym=get_abs_err(xm);
-	    float_high_prec_t q=step[i];
-	    float_high_prec_t xn=xm+q;
-	    float_high_prec_t yn;
-	    if(xn<zero0||!(xn<zero1)) // Cannot skip over adjacent boundaries
+	    q=-q;
+	    xn=xm;
+	    yn=ym;
+	  }
+	else 
+	  {
+	    yn=get_abs_err(xn);
+	    if(yn<ym)
 	      {
 		q=-q;
 		xn=xm;
 		yn=ym;
 	      }
-	    else 
+	  }
+	
+	//move until reaching barrier or decreasing error
+	int istep=0,quit=0;
+	while(!quit&&!(yn<ym))
+	  {
+	    istep++;
+	    if(istep>9) quit=1;
+	    else
 	      {
-		yn=get_abs_err(xn);
-		if(yn<ym)
-		  {
-		    q=-q;
-		    xn=xm;
-		    yn=ym;
-		  }
-	      }
-	    
-	    //move until reaching barrier or decreasing error
-	    int istep=0,quit=0;
-	    while(!quit&&!(yn<ym))
-	      {
-		istep++;
-		if(istep>9) quit=1;
+		ym=yn;
+		xm=xn;
+		float_high_prec_t a=xm+q;
+		if(a==xm||!(a>zero0)||!(a<zero1)) quit=1;
 		else
 		  {
-		    ym=yn;
-		    xm=xn;
-		    float_high_prec_t a=xm+q;
-		    if(a==xm||!(a>zero0)||!(a<zero1)) quit=1;
-		    else
-		      {
-			xn=a;
-			yn=get_abs_err(xn);
-		      }
+		    xn=a;
+		    yn=get_abs_err(xn);
 		  }
 	      }
-	    
-	    //copy new position and max
-	    xmax[i]=xm;
-	    yy[i]=ym;
-	    
-	    //search extream of error
-	    if(eclose>ym) eclose=ym;
-	    if(farther<ym) farther=ym;
-	    zero0=zero1;
 	  }
 	
-	verbosity_lv3_master_printf(" iter: %d, eclose: %16.16lg, farther: %16.16lg, spread: %16.16lg, delta: %16.16lg\n",
-				    iter,eclose.get_d(),farther.get_d(),spread.get_d(),delta);
+	//copy new position and max
+	xmax[i]=xm;
+	yy[i]=ym;
 	
-	//decrease step size if error spread increased
-	float_high_prec_t q;
-	//relative error spread
-	if(eclose.get_d()!=0.0) q=farther/eclose-1;
-	else q=farther;
-	
-	//spread is increasing: decrease step size
-	if(!(q<spread)) delta*=0.5;
-	
-	spread=q;
-	
-	for(int i=0;i<nmax_err_points-1;i++) 
-	  {
-	    q=yy[i+1];
-	    if(q!=0.0) q=yy[i]/q-1;
-	    else q=0.0625;
-	    if(q>0.25) q=0.25;
-	    
-	    q*=xmax[i+1]-xmax[i];
-	    step[i]=q*delta;
-	  }
-	step[nmax_err_points-1]=step[nmax_err_points-2];
-	
-	//insert new locations for the zeros
-	for(int i=0;i<nzero_err_points;i++)
-	  {
-	    float_high_prec_t xm=zero[i]-step[i];
-	    if(xm>minimum)
-	      if(xm<maximum)
-		{
-		  if(!(xm>xmax[i])) xm=0.5*(xmax[i]+zero[i]);
-		  if(!(xm<xmax[i+1])) xm=0.5*(xmax[i+1]+zero[i]);
-		  zero[i]=xm;
-		}
-	  }
+	//search extream of error
+	if(eclose>ym) eclose=ym;
+	if(farther<ym) farther=ym;
+	zero0=zero1;
       }
-    THREAD_BARRIER();
     
-    if(IS_MASTER_THREAD) delete[] yy;
+    verbosity_lv3_master_printf(" iter: %d, eclose: %16.16lg, farther: %16.16lg, spread: %16.16lg, delta: %16.16lg\n",
+				iter,eclose.get_d(),farther.get_d(),spread.get_d(),delta);
+    
+    //decrease step size if error spread increased
+    float_high_prec_t q;
+    //relative error spread
+    if(eclose.get_d()!=0.0) q=farther/eclose-1;
+    else q=farther;
+    
+    //spread is increasing: decrease step size
+    if(!(q<spread)) delta*=0.5;
+    
+    spread=q;
+    
+    for(int i=0;i<nmax_err_points-1;i++) 
+      {
+	q=yy[i+1];
+	if(q!=0.0) q=yy[i]/q-1;
+	else q=0.0625;
+	if(q>0.25) q=0.25;
+	
+	q*=xmax[i+1]-xmax[i];
+	step[i]=q*delta;
+      }
+    step[nmax_err_points-1]=step[nmax_err_points-2];
+    
+    //insert new locations for the zeros
+    for(int i=0;i<nzero_err_points;i++)
+      {
+	float_high_prec_t xm=zero[i]-step[i];
+	if(xm>minimum)
+	  if(xm<maximum)
+	    {
+	      if(!(xm>xmax[i])) xm=0.5*(xmax[i]+zero[i]);
+	      if(!(xm<xmax[i+1])) xm=0.5*(xmax[i+1]+zero[i]);
+	      zero[i]=xm;
+	    }
+      }
   }
   
   //set the linear system to be solved
@@ -414,42 +401,34 @@ namespace nissa
   //calculate the roots of the approximation
   void rat_approx_finder_t::root_find(float_high_prec_t *roots,float_high_prec_t *poles,float_high_prec_t &cons)
   {
+    float_high_prec_t poly[nmax_err_points];
     
-    float_high_prec_t *poly=NULL;
-    THREAD_BROADCAST_PTR(poly,new float_high_prec_t[nmax_err_points]);
+    //define parameters
+    const double upper=1,lower=-100000,tol=1.e-20;
     
-    if(IS_MASTER_THREAD)
+    //find the numerator root
+    for(int i=0;i<=degree;i++) poly[i]=coeff[i];
+    for(int i=degree-1;i>=0;i--)
       {
-	//define parameters
-	const double upper=1,lower=-100000,tol=1.e-20;
-	
-	//find the numerator root
-	for(int i=0;i<=degree;i++) poly[i]=coeff[i];
-	for(int i=degree-1;i>=0;i--)
-	  {
-	    roots[i]=root_find_Newton(poly,i+1,lower,upper,tol);
-	    if(roots[i]==0.0) crash("Failure to converge on root %ld/%d",i+1,degree);
-	    poly[0]/=-roots[i];
-	    for(int j=1;j<=i;j++) poly[j]=(poly[j-1]-poly[j])/roots[i];
-	  }
-	
-	//find the denominator roots
-	poly[degree]=1;
-	for(int i=0;i<degree;i++) poly[i]=coeff[degree+1+i];
-	
-	for(int i=degree-1;i>=0;i--)
-	  {
-	    poles[i]=root_find_Newton(poly,i+1,lower,upper,tol);
-	    if(poles[i]==0.0) crash("Failure to converge on pole %ld/%d",i+1,degree);
-	    poly[0]/=-poles[i];
-	    for(int j=1;j<=i;j++) poly[j]=(poly[j-1]-poly[j])/poles[i];
-	  }
-	
-	cons=coeff[degree];
+	roots[i]=root_find_Newton(poly,i+1,lower,upper,tol);
+	if(roots[i]==0.0) crash("Failure to converge on root %ld/%d",i+1,degree);
+	poly[0]/=-roots[i];
+	for(int j=1;j<=i;j++) poly[j]=(poly[j-1]-poly[j])/roots[i];
       }
-    THREAD_BARRIER();
     
-    if(IS_MASTER_THREAD) delete[] poly;
+    //find the denominator roots
+    poly[degree]=1;
+    for(int i=0;i<degree;i++) poly[i]=coeff[degree+1+i];
+    
+    for(int i=degree-1;i>=0;i--)
+      {
+	poles[i]=root_find_Newton(poly,i+1,lower,upper,tol);
+	if(poles[i]==0.0) crash("Failure to converge on pole %ld/%d",i+1,degree);
+	poly[0]/=-poles[i];
+	for(int j=1;j<=i;j++) poly[j]=(poly[j-1]-poly[j])/poles[i];
+      }
+    
+    cons=coeff[degree];
   }
   
   //evaluate the polynomial
@@ -501,67 +480,55 @@ namespace nissa
   void get_partial_fraction_expansion(float_high_prec_t *res,float_high_prec_t *poles,float_high_prec_t *roots,float_high_prec_t cons,int n)
   {
     
-    float_high_prec_t *numerator=NULL,*denominator=NULL;
-    THREAD_BROADCAST_PTR(numerator,new float_high_prec_t[n]);
-    THREAD_BROADCAST_PTR(denominator,new float_high_prec_t[n]);
+    float_high_prec_t numerator[n],denominator[n];
     
-    if(IS_MASTER_THREAD)
-      {
-        for(int i=0;i<n;i++) res[i]=roots[i];
-	
-	//construct the polynomials explicitly
-	numerator[0]=1.0;
-	denominator[0]=1.0;
-	for(int i=1;i<n;i++) numerator[i]=denominator[i]=0.0;
-	
-	for(int j=0;j<n;j++)
-	  for(int i=n-1;i>=0;i--)
+    for(int i=0;i<n;i++) res[i]=roots[i];
+    
+    //construct the polynomials explicitly
+    numerator[0]=1.0;
+    denominator[0]=1.0;
+    for(int i=1;i<n;i++) numerator[i]=denominator[i]=0.0;
+    
+    for(int j=0;j<n;j++)
+      for(int i=n-1;i>=0;i--)
+	{
+	  numerator[i]*=-res[j];
+	  denominator[i]*=-poles[j];
+	  
+	  if(i>0)
 	    {
-	      numerator[i]*=-res[j];
-	      denominator[i]*=-poles[j];
-	      
-	      if(i>0)
-		{
-		  numerator[i]+=numerator[i-1];
-		  denominator[i]+=denominator[i-1];
-		}
+	      numerator[i]+=numerator[i-1];
+	      denominator[i]+=denominator[i-1];
 	    }
-	
-	//convert to proper fraction form, because now is in the form 1+n/d
-	for(int i=0;i<n;i++) numerator[i]-=denominator[i];
-	
-	//find the residues of the partial fraction expansion and absorb the coefficients
-	for(int i=0;i<n;i++)
-	  {
-	    res[i]=0.0;
-	    for(int j=n-1;j>=0;j--) res[i]=res[i]*poles[i]+numerator[j];
-	    
-	    for(int j=n-1;j>=0;j--) if(i!=j) res[i]=res[i]/(poles[i]-poles[j]);
-	    res[i]*=cons;
-	  }
-	
-	//res now holds the residues
-	for(int i=0;i<n;i++) poles[i]=-poles[i];
-	
-	//move the ordering of the poles from smallest to largest
-	for(int j=0;j<n;j++)
-	  {
-	    int small=j;
-	    for(int i=j+1;i<n;i++) if(poles[i]<poles[small]) small=i;
-	    
-	    if(small!=j)
-	      {
-		std::swap(poles[small],poles[j]);
-		std::swap(res[small],res[j]);
-	      }
-	  }
-      }
-    THREAD_BARRIER();
+	}
     
-    if(IS_MASTER_THREAD)
+	//convert to proper fraction form, because now is in the form 1+n/d
+    for(int i=0;i<n;i++) numerator[i]-=denominator[i];
+	
+    //find the residues of the partial fraction expansion and absorb the coefficients
+    for(int i=0;i<n;i++)
       {
-	delete[] numerator;
-	delete[] denominator;
+	res[i]=0.0;
+	for(int j=n-1;j>=0;j--) res[i]=res[i]*poles[i]+numerator[j];
+	
+	for(int j=n-1;j>=0;j--) if(i!=j) res[i]=res[i]/(poles[i]-poles[j]);
+	res[i]*=cons;
+      }
+	
+    //res now holds the residues
+    for(int i=0;i<n;i++) poles[i]=-poles[i];
+	
+    //move the ordering of the poles from smallest to largest
+    for(int j=0;j<n;j++)
+      {
+	int small=j;
+	for(int i=j+1;i<n;i++) if(poles[i]<poles[small]) small=i;
+	
+	if(small!=j)
+	  {
+	    std::swap(poles[small],poles[j]);
+	    std::swap(res[small],res[j]);
+	  }
       }
   }
   
@@ -591,14 +558,12 @@ namespace nissa
     approx_tolerance=toll;
     
     //alocate arrays
-    float_high_prec_t *matr=NULL;
-    float_high_prec_t *vec=NULL;
-    THREAD_BROADCAST_PTR(matr,new float_high_prec_t[nzero_err_points*nzero_err_points]);
-    THREAD_BROADCAST_PTR(vec,new float_high_prec_t[nzero_err_points]);
-    THREAD_BROADCAST_PTR(step,new float_high_prec_t[nmax_err_points]);
-    THREAD_BROADCAST_PTR(coeff,new float_high_prec_t[nmax_err_points]);
-    THREAD_BROADCAST_PTR(zero,new float_high_prec_t[nmax_err_points]);
-    THREAD_BROADCAST_PTR(xmax,new float_high_prec_t[nmax_err_points]);
+    float_high_prec_t matr[nzero_err_points*nzero_err_points];
+    float_high_prec_t vec[nzero_err_points];
+    step=new float_high_prec_t[nmax_err_points];
+    coeff=new float_high_prec_t[nmax_err_points];
+    zero=new float_high_prec_t[nmax_err_points];
+    xmax=new float_high_prec_t[nmax_err_points];
     
     //set the initial guess and set step
     find_cheb();
@@ -637,25 +602,17 @@ namespace nissa
     if(spread<=approx_tolerance) verbosity_lv3_master_printf("Spread %lg reduced below %lg\n",spread.get_d(),approx_tolerance);
     if(consider_err && eclose>target_err)  verbosity_lv3_master_printf("Accuracy cannot be better than %lg when %lg asked\n",eclose.get_d(),target_err);
     
-    if(IS_MASTER_THREAD)
-      {
-	delete[] matr;
-	delete[] vec;
-      }
-    
     //get err at max and check
     if((consider_err and farther.get_d()<=target_err) or ((not consider_err) and (spread<=approx_tolerance)))
       {
 	verbosity_lv2_master_printf("Converged with %d zeroes in %d iters, maxerr %lg when asked %lg\n",nzero_err_points,iter,farther.get_d(),target_err);
 	
 	//compute the roots
-	float_high_prec_t *roots=NULL;
-	THREAD_BROADCAST_PTR(roots,new float_high_prec_t[degree]);
+	float_high_prec_t roots[degree];
 	root_find(roots,poles,cons);
 	
 	//decompose
 	get_partial_fraction_expansion(weights,poles,roots,cons,degree);
-	if(IS_MASTER_THREAD) delete[] roots;
 	
 	for(int j=0;j<degree;j++)
 	  verbosity_lv2_master_printf("Weight = %16.16lg, Pole = %16.16lg\n",weights[j].get_d(),poles[j].get_d());
@@ -663,17 +620,13 @@ namespace nissa
       }
     else verbosity_lv2_master_printf("Not converged to %lg prec with %d poles in %d iters (reached: %lg)\n",target_err,degree,iter,farther.get_d());
     
-    if(IS_MASTER_THREAD)
-      {
-	delete[] step;
-	delete[] zero;
-	delete[] coeff;
-	delete[] xmax;
-      }
+    delete[] step;
+    delete[] zero;
+    delete[] coeff;
+    delete[] xmax;
     
     //return the maximum error in the approximation
     double ret=farther.get_d();
-    THREAD_BARRIER(); //before destroying the approximation we wait
     
     return ret;
   }
@@ -689,29 +642,18 @@ namespace nissa
     
     //wrapper for 256bit output
     float_high_prec_t cons;
-    float_high_prec_t *poles=NULL;
-    float_high_prec_t *weights=NULL;
-    THREAD_BROADCAST_PTR(poles,new float_high_prec_t[appr.degree()]);
-    THREAD_BROADCAST_PTR(weights,new float_high_prec_t[appr.degree()]);
+    float_high_prec_t poles[appr.degree()];
+    float_high_prec_t weights[appr.degree()];
     
     //create the approx
-    rat_approx_finder_t *finder;
-    THREAD_BROADCAST_PTR(finder,new rat_approx_finder_t);
-    double ans=finder->generate_approx(weights,poles,cons,minimum,maximum,appr.degree(),num,den,minerr,tollerance);
-    if(IS_MASTER_THREAD) delete finder;
+    rat_approx_finder_t finder;
+    double ans=finder.generate_approx(weights,poles,cons,minimum,maximum,appr.degree(),num,den,minerr,tollerance);
     
     //copy
-    if(IS_MASTER_THREAD)
-      {
-	appr.maxerr=ans;
-	appr.cons=cons.get_d();
-	for(int iterm=0;iterm<appr.degree();iterm++) appr.poles[iterm]=poles[iterm].get_d();
-	for(int iterm=0;iterm<appr.degree();iterm++) appr.weights[iterm]=weights[iterm].get_d();
-	
-	delete[] poles;
-	delete[] weights;
-      }
-    THREAD_BARRIER();
+    appr.maxerr=ans;
+    appr.cons=cons.get_d();
+    for(int iterm=0;iterm<appr.degree();iterm++) appr.poles[iterm]=poles[iterm].get_d();
+    for(int iterm=0;iterm<appr.degree();iterm++) appr.weights[iterm]=weights[iterm].get_d();
     
     return ans;
   }
@@ -741,7 +683,7 @@ namespace nissa
         double generate_time=take_time();
 	
 	//set the name of the approximation and deallocate poles
-	if(name!=NULL && IS_MASTER_THREAD) snprintf(appr.name,20,"%s",name);
+	if(name!=NULL) snprintf(appr.name,20,"%s",name);
 	verbosity_lv3_master_printf("Generating approximation of x^(%d/%d) with max error %lg over the interval [%lg,%lg]\n",
 				    num,den,maxerr,minimum,maximum);
 	
@@ -751,12 +693,11 @@ namespace nissa
 	do
 	  {
 	    //allocate it
-	    THREAD_ATOMIC_EXEC(if(IS_MASTER_THREAD) appr.resize(degree));
+	    appr.resize(degree);
 	    
 	    //generate
 	    double err;
 	    err=generate_approx(appr,minimum,maximum,num,den,maxerr,0.01);
-	    THREAD_BROADCAST(err,err);
 	    
 	    //check if found
 	    found=(err<=maxerr);

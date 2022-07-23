@@ -157,9 +157,7 @@ namespace nissa
 	    verbosity_lv1_master_printf("Computing hit %d/%d\n",ihit,meas_pars.nhits);
 	    
 	    //get global time
-	    int tso;
-	    if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
-	    THREAD_BROADCAST(tso,tso);
+	    int tso=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
 	    verbosity_lv1_master_printf("tsource: %d\n",tso);
 	    
 	    //generate sources

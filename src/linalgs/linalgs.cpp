@@ -510,9 +510,12 @@ namespace nissa
   {
 #if THREADS_TYPE == OPENMP_THREADS
     
-    NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,n,THREAD_ID,NACTIVE_THREADS);
-    memcpy((char*)out+start,(char*)in+start,chunk_load);
-    end++;//to avoid warning
+#pragma omp parallel
+    {
+      NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,n,THREAD_ID,nthreads);
+      memcpy((char*)out+start,(char*)in+start,chunk_load);
+      (void)&end;//to avoid warning
+    }
     THREAD_BARRIER();
 #else
     memcpy(out,in,n);

@@ -121,161 +121,7 @@ namespace nissa
     #endif
   }
   
-  //unlock the thread pool
-  void thread_pool_unlock()
-  {
-    THREAD_BARRIER_FORCE();
-#ifdef THREAD_DEBUG
-    if(is_master_rank() && VERBOSITY_LV3)
-      {
-	printf("thread %d unlocking the pool\n",THREAD_ID);
-	fflush(stdout);
-      }
-#endif
-    thread_pool_locked=false;
-    cache_flush();
-  }
-  
-  //lock the thread pool
-  void thread_pool_lock()
-  {
-#ifdef THREAD_DEBUG
-#endif
-    
-    //if something was delayed, make it advance
-#if THREAD_DEBUG>=2
-    wait_for_delayed_threads();
-    delayed_thread_barrier[THREAD_ID]=0;
-#endif
-    
-    THREAD_BARRIER_FORCE();
-    thread_pool_locked=true;
-    cache_flush();
-#ifdef THREAD_DEBUG
-    if(is_master_rank() && VERBOSITY_LV3)
-      {
-	printf("thread %d locking the pool\n",THREAD_ID);
-	fflush(stdout);
-      }
-#endif
-  }
-  
-  //thread pool (executed by non-master threads)
-  void thread_pool()
-  {
-    
-    //check that thread 0 is not inside the pool
-    if(THREAD_ID==0) crash("thread 0 cannot enter the pool");
-    
-    //set the thread as locked
-    thread_pool_locked=true;
-    
-    //loop until asked to exit
-    bool stay_working=true;
-    do
-      {
-	//hold until unlocked
-	thread_pool_unlock();
-	
-	//exec order or mark to exit in other case
-	if(threaded_function_ptr!=NULL) threaded_function_ptr();
-	else stay_working=false;
-	
-	thread_pool_lock();
-      }
-    while(stay_working);
-    
-#ifdef THREAD_DEBUG
-    if(is_master_rank() && VERBOSITY_LV3)
-      {
-	printf("thread %d exit pool\n",THREAD_ID);
-	fflush(stdout);
-      }
-#endif
-  }
-  
-  //execute a function using all threads
-  void start_threaded_function(void(*function)(void),const char *name)
-  {
-#ifdef THREAD_DEBUG
-    if(is_master_rank() && VERBOSITY_LV3)
-      {
-	printf("----------Start working %s thread pool--------\n",name);
-	fflush(stdout);
-      }
-#endif
-    //set external function pointer and unlock pool threads
-    threaded_function_ptr=function;
-    thread_pool_unlock();
-    
-    //execute the function and relock the pool, so we are sure that they are not reading the work-to-do
-    if(threaded_function_ptr!=NULL) threaded_function_ptr();
-    thread_pool_lock();
-    
-#ifdef THREAD_DEBUG
-    if(is_master_rank() && VERBOSITY_LV3)
-      {
-	printf("----------Finished working %s thread pool--------\n",name);
-	fflush(stdout);
-      }
-#endif
-  }
-  
-  //delete the thread pool
-  void thread_pool_stop()
-  {
-    
-    //check to be thread 0
-    if(THREAD_ID!=0) crash("only thread 0 can stop the pool");
-    
-    //pass a NULL order
-    start_threaded_function(NULL,"");
-  }
-  
   //make all threads update a single counter in turn, checking previous state
-  void thread_sanity_check()
-  {
-    //counter
-    int *ptr=(int*)&broadcast_ptr;
-    
-    //loop every threads, each one changing the counter state
-    for(int i=0;i<NACTIVE_THREADS;i++)
-      {
-        //if it is current thread turn
-        if(THREAD_ID==i)
-          {
-            //check that previous state agree (if not on first iter)
-	    if(THREAD_ID!=0 && *ptr!=THREAD_ID-1)
-              crash("error, thread %u found the counter in wrong state %u",THREAD_ID,*ptr);
-            //update the counter
-            *ptr=i;
-          }
-	
-        THREAD_BARRIER();
-      }
-    
-    //chech final state
-    if(THREAD_ID==0 && *ptr!=nthreads-1) crash("loop thread not closed: %u!",*ptr);
-    THREAD_BARRIER();
-  }
-  
-  //start the master thread, locking all the other threads
-  void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg))
-  {
-    //lock the pool
-    thread_pool_locked=true;
-    cache_flush();
-    
-    //control the proper working of all the threads...
-    thread_sanity_check();
-    
-    //launch the main function
-    main_function(narg,arg);
-    
-    //exit the thread pool
-    thread_pool_stop();
-  }
-  
   //start nissa in a threaded environment, sending all threads but first in the
   //thread pool and issuing the main function
   void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg),const char compile_info[5][1024])
@@ -283,7 +129,6 @@ namespace nissa
     //initialize nissa (master thread only)
     init_nissa(narg,arg,compile_info);
     
-    thread_pool_locked=false;
     cache_flush();
     
 #pragma omp parallel
@@ -302,8 +147,7 @@ namespace nissa
 #endif
       
       //distinguish master thread from the others
-      if(THREAD_ID!=0) thread_pool();
-      else thread_master_start(narg,arg,main_function);
+      main_function(narg,arg);
     }
   }
 }
