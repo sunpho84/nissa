@@ -21,9 +21,7 @@ namespace nissa
   {
     size/=8;
     
-    NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,size,THREAD_ID,NACTIVE_THREADS);
-    
-    for(int i=start;i<end;i++) out[i]=in[i];
+    for(int i=0;i<size;i++) out[i]=in[i];
   }
   
   //benchmark memory
@@ -47,7 +45,7 @@ namespace nissa
     nissa_free(b);
     
     master_printf("time to copy %d Mbytes: %lg, %lg Mbs\n",mem_size/1024/1024,
-		  bench_time,mem_size/1024/1024/bench_time);
+		  bench_time,mem_size/1024.0/1024/bench_time);
   }
   
   //benchmark the net speed

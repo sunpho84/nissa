@@ -241,21 +241,21 @@ namespace nissa
   //reorder the packer
   void reorder_packing_link_source_dest(gauge_sweeper_t* gs)
   {
+    crash("redo");
+    // //split workload and find starting point
+    // NISSA_CHUNK_WORKLOAD(bdp_start,chunk_load,bdp_end,0,(1<<NDIM)*NDIM*gs->gpar,THREAD_ID,nthreads);
+    // int ibase=0;
+    // for(int bdp=0;bdp<bdp_start;bdp++) ibase+=gs->nsite_per_box_dir_par[bdp];
     
-    //split workload and find starting point
-    NISSA_CHUNK_WORKLOAD(bdp_start,chunk_load,bdp_end,0,(1<<NDIM)*NDIM*gs->gpar,THREAD_ID,NACTIVE_THREADS);
-    int ibase=0;
-    for(int bdp=0;bdp<bdp_start;bdp++) ibase+=gs->nsite_per_box_dir_par[bdp];
-    
-    for(int bdp=bdp_start;bdp<bdp_end;bdp++)
-      {
-	//sort and increase the base
-	qsort(gs->packing_link_source_dest+2*gs->nlinks_per_staples_of_link*ibase,
-	      gs->nlinks_per_staples_of_link*gs->nsite_per_box_dir_par[bdp],
-	      2*sizeof(int),
-	      compare_link_source_dest);
-	ibase+=gs->nsite_per_box_dir_par[bdp];
-      }
+    // for(int bdp=bdp_start;bdp<bdp_end;bdp++)
+    //   {
+    // 	//sort and increase the base
+    // 	qsort(gs->packing_link_source_dest+2*gs->nlinks_per_staples_of_link*ibase,
+    // 	      gs->nlinks_per_staples_of_link*gs->nsite_per_box_dir_par[bdp],
+    // 	      2*sizeof(int),
+    // 	      compare_link_source_dest);
+    // 	ibase+=gs->nsite_per_box_dir_par[bdp];
+    //   }
   }
   
   //find the place where each link must be copied to access it sequentially
@@ -333,18 +333,18 @@ namespace nissa
   //pack all the links required to compute staples
   void gauge_sweeper_t::pack_links(quad_su3 *conf,int ibase,int nbox_dir_par)
   {
+    crash("redo");
+    // //prepare the chunk load
+    // NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,nlinks_per_staples_of_link*nbox_dir_par,THREAD_ID,NACTIVE_THREADS);
+    // int *source_dest=packing_link_source_dest+2*(nlinks_per_staples_of_link*ibase+start);
     
-    //prepare the chunk load
-    NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,nlinks_per_staples_of_link*nbox_dir_par,THREAD_ID,NACTIVE_THREADS);
-    int *source_dest=packing_link_source_dest+2*(nlinks_per_staples_of_link*ibase+start);
-    
-    for(int ilink_to_ship=start;ilink_to_ship<end;ilink_to_ship++)
-      {
-	int isource=*(source_dest++);
-	int idest=*(source_dest++);
-	su3_copy(packing_link_buf[idest],((su3*)conf)[isource]);
-      }
-    THREAD_BARRIER();
+    // for(int ilink_to_ship=start;ilink_to_ship<end;ilink_to_ship++)
+    //   {
+    // 	int isource=*(source_dest++);
+    // 	int idest=*(source_dest++);
+    // 	su3_copy(packing_link_buf[idest],((su3*)conf)[isource]);
+    //   }
+    // THREAD_BARRIER();
   }
   
   //compute the parity according to the Symanzik requirements

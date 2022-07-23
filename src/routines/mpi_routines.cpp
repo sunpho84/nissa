@@ -219,11 +219,12 @@ namespace nissa
   {return pos+diff_with_next_eight_multiple(pos);}
   
   //internal version
-  template <class T> T broadcast_internal(T in,int rank_from,MPI_Datatype type)
+  template <class T>
+  T broadcast_internal(T in,int rank_from,MPI_Datatype type)
   {
-    T out;
-    if(IS_MASTER_THREAD) MPI_Bcast(&in,1,type,rank_from,MPI_COMM_WORLD);
-    THREAD_BROADCAST(out,in);
+    T out=in;
+    MPI_Bcast(&out,1,type,rank_from,MPI_COMM_WORLD);
+    
     return out;
   }
   

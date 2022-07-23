@@ -74,8 +74,7 @@ namespace
 	
 	//generate tso
 	int source_coord;
-	if(IS_MASTER_THREAD) source_coord=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
-	THREAD_BROADCAST(source_coord,source_coord);
+	source_coord=rnd_get_unif(&glb_rnd_gen,0,glbSize[0]);
 	verbosity_lv2_master_printf("tsource: %d\n",source_coord);
 	
 	//generate source

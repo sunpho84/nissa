@@ -32,11 +32,8 @@ namespace nissa
 #else
     
     using namespace Eigen;
-
-#if THREADS_TYPE == OPENMP_THREADS
-    if(nranks>1 or thread_pool_locked==false)
-      crash("Cannot work in parallel");
-#endif
+    
+    MANDATORY_NOT_PARALLEL;
     
     ComplexEigenSolver<MatrixXcd> solver;
     
