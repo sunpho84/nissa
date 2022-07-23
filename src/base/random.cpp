@@ -190,9 +190,8 @@ namespace nissa
     MANDATORY_NOT_PARALLEL;
     
     coords_t c;
-    coords_t temp;
     for(int mu=0;mu<NDIM;mu++)
-      temp[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize[mu]));
+      c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize[mu]));
     
     return c;
   }
