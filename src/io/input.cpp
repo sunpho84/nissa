@@ -187,8 +187,6 @@ namespace nissa
 	len=strlen(tok)+1;
       }
     
-    master_printf("   token read: %s\n",tok);
-    
     MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
     MPI_Bcast(&len,1,MPI_INT,0,MPI_COMM_WORLD);
     MPI_Bcast(tok,len,MPI_BYTE,0,MPI_COMM_WORLD);
