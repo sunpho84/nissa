@@ -20,6 +20,8 @@
 
 #define CUDA_HOST_AND_DEVICE
 
+#define NTHREADS 1
+
 namespace nissa
 {
   

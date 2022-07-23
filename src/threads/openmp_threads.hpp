@@ -19,6 +19,8 @@
  #define INIT_TO(A) =A
 #endif
 
+#define NTHREADS nthreads
+
 EXTERN_THREADS int nthreads INIT_TO(1);
 
 #define CUDA_MANAGED
