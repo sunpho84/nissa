@@ -72,10 +72,10 @@ namespace nissa
     //update atomically
     if((get_vect(v)->flag & flag)!=flag)
       {
-	THREAD_BARRIER();
+	//THREAD_BARRIER();
 	get_vect(v)->flag|=flag;
       }
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
   }
   
   //unset a flag (idem)
@@ -90,10 +90,10 @@ namespace nissa
     //update atomically
     if(((~get_vect(v)->flag)&flag)!=flag)
       {
-	THREAD_BARRIER();
+	//THREAD_BARRIER();
 	get_vect(v)->flag&=~flag;
       }
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
   }
   
   //get a flag
@@ -280,15 +280,15 @@ namespace nissa
 	required_memory+=size;
 	max_required_memory=std::max(max_required_memory,required_memory);
 	
-	cache_flush();
+	//cache_flush();
       }
     
     //sync so we are sure that master thread allocated
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     void *res=return_malloc_ptr;
     
     //resync so all threads return the same pointer
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     
     return res;
   }
@@ -298,7 +298,7 @@ namespace nissa
   {
     
     //sync so we are sure that all threads are here
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     
     //control that a!=b
     if(a!=b)
@@ -333,7 +333,7 @@ namespace nissa
 	nissa_a->flag=nissa_b->flag;
 	
 	//sync so we are sure that all threads are here
-	THREAD_BARRIER();
+	//THREAD_BARRIER();
       }
   }
   
@@ -341,7 +341,7 @@ namespace nissa
   void vector_reset(void *a)
   {
     //sync so all thread are not using the vector
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     
     if(IS_MASTER_THREAD)
       {
@@ -352,14 +352,14 @@ namespace nissa
       }
     
     //sync so all thread see that have been reset
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
   }
   
   //release a vector
   void internal_nissa_free(char **arr,const char *file,int line)
   {
     //sync so all thread are not using the vector
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     
     if(IS_MASTER_THREAD)
       {
@@ -403,7 +403,7 @@ namespace nissa
       }
     
     //sync so all thread see that have deallocated
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
   }
   
   //reorder a vector according to the specified order
@@ -416,7 +416,7 @@ namespace nissa
       memcpy(buf+order[sour]*sel,vect+sour*sel,sel);
     NISSA_PARALLEL_LOOP_END;
     
-    THREAD_BARRIER();
+    //THREAD_BARRIER();
     
     NISSA_PARALLEL_LOOP(sour,0,nel)
       memcpy(vect+sour*sel,buf+sour*sel,sel);
