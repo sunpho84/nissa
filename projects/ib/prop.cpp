@@ -640,7 +640,13 @@ namespace nissa
 	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta[1],q.theta[2],q.theta[3]);
 	
 	//compute the inverse clover term, if needed
-	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+	if(clover_run)
+	  {
+	    const double init_time=take_time();
+	    master_printf("Inverting clover\n");
+	    invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+	    master_printf("Clover inverted in %lg s\n",take_time()-init_time);
+	  }
 	
 	//create the description of the source
 	std::string source_descr;
