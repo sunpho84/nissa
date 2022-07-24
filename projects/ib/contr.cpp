@@ -112,6 +112,16 @@ namespace nissa
 		complex A;
 		unsafe_complex_prod(A,(base_gamma+ig_so)->entr[i],(base_gamma+5)->entr[j]);
 		
+		complex AB[NDIRAC];
+		for(int k=0;k<NDIRAC;k++)
+		  {
+		    //compute AB*norm
+		    complex B;
+		    unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
+		    unsafe_complex_prod(AB[k],A,B);
+		    if(normalize) complex_prodassign_double(AB[k],norm);
+		  }
+		
 		for(int b=0;b<nso_col;b++)
 		  {
 		    spincolor *q1=Q1[so_sp_col_ind(j,b)];
@@ -123,17 +133,10 @@ namespace nissa
 			  {
 			    int l=(base_gamma+ig_si)->pos[k];
 			    
-			    //compute AB*norm
-			    complex B;
-			    unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
-			    complex AB;
-			    unsafe_complex_prod(AB,A,B);
-			    if(normalize) complex_prodassign_double(AB,norm);
-			    
 			    complex c={0,0};
 			    for(int a=0;a<NCOL;a++)
 			      complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			    complex_summ_the_prod(loc_contr[ivol],c,AB);
+			    complex_summ_the_prod(loc_contr[ivol],c,AB[k]);
 			  }
 		      }
 		    NISSA_PARALLEL_LOOP_END;

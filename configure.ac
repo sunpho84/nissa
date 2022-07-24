@@ -17,7 +17,7 @@ AC_MSG_RESULT([$CONFIG_TIME])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([1.14 no-define foreign subdir-objects])
-AM_CONFIG_HEADER(src/config.hpp)
+AC_CONFIG_HEADERS(src/config.hpp)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 
@@ -451,7 +451,7 @@ Number of colors    : $ncol"
 
 if test "$with_threads_type" = "cuda"
 then
-	CPPFLAGS="-dc --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
+	CPPFLAGS="-dc -dlto --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
 fi
 
 #macros to concatenate
