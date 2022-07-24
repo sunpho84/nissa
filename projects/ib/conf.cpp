@@ -94,6 +94,8 @@ namespace nissa
   //take a set of theta, charge and photon field, and update the conf
   quad_su3* get_updated_conf(double charge,const momentum_t& theta,quad_su3 *in_conf)
   {
+    master_printf("Checking if conf needs to be updated\n");
+    
     //check if the inner conf is valid or not
     static quad_su3 *stored_conf=NULL;
     static double stored_charge=0,stored_theta[NDIM];
@@ -137,6 +139,8 @@ namespace nissa
 	//include the photon field, with correct charge
 	if(charge) add_photon_field_to_conf(inner_conf,charge);
       }
+    else
+      master_printf("Inner conf valid, no need to update\n");
     
     //update value and set valid
     stored_conf=in_conf;

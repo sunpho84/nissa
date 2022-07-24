@@ -410,6 +410,7 @@ namespace nissa
   
   void build_source(spincolor* out,std::vector<source_term_t>* source_terms,int isou)
   {
+    master_printf("Creating the source\n");
     
     vector_reset(out);
     
@@ -422,6 +423,8 @@ namespace nissa
 	NISSA_PARALLEL_LOOP_END;
       }
     set_borders_invalid(out);
+    
+    master_printf("Source created\n");
   }
   
   void generate_photon_source(spin1field *photon_eta)
