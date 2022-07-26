@@ -642,10 +642,16 @@ namespace nissa
 	//compute the inverse clover term, if needed
 	if(clover_run)
 	  {
-	    const double init_time=take_time();
-	    master_printf("Inverting clover\n");
-	    invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
-	    master_printf("Clover inverted in %lg s\n",take_time()-init_time);
+	    static double m=0,k=0;
+	    if(m!=q.mass or k!=q.kappa)
+	      {
+		m=q.mass;
+		k=q.kappa;
+		const double init_time=take_time();
+		master_printf("Inverting clover\n");
+		invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+		master_printf("Clover inverted in %lg s\n",take_time()-init_time);
+	      }
 	  }
 	
 	//create the description of the source
