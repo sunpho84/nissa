@@ -565,9 +565,11 @@ namespace nissa
   }
   
   //read the checksum
-  void ILDG_File_read_checksum(checksum check_read,ILDG_File &file)
+  checksum ILDG_File_read_checksum(ILDG_File &file)
   {
-    //search the field
+    checksum check_read;
+    
+  //search the field
     char record_name[]="scidac-checksum";
     ILDG_header header;
     int found=ILDG_File_search_record(header,file,record_name);
@@ -582,10 +584,12 @@ namespace nissa
 	check_read[0]=check_read[1]=0;
 	char *handlea=strstr(mess,"<suma>"),*handleb=strstr(mess,"<sumb>");
 	//if found read it
-	if(!(handlea && handleb && sscanf(handlea+6,"%x",check_read+0) && sscanf(handleb+6,"%x",check_read+1)))
+	if(!(handlea && handleb && sscanf(handlea+6,"%x",check_read.data+0) && sscanf(handleb+6,"%x",check_read.data+1)))
 	  master_printf("WARNING: Broken checksum\n");
 	nissa_free(mess);
       }
+    
+    return check_read;
   }
   
   ////////////////////////////////////// external writing interfaces //////////////////////////////////////
@@ -713,7 +717,7 @@ namespace nissa
   {ILDG_File_write_record(file,type,text,strlen(text)+1);}
   
   //write the checksum
-  void ILDG_File_write_checksum(ILDG_File &file,checksum check)
+  void ILDG_File_write_checksum(ILDG_File &file,const checksum& check)
   {
     //prepare message
     char mess[1024];

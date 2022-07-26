@@ -148,6 +148,8 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) stored_theta[mu]=theta[mu];
     inner_conf_valid=true;
     
+    // master_printf("inner_conf pointer: %p\n",inner_conf);
+    
     return inner_conf;
   }
   

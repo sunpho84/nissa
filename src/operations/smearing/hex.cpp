@@ -17,8 +17,8 @@
 namespace nissa
 {
   template <typename LIn,
-	    typename...A>
-  void sme(su3* lOut,const double& alpha,const LIn& V,su3* U,const int& mu,const A&...a)
+	    typename...Tail>
+  void sme(su3* lOut,const double& alpha,const LIn& V,su3* U,const int& mu,const Tail&...a)
   {
     vector_reset(lOut);
     
@@ -28,6 +28,9 @@ namespace nissa
 	for(const auto& i : {mu,a...})
 	  toDo&=(i!=sigma);
 	
+	const auto& A=V(sigma,mu,a...);
+	const auto& B=V(mu,a...,sigma);
+	
 	if(toDo)
 	  NISSA_PARALLEL_LOOP(iVol,0,locVol)
 	    {
@@ -35,14 +38,14 @@ namespace nissa
 	      
 	      const int muUp=loclxNeighup[iVol][mu];
 	      
-	      unsafe_su3_prod_su3(temp,V(sigma,mu,a...)[iVol],V(mu,a...,sigma)[loclxNeighup[iVol][sigma]]);
-	      su3_summ_the_prod_su3_dag(lOut[iVol],temp,V(sigma,mu,a...)[muUp]);
+	      unsafe_su3_prod_su3(temp,A[iVol],B[loclxNeighup[iVol][sigma]]);
+	      su3_summ_the_prod_su3_dag(lOut[iVol],temp,A[muUp]);
 	      
 	      const int sigmaDw=loclxNeighdw[iVol][sigma];
 	      const int sigmaDwMuUp=loclxNeighdw[muUp][sigma];
 	      
-	      unsafe_su3_dag_prod_su3(temp,V(sigma,mu,a...)[sigmaDw],V(mu,a...,sigma)[sigmaDw]);
-	      su3_summ_the_prod_su3(lOut[iVol],temp,V(sigma,mu,a...)[sigmaDwMuUp]);
+	      unsafe_su3_dag_prod_su3(temp,A[sigmaDw],B[sigmaDw]);
+	      su3_summ_the_prod_su3(lOut[iVol],temp,A[sigmaDwMuUp]);
 	    }
 	NISSA_PARALLEL_LOOP_END;
       }
@@ -67,129 +70,131 @@ namespace nissa
   /// Hex smear the conf
   void hex_smear_conf(quad_su3* sm_conf,quad_su3* conf,const double& alpha1,const double& alpha2,const double& alpha3)
   {
-    const int nDecLevels=4;
-    const int nDecsPerLevel[]=
-      {NDIM,
-       NDIM*(NDIM-1),
-       NDIM*(NDIM-1),
-       NDIM};
+    crash("must be done inside a struct");
     
-    const int nDecTot=
-		nDecsPerLevel[0]+nDecsPerLevel[1]+nDecsPerLevel[2]+nDecsPerLevel[3];
-    su3* linksAllDecs[nDecTot];
+    // const int nDecLevels=4;
+    // const int nDecsPerLevel[]=
+    //   {NDIM,
+    //    NDIM*(NDIM-1),
+    //    NDIM*(NDIM-1),
+    //    NDIM};
     
-    for(int iDec=0;iDec<nDecTot;iDec++)
-      linksAllDecs[iDec]=nissa_malloc("Dec",locVol+bord_vol+edge_vol,su3);
+    // const int nDecTot=
+    // 		nDecsPerLevel[0]+nDecsPerLevel[1]+nDecsPerLevel[2]+nDecsPerLevel[3];
+    // su3* linksAllDecs[nDecTot];
     
-    su3** linksDecsPerLev[nDecLevels];
-    linksDecsPerLev[0]=linksAllDecs;
-    for(int iDecLev=1;iDecLev<nDecLevels;iDecLev++)
-      linksDecsPerLev[iDecLev]=linksDecsPerLev[iDecLev-1]+nDecsPerLevel[iDecLev-1];
+    // for(int iDec=0;iDec<nDecTot;iDec++)
+    //   linksAllDecs[iDec]=nissa_malloc("Dec",locVol+bord_vol+edge_vol,su3);
     
-    auto communicateDecsForLev=
-      [linksDecsPerLev,nDecsPerLevel](const int& iLev)
-      {
-	for(int iDec=0;iDec<nDecsPerLevel[iLev];iDec++)
-	  {
-	    su3* o=linksDecsPerLev[iLev][iDec];
-	    set_borders_invalid(o);
-	    communicate_lx_su3_edges(o);
-	  }
-      };
+    // su3** linksDecsPerLev[nDecLevels];
+    // linksDecsPerLev[0]=linksAllDecs;
+    // for(int iDecLev=1;iDecLev<nDecLevels;iDecLev++)
+    //   linksDecsPerLev[iDecLev]=linksDecsPerLev[iDecLev-1]+nDecsPerLevel[iDecLev-1];
     
-    /////////////////////////////////////////////////////////////////
+    // auto communicateDecsForLev=
+    //   [linksDecsPerLev,nDecsPerLevel](const int& iLev)
+    //   {
+    // 	for(int iDec=0;iDec<nDecsPerLevel[iLev];iDec++)
+    // 	  {
+    // 	    su3* o=linksDecsPerLev[iLev][iDec];
+    // 	    set_borders_invalid(o);
+    // 	    communicate_lx_su3_edges(o);
+    // 	  }
+    //   };
     
-    /// Level0
+    // /////////////////////////////////////////////////////////////////
     
-    const auto links0=
-      [links0List=linksDecsPerLev[0]](const int& mu,auto...) //swallow all other dirs
-      {
-	return
-	  links0List[mu];
-      };
+    // /// Level0
     
-    NISSA_PARALLEL_LOOP(A,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
-	su3_copy(links0(mu)[A],conf[A][mu]);
-    NISSA_PARALLEL_LOOP_END;
+    // const auto links0=
+    //   [links0List=linksDecsPerLev[0]](const int& mu,auto...) //swallow all other dirs
+    //   {
+    // 	return
+    // 	  links0List[mu];
+    //   };
     
-    communicateDecsForLev(0);
+    // NISSA_PARALLEL_LOOP(A,0,locVol)
+    //   for(int mu=0;mu<NDIM;mu++)
+    // 	su3_copy(links0(mu)[A],conf[A][mu]);
+    // NISSA_PARALLEL_LOOP_END;
     
-    /////////////////////////////////////////////////////////////////
+    // communicateDecsForLev(0);
     
-    /// Level1
+    // /////////////////////////////////////////////////////////////////
     
-    const auto links1=
-      [links1List=linksDecsPerLev[1]](const int& mu,const int& nu,const int& rho)
-      {
-	const int e=15^((1<<mu)+(1<<nu)+(1<<rho));
-	const int sigma=(e==2)+2*(e==4)+3*(e==8);
-	const int iSigma=sigma-(sigma>mu); /// Subtract 1 if sigma>mu since we don't store mu==sigma
+    // /// Level1
+    
+    // const auto links1=
+    //   [links1List=linksDecsPerLev[1]](const int& mu,const int& nu,const int& rho)
+    //   {
+    // 	const int e=15^((1<<mu)+(1<<nu)+(1<<rho));
+    // 	const int sigma=(e==2)+2*(e==4)+3*(e==8);
+    // 	const int iSigma=sigma-(sigma>mu); /// Subtract 1 if sigma>mu since we don't store mu==sigma
 	
-	return
-	  links1List[iSigma+(NDIM-1)*mu];
-      };
+    // 	return
+    // 	  links1List[iSigma+(NDIM-1)*mu];
+    //   };
     
-    for(int mu=0;mu<NDIM;mu++)
-      for(int iNu=0;iNu<NDIM-1;iNu++)
-	for(int iRho=0;iRho<NDIM-2;iRho++)
-	  {
-	    const int nu=perp_dir[mu][iNu];
-	    const int rho=perp2_dir[mu][iNu][iRho];
+    // for(int mu=0;mu<NDIM;mu++)
+    //   for(int iNu=0;iNu<NDIM-1;iNu++)
+    // 	for(int iRho=0;iRho<NDIM-2;iRho++)
+    // 	  {
+    // 	    const int nu=perp_dir[mu][iNu];
+    // 	    const int rho=perp2_dir[mu][iNu][iRho];
 	    
-	    if(rho>nu)
-	      sme(links1(mu,nu,rho),alpha3/2,links0,links0(mu),mu,nu,rho);
-	  }
+    // 	    if(rho>nu)
+    // 	      sme(links1(mu,nu,rho),alpha3/2,links0,links0(mu),mu,nu,rho);
+    // 	  }
     
-    communicateDecsForLev(1);
+    // communicateDecsForLev(1);
     
-    /////////////////////////////////////////////////////////////////
+    // /////////////////////////////////////////////////////////////////
     
-    /// Level2
+    // /// Level2
     
-    const auto links2=
-      [links2List=linksDecsPerLev[2]](const int& mu,const int& nu)
-      {
-	const int iNu=
-	  nu-(nu>mu); /// Subtract 1 if sigma>mu since we don't store mu==sigma
+    // const auto links2=
+    //   [links2List=linksDecsPerLev[2]](const int& mu,const int& nu)
+    //   {
+    // 	const int iNu=
+    // 	  nu-(nu>mu); /// Subtract 1 if sigma>mu since we don't store mu==sigma
 	
-	return
-	  links2List[iNu+(NDIM-1)*mu];
-      };
+    // 	return
+    // 	  links2List[iNu+(NDIM-1)*mu];
+    //   };
     
-    for(int mu=0;mu<NDIM;mu++)
-      for(int iNu=0;iNu<NDIM-1;iNu++)
-	{
-	  const int nu=perp_dir[mu][iNu];
-	  sme(links2(mu,nu),alpha2/4,links1,links0(mu),mu,nu);
-	}
+    // for(int mu=0;mu<NDIM;mu++)
+    //   for(int iNu=0;iNu<NDIM-1;iNu++)
+    // 	{
+    // 	  const int nu=perp_dir[mu][iNu];
+    // 	  sme(links2(mu,nu),alpha2/4,links1,links0(mu),mu,nu);
+    // 	}
     
-    communicateDecsForLev(2);
+    // communicateDecsForLev(2);
     
-    /////////////////////////////////////////////////////////////////
+    // /////////////////////////////////////////////////////////////////
     
-    /// Level3
+    // /// Level3
     
-    const auto links3=
-      [links3List=linksDecsPerLev[3]](const int& mu)
-      {
-	return
-	  links3List[mu];
-      };
+    // const auto links3=
+    //   [links3List=linksDecsPerLev[3]](const int& mu)
+    //   {
+    // 	return
+    // 	  links3List[mu];
+    //   };
     
-    for(int mu=0;mu<NDIM;mu++)
-      sme(links3(mu),alpha1/6,links2,links0(mu),mu);
+    // for(int mu=0;mu<NDIM;mu++)
+    //   sme(links3(mu),alpha1/6,links2,links0(mu),mu);
     
-    /////////////////////////////////////////////////////////////////
+    // /////////////////////////////////////////////////////////////////
     
-    for(int mu=0;mu<NDIM;mu++)
-      NISSA_PARALLEL_LOOP(A,0,locVol)
-	su3_copy(sm_conf[A][mu],links3(mu)[A]);
-    NISSA_PARALLEL_LOOP_END;
+    // for(int mu=0;mu<NDIM;mu++)
+    //   NISSA_PARALLEL_LOOP(A,0,locVol)
+    // 	su3_copy(sm_conf[A][mu],links3(mu)[A]);
+    // NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(sm_conf);
+    // set_borders_invalid(sm_conf);
     
-    for(int iDec=0;iDec<nDecTot;iDec++)
-      nissa_free(linksAllDecs[iDec]);
+    // for(int iDec=0;iDec<nDecTot;iDec++)
+    //   nissa_free(linksAllDecs[iDec]);
   }
 }

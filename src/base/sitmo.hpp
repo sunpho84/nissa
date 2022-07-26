@@ -344,7 +344,7 @@ namespace nissa
     }
     
     /// Fill a specific site
-    CUDA_HOST_AND_DEVICE
+    //CUDA_HOST_AND_DEVICE
     void fillGlbSite(T& out,const uint64_t glblx)
     {
       for(int irnd_real=0;irnd_real<nRealsPerSite;irnd_real++)
@@ -356,7 +356,7 @@ namespace nissa
     }
     
     /// Fill a specific site given its local index
-    CUDA_HOST_AND_DEVICE
+    //CUDA_HOST_AND_DEVICE
     void fillLocSite(T& out,const uint64_t loclx)
     {
       //Finds the global site of local one
@@ -384,12 +384,13 @@ namespace nissa
     {
       enforce_single_usage();
       
-      NISSA_PARALLEL_LOOP(loclx,0,locVol)
+      //NISSA_PARALLEL_LOOP(loclx,0,locVol)
+      NISSA_LOC_VOL_LOOP(loclx)
 	{
 	  const int& glblx=glblxOfLoclx[loclx];
 	  fillGlbSite(out[loclx],glblx);
 	}
-      NISSA_PARALLEL_LOOP_END;
+      //NISSA_PARALLEL_LOOP_END;
       
       set_borders_invalid(out);
     }

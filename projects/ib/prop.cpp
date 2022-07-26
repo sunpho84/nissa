@@ -102,7 +102,8 @@ namespace nissa
     
     const int tins=sou->tins;
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    NISSA_LOC_VOL_LOOP(ivol)
       {
 	spincolor c;
 	spincolor_put_to_zero(c);
@@ -152,7 +153,7 @@ namespace nissa
 		  if((!diluted_spi_source or (id_so==id_si)) and (!diluted_col_source or (ic_so==ic_si)))
 		    complex_copy(sou_proxy[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
-    NISSA_PARALLEL_LOOP_END;
+    //NISSA_PARALLEL_LOOP_END;
     
     //compute the norm2, set borders invalid
     double ori_source_norm2=0;
@@ -447,6 +448,14 @@ namespace nissa
       generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
   }
   
+  enum class BwFw {BW,FW};
+  
+  CUDA_HOST_AND_DEVICE
+  double HeavyTheta(const int x)
+  {
+    return ((x>=0)+(x>0))/2.0;
+  }
+  
   //generate a sequential source
   void generate_source(insertion_t inser,char *ext_field_path,double mass,int r,double charge,double kappa,double* kappa_asymm,const momentum_t& theta,std::vector<source_term_t>& source_terms,int isou,int t)
   {
@@ -475,14 +484,8 @@ namespace nissa
 	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
       }
     
-    auto HeavyTheta=[](const int x)
-    {
-      return ((x>=0)+(x>0))/2.0;
-    };
-    
     /// Function to insert the virtual photon emission projection
-    enum class BwFw {BW,FW};
-    auto vphotonInsertCurr=[mass,HeavyTheta,theta](const BwFw bwFw,const int nu)
+    auto vphotonInsertCurr=[mass,theta](const BwFw bwFw,const int nu)
     {
       gauge_info insPhoton;
       insPhoton.alpha=photon.alpha;
@@ -494,7 +497,7 @@ namespace nissa
       
       const double Eg=gluon_energy(insPhoton,mass,0);
       
-      return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu,const double fwbw_phase)
+      return [bwFw,nu,Eg,theta] CUDA_HOST_AND_DEVICE(complex ph,const int ivol,const int mu,const double fwbw_phase)
       {
 	const double a=-3*0.5*fwbw_phase*M_PI*theta[mu]/glbSize[mu];
 	

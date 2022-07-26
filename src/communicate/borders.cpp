@@ -163,8 +163,11 @@ namespace nissa
     if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
       crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
     
+    master_printf("filling filling filling\n");
+    
     //copy one by one the surface of vec inside the sending buffer
     NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+    // for(int ibord=0;ibord<bord_vol;ibord++)
       memcpy(send_buf+comm.nbytes_per_site*ibord,
 	     (char*)vec+surflxOfBordlx[ibord]*comm.nbytes_per_site,
 	     comm.nbytes_per_site);
@@ -177,20 +180,27 @@ namespace nissa
   //extract the information from receiving buffer and put them inside an lx vec
   void fill_lx_bord_with_receiving_buf(void *vec,comm_t &comm)
   {
+    // for(int ibord=0;ibord<bord_vol;ibord++)
+    NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+      memcpy((char*)vec+(locVol*comm.nbytes_per_site)+comm.nbytes_per_site*ibord,
+	     recv_buf+comm.nbytes_per_site*ibord,
+	     comm.nbytes_per_site);
+    NISSA_PARALLEL_LOOP_END;
+    THREAD_BARRIER();
     
-    if(IS_MASTER_THREAD)
-      {
-	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol+locVol));
+    // if(IS_MASTER_THREAD)
+    //   {
+    // 	crash_if_borders_not_allocated(vec,comm.nbytes_per_site*(bord_vol+locVol));
 	
-	//check buffer size matching
-	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
-	  crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
+    // 	//check buffer size matching
+    // 	if(comm.tot_mess_size!=comm.nbytes_per_site*bord_vol)
+    // 	  crash("wrong buffer size (%d) for %d large border)",comm.tot_mess_size,comm.nbytes_per_site*bord_vol);
 	
-	//the buffer is already ordered as the vec border
-	memcpy((char*)vec+locVol*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
-      }
+    // 	//the buffer is already ordered as the vec border
+    // 	memcpy((char*)vec+locVol*comm.nbytes_per_site,recv_buf,comm.tot_mess_size);
+    //   }
     
-    //we do not sync, because typically we will set borders as valid
+    // //we do not sync, because typically we will set borders as valid
   }
   
   //start communication using an lx border
@@ -201,7 +211,8 @@ namespace nissa
 	
 	//take time and write some debug output
 	START_TIMING(tot_comm_time,ntot_comm);
-	verbosity_lv3_master_printf("Start communication of lx borders of %s\n",get_vect_name((void*)vec));
+	//verbosity_lv3_
+	  master_printf("Start communication of lx borders of %s\n",get_vect_name((void*)vec));
 	
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_lx_vec(comm,vec);
@@ -218,7 +229,8 @@ namespace nissa
 	
 	//take note of passed time and write some debug info
 	START_TIMING(tot_comm_time,ntot_comm);
-	verbosity_lv3_master_printf("Finish communication of lx borders of %s\n",get_vect_name((void*)vec));
+	//verbosity_lv3_
+	  master_printf("Finish communication of lx borders of %s\n",get_vect_name((void*)vec));
 	
 	//wait communication to finish, fill back the vector and take time
 	comm_wait(comm);
@@ -235,7 +247,8 @@ namespace nissa
   {
     if(!check_borders_valid(vec))
       {
-	verbosity_lv3_master_printf("Sync communication of lx borders of %s\n",get_vect_name((void*)vec));
+	//verbosity_lv3_
+	  master_printf("Sync communication of lx borders of %s\n",get_vect_name((void*)vec));
 	
 	start_communicating_lx_borders(comm,vec);
 	finish_communicating_lx_borders(vec,comm);

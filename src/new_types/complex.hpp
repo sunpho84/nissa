@@ -123,7 +123,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void complex_prod_double(complex a,const complex b,const double c) {a[RE]=b[RE]*c;a[IM]=b[IM]*c;}
   CUDA_HOST_AND_DEVICE inline void complex_prodassign_double(complex a,const double c) {complex_prod_double(a,a,c);}
   CUDA_HOST_AND_DEVICE inline void complex_prod_idouble(complex a,const complex b,const double c) {const double d=-b[IM]*c;a[IM]=b[RE]*c;a[RE]=d;}
-  inline void complex_prodassign_idouble(complex a,const double b) {complex_prod_idouble(a,a,b);}
+  CUDA_HOST_AND_DEVICE inline void complex_prodassign_idouble(complex a,const double b) {complex_prod_idouble(a,a,b);}
   
   //summ the prod with real
   CUDA_HOST_AND_DEVICE inline void complex_summ_the_prod_double(complex a,const complex b,const double c)

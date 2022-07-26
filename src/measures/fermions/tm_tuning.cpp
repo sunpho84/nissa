@@ -73,10 +73,12 @@ namespace nissa
 	      
 	      auto c=[&](spincolor* oth,int ig,const int icontr)
 	      {
-		complex temp_contr[glbSize[0]];
+		complex* temp_contr=new complex[glbSize[0]];
 		tm_corr_op::undiluted_meson_contr(temp_contr,phi,oth,ig,source_coord[0]);
 		for(int t=0;t<glbSize[0];t++)
 		  complex_summassign(contr[t+glbSize[0]*icontr],temp_contr[t]);
+		
+		delete[] temp_contr;
 	      };
 	      
 	      c(phi,5,0);
