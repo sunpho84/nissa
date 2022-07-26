@@ -685,13 +685,25 @@ namespace nissa
 	      
 	      //combine the filename
 	      std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	      if(fast_read_write_vectors)
+		path+="_rank"+std::to_string(rank);
 	      
 	      //if the prop exists read it
 	      if(file_exists(path))
 		{
 		  master_printf("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
 		  START_TIMING(read_prop_time,nread_prop);
-		  read_real_vector(sol,path,"scidac-binary-data");
+		  if(not fast_read_write_vectors)
+		    read_real_vector(sol,path,"scidac-binary-data");
+		  else
+		    {
+		      FILE *fout=fopen(path.c_str(),"r");
+		      if(fout==nullptr)
+			crash("Unable to open path %s",path.c_str());
+		      if(fread(sol,sizeof(spincolor),locVol,fout)!=locVol)
+			crash("Problem reading %s",path.c_str());
+		      fclose(fout);
+		    }
 		  STOP_TIMING(read_prop_time);
 		}
 	      else
@@ -704,7 +716,17 @@ namespace nissa
 		  if(q.store)
 		    {
 		      START_TIMING(store_prop_time,nstore_prop);
-		      write_real_vector(path,sol,64,"scidac-binary-data");
+		      if(not fast_read_write_vectors)
+			write_real_vector(path,sol,64,"scidac-binary-data");
+		      else
+			{
+			  FILE *fout=fopen(path.c_str(),"w");
+			  if(fout==nullptr)
+			    crash("Unable to open path %s",path.c_str());
+			  if(fwrite(sol,sizeof(spincolor),locVol,fout)!=locVol)
+			    crash("Problem writing %s",path.c_str());
+			  fclose(fout);
+			}
 		      STOP_TIMING(store_prop_time);
 		    }
 		  master_printf("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
