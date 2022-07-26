@@ -640,7 +640,7 @@ namespace nissa
 	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta[1],q.theta[2],q.theta[3]);
 	
 	//compute the inverse clover term, if needed
-	if(clover_run)
+	if(clover_run and q.insertion==PROP)
 	  {
 	    static double m=0,k=0;
 	    if(m!=q.mass or k!=q.kappa)
