@@ -55,8 +55,8 @@ namespace nissa
   //Invert twisted clover operator using e/o preconditioning.
   void inv_tmclovD_cg_eoprec_native(spincolor* solution_lx,spincolor* guess_Koo,quad_su3* conf_lx,double kappa,double cSW,clover_term_t* Cl_lx,inv_clover_term_t* ext_invCl_lx,double mass,int nitermax,double residue,spincolor* source_lx)
   {
-    set_borders_invalid(conf_lx);
-    communicate_lx_quad_su3_borders(conf_lx);
+    // set_borders_invalid(conf_lx);
+    // communicate_lx_quad_su3_borders(conf_lx);
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
     inv_clover_term_t *invCl_lx;

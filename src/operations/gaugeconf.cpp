@@ -261,7 +261,6 @@ namespace nissa
     glb_reduce(&result.average_diff,loc_avg,locVol);
     result.average_diff/=glbVol*NDIM;
     
-    master_printf("Warning, max is undefined\n");
     glbReduce(&result.max_diff,loc_max,locVol,
 	      [] CUDA_DEVICE (double& res,const double& acc)  __attribute__((always_inline))
 	      {

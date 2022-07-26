@@ -19,10 +19,7 @@ namespace nissa
     
     double kcf=1/(2*kappa);
     
-    // master_printf("WARNING\n");
-    
-    //NISSA_PARALLEL_LOOP(X,0,locVol)
-    for(int X=0;X<locVol;X++)
+    NISSA_PARALLEL_LOOP(X,0,locVol)
       {
 	// const bool p=(X==loclx_of_coord_list(0,8,23,7));
 	
@@ -156,7 +153,7 @@ namespace nissa
 	// if(p)
 	//   master_printf("CCC X=%d out[X]=%lg Clin[0]=%lg temp[X]=%lg in[Xup]=%lg\n",X,out[X][0][0][0],Clin[0][0][0],temp[0][0][0],in[X][0][0][0]);
       }
-    //NISSA_PARALLEL_LOOP_END;
+    NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
   }
