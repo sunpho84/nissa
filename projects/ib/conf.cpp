@@ -9,6 +9,32 @@
 
 namespace nissa
 {
+  
+  // void testContractDeducer()
+  // {
+  //   using A=TensorComps<ColorRow,ColorCln,ComplId>;
+  //   using B=TensorComps<LocLxSite,ColorRow,ColorCln,ComplId>;
+    
+  //   auto r=Deducer<A,B>::ContractedComps{};
+    
+  //   using PCC=
+  //     internal::_ProdCompsComputer<A,B>;
+    
+  //   auto s=PCC::ContractedComps{};
+    
+  //   auto t=Deducer<A,B>::VisibleComps{};
+    
+  //   auto u=PCC::VisibleComps{};
+    
+  //   static_assert(std::is_same_v<PCC::ContractedComps,Deducer<A,B>::ContractedComps>,"");
+  //   static_assert(std::is_same_v<PCC::VisibleComps,Deducer<A,B>::VisibleComps>,"");
+    
+  //   // using Visible=Deducer<A,B>::Visible;
+    
+  //   // auto a=Visible{};
+  // }
+  
+  
   //init the MPI grid
   void read_init_grid()
   {
@@ -275,121 +301,122 @@ namespace nissa
     //if clover term is included, compute it
     if(clover_run) clover_term(Cl,glb_cSW,conf);
     
-    //// DEBUG
-    master_printf("DEBUG plaquette: %+16.16lg\n",global_plaquette_lx_conf(conf));
+  //   //// DEBUG
+  //   master_printf("DEBUG plaquette: %+16.16lg\n",global_plaquette_lx_conf(conf));
     
-    auto newConf=lxField<OfComps<Dir,ColorRow,ColorCln,ComplId>,AllocateBord::YES>();
+  //   auto newConf=lxField<OfComps<Dir,ColorRow,ColorCln,ComplId>,AllocateBord::YES>();
     
-    for(LocLxSite site=0;site<locVol;site++)
-      FOR_ALL_DIRS(dir)
-	FOR_ALL_ROW_COLORS(rowCol)
-          FOR_ALL_CLN_COLORS(clnCol)
-	    FOR_REIM_PARTS(reIm)
-	      newConf(site,dir,rowCol,clnCol,reIm)=conf[site()][dir()][rowCol()][clnCol()][reIm()];
+  //   for(LocLxSite site=0;site<locVol;site++)
+  //     FOR_ALL_DIRS(dir)
+  // 	FOR_ALL_ROW_COLORS(rowCol)
+  //         FOR_ALL_CLN_COLORS(clnCol)
+  // 	    FOR_REIM_PARTS(reIm)
+  // 	      newConf(site,dir,rowCol,clnCol,reIm)=conf[site()][dir()][rowCol()][clnCol()][reIm()];
     
-  // using ToBeFiltered = std::tuple<TensorComp<LocLxSiteSignature, ANY, 0>, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0>, TensorComp<ComplIdSignature, ANY, 0> >;
-  // using Filter = std::tuple<std::tuple<TensorComp<ComplIdSignature, ANY, 0>, TensorComp<LocLxSiteSignature, ANY, 0> >, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0> >;
-  // using aa=typename TupleFilterAllTypes<ToBeFiltered,Filter>::type;
+  // // using ToBeFiltered = std::tuple<TensorComp<LocLxSiteSignature, ANY, 0>, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0>, TensorComp<ComplIdSignature, ANY, 0> >;
+  // // using Filter = std::tuple<std::tuple<TensorComp<ComplIdSignature, ANY, 0>, TensorComp<LocLxSiteSignature, ANY, 0> >, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0> >;
+  // // using aa=typename TupleFilterAllTypes<ToBeFiltered,Filter>::type;
     
-    auto plaquettes=lxField<OfComps<>>();
-    for(LocLxSite site=0;site<locVol;site++)
-      plaquettes(site)=0.0;
+  //   auto plaquettes=lxField<OfComps<>>();
+  //   for(LocLxSite site=0;site<locVol;site++)
+  //     plaquettes(site)=0.0;
     
-    FOR_ALL_DIRS(dir)
-      for(Dir otherDir=dir+1;otherDir<NDIM;otherDir++)
-	{
-	  // auto r=std::decay<decltype(std::get<1>(t.nestedExprs))>::Comps{};
-	  // auto shifted=shiftDw(newConf(otherDir),dir).close();
-	  auto lowerPart=(newConf(dir)*shiftDw(newConf(otherDir),dir)).close();
-	  auto upperPart=(newConf(otherDir)*shiftDw(newConf(dir),otherDir)).close();
+  //   FOR_ALL_DIRS(dir)
+  //     for(Dir otherDir=dir+1;otherDir<NDIM;otherDir++)
+  // 	{
+  // 	  // auto r=std::decay<decltype(std::get<1>(t.nestedExprs))>::Comps{};
+  // 	  // auto shifted=shiftDw(newConf(otherDir),dir).close();
+  // 	  auto lowerPart=(newConf(dir)*shiftDw(newConf(otherDir),dir)).close();
+  // 	  auto upperPart=(newConf(otherDir)*shiftDw(newConf(dir),otherDir)).close();
 	  
-	  // const double i=lowerPart(LocLxSite(0),ColorRow(0),ColorCln(0),ComplId(0));
-	  // su3 temp;
-	  // unsafe_su3_prod_su3(temp,conf[0][dir()],conf[loclxNeighup(LocLxSite(0),dir)()][otherDir()]);
-	  // const double j=temp[0][0][0];
-	  // master_printf("ori: %lg %lg\n",
-	  // 		conf[0][dir()][0][0][0],
-	  // 		newConf(LocLxSite(0),dir,ColorRow(0),ColorCln(0),ComplId(0)));
-	  // master_printf("shifted: %lg %lg\n",
-	  // 		conf[loclxNeighup(LocLxSite(0),dir)()][otherDir()][0][0][0],
-	  // 		shifted(LocLxSite(0),ColorRow(0),ColorCln(0),ComplId(0)));
+  // 	  // const double i=lowerPart(LocLxSite(0),ColorRow(0),ColorCln(0),ComplId(0));
+  // 	  // su3 temp;
+  // 	  // unsafe_su3_prod_su3(temp,conf[0][dir()],conf[loclxNeighup(LocLxSite(0),dir)()][otherDir()]);
+  // 	  // const double j=temp[0][0][0];
+  // 	  // master_printf("ori: %lg %lg\n",
+  // 	  // 		conf[0][dir()][0][0][0],
+  // 	  // 		newConf(LocLxSite(0),dir,ColorRow(0),ColorCln(0),ComplId(0)));
+  // 	  // master_printf("shifted: %lg %lg\n",
+  // 	  // 		conf[loclxNeighup(LocLxSite(0),dir)()][otherDir()][0][0][0],
+  // 	  // 		shifted(LocLxSite(0),ColorRow(0),ColorCln(0),ComplId(0)));
 	  
-	  // master_printf("%lg %lg\n",i,j);
+  // 	  // master_printf("%lg %lg\n",i,j);
 	  
-	  auto c=(lowerPart*dag(upperPart));
+  // 	  auto c=(lowerPart*dag(upperPart));
 	  
 	  
-	  ASM_BOOKMARK_BEGIN("ciccione");
-	  plaquettes=plaquettes+real(trace(c));
-	  //printf("%lg\n",glbPlaq);
-	  ASM_BOOKMARK_END("ciccione");
-	}
-    const double glbPlaq=plaquettes.globalReduce()();
-    printf("%.16lg\n",glbPlaq/glbVol()/6/3);
+  // 	  ASM_BOOKMARK_BEGIN("ciccione");
+  // 	  plaquettes=plaquettes+real(trace(c));
+  // 	  //printf("%lg\n",glbPlaq);
+  // 	  ASM_BOOKMARK_END("ciccione");
+  // 	}
+  //   const double glbPlaq=plaquettes.globalReduce()();
+  //   printf("%.16lg\n",glbPlaq/glbVol()/6/3);
     
-    Tensor<OfComps<Dir,ColorRow>> rt;
-    for (Dir mu = 0; mu < Dir ::sizeAtCompileTimeAssertingNotDynamic(); mu++)
-      for(ColorRow cr=0;cr<3;cr++)
-	rt(mu,cr)=cr()+3*mu();
-    Tensor<OfComps<Dir,ColorCln>> ct;
-    FOR_ALL_DIRS(mu)
-      for(ColorCln cc=0;cc<3;cc++)
-	ct(mu,cc)=cc()+3*mu();
+  //   Tensor<OfComps<Dir,ColorRow>> rt;
+  //   for (Dir mu = 0; mu < Dir ::sizeAtCompileTimeAssertingNotDynamic(); mu++)
+  //     for(ColorRow cr=0;cr<3;cr++)
+  // 	rt(mu,cr)=cr()+3*mu();
+  //   Tensor<OfComps<Dir,ColorCln>> ct;
+  //   FOR_ALL_DIRS(mu)
+  //     for(ColorCln cc=0;cc<3;cc++)
+  // 	ct(mu,cc)=cc()+3*mu();
     
-    Tensor<OfComps<Dir>> res;
-    ASM_BOOKMARK_BEGIN("prod");
-    res=prod(ct,rt);
-    ASM_BOOKMARK_END("prod");
-    master_printf("%lg\n",res(Dir(0)));
-    master_printf("%lg\n",res(Dir(1)));
+  //   Tensor<OfComps<Dir>> res;
+  //   ASM_BOOKMARK_BEGIN("prod");
+  //   auto p=prod(ct,rt);
+  //   res=prod(ct,rt);
+  //   ASM_BOOKMARK_END("prod");
+  //   master_printf("%lg\n",res(Dir(0)));
+  //   master_printf("%lg\n",res(Dir(1)));
     
-    crash("");
-    // newConf=dag(oldConf);
+  //   crash("");
+  //   // newConf=dag(oldConf);
     
-    // typename decltype(newConf)::Fund a;
+  //   // typename decltype(newConf)::Fund a;
 
     
-    // loopOnAllComponents<typename decltype(newConf)::Comps>(newConf.data.indexComputer.dynamicSizes,[](auto...){});
-      //decltype(prod(newConf,newField)) b="ciao";
+  //   // loopOnAllComponents<typename decltype(newConf)::Comps>(newConf.data.indexComputer.dynamicSizes,[](auto...){});
+  //     //decltype(prod(newConf,newField)) b="ciao";
 
 
     
-    //TransposeTensorComps<decltype(newConf)::Comps> t="ciao";
+  //   //TransposeTensorComps<decltype(newConf)::Comps> t="ciao";
     
-    NISSA_LOC_VOL_LOOP(ivol)
-      FOR_ALL_DIRS(mu)
-      FOR_ALL_COMPONENT_VALUES(ColorRow,colRow)
-      FOR_ALL_COMPONENT_VALUES(ColorCln,colCol)
-      FOR_ALL_COMPONENT_VALUES(ComplId,reIm)
-      {
-	newConf(ivol,mu,colRow,colCol,reIm)=
-	  conf[ivol.nastyConvert()][mu.nastyConvert()][colRow.nastyConvert()][colCol.nastyConvert()][reIm.nastyConvert()];
-      }
+    // NISSA_LOC_VOL_LOOP(ivol)
+    //   FOR_ALL_DIRS(mu)
+    //   FOR_ALL_COMPONENT_VALUES(ColorRow,colRow)
+    //   FOR_ALL_COMPONENT_VALUES(ColorCln,colCol)
+    //   FOR_ALL_COMPONENT_VALUES(ComplId,reIm)
+    //   {
+    // 	newConf(ivol,mu,colRow,colCol,reIm)=
+    // 	  conf[ivol.nastyConvert()][mu.nastyConvert()][colRow.nastyConvert()][colCol.nastyConvert()][reIm.nastyConvert()];
+    //   }
     
-    ComplDouble r;
-    FOR_ALL_COMPONENT_VALUES(ComplId,reim)
-      r(ComplId(reim))=0;
+    // ComplDouble r;
+    // FOR_ALL_COMPONENT_VALUES(ComplId,reim)
+    //   r(ComplId(reim))=0;
     
-    NISSA_LOC_VOL_LOOP(ivol)
-      FOR_ALL_DIRS(mu)
-      FOR_ALL_DIRS(nu)
-      if(mu>nu)
-	{
-        Su3 p;
+    // NISSA_LOC_VOL_LOOP(ivol)
+    //   FOR_ALL_DIRS(mu)
+    //   FOR_ALL_DIRS(nu)
+    //   if(mu>nu)
+    // 	{
+    //     Su3 p;
 	
-	unsafeSu3ProdSu3(p,newConf(ivol,mu),newConf(loclxNeighup(ivol,mu),nu));
-	safeSu3ProdSu3Dag(p,p,newConf(loclxNeighup(ivol,nu),mu));
+    // 	unsafeSu3ProdSu3(p,newConf(ivol,mu),newConf(loclxNeighup(ivol,mu),nu));
+    // 	safeSu3ProdSu3Dag(p,p,newConf(loclxNeighup(ivol,nu),mu));
 	
-	ASM_BOOKMARK_BEGIN("safeSu3ProdSu3Dag");
-	safeSu3ProdSu3Dag(p,p,newConf(ivol,nu));
-	ASM_BOOKMARK_END("safeSu3ProdSu3Dag");
+    // 	ASM_BOOKMARK_BEGIN("safeSu3ProdSu3Dag");
+    // 	safeSu3ProdSu3Dag(p,p,newConf(ivol,nu));
+    // 	ASM_BOOKMARK_END("safeSu3ProdSu3Dag");
 	
-	ComplDouble c;
-	su3Trace(c,p);
-	complexSummassign(r,c);
-      }
-        //// DEBUG
-    master_printf("DEBUG2 plaquette: %+16.16lg\n",r(Re)/18/glbVol());
+    // 	ComplDouble c;
+    // 	su3Trace(c,p);
+    // 	complexSummassign(r,c);
+    //   }
+    //     //// DEBUG
+    // master_printf("DEBUG2 plaquette: %+16.16lg\n",r(Re)/18/glbVol());
     
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)
