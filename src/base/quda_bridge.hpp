@@ -40,10 +40,10 @@ namespace nissa
   EXTERN_QUDA_BRIDGE int use_quda INIT_QUDA_BRIDGE_TO(false);
   
   /// If Quda is available, check if requested
-  constexpr inline bool checkIfQudaAvailableAndRequired()
+  constexpr inline bool checkIfQudaAvailableAndRequired(const double mass)
   {
 #ifdef USE_QUDA
-    if(USE_QUDA)
+    if(USE_QUDA and fabs(mass)<=DD::max_mass)
       return true;
     else
 #endif

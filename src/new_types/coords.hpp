@@ -89,7 +89,7 @@ namespace nissa
 #define NGAMMA 15
   
   DECLARE_COMPONENT(Gamma,int,NGAMMA);
-
+  
   inline CUDA_DEVICE Gamma GammaId=0;
   
   inline CUDA_DEVICE Gamma GammaX=1;

@@ -62,13 +62,13 @@ namespace nisssa
   PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(deFeat,CUDA_HOST_DEVICE)
   
   /// Import method from the feature class
-#define IMPORT_FEATURE_METHOD(A...)				\
-  /*! Calls A in the base class */				\
-  template <typename...Args>					\
-  CUDA_HOST_DEVICE						\
-  decltype(auto) A(Args&&...args) const				\
-  {								\
-    return (*this)().A(std::forward<Args>(args)...);		\
+#define IMPORT_FEATURE_METHOD(METHOD...)				\
+  /*! Calls METHOD in the base class */					\
+  template <typename...Args>						\
+  CUDA_HOST_DEVICE							\
+  decltype(auto) METHOD(Args&&...args) const				\
+  {									\
+    return (*this)().METHOD(std::forward<Args>(args)...);		\
   }
 }
 

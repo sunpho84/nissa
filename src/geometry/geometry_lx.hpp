@@ -19,7 +19,10 @@
 
 #ifndef EXTERN_GEOMETRY_LX
 # define EXTERN_GEOMETRY_LX extern
+# define INIT_GEOMETRY_LX(ARGS...)
 # define ONLY_INSTANTIATION
+#else
+# define INIT_GEOMETRY_LX(ARGS...) ARGS
 #endif
 
 #define NISSA_LOC_VOL_LOOP(a) for(LocLxSite a=0;a<locVol;a++)
@@ -57,10 +60,10 @@ namespace nissa
   //-loc to the local one
   
   /// Global lattice hcube sizes
-  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbCoords glbSize;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX GlbCoords glbSize INIT_GEOMETRY_LX({});
   
   /// Local lattice hcube sizes
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LocCoords locSize;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LocCoords locSize INIT_GEOMETRY_LX({});
   
   /// Global size in time direction
   inline const GlbCoord& glbTimeSize=
@@ -104,13 +107,13 @@ namespace nissa
   EXTERN_GEOMETRY_LX LocLxSite fwSurfVol;
   
   /// Global coordinates of local sites
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,GlbCoord> glbCoordOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,GlbCoord> glbCoordOfLoclx INIT_GEOMETRY_LX({});
   
   /// Local coordinates of local sites
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocCoord> locCoordOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocCoord> locCoordOfLoclx INIT_GEOMETRY_LX({});
   
   /// Global site given the local site
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite>,GlbLxSite> glblxOfLoclx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite>,GlbLxSite> glblxOfLoclx INIT_GEOMETRY_LX({});
   
   /// Global site given the border site
   EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,GlbLxSite> glblxOfBordlx;
@@ -119,7 +122,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX Tensor<OfComps<BordLxSite>,LocLxSite> loclxOfBordlx;
   
   /// Local site adjacent to a given border site
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<BordLxSite>,LocLxSite> loclxSiteAdjacentToBordLx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<BordLxSite>,LocLxSite> loclxSiteAdjacentToBordLx INIT_GEOMETRY_LX({});
   
   /// Global site corresponding to edge sites
   EXTERN_GEOMETRY_LX Tensor<OfComps<EdgeLxSite>,GlbLxSite> glblxOfEdgelx;
@@ -131,13 +134,13 @@ namespace nissa
   EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,LocLxSite> loclxOfNonBwSurflx;
   
   /// Local site given a Non-Forwward site on the surface
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite>,LocLxSite> loclxOfNonFwSurflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite>,LocLxSite> loclxOfNonFwSurflx INIT_GEOMETRY_LX({});
   
   /// Local site given a Backward site on the surface
   EXTERN_GEOMETRY_LX Tensor<OfComps<LocLxSite>,LocLxSite> loclxOfBwSurflx;
   
   /// Local site given a Forwward site on the surface
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite>,LocLxSite> loclxOfFwSurflx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite>,LocLxSite> loclxOfFwSurflx INIT_GEOMETRY_LX({});
   
   /// Return the local site beyond the local volume, corresponding to the passed border id
   INLINE_FUNCTION LocLxSite extenedLocLxSiteOfBordLxSite(const BordLxSite& bordLxSite)
@@ -158,10 +161,10 @@ namespace nissa
   GlbLxSite glblxNeighdw(const GlbLxSite& gx,const Dir& mu);
   
   /// Neighbours in the backward direction
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighdw;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighdw INIT_GEOMETRY_LX({});
   
   /// Neighbours in the forwkward direction
-  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighup;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighup INIT_GEOMETRY_LX({});
   
   INLINE_FUNCTION CUDA_HOST_DEVICE
   const LookupTable<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(const Orientation& ori) //nasty
@@ -210,7 +213,7 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   
   /// Mapping of ILDG direction w.r.t native
-  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords<Dir> scidac_mapping;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX Coords<Dir> scidac_mapping INIT_GEOMETRY_LX({});
   
   //perpendicular dir
   EXTERN_GEOMETRY_LX Coords<bool> all_dirs;
@@ -230,11 +233,25 @@ namespace nissa
   EXTERN_GEOMETRY_LX int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];
 #endif
   
-  EXTERN_GEOMETRY_LX CUDA_MANAGED Coords<Gamma> igamma_of_mu
-#ifndef ONLY_INSTANTIATION
-  ={GammmaT,GammaX,GammaY,GammaZ}
-#endif
-    ;
+  constexpr Gamma igamma_of_mu(const Dir& dir)
+  {
+    switch(dir())
+      {
+      case 0:
+	return 4;
+	break;
+      case 1:
+	return 1;
+	break;
+      case 2:
+	return 2;
+	break;
+      case 3:
+	return 3;
+	break;
+    }
+    return 0;
+  }
   
   /// Return the staggered phases for a given site
   CUDA_HOST_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol);
@@ -382,5 +399,7 @@ namespace nissa
 }
 
 #undef EXTERN_GEOMETRY_LX
+#undef ONLY_INSTANTIATION
+#undef INIT_GEOMETRY_LX
 
 #endif

@@ -162,11 +162,6 @@ namespace nissa
     FOR_ALL_DIRS(mu)
       all_dirs(mu)=true;
     
-    igamma_of_mu(tDir)=4;
-    igamma_of_mu(xDir)=1;
-    igamma_of_mu(yDir)=2;
-    igamma_of_mu(zDir)=3;
-    
     FOR_ALL_DIRS(mu)
       FOR_ALL_DIRS(nu)
 	{

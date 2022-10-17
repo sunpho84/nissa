@@ -27,10 +27,10 @@ namespace nissa
   
   //ranks
   EXTERN_MPI RankCoords fix_nranks;
-  CUDA_MANAGED EXTERN_MPI RankCoords rank_coord;
+  CUDA_MANAGED EXTERN_MPI RankCoords rank_coord INIT_MPI_TO({});
   EXTERN_MPI RankCoords rank_neigh[2],rank_neighdw,rank_neighup;
   EXTERN_MPI RankCoords plan_rank,line_rank,line_coord_rank;
-  CUDA_MANAGED EXTERN_MPI RankCoords nrank_dir;
+  CUDA_MANAGED EXTERN_MPI RankCoords nrank_dir INIT_MPI_TO({});
   //basic mpi types
   EXTERN_MPI MPI_Datatype MPI_FLOAT_128;
   EXTERN_MPI MPI_Datatype MPI_COMPLEX_128;

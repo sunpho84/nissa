@@ -9,7 +9,7 @@
 # define EXTERN_GEOMETRY_EO extern
 # define INIT_GEOMETRY_EO(ARGS...)
 #else
-# define INIT_GEOMETRY_EO(ARGS...) (ARGS)
+# define INIT_GEOMETRY_EO(ARGS...) ARGS
 #endif
 
 #define NISSA_DEFAULT_USE_EO_GEOM 1
@@ -137,13 +137,15 @@ namespace nissa
     {
     }
   };
+  
+    using U=LookupTable<OfComps<LocLxSite>,Parity>;
     
-  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<LocLxSite>,Parity> loclx_parity;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<LocLxSite>,LocEoSite> loceo_of_loclx;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<Parity,LocEoSite>,LocLxSite> loclx_of_loceo;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<Parity,BordEoSite>,LocEoSite> surfeo_of_bordeo;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<Parity,LocEoSite,Dir>,LocEoSite> loceo_neighup;
-  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<Parity,LocEoSite,Dir>,LocEoSite> loceo_neighdw;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<LocLxSite>,Parity> loclx_parity INIT_GEOMETRY_EO({});
+  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<LocLxSite>,LocEoSite> loceo_of_loclx INIT_GEOMETRY_EO({});
+  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<Parity,LocEoSite>,LocLxSite> loclx_of_loceo INIT_GEOMETRY_EO({});
+  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<Parity,BordEoSite>,LocEoSite> surfeo_of_bordeo INIT_GEOMETRY_EO({});
+  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<Parity,LocEoSite,Dir>,LocEoSite> loceo_neighup INIT_GEOMETRY_EO({});
+  CUDA_MANAGED EXTERN_GEOMETRY_EO LookupTable<OfComps<Parity,LocEoSite,Dir>,LocEoSite> loceo_neighdw INIT_GEOMETRY_EO({});
   
   EXTERN_GEOMETRY_EO bool eo_geom_inited;
   EXTERN_GEOMETRY_EO bool use_eo_geom;

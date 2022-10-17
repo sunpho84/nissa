@@ -100,7 +100,7 @@ namespace nissa
       /// Returns the position, or value past end if not found or excluded
       template <typename PComp>
       static constexpr size_t value=
-	isExcluded<PComp>?
+	isExcluded<PComp> ?
 	notFoundTag:
 	pos<PComp>;
       
