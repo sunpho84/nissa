@@ -16,10 +16,10 @@
 
 namespace nissa
 {
-    template <typename TC,
+  template <typename TC,
 	    typename Fund>
   struct LookupTable;
-
+  
 #define LOOKUP_TABLE LookupTable<TensorComps<TC...>,F>
 #define BASE_TENSOR BaseTensor<LOOKUP_TABLE,TensorComps<TC...>,F>
   
@@ -46,7 +46,8 @@ namespace nissa
 #endif
     
     /// Evaluate
-    CUDA_HOST_DEVICE INLINE_FUNCTION const F& eval(const TC&...tc) const
+    CUDA_HOST_DEVICE INLINE_FUNCTION
+    const F& eval(const TC&...tc) const
     {
       return
 #ifdef COMPILING_FOR_DEVICE
@@ -109,7 +110,7 @@ namespace nissa
     void consolidate()
     {
 #ifdef USE_CUDA
-    cudaMemcpy(_device_storage,_host_storage,sizeof(F)*storageSize,cudaMemcpyHostToDevice);
+      cudaMemcpy(_device_storage,_host_storage,sizeof(F)*storageSize,cudaMemcpyHostToDevice);
 #endif
     }
   };

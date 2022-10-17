@@ -26,9 +26,6 @@ namespace nissa
 	    typename Fund=double>
   struct BaseTensor;
   
-#define THIS					\
-  Conjugator<_E,_Comps,_EvalTo>
-  
 #define EX					\
   Expr<T,					\
        TensorComps<TCs...>,			\
@@ -67,7 +64,8 @@ namespace nissa
       std::tuple_element_t<I,Comps>;
     
     /// Index computer type
-    using IC=IndexComputer<TensorComps<TCs...>>;
+    using IC=
+      IndexComputer<TensorComps<TCs...>>;
     
     /// Index computer
     IC indexComputer;

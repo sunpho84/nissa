@@ -138,7 +138,7 @@ namespace nissa
 			     loopedComps...);
       }
     
-    ///No more component to dispatch, execure the function
+    ///No more component to dispatch, execute the function
     template <typename...DC,
 	      typename F,
 	      typename...Lc>
