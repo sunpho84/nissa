@@ -239,6 +239,61 @@ namespace nissa
     if(nquark_lep_combos) generate_lepton_propagators();
     generate_quark_propagators(ihit);
   }
+  
+  template <typename T>
+  struct ReadWriteRealVector
+  {
+    T* v;
+    std::string path;
+    FILE* fastFile;
+    
+    ReadWriteRealVector(T* v,const std::string& _path) :
+      v(v),path(_path)
+    {
+      if(fast_read_write_vectors)
+	path+="_rank"+std::to_string(rank);
+    }
+    
+    bool canLoad() const
+    {
+      return file_exists(path);
+    }
+    
+    void fastOpen(const char* mode)
+    {
+      fastFile=fopen(path.c_str(),mode);
+      if(fastFile==nullptr)
+	crash("Unable to open path %s",path.c_str());
+    }
+    
+    void read()
+    {
+      if(fast_read_write_vectors)
+	{
+	  fastOpen("r");
+	  
+	  if(fread(v,sizeof(T),locVol,fastFile)!=locVol)
+	    crash("Problem reading %s",path.c_str());
+	  
+	  fclose(fastFile);
+	}
+      else
+	read_real_vector(v,path,"scidac-binary-data");
+    }
+    
+    void write()
+    {
+      if(fast_read_write_vectors)
+	{
+	  if(fwrite(v,sizeof(T),locVol,fastFile)!=locVol)
+	    crash("Problem writing %s",path.c_str());
+	  
+	  fclose(fastFile);
+	}
+      else
+	write_real_vector(path,v,64,"scidac-binary-data");
+    }
+  };
 }
 
 #undef INIT_TO

@@ -480,8 +480,10 @@ namespace nissa
     spin1field *ext_field=nullptr;
     if(inser==EXT_FIELD)
       {
+	const std::string path=combine("%s/%s",outfolder,ext_field_path);
 	ext_field=nissa_malloc("ext_field",locVol+bord_vol,spin1field);
-	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
+	ReadWriteRealVector<spin1field> r(ext_field,ext_field_path);
+	r.read();
       }
     
     /// Function to insert the virtual photon emission projection
@@ -589,17 +591,19 @@ namespace nissa
 	    for(int ic_so=0;ic_so<nso_col;ic_so++)
 	      {
 		//combine the filename
-		std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+		const std::string path=combine("%s/hit%d_source%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
 		
 		int isou=so_sp_col_ind(id_so,ic_so);
 		spincolor *sou=(*q)[isou];
 		
+		ReadWriteRealVector<spincolor> rw(sou,path);
+		
 		//if the prop exists read it
-		if(file_exists(path))
+		if(rw.canLoad())
 		  {
 		    master_printf("  loading the source dirac index %d, color %d\n",id_so,ic_so);
 		    START_TIMING(read_prop_time,nread_prop);
-		    read_real_vector(sou,path,"scidac-binary-data");
+		    rw.read();
 		    STOP_TIMING(read_prop_time);
 		  }
 		else
@@ -611,7 +615,7 @@ namespace nissa
 		      {
 			master_printf("  writing the source dirac index %d, color %d\n",id_so,ic_so);
 			START_TIMING(store_prop_time,nstore_prop);
-			write_real_vector(path,sou,64,"scidac-binary-data");
+			rw.write();
 			STOP_TIMING(store_prop_time);
 		      }
 		  }
@@ -684,26 +688,16 @@ namespace nissa
 	      spincolor *sol=q[isou];
 	      
 	      //combine the filename
-	      std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
-	      if(fast_read_write_vectors)
-		path+="_rank"+std::to_string(rank);
+	      const std::string path=combine("%s/hit%d_prop%s_idso%d_icso%d",outfolder,ihit,name.c_str(),id_so,ic_so);
+	      
+	      ReadWriteRealVector<spincolor> rw(sol,path);
 	      
 	      //if the prop exists read it
-	      if(file_exists(path))
+	      if(rw.canLoad())
 		{
 		  master_printf("  loading the solution, dirac index %d, color %d\n",id_so,ic_so);
 		  START_TIMING(read_prop_time,nread_prop);
-		  if(not fast_read_write_vectors)
-		    read_real_vector(sol,path,"scidac-binary-data");
-		  else
-		    {
-		      FILE *fout=fopen(path.c_str(),"r");
-		      if(fout==nullptr)
-			crash("Unable to open path %s",path.c_str());
-		      if(fread(sol,sizeof(spincolor),locVol,fout)!=locVol)
-			crash("Problem reading %s",path.c_str());
-		      fclose(fout);
-		    }
+		  rw.read();
 		  STOP_TIMING(read_prop_time);
 		}
 	      else
@@ -716,17 +710,7 @@ namespace nissa
 		  if(q.store)
 		    {
 		      START_TIMING(store_prop_time,nstore_prop);
-		      if(not fast_read_write_vectors)
-			write_real_vector(path,sol,64,"scidac-binary-data");
-		      else
-			{
-			  FILE *fout=fopen(path.c_str(),"w");
-			  if(fout==nullptr)
-			    crash("Unable to open path %s",path.c_str());
-			  if(fwrite(sol,sizeof(spincolor),locVol,fout)!=locVol)
-			    crash("Problem writing %s",path.c_str());
-			  fclose(fout);
-			}
+		      rw.write();
 		      STOP_TIMING(store_prop_time);
 		    }
 		  master_printf("  finished the calculation of dirac index %d, color %d\n",id_so,ic_so);
@@ -777,14 +761,16 @@ namespace nissa
 	//combine the filename
 	std::string path=combine("%s/hit%d_field%s",outfolder,ihit,name.c_str());
 	
+	ReadWriteRealVector<spin1field> rw(ph,path);
+	
 	//if asked and the file exists read it
 	if(load_photons)
 	  {
-	    if(file_exists(path))
+	    if(rw.canLoad())
 	      {
 		master_printf("  loading the photon field %s\n",name.c_str());
 		START_TIMING(read_prop_time,nread_prop);
-		read_real_vector(ph,path,"scidac-binary-data");
+		rw.read();
 		STOP_TIMING(read_prop_time);
 	      }
 	    else master_printf("  file %s not available, skipping loading\n",path.c_str());
@@ -795,7 +781,7 @@ namespace nissa
 	  {
 	    master_printf("  storing the photon field %s\n",name.c_str());
 	    START_TIMING(store_prop_time,nstore_prop);
-	    write_real_vector(path,ph,64,"scidac-binary-data");
+	    rw.write();
 	    STOP_TIMING(store_prop_time);
 	  }
       }
