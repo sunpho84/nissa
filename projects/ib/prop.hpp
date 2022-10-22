@@ -268,6 +268,8 @@ namespace nissa
     
     void read()
     {
+      master_printf("Reading %s\n",path);
+      
       if(fast_read_write_vectors)
 	{
 	  fastOpen("r");
@@ -283,6 +285,8 @@ namespace nissa
     
     void write()
     {
+      master_printf("Writing %s, %zu %p\n",path.c_str(),sizeof(T),v);
+      
       if(fast_read_write_vectors)
 	{
 	  if(fwrite(v,sizeof(T),locVol,fastFile)!=locVol)
