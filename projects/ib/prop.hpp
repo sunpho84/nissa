@@ -289,6 +289,8 @@ namespace nissa
       
       if(fast_read_write_vectors)
 	{
+	  fastOpen("w");
+	  
 	  if(fwrite(v,sizeof(T),locVol,fastFile)!=locVol)
 	    crash("Problem writing %s",path.c_str());
 	  
