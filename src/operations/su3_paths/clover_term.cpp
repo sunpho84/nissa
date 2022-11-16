@@ -53,7 +53,7 @@ namespace nissa
     
     NB: indeed Pi is anti-hermitian
   */
-  CUDA_HOST_DEVICE void point_chromo_operator(clover_term_t Cl,quad_su3 *conf,const LocLxSite& X)
+  CUDA_HOST_AND_DEVICE void point_chromo_operator(clover_term_t Cl,quad_su3 *conf,const LocLxSite& X)
   {
     //this is the non-anti-symmetric part 2*F_mu_nu
     as2t_su3 leaves;
@@ -91,7 +91,7 @@ namespace nissa
   }
   void chromo_operator(clover_term_t* Cl,quad_su3* conf)
   {
-    if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing Chromo operator\n");
+    master_printf("Computing Chromo operator\n");
     communicate_lx_quad_su3_edges(conf);
     NISSA_PARALLEL_LOOP(X,0,locVol)
       point_chromo_operator(Cl[X.nastyConvert()],conf,X);
@@ -112,7 +112,7 @@ namespace nissa
   }
   
   //apply the chromo operator to the passed spincolor
-  CUDA_HOST_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,clover_term_t Cl,spincolor in)
+  CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,clover_term_t Cl,spincolor in)
   {
     unsafe_su3_prod_color(out[0],Cl[0],in[0]);
     su3_dag_summ_the_prod_color(out[0],Cl[1],in[1]);
@@ -133,7 +133,7 @@ namespace nissa
   }
   
   //128 bit case
-  CUDA_HOST_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in)
+  CUDA_HOST_AND_DEVICE void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,clover_term_t Cl,spincolor_128 in)
   {
     unsafe_su3_prod_color_128(out[0],Cl[0],in[0]);
     su3_dag_summ_the_prod_color_128(out[0],Cl[1],in[1]);
@@ -208,7 +208,7 @@ namespace nissa
   }
   
   //apply a diagonal matrix plus clover term to up or low components
-  CUDA_HOST_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in)
+  CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor(halfspincolor out,complex diag,clover_term_t Cl,halfspincolor in)
   {
     unsafe_color_prod_complex(out[0],in[0],diag);
     su3_summ_the_prod_color(out[0],Cl[0],in[0]);
@@ -218,7 +218,7 @@ namespace nissa
     su3_summ_the_prod_color(out[1],Cl[1],in[0]);
     su3_subt_the_prod_color(out[1],Cl[0],in[1]);
   }
-  CUDA_HOST_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex& diag,clover_term_t Cl,halfspincolor_128 in)
+  CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex& diag,clover_term_t Cl,halfspincolor_128 in)
   {
     unsafe_color_128_prod_complex_64(out[0],in[0],diag);
     su3_summ_the_prod_color_128(out[0],Cl[0],in[0]);
@@ -229,14 +229,14 @@ namespace nissa
     su3_subt_the_prod_color_128(out[1],Cl[0],in[1]);
   }
   
-  CUDA_HOST_DEVICE void apply_point_squared_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
+  CUDA_HOST_AND_DEVICE void apply_point_squared_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
   {
     halfspincolor temp;
     apply_point_twisted_clover_term_to_halfspincolor(temp,+mass,kappa,Cl,in);
     apply_point_twisted_clover_term_to_halfspincolor(out ,-mass,kappa,Cl,temp);
   }
   
-  CUDA_HOST_DEVICE void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa)
+  CUDA_HOST_AND_DEVICE void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa)
   {
     // halfspincolor_halfspincolor out_sure;
     // for(int id1=0;id1<NDIRAC/2;id1++)
@@ -306,7 +306,7 @@ namespace nissa
   }
   
   //form the inverse of the clover term
-  CUDA_HOST_DEVICE void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl)
+  CUDA_HOST_AND_DEVICE void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl)
   {
     //inv_clover_term_t dir;
     

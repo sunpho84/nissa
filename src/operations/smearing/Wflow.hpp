@@ -221,6 +221,7 @@ namespace nissa
     {
       quad_su3 **conf=this->conf;
       double &dt=this->dt;
+      
       int &nd=this->nd;
       
       T *l3=field,*l0=l3;

@@ -6,6 +6,7 @@
 #include "random/randomGenerate.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
+#include "linalgs/reduce.hpp"
 #include "new_types/spin.hpp"
 #include "operations/fourier_transform.hpp"
 #include "routines/mpi_routines.hpp"
@@ -25,7 +26,7 @@ namespace nissa
   //if the momentum has to be removed return 0, otherwise return 1
   //cancel the zero modes for all spatial when UNNO_ALEMANNA prescription asked
   //or if PECIONA prescription and full zero mode
-  CUDA_HOST_DEVICE bool zero_mode_subtraction_mask(const gauge_info& gl,const LocLxSite& imom)
+  CUDA_HOST_AND_DEVICE bool zero_mode_subtraction_mask(const gauge_info& gl,const LocLxSite& imom)
   {
     bool res=false;
     
@@ -49,14 +50,14 @@ namespace nissa
   }
   
   //cancel the mode if it is zero according to the prescription
-  CUDA_HOST_DEVICE bool cancel_if_zero_mode(spin1prop prop,const gauge_info& gl,const LocLxSite& imom)
+  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1prop prop,const gauge_info& gl,const LocLxSite& imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
     for(int mu=0;mu<4;mu++) for(int nu=0;nu<4;nu++) for(int reim=0;reim<2;reim++) prop[mu][nu][reim]*=m;
     return !m;
   }
   
-  CUDA_HOST_DEVICE bool cancel_if_zero_mode(spin1field prop,const gauge_info& gl,const LocLxSite& imom)
+  CUDA_HOST_AND_DEVICE bool cancel_if_zero_mode(spin1field prop,const gauge_info& gl,const LocLxSite& imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
     
@@ -70,7 +71,7 @@ namespace nissa
   }
   
   //compute the tree level Symanzik gauge propagator in the momentum space according to P.Weisz
-  CUDA_HOST_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,const gauge_info& gl,const LocLxSite& imom)
+  CUDA_HOST_AND_DEVICE void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,const gauge_info& gl,const LocLxSite& imom)
   {
     double c1=gl.c1,c12=c1*c1,c13=c12*c1;
     int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
@@ -279,20 +280,17 @@ namespace nissa
   //generate a stochastic gauge propagator source
   void generate_stochastic_tlSym_gauge_propagator_source(spin1field* eta)
   {
-    
     //fill with Z2
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       FOR_ALL_DIRS(mu)
         comp_get_rnd(eta[ivol.nastyConvert()][mu.nastyConvert()],&(loc_rnd_gen[ivol.nastyConvert()]),RND_Z2);
     NISSA_PARALLEL_LOOP_END;
-    
     set_borders_invalid(eta);
   }
   
   //generate a stochastic gauge propagator
   void multiply_by_sqrt_tlSym_gauge_propagator(spin1field* photon,spin1field* eta,const gauge_info& gl)
   {
-    
     if(photon!=eta) vector_copy(photon,eta);
     
     pass_spin1field_from_x_to_mom_space(photon,photon,gl.bc,true,true);
@@ -344,8 +342,10 @@ namespace nissa
     multiply_by_tlSym_gauge_propagator(phi,eta,gl);
   }
   
-  void compute_tadpole(Momentum& tadpole,const gauge_info& photon)
+  Momentum compute_tadpole(const gauge_info& photon)
   {
+    Momentum tadpole;
+    
     double tad_time=-take_time();
     
     spin1prop *gprop=nissa_malloc("gprop",locVol.nastyConvert(),spin1prop);
@@ -360,5 +360,28 @@ namespace nissa
     tad_time+=take_time();
     
     master_printf("Tadpole: (%lg,%lg,%lg,%lg), time to compute: %lg s\n",tadpole(Dir(0)),tadpole(xDir),tadpole(yDir),tadpole(zDir),tad_time);
+    
+    return tadpole;
+  }
+  
+  //compute the energy of an off-shell gluon
+  double gluon_energy(gauge_info gl,const double virt,const GlbLxSite& imom)
+  {
+    if(gl.c1!=WILSON_C1)
+      crash("Implemented only for Wilson gluons");
+    
+    double p2=0;
+    GlbCoords c;
+    glb_coord_of_glblx(c,imom);
+    FOR_ALL_SPATIAL_DIRS(mu)
+      {
+	double p=M_PI*(2*c(mu)()+gl.bc(mu))/glbSize(mu)();
+	p2+=sqr(2*sin(p/2));
+      }
+    
+    double four_sinh2_Eh=sqr(2.0*asinh(sqrt(p2)/2 ))+sqr(virt);
+    if(four_sinh2_Eh<0) master_printf("WARNING, negative squared energy %lg\n",four_sinh2_Eh);
+    
+    return sqrt(four_sinh2_Eh);
   }
 }

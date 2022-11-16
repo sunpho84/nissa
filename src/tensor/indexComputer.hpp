@@ -28,7 +28,7 @@ namespace nissa
     
     /// Set the dynamic sizes
     template <typename...TD>
-    CUDA_HOST_DEVICE
+    CUDA_HOST_AND_DEVICE
     void setDynamicSizes(const TensorComps<TD...>& td)
     {
       static_assert(sizeof...(TD)==std::tuple_size_v<DynamicComps>,"Cannot allocate without knowledge of all the dynamic sizes");
@@ -47,7 +47,7 @@ namespace nissa
     /// Case in which the component size is known at compile time
     template <typename Tv,
 	      ENABLE_THIS_TEMPLATE_IF(Tv::sizeIsKnownAtCompileTime)>
-    CUDA_HOST_DEVICE INLINE_FUNCTION
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     constexpr const typename Tv::Index compSize()
       const
     {
@@ -60,7 +60,7 @@ namespace nissa
     /// Case in which the component size is not knwon at compile time
     template <typename Tv,
 	      ENABLE_THIS_TEMPLATE_IF(not Tv::sizeIsKnownAtCompileTime)>
-    constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     const typename Tv::Index& compSize()
       const
     {
@@ -68,7 +68,7 @@ namespace nissa
     }
     
     /// Calculate the index - no more components to parse
-    constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     const Index& _index(const Index& outer) ///< Value of all the outer components
       const
     {
@@ -101,7 +101,7 @@ namespace nissa
     /// components. The first step requires outer=0.
     template <typename T,
     	      typename...Tp>
-    constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     Index _index(const Index& outer, ///< Value of all the outer components
 			    T&& thisComp,       ///< Currently parsed component
 			    Tp&&...innerComps)  ///< Inner components
@@ -126,7 +126,7 @@ namespace nissa
     /// Dispatch the internal index calculation
     ///
     /// This works when the passed components are already well ordered
-    constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     Index operator()(const TC&...comps) const
     {
       return _index(Index(0),comps...);

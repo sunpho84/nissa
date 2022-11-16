@@ -17,14 +17,14 @@
 namespace nissa
 {
   /// Derivative of xQy
-  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,const Parity& eo,const LocEoSite& ieo,const Dir& mu)
+  CUDA_HOST_AND_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,const Parity& eo,const LocEoSite& ieo,const Dir& mu)
   {
     const LocEoSite& ineoup=loceo_neighup(eo,ieo,mu);
     
     spincolor temp;
     spincolor_copy(temp,a[(1-eo).nastyConvert()][ineoup.nastyConvert()]);
-    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(mu).nastyConvert(),a[(1-eo).nastyConvert()][ineoup.nastyConvert()]);
-    safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
+    dirac_subt_the_prod_spincolor(temp,base_gamma[igamma_of_mu(mu).nastyConvert()],a[(1-eo).nastyConvert()][ineoup.nastyConvert()]);
+    safe_dirac_prod_spincolor(temp,base_gamma[5],temp);
     
     for(int ic1=0;ic1<NCOL;ic1++)
       for(int ic2=0;ic2<NCOL;ic2++)
@@ -53,8 +53,9 @@ namespace nissa
 		  
 		  su3& ins=cl_insertion[eo][jeo.nastyConvert()][ipair];
 		  spincolor tempX,tempY;
-		  unsafe_dirac_prod_spincolor(tempX,&m,X[eo][jeo.nastyConvert()]);
-		  unsafe_dirac_prod_spincolor(tempY,&m,Y[eo][jeo.nastyConvert()]);
+
+		  unsafe_dirac_prod_spincolor(tempX,m,X[eo][jeo.nastyConvert()]);
+		  unsafe_dirac_prod_spincolor(tempY,m,Y[eo][jeo.nastyConvert()]);
 		  
 		  su3_put_to_zero(ins);
 		  
@@ -73,7 +74,7 @@ namespace nissa
   }
   
   // Compute the clover staples
-  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,const Parity& eo,const LocEoSite& ieo,const Dir& mu,eo_ptr<as2t_su3> cl_insertion,const double& cSW)
+  CUDA_HOST_AND_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,const Parity& eo,const LocEoSite& ieo,const Dir& mu,eo_ptr<as2t_su3> cl_insertion,const double& cSW)
   {
     su3_put_to_zero(stap);
     
@@ -200,8 +201,8 @@ namespace nissa
 		    
 		    spincolor temp;
 		    spincolor_copy(temp,a);
-		    dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(mu).nastyConvert(),a);
-		    safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
+		    dirac_subt_the_prod_spincolor(temp,base_gamma[igamma_of_mu(mu).nastyConvert()],a);
+		    safe_dirac_prod_spincolor(temp,base_gamma[5],temp);
 		    
 		    for(int ic1=0;ic1<NCOL;ic1++)
 		      for(int ic2=0;ic2<NCOL;ic2++)

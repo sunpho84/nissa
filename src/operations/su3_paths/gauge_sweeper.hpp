@@ -2,7 +2,7 @@
 #define _GAUGE_SWEEPER_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include "base/vectors.hpp"

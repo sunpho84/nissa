@@ -15,6 +15,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/close.cpp \
 	%D%/debug.cpp \
 	%D%/init.cpp \
+	%D%/multiGridParams.cpp \
 	%D%/vectors.cpp
 include_HEADERS+= \
 	%D%/bench.hpp \
@@ -22,6 +23,7 @@ include_HEADERS+= \
 	%D%/debug.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
+	%D%/multiGridParams.hpp \
 	%D%/vectors.hpp
 
 if USE_TMLQCD
@@ -50,4 +52,11 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/quda_bridge.cpp
 include_HEADERS+= \
 	%D%/quda_bridge.hpp
+endif
+
+if USE_EXTERNAL_SOLVER
+__top_builddir__lib_libnissa_a_SOURCES+= \
+	%D%/export_conf_to_external_solver.cpp
+include_HEADERS+= \
+	%D%/export_conf_to_external_solver.hpp
 endif

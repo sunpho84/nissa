@@ -71,7 +71,7 @@ namespace nissa
     IC indexComputer;
     
     /// Dynamic sizes
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) getDynamicSizes() const
     {
       return
@@ -86,7 +86,7 @@ namespace nissa
     /*! If an expr has no problem accepting unordered components   */	\
     template <typename...TDs,						\
 	      ENABLE_THIS_TEMPLATE_IF((sizeof...(TDs)==sizeof...(TCs)))> \
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr					\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr					\
     decltype(auto) eval(const TDs&...tds) ATTRIB				\
     {									\
       return								\

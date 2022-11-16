@@ -23,7 +23,7 @@ namespace nissa
   //Write a vector of double, in 32 or 64 bits according to the argument
   void write_real_vector(ILDG_File &file,double *data,size_t nreals_per_site,size_t nbits,const char *header_message,ILDG_message *mess=NULL)
   {
-    if(nbits!=32 && nbits!=64) crash("Error, asking %u precision, use instead 32 or 64\n",nbits);
+    if(nbits!=32 and nbits!=64) crash("Error, asking %u precision, use instead 32 or 64\n",nbits);
     
     //take initial time
     double time=-take_time();
@@ -45,7 +45,7 @@ namespace nissa
     
     //compute the checksum
     checksum check;
-    checksum_compute_nissa_data(check,buffer,nbytes_per_site,nbytes_per_real*8);
+    checksum_compute_nissa_data(check,buffer,nbytes_per_real*8,nbytes_per_site);
     
     //change endianness if needed
     if(little_endian)

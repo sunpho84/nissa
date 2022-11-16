@@ -17,7 +17,7 @@ namespace nissa
 {
   template <typename EL,
 	    typename ER>
-  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   EL& assign(EL& lhs,
 	     const ER& rhs)
   {

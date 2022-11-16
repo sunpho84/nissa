@@ -17,6 +17,10 @@ namespace nissa
 #define PERIODIC_BC 0
 #define ANTIPERIODIC_BC 1
   
+  /// New generator
+  EXTERN_PARS int use_new_generator;
+  EXTERN_PARS FieldRngStream field_rng_stream;
+  
   //Twisted run
   EXTERN_PARS int twisted_run;
   EXTERN_PARS tm_basis_t base;
@@ -42,24 +46,22 @@ namespace nissa
   CUDA_MANAGED EXTERN_PARS int nso_spi,nso_col;
   CUDA_MANAGED EXTERN_PARS GlbCoords source_coord;
 
-  template <typename C>
-  CUDA_HOST_DEVICE inline
-  C rel_coord_of_glb_coord(const C& c,const Dir& mu)
+  CUDA_HOST_AND_DEVICE inline GlbCoord rel_coord_of_glb_coord(const GlbCoord& c,const Dir& mu)
   {
     return (glbSize(mu)+c-source_coord(mu))%glbSize(mu);
   }
   
   inline GlbCoord rel_time_of_glb_time(const GlbCoord& t)
   {
-    return rel_coord_of_glb_coord(t,0);
+    return rel_coord_of_glb_coord(t,tDir);
   }
   
-  CUDA_HOST_DEVICE inline GlbCoord rel_coord_of_loclx(const LocLxSite& loclx,const Dir& mu)
+  CUDA_HOST_AND_DEVICE inline GlbCoord rel_coord_of_loclx(const LocLxSite& loclx,const Dir& mu)
   {
     return rel_coord_of_glb_coord(glbCoordOfLoclx(loclx,mu),mu);
   }
   
-  CUDA_HOST_DEVICE inline GlbCoord rel_time_of_loclx(const LocLxSite& loclx)
+  CUDA_HOST_AND_DEVICE inline GlbCoord rel_time_of_loclx(const LocLxSite loclx)
   {
     return rel_coord_of_loclx(loclx,tDir);
   }
@@ -68,11 +70,12 @@ namespace nissa
   const int follow_chris=0,follow_nazario=1;
   
   //define types of quark propagator used
-  const int nins_kind=23;
-  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , WFLOW , BACK_WFLOW , SMEARING , ANYSM , PHASING , EXT_FIELD , GAMMA };
-  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , WFLOW , BACK_WFLOW , SMEARING, ANYSM, PHASING , EXT_FIELD , GAMMA };
-  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC","CVEC0","CVEC1","CVEC2","CVEC3","PHOTON0","PHOTON1","PHOTON2","PHOTON3","WFLOW","BACK_WFLOW","SMEARING","ANYSM","PHASING","EXT_FIELD","GAMMA"};
-  const char ins_tag[nins_kind][3]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V"   ,"V0"   ,"V1"   ,"V2"   ,"V3"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     ,"WF"   ,"BF"       ,"SM"     ,"AN"     ,"PH"     ,"X"    ,"G"    };
+  constexpr int INS_TAG_MAX_LENGTH=4;
+  const int nins_kind=31;
+  enum insertion_t{                       PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , VPHOTON0 , VPHOTON1 , VPHOTON2 , VPHOTON3 , VBHOTON0 , VBHOTON1 , VBHOTON2 , VBHOTON3 , WFLOW , BACK_WFLOW , SMEARING , ANYSM , PHASING , EXT_FIELD , GAMMA };
+  const insertion_t ins_list[nins_kind]={ PROP , SCALAR , PSEUDO , PHOTON , PHOTON_ETA , PHOTON_PHI , TADPOLE , CVEC , CVEC0 , CVEC1 , CVEC2 , CVEC3 , PHOTON0 , PHOTON1 , PHOTON2 , PHOTON3 , VPHOTON0 , VPHOTON1 , VPHOTON2 , VPHOTON3 , VBHOTON0 , VBHOTON1 , VBHOTON2 , VBHOTON3 , WFLOW , BACK_WFLOW , SMEARING, ANYSM, PHASING , EXT_FIELD , GAMMA };
+  const char ins_name[nins_kind][20]=   {"PROP","SCALAR","PSEUDO","PHOTON","PHOTON_ETA","PHOTON_PHI","TADPOLE","CVEC","CVEC0","CVEC1","CVEC2","CVEC3","PHOTON0","PHOTON1","PHOTON2","PHOTON3","VPHOTON0","VPHOTON1","VPHOTON2","VPHOTON3","VBHOTON0","VBHOTON1","VBHOTON2","VBHOTON3","WFLOW","BACK_WFLOW","SMEARING","ANYSM","PHASING","EXT_FIELD","GAMMA"};
+  const char ins_tag[nins_kind][INS_TAG_MAX_LENGTH+1]=    {"-"   ,"S"     ,"P"     ,"F"     ,"A"         ,"C"         ,"T"      ,"V"   ,"V0"   ,"V1"   ,"V2"   ,"V3"   ,"F0"     ,"F1"     ,"F2"     ,"F3"     ,"VF0"     ,"VF1"     ,"VF2"     ,"VF3"     ,"VB0"     ,"VB1"     ,"VB2"     ,"VB3"     ,"WF"   ,"BF"       ,"SM"     ,"AN"     ,"PH"     ,"X"    ,"G"    };
   inline insertion_t ins_from_tag(const char *tag)
   {
     int i=0;
@@ -109,21 +112,7 @@ namespace nissa
   {
     GlbCoords offs;
     GlbCoords width;
-    
-    fft_mom_range_t()
-    {
-    }
-    
-    fft_mom_range_t(const fft_mom_range_t& oth)
-    {
-      FOR_ALL_DIRS(mu)
-	{
-	  offs(mu)=oth.offs(mu);
-	  width(mu)=oth.width(mu);
-	}
-    }
   };
-  
   //list of propagators to fft
   EXTERN_PARS std::vector<std::string> fft_prop_list;
   
@@ -175,7 +164,19 @@ namespace nissa
   {
     int seed;
     read_str_int("Seed",&seed);
-    start_loc_rnd_gen(seed);
+
+    if(seed<0)
+      {
+	seed=-seed;
+	use_new_generator=false;
+	master_printf("Reverting to the old rng\n");
+	start_loc_rnd_gen(seed);
+      }
+    else
+      {
+	use_new_generator=true;
+	field_rng_stream.init(seed);
+      }
   }
   
   //flag to simulate in the free theory
@@ -210,10 +211,7 @@ namespace nissa
   //local pion or muon current?
   EXTERN_PARS int loc_hadr_curr INIT_TO(false);
   inline void read_loc_hadr_curr()
-  {
-    read_str_int("LocHadrCurr",&loc_hadr_curr);
-  }
-
+  {read_str_int("LocHadrCurr",&loc_hadr_curr);}
   EXTERN_PARS int loc_muon_curr INIT_TO(false);
   inline void read_loc_muon_curr()
   {read_str_int("LocMuonCurr",&loc_muon_curr);}
@@ -259,8 +257,10 @@ namespace nissa
       else crash("Unknown theta tag: %s",theta_tag);
   }
   
-  //handle to stop
+  //handle to stop, running and finished
   EXTERN_PARS std::string stop_path INIT_TO("stop");
+  EXTERN_PARS std::string running_filename INIT_TO("running");
+  EXTERN_PARS std::string finished_filename INIT_TO("finished");
   
   //read the theta, iso or not
   inline void read_theta(Momentum& theta)

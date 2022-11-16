@@ -25,7 +25,7 @@ namespace nissa
   void field_untraced_polyakov_loop_lx_conf(su3* u,quad_su3* conf,int mu)
   {
     crash("reimplement");
-    // communicate_lx_quad_su3_borders(conf);
+    //communicate_lx_quad_su3_borders(conf);
     
     // //reset the link product
     // NISSA_PARALLEL_LOOP(ivol,0,locVol)

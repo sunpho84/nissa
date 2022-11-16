@@ -120,7 +120,7 @@ namespace nissa
     /*! Full list of indices passed */					\
     template <typename...TD,						\
 	      ENABLE_THIS_TEMPLATE_IF(_CallHelper<TD...>::fullCall)>	\
-    CUDA_HOST_DEVICE constexpr INLINE_FUNCTION				\
+    CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION				\
     decltype(auto) operator()(const TD&...td) ATTRIB			\
     {									\
     return								\
@@ -140,7 +140,7 @@ namespace nissa
     /* Partial list of indices passed */				\
     template <typename...TD,						\
 	      ENABLE_THIS_TEMPLATE_IF(not _CallHelper<TD...>::fullCall)> \
-    CUDA_HOST_DEVICE constexpr INLINE_FUNCTION				\
+    CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION				\
     auto operator()(const TD&...td) ATTRIB				\
     {									\
       return								\
@@ -155,7 +155,7 @@ namespace nissa
     
     /// Call the assign function
     template <typename Oth>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     T& operator=(const ExprFeat<Oth>& rhs)
     {
       return
@@ -163,7 +163,7 @@ namespace nissa
     }
     
     /// Returns the closed expression
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     auto close() const
     {
       Tensor<Comps,Fund> out(this->crtp().getDynamicSizes());

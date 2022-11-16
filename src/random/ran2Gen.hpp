@@ -23,7 +23,7 @@ namespace nissa
   void start_rnd_gen(rnd_gen *out,int seed);
   
   /// Standard ran2 from numerical recipes
-  CUDA_HOST_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
+  CUDA_HOST_AND_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
 }
 
 #endif

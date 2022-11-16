@@ -70,7 +70,7 @@ namespace nissa
     {
       //call with no source insertion, plus between fw and bw, and a global -0.25
       complex fw_factor={-0.25,0},bw_factor={-0.25,0};
-      insert_vector_vertex(out,conf,theory_pars,iflav,{NULL,NULL},in,fw_factor,bw_factor,insert_tadpole_handle,t,tad);
+      insert_vector_vertex(out,conf,theory_pars,iflav,{NULL,NULL},in,fw_factor,bw_factor,insert_tadpole_handle,t,&tad);
     }
     
     //insert the external source, that is one of the two extrema of the stoch prop

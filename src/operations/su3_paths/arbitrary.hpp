@@ -26,6 +26,7 @@ namespace nissa
     {
       mov=ext_mov;
       link_id=gx()*NDIM+mu();
+      
       LocLxSite lx;
       Rank rx;
       GlbCoords gc;

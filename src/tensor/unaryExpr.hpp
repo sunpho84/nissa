@@ -36,7 +36,7 @@ namespace nissa
       std::remove_reference_t<_E>::Flags;
     
     /// Dynamic sizes
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) getDynamicSizes() const
     {
       return nestedExpr.getDynamicSizes();

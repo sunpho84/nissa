@@ -80,7 +80,7 @@ namespace nissa
 									\
     /*! Constant access, returning ATTRIB reference or type */		\
     template <typename...TD>						\
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr				\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr				\
     decltype(auto) eval(const TD&...td) ATTRIB				\
     {									\
       return								\
@@ -95,7 +95,7 @@ namespace nissa
     
     /// Construct
     template <typename T>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CompBinder(T&& boundExpression,
 	       const BoundComps& boundComps) :
       UnEx(std::forward<T>(boundExpression)),
@@ -104,7 +104,7 @@ namespace nissa
     }
     
     /// Move constructor
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CompBinder(CompBinder&& oth) :
       UnEx(FORWARD_MEMBER_VAR(CompBinder,oth,nestedExpr)),
       boundComps(oth.boundComps)
@@ -112,7 +112,7 @@ namespace nissa
     }
     
     /// Copy constructor
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CompBinder(const CompBinder& oth) :
       UnEx(oth.nestedExpression),
       boundComps(oth.boundComps)
@@ -124,7 +124,7 @@ namespace nissa
   /// Binds a subset of components
   template <typename _E,
 	    typename...BCs>
-  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   auto compBind(_E&& e,
 		const TensorComps<BCs...>& bc,
 		UNPRIORITIZE_UNIVERSAL_REFERENCE_CONSTRUCTOR)
@@ -157,7 +157,7 @@ namespace nissa
   /// Rebind an already bound expression
   template <typename CB,
 	    typename...BCs>
-  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   auto compBind(const CompBinderFeat<CB>& cb,
 		const TensorComps<BCs...>& bcs)
   {

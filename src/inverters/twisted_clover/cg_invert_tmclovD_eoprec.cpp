@@ -6,11 +6,17 @@
 #include <string.h>
 
 #ifdef USE_TMLQCD
- #include "base/tmLQCD_bridge.hpp"
+# include "base/tmLQCD_bridge.hpp"
 #endif
+
+#ifdef USE_QUDA
+# include "base/quda_bridge.hpp"
+#endif
+
 #ifdef USE_DDALPHAAMG
- #include "base/DDalphaAMG_bridge.hpp"
+# include "base/DDalphaAMG_bridge.hpp"
 #endif
+
 #include "base/vectors.hpp"
 #include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
 #include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
@@ -28,6 +34,13 @@
 
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 
+
+
+
+
+#include "communicate/borders.hpp"
+#include "io/checksum.hpp"
+
 namespace nissa
 {
   //Refers to the tmD_eoprec
@@ -42,7 +55,8 @@ namespace nissa
   //Invert twisted clover operator using e/o preconditioning.
   void inv_tmclovD_cg_eoprec_native(spincolor* solution_lx,spincolor* guess_Koo,quad_su3* conf_lx,double kappa,double cSW,clover_term_t* Cl_lx,inv_clover_term_t* ext_invCl_lx,double mass,int nitermax,double residue,spincolor* source_lx)
   {
-    
+    // set_borders_invalid(conf_lx);
+    // communicate_lx_quad_su3_borders(conf_lx);
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
     inv_clover_term_t *invCl_lx;
@@ -141,99 +155,191 @@ namespace nissa
   
   void inv_tmclovD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,clover_term_t *Cl_lx,inv_clover_term_t *ext_invCl_lx,double cSW,double mass,int nitermax,double residue,spincolor *source_lx)
   {
+    //memset(send_buf,0,send_buf_size);
+    //memset(recv_buf,0,recv_buf_size);
     
-#ifdef USE_TMLQCD
-    if(use_tmLQCD)
-      {
-	// //open the file
-	// std::string temp_path="temp_input";
-	// FILE *ftemp;
-	// master_get_temp_file(ftemp,temp_path);
-	
-	// //preprare the parameters
-	// int argc=3,verbose=1,external_id=0;
-	// char *argv[3]={(char*)malloc(10),(char*)malloc(10),(char*)malloc(temp_path.length()+1)};
-	// sprintf(argv[0],"-");
-	// sprintf(argv[1],"-f");
-	// sprintf(argv[2],"%s",temp_path.c_str());
-	
-	//prepare the input file
-	
-	//initializing
-	FILE *ftemp=open_prepare_input_file_for_tmLQCD();
-	master_fprintf(ftemp,"\n");
-	master_fprintf(ftemp,"2kappamu = %lg\n",2*kappa*mass);
-	master_fprintf(ftemp,"kappa = %lg\n",kappa);
-	master_fprintf(ftemp,"DebugLevel = 3\n");
-	master_fprintf(ftemp,"csw = %lg\n",cSW);
-	master_fprintf(ftemp,"\n");
-	//master_fprintf(ftemp,"BeginOperator TMWILSON\n");
-	master_fprintf(ftemp,"BeginOperator CLOVER\n");
-	master_fprintf(ftemp,"  2kappamu = %lg\n",2*kappa*mass);
-	master_fprintf(ftemp,"  kappa = %lg\n",kappa);
-	master_fprintf(ftemp,"  cSW = %lg\n",cSW);
-	master_fprintf(ftemp,"  UseEvenOdd = yes\n");
-	master_fprintf(ftemp,"  Solver = CG\n");
-	master_fprintf(ftemp,"  SolverPrecision = %lg\n",residue);
-	master_fprintf(ftemp,"  MaxSolverIterations = %d\n",nitermax);
-	master_fprintf(ftemp,"  AddDownPropagator = no\n");
-	master_fprintf(ftemp,"EndOperator\n");
-	
-	close_file(ftemp);
-	
-	tmLQCD_init();
-	export_gauge_conf_to_tmLQCD(conf_lx);
-	tmLQCD::tmLQCD_invert((double*)solution_lx,(double*)(source_lx),0,0);
-	
-	tmLQCD_finalise();
-	
-	// for(int i=0;i<argc;i++) free(argv[i]);
-	
-	//if(rank==0) unlink("invert.input");
-	
-	// //close the temporary file and remove it
-	// if(rank==0)
-	//   {
-	// 	fclose(ftemp);
-	// 	unlink(temp_path.c_str());
-	//   }
-      }
-    else
+  //   {
+  //   int ivolIncr,rankIncr;
+  //   get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
+  //   if(rank==rankIncr)
+  //     {
+  // 	printf("at the beginning of the solver, the bulk of the conf on rank %d is:\n",rank);
+  // 	su3_print(conf_lx[ivolIncr][0]);
+  //     }
+    
+  // }
+    
+  //   const int incrSite=533223;
+    
+  //   master_printf("conf_lx pointer: %p\n",conf_lx);
+    
+  //   if(rank==0)
+  //     {
+  // 	printf("at the beginning there was\n");
+  // 	su3_print(conf_lx[incrSite][0]);
+  // 	su3_put_to_id(conf_lx[incrSite][0]);
+  // 	printf("darkness\n");
+  // 	su3_print(conf_lx[incrSite][0]);
+  //     }
+  //   set_borders_invalid(conf_lx);
+  //   communicate_lx_quad_su3_borders(conf_lx);
+    
+  //   if(rank==0)
+  //     {
+  // 	printf("then, light came\n");
+  // 	su3_print(conf_lx[incrSite][0]);
+  //     }
+    
+  //   {
+  //     checksum check;
+  //     checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
+  //     master_printf("initial checksum of the clover %x %x\n",check[0],check[1]);
+  //   }
+    
+    /// Keep track of convergence
+    bool solved=false;
+    
+#ifdef USE_QUDA
+    {
+      double call_time=take_time();
+      solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
+      master_printf("calling quda to solve took %lg s\n",take_time()-call_time);
+    }
 #endif
-      //DD case
+    
 #ifdef USE_DDALPHAAMG
-      if(use_DD and fabs(mass)<=DD::max_mass)
-	{
-	  master_printf("max_mass: %lg<= mass: %lg, using DD\n",DD::max_mass,mass);
-	  
-	  DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
-	  
-	  //check solution
-	  spincolor *temp_lx=nissa_malloc("temp",locVol.nastyConvert(),spincolor);
-	  apply_tmclovQ(temp_lx,conf_lx,kappa,Cl_lx,mass,solution_lx);
-	  
-	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	     for(int id=0;id<NDIRAC;id++)
-	       for(int ic=0;ic<NCOL;ic++)
-		 for(int ri=0;ri<2;ri++)
-		     temp_lx[ivol.nastyConvert()][id][ic][ri]-=source_lx[ivol.nastyConvert()][id][ic][ri]*(id<2?+1:-1);
-	  NISSA_PARALLEL_LOOP_END;
-	  THREAD_BARRIER();
-	  
-	  //compute the norm and print it
-	  double sonorm2=double_vector_glb_norm2(source_lx,locVol.nastyConvert());
-	  double norm2=double_vector_glb_norm2(temp_lx,locVol.nastyConvert());
-	  master_printf("check solution: %lg\n",norm2/sonorm2);
-	  nissa_free(temp_lx);
-	   // for(int ivol=0;ivol<loc_vol;ivol++)
-	  //   for(int id=0;id<4;id++)
-	  //     for(int ic=0;ic<3;ic++)
-	  // 	for(int ri=0;ri<2;ri++)
-	  // 	  printf("anna %d %d %d %d %16.16lg\n",ivol,id,ic,ri,solution_lx[ivol.nastyConvert()][id][ic][ri]);
-	}
-      else
+    if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
+      {
+	double call_time=take_time();
+	solved=DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
+	master_printf("calling DDalphaAMG to solve took %lg s\n",take_time()-call_time);
+      }
 #endif
-	//fallback to naive implementation
+    
+    // if(checkIfTmLQCDAvailableAndRequired() and not solved)
+    //   {
+    // 	// //open the file
+    // 	// std::string temp_path="temp_input";
+    // 	// FILE *ftemp;
+    // 	// master_get_temp_file(ftemp,temp_path);
+	
+    // 	// //preprare the parameters
+    // 	// int argc=3,verbose=1,external_id=0;
+    // 	// char *argv[3]={(char*)malloc(10),(char*)malloc(10),(char*)malloc(temp_path.length()+1)};
+    // 	// sprintf(argv[0],"-");
+    // 	// sprintf(argv[1],"-f");
+    // 	// sprintf(argv[2],"%s",temp_path.c_str());
+	
+    // 	//prepare the input file
+	
+    // 	//initializing
+    // 	FILE *ftemp=open_prepare_input_file_for_tmLQCD();
+    // 	master_fprintf(ftemp,"\n");
+    // 	master_fprintf(ftemp,"2kappamu = %lg\n",2*kappa*mass);
+    // 	master_fprintf(ftemp,"kappa = %lg\n",kappa);
+    // 	master_fprintf(ftemp,"DebugLevel = 3\n");
+    // 	master_fprintf(ftemp,"csw = %lg\n",cSW);
+    // 	master_fprintf(ftemp,"\n");
+    // 	//master_fprintf(ftemp,"BeginOperator TMWILSON\n");
+    // 	master_fprintf(ftemp,"BeginOperator CLOVER\n");
+    // 	master_fprintf(ftemp,"  2kappamu = %lg\n",2*kappa*mass);
+    // 	master_fprintf(ftemp,"  kappa = %lg\n",kappa);
+    // 	master_fprintf(ftemp,"  cSW = %lg\n",cSW);
+    // 	master_fprintf(ftemp,"  UseEvenOdd = yes\n");
+    // 	master_fprintf(ftemp,"  Solver = CG\n");
+    // 	master_fprintf(ftemp,"  SolverPrecision = %lg\n",residue);
+    // 	master_fprintf(ftemp,"  MaxSolverIterations = %d\n",nitermax);
+    // 	master_fprintf(ftemp,"  AddDownPropagator = no\n");
+    // 	master_fprintf(ftemp,"EndOperator\n");
+	
+    // 	close_file(ftemp);
+	
+    // 	tmLQCD_init();
+    // 	export_gauge_conf_to_tmLQCD(conf_lx);
+    // 	tmLQCD::tmLQCD_invert((double*)solution_lx,(double*)(source_lx),0,0);
+	
+    // 	tmLQCD_finalise();
+	
+    // 	// for(int i=0;i<argc;i++) free(argv[i]);
+	
+    // 	//if(rank==0) unlink("invert.input");
+	
+    // 	// //close the temporary file and remove it
+    // 	// if(rank==0)
+    // 	//   {
+    // 	// 	fclose(ftemp);
+    // 	// 	unlink(temp_path.c_str());
+    // 	//   }
+    // 	crash("Not yet implemented");
+    //   }
+    
+    if(not solved)
 	inv_tmclovD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,cSW,Cl_lx,ext_invCl_lx,mass,nitermax,residue,source_lx);
+    
+    if(check_inversion_residue)
+      {
+    // THREAD_BARRIER();
+	//check solution
+	double check_time=take_time();
+	spincolor *residueVec=nissa_malloc("residueVec",locVol.nastyConvert(),spincolor);
+	// checksum check;
+	// checksum_compute_nissa_data(check,solution_lx,64,sizeof(spincolor));
+	// master_printf("checksum of the solution %x %x\n",check[0],check[1]);
+	// checksum_compute_nissa_data(check,conf_lx,64,sizeof(quad_su3));
+	// master_printf("checksum of the conf %x %x\n",check[0],check[1]);
+	
+	// const double sou=source_lx[0][0][0][0];
+	// const double sol=solution_lx[0][0][0][0];
+	// set_borders_invalid(solution_lx);
+	apply_tmclovQ(residueVec,conf_lx,kappa,Cl_lx,mass,solution_lx);
+	// const double sola=solution_lx[0][0][0][0];
+	// const double soll=solution_lx[locVol][0][0][0];
+	// checksum_compute_nissa_data(check,Cl_lx,64,sizeof(clover_term_t));
+	// master_printf("checksum of the clover %x %x\n",check[0],check[1]);
+	// checksum_compute_nissa_data(check,residueVec,64,sizeof(spincolor));
+	// master_printf("checksum of the residue %x %x\n",check[0],check[1]);
+	// checksum_compute_nissa_data(check,solution_lx+bord_vol,64,sizeof(spincolor));
+	// master_printf("checksum of the solution shifted by bord %x %x\n",check[0],check[1]);
+	// const double res=residueVec[0][0][0][0];
+	// const double res1=residueVec[loclx_of_coord_list(0,8,23,7)][0][0][0];
+	safe_dirac_prod_spincolor(residueVec,base_gamma[5],residueVec);
+	// const double res5=residueVec[0][0][0][0];
+	double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol.nastyConvert()*sizeof(spincolor)/sizeof(double));
+	// const double ress=residueVec[0][0][0][0];
+	// const double resn=spincolor_norm2(residueVec[0]);
+	// double resnt=0;
+	// bool found=false;
+	// for(int ivol=0;ivol<locVol;ivol++)
+	//   {
+	//     const double contr=spincolor_norm2(residueVec[ivol]);
+	//     if(found==false and contr>1e-4)
+	//       {
+	// 	found=true;
+	// 	const coords_t c=locCoordOfLoclx[ivol];
+	// 	// master_
+	// 	printf("rank %d found first exceeding, %lg at %d %d %d %d\n",rank,contr,c[0],c[1],c[2],c[3]);
+	//       }
+	//     // resnt+=contr;
+	//   }
+	// // double resntg;
+	// // MPI_Allreduce(&resnt,&resntg,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	
+	/// Residue L2 norm
+	const double residueNorm2=double_vector_glb_norm2(residueVec,locVol.nastyConvert());
+	
+	/// Source L2 norm
+	const double sourceNorm2=double_vector_glb_norm2(source_lx,locVol.nastyConvert());
+	
+	master_printf("check solution, source norm2: %lg, residue: %lg, target one: %lg checked in %lg s\n",sourceNorm2,residueNorm2/sourceNorm2,residue,take_time()-check_time);
+	// printf("check rank %d %lg %lg %lg %lg %lg %lg %lg %lg     %lg %lg %lg\n",rank,sou,sol,sola,soll,res,res1,res5,ress,resn,resnt,resntg);
+	nissa_free(residueVec);
+	
+    // if(rank==0)
+    //   {
+    // 	printf("now\n");
+    // 	su3_print(conf_lx[incrSite][0]);
+    //   }
+	
+      }
   }
 }

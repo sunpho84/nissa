@@ -20,7 +20,7 @@ namespace nissa
   int metro_test(double arg);
   int factorize(int *list,int N);
   int log2N(int N);
-  CUDA_HOST_DEVICE void matrix_determinant(complex d,complex *m,int n);
+  CUDA_HOST_AND_DEVICE void matrix_determinant(complex d,complex *m,int n);
   int bitrev(int in,int l2n);
   int find_max_pow2(int a);
   
@@ -39,14 +39,14 @@ namespace nissa
   }
   
   template <class T1,class T2>
-  CUDA_HOST_DEVICE
+  CUDA_HOST_AND_DEVICE
   auto nissa_min(const T1& a,const T2& b)
   {
     return (a<b)?a:b;
   }
   
   template <class T>
-  CUDA_HOST_DEVICE
+  CUDA_HOST_AND_DEVICE
   T sqr(T a)
   {return a*a;}
   

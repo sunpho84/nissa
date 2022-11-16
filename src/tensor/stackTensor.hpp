@@ -48,7 +48,7 @@ namespace nissa
       IndexComputer<Comps>::staticPartMaxValue;
     
     /// Copy constructor
-    constexpr CUDA_HOST_DEVICE INLINE_FUNCTION
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     void nastyCopy(const Tensor& oth)
     {
       memcpy(this->storage,oth.storage,storageSize);
@@ -63,7 +63,7 @@ namespace nissa
     /*! Evaluate, returning a reference to the fundamental type */	\
     template <typename...TD,						\
 	      ENABLE_THIS_TEMPLATE_IF(std::is_same_v<TD,TC> && ...)>	\
-    CUDA_HOST_DEVICE INLINE_FUNCTION					\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION					\
     ATTRIB Fund& orderedEval(const TD&...td) ATTRIB			\
     {									\
       return storage[this->indexComputer(td...)];			\

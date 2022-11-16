@@ -453,7 +453,7 @@ namespace nissa
   
   ////////////////// spincolor algebra/////////////////////
   
-  void safe_dirac_prod_spincolor(spincolor* out,dirac_matr* m,spincolor* in)
+  void safe_dirac_prod_spincolor(spincolor* out,const dirac_matr& m,spincolor* in)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       safe_dirac_prod_spincolor(out[ivol.nastyConvert()],m,in[ivol.nastyConvert()]);
@@ -461,7 +461,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  void safe_dirac_prod_colorspinspin(colorspinspin* out,dirac_matr* m,colorspinspin* in)
+  void safe_dirac_prod_colorspinspin(colorspinspin* out,const dirac_matr& m,colorspinspin* in)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       safe_dirac_prod_colorspinspin(out[ivol.nastyConvert()],m,in[ivol.nastyConvert()]);
@@ -510,9 +510,12 @@ namespace nissa
   {
 #if THREADS_TYPE == OPENMP_THREADS
     
-    NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,n,THREAD_ID,NACTIVE_THREADS);
-    memcpy((char*)out+start,(char*)in+start,chunk_load);
-    end++;//to avoid warning
+#pragma omp parallel
+    {
+      NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,n,THREAD_ID,nthreads);
+      memcpy((char*)out+start,(char*)in+start,chunk_load);
+      (void)&end;//to avoid warning
+    }
     THREAD_BARRIER();
 #else
     memcpy(out,in,n);

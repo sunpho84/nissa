@@ -148,6 +148,7 @@ namespace nissa
   void measure_magnetization(eo_ptr<quad_su3> conf,theory_pars_t &theory_pars,magnetization_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     crash("");
+
     // FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     // FILE *file_proj=open_file(meas_pars.path+"%s_proj_x",conf_created?"w":"a");
     

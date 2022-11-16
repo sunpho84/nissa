@@ -733,8 +733,8 @@ double xQx(eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mas
 namespace nissa
 {
   void compute_clover_staples_insertions(eo_ptr<as2t_su3> cl_insertion,eo_ptr<spincolor> X,eo_ptr<spincolor> Y);
-  CUDA_HOST_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,const Parity& eo,const LocEoSite& ieo,const Dir& dir);
-  CUDA_HOST_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,const Parity& eo,const LocEoSite& ieo,const Dir& mu,eo_ptr<as2t_su3> cl_insertion,const double& cSW);
+  CUDA_HOST_AND_DEVICE void get_point_twisted_force(su3 out,eo_ptr<spincolor> a,eo_ptr<spincolor> b,const Parity& eo,const LocEoSite& ieo,const Dir& dir);
+  CUDA_HOST_AND_DEVICE void get_clover_staples(su3 stap,eo_ptr<quad_su3> conf,const Parity& eo,const LocEoSite& ieo,const Dir& mu,eo_ptr<as2t_su3> cl_insertion,const double& cSW);
 }
 
 void xQx_der(su3 ext_an,const Parity& ext_eo,const LocEoSite& ext_ieo,const Dir& ext_dir,eo_ptr<spincolor> in_l,eo_ptr<spincolor> in_r,double kappa,double mass,double cSW)
@@ -897,8 +897,8 @@ void xQhatx_der_old(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,
   //inv_tmclovDee_or_oo_eos(temp2,invCl[EVN],false,temp1);
   
   const LocEoSite& iup=loceo_neighup(eo,ieo,dir);
-  unsafe_dirac_prod_spincolor(temp,base_gamma+0,in[iup.nastyConvert()]);
-  dirac_subt_the_prod_spincolor(temp,base_gamma+igamma_of_mu(dir).nastyConvert(),in[iup.nastyConvert()]);
+  unsafe_dirac_prod_spincolor(temp,base_gamma[0],in[iup.nastyConvert()]);
+  dirac_subt_the_prod_spincolor(temp,base_gamma[igamma_of_mu(dir).nastyConvert()],in[iup.nastyConvert()]);
   //safe_dirac_prod_spincolor(temp,base_gamma+5,temp);
   
   for(int ic1=0;ic1<NCOL;ic1++)
@@ -1409,7 +1409,7 @@ void xQee_inv_x_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,
       {
 	int ipair=edge_numb[mu.nastyConvert()][nu.nastyConvert()];
 	m[ipair]=dirac_prod(base_gamma[igamma_of_mu(mu).nastyConvert()],base_gamma[igamma_of_mu(nu).nastyConvert()]);
-	dirac_prod_double(&m[ipair],&m[ipair],-cSW/4);
+	m[ipair]=dirac_prod_double(m[ipair],-cSW/4);
 	  
 	  // print_dirac(m+ipair);
 	  // master_printf("\n");
@@ -1429,7 +1429,7 @@ void xQee_inv_x_der(su3 an,const Parity& eo,const LocEoSite& ieo,const Dir& dir,
 	  {
 	    spincolor tempX;
 	    // spincolor tempY;
-	    unsafe_dirac_prod_spincolor(tempX,&m[ipair],X[ieo.nastyConvert()]);
+	    unsafe_dirac_prod_spincolor(tempX,m[ipair],X[ieo.nastyConvert()]);
 	    // unsafe_dirac_prod_spincolor(tempY,m+ipair,Y[ieo.nastyConvert()]);
 	    
 	    for(int ic1=0;ic1<NCOL;ic1++)

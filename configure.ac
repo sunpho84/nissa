@@ -17,7 +17,7 @@ AC_MSG_RESULT([$CONFIG_TIME])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([1.14 no-define foreign subdir-objects])
-AM_CONFIG_HEADER(src/config.hpp)
+AC_CONFIG_HEADERS(src/config.hpp)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 
@@ -120,6 +120,11 @@ AX_OPENMP
 
 #cuda
 AX_CHECK_CUDA
+AM_CONDITIONAL([USE_CUDA],[test "$CXX" == "nvcc"])
+if test "$CXX" == "nvcc"
+then
+	AC_DEFINE([USE_CUDA],1,"Using CUDA")
+fi
 
 #threads
 AC_DEFINE([NO_THREADS],[0],["No thread parallelization used"])
@@ -156,7 +161,7 @@ case "$with_threads_type" in
 		CUDA_MANAGED=__managed__
 		CUDA_HOST="__host__"
 		CUDA_DEVICE="__device__"
-		CUDA_HOST_DEVICE="__host__ __device__"
+		CUDA_HOST_AND_DEVICE="__host__ __device__"
 		AC_DEFINE([USE_CUDA],1,"Using CUDA")
 	    else
 		AC_MSG_ERROR(["Asked to enable Cuda when the framework has not been found"])
@@ -170,7 +175,7 @@ AC_DEFINE_UNQUOTED([THREADS_TYPE],${THREADS_TYPE},[Kind of thread parallelizatio
 AC_DEFINE_UNQUOTED([CUDA_MANAGED],${CUDA_MANAGED},[Whether to use managed memory])
 AC_DEFINE_UNQUOTED([CUDA_HOST],${CUDA_HOST},[Whether this function is HOST only])
 AC_DEFINE_UNQUOTED([CUDA_DEVICE],${CUDA_DEVICE},[Whether to duplicate functions for DEVICE only])
-AC_DEFINE_UNQUOTED([CUDA_HOST_DEVICE],${CUDA_HOST_DEVICE},[Whether to duplicate functions for host and device])
+AC_DEFINE_UNQUOTED([CUDA_HOST_AND_DEVICE],${CUDA_HOST_AND_DEVICE},[Whether to duplicate functions for host and device])
 
 AH_VERBATIM([COMPILING_FOR_DEVICE],
 #ifdef __CUDA_ARCH__
@@ -273,6 +278,7 @@ AC_ARG_ENABLE(parpack-debug,
 	AS_HELP_STRING([--enable-parpack-debug],[Enable parpack debug]),
 	enable_parpack_debug="${enableval}",
 	enable_parpack_debug="no")
+
 if test "$enable_parpack_debug" == "yes"
 then
 	AC_DEFINE([ENABLE_PARPACK_DEBUG],1,[Enable debugging parpack])
@@ -286,6 +292,17 @@ AX_SUBPACKAGE(lime,lime.h,lime,limeReaderNextRecord,LIME)
 #################### QUDA ####################
 
 AX_SUBPACKAGE(quda,quda.h,cuda quda,cuMemcpy freeGaugeQuda,QUDA)
+
+AC_ARG_ENABLE(quda_bypass,
+	AS_HELP_STRING([--enable-quda-bypass],[Avoid linking quda]),
+	enable_quda_bypass="${enableval}",
+	enable_quda_bypass="no")
+
+if test "$enable_quda_bypass" == "yes"
+then
+	LIBS=$(echo $LIBS|sed 's|-lquda||g;s|-lcuda||g')
+	AC_DEFINE([ENABLE_QUDA_BYPASS],1,[Enable quda bypass])
+fi
 
 #################### tmLQCD ####################
 
@@ -420,6 +437,16 @@ if ! printf "%f" "$ndim" >/dev/null 2>&1; then AC_MSG_ERROR([String $ndim is not
 AM_CONDITIONAL([NDIM2], [test x$ndim = x2])
 AC_DEFINE_UNQUOTED([NDIM],$ndim,[Number of dimensions])
 AC_MSG_RESULT([enabling number of dimension... $ndim])
+
+#external solver
+if test x"$enable_quda" == x"yes" -o x"$enable_DDalphaAMG" == x"yes"
+then
+	AC_DEFINE_UNQUOTED([USE_EXTERNAL_SOLVER],1,[Use an external solver])
+	use_external_solver="yes"
+else
+	use_external_solver="no"
+fi
+AM_CONDITIONAL([USE_EXTERNAL_SOLVER],[test "$use_external_solver" == "yes"])
 
 #number of colors
 AC_ARG_ENABLE(ncol,

@@ -14,6 +14,10 @@
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
+//add a check that loc_vol is a multiple of 2
+//#define REM_2 if(0)
+#define REM_2
+
 namespace nissa
 {
   //compute the parity of a global site
@@ -43,9 +47,9 @@ namespace nissa
       crash("E/O Geometry already initialized!");
     
     //check that all local sizes are multiples of 2
-    bool ok=true;
-   FOR_ALL_DIRS(mu)
-     ok&=(locSize(mu)%2==0);
+    bool ok=1;
+    REM_2 for(Dir mu=0;mu<NDIM;mu++) ok&=(locSize(mu)%2==0);
+    REM_2 if(!ok) crash("local lattice size odd!");
     
     if(not ok)
       crash("local lattice size odd!");

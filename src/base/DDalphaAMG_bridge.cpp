@@ -2,8 +2,6 @@
 # include <config.hpp>
 #endif
 
-#include <DDalphaAMG.h>
-
 #include <base/debug.hpp>
 #include <dirac_operators/tmQ/dirac_operator_tmQ.hpp>
 #include <geometry/geometry_lx.hpp>
@@ -40,7 +38,6 @@ namespace DD
   }
   
   //return the coordinate transposed
-  
   static int cart_coords(MPI_Comm comm,int ext_rank,int maxdims,int c[])
   {
     int int_c[NDIM];
@@ -65,120 +62,7 @@ namespace DD
   
   //return the index inside a spincolor
   static int vector_index_fct(int t,int z,int y,int x)
-  {
-    return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclx_of_coord_list(t,x,y,z)();
-  }
-  
-  //read the nissa configuration file
-  void read_DDalphaAMG_pars()
-  {
-    char path[]="DDalphaAMG_pars";
-    
-    smoother_iterations=4;
-    
-    nlevels=3;
-    
-    for(int ilev=0;ilev<nlevels;ilev++) nsetups[ilev]=4;
-    for(int ilev=0;ilev<nlevels;ilev++) mu_factor[ilev]=1;
-    
-    if(nissa::file_exists(path))
-      {
-	nissa::open_input(path);
-	int nr;
-	
-	do
-	  {
-	    char tag[100];
-	    nr=nissa::read_var_catcherr(tag,"%s",100);
-	    
-	    if(nr>=1)
-	      {
-		//number of levels
-		if(strcasecmp(tag,"nlevels")==0)
-		  {
-		    nissa::read_int(&nlevels);
-		    master_printf("DD: read nlevels=%d\n",nlevels);
-		  }
-		//number of smoother iterations
-		if(strcasecmp(tag,"smoother_iterations")==0)
-		  {
-		    nissa::read_int(&smoother_iterations);
-		    master_printf("DD: read smoother_iterations=%d\n",smoother_iterations);
-		  }
-		//maximal mass
-		if(strcasecmp(tag,"max_mass")==0)
-		  {
-		    nissa::read_double(&max_mass);
-		    master_printf("DD: read max_mass=%lg\n",max_mass);
-		  }
-		//number of setups
-		if(strcasecmp(tag,"nsetups")==0)
-		  for(int ilev=0;ilev<nlevels;ilev++)
-		    {
-		      nissa::read_int(&nsetups[ilev]);
-		      master_printf("DD: read nsetups[%d]=%d\n",ilev,nsetups[ilev]);
-		    }
-		//factor to increase mass in setup
-		if(strcasecmp(tag,"mu_factor")==0)
-		  for(int ilev=0;ilev<nlevels;ilev++)
-		    {
-		      nissa::read_double(&mu_factor[ilev]);
-		      master_printf("DD: read mu_factor[%d]=%lg\n",ilev,mu_factor[ilev]);
-		    }
-		//size of the blocks
-		if(strcasecmp(tag,"block_size")==0)
-		  {
-		    block_size_set=true;
-		    for(int ilev=0;ilev<nlevels;ilev++)
-		      for(int idir=0;idir<4;idir++)
-			{
-			  int jdir=nissa::scidac_mapping(nissa::Dir(idir))();
-			  nissa::read_int(&block_size[ilev][jdir]);
-			  master_printf("DD: block_size[%d][%d*]=%d\n",ilev,jdir,block_size[ilev][jdir]);
-			}
-		    }
-	      }
-	    else master_printf("Finished reading the file '%s'\n",path);
-	  }
-	while(nr==1);
-	
-	nissa::close_input();
-      }
-    else master_printf("No '%s' file present, using standard configuration\n",path);
-  }
-  
-  //import a gauge configuration
-  void import_gauge_conf(nissa::quad_su3 *conf)
-  {
-    static nissa::checksum check_old={0,0},check_cur;
-    //compute checksum
-    nissa::checksum_compute_nissa_data(check_cur,conf,sizeof(nissa::quad_su3),sizeof(double)*8);
-    
-    //verify if import needed
-    bool import=false;
-    for(int i=0;i<2;i++)
-      {
-	//check inited
-	bool import_as_new=(check_old[i]==0);
-	if(!import and import_as_new) master_printf("DD: Old checksum 0, need to import the conf\n");
-	import|=import_as_new;
-	//check diff
-	bool import_as_diff=(check_old[i]!=check_cur[i]);
-	if(!import and import_as_diff) master_printf("DD: Old checksum %d is %x, new is %x, need to import\n",i,check_old[i],check_cur[i]);
-	import|=import_as_diff;
-	//save
-	check_old[i]=check_cur[i];
-      }
-    
-    if(import)
-      {
-	DDalphaAMG_set_configuration((double*)conf,&status);
-	if(status.success) verbosity_lv1_master_printf("DD: conf set, plaquette %e\n",status.info);
-	else crash("configuration updating did not run correctly");
-	setup_valid=false;
-      }
-    else master_printf("DD: No import needed\n");
-  }
+  {return sizeof(nissa::spincolor)/sizeof(double)*nissa::loclx_of_coord_list(t,x,y,z);}
   
   /// Check if cSW is changed
   bool check_cSW_changed(const double& cSW)
@@ -221,33 +105,29 @@ namespace DD
 	init_params.comm_cart=nissa::cart_comm;
 	init_params.Cart_coords=cart_coords;
 	init_params.Cart_rank=cart_rank;
+	init_params.number_of_levels=nissa::multiGrid::nlevels;
 	
 	//sizes and coord
-	int glbSize[NDIM],nrank_dir[NDIM];
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    glbSize[mu]=nissa::glbSize(nissa::Dir(mu))();
-	    nrank_dir[mu]=nissa::nrank_dir(nissa::Dir(mu))();
-	  }
-	remap_coord(init_params.global_lattice,glbSize);
-	remap_coord(init_params.procs,nrank_dir);
+	remap_coord(init_params.global_lattice,&nissa::glbSize[0]);
+	remap_coord(init_params.procs,&nissa::nrank_dir[0]);
 	
 	//block size and theta
 	for(int dir=0;dir<NDIM;dir++)
 	  {
-	    int jdir=nissa::scidac_mapping(nissa::Dir(dir)).nastyConvert();
+	    int jdir=nissa::scidac_mapping[dir];
 	    init_params.block_lattice[dir]=
-	      (((glbSize[jdir]/nrank_dir[jdir])%2==0)?
-	       (((glbSize[jdir]/nrank_dir[jdir])%4==0)?4:2):
-	       (((glbSize[jdir]/nrank_dir[jdir])%3==0)?3:1));
-	    if(block_size_set) init_params.block_lattice[dir]=block_size[0][dir];
+	      (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%2==0)?
+	       (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%4==0)?4:2):
+	       (((nissa::glbSize[jdir]/nissa::nrank_dir[jdir])%3==0)?3:1));
+	    if(nissa::multiGrid::block_size_set)
+	      init_params.block_lattice[dir]=nissa::multiGrid::block_size[0][dir];
 	    master_printf("Dir %d block size: %d\n",dir,init_params.block_lattice[dir]);
 	    init_params.theta[dir]=0;
 	  }
 	init_params.bc=0;
 	
 	//set threads
-	init_params.number_openmp_threads=nissa::nthreads;
+	//init_params.number_openmp_threads=nissa::nthreads;
 	//values for kappa, mu and csw
 	init_params.kappa=kappa;
 	init_params.mu=mu;
@@ -264,6 +144,8 @@ namespace DD
     
     //to recheck
     DDalphaAMG_get_parameters(&params);
+    
+    using namespace nissa::multiGrid;
     
     //block_size
     if(block_size_set)
@@ -316,11 +198,18 @@ namespace DD
     DDalphaAMG_update_parameters(&params,&status);
   }
   
+  void set_configuration(nissa::quad_su3* conf)
+  {
+    DDalphaAMG_set_configuration((double*)conf,&DD::status);
+  }
+  
   //setup DD if needed
   void update_setup()
   {
+    bool& setup_valid=nissa::multiGrid::setup_valid;
+    
     //full setup
-    if(!setup_valid)
+    if(not setup_valid)
       {
 	master_printf("DD: Starting a new setup\n");
 	DDalphaAMG_setup(&status);
@@ -342,7 +231,7 @@ namespace DD
   int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared)
   {
     initialize(kappa,cSW,mu);
-    import_gauge_conf(conf);
+    nissa::export_gauge_conf_to_external_solver(conf);
     update_setup();
     
     //else DDalphaAMG_update_setup(int iterations, DDalphaAMG_status *mg_status)

@@ -35,7 +35,7 @@ namespace nissa
   struct TensorCompSize
   {
     /// Value beyond end
-    CUDA_HOST_DEVICE
+    CUDA_HOST_AND_DEVICE
     static constexpr I sizeAtCompileTime()
     {
       return SIZE;
@@ -169,7 +169,7 @@ namespace nissa
       Which;
     
     /// Size at compile time
-    CUDA_HOST_DEVICE
+    CUDA_HOST_AND_DEVICE
     static constexpr Index sizeAtCompileTime()
     {
       return Signature::sizeAtCompileTime();
@@ -189,7 +189,7 @@ namespace nissa
     }
     
     /// Default constructor
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     TensorComp() : i(0)
     {
     }
@@ -197,54 +197,54 @@ namespace nissa
     /// Init from value
     template <typename T=Index,
 	      ENABLE_THIS_TEMPLATE_IF(isSafeNumericConversion<Index,T>)>
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     TensorComp(T&& i) : i(i)
     {
     }
     
     /// Convert to actual reference with const attribute
-    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     const Index& toPod() const
     {
       return i;
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(toPod,CUDA_HOST_DEVICE);
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(toPod,CUDA_HOST_AND_DEVICE);
     
     /// Convert to actual reference with const attribute
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     explicit operator const Index&() const
     {
       return toPod();
     }
     
     /// Convert to actual reference
-    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     explicit operator Index&()
     {
       return toPod();
     }
     
     /// Convert to actual reference with const attribute
-    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     const Index& operator()() const
     {
       return toPod();
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator(),CUDA_HOST_DEVICE);
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator(),CUDA_HOST_AND_DEVICE);
     
     /// Convert to actual reference with const attribute, to be remoed
-    INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     const Index& nastyConvert() const
     {
       return toPod();
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(nastyConvert,CUDA_HOST_DEVICE);
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(nastyConvert,CUDA_HOST_AND_DEVICE);
     
     /// Transposed index
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     auto transp()
       const
     {
@@ -253,7 +253,7 @@ namespace nissa
     }
     
     /// Dagger index, alias for transposed
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     auto dag()
       const
     {
@@ -265,7 +265,7 @@ namespace nissa
     TensorComp& operator=(const TensorComp& oth) && = delete;
     
     /// Assignment operator
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     TensorComp& operator=(const Index& oth) &
     {
       i=oth;
@@ -275,7 +275,7 @@ namespace nissa
     }
     
     /// Assignment operator of a TensComp
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     TensorComp& operator=(const TensorComp& oth) &
     {
       return
@@ -286,7 +286,7 @@ namespace nissa
     
 #define PROVIDE_POSTFIX_OP(OP)				\
     /*! Self OP operator */				\
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr		\
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr		\
     TensorComp operator OP(int)				\
     {							\
       /*! Keep result */				\
@@ -307,7 +307,7 @@ namespace nissa
     
 #define PROVIDE_SELFOP_WITH_OTHER(OP)			\
     /*! Assignment OP operator */			\
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr		\
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr		\
     TensorComp& operator OP ## =(const TensorComp& oth)	\
       {							\
 	i OP ## =oth.i;					\
@@ -328,7 +328,7 @@ namespace nissa
     
 #define PROVIDE_SELF_OP(OP)				\
     /*! Self OP operator */				\
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr		\
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr		\
     TensorComp operator OP()				\
     {							\
       return OP i;						\
@@ -343,7 +343,7 @@ namespace nissa
     
 #define PROVIDE_BINARY_OP(OP,RESULT_TYPE...)				\
     /*! Combine with other */						\
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr				\
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr				\
     friend RESULT_TYPE operator OP(const TensorComp& first,const TensorComp& second) \
     {									\
       return								\

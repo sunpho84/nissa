@@ -20,7 +20,31 @@ namespace nissa
     bool solved=false;
     
     if(checkIfQudaAvailableAndRequired() and not solved)
-      solved=quda_iface::solve_stD(sol,conf,m,niter,residue,source);
+      {
+#warning
+	// for(int eo=0;eo<2;eo++)
+	//   vector_reset(source[eo]);
+	// if(is_master_rank())
+	//   source[EVN][0][0][0]=1.0;
+	// DISATTIVA
+	// //test
+	// eo_ptr<color> test={nissa_malloc("temp_evn",locVolh,color),nissa_malloc("temp_odd",locVolh,color)};
+	// apply_stD(test,conf,m,source);
+	
+	solved=quda_iface::solve_stD(sol,conf,m,niter,residue,source);
+	// for(int eo=0;eo<2;eo++)
+	//   for(int ivol=0;ivol<locVolh;ivol++)
+	//     for(int ic=0;ic<NCOL;ic++)
+	//       for(int ri=0;ri<2;ri++)
+	// 	{
+	// 	  const double& e=sol[eo][ivol][ic][ri];
+	// 	  const double& f=test[eo][ivol][ic][ri];
+	// 	  if(fabs(e) or fabs(f))
+	// 	    printf("%d %d %d %d %lg %lg\n",eo,ivol,ic,ri,e,f);
+	// 	}
+	// for(int eo=0;eo<2;eo++)
+	//   nissa_free(test[eo]);
+      }
     
     if(not solved)
       {

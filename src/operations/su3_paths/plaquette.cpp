@@ -33,7 +33,7 @@ namespace nissa
       =U(A,mu)U(B,nu)(U(A,nu)U^(C,mu))^=U(AB,munu)*U^(AC,numu)
   */
   
-  CUDA_HOST_DEVICE void point_plaquette_lx_conf(complex loc_plaq,quad_su3 *conf,const LocLxSite& A)
+  CUDA_HOST_AND_DEVICE void point_plaquette_lx_conf(complex loc_plaq,quad_su3 *conf,const LocLxSite& A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
     FOR_ALL_DIRS(mu)
@@ -52,7 +52,7 @@ namespace nissa
       }
   }
   
-  CUDA_HOST_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,const Parity& par,const LocEoSite& A)
+  CUDA_HOST_AND_DEVICE void point_plaquette_eo_conf(complex loc_plaq,eo_ptr<quad_su3> conf,const Parity& par,const LocEoSite& A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
     FOR_ALL_DIRS(mu)

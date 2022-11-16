@@ -21,7 +21,7 @@
 namespace nissa
 {
   //wrappers
-  CUDA_HOST_DEVICE LocLxSite loclx_of_coord(const LocCoords& x)
+  CUDA_HOST_AND_DEVICE LocLxSite loclx_of_coord(const LocCoords& x)
   {
     return lx_of_coord<LocLxSite>(x,locSize);
   }
@@ -43,6 +43,59 @@ namespace nissa
   {
     coord_of_lx(c,x,nrank_dir);
   }
+  
+#warning
+    // //wrappers
+  // CUDA_HOST_AND_DEVICE int loclx_of_coord(const LocCoords& x)
+  // {return lx_of_coord(x,locSize);}
+  
+  // //wrappers
+  // int glblx_of_coord(coords x)
+  // {return lx_of_coord(x,glbSize);}
+  // int glblx_of_coord_list(int a,int b,int c,int d)
+  // {coords co={a,b,c,d};return glblx_of_coord(co);}
+  // //combine two points
+  // int glblx_of_comb(int b,int wb,int c,int wc)
+  // {
+  //   coords co;
+  //   for(int mu=0;mu<NDIM;mu++)
+  //     {
+  // 	co[mu]=glbCoordOfLoclx[b][mu]*wb+glbCoordOfLoclx[c][mu]*wc;
+  // 	while(co[mu]<0) co[mu]+=glbSize[mu];
+  // 	co[mu]%=glbSize[mu];
+  //     }
+    
+  //   return glblx_of_coord(co);
+  // }
+  
+  // void glb_coord_of_glblx(coords x,int gx)
+  // {
+  //   for(int mu=NDIM-1;mu>=0;mu--)
+  //     {
+  // 	int next=gx/glbSize[mu];
+  // 	x[mu]=gx-next*glbSize[mu];
+  // 	gx=next;
+  //     }
+  // }
+  
+  // int glblx_of_diff(int b,int c)
+  // {return glblx_of_comb(b,+1,c,-1);}
+  
+  // int glblx_of_summ(int b,int c)
+  // {return glblx_of_comb(b,+1,c,+1);}
+  
+  // int glblx_opp(int b)
+  // {return glblx_of_diff(0,b);}
+  
+  // //Return the coordinate of the rank containing the global coord
+  // void rank_coord_of_site_of_coord(coords rank_coord,coords glb_coord)
+  // {for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=glb_coord[mu]/locSize[mu];}
+  
+  // //Return the rank of passed coord
+  // int rank_of_coord(coords x)
+  // {return lx_of_coord(x,nrank_dir);}
+  // void coord_of_rank(coords c,int x)
+  // {coord_of_lx(c,x,nrank_dir);}
   
   //Return the rank containing the global coordinates
   Rank rank_hosting_site_of_coord(const GlbCoords& x)
@@ -546,14 +599,14 @@ namespace nissa
   //     }
   // }
   
-  CUDA_HOST_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol)
+  CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol)
   {
     ph(tDir)=1;
     for(Dir mu=1;mu<NDIM;mu++)
       ph(mu)=ph(mu-1)*(1-2*(glbCoordOfLoclx(ivol,mu-1)()%2));
   }
   
-  CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,const Dir& mu)
+  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,const Dir& mu)
   {
     int ph=1;
     for(Dir nu=1;nu<=mu;nu++)

@@ -217,10 +217,9 @@ namespace nissa
   //set Cg5=ig2g4g5
   void set_Cg5()
   {
-    dirac_matr g2g4,C;
-    dirac_prod(&g2g4,base_gamma+2,base_gamma+4);
-    dirac_prod_idouble(&C,&g2g4,1);
-    dirac_prod(&Cg5,&C,base_gamma+5);
+    dirac_matr g2g4=dirac_prod(base_gamma[2],base_gamma[4]);
+    dirac_matr C=dirac_prod_idouble(g2g4,1);
+    Cg5=dirac_prod(C,base_gamma[5]);
   }
   
   //allocate bariionic contr
@@ -285,11 +284,11 @@ namespace nissa
 	    complex contr[glbTimeSize.nastyConvert()*nWicks];
 	    tm_corr_op::compute_baryon_2pts_proj_contr(contr,igSo,igSi,Q1.sp,Q2.sp,Q3.sp,source_coord(tDir),temporal_bc);
 	    
-	    for(int dt=0;dt<glbTimeSize;dt++)
+	    FOR_ALL_GLB_TIMES(dt)
 	      for(int iWick=0;iWick<nWicks;iWick++)
 		{
 		  /// Input index
-		  const int iin=iWick+nWicks*dt;
+		  const int iin=iWick+nWicks*dt.nastyConvert();
 		  
 		  /// Out index
 		  const int iout=ind_bar2pts_alt_contr(icombo,iWick,iProjGroup[2],dt);
@@ -580,7 +579,7 @@ namespace nissa
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //compute the matrix element of the conserved current between two propagators. If asking to revert, g5 is inserted between the two propagators
-  void conserved_vector_current_mel(quad_su3* conf,spin1field* si,dirac_matr* ext_g,int r,const char* name_bw,const char* name_fw,bool revert)
+  void conserved_vector_current_mel(quad_su3* conf,spin1field* si,const dirac_matr& ext_g,int r,const char* name_bw,const char* name_fw,bool revert)
   {
     
     vector_reset(si);
@@ -588,15 +587,15 @@ namespace nissa
     //compute the gammas
     dirac_matr* GAMMA=nissa_malloc("GAMMA",5,dirac_matr);
     dirac_matr temp_gamma;
-    if(twisted_run>0)	dirac_prod_idouble(&temp_gamma,base_gamma+5,-tau3[r]);
+    if(twisted_run>0)	temp_gamma=dirac_prod_idouble(base_gamma[5],-tau3[r]);
     else                temp_gamma=base_gamma[0];
     
     //Add g5 on the gamma, only if asked to revert
     if(revert)
       {
-	dirac_prod(GAMMA+4,base_gamma+5,&temp_gamma);
+	GAMMA[4]=base_gamma[5]*temp_gamma;
 	FOR_ALL_DIRS(mu)
-	  dirac_prod(GAMMA+mu.nastyConvert(),base_gamma+5,base_gamma+igamma_of_mu(mu).nastyConvert());
+	  GAMMA[mu.nastyConvert()]=base_gamma[5]*base_gamma[igamma_of_mu(mu).nastyConvert()];
       }
     else
       {
@@ -606,8 +605,8 @@ namespace nissa
       }
     
     dirac_matr g;
-    if(revert) dirac_prod(&g,ext_g,base_gamma+5);
-    else       g=*ext_g;
+    if(revert) g=dirac_prod(ext_g,base_gamma[5]);
+    else       g=ext_g;
     
     for(int iso_spi_bw=0;iso_spi_bw<nso_spi;iso_spi_bw++)
       for(int iso_col=0;iso_col<nso_col;iso_col++)
@@ -633,16 +632,16 @@ namespace nissa
 		
 		//piece psi_ivol U_ivol psi_fw
 		unsafe_su3_prod_spincolor(f,conf[ivol.nastyConvert()][mu.nastyConvert()],Qfw[ivol_fw.nastyConvert()]);
-		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
-		dirac_subt_the_prod_spincolor(Gf,GAMMA+mu.nastyConvert(),f);
+		unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
+		dirac_subt_the_prod_spincolor(Gf,GAMMA[mu.nastyConvert()],f);
 		spincolor_scalar_prod(c,Qbw[ivol.nastyConvert()],Gf);
 		complex_prodassign(c,g.entr[iso_spi_bw]);
 		complex_summ_the_prod_idouble(si[ivol.nastyConvert()][mu.nastyConvert()],c,-0.5);
 		
 		//piece psi_fw U_ivol^dag psi_ivol
 		unsafe_su3_dag_prod_spincolor(f,conf[ivol.nastyConvert()][mu.nastyConvert()],Qfw[ivol.nastyConvert()]);
-		unsafe_dirac_prod_spincolor(Gf,GAMMA+4,f);
-		dirac_summ_the_prod_spincolor(Gf,GAMMA+mu.nastyConvert(),f);
+		unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
+		dirac_summ_the_prod_spincolor(Gf,GAMMA[mu.nastyConvert()],f);
 		spincolor_scalar_prod(c,Qbw[ivol_fw.nastyConvert()],Gf);
 		complex_prodassign(c,g.entr[iso_spi_bw]);
 		complex_summ_the_prod_idouble(si[ivol.nastyConvert()][mu.nastyConvert()],c,+0.5);
@@ -654,19 +653,19 @@ namespace nissa
   }
   
   //compute the matrix element of the current between two propagators
-  void vector_current_mel(spin1field* si,dirac_matr* ext_g,int r,const char* id_Qbw,const char* id_Qfw,bool revert)
+  void vector_current_mel(spin1field* si,const dirac_matr& ext_g,int r,const char* id_Qbw,const char* id_Qfw,bool revert)
   {
     
     vector_reset(si);
     
     dirac_matr *GAMMA=nissa_malloc("GAMMA",NDIM,dirac_matr);
-	FOR_ALL_DIRS(mu)
-      if(revert) dirac_prod(GAMMA+mu.nastyConvert(),base_gamma+5,base_gamma+igamma_of_mu(mu).nastyConvert());
+    FOR_ALL_DIRS(mu)
+      if(revert) GAMMA[mu.nastyConvert()]=base_gamma[5]*base_gamma[igamma_of_mu(mu).nastyConvert()];
       else       GAMMA[mu.nastyConvert()]=base_gamma[igamma_of_mu(mu).nastyConvert()];
     
     dirac_matr g;
-    if(revert) dirac_prod(&g,ext_g,base_gamma+5);
-    else       g=*ext_g;
+    if(revert) g=dirac_prod(ext_g,base_gamma[5]);
+    else       g=ext_g;
     
     for(int iso_spi_fw=0;iso_spi_fw<nso_spi;iso_spi_fw++)
       for(int iso_col=0;iso_col<nso_col;iso_col++)
@@ -683,7 +682,7 @@ namespace nissa
 		spincolor temp;
 		complex c;
 		
-		unsafe_dirac_prod_spincolor(temp,GAMMA+mu,Qfw[ivol.nastyConvert()]);
+		unsafe_dirac_prod_spincolor(temp,GAMMA[mu],Qfw[ivol.nastyConvert()]);
 		spincolor_scalar_prod(c,Qbw[ivol.nastyConvert()],temp);
 		complex_summ_the_prod(si[ivol.nastyConvert()][mu],c,g.entr[iso_spi_fw]);
 	      }
@@ -694,9 +693,9 @@ namespace nissa
   }
   
   //compute local or conserved vector current matrix element
-  void local_or_conserved_vector_current_mel(spin1field *si,dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert)
+  void local_or_conserved_vector_current_mel(spin1field *si,const dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert)
   {
-    if(loc_hadr_curr) vector_current_mel(si,&g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
+    if(loc_hadr_curr) vector_current_mel(si,g,Q[prop_name_fw].r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
     else
       {
 	Momentum plain_bc;
@@ -705,7 +704,7 @@ namespace nissa
 	  plain_bc(i)=0.0;
 	quad_su3 *conf=get_updated_conf(Q[prop_name_fw].charge,plain_bc,glb_conf);
 	int r=Q[prop_name_fw].r;
-	conserved_vector_current_mel(conf,si,&g,r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
+	conserved_vector_current_mel(conf,si,g,r,prop_name_bw.c_str(),prop_name_fw.c_str(),revert);
       }
   }
   
@@ -717,19 +716,19 @@ namespace nissa
     
     //allocate all sides
     std::map<std::string,spin1field*> sides;
-
-    
+     //store source norm for all sides
+    std::map<std::string,double> normSides;
+   
     //loop over sides
     for(size_t iside=0;iside<handcuffs_side_map.size();iside++)
       {
-	  crash("check race");
 	//allocate
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
+        normSides.insert({side_name,Q[h.fw].ori_source_norm2*Q[h.bw].ori_source_norm2});
 	spin1field *si=sides[side_name]=nissa_malloc(side_name.c_str(),locVol.nastyConvert(),spin1field);
 	vector_reset(sides[side_name]);
-
-      
+	
 	//check r are the same (that is, opposite!)
 	if(twisted_run and (not loc_hadr_curr)) {
 	  if(Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
@@ -740,16 +739,15 @@ namespace nissa
 	dirac_matr g;
 	int ig=::abs(handcuffs_side_map[iside].igamma);
 	int revert=(handcuffs_side_map[iside].igamma>=0); //reverting only if positive ig asked
-	if(ig!=5 and !diluted_spi_source) crash("ig %d not available if not diluting in spin",ig);
+	if(ig!=5 and not diluted_spi_source) crash("ig %d not available if not diluting in spin",ig);
 	//dirac_prod(&g,base_gamma+5,base_gamma+ig);
 	g=base_gamma[ig];
-		
+	
 	//compute the matrix element
 	local_or_conserved_vector_current_mel(si,g,h.bw,h.fw,revert);
 	
 	//if(h.store) store_spin1field(combine("%s/handcuff_side_%s",outfolder,h.name.c_str()),si);
       }
-
     
     //add the photon
     for(size_t ihand=0;ihand<handcuffs_map.size();ihand++)
@@ -768,20 +766,30 @@ namespace nissa
       }
     
     //compute the hands
-    // NISSA_PARALLEL_LOOP(ihand,0, (int)handcuffs_map.size())
-    //   if(sides.find(handcuffs_map[ihand].left)==sides.end() or
-    // 	 sides.find(handcuffs_map[ihand].right)==sides.end())
-    // 	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
-    //   else
-    // 	{
-	  // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  //   for(int mu=0;mu<NDIM;mu++)
-	  //     complex_summ_the_prod(handcuffs_contr[ind_handcuffs_contr(ihand)],
-	  // 			    sides[handcuffs_map[ihand].left][ivol][mu],
-	  // 			    sides[handcuffs_map[ihand].right+"_photon"][ivol][mu]);
-	  // NISSA_PARALLEL_LOOP_END;
-    // 	}
-    // NISSA_PARALLEL_LOOP_END;
+    for(int ihand=0;ihand<handcuffs_map.size();ihand++)
+      if(sides.find(handcuffs_map[ihand].left)==sides.end() or
+	 sides.find(handcuffs_map[ihand].right)==sides.end())
+	crash("Unable to find sides: %s or %s",handcuffs_map[ihand].left.c_str(),handcuffs_map[ihand].right.c_str());
+      else
+	{
+	  const auto& left=sides[handcuffs_map[ihand].left];
+	  const auto& right=sides[handcuffs_map[ihand].right+"_photon"];
+	  
+	  vector_reset(loc_contr);
+	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	    for(int mu=0;mu<NDIM;mu++)
+	      complex_subt_the_prod(loc_contr[ivol.nastyConvert()],
+				    left[ivol.nastyConvert()][mu],
+				    right[ivol.nastyConvert()][mu]);
+	  NISSA_PARALLEL_LOOP_END;
+	  
+          double normalization=glbSpatVol()*144.0;
+          normalization/=sqrt((double)normSides[handcuffs_map[ihand].left]*normSides[handcuffs_map[ihand].right]);
+	  
+	  complex temp[1];
+	  glb_reduce(temp,loc_contr,locVol.nastyConvert());
+	  complex_summ_the_prod_double(handcuffs_contr[ind_handcuffs_contr(ihand)],temp[0],normalization);
+	}
     
     //free
     for(std::map<std::string,spin1field*>::iterator it=sides.begin();it!=sides.end();it++)
@@ -797,7 +805,9 @@ namespace nissa
   
   //free handcuff contractions
   void free_handcuffs_contr()
-  {nissa_free(handcuffs_contr);}
+  {
+    nissa_free(handcuffs_contr);
+  }
   
   //print handcuffs contractions
   void print_handcuffs_contr()
@@ -808,7 +818,7 @@ namespace nissa
     contr_print_time-=take_time();
     
     //Open if size different from zero
-    FILE *fout=NULL;
+    FILE *fout=nullptr;
     if(handcuffs_map.size()) fout=list.open(combine("%s/handcuffs",outfolder));
     
     for(size_t icombo=0;icombo<handcuffs_map.size();icombo++)

@@ -42,7 +42,9 @@ namespace nissa
     
     ape_pars_t() :
       nlevels(def_nlevels()),
-      alpha(def_alpha()) {}
+      alpha(def_alpha()) 
+    {
+    }
   };
   
   void ape_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,const Coords<bool>& dir=all_dirs,const Dir& min_staple_dir=tDir);

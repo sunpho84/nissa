@@ -20,7 +20,9 @@ namespace nissa
       int nWflow; //current Wflow in terms of the fundamental
       int units; //length of the Wflowing in units of the fundamental, for this level
       int off() //offset of the level
-      {return units/2;}
+      {
+         return units/2;
+      }
     };
     
     const Wflow_pars_t &Wflower;

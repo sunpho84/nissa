@@ -35,7 +35,7 @@ namespace nisssa
   /// Provides the method to cast to the featuring class
 #define PROVIDE_DEFEAT_METHOD(T)			\
   /*! Cast to the base type, with const attribute */	\
-  CUDA_HOST_DEVICE					\
+  CUDA_HOST_AND_DEVICE					\
   operator const T&() const				\
   {							\
     return						\
@@ -46,26 +46,26 @@ namespace nisssa
   /*!                       */						\
   /*! Cannot be achieved with the preprocessor macro, since */		\
   /*! the name of the method is weird */				\
-  CUDA_HOST_DEVICE							\
+  CUDA_HOST_AND_DEVICE							\
   constexpr operator T&()						\
   {									\
     return *static_cast<T*>(this);					\
   }									\
   									\
   /*! Cast to the featuring class */					\
-  CUDA_HOST_DEVICE							\
+  CUDA_HOST_AND_DEVICE							\
   constexpr const T& deFeat() const					\
   {									\
     return *this;							\
   }									\
   									\
-  PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(deFeat,CUDA_HOST_DEVICE)
+  PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(deFeat,CUDA_HOST_AND_DEVICE)
   
   /// Import method from the feature class
 #define IMPORT_FEATURE_METHOD(METHOD...)				\
   /*! Calls METHOD in the base class */					\
   template <typename...Args>						\
-  CUDA_HOST_DEVICE							\
+  CUDA_HOST_AND_DEVICE							\
   decltype(auto) METHOD(Args&&...args) const				\
   {									\
     return (*this)().METHOD(std::forward<Args>(args)...);		\

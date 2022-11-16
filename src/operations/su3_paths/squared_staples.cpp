@@ -19,7 +19,7 @@
 namespace nissa
 {
   //compute the staples along a particular dir, for a single site
-  CUDA_HOST_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,eo_ptr<quad_su3> eo_conf,const LocLxSite& A,const Dir& mu)
+  CUDA_HOST_AND_DEVICE void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,eo_ptr<quad_su3> eo_conf,const LocLxSite& A,const Dir& mu)
   {
     su3_put_to_zero(staple);
     

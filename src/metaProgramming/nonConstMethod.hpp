@@ -28,21 +28,21 @@ namespace nissa
   constexpr bool is_const_lvalue_reference_v=std::is_lvalue_reference<T>::value and std::is_const<std::remove_reference_t<T>>::value;
 
   template <typename T>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   T* remove_const_if_ref_or_pointer(const T* a)
   {
     return (T*)a;
   }
   
   template <typename T>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   decltype(auto) remove_const_if_ref_or_pointer(T&& a)
   {
     return a;
   }
   
   template <typename T>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   T& remove_const_if_ref_or_pointer(const T& a)
   {
     return (T&)a;
@@ -50,7 +50,7 @@ namespace nissa
   
   /// Returns the type without "const" attribute if it is a reference
   template <typename T>
-  INLINE_FUNCTION constexpr CUDA_HOST_DEVICE
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
   decltype(auto) remove_const_if_ref(T&& t)
   {
     using Tv=std::remove_const_t<std::remove_reference_t<T>>;

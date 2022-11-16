@@ -67,38 +67,38 @@ namespace nissa
     Tptr data[2];
     
     /// Constant access to data[i]
-    CUDA_HOST_DEVICE
+    CUDA_HOST_AND_DEVICE
     const Tptr& operator[](const Parity& i) const
     {
       return data[i()];
     }
     
     /// Non-Constant access to data[i]
-    CUDA_HOST_DEVICE
+    CUDA_HOST_AND_DEVICE
     Tptr& operator[](const Parity& i)
     {
       return data[i()];
     }
     
     /// Create from a pair of pointers
-    CUDA_HOST_DEVICE eo_ptr(Tptr a,Tptr b) :
+    CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) :
       data{a,b}
     {
     }
     
     /// Default creator
-    CUDA_HOST_DEVICE eo_ptr()
+    CUDA_HOST_AND_DEVICE eo_ptr()
     {
     }
     
     /// Check whether the two ptr are equals
-    CUDA_HOST_DEVICE bool operator==(const eo_ptr& oth) const
+    CUDA_HOST_AND_DEVICE bool operator==(const eo_ptr& oth) const
     {
       return oth[0]==data[0] and oth[1]==data[1];
     }
     
     /// Check whether the two ptr are different
-    CUDA_HOST_DEVICE bool operator!=(const eo_ptr& oth) const
+    CUDA_HOST_AND_DEVICE bool operator!=(const eo_ptr& oth) const
     {
       return not ((*this)==oth);
     }
@@ -116,24 +116,24 @@ namespace nissa
     Tptr data[2];
     
     /// Constant access to data[i]
-    CUDA_HOST_DEVICE
+    CUDA_HOST_AND_DEVICE
     const Tptr& operator[](const int i) const
     {
       return data[i];
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator[],CUDA_HOST_DEVICE);
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(operator[],CUDA_HOST_AND_DEVICE);
     
     /// Create from a pair of pointers
     template <typename...ITc>
-    CUDA_HOST_DEVICE EoTensor(const TensorCompFeat<ITc>&...tc)
+    CUDA_HOST_AND_DEVICE EoTensor(const TensorCompFeat<ITc>&...tc)
     {
       for(int eo=0;eo<2;eo++)
 	data[eo].allocate(tc.deFeat()...);
     }
     
     /// Default creator
-    CUDA_HOST_DEVICE EoTensor()
+    CUDA_HOST_AND_DEVICE EoTensor()
     {
     }
   };

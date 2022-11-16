@@ -1,23 +1,34 @@
 #ifdef HAVE_CONFIG_H
- #include <config.hpp>
+ #include "config.hpp"
 #endif
 
 #include <string.h>
 
-#include <base/DDalphaAMG_bridge.hpp>
-#include <base/quda_bridge.hpp>
-#include <base/tmLQCD_bridge.hpp>
-#include <base/vectors.hpp>
-#include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp>
-#include <dirac_operators/tmQ/dirac_operator_tmQ.hpp>
-#include <geometry/geometry_eo.hpp>
-#include <geometry/geometry_mix.hpp>
-#include <linalgs/linalgs.hpp>
-#include <routines/ios.hpp>
-#include <threads/threads.hpp>
+#ifdef USE_TMLQCD
+# include "base/tmLQCD_bridge.hpp"
+#endif
 
-#include <inverters/twisted_mass/cg_64_invert_tmD_eoprec.hpp>
-#include <inverters/twisted_mass/cg_128_invert_tmD_eoprec.hpp>
+# include "base/multiGridParams.hpp"
+
+#ifdef USE_QUDA
+# include "base/quda_bridge.hpp"
+#endif
+
+#ifdef USE_DDALPHAAMG
+# include "base/DDalphaAMG_bridge.hpp"
+#endif
+
+#include "base/vectors.hpp"
+#include "dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp"
+#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
+#include "geometry/geometry_eo.hpp"
+#include "geometry/geometry_mix.hpp"
+#include "linalgs/linalgs.hpp"
+#include "routines/ios.hpp"
+#include "threads/threads.hpp"
+
+#include "cg_64_invert_tmD_eoprec.hpp"
+#include "cg_128_invert_tmD_eoprec.hpp"
 
 namespace nissa
 {
@@ -124,25 +135,33 @@ namespace nissa
     /// Keep track of convergence
     bool solved=false;
     
-    if(checkIfQudaAvailableAndRequired() and not solved)
-      solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,mass,nitermax,residue,source_lx);
-    
-    if(checkIfDDalphaAvailableAndRequired(mass) and not solved)
+    if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
       {
 	const double cSW=0;
+	double call_time=take_time();
+#ifdef USE_QUDA
+	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
+#elif defined(USE_DDALPHAAMG)
 	solved=DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
+#else
+	crash("How possible!");
+#endif
+	master_printf("calling multigrid to solve took %lg s\n",take_time()-call_time);
       }
-    
+
+#ifdef USE_TMLQCD
     if(checkIfTmLQCDAvailableAndRequired() and not solved)
       crash("Not yet implemented");
-	
+#endif
+    
     if(not solved)
       inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);
     
     //check solution
+    double check_time=take_time();
     spincolor *residueVec=nissa_malloc("temp",locVol.nastyConvert(),spincolor);
     apply_tmQ(residueVec,conf_lx,kappa,mass,solution_lx);
-    safe_dirac_prod_spincolor(residueVec,base_gamma+5,residueVec);
+    safe_dirac_prod_spincolor(residueVec,base_gamma[5],residueVec);
     double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol.nastyConvert()*sizeof(spincolor)/sizeof(double));
     
     /// Source L2 norm
@@ -151,7 +170,7 @@ namespace nissa
     /// Residue L2 norm
     const double residueNorm2=double_vector_glb_norm2(residueVec,locVol.nastyConvert());
     
-    master_printf("check solution, residue: %lg, target one: %lg\n",residueNorm2/sourceNorm2,residue);
+    master_printf("check solution, residue: %lg, target one: %lg checked in %lg s\n",residueNorm2/sourceNorm2,residue,take_time()-check_time);
     
     nissa_free(residueVec);
   }

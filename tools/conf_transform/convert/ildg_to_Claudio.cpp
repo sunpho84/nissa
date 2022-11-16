@@ -35,7 +35,7 @@ int main(int narg,char **arg)
   init_nissa(narg,arg);
   
   if(nranks>1)
-    crash("cannot run in parallel");
+    crash("cannot run in parallel!");
   
   if(narg<7) crash("use: %s T LX LY LZ file_in file_out",arg[0]);
   

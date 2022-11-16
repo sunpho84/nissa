@@ -1,4 +1,4 @@
-#include "nissa.hpp"
+#include <nissa.hpp>
 
 using namespace nissa;
 

@@ -42,32 +42,7 @@ namespace nissa
       else crash("Unkwnown photon discretization: %s",photon_discrete_str);
     
     //compute the tadpole summing all momentum
-    compute_tadpole(tadpole,photon);
-  }
-  
-  //meson tags
-  const int nmes2pts_known=20;
-  enum mes2pts_known_t                      { P5P5 , GIP5 , P5GI , V0V0 , AKAK , VKVK , VKTK , TKVK , TKTK , BKBK , GIS0 , S0GI , V0P5 , VKP5 , S0S0 , A0A0 , AKBK , BKAK , V0S0 , S0V0};
-  const char mes2pts_tag[nmes2pts_known][5]={"P5P5","GIP5","P5GI","V0V0","AKAK","VKVK","VKTK","TKVK","TKTK","BKBK","GIS0","S0GI","V0P5","VKP5","S0S0","A0A0","AKBK","BKAK","V0S0","S0V0"};
-  mes2pts_known_t read_2pts_tag()
-  {
-    //read the tag
-    char tag[10];
-    read_str(tag,10);
-    
-    //convert to int
-    int out=0;
-    while(strcasecmp(tag,mes2pts_tag[out]) and out<nmes2pts_known) out++;
-    
-    //check out
-    if(out==nmes2pts_known)
-      {
-	master_fprintf(stderr,"Erorr, unkwnown tag %s, use one in this list:\n",tag);
-	for(int i=0;i<nmes2pts_known;i++) master_fprintf(stderr," %s\n",mes2pts_tag[i]);
-	crash("See previous message");
-      }
-    
-    return (mes2pts_known_t)out;
+    tadpole=compute_tadpole(photon);
   }
   
   //read the list of mesons in terms of quarks
@@ -91,6 +66,80 @@ namespace nissa
     if(nmes2pts_contr) read_mes2pts_contr_gamma_list();
   }
   
+  /// List of gamma used for source or sink
+  struct LocBilinear
+  {
+    /// Covnerted list
+    const std::vector<int> list;
+    
+    /// Letter to identify
+    const char letter;
+    
+    /// Convert to int a char
+    static int CliffOfChar(const char& g)
+    {
+      static constexpr char CliffMap[8]=
+	"SVPATBG";
+      
+      for(int i=0;i<7;i++)
+	if(CliffMap[i]==g)
+	  return
+	    i;
+      
+      crash("Cannot convert gamma: %c",g);
+      
+      return
+	{};
+    }
+    
+  static std::vector<int> getList(const char& g,
+				  const char& letter)
+    {
+      static const std::vector<int> numeric[7]={
+	{0},
+	{4,1,2,3},
+	{5},
+	{9,6,7,8},
+	{10,11,12},
+	{13,14,15},
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
+      
+      static const std::vector<int> literal[7]={
+	{0},
+	{1,2,3},
+	{5},
+	{6,7,8},
+	{10,11,12},
+	{13,14,15},
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}};
+      
+      constexpr static bool ignoreLetter[7]=
+		  {1,0,1,0,0,0,1};
+      
+      const int c=
+	CliffOfChar(g);
+      
+      if(ignoreLetter[c] or not isdigit(letter))
+	return
+	  literal[c];
+      
+      const int i=
+	letter-'0';
+    
+      if(i<0 or i>=4)
+	crash("Error, letter %c converts to int %d not in range [0:3]",letter,i);
+      
+      return
+	{numeric[c][i]};
+    }
+  
+  LocBilinear(const char& g,
+	    const char& letter)
+    : list(getList(g,letter)),letter(letter)
+    {
+    }
+  };
+  
   //read the list of meson contraction asked
   void read_mes2pts_contr_gamma_list()
   {
@@ -98,29 +147,26 @@ namespace nissa
     read_str_int("NGammaContr",&nmes_gamma_contr);
     for(int i=0;i<nmes_gamma_contr;i++)
       {
-	switch(read_2pts_tag())
+	char tag[128];
+	read_str(tag,128);
+	
+	if(strlen(tag)!=4)
+	  crash("Error, string length %lu different from 4",strlen(tag));
+	
+	LocBilinear sink(tag[0],tag[1]);
+	LocBilinear source(tag[2],tag[3]);
+	
+	if(source.letter!=sink.letter)
+	  for(const int& iSink : sink.list)
+	    for(const int& iSource : source.list)
+	    mes_gamma_list.push_back({iSink,iSource});
+	else
 	  {
-	  case P5P5: mes_gamma_list.push_back(idirac_pair_t(5,5));                                 break;
-	  case P5GI: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(5,ig));       break;
-	  case GIP5: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,5));       break;
-	  case S0GI: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(0,ig));       break;
-	  case GIS0: for(int ig=0;ig<16;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,0));       break;
-	  case V0V0: mes_gamma_list.push_back(idirac_pair_t(4,4));                                 break;
-	  case AKAK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+5,mu+5));  break;
-	  case VKVK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,mu));      break;
-	  case VKTK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,mu+9));    break;
-	  case TKVK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+9,mu));    break;
-	  case TKTK: for(int ig=10;ig<=12;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,ig));    break;
-	  case BKBK: for(int ig=13;ig<=15;ig++) mes_gamma_list.push_back(idirac_pair_t(ig,ig));    break;
-	  case V0P5: mes_gamma_list.push_back(idirac_pair_t(4,5));                                 break;
-	  case VKP5: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu,5));       break;
-	  case S0S0: mes_gamma_list.push_back(idirac_pair_t(0,0));                                 break;
-	  case A0A0: mes_gamma_list.push_back(idirac_pair_t(9,9));                                 break;
-	  case AKBK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+5,mu+12)); break;
-	  case BKAK: for(int mu=1;mu<=3;mu++) mes_gamma_list.push_back(idirac_pair_t(mu+12,mu+5)); break;
-	  case S0V0: mes_gamma_list.push_back(idirac_pair_t(0,4));                                 break;
-	  case V0S0: mes_gamma_list.push_back(idirac_pair_t(4,0));                                 break;
-	  default: crash("unknown meson_contr");
+	    if(source.list.size()!=sink.list.size())
+	      crash("Error, sizes of source %lu does not agree with size of sink %lu",source.list.size(),sink.list.size());
+	  
+	  for(size_t i=0;i<source.list.size();i++)
+	    mes_gamma_list.push_back({sink.list[i],source.list[i]});
 	  }
       }
   }

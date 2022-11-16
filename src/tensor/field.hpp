@@ -65,7 +65,7 @@ namespace nissa
       EXPR_FLAG_MASKS::STORE_BY_REF;
     
     // /// Dynamic sizes
-    // CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    // CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     // decltype(auto) getDynamicSizes() const
     // {
     //   return
@@ -117,7 +117,7 @@ namespace nissa
 #define DECLARE_EVAL(ATTRIB)						\
     /*! Evaluate, returning a reference to the fundamental type */	\
     template <typename...TCs>						\
-    CUDA_HOST_DEVICE INLINE_FUNCTION					\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION					\
     decltype(auto) eval(const TCs&...tcs) ATTRIB			\
     {									\
       return								\

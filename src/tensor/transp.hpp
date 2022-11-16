@@ -53,7 +53,7 @@ namespace nissa
 #define DECLARE_EVAL(ATTRIB)				\
     /*! Evaluate */					\
     template <typename...TD>				\
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr		\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr		\
     decltype(auto) eval(const TD&...td) ATTRIB		\
     {							\
       return						\

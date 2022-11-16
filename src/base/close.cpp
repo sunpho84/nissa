@@ -24,7 +24,7 @@
 #endif
 
 #ifdef USE_QUDA
- #include <base/quda_bridge.hpp>
+# include <base/quda_bridge.hpp>
 #endif
 
 namespace nissa

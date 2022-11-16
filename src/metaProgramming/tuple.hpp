@@ -494,7 +494,7 @@ namespace nissa
   template <typename TP,
 	    typename F,
 	    size_t...Is>
-  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   void _execForAllTupleTypes(F&& f,
 			     std::index_sequence<Is...>)
   {
@@ -517,7 +517,7 @@ namespace nissa
   template <typename TP,
 	    typename F,
 	    size_t...Is>
-  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   void _execForAllTupleIds(F&& f,
 			   std::index_sequence<Is...>)
   {

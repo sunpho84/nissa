@@ -62,7 +62,7 @@ namespace nissa
   ////////////////////////////////////////////// twisted propagator in momentum space ////////////////////////////////////////////
   
   //return sin(p), \sum sin(p)^2, \sum sin(p/2)^2
-  CUDA_HOST_DEVICE void get_component_of_twisted_propagator_of_imom(Momentum& sin_mom,double &sin2_mom,double &sin2_momh,const tm_quark_info& qu,const LocLxSite& imom)
+  CUDA_HOST_AND_DEVICE void get_component_of_twisted_propagator_of_imom(Momentum& sin_mom,double &sin2_mom,double &sin2_momh,const tm_quark_info& qu,const LocLxSite& imom)
   {
     sin2_mom=sin2_momh=0;
     FOR_ALL_DIRS(mu)
@@ -94,12 +94,12 @@ namespace nissa
     //fill the pieces
     spinspin_put_to_diag(out,c0[base]);
     FOR_ALL_DIRS(mu)
-      spinspin_dirac_summ_the_prod_idouble(out,base_gamma+igamma_of_mu(mu).nastyConvert(),sin_mom(mu));
-    spinspin_dirac_summ_the_prod_idouble(out,&base_gamma[5],c5[base]);
+      spinspin_dirac_summ_the_prod_idouble(out,base_gamma[igamma_of_mu(mu).nastyConvert()],sin_mom(mu));
+    spinspin_dirac_summ_the_prod_idouble(out,base_gamma[5],c5[base]);
   }
   
   //single momentum - normalisation is such that D*S=1/vol
-  CUDA_HOST_DEVICE void mom_space_twisted_propagator_of_imom(spinspin prop,const tm_quark_info& qu,const LocLxSite& imom,const tm_basis_t& base)
+  CUDA_HOST_AND_DEVICE void mom_space_twisted_propagator_of_imom(spinspin prop,const tm_quark_info& qu,const LocLxSite& imom,const tm_basis_t& base)
   {
     //takes the momenta part
     Momentum sin_mom;
@@ -149,10 +149,10 @@ namespace nissa
 	c5[MAX_TWIST_BASE]=M*tau3[qu.r];
 	c5[WILSON_BASE]=-qu.mass*tau3[qu.r];
 	
-	spinspin_dirac_summ_the_prod_double(prop,&base_gamma[0],c0[base]*rep_den);
+	spinspin_dirac_summ_the_prod_double(prop,base_gamma[0],c0[base]*rep_den);
 	FOR_ALL_SPATIAL_DIRS(mu)
-	  spinspin_dirac_summ_the_prod_idouble(prop,base_gamma+igamma_of_mu(mu).nastyConvert(),-sin_mom(mu)*rep_den);
-	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[5],c5[base]*rep_den);
+	  spinspin_dirac_summ_the_prod_idouble(prop,base_gamma[igamma_of_mu(mu).nastyConvert()],-sin_mom(mu)*rep_den);
+	spinspin_dirac_summ_the_prod_idouble(prop,base_gamma[5],c5[base]*rep_den);
       }
   }
   
@@ -177,7 +177,6 @@ namespace nissa
 	sin2_mom+=sqr(sin_mom(mu));
 	sin2_momh+=sqr(sin(p/2));
       }
-    
     const double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
     
     double c0[2];
@@ -190,10 +189,10 @@ namespace nissa
     
     spinspin_put_to_diag(proj,c0[base]);
     int se[2]={-1,+1},sp[2]={+1,-1},s5[2]={-1,+1}; //we put here implicitly the difference of g5 with Nazario
-    spinspin_dirac_summ_the_prod_double(proj,base_gamma+igamma_of_mu(tDir).nastyConvert(),se[tilded]*sinh(e));
+    spinspin_dirac_summ_the_prod_double(proj,base_gamma[igamma_of_mu(tDir).nastyConvert()],se[tilded]*sinh(e));
     FOR_ALL_SPATIAL_DIRS(mu)
-      spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+igamma_of_mu(mu).nastyConvert(),sp[tilded]*sin_mom(mu));
-    spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+5,s5[tilded]*c5[base]);
+      spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[igamma_of_mu(mu).nastyConvert()],sp[tilded]*sin_mom(mu));
+    spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[5],s5[tilded]*c5[base]);
     
     return abse;
   }
@@ -206,11 +205,11 @@ namespace nissa
     double abse=naive_massless_quark_energy(bc,imom);
     double e=esign*abse;
     
-    spinspin_dirac_prod_double(proj,base_gamma+igamma_of_mu(tDir).nastyConvert(),-sinh(e));
+    spinspin_dirac_prod_double(proj,base_gamma[igamma_of_mu(tDir).nastyConvert()],-sinh(e));
     GlbCoords c;
     glb_coord_of_glblx(c,imom);
     FOR_ALL_SPATIAL_DIRS(mu)
-      spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+igamma_of_mu(mu).nastyConvert(),sin(M_PI*(2*c(mu)()+bc(mu))/glbSize(mu)()));
+      spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[igamma_of_mu(mu).nastyConvert()],sin(M_PI*(2*c(mu)()+bc(mu))/glbSize(mu)()));
     
     return abse;
   }
@@ -236,7 +235,7 @@ namespace nissa
     unsafe_spinspin_prod_spin(wf,osp,ompg0_eig[!par_apar][s]);
     spin_prodassign_double(wf,1/sqrt(qu.mass+sinh(e)));
     int ig[2]={0,igamma_of_mu(tDir).nastyConvert()};
-    safe_dirac_prod_spin(wf,base_gamma+ig[par_apar],wf);
+    safe_dirac_prod_spin(wf,base_gamma[ig[par_apar]],wf);
   }
   
   //same for naive massless fermions

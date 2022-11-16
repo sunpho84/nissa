@@ -78,6 +78,7 @@ namespace nissa
   {
     double energy;
     average_gauge_energy(&energy,conf);
+    
     return energy;
   }
   void ac_rotate_vector(void *out,void *in,int axis,size_t bps);

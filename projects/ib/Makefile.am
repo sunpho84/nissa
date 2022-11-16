@@ -3,6 +3,8 @@ bin_PROGRAMS+= \
 	$(top_builddir)/bin/testNewExpr \
 	$(top_builddir)/bin/disco
 
+#	$(top_builddir)/bin/checks
+
 # $(top_builddir)/bin/checks_ib
 # $(top_builddir)/bin/EU3_source
 # 	$(top_builddir)/bin/disco3
@@ -32,9 +34,17 @@ assembly_reports+=\
 assembly_reports+=\
 	%D%/conf.s
 
- # __top_builddir__bin_checks_ib_SOURCES=%D%/checks.cpp
- # __top_builddir__bin_checks_ib_LDADD=$(LDADD)
- # __top_builddir__bin_checks_ib_LDFLAGS=$(LDFLAGS)
+# if USE_QUDA
+# bin_PROGRAMS+= \
+# 	$(top_builddir)/bin/test_quda
+#  __top_builddir__bin_test_quda_SOURCES=%D%/test_quda.cpp
+#  __top_builddir__bin_test_quda_LDADD=$(LDADD)
+#  __top_builddir__bin_test_quda_LDFLAGS=$(LDFLAGS)
+# endif
+#
+# __top_builddir__bin_checks_SOURCES=%D%/checks.cpp
+# __top_builddir__bin_checks_LDADD=$(LDADD)
+# __top_builddir__bin_checks_LDFLAGS=$(LDFLAGS)
 
 __top_builddir__bin_ib_SOURCES=%D%/ib.cpp $(common_sources)
 __top_builddir__bin_ib_LDADD=$(LDADD)

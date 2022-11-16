@@ -155,7 +155,6 @@ namespace nissa
     else master_printf("System endianness: big (BG, etc)\n");
     
     //set scidac mapping
-    scidac_mapping(tDir)=0;
     FOR_ALL_DIRS(mu)
       scidac_mapping(mu)=((NDIM-mu)%NDIM);
     
@@ -263,8 +262,8 @@ namespace nissa
     //setup the high precision
     init_high_precision();
     
-#ifdef USE_DDALPHAAMG
-    DD::read_DDalphaAMG_pars();
+#if defined USE_DDALPHAAMG or USE_QUDA
+    read_DDalphaAMG_pars();
 #endif
     
     //initialize the base of the gamma matrices

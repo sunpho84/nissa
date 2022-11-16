@@ -5,6 +5,13 @@
  #include "config.hpp"
 #endif
 
+#ifndef EXTERN_DEBUG
+ #define EXTERN_DEBUG extern
+ #define INIT_DEBUG_TO(var)
+#else
+ #define INIT_DEBUG_TO(var) =var
+#endif
+
 #ifdef USE_CUDA
  #include <cuda_runtime.h>
 #endif
@@ -28,6 +35,8 @@
 
 namespace nissa
 {
+  EXTERN_DEBUG int check_inversion_residue INIT_DEBUG_TO(0);
+  
   void debug_loop();
   void check_128_bit_prec();
   void internal_crash(int line,const char *file,const char *templ,...);
@@ -40,5 +49,9 @@ namespace nissa
   void signal_handler(int);
   double take_time();
 }
+
+
+#undef EXTERN_DEBUG
+#undef INIT_DEBUG_TO
 
 #endif

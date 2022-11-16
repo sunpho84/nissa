@@ -18,7 +18,7 @@ namespace nissa
 	      typename...DC,
 	      typename F,
 	      typename...Lc>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     void _loopOnAllComponents(const TensorComps<Hc,Tc...>* comps,
 			      const TensorComps<DC...>& dynamicSizes,
 			      F&& f,
@@ -27,7 +27,7 @@ namespace nissa
     template <typename...DC,
 	      typename F,
 	      typename...Lc>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     void _loopOnAllComponents(const TensorComps<>*,
 			      const TensorComps<DC...>& dynamicSizes,
 			      F&& f,
@@ -64,7 +64,7 @@ namespace nissa
 	      typename...DC,
 	      typename F,
 	      typename...Lc>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     void _loopOnAllComponents(_LoopUnrollStrategy::Dynamic,
 			      const TensorComps<Hc,Tc...>* comps,
 			      const TensorComps<DC...>& dynamicSizes,
@@ -84,7 +84,7 @@ namespace nissa
 	      typename...DC,
 	      typename F,
 	      typename...Lc>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     void _loopOnAllComponents(_LoopUnrollStrategy::StaticDontUnroll,
 			      const TensorComps<Hc,Tc...>* comps,
 			      const TensorComps<DC...>& dynamicSizes,
@@ -104,7 +104,7 @@ namespace nissa
 	      typename...DC,
 	      typename F,
 	      typename...Lc>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     void _loopOnAllComponents(_LoopUnrollStrategy::StaticUnroll,
 			      const TensorComps<Hc,Tc...>* comps,
 			      const TensorComps<DC...>& dynamicSizes,
@@ -125,7 +125,7 @@ namespace nissa
 	      typename...DC,
 	      typename F,
 	      typename...Lc>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     void _loopOnAllComponents(const TensorComps<Hc,Tc...>* comps,
 			      const TensorComps<DC...>& dynamicSizes,
 			      F&& f,
@@ -142,7 +142,7 @@ namespace nissa
     template <typename...DC,
 	      typename F,
 	      typename...Lc>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     void _loopOnAllComponents(const TensorComps<>*,
 			      const TensorComps<DC...>& dynamicSizes,
 			      F&& f,
@@ -156,7 +156,7 @@ namespace nissa
   template <typename TC,
 	    typename...DC,
 	    typename F>
-  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   void loopOnAllComponents(const TensorComps<DC...>& dynamicSizes,
 			   F&& f)
   {

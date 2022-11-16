@@ -60,8 +60,8 @@ namespace nissa
   ///////////////////////////////////////// handcuffs contractions ///////////////////////////////////////////////////////
   
   void vector_current_mel(spin1field *si,dirac_matr *ext_g,int r,const char *id_Qbw,const char *id_Qfw,bool revert);
-  void conserved_vector_current_mel(quad_su3 *conf,spin1field *si,dirac_matr *ext_g,int r,const char *id_Qbw,const char *id_Qfw,bool revert);
-  void local_or_conserved_vector_current_mel(spin1field *si,dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert);
+  void conserved_vector_current_mel(quad_su3 *conf,spin1field *si,const dirac_matr& ext_g,int r,const char *id_Qbw,const char *id_Qfw,bool revert);
+  void local_or_conserved_vector_current_mel(spin1field *si,const dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert);
   
   struct handcuffs_side_map_t
   {

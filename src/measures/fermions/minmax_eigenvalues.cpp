@@ -28,7 +28,7 @@ namespace nissa
       NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	{
 	  spincolor t;
-	  unsafe_dirac_prod_spincolor(t,base_gamma+igamma,x[ivol.nastyConvert()]);
+	  unsafe_dirac_prod_spincolor(t,base_gamma[igamma],x[ivol.nastyConvert()]);
 	  spincolor_scalar_prod(buffer[ivol.nastyConvert()],x[ivol.nastyConvert()],t);
 	}
       NISSA_PARALLEL_LOOP_END;

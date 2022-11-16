@@ -186,7 +186,7 @@ namespace nissa
     DynamicComps dynamicSizes;
     
     /// Dynamic sizes
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) getDynamicSizes() const
     {
       return
@@ -200,7 +200,7 @@ namespace nissa
     /// Evaluate the I-th argument, expanding the tuple containing the arguments into a list
     template <typename...Comps,
 	      typename Arg>
-    static CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    static CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) _evalArgFiltered(const TensorComps<Comps...> comps,
 				       Arg&& arg)
     {
@@ -213,7 +213,7 @@ namespace nissa
 	      typename NonContractedComps,
 	      typename ContractedCompsToPassToArg,
 	      typename Arg>
-    static CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    static CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) _evalArgAfterFiltering(const NonContractedComps& nonContractedComps,
 			    const ContractedCompsToPassToArg contractedCompsToPassToArg,
 			    Arg&& arg)
@@ -228,7 +228,7 @@ namespace nissa
     /// components, if it is the second, we need not
     template <size_t I,
 	      typename...ContractedComps>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     static auto getContractedCompsForArg(const ContractedComps...contractedComps)
     {
       if constexpr(I==0)
@@ -243,7 +243,7 @@ namespace nissa
     template <size_t I,
 	      typename NonContractedComps,
 	      typename...ContractedComps>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) _evalArg(const NonContractedComps& nonContractedComps,
 			    const ContractedComps...contractedComps) const
     {
@@ -275,7 +275,7 @@ namespace nissa
     
     /// Evaluate for non complex expressions
     template <typename...NCCs>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     EvalTo _eval(typename _EvalStrategy::NonComplProd,
 		 const NCCs&...nCCs) const
     {
@@ -308,7 +308,7 @@ namespace nissa
 	      size_t ComplPos,     // Position of complex id
 	      size_t...TailPos,    // Positions after complex id
 	      typename NCCs>       // Non contracted comps
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     auto _getNonContractedCompsForComplProdPart(std::index_sequence<HeadPos...>,
 						std::index_sequence<ComplPos>,
 						std::index_sequence<TailPos...>,
@@ -321,7 +321,7 @@ namespace nissa
     
     /// Replace the complex index in the list with the passed one
     template <typename NCCs>      // Non contracted comps
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     auto _getNonContractedCompsForComplProdPart(const ComplId& cId,
 						const NCCs& nCCs) const
     {
@@ -340,7 +340,7 @@ namespace nissa
     /// Evaluate for complex expressions, dispatching the components to real and imaginary part
     template <typename NCCs,     // Non contracted comps
 	      typename...CCs>      // Contracted comps
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     EvalTo _evalComplProd(const NCCs& nCCs,
 			  const CCs&...cCs) const
     {
@@ -386,7 +386,7 @@ namespace nissa
     
     /// Evaluate for complex expressions
     template <typename...NCCs>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     EvalTo _eval(typename _EvalStrategy::ComplProd,
 		 const NCCs&...nCCs) const
     {
@@ -407,7 +407,7 @@ namespace nissa
     
     /// Evaluate dispatching the correct strategy
     template <typename...TD>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     EvalTo eval(const TD&...td) const
     {
       return

@@ -10,7 +10,7 @@ namespace nissa
   
 #define DEFINE_LOC_REDUCE_OF(TYPE)					\
   /*! Reduce a vector of */						\
-  void loc_reduce(TYPE* loc_res,TYPE* buf,int64_t n,int nslices) \
+  void loc_reduce(TYPE* loc_res,TYPE* buf,int64_t n,int nslices)	\
   {									\
 									\
     if(n%nslices)							\
@@ -18,13 +18,14 @@ namespace nissa
 									\
     const int64_t nori_per_slice=n/nslices;				\
     int64_t nper_slice=n/nslices;					\
+    verbosity_lv2_master_printf("n: %lld, nslices: %d, nori_per_slice: %lld nper_slice: %ld\n",nslices,nori_per_slice,nper_slice); \
 									\
     while(nper_slice>1)							\
       {									\
 	const int64_t stride=(nper_slice+1)/2;				\
 	const int64_t nreductions_per_slice=nper_slice/2;		\
 	const int64_t nreductions=nreductions_per_slice*nslices;	\
-									\
+	verbosity_lv3_master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld\n",nper_slice,stride,nreductions_per_slice,nreductions); \
 	NISSA_PARALLEL_LOOP(ireduction,0,nreductions)			\
 	  {								\
 	    const int64_t islice=ireduction%nslices;			\
@@ -47,24 +48,28 @@ namespace nissa
   namespace
   {
     /// Implement oth=first
+    CUDA_HOST_AND_DEVICE
     inline void int64_t_copy(int64_t& oth,const int64_t& first)
     {
       oth=first;
     }
     
     /// Implement oth+=first
+    CUDA_HOST_AND_DEVICE
     inline void int64_t_summassign(int64_t& oth,const int64_t& first)
     {
       oth+=first;
     }
     
     /// Implement oth=first
+    CUDA_HOST_AND_DEVICE
     inline void double_copy(double& oth,const double& first)
     {
       oth=first;
     }
     
     /// Implements oth+=first
+    CUDA_HOST_AND_DEVICE
     inline void double_summassign(double& oth,const double& first)
     {
       oth+=first;

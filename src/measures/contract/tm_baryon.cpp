@@ -13,12 +13,9 @@ namespace nissa
   /// Compute G*gammaX
   dirac_matr get_CgX(const int X)
   {
-    dirac_matr CgX;
-    
-    dirac_matr g2g4,C;
-    dirac_prod(&g2g4,base_gamma+2,base_gamma+4);
-    dirac_prod_idouble(&C,&g2g4,1);
-    dirac_prod(&CgX,&C,base_gamma+X);
+    const dirac_matr g2g4=base_gamma[2]*base_gamma[4];
+    const dirac_matr C=dirac_prod_idouble(g2g4,1.0);
+    const dirac_matr CgX=dirac_prod(C,base_gamma[X]);
     
     return CgX;
   }
@@ -51,7 +48,7 @@ namespace nissa
     //include the sign of g0 Cg^\dagger g0.
     const auto& g=base_gamma;
     
-    const dirac_matr Cg_so=herm(g[4]*get_CgX(igSo)*g[4]);
+    const dirac_matr Cg_so=dirac_herm(g[4]*get_CgX(igSo)*g[4]);
     const dirac_matr Cg_si=get_CgX(igSi);
     
     //Precompute the factor to be added
@@ -67,6 +64,12 @@ namespace nissa
     complex *loc_contr=get_reducing_buffer<complex>(locVol()*nIdg0*nWicks);
     vector_reset(loc_contr);
     
+    //Compute the projector, gi*gj*(1 or g0)
+    dirac_matr proj[nIdg0];
+    const int g_of_id_g0[nIdg0]={0,4};
+    for(int idg0=0;idg0<nIdg0;idg0++)
+      proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
+    
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	/// Distance from source
@@ -74,12 +77,6 @@ namespace nissa
 	
 	/// Determine whether we are in the first half
 	const bool first_half=(dt<=glbSize(tDir)/2);
-	
-	//Compute the projector, gi*gj*(1 or g0)
-	dirac_matr proj[nIdg0];
-	const int g_of_id_g0[nIdg0]={0,4};
-	for(int idg0=0;idg0<nIdg0;idg0++)
-	  proj[idg0]=g[igSi]*g[igSo]*g[g_of_id_g0[idg0]];
 	
 	//Takes a slice
 	su3spinspin p[3];

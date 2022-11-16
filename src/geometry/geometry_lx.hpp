@@ -54,6 +54,27 @@ namespace nissa
   DECLARE_COMPONENT(EdgeLxSite,int64_t,DYNAMIC);
   
   DECLARE_COMPONENT(BulkLxSite,int64_t,DYNAMIC);
+
+  template <typename T,
+	    size_t N>
+  struct my_array
+  {
+    T data[N];
+    
+    CUDA_HOST_AND_DEVICE inline T& operator[](const size_t i)
+    {
+      return data[i];
+    }
+    
+    CUDA_HOST_AND_DEVICE const inline T& operator[](const size_t i) const 
+    {
+      return data[i];
+    }
+  };
+  
+  // typedef my_array<bool,NDIM> which_dir_t;
+  // typedef my_array<int,NDIM> coords_t;
+  // typedef my_array<double,NDIM> momentum_t;
   
   //nomenclature:
   //-glb is relative to the global grid
@@ -166,7 +187,7 @@ namespace nissa
   /// Neighbours in the forwkward direction
   CUDA_MANAGED EXTERN_GEOMETRY_LX LookupTable<OfComps<LocLxSite,Dir>,LocLxSite> loclxNeighup INIT_GEOMETRY_LX({});
   
-  INLINE_FUNCTION CUDA_HOST_DEVICE
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
   const LookupTable<OfComps<LocLxSite,Dir>,LocLxSite>& loclxNeigh(const Orientation& ori) //nasty
   {
     const LookupTable<OfComps<LocLxSite,Dir>,LocLxSite>* ref[2]={&loclxNeighdw,&loclxNeighup};
@@ -221,6 +242,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX Coords<bool> all_other_dirs[NDIM];
   EXTERN_GEOMETRY_LX Coords<bool> all_other_spat_dirs[NDIM];
   
+  EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;
 #if NDIM >= 2
   CUDA_MANAGED EXTERN_GEOMETRY_LX int perp_dir[NDIM][NDIM-1];
 #endif
@@ -254,10 +276,10 @@ namespace nissa
   }
   
   /// Return the staggered phases for a given site
-  CUDA_HOST_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol);
+  CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol);
   
   /// Return the staggered phases for a given site
-  CUDA_HOST_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,const Dir& mu);
+  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,const Dir& mu);
   
   /// Return the index of site of coord x in the 3d space obtained projecting away mu
   LocLxSite spatLxOfProjectedCoords(const LocCoords& x,const Dir& mu);
@@ -290,7 +312,7 @@ namespace nissa
   
   /// Return the index of site of coord x in a box of sides s
   template <typename LxSite>
-  CUDA_HOST_DEVICE constexpr
+  CUDA_HOST_AND_DEVICE constexpr
   LxSite lx_of_coord(const Coords<LxSite>& x,const Coords<LxSite>& s)
   {
     LxSite ilx=0;
@@ -322,7 +344,7 @@ namespace nissa
     return glblx_of_coord(c);
   }
   
-  CUDA_HOST_DEVICE LocLxSite loclx_of_coord(const LocCoords& x);
+  CUDA_HOST_AND_DEVICE LocLxSite loclx_of_coord(const LocCoords& x);
   
   inline LocLxSite loclx_of_coord_list(const LocCoord& x0,const LocCoord& x1,const LocCoord& x2,const LocCoord& x3)
   {
@@ -358,7 +380,7 @@ namespace nissa
   GlbLxSite get_glblx_of_rank_and_loclx(const int irank,const LocLxSite& loclx);
   
   /// Given a global lx site, returns its coordinates
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void glb_coord_of_glblx(GlbCoords& x,GlbLxSite /*Don't make it const reference*/ glbLx)
   {
     for(Dir mu=NDIM-1;mu>=0;mu--)
@@ -369,7 +391,7 @@ namespace nissa
   }
   
   /// Given a global lx site, returns the local coordinates and the rank hosting it
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void get_loclx_and_rank_of_glblx(LocLxSite& ivol,Rank& rank,const GlbLxSite& g)
   {
     GlbCoords c;
@@ -396,6 +418,66 @@ namespace nissa
     FOR_ALL_DIRS(mu)
       cmir(mu)=get_mirrorized_site_coord(c(mu),mu,get_bit(imir,mu()));
   }
+  
+  CUDA_HOST_AND_DEVICE void get_stagphase_of_lx(Coords<int>& ph,const LocLxSite& ivol);
+  CUDA_HOST_AND_DEVICE int get_stagphase_of_lx(const LocLxSite& ivol,const Dir& mu);
+  
+#warning remove
+  // int bordlx_of_coord(const coords_t& x,const int& mu);
+  // int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
+  // coords_t coord_of_lx(int ilx,const coords_t s);
+  // coords_t coord_of_rank(const int& irank);
+  
+  // inline coords_t coord_summ(const coords_t& a1,const coords_t& a2,const coords_t& l)
+  // {
+  //   coords_t s;
+    
+  //   for(int mu=0;mu<NDIM;mu++) s[mu]=(a1[mu]+a2[mu])%l[mu];
+    
+  //   return s;
+  // }
+  
+  // inline void coord_summassign(coords_t& s,const coords_t& a,const coords_t& l)
+  // {
+  //   s=coord_summ(s,a,l);
+  // }
+  
+  // int edgelx_of_coord(const coords_t& x,const int& mu,const int& nu);
+  // int full_lx_of_coords_list(const int t,const int x,const int y,const int z);
+  // int glblx_neighdw(const int& gx,const int& mu);
+  // int glblx_neighup(const int& gx,const int& mu);
+  // int glblx_of_comb(int b,int wb,int c,int wc);
+  // int glblx_of_coord(const coords_t& x);
+  // int glblx_of_coord_list(int x0,int x1,int x2,int x3);
+  // int glblx_of_diff(const int& b,const int& c);
+  // int glblx_of_summ(const int& b,const int& c);
+  // int glblx_opp(const int& b);
+  // CUDA_HOST_AND_DEVICE int loclx_of_coord(const coords_t& x);
+  
+  // inline int loclx_of_coord_list(int x0,int x1,int x2,int x3)
+  // {
+  //   const coords_t c={x0,x1,x2,x3};
+  //   return loclx_of_coord(c);
+  // }
+  
+  // CUDA_HOST_AND_DEVICE int lx_of_coord(const coords_t& x,const coords_t& s);
+  // int vol_of_lx(const coords_t& size);
+  // int rank_hosting_glblx(const int& gx);
+  // int rank_hosting_site_of_coord(const coords_t& x);
+  // int rank_of_coord(const coords_t& x);
+  // void get_loclx_and_rank_of_coord(int& ivol,int& rank,const coords_t& g);
+  // void get_loclx_and_rank_of_glblx(int& lx,int& rx,const int& gx);
+  // coords_t glb_coord_of_glblx(int gx);
+  // void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
+  // void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base);
+  // coords_t rank_coord_of_site_of_coord(const coords_t& glb_coord);
+  // void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
+  // void set_lx_geometry();
+  // void unset_lx_geometry();
+  // coords_t get_mirrorized_site_coords(const coords_t& c,const int& imir);
+  // coords_t red_coords_of_hypercubic_red_point(int hyp_red);
+  // coords_t lx_coords_of_hypercube_vertex(int hyp_cube);
+  // int hypercubic_red_point_of_red_coords(const coords_t& h);
 }
 
 #undef EXTERN_GEOMETRY_LX

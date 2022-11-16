@@ -33,8 +33,7 @@ namespace nissa
     
     using namespace Eigen;
     
-    if(nranks>1 or thread_pool_locked==false)
-      crash("Cannot work in parallel");
+    MANDATORY_NOT_PARALLEL;
     
     ComplexEigenSolver<MatrixXcd> solver;
     

@@ -11,7 +11,7 @@ namespace nissa
   {
 #define PROVIDE_CRTP(ATTRIB)			\
     /*! Crtp access the type */			\
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr	\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr	\
     ATTRIB T& crtp() ATTRIB			\
     {						\
       return					\

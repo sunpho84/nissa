@@ -46,7 +46,7 @@ namespace nissa
 #endif
     
     /// Evaluate
-    CUDA_HOST_DEVICE INLINE_FUNCTION
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     const F& eval(const TC&...tc) const
     {
       return
@@ -58,7 +58,7 @@ namespace nissa
 	[this->indexComputer(tc...)];
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_DEVICE);
+    PROVIDE_ALSO_NON_CONST_METHOD_WITH_ATTRIB(eval,CUDA_HOST_AND_DEVICE);
     
     /// Mark if allocated
     bool allocated;

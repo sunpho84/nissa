@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <math.h>
@@ -20,7 +20,7 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,const LocLxSite& A,const Dir& mu,const double& rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,const LocLxSite& A,const Dir& mu,const double& rho)
   {
     //put staples to zero
     su3_put_to_zero(staples);
@@ -46,7 +46,7 @@ namespace nissa
   
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   //partial derivative of the force
-  CUDA_HOST_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *conf,const LocLxSite& A,const Dir& mu,const double& rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *conf,const LocLxSite& A,const Dir& mu,const double& rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,A,mu,rho);

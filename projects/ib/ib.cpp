@@ -57,11 +57,17 @@ void init_simulation(int narg,char **arg)
 	  parsed=true;
 	}
       
-      //otherwise take this as stop file path
+      //otherwise take this as a suffix for stop, running and finished filenames
       if(not parsed)
 	{
-	  stop_path=arg[iarg];
-	  master_printf(" Setting stopping path to '%s'\n",stop_path.c_str());
+	  std::string app(arg[iarg]);
+	  stop_path+="_"+app;
+	  running_filename+="_"+app;
+	  finished_filename+="_"+app;
+	  master_printf("Adding to stop,finished,and running filenames the suffix: '%s'\n",arg[iarg]);
+	  master_printf("Stop filename: '%s'\n",stop_path.c_str());
+	  master_printf("Running filename: '%s'\n",running_filename.c_str());
+	  master_printf("Finished filename: '%s'\n",finished_filename.c_str());
 	  parsed=true;
 	}
     }
@@ -143,8 +149,8 @@ void init_simulation(int narg,char **arg)
       if(Q.find(name)!=Q.end()) crash("name \'%s\' already included",name);
       
       //ins name
-      char ins[3];
-      read_str(ins,2);
+      char ins[INS_TAG_MAX_LENGTH+1];
+      read_str(ins,INS_TAG_MAX_LENGTH);
       master_printf("Read variable 'Ins' with value: %s\n",ins);
       
       //source_name
@@ -236,6 +242,25 @@ void init_simulation(int narg,char **arg)
       if(strcasecmp(ins,ins_tag[PHASING])==0)
 	{
 	  decripted=true;
+	  
+	  read_theta(theta);
+	}
+      
+      bool vph=false;
+      for(const auto& possIns : {VPHOTON0,VPHOTON1,VPHOTON2,VPHOTON3,
+				 VBHOTON0,VBHOTON1,VBHOTON2,VBHOTON3})
+	vph|=(strcasecmp(ins,ins_tag[possIns])==0);
+      
+      if(vph)
+	{
+	  decripted=true;
+	  
+	  read_double(&mass);
+	  master_printf("Read variable 'Mass' with value: %lg\n",mass);
+	  
+	  
+	  read_int(&r);
+	  master_printf("Read variable 'R' with value: %d\n",r);
 	  
 	  read_theta(theta);
 	}
@@ -416,7 +441,7 @@ void in_main(int narg,char **arg)
       for(int ihit=0;ihit<nhits;ihit++)
 	{
 	  start_hit(ihit);
-	  generate_propagators(ihit);
+	  generate_quark_propagators(ihit);
 	  compute_contractions();
 	  propagators_fft(ihit);
 	}

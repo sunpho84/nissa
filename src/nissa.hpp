@@ -3,13 +3,14 @@
 
 //including config.hpp
 #ifdef HAVE_CONFIG_H
- #include <config.hpp>
+# include <config.hpp>
 #endif
 
 #include <base/bench.hpp>
 #include <base/close.hpp>
 #include <base/debug.hpp>
 #include <base/init.hpp>
+#include <base/sitmo.hpp>
 
 #ifdef USE_TMLQCD
  #include <base/tmLQCD_bridge.hpp>

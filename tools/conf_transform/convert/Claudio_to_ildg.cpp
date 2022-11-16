@@ -34,7 +34,6 @@ void read_from_binary_file(su3 A,FILE *fp)
   for(int icol=0;icol<NCOL;icol++)
     for(int jcol=0;jcol<NCOL;jcol++)
       MD5_Update(&mdContext,A[icol][jcol],sizeof(complex));
-  
 #endif
   
   if(little_endian)

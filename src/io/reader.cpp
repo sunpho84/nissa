@@ -45,8 +45,7 @@ namespace nissa
     uint64_t nbytes_per_site_double=nreals_per_site*sizeof(double);
     
     //read the checksum
-    checksum read_check={0,0};
-    ILDG_File_read_checksum(read_check,file);
+    const checksum read_check=ILDG_File_read_checksum(file);
     
     //check precision
     int single_double_flag=-1;
@@ -73,7 +72,7 @@ namespace nissa
 	
 	//compute checksum
 	checksum comp_check;
-	checksum_compute_nissa_data(comp_check,out,nbytes_per_site_read,(single_double_flag+1)*32);
+	checksum_compute_nissa_data(comp_check,out,(single_double_flag+1)*32,nbytes_per_site_read);
 	
 	//print the comparison between checksums
 	master_printf("Checksums computed:  %#010x %#010x\n",comp_check[0],comp_check[1]);

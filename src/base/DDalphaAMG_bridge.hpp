@@ -1,51 +1,60 @@
 #ifndef _DDALPHAAMG_HPP
 #define _DDALPHAAMG_HPP
 
-#include <new_types/su3.hpp>
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
+#ifdef USE_DDALPHAAMG
+# include <DDalphaAMG.h>
+#endif
+
+#include "geometry/geometry_eo.hpp"
+#include "new_types/su3.hpp"
+#include "base/multiGridParams.hpp"
 
 #ifndef EXTERN_DD_BRIDGE
  #define EXTERN_DD_BRIDGE extern
- #define INIT_TO(var)
+ #define INIT_DD_BRIDGE_TO(var)
 #else
- #define INIT_TO(var) =var
+ #define INIT_DD_BRIDGE_TO(var) =var
 #endif
 
 namespace DD
 {
-  EXTERN_DD_BRIDGE double max_mass INIT_TO(1e300);
+#ifdef USE_DDALPHAAMG
+  EXTERN_DD_BRIDGE DDalphaAMG_status status;
+#endif
   
   void finalize();
-  void read_DDalphaAMG_pars();
   
 #ifdef USE_DDALPHAAMG
+  
   int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false);
+  void set_configuration(nissa::quad_su3* conf);
+  
 #else
+  
   inline int solve(nissa::spincolor *out,nissa::quad_su3 *conf,double kappa,double cSW,double mu,double precision2,nissa::spincolor *in,const bool squared=false)
   {
-    crash("Not implemented");
+    crash("Not available");
     
     return 0;
   }
-#endif
-}
-
-namespace nissa
-{
-  EXTERN_DD_BRIDGE int use_DD INIT_TO(1);
   
-  /// If DDalphaamg is available, check if requested and if the mass is below the maximal
-  inline bool checkIfDDalphaAvailableAndRequired(const double& mass)
+  inline void set_configuration(nissa::quad_su3* conf)
   {
-#ifdef USE_DDALPHAAMG
-    if(use_DD and fabs(mass)<=DD::max_mass)
-      return true;
-    else
-#endif
-      return false;
+    crash("Not available");
   }
+  
+  inline void set_configuration(nissa::eo_ptr<nissa::quad_su3> conf)
+  {
+    crash("Not implemented");
+  }
+#endif
 }
 
 #undef EXTERN_DD_BRIDGE
-#undef INIT_TO
+#undef INIT_DD_BRIDGE_TO
 
 #endif

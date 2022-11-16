@@ -40,29 +40,29 @@ namespace nissa
   {
     const double rad2=1./sqrt(2);
     
-    init_dirac(base_gamma+ 0,  0,1,0  , 1,1,0  , 2,1,0  , 3,1,0 );
-    init_dirac(base_gamma+ 1,  3,0,-1 , 2,0,-1 , 1,0,1  , 0,0,1 );
-    init_dirac(base_gamma+ 2,  3,-1,0 , 2,1,0  , 1,1,0  , 0,-1,0);
-    init_dirac(base_gamma+ 3,  2,0,-1 , 3,0,1  , 0,0,1  , 1,0,-1);
-    init_dirac(base_gamma+ 4,  2,-1,0 , 3,-1,0 , 0,-1,0 , 1,-1,0);
-    init_dirac(base_gamma+ 5,  0,1,0  , 1,1,0  , 2,-1,0 , 3,-1,0);
-    init_dirac(base_gamma+ 6,  3,0,1  , 2,0,1  , 1,0,1  , 0,0,1 );
-    init_dirac(base_gamma+ 7,  3,1,0  , 2,-1,0 , 1,1,0  , 0,-1,0);
-    init_dirac(base_gamma+ 8,  2,0,1  , 3,0,-1 , 0,0,1  , 1,0,-1);
-    init_dirac(base_gamma+ 9,  2,1,0  , 3,1,0  , 0,-1,0 , 1,-1,0);
-    init_dirac(base_gamma+10,  1,0,-1 , 0,0,-1 , 3,0,1  , 2,0,1 );
-    init_dirac(base_gamma+11,  1,-1,0 , 0,1,0  , 3,1,0  , 2,-1,0);
-    init_dirac(base_gamma+12,  0,0,-1 , 1,0,1  , 2,0,1  , 3,0,-1);
-    init_dirac(base_gamma+13,  1,0,1  , 0,0,1  , 3,0,1  , 2,0,1 );
-    init_dirac(base_gamma+14,  1,1,0  , 0,-1,0 , 3,1,0  , 2,-1,0);
-    init_dirac(base_gamma+15,  0,0,1  , 1,0,-1 , 2,0,1  , 3,0,-1);
+    base_gamma[ 0]=init_dirac( 0,1,0  , 1,1,0  , 2,1,0  , 3,1,0 );
+    base_gamma[ 1]=init_dirac( 3,0,-1 , 2,0,-1 , 1,0,1  , 0,0,1 );
+    base_gamma[ 2]=init_dirac( 3,-1,0 , 2,1,0  , 1,1,0  , 0,-1,0);
+    base_gamma[ 3]=init_dirac( 2,0,-1 , 3,0,1  , 0,0,1  , 1,0,-1);
+    base_gamma[ 4]=init_dirac( 2,-1,0 , 3,-1,0 , 0,-1,0 , 1,-1,0);
+    base_gamma[ 5]=init_dirac( 0,1,0  , 1,1,0  , 2,-1,0 , 3,-1,0);
+    base_gamma[ 6]=init_dirac( 3,0,1  , 2,0,1  , 1,0,1  , 0,0,1 );
+    base_gamma[ 7]=init_dirac( 3,1,0  , 2,-1,0 , 1,1,0  , 0,-1,0);
+    base_gamma[ 8]=init_dirac( 2,0,1  , 3,0,-1 , 0,0,1  , 1,0,-1);
+    base_gamma[ 9]=init_dirac( 2,1,0  , 3,1,0  , 0,-1,0 , 1,-1,0);
+    base_gamma[10]=init_dirac( 1,0,-1 , 0,0,-1 , 3,0,1  , 2,0,1 );
+    base_gamma[11]=init_dirac( 1,-1,0 , 0,1,0  , 3,1,0  , 2,-1,0);
+    base_gamma[12]=init_dirac( 0,0,-1 , 1,0,1  , 2,0,1  , 3,0,-1);
+    base_gamma[13]=init_dirac( 1,0,1  , 0,0,1  , 3,0,1  , 2,0,1 );
+    base_gamma[14]=init_dirac( 1,1,0  , 0,-1,0 , 3,1,0  , 2,-1,0);
+    base_gamma[15]=init_dirac( 0,0,1  , 1,0,-1 , 2,0,1  , 3,0,-1);
     
-    init_dirac(&Pplus ,          0,rad2,rad2  , 1,rad2,rad2  , 2,rad2,-rad2 , 3,rad2,-rad2);
-    init_dirac(&Pminus,          0,rad2,-rad2 , 1,rad2,-rad2 , 2,rad2,rad2  , 3,rad2,rad2 );
+    Pplus =init_dirac(       0,rad2,rad2  , 1,rad2,rad2  , 2,rad2,-rad2 , 3,rad2,-rad2);
+    Pminus=init_dirac(       0,rad2,-rad2 , 1,rad2,-rad2 , 2,rad2,rad2  , 3,rad2,rad2 );
     
-    dirac_prod(base_gamma+16,base_gamma+4,base_gamma+6);
-    dirac_prod(base_gamma+17,base_gamma+4,base_gamma+7);
-    dirac_prod(base_gamma+18,base_gamma+4,base_gamma+8);
+    base_gamma[16]=dirac_prod(base_gamma[4],base_gamma[6]);
+    base_gamma[17]=dirac_prod(base_gamma[4],base_gamma[7]);
+    base_gamma[18]=dirac_prod(base_gamma[4],base_gamma[8]);
     
     //the sigma mu nu in an anti-simmetric tensor
     int lmunu[6]={10,11,12,15,14,13};
@@ -82,8 +82,8 @@ namespace nissa
 	spinspin_put_to_id(opg[mu]);
 	spinspin_put_to_id(omg[mu]);
 	
-	spinspin_dirac_summ_the_prod_double(opg[mu],&(base_gamma[igamma_of_mu(Dir(mu)).nastyConvert()]),+1);
-	spinspin_dirac_summ_the_prod_double(omg[mu],&(base_gamma[igamma_of_mu(Dir(mu)).nastyConvert()]),-1);
+	spinspin_dirac_summ_the_prod_double(opg[mu],base_gamma[igamma_of_mu(Dir(mu)).nastyConvert()],+1);
+	spinspin_dirac_summ_the_prod_double(omg[mu],base_gamma[igamma_of_mu(Dir(mu)).nastyConvert()],-1);
       }
   }
 }

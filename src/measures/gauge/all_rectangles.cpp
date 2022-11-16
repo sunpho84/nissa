@@ -507,7 +507,7 @@ namespace nissa
     
     // measure_all_rectangular_paths(pars,conf_lx,iconf,create_output_file);
     
-    // nissa_free(conf_lx);
+    //nissa_free(conf_lx);
   }
   
   //print pars

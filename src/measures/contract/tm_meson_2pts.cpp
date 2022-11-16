@@ -17,12 +17,12 @@ namespace nissa
     complex *loc_contr=get_reducing_buffer<complex>(locVol());
     
     /// Gamma matrix
-    dirac_matr g=base_gamma[igamma]*base_gamma[5];
+    const dirac_matr g=base_gamma[igamma]*base_gamma[5];
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
 	spincolor temp;
-	unsafe_dirac_prod_spincolor(temp,&g,fw[ivol.nastyConvert()]);
+	unsafe_dirac_prod_spincolor(temp,g,fw[ivol.nastyConvert()]);
 	spincolor_scalar_prod(loc_contr[ivol.nastyConvert()],bw[ivol.nastyConvert()],temp);
       }
     NISSA_PARALLEL_LOOP_END;
@@ -40,6 +40,5 @@ namespace nissa
 	
 	complex_copy(contr[dt()],unshiftedGlbContr[glb_t.nastyConvert()]);
       }
-    
   }
 }

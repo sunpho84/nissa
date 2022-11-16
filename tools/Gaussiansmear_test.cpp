@@ -241,7 +241,7 @@ void in_main(int narg,char **arg)
   // close_file(fout);
   
   // nissa_free(source);
-  // nissa_free(conf);
+   // nissa_free(conf);
 }
 
 int main(int narg,char **arg)

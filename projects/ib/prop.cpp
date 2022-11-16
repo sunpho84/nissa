@@ -3,6 +3,7 @@
 #define EXTERN_PROP
 # include "prop.hpp"
 
+#include <memory>
 #include <set>
 #include <tuple>
 
@@ -37,7 +38,8 @@ namespace nissa
   {
     
     //rotate the source index - the propagator rotate AS the sign of mass term
-    if(twisted_run>0) safe_dirac_prod_spincolor(in,(tau3[r]==-1)?&Pminus:&Pplus,in);
+    if(twisted_run>0)
+      safe_dirac_prod_spincolor(in,(tau3[r]==-1)?Pminus:Pplus,in);
     
     //invert
     START_TIMING(inv_time,ninv_tot);
@@ -67,15 +69,28 @@ namespace nissa
     STOP_TIMING(inv_time);
     
     //rotate the sink index
-    if(twisted_run>0) safe_dirac_prod_spincolor(out,(tau3[r]==-1)?&Pminus:&Pplus,out);
+    if(twisted_run>0)
+      safe_dirac_prod_spincolor(out,(tau3[r]==-1)?Pminus:Pplus,out);
   }
   
   //generate a source, wither a wall or a point in the origin
-  void generate_original_source(qprop_t* sou)
+  void generate_original_source(qprop_t* sou,bool skipOnly)
   {
+    const rnd_t noise_type=sou->noise_type;
+    
+    std::unique_ptr<FieldRngOf<spincolor>> drawer;
+    if(stoch_source and use_new_generator)
+      {
+	drawer=std::make_unique<FieldRngOf<spincolor>>(field_rng_stream.getDrawer<spincolor>());
+	if(noise_type!=RND_Z4 and noise_type!=RND_Z2)
+	  crash("Noise type different from Z4 or Z2 not implemented yet");
+	
+	if(skipOnly)
+	  return;
+      }
     
     //consistency check
-    if(!stoch_source and (!diluted_spi_source or !diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
+    if(not stoch_source and (not diluted_spi_source or not diluted_col_source)) crash("for a non-stochastic source, spin and color must be diluted");
     
     //reset all to begin
     for(int i=0;i<nso_spi*nso_col;i++) vector_reset(sou->sp[i]);
@@ -85,7 +100,10 @@ namespace nissa
       for(int ic_so=0;ic_so<nso_col;ic_so++)
 	sou_proxy[so_sp_col_ind(id_so,ic_so)]=sou->sp[so_sp_col_ind(id_so,ic_so)];
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    const GlbCoord tins=sou->tins;
+    
+    //NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    NISSA_LOC_VOL_LOOP(ivol)
       {
 	spincolor c;
 	spincolor_put_to_zero(c);
@@ -93,7 +111,7 @@ namespace nissa
 	//compute relative coords
 	bool is_spat_orig=true;
 	GlbCoords rel_c;
-	FOR_ALL_SPATIAL_DIRS(mu)
+	FOR_ALL_DIRS(mu)
 	  {
 	    rel_c(mu)=rel_coord_of_loclx(ivol,mu);
 	    if(mu()) is_spat_orig&=(rel_c(mu)==0);
@@ -101,14 +119,32 @@ namespace nissa
 	
 	//dilute in space
 	int mask=1;
-	FOR_ALL_SPATIAL_DIRS(mu) mask&=(rel_c(mu)%diluted_spat_source==0);
+	FOR_ALL_DIRS(mu)
+	  mask&=(rel_c(mu)%diluted_spat_source==0);
 	
 	//fill colour and spin index 0
 	for(int id_si=0;id_si<(diluted_spi_source?1:NDIRAC);id_si++)
 	  for(int ic_si=0;ic_si<(diluted_col_source?1:NCOL);ic_si++)
 	    {
-	      if(stoch_source and mask and (sou->tins==-1 or rel_c(tDir)==sou->tins)) comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol.nastyConvert()]),sou->noise_type);
-	      if(!stoch_source and is_spat_orig and (sou->tins==-1 or rel_c(tDir)==sou->tins)) complex_put_to_real(c[id_si][ic_si],1);
+	      if(stoch_source and mask and (tins==-1 or rel_c(tDir)==tins))
+		{
+		  if(use_new_generator)
+		    {
+		      drawer->fillLocSite(c,ivol);
+		      for(int id=0;id<NDIRAC;id++)
+			for(int ic=0;ic<NCOL;ic++)
+			  {
+			    if(noise_type==RND_Z4)
+			      z4Transform(c[id][ic]);
+			    else
+			      z2Transform(c[id][ic]);
+			  }
+		    }
+		  else
+		    comp_get_rnd(c[id_si][ic_si],&(loc_rnd_gen[ivol.nastyConvert()]),noise_type);
+		}
+	      if(not stoch_source and is_spat_orig and (tins==-1 or rel_c(tDir)==tins))
+		complex_put_to_real(c[id_si][ic_si],1);
 	    }
 	
 	//fill other spin indices
@@ -119,7 +155,7 @@ namespace nissa
 		  if((!diluted_spi_source or (id_so==id_si)) and (!diluted_col_source or (ic_so==ic_si)))
 		    complex_copy(sou_proxy[so_sp_col_ind(id_so,ic_so)][ivol.nastyConvert()][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
-    NISSA_PARALLEL_LOOP_END;
+    //NISSA_PARALLEL_LOOP_END;
     
     //compute the norm2, set borders invalid
     double ori_source_norm2=0;
@@ -132,6 +168,53 @@ namespace nissa
 	}
     if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
     
+    // complex *n=nissa_malloc("n",locVol,complex);
+    // spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
+    // for(int id_so=0;id_so<nso_spi;id_so++)
+    //   for(int ic_so=0;ic_so<nso_col;ic_so++)
+    // 	{
+    // 	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
+    // 	  master_printf("eta (0): %lg %lg\n",s[0][0][0][RE],s[0][0][0][IM]);
+    // 	  fft4d((complex*)temp,(complex*)s,NDIRAC*NCOL,FFT_PLUS,FFT_NO_NORMALIZE);
+	  
+    // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	    {
+    // 	      n[ivol][RE]=spincolor_norm2(temp[ivol]);
+    // 	      n[ivol][IM]=0;
+    // 	    }
+    // 	  NISSA_PARALLEL_LOOP_END;
+	  
+    // 	  fft4d(n,n,1,FFT_MINUS,FFT_NORMALIZE);
+	  
+    // 	  const int64_t nPoints=((tins==-1)?glbVol:glbSpatVol);
+	  
+    // 	  master_printf("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
+    // 	  if(rank==0)
+    // 	    n[0][RE]-=(double)NDIRAC*NCOL*nPoints/nso_spi/nso_col;
+    // 	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
+	  
+    // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	    {
+    // 	      n[ivol][RE]*=n[ivol][RE];
+    // 	    }
+    // 	  NISSA_PARALLEL_LOOP_END;
+	  
+    // 	  complex res[1];
+    // 	  glb_reduce(res,n,locVol);
+	  
+    // 	  master_printf("Res: %lg\n",res[0][RE]);
+	  
+    // 	  double exp=(double)NDIRAC*NCOL*sqr(nPoints)/(nso_spi*nso_col);
+    // 	  master_printf("Exp: %lg\n",exp);
+	  
+    // 	  double dev=res[0][RE]/exp-1;
+	  
+    // 	  master_printf("Dev: %lg\n",dev);
+    // 	}
+    
+    // nissa_free(temp);
+    // nissa_free(n);
+    
     nissa_free(sou_proxy);
   }
   
@@ -142,16 +225,41 @@ namespace nissa
     
     vector_reset(out);
     
-    FOR_ALL_SPATIAL_DIRS(mu)
+    FOR_ALL_DIRS(mu)
       if(dirs(mu))
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  if(t==-1 or glbCoordOfLoclx(ivol,tDir)==t)
 	    {
 	      spincolor temp1,temp2;
-	      unsafe_dirac_prod_spincolor(temp1,base_gamma+igamma_of_mu(mu).nastyConvert(),in[ivol.nastyConvert()]);
+	      unsafe_dirac_prod_spincolor(temp1,base_gamma[igamma_of_mu(mu).nastyConvert()],in[ivol.nastyConvert()]);
 	      unsafe_spincolor_prod_complex(temp2,temp1,curr[ivol.nastyConvert()][mu.nastyConvert()]);
 	      spincolor_summ_the_prod_idouble(out[ivol.nastyConvert()],temp2,1);
 	    }
+    NISSA_PARALLEL_LOOP_END;
+    
+    set_borders_invalid(out);
+  }
+  
+  //insert a field in the current
+  template <typename F>
+  void insert_external_loc_source(spincolor *out,F currCalc,spincolor *in,const GlbCoord& t)
+  {
+    
+    if(in==out) crash("in==out");
+    
+    vector_reset(out);
+    
+    FOR_ALL_DIRS(mu)
+      NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	if(t==-1 or glbCoordOfLoclx(ivol,tDir)==t)
+	  {
+	    spincolor temp1,temp2;
+	    unsafe_dirac_prod_spincolor(temp1,base_gamma[igamma_of_mu(mu).nastyConvert()],in[ivol.nastyConvert()]);
+	    complex curr;
+	    currCalc(curr,ivol,mu,0.0);
+	    unsafe_spincolor_prod_complex(temp2,temp1,curr);
+	    spincolor_summ_the_prod_idouble(out[ivol.nastyConvert()],temp2,1);
+	  }
     NISSA_PARALLEL_LOOP_END;
     
     set_borders_invalid(out);
@@ -164,6 +272,16 @@ namespace nissa
     else
       if(twisted_run>0) insert_tm_external_source(out,conf,curr,ori,r,dirs,t);
       else              insert_Wilson_external_source(out,conf,curr,ori,dirs,t);
+  }
+  
+  //insert the external source
+  template <typename F>
+  void insert_external_source(spincolor *out,quad_su3 *conf,F currCalc,spincolor *ori,const GlbCoord& t,int r,int loc)
+  {
+    if(loc) insert_external_loc_source(out,currCalc,ori,t);
+    else
+      if(twisted_run>0) insert_tm_external_source(out,conf,currCalc,ori,r,t);
+      else              insert_Wilson_external_source(out,conf,currCalc,ori,t);
   }
   
   //insert the tadpole
@@ -182,7 +300,7 @@ namespace nissa
   
   //smear the propagator
   template <typename T>
-  void smear_prop(spincolor *out,quad_su3 *conf,spincolor *ori,const GlbCoord& t,const T& kappa,int nlevels)
+  void smear_prop(spincolor *out,quad_su3 *conf,spincolor *ori,const GlbCoord& t,T kappa,int nlevels)
   {
     
     //nb: the smearing radius is given by
@@ -310,8 +428,70 @@ namespace nissa
     set_borders_invalid(out);
   }
   
+  void generate_photon_source(spin1field *photon_eta)
+  {
+    if(use_new_generator)
+      {
+	auto source_filler=field_rng_stream.getDrawer<spin1field>();
+	source_filler.fillField(photon_eta);
+	
+	NISSA_PARALLEL_LOOP(loclx,0,locVol)
+	  {
+	    for(int mu=0;mu<NDIM;mu++)
+	      z4Transform(photon_eta[loclx.nastyConvert()][mu]);
+	  }
+	NISSA_PARALLEL_LOOP_END;
+	
+	set_borders_invalid(photon_eta);
+      }
+    else
+      generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
+  }
+  
+  enum class BwFw {BW,FW};
+  
+  CUDA_HOST_AND_DEVICE
+  double HeavyTheta(const GlbCoord& x)
+  {
+    return ((x>=0)+(x>0))/2.0;
+  }
+  
+  void start_hit(int ihit,bool skip)
+  {
+    master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
+    if(use_new_generator)
+      {
+	FOR_ALL_DIRS(mu)
+	  {
+	    using C=double[1];
+	    C c;
+	    field_rng_stream.drawScalar(c);
+	    source_coord(mu)=c[0]*glbSize(mu)();
+	  }
+      }
+    else
+      generate_random_coord(source_coord);
+    
+    if(stoch_source) master_printf(" source time: %d\n",source_coord(tDir)());
+    else             master_printf(" point source coords: %d %d %d %d\n",source_coord(tDir)(),source_coord(xDir)(),source_coord(yDir)(),source_coord(zDir));
+    if(need_photon)
+      {
+	if(skip)
+	  generate_photon_source(photon_eta);
+	else
+	  generate_photon_stochastic_propagator(ihit);
+      }
+    generate_original_sources(ihit,skip);
+  }
+  
+  inline void generate_propagators(int ihit)
+  {
+    if(nquark_lep_combos) generate_lepton_propagators();
+    generate_quark_propagators(ihit);
+  }
+  
   //generate a sequential source
-  void generate_source(insertion_t inser,char *ext_field_path,int r,double charge,double kappa,const Momentum& kappa_asymm,const Momentum& theta,std::vector<source_term_t>& source_terms,int isou,const GlbCoord& t)
+  void generate_source(insertion_t inser,char *ext_field_path,double mass,int r,double charge,double kappa,const Momentum& kappa_asymm,const Momentum& theta,std::vector<source_term_t>& source_terms,int isou,const GlbCoord& t)
   {
     source_time-=take_time();
     
@@ -338,6 +518,51 @@ namespace nissa
 	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
       }
     
+    /// Function to insert the virtual photon emission projection
+    auto vphotonInsertCurr=[mass,theta](const BwFw bwFw,const Dir& nu)
+    {
+      gauge_info insPhoton;
+      insPhoton.alpha=photon.alpha;
+      insPhoton.bc(tDir)=0;
+      FOR_ALL_SPATIAL_DIRS(i)
+	insPhoton.bc(i)=theta(i);
+      insPhoton.c1=WILSON_C1;
+      insPhoton.zms=photon.zms;
+      
+      const double Eg=gluon_energy(insPhoton,mass,0);
+      
+      return [bwFw,nu,Eg,theta] CUDA_HOST_AND_DEVICE(complex ph,const LocLxSite& ivol,const Dir mu,const double fwbw_phase)
+      {
+	const double a=-3*0.5*fwbw_phase*M_PI*theta(mu)/glbSize(mu)();
+	
+	complex_iexp(ph,a);
+	complex_prodassign_idouble(ph,-1.0);
+	
+	if(mu==nu)
+	  {
+	    const GlbCoord TH=glbTimeSize/2;
+	    const GlbCoord t=(glbTimeSize+glbCoordOfLoclx(ivol,tDir)-source_coord(tDir))%glbTimeSize;
+	    
+	    const double f1= //eq.3.8 of reph.pdf
+	      (bwFw==BwFw::BW)?
+			      exp(-(TH+t)()*Eg):
+			      exp(-(TH-t)()*Eg);
+	    
+	    const double f2=
+	      (bwFw==BwFw::BW)?
+			      exp((TH-t)()*Eg):
+			      exp(-(3*TH-t)()*Eg);
+	    
+	    const double h1=HeavyTheta(TH-t);
+	    const double h2=HeavyTheta(t-TH);
+	    
+	    complex_prodassign_double(ph,h1*f1+h2*f2);
+	  }
+	else
+	  complex_put_to_zero(ph);
+      };
+    };
+    
     master_printf("Inserting r: %d\n",r);
     switch(inser)
       {
@@ -350,6 +575,14 @@ namespace nissa
       case PHOTON1:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[1],loc_hadr_curr);break;
       case PHOTON2:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[2],loc_hadr_curr);break;
       case PHOTON3:insert_external_source(loop_source,conf,photon_field,ori,rel_t,r,only_dir[3],loc_hadr_curr);break;
+      case VBHOTON0:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::BW,0),ori,rel_t,r,loc_hadr_curr);break;
+      case VBHOTON1:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::BW,1),ori,rel_t,r,loc_hadr_curr);break;
+      case VBHOTON2:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::BW,2),ori,rel_t,r,loc_hadr_curr);break;
+      case VBHOTON3:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::BW,3),ori,rel_t,r,loc_hadr_curr);break;
+      case VPHOTON0:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::FW,0),ori,rel_t,r,loc_hadr_curr);break;
+      case VPHOTON1:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::FW,1),ori,rel_t,r,loc_hadr_curr);break;
+      case VPHOTON2:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::FW,2),ori,rel_t,r,loc_hadr_curr);break;
+      case VPHOTON3:insert_external_source(loop_source,conf,vphotonInsertCurr(BwFw::FW,3),ori,rel_t,r,loc_hadr_curr);break;
       case PHOTON_PHI:insert_external_source(loop_source,conf,photon_phi,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case PHOTON_ETA:insert_external_source(loop_source,conf,photon_eta,ori,rel_t,r,all_dirs,loc_hadr_curr);break;
       case TADPOLE:insert_tadpole(loop_source,conf,ori,rel_t,r);break;
@@ -375,7 +608,7 @@ namespace nissa
   }
   
   //Generate all the original sources
-  void generate_original_sources(int ihit,bool skip_io)
+  void generate_original_sources(int ihit,bool skipOnly)
   {
     
     for(size_t i=0;i<ori_source_name_list.size();i++)
@@ -383,9 +616,9 @@ namespace nissa
 	std::string &name=ori_source_name_list[i];
 	master_printf("Generating source \"%s\"\n",name.c_str());
 	qprop_t *q=&Q[name];
-	generate_original_source(q);
+	generate_original_source(q,skipOnly);
 	
-	if(not skip_io)
+	if(not skipOnly)
 	  for(int id_so=0;id_so<nso_spi;id_so++)
 	    for(int ic_so=0;ic_so<nso_col;ic_so++)
 	      {
@@ -440,8 +673,8 @@ namespace nissa
 	  }
 	
 	//write info on mass and r
-	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta(xDir),q.theta(yDir),q.theta(zDir));
-	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta(xDir),q.theta(yDir),q.theta(zDir));
+	if(twisted_run) master_printf(" mass[%d]=%lg, r=%d, theta={%lg,%lg,%lg}\n",i,q.mass,q.r,q.theta(Dir(1)),q.theta(Dir(2)),q.theta(Dir(3)));
+	else            master_printf(" kappa[%d]=%lg, theta={%lg,%lg,%lg}\n",i,q.kappa,q.theta(Dir(1)),q.theta(Dir(2)),q.theta(Dir(3)));
 	
 	//compute the inverse clover term, if needed
 	if(clover_run) invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
@@ -469,7 +702,7 @@ namespace nissa
 	  for(int ic_so=0;ic_so<nso_col;ic_so++)
 	    {
 	      int isou=so_sp_col_ind(id_so,ic_so);
-	      generate_source(insertion,q.ext_field_path,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
+	      generate_source(insertion,q.ext_field_path,q.mass,q.r,q.charge,q.kappa,q.kappa_asymm,q.theta,q.source_terms,isou,q.tins);
 	      spincolor *sol=q[isou];
 	      
 	      //combine the filename
@@ -526,11 +759,11 @@ namespace nissa
     
     photon_prop_time-=take_time();
     
-    //generate source and stochastich propagator
-    master_printf("Generating photon stochastic propagator\n");
-    generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
+    generate_photon_source(photon_eta);
     
-    //generate the photon field
+    //generate source and stochastich propagator
+    master_printf("Generating photon stochastic propagator\n"); 
+    multiply_by_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
     multiply_by_sqrt_tlSym_gauge_propagator(photon_field,photon_eta,photon);
     
     std::vector<std::pair<std::string,spin1field*> > name_field;

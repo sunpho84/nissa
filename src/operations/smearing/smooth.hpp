@@ -164,7 +164,8 @@ namespace nissa
       method(def_method()),
       meas_each_nsmooth(def_meas_each_nsmooth()),
       space_or_time(def_space_or_time())
-    {}
+    {
+    }
   };
   
   void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,const Coords<bool>& dirs=all_dirs,const Dir& staple_min_dir=tDir);

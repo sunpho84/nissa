@@ -97,7 +97,7 @@ namespace nissa
     
     ///Evaluate
     template <typename...NTCs>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     EvalTo eval(const NTCs&...nTCs) const
     {
       /// Result

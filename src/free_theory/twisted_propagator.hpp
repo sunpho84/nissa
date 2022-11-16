@@ -7,9 +7,9 @@
 
 namespace nissa
 {
-  CUDA_HOST_DEVICE void get_component_of_twisted_propagator_of_imom(Momentum& sin_mom,double &sin2_mom,double &sin2_momh,const tm_quark_info& qu,const GlbLxSite& imom);
+  CUDA_HOST_AND_DEVICE void get_component_of_twisted_propagator_of_imom(Momentum& sin_mom,double &sin2_mom,double &sin2_momh,const tm_quark_info& qu,const GlbLxSite& imom);
   void mom_space_twisted_operator_of_imom(spinspin out,const tm_quark_info& qu,const GlbLxSite& imom,const tm_basis_t& base);
-  CUDA_HOST_DEVICE void mom_space_twisted_propagator_of_imom(spinspin prop,const tm_quark_info& qu,const GlbLxSite& imom,const tm_basis_t& base);
+  CUDA_HOST_AND_DEVICE void mom_space_twisted_propagator_of_imom(spinspin prop,const tm_quark_info& qu,const GlbLxSite& imom,const tm_basis_t& base);
   double twisted_on_shell_operator_of_imom(spinspin proj,const tm_quark_info& qu,const GlbLxSite& imom,bool tilded,int part_apart,const tm_basis_t& base);
   void compute_mom_space_twisted_propagator(spinspin *prop,const tm_quark_info& qu,const tm_basis_t& base);
   void compute_x_space_twisted_propagator_by_fft(spinspin *prop,const tm_quark_info& qu,const tm_basis_t& base);
@@ -46,7 +46,7 @@ namespace nissa
   DEFINE_MULTIPLY_MOM_SPACE_TWISTED_PROPAGATOR(spincolor);
   
   //compute the m0 corresponding to a certain kappa
-  CUDA_HOST_DEVICE inline double m0_of_kappa(double kappa)
+  CUDA_HOST_AND_DEVICE inline double m0_of_kappa(double kappa)
   {return 0.5/kappa-4;}
   
   //compute the kappa corresponding to a certain m0

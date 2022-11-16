@@ -26,7 +26,7 @@ namespace nissa
   
   /// Returns the real part, subscribing the complex component to Re value
   template <typename _E>
-  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   decltype(auto) real(_E&& e)
   {
     return
@@ -36,7 +36,7 @@ namespace nissa
   
   /// Returns the imaginary part, subscribing the complex component to Im value
   template <typename _E>
-  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   decltype(auto) imag(_E&& e)
   {
     return
@@ -85,7 +85,7 @@ namespace nissa
     
     /// Evaluate
     template <typename...TD>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     EvalTo eval(const TD&...td) const
     {
       /// Compute the real or imaginary component

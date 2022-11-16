@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <math.h>
@@ -28,7 +28,7 @@
 namespace nissa
 {
   //apply the passed transformation to the point
-  CUDA_HOST_DEVICE void local_gauge_transform(quad_su3 *conf,su3 g,const LocLxSite& ivol)
+  CUDA_HOST_AND_DEVICE void local_gauge_transform(quad_su3 *conf,su3 g,const LocLxSite& ivol)
   {
     // for each dir...
     FOR_ALL_DIRS(mu)
@@ -172,7 +172,7 @@ namespace nissa
   }
   
   /// Derivative of the functional
-  CUDA_HOST_DEVICE void compute_Landau_or_Coulomb_functional_der(su3 out,quad_su3 *conf,const LocLxSite& ivol,const Dir& start_mu)
+  CUDA_HOST_AND_DEVICE void compute_Landau_or_Coulomb_functional_der(su3 out,quad_su3 *conf,const LocLxSite& ivol,const Dir& start_mu)
   {
     su3_put_to_zero(out);
     

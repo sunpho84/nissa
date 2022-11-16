@@ -7,7 +7,7 @@
 namespace nissa
 {
   enum{FFT_NO_NORMALIZE=0,FFT_NORMALIZE=1};
-#define FFT_PLUS +1.0
+#define FFT_PLUS  +1.0
 #define FFT_MINUS -1.0
   
   int bitrev(int in,int l2n);

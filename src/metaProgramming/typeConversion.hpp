@@ -61,7 +61,7 @@ namespace nissa
   /// Convert to Pod: generic case doing nothing
   template <typename T,
 	    ENABLE_THIS_TEMPLATE_IF(not hasMember_toPod<T>)>
-  INLINE_FUNCTION CUDA_HOST_DEVICE
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
   decltype(auto) toPod(T&& t)
   {
     return std::forward<T>(t);
@@ -70,7 +70,7 @@ namespace nissa
   /// Convert to Pod: generic case doing nothing
   template <typename T,
 	    ENABLE_THIS_TEMPLATE_IF(hasMember_toPod<T>)>
-  INLINE_FUNCTION CUDA_HOST_DEVICE
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
   decltype(auto) toPod(T&& t)
   {
     return t.toPod();

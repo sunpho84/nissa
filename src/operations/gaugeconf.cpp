@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include "base/bench.hpp"
@@ -203,8 +203,12 @@ namespace nissa
     glb_reduce(&result.average_diff,loc_avg,locVol.nastyConvert());
     result.average_diff/=glbVol()*NDIM;
     
-    master_printf("Warning, max is undefined\n");
-    //glb_reduce(&result.max_diff,loc_max,loc_vol,max_to_be_implemented);
+    glbReduce(&result.max_diff,loc_max,locVol.nastyConvert(),
+	      [] CUDA_DEVICE (double& res,const double& acc)  __attribute__((always_inline))
+	      {
+		if(acc>res)
+		  res=acc;
+	      });
     glb_reduce(&result.nbroken_links,loc_nbroken,locVol.nastyConvert());
     
     nissa_free(loc_avg);

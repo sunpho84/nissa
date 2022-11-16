@@ -60,13 +60,13 @@ namespace nissa
     const Dir dir;
     
     template <typename T>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) processComp(const TensorCompFeat<T>& t) const
     {
       return t.deFeat();
     }
     
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) processComp(const LocLxSite& lxSite) const
     {
       return loclxNeighTable(lxSite,dir);
@@ -74,7 +74,7 @@ namespace nissa
     
     /// Evaluate
     template <typename...TD>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     EvalTo eval(const TD&...td) const
     {
       return

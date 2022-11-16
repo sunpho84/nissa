@@ -21,61 +21,58 @@ namespace nissa
     leps=nissa_malloc("leps",nquark_lep_combos,tm_quark_info);
     lep_energy=nissa_malloc("lep_energy",nquark_lep_combos,double);
     neu_energy=nissa_malloc("neu_energy",nquark_lep_combos,double);
-    
-    if(nquark_lep_combos)
-      crash("");
-    // for(int il=0;il<nquark_lep_combos;il++)
-    //   {
-    // 	//read quarks identfiying the mesons
-    // 	read_int(lep_contr_iq1+il);
-    // 	read_int(lep_contr_iq2+il);
+    for(int il=0;il<nquark_lep_combos;il++)
+      {
+	//read quarks identfiying the mesons
+	read_int(lep_contr_iq1+il);
+	read_int(lep_contr_iq2+il);
 	
-    // 	//if not pure wilson read mass
-    // 	if(not twisted_run) leps[il].mass=0;
-    // 	else                read_double(&leps[il].mass);
+	//if not pure wilson read mass
+	if(not twisted_run) leps[il].mass=0;
+	else                read_double(&leps[il].mass);
 	
-    // 	//antiperiodic or periodic
-    // 	leps[il].bc[0]=temporal_bc;
+	//antiperiodic or periodic
+	leps[il].bc(tDir)=temporal_bc;
 	
-    // 	//maximal twist (if tm), otherwise read kappa
-    // 	if(not twisted_run) read_double(&leps[il].kappa);
-    // 	else                leps[il].kappa=0.125;
-    // 	leps[il].r=0;
+	//maximal twist (if tm), otherwise read kappa
+	if(not twisted_run) read_double(&leps[il].kappa);
+	else                leps[il].kappa=0.125;
+	leps[il].r=0;
 	
-    // 	//read the mass of the meson (that must have been determined outside)
-    // 	double mes_mass;
-    // 	read_double(&mes_mass);
+	//read the mass of the meson (that must have been determined outside)
+	double mes_mass;
+	read_double(&mes_mass);
 	
-    // 	//set initial value of bc and check kinematic
-    // 	for(int i=1;i<NDIM;i++) leps[il].bc[i]=0;
-    // 	if(tm_quark_energy(leps[il],0)>=mes_mass) crash("initial state is lighter (%lg) than final state at rest (%lg)!",mes_mass,tm_quark_energy(leps[il],0));
+	//set initial value of bc and check kinematic
+	for(Dir i=1;i<NDIM;i++) leps[il].bc(i)=0;
+	if(tm_quark_energy(leps[il],0)>=mes_mass) crash("initial state is lighter (%lg) than final state at rest (%lg)!",mes_mass,tm_quark_energy(leps[il],0));
 	
-    // 	//compute meson momentum and bc
-    // 	double err;
-    // 	master_printf("Resolving kinematical condition for combination of quarks %d/%d\n",il+1,nquark_lep_combos);
-    // 	do
-    // 	  {
-    // 	    //compute the error
-    // 	    double lep_energy=tm_quark_energy(leps[il],0);
-    // 	    double neu_energy=naive_massless_quark_energy(leps[il].bc,0);
-    // 	    err=lep_energy+neu_energy-mes_mass;
-    // 	    //compute the derivative
-    // 	    double eps=1e-8;
-    // 	    for(int i=1;i<NDIM;i++) leps[il].bc[i]+=eps;
-    // 	    double der=(tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass-err)/eps;
-    // 	    for(int i=1;i<NDIM;i++) leps[il].bc[i]-=eps+err/der;
+	//compute meson momentum and bc
+	double err;
+	master_printf("Resolving kinematical condition for combination of quarks %d/%d\n",il+1,nquark_lep_combos);
+	do
+	  {
+	    //compute the error
+	    double lep_energy=tm_quark_energy(leps[il],0);
+	    double neu_energy=naive_massless_quark_energy(leps[il].bc,0);
+	    err=lep_energy+neu_energy-mes_mass;
+	    //compute the derivative
+	    double eps=1e-8;
+	    FOR_ALL_SPATIAL_DIRS(i) leps[il].bc(i)+=eps;
+	    double der=(tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass-err)/eps;
+	    FOR_ALL_SPATIAL_DIRS(i) leps[il].bc(i)-=eps+err/der;
 	    
-    // 	    master_printf("  lep_e: %+10.10lg, neu_e: %+10.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
-    // 	  }
-    // 	while(fabs(err)>1e-14);
+	    master_printf("  lep_e: %+10.10lg, neu_e: %+10.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
+	  }
+	while(fabs(err)>1e-14);
 	
-    // 	//write down energy
-    // 	lep_energy[il]=tm_quark_energy(leps[il],0);
-    // 	neu_energy[il]=naive_massless_quark_energy(leps[il].bc,0);
-    // 	master_printf(" ilepton %d, lepton energy: %lg, neutrino energy: %lg\n",il,lep_energy[il],neu_energy[il]);
-    // 	master_printf(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
-    // 	master_printf(" bc: %+16.16lg\n\n",leps[il].bc[1]);
-    //   }
+	//write down energy
+	lep_energy[il]=tm_quark_energy(leps[il],0);
+	neu_energy[il]=naive_massless_quark_energy(leps[il].bc,0);
+	master_printf(" ilepton %d, lepton energy: %lg, neutrino energy: %lg\n",il,lep_energy[il],neu_energy[il]);
+	master_printf(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
+	master_printf(" bc: %+16.16lg\n\n",leps[il].bc(Dir(1)));
+      }
   }
   
   //allocate all leptonic propagators
@@ -98,154 +95,153 @@ namespace nissa
   //return appropriately modified info
   tm_quark_info get_lepton_info(int ilepton,int orie,int r)
   {
-    tm_quark_info le;//=leps[ilepton];
-    // le.r=r;
-    // le.bc[0]=temporal_bc;
-    // for(int i=1;i<NDIM;i++) le.bc[i]*=sign_orie[orie];
+    tm_quark_info le=leps[ilepton];
+    le.r=r;
+    le.bc(tDir)=temporal_bc;
+    FOR_ALL_SPATIAL_DIRS(i) le.bc(i)*=sign_orie[orie];
     
-     return le;
+    return le;
   }
   
   //compute phase exponent for space part: vec{p}*\vec{x}
-  CUDA_HOST_DEVICE double get_space_arg(const LocLxSite& ivol,const Momentum& bc)
+  CUDA_HOST_AND_DEVICE double get_space_arg(int ivol,const Momentum& bc)
   {
     double arg=0;
-    // for(int mu=1;mu<NDIM;mu++)
-    //   {
-    // 	double step=bc[mu]*M_PI/glbSize[mu];
-    // 	arg+=step*rel_coord_of_loclx(ivol,mu);
-    //   }
+    FOR_ALL_SPATIAL_DIRS(mu)
+      {
+	const double step=bc(mu)*M_PI/glbSize(mu)();
+	arg+=step*rel_coord_of_loclx(ivol,mu)();
+      }
     return arg;
   }
   
   //compute the phase for lepton on its sink
-  CUDA_HOST_DEVICE void get_lepton_sink_phase_factor(complex out,const LocLxSite& ivol,int ilepton,tm_quark_info le)
+  CUDA_HOST_AND_DEVICE void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info le)
   {
-    // //compute space and time factor
-    // double arg=get_space_arg(ivol,le.bc);
-    // int t=rel_time_of_loclx(ivol);
-    // if(follow_chris_or_nazario==follow_nazario and t>=glbSize[0]/2) t=glbSize[0]-t;
-    // double ext=exp(t*lep_energy[ilepton]);
+    //compute space and time factor
+    double arg=get_space_arg(ivol,le.bc);
+    GlbCoord t=rel_time_of_loclx(ivol);
+    if(follow_chris_or_nazario==follow_nazario and t>=glbTimeSize/2) t=glbTimeSize-t;
+    double ext=exp(t()*lep_energy[ilepton]);
     
-    // //compute full exponential (notice the factor -1)
-    // out[RE]=cos(-arg)*ext;
-    // out[IM]=sin(-arg)*ext;
+    //compute full exponential (notice the factor -1)
+    out[RE]=cos(-arg)*ext;
+    out[IM]=sin(-arg)*ext;
   }
   
   //compute the phase for antineutrino - the orientation is that of the muon (as above)
-  CUDA_HOST_DEVICE void get_antineutrino_source_phase_factor(complex out,LocLxSite& ivol,int ilepton,const Momentum bc)
+  CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,const Momentum& bc)
   {
-    // //compute space and time factor
-    // double arg=get_space_arg(ivol,bc);
-    // int t=rel_time_of_loclx(ivol);
-    // if(follow_chris_or_nazario==follow_nazario and t>=glbSize[0]/2) t=glbSize[0]-t;
-    // double ext=exp(t*neu_energy[ilepton]);
+    //compute space and time factor
+    double arg=get_space_arg(ivol,bc);
+    GlbCoord t=rel_time_of_loclx(ivol);
+    if(follow_chris_or_nazario==follow_nazario and t>=glbTimeSize/2) t=glbTimeSize-t;
+    const double ext=exp(t()*neu_energy[ilepton]);
     
-    // //compute full exponential (notice the factor +1)
-    // out[RE]=cos(+arg)*ext;
-    // out[IM]=sin(+arg)*ext;
+    //compute full exponential (notice the factor +1)
+    out[RE]=cos(+arg)*ext;
+    out[IM]=sin(+arg)*ext;
   }
   
   //set everything to a phase factor
   void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &le)
   {
-    
-    // vector_reset(prop);
-    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    //   {
-    // 	complex ph;
-    // 	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
-    // 	spinspin_put_to_diag(prop[ivol.nastyConvert()],ph);
-    //   }
-    // NISSA_PARALLEL_LOOP_END;
-    // set_borders_invalid(prop);
+    vector_reset(prop);
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      {
+	complex ph;
+	get_lepton_sink_phase_factor(ph,ivol(),ilepton,le);
+	spinspin_put_to_diag(prop[ivol.nastyConvert()],ph);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    set_borders_invalid(prop);
   }
   
   //insert the photon on the source side
   void insert_photon_on_the_source(spinspin* prop,spin1field* A,int* dirs,tm_quark_info le,int twall)
   {
-    // //select A
-    // communicate_lx_spin1field_borders(A);
+    //select A
+    communicate_lx_spin1field_borders(A);
     
-    // //copy on the temporary and communicate borders
-    // vector_copy(temp_lep,prop);
-    // communicate_lx_spinspin_borders(temp_lep);
-    // vector_reset(prop);
+    //copy on the temporary and communicate borders
+    vector_copy(temp_lep,prop);
+    communicate_lx_spinspin_borders(temp_lep);
+    vector_reset(prop);
     
-    // if(not loc_muon_curr)
-    //   {
-    // 	dirac_matr GAMMA;
-    // 	if(twisted_run>0) dirac_prod_double(&GAMMA,base_gamma+0,1);
-    // 	else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
+    if(!loc_muon_curr)
+      {
+	dirac_matr GAMMA;
+	if(twisted_run>0) GAMMA=dirac_prod_double(base_gamma[0],1);
+	else GAMMA=dirac_prod_idouble(base_gamma[5],-tau3[le.r]);
 	
-    // 	//prepare each propagator for a single lepton
-    // 	//by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
-    // 	//(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
-    // 	FOR_ALL_DIRS(mu)
-    // 	  if(dirs[mu.nastyConvert()])
-    // 	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    // 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
-    // 		{
-    // 		  //phases
-    // 		  complex phase;
-    // 		  phase[0]=cos(le.bc[mu.nastyConvert()]*M_PI);
-    // 		  phase[1]=sin(le.bc[mu.nastyConvert()]*M_PI);
+	//prepare each propagator for a single lepton
+	//by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
+	//(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
+	FOR_ALL_DIRS(mu)
+	  if(dirs[mu.nastyConvert()])
+	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
+		{
+		  //phases
+		  complex phase;
+		  phase[0]=cos(le.bc(mu)*M_PI);
+		  phase[1]=sin(le.bc(mu)*M_PI);
 		  
-    // 		  //find neighbors
-    // 		  const LocLxSite& ifw=loclxNeighup(ivol,mu);
-    // 		  const LocLxSite& ibw=loclxNeighdw(ivol,mu);
+		  //find neighbors
+		  const LocLxSite ifw=loclxNeighup(ivol,mu);
+		  const LocLxSite ibw=loclxNeighdw(ivol,mu);
 		  
-    // 		  //compute phase factor
-    // 		  spinspin ph_bw,ph_fw;
+		  //compute phase factor
+		  spinspin ph_bw,ph_fw;
 		  
-    // 		  //transport down and up
-    // 		  if(rel_coord_of_loclx(ivol,mu)==glbSize[mu.nastyConvert()]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw.nastyConvert()],phase);
-    // 		  else spinspin_copy(ph_fw,temp_lep[ifw.nastyConvert()]);
-    // 		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw.nastyConvert()],phase);
-    // 		  else spinspin_copy(ph_bw,temp_lep[ibw.nastyConvert()]);
+		  //transport down and up
+		  if(rel_coord_of_loclx(ivol,mu)==glbSize(mu)-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw.nastyConvert()],phase);
+		  else spinspin_copy(ph_fw,temp_lep[ifw.nastyConvert()]);
+		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw.nastyConvert()],phase);
+		  else spinspin_copy(ph_bw,temp_lep[ibw.nastyConvert()]);
 		  
-    // 		  //fix coefficients, i is inserted here!
-    // 		  //also dir selection is made here
-    // 		  spinspin_prodassign_idouble(ph_fw,+0.5*dirs[mu.nastyConvert()]);
-    // 		  spinspin_prodassign_idouble(ph_bw,-0.5*dirs[mu.nastyConvert()]);
+		  //fix coefficients, i is inserted here!
+		  //also dir selection is made here
+		  spinspin_prodassign_idouble(ph_fw,+0.5*dirs[mu.nastyConvert()]);
+		  spinspin_prodassign_idouble(ph_bw,-0.5*dirs[mu.nastyConvert()]);
 		  
-    // 		  //fix insertion of the current
-    // 		  safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol.nastyConvert()][mu.nastyConvert()]);
-    // 		  safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw.nastyConvert()][mu.nastyConvert()]);
+		  //fix insertion of the current
+		  safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol.nastyConvert()][mu.nastyConvert()]);
+		  safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw.nastyConvert()][mu.nastyConvert()]);
 		  
-    // 		  //summ and subtract the two
-    // 		  spinspin fw_M_bw,fw_P_bw;
-    // 		  spinspin_subt(fw_M_bw,ph_fw,ph_bw);
-    // 		  spinspin_summ(fw_P_bw,ph_fw,ph_bw);
+		  //summ and subtract the two
+		  spinspin fw_M_bw,fw_P_bw;
+		  spinspin_subt(fw_M_bw,ph_fw,ph_bw);
+		  spinspin_summ(fw_P_bw,ph_fw,ph_bw);
 		  
-    // 		  //put GAMMA on the summ
-    // 		  spinspin temp_P;
-    // 		  unsafe_spinspin_prod_dirac(temp_P,fw_P_bw,&GAMMA);
-    // 		  spinspin_summassign(prop[ivol.nastyConvert()],temp_P);
+		  //put GAMMA on the summ
+		  spinspin temp_P;
+		  unsafe_spinspin_prod_dirac(temp_P,fw_P_bw,GAMMA);
+		  spinspin_summassign(prop[ivol.nastyConvert()],temp_P);
 		  
-    // 		  //put gmu on the diff
-    // 		  spinspin temp_M;
-    // 		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma+igamma_of_mu[mu.nastyConvert()]);
-    // 		  spinspin_summassign(prop[ivol.nastyConvert()],temp_M);
-    // 		}
-    // 	NISSA_PARALLEL_LOOP_END;
-    //   }
-    // else
-    //   {
-    // 	for(int mu=0;mu<NDIM;mu++)
-    // 	  if(dirs[mu])
-    // 	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    // 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
-    // 		{
-    // 		  spinspin temp1,temp2;
-    // 		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol.nastyConvert()],base_gamma+igamma_of_mu[mu]);
-    // 		  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol.nastyConvert()][mu]);
-    // 		  spinspin_summ_the_prod_idouble(prop[ivol.nastyConvert()],temp2,1);
-    // 		}
-    // 	NISSA_PARALLEL_LOOP_END;
-    //   }
+		  //put gmu on the diff
+		  spinspin temp_M;
+		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma[igamma_of_mu(mu).nastyConvert()]);
+		  spinspin_summassign(prop[ivol.nastyConvert()],temp_M);
+		}
+	NISSA_PARALLEL_LOOP_END;
+      }
+    else
+      {
+	FOR_ALL_DIRS(mu)
+	  if(dirs[mu.nastyConvert()])
+	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
+		{
+		  spinspin temp1,temp2;
+		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol.nastyConvert()],base_gamma[igamma_of_mu(mu).nastyConvert()]);
+		  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol.nastyConvert()][mu.nastyConvert()]);
+		  spinspin_summ_the_prod_idouble(prop[ivol.nastyConvert()],temp2,1);
+		}
+	NISSA_PARALLEL_LOOP_END;
+      }
     
-    // set_borders_invalid(prop);
+    set_borders_invalid(prop);
   }
   
   //generate all the lepton propagators, pointing outward
@@ -333,100 +329,100 @@ namespace nissa
   void attach_leptonic_contr(spinspin* hadr,int iprop,int ilepton,int orie,int rl,int ext_ind)
   {
     
-    // complex *loc_contr=nissa_malloc("loc_contr",glbSize[0],complex);
-    // vector_reset(loc_contr);
+    complex *loc_contr=nissa_malloc("loc_contr",glbTimeSize.nastyConvert(),complex);
+    vector_reset(loc_contr);
     
-    // //get the lepton info and prop
-    // tm_quark_info le=get_lepton_info(ilepton,orie,rl);
-    // //spinspin *lept=L[iprop];
+    //get the lepton info and prop
+    tm_quark_info le=get_lepton_info(ilepton,orie,rl);
+    // spinspin *lept=L[iprop];
     
-    // //get the projectors
-    // spinspin promu[2],pronu[2];
-    // twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1,base);
-    // if(follow_chris_or_nazario==follow_nazario) twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,base);
-    // else twisted_on_shell_operator_of_imom(promu[1],le,0,false,-1,base);
-    // naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
-    // if(follow_chris_or_nazario==follow_nazario) naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
-    // else naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,-1);
-    // if(follow_chris_or_nazario==follow_chris)
-    //   for(int i=0;i<2;i++)
-    // 	safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+igamma_of_mu[0]);
+    //get the projectors
+    spinspin promu[2],pronu[2];
+    twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1,base);
+    if(follow_chris_or_nazario==follow_nazario) twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,base);
+    else twisted_on_shell_operator_of_imom(promu[1],le,0,false,-1,base);
+    naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
+    if(follow_chris_or_nazario==follow_nazario) naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
+    else naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,-1);
+    if(follow_chris_or_nazario==follow_chris)
+      for(int i=0;i<2;i++)
+	safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma[igamma_of_mu(tDir).nastyConvert()]);
     
-    // //compute the right part of the leptonic loop: G0 G^dag
-    // dirac_matr meslep_proj_gamma[nmeslep_proj];
-    // for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
-    //   {
-    // 	int ig=meslep_projs[ig_proj];
-    // 	dirac_matr temp_gamma;
-    // 	dirac_herm(&temp_gamma,base_gamma+ig);
-    // 	dirac_prod(meslep_proj_gamma+ig_proj,base_gamma+igamma_of_mu[0],&temp_gamma);
-    //   }
-    // //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - no dagger, no commutator because it's on the LO leptonic part
-    // dirac_matr weak_ins_hadr_gamma[nmeslep_weak_ins];
-    // for(int ins=0;ins<nmeslep_weak_ins;ins++) dirac_prod(weak_ins_hadr_gamma+ins,base_gamma+5,base_gamma+list_weak_insq[ins]);
+    //compute the right part of the leptonic loop: G0 G^dag
+    dirac_matr meslep_proj_gamma[nmeslep_proj];
+    for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
+      {
+	int ig=meslep_projs[ig_proj];
+	const dirac_matr temp_gamma=dirac_herm(base_gamma[ig]);
+	meslep_proj_gamma[ig_proj]=base_gamma[igamma_of_mu(tDir).nastyConvert()]*temp_gamma;
+      }
+    //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - no dagger, no commutator because it's on the LO leptonic part
+    dirac_matr weak_ins_hadr_gamma[nmeslep_weak_ins];
+    for(int ins=0;ins<nmeslep_weak_ins;ins++)
+      weak_ins_hadr_gamma[ins]=base_gamma[5]*base_gamma[list_weak_insq[ins]];
     
-    // //define the combined weak projectors (see below)
-    // dirac_matr neutr_1m_g5_proj;
-    // dirac_subt(&neutr_1m_g5_proj,base_gamma+0,base_gamma+5);
+    //define the combined weak projectors (see below)
+    //dirac_matr neutr_1m_g5_proj=dirac_subt(base_gamma[0],base_gamma[5]);
     
-    // for(int ins=0;ins<nmeslep_weak_ins;ins++)
-    //   {
-    // 	//define a local storage
-    // 	spinspin mesolep_loc_contr[locSize[0]];
-    // 	for(int i=0;i<locSize[0];i++) spinspin_put_to_zero(mesolep_loc_contr[i]);
+    for(int ins=0;ins<nmeslep_weak_ins;ins++)
+      {
+	//define a local storage
+	spinspin mesolep_loc_contr[locTimeSize.nastyConvert()];
+	for(int i=0;i<locTimeSize.nastyConvert();i++)
+	  spinspin_put_to_zero(mesolep_loc_contr[i]);
 	
-    // 	// NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    // 	//   {
-    // 	//     //int t=locCoordOfLoclx[ivol.nastyConvert()][0];
+	// NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	//   {
+	//     [[maybe_unused]] int t=locCoordOfLoclx[ivol][0];
 	    
-    // 	//     //multiply lepton side on the right (source) side
-    // 	//     spinspin la;
-    // 	//     unsafe_spinspin_prod_dirac(la,lept[ivol.nastyConvert()],base_gamma+list_weak_insl[ins]);
+	//     //multiply lepton side on the right (source) side
+	//     spinspin la;
+	//     unsafe_spinspin_prod_dirac(la,lept[ivol],base_gamma[list_weak_insl[ins]]);
 	    
-    // 	//     //include 4*(1-5)/2/2=(1-5) coming from the two neturino projector+(1-g5) weak lepton structure
-    // 	//     //the second /2 comes from sqr(1/sqrt(2)) of 1502.00257
-    // 	//     spinspin l;
-    // 	//     unsafe_spinspin_prod_dirac(l,la,&neutr_1m_g5_proj);
+	//     //include 4*(1-5)/2/2=(1-5) coming from the two neturino projector+(1-g5) weak lepton structure
+	//     //the second /2 comes from sqr(1/sqrt(2)) of 1502.00257
+	//     spinspin l;
+	//     unsafe_spinspin_prod_dirac(l,la,neutr_1m_g5_proj);
 	    
-    // 	//     //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
-    // 	//     complex ph;
-    // 	//     get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
+	//     //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
+	//     complex ph;
+	//     get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	    
-    // 	//     //trace hadron side
-    // 	//     complex h;
-    // 	//     trace_spinspin_with_dirac(h,hadr[ivol.nastyConvert()],weak_ins_hadr_gamma+ins);
+	//     //trace hadron side
+	//     complex h;
+	//     trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma[ins]);
 	    
-    // 	//     //combine mesolep
-    // 	//     complex_prodassign(h,ph);
-    // 	//     crash("#warning spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h");
-    // 	//   }
-    // 	// NISSA_PARALLEL_LOOP_END;
-    // 	crash("#warning glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));");
+	//     //combine mesolep
+	//     complex_prodassign(h,ph);
+	//     spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h);
+	//   }
+	// NISSA_PARALLEL_LOOP_END;
+	crash("#warning glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));");
 	
-    // 	//save projection on LO
-    // 	for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
-    // 	  NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])
-    // 	    {
-    // 	      int glb_t=loc_t+rank_coord[0]*locSize[0];
-    // 	      int ilnp=(glb_t>=glbSize[0]/2); //select the lepton/neutrino projector
+	//save projection on LO
+	// for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
+	//   NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])
+	//     {
+	//       int glb_t=loc_t+rank_coord[0]*locSize[0];
+	//       int ilnp=(glb_t>=glbSize[0]/2); //select the lepton/neutrino projector
 	      
-    // 	      spinspin td;
-    // 	      //crash("#warning unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);");
-    // 	      spinspin dtd;
-    // 	      unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
-    // 	      complex mesolep;
-    // 	      trace_spinspin_with_dirac(mesolep,dtd,meslep_proj_gamma+ig_proj);
+	//       spinspin td;
+	//       unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);
+	//       spinspin dtd;
+	//       unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
+	//       complex mesolep;
+	//       trace_spinspin_with_dirac(mesolep,dtd,meslep_proj_gamma[ig_proj]);
 	      
-    // 	      //summ the average
-    // 	      int i=glb_t+glbSize[0]*(ig_proj+nmeslep_proj*(list_weak_ind_contr[ins]+nindep_meslep_weak*ext_ind));
-    // 	      complex_summ_the_prod_double(meslep_contr[i],mesolep,1.0/glbSpatVol()); //here to remove the statistical average on xw
-    // 	    }
-    // 	NISSA_PARALLEL_LOOP_END;
-    // 	if(IS_MASTER_THREAD) nmeslep_contr_made+=nmeslep_proj;
-    // 	THREAD_BARRIER();
-    //   }
+	//       //summ the average
+	//       int i=glb_t+glbSize[0]*(ig_proj+nmeslep_proj*(list_weak_ind_contr[ins]+nindep_meslep_weak*ext_ind));
+	//       complex_summ_the_prod_double(meslep_contr[i],mesolep,1.0/glbSpatVol); //here to remove the statistical average on xw
+	//     }
+	// NISSA_PARALLEL_LOOP_END;
+	// if(IS_MASTER_THREAD) nmeslep_contr_made+=nmeslep_proj;
+	// THREAD_BARRIER();
+      }
     
-    // nissa_free(loc_contr);
+    nissa_free(loc_contr);
   }
     
   //compute the total meslep contraction functions

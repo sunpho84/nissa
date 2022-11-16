@@ -1,4 +1,4 @@
-#include "nissa.hpp"
+#include <nissa.hpp>
 
 #include "gpu_stagphase.hpp"
 

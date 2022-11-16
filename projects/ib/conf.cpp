@@ -85,6 +85,8 @@ namespace nissa
     conf_allocated=false;
   }
   
+/*
+
   using Su3=Tensor<OfComps<ColorRow,ColorCln,ComplId>,double>;
   
   using ComplDouble=Tensor<OfComps<ComplId>,double>;
@@ -93,7 +95,7 @@ namespace nissa
   template <typename A,
 	    typename B,
 	    typename C>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void unsafeComplexProd(A&& a,
 			 const B& b,
 			 const C& c)
@@ -107,7 +109,7 @@ namespace nissa
   template <typename A,
 	    typename B,
 	    typename C>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void unsafeComplexConj2Prod(A&& a,
 			      const B& b,
 			      const C& c)
@@ -150,7 +152,7 @@ namespace nissa
   template <typename A,
 	    typename B,
 	    typename C>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void complexSummTheProd(A&& a,
 						  const B& b,
 						  const C& c)
@@ -163,7 +165,7 @@ namespace nissa
   template <typename A,
 	    typename B,
 	    typename C>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void complexSummTheConj2Prod(A&& a,
 			       const B& b,
 			       const C& c)
@@ -175,7 +177,7 @@ namespace nissa
   
   template <typename A,
 	    typename B>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void complexCopy(A&& a,
 		   const B& b)
   {
@@ -186,7 +188,7 @@ namespace nissa
   
   template <typename A,
 	    typename B>
-  CUDA_HOST_DEVICE inline void complexSummassign(A&& a,
+  CUDA_HOST_AND_DEVICE inline void complexSummassign(A&& a,
 						 const B& b)
   {
     UNROLL_FOR_ALL_COMPONENT_VALUES(ComplId,reim)
@@ -196,7 +198,7 @@ namespace nissa
   
   template <typename A,
 	    typename B>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void su3Copy(A&& a,
 	       const B& b)
   {
@@ -211,7 +213,7 @@ namespace nissa
   template <typename A,
 	    typename B,
 	    typename C>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void unsafeSu3ProdSu3(A&& a,
 			const B& b,
 			const C& c)
@@ -240,7 +242,7 @@ namespace nissa
   template <typename A,
 	    typename B,
 	    typename C>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void unsafeSu3ProdSu3Dag(A&& a,
 			   const B& b,
 			   const C& c)
@@ -258,7 +260,7 @@ namespace nissa
   template <typename A,
 	    typename B,
 	    typename C>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void safeSu3ProdSu3Dag(A&& a,
 			 const B& b,
 			 const C& c)
@@ -271,7 +273,7 @@ namespace nissa
   //return the trace of an su3 matrix
   template <typename A,
 	    typename B>
-  CUDA_HOST_DEVICE INLINE_FUNCTION
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void su3Trace(A&& tr,
 		const B& m)
   {
@@ -280,6 +282,8 @@ namespace nissa
       complexSummassign(tr,m(ColorRow(ic),ColorCln(ic)));
   }
   
+*/
+
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {
@@ -300,123 +304,6 @@ namespace nissa
     
     //if clover term is included, compute it
     if(clover_run) clover_term(Cl,glb_cSW,conf);
-    
-  //   //// DEBUG
-  //   master_printf("DEBUG plaquette: %+16.16lg\n",global_plaquette_lx_conf(conf));
-    
-  //   auto newConf=lxField<OfComps<Dir,ColorRow,ColorCln,ComplId>,AllocateBord::YES>();
-    
-  //   for(LocLxSite site=0;site<locVol;site++)
-  //     FOR_ALL_DIRS(dir)
-  // 	FOR_ALL_ROW_COLORS(rowCol)
-  //         FOR_ALL_CLN_COLORS(clnCol)
-  // 	    FOR_REIM_PARTS(reIm)
-  // 	      newConf(site,dir,rowCol,clnCol,reIm)=conf[site()][dir()][rowCol()][clnCol()][reIm()];
-    
-  // // using ToBeFiltered = std::tuple<TensorComp<LocLxSiteSignature, ANY, 0>, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0>, TensorComp<ComplIdSignature, ANY, 0> >;
-  // // using Filter = std::tuple<std::tuple<TensorComp<ComplIdSignature, ANY, 0>, TensorComp<LocLxSiteSignature, ANY, 0> >, TensorComp<ColorSignature, ROW, 0>, TensorComp<ColorSignature, CLN, 0> >;
-  // // using aa=typename TupleFilterAllTypes<ToBeFiltered,Filter>::type;
-    
-  //   auto plaquettes=lxField<OfComps<>>();
-  //   for(LocLxSite site=0;site<locVol;site++)
-  //     plaquettes(site)=0.0;
-    
-  //   FOR_ALL_DIRS(dir)
-  //     for(Dir otherDir=dir+1;otherDir<NDIM;otherDir++)
-  // 	{
-  // 	  // auto r=std::decay<decltype(std::get<1>(t.nestedExprs))>::Comps{};
-  // 	  // auto shifted=shiftDw(newConf(otherDir),dir).close();
-  // 	  auto lowerPart=(newConf(dir)*shiftDw(newConf(otherDir),dir)).close();
-  // 	  auto upperPart=(newConf(otherDir)*shiftDw(newConf(dir),otherDir)).close();
-	  
-  // 	  // const double i=lowerPart(LocLxSite(0),ColorRow(0),ColorCln(0),ComplId(0));
-  // 	  // su3 temp;
-  // 	  // unsafe_su3_prod_su3(temp,conf[0][dir()],conf[loclxNeighup(LocLxSite(0),dir)()][otherDir()]);
-  // 	  // const double j=temp[0][0][0];
-  // 	  // master_printf("ori: %lg %lg\n",
-  // 	  // 		conf[0][dir()][0][0][0],
-  // 	  // 		newConf(LocLxSite(0),dir,ColorRow(0),ColorCln(0),ComplId(0)));
-  // 	  // master_printf("shifted: %lg %lg\n",
-  // 	  // 		conf[loclxNeighup(LocLxSite(0),dir)()][otherDir()][0][0][0],
-  // 	  // 		shifted(LocLxSite(0),ColorRow(0),ColorCln(0),ComplId(0)));
-	  
-  // 	  // master_printf("%lg %lg\n",i,j);
-	  
-  // 	  auto c=(lowerPart*dag(upperPart));
-	  
-	  
-  // 	  ASM_BOOKMARK_BEGIN("ciccione");
-  // 	  plaquettes=plaquettes+real(trace(c));
-  // 	  //printf("%lg\n",glbPlaq);
-  // 	  ASM_BOOKMARK_END("ciccione");
-  // 	}
-  //   const double glbPlaq=plaquettes.globalReduce()();
-  //   printf("%.16lg\n",glbPlaq/glbVol()/6/3);
-    
-  //   Tensor<OfComps<Dir,ColorRow>> rt;
-  //   for (Dir mu = 0; mu < Dir ::sizeAtCompileTimeAssertingNotDynamic(); mu++)
-  //     for(ColorRow cr=0;cr<3;cr++)
-  // 	rt(mu,cr)=cr()+3*mu();
-  //   Tensor<OfComps<Dir,ColorCln>> ct;
-  //   FOR_ALL_DIRS(mu)
-  //     for(ColorCln cc=0;cc<3;cc++)
-  // 	ct(mu,cc)=cc()+3*mu();
-    
-  //   Tensor<OfComps<Dir>> res;
-  //   ASM_BOOKMARK_BEGIN("prod");
-  //   auto p=prod(ct,rt);
-  //   res=prod(ct,rt);
-  //   ASM_BOOKMARK_END("prod");
-  //   master_printf("%lg\n",res(Dir(0)));
-  //   master_printf("%lg\n",res(Dir(1)));
-    
-  //   crash("");
-  //   // newConf=dag(oldConf);
-    
-  //   // typename decltype(newConf)::Fund a;
-
-    
-  //   // loopOnAllComponents<typename decltype(newConf)::Comps>(newConf.data.indexComputer.dynamicSizes,[](auto...){});
-  //     //decltype(prod(newConf,newField)) b="ciao";
-
-
-    
-  //   //TransposeTensorComps<decltype(newConf)::Comps> t="ciao";
-    
-    // NISSA_LOC_VOL_LOOP(ivol)
-    //   FOR_ALL_DIRS(mu)
-    //   FOR_ALL_COMPONENT_VALUES(ColorRow,colRow)
-    //   FOR_ALL_COMPONENT_VALUES(ColorCln,colCol)
-    //   FOR_ALL_COMPONENT_VALUES(ComplId,reIm)
-    //   {
-    // 	newConf(ivol,mu,colRow,colCol,reIm)=
-    // 	  conf[ivol.nastyConvert()][mu.nastyConvert()][colRow.nastyConvert()][colCol.nastyConvert()][reIm.nastyConvert()];
-    //   }
-    
-    // ComplDouble r;
-    // FOR_ALL_COMPONENT_VALUES(ComplId,reim)
-    //   r(ComplId(reim))=0;
-    
-    // NISSA_LOC_VOL_LOOP(ivol)
-    //   FOR_ALL_DIRS(mu)
-    //   FOR_ALL_DIRS(nu)
-    //   if(mu>nu)
-    // 	{
-    //     Su3 p;
-	
-    // 	unsafeSu3ProdSu3(p,newConf(ivol,mu),newConf(loclxNeighup(ivol,mu),nu));
-    // 	safeSu3ProdSu3Dag(p,p,newConf(loclxNeighup(ivol,nu),mu));
-	
-    // 	ASM_BOOKMARK_BEGIN("safeSu3ProdSu3Dag");
-    // 	safeSu3ProdSu3Dag(p,p,newConf(ivol,nu));
-    // 	ASM_BOOKMARK_END("safeSu3ProdSu3Dag");
-	
-    // 	ComplDouble c;
-    // 	su3Trace(c,p);
-    // 	complexSummassign(r,c);
-    //   }
-    //     //// DEBUG
-    // master_printf("DEBUG2 plaquette: %+16.16lg\n",r(Re)/18/glbVol());
     
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)
@@ -525,22 +412,11 @@ namespace nissa
     if(nmeslep_corr) vector_reset(meslep_contr);
   }
   
-  //skip a number of hits [a,b)
-  void skip_nhits(int a,int b)
-  {
-    for(int ihit=a;ihit<b;ihit++)
-      {
-	GlbCoords coord;
-	generate_random_coord(coord);
-	if(need_photon) generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
-	generate_original_sources(ihit,true);
-      }
-  }
-  
   //handle to discard the source
   void skip_conf()
   {
-    skip_nhits(0,nhits);
+    for(int ihit=0;ihit<nhits;ihit++)
+      start_hit(ihit,true);
   }
   
   //find a new conf
@@ -573,7 +449,8 @@ namespace nissa
 	  //Check if the conf has been finished or is already running
 	  master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	  char run_file[1024];
-	  if(snprintf(run_file,1024,"%s/running",outfolder)<0) crash("witing %s",run_file);
+	  if(snprintf(run_file,1024,"%s/%s",outfolder,running_filename.c_str())<0)
+	    crash("witing %s",run_file);
 	  ok_conf=!(file_exists(run_file)) and external_condition();
 	  
 	  //if not finished
@@ -604,6 +481,7 @@ namespace nissa
 		    {
 		      ok_conf=false;
 		      master_printf("Somebody acquired the lock on %s\n",run_file);
+		      skip_conf();
 		    }
 		}
 	    }
@@ -639,7 +517,8 @@ namespace nissa
   void mark_finished()
   {
     char fin_file[1024];
-    if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("writing %s",fin_file);
+    if(snprintf(fin_file,1024,"%s/%s",outfolder,finished_filename.c_str())<0)
+      crash("writing %s",fin_file);
     file_touch(fin_file);
     nanalyzed_conf++;
   }

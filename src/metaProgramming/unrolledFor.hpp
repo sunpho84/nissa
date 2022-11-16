@@ -25,7 +25,7 @@ namespace nissa
     /// unrolling without any recursion
     template <typename F,
 	      typename...Args>
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     int call(const F& f,          ///< Function to be called
 	     Args&&...args)       ///< Calling arguments
     {
@@ -40,7 +40,7 @@ namespace nissa
     template <int offset,
 	      int...Is,
 	      typename F>
-    INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
     void unrollForInternal(std::integer_sequence<int,Is...>,
 			     const F& f)
     {
@@ -57,7 +57,7 @@ namespace nissa
   template <int min,
 	    int max,
 	    typename F>
-  INLINE_FUNCTION CUDA_HOST_DEVICE constexpr
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
   void unrollFor(const F& f)
   {
     resources::unrollForInternal<min>(std::make_integer_sequence<int,max-min>{},f);

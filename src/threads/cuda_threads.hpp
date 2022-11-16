@@ -25,9 +25,6 @@
 #define NISSA_PARALLEL_LOOP_END_EXP })
 #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) NISSA_PARALLEL_LOOP_EXP(INDEX,EXT_START,EXT_END)
 #define NISSA_PARALLEL_LOOP_END NISSA_PARALLEL_LOOP_END_EXP
-#define THREAD_ATOMIC_EXEC(inst) inst
-#define THREAD_BROADCAST(out,in) (out)=(in)
-#define THREAD_BROADCAST_PTR(out,in) THREAD_BROADCAST(out,in)
 
 namespace nissa
 {
@@ -63,16 +60,23 @@ namespace nissa
     int i=(toPod(length+block_dimension.x-1)/block_dimension.x);
     const dim3 grid_dimension(i);
     
+    double initTime=0;
     extern int verbosity_lv;
-    const bool print=(verbosity_lv>=2 and rank==0);
+    const bool print=(verbosity_lv>=1 and rank==0);
     if(print)
       printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
 	   line,file,(int64_t)min,(int64_t)max,block_dimension.x,grid_dimension.x);
+	   initTime=take_time();
+      }
     
-    cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,std::forward<F>(f));
-    thread_barrier_internal();
+    if(length>0)
+      {
+        cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,std::forward<F>(f));
+        thread_barrier_internal();
+      }
+    
     if(print)
-      printf(" finished\n");
+      printf(" finished in %lg s\n",take_time()-initTime);
   }
   
   inline void cache_flush()

@@ -16,9 +16,7 @@
 #define THREAD_BROADCAST(out,in) (out)=(in)
 #define THREAD_BROADCAST_PTR(out,in) THREAD_BROADCAST(out,in)
 
-#define CUDA_MANAGED
-
-#define CUDA_HOST_DEVICE
+#define NTHREADS 1
 
 namespace nissa
 {

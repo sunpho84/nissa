@@ -64,7 +64,7 @@ namespace nissa
     DynamicComps dynamicSizes;
     
     /// Dynamic sizes
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) getDynamicSizes() const
     {
       return
@@ -81,7 +81,7 @@ namespace nissa
     template <int I,
 	      typename TD,
 	      typename...TC>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) _evalAddend(const TD& td,
 			      TensorComps<TC...>*) const
     {
@@ -99,7 +99,7 @@ namespace nissa
     /// level?
     template <int I,
 	      typename...TD>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     decltype(auto) evalAddend(const TD&...td) const
     {
       return
@@ -108,7 +108,7 @@ namespace nissa
     
     /// Evaluate
     template <typename...TD>
-    CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     EvalTo eval(const TD&...td) const
     {
       return

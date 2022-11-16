@@ -14,6 +14,9 @@
 #include "new_types/su3.hpp"
 #include "threads/threads.hpp"
 
+#include "remap_vector.hpp"
+
+
 namespace nissa
 {
   //constructor

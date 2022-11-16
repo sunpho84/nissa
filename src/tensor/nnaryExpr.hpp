@@ -69,7 +69,7 @@ namespace nissa
   /// Combine the dynamic components of a tuple of dynamic comps, filling with each occurrence
   template <typename DcsOut,
 	    typename..._DcsIn>
-  CUDA_HOST_DEVICE INLINE_FUNCTION constexpr
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
   auto dynamicCompsCombiner(const std::tuple<_DcsIn...>& dcsIns)
   {
     using DcsIns=

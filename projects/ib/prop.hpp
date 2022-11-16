@@ -19,7 +19,7 @@ namespace nissa
   //keep trace if generating photon is needed
   EXTERN_PROP int need_photon INIT_TO(0);
 
-  CUDA_HOST_DEVICE
+  CUDA_HOST_AND_DEVICE
   inline int so_sp_col_ind(const int& sp,const int& col)
   {
     return col+nso_col*sp;
@@ -53,13 +53,13 @@ namespace nissa
     //spincolor data
     spincolor** sp;
     
-    CUDA_HOST_DEVICE
+    CUDA_HOST_AND_DEVICE
     spincolor* const &operator[](const int i) const
     {
       return sp[i];
     }
     
-    CUDA_HOST_DEVICE
+    CUDA_HOST_AND_DEVICE
     spincolor* &operator[](const int i)
     {
       return sp[i];
@@ -195,7 +195,7 @@ namespace nissa
   void generate_source(insertion_t inser,int r,double charge,double kappa,const Momentum& theta,spincolor *ori,const GlbCoord& t);
   void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator(int ihit);
-  //CUDA_HOST_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
+  //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
   void generate_lepton_propagators();
   void propagators_fft(int ihit);
   
@@ -214,21 +214,7 @@ namespace nissa
   
   EXTERN_PROP std::vector<fft_filterer_t> fft_filterer;
   
-  inline void start_hit(int ihit)
-  {
-    master_printf("\n=== Hit %d/%d ====\n",ihit+1,nhits);
-    generate_random_coord(source_coord);
-    if(stoch_source) master_printf(" source time: %d\n",source_coord(tDir)());
-    else             master_printf(" point source coords: %d %d %d %d\n",source_coord(Dir(0))(),source_coord(xDir)(),source_coord(yDir)(),source_coord(zDir)());
-  }
-  
-  inline void generate_propagators(int ihit)
-  {
-    if(need_photon) generate_photon_stochastic_propagator(ihit);
-    generate_original_sources(ihit);
-    if(nquark_lep_combos) generate_lepton_propagators();
-    generate_quark_propagators(ihit);
-  }
+  void start_hit(int ihit,bool skip=false);
 }
 
 #undef INIT_TO

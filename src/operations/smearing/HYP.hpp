@@ -15,6 +15,7 @@ namespace nissa
     double alpha0;
     double alpha1;
     double alpha2;
+    
     int nlevels;
     
     double def_alpha0() {return 1;}

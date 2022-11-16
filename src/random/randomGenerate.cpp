@@ -110,16 +110,12 @@ namespace nissa
   //generate a random postion
   void generate_random_coord(GlbCoords& c)
   {
-    GlbCoords temp;
     FOR_ALL_DIRS(mu)
-      {
-	if(IS_MASTER_THREAD) temp(mu)=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize(mu)()));
-	THREAD_BROADCAST(c(mu)(),temp(mu)());
-      }
+      c(mu)=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize(mu)()));
   }
   
   //return a numer between 0 and 1
-  CUDA_HOST_DEVICE int rnd_get_pm_one(rnd_gen *gen)
+  CUDA_HOST_AND_DEVICE int rnd_get_pm_one(rnd_gen *gen)
   {
     double r=rnd_get_unif(gen,0,1);
     if(r>0.5) return 1;
@@ -127,21 +123,21 @@ namespace nissa
   }
   
   //return a Z2 complex
-  CUDA_HOST_DEVICE void rnd_get_Z2(complex out,rnd_gen *gen)
+  CUDA_HOST_AND_DEVICE void rnd_get_Z2(complex out,rnd_gen *gen)
   {
     out[0]=rnd_get_pm_one(gen);
     out[1]=0;
   }
   
   //return a Z4 complex
-  CUDA_HOST_DEVICE void rnd_get_Z4(complex out,rnd_gen *gen)
+  CUDA_HOST_AND_DEVICE void rnd_get_Z4(complex out,rnd_gen *gen)
   {
     out[0]=rnd_get_pm_one(gen)/(double)RAD2;
     out[1]=rnd_get_pm_one(gen)/(double)RAD2;
   }
   
   //return a ZN complex
-  CUDA_HOST_DEVICE void rnd_get_ZN(complex out,rnd_gen *gen,int N)
+  CUDA_HOST_AND_DEVICE void rnd_get_ZN(complex out,rnd_gen *gen,int N)
   {complex_iexp(out,2*M_PI*(int)rnd_get_unif(gen,0,N)/N);}
   
   //return a gaussian double
@@ -156,7 +152,7 @@ namespace nissa
   }
   
   //return a gaussian complex with sigma=sig/sqrt(2)
-  CUDA_HOST_DEVICE void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig)
+  CUDA_HOST_AND_DEVICE void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig)
   {
     const double one_by_sqrt2=0.707106781186547;
     double norm=sig*one_by_sqrt2;
@@ -170,7 +166,7 @@ namespace nissa
   }
   
   //return a complex number of appropriate type
-  CUDA_HOST_DEVICE void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_t rtype)
+  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_t rtype)
   {
     complex z={0,0};
     switch(rtype)
@@ -377,7 +373,7 @@ namespace nissa
   
     //Taken from M.D'Elia
 #if NCOL == 3
-  CUDA_HOST_DEVICE void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma)
+  CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma)
   {
     const double one_by_sqrt3=0.577350269189626;
     const double two_by_sqrt3=1.15470053837925;
@@ -420,7 +416,7 @@ namespace nissa
   }
   
   //put a matrix to random used passed random generator
-  CUDA_HOST_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
+  CUDA_HOST_AND_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
   {
     su3_put_to_id(u_ran);
     

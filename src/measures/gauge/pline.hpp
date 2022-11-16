@@ -49,7 +49,7 @@ namespace nissa
   // void compute_Wstat_prop_point(su3spinspin *prop,quad_su3 *conf,int mu,coords x_start);
   // void compute_Wstat_prop_wall(su3spinspin *prop,quad_su3 *conf,int mu,int xmu_start);
   // void compute_Wstat_stoch_prop(colorspinspin *prop,quad_su3 *conf,int mu,int xmu_start,color *source);
-  // void compute_stoch_Pline_dag(color *pline,quad_su3 *conf,int mu,int xmu_start,color *source);
+   // void compute_stoch_Pline_dag(color *pline,quad_su3 *conf,int mu,int xmu_start,color *source);
 }
 
 #endif

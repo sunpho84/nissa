@@ -29,7 +29,7 @@ namespace nissa
     out->iy=out->iv[0];
   }
   
-  CUDA_HOST_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max)
+  CUDA_HOST_AND_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max)
   {
     const int im1=2147483563,im2=2147483399,imm1=im1-1,ia1=40014,ia2=40692;
     const int iq1=53668,iq2=52774,ir1=12211,ir2=3791,ndiv=1+imm1/RAN2_NTAB;
