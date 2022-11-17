@@ -432,6 +432,7 @@ namespace nissa
     std::vector<triple_tag> tags;
     tags.push_back(triple_tag("verbosity_lv",                  verbosity_lv));
     tags.push_back(triple_tag("use_128_bit_precision",         use_128_bit_precision));
+    tags.push_back(triple_tag("check_inversion_residue",       check_inversion_residue));
     tags.push_back(triple_tag("use_eo_geom",		       use_eo_geom));
     tags.push_back(triple_tag("use_Leb_geom",		       use_Leb_geom));
     tags.push_back(triple_tag("use_async_communications",      use_async_communications));
@@ -451,6 +452,7 @@ namespace nissa
 #endif
 #if defined USE_DDALPHAAMG or defined USE_QUDA
     tags.push_back(triple_tag("use_DDalphaAMG",		       multiGrid::use_multiGrid));
+    tags.push_back(triple_tag("use_multigrid",		       multiGrid::use_multiGrid));
     tags.push_back(triple_tag("use_deflated_solver",	       multiGrid::use_deflated_solver));
 #endif
 #ifdef USE_QUDA

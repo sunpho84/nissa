@@ -57,11 +57,17 @@ void init_simulation(int narg,char **arg)
 	  parsed=true;
 	}
       
-      //otherwise take this as stop file path
+      //otherwise take this as a suffix for stop, running and finished filenames
       if(not parsed)
 	{
-	  stop_path=arg[iarg];
-	  master_printf(" Setting stopping path to '%s'\n",stop_path.c_str());
+	  std::string app(arg[iarg]);
+	  stop_path+="_"+app;
+	  running_filename+="_"+app;
+	  finished_filename+="_"+app;
+	  master_printf("Adding to stop,finished,and running filenames the suffix: '%s'\n",arg[iarg]);
+	  master_printf("Stop filename: '%s'\n",stop_path.c_str());
+	  master_printf("Running filename: '%s'\n",running_filename.c_str());
+	  master_printf("Finished filename: '%s'\n",finished_filename.c_str());
 	  parsed=true;
 	}
     }

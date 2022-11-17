@@ -160,7 +160,6 @@ namespace quda_iface
 	color_in=nissa_malloc("color_in",locVol,color);
 	color_out=nissa_malloc("color_out",locVol,color);
 	
-	inv_param.verbosity=get_quda_verbosity();
 	setVerbosityQuda(QUDA_SUMMARIZE,"# QUDA: ",stdout);
 	
 	/////////////////////////// gauge params ////////////////////////////////
@@ -198,15 +197,6 @@ namespace quda_iface
 	    int surf_size=locVol/locSize[mu]/2;
 	    gauge_param.ga_pad=std::max(gauge_param.ga_pad,surf_size);
 	  }
-	
-	inv_param=newQudaInvertParam();
-	
-	inv_mg_param=newQudaInvertParam();
-	quda_mg_param=newQudaMultigridParam();
-	quda_mg_param.invert_param=&inv_mg_param;
-	
-	for(int level=0;level<QUDA_MAX_MG_LEVEL;level++)
-	  mg_eig_param[level]=newQudaEigParam();
 	
 	int grid[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
@@ -369,40 +359,51 @@ namespace quda_iface
       set_borders_invalid(out[par]);
   }
   
-  /// Sets the sloppy precision
-  void set_sloppy_prec(const QudaPrecision sloppy_prec)
-  {
-    master_printf("Quda sloppy precision: ");
+  // /// Sets the sloppy precision
+  // void set_sloppy_prec(const QudaPrecision sloppy_prec)
+  // {
+  //   master_printf("Quda sloppy precision: ");
     
-    switch(sloppy_prec)
-      {
-      case QUDA_DOUBLE_PRECISION:
-	master_printf("double");
-	break;
-      case QUDA_SINGLE_PRECISION:
-	master_printf("single");
-	break;
-      case QUDA_HALF_PRECISION:
-	master_printf("half");
-	break;
-      case QUDA_QUARTER_PRECISION:
-	master_printf("quarter");
-	break;
-      case QUDA_INVALID_PRECISION:
-	crash("invalid precision");
-      };
-    master_printf("\n");
+  //   switch(sloppy_prec)
+  //     {
+  //     case QUDA_DOUBLE_PRECISION:
+  // 	master_printf("double");
+  // 	break;
+  //     case QUDA_SINGLE_PRECISION:
+  // 	master_printf("single");
+  // 	break;
+  //     case QUDA_HALF_PRECISION:
+  // 	master_printf("half");
+  // 	break;
+  //     case QUDA_QUARTER_PRECISION:
+  // 	master_printf("quarter");
+  // 	break;
+  //     case QUDA_INVALID_PRECISION:
+  // 	crash("invalid precision");
+  //     };
+  //   master_printf("\n");
   
-  gauge_param.cuda_prec_sloppy=
-    gauge_param.cuda_prec_refinement_sloppy=
-    inv_param.cuda_prec_sloppy=
-    inv_param.clover_cuda_prec_sloppy=
-    inv_param.clover_cuda_prec_refinement_sloppy=
-    sloppy_prec;
-  }
+  // gauge_param.cuda_prec_sloppy=
+  //   gauge_param.cuda_prec_refinement_sloppy=
+  //   inv_param.cuda_prec_sloppy=
+  //   inv_param.clover_cuda_prec_sloppy=
+  //   inv_param.clover_cuda_prec_refinement_sloppy=
+  //   sloppy_prec;
+  // }
   
   void set_base_inverter_pars()
   {
+    inv_param=newQudaInvertParam();
+    
+    inv_param.verbosity=get_quda_verbosity();
+    
+    inv_mg_param=newQudaInvertParam();
+    quda_mg_param=newQudaMultigridParam();
+    quda_mg_param.invert_param=&inv_mg_param;
+    
+    for(int level=0;level<QUDA_MAX_MG_LEVEL;level++)
+      mg_eig_param[level]=newQudaEigParam();
+    
     inv_param.dagger=QUDA_DAG_NO;
     inv_param.mass_normalization=QUDA_MASS_NORMALIZATION;
     inv_param.solver_normalization=QUDA_DEFAULT_NORMALIZATION;
@@ -451,8 +452,8 @@ namespace quda_iface
     master_printf("setting pars\n");
 #endif
     
-    inv_param.kappa=kappa;
     set_base_inverter_pars();
+    inv_param.kappa=kappa;
     inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
     if(csw)
       {
@@ -536,7 +537,7 @@ namespace quda_iface
     if(exported and csw)
       load_clover_term(&inv_param);
     
-    if(multiGrid::use_multiGrid)
+    if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
       {
 	inv_param.verbosity=QUDA_SUMMARIZE;//VERBOSE;
 	
@@ -724,7 +725,7 @@ namespace quda_iface
 	    // set the MG EigSolver parameters, almost equivalent to
 	    // setEigParam from QUDA's multigrid_invert_test, except
 	    // for cuda_prec_ritz (on 20190822)
-	    if(level+1==nlevels and multiGrid::use_deflated_solver)
+	    if(level+1==nlevels and multiGrid::use_deflated_solver and fabs(inv_param.mu)<multiGrid::max_mass_for_deflation)
 	      {
 		quda_mg_param.use_eig_solver[level]=QUDA_BOOLEAN_YES;
 		mg_eig_param[level].eig_type=QUDA_EIG_TR_LANCZOS;
@@ -803,7 +804,6 @@ namespace quda_iface
 	master_printf("mg setup due:\n");
 	quda_mg_preconditioner=newMultigridQuda(&quda_mg_param);
 	master_printf("mg setup done!\n");
-	inv_param.preconditioner=quda_mg_preconditioner;
 	
 	setup_valid=true;
       }
@@ -817,6 +817,8 @@ namespace quda_iface
 	}
       else
 	master_printf("No need to update the multigrid\n");
+    
+    inv_param.preconditioner=quda_mg_preconditioner;
     
     storedMu=inv_param.mu;
     storedKappa=inv_param.kappa;
@@ -1052,8 +1054,9 @@ namespace quda_iface
   bool solve_tmD(spincolor *sol,quad_su3 *conf,const double& kappa,const double& csw,const double& mu,const int& niter,const double& residue,spincolor *source)
   {
     const double export_time=take_time();
-    const bool exported=export_gauge_conf_to_external_solver(conf);
-    master_printf("time to export to external library: %lg s\n",take_time()-export_time);
+    const bool exported=
+      export_gauge_conf_to_external_solver(conf);
+    master_printf("time to export to the conf to quda: %lg s\n",take_time()-export_time);
     
     set_base_inverter_pars();
     
@@ -1067,7 +1070,7 @@ namespace quda_iface
 	master_printf("--- inv pars: ---\n");
 	printQudaInvertParam(&inv_param);
 	
-	if(multiGrid::use_multiGrid)
+	if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
 	  {
 	    master_printf("--- inv_mg pars: %p kappa %lg mu %lg mass %lg---\n",&inv_mg_param,inv_mg_param.kappa,inv_mg_param.mu,inv_mg_param.mass);
 	    printQudaInvertParam(&inv_mg_param);
@@ -1087,7 +1090,7 @@ namespace quda_iface
       }
 #endif
     
-    if(multiGrid::use_multiGrid)
+    if(multiGrid::checkIfMultiGridAvailableAndRequired(mu))
       setup_quda_multigrid();
     
     const double remap_in_time=take_time();

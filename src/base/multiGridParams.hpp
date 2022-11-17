@@ -27,6 +27,7 @@ namespace nissa
     EXTERN_MULTIGRID int nu_pre[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int nu_post[MAX_MG_LEVELS];
     EXTERN_MULTIGRID double max_mass INIT_TO(1e300);
+    EXTERN_MULTIGRID double max_mass_for_deflation INIT_TO(1e300);
     EXTERN_MULTIGRID bool block_size_set INIT_TO(false);
     EXTERN_MULTIGRID nissa::coords_t block_size[MAX_MG_LEVELS];
     
@@ -38,7 +39,7 @@ namespace nissa
     EXTERN_MULTIGRID double eig_max INIT_TO(8);
     
     /// If DDalphaamg is available, check if requested and if the mass is below the maximal
-    inline bool checkIfDDalphaAvailableAndRequired(const double& mass)
+    inline bool checkIfMultiGridAvailableAndRequired(const double& mass)
     {
 #if defined USE_DDALPHAAMG or USE_QUDA
       if(use_multiGrid and fabs(mass)<=max_mass)

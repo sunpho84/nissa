@@ -144,6 +144,8 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) stored_theta[mu]=theta[mu];
     inner_conf_valid=true;
     
+    // master_printf("inner_conf pointer: %p\n",inner_conf);
+    
     return inner_conf;
   }
   
@@ -218,7 +220,8 @@ namespace nissa
 	  //Check if the conf has been finished or is already running
 	  master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
 	  char run_file[1024];
-	  if(snprintf(run_file,1024,"%s/running",outfolder)<0) crash("witing %s",run_file);
+	  if(snprintf(run_file,1024,"%s/%s",outfolder,running_filename.c_str())<0)
+	    crash("witing %s",run_file);
 	  ok_conf=!(file_exists(run_file)) and external_condition();
 	  
 	  //if not finished
@@ -285,7 +288,8 @@ namespace nissa
   void mark_finished()
   {
     char fin_file[1024];
-    if(snprintf(fin_file,1024,"%s/finished",outfolder)<0) crash("writing %s",fin_file);
+    if(snprintf(fin_file,1024,"%s/%s",outfolder,finished_filename.c_str())<0)
+      crash("writing %s",fin_file);
     file_touch(fin_file);
     nanalyzed_conf++;
   }

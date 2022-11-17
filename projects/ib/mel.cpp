@@ -404,8 +404,8 @@ int read_conf_parameters(int &iconf)
       //Check if the conf has been finished or is already running
       master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
       char fin_file[1024],run_file[1024];
-      safe_snprintf(fin_file,1024,"%s/finished",outfolder);
-      safe_snprintf(run_file,1024,"%s/running",outfolder);
+      safe_snprintf(fin_file,1024,"%s/%s",outfolder,finished_filename.c_str());
+      safe_snprintf(run_file,1024,"%s/%s",outfolder,running_filename.c_str());
       ok_conf=!(file_exists(fin_file)) && !(file_exists(run_file));
       
       //if not finished

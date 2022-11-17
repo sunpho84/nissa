@@ -5,7 +5,7 @@
 #include "eigenvalues_autarchic.hpp"
 
 #ifdef USE_EIGEN
- #include <eigen3/Eigen/Dense>
+ #include <Eigen/Dense>
 #endif
 
 namespace nissa

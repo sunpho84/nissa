@@ -8,6 +8,8 @@
 # include "base/tmLQCD_bridge.hpp"
 #endif
 
+# include "base/multiGridParams.hpp"
+
 #ifdef USE_QUDA
 # include "base/quda_bridge.hpp"
 #endif
@@ -133,23 +135,19 @@ namespace nissa
     /// Keep track of convergence
     bool solved=false;
     
+    if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
+      {
+	const double cSW=0;
+	double call_time=take_time();
 #ifdef USE_QUDA
-    if(checkIfQudaAvailableAndRequired() and not solved)
-      {
-	const double cSW=0;
-	double quda_call_time=take_time();
 	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
-	master_printf("calling quda to solve took %lg s\n",take_time()-quda_call_time);
-      }
-#endif
-    
-#ifdef USE_DDALPHAAMG
-    if(multiGrid::checkIfDDalphaAvailableAndRequired(mass) and not solved)
-      {
-	const double cSW=0;
+#elif defined(USE_DDALPHAAMG)
 	solved=DD::solve(solution_lx,conf_lx,kappa,cSW,mass,residue,source_lx);
-      }
+#else
+	crash("How possible!");
 #endif
+	master_printf("calling multigrid to solve took %lg s\n",take_time()-call_time);
+      }
 
 #ifdef USE_TMLQCD
     if(checkIfTmLQCDAvailableAndRequired() and not solved)

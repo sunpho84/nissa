@@ -143,8 +143,9 @@ namespace nissa
 #if THREADS_TYPE != OPENMP_THREADS
     int start_contr_t=0,end_contr_t=locSize[0]*ncontrib;
 #else
-    NISSA_CHUNK_WORKLOAD(start_contr_t,chunk_load_contr_t,end_contr_t,0,locSize[0]*ncontrib,THREAD_ID,NACTIVE_THREADS);
-    chunk_load_contr_t++;
+      NISSA_CHUNK_WORKLOAD(start_contr_t,chunk_load_contr_t,end_contr_t,0,locSize[0]*ncontrib,THREAD_ID,nthreads);
+      (void)&chunk_load_contr_t;
+    
 #endif
     
     //loop on the whole list

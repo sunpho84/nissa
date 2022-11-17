@@ -114,7 +114,7 @@ namespace DD
 	init_params.bc=0;
 	
 	//set threads
-	init_params.number_openmp_threads=nissa::nthreads;
+	//init_params.number_openmp_threads=nissa::nthreads;
 	//values for kappa, mu and csw
 	init_params.kappa=kappa;
 	init_params.mu=mu;

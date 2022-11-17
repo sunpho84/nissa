@@ -372,55 +372,55 @@ namespace nissa
 	spinspin mesolep_loc_contr[locSize[0]];
 	for(int i=0;i<locSize[0];i++) spinspin_put_to_zero(mesolep_loc_contr[i]);
 	
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    [[maybe_unused]] int t=locCoordOfLoclx[ivol][0];
+	// NISSA_PARALLEL_LOOP(ivol,0,locVol)
+	//   {
+	//     [[maybe_unused]] int t=locCoordOfLoclx[ivol][0];
 	    
-	    //multiply lepton side on the right (source) side
-	    spinspin la;
-	    unsafe_spinspin_prod_dirac(la,lept[ivol],base_gamma[list_weak_insl[ins]]);
+	//     //multiply lepton side on the right (source) side
+	//     spinspin la;
+	//     unsafe_spinspin_prod_dirac(la,lept[ivol],base_gamma[list_weak_insl[ins]]);
 	    
-	    //include 4*(1-5)/2/2=(1-5) coming from the two neturino projector+(1-g5) weak lepton structure
-	    //the second /2 comes from sqr(1/sqrt(2)) of 1502.00257
-	    spinspin l;
-	    unsafe_spinspin_prod_dirac(l,la,neutr_1m_g5_proj);
+	//     //include 4*(1-5)/2/2=(1-5) coming from the two neturino projector+(1-g5) weak lepton structure
+	//     //the second /2 comes from sqr(1/sqrt(2)) of 1502.00257
+	//     spinspin l;
+	//     unsafe_spinspin_prod_dirac(l,la,neutr_1m_g5_proj);
 	    
-	    //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
-	    complex ph;
-	    get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
+	//     //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
+	//     complex ph;
+	//     get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	    
-	    //trace hadron side
-	    complex h;
-	    trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma[ins]);
+	//     //trace hadron side
+	//     complex h;
+	//     trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma[ins]);
 	    
-	    //combine mesolep
-	    complex_prodassign(h,ph);
-	    crash("#warning spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h");
-	  }
-	NISSA_PARALLEL_LOOP_END;
+	//     //combine mesolep
+	//     complex_prodassign(h,ph);
+	//     spinspin_summ_the_complex_prod(mesolep_loc_contr[t],l,h);
+	//   }
+	// NISSA_PARALLEL_LOOP_END;
 	crash("#warning glb_threads_reduce_double_vect((double*)mesolep_loc_contr,loc_size[0]*sizeof(spinspin)/sizeof(double));");
 	
 	//save projection on LO
-	for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
-	  NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])
-	    {
-	      int glb_t=loc_t+rank_coord[0]*locSize[0];
-	      int ilnp=(glb_t>=glbSize[0]/2); //select the lepton/neutrino projector
+	// for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
+	//   NISSA_PARALLEL_LOOP(loc_t,0,locSize[0])
+	//     {
+	//       int glb_t=loc_t+rank_coord[0]*locSize[0];
+	//       int ilnp=(glb_t>=glbSize[0]/2); //select the lepton/neutrino projector
 	      
-	      spinspin td;
-	      crash("#warning unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);");
-	      spinspin dtd;
-	      unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
-	      complex mesolep;
-	      trace_spinspin_with_dirac(mesolep,dtd,meslep_proj_gamma[ig_proj]);
+	//       spinspin td;
+	//       unsafe_spinspin_prod_spinspin(td,mesolep_loc_contr[loc_t],pronu[ilnp]);
+	//       spinspin dtd;
+	//       unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
+	//       complex mesolep;
+	//       trace_spinspin_with_dirac(mesolep,dtd,meslep_proj_gamma[ig_proj]);
 	      
-	      //summ the average
-	      int i=glb_t+glbSize[0]*(ig_proj+nmeslep_proj*(list_weak_ind_contr[ins]+nindep_meslep_weak*ext_ind));
-	      complex_summ_the_prod_double(meslep_contr[i],mesolep,1.0/glbSpatVol); //here to remove the statistical average on xw
-	    }
-	NISSA_PARALLEL_LOOP_END;
-	if(IS_MASTER_THREAD) nmeslep_contr_made+=nmeslep_proj;
-	THREAD_BARRIER();
+	//       //summ the average
+	//       int i=glb_t+glbSize[0]*(ig_proj+nmeslep_proj*(list_weak_ind_contr[ins]+nindep_meslep_weak*ext_ind));
+	//       complex_summ_the_prod_double(meslep_contr[i],mesolep,1.0/glbSpatVol); //here to remove the statistical average on xw
+	//     }
+	// NISSA_PARALLEL_LOOP_END;
+	// if(IS_MASTER_THREAD) nmeslep_contr_made+=nmeslep_proj;
+	// THREAD_BARRIER();
       }
     
     nissa_free(loc_contr);

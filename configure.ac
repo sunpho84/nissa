@@ -17,7 +17,7 @@ AC_MSG_RESULT([$CONFIG_TIME])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([1.14 no-define foreign subdir-objects])
-AM_CONFIG_HEADER(src/config.hpp)
+AC_CONFIG_HEADERS(src/config.hpp)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 
@@ -156,6 +156,7 @@ case "$with_threads_type" in
 		THREADS_TYPE=CUDA_THREADS
 		CUDA_MANAGED=__managed__
 		CUDA_HOST_AND_DEVICE="__host__ __device__"
+		CUDA_DEVICE="__device__"
 	    else
 		AC_MSG_ERROR(["Asked to enable Cuda when the framework has not been found"])
 	     fi;;
@@ -166,6 +167,7 @@ AM_CONDITIONAL([USE_CUDA_THREADS], [test x$with_threads_type = xcuda])
 AC_DEFINE_UNQUOTED([THREADS_TYPE],${THREADS_TYPE},[Kind of thread parallelization])
 AC_DEFINE_UNQUOTED([CUDA_MANAGED],${CUDA_MANAGED},[Whether to use managed memory])
 AC_DEFINE_UNQUOTED([CUDA_HOST_AND_DEVICE],${CUDA_HOST_AND_DEVICE},[Whether to duplicate functions for host and device])
+AC_DEFINE_UNQUOTED([CUDA_DEVICE],${CUDA_DEVICE},[Whether to instantiate pure device function])
 AH_VERBATIM([COMPILING_FOR_DEVICE],
 #ifdef __CUDA_ARCH__
  
@@ -451,7 +453,7 @@ Number of colors    : $ncol"
 
 if test "$with_threads_type" = "cuda"
 then
-	CPPFLAGS="-dc --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
+	CPPFLAGS="-dc -dlto --expt-relaxed-constexpr --expt-extended-lambda -x cu $CPPFLAGS"
 fi
 
 #macros to concatenate

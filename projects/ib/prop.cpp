@@ -102,7 +102,8 @@ namespace nissa
     
     const int tins=sou->tins;
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    NISSA_LOC_VOL_LOOP(ivol)
       {
 	spincolor c;
 	spincolor_put_to_zero(c);
@@ -152,7 +153,7 @@ namespace nissa
 		  if((!diluted_spi_source or (id_so==id_si)) and (!diluted_col_source or (ic_so==ic_si)))
 		    complex_copy(sou_proxy[so_sp_col_ind(id_so,ic_so)][ivol][id_si][ic_si],c[diluted_spi_source?0:id_si][diluted_col_source?0:ic_si]);
       }
-    NISSA_PARALLEL_LOOP_END;
+    //NISSA_PARALLEL_LOOP_END;
     
     //compute the norm2, set borders invalid
     double ori_source_norm2=0;
@@ -164,6 +165,53 @@ namespace nissa
 	  ori_source_norm2+=double_vector_glb_norm2(s,locVol);
 	}
     if(IS_MASTER_THREAD) sou->ori_source_norm2=ori_source_norm2;
+    
+    // complex *n=nissa_malloc("n",locVol,complex);
+    // spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);
+    // for(int id_so=0;id_so<nso_spi;id_so++)
+    //   for(int ic_so=0;ic_so<nso_col;ic_so++)
+    // 	{
+    // 	  spincolor *s=sou->sp[so_sp_col_ind(id_so,ic_so)];
+    // 	  master_printf("eta (0): %lg %lg\n",s[0][0][0][RE],s[0][0][0][IM]);
+    // 	  fft4d((complex*)temp,(complex*)s,NDIRAC*NCOL,FFT_PLUS,FFT_NO_NORMALIZE);
+	  
+    // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	    {
+    // 	      n[ivol][RE]=spincolor_norm2(temp[ivol]);
+    // 	      n[ivol][IM]=0;
+    // 	    }
+    // 	  NISSA_PARALLEL_LOOP_END;
+	  
+    // 	  fft4d(n,n,1,FFT_MINUS,FFT_NORMALIZE);
+	  
+    // 	  const int64_t nPoints=((tins==-1)?glbVol:glbSpatVol);
+	  
+    // 	  master_printf("eta+ eta (0): %lg , eta+ eta (1): %lg\n",n[0][RE],n[1][RE]);
+    // 	  if(rank==0)
+    // 	    n[0][RE]-=(double)NDIRAC*NCOL*nPoints/nso_spi/nso_col;
+    // 	  master_printf("eta+ eta (0) after sub: %lg\n",n[0][RE]);
+	  
+    // 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	    {
+    // 	      n[ivol][RE]*=n[ivol][RE];
+    // 	    }
+    // 	  NISSA_PARALLEL_LOOP_END;
+	  
+    // 	  complex res[1];
+    // 	  glb_reduce(res,n,locVol);
+	  
+    // 	  master_printf("Res: %lg\n",res[0][RE]);
+	  
+    // 	  double exp=(double)NDIRAC*NCOL*sqr(nPoints)/(nso_spi*nso_col);
+    // 	  master_printf("Exp: %lg\n",exp);
+	  
+    // 	  double dev=res[0][RE]/exp-1;
+	  
+    // 	  master_printf("Dev: %lg\n",dev);
+    // 	}
+    
+    // nissa_free(temp);
+    // nissa_free(n);
     
     nissa_free(sou_proxy);
   }
@@ -207,7 +255,7 @@ namespace nissa
 	    spincolor temp1,temp2;
 	    unsafe_dirac_prod_spincolor(temp1,base_gamma[igamma_of_mu[mu]],in[ivol]);
 	    complex curr;
-	    currCalc(curr,ivol,mu);
+	    currCalc(curr,ivol,mu,0.0);
 	    unsafe_spincolor_prod_complex(temp2,temp1,curr);
 	    spincolor_summ_the_prod_idouble(out[ivol],temp2,1);
 	  }
@@ -397,6 +445,14 @@ namespace nissa
       generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
   }
   
+  enum class BwFw {BW,FW};
+  
+  CUDA_HOST_AND_DEVICE
+  double HeavyTheta(const int x)
+  {
+    return ((x>=0)+(x>0))/2.0;
+  }
+  
   //generate a sequential source
   void generate_source(insertion_t inser,char *ext_field_path,double mass,int r,double charge,double kappa,double* kappa_asymm,const momentum_t& theta,std::vector<source_term_t>& source_terms,int isou,int t)
   {
@@ -425,23 +481,25 @@ namespace nissa
 	read_real_vector(ext_field,combine("%s/%s",outfolder,ext_field_path),"Current");
       }
     
-    auto HeavyTheta=[](const int x)
-    {
-      return ((x>=0)+(x>0))/2.0;
-    };
-    
     /// Function to insert the virtual photon emission projection
-    enum class BwFw {BW,FW};
-    auto vphotonInsertCurr=[mass,HeavyTheta,theta](const BwFw bwFw,const int nu)
+    auto vphotonInsertCurr=[mass,theta](const BwFw bwFw,const int nu)
     {
-      const double Eg=gluon_energy(photon,mass,0);
+      gauge_info insPhoton;
+      insPhoton.alpha=photon.alpha;
+      insPhoton.bc[0]=0;
+      for(int mu=1;mu<NDIM;mu++)
+	insPhoton.bc[mu]=theta[mu];
+      insPhoton.c1=WILSON_C1;
+      insPhoton.zms=photon.zms;
       
-      return [bwFw,nu,HeavyTheta,Eg,theta](complex ph,const int ivol,const int mu)
+      const double Eg=gluon_energy(insPhoton,mass,0);
+      
+      return [bwFw,nu,Eg,theta] CUDA_HOST_AND_DEVICE(complex ph,const int ivol,const int mu,const double fwbw_phase)
       {
-	double a=0.0;
-	for(int mu=1;mu<NDIM;mu++)
-	  a+=glbCoordOfLoclx[ivol][mu]*M_PI*theta[mu]/glbSize[mu];
+	const double a=-3*0.5*fwbw_phase*M_PI*theta[mu]/glbSize[mu];
+	
 	complex_iexp(ph,a);
+	complex_prodassign_idouble(ph,-1.0);
 	
 	if(mu==nu)
 	  {
@@ -458,7 +516,10 @@ namespace nissa
 	      exp((TH-t)*Eg):
 	      exp(-(3*TH-t)*Eg);
 	    
-	    complex_prodassign_double(ph,HeavyTheta(TH-t)*f1+HeavyTheta(t-TH)*f2);
+	    const double h1=HeavyTheta(TH-t);
+	    const double h2=HeavyTheta(t-TH);
+	    
+	    complex_prodassign_double(ph,h1*f1+h2*f2);
 	  }
 	else
 	  complex_put_to_zero(ph);

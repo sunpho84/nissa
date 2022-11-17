@@ -2,6 +2,9 @@
  #include "config.hpp"
 #endif
 
+#define EXTERN_DEBUG
+# include "base/debug.hpp"
+
 #include <signal.h>
 #include <errno.h>
 #include <execinfo.h>
