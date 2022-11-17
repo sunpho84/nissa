@@ -76,7 +76,7 @@ namespace nissa
 	
 #ifdef USE_DDALPHAAMG
 	DD::set_configuration(conf);
-	export_result=not DD::status.success;
+	export_result=DD::status.success;
 #endif
 	
 #ifdef USE_QUDA
