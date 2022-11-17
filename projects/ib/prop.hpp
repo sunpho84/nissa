@@ -268,7 +268,7 @@ namespace nissa
     
     void read()
     {
-      master_printf("Reading %s\n",path);
+      master_printf("Reading %s\n",path.c_str());
       
       if(fast_read_write_vectors)
 	{
