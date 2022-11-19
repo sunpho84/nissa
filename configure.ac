@@ -28,8 +28,12 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 AC_LANG([C++])
 
+AX_CXX_COMPILE_STDCXX(17,noext,mandatory)
+
 LIBRARY_RESULT="---"
 SUMMARY_RESULT="---"
+
+AX_ASSEMBLY_REPORT
 
 #check if we enable fortran
 AC_ARG_ENABLE(fortran,
@@ -173,7 +177,13 @@ AH_VERBATIM([COMPILING_FOR_DEVICE],
  
  /// A convenient macro to detect that we are compiling on device
 # define COMPILING_FOR_DEVICE
- 
+
+# define _ASM_BOOKMARK_SYMBOL "//"
+
+#else
+
+# define _ASM_BOOKMARK_SYMBOL "#"
+
 #endif
 )
 AC_MSG_RESULT([with threads type... ${with_threads_type}])
@@ -466,6 +476,14 @@ AC_DEFINE([NAME3(s1,s2,s3)],[NAME2(CONCAT3(s1,_,s2),s3)],[Name with two _])
 AC_DEFINE([NAME4(s1,s2,s3,s4)],[NAME3(CONCAT3(s1,_,s2),s3,s4)],[Name with four _])
 AC_DEFINE([REORDER_BARRIER()],[__asm volatile ("")],[Avoid spilling])
 AC_DEFINE([MACRO_GUARD(...)],[do{__VA_ARGS__}while(0)],[Guard semicolon])
+AC_DEFINE([TO_STRING_INTERNAL(x)],[#x],[Internally stringify])
+AC_DEFINE([TO_STRING(x)],[TO_STRING_INTERNAL(x)],[Stringify])
+AC_DEFINE([LINE_AS_STRING],[TO_STRING(__LINE__)],[Instantiate the line number in a string])
+AC_DEFINE([ASM_BOOKMARK(COMMENT)],
+        [asm(_ASM_BOOKMARK_SYMBOL "Bookmark file: \"" __FILE__ "\", line: " LINE_AS_STRING  ", " COMMENT)],
+        [Include a comment in the assembler, recognizable in the compilation])
+AC_DEFINE([ASM_BOOKMARK_BEGIN(COMMENT)],[ASM_BOOKMARK("BEGIN " COMMENT)],[Put a BEGIN for asm bookmark section])
+AC_DEFINE([ASM_BOOKMARK_END(COMMENT)],[ASM_BOOKMARK("END " COMMENT)],[Put a END for asm bookmark section])
 
 #result of conf to screen
 AC_MSG_RESULT([

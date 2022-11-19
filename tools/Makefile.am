@@ -1,8 +1,10 @@
+include $(top_srcdir)/config/baseMakefile.am
+
 AM_CPPFLAGS=-I$(top_srcdir)/src
 LDADD=$(top_builddir)/lib/libnissa.a
 AUTOMAKE_OPTIONS=subdir-objects
 
-bin_PROGRAMS= \
+bin_PROGRAMS+= \
 	$(top_builddir)/tools/benchmarks/stag \
 	$(top_builddir)/tools/conf_measure/topo \
 	$(top_builddir)/tools/conf_transform/convert/eo_to_ildg \
@@ -34,6 +36,9 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/spinors/take_parity \
 	$(top_builddir)/tools/spinors/sources_compare \
 	$(top_builddir)/tools/unitarity_check/unitarity_check
+
+assembly_reports+=\
+        %D%/unitarity_check/unitarity_check.s
 
 __top_builddir__tools_benchmarks_stag_SOURCES=benchmarks/stag.cpp
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES=find_best_vir_partitioning/find.cpp
@@ -68,3 +73,9 @@ __top_builddir__tools_print_gamma_gamma_test_SOURCES=print_gamma/gamma_test.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES=unitarity_check/unitarity_check.cpp
 
 EXTRA_DIST=find_best_vir_partitioning/prepare_mapping.sh
+
+#generate assembly report if asked
+if ASSEMBLY_REPORT
+BUILT_SOURCES+=$(assembly_reports)
+CLEANFILES+=$(assembly_reports)
+endif

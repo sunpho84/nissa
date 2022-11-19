@@ -12,6 +12,7 @@
 #ifdef USE_EXTERNAL_SOLVER
 # include "base/export_conf_to_external_solver.hpp"
 #endif
+#include "base/field.hpp"
 #include "base/init.hpp"
 #include "base/metaprogramming.hpp"
 #include "base/multiGridParams.hpp"

@@ -24,6 +24,35 @@ namespace nissa
   
 #endif
   
+  /// Return the type T or const T if B is true
+  template <bool B,
+	    typename T>
+  using ConstIf=
+    std::conditional_t<B,const T,T>;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace impl
+  {
+    /// Counts the number of extents
+    ///
+    /// Internal implementation
+    template <typename U>
+    static constexpr size_t _nOfExtents()
+    {
+      if constexpr(std::is_array_v<U>)
+	return 1+_nOfExtents<std::remove_extent_t<U>>();
+      else return 0;
+    };
+  }
+  
+  /// Counts the number of extents
+  template <typename T>
+  static constexpr size_t nOfExtents=
+    impl::_nOfExtents<T>();
+  
+  /////////////////////////////////////////////////////////////////
+  
   /// Provides a SFINAE to be used in template par list
   ///
   /// This follows
@@ -55,6 +84,34 @@ namespace nissa
   template <typename T>
   using ref_or_val_t=std::conditional_t<std::is_lvalue_reference<T>::value,T&,T>;
   
+  /////////////////////////////////////////////////////////////////
+  
+/// Force the compiler to inline
+///
+/// \todo This is not very portable, let us investigate about other
+/// compilers
+#define INLINE_ATTRIBUTE			\
+  __attribute__((always_inline))
+  
+/// Force the compiler to inline a function
+#define INLINE_FUNCTION				\
+  INLINE_ATTRIBUTE inline
+  
+/// Clang has its own way to express inline of a lambda
+#ifdef __clang__
+  
+# define MUTABLE_INLINE_ATTRIBUTE INLINE_ATTRIBUTE mutable
+# define CONSTEXPR_INLINE_ATTRIBUTE INLINE_ATTRIBUTE constexpr
+  
+#else
+  
+# define MUTABLE_INLINE_ATTRIBUTE mutable INLINE_ATTRIBUTE
+# define CONSTEXPR_INLINE_ATTRIBUTE constexpr INLINE_ATTRIBUTE
+  
+#endif
+  
+  /////////////////////////////////////////////////////////////////
+  
   /// Provides also a non-const version of the method \c NAME
   ///
   /// See
@@ -79,7 +136,7 @@ namespace nissa
 #define PROVIDE_ALSO_NON_CONST_METHOD(NAME)				\
   /*! Overload the \c NAME const method passing all args             */ \
   template <typename...Ts> /* Type of all arguments                  */	\
-  decltype(auto) NAME(Ts&&...ts) /*!< Arguments                      */ \
+  INLINE_FUNCTION decltype(auto) NAME(Ts&&...ts) /*!< Arguments      */ \
   {									\
     return remove_const_if_ref(as_const(*this).NAME(std::forward<Ts>(ts)...)); \
   }
@@ -87,7 +144,7 @@ namespace nissa
 #define PROVIDE_ALSO_NON_CONST_METHOD_GPU(NAME)				\
   /*! Overload the \c NAME const method passing all args             */ \
   template <typename...Ts> /* Type of all arguments                  */	\
-  CUDA_HOST_AND_DEVICE decltype(auto) NAME(Ts&&...ts) /*!< Arguments     */ \
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE decltype(auto) NAME(Ts&&...ts) /*!< Arguments */ \
   {									\
     return remove_const_if_ref(as_const(*this).NAME(std::forward<Ts>(ts)...)); \
   }

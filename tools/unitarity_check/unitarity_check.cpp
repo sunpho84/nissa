@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <math.h>
 
 #include "nissa.hpp"
@@ -62,17 +66,73 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
   master_fprintf(fout,"%s, Max: %16.16lg, Avg: %16.16lg\n",filename,glb_max,glb_avg);
 }
 
+using C=Field<quad_su3,nissa::CPU_LAYOUT>;
+using G=Field<quad_su3,nissa::GPU_LAYOUT>;
+
+//The product of two complex number
+template <typename A,
+	  typename B,
+	  typename C>
+CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+void unsafe_complex_prod(A&& a,const B& b,const C& c)
+{
+  a[0]=b[0]*c[0]-b[1]*c[1];
+  a[1]=b[0]*c[1]+b[1]*c[0];
+}
+
+//Summ to the output the product of two complex number
+template <typename A,
+	  typename B,
+	  typename C>
+CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+void complex_summ_the_prod(A&& a,const B& b,const C& c)
+{
+  const auto t=b[0]*c[0]-b[1]*c[1];
+  a[1]+=b[0]*c[1]+b[1]*c[0];
+  a[0]+=t;
+}
+
+//Product of two su3 matrixes
+template <typename A,
+	  typename B,
+	  typename C>
+CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+void unsafe_su3_prod_su3(A&& a,const B& b,const C& c)
+{
+  for(int ir_out=0;ir_out<NCOL;ir_out++)
+    for(int ic_out=0;ic_out<NCOL;ic_out++)
+      {
+	unsafe_complex_prod(a[ir_out][ic_out],b[ir_out][0],c[0][ic_out]);
+	for(int itemp=1;itemp<NCOL;itemp++)
+	  complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
+      }
+}
+
+void f(C& c,const int ivol)
+{
+  ASM_BOOKMARK_BEGIN("CIAO");
+  unsafe_su3_prod_su3(c[ivol+1][1],c[ivol][2],c[ivol][0]);
+  ASM_BOOKMARK_END("CIAO");
+}
+
+void f(quad_su3* c,const int ivol)
+{
+  ASM_BOOKMARK_BEGIN("GIAO");
+  unsafe_su3_prod_su3(c[ivol+1][1],c[ivol][2],c[ivol][0]);
+  ASM_BOOKMARK_END("GIAO");
+}
+
 int main(int narg,char **arg)
 {
   char filename[1024];
-
+  
   //basic mpi initialization
   init_nissa(narg,arg);
-
+  
   if(narg<2) crash("Use: %s input_file",arg[0]);
-
+  
   open_input(arg[1]);
-
+  
   //grid sizes
   int L,T;
   read_str_int("L",&L);
@@ -86,7 +146,7 @@ int main(int narg,char **arg)
   //nconf
   int nconf;
   read_str_int("NGaugeConf",&nconf);
-
+  
   quad_su3 *conf=nissa_malloc("conf",locVol+bord_vol,quad_su3);
   
   for(int iconf=0;iconf<nconf;iconf++)
@@ -94,9 +154,27 @@ int main(int narg,char **arg)
       read_str(filename,1024);
       test_unitarity(fout,conf,filename);
     }
-
+  
   close_input();
 
+    G g("g",locVol);
+    C c("c",locVol);
+  
+    //f(g,10);
+  {
+    
+    
+    master_printf("%d %d\n",&g[5][3][2][1][1],&c[5][3][2][1][1]);
+    
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   {
+    // 	auto& r=f[ivol][1][0][0][1];
+	
+    // 	r=0;
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
+  }
+  
   ///////////////////////////////////////////
   
   if(rank==0) fclose(fout);
