@@ -41,7 +41,7 @@ namespace nissa
 	  read_real_vector(out.data,file,header,T::nInternalDegs);
 	else
 	  {
-	    Field<Comps,CPU_LAYOUT> buf("buf",locVol);
+	    Field<Comps,FULL_SPACE,WITHOUT_HALO,CPU_LAYOUT> buf("buf",locVol);
 	    read_real_vector(buf.data,file,header,T::nInternalDegs);
 	    
 	    NISSA_PARALLEL_LOOP(ivol,0,locVol)

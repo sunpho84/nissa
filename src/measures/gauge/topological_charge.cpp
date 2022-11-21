@@ -289,7 +289,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) tot_data*=glbSize[mu]/2+1;
     
     //fix possible exceding boundary
-    int64_t istart=std::min(tot_data,locVol*rank);
+    int64_t istart=std::min(tot_data,(int64_t)locVol*rank);
     int64_t iend=std::min(tot_data,istart+locVol);
     int64_t loc_data=iend-istart;
     

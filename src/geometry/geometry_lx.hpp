@@ -47,7 +47,7 @@ namespace nissa
   //-loc to the local one
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t glbSize,locSize;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glbVol,glbSpatVol,glbVolh;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t locVol,locSpatVol,locVolh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int locVol,locSpatVol,locVolh;
   EXTERN_GEOMETRY_LX int64_t bulkVol,nonBwSurfVol,nonFwSurfVol;
   EXTERN_GEOMETRY_LX int64_t surfVol,bwSurfVol,fwSurfVol;
   EXTERN_GEOMETRY_LX double glb_vol2,loc_vol2;

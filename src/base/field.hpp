@@ -1,14 +1,14 @@
 #ifndef _FIELD_HPP
 #define _FIELD_HPP
 
-#include "bench.hpp"
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <cstddef>
 #include <type_traits>
 
+#include <base/bench.hpp>
 #include <base/metaprogramming.hpp>
 #include <base/vectors.hpp>
 #include <communicate/communicate.hpp>
@@ -17,19 +17,81 @@
 
 namespace nissa
 {
+  /// Subscription of the field
+  ///
+  /// Forward declaration
   template <typename F,
 	    typename P>
   struct SubscribedField;
   
   /////////////////////////////////////////////////////////////////
   
+  /// Memory layout
   enum FieldLayout{CPU_LAYOUT,GPU_LAYOUT};
   
+  /// Coverage of the field
+  enum SpaceTimeCoverage{FULL_SPACE,HALF_SPACE};
+  
+  /// Has or not the halo
+  enum HaloPresence{WITHOUT_HALO,WITH_HALO};
+  
+  /// Predefinite memory layout
   constexpr FieldLayout DefaultFieldLayout=GPU_LAYOUT;
   
+  /////////////////////////////////////////////////////////////////
+  
+  /// Number of sites contained in the field
+  template <SpaceTimeCoverage spaceTimeCoverage,
+	    HaloPresence haloPresence>
+  struct FieldSizes
+  {
+    /// Number of sites covered by the field
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static constexpr int& nSites()
+    {
+      if constexpr(spaceTimeCoverage==FULL_SPACE)
+	return locVol;
+      else
+	return locVolh;
+    }
+    
+    /// Number of sites in the halo of the field (not necessarily allocated)
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static constexpr int& nHaloSites()
+    {
+      if constexpr(spaceTimeCoverage==FULL_SPACE)
+	return bord_vol;
+      else
+	return bord_volh;
+    }
+    
+    /// Number of sites to be allocated
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static int nSitesToAllocate()
+    {
+      if constexpr(haloPresence==WITH_HALO)
+	return nSites()+nHaloSites();
+      else
+	return nSites();
+    }
+  };
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Usable to recognize a field
+  template <typename F>
+  struct FieldFeat
+  {
+  };
+  
+  /// Field
   template <typename T,
+	    SpaceTimeCoverage SC=FULL_SPACE,
+	    HaloPresence HP=WITHOUT_HALO,
 	    FieldLayout FL=DefaultFieldLayout>
-  struct Field
+  struct Field :
+    FieldFeat<Field<T,SC,HP,FL>>,
+    FieldSizes<SC,HP>
   {
     /// Name of the field
     const char* name;
@@ -40,6 +102,12 @@ namespace nissa
     
     /// Components
     using Comps=T;
+    
+    /// Spacetime coverage
+    static constexpr SpaceTimeCoverage spaceTimeCoverage=SC;
+    
+    /// Presence of the halo
+    static constexpr HaloPresence haloPresence=HP;
     
     /// Memory layout of the field
     static constexpr FieldLayout fieldLayout=FL;
@@ -102,8 +170,8 @@ namespace nissa
 	  return ((CONST T*)data)[site];				\
 	else								\
 	  return							\
-	  SubscribedField<CONST Field<T,FL>,				\
-			  std::remove_extent_t<T>>(*this,site,nullptr);	\
+	    SubscribedField<CONST Field,				\
+	    std::remove_extent_t<T>>(*this,site,nullptr);		\
     }
     
     PROVIDE_SUBSCRIBE_OPERATOR(const);
@@ -233,10 +301,10 @@ namespace nissa
   
   /// Hack
   template <typename T,
-	    FieldLayout FL>
-  void set_borders_invalid(Field<T,FL>& field)
+	    typename F>
+  void set_borders_invalid(FieldFeat<F>& field)
   {
-    field.set_borders_invalid();
+    static_cast<F*>(&field)->set_borders_invalid();
   }
   
   template <typename F,
@@ -260,7 +328,7 @@ namespace nissa
     CONST ConstIf<std::is_const_v<std::remove_reference_t<F>>,Fund>& eval(const int& i) CONST \
     {									\
       const int internalDeg=						\
-	(int)(size_t)(&ptr[i])/sizeof(Fund);					\
+	(int)(size_t)(&ptr[i])/sizeof(Fund);				\
       									\
       return f.data[f.index(site,internalDeg)];				\
     }
@@ -271,7 +339,7 @@ namespace nissa
     
 #undef PROVIDE_EVAL
     
-#define PROVIDE_SUBSCRIBE_OPERATOR(CONST)					\
+#define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
     decltype(auto) operator[](const int& i) CONST			\
     {									\
