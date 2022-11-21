@@ -137,7 +137,9 @@ namespace nissa
     write_real_vector(file,(double*)in,NDIM*NCOL*NCOL*2,prec,"ildg-binary-data",mess);
     
     //reorder back
-    quad_su3_ildg_to_nissa_reord_in_place(in);
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      quad_su3_ildg_to_nissa_reord(in[ivol],in[ivol]);
+    NISSA_PARALLEL_LOOP_END;
     
     verbosity_lv2_master_printf("Time elapsed in writing gauge file '%s': %f s\n",path.c_str(),take_time()-start_time);
     ILDG_File_close(file);

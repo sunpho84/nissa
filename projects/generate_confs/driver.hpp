@@ -106,8 +106,8 @@ namespace nissa
     void add_plaq_pol_meas(gauge_obs_meas_pars_t &m){plaq_pol_meas.push_back(m);}
     void add_top_meas(top_meas_pars_t &m){top_meas.push_back(m);}
     void add_luppoli_meas(poly_corr_meas_pars_t &m){luppoli_meas.push_back(m);}
-    void add_watusso_meas(watusso_meas_pars_t &m){watusso_meas.push_back(m);watusso_meas.back();}
-    void add_all_rects_meas(all_rects_meas_pars_t &m){all_rects_meas.push_back(m);all_rects_meas.back();}
+    void add_watusso_meas(watusso_meas_pars_t &m){watusso_meas.push_back(m);}
+    void add_all_rects_meas(all_rects_meas_pars_t &m){all_rects_meas.push_back(m);}
     
     //mode of running
     enum run_mode_t{EVOLUTION_MODE,ANALYSIS_MODE};

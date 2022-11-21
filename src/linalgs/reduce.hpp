@@ -71,41 +71,38 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  template <typename T>
+  template <typename A,
+	    typename B>
   CUDA_HOST_AND_DEVICE
-  void reduceSummer(T& out,const T& in)
+  void reduceSummer(A&& out,const B& in)
   {
-    out+=in;
+    if constexpr(std::is_pod_v<B> and not std::is_array_v<B>)
+      out+=in;
+    else //hack
+      complex_summassign(out,in);
   }
   
-  template <>
+  template <typename A,
+	    typename B>
   CUDA_HOST_AND_DEVICE
-  inline void reduceSummer(complex& out,const complex& in)
+  void reduceAssigner(A&& out,const B& in)
   {
-    complex_summassign(out,in);
-  }
-  
-  /////////////////////////////////////////////////////////////////
-  
-  template <typename T>
-  CUDA_HOST_AND_DEVICE
-  void reduceAssigner(T& out,const T& in)
-  {
-    out=in;
-  }
-  
-  template <>
-  CUDA_HOST_AND_DEVICE
-  inline void reduceAssigner(complex& out,const complex& in)
-  {
-    complex_copy(out,in);
+    if constexpr(std::is_pod_v<B> and not std::is_array_v<B>)
+      out=in;
+    else //hack
+      complex_copy(out,in);
   }
   
   /////////////////////////////////////////////////////////////////
   
   template <typename T,
-	    typename F>
-  void locReduce(T *loc_res,T *buf,int64_t n,const int nslices,F&& f)
+	    typename B,
+	    typename Op>
+  void locReduce(T *loc_res,
+		 B& buf,
+		 int64_t n,
+		 const int nslices,
+		 Op&& op)
   {
     // master_printf("%s function\n",__PRETTY_FUNCTION__);
     
@@ -131,7 +128,7 @@ namespace nissa
 	    const int64_t first=ireduction_in_slice+nori_per_slice*islice;
 	    const int64_t second=first+stride;
 	    
-	    f(buf[first],buf[second]);
+	    op(buf[first],buf[second]);
 	  }
 	  NISSA_PARALLEL_LOOP_END;
 	  THREAD_BARRIER();
@@ -148,24 +145,41 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   /// Reduce a vector over all nodes
-  template <typename T>
-  void glb_reduce(T* glb_res,T* buf,int64_t nloc,const int nslices=1,const int nloc_slices=1,const int loc_offset=0)
+  template <typename T,
+	    typename B>
+  void glb_reduce(T* glb_res,
+		  B& buf,
+		  const int64_t nloc,
+		  const int nslices=1,
+		  const int nloc_slices=1,
+		  const int loc_offset=0)
   {
     T loc_res[nslices];
     memset(loc_res,0,sizeof(T)*nslices);
     
-    locReduce(loc_res+loc_offset,buf,nloc,nloc_slices,[] CUDA_DEVICE (auto& res,const auto& acc)  __attribute__((always_inline))
-    {
-      reduceSummer(res,acc);
-    });
+    locReduce(loc_res+loc_offset,
+	      buf,
+	      nloc,
+	      nloc_slices,
+	      [] CUDA_DEVICE (auto&& res,const auto& acc) INLINE_ATTRIBUTE
+	      {
+		reduceSummer(res,acc);
+	      });
     // printf("rank %d local reduction %lg\n",rank,loc_res[0]);
     non_loc_reduce(glb_res,loc_res,nslices);
   }
   
   /// Reduce a vector over all nodes
   template <typename T,
-	    typename F>
-  void glbReduce(T* glb_res,T* buf,int64_t nloc,F&& f,const int nslices=1,const int nloc_slices=1,const int loc_offset=0)
+	    typename F,
+	    typename B>
+  void glbReduce(T* glb_res,
+		 B& buf,
+		 const int64_t nloc,
+		 F&& f,
+		 const int nslices=1,
+		 const int nloc_slices=1,
+		 const int loc_offset=0)
   {
     T loc_res[nslices];
     memset(loc_res,0,sizeof(T)*nslices);

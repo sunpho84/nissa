@@ -87,28 +87,6 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  //read a gauge conf
-  void read_ildg_gauge_conf(quad_su3 *conf,std::string path,ILDG_message *mess)
-  {
-    //read
-    verbosity_lv1_master_printf("\nReading configuration from file: %s\n",path.c_str());
-    read_real_vector(conf,path,"ildg-binary-data",mess);
-    verbosity_lv2_master_printf("Configuration read!\n\n");
-    
-    //reorder from ILDG
-    quad_su3_ildg_to_nissa_reord_in_place(conf);
-    
-    //set borders invalid
-    set_borders_invalid(conf);
-    
-    //perform unitarity test
-    unitarity_check_result_t unitarity_check_result;
-    unitarity_check_lx_conf(unitarity_check_result,conf);
-    
-    verbosity_lv1_master_printf("Plaquette of read conf: %16.16lg\n",global_plaquette_lx_conf(conf));
-    verbosity_lv1_master_printf("Deviation from unitarity: %lg average, %lg max\n",unitarity_check_result.average_diff,unitarity_check_result.max_diff);
-  }
-  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //read an ildg conf and split it into e/o parts

@@ -5,7 +5,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/float_128.hpp"
-#include "new_types/su3.hpp"
+#include "new_types/su3_op.hpp"
 #include "threads/threads.hpp"
 
 namespace nissa
@@ -107,7 +107,6 @@ namespace nissa
   void rotate_vol_colorspinspin_to_physical_basis(colorspinspin *s,int rsi,int rso);
   void rotate_vol_su3spinspin_to_physical_basis(su3spinspin *s,int rsi,int rso);
   void quad_su3_nissa_to_ildg_reord_in_place(quad_su3 *conf);
-  void quad_su3_ildg_to_nissa_reord_in_place(quad_su3 *conf);
 }
 
 #endif

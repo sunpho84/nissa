@@ -239,41 +239,6 @@ namespace nissa
     set_borders_invalid(conf);
   }
   
-  //perform a unitarity check on a lx conf
-  void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
-  {
-    //results
-    double* loc_avg=nissa_malloc("loc_avg",locVol,double);
-    double* loc_max=nissa_malloc("loc_max",locVol,double);
-    int64_t* loc_nbroken=nissa_malloc("loc_nbroken",locVol,int64_t);
-    
-    NISSA_LOC_VOL_LOOP(ivol)
-      for(int idir=0;idir<NDIM;idir++)
-	{
-	  const double err=su3_get_non_unitariness(conf[ivol][idir]);
-	  
-	  //compute average and max deviation
-	  loc_avg[ivol]=err;
-	  loc_max[ivol]=err;
-	  loc_nbroken[ivol]=(err>1e-13);
-	}
-    
-    glb_reduce(&result.average_diff,loc_avg,locVol);
-    result.average_diff/=glbVol*NDIM;
-    
-    glbReduce(&result.max_diff,loc_max,locVol,
-	      [] CUDA_DEVICE (double& res,const double& acc)  __attribute__((always_inline))
-	      {
-		if(acc>res)
-		  res=acc;
-	      });
-    glb_reduce(&result.nbroken_links,loc_nbroken,locVol);
-    
-    nissa_free(loc_avg);
-    nissa_free(loc_max);
-    nissa_free(loc_nbroken);
-  }
-  
   //unitarize an a lx conf
   void unitarize_lx_conf_orthonormalizing(quad_su3* conf)
   {

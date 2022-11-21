@@ -498,13 +498,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
     THREAD_BARRIER();
   }
-  void quad_su3_ildg_to_nissa_reord_in_place(quad_su3* in)
-  {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      quad_su3_ildg_to_nissa_reord(in[ivol],in[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
-  }
+  
   
   void parallel_memcpy(void* out,void* in,int n)
   {

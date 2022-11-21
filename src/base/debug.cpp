@@ -32,18 +32,20 @@ namespace nissa
   /// Implements the trap to debug
   void debug_loop()
   {
-    volatile int flag=0;
-    
-    printf("Entering debug loop on rank %d, flag has address %p please type:\n"
-	   "$ gdb -p %d\n"
-	   "$ set flag=1\n"
-	   "$ continue\n",
-	   rank,
-	   &flag,
-	   getpid());
-    
     if(is_master_rank())
-      while(flag==0);
+      {
+	volatile int flag=0;
+	
+	printf("Entering debug loop on rank %d, flag has address %p please type:\n"
+	       "$ gdb -p %d\n"
+	       "$ set flag=1\n"
+	       "$ continue\n",
+	       rank,
+	       &flag,
+	       getpid());
+	
+	while(flag==0);
+      }
     
     ranks_barrier();
   }
@@ -82,7 +84,8 @@ namespace nissa
     fflush(stderr);
     
     //give time to master thread to crash, if possible
-    if(!IS_MASTER_THREAD) sleep(1);
+    if(not IS_MASTER_THREAD)
+      sleep(1);
     
     if(is_master_rank())
       {

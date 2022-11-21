@@ -82,9 +82,8 @@ namespace nissa
 	}
       
       //free
-      for(int icopy=0;icopy<2;icopy++)
 	for(int par=0;par<2;par++)
-	  nissa_free(temp[icopy][par]);
+	  nissa_free(temp[par]);
     }
     
     //apply the operator

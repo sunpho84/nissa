@@ -92,7 +92,51 @@ namespace nissa
   void overrelax_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper,int nhits);
   void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
   void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
-  void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf);
+  
+  /// Perform a unitarity check on a lx conf
+  template <typename C>
+  void unitarity_check_lx_conf(unitarity_check_result_t &result,const C& conf)
+  {
+    //results
+    Field<double> locAvg("locAvg",locVol);
+    Field<double> locMax("locMax",locVol);
+    Field<int64_t> locNbroken("locNbroken",locVol);
+    
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      {
+	double a=0;
+	double m=0;
+	int n=0;
+	
+	for(int idir=0;idir<NDIM;idir++)
+	{
+	  const double err=
+	    su3_get_non_unitariness(conf[ivol][idir]);
+	  
+	  //compute average and max deviation
+	  a=err;
+	  m=err;
+	  n+=(err>1e-13);
+	}
+	
+	locAvg[ivol]=a;
+	locMax[ivol]=m;
+	locNbroken[ivol]=n;
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    glb_reduce(&result.average_diff,locAvg,locVol);
+    result.average_diff/=glbVol*NDIM;
+    
+    glbReduce(&result.max_diff,locMax,locVol,
+	      [] CUDA_DEVICE (double& res,const double& acc) INLINE_ATTRIBUTE
+	      {
+		if(acc>res)
+		  res=acc;
+	      });
+    glb_reduce(&result.nbroken_links,locNbroken,locVol);
+  }
+  
   void unitarize_lx_conf_orthonormalizing(quad_su3 *conf);
   void unitarize_lx_conf_maximal_trace_projecting(quad_su3 *conf);
   void unitarize_eo_conf_maximal_trace_projecting(eo_ptr<quad_su3> conf);

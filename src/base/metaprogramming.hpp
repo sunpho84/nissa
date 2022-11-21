@@ -1,11 +1,16 @@
 #ifndef _METAPROGRAMMING_HPP
 #define _METAPROGRAMMING_HPP
 
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
+#include <cstddef>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
-#include <routines/math_routines.hpp>
+// #include <routines/math_routines.hpp>
 
 namespace nissa
 {
@@ -239,7 +244,7 @@ namespace nissa
     struct filter
     {
       /// Predicate result, counting whether the type match
-      static constexpr bool value=(sumAll<int>(std::is_same<T,Fs>::value...)==0);
+      static constexpr bool value=((std::is_same<T,Fs>::value+...)==0);
     };
     
     /// Returned type
@@ -270,7 +275,7 @@ namespace nissa
     struct t
     {
       /// Predicate result
-      static constexpr bool value=(sumAll<int>(std::is_same<T,Tp>::value...)==N);
+      static constexpr bool value=((std::is_same<T,Tp>::value+...)==N);
     };
   };
   

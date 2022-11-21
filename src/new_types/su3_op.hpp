@@ -66,16 +66,36 @@ namespace nissa
   
   //////////////////////////////////////// Copy /////////////////////////////////////
   
-  CUDA_HOST_AND_DEVICE inline void color_copy(color b,const color a) {for(size_t ic=0;ic<NCOL;ic++) complex_copy(b[ic],a[ic]);}
-  CUDA_HOST_AND_DEVICE inline void su3_copy(su3 b,const su3 a)
+  /// a=b
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void color_copy(A&& a,const B& b)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(b)=SU3_ECAST(a);
-#else
-    for(size_t ic=0;ic<NCOL;ic++) color_copy(b[ic],a[ic]);
-#endif
+    for(int ic=0;ic<NCOL;ic++)
+      complex_copy(a[ic],b[ic]);
   }
-  CUDA_HOST_AND_DEVICE inline void quad_su3_copy(quad_su3 b,const quad_su3 a) {for(size_t i=0;i<NDIM;i++) su3_copy(b[i],a[i]);}
+  
+  /// a=b
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_copy(A&& a,const B& b)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      color_copy(a[ic],b[ic]);
+  }
+  
+  /// a=b
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void quad_su3_copy(A&& a,const B& b)
+  {
+    for(int i=0;i<NDIM;i++)
+      su3_copy(a[i],b[i]);
+  }
+  
   inline CUDA_HOST_AND_DEVICE  void spincolor_copy(spincolor b,const spincolor a) {for(size_t i=0;i<NDIRAC;i++) color_copy(b[i],a[i]);}
   CUDA_HOST_AND_DEVICE inline void colorspinspin_copy(colorspinspin b,const colorspinspin a) {for(size_t i=0;i<NCOL;i++) spinspin_copy(b[i],a[i]);}
   CUDA_HOST_AND_DEVICE inline void su3spinspin_copy(su3spinspin b,const su3spinspin a) {for(size_t i=0;i<NCOL;i++) colorspinspin_copy(b[i],a[i]);}
@@ -90,12 +110,17 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) su3_copy(out[(mu+NDIM-1)%NDIM],buff[mu]);
   }
   
-  CUDA_HOST_AND_DEVICE inline void quad_su3_ildg_to_nissa_reord(quad_su3 out,const quad_su3 in)
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void quad_su3_ildg_to_nissa_reord(A&& out,
+				    const B& in)
   {
     quad_su3 buff;
     quad_su3_copy(buff,in);
     
-    for(int mu=0;mu<NDIM;mu++) su3_copy(out[(mu+1)%NDIM],buff[mu]);
+    for(int mu=0;mu<NDIM;mu++)
+      su3_copy(out[(mu+1)%NDIM],buff[mu]);
   }
   
   ////////////////////////////////// Operations between colors //////////////////////////
@@ -130,11 +155,18 @@ namespace nissa
   
   inline void color_linear_comb(color a,const color b,const double cb,const color c,const double cc) {for(size_t ic=0;ic<NCOL;ic++) complex_linear_comb(a[ic],b[ic],cb,c[ic],cc);}
   
-  CUDA_HOST_AND_DEVICE inline void color_scalar_prod(complex out,const color a,const color b)
+  /// a=(b,c)
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void color_scalar_prod(A&& a,const B& b,const C& c)
   {
-    unsafe_complex_conj1_prod(out,a[0],b[0]);
-    for(size_t ic=1;ic<NCOL;ic++) complex_summ_the_conj1_prod(out,a[ic],b[ic]);
+    unsafe_complex_conj1_prod(a,b[0],c[0]);
+    for(int ic=1;ic<NCOL;ic++)
+      complex_summ_the_conj1_prod(a,b[ic],c[ic]);
   }
+  
   CUDA_HOST_AND_DEVICE inline double color_norm2(const color c)
   {double out=complex_norm2(c[0]);for(size_t ic=1;ic<NCOL;ic++) out+=complex_norm2(c[ic]);return out;}
   
@@ -165,12 +197,14 @@ namespace nissa
     complex_subt_the_conj_conj_prod(o[2][2],o[0][1],o[1][0]);
   }
   
-  //just print an su3 matrix
-  inline void su3_print(const su3 U)
+  /// Just print an su3 matrix
+  template <typename U>
+  inline void su3_print(const U& u)
   {
     for(size_t ic1=0;ic1<NCOL;ic1++)
       {
-	for(size_t ic2=0;ic2<NCOL;ic2++) printf("%+16.16lg,%+16.16lg\t",U[ic1][ic2][RE],U[ic1][ic2][IM]);
+	for(size_t ic2=0;ic2<NCOL;ic2++)
+	  printf("%+16.16lg,%+16.16lg\t",u[ic1][ic2][RE],u[ic1][ic2][IM]);
 	printf("\n");
       }
     printf("\n");
@@ -459,21 +493,22 @@ namespace nissa
   }
   inline void su3_subtassign_su3_dag(su3 a,const su3 b) {unsafe_su3_subt_su3_dag(a,a,b);}
   
-  //Product of two su3 matrixes
-  CUDA_HOST_AND_DEVICE inline void unsafe_su3_prod_su3(su3 a,const su3 b,const su3 c,const size_t nr_max=NCOL)
+  /// Product of two su3 matrixes
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_prod_su3(A&& a,const B& b,const C& c,const size_t nr_max=NCOL)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)=SU3_ECAST(b)*SU3_ECAST(c);
-#else
-    for(size_t ir_out=0;ir_out<nr_max;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
+    for(int ir_out=0;ir_out<nr_max;ir_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
 	{
 	  unsafe_complex_prod(a[ir_out][ic_out],b[ir_out][0],c[0][ic_out]);
-	  for(size_t itemp=1;itemp<NCOL;itemp++)
+	  for(int itemp=1;itemp<NCOL;itemp++)
 	    complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
 	}
-#endif
   }
+  
   CUDA_HOST_AND_DEVICE inline void safe_su3_prod_su3(su3 a,const su3 b,const su3 c) {su3 d;unsafe_su3_prod_su3(d,b,c);su3_copy(a,d);}
   inline void su3_prodassign_su3(su3 a,const su3 b) {safe_su3_prod_su3(a,a,b);}
   CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_su3(su3 a,const su3 b,const su3 c)
@@ -554,33 +589,33 @@ namespace nissa
   }
   CUDA_HOST_AND_DEVICE inline void safe_su3_prod_su3_dag(su3 a,const su3 b,const su3 c) {su3 d;unsafe_su3_prod_su3_dag(d,b,c);su3_copy(a,d);}
   
-  //subtract the product
-  CUDA_HOST_AND_DEVICE inline void su3_subt_the_prod_su3_dag(su3 a,const su3 b,const su3 c)
+  /// subtract the product
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_subt_the_prod_su3_dag(A&& a,const B& b,const C& c)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)-=SU3_ECAST(b)*SU3_ECAST(c).adjoint();
-#else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
       for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	for(size_t jc=0;jc<NCOL;jc++)
 	  complex_subt_the_conj2_prod(a[ir_out][ic_out],b[ir_out][jc],c[ic_out][jc]);
-#endif
   }
   
-  //Trace of the product of two su3 matrices
-  CUDA_HOST_AND_DEVICE inline double real_part_of_trace_su3_prod_su3_dag(su3 a,const su3 b)
+  /// Trace of the product of two su3 matrices
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  double real_part_of_trace_su3_prod_su3_dag(A&& a,
+					     const B& b)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    return (SU3_ECAST(a)*SU3_ECAST(b).adjoint()).trace().real();
-#else
-    double t=0;
+    double t=0.0;
     
-    for(size_t ic1=0;ic1<NCOL;ic1++)
-      for(size_t ic2=0;ic2<NCOL;ic2++)
+    for(int ic1=0;ic1<NCOL;ic1++)
+      for(int ic2=0;ic2<NCOL;ic2++)
 	t+=real_part_of_complex_scalar_prod(a[ic1][ic2],b[ic1][ic2]);
     
     return t;
-#endif
   }
   
   //Trace of the product of two su3 matrices
@@ -1546,13 +1581,16 @@ namespace nissa
   }
   
   //return sqrt(|U*U^+-1|)
-  CUDA_HOST_AND_DEVICE inline double su3_get_non_unitariness(const su3 u)
+  template <typename U>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  double su3_get_non_unitariness(const U& u)
   {
     su3 zero;
     su3_put_to_id(zero);
     su3_subt_the_prod_su3_dag(zero,u,u);
     
-    return sqrt(real_part_of_trace_su3_prod_su3_dag(zero,zero));
+    return
+      sqrt(real_part_of_trace_su3_prod_su3_dag(zero,zero));
   }
 }
 
