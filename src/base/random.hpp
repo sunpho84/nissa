@@ -1,17 +1,20 @@
 #ifndef _RANDOM_HPP
 #define _RANDOM_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
-#include "new_types/su3.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
+#include <geometry/geometry_eo.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <routines/mpi_routines.hpp>
+#include <threads/threads.hpp>
 
 #ifndef EXTERN_RANDOM
- #define EXTERN_RANDOM extern
+# define EXTERN_RANDOM extern
 #endif
 
 //random number generator table length
@@ -79,11 +82,10 @@ namespace nissa
   void start_rnd_gen(rnd_gen *out,int seed);
   void stop_loc_rnd_gen();
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd);
   
   //read from /dev/urandom
   template <typename T>
-  void get_system_random(T &t)
+  void get_system_random(T& t)
   {
     const int size=sizeof(T);
     

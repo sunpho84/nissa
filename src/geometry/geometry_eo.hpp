@@ -62,6 +62,12 @@ namespace nissa
     }
   };
   
+  template <typename T>
+  inline constexpr bool is_eo_ptr=false;
+  
+  template <typename T>
+  inline constexpr bool is_eo_ptr<eo_ptr<T>> =true;
+  
   //-eo is even-odd
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loclx_parity;
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loceo_of_loclx;

@@ -4,8 +4,6 @@ using namespace nissa;
 
 void compute_gaussianity_pars(double* x,color* source,int maxpow,coords_t* source_pos)
 {
-  #warning
-
   crash("reimplement");
   // //reset local pows
   // double locx[glb_size[0]][maxpow];
@@ -126,7 +124,7 @@ void compute_density(FILE *fout,color *source,coords_t *source_pos)
   //reduce and print
   master_fprintf(fout," NDists %d\n",(int)density[0].size());
 
-  #warning
+  crash("");
   // for(int t=0;t<glb_size[0];t++)
   //   {
   //     master_fprintf(fout," t %d\n",t);

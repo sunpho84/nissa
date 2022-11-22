@@ -30,7 +30,7 @@ namespace nissa
   enum FieldLayout{CPU_LAYOUT,GPU_LAYOUT};
   
   /// Coverage of the field
-  enum SitesCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE};
+  enum SitesCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE,EVEN_OR_ODD_SITES};
   
   /// Has or not the halo
   enum HaloPresence{WITHOUT_HALO,WITH_HALO};
@@ -81,12 +81,13 @@ namespace nissa
     
     /// Surface site of a site in the halo
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static int surfSiteOfHaloSite(const int& iHalo)
+    static auto surfSiteOfHaloSite(const int& iHalo)
     {
       if constexpr(sitesCoverage==FULL_SPACE)
 	return surflxOfBordlx[iHalo];
       else
-	return surfeo_of_bordeo[sitesCoverage][iHalo];
+	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
+	  return surfeo_of_bordeo[sitesCoverage][iHalo];
     }
   };
   
@@ -100,7 +101,7 @@ namespace nissa
   
   /// Field
   template <typename T,
-	    SitesCoverage SC=FULL_SPACE,
+	    SitesCoverage SC,
 	    HaloPresence HP=WITHOUT_HALO,
 	    FieldLayout FL=DefaultFieldLayout>
   struct Field :
@@ -189,6 +190,23 @@ namespace nissa
     
 #undef PROVIDE_SUBSCRIBE_OPERATOR
     
+    /////////////////////////////////////////////////////////////////
+    
+#define PROVIDE_FLATTENED_CALLER(CONST)					\
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
+    CONST Fund& operator()(const int& site,const int& internalDeg) CONST \
+    {									\
+      return data[index(site,internalDeg)];				\
+    }
+    
+    PROVIDE_FLATTENED_CALLER(const);
+    
+    PROVIDE_FLATTENED_CALLER(/* not const */);
+    
+#undef PROVIDE_FLATTENED_CALLER
+    
+    /////////////////////////////////////////////////////////////////
+    
     /// Set halo as invalid
     void invalidateHalo()
     {
@@ -207,11 +225,12 @@ namespace nissa
       NISSA_PARALLEL_LOOP_END;
     }
     
+    /// Fills the halo with the receivied buffer
     void fillHaloWithReceivingBuf() const
     {
       NISSA_PARALLEL_LOOP(iHalo,0,this->nHaloSites())
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  data[index(locVol+iHalo,internalDeg)]=
+	  data[index(this->nSites()+iHalo,internalDeg)]=
 	    ((Fund*)recv_buf)[internalDeg+nInternalDegs*iHalo];
       NISSA_PARALLEL_LOOP_END;
     }
@@ -219,10 +238,12 @@ namespace nissa
     /// Start the communications
     static std::vector<MPI_Request> startAsyincComm()
     {
+      /// Pending requests
       std::vector<MPI_Request> requests(2*2*nparal_dir);
       
-      const int div_coeff=
-	(sitesCoverage==FULL_SPACE)?1:2; //dividing coeff
+      /// Coefficient which divides the space time, if the field is covering only half the space
+      const int divCoeff=
+	(sitesCoverage==FULL_SPACE)?1:2;
       
       int nRequests=0;
       
@@ -230,9 +251,9 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  if(paral_dir[mu])
 	    {
-	      const size_t sendOffset=(bord_offset[mu]+bord_volh*(!bf))*sizeof(T)/div_coeff;
-	      const size_t recvOffset=(bord_offset[mu]+bord_volh*bf)*sizeof(T)/div_coeff;
-	      const size_t messageLength=bord_dir_vol[mu]*sizeof(T)/div_coeff;
+	      const size_t sendOffset=(bord_offset[mu]+bord_volh*(!bf))*sizeof(T)/divCoeff;
+	      const size_t recvOffset=(bord_offset[mu]+bord_volh*bf)*sizeof(T)/divCoeff;
+	      const size_t messageLength=bord_dir_vol[mu]*sizeof(T)/divCoeff;
 	      const int messageTag=bf+2*mu;
 	      
 	      MPI_Irecv(recv_buf+recvOffset,messageLength,MPI_CHAR,rank_neigh [bf][mu],
@@ -255,14 +276,21 @@ namespace nissa
     /// Start communication using halo
     std::vector<MPI_Request> startCommunicatingHalo() const
     {
+      /// Pending requests
       std::vector<MPI_Request> requests;
       
       if(not haloIsValid and nparal_dir>0)
 	{
-	  const size_t max=std::min(send_buf_size,recv_buf_size);
-	  if(sizeof(T)*this->nHaloSites()>max)
+	  /// Needed size in the buffer
+	  const size_t neededBufSize=
+	    sizeof(T)*this->nHaloSites();
+	  
+	  const size_t maxBufSize=
+	    std::min(send_buf_size,recv_buf_size);
+	  
+	  if(neededBufSize>maxBufSize)
 	    crash("asking to create a communicator that needs %d large buffer (%d allocated)",
-		  sizeof(T)*this->nHaloSites(),max);
+		  neededBufSize,maxBufSize);
 	  
 	  //take time and write some debug output
 	  START_TIMING(tot_comm_time,ntot_comm);
@@ -315,6 +343,146 @@ namespace nissa
   {
     static_cast<F*>(&field)->invalidateHalo();
   }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Lexicographic field
+  template <typename T,
+	    HaloPresence HP=WITHOUT_HALO,
+	    FieldLayout FL=DefaultFieldLayout>
+  using LxField=Field<T,FULL_SPACE,HP,FL>;
+  
+  /// Field over even sites
+  template <typename T,
+	    HaloPresence HP=WITHOUT_HALO,
+	    FieldLayout FL=DefaultFieldLayout>
+  using EvnField=Field<T,EVEN_SITES,HP,FL>;
+  
+  /// Field over odd sites
+  template <typename T,
+	    HaloPresence HP=WITHOUT_HALO,
+	    FieldLayout FL=DefaultFieldLayout>
+  using OddField=Field<T,ODD_SITES,HP,FL>;
+  
+  /// Field over even or odd sites
+  template <typename T,
+	    HaloPresence HP=WITHOUT_HALO,
+	    FieldLayout FL=DefaultFieldLayout>
+  using EvenOrOddField=Field<T,EVEN_OR_ODD_SITES,HP,FL>;
+  
+  /////////////////////////////////////////////////////////////////
+  
+  template <int EO>
+  struct Par
+  {
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    operator int() const
+    {
+      return EO;
+    }
+    
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    Par<1-EO> operator!() const
+    {
+      return {};
+    }
+  };
+  
+  /// Structure to hold an even/old field
+  template <typename T,
+	    HaloPresence HP=WITHOUT_HALO,
+	    FieldLayout FL=DefaultFieldLayout>
+  struct EoField
+  {
+    /// Type representing a pointer to type T
+    template <SitesCoverage EO>
+    using F=Field<T,EO,HP,FL>;
+    
+    F<EVEN_SITES> evenPart;
+    
+    F<ODD_SITES> oddPart;
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Gets the even or odd part
+#define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
+    template <int EO>							\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr			\
+    CONST auto& operator[](Par<EO>) CONST				\
+    {									\
+      if constexpr(EO==EVN)						\
+	return evenPart;						\
+      else								\
+	return oddPart;							\
+    }
+    
+    PROVIDE_SUBSCRIBE_OPERATOR(const);
+    
+    PROVIDE_SUBSCRIBE_OPERATOR(/* const*/ );
+    
+#undef PROVIDE_SUBSCRIBE_OPERATOR
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Gets the even or odd part, non-constexpr version
+#define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION				\
+    CONST auto& operator[](const int eo) CONST				\
+    {									\
+      using EOOF=							\
+	CONST Field<T,EVEN_OR_ODD_SITES,HP,FL>;				\
+      									\
+      EOOF* t[2]={(EOOF*)&evenPart,(EOOF*)&oddPart};			\
+      									\
+      return *t[eo];							\
+    }
+    
+    PROVIDE_SUBSCRIBE_OPERATOR(const);
+    
+    PROVIDE_SUBSCRIBE_OPERATOR(/* const*/ );
+    
+#undef PROVIDE_SUBSCRIBE_OPERATOR
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Constructor
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    EoField(const char* name) :
+      evenPart(name),
+      oddPart(name)
+    {
+    }
+    
+    /// Update the halo of both parities
+    INLINE_FUNCTION
+    void updateHalo() const
+    {
+      forBothParities([this](const auto& par)
+      {
+	(*this)[par].updateHalo();
+      });
+    }
+    
+    /// Invalidate the halo of both parities
+    INLINE_FUNCTION
+    void invalidateHalo()
+    {
+      forBothParities([this](const auto& par)
+      {
+	(*this)[par].invalidateHalo();
+      });
+    }
+  };
+  
+  /// Loop on both parities
+  template <typename F>
+  void forBothParities(const F& f)
+  {
+    f(Par<0>{});
+    f(Par<1>{});
+  }
+  
+  /////////////////////////////////////////////////////////////////
   
   template <typename F,
 	    typename P>

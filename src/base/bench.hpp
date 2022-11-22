@@ -40,10 +40,10 @@ namespace nissa
   EXTERN_BENCH int perform_benchmark;
  #define NISSA_DEFAULT_PERFORM_BENCHMARK 0
   
-#define UNPAUSE_TIMING(TIME) if(IS_MASTER_THREAD) TIME-=take_time()
-#define RESET_TIMING(TIME,COUNTER) do{if(IS_MASTER_THREAD){TIME=0;COUNTER=0;}}while(0)
-#define START_TIMING(TIME,COUNTER) do{if(IS_MASTER_THREAD){TIME-=take_time();COUNTER++;}}while(0)
-#define STOP_TIMING(TIME) if(IS_MASTER_THREAD) TIME+=take_time()
+#define UNPAUSE_TIMING(TIME) TIME-=take_time()
+#define RESET_TIMING(TIME,COUNTER) do{TIME=0;COUNTER=0;}while(0)
+#define START_TIMING(TIME,COUNTER) do{TIME-=take_time();COUNTER++;}while(0)
+#define STOP_TIMING(TIME) TIME+=take_time()
   
   void bench_memory_bandwidth(int mem_size);
   void bench_memory_copy(double *out,double *in,int size);

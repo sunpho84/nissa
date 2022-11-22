@@ -217,28 +217,6 @@ namespace nissa
       }
   }
   
-  //generate an identical conf
-  void generate_cold_lx_conf(quad_su3 *conf)
-  {
-    NISSA_LOC_VOL_LOOP(ivol)
-      for(int mu=0;mu<NDIM;mu++)
-	su3_put_to_id(conf[ivol][mu]);
-    
-    set_borders_invalid(conf);
-  }
-  
-  //generate a random conf
-  void generate_hot_lx_conf(quad_su3 *conf)
-  {
-    if(loc_rnd_gen_inited==0) crash("random number generator not inited");
-    
-    NISSA_LOC_VOL_LOOP(ivol)
-      for(int mu=0;mu<NDIM;mu++)
-	su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
-    
-    set_borders_invalid(conf);
-  }
-  
   //unitarize an a lx conf
   void unitarize_lx_conf_orthonormalizing(quad_su3* conf)
   {

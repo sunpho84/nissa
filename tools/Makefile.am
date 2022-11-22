@@ -37,9 +37,6 @@ bin_PROGRAMS+= \
 	$(top_builddir)/tools/spinors/sources_compare \
 	$(top_builddir)/tools/unitarity_check/unitarity_check
 
-assembly_reports+=\
-        %D%/unitarity_check/unitarity_check.s
-
 __top_builddir__tools_benchmarks_stag_SOURCES=benchmarks/stag.cpp
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES=find_best_vir_partitioning/find.cpp
 __top_builddir__tools_remez_algorithm_remez_create_SOURCES=remez_algorithm/remez_create.cpp

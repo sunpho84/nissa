@@ -49,16 +49,16 @@ namespace nissa
   }
   
   /// Computes the global plaquette, separating timelike and not
-  template <typename C>
+  template <typename Conf>
   void global_plaquette_lx_conf(double* totplaq,
-				const C& conf)
+				const Conf& conf)
   {
-    if constexpr(std::is_pointer_v<C>) // hack
+    if constexpr(std::is_pointer_v<Conf>) // hack
       communicate_lx_quad_su3_borders(conf);
     else
       conf.updateHalo();
     
-    Field<complex> point_plaq("point_plaq");
+    LxField<complex> point_plaq("point_plaq");
     
     //loop over all the lattice
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
@@ -83,8 +83,74 @@ namespace nissa
       return (plaq[0]+plaq[1])/2;
     }
   
-  double global_plaquette_eo_conf(eo_ptr<quad_su3> conf);
-  void global_plaquette_eo_conf(double *totplaq,eo_ptr<quad_su3> conf);
+  /////////////////////////////////////////////////////////////////
+  
+  template <typename Plaq,
+	    typename Conf,
+	    typename Par>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void point_plaquette_eo_conf(Plaq&& loc_plaq,
+			       const Conf& conf,
+			       const Par par,
+			       int A)
+  {
+    loc_plaq[0]=loc_plaq[1]=0;
+    
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	const int B=loceo_neighup[par][A][mu];
+	
+	for(int nu=mu+1;nu<NDIM;nu++)
+	  {
+	    const int C=loceo_neighup[par][A][nu];
+	    
+	    su3 ABD,ACD;
+	    unsafe_su3_prod_su3(ABD,conf[par][A][mu],conf[!par][B][nu]);
+	    unsafe_su3_prod_su3(ACD,conf[par][A][nu],conf[!par][C][mu]);
+	    
+	    const int ts=(mu!=0 and nu!=0);
+	    loc_plaq[ts]+=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
+	  }
+      }
+  }
+  
+  template <typename Conf>
+  void global_plaquette_eo_conf(double* totplaq,
+				const Conf& conf)
+  {
+    if constexpr(is_eo_ptr<Conf>) // hack
+      communicate_ev_and_od_quad_su3_borders(conf);
+    else
+      conf.updateHalo();
+    
+    LxField<complex> point_plaq("point_plaq");
+    
+    //loop over all the lattice
+    forBothParities([&conf,&point_plaq](const auto& par)
+    {
+      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+	point_plaquette_eo_conf(point_plaq[loclx_of_loceo[par][ieo]],conf,par,ieo);
+      NISSA_PARALLEL_LOOP_END;
+    });
+    
+    //reduce as complex and normalize
+    complex temp;
+    glb_reduce(&temp,point_plaq,locVol);
+    
+    for(int ts=0;ts<2;ts++)
+      totplaq[ts]=temp[ts]/(glbVol*NCOL*NCOL);
+  }
+  
+  /// Average plaquette
+  template <typename C>
+  double global_plaquette_eo_conf(const C& conf)
+  {
+    double plaq[2];
+    
+    global_plaquette_eo_conf(plaq,conf);
+    
+    return (plaq[0]+plaq[1])/2;
+  }
 }
 
 #endif

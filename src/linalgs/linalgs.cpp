@@ -500,7 +500,7 @@ namespace nissa
   }
   
   
-  void parallel_memcpy(void* out,void* in,int n)
+  void parallel_memcpy(void* out,const void* in,int n)
   {
 #if THREADS_TYPE == OPENMP_THREADS
     

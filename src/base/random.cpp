@@ -492,42 +492,6 @@ namespace nissa
     for(size_t ic=0;ic<NCOL;ic++) rnd_get_gauss_complex(H[ic],gen,ave,sigma);
   }
   
-  //put a matrix to random used passed random generator
-  CUDA_HOST_AND_DEVICE void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
-  {
-    su3_put_to_id(u_ran);
-    
-    for(size_t i1=0;i1<NCOL;i1++)
-      for(size_t i2=i1+1;i2<NCOL;i2++)
-	{
-	  //generate u0,u1,u2,u3 random on the four dim. sphere
-	  double u0=rnd_get_unif(&rnd,-1,1);
-	  double alpha=sqrt(1-u0*u0);
-	  double phi=rnd_get_unif(&rnd,0,2*M_PI);
-	  double costheta=rnd_get_unif(&rnd,-1,1);
-	  double sintheta=sqrt(1-costheta*costheta);
-	  double u3=alpha*costheta;
-	  double u1=alpha*sintheta*cos(phi);
-	  double u2=alpha*sintheta*sin(phi);
-	  
-	  //define u_l as unit matrix ...
-	  su3 u_l;
-	  su3_put_to_id(u_l);
-	  
-	  //... and then modify the elements in the chosen su(2) subgroup
-	  u_l[i1][i1][RE]=u0;
-	  u_l[i1][i1][IM]=u3;
-	  u_l[i1][i2][RE]=u2;
-	  u_l[i1][i2][IM]=u1;
-	  u_l[i2][i1][RE]=-u2;
-	  u_l[i2][i1][IM]=u1;
-	  u_l[i2][i2][RE]=u0;
-	  u_l[i2][i2][IM]=-u3;
-	  
-	  safe_su3_prod_su3(u_ran,u_l,u_ran);
-	}
-  }
-  
   //return a single link after the heatbath procedure
   //routines to be shrunk!
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen)

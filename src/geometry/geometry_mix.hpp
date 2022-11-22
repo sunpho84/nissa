@@ -1,12 +1,18 @@
 #ifndef _GEOMETRY_MIX_HPP
 #define _GEOMETRY_MIX_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <unistd.h>
 
-#include "geometry_eo.hpp"
-#include "geometry_Leb.hpp"
 
-#include "new_types/su3.hpp"
+#include <base/bench.hpp>
+#include <base/field.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <geometry/geometry_Leb.hpp>
+#include <new_types/su3.hpp>
 
 namespace nissa
 {
@@ -22,8 +28,25 @@ namespace nissa
   void split_lx_vector_into_eo_parts_internal(eo_ptr<void> out_eo,void *in_lx,size_t bps);
   
   template <class T> void split_lx_vector_into_eo_parts(eo_ptr<T> out_eo,T *in_lx)
-  {
+  { // hack
     split_lx_vector_into_eo_parts_internal({out_eo[EVN],out_eo[ODD]},in_lx,sizeof(T));
+  }
+  
+  template <typename EO,
+	    typename LX>
+  void split_lx_vector_into_eo_parts(EO&& outEo,
+				     const LX& inLx)
+  {
+    START_TIMING(remap_time,nremap);
+    
+    NISSA_PARALLEL_LOOP(locLx,0,locVol)
+      for(int internalDeg=0;internalDeg<inLx.nInternalDegs;internalDeg++)
+	outEo[loclx_parity[locLx]](loceo_of_loclx[locLx],internalDeg)=inLx(locLx,internalDeg);
+    NISSA_PARALLEL_LOOP_END;
+    
+    STOP_TIMING(remap_time);
+    
+    outEo.invalidateHalo();
   }
   
   /////////////////////////////////////////////////////////////////

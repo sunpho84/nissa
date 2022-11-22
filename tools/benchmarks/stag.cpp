@@ -26,8 +26,7 @@ void print_stat(const char *what,double time,int n,int flops)
 
 void bench_stag()
 {
-#warning
-  
+  crash(""); 
   // //conf
   // quad_su3 *conf[2];
   // for(int eo=0;eo<2;eo++) conf[eo]=nissa_malloc("conf",loc_volh+bord_volh,quad_su3);

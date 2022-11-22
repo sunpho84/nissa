@@ -1,6 +1,10 @@
 #ifndef _SU3_OP_HPP
 #define _SU3_OP_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <math.h>
 #include <string.h>
 
@@ -53,13 +57,40 @@ namespace nissa
   
   extern su3 gell_mann_matr[NCOL*NCOL-1];
   
-  CUDA_HOST_AND_DEVICE inline void color_put_to_zero(color m) {for(size_t ic=0;ic<NCOL;ic++) complex_put_to_zero(m[ic]);}
-  CUDA_HOST_AND_DEVICE inline void su3_put_to_zero(su3 m) {for(size_t ic=0;ic<NCOL;ic++) color_put_to_zero(m[ic]);}
+  /// m=0
+  template <typename U>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void color_put_to_zero(U&& m)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      complex_put_to_zero(m[ic]);
+  }
+  
+  /// m=0
+  template <typename U>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_put_to_zero(U&& m)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      color_put_to_zero(m[ic]);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void as2t_su3_put_to_zero(as2t_su3 m) {for(size_t i=0;i<sizeof(as2t_su3)/sizeof(su3);i++) su3_put_to_zero(m[i]);}
   CUDA_HOST_AND_DEVICE inline void spincolor_put_to_zero(spincolor m) {for(size_t id=0;id<NDIRAC;id++) color_put_to_zero(m[id]);}
   inline void colorspinspin_put_to_zero(colorspinspin m) {for(size_t ic=0;ic<NCOL;ic++) spinspin_put_to_zero(m[ic]);}
   inline void su3spinspin_put_to_zero(su3spinspin m) {for(size_t ic=0;ic<NCOL;ic++) colorspinspin_put_to_zero(m[ic]);}
-  CUDA_HOST_AND_DEVICE inline void su3_put_to_id(su3 m) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) m[ic][ic][RE]=1;}
+  
+  /// m=diag(1)
+  template <typename U>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_put_to_id(U&& m)
+  {
+    su3_put_to_zero(m);
+    
+    for(int ic=0;ic<NCOL;ic++)
+      m[ic][ic][RE]=1;
+  }
+  
   CUDA_HOST_AND_DEVICE inline void su3_put_to_diag(su3 m,const color in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) complex_copy(m[ic][ic],in[ic]);}
   CUDA_HOST_AND_DEVICE inline void su3_put_to_diag(su3 m,const complex in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) complex_copy(m[ic][ic],in);}
   CUDA_HOST_AND_DEVICE inline void su3_put_to_diag(su3 m,const double in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) m[ic][ic][0]=in;}
@@ -102,12 +133,17 @@ namespace nissa
   
   //////////////////// Switch directions so to agree to ILDG ordering ////////////////////
   
-  CUDA_HOST_AND_DEVICE inline void quad_su3_nissa_to_ildg_reord(quad_su3 out,const quad_su3 in)
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void quad_su3_nissa_to_ildg_reord(A&& out,
+				    const B& in)
   {
     quad_su3 buff;
     quad_su3_copy(buff,in);
     
-    for(int mu=0;mu<NDIM;mu++) su3_copy(out[(mu+NDIM-1)%NDIM],buff[mu]);
+    for(int mu=0;mu<NDIM;mu++)
+      su3_copy(out[(mu+NDIM-1)%NDIM],buff[mu]);
   }
   
   template <typename A,
@@ -498,7 +534,10 @@ namespace nissa
 	    typename B,
 	    typename C>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void unsafe_su3_prod_su3(A&& a,const B& b,const C& c,const size_t nr_max=NCOL)
+  void unsafe_su3_prod_su3(A&& a,
+			   const B& b,
+			   const C& c,
+			   const size_t nr_max=NCOL)
   {
     for(int ir_out=0;ir_out<nr_max;ir_out++)
       for(int ic_out=0;ic_out<NCOL;ic_out++)
@@ -508,8 +547,20 @@ namespace nissa
 	    complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
 	}
   }
+
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void safe_su3_prod_su3(A&& a,
+			 const B& b,
+			 const C& c)
+  {
+    su3 d;
+    unsafe_su3_prod_su3(d,b,c);
+    su3_copy(a,d);
+  }
   
-  CUDA_HOST_AND_DEVICE inline void safe_su3_prod_su3(su3 a,const su3 b,const su3 c) {su3 d;unsafe_su3_prod_su3(d,b,c);su3_copy(a,d);}
   inline void su3_prodassign_su3(su3 a,const su3 b) {safe_su3_prod_su3(a,a,b);}
   CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_su3(su3 a,const su3 b,const su3 c)
   {
@@ -975,6 +1026,45 @@ namespace nissa
   
   void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,int par,int ieo,int mu);
   void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu);
+  
+  /// Put a matrix to random used passed random generator
+  template <typename U>
+  CUDA_HOST_AND_DEVICE
+  void su3_put_to_rnd(U&& u_ran,
+		      rnd_gen &rnd)
+  {
+    su3_put_to_id(u_ran);
+    
+    for(size_t i1=0;i1<NCOL;i1++)
+      for(size_t i2=i1+1;i2<NCOL;i2++)
+	{
+	  //generate u0,u1,u2,u3 random on the four dim. sphere
+	  const double u0=rnd_get_unif(&rnd,-1,1);
+	  const double alpha=sqrt(1-u0*u0);
+	  const double phi=rnd_get_unif(&rnd,0,2*M_PI);
+	  const double costheta=rnd_get_unif(&rnd,-1,1);
+	  const double sintheta=sqrt(1-costheta*costheta);
+	  const double u3=alpha*costheta;
+	  const double u1=alpha*sintheta*cos(phi);
+	  const double u2=alpha*sintheta*sin(phi);
+	  
+	  //define u_l as unit matrix ...
+	  su3 u_l;
+	  su3_put_to_id(u_l);
+	  
+	  //... and then modify the elements in the chosen su(2) subgroup
+	  u_l[i1][i1][RE]=u0;
+	  u_l[i1][i1][IM]=u3;
+	  u_l[i1][i2][RE]=u2;
+	  u_l[i1][i2][IM]=u1;
+	  u_l[i2][i1][RE]=-u2;
+	  u_l[i2][i1][IM]=u1;
+	  u_l[i2][i2][RE]=u0;
+	  u_l[i2][i2][IM]=-u3;
+	  
+	  safe_su3_prod_su3(u_ran,u_l,u_ran);
+	}
+  }
   
   ////////////////////// products between su3 and color //////////////////
   

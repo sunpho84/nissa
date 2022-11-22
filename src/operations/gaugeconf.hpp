@@ -86,8 +86,32 @@ namespace nissa
   void cool_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper);
   void generate_cold_eo_conf(eo_ptr<quad_su3> conf);
   void generate_hot_eo_conf(eo_ptr<quad_su3> conf);
-  void generate_cold_lx_conf(quad_su3 *conf);
-  void generate_hot_lx_conf(quad_su3 *conf);
+  
+  /// Generate an identical conf
+  template <typename C>
+  void generate_cold_lx_conf(C& conf)
+  {
+    NISSA_LOC_VOL_LOOP(ivol)
+      for(int mu=0;mu<NDIM;mu++)
+	su3_put_to_id(conf[ivol][mu]);
+    
+    set_borders_invalid(conf);
+  }
+  
+  /// Generate a random conf
+  template <typename C>
+  void generate_hot_lx_conf(C& conf)
+  {
+    if(loc_rnd_gen_inited==0)
+      crash("random number generator not inited");
+    
+    NISSA_LOC_VOL_LOOP(ivol)
+      for(int mu=0;mu<NDIM;mu++)
+	su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
+    
+    set_borders_invalid(conf);
+  }
+  
   void heatbath_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper,double beta,int nhits);
   void overrelax_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper,int nhits);
   void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
@@ -98,9 +122,9 @@ namespace nissa
   void unitarity_check_lx_conf(unitarity_check_result_t &result,const C& conf)
   {
     //results
-    Field<double> locAvg("locAvg");
-    Field<double> locMax("locMax");
-    Field<int64_t> locNbroken("locNbroken");
+    LxField<double> locAvg("locAvg");
+    LxField<double> locMax("locMax");
+    LxField<int64_t> locNbroken("locNbroken");
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {

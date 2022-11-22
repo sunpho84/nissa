@@ -129,7 +129,7 @@ namespace nissa
   ////////////////////Copy a vector of doubles to floats. Sweep is direct, to avoid overwriting////////////////
   
   //Do not change the endianness
-  inline void doubles_to_floats_same_endianness(float *dest,double *sour,int n,int verbose=1)
+  inline void doubles_to_floats_same_endianness(float *dest,const double *sour,int n,int verbose=1)
   {
     if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats\n",n);
     for(int i=0;i<n;i++) dest[i]=(float)(sour[i]);

@@ -59,18 +59,30 @@ namespace nissa
     a[0]=b[0];
     a[1]=b[1];
   }
-  CUDA_HOST_AND_DEVICE inline void complex_put_to_real(complex a,const double b)
+  
+  /// a=(b,0)
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_put_to_real(A&& a,
+			   const double& b)
   {
     a[0]=b;
     a[1]=0;
   }
+  
   inline void complex_put_to_imag(complex a,const double b)
   {
     a[0]=0;
     a[1]=b;
   }
-  CUDA_HOST_AND_DEVICE inline void complex_put_to_zero(complex a)
-  {complex_put_to_real(a,0);}
+  
+  /// a=0
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_put_to_zero(A&& a)
+  {
+    complex_put_to_real(a,0);
+  }
   
   //Assign the conj
   CUDA_HOST_AND_DEVICE inline void complex_conj(complex a,const complex b)

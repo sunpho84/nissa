@@ -336,7 +336,7 @@ namespace nissa
     
     //get the lepton info and prop
     tm_quark_info le=get_lepton_info(ilepton,orie,rl);
-    spinspin *lept=L[iprop];
+    // spinspin *lept=L[iprop];
     
     //get the projectors
     spinspin promu[2],pronu[2];
@@ -364,7 +364,7 @@ namespace nissa
       weak_ins_hadr_gamma[ins]=base_gamma[5]*base_gamma[list_weak_insq[ins]];
     
     //define the combined weak projectors (see below)
-    dirac_matr neutr_1m_g5_proj=dirac_subt(base_gamma[0],base_gamma[5]);
+    // dirac_matr neutr_1m_g5_proj=dirac_subt(base_gamma[0],base_gamma[5]);
     
     for(int ins=0;ins<nmeslep_weak_ins;ins++)
       {

@@ -61,7 +61,7 @@ void test_unitarity(FILE *fout,
   
   double glb_max=0,glb_avg=0;
   MPI_Reduce(&loc_avg,&glb_avg,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  MPI_Reduce(&loc_max,&glb_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);  
+  MPI_Reduce(&loc_max,&glb_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
   glb_avg/=4*glbVol;
   
   glb_avg=sqrt(glb_avg);
@@ -93,14 +93,14 @@ int main(int narg,char **arg)
     //summary
     char output[1024];
     read_str_str("SummaryFile",output,1024);
+    
     FILE *fout=open_text_file_for_output(output);
     
-    //nconf
+    /// Number of configurations
     int nconf;
     read_str_int("NGaugeConf",&nconf);
     
-    Field<quad_su3,FULL_SPACE,WITH_HALO> conf("conf");
-    
+    LxField<quad_su3,WITH_HALO> conf("conf");
     for(int iconf=0;iconf<nconf;iconf++)
       {
 	read_str(filename,1024);

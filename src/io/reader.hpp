@@ -16,21 +16,12 @@ namespace nissa
   
   void read_real_vector(double *out,ILDG_File file,ILDG_header &header,uint64_t nreals_per_site);
   
-  template <class T>
+  template <typename T>
   void read_real_vector(T& out,
-			const std::string path,
-			const char *record_name,
+			ILDG_File file,
+			ILDG_header header,
 			ILDG_message *mess=NULL)
   {
-    //Open file
-    ILDG_File file=ILDG_File_open_for_read(path);
-    
-    //Search the record
-    ILDG_header header;
-    const int found=ILDG_File_search_record(header,file,record_name,mess);
-    if(not found) crash("Error, record %s not found.\n",record_name);
-    
-    //Read data
     if constexpr(std::is_pointer_v<T>) // hack
       read_real_vector((double*)out,file,header,sizeof(std::remove_pointer_t<T>)/sizeof(double));
     else
@@ -46,10 +37,27 @@ namespace nissa
 	    
 	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	      for(int internalDeg=0;internalDeg<T::nInternalDegs;internalDeg++)
-		out.data[out.index(ivol,internalDeg)]=buf.data[buf.index(ivol,internalDeg)];
+		out(ivol,internalDeg)=buf.data[buf.index(ivol,internalDeg)];
 	    NISSA_PARALLEL_LOOP_END;
 	  }
       }
+  }
+  
+  template <typename T>
+  void read_real_vector(T&& out,
+			const std::string path,
+			const char *record_name,
+			ILDG_message *mess=NULL)
+  {
+    //Open file
+    ILDG_File file=ILDG_File_open_for_read(path);
+    
+    //Search the record
+    ILDG_header header;
+    const int found=ILDG_File_search_record(header,file,record_name,mess);
+    if(not found) crash("Error, record %s not found.\n",record_name);
+    
+    read_real_vector(out,file,header,mess);
     
     //Close the file
     ILDG_File_close(file);
