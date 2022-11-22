@@ -99,7 +99,7 @@ int main(int narg,char **arg)
     int nconf;
     read_str_int("NGaugeConf",&nconf);
     
-    Field<quad_su3> conf("conf",locVol+bord_vol);
+    Field<quad_su3,FULL_SPACE,WITH_HALO> conf("conf");
     
     for(int iconf=0;iconf<nconf;iconf++)
       {

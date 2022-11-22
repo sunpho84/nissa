@@ -30,7 +30,7 @@ namespace nissa
   enum FieldLayout{CPU_LAYOUT,GPU_LAYOUT};
   
   /// Coverage of the field
-  enum SpaceTimeCoverage{FULL_SPACE,HALF_SPACE};
+  enum SitesCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE};
   
   /// Has or not the halo
   enum HaloPresence{WITHOUT_HALO,WITH_HALO};
@@ -41,15 +41,19 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   /// Number of sites contained in the field
-  template <SpaceTimeCoverage spaceTimeCoverage,
-	    HaloPresence haloPresence>
+  template <SitesCoverage sitesCoverage,
+	    HaloPresence HP>
   struct FieldSizes
   {
+    /// States whether the halo is present
+    static constexpr bool haloIsPresent=
+      (HP==WITH_HALO);
+    
     /// Number of sites covered by the field
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static constexpr int& nSites()
     {
-      if constexpr(spaceTimeCoverage==FULL_SPACE)
+      if constexpr(sitesCoverage==FULL_SPACE)
 	return locVol;
       else
 	return locVolh;
@@ -59,7 +63,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static constexpr int& nHaloSites()
     {
-      if constexpr(spaceTimeCoverage==FULL_SPACE)
+      if constexpr(sitesCoverage==FULL_SPACE)
 	return bord_vol;
       else
 	return bord_volh;
@@ -69,10 +73,20 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static int nSitesToAllocate()
     {
-      if constexpr(haloPresence==WITH_HALO)
+      if constexpr(haloIsPresent)
 	return nSites()+nHaloSites();
       else
 	return nSites();
+    }
+    
+    /// Surface site of a site in the halo
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static int surfSiteOfHaloSite(const int& iHalo)
+    {
+      if constexpr(sitesCoverage==FULL_SPACE)
+	return surflxOfBordlx[iHalo];
+      else
+	return surfeo_of_bordeo[sitesCoverage][iHalo];
     }
   };
   
@@ -86,7 +100,7 @@ namespace nissa
   
   /// Field
   template <typename T,
-	    SpaceTimeCoverage SC=FULL_SPACE,
+	    SitesCoverage SC=FULL_SPACE,
 	    HaloPresence HP=WITHOUT_HALO,
 	    FieldLayout FL=DefaultFieldLayout>
   struct Field :
@@ -103,8 +117,8 @@ namespace nissa
     /// Components
     using Comps=T;
     
-    /// Spacetime coverage
-    static constexpr SpaceTimeCoverage spaceTimeCoverage=SC;
+    /// Coverage of sites
+    static constexpr SitesCoverage sitesCoverage=SC;
     
     /// Presence of the halo
     static constexpr HaloPresence haloPresence=HP;
@@ -116,17 +130,14 @@ namespace nissa
     static constexpr int nInternalDegs=
       sizeof(Comps)/sizeof(Fund);
     
-    /// Size externally visible
+    /// Total allocated sites
     const int externalSize;
     
     /// Container for actual data
     Fund* data;
     
-    /// States whether the border is allocated
-    const bool borderIsAllocated;
-    
-    /// States whether the border is updated
-    mutable bool borderIsValid;
+    /// States whether the halo is updated
+    mutable bool haloIsValid;
     
     /// Computes the index of the data
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
@@ -140,21 +151,19 @@ namespace nissa
     }
     
     /// Constructor
-    Field(const char *name,
-	  const int& externalSize) :
+    Field(const char *name) :
       name(name),
-      externalSize(externalSize),
-      borderIsAllocated(externalSize==bord_vol or externalSize==bord_volh),
-      borderIsValid(false)
+      externalSize(this->nSitesToAllocate()),
+      haloIsValid(false)
     {
-      master_printf("Allocating field\n");
+      master_printf("Allocating field %s\n",name);
       data=nissa_malloc(name,externalSize*nInternalDegs,Fund);
     }
     
     /// Destructor
     ~Field()
     {
-      master_printf("Deallocating field\n");
+      master_printf("Deallocating field %s\n",name);
       nissa_free(data);
     }
     
@@ -180,95 +189,40 @@ namespace nissa
     
 #undef PROVIDE_SUBSCRIBE_OPERATOR
     
-    /// Set borders as invalid
-    void set_borders_invalid()
+    /// Set halo as invalid
+    void invalidateHalo()
     {
-      borderIsValid=false;
+      haloIsValid=false;
     }
     
-    /// Fill the sending buf using the data inside an lx vec
-    void fill_sending_buf_with_lx_surface() const
+    /// Fill the sending buf using the data inside a vec
+    void fillSendingBufWithSurface() const
     {
       verbosity_lv3_master_printf("filling filling filling\n");
       
-      NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+      NISSA_PARALLEL_LOOP(iHalo,0,this->nHaloSites())
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  ((Fund*)send_buf)[internalDeg+nInternalDegs*ibord]=
-	    data[index(surflxOfBordlx[ibord],internalDeg)];
+	  ((Fund*)send_buf)[internalDeg+nInternalDegs*iHalo]=
+	    data[index(this->surfSiteOfHaloSite(iHalo),internalDeg)];
       NISSA_PARALLEL_LOOP_END;
     }
     
-    void fill_lx_bord_with_receiving_buf() const
+    void fillHaloWithReceivingBuf() const
     {
-      // for(int ibord=0;ibord<bord_vol;ibord++)
-      NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
+      NISSA_PARALLEL_LOOP(iHalo,0,this->nHaloSites())
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  data[index(locVol+ibord,internalDeg)]=
-	    ((Fund*)recv_buf)[internalDeg+nInternalDegs*ibord];
+	  data[index(locVol+iHalo,internalDeg)]=
+	    ((Fund*)recv_buf)[internalDeg+nInternalDegs*iHalo];
       NISSA_PARALLEL_LOOP_END;
-    }
-    
-    /// Start communication using an lx border
-    std::vector<MPI_Request> start_communicating_lx_borders() const
-    {
-      std::vector<MPI_Request> requests;
-      
-      if(not borderIsValid and nparal_dir>0)
-	{
-	  const size_t max=std::min(send_buf_size,recv_buf_size);
-	  if(sizeof(T)*bord_vol>max)
-	    crash("asking to create a communicator that needs %d large buffer (%d allocated)",
-		  sizeof(T)*bord_vol,max);
-	  
-	  //take time and write some debug output
-	  START_TIMING(tot_comm_time,ntot_comm);
-	  verbosity_lv3_master_printf("Start communication of lx borders of %s\n",name);
-	  
-	  //fill the communicator buffer, start the communication and take time
-	  fill_sending_buf_with_lx_surface();
-          requests=comm_start(false);
-          STOP_TIMING(tot_comm_time);
-	}
-      
-      return requests;
-    }
-    
-    void finish_communicating_lx_borders(std::vector<MPI_Request> requests) const
-    {
-      if(not borderIsValid and nparal_dir>0)
-	{
-	  //take note of passed time and write some debug info
-	  START_TIMING(tot_comm_time,ntot_comm);
-	  verbosity_lv3_master_printf("Finish communication of lx borders of %s\n",name);
-	  
-	  //wait communication to finish, fill back the vector and take time
-	  comm_wait(requests);
-	  fill_lx_bord_with_receiving_buf();
-	  STOP_TIMING(tot_comm_time);
-	  
-	  borderIsValid=true;
-      }
-    }
-    
-    /// Communicate the borders
-    void communicate_lx_borders() const
-    {
-      if(not borderIsValid)
-	{
-	  verbosity_lv3_master_printf("Sync communication of lx borders of %s\n",name);
-	  
-	  const std::vector<MPI_Request> requests=
-	    start_communicating_lx_borders();
-	  finish_communicating_lx_borders(requests);
-      }
     }
     
     /// Start the communications
-    static std::vector<MPI_Request> comm_start(const bool& isEoField)
+    static std::vector<MPI_Request> startAsyincComm()
     {
       std::vector<MPI_Request> requests(2*2*nparal_dir);
       
-      const int div_coeff=(isEoField==0)?1:2; //dividing coeff
+      const int div_coeff=
+	(sitesCoverage==FULL_SPACE)?1:2; //dividing coeff
       
       int nRequests=0;
       
@@ -291,20 +245,75 @@ namespace nissa
     }
     
     /// Wait for communications to finish
-    static void comm_wait(std::vector<MPI_Request> requests)
+    static void waitAsyncCommsFinish(std::vector<MPI_Request> requests)
     {
       verbosity_lv3_master_printf("Entering MPI comm wait\n");
       
       MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
     }
+    
+    /// Start communication using halo
+    std::vector<MPI_Request> startCommunicatingHalo() const
+    {
+      std::vector<MPI_Request> requests;
+      
+      if(not haloIsValid and nparal_dir>0)
+	{
+	  const size_t max=std::min(send_buf_size,recv_buf_size);
+	  if(sizeof(T)*this->nHaloSites()>max)
+	    crash("asking to create a communicator that needs %d large buffer (%d allocated)",
+		  sizeof(T)*this->nHaloSites(),max);
+	  
+	  //take time and write some debug output
+	  START_TIMING(tot_comm_time,ntot_comm);
+	  verbosity_lv3_master_printf("Start communication of borders of %s\n",name);
+	  
+	  //fill the communicator buffer, start the communication and take time
+	  fillSendingBufWithSurface();
+          requests=startAsyincComm();
+          STOP_TIMING(tot_comm_time);
+	}
+      
+      return requests;
+    }
+    
+    /// Finalize communications
+    void finishCommunicatingHalo(std::vector<MPI_Request> requests) const
+    {
+      if(not haloIsValid and nparal_dir>0)
+	{
+	  //take note of passed time and write some debug info
+	  START_TIMING(tot_comm_time,ntot_comm);
+	  verbosity_lv3_master_printf("Finish communication of halo of %s\n",name);
+	  
+	  //wait communication to finish, fill back the vector and take time
+	  waitAsyncCommsFinish(requests);
+	  fillHaloWithReceivingBuf();
+	  STOP_TIMING(tot_comm_time);
+	  
+	  haloIsValid=true;
+      }
+    }
+    
+    /// Communicate the halo
+    void updateHalo() const
+    {
+      if(not haloIsValid)
+	{
+	  verbosity_lv3_master_printf("Sync communication of halo of %s\n",name);
+	  
+	  const std::vector<MPI_Request> requests=
+	    startCommunicatingHalo();
+	  finishCommunicatingHalo(requests);
+      }
+    }
   };
   
   /// Hack
-  template <typename T,
-	    typename F>
+  template <typename F>
   void set_borders_invalid(FieldFeat<F>& field)
   {
-    static_cast<F*>(&field)->set_borders_invalid();
+    static_cast<F*>(&field)->invalidateHalo();
   }
   
   template <typename F,

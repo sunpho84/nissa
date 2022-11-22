@@ -56,9 +56,9 @@ namespace nissa
     if constexpr(std::is_pointer_v<C>) // hack
       communicate_lx_quad_su3_borders(conf);
     else
-      conf.communicate_lx_borders();
+      conf.updateHalo();
     
-    Field<complex> point_plaq("point_plaq",locVol);
+    Field<complex> point_plaq("point_plaq");
     
     //loop over all the lattice
     NISSA_PARALLEL_LOOP(ivol,0,locVol)

@@ -98,9 +98,9 @@ namespace nissa
   void unitarity_check_lx_conf(unitarity_check_result_t &result,const C& conf)
   {
     //results
-    Field<double> locAvg("locAvg",locVol);
-    Field<double> locMax("locMax",locVol);
-    Field<int64_t> locNbroken("locNbroken",locVol);
+    Field<double> locAvg("locAvg");
+    Field<double> locMax("locMax");
+    Field<int64_t> locNbroken("locNbroken");
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
