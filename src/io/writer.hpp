@@ -35,7 +35,7 @@ namespace nissa
 	  write_real_vector(file,in.data,T::nInternalDegs,nbits,header_message,mess);
 	else
 	  {
-	    Field<Comps,FULL_SPACE,WITHOUT_HALO,CPU_LAYOUT> buf("buf");
+	    Field<Comps,FULL_SPACE,CPU_LAYOUT> buf("buf");
 	    
 	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	      for(int internalDeg=0;internalDeg<T::nInternalDegs;internalDeg++)

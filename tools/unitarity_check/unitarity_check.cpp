@@ -100,7 +100,7 @@ int main(int narg,char **arg)
     int nconf;
     read_str_int("NGaugeConf",&nconf);
     
-    LxField<quad_su3,WITH_HALO> conf("conf");
+    LxField<quad_su3> conf("conf",WITH_HALO);
     for(int iconf=0;iconf<nconf;iconf++)
       {
 	read_str(filename,1024);

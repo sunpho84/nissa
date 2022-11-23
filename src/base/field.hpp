@@ -32,8 +32,8 @@ namespace nissa
   /// Coverage of the field
   enum SitesCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE,EVEN_OR_ODD_SITES};
   
-  /// Has or not the halo
-  enum HaloPresence{WITHOUT_HALO,WITH_HALO};
+  /// Has or not the halo and the edges
+  enum HaloEdgesPresence{WITHOUT_HALO,WITH_HALO,WITH_HALO_EDGES};
   
   /// Predefinite memory layout
   constexpr FieldLayout DefaultFieldLayout=GPU_LAYOUT;
@@ -41,14 +41,9 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   /// Number of sites contained in the field
-  template <SitesCoverage sitesCoverage,
-	    HaloPresence HP>
+  template <SitesCoverage sitesCoverage>
   struct FieldSizes
   {
-    /// States whether the halo is present
-    static constexpr bool haloIsPresent=
-      (HP==WITH_HALO);
-    
     /// Number of sites covered by the field
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static constexpr int& nSites()
@@ -69,14 +64,28 @@ namespace nissa
 	return bord_volh;
     }
     
-    /// Number of sites to be allocated
+    /// Number of sites in the edges of the field (not necessarily allocated)
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static int nSitesToAllocate()
+    static constexpr int& nEdgesSites()
     {
-      if constexpr(haloIsPresent)
-	return nSites()+nHaloSites();
+      if constexpr(sitesCoverage==FULL_SPACE)
+	return edge_vol;
       else
-	return nSites();
+	return edge_volh;
+    }
+    
+    /// Computes the size to allocate
+    static int nSitesToAllocate(const HaloEdgesPresence& haloEdgesPresence)
+    {
+      int res=locVol;
+      
+      if(haloEdgesPresence>=WITH_HALO)
+	res+=nHaloSites();
+      
+      if(haloEdgesPresence>=WITH_HALO_EDGES)
+	res+=nEdgesSites();
+      
+      return res;
     }
     
     /// Surface site of a site in the halo
@@ -102,12 +111,15 @@ namespace nissa
   /// Field
   template <typename T,
 	    SitesCoverage SC,
-	    HaloPresence HP=WITHOUT_HALO,
 	    FieldLayout FL=DefaultFieldLayout>
   struct Field :
-    FieldFeat<Field<T,SC,HP,FL>>,
-    FieldSizes<SC,HP>
+    FieldFeat<Field<T,SC,FL>>,
+    FieldSizes<SC>
   {
+    /// Coefficient which divides the space time, if the field is covering only half the space
+    static constexpr const int divCoeff=
+      (SC==FULL_SPACE)?1:2;
+    
     /// Name of the field
     const char* name;
     
@@ -121,15 +133,15 @@ namespace nissa
     /// Coverage of sites
     static constexpr SitesCoverage sitesCoverage=SC;
     
-    /// Presence of the halo
-    static constexpr HaloPresence haloPresence=HP;
-    
     /// Memory layout of the field
     static constexpr FieldLayout fieldLayout=FL;
     
     /// Number of degrees of freedom
     static constexpr int nInternalDegs=
       sizeof(Comps)/sizeof(Fund);
+    
+    /// Presence of halo and edges
+    const HaloEdgesPresence haloEdgesPresence;
     
     /// Total allocated sites
     const int externalSize;
@@ -139,6 +151,9 @@ namespace nissa
     
     /// States whether the halo is updated
     mutable bool haloIsValid;
+    
+    /// States whether the edges are updated
+    mutable bool edgesAreValid;
     
     /// Computes the index of the data
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
@@ -152,10 +167,13 @@ namespace nissa
     }
     
     /// Constructor
-    Field(const char *name) :
+    Field(const char *name,
+	  const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
       name(name),
-      externalSize(this->nSitesToAllocate()),
-      haloIsValid(false)
+      haloEdgesPresence(haloEdgesPresence),
+      externalSize(FieldSizes<sitesCoverage>::nSitesToAllocate(haloEdgesPresence)),
+      haloIsValid(false),
+      edgesAreValid(false)
     {
       master_printf("Allocating field %s\n",name);
       data=nissa_malloc(name,externalSize*nInternalDegs,Fund);
@@ -240,10 +258,6 @@ namespace nissa
     {
       /// Pending requests
       std::vector<MPI_Request> requests(2*2*nparal_dir);
-      
-      /// Coefficient which divides the space time, if the field is covering only half the space
-      const int divCoeff=
-	(sitesCoverage==FULL_SPACE)?1:2;
       
       int nRequests=0;
       
@@ -348,27 +362,23 @@ namespace nissa
   
   /// Lexicographic field
   template <typename T,
-	    HaloPresence HP=WITHOUT_HALO,
 	    FieldLayout FL=DefaultFieldLayout>
-  using LxField=Field<T,FULL_SPACE,HP,FL>;
+  using LxField=Field<T,FULL_SPACE,FL>;
   
   /// Field over even sites
   template <typename T,
-	    HaloPresence HP=WITHOUT_HALO,
 	    FieldLayout FL=DefaultFieldLayout>
-  using EvnField=Field<T,EVEN_SITES,HP,FL>;
+  using EvnField=Field<T,EVEN_SITES,FL>;
   
   /// Field over odd sites
   template <typename T,
-	    HaloPresence HP=WITHOUT_HALO,
 	    FieldLayout FL=DefaultFieldLayout>
-  using OddField=Field<T,ODD_SITES,HP,FL>;
+  using OddField=Field<T,ODD_SITES,FL>;
   
   /// Field over even or odd sites
   template <typename T,
-	    HaloPresence HP=WITHOUT_HALO,
 	    FieldLayout FL=DefaultFieldLayout>
-  using EvenOrOddField=Field<T,EVEN_OR_ODD_SITES,HP,FL>;
+  using EvenOrOddField=Field<T,EVEN_OR_ODD_SITES,FL>;
   
   /////////////////////////////////////////////////////////////////
   
@@ -390,13 +400,12 @@ namespace nissa
   
   /// Structure to hold an even/old field
   template <typename T,
-	    HaloPresence HP=WITHOUT_HALO,
 	    FieldLayout FL=DefaultFieldLayout>
   struct EoField
   {
     /// Type representing a pointer to type T
     template <SitesCoverage EO>
-    using F=Field<T,EO,HP,FL>;
+    using F=Field<T,EO,FL>;
     
     F<EVEN_SITES> evenPart;
     
@@ -430,7 +439,7 @@ namespace nissa
     CONST auto& operator[](const int eo) CONST				\
     {									\
       using EOOF=							\
-	CONST Field<T,EVEN_OR_ODD_SITES,HP,FL>;				\
+	CONST Field<T,EVEN_OR_ODD_SITES,FL>;				\
       									\
       EOOF* t[2]={(EOOF*)&evenPart,(EOOF*)&oddPart};			\
       									\
