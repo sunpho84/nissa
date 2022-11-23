@@ -42,7 +42,12 @@ namespace nissa
   }
   
   //perform a full hmc step and return the difference between final and original action
-  double multipseudo_rhmc_step(eo_ptr<quad_su3> out_conf,eo_ptr<quad_su3> in_conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr,int itraj)
+  double multipseudo_rhmc_step(EoField<quad_su3,WITH_HALO>& out_conf,
+			       const EoField<quad_su3,WITH_HALO>& in_conf,
+			       theory_pars_t &theory_pars,
+			       hmc_evol_pars_t &simul_pars,
+			       std::vector<rat_approx_t> &rat_appr,
+			       const int itraj)
   {
     //header
     master_printf("Trajectory %d->%d\n",itraj,itraj+1);
@@ -55,12 +60,7 @@ namespace nissa
     eo_ptr<quad_su3> H;
     for(int par=0;par<2;par++) H[par]=nissa_malloc("H",locVolh,quad_su3);
     
-    //copy the old conf into the new
-    for(int par=0;par<2;par++)
-      {
-	vector_copy(out_conf[par],in_conf[par]);
-	set_borders_invalid(out_conf[par]);
-      }
+    out_conf=in_conf;
     
     //allocate pseudo-fermions
     std::vector<std::vector<pseudofermion_t> > pf(theory_pars.nflavs());
@@ -71,35 +71,24 @@ namespace nissa
 	for(int ipf=0;ipf<npf;ipf++) pf[iflav][ipf].create(theory_pars.quarks[iflav].discretiz);
       }
     
+    const int nLevels=
+      theory_pars.stout_pars.nlevels;
+    
     //if needed smear the configuration for pseudo-fermions, approx generation and action computation
     //otherwise bind out_conf to sme_conf
-    eo_ptr<quad_su3> sme_conf;
-    for(int eo=0;eo<2;eo++)
-      sme_conf[eo]=(theory_pars.stout_pars.nlevels!=0)?
-	nissa_malloc("sme_conf",locVolh+bord_volh+edge_volh,quad_su3):out_conf[eo];
-    if(theory_pars.stout_pars.nlevels!=0)
+    EoField<quad_su3,WITH_HALO>* sme_conf=
+      (nLevels>0)?(new EoField<quad_su3,WITH_HALO>("smeConf")):&out_conf;
+    
+    if(nLevels!=0)
       {
 	verbosity_lv2_master_printf("Stouting the links for pseudo-fermions generation and initial action computation\n");
-	stout_smear(sme_conf,out_conf,&(theory_pars.stout_pars));
+	stout_smear(*sme_conf,out_conf,&(theory_pars.stout_pars));
 	
 	verbosity_lv2_master_printf("Original plaquette: %16.16lg\n",global_plaquette_eo_conf(out_conf));
 	verbosity_lv2_master_printf("Stouted plaquette: %16.16lg\n",global_plaquette_eo_conf(sme_conf));
       }
     
-    //generate the appropriate expansion of rational approximations
-    set_expansions(&rat_appr,sme_conf,&theory_pars,&simul_pars);
-    
-    //shift all the poles of the mass for staggered operator
-    shift_all_ROOT_STAG_poles(theory_pars,rat_appr,shift_poles);
-    
-    //generate all pseudofermions and momenta
-    double pf_action=generate_pseudofermions(pf,sme_conf,theory_pars,simul_pars,rat_appr);
-    generate_hmc_momenta(H);
-    
-    //compute initial action
-    double init_action;
-    full_theory_action(&init_action,out_conf,sme_conf,H,&pf,&theory_pars,&simul_pars,&rat_appr,pf_action);
-    verbosity_lv2_master_printf("Initial action: %lg\n",init_action);
+    const double initAction=init_rhmc_step();
     
     //evolve
     Omelyan_integrator(H,out_conf,&pf,&theory_pars,&simul_pars,&rat_appr);

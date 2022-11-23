@@ -84,12 +84,17 @@ namespace nissa
     complex_put_to_real(a,0);
   }
   
-  //Assign the conj
-  CUDA_HOST_AND_DEVICE inline void complex_conj(complex a,const complex b)
+  /// a=~b
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_conj(A&& a,
+		    const B& b)
   {
     a[0]=b[0];
     a[1]=-b[1];
   }
+  
   //Assign minus the conj
   inline void complex_minus_conj(complex a,const complex b)
   {

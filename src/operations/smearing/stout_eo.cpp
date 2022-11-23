@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <math.h>
@@ -64,7 +64,10 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  void stout_smear_single_level(eo_ptr<quad_su3> out,eo_ptr<quad_su3> in,double rho,const which_dir_t& dirs)
+  void stout_smear_single_level(EoField<quad_su3,WITH_HALO>& out,
+				const EoField<quad_su3,WITH_HALO>& in,
+				const double& rho,
+				const which_dir_t& dirs)
   {
     
     START_TIMING(sto_time,nsto);
@@ -98,49 +101,30 @@ namespace nissa
   }
   
   //smear n times, using only one additional vectors
-  void stout_smear(eo_ptr<quad_su3> ext_out,eo_ptr<quad_su3> ext_in,stout_pars_t* stout_pars,const which_dir_t& dirs)
+  void stout_smear(EoField<quad_su3,WITH_HALO>& out,
+		   const EoField<quad_su3,WITH_HALO>& in,
+		   const stout_pars_t& stout_pars,
+		   const which_dir_t& dirs)
   {
-    verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
-    switch(stout_pars->nlevels)
-      {
-      case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
-      case 1:
-	if(ext_out==ext_in) crash("in==out");
-	stout_smear_single_level(ext_out,ext_in,stout_pars->rho,dirs);
-	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_out));
-	break;
-      default:
-	//allocate temp
-	eo_ptr<quad_su3> in,out;
-    	for(int eo=0;eo<2;eo++)
+    verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(in));
+    
+    if(stout_pars.nlevels==0)
+      out=in;
+    else
+      	stout_smear_single_level(out,in,stout_pars.rho,dirs);
+	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(out));
+
+	if(stout_pars.nlevels>1)
 	  {
-	    in[eo]=nissa_malloc("in",locVolh+bord_volh+edge_volh,quad_su3);
-	    out[eo]=nissa_malloc("out",locVolh+bord_volh+edge_volh,quad_su3);
-	    vector_copy(in[eo],ext_in[eo]);
+	    //allocate temp
+	    EoField<quad_su3,WITH_HALO> tmp("tmp");
+	    
+	    for(int i=1;i<stout_pars.nlevels;i++)
+	      {
+		tmp=out;
+		stout_smear_single_level(out,tmp,stout_pars.rho,dirs);
+	      }
 	  }
-	
-    verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
-    //verbosity_lv1_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(in));
-	for(int i=0;i<stout_pars->nlevels;i++)
-	  {
-	    stout_smear_single_level(out,in,stout_pars->rho,dirs);
-	    if(i!=stout_pars->nlevels-1)
-	      for(int eo=0;eo<2;eo++)
-		vector_copy(in[eo],out[eo]);
-	      
-            verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(out));
-	  }
-	
-	for(int eo=0;eo<2;eo++)
-	  vector_copy(ext_out[eo],out[eo]);
-	
-	//free temp
-	for(int eo=0;eo<2;eo++)
-	  {
-	    nissa_free(in[eo]);
-	    nissa_free(out[eo]);
-	  }
-      }
   }
   
   //allocate all the stack for smearing

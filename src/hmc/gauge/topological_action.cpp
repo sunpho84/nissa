@@ -33,26 +33,19 @@ namespace nissa
   }
   
   //Compute the topological action
-  double topotential_action(eo_ptr<quad_su3> ext_conf,topotential_pars_t &pars)
+  double topotential_action(const EoField<quad_su3,WITH_HALO>& conf,
+			    const topotential_pars_t &pars)
   {
-    eo_ptr<quad_su3> conf;
-    if(pars.stout_pars.nlevels==0)
-      {
-        conf[0]=ext_conf[0];
-        conf[1]=ext_conf[1];
-      }
-    else
-      {
-        conf[0]=nissa_malloc("stout_conf",locVolh+bord_volh+edge_volh,quad_su3);
-        conf[1]=nissa_malloc("stout_conf",locVolh+bord_volh+edge_volh,quad_su3);
-        
-        //smear
-        stout_smear(conf,ext_conf,&(pars.stout_pars));
-      }
-    
     //compute topocharge
     double Q;
-    total_topological_charge_eo_conf(&Q,conf);
+    if(pars.stout_pars.nlevels)
+      {
+	EoField<quad_su3,WITH_HALO> smeConf("smeConf");
+        stout_smear(smeConf,conf,pars.stout_pars);
+	total_topological_charge_eo_conf(&Q,smeConf);
+      }
+    else
+      total_topological_charge_eo_conf(&Q,conf);
     
     //compute according to flag
     double topo_action=0;

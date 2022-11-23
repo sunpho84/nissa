@@ -118,10 +118,7 @@ namespace nissa
   void global_plaquette_eo_conf(double* totplaq,
 				const Conf& conf)
   {
-    if constexpr(is_eo_ptr<Conf>) // hack
-      communicate_ev_and_od_quad_su3_borders(conf);
-    else
-      conf.updateHalo();
+    conf.updateHalo();
     
     LxField<complex> point_plaq("point_plaq");
     

@@ -1,12 +1,17 @@
 #ifndef _STOUT_HPP
 #define _STOUT_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <sstream>
 
+#include "base/field.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "routines/ios.hpp"
 #include "new_types/su3_op.hpp"
+#include "routines/ios.hpp"
 
 namespace nissa
 {
@@ -55,7 +60,12 @@ namespace nissa
   CUDA_HOST_AND_DEVICE void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,hermitian_exp_ingredients *ing);
   //eo
   void stout_smear_whole_stack(eo_ptr<quad_su3> *out,eo_ptr<quad_su3> in,stout_pars_t *stout_pars,const which_dir_t& dirs=all_dirs);
-  void stout_smear(eo_ptr<quad_su3> ext_out,eo_ptr<quad_su3> ext_in,stout_pars_t *stout_pars,const which_dir_t& dirs=all_dirs);
+  
+  void stout_smear(EoField<quad_su3,WITH_HALO>& ext_out,
+		   const EoField<quad_su3,WITH_HALO>& ext_in,
+		   const stout_pars_t& stout_pars,
+		   const which_dir_t& dirs=all_dirs);
+  
   void stout_smear_single_level(eo_ptr<quad_su3> out,eo_ptr<quad_su3> ext_in,double rho,const which_dir_t& dirs=all_dirs);
   CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho);
   CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,eo_ptr<quad_su3> conf,int p,int A,int mu,double rho);

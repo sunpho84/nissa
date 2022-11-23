@@ -18,6 +18,59 @@ void test_unitarity(FILE *fout,
   read_ildg_gauge_conf(conf,filename);
   master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
   
+  // OddField<oct_su3> test("test");
+  // conf.updateHalo();
+  
+  // NISSA_PARALLEL_LOOP(iev,0,locVolh)
+  //   {
+  //     for(int mu=0;mu<NDIM;mu++)
+  // 	{
+  // 	  const int ilx=loclx_of_loceo[EVN][iev];
+  // 	  su3_copy(test[iev][0][mu],conf[loclxNeighdw[ilx][mu]][mu]);
+  // 	  su3_copy(test[iev][1][mu],conf[ilx][mu]);
+  // 	}
+  //   }
+  // NISSA_PARALLEL_LOOP_END;
+  
+  // using HalfStaple=su3[2][NDIM][2][NDIM-1];
+  // using ComprHalfStaple=su3[2][NDIM-1];
+  
+  // OddField<HalfStaple,WITH_HALO> stapPart("stapPart");
+  // NISSA_PARALLEL_LOOP(iev,0,locVolh)
+  //   {
+  //     for(int mu=0;mu<NDIM;mu++)
+  // 	for(int inu=0;inu<NDIM-1;inu++)
+  // 	  {
+  // 	    const int nu=perp_dir[mu][inu];
+  // 	    unsafe_su3_prod_su3(stapPart[loceo_neighup[EVN][iev][nu]][1][mu][1][inu],
+  // 				test[iev][1][mu],
+  // 				test[iev][1][nu]);
+  // 		     }
+  // 	    }
+  // NISSA_PARALLEL_LOOP_END;
+  
+  // stapPart.fillSendingBufWithHalo<ComprHalfStaple>([](ComprHalfStaple& out,
+  // 						      const auto& in,
+  // 						      const int& bf,
+  // 						      const int& mu)
+  // {
+  //   for(int bf2=0;bf2<2;bf2++)
+  //     for(int inu=0;inu<NDIM-1;inu++)
+  // 	su3_copy(out[bf2][inu],in[bf][mu][bf2][inu]);
+  // });
+  
+  // exchangeNeighBuf<ComprHalfStaple>(/*half vol*/ 2);
+  
+  // stapPart.fillSurfaceWithReceivingBuf<ComprHalfStaple>([](auto&& out,
+  // 							   const ComprHalfStaple& in,
+  // 							   const int& bf,
+  // 							   const int& mu)
+  // {
+  //   for(int bf2=0;bf2<2;bf2++)
+  //     for(int inu=0;inu<NDIM-1;inu++)
+  // 	su3_copy(out[bf][mu][bf2][inu],in[bf2][inu]);
+  // });
+  
   NISSA_LOC_VOL_LOOP(ivol)
     for(int idir=0;idir<4;idir++)
       {

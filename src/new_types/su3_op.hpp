@@ -456,13 +456,17 @@ namespace nissa
 #endif
   }
   
-  //return the hemitian su3 matrix
-  CUDA_HOST_AND_DEVICE inline void unsafe_su3_hermitian(su3 out,const su3 in)
+  /// Return the hemitian su3 matrix
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_hermitian(A&& out,const B& in)
   {
-    for(size_t ic_in=0;ic_in<NCOL;ic_in++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
+    for(int ic_in=0;ic_in<NCOL;ic_in++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
 	complex_conj(out[ic_in][ic_out],in[ic_out][ic_in]);
   }
+  
   inline void safe_su3_hermitian(su3 out,const su3 in)
   {
     su3 tmp;

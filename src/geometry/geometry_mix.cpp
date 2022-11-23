@@ -49,23 +49,6 @@ namespace nissa
     set_borders_invalid(out_ev_or_od);
   }
   
-  //paste the even and odd parts of a vector into a full lx vector
-  void paste_eo_parts_into_lx_vector_internal(void* out_lx,eo_ptr<void> in_eo,size_t bps)
-  {
-    
-    START_TIMING(remap_time,nremap);
-    
-    //paste
-    for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(eo,0,locVolh)
-	memcpy((char*)out_lx+bps*loclx_of_loceo[par][eo],(char*)(in_eo[par])+bps*eo,bps);
-    NISSA_PARALLEL_LOOP_END;
-    
-    STOP_TIMING(remap_time);
-    
-    set_borders_invalid(out_lx);
-  }
-  
   /////////////////////
   
   //remap using a certain local remapper

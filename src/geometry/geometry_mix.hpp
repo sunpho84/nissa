@@ -18,9 +18,25 @@ namespace nissa
 {
   void paste_eo_parts_into_lx_vector_internal(void *out_lx,eo_ptr<void> in_eo,size_t bps);
   
-  template <class T> void paste_eo_parts_into_lx_vector(T *out_lx,eo_ptr<T> in_eo)
+  template <typename LX,
+	    typename EO>
+  void paste_eo_parts_into_lx_vector(LX&& outLx,
+				     const EO& inEo)
   {
-    paste_eo_parts_into_lx_vector_internal(out_lx,{in_eo[EVN],in_eo[ODD]},sizeof(T));
+    START_TIMING(remap_time,nremap);
+    
+    //paste
+    forBothParities([&outLx,&inEo](const auto& par)
+    {
+      NISSA_PARALLEL_LOOP(eo,0,locVolh)
+      for(int internalDeg=0;internalDeg<inEo.nInternalDegs;internalDeg++)
+	outLx(loclx_of_loceo[par][eo],internalDeg)=inEo[par](eo,internalDeg);
+      NISSA_PARALLEL_LOOP_END;
+    });
+    
+    STOP_TIMING(remap_time);
+    
+    outLx.invalidateHalo();
   }
   
   /////////////////////////////////////////////////////////////////

@@ -17,6 +17,48 @@
 
 namespace nissa
 {
+  /// Start the communications
+  template <typename T>
+  std::vector<MPI_Request> startBufNeighExchange(const int& divCoeff)
+  {
+    /// Pending requests
+    std::vector<MPI_Request> requests(2*2*nparal_dir);
+    
+    int nRequests=0;
+    
+    for(int bf=0;bf<2;bf++)
+      for(int mu=0;mu<NDIM;mu++)
+	if(paral_dir[mu])
+	  {
+	    const size_t sendOffset=(bord_offset[mu]+bord_volh*(!bf))*sizeof(T)/divCoeff;
+	    const size_t recvOffset=(bord_offset[mu]+bord_volh*bf)*sizeof(T)/divCoeff;
+	    const size_t messageLength=bord_dir_vol[mu]*sizeof(T)/divCoeff;
+	    const int messageTag=bf+2*mu;
+	    
+	    MPI_Irecv(recv_buf+recvOffset,messageLength,MPI_CHAR,rank_neigh [bf][mu],
+		      messageTag,cart_comm,&requests[nRequests++]);
+	    MPI_Isend(send_buf+sendOffset,messageLength,MPI_CHAR,rank_neigh[!bf][mu],
+		      messageTag,cart_comm,&requests[nRequests++]);
+	  }
+  }
+  
+  /// Wait for communications to finish
+  inline void waitAsyncCommsFinish(std::vector<MPI_Request> requests)
+  {
+    verbosity_lv3_master_printf("Entering MPI comm wait\n");
+    
+    MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
+  }
+  
+  /// Communicates the buffers
+  template <typename T>
+  void exchangeNeighBuf(const int& divCoeff)
+  {
+    waitAsyncCommsFinish(startBufNeighExchange<T>(divCoeff));
+  }
+  
+  /////////////////////////////////////////////////////////////////
+  
   /// Subscription of the field
   ///
   /// Forward declaration
@@ -234,57 +276,72 @@ namespace nissa
     /// Fill the sending buf using the data inside a vec
     void fillSendingBufWithSurface() const
     {
-      verbosity_lv3_master_printf("filling filling filling\n");
-      
-      NISSA_PARALLEL_LOOP(iHalo,0,this->nHaloSites())
+      NISSA_PARALLEL_LOOP(iHalo,0,bord_vol/divCoeff)
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
 	  ((Fund*)send_buf)[internalDeg+nInternalDegs*iHalo]=
 	    data[index(this->surfSiteOfHaloSite(iHalo),internalDeg)];
       NISSA_PARALLEL_LOOP_END;
     }
     
-    /// Fills the halo with the receivied buffer
+    /// Fill the sending buf using the data inside a vec
+    template <typename B,
+	      typename F>
+    void fillSurfaceWithReceivingBuf(const F& f)
+    {
+      for(int bf=0;bf<2;bf++)
+	for(int mu=0;mu<NDIM;mu++)
+	  NISSA_PARALLEL_LOOP(iHaloOriDir,0,bord_dir_vol[mu]/divCoeff)
+	    {
+	      const int iHalo=
+		bf*bord_volh/divCoeff+
+		iHaloOriDir+bord_offset[mu]/divCoeff;
+	      
+	      const int iSurf=
+		this->surfSiteOfHaloSite(iHalo);
+	      
+	      f((*this)[iSurf],
+		((B*)recv_buf)[iHalo],
+		bf,
+		mu);
+	    }
+      NISSA_PARALLEL_LOOP_END;
+    }
+    
+    /// Fills the halo with the received buffer
     void fillHaloWithReceivingBuf() const
     {
-      NISSA_PARALLEL_LOOP(iHalo,0,this->nHaloSites())
+      NISSA_PARALLEL_LOOP(iHalo,0,bord_vol/divCoeff)
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  data[index(this->nSites()+iHalo,internalDeg)]=
+	  data[index(bord_vol/divCoeff+iHalo,internalDeg)]=
 	    ((Fund*)recv_buf)[internalDeg+nInternalDegs*iHalo];
       NISSA_PARALLEL_LOOP_END;
+    }
+    
+    /// Fills the sending buffer with the halo, compressing into elements of B using f
+    template <typename B,
+	      typename F>
+    void fillSendingBufWithHalo(const F& f) const
+    {
+      for(int bf=0;bf<2;bf++)
+	for(int mu=0;mu<NDIM;mu++)
+	  NISSA_PARALLEL_LOOP(iHaloOriDir,0,bord_dir_vol[mu]/divCoeff)
+	    {
+	      const int iHalo=
+		bf*bord_volh/divCoeff+
+		iHaloOriDir+bord_offset[mu]/divCoeff;
+	      
+	      f(((B*)send_buf)[iHalo],
+		(*this)[locVol/divCoeff+iHalo],
+		bf,
+		mu);
+	    }
+          NISSA_PARALLEL_LOOP_END;
     }
     
     /// Start the communications
     static std::vector<MPI_Request> startAsyincComm()
     {
-      /// Pending requests
-      std::vector<MPI_Request> requests(2*2*nparal_dir);
-      
-      int nRequests=0;
-      
-      for(int bf=0;bf<2;bf++)
-	for(int mu=0;mu<NDIM;mu++)
-	  if(paral_dir[mu])
-	    {
-	      const size_t sendOffset=(bord_offset[mu]+bord_volh*(!bf))*sizeof(T)/divCoeff;
-	      const size_t recvOffset=(bord_offset[mu]+bord_volh*bf)*sizeof(T)/divCoeff;
-	      const size_t messageLength=bord_dir_vol[mu]*sizeof(T)/divCoeff;
-	      const int messageTag=bf+2*mu;
-	      
-	      MPI_Irecv(recv_buf+recvOffset,messageLength,MPI_CHAR,rank_neigh [bf][mu],
-			messageTag,cart_comm,&requests[nRequests++]);
-	      MPI_Isend(send_buf+sendOffset,messageLength,MPI_CHAR,rank_neigh[!bf][mu],
-			messageTag,cart_comm,&requests[nRequests++]);
-	    }
-      
-      return requests;
-    }
-    
-    /// Wait for communications to finish
-    static void waitAsyncCommsFinish(std::vector<MPI_Request> requests)
-    {
-      verbosity_lv3_master_printf("Entering MPI comm wait\n");
-      
-      MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
+      return startBufNeighExchange<T>(divCoeff);
     }
     
     /// Start communication using halo
@@ -348,6 +405,36 @@ namespace nissa
 	    startCommunicatingHalo();
 	  finishCommunicatingHalo(requests);
       }
+    }
+    
+    /// Compare
+    INLINE_FUNCTION
+    bool operator==(const Field& oth) const
+    {
+      return data==oth.data;
+    }
+    
+    /// Negate comparison
+    INLINE_FUNCTION
+    bool operator!=(const Field& oth) const
+    {
+      return not (*this)==oth;
+    }
+    
+    /// Assign
+    INLINE_FUNCTION
+    Field& operator=(const Field& oth)
+    {
+      if(*this!=oth)
+	{
+	  NISSA_PARALLEL_LOOP(i,0,this->nSites()*nInternalDegs)
+	    data[i]=oth.data[i];
+	  NISSA_PARALLEL_LOOP_END;
+	  
+	  invalidateHalo();
+	}
+      
+      return *this;
     }
   };
   
@@ -480,6 +567,30 @@ namespace nissa
       {
 	(*this)[par].invalidateHalo();
       });
+    }
+    
+    /// Compare
+    INLINE_FUNCTION
+    bool operator==(const EoField& oth) const
+    {
+      return evenPart==oth.evenPart and oddPart==oth.oddPart;
+    }
+    
+    /// Negate comparison
+    INLINE_FUNCTION
+    bool operator!=(const EoField& oth) const
+    {
+      return not (*this)==oth;
+    }
+    
+    /// Assign
+    INLINE_FUNCTION
+    EoField& operator=(const EoField& oth)
+    {
+      evenPart=oth.evenPart;
+      oddPart=oth.oddPart;
+      
+      return *this;
     }
   };
   
