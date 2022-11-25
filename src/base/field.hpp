@@ -18,29 +18,84 @@
 
 namespace nissa
 {
-  /// Start the communications
+  /// Start the communications of buffer interpreted as halo
   template <typename T>
-  std::vector<MPI_Request> startBufNeighExchange(const int& divCoeff)
+  std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff)
   {
     /// Pending requests
-    std::vector<MPI_Request> requests(2*2*nparal_dir);
+    std::vector<MPI_Request> requests;
     
-    int nRequests=0;
+    for(int mu=0;mu<NDIM;mu++)
+      if(is_dir_parallel[mu])
+	{
+	  const auto sendOrRecv=
+	    [&mu,&divCoeff,&requests](const auto sendOrRecv,
+				      auto* ptr,
+				      const int& bf)
+	    {
+	      const size_t offset=(bord_offset[mu]+bord_volh*(bf))*sizeof(T)/divCoeff;
+	      const int rank=rank_neigh[bf][mu];
+	      const int messageTag=bf+2*mu;
+	      const size_t messageLength=bord_dir_vol[mu]*sizeof(T)/divCoeff;
+	      
+	      MPI_Request request;
+		
+	      sendOrRecv(ptr+offset,messageLength,MPI_CHAR,rank,
+			 messageTag,cart_comm,&request);
+	      
+	      requests.push_back(request);
+	    };
+	  
+	  for(int bf=0;bf<2;bf++)
+	    {
+	      sendOrRecv(MPI_Isend,send_buf,!bf);
+	      sendOrRecv(MPI_Irecv,recv_buf, bf);
+	    }
+	}
     
-    for(int bf=0;bf<2;bf++)
-      for(int mu=0;mu<NDIM;mu++)
-	if(paral_dir[mu])
+    return requests;
+  }
+  
+  /// Start the communications of buffer interpreted as edges
+  template <typename T>
+  std::vector<MPI_Request> startBufEdgesNeighExchange(const int& divCoeff)
+  {
+    /// Pending requests
+    std::vector<MPI_Request> requests;
+    
+    for(int iEdge=0;iEdge<nEdges;iEdge++)
+      {
+	const auto sendOrRecv=
+	  [&iEdge,&divCoeff,&requests](const auto sendOrRecv,
+				       auto* ptr,
+				       const int& bf1,
+				       const int& bf2)
 	  {
-	    const size_t sendOffset=(bord_offset[mu]+bord_volh*(!bf))*sizeof(T)/divCoeff;
-	    const size_t recvOffset=(bord_offset[mu]+bord_volh*bf)*sizeof(T)/divCoeff;
-	    const size_t messageLength=bord_dir_vol[mu]*sizeof(T)/divCoeff;
-	    const int messageTag=bf+2*mu;
+	    // const auto [mu,nu]=edge_dirs[iEdge];
 	    
-	    MPI_Irecv(recv_buf+recvOffset,messageLength,MPI_CHAR,rank_neigh [bf][mu],
-		      messageTag,cart_comm,&requests[nRequests++]);
-	    MPI_Isend(send_buf+sendOffset,messageLength,MPI_CHAR,rank_neigh[!bf][mu],
-		      messageTag,cart_comm,&requests[nRequests++]);
-	  }
+	    if(isEdgeParallel[iEdge])
+	      {
+		const size_t offset=(edge_offset[iEdge]+edge_vol*(bf2+2*bf1)/4)*sizeof(T)/divCoeff;
+		const int rank=rank_edge_neigh[bf1][bf2][iEdge];
+		const int messageTag=bf2+2*(bf1+2*iEdge);
+		const size_t messageLength=edge_dir_vol[iEdge]*sizeof(T)/divCoeff;
+		
+		MPI_Request request;
+		
+		sendOrRecv(ptr+offset,messageLength,MPI_CHAR,rank,
+			   messageTag,cart_comm,&request);
+		
+		requests.push_back(request);
+	      }
+	  };
+	
+	for(int bf1=0;bf1<2;bf1++)
+	  for(int bf2=0;bf2<2;bf2++)
+	    {
+	      sendOrRecv(MPI_Isend,send_buf,!bf1,!bf2);
+	      sendOrRecv(MPI_Irecv,recv_buf, bf1, bf2);
+	    }
+      }
     
     return requests;
   }
@@ -53,11 +108,18 @@ namespace nissa
     MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
   }
   
-  /// Communicates the buffers
+  /// Communicates the buffers as halo
   template <typename T>
-  void exchangeNeighBuf(const int& divCoeff)
+  void exchangeHaloNeighBuf(const int& divCoeff)
   {
-    waitAsyncCommsFinish(startBufNeighExchange<T>(divCoeff));
+    waitAsyncCommsFinish(startBufHaloNeighExchange<T>(divCoeff));
+  }
+  
+  /// Communicates the buffers as edges
+  template <typename T>
+  void exchangeEdgesNeighBuf(const int& divCoeff)
+  {
+    waitAsyncCommsFinish(startBufEdgesNeighExchange<T>(divCoeff));
   }
   
   /////////////////////////////////////////////////////////////////
@@ -150,6 +212,19 @@ namespace nissa
       else
 	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
 	  return surfeo_of_bordeo[sitesCoverage][iHalo];
+    }
+    
+    /// Surface site of a site in the e
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static auto surfSiteOfEdgeSite(const int& iEdge)
+    {
+      assertHasDefinedCoverage();
+      
+      if constexpr(sitesCoverage==FULL_SPACE)
+	return surflxOfEdgelx[iEdge];
+      // else
+      // 	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
+      // 	  return surfeo_of_edgeeo[sitesCoverage][iEdge];
     }
     
 #define PROVIDE_NEIGH(UD)						\
@@ -454,23 +529,44 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Set edges as invalid
+    void invalidateEdges()
+    {
+      edgesAreValid=false;
+    }
+    
     /// Set halo as invalid
     void invalidateHalo()
     {
       haloIsValid=false;
+      
+      invalidateEdges();
     }
     
-    /// Fill the sending buf using the data inside a vec
-    void fillSendingBufWithSurface() const
+    /// Fill the sending buf using the data with a given function
+    template <typename F>
+    void fillSendingBufWith(F& f,const int& n) const
     {
-      NISSA_PARALLEL_LOOP(iHalo,0,bord_vol/divCoeff)
+      NISSA_PARALLEL_LOOP(iHalo,0,n)
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
 	  ((Fund*)send_buf)[internalDeg+nInternalDegs*iHalo]=
-	    data[index(this->surfSiteOfHaloSite(iHalo),internalDeg)];
+	    data[index(f(iHalo),internalDeg)];
       NISSA_PARALLEL_LOOP_END;
     }
     
-    /// Fill the sending buf using the data inside a vec
+    /// Fill the sending buf using the data on the surface of a field
+    void fillSendingBufWithSurface() const
+    {
+      fillSendingBufWith(Field::surfSiteOfHaloSite,bord_vol/divCoeff);
+    }
+    
+    /// Fill the sending buf using the data on the surface edge
+    void fillSendingBufWithEdgesSurface() const
+    {
+      fillSendingBufWith(Field::surfSiteOfEdgeSite,edge_vol/divCoeff);
+    }
+    
+    /// Fill the surface using the data from the buffer
     template <typename B,
 	      typename F>
     void fillSurfaceWithReceivingBuf(const F& f)
@@ -484,7 +580,7 @@ namespace nissa
 		iHaloOriDir+bord_offset[mu]/divCoeff;
 	      
 	      const int iSurf=
-		this->surfSiteOfHaloSite(iHalo);
+		Field::surfSiteOfHaloSite(iHalo);
 	      
 	      f((*this)[iSurf],
 		((B*)recv_buf)[iHalo],
@@ -494,16 +590,30 @@ namespace nissa
       NISSA_PARALLEL_LOOP_END;
     }
     
+    /// Fill the sending buf using the data with a given function
+    void fillHaloOrEdgesWithReceivingBuf(const int& offset,const int& n) const
+    {
+      NISSA_PARALLEL_LOOP(i,0,n)
+	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	  data[index(offset+i,internalDeg)]=
+	    ((Fund*)recv_buf)[internalDeg+nInternalDegs*i];
+      NISSA_PARALLEL_LOOP_END;
+    }
+    
     /// Fills the halo with the received buffer
     void fillHaloWithReceivingBuf() const
     {
       assertHasHalo();
       
-      NISSA_PARALLEL_LOOP(iHalo,0,bord_vol/divCoeff)
-	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  data[index(bord_vol/divCoeff+iHalo,internalDeg)]=
-	    ((Fund*)recv_buf)[internalDeg+nInternalDegs*iHalo];
-      NISSA_PARALLEL_LOOP_END;
+      fillHaloOrEdgesWithReceivingBuf(locVol/divCoeff,bord_vol/divCoeff);
+    }
+    
+    /// Fills the halo with the received buffer
+    void fillEdgesWithReceivingBuf() const
+    {
+      assertHasEdges();
+      
+      fillHaloOrEdgesWithReceivingBuf((locVol+bord_vol)/divCoeff,edge_vol/divCoeff);
     }
     
     /// Fills the sending buffer with the halo, compressing into elements of B using f
@@ -527,11 +637,36 @@ namespace nissa
           NISSA_PARALLEL_LOOP_END;
     }
     
-    /// Start the communications
-    static std::vector<MPI_Request> startAsyincComm()
+    /// Start the communications of halo
+    static std::vector<MPI_Request> startHaloAsyincComm()
     {
-      return startBufNeighExchange<T>(divCoeff);
+      return startBufHaloNeighExchange<T>(divCoeff);
     }
+    
+    /// Start the communications of edges
+    static std::vector<MPI_Request> startEdgesAsyincComm()
+    {
+      return startBufEdgesNeighExchange<T>(divCoeff);
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Assert that can communicate n sites
+    static void assertCanCommunicate(const int& n)
+    {
+      /// Needed size in the buffer
+      const size_t neededBufSize=
+	sizeof(T)*n;
+      
+      const size_t maxBufSize=
+	std::min(send_buf_size,recv_buf_size);
+      
+      if(neededBufSize>maxBufSize)
+	crash("asking to create a communicator that needs %d large buffer (%d allocated)",
+		  neededBufSize,maxBufSize);
+    }
+    
+    /////////////////////////////////////////////////////////////////
     
     /// Start communication using halo
     std::vector<MPI_Request> startCommunicatingHalo() const
@@ -541,16 +676,7 @@ namespace nissa
       
       if(not haloIsValid and nparal_dir>0)
 	{
-	  /// Needed size in the buffer
-	  const size_t neededBufSize=
-	    sizeof(T)*this->nHaloSites();
-	  
-	  const size_t maxBufSize=
-	    std::min(send_buf_size,recv_buf_size);
-	  
-	  if(neededBufSize>maxBufSize)
-	    crash("asking to create a communicator that needs %d large buffer (%d allocated)",
-		  neededBufSize,maxBufSize);
+	  assertCanCommunicate(Field::nHaloSites());
 	  
 	  //take time and write some debug output
 	  START_TIMING(tot_comm_time,ntot_comm);
@@ -558,7 +684,7 @@ namespace nissa
 	  
 	  //fill the communicator buffer, start the communication and take time
 	  fillSendingBufWithSurface();
-          requests=startAsyincComm();
+          requests=startHaloAsyincComm();
           STOP_TIMING(tot_comm_time);
 	}
       
@@ -590,12 +716,58 @@ namespace nissa
 	crash("needs halo allocated!");
     }
     
+    /////////////////////////////////////////////////////////////////
+    
+    
+    /// Start communication using edges
+    std::vector<MPI_Request> startCommunicatingEdges() const
+    {
+      /// Pending requests
+      std::vector<MPI_Request> requests;
+      
+      if(not edgesAreValid and nparal_dir>1)
+	{
+	  assertCanCommunicate(Field::nEdgesSites());
+	  
+	  //take time and write some debug output
+	  START_TIMING(tot_comm_time,ntot_comm);
+	  verbosity_lv3_master_printf("Start communication of borders of %s\n",name);
+	  
+	  //fill the communicator buffer, start the communication and take time
+	  fillSendingBufWithEdgesSurface();
+          requests=startHaloAsyincComm();
+          STOP_TIMING(tot_comm_time);
+	}
+      
+      return requests;
+    }
+    
+    /// Finalize communications
+    void finishCommunicatingEdges(std::vector<MPI_Request> requests) const
+    {
+      if(not edgesAreValid and nparal_dir>0)
+	{
+	  //take note of passed time and write some debug info
+	  START_TIMING(tot_comm_time,ntot_comm);
+	  verbosity_lv3_master_printf("Finish communication of edges of %s\n",name);
+	  
+	  //wait communication to finish, fill back the vector and take time
+	  waitAsyncCommsFinish(requests);
+	  fillEdgesWithReceivingBuf();
+	  STOP_TIMING(tot_comm_time);
+	  
+	  haloIsValid=true;
+      }
+    }
+    
     /// Crash if the edges are not allocated
     void assertHasEdges() const
     {
       if(not (haloEdgesPresence>=WITH_HALO_EDGES))
 	crash("needs edges allocated!");
     }
+    
+    /////////////////////////////////////////////////////////////////
     
     /// Communicate the halo
     void updateHalo() const
@@ -613,65 +785,14 @@ namespace nissa
     /// Communicate the edges
     void updateEdges() const
     {
-      const int min_size=nbytes_per_site*(edge_vol+bord_vol+locVol);
-      
-      assertHasEdges();
-      updateHalo();
-      
       if(not edgesAreValid)
 	{
-	  int nrequest=0;
-	  MPI_Request request[NDIM*(NDIM-1)*4];
-	  MPI_Status status[NDIM*(NDIM-1)*4];
+	  verbosity_lv3_master_printf("Sync communication of edges of %s\n",name);
 	  
-	  int send,rece;
-	  int imessage=0;
-	  
-	  coords_t x;
-	  memset(&x,0,sizeof(coords_t));
-	  
-	  for(int idir=0;idir<NDIM;idir++)
-	    for(int jdir=idir+1;jdir<NDIM;jdir++)
-	      if(paral_dir[idir] and paral_dir[jdir])
-		{
-		  int iedge=edge_numb[idir][jdir];
-		  int pos_edge_offset;
-		  
-		  //take the starting point of the border
-		  x[jdir]=locSize[jdir]-1;
-		  pos_edge_offset=bordlx_of_coord(x,idir);
-		  x[jdir]=0;
-		  
-		  //Send the i-j- internal edge to the j- rank as i-j+ external edge
-		  send=(locVol+bord_offset[idir])*nbytes_per_site;
-		  rece=(locVol+bord_vol+edge_offset[iedge]+edge_vol/4)*nbytes_per_site;
-		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
-		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
-		  
-		  //Send the i-j+ internal edge to the j+ rank as i-j- external edge
-		  send=(locVol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
-		  rece=(locVol+bord_vol+edge_offset[iedge])*nbytes_per_site;
-		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
-		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
-		  
-		  //Send the i+j- internal edge to the j- rank as i+j+ external edge
-		  send=(locVol+bord_offset[idir]+bord_vol/2)*nbytes_per_site;
-		  rece=(locVol+bord_vol+edge_offset[iedge]+3*edge_vol/4)*nbytes_per_site;
-		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
-		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
-		  
-		  //Send the i+j+ internal edge to the j+ rank as i+j- external edge
-		  send=(locVol+bord_offset[idir]+bord_vol/2+pos_edge_offset)*nbytes_per_site;
-		  rece=(locVol+bord_vol+edge_offset[iedge]+edge_vol/2)*nbytes_per_site;
-		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
-		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
-		  imessage++;
-		}
-	  
-	  if(nrequest>0) MPI_Waitall(nrequest,request,status);
-	}
-      
-      set_edges_valid(data);
+	  const std::vector<MPI_Request> requests=
+	    startCommunicatingEdges();
+	  finishCommunicatingEdges(requests);
+      }
     }
     
     /// Compare

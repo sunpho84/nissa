@@ -32,7 +32,7 @@ namespace nissa
   {
     if(isweep>=after && (isweep-after)%each==0)
       {
-	int igrid=floor(Q/width)+ngrid/2;
+	int igrid=floor(Q/width)+ngrid/2.0;
 	double alpha=Q/width;
 	alpha=alpha-floor(alpha);
 	if(igrid>=0 && igrid<=ngrid) grid[igrid]+=(1-alpha)*coeff;
@@ -41,10 +41,10 @@ namespace nissa
   }
   
   //compute the derivative of the potential
-  double meta_pars_t::compute_pot_der(double x)
+  double meta_pars_t::compute_pot_der(const double& x) const
   {
     //take igrid
-    int igrid=floor((x+barr)/width);
+    const int igrid=floor((x+barr)/width);
     
     //inside the barriers
     if(igrid>=0 && igrid<ngrid)

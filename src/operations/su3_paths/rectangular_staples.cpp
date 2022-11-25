@@ -48,7 +48,7 @@ namespace nissa
     //obtained scanning on first half of the border, and storing them
     //in the first half of sending buf
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(paral_dir[nu])
+      if(is_dir_parallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
 	    int mu=perp_dir[nu][imu];
@@ -95,7 +95,7 @@ namespace nissa
     
     //copy the received forward border (stored in the second half of receiving buf) to its destination
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(paral_dir[nu])
+      if(is_dir_parallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
 	    int mu=perp_dir[nu][imu];
@@ -135,7 +135,7 @@ namespace nissa
     //copy in send buf, obtained scanning second half of each parallelized direction external border and
     //copying the three perpendicular links staple
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(paral_dir[nu])
+      if(is_dir_parallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
 	    int mu=perp_dir[nu][imu];
@@ -203,7 +203,7 @@ namespace nissa
     
     //copy the received backward staples (stored on first half of receiving buf) on bw_surf sites
     for(int nu=0;nu<4;nu++) //staple and fw bord direction
-      if(paral_dir[nu])
+      if(is_dir_parallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
 	    int mu=perp_dir[nu][imu];

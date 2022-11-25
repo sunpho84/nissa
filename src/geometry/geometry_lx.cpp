@@ -222,7 +222,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	is_bord[mu]=0;
-	if(paral_dir[mu])
+	if(is_dir_parallel[mu])
 	  {
 	    if(x[mu]==glbSize[mu]-1) is_bord[mu]=-1;
 	    if(x[mu]==locSize[mu]) is_bord[mu]=+1;
@@ -275,7 +275,7 @@ namespace nissa
   //return the border site adiacent at surface
   int bordlx_of_surflx(const int& loclx,const int& mu)
   {
-    if(not paral_dir[mu]) return -1;
+    if(not is_dir_parallel[mu]) return -1;
     if(locSize[mu]<2)
       crash("not working if one dir is smaller than 2");
     
@@ -288,49 +288,46 @@ namespace nissa
     return -1;
   }
   
-  //return the edge site adiacent at a border
+  /// Return the edge site adiacent at a border
   int edgelx_of_surflx(const int& loclx,const int& iEdge)
   {
     const auto [mu,nu]=edge_dirs[iEdge];
     
-    if(not (paral_dir[mu] and paral_dir[nu]))
+    if(not (is_dir_parallel[mu] and is_dir_parallel[nu]))
       return -1;
     
     if(locSize[mu]<2 or locSize[nu]<2)
       crash("not working if one dir is smaller than 2");
     
-    const int mc=
-      locCoordOfLoclx[loclx][mu];
-    
-    auto second=
-      [nu=nu,&loclx,mu=mu](const auto& l)
+    auto iter=
+      [&loclx](auto& iter,const int& s,const int& dir,const auto&...tail)
       {
-	const int m=l[loclx][mu];
+	auto nested=
+	  [&dir,&iter,&s](const auto& l,
+			  const auto&...dirs)
+	{
+	  const int m=
+	    l[s][dir];
+	  
+	  if constexpr (sizeof...(dirs)==0)
+	    return l[m][dir]-locVol-bord_vol;
+	  else
+	    return iter(iter,m,dirs...);
+	};
 	
-	const int nc=locCoordOfLoclx[loclx][nu];
+	const int c=
+	  locCoordOfLoclx[loclx][dir];
 	
-	auto third=
-	  [&m,&nu](const auto& l)
-	  {
-	    return l[m][nu]-locVol-bord_vol;
-	  };
+	if(c==0)
+	  return nested(loclxNeighdw);
 	
-	if(nc==0)
-	  return third(loclxNeighdw);
-	
-	if(nc==locSize[nu]-1)
-	  return third(loclxNeighup);
+	if(c==locSize[dir]-1)
+	  return nested(loclxNeighup);
 	
 	return -1;
       };
     
-    if(mc==0)
-      return second(loclxNeighdw);
-    
-    if(mc==locSize[mu]-1)
-      return second(loclxNeighup);
-    
-    return -1;
+    return iter(iter,loclx,mu,nu);
   }
   
   //label all the sites: bulk, border and edge
@@ -341,7 +338,7 @@ namespace nissa
     coords_t extended_box_size;
     for(int mu=0;mu<NDIM;mu++)
       {
-	extended_box_size[mu]=paral_dir[mu]*2+locSize[mu];
+	extended_box_size[mu]=is_dir_parallel[mu]*2+locSize[mu];
 	extended_box_vol*=extended_box_size[mu];
       }
     
@@ -349,7 +346,7 @@ namespace nissa
       {
 	//subtract by one if dir is parallelized
 	coords_t x=coord_of_lx(ivol,extended_box_size);
-	for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) x[mu]--;
+	for(int mu=0;mu<NDIM;mu++) if(is_dir_parallel[mu]) x[mu]--;
 	
 	//check if it is defined
 	int iloc=full_lx_of_coords(x);
@@ -413,7 +410,7 @@ namespace nissa
   }
   
   //finds how to fill the borders with opposite surface (up b->dw s)
-  void find_surf_of_bord()
+  void findSurfOfBord()
   {
     NISSA_PARALLEL_LOOP(loclx,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
@@ -425,20 +422,17 @@ namespace nissa
   }
   
   //finds how to fill the borders with opposite surface (up b->dw s)
-  void find_surf_of_edge()
+  void findSurfOfEdges()
   {
     NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      for(int iedge=0;iedge<nEdges;iedge++)
+      for(int iEdge=0;iEdge<nEdges;iEdge++)
 	{
-	  const int bordlx=bordlx_of_surflx(loclx,mu);
-	  if(bordlx!=-1) surflxOfBordlx[bordlx]=loclx;
+	  const int edgeLx=edgelx_of_surflx(loclx,iEdge);
+	  if(edgeLx!=-1) surflxOfEdgelx[edgeLx]=loclx;
 	}
     NISSA_PARALLEL_LOOP_END;
   }
   
-	  
-	  const int edgelx=edgelx_of_surflx(loclx,mu);
-	  if(edgelx!=-1) bordlxOfEdgelx[edgelx]=loclx;
   //index all the sites on bulk
   void find_bulk_sites()
   {
@@ -450,7 +444,7 @@ namespace nissa
       //find if it is on bulk or non_fw or non_bw surf
       int is_bulk=true,is_non_fw_surf=true,is_non_bw_surf=true;
       for(int mu=0;mu<NDIM;mu++)
-	if(paral_dir[mu])
+	if(is_dir_parallel[mu])
 	  {
 	    if(locCoordOfLoclx[ivol][mu]==locSize[mu]-1) is_bulk=is_non_fw_surf=false;
 	    if(locCoordOfLoclx[ivol][mu]==0)              is_bulk=is_non_bw_surf=false;
@@ -514,14 +508,15 @@ namespace nissa
     
     //edges
     glblxOfEdgelx=nissa_malloc("glblx_of_edgelx",edge_vol,int);
-    bordlxOfEdgelx=nissa_malloc("bordlx_of_edgelx",edge_vol,int);
+    surflxOfEdgelx=nissa_malloc("bordlx_of_edgelx",edge_vol,int);
     
     //label the sites and neighbours
     label_all_sites();
     find_neighbouring_sites();
     
     //matches surface and opposite border and edges
-    find_surf_of_bord();
+    findSurfOfBord();
+    findSurfOfEdges();
     
     //find bulk sites
     find_bulk_sites();
@@ -594,7 +589,7 @@ namespace nissa
     nissa_free(loclxOfBordlx);
     nissa_free(surflxOfBordlx);
     nissa_free(glblxOfEdgelx);
-    nissa_free(bordlxOfEdgelx);
+    nissa_free(surflxOfEdgelx);
     
     nissa_free(loclxOfBulklx);
     nissa_free(loclxOfSurflx);

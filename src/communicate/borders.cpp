@@ -102,7 +102,7 @@ namespace nissa
 	comm.nrequest=0;
 	
 	for(int idir=0;idir<2*NDIM;idir++)
-	  if(paral_dir[idir%NDIM] && (dir_comm==NULL||dir_comm[idir]))
+	  if(is_dir_parallel[idir%NDIM] && (dir_comm==NULL||dir_comm[idir]))
 	    {
 	      //exchanging the lower surface, from the first half of sending node to the second half of receiving node
 	      MPI_Irecv(recv_buf+comm.recv_offset[idir],comm.message_length[idir],MPI_CHAR,comm.recv_rank[idir],

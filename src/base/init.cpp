@@ -587,8 +587,8 @@ namespace nissa
 	if(!ok) crash("nrank_dir[%d]: %d",mu,nrank_dir[mu]);
 	ok&=(glbSize[mu]%nrank_dir[mu]==0);
 	if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",mu,mu,glbSize[mu]%nrank_dir[mu]);
-	paral_dir[mu]=(nrank_dir[mu]>1);
-	nparal_dir+=paral_dir[mu];
+	is_dir_parallel[mu]=(nrank_dir[mu]>1);
+	nparal_dir+=is_dir_parallel[mu];
       }
     
     master_printf("Creating grid:\t%d",nrank_dir[0]);
@@ -607,7 +607,7 @@ namespace nissa
     //calculate bulk size
     bulkVol=nonBwSurfVol=1;
     for(int mu=0;mu<NDIM;mu++)
-      if(paral_dir[mu])
+      if(is_dir_parallel[mu])
 	{
 	  bulkVol*=locSize[mu]-2;
 	  nonBwSurfVol*=locSize[mu]-1;
@@ -627,7 +627,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	//bord size along the mu dir
-	if(paral_dir[mu]) bord_dir_vol[mu]=locVol/locSize[mu];
+	if(is_dir_parallel[mu]) bord_dir_vol[mu]=locVol/locSize[mu];
 	else bord_dir_vol[mu]=0;
 	
 	//total bord
@@ -643,12 +643,11 @@ namespace nissa
     //calculate the egdes size
     edge_vol=0;
     edge_offset[0]=0;
-    int iedge=0;
-    for(int mu=0;mu<NDIM;mu++)
+    for(int iedge=0,mu=0;mu<NDIM;mu++)
       for(int nu=mu+1;nu<NDIM;nu++)
 	{
 	  //edge among the i and j dir
-	  if(paral_dir[mu] && paral_dir[nu]) edge_dir_vol[iedge]=bord_dir_vol[mu]/locSize[nu];
+	  if(is_dir_parallel[mu] && is_dir_parallel[nu]) edge_dir_vol[iedge]=bord_dir_vol[mu]/locSize[nu];
 	  else edge_dir_vol[iedge]=0;
 	  
 	  //total edge
@@ -666,27 +665,40 @@ namespace nissa
     edge_vol*=4;
     edge_volh=edge_vol/2;
     master_printf("Edge vol: %d\n",edge_vol);
-      
+    
     //set edge numb
-    {
-      int iedge=0;
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  edge_numb[mu][mu]=-1;
-	  for(int nu=mu+1;nu<NDIM;nu++)
-	    {
-	      edge_numb[mu][nu]=edge_numb[nu][mu]=iedge;
-	      iedge++;
-	    }
-	}
-    }
+    for(int iedge=0,mu=0;mu<NDIM;mu++)
+      {
+	edge_numb[mu][mu]=-1;
+	for(int nu=mu+1;nu<NDIM;nu++)
+	  {
+	    edge_numb[mu][nu]=edge_numb[nu][mu]=iedge;
+	    isEdgeParallel[iedge]=(is_dir_parallel[mu] and is_dir_parallel[nu]);
+	    iedge++;
+	  }
+      }
+    
+    for(int iEdge=0;iEdge<nEdges;iEdge++)
+      {
+	const auto [mu,nu]=edge_dirs[iEdge];
+	for(int bf1=0;bf1<2;bf1++)
+	  {
+	    coords_t c=rank_coord;
+	    c[mu]=(c[mu]+nrank_dir[mu]+2*bf1-1)%nrank_dir[mu];
+	    for(int bf2=0;bf2<2;bf2++)
+	      {
+		c[nu]=(c[nu]+nrank_dir[nu]+2*bf2-1)%nrank_dir[nu];
+		rank_edge_neigh[bf1][bf2][iEdge]=rank_of_coord(c);
+	      }
+	  }
+      }
     
     //print information
     master_printf("Local volume\t%d",locSize[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",locSize[mu]);
     master_printf(" = %d\n",locVol);
     master_printf("List of parallelized dirs:\t");
-    for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) master_printf("%d ",mu);
+    for(int mu=0;mu<NDIM;mu++) if(is_dir_parallel[mu]) master_printf("%d ",mu);
     if(nparal_dir==0) master_printf("(none)");
     master_printf("\n");
     master_printf("Border size: %d\n",bord_vol);

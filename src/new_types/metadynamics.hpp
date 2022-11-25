@@ -36,7 +36,9 @@ namespace nissa
     storable_vector_t<double> grid;
     
     void update(int isweep,double Q);
-    double compute_pot_der(double x);
+    
+    double compute_pot_der(const double& x) const;
+    
     double compute_pot(double x);
     void save(const char *path);
     void load(const char *path);

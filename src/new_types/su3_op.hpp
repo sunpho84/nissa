@@ -353,21 +353,26 @@ namespace nissa
   inline void su3_summ_the_trace(complex tr,const su3 m)
   {for(size_t ic=0;ic<NCOL;ic++) complex_summ(tr,tr,m[ic][ic]);}
   
-  //return the anti-hermitian traceless part of an su3 matrix
-  CUDA_HOST_AND_DEVICE inline void unsafe_su3_traceless_anti_hermitian_part(su3 out,const su3 in)
+  /// Return the anti-hermitian traceless part of an su3 matrix
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_traceless_anti_hermitian_part(A&& out,
+						const B& in)
   {
     double trace_im_third=0;
-    for(size_t ic=0;ic<NCOL;ic++) trace_im_third+=in[ic][ic][IM];
+    for(int ic=0;ic<NCOL;ic++)
+      trace_im_third+=in[ic][ic][IM];
     trace_im_third/=NCOL;
     
-    for(size_t ic=0;ic<NCOL;ic++)
+    for(int ic=0;ic<NCOL;ic++)
       {
 	//real part of diagonal: 0
 	out[ic][ic][RE]=0;
 	//imag part of diagonal: subtract the trace
 	out[ic][ic][IM]=in[ic][ic][IM]-trace_im_third;
 	
-	for(size_t jc=0;jc<ic;jc++)
+	for(int jc=0;jc<ic;jc++)
 	  {
 	    //out-of-diag real part
 	    out[ic][jc][RE]=-(out[jc][ic][RE]=(in[jc][ic][RE]-in[ic][jc][RE])/2);
@@ -782,26 +787,38 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void su3_prodassign_double(su3 a,const double r)
   {su3_prod_double(a,a,r);}
   
-  //hermitian of su3 matrix times a real
-  inline void unsafe_su3_hermitian_prod_double(su3 a,const su3 b,const double r)
+  /// Hermitian of su3 matrix times a real
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_hermitian_prod_double(A&& a,
+					const B& b,
+					const double& r)
   {
-    for(size_t i=0;i<NCOL;i++)
-      for(size_t j=0;j<NCOL;j++)
+    for(int i=0;i<NCOL;i++)
+      for(int j=0;j<NCOL;j++)
 	{
 	  a[i][j][RE]=+r*b[j][i][RE];
 	  a[i][j][IM]=-r*b[j][i][IM];
 	}
   }
-  CUDA_HOST_AND_DEVICE inline void safe_su3_hermitian_prod_double(su3 a,const su3 b,const double r)
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void safe_su3_hermitian_prod_double(A&& a,
+				      const B& b,
+				      const double& r)
   {
-    for(size_t i=0;i<NCOL;i++)
+    for(int i=0;i<NCOL;i++)
       {
 	a[i][i][RE]=+r*b[i][i][RE];
 	a[i][i][IM]=-r*b[i][i][IM];
-	for(size_t j=i+1;j<NCOL;j++)
+	
+	for(int j=i+1;j<NCOL;j++)
 	  {
-	    double a_i_j_RE=+r*b[j][i][RE];
-	    double a_i_j_IM=-r*b[j][i][IM];
+	    const double a_i_j_RE=+r*b[j][i][RE];
+	    const double a_i_j_IM=-r*b[j][i][IM];
 	    a[j][i][RE]=+r*b[i][j][RE];
 	    a[j][i][IM]=-r*b[i][j][IM];
 	    a[i][j][RE]=a_i_j_RE;
@@ -809,6 +826,7 @@ namespace nissa
 	  }
       }
   }
+  
   CUDA_HOST_AND_DEVICE inline void su3_summ_the_hermitian_prod_double(su3 a,const su3 b,const double r)
   {
     for(size_t i=0;i<NCOL;i++)
@@ -822,7 +840,19 @@ namespace nissa
   //summ the prod of su3 with imag
   CUDA_HOST_AND_DEVICE inline void su3_prod_idouble(su3 a,const su3 b,const double r) {for(size_t i=0;i<NCOL;i++) color_prod_idouble(a[i],b[i],r);}
   inline void su3_prodassign_idouble(su3 a,const double r) {su3_prod_idouble(a,a,r);}
-  CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_idouble(su3 a,const su3 b,const double r) {for(size_t i=0;i<NCOL;i++) color_summ_the_prod_idouble(a[i],b[i],r);}
+  
+  /// a+=b*i*r
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_summ_the_prod_idouble(A&& a,
+				 const B& b,
+				 const double& r)
+  {
+    for(int i=0;i<NCOL;i++)
+      color_summ_the_prod_idouble(a[i],b[i],r);
+  }
+  
   //summ the prod of su3 with real
   CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_double(su3 a,const su3 b,const double r) {for(size_t i=0;i<NCOL;i++) color_summ_the_prod_double(a[i],b[i],r);}
   

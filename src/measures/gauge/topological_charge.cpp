@@ -320,7 +320,11 @@ namespace nissa
   }
   
   //measure the topological charge
-  void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *unsmoothed_conf,int iconf,bool conf_created,bool preserve_unsmoothed)
+  void measure_topology_lx_conf(top_meas_pars_t &pars,
+				const LxField<quad_su3>& unsmoothed_conf,
+				int iconf,
+				bool conf_created,
+				bool preserve_unsmoothed)
   {
     //open the file and allocate remapper
     FILE *file=open_file(pars.path,conf_created?"w":"a"),*corr_file=NULL;
@@ -334,22 +338,18 @@ namespace nissa
       }
     
     //allocate a temorary conf to be smoothed
-    double *charge=nissa_malloc("charge",locVol,double);
-    quad_su3 *smoothed_conf;
-    if(preserve_unsmoothed)
-      {
-	smoothed_conf=nissa_malloc("smoothed_conf",locVol+bord_vol+edge_vol,quad_su3);
-	vector_copy(smoothed_conf,unsmoothed_conf);
-      }
-    else smoothed_conf=unsmoothed_conf;
+    LxField<double> charge("charge");
+    LxField<quad_su3> smoothed_conf("smoothed_conf",WITH_HALO_EDGES);
+    smoothed_conf=unsmoothed_conf;
     
     int nsmooth=0;
     bool finished;
     do
       {
 	//plaquette and local charge
-	double plaq=global_plaquette_lx_conf(smoothed_conf);
+	const double plaq=global_plaquette_lx_conf(smoothed_conf);
 	local_topological_charge(charge,smoothed_conf);
+	
 	//total charge
 	double tot_charge;
 	glb_reduce(&tot_charge,charge,locVol);
@@ -360,11 +360,12 @@ namespace nissa
 	//correlators if asked
 	if(pars.meas_corr)
 	  {
-	    compute_topo_corr(charge);
-	    store_topo_corr(corr_file,charge,iconf,tot_charge,topo_corr_rem);
+	    crash("reimplement");
+	    // compute_topo_corr(charge);
+	    // store_topo_corr(corr_file,charge,iconf,tot_charge,topo_corr_rem);
 	  }
       }
-    while(!finished);
+    while(not finished);
     
     //discard smoothed conf
     if(preserve_unsmoothed) nissa_free(smoothed_conf);

@@ -36,28 +36,30 @@ namespace nissa
   double topotential_action(const EoField<quad_su3>& conf,
 			    const topotential_pars_t &pars)
   {
-    //compute topocharge
-    double Q;
-    if(pars.stout_pars.nlevels)
-      {
-	EoField<quad_su3> smeConf("smeConf",WITH_HALO);
-        stout_smear(smeConf,conf,pars.stout_pars);
-	total_topological_charge_eo_conf(&Q,smeConf);
-      }
-    else
-      total_topological_charge_eo_conf(&Q,conf);
+    crash("reimplent");
+    
+    // //compute topocharge
+    // double Q;
+    // if(pars.stout_pars.nlevels)
+    //   {
+    // 	EoField<quad_su3> smeConf("smeConf",WITH_HALO);
+    //     stout_smear(smeConf,conf,pars.stout_pars);
+    // 	total_topological_charge_eo_conf(&Q,smeConf);
+    //   }
+    // else
+    //   total_topological_charge_eo_conf(&Q,conf);
     
     //compute according to flag
     double topo_action=0;
-    switch(pars.flag)
-      {
-      case 1: topo_action=Q*pars.theta;break;
-      case 2: topo_action=topodynamical_potential(Q,pars);break;
-      default: crash("unknown flag %d",pars.flag);
-      }
+    // switch(pars.flag)
+    //   {
+    //   case 1: topo_action=Q*pars.theta;break;
+    //   case 2: topo_action=topodynamical_potential(Q,pars);break;
+    //   default: crash("unknown flag %d",pars.flag);
+    //   }
     
-    //free if it was allocated
-    if(pars.stout_pars.nlevels!=0) for(int eo=0;eo<2;eo++) nissa_free(conf[eo]);
+    // //free if it was allocated
+    // if(pars.stout_pars.nlevels!=0) for(int eo=0;eo<2;eo++) nissa_free(conf[eo]);
     
     return topo_action;
   }

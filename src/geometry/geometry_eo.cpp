@@ -119,7 +119,7 @@ namespace nissa
 	for(int mu=0;mu<NDIM;mu++)
 	  for(int vnu=0;vnu<2;vnu++)
 	    for(int nu=mu+1;nu<NDIM;nu++)
-	      if(paral_dir[mu] and paral_dir[nu])
+	      if(is_dir_parallel[mu] and is_dir_parallel[nu])
 		{
 		  int iedge=edge_numb[mu][nu];
 		  int icomm=((par*2+vmu)*2+vnu)*NDIM*(NDIM-1)/2+iedge;

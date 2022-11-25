@@ -31,7 +31,11 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_weighted_staples(su3& staples,
+								 const LxField<quad_su3>& conf,
+								 const int& A,
+								 const int& mu,
+								 const double& rho)
   {
     //put staples to zero
     su3_put_to_zero(staples);
@@ -57,7 +61,11 @@ namespace nissa
   
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   //partial derivative of the force
-  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *conf,int A,int mu,double rho)
+  CUDA_HOST_AND_DEVICE void stout_smear_compute_staples(stout_link_staples *out,
+							const LxField<quad_su3>& conf,
+							const int& A,
+							const int& mu,
+							const double& rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,A,mu,rho);
@@ -72,21 +80,17 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  void stout_smear_single_level(quad_su3* out,quad_su3* ext_in,double rho,const which_dir_t& dirs)
+  void stout_smear_single_level(LxField<quad_su3>& out,
+				const LxField<quad_su3>& in,
+				const double& rho,
+				const which_dir_t& dirs)
   {
-    
     START_TIMING(sto_time,nsto);
     
-    communicate_lx_quad_su3_edges(ext_in);
+    if(out==in)
+      crash("cannot be used with same input and output");
     
-    //allocate a temporary conf if going to smear iteratively or out==ext_in
-    quad_su3 *in;
-    if(out==ext_in)
-      {
-	in=nissa_malloc("in",locVol+bord_vol+edge_vol,quad_su3);
-	vector_copy(in,ext_in);
-      }
-    else in=ext_in;
+    in.updateEdges();
     
     for(int mu=0;mu<NDIM;mu++)
       if(dirs[mu])
@@ -103,9 +107,7 @@ namespace nissa
 	  }
     NISSA_PARALLEL_LOOP_END;
     
-    //invalid the border and free allocated memory, if any
-    set_borders_invalid(out);
-    if(out==ext_in) nissa_free(in);
+    out.invalidateHalo();
     
     STOP_TIMING(sto_time);
   }
@@ -147,38 +149,45 @@ namespace nissa
   }
   
   //allocate all the stack for smearing
-  void stout_smear_conf_stack_allocate(quad_su3*** out,quad_su3* in,int nlev)
-  {
-    (*out)=nissa_malloc("out*",nlev+1,quad_su3*);
-    (*out)[0]=in;
+  void stout_smear_conf_stack_allocate(std::vector<LxField<quad_su3>*>& out,
+				       LxField<quad_su3>& in,
+				       const int& nlev)
+  { // improve making dedicated struct
+    out.resize(nlev+1);
+    out[0]=&in;
     for(int i=1;i<=nlev;i++)
-      (*out)[i]=nissa_malloc("out",locVol+bord_vol+edge_vol,quad_su3);
+      out[i]=new LxField<quad_su3>("out",WITH_HALO_EDGES);
   }
   
   //free all the stack of allocated smeared conf
-  void stout_smear_conf_stack_free(quad_su3*** out,int nlev)
+  void stout_smear_conf_stack_free(std::vector<LxField<quad_su3>*>& out)
   {
-    for(int i=1;i<=nlev;i++) nissa_free((*out)[i]);
-    nissa_free(*out);
+    for(size_t i=1;i<out.size();i++) delete out[i];
+    out.resize(0);
   }
   
   //smear iteratively retainig all the stack
-  void stout_smear_whole_stack(quad_su3** out,quad_su3* in,stout_pars_t* stout_pars,const which_dir_t& dirs)
+  void stout_smear_whole_stack(std::vector<LxField<quad_su3>*>& out,
+			       const LxField<quad_su3>& in,
+			       const stout_pars_t* stout_pars,
+			       const which_dir_t& dirs)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_lx_conf(out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)
       {
-	stout_smear_single_level(out[i],out[i-1],stout_pars->rho,dirs);
+	stout_smear_single_level(*(out[i]),*(out[i-1]),stout_pars->rho,dirs);
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_lx_conf(out[i]));
       }
   }
   
-  //remap the force to one smearing level less
-  void stouted_force_remap_step(quad_su3* F,quad_su3* conf,double rho)
+  /// Remap the force to one smearing level less
+  void stouted_force_remap_step(LxField<quad_su3>& F,
+				const LxField<quad_su3>& conf,
+				const double& rho)
   {
-    communicate_lx_quad_su3_edges(conf);
+    conf.updateEdges();
     
-    quad_su3 *Lambda=nissa_malloc("Lambda",locVol+bord_vol+edge_vol,quad_su3);
+    LxField<quad_su3> Lambda("Lambda",WITH_HALO_EDGES);
     
     for(int mu=0;mu<NDIM;mu++)
       NISSA_PARALLEL_LOOP(A,0,locVol)
@@ -211,23 +220,23 @@ namespace nissa
 	}
     NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(Lambda);
+    Lambda.invalidateHalo();
     
     //compute the third piece of eq. (75)
-    communicate_lx_quad_su3_edges(Lambda);
+    Lambda.updateHalo();
     
     for(int mu=0;mu<NDIM;mu++)
       for(int nu=0;nu<NDIM;nu++)
 	if(mu!=nu)
 	  {
-	    NISSA_PARALLEL_LOOP(A,0,locVol)     //   b1 --<-- f1 -->-- +
-	      {                                  //    |        |       |
-		int f1=loclxNeighup[ A][mu];    //    V   B    |   F   V     ^
-		int f2=loclxNeighup[ A][nu];    //    |        |       |     m
-		int f3=A;                        //  b23 -->-- f3 --<-- f2    u
-		int b1=loclxNeighdw[f1][nu];    //             A             +  nu ->
-		int b2=loclxNeighdw[b1][mu];
-		int b3=b2;
+	    NISSA_PARALLEL_LOOP(A,0,locVol)           //   b1 --<-- f1 -->-- +
+	      {                                       //    |        |       |
+		const int f1=loclxNeighup[ A][mu];    //    V   B    |   F   V     ^
+		const int f2=loclxNeighup[ A][nu];    //    |        |       |     m
+		const int f3=A;                       //  b23 -->-- f3 --<-- f2    u
+		const int b1=loclxNeighdw[f1][nu];    //             A             +  nu ->
+		const int b2=loclxNeighdw[b1][mu];
+		const int b3=b2;
 		
 		su3 temp1,temp2,temp3;
 		
@@ -269,11 +278,12 @@ namespace nissa
 	      }
 	    NISSA_PARALLEL_LOOP_END;
 	  }
-    nissa_free(Lambda);
   }
   
   //remap iteratively the force, adding the missing pieces of the chain rule derivation
-  void stouted_force_remap(quad_su3* F,quad_su3** sme_conf,stout_pars_t* stout_pars)
+  void stouted_force_remap(LxField<quad_su3>& F,
+			   const std::vector<LxField<quad_su3>*>& sme_conf,
+			   const stout_pars_t* stout_pars)
   {
     
     START_TIMING(sto_remap_time,nsto_remap);
@@ -281,7 +291,7 @@ namespace nissa
     for(int i=stout_pars->nlevels-1;i>=0;i--)
       {
 	verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i+1,stout_pars->nlevels);
-	stouted_force_remap_step(F,sme_conf[i],stout_pars->rho);
+	stouted_force_remap_step(F,*sme_conf[i],stout_pars->rho);
       }
     
     STOP_TIMING(sto_remap_time);

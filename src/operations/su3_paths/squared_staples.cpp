@@ -8,6 +8,7 @@
 
 #include "base/bench.hpp"
 #include "base/debug.hpp"
+#include "base/field.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "communicate/edges.hpp"
@@ -159,7 +160,7 @@ namespace nissa
     //copy in send buf, obtained scanning second half of each parallelized direction external border and
     //copying the three perpendicular links staple
     for(int nu=0;nu<4;nu++) //border and staple direction
-      if(paral_dir[nu])
+      if(is_dir_parallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
 	    int mu=perp_dir[nu][imu];
@@ -227,7 +228,7 @@ namespace nissa
     
     //copy the received backward staples (stored on first half of receiving buf) on bw_surf sites
     for(int nu=0;nu<4;nu++) //staple and fw bord direction
-      if(paral_dir[nu])
+      if(is_dir_parallel[nu])
 	for(int imu=0;imu<3;imu++) //link direction
 	  {
 	    int mu=perp_dir[nu][imu];
@@ -257,24 +258,24 @@ namespace nissa
     squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,THREAD_ID);
   }
   
-  //summ everything together
-  void compute_summed_squared_staples_lx_conf(quad_su3* out,quad_su3* conf)
+  /// Summ everything together
+  void compute_summed_squared_staples_lx_conf(LxField<quad_su3>& out,
+					      const LxField<quad_su3>& conf)
   {
+    /// improve
+    LxField<squared_staples_t> squared_staples("squared_staples",WITH_HALO);
     
-    //compute pieces
-    squared_staples_t *squared_staples=nissa_malloc("squared_staples",locVol+bord_vol,squared_staples_t);
-    compute_squared_staples_lx_conf(squared_staples,conf);
+    crash("reimplement");
+    ///compute_squared_staples_lx_conf(squared_staples,conf);
     
     //summ
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	{
 	  su3_copy(out[ivol][mu],squared_staples[ivol][mu][0]);
 	  for(int iterm=1;iterm<6;iterm++)
 	    su3_summassign(out[ivol][mu],squared_staples[ivol][mu][iterm]);
 	}
     NISSA_PARALLEL_LOOP_END;
-    
-    nissa_free(squared_staples);
   }
 }

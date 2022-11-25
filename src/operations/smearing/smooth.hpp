@@ -120,14 +120,14 @@ namespace nissa
       return res;
     }
     
-    //return the next measure strictly after nsmooth
-    int next_nsmooth_meas(int nsmooth)
+    /// return the next measure strictly after nsmooth
+    int next_nsmooth_meas(int nsmooth) const 
     {
       return (nsmooth+meas_each_nsmooth)/meas_each_nsmooth*meas_each_nsmooth;
     }
     
     //returns the number of smooth
-    int nsmooth()
+    int nsmooth() const
     {
       int res=0;
       
@@ -167,7 +167,13 @@ namespace nissa
   };
   
   void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs=all_dirs,int staple_min_dir=0);
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const which_dir_t& dirs=all_dirs,int staple_min_dir=0);
+  
+  bool smooth_lx_conf_until_next_meas(LxField<quad_su3>& smoothed_conf,
+				      const smooth_pars_t &sp,
+				      int &nsmooth,
+				      const which_dir_t& dirs,
+				      const int& staple_min_dir=0);
+  
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs=all_dirs,int staple_min_dir=0);
 }
 

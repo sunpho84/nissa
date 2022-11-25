@@ -57,7 +57,7 @@ namespace nissa
 	    
 	    for(int idir=0;idir<NDIM;idir++)
 	      for(int jdir=idir+1;jdir<NDIM;jdir++)
-		if(paral_dir[idir] and paral_dir[jdir])
+		if(is_dir_parallel[idir] and is_dir_parallel[jdir])
 		  {
 		    int iedge=edge_numb[idir][jdir];
 		    int pos_edge_offset;
@@ -127,7 +127,7 @@ namespace nissa
 	    int nrequest_tot=0;
 	    for(int mu=0;mu<NDIM;mu++)
 	      for(int nu=mu+1;nu<NDIM;nu++)
-		if(paral_dir[mu] && paral_dir[nu])
+		if(is_dir_parallel[mu] && is_dir_parallel[nu])
 		  nrequest_tot+=16;
 	    
 	    MPI_Request request[nrequest_tot];
@@ -147,7 +147,7 @@ namespace nissa
 		  for(int mu=0;mu<NDIM;mu++)
 		    for(int vnu=0;vnu<2;vnu++)
 		      for(int nu=mu+1;nu<NDIM;nu++)
-			if(paral_dir[mu] && paral_dir[nu])
+			if(is_dir_parallel[mu] && is_dir_parallel[nu])
 			  {
 			    int iedge=edge_numb[mu][nu];
 			    

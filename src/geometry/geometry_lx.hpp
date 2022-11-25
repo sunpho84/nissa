@@ -62,7 +62,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX int *glblxOfBordlx;
   EXTERN_GEOMETRY_LX int *loclxOfBordlx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfBordlx;
-  CUDA_MANAGED EXTERN_GEOMETRY_LX int *bordlxOfEdgelx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfEdgelx;
   EXTERN_GEOMETRY_LX int *glblxOfEdgelx;
   EXTERN_GEOMETRY_LX int *loclxOfBulklx;
   EXTERN_GEOMETRY_LX int *loclxOfSurflx;
@@ -83,14 +83,15 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t nrank_dir;
   EXTERN_GEOMETRY_LX int grid_inited;
   EXTERN_GEOMETRY_LX int nparal_dir;
-  EXTERN_GEOMETRY_LX coords_t paral_dir;
+  EXTERN_GEOMETRY_LX coords_t is_dir_parallel;
   //size of the border and edges
   EXTERN_GEOMETRY_LX int bord_vol,bord_volh;
   EXTERN_GEOMETRY_LX int edge_vol,edge_volh;
   //size along various dir
   constexpr int nEdges=NDIM*(NDIM-1)/2;
   EXTERN_GEOMETRY_LX int bord_dir_vol[NDIM],bord_offset[NDIM];
-  EXTERN_GEOMETRY_LX int edge_dir_vol[nEdges],edge_offset[nEdges],edge_dirs[nEdges][2];
+  EXTERN_GEOMETRY_LX int edge_dir_vol[nEdges],edge_offset[nEdges],edge_dirs[nEdges][2],isEdgeParallel[nEdges];
+  EXTERN_GEOMETRY_LX int rank_edge_neigh[2][2][nEdges];
   CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   //mapping of ILDG data
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t scidac_mapping;

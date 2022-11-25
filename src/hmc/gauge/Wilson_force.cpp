@@ -1,7 +1,8 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
+#include "base/field.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -37,12 +38,14 @@ namespace nissa
   }
   
   //lx version
-  void Wilson_force_lx_conf(quad_su3* F,quad_su3* conf,double beta)
+  void Wilson_force_lx_conf(LxField<quad_su3>& F,
+			    const LxField<quad_su3>& conf,
+			    const double beta)
   {
     
     verbosity_lv1_master_printf("Computing Wilson force (lx)\n");
     
-    double r=-beta/NCOL;
+    const double r=-beta/NCOL;
     compute_summed_squared_staples_lx_conf(F,conf);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)

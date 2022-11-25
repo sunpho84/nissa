@@ -22,7 +22,8 @@
 namespace nissa
 {
   //compute the topodynamical potential
-  double compute_topodynamical_potential_der(topotential_pars_t *pars,quad_su3 *conf)
+  double compute_topodynamical_potential_der(const topotential_pars_t *pars,
+					     const LxField<quad_su3>& conf)
   {
     double Q;
     total_topological_charge_lx_conf(&Q,conf);
@@ -31,9 +32,10 @@ namespace nissa
   }
   
   //common part, for staples and potential if needed
-  void compute_topological_force_lx_conf_internal(quad_su3 *F,quad_su3 *conf,topotential_pars_t *pars)
+  void compute_topological_force_lx_conf_internal(LxField<quad_su3>& F,
+						  const LxField<quad_su3>& conf,
+						  const topotential_pars_t *pars)
   {
-    
     //compute the staples
     topological_staples(F,conf);
     
@@ -57,7 +59,9 @@ namespace nissa
   }
   
   //compute the topological force
-  void compute_topological_force_lx_conf(quad_su3* F,quad_su3* conf,topotential_pars_t* pars)
+  void compute_topological_force_lx_conf(LxField<quad_su3>& F,
+					 LxField<quad_su3>& conf,
+					 const topotential_pars_t* pars)
   {
     verbosity_lv1_master_printf("Computing topological force\n");
     
@@ -66,20 +70,20 @@ namespace nissa
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]
-	quad_su3 **sme_conf;
-        stout_smear_conf_stack_allocate(&sme_conf,conf,pars->stout_pars.nlevels);
+	std::vector<LxField<quad_su3>*> sme_conf;
+        stout_smear_conf_stack_allocate(sme_conf,conf,pars->stout_pars.nlevels);
         
         //smear iteratively retaining all the stack
         stout_smear_whole_stack(sme_conf,conf,&(pars->stout_pars));
         
         //compute the force in terms of the most smeared conf
-	compute_topological_force_lx_conf_internal(F,sme_conf[pars->stout_pars.nlevels],pars);
+	compute_topological_force_lx_conf_internal(F,*sme_conf[pars->stout_pars.nlevels],pars);
 	
         //remap the force backward
         stouted_force_remap(F,sme_conf,&(pars->stout_pars));
 	
 	//now free the stack of confs
-        stout_smear_conf_stack_free(&sme_conf,pars->stout_pars.nlevels);
+        stout_smear_conf_stack_free(sme_conf);
       }
     
     //take TA

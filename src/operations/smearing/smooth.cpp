@@ -9,21 +9,29 @@
 namespace nissa
 {
   //smooth a configuration for one step
-  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs,int staple_min_dir)
+  void smooth_lx_conf_one_step(LxField<quad_su3>& smoothed_conf,
+			       const smooth_pars_t &sp,
+			       const which_dir_t& dirs,
+			       const int& staple_min_dir)
   {
-    verbosity_lv3_master_printf("smoothing one step\n");
-    switch(sp.method)
-      {
-      case smooth_pars_t::COOLING: cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));break;
-      case smooth_pars_t::STOUT: stout_smear_single_level(smoothed_conf,smoothed_conf,sp.stout.rho,dirs);;break;
-      case smooth_pars_t::WFLOW: Wflow_lx_conf(smoothed_conf,sp.Wflow.dt,dirs);break;
-      case smooth_pars_t::HYP: hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);break;
-      case smooth_pars_t::APE: ape_smear_conf(smoothed_conf,smoothed_conf,sp.ape.alpha,1,dirs,staple_min_dir);break;
-      }
+    crash("reimplement"); //reimplement
+    // verbosity_lv3_master_printf("smoothing one step\n");
+    // switch(sp.method)
+    //   {
+    //   case smooth_pars_t::COOLING: cool_lx_conf(smoothed_conf,get_sweeper(sp.cool.gauge_action));break;
+    //   case smooth_pars_t::STOUT: stout_smear_single_level(smoothed_conf,smoothed_conf,sp.stout.rho,dirs);;break;
+    //   case smooth_pars_t::WFLOW: Wflow_lx_conf(smoothed_conf,sp.Wflow.dt,dirs);break;
+    //   case smooth_pars_t::HYP: hyp_smear_conf(smoothed_conf,smoothed_conf,sp.hyp.alpha0,sp.hyp.alpha1,sp.hyp.alpha2,dirs);break;
+    //   case smooth_pars_t::APE: ape_smear_conf(smoothed_conf,smoothed_conf,sp.ape.alpha,1,dirs,staple_min_dir);break;
+    //   }
   }
   
-  //smooth a configuration until measure is due
-  bool smooth_lx_conf_until_next_meas(quad_su3 *smoothed_conf,smooth_pars_t &sp,int &nsmooth,const which_dir_t& dirs,int staple_min_dir)
+  /// Smooth a configuration until measure is due
+  bool smooth_lx_conf_until_next_meas(LxField<quad_su3>& smoothed_conf,
+				      const smooth_pars_t &sp,
+				      int &nsmooth,
+				      const which_dir_t& dirs,
+				      const int& staple_min_dir)
   {
     bool diff=false;
     for(int mu=0;mu<NDIM;mu++)
