@@ -38,8 +38,14 @@ namespace nissa
     printf("\n");
   }
   
-  CUDA_HOST_AND_DEVICE inline void spin_put_to_zero(spin s)
-  {for(int i=0;i<NDIRAC;i++) complex_put_to_zero(s[i]);}
+  /// s=0
+  template <typename S>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void spin_put_to_zero(S&& s)
+  {
+    for(int i=0;i<NDIRAC;i++)
+      complex_put_to_zero(s[i]);
+  }
   
   CUDA_HOST_AND_DEVICE inline void spin_copy(spin out,const spin in)
   {for(int i=0;i<NDIRAC;i++) complex_copy(out[i],in[i]);}

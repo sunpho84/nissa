@@ -13,6 +13,7 @@
 #include <base/vectors.hpp>
 #include <communicate/communicate.hpp>
 #include <geometry/geometry_lx.hpp>
+#include <linalgs/reduce.hpp>
 #include <routines/ios.hpp>
 
 namespace nissa
@@ -40,6 +41,8 @@ namespace nissa
 	    MPI_Isend(send_buf+sendOffset,messageLength,MPI_CHAR,rank_neigh[!bf][mu],
 		      messageTag,cart_comm,&requests[nRequests++]);
 	  }
+    
+    return requests;
   }
   
   /// Wait for communications to finish
@@ -86,6 +89,12 @@ namespace nissa
   template <SitesCoverage sitesCoverage>
   struct FieldSizes
   {
+    /// Assert that the coverage is definite
+    static void assertHasDefinedCoverage()
+    {
+      static_assert(sitesCoverage==FULL_SPACE or sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES,"Trying to probe some feature of a field with unknwon coverage. If you are accessing an EvnOrOddField subfield, do it without subscribing them, or cast to the specific subspace");
+    }
+    
     /// Number of sites covered by the field
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static constexpr int& nSites()
@@ -134,11 +143,52 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static auto surfSiteOfHaloSite(const int& iHalo)
     {
+      assertHasDefinedCoverage();
+      
       if constexpr(sitesCoverage==FULL_SPACE)
 	return surflxOfBordlx[iHalo];
       else
 	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
 	  return surfeo_of_bordeo[sitesCoverage][iHalo];
+    }
+    
+#define PROVIDE_NEIGH(UD)						\
+									\
+    /* Neighbor in the UD orientation */				\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION				\
+    static auto locNeigh ## UD(const int& site,				\
+			       const int& mu)				\
+    {									\
+      assertHasDefinedCoverage();					\
+      									\
+      if constexpr(sitesCoverage==FULL_SPACE)				\
+	return loclxNeigh ## UD[site][mu];				\
+      else								\
+	if constexpr(sitesCoverage==EVEN_SITES or			\
+		     sitesCoverage==ODD_SITES)				\
+	  return loceo_neigh ## UD[sitesCoverage][site][mu];		\
+    }
+    
+    PROVIDE_NEIGH(dw);
+    
+    PROVIDE_NEIGH(up);
+    
+#undef PROVIDE_NEIGH
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Global coordinates
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static auto glbCoord(const int& site,
+			 const int& mu)
+    {
+      assertHasDefinedCoverage();
+      
+      if constexpr(sitesCoverage==FULL_SPACE)
+	return glbCoordOfLoclx[site][mu];
+      else
+	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
+	  return glbCoordOfLoclx[loclx_of_loceo[sitesCoverage][site]][mu];
     }
   };
   
@@ -207,6 +257,143 @@ namespace nissa
       else
 	return site+externalSize*internalDeg;
     }
+    
+    /// Exec the operation f on each site and degree of freedom
+    template <typename F>
+    Field& forEachSiteDeg(const F& f)
+    {
+      NISSA_PARALLEL_LOOP(site,0,this->nSites())
+	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	  f((*this)(site,internalDeg),site,internalDeg);
+      NISSA_PARALLEL_LOOP_END;
+      
+      invalidateHalo();
+      
+      return *this;
+    }
+    
+#define PROVIDE_SELFOP(OP)						\
+    Field& operator OP ## =(const Field& oth)				\
+    {									\
+      NISSA_PARALLEL_LOOP(site,0,this->nSites())			\
+	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)	\
+	  (*this)(site,internalDeg) OP ## =oth(site,internalDeg);	\
+      NISSA_PARALLEL_LOOP_END;						\
+									\
+      invalidateHalo();							\
+      									\
+      return *this;							\
+    }
+    
+    PROVIDE_SELFOP(+);
+    PROVIDE_SELFOP(-);
+    
+#undef PROVIDE_SELFOP
+    
+    /// Reset to 0
+    void reset()
+    {
+      NISSA_PARALLEL_LOOP(site,0,this->nSites())
+	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	  (*this)(site,internalDeg)=0.0;
+      NISSA_PARALLEL_LOOP_END;
+      
+      invalidateHalo();
+    }
+    
+    /// Squared norm
+    double norm2() const
+    {
+      Field<Fund,SC> buf("buf");
+      
+      NISSA_PARALLEL_LOOP(site,0,this->nSites())
+	{
+	  double s2=0.0;
+	  for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	    s2+=sqr((*this)(site,internalDeg));
+	  buf[site]=s2;
+	}
+      NISSA_PARALLEL_LOOP_END;
+      
+      double res;
+      glb_reduce(&res,buf,this->nSites());
+      
+      return res;
+    }
+    
+    /// (*this,out)
+    void scalarProdWith(complex& out,
+			const Field& oth) const
+    {
+      Field<complex,SC> buf("buf");
+      
+      using NT=Fund[nInternalDegs][2];
+      const auto& l=castComponents<NT>();
+      const auto& r=oth.castComponents<NT>();
+      
+      NISSA_PARALLEL_LOOP(site,0,this->nSites())
+	{
+	  complex c;
+	  complex_put_to_zero(c);
+	  for(int internalDeg=0;internalDeg<nInternalDegs/2;internalDeg++)
+	    complex_summ_the_conj1_prod(c,l[site][internalDeg],oth[site][internalDeg]);
+	  complex_copy(buf[site],c);
+	}
+      NISSA_PARALLEL_LOOP_END;
+      
+      complex res;
+      glb_reduce(&res,buf,this->nSites());
+    }
+    
+    /// Re((*this,out))
+    double realPartOfScalarProdWith(const Field& oth) const
+    {
+      Field<double,SC> buf("buf");
+      
+      NISSA_PARALLEL_LOOP(site,0,this->nSites())
+	{
+	  double r=0;
+	  for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	    r+=(*this)(site,internalDeg)*oth(site,internalDeg);
+	  buf[site]=r;
+	}
+      NISSA_PARALLEL_LOOP_END;
+      
+      double res;
+      glb_reduce(&res,buf,this->nSites());
+      
+      return res;
+    }
+
+#define PROVIDE_CASTS(CONST)						\
+    /* Cast to a different sitesCoverage */				\
+    template <SitesCoverage NSC,					\
+	      bool Force=false>						\
+    CONST Field<T,NSC,FL>& castSitesCoverage() CONST			\
+    {									\
+      if constexpr(not (Force or SC==EVEN_OR_ODD_SITES))		\
+	static_assert(NSC==EVEN_SITES or NSC==ODD_SITES,		\
+		      "incompatible sitesCoverage! Force the change if needed"); \
+									\
+      return *(CONST Field<T,NSC,FL>*)this;				\
+    }									\
+									\
+    /* Cast to a different comps */					\
+    template <typename NT,						\
+	      bool Force=false>						\
+    CONST Field<NT,SC,FL>& castComponents() CONST			\
+    {									\
+      static_assert(Force or sizeof(T)==sizeof(NT),			\
+		    "incompatible components! Force the change if needed"); \
+      									\
+      return *(CONST Field<NT,SC,FL>*)this;				\
+    }
+    
+    PROVIDE_CASTS(const);
+    
+    PROVIDE_CASTS(/* not const */);
+    
+#undef PROVIDE_CASTS
     
     /// Constructor
     Field(const char *name,
@@ -310,6 +497,8 @@ namespace nissa
     /// Fills the halo with the received buffer
     void fillHaloWithReceivingBuf() const
     {
+      assertHasHalo();
+      
       NISSA_PARALLEL_LOOP(iHalo,0,bord_vol/divCoeff)
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
 	  data[index(bord_vol/divCoeff+iHalo,internalDeg)]=
@@ -394,6 +583,20 @@ namespace nissa
       }
     }
     
+    /// Crash if the halo is not allocated
+    void assertHasHalo() const
+    {
+      if(not (haloEdgesPresence>=WITH_HALO))
+	crash("needs halo allocated!");
+    }
+    
+    /// Crash if the edges are not allocated
+    void assertHasEdges() const
+    {
+      if(not (haloEdgesPresence>=WITH_HALO_EDGES))
+	crash("needs edges allocated!");
+    }
+    
     /// Communicate the halo
     void updateHalo() const
     {
@@ -405,6 +608,70 @@ namespace nissa
 	    startCommunicatingHalo();
 	  finishCommunicatingHalo(requests);
       }
+    }
+    
+    /// Communicate the edges
+    void updateEdges() const
+    {
+      const int min_size=nbytes_per_site*(edge_vol+bord_vol+locVol);
+      
+      assertHasEdges();
+      updateHalo();
+      
+      if(not edgesAreValid)
+	{
+	  int nrequest=0;
+	  MPI_Request request[NDIM*(NDIM-1)*4];
+	  MPI_Status status[NDIM*(NDIM-1)*4];
+	  
+	  int send,rece;
+	  int imessage=0;
+	  
+	  coords_t x;
+	  memset(&x,0,sizeof(coords_t));
+	  
+	  for(int idir=0;idir<NDIM;idir++)
+	    for(int jdir=idir+1;jdir<NDIM;jdir++)
+	      if(paral_dir[idir] and paral_dir[jdir])
+		{
+		  int iedge=edge_numb[idir][jdir];
+		  int pos_edge_offset;
+		  
+		  //take the starting point of the border
+		  x[jdir]=locSize[jdir]-1;
+		  pos_edge_offset=bordlx_of_coord(x,idir);
+		  x[jdir]=0;
+		  
+		  //Send the i-j- internal edge to the j- rank as i-j+ external edge
+		  send=(locVol+bord_offset[idir])*nbytes_per_site;
+		  rece=(locVol+bord_vol+edge_offset[iedge]+edge_vol/4)*nbytes_per_site;
+		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
+		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
+		  
+		  //Send the i-j+ internal edge to the j+ rank as i-j- external edge
+		  send=(locVol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
+		  rece=(locVol+bord_vol+edge_offset[iedge])*nbytes_per_site;
+		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
+		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
+		  
+		  //Send the i+j- internal edge to the j- rank as i+j+ external edge
+		  send=(locVol+bord_offset[idir]+bord_vol/2)*nbytes_per_site;
+		  rece=(locVol+bord_vol+edge_offset[iedge]+3*edge_vol/4)*nbytes_per_site;
+		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
+		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
+		  
+		  //Send the i+j+ internal edge to the j+ rank as i+j- external edge
+		  send=(locVol+bord_offset[idir]+bord_vol/2+pos_edge_offset)*nbytes_per_site;
+		  rece=(locVol+bord_vol+edge_offset[iedge]+edge_vol/2)*nbytes_per_site;
+		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
+		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
+		  imessage++;
+		}
+	  
+	  if(nrequest>0) MPI_Waitall(nrequest,request,status);
+	}
+      
+      set_edges_valid(data);
     }
     
     /// Compare
@@ -425,7 +692,7 @@ namespace nissa
     INLINE_FUNCTION
     Field& operator=(const Field& oth)
     {
-      if(*this!=oth)
+      if(this!=&oth)
 	{
 	  NISSA_PARALLEL_LOOP(i,0,this->nSites()*nInternalDegs)
 	    data[i]=oth.data[i];
@@ -543,9 +810,10 @@ namespace nissa
     
     /// Constructor
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    EoField(const char* name) :
-      evenPart(name),
-      oddPart(name)
+    EoField(const char* name,
+	    const HaloEdgesPresence& haloEdgesPresence) :
+      evenPart(name,haloEdgesPresence),
+      oddPart(name,haloEdgesPresence)
     {
     }
     

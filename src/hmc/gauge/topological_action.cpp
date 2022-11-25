@@ -33,14 +33,14 @@ namespace nissa
   }
   
   //Compute the topological action
-  double topotential_action(const EoField<quad_su3,WITH_HALO>& conf,
+  double topotential_action(const EoField<quad_su3>& conf,
 			    const topotential_pars_t &pars)
   {
     //compute topocharge
     double Q;
     if(pars.stout_pars.nlevels)
       {
-	EoField<quad_su3,WITH_HALO> smeConf("smeConf");
+	EoField<quad_su3> smeConf("smeConf",WITH_HALO);
         stout_smear(smeConf,conf,pars.stout_pars);
 	total_topological_charge_eo_conf(&Q,smeConf);
       }

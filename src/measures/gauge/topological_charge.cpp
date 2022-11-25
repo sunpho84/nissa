@@ -47,7 +47,11 @@ namespace nissa
     in order to have the anti-symmetric part, use
     the routine inside "clover_term"
   */
-  CUDA_HOST_AND_DEVICE void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X)
+  template <typename L,
+	    typename U>
+  CUDA_HOST_AND_DEVICE void four_leaves_point(L&& leaves_summ,
+					      const U& conf,
+					      const int& X)
   {
     //if(!check_edges_valid(conf[0])) crash("communicate edges externally");
     
@@ -81,7 +85,7 @@ namespace nissa
 	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);             //    |  2  |
 	    unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);                 //    |     |
 	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);          //    D-->--X
-            
+	    
 	    //Leaf 3
 	    unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);    //   D--<--X
 	    unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);                  //   |  3  |
@@ -98,40 +102,46 @@ namespace nissa
 	  }
       }
   }
-  void four_leaves(as2t_su3* leaves_summ,quad_su3* conf)
+  
+  /// Computes the four leaves on all sites
+  void four_leaves(LxField<as2t_su3>& leavesSumm,
+		   const LxField<quad_su3>& conf)
   {
-    communicate_lx_quad_su3_edges(conf);
+    conf.updateEdges();
+    
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      four_leaves_point(leaves_summ[ivol],conf,ivol);
+      four_leaves_point(leavesSumm[ivol],conf,ivol);
     NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(leaves_summ);
+    
+    leavesSumm.invalidateHalo();
   }
   
-  //measure the topological charge site by site
-  void local_topological_charge(double* charge,quad_su3* conf)
+  /// Measure the topological charge site by site
+  void local_topological_charge(LxField<double>& charge,
+				const LxField<quad_su3>& conf)
   {
-    double norm_fact=1/(128*M_PI*M_PI);
+    const double norm_fact=1/(128*M_PI*M_PI);
     
-    as2t_su3 *leaves=nissa_malloc("leaves",locVol,as2t_su3);
+    LxField<as2t_su3> leaves("leaves");
     
-    vector_reset(charge);
+    charge.reset();
     
     //compute the clover-shape paths
     four_leaves(leaves,conf);
     
     //list the three combinations of plans
-    int plan_id[3][2]={{0,5},{1,4},{2,3}};
+    constexpr int plan_id[3][2]={{0,5},{1,4},{2,3}};
     
     //loop on the three different combinations of plans
     for(int iperm=0;iperm<3;iperm++)
       {
 	//take the index of the two plans
-	int ip0=plan_id[iperm][0];
-	int ip1=plan_id[iperm][1];
+	const int ip0=plan_id[iperm][0];
+	const int ip1=plan_id[iperm][1];
 	
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	  {
-	    const int sign[3]={1,-1,1};
+	    constexpr int sign[3]={1,-1,1};
 	    
 	    //products
 	    su3 clock,aclock;
@@ -149,30 +159,27 @@ namespace nissa
 	NISSA_PARALLEL_LOOP_END;
       }
     
-    set_borders_invalid(charge);
-    
-    nissa_free(leaves);
+    charge.invalidateHalo();
   }
   
-  //total topological charge
-  void total_topological_charge_lx_conf(double* tot_charge,quad_su3* conf)
+  /// total topological charge
+  void total_topological_charge_lx_conf(double* totCharge,
+					const LxField<quad_su3>& conf)
   {
-    double *charge=nissa_malloc("charge",locVol,double);
+    LxField<double> charge("charge");
     local_topological_charge(charge,conf);
-    glb_reduce(tot_charge,charge,locVol);
-    nissa_free(charge);
+    glb_reduce(totCharge,charge,locVol);
   }
   
-  //wrapper for eos case
-  void total_topological_charge_eo_conf(double* tot_charge,eo_ptr<quad_su3> eo_conf)
+  /// Wrapper for eos case
+  void total_topological_charge_eo_conf(double* totCharge,
+					const EoField<quad_su3>& eoConf)
   {
     //convert to lx
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol+edge_vol,quad_su3);
-    paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
+    LxField<quad_su3> lxConf("lx_conf",WITH_HALO);
+    paste_eo_parts_into_lx_vector(lxConf,eoConf);
     
-    total_topological_charge_lx_conf(tot_charge,lx_conf);
-    
-    nissa_free(lx_conf);
+    total_topological_charge_lx_conf(totCharge,lxConf);
   }
   
   //compute the correlator between topological charge
@@ -380,17 +387,19 @@ namespace nissa
   }
   
   //compute the topological staples site by site
-  void topological_staples(quad_su3* staples,quad_su3* conf)
+  void topological_staples(LxField<quad_su3>& staples,
+			   const LxField<quad_su3>& conf)
   {
-    as2t_su3 *leaves=nissa_malloc("leaves",locVol+bord_vol+edge_vol,as2t_su3);
+    LxField<as2t_su3> leaves("leaves",WITH_HALO_EDGES);
     
     //compute the clover-shape paths
     four_leaves(leaves,conf);
+    
     //takes the anti-symmetric part (apart from a factor 2), in an horrendous way
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int imunu=0;imunu<6;imunu++)
 	{
-	  color *u=leaves[ivol][imunu];
+	  auto u=leaves[ivol][imunu];
 	  for(int ic1=0;ic1<NCOL;ic1++)
 	    for(int ic2=ic1;ic2<NCOL;ic2++)
 	      { //do not look here please, it is better to put a carpet on this uglyness
@@ -399,12 +408,12 @@ namespace nissa
 	      }
 	}
     NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
-    set_borders_invalid(leaves);
-    communicate_lx_as2t_su3_edges(leaves);
+    
+    leaves.invalidateHalo();
+    leaves.updateEdges();
     
     //loop on the three different combinations of plans
-    vector_reset(staples);
+    staples.reset();
     NISSA_PARALLEL_LOOP(A,0,locVol)
       {
 	//list the plan and coefficients for each staples
@@ -464,9 +473,7 @@ namespace nissa
       }
     NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(staples);
-    
-    nissa_free(leaves);
+    staples.invalidateHalo();
   }
   
   //store the topological charge if needed

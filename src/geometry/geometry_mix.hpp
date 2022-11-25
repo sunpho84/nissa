@@ -29,8 +29,8 @@ namespace nissa
     forBothParities([&outLx,&inEo](const auto& par)
     {
       NISSA_PARALLEL_LOOP(eo,0,locVolh)
-      for(int internalDeg=0;internalDeg<inEo.nInternalDegs;internalDeg++)
-	outLx(loclx_of_loceo[par][eo],internalDeg)=inEo[par](eo,internalDeg);
+	for(int internalDeg=0;internalDeg<inEo[par].nInternalDegs;internalDeg++)
+	  outLx(loclx_of_loceo[par][eo],internalDeg)=inEo[par](eo,internalDeg);
       NISSA_PARALLEL_LOOP_END;
     });
     

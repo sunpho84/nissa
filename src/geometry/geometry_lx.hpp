@@ -62,6 +62,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX int *glblxOfBordlx;
   EXTERN_GEOMETRY_LX int *loclxOfBordlx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfBordlx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *bordlxOfEdgelx;
   EXTERN_GEOMETRY_LX int *glblxOfEdgelx;
   EXTERN_GEOMETRY_LX int *loclxOfBulklx;
   EXTERN_GEOMETRY_LX int *loclxOfSurflx;
@@ -87,8 +88,9 @@ namespace nissa
   EXTERN_GEOMETRY_LX int bord_vol,bord_volh;
   EXTERN_GEOMETRY_LX int edge_vol,edge_volh;
   //size along various dir
+  constexpr int nEdges=NDIM*(NDIM-1)/2;
   EXTERN_GEOMETRY_LX int bord_dir_vol[NDIM],bord_offset[NDIM];
-  EXTERN_GEOMETRY_LX int edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
+  EXTERN_GEOMETRY_LX int edge_dir_vol[nEdges],edge_offset[nEdges],edge_dirs[nEdges][2];
   CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   //mapping of ILDG data
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t scidac_mapping;

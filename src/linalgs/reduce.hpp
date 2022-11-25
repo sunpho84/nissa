@@ -154,6 +154,7 @@ namespace nissa
 		  const int nloc_slices=1,
 		  const int loc_offset=0)
   {
+    /// to be improved, catching fields
     T loc_res[nslices];
     memset(loc_res,0,sizeof(T)*nslices);
     

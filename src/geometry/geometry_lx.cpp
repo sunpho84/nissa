@@ -275,11 +275,60 @@ namespace nissa
   //return the border site adiacent at surface
   int bordlx_of_surflx(const int& loclx,const int& mu)
   {
-    if(!paral_dir[mu]) return -1;
-    if(locSize[mu]<2) crash("not working if one dir is smaller than 2");
+    if(not paral_dir[mu]) return -1;
+    if(locSize[mu]<2)
+      crash("not working if one dir is smaller than 2");
     
-    if(locCoordOfLoclx[loclx][mu]==0) return loclxNeighdw[loclx][mu]-locVol;
-    if(locCoordOfLoclx[loclx][mu]==locSize[mu]-1) return loclxNeighup[loclx][mu]-locVol;
+    if(locCoordOfLoclx[loclx][mu]==0)
+      return loclxNeighdw[loclx][mu]-locVol;
+    
+    if(locCoordOfLoclx[loclx][mu]==locSize[mu]-1)
+      return loclxNeighup[loclx][mu]-locVol;
+    
+    return -1;
+  }
+  
+  //return the edge site adiacent at a border
+  int edgelx_of_surflx(const int& loclx,const int& iEdge)
+  {
+    const auto [mu,nu]=edge_dirs[iEdge];
+    
+    if(not (paral_dir[mu] and paral_dir[nu]))
+      return -1;
+    
+    if(locSize[mu]<2 or locSize[nu]<2)
+      crash("not working if one dir is smaller than 2");
+    
+    const int mc=
+      locCoordOfLoclx[loclx][mu];
+    
+    auto second=
+      [nu=nu,&loclx,mu=mu](const auto& l)
+      {
+	const int m=l[loclx][mu];
+	
+	const int nc=locCoordOfLoclx[loclx][nu];
+	
+	auto third=
+	  [&m,&nu](const auto& l)
+	  {
+	    return l[m][nu]-locVol-bord_vol;
+	  };
+	
+	if(nc==0)
+	  return third(loclxNeighdw);
+	
+	if(nc==locSize[nu]-1)
+	  return third(loclxNeighup);
+	
+	return -1;
+      };
+    
+    if(mc==0)
+      return second(loclxNeighdw);
+    
+    if(mc==locSize[mu]-1)
+      return second(loclxNeighup);
     
     return -1;
   }
@@ -366,14 +415,30 @@ namespace nissa
   //finds how to fill the borders with opposite surface (up b->dw s)
   void find_surf_of_bord()
   {
-    NISSA_LOC_VOL_LOOP(loclx)
+    NISSA_PARALLEL_LOOP(loclx,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	{
-	  int bordlx=bordlx_of_surflx(loclx,mu);
+	  const int bordlx=bordlx_of_surflx(loclx,mu);
 	  if(bordlx!=-1) surflxOfBordlx[bordlx]=loclx;
 	}
+    NISSA_PARALLEL_LOOP_END;
   }
   
+  //finds how to fill the borders with opposite surface (up b->dw s)
+  void find_surf_of_edge()
+  {
+    NISSA_PARALLEL_LOOP(loclx,0,locVol)
+      for(int iedge=0;iedge<nEdges;iedge++)
+	{
+	  const int bordlx=bordlx_of_surflx(loclx,mu);
+	  if(bordlx!=-1) surflxOfBordlx[bordlx]=loclx;
+	}
+    NISSA_PARALLEL_LOOP_END;
+  }
+  
+	  
+	  const int edgelx=edgelx_of_surflx(loclx,mu);
+	  if(edgelx!=-1) bordlxOfEdgelx[edgelx]=loclx;
   //index all the sites on bulk
   void find_bulk_sites()
   {
@@ -449,12 +514,13 @@ namespace nissa
     
     //edges
     glblxOfEdgelx=nissa_malloc("glblx_of_edgelx",edge_vol,int);
+    bordlxOfEdgelx=nissa_malloc("bordlx_of_edgelx",edge_vol,int);
     
     //label the sites and neighbours
     label_all_sites();
     find_neighbouring_sites();
     
-    //matches surface and opposite border
+    //matches surface and opposite border and edges
     find_surf_of_bord();
     
     //find bulk sites
@@ -528,6 +594,7 @@ namespace nissa
     nissa_free(loclxOfBordlx);
     nissa_free(surflxOfBordlx);
     nissa_free(glblxOfEdgelx);
+    nissa_free(bordlxOfEdgelx);
     
     nissa_free(loclxOfBulklx);
     nissa_free(loclxOfSurflx);

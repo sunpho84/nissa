@@ -168,8 +168,19 @@ namespace nissa
     master_printf("\n");
   }
   
-  //summ two colors
-  CUDA_HOST_AND_DEVICE inline void color_summ(color a,const color b,const color c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ(a[ic],b[ic],c[ic]);}
+  /// a=b+c
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void color_summ(A&& a,
+		  const B& b,
+		  const C& c)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      complex_summ(a[ic],b[ic],c[ic]);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void color_isumm(color a,const color b,const color c) {for(size_t ic=0;ic<NCOL;ic++) complex_isumm(a[ic],b[ic],c[ic]);}
   CUDA_HOST_AND_DEVICE inline void color_isubt(color a,const color b,const color c) {for(size_t ic=0;ic<NCOL;ic++) complex_isubt(a[ic],b[ic],c[ic]);}
   
@@ -488,15 +499,19 @@ namespace nissa
     su3_copy(out,tmp);
   }
   
-  //summ two su3 matrixes
-  CUDA_HOST_AND_DEVICE inline void su3_summ(su3 a,const su3 b,const su3 c)
+  /// a=b+c
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_summ(A&& a,
+		const B& b,
+		const C& c)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)=SU3_ECAST(b)+SU3_ECAST(c);
-#else
-    for(size_t ic=0;ic<NCOL;ic++) color_summ(a[ic],b[ic],c[ic]);
-#endif
+    for(int ic=0;ic<NCOL;ic++)
+      color_summ(a[ic],b[ic],c[ic]);
   }
+  
   CUDA_HOST_AND_DEVICE inline void unsafe_su3_summ_su3_dag(su3 a,const su3 b,const su3 c)
   {
 #ifdef USE_EIGEN_EVERYWHERE
@@ -508,7 +523,17 @@ namespace nissa
 #endif
   }
   CUDA_HOST_AND_DEVICE inline void su3_summassign_su3_dag(su3 a,const su3 b) {unsafe_su3_summ_su3_dag(a,a,b);}
-  CUDA_HOST_AND_DEVICE inline void su3_summassign(su3 a,const su3 b){su3_summ(a,a,b);}
+  
+  /// a+=b
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_summassign(A&& a,
+		      const B& b)
+  {
+    su3_summ(a,a,b);
+  }
+  
   inline void su3_summ_real(su3 a,const su3 b,const double c)
   {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) a[i][i][0]=b[i][i][0]+c;}
   CUDA_HOST_AND_DEVICE inline void su3_subt(su3 a,const su3 b,const su3 c)
@@ -519,7 +544,17 @@ namespace nissa
     for(size_t ic=0;ic<NCOL;ic++) color_subt(a[ic],b[ic],c[ic]);
 #endif
   }
-  CUDA_HOST_AND_DEVICE inline void su3_subtassign(su3 a,const su3 b) {su3_subt(a,a,b);}
+  
+  /// a+=b
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_subtassign(A&& a,
+		      const B& b)
+  {
+    su3_subt(a,a,b);
+  }
+  
   inline void su3_subt_complex(su3 a,const su3 b,const complex c) {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) complex_subt(a[i][i],b[i][i],c);}
   CUDA_HOST_AND_DEVICE inline void unsafe_su3_subt_su3_dag(su3 a,const su3 b,const su3 c)
   {
@@ -566,55 +601,71 @@ namespace nissa
   }
   
   inline void su3_prodassign_su3(su3 a,const su3 b) {safe_su3_prod_su3(a,a,b);}
-  CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_su3(su3 a,const su3 b,const su3 c)
+  
+  /// a+=b*c
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_summ_the_prod_su3(A&& a,
+			     const B& b,
+			     const C& c)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)+=SU3_ECAST(b)*SU3_ECAST(c);
-#else
-    for(size_t ir_out=0;ir_out<NCOL;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
-	for(size_t itemp=0;itemp<NCOL;itemp++)
+    for(int ir_out=0;ir_out<NCOL;ir_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
+	for(int itemp=0;itemp<NCOL;itemp++)
 	  complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
-#endif
-  }
-  CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_su3_dag(su3 a,const su3 b,const su3 c)
-  {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)+=SU3_ECAST(b)*SU3_ECAST(c).adjoint();
-#else
-    for(size_t ir_out=0;ir_out<NCOL;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
-	for(size_t itemp=0;itemp<NCOL;itemp++)
-	  complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][itemp],c[ic_out][itemp]);
-#endif
-  }
-  CUDA_HOST_AND_DEVICE inline void su3_summ_the_dag_prod_su3(su3 a,const su3 b,const su3 c)
-  {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)+=SU3_ECAST(b).adjoint()*SU3_ECAST(c);
-#else
-    for(size_t ir_out=0;ir_out<NCOL;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
-	for(size_t itemp=0;itemp<NCOL;itemp++)
-	  complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
-#endif
   }
   
-  //Product of two su3 matrixes
-  CUDA_HOST_AND_DEVICE inline void unsafe_su3_dag_prod_su3(su3 a,const su3 b,const su3 c,const size_t nr_max=NCOL)
+  /// a+=b*c^+
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_summ_the_prod_su3_dag(A&& a,
+				 const B& b,
+				 const C& c)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)=SU3_ECAST(b).adjoint()*SU3_ECAST(c);
-#else
-    for(size_t ir_out=0;ir_out<nr_max;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
+    for(int ir_out=0;ir_out<NCOL;ir_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
+	for(int itemp=0;itemp<NCOL;itemp++)
+	  complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][itemp],c[ic_out][itemp]);
+  }
+  
+  /// a+=b^*c
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_summ_the_dag_prod_su3(A&& a,
+				 const B& b,
+				 const C& c)
+  {
+    for(int ir_out=0;ir_out<NCOL;ir_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
+	for(int itemp=0;itemp<NCOL;itemp++)
+	  complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
+  }
+  
+  /// Product of two su3 matrixes
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_dag_prod_su3(A&& a,
+			       const B& b,
+			       const C& c,
+			       const int nr_max=NCOL)
+  {
+    for(int ir_out=0;ir_out<nr_max;ir_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
 	{
 	  unsafe_complex_conj1_prod(a[ir_out][ic_out],b[0][ir_out],c[0][ic_out]);
-	  for(size_t itemp=1;itemp<NCOL;itemp++)
+	  for(int itemp=1;itemp<NCOL;itemp++)
 	    complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
 	}
-#endif
   }
+  
   inline void safe_su3_dag_prod_su3(su3 a,const su3 b,const su3 c) {su3 d;unsafe_su3_dag_prod_su3(d,b,c);su3_copy(a,d);}
   inline void su3_dag_summ_the_prod_su3(su3 a,const su3 b,const su3 c)
   {
@@ -628,20 +679,25 @@ namespace nissa
 #endif
   }
   
-  //Product of two su3 matrixes
-  CUDA_HOST_AND_DEVICE inline void unsafe_su3_prod_su3_dag(su3 a,const su3 b,const su3 c,const size_t nr_max=NCOL)
+  /// Product of two su3 matrixes
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_prod_su3_dag(A&& a,
+			       const B& b,
+			       const C& c,
+			       const int nr_max=NCOL)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)=SU3_ECAST(b)*SU3_ECAST(c).adjoint();
-#else
-    for(size_t ir_out=0;ir_out<nr_max;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
+    for(int ir_out=0;ir_out<nr_max;ir_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
 	{
 	  unsafe_complex_conj2_prod(a[ir_out][ic_out],b[ir_out][0],c[ic_out][0]);
-	  for(size_t jc=1;jc<NCOL;jc++) complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][jc],c[ic_out][jc]);
+	  for(int jc=1;jc<NCOL;jc++)
+	    complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][jc],c[ic_out][jc]);
 	}
-#endif
   }
+  
   CUDA_HOST_AND_DEVICE inline void safe_su3_prod_su3_dag(su3 a,const su3 b,const su3 c) {su3 d;unsafe_su3_prod_su3_dag(d,b,c);su3_copy(a,d);}
   
   /// subtract the product
@@ -686,21 +742,25 @@ namespace nissa
 #endif
   }
   
-  //Product of two su3 matrixes
-  CUDA_HOST_AND_DEVICE inline void unsafe_su3_dag_prod_su3_dag(su3 a,const su3 b,const su3 c,const size_t nr_max=NCOL)
+  /// Product of two su3 matrixes
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_dag_prod_su3_dag(A&& a,
+				   const B& b,
+				   const C& c,
+				   const int nr_max=NCOL)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)=SU3_ECAST(b).adjoint()*SU3_ECAST(c).adjoint();
-#else
-    for(size_t ir_out=0;ir_out<nr_max;ir_out++)
-      for(size_t ic_out=0;ic_out<NCOL;ic_out++)
+    for(int ir_out=0;ir_out<nr_max;ir_out++)
+      for(int ic_out=0;ic_out<NCOL;ic_out++)
 	{
 	  unsafe_complex_conj_conj_prod(a[ir_out][ic_out],b[0][ir_out],c[ic_out][0]);
-	  for(size_t itemp=1;itemp<NCOL;itemp++)
+	  for(int itemp=1;itemp<NCOL;itemp++)
 	    complex_summ_the_conj_conj_prod(a[ir_out][ic_out],b[itemp][ir_out],c[ic_out][itemp]);
 	}
-#endif
   }
+  
   inline void safe_su3_dag_prod_su3_dag(su3 a,const su3 b,const su3 c)
   {su3 d;unsafe_su3_dag_prod_su3_dag(d,b,c);su3_copy(a,d);}
   

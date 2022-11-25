@@ -113,13 +113,29 @@ namespace nissa
     a[1]=b[1]+c[1];
   }
   
-  CUDA_HOST_AND_DEVICE inline void complex_isumm(complex a,const complex b,const complex c)
+  /// a=b+i*c
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_isumm(A&& a,
+		     const B& b,
+		     const C& c)
   {
     a[0]=b[0]-c[1];
     a[1]=b[1]+c[0];
   }
-  CUDA_HOST_AND_DEVICE inline void complex_isummassign(complex a,const complex b)
-  {complex_isumm(a,a,b);}
+  
+  /// a+=i*b
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_isummassign(A&& a,
+			   const B& b)
+  {
+    complex_isumm(a,a,b);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void complex_summ_conj2(complex a,const complex b,const complex c)
   {
     a[0]=b[0]+c[0];
@@ -127,18 +143,43 @@ namespace nissa
   }
   inline void complex_summ_conj1(complex a,const complex b,const complex c)
   {complex_summ_conj2(a,c,b);}
-  CUDA_HOST_AND_DEVICE inline void complex_subt(complex a,const complex b,const complex c)
+  
+  /// a=b-c
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_subt(A&& a,
+		    const B& b,
+		    const C& c)
   {
     a[0]=b[0]-c[0];
     a[1]=b[1]-c[1];
   }
-  CUDA_HOST_AND_DEVICE inline void complex_isubt(complex a,const complex b,const complex c)
+  
+  /// a=b-i*c
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_isubt(A&& a,
+		    const B& b,
+		    const C& c)
   {
     a[0]=b[0]+c[1];
     a[1]=b[1]-c[0];
   }
-  CUDA_HOST_AND_DEVICE inline void complex_isubtassign(complex a,const complex b)
-  {complex_isubt(a,a,b);}
+  
+  /// a-=i*b
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_isubtassign(A&& a,
+			   const B& b)
+  {
+    complex_isubt(a,a,b);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void complex_subt_conj2(complex a,const complex b,const complex c)
   {
     a[0]=b[0]-c[0];
@@ -159,7 +200,15 @@ namespace nissa
     complex_summ(a,a,b);
   }
   
-  CUDA_HOST_AND_DEVICE inline void complex_subtassign(complex a,const complex b) {complex_subt(a,a,b);}
+  /// a-=b
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_subtassign(A&& a,
+			  const B& b)
+  {
+    complex_subt(a,a,b);
+  }
   
   //put to exp
   CUDA_HOST_AND_DEVICE inline void complex_iexp(complex out,const double arg)
