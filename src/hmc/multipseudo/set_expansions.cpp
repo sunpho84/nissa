@@ -172,11 +172,14 @@ namespace nissa
   }
   
   //scale the rational expansion
-  void set_expansions(std::vector<rat_approx_t>* rat_appr,eo_ptr<quad_su3> eo_conf,theory_pars_t* theory_pars,hmc_evol_pars_t* evol_pars)
+  void set_expansions(std::vector<rat_approx_t>& rat_appr,
+		      const EoField<quad_su3>& eo_conf,
+		      const theory_pars_t& theory_pars,
+		      const hmc_evol_pars_t& evol_pars)
   {
     
     //loop over each flav
-    int nflavs=theory_pars->nflavs();
+    const int nflavs=theory_pars.nflavs();
     
     //list of rat_approx to recreate
     int nto_recreate=0;
@@ -186,27 +189,27 @@ namespace nissa
     double maxerr_to_recreate[nappr_per_quark*nflavs];
     
     //allocate or not clover term and inverse evn clover term
-    eo_ptr<clover_term_t> Cl{NULL,NULL};
-    if(theory_pars->clover_to_be_computed())
+    EoField<clover_term_t>* Cl;
+    if(theory_pars.clover_to_be_computed())
       {
-	for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
-	chromo_operator(Cl,eo_conf);
+	Cl=new EoField<clover_term_t>("Cl");
+	chromo_operator(*Cl,eo_conf);
       }
     
     //check that we have the appropriate number of quarks
-    rat_appr->resize(nappr_per_quark*nflavs);
+    rat_appr.resize(nappr_per_quark*nflavs);
     
-    const int max_iter=1000;
+    // const int max_iter=1000;
     for(int iflav=0;iflav<nflavs;iflav++)
       {
-	quark_content_t &q=theory_pars->quarks[iflav];
+	const quark_content_t &q=theory_pars.quarks[iflav];
 	
 	//take the pointer to the rational approximations for current flavor and mark down degeneracy
-	rat_approx_t *appr=&(*rat_appr)[nappr_per_quark*iflav];
-	int deg=q.deg;
-	int npf=evol_pars->npseudo_fs[iflav];
-	int root_val=ferm_discretiz::root_needed(q.discretiz);
-	bool is_really_rooted=(deg!=npf*root_val);
+	rat_approx_t *appr=&(rat_appr[nappr_per_quark*iflav]);
+	const int deg=q.deg;
+	const int npf=evol_pars.npseudo_fs[iflav];
+	const int root_val=ferm_discretiz::root_needed(q.discretiz);
+	//const bool is_really_rooted=(deg!=npf*root_val);
 	
 	//find min eigenvalue
 	double eig_min;
@@ -222,16 +225,17 @@ namespace nissa
 	    eig_min=0;
 	  }
 	
-	//Find max eigenvalue
-	double eig_max;
-	if(ferm_discretiz::ROOT_TM_CLOV and not is_really_rooted)
-	  eig_max=eig_min*1.1;
-	else
-	  max_eigenval(&eig_max,&q,eo_conf,Cl,theory_pars->backfield[iflav],max_iter);
+	crash("reimplement");
+	// //Find max eigenvalue
+	 double eig_max=0;
+	// if(ferm_discretiz::ROOT_TM_CLOV and not is_really_rooted)
+	//   eig_max=eig_min*1.1;
+	// else
+	//   max_eigenval(&eig_max,&q,eo_conf,Cl,theory_pars.backfield[iflav],max_iter);
 	
 	//generate the three approximations
 	int extra_fact[nappr_per_quark]={2*root_val,-root_val,-root_val};
-	double maxerr[nappr_per_quark]={sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->md_residue)};
+	double maxerr[nappr_per_quark]={sqrt(evol_pars.pf_action_residue),sqrt(evol_pars.pf_action_residue),sqrt(evol_pars.md_residue)};
 	for(int i=0;i<nappr_per_quark;i++)
 	  {
 	    //compute condition number and exponent
@@ -304,7 +308,7 @@ namespace nissa
       if(rank_recreating[ito]==rank)
 	{
 	  if(IS_MASTER_THREAD and VERBOSITY_LV2) printf("Rank %d recreating approx %d\n",rank,ito);
-	  rat_approx_t *rat=&(*rat_appr)[iappr_to_recreate[ito]];
+	  rat_approx_t *rat=&(rat_appr[iappr_to_recreate[ito]]);
 	  generate_approx_of_maxerr(*rat,min_to_recreate[ito],max_to_recreate[ito],maxerr_to_recreate[ito],rat->num,rat->den);
 	}
     if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
@@ -313,7 +317,7 @@ namespace nissa
     //now collect from other nodes
     for(int ito=0;ito<nto_recreate;ito++)
       {
-	rat_approx_t *rat=&(*rat_appr)[iappr_to_recreate[ito]];
+	rat_approx_t *rat=&(rat_appr[iappr_to_recreate[ito]]);
 	broadcast(rat,rank_recreating[ito]);
 	verbosity_lv1_master_printf("Approximation x^(%d/%d) recreated, now %d terms present\n",rat->num,rat->den,rat->degree());
       }
@@ -322,7 +326,7 @@ namespace nissa
     if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
     THREAD_BARRIER();
     
-    if(theory_pars->clover_to_be_computed())
-      for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
+    if(theory_pars.clover_to_be_computed())
+      delete Cl;
   }
 }

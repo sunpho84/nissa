@@ -53,7 +53,11 @@ namespace nissa
     
     NB: indeed Pi is anti-hermitian
   */
-  CUDA_HOST_AND_DEVICE void point_chromo_operator(clover_term_t Cl,quad_su3 *conf,int X)
+  template <typename T>
+  CUDA_HOST_AND_DEVICE
+  void point_chromo_operator(T&& Cl,
+			     const LxField<quad_su3>& conf,
+			     const int& X)
   {
     //this is the non-anti-symmetric part 2*F_mu_nu
     as2t_su3 leaves;
@@ -89,26 +93,30 @@ namespace nissa
     su3_summ_the_prod_idouble(Cl[3],F,1);
     
   }
-  void chromo_operator(clover_term_t* Cl,quad_su3* conf)
+  
+  void chromo_operator(LxField<clover_term_t>& Cl,
+		       const LxField<quad_su3>& conf)
   {
     master_printf("Computing Chromo operator\n");
-    communicate_lx_quad_su3_edges(conf);
+    
+    conf.updateEdges();
     NISSA_PARALLEL_LOOP(X,0,locVol)
       point_chromo_operator(Cl[X],conf,X);
     NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(Cl);
+    Cl.invalidateHalo();
   }
   
-  void chromo_operator(eo_ptr<clover_term_t> Cl_eo,eo_ptr<quad_su3> conf_eo)
+  void chromo_operator(EoField<clover_term_t>& Cl_eo,
+		       const EoField<quad_su3>& conf_eo)
   {
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
-    clover_term_t *Cl_lx=nissa_malloc("Cl_lx",locVol,clover_term_t);
+    LxField<quad_su3> conf_lx("conf_lx",WITH_HALO_EDGES);
+    LxField<clover_term_t> Cl_lx("Cl_lx");
+    
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     chromo_operator(Cl_lx,conf_lx);
+    
     split_lx_vector_into_eo_parts(Cl_eo,Cl_lx);
-    nissa_free(conf_lx);
-    nissa_free(Cl_lx);
   }
   
   //apply the chromo operator to the passed spincolor
@@ -305,99 +313,106 @@ namespace nissa
     // pr(out_sure);
   }
   
-  //form the inverse of the clover term
-  CUDA_HOST_AND_DEVICE void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl)
+  /// Form the inverse of the clover term
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void invert_point_twisted_clover_term(A&& inv,
+					const double& mass,
+					const double& kappa,
+					const B& Cl)
   {
-    //inv_clover_term_t dir;
+    crash("reimplement");
+//     //inv_clover_term_t dir;
     
-    for(int x_high_low=0;x_high_low<2;x_high_low++)
-      for(int x_id=0;x_id<NDIRAC/2;x_id++)
-	for(int x_ic=0;x_ic<NCOL;x_ic++)
-	  {
-	    //prepare the point source
-	    halfspincolor b;
-	    halfspincolor_put_to_zero(b);
-	    b[x_id][x_ic][RE]=1;
-	    double ori_rr=halfspincolor_norm2(b);
+//     for(int x_high_low=0;x_high_low<2;x_high_low++)
+//       for(int x_id=0;x_id<NDIRAC/2;x_id++)
+// 	for(int x_ic=0;x_ic<NCOL;x_ic++)
+// 	  {
+// 	    //prepare the point source
+// 	    halfspincolor b;
+// 	    halfspincolor_put_to_zero(b);
+// 	    b[x_id][x_ic][RE]=1;
+// 	    double ori_rr=halfspincolor_norm2(b);
 	    
-	    //halfspincolor cicc;
-	    //apply_point_twisted_clover_term_to_halfspincolor(cicc,mass,kappa,Cl+2*x_high_low,b);
-	    //for(int id=0;id<NDIRAC/2;id++)
-	    //  for(int ic=0;ic<NCOL;ic++)
-	    //	for(int ri=0;ri<2;ri++)
-	    //	  dir[x_high_low][id][ic][x_id][x_ic][ri]=cicc[id][ic][ri];
+// 	    //halfspincolor cicc;
+// 	    //apply_point_twisted_clover_term_to_halfspincolor(cicc,mass,kappa,Cl+2*x_high_low,b);
+// 	    //for(int id=0;id<NDIRAC/2;id++)
+// 	    //  for(int ic=0;ic<NCOL;ic++)
+// 	    //	for(int ri=0;ri<2;ri++)
+// 	    //	  dir[x_high_low][id][ic][x_id][x_ic][ri]=cicc[id][ic][ri];
 	    
-	    //reset the solution
-	    halfspincolor x;
-	    halfspincolor_put_to_zero(x);
+// 	    //reset the solution
+// 	    halfspincolor x;
+// 	    halfspincolor_put_to_zero(x);
 	    
-	    //prepare r and p
-	    halfspincolor r,p;
-	    halfspincolor_copy(r,b);
-	    halfspincolor_copy(p,b);
+// 	    //prepare r and p
+// 	    halfspincolor r,p;
+// 	    halfspincolor_copy(r,b);
+// 	    halfspincolor_copy(p,b);
 	    
-	    //norm of r is 1
-	    double rr=1;
+// 	    //norm of r is 1
+// 	    double rr=1;
 	    
-	    //count iterations
-	    int iter=1;
-	    [[ maybe_unused ]]
-	    const int niter_max=200,niter_for_verbosity=20;
-	    const double target_res=1e-32;
-	    double res;
-	    do
-	      {
-		//compute (p,Ap)
-		halfspincolor ap;
-		apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,p);
-		double pap=halfspincolor_scal_prod(p,ap);
+// 	    //count iterations
+// 	    int iter=1;
+// 	    [[ maybe_unused ]]
+// 	    const int niter_max=200,niter_for_verbosity=20;
+// 	    const double target_res=1e-32;
+// 	    double res;
+// 	    do
+// 	      {
+// 		//compute (p,Ap)
+// 		halfspincolor ap;
+// 		apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,p);
+// 		double pap=halfspincolor_scal_prod(p,ap);
 		
-		//compute alpha, store rr as old one
-		double alpha=rr/pap;
-		double roro=rr;
+// 		//compute alpha, store rr as old one
+// 		double alpha=rr/pap;
+// 		double roro=rr;
 		
-		//adjust new solution and residual,
-		//compute new residual norm
-		halfspincolor_summ_the_prod_double(x, p,+alpha);
-		halfspincolor_summ_the_prod_double(r,ap,-alpha);
-		rr=halfspincolor_norm2(r);
+// 		//adjust new solution and residual,
+// 		//compute new residual norm
+// 		halfspincolor_summ_the_prod_double(x, p,+alpha);
+// 		halfspincolor_summ_the_prod_double(r,ap,-alpha);
+// 		rr=halfspincolor_norm2(r);
 		
-		//adjust new krylov vector
-		double beta=rr/roro;
-		halfspincolor_summ_the_prod_double(p,r,p,beta);
+// 		//adjust new krylov vector
+// 		double beta=rr/roro;
+// 		halfspincolor_summ_the_prod_double(p,r,p,beta);
 		
-		//compute resiude
-		res=rr/ori_rr;
+// 		//compute resiude
+// 		res=rr/ori_rr;
 		
-		//write residual
-		if(iter>=niter_for_verbosity)
-#ifndef COMPILING_FOR_DEVICE
-		  master_printf("iter %d rel residue: %lg\n",iter,res)
-#endif
-		    ;
-		iter++;
-	      }
-	    while(res>=target_res && iter<niter_max);
-	    if(iter>=niter_max)
-#ifndef COMPILING_FOR_DEVICE
-	      crash("exceeded maximal number of iterations %d, arrived to %d with residue %lg, target %lg",niter_max,iter,res,target_res);
- #else
-	    __trap();
-#endif
-	    //halfspincolor ap;
-	    //apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,x);
-	    //halfspincolor_summ_the_prod_double(ap,b,-1);
-	    //double trr=halfspincolor_norm2(ap)/ori_rr;
-	    //master_printf("true residue: %lg vs %lg\n",trr,rr);
+// 		//write residual
+// 		if(iter>=niter_for_verbosity)
+// #ifndef COMPILING_FOR_DEVICE
+// 		  master_printf("iter %d rel residue: %lg\n",iter,res)
+// #endif
+// 		    ;
+// 		iter++;
+// 	      }
+// 	    while(res>=target_res && iter<niter_max);
+// 	    if(iter>=niter_max)
+// #ifndef COMPILING_FOR_DEVICE
+// 	      crash("exceeded maximal number of iterations %d, arrived to %d with residue %lg, target %lg",niter_max,iter,res,target_res);
+//  #else
+// 	    __trap();
+// #endif
+// 	    //halfspincolor ap;
+// 	    //apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,x);
+// 	    //halfspincolor_summ_the_prod_double(ap,b,-1);
+// 	    //double trr=halfspincolor_norm2(ap)/ori_rr;
+// 	    //master_printf("true residue: %lg vs %lg\n",trr,rr);
 	    
-	    //copy the solution after removing the hermitian
-	    halfspincolor temp;
-	    apply_point_twisted_clover_term_to_halfspincolor(temp,-mass,kappa,Cl+2*x_high_low,x);
-	    for(int id=0;id<NDIRAC/2;id++)
-	      for(int ic=0;ic<NCOL;ic++)
-		for(int ri=0;ri<2;ri++)
-		  inv[x_high_low][id][ic][x_id][x_ic][ri]=temp[id][ic][ri];
-	  }
+// 	    //copy the solution after removing the hermitian
+// 	    halfspincolor temp;
+// 	    apply_point_twisted_clover_term_to_halfspincolor(temp,-mass,kappa,Cl+2*x_high_low,x);
+// 	    for(int id=0;id<NDIRAC/2;id++)
+// 	      for(int ic=0;ic<NCOL;ic++)
+// 		for(int ri=0;ri<2;ri++)
+// 		  inv[x_high_low][id][ic][x_id][x_ic][ri]=temp[id][ic][ri];
+// 	  }
     
     // for(int x_high_low=0;x_high_low<2;x_high_low++)
     //   {
@@ -440,14 +455,19 @@ namespace nissa
 
 namespace nissa
  {
-   void invert_twisted_clover_term(inv_clover_term_t* invCl,double mass,double kappa,clover_term_t* Cl)
+   void invert_twisted_clover_term(EvnField<inv_clover_term_t>& invCl,
+				   const double& mass,
+				   const double& kappa,
+				   const EvnField<clover_term_t>& Cl)
    {
-     if(IS_MASTER_THREAD) verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
-     NISSA_PARALLEL_LOOP(X,0,get_vect(invCl)->nel)
+     if(IS_MASTER_THREAD)
+       verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
+     
+     NISSA_PARALLEL_LOOP(X,0,locVolh)
        invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
      NISSA_PARALLEL_LOOP_END;
      
-     set_borders_invalid(invCl);
+     invCl.invalidateHalo();
      
      // //check
      // inv_clover_term_t *invCl_eo[2]={nissa_malloc("inver",loc_volh+bord_volh,inv_clover_term_t),nissa_malloc("inver",loc_volh+bord_volh,inv_clover_term_t)};

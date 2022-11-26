@@ -1,8 +1,9 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include "base/bench.hpp"
+#include "base/field.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
@@ -17,18 +18,17 @@ namespace nissa
   void accelerate_lx_momenta(quad_su3 *M,quad_su3 *conf,double kappa,int niter,double residue,quad_su3 *H)
   {inv_MFACC_cg(M,NULL,conf,kappa,niter,residue,H);}
   
-  //evolve the momenta with force
-  void evolve_lx_momenta_with_force(quad_su3* H,quad_su3* F,double dt)
+  /// Evolve the momenta with force
+  void evolve_lx_momenta_with_force(LxField<quad_su3>& H,
+				    const LxField<quad_su3>& F,
+				    const double& dt)
   {
-    
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
         for(int ic1=0;ic1<NCOL;ic1++)
           for(int ic2=0;ic2<NCOL;ic2++)
             complex_subt_the_prod_idouble(H[ivol][mu][ic1][ic2],F[ivol][mu][ic1][ic2],dt);
     NISSA_PARALLEL_LOOP_END;
-    
-    THREAD_BARRIER();
   }
   
   //evolve the configuration with the momenta

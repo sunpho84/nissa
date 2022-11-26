@@ -167,6 +167,36 @@ namespace nissa
     PROVIDE_ALSO_NON_CONST_METHOD(crtp);
   };
   
+  /* Usable to recognize a FEAT */
+#define PROVIDE_FEATURE(NAME)			\
+  template <typename F>				\
+  struct NAME ## Feat				\
+  {						\
+    /* Cast to derived type */			\
+    F* operator->()				\
+    {						\
+      return (F*)this;				\
+    }						\
+						\
+    /* Const cast to derived type*/		\
+    const F* operator->() const			\
+    {						\
+      return (const F*)this;			\
+    }						\
+						\
+    /* Cast to derived type*/			\
+    F& operator*()				\
+    {						\
+      return *(F*)this;				\
+    }						\
+						\
+    /* Const cast to derived type*/		\
+    const F& operator*() const			\
+    {						\
+      return *(const F*)this;			\
+    }						\
+  }
+  
   /// Filter a tuple on the basis of a predicate on the type
   ///
   /// Internal implementation working out a single type, forward

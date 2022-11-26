@@ -24,36 +24,40 @@ namespace nissa
   // Compute the action in the root tm case
   double compute_root_tm_clov_action(eo_ptr<quad_su3> eo_conf,eo_ptr<quad_u1> u1b,rat_approx_t *rat,quark_content_t q,double residue,spincolor *pf)
   {
-    spincolor *chi=nissa_malloc("chi",locVolh+bord_volh,spincolor);
+    crash("reimplement");
     
-    //allocate or not clover term and inverse evn clover term
-    eo_ptr<clover_term_t> Cl={NULL,NULL};
-    for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
-    inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
-    chromo_operator(Cl,eo_conf);
-    chromo_operator_include_cSW(Cl,q.cSW);
-    invert_twisted_clover_term(invCl_evn,q.mass,q.kappa,Cl[EVN]);
+    // spincolor *chi=nissa_malloc("chi",locVolh+bord_volh,spincolor);
     
-    // If inverting the inverse, just do it
-    master_printf("Move it inside the template, please\n");
-    const bool use_cg=(rat->num==-rat->den);
+    // //allocate or not clover term and inverse evn clover term
+    // eo_ptr<clover_term_t> Cl={NULL,NULL};
+    // for(int eo=0;eo<2;eo++) Cl[eo]=nissa_malloc("Cl",locVolh,clover_term_t);
+    // inv_clover_term_t *invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
+    // chromo_operator(Cl,eo_conf);
+    // chromo_operator_include_cSW(Cl,q.cSW);
+    // invert_twisted_clover_term(invCl_evn,q.mass,q.kappa,Cl[EVN]);
     
-    add_backfield_without_stagphases_to_conf(eo_conf,u1b);
-     if(use_cg)
-       inv_tmclovDkern_eoprec_square_eos_cg_64(chi,nullptr,eo_conf,q.kappa,q.cSW,Cl[ODD],invCl_evn,q.mass,1000000,residue,pf);
-     else
-      summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi,eo_conf,q.kappa,Cl[ODD],invCl_evn,q.mass,rat,1000000,residue,pf);
-    rem_backfield_without_stagphases_from_conf(eo_conf,u1b);
+    // // If inverting the inverse, just do it
+    // master_printf("Move it inside the template, please\n");
+    // const bool use_cg=(rat->num==-rat->den);
     
-    // Takes scalar product with the pseudofermion
-    double action;
-    double_vector_glb_scalar_prod(&action,(double*)pf,(double*)chi,locVolh*sizeof(spincolor)/sizeof(double));
+    // add_backfield_without_stagphases_to_conf(eo_conf,u1b);
+    //  if(use_cg)
+    //    inv_tmclovDkern_eoprec_square_eos_cg_64(chi,nullptr,eo_conf,q.kappa,q.cSW,Cl[ODD],invCl_evn,q.mass,1000000,residue,pf);
+    //  else
+    //   summ_src_and_all_inv_tmclovDkern_eoprec_square_portable(chi,eo_conf,q.kappa,Cl[ODD],invCl_evn,q.mass,rat,1000000,residue,pf);
+    // rem_backfield_without_stagphases_from_conf(eo_conf,u1b);
     
-    nissa_free(chi);
-    nissa_free(invCl_evn);
-    for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
+    // // Takes scalar product with the pseudofermion
+    // double action;
+    // double_vector_glb_scalar_prod(&action,(double*)pf,(double*)chi,locVolh*sizeof(spincolor)/sizeof(double));
     
-    return action;
+    // nissa_free(chi);
+    // nissa_free(invCl_evn);
+    // for(int eo=0;eo<2;eo++) nissa_free(Cl[eo]);
+    
+    // return action;
+    
+    return 0.0;
   }
   
   // Compute the action in the root staggered case

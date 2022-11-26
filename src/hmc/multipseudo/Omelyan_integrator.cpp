@@ -28,33 +28,37 @@ namespace nissa
   //evolve the momenta with topological force
   void evolve_lx_momenta_with_topological_force(quad_su3* H,quad_su3* conf,topotential_pars_t* topars,double dt,quad_su3* ext_F)
   {
-    verbosity_lv2_master_printf("Evolving lx momenta with topological force, dt=%lg\n",dt);
+    crash("reimplement");
     
-    //allocate force and compute it
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
-    compute_topological_force_lx_conf(F,conf,topars);
+    // verbosity_lv2_master_printf("Evolving lx momenta with topological force, dt=%lg\n",dt);
     
-    //evolve
-    evolve_lx_momenta_with_force(H,F,dt);
-    if(ext_F==NULL) nissa_free(F);
+    // //allocate force and compute it
+    // quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
+    // compute_topological_force_lx_conf(F,conf,topars);
+    
+    // //evolve
+    // evolve_lx_momenta_with_force(H,F,dt);
+    // if(ext_F==NULL) nissa_free(F);
   }
   
   //eo wrapper
   void evolve_eo_momenta_with_topological_force(eo_ptr<quad_su3> eo_H,eo_ptr<quad_su3> eo_conf,topotential_pars_t* topars,double dt)
   {
-    verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
+    crash("reimplement");
     
-    //reorder
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol+edge_vol,quad_su3);
-    quad_su3 *lx_H=nissa_malloc("lx_H",locVol,quad_su3);
-    paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
-    paste_eo_parts_into_lx_vector(lx_H,eo_H);
+    // verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
     
-    evolve_lx_momenta_with_topological_force(lx_H,lx_conf,topars,dt,NULL);
+    // //reorder
+    // quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol+edge_vol,quad_su3);
+    // quad_su3 *lx_H=nissa_malloc("lx_H",locVol,quad_su3);
+    // paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
+    // paste_eo_parts_into_lx_vector(lx_H,eo_H);
     
-    split_lx_vector_into_eo_parts(eo_H,lx_H);
-    nissa_free(lx_H);
-    nissa_free(lx_conf);
+    // evolve_lx_momenta_with_topological_force(lx_H,lx_conf,topars,dt,NULL);
+    
+    // split_lx_vector_into_eo_parts(eo_H,lx_H);
+    // nissa_free(lx_H);
+    // nissa_free(lx_conf);
   }
   
   //evolve the configuration according to pure gauge - note that there is a similar routine in "pure_gage"
@@ -101,19 +105,21 @@ namespace nissa
   //wrapper
   void Omelyan_pure_gauge_evolver_eo_conf(eo_ptr<quad_su3> H_eo,eo_ptr<quad_su3> conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
   {
-    quad_su3 *H_lx=nissa_malloc("H_lx",locVol,quad_su3);
-    quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
+    crash("");
     
-    paste_eo_parts_into_lx_vector(H_lx,H_eo);
-    paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
+    // quad_su3 *H_lx=nissa_malloc("H_lx",locVol,quad_su3);
+    // quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
     
-    Omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
+    // paste_eo_parts_into_lx_vector(H_lx,H_eo);
+    // paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
-    split_lx_vector_into_eo_parts(H_eo,H_lx);
-    split_lx_vector_into_eo_parts(conf_eo,conf_lx);
+    // Omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
     
-    nissa_free(conf_lx);
-    nissa_free(H_lx);
+    // split_lx_vector_into_eo_parts(H_eo,H_lx);
+    // split_lx_vector_into_eo_parts(conf_eo,conf_lx);
+    
+    // nissa_free(conf_lx);
+    // nissa_free(H_lx);
   }
   
   /////////////////////////////////////// QUARK E/O PART ////////////////////////////////////////////////

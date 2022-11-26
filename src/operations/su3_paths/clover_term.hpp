@@ -15,8 +15,12 @@ namespace nissa
   void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,clover_term_t *Cl,colorspinspin *in);
   void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,clover_term_t *Cl,su3spinspin *in);
   void unsafe_apply_chromo_operator_to_spincolor_128(spincolor_128 *out,clover_term_t *Cl,spincolor_128 *in);
-  void chromo_operator(clover_term_t *Cl,quad_su3 *conf);
-  void chromo_operator(eo_ptr<clover_term_t> Cl,eo_ptr<quad_su3> conf);
+  
+  void chromo_operator(LxField<clover_term_t>& Cl,
+		       const LxField<quad_su3>& conf);
+  
+  void chromo_operator(EoField<clover_term_t>& Cl_eo,
+		       const EoField<quad_su3>& conf_eo);
   
   //include the factor cSW - note that we include the factor "-1/4" here
   inline double chromo_operator_factor(double cSW)

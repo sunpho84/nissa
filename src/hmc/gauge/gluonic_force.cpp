@@ -134,12 +134,7 @@ namespace nissa
 #endif
     
     //print the intensity of the force
-    if(VERBOSITY_LV2)
-      {
-	double norm=0;
-	norm+=double_vector_glb_norm2(F,locVol);
-	master_printf("  Gluonic force average norm: %lg\n",sqrt(norm/glbVol));
-      }
+    verbosity_lv2_master_printf("  Gluonic force average norm: %lg\n",sqrt(F.norm2()/glbVol));
     
     STOP_TIMING(gluon_force_time);
   }

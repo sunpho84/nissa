@@ -7,7 +7,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/staggered/cgm_32_invert_stD2ee_m2.cpp \
 	%D%/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
 	%D%/staggered/cg_invert_stD2ee_m2_portable.cpp \
-	%D%/staggered/cg_invert_stD2Leb_ee_m2_portable.cpp \
 	%D%/staggered/cgm_invert_stD2ee_m2.cpp \
 	%D%/staggered/cg_invert_stD2ee_m2.cpp \
 	%D%/staggered/cg_invert_stD.cpp \
@@ -55,7 +54,6 @@ include_HEADERS+= \
 	%D%/staggered/cgm_invert_stD2ee_m2_portable.hpp \
 	%D%/staggered/cgm_32_invert_stD2ee_m2_portable.hpp \
 	%D%/staggered/cg_invert_stD2ee_m2_portable.hpp \
-	%D%/staggered/cg_invert_stD2Leb_ee_m2_portable.hpp \
 	%D%/Wclov/cg_invert_WclovQ.hpp \
 	%D%/Wclov/cg_invert_WclovQ2.hpp \
 	%D%/twisted_clover/cg_invert_tmclovQ.hpp \

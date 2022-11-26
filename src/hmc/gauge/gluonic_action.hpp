@@ -48,13 +48,15 @@ namespace nissa
   
   template <class T> void gluonic_action(double *gluon_action,T conf,gauge_action_name_t gauge_action_name,double beta)
   {
-    switch(gauge_action_name)
-      {
-      case WILSON_GAUGE_ACTION:Wilson_action(gluon_action,conf,beta);break;
-      case TLSYM_GAUGE_ACTION:tlSym_action(gluon_action,conf,beta);break;
-      case IWASAKI_GAUGE_ACTION:Iwasaki_action(gluon_action,conf,beta);break;
-      default:crash("Unknown action");
-      }
+    crash("reimplement");
+    
+    // switch(gauge_action_name)
+    //   {
+    //   case WILSON_GAUGE_ACTION:Wilson_action(gluon_action,conf,beta);break;
+    //   case TLSYM_GAUGE_ACTION:tlSym_action(gluon_action,conf,beta);break;
+    //   case IWASAKI_GAUGE_ACTION:Iwasaki_action(gluon_action,conf,beta);break;
+    //   default:crash("Unknown action");
+    //   }
   }
 }
 

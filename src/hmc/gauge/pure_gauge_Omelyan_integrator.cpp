@@ -36,108 +36,110 @@ namespace nissa
   // Evolve momenta according to the pure gauge force
   // calculate H=H-F*dt to evolve link momenta
   // i.e calculate v(t+dt)=v(t)+a*dt
-  void evolve_momenta_with_pure_gauge_force(quad_su3* H,quad_su3* conf,theory_pars_t* theory_pars,double dt,quad_su3* ext_F)
+  void evolve_momenta_with_pure_gauge_force(LxField<quad_su3>& H,
+					    const LxField<quad_su3>& conf,
+					    const theory_pars_t& theory_pars,
+					    const double& dt,
+					    LxField<quad_su3>& F)
   {
     verbosity_lv2_master_printf("Evolving momenta with pure gauge force, dt=%lg\n",dt);
     
-    //allocate force and compute it
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
     compute_gluonic_force_lx_conf(F,conf,theory_pars);
     
     //evolve
     evolve_lx_momenta_with_force(H,F,dt);
-    
-    if(ext_F==NULL) nissa_free(F);
   }
   
   //same but with acceleration
   void evolve_momenta_and_FACC_momenta(quad_su3* H,su3** pi,quad_su3* conf,su3** phi,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul,double dt,quad_su3* ext_F)
   {
-    verbosity_lv2_master_printf("Evolving momenta and FACC momenta, dt=%lg\n",dt);
+    crash("maybe reimplement");
     
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
+    //     verbosity_lv2_master_printf("Evolving momenta and FACC momenta, dt=%lg\n",dt);
     
-#ifdef DEBUG
-    vector_reset(F);
-    double eps=1e-5;
+//     quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",locVol,quad_su3):ext_F;
     
-    //store initial link and compute action
-    su3 sto;
-    su3_copy(sto,conf[0][0]);
-    double act_ori=pure_gauge_action(conf,*theory_pars,*simul,H,phi,pi);
+// #ifdef DEBUG
+//     vector_reset(F);
+//     double eps=1e-5;
     
-    //store derivative
-    su3 nu_plus,nu_minus;
-    su3_put_to_zero(nu_plus);
-    su3_put_to_zero(nu_minus);
+//     //store initial link and compute action
+//     su3 sto;
+//     su3_copy(sto,conf[0][0]);
+//     double act_ori=pure_gauge_action(conf,*theory_pars,*simul,H,phi,pi);
     
-    for(int igen=0;igen<NCOL*NCOL-1;igen++)
-      {
-	//prepare increment and change
-	su3 ba;
-	su3_prod_double(ba,gell_mann_matr[igen],eps/2);
+//     //store derivative
+//     su3 nu_plus,nu_minus;
+//     su3_put_to_zero(nu_plus);
+//     su3_put_to_zero(nu_minus);
+    
+//     for(int igen=0;igen<NCOL*NCOL-1;igen++)
+//       {
+// 	//prepare increment and change
+// 	su3 ba;
+// 	su3_prod_double(ba,gell_mann_matr[igen],eps/2);
 	
-	su3 exp_mod;
-	safe_hermitian_exact_i_exponentiate(exp_mod,ba);
+// 	su3 exp_mod;
+// 	safe_hermitian_exact_i_exponentiate(exp_mod,ba);
 	
-	//change -, compute action
-	unsafe_su3_dag_prod_su3(conf[0][0],exp_mod,sto);
-	double act_minus=pure_gauge_action(conf,*theory_pars,*simul,H,phi,pi);
+// 	//change -, compute action
+// 	unsafe_su3_dag_prod_su3(conf[0][0],exp_mod,sto);
+// 	double act_minus=pure_gauge_action(conf,*theory_pars,*simul,H,phi,pi);
 	
-	//change +, compute action
-	unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
-	double act_plus=pure_gauge_action(conf,*theory_pars,*simul,H,phi,pi);
+// 	//change +, compute action
+// 	unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
+// 	double act_plus=pure_gauge_action(conf,*theory_pars,*simul,H,phi,pi);
 	
-	//set back everything
-	su3_copy(conf[0][0],sto);
+// 	//set back everything
+// 	su3_copy(conf[0][0],sto);
 	
-	//printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
-	double gr_plus=-(act_plus-act_ori)/eps;
-	double gr_minus=-(act_ori-act_minus)/eps;
-	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus);
-	su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus);
-      }
+// 	//printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
+// 	double gr_plus=-(act_plus-act_ori)/eps;
+// 	double gr_minus=-(act_ori-act_minus)/eps;
+// 	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus);
+// 	su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus);
+//       }
     
-    //take the average
-    su3 nu;
-    su3_summ(nu,nu_plus,nu_minus);
-    su3_prodassign_double(nu,0.5);
+//     //take the average
+//     su3 nu;
+//     su3_summ(nu,nu_plus,nu_minus);
+//     su3_prodassign_double(nu,0.5);
     
-    vector_reset(F);
-#endif
+//     vector_reset(F);
+// #endif
     
-    //compute the various contribution to the QCD force
-    if(evolve_SU3)
-      {
-	//compute without TA
-	vector_reset(F);
-	compute_gluonic_force_lx_conf_do_not_finish(F,conf,theory_pars);
-	summ_the_MFACC_momenta_QCD_force(F,conf,simul->kappa,pi,simul->naux_fields);
-	summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
+//     //compute the various contribution to the QCD force
+//     if(evolve_SU3)
+//       {
+// 	//compute without TA
+// 	vector_reset(F);
+// 	compute_gluonic_force_lx_conf_do_not_finish(F,conf,theory_pars);
+// 	summ_the_MFACC_momenta_QCD_force(F,conf,simul->kappa,pi,simul->naux_fields);
+// 	summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
 	
-	//finish the calculation
-	gluonic_force_finish_computation(F,conf);
+// 	//finish the calculation
+// 	gluonic_force_finish_computation(F,conf);
 	
-	evolve_lx_momenta_with_force(H,F,dt);
-      }
+// 	evolve_lx_momenta_with_force(H,F,dt);
+//       }
     
-#ifdef DEBUG
-    master_printf("checking TOTAL gauge force\n");
-    master_printf("an\n");
-    su3_print(F[0][0]);
-    master_printf("nu\n");
-    su3_print(nu);
-    master_printf("nu_plus\n");
-    su3_print(nu_plus);
-    master_printf("nu_minus\n");
-    su3_print(nu_minus);
-    //crash("anna");
-#endif
+// #ifdef DEBUG
+//     master_printf("checking TOTAL gauge force\n");
+//     master_printf("an\n");
+//     su3_print(F[0][0]);
+//     master_printf("nu\n");
+//     su3_print(nu);
+//     master_printf("nu_plus\n");
+//     su3_print(nu_plus);
+//     master_printf("nu_minus\n");
+//     su3_print(nu_minus);
+//     //crash("anna");
+// #endif
     
-    //evolve FACC momenta
-    if(evolve_FACC) evolve_MFACC_momenta(pi,phi,simul->naux_fields,dt);
+//     //evolve FACC momenta
+//     if(evolve_FACC) evolve_MFACC_momenta(pi,phi,simul->naux_fields,dt);
     
-    if(ext_F==NULL) nissa_free(F);
+//     if(ext_F==NULL) nissa_free(F);
   }
   
   //combine the two fields evolution

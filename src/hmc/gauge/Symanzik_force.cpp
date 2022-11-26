@@ -16,21 +16,24 @@
 
 namespace nissa
 {
-  void Symanzik_force_lx_conf(quad_su3* out,quad_su3* conf,double beta,double C1)
+  void Symanzik_force_lx_conf(LxField<quad_su3>& out,
+			      const LxField<quad_su3>& conf,
+			      const double& beta,
+			      const double& C1)
   {
     verbosity_lv2_master_printf("Computing Symanzik force\n");
     
     //coefficient of rectangles and squares, including beta
-    double C0=get_C0(C1);
-    double w1=-C1*beta/NCOL,w0=-C0*beta/NCOL;
+    const double C0=get_C0(C1);
+    const double w1=-C1*beta/NCOL,w0=-C0*beta/NCOL;
     
     
     //compute squared pieces
-    squared_staples_t *squared_staples=nissa_malloc("squared_staples",locVol+bord_vol,squared_staples_t);
+    LxField<squared_staples_t> squared_staples("squared_staples",WITH_HALO);
     compute_squared_staples_lx_conf(squared_staples,conf);
     
     //compute rectangular pieces
-    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",locVol+bord_vol,rectangular_staples_t);
+    LxField<rectangular_staples_t> rectangular_staples("rectangular_staples",WITH_HALO);
     compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
@@ -49,9 +52,6 @@ namespace nissa
 	}
     NISSA_PARALLEL_LOOP_END;
     
-    nissa_free(squared_staples);
-    nissa_free(rectangular_staples);
-    
-    set_borders_invalid(out);
+    out.invalidateHalo();
   }
 }

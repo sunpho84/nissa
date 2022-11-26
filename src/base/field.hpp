@@ -269,11 +269,7 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  /// Usable to recognize a field
-  template <typename F>
-  struct FieldFeat
-  {
-  };
+  PROVIDE_FEATURE(Field);
   
   /// Field
   template <typename T,
@@ -932,7 +928,7 @@ namespace nissa
     /// Constructor
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     EoField(const char* name,
-	    const HaloEdgesPresence& haloEdgesPresence) :
+	    const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
       evenPart(name,haloEdgesPresence),
       oddPart(name,haloEdgesPresence)
     {

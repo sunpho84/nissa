@@ -20,7 +20,7 @@ namespace nissa
   
   template <typename LX,
 	    typename EO>
-  void paste_eo_parts_into_lx_vector(LX&& outLx,
+  void paste_eo_parts_into_lx_vector(FieldFeat<LX>& outLx,
 				     const EO& inEo)
   {
     START_TIMING(remap_time,nremap);
@@ -30,13 +30,13 @@ namespace nissa
     {
       NISSA_PARALLEL_LOOP(eo,0,locVolh)
 	for(int internalDeg=0;internalDeg<inEo[par].nInternalDegs;internalDeg++)
-	  outLx(loclx_of_loceo[par][eo],internalDeg)=inEo[par](eo,internalDeg);
+	  (*outLx)(loclx_of_loceo[par][eo],internalDeg)=inEo[par](eo,internalDeg);
       NISSA_PARALLEL_LOOP_END;
     });
     
     STOP_TIMING(remap_time);
     
-    outLx.invalidateHalo();
+    outLx->invalidateHalo();
   }
   
   /////////////////////////////////////////////////////////////////

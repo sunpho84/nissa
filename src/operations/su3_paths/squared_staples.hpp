@@ -18,6 +18,9 @@ namespace nissa
   void compute_summed_squared_staples_lx_conf(LxField<quad_su3>& out,
 					      const LxField<quad_su3>& conf);
   
+  void compute_squared_staples_lx_conf(LxField<squared_staples_t>& out,
+				       const LxField<quad_su3>& conf);
+  
   void compute_summed_squared_staples_eo_conf(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf);
   void compute_summed_squared_staples_lx_conf(quad_su3 *out,quad_su3 *conf);
   CUDA_HOST_AND_DEVICE void compute_point_summed_squared_staples_eo_conf(quad_su3 staple,eo_ptr<quad_su3> eo_conf,int A);

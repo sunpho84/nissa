@@ -45,7 +45,6 @@ namespace nissa
     {}
   };
   
-  CUDA_HOST_AND_DEVICE void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X);
   void measure_topology_eo_conf(top_meas_pars_t &pars,eo_ptr<quad_su3> unsmoothed_conf_eo,int iconf,bool conf_created);
   void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *unsmoothed_conf,int iconf,bool conf_created,bool preserve_unsmoothed);
   void local_topological_charge(double *charge,quad_su3 *conf);
@@ -54,6 +53,80 @@ namespace nissa
   void topological_staples(LxField<quad_su3>& staples,const LxField<quad_su3>& conf);
   
   void total_topological_charge_lx_conf(double* totCharge,const LxField<quad_su3>& conf);
+  
+  /////////////////////////////////////////////////////////////////
+  
+  //This will calculate the six independent components of
+  //              2*a^2*ig*P_{mu,nu}
+  //for a single point. Note that P_{mu,nu} is still not anti-symmetric
+  //please ensure to have communicated the edges outside!
+  /*
+    ^                   C--<-- B --<--Y
+    |                   |  2  | |  1  |
+    n                   |     | |     |
+    u                   D-->--\X/-->--A
+    |                   D--<--/X\--<--A
+    -----mu---->        |  3  | |  4  |
+    .                   |     | |     |
+    .                   E-->-- F -->--G
+    in order to have the anti-symmetric part, use
+    the routine inside "clover_term"
+  */
+  template <typename L,
+	    typename U>
+  CUDA_HOST_AND_DEVICE void four_leaves_point(L&& leaves_summ,
+					      const U& conf,
+					      const int& X)
+  {
+    // if(conf.edgesAreValid) crash("communicate edges externally");
+    
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	int A=loclxNeighup[X][mu];
+	int D=loclxNeighdw[X][mu];
+        
+	for(int nu=mu+1;nu<NDIM;nu++)
+	  {
+	    int munu=edge_numb[mu][nu];
+	    
+	    int B=loclxNeighup[X][nu];
+	    int F=loclxNeighdw[X][nu];
+            
+	    int C=loclxNeighup[D][nu];
+	    int E=loclxNeighdw[D][nu];
+            
+	    int G=loclxNeighdw[A][nu];
+            
+	    su3 temp1,temp2;
+	    
+	    //Leaf 1
+	    unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);           //    B--<--Y
+	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);             //    |  1  |
+	    unsafe_su3_prod_su3_dag(leaves_summ[munu],temp2,conf[X][nu]); //    |     |
+	    /*                                                 */         //    X-->--A
+            
+	    //Leaf 2
+	    unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);       //    C--<--B
+	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);             //    |  2  |
+	    unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);                 //    |     |
+	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);          //    D-->--X
+	    
+	    //Leaf 3
+	    unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);    //   D--<--X
+	    unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);                  //   |  3  |
+	    unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);                  //   |     |
+	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);           //   E-->--F
+            
+	    //Leaf 4
+	    unsafe_su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);         //  X--<--A
+	    unsafe_su3_prod_su3(temp2,temp1,conf[G][nu]);                   //  |  4  |
+	    unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][mu]);               //  |     |
+	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);            //  F-->--G
+            
+	    munu++;
+	  }
+      }
+  }
 }
 
 #endif

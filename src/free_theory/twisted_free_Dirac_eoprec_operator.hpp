@@ -69,7 +69,7 @@ namespace nissa
 	    complex temp_c0,temp_c1;
 	    
 	    //Forward
-	    const int Xup=I::locNeighup(X,mu);
+	    const int Xup=O::locNeighup(X,mu);
 	    switch(mu)
 	    {
 	    case 0:
@@ -102,8 +102,8 @@ namespace nissa
 	    switch(mu)
 	      {
 	      case 0:
-		complex_summassign(out[X][2],out[X][0]);
-		complex_summassign(out[X][3],out[X][1]);
+		complex_summassign(out[X][2],temp_c0);
+		complex_summassign(out[X][3],temp_c1);
 		break;
 	      case 1:
 		complex_isubtassign(out[X][2],temp_c1);
@@ -120,26 +120,26 @@ namespace nissa
 	      }
 	    
 	    //Backward
-	    const int Xdw=I::locNeighdw(X,mu);
+	    const int Xdw=O::locNeighdw(X,mu);
 	    switch(mu)
-	    {
-	    case 0:
-	      complex_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
-	      complex_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
-	      break;
-	    case 1:
-	      complex_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
-	      complex_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
-	      break;
-	    case 2:
-	      complex_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
-	      complex_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
-	      break;
-	    case 3:
-	      complex_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
-	      complex_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
-	      break;
-	    }
+	      {
+	      case 0:
+		complex_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
+		complex_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
+		break;
+	      case 1:
+		complex_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
+		complex_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
+		break;
+	      case 2:
+		complex_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
+		complex_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
+		break;
+	      case 3:
+		complex_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
+		complex_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
+		break;
+	      }
 	    
 	    if(O::glbCoord(X,mu)==0)
 	      {
@@ -173,7 +173,7 @@ namespace nissa
       }
     NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(out);
+    out.invalidateHalo();
   }
 }
 

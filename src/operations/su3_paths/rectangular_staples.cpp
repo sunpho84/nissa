@@ -218,41 +218,40 @@ namespace nissa
   }
   
   //compute rectangular staples overlapping computation and communications, and avoiding using edges
-  void compute_rectangular_staples_lx_conf(rectangular_staples_t* out,quad_su3* conf,squared_staples_t* sq_staples)
+  void compute_rectangular_staples_lx_conf(LxField<rectangular_staples_t>& out,
+					   const LxField<quad_su3>& conf,
+					   const LxField<squared_staples_t>& sq_staples)
   {
+    crash("reimplement");
+    // //compute non_fw_surf fw staples
+    // rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(sq_staples,THREAD_ID);
+    // rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,sq_staples,THREAD_ID);
+    // rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_staples(sq_staples,THREAD_ID);
     
-    //compute non_fw_surf fw staples
-    rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(sq_staples,THREAD_ID);
-    rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,sq_staples,THREAD_ID);
-    rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_staples(sq_staples,THREAD_ID);
-    
-    //compute fw_surf bw staples, non_fw_surf bw staples and fw_surf fw staples
-    rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,sq_staples,THREAD_ID);
-    rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,sq_staples,THREAD_ID);
-    rectangular_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,sq_staples,THREAD_ID);
-    rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,THREAD_ID);
-    
-    THREAD_BARRIER();
+    // //compute fw_surf bw staples, non_fw_surf bw staples and fw_surf fw staples
+    // rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,sq_staples,THREAD_ID);
+    // rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,sq_staples,THREAD_ID);
+    // rectangular_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,sq_staples,THREAD_ID);
+    // rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,THREAD_ID);
   }
   
   //summ everything together
-  void compute_summed_rectangular_staples_lx_conf(quad_su3* out,quad_su3* conf,squared_staples_t* squared_staples)
+  void compute_summed_rectangular_staples_lx_conf(LxField<rectangular_staples_t>& out,
+						  const LxField<quad_su3>& conf,
+						  const LxField<squared_staples_t>& sq_staples)
   {
+    LxField<rectangular_staples_t> rectangular_staples("rectangular_staples",WITH_HALO);
     
-    //compute pieces
-    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",locVol+bord_vol,rectangular_staples_t);
-    compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
+    compute_rectangular_staples_lx_conf(rectangular_staples,conf,sq_staples);
     
     //summ
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	{
 	  su3_copy(out[ivol][mu],rectangular_staples[ivol][mu][0]);
 	  for(int iterm=1;iterm<6;iterm++)
 	    su3_summassign(out[ivol][mu],rectangular_staples[ivol][mu][iterm]);
 	}
     NISSA_PARALLEL_LOOP_END;
-    
-    nissa_free(rectangular_staples);
   }
 }

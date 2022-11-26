@@ -242,20 +242,21 @@ namespace nissa
     THREAD_BARRIER();
   }
   
-  //compute squared staple overlapping computation and communications, and avoiding using edges
-  void compute_squared_staples_lx_conf(squared_staples_t* out,quad_su3* conf)
+  /// Compute squared staple overlapping computation and communications, and avoiding using edges
+  void compute_squared_staples_lx_conf(LxField<squared_staples_t>& out,
+				       const LxField<quad_su3>& conf)
   {
+    crash("reimplement");
+    // //compute non_fw_surf fw staples
+    // squared_staples_lx_conf_start_communicating_lower_surface(conf,THREAD_ID);
+    // squared_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,THREAD_ID);
+    // squared_staples_lx_conf_finish_communicating_lower_surface(conf,THREAD_ID);
     
-    //compute non_fw_surf fw staples
-    squared_staples_lx_conf_start_communicating_lower_surface(conf,THREAD_ID);
-    squared_staples_lx_conf_compute_non_fw_surf_fw_staples(out,conf,THREAD_ID);
-    squared_staples_lx_conf_finish_communicating_lower_surface(conf,THREAD_ID);
-    
-    //compute fw_surf bw staples, non_fw_surf bw staples and fw_surf fw staples
-    squared_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,THREAD_ID);
-    squared_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,THREAD_ID);
-    squared_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,THREAD_ID);
-    squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,THREAD_ID);
+    // //compute fw_surf bw staples, non_fw_surf bw staples and fw_surf fw staples
+    // squared_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(out,conf,THREAD_ID);
+    // squared_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,THREAD_ID);
+    // squared_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,THREAD_ID);
+    // squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,THREAD_ID);
   }
   
   /// Summ everything together

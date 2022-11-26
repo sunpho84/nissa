@@ -1,7 +1,8 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
+#include <optional>
 #include <string.h>
 
 #ifdef USE_TMLQCD
@@ -35,7 +36,14 @@ namespace nissa
   //Refers to the doc: "doc/eo_inverter.lyx" for explenations
   
   //invert Koo defined in equation (7)
-  void inv_tmDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,eo_ptr<quad_su3> conf,double kappa,double mass,int nitermax,double residue,spincolor *source)
+  void inv_tmDkern_eoprec_square_eos_cg(OddField<spincolor>& sol,
+					std::optional<OddField<spincolor>> guess,
+					const EoField<quad_su3>& conf,
+					const double& kappa,
+					const double& mass,
+					const int& nitermax,
+					const double& residue,
+					const OddField<spincolor>& source)
   {
     if(use_128_bit_precision) inv_tmDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
     else inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
