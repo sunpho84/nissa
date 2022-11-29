@@ -429,7 +429,13 @@ namespace nissa
   {unsafe_complex_conj2_prod_minus(a,c,b);}
   
   //The product of the conjugate of two complex numbers
-  CUDA_HOST_AND_DEVICE inline void unsafe_complex_conj_conj_prod(complex a,const complex b,const complex c)
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_complex_conj_conj_prod(A&& a,
+				     const B& b,
+				     const C& c)
   {
     a[0]=+b[0]*c[0]-b[1]*c[1];
     a[1]=-b[0]*c[1]-b[1]*c[0];

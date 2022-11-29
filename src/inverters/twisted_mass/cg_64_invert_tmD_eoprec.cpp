@@ -3,6 +3,7 @@
 #endif
 
 #include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec.hpp>
+#include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_portable.hpp>
 #include <inverters/templates/cg_invert_template_threaded.hpp>
 
 namespace nissa
@@ -21,12 +22,12 @@ namespace nissa
     
     cg_invert(sol,
 	      guess,
-	      [temp1=OddField<spin>("temp1",WITH_HALO),
-	       temp2=EvnField<spin>("temp2",WITH_HALO),
+	      [temp1=OddField<spincolor>("temp1",WITH_HALO),
+	       temp2=EvnField<spincolor>("temp2",WITH_HALO),
 	       &conf,
 	       &kappa,
 	       &mu](OddField<spincolor>& out,
-		    const OddField<spincolor>& in)
+		    const OddField<spincolor>& in) mutable
 	      {
 		tmDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,mu,in);
 	      },

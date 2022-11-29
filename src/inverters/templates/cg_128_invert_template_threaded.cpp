@@ -77,7 +77,8 @@ namespace nissa
 	if(current_residue>=external_solver_residue)
 	  {
 	    //compute partial sol
-	    CG_128_INNER_SOLVER(sol,NULL,CG_128_INNER_PARAMETERS_CALL 1000000,inner_solver_residue,internal_source);
+	    crash("reimplement");(void)inner_solver_residue;
+	    //CG_128_INNER_SOLVER(sol,NULL,CG_128_INNER_PARAMETERS_CALL 1000000,inner_solver_residue,internal_source);
 	    
 	    //add the approximated solution to the total one
 	    quadruple_vector_summassign_double_vector((float_128*)sol_128,(double*)sol,BULK_SIZE*NDOUBLES_PER_SITE);

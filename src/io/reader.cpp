@@ -90,13 +90,14 @@ namespace nissa
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //read an ildg conf and split it into e/o parts
-  void read_ildg_gauge_conf_and_split_into_eo_parts(eo_ptr<quad_su3> eo_conf,std::string path,ILDG_message *mess)
+  void read_ildg_gauge_conf_and_split_into_eo_parts(EoField<quad_su3>& eo_conf,
+						    const std::string path,
+						    ILDG_message *mess)
   {
     //read the conf in lx and reorder it
-    quad_su3 *lx_conf=nissa_malloc("temp_conf",locVol+bord_vol,quad_su3);
+    LxField<quad_su3> lx_conf("temp_conf");
     read_ildg_gauge_conf(lx_conf,path,mess);
     split_lx_vector_into_eo_parts(eo_conf,lx_conf);
-    nissa_free(lx_conf);
     
     verbosity_lv3_master_printf("Plaquette after e/o reordering: %16.16lg\n",global_plaquette_eo_conf(eo_conf));
   }

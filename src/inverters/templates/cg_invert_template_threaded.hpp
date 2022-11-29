@@ -15,7 +15,7 @@ namespace nissa
 	    typename F>
   void cg_invert(T& sol,
 		 std::optional<T> guess,
-		 const F& f,
+		 F&& f,
 		 const int& niter,
 		 const double& residue,
 		 const T& source)
@@ -28,7 +28,7 @@ namespace nissa
     T r("r");
     
     //macro to be defined externally, allocating all the required additional vectors
-    if(guess) sol=guess;
+    if(guess) sol=*guess;
     else sol.reset();
     
     START_TIMING(cg_inv_over_time,ncg_inv);

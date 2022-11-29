@@ -52,7 +52,8 @@ namespace nissa
 	//multiply by gamma5
 	split_lx_vector_into_eo_parts(tmpvec_eo,eigvec[ieig]);
 	apply_stag_op(eigvec_g5_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,tmpvec_eo);
-	paste_eo_parts_into_lx_vector(eigvec_g5_lx,eigvec_g5_eo);
+	//paste_eo_parts_into_lx_vector(eigvec_g5_lx,eigvec_g5_eo);
+	crash("reimplement");
 	
 	//take hermitian products
 	for(int jeig=ieig;jeig<neigs;jeig++)
@@ -164,7 +165,8 @@ namespace nissa
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
     quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol+edge_vol,quad_su3);
-    paste_eo_parts_into_lx_vector(conf_lx,conf);
+    //paste_eo_parts_into_lx_vector(conf_lx,conf);
+    crash("reimplement");
     
     //loop on smooth
     int nsmooth=0;
@@ -175,7 +177,8 @@ namespace nissa
 	
 	measure_spectral_proj(file,meas_pars,conf_lx,iconf,nsmooth);
 	
-	finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
+	//finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
+	crash("reimplement");
       }
     while(not finished);
     

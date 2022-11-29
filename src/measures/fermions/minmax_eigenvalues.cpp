@@ -72,8 +72,8 @@ namespace nissa
     
     //zero smooth time of the conf
     quad_su3 *conf_lx=nissa_malloc("conf_lx",locVol+bord_vol,quad_su3);
-    paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
-    
+    // paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
+    crash("reimplement");
     //parameters of the measure
     bool min_max=meas_pars.min_max;
     int neigs=meas_pars.neigs;
@@ -154,7 +154,8 @@ namespace nissa
 	  }
 	
 	//proceeds with smoothing
-	finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
+	crash("reimplement");	  finished=1;
+	// finished=smooth_lx_conf_until_next_meas(conf_lx,meas_pars.smooth_pars,nsmooth);
       }
     while(not finished);
     

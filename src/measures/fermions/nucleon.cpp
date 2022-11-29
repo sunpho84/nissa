@@ -33,7 +33,8 @@ namespace nissa
     
     /// Smearing conf
     quad_su3* smearingConf=nissa_malloc("smearingConf",locVol+bord_vol,quad_su3);
-    paste_eo_parts_into_lx_vector(smearingConf,conf);
+    crash("reimplement");
+    // paste_eo_parts_into_lx_vector(smearingConf,conf);
     ape_smear_conf(smearingConf,smearingConf,meas_pars.apeSmeAlpha,meas_pars.apeSmeNSteps,all_other_dirs[0],1);
     
     /// Propagators

@@ -105,11 +105,13 @@ namespace nissa
   ////////////////////////// gauge configuration writing /////////////////////////////
   
   //read an ildg conf and split it into e/o parts
-  void paste_eo_parts_and_write_ildg_gauge_conf(std::string path,eo_ptr<quad_su3> eo_conf,size_t prec,ILDG_message *mess)
+  void paste_eo_parts_and_write_ildg_gauge_conf(const std::string& path,
+						const EoField<quad_su3>& eo_conf,
+						const size_t& prec,
+						ILDG_message *mess)
   {
-    quad_su3 *lx_conf=nissa_malloc("temp_conf",locVol,quad_su3);
+    LxField<quad_su3> lx_conf("temp_conf");
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     write_ildg_gauge_conf(path,lx_conf,prec,mess);
-    nissa_free(lx_conf);
   }
 }

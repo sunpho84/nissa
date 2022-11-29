@@ -15,7 +15,7 @@ namespace nissa
   void tmDkern_eoprec_square_eos(OddField<spincolor>& out,
 				 OddField<spincolor>& temp1,
 				 EvnField<spincolor> &temp2,
-				 EoField<quad_su3>& conf,
+				 const EoField<quad_su3>& conf,
 				 const double& kappa,
 				 const double& mu,
 				 const OddField<spincolor>& in);

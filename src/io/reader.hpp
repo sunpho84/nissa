@@ -12,7 +12,9 @@
 
 namespace nissa
 {
-  void read_ildg_gauge_conf_and_split_into_eo_parts(eo_ptr<quad_su3> eo_conf,std::string path,ILDG_message *mess=NULL);
+  void read_ildg_gauge_conf_and_split_into_eo_parts(EoField<quad_su3>& eo_conf,
+						    const std::string path,
+						    ILDG_message *mess=NULL);
   
   void read_real_vector(double *out,ILDG_File file,ILDG_header &header,uint64_t nreals_per_site);
   
