@@ -19,10 +19,8 @@ namespace nissa
 				 const double& kappa,
 				 const double& mu,
 				 const OddField<spincolor>& in);
-  // void tmn2Deo_eos(spincolor *out,eo_ptr<quad_su3> conf,spincolor *in);
   // void tmn2Deo_or_tmn2Doe_eos(spincolor *out,eo_ptr<quad_su3> conf,int eooe,spincolor *in);
   // void tmDkern_eoprec_eos_put_together_and_include_gamma5(spincolor *out,spincolor *temp);
-  // void tmn2Doe_eos(spincolor *out,eo_ptr<quad_su3> conf,spincolor *in);
 }
 
 #endif

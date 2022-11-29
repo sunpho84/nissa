@@ -7,11 +7,9 @@
 
 #include <unistd.h>
 
-
 #include <base/bench.hpp>
 #include <base/field.hpp>
 #include <geometry/geometry_eo.hpp>
-#include <geometry/geometry_Leb.hpp>
 #include <new_types/su3.hpp>
 
 namespace nissa

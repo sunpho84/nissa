@@ -13,7 +13,6 @@
 #include "vectors.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "geometry/geometry_Leb.hpp"
 #include "hmc/gauge/Symanzik_force.hpp"
 #include "hmc/gauge/Symanzik_action.hpp"
 #include "linalgs/reduce.hpp"
@@ -50,9 +49,6 @@ namespace nissa
     
     //unset eo geometry
     if(eo_geom_inited) unset_eo_geometry();
-    
-    //unset Leb geometry
-    if(Leb_geom_inited) unset_Leb_geometry();
     
     //stop the random generator
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();

@@ -9,7 +9,6 @@
 #include "communicate/borders.hpp"
 #include "geometry_eo.hpp"
 #include "geometry_lx.hpp"
-#include "geometry_Leb.hpp"
 #include "new_types/su3_op.hpp"
 #include "threads/threads.hpp"
 
