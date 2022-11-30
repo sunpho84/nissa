@@ -43,8 +43,7 @@ void in_main(int narg,char **arg)
   read_real_vector(source,source_path,tag);
   read_real_vector(smeared_source,smeared_source_path,tag);
   
-#warning
-  crash("");
+  crash("reimplement");
   // int iglb_max=0;
   // NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
   //   if(spincolor_norm2(source[ivol])>1e-10)
