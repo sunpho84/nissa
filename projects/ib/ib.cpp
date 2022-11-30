@@ -248,6 +248,10 @@ void init_simulation(int narg,char **arg)
 				 VBHOTON0,VBHOTON1,VBHOTON2,VBHOTON3})
 	vph|=(strcasecmp(ins,ins_tag[possIns])==0);
       
+      bool ph=false;
+      for(const auto& possIns : {CVEC0,CVEC1,CVEC2,CVEC3})
+	ph|=(strcasecmp(ins,ins_tag[possIns])==0);
+      
       if(vph)
 	{
 	  decripted=true;
@@ -315,6 +319,9 @@ void init_simulation(int narg,char **arg)
 	    }
 	  read_double(&charge);
 	  master_printf("Read variable 'Charge' with value: %lg\n",charge);
+	  
+	  if(ph)
+	    read_theta(theta);
 	}
       
       read_int(&store_prop);
