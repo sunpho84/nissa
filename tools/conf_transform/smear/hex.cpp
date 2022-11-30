@@ -48,7 +48,10 @@ void in_main(int narg,char **arg)
       //compute topocharge
       double charge;
       topo_time-=take_time();
-      total_topological_charge_lx_conf(&charge,conf);
+      
+      crash("reimplement");charge=0.0;
+      
+      // total_topological_charge_lx_conf(&charge,conf);
       topo_time+=take_time();
       
       master_printf("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_lx_conf(conf),charge);

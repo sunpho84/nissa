@@ -576,9 +576,14 @@ namespace nissa
     a[1]-=+b[0]*c[0]-b[1]*c[1];
     a[0]+=-b[0]*c[1]-b[1]*c[0];
   }
+  
+  template <typename A>
   //squared norm
-  CUDA_HOST_AND_DEVICE inline double complex_norm2(const complex c)
-  {return c[0]*c[0]+c[1]*c[1];}
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  double complex_norm2(A&& c)
+  {
+    return c[0]*c[0]+c[1]*c[1];
+  }
   
   //reciprocal of a complex
   CUDA_HOST_AND_DEVICE inline void complex_reciprocal(complex rec,const complex c)

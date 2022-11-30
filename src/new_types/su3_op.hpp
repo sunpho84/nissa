@@ -313,8 +313,17 @@ namespace nissa
       complex_summ_the_conj1_prod(a,b[ic],c[ic]);
   }
   
-  CUDA_HOST_AND_DEVICE inline double color_norm2(const color c)
-  {double out=complex_norm2(c[0]);for(size_t ic=1;ic<NCOL;ic++) out+=complex_norm2(c[ic]);return out;}
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  double color_norm2(A&& c)
+  {
+    double out=complex_norm2(c[0]);
+    
+    for(int ic=1;ic<NCOL;ic++)
+      out+=complex_norm2(c[ic]);
+    
+    return out;
+  }
   
   //////////////////////////////////// Color and complex //////////////////////////////
   
@@ -1105,12 +1114,16 @@ namespace nissa
   }
   
   //unitarize by orthonormalizing the rows
-  CUDA_HOST_AND_DEVICE inline void su3_unitarize_orthonormalizing(su3 o,const su3 i)
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_unitarize_orthonormalizing(A&& o,
+				      const B& i)
   {
     CRASH_IF_NOT_3COL();
     
     //compute the squared norm of row 0
-    double row0_norm2=color_norm2(i[0]);
+    const double row0_norm2=color_norm2(i[0]);
     
     //compute the scalar product between row 1 and 0
     complex row10_sc_prod;
@@ -1128,8 +1141,8 @@ namespace nissa
 	complex_subt_the_prod(o[1][c],f,i[0][c]);
       }
     
-    double row0_norm=1/sqrt(row0_norm2);
-    double row1_norm=1/sqrt(complex_norm2(o[1][0])+complex_norm2(o[1][1])+complex_norm2(o[1][2]));
+    const double row0_norm=1/sqrt(row0_norm2);
+    const double row1_norm=1/sqrt(complex_norm2(o[1][0])+complex_norm2(o[1][1])+complex_norm2(o[1][2]));
     
     //normalize the rows
     for(size_t c=0;c<NCOL;c++)
