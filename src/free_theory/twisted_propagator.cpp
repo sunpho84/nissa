@@ -302,9 +302,12 @@ namespace nissa
   //multiply the source for the twisted propagator by inverting twisted Dirac operator
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spin *prop,spin *ext_source,tm_quark_info qu,tm_basis_t base)
   {
-    if(base!=MAX_TWIST_BASE) crash("not yet in phys base");
-    inv_tmD_cg_eoprec_eos(prop,NULL,qu,1000000,1.e-28,ext_source);
+    crash("reimplement");
+    
+    // if(base!=MAX_TWIST_BASE) crash("not yet in phys base");
+    // inv_tmD_cg_eoprec_eos(prop,NULL,qu,1000000,1.e-28,ext_source);
   }
+  
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,tm_quark_info qu,tm_basis_t base)
   {
     //source and temp prop

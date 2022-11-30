@@ -248,11 +248,11 @@ namespace nissa
   }
   
   //measure the topological charge
-  void measure_topology_lx_conf(top_meas_pars_t &pars,
+  void measure_topology_lx_conf(const top_meas_pars_t &pars,
 				const LxField<quad_su3>& unsmoothed_conf,
-				int iconf,
-				bool conf_created,
-				bool preserve_unsmoothed)
+				const int& iconf,
+				const bool& conf_created,
+				const bool& preserve_unsmoothed)
   {
     crash("reimplement");
     

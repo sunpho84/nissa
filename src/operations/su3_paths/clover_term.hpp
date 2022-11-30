@@ -38,8 +38,9 @@ namespace nissa
   
   template <class T1,class T2> void clover_term(T1 Cl,double cSW,T2 conf)
   {
-    chromo_operator(Cl,conf);
-    chromo_operator_include_cSW(Cl,cSW);
+    crash("reimplement");
+    // chromo_operator(Cl,conf);
+    // chromo_operator_include_cSW(Cl,cSW);
   }
   
   CUDA_HOST_AND_DEVICE void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa);
@@ -80,7 +81,11 @@ namespace nissa
   // }
   
   CUDA_HOST_AND_DEVICE void invert_point_twisted_clover_term(inv_clover_term_t inv,double mass,double kappa,clover_term_t Cl);
-  void invert_twisted_clover_term(inv_clover_term_t *inv,double mass,double kappa,clover_term_t *Cl);
+  
+   void invert_twisted_clover_term(EvnField<inv_clover_term_t>& invCl,
+				   const double& mass,
+				   const double& kappa,
+				   const EvnField<clover_term_t>& Cl);
 }
 
 #endif

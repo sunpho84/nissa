@@ -56,8 +56,10 @@ namespace nissa
   //smooth a configuration as imposed
   void smooth_lx_conf(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs,int staple_min_dir)
   {
-    for(int ismooth=0;ismooth<sp.nsmooth();ismooth++)
-      smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);
+    crash("reimplement");
+    
+    // for(int ismooth=0;ismooth<sp.nsmooth();ismooth++)
+    //   smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);
   }
   
   std::string smooth_pars_t::get_str(bool full)

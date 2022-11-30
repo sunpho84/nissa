@@ -166,7 +166,10 @@ namespace nissa
     {}
   };
   
-  void smooth_lx_conf_one_step(quad_su3 *smoothed_conf,smooth_pars_t &sp,const which_dir_t& dirs=all_dirs,int staple_min_dir=0);
+  void smooth_lx_conf_one_step(LxField<quad_su3>& smoothed_conf,
+			       const smooth_pars_t &sp,
+			       const which_dir_t& dirs=all_dirs,
+			       const int& staple_min_dir=0);
   
   bool smooth_lx_conf_until_next_meas(LxField<quad_su3>& smoothed_conf,
 				      const smooth_pars_t &sp,

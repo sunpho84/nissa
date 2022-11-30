@@ -363,17 +363,19 @@ void fill_source(const int glbT)
 
 void get_prop(const int& t,const int& r)
 {
-  spincolor* p=prop(t,r);
+  crash("reimplement");
   
-  safe_dirac_prod_spincolor(temp,(tau3[r]==-1)?Pminus:Pplus,source(t));
-  if(cSW==0.0)
-    inv_tmD_cg_eoprec(p,NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
-  else
-    {
-      invert_twisted_clover_term(invCl,mass*tau3[r],kappa,Cl);
-      inv_tmclovD_cg_eoprec(p,NULL,glb_conf,kappa,Cl,invCl,cSW,mass*tau3[r],1000000,residue,temp);
-    }
-  safe_dirac_prod_spincolor(p,(tau3[r]==-1)?Pminus:Pplus,prop(t,r));
+  // spincolor* p=prop(t,r);
+  
+  // safe_dirac_prod_spincolor(temp,(tau3[r]==-1)?Pminus:Pplus,source(t));
+  // if(cSW==0.0)
+  //   inv_tmD_cg_eoprec(p,NULL,glb_conf,kappa,mass*tau3[r],1000000,residue,temp);
+  // else
+  //   {
+  //     invert_twisted_clover_term(invCl,mass*tau3[r],kappa,Cl);
+  //     inv_tmclovD_cg_eoprec(p,NULL,glb_conf,kappa,Cl,invCl,cSW,mass*tau3[r],1000000,residue,temp);
+  //   }
+  // safe_dirac_prod_spincolor(p,(tau3[r]==-1)?Pminus:Pplus,prop(t,r));
 }
 
 void compute_conn_contr(complex* conn_contr,int r1,int r2,int glbT,const dirac_matr& gamma)

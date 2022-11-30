@@ -119,7 +119,8 @@ void in_main(int narg,char **arg)
   read_ildg_gauge_conf(conf,conf_path,&mess);
   unitarize_conf_max(conf);
   
-  measure_topology_lx_conf(top_meas_pars,conf,0,0,false);
+  crash("reimplement");
+  //measure_topology_lx_conf(top_meas_pars,conf,0,0,false);
   
   nissa_free(conf);
   ILDG_message_free_all(&mess);

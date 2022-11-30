@@ -75,7 +75,8 @@ namespace nissa
 	    {
 	      master_printf("Adding cSW for flav %d\n",iflav);
 	      chromo_operator_include_cSW(Cl,q.cSW);
-	      invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
+	      crash("reimplement");
+	      //invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
 	    }
 	}
     }
@@ -83,16 +84,18 @@ namespace nissa
     /// Command to invert
     void inv(spincolor *out,spincolor *in,const int iflav,const int r)
     {
-      set_for_quark(iflav);
+      crash("reimplement");
       
-      const quark_content_t& q=tp.quarks[iflav];
-      const nissa::dirac_matr& P=
-	(tau3[r]==+1)?Pplus:Pminus;
+      // set_for_quark(iflav);
       
-      safe_dirac_prod_spincolor(tmp,P,in);
-      if(q.cSW) inv_tmclovD_cg_eoprec(out,NULL,conf,q.kappa,Cl,invCl,q.cSW,q.mass*tau3[r],1000000,residue,tmp);
-      else inv_tmD_cg_eoprec(out,NULL,conf,q.kappa,q.mass*tau3[r],1000000,residue,tmp);
-      safe_dirac_prod_spincolor(out,P,out);
+      // const quark_content_t& q=tp.quarks[iflav];
+      // const nissa::dirac_matr& P=
+      // 	(tau3[r]==+1)?Pplus:Pminus;
+      
+      // safe_dirac_prod_spincolor(tmp,P,in);
+      // if(q.cSW) inv_tmclovD_cg_eoprec(out,NULL,conf,q.kappa,Cl,invCl,q.cSW,q.mass*tau3[r],1000000,residue,tmp);
+      // else inv_tmD_cg_eoprec(out,NULL,conf,q.kappa,q.mass*tau3[r],1000000,residue,tmp);
+      // safe_dirac_prod_spincolor(out,P,out);
     }
     
     /// Constructor

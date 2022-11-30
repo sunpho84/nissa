@@ -20,7 +20,8 @@
 #include "generate_confs/parser.hpp"
 
   using namespace nissa;
-
+  
+  [[ maybe_unused ]]
   const int debug_parser=0;
   
   int tokenizer_lex(YYSTYPE *lvalp,YYLTYPE *llocp,void *scanner);
