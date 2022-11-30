@@ -81,7 +81,10 @@ namespace nissa
   }
   
   //compute all possible rectangular paths among a defined interval
-  void measure_all_rectangular_paths(all_rects_meas_pars_t* pars,quad_su3* ori_conf,int iconf,int create_output_file)
+  void measure_all_rectangular_paths(const all_rects_meas_pars_t& pars,
+				     const LxField<quad_su3>& ori_conf,
+				     const int& iconf,
+				     const int& create_output_file)
   {
     crash("reimplement");
     

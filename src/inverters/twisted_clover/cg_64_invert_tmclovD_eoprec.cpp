@@ -51,7 +51,15 @@
 #define AT5 double
 #define A5 mass
 
-#include "inverters/templates/cg_invert_template_threaded.cpp"
+//#include "inverters/templates/cg_invert_template_threaded.cpp"
+
+namespace nissa
+{
+  void inv_tmclovDkern_eoprec_square_eos_cg_64_portable(spincolor *sol,spincolor *guess,eo_ptr<quad_su3> eo_conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,int niter,double residue,spincolor *source)
+  {
+    crash("reimplement");
+  }
+}
 
 namespace nissa
 {

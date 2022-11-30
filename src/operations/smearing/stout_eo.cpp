@@ -64,40 +64,40 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  void stout_smear_single_level(EoField<quad_su3,WITH_HALO>& out,
-				const EoField<quad_su3,WITH_HALO>& in,
+  void stout_smear_single_level(EoField<quad_su3>& out,
+				const EoField<quad_su3>& in,
 				const double& rho,
 				const which_dir_t& dirs)
   {
+    crash("reimplement");
+    // START_TIMING(sto_time,nsto);
     
-    START_TIMING(sto_time,nsto);
+    // if(in==out) crash("in==out");
+    // communicate_eo_quad_su3_edges((eo_ptr<quad_su3>)in);
     
-    if(in==out) crash("in==out");
-    communicate_eo_quad_su3_edges((eo_ptr<quad_su3>)in);
+    // //allocate a temporary conf if going to smear iteratively or out==ext_in
     
-    //allocate a temporary conf if going to smear iteratively or out==ext_in
-    
-    for(int p=0;p<2;p++)
-      for(int mu=0;mu<NDIM;mu++)
-	if(dirs[mu])
-	  NISSA_PARALLEL_LOOP(A,0,locVolh)
-	    {
-	      //compute the staples needed to smear
-	      stout_link_staples sto_ste;
-	      stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
+    // for(int p=0;p<2;p++)
+    //   for(int mu=0;mu<NDIM;mu++)
+    // 	if(dirs[mu])
+    // 	  NISSA_PARALLEL_LOOP(A,0,locVolh)
+    // 	    {
+    // 	      //compute the staples needed to smear
+    // 	      stout_link_staples sto_ste;
+    // 	      stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
 	      
-	      //exp(iQ)*U (eq. 3)
-	      su3 expiQ;
-	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
-	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
-	    }
-        NISSA_PARALLEL_LOOP_END;
+    // 	      //exp(iQ)*U (eq. 3)
+    // 	      su3 expiQ;
+    // 	      safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
+    // 	      unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
+    // 	    }
+    //     NISSA_PARALLEL_LOOP_END;
 	
-    //invalid the border and free allocated memory, if any
-    for(int eo=0;eo<2;eo++)
-      set_borders_invalid((quad_su3*)out[eo]);
+    // //invalid the border and free allocated memory, if any
+    // for(int eo=0;eo<2;eo++)
+    //   set_borders_invalid((quad_su3*)out[eo]);
     
-    STOP_TIMING(sto_time);
+    // STOP_TIMING(sto_time);
   }
   
   //smear n times, using only one additional vectors
@@ -147,12 +147,13 @@ namespace nissa
   //smear iteratively retainig all the stack
   void stout_smear_whole_stack(eo_ptr<quad_su3>* out,eo_ptr<quad_su3> in,stout_pars_t* stout_pars,const which_dir_t& dirs)
   {
-    verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
-    for(int i=1;i<=stout_pars->nlevels;i++)
-      {
-	stout_smear_single_level(out[i],out[i-1],stout_pars->rho,dirs);
-	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
-      }
+    crash("reimplement");
+    // verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
+    // for(int i=1;i<=stout_pars->nlevels;i++)
+    //   {
+    // 	stout_smear_single_level(out[i],out[i-1],stout_pars->rho,dirs);
+    // 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
+    //   }
   }
   
   //remap the force to one smearing level less

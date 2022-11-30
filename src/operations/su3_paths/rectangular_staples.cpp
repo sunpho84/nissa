@@ -236,7 +236,7 @@ namespace nissa
   }
   
   //summ everything together
-  void compute_summed_rectangular_staples_lx_conf(LxField<rectangular_staples_t>& out,
+  void compute_summed_rectangular_staples_lx_conf(LxField<quad_su3>& out,
 						  const LxField<quad_su3>& conf,
 						  const LxField<squared_staples_t>& sq_staples)
   {
@@ -249,7 +249,7 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  su3_copy(out[ivol][mu],rectangular_staples[ivol][mu][0]);
-	  for(int iterm=1;iterm<6;iterm++)
+	  for(int iterm=1;iterm<2*(NDIM-1);iterm++)
 	    su3_summassign(out[ivol][mu],rectangular_staples[ivol][mu][iterm]);
 	}
     NISSA_PARALLEL_LOOP_END;

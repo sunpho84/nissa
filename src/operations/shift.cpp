@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "base/debug.hpp"
+#include "base/field.hpp"
 #include "base/vectors.hpp"
 #include "communicate/borders.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -17,11 +18,12 @@
 namespace nissa
 {
   //shift an su3 vector of a single step along the mu axis, in the positive or negative dir
-  void su3_vec_single_shift(su3* u,int mu,int sign)
+  void su3_vec_single_shift(LxField<su3>& u,
+			    const int& mu,
+			    const int& sign)
   {
-    
     //communicate borders
-    communicate_lx_su3_borders(u);
+    u.updateHalo();
     
     //choose start, end and step
     int sh=(sign>0) ? -1 : +1;

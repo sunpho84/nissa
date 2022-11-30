@@ -187,32 +187,34 @@ namespace nissa
   }
   
   //generate an identical conf
-  void generate_cold_eo_conf(eo_ptr<quad_su3> conf)
+  void generate_cold_eo_conf(EoField<quad_su3>& conf)
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_LOC_VOLH_LOOP(ivol)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  for(int mu=0;mu<NDIM;mu++)
-	    su3_put_to_id(conf[par][ivol][mu]);
+	    su3_put_to_id(conf[par][ieo][mu]);
+	NISSA_PARALLEL_LOOP_END;
 	
 	set_borders_invalid(conf[par]);
       }
   }
   
   //generate a random conf
-  void generate_hot_eo_conf(eo_ptr<quad_su3> conf)
+  void generate_hot_eo_conf(EoField<quad_su3>& conf)
   {
     if(loc_rnd_gen_inited==0) crash("random number generator not inited");
     
     for(int par=0;par<2;par++)
       {
-	NISSA_LOC_VOLH_LOOP(ieo)
+	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
         {
 	  int ilx=loclx_of_loceo[par][ieo];
 	  for(int mu=0;mu<NDIM;mu++)
 	    su3_put_to_rnd(conf[par][ieo][mu],loc_rnd_gen[ilx]);
 	}
-	
+	NISSA_PARALLEL_LOOP_END
+	  
 	set_borders_invalid(conf[par]);
       }
   }
@@ -269,8 +271,13 @@ namespace nissa
   //overrelax an lx configuration
   void overrelax_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
   {su3_find_overrelaxed(out,out,staple,((int*)pars)[0]);}
-  void overrelax_lx_conf(quad_su3* conf,gauge_sweeper_t* sweeper,int nhits)
-  {sweeper->sweep_conf(conf,overrelax_lx_conf_handle,(void*)&nhits);}
+  
+  void overrelax_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper,int nhits)
+  {
+    crash("reimplement");
+    
+    //(sweeper->sweep_conf(conf,overrelax_lx_conf_handle,(void*)&nhits);
+  }
   
   //same for heatbath
   namespace heatbath_lx_conf_ns
@@ -284,8 +291,12 @@ namespace nissa
     void handle(su3 out,su3 staple,int ivol,int mu,void *pars)
     {su3_find_heatbath(out,out,staple,((pars_t*)pars)->beta,((pars_t*)pars)->nhits,loc_rnd_gen+ivol);}
   }
-  void heatbath_lx_conf(quad_su3* conf,gauge_sweeper_t* sweeper,double beta,int nhits)
-  {heatbath_lx_conf_ns::pars_t pars(beta,nhits);sweeper->sweep_conf(conf,heatbath_lx_conf_ns::handle,&pars);}
+  
+  void heatbath_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper,const double& beta,const int& nhits)
+  {
+    crash("reimplement");
+    // heatbath_lx_conf_ns::pars_t pars(beta,nhits);sweeper->sweep_conf(conf,heatbath_lx_conf_ns::handle,&pars);
+  }
   
   //same for cooling
   void cool_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
@@ -296,10 +307,11 @@ namespace nissa
     sweeper->sweep_conf(conf,cool_lx_conf_handle,NULL);}
   
   //measure the average gauge energy
-  void average_gauge_energy(double* energy,quad_su3* conf)
+  void average_gauge_energy(double* energy,
+			    const LxField<quad_su3>& conf)
   {
-    communicate_lx_quad_su3_edges(conf);
-    double *loc_energy=nissa_malloc("energy",locVol,double);
+    conf.updateEdges();
+    LxField<double> loc_energy("energy");
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
@@ -320,11 +332,8 @@ namespace nissa
 	loc_energy[ivol]/=glbVol;
       }
     NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
     
     glb_reduce(energy,loc_energy,locVol);
-    
-    nissa_free(loc_energy);
   }
   
   std::string gauge_obs_meas_pars_t::get_str(bool full)

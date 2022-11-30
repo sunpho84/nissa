@@ -1,8 +1,6 @@
 ###################################### inverters #################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/momenta/cg_invert_MFACC.cpp \
-	%D%/momenta/cgm_invert_MFACC.cpp \
 	%D%/staggered/cgm_invert_stD2ee_m2_portable.cpp \
 	%D%/staggered/cgm_32_invert_stD2ee_m2.cpp \
 	%D%/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
@@ -34,8 +32,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/twisted_clover/cg_invert_tmclovQ.cpp
 
 include_HEADERS+= \
-	%D%/momenta/cg_invert_MFACC.hpp \
-	%D%/momenta/cgm_invert_MFACC.hpp \
 	%D%/templates/modern_cg.hpp \
 	%D%/twisted_mass/cg_invert_tmD_eoprec.hpp \
 	%D%/twisted_mass/cg_invert_tmQ2.hpp \

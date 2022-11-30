@@ -226,11 +226,19 @@ namespace nissa
   //   su3_subt_the_prod_color_128(out[1],Cl[0],in[1]);
   // }
   
-  CUDA_HOST_AND_DEVICE void apply_point_squared_twisted_clover_term_to_halfspincolor(halfspincolor out,double mass,double kappa,clover_term_t Cl,halfspincolor in)
+  template <typename O,
+	    typename C,
+	    typename I>
+  CUDA_HOST_AND_DEVICE void apply_point_squared_twisted_clover_term_to_halfspincolor(O&& out,
+										     const double mass,
+										     const double kappa,
+										     const C& Cl,
+										     const I& in,
+										     const int& offset)
   {
-    halfspincolor temp;
-    apply_point_twisted_clover_term_to_halfspincolor(temp,+mass,kappa,Cl,in);
-    apply_point_twisted_clover_term_to_halfspincolor(out ,-mass,kappa,Cl,temp);
+    spincolor temp;
+    apply_point_twisted_clover_term_to_halfspincolor(temp,+mass,kappa,Cl,in,offset);
+    apply_point_twisted_clover_term_to_halfspincolor(out ,-mass,kappa,Cl,temp,offset);
   }
   
   CUDA_HOST_AND_DEVICE void fill_point_twisted_clover_term(halfspincolor_halfspincolor out,int x_high_low,clover_term_t C,double mass,double kappa)

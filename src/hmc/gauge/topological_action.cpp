@@ -65,19 +65,16 @@ namespace nissa
   }
   
   //lx version
-  double topotential_action(quad_su3 *lx_conf,topotential_pars_t &pars)
+  double topotential_action(const LxField<quad_su3>& lx_conf,
+			    const topotential_pars_t &pars)
   {
     //allocate
-    eo_ptr<quad_su3> eo_conf;
-    for(int eo=0;eo<2;eo++) eo_conf[eo]=nissa_malloc("stout_conf",locVolh+bord_volh+edge_volh,quad_su3);
+    EoField<quad_su3> eo_conf("stout_conf",WITH_HALO_EDGES);
     
     //split and compute
     split_lx_vector_into_eo_parts(eo_conf,lx_conf);
-    double out=topotential_action(eo_conf,pars);
     
-    //free and return
-    for(int eo=0;eo<2;eo++) nissa_free(eo_conf[eo]);
-    return out;
+    return topotential_action(eo_conf,pars);
   }
   
   std::string topotential_pars_t::get_str(bool full)

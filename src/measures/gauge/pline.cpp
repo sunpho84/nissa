@@ -13,6 +13,7 @@
 #include "io/endianness.hpp"
 #include "linalgs/linalgs.hpp"
 #include "linalgs/reduce.hpp"
+#include "measures/gauge/pline.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/su3_op.hpp"
 #include "operations/fft.hpp"
@@ -22,16 +23,16 @@
 namespace nissa
 {
   //compute the polyakov loop, for each site of the lattice
-  void field_untraced_polyakov_loop_lx_conf(su3* u,quad_su3* conf,int mu)
+  void field_untraced_polyakov_loop_lx_conf(LxField<su3>& u,
+					    const LxField<quad_su3>& conf,
+					    const int& mu)
   {
-    
-    communicate_lx_quad_su3_borders(conf);
+    conf.updateHalo();
     
     //reset the link product
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       su3_put_to_id(u[ivol]);
     NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
     
     //move along +mu
     for(int i=0;i<glbSize[mu];i++)
@@ -47,20 +48,19 @@ namespace nissa
   }
   
   //compute the trace of the polyakov loop, but do not reduce over space
-  void field_traced_polyakov_loop_lx_conf(complex *out,quad_su3 *conf,int mu)
+  void field_traced_polyakov_loop_lx_conf(LxField<complex>& out,
+					  const LxField<quad_su3>& conf,
+					  const int& mu)
   {
-    
     //compute untraced loops
-    su3 *u=nissa_malloc("u",locVol+bord_vol,su3);
+    LxField<su3> u("u",WITH_HALO);
     field_untraced_polyakov_loop_lx_conf(u,conf,mu);
     
     //trace
-    vector_reset(out);
+    out.reset();
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       su3_trace(out[ivol],u[ivol]);
     NISSA_PARALLEL_LOOP_END;
-    
-    nissa_free(u);
   }
   
   //finding the index to put only the three directions in the plane perpendicular to the dir
@@ -116,20 +116,26 @@ namespace nissa
   }
   
   //compute the polyakov loop - if ext_ll_dag is non null uses it and store correlator with the dag inside it, if ext_ll is non null compute also the correlator with itself
-  void average_and_corr_polyakov_loop_lx_conf_internal(double* loop_trace,double* loop_dag_trace,complex* ll_dag_corr,complex* ll_corr,quad_su3* conf,int mu)
+  void average_and_corr_polyakov_loop_lx_conf_internal(double* loop_trace,
+						       double* loop_dag_trace,
+						       complex* ll_dag_corr,
+						       complex* ll_corr,
+						       const LxField<quad_su3>& conf,
+						       const int& mu)
   {
     
     //compute the traced loop
-    complex *point_loop=nissa_malloc("point_loop",locVol,complex),*point_loop_dag=NULL;
+    LxField<complex> point_loop("point_loop")// ,*point_loop_dag=NULL
+      ;
     field_traced_polyakov_loop_lx_conf(point_loop,conf,mu);
-    if(ll_corr)
-      {
-	point_loop_dag=nissa_malloc("point_loop_dag",locVol,complex);
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  complex_conj(point_loop_dag[ivol],point_loop[ivol]);
-	NISSA_PARALLEL_LOOP_END;
-	set_borders_invalid(point_loop_dag);
-      }
+    // if(ll_corr)
+    //   {
+    // 	point_loop_dag=nissa_malloc("point_loop_dag",locVol,complex);
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  complex_conj(point_loop_dag[ivol],point_loop[ivol]);
+    // 	NISSA_PARALLEL_LOOP_END;
+    // 	set_borders_invalid(point_loop_dag);
+    //   }
       
     //compute the trace; since we reduce over all the volume there are glb_size[mu] replica
     complex temp_trace;
@@ -140,7 +146,8 @@ namespace nissa
     if(ll_dag_corr!=NULL)
       {
 	//take fftw in the perp plane
-	fft4d(point_loop,point_loop,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
+	crash("reimplement");
+	//fft4d(point_loop,point_loop,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
 	
 	//multiply to build correlators
 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
@@ -156,30 +163,27 @@ namespace nissa
       }
     
     //compute also the transform of the dagger if needed
-    if(ll_corr!=NULL)
-      {
-	//for debugging purpose
-	complex temp_dag_trace;
-	glb_reduce(&temp_dag_trace,point_loop_dag,locVol);
-	complex_prod_double(loop_dag_trace,temp_dag_trace,1.0/(3*glbVol));
+    // if(ll_corr!=NULL)
+    //   {
+    // 	//for debugging purpose
+    // 	complex temp_dag_trace;
+    // 	glb_reduce(&temp_dag_trace,point_loop_dag,locVol);
+    // 	complex_prod_double(loop_dag_trace,temp_dag_trace,1.0/(3*glbVol));
 	
-	//transform
-	fft4d(point_loop_dag,point_loop_dag,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
+    // 	//transform
+    // 	fft4d(point_loop_dag,point_loop_dag,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
 	
-	//build l*l
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    unsafe_complex_conj2_prod(ll_corr[ivol],point_loop[ivol],point_loop_dag[ivol]); //because of convolution theorem
-	    complex_prodassign_double(ll_corr[ivol],1.0/9);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	THREAD_BARRIER();
+    // 	//build l*l
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  {
+    // 	    unsafe_complex_conj2_prod(ll_corr[ivol],point_loop[ivol],point_loop_dag[ivol]); //because of convolution theorem
+    // 	    complex_prodassign_double(ll_corr[ivol],1.0/9);
+    // 	  }
+    // 	NISSA_PARALLEL_LOOP_END;
+    // 	THREAD_BARRIER();
 	
-	fft4d(ll_corr,ll_corr,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
-      }
-    
-    nissa_free(point_loop);
-    if(ll_corr) nissa_free(point_loop_dag);
+    // 	fft4d(ll_corr,ll_corr,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+    //   }
   }
   
   //remap and save - "loop" is destroyed!
@@ -250,14 +254,19 @@ namespace nissa
   }
   
   //compute and possible save
-  void average_and_corr_polyakov_loop_lx_conf(double *tra,FILE *corr_file,quad_su3 *conf,int mu,int itraj=0)
+  void average_and_corr_polyakov_loop_lx_conf(double *tra,
+					      FILE *corr_file,
+					      const LxField<quad_su3>& conf,
+					      const int& mu,
+					      const int& itraj)
   {
     //if corr_file passed, allocate whole loop trace
     complex *loop=NULL,*loop_dag=NULL;
     if(corr_file!=NULL)
       {
-	loop=nissa_malloc("loop",locVol,complex);
-	loop_dag=nissa_malloc("loop_dag",locVol,complex);
+	crash("reimplement, maybe");
+	// loop=nissa_malloc("loop",locVol,complex);
+	// loop_dag=nissa_malloc("loop_dag",locVol,complex);
       }
     
     //compute
@@ -267,21 +276,24 @@ namespace nissa
     //write and free
     if(corr_file!=NULL)
       {
-	save_poly_loop_correlator(corr_file,loop,mu,tra,itraj);
-	save_poly_loop_correlator(corr_file,loop_dag,mu,tra_dag,itraj);
-	nissa_free(loop);
-	nissa_free(loop_dag);
+	crash("reimplement");
+	// save_poly_loop_correlator(corr_file,loop,mu,tra,itraj);
+	// save_poly_loop_correlator(corr_file,loop_dag,mu,tra_dag,itraj);
       }
   }
   
   //compute only the average polyakov loop
-  void average_polyakov_loop_lx_conf(complex tra,quad_su3 *conf,int mu)
-  {average_and_corr_polyakov_loop_lx_conf(tra,NULL,conf,mu);}
+  void average_polyakov_loop_lx_conf(complex tra,
+				     const LxField<quad_su3>& conf,
+				     const int& mu)
+  {
+    average_and_corr_polyakov_loop_lx_conf(tra,NULL,conf,mu);
+  }
   
   //definition in case of eo conf
   void average_polyakov_loop_eo_conf(complex tra,eo_ptr<quad_su3> eo_conf,int mu)
   {
-	    crash("reimplement");
+    crash("reimplement");
     // quad_su3 *lx_conf=nissa_malloc("lx_conf",locVol+bord_vol,quad_su3);
     // paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     

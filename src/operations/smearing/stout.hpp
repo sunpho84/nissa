@@ -108,7 +108,7 @@ namespace nissa
 	    typename T1,
 	    typename T2>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void stouted_force_compute_Lambda(const T0& Lambda,
+  void stouted_force_compute_Lambda(T0&& Lambda,
 				    const T1& U,
 				    const T2& F,
 				    hermitian_exp_ingredients *ing)

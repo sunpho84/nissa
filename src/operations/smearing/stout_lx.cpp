@@ -172,11 +172,11 @@ namespace nissa
 			       const stout_pars_t* stout_pars,
 			       const which_dir_t& dirs)
   {
-    verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_lx_conf(out[0]));
+    verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_lx_conf(*out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)
       {
 	stout_smear_single_level(*(out[i]),*(out[i-1]),stout_pars->rho,dirs);
-	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_lx_conf(out[i]));
+	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_lx_conf(*out[i]));
       }
   }
   

@@ -220,7 +220,21 @@ namespace nissa
   //prod with real
   CUDA_HOST_AND_DEVICE inline void complex_prod_double(complex a,const complex b,const double c) {a[RE]=b[RE]*c;a[IM]=b[IM]*c;}
   CUDA_HOST_AND_DEVICE inline void complex_prodassign_double(complex a,const double c) {complex_prod_double(a,a,c);}
-  CUDA_HOST_AND_DEVICE inline void complex_prod_idouble(complex a,const complex b,const double c) {const double d=-b[IM]*c;a[IM]=b[RE]*c;a[RE]=d;}
+  
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_prod_idouble(A&& a,
+			  const B& b,
+			  const C& c)
+  {
+    const double d=-b[IM]*c;
+    
+    a[IM]=b[RE]*c;
+    a[RE]=d;
+  }
+  
   CUDA_HOST_AND_DEVICE inline void complex_prodassign_idouble(complex a,const double b) {complex_prod_idouble(a,a,b);}
   
   //summ the prod with real
@@ -238,9 +252,15 @@ namespace nissa
   }
   
   //summ the prod with imag
-  CUDA_HOST_AND_DEVICE inline void complex_summ_the_prod_idouble(complex a,const complex b,double c)
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_summ_the_prod_idouble(A&& a,
+				     const B& b,
+				     const double& c)
   {
-    const double t=b[1]*c;
+    const auto t=b[1]*c;
+    
     a[1]+=b[0]*c;
     a[0]-=t;
   }
@@ -291,7 +311,9 @@ namespace nissa
 	    typename B,
 	    typename C>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void complex_subt_the_prod(A&& a,const B& b,const C& c)
+  void complex_subt_the_prod(A&& a,
+			     const B& b,
+			     const C& c)
   {
     const auto t=b[0]*c[0]-b[1]*c[1];
     
@@ -304,7 +326,9 @@ namespace nissa
 	    typename B,
 	    typename C>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void complex_summ_the_conj2_prod(A&& a,const B& b,const C& c)
+  void complex_summ_the_conj2_prod(A&& a,
+				   const B& b,
+				   const C& c)
   {
     const auto t=+b[0]*c[0]+b[1]*c[1];
     
@@ -324,16 +348,25 @@ namespace nissa
 	    typename B,
 	    typename C>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void complex_summ_the_conj1_prod(A&& a,const B& b,const C& c)
+  void complex_summ_the_conj1_prod(A&& a,
+				   const B& b,
+				   const C& c)
   {
     complex_summ_the_conj2_prod(a,c,b);
   }
   
   inline void single_complex_summ_the_conj1_prod(single_complex a,const single_complex b,const single_complex c)
   {single_complex_summ_the_conj2_prod(a,c,b);}
-  CUDA_HOST_AND_DEVICE inline void complex_summ_the_conj_conj_prod(complex a,const complex b,const complex c)
+  
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_summ_the_conj_conj_prod(A&& a,
+				       const B& b,
+				       const C& c)
   {
-    const double t=+b[0]*c[0]-b[1]*c[1];
+    const auto t=+b[0]*c[0]-b[1]*c[1];
     a[1]+=-b[0]*c[1]-b[1]*c[0];
     a[0]+=t;
   }
@@ -343,7 +376,9 @@ namespace nissa
 	    typename B,
 	    typename C>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void complex_subt_the_conj2_prod(A&& a,const B& b,const C& c)
+  void complex_subt_the_conj2_prod(A&& a,
+				   const B& b,
+				   const C& c)
   {
     const auto t=+b[0]*c[0]+b[1]*c[1];
     

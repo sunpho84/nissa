@@ -14,7 +14,11 @@
 
 namespace nissa
 {
-  void paste_eo_parts_and_write_ildg_gauge_conf(std::string path,eo_ptr<quad_su3> eo_conf,size_t prec,ILDG_message *mess=NULL);
+  void paste_eo_parts_and_write_ildg_gauge_conf(const std::string& path,
+						const EoField<quad_su3>& eo_conf,
+						const size_t& prec,
+						ILDG_message *mess=NULL);
+  
   void write_real_vector(ILDG_File &file,const double *data,size_t nreals_per_site,size_t nbits,const char *header_message,ILDG_message *mess=NULL);
   
   //wrapper for arbitrary class

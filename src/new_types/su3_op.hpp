@@ -269,10 +269,32 @@ namespace nissa
   }
   
   CUDA_HOST_AND_DEVICE inline void color_prod_double(color a,const color b,const double c) {for(size_t ic=0;ic<NCOL;ic++) complex_prod_double(a[ic],b[ic],c);}
-  CUDA_HOST_AND_DEVICE inline void color_prod_idouble(color a,const color b,const double c) {for(size_t ic=0;ic<NCOL;ic++) complex_prod_idouble(a[ic],b[ic],c);}
+  
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void color_prod_idouble(A&& a,
+			  const B& b,
+			  const C& c)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      complex_prod_idouble(a[ic],b[ic],c);
+  }
   
   CUDA_HOST_AND_DEVICE inline void color_summ_the_prod_double(color a,const color b,const double c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod_double(a[ic],b[ic],c);}
-  CUDA_HOST_AND_DEVICE inline void color_summ_the_prod_idouble(color a,const color b,const double c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod_idouble(a[ic],b[ic],c);}
+  
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void color_summ_the_prod_idouble(A&& a,
+				   const B& b,
+				   const C& c)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      complex_summ_the_prod_idouble(a[ic],b[ic],c);
+  }
   
   CUDA_HOST_AND_DEVICE inline void color_summ_the_prod_complex(color a,const color b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod(a[ic],b[ic],c);}
   CUDA_HOST_AND_DEVICE inline void color_subt_the_prod_complex(color a,const color b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_subt_the_prod(a[ic],b[ic],c);}
@@ -345,10 +367,15 @@ namespace nissa
   }
   
   //return the trace of an su3 matrix
-  CUDA_HOST_AND_DEVICE inline void su3_trace(complex tr,const su3 m)
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_trace(A&& tr,
+		 const B& m)
   {
     complex_copy(tr,m[0][0]);
-    for(size_t ic=1;ic<NCOL;ic++) complex_summassign(tr,m[ic][ic]);
+    for(int ic=1;ic<NCOL;ic++)
+      complex_summassign(tr,m[ic][ic]);
   }
   
   //return only the real part of an su3 matrix
@@ -490,20 +517,24 @@ namespace nissa
   }
   
   //return the hermitian traceless part of an su3 matrix
-  CUDA_HOST_AND_DEVICE inline void unsafe_su3_traceless_hermitian_part(su3 out,const su3 in)
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_traceless_hermitian_part(A&& out,
+					   const B& in)
   {
     double trace_re_third=0;
-    for(size_t ic=0;ic<NCOL;ic++) trace_re_third+=in[ic][ic][RE];
+    for(int ic=0;ic<NCOL;ic++) trace_re_third+=in[ic][ic][RE];
     trace_re_third/=NCOL;
     
-    for(size_t ic=0;ic<NCOL;ic++)
+    for(int ic=0;ic<NCOL;ic++)
       {
 	//imag part of diagonal: 0
 	out[ic][ic][IM]=0;
 	//real part of diagonal: subtract the trace
 	out[ic][ic][RE]=in[ic][ic][RE]-trace_re_third;
 	
-	for(size_t jc=0;jc<ic;jc++)
+	for(int jc=0;jc<ic;jc++)
 	  {
 	    //out-of-diag real part
 	    out[ic][jc][RE]=+(out[jc][ic][RE]=(in[jc][ic][RE]+in[ic][jc][RE])/2);
@@ -628,13 +659,17 @@ namespace nissa
   
   inline void su3_summ_real(su3 a,const su3 b,const double c)
   {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) a[i][i][0]=b[i][i][0]+c;}
-  CUDA_HOST_AND_DEVICE inline void su3_subt(su3 a,const su3 b,const su3 c)
+  
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_subt(A&& a,
+		const B& b,
+		const C& c)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)=SU3_ECAST(b)-SU3_ECAST(c);
-#else
-    for(size_t ic=0;ic<NCOL;ic++) color_subt(a[ic],b[ic],c[ic]);
-#endif
+    for(int ic=0;ic<NCOL;ic++)
+      color_subt(a[ic],b[ic],c[ic]);
   }
   
   /// a+=b

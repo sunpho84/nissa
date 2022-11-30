@@ -212,8 +212,12 @@ namespace nissa
     {if(double_ptr) nissa_free(double_ptr);}
   };
   
-  double multipseudo_rhmc_step(eo_ptr<quad_su3> out_conf,eo_ptr<quad_su3> in_conf,theory_pars_t &theory_pars,
-			       hmc_evol_pars_t &simul_pars,std::vector<rat_approx_t> &rat_appr,int itraj);
+  double multipseudo_rhmc_step(EoField<quad_su3>& out_conf,
+			       const EoField<quad_su3>& in_conf,
+			       theory_pars_t &theory_pars,
+			       hmc_evol_pars_t &simul_pars,
+			       std::vector<rat_approx_t> &rat_appr,
+			       const int itraj);
 }
 
 #endif

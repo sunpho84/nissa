@@ -309,7 +309,10 @@ namespace nissa
     //   }
   }
   
-  void measure_topology_eo_conf(top_meas_pars_t &pars,eo_ptr<quad_su3> unsmoothed_conf_eo,int iconf,bool conf_created)
+  void measure_topology_eo_conf(const top_meas_pars_t &pars,
+				const EoField<quad_su3>& unsmoothed_conf_eo,
+				const int& iconf,
+				const bool& conf_created)
   {
 	    crash("reimplement");
     // quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",locVol+bord_vol+edge_vol,quad_su3);
@@ -409,7 +412,7 @@ namespace nissa
   }
   
   //store the topological charge if needed
-  void topotential_pars_t::store_if_needed(eo_ptr<quad_su3> ext_conf,int iconf)
+  void topotential_pars_t::store_if_needed(const EoField<quad_su3>& ext_conf,const int& iconf) const
   {
     crash("reimplement");
     

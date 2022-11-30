@@ -442,66 +442,66 @@ namespace nissa
   //elong backward
   void elong_su3_path_BW(path_drawing_t* c,su3* out,quad_su3* conf,int mu,bool both_sides)
   {
+    crash("reimplement");
     
-    if(both_sides) crash_if_end_diff_from_start(c);
+    // if(both_sides) crash_if_end_diff_from_start(c);
     
-    su3_vec_single_shift(out,mu,-1);
+    // su3_vec_single_shift(out,mu,-1);
     
-    if(both_sides)
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    su3 temp;
-	    unsafe_su3_prod_su3_dag(temp,out[ivol],conf[ivol][mu]);
-	    unsafe_su3_prod_su3(out[ivol],conf[ivol][mu],temp);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-      }
-    else
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  safe_su3_prod_su3_dag(out[ivol],out[ivol],conf[ivol][mu]);
-	NISSA_PARALLEL_LOOP_END;
-      }
+    // if(both_sides)
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  {
+    // 	    su3 temp;
+    // 	    unsafe_su3_prod_su3_dag(temp,out[ivol],conf[ivol][mu]);
+    // 	    unsafe_su3_prod_su3(out[ivol],conf[ivol][mu],temp);
+    // 	  }
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
+    // else
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  safe_su3_prod_su3_dag(out[ivol],out[ivol],conf[ivol][mu]);
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
     
-    coords_summable_t t(c->back());
-    t[mu]--;
-    c->push_back(t);
-    if(both_sides) c->push_front(t);
-    
-    THREAD_BARRIER();
+    // coords_summable_t t(c->back());
+    // t[mu]--;
+    // c->push_back(t);
+    // if(both_sides) c->push_front(t);
   }
   
   //elong forward
   void elong_su3_path_FW(path_drawing_t* c,su3* out,quad_su3* conf,int mu,bool both_sides)
   {
+    crash("reimplement");
     
-    if(both_sides) crash_if_end_diff_from_start(c);
+    // if(both_sides) crash_if_end_diff_from_start(c);
     
-    if(both_sides)
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    su3 temp;
-	    unsafe_su3_prod_su3(temp,out[ivol],conf[ivol][mu]);
-	    unsafe_su3_dag_prod_su3(out[ivol],conf[ivol][mu],temp);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-      }
-    else
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  safe_su3_prod_su3(out[ivol],out[ivol],conf[ivol][mu]);
-	NISSA_PARALLEL_LOOP_END;
-      }
-    THREAD_BARRIER();
+    // if(both_sides)
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  {
+    // 	    su3 temp;
+    // 	    unsafe_su3_prod_su3(temp,out[ivol],conf[ivol][mu]);
+    // 	    unsafe_su3_dag_prod_su3(out[ivol],conf[ivol][mu],temp);
+    // 	  }
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
+    // else
+    //   {
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  safe_su3_prod_su3(out[ivol],out[ivol],conf[ivol][mu]);
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
+    // THREAD_BARRIER();
     
-    coords_summable_t t(c->back());
-    t[mu]++;
-    c->push_back(t);
-    if(both_sides) c->push_front(t);
+    // coords_summable_t t(c->back());
+    // t[mu]++;
+    // c->push_back(t);
+    // if(both_sides) c->push_front(t);
     
-    su3_vec_single_shift(out,mu,+1);
+    // su3_vec_single_shift(out,mu,+1);
   }
   
   //elong of a certain numer of steps in a certain oriented direction: -1=BW, +1=FW

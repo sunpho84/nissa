@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "base/field.hpp"
 #include "base/vectors.hpp"
 #include "communicate/edges.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -62,17 +63,18 @@ namespace nissa
     glb_shapes[RE]=coll_shapes[RE]/(18*glbVol);
     glb_shapes[IM]=coll_shapes[IM]/(36*glbVol);
   }
-
+  
   //compute plaquettes and rectangles
-  void point_plaquette_and_rectangles_lx_conf(complex* point_shapes,quad_su3* conf)
+  void point_plaquette_and_rectangles_lx_conf(LxField<complex>& point_shapes,
+					      const LxField<quad_su3>& conf)
   {
     
     //communicate conf and reset point shapes
-    communicate_lx_quad_su3_edges(conf);
-    vector_reset(point_shapes);
+    conf.updateEdges();
+    point_shapes.reset();
     
-    for(int mu=0;mu<4;mu++) //link dir
-      for(int nu=0;nu<4;nu++) //staple dir
+    for(int mu=0;mu<NDIM;mu++) //link dir
+      for(int nu=0;nu<NDIM;nu++) //staple dir
 	if(nu!=mu)
 	  {
 	    NISSA_PARALLEL_LOOP(A,0,locVol)
@@ -99,20 +101,19 @@ namespace nissa
 	      }
 	    NISSA_PARALLEL_LOOP_END;
 	  }
-    THREAD_BARRIER();
   }
   
   //compute plaquettes and rectangles
-  void global_plaquette_and_rectangles_lx_conf(double* glb_shapes,quad_su3* conf)
+  void global_plaquette_and_rectangles_lx_conf(double* glb_shapes,
+					       const LxField<quad_su3>& conf)
   {
     //summ squares and rectangles separately
-    complex *point_shapes=nissa_malloc("point_shapes",locVol,complex);
+    LxField<complex> point_shapes("point_shapes");
     point_plaquette_and_rectangles_lx_conf(point_shapes,conf);
     
     //reduce and free
     complex coll_shapes;
     glb_reduce(&coll_shapes,point_shapes,locVol);
-    nissa_free(point_shapes);
     
     //normalize (passing throug additional var because of external unkwnon env)
     glb_shapes[RE]=coll_shapes[RE]/(18*glbVol);
@@ -120,11 +121,11 @@ namespace nissa
   }
   
   //compute plaquettes and rectangles
-  void global_plaquette_and_rectangles_lx_conf_per_timeslice(double* glb_shapes,quad_su3* conf)
+  void global_plaquette_and_rectangles_lx_conf_per_timeslice(double* glb_shapes,
+							     const LxField<quad_su3>& conf)
   {
-    
     //summ squares and rectangles separately
-    complex *point_shapes=nissa_malloc("point_shapes",locVol,complex);
+    LxField<complex> point_shapes("point_shapes");
     point_plaquette_and_rectangles_lx_conf(point_shapes,conf);
     
     //reduce
@@ -136,7 +137,6 @@ namespace nissa
       for(int ivol=loc_t*locSpatVol;ivol<(loc_t+1)*locSpatVol;ivol++)
 	complex_summassign(loc_shapes[glbCoordOfLoclx[ivol][0]],point_shapes[ivol]);
     NISSA_PARALLEL_LOOP_END;
-    nissa_free(point_shapes);
     
     //reduce (passing throug additional var because of external unkwnon env)
     complex *coll_shapes=nissa_malloc("coll_shapes",glbSize[0],complex);
@@ -146,8 +146,8 @@ namespace nissa
     //normalize
     for(int t=0;t<glbSize[0];t++)
       {
-	glb_shapes[2*t+0]=coll_shapes[t][RE]/(18*glbVol/glbSize[0]);
-	glb_shapes[2*t+1]=coll_shapes[t][IM]/(36*glbVol/glbSize[0]);
+	glb_shapes[2*t+0]=coll_shapes[t][RE]/(18.0*glbVol/glbSize[0]);
+	glb_shapes[2*t+1]=coll_shapes[t][IM]/(36.0*glbVol/glbSize[0]);
       }
     nissa_free(coll_shapes);
   }

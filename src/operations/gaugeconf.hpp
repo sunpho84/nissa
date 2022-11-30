@@ -72,20 +72,24 @@ namespace nissa
   };
   
   /////////////////////////////////////////////////////////////
+  //to be improved
+  void average_gauge_energy(double *energy,
+			    const LxField<quad_su3>& conf);
   
-  void average_gauge_energy(double *energy,quad_su3 *conf);
-  inline double average_gauge_energy(quad_su3 *conf)
+  inline double average_gauge_energy(const LxField<quad_su3>& conf)
   {
     double energy;
     average_gauge_energy(&energy,conf);
+    
     return energy;
   }
+  
   void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis);
   void ac_rotate_vector(void *out,void *in,int axis,size_t bps);
   void adapt_theta(quad_su3 *conf,momentum_t& old_theta,const momentum_t& put_theta,int putonbords,int putonedges);
   void cool_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper);
-  void generate_cold_eo_conf(eo_ptr<quad_su3> conf);
-  void generate_hot_eo_conf(eo_ptr<quad_su3> conf);
+  void generate_cold_eo_conf(EoField<quad_su3>& conf);
+  void generate_hot_eo_conf(EoField<quad_su3>& conf);
   
   /// Generate an identical conf
   template <typename C>
@@ -112,8 +116,10 @@ namespace nissa
     set_borders_invalid(conf);
   }
   
-  void heatbath_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper,double beta,int nhits);
-  void overrelax_lx_conf(quad_su3 *conf,gauge_sweeper_t *sweeper,int nhits);
+  void heatbath_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper,const double& beta,const int& nhits);
+  
+  void overrelax_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper,int nhits);
+  
   void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
   void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
   

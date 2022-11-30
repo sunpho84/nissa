@@ -29,86 +29,88 @@ namespace nissa
   //Return the maximal eigenvalue of the Dirac operator for the passed quark
   void max_eigenval(double* eig_max,quark_content_t* quark,eo_ptr<quad_su3> eo_conf,eo_ptr<clover_term_t> Cl,eo_ptr<quad_u1> backfield,int niters)
   {
-    pseudofermion_t in(quark->discretiz);
-    pseudofermion_t temp1(quark->discretiz);
-    pseudofermion_t temp2(quark->discretiz); //not used for stag...
-    pseudofermion_t out(quark->discretiz);
+    crash("reimplement");
     
-    //generate the random field
-    in.fill();
+    //     pseudofermion_t in(quark->discretiz);
+//     pseudofermion_t temp1(quark->discretiz);
+//     pseudofermion_t temp2(quark->discretiz); //not used for stag...
+//     pseudofermion_t out(quark->discretiz);
     
-    //perform initial normalization
-    double init_norm=in.normalize();
-    verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
+//     //generate the random field
+//     in.fill();
     
-    //prepare the ingredients
-    if(ferm_discretiz::is_stag(quark->discretiz))
-      add_backfield_with_stagphases_to_conf(eo_conf,backfield);
-    else
-      add_backfield_without_stagphases_to_conf(eo_conf,backfield);
+//     //perform initial normalization
+//     double init_norm=in.normalize();
+//     verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
     
-    inv_clover_term_t *invCl_evn=NULL;
-    if(ferm_discretiz::include_clover(quark->discretiz))
-      {
-	invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
-	chromo_operator_include_cSW(Cl,quark->cSW);
-	invert_twisted_clover_term(invCl_evn,quark->mass,quark->kappa,Cl[EVN]);
-      }
+//     //prepare the ingredients
+//     if(ferm_discretiz::is_stag(quark->discretiz))
+//       add_backfield_with_stagphases_to_conf(eo_conf,backfield);
+//     else
+//       add_backfield_without_stagphases_to_conf(eo_conf,backfield);
     
-    //apply the vector niter times normalizing at each iter
-    int iter=0;
-    int is_increasing=1;
-    double old_eig_max;
+//     inv_clover_term_t *invCl_evn=NULL;
+//     if(ferm_discretiz::include_clover(quark->discretiz))
+//       {
+// 	invCl_evn=nissa_malloc("invCl_evn",locVolh,inv_clover_term_t);
+// 	chromo_operator_include_cSW(Cl,quark->cSW);
+// 	invert_twisted_clover_term(invCl_evn,quark->mass,quark->kappa,Cl[EVN]);
+//       }
     
-#if THREADS_TYPE == CUDA_THREADS
-    const char DOE_TEST[]="DOE_TEST";
-    if(getenv(DOE_TEST)!=NULL)
-      {
-	gpu::cuda_test<double>(out.stag,eo_conf,in.stag);
-	gpu::cuda_test<float>(out.stag,eo_conf,in.stag);
-      }
-    else
-      master_printf("to run the test export %s\n",DOE_TEST);
-#endif
+//     //apply the vector niter times normalizing at each iter
+//     int iter=0;
+//     int is_increasing=1;
+//     double old_eig_max;
     
-    do
-      {
-	switch(quark->discretiz)
-	  {
-	  case ferm_discretiz::ROOT_STAG:
-	    apply_stD2ee_m2(out.stag,eo_conf,temp1.stag,sqr(quark->mass),in.stag);
-	    break;
-	  case ferm_discretiz::ROOT_TM_CLOV:
-	    tmclovDkern_eoprec_square_eos(out.Wils,temp1.Wils,temp2.Wils,eo_conf,quark->kappa,Cl[ODD],invCl_evn,quark->mass,in.Wils);
-	    break;
-	  default:
-	    crash("not supported yet");
-	  }
+// #if THREADS_TYPE == CUDA_THREADS
+//     const char DOE_TEST[]="DOE_TEST";
+//     if(getenv(DOE_TEST)!=NULL)
+//       {
+// 	gpu::cuda_test<double>(out.stag,eo_conf,in.stag);
+// 	gpu::cuda_test<float>(out.stag,eo_conf,in.stag);
+//       }
+//     else
+//       master_printf("to run the test export %s\n",DOE_TEST);
+// #endif
+    
+//     do
+//       {
+// 	switch(quark->discretiz)
+// 	  {
+// 	  case ferm_discretiz::ROOT_STAG:
+// 	    apply_stD2ee_m2(out.stag,eo_conf,temp1.stag,sqr(quark->mass),in.stag);
+// 	    break;
+// 	  case ferm_discretiz::ROOT_TM_CLOV:
+// 	    tmclovDkern_eoprec_square_eos(out.Wils,temp1.Wils,temp2.Wils,eo_conf,quark->kappa,Cl[ODD],invCl_evn,quark->mass,in.Wils);
+// 	    break;
+// 	  default:
+// 	    crash("not supported yet");
+// 	  }
 	
-	//compute the norm
-	old_eig_max=*eig_max;
-	(*eig_max)=in.normalize(out);
+// 	//compute the norm
+// 	old_eig_max=*eig_max;
+// 	(*eig_max)=in.normalize(out);
 	
-	if((iter++)>0) is_increasing=(*eig_max/old_eig_max-1>1e-14);
-	verbosity_lv2_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark->mass,iter,*eig_max);
-      }
-    while(iter<niters and is_increasing);
+// 	if((iter++)>0) is_increasing=(*eig_max/old_eig_max-1>1e-14);
+// 	verbosity_lv2_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark->mass,iter,*eig_max);
+//       }
+//     while(iter<niters and is_increasing);
     
-    //remove the background field
-    if(ferm_discretiz::is_stag(quark->discretiz))
-      rem_backfield_with_stagphases_from_conf(eo_conf,backfield);
-    else
-      rem_backfield_without_stagphases_from_conf(eo_conf,backfield);
+//     //remove the background field
+//     if(ferm_discretiz::is_stag(quark->discretiz))
+//       rem_backfield_with_stagphases_from_conf(eo_conf,backfield);
+//     else
+//       rem_backfield_without_stagphases_from_conf(eo_conf,backfield);
     
-    //assume a 10% excess
-    (*eig_max)*=1.1;
-    verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark->mass,*eig_max);
+//     //assume a 10% excess
+//     (*eig_max)*=1.1;
+//     verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark->mass,*eig_max);
     
-    if(ferm_discretiz::include_clover(quark->discretiz))
-      {
-	chromo_operator_remove_cSW(Cl,quark->cSW);
-	nissa_free(invCl_evn);
-      }
+//     if(ferm_discretiz::include_clover(quark->discretiz))
+//       {
+// 	chromo_operator_remove_cSW(Cl,quark->cSW);
+// 	nissa_free(invCl_evn);
+//       }
   }
   
   //check that an approximation is valid in the interval passed

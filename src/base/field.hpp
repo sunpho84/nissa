@@ -479,11 +479,31 @@ namespace nissa
       data=nissa_malloc(name,externalSize*nInternalDegs,Fund);
     }
     
+    /// Move constructor
+    Field(Field&& oth) :
+      name(oth.name),
+      haloEdgesPresence(oth.haloEdgesPresence),
+      externalSize(oth.externalSize),
+      data(oth.data),
+      haloIsValid(oth.haloIsValid),
+      edgesAreValid(oth.edgesAreValid)
+    {
+      oth.data=nullptr;
+    }
+    
+    /// Copy constructor
+    Field(const Field& oth) :
+      Field(oth.name,oth.haloEdgesPresence)
+    {
+      *this=oth;
+    }
+    
     /// Destructor
     ~Field()
     {
       master_printf("Deallocating field %s\n",name);
-      nissa_free(data);
+      if(data)
+	nissa_free(data);
     }
     
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
