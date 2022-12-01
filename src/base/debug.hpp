@@ -37,6 +37,11 @@ namespace nissa
   void print_backtrace_list();
   void signal_handler(int);
   double take_time();
+  
+  void testLxHaloExchange();
+  void testEoHaloExchange();
+  void testLxEdgesExchange();
+  void testEoEdgesExchange();
 }
 
 
