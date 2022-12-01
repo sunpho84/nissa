@@ -1,6 +1,6 @@
 include $(top_srcdir)/config/baseMakefile.am
 
-include_HEADERS=nissa.hpp
+include_HEADERS+=nissa.hpp
 
 include $(top_srcdir)/src/base/Makefile.am
 include $(top_srcdir)/src/communicate/Makefile.am

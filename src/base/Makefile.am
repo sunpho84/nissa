@@ -10,12 +10,14 @@ $(top_srcdir)/.git/HEAD:
 $(top_srcdir)/.git/index:
 
 
-BUILT_SOURCES=%D%/git_info.hpp
+BUILT_SOURCES+= \
+	%D%/git_info.hpp
 
 __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/bench.cpp \
 	%D%/close.cpp \
 	%D%/debug.cpp \
+	%D%/field.cpp \
 	%D%/init.cpp \
 	%D%/memory_manager.cpp \
 	%D%/multiGridParams.cpp \
@@ -27,6 +29,7 @@ include_HEADERS+= \
 	%D%/close.hpp \
 	%D%/cuda_test.hpp \
 	%D%/debug.hpp \
+	%D%/field.hpp \
 	%D%/git_info.hpp \
 	%D%/init.hpp \
 	%D%/memory_manager.hpp \

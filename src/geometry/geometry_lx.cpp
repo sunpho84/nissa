@@ -294,37 +294,32 @@ namespace nissa
     const auto [mu,nu]=edge_dirs[iEdge];
     
     if(not (is_dir_parallel[mu] and is_dir_parallel[nu]))
-      return -1;
+	return -1;
     
     if(locSize[mu]<2 or locSize[nu]<2)
       crash("not working if one dir is smaller than 2");
     
     auto iter=
-      [&loclx](auto& iter,const int& s,const int& dir,const auto&...tail)
+      [&loclx](auto& iter,
+	       const int& s,
+	       const int& dir,
+	       const auto&...tail)
       {
-	auto nested=
-	  [&dir,&iter,&s](const auto& l,
-			  const auto&...dirs)
-	{
-	  const int m=
-	    l[s][dir];
-	  
-	  if constexpr (sizeof...(dirs)==0)
-	    return l[m][dir]-locVol-bord_vol;
-	  else
-	    return iter(iter,m,dirs...);
-	};
-	
 	const int c=
 	  locCoordOfLoclx[loclx][dir];
 	
-	if(c==0)
-	  return nested(loclxNeighdw);
-	
-	if(c==locSize[dir]-1)
-	  return nested(loclxNeighup);
-	
-	return -1;
+	if(c%(locSize[dir]-1)==0)
+	  {
+	    const int& m=
+	      loclx_neigh[c!=0][s][dir];
+	    
+	    if constexpr(sizeof...(tail)==0)
+	      return m-locVol-bord_vol;
+	    else
+	      return iter(iter,m,tail...);
+	  }
+	else
+	  return -1;
       };
     
     return iter(iter,loclx,mu,nu);
@@ -428,7 +423,9 @@ namespace nissa
       for(int iEdge=0;iEdge<nEdges;iEdge++)
 	{
 	  const int edgeLx=edgelx_of_surflx(loclx,iEdge);
-	  if(edgeLx!=-1) surflxOfEdgelx[edgeLx]=loclx;
+	  
+	  if(edgeLx!=-1)
+	    surflxOfEdgelx[edgeLx]=loclx;
 	}
     NISSA_PARALLEL_LOOP_END;
   }

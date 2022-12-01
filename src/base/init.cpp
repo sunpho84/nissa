@@ -680,15 +680,13 @@ namespace nissa
       {
 	const auto [mu,nu]=edge_dirs[iEdge];
 	for(int bf1=0;bf1<2;bf1++)
-	  {
-	    coords_t c=rank_coord;
-	    c[mu]=(c[mu]+nrank_dir[mu]+2*bf1-1)%nrank_dir[mu];
-	    for(int bf2=0;bf2<2;bf2++)
-	      {
-		c[nu]=(c[nu]+nrank_dir[nu]+2*bf2-1)%nrank_dir[nu];
-		rank_edge_neigh[bf1][bf2][iEdge]=rank_of_coord(c);
-	      }
-	  }
+	  for(int bf2=0;bf2<2;bf2++)
+	    {
+	      coords_t c=rank_coord;
+	      c[mu]=(c[mu]+nrank_dir[mu]+2*bf1-1)%nrank_dir[mu];
+	      c[nu]=(c[nu]+nrank_dir[nu]+2*bf2-1)%nrank_dir[nu];
+	      rank_edge_neigh[bf1][bf2][iEdge]=rank_of_coord(c);
+	    }
       }
     
     //print information

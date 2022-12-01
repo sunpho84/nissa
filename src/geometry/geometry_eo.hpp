@@ -73,8 +73,10 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_EO int *loceo_of_loclx;
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> loclx_of_loceo;
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> surfeo_of_bordeo;
+  CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<int> surfeo_of_edgeo;
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<coords_t> loceo_neighup;
   CUDA_MANAGED EXTERN_GEOMETRY_EO eo_ptr<coords_t> loceo_neighdw;
+
   EXTERN_GEOMETRY_EO int eo_geom_inited;
   EXTERN_GEOMETRY_EO int use_eo_geom;
   

@@ -19,85 +19,25 @@
 namespace nissa
 {
   /// Start the communications of buffer interpreted as halo
+  std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
+						     const size_t& bps);
+  
+  /// Start the communications of buffer interpreted as halo
   template <typename T>
   std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff)
   {
-    /// Pending requests
-    std::vector<MPI_Request> requests;
-    
-    for(int mu=0;mu<NDIM;mu++)
-      if(is_dir_parallel[mu])
-	{
-	  const auto sendOrRecv=
-	    [&mu,&divCoeff,&requests](const auto sendOrRecv,
-				      auto* ptr,
-				      const int& bf)
-	    {
-	      const size_t offset=(bord_offset[mu]+bord_volh*(bf))*sizeof(T)/divCoeff;
-	      const int rank=rank_neigh[bf][mu];
-	      const int messageTag=bf+2*mu;
-	      const size_t messageLength=bord_dir_vol[mu]*sizeof(T)/divCoeff;
-	      
-	      MPI_Request request;
-		
-	      sendOrRecv(ptr+offset,messageLength,MPI_CHAR,rank,
-			 messageTag,cart_comm,&request);
-	      
-	      requests.push_back(request);
-	    };
-	  
-	  for(int bf=0;bf<2;bf++)
-	    {
-	      sendOrRecv(MPI_Isend,send_buf,!bf);
-	      sendOrRecv(MPI_Irecv,recv_buf, bf);
-	    }
-	}
-    
-    return requests;
+    return startBufHaloNeighExchange(divCoeff,sizeof(T));
   }
+  
+  /// Start the communications of buffer interpreted as edges
+  std::vector<MPI_Request> startBufEdgesNeighExchange(const int& divCoeff,
+						      const size_t& bps);
   
   /// Start the communications of buffer interpreted as edges
   template <typename T>
   std::vector<MPI_Request> startBufEdgesNeighExchange(const int& divCoeff)
   {
-    /// Pending requests
-    std::vector<MPI_Request> requests;
-    
-    for(int iEdge=0;iEdge<nEdges;iEdge++)
-      {
-	const auto sendOrRecv=
-	  [&iEdge,&divCoeff,&requests](const auto sendOrRecv,
-				       auto* ptr,
-				       const int& bf1,
-				       const int& bf2)
-	  {
-	    // const auto [mu,nu]=edge_dirs[iEdge];
-	    
-	    if(isEdgeParallel[iEdge])
-	      {
-		const size_t offset=(edge_offset[iEdge]+edge_vol*(bf2+2*bf1)/4)*sizeof(T)/divCoeff;
-		const int rank=rank_edge_neigh[bf1][bf2][iEdge];
-		const int messageTag=bf2+2*(bf1+2*iEdge);
-		const size_t messageLength=edge_dir_vol[iEdge]*sizeof(T)/divCoeff;
-		
-		MPI_Request request;
-		
-		sendOrRecv(ptr+offset,messageLength,MPI_CHAR,rank,
-			   messageTag,cart_comm,&request);
-		
-		requests.push_back(request);
-	      }
-	  };
-	
-	for(int bf1=0;bf1<2;bf1++)
-	  for(int bf2=0;bf2<2;bf2++)
-	    {
-	      sendOrRecv(MPI_Isend,send_buf,!bf1,!bf2);
-	      sendOrRecv(MPI_Irecv,recv_buf, bf1, bf2);
-	    }
-      }
-    
-    return requests;
+    return startBufEdgesNeighExchange(divCoeff,sizeof(T));
   }
   
   /// Wait for communications to finish
@@ -222,9 +162,9 @@ namespace nissa
       
       if constexpr(sitesCoverage==FULL_SPACE)
 	return surflxOfEdgelx[iEdge];
-      // else
-      // 	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
-      // 	  return surfeo_of_edgeeo[sitesCoverage][iEdge];
+      else
+	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
+	  return surfeo_of_edgeo[sitesCoverage][iEdge];
     }
     
 #define PROVIDE_NEIGH(UD)						\
@@ -561,12 +501,13 @@ namespace nissa
     
     /// Fill the sending buf using the data with a given function
     template <typename F>
-    void fillSendingBufWith(F& f,const int& n) const
+    void fillSendingBufWith(F& f,
+			    const int& n) const
     {
-      NISSA_PARALLEL_LOOP(iHalo,0,n)
+      NISSA_PARALLEL_LOOP(i,0,n)
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  ((Fund*)send_buf)[internalDeg+nInternalDegs*iHalo]=
-	    data[index(f(iHalo),internalDeg)];
+	  ((Fund*)send_buf)[internalDeg+nInternalDegs*i]=
+	    data[index(f(i),internalDeg)];
       NISSA_PARALLEL_LOOP_END;
     }
     
@@ -607,7 +548,8 @@ namespace nissa
     }
     
     /// Fill the sending buf using the data with a given function
-    void fillHaloOrEdgesWithReceivingBuf(const int& offset,const int& n) const
+    void fillHaloOrEdgesWithReceivingBuf(const int& offset,
+					 const int& n) const
     {
       NISSA_PARALLEL_LOOP(i,0,n)
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
@@ -747,11 +689,11 @@ namespace nissa
 	  
 	  //take time and write some debug output
 	  START_TIMING(tot_comm_time,ntot_comm);
-	  verbosity_lv3_master_printf("Start communication of borders of %s\n",name);
+	  verbosity_lv3_master_printf("Start communication of edges of %s\n",name);
 	  
 	  //fill the communicator buffer, start the communication and take time
 	  fillSendingBufWithEdgesSurface();
-          requests=startHaloAsyincComm();
+          requests=startEdgesAsyincComm();
           STOP_TIMING(tot_comm_time);
 	}
       
@@ -883,6 +825,12 @@ namespace nissa
     }
     
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    int operator()() const
+    {
+      return EO;
+    }
+    
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Par<1-EO> operator!() const
     {
       return {};
@@ -964,6 +912,16 @@ namespace nissa
       });
     }
     
+    /// Update the edges of both parities
+    INLINE_FUNCTION
+    void updateEdges() const
+    {
+      forBothParities([this](const auto& par)
+      {
+	(*this)[par].updateEdges();
+      });
+    }
+    
     /// Invalidate the halo of both parities
     INLINE_FUNCTION
     void invalidateHalo()
@@ -971,6 +929,16 @@ namespace nissa
       forBothParities([this](const auto& par)
       {
 	(*this)[par].invalidateHalo();
+      });
+    }
+    
+    /// Invalidate the edges of both parities
+    INLINE_FUNCTION
+    void invalidateEdges()
+    {
+      forBothParities([this](const auto& par)
+      {
+	(*this)[par].invalidateEdges();
       });
     }
     
@@ -1001,7 +969,7 @@ namespace nissa
   
   /// Loop on both parities
   template <typename F>
-  void forBothParities(const F& f)
+  void forBothParities(F&& f)
   {
     f(Par<0>{});
     f(Par<1>{});

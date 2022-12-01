@@ -63,6 +63,7 @@ namespace nissa
     for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",locVolh+bord_volh+edge_volh,coords_t);
     for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",locVolh+bord_volh+edge_volh,coords_t);
     for(int par=0;par<2;par++) surfeo_of_bordeo[par]=nissa_malloc("surfeo_of_bordeo",bord_volh,int);
+    for(int par=0;par<2;par++) surfeo_of_edgeo[par]=nissa_malloc("surfeo_of_edgeo",edge_volh,int);
     for(int par=0;par<2;par++) ignore_borders_communications_warning(loclx_of_loceo[par]);
     for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighup[par]);
     for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighdw[par]);
@@ -102,10 +103,16 @@ namespace nissa
     //finds how to fill the borders with surface
     for(int bordlx=0;bordlx<bord_vol;bordlx++)
       {
-	int surflx=surflxOfBordlx[bordlx];
+	const int surflx=surflxOfBordlx[bordlx];
 	surfeo_of_bordeo[loclx_parity[surflx]][loceo_of_loclx[bordlx+locVol]-locVolh]=loceo_of_loclx[surflx];
       }
     
+    //finds how to fill the edges with surface
+    for(int edgelx=0;edgelx<edge_vol;edgelx++)
+      {
+	const int surflx=surflxOfEdgelx[edgelx];
+	surfeo_of_edgeo[loclx_parity[surflx]][loceo_of_loclx[edgelx+locVol+bord_vol]-locVolh-bord_volh]=loceo_of_loclx[surflx];
+      }
     master_printf("E/O Geometry intialized\n");
     
     eo_geom_inited=1;
@@ -179,6 +186,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	nissa_free(loclx_of_loceo[par]);
+	nissa_free(surfeo_of_edgeo[par]);
 	nissa_free(surfeo_of_bordeo[par]);
 	nissa_free(loceo_neighup[par]);
 	nissa_free(loceo_neighdw[par]);
