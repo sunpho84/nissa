@@ -359,8 +359,8 @@ void init_simulation(int narg,char **arg)
   
   if(clover_run)
     {
-      Cl=nissa_malloc("Cl",locVol,clover_term_t);
-      invCl=nissa_malloc("invCl",locVol,inv_clover_term_t);
+      Cl=new LxField<clover_term_t>("Cl");
+      invCl=new LxField<inv_clover_term_t>("invCl");
     }
   
   allocate_loop_source();

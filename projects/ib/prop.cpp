@@ -1,7 +1,7 @@
 #include <nissa.hpp>
 
 #define EXTERN_PROP
- #include "prop.hpp"
+# include "prop.hpp"
 
 #include <memory>
 #include <set>
@@ -9,13 +9,15 @@
 
 namespace nissa
 {
-  //multiply the configuration for an additional u(1) field, defined as exp(-i e q A /3)
-  void add_photon_field_to_conf(quad_su3* conf,double charge)
+  void add_photon_field_to_conf(LxField<quad_su3>& conf,
+				const double& charge)
   {
     const double alpha_em=1/137.04;
     const double e2=4*M_PI*alpha_em;
     const double e=sqrt(e2);
+    
     verbosity_lv2_master_printf("Adding backfield, for a quark of charge q=e*%lg/3\n",charge);
+    
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       for(int mu=0;mu<NDIM;mu++)
 	{
@@ -24,13 +26,15 @@ namespace nissa
 	  safe_su3_prod_complex(conf[ivol][mu],conf[ivol][mu],ph);
 	}
     NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(conf);
+    
+    conf.invalidateHalo();
   }
   
-  //remove the field
-  void rem_photon_field_to_conf(quad_su3 *conf,double q)
+  /// Remove the field
+  void rem_photon_field_to_conf(LxField<quad_su3>& conf,
+				const double& charge)
   {
-    add_photon_field_to_conf(conf,-q);
+    add_photon_field_to_conf(conf,-charge);
   }
   
   //get a propagator inverting on "in"

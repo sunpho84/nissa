@@ -191,7 +191,9 @@ namespace nissa
   void generate_lepton_propagators();
   void propagators_fft(int ihit);
   
-  void add_photon_field_to_conf(quad_su3 *conf,double charge);
+  /// Multiply the configuration for an additional u(1) field, defined as exp(-i e q A /3)
+  void add_photon_field_to_conf(LxField<quad_su3>& conf,
+				const double& charge);
   
   struct fft_filterer_t
   {

@@ -138,11 +138,18 @@ namespace nissa
     complex_isumm(a,a,b);
   }
   
-  CUDA_HOST_AND_DEVICE inline void complex_summ_conj2(complex a,const complex b,const complex c)
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_summ_conj2(A&& a,
+			  const B& b,
+			  const C& c)
   {
     a[0]=b[0]+c[0];
     a[1]=b[1]-c[1];
   }
+  
   inline void complex_summ_conj1(complex a,const complex b,const complex c)
   {complex_summ_conj2(a,c,b);}
   
@@ -217,8 +224,18 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void complex_iexp(complex out,const double arg)
   {sincos(arg,out+IM,out+RE);}
   
-  //prod with real
-  CUDA_HOST_AND_DEVICE inline void complex_prod_double(complex a,const complex b,const double c) {a[RE]=b[RE]*c;a[IM]=b[IM]*c;}
+  /// Prod with real
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_prod_double(A&& a,
+			   const B& b,
+			   const double& c)
+  {
+    a[RE]=b[RE]*c;
+    a[IM]=b[IM]*c;
+  }
+  
   CUDA_HOST_AND_DEVICE inline void complex_prodassign_double(complex a,const double c) {complex_prod_double(a,a,c);}
   
   template <typename A,

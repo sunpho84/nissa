@@ -3,9 +3,10 @@
 
 #include <sstream>
 
-#include "geometry/geometry_lx.hpp"
-#include "new_types/su3.hpp"
-#include "routines/ios.hpp"
+#include <base/field.hpp>
+#include <geometry/geometry_lx.hpp>
+#include <new_types/su3.hpp>
+#include <routines/ios.hpp>
 
 namespace nissa
 {
@@ -13,13 +14,26 @@ namespace nissa
   struct ape_pars_t
   {
     int nlevels;
+    
     double alpha;
     
-    int def_nlevels(){return 20;}
-    double def_alpha(){return 0.5;}
+    int def_nlevels() const
+    {
+      return 20;
+    }
     
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false)
+    double def_alpha() const
+    {
+      return 0.5;
+    }
+    
+    int master_fprintf(FILE *fout,
+		       const bool full) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
+    
+    std::string get_str(const bool& full=false) const
     {
       std::ostringstream os;
       
@@ -33,7 +47,7 @@ namespace nissa
       return os.str();
     }
     
-    int is_nonstandard()
+    int is_nonstandard() const
     {
       return
 	nlevels!=def_nlevels() or
@@ -42,18 +56,53 @@ namespace nissa
     
     ape_pars_t() :
       nlevels(def_nlevels()),
-      alpha(def_alpha()) {}
+      alpha(def_alpha())
+    {
+    }
   };
   
-  void ape_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,const which_dir_t& dirs=all_dirs,int min_staple_dir=0);
-  inline void ape_single_dir_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int mu,int min_staple_dir=0)
-  {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,only_dir[mu],min_staple_dir);}
-  inline void ape_perp_dir_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep,int mu,int min_staple_dir=0)
-  {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,all_other_dirs[mu]);}
-  inline void ape_temporal_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
-  {ape_single_dir_smear_conf(smear_conf,origi_conf,alpha,nstep,0);}
-  inline void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
-  {ape_perp_dir_smear_conf(smear_conf,origi_conf,alpha,nstep,0,1);}
+  void ape_smear_conf(LxField<quad_su3>& smear_conf,
+		      LxField<quad_su3> origi_conf,
+		      const double& alpha,
+		      const int& nstep,
+		      const which_dir_t& dirs=all_dirs,
+		      const int min_staple_dir=0);
+  
+  inline void ape_single_dir_smear_conf(LxField<quad_su3>& smear_conf,
+					const LxField<quad_su3>& origi_conf,
+					const double& alpha,
+					const int& nstep,
+					const int& mu,
+					const int& min_staple_dir=0)
+  {
+    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,only_dir[mu],min_staple_dir);
+  }
+  
+  inline void ape_perp_dir_smear_conf(LxField<quad_su3>& smear_conf,
+				      const LxField<quad_su3>& origi_conf,
+				      const double& alpha,
+				      const int& nstep,
+				      const int& mu,
+				      const int& min_staple_dir=0)
+  {
+    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,all_other_dirs[mu]);
+  }
+  
+  inline void ape_temporal_smear_conf(LxField<quad_su3>& smear_conf,
+				      const LxField<quad_su3>& origi_conf,
+				      const double& alpha,
+				      const int& nstep)
+  {
+    ape_single_dir_smear_conf(smear_conf,origi_conf,alpha,nstep,0);
+  }
+  
+  inline void ape_spatial_smear_conf(LxField<quad_su3>& smear_conf,
+				     const LxField<quad_su3>& origi_conf,
+				     const double& alpha,
+				     const int& nstep)
+  {
+    ape_perp_dir_smear_conf(smear_conf,origi_conf,alpha,nstep,0,1);
+  }
 }
 
 #endif

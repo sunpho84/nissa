@@ -97,7 +97,7 @@ namespace nissa
 	    
 	    su3 u;
 	    
-	    su3_put_to_diag(u,sign);
+	    su3_put_to_diag_double(u,sign);
 	    if(i==0) safe_su3_prod_su3(u,u,cl_insertion[!eo][xpmu][ipair]);
 	    safe_su3_prod_su3(u,u,conf[!eo][xpmu][nu]);
 	    if(i==1) safe_su3_prod_su3(u,u,cl_insertion[eo][xpmupnu][ipair]);
@@ -109,7 +109,7 @@ namespace nissa
 	    
 	    su3 v;
 	    
-	    su3_put_to_diag(v,sign);
+	    su3_put_to_diag_double(v,sign);
 	    if(i==0) safe_su3_prod_su3(v,v,cl_insertion[!eo][xpmu][ipair]);
 	    safe_su3_prod_su3_dag(v,v,conf[eo][xpmumnu][nu]);
 	    if(i==1) safe_su3_prod_su3(v,v,cl_insertion[eo][xpmumnu][ipair]);

@@ -120,8 +120,10 @@ namespace nissa
     ac_rotate_vector(out,out,axis,sizeof(quad_su3));
   }
   
-  //put boundary conditions on the gauge conf
-  void put_boundaries_conditions(quad_su3 *conf,const momentum_t& theta_in_pi,int putonbords,int putonedges)
+  void put_boundaries_conditions(LxField<quad_su3>& conf,
+				 const momentum_t& theta_in_pi,
+				 const int& putonbords,
+				 const int& putonedges)
   {
     complex theta[NDIM];
     for(int idir=0;idir<NDIM;idir++)
@@ -134,47 +136,38 @@ namespace nissa
     if(putonbords) nsite+=bord_vol;
     if(putonedges) nsite+=edge_vol;
     
-    int ivolIncr,rankIncr;
-    get_loclx_and_rank_of_coord(ivolIncr,rankIncr,{glbSize[0]-1,8,23,7});
-    master_printf("putting boundary on conf of ptr: %p\n",conf);
-    
-    // if(rank==rankIncr)
-    //   {
-    // 	printf("before phasing the bulk of the conf on rank %d is:\n",rank);
-    // 	su3_print(conf[ivolIncr][0]);
-    //   }
+    master_printf("putting boundary on conf of ptr: %p\n",conf.data);
     
     NISSA_PARALLEL_LOOP(ivol,0,nsite)
-      for(int idir=0;idir<NDIM;idir++) safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
+      for(int idir=0;idir<NDIM;idir++)
+	safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
     NISSA_PARALLEL_LOOP_END;
     
-    // if(rank==rankIncr)
-    //   {
-    // 	printf("after phasing the bulk of the conf on rank %d is:\n",rank);
-    // 	su3_print(conf[ivolIncr][0]);
-    // 	printf("bord valid: %d\n",check_borders_valid(conf));
-    //   }
-    
-    
-    if(!putonbords) set_borders_invalid(conf);
-    if(!putonedges) set_edges_invalid(conf);
+    if(not putonbords) conf.invalidateHalo();
+    if(not putonedges) conf.invalidateEdges();
   }
   
-  void rem_boundaries_conditions(quad_su3 *conf,const momentum_t& theta_in_pi,int putonbords,int putonedges)
+  void rem_boundaries_conditions(LxField<quad_su3>& conf,
+				 const momentum_t& theta_in_pi,
+				 const int& putonbords,
+				 const int& putonedges)
   {
     const momentum_t minus_theta_in_pi={-theta_in_pi[0],-theta_in_pi[1],-theta_in_pi[2],-theta_in_pi[3]};
     put_boundaries_conditions(conf,minus_theta_in_pi,putonbords,putonedges);
   }
   
-  //Adapt the border condition
-  void adapt_theta(quad_su3 *conf,momentum_t& old_theta,const momentum_t& put_theta,int putonbords,int putonedges)
+  void adapt_theta(LxField<quad_su3>& conf,
+		   momentum_t& old_theta,
+		   const momentum_t& put_theta,
+		   const int& putonbords,
+		   const int& putonedges)
   {
     momentum_t diff_theta;
     int adapt=0;
     
     for(int idir=0;idir<NDIM;idir++)
       {
-	adapt=adapt || (old_theta[idir]!=put_theta[idir]);
+	adapt=adapt or (old_theta[idir]!=put_theta[idir]);
 	diff_theta[idir]=put_theta[idir]-old_theta[idir];
 	old_theta[idir]=put_theta[idir];
       }

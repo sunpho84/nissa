@@ -99,9 +99,37 @@ namespace nissa
       m[ic][ic][RE]=1;
   }
   
-  CUDA_HOST_AND_DEVICE inline void su3_put_to_diag(su3 m,const color in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) complex_copy(m[ic][ic],in[ic]);}
-  CUDA_HOST_AND_DEVICE inline void su3_put_to_diag(su3 m,const complex in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) complex_copy(m[ic][ic],in);}
-  CUDA_HOST_AND_DEVICE inline void su3_put_to_diag(su3 m,const double in) {su3_put_to_zero(m);for(size_t ic=0;ic<NCOL;ic++) m[ic][ic][0]=in;}
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_put_to_diag_color(A&& m,
+			     const B& in)
+  {
+    su3_put_to_zero(m);
+    for(int ic=0;ic<NCOL;ic++)
+      complex_copy(m[ic][ic],in[ic]);
+  }
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_put_to_diag_complex(A&& m,
+			       const B& in)
+  {
+    su3_put_to_zero(m);
+    for(int ic=0;ic<NCOL;ic++)
+      complex_copy(m[ic][ic],in);
+  }
+  
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_put_to_diag_double(A&& m,
+			      const double& in)
+  {
+    su3_put_to_zero(m);
+    for(int ic=0;ic<NCOL;ic++)
+      m[ic][ic][0]=in;
+  }
   
   //////////////////////////////////////// Copy /////////////////////////////////////
   
@@ -268,7 +296,16 @@ namespace nissa
     color_isubt(a,a,b);
   }
   
-  CUDA_HOST_AND_DEVICE inline void color_prod_double(color a,const color b,const double c) {for(size_t ic=0;ic<NCOL;ic++) complex_prod_double(a[ic],b[ic],c);}
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void color_prod_double(A&& a,
+			 const B& b,
+			 const double& c)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      complex_prod_double(a[ic],b[ic],c);
+  }
   
   template <typename A,
 	    typename B,
@@ -296,7 +333,18 @@ namespace nissa
       complex_summ_the_prod_idouble(a[ic],b[ic],c);
   }
   
-  CUDA_HOST_AND_DEVICE inline void color_summ_the_prod_complex(color a,const color b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod(a[ic],b[ic],c);}
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void color_summ_the_prod_complex(A&& a,
+				   const B& b,
+				   const C& c)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      complex_summ_the_prod(a[ic],b[ic],c);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void color_subt_the_prod_complex(color a,const color b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) complex_subt_the_prod(a[ic],b[ic],c);}
   
   inline void color_linear_comb(color a,const color b,const double cb,const color c,const double cc) {for(size_t ic=0;ic<NCOL;ic++) complex_linear_comb(a[ic],b[ic],cb,c[ic],cc);}
@@ -387,11 +435,16 @@ namespace nissa
       complex_summassign(tr,m[ic][ic]);
   }
   
-  //return only the real part of an su3 matrix
-  CUDA_HOST_AND_DEVICE inline double su3_real_trace(const su3 m)
+  /// Returns only the real part of an su3 matrix
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  auto su3_real_trace(const A& m)
   {
-    double a=m[0][0][RE];
-    for(size_t ic=1;ic<NCOL;ic++) a+=m[ic][ic][RE];
+    auto a=m[0][0][RE];
+    
+    for(int ic=1;ic<NCOL;ic++)
+      a+=m[ic][ic][RE];
+    
     return a;
   }
   
@@ -644,17 +697,27 @@ namespace nissa
       color_summ(a[ic],b[ic],c[ic]);
   }
   
-  CUDA_HOST_AND_DEVICE inline void unsafe_su3_summ_su3_dag(su3 a,const su3 b,const su3 c)
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_summ_su3_dag(A&& a,
+			       const B& b,
+			       const C& c)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)=SU3_ECAST(b)+SU3_ECAST(c).adjoint();
-#else
-    for(size_t i=0;i<NCOL;i++)
-      for(size_t j=0;j<NCOL;j++)
+    for(int i=0;i<NCOL;i++)
+      for(int j=0;j<NCOL;j++)
 	complex_summ_conj2(a[i][j],b[i][j],c[j][i]);
-#endif
   }
-  CUDA_HOST_AND_DEVICE inline void su3_summassign_su3_dag(su3 a,const su3 b) {unsafe_su3_summ_su3_dag(a,a,b);}
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_summassign_su3_dag(A&& a,
+			      const B& b)
+  {
+    unsafe_su3_summ_su3_dag(a,a,b);
+  }
   
   /// a+=b
   template <typename A,
@@ -900,11 +963,31 @@ namespace nissa
   inline void safe_su3_dag_prod_su3_dag(su3 a,const su3 b,const su3 c)
   {su3 d;unsafe_su3_dag_prod_su3_dag(d,b,c);su3_copy(a,d);}
   
-  //product of an su3 matrix by a complex
-  CUDA_HOST_AND_DEVICE inline void unsafe_su3_prod_complex(su3 a,const su3 b,const complex c)
-  {for(size_t ic=0;ic<NCOL;ic++) unsafe_color_prod_complex(a[ic],b[ic],c);}
-  CUDA_HOST_AND_DEVICE inline void safe_su3_prod_complex(su3 a,const su3 b,const complex c)
-  {su3 d;unsafe_su3_prod_complex(d,b,c);su3_copy(a,d);}
+  /// Product of an su3 matrix by a complex
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_prod_complex(A&& a,
+			       const B& b,
+			       const C& c)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      unsafe_color_prod_complex(a[ic],b[ic],c);
+  }
+  
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void safe_su3_prod_complex(A&& a,
+			       const B& b,
+			       const C& c)
+  {
+    su3 d;
+    unsafe_su3_prod_complex(d,b,c);
+    su3_copy(a,d);
+  }
   
   //product of an su3 matrix by a complex
   inline void unsafe_su3_prod_complex_conj(su3 a,const su3 b,const complex c)
@@ -912,9 +995,18 @@ namespace nissa
   inline void safe_su3_prod_complex_conj(su3 a,const su3 b,const complex c)
   {su3 d;unsafe_su3_prod_complex_conj(d,b,c);su3_copy(a,d);}
   
-  //product of an su3 matrix by a real
-  CUDA_HOST_AND_DEVICE inline void su3_prod_double(su3 a,const su3 b,const double r)
-  {for(size_t ic=0;ic<NCOL;ic++) color_prod_double(a[ic],b[ic],r);}
+  /// Product of an su3 matrix by a real
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_prod_double(A&& a,
+		       const B& b,
+		       const double& r)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      color_prod_double(a[ic],b[ic],r);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void su3_prodassign_double(su3 a,const double r)
   {su3_prod_double(a,a,r);}
   
@@ -1015,8 +1107,19 @@ namespace nissa
   
   //combine linearly two su3 elements
   inline void su3_linear_comb(su3 a,const su3 b,const double cb,su3 c,const double cc) {for(size_t ic=0;ic<NCOL;ic++) color_linear_comb(a[ic],b[ic],cb,c[ic],cc);}
-  //summ the prod of su3 with complex
-  CUDA_HOST_AND_DEVICE inline void su3_summ_the_prod_complex(su3 a,const su3 b,const complex c) {for(size_t ic=0;ic<NCOL;ic++) color_summ_the_prod_complex(a[ic],b[ic],c);}
+  
+  /// Summ the prod of su3 with complex
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_summ_the_prod_complex(A&& a,
+				 const B& b,
+				 const C& c)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      color_summ_the_prod_complex(a[ic],b[ic],c);
+  }
   
   //calculate explicitely the inverse
   CUDA_HOST_AND_DEVICE inline void unsafe_su3_explicit_inverse(su3 invU,const su3 U)
@@ -1171,8 +1274,26 @@ namespace nissa
     su3_overrelax(out,in,w,coeff,5);
   }
   
-  //unitarize an su3 matrix by taking explicitely the inverse and averaging with it
-  CUDA_HOST_AND_DEVICE inline void su3_unitarize_explicitly_inverting(su3 new_link,const su3 prop_link,const double tol=1e-15)
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_unitarize_explicitly_inverting(A&& _new_link,
+					  const B& _prop_link,
+					  const double tol=1e-15)
+  {
+    su3 prop_link;
+    su3_copy(prop_link,_prop_link);
+    
+    su3 new_link;
+    su3_unitarize_explicitly_inverting(new_link,prop_link,tol);
+    su3_copy(_new_link,new_link);
+  }
+  
+  /// Unitarize an su3 matrix by taking explicitely the inverse and averaging with it
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_unitarize_explicitly_inverting(su3& new_link,
+					  const su3& prop_link,
+					  const double tol=1e-15)
   {
     su3 inv,temp_link;
     double gamma,residue;
@@ -1955,14 +2076,18 @@ namespace nissa
   
   CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,const su3 Q);
   
-  //build the exponential from the ingredients
-  CUDA_HOST_AND_DEVICE inline void safe_hermitian_exact_i_exponentiate(su3 out,hermitian_exp_ingredients &ing)
+  /// Build the exponential from the ingredients
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void safe_hermitian_exact_i_exponentiate(A&& out,
+					   const hermitian_exp_ingredients& ing)
   {
     //compute out according to (eq. 13)
-    su3_put_to_diag(out,ing.f[0]);
+    su3_put_to_diag_complex(out,ing.f[0]);
     su3_summ_the_prod_complex(out,ing.Q,ing.f[1]);
     su3_summ_the_prod_complex(out,ing.Q2,ing.f[2]);
   }
+  
   CUDA_HOST_AND_DEVICE inline void safe_hermitian_exact_i_exponentiate(su3 out,const su3 Q)
   {
     hermitian_exp_ingredients ing;
@@ -1970,8 +2095,12 @@ namespace nissa
     safe_hermitian_exact_i_exponentiate(out,ing);
   }
   
-  //can be used directly from an anti-hermitian matrix, ie. it compute straight exp(iQ)
-  CUDA_HOST_AND_DEVICE inline void safe_anti_hermitian_exact_exponentiate(su3 out,const su3 iQ)
+  template <typename A,
+	    typename B>
+  /// Can be used directly from an anti-hermitian matrix, ie. it compute straight exp(iQ)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void safe_anti_hermitian_exact_exponentiate(A&& out,
+					      const B& iQ)
   {
     su3 Q;
     su3_prod_idouble(Q,iQ,-1);

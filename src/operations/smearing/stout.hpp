@@ -204,7 +204,7 @@ namespace nissa
     su3 B[2];
     for(int i=0;i<2;i++)
       {
-	su3_put_to_diag(B[i],b[i][0]);
+	su3_put_to_diag_complex(B[i],b[i][0]);
 	su3_summ_the_prod_complex(B[i],ing->Q, b[i][1]);
 	su3_summ_the_prod_complex(B[i],ing->Q2,b[i][2]);
       }

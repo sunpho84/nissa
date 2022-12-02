@@ -32,9 +32,9 @@ namespace nissa
       {
 	master_printf("Allocating confs\n");
 	
-	glb_conf=nissa_malloc("glb_conf",locVol+bord_vol+edge_vol,quad_su3);
-	inner_conf=nissa_malloc("inner_conf",locVol+bord_vol+edge_vol,quad_su3);
-	ape_smeared_conf=nissa_malloc("ape_smeared_conf",locVol+bord_vol+edge_vol,quad_su3);
+	glb_conf=new LxField<quad_su3>("glb_conf",WITH_HALO_EDGES);
+	inner_conf=new LxField<quad_su3>("inner_conf",WITH_HALO_EDGES);
+	ape_smeared_conf=new LxField<quad_su3>("ape_smeared_conf",WITH_HALO_EDGES);
       }
     else
       master_printf("Skipping allocating confs\n");
@@ -60,7 +60,10 @@ namespace nissa
   }
   
   //read the conf and setup it
-  void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory)
+  void setup_conf(LxField<quad_su3>& conf,
+		  const char *conf_path,
+		  const int& rnd_gauge_transform,
+		  const int& free_theory)
   {
     //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
     if(not free_theory)
@@ -74,7 +77,7 @@ namespace nissa
     
     //if asked, randomly transform the configurations
     if(rnd_gauge_transform) perform_random_gauge_transform(conf,conf);
-    if(Landau_gauge_fix_flag) Landau_or_Coulomb_gauge_fix(conf,&gauge_fixing_pars,conf);
+    if(Landau_gauge_fix_flag) Landau_or_Coulomb_gauge_fix(conf,gauge_fixing_pars,conf);
     if(store_conf) write_ildg_gauge_conf(combine("%s/conf",outfolder),conf,64);
     
     //if clover term is included, compute it
@@ -83,7 +86,7 @@ namespace nissa
     //if the copied conf exists, ape smear
     if(ape_smeared_conf)
       {
-	ape_spatial_smear_conf(ape_smeared_conf,conf,ape_smearing_alpha,ape_smearing_niters);
+	ape_spatial_smear_conf(*ape_smeared_conf,*conf,ape_smearing_alpha,ape_smearing_niters);
 	master_printf("Smeared plaquette: %+16.16lg\n",global_plaquette_lx_conf(ape_smeared_conf));
       }
     
@@ -92,19 +95,23 @@ namespace nissa
   }
   
   //take a set of theta, charge and photon field, and update the conf
-  quad_su3* get_updated_conf(double charge,const momentum_t& theta,quad_su3 *in_conf)
+  LxField<quad_su3>* get_updated_conf(const double charge,
+			     const momentum_t& theta,
+			     const LxField<quad_su3>& in_conf)
   {
     master_printf("Checking if conf needs to be updated\n");
     
     //check if the inner conf is valid or not
-    static quad_su3 *stored_conf=NULL;
+    static const double *stored_conf=nullptr;
     static double stored_charge=0,stored_theta[NDIM];
-    if(not inner_conf_valid) master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
+    
+    if(not inner_conf_valid)
+      master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
     
     //check ref conf
-    if(stored_conf!=in_conf)
+    if(stored_conf!=in_conf.data)
       {
-	master_printf("Inner conf is invalid (ref conf from %p to %p)\n",stored_conf,in_conf);
+	master_printf("Inner conf is invalid (ref conf from %p to %p)\n",stored_conf,&in_conf);
 	inner_conf_valid=false;
       }
     
@@ -114,9 +121,12 @@ namespace nissa
 	master_printf("Inner conf is invalid (charge changed from %lg to %lg)\n",stored_charge,charge);
 	inner_conf_valid=false;
       }
+    
     //check theta
     bool same_theta=true;
-    for(int mu=0;mu<NDIM;mu++) same_theta&=(theta[mu]==stored_theta[mu]);
+    for(int mu=0;mu<NDIM;mu++)
+      same_theta&=(theta[mu]==stored_theta[mu]);
+    
     if(not same_theta)
       {
 	master_printf("Inner conf is invalid (theta changed from {%lg,%lg,%lg,%lg} to {%lg,%lg,%lg,%lg}\n",
@@ -129,21 +139,22 @@ namespace nissa
 	master_printf("Inner conf not valid: updating it\n");
 	
 	//copy
-	vector_copy(inner_conf,in_conf);
+	*inner_conf=in_conf;
 	
 	//put momentum
 	momentum_t old_theta;
 	old_theta[0]=0;old_theta[1]=old_theta[2]=old_theta[3]=0;
-	adapt_theta(inner_conf,old_theta,theta,0,0);
+	adapt_theta(*inner_conf,old_theta,theta,0,0);
 	
 	//include the photon field, with correct charge
-	if(charge) add_photon_field_to_conf(inner_conf,charge);
+	if(charge)
+	  add_photon_field_to_conf(*inner_conf,charge);
       }
     else
       master_printf("Inner conf valid, no need to update\n");
     
     //update value and set valid
-    stored_conf=in_conf;
+    stored_conf=in_conf.data;
     stored_charge=charge;
     for(int mu=0;mu<NDIM;mu++) stored_theta[mu]=theta[mu];
     inner_conf_valid=true;

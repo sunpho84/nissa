@@ -632,19 +632,16 @@ namespace nissa
       /// Pending requests
       std::vector<MPI_Request> requests;
       
-      if(not haloIsValid and nparal_dir>0)
-	{
-	  assertCanCommunicate(Field::nHaloSites());
-	  
-	  //take time and write some debug output
-	  START_TIMING(tot_comm_time,ntot_comm);
-	  verbosity_lv3_master_printf("Start communication of borders of %s\n",name);
-	  
-	  //fill the communicator buffer, start the communication and take time
-	  fillSendingBufWithSurface();
-          requests=startHaloAsyincComm();
-          STOP_TIMING(tot_comm_time);
-	}
+      assertCanCommunicate(Field::nHaloSites());
+      
+      //take time and write some debug output
+      START_TIMING(tot_comm_time,ntot_comm);
+      verbosity_lv3_master_printf("Start communication of borders of %s\n",name);
+      
+      //fill the communicator buffer, start the communication and take time
+      fillSendingBufWithSurface();
+      requests=startHaloAsyincComm();
+      STOP_TIMING(tot_comm_time);
       
       return requests;
     }
@@ -652,19 +649,16 @@ namespace nissa
     /// Finalize communications
     void finishCommunicatingHalo(std::vector<MPI_Request> requests) const
     {
-      if(not haloIsValid and nparal_dir>0)
-	{
-	  //take note of passed time and write some debug info
-	  START_TIMING(tot_comm_time,ntot_comm);
-	  verbosity_lv3_master_printf("Finish communication of halo of %s\n",name);
-	  
-	  //wait communication to finish, fill back the vector and take time
-	  waitAsyncCommsFinish(requests);
-	  fillHaloWithReceivingBuf();
-	  STOP_TIMING(tot_comm_time);
-	  
-	  haloIsValid=true;
-      }
+      //take note of passed time and write some debug info
+      START_TIMING(tot_comm_time,ntot_comm);
+      verbosity_lv3_master_printf("Finish communication of halo of %s\n",name);
+      
+      //wait communication to finish, fill back the vector and take time
+      waitAsyncCommsFinish(requests);
+      fillHaloWithReceivingBuf();
+      STOP_TIMING(tot_comm_time);
+      
+      haloIsValid=true;
     }
     
     /// Crash if the halo is not allocated
@@ -676,26 +670,22 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-    
     /// Start communication using edges
     std::vector<MPI_Request> startCommunicatingEdges() const
     {
       /// Pending requests
       std::vector<MPI_Request> requests;
       
-      if(not edgesAreValid and nparal_dir>1)
-	{
-	  assertCanCommunicate(Field::nEdgesSites());
-	  
-	  //take time and write some debug output
-	  START_TIMING(tot_comm_time,ntot_comm);
-	  verbosity_lv3_master_printf("Start communication of edges of %s\n",name);
-	  
-	  //fill the communicator buffer, start the communication and take time
-	  fillSendingBufWithEdgesSurface();
-          requests=startEdgesAsyincComm();
-          STOP_TIMING(tot_comm_time);
-	}
+      assertCanCommunicate(Field::nEdgesSites());
+      
+      //take time and write some debug output
+      START_TIMING(tot_comm_time,ntot_comm);
+      verbosity_lv3_master_printf("Start communication of edges of %s\n",name);
+      
+      //fill the communicator buffer, start the communication and take time
+      fillSendingBufWithEdgesSurface();
+      requests=startEdgesAsyincComm();
+      STOP_TIMING(tot_comm_time);
       
       return requests;
     }
@@ -703,19 +693,16 @@ namespace nissa
     /// Finalize communications
     void finishCommunicatingEdges(std::vector<MPI_Request> requests) const
     {
-      if(not edgesAreValid and nparal_dir>0)
-	{
-	  //take note of passed time and write some debug info
-	  START_TIMING(tot_comm_time,ntot_comm);
-	  verbosity_lv3_master_printf("Finish communication of edges of %s\n",name);
-	  
-	  //wait communication to finish, fill back the vector and take time
-	  waitAsyncCommsFinish(requests);
-	  fillEdgesWithReceivingBuf();
-	  STOP_TIMING(tot_comm_time);
-	  
-	  haloIsValid=true;
-      }
+      //take note of passed time and write some debug info
+      START_TIMING(tot_comm_time,ntot_comm);
+      verbosity_lv3_master_printf("Finish communication of edges of %s\n",name);
+      
+      //wait communication to finish, fill back the vector and take time
+      waitAsyncCommsFinish(requests);
+      fillEdgesWithReceivingBuf();
+      STOP_TIMING(tot_comm_time);
+      
+      haloIsValid=true;
     }
     
     /// Crash if the edges are not allocated
@@ -728,9 +715,9 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Communicate the halo
-    void updateHalo() const
+    void updateHalo(const bool& force=false) const
     {
-      if(not haloIsValid)
+      if(force or not haloIsValid)
 	{
 	  verbosity_lv3_master_printf("Sync communication of halo of %s\n",name);
 	  
@@ -741,9 +728,11 @@ namespace nissa
     }
     
     /// Communicate the edges
-    void updateEdges() const
+    void updateEdges(const bool& force=false) const
     {
-      if(not edgesAreValid)
+      updateHalo(force);
+      
+      if(force or not edgesAreValid)
 	{
 	  verbosity_lv3_master_printf("Sync communication of edges of %s\n",name);
 	  
