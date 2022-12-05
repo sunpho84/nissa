@@ -20,60 +20,61 @@ namespace nissa
   //        https://arxiv.org/pdf/0912.2850.pdf for the 2^(d/2) overcounting.
   void measure_iD_spectrum(color** eigvec,eo_ptr<quad_su3> conf,complex* charge_cut,complex* eigval,int neigs,double eig_precision,int wspace_size)
   {
-    //parameters of the eigensolver
-    const bool min_max=0;
+    crash("reimplement");
+    // //parameters of the eigensolver
+    // const bool min_max=0;
     
-    //identity backfield
-    eo_ptr<quad_u1> u1b={nissa_malloc("u1b",locVolh+bord_volh,quad_u1),nissa_malloc("u1b",locVolh+bord_volh,quad_u1)};
-    init_backfield_to_id(u1b);
+    // //identity backfield
+    // eo_ptr<quad_u1> u1b={nissa_malloc("u1b",locVolh+bord_volh,quad_u1),nissa_malloc("u1b",locVolh+bord_volh,quad_u1)};
+    // init_backfield_to_id(u1b);
     
-    //temporary vectors
-    eo_ptr<color> tmpvec_eo={nissa_malloc("tmpvec_eo_EVN",locVolh+bord_volh,color),nissa_malloc("tmpvec_eo_ODD",locVolh+bord_volh,color)};
+    // //temporary vectors
+    // eo_ptr<color> tmpvec_eo={nissa_malloc("tmpvec_eo_EVN",locVolh+bord_volh,color),nissa_malloc("tmpvec_eo_ODD",locVolh+bord_volh,color)};
     
-    //results of the g5 application
-    eo_ptr<color> eigvec_g5_eo={nissa_malloc("eigvec_g5_EVN",locVolh+bord_volh,color),nissa_malloc("eigvec_g5_ODD",locVolh+bord_volh,color)};
-    color *eigvec_g5_lx=nissa_malloc("eigvec_g5",locVol+bord_vol,color);
+    // //results of the g5 application
+    // eo_ptr<color> eigvec_g5_eo={nissa_malloc("eigvec_g5_EVN",locVolh+bord_volh,color),nissa_malloc("eigvec_g5_ODD",locVolh+bord_volh,color)};
+    // color *eigvec_g5_lx=nissa_malloc("eigvec_g5",locVol+bord_vol,color);
     
-    //launch the eigenfinder
-    double eig_time=-take_time();
-    find_eigenvalues_staggered_iD(eigvec,eigval,neigs,min_max,conf,u1b,eig_precision,wspace_size);
+    // //launch the eigenfinder
+    // double eig_time=-take_time();
+    // find_eigenvalues_staggered_iD(eigvec,eigval,neigs,min_max,conf,u1b,eig_precision,wspace_size);
     
-    verbosity_lv1_master_printf("\n\nEigenvalues of staggered iD operator:\n");
-    for(int ieig=0;ieig<neigs;ieig++)
-      {
-	verbosity_lv1_master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
-	// compute terms u_j^+ g5 u_i
-	// convert 'eigvec[ieig]' in staggered format ('in_tmp_eo'),
-	// then multiply it with gamma5 and save the result in
-	// 'out_tmp_eo'. The term corresponding to u_j^+ g5 u_i
-	// will be stored in 'charge_cut[ieig*neigs+jeigs]' as the hermitian product
-	// between 'eigvec[jeig]' and 'out_tmp_eo[EVN]'.
+    // verbosity_lv1_master_printf("\n\nEigenvalues of staggered iD operator:\n");
+    // for(int ieig=0;ieig<neigs;ieig++)
+    //   {
+    // 	verbosity_lv1_master_printf("lam_%d = (%.16lg,%.16lg)\n",ieig,eigval[ieig][RE],eigval[ieig][IM]);
+    // 	// compute terms u_j^+ g5 u_i
+    // 	// convert 'eigvec[ieig]' in staggered format ('in_tmp_eo'),
+    // 	// then multiply it with gamma5 and save the result in
+    // 	// 'out_tmp_eo'. The term corresponding to u_j^+ g5 u_i
+    // 	// will be stored in 'charge_cut[ieig*neigs+jeigs]' as the hermitian product
+    // 	// between 'eigvec[jeig]' and 'out_tmp_eo[EVN]'.
 	
-	//multiply by gamma5
-	split_lx_vector_into_eo_parts(tmpvec_eo,eigvec[ieig]);
-	apply_stag_op(eigvec_g5_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,tmpvec_eo);
-	//paste_eo_parts_into_lx_vector(eigvec_g5_lx,eigvec_g5_eo);
-	crash("reimplement");
+    // 	//multiply by gamma5
+    // 	split_lx_vector_into_eo_parts(tmpvec_eo,eigvec[ieig]);
+    // 	apply_stag_op(eigvec_g5_eo,conf,u1b,stag::GAMMA_5,stag::IDENTITY,tmpvec_eo);
+    // 	//paste_eo_parts_into_lx_vector(eigvec_g5_lx,eigvec_g5_eo);
+    // 	crash("reimplement");
 	
-	//take hermitian products
-	for(int jeig=ieig;jeig<neigs;jeig++)
-	  {
-	    complex_vector_glb_scalar_prod(charge_cut[ieig*neigs+jeig],(complex*)eigvec[jeig],(complex*)eigvec_g5_lx,locVol*sizeof(color)/sizeof(complex));
-	    verbosity_lv2_master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
-	  }
-      }
-    verbosity_lv2_master_printf("\n\n\n");
+    // 	//take hermitian products
+    // 	for(int jeig=ieig;jeig<neigs;jeig++)
+    // 	  {
+    // 	    complex_vector_glb_scalar_prod(charge_cut[ieig*neigs+jeig],(complex*)eigvec[jeig],(complex*)eigvec_g5_lx,locVol*sizeof(color)/sizeof(complex));
+    // 	    verbosity_lv2_master_printf("u_%d^+ g5 u_%d = (%.16lg,%.16lg)\n",jeig,ieig,charge_cut[ieig*neigs+jeig][RE],charge_cut[ieig*neigs+jeig][IM]);
+    // 	  }
+    //   }
+    // verbosity_lv2_master_printf("\n\n\n");
     
-    eig_time+=take_time();
-    verbosity_lv1_master_printf("Eigenvalues time: %lg\n",eig_time);
+    // eig_time+=take_time();
+    // verbosity_lv1_master_printf("Eigenvalues time: %lg\n",eig_time);
     
-    nissa_free(tmpvec_eo[EVN]);
-    nissa_free(tmpvec_eo[ODD]);
-    nissa_free(eigvec_g5_eo[EVN]);
-    nissa_free(eigvec_g5_eo[ODD]);
-    nissa_free(eigvec_g5_lx);
-    nissa_free(u1b[0]);
-    nissa_free(u1b[1]);
+    // nissa_free(tmpvec_eo[EVN]);
+    // nissa_free(tmpvec_eo[ODD]);
+    // nissa_free(eigvec_g5_eo[EVN]);
+    // nissa_free(eigvec_g5_eo[ODD]);
+    // nissa_free(eigvec_g5_lx);
+    // nissa_free(u1b[0]);
+    // nissa_free(u1b[1]);
   }
   
   //measure for a single smooth value

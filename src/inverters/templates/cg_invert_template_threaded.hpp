@@ -20,7 +20,6 @@ namespace nissa
 		 const double& residue,
 		 const T& source)
   {
-    
     verbosity_lv2_master_printf("\n");
     
     T s("s");

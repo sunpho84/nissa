@@ -3,6 +3,7 @@
 
 #include <sstream>
 
+#include "base/random.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "operations/smearing/smooth.hpp"
 

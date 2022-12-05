@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <random>
 
-#include <base/vectors.hpp>
+#include <base/field.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <threads/threads.hpp>
 
@@ -380,7 +380,7 @@ namespace nissa
     }
     
     /// Fill all sites
-    void fillField(T* out)
+    void fillField(LxField<T>& out)
     {
       enforce_single_usage();
       
@@ -447,7 +447,10 @@ namespace nissa
   static constexpr complex zero_complex={0.0,0.0};
   static constexpr complex sqrt_2_half_complex{M_SQRT1_2,M_SQRT1_2};
   
-  inline void BoxMullerTransform(complex out,const complex ave=zero_complex,const complex sig=sqrt_2_half_complex)
+  template <typename C>
+  inline void BoxMullerTransform(C&& out,
+				 const complex& ave=zero_complex,
+				 const complex& sig=sqrt_2_half_complex)
   {
     const double r=sqrt(-2*log(1-out[RE]));
     const double q=2*M_PI*out[IM];
@@ -462,15 +465,17 @@ namespace nissa
     out=(out>0.5)?M_SQRT1_2:-M_SQRT1_2;
   }
   
+  template <typename C>
   CUDA_HOST_AND_DEVICE
-  inline void z2Transform(complex out)
+  inline void z2Transform(C&& out)
   {
     out[RE]=(out[RE]>0.5)?+1:-1;
     out[IM]=0.0;
   }
   
+  template <typename C>
   CUDA_HOST_AND_DEVICE
-  inline void z4Transform(complex out)
+  inline void z4Transform(C&& out)
   {
     for(int ri=0;ri<2;ri++)
       z2Transform(out[ri]);

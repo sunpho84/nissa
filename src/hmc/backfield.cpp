@@ -16,7 +16,7 @@
 namespace nissa
 {
   //initialize an u(1) field to unity
-  void init_backfield_to_id(eo_ptr<quad_u1> S)
+  void init_backfield_to_id(EoField<quad_u1>& S)
   {
     for(int par=0;par<2;par++)
       {
@@ -35,9 +35,11 @@ namespace nissa
   }
   
   //multiply a background field by the imaginary chemical potential
-  void add_im_pot_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content)
+  void add_im_pot_to_backfield(EoField<quad_u1>& S,
+			       const quark_content_t& quark_content)
   {
-    double im_pot=quark_content->im_pot*M_PI/glbSize[0];
+    const double im_pot=quark_content.im_pot*M_PI/glbSize[0];
+    
     const double c=cos(im_pot),s=sin(im_pot);
     
     for(int par=0;par<2;par++)
@@ -53,8 +55,13 @@ namespace nissa
       }
   }
   
+  //hack
+  
   //compute args for non-present quantization
-  CUDA_HOST_AND_DEVICE coords_t get_args_of_null_quantization(const int& ivol,const int& mu,const int& nu)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  coords_t get_args_of_null_quantization(const int& ivol,
+					 const int& mu,
+					 const int& nu)
   {
     coords_t phase;
     phase[0]=phase[1]=phase[2]=phase[3]=0;
@@ -63,7 +70,10 @@ namespace nissa
   }
   
   //compute args for 1/L2 quantization
-  CUDA_HOST_AND_DEVICE coords_t get_args_of_one_over_L2_quantization(const int& ivol,const int& mu,const int& nu)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  coords_t get_args_of_one_over_L2_quantization(const int& ivol,
+						const int& mu,
+						const int& nu)
   {
     coords_t phase;
     
@@ -84,7 +94,9 @@ namespace nissa
   }
   
   //compute args for half-half quantization
-  CUDA_HOST_AND_DEVICE coords_t get_args_of_half_half_quantization(const int& ivol,const int& mu,const int& nu)
+  CUDA_HOST_AND_DEVICE coords_t get_args_of_half_half_quantization(const int& ivol,
+								   const int& mu,
+								   const int& nu)
   {
     coords_t phase;
     
@@ -107,9 +119,14 @@ namespace nissa
   
   //multiply a background field by a constant em field
   //mu nu refers to the entry of F_mu_nu involved
-  void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content,double em_str,int quantization,int mu,int nu)
+  void add_em_field_to_backfield(EoField<quad_u1>& S,
+				 const quark_content_t& quark_content,
+				 const double& em_str,
+				 const int& quantization,
+				 const int& mu,
+				 const int& nu)
   {
-    double phase=2*em_str*quark_content->charge*M_PI/glbSize[mu]/glbSize[nu];
+    double phase=2*em_str*quark_content.charge*M_PI/glbSize[mu]/glbSize[nu];
     
     if(quantization==2 and glbSize[mu]%4!=0)
       crash("for half-half quantization global size in %d direction must be multiple of 4, it is %d",mu,glbSize[mu]);
@@ -135,10 +152,14 @@ namespace nissa
   }
   
   //set up all the 6 components
-  void add_em_field_to_backfield(eo_ptr<quad_u1> S,quark_content_t* quark_content,em_field_pars_t* em_field_pars)
+  void add_em_field_to_backfield(EoField<quad_u1>& S,
+				 const quark_content_t& quark_content,
+				 const em_field_pars_t& em_field_pars)
   {
-    double *E=em_field_pars->E,*B=em_field_pars->B;
-    int q=em_field_pars->flag;
+    const double *E=em_field_pars.E,*B=em_field_pars.B;
+    
+    const int q=em_field_pars.flag;
+    
     if(q)
       {
 	if(fabs(E[0])>1e-10) add_em_field_to_backfield(S,quark_content,E[0],q,0,1);
@@ -151,7 +172,7 @@ namespace nissa
   }
   
   //add staggered phases (or remove them!)
-  // void add_stagphases_to_backfield(eo_ptr<quad_u1> S)
+  // void add_stagphases_to_backfield(EoField<quad_u1> S)
   // {
   //   for(int par=0;par<2;par++)
   //     {
@@ -167,7 +188,8 @@ namespace nissa
   // }
   
   // Add the antiperiodic condition on the on dir mu
-  void add_antiperiodic_condition_to_backfield(eo_ptr<quad_u1>& S,const int& mu)
+  void add_antiperiodic_condition_to_backfield(EoField<quad_u1>& S,
+					       const int& mu)
   {
     for(int par=0;par<2;par++)
       {
@@ -185,7 +207,7 @@ namespace nissa
   }
   
   //multiply the configuration for stagphases
-  void add_or_rem_stagphases_to_conf(eo_ptr<quad_su3> conf)
+  void add_or_rem_stagphases_to_conf(EoField<quad_su3>& conf)
   {
     for(int par=0;par<2;par++)
       {
@@ -203,20 +225,21 @@ namespace nissa
   }
   
   //multiply the configuration for an additional U(1) field and possibly stagphases
-  void add_or_rem_backfield_with_or_without_stagphases_to_conf(eo_ptr<quad_su3> _conf,bool add_rem,eo_ptr<quad_u1> u1,bool with_without)
+  void add_or_rem_backfield_with_or_without_stagphases_to_conf(EoField<quad_su3>& conf,
+							       const bool& add_rem,
+							       const EoField<quad_u1>& u1,
+							       const bool& with_without)
   {
-    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
-    
-    eo_ptr<quad_su3> conf;
-    conf[0]=_conf[0];
-    conf[1]=_conf[1];
+    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",
+				(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
     
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
 	  {
 	    coords_t ph;
-	    if(with_without==0) ph=get_stagphase_of_lx(loclx_of_loceo[par][ivol]);
+	    if(with_without==0)
+	      ph=get_stagphase_of_lx(loclx_of_loceo[par][ivol]);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
@@ -239,15 +262,19 @@ namespace nissa
   }
   
   //multiply the configuration for an additional U(1) field and possibly stagphases
-  void add_or_rem_backfield_with_or_without_stagphases_to_conf(quad_su3* conf,bool add_rem,eo_ptr<quad_u1> u1,bool with_without)
+  void add_or_rem_backfield_with_or_without_stagphases_to_conf(LxField<quad_su3>& conf,
+							       const bool& add_rem,
+							       const EoField<quad_u1>& u1,
+							       const bool& with_without)
   {
-    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
+    verbosity_lv2_master_printf("%s backfield, %s stagphases\n",
+				(add_rem==0)?"add":"rem",(with_without==0)?"with":"without");
     
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
 	  {
-	    int ilx=loclx_of_loceo[par][ieo];
+	    const int ilx=loclx_of_loceo[par][ieo];
 	    coords_t ph;
 	    if(with_without==0) ph=get_stagphase_of_lx(ilx);
 	    
@@ -259,7 +286,8 @@ namespace nissa
 		else           complex_conj(f,u1[par][ieo][mu]);
 		
 		//switch phase
-		if(with_without==0) complex_prodassign_double(f,ph[mu]);
+		if(with_without==0)
+		  complex_prodassign_double(f,ph[mu]);
 		
 		//put the coeff
 		safe_su3_prod_complex(conf[ilx][mu],conf[ilx][mu],f);
@@ -274,10 +302,7 @@ namespace nissa
   //allocate background fields
   void theory_pars_t::allocate_backfield()
   {
-    backfield.resize(nflavs());
-    for(int iflav=0;iflav<nflavs();iflav++)
-      for(int par=0;par<2;par++)
-	backfield[iflav][par]=nissa_malloc("back_eo",locVolh,quad_u1);
+    backfield.resize(nflavs(),"back_eo");
   }
   
   //set the background fields
@@ -287,8 +312,8 @@ namespace nissa
     for(int iflav=0;iflav<nflavs();iflav++)
       {
 	init_backfield_to_id(backfield[iflav]);
-	add_im_pot_to_backfield(backfield[iflav],&(quarks[iflav]));
-	add_em_field_to_backfield(backfield[iflav],&(quarks[iflav]),&(em_field_pars));
+	add_im_pot_to_backfield(backfield[iflav],quarks[iflav]);
+	add_em_field_to_backfield(backfield[iflav],quarks[iflav],em_field_pars);
 	// if(quarks[iflav].discretiz==ferm_discretiz::ROOT_STAG) add_stagphases_to_backfield(backfield[iflav]);
 	add_antiperiodic_condition_to_backfield(backfield[iflav],0);
       }
@@ -304,8 +329,6 @@ namespace nissa
   //destroy
   void theory_pars_t::destroy_backfield()
   {
-    for(int iflav=0;iflav<nflavs();iflav++)
-      for(int par=0;par<2;par++)
-	nissa_free(backfield[iflav][par]);
+    backfield.clear();
   }
 }

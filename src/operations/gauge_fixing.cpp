@@ -194,16 +194,19 @@ namespace nissa
 					      LxField<double> *ext_loc_F=nullptr)
   {
     
-    LxField<double> *loc_F=ext_loc_F;
-    if(ext_loc_F==nullptr) loc_F=new LxField<double>("loc_F");
+    LxField<double> *_loc_F=ext_loc_F;
+    if(ext_loc_F==nullptr)
+      _loc_F=new LxField<double>("loc_F");
+    
+    LxField<double>& loc_F=*_loc_F;
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
-	if(F_offset) (*loc_F)[ivol]=-(*F_offset)[ivol];
-	else         (*loc_F)[ivol]=0;
+	if(F_offset) loc_F[ivol]=-(*F_offset)[ivol];
+	else         loc_F[ivol]=0;
 	
 	for(int mu=start_mu;mu<NDIM;mu++)
-	  (*loc_F)[ivol]-=su3_real_trace(conf[ivol][mu]);
+	  loc_F[ivol]-=su3_real_trace(conf[ivol][mu]);
       }
     NISSA_PARALLEL_LOOP_END;
     
@@ -212,7 +215,7 @@ namespace nissa
     glb_reduce(&F,loc_F,locVol);
     
     if(ext_loc_F==nullptr)
-      delete loc_F;
+      delete _loc_F;
     
     return F;
   }

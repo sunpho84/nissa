@@ -27,13 +27,26 @@ namespace nissa
   struct stout_pars_t
   {
     int nlevels;
+    
+    int def_nlevels() const
+    {
+      return 0;
+    }
+    
     double rho;
     
-    int def_nlevels(){return 0;}
-    double def_rho(){return 0;}
+    double def_rho() const
+    {
+      return 0;
+    }
     
-    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(int full=false)
+    int master_fprintf(FILE *fout,
+		       const bool& full=false) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
+    
+    std::string get_str(const bool& full=false) const
     {
       std::ostringstream os;
       if(full or is_nonstandard())
@@ -42,10 +55,11 @@ namespace nissa
 	  if(full or nlevels!=def_nlevels()) os<<" NLevels\t=\t"<<nlevels<<"\n";
 	  if(full or rho!=def_rho()) os<<" Rho\t\t=\t"<<rho<<"\n";
 	}
+      
       return os.str();
     }
     
-    int is_nonstandard()
+    int is_nonstandard() const
     {
       return
 	nlevels!=def_nlevels() or
@@ -232,7 +246,6 @@ namespace nissa
     //compute Lambda eq. (73)
     unsafe_su3_traceless_hermitian_part(Lambda,Gamma);
   }
-  
 }
 
 #endif

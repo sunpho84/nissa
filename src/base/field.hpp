@@ -12,6 +12,7 @@
 #include <base/metaprogramming.hpp>
 #include <base/vectors.hpp>
 #include <communicate/communicate.hpp>
+#include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <linalgs/reduce.hpp>
 #include <routines/ios.hpp>
@@ -301,6 +302,24 @@ namespace nissa
     
 #undef PROVIDE_SELFOP
     
+#define PROVIDE_SELF_SCALOP(OP)						\
+    Field& operator OP ## =(const Fund& oth)				\
+    {									\
+      NISSA_PARALLEL_LOOP(site,0,this->nSites())			\
+	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)	\
+	  (*this)(site,internalDeg) OP ## =oth;				\
+      NISSA_PARALLEL_LOOP_END;						\
+									\
+      invalidateHalo();							\
+      									\
+      return *this;							\
+    }
+    
+    PROVIDE_SELF_SCALOP(*);
+    PROVIDE_SELF_SCALOP(/);
+    
+#undef PROVIDE_SELF_SCALOP
+    
     /// Reset to 0
     void reset()
     {
@@ -356,7 +375,7 @@ namespace nissa
       glb_reduce(&res,buf,this->nSites());
     }
     
-    /// Re((*this,out))
+    /// Re(*this,out)
     double realPartOfScalarProdWith(const Field& oth) const
     {
       Field<double,SC> buf("buf");
@@ -472,7 +491,8 @@ namespace nissa
     
 #define PROVIDE_FLATTENED_CALLER(CONST)					\
     constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
-    CONST Fund& operator()(const int& site,const int& internalDeg) CONST \
+    CONST Fund& operator()(const int& site,				\
+			   const int& internalDeg) CONST		\
     {									\
       return data[index(site,internalDeg)];				\
     }
@@ -753,7 +773,7 @@ namespace nissa
     INLINE_FUNCTION
     bool operator!=(const Field& oth) const
     {
-      return not (*this)==oth;
+      return not ((*this)==oth);
     }
     
     /// Assign
@@ -889,6 +909,16 @@ namespace nissa
       evenPart(name,haloEdgesPresence),
       oddPart(name,haloEdgesPresence)
     {
+    }
+    
+    /// Reset
+    INLINE_FUNCTION
+    void reset()
+    {
+      forBothParities([this](const auto& par)
+      {
+	(*this)[par].reset();
+      });
     }
     
     /// Update the halo of both parities

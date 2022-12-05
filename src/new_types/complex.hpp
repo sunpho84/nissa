@@ -30,7 +30,8 @@ namespace nissa
   template <typename A,
 	    typename B>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  double real_part_of_complex_scalar_prod(const A& a,const B& b)
+  double real_part_of_complex_scalar_prod(const A& a,
+					  const B& b)
   {
     return a[0]*b[0]+a[1]*b[1];
   };
@@ -43,7 +44,8 @@ namespace nissa
   template <typename A,
 	    typename B>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void complex_copy(A&& a,const B& b)
+  void complex_copy(A&& a,
+		    const B& b)
   {
     a[0]=b[0];
     a[1]=b[1];
@@ -255,12 +257,18 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void complex_prodassign_idouble(complex a,const double b) {complex_prod_idouble(a,a,b);}
   
   //summ the prod with real
-  CUDA_HOST_AND_DEVICE inline void complex_summ_the_prod_double(complex a,const complex b,const double c)
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_summ_the_prod_double(A&& a,
+				    const B& b,
+				    const double& c)
   {
-    const double t=b[0]*c;
+    const auto t=b[0]*c;
     a[1]+=b[1]*c;
     a[0]+=t;
   }
+  
   CUDA_HOST_AND_DEVICE inline void complex_subt_the_prod_double(complex a,const complex b,const double c)
   {
     const double t=b[0]*c;
@@ -409,8 +417,18 @@ namespace nissa
     a[1]-=-b[0]*c[1]+b[1]*c[0];
     a[0]-=t;
   }
-  CUDA_HOST_AND_DEVICE inline void complex_subt_the_conj1_prod(complex a,const complex b,const complex c)
-  {complex_subt_the_conj2_prod(a,c,b);}
+  
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_subt_the_conj1_prod(A&& a,
+				   const B& b,
+				   const C& c)
+  {
+    complex_subt_the_conj2_prod(a,c,b);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void single_complex_subt_the_conj1_prod(single_complex a,const single_complex b,const single_complex c)
   {single_complex_subt_the_conj2_prod(a,c,b);}
   CUDA_HOST_AND_DEVICE inline void complex_subt_the_conj_conj_prod(complex a,const complex b,const complex c)
@@ -425,7 +443,9 @@ namespace nissa
 	    typename B,
 	    typename C>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void unsafe_complex_prod(A&& a,const B& b,const C& c)
+  void unsafe_complex_prod(A&& a,
+			   const B& b,
+			   const C& c)
   {
     a[0]=b[0]*c[0]-b[1]*c[1];
     a[1]=b[0]*c[1]+b[1]*c[0];
@@ -454,7 +474,9 @@ namespace nissa
 	    typename B,
 	    typename C>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-  void unsafe_complex_conj2_prod(A&& a,const B& b,const C& c)
+  void unsafe_complex_conj2_prod(A&& a,
+				 const B& b,
+				 const C& c)
   {
     a[0]=+b[0]*c[0]+b[1]*c[1];
     a[1]=-b[0]*c[1]+b[1]*c[0];
@@ -500,15 +522,29 @@ namespace nissa
     a[1]=+b[0]*c[1]+b[1]*c[0];
   }
   
-  //The product of two complex number
-  CUDA_HOST_AND_DEVICE inline void safe_complex_prod(complex a,const complex b,const complex c)
+  /// The product of two complex number
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void safe_complex_prod(A&& a,
+			 const B& b,
+			 const C& c)
   {
-    const double tmp=b[0]*c[0]-b[1]*c[1];
+    const auto tmp=b[0]*c[0]-b[1]*c[1];
+    
     a[1]=b[0]*c[1]+b[1]*c[0];
     a[0]=tmp;
   }
-  CUDA_HOST_AND_DEVICE inline void complex_prodassign(complex a,const complex b)
-  {safe_complex_prod(a,a,b);}
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_prodassign(A&& a,
+			  const B& b)
+  {
+    safe_complex_prod(a,a,b);
+  }
   
   //Minus version
   inline void safe_complex_prod_minus(complex a,const complex b,const complex c)
@@ -519,9 +555,16 @@ namespace nissa
   }
   
   //The product of a complex number by the conjugate of the second
-  CUDA_HOST_AND_DEVICE inline void safe_complex_conj2_prod(complex a,const complex b,const complex c)
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void safe_complex_conj2_prod(A&& a,
+			       const B& b,
+			       const C& c)
   {
-    const double tmp=b[0]*c[0]+b[1]*c[1];
+    const auto tmp=b[0]*c[0]+b[1]*c[1];
+    
     a[1]=-b[0]*c[1]+b[1]*c[0];
     a[0]=tmp;
   }

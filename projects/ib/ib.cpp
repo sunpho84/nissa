@@ -366,7 +366,7 @@ void init_simulation(int narg,char **arg)
   allocate_loop_source();
   allocate_photon_fields();
   
-  loc_contr=nissa_malloc("loc_contr",locVol,complex);
+  loc_contr=new LxField<complex>("loc_contr");
   
   allocate_mes2pts_contr();
   allocate_handcuffs_contr();

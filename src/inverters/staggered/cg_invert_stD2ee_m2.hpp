@@ -1,12 +1,19 @@
 #ifndef _CG_INVERT_STD2EE_M2_HPP
 #define _CG_INVERT_STD2EE_M2_HPP
 
-#include "geometry/geometry_eo.hpp"
-#include "new_types/su3.hpp"
+#include <optional>
+
+#include "base/field.hpp"
 
 namespace nissa
 {
-  void inv_stD2ee_m2_cg(color *sol,color *guess,eo_ptr<quad_su3> conf,double m2,int niter,double residue,color *source);
+  void inv_stD2ee_m2_cg(EvnField<color>& sol,
+			const std::optional<EvnField<color>>& guess,
+			const EoField<quad_su3>& eo_conf,
+			const double& m2,
+			const int& niter,
+			const double& residue,
+			const EvnField<color>& source);
 }
 
 #endif

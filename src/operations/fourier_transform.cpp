@@ -3,6 +3,7 @@
 #endif
 
 #include "base/debug.hpp"
+#include "base/field.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
@@ -15,14 +16,20 @@
 namespace nissa
 {
   //interpret free index as source or sink
-  void pass_spinspin_from_mom_to_x_space(spinspin* out,spinspin* in,const which_dir_t& dirs,const momentum_t& bc,int source_or_sink,bool include_phases)
+  void pass_spinspin_from_mom_to_x_space(LxField<spinspin>& out,
+					 const LxField<spinspin>& in,
+					 const which_dir_t& dirs,
+					 const momentum_t& bc,
+					 const int& source_or_sink,
+					 const bool& include_phases)
   {
-    
     //compute the main part of the fft
     //+1 if sink, -1 if source
     constexpr std::array<int,2> sign={-1,+1};
     const int s=sign[source_or_sink]*include_phases;
-    fft4d((complex*)out,(complex*)in,dirs,sizeof(spinspin)/sizeof(complex),sign[source_or_sink],0);
+    
+    crash("reimplement");
+    //fft4d((complex*)out,(complex*)in,dirs,sizeof(spinspin)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
     momentum_t steps;
@@ -48,7 +55,12 @@ namespace nissa
   }
   
   //interprets free index as source or sink (see above)
-  void pass_spinspin_from_x_to_mom_space(spinspin* out,spinspin* in,const which_dir_t& dirs,const momentum_t& bc,int source_or_sink,bool include_phases)
+  void pass_spinspin_from_x_to_mom_space(LxField<spinspin>& out,
+					 const LxField<spinspin>& in,
+					 const which_dir_t& dirs,
+					 const momentum_t& bc,
+					 const int& source_or_sink,
+					 const bool& include_phases)
   {
     
     //-1 if sink, +1 if source
@@ -78,11 +90,17 @@ namespace nissa
     set_borders_invalid(out);
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,sizeof(spinspin)/sizeof(complex),sign[source_or_sink],1);
+    crash("reimplement");
+    //fft4d((complex*)out,(complex*)out,dirs,sizeof(spinspin)/sizeof(complex),sign[source_or_sink],1);
   }
   
   //see above
-  void pass_spin1prop_from_mom_to_x_space(spin1prop* out,spin1prop* in,const which_dir_t& dirs,const momentum_t& bc,int source_or_sink,bool include_phases)
+  void pass_spin1prop_from_mom_to_x_space(LxField<spin1prop>& out,
+					  const LxField<spin1prop>& in,
+					  const which_dir_t& dirs,
+					  const momentum_t& bc,
+					  const int& source_or_sink,
+					  const bool& include_phases)
   {
     //+1 if sink, -1 if source
     constexpr std::array<int,2> sign={-1,+1};
@@ -111,7 +129,8 @@ namespace nissa
     set_borders_invalid(out);
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],0);
+    crash("reimplement");
+    // fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
     momentum_t steps;
@@ -139,7 +158,12 @@ namespace nissa
   }
   
   //see previous note
-  void pass_spin1prop_from_x_to_mom_space(spin1prop* out,spin1prop* in,const which_dir_t& dirs,const momentum_t& bc,int source_or_sink,bool include_phases)
+  void pass_spin1prop_from_x_to_mom_space(LxField<spin1prop>& out,
+					  const LxField<spin1prop>& in,
+					  const which_dir_t& dirs,
+					  const momentum_t& bc,
+					  const int& source_or_sink,
+					  const bool& include_phases)
   {
     
     //-1 if sink, +1 if source
@@ -171,7 +195,8 @@ namespace nissa
     set_borders_invalid(out);
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],1);
+    crash("reimplement");
+    // fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],1);
     
     //multiply by exp(i -(p_mu-p_nu)/2) and put 1/vol
     NISSA_PARALLEL_LOOP(imom,0,locVol)
@@ -196,7 +221,12 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  void pass_spin1field_from_mom_to_x_space(spin1field* out,spin1field* in,const which_dir_t& dirs,const momentum_t& bc,int source_or_sink,bool include_phases)
+  void pass_spin1field_from_mom_to_x_space(LxField<spin1field>& out,
+					   const LxField<spin1field>& in,
+					   const which_dir_t& dirs,
+					   const momentum_t& bc,
+					   const int source_or_sink,
+					   const bool include_phases)
   {
     
     //+1 if sink, -1 if source
@@ -222,7 +252,8 @@ namespace nissa
     THREAD_BARRIER();
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1field)/sizeof(complex),sign[source_or_sink],0);
+    crash("reimplement");
+    // fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1field)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
     momentum_t steps;
@@ -248,7 +279,12 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  void pass_spin1field_from_x_to_mom_space(spin1field* out,spin1field* in,const which_dir_t& dirs,const momentum_t& bc,int source_or_sink,bool include_phases)
+  void pass_spin1field_from_x_to_mom_space(LxField<spin1field>& out,
+					   const LxField<spin1field>& in,
+					   const which_dir_t& dirs,
+					   const momentum_t& bc,
+					   const int& source_or_sink,
+					   const bool& include_phases)
   {
     
     //-1 if sink, +1 if source
@@ -279,7 +315,8 @@ namespace nissa
     THREAD_BARRIER();
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1field)/sizeof(complex),sign[source_or_sink],1);
+    crash("reimplement");
+    // fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1field)/sizeof(complex),sign[source_or_sink],1);
     
     //multiply by exp(-i p_mu/2)
     NISSA_PARALLEL_LOOP(imom,0,locVol)
@@ -300,14 +337,20 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  void pass_spin_from_mom_to_x_space(spin* out,spin* in,const which_dir_t& dirs,const momentum_t& bc,int source_or_sink,bool include_phases)
+  void pass_spin_from_mom_to_x_space(LxField<spin>& out,
+				     const LxField<spin>& in,
+				     const which_dir_t& dirs,
+				     const momentum_t& bc,
+				     const int& source_or_sink,
+				     const bool& include_phases)
   {
     
     constexpr std::array<int,2> sign={-1,+1};
     const int s=sign[source_or_sink]*include_phases;
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)in,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],0);
+    crash("reimplement");
+    // fft4d((complex*)out,(complex*)in,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
     momentum_t steps;
@@ -333,9 +376,13 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  void pass_spin_from_x_to_mom_space(spin* out,spin* in,const which_dir_t& dirs,const momentum_t& bc,int source_or_sink,bool include_phases)
+  void pass_spin_from_x_to_mom_space(LxField<spin>& out,
+				     const LxField<spin>& in,
+				     const which_dir_t& dirs,
+				     const momentum_t& bc,
+				     const int& source_or_sink,
+				     const bool& include_phases)
   {
-    
     constexpr std::array<int,2> sign={+1,-1};
     const int s=sign[source_or_sink]*include_phases;
     
@@ -363,16 +410,23 @@ namespace nissa
     set_borders_invalid(out);
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],1);
+    crash("reimplement");
+    // fft4d((complex*)out,(complex*)out,dirs,sizeof(spin)/sizeof(complex),sign[source_or_sink],1);
   }
   
-  void pass_spincolor_from_mom_to_x_space(spincolor* out,spincolor* in,const which_dir_t& dirs,const momentum_t& bc,int source_or_sink,bool include_phases)
+  void pass_spincolor_from_mom_to_x_space(LxField<spincolor>& out,
+					  const LxField<spincolor>& in,
+					  const which_dir_t& dirs,
+					  const momentum_t& bc,
+					  const int& source_or_sink,
+					  const bool& include_phases)
   {
     constexpr std::array<int,2> sign={-1,+1};
     const int s=sign[source_or_sink]*include_phases;
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)in,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],0);
+    crash("reimplement");
+    //fft4d((complex*)out,(complex*)in,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
     momentum_t steps;
@@ -400,7 +454,12 @@ namespace nissa
     set_borders_invalid(out);
   }
   
-  void pass_spincolor_from_x_to_mom_space(spincolor* out,spincolor* in,const which_dir_t& dirs,const momentum_t& bc,int source_or_sink,bool include_phases)
+  void pass_spincolor_from_x_to_mom_space(LxField<spincolor>& out,
+					  const LxField<spincolor>& in,
+					  const which_dir_t& dirs,
+					  const momentum_t& bc,
+					  const int& source_or_sink,
+					  const bool& include_phases)
   {
     
     constexpr std::array<int,2> sign={+1,-1};
@@ -431,6 +490,7 @@ namespace nissa
     set_borders_invalid(out);
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],1);
+    crash("reimplement");
+    //fft4d((complex*)out,(complex*)out,dirs,sizeof(spincolor)/sizeof(complex),sign[source_or_sink],1);
   }
 }

@@ -389,32 +389,34 @@ namespace nissa
   //compute the static propagator, putting the 1+gamma_mu in place
   void compute_Wstat_prop_finalize(su3spinspin *prop,quad_su3 *conf,int mu,int xmu_start,su3 *pline)
   {
-    //reset the output
-    vector_reset(prop);
+    crash("reimplement");
     
-    //take the gamma
-    dirac_matr *gamma_mu=base_gamma+igamma_of_mu[mu];
+    // //reset the output
+    // vector_reset(prop);
     
-    NISSA_LOC_VOL_LOOP(x)
-    {
-      int xmu=glbCoordOfLoclx[x][mu];
-      int dist=abs(xmu-xmu_start);
-      int ord=(xmu>=xmu_start);
+    // //take the gamma
+    // dirac_matr *gamma_mu=base_gamma+igamma_of_mu[mu];
+    
+    // NISSA_LOC_VOL_LOOP(x)
+    // {
+    //   int xmu=glbCoordOfLoclx[x][mu];
+    //   int dist=abs(xmu-xmu_start);
+    //   int ord=(xmu>=xmu_start);
       
-      for(int ic1=0;ic1<3;ic1++)
-	for(int ic2=0;ic2<3;ic2++)
-	  {
-	    spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],base_gamma+0,pline[x][ic1][ic2]);
+    //   for(int ic1=0;ic1<3;ic1++)
+    // 	for(int ic2=0;ic2<3;ic2++)
+    // 	  {
+    // 	    spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],base_gamma+0,pline[x][ic1][ic2]);
             
-	    //sign of 1+-gamma_mu
-	    if((ord==1 && dist<=glbSize[mu]/2)||(ord==0 && dist>=glbSize[mu]/2)) spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //forward
-	    else                                                                   spinspin_dirac_subt_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //backward
+    // 	    //sign of 1+-gamma_mu
+    // 	    if((ord==1 && dist<=glbSize[mu]/2)||(ord==0 && dist>=glbSize[mu]/2)) spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //forward
+    // 	    else                                                                   spinspin_dirac_subt_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //backward
             
-	    spinspin_prodassign_double(prop[x][ic1][ic2],0.5);
-	  }
-    }
+    // 	    spinspin_prodassign_double(prop[x][ic1][ic2],0.5);
+    // 	  }
+    // }
     
-    set_borders_invalid(prop);
+    // set_borders_invalid(prop);
   }
   
   //compute the static propagator
@@ -446,36 +448,37 @@ namespace nissa
   //compute the stochastic static propagator, putting the 1+gamma_mu in place
   void compute_Wstat_stoch_prop(colorspinspin *prop,quad_su3 *conf,int mu,int xmu_start,color *source)
   {
-    color *pline=nissa_malloc("pline",locVol+bord_vol,color);
+    crash("reimplemnt");
+    // color *pline=nissa_malloc("pline",locVol+bord_vol,color);
     
-    //compute stocasthic pline
-    compute_stoch_Pline_dag(pline,conf,mu,xmu_start,source);
+    // //compute stocasthic pline
+    // compute_stoch_Pline_dag(pline,conf,mu,xmu_start,source);
     
-    //reset the output
-    vector_reset(prop);
+    // //reset the output
+    // vector_reset(prop);
     
-    //take the gamma
-    dirac_matr *gamma_mu=base_gamma+igamma_of_mu[mu];
+    // //take the gamma
+    // dirac_matr *gamma_mu=base_gamma+igamma_of_mu[mu];
     
-    NISSA_LOC_VOL_LOOP(x)
-    {
-      int xmu=glbCoordOfLoclx[x][mu];
-      int dist=abs(xmu-xmu_start);
-      int ord=(xmu>=xmu_start);
+    // NISSA_LOC_VOL_LOOP(x)
+    // {
+    //   int xmu=glbCoordOfLoclx[x][mu];
+    //   int dist=abs(xmu-xmu_start);
+    //   int ord=(xmu>=xmu_start);
       
-      for(int ic=0;ic<3;ic++)
-	{
-	  spinspin_dirac_summ_the_prod_complex(prop[x][ic],base_gamma+0,pline[x][ic]);
+    //   for(int ic=0;ic<3;ic++)
+    // 	{
+    // 	  spinspin_dirac_summ_the_prod_complex(prop[x][ic],base_gamma+0,pline[x][ic]);
 	  
-	  if((ord==1 && dist<=glbSize[mu]/2)||(ord==0 && dist>=glbSize[mu]/2)) spinspin_dirac_summ_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //forward
-	  else                                                                   spinspin_dirac_subt_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //backward
+    // 	  if((ord==1 && dist<=glbSize[mu]/2)||(ord==0 && dist>=glbSize[mu]/2)) spinspin_dirac_summ_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //forward
+    // 	  else                                                                   spinspin_dirac_subt_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //backward
 	  
-	  spinspin_prodassign_double(prop[x][ic],0.5);
-	}
-    }
+    // 	  spinspin_prodassign_double(prop[x][ic],0.5);
+    // 	}
+    // }
     
-    set_borders_invalid(prop);
+    // set_borders_invalid(prop);
     
-    nissa_free(pline);
+    // nissa_free(pline);
   }
 }

@@ -51,68 +51,111 @@ namespace nissa
     double ori_source_norm2;
     
     //spincolor data
-    spincolor** sp;
+    std::vector<LxField<spincolor>> sp;
     
     CUDA_HOST_AND_DEVICE
-    spincolor* const &operator[](const int i) const
+    const LxField<spincolor>& operator[](const int& i) const
     {
       return sp[i];
     }
     
     CUDA_HOST_AND_DEVICE
-    spincolor* &operator[](const int i)
+    LxField<spincolor>& operator[](const int& i)
     {
       return sp[i];
     }
     
     void alloc_spincolor()
     {
-      sp=nissa_malloc("sp",nso_spi*nso_col,spincolor*);
-      for(int i=0;i<nso_spi*nso_col;i++)
-	sp[i]=nissa_malloc("sp",locVol+bord_vol,spincolor);
+      sp.resize(nso_spi*nso_col,"sp");
     }
     
     //initialize as a propagator
-    void init_as_propagator(insertion_t _insertion,const std::vector<source_term_t>& _source_terms,int _tins,double _residue,double _kappa,const double* _kappa_asymm,double _mass,char *_ext_field_path,int _r,double _charge,const momentum_t& _theta,bool _store)
+    void init_as_propagator(const insertion_t& _insertion,
+			    const std::vector<source_term_t>& _source_terms,
+			    const int& _tins,
+			    const double& _residue,
+			    const double& _kappa,
+			    const double* _kappa_asymm,
+			    const double& _mass,
+			    const char *_ext_field_path,
+			    const int& _r,
+			    const double& _charge,
+			    const momentum_t& _theta,
+			    const bool& _store)
     {
       is_source=false;
       
       kappa=_kappa;
-      for(int mu=0;mu<NDIM;mu++) kappa_asymm[mu]=_kappa_asymm[mu];
+      for(int mu=0;mu<NDIM;mu++)
+	kappa_asymm[mu]=_kappa_asymm[mu];
+      
       mass=_mass;
+      
       r=_r;
+      
       charge=_charge;
-      for(int mu=0;mu<NDIM;mu++) theta[mu]=_theta[mu];
+      
+      for(int mu=0;mu<NDIM;mu++)
+	theta[mu]=_theta[mu];
+      
       insertion=_insertion;
+      
       source_terms=_source_terms;
+      
       tins=_tins;
+      
       strncpy(ext_field_path,_ext_field_path,32);
+      
       residue=_residue;
+      
       store=_store;
       
-      if(is_photon_ins(insertion)) need_photon=true;
+      if(is_photon_ins(insertion))
+	need_photon=true;
       
       alloc_spincolor();
     }
     
     //initialize as a source
-    void init_as_source(rnd_t _noise_type,int _tins,int _r,bool _store)
+    void init_as_source(const rnd_t& _noise_type,
+			const int& _tins,
+			const int& _r,
+			const bool& _store)
     {
       is_source=true;
       
       noise_type=_noise_type;
+      
       tins=_tins;
+      
       r=_r;
+      
       store=_store;
+      
       alloc_spincolor();
     }
     
-    qprop_t(insertion_t insertion,const std::vector<source_term_t>& source_terms,int tins,double residue,double kappa,double* kappa_asymm, double mass,char *ext_field_path,int r,double charge,const momentum_t& theta,bool store)
+    qprop_t(const insertion_t& insertion,
+	    const std::vector<source_term_t>& source_terms,
+	    const int& tins,
+	    const double& residue,
+	    const double& kappa,
+	    const double* kappa_asymm,
+	    const double& mass,
+	    const char* ext_field_path,
+	    const int& r,
+	    const double& charge,
+	    const momentum_t& theta,
+	    const bool& store)
     {
       init_as_propagator(insertion,source_terms,tins,residue,kappa,kappa_asymm,mass,ext_field_path,r,charge,theta,store);
     }
     
-    qprop_t(rnd_t noise_type,int tins,int r,bool store)
+    qprop_t(const rnd_t& noise_type,
+	    const int& tins,
+	    const int& r,
+	    const bool& store)
     {
       init_as_source(noise_type,tins,r,store);
     }
@@ -124,9 +167,7 @@ namespace nissa
     
     ~qprop_t()
     {
-      for(int i=0;i<nso_spi*nso_col;i++)
-	nissa_free(sp[i]);
-      nissa_free(sp);
+      sp.clear();
     }
   };
   
@@ -162,28 +203,44 @@ namespace nissa
   EXTERN_PROP int nlprop;
   
   EXTERN_PROP std::vector<std::string> ori_source_name_list;
-  EXTERN_PROP spincolor *loop_source;
-  inline void allocate_loop_source(){loop_source=nissa_malloc("loop_source",locVol+bord_vol,spincolor);}
-  inline void free_loop_source(){nissa_free(loop_source);}
+  
+  EXTERN_PROP LxField<spincolor> *loop_source;
+  
+  inline void allocate_loop_source()
+  {
+    loop_source=new LxField<spincolor>("loop_source",WITH_HALO);
+  }
+  
+  inline void free_loop_source()
+  {
+    delete loop_source;
+  }
   
   EXTERN_PROP int nsource_tot INIT_TO(0),nphoton_prop_tot INIT_TO(0);
   EXTERN_PROP double source_time INIT_TO(0),photon_prop_time INIT_TO(0),lepton_prop_time INIT_TO(0);
   
   EXTERN_PROP int load_photons INIT_TO(false);
   EXTERN_PROP int store_photons INIT_TO(false);
-  CUDA_MANAGED EXTERN_PROP spin1field *photon_field;
-  EXTERN_PROP spin1field *photon_phi;
-  EXTERN_PROP spin1field *photon_eta;
+  
+  CUDA_MANAGED EXTERN_PROP LxField<spin1field> *photon_field;
+  
+  EXTERN_PROP LxField<spin1field> *photon_phi;
+  
+  EXTERN_PROP LxField<spin1field> *photon_eta;
+  
   void allocate_photon_fields();
   void free_photon_fields();
   CUDA_MANAGED EXTERN_PROP spinspin *temp_lep;
   
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,const momentum_t& theta);
+  
   void generate_original_source(qprop_t *sou);
   void generate_original_sources(int ihit,bool skip_io=false);
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool *dirs);
   void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc);
-  void generate_photon_source(spin1field *photon_eta);
+  
+  void generate_photon_source(LxField<spin1field>& photon_eta);
+  
   void generate_source(insertion_t inser,int r,double charge,double kappa,const momentum_t& theta,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
   void generate_photon_stochastic_propagator(int ihit);
@@ -229,7 +286,7 @@ namespace nissa
     if(need_photon)
       {
 	if(skip)
-	  generate_photon_source(photon_eta);
+	  generate_photon_source(*photon_eta);
 	else
 	  generate_photon_stochastic_propagator(ihit);
       }
@@ -245,11 +302,14 @@ namespace nissa
   template <typename T>
   struct ReadWriteRealVector
   {
-    T* v;
+    LxField<T>& v;
+    
     std::string path;
+    
     FILE* fastFile;
     
-    ReadWriteRealVector(T* v,const std::string& _path) :
+    ReadWriteRealVector(LxField<T>& v,
+			const std::string& _path) :
       v(v),path(_path)
     {
       if(fast_read_write_vectors)
@@ -274,10 +334,11 @@ namespace nissa
       
       if(fast_read_write_vectors)
 	{
+	  crash("reimplemnt");
 	  fastOpen("r");
 	  
-	  if(fread(v,sizeof(T),locVol,fastFile)!=locVol)
-	    crash("Problem reading %s",path.c_str());
+	  // if(fread(v,sizeof(T),locVol,fastFile)!=locVol)
+	  //   crash("Problem reading %s",path.c_str());
 	  
 	  fclose(fastFile);
 	}

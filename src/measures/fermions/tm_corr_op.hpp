@@ -24,22 +24,22 @@ namespace nissa
     bool need_clov;
     
     /// Configuration
-    quad_su3 *conf;
+    LxField<quad_su3> conf;
     
     /// Temporary vector
-    spincolor* tmp;
+    LxField<spincolor> tmp;
     
     /// Clover term
-    clover_term_t *Cl;
+    LxField<clover_term_t>* Cl;
     
     /// Inverse clover term
-    inv_clover_term_t *invCl;
+    LxField<inv_clover_term_t>* invCl;
     
     // Residue
     const double residue;
     
     /// Quark content
-    theory_pars_t& tp;
+    const theory_pars_t& tp;
     
     /// Current quark
     int cur_flav;
@@ -53,7 +53,7 @@ namespace nissa
 	  
 	  if(cq.cSW)
 	    {
-	      chromo_operator_remove_cSW(Cl,cq.cSW);
+	      chromo_operator_remove_cSW(*Cl,cq.cSW);
 	      master_printf("Remove cSW for flav %d\n",cur_flav);
 	    }
 	  
@@ -74,7 +74,7 @@ namespace nissa
 	  if(q.cSW)
 	    {
 	      master_printf("Adding cSW for flav %d\n",iflav);
-	      chromo_operator_include_cSW(Cl,q.cSW);
+	      chromo_operator_include_cSW(*Cl,q.cSW);
 	      crash("reimplement");
 	      //invert_twisted_clover_term(invCl,q.mass,q.kappa,Cl);
 	    }
@@ -99,8 +99,14 @@ namespace nissa
     }
     
     /// Constructor
-    tm_corr_op(eo_ptr<quad_su3>& ext_conf,const double& residue,theory_pars_t& tp) :
-      residue(residue),tp(tp),cur_flav(-1)
+    tm_corr_op(EoField<quad_su3>& ext_conf,
+	       const double& residue,
+	       const theory_pars_t& tp) :
+      conf("conf",WITH_HALO_EDGES),
+      tmp("tmp",WITH_HALO),
+      residue(residue),
+      tp(tp),
+      cur_flav(-1)
     {
       for(auto& q : tp.quarks)
 	if(q.discretiz!=ferm_discretiz::ROOT_TM_CLOV)
@@ -111,14 +117,11 @@ namespace nissa
       for(auto& q : tp.quarks)
 	need_clov|=(q.cSW!=0);
       
-      tmp=nissa_malloc("tmp",locVol+bord_vol,spincolor);
-      
-      conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
       crash("reimplement");
       // paste_eo_parts_into_lx_vector_(conf,ext_conf);
       
       // if(need_clov)
-      // 	{
+      // 	{needs reation
       // 	  Cl=nissa_malloc("Cl",locVol+bord_vol,clover_term_t);
       // 	  invCl=nissa_malloc("invCl",locVol+bord_vol,inv_clover_term_t);
       // 	  chromo_operator(Cl,conf);
@@ -128,14 +131,10 @@ namespace nissa
     /// Destructor
     ~tm_corr_op()
     {
-      nissa_free(conf);
-      
-      nissa_free(tmp);
-      
       if(need_clov)
 	{
-	  nissa_free(Cl);
-	  nissa_free(invCl);
+	  delete Cl;
+	  delete invCl;
 	}
     }
     

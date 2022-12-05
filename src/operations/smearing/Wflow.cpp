@@ -78,11 +78,13 @@ namespace nissa
   }
   
   //flow for the given time for a dt using 1006.4518 appendix C
-  void Wflow_lx_conf(quad_su3* conf,double dt,const which_dir_t& dirs)
+  void Wflow_lx_conf(LxField<quad_su3>& conf,
+		     const double& dt,
+		     const which_dir_t& dirs)
   {
     //storage for staples
-    quad_su3 *arg=nissa_malloc("arg",locVol,quad_su3);
-    vector_reset(arg);
+    LxField<quad_su3> arg("arg");
+    arg.reset();
     
     //we write the 4 terms of the Runge Kutta scheme iteratively
     for(int iter=0;iter<3;iter++)
@@ -90,7 +92,5 @@ namespace nissa
 	Wflow::update_arg(arg,conf,dt,dirs,iter);
 	Wflow::update_conf(arg,conf,dirs);
       }
-    
-    nissa_free(arg);
   }
 }

@@ -12,7 +12,7 @@
 namespace nissa
 {
   //print all pars
-  std::string meta_pars_t::get_str(bool full)
+  std::string meta_pars_t::get_str(const bool& full) const
   {
     std::ostringstream os;
     os<<"After\t\t=\t"<<after<<"\n";
@@ -28,15 +28,21 @@ namespace nissa
   }
   
   //update the history-dependent potential
-  void meta_pars_t::update(int isweep,double Q)
+  void meta_pars_t::update(const int& isweep,
+			   const double& Q)
   {
     if(isweep>=after && (isweep-after)%each==0)
       {
-	int igrid=floor(Q/width)+ngrid/2.0;
+	const int igrid=floor(Q/width)+ngrid/2.0;
+	
 	double alpha=Q/width;
 	alpha=alpha-floor(alpha);
-	if(igrid>=0 && igrid<=ngrid) grid[igrid]+=(1-alpha)*coeff;
-	if(igrid+1>=0 && igrid+1<=ngrid) grid[igrid+1]+=alpha*coeff;
+	
+	if(igrid>=0 and igrid<=ngrid)
+	  grid[igrid]+=(1-alpha)*coeff;
+	
+	if(igrid+1>=0 and igrid+1<=ngrid)
+	  grid[igrid+1]+=alpha*coeff;
       }
   }
   
@@ -47,7 +53,7 @@ namespace nissa
     const int igrid=floor((x+barr)/width);
     
     //inside the barriers
-    if(igrid>=0 && igrid<ngrid)
+    if(igrid>=0 and igrid<ngrid)
       return (grid[igrid+1]-grid[igrid])/width;
     else
       if(igrid<0)
@@ -57,18 +63,18 @@ namespace nissa
   }
   
   //compute the potential using past history
-  double meta_pars_t::compute_pot(double x)
+  double meta_pars_t::compute_pot(const double& x) const
   {
     //take igrid
-    int igrid=floor((x+barr)/width);
+    const int igrid=floor((x+barr)/width);
     
     //inside the barriers
     if(igrid>=0 and igrid<ngrid)
       {
-	//interpolate
-	double x0=igrid*width-barr;
-	double m=(grid[igrid+1]-grid[igrid])/width;
-	double q=grid[igrid]-m*x0;
+	const double x0=igrid*width-barr;
+	const double m=(grid[igrid+1]-grid[igrid])/width;
+	const double q=grid[igrid]-m*x0;
+	
 	return q+m*x;
       }
     else
@@ -79,17 +85,19 @@ namespace nissa
   }
   
   //write
-  void meta_pars_t::save(const char *path)
+  void meta_pars_t::save(const char *path) const
   {
     FILE *fout=open_file(path,"w");
-    for(int i=0;i<=ngrid;i++) nissa::master_fprintf(fout,"%lg %16.16lg\n",-barr+i*width,grid[i]);
+    
+    for(int i=0;i<=ngrid;i++)
+      nissa::master_fprintf(fout,"%lg %16.16lg\n",-barr+i*width,grid[i]);
+    
     close_file(fout);
   }
   
   //read
   void meta_pars_t::load(const char *path)
   {
-    
     //to be sure, resize
     grid.resize(ngrid+1);
     
@@ -110,11 +118,11 @@ namespace nissa
   }
   
   //draw the chronological force
-  void meta_pars_t::draw_force(const char *force_path)
+  void meta_pars_t::draw_force(const char *force_path) const
   {
-    double x_min=-barr*1.1;
-    double x_max=+barr*1.1;
-    double x_diff=x_max-x_min;
+    const double x_min=-barr*1.1;
+    const double x_max=+barr*1.1;
+    const double x_diff=x_max-x_min;
     int n=ceil(x_diff/width*10);
     if(n==0) n=1;
     double dx=x_diff/n;
@@ -144,7 +152,8 @@ namespace nissa
   {
     ngrid=(2*barr+width/2)/width;
     grid.resize(ngrid+1);
-    for(int igrid=0;igrid<=ngrid;igrid++) grid[igrid]=0;
+    for(int igrid=0;igrid<=ngrid;igrid++)
+      grid[igrid]=0;
   }
   
   //read from a file all the parameters

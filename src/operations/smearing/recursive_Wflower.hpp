@@ -16,7 +16,7 @@ namespace nissa
   {
     struct Wflow_lev_t
     {
-      quad_su3 *conf; //stored configuration
+      LxField<quad_su3> *conf; //stored configuration
       int nWflow; //current Wflow in terms of the fundamental
       int units; //length of the Wflowing in units of the fundamental, for this level
       int off() //offset of the level
@@ -33,7 +33,9 @@ namespace nissa
     {return levs.size();}
     
     //initialize with given flower and conf
-    recursive_Wflower_t(const Wflow_pars_t &Wflower,quad_su3 *ori_conf) : Wflower(Wflower)
+    recursive_Wflower_t(const Wflow_pars_t &Wflower,
+			LxField<quad_su3>& ori_conf) :
+      Wflower(Wflower)
     {
       int ns=Wflower.nrecu;
       master_printf("ns: %d\n",ns);
@@ -51,7 +53,7 @@ namespace nissa
       
       //resize
       levs.resize(ns+1);
-      for(int i=0;i<ns;i++) levs[i].conf=nissa_malloc("conf",locVol+bord_vol+edge_vol,quad_su3);
+      for(int i=0;i<ns;i++) levs[i].conf=new LxField<quad_su3>("conf",WITH_HALO_EDGES);
       
       //set units of Wflow
       for(int il=0;il<nl();il++)
@@ -70,17 +72,17 @@ namespace nissa
     {for(int is=0;is<nl()-1;is++) nissa_free(levs[is].conf);}
     
     //set the external conf
-    void bind_conf(quad_su3 *ori_conf)
+    void bind_conf(LxField<quad_su3>& ori_conf)
     {
       master_printf("binding\n");
       //set the pointer of the lowest level to the external (to be evolved) conf
-      levs.back().conf=ori_conf;
+      levs.back().conf=&ori_conf;
       //set units of toppest to a very large number so it's never evolved
       levs.front().units=200000;
       for(int i=0;i<nl();i++)
 	{
 	  master_printf("copying i %d\n",i);
-	  vector_copy(levs[i].conf,ori_conf);
+	  (*levs[i].conf)=ori_conf;
 	  levs[i].nWflow=0;
 	}
     }
@@ -120,7 +122,7 @@ namespace nissa
 	master_printf("levs[%d].nWflow: %d nWflow: %d\n",is,levs[is].nWflow,nWflow);
       while(levs[is].nWflow<nWflow)
 	{
-	  Wflow_lx_conf(levs[is].conf,Wflower.dt,dirs);
+	  Wflow_lx_conf(*(levs[is].conf),Wflower.dt,dirs);
 	  levs[is].nWflow++;
 	  nevol++;
 	}

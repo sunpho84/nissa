@@ -251,7 +251,9 @@ namespace nissa
   
   void gauge_transform_color(eo_ptr<color> out,eo_ptr<su3> g,eo_ptr<color> in);
   
-  void Landau_or_Coulomb_gauge_fix(quad_su3 *conf_out,LC_gauge_fixing_pars_t *pars,quad_su3 *conf_in);
+  void Landau_or_Coulomb_gauge_fix(LxField<quad_su3>& fixed_conf,
+				   const LC_gauge_fixing_pars_t& pars,
+				   const LxField<quad_su3>& ext_conf);
   
   /// Perform a random gauge transformation
   void perform_random_gauge_transform(LxField<quad_su3>& conf_out,

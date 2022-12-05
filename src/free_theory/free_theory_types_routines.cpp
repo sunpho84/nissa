@@ -2,15 +2,18 @@
  #include "config.hpp"
 #endif
 
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
-#include "free_theory_types.hpp"
+#include <base/field.hpp>
+#include <communicate/borders.hpp>
+#include <free_theory/free_theory_types_routines.hpp>
 
 namespace nissa
 {
-  gauge_info create_tlSym_gauge_info(double alpha,const momentum_t& bc,double c1=-1.0/12)
+  gauge_info create_tlSym_gauge_info(const double& alpha,
+				     const momentum_t& bc,
+				     const double c1)
   {
     gauge_info out;
+    
     out.bc=bc;
     out.alpha=alpha;
     out.c1=c1;
@@ -18,14 +21,20 @@ namespace nissa
     return out;
   }
   
-  gauge_info create_Wilson_gauge_info(double alpha,const momentum_t& bc)
+  gauge_info create_Wilson_gauge_info(const double& alpha,
+				      const momentum_t& bc)
   {
     return create_tlSym_gauge_info(alpha,bc,0);
   }
   
-  tm_quark_info create_twisted_quark_info(double kappa,double mass,const momentum_t& bc,int r,double zmp=0)
+  tm_quark_info create_twisted_quark_info(const double& kappa,
+					  const double& mass,
+					  const momentum_t& bc,
+					  const int& r,
+					  const double& zmp)
   {
     tm_quark_info out;
+    
     out.bc=bc;
     out.kappa=kappa;
     out.zmp=zmp;
@@ -35,37 +44,33 @@ namespace nissa
     return out;
   }
   
-  tm_quark_info create_Wilson_quark_info(double kappa,const momentum_t& bc)
+  tm_quark_info create_Wilson_quark_info(const double& kappa,
+					 const momentum_t& bc)
   {
     return create_twisted_quark_info(kappa,0,bc,0);
   }
   
-  void get_spin_from_spinspin(spin *out,spinspin *in,int id_so)
+  void get_spin_from_spinspin(LxField<spin>& out,
+			      const LxField<spinspin>& in,
+			      const int& id_so)
   {
-    int all=check_borders_allocated((void*)in,0);
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      for(int id_si=0;id_si<NDIRAC;id_si++)
+	complex_copy(out[ivol][id_si],in[ivol][id_si][id_so]);
+    NISSA_PARALLEL_LOOP_END;
     
-    int ending;
-    if(all)
-      {
-	communicate_lx_spinspin_borders(in);
-	ending=locVol+bord_vol;
-      }
-    else
-      ending=locVol;
-    
-    for(int ivol=0;ivol<ending;ivol++)
-      for(int id_si=0;id_si<4;id_si++)
-	memcpy(out[ivol][id_si],in[ivol][id_si][id_so],sizeof(complex));
-    
-    if(all) set_borders_valid(out);
-    else    set_borders_invalid(out);
+    out.invalidateHalo();
   }
   
-  void put_spin_into_spinspin(spinspin *out,spin *in,int id_so)
+  void put_spin_into_spinspin(LxField<spinspin>& out,
+			      const LxField<spin>& in,
+			      const int& id_so)
   {
-    NISSA_LOC_VOL_LOOP(ivol)
-      for(int id_si=0;id_si<4;id_si++)
-	memcpy(out[ivol][id_si][id_so],in[ivol][id_si],sizeof(complex));
-    set_borders_invalid(out);
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      for(int id_si=0;id_si<NDIRAC;id_si++)
+	complex_copy(out[ivol][id_si][id_so],in[ivol][id_si]);
+    NISSA_PARALLEL_LOOP_END;
+    
+    out.invalidateHalo();
   }
 }

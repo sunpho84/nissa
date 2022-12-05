@@ -2,8 +2,6 @@
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/staggered/cgm_invert_stD2ee_m2_portable.cpp \
-	%D%/staggered/cgm_32_invert_stD2ee_m2.cpp \
-	%D%/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
 	%D%/staggered/cg_invert_stD2ee_m2_portable.cpp \
 	%D%/staggered/cgm_invert_stD2ee_m2.cpp \
 	%D%/staggered/cg_invert_stD2ee_m2.cpp \
@@ -46,9 +44,7 @@ include_HEADERS+= \
 	%D%/staggered/cg_invert_stD2ee_m2.hpp \
 	%D%/staggered/cg_invert_stD.hpp \
 	%D%/staggered/cg_invert_evn_stD.hpp \
-	%D%/staggered/cgm_32_invert_stD2ee_m2.hpp \
 	%D%/staggered/cgm_invert_stD2ee_m2_portable.hpp \
-	%D%/staggered/cgm_32_invert_stD2ee_m2_portable.hpp \
 	%D%/staggered/cg_invert_stD2ee_m2_portable.hpp \
 	%D%/Wclov/cg_invert_WclovQ.hpp \
 	%D%/Wclov/cg_invert_WclovQ2.hpp \
@@ -65,7 +61,6 @@ include_HEADERS+= \
 
 EXTRA_DIST+= \
 	%D%/twisted_mass/cg_invert_tmQ2_common.cpp \
-	%D%/templates/cgm_32_invert_template_threaded.cpp \
 	%D%/templates/cg_128_invert_template_threaded.cpp \
 	%D%/templates/cgm_invert_template_summsol_threaded.hpp \
 	%D%/templates/cg_invert_template_threaded.cpp \

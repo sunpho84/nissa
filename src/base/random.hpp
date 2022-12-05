@@ -8,8 +8,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <base/field.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
+#include <new_types/su3_op.hpp>
 #include <routines/mpi_routines.hpp>
 #include <threads/threads.hpp>
 
@@ -51,19 +53,103 @@ namespace nissa
   void convert_rnd_gen_to_text(char *text,rnd_gen *gen,int size);
   CUDA_HOST_AND_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
   CUDA_HOST_AND_DEVICE int rnd_get_pm_one(rnd_gen *gen);
-  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_t rtype);
-  void generate_delta_eo_source(eo_ptr<su3> source,int *x);
-  void generate_delta_source(su3spinspin *source,int *x);
-  void generate_colorspindiluted_source(su3spinspin *source,enum rnd_t rtype,int twall);
-  inline void generate_spincolordiluted_source(su3spinspin *source,enum rnd_t rtype,int twall)
-  {generate_colorspindiluted_source(source,rtype,twall);}
-  void generate_spindiluted_source(colorspinspin *source,enum rnd_t rtype,int twall);
-  void generate_undiluted_source(spincolor *source,enum rnd_t rtype,int twall);
-  void generate_fully_undiluted_lx_source(color *source,enum rnd_t rtype,int twall,int dir=0);
-  void generate_fully_undiluted_eo_source(color *source,enum rnd_t rtype,int twall,int par,int dir=0);
-  void generate_fully_undiluted_eo_source(eo_ptr<color> source,enum rnd_t rtype,int twall,int dir=0);
-  void generate_fully_undiluted_eo_source(spincolor *source,enum rnd_t rtype,int twall,int par,int dir=0);
-  void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir=0);
+  
+  template <typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void comp_get_rnd(C&& _out,
+		    rnd_gen *gen,
+		    const enum rnd_t& rtype)
+  {
+    complex out;
+    comp_get_rnd(out,gen,rtype);
+    complex_copy(_out,out);
+  }
+  
+  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex& out,
+					 rnd_gen* gen,
+					 const enum rnd_t& rtype);
+  
+  //generate a spindiluted vector according to the passed type
+  void generate_colorspindiluted_source(LxField<su3spinspin>& source,
+					const rnd_t& rtype,
+					const int& twall);
+  
+  //generate a spindiluted vector according to the passed type
+  void generate_spindiluted_source(LxField<colorspinspin>& source,
+				   const rnd_t& rtype,
+				   const int& twall);
+  
+  //generate an undiluted vector according to the passed type
+  void generate_undiluted_source(LxField<spincolor>& source,
+				 const rnd_t& rtype,
+				 const int& twall);
+  
+  //generate a fully undiluted source
+  void generate_fully_undiluted_lx_source(LxField<color>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& dir=0);
+  
+  //eo version
+  void generate_fully_undiluted_eo_source(EvenOrOddField<color>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& par,
+					  const int& dir=0);
+  
+  void generate_fully_undiluted_eo_source(EoField<color>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& dir=0);
+  
+  //same for spincolor
+  void generate_fully_undiluted_eo_source(EvenOrOddField<spincolor>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& par,
+					  const int& dir=0);
+  
+  void generate_fully_undiluted_eo_source(EoField<spincolor>& source,
+					  const rnd_t& rtype,
+					  const int& twall,
+					  const int& dir=0);
+  
+  //generate a delta source
+  void generate_delta_source(LxField<su3spinspin>& source,
+			     const coords_t& x);
+  
+  void generate_delta_eo_source(EoField<su3>& source,
+				const coords_t& x);
+
+  // void generate_delta_eo_source(eo_ptr<su3> source,int *x);
+  // void generate_delta_source(su3spinspin *source,int *x);
+  // void generate_colorspindiluted_source(su3spinspin *source,enum rnd_t rtype,int twall);
+  // inline void generate_spincolordiluted_source(su3spinspin *source,enum rnd_t rtype,int twall)
+  // {generate_colorspindiluted_source(source,rtype,twall);}
+  // void generate_spindiluted_source(colorspinspin *source,enum rnd_t rtype,int twall);
+  // void generate_undiluted_source(spincolor *source,enum rnd_t rtype,int twall);
+  // void generate_fully_undiluted_lx_source(color *source,enum rnd_t rtype,int twall,int dir=0);
+  
+  // void generate_fully_undiluted_eo_source(EvenOrOddField<color>& source,
+  // 					  const rnd_t& rtype,
+  // 					  const int& twall,
+  // 					  const int& par,
+  // 					  const int& dir=0);
+  
+  // void generate_fully_undiluted_eo_source(EoField<color>& source,
+  // 					  const rnd_t& rtype,
+  // 					  const int& twall,
+  // 					  const int& par,
+  // 					  const int& dir=0);
+  
+  // void generate_fully_undiluted_eo_source(EvenOrOddField<spincolor>& source,
+  // 					  const rnd_t& rtype,
+  // 					  const int& twall,
+  // 					  const int& par,
+  // 					  const int& dir=0);
+  
+  // void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir=0);
+  
   CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma);
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
@@ -83,23 +169,43 @@ namespace nissa
   void stop_loc_rnd_gen();
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
   
-  //read from /dev/urandom
-  template <typename T>
-  void get_system_random(T& t)
+    /// Put a matrix to random used passed random generator
+  template <typename U>
+  CUDA_HOST_AND_DEVICE
+  void su3_put_to_rnd(U&& u_ran,
+		      rnd_gen &rnd)
   {
-    const int size=sizeof(T);
+    su3_put_to_id(u_ran);
     
-    if(is_master_rank())
-      {
-	const char path[]="/dev/urandom";
-	int fd=open(path,O_RDONLY);
-	if(fd==-1) crash("Opening %s",path);
-	
-	int rc=read(fd,&t,size);
-        if(rc!=size) crash("reading %zu bytes from %s, obtained: %d",size,path,rc);
-	if(close(fd)==-1) crash("Closing %s",path);
-    }
-    MPI_Bcast(&t,size,MPI_CHAR,master_rank,MPI_COMM_WORLD);
+    for(size_t i1=0;i1<NCOL;i1++)
+      for(size_t i2=i1+1;i2<NCOL;i2++)
+	{
+	  //generate u0,u1,u2,u3 random on the four dim. sphere
+	  const double u0=rnd_get_unif(&rnd,-1,1);
+	  const double alpha=sqrt(1-u0*u0);
+	  const double phi=rnd_get_unif(&rnd,0,2*M_PI);
+	  const double costheta=rnd_get_unif(&rnd,-1,1);
+	  const double sintheta=sqrt(1-costheta*costheta);
+	  const double u3=alpha*costheta;
+	  const double u1=alpha*sintheta*cos(phi);
+	  const double u2=alpha*sintheta*sin(phi);
+	  
+	  //define u_l as unit matrix ...
+	  su3 u_l;
+	  su3_put_to_id(u_l);
+	  
+	  //... and then modify the elements in the chosen su(2) subgroup
+	  u_l[i1][i1][RE]=u0;
+	  u_l[i1][i1][IM]=u3;
+	  u_l[i1][i2][RE]=u2;
+	  u_l[i1][i2][IM]=u1;
+	  u_l[i2][i1][RE]=-u2;
+	  u_l[i2][i1][IM]=u1;
+	  u_l[i2][i2][RE]=u0;
+	  u_l[i2][i2][IM]=-u3;
+	  
+	  safe_su3_prod_su3(u_ran,u_l,u_ran);
+	}
   }
 }
 

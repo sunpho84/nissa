@@ -10,7 +10,13 @@
 
 namespace nissa
 {
-  void inv_stD2ee_m2_cg(color *sol,color *guess,eo_ptr<quad_su3> eo_conf,double m2,int niter,double residue,color *source)
+  void inv_stD2ee_m2_cg(EvnField<color>& sol,
+			const std::optional<EvnField<color>>& guess,
+			const EoField<quad_su3>& eo_conf,
+			const double& m2,
+			const int& niter,
+			const double& residue,
+			const EvnField<color>& source)
   {
       inv_stD2ee_m2_cg_portable(sol,guess,eo_conf,m2,niter,residue,source);
   }

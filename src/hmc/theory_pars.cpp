@@ -6,7 +6,7 @@
 
 namespace nissa
 {
-  std::string theory_pars_t::get_str(int full)
+  std::string theory_pars_t::get_str(const bool& full) const
   {
     std::ostringstream os;
     //header

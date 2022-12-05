@@ -152,7 +152,7 @@ namespace nissa
       {
 	complex ph;
 	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
-	spinspin_put_to_diag(prop[ivol],ph);
+	spinspin_put_to_diag_complex(prop[ivol],ph);
       }
     NISSA_PARALLEL_LOOP_END;
     set_borders_invalid(prop);

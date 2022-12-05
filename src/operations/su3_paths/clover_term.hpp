@@ -23,20 +23,49 @@ namespace nissa
 		       const EoField<quad_su3>& conf_eo);
   
   //include the factor cSW - note that we include the factor "-1/4" here
-  inline double chromo_operator_factor(double cSW)
-  {return -cSW/4;}
-  inline void chromo_operator_adjust_cSW(clover_term_t *Cl,double cSW_new,double cSW_old)
-  {/*master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/double_vector_prod_double((double*)Cl,(double*)Cl,chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old),sizeof(clover_term_t)/sizeof(double)*locVol);}
-  inline void chromo_operator_adjust_cSW(eo_ptr<clover_term_t> Cl,double cSW_new,double cSW_old)
-  {/*master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/for(int eo=0;eo<2;eo++) double_vector_prod_double((double*)(Cl[eo]),(double*)(Cl[eo]),chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old),sizeof(clover_term_t)/sizeof(double)*locVolh);}
+  inline double chromo_operator_factor(const double& cSW)
+  {
+    return -cSW/4;
+  }
+  
+  inline void chromo_operator_adjust_cSW(LxField<clover_term_t>& Cl,
+					 const double& cSW_new,
+					 const double& cSW_old)
+  {
+    /*master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/
+    Cl*=chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old);
+  }
+  
+  inline void chromo_operator_adjust_cSW(EoField<clover_term_t>& Cl,
+					 const double& cSW_new,
+					 const double& cSW_old)
+  {
+    /*master_printf("adjusting from: %lg to %lg\n",cSW_old,cSW_new);*/
+    for(int eo=0;eo<2;eo++)
+      Cl[eo]*=chromo_operator_factor(cSW_new)/chromo_operator_factor(cSW_old);
+  }
+  
   // inline void chromo_operator_include_cSW(clover_term_t *Cl,double cSW)
   // {double_vector_prod_double((double*)Cl,(double*)Cl,-cSW/4,sizeof(clover_term_t)/sizeof(double)*loc_vol);}
-  template <class T> void chromo_operator_include_cSW(T Cl,double cSW)
-  {chromo_operator_adjust_cSW(Cl,cSW+1e-16,-4);}
-  template <class T> void chromo_operator_remove_cSW(T Cl,double cSW)
-  {chromo_operator_adjust_cSW(Cl,-4,cSW+1e-16);}
+  template <typename T>
+  void chromo_operator_include_cSW(T&& Cl,
+				   const double& cSW)
+  {
+    chromo_operator_adjust_cSW(Cl,cSW+1e-16,-4);
+  }
   
-  template <class T1,class T2> void clover_term(T1 Cl,double cSW,T2 conf)
+  template <typename T>
+  void chromo_operator_remove_cSW(T&& Cl,
+				  const double& cSW)
+  {
+    chromo_operator_adjust_cSW(Cl,-4,cSW+1e-16);
+  }
+  
+  template <typename T1,
+	    typename T2>
+  void clover_term(T1&& Cl,
+		   const double& cSW,
+		   const T2& conf)
   {
     crash("reimplement");
     // chromo_operator(Cl,conf);

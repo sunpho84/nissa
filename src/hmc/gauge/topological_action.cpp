@@ -19,12 +19,20 @@ namespace nissa
   const char topo_file_name[]="topo_potential";
   
   //compute the topodynamical potential using past history
-  double topodynamical_potential(double Q,topotential_pars_t &pars)
-  {return pars.compute_pot(Q);}
+  double topodynamical_potential(const double& Q,
+				 const topotential_pars_t& pars)
+  {
+    return pars.compute_pot(Q);
+  }
+
   //draw the topodynamical potential
-  void save_topodynamical_potential(topotential_pars_t &pars)
-  {pars.save(topo_file_name);}
-  void load_topodynamical_potential(topotential_pars_t &pars,bool mandatory)
+  void save_topodynamical_potential(const topotential_pars_t& pars)
+  {
+    pars.save(topo_file_name);
+  }
+  
+  void load_topodynamical_potential(topotential_pars_t& pars,
+				    const bool& mandatory)
   {
     if(file_exists(topo_file_name)) pars.load(topo_file_name);
     else
@@ -77,20 +85,27 @@ namespace nissa
     return topotential_action(eo_conf,pars);
   }
   
-  std::string topotential_pars_t::get_str(bool full)
+  std::string topotential_pars_t::get_str(const bool& full) const
   {
     std::ostringstream os;
+    
     const char name_known[3][10]={"NONE","ORDINARY","META"};
+    
     if(full||flag!=def_flag()) os<<"TopoPotential\t=\t"<<name_known[flag]<<"\n";
+    
     switch(flag)
       {
-      case 0:break;
-      case 1:os<<" Theta\t\t=\t"<<theta<<"\n";break;
+      case 0:
+	break;
+      case 1:
+	os<<" Theta\t\t=\t"<<theta<<"\n";
+	break;
       case 2:
 	os<<meta_pars_t::get_str(full);
 	os<<stout_pars.get_str(full);
 	break;
       }
+    
     return os.str();
-    }
+  }
 }

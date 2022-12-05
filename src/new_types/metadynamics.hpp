@@ -14,42 +14,95 @@ namespace nissa
   struct meta_pars_t
   {
     int after;
+    
+    int def_after() const
+    {
+      return 30;
+    }
+    
     int each;
+    
+    int def_each() const
+    {
+      return 1;
+    }
+    
     double coeff;
+    
+    double def_coeff() const
+    {
+      return 1.0;
+    }
+    
     double width;
+    
+    double def_width() const
+    {
+      return 1.0;
+    }
+    
     double barr;
+    
+    double def_barr() const
+    {
+      return 10.0;
+    }
+    
     double force_out;
+
+    double def_force_out() const
+    {
+      return 100.0;
+    }
+    
     double well_tempering;
+    
+    double def_well_tempering() const
+    {
+      return 0.0;
+    }
+    
     double bend;
     
-    int def_after() {return 30;}
-    int def_each() {return 1;}
-    double def_coeff() {return 1.0;}
-    double def_width() {return 1.0;}
-    double def_barr() {return 10.0;}
-    double def_force_out() {return 100.0;}
-    double def_well_tempering() {return 0.0;}
-    double def_bend() {return 0.0;}
-    int def_ngrid() {return 0;}
+    double def_bend() const
+    {
+      return 0.0;
+    }
+    
+    int def_ngrid() const
+    {
+      return 0;
+    }
     
     int ngrid;
     storable_vector_t<double> grid;
     
-    void update(int isweep,double Q);
+    void update(const int& isweep,
+		const double& Q);
     
     double compute_pot_der(const double& x) const;
     
-    double compute_pot(double x);
-    void save(const char *path);
+    double compute_pot(const double& x) const;
+    
+    void save(const char *path) const;
+    
     void load(const char *path);
-    void draw_force(const char *force_path);
+    
+    void draw_force(const char *force_path) const;
+    
     void init();
+    
     void read_pars();
     
-    int master_fprintf(FILE *fout,int full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false);
+    int master_fprintf(FILE *fout,
+		       const bool& full=false) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
     
-    int is_nonstandard()
+    std::string get_str(const bool& full=false) const;
+    
+    int is_nonstandard() const
     {
       return
 	after!=def_after() or

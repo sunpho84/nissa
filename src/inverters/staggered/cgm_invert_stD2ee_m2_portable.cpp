@@ -1,37 +1,33 @@
-#include <math.h>
-#include <cmath>
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
 
-#include "base/bench.hpp"
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "communicate/borders.hpp"
-#include "dirac_operators/stD/dirac_operator_stD.hpp"
-#include "linalgs/linalgs.hpp"
+#include <base/field.hpp>
+#include <dirac_operators/stD/dirac_operator_stD.hpp>
+#include <inverters/templates/cgm_invert_template_threaded.hpp>
+#include <new_types/su3.hpp>
 
-#define BASETYPE color
-#define NDOUBLES_PER_SITE 6
-#define BULK_VOL locVolh
-#define BORD_VOL bord_volh
-
-#define APPLY_OPERATOR apply_stD2ee_m2
-#define CGM_OPERATOR_PARAMETERS conf,t,
-
-#define CGM_INVERT inv_stD2ee_m2_cgm_portable
-#define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_stD2ee_m2_cgm_portable_run_hm_up_to_comm_prec
-#define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_stD2ee_m2_cgm_portable
-#define CGM_NPOSSIBLE_REQUESTS 16
-
-#define CGM_START_COMMUNICATING_BORDERS(A) start_communicating_ev_or_od_color_borders(A,EVN)
-#define CGM_FINISH_COMMUNICATING_BORDERS(A) finish_communicating_ev_or_od_color_borders(A)
-
-#define CGM_ADDITIONAL_VECTORS_ALLOCATION() BASETYPE *t=nissa_malloc("DD_temp",BULK_VOL+BORD_VOL,BASETYPE);
-#define CGM_ADDITIONAL_VECTORS_FREE() nissa_free(t);
-
-//additional parameters
-#define CGM_NARG 1
-#define AT1 eo_ptr<quad_su3>
-#define A1 conf
-
-#define CGM_ADDITIONAL_PARAMETERS_CALL conf,
-
-#include "inverters/templates/cgm_invert_template_threaded.cpp"
+namespace nissa
+{
+  void inv_stD2ee_m2_cgm_portable_run_hm_up_to_comm_prec(std::vector<EvnField<color>>& chi_e,
+							 const EoField<quad_su3> eo_conf,
+							 const std::vector<double>& poles,
+							 const int& niter_max,
+							 const double& residue,
+							 const EvnField<color>& pf)
+  {
+    cgm_invert(chi_e,
+	       poles,
+	       [temp=OddField<color>("temp",WITH_HALO),
+		&eo_conf]
+	       (EvnField<color>& out,
+		const double& mass2,
+		const EvnField<color>& in) mutable
+	       {
+		 apply_stD2ee_m2(out,eo_conf,temp,mass2,in);
+	       },
+	       niter_max,
+	       std::vector<double>(poles.size(),residue),
+	       pf);
+  }
+}

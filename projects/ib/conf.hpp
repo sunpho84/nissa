@@ -36,9 +36,18 @@ namespace nissa
   void free_confs();
   void read_init_grid();
   coords_t generate_random_coord();
-  quad_su3* get_updated_conf(double charge,const momentum_t& theta,quad_su3 *in_conf);
+  
+  LxField<quad_su3>* get_updated_conf(const double& charge,
+				      const momentum_t& theta,
+				      const LxField<quad_su3>& in_conf);
+  
   void start_new_conf();
-  void setup_conf(quad_su3 *conf,const char *conf_path,int rnd_gauge_transform,int free_theory);
+  
+  void setup_conf(LxField<quad_su3>& conf,
+		  const char *conf_path,
+		  const int& rnd_gauge_transform,
+		  const int& free_theory);
+  
   int check_remaining_time();
   int read_conf_parameters(int &iconf,bool(*external_condition)());
   bool finish_file_present();

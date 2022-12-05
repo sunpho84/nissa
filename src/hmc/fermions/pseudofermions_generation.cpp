@@ -55,9 +55,10 @@ namespace nissa
   // Generate the psewudoferimions in the root stag case
   void generate_root_stag_pseudo_fermion(color *pf,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,rat_approx_t *rat,double residue,quark_content_t q,color *eta)
   {
-    add_backfield_with_stagphases_to_conf(conf,u1b);
-    summ_src_and_all_inv_stD2ee_m2_cgm(pf,conf,rat,10000000,residue,eta);
-    rem_backfield_with_stagphases_from_conf(conf,u1b);
+    crash("reimplement");
+    // add_backfield_with_stagphases_to_conf(conf,u1b);
+    // summ_src_and_all_inv_stD2ee_m2_cgm(pf,conf,rat,10000000,residue,eta);
+    // rem_backfield_with_stagphases_from_conf(conf,u1b);
   }
   
   //generate pseudo-fermion using color vector generator

@@ -24,7 +24,9 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  void compute_prop_scalprod(double *res,std::string pr_dag,std::string pr);
+  void compute_prop_scalprod(complex& res,
+			     const std::string& pr_dag,
+			     const std::string& pr);
   
   ///////////////////////////////////////// meson contractions ///////////////////////////////////////////////////////
   
@@ -39,7 +41,7 @@ namespace nissa
   EXTERN_CONTR std::vector<mes_contr_map_t> mes2pts_contr_map;
   EXTERN_CONTR int nmes2pts_contr_made INIT_TO(0);
   EXTERN_CONTR double mes2pts_contr_time INIT_TO(0);
-  CUDA_MANAGED EXTERN_CONTR complex *loc_contr;
+  CUDA_MANAGED EXTERN_CONTR LxField<complex> *loc_contr;
   
   CUDA_MANAGED EXTERN_CONTR complex *mes2pts_contr INIT_TO(NULL);
   EXTERN_CONTR std::vector<idirac_pair_t> mes_gamma_list;
@@ -59,9 +61,26 @@ namespace nissa
   
   ///////////////////////////////////////// handcuffs contractions ///////////////////////////////////////////////////////
   
-  void vector_current_mel(spin1field *si,dirac_matr *ext_g,int r,const char *id_Qbw,const char *id_Qfw,bool revert);
-  void conserved_vector_current_mel(quad_su3 *conf,spin1field *si,const dirac_matr& ext_g,int r,const char *id_Qbw,const char *id_Qfw,bool revert);
-  void local_or_conserved_vector_current_mel(spin1field *si,const dirac_matr &g,const std::string &prop_name_bw,const std::string &prop_name_fw,bool revert);
+  void vector_current_mel(LxField<spin1field>& si,
+			  const dirac_matr& ext_g,
+			  const int& r,
+			  const char* id_Qbw,
+			  const char* id_Qfw,
+			  const bool& revert);
+  
+  void conserved_vector_current_mel(const LxField<quad_su3>& conf,
+				    LxField<spin1field>& si,
+				    const dirac_matr& ext_g,
+				    const int& r,
+				    const char* name_bw,
+				    const char* name_fw,
+				    const bool& revert);
+  
+  void local_or_conserved_vector_current_mel(LxField<spin1field>& si,
+					     const dirac_matr &g,
+					     const std::string &prop_name_bw,
+					     const std::string &prop_name_fw,
+					     const bool& revert);
   
   struct handcuffs_side_map_t
   {
@@ -76,8 +95,19 @@ namespace nissa
   struct handcuffs_map_t
   {
     std::string name;
-    std::string left,right;
-    handcuffs_map_t(std::string name,std::string left,std::string right) : name(name),left(left),right(right) {}
+    
+    std::string left;
+    
+    std::string right;
+    
+    handcuffs_map_t(const std::string& name,
+		    const std::string& left,
+		    const std::string& right) :
+      name(name),
+      left(left),
+      right(right)
+    {
+    }
   };
   
   EXTERN_CONTR std::vector<handcuffs_map_t> handcuffs_map;
