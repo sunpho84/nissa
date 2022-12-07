@@ -15,10 +15,13 @@ namespace nissa
   namespace Wflow
   {
     //we add with the new weight the previous one multiplied by the old weight
-    void update_arg(quad_su3 *arg,quad_su3 *conf,double dt,const which_dir_t& dirs,int iter)
+    void update_arg(LxField<quad_su3>& arg,
+		    const LxField<quad_su3>& conf,
+		    const double& dt,
+		    const which_dir_t& dirs,
+		    const int& iter)
     {
-      
-      communicate_lx_quad_su3_edges(conf);
+      conf.updateEdges();
       
       //Runge-Kutta coefficients
       constexpr std::array<double,3> RK_wn={1.0/4,8.0/9, 3.0/4};
@@ -60,9 +63,10 @@ namespace nissa
     }
     
     //update the conf according to exp(i arg) conf_
-    void update_conf(quad_su3 *arg,quad_su3 *conf,const which_dir_t& dirs)
+    void update_conf(const LxField<quad_su3>& arg,
+		     LxField<quad_su3>& conf,
+		     const which_dir_t& dirs)
     {
-      
       //integrate
       NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	for(int mu=0;mu<NDIM;mu++)

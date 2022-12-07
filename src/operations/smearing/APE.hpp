@@ -66,7 +66,7 @@ namespace nissa
 		      const double& alpha,
 		      const int& nstep,
 		      const which_dir_t& dirs=all_dirs,
-		      const int min_staple_dir=0);
+		      const int& min_staple_dir=0);
   
   inline void ape_single_dir_smear_conf(LxField<quad_su3>& smear_conf,
 					const LxField<quad_su3>& origi_conf,

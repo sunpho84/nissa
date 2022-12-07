@@ -243,7 +243,9 @@ namespace nissa
   
   void generate_source(insertion_t inser,int r,double charge,double kappa,const momentum_t& theta,spincolor *ori,int t);
   void generate_quark_propagators(int isource);
-  void generate_photon_stochastic_propagator(int ihit);
+  
+  void generate_photon_stochastic_propagator(const int& ihit);
+  
   //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
   void generate_lepton_propagators();
   void propagators_fft(int ihit);
@@ -348,13 +350,13 @@ namespace nissa
     
     void write()
     {
-      master_printf("Writing %s, %zu %p\n",path.c_str(),sizeof(T),v);
+      master_printf("Writing %s, %zu %p\n",path.c_str(),sizeof(T),&v);
       
       if(fast_read_write_vectors)
 	{
 	  fastOpen("w");
-	  
-	  if(fwrite(v,sizeof(T),locVol,fastFile)!=locVol)
+	  //hack
+	  if(fwrite(v.data,sizeof(T),locVol,fastFile)!=locVol)
 	    crash("Problem writing %s",path.c_str());
 	  
 	  fclose(fastFile);

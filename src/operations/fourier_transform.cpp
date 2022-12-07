@@ -225,8 +225,8 @@ namespace nissa
 					   const LxField<spin1field>& in,
 					   const which_dir_t& dirs,
 					   const momentum_t& bc,
-					   const int source_or_sink,
-					   const bool include_phases)
+					   const int& source_or_sink,
+					   const bool& include_phases)
   {
     
     //+1 if sink, -1 if source

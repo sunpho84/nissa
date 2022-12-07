@@ -99,7 +99,7 @@ namespace nissa
   }
   
   //take a set of theta, charge and photon field, and update the conf
-  LxField<quad_su3>* get_updated_conf(const double charge,
+  LxField<quad_su3>* get_updated_conf(const double& charge,
 				      const momentum_t& theta,
 				      const LxField<quad_su3>& in_conf)
   {

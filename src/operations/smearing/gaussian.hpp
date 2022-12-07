@@ -1,23 +1,58 @@
 #ifndef _GAUSSIAN_HPP
 #define _GAUSSIAN_HPP
 
+#include "base/field.hpp"
 #include "new_types/su3.hpp"
 
 namespace nissa
 {
-  void gaussian_smearing(color *smear_c,color *origi_c,quad_su3 *conf,double* kappa,int niter,color *ext_temp=NULL,color *ext_H=NULL);
-  void gaussian_smearing(colorspinspin *smear_css,colorspinspin *origi_css,quad_su3 *conf,double* kappa,int niter,colorspinspin *temp1=NULL,colorspinspin *temp2=NULL);
-  void gaussian_smearing(su3spinspin *smear_ccss,su3spinspin *origi_css,quad_su3 *conf,double* kappa,int niter,su3spinspin *temp1=NULL,su3spinspin *temp2=NULL);
-  void gaussian_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double* kappa,int niter,spincolor *ext_temp=NULL,spincolor *ext_H=NULL);
-  void gaussian_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double* kappa,int nterm,double *coeff,int *exponent);
-  void gaussian_smearing(colorspinspin *smear_css,colorspinspin *origi_css,quad_su3 *conf,double* kappa,int nterm,double *coeff,int *exponent);
-  void gaussian_smearing_apply_kappa_H_color(color *H,double* kappa,quad_su3 *conf,color *smear_c);
-  void gaussian_smearing_apply_kappa_H_spincolor(spincolor *H,double* kappa,quad_su3 *conf,spincolor *smear_sc);
+  void gaussian_smearing(LxField<su3spinspin>& smear_sc,
+                         const LxField<su3spinspin>& origi_sc,
+                         const LxField<quad_su3>& conf,
+			 const double* kappa,
+                         const int& niter,
+                         LxField<su3spinspin>* ext_temp=nullptr,
+                         LxField<su3spinspin>* ext_H=nullptr);
+
+  void gaussian_smearing(LxField<colorspinspin>& smear_sc,
+                         const LxField<colorspinspin>& origi_sc,
+                         const LxField<quad_su3>& conf,
+			 const double* kappa,
+                         const int& niter,
+                         LxField<colorspinspin>* ext_temp=nullptr,
+                         LxField<colorspinspin>* ext_H=nullptr);
+
+  void gaussian_smearing_apply_kappa_H_spincolor(LxField<spincolor>& H,
+                                                 const double* kappa,
+                                                 const LxField<quad_su3>& conf,
+                                                 const LxField<spincolor>& in);
+  void gaussian_smearing(LxField<spincolor>& smear_sc,
+                         const LxField<spincolor>& origi_sc,
+                         const LxField<quad_su3>& conf,
+			 const double* kappa,
+                         const int& niter,
+                         LxField<spincolor>* ext_temp=nullptr,
+                         LxField<spincolor>* ext_H=nullptr);
+
+  void gaussian_smearing(LxField<color>& smear_sc,
+                         const LxField<color>& origi_sc,
+                         const LxField<quad_su3>& conf,
+			 const double* kappa,
+                         const int& niter,
+			 LxField<color>* ext_temp=nullptr,
+                         LxField<color>* ext_H=nullptr);
   
   template <typename T>
-  void gaussian_smearing(T *smear_sc,T *origi_sc,quad_su3 *conf,double kappa_iso,int niter,T *ext_temp=NULL,T *ext_H=NULL)
+  void gaussian_smearing(LxField<T>& smear_sc,
+			 const LxField<T> origi_sc,
+			 const LxField<quad_su3>& conf,
+			 const double& kappa_iso,
+			 const int& niter,
+			 LxField<T>* ext_temp=nullptr,
+			 LxField<T>* ext_H=nullptr)
   {
-    double kappa[NDIM]={0.0,kappa_iso,kappa_iso,kappa_iso};
+    const double kappa[NDIM]={0.0,kappa_iso,kappa_iso,kappa_iso};
+    
     gaussian_smearing(smear_sc,origi_sc,conf,kappa,niter,ext_temp,ext_H);
   }
 }

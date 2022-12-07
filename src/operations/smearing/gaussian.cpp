@@ -105,6 +105,9 @@ namespace nissa
   DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(color)
   DEFINE_GAUSSIAN_SMEARING(color)
   
+#undef DEFINE_GAUSSIAN_SMEARING
+#undef DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H
+  
   //smear with a polynomial of H
   template <typename TYPE>
   void gaussian_smearing(LxField<TYPE>& smear_sc,

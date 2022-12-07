@@ -17,12 +17,12 @@ namespace nissa
   namespace Wflow
   {
     void update_arg(LxField<quad_su3>& arg,
-		    LxField<quad_su3>& conf,
+		    const LxField<quad_su3>& conf,
 		    const double& dt,
 		    const which_dir_t& dirs,
 		    const int& iter);
     
-    void update_conf(LxField<quad_su3>& arg,
+    void update_conf(const LxField<quad_su3>& arg,
 		     LxField<quad_su3>& conf,
 		     const which_dir_t& dirs);
     

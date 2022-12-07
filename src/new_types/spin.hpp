@@ -168,8 +168,19 @@ namespace nissa
     spinspin_put_to_diag_complex(a,o);
   }
   
-  CUDA_HOST_AND_DEVICE inline void spinspin_summ(spinspin a,const spinspin b,const spinspin c)
-  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ(a[id1][id2],b[id1][id2],c[id1][id2]);}
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void spinspin_summ(A&& a,
+		     const B& b,
+		     const C& c)
+  {
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
+	complex_summ(a[id1][id2],b[id1][id2],c[id1][id2]);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void spinspin_subt(spinspin a,const spinspin b,const spinspin c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_subt(a[id1][id2],b[id1][id2],c[id1][id2]);}
   CUDA_HOST_AND_DEVICE inline void spinspin_summassign(spinspin a,const spinspin b)
@@ -179,9 +190,10 @@ namespace nissa
   
   template <typename A,
 	    typename B>
-  CUDA_HOST_AND_DEVICE inline void spinspin_prod_double(A&& a,
-							const B& b,
-							const double& c)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void spinspin_prod_double(A&& a,
+			    const B& b,
+			    const double& c)
   {
     for(int id1=0;id1<NDIRAC;id1++)
       for(int id2=0;id2<NDIRAC;id2++)
@@ -208,10 +220,26 @@ namespace nissa
 	complex_summ_the_prod_double(a[id1][id2],b[id1][id2],c);
   }
   
-  CUDA_HOST_AND_DEVICE inline void spinspin_prod_idouble(spinspin a,const spinspin b,double c)
-  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_prod_idouble(a[id1][id2],b[id1][id2],c);}
-  CUDA_HOST_AND_DEVICE inline void spinspin_prodassign_idouble(spinspin a,double b)
-  {spinspin_prod_idouble(a,a,b);}
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void spinspin_prod_idouble(A&& a,
+			     const B& b,
+			     const double& c)
+  {
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
+	complex_prod_idouble(a[id1][id2],b[id1][id2],c);
+  }
+  
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void spinspin_prodassign_idouble(A&& a,
+				    const double& b)
+  {
+    spinspin_prod_idouble(a,a,b);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void spinspin_summ_the_prod_idouble(spinspin a,const spinspin b,double c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ_the_prod_idouble(a[id1][id2],b[id1][id2],c);}
   

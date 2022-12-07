@@ -715,25 +715,26 @@ void check_gen()
 //print the propagator on a particular momentum
 void print_ref_prop()
 {
-  tm_quark_info qu;
-  qu.bc[0]=1;
-  for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
-  qu.kappa=qkappa;
-  qu.mass=qmass;
-  qu.r=qr;
+  crash("reimplement");
+  // tm_quark_info qu;
+  // qu.bc[0]=1;
+  // for(int mu=1;mu<NDIM;mu++) qu.bc[mu]=0;
+  // qu.kappa=qkappa;
+  // qu.mass=qmass;
+  // qu.r=qr;
   
-  spinspin p;
-  mom_space_twisted_propagator_of_imom(p,qu,loclx_of_coord_list(5,1,3,2),MAX_TWIST_BASE);
+  // spinspin p;
+  // mom_space_twisted_propagator_of_imom(p,qu,loclx_of_coord_list(5,1,3,2),MAX_TWIST_BASE);
   
-  master_printf("propagator at site 5,1,3,2:\n");
-  spinspin_print(p);
+  // master_printf("propagator at site 5,1,3,2:\n");
+  // spinspin_print(p);
   
-  spinspin *prop=nissa_malloc("prop",locVol,spinspin);
-  compute_x_space_twisted_propagator_by_fft(prop,qu,MAX_TWIST_BASE);
-  master_printf("x space propagator at site 5,1,3,2:\n");
-  spinspin_print(prop[loclx_of_coord_list(5,1,3,2)]);
+  // spinspin *prop=nissa_malloc("prop",locVol,spinspin);
+  // compute_x_space_twisted_propagator_by_fft(prop,qu,MAX_TWIST_BASE);
+  // master_printf("x space propagator at site 5,1,3,2:\n");
+  // spinspin_print(prop[loclx_of_coord_list(5,1,3,2)]);
   
-  nissa_free(prop);
+  // nissa_free(prop);
 }
 
 //init everything

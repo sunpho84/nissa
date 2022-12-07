@@ -162,7 +162,7 @@ namespace nissa
 			    const LxField<spincolor>& in,
 			    const complex& fact_fw,
 			    const complex& fact_bw,
-			    const dirac_matr &GAMMA,
+			    const dirac_matr& GAMMA,
 			    const int& t)
   {
     out.reset();
@@ -208,7 +208,7 @@ namespace nissa
 			      const LxField<quad_su3>& conf,
 			      F currCalc,
 			      const LxField<spincolor>& in,
-			      const dirac_matr &GAMMA,
+			      const dirac_matr& GAMMA,
 			      const int& t)
   {
     complex fw_factor={0,-0.5},bw_factor={0,+0.5};
