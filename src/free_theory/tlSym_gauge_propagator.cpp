@@ -380,11 +380,14 @@ namespace nissa
     double tad_time=-take_time();
     
     LxField<spin1prop> gprop("gprop");
-    compute_x_space_tlSym_gauge_propagator_by_fft(gprop,photon);
+    compute_mom_space_tlSym_gauge_propagator(gprop,photon);
+    
+    spin1prop tmp;
+    gprop.reduce(tmp);
     
     momentum_t tadpole;
     for(int mu=0;mu<NDIM;mu++)
-      tadpole[mu]=broadcast(gprop[0][mu][mu][RE]);
+      tadpole[mu]=tmp[mu][mu][RE];
     
     tad_time+=take_time();
     master_printf("Tadpole: (%lg,%lg,%lg,%lg), time to compute: %lg s\n",tadpole[0],tadpole[1],tadpole[2],tadpole[3],tad_time);

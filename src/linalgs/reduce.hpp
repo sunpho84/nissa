@@ -131,7 +131,6 @@ namespace nissa
 	    op(buf[first],buf[second]);
 	  }
 	  NISSA_PARALLEL_LOOP_END;
-	  THREAD_BARRIER();
 	  
 	  nper_slice=stride;
       }

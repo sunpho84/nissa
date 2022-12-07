@@ -6,6 +6,7 @@
 #endif
 
 #include <cstddef>
+#include <mpi.h>
 #include <type_traits>
 
 #include <base/bench.hpp>
@@ -362,6 +363,38 @@ namespace nissa
       glb_reduce(&res,buf,this->nSites());
       
       return res;
+    }
+    
+    void reduce(T& out) const
+    {
+      Field tmp("tmp");
+      tmp=*this;
+      
+      int64_t n=this->nSites();
+      
+      // const double init_time=take_time();
+      while(n>1)
+	{
+	  const int64_t stride=(n+1)/2;
+	  const int64_t nReductions=n/2;
+	  
+	  NISSA_PARALLEL_LOOP(ireduction,0,nReductions)
+	    {
+	      const int64_t first=ireduction;
+	      const int64_t second=first+stride;
+	      
+	      for(int iDeg=0;iDeg<nInternalDegs;iDeg++)
+		tmp(first,iDeg)+=tmp(second,iDeg);
+	    }
+	  NISSA_PARALLEL_LOOP_END;
+	  
+	  n=stride;
+	}
+      
+      for(int iDeg=0;iDeg<nInternalDegs;iDeg++)
+	((Fund*)out)[iDeg]=tmp(0,iDeg);
+      
+      MPI_Allreduce(MPI_IN_PLACE,out,nInternalDegs,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     }
     
     /// (*this,out)

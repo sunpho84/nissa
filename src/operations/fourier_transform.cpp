@@ -130,7 +130,7 @@ namespace nissa
     
     //compute the main part of the fft
     crash("reimplement");
-    // fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],0);
+    //fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1prop)/sizeof(complex),sign[source_or_sink],0);
     
     //compute steps
     momentum_t steps;
@@ -286,7 +286,6 @@ namespace nissa
 					   const int& source_or_sink,
 					   const bool& include_phases)
   {
-    
     //-1 if sink, +1 if source
     constexpr std::array<int,2> sign={+1,-1};
     const int s=sign[source_or_sink]*include_phases;
