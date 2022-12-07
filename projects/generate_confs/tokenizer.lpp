@@ -66,6 +66,8 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
     yylloc->first_column=yycolumn;yylloc->last_column=yycolumn+yyleng-1; \
     yycolumn+=yyleng;
 
+#define YY_NO_INPUT
+
 #include "parser.hpp"
    
    const int debug_lexer=0;

@@ -196,8 +196,18 @@ namespace nissa
     spinspin_prod_double(a,a,b);
   }
   
-  CUDA_HOST_AND_DEVICE inline void spinspin_summ_the_prod_double(spinspin a,const spinspin b,double c)
-  {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_summ_the_prod_double(a[id1][id2],b[id1][id2],c);}
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void spinspin_summ_the_prod_double(A&& a,
+				     const B& b,
+				     const double& c)
+  {
+    for(int id1=0;id1<NDIRAC;id1++)
+      for(int id2=0;id2<NDIRAC;id2++)
+	complex_summ_the_prod_double(a[id1][id2],b[id1][id2],c);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void spinspin_prod_idouble(spinspin a,const spinspin b,double c)
   {for(int id1=0;id1<NDIRAC;id1++) for(int id2=0;id2<NDIRAC;id2++) complex_prod_idouble(a[id1][id2],b[id1][id2],c);}
   CUDA_HOST_AND_DEVICE inline void spinspin_prodassign_idouble(spinspin a,double b)

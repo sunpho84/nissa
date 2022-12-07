@@ -348,7 +348,16 @@ namespace nissa
       complex_prod_idouble(a[ic],b[ic],c);
   }
   
-  CUDA_HOST_AND_DEVICE inline void color_summ_the_prod_double(color a,const color b,const double c) {for(size_t ic=0;ic<NCOL;ic++) complex_summ_the_prod_double(a[ic],b[ic],c);}
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void color_summ_the_prod_double(A&& a,
+				  const B& b,
+				  const double& c)
+  {
+    for(int ic=0;ic<NCOL;ic++)
+      complex_summ_the_prod_double(a[ic],b[ic],c);
+  }
   
   template <typename A,
 	    typename B,
@@ -1689,8 +1698,18 @@ namespace nissa
       color_prod_double(a[i],b[i],factor);
   }
   
-  CUDA_HOST_AND_DEVICE inline void spincolor_summ_the_prod_double(spincolor a,const spincolor b,const double c)
-  {for(size_t i=0;i<NDIRAC;i++) color_summ_the_prod_double(a[i],b[i],c);}
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void spincolor_summ_the_prod_double(A&& a,
+				      const B& b,
+				      const C& c)
+  {
+    for(int i=0;i<NDIRAC;i++)
+      color_summ_the_prod_double(a[i],b[i],c);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void spincolor_prod_idouble(spincolor a,const spincolor b,const double factor)
   {for(size_t i=0;i<NDIRAC;i++) color_prod_idouble(a[i],b[i],factor);}
   
@@ -1822,8 +1841,18 @@ namespace nissa
   inline void safe_su3_dag_prod_spincolor(spincolor out,const su3 U,const spincolor in)
   {spincolor temp;unsafe_su3_dag_prod_spincolor(temp,U,in);spincolor_copy(out,temp);}
   
-  CUDA_HOST_AND_DEVICE inline void su3_dag_summ_the_prod_spincolor(spincolor out,const su3 U,const spincolor in)
-  {for(size_t is=0;is<NDIRAC;is++) su3_dag_summ_the_prod_color(out[is],U,in[is]);}
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_dag_summ_the_prod_spincolor(A&& out,
+				       const B& U,
+				       const C& in)
+  {
+    for(int is=0;is<NDIRAC;is++)
+      su3_dag_summ_the_prod_color(out[is],U,in[is]);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void su3_dag_subt_the_prod_spincolor(spincolor out,const su3 U,const spincolor in)
   {for(size_t is=0;is<NDIRAC;is++) su3_dag_subt_the_prod_color(out[is],U,in[is]);}
   
@@ -2008,12 +2037,18 @@ namespace nissa
 	    complex_subt_the_conj1_prod(a[c1][id_si][id_so],b[c2][c1],c[c2][id_si][id_so]);
   }
   
-  CUDA_HOST_AND_DEVICE inline void su3_dag_summ_the_prod_colorspinspin(colorspinspin a,const su3 b,const colorspinspin c)
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_dag_summ_the_prod_colorspinspin(A&& a,
+					   const B& b,
+					   const C& c)
   {
-    for(size_t id_so=0;id_so<NDIRAC;id_so++)
-      for(size_t id_si=0;id_si<NDIRAC;id_si++)
-	for(size_t c1=0;c1<NCOL;c1++)
-	  for(size_t c2=0;c2<NCOL;c2++)
+    for(int id_so=0;id_so<NDIRAC;id_so++)
+      for(int id_si=0;id_si<NDIRAC;id_si++)
+	for(int c1=0;c1<NCOL;c1++)
+	  for(int c2=0;c2<NCOL;c2++)
 	    complex_summ_the_conj1_prod(a[c1][id_si][id_so],b[c2][c1],c[c2][id_si][id_so]);
   }
   
@@ -2163,8 +2198,17 @@ namespace nissa
   inline void colorspinspin_subtassign(colorspinspin out,const colorspinspin in) {colorspinspin_subt(out,out,in);}
   
   //summ two colorspinspin with a factor
-  CUDA_HOST_AND_DEVICE inline void colorspinspin_summ_the_prod_double(colorspinspin out,const colorspinspin in,const double factor)
-  {for(size_t i=0;i<NCOL;i++) spinspin_summ_the_prod_double(out[i],in[i],factor);}
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void colorspinspin_summ_the_prod_double(A&& out,
+					  const B& in,
+					  const double& factor)
+  {
+    for(int i=0;i<NCOL;i++)
+      spinspin_summ_the_prod_double(out[i],in[i],factor);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void colorspinspin_summ_the_prod_idouble(colorspinspin out,const colorspinspin in,const double factor)
   {for(size_t i=0;i<NCOL;i++) spinspin_summ_the_prod_idouble(out[i],in[i],factor);}
   
@@ -2207,8 +2251,17 @@ namespace nissa
   inline void su3spinspin_subtassign(su3spinspin out,const su3spinspin in) {su3spinspin_subt(out,out,in);}
   
   //summ two su3spinspin with a factor
-  CUDA_HOST_AND_DEVICE inline void su3spinspin_summ_the_prod_double(su3spinspin out,const su3spinspin in,const double factor)
-  {for(size_t i=0;i<NCOL;i++) colorspinspin_summ_the_prod_double(out[i],in[i],factor);}
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3spinspin_summ_the_prod_double(A&& out,
+					const B& in,
+					const double& factor)
+  {
+    for(int i=0;i<NCOL;i++)
+      colorspinspin_summ_the_prod_double(out[i],in[i],factor);
+  }
+  
   CUDA_HOST_AND_DEVICE inline void su3spinspin_summ_the_prod_idouble(su3spinspin out,const su3spinspin in,const double factor)
   {for(size_t i=0;i<NCOL;i++) colorspinspin_summ_the_prod_idouble(out[i],in[i],factor);}
   
@@ -2220,15 +2273,22 @@ namespace nissa
   CUDA_HOST_AND_DEVICE inline void safe_su3spinspin_prod_complex(su3spinspin out,const su3spinspin in,const complex factor)
   {su3spinspin temp;su3spinspin_copy(temp,in);unsafe_su3spinspin_prod_complex(out,temp,factor);}
   
-  CUDA_HOST_AND_DEVICE inline void unsafe_su3_prod_su3spinspin(su3spinspin a,const su3 b,const su3spinspin c)
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void unsafe_su3_prod_su3spinspin(A&& a,
+				   const B& b,
+				   const C& c)
   {
-    for(size_t id_so=0;id_so<NDIRAC;id_so++)
-      for(size_t id_si=0;id_si<NDIRAC;id_si++)
-	for(size_t c1=0;c1<NCOL;c1++)
-	  for(size_t c3=0;c3<NCOL;c3++)
+    for(int id_so=0;id_so<NDIRAC;id_so++)
+      for(int id_si=0;id_si<NDIRAC;id_si++)
+	for(int c1=0;c1<NCOL;c1++)
+	  for(int c3=0;c3<NCOL;c3++)
 	    {
 	      unsafe_complex_prod(a[c1][c3][id_si][id_so],b[c1][0],c[0][c3][id_si][id_so]);
-	      for(size_t c2=1;c2<NCOL;c2++) complex_summ_the_prod(a[c1][c3][id_si][id_so],b[c1][c2],c[c2][c3][id_si][id_so]);
+	      for(int c2=1;c2<NCOL;c2++)
+		complex_summ_the_prod(a[c1][c3][id_si][id_so],b[c1][c2],c[c2][c3][id_si][id_so]);
 	    }
   }
   
@@ -2265,13 +2325,19 @@ namespace nissa
 	      complex_subt_the_conj1_prod(a[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
   }
   
-  CUDA_HOST_AND_DEVICE inline void su3_dag_summ_the_prod_su3spinspin(su3spinspin a,const su3 b,const su3spinspin c)
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void su3_dag_summ_the_prod_su3spinspin(A&& a,
+					 const B& b,
+					 const C& c)
   {
-    for(size_t id_so=0;id_so<NDIRAC;id_so++)
-      for(size_t id_si=0;id_si<NDIRAC;id_si++)
-	for(size_t c1=0;c1<NCOL;c1++)
-	  for(size_t c2=0;c2<NCOL;c2++)
-	    for(size_t c3=0;c3<NCOL;c3++)
+    for(int id_so=0;id_so<NDIRAC;id_so++)
+      for(int id_si=0;id_si<NDIRAC;id_si++)
+	for(int c1=0;c1<NCOL;c1++)
+	  for(int c2=0;c2<NCOL;c2++)
+	    for(int c3=0;c3<NCOL;c3++)
 	      complex_summ_the_conj1_prod(a[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
   }
   

@@ -217,7 +217,7 @@ namespace nissa
   
   template <typename F>
   void insert_tm_external_source(LxField<spincolor>& out,
-				 quad_su3 *conf,
+				 const LxField<quad_su3>& conf,
 				 F currCalc,
 				 const LxField<spincolor>& in,
 				 const int& r,

@@ -284,6 +284,19 @@ namespace nissa
       return *this;
     }
     
+    /// Exec the operation f on each site
+    template <typename F>
+    Field& forEachSite(const F& f)
+    {
+      NISSA_PARALLEL_LOOP(site,0,this->nSites())
+	f((*this)[site]);
+      NISSA_PARALLEL_LOOP_END;
+      
+      invalidateHalo();
+      
+      return *this;
+    }
+    
 #define PROVIDE_SELFOP(OP)						\
     Field& operator OP ## =(const Field& oth)				\
     {									\

@@ -133,8 +133,8 @@ namespace nissa
       nd(locVol*sizeof(T)/sizeof(double)),
       dt(dt),
       conf(nint_steps,"conf"),
-      arg("arg"),
-      dirs(dirs)
+      dirs(dirs),
+      arg("arg")
     {
     }
     
@@ -203,9 +203,9 @@ namespace nissa
       
       //zero step: phi1 = phi0 + de0/4
       Wflow::Laplace_operator_switch(df0,conf[0],this->dirs,f0);
-      this->f1.forEachSiteDeg([this](const auto& f1,
-				     const int& site,
-				     const int& deg)
+      this->f1.forEachSiteDeg([&,this](auto& f1,
+				       const int& site,
+				       const int& deg)
       {
 	f1=f0(site,deg)+df0(site,deg)*dt/4;
       });
