@@ -63,58 +63,6 @@ namespace nissa
     NISSA_PARALLEL_LOOP_END;
   }
   
-  //finding the index to put only the three directions in the plane perpendicular to the dir
-  int index_to_poly_corr_remapping(int iloc_lx,int mu)
-  {
-    int perp_vol=glbVol/glbSize[mu];
-    
-    int subcube=0,subcube_el=0;
-    int subcube_size[3][2],subcube_coord[3],subcube_el_coord[3];
-    for(int inu=0;inu<3;inu++)
-      {
-	//take dir and subcube size
-	int nu=perp_dir[mu][inu];
-	subcube_size[inu][0]=glbSize[nu]/2+1;
-	subcube_size[inu][1]=glbSize[nu]/2-1;
-	
-	//take global coord and identify subcube
-	int glx_nu=glbCoordOfLoclx[iloc_lx][nu];
-	subcube_coord[inu]=(glx_nu>=subcube_size[inu][0]);
-	subcube=subcube*2+subcube_coord[inu];
-	
-	//identify also the local coord
-	subcube_el_coord[inu]=glx_nu-subcube_coord[inu]*subcube_size[inu][0];
-	subcube_el=subcube_el*subcube_size[inu][subcube_coord[inu]]+subcube_el_coord[inu];
-      }
-    
-    //compute the volume of the 8 subcubes
-    int subcube_vol[8];
-    for(int a=0;a<2;a++)
-      for(int b=0;b<2;b++)
-	for(int c=0;c<2;c++)
-	  subcube_vol[c+2*(b+2*a)]=subcube_size[0][a]*subcube_size[1][b]*subcube_size[2][c];
-    
-    //set the most internal and external
-    int poly_ind=subcube_el+perp_vol*glbCoordOfLoclx[iloc_lx][mu];
-    
-    //summ the smaller cubes
-    for(int isubcube=0;isubcube<subcube;isubcube++)
-      poly_ind+=subcube_vol[isubcube];
-    
-    return poly_ind;
-  }
-  
-  //wrapper
-  void index_to_poly_corr_remapping(int &irank_poly,int &iloc_poly,int iloc_lx,void *pars)
-  {
-    int mu=((int*)pars)[0];
-    int iglb_poly=index_to_poly_corr_remapping(iloc_lx,mu);
-    
-    //find rank and loclx
-    irank_poly=iglb_poly/locVol;
-    iloc_poly=iglb_poly%locVol;
-  }
-  
   //compute the polyakov loop - if ext_ll_dag is non null uses it and store correlator with the dag inside it, if ext_ll is non null compute also the correlator with itself
   void average_and_corr_polyakov_loop_lx_conf_internal(double* loop_trace,
 						       double* loop_dag_trace,
@@ -191,8 +139,51 @@ namespace nissa
   {
     if(IS_PARALLEL) crash("cannot work threaded!");
     
+    const auto index_to_poly_corr_remapping=
+      [mu](const int& iloc_lx)
+      {
+	const int perp_vol=glbVol/glbSize[mu];
+	
+	int subcube=0,subcube_el=0;
+	int subcube_size[3][2],subcube_coord[3],subcube_el_coord[3];
+	for(int inu=0;inu<3;inu++)
+	  {
+	    //take dir and subcube size
+	    int nu=perp_dir[mu][inu];
+	    subcube_size[inu][0]=glbSize[nu]/2+1;
+	    subcube_size[inu][1]=glbSize[nu]/2-1;
+	    
+	    //take global coord and identify subcube
+	    int glx_nu=glbCoordOfLoclx[iloc_lx][nu];
+	    subcube_coord[inu]=(glx_nu>=subcube_size[inu][0]);
+	    subcube=subcube*2+subcube_coord[inu];
+	    
+	    //identify also the local coord
+	    subcube_el_coord[inu]=glx_nu-subcube_coord[inu]*subcube_size[inu][0];
+	    subcube_el=subcube_el*subcube_size[inu][subcube_coord[inu]]+subcube_el_coord[inu];
+	  }
+	
+	//compute the volume of the 8 subcubes
+	int subcube_vol[8];
+	for(int a=0;a<2;a++)
+	  for(int b=0;b<2;b++)
+	    for(int c=0;c<2;c++)
+	      subcube_vol[c+2*(b+2*a)]=subcube_size[0][a]*subcube_size[1][b]*subcube_size[2][c];
+	
+	//set the most internal and external
+	int poly_ind=subcube_el+perp_vol*glbCoordOfLoclx[iloc_lx][mu];
+	
+	//summ the smaller cubes
+	for(int isubcube=0;isubcube<subcube;isubcube++)
+	  poly_ind+=subcube_vol[isubcube];
+	
+	const int irank_poly=poly_ind/locVol;
+	const int iloc_poly=poly_ind%locVol;
+	return std::make_pair(irank_poly,iloc_poly);
+      };
+    
     //remap
-    vector_remap_t *poly_rem=new vector_remap_t(locVol,index_to_poly_corr_remapping,&mu);
+    vector_remap_t *poly_rem=new vector_remap_t(locVol,index_to_poly_corr_remapping);
     poly_rem->remap(loop,loop,sizeof(complex));
     delete poly_rem;
     
@@ -345,8 +336,8 @@ namespace nissa
   void compute_Pline_dag_point(su3 *pline,quad_su3 *conf,int mu,const coords_t& glb_x_start)
   {
     //get the rank and loc site x
-    int loc_x_start,rank_hosting_x;
-    get_loclx_and_rank_of_coord(loc_x_start,rank_hosting_x,glb_x_start);
+    const auto [rank_hosting_x,loc_x_start]=
+      get_loclx_and_rank_of_coord(glb_x_start);
     
     //reset the link product, putting id at x_start
     vector_reset(pline);

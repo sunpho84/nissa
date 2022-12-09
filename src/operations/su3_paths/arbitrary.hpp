@@ -22,11 +22,13 @@ namespace nissa
     int mov;
     int link_id;
     int ord;
-    void set(int ext_mov,int gx,int mu){
+    
+    void set(int ext_mov,int gx,int mu)
+    {
       mov=ext_mov;
       link_id=gx*4+mu;
-      int lx,rx;
-      get_loclx_and_rank_of_glblx(lx,rx,gx);
+      const auto [rx,lx]=
+	get_loclx_and_rank_of_glblx(gx);
       ord=((rank+nranks-rx)%nranks*locVol+lx)*4+mu; //sort according to recv rank
     }
   };

@@ -297,42 +297,6 @@ namespace nissa
   
 #endif
   
-  //define the reampping from lx in order to have in each rank a consecutive block of data
-  //holding a consecutive piece of ildg data
-  void index_to_ILDG_remapping(int &irank_ILDG,int &iloc_ILDG,int iloc_lx,void *pars)
-  {
-    //find global index in ildg transposed ordering
-    int iglb_ILDG=0;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	int nu=scidac_mapping[mu];
-	iglb_ILDG=iglb_ILDG*glbSize[nu]+glbCoordOfLoclx[iloc_lx][nu];
-      }
-    
-    //find rank and loclx
-    irank_ILDG=iglb_ILDG/locVol;
-    iloc_ILDG=iglb_ILDG%locVol;
-  }
-  
-  //define the remapping from the layout having in each rank a consecutive block of data holding a
-  //consecutive piece of ildg data to canonical lx
-  void index_from_ILDG_remapping(int &irank_lx,int &iloc_lx,int iloc_ILDG,void *pars)
-  {
-    int iglb_ILDG=rank*locVol+iloc_ILDG;
-    
-    //find global coords in ildg ordering
-    coords_t xto;
-    for(int mu=NDIM-1;mu>=0;mu--)
-      {
-	int nu=scidac_mapping[mu];
-	xto[nu]=iglb_ILDG%glbSize[nu];
-	iglb_ILDG/=glbSize[nu];
-      }
-    
-    //convert to rank and loclx
-    get_loclx_and_rank_of_coord(iloc_lx,irank_lx,xto);
-  }
-  
   ////////////////////////////////////////////////// read and write ////////////////////////////////////////
   
   //simultaneous read from all node

@@ -32,10 +32,12 @@ namespace nissa
     //check not to have passed the max number of steps
     if(cur_mov==ntot_mov) crash("exceded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
     //find global pos
-    int nx=glblx_neighup(pos,mu);
+    const int nx=glblx_neighup(pos,mu);
     //search rank hosting site and loclx
-    int lx,rx;
-    get_loclx_and_rank_of_glblx(lx,rx,pos);
+    
+    const auto [rx,lx]=
+      get_loclx_and_rank_of_glblx(pos);
+    
     //if local link, mark it, otherwise add to the list of non-locals
     if(rx==rank) link_for_movements[cur_mov]+=(lx*4+mu)<<nposs_path_flags;
     else
@@ -59,8 +61,9 @@ namespace nissa
     //find global pos
     int nx=glblx_neighdw(pos,mu);
     //search rank hosting site and loclx
-    int lx,rx;
-    get_loclx_and_rank_of_glblx(lx,rx,nx);
+    const auto [rx,lx]=
+      get_loclx_and_rank_of_glblx(nx);
+    
     //if local link, mark it, otherwise add to the list of non-locals
     if(rx==rank) link_for_movements[cur_mov]+=(lx*4+mu)<<nposs_path_flags;
     else
@@ -146,8 +149,8 @@ namespace nissa
 	    int mu=t%4;
 	    
 	    //get lx and rank hosting the site
-	    int lx,rx;
-	    get_loclx_and_rank_of_glblx(lx,rx,gx);
+	    const auto [rx,lx]=
+	      get_loclx_and_rank_of_glblx(gx);
 	    
 	    //copy in the list if appropriate rank
 	    if(rx==rank_to_recv)

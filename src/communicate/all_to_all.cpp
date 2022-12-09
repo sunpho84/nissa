@@ -259,9 +259,8 @@ namespace nissa
   }
   
   //perform the remapping
-  void all_to_all_comm_t::communicate(void *out,void *in,size_t bps,void *ext_out_buf,void *ext_in_buf,int tag)
+  void all_to_all_comm_t::communicate(void *out,void *in,size_t bps,void *ext_out_buf,void *ext_in_buf,int tag) const
   {
-    
     //allocate a buffer where to repack data
     char *out_buf=(ext_out_buf==NULL)?nissa_malloc("out_buf",nel_out*bps,char):(char*)ext_out_buf;
     char *in_buf=(ext_in_buf==NULL)?nissa_malloc("in_buf",nel_in*bps,char):(char*)ext_in_buf;
@@ -305,8 +304,9 @@ namespace nissa
   int all_to_all_gathering_list_t::add_conf_link_for_paths(const coords_t& g,const int& mu)
   {
     //find rank and local position
-    int ivol,irank;
-    get_loclx_and_rank_of_coord(ivol,irank,g);
+    const auto[ivol,irank]=
+      get_loclx_and_rank_of_coord(g);
+    
     int ilink_asked=NDIM*ivol+mu;
     
     //if it is local, return local position

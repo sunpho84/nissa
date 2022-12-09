@@ -116,8 +116,44 @@ namespace nissa
   void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write);
   void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
   void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
-  void index_to_ILDG_remapping(int &irank_ILDG,int &iloc_ILDG,int iloc_lx,void *pars);
-  void index_from_ILDG_remapping(int &irank_lx,int &iloc_lx,int iloc_ILDG,void *pars);
+  
+  /// Define the remapping from the layout having in each rank a
+  /// consecutive block of data holding a consecutive piece of ildg
+  /// data to canonical lx
+  inline std::pair<int,int> index_from_ILDG_remapping(const int& iloc_ILDG)
+  {
+    int iglb_ILDG=rank*locVol+iloc_ILDG;
+    
+    //find global coords in ildg ordering
+    coords_t xto;
+    for(int mu=NDIM-1;mu>=0;mu--)
+      {
+	int nu=scidac_mapping[mu];
+	xto[nu]=iglb_ILDG%glbSize[nu];
+	iglb_ILDG/=glbSize[nu];
+      }
+    
+    return get_loclx_and_rank_of_coord(xto);
+  }
+  
+  /// Defines the reampping from lx in order to have in each rank a
+  /// consecutive block of data holding a consecutive piece of ildg
+  /// data
+  inline std::pair<int,int> index_to_ILDG_remapping(const int& iloc_lx)
+  {
+    //find global index in ildg transposed ordering
+    int iglb_ILDG=0;
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	const int nu=scidac_mapping[mu];
+	iglb_ILDG=iglb_ILDG*glbSize[nu]+glbCoordOfLoclx[iloc_lx][nu];
+      }
+    
+    const int irank_ILDG=iglb_ILDG/locVol;
+    const int iloc_ILDG=iglb_ILDG%locVol;
+    
+    return {irank_ILDG,iloc_ILDG};
+  }
   
   //Writes a field to a file (data is a vector of loc_vol) with no frill
   template <typename T>

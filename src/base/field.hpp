@@ -366,7 +366,7 @@ namespace nissa
     }
     
     void reduce(T& out) const
-    {
+    { //hack
       Field tmp("tmp");
       tmp=*this;
       

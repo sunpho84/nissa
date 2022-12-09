@@ -160,9 +160,31 @@ namespace nissa
   int rank_hosting_glblx(const int& gx);
   int rank_hosting_site_of_coord(const coords_t& x);
   int rank_of_coord(const coords_t& x);
-  void get_loclx_and_rank_of_coord(int& ivol,int& rank,const coords_t& g);
-  void get_loclx_and_rank_of_glblx(int& lx,int& rx,const int& gx);
+  
   coords_t glb_coord_of_glblx(int gx);
+  
+  /// Return the local site and rank containing the global coordinates
+  inline std::pair<int,int> get_loclx_and_rank_of_coord(const coords_t& g)
+  {
+    coords_t l,p;
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	p[mu]=g[mu]/locSize[mu];
+	l[mu]=g[mu]-p[mu]*locSize[mu];
+      }
+    
+    const int rank=rank_of_coord(p);
+    const int ivol=loclx_of_coord(l);
+    
+    return {rank,ivol};
+  }
+  
+  /// Return the local site and rank containing the global site
+  inline std::pair<int,int> get_loclx_and_rank_of_glblx(const int& gx)
+  {
+    return get_loclx_and_rank_of_coord(glb_coord_of_glblx(gx));
+  }
+  
   void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
   void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base);
   coords_t rank_coord_of_site_of_coord(const coords_t& glb_coord);

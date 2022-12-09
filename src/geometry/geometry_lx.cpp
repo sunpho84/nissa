@@ -178,20 +178,6 @@ namespace nissa
     return rank_hosting_site_of_coord(c);
   }
   
-  //Return the local site and rank containing the global coordinates
-  void get_loclx_and_rank_of_coord(int& ivol,int& rank,const coords_t& g)
-  {
-    coords_t l,p;
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	p[mu]=g[mu]/locSize[mu];
-	l[mu]=g[mu]-p[mu]*locSize[mu];
-      }
-    
-    rank=rank_of_coord(p);
-    ivol=loclx_of_coord(l);
-  }
-  
   //return the index of the site of passed "pseudolocal" coordinate
   //if the coordinates are local, return the index according to the function loclx_of_coord
   //if exactly one of the coordinate is just out return its index according to bordlx_of_coord, incremented of previous border and loc_vol
@@ -556,13 +542,6 @@ namespace nissa
     c[mu]=(c[mu]+glbSize[mu]-1)%glbSize[mu];
     
     return glblx_of_coord(c);
-  }
-  
-  //wrapper for a previous defined function
-  void get_loclx_and_rank_of_glblx(int& lx,int& rx,const int& gx)
-  {
-    coords_t c=glb_coord_of_glblx(gx);
-    get_loclx_and_rank_of_coord(lx,rx,c);
   }
   
   //unset cartesian geometry

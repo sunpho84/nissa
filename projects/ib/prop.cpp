@@ -928,8 +928,8 @@ namespace nissa
 		      }
 		    
 		    //search where data is stored
-		    int wrank,iloc;
-		    get_loclx_and_rank_of_coord(iloc,wrank,cmir); //the remapper will leave holes
+		    const auto [wrank,iloc]=
+		      get_loclx_and_rank_of_coord(cmir); //the remapper will leave holes
 		    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks));
 		    
 		    list_of_filtered.insert(iglb);
@@ -1000,8 +1000,8 @@ namespace nissa
 	if(not ended)
 	  {
 	    //search where data is stored
-	    int wrank,iloc;
-	    get_loclx_and_rank_of_coord(iloc,wrank,c);
+	    const auto [wrank,iloc]=
+	      get_loclx_and_rank_of_coord(c);
 	    if(rank==wrank) sl.push_back(std::make_pair(iloc,list_of_filtered.size()*nranks));
 	    
 	    int iglb=glblx_of_coord(c);
