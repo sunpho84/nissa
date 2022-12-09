@@ -31,24 +31,6 @@ namespace nissa
       setup_knowing_where_to_send(sl);
     }
     
-    // /// Initialize the remap, with an old-style lambda
-    // vector_remap_t(int nel_fr,
-    // 		   void (*index)(int& irank_to,
-    // 				 int& iel_to,
-    // 				 int iel_fr,
-    // 				 void* pars),
-    // 		   void* pars) :
-    //   vector_remap_t(nel_fr,
-    // 		     [pars,index](const int& iel_fr)
-    // 		     {
-    // 		       int rank_to,iel_to;
-    // 		       index(rank_to,iel_to,iel_fr,pars);
-		       
-    // 		       return std::make_pair(rank_to,iel_to);
-    // 		     })
-    // {
-    // }
-    
     void remap(void *out,
 	       void *in,
 	       size_t bps) const

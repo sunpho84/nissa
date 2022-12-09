@@ -252,8 +252,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //compute the main part of the fft
-    crash("reimplement");
-    // fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1field)/sizeof(complex),sign[source_or_sink],0);
+    fft4d(out,sign[source_or_sink],0);
     
     //compute steps
     momentum_t steps;
@@ -314,8 +313,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //compute the main part of the fft
-    crash("reimplement");
-    // fft4d((complex*)out,(complex*)out,dirs,sizeof(spin1field)/sizeof(complex),sign[source_or_sink],1);
+    fft4d(out,sign[source_or_sink],1);
     
     //multiply by exp(-i p_mu/2)
     NISSA_PARALLEL_LOOP(imom,0,locVol)

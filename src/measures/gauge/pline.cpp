@@ -71,44 +71,44 @@ namespace nissa
 						       const LxField<quad_su3>& conf,
 						       const int& mu)
   {
-    
-    //compute the traced loop
-    LxField<complex> point_loop("point_loop")// ,*point_loop_dag=NULL
-      ;
-    field_traced_polyakov_loop_lx_conf(point_loop,conf,mu);
-    // if(ll_corr)
-    //   {
-    // 	point_loop_dag=nissa_malloc("point_loop_dag",locVol,complex);
-    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-    // 	  complex_conj(point_loop_dag[ivol],point_loop[ivol]);
-    // 	NISSA_PARALLEL_LOOP_END;
-    // 	set_borders_invalid(point_loop_dag);
-    //   }
+    crash("reimplement");
+    // //compute the traced loop
+    // LxField<complex> point_loop("point_loop")// ,*point_loop_dag=NULL
+    //   ;
+    // field_traced_polyakov_loop_lx_conf(point_loop,conf,mu);
+    // // if(ll_corr)
+    // //   {
+    // // 	point_loop_dag=nissa_malloc("point_loop_dag",locVol,complex);
+    // // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // // 	  complex_conj(point_loop_dag[ivol],point_loop[ivol]);
+    // // 	NISSA_PARALLEL_LOOP_END;
+    // // 	set_borders_invalid(point_loop_dag);
+    // //   }
       
-    //compute the trace; since we reduce over all the volume there are glb_size[mu] replica
-    complex temp_trace;
-    glb_reduce(&temp_trace,point_loop,locVol);
-    complex_prod_double(loop_trace,temp_trace,1.0/(3*glbVol));
+    // //compute the trace; since we reduce over all the volume there are glb_size[mu] replica
+    // complex temp_trace;
+    // glb_reduce(&temp_trace,point_loop,locVol);
+    // complex_prod_double(loop_trace,temp_trace,1.0/(3*glbVol));
     
-    //if an appropriate array passed compute correlators of polyakov loop
-    if(ll_dag_corr!=NULL)
-      {
-	//take fftw in the perp plane
-	crash("reimplement");
-	//fft4d(point_loop,point_loop,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
+    // //if an appropriate array passed compute correlators of polyakov loop
+    // if(ll_dag_corr!=NULL)
+    //   {
+    // 	//take fftw in the perp plane
+    // 	crash("reimplement");
+    // 	//fft4d(point_loop,point_loop,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
 	
-	//multiply to build correlators
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    unsafe_complex_conj2_prod(ll_dag_corr[ivol],point_loop[ivol],point_loop[ivol]); //counter-intuitive but true
-	    complex_prodassign_double(ll_dag_corr[ivol],1.0/9);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	THREAD_BARRIER();
+    // 	//multiply to build correlators
+    // 	NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	  {
+    // 	    unsafe_complex_conj2_prod(ll_dag_corr[ivol],point_loop[ivol],point_loop[ivol]); //counter-intuitive but true
+    // 	    complex_prodassign_double(ll_dag_corr[ivol],1.0/9);
+    // 	  }
+    // 	NISSA_PARALLEL_LOOP_END;
+    // 	THREAD_BARRIER();
 	
-	//transform back
-	fft4d(ll_dag_corr,ll_dag_corr,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
-      }
+    // 	//transform back
+    // 	fft4d(ll_dag_corr,ll_dag_corr,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+    //   }
     
     //compute also the transform of the dagger if needed
     // if(ll_corr!=NULL)

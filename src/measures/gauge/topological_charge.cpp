@@ -113,31 +113,31 @@ namespace nissa
   //compute the correlator between topological charge
   void compute_topo_corr(double* charge)
   {
+    crash("reimplement");
+    // //pass to complex
+    // complex *ccharge=nissa_malloc("ccharge",locVol,complex);
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   complex_put_to_real(ccharge[ivol],charge[ivol]);
+    // NISSA_PARALLEL_LOOP_END;
+    // THREAD_BARRIER();
     
-    //pass to complex
-    complex *ccharge=nissa_malloc("ccharge",locVol,complex);
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      complex_put_to_real(ccharge[ivol],charge[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+    // //transform
+    // fft4d(ccharge,ccharge,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
     
-    //transform
-    fft4d(ccharge,ccharge,all_dirs,1/*complex per site*/,+1,true/*normalize*/);
+    // //multiply to build correlators
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   safe_complex_prod(ccharge[ivol],ccharge[ivol],ccharge[ivol]);
+    // NISSA_PARALLEL_LOOP_END;
+    // THREAD_BARRIER();
     
-    //multiply to build correlators
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      safe_complex_prod(ccharge[ivol],ccharge[ivol],ccharge[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+    // //transform back
+    // fft4d(ccharge,ccharge,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
     
-    //transform back
-    fft4d(ccharge,ccharge,all_dirs,1/*complex per site*/,-1,false/*do not normalize*/);
-    
-    //return to double
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      charge[ivol]=ccharge[ivol][RE];
-    NISSA_PARALLEL_LOOP_END;
-    nissa_free(ccharge);
+    // //return to double
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   charge[ivol]=ccharge[ivol][RE];
+    // NISSA_PARALLEL_LOOP_END;
+    // nissa_free(ccharge);
   }
   
   //finding the index to put only 1/16 of the data

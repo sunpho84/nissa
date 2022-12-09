@@ -71,15 +71,15 @@ namespace nissa
       }
     else
       {
-	//const LxField<quad_su3> *conf=get_updated_conf(charge,theta,*glb_conf);
+	const LxField<quad_su3>* conf=get_updated_conf(charge,theta,*glb_conf);
 	
 	master_printf("   inverting explicitly\n");
 	crash("reimplement");
-	// if(clover_run)
-	//   inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
-	// else
-	//   crash("reimplement");
-	//inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
+	if(clover_run)
+	  inv_tmclovD_cg_eoprec(out,NULL,conf,kappa,Cl,invCl,glb_cSW,mass,1000000,residue,in);
+	else
+	  crash("reimplement");
+	inv_tmD_cg_eoprec(out,NULL,conf,kappa,mass,1000000,residue,in);
       }
     
     verbosity_lv1_master_printf("Solving time: %lg s\n",take_time()-tin);

@@ -172,9 +172,10 @@ namespace nissa
     prop.invalidateHalo();
   }
   
-  void multiply_mom_space_tlSym_gauge_propagator(spin1field* out,spin1field* in,gauge_info gl)
+  void multiply_mom_space_tlSym_gauge_propagator(LxField<spin1field>& out,
+						 const LxField<spin1field>& in,
+						 const gauge_info& gl)
   {
-    
     NISSA_PARALLEL_LOOP(imom,0,locVol)
       {
 	spin1prop prop;
@@ -194,83 +195,81 @@ namespace nissa
       crash("Eigen required when out of Wilson regularisation in the Feynaman gauge");
 #endif
     
-    crash("fix this");
-    
-//     NISSA_PARALLEL_LOOP(imom,0,locVol)
-//       {
-// 	//take the propagator
-// 	spin1prop prop;
-// 	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
+      {
+	//take the propagator
+	spin1prop prop;
+	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
 	
-// #ifdef USE_EIGEN
-// 	using namespace Eigen;
+#ifdef USE_EIGEN
+	using namespace Eigen;
 	
-// 	//copy in the eigen strucures
-// 	Vector4cd ein;
-// 	Matrix4d eprop;
-// 	for(int mu=0;mu<NDIM;mu++)
-// 	  for(int nu=0;nu<NDIM;nu++)
-// 	    eprop(mu,nu)=prop[mu][nu][RE];
+	//copy in the eigen strucures
+	Vector4cd ein;
+	Matrix4d eprop;
+	for(int mu=0;mu<NDIM;mu++)
+	  for(int nu=0;nu<NDIM;nu++)
+	    eprop(mu,nu)=prop[mu][nu][RE];
 	
-// 	for(int id=0;id<NDIRAC;id++)
-// 	  {
-// 	    ein(id).real(in[imom][id][RE]);
-// 	    ein(id).imag(in[imom][id][IM]);
-// 	  }
+	for(int id=0;id<NDIRAC;id++)
+	  {
+	    ein(id).real(in[imom][id][RE]);
+	    ein(id).imag(in[imom][id][IM]);
+	  }
 	
-// 	Matrix4d sqrt_eprop;
-// 	// master_printf("Computing sqrt for mode: %d (%d %d %d %d)\n",imom,glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
-// 	// std::cout<<eprop<<std::endl;
+	Matrix4d sqrt_eprop;
+	// master_printf("Computing sqrt for mode: %d (%d %d %d %d)\n",imom,glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
+	// std::cout<<eprop<<std::endl;
 	
-// 	//compute eigenthings
-// 	SelfAdjointEigenSolver<Matrix4d> solver;
-// 	solver.compute(eprop);
+	//compute eigenthings
+	SelfAdjointEigenSolver<Matrix4d> solver;
+	solver.compute(eprop);
 	
-// 	//get eigenthings
-// 	const Matrix4d eve=solver.eigenvectors();
-// 	const Vector4d eva=solver.eigenvalues().transpose();
+	//get eigenthings
+	const Matrix4d eve=solver.eigenvectors();
+	const Vector4d eva=solver.eigenvalues().transpose();
 	
-// 	//check positivity
-// 	const double tol=1e-14,min_coef=eva.minCoeff();
-// 	if(min_coef<-tol) crash("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
+	//check positivity
+	const double tol=1e-14,min_coef=eva.minCoeff();
+	if(min_coef<-tol) crash("Minimum coefficient: %lg, greater in module than tolerance %lg",min_coef,tol);
 	
-// 	// //compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
-// 	Vector4d sqrt_eva;
-// 	for(int mu=0;mu<NDIM;mu++) sqrt_eva(mu)=sqrt(fabs(eva(mu)));
-// 	sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
+	// //compute sqrt of eigenvalues, forcing positivity (checked to tolerance before)
+	Vector4d sqrt_eva;
+	for(int mu=0;mu<NDIM;mu++) sqrt_eva(mu)=sqrt(fabs(eva(mu)));
+	sqrt_eprop=eve*sqrt_eva.asDiagonal()*eve.transpose();
 	
-// 	//performing check on the result
-// 	const Matrix4d err=sqrt_eprop*sqrt_eprop-eprop;
-// 	const double err_norm=err.norm();
-// 	const double prop_norm=eprop.norm();
-// 	const double rel_err=err_norm/prop_norm;
-// 	// std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
-// 	if(prop_norm>tol and err_norm>tol) crash("Error! Relative error on sqrt for mode %d (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
+	//performing check on the result
+	const Matrix4d err=sqrt_eprop*sqrt_eprop-eprop;
+	const double err_norm=err.norm();
+	const double prop_norm=eprop.norm();
+	const double rel_err=err_norm/prop_norm;
+	// std::cout<<"Testing sqrt:          "<<rel_err<<std::endl;
+	if(prop_norm>tol and err_norm>tol) crash("Error! Relative error on sqrt for mode %d (prop norm %lg) is %lg, greater than tolerance %lg",imom,prop_norm,rel_err,tol);
 	
-// 	//product with in, store
-// 	Vector4cd eout=sqrt_eprop*ein;
-// 	for(int mu=0;mu<NDIM;mu++)
-// 	  {
-// 	    out[imom][mu][RE]=eout(mu).real();
-// 	    out[imom][mu][IM]=eout(mu).imag();
-// 	  }
-// #else
-// 	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
-// #endif
+	//product with in, store
+	Vector4cd eout=sqrt_eprop*ein;
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    out[imom][mu][RE]=eout(mu).real();
+	    out[imom][mu][IM]=eout(mu).imag();
+	  }
+#else
+	spin_prod_double(out[imom],in[imom],sqrt(prop[0][0][RE]));
+#endif
 	
-// 	// //verify g.f condition
-// 	// double tr=0.0,nre=0.0,nim=0.0;
-// 	// for(int mu=0;mu<NDIM;mu++)
-// 	//   {
-// 	//     double kmu=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
-// 	//     double ktmu=2*sin(kmu/2);
+	// //verify g.f condition
+	// double tr=0.0,nre=0.0,nim=0.0;
+	// for(int mu=0;mu<NDIM;mu++)
+	//   {
+	//     double kmu=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
+	//     double ktmu=2*sin(kmu/2);
 	    
-// 	//     tr+=out[imom][mu][RE]*ktmu;
-// 	//     nre+=sqr(out[imom][mu][RE]);
-// 	//     nim+=sqr(out[imom][mu][IM]);
-// 	//   }
-//       }
-//     NISSA_PARALLEL_LOOP_END;
+	//     tr+=out[imom][mu][RE]*ktmu;
+	//     nre+=sqr(out[imom][mu][RE]);
+	//     nim+=sqr(out[imom][mu][IM]);
+	//   }
+      }
+    NISSA_PARALLEL_LOOP_END;
     
     
     set_borders_invalid(out);
@@ -345,24 +344,22 @@ namespace nissa
 					  const LxField<spin1field>& in,
 					  const gauge_info& gl)
   {
-    crash("reimplement");
+    pass_spin1field_from_x_to_mom_space(out,in,gl.bc,true,true);
     
-    // pass_spin1field_from_x_to_mom_space(out,in,gl.bc,true,true);
+    //multiply by prop
+    //put volume normalization due to convolution
+    //cancel zero modes
+    multiply_mom_space_tlSym_gauge_propagator(out,out,gl);
+    NISSA_PARALLEL_LOOP(imom,0,locVol)
+      {
+	spin_prodassign_double(out[imom],glbVol);
+	cancel_if_zero_mode_spin1field(out[imom],gl,imom);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    set_borders_invalid(out);
     
-    // //multiply by prop
-    // //put volume normalization due to convolution
-    // //cancel zero modes
-    // multiply_mom_space_tlSym_gauge_propagator(out,out,gl);
-    // NISSA_PARALLEL_LOOP(imom,0,locVol)
-    //   {
-    // 	spin_prodassign_double(out[imom],glbVol);
-    // 	cancel_if_zero_mode(out[imom],gl,imom);
-    //   }
-    // NISSA_PARALLEL_LOOP_END;
-    // set_borders_invalid(out);
-    
-    // //go back to x space
-    // pass_spin1field_from_mom_to_x_space(out,out,gl.bc,true,true);
+    //go back to x space
+    pass_spin1field_from_mom_to_x_space(out,out,gl.bc,true,true);
   }
   
   //generate a stochastic gauge propagator

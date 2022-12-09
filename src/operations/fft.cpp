@@ -303,7 +303,12 @@ namespace nissa
   }
   
   //perform the fft in all directions
-  void fft4d(complex *out,complex *in,const which_dir_t& dirs,int ncpp,double sign,int normalize)
+  void fft4d(complex *out,
+	     const complex *in,
+	     const which_dir_t& dirs,
+	     const int& ncpp,
+	     const double& sign,
+	     const bool& normalize)
   {
     //copy input in the output (if they differ!)
     if(out!=in) vector_copy(out,in);
@@ -323,14 +328,19 @@ namespace nissa
   
   static_assert(THREADS_TYPE!=CUDA_THREADS,"cuda parallelization not supported");
   
-  void fft4d(complex* out,complex* in,const which_dir_t& ext_dirs,int ncpp,double sign,int normalize)
+  void fft4d(complex *out,
+	     const complex *in,
+	     const which_dir_t& dirs,
+	     const int& ncpp,
+	     const double& sign,
+	     const bool& normalize)
   {
     //first of all put in to out
     if(out!=in) vector_copy(out,in);
     
     //list all dirs
     int list_dirs[NDIM],ndirs=0;
-    for(int mu=0;mu<NDIM;mu++) if(ext_dirs[mu]) list_dirs[ndirs++]=mu;
+    for(int mu=0;mu<NDIM;mu++) if(dirs[mu]) list_dirs[ndirs++]=mu;
     verbosity_lv2_master_printf("Going to FFT: %d dimensions in total\n",ndirs);
     
     if(ndirs)

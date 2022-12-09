@@ -287,7 +287,7 @@ namespace nissa
     
     /// Exec the operation f on each site
     template <typename F>
-    Field& forEachSite(const F& f)
+    Field& forEachSite(F&& f)
     {
       NISSA_PARALLEL_LOOP(site,0,this->nSites())
 	f((*this)[site]);
@@ -822,7 +822,22 @@ namespace nissa
       return not ((*this)==oth);
     }
     
-    /// Assign
+    /// Assign a different layout
+    template <FieldLayout OFl>
+    INLINE_FUNCTION
+    Field& operator=(const Field<T,SC,OFl>& oth)
+    {
+      forEachSiteDeg([&oth](Fund& t,
+			    const int& site,
+			    const int& iDeg)
+      {
+	t=oth(site,iDeg);
+      });
+      
+      return *this;
+    }
+    
+    /// Assign the same layout
     INLINE_FUNCTION
     Field& operator=(const Field& oth)
     {
