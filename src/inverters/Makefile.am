@@ -1,9 +1,7 @@
 ###################################### inverters #################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/staggered/cgm_invert_stD2ee_m2_portable.cpp \
 	%D%/staggered/cg_invert_stD2ee_m2_portable.cpp \
-	%D%/staggered/cgm_invert_stD2ee_m2.cpp \
 	%D%/staggered/cg_invert_stD2ee_m2.cpp \
 	%D%/staggered/cg_invert_stD.cpp \
 	%D%/staggered/cg_invert_evn_stD.cpp \
@@ -16,8 +14,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/twisted_mass/cg_128_invert_tmQ2.cpp \
 	%D%/twisted_mass/cg_128_invert_tmD_eoprec.cpp \
 	%D%/twisted_mass/tm_frontends.cpp \
-	%D%/twisted_clover/cg_invert_tmclovQ2.cpp \
-	%D%/twisted_clover/cg_64_invert_tmclovQ2_portable.cpp \
 	%D%/twisted_clover/cg_64_invert_tmclovD_eoprec.cpp \
 	%D%/twisted_clover/cg_128_invert_tmclovQ2.cpp \
 	%D%/twisted_clover/cg_128_invert_tmclovD_eoprec.cpp \
@@ -26,8 +22,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/twisted_clover/tmclov_frontends.cpp \
 	%D%/Wclov/cg_invert_WclovQ.cpp \
 	%D%/Wclov/cg_invert_WclovQ2.cpp \
-	%D%/twisted_clover/cg_invert_tmclovD_eoprec.cpp \
-	%D%/twisted_clover/cg_invert_tmclovQ.cpp
+	%D%/twisted_clover/cg_invert_tmclovD_eoprec.cpp
 
 include_HEADERS+= \
 	%D%/templates/modern_cg.hpp \

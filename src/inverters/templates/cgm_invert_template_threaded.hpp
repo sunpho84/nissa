@@ -216,7 +216,8 @@ namespace nissa
       }
     while(nrun_shift>0 and iter<niter_max);
     
-    if(use_async_communications) crash("reimplement");//CGM_FINISH_COMMUNICATING_BORDERS(p);
+    if(use_async_communications)
+      crash("reimplement");//CGM_FINISH_COMMUNICATING_BORDERS(p);
     
     //print the final true residue
     for(int iShift=0;iShift<nShift;iShift++)

@@ -27,7 +27,10 @@ namespace nissa
       num(0),den(0){name[0]='\0';}
     
     //return the degree
-    int degree(){return poles.size();}
+    int degree() const
+    {
+      return poles.size();
+    }
     
     //resize
     void resize(int size){poles.resize(size);weights.resize(size);}

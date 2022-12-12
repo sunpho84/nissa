@@ -1,72 +1,59 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
-#include <math.h>
-#include <cmath>
+#include <optional>
 
-#include "base/bench.hpp"
-#include "base/debug.hpp"
-#include "base/DDalphaAMG_bridge.hpp"
-#include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
-#include "dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp"
-#include "geometry/geometry_mix.hpp"
-#include "linalgs/linalgs.hpp"
-#include "routines/ios.hpp"
-
-#define BASETYPE spincolor
-#define NDOUBLES_PER_SITE 24
-#define BULK_VOL locVolh
-#define BORD_VOL bord_volh
-
-#define APPLY_OPERATOR tmclovDkern_eoprec_square_eos
-#define CG_OPERATOR_PARAMETERS temp1,temp2,eo_conf,kappa,Cl_odd,invCl_evn,mass,
-
-#define CG_INVERT inv_tmclovDkern_eoprec_square_eos_cg_64_portable
-#define CG_NPOSSIBLE_REQUESTS 0
-
-//maybe one day async comm
-//#define cg_start_communicating_borders start_communicating_ev_color_borders
-//#define cg_finish_communicating_borders finish_communicating_ev_color_borders
-
-#define CG_ADDITIONAL_VECTORS_ALLOCATION()                              \
-  BASETYPE *temp1=nissa_malloc("temp1",BULK_VOL+BORD_VOL,BASETYPE); \
-  BASETYPE *temp2=nissa_malloc("temp2",BULK_VOL+BORD_VOL,BASETYPE);
-
-#define CG_ADDITIONAL_VECTORS_FREE()            \
-  nissa_free(temp1);				\
-  nissa_free(temp2);
-
-//additional parameters
-#define CG_NARG 5
-#define AT1 eo_ptr<quad_su3>
-#define A1 eo_conf
-#define AT2 double
-#define A2 kappa
-#define AT3 clover_term_t*
-#define A3 Cl_odd
-#define AT4 inv_clover_term_t*
-#define A4 invCl_evn
-#define AT5 double
-#define A5 mass
-
-//#include "inverters/templates/cg_invert_template_threaded.cpp"
+#include <base/field.hpp>
+#include <dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp>
+#include <inverters/templates/cg_invert_template_threaded.hpp>
 
 namespace nissa
 {
-  void inv_tmclovDkern_eoprec_square_eos_cg_64_portable(spincolor *sol,spincolor *guess,eo_ptr<quad_su3> eo_conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,int niter,double residue,spincolor *source)
+  void inv_tmclovDkern_eoprec_square_eos_cg_64_portable(OddField<spincolor>& sol,
+							std::optional<OddField<spincolor>> guess,
+							const EoField<quad_su3>& conf,
+							const double& kappa,
+							const OddField<clover_term_t>& Cl_odd,
+							const EvnField<inv_clover_term_t>& invCl_evn,
+							const double& mu,
+							const int& niter,
+							const double residue,
+							const OddField<spincolor>& source)
   {
-    crash("reimplement");
+    cg_invert(sol,
+	      guess,
+	      [temp1=OddField<spincolor>("temp1",WITH_HALO),
+	       temp2=EvnField<spincolor>("temp2",WITH_HALO),
+	       &conf,
+	       &kappa,
+	       &Cl_odd,
+	       &invCl_evn,
+	       &mu](OddField<spincolor>& out,
+		    const OddField<spincolor>& in) mutable
+	      {
+		tmclovDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,Cl_odd,invCl_evn,mu,in);
+	      },
+	      niter,
+	      residue,
+	      source);
   }
-}
-
-namespace nissa
-{
+  
   //wrapper
-  void inv_tmclovDkern_eoprec_square_eos_cg_64(spincolor *sol,spincolor *guess,eo_ptr<quad_su3> eo_conf,double kappa,double cSW,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,double mu,int niter,double residue,spincolor *source)
+  void inv_tmclovDkern_eoprec_square_eos_cg_64(OddField<spincolor>& sol,
+					       std::optional<OddField<spincolor>> guess,
+					       const EoField<quad_su3>& conf,
+					       const double& kappa,
+					       const OddField<clover_term_t>& Cl_odd,
+					       const EvnField<inv_clover_term_t>& invCl_evn,
+					       const double& mu,
+					       const int& niter,
+					       const double residue,
+					       const OddField<spincolor>& source)
   {
 #if defined USE_DDALPHAAMG
+    crash("reimplement");//move upward, reorder everything
+    
     // if(use_DD and fabs(mu)<=DD::max_mass)
     // 	{
     // 	  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol,quad_su3);
@@ -86,6 +73,6 @@ namespace nissa
     // else
     master_printf("DDalpha not yet working, probably expecting a different layout\n");
 #endif
-    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,eo_conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
+    inv_tmclovDkern_eoprec_square_eos_cg_64_portable(sol,guess,conf,kappa,Cl_odd,invCl_evn,mu,niter,residue,source);
   }
 }

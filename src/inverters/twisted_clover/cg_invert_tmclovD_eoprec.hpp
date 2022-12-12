@@ -1,11 +1,23 @@
 #ifndef _CG_INVERT_TMCLOVD_EOPREC_HPP
 #define _CG_INVERT_TMCLOVD_EOPREC_HPP
 
-#include "new_types/su3.hpp"
+#include <optional>
+
+#include <base/field.hpp>
 
 namespace nissa
 {
-  void inv_tmclovD_cg_eoprec(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,clover_term_t *Cl_lx,inv_clover_term_t *ext_invCl_lx,double cSW,double mass,int nitermax,double residue,spincolor *source_lx);
+  void inv_tmclovD_cg_eoprec(LxField<spincolor>& solution_lx,
+			     std::optional<OddField<spincolor>> guess_Koo,
+			     const LxField<quad_su3>& conf_lx,
+			     const double& kappa,
+			     const LxField<clover_term_t>& Cl_lx,
+			     const LxField<inv_clover_term_t>* ext_invCl_lx,
+			     const double& cSW,
+			     const double& mass,
+			     const int& nitermax,
+			     const double& residue,
+			     const LxField<spincolor>& source_lx);
 }
 
 #endif

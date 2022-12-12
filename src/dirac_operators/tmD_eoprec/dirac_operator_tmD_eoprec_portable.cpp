@@ -12,11 +12,11 @@ namespace nissa
 {
   //Refers to the doc: "doc/eo_inverter.lyx" for explenations
   
-  template <typename O,
-	    typename I>
+  // template <typename O,
+  // 	    typename I>
   //put g5
-  void tmDkern_eoprec_eos_put_together_and_include_gamma5(O&& out,
-							  const I& temp)
+  void tmDkern_eoprec_eos_put_together_and_include_gamma5(OddField<spincolor>& out,
+							  const OddField<spincolor>& temp)
   {
     NISSA_PARALLEL_LOOP(ivol,0,locVolh)
       for(int id=0;id<NDIRAC/2;id++)
@@ -45,7 +45,7 @@ namespace nissa
     
     tmDee_or_oo_eos(temp,kappa,mu,in);
     
-    tmDkern_eoprec_eos_put_together_and_include_gamma5(out,temp);
+    tmDkern_eoprec_eos_put_together_and_include_gamma5(out,temp.castSitesCoverage<ODD_SITES>());
   }
   
   //square of Koo

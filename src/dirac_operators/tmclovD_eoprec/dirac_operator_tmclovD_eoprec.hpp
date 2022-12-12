@@ -8,12 +8,43 @@
 namespace nissa
 {
   void tmclovDee_or_oo_eos(spincolor *out,double kappa,clover_term_t *Cl,bool dag,double mu,spincolor *in);
-  void inv_tmclovDee_or_oo_eos(spincolor *out,inv_clover_term_t *invCl,bool dag,spincolor *in);
-  void tmclovDkern_eoprec_eos(spincolor *out,spincolor *temp,eo_ptr<quad_su3> conf,double kappa,clover_term_t *Cl_odd,inv_clover_term_t *invCl_evn,bool dag,double mu,spincolor *in);
+  
+  void tmclovDkern_eoprec_eos(OddField<spincolor>& out,
+			      EvnField<spincolor>& tmp,
+			      const EoField<quad_su3>& conf,
+			      const double& kappa,
+			      const OddField<clover_term_t>& Cl_odd,
+			      const EvnField<inv_clover_term_t>& invCl_evn,
+			      const bool& dag,
+			      const double& mu,
+			      const OddField<spincolor>& in);
+  
+  //inverse
+  template <typename O,
+	    typename C,
+	    typename I>
+  void inv_tmclovDee_or_oo_eos(O&& out,
+			       const C& invCl,
+			       const bool& dag,
+			       const I& in)
+  {
+    //if dagger, swaps the sign of mu, which means taking the hermitian of the inverse
+    int high=0,low=1;
+    if(dag) std::swap(low,high);
+    
+    NISSA_PARALLEL_LOOP(X,0,locVolh)
+      {
+    	unsafe_halfspincolor_halfspincolor_times_halfspincolor(out[X],invCl[X][high],in[X],2*high);
+    	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor(out[X],invCl[X][low],in[X],2*low);
+      }
+    NISSA_PARALLEL_LOOP_END;
+    
+    out.invalidateHalo();
+  }
   
   void tmclovDkern_eoprec_square_eos(OddField<spincolor>& out,
 				     OddField<spincolor>& temp1,
-				     EvenOrOddField<spincolor>& temp2,
+				     EvnField<spincolor>& temp2,
 				     const EoField<quad_su3>& conf,
 				     const double& kappa,
 				     const OddField<clover_term_t>& Cl_odd,

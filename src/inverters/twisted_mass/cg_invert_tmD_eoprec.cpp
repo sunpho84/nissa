@@ -28,28 +28,14 @@
 #include "routines/ios.hpp"
 #include "threads/threads.hpp"
 
-#include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_portable.hpp>
 
+#include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_portable.hpp>
 #include "cg_64_invert_tmD_eoprec.hpp"
 #include "cg_128_invert_tmD_eoprec.hpp"
 
 namespace nissa
 {
   //Refers to the doc: "doc/eo_inverter.lyx" for explenations
-  
-  //invert Koo defined in equation (7)
-  void inv_tmDkern_eoprec_square_eos_cg(OddField<spincolor>& sol,
-					std::optional<OddField<spincolor>> guess,
-					const EoField<quad_su3>& conf,
-					const double& kappa,
-					const double& mass,
-					const int& nitermax,
-					const double& residue,
-					const OddField<spincolor>& source)
-  {
-    if(use_128_bit_precision) inv_tmDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
-    else inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
-  }
   
   //Prepare the source according to Equation (8.b)
   void inv_tmD_cg_eoprec_prepare_source(OddField<spincolor>& varphi,
@@ -71,8 +57,26 @@ namespace nissa
     varphi.invalidateHalo();
   }
   
+  //invert Koo defined in equation (7)
+  void inv_tmDkern_eoprec_square_eos_cg(OddField<spincolor>& sol,
+					std::optional<OddField<spincolor>> guess,
+					const EoField<quad_su3>& conf,
+					const double& kappa,
+					const double& mass,
+					const int& nitermax,
+					const double& residue,
+					const OddField<spincolor>& source)
+  {
+    if(use_128_bit_precision)
+      {
+	crash("reimplement");
+	//inv_tmDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
+      }
+    else inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
+  }
+  
   //Eq.(11) up to last piece
-  void inv_tmD_cg_eoprec_almost_reco_sol(OddField<spincolor>& varphi,
+  void inv_tmD_cg_eoprec_almost_reco_sol(EvnField<spincolor>& varphi,
 					 const EoField<quad_su3>& conf_eos,
 					 const OddField<spincolor>& sol_odd,
 					 const EvnField<spincolor>& source_evn)
@@ -115,17 +119,15 @@ namespace nissa
     ///////////////////////////////////// invert with e/o preconditioning ///////////////////////////////////
     
     //Equation (8.a)
-    OddField<spincolor> oddTemp("oddTemp",WITH_HALO);
-    inv_tmDee_or_oo_eos(oddTemp,kappa,mass,source_eos[EVN]);
+    EvnField<spincolor> evnTemp("evnTemp",WITH_HALO);
+    inv_tmDee_or_oo_eos(evnTemp,kappa,mass,source_eos.evenPart);
     
     //Prepare the source according to Equation (8.b)
     OddField<spincolor> varphi("varphi",WITH_HALO);
-    {
-      EvnField<spincolor> evnTemp("evnTemp",WITH_HALO);
-      inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,evnTemp,source_eos.oddPart);
-    }
+    inv_tmD_cg_eoprec_prepare_source(varphi,conf_eos,evnTemp,source_eos.oddPart);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
+    OddField<spincolor> oddTemp("oddTemp",WITH_HALO);
     inv_tmDkern_eoprec_square_eos_cg(oddTemp,guess_Koo,conf_eos,kappa,mass,nitermax,residue,varphi);
     if(guess_Koo) *guess_Koo=oddTemp; //if a guess was passed, return new one
     
@@ -133,8 +135,8 @@ namespace nissa
     tmDkern_eoprec_eos(solution_eos.oddPart,solution_eos.evenPart,conf_eos,kappa,-mass,oddTemp);
     
     //Equation (11)
-    inv_tmD_cg_eoprec_almost_reco_sol(varphi,conf_eos,solution_eos.oddPart,source_eos.evenPart);
-    inv_tmDee_or_oo_eos(solution_eos.evenPart,kappa,mass,varphi);
+    inv_tmD_cg_eoprec_almost_reco_sol(evnTemp,conf_eos,solution_eos.oddPart,source_eos.evenPart);
+    inv_tmDee_or_oo_eos(solution_eos.evenPart,kappa,mass,evnTemp);
     
     /////////////////////////// paste the e/o parts of the solution together and free ///////////////////
     

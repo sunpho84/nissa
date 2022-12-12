@@ -80,72 +80,73 @@ namespace nissa
   //measure for a single smooth value
   void measure_spectral_proj(FILE *file,spectr_proj_meas_pars_t &meas_pars,quad_su3 *conf_lx,int iconf,int nsmooth)
   {
-    int neigs=meas_pars.neigs;
+    crash("reimplement");
+    // int neigs=meas_pars.neigs;
     
-    //smooth is implemented only for lx
-    eo_ptr<quad_su3> conf_eo={nissa_malloc("conf_eo_EVN",locVolh+bord_volh+edge_volh,quad_su3),nissa_malloc("conf_eo_ODD",locVolh+bord_volh+edge_volh,quad_su3)};
-    split_lx_vector_into_eo_parts(conf_eo,conf_lx);
+    // //smooth is implemented only for lx
+    // eo_ptr<quad_su3> conf_eo={nissa_malloc("conf_eo_EVN",locVolh+bord_volh+edge_volh,quad_su3),nissa_malloc("conf_eo_ODD",locVolh+bord_volh+edge_volh,quad_su3)};
+    // split_lx_vector_into_eo_parts(conf_eo,conf_lx);
     
-    // allocate auxiliary vectors
-    complex *charge_cut=nissa_malloc("charge_cut",neigs*neigs,complex);
-    complex *eigval=nissa_malloc("DD_eig_Val",neigs,complex);
-    double *cum_sumA=nissa_malloc("cum_sumA",meas_pars.neigs+1,double);
-    double *cum_sumB=nissa_malloc("cum_sumB",meas_pars.neigs+1,double);
+    // // allocate auxiliary vectors
+    // complex *charge_cut=nissa_malloc("charge_cut",neigs*neigs,complex);
+    // complex *eigval=nissa_malloc("DD_eig_Val",neigs,complex);
+    // double *cum_sumA=nissa_malloc("cum_sumA",meas_pars.neigs+1,double);
+    // double *cum_sumB=nissa_malloc("cum_sumB",meas_pars.neigs+1,double);
     
-    color **eigvec=nissa_malloc("eigvec",neigs,color*);
-    for(int ieig=0;ieig<neigs;ieig++)
-      eigvec[ieig]=nissa_malloc("eigvec_ieig",locVol+bord_vol,color);
+    // color **eigvec=nissa_malloc("eigvec",neigs,color*);
+    // for(int ieig=0;ieig<neigs;ieig++)
+    //   eigvec[ieig]=nissa_malloc("eigvec_ieig",locVol+bord_vol,color);
     
-    // reset vectors
-    vector_reset(charge_cut);
-    vector_reset(eigval);
-    vector_reset(cum_sumA);
-    vector_reset(cum_sumB);
+    // // reset vectors
+    // vector_reset(charge_cut);
+    // vector_reset(eigval);
+    // vector_reset(cum_sumA);
+    // vector_reset(cum_sumB);
     
-    for(int ieig=0;ieig<neigs;ieig++)
-      vector_reset(eigvec[ieig]);
+    // for(int ieig=0;ieig<neigs;ieig++)
+    //   vector_reset(eigvec[ieig]);
     
-    measure_iD_spectrum(eigvec,conf_eo,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
+    // measure_iD_spectrum(eigvec,conf_eo,charge_cut,eigval,meas_pars.neigs,meas_pars.eig_precision,meas_pars.wspace_size);
     
-    //print the result on file
-    verbosity_lv2_master_printf("\n\nPartial sums for spectral projectors:\n\nk\t\t\teig\t\t\tA_k\t\t\tB_k\n");
+    // //print the result on file
+    // verbosity_lv2_master_printf("\n\nPartial sums for spectral projectors:\n\nk\t\t\teig\t\t\tA_k\t\t\tB_k\n");
     
-    //vectors storing A_k and B_k partial sums, offset by 1 for convenience
-    master_fprintf(file,"%d\t%d\t%d\t",iconf,nsmooth,neigs);
-    for(int ieig=0;ieig<neigs;++ieig)
-      master_fprintf(file,"%.16lg\t",eigval[ieig][RE]);
+    // //vectors storing A_k and B_k partial sums, offset by 1 for convenience
+    // master_fprintf(file,"%d\t%d\t%d\t",iconf,nsmooth,neigs);
+    // for(int ieig=0;ieig<neigs;++ieig)
+    //   master_fprintf(file,"%.16lg\t",eigval[ieig][RE]);
     
-    for(int ieig=0;ieig<neigs;ieig++)
-      {
-	cum_sumA[1+ieig]=cum_sumA[ieig]+charge_cut[ieig*neigs+ieig][RE];
-	master_fprintf(file,"%.16lg\t",cum_sumA[1+ieig]);
-      }
+    // for(int ieig=0;ieig<neigs;ieig++)
+    //   {
+    // 	cum_sumA[1+ieig]=cum_sumA[ieig]+charge_cut[ieig*neigs+ieig][RE];
+    // 	master_fprintf(file,"%.16lg\t",cum_sumA[1+ieig]);
+    //   }
     
-    for(int kcutoff=0;kcutoff<neigs;kcutoff++)
-      {
-	cum_sumB[1+kcutoff]=cum_sumB[kcutoff]+complex_norm2(charge_cut[kcutoff*neigs+kcutoff]); //diagonal part
-	for(int ieig=0;ieig<kcutoff;ieig++)
-	  cum_sumB[1+kcutoff]+=2.0*complex_norm2(charge_cut[ieig*neigs+kcutoff]); //offdiagonal part
+    // for(int kcutoff=0;kcutoff<neigs;kcutoff++)
+    //   {
+    // 	cum_sumB[1+kcutoff]=cum_sumB[kcutoff]+complex_norm2(charge_cut[kcutoff*neigs+kcutoff]); //diagonal part
+    // 	for(int ieig=0;ieig<kcutoff;ieig++)
+    // 	  cum_sumB[1+kcutoff]+=2.0*complex_norm2(charge_cut[ieig*neigs+kcutoff]); //offdiagonal part
 	
-	master_fprintf(file,"%.16lg\t",cum_sumB[1+kcutoff]);
-      }
-    master_fprintf(file,"\n");
+    // 	master_fprintf(file,"%.16lg\t",cum_sumB[1+kcutoff]);
+    //   }
+    // master_fprintf(file,"\n");
     
-    for(int ieig=0;ieig<neigs;ieig++)
-      verbosity_lv2_master_printf("%d\t%.16lg\t%.16lg\t%.16lg\n",ieig,eigval[ieig][RE],cum_sumA[1+ieig],cum_sumB[1+ieig]);
-    verbosity_lv2_master_printf("\n\n");
+    // for(int ieig=0;ieig<neigs;ieig++)
+    //   verbosity_lv2_master_printf("%d\t%.16lg\t%.16lg\t%.16lg\n",ieig,eigval[ieig][RE],cum_sumA[1+ieig],cum_sumB[1+ieig]);
+    // verbosity_lv2_master_printf("\n\n");
     
-    //deallocate vectors
-    for(int ieig=0;ieig<neigs;ieig++)
-      nissa_free(eigvec[ieig]);
+    // //deallocate vectors
+    // for(int ieig=0;ieig<neigs;ieig++)
+    //   nissa_free(eigvec[ieig]);
     
-    nissa_free(conf_eo[EVN]);
-    nissa_free(conf_eo[ODD]);
-    nissa_free(eigvec);
-    nissa_free(charge_cut);
-    nissa_free(eigval);
-    nissa_free(cum_sumA);
-    nissa_free(cum_sumB);
+    // nissa_free(conf_eo[EVN]);
+    // nissa_free(conf_eo[ODD]);
+    // nissa_free(eigvec);
+    // nissa_free(charge_cut);
+    // nissa_free(eigval);
+    // nissa_free(cum_sumA);
+    // nissa_free(cum_sumB);
   }
   
   //measure of spectrally projected components of gamma5 in the staggered formulation using iD

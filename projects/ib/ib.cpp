@@ -396,7 +396,7 @@ void close()
   free_mes2pts_contr();
   free_handcuffs_contr();
   
-  nissa_free(loc_contr);
+  delete loc_contr;
   
   nissa_free(meslep_hadr_part);
   nissa_free(meslep_contr);
@@ -411,8 +411,8 @@ void close()
   
   if(clover_run)
     {
-      nissa_free(Cl);
-      nissa_free(invCl);
+      delete Cl;
+      delete invCl;
     }
   free_bar2pts_contr();
   

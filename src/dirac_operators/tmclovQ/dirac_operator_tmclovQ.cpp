@@ -12,12 +12,17 @@
 //Apply the Q=g5*D operator to a spincolor
 namespace nissa
 {
-  void apply_tmclovQ(spincolor* out,quad_su3* conf,double kappa,clover_term_t* Cl,double mu,spincolor* in)
+  void apply_tmclovQ(LxField<spincolor>& out,
+		     const LxField<quad_su3>& conf,
+		     const double& kappa,
+		     const LxField<clover_term_t>& Cl,
+		     const double& mu,
+		     const LxField<spincolor>& in)
   {
-    communicate_lx_spincolor_borders(in);
-    communicate_lx_quad_su3_borders(conf);
+    in.updateHalo();
+    conf.updateHalo();
     
-    double kcf=1/(2*kappa);
+    const double kcf=1/(2*kappa);
     
     NISSA_PARALLEL_LOOP(X,0,locVol)
       {

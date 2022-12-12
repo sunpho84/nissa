@@ -14,40 +14,6 @@
 
 namespace nissa
 {
-  //separate the even and odd part of a vector
-  void split_lx_vector_into_eo_parts_internal(eo_ptr<void> out_eo,void* in_lx,size_t bps)
-  {
-    
-    START_TIMING(remap_time,nremap);
-    
-    //split
-    NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      memcpy((char*)(out_eo[loclx_parity[loclx]])+bps*loceo_of_loclx[loclx],(char*)in_lx+bps*loclx,bps);
-    NISSA_PARALLEL_LOOP_END;
-    
-    STOP_TIMING(remap_time);
-    
-    set_borders_invalid(out_eo[0]);
-    set_borders_invalid(out_eo[1]);
-  }
-  
-  //separate the even and odd part of a vector
-  void get_evn_or_odd_part_of_lx_vector_internal(void* out_ev_or_od,void* in_lx,size_t bps,int par)
-  {
-    
-    START_TIMING(remap_time,nremap);
-    
-    //get
-    NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      if(loclx_parity[loclx]==par)
-	memcpy((char*)out_ev_or_od+bps*loceo_of_loclx[loclx],(char*)in_lx+bps*loclx,bps);
-    NISSA_PARALLEL_LOOP_END;
-    
-    STOP_TIMING(remap_time);
-    
-    set_borders_invalid(out_ev_or_od);
-  }
-  
   /////////////////////
   
   //remap using a certain local remapper

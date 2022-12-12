@@ -7,6 +7,7 @@
 #include "operations/su3_paths/clover_term.hpp"
 #include "threads/threads.hpp"
 
+#include <dirac_operators/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp>
 #include <dirac_operators/tmD_eoprec/dirac_operator_tmD_eoprec_portable.hpp>
 
 namespace nissa
@@ -39,34 +40,9 @@ namespace nissa
     out.invalidateHalo();
   }
   
-  //inverse
-  template <typename O,
-	    typename C,
-	    typename I>
-  void inv_tmclovDee_or_oo_eos(O&& out,
-			       const C& invCl,
-			       const bool& dag,
-			       const I& in)
-  {
-    if(in==out) crash("in==out!");
-    
-    //if dagger, swaps the sign of mu, which means taking the hermitian of the inverse
-    int high=0,low=1;
-    if(dag) std::swap(low,high);
-    
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
-      {
-    	unsafe_halfspincolor_halfspincolor_times_halfspincolor(out[X],invCl[X][high],in[X],2*high);
-    	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor(out[X],invCl[X][low],in[X],2*low);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    out.invalidateHalo();
-  }
-  
   //implement Koo defined in equation (7)
   void tmclovDkern_eoprec_eos(OddField<spincolor>& out,
-			      EvenOrOddField<spincolor>& tmp,
+			      EvnField<spincolor>& tmp,
 			      const EoField<quad_su3>& conf,
 			      const double& kappa,
 			      const OddField<clover_term_t>& Cl_odd,
@@ -91,7 +67,7 @@ namespace nissa
   //square of Koo
   void tmclovDkern_eoprec_square_eos(OddField<spincolor>& out,
 				     OddField<spincolor>& temp1,
-				     EvenOrOddField<spincolor>& temp2,
+				     EvnField<spincolor>& temp2,
 				     const EoField<quad_su3>& conf,
 				     const double& kappa,
 				     const OddField<clover_term_t>& Cl_odd,

@@ -39,13 +39,6 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  void split_lx_vector_into_eo_parts_internal(eo_ptr<void> out_eo,void *in_lx,size_t bps);
-  
-  template <class T> void split_lx_vector_into_eo_parts(eo_ptr<T> out_eo,T *in_lx)
-  { // hack
-    split_lx_vector_into_eo_parts_internal({out_eo[EVN],out_eo[ODD]},in_lx,sizeof(T));
-  }
-  
   template <typename EO,
 	    typename LX>
   void split_lx_vector_into_eo_parts(EO&& outEo,
@@ -65,11 +58,23 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  void get_evn_or_odd_part_of_lx_vector_internal(void *out_ev_or_od,void *in_lx,size_t bps,int par);
-  
-  template <class T> void get_evn_or_odd_part_of_lx_vector(T *out_eo,T *in_lx,int par)
+  template <typename EoO,
+	    typename LX>
+  void get_evn_or_odd_part_of_lx_vector(EoO&& outEo,
+					const LX& inLx,
+					const SitesCoverage& par)
   {
-    get_evn_or_odd_part_of_lx_vector_internal(out_eo,in_lx,sizeof(T),par);
+    START_TIMING(remap_time,nremap);
+    
+    //get
+    NISSA_PARALLEL_LOOP(locEo,0,locVolh)
+      for(int internalDeg=0;internalDeg<inLx.nInternalDegs;internalDeg++)
+	outEo(locEo,internalDeg)=inLx(loclx_of_loceo[par][locEo],internalDeg);
+    NISSA_PARALLEL_LOOP_END;
+    
+    STOP_TIMING(remap_time);
+    
+    outEo.invalidateHalo();
   }
   
   /////////////////////////////////////////////////////////////////
