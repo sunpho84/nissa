@@ -72,7 +72,8 @@ namespace nissa
 	crash("reimplement");
 	//inv_tmDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
       }
-    else inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
+    else
+      inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
   }
   
   //Eq.(11) up to last piece
