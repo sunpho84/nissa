@@ -26,8 +26,8 @@ namespace nissa
     const int n=
       source.nSites()*source.nInternalDegs;
     
-    constexpr int each=
-		VERBOSITY_LV3?1:10;
+    const int each=
+      VERBOSITY_LV3?1:10;
     
     T s("s");
     T r("r");

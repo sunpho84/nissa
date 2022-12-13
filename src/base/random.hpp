@@ -54,6 +54,10 @@ namespace nissa
   CUDA_HOST_AND_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
   CUDA_HOST_AND_DEVICE int rnd_get_pm_one(rnd_gen *gen);
   
+  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex& out,
+					 rnd_gen* gen,
+					 const enum rnd_t& rtype);
+  
   template <typename C>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void comp_get_rnd(C&& _out,
@@ -64,10 +68,6 @@ namespace nissa
     comp_get_rnd(out,gen,rtype);
     complex_copy(_out,out);
   }
-  
-  CUDA_HOST_AND_DEVICE void comp_get_rnd(complex& out,
-					 rnd_gen* gen,
-					 const enum rnd_t& rtype);
   
   //generate a spindiluted vector according to the passed type
   void generate_colorspindiluted_source(LxField<su3spinspin>& source,

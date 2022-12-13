@@ -16,17 +16,6 @@
 
 namespace nissa
 {
-  //print
-  std::string qed_corr_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasQedCorrs\n";
-    os<<base_fermionic_meas_t::get_str(full);
-    
-    return os.str();
-  }
-  
   namespace stag
   {
     //return directly a eosplit photon field

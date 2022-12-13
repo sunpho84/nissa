@@ -167,7 +167,8 @@ void in_main(int narg,char **arg)
   double ape_smearing_alpha;
   read_str_double("ApeSmearingAlpha",&ape_smearing_alpha);
   read_str_int("ApeSmearingNiters",&ape_smearing_niters);
-  ape_spatial_smear_conf(conf,conf,ape_smearing_alpha,ape_smearing_niters);
+  crash("reimplement");
+  //ape_spatial_smear_conf(conf,conf,ape_smearing_alpha,ape_smearing_niters);
   
   //read Gaussian smearing pars
   int nlevels,meas_each;
@@ -203,8 +204,8 @@ void in_main(int narg,char **arg)
       source_pos[t][0]=t;
       
       //get loclx and rank
-      int l,r;
-      get_loclx_and_rank_of_coord(l,r,source_pos[t]);
+      const auto [r,l]=
+	get_loclx_and_rank_of_coord(source_pos[t]);
       
       //put the source only if on correct rank
       if(rank==r) source[l][0][0]=1;
@@ -232,7 +233,8 @@ void in_main(int narg,char **arg)
       compute_density(fout,source,source_pos);
       
       //smear
-      if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,meas_each);
+      crash("reimplement");
+      // if(ilev<nlevels) gaussian_smearing(source,source,conf,kappa,meas_each);
     }
   
   close_file(fout);

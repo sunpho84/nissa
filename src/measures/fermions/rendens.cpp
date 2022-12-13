@@ -132,16 +132,4 @@ namespace nissa
     // nissa_free(point_result);
     // DELETE_FIELD_T(source);
   }
-  
-  //print
-  std::string quark_rendens_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasRendens\n";
-    os<<base_fermionic_meas_t::get_str(full);
-    if(max_order!=def_max_order() or full) os<<" MaxOrder\t=\t"<<max_order<<"\n";
-    
-    return os.str();
-  }
 }

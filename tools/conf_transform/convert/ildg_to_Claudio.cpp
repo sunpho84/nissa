@@ -27,15 +27,17 @@ void write_to_binary_file(FILE *fp,su3 A)
     crash("Problems in writing Su3 matrix");
 }
 
-void index(int &irank_to,int &iel_to,int iel_fr,void *pars)
+std::pair<int,int> indrem(const int& iel_fr)
 {
   const coords_t& c=glbCoordOfLoclx[iel_fr];
   
-  int num=snum(c[1],c[2],c[3],c[0]);
+  const int num=snum(c[1],c[2],c[3],c[0]);
   
-  irank_to=num/locVol;
+  const int irank_to=num/locVol;
   
-  iel_to=num-irank_to*locVol;
+  const int iel_to=num-irank_to*locVol;
+  
+  return {irank_to,iel_to};
 }
 
 int main(int narg,char **arg)
@@ -86,7 +88,7 @@ int main(int narg,char **arg)
   
   quad_su3 *out_conf=nissa_malloc("out_conf",locVol,quad_su3);
   
-  vector_remap_t(locVol,index,nullptr).remap(out_conf,in_conf,sizeof(quad_su3));
+  vector_remap_t(locVol,indrem).remap(out_conf,in_conf,sizeof(quad_su3));
   
   nissa_free(in_conf);
   
@@ -110,8 +112,7 @@ int main(int narg,char **arg)
   int prevRank=0;
   for(int gvol=0;gvol<glbVol;gvol++)
     {
-      int irank,ivol;
-      get_loclx_and_rank_of_coord(ivol,irank,glb_coord_of_glblx(gvol));
+      const auto [irank,ivol]=get_loclx_and_rank_of_coord(glb_coord_of_glblx(gvol));
       if(prevRank!=irank)
 	{
 	  if(prevRank==rank) MPI_Send(&mdContext,sizeof(MD5_CTX),MPI_CHAR,irank,12,MPI_COMM_WORLD);

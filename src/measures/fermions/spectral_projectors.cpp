@@ -188,19 +188,4 @@ namespace nissa
     
     close_file(file);
   }
-  
-  //print pars
-  std::string spectr_proj_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasSpectrProj\n";
-    os<<base_fermionic_meas_t::get_str(full);
-    if(neigs!=def_neigs() or full) os<<" Neigs\t\t=\t"<<neigs<<"\n";
-    if(eig_precision!=def_eig_precision() or full) os<<" EigPrecision\t\t=\t"<<eig_precision<<"\n";
-    if(wspace_size!=def_wspace_size() or full) os<<" WSpaceSize\t\t=\t"<<wspace_size<<"\n";
-    os<<smooth_pars.get_str(full);
-    
-    return os.str();
-  }
 }

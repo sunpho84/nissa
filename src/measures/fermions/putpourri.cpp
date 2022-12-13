@@ -243,16 +243,4 @@ namespace nissa
     // //close the file
     // if(rank==0) fclose(file);
   }
-  
-  //fermionic putpourri
-  std::string fermionic_putpourri_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasPutpourri\n";
-    if(is_nonstandard()||full) os<<base_fermionic_meas_t::get_str(full);
-    if(compute_susc!=def_compute_susc()||full)  os<<" ComputeSusc\t=\t"<<compute_susc<<"\n";
-    
-    return os.str();
-  }
 }

@@ -19,7 +19,8 @@ void in_main(int narg,char **arg)
   read_ildg_gauge_conf(conf,arg[3]);
   communicate_lx_quad_su3_borders(conf);
   
-  perform_random_gauge_transform(fix_conf,conf);
+  crash("reimplement");
+  //perform_random_gauge_transform(fix_conf,conf);
   
   write_ildg_gauge_conf(arg[5],fix_conf,64);
   

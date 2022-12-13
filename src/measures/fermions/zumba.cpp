@@ -109,15 +109,4 @@ namespace nissa
     // nissa_free(point_result);
     // DELETE_FIELD_T(source);
   }
-  
-  //print
-  std::string chir_zumba_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasZumba\n";
-    os<<base_fermionic_meas_t::get_str(full);
-    
-    return os.str();
-  }
 }

@@ -109,7 +109,8 @@ void bench_Wils()
   
   //in
   spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
-  generate_fully_undiluted_eo_source(in, RND_GAUSS,-1,EVN);
+  crash("reimplement");
+  //generate_fully_undiluted_eo_source(in, RND_GAUSS,-1,EVN);
   
   //temp and out
   spincolor *temp=nissa_malloc("temp",locVol+bord_vol,spincolor);

@@ -121,15 +121,4 @@ namespace nissa
     
 //     close_file(file);
   }
-  
-  //nucleon correlators
-  std::string tm_tuning_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasTmTuning\n";
-    os<<base_fermionic_meas_t::get_str(full);
-    
-    return os.str();
-  }
 }

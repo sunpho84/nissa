@@ -5,22 +5,24 @@ using namespace nissa;
 int T,L;
 vector_remap_t *remapper;
 
-void index_from_lx_to_Neo(int &rank_out,int &iel_out,int iel_in,void *pars)
+std::pair<int,int> index_from_lx_to_Neo(const int& iel_in)
 {
-  int mu_ord[4]={0,3,2,1};
-  int ilx=iel_in/4;
-  int mu=iel_in-ilx*4;
+  const int mu_ord[4]={0,3,2,1};
+  const int ilx=iel_in/4;
+  const int mu=iel_in-ilx*4;
   
   //odd sites goes with themseleves
-  int shift_comp=(loclx_parity[ilx]==0);
+  const int shift_comp=(loclx_parity[ilx]==0);
   
   coords_t g;
   for(int nu=0;nu<4;nu++) g[mu_ord[nu]]=glbCoordOfLoclx[ilx][nu];
   if(shift_comp) g[mu_ord[mu]]=(g[mu_ord[mu]]+1)%glbSize[mu_ord[mu]];
   
-  int glb_site_dest=(glblx_of_coord(g)/2)*8+mu_ord[mu]*2+shift_comp;
-  rank_out=glb_site_dest/(8*locVolh);
-  iel_out=glb_site_dest-rank_out*8*locVolh;
+  const int glb_site_dest=(glblx_of_coord(g)/2)*8+mu_ord[mu]*2+shift_comp;
+  const int rank_out=glb_site_dest/(8*locVolh);
+  const int iel_out=glb_site_dest-rank_out*8*locVolh;
+  
+  return {rank_out,iel_out};
 }
 
 void conf_convert(char *outpath,char *inpath)
@@ -93,7 +95,7 @@ void in_main(int narg,char **arg)
   init_grid(T,L);
   
   //init the remapper
-  remapper=new vector_remap_t(4*locVol,index_from_lx_to_Neo,NULL);
+  remapper=new vector_remap_t(4*locVol,index_from_lx_to_Neo);
   
   //read the number of gauge configurations
   int N;

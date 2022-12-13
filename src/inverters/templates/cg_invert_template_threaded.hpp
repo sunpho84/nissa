@@ -33,7 +33,8 @@ namespace nissa
     START_TIMING(cg_inv_over_time,ncg_inv);
     int each=VERBOSITY_LV3?1:10;
     
-    const double sourceNorm2=source.norm2();
+    const double sourceNorm2=
+      source.norm2();
     
     //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
     f(s,sol);
@@ -62,8 +63,11 @@ namespace nissa
 	f(s,p);
 	cg_inv_over_time-=take_time();
 	
-	const double alpha=s.realPartOfScalarProdWith(p);
-	const double omega=delta/alpha;
+	const double alpha=
+	  s.realPartOfScalarProdWith(p);
+	
+	const double omega=
+	  delta/alpha;
 	
 	//sol_(k+1)=x_k+omega*p_k
 	sol.forEachSiteDeg([&p,omega](double& sol,const int& site,const int i)
@@ -81,7 +85,8 @@ namespace nissa
 	lambda=r.norm2();
 	
 	//(r_(k+1),r_(k+1))/(r_k,r_k)
-	const double gammag=lambda/delta;
+	const double gammag=
+	  lambda/delta;
 	delta=lambda;
 	
 	//checks

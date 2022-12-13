@@ -142,20 +142,4 @@ namespace nissa
     
     // close_file(file);
   }
-  
-  //nucleon correlators
-  std::string nucleon_corr_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasNucleonCorrs\n";
-    
-    if(is_nonstandard() or full) os<<base_fermionic_meas_t::get_str(full);
-    if(gaussSmeKappa!=def_gaussSmeKappa() or full) os<<"GaussSmeKappa\t=\t"<<gaussSmeKappa<<"\n";
-    if(gaussSmeNSteps!=def_gaussSmeNSteps() or full) os<<"GaussSmeNSteps\t=\t"<<gaussSmeNSteps<<"\n";
-    if(apeSmeAlpha!=def_apeSmeAlpha() or full) os<<"ApeSmeAlpha\t=\t"<<apeSmeAlpha<<"\n";
-    if(apeSmeNSteps!=def_apeSmeNSteps() or full) os<<"ApeSmeNSteps\t=\t"<<apeSmeNSteps<<"\n";
-    
-    return os.str();
-  }
 }

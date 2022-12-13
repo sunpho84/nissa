@@ -61,35 +61,4 @@ namespace nissa
     // for(int ismooth=0;ismooth<sp.nsmooth();ismooth++)
     //   smooth_lx_conf_one_step(smoothed_conf,sp,dirs,staple_min_dir);
   }
-  
-  std::string smooth_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    if(full or is_nonstandard())
-      {
-	if(full or method!=def_method() or
-	   (method==COOLING and cool.is_nonstandard()) or
-	   (method==STOUT and stout.is_nonstandard()) or
-	   (method==WFLOW and Wflow.is_nonstandard()) or
-	   (method==APE and ape.is_nonstandard()) or
-	   (method==HYP and hyp.is_nonstandard()))
-	  {
-	    os<<" SmoothMethod\t=\t";
-	    switch(method)
-	      {
-	      case COOLING: os<<cool.get_str(full);break;
-	      case STOUT: os<<stout.get_str(full);break;
-	      case WFLOW: os<<Wflow.get_str(full);break;
-	      case APE: os<<ape.get_str(full);break;
-	      case HYP: os<<hyp.get_str(full);break;
-	      }
-	    //os<<" /* alternatives: Cooling, Stout, WFlow, Ape, Hyp */\n";
-	  }
-	if(full or space_or_time!=def_space_or_time()) os<<" SpaceOrTime\t=\t"<<space_or_time_str_from_name(space_or_time)<<"\n";
-	if(full or meas_each_nsmooth!=def_meas_each_nsmooth()) os<<" MeasEachNSmooth\t=\t"<<meas_each_nsmooth<<"\n";
-      }
-    
-    return os.str();
-  }
 }

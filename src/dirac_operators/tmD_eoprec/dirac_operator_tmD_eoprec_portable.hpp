@@ -36,6 +36,7 @@ namespace nissa
 			      const I& in)
   {
     constexpr int xPar=O::sitesCoverage;
+    static_assert(xPar!=I::sitesCoverage,"calling with messed up parities");
     
     conf.updateHalo();
     in.updateHalo();
@@ -121,8 +122,8 @@ namespace nissa
 	    unsafe_su3_dag_prod_color(temp_c2,conf[!xPar][Xdw][mu],temp_c0);
 	    unsafe_su3_dag_prod_color(temp_c3,conf[!xPar][Xdw][mu],temp_c1);
 	    
-	    color_summassign(out[X][0],temp_c0);
-	    color_summassign(out[X][1],temp_c1);
+	    color_summassign(out[X][0],temp_c2);
+	    color_summassign(out[X][1],temp_c3);
 	    
 	    switch(mu)
 	      {

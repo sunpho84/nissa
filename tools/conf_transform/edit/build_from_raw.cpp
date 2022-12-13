@@ -89,7 +89,7 @@ int main(int narg,char **arg)
   
   //convert and reorder
   if(little_endian) change_endianness((double*)conf,(double*)conf,glbVol*sizeof(quad_su3)/sizeof(double));
-  vector_remap_t(locVol,index_from_ILDG_remapping,NULL).remap(conf,conf,sizeof(quad_su3));
+  vector_remap_t(locVol,index_from_ILDG_remapping).remap(conf,conf,sizeof(quad_su3));
   NISSA_PARALLEL_LOOP(ivol,0,locVol)
     quad_su3_ildg_to_nissa_reord(conf[ivol],conf[ivol]);
   NISSA_PARALLEL_LOOP_END;

@@ -196,25 +196,4 @@ namespace
     
     nissa_free(corr);
   }
-  
-  //nucleon correlators
-  std::string meson_corr_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasMesonCorrs\n";
-    os<<base_fermionic_meas_t::get_str(full);
-    if(mesons.size() or full)
-      {
-	os<<" Operators\t=\t{";
-	for(size_t i=0;i<mesons.size();i++)
-	  {
-	    os<<"("<<mesons[i].first<<","<<mesons[i].second<<")";
-	    if(i!=mesons.size()-1) os<<",";
-	  }
-	os<<"}\n";
-      }
-    
-    return os.str();
-  }
-  } // namespace nissa
+}

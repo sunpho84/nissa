@@ -196,15 +196,4 @@ namespace nissa
     // close_file(file);
     // close_file(file_proj);
   }
-  
-  //print
-  std::string magnetization_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasMagnetiz\n";
-    os<<base_fermionic_meas_t::get_str(full);
-    
-    return os.str();
-  }
 }

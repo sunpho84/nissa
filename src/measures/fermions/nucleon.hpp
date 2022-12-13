@@ -13,7 +13,7 @@ namespace nissa
     double gaussSmeKappa;
     
     /// Default value for kappa
-    double def_gaussSmeKappa()
+    double def_gaussSmeKappa() const
     {
       return 0.0;
     }
@@ -22,7 +22,7 @@ namespace nissa
     double gaussSmeNSteps;
     
     /// Default value for nsteps
-    int def_gaussSmeNSteps()
+    int def_gaussSmeNSteps() const
     {
       return 0;
     }
@@ -33,7 +33,7 @@ namespace nissa
     double apeSmeAlpha;
     
     /// Default value for alpha
-    double def_apeSmeAlpha()
+    double def_apeSmeAlpha() const
     {
       return 0.0;
     }
@@ -42,19 +42,40 @@ namespace nissa
     double apeSmeNSteps;
     
     /// Default value for nsteps
-    int def_apeSmeNSteps()
+    int def_apeSmeNSteps() const
     {
       return 0;
     }
     
     /////////////////////////////////////////////////////////////////
     
-    std::string def_path(){return "nucleon_corrs";}
+    std::string def_path() const
+    {
+      return "nucleon_corrs";
+    }
     
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false);
+    int master_fprintf(FILE *fout,
+		       const bool& full=false) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
     
-    int is_nonstandard()
+    std::string get_str(const bool& full=false) const
+    {
+      std::ostringstream os;
+      
+      os<<"MeasNucleonCorrs\n";
+      
+      if(is_nonstandard() or full) os<<base_fermionic_meas_t::get_str(full);
+      if(gaussSmeKappa!=def_gaussSmeKappa() or full) os<<"GaussSmeKappa\t=\t"<<gaussSmeKappa<<"\n";
+      if(gaussSmeNSteps!=def_gaussSmeNSteps() or full) os<<"GaussSmeNSteps\t=\t"<<gaussSmeNSteps<<"\n";
+      if(apeSmeAlpha!=def_apeSmeAlpha() or full) os<<"ApeSmeAlpha\t=\t"<<apeSmeAlpha<<"\n";
+      if(apeSmeNSteps!=def_apeSmeNSteps() or full) os<<"ApeSmeNSteps\t=\t"<<apeSmeNSteps<<"\n";
+      
+      return os.str();
+    }
+    
+    int is_nonstandard() const
     {
       return
 	base_fermionic_meas_t::is_nonstandard() or
@@ -74,7 +95,10 @@ namespace nissa
     {
       path=def_path();
     }
-    virtual ~nucleon_corr_meas_pars_t(){}
+    
+    virtual ~nucleon_corr_meas_pars_t()
+    {
+    }
   };
   
   void measure_nucleon_corr(eo_ptr<quad_su3> conf,theory_pars_t theory_pars,nucleon_corr_meas_pars_t meas_pars,int iconf,int conf_created);

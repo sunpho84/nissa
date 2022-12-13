@@ -36,7 +36,8 @@ void in_main(int narg,char **arg)
   pars.gauge=LC_gauge_fixing_pars_t::Landau;
   pars.target_precision=precision;
   
-  Landau_or_Coulomb_gauge_fix(fix_conf,&pars,conf);
+  crash("reimplement");
+  //Landau_or_Coulomb_gauge_fix(fix_conf,&pars,conf);
   
   write_ildg_gauge_conf(conf_out_path,fix_conf,64);
   

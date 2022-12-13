@@ -35,7 +35,8 @@ void in_main(int narg,char **arg)
   if(arg[9])
     {
       start_loc_rnd_gen(atoi(arg[9]));
-      perform_random_gauge_transform(conf,conf);
+      crash("reimplement");
+      //perform_random_gauge_transform(conf,conf);
     }
   
   //////////////////////////// stout the conf //////////////////////////

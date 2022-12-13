@@ -455,27 +455,4 @@ namespace nissa
     // //close
     // close_file(fout);
   }
-  
-  std::string spinpol_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
-    
-    os<<"MeasSpinPol\n";
-    os<<base_fermionic_meas_t::get_str(full);
-    if(use_adjoint_flow!=def_use_adjoint_flow() or full) os<<" UseAdjointFlow\t=\t"<<use_adjoint_flow<<"\n";
-    if(use_ferm_conf_for_gluons!=def_use_ferm_conf_for_gluons() or full) os<<" UseFermConfForGluons\t=\t"<<use_ferm_conf_for_gluons<<"\n";
-    if(operators.size())
-      {
-	os<<" Operators\t=\t{";
-	for(size_t i=0;i<operators.size();i++)
-	  {
-	    os<<"("<<operators[i].first<<","<<operators[i].second<<")";
-	    if(i!=operators.size()-1) os<<",";
-	  }
-	os<<"}\n";
-      }
-    os<<smooth_pars.get_str(full);
-    
-    return os.str();
-  }
 }
