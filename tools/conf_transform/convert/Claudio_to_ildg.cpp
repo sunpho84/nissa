@@ -31,14 +31,16 @@ void read_from_binary_file(su3 A,FILE *fp)
     crash("Problems in reading Su3 matrix");
   
 #ifdef USE_SSL
-  for(int icol=0;icol<NCOL;icol++)
-    for(int jcol=0;jcol<NCOL;jcol++)
-      MD5_Update(&mdContext,A[icol][jcol],sizeof(complex));
+  crash("reimplement");
+  // for(int icol=0;icol<NCOL;icol++)
+  //   for(int jcol=0;jcol<NCOL;jcol++)
+  //     MD5_Update(&mdContext,A[icol][jcol],sizeof(complex));
   
 #endif
   
   if(little_endian)
     change_endianness((double*)A,(double*)A,sizeof(su3)/sizeof(double));
+
 }
 
 int main(int narg,char **arg)
@@ -97,10 +99,11 @@ int main(int narg,char **arg)
   rc=fseek(fin,header_size,SEEK_SET);
   if(rc)
     crash("seeking, %d",rc);
-  
+
 #ifdef USE_SSL
   
-  MD5_Init(&mdContext);
+  crash("reimplement");
+//   MD5_Init(&mdContext);
   
 #endif
   
@@ -129,20 +132,22 @@ int main(int narg,char **arg)
   
   //close the file
   fclose(fin);
-  
+
 #ifdef USE_SSL
   
-  MD5_Final(c,&mdContext);
+  crash("reimplement");
   
-  char res[2*MD5_DIGEST_LENGTH+1];
-  for(int r=0;r<MD5_DIGEST_LENGTH;r++)
-    sprintf(&(res[2*r]), "%02x", c[r]);
-  res[2*MD5_DIGEST_LENGTH]='\0';
+  // MD5_Final(c,&mdContext);
   
-  master_printf("res: %s\n",res);
+  // char res[2*MD5_DIGEST_LENGTH+1];
+  // for(int r=0;r<MD5_DIGEST_LENGTH;r++)
+  //   sprintf(&(res[2*r]), "%02x", c[r]);
+  // res[2*MD5_DIGEST_LENGTH]='\0';
   
-  if(strcasecmp(res, crypto)!=0)
-    master_printf("Warning, checksum not agreeing!\n");
+  // master_printf("res: %s\n",res);
+  
+  // if(strcasecmp(res, crypto)!=0)
+  //   master_printf("Warning, checksum not agreeing!\n");
   
 #endif
   
