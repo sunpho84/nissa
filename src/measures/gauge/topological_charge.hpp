@@ -11,19 +11,43 @@ namespace nissa
   struct top_meas_pars_t
   {
     int each;
+    
     int after;
+    
     int meas_corr;
+    
     std::string path;
+    
     std::string corr_path;
+    
     smooth_pars_t smooth_pars;
     
-    int def_each(){return 1;}
-    int def_after(){return 0;}
-    int def_meas_corr(){return 0;}
-    std::string def_path(){return "Topo";}
-    std::string def_corr_path(){return "TopoCorr";}
+    int def_each() const
+    {
+      return 1;
+    }
     
-    int is_nonstandard()
+    int def_after() const
+    {
+      return 0;
+    }
+    
+    int def_meas_corr() const
+    {
+      return 0;
+    }
+    
+    std::string def_path() const
+    {
+      return "Topo";
+    }
+    
+    std::string def_corr_path() const
+    {
+      return "TopoCorr";
+    }
+    
+    bool is_nonstandard() const
     {
       return
 	each!=def_each() or
@@ -33,8 +57,26 @@ namespace nissa
 	smooth_pars.is_nonstandard();
     }
     
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false);
+    int master_fprintf(FILE *fout,
+		       const bool& full=false) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
+    
+    std::string get_str(const bool& full=false) const
+    {
+      std::ostringstream os;
+      
+      os<<"MeasTop\n";
+      if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
+      if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
+      if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+      if(meas_corr!=def_meas_corr() or full) os<<" MeasCorr\t=\t"<<meas_corr<<"\n";
+      if(corr_path!=def_corr_path() or full) os<<" CorrPath\t=\t\""<<corr_path<<"\"\n";
+      os<<smooth_pars.get_str(full);
+      
+      return os.str();
+    }
     
     top_meas_pars_t() :
       each(def_each()),
@@ -42,7 +84,8 @@ namespace nissa
       meas_corr(def_meas_corr()),
       path(def_path()),
       corr_path(def_corr_path())
-    {}
+    {
+    }
   };
   
   void measure_topology_eo_conf(const top_meas_pars_t &pars,

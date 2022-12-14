@@ -513,24 +513,4 @@ namespace nissa
     
     // nissa_free(conf_lx);
   }
-  
-  //print pars
-  std::string all_rects_meas_pars_t::get_str(bool full)
-    {
-      std::ostringstream os;
-      
-      os<<"MeasAllRects\n";
-      if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
-      if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
-      if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
-      if(Dmin!=def_Dmin() or full) os<<" Dmin\t\t=\t"<<Dmin<<"\n";
-      if(Dmax!=def_Dmax() or full) os<<" Dmax\t\t=\t"<<Dmax<<"\n";
-      if(Tmin!=def_Tmin() or full) os<<" Tmin\t\t=\t"<<Tmin<<"\n";
-      if(Tmax!=def_Tmax() or full) os<<" Tmax\t\t=\t"<<Tmax<<"\n";
-      if(spat_smear_pars.is_nonstandard() or full) os<<" Spatial "<<spat_smear_pars.get_str(full);
-      if(temp_smear_pars.is_nonstandard() or full) os<<" Temporal "<<temp_smear_pars.get_str(full);
-      
-      return os.str();
-    }
-
 }

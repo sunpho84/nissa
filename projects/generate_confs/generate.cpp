@@ -368,9 +368,10 @@ void measure_gauge_obs_internal(FILE *file,
   //polyakov loop
   if(pars.meas_poly)
     {
-      complex poly;
-      average_polyakov_loop_lx_conf(poly,conf,0);
-      master_fprintf(file,"\t%+16.16lg\t%+16.16lg",poly[0],poly[1]);
+      crash("reimplement");
+      // complex poly;
+      // average_polyakov_loop_lx_conf(poly,conf,0);
+      // master_fprintf(file,"\t%+16.16lg\t%+16.16lg",poly[0],poly[1]);
     }
   
   master_fprintf(file,"\n");
@@ -437,7 +438,7 @@ void measure_poly_corrs(const poly_corr_meas_pars_t &pars,
   LxField<quad_su3> lx_conf("conf",WITH_HALO_EDGES);
   paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
   
-  crash("tobexixed");
+  crash("tobe fixed");
   
   //hyp or ape
   //gauge_obs_temp_smear_pars_t smear_pars=pars.gauge_smear_pars;
@@ -450,9 +451,9 @@ void measure_poly_corrs(const poly_corr_meas_pars_t &pars,
   if(fout==NULL) crash("opening %s",pars.path.c_str());
   if(fseek(fout,0,SEEK_END)) crash("seeking to the end");
   
-  //compute and print
-  complex temp;
-  average_and_corr_polyakov_loop_lx_conf(temp,fout,lx_conf,pars.dir,itraj);
+  // //compute and print
+  // complex temp;
+  // average_and_corr_polyakov_loop_lx_conf(temp,fout,lx_conf,pars.dir,itraj);
   
   fclose(fout);
 }
@@ -484,14 +485,15 @@ void measurements(EoField<quad_su3>& temp,
   
   temp=conf;
   
-  RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i],temp,iconf,acc,gauge_action_name);
-  RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],temp,conf_created);
-  RANGE_GAUGE_MEAS(top_meas,i)
-    {
-      top_meas_time[i]-=take_time();
-      measure_topology_eo_conf(drv->top_meas[i],temp,iconf,conf_created);
-      top_meas_time[i]+=take_time();
-    }
+  crash("reimplement");
+  // RANGE_GAUGE_MEAS(plaq_pol_meas,i) measure_gauge_obs(drv->plaq_pol_meas[i],temp,iconf,acc,gauge_action_name);
+  // RANGE_GAUGE_MEAS(luppoli_meas,i) measure_poly_corrs(drv->luppoli_meas[i],temp,conf_created);
+  // RANGE_GAUGE_MEAS(top_meas,i)
+  //   {
+  //     top_meas_time[i]-=take_time();
+  //     measure_topology_eo_conf(drv->top_meas[i],temp,iconf,conf_created);
+  //     top_meas_time[i]+=take_time();
+  //   }
   
   crash("reimplement");
   // RANGE_GAUGE_MEAS(all_rects_meas,i) measure_all_rectangular_paths(&drv->all_rects_meas[i],temp,iconf,conf_created);
