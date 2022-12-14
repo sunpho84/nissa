@@ -4,7 +4,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/stD/dirac_operator_stD.cpp \
 	%D%/tmD_eoprec/dirac_operator_tmD_eoprec.cpp \
 	%D%/tmQ/dirac_operator_tmQ.cpp \
-	%D%/tmQ_left/dirac_operator_tmQ_left.cpp \
 	%D%/tmQ2/dirac_operator_tmQ2.cpp \
 	%D%/tmQ/reconstruct_tm_doublet.cpp \
 	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.cpp \
@@ -27,7 +26,6 @@ include_HEADERS+= \
 	%D%/tmQ/dirac_operator_tmQ.hpp \
 	%D%/tmQ/reconstruct_tm_doublet.hpp \
 	%D%/tmQ/dirac_operator_tmQ_128.hpp \
-	%D%/tmQ_left/dirac_operator_tmQ_left.hpp \
 	%D%/tmQ2/dirac_operator_tmQ2.hpp \
 	%D%/tmQ2/dirac_operator_tmQ2_128.hpp \
 	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec.hpp \
@@ -46,5 +44,4 @@ EXTRA_DIST= \
 	%D%/stD/dirac_operator_stD_32_portable.cpp \
 	%D%/tmclovD_eoprec/dirac_operator_tmclovD_eoprec_portable.cpp \
 	%D%/tmD_eoprec/dirac_operator_tmD_eoprec_portable.cpp \
-	%D%/tmQ/dirac_operator_tmQ_portable.cpp \
-	%D%/tmQ_left/dirac_operator_tmQ_left_portable.cpp
+	%D%/tmQ/dirac_operator_tmQ_portable.cpp

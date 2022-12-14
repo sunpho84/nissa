@@ -5,8 +5,6 @@
 
 namespace nissa
 {
-  void apply_tmQ_RL(spincolor *out,quad_su3 *conf,double kappa,double mu,int RL,spincolor *in);
-  
   void apply_tmQ(LxField<spincolor>& out,
 		 const LxField<quad_su3>& conf,
 		 const double& kappa,

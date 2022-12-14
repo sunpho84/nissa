@@ -4,8 +4,7 @@
 
 #include <math.h>
 
-#include "../tmQ/dirac_operator_tmQ.hpp"
-#include "../tmQ_left/dirac_operator_tmQ_left.hpp"
+#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
 
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
@@ -15,7 +14,7 @@
 namespace nissa
 {
   //Apply the Q+Q- operator to a spincolor
-  void apply_tmQ2_RL(spincolor* out,quad_su3* conf,double kappa,spincolor* ext_temp,int RL,double mu,spincolor* in)
+  void apply_tmQ2(spincolor* out,quad_su3* conf,double kappa,spincolor* ext_temp,double mu,spincolor* in)
   {
     crash("reimplement");
     // spincolor *temp=ext_temp;
@@ -29,14 +28,4 @@ namespace nissa
     
     // if(ext_temp==NULL) nissa_free(temp);
   }
-
-  //wrappers
-  void apply_tmQ2_m2_RL(spincolor *out,quad_su3 *conf,double kappa,spincolor *temp,int RL,double m2,spincolor *in)
-  {apply_tmQ2_RL(out,conf,kappa,temp,RL,sqrt(m2),in);}
-  
-  void apply_tmQ2(spincolor *out,quad_su3 *conf,double kappa,spincolor *temp,double mu,spincolor *in)
-  {apply_tmQ2_RL(out,conf,kappa,temp,0,mu,in);}
-  
-  void apply_tmQ2_left(spincolor *out,quad_su3 *conf,double kappa,spincolor *temp,double mu,spincolor *in)
-  {apply_tmQ2_RL(out,conf,kappa,temp,1,mu,in);}
 }
