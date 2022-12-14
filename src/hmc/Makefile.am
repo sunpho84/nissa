@@ -13,7 +13,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gauge/pure_gauge_Omelyan_integrator.cpp \
 	%D%/gauge/Symanzik_force.cpp \
 	%D%/gauge/Symanzik_action.cpp \
-	%D%/gauge/topological_action.cpp \
 	%D%/gauge/topological_force.cpp \
 	%D%/gauge/Wilson_action.cpp \
 	%D%/gauge/Wilson_force.cpp \
