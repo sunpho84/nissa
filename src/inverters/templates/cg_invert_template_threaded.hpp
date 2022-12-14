@@ -104,10 +104,8 @@ namespace nissa
     
     //last calculation of residual
     f(s,sol);
-    r.forEachSiteDeg([&s,&source](double& r,const int& site,const int i)
-    {
-      r=source(site,i)-s(site,i);
-    });
+    r=source;
+    r-=s;
     lambda=r.norm2();
     
     verbosity_lv2_master_printf("final relative residue (after %d iters): %lg where %lg was required\n",

@@ -71,7 +71,7 @@ namespace nissa
 	const double& sign,
 	const bool& normalize)
   {
-    fft4d(f.data,sign,normalize);
+    fft4d(f._data,sign,normalize);
   }
 }
 

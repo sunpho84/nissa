@@ -136,8 +136,6 @@ namespace nissa
     if(putonbords) nsite+=bord_vol;
     if(putonedges) nsite+=edge_vol;
     
-    master_printf("putting boundary on conf of ptr: %p\n",conf.data);
-    
     NISSA_PARALLEL_LOOP(ivol,0,nsite)
       for(int idir=0;idir<NDIM;idir++)
 	safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);

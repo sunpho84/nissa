@@ -36,17 +36,13 @@ namespace nissa
 	using Comps=typename T::Comps;
 	
 	if constexpr(T::fieldLayout==CPU_LAYOUT)
-	  write_real_vector(file,in.data,T::nInternalDegs,nbits,header_message,mess);
+	  write_real_vector(file,in._data,T::nInternalDegs,nbits,header_message,mess);
 	else
 	  {
 	    Field<Comps,FULL_SPACE,CPU_LAYOUT> buf("buf");
+	    buf=in;
 	    
-	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	      for(int internalDeg=0;internalDeg<T::nInternalDegs;internalDeg++)
-		buf.data[buf.index(ivol,internalDeg)]=in(ivol,internalDeg);
-	    NISSA_PARALLEL_LOOP_END;
-	    
-	    write_real_vector(file,buf.data,T::nInternalDegs,nbits,header_message,mess);
+	    write_real_vector(file,buf,nbits,header_message,mess);
 	  }
       }
   }

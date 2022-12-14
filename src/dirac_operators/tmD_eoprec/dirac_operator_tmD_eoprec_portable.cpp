@@ -39,9 +39,9 @@ namespace nissa
 			  const double& mu,
 			  const OddField<spincolor>& in)
   {
+    tmn2Deo_or_tmn2Doe_eos(out.castSitesCoverage<EVEN_SITES>(),conf,in);
     inv_tmDee_or_oo_eos(temp,kappa,mu,out);
     tmn2Deo_or_tmn2Doe_eos(out,conf,temp);
-    tmn2Deo_or_tmn2Doe_eos(out.castSitesCoverage<EVEN_SITES>(),conf,in);
     
     tmDee_or_oo_eos(temp,kappa,mu,in);
     

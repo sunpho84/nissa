@@ -31,16 +31,13 @@ namespace nissa
 	using Comps=typename T::Comps;
 	
 	if constexpr(T::fieldLayout==CPU_LAYOUT)
-	  read_real_vector(out.data,file,header,T::nInternalDegs);
+	  read_real_vector(out._data,file,header,T::nInternalDegs);
 	else
 	  {
 	    Field<Comps,FULL_SPACE,CPU_LAYOUT> buf("buf");
-	    read_real_vector(buf.data,file,header,T::nInternalDegs);
+	    read_real_vector(buf,file,header,mess);
 	    
-	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	      for(int internalDeg=0;internalDeg<T::nInternalDegs;internalDeg++)
-		out(ivol,internalDeg)=buf.data[buf.index(ivol,internalDeg)];
-	    NISSA_PARALLEL_LOOP_END;
+	    out=buf;
 	  }
       }
   }

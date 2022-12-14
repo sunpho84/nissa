@@ -23,13 +23,11 @@ namespace nissa
     const size_t nShift=
       shifts.size();
     
-    const int n=
-      source.nSites()*source.nInternalDegs;
-    
     const int each=
       VERBOSITY_LV3?1:10;
     
     T s("s");
+    T t("t");
     T r("r");
     T p("p",WITH_HALO);
     std::vector<T> ps(nShift,"ps");
@@ -140,16 +138,19 @@ namespace nissa
 					    "zfs: %16.16lg, betas: %16.16lg\n",
 					    ishift,shift[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 #endif
-		double_vector_summ_double_vector_prod_double((double*)(sol[ishift].data),(double*)(sol[ishift].data),(double*)(ps[ishift].data),-betas[ishift],n,DO_NOT_SET_FLAGS);
+		t=ps[ishift]; //improvable
+		t*=-betas[ishift];
+		sol[ishift]+=t;
 	      }
-	    THREAD_BARRIER();
 	  }
 	
 	//     calculate
 	//     -r'=r+betaa*s=r+beta*Ap
 	//     -rfrf=(r',r')
-	double_vector_summ_double_vector_prod_double((double*)r.data,(double*)r.data,(double*)s.data,betaa,n);
-	double_vector_glb_scalar_prod(&rfrf,(double*)r.data,(double*)r.data,n);
+	t=s;
+	t*=alpha;
+	r+=t;
+	rfrf=r.norm2();
 #ifdef CGM_DEBUG
 	verbosity_lv3_master_printf("rfrf: %16.16lg\n",rfrf);
 #endif
@@ -158,7 +159,8 @@ namespace nissa
 	alpha=rfrf/rr;
 	
 	//     calculate p'=r'+p*alpha
-	double_vector_summ_double_vector_prod_double((double*)p.data,(double*)r.data,(double*)p.data,alpha,n);
+	p*=alpha;
+	p+=r;
 	
 	//start the communications of the border
 	if(use_async_communications)
@@ -175,7 +177,8 @@ namespace nissa
 #ifdef CGM_DEBUG
 		verbosity_lv3_master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
-		double_vector_linear_comb((double*)(ps[ishift].data),(double*)r.data,zfs[ishift],(double*)(ps[ishift].data),alphas[ishift],n,DO_NOT_SET_FLAGS);
+		ps[ishift]*=alpha;
+		ps[ishift]+=r;
 		
 		// shift z
 		zps[ishift]=zas[ishift];

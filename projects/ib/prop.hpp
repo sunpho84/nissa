@@ -355,8 +355,10 @@ namespace nissa
       if(fast_read_write_vectors)
 	{
 	  fastOpen("w");
+	  if(std::remove_reference_t<decltype(v)>::fieldLayout!=CPU_LAYOUT)
+	    crash("not supported");
 	  //hack
-	  if(fwrite(v.data,sizeof(T),locVol,fastFile)!=locVol)
+	  if(fwrite(v._data,sizeof(T),locVol,fastFile)!=locVol)
 	    crash("Problem writing %s",path.c_str());
 	  
 	  fclose(fastFile);

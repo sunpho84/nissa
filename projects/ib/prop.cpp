@@ -71,9 +71,9 @@ namespace nissa
       }
     else
       {
+	master_printf("   inverting explicitly\n");
 	const LxField<quad_su3>* conf=get_updated_conf(charge,theta,*glb_conf);
 	
-	master_printf("   inverting explicitly\n");
 	if(clover_run)
 	  inv_tmclovD_cg_eoprec(out,std::nullopt,*conf,kappa,*Cl,invCl,glb_cSW,mass,1000000,residue,in);
 	else

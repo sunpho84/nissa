@@ -252,7 +252,7 @@ namespace nissa
     const int externalSize;
     
     /// Container for actual data
-    Fund* data;
+    Fund* _data;
     
     /// States whether the halo is updated
     mutable bool haloIsValid;
@@ -481,7 +481,7 @@ namespace nissa
       edgesAreValid(false)
     {
       master_printf("Allocating field %s\n",name);
-      data=nissa_malloc(name,externalSize*nInternalDegs,Fund);
+      _data=nissa_malloc(name,externalSize*nInternalDegs,Fund);
     }
     
     /// Move constructor
@@ -489,11 +489,11 @@ namespace nissa
       name(oth.name),
       haloEdgesPresence(oth.haloEdgesPresence),
       externalSize(oth.externalSize),
-      data(oth.data),
+      _data(oth._data),
       haloIsValid(oth.haloIsValid),
       edgesAreValid(oth.edgesAreValid)
     {
-      oth.data=nullptr;
+      oth._data=nullptr;
     }
     
     /// Copy constructor
@@ -507,8 +507,8 @@ namespace nissa
     ~Field()
     {
       master_printf("Deallocating field %s\n",name);
-      if(data)
-	nissa_free(data);
+      if(_data)
+	nissa_free(_data);
     }
     
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
@@ -517,10 +517,10 @@ namespace nissa
     {									\
       if constexpr(not std::is_array_v<T>)				\
 	return								\
-	  data[site];							\
+	  _data[site];							\
       else								\
 	if constexpr(FL==CPU_LAYOUT)					\
-	  return ((CONST T*)data)[site];				\
+	  return ((CONST T*)_data)[site];				\
 	else								\
 	  return							\
 	    SubscribedField<CONST Field,				\
@@ -540,7 +540,7 @@ namespace nissa
     CONST Fund& operator()(const int& site,				\
 			   const int& internalDeg) CONST		\
     {									\
-      return data[index(site,internalDeg)];				\
+      return _data[index(site,internalDeg)];				\
     }
     
     PROVIDE_FLATTENED_CALLER(const);
@@ -573,7 +573,7 @@ namespace nissa
       NISSA_PARALLEL_LOOP(i,0,n)
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
 	  ((Fund*)send_buf)[internalDeg+nInternalDegs*i]=
-	    data[index(f(i),internalDeg)];
+	    (*this)(f(i),internalDeg);
       NISSA_PARALLEL_LOOP_END;
     }
     
@@ -619,7 +619,7 @@ namespace nissa
     {
       NISSA_PARALLEL_LOOP(i,0,n)
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  data[index(offset+i,internalDeg)]=
+	  _data[index(offset+i,internalDeg)]=
 	    ((Fund*)recv_buf)[internalDeg+nInternalDegs*i];
       NISSA_PARALLEL_LOOP_END;
     }
@@ -812,7 +812,7 @@ namespace nissa
     INLINE_FUNCTION
     bool operator==(const Field& oth) const
     {
-      return data==oth.data;
+      return _data==oth._data;
     }
     
     /// Negate comparison
@@ -822,10 +822,10 @@ namespace nissa
       return not ((*this)==oth);
     }
     
-    /// Assign a different layout
-    template <FieldLayout OFl>
+    /// Assigns with no check
+    template <typename O>
     INLINE_FUNCTION
-    Field& operator=(const Field<T,SC,OFl>& oth)
+    void assign(const O& oth)
     {
       forEachSiteDeg([&oth](Fund& t,
 			    const int& site,
@@ -833,6 +833,14 @@ namespace nissa
       {
 	t=oth(site,iDeg);
       });
+    }
+    
+    /// Assigns from a different layout
+    template <FieldLayout OFl>
+    INLINE_FUNCTION
+    Field& operator=(const Field<T,SC,OFl>& oth)
+    {
+      assign(oth);
       
       return *this;
     }
@@ -842,13 +850,7 @@ namespace nissa
     Field& operator=(const Field& oth)
     {
       if(this!=&oth)
-	{
-	  NISSA_PARALLEL_LOOP(i,0,this->nSites()*nInternalDegs)
-	    data[i]=oth.data[i];
-	  NISSA_PARALLEL_LOOP_END;
-	  
-	  invalidateHalo();
-	}
+	assign(oth);
       
       return *this;
     }
@@ -1080,7 +1082,7 @@ namespace nissa
       const int internalDeg=						\
 	(int)(size_t)(&ptr[i])/sizeof(Fund);				\
       									\
-      return f.data[f.index(site,internalDeg)];				\
+      return f._data[f.index(site,internalDeg)];			\
     }
     
     PROVIDE_EVAL(const);

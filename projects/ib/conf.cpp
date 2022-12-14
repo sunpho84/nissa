@@ -106,14 +106,14 @@ namespace nissa
     master_printf("Checking if conf needs to be updated\n");
     
     //check if the inner conf is valid or not
-    static const double *stored_conf=nullptr;
+    static const LxField<quad_su3>* stored_conf=nullptr;
     static double stored_charge=0,stored_theta[NDIM];
     
     if(not inner_conf_valid)
       master_printf("Inner conf is invalid (loaded new conf, or new photon generated)\n");
     
     //check ref conf
-    if(stored_conf!=in_conf.data)
+    if(stored_conf!=&in_conf)
       {
 	master_printf("Inner conf is invalid (ref conf from %p to %p)\n",stored_conf,&in_conf);
 	inner_conf_valid=false;
@@ -158,7 +158,7 @@ namespace nissa
       master_printf("Inner conf valid, no need to update\n");
     
     //update value and set valid
-    stored_conf=in_conf.data;
+    stored_conf=&in_conf;
     stored_charge=charge;
     for(int mu=0;mu<NDIM;mu++) stored_theta[mu]=theta[mu];
     inner_conf_valid=true;

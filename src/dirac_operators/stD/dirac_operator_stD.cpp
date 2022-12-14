@@ -24,8 +24,15 @@ namespace nissa
 		     const EoField<color>& in,
 		     const double sign=1)
   {
-    apply_stDeo_half(out,conf,in.oddPart); //hack
-    double_vector_linear_comb((double*)out.data,(double*)in[EVN].data,m,(double*)out.data,sign*2,2*NCOL*locVolh);
+    apply_stDeo_half(out,conf,in.oddPart);
+    out.forEachSiteDeg([&in,
+			&m,
+			&sign](double& d,
+			       const int& site,
+			       const int& iDeg)
+    {
+      d=in[EVN](site,iDeg)*m+2*sign*d;
+    });
   }
   
   //return the odd part of the application of D to a vector
@@ -36,7 +43,14 @@ namespace nissa
 		     const double sign=1)
   {
     apply_st2Doe(out,conf,in.evenPart);
-    double_vector_linear_comb((double*)out.data,(double*)in[ODD].data,m,(double*)out.data,sign*0.5,2*NCOL*locVolh);
+    out.forEachSiteDeg([&in,
+			&m,
+			&sign](double& d,
+			       const int& site,
+			       const int& iDeg)
+    {
+      d=in[ODD](site,iDeg)*m+0.5*sign*d;
+    });
   }
   
   //return the result of the application of D to a vector

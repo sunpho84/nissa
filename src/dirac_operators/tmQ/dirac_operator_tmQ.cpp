@@ -16,9 +16,10 @@ namespace nissa
   //wrapper - to be moved elsewhere
   void apply_tmQ_RL(spincolor *out,quad_su3 *conf,double kappa,double mu,int RL,spincolor *in)
   {
-    if(RL==0) apply_tmQ(out,conf,kappa,mu,in);
-    else apply_tmQ_left(out,conf,kappa,mu,in);
+    crash("reimplement");
+    // if(RL==0) apply_tmQ(out,conf,kappa,mu,in);
+    // else apply_tmQ_left(out,conf,kappa,mu,in);
     
-    set_borders_invalid(out);
+    // set_borders_invalid(out);
   }
 }

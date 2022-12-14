@@ -57,7 +57,8 @@ namespace nissa
     //   {
     inv_evn_stD_cg(sol.evenPart,guess,conf,m,niter,residue,source);
     apply_st2Doe(sol.oddPart,conf,sol.evenPart);
-    double_vector_linear_comb((double*)(sol[ODD].data),(double*)(source[ODD].data),1/m,(double*)(sol[ODD].data),-0.5/m,locVolh*6);
+    crash("reimplement");
+    // double_vector_linear_comb((double*)(sol[ODD].data),(double*)(source[ODD].data),1/m,(double*)(sol[ODD].data),-0.5/m,locVolh*6);
       // }
     
     // //check solution

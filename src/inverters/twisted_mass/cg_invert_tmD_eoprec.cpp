@@ -180,21 +180,24 @@ namespace nissa
     if(not solved)
       inv_tmD_cg_eoprec_native(solution_lx,guess_Koo,conf_lx,kappa,mass,nitermax,residue,source_lx);
     
-    crash("reimplement");
     //check solution
-    // double check_time=take_time();
-    // spincolor *residueVec=nissa_malloc("temp",locVol,spincolor);
-    // apply_tmQ(residueVec,conf_lx,kappa,mass,solution_lx);
-    // safe_dirac_prod_spincolor(residueVec,base_gamma[5],residueVec);
-    // double_vector_subtassign((double*)residueVec,(double*)source_lx,locVol*sizeof(spincolor)/sizeof(double));
+    double check_time=take_time();
+    LxField<spincolor> residueVec("residueVec");
+    LxField<spincolor> temp("temp",WITH_HALO);
+    temp=solution_lx;
+    apply_tmQ(residueVec,conf_lx,kappa,mass,temp);
+    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+      safe_dirac_prod_spincolor(residueVec[ivol],base_gamma[5],residueVec[ivol]);
+    NISSA_PARALLEL_LOOP_END;
+    residueVec-=source_lx;
     
-    // /// Source L2 norm
-    // const double sourceNorm2=double_vector_glb_norm2(source_lx,locVol);
+    /// Source L2 norm
+    const double sourceNorm2=source_lx.norm2();
     
-    // /// Residue L2 norm
-    // const double residueNorm2=double_vector_glb_norm2(residueVec,locVol);
+    /// Residue L2 norm
+    const double residueNorm2=residueVec.norm2();
     
-    // master_printf("check solution, residue: %lg, target one: %lg checked in %lg s\n",residueNorm2/sourceNorm2,residue,take_time()-check_time);
+    master_printf("check solution, residue: %lg, target one: %lg checked in %lg s\n",residueNorm2/sourceNorm2,residue,take_time()-check_time);
   }
 }
 
