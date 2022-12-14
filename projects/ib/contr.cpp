@@ -1,7 +1,7 @@
 #include <nissa.hpp>
 
 #define EXTERN_CONTR
- #include "contr.hpp"
+# include "contr.hpp"
 
 #include <set>
 
@@ -16,8 +16,10 @@ namespace nissa
     std::set<std::string> opened;
     
   public:
+    
     //open for write or append, depending
-    FILE *open(const std::string &path,int force_append=false)
+    FILE *open(const std::string &path,
+	       const bool& force_append=false)
     {
       //detect the mode
       std::string mode;
@@ -30,7 +32,8 @@ namespace nissa
 	mode="a";
       
       //open
-      FILE *fout=open_file(path.c_str(),mode.c_str());
+      FILE *fout=
+	open_file(path.c_str(),mode.c_str());
       
       return fout;
     }
@@ -109,21 +112,21 @@ namespace nissa
 	    if(nso_spi==1 and ig_so!=5)
 	      crash("implemented only g5 contraction on the source for non-diluted source");
 	    
-	    vector_reset(loc_contr);
+	    loc_contr->reset();
 	    
 	    for(int i=0;i<nso_spi;i++)
 	      {
-		const int& j=(base_gamma+ig_so)->pos[i];
+		const int& j=base_gamma[ig_so].pos[i];
 		
 		complex A;
-		unsafe_complex_prod(A,(base_gamma+ig_so)->entr[i],(base_gamma+5)->entr[j]);
+		unsafe_complex_prod(A,base_gamma[ig_so].entr[i],base_gamma[5].entr[j]);
 		
 		complex AB[NDIRAC];
 		for(int k=0;k<NDIRAC;k++)
 		  {
 		    //compute AB*norm
 		    complex B;
-		    unsafe_complex_prod(B,(base_gamma+5)->entr[k],(base_gamma+ig_si)->entr[k]);
+		    unsafe_complex_prod(B,base_gamma[5].entr[k],base_gamma[ig_si].entr[k]);
 		    unsafe_complex_prod(AB[k],A,B);
 		    
 		    if(normalize)
@@ -139,7 +142,7 @@ namespace nissa
 		      {
 			for(int k=0;k<NDIRAC;k++)
 			  {
-			    int l=(base_gamma+ig_si)->pos[k];
+			    const int l=base_gamma[ig_si].pos[k];
 			    
 			    complex c={0,0};
 			    for(int a=0;a<NCOL;a++)
@@ -156,7 +159,7 @@ namespace nissa
 	    glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
 	    
 	    for(int t=0;t<glbSize[0];t++)
-	      complex_summassign(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,(t+glbSize[0]-source_coord[0])%glbSize[0])],temp_contr[t]);
+	      complex_summassign(mes2pts_contr[ind_mes2pts_contr(icombo,ihadr_contr,rel_time_of_glb_time(t))],temp_contr[t]);
 	  }
       }
     
@@ -801,7 +804,7 @@ namespace nissa
 	  const auto& left=*sides[handcuffs_map[ihand].left];
 	  const auto& right=*sides[handcuffs_map[ihand].right+"_photon"];
 	  
-	  vector_reset(loc_contr);
+	  loc_contr->reset();
 	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	    for(int mu=0;mu<NDIM;mu++)
 	      complex_subt_the_prod((*loc_contr)[ivol],

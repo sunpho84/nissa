@@ -340,70 +340,56 @@ namespace nissa
   //reset a vector
   void vector_reset(void *a)
   {
-    //sync so all thread are not using the vector
-    //THREAD_BARRIER();
-    
     if(IS_MASTER_THREAD)
       {
-	nissa_vect *nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
-	int64_t nel_a=nissa_a->nel;
-	int64_t size_per_el_a=nissa_a->size_per_el;
+	const nissa_vect* nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
+	nissa_a->assert_is_nissa_vect();
+	
+	const int64_t nel_a=nissa_a->nel;
+	const int64_t size_per_el_a=nissa_a->size_per_el;
 	memset(a,0,size_per_el_a*nel_a);
       }
-    
-    //sync so all thread see that have been reset
-    //THREAD_BARRIER();
   }
   
   //release a vector
   void internal_nissa_free(char **arr,const char *file,int line)
   {
-    //sync so all thread are not using the vector
-    //THREAD_BARRIER();
-    
-    if(IS_MASTER_THREAD)
+    if(arr!=NULL)
       {
-	if(arr!=NULL)
-	  {
-	    nissa_vect *vect=get_vect(*arr);
-	    nissa_vect *prev=vect->prev;
-	    nissa_vect *next=vect->next;
-	    
-	    if(VERBOSITY_LV3)
-	      {
-		master_printf("At line %d of file %s freeing vector ",line,file);
-		vect_content_printf(vect);
-	      }
-	    
-	    if(warn_if_not_communicated)
-	      if(nranks>1 && check_borders_allocated(*arr,0) && !check_borders_communicated_at_least_once(*arr))
-		master_printf("Warning, you allocated borders for vector: %s on line %d of file %s, but never communicated them!\n",vect->tag,vect->line,vect->file);
-	    
-	    //detach from previous
-	    prev->next=next;
-	    
-	    //if not last element
-	    if(next!=NULL) next->prev=prev;
-	    else last_vect=prev;
-	    
-	    //update the required memory
-	    required_memory-=(vect->size_per_el*vect->nel);
-	    
-	    //really free
-#if THREADS_TYPE == CUDA_THREADS
-	    decript_cuda_error(cudaFree(vect),"freeing the memory for vector");
-#else
-	    free(vect);
-#endif
-	  }
-	else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
+	nissa_vect *vect=get_vect(*arr);
+	nissa_vect *prev=vect->prev;
+	nissa_vect *next=vect->next;
 	
-	*arr=NULL;
-	cache_flush();
+	if(VERBOSITY_LV3)
+	  {
+	    master_printf("At line %d of file %s freeing vector ",line,file);
+	    vect_content_printf(vect);
+	  }
+	
+	if(warn_if_not_communicated)
+	  if(nranks>1 && check_borders_allocated(*arr,0) && !check_borders_communicated_at_least_once(*arr))
+	    master_printf("Warning, you allocated borders for vector: %s on line %d of file %s, but never communicated them!\n",vect->tag,vect->line,vect->file);
+	
+	//detach from previous
+	prev->next=next;
+	
+	//if not last element
+	if(next!=NULL) next->prev=prev;
+	else last_vect=prev;
+	
+	//update the required memory
+	required_memory-=(vect->size_per_el*vect->nel);
+	
+	//really free
+#if THREADS_TYPE == CUDA_THREADS
+	decript_cuda_error(cudaFree(vect),"freeing the memory for vector");
+#else
+	free(vect);
+#endif
       }
+    else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
     
-    //sync so all thread see that have deallocated
-    //THREAD_BARRIER();
+    *arr=NULL;
   }
   
   //reorder a vector according to the specified order

@@ -2,14 +2,17 @@
 #define _VECTORS_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
+#include <cwctype>
 #include <stdio.h>
 #include <stdint.h>
 
+#include "debug.hpp"
+
 #ifndef EXTERN_VECTORS
- #define EXTERN_VECTORS extern
+# define EXTERN_VECTORS extern
 #endif
 
 //vector tags name
@@ -55,6 +58,28 @@ namespace nissa
     //padding to keep memory alignment
     char pad[(NISSA_VECT_ALIGNMENT-(2*sizeof(int64_t)+3*NISSA_VECT_STRING_LENGTH+sizeof(int)+2*sizeof(nissa_vect*)+sizeof(uint32_t))%NISSA_VECT_ALIGNMENT)%
 	      NISSA_VECT_ALIGNMENT];
+    
+    void assert_is_nissa_vect() const
+    {
+      const auto check=
+	[](const char* v)
+	{
+	  if(not iswalpha(v[0]))
+	     return false;
+	  
+	  int i=1;
+	  
+	  bool f=false;
+	  while((i<NISSA_VECT_STRING_LENGTH) and not f)
+	    if(v[i++]=='\0')
+	      f=true;
+	  
+	  return f;
+	};
+      
+      if(not (check(tag) and check(type)))
+	crash("not a nissa_vector");
+    }
   };
   
   EXTERN_VECTORS int warn_if_not_disallocated;
