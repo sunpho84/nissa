@@ -226,9 +226,12 @@ namespace nissa
   void testLxHaloExchange()
   {
     LxField<int> test("testHalo",WITH_HALO);
-    NISSA_PARALLEL_LOOP(i,0,locVol)
-      test[i]=glblxOfLoclx[i];
-    NISSA_PARALLEL_LOOP_END;
+    
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(test)),i,
+	{
+	  test[i]=glblxOfLoclx[i];
+	});
     
     test.invalidateHalo();
     
@@ -236,24 +239,26 @@ namespace nissa
     
     test.updateHalo();
     
-    NISSA_PARALLEL_LOOP(site,0,locVol)
-      {
-	for(int ori=0;ori<2;ori++)
-	  for(int mu=0;mu<NDIM;mu++)
-	    {
-	      const int ln=loclx_neigh[ori][site][mu];
-	      const int gn=(ln<locVol)?glblxOfLoclx[ln]:glblxOfBordlx[ln-locVol];
-	      const int neighVal=test[ln];
+    crash("reimplement");
+    
+    // NISSA_PARALLEL_LOOP(site,0,locVol)
+    //   {
+    // 	for(int ori=0;ori<2;ori++)
+    // 	  for(int mu=0;mu<NDIM;mu++)
+    // 	    {
+    // 	      const int ln=loclx_neigh[ori][site][mu];
+    // 	      const int gn=(ln<locVol)?glblxOfLoclx[ln]:glblxOfBordlx[ln-locVol];
+    // 	      const int neighVal=test[ln];
 	      
-	      if(neighVal!=gn)
-		master_printf("site %s ori %d dir %d has neigh %s with val %s\n",
-			      siteAsString(glblxOfLoclx[site]).c_str(),
-			      ori,mu,
-			      siteAsString(gn).c_str(),
-			      siteAsString(neighVal).c_str());
-	    }
-      }
-    NISSA_PARALLEL_LOOP_END;
+    // 	      if(neighVal!=gn)
+    // 		master_printf("site %s ori %d dir %d has neigh %s with val %s\n",
+    // 			      siteAsString(glblxOfLoclx[site]).c_str(),
+    // 			      ori,mu,
+    // 			      siteAsString(gn).c_str(),
+    // 			      siteAsString(neighVal).c_str());
+    // 	    }
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
     
     master_printf("lx halo communicates consistently\n");
   }
@@ -261,58 +266,61 @@ namespace nissa
   void testEoHaloExchange()
   {
     EoField<int> test("testEoHalo",WITH_HALO);
-    forBothParities([&test](const auto& par)
-    {
+    
+    FOR_BOTH_PARITIES(par,
       NISSA_PARALLEL_LOOP(i,0,locVolh)
 	test[par][i]=glblxOfLoclx[loclx_of_loceo[par][i]];
       NISSA_PARALLEL_LOOP_END;
-    });
+    );
     test.invalidateHalo();
     
     taintTheCommBuffers();
     
     test.updateHalo();
     
-    forBothParities([&test](const auto& par)
-    {
-      NISSA_PARALLEL_LOOP(eoSite,0,locVolh)
-	{
-	  for(int ori=0;ori<2;ori++)
-	    for(int mu=0;mu<NDIM;mu++)
-	      {
-		const int ln=((ori==0)?loceo_neighdw:loceo_neighup)[par][eoSite][mu];
-		const int lx=loclx_of_loceo[!par][ln];
-		const int gn=(lx<locVol)?glblxOfLoclx[lx]:glblxOfBordlx[lx-locVol];
-		const int neighVal=test[!par][ln];
-		
-		if(neighVal!=gn)
-		  master_printf("site %s ori %d dir %d has neigh %s with val %s\n",
-				siteAsString(glblxOfLoclx[loclx_of_loceo[!par][eoSite]]).c_str(),
-				ori,mu,
-				siteAsString(gn).c_str(),
-				siteAsString(neighVal).c_str());
-	      }
-	}
-      NISSA_PARALLEL_LOOP_END;
-    });
-    
+    FOR_BOTH_PARITIES(par,
+		      for(int eoSite=0;eoSite<locVolh;eoSite++)
+		      {
+			for(int ori=0;ori<2;ori++)
+			  for(int mu=0;mu<NDIM;mu++)
+			    {
+			      const int ln=((ori==0)?loceo_neighdw:loceo_neighup)[par][eoSite][mu];
+			      const int lx=loclx_of_loceo[!par][ln];
+			      const int gn=(lx<locVol)?glblxOfLoclx[lx]:glblxOfBordlx[lx-locVol];
+			      const int neighVal=test[!par][ln];
+			      
+			      if(neighVal!=gn)
+				master_printf("site %s ori %d dir %d has neigh %s with val %s\n",
+					      siteAsString(glblxOfLoclx[loclx_of_loceo[!par][eoSite]]).c_str(),
+					      ori,mu,
+					      siteAsString(gn).c_str(),
+					      siteAsString(neighVal).c_str());
+			    }
+		      });
+  
     master_printf("eo edges communicates consistently\n");
   }
   
   void testLxEdgesExchange()
   {
     LxField<int> test("testEdge",WITH_HALO_EDGES);
-    NISSA_PARALLEL_LOOP(i,0,locVol)
-      test[i]=glblxOfLoclx[i];
-    NISSA_PARALLEL_LOOP_END;
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(test)),i,
+	{
+	  test[i]=glblxOfLoclx[i];
+	});
     
-    NISSA_PARALLEL_LOOP(i,0,bord_vol)
-      test[i+locVol]=-1;
-    NISSA_PARALLEL_LOOP_END;
+    PAR(0,bord_vol,
+	CAPTURE(TO_WRITE(test)),i,
+	{
+	  test[i+locVol]=-1;
+	});
     
-    NISSA_PARALLEL_LOOP(i,0,edge_vol)
-      test[i+locVol+bord_vol]=-2;
-    NISSA_PARALLEL_LOOP_END;
+    PAR(0,edge_vol,
+	CAPTURE(TO_WRITE(test)),i,
+	{
+	  test[i+locVol+bord_vol]=-2;
+	});
     
     test.invalidateHalo();
     test.invalidateEdges();
@@ -322,28 +330,30 @@ namespace nissa
     
     test.updateEdges();
     
-    NISSA_PARALLEL_LOOP(site,0,locVol)
-      {
-	for(int ori1=0;ori1<2;ori1++)
-	  for(int ori2=0;ori2<2;ori2++)
-	    for(int iEdge=0;iEdge<nEdges;iEdge++)
-	      {
-		const auto [mu,nu]=edge_dirs[iEdge];
+    crash("reimplement");
+    
+    // NISSA_PARALLEL_LOOP(site,0,locVol)
+    //   {
+    // 	for(int ori1=0;ori1<2;ori1++)
+    // 	  for(int ori2=0;ori2<2;ori2++)
+    // 	    for(int iEdge=0;iEdge<nEdges;iEdge++)
+    // 	      {
+    // 		const auto [mu,nu]=edge_dirs[iEdge];
 		
-		const int l1n=loclx_neigh[ori1][site][mu];
-		const int ln=loclx_neigh[ori2][l1n][nu];
-		const int gn=(ln<locVol)?glblxOfLoclx[ln]:((ln<locVol+bord_vol)?glblxOfBordlx[ln-locVol]:glblxOfEdgelx[ln-locVol-bord_vol]);
-		const int neighVal=test[ln];
+    // 		const int l1n=loclx_neigh[ori1][site][mu];
+    // 		const int ln=loclx_neigh[ori2][l1n][nu];
+    // 		const int gn=(ln<locVol)?glblxOfLoclx[ln]:((ln<locVol+bord_vol)?glblxOfBordlx[ln-locVol]:glblxOfEdgelx[ln-locVol-bord_vol]);
+    // 		const int neighVal=test[ln];
 		
-		if(neighVal!=gn)
-		  master_printf("site %s ori (%d,%d) dir (%d,%d) has edgelx neigh %s with val %s\n",
-				siteAsString(glblxOfLoclx[site]).c_str(),
-				ori1,ori2,mu,nu,
-				siteAsString(gn).c_str(),
-				siteAsString(neighVal).c_str());
-	      }
-      }
-    NISSA_PARALLEL_LOOP_END;
+    // 		if(neighVal!=gn)
+    // 		  master_printf("site %s ori (%d,%d) dir (%d,%d) has edgelx neigh %s with val %s\n",
+    // 				siteAsString(glblxOfLoclx[site]).c_str(),
+    // 				ori1,ori2,mu,nu,
+    // 				siteAsString(gn).c_str(),
+    // 				siteAsString(neighVal).c_str());
+    // 	      }
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
     
     master_printf("lx edges communicates consistently\n");
   }
@@ -351,20 +361,19 @@ namespace nissa
   void testEoEdgesExchange()
   {
     EoField<int> test("testEoEdge",WITH_HALO_EDGES);
-    forBothParities([&test](const auto& par)
-    {
-      NISSA_PARALLEL_LOOP(i,0,locVolh)
-	test[par][i]=glblxOfLoclx[loclx_of_loceo[par][i]];
-      NISSA_PARALLEL_LOOP_END;
-      
-      NISSA_PARALLEL_LOOP(i,0,bord_volh)
-	test[par][i+locVolh]=-1;
-      NISSA_PARALLEL_LOOP_END;
-      
-      NISSA_PARALLEL_LOOP(i,0,edge_volh)
-	test[par][i+locVolh+bord_volh]=-2;
-      NISSA_PARALLEL_LOOP_END;
-    });
+    FOR_BOTH_PARITIES(par,
+		      NISSA_PARALLEL_LOOP(i,0,locVolh)
+		        test[par][i]=glblxOfLoclx[loclx_of_loceo[par][i]];
+		      NISSA_PARALLEL_LOOP_END;
+		      
+		      NISSA_PARALLEL_LOOP(i,0,bord_volh)
+		        test[par][i+locVolh]=-1;
+		      NISSA_PARALLEL_LOOP_END;
+		      
+		      NISSA_PARALLEL_LOOP(i,0,edge_volh)
+		        test[par][i+locVolh+bord_volh]=-2;
+		      NISSA_PARALLEL_LOOP_END;
+		      );
     
     int* r=(int*)recv_buf;
     int* s=(int*)send_buf;
@@ -381,33 +390,34 @@ namespace nissa
     test.updateHalo();
     test.updateEdges();
     
-    forBothParities([&test](const auto& par)
-    {
-      NISSA_PARALLEL_LOOP(site,0,locVolh)
-	{
-	  for(int ori1=0;ori1<2;ori1++)
-	    for(int ori2=0;ori2<2;ori2++)
-	      for(int iEdge=0;iEdge<nEdges;iEdge++)
-		{
-		  const auto [mu,nu]=edge_dirs[iEdge];
-		  
-		  const int l1n=((ori1==0)?loceo_neighdw:loceo_neighup)[par][site][mu];
-		  const int ln=((ori2==0)?loceo_neighdw:loceo_neighup)[!par][l1n][nu];
-		  const int lx=loclx_of_loceo[par][ln];
-		  const int gn=(lx<locVol)?glblxOfLoclx[lx]:((lx<locVol+bord_vol)?glblxOfBordlx[lx-locVol]:glblxOfEdgelx[lx-locVol-bord_vol]);
-		  const int neighVal=test[par][ln];
-		  
-		  if(neighVal!=gn)
-		    master_printf("par %d site %s ori (%d,%d) dir (%d,%d) neigh %s with val %s\n",
-				  par(),
-				  siteAsString(glblxOfLoclx[loclx_of_loceo[par][site]]).c_str(),
-				  ori1,ori2,mu,nu,
-				  siteAsString(gn).c_str(),
-				  siteAsString(neighVal).c_str());
-		}
-	}
-      NISSA_PARALLEL_LOOP_END;
-    });
+    crash("reimplement");
+    
+    // FOR_BOTH_PARITIES(par,
+    // 		      NISSA_PARALLEL_LOOP(site,0,locVolh)
+    // 		      {
+    // 			for(int ori1=0;ori1<2;ori1++)
+    // 			  for(int ori2=0;ori2<2;ori2++)
+    // 			    for(int iEdge=0;iEdge<nEdges;iEdge++)
+    // 			      {
+    // 				const auto [mu,nu]=edge_dirs[iEdge];
+				
+    // 				const int l1n=((ori1==0)?loceo_neighdw:loceo_neighup)[par][site][mu];
+    // 				const int ln=((ori2==0)?loceo_neighdw:loceo_neighup)[!par][l1n][nu];
+    // 				const int lx=loclx_of_loceo[par][ln];
+    // 				const int gn=(lx<locVol)?glblxOfLoclx[lx]:((lx<locVol+bord_vol)?glblxOfBordlx[lx-locVol]:glblxOfEdgelx[lx-locVol-bord_vol]);
+    // 				const int neighVal=test[par][ln];
+				
+    // 				if(neighVal!=gn)
+    // 				  master_printf("par %d site %s ori (%d,%d) dir (%d,%d) neigh %s with val %s\n",
+    // 						par(),
+    // 						siteAsString(glblxOfLoclx[loclx_of_loceo[par][site]]).c_str(),
+    // 						ori1,ori2,mu,nu,
+    // 						siteAsString(gn).c_str(),
+    // 						siteAsString(neighVal).c_str());
+    // 			      }
+    // 		      }
+    // 		      NISSA_PARALLEL_LOOP_END;
+    // 		      );
     
     master_printf("eo edges communicates consistently\n");
   }

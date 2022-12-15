@@ -40,7 +40,40 @@ EXTERN_THREADS int nthreads INIT_TO(1);
   _Pragma("omp parallel for")					\
   for(std::common_type_t<std::decay_t<decltype(START)>,std::decay_t<decltype(END)>> INDEX=START;INDEX<END;INDEX++){
 #define NISSA_PARALLEL_LOOP_END }
-  
+
+namespace nissa
+{
+  template <typename IMin,
+	    typename IMax,
+	    typename F>
+  void openmp_parallel_for(const int line,
+			   const char *file,
+			   const IMin min,
+			   const IMax max,
+			   F f)
+  {
+    double initTime=0;
+    extern int rank,verbosity_lv;
+    const bool print=(verbosity_lv>=1// 2
+		      and rank==0);
+    if(print)
+      {
+	printf("at line %d of file %s launching openmp loop [%ld,%ld)\n",
+	   line,file,(int64_t)min,(int64_t)max);
+	initTime=take_time();
+      }
+    
+#pragma omp parallel for
+    for(auto i=min;i<max;i++)
+      f(i);
+    
+    if(print)
+      printf(" finished in %lg s\n",take_time()-initTime);
+  }
+}
+
+#define PARALLEL_LOOP(ARGS...) openmp_parallel_for(__LINE__,__FILE__,ARGS)
+
 #define THREAD_ATOMIC_EXEC(inst) do{THREAD_BARRIER();inst;THREAD_BARRIER();}while(0)
 
 namespace nissa

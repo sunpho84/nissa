@@ -18,6 +18,12 @@
 #include <linalgs/reduce.hpp>
 #include <routines/ios.hpp>
 
+#define TO_READ(A) A=A.getReadable()
+#define TO_WRITE(A) A=A.getWritable()
+#define CAPTURE(A...) A
+  
+#define PAR(MIN,MAX,CAPTURES,INDEX,A...) PARALLEL_LOOP(MIN,MAX,[CAPTURES] CUDA_DEVICE (const int& INDEX)A)
+
 namespace nissa
 {
   /// Start the communications of buffer interpreted as halo
@@ -94,6 +100,7 @@ namespace nissa
   struct FieldSizes
   {
     /// Assert that the coverage is definite
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static void assertHasDefinedCoverage()
     {
       static_assert(sitesCoverage==FULL_SPACE or sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES,"Trying to probe some feature of a field with unknwon coverage. If you are accessing an EvnOrOddField subfield, do it without subscribing them, or cast to the specific subspace");
@@ -211,6 +218,69 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  /// Field
+  template <typename F>
+  struct FieldRef
+  {
+    using Comps=typename F::Comps;
+    
+    using Fund=typename F::Fund;
+    
+    F& f;
+    
+    Fund* _data;
+    
+#define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
+    decltype(auto) operator[](const int& site) CONST			\
+    {									\
+      if constexpr(not std::is_array_v<Comps>)				\
+	return								\
+	  _data[site];							\
+      else								\
+	return								\
+	  SubscribedField<CONST FieldRef,				\
+	  Comps>(*this,site,nullptr);					\
+    }
+    
+    PROVIDE_SUBSCRIBE_OPERATOR(const);
+    
+    PROVIDE_SUBSCRIBE_OPERATOR(/* not const */);
+    
+#undef PROVIDE_SUBSCRIBE_OPERATOR
+    
+    /// Construct from field
+    FieldRef(F& f) :
+      f(f),
+      _data(f._data)
+    {
+      f.nRef++;
+    }
+    
+    /// Copy constructor
+    INLINE_FUNCTION // CUDA_HOST_AND_DEVICE
+    FieldRef(const FieldRef& oth) :
+      f(oth.f),
+      _data(oth._data)
+    {
+      f.nRef++;
+    }
+    
+    /// Construct from field
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    ~FieldRef()
+    {
+      f.nRef--;
+#ifndef __CUDA_ARCH__
+      if(f.nRef==0)
+	if constexpr(not std::is_const_v<F>)
+	  f.invalidateHalo();
+#endif
+    }
+  };
+  
+  /////////////////////////////////////////////////////////////////
+  
   PROVIDE_FEATURE(Field);
   
   /// Field
@@ -224,6 +294,8 @@ namespace nissa
     /// Coefficient which divides the space time, if the field is covering only half the space
     static constexpr const int divCoeff=
       (SC==FULL_SPACE)?1:2;
+    
+    mutable int nRef;
     
     /// Name of the field
     const char* name;
@@ -284,6 +356,17 @@ namespace nissa
       
       return *this;
     }
+    
+#define FOR_EACH_SITE_DEG_OF_FIELD(F,V,SITE,IDEG,CODE...)		\
+    NISSA_PARALLEL_LOOP(SITE,0,(F).nSites())				\
+      for(int IDEG=0;IDEG<std::remove_reference_t<decltype(F)>::nInternalDegs;IDEG++) \
+	{								\
+	  auto V=(F)(SITE,IDEG);					\
+	  CODE								\
+	}								\
+    NISSA_PARALLEL_LOOP_END;						\
+									\
+      invalidateHalo()
     
     /// Exec the operation f on each site
     template <typename F>
@@ -474,6 +557,7 @@ namespace nissa
     /// Constructor
     Field(const char *name,
 	  const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
+      nRef(0),
       name(name),
       haloEdgesPresence(haloEdgesPresence),
       externalSize(FieldSizes<sitesCoverage>::nSitesToAllocate(haloEdgesPresence)),
@@ -486,6 +570,7 @@ namespace nissa
     
     /// Move constructor
     Field(Field&& oth) :
+      nRef(oth.nRef),
       name(oth.name),
       haloEdgesPresence(oth.haloEdgesPresence),
       externalSize(oth.externalSize),
@@ -493,6 +578,7 @@ namespace nissa
       haloIsValid(oth.haloIsValid),
       edgesAreValid(oth.edgesAreValid)
     {
+      oth.nRef=0;
       oth._data=nullptr;
     }
     
@@ -508,7 +594,12 @@ namespace nissa
     {
       master_printf("Deallocating field %s\n",name);
       if(_data)
-	nissa_free(_data);
+	{
+	  if(nRef==0)
+	    nissa_free(_data);
+	  else
+	    crash("Trying to destroying field %s with dangling references");
+	}
     }
     
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
@@ -532,6 +623,18 @@ namespace nissa
     PROVIDE_SUBSCRIBE_OPERATOR(/* not const */);
     
 #undef PROVIDE_SUBSCRIBE_OPERATOR
+    
+    constexpr INLINE_FUNCTION
+    FieldRef<Field> getWritable()
+    {
+      return *this;
+    }
+    
+    constexpr INLINE_FUNCTION
+    FieldRef<const Field> getReadable() const
+    {
+      return *this;
+    }
     
     /////////////////////////////////////////////////////////////////
     
@@ -567,7 +670,7 @@ namespace nissa
     
     /// Fill the sending buf using the data with a given function
     template <typename F>
-    void fillSendingBufWith(F& f,
+    void fillSendingBufWith(const F& f,
 			    const int& n) const
     {
       NISSA_PARALLEL_LOOP(i,0,n)
@@ -827,12 +930,9 @@ namespace nissa
     INLINE_FUNCTION
     void assign(const O& oth)
     {
-      forEachSiteDeg([&oth](Fund& t,
-			    const int& site,
-			    const int& iDeg)
-      {
-	t=oth(site,iDeg);
-      });
+      FOR_EACH_SITE_DEG_OF_FIELD(*this,t,site,iDeg,
+				 t=oth(site,iDeg);
+      );
     }
     
     /// Assigns from a different layout
@@ -966,7 +1066,6 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Constructor
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     EoField(const char* name,
 	    const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
       evenPart(name,haloEdgesPresence),
@@ -1051,11 +1150,24 @@ namespace nissa
   
   /// Loop on both parities
   template <typename F>
-  void forBothParities(F&& f)
+  INLINE_FUNCTION void forBothParities(F&& f)
   {
     f(Par<0>{});
     f(Par<1>{});
   }
+
+#define FOR_PARITY(PAR,			       \
+		   ID,			       \
+		   CODE...)		       \
+  {						\
+    Par<ID> PAR;				\
+  CODE						\
+    }
+  
+#define FOR_BOTH_PARITIES(PAR,	       \
+			  CODE...)     \
+  FOR_PARITY(PAR,0,CODE);\
+  FOR_PARITY(PAR,1,CODE)
   
   /////////////////////////////////////////////////////////////////
   

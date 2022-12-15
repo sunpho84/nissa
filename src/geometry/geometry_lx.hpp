@@ -59,11 +59,11 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *glbCoordOfLoclx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *locCoordOfLoclx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblxOfLoclx;
-  EXTERN_GEOMETRY_LX int *glblxOfBordlx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblxOfBordlx;
   EXTERN_GEOMETRY_LX int *loclxOfBordlx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfBordlx;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int *surflxOfEdgelx;
-  EXTERN_GEOMETRY_LX int *glblxOfEdgelx;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int *glblxOfEdgelx;
   EXTERN_GEOMETRY_LX int *loclxOfBulklx;
   EXTERN_GEOMETRY_LX int *loclxOfSurflx;
   EXTERN_GEOMETRY_LX int *loclxOfNonBwSurflx;
@@ -73,7 +73,7 @@ namespace nissa
   EXTERN_GEOMETRY_LX int lxGeomInited;
   //neighbours of local volume + borders
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *loclxNeighdw,*loclxNeighup;
-  EXTERN_GEOMETRY_LX coords_t *loclx_neigh[2];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t *loclx_neigh[2];
   //ranks
   EXTERN_GEOMETRY_LX coords_t fix_nranks;
   EXTERN_GEOMETRY_LX int rank,nranks,cart_rank;
@@ -85,12 +85,12 @@ namespace nissa
   EXTERN_GEOMETRY_LX int nparal_dir;
   EXTERN_GEOMETRY_LX coords_t is_dir_parallel;
   //size of the border and edges
-  EXTERN_GEOMETRY_LX int bord_vol,bord_volh;
-  EXTERN_GEOMETRY_LX int edge_vol,edge_volh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int bord_vol,bord_volh;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_vol,edge_volh;
   //size along various dir
   constexpr int nEdges=NDIM*(NDIM-1)/2;
   EXTERN_GEOMETRY_LX int bord_dir_vol[NDIM],bord_offset[NDIM];
-  EXTERN_GEOMETRY_LX int edge_dir_vol[nEdges],edge_offset[nEdges],edge_dirs[nEdges][2],isEdgeParallel[nEdges];
+  CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_dir_vol[nEdges],edge_offset[nEdges],edge_dirs[nEdges][2],isEdgeParallel[nEdges];
   EXTERN_GEOMETRY_LX int rank_edge_neigh[2][2][nEdges];
   CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_numb[NDIM][NDIM];
   //mapping of ILDG data

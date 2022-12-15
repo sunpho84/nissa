@@ -480,8 +480,8 @@ namespace nissa
   
   inline void spinspin_dirac_prod_idouble(spinspin out,const dirac_matr&in,double r)
   {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_idouble(out,in,r);}
-  inline void spinspin_dirac_prod_complex(spinspin out,const dirac_matr& in,const complex c)
-  {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_complex(out,in,c);}
+  // inline void spinspin_dirac_prod_complex(spinspin out,const dirac_matr& in,const complex c)
+  // {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_complex(out,in,c);}
   
   //out=m*in
   template <typename A,
