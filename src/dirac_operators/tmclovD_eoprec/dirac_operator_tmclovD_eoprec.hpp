@@ -32,14 +32,15 @@ namespace nissa
     int high=0,low=1;
     if(dag) std::swap(low,high);
     
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
-      {
-    	unsafe_halfspincolor_halfspincolor_times_halfspincolor(out[X],invCl[X][high],in[X],2*high);
-    	unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor(out[X],invCl[X][low],in[X],2*low);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    out.invalidateHalo();
+    PAR(0,locVolh,
+	CAPTURE(high,low,
+		TO_WRITE(out),
+		TO_READ(in),
+		TO_READ(invCl)),X,
+	{
+	  unsafe_halfspincolor_halfspincolor_times_halfspincolor(out[X],invCl[X][high],in[X],2*high);
+	  unsafe_halfspincolor_halfspincolor_dag_times_halfspincolor(out[X],invCl[X][low],in[X],2*low);
+	});
   }
   
   void tmclovDkern_eoprec_square_eos(OddField<spincolor>& out,

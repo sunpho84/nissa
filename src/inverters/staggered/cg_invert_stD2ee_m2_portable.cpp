@@ -18,16 +18,20 @@ namespace nissa
 				 const double& residue,
 				 const EvnField<color>& source)
   {
+    std::function<void(EvnField<color>&,
+      const EvnField<color>&)> f=
+      [temp=OddField<color>("temp",WITH_HALO),
+       &conf,
+       &m2]
+      (EvnField<color>& out,
+		const EvnField<color>& in) mutable
+      {
+	apply_stD2ee_m2(out,conf,temp,m2,in);
+      };
+    
     cg_invert(sol,
 	       guess,
-	       [temp=OddField<color>("temp",WITH_HALO),
-		&conf,
-		&m2]
-	       (EvnField<color>& out,
-		const EvnField<color>& in) mutable
-	       {
-		 apply_stD2ee_m2(out,conf,temp,m2,in);
-	       },
+	      f,
 	       niter,
 	       residue,
 	       source);

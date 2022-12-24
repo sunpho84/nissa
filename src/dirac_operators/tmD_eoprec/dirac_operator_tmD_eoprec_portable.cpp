@@ -18,17 +18,18 @@ namespace nissa
   void tmDkern_eoprec_eos_put_together_and_include_gamma5(OddField<spincolor>& out,
 							  const OddField<spincolor>& temp)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-      for(int id=0;id<NDIRAC/2;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    { //gamma5 is explicitely implemented
-	      out[ivol][id  ][ic][ri]=+temp[ivol][id  ][ic][ri]-out[ivol][id  ][ic][ri]*0.25;
-	      out[ivol][id+NDIRAC/2][ic][ri]=-temp[ivol][id+NDIRAC/2][ic][ri]+out[ivol][id+2][ic][ri]*0.25;
-	    }
-    NISSA_PARALLEL_LOOP_END;
-    
-    out.invalidateHalo();
+    PAR(0,locVolh,
+	CAPTURE(TO_WRITE(out),
+		TO_READ(temp)),ivol,
+	{
+	  for(int id=0;id<NDIRAC/2;id++)
+	    for(int ic=0;ic<NCOL;ic++)
+	      for(int ri=0;ri<2;ri++)
+		{ //gamma5 is explicitely implemented
+		  out[ivol][id  ][ic][ri]=+temp[ivol][id  ][ic][ri]-out[ivol][id  ][ic][ri]*0.25;
+		  out[ivol][id+NDIRAC/2][ic][ri]=-temp[ivol][id+NDIRAC/2][ic][ri]+out[ivol][id+2][ic][ri]*0.25;
+		}
+	});
   }
   
   //implement Koo defined in equation (7)

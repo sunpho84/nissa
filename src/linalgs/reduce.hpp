@@ -121,7 +121,8 @@ namespace nissa
 	const int64_t nreductions=nreductions_per_slice*nslices;
 	verbosity_lv3_master_printf("nper_slice: %lld, stride: %lld, nreductions_per_slice: %lld, nreductions: %lld \n",nper_slice,stride,nreductions_per_slice,nreductions);
 	
-	NISSA_PARALLEL_LOOP(ireduction,0,nreductions)
+	PAR(0,nreductions,
+	    CAPTURE(nslices,stride,nori_per_slice,op,TO_WRITE(buf)),ireduction,
 	  {
 	    const int64_t islice=ireduction%nslices;
 	    const int64_t ireduction_in_slice=ireduction/nslices;
@@ -129,8 +130,7 @@ namespace nissa
 	    const int64_t second=first+stride;
 	    
 	    op(buf[first],buf[second]);
-	  }
-	  NISSA_PARALLEL_LOOP_END;
+	  });
 	  
 	  nper_slice=stride;
       }

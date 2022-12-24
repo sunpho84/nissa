@@ -25,63 +25,14 @@
 #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) NISSA_PARALLEL_LOOP_EXP(INDEX,EXT_START,EXT_END)
 #define NISSA_PARALLEL_LOOP_END NISSA_PARALLEL_LOOP_END_EXP
 
-#define PARALLEL_LOOP(ARGS...) cuda_parallel_for(__LINE__,__FILE__,ARGS)
-
 namespace nissa
 {
-  template <typename IMin,
-	    typename IMax,
-	    typename F>
-  __global__
-  void cuda_generic_kernel(const IMin min,
-			   const IMax max,
-			   const F& f)
-  {
-    const auto i=min+blockIdx.x*blockDim.x+threadIdx.x;
-    if(i<max)
-      f(i);
-  }
-  
   inline void thread_barrier_internal()
   {
     cudaDeviceSynchronize();
   }
   
   double take_time();
-  
-  template <typename IMin,
-	    typename IMax,
-	    typename F>
-  void cuda_parallel_for(const int line,
-			 const char *file,
-			 const IMin min,
-			 const IMax max,
-			 const F& f)
-  {
-    const auto length=(max-min);
-    const dim3 block_dimension(NUM_THREADS);
-    const dim3 grid_dimension((length+block_dimension.x-1)/block_dimension.x);
-    
-    double initTime=0;
-    extern int rank,verbosity_lv;
-    const bool print=(verbosity_lv>=1// 2
-		      and rank==0);
-    if(print)
-      {
-	printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
-	   line,file,(int64_t)min,(int64_t)max,block_dimension.x,grid_dimension.x);
-	initTime=take_time();
-      }
-    
-    if(length>0)
-      {
-	cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,f);
-	thread_barrier_internal();
-      }
-    
-    if(print)
-      printf(" finished in %lg s\n",take_time()-initTime);
-  }
   
   inline void cache_flush()
   {

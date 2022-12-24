@@ -29,26 +29,80 @@ namespace nissa
   struct gauge_obs_meas_pars_t
   {
     int each;
+    
     int after;
+    
     std::string path;
+    
     int meas_plaq;
+    
     int meas_energy;
+    
     int meas_poly;
+    
     int use_smooth;
+    
     smooth_pars_t smooth_pars;
     
-    int def_each(){return 1;}
-    int def_after(){return 0;}
-    std::string def_path(){return "gauge_obs";}
-    int def_meas_plaq(){return 1;}
-    int def_meas_energy(){return 0;}
-    int def_meas_poly(){return 1;}
-    int def_use_smooth(){return 0;}
+    int def_each() const
+    {
+      return 1;
+    }
     
-    int master_fprintf(FILE *fout,bool full) {return nissa::master_fprintf(fout,"%s",get_str().c_str());}
-    std::string get_str(bool full=false);
+    int def_after() const
+    {
+      return 0;
+    }
+    
+    std::string def_path() const
+    {
+      return "gauge_obs";
+    }
+    
+    int def_meas_plaq() const
+    {
+      return 1;
+    }
+    
+    int def_meas_energy() const
+    {
+      return 0;
+    }
+    
+    int def_meas_poly() const
+    {
+      return 1;
+    }
+    
+    int def_use_smooth() const
+    {
+      return 0;
+    }
+    
+    int master_fprintf(FILE *fout,
+		       const bool& full) const
+    {
+      return nissa::master_fprintf(fout,"%s",get_str().c_str());
+    }
+    
+    std::string get_str(const bool& full=false) const
+    {
+      std::ostringstream os;
       
-    int is_nonstandard()
+      os<<"MeasPlaqPol\n";
+      if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
+      if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
+      if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
+      if(meas_plaq!=def_meas_plaq() or full) os<<" MeasPlaq\t\t=\t"<<meas_plaq<<"\n";
+      if(meas_energy!=def_meas_energy() or full) os<<" MeasEnergy\t\t=\t"<<meas_energy<<"\n";
+      if(meas_poly!=def_meas_poly() or full) os<<" MeasPoly\t\t=\t"<<meas_poly<<"\n";
+      if(use_smooth!=def_use_smooth() or full) os<<" UseSmooth\t\t=\t"<<use_smooth<<"\n";
+      os<<smooth_pars.get_str(full);
+      
+      return os.str();
+    }
+    
+    int is_nonstandard() const
     {
       return
 	each!=def_each() or
@@ -69,21 +123,13 @@ namespace nissa
       meas_energy(def_meas_energy()),
       meas_poly(def_meas_poly()),
       use_smooth(def_use_smooth())
-    {}
+    {
+    }
   };
   
   /////////////////////////////////////////////////////////////
-  //to be improved
-  void average_gauge_energy(double *energy,
-			    const LxField<quad_su3>& conf);
   
-  inline double average_gauge_energy(const LxField<quad_su3>& conf)
-  {
-    double energy;
-    average_gauge_energy(&energy,conf);
-    
-    return energy;
-  }
+  double average_gauge_energy(const LxField<quad_su3>& conf);
   
   void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis);
   void ac_rotate_vector(void *out,void *in,int axis,size_t bps);

@@ -7,7 +7,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/float_256.cpp \
 	%D%/metadynamics.cpp \
 	%D%/high_prec.cpp \
-	%D%/rat_approx.cpp \
 	%D%/read_new_types.cpp \
 	%D%/spin.cpp \
 	%D%/su3_op.cpp

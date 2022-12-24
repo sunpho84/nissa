@@ -16,6 +16,8 @@
 #include "base/vectors.hpp"
 #include "threads/threads.hpp"
 
+#warning to be deleted
+
 namespace nissa
 {
 #if THREAD_DEBUG>=2

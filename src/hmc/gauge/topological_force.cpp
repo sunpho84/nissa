@@ -43,19 +43,19 @@ namespace nissa
     double pot=0;
     switch(pars->flag)
       {
-      case 1: pot=pars->theta;break;
-      case 2: pot=compute_topodynamical_potential_der(pars,conf); break;
-      default: crash("unknown way to compute topological potential %d",pars->flag);
+      case 1:
+	pot=pars->theta;
+	break;
+      case 2:
+	pot=compute_topodynamical_potential_der(pars,conf);
+	break;
+      default:
+	crash("unknown way to compute topological potential %d",pars->flag);
       }
     
     //normalize
-    double norm=pot/(M_PI*M_PI*128);
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
-	safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],norm);
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(F);
+    const double norm=pot/(M_PI*M_PI*128);
+    F*=norm;
   }
   
   //compute the topological force

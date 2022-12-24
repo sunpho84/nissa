@@ -18,23 +18,23 @@ namespace nissa
   //Of the result still need to be taken the TA
   void Wilson_force_eo_conf(eo_ptr<quad_su3> F,eo_ptr<quad_su3> eo_conf,double beta)
   {
+    crash("reimplement");
     
-    verbosity_lv1_master_printf("Computing Wilson force (eo)\n");
+    // verbosity_lv1_master_printf("Computing Wilson force (eo)\n");
     
-    double r=-beta/NCOL;
-    compute_summed_squared_staples_eo_conf(F,eo_conf);
+    // double r=-beta/NCOL;
+    // compute_summed_squared_staples_eo_conf(F,eo_conf);
     
-    for(int par=0;par<2;par++)
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-	  {
-	    for(int mu=0;mu<NDIM;mu++)
-	      safe_su3_hermitian_prod_double(F[par][ivol][mu],F[par][ivol][mu],r);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	
-	set_borders_invalid(F[par]);
-      }
+    // for(int par=0;par<2;par++)
+    //   {
+    // 	PAR(0,locVolh,
+    // 	    CAPTURE(TO_READ(F)),
+    // 	    ivol,
+    // 	  {
+    // 	    for(int mu=0;mu<NDIM;mu++)
+    // 	      safe_su3_hermitian_prod_double(F[par][ivol][mu],F[par][ivol][mu],r);
+    // 	  });
+    //   }
   }
   
   //lx version
@@ -42,19 +42,19 @@ namespace nissa
 			    const LxField<quad_su3>& conf,
 			    const double beta)
   {
+    crash("reimplement");
+    // verbosity_lv1_master_printf("Computing Wilson force (lx)\n");
     
-    verbosity_lv1_master_printf("Computing Wilson force (lx)\n");
+    // const double r=-beta/NCOL;
+    // compute_summed_squared_staples_lx_conf(F,conf);
     
-    const double r=-beta/NCOL;
-    compute_summed_squared_staples_lx_conf(F,conf);
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   {
+    // 	for(int mu=0;mu<NDIM;mu++)
+    // 	  safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	for(int mu=0;mu<NDIM;mu++)
-	  safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],r);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(F);
+    // set_borders_invalid(F);
   }
 }

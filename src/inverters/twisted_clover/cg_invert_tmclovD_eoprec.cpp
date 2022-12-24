@@ -141,15 +141,15 @@ namespace nissa
     apply_tmclovQ(check_res,conf_lx,kappa,Cl_lx,mass,solution_lx);
     
     //remove g5 and take the difference with source
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(check_res),
+		TO_READ(source_lx)),ivol,
       {
 	const double mg5[2]={-1,1};
 	for(int high_low=0;high_low<2;high_low++)
 	  for(int id=high_low*NDIRAC/2;id<(high_low+1)*NDIRAC/2;id++)
 	    color_summ_the_prod_double(check_res[ivol][id],source_lx[ivol][id],mg5[high_low]);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(check_res);
+      });
     
     //compute residual and print
     const double real_residue=check_res.norm2();
@@ -219,7 +219,8 @@ namespace nissa
 #ifdef USE_QUDA
     {
       double call_time=take_time();
-      solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
+      crash("reimplement");
+      //solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
       master_printf("calling quda to solve took %lg s\n",take_time()-call_time);
     }
 #endif
@@ -322,9 +323,11 @@ namespace nissa
 	// master_printf("checksum of the solution shifted by bord %x %x\n",check[0],check[1]);
 	// const double res=residueVec[0][0][0][0];
 	// const double res1=residueVec[loclx_of_coord_list(0,8,23,7)][0][0][0];
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  unsafe_dirac_prod_spincolor(residueVec[ivol],base_gamma[5],residueVec[ivol]);
-	NISSA_PARALLEL_LOOP_END;
+	PAR(0,locVol,
+	    CAPTURE(TO_WRITE(residueVec)),ivol,
+	    {
+	      unsafe_dirac_prod_spincolor(residueVec[ivol],base_gamma[5],residueVec[ivol]);
+	    });
 	
 	// const double res5=residueVec[0][0][0][0];
 	residueVec-=source_lx;

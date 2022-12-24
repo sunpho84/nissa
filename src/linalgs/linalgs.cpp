@@ -123,66 +123,35 @@ namespace nissa
   //scalar product
   void double_vector_glb_scalar_prod(double* glb_res,double* a,double* b,int n)
   {
-#ifndef REPRODUCIBLE_RUN
-    double *reducing_buffer=get_reducing_buffer<double>(n);
-#else
-    float_128 *reducing_buffer=get_reducing_buffer<float_128>(n);
-#endif
+    crash("reimplement");
+    // #ifndef REPRODUCIBLE_RUN
+//     double *reducing_buffer=get_reducing_buffer<double>(n);
+// #else
+//     float_128 *reducing_buffer=get_reducing_buffer<float_128>(n);
+// #endif
     
-    NISSA_PARALLEL_LOOP(i,0,n)
-#ifndef REPRODUCIBLE_RUN
-      reducing_buffer[i]=a[i]*b[i];
-#else
-      float_128_from_64(reducing_buffer[i],a[i]*b[i]);
-#endif
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+//     NISSA_PARALLEL_LOOP(i,0,n)
+// #ifndef REPRODUCIBLE_RUN
+//       reducing_buffer[i]=a[i]*b[i];
+// #else
+//       float_128_from_64(reducing_buffer[i],a[i]*b[i]);
+// #endif
+//     NISSA_PARALLEL_LOOP_END;
+//     THREAD_BARRIER();
     
-#ifndef REPRODUCIBLE_RUN
-    glb_reduce(glb_res,reducing_buffer,n);
-#else
-    float_128 temp;
-    glb_reduce(&temp,reducing_buffer,n);
-    *glb_res=temp[0];
-#endif
-  }
-  
-  //scalar product
-  void complex_vector_glb_scalar_prod(double* glb_res,complex* a,complex* b,int n)
-  {
-#ifndef REPRODUCIBLE_RUN
-    complex *reducing_buffer=get_reducing_buffer<complex>(n);
-#else
-    complex_128 *reducing_buffer=get_reducing_buffer<complex_128>(n);
-#endif
-    
-    NISSA_PARALLEL_LOOP(i,0,n)
-      {
-	complex temp;
-	unsafe_complex_conj1_prod(temp,a[i],b[i]);
-#ifndef REPRODUCIBLE_RUN
-	complex_copy(reducing_buffer[i],temp);
-#else
-	complex_128_from_64(reducing_buffer[i],temp);
-#endif
-      }
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
-    
-#ifndef REPRODUCIBLE_RUN
-    glb_reduce((complex*)glb_res,reducing_buffer,n);
-#else
-    complex_128 temp;
-    glb_reduce(&temp,reducing_buffer,n);
-    for(int ri=0;ri<2;ri++)
-      glb_res[ri]=temp[ri][0];
-#endif
+// #ifndef REPRODUCIBLE_RUN
+//     glb_reduce(glb_res,reducing_buffer,n);
+// #else
+//     float_128 temp;
+//     glb_reduce(&temp,reducing_buffer,n);
+//     *glb_res=temp[0];
+// #endif
   }
   
   //scalar product
   void single_vector_glb_scalar_prod(float* glb_res,float* a,float* b,int n)
   {
-    crash("not working");
+    crash("reimplement");
 //     //perform thread summ
 //     float loc_thread_res=0;
     

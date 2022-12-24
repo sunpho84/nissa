@@ -21,18 +21,18 @@ namespace nissa
 		       const tm_quark_info& qu,
 		       const I& in)
   {
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
-      {
-	const complex z={1/(2*qu.kappa),qu.mass};
-	
-	for(int id=0;id<NDIRAC/2;id++)
-	  unsafe_complex_prod(out[X][id],in[X][id],z);
-	for(int id=NDIRAC/2;id<NDIRAC;id++)
-	  unsafe_complex_conj2_prod(out[X][id],in[X][id],z);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(out);
+    PAR(0,locVolh,
+	CAPTURE(TO_WRITE(out),
+		TO_READ(in),
+		qu),X,
+	{
+	  const complex z={1/(2*qu.kappa),qu.mass};
+	  
+	  for(int id=0;id<NDIRAC/2;id++)
+	    unsafe_complex_prod(out[X][id],in[X][id],z);
+	  for(int id=NDIRAC/2;id<NDIRAC;id++)
+	    unsafe_complex_conj2_prod(out[X][id],in[X][id],z);
+	});
   }
   
   //implement Koo defined in equation (7)
@@ -47,16 +47,17 @@ namespace nissa
     inv_tmDee_or_oo_eos(temp,qu,out);
     tmDee_or_oo_eos(temp,qu,in);
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-      for(int id=0;id<2;id++)
-	for(int ri=0;ri<2;ri++)
-	  { //gamma5 is explicitely implemented
-	    out[ivol][id  ][ri]=+temp[ivol][id  ][ri]-out[ivol][id  ][ri]*0.25;
-	    out[ivol][id+2][ri]=-temp[ivol][id+2][ri]+out[ivol][id+2][ri]*0.25;
-	  }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(out);
+    PAR(0,locVolh,
+	CAPTURE(TO_WRITE(out),
+		TO_WRITE(temp)),ivol,
+	{
+	  for(int id=0;id<2;id++)
+	    for(int ri=0;ri<2;ri++)
+	      { //gamma5 is explicitely implemented
+		out[ivol][id  ][ri]=+temp[ivol][id  ][ri]-out[ivol][id  ][ri]*0.25;
+		out[ivol][id+2][ri]=-temp[ivol][id+2][ri]+out[ivol][id+2][ri]*0.25;
+	      }
+	});
   }
   
   //square of Koo

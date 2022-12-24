@@ -22,17 +22,21 @@ namespace nissa
 				   const double& residue,
 				   const LxField<spincolor>& source)
   {
-    cg_invert(sol,
-	      guess,
-	      [temp=LxField<spincolor>("temp",WITH_HALO),
-	       &conf,
-	       &kappa,
-	       &Cl,
+    std::function<void(LxField<spincolor>& out,
+      const LxField<spincolor>& in)> f=
+      [temp=LxField<spincolor>("temp",WITH_HALO),
+       &conf,
+       &kappa,
+       &Cl,
 	       &mu](LxField<spincolor>& out,
 		    const LxField<spincolor>& in) mutable
-	      {
-		apply_tmclovQ2(out,conf,kappa,Cl,temp,mu,in);
-	      },
+      {
+	apply_tmclovQ2(out,conf,kappa,Cl,temp,mu,in);
+      };
+    
+    cg_invert(sol,
+	      guess,
+	      f,
 	      niter,
 	      residue,
 	      source);

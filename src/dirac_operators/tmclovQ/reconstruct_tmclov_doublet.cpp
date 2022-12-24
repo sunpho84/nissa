@@ -21,14 +21,14 @@ namespace nissa
   {
     apply_tmclovQ(outminus,conf,kappa,Cl,mu,in);
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    PAR(0,locVol,
+	CAPTURE(mu,
+		TO_WRITE(outplus),
+		TO_READ(outminus),
+		TO_READ(in)),ivol,
       {
 	spincolor_copy(outplus[ivol],outminus[ivol]);
 	spincolor_summ_the_prod_idouble(outplus[ivol],in[ivol],-2*mu);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(outminus);
-    set_borders_invalid(outplus);
+      });
   }
 }

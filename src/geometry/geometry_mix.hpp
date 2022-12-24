@@ -18,23 +18,25 @@ namespace nissa
   
   template <typename LX,
 	    typename EO>
-  void paste_eo_parts_into_lx_vector(FieldFeat<LX>& outLx,
+  void paste_eo_parts_into_lx_vector(FieldFeat<LX>& _outLx,
 				     const EO& inEo)
   {
     START_TIMING(remap_time,nremap);
     
     //paste
-    forBothParities([&outLx,&inEo](const auto& par)
+    FOR_BOTH_PARITIES(par,
     {
-      NISSA_PARALLEL_LOOP(eo,0,locVolh)
-	for(int internalDeg=0;internalDeg<inEo[par].nInternalDegs;internalDeg++)
-	  (*outLx)(loclx_of_loceo[par][eo],internalDeg)=inEo[par](eo,internalDeg);
-      NISSA_PARALLEL_LOOP_END;
+      PAR(0,locVolh,
+	  CAPTURE(par,outLx=*_outLx,
+		  TO_READ(inEo)),
+	  eo,
+	  {
+	    for(int internalDeg=0;internalDeg<inEo[par].nInternalDegs;internalDeg++)
+	      outLx(loclx_of_loceo[par][eo],internalDeg)=inEo[par](eo,internalDeg);
+	  });
     });
     
     STOP_TIMING(remap_time);
-    
-    outLx->invalidateHalo();
   }
   
   /////////////////////////////////////////////////////////////////
@@ -46,14 +48,15 @@ namespace nissa
   {
     START_TIMING(remap_time,nremap);
     
-    NISSA_PARALLEL_LOOP(locLx,0,locVol)
-      for(int internalDeg=0;internalDeg<inLx.nInternalDegs;internalDeg++)
-	outEo[loclx_parity[locLx]](loceo_of_loclx[locLx],internalDeg)=inLx(locLx,internalDeg);
-    NISSA_PARALLEL_LOOP_END;
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(outEo),
+		TO_READ(inLx)),locLx,
+	{
+	  for(int internalDeg=0;internalDeg<LX::nInternalDegs;internalDeg++)
+	    outEo[loclx_parity[locLx]](loceo_of_loclx[locLx],internalDeg)=inLx(locLx,internalDeg);
+	});
     
     STOP_TIMING(remap_time);
-    
-    outEo.invalidateHalo();
   }
   
   /////////////////////////////////////////////////////////////////
@@ -67,14 +70,15 @@ namespace nissa
     START_TIMING(remap_time,nremap);
     
     //get
-    NISSA_PARALLEL_LOOP(locEo,0,locVolh)
-      for(int internalDeg=0;internalDeg<inLx.nInternalDegs;internalDeg++)
-	outEo(locEo,internalDeg)=inLx(loclx_of_loceo[par][locEo],internalDeg);
-    NISSA_PARALLEL_LOOP_END;
-    
+    PAR(0,locVolh,
+	CAPTURE(par,
+		TO_WRITE(outEo),
+		TO_READ(inLx)),locEo,
+	{
+	  for(int internalDeg=0;internalDeg<inLx.nInternalDegs;internalDeg++)
+	    outEo(locEo,internalDeg)=inLx(loclx_of_loceo[par][locEo],internalDeg);
+	});
     STOP_TIMING(remap_time);
-    
-    outEo.invalidateHalo();
   }
   
   /////////////////////////////////////////////////////////////////

@@ -41,18 +41,20 @@ namespace nissa
     
     inv_stD2ee_m2_cgm_portable_run_hm_up_to_comm_prec(temp,eo_conf,appr.poles,niter_max,req_res,source);
     
-    chi_e.forEachSiteDeg([&source,
-			  &temp,
-			  &appr](double& d,
-				 const int& site,
-				 const int& iDeg)
-    {
-      d=source(site,iDeg)*appr.cons;
-      for(int iterm=0;iterm<appr.degree();iterm++)
-	d+=appr.weights[iterm]*temp[iterm](site,iDeg);
-    });
+    chi_e=source;
+    chi_e*=appr.cons;
     
-    chi_e.invalidateHalo();
+    for(int iterm=0;iterm<appr.degree();iterm++)
+      FOR_EACH_SITE_DEG_OF_FIELD(chi_e,
+				 CAPTURE(appr,
+					 TO_WRITE(chi_e),
+					 w=appr.weights[iterm],
+					 t=temp[iterm].getReadable()),
+				 site,iDeg,
+				 {
+				   chi_e(site,iDeg)+=
+				     w*t(site,iDeg);
+				 });
   }
 }
 

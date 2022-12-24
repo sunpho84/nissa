@@ -2,17 +2,18 @@
 #define _CHECKSUM_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <stdint.h>
 #include <string.h>
 
-#include "endianness.hpp"
-#include "routines/ios.hpp"
-#include "geometry/geometry_eo.hpp"
+#include <base/field.hpp>
+#include <io/endianness.hpp>
+#include <linalgs/reduce.hpp>
+#include <routines/ios.hpp>
+#include <geometry/geometry_eo.hpp>
 
-#include "linalgs/reduce.hpp"
 
 namespace nissa
 {
@@ -167,59 +168,71 @@ namespace nissa
   }
   
   template <typename T>
-  void checksum_compute_nissa_data(checksum& check,const T& data,int prec,const size_t bps)
+  void checksum_compute_nissa_data(checksum& check,
+				   const T& data,
+				   const int& prec,
+				   const size_t& bps)
   {
-    // const double init_time=take_time();
+    crash("reimplement");
     
-    // master_printf("   allocating buffer\n");
-    checksum* buff=get_reducing_buffer<checksum>(locVol);
-    // master_printf("   finished allocating the buffer, took %lg s\n",take_time()-init_time);
+    // // const double init_time=take_time();
     
-    // master_printf("   entering loop\n");
+    // // master_printf("   allocating buffer\n");
+    // LxField<checksum> buff("buff");
+    // // master_printf("   finished allocating the buffer, took %lg s\n",take_time()-init_time);
     
-    if(bps>checksum_getter::max_buf_size)
-      crash("please increase the buf size to hold %zu bps",bps);
+    // // master_printf("   entering loop\n");
     
-    // const double init_fill_time=take_time();
+    // if(bps>checksum_getter::max_buf_size)
+    //   crash("please increase the buf size to hold %zu bps",bps);
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	const coords_t& X=glbCoordOfLoclx[ivol];
-	uint32_t ildg_ivol=X[0];
-	for(int mu=NDIM-1;mu>0;mu--) ildg_ivol=ildg_ivol*glbSize[mu]+X[mu];
-	uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
-	
-	uint32_t temp=ildg_crc32_fix_endianness(0,checksum_getter::get_data(data,ivol,bps),prec,bps);
-	
-	for(int i=0;i<2;i++) buff[ivol][i]=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
-      }
-    NISSA_PARALLEL_LOOP_END;
+    // // const double init_fill_time=take_time();
     
-    // master_printf("   finished filling the buffer, took %lg s\n",take_time()-init_fill_time);
+    // PAR(0,locVol,
+    // 	CAPTURE(bps,prec,
+    // 		TO_WRITE(buff),
+    // 		TO_READ(data)),
+    // 	ivol,
+    // 	{
+    // 	  const coords_t& X=glbCoordOfLoclx[ivol];
+    // 	  uint32_t ildg_ivol=X[0];
+    // 	  for(int mu=NDIM-1;mu>0;mu--)
+    // 	    ildg_ivol=ildg_ivol*glbSize[mu]+X[mu];
+    // 	  const uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
+	  
+    // 	  const uint32_t temp=ildg_crc32_fix_endianness(0,checksum_getter::get_data(data,ivol,bps),prec,bps);
+	  
+    // 	  for(int i=0;i<2;i++)
+    // 	    buff[ivol][i]=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
+    // 	});
     
-    // master_printf("   starting local reduction\n");
+    // // master_printf("   finished filling the buffer, took %lg s\n",take_time()-init_fill_time);
     
-    checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,[] CUDA_DEVICE (checksum& res,const checksum& acc)  __attribute__((always_inline))
-    {
-      for(int i=0;i<2;i++)
-	res[i]^=acc[i];
-    });
+    // // master_printf("   starting local reduction\n");
     
-    // {
-    // master_printf("   testing global reduction\n");
-    // const double init_glbred_time=take_time();
-    // int a[2]{},b[2]{};
-    // MPI_Allreduce(a,b,2,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-    // master_printf("   finished test, took %lg s\n",take_time()-init_glbred_time);
-    // }
+    // checksum loc_check;
+    // locReduce(&loc_check,buff,locVol,1,
+    // 	      [] CUDA_DEVICE(checksum& res,
+    // 			     const checksum& acc) INLINE_ATTRIBUTE
+    // 	      {
+    // 		for(int i=0;i<2;i++)
+    // 		  res[i]^=acc[i];
+    // 	      });
     
-    // master_printf("   starting global reduction\n");
-    // const double init_glbred_time=take_time();
-    MPI_Allreduce(loc_check.data,check.data,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
-    // master_printf("   finished glb reducing buffer, took %lg s\n",take_time()-init_glbred_time);
+    // // {
+    // // master_printf("   testing global reduction\n");
+    // // const double init_glbred_time=take_time();
+    // // int a[2]{},b[2]{};
+    // // MPI_Allreduce(a,b,2,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+    // // master_printf("   finished test, took %lg s\n",take_time()-init_glbred_time);
+    // // }
     
-    // master_printf("time to compute checksum: %lg (%s) %zu bps\n",take_time()-init_time,__PRETTY_FUNCTION__,bps);
+    // // master_printf("   starting global reduction\n");
+    // // const double init_glbred_time=take_time();
+    // MPI_Allreduce(loc_check.data,check.data,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
+    // // master_printf("   finished glb reducing buffer, took %lg s\n",take_time()-init_glbred_time);
+    
+    // // master_printf("time to compute checksum: %lg (%s) %zu bps\n",take_time()-init_time,__PRETTY_FUNCTION__,bps);
   }
 }
 

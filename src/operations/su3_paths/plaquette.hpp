@@ -49,25 +49,23 @@ namespace nissa
   }
   
   /// Computes the global plaquette, separating timelike and not
-  template <typename Conf>
-  void global_plaquette_lx_conf(double* totplaq,
-				const Conf& conf)
+  inline void global_plaquette_lx_conf(complex& totplaq,
+				       const LxField<quad_su3>& conf)
   {
-    if constexpr(std::is_pointer_v<Conf>) // hack
-      communicate_lx_quad_su3_borders(conf);
-    else
-      conf.updateHalo();
-    
     LxField<complex> point_plaq("point_plaq");
     
     //loop over all the lattice
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      point_plaquette_lx_conf(point_plaq[ivol],conf,ivol);
-    NISSA_PARALLEL_LOOP_END;
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(point_plaq),
+		TO_READ(conf)),
+	ivol,
+	{
+	  point_plaquette_lx_conf(point_plaq[ivol],conf,ivol);
+	});
     
     //reduce as complex and normalize
     complex temp;
-    glb_reduce(&temp,point_plaq,locVol);
+    point_plaq.reduce(temp);
     for(int ts=0;ts<2;ts++)
       totplaq[ts]=temp[ts]/(glbVol*NCOL*NCOL);
   }
@@ -75,13 +73,13 @@ namespace nissa
   /// Average plaquette
   template <typename C>
   double global_plaquette_lx_conf(const C& conf)
-    {
-      double plaq[2];
-      
-      global_plaquette_lx_conf(plaq,conf);
-      
-      return (plaq[0]+plaq[1])/2;
-    }
+  {
+    double plaq[2];
+    
+    global_plaquette_lx_conf(plaq,conf);
+    
+    return (plaq[0]+plaq[1])/2;
+  }
   
   /////////////////////////////////////////////////////////////////
   
@@ -123,12 +121,16 @@ namespace nissa
     LxField<complex> point_plaq("point_plaq");
     
     //loop over all the lattice
-    forBothParities([&conf,&point_plaq](const auto& par)
-    {
-      NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	point_plaquette_eo_conf(point_plaq[loclx_of_loceo[par][ieo]],conf,par,ieo);
-      NISSA_PARALLEL_LOOP_END;
-    });
+    FOR_BOTH_PARITIES(par,
+		      {
+			PAR(0,locVolh,
+			    CAPTURE(par,
+				    TO_WRITE(point_plaq),
+				    TO_READ(conf)),ieo,
+			    {
+			      point_plaquette_eo_conf(point_plaq[loclx_of_loceo[par][ieo]],conf,par,ieo);
+			    });
+		      });
     
     //reduce as complex and normalize
     complex temp;

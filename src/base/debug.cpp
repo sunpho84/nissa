@@ -268,10 +268,13 @@ namespace nissa
     EoField<int> test("testEoHalo",WITH_HALO);
     
     FOR_BOTH_PARITIES(par,
-      NISSA_PARALLEL_LOOP(i,0,locVolh)
-	test[par][i]=glblxOfLoclx[loclx_of_loceo[par][i]];
-      NISSA_PARALLEL_LOOP_END;
-    );
+		      PAR(0,locVolh,
+			  CAPTURE(par,test=test[par].getWritable()),i,
+			  {
+			    test[i]=glblxOfLoclx[loclx_of_loceo[par][i]];
+			  });
+		      );
+    
     test.invalidateHalo();
     
     taintTheCommBuffers();
@@ -362,17 +365,23 @@ namespace nissa
   {
     EoField<int> test("testEoEdge",WITH_HALO_EDGES);
     FOR_BOTH_PARITIES(par,
-		      NISSA_PARALLEL_LOOP(i,0,locVolh)
-		        test[par][i]=glblxOfLoclx[loclx_of_loceo[par][i]];
-		      NISSA_PARALLEL_LOOP_END;
+		      PAR(0,locVolh,
+			  CAPTURE(par,test=test[par].getWritable()),i,
+			  {
+			    test[i]=glblxOfLoclx[loclx_of_loceo[par][i]];
+			  });
 		      
-		      NISSA_PARALLEL_LOOP(i,0,bord_volh)
-		        test[par][i+locVolh]=-1;
-		      NISSA_PARALLEL_LOOP_END;
+		      PAR(0,bord_volh,
+			  CAPTURE(test=test[par].getWritable()),i,
+			  {
+			    test[i+locVolh]=-1;
+			  });
 		      
-		      NISSA_PARALLEL_LOOP(i,0,edge_volh)
-		        test[par][i+locVolh+bord_volh]=-2;
-		      NISSA_PARALLEL_LOOP_END;
+		      PAR(0,edge_volh,
+			  CAPTURE(test=test[par].getWritable()),i,
+			  {
+			    test[i+locVolh+bord_volh]=-2;
+			  });
 		      );
     
     int* r=(int*)recv_buf;

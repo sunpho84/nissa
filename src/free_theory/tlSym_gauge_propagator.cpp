@@ -46,7 +46,7 @@ namespace nissa
   
   /// Cancel the mode if it is zero according to the prescription
   template <typename A>
-  CUDA_HOST_AND_DEVICE INLINE_ATTRIBUTE
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   bool cancel_if_zero_mode_spin1prop(A&& prop,
 				     const gauge_info& gl,
 				     const int& imom)
@@ -62,7 +62,7 @@ namespace nissa
   }
   
   template <typename A>
-  CUDA_HOST_AND_DEVICE INLINE_ATTRIBUTE
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   bool cancel_if_zero_mode_spin1field(A&& prop,
 				      const gauge_info& gl,
 				      const int& imom)
@@ -161,13 +161,13 @@ namespace nissa
   void compute_mom_space_tlSym_gauge_propagator(LxField<spin1prop>& prop,
 						const gauge_info& gl)
   {
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
-      {//hack
-	spin1prop temp;
-	mom_space_tlSym_gauge_propagator_of_imom(temp,gl,imom);
-	spin1prop_copy(prop[imom],temp);
-      }
-    NISSA_PARALLEL_LOOP_END;
+    PAR(0,locVol,
+	CAPTURE(gl,TO_WRITE(prop)),imom,
+	{//hack
+	  spin1prop temp;
+	  mom_space_tlSym_gauge_propagator_of_imom(temp,gl,imom);
+	  spin1prop_copy(prop[imom],temp);
+	});
     
     prop.invalidateHalo();
   }
@@ -176,14 +176,15 @@ namespace nissa
 						 const LxField<spin1field>& in,
 						 const gauge_info& gl)
   {
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
-      {
-	spin1prop prop;
-	mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
-	safe_spinspin_prod_spin(out[imom],prop,in[imom]);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(out);
+    PAR(0,locVol,
+	CAPTURE(gl,
+		TO_WRITE(out),
+		TO_READ(in)),imom,
+	{//hack
+	  spin1prop prop;
+	  mom_space_tlSym_gauge_propagator_of_imom(prop,gl,imom);
+	  safe_spinspin_prod_spin(out[imom],prop,in[imom]);
+	});
   }
   
   void multiply_mom_space_sqrt_tlSym_gauge_propagator(LxField<spin1field>& out,
@@ -195,7 +196,10 @@ namespace nissa
       crash("Eigen required when out of Wilson regularisation in the Feynaman gauge");
 #endif
     
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
+    PAR(0,locVol,
+	CAPTURE(gl,TO_READ(in),
+		TO_WRITE(out)),
+	imom,
       {
 	//take the propagator
 	spin1prop prop;
@@ -268,11 +272,7 @@ namespace nissa
 	//     nre+=sqr(out[imom][mu][RE]);
 	//     nim+=sqr(out[imom][mu][IM]);
 	//   }
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    
-    set_borders_invalid(out);
+      });
   }
   
   void multiply_x_space_tlSym_gauge_propagator_by_fft(LxField<spin1prop>& out,
@@ -305,12 +305,12 @@ namespace nissa
   void generate_stochastic_tlSym_gauge_propagator_source(LxField<spin1field>& eta)
   {
     //fill with Z2
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
-	comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z2);
-    NISSA_PARALLEL_LOOP_END;
-    
-    eta.invalidateHalo();
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(eta)),ivol,
+	{
+	  for(int mu=0;mu<NDIM;mu++)
+	    comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z2);
+	});
   }
   
   //generate a stochastic gauge propagator
@@ -326,14 +326,12 @@ namespace nissa
     //put volume normalization due to convolution
     //cancel zero modes
     multiply_mom_space_sqrt_tlSym_gauge_propagator(photon,photon,gl);
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
-      {
-	spin_prodassign_double(photon[imom],sqrtf(glbVol));
-	cancel_if_zero_mode_spin1field(photon[imom],gl,imom);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    photon.invalidateHalo();
+    PAR(0,locVol,
+	CAPTURE(gl,TO_WRITE(photon)),imom,
+	{
+	  spin_prodassign_double(photon[imom],sqrtf(glbVol));
+	  cancel_if_zero_mode_spin1field(photon[imom],gl,imom);
+	});
     
     //go back to x space
     pass_spin1field_from_mom_to_x_space(photon,photon,gl.bc,true,true);
@@ -350,13 +348,12 @@ namespace nissa
     //put volume normalization due to convolution
     //cancel zero modes
     multiply_mom_space_tlSym_gauge_propagator(out,out,gl);
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
+    PAR(0,locVol,
+	CAPTURE(gl,TO_WRITE(out)),imom,
       {
 	spin_prodassign_double(out[imom],glbVol);
 	cancel_if_zero_mode_spin1field(out[imom],gl,imom);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(out);
+      });
     
     //go back to x space
     pass_spin1field_from_mom_to_x_space(out,out,gl.bc,true,true);

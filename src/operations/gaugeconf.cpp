@@ -95,29 +95,31 @@ namespace nissa
   
   void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis)
   {
-    int d0=0;
-    int d1=1+(axis-1+1)%3;
-    int d2=1+(axis-1+2)%3;
-    int d3=axis;
+    crash("reimplement");
     
-    //allocate a temporary conf with borders
-    quad_su3 *temp_conf=nissa_malloc("temp_conf",locVol+bord_vol,quad_su3);
-    memcpy(temp_conf,in,locVol*sizeof(quad_su3));
-    communicate_lx_quad_su3_borders(temp_conf);
+    // int d0=0;
+    // int d1=1+(axis-1+1)%3;
+    // int d2=1+(axis-1+2)%3;
+    // int d3=axis;
     
-    //now reorder links
-    NISSA_LOC_VOL_LOOP(ivol)
-    {
-      //copy temporal direction and axis
-      memcpy(out[ivol][d0],temp_conf[ivol][d0],sizeof(su3));
-      memcpy(out[ivol][d3],temp_conf[ivol][d3],sizeof(su3));
-      //swap the other two
-      unsafe_su3_hermitian(out[ivol][d1],temp_conf[loclxNeighdw[ivol][d2]][d2]);
-      memcpy(out[ivol][d2],temp_conf[ivol][d1],sizeof(su3));
-    }
+    // //allocate a temporary conf with borders
+    // quad_su3 *temp_conf=nissa_malloc("temp_conf",locVol+bord_vol,quad_su3);
+    // memcpy(temp_conf,in,locVol*sizeof(quad_su3));
+    // communicate_lx_quad_su3_borders(temp_conf);
     
-    //rotate rigidly
-    ac_rotate_vector(out,out,axis,sizeof(quad_su3));
+    // //now reorder links
+    // NISSA_LOC_VOL_LOOP(ivol)
+    // {
+    //   //copy temporal direction and axis
+    //   memcpy(out[ivol][d0],temp_conf[ivol][d0],sizeof(su3));
+    //   memcpy(out[ivol][d3],temp_conf[ivol][d3],sizeof(su3));
+    //   //swap the other two
+    //   unsafe_su3_hermitian(out[ivol][d1],temp_conf[loclxNeighdw[ivol][d2]][d2]);
+    //   memcpy(out[ivol][d2],temp_conf[ivol][d1],sizeof(su3));
+    // }
+    
+    // //rotate rigidly
+    // ac_rotate_vector(out,out,axis,sizeof(quad_su3));
   }
   
   void put_boundaries_conditions(LxField<quad_su3>& conf,
@@ -136,13 +138,14 @@ namespace nissa
     if(putonbords) nsite+=bord_vol;
     if(putonedges) nsite+=edge_vol;
     
-    NISSA_PARALLEL_LOOP(ivol,0,nsite)
-      for(int idir=0;idir<NDIM;idir++)
-	safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
-    NISSA_PARALLEL_LOOP_END;
-    
-    if(not putonbords) conf.invalidateHalo();
-    if(not putonedges) conf.invalidateEdges();
+    PAR(0,nsite,
+	CAPTURE(theta,
+		TO_WRITE(conf)),
+	ivol,
+      {
+	for(int idir=0;idir<NDIM;idir++)
+	  safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
+      });
   }
   
   void rem_boundaries_conditions(LxField<quad_su3>& conf,
@@ -182,12 +185,14 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  for(int mu=0;mu<NDIM;mu++)
-	    su3_put_to_id(conf[par][ieo][mu]);
-	NISSA_PARALLEL_LOOP_END;
-	
-	set_borders_invalid(conf[par]);
+	PAR(0,locVolh,
+	    CAPTURE(par,
+		    TO_WRITE(conf)),
+	    ieo,
+	    {
+	      for(int mu=0;mu<NDIM;mu++)
+		su3_put_to_id(conf[par][ieo][mu]);
+	    });
       }
   }
   
@@ -198,70 +203,80 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-        {
-	  int ilx=loclx_of_loceo[par][ieo];
-	  for(int mu=0;mu<NDIM;mu++)
-	    su3_put_to_rnd(conf[par][ieo][mu],loc_rnd_gen[ilx]);
-	}
-	NISSA_PARALLEL_LOOP_END
-	  
-	set_borders_invalid(conf[par]);
+	PAR(0,locVolh,
+	    CAPTURE(par,
+		    TO_WRITE(conf)),
+	    ieo,
+	    {
+	      int ilx=loclx_of_loceo[par][ieo];
+	      for(int mu=0;mu<NDIM;mu++)
+		su3_put_to_rnd(conf[par][ieo][mu],loc_rnd_gen[ilx]);
+	    });
       }
   }
   
   //unitarize an a lx conf
   void unitarize_lx_conf_orthonormalizing(quad_su3* conf)
   {
-    START_TIMING(unitarize_time,nunitarize);
+    crash("reimplement");
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int idir=0;idir<NDIM;idir++)
-	{
-	  su3 t;
-	  su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
-	  su3_copy(conf[ivol][idir],t);
-	}
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(conf);
-    STOP_TIMING(unitarize_time);
+    // START_TIMING(unitarize_time,nunitarize);
+    
+    // PAR(0,locVol,
+    // 	CAPTURE(TO_WRITE(conf)),
+    // 	ivol,
+    // 	{
+    // 	  for(int idir=0;idir<NDIM;idir++)
+    // 	    {
+    // 	      su3 t;
+    // 	      su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
+    // 	      su3_copy(conf[ivol][idir],t);
+    // 	    }
+    // 	});
+    // STOP_TIMING(unitarize_time);
   }
   
   //unitarize the conf by explicitly by projecting it maximally to su3
   void unitarize_lx_conf_maximal_trace_projecting(quad_su3* conf)
   {
-    START_TIMING(unitarize_time,nunitarize);
+    crash("reimplement");
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
-        su3_unitarize_maximal_trace_projecting(conf[ivol][mu],conf[ivol][mu]);
-    NISSA_PARALLEL_LOOP_END;
+    // START_TIMING(unitarize_time,nunitarize);
     
-    set_borders_invalid(conf);
-    STOP_TIMING(unitarize_time);
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   for(int mu=0;mu<NDIM;mu++)
+    //     su3_unitarize_maximal_trace_projecting(conf[ivol][mu],conf[ivol][mu]);
+    // NISSA_PARALLEL_LOOP_END;
+    
+    // set_borders_invalid(conf);
+    // STOP_TIMING(unitarize_time);
   }
   
   //eo version
   void unitarize_eo_conf_maximal_trace_projecting(eo_ptr<quad_su3> conf)
   {
-    START_TIMING(unitarize_time,nunitarize);
+    crash("reimplement");
     
-    for(int par=0;par<2;par++)
-      {
-        NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-          for(int mu=0;mu<NDIM;mu++)
-            su3_unitarize_maximal_trace_projecting(conf[par][ivol][mu],conf[par][ivol][mu]);
-	NISSA_PARALLEL_LOOP_END;
+    // START_TIMING(unitarize_time,nunitarize);
+    
+    // for(int par=0;par<2;par++)
+    //   {
+    //     NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+    //       for(int mu=0;mu<NDIM;mu++)
+    //         su3_unitarize_maximal_trace_projecting(conf[par][ivol][mu],conf[par][ivol][mu]);
+    // 	NISSA_PARALLEL_LOOP_END;
         
-        set_borders_invalid(conf[par]);
-      }
+    //     set_borders_invalid(conf[par]);
+    //   }
     
-    STOP_TIMING(unitarize_time);
+    // STOP_TIMING(unitarize_time);
   }
   
   //overrelax an lx configuration
   void overrelax_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
-  {su3_find_overrelaxed(out,out,staple,((int*)pars)[0]);}
+  {
+    su3_find_overrelaxed(out,out,staple,((int*)pars)[0]);
+  }
   
   void overrelax_lx_conf(LxField<quad_su3>& conf,gauge_sweeper_t* sweeper,int nhits)
   {
@@ -298,13 +313,17 @@ namespace nissa
     sweeper->sweep_conf(conf,cool_lx_conf_handle,NULL);}
   
   //measure the average gauge energy
-  void average_gauge_energy(double* energy,
-			    const LxField<quad_su3>& conf)
+  double average_gauge_energy(const LxField<quad_su3>& conf)
   {
+    double energy;
+    
     conf.updateEdges();
     LxField<double> loc_energy("energy");
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(loc_energy),
+		TO_READ(conf)),
+	ivol,
       {
 	//compute the clover-shape paths
 	as2t_su3 leaves;
@@ -321,26 +340,10 @@ namespace nissa
 	    loc_energy[ivol]-=temp[RE];
 	  }
 	loc_energy[ivol]/=glbVol;
-      }
-    NISSA_PARALLEL_LOOP_END;
+      });
     
-    glb_reduce(energy,loc_energy,locVol);
-  }
-  
-  std::string gauge_obs_meas_pars_t::get_str(bool full)
-  {
-    std::ostringstream os;
+    glb_reduce(&energy,loc_energy,locVol);
     
-    os<<"MeasPlaqPol\n";
-    if(each!=def_each() or full) os<<" Each\t\t=\t"<<each<<"\n";
-    if(after!=def_after() or full) os<<" After\t\t=\t"<<after<<"\n";
-    if(path!=def_path() or full) os<<" Path\t\t=\t\""<<path.c_str()<<"\"\n";
-    if(meas_plaq!=def_meas_plaq() or full) os<<" MeasPlaq\t\t=\t"<<meas_plaq<<"\n";
-    if(meas_energy!=def_meas_energy() or full) os<<" MeasEnergy\t\t=\t"<<meas_energy<<"\n";
-    if(meas_poly!=def_meas_poly() or full) os<<" MeasPoly\t\t=\t"<<meas_poly<<"\n";
-    if(use_smooth!=def_use_smooth() or full) os<<" UseSmooth\t\t=\t"<<use_smooth<<"\n";
-    os<<smooth_pars.get_str(full);
-    
-    return os.str();
+    return energy;
   }
 }

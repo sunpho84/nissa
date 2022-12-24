@@ -8,10 +8,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gaugeconf.cpp \
 	%D%/remap_vector.cpp \
 	%D%/remez/remez_algorithm.cpp \
-	%D%/shift.cpp \
 	%D%/source.cpp \
-	%D%/smearing/APE.cpp \
-	%D%/smearing/gaussian.cpp \
 	%D%/smearing/hex.cpp \
 	%D%/smearing/HYP.cpp \
 	%D%/smearing/smooth.cpp \

@@ -13,7 +13,7 @@ namespace nissa
   void complex_vector_conj(complex *res,complex *in,int n);
   inline void complex_vector_self_conj(complex *v,int n)
   {complex_vector_conj(v,v,n);}
-  void complex_vector_glb_scalar_prod(double *glb_res,complex *a,complex *b,int n);
+  
   void complex_vector_summassign_complex_vector_prod_complex(complex *a,complex *b,complex c,int n);
   inline void complex_vector_subtassign_complex_vector_prod_complex(complex *a,complex *b,complex c,int n)
   {

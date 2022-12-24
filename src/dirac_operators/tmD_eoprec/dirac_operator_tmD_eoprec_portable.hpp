@@ -41,114 +41,115 @@ namespace nissa
     conf.updateHalo();
     in.updateHalo();
     
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
-      {
-	spincolor_put_to_zero(out[X]);
-	
-	for(int mu=0;mu<NDIM;mu++)
-	  {
-	    color temp_c0,temp_c1,temp_c2,temp_c3;
-	    
-	    //Forward
-	    const int Xup=O::locNeighup(X,mu);
-	    switch(mu)
-	      {
-	      case 0:
-		color_summ(temp_c0,in[Xup][0],in[Xup][2]);
-		color_summ(temp_c1,in[Xup][1],in[Xup][3]);
-		break;
-	      case 1:
-		color_isumm(temp_c0,in[Xup][0],in[Xup][3]);
-		color_isumm(temp_c1,in[Xup][1],in[Xup][2]);
-		break;
-	      case 2:
-		color_summ(temp_c0,in[Xup][0],in[Xup][3]);
-		color_subt(temp_c1,in[Xup][1],in[Xup][2]);
-		break;
-	      case 3:
-		color_isumm(temp_c0,in[Xup][0],in[Xup][2]);
-		color_isubt(temp_c1,in[Xup][1],in[Xup][3]);
-		break;
-	      }
-	    
-	    unsafe_su3_prod_color(temp_c2,conf[xPar][X][mu],temp_c0);
-	    unsafe_su3_prod_color(temp_c3,conf[xPar][X][mu],temp_c1);
-	    
-	    color_summassign(out[X][0],temp_c2);
-	    color_summassign(out[X][1],temp_c3);
-	    
-	    switch(mu)
-	      {
-	      case 0:
-		color_summassign(out[X][2],temp_c2);
-		color_summassign(out[X][3],temp_c3);
-		break;
-	      case 1:
-		color_isubtassign(out[X][2],temp_c3);
-		color_isubtassign(out[X][3],temp_c2);
-		break;
-	      case 2:
-		color_subtassign(out[X][2],temp_c3);
-		color_summassign(out[X][3],temp_c2);
-		break;
-	      case 3:
-		color_isubtassign(out[X][2],temp_c2);
-		color_isummassign(out[X][3],temp_c3);
-		break;
-	      }
-	    
-	    //Backward
-	    const int Xdw=O::locNeighdw(X,mu);
-	    switch(mu)
-	      {
-	      case 0:
-		color_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
-		color_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
-		break;
-	      case 1:
-		color_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
-		color_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
-		break;
-	      case 2:
-		color_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
-		color_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
-		break;
-	      case 3:
-		color_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
-		color_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
-		break;
-	      }
-	    
-	    unsafe_su3_dag_prod_color(temp_c2,conf[!xPar][Xdw][mu],temp_c0);
-	    unsafe_su3_dag_prod_color(temp_c3,conf[!xPar][Xdw][mu],temp_c1);
-	    
-	    color_summassign(out[X][0],temp_c2);
-	    color_summassign(out[X][1],temp_c3);
-	    
-	    switch(mu)
-	      {
-	      case 0:
-		color_subtassign(out[X][2],temp_c2);
-		color_subtassign(out[X][3],temp_c3);
-		break;
-	      case 1:
-		color_isummassign(out[X][2],temp_c3);
-		color_isummassign(out[X][3],temp_c2);
-		break;
-	      case 2:
-		color_summassign(out[X][2],temp_c3);
-		color_subtassign(out[X][3],temp_c2);
-		break;
-	      case 3:
-		color_isummassign(out[X][2],temp_c2);
-		color_isubtassign(out[X][3],temp_c3);
-		break;
-	      }
-	  }
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    out.invalidateHalo();
+    PAR(0,locVolh,
+	CAPTURE(TO_WRITE(out),
+		TO_READ(in),
+		TO_READ(conf)),
+	X,
+	{
+	  spincolor_put_to_zero(out[X]);
+	  
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      color temp_c0,temp_c1,temp_c2,temp_c3;
+	      
+	      //Forward
+	      const int Xup=O::locNeighup(X,mu);
+	      switch(mu)
+		{
+		case 0:
+		  color_summ(temp_c0,in[Xup][0],in[Xup][2]);
+		  color_summ(temp_c1,in[Xup][1],in[Xup][3]);
+		  break;
+		case 1:
+		  color_isumm(temp_c0,in[Xup][0],in[Xup][3]);
+		  color_isumm(temp_c1,in[Xup][1],in[Xup][2]);
+		  break;
+		case 2:
+		  color_summ(temp_c0,in[Xup][0],in[Xup][3]);
+		  color_subt(temp_c1,in[Xup][1],in[Xup][2]);
+		  break;
+		case 3:
+		  color_isumm(temp_c0,in[Xup][0],in[Xup][2]);
+		  color_isubt(temp_c1,in[Xup][1],in[Xup][3]);
+		  break;
+		}
+	      
+	      unsafe_su3_prod_color(temp_c2,conf[xPar][X][mu],temp_c0);
+	      unsafe_su3_prod_color(temp_c3,conf[xPar][X][mu],temp_c1);
+	      
+	      color_summassign(out[X][0],temp_c2);
+	      color_summassign(out[X][1],temp_c3);
+	      
+	      switch(mu)
+		{
+		case 0:
+		  color_summassign(out[X][2],temp_c2);
+		  color_summassign(out[X][3],temp_c3);
+		  break;
+		case 1:
+		  color_isubtassign(out[X][2],temp_c3);
+		  color_isubtassign(out[X][3],temp_c2);
+		  break;
+		case 2:
+		  color_subtassign(out[X][2],temp_c3);
+		  color_summassign(out[X][3],temp_c2);
+		  break;
+		case 3:
+		  color_isubtassign(out[X][2],temp_c2);
+		  color_isummassign(out[X][3],temp_c3);
+		  break;
+		}
+	      
+	      //Backward
+	      const int Xdw=O::locNeighdw(X,mu);
+	      switch(mu)
+		{
+		case 0:
+		  color_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
+		  color_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
+		  break;
+		case 1:
+		  color_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
+		  color_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
+		  break;
+		case 2:
+		  color_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
+		  color_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
+		  break;
+		case 3:
+		  color_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
+		  color_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
+		  break;
+		}
+	      
+	      unsafe_su3_dag_prod_color(temp_c2,conf[!xPar][Xdw][mu],temp_c0);
+	      unsafe_su3_dag_prod_color(temp_c3,conf[!xPar][Xdw][mu],temp_c1);
+	      
+	      color_summassign(out[X][0],temp_c2);
+	      color_summassign(out[X][1],temp_c3);
+	      
+	      switch(mu)
+		{
+		case 0:
+		  color_subtassign(out[X][2],temp_c2);
+		  color_subtassign(out[X][3],temp_c3);
+		  break;
+		case 1:
+		  color_isummassign(out[X][2],temp_c3);
+		  color_isummassign(out[X][3],temp_c2);
+		  break;
+		case 2:
+		  color_summassign(out[X][2],temp_c3);
+		  color_subtassign(out[X][3],temp_c2);
+		  break;
+		case 3:
+		  color_isummassign(out[X][2],temp_c2);
+		  color_isubtassign(out[X][3],temp_c3);
+		  break;
+		}
+	    }
+	});
   }
   
   //implement ee or oo part of Dirac operator, equation(3)
@@ -159,19 +160,22 @@ namespace nissa
 			   const double& mu,
 			   const I& in)
   {
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
-      for(int ic=0;ic<NCOL;ic++)
+    PAR(0,locVolh,
+	CAPTURE(kappa,mu,
+		TO_WRITE(out),
+		TO_READ(in)),
+	X,
 	{
-	  const complex z={1/(2*kappa),mu};
-	  
-	  for(int id=0;id<NDIRAC/2;id++)
-	    unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
-	  for(int id=NDIRAC/2;id<4;id++)
-	    unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
-	}
-    NISSA_PARALLEL_LOOP_END;
-    
-    out.invalidateHalo();
+	  for(int ic=0;ic<NCOL;ic++)
+	    {
+	      const complex z={1/(2*kappa),mu};
+	      
+	      for(int id=0;id<NDIRAC/2;id++)
+		unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
+	      for(int id=NDIRAC/2;id<4;id++)
+		unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
+	    }
+	});
   }
   
   /// Inverse
@@ -182,20 +186,23 @@ namespace nissa
 			   const double& mu,
 			   const I& in)
   {
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
-      for(int ic=0;ic<NCOL;ic++)
+    PAR(0,locVolh,
+	CAPTURE(kappa,mu,
+		TO_WRITE(out),
+		TO_READ(in)),
+	X,
 	{
-	  const double a=1/(2*kappa),b=mu,nrm=a*a+b*b;
-	  const complex z={+a/nrm,-b/nrm};
-	  
-	  for(int id=0;id<NDIRAC/2;id++)
-	    unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
-	  for(int id=NDIRAC/2;id<4;id++)
-	    unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
-	}
-    NISSA_PARALLEL_LOOP_END;
-    
-    out.invalidateHalo();
+	  for(int ic=0;ic<NCOL;ic++)
+	    {
+	      const double a=1/(2*kappa),b=mu,nrm=a*a+b*b;
+	      const complex z={+a/nrm,-b/nrm};
+	      
+	      for(int id=0;id<NDIRAC/2;id++)
+		unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
+	      for(int id=NDIRAC/2;id<4;id++)
+		unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
+	    }
+	});
   }
 }
 

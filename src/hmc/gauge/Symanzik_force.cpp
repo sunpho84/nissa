@@ -27,7 +27,6 @@ namespace nissa
     const double C0=get_C0(C1);
     const double w1=-C1*beta/NCOL,w0=-C0*beta/NCOL;
     
-    
     //compute squared pieces
     LxField<squared_staples_t> squared_staples("squared_staples",WITH_HALO);
     compute_squared_staples_lx_conf(squared_staples,conf);
@@ -36,22 +35,25 @@ namespace nissa
     LxField<rectangular_staples_t> rectangular_staples("rectangular_staples",WITH_HALO);
     compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
+    PAR(0,locVol,
+	CAPTURE(w0,w1,
+		TO_WRITE(out),
+		TO_READ(squared_staples),
+		TO_READ(rectangular_staples)),ivol,
 	{
-	  //summ the six terms of squares
-	  su3_summ(out[ivol][mu],squared_staples[ivol][mu][0],squared_staples[ivol][mu][1]);
-	  for(int iterm=2;iterm<6;iterm++) su3_summassign(out[ivol][mu],squared_staples[ivol][mu][iterm]);
-	  safe_su3_hermitian_prod_double(out[ivol][mu],out[ivol][mu],w0);
-	  
-	  //summ the six terms of rectangles
-	  su3 temp;
-	  su3_summ(temp,rectangular_staples[ivol][mu][0],rectangular_staples[ivol][mu][1]);
-	  for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,rectangular_staples[ivol][mu][iterm]);
-	  su3_summ_the_hermitian_prod_double(out[ivol][mu],temp,w1);
-	}
-    NISSA_PARALLEL_LOOP_END;
-    
-    out.invalidateHalo();
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      //summ the six terms of squares
+	      su3_summ(out[ivol][mu],squared_staples[ivol][mu][0],squared_staples[ivol][mu][1]);
+	      for(int iterm=2;iterm<6;iterm++) su3_summassign(out[ivol][mu],squared_staples[ivol][mu][iterm]);
+	      safe_su3_hermitian_prod_double(out[ivol][mu],out[ivol][mu],w0);
+	      
+	      //summ the six terms of rectangles
+	      su3 temp;
+	      su3_summ(temp,rectangular_staples[ivol][mu][0],rectangular_staples[ivol][mu][1]);
+	      for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,rectangular_staples[ivol][mu][iterm]);
+	      su3_summ_the_hermitian_prod_double(out[ivol][mu],temp,w1);
+	    }
+	});
   }
 }

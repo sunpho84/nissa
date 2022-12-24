@@ -44,17 +44,20 @@ namespace nissa
 					const OddField<spincolor>& source_odd)
   {
     tmn2Deo_or_tmn2Doe_eos(varphi,conf_eos,eq8a);
-    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-      for(int id=0;id<NDIRAC/2;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    { //gamma5 is explicitly wrote
-	      varphi[ivol][id  ][ic][ri]=+source_odd[ivol][id  ][ic][ri]+varphi[ivol][id  ][ic][ri]*0.5;
-	      varphi[ivol][id+2][ic][ri]=-source_odd[ivol][id+2][ic][ri]-varphi[ivol][id+2][ic][ri]*0.5;
-	    }
-    NISSA_PARALLEL_LOOP_END;
     
-    varphi.invalidateHalo();
+    PAR(0,locVolh,
+	CAPTURE(TO_WRITE(varphi),
+		TO_READ(source_odd)),
+	iEo,
+	{
+	  for(int id=0;id<NDIRAC/2;id++)
+	    for(int ic=0;ic<NCOL;ic++)
+	      for(int ri=0;ri<2;ri++)
+		{ //gamma5 is explicitly wrote
+		  varphi[iEo][id  ][ic][ri]=+source_odd[iEo][id  ][ic][ri]+varphi[iEo][id  ][ic][ri]*0.5;
+		  varphi[iEo][id+2][ic][ri]=-source_odd[iEo][id+2][ic][ri]-varphi[iEo][id+2][ic][ri]*0.5;
+		}
+	});
   }
   
   //invert Koo defined in equation (7)
@@ -84,14 +87,16 @@ namespace nissa
   {
     tmn2Deo_or_tmn2Doe_eos(varphi,conf_eos,sol_odd);
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-      for(int id=0;id<NDIRAC;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    varphi[ivol][id][ic][ri]=source_evn[ivol][id][ic][ri]+varphi[ivol][id][ic][ri]*0.5;
-    NISSA_PARALLEL_LOOP_END;
-    
-    varphi.invalidateHalo();
+    PAR(0,locVolh,
+	CAPTURE(TO_WRITE(varphi),
+		TO_READ(source_evn)),
+	iEo,
+	{
+	  for(int id=0;id<NDIRAC;id++)
+	    for(int ic=0;ic<NCOL;ic++)
+	      for(int ri=0;ri<2;ri++)
+		varphi[iEo][id][ic][ri]=source_evn[iEo][id][ic][ri]+varphi[iEo][id][ic][ri]*0.5;
+	});
   }
   
   //Invert twisted mass operator using e/o preconditioning.
@@ -161,7 +166,8 @@ namespace nissa
 	const double cSW=0;
 	double call_time=take_time();
 #ifdef USE_QUDA
-	solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
+	crash("reimplement"); (void)cSW;
+	// solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
 #elif defined(USE_DDALPHAAMG)
 	crash("reimplement the handle with DDalpha");
 	(void)&cSW;//avoid warning
@@ -186,9 +192,12 @@ namespace nissa
     LxField<spincolor> temp("temp",WITH_HALO);
     temp=solution_lx;
     apply_tmQ(residueVec,conf_lx,kappa,mass,temp);
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      safe_dirac_prod_spincolor(residueVec[ivol],base_gamma[5],residueVec[ivol]);
-    NISSA_PARALLEL_LOOP_END;
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(residueVec)),
+	ivol,
+	{
+	  safe_dirac_prod_spincolor(residueVec[ivol],base_gamma[5],residueVec[ivol]);
+	});
     residueVec-=source_lx;
     
     /// Source L2 norm

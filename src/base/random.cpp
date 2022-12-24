@@ -308,18 +308,17 @@ namespace nissa
     //reset
     source.reset();
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+    PAR(0,locVol,CAPTURE(twall,rtype,TO_WRITE(source)),ivol,
 	{
-	  comp_get_rnd(source[ivol][0][0][0][0],&(loc_rnd_gen[ivol]),rtype);
-	  for(int c=0;c<NCOL;c++)
-	    for(int d=0;d<NDIRAC;d++)
-	      if(c or d)
-		complex_copy(source[ivol][c][c][d][d],source[ivol][0][0][0][0]);
-	  }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(source);
+	  if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+	    {
+	      comp_get_rnd(source[ivol][0][0][0][0],&(loc_rnd_gen[ivol]),rtype);
+	      for(int c=0;c<NCOL;c++)
+		for(int d=0;d<NDIRAC;d++)
+		  if(c or d)
+		    complex_copy(source[ivol][c][c][d][d],source[ivol][0][0][0][0]);
+	    }
+	});
   }
   
   //generate a spindiluted vector according to the passed type
@@ -329,17 +328,16 @@ namespace nissa
   {
     source.reset();
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
-	for(int ic=0;ic<NCOL;ic++)
-	  {
-	    comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
-	    for(int d=1;d<NDIRAC;d++)
-	      complex_copy(source[ivol][ic][d][d],source[ivol][ic][0][0]);
-	  }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(source);
+    PAR(0,locVol,CAPTURE(twall,rtype,TO_WRITE(source)),ivol,
+	{
+	  if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+	    for(int ic=0;ic<NCOL;ic++)
+	      {
+		comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
+		for(int d=1;d<NDIRAC;d++)
+		  complex_copy(source[ivol][ic][d][d],source[ivol][ic][0][0]);
+	      }
+	});
   }
   
   //generate an undiluted vector according to the passed type
@@ -349,14 +347,13 @@ namespace nissa
   {
     source.reset();
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
-	for(int id=0;id<NDIRAC;id++)
-	  for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(source);
+    PAR(0,locVol,CAPTURE(twall,rtype,TO_WRITE(source)),ivol,
+	{
+	  if(glbCoordOfLoclx[ivol][0]==twall or twall<0)
+	    for(int id=0;id<NDIRAC;id++)
+	      for(int ic=0;ic<NCOL;ic++)
+		comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
+	});
   }
   
   //generate a fully undiluted source
@@ -367,13 +364,12 @@ namespace nissa
   {
     source.reset();
     
-    NISSA_PARALLEL_LOOP(ilx,0,locVol)
-      if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
-	for(int ic=0;ic<NCOL;ic++)
-	  comp_get_rnd(source[ilx][ic],&(loc_rnd_gen[ilx]),rtype);
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(source);
+    PAR(0,locVol,CAPTURE(dir,twall,rtype,TO_WRITE(source)),ilx,
+	{
+	  if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
+	    for(int ic=0;ic<NCOL;ic++)
+	      comp_get_rnd(source[ilx][ic],&(loc_rnd_gen[ilx]),rtype);
+	});
   }
   
   //eo version
@@ -385,16 +381,13 @@ namespace nissa
   {
     source.reset();
     
-    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-      {
-	int ilx=loclx_of_loceo[par][ieo];
-	if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
-	  for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ieo][ic],&(loc_rnd_gen[ilx]),rtype);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    source.invalidateHalo();
+    PAR(0,locVolh,CAPTURE(par,dir,twall,rtype,TO_WRITE(source)),ieo,
+	{
+	  int ilx=loclx_of_loceo[par][ieo];
+	  if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
+	    for(int ic=0;ic<NCOL;ic++)
+	      comp_get_rnd(source[ieo][ic],&(loc_rnd_gen[ilx]),rtype);
+	});
   }
   
   void generate_fully_undiluted_eo_source(EoField<color>& source,
@@ -415,17 +408,14 @@ namespace nissa
   {
     source.reset();
     
-    NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-      {
-	int ilx=loclx_of_loceo[par][ieo];
-	if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
-	  for(int id=0;id<NDIRAC;id++)
-	    for(int ic=0;ic<NCOL;ic++)
-	    comp_get_rnd(source[ieo][id][ic],&(loc_rnd_gen[ilx]),rtype);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    source.invalidateHalo();
+    PAR(0,locVolh,CAPTURE(par,dir,twall,rtype,TO_WRITE(source)),ieo,
+	{
+	  int ilx=loclx_of_loceo[par][ieo];
+	  if(twall<0 or glbCoordOfLoclx[ilx][dir]==twall)
+	    for(int id=0;id<NDIRAC;id++)
+	      for(int ic=0;ic<NCOL;ic++)
+		comp_get_rnd(source[ieo][id][ic],&(loc_rnd_gen[ilx]),rtype);
+	});
   }
   
   void generate_fully_undiluted_eo_source(EoField<spincolor>& source,

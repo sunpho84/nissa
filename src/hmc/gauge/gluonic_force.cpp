@@ -24,16 +24,18 @@ namespace nissa
 					const LxField<quad_su3>& conf)
   {
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(F),
+		TO_READ(conf)),
+	ivol,
 	{
-	  su3 temp;
-	  unsafe_su3_prod_su3(temp,conf[ivol][mu],F[ivol][mu]);
-	  unsafe_su3_traceless_anti_hermitian_part(F[ivol][mu],temp);
-	}
-    NISSA_PARALLEL_LOOP_END;
-    
-    THREAD_BARRIER();
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      su3 temp;
+	      unsafe_su3_prod_su3(temp,conf[ivol][mu],F[ivol][mu]);
+	      unsafe_su3_traceless_anti_hermitian_part(F[ivol][mu],temp);
+	    }
+	});
   }
   
   /// Compute the gauge force

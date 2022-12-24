@@ -83,7 +83,7 @@ namespace nissa
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t nrank_dir;
   EXTERN_GEOMETRY_LX int grid_inited;
   EXTERN_GEOMETRY_LX int nparal_dir;
-  EXTERN_GEOMETRY_LX coords_t is_dir_parallel;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t is_dir_parallel;
   //size of the border and edges
   CUDA_MANAGED EXTERN_GEOMETRY_LX int bord_vol,bord_volh;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int edge_vol,edge_volh;

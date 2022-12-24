@@ -53,10 +53,11 @@ namespace nissa
     
     NB: indeed Pi is anti-hermitian
   */
-  template <typename T>
+  template <typename T,
+	    typename U>
   CUDA_HOST_AND_DEVICE
   void point_chromo_operator(T&& Cl,
-			     const LxField<quad_su3>& conf,
+			     const U& conf,
 			     const int& X)
   {
     //this is the non-anti-symmetric part 2*F_mu_nu
@@ -100,11 +101,13 @@ namespace nissa
     master_printf("Computing Chromo operator\n");
     
     conf.updateEdges();
-    NISSA_PARALLEL_LOOP(X,0,locVol)
-      point_chromo_operator(Cl[X],conf,X);
-    NISSA_PARALLEL_LOOP_END;
-    
-    Cl.invalidateHalo();
+    PAR(0,locVol,
+	CAPTURE(TO_READ(conf),
+		TO_WRITE(Cl)),
+	X,
+	{
+	  point_chromo_operator(Cl[X],conf,X);
+	});
   }
   
   void chromo_operator(EoField<clover_term_t>& Cl_eo,
@@ -123,11 +126,14 @@ namespace nissa
 						 const LxField<clover_term_t>& Cl,
 						 const LxField<spincolor>& in)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Cl[ivol],in[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(out);
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(out),
+		TO_READ(Cl),
+		TO_READ(in)),
+	ivol,
+	{
+	  unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Cl[ivol],in[ivol]);
+	});
   }
   
   //128 bit case
@@ -155,54 +161,56 @@ namespace nissa
   //normalization as in ape next
   void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin* out,clover_term_t* Cl,colorspinspin* in)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	spincolor temp1,temp2;
+    crash("reimplement");
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   {
+    // 	spincolor temp1,temp2;
 	
-	//Loop over the four source dirac indexes
-	for(int id_source=0;id_source<NDIRAC;id_source++) //dirac index of source
-	  {
-	    //Switch the color_spinspin into the spincolor.
-	    get_spincolor_from_colorspinspin(temp1,in[ivol],id_source);
+    // 	//Loop over the four source dirac indexes
+    // 	for(int id_source=0;id_source<NDIRAC;id_source++) //dirac index of source
+    // 	  {
+    // 	    //Switch the color_spinspin into the spincolor.
+    // 	    get_spincolor_from_colorspinspin(temp1,in[ivol],id_source);
 	    
-	    unsafe_apply_point_chromo_operator_to_spincolor(temp2,Cl[ivol],temp1);
+    // 	    unsafe_apply_point_chromo_operator_to_spincolor(temp2,Cl[ivol],temp1);
 	    
-	    //Switch back the spincolor into the colorspinspin
-	    put_spincolor_into_colorspinspin(out[ivol],temp2,id_source);
-	  }
-      }
-    NISSA_PARALLEL_LOOP_END;
+    // 	    //Switch back the spincolor into the colorspinspin
+    // 	    put_spincolor_into_colorspinspin(out[ivol],temp2,id_source);
+    // 	  }
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
     
-    //invalidate borders
-    set_borders_invalid(out);
+    // //invalidate borders
+    // set_borders_invalid(out);
   }
   
   //apply the chromo operator to the passed su3spinspin
   //normalization as in ape next
   void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin* out,clover_term_t* Cl,su3spinspin* in)
   {
+    crash("reimplement");
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	spincolor temp1,temp2;
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   {
+    // 	spincolor temp1,temp2;
 	
-	//Loop over the four source dirac indexes
-	for(int id_source=0;id_source<NDIRAC;id_source++) //dirac index of source
-	  for(int ic_source=0;ic_source<NCOL;ic_source++) //color index of source
-	    {
-	      //Switch the su3spinspin into the spincolor.
-	      get_spincolor_from_su3spinspin(temp1,in[ivol],id_source,ic_source);
+    // 	//Loop over the four source dirac indexes
+    // 	for(int id_source=0;id_source<NDIRAC;id_source++) //dirac index of source
+    // 	  for(int ic_source=0;ic_source<NCOL;ic_source++) //color index of source
+    // 	    {
+    // 	      //Switch the su3spinspin into the spincolor.
+    // 	      get_spincolor_from_su3spinspin(temp1,in[ivol],id_source,ic_source);
 	      
-	      unsafe_apply_point_chromo_operator_to_spincolor(temp2,Cl[ivol],temp1);
+    // 	      unsafe_apply_point_chromo_operator_to_spincolor(temp2,Cl[ivol],temp1);
 	      
-	      //Switch back the spincolor into the colorspinspin
-	      put_spincolor_into_su3spinspin(out[ivol],temp2,id_source,ic_source);
-	    }
-      }
-    NISSA_PARALLEL_LOOP_END;
+    // 	      //Switch back the spincolor into the colorspinspin
+    // 	      put_spincolor_into_su3spinspin(out[ivol],temp2,id_source,ic_source);
+    // 	    }
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
     
-    //invalidate borders
-    set_borders_invalid(out);
+    // //invalidate borders
+    // set_borders_invalid(out);
   }
   
   // CUDA_HOST_AND_DEVICE void apply_point_diag_plus_clover_term_to_halfspincolor_128(halfspincolor_128 out,complex& diag,clover_term_t Cl,halfspincolor_128 in)

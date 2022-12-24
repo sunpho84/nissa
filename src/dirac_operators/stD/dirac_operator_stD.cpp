@@ -25,14 +25,14 @@ namespace nissa
 		     const double sign=1)
   {
     apply_stDeo_half(out,conf,in.oddPart);
-    out.forEachSiteDeg([&in,
-			&m,
-			&sign](double& d,
-			       const int& site,
-			       const int& iDeg)
-    {
-      d=in[EVN](site,iDeg)*m+2*sign*d;
-    });
+    FOR_EACH_SITE_DEG_OF_FIELD(out,
+			       CAPTURE(m,sign,
+				       TO_WRITE(out),
+				       TO_READ(in)),site,iDeg,
+			       {
+				 auto& d= out(site,iDeg);
+				 d=in[EVN](site,iDeg)*m+2*sign*d;
+			       });
   }
   
   //return the odd part of the application of D to a vector
@@ -40,17 +40,17 @@ namespace nissa
 		     const EoField<quad_su3>& conf,
 		     const double m,
 		     const EoField<color>& in,
-		     const double sign=1)
+		     const double& sign=1)
   {
     apply_st2Doe(out,conf,in.evenPart);
-    out.forEachSiteDeg([&in,
-			&m,
-			&sign](double& d,
-			       const int& site,
-			       const int& iDeg)
-    {
-      d=in[ODD](site,iDeg)*m+0.5*sign*d;
-    });
+    FOR_EACH_SITE_DEG_OF_FIELD(out,
+			       CAPTURE(m,sign,
+				       TO_WRITE(out),
+				       TO_READ(in)),site,iDeg,
+			       {
+				 auto& d=out(site,iDeg);
+				 d=in[ODD](site,iDeg)*m+0.5*sign*d;
+			       });
   }
   
   //return the result of the application of D to a vector

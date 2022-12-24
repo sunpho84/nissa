@@ -54,23 +54,27 @@ namespace nissa
 			      const LxField<spinspin>& in,
 			      const int& id_so)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int id_si=0;id_si<NDIRAC;id_si++)
-	complex_copy(out[ivol][id_si],in[ivol][id_si][id_so]);
-    NISSA_PARALLEL_LOOP_END;
-    
-    out.invalidateHalo();
+    PAR(0,locVol,
+	CAPTURE(id_so,
+		TO_WRITE(out),
+		TO_READ(in)),ivol,
+	{
+	  for(int id_si=0;id_si<NDIRAC;id_si++)
+	    complex_copy(out[ivol][id_si],in[ivol][id_si][id_so]);
+	});
   }
   
   void put_spin_into_spinspin(LxField<spinspin>& out,
 			      const LxField<spin>& in,
 			      const int& id_so)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int id_si=0;id_si<NDIRAC;id_si++)
-	complex_copy(out[ivol][id_si][id_so],in[ivol][id_si]);
-    NISSA_PARALLEL_LOOP_END;
-    
-    out.invalidateHalo();
+    PAR(0,locVol,
+	CAPTURE(id_so,
+		TO_WRITE(out),
+		TO_READ(in)),ivol,
+	{
+	  for(int id_si=0;id_si<NDIRAC;id_si++)
+	    complex_copy(out[ivol][id_si][id_so],in[ivol][id_si]);
+	});
   }
 }

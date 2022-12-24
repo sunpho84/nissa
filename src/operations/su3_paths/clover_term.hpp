@@ -240,18 +240,23 @@ namespace nissa
   
   template <typename InvClF,
 	    typename ClF>
-   void invert_twisted_clover_term(FieldFeat<InvClF>& invCl,
+   void invert_twisted_clover_term(FieldFeat<InvClF>& _invCl,
 				   const double& mass,
 				   const double& kappa,
-				   const FieldFeat<ClF>& Cl)
+				   const FieldFeat<ClF>& _Cl)
    {
      verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
      
-     NISSA_PARALLEL_LOOP(X,0,Cl->nSites())
-       invert_point_twisted_clover_term((*invCl)[X],mass,kappa,(*Cl)[X]);
-     NISSA_PARALLEL_LOOP_END;
+     InvClF& invCl=*_invCl;
+     const ClF& Cl=*_Cl;
      
-     invCl->invalidateHalo();
+     PAR(0,Cl.nSites(),
+	 CAPTURE(mass,kappa,
+		 TO_WRITE(invCl),
+		 TO_READ(Cl)),X,
+	 {
+	   invert_point_twisted_clover_term(invCl[X],mass,kappa,Cl[X]);
+	 });
    }
 }
 

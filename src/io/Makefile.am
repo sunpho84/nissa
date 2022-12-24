@@ -4,9 +4,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/checksum.cpp \
 	%D%/endianness.cpp \
 	%D%/input.cpp \
-	%D%/ILDG_File.cpp \
-	%D%/reader.cpp \
-	%D%/writer.cpp
+	%D%/ILDG_File.cpp
 
 include_HEADERS+= \
 	%D%/buffer.hpp \

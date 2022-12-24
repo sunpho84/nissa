@@ -258,16 +258,15 @@ namespace nissa
 					    const tm_quark_info& qu,
 					    const tm_basis_t& base)
   {
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
-      {
-	//hack
-	spinspin tmp;
-	mom_space_twisted_propagator_of_imom(tmp,qu,imom,base);
-	spinspin_copy(prop[imom],tmp);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    set_borders_invalid(prop);
+    PAR(0,locVol,
+	CAPTURE(qu,base,
+		TO_WRITE(prop)),imom,
+	{
+	  //hack
+	  spinspin tmp;
+	  mom_space_twisted_propagator_of_imom(tmp,qu,imom,base);
+	  spinspin_copy(prop[imom],tmp);
+	});
   }
   
   ///////////////////////////////////////////// twisted propagator in x space ////////////////////////////////////////////////
@@ -289,14 +288,13 @@ namespace nissa
     compute_mom_space_twisted_propagator(sq_prop,qu,base);
     
     //square (including normalisation)
-    NISSA_PARALLEL_LOOP(imom,0,locVol)
-      {
-	safe_spinspin_prod_spinspin(sq_prop[imom],sq_prop[imom],sq_prop[imom]);
-	spinspin_prodassign_double(sq_prop[imom],glbVol);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    THREAD_BARRIER();
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(sq_prop)),
+	imom,
+	{
+	  safe_spinspin_prod_spinspin(sq_prop[imom],sq_prop[imom],sq_prop[imom]);
+	  spinspin_prodassign_double(sq_prop[imom],glbVol);
+	});
     
     pass_spinspin_from_mom_to_x_space(sq_prop,sq_prop,qu.bc,true,true);
   }
@@ -310,34 +308,32 @@ namespace nissa
 							  const tm_quark_info& qu, \
 							  const tm_basis_t& base) \
   {									\
-    									\
-    NISSA_PARALLEL_LOOP(imom,0,locVol)					\
-      {									\
-	spinspin prop;							\
-	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
-	NAME2(safe_spinspin_prod,TYPE)(out[imom],prop,in[imom]);	\
-      }									\
-    NISSA_PARALLEL_LOOP_END;						\
-									\
-    set_borders_invalid(out);						\
+    PAR(0,locVol,							\
+	CAPTURE(qu,base,						\
+		TO_READ(in),						\
+		TO_WRITE(out)),imom,					\
+	{								\
+	  spinspin prop;						\
+	  mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
+	  NAME2(safe_spinspin_prod,TYPE)(out[imom],prop,in[imom]);	\
+	});								\
   }									\
-									\
+  									\
   /*multiply from right*/						\
   void multiply_from_right_by_mom_space_twisted_propagator(LxField<TYPE>& out,\
 							   const LxField<TYPE>& in,\
 							   const tm_quark_info& qu, \
 							   const tm_basis_t& base) \
   {									\
-									\
-    NISSA_PARALLEL_LOOP(imom,0,locVol)					\
+    PAR(0,locVol,							\
+	CAPTURE(qu,base,						\
+		TO_READ(in),						\
+		TO_WRITE(out)),imom,					\
       {									\
 	spinspin prop;							\
 	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
 	NAME3(safe,TYPE,prod_spinspin)(out[imom],in[imom],prop);	\
-      }									\
-    NISSA_PARALLEL_LOOP_END;						\
-									\
-    set_borders_invalid(out);						\
+      });								\
   }									\
   
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spin);

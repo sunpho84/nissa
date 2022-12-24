@@ -30,14 +30,16 @@ namespace nissa
     
     if(in==out) crash("in==out!");
     
-    NISSA_PARALLEL_LOOP(X,0,locVolh)
-      {
-	apply_point_twisted_clover_term_to_halfspincolor(out[X],+mu,kappa,Cl[X],in[X],0);
-	apply_point_twisted_clover_term_to_halfspincolor(out[X],-mu,kappa,Cl[X],in[X],NDIRAC/2);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    
-    out.invalidateHalo();
+    PAR(0,locVolh,
+	CAPTURE(mu,kappa,
+		TO_WRITE(out),
+		TO_READ(Cl),
+		TO_READ(in)),
+	X,
+	{
+	  apply_point_twisted_clover_term_to_halfspincolor(out[X],+mu,kappa,Cl[X],in[X],0);
+	  apply_point_twisted_clover_term_to_halfspincolor(out[X],-mu,kappa,Cl[X],in[X],NDIRAC/2);
+	});
   }
   
   //implement Koo defined in equation (7)

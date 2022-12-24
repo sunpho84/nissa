@@ -17,17 +17,21 @@ namespace nissa
 						  const double residue,
 						  const OddField<spincolor>& source)
   {
+    std::function<void(OddField<spincolor>& out,
+		    const OddField<spincolor>& in)> f=
+      [temp1=OddField<spincolor>("temp1",WITH_HALO),
+       temp2=EvnField<spincolor>("temp2",WITH_HALO),
+       &conf,
+       &kappa,
+       &mu](OddField<spincolor>& out,
+	    const OddField<spincolor>& in) mutable
+      {
+	tmDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,mu,in);
+      };
+    
     cg_invert(sol,
 	      guess,
-	      [temp1=OddField<spincolor>("temp1",WITH_HALO),
-	       temp2=EvnField<spincolor>("temp2",WITH_HALO),
-	       &conf,
-	       &kappa,
-	       &mu](OddField<spincolor>& out,
-		    const OddField<spincolor>& in) mutable
-	      {
-		tmDkern_eoprec_square_eos(out,temp1,temp2,conf,kappa,mu,in);
-	      },
+	      f,
 	      niter,
 	      residue,
 	      source);

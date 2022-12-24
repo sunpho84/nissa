@@ -70,16 +70,24 @@ namespace nissa
 	  delta/alpha;
 	
 	//sol_(k+1)=x_k+omega*p_k
-	sol.forEachSiteDeg([&p,omega](double& sol,const int& site,const int i)
-	{
-	  sol+=p(site,i)*omega;
-	});
+	FOR_EACH_SITE_DEG_OF_FIELD(sol,
+				   CAPTURE(omega,
+					   TO_WRITE(sol),
+					   TO_READ(p)),
+				   site,iDeg,
+				   {
+				     sol(site,iDeg)+=p(site,iDeg)*omega;
+				   });
 	
 	//r_(k+1)=x_k-omega*p_k
-	r.forEachSiteDeg([&s,omega](double& r,const int& site,const int i)
-	{
-	  r-=s(site,i)*omega;
-	});
+	FOR_EACH_SITE_DEG_OF_FIELD(r,
+				   CAPTURE(omega,
+					   TO_WRITE(r),
+					   TO_READ(s)),
+				   site,iDeg,
+				   {
+				     r(site,iDeg)-=s(site,iDeg)*omega;
+				   });
 	
 	//(r_(k+1),r_(k+1))
 	lambda=r.norm2();
@@ -93,10 +101,15 @@ namespace nissa
 	if(std::isnan(gammag)) crash("nanned");
 	
 	//p_(k+1)=r_(k+1)+gammag*p_k
-	p.forEachSiteDeg([&r,gammag](double& p,const int& site,const int i)
-	{
-	  p=r(site,i)+p*gammag;
-	});
+	FOR_EACH_SITE_DEG_OF_FIELD(p,
+				   CAPTURE(gammag,
+					   TO_WRITE(p),
+					   TO_READ(r)),
+				   site,iDeg,
+				   {
+				     auto& d=p(site,iDeg);
+				     d=r(site,iDeg)+d*gammag;
+				   });
 	
 	if(iter%each==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,lambda/sourceNorm2);
       }

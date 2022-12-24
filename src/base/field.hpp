@@ -18,12 +18,6 @@
 #include <linalgs/reduce.hpp>
 #include <routines/ios.hpp>
 
-#define TO_READ(A) A=A.getReadable()
-#define TO_WRITE(A) A=A.getWritable()
-#define CAPTURE(A...) A
-  
-#define PAR(MIN,MAX,CAPTURES,INDEX,A...) PARALLEL_LOOP(MIN,MAX,[CAPTURES] CUDA_DEVICE (const int& INDEX)A)
-
 namespace nissa
 {
   /// Start the communications of buffer interpreted as halo
@@ -226,6 +220,8 @@ namespace nissa
     
     using Fund=typename F::Fund;
     
+    static constexpr int nInternalDegs=F::nInternalDegs;
+    
     F& f;
     
     Fund* _data;
@@ -240,7 +236,7 @@ namespace nissa
       else								\
 	return								\
 	  SubscribedField<CONST FieldRef,				\
-	  Comps>(*this,site,nullptr);					\
+	  std::remove_extent_t<Comps>>(*this,site,nullptr);		\
     }
     
     PROVIDE_SUBSCRIBE_OPERATOR(const);
@@ -248,6 +244,33 @@ namespace nissa
     PROVIDE_SUBSCRIBE_OPERATOR(/* not const */);
     
 #undef PROVIDE_SUBSCRIBE_OPERATOR
+    
+    /////////////////////////////////////////////////////////////////
+    
+#define PROVIDE_FLATTENED_CALLER(CONST)					\
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION			\
+    CONST Fund& operator()(const int& site,				\
+			   const int& internalDeg) CONST		\
+    {									\
+      return _data[index(site,internalDeg)];				\
+    }
+    
+    PROVIDE_FLATTENED_CALLER(const);
+    
+    PROVIDE_FLATTENED_CALLER(/* not const */);
+    
+#undef PROVIDE_FLATTENED_CALLER
+    
+    /////////////////////////////////////////////////////////////////
+    
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    int index(const int& site,
+	      const int& internalDeg) const
+    {
+      return f.index(site,internalDeg);
+    }
+    
+    /////////////////////////////////////////////////////////////////
     
     /// Construct from field
     FieldRef(F& f) :
@@ -258,20 +281,22 @@ namespace nissa
     }
     
     /// Copy constructor
-    INLINE_FUNCTION // CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     FieldRef(const FieldRef& oth) :
       f(oth.f),
       _data(oth._data)
     {
+#ifndef COMPILING_FOR_DEVICE
       f.nRef++;
+#endif
     }
     
     /// Construct from field
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     ~FieldRef()
     {
+#ifndef COMPILING_FOR_DEVICE
       f.nRef--;
-#ifndef __CUDA_ARCH__
       if(f.nRef==0)
 	if constexpr(not std::is_const_v<F>)
 	  f.invalidateHalo();
@@ -343,30 +368,28 @@ namespace nissa
 	return site+externalSize*internalDeg;
     }
     
-    /// Exec the operation f on each site and degree of freedom
-    template <typename F>
-    Field& forEachSiteDeg(const F& f)
-    {
-      NISSA_PARALLEL_LOOP(site,0,this->nSites())
-	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  f((*this)(site,internalDeg),site,internalDeg);
-      NISSA_PARALLEL_LOOP_END;
+    // /// Exec the operation f on each site and degree of freedom
+    // template <typename F>
+    // Field& forEachSiteDeg(const F& f)
+    // {
+    //   PAR(0,this->nSites(),
+    // 	  CAPTURE(f,t=this->getWritable()),site,
+    // 	  {
+    // 	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+    // 	      f(t(site,internalDeg),site,internalDeg);
+    // 	  });
       
-      invalidateHalo();
+    //   invalidateHalo();
       
-      return *this;
-    }
+    //   return *this;
+    // }
     
-#define FOR_EACH_SITE_DEG_OF_FIELD(F,V,SITE,IDEG,CODE...)		\
-    NISSA_PARALLEL_LOOP(SITE,0,(F).nSites())				\
+#define FOR_EACH_SITE_DEG_OF_FIELD(F,CAPTURES,SITE,IDEG,CODE...)	\
+    PAR(0,(F).nSites(),CAPTURE(CAPTURES),SITE,				\
+    {									\
       for(int IDEG=0;IDEG<std::remove_reference_t<decltype(F)>::nInternalDegs;IDEG++) \
-	{								\
-	  auto V=(F)(SITE,IDEG);					\
-	  CODE								\
-	}								\
-    NISSA_PARALLEL_LOOP_END;						\
-									\
-      invalidateHalo()
+	CODE								\
+	  })
     
     /// Exec the operation f on each site
     template <typename F>
@@ -461,18 +484,19 @@ namespace nissa
 	  const int64_t stride=(n+1)/2;
 	  const int64_t nReductions=n/2;
 	  
-	  NISSA_PARALLEL_LOOP(ireduction,0,nReductions)
-	    {
-	      const int64_t first=ireduction;
-	      const int64_t second=first+stride;
-	      
-	      for(int iDeg=0;iDeg<nInternalDegs;iDeg++)
-		tmp(first,iDeg)+=tmp(second,iDeg);
-	    }
-	  NISSA_PARALLEL_LOOP_END;
-	  
+	  PAR(0,nReductions,
+	      CAPTURE(stride,
+		      TO_WRITE(tmp)),
+		      ireduction,
+	      {
+		const int64_t first=ireduction;
+		const int64_t second=first+stride;
+		
+		for(int iDeg=0;iDeg<nInternalDegs;iDeg++)
+		  tmp(first,iDeg)+=tmp(second,iDeg);
+	      });
 	  n=stride;
-	}
+	};
       
       for(int iDeg=0;iDeg<nInternalDegs;iDeg++)
 	((Fund*)out)[iDeg]=tmp(0,iDeg);
@@ -590,8 +614,10 @@ namespace nissa
     }
     
     /// Destructor
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     ~Field()
     {
+#ifndef COMPILING_FOR_DEVICE
       master_printf("Deallocating field %s\n",name);
       if(_data)
 	{
@@ -600,6 +626,7 @@ namespace nissa
 	  else
 	    crash("Trying to destroying field %s with dangling references");
 	}
+#endif
     }
     
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
@@ -936,8 +963,14 @@ namespace nissa
     INLINE_FUNCTION
     void assign(const O& oth)
     {
-      FOR_EACH_SITE_DEG_OF_FIELD(*this,t,site,iDeg,
-				 t=oth(site,iDeg);
+      FOR_EACH_SITE_DEG_OF_FIELD(*this,
+				 CAPTURE(TO_READ(oth),
+					 t=this->getWritable()),
+				 site,
+				 iDeg,
+				 {
+				   t(site,iDeg)=oth(site,iDeg);
+				 }
       );
     }
     
@@ -1017,16 +1050,18 @@ namespace nissa
   
   /// Structure to hold an even/old field
   template <typename T,
-	    FieldLayout FL=DefaultFieldLayout>
+	    FieldLayout FL=DefaultFieldLayout,
+	    typename Fevn=Field<T,EVEN_SITES,FL>,
+	    typename Fodd=Field<T,ODD_SITES,FL>>
   struct EoField
   {
     /// Type representing a pointer to type T
     template <SitesCoverage EO>
     using F=Field<T,EO,FL>;
     
-    F<EVEN_SITES> evenPart;
+    Fevn evenPart;
     
-    F<ODD_SITES> oddPart;
+    Fodd oddPart;
     
     /////////////////////////////////////////////////////////////////
     
@@ -1071,11 +1106,42 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    constexpr INLINE_FUNCTION
+    EoField<T,FL,
+	    FieldRef<Field<T,EVEN_SITES,FL>>,
+	    FieldRef<Field<T,ODD_SITES,FL>>>
+    getWritable()
+    {
+      return {evenPart,oddPart};
+    }
+    
+    constexpr INLINE_FUNCTION
+    EoField<T,FL,
+	    FieldRef<const Field<T,EVEN_SITES,FL>>,
+	    FieldRef<const Field<T,ODD_SITES,FL>>>
+    getReadable() const
+    {
+      return {evenPart,oddPart};
+    }
+    
+    /// Constructor
+    EoField(Fevn&& ev,
+	    Fodd&& od) :
+      evenPart(ev),
+      oddPart(od)
+    {
+    }
+    
     /// Constructor
     EoField(const char* name,
 	    const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
       evenPart(name,haloEdgesPresence),
       oddPart(name,haloEdgesPresence)
+    {
+    }
+    
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    ~EoField()
     {
     }
     

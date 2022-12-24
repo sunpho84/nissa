@@ -14,7 +14,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gauge/Symanzik_force.cpp \
 	%D%/gauge/Symanzik_action.cpp \
 	%D%/gauge/topological_force.cpp \
-	%D%/gauge/Wilson_action.cpp \
 	%D%/gauge/Wilson_force.cpp \
 	%D%/momenta/momenta_action.cpp \
 	%D%/momenta/momenta_evolve.cpp \

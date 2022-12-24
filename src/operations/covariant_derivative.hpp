@@ -171,7 +171,7 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ivol,0,locVol)
       {
-	if(t==-1 or glbCoordOfLoclx[ivol][0] == t)
+	if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
 	  for (int mu=0;mu<NDIM;mu++)
 	    {
 	      int ifw=loclxNeighup[ivol][mu];

@@ -16,7 +16,7 @@ namespace nissa
   void cgm_invert(std::vector<T>& sol,
 		 const std::vector<double>& shifts,
 		 F&& f,
-		 const int& niter_max,
+		  const int& niter_max,
 		 const std::vector<double>& residue,
 		 const T& source)
   {
@@ -49,7 +49,7 @@ namespace nissa
     
     //writes source norm
     verbosity_lv2_master_printf(" Source norm: %lg\n",source_norm2);
-    if(source_norm2==0 || std::isnan(source_norm2)) crash("invalid norm: %lg",source_norm2);
+    if(source_norm2==0 or std::isnan(source_norm2)) crash("invalid norm: %lg",source_norm2);
     
     //writes initial residue
     verbosity_lv2_master_printf(" cgm iter 0 rel. residues: ");
@@ -177,7 +177,7 @@ namespace nissa
 #ifdef CGM_DEBUG
 		verbosity_lv3_master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
-		ps[ishift]*=alpha;
+		ps[ishift]*=alphas[ishift];
 		ps[ishift]+=r;
 		
 		// shift z

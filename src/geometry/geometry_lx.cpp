@@ -1,22 +1,22 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <math.h>
 #include <string.h>
 
 #define EXTERN_GEOMETRY_LX
- #include "geometry_lx.hpp"
+# include "geometry_lx.hpp"
 
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
-#include "new_types/su3.hpp"
-#include "operations/remap_vector.hpp"
-#include "operations/su3_paths/gauge_sweeper.hpp"
-#include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
-#include "threads/threads.hpp"
+#include <base/debug.hpp>
+#include <base/vectors.hpp>
+#include <communicate/communicate.hpp>
+#include <new_types/su3.hpp>
+#include <operations/remap_vector.hpp>
+#include <operations/su3_paths/gauge_sweeper.hpp>
+#include <routines/ios.hpp>
+#include <routines/mpi_routines.hpp>
+#include <threads/threads.hpp>
 
 namespace nissa
 {
@@ -259,11 +259,17 @@ namespace nissa
   }
   
   //return the border site adiacent at surface
-  int bordlx_of_surflx(const int& loclx,const int& mu)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  int bordlx_of_surflx(const int& loclx,
+		       const int& mu)
   {
-    if(not is_dir_parallel[mu]) return -1;
+    if(not is_dir_parallel[mu])
+      return -1;
+    
+#ifndef COMPILING_FOR_DEVICE
     if(locSize[mu]<2)
       crash("not working if one dir is smaller than 2");
+#endif
     
     if(locCoordOfLoclx[loclx][mu]==0)
       return loclxNeighdw[loclx][mu]-locVol;
@@ -275,15 +281,19 @@ namespace nissa
   }
   
   /// Return the edge site adiacent at a border
-  int edgelx_of_surflx(const int& loclx,const int& iEdge)
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  int edgelx_of_surflx(const int& loclx,
+		       const int& iEdge)
   {
     const auto [mu,nu]=edge_dirs[iEdge];
     
     if(not (is_dir_parallel[mu] and is_dir_parallel[nu]))
 	return -1;
     
+#ifndef COMPILING_FOR_DEVICE
     if(locSize[mu]<2 or locSize[nu]<2)
       crash("not working if one dir is smaller than 2");
+#endif
     
     auto iter=
       [&loclx](auto& iter,
@@ -393,27 +403,31 @@ namespace nissa
   //finds how to fill the borders with opposite surface (up b->dw s)
   void findSurfOfBord()
   {
-    NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
+    PAR(0,locVol,
+	CAPTURE(),loclx,
 	{
-	  const int bordlx=bordlx_of_surflx(loclx,mu);
-	  if(bordlx!=-1) surflxOfBordlx[bordlx]=loclx;
-	}
-    NISSA_PARALLEL_LOOP_END;
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      const int bordlx=bordlx_of_surflx(loclx,mu);
+	      if(bordlx!=-1) surflxOfBordlx[bordlx]=loclx;
+	    }
+	});
   }
   
   //finds how to fill the borders with opposite surface (up b->dw s)
   void findSurfOfEdges()
   {
-    NISSA_PARALLEL_LOOP(loclx,0,locVol)
-      for(int iEdge=0;iEdge<nEdges;iEdge++)
+    PAR(0,locVol,
+	CAPTURE(),loclx,
 	{
-	  const int edgeLx=edgelx_of_surflx(loclx,iEdge);
-	  
-	  if(edgeLx!=-1)
-	    surflxOfEdgelx[edgeLx]=loclx;
-	}
-    NISSA_PARALLEL_LOOP_END;
+	  for(int iEdge=0;iEdge<nEdges;iEdge++)
+	    {
+	      const int edgeLx=edgelx_of_surflx(loclx,iEdge);
+	      
+	      if(edgeLx!=-1)
+		surflxOfEdgelx[edgeLx]=loclx;
+	    }
+	});
   }
   
   //index all the sites on bulk

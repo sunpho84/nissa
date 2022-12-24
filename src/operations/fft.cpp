@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <math.h>
@@ -326,8 +326,6 @@ namespace nissa
   
 #else
   
-  static_assert(THREADS_TYPE!=CUDA_THREADS,"cuda parallelization not supported");
-  
   void fft4d(complex *out,
 	     const complex *in,
 	     const which_dir_t& dirs,
@@ -363,10 +361,11 @@ namespace nissa
 	    remap_lx_vector_to_locd(buf,out,ncpp*sizeof(complex),mu);
 	    
 	    //makes all the fourier transform
-	    NISSA_PARALLEL_LOOP(ioff,0,locd_perp_size_per_dir[mu])
-	      fftw_execute_dft(plans[idir],buf+ioff*glbSize[mu]*ncpp,buf+ioff*glbSize[mu]*ncpp);
-	    NISSA_PARALLEL_LOOP_END;
-	    THREAD_BARRIER();
+	    HOST_PARALLEL_LOOP(0,locd_perp_size_per_dir[mu],
+			       CAPTURE(plans,idir,buf,mu,ncpp),ioff,
+				{
+				  fftw_execute_dft(plans[idir],buf+ioff*glbSize[mu]*ncpp,buf+ioff*glbSize[mu]*ncpp);
+				});
 	    
 	    remap_locd_vector_to_lx(out,buf,ncpp*sizeof(complex),mu);
 	  }

@@ -20,17 +20,17 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-	  {
-	    for(int mu=0;mu<NDIM;mu++)
-	      {
-		S[par][ivol][mu][0]=1;
-		S[par][ivol][mu][1]=0;
-	      }
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	
-        set_borders_invalid(S[par]);
+	PAR(0,locVolh,
+	    CAPTURE(par,
+		    TO_WRITE(S)),
+	    ivol,
+	    {
+	      for(int mu=0;mu<NDIM;mu++)
+		{
+		  S[par][ivol][mu][0]=1;
+		  S[par][ivol][mu][1]=0;
+		}
+	    });
       }
   }
   
@@ -40,18 +40,17 @@ namespace nissa
   {
     const double im_pot=quark_content.im_pot*M_PI/glbSize[0];
     
-    const double c=cos(im_pot),s=sin(im_pot);
-    
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  {
-	    const complex ph={c,s};
-	    safe_complex_prod(S[par][ieo][0],S[par][ieo][0],ph);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	
-	set_borders_invalid(S[par]);
+	PAR(0,locVolh,
+	    CAPTURE(im_pot,par,
+		    TO_WRITE(S)),
+	    ieo,
+	    {
+	      const double c=cos(im_pot),s=sin(im_pot);
+	      const complex ph={c,s};
+	      safe_complex_prod(S[par][ieo][0],S[par][ieo][0],ph);
+	    });
       }
   }
   
@@ -126,28 +125,29 @@ namespace nissa
 				 const int& mu,
 				 const int& nu)
   {
-    double phase=2*em_str*quark_content.charge*M_PI/glbSize[mu]/glbSize[nu];
+    const double phase=2*em_str*quark_content.charge*M_PI/glbSize[mu]/glbSize[nu];
     
     if(quantization==2 and glbSize[mu]%4!=0)
       crash("for half-half quantization global size in %d direction must be multiple of 4, it is %d",mu,glbSize[mu]);
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
-	  {
-	    //compute arg
-	    const coords_t arg=get_args_of_quantization[quantization](loclx_of_loceo[par][ieo],mu,nu);
-	    
-	    //compute u1phase and multiply
-	    for(int rho=0;rho<4;rho++)
-	      {
-		complex u1phase={cos(phase*arg[rho]),sin(phase*arg[rho])};
-		safe_complex_prod(S[par][ieo][rho],S[par][ieo][rho],u1phase);
-	      }
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	
-	set_borders_invalid(S[par]);
+	PAR(0,locVolh,
+	    CAPTURE(par,phase,mu,nu,
+		    quantization,
+		    TO_WRITE(S)),
+	    ieo,
+	    {
+	      //compute arg
+	      const coords_t arg=get_args_of_quantization[quantization](loclx_of_loceo[par][ieo],mu,nu);
+	      
+	      //compute u1phase and multiply
+	      for(int rho=0;rho<4;rho++)
+		{
+		  complex u1phase={cos(phase*arg[rho]),sin(phase*arg[rho])};
+		  safe_complex_prod(S[par][ieo][rho],S[par][ieo][rho],u1phase);
+		}
+	    });
       }
   }
   
@@ -193,16 +193,16 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol_eo,0,locVolh)
+	PAR(0,locVolh,
+	    CAPTURE(par,mu,
+		    TO_WRITE(S)),
+	    ieo,
 	  {
 	    const double arg=-1.0*M_PI/glbSize[mu];
 	    const complex c={cos(arg),sin(arg)};
 	    
-	    complex_prodassign(S[par][ivol_eo][mu],c);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	
-	set_borders_invalid(S[par]);
+	    complex_prodassign(S[par][ieo][mu],c);
+	  });
       }
   }
   
@@ -211,16 +211,16 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
-	  {
-	    const coords_t ph=get_stagphase_of_lx(loclx_of_loceo[par][ivol]);
-	    
-	    for(int mu=0;mu<NDIM;mu++)
-	      su3_prodassign_double(conf[par][ivol][mu],ph[mu]);
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	
-	set_borders_invalid(conf[par]);
+	PAR(0,locVolh,
+	    CAPTURE(par,
+		    TO_WRITE(conf)),
+	    ieo,
+	    {
+	      const coords_t ph=get_stagphase_of_lx(loclx_of_loceo[par][ieo]);
+	      
+	      for(int mu=0;mu<NDIM;mu++)
+		su3_prodassign_double(conf[par][ieo][mu],ph[mu]);
+	    });
       }
   }
   
@@ -235,29 +235,30 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,locVolh)
+	PAR(0,locVolh,
+	    CAPTURE(par,add_rem,with_without,
+		    TO_WRITE(conf),
+		    TO_READ(u1)),
+	    ieo,
 	  {
 	    coords_t ph;
 	    if(with_without==0)
-	      ph=get_stagphase_of_lx(loclx_of_loceo[par][ivol]);
+	      ph=get_stagphase_of_lx(loclx_of_loceo[par][ieo]);
 	    
 	    for(int mu=0;mu<NDIM;mu++)
 	      {
 		//switch add/rem
 		complex f;
-		if(add_rem==0) complex_copy(f,u1[par][ivol][mu]);
-		else           complex_conj(f,u1[par][ivol][mu]);
+		if(add_rem==0) complex_copy(f,u1[par][ieo][mu]);
+		else           complex_conj(f,u1[par][ieo][mu]);
 		
 		//switch phase
 		if(with_without==0) complex_prodassign_double(f,ph[mu]);
 		
 		//put the coeff
-		safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],f);
+		safe_su3_prod_complex(conf[par][ieo][mu],conf[par][ieo][mu],f);
 	      }
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	
-	set_borders_invalid(conf[par]);
+	  });
       }
   }
   
@@ -272,7 +273,11 @@ namespace nissa
     
     for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(ieo,0,locVolh)
+	PAR(0,locVolh,
+	    CAPTURE(par,add_rem,with_without,
+		    TO_WRITE(conf),
+		    TO_READ(u1)),
+	    ieo,
 	  {
 	    const int ilx=loclx_of_loceo[par][ieo];
 	    coords_t ph;
@@ -292,11 +297,8 @@ namespace nissa
 		//put the coeff
 		safe_su3_prod_complex(conf[ilx][mu],conf[ilx][mu],f);
 	      }
-	  }
-	NISSA_PARALLEL_LOOP_END;
-	
+	  });
       }
-    set_borders_invalid(conf);
   }
   
   //allocate background fields
