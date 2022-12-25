@@ -104,7 +104,7 @@ namespace nissa
   
   void topological_staples(LxField<quad_su3>& staples,const LxField<quad_su3>& conf);
   
-  void total_topological_charge_lx_conf(double* totCharge,const LxField<quad_su3>& conf);
+  double total_topological_charge_lx_conf(const LxField<quad_su3>& conf);
   
   /////////////////////////////////////////////////////////////////
   

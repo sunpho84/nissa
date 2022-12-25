@@ -49,8 +49,8 @@ namespace nissa
 				const LxField<quad_su3>& conf,		\
 				const momentum_t& kappa,		\
 				const int& niter,			\
-				LxField<TYPE>* ext_temp,		\
-				LxField<TYPE>* ext_H)			\
+				LxField<TYPE>* ext_temp=nullptr,	\
+				LxField<TYPE>* ext_H=nullptr)		\
   {									\
     if(niter<1)								\
       {									\
@@ -95,13 +95,13 @@ namespace nissa
   
   DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(su3spinspin)
   DEFINE_GAUSSIAN_SMEARING(su3spinspin)
-    
+  
   DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(colorspinspin)
   DEFINE_GAUSSIAN_SMEARING(colorspinspin)
-    
+  
   DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(spincolor)
   DEFINE_GAUSSIAN_SMEARING(spincolor)
-    
+  
   DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(color)
   DEFINE_GAUSSIAN_SMEARING(color)
   
@@ -164,7 +164,7 @@ namespace nissa
 			 LxField<T>* ext_temp=nullptr,
 			 LxField<T>* ext_H=nullptr)
   {
-    const double kappa[NDIM]={0.0,kappa_iso,kappa_iso,kappa_iso};
+    const momentum_t kappa={0.0,kappa_iso,kappa_iso,kappa_iso};
     
     gaussian_smearing(smear_sc,origi_sc,conf,kappa,niter,ext_temp,ext_H);
   }

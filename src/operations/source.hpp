@@ -2,7 +2,7 @@
 #define _SOURCE_HPP
 
 #include <base/field.hpp>
-#include "threads/threads.hpp"
+#include <threads/threads.hpp>
 
 namespace nissa
 {
@@ -18,15 +18,14 @@ namespace nissa
     //put to zero everywhere but on the slice
     if(timeslice>=0 and timeslice<glbSize[0])
       {
-	prop_out.forEachSiteDeg([&timeslice](double& p,
-				   const int& ivol,
-				   const int& deg)
+	FOR_EACH_SITE_DEG_OF_FIELD(prop_out,
+				   CAPTURE(timeslice,
+					   TO_WRITE(prop_out)),
+				   ivol,deg,
 	{
 	  if(glbCoordOfLoclx[ivol][0]!=timeslice)
-	    p=0;
+	    prop_out(ivol,deg)=0;
 	});
-	
-	set_borders_invalid(prop_out);
       }
   }
 }

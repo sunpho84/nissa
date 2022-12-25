@@ -67,15 +67,17 @@ namespace nissa
 	LxField<spincolor>& q_dag=Q[pr_dag][idc_so];
 	LxField<spincolor>& q=Q[pr][idc_so];
 	
-	NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	  {
-	    complex t;
-	    spincolor_scalar_prod(t,q_dag[ivol],q[ivol]);
-	    complex_summassign(loc[ivol],t);
-	  }
-	NISSA_PARALLEL_LOOP_END;
+	PAR(0,locVol,
+	    CAPTURE(TO_WRITE(loc),
+		    TO_READ(q_dag),
+		    TO_READ(q)),
+	    ivol,
+	    {
+	      complex t;
+	      spincolor_scalar_prod(t,q_dag[ivol],q[ivol]);
+	      complex_summassign(loc[ivol],t);
+	    });
       }
-    THREAD_BARRIER();
     
     glb_reduce(&res,loc,locVol);
   }
@@ -643,30 +645,37 @@ namespace nissa
 	  Qbw.updateHalo();
 	  conf->updateHalo();
 	  
-	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	    for(int mu=0;mu<NDIM;mu++)
+	  PAR(0,locVol,
+	      CAPTURE(g,iso_spi_bw,GAMMA,
+		      TO_WRITE(si),
+		      TO_READ(Qfw),
+		      TO_READ(Qbw),
+		      TO_READ(conf)),
+	      ivol,
 	      {
-		const int ivol_fw=loclxNeighup[ivol][mu];
-		spincolor f,Gf;
-		complex c;
-		
-		//piece psi_ivol U_ivol psi_fw
-		unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ivol_fw]);
-		unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
-		dirac_subt_the_prod_spincolor(Gf,GAMMA[mu],f);
-		spincolor_scalar_prod(c,Qbw[ivol],Gf);
-		complex_prodassign(c,g.entr[iso_spi_bw]);
-		complex_summ_the_prod_idouble(si[ivol][mu],c,-0.5);
-		
-		//piece psi_fw U_ivol^dag psi_ivol
-		unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],Qfw[ivol]);
-		unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
-		dirac_summ_the_prod_spincolor(Gf,GAMMA[mu],f);
-		spincolor_scalar_prod(c,Qbw[ivol_fw],Gf);
-		complex_prodassign(c,g.entr[iso_spi_bw]);
-		complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
-	      }
-	  NISSA_PARALLEL_LOOP_END;
+		for(int mu=0;mu<NDIM;mu++)
+		  {
+		    const int ivol_fw=loclxNeighup[ivol][mu];
+		    spincolor f,Gf;
+		    complex c;
+		    
+		    //piece psi_ivol U_ivol psi_fw
+		    unsafe_su3_prod_spincolor(f,conf[ivol][mu],Qfw[ivol_fw]);
+		    unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
+		    dirac_subt_the_prod_spincolor(Gf,GAMMA[mu],f);
+		    spincolor_scalar_prod(c,Qbw[ivol],Gf);
+		    complex_prodassign(c,g.entr[iso_spi_bw]);
+		    complex_summ_the_prod_idouble(si[ivol][mu],c,-0.5);
+		    
+		    //piece psi_fw U_ivol^dag psi_ivol
+		    unsafe_su3_dag_prod_spincolor(f,conf[ivol][mu],Qfw[ivol]);
+		    unsafe_dirac_prod_spincolor(Gf,GAMMA[4],f);
+		    dirac_summ_the_prod_spincolor(Gf,GAMMA[mu],f);
+		    spincolor_scalar_prod(c,Qbw[ivol_fw],Gf);
+		    complex_prodassign(c,g.entr[iso_spi_bw]);
+		    complex_summ_the_prod_idouble(si[ivol][mu],c,+0.5);
+		  }
+	      });
 	}
   }
   
@@ -698,17 +707,23 @@ namespace nissa
 	  LxField<spincolor>& Qbw=Q[id_Qbw][so_sp_col_ind(iso_spi_bw,iso_col)];
 	  LxField<spincolor>& Qfw=Q[id_Qfw][so_sp_col_ind(iso_spi_fw,iso_col)];
 	  
-	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	    for(int mu=0;mu<NDIM;mu++)
+	  PAR(0,locVol,
+	      CAPTURE(g,GAMMA,iso_spi_fw,
+		      TO_WRITE(si),
+		      TO_READ(Qfw),
+		      TO_READ(Qbw)),
+	      ivol,
 	      {
-		spincolor temp;
-		complex c;
-		
-		unsafe_dirac_prod_spincolor(temp,GAMMA[mu],Qfw[ivol]);
-		spincolor_scalar_prod(c,Qbw[ivol],temp);
-		complex_summ_the_prod(si[ivol][mu],c,g.entr[iso_spi_fw]);
-	      }
-	  NISSA_PARALLEL_LOOP_END;
+		for(int mu=0;mu<NDIM;mu++)
+		  {
+		    spincolor temp;
+		    complex c;
+		    
+		    unsafe_dirac_prod_spincolor(temp,GAMMA[mu],Qfw[ivol]);
+		    spincolor_scalar_prod(c,Qbw[ivol],temp);
+		    complex_summ_the_prod(si[ivol][mu],c,g.entr[iso_spi_fw]);
+		  }
+	      });
 	}
   }
   

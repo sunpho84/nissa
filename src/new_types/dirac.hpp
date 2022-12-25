@@ -25,7 +25,7 @@ namespace nissa
   
   //The base of the 16 gamma matrixes, the two rotators and Ci=G0*Gi*G5
   CUDA_MANAGED EXTERN_DIRAC dirac_matr base_gamma[19];
-  EXTERN_DIRAC dirac_matr Pplus,Pminus;
+  CUDA_MANAGED EXTERN_DIRAC dirac_matr Pplus,Pminus;
   EXTERN_DIRAC char gtag[19][3]
 #ifndef ONLY_INSTANTIATION
   ={"S0","V1","V2","V3","V0","P5","A1","A2","A3","A0","T1","T2","T3","B1","B2","B3","C1","C2","C3"}

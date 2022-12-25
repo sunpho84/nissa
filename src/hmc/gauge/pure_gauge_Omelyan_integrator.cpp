@@ -49,33 +49,35 @@ namespace nissa
   //integrator for pure gauge
   void Omelyan_pure_gauge_evolver(quad_su3* H,quad_su3* conf,theory_pars_t* theory_pars,pure_gauge_evol_pars_t* simul)
   {
-    //macro step or micro step
-    double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
-    int nsteps=simul->nmd_steps;
+    crash("reimplement");
     
-    quad_su3 *F=nissa_malloc("F",locVol,quad_su3);
+    // //macro step or micro step
+    // double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
+    // int nsteps=simul->nmd_steps;
     
-    //first evolve for momenta
-    evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,ldt,F);
+    // quad_su3 *F=nissa_malloc("F",locVol,quad_su3);
     
-    //         Main loop
-    for(int istep=0;istep<nsteps;istep++)
-      {
-	verbosity_lv1_master_printf("Omelyan pure gauge step %d/%d\n",istep+1,nsteps);
-	
-	//decide if last step is final or not
-	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
-	
-	evolve_lx_conf_with_momenta(conf,H,dth);
-	evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,uml2dt,F);
-	
-	evolve_lx_conf_with_momenta(conf,H,dth);
-	evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,last_dt,F);
-	
-	//normalize the configuration
-	unitarize_lx_conf_maximal_trace_projecting(conf);
-      }
+    // //first evolve for momenta
+    // evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,ldt,F);
     
-    nissa_free(F);
+    // //         Main loop
+    // for(int istep=0;istep<nsteps;istep++)
+    //   {
+    // 	verbosity_lv1_master_printf("Omelyan pure gauge step %d/%d\n",istep+1,nsteps);
+	
+    // 	//decide if last step is final or not
+    // 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
+	
+    // 	evolve_lx_conf_with_momenta(conf,H,dth);
+    // 	evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,uml2dt,F);
+	
+    // 	evolve_lx_conf_with_momenta(conf,H,dth);
+    // 	evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,last_dt,F);
+	
+    // 	//normalize the configuration
+    // 	unitarize_lx_conf_maximal_trace_projecting(conf);
+    //   }
+    
+    // nissa_free(F);
   }
 }

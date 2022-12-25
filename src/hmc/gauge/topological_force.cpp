@@ -25,10 +25,11 @@ namespace nissa
   double compute_topodynamical_potential_der(const topotential_pars_t *pars,
 					     const LxField<quad_su3>& conf)
   {
-    double Q;
-    total_topological_charge_lx_conf(&Q,conf);
+    crash("reimplement");//topological_charge.cpp not compiled
+    // const double Q=total_topological_charge_lx_conf(conf);
     
-    return pars->compute_pot_der(Q);
+    // return pars->compute_pot_der(Q);
+    return {};
   }
   
   //common part, for staples and potential if needed
@@ -36,26 +37,27 @@ namespace nissa
 						  const LxField<quad_su3>& conf,
 						  const topotential_pars_t *pars)
   {
+    crash("reimplement");//topological_charge.cpp not compiled
     //compute the staples
-    topological_staples(F,conf);
+    // topological_staples(F,conf);
     
-    //compute the potential
-    double pot=0;
-    switch(pars->flag)
-      {
-      case 1:
-	pot=pars->theta;
-	break;
-      case 2:
-	pot=compute_topodynamical_potential_der(pars,conf);
-	break;
-      default:
-	crash("unknown way to compute topological potential %d",pars->flag);
-      }
+    // //compute the potential
+    // double pot=0;
+    // switch(pars->flag)
+    //   {
+    //   case 1:
+    // 	pot=pars->theta;
+    // 	break;
+    //   case 2:
+    // 	pot=compute_topodynamical_potential_der(pars,conf);
+    // 	break;
+    //   default:
+    // 	crash("unknown way to compute topological potential %d",pars->flag);
+    //   }
     
-    //normalize
-    const double norm=pot/(M_PI*M_PI*128);
-    F*=norm;
+    // //normalize
+    // const double norm=pot/(M_PI*M_PI*128);
+    // F*=norm;
   }
   
   //compute the topological force

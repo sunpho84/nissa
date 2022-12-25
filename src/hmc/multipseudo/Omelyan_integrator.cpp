@@ -64,42 +64,43 @@ namespace nissa
   //evolve the configuration according to pure gauge - note that there is a similar routine in "pure_gage"
   void Omelyan_pure_gauge_evolver_lx_conf(quad_su3* H,quad_su3* lx_conf,theory_pars_t* theory_pars,hmc_evol_pars_t* simul)
   {
-    //macro step or micro step
-    double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
-      dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
-    int nsteps=simul->ngauge_substeps;
-    quad_su3 *aux_F=nissa_malloc("aux_F",locVol,quad_su3);
+    crash("reimplement");
+    // //macro step or micro step
+    // double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
+    //   dth=dt/2,ldt=dt*omelyan_lambda,l2dt=2*omelyan_lambda*dt,uml2dt=(1-2*omelyan_lambda)*dt;
+    // int nsteps=simul->ngauge_substeps;
+    // quad_su3 *aux_F=nissa_malloc("aux_F",locVol,quad_su3);
     
-    topotential_pars_t *topars=&(theory_pars->topotential_pars);
+    // topotential_pars_t *topars=&(theory_pars->topotential_pars);
     
-    //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-    evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
-    if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
+    // //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
+    // evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
+    // if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
     
-    //         Main loop
-    for(int istep=0;istep<nsteps;istep++)
-      {
-	verbosity_lv1_master_printf(" Omelyan gauge micro-step %d/%d\n",istep+1,nsteps);
+    // //         Main loop
+    // for(int istep=0;istep<nsteps;istep++)
+    //   {
+    // 	verbosity_lv1_master_printf(" Omelyan gauge micro-step %d/%d\n",istep+1,nsteps);
 	
-	//decide if last step is final or not
-	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
+    // 	//decide if last step is final or not
+    // 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
-	//     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
-	evolve_lx_conf_with_momenta(lx_conf,H,dth);
-	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
-	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
-	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
-	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
-	evolve_lx_conf_with_momenta(lx_conf,H,dth);
-	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
-	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
-	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
+    // 	//     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
+    // 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
+    // 	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
+    // 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
+    // 	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
+    // 	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
+    // 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
+    // 	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
+    // 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
+    // 	if(topars->flag and TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
 	
-	//normalize the configuration
-	//unitarize_lx_conf_maximal_trace_projecting(lx_conf);
-      }
+    // 	//normalize the configuration
+    // 	//unitarize_lx_conf_maximal_trace_projecting(lx_conf);
+    //   }
     
-    nissa_free(aux_F);
+    // nissa_free(aux_F);
   }
   
   //wrapper

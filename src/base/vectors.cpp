@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <mpi.h>
@@ -7,6 +7,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+#define EXTERN_VECTORS
+# include "vectors.hpp"
 
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -16,9 +19,6 @@
 #include "threads/threads.hpp"
 
 #include "debug.hpp"
-
-#define EXTERN_VECTORS
- #include "vectors.hpp"
 
 //#define DEBUG
 

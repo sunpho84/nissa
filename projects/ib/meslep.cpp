@@ -351,26 +351,26 @@ namespace nissa
 	safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma[igamma_of_mu[0]]);
     
     //compute the right part of the leptonic loop: G0 G^dag
-    dirac_matr meslep_proj_gamma[nmeslep_proj];
-    for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
-      {
-	int ig=meslep_projs[ig_proj];
-	const dirac_matr temp_gamma=dirac_herm(base_gamma[ig]);
-	meslep_proj_gamma[ig_proj]=base_gamma[igamma_of_mu[0]]*temp_gamma;
-      }
+    // dirac_matr meslep_proj_gamma[nmeslep_proj];
+    // for(int ig_proj=0;ig_proj<nmeslep_proj;ig_proj++)
+    //   {
+    // 	int ig=meslep_projs[ig_proj];
+    // 	const dirac_matr temp_gamma=dirac_herm(base_gamma[ig]);
+    // 	meslep_proj_gamma[ig_proj]=base_gamma[igamma_of_mu[0]]*temp_gamma;
+    //   }
     //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - no dagger, no commutator because it's on the LO leptonic part
-    dirac_matr weak_ins_hadr_gamma[nmeslep_weak_ins];
-    for(int ins=0;ins<nmeslep_weak_ins;ins++)
-      weak_ins_hadr_gamma[ins]=base_gamma[5]*base_gamma[list_weak_insq[ins]];
+    // dirac_matr weak_ins_hadr_gamma[nmeslep_weak_ins];
+    // for(int ins=0;ins<nmeslep_weak_ins;ins++)
+    //   weak_ins_hadr_gamma[ins]=base_gamma[5]*base_gamma[list_weak_insq[ins]];
     
     //define the combined weak projectors (see below)
     // dirac_matr neutr_1m_g5_proj=dirac_subt(base_gamma[0],base_gamma[5]);
     
     for(int ins=0;ins<nmeslep_weak_ins;ins++)
       {
-	//define a local storage
-	spinspin mesolep_loc_contr[locSize[0]];
-	for(int i=0;i<locSize[0];i++) spinspin_put_to_zero(mesolep_loc_contr[i]);
+	// //define a local storage
+	// spinspin mesolep_loc_contr[locSize[0]];
+	// for(int i=0;i<locSize[0];i++) spinspin_put_to_zero(mesolep_loc_contr[i]);
 	
 	// NISSA_PARALLEL_LOOP(ivol,0,locVol)
 	//   {

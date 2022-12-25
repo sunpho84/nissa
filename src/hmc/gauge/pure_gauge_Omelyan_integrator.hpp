@@ -73,7 +73,12 @@ namespace nissa
     }
   };
   
-  void evolve_momenta_with_pure_gauge_force(quad_su3 *H,quad_su3 *conf,theory_pars_t *theory_pars,double dt,quad_su3 *ext_F=NULL);
+  void evolve_momenta_with_pure_gauge_force(LxField<quad_su3>& H,
+					    const LxField<quad_su3>& conf,
+					    const theory_pars_t& theory_pars,
+					    const double& dt,
+					    LxField<quad_su3>& F);
+  
   void Omelyan_pure_gauge_evolver(quad_su3 *H,quad_su3 *conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *simul);
 }
 

@@ -150,7 +150,7 @@ namespace nissa
   
   // void generate_fully_undiluted_eo_source(eo_ptr<spincolor> source,enum rnd_t rtype,int twall,int dir=0);
   
-  CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma);
+  CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3& H,rnd_gen *gen,double sigma);
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
   coords_t generate_random_coord();

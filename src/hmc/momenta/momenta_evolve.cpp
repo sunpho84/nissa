@@ -14,27 +14,29 @@
 namespace nissa
 {
   //evolve the configuration with the momenta
-  void evolve_lx_conf_with_momenta(quad_su3* lx_conf,quad_su3* H,double dt)
+  void evolve_lx_momenta_with_force(LxField<quad_su3>& H,
+				    const LxField<quad_su3>& F,
+				    const double& dt)
   {
+    crash("reimplement");
+    // verbosity_lv2_master_printf("Evolving conf with momenta, dt=%lg\n",dt);
     
-    verbosity_lv2_master_printf("Evolving conf with momenta, dt=%lg\n",dt);
+    // START_TIMING(conf_evolve_time,nconf_evolve);
     
-    START_TIMING(conf_evolve_time,nconf_evolve);
-    
-    //evolve
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  su3 t1,t2;
-	  su3_prod_double(t1,H[ivol][mu],dt);
-	  safe_hermitian_exact_i_exponentiate(t2,t1);
+    // //evolve
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   for(int mu=0;mu<NDIM;mu++)
+    // 	{
+    // 	  su3 t1,t2;
+    // 	  su3_prod_double(t1,H[ivol][mu],dt);
+    // 	  safe_hermitian_exact_i_exponentiate(t2,t1);
           
-	  safe_su3_prod_su3(lx_conf[ivol][mu],t2,lx_conf[ivol][mu]);
-	}
-    NISSA_PARALLEL_LOOP_END;
+    // 	  safe_su3_prod_su3(lx_conf[ivol][mu],t2,lx_conf[ivol][mu]);
+    // 	}
+    // NISSA_PARALLEL_LOOP_END;
     
-    set_borders_invalid(lx_conf);
+    // set_borders_invalid(lx_conf);
     
-    STOP_TIMING(conf_evolve_time);
+    // STOP_TIMING(conf_evolve_time);
   }
 }

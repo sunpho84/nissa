@@ -163,10 +163,10 @@ namespace nissa
     
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
       {
-	const double cSW=0;
+	const double cSW=0;  (void)cSW;
 	double call_time=take_time();
 #ifdef USE_QUDA
-	crash("reimplement"); (void)cSW;
+	crash("reimplement");
 	// solved=quda_iface::solve_tmD(solution_lx,conf_lx,kappa,cSW,mass,nitermax,residue,source_lx);
 #elif defined(USE_DDALPHAAMG)
 	crash("reimplement the handle with DDalpha");

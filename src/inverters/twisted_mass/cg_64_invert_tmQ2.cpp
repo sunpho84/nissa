@@ -15,10 +15,10 @@
 #define BULK_VOL locVol
 #define BORD_VOL bord_vol
 
-#define APPLY_OPERATOR apply_tmQ2_RL
-#define CG_OPERATOR_PARAMETERS conf,kappa,t,RL,m,
+#define APPLY_OPERATOR apply_tmQ2
+#define CG_OPERATOR_PARAMETERS conf,kappa,t,m,
 
-#define CG_INVERT inv_tmQ2_RL_cg_64
+#define CG_INVERT inv_tmQ2_cg_64
 #define CG_NPOSSIBLE_REQUESTS 16
 
 //maybe one day async comm
@@ -31,14 +31,12 @@
   nissa_free(t);
 
 //additional parameters
-#define CG_NARG 4
+#define CG_NARG 3
 #define AT1 quad_su3*
 #define A1 conf
 #define AT2 double
 #define A2 kappa
-#define AT3 int
-#define A3 RL
-#define AT4 double
-#define A4 m
+#define AT3 double
+#define A3 m
 
 #include "inverters/templates/cg_invert_template_threaded.cpp"

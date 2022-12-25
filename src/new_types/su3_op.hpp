@@ -1750,10 +1750,27 @@ typename B>
       unsafe_color_prod_complex(a[i],b[i],factor);
   }
   
-  CUDA_HOST_AND_DEVICE inline void safe_spincolor_prod_complex(spincolor a,const spincolor b,const complex factor)
-  {spincolor c;spincolor_copy(c,b);unsafe_spincolor_prod_complex(a,c,factor);}
-  CUDA_HOST_AND_DEVICE inline void spincolor_prodassign_complex(spincolor a,const complex factor)
-  {safe_spincolor_prod_complex(a,a,factor);}
+  template <typename A,
+	    typename B,
+	    typename C>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void safe_spincolor_prod_complex(A&& a,
+				   const B& b,
+				   const C& factor)
+  {
+    spincolor c;
+    spincolor_copy(c,b);
+    unsafe_spincolor_prod_complex(a,c,factor);
+  }
+  
+  template <typename A,
+	    typename B>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void spincolor_prodassign_complex(A&&a,
+				    const B& factor)
+  {
+    safe_spincolor_prod_complex(a,a,factor);
+  }
   
   //spincolor+spincolor*complex
   template <typename A,

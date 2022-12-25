@@ -91,23 +91,25 @@ namespace nissa
   }
   
   /// total topological charge
-  void total_topological_charge_lx_conf(double* totCharge,
-					const LxField<quad_su3>& conf)
+  double total_topological_charge_lx_conf(const LxField<quad_su3>& conf)
   {
     LxField<double> charge("charge");
     local_topological_charge(charge,conf);
-    glb_reduce(totCharge,charge,locVol);
+    
+    double totCharge;
+    glb_reduce(&totCharge,charge,locVol);
+    
+    return totCharge;
   }
   
   /// Wrapper for eos case
-  void total_topological_charge_eo_conf(double* totCharge,
-					const EoField<quad_su3>& eoConf)
+  double total_topological_charge_eo_conf(const EoField<quad_su3>& eoConf)
   {
     //convert to lx
     LxField<quad_su3> lxConf("lx_conf",WITH_HALO);
     paste_eo_parts_into_lx_vector(lxConf,eoConf);
     
-    total_topological_charge_lx_conf(totCharge,lxConf);
+    return total_topological_charge_lx_conf(lxConf);
   }
   
   //compute the correlator between topological charge

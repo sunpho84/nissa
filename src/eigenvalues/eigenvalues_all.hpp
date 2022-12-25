@@ -73,7 +73,8 @@ namespace nissa
 	f(out,test);
 	
 	complex e;
-	complex_vector_glb_scalar_prod(e,(complex*)test,(complex*)out,mat_size);
+	crash("reimplement");
+	//complex_vector_glb_scalar_prod(e,(complex*)test,(complex*)out,mat_size);
 	
 	complex_vector_subtassign_complex_vector_prod_complex((complex*)out,(complex*)test,e,mat_size);
 	master_printf(" (%.16lg,%.16lg), residue: %lg\n",ieig,e[RE],e[IM],sqrt(double_vector_glb_norm2(out,mat_size)));

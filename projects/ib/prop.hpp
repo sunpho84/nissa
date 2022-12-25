@@ -18,7 +18,7 @@ namespace nissa
 {
   //keep trace if generating photon is needed
   EXTERN_PROP int need_photon INIT_TO(0);
-
+  
   CUDA_HOST_AND_DEVICE
   inline int so_sp_col_ind(const int& sp,const int& col)
   {
@@ -33,7 +33,7 @@ namespace nissa
     bool is_source;
     
     double kappa;
-    double kappa_asymm[NDIM];
+    momentum_t kappa_asymm;
     double mass;
     int r;
     double charge;
@@ -51,23 +51,25 @@ namespace nissa
     double ori_source_norm2;
     
     //spincolor data
-    std::vector<LxField<spincolor>> sp;
+    LxField<spincolor>** sp;
     
     CUDA_HOST_AND_DEVICE
     const LxField<spincolor>& operator[](const int& i) const
     {
-      return sp[i];
+      return *(sp[i]);
     }
     
     CUDA_HOST_AND_DEVICE
     LxField<spincolor>& operator[](const int& i)
     {
-      return sp[i];
+      return *(sp[i]);
     }
     
     void alloc_spincolor()
     {
-      sp.resize(nso_spi*nso_col,"sp");
+      sp=new LxField<spincolor>*[nso_spi*nso_col];
+      for(int i=0;i<nso_spi*nso_col;i++)
+	sp[i]=new LxField<spincolor>("sp");
     }
     
     //initialize as a propagator
@@ -167,7 +169,9 @@ namespace nissa
     
     ~qprop_t()
     {
-      sp.clear();
+      for(int i=0;i<nso_spi*nso_col;i++)
+	delete sp[i];
+      delete[] sp;
     }
   };
   
@@ -234,21 +238,26 @@ namespace nissa
   
   void get_qprop(spincolor *out,spincolor *in,double kappa,double mass,int r,double q,double residue,const momentum_t& theta);
   
-  void generate_original_source(qprop_t *sou);
-  void generate_original_sources(int ihit,bool skip_io=false);
+  void generate_original_sources(const int& ihit,
+				 const bool& skipOnly);
+  
+  void generate_original_source(qprop_t& sou,
+				const bool& skipOnly);
+  
   void insert_external_loc_source(spincolor *out,spin1field *curr,spincolor *in,int t,bool *dirs);
   void insert_external_source(spincolor *out,quad_su3 *conf,spin1field *curr,spincolor *ori,int t,int r,bool *dirs,int loc);
   
   void generate_photon_source(LxField<spin1field>& photon_eta);
   
   void generate_source(insertion_t inser,int r,double charge,double kappa,const momentum_t& theta,spincolor *ori,int t);
-  void generate_quark_propagators(int isource);
+
+  void generate_quark_propagators(const int& ihit);
   
   void generate_photon_stochastic_propagator(const int& ihit);
   
   //CUDA_HOST_AND_DEVICE void get_antineutrino_source_phase_factor(complex out,const int ivol,const int ilepton,const momentum_t bc);
   void generate_lepton_propagators();
-  void propagators_fft(int ihit);
+  void propagators_fft(const int& ihit);
   
   /// Multiply the configuration for an additional u(1) field, defined as exp(-i e q A /3)
   void add_photon_field_to_conf(LxField<quad_su3>& conf,

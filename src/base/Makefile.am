@@ -15,7 +15,6 @@ BUILT_SOURCES+= \
 
 __top_builddir__lib_libnissa_a_SOURCES= \
 	%D%/bench.cpp \
-	%D%/close.cpp \
 	%D%/debug.cpp \
 	%D%/field.cpp \
 	%D%/init.cpp \

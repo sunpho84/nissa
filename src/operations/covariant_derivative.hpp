@@ -169,38 +169,41 @@ namespace nissa
     in.updateHalo();
     conf.updateHalo();
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
-	  for (int mu=0;mu<NDIM;mu++)
-	    {
-	      int ifw=loclxNeighup[ivol][mu];
-	      int ibw=loclxNeighdw[ivol][mu];
-	      spincolor fw,bw;
-	      unsafe_su3_prod_spincolor(fw,conf[ivol][mu],in[ifw]);
-	      unsafe_su3_dag_prod_spincolor(bw,conf[ibw][mu],in[ibw]);
-	      spincolor_prodassign_complex(fw,fact_fw);
-	      spincolor_prodassign_complex(bw,fact_bw);
-	      complex fw_curr,bw_curr;
-	      
-	      currCalc(fw_curr,ivol,mu,1.0);
-	      currCalc(bw_curr,ibw,mu,-1.0);
-	      
-	      spincolor_prodassign_complex(fw,fw_curr);
-	      spincolor_prodassign_complex(bw,bw_curr);
-	      spincolor bw_M_fw, bw_P_fw;
-	      spincolor_subt(bw_M_fw, bw, fw);
-	      spincolor_summ(bw_P_fw, bw, fw);
-	      spincolor GAMMA_bw_P_fw;
-	      unsafe_dirac_prod_spincolor(GAMMA_bw_P_fw, GAMMA, bw_P_fw);
-	      spincolor_summassign(out[ivol], GAMMA_bw_P_fw);
-	      spincolor gmu_bw_M_fw;
-	      unsafe_dirac_prod_spincolor(gmu_bw_M_fw, base_gamma[igamma_of_mu[mu]],bw_M_fw);
-	      spincolor_summassign(out[ivol], gmu_bw_M_fw);
-	    }
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(out);
+    PAR(0,locVol,
+	CAPTURE(t,GAMMA,currCalc,fact_bw,fact_fw,
+		TO_WRITE(out),
+		TO_READ(in),
+		TO_READ(conf)),
+	ivol,
+	{
+	  if(t==-1 or glbCoordOfLoclx[ivol][0]==t)
+	    for (int mu=0;mu<NDIM;mu++)
+	      {
+		int ifw=loclxNeighup[ivol][mu];
+		int ibw=loclxNeighdw[ivol][mu];
+		spincolor fw,bw;
+		unsafe_su3_prod_spincolor(fw,conf[ivol][mu],in[ifw]);
+		unsafe_su3_dag_prod_spincolor(bw,conf[ibw][mu],in[ibw]);
+		spincolor_prodassign_complex(fw,fact_fw);
+		spincolor_prodassign_complex(bw,fact_bw);
+		complex fw_curr,bw_curr;
+		
+		currCalc(fw_curr,ivol,mu,1.0);
+		currCalc(bw_curr,ibw,mu,-1.0);
+		
+		spincolor_prodassign_complex(fw,fw_curr);
+		spincolor_prodassign_complex(bw,bw_curr);
+		spincolor bw_M_fw, bw_P_fw;
+		spincolor_subt(bw_M_fw, bw, fw);
+		spincolor_summ(bw_P_fw, bw, fw);
+		spincolor GAMMA_bw_P_fw;
+		unsafe_dirac_prod_spincolor(GAMMA_bw_P_fw, GAMMA, bw_P_fw);
+		spincolor_summassign(out[ivol], GAMMA_bw_P_fw);
+		spincolor gmu_bw_M_fw;
+		unsafe_dirac_prod_spincolor(gmu_bw_M_fw, base_gamma[igamma_of_mu[mu]],bw_M_fw);
+		spincolor_summassign(out[ivol], gmu_bw_M_fw);
+	      }
+	});
   }
   
   template <typename F>

@@ -264,15 +264,21 @@ namespace nissa
       const int& nd=this->nd;
       
       const LxField<T>& f0=field;
+      LxField<T>& df0=this->df0;
+      LxField<T>& f1=this->f1;
       
       //zero step: phi1 = phi0 + de0/4
       Wflow::Laplace_operator_switch(df0,conf[0],this->dirs,f0);
-      this->f1.forEachSiteDeg([&,this](auto& f1,
-				       const int& site,
-				       const int& deg)
-      {
-	f1=f0(site,deg)+df0(site,deg)*dt/4;
-      });
+      
+      FOR_EACH_SITE_DEG_OF_FIELD(f1,
+				 CAPTURE(dt,
+					 TO_WRITE(f1),
+					 TO_READ(f0),
+					 TO_READ(df0)),
+				 site,deg,
+				 {
+				   f1(site,deg)=f0(site,deg)+df0(site,deg)*dt/4;
+				 });
       
       crash("reimplement"); (void)nd;
       
