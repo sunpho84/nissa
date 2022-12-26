@@ -412,13 +412,15 @@ namespace nissa
 #define PROVIDE_SELFOP(OP)						\
     Field& operator OP ## =(const Field& oth)				\
     {									\
-      NISSA_PARALLEL_LOOP(site,0,this->nSites())			\
-	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)	\
-	  (*this)(site,internalDeg) OP ## =oth(site,internalDeg);	\
-      NISSA_PARALLEL_LOOP_END;						\
+      PAR(0,this->nSites(),						\
+	  CAPTURE(t=this->getWritable(),				\
+		  TO_READ(oth)),					\
+	  site,								\
+	  {								\
+	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++) \
+	      t(site,internalDeg) OP ## =oth(site,internalDeg);		\
+	  });								\
 									\
-      invalidateHalo();							\
-      									\
       return *this;							\
     }
     
@@ -430,13 +432,15 @@ namespace nissa
 #define PROVIDE_SELF_SCALOP(OP)						\
     Field& operator OP ## =(const Fund& oth)				\
     {									\
-      NISSA_PARALLEL_LOOP(site,0,this->nSites())			\
-	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)	\
-	  (*this)(site,internalDeg) OP ## =oth;				\
-      NISSA_PARALLEL_LOOP_END;						\
+      PAR(0,this->nSites(),						\
+	  CAPTURE(oth,							\
+		  t=this->getWritable()),				\
+	  site,								\
+	  {								\
+	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++) \
+	      t(site,internalDeg) OP ## =oth;				\
+	  });								\
 									\
-      invalidateHalo();							\
-      									\
       return *this;							\
     }
     
@@ -448,12 +452,13 @@ namespace nissa
     /// Reset to 0
     void reset()
     {
-      NISSA_PARALLEL_LOOP(site,0,this->nSites())
-	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  (*this)(site,internalDeg)=0.0;
-      NISSA_PARALLEL_LOOP_END;
-      
-      invalidateHalo();
+      PAR(0,this->nSites(),
+	  CAPTURE(t=this->getWritable()),
+	  site,
+	  {
+	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	      t(site,internalDeg)=0.0;
+	  });
     }
     
     /// Squared norm
@@ -461,14 +466,16 @@ namespace nissa
     {
       Field<Fund,SC> buf("buf");
       
-      NISSA_PARALLEL_LOOP(site,0,this->nSites())
-	{
-	  double s2=0.0;
-	  for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	    s2+=sqr((*this)(site,internalDeg));
-	  buf[site]=s2;
-	}
-      NISSA_PARALLEL_LOOP_END;
+      PAR(0,this->nSites(),
+	  CAPTURE(t=this->getReadable(),
+		  TO_WRITE(buf)),
+	  site,
+	  {
+	    double s2=0.0;
+	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	      s2+=sqr(t(site,internalDeg));
+	    buf[site]=s2;
+	  });
       
       double res;
       glb_reduce(&res,buf,this->nSites());
@@ -519,15 +526,18 @@ namespace nissa
       const auto& l=castComponents<NT>();
       const auto& r=oth.castComponents<NT>();
       
-      NISSA_PARALLEL_LOOP(site,0,this->nSites())
-	{
-	  complex c;
-	  complex_put_to_zero(c);
-	  for(int internalDeg=0;internalDeg<nInternalDegs/2;internalDeg++)
-	    complex_summ_the_conj1_prod(c,l[site][internalDeg],oth[site][internalDeg]);
-	  complex_copy(buf[site],c);
-	}
-      NISSA_PARALLEL_LOOP_END;
+      PAR(0,this->nSites(),
+	  CAPTURE(TO_WRITE(buf),
+		  TO_READ(r),
+		  TO_READ(l)),
+	  site,
+	  {
+	    complex c;
+	    complex_put_to_zero(c);
+	    for(int internalDeg=0;internalDeg<nInternalDegs/2;internalDeg++)
+	      complex_summ_the_conj1_prod(c,l[site][internalDeg],r[site][internalDeg]);
+	    complex_copy(buf[site],c);
+	  });
       
       complex res;
       glb_reduce(&res,buf,this->nSites());
@@ -538,14 +548,17 @@ namespace nissa
     {
       Field<double,SC> buf("buf");
       
-      NISSA_PARALLEL_LOOP(site,0,this->nSites())
-	{
-	  double r=0;
-	  for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	    r+=(*this)(site,internalDeg)*oth(site,internalDeg);
-	  buf[site]=r;
-	}
-      NISSA_PARALLEL_LOOP_END;
+      PAR(0,this->nSites(),
+	  CAPTURE(TO_WRITE(buf),
+		  t=this->getReadable(),
+		  TO_READ(oth)),
+	  site,
+	  {
+	    double r=0;
+	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	      r+=t(site,internalDeg)*oth(site,internalDeg);
+	    buf[site]=r;
+	  });
       
       double res;
       glb_reduce(&res,buf,this->nSites());
@@ -705,11 +718,15 @@ namespace nissa
     void fillSendingBufWith(const F& f,
 			    const int& n) const
     {
-      NISSA_PARALLEL_LOOP(i,0,n)
-	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  ((Fund*)send_buf)[internalDeg+nInternalDegs*i]=
-	    (*this)(f(i),internalDeg);
-      NISSA_PARALLEL_LOOP_END;
+      PAR(0,n,
+	  CAPTURE(f,
+		  t=this->getReadable()),
+	  i,
+	  {
+	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	      ((Fund*)send_buf)[internalDeg+nInternalDegs*i]=
+		t(f(i),internalDeg);
+	  });
     }
     
     /// Fill the sending buf using the data on the surface of a field
@@ -737,32 +754,37 @@ namespace nissa
     {
       for(int bf=0;bf<2;bf++)
 	for(int mu=0;mu<NDIM;mu++)
-	  NISSA_PARALLEL_LOOP(iHaloOriDir,0,bord_dir_vol[mu]/divCoeff)
-	    {
-	      const int iHalo=
-		bf*bord_volh/divCoeff+
-		iHaloOriDir+bord_offset[mu]/divCoeff;
-	      
-	      const int iSurf=
-		Field::surfSiteOfHaloSite(iHalo);
-	      
-	      f((*this)[iSurf],
-		((B*)recv_buf)[iHalo],
-		bf,
-		mu);
-	    }
-      NISSA_PARALLEL_LOOP_END;
+	  PAR(0,bord_dir_vol[mu]/divCoeff,
+	      CAPTURE(f,bf,mu,
+		      t=this->getWritable()),
+	      iHaloOriDir,
+	      {
+		const int iHalo=
+		  bf*bord_volh/divCoeff+
+		  iHaloOriDir+bord_offset[mu]/divCoeff;
+		
+		const int iSurf=
+		  Field::surfSiteOfHaloSite(iHalo);
+		
+		f(t[iSurf],
+		  ((B*)recv_buf)[iHalo],
+		  bf,
+		  mu);
+	      });
     }
     
     /// Fill the sending buf using the data with a given function
     void fillHaloOrEdgesWithReceivingBuf(const int& offset,
 					 const int& n) const
     {
-      NISSA_PARALLEL_LOOP(i,0,n)
-	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  _data[index(offset+i,internalDeg,externalSize)]=
-	    ((Fund*)recv_buf)[internalDeg+nInternalDegs*i];
-      NISSA_PARALLEL_LOOP_END;
+      PAR(0,n,
+	  CAPTURE(_data=this->_data,offset,externalSize=this->externalSize),
+	  i,
+	  {
+	    for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
+	      _data[index(offset+i,internalDeg,externalSize)]=
+		((Fund*)recv_buf)[internalDeg+nInternalDegs*i];
+	  });
     }
     
     /// Fills the halo with the received buffer
@@ -788,18 +810,20 @@ namespace nissa
     {
       for(int bf=0;bf<2;bf++)
 	for(int mu=0;mu<NDIM;mu++)
-	  NISSA_PARALLEL_LOOP(iHaloOriDir,0,bord_dir_vol[mu]/divCoeff)
-	    {
-	      const int iHalo=
-		bf*bord_volh/divCoeff+
-		iHaloOriDir+bord_offset[mu]/divCoeff;
-	      
-	      f(((B*)send_buf)[iHalo],
-		(*this)[locVol/divCoeff+iHalo],
-		bf,
-		mu);
-	    }
-          NISSA_PARALLEL_LOOP_END;
+	  PAR(0,bord_dir_vol[mu]/divCoeff,
+	      CAPTURE(bf,mu,f,
+		      t=this->getReadable()),
+	      iHaloOriDir,
+	      {
+		const int iHalo=
+		  bf*bord_volh/divCoeff+
+		  iHaloOriDir+bord_offset[mu]/divCoeff;
+		
+		f(((B*)send_buf)[iHalo],
+		  t[locVol/divCoeff+iHalo],
+		  bf,
+		  mu);
+	      });
     }
     
     /// Start the communications of halo
