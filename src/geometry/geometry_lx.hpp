@@ -79,7 +79,6 @@ namespace nissa
   EXTERN_GEOMETRY_LX int rank,nranks,cart_rank;
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t rank_coord;
   EXTERN_GEOMETRY_LX coords_t rank_neigh[2],rank_neighdw,rank_neighup;
-  EXTERN_GEOMETRY_LX coords_t plan_rank,line_rank,line_coord_rank;
   CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t nrank_dir;
   EXTERN_GEOMETRY_LX int grid_inited;
   EXTERN_GEOMETRY_LX int nparal_dir;

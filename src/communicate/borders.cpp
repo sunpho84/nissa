@@ -105,9 +105,9 @@ namespace nissa
 	    {
 	      //exchanging the lower surface, from the first half of sending node to the second half of receiving node
 	      MPI_Irecv(recv_buf+comm.recv_offset[idir],comm.message_length[idir],MPI_CHAR,comm.recv_rank[idir],
-			comm.imessage,cart_comm,comm.requests+(comm.nrequest++));
+			comm.imessage,MPI_COMM_WORLD,comm.requests+(comm.nrequest++));
 	      MPI_Isend(send_buf+comm.send_offset[idir],comm.message_length[idir],MPI_CHAR,comm.send_rank[idir],
-			comm.imessage,cart_comm,comm.requests+(comm.nrequest++));
+			comm.imessage,MPI_COMM_WORLD,comm.requests+(comm.nrequest++));
 	    }
       }
   }

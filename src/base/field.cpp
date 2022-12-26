@@ -36,7 +36,7 @@ namespace nissa
 		MPI_Request request;
 		
 		sendOrRecv(ptr+offset,messageLength,MPI_CHAR,neighRank,
-			   messageTag,cart_comm,&request);
+			   messageTag,MPI_COMM_WORLD,&request);
 		
 		requests.push_back(request);
 	      };
@@ -86,7 +86,7 @@ namespace nissa
 			MPI_Request request;
 			
 			sendOrRecv(ptr+offset,messageLength,MPI_CHAR,neighRank,
-				   messageTag,cart_comm,&request);
+				   messageTag,MPI_COMM_WORLD,&request);
 			
 			requests.push_back(request);
 		      }

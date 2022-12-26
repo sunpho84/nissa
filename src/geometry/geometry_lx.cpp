@@ -474,14 +474,30 @@ namespace nissa
     
     //find the rank of the neighbour in the various dir
     for(int mu=0;mu<NDIM;mu++)
-      MPI_Cart_shift(cart_comm,mu,1,&(rank_neighdw[mu]),&(rank_neighup[mu]));
+      {
+	do
+	  {
+	    coords_t temp=rank_coord;
+	    temp[mu]=(temp[mu]+nrank_dir[mu]-1)%nrank_dir[mu];
+	    rank_neighdw[mu]=rank_of_coord(temp);
+	  }
+	while(0);
+	
+	do
+	  {
+	    coords_t temp=rank_coord;
+	    temp[mu]=(temp[mu]+1)%nrank_dir[mu];
+	    rank_neighup[mu]=rank_of_coord(temp);
+	  }
+	while(0);
+      }
     rank_neigh[0]=rank_neighdw;
     rank_neigh[1]=rank_neighup;
     
     locCoordOfLoclx=nissa_malloc("loc_coord_of_loclx",locVol,coords_t);
     glbCoordOfLoclx=nissa_malloc("glb_coord_of_loclx",locVol+bord_vol+edge_vol,coords_t);
     loclx_neigh[0]=loclxNeighdw=nissa_malloc("loclx_neighdw",locVol+bord_vol+edge_vol,coords_t);
-    loclx_neigh[1]=loclxNeighup=nissa_malloc("loclx_neighup",locVol+bord_vol+edge_vol,coords_t);  
+    loclx_neigh[1]=loclxNeighup=nissa_malloc("loclx_neighup",locVol+bord_vol+edge_vol,coords_t);
     ignore_borders_communications_warning(locCoordOfLoclx);
     ignore_borders_communications_warning(glbCoordOfLoclx);
     ignore_borders_communications_warning(loclxNeighup);

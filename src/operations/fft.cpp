@@ -99,22 +99,26 @@ namespace nissa
 	  //look at the output
 	  int iel_blk_out=glb_iel_in/glb_nblk;
 	  int glb_iblk_out=bitrev(glb_iel_in-iel_blk_out*glb_nblk,log2glb_nblk);
-	  int rank_coord_out=glb_iblk_out/loc_nblk;
-	  int loc_iblk_out=glb_iblk_out-rank_coord_out*loc_nblk;
+	  coords_t rank_coords_out=rank_coord;
+	  rank_coords_out[mu]=glb_iblk_out/loc_nblk;
+	  int rank_out=rank_of_coord(rank_coords_out);
+	  int loc_iblk_out=glb_iblk_out-rank_coords_out[mu]*loc_nblk;
 	  int loc_iel_out=loc_iblk_out*blk_size+iel_blk_out;
 	  
 	  //now, if the destination is local, put it on place
-	  if(rank_coord_out==rank_coord[mu]) memcpy(buf+ncpp*loc_iel_out,in+ncpp*loc_iel_in,sizeof(complex)*ncpp);
+	  if(rank_coords_out[mu]==rank_coord[mu]) memcpy(buf+ncpp*loc_iel_out,in+ncpp*loc_iel_in,sizeof(complex)*ncpp);
 	  else //send the data to the destination
-	    MPI_Isend((void*)(in+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,rank_coord_out,1241+loc_iel_out,
-		      line_comm[mu],&request0[nrequest0++]);
+	    MPI_Isend((void*)(in+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,rank_out,1241+loc_iel_out,
+		      MPI_COMM_WORLD,&request0[nrequest0++]);
 	  
 	  //if necessary receive data: glb_iel_send=iel_blk_in*glb_nblk+glb_iblk_in_rev
 	  int glb_iel_send=iel_blk_in*glb_nblk+bitrev(glb_iblk_in,log2glb_nblk);
-	  int rank_coord_send=glb_iel_send/locSize[mu];
-	  if(rank_coord_send!=line_rank[mu])
-	    MPI_Irecv((void*)(buf+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,rank_coord_send,1241+loc_iel_in,
-		      line_comm[mu],&request0[nrequest0++]);
+	  coords_t rank_coords_send=rank_coord;
+	  rank_coords_send[mu]=glb_iel_send/locSize[mu];
+	  int rank_send=rank_of_coord(rank_coords_send);
+	  if(rank_coords_send[mu]!=rank_coord[mu])
+	    MPI_Irecv((void*)(buf+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,rank_send,1241+loc_iel_in,
+		      MPI_COMM_WORLD,&request0[nrequest0++]);
 	}
     
     //wait for scramble to finish
@@ -225,73 +229,75 @@ namespace nissa
       {
 	int delta=delta_rank*locSize[mu];    //block extent
 	int idelta=rank_coord[mu]/delta_rank; //identify the delta of the current rank
+	crash("reimplement");
+	// //find if the current rank holding the first or second block
+	// complex *first,*second;
+	// MPI_Request request2[2];
+	// MPI_Status status2[2];
 	
-	//find if the current rank holding the first or second block
-	complex *first,*second;
-	MPI_Request request2[2];
-	MPI_Status status2[2];
-	
-	if(idelta%2==0) //first: so it has to receive second block and send first
-	  {
-	    first=out;
-	    second=buf;
+	// if(idelta%2==0) //first: so it has to receive second block and send first
+	//   {
+	//     first=out;
+	//     second=buf;
+	//     coords_t rank_send_coords=rank_coord;
+	//     rank_send_coords[mu]
 	    
-	    MPI_Irecv((void*)buf,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu],
-		      line_comm[mu],&(request2[0]));
-	    MPI_Isend((void*)out,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu]+delta_rank,
-		      line_comm[mu],&(request2[1]));
-	  }
-	else           //second: so it has to receive first block and send second
-	  {
-	    first=buf;
-	    second=out;
+	//     MPI_Irecv((void*)buf,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu],
+	// 	      line_comm[mu],&(request2[0]));
+	//     MPI_Isend((void*)out,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu]+delta_rank,
+	// 	      line_comm[mu],&(request2[1]));
+	//   }
+	// else           //second: so it has to receive first block and send second
+	//   {
+	//     first=buf;
+	//     second=out;
 	    
-	    MPI_Irecv((void*)buf,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu],
-		      line_comm[mu],&(request2[0]));
-	    MPI_Isend((void*)out,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu]-delta_rank,
-		      line_comm[mu],&(request2[1]));
-	  }
+	//     MPI_Irecv((void*)buf,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu],
+	// 	      line_comm[mu],&(request2[0]));
+	//     MPI_Isend((void*)out,2*ncpp*locSize[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu]-delta_rank,
+	// 	      line_comm[mu],&(request2[1]));
+	//   }
 	
 	//incrementing factor
-	double theta=sign*2*M_PI/(2*delta);
-	double wtemp=sin(0.5*theta);
-	double wpr=-2*wtemp*wtemp;
-	double wpi=sin(theta);
+	// double theta=sign*2*M_PI/(2*delta);
+	// double wtemp=sin(0.5*theta);
+	// double wpr=-2*wtemp*wtemp;
+	// double wpi=sin(theta);
 	
-	int rank_pos_delta=rank_coord[mu]%delta_rank;  //position of the rank inside the delta
-	int pos_delta=rank_pos_delta*locSize[mu];     //starting coord of local delta inside the delta
+	// int rank_pos_delta=rank_coord[mu]%delta_rank;  //position of the rank inside the delta
+	// int pos_delta=rank_pos_delta*locSize[mu];     //starting coord of local delta inside the delta
 	
-	//fourier coefficient
-	double wr=cos(pos_delta*theta);
-	double wi=sin(pos_delta*theta);
+	// //fourier coefficient
+	// double wr=cos(pos_delta*theta);
+	// double wi=sin(pos_delta*theta);
 	
-	//wait for communications to finish
-	MPI_Waitall(2,request2,status2);
+	// //wait for communications to finish
+	// MPI_Waitall(2,request2,status2);
 	
-	//loop over the delta length (each m will correspond to increasing twiddle)
-	for(int loc_m=0;loc_m<locSize[mu];loc_m++)
-	  {
-	    //site data multiplication
-	    for(int ic=0;ic<ncpp;ic++)
-	      {
-		double tempr=wr*second[loc_m*ncpp+ic][0]-wi*second[loc_m*ncpp+ic][1];
-		double tempi=wr*second[loc_m*ncpp+ic][1]+wi*second[loc_m*ncpp+ic][0];
+	// //loop over the delta length (each m will correspond to increasing twiddle)
+	// for(int loc_m=0;loc_m<locSize[mu];loc_m++)
+	//   {
+	//     //site data multiplication
+	//     for(int ic=0;ic<ncpp;ic++)
+	//       {
+	// 	double tempr=wr*second[loc_m*ncpp+ic][0]-wi*second[loc_m*ncpp+ic][1];
+	// 	double tempi=wr*second[loc_m*ncpp+ic][1]+wi*second[loc_m*ncpp+ic][0];
 		
-		if(idelta%2==0)
-		  {
-		    first[loc_m*ncpp+ic][0]+=tempr;
-		    first[loc_m*ncpp+ic][1]+=tempi;
-		  }
-		else
-		  {
-		    second[loc_m*ncpp+ic][0]=first[loc_m*ncpp+ic][0]-tempr;
-		    second[loc_m*ncpp+ic][1]=first[loc_m*ncpp+ic][1]-tempi;
-		  }
-	      }
-	    wtemp=wr;
-	    wr+=wr*wpr-   wi*wpi;
-	    wi+=wi*wpr+wtemp*wpi;
-	  }
+	// 	if(idelta%2==0)
+	// 	  {
+	// 	    first[loc_m*ncpp+ic][0]+=tempr;
+	// 	    first[loc_m*ncpp+ic][1]+=tempi;
+	// 	  }
+	// 	else
+	// 	  {
+	// 	    second[loc_m*ncpp+ic][0]=first[loc_m*ncpp+ic][0]-tempr;
+	// 	    second[loc_m*ncpp+ic][1]=first[loc_m*ncpp+ic][1]-tempi;
+	// 	  }
+	//       }
+	//     wtemp=wr;
+	//     wr+=wr*wpr-   wi*wpi;
+	//     wi+=wi*wpr+wtemp*wpi;
+	//   }
       }
     
     if(normalize==1)

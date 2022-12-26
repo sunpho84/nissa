@@ -41,11 +41,6 @@ namespace nissa
   EXTERN_MPI MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
   EXTERN_MPI MPI_Datatype MPI_EO_AS2T_SU3_EDGES_SEND[96],MPI_EO_AS2T_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
   
-  //volume, plan and line communicator
-  EXTERN_MPI MPI_Comm cart_comm;
-  EXTERN_MPI MPI_Comm plan_comm[NDIM];
-  EXTERN_MPI MPI_Comm line_comm[NDIM];
-  
   EXTERN_MPI int master_rank INIT_MPI_TO(=0);
   
 #define DEFINE_MPI_DATATYPE_OF(T,MPI_T)		\

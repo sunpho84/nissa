@@ -1,22 +1,22 @@
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #ifdef USE_MPI
- #include <mpi.h>
+# include <mpi.h>
 #endif
 
 #define EXTERN_MPI
- #include "mpi_routines.hpp"
+# include <routines/mpi_routines.hpp>
 
-#include "geometry/geometry_lx.hpp"
-#include "linalgs/linalgs.hpp"
-#include "linalgs/reduce.hpp"
-#include "new_types/complex.hpp"
-#include "new_types/float_128.hpp"
-#include "new_types/rat_approx.hpp"
-#include "routines/ios.hpp"
-#include "threads/threads.hpp"
+#include <geometry/geometry_lx.hpp>
+#include <linalgs/linalgs.hpp>
+#include <linalgs/reduce.hpp>
+#include <new_types/complex.hpp>
+#include <new_types/float_128.hpp>
+#include <new_types/rat_approx.hpp>
+#include <routines/ios.hpp>
+#include <threads/threads.hpp>
 
 namespace nissa
 {
@@ -85,52 +85,9 @@ namespace nissa
   void create_MPI_cartesian_grid()
   {
 #ifdef USE_MPI
-    coords_t periods;
-    for(int mu=0;mu<NDIM;mu++) periods[mu]=1;
-    MPI_Cart_create(MPI_COMM_WORLD,NDIM,&nrank_dir[0],&periods[0],1,&cart_comm);
-    //takes rank and ccord of local rank
-    MPI_Comm_rank(cart_comm,&cart_rank);
-    MPI_Cart_coords(cart_comm,cart_rank,NDIM,&rank_coord[0]);
-    
-    //create communicator along plan
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	coords_t split_plan;
-	coords_t proj_rank_coord;
-	for(int nu=0;nu<NDIM;nu++)
-	  {
-	    split_plan[nu]=(nu==mu) ? 0 : 1;
-	    proj_rank_coord[nu]=(nu==mu) ? 0 : rank_coord[nu];
-	  }
-	MPI_Cart_sub(cart_comm,&split_plan[0],&(plan_comm[mu]));
-	MPI_Comm_rank(plan_comm[mu],&(plan_rank[mu]));
-	if(plan_rank[mu]!=rank_of_coord(proj_rank_coord))
-	  crash("Plan communicator has messed up coord: %d and rank %d (implement reorder!)",
-		rank_of_coord(proj_rank_coord),plan_rank[mu]);
-      }
-    
-    //create communicator along line
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	//split the communicator
-	coords_t split_line;
-	memset(&split_line,0,sizeof(coords_t));
-	split_line[mu]=1;
-	MPI_Cart_sub(cart_comm,&split_line[0],&(line_comm[mu]));
-	
-	//get rank id
-	MPI_Comm_rank(line_comm[mu],&(line_rank[mu]));
-	
-	//get rank coord along line comm
-	MPI_Cart_coords(line_comm[mu],line_rank[mu],1,&(line_coord_rank[mu]));
-	
-	//check communicator
-	if(line_rank[mu]!=rank_coord[mu] || line_rank[mu]!=line_coord_rank[mu])
-	  crash("Line communicator has messed up coord and rank (implement reorder!)");
-      }
+    rank_coord=coord_of_rank(rank);
 #else
-    cart_rank=plan_rank=line_rank=0;
-    for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=planline_coord[mu]=0;
+    for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=0;
 #endif
   }
   
