@@ -195,28 +195,32 @@ namespace nissa
     LxField<double> locMax("locMax");
     LxField<int64_t> locNbroken("locNbroken");
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	double a=0;
-	double m=0;
-	int n=0;
-	
-	for(int idir=0;idir<NDIM;idir++)
+    PAR(0,locVol,
+	CAPTURE(TO_WRITE(locAvg),
+		TO_WRITE(locMax),
+		TO_WRITE(locNbroken),
+		TO_READ(conf)),
+	ivol,
 	{
-	  const double err=
-	    su3_get_non_unitariness(conf[ivol][idir]);
+	  double a=0;
+	  double m=0;
+	  int n=0;
 	  
-	  //compute average and max deviation
-	  a=err;
-	  m=err;
-	  n+=(err>1e-13);
-	}
-	
-	locAvg[ivol]=a;
-	locMax[ivol]=m;
-	locNbroken[ivol]=n;
-      }
-    NISSA_PARALLEL_LOOP_END;
+	  for(int idir=0;idir<NDIM;idir++)
+	    {
+	      const double err=
+		su3_get_non_unitariness(conf[ivol][idir]);
+	      
+	      //compute average and max deviation
+	      a=err;
+	      m=err;
+	      n+=(err>1e-13);
+	    }
+	  
+	  locAvg[ivol]=a;
+	  locMax[ivol]=m;
+	  locNbroken[ivol]=n;
+	});
     
     glb_reduce(&result.average_diff,locAvg,locVol);
     result.average_diff/=glbVol*NDIM;
