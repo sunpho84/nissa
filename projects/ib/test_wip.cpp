@@ -17,6 +17,8 @@ using namespace nissa;
 CUDA_MANAGED double* pt;
 CUDA_MANAGED int io;
 
+namespace nissa
+{
   template <typename IMin,
 	    typename IMax,
 	    typename F>
@@ -63,7 +65,7 @@ CUDA_MANAGED int io;
     if(print)
       printf(" finished in %lg s\n",take_time()-initTime);
   }
-
+}
 
 void in_main(int narg,char **arg)
 {
