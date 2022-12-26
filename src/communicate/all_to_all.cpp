@@ -267,25 +267,23 @@ namespace nissa
     int *source=this->out_buf_source;
     
     //copy data on the out-going buffer
-    NISSA_PARALLEL_LOOP(iel_out,0,nel_out)
-      memcpy(out_buf+iel_out*bps,(char*)in+source[iel_out]*bps,bps);
-    NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
+    PAR(0,nel_out,
+	CAPTURE(out_buf,bps,in,source),
+	iel_out,
+	{
+	  memcpy(out_buf+iel_out*bps,(char*)in+source[iel_out]*bps,bps);
+	});
     
-    if(IS_MASTER_THREAD)
-      {
-	MPI_Request req_list[nranks_to+nranks_fr];
-	int ireq=0;
-	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
-	  MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
-		    list_ranks_fr[irank_fr],909,MPI_COMM_WORLD,&req_list[ireq++]);
-	for(int irank_to=0;irank_to<nranks_to;irank_to++)
-	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
-		    list_ranks_to[irank_to],909,MPI_COMM_WORLD,&req_list[ireq++]);
-      	if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
-	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
-      }
-    THREAD_BARRIER();
+    MPI_Request req_list[nranks_to+nranks_fr];
+    int ireq=0;
+    for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
+      MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
+		list_ranks_fr[irank_fr],909,MPI_COMM_WORLD,&req_list[ireq++]);
+    for(int irank_to=0;irank_to<nranks_to;irank_to++)
+      MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
+		list_ranks_to[irank_to],909,MPI_COMM_WORLD,&req_list[ireq++]);
+    if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
+    MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
     
     int *dest=in_buf_dest;
     
