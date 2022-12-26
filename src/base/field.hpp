@@ -1284,9 +1284,6 @@ namespace nissa
 	  SubscribedField<F,std::remove_extent_t<P>>(f,site,ptr[i]);	\
       else								\
 	return eval(i);							\
-      									\
-      /* avoid warning in old versions of compilers */			\
-      return ;								\
     }
     
     PROVIDE_SUBSCRIBE_OPERATOR(const);
