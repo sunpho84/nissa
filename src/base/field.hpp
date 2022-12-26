@@ -1271,7 +1271,7 @@ namespace nissa
       const int internalDeg=						\
 	(int)(size_t)(&ptr[i])/sizeof(Fund);				\
       									\
-      return f._data[f.index(site,internalDeg)];			\
+      return f(site,internalDeg);					\
     }
     
     PROVIDE_EVAL(const);
