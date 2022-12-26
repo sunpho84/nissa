@@ -239,26 +239,25 @@ namespace nissa
     
     test.updateHalo();
     
-    crash("reimplement");
+    // crash("reimplement");
     
-    // NISSA_PARALLEL_LOOP(site,0,locVol)
-    //   {
-    // 	for(int ori=0;ori<2;ori++)
-    // 	  for(int mu=0;mu<NDIM;mu++)
-    // 	    {
-    // 	      const int ln=loclx_neigh[ori][site][mu];
-    // 	      const int gn=(ln<locVol)?glblxOfLoclx[ln]:glblxOfBordlx[ln-locVol];
-    // 	      const int neighVal=test[ln];
+    NISSA_LOC_VOL_LOOP(site)
+      {
+	for(int ori=0;ori<2;ori++)
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      const int ln=loclx_neigh[ori][site][mu];
+	      const int gn=(ln<locVol)?glblxOfLoclx[ln]:glblxOfBordlx[ln-locVol];
+	      const int neighVal=test[ln];
 	      
-    // 	      if(neighVal!=gn)
-    // 		master_printf("site %s ori %d dir %d has neigh %s with val %s\n",
-    // 			      siteAsString(glblxOfLoclx[site]).c_str(),
-    // 			      ori,mu,
-    // 			      siteAsString(gn).c_str(),
-    // 			      siteAsString(neighVal).c_str());
-    // 	    }
-    //   }
-    // NISSA_PARALLEL_LOOP_END;
+	      if(neighVal!=gn)
+		master_printf("site %s ori %d dir %d has neigh %s with val %s\n",
+			      siteAsString(glblxOfLoclx[site]).c_str(),
+			      ori,mu,
+			      siteAsString(gn).c_str(),
+			      siteAsString(neighVal).c_str());
+	    }
+      }
     
     master_printf("lx halo communicates consistently\n");
   }
