@@ -105,7 +105,7 @@ namespace nissa
   __global__
   void cuda_generic_kernel(const IMin min,
 			   const IMax max,
-			   F& f)
+			   F f)
   {
     const auto i=min+blockIdx.x*blockDim.x+threadIdx.x;
     if(i<max)
@@ -119,7 +119,7 @@ namespace nissa
 			 const char* file,
 			 const IMin min,
 			 const IMax max,
-			 F&& f)
+			 F f)
   {
     const auto length=(max-min);
     const dim3 block_dimension(NUM_THREADS);

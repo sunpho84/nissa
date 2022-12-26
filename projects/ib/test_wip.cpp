@@ -14,16 +14,6 @@ using namespace nissa;
 //   return res;
 // }
 
-CUDA_MANAGED double* pt;
-CUDA_MANAGED int io;
-
-struct Refa
-{
-  double *_data;
-  
-  int externalSize;
-};
-
 void in_main(int narg,char **arg)
 {
   const int T=16,L=16;
@@ -37,23 +27,16 @@ void in_main(int narg,char **arg)
     auto c=conf.getWritable();
     master_printf("allocated in %p\n",c._data);
     double& e=c[locVol-1][3][2][2][1];
-    master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2);
-    
+    master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2-1);
   }
   
-  Refa confa;
-  confa._data=conf._data;
-  confa.externalSize=conf.externalSize;
-  
-  PAR(0,1,
-      CAPTURE(confa),
+  PAR(0,locVol,
+      CAPTURE(TO_WRITE(conf)),
       ivol,
       {
-	pt=confa._data;
-	io=confa.externalSize;
-	//su3_put_to_id(conf[ivol][0]);
+	su3_put_to_id(conf[ivol][0]);
       });
-  master_printf("data: %p external_size: %d\n",pt,io);
+  
   // start_loc_rnd_gen(235235);
   
   // spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
