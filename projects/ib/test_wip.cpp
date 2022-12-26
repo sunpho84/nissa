@@ -33,14 +33,12 @@ void in_main(int narg,char **arg)
     master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2);
     
   }
-  
-  PAR(0,1,
-      CAPTURE(confa = conf.getWritable()),
-      ivol,
-      {
-	pt=confa._data;
-	io=confa.externalSize;
-	//su3_put_to_id(conf[ivol][0]);
+
+  cuda_parallel_for(
+      44, "/home/francesco/QCD/SORGENTI/nissa_origi/projects/ib/test_wip.cpp",
+      0, 1, [confa = conf.getReadable()]__device__(const int &ivol) mutable {
+        pt = confa._data;
+        io = confa.externalSize;
       });
   master_printf("data: %p external_size: %d\n",pt,io);
   // start_loc_rnd_gen(235235);
