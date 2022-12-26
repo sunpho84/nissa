@@ -135,24 +135,30 @@ namespace nissa
 		      complex_prodassign_double(AB[k],norm);
 		  }
 		
+		auto& loc_contr=*nissa::loc_contr;
+		
 		for(int b=0;b<nso_col;b++)
 		  {
 		    const LxField<spincolor>& q1=Q1[so_sp_col_ind(j,b)];
 		    const LxField<spincolor>& q2=Q2[so_sp_col_ind(i,b)];
 		    
-		    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-		      {
-			for(int k=0;k<NDIRAC;k++)
-			  {
-			    const int l=base_gamma[ig_si].pos[k];
-			    
-			    complex c={0,0};
-			    for(int a=0;a<NCOL;a++)
-			      complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
-			    complex_summ_the_prod((*loc_contr)[ivol],c,AB[k]);
-			  }
-		      }
-		    NISSA_PARALLEL_LOOP_END;
+		    PAR(0,locVol,
+			CAPTURE(ig_si,AB,
+				TO_WRITE(loc_contr),
+				TO_READ(q1),
+				TO_READ(q2)),
+			ivol,
+			{
+			  for(int k=0;k<NDIRAC;k++)
+			    {
+			      const int l=base_gamma[ig_si].pos[k];
+			      
+			      complex c={0,0};
+			      for(int a=0;a<NCOL;a++)
+				complex_summ_the_conj1_prod(c,q1[ivol][k][a],q2[ivol][l][a]);
+			      complex_summ_the_prod(loc_contr[ivol],c,AB[k]);
+			    }
+			});
 		  }
 	      }
 	    
