@@ -21,7 +21,13 @@ void in_main(int narg,char **arg)
   init_grid(T,L);
   
   LxField<quad_su3> conf("conf");
-
+  
+  master_printf("allocated in %p\n",conf._data);
+  {
+    auto c=conf.getReadable();
+    master_printf("allocated in %p\n",c._data);
+  }
+  
   PAR(0,locVol,
       CAPTURE(TO_WRITE(conf)),
       ivol,

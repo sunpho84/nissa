@@ -224,6 +224,8 @@ namespace nissa
     
     F& f;
     
+    int externalSize;
+    
     Fund* _data;
     
 #define PROVIDE_SUBSCRIBE_OPERATOR(CONST)				\
@@ -267,7 +269,7 @@ namespace nissa
     int index(const int& site,
 	      const int& internalDeg) const
     {
-      return f.index(site,internalDeg);
+      return F::index(site,internalDeg,externalSize);
     }
     
     /////////////////////////////////////////////////////////////////
@@ -275,6 +277,7 @@ namespace nissa
     /// Construct from field
     FieldRef(F& f) :
       f(f),
+      externalSize(f.externalSize),
       _data(f._data)
     {
       f.nRef++;
@@ -284,6 +287,7 @@ namespace nissa
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     FieldRef(const FieldRef& oth) :
       f(oth.f),
+      externalSize(oth.externalSize),
       _data(oth._data)
     {
 #ifndef COMPILING_FOR_DEVICE
@@ -359,8 +363,9 @@ namespace nissa
     
     /// Computes the index of the data
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    int index(const int& site,
-	      const int& internalDeg) const
+    static int index(const int& site,
+		     const int& internalDeg,
+		     const int& externalSize)
     {
       if constexpr(FL==CPU_LAYOUT)
 	return internalDeg+nInternalDegs*site;
@@ -670,7 +675,7 @@ namespace nissa
     CONST Fund& operator()(const int& site,				\
 			   const int& internalDeg) CONST		\
     {									\
-      return _data[index(site,internalDeg)];				\
+      return _data[index(site,internalDeg,externalSize)];		\
     }
     
     PROVIDE_FLATTENED_CALLER(const);
@@ -755,7 +760,7 @@ namespace nissa
     {
       NISSA_PARALLEL_LOOP(i,0,n)
 	for(int internalDeg=0;internalDeg<nInternalDegs;internalDeg++)
-	  _data[index(offset+i,internalDeg)]=
+	  _data[index(offset+i,internalDeg,externalSize)]=
 	    ((Fund*)recv_buf)[internalDeg+nInternalDegs*i];
       NISSA_PARALLEL_LOOP_END;
     }
