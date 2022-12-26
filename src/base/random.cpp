@@ -444,11 +444,13 @@ namespace nissa
       }
     
     if(islocal)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  source[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
-    
-    set_borders_invalid(source);
+      {
+	auto s=source.getWritable();
+	
+	for(int id=0;id<4;id++)
+	  for(int ic=0;ic<NCOL;ic++)
+	  s[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
+      }
   }
   
   //generate a delta source
@@ -469,14 +471,14 @@ namespace nissa
     
     if(islocal)
       {
-	int ivol=loclx_of_coord(lx);
-	su3_put_to_id(source[loclx_parity[ivol]][loceo_of_loclx[ivol]]);
+	auto s=source.getWritable();
+	
+	const int ivol=loclx_of_coord(lx);
+	su3_put_to_id(s[loclx_parity[ivol]][loceo_of_loclx[ivol]]);
       }
-    
-    source.invalidateHalo();
   }
   
-    //Taken from M.D'Elia
+  //Taken from M.D'Elia
 #if NCOL == 3
   CUDA_HOST_AND_DEVICE void herm_put_to_gauss(su3& H,rnd_gen *gen,double sigma)
   {

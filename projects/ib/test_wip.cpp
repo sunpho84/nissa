@@ -24,8 +24,11 @@ void in_main(int narg,char **arg)
   
   master_printf("allocated in %p\n",conf._data);
   {
-    auto c=conf.getReadable();
+    auto c=conf.getWritable();
     master_printf("allocated in %p\n",c._data);
+    double& e=c[locVol-1][3][2][2][1];
+    master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2);
+    
   }
   
   PAR(0,locVol,

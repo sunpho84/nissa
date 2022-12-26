@@ -224,7 +224,7 @@ namespace nissa
     
     F& f;
     
-    int externalSize;
+    const int externalSize;
     
     Fund* _data;
     
@@ -295,7 +295,7 @@ namespace nissa
 #endif
     }
     
-    /// Construct from field
+    /// Destructor
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     ~FieldRef()
     {
