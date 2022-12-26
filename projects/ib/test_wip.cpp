@@ -83,10 +83,10 @@ void in_main(int narg,char **arg)
     master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2);
     
   }
-
+  auto confa = conf.getReadable();
   cuda_parallel_for2(
       44, "/home/francesco/QCD/SORGENTI/nissa_origi/projects/ib/test_wip.cpp",
-      0, 1, [confa = conf.getReadable()]__device__(const int &ivol) {
+      0, 1, [confa]__device__(const int &ivol) {
         pt = confa._data;
         io = confa.externalSize;
       });
