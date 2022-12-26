@@ -14,6 +14,9 @@ using namespace nissa;
 //   return res;
 // }
 
+CUDA_MANAGED double* pt;
+CUDA_MANAGED int io;
+
 void in_main(int narg,char **arg)
 {
   const int T=16,L=16;
@@ -31,13 +34,15 @@ void in_main(int narg,char **arg)
     
   }
   
-  PAR(0,locVol,
+  PAR(0,1,
       CAPTURE(TO_WRITE(conf)),
       ivol,
       {
-	su3_put_to_id(conf[ivol][0]);
+	pt=conf._data;
+	io=conf.externalSize;
+	//su3_put_to_id(conf[ivol][0]);
       });
-  
+  master_printf("data: %p external_size: %d\n",pt,io);
   // start_loc_rnd_gen(235235);
   
   // spincolor *in=nissa_malloc("in",locVol+bord_vol,spincolor);
