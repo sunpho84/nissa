@@ -213,7 +213,7 @@ namespace nissa
     su3 *recv_ptr=nonloc_links;
     for(int irecv=0;irecv<nranks_to_recv;irecv++)
       {
-	MPI_Irecv((void*)recv_ptr,nlinks_to_recv_list[irecv],MPI_SU3,ranks_to_recv_list[irecv],rank*nranks+ranks_to_recv_list[irecv],cart_comm,request+irequest++);
+	MPI_Irecv((void*)recv_ptr,nlinks_to_recv_list[irecv],MPI_SU3,ranks_to_recv_list[irecv],rank*nranks+ranks_to_recv_list[irecv],MPI_COMM_WORLD,request+irequest++);
 	
 	if(irecv+1!=nranks_to_recv) recv_ptr+=nlinks_to_recv_list[irecv];
       }
@@ -226,7 +226,7 @@ namespace nissa
     su3 *send_ptr=send_buff;
     for(int isend=0;isend<nranks_to_send;isend++)
       {
-	MPI_Isend((void*)send_ptr,nlinks_to_send_list[isend],MPI_SU3,ranks_to_send_list[isend],ranks_to_send_list[isend]*nranks+rank,cart_comm,request+irequest++);
+	MPI_Isend((void*)send_ptr,nlinks_to_send_list[isend],MPI_SU3,ranks_to_send_list[isend],ranks_to_send_list[isend]*nranks+rank,MPI_COMM_WORLD,request+irequest++);
 	
 	if(isend+1!=nranks_to_send) send_ptr+=nlinks_to_send_list[isend];
       }
