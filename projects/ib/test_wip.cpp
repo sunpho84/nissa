@@ -17,55 +17,12 @@ using namespace nissa;
 CUDA_MANAGED double* pt;
 CUDA_MANAGED int io;
 
-namespace nissa
+struct Refa
 {
-  template <typename IMin,
-	    typename IMax,
-	    typename F>
-  __global__
-  void cuda_generic_kernel2(const IMin min,
-			    const IMax max,
-			    const F& f)
-  {
-    const auto i=min+blockIdx.x*blockDim.x+threadIdx.x;
-    if(i<max)
-      f(i);
-  }
+  double *_data;
   
-  template <typename IMin,
-	    typename IMax,
-	    typename F>
-  void cuda_parallel_for2(const int line,
-			 const char* file,
-			 const IMin min,
-			 const IMax max,
-			 const F& f)
-  {
-    const auto length=(max-min);
-    const dim3 block_dimension(NUM_THREADS);
-    const dim3 grid_dimension((length+block_dimension.x-1)/block_dimension.x);
-    
-    double initTime=0;
-    extern int rank,verbosity_lv;
-    const bool print=(verbosity_lv>=1// 2
-		      and rank==0);
-    if(print)
-      {
-	printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
-	   line,file,(int64_t)min,(int64_t)max,block_dimension.x,grid_dimension.x);
-	initTime=take_time();
-      }
-    
-    if(length>0)
-      {
-	cuda_generic_kernel2<<<grid_dimension,block_dimension>>>(min,max,f);
-	cudaDeviceSynchronize();
-      }
-    
-    if(print)
-      printf(" finished in %lg s\n",take_time()-initTime);
-  }
-}
+  int externalSize;
+};
 
 void in_main(int narg,char **arg)
 {
@@ -83,12 +40,18 @@ void in_main(int narg,char **arg)
     master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2);
     
   }
-  auto confa = conf.getReadable();
-  cuda_parallel_for2(
-      44, "/home/francesco/QCD/SORGENTI/nissa_origi/projects/ib/test_wip.cpp",
-      0, 1, [confa]__device__(const int &ivol) {
-        pt = confa._data;
-        io = confa.externalSize;
+  
+  Refa confa;
+  confa._data=conf._data;
+  confa.externalSize=conf.externalSize;
+  
+  PAR(0,1,
+      CAPTURE(confa),
+      ivol,
+      {
+	pt=confa._data;
+	io=confa.externalSize;
+	//su3_put_to_id(conf[ivol][0]);
       });
   master_printf("data: %p external_size: %d\n",pt,io);
   // start_loc_rnd_gen(235235);
