@@ -35,11 +35,11 @@ void in_main(int narg,char **arg)
   }
   
   PAR(0,1,
-      CAPTURE(TO_WRITE(conf)),
+      CAPTURE(confa = conf.getWritable()),
       ivol,
       {
-	pt=conf._data;
-	io=conf.externalSize;
+	pt=confa._data;
+	io=confa.externalSize;
 	//su3_put_to_id(conf[ivol][0]);
       });
   master_printf("data: %p external_size: %d\n",pt,io);
