@@ -52,7 +52,8 @@ namespace nissa
 	  checksum check_cur{};
 	  
 	  //compute checksum
-	  checksum_compute_nissa_data(check_cur,conf,sizeof(double)*8,sizeof(quad_su3));
+	  crash("reimplement");
+	  // checksum_compute_nissa_data(check_cur,conf,sizeof(double)*8,sizeof(quad_su3));
 	  
 	  for(int i=0;i<2;i++)
 	    {

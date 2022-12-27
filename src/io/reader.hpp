@@ -12,8 +12,29 @@
 
 namespace nissa
 {
+  
+  template <typename T,
+	    FieldLayout FL>
+  void read_real_vector_internal(LxField<T,FL>& out,
+				 ILDG_File file,
+				 ILDG_header header)
+  {
+    LxField<T,CPU_LAYOUT> buf("buf");
+    read_real_vector_internal(buf,file,header);
+    
+    out=buf;
+  }
+  
   template <typename T>
-  void read_real_vector(LxField<T,CPU_LAYOUT>& out,
+  void read_real_vector_internal(LxField<T,CPU_LAYOUT>& out,
+				 ILDG_File file,
+				 ILDG_header header)
+  {
+    ILDG_File_read_ildg_data_all(out._data,file,header);
+  }
+  
+  template <typename T>
+  void read_real_vector(LxField<T>& out,
 			ILDG_File file,
 			ILDG_header header,
 			ILDG_message *mess=nullptr)
@@ -28,7 +49,7 @@ namespace nissa
 	    nbytes_per_site_read,nreals_per_site*sizeof(double));
     
     //read
-    ILDG_File_read_ildg_data_all(out._data,file,header);
+    read_real_vector_internal(out,file,header);
     
     //check read size
     const uint64_t nbytes_per_site_float=nreals_per_site*sizeof(float);
@@ -66,7 +87,7 @@ namespace nissa
 	
 	//compute checksum
 	checksum comp_check;
-	checksum_compute_nissa_data(comp_check,out,(single_double_flag+1)*32,nbytes_per_site_read);
+	checksum_compute_nissa_data(comp_check,out,(single_double_flag+1)*32);
 	
 	//print the comparison between checksums
 	master_printf("Checksums computed:  %#010x %#010x\n",comp_check[0],comp_check[1]);
@@ -81,20 +102,6 @@ namespace nissa
     
     out.invalidateHalo();
   }
-  
-  template <typename T,
-	    FieldLayout FL>
-  void read_real_vector(LxField<T,FL>& out,
-			ILDG_File file,
-			ILDG_header header,
-			ILDG_message *mess=nullptr)
-  {
-    LxField<T,CPU_LAYOUT> buf("buf");
-    read_real_vector(buf,file,header,mess);
-    
-    out=buf;
-  }
-  
   template <typename T>
   void read_real_vector(LxField<T>& out,
 			const std::string& path,
