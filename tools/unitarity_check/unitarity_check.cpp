@@ -10,12 +10,22 @@ using namespace nissa;
 
 template <typename Conf>
 void test_unitarity(FILE *fout,
-		    Conf& conf,
+		    LxField<quad_su3>& conf,
 		    char *filename)
 {
   double loc_max=0,loc_avg=0;
   
   read_ildg_gauge_conf(conf,filename);
+  master_printf("conf has valid halo: %d\n",conf.haloIsValid);
+  conf.invalidateHalo();
+  conf.updateHalo();
+  master_printf("forced update, conf has valid halo: %d\n",conf.haloIsValid);
+  PAR(0,1,
+      CAPTURE(TO_WRITE(conf)),
+      ivol,
+      {
+      });
+  master_printf("writing, conf has valid halo: %d\n",conf.haloIsValid);
   master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
   
   // OddField<oct_su3> test("test");
