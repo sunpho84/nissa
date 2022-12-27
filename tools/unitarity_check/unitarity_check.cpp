@@ -8,7 +8,6 @@
 
 using namespace nissa;
 
-template <typename Conf>
 void test_unitarity(FILE *fout,
 		    LxField<quad_su3>& conf,
 		    char *filename)
