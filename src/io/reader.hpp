@@ -50,10 +50,13 @@ namespace nissa
     //change endianess
     if(little_endian)
       {
-	crash("reimplement");
-	// verbosity_lv1_master_printf("Needs to change endianness!\n");
-	// if(single_double_flag==0) change_endianness((float*)out.d,(float*)out,loc_nreals_tot);
-	// else change_endianness(out,out,loc_nreals_tot);
+	verbosity_lv1_master_printf("Needs to change endianness!\n");
+	if(single_double_flag==0) crash("reimplement");//change_endianness((float*)out.d,(float*)out,loc_nreals_tot);
+	else
+	  FOR_EACH_SITE_DEG_OF_FIELD(out,CAPTURE(TO_WRITE(out)),site,iDeg,
+				     {
+				       change_endianness(out(site,iDeg));
+				     });
       }
     
     //check the checksum

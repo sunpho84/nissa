@@ -157,7 +157,8 @@ namespace nissa
   
   template <class T>
   CUDA_HOST_AND_DEVICE
-  void change_endianness(T &a,int verbose=0)
+  void change_endianness(T &a,
+			 const bool verbose=false)
   {
     change_endianness(&a,&a,1,verbose);
   }

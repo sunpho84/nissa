@@ -239,8 +239,6 @@ namespace nissa
     
     test.updateHalo();
     
-    // crash("reimplement");
-    
     NISSA_LOC_VOL_LOOP(site)
       {
 	for(int ori=0;ori<2;ori++)
