@@ -332,31 +332,27 @@ namespace nissa
     
     test.updateEdges();
     
-    crash("reimplement");
-    
-    // NISSA_PARALLEL_LOOP(site,0,locVol)
-    //   {
-    // 	for(int ori1=0;ori1<2;ori1++)
-    // 	  for(int ori2=0;ori2<2;ori2++)
-    // 	    for(int iEdge=0;iEdge<nEdges;iEdge++)
-    // 	      {
-    // 		const auto [mu,nu]=edge_dirs[iEdge];
+    NISSA_LOC_VOL_LOOP(site)
+      {
+	for(int ori1=0;ori1<2;ori1++)
+	  for(int ori2=0;ori2<2;ori2++)
+	    for(int iEdge=0;iEdge<nEdges;iEdge++)
+	      {
+		const auto [mu,nu]=edge_dirs[iEdge];
 		
-    // 		const int l1n=loclx_neigh[ori1][site][mu];
-    // 		const int ln=loclx_neigh[ori2][l1n][nu];
-    // 		const int gn=(ln<locVol)?glblxOfLoclx[ln]:((ln<locVol+bord_vol)?glblxOfBordlx[ln-locVol]:glblxOfEdgelx[ln-locVol-bord_vol]);
-    // 		const int neighVal=test[ln];
+		const int l1n=loclx_neigh[ori1][site][mu];
+		const int ln=loclx_neigh[ori2][l1n][nu];
+		const int gn=(ln<locVol)?glblxOfLoclx[ln]:((ln<locVol+bord_vol)?glblxOfBordlx[ln-locVol]:glblxOfEdgelx[ln-locVol-bord_vol]);
+		const int neighVal=test[ln];
 		
-    // 		if(neighVal!=gn)
-    // 		  master_printf("site %s ori (%d,%d) dir (%d,%d) has edgelx neigh %s with val %s\n",
-    // 				siteAsString(glblxOfLoclx[site]).c_str(),
-    // 				ori1,ori2,mu,nu,
-    // 				siteAsString(gn).c_str(),
-    // 				siteAsString(neighVal).c_str());
-    // 	      }
-    //   }
-    // NISSA_PARALLEL_LOOP_END;
-    
+		if(neighVal!=gn)
+		  master_printf("site %s ori (%d,%d) dir (%d,%d) has edgelx neigh %s with val %s\n",
+				siteAsString(glblxOfLoclx[site]).c_str(),
+				ori1,ori2,mu,nu,
+				siteAsString(gn).c_str(),
+				siteAsString(neighVal).c_str());
+	      }
+      }
     master_printf("lx edges communicates consistently\n");
   }
   
