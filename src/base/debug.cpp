@@ -394,34 +394,31 @@ namespace nissa
     test.updateHalo();
     test.updateEdges();
     
-    crash("reimplement");
-    
-    // FOR_BOTH_PARITIES(par,
-    // 		      NISSA_PARALLEL_LOOP(site,0,locVolh)
-    // 		      {
-    // 			for(int ori1=0;ori1<2;ori1++)
-    // 			  for(int ori2=0;ori2<2;ori2++)
-    // 			    for(int iEdge=0;iEdge<nEdges;iEdge++)
-    // 			      {
-    // 				const auto [mu,nu]=edge_dirs[iEdge];
+    FOR_BOTH_PARITIES(par,
+		      NISSA_LOC_VOLH_LOOP(ieo)
+		      {
+			for(int ori1=0;ori1<2;ori1++)
+			  for(int ori2=0;ori2<2;ori2++)
+			    for(int iEdge=0;iEdge<nEdges;iEdge++)
+			      {
+				const auto [mu,nu]=edge_dirs[iEdge];
 				
-    // 				const int l1n=((ori1==0)?loceo_neighdw:loceo_neighup)[par][site][mu];
-    // 				const int ln=((ori2==0)?loceo_neighdw:loceo_neighup)[!par][l1n][nu];
-    // 				const int lx=loclx_of_loceo[par][ln];
-    // 				const int gn=(lx<locVol)?glblxOfLoclx[lx]:((lx<locVol+bord_vol)?glblxOfBordlx[lx-locVol]:glblxOfEdgelx[lx-locVol-bord_vol]);
-    // 				const int neighVal=test[par][ln];
+				const int l1n=((ori1==0)?loceo_neighdw:loceo_neighup)[par][ieo][mu];
+				const int ln=((ori2==0)?loceo_neighdw:loceo_neighup)[!par][l1n][nu];
+				const int lx=loclx_of_loceo[par][ln];
+				const int gn=(lx<locVol)?glblxOfLoclx[lx]:((lx<locVol+bord_vol)?glblxOfBordlx[lx-locVol]:glblxOfEdgelx[lx-locVol-bord_vol]);
+				const int neighVal=test[par][ln];
 				
-    // 				if(neighVal!=gn)
-    // 				  master_printf("par %d site %s ori (%d,%d) dir (%d,%d) neigh %s with val %s\n",
-    // 						par(),
-    // 						siteAsString(glblxOfLoclx[loclx_of_loceo[par][site]]).c_str(),
-    // 						ori1,ori2,mu,nu,
-    // 						siteAsString(gn).c_str(),
-    // 						siteAsString(neighVal).c_str());
-    // 			      }
-    // 		      }
-    // 		      NISSA_PARALLEL_LOOP_END;
-    // 		      );
+				if(neighVal!=gn)
+				  master_printf("par %d site %s ori (%d,%d) dir (%d,%d) neigh %s with val %s\n",
+						par(),
+						siteAsString(glblxOfLoclx[loclx_of_loceo[par][ieo]]).c_str(),
+						ori1,ori2,mu,nu,
+						siteAsString(gn).c_str(),
+						siteAsString(neighVal).c_str());
+			      }
+		      }
+		      );
     
     master_printf("eo edges communicates consistently\n");
   }
