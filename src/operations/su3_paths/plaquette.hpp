@@ -54,6 +54,8 @@ namespace nissa
   {
     LxField<complex> point_plaq("point_plaq");
     
+    conf.updateHalo();
+    
     //loop over all the lattice
     PAR(0,locVol,
 	CAPTURE(TO_WRITE(point_plaq),

@@ -19,7 +19,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/su3_paths/arbitrary.cpp \
 	%D%/su3_paths/clover_term.cpp \
 	%D%/su3_paths/gauge_sweeper.cpp \
-	%D%/su3_paths/plaquette.cpp \
 	%D%/su3_paths/rectangles.cpp \
 	%D%/su3_paths/rectangular_staples.cpp \
 	%D%/su3_paths/squared_staples.cpp \
