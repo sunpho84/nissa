@@ -826,12 +826,17 @@ namespace nissa
 	  const auto& right=*sides[handcuffs_map[ihand].right+"_photon"];
 	  
 	  loc_contr->reset();
-	  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	    for(int mu=0;mu<NDIM;mu++)
-	      complex_subt_the_prod((*loc_contr)[ivol],
-				    left[ivol][mu],
-				    right[ivol][mu]);
-	  NISSA_PARALLEL_LOOP_END;
+	  PAR(0,locVol,
+	      CAPTURE(loc_contr=nissa::loc_contr->getWritable(),
+		      TO_READ(left),
+		      TO_READ(right)),
+	      ivol,
+	      {
+		for(int mu=0;mu<NDIM;mu++)
+		  complex_subt_the_prod(loc_contr[ivol],
+					left[ivol][mu],
+					right[ivol][mu]);
+	      });
 	  
           double normalization=glbSpatVol*144.0;
           normalization/=sqrt((double)normSides[handcuffs_map[ihand].left]*normSides[handcuffs_map[ihand].right]);
