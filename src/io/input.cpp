@@ -436,7 +436,6 @@ namespace nissa
     tags.push_back(triple_tag("use_eo_geom",		       use_eo_geom));
     tags.push_back(triple_tag("use_async_communications",      use_async_communications));
     tags.push_back(triple_tag("warn_if_not_disallocated",      warn_if_not_disallocated));
-    tags.push_back(triple_tag("warn_if_not_communicated",      warn_if_not_communicated));
     tags.push_back(triple_tag("set_t_nranks",		       fix_nranks[0]));
     tags.push_back(triple_tag("set_x_nranks",		       fix_nranks[1]));
     tags.push_back(triple_tag("set_y_nranks",		       fix_nranks[2]));

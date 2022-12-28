@@ -151,10 +151,12 @@ namespace nissa
   }
   void unsafe_apply_chromo_operator_to_spincolor_128(spincolor_128* out,clover_term_t* Cl,spincolor_128* in)
   {
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      unsafe_apply_point_chromo_operator_to_spincolor_128(out[ivol],Cl[ivol],in[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(out);
+    crash("reimplement");
+    
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   unsafe_apply_point_chromo_operator_to_spincolor_128(out[ivol],Cl[ivol],in[ivol]);
+    // NISSA_PARALLEL_LOOP_END;
+    // set_borders_invalid(out);
   }
   
   //apply the chromo operator to the passed colorspinspin

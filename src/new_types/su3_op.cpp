@@ -121,7 +121,7 @@ namespace nissa
   //unitarize returning (VV^\dagger)^(-1/2)*V hep-lat/0610092
   void su3_unitarize_with_sqrt(su3 out,const su3 in)
   {
-#ifdef USE_EIGEN_EVERYWHERE
+#ifdef USE_EIGEN
     esu3_t ein=SU3_ECAST(in);
     SU3_ECAST(out)=SelfAdjointEigenSolver<esu3_t>(ein*ein.adjoint()).operatorInverseSqrt()*ein;
 #else
@@ -295,12 +295,13 @@ namespace nissa
   //return a cooled copy of the passed link
   void su3_find_cooled_eo_conf(su3 u,eo_ptr<quad_su3> eo_conf,int par,int ieo,int mu)
     {
-    //compute the staple
-    su3 staple;
-    compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
+      crash("reimplement");//link failing
+    //   //compute the staple
+    // su3 staple;
+    // compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
     
-    //find the link that maximize the plaquette
-    su3_unitarize_maximal_trace_projecting(u,staple);
+    // //find the link that maximize the plaquette
+    // su3_unitarize_maximal_trace_projecting(u,staple);
   }
   inline void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu)
   {

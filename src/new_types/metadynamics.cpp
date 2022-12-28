@@ -102,7 +102,7 @@ namespace nissa
     grid.resize(ngrid+1);
     
     FILE *fin=open_file(path,"r");
-    if(IS_MASTER_THREAD && rank==0)
+    if(rank==0)
       for(int igrid=0;igrid<=ngrid;igrid++)
 	{
 	  double xread;

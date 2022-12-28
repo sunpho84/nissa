@@ -132,6 +132,6 @@ namespace nissa
     //check if not converged
     if(final_iter==niter) crash("exit without converging");
     
-    if(IS_MASTER_THREAD) cg_inv_over_time+=take_time();
+    cg_inv_over_time+=take_time();
   }
 }

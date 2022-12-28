@@ -103,7 +103,7 @@ namespace nissa
   void ranks_abort(int err)
   {
 #ifdef USE_MPI
-    printf("thread %d on rank %d aborting\n",THREAD_ID,rank);
+    printf("on rank %d aborting\n",rank);
     MPI_Abort(MPI_COMM_WORLD,0);
 #else
     exit(0);
@@ -196,33 +196,24 @@ namespace nissa
   //broadcast a whole rational approximation
   void broadcast(rat_approx_t *rat,int rank_from)
   {
+    int degree=0;
     
-    //first destroy on non-sending
-    THREAD_BARRIER(); //need to barrier to avoid race condition when later "rat-degree" is update through mpi_bcast
+    if(rank_from==rank) degree=rat->degree();
+    MPI_Bcast(&degree,1,MPI_INT,rank_from,MPI_COMM_WORLD);
     
-    //get degree
-    if(IS_MASTER_THREAD)
-      {
-	int degree=0;
-	
-	if(rank_from==rank) degree=rat->degree();
-	MPI_Bcast(&degree,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-	
-	//allocate if not generated here
-	if(rank_from!=rank)	rat->resize(degree);
-	
-	//and now broadcast the remaining part
-	MPI_Bcast(rat->name,20,MPI_CHAR,rank_from,MPI_COMM_WORLD);
-	MPI_Bcast(&rat->minimum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-	MPI_Bcast(&rat->maximum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    	MPI_Bcast(&rat->maxerr,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-    	MPI_Bcast(&rat->num,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    	MPI_Bcast(&rat->den,1,MPI_INT,rank_from,MPI_COMM_WORLD);
-    	MPI_Bcast(&rat->cons,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-	MPI_Bcast(rat->poles.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-	MPI_Bcast(rat->weights.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
-      }
-    THREAD_BARRIER();
+    //allocate if not generated here
+    if(rank_from!=rank)	rat->resize(degree);
+    
+    //and now broadcast the remaining part
+    MPI_Bcast(rat->name,20,MPI_CHAR,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->minimum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->maximum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->maxerr,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->num,1,MPI_INT,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->den,1,MPI_INT,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(&rat->cons,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(rat->poles.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    MPI_Bcast(rat->weights.data(),rat->degree(),MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
   }
   
   //Return the name of the processor

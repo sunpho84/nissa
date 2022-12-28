@@ -159,116 +159,113 @@ namespace nissa
   //remap the force to one smearing level less
   void stouted_force_remap_step(eo_ptr<quad_su3> F,eo_ptr<quad_su3> conf,double rho)
   {
-    communicate_eo_quad_su3_edges(conf);
+    crash("reimplement");
+    // communicate_eo_quad_su3_edges(conf);
     
-    eo_ptr<quad_su3> Lambda;
-    for(int eo=0;eo<2;eo++)
-      Lambda[eo]=nissa_malloc("Lambda",locVolh+bord_volh+edge_volh,quad_su3);
+    // eo_ptr<quad_su3> Lambda;
+    // for(int eo=0;eo<2;eo++)
+    //   Lambda[eo]=nissa_malloc("Lambda",locVolh+bord_volh+edge_volh,quad_su3);
     
-    for(int p=0;p<2;p++)
-      for(int mu=0;mu<NDIM;mu++)
-	NISSA_PARALLEL_LOOP(A,0,locVolh)
-	  {
-	    //compute the ingredients needed to smear
-	    stout_link_staples sto_ste;
-	    stout_smear_compute_staples(&sto_ste,conf,p,A,mu,rho);
+    // for(int p=0;p<2;p++)
+    //   for(int mu=0;mu<NDIM;mu++)
+    // 	NISSA_PARALLEL_LOOP(A,0,locVolh)
+    // 	  {
+    // 	    //compute the ingredients needed to smear
+    // 	    stout_link_staples sto_ste;
+    // 	    stout_smear_compute_staples(&sto_ste,conf,p,A,mu,rho);
 	    
-	    //compute the ingredients needed to exponentiate
-	    hermitian_exp_ingredients ing;
-	    hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
+    // 	    //compute the ingredients needed to exponentiate
+    // 	    hermitian_exp_ingredients ing;
+    // 	    hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
 	    
-	    //compute the Lambda
-	    stouted_force_compute_Lambda(Lambda[p][A][mu],conf[p][A][mu],F[p][A][mu],&ing);
+    // 	    //compute the Lambda
+    // 	    stouted_force_compute_Lambda(Lambda[p][A][mu],conf[p][A][mu],F[p][A][mu],&ing);
 	    
-	    //exp(iQ)
-	    su3 expiQ;
-	    safe_hermitian_exact_i_exponentiate(expiQ,ing.Q);
+    // 	    //exp(iQ)
+    // 	    su3 expiQ;
+    // 	    safe_hermitian_exact_i_exponentiate(expiQ,ing.Q);
 	    
-	    //first piece of eq. (75)
-	    su3 temp1;
-	    unsafe_su3_prod_su3(temp1,F[p][A][mu],expiQ);
-	    //second piece of eq. (75)
-	    su3 temp2,temp3;
-	    unsafe_su3_dag_prod_su3(temp2,sto_ste.C,Lambda[p][A][mu]);
-	    su3_prod_idouble(temp3,temp2,1);
+    // 	    //first piece of eq. (75)
+    // 	    su3 temp1;
+    // 	    unsafe_su3_prod_su3(temp1,F[p][A][mu],expiQ);
+    // 	    //second piece of eq. (75)
+    // 	    su3 temp2,temp3;
+    // 	    unsafe_su3_dag_prod_su3(temp2,sto_ste.C,Lambda[p][A][mu]);
+    // 	    su3_prod_idouble(temp3,temp2,1);
 	    
-	    //put together first and second piece
-	    su3_summ(F[p][A][mu],temp1,temp3);
-	  }
-    NISSA_PARALLEL_LOOP_END;
+    // 	    //put together first and second piece
+    // 	    su3_summ(F[p][A][mu],temp1,temp3);
+    // 	  }
+    // NISSA_PARALLEL_LOOP_END;
     
-    for(int p=0;p<2;p++) set_borders_invalid(Lambda[p]);
+    // for(int p=0;p<2;p++) set_borders_invalid(Lambda[p]);
     
-    //compute the third piece of eq. (75)
-    communicate_eo_quad_su3_edges(Lambda);
+    // //compute the third piece of eq. (75)
+    // communicate_eo_quad_su3_edges(Lambda);
     
-    for(int p=0;p<2;p++)
-      for(int mu=0;mu<4;mu++)
-	for(int nu=0;nu<4;nu++)
-	  if(mu!=nu)
-	    {
-	      NISSA_PARALLEL_LOOP(A,0,locVolh)        //   b1 --<-- f1 -->-- +
-		{                                      //    |        |       |
-		  int f1=loceo_neighup[ p][ A][mu];    //    V   B    |   F   V     ^
-		  int f2=loceo_neighup[ p][ A][nu];    //    |        |       |     m
-		  int f3=A;                            //  b23 -->-- f3 --<-- f2    u
-		  int b1=loceo_neighdw[!p][f1][nu];    //             A             +  nu ->
-		  int b2=loceo_neighdw[ p][b1][mu];
-		  int b3=b2;
+    // for(int p=0;p<2;p++)
+    //   for(int mu=0;mu<4;mu++)
+    // 	for(int nu=0;nu<4;nu++)
+    // 	  if(mu!=nu)
+    // 	    {
+    // 	      NISSA_PARALLEL_LOOP(A,0,locVolh)        //   b1 --<-- f1 -->-- +
+    // 		{                                      //    |        |       |
+    // 		  int f1=loceo_neighup[ p][ A][mu];    //    V   B    |   F   V     ^
+    // 		  int f2=loceo_neighup[ p][ A][nu];    //    |        |       |     m
+    // 		  int f3=A;                            //  b23 -->-- f3 --<-- f2    u
+    // 		  int b1=loceo_neighdw[!p][f1][nu];    //             A             +  nu ->
+    // 		  int b2=loceo_neighdw[ p][b1][mu];
+    // 		  int b3=b2;
 		  
-		  su3 temp1,temp2,temp3;
+    // 		  su3 temp1,temp2,temp3;
 		  
-		  //first term, insertion on f3 along nu
-		  unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[p][f3][nu]);
-		  unsafe_su3_prod_su3(temp3,temp2,Lambda[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+    // 		  //first term, insertion on f3 along nu
+    // 		  unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
+    // 		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[p][f3][nu]);
+    // 		  unsafe_su3_prod_su3(temp3,temp2,Lambda[p][f3][nu]);
+    // 		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
 		  
-		  //second term, insertion on b2 along mu
-		  unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
-		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b2][mu]);
-		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+    // 		  //second term, insertion on b2 along mu
+    // 		  unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
+    // 		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b2][mu]);
+    // 		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
+    // 		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
 		  
-		  //third term, insertion on b1 along nu
-		  unsafe_su3_dag_prod_su3(temp1,conf[p][b1][nu],Lambda[p][b1][nu]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][b2][mu]);
-		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+    // 		  //third term, insertion on b1 along nu
+    // 		  unsafe_su3_dag_prod_su3(temp1,conf[p][b1][nu],Lambda[p][b1][nu]);
+    // 		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][b2][mu]);
+    // 		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
+    // 		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
 		  
-		  //fourth term, insertion on b3 along nu
-		  unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
-		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b3][nu]);
-		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
+    // 		  //fourth term, insertion on b3 along nu
+    // 		  unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
+    // 		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b3][nu]);
+    // 		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
+    // 		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
 		  
-		  //fifth term, insertion on f1 along nu
-		  unsafe_su3_prod_su3(temp1,Lambda[!p][f1][nu],conf[!p][f1][nu]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][f2][mu]);
-		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
+    // 		  //fifth term, insertion on f1 along nu
+    // 		  unsafe_su3_prod_su3(temp1,Lambda[!p][f1][nu],conf[!p][f1][nu]);
+    // 		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][f2][mu]);
+    // 		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
+    // 		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
 		  
-		  //sixth term, insertion on f2 along mu
-		  unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
-		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][f2][mu]);
-		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
-		}
-	      NISSA_PARALLEL_LOOP_END;
-	    }
+    // 		  //sixth term, insertion on f2 along mu
+    // 		  unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
+    // 		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][f2][mu]);
+    // 		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
+    // 		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
+    // 		}
+    // 	      NISSA_PARALLEL_LOOP_END;
+    // 	    }
     
-    for(int eo=0;eo<2;eo++) nissa_free(Lambda[eo]);
+    // for(int eo=0;eo<2;eo++) nissa_free(Lambda[eo]);
   }
   
   //remap iteratively the force, adding the missing pieces of the chain rule derivation
   void stouted_force_remap(eo_ptr<quad_su3> F,eo_ptr<quad_su3>* sme_conf,stout_pars_t* stout_pars)
   {
-    
-    if(IS_MASTER_THREAD)
-      {
-	sto_remap_time-=take_time();
-	nsto_remap++;
-      }
+    sto_remap_time-=take_time();
+    nsto_remap++;
     
     for(int i=stout_pars->nlevels-1;i>=0;i--)
       {
@@ -276,6 +273,6 @@ namespace nissa
 	stouted_force_remap_step(F,sme_conf[i],stout_pars->rho);
       }
     
-    if(IS_MASTER_THREAD) sto_remap_time+=take_time();
+    sto_remap_time+=take_time();
   }
 }

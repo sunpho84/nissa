@@ -38,9 +38,6 @@ namespace nissa
     //stop the random generator
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();
     
-    /// Stop the reduction buffer
-    deallocate_reduction_buffer();
-    
     //print information over the maximum amount of memory used
     master_printf("Maximal memory used during the run: %zu bytes (",max_required_memory);
     if(is_master_rank()) fprintf_friendly_filesize(stdout,max_required_memory);

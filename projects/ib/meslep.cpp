@@ -146,104 +146,105 @@ namespace nissa
   //set everything to a phase factor
   void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &le)
   {
-    
-    vector_reset(prop);
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      {
-	complex ph;
-	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
-	spinspin_put_to_diag_complex(prop[ivol],ph);
-      }
-    NISSA_PARALLEL_LOOP_END;
-    set_borders_invalid(prop);
+    crash("reimplement");
+    // vector_reset(prop);
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   {
+    // 	complex ph;
+    // 	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
+    // 	spinspin_put_to_diag_complex(prop[ivol],ph);
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
+    // set_borders_invalid(prop);
   }
   
   //insert the photon on the source side
   void insert_photon_on_the_source(spinspin* prop,spin1field* A,int* dirs,tm_quark_info le,int twall)
   {
+    crash("reimplement");
     
-    //select A
-    communicate_lx_spin1field_borders(A);
+    // //select A
+    // communicate_lx_spin1field_borders(A);
     
-    //copy on the temporary and communicate borders
-    vector_copy(temp_lep,prop);
-    communicate_lx_spinspin_borders(temp_lep);
-    vector_reset(prop);
+    // //copy on the temporary and communicate borders
+    // vector_copy(temp_lep,prop);
+    // communicate_lx_spinspin_borders(temp_lep);
+    // vector_reset(prop);
     
-    if(!loc_muon_curr)
-      {
-	dirac_matr GAMMA;
-	if(twisted_run>0) GAMMA=dirac_prod_double(base_gamma[0],1);
-	else GAMMA=dirac_prod_idouble(base_gamma[5],-tau3[le.r]);
+    // if(!loc_muon_curr)
+    //   {
+    // 	dirac_matr GAMMA;
+    // 	if(twisted_run>0) GAMMA=dirac_prod_double(base_gamma[0],1);
+    // 	else GAMMA=dirac_prod_idouble(base_gamma[5],-tau3[le.r]);
 	
-	//prepare each propagator for a single lepton
-	//by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
-	//(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
-	for(int mu=0;mu<NDIM;mu++)
-	  if(dirs[mu])
-	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
-		{
-		  //phases
-		  complex phase;
-		  phase[0]=cos(le.bc[mu]*M_PI);
-		  phase[1]=sin(le.bc[mu]*M_PI);
+    // 	//prepare each propagator for a single lepton
+    // 	//by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
+    // 	//(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
+    // 	for(int mu=0;mu<NDIM;mu++)
+    // 	  if(dirs[mu])
+    // 	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
+    // 		{
+    // 		  //phases
+    // 		  complex phase;
+    // 		  phase[0]=cos(le.bc[mu]*M_PI);
+    // 		  phase[1]=sin(le.bc[mu]*M_PI);
 		  
-		  //find neighbors
-		  int ifw=loclxNeighup[ivol][mu];
-		  int ibw=loclxNeighdw[ivol][mu];
+    // 		  //find neighbors
+    // 		  int ifw=loclxNeighup[ivol][mu];
+    // 		  int ibw=loclxNeighdw[ivol][mu];
 		  
-		  //compute phase factor
-		  spinspin ph_bw,ph_fw;
+    // 		  //compute phase factor
+    // 		  spinspin ph_bw,ph_fw;
 		  
-		  //transport down and up
-		  if(rel_coord_of_loclx(ivol,mu)==glbSize[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phase);
-		  else spinspin_copy(ph_fw,temp_lep[ifw]);
-		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phase);
-		  else spinspin_copy(ph_bw,temp_lep[ibw]);
+    // 		  //transport down and up
+    // 		  if(rel_coord_of_loclx(ivol,mu)==glbSize[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phase);
+    // 		  else spinspin_copy(ph_fw,temp_lep[ifw]);
+    // 		  if(rel_coord_of_loclx(ivol,mu)==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phase);
+    // 		  else spinspin_copy(ph_bw,temp_lep[ibw]);
 		  
-		  //fix coefficients, i is inserted here!
-		  //also dir selection is made here
-		  spinspin_prodassign_idouble(ph_fw,+0.5*dirs[mu]);
-		  spinspin_prodassign_idouble(ph_bw,-0.5*dirs[mu]);
+    // 		  //fix coefficients, i is inserted here!
+    // 		  //also dir selection is made here
+    // 		  spinspin_prodassign_idouble(ph_fw,+0.5*dirs[mu]);
+    // 		  spinspin_prodassign_idouble(ph_bw,-0.5*dirs[mu]);
 		  
-		  //fix insertion of the current
-		  safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
-		  safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
+    // 		  //fix insertion of the current
+    // 		  safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
+    // 		  safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
 		  
-		  //summ and subtract the two
-		  spinspin fw_M_bw,fw_P_bw;
-		  spinspin_subt(fw_M_bw,ph_fw,ph_bw);
-		  spinspin_summ(fw_P_bw,ph_fw,ph_bw);
+    // 		  //summ and subtract the two
+    // 		  spinspin fw_M_bw,fw_P_bw;
+    // 		  spinspin_subt(fw_M_bw,ph_fw,ph_bw);
+    // 		  spinspin_summ(fw_P_bw,ph_fw,ph_bw);
 		  
-		  //put GAMMA on the summ
-		  spinspin temp_P;
-		  unsafe_spinspin_prod_dirac(temp_P,fw_P_bw,GAMMA);
-		  spinspin_summassign(prop[ivol],temp_P);
+    // 		  //put GAMMA on the summ
+    // 		  spinspin temp_P;
+    // 		  unsafe_spinspin_prod_dirac(temp_P,fw_P_bw,GAMMA);
+    // 		  spinspin_summassign(prop[ivol],temp_P);
 		  
-		  //put gmu on the diff
-		  spinspin temp_M;
-		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma[igamma_of_mu[mu]]);
-		  spinspin_summassign(prop[ivol],temp_M);
-		}
-	NISSA_PARALLEL_LOOP_END;
-      }
-    else
-      {
-	for(int mu=0;mu<NDIM;mu++)
-	  if(dirs[mu])
-	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
-		{
-		  spinspin temp1,temp2;
-		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma[igamma_of_mu[mu]]);
-		  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
-		  spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
-		}
-	NISSA_PARALLEL_LOOP_END;
-      }
+    // 		  //put gmu on the diff
+    // 		  spinspin temp_M;
+    // 		  unsafe_spinspin_prod_dirac(temp_M,fw_M_bw,base_gamma[igamma_of_mu[mu]]);
+    // 		  spinspin_summassign(prop[ivol],temp_M);
+    // 		}
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
+    // else
+    //   {
+    // 	for(int mu=0;mu<NDIM;mu++)
+    // 	  if(dirs[mu])
+    // 	    NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 	      if(twall==-1 or rel_time_of_loclx(ivol)==twall)
+    // 		{
+    // 		  spinspin temp1,temp2;
+    // 		  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma[igamma_of_mu[mu]]);
+    // 		  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
+    // 		  spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
+    // 		}
+    // 	NISSA_PARALLEL_LOOP_END;
+    //   }
     
-    set_borders_invalid(prop);
+    // set_borders_invalid(prop);
   }
   
   //generate all the lepton propagators, pointing outward

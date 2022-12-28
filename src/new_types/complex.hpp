@@ -238,7 +238,13 @@ namespace nissa
     a[IM]=b[IM]*c;
   }
   
-  CUDA_HOST_AND_DEVICE inline void complex_prodassign_double(complex a,const double c) {complex_prod_double(a,a,c);}
+  template <typename A>
+  CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+  void complex_prodassign_double(A&& a,
+				 const double& c)
+  {
+    complex_prod_double(a,a,c);
+  }
   
   template <typename A,
 	    typename B,

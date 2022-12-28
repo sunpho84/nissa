@@ -423,14 +423,15 @@ namespace nissa
   //initialise to identity
   void init_su3_path(path_drawing_t* c,su3* out)
   {
+    crash("reimplement");
     
-    NISSA_PARALLEL_LOOP(ivol,0,locVol)
-      su3_put_to_id(out[ivol]);
-    NISSA_PARALLEL_LOOP_END;
-    coords_summable_t t;
-    c->push_back(t);
+    // NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    //   su3_put_to_id(out[ivol]);
+    // NISSA_PARALLEL_LOOP_END;
+    // coords_summable_t t;
+    // c->push_back(t);
     
-    set_borders_invalid(out);
+    // set_borders_invalid(out);
   }
   
   //compare start and end

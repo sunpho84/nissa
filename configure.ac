@@ -260,24 +260,6 @@ FFT type            : $with_fft_type"
 
 AX_SUBPACKAGE(eigen,Eigen/Dense,,,EIGEN,".",".")
 
-#enable eigen for linear algebra
-AC_ARG_ENABLE(eigen_everywhere,
-	AS_HELP_STRING([--enable-eigen-everywhere],[Enable Eigen Everywhere (default: no)]),
-	enable_eigen_everywhere="${enableval}",
-	enable_eigen_everywhere="no")
-AC_MSG_RESULT(enabling Eigen everywhere ... ${enable_eigen_everywhere})
-
-#check activability
-if test "$enable_eigen_everywhere" == "yes"
-then
-	if test "$eigen_found" == "no"
-	then
-		AC_MSG_ERROR(["Unable to find Eigen"])
-	else
-		AC_DEFINE_UNQUOTED([USE_EIGEN_EVERYWHERE],[1],[Enable Eigen everywhere])
-	fi
-fi
-
 #################### parpack ####################
 
 AX_SUBPACKAGE(parpack,arpack/arpack.h arpack/parpack.h,arpack parpack,cnaupd_c pcnaupd_c,PARPACK)
@@ -387,18 +369,6 @@ AC_ARG_ENABLE(parser-generation,
 	fi
 AM_CONDITIONAL([PARSER_GENERATION],[test "$enable_parser_generation" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling parser generation... $enable_parser_generation])
-
-#MPI I/O
-AC_ARG_ENABLE(mpi-io,
-	AS_HELP_STRING([--disable-mpi-io],[Enable MPI I/O]),
-	enable_mpi_io="${enableval}",
-	enable_mpi_io="yes")
-if test "$enable_mpi_io" == "yes"
-then
-	AC_DEFINE([USE_MPI_IO],1,[Enable MPI I/O])
-fi
-AM_CONDITIONAL([USE_MPI_IO],[test "$enable_mpi_io" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling MPI I/O... $enable_mpi_io])
 
 #repropducible run
 AC_ARG_ENABLE(reproducible-run,

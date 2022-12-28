@@ -166,41 +166,45 @@ namespace nissa
   // 5) compute non_fw_surf bw staples
   void rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(rectangular_staples_t *out,quad_su3 *conf,squared_staples_t *sq_staples,int thread_id)
   {
-    for(int mu=0;mu<4;mu++) //link direction
-      for(int inu=0;inu<3;inu++) //staple direction
-	{
-	  int nu=perp_dir[mu][inu];
-	  int imu=(mu<nu)?mu:mu-1;
+    crash("reimplement");
+    
+    // for(int mu=0;mu<4;mu++) //link direction
+    //   for(int inu=0;inu<3;inu++) //staple direction
+    // 	{
+    // 	  int nu=perp_dir[mu][inu];
+    // 	  int imu=(mu<nu)?mu:mu-1;
 	  
-	  //obtained scanning D on fw_surf
-	  NISSA_PARALLEL_LOOP(inon_fw_surf,0,nonFwSurfVol)
-	    {
-	      su3 temp;
-	      int D=loclxOfNonFwSurflx[inon_fw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
-	      COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
-	    }
-	  NISSA_PARALLEL_LOOP_END;
-	}
+    // 	  //obtained scanning D on fw_surf
+    // 	  NISSA_PARALLEL_LOOP(inon_fw_surf,0,nonFwSurfVol)
+    // 	    {
+    // 	      su3 temp;
+    // 	      int D=loclxOfNonFwSurflx[inon_fw_surf],A=loclxNeighup[D][nu],E=loclxNeighup[D][mu];
+    // 	      COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu,temp);
+    // 	    }
+    // 	  NISSA_PARALLEL_LOOP_END;
+    // 	}
   }
   
   // 6) compute fw_surf fw staples
   void rectangular_staples_lx_conf_compute_fw_surf_fw_staples(rectangular_staples_t *out,quad_su3 *conf,squared_staples_t *sq_staples,int thread_id)
   {
-    for(int mu=0;mu<4;mu++) //link direction
-      for(int inu=0;inu<3;inu++) //staple direction
-	{
-	  int nu=perp_dir[mu][inu];
-	  int imu=(mu<nu)?mu:mu-1;
+    crash("reimplement");
+    
+    // for(int mu=0;mu<4;mu++) //link direction
+    //   for(int inu=0;inu<3;inu++) //staple direction
+    // 	{
+    // 	  int nu=perp_dir[mu][inu];
+    // 	  int imu=(mu<nu)?mu:mu-1;
 	  
-	  //obtained looping A on forward surface
-	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
-	    {
-	      su3 temp;
-	      int A=loclxOfFwSurflx[ifw_surf],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
-	      COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
-	    }
-	  NISSA_PARALLEL_LOOP_END;
-	}
+    // 	  //obtained looping A on forward surface
+    // 	  NISSA_PARALLEL_LOOP(ifw_surf,0,fwSurfVol)
+    // 	    {
+    // 	      su3 temp;
+    // 	      int A=loclxOfFwSurflx[ifw_surf],B=loclxNeighup[A][nu],F=loclxNeighup[A][mu];
+    // 	      COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp);
+    // 	    }
+    // 	  NISSA_PARALLEL_LOOP_END;
+    // 	}
   }
   
   // 7) finish communication of fw_surf bw staples

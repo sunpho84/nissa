@@ -96,7 +96,7 @@ namespace nissa
     //
     // A(i) (S1*)^{ab}_{kj(i)} B(k) (S2)^{ab}_{l(k)i}
     
-    if(IS_MASTER_THREAD) mes2pts_contr_time-=take_time();
+    mes2pts_contr_time-=take_time();
     
     for(size_t icombo=0;icombo<mes2pts_contr_map.size();icombo++)
       {
@@ -162,7 +162,6 @@ namespace nissa
 		  }
 	      }
 	    
-	    THREAD_BARRIER();
 	    complex temp_contr[glbSize[0]];
 	    glb_reduce(temp_contr,*loc_contr,locVol,glbSize[0],locSize[0],glbCoordOfLoclx[0][0]);
 	    
@@ -172,11 +171,8 @@ namespace nissa
       }
     
     //stats
-    if(IS_MASTER_THREAD)
-      {
-	nmes2pts_contr_made+=mes2pts_contr_map.size()*mes_gamma_list.size();
-	mes2pts_contr_time+=take_time();
-      }
+    nmes2pts_contr_made+=mes2pts_contr_map.size()*mes_gamma_list.size();
+    mes2pts_contr_time+=take_time();
   }
   
   //print all mesonic 2pts contractions
@@ -460,91 +456,92 @@ namespace nissa
   //compute all contractions
   void compute_bar2pts_contr()
   {
-    master_printf("Computing barion 2pts contractions\n");
+    crash("reimplement");
+    // master_printf("Computing barion 2pts contractions\n");
     
-    crash("#warning reimplement");
-    //allocate loc storage
-    complex *loc_contr=new complex[bar2pts_contr_size];
-    memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
+    // crash("#warning reimplement");
+    // //allocate loc storage
+    // complex *loc_contr=new complex[bar2pts_contr_size];
+    // memset(loc_contr,0,sizeof(complex)*bar2pts_contr_size);
     
-    //void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
-    UNPAUSE_TIMING(bar2pts_contr_time);
-    for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
-      {
-	// qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
-	// qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
-	// qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
-	//double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
-	
-	for(int al=0;al<NDIRAC;al++)
-	  for(int ga=0;ga<NDIRAC;ga++)
-	    for(int b=0;b<NCOL;b++)
-	      for(int iperm=0;iperm<2;iperm++)
-		{
-		  NISSA_PARALLEL_LOOP(ivol,0,locVol)
-		    {
-		      // const int eps[3][2]={{1,2},{2,0},{0,1}};
-		      // int sign[2]={1,-1};
-    
-		      // int t=rel_time_of_loclx(ivol);
-		      
-		      // int c=eps[b][iperm],a=eps[b][!iperm];
-		      // int be=Cg5.pos[al];
-		  
-		      // int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
-		      // int sign_idg0[2]={1,(t<(glb_size[0]/2))?-1:+1}; //gamma0 is -1 always
-    			  for(int al1=0;al1<NDIRAC;al1++)
-    			    for(int b1=0;b1<NCOL;b1++)
-    			      {
-    				// complex diquark_dir={0,0},diquark_exc={0,0};
-				
-    				//build the diquark
-    				for(int iperm1=0;iperm1<2;iperm1++)
-    				  {
-    				    // int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
-				    
-    				    for(int idg0=0;idg0<2;idg0++)
-    				      {
-    					// int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
-    					// int ga1=ga1_l[idg0][ga];
-					
-    					// list_fun[isign](diquark_dir,Q1[so_sp_col_ind(al,a)][ivol][al1][a1],Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1]); //direct
-    					// list_fun[isign](diquark_exc,Q1[so_sp_col_ind(ga,c)][ivol][al1][a1],Q3[so_sp_col_ind(al,a)][ivol][ga1][c1]); //exchange
-    				      }
-    				  }
-				
-    				//close it
-    				// complex w;
-    				// unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
-				// int be1=Cg5.pos[al1];
-    				// complex_prodassign_double(diquark_dir,w[RE]*norm);
-    				// complex_prodassign_double(diquark_exc,w[RE]*norm);
-				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
- 				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
-    			      }
-		    }
-		  NISSA_PARALLEL_LOOP_END;
-		}
-      }
-    STOP_TIMING(bar2pts_contr_time);
-    
-    //reduce
-    crash("#warning");
-    // complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
-    // NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
+    // //void (*list_fun[2])(complex,const complex,const complex)={complex_summ_the_prod,complex_subt_the_prod};
+    // UNPAUSE_TIMING(bar2pts_contr_time);
+    // for(size_t icombo=0;icombo<bar2pts_contr_map.size();icombo++)
     //   {
-    // 	//remove border phase
-    // 	int t=i%glb_size[0];
-    // 	double arg=3*temporal_bc*M_PI*t/glb_size[0];
-    // 	complex phase={cos(arg),sin(arg)};
-    // 	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
-    //   }
-    // NISSA_PARALLEL_LOOP_END;
-    THREAD_BARRIER();
-    delete[] loc_contr;
+    // 	// qprop_t &Q1=Q[bar2pts_contr_map[icombo].a];
+    // 	// qprop_t &Q2=Q[bar2pts_contr_map[icombo].b];
+    // 	// qprop_t &Q3=Q[bar2pts_contr_map[icombo].c];
+    // 	//double norm=pow(12,1.5)/sqrt(Q1.ori_source_norm2*Q2.ori_source_norm2*Q3.ori_source_norm2); //12 is even in case of a point source
+	
+    // 	for(int al=0;al<NDIRAC;al++)
+    // 	  for(int ga=0;ga<NDIRAC;ga++)
+    // 	    for(int b=0;b<NCOL;b++)
+    // 	      for(int iperm=0;iperm<2;iperm++)
+    // 		{
+    // 		  NISSA_PARALLEL_LOOP(ivol,0,locVol)
+    // 		    {
+    // 		      // const int eps[3][2]={{1,2},{2,0},{0,1}};
+    // 		      // int sign[2]={1,-1};
     
-    //stats
-    if(IS_MASTER_THREAD) nbar2pts_contr_made+=bar2pts_contr_map.size();
+    // 		      // int t=rel_time_of_loclx(ivol);
+		      
+    // 		      // int c=eps[b][iperm],a=eps[b][!iperm];
+    // 		      // int be=Cg5.pos[al];
+		  
+    // 		      // int ga1_l[2][NDIRAC]={{0,1,2,3},{2,3,0,1}}; //ga1 index for 1 or gamma0 matrix
+    // 		      // int sign_idg0[2]={1,(t<(glb_size[0]/2))?-1:+1}; //gamma0 is -1 always
+    // 			  for(int al1=0;al1<NDIRAC;al1++)
+    // 			    for(int b1=0;b1<NCOL;b1++)
+    // 			      {
+    // 				// complex diquark_dir={0,0},diquark_exc={0,0};
+				
+    // 				//build the diquark
+    // 				for(int iperm1=0;iperm1<2;iperm1++)
+    // 				  {
+    // 				    // int c1=eps[b1][iperm1],a1=eps[b1][!iperm1];
+				    
+    // 				    for(int idg0=0;idg0<2;idg0++)
+    // 				      {
+    // 					// int isign=((sign[iperm]*sign[iperm1]*sign_idg0[idg0])==1);
+    // 					// int ga1=ga1_l[idg0][ga];
+					
+    // 					// list_fun[isign](diquark_dir,Q1[so_sp_col_ind(al,a)][ivol][al1][a1],Q3[so_sp_col_ind(ga,c)][ivol][ga1][c1]); //direct
+    // 					// list_fun[isign](diquark_exc,Q1[so_sp_col_ind(ga,c)][ivol][al1][a1],Q3[so_sp_col_ind(al,a)][ivol][ga1][c1]); //exchange
+    // 				      }
+    // 				  }
+				
+    // 				//close it
+    // 				// complex w;
+    // 				// unsafe_complex_prod(w,Cg5.entr[al1],Cg5.entr[al]);
+    // 				// int be1=Cg5.pos[al1];
+    // 				// complex_prodassign_double(diquark_dir,w[RE]*norm);
+    // 				// complex_prodassign_double(diquark_exc,w[RE]*norm);
+    // 				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,0,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_dir);
+    // 				// complex_summ_the_prod(loc_contr[ind_bar2pts_contr(icombo,1,t)],Q2[so_sp_col_ind(be,b)][ivol][be1][b1],diquark_exc);
+    // 			      }
+    // 		    }
+    // 		  NISSA_PARALLEL_LOOP_END;
+    // 		}
+    //   }
+    // STOP_TIMING(bar2pts_contr_time);
+    
+    // //reduce
+    // crash("#warning");
+    // // complex *master_reduced_contr=glb_threads_reduce_complex_vect(loc_contr,bar2pts_contr_size);
+    // // NISSA_PARALLEL_LOOP(i,0,bar2pts_contr_size)
+    // //   {
+    // // 	//remove border phase
+    // // 	int t=i%glb_size[0];
+    // // 	double arg=3*temporal_bc*M_PI*t/glb_size[0];
+    // // 	complex phase={cos(arg),sin(arg)};
+    // // 	complex_summ_the_prod(bar2pts_contr[i],master_reduced_contr[i],phase);
+    // //   }
+    // // NISSA_PARALLEL_LOOP_END;
+    // THREAD_BARRIER();
+    // delete[] loc_contr;
+    
+    // //stats
+    // if(IS_MASTER_THREAD) nbar2pts_contr_made+=bar2pts_contr_map.size();
   }
   
   //print all contractions

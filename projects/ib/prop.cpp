@@ -1077,7 +1077,7 @@ namespace nissa
 		  // NISSA_PARALLEL_LOOP(imom,0,fft_filterer[i].nfft_filtered)
 		  //   spincolor_copy(qfilt[i][imom*nso_spi*nso_col+so_sp_col_ind(id_so,ic_so)],qfilt_temp[i][imom]);
 		  // NISSA_PARALLEL_LOOP_END;
-		  set_borders_invalid(qfilt[i]);
+		  // set_borders_invalid(qfilt[i]);
 		}
 	      
 	      STOP_TIMING(fft_time);

@@ -2,14 +2,14 @@
 #define _BENCH_HPP
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #ifndef EXTERN_BENCH
- #define EXTERN_BENCH extern
- #define EQUAL_ZERO
+# define EXTERN_BENCH extern
+# define EQUAL_ZERO
 #else
- #define EQUAL_ZERO =0
+# define EQUAL_ZERO =0
 #endif
 
 namespace nissa

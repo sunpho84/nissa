@@ -30,7 +30,7 @@ namespace nissa
   {
     enum ExportBypass{NO_BYPASS,AVOID_EXPORT,FORCE_EXPORT};
     EXTERN_EXPORT_CONF ExportBypass export_bypass INIT_EXPORT_CONF_TO(=NO_BYPASS);
-    EXTERN_EXPORT_CONF checksum check_old INIT_EXPORT_CONF_TO(={0,0});
+    EXTERN_EXPORT_CONF Checksum check_old INIT_EXPORT_CONF_TO(={0,0});
   }
   
   /// Keep track of the exported conf
@@ -49,7 +49,7 @@ namespace nissa
       export_needed=true;
     else
 	{
-	  checksum check_cur{};
+	  Checksum check_cur{};
 	  
 	  //compute checksum
 	  crash("reimplement");

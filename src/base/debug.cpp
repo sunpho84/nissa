@@ -85,8 +85,7 @@ namespace nissa
     fflush(stderr);
     
     //give time to master thread to crash, if possible
-    if(not IS_MASTER_THREAD)
-      sleep(1);
+    sleep(1);
     
     if(is_master_rank())
       {
@@ -212,15 +211,19 @@ namespace nissa
   /// Spoil the receiving and sending buffer to check consistency
   void taintTheCommBuffers()
   {
-    int* r=(int*)recv_buf;
-    NISSA_PARALLEL_LOOP(i,0,recv_buf_size/sizeof(int))
-      r[i]=-3;
-    NISSA_PARALLEL_LOOP_END;
+    PAR(0,recv_buf_size/sizeof(int),
+	CAPTURE(),
+	i,
+	{
+	  ((int*)recv_buf)[i]=-3;
+	});
     
-    int* s=(int*)send_buf;
-    NISSA_PARALLEL_LOOP(i,0,send_buf_size/sizeof(int))
-      s[i]=-4;
-    NISSA_PARALLEL_LOOP_END;
+    PAR(0,send_buf_size/sizeof(int),
+	CAPTURE(),
+	i,
+	{
+	  ((int*)send_buf)[i]=-4;
+	});
   }
   
   void testLxHaloExchange()
@@ -380,12 +383,13 @@ namespace nissa
     int* r=(int*)recv_buf;
     int* s=(int*)send_buf;
     const int n=recv_buf_size/sizeof(int);
-    NISSA_PARALLEL_LOOP(i,0,n)
-      {
-	r[i]=-3;
-	s[i]=-4;
-      }
-    NISSA_PARALLEL_LOOP_END;
+    PAR(0,n,
+	CAPTURE(r,s),
+	i,
+	{
+	  r[i]=-3;
+	  s[i]=-4;
+	});
     
     test.invalidateHalo();
     test.invalidateEdges();

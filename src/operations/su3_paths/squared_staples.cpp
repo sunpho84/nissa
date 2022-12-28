@@ -44,26 +44,28 @@ namespace nissa
   }
   void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,int A,int mu)
   {
-    if(!check_edges_valid(lx_conf)) crash("communicate edges externally");
+    crash("reimplement");
     
-    su3_put_to_zero(staple);
+    // if(!check_edges_valid(lx_conf)) crash("communicate edges externally");
     
-    su3 temp1,temp2;
-    for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
-      {                                               //  |   |   | mu
-	int nu=perp_dir[mu][inu];                     //  D---A---B
-	int B=loclxNeighup[A][nu];                   //        nu
-	int F=loclxNeighup[A][mu];
-	unsafe_su3_prod_su3(    temp1,lx_conf[A][nu],lx_conf[B][mu]);
-	unsafe_su3_prod_su3_dag(temp2,temp1,         lx_conf[F][nu]);
-	su3_summ(staple,staple,temp2);
+    // su3_put_to_zero(staple);
+    
+    // su3 temp1,temp2;
+    // for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
+    //   {                                               //  |   |   | mu
+    // 	int nu=perp_dir[mu][inu];                     //  D---A---B
+    // 	int B=loclxNeighup[A][nu];                   //        nu
+    // 	int F=loclxNeighup[A][mu];
+    // 	unsafe_su3_prod_su3(    temp1,lx_conf[A][nu],lx_conf[B][mu]);
+    // 	unsafe_su3_prod_su3_dag(temp2,temp1,         lx_conf[F][nu]);
+    // 	su3_summ(staple,staple,temp2);
 	
-	int D=loclxNeighdw[A][nu];
-	int E=loclxNeighup[D][mu];
-	unsafe_su3_dag_prod_su3(temp1,lx_conf[D][nu],lx_conf[D][mu]);
-	unsafe_su3_prod_su3(    temp2,temp1,         lx_conf[E][nu]);
-	su3_summ(staple,staple,temp2);
-      }
+    // 	int D=loclxNeighdw[A][nu];
+    // 	int E=loclxNeighup[D][mu];
+    // 	unsafe_su3_dag_prod_su3(temp1,lx_conf[D][nu],lx_conf[D][mu]);
+    // 	unsafe_su3_prod_su3(    temp2,temp1,         lx_conf[E][nu]);
+    // 	su3_summ(staple,staple,temp2);
+    //   }
   }
   
   //compute the staples along all the four dirs
@@ -132,6 +134,7 @@ namespace nissa
   // 3) finish communication of lower surface
   void squared_staples_lx_conf_finish_communicating_lower_surface(quad_su3 *conf,int thread_id)
   {
+    
     comm_wait(lx_quad_su3_comm);
     STOP_TIMING(tot_comm_time);
     

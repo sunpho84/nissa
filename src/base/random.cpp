@@ -189,8 +189,6 @@ namespace nissa
   //generate a random postion
   coords_t generate_random_coord()
   {
-    MANDATORY_NOT_PARALLEL;
-    
     coords_t c;
     for(int mu=0;mu<NDIM;mu++)
       c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize[mu]));

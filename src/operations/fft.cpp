@@ -354,10 +354,8 @@ namespace nissa
 	
 	//allocate plans
 	fftw_plan *plans=nissa_malloc("plans",ndirs,fftw_plan);
-	if(IS_MASTER_THREAD)
 	  for(int idir=0;idir<ndirs;idir++)
 	    plans[idir]=fftw_plan_many_dft(1,&glbSize[list_dirs[idir]],ncpp,buf,NULL,ncpp,1,buf,NULL,ncpp,1,sign,FFTW_ESTIMATE);
-	THREAD_BARRIER();
 	
 	//transpose each dir in turn and take fft
 	for(int idir=0;idir<ndirs;idir++)
@@ -377,14 +375,19 @@ namespace nissa
 	  }
 	
 	//destroy plans
-	if(IS_MASTER_THREAD) for(int idir=0;idir<ndirs;idir++) fftw_destroy_plan(plans[idir]);
+	for(int idir=0;idir<ndirs;idir++) fftw_destroy_plan(plans[idir]);
 	
 	//put normaliisation
 	if(normalize)
 	  {
 	    double norm=glbSize[list_dirs[0]];
 	    for(int idir=1;idir<ndirs;idir++) norm*=glbSize[idir];
-	    double_vector_prod_double((double*)out,(double*)out,1/norm,2*ncpp*locVol);
+	    PAR(0,locVol*ncpp,
+		CAPTURE(out,norm),
+		i,
+		{
+		  complex_prodassign_double(out[i],1/norm);
+		});
 	  }
 	
 	nissa_free(buf);

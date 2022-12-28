@@ -14,58 +14,58 @@
 
 namespace nissa
 {
+  template <typename T,
+	    FieldLayout FL>
+  void write_real_vector_internal(ILDG_File file,
+				  const LxField<T,FL>& in,
+				  const char* headerMessage)
+  {
+    LxField<T,CPU_LAYOUT> buf("buf");
+    buf=in;
+    
+    write_real_vector_internal(file,buf,headerMessage);
+  }
+  
+  template <typename T>
+  void write_real_vector_internal(ILDG_File file,
+				  const LxField<T,CPU_LAYOUT>& in,
+				  const char* headerMessage)
+  {
+    const int nrealsPerSite=LxField<T>::nInternalDegs;
+    const uint64_t nBytesPerSite=nrealsPerSite*sizeof(LxField<T>::Fund);
+    
+    ILDG_File_write_ildg_data_all(file,in._data,nBytesPerSite,headerMessage);
+  }
+  
   template <typename T>
   void write_real_vector(ILDG_File &file,
-			 const LxField<T,CPU_LAYOUT>& in,
-			 const size_t& nbits,
+			 LxField<T> in,
 			 const char *header_message,
-			 ILDG_message *mess=nullptr)
+			 ILDG_message* mess=nullptr)
   {
-    crash("reimplement");
+    //take initial time
+    double time=-take_time();
     
-    // if(nbits!=32 and nbits!=64) crash("Error, asking %u precision, use instead 32 or 64\n",nbits);
+    //write all the messages
+    if(mess!=nullptr) ILDG_File_write_all_messages(file,mess);
     
-    // //take initial time
-    // double time=-take_time();
+    //compute the checksum
+    const Checksum check=ildgChecksum(in);
     
-    // //write all the messages
-    // if(mess!=NULL) ILDG_File_write_all_messages(file,mess);
+    FOR_EACH_SITE_DEG_OF_FIELD(in,CAPTURE(TO_WRITE(in)),site,iDeg,
+				 {
+				   fixFromNativeEndianness<BigEndian>(in(site,iDeg));
+				 });
     
-    // //compute float or double site
-    // const size_t nreals_loc=nreals_per_site*locVol;
-    // const size_t nbytes_per_real=nbits/8;
-    // const size_t nbytes_per_site=nreals_per_site*nbytes_per_real;
+    //write
+    write_real_vector_internal(file,in,header_message);
     
-    // //buffer to reorder data in ILDG format and change endianness
-    // char *buffer=nissa_malloc("buffer",nreals_loc*nbytes_per_real,char);
+    //append the checksum
+    ILDG_File_write_checksum(file,check);
     
-    // //possibly reduce to 32 bit
-    // if(nbits==64) parallel_memcpy(buffer,data,nreals_loc*nbytes_per_real);
-    // else doubles_to_floats_same_endianness((float*)buffer,data,nreals_loc);
-    
-    // //compute the checksum
-    // checksum check;
-    // checksum_compute_nissa_data(check,buffer,nbytes_per_real*8,nbytes_per_site);
-    
-    // //change endianness if needed
-    // if(little_endian)
-    //   {
-    // 	if(nbits==64) change_endianness((double*)buffer,(double*)buffer,nreals_loc);
-    // 	else change_endianness((float*)buffer,(float*)buffer,nreals_loc);
-    //   }
-    
-    // //write
-    // ILDG_File_write_ildg_data_all(file,buffer,nbytes_per_site,header_message);
-    
-    // //append the checksum
-    // ILDG_File_write_checksum(file,check);
-    
-    // //delete the swapped data
-    // nissa_free(buffer);
-    
-    // //take final time
-    // time+=take_time();
-    // verbosity_lv2_master_printf("Time elapsed in writing: %f s\n",time);
+    //take final time
+    time+=take_time();
+    verbosity_lv2_master_printf("Time elapsed in writing: %f s\n",time);
   }
   
   template <typename T,
@@ -88,7 +88,7 @@ namespace nissa
 			 const T& data,
 			 const size_t& nbits,
 			 const char *header_message,
-			 ILDG_message *mess=NULL)
+			 ILDG_message *mess=nullptr)
   {
     //Open the file
     ILDG_File file=ILDG_File_open_for_write(path);
@@ -101,11 +101,10 @@ namespace nissa
   }
   
   /// Write the local part of the gauge configuration
-  template <typename Conf>
-  void write_ildg_gauge_conf(const std::string& path,
-			     Conf& conf, //hack
-			     const size_t& nBits,
-			     ILDG_message *mess=NULL)
+  inline void write_ildg_gauge_conf(const std::string& path,
+				    LxField<quad_su3>& conf,
+				    const size_t& nBits,
+				    ILDG_message *mess=nullptr)
   {
     double startTime=take_time();
     

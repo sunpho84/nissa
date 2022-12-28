@@ -220,7 +220,6 @@ namespace nissa
     use_128_bit_precision=NISSA_DEFAULT_USE_128_BIT_PRECISION;
     use_eo_geom=NISSA_DEFAULT_USE_EO_GEOM;
     warn_if_not_disallocated=NISSA_DEFAULT_WARN_IF_NOT_DISALLOCATED;
-    warn_if_not_communicated=NISSA_DEFAULT_WARN_IF_NOT_COMMUNICATED;
     use_async_communications=NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS;
     for(int mu=0;mu<NDIM;mu++) fix_nranks[mu]=0;
     
@@ -238,10 +237,6 @@ namespace nissa
     
 #ifdef USE_PARPACK
     master_printf("Linked with Parpack\n");
-#endif
-    
-#ifdef USE_EIGEN_EVERYWHERE
-    master_printf("Using Eigen everywhere\n");
 #endif
     
 #ifdef USE_PARPACK
@@ -737,59 +732,11 @@ namespace nissa
     
     ///////////////////////////////////// start communicators /////////////////////////////////
     
-    reducing_buffer=nullptr;
-    reducing_buffer_size=0;
-    
     ncomm_allocated=0;
     
     //allocate only now buffers, so we should have finalized its size
     recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
     send_buf=nissa_malloc("send_buf",send_buf_size,char);
-    
-    //setup all lx borders communicators
-    set_lx_comm(lx_su3_comm,sizeof(su3));
-    set_lx_comm(lx_quad_su3_comm,sizeof(quad_su3));
-    set_lx_comm(lx_single_quad_su3_comm,sizeof(single_quad_su3));
-    set_lx_comm(lx_as2t_su3_comm,sizeof(as2t_su3));
-    set_lx_comm(lx_spin_comm,sizeof(spin));
-    set_lx_comm(lx_color_comm,sizeof(color));
-    set_lx_comm(lx_single_color_comm,sizeof(single_color));
-    set_lx_comm(lx_spinspin_comm,sizeof(spinspin));
-    set_lx_comm(lx_spin1field_comm,sizeof(spin1field));
-    set_lx_comm(lx_spincolor_comm,sizeof(spincolor));
-    set_lx_comm(lx_single_halfspincolor_comm,sizeof(single_halfspincolor));
-    set_lx_comm(lx_spincolor_128_comm,sizeof(spincolor_128));
-    set_lx_comm(lx_halfspincolor_comm,sizeof(halfspincolor));
-    set_lx_comm(lx_colorspinspin_comm,sizeof(colorspinspin));
-    set_lx_comm(lx_su3spinspin_comm,sizeof(su3spinspin));
-    set_lx_comm(lx_oct_su3_comm,sizeof(oct_su3));
-    
-    //setup all lx edges communicators
-#ifdef USE_MPI
-    set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,&MPI_SU3);
-    set_lx_edge_senders_and_receivers(MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
-    set_lx_edge_senders_and_receivers(MPI_LX_AS2T_SU3_EDGES_SEND,MPI_LX_AS2T_SU3_EDGES_RECE,&MPI_AS2T_SU3);
-#endif
-    
-    if(use_eo_geom)
-      {
-	set_eo_comm(eo_spin_comm,sizeof(spin));
-	set_eo_comm(eo_spincolor_comm,sizeof(spincolor));
-	set_eo_comm(eo_spincolor_128_comm,sizeof(spincolor_128));
-	set_eo_comm(eo_color_comm,sizeof(color));
-	set_eo_comm(eo_single_color_comm,sizeof(single_color));
-	set_eo_comm(eo_halfspincolor_comm,sizeof(halfspincolor));
-	set_eo_comm(eo_single_halfspincolor_comm,sizeof(single_halfspincolor));
-	set_eo_comm(eo_quad_su3_comm,sizeof(quad_su3));
-	set_eo_comm(eo_su3_comm,sizeof(su3));
-	
-	set_eo_comm(eo_oct_su3_comm,sizeof(oct_su3));
-	
-#ifdef USE_MPI
-	set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
-	set_eo_edge_senders_and_receivers(MPI_EO_AS2T_SU3_EDGES_SEND,MPI_EO_AS2T_SU3_EDGES_RECE,&MPI_AS2T_SU3);
-#endif
-      }
     
 #ifdef USE_QUDA
     if(use_quda) quda_iface::initialize();

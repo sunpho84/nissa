@@ -15,11 +15,8 @@ namespace nissa
   void find_minimal_surface_grid(int *mP,int *L,int NP);
   void init_grid(int T,int L);
   void init_nissa(int narg,char **arg,const char compile_info[5][1024]);
-  void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg),const char compile_info[5][1024]);
   inline void init_nissa(int narg,char **arg)
   {init_nissa(narg,arg,compile_info);}
-  inline void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg))
-  {init_nissa_threaded(narg,arg,main_function,compile_info);}
 }
 
 #endif

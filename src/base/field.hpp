@@ -12,7 +12,6 @@
 #include <base/bench.hpp>
 #include <base/metaprogramming.hpp>
 #include <base/vectors.hpp>
-#include <io/checksum.hpp>
 #include <communicate/communicate.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
@@ -397,18 +396,18 @@ namespace nissa
 	CODE								\
 	  })
     
-    /// Exec the operation f on each site
-    template <typename F>
-    Field& forEachSite(F&& f)
-    {
-      NISSA_PARALLEL_LOOP(site,0,this->nSites())
-	f((*this)[site]);
-      NISSA_PARALLEL_LOOP_END;
+    // /// Exec the operation f on each site
+    // template <typename F>
+    // Field& forEachSite(F&& f)
+    // {
+    //   PAR(site,0,this->nSites())
+    // 	f((*this)[site]);
+    //   NISSA_PARALLEL_LOOP_END;
       
-      invalidateHalo();
+    //   invalidateHalo();
       
-      return *this;
-    }
+    //   return *this;
+    // }
     
 #define PROVIDE_SELFOP(OP)						\
     Field& operator OP ## =(const Field& oth)				\
@@ -566,9 +565,6 @@ namespace nissa
       
       return res;
     }
-    
-    /// Computes the checksum of the field
-    Checksum checksum() const;
     
 #define PROVIDE_CASTS(CONST)						\
     /* Cast to a different sitesCoverage */				\
@@ -1335,58 +1331,6 @@ namespace nissa
     {
     }
   };
-  
-  template <typename T,
-	    SitesCoverage SC,
-	    FieldLayout FL>
-  Checksum Field<T,SC,FL>::checksum() const
-  {
-    static_assert(SC==FULL_SPACE,"Checksum defined only for full space fields");
-    
-    LxField<Checksum> buff("buff");
-    
-    PAR(0,locVol,
-	CAPTURE(TO_WRITE(buff),
-		data=this->getReadable()),
-	ivol,
-	{
-	  const coords_t& X=glbCoordOfLoclx[ivol];
-	  uint32_t ildg_ivol=X[0];
-	  for(int mu=NDIM-1;mu>0;mu--)
-	    ildg_ivol=ildg_ivol*glbSize[mu]+X[mu];
-	  const uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
-	  
-	  uint32_t crc=0xffffffffL;
-	  for(int iDeg=0;iDeg<(LxField<T>::nInternalDegs);iDeg++)
-	    {
-	      auto temp=data(ivol,iDeg);
-	      
-	      EndiannessMask<BigEndian,nativeEndianness,typename LxField<T>::Fund> mask(temp);
-	      
-	      for(int i=0;i<sizeof(temp);i++)
-		crc=crcValue(((int)crc^mask[i])&0xff)^(crc>>8);
-	    }
-	  crc^=0xffffffffL;
-	  
-	  for(int i=0;i<2;i++)
-	    buff[ivol][i]=
-	      crc<<crc_rank[i]|crc>>(32-crc_rank[i]);
-	});
-    
-    Checksum loc_check;
-    locReduce(&loc_check,buff,locVol,1,
-	      [] CUDA_DEVICE(Checksum& res,
-			     const Checksum& acc) INLINE_ATTRIBUTE
-	      {
-		for(int i=0;i<2;i++)
-		  res[i]^=acc[i];
-	      });
-    
-    Checksum check;
-    MPI_Allreduce(&loc_check,&check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
-    
-    return check;
-  }
 }
 
 #endif

@@ -17,7 +17,7 @@
 #include "complex.hpp"
 #include "su3.hpp"
 
-#ifdef USE_EIGEN_EVERYWHERE
+#ifdef USE_EIGEN
  #include <Eigen/Dense>
  #include <Eigen/Eigenvalues>
  
@@ -649,10 +649,6 @@ namespace nissa
   //calculate the determinant of an su3 matrix
   CUDA_HOST_AND_DEVICE inline void su3_det(complex d,const su3 U)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    CCAST(d)=SU3_ECAST(U).determinant();
-#else
-    
 #if NCOL == 3
     complex a;
     
@@ -669,8 +665,6 @@ namespace nissa
     complex_summ_the_prod(d,U[0][2],a);
 #else
     matrix_determinant(d,(complex*)U,NCOL);
-#endif
-    
 #endif
   }
   
@@ -797,13 +791,9 @@ namespace nissa
   inline void su3_subt_complex(su3 a,const su3 b,const complex c) {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) complex_subt(a[i][i],b[i][i],c);}
   CUDA_HOST_AND_DEVICE inline void unsafe_su3_subt_su3_dag(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)=SU3_ECAST(b)-SU3_ECAST(c).adjoint();
-#else
     for(size_t i=0;i<NCOL;i++)
       for(size_t j=0;j<NCOL;j++)
 	complex_subt_conj2(a[i][j],b[i][j],c[j][i]);
-#endif
   }
   inline void su3_subtassign_su3_dag(su3 a,const su3 b) {unsafe_su3_subt_su3_dag(a,a,b);}
   
@@ -908,14 +898,10 @@ namespace nissa
   inline void safe_su3_dag_prod_su3(su3 a,const su3 b,const su3 c) {su3 d;unsafe_su3_dag_prod_su3(d,b,c);su3_copy(a,d);}
   inline void su3_dag_summ_the_prod_su3(su3 a,const su3 b,const su3 c)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    SU3_ECAST(a)+=SU3_ECAST(b).adjoint()*SU3_ECAST(c);
-#else
     for(size_t ir_out=0;ir_out<NCOL;ir_out++)
       for(size_t ic_out=0;ic_out<NCOL;ic_out++)
 	for(size_t itemp=0;itemp<NCOL;itemp++)
 	  complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
-#endif
   }
   
   /// Product of two su3 matrixes
@@ -971,14 +957,10 @@ namespace nissa
   //Trace of the product of two su3 matrices
   CUDA_HOST_AND_DEVICE inline void trace_su3_prod_su3(complex t,const su3 a,const su3 b)
   {
-#ifdef USE_EIGEN_EVERYWHERE
-    CCAST(t)=(SU3_ECAST(a)*SU3_ECAST(b)).trace();
-#else
     complex_put_to_zero(t);
     for(size_t ic1=0;ic1<NCOL;ic1++)
       for(size_t ic2=0;ic2<NCOL;ic2++)
 	complex_summ_the_prod(t,a[ic1][ic2],b[ic2][ic1]);
-#endif
   }
   
   /// Product of two su3 matrixes

@@ -20,51 +20,54 @@ namespace nissa
 	    typename...Tail>
   void sme(su3* lOut,const double& alpha,const LIn& V,su3* U,const int& mu,const Tail&...a)
   {
-    vector_reset(lOut);
+    crash("reimplement");
+    // vector_reset(lOut);
     
-    for(int sigma=0;sigma<NDIM;sigma++)
-      {
-	bool toDo=true;
-	for(const auto& i : {mu,a...})
-	  toDo&=(i!=sigma);
+    // for(int sigma=0;sigma<NDIM;sigma++)
+    //   {
+    // 	bool toDo=true;
+    // 	for(const auto& i : {mu,a...})
+    // 	  toDo&=(i!=sigma);
 	
-	const auto& A=V(sigma,mu,a...);
-	const auto& B=V(mu,a...,sigma);
+    // 	const auto& A=V(sigma,mu,a...);
+    // 	const auto& B=V(mu,a...,sigma);
 	
-	if(toDo)
-	  NISSA_PARALLEL_LOOP(iVol,0,locVol)
-	    {
-	      su3 temp;
-	      
-	      const int muUp=loclxNeighup[iVol][mu];
-	      
-	      unsafe_su3_prod_su3(temp,A[iVol],B[loclxNeighup[iVol][sigma]]);
-	      su3_summ_the_prod_su3_dag(lOut[iVol],temp,A[muUp]);
-	      
-	      const int sigmaDw=loclxNeighdw[iVol][sigma];
-	      const int sigmaDwMuUp=loclxNeighdw[muUp][sigma];
-	      
-	      unsafe_su3_dag_prod_su3(temp,A[sigmaDw],B[sigmaDw]);
-	      su3_summ_the_prod_su3(lOut[iVol],temp,A[sigmaDwMuUp]);
-	    }
-	NISSA_PARALLEL_LOOP_END;
-      }
+    // 	if(toDo)
+    // 	  PAR(0,locVol,
+    // 	      CAPTURE(mu,sigma,
+    // 		      TO_WRITE(lOut)),
+    // 	      iVol,
+    // 	      {
+    // 		su3 temp;
+		
+    // 		const int muUp=loclxNeighup[iVol][mu];
+		
+    // 		unsafe_su3_prod_su3(temp,A[iVol],B[loclxNeighup[iVol][sigma]]);
+    // 		su3_summ_the_prod_su3_dag(lOut[iVol],temp,A[muUp]);
+		
+    // 		const int sigmaDw=loclxNeighdw[iVol][sigma];
+    // 		const int sigmaDwMuUp=loclxNeighdw[muUp][sigma];
+		
+    // 		unsafe_su3_dag_prod_su3(temp,A[sigmaDw],B[sigmaDw]);
+    // 		su3_summ_the_prod_su3(lOut[iVol],temp,A[sigmaDwMuUp]);
+    // 	      });
+    //   }
     
-    NISSA_PARALLEL_LOOP(iVol,0,locVol)
-      {
-	su3 temp1,temp2;
+    // NISSA_PARALLEL_LOOP(iVol,0,locVol)
+    //   {
+    // 	su3 temp1,temp2;
 	
-	unsafe_su3_prod_su3_dag(temp1,lOut[iVol],U[iVol]);
-	unsafe_su3_traceless_anti_hermitian_part(temp2,temp1);
+    // 	unsafe_su3_prod_su3_dag(temp1,lOut[iVol],U[iVol]);
+    // 	unsafe_su3_traceless_anti_hermitian_part(temp2,temp1);
 	
-	su3 Q;
-	unsafe_su3_traceless_anti_hermitian_part(Q,temp2);
-	su3_prodassign_idouble(Q,-alpha);
+    // 	su3 Q;
+    // 	unsafe_su3_traceless_anti_hermitian_part(Q,temp2);
+    // 	su3_prodassign_idouble(Q,-alpha);
 	
-	safe_hermitian_exact_i_exponentiate(Q,Q);
-	unsafe_su3_prod_su3(lOut[iVol],Q,U[iVol]);
-      }
-    NISSA_PARALLEL_LOOP_END;
+    // 	safe_hermitian_exact_i_exponentiate(Q,Q);
+    // 	unsafe_su3_prod_su3(lOut[iVol],Q,U[iVol]);
+    //   }
+    // NISSA_PARALLEL_LOOP_END;
   }
   
   /// Hex smear the conf

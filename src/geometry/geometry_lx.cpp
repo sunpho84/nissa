@@ -498,10 +498,6 @@ namespace nissa
     glbCoordOfLoclx=nissa_malloc("glb_coord_of_loclx",locVol+bord_vol+edge_vol,coords_t);
     loclx_neigh[0]=loclxNeighdw=nissa_malloc("loclx_neighdw",locVol+bord_vol+edge_vol,coords_t);
     loclx_neigh[1]=loclxNeighup=nissa_malloc("loclx_neighup",locVol+bord_vol+edge_vol,coords_t);
-    ignore_borders_communications_warning(locCoordOfLoclx);
-    ignore_borders_communications_warning(glbCoordOfLoclx);
-    ignore_borders_communications_warning(loclxNeighup);
-    ignore_borders_communications_warning(loclxNeighdw);
     
     //local to global
     glblxOfLoclx=nissa_malloc("glblx_of_loclx",locVol,int);

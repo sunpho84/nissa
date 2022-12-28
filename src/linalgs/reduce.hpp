@@ -16,48 +16,48 @@
 
 namespace nissa
 {
-  /// Size of the reducing buffer
-  EXTERN_REDUCE int64_t reducing_buffer_size INIT_REDUCE_TO(=0);
+//   /// Size of the reducing buffer
+//   EXTERN_REDUCE int64_t reducing_buffer_size INIT_REDUCE_TO(=0);
   
-  /// Reference to the reducing buffer
-  EXTERN_REDUCE CUDA_MANAGED void *reducing_buffer INIT_REDUCE_TO(=nullptr);
+//   /// Reference to the reducing buffer
+//   EXTERN_REDUCE CUDA_MANAGED void *reducing_buffer INIT_REDUCE_TO(=nullptr);
   
-  /// Get the reduction buffer
-  template <typename T>
-  T* get_reducing_buffer(const int64_t& n)
-  {
-    const int64_t required_size=sizeof(T)*n;
-    if(reducing_buffer_size<required_size)
-      {
-	if(reducing_buffer!=nullptr)
-	  nissa_free(reducing_buffer);
+//   /// Get the reduction buffer
+//   template <typename T>
+//   T* get_reducing_buffer(const int64_t& n)
+//   {
+//     const int64_t required_size=sizeof(T)*n;
+//     if(reducing_buffer_size<required_size)
+//       {
+// 	if(reducing_buffer!=nullptr)
+// 	  nissa_free(reducing_buffer);
 	
-	//reducing_buffer_size=0; check
-      }
+// 	//reducing_buffer_size=0; check
+//       }
     
-    if(reducing_buffer==nullptr)
-      {
-	if(reducing_buffer_size==0)
-	  master_printf("Allocating the reduction buffer to %ld bytes\n",required_size);
-	else
-	  master_printf("Reallocating the reduction buffer from %ld bytes to %ld bytes\n",reducing_buffer_size,required_size);
+//     if(reducing_buffer==nullptr)
+//       {
+// 	if(reducing_buffer_size==0)
+// 	  master_printf("Allocating the reduction buffer to %ld bytes\n",required_size);
+// 	else
+// 	  master_printf("Reallocating the reduction buffer from %ld bytes to %ld bytes\n",reducing_buffer_size,required_size);
 	
-	reducing_buffer=nissa_malloc("reducing_buffer",required_size,char);
-	reducing_buffer_size=required_size;
-      }
+// 	reducing_buffer=nissa_malloc("reducing_buffer",required_size,char);
+// 	reducing_buffer_size=required_size;
+//       }
     
-    return (T*)reducing_buffer;
-  }
+//     return (T*)reducing_buffer;
+//   }
   
-  void deallocate_reduction_buffer();
+//   void deallocate_reduction_buffer();
   
-  void loc_reduce(int64_t* loc_res,int64_t* buf,int64_t n,int nslices=1);
-  void loc_reduce(double* loc_res,double* buf,int64_t n,int nslices=1);
-  void loc_reduce(complex* loc_res,complex* buf,int64_t n,int nslices=1);
-#ifdef REPRODUCIBLE_RUN
-  void loc_reduce(float_128* loc_res,float_128* buf,int64_t n,int nslices=1);
-  void loc_reduce(complex_128* loc_res,complex_128* buf,int64_t n,int nslices=1);
-#endif
+//   void loc_reduce(int64_t* loc_res,int64_t* buf,int64_t n,int nslices=1);
+//   void loc_reduce(double* loc_res,double* buf,int64_t n,int nslices=1);
+//   void loc_reduce(complex* loc_res,complex* buf,int64_t n,int nslices=1);
+// #ifdef REPRODUCIBLE_RUN
+//   void loc_reduce(float_128* loc_res,float_128* buf,int64_t n,int nslices=1);
+//   void loc_reduce(complex_128* loc_res,complex_128* buf,int64_t n,int nslices=1);
+// #endif
   
   //reduce a vector
   template <typename T>
@@ -190,7 +190,7 @@ namespace nissa
   }
 }
 
-#undef EXTERN_REDUCE
-#undef INIT_REDUCE_TO
+// #undef EXTERN_REDUCE
+// #undef INIT_REDUCE_TO
 
 #endif

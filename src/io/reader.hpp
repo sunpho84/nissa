@@ -12,7 +12,6 @@
 
 namespace nissa
 {
-  
   template <typename T,
 	    FieldLayout FL>
   void read_real_vector_internal(LxField<T,FL>& out,
@@ -37,7 +36,7 @@ namespace nissa
   void read_real_vector(LxField<T>& out,
 			ILDG_File file,
 			ILDG_header header,
-			ILDG_message *mess=nullptr)
+			ILDG_message* mess=nullptr)
   {
     //check the size of the data block
     const int nreals_per_site=LxField<T>::nInternalDegs;
@@ -83,7 +82,7 @@ namespace nissa
 	master_printf("Checksums read:      %#010x %#010x\n",read_check[0],read_check[1]);
 	
 	//compute checksum
-	const Checksum comp_check=out.checksum();
+	const Checksum comp_check=ildgChecksum(out);
 	
 	//print the comparison between checksums
 	master_printf("Checksums computed:  %#010x %#010x\n",comp_check[0],comp_check[1]);
@@ -102,7 +101,7 @@ namespace nissa
   void read_real_vector(LxField<T>& out,
 			const std::string& path,
 			const char *record_name,
-			ILDG_message *mess=NULL)
+			ILDG_message *mess=nullptr)
   {
     //Open file
     ILDG_File file=ILDG_File_open_for_read(path);

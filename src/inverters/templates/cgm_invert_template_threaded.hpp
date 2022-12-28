@@ -184,7 +184,6 @@ namespace nissa
 		zps[ishift]=zas[ishift];
 		zas[ishift]=zfs[ishift];
 	      }
-	    THREAD_BARRIER();
 	  }
 	
 	//shift rr
@@ -243,7 +242,6 @@ namespace nissa
     if(final_iter==niter_max)
       crash("exit without converging");
     
-    
-    if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
+    cgm_inv_over_time+=take_time();
   }
 }

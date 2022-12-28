@@ -78,7 +78,7 @@ namespace nissa
 	//(r_k,r_k)/(p_k*DD*p_k)
 	STOP_TIMING(cg_inv_over_time);
 	APPLY_OPERATOR(s,CG_OPERATOR_PARAMETERS p);
-	if(IS_MASTER_THREAD) cg_inv_over_time-=take_time();
+	cg_inv_over_time-=take_time();
 	
 	double_vector_glb_scalar_prod(&alpha,(double*)s,(double*)p,BULK_VOL*NDOUBLES_PER_SITE);
 	omega=delta/alpha;
@@ -120,7 +120,7 @@ namespace nissa
     //check if not converged
     if(final_iter==niter) crash("exit without converging");
     
-    if(IS_MASTER_THREAD) cg_inv_over_time+=take_time();
+    cg_inv_over_time+=take_time();
     
     nissa_free(s);
     nissa_free(p);
