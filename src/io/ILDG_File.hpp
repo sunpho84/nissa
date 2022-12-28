@@ -103,14 +103,14 @@ namespace nissa
   void ILDG_File_close(ILDG_File &file);
   void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req);
   void ILDG_File_read_all(void *data,ILDG_File &file,size_t nbytes_req);
-  checksum ILDG_File_read_checksum(ILDG_File &file);
+  Checksum ILDG_File_read_checksum(ILDG_File &file);
   void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header);
   void ILDG_File_seek_to_next_eight_multiple(ILDG_File &file);
   void ILDG_File_set_position(ILDG_File &file,ILDG_Offset pos,int amode);
   void ILDG_File_set_view(ILDG_File &file,ILDG_File_view &view);
   void ILDG_File_skip_nbytes(ILDG_File &file,ILDG_Offset nbytes);
   void ILDG_File_skip_record(ILDG_File &file,ILDG_header header);
-  void ILDG_File_write_checksum(ILDG_File &file,const checksum& check);
+  void ILDG_File_write_checksum(ILDG_File &file,const Checksum& check);
   void ILDG_File_write_ildg_data_all_raw(ILDG_File &file,void *data,uint64_t data_length);
   void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type);
   void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write);

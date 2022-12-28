@@ -56,7 +56,7 @@ namespace nissa
     const uint64_t nbytes_per_site_double=nreals_per_site*sizeof(double);
     
     //read the checksum
-    const checksum read_check=ILDG_File_read_checksum(file);
+    const Checksum read_check=ILDG_File_read_checksum(file);
     
     //check precision
     int single_double_flag=-1;
@@ -69,16 +69,13 @@ namespace nissa
     verbosity_lv3_master_printf("Vector is stored in %s precision\n",single_double_str[single_double_flag]);
     
     //change endianess
-    if(little_endian)
-      {
-	verbosity_lv1_master_printf("Needs to change endianness!\n");
-	if(single_double_flag==0) crash("reimplement");//change_endianness((float*)out.d,(float*)out,loc_nreals_tot);
-	else
-	  FOR_EACH_SITE_DEG_OF_FIELD(out,CAPTURE(TO_WRITE(out)),site,iDeg,
-				     {
-				       change_endianness(out(site,iDeg));
-				     });
-      }
+    if(single_double_flag==0)
+      crash("reimplement");//change_endianness((float*)out.d,(float*)out,loc_nreals_tot);
+    else
+      FOR_EACH_SITE_DEG_OF_FIELD(out,CAPTURE(TO_WRITE(out)),site,iDeg,
+				 {
+				   fixToNativeEndianness<BigEndian>(out(site,iDeg));
+				 });
     
     //check the checksum
     if(read_check[0]!=0 or read_check[1]!=0)
@@ -86,8 +83,7 @@ namespace nissa
 	master_printf("Checksums read:      %#010x %#010x\n",read_check[0],read_check[1]);
 	
 	//compute checksum
-	checksum comp_check;
-	checksum_compute_nissa_data(comp_check,out,(single_double_flag+1)*32);
+	const Checksum comp_check=out.checksum();
 	
 	//print the comparison between checksums
 	master_printf("Checksums computed:  %#010x %#010x\n",comp_check[0],comp_check[1]);

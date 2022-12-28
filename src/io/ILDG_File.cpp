@@ -334,13 +334,10 @@ namespace nissa
     //read the header and fix endianness
     ILDG_header header;
     ILDG_File_read_all((void*)&header,file,sizeof(header));
-    if(little_endian)
-      {
-	change_endianness(&header.data_length,&header.data_length,1);
-	verbosity_lv3_master_printf("record %s contains: %lld bytes\n",header.type,header.data_length);
-	change_endianness(header.magic_no);
-	change_endianness(header.version);
-      }
+    fixToNativeEndianness<BigEndian>(header.data_length);
+    verbosity_lv3_master_printf("record %s contains: %lld bytes\n",header.type,header.data_length);
+    fixToNativeEndianness<BigEndian>(header.magic_no);
+    fixToNativeEndianness<BigEndian>(header.version);
     
     //control the magic number magic number
     if(header.magic_no!=ILDG_MAGIC_NO)
@@ -416,12 +413,9 @@ namespace nissa
     ILDG_header header=header_to_write;
     
     //in the case, revert endianness
-    if(little_endian)
-      {
-	change_endianness(&header.data_length,&header.data_length,1);
-	change_endianness(&header.magic_no,&header.magic_no,1);
-	change_endianness(&header.version,&header.version,1);
-      }
+    fixFromNativeEndianness<BigEndian>(header.data_length);
+    fixFromNativeEndianness<BigEndian>(header.magic_no);
+    fixFromNativeEndianness<BigEndian>(header.version);
     
     //write the header
     ILDG_File_master_write(file,(void*)&header,sizeof(ILDG_header));
@@ -529,9 +523,9 @@ namespace nissa
   }
   
   //read the checksum
-  checksum ILDG_File_read_checksum(ILDG_File &file)
+  Checksum ILDG_File_read_checksum(ILDG_File &file)
   {
-    checksum check_read;
+    Checksum check_read;
     
   //search the field
     char record_name[]="scidac-checksum";
@@ -548,7 +542,7 @@ namespace nissa
 	check_read[0]=check_read[1]=0;
 	char *handlea=strstr(mess,"<suma>"),*handleb=strstr(mess,"<sumb>");
 	//if found read it
-	if(!(handlea && handleb && sscanf(handlea+6,"%x",check_read.data+0) && sscanf(handleb+6,"%x",check_read.data+1)))
+	if(!(handlea && handleb && sscanf(handlea+6,"%x",&check_read[0]) && sscanf(handleb+6,"%x",&check_read[1])))
 	  master_printf("WARNING: Broken checksum\n");
 	nissa_free(mess);
       }
@@ -681,7 +675,7 @@ namespace nissa
   {ILDG_File_write_record(file,type,text,strlen(text)+1);}
   
   //write the checksum
-  void ILDG_File_write_checksum(ILDG_File &file,const checksum& check)
+  void ILDG_File_write_checksum(ILDG_File &file,const Checksum& check)
   {
     //prepare message
     char mess[1024];

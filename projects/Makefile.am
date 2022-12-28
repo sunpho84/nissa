@@ -12,7 +12,7 @@ include_HEADERS=
 BUILT_SOURCES=
 CLEANFILES=
 
-include $(srcdir)/generate_confs/Makefile.am
+#include $(srcdir)/generate_confs/Makefile.am
 include $(srcdir)/ib/Makefile.am
 #include $(srcdir)/nucleons/Makefile.am
 #include $(srcdir)/reno_const/Makefile.am

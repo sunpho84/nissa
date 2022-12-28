@@ -174,7 +174,7 @@ AC_DEFINE_UNQUOTED([CUDA_HOST_AND_DEVICE],${CUDA_HOST_AND_DEVICE},[Whether to du
 AC_DEFINE_UNQUOTED([CUDA_DEVICE],${CUDA_DEVICE},[Whether to instantiate pure device function])
 AH_VERBATIM([COMPILING_FOR_DEVICE],
 #ifdef __CUDA_ARCH__
- 
+
  /// A convenient macro to detect that we are compiling on device
 # define COMPILING_FOR_DEVICE
 
@@ -190,6 +190,26 @@ AC_MSG_RESULT([with threads type... ${with_threads_type}])
 SUMMARY_RESULT="$SUMMARY_RESULT
 threads type            : $with_threads_type"
 
+####################################
+
+#endianness specification
+AC_ARG_WITH(endianness,
+	AS_HELP_STRING([--with-endianness],[Specify endianness (auto (default, relies on compiler to specify __BYE_ORDER__), little, big)]),
+	with_endianness="${withval}",
+	with_endianness=auto)
+case "$with_endianness" in
+     little) is_little_endian=true ;;
+     big) is_little_endian=false ;;
+     auto) is_little_endian='(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)';;
+     *) AC_MSG_ERROR(["Unkwnown endianness ${with_endianness}"]);;
+esac
+AC_DEFINE_UNQUOTED([IS_LITTLE_ENDIAN],${is_little_endian},[Whether the machine is little endian])
+AC_MSG_RESULT([with endianness... ${with_endianness}])
+SUMMARY_RESULT="$SUMMARY_RESULT
+endianness            : $with_endianness"
+
+####################################
+
 #AX_CXXFLAGS_WARN_ALL
 AC_MSG_CHECKING(whether compiler understands -Wall)
 OLD_CXXFLAGS="$CXXFLAGS"
@@ -201,18 +221,6 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
 
 #check ntl library
 #LB_CHECK_NTL(,,AC_MSG_ERROR(["Unable to find NTL library"]))
-
-#spi
-AC_ARG_ENABLE(spi,
-	AS_HELP_STRING([--enable-spi],[Enable spi stuff (ony for BG/Q)]),
-	enable_spi="${enableval}",
-	enable_spi="no")
-if test "$enable_spi" == "yes"
-then
-	AC_DEFINE([SPI],1,[Enable spi])
-fi
-AM_CONDITIONAL([SPI],[test "$enable_spi" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling spi... $enable_spi])
 
 ##############################################
 

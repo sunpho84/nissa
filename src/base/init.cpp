@@ -149,9 +149,15 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=nrank_dir[mu]=0;
     
     //check endianness
-    check_endianness();
-    if(little_endian) master_printf("System endianness: little (ordinary machine)\n");
-    else master_printf("System endianness: big (BG, etc)\n");
+    switch(nativeEndianness)
+      {
+    case LittleEndian:
+      master_printf("System endianness: little (ordinary machine)\n");
+      break;
+    case BigEndian:
+      master_printf("System endianness: big (BG, etc)\n");
+      break;
+    };
     
     //set scidac mapping
     scidac_mapping[0]=0;

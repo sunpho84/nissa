@@ -25,9 +25,10 @@ namespace nissa
     std::stringstream st;
   };
   
-  template <class T> buffer_t &operator<<(buffer_t &out,T in)
+  template <class T> buffer_t &operator<<(buffer_t &out,
+					  T in)
   {
-    if(!little_endian) change_endianness(in);
+    fixFromNativeEndianness<LittleEndian>(in);
     out.write((char*)&in,sizeof(T));
     
     return out;
@@ -37,7 +38,7 @@ namespace nissa
   buffer_t &operator>>(buffer_t &in,T &out)
   {
     in.read((char*)&out,sizeof(T));
-    if(!little_endian) change_endianness(out);
+    fixToNativeEndianness<LittleEndian>(out);
     
     return in;
   }

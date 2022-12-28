@@ -1,7 +1,6 @@
 ######################################## dirac operators#####################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	%D%/stD/dirac_operator_stD.cpp \
 	%D%/tmD_eoprec/dirac_operator_tmD_eoprec.cpp \
 	%D%/tmQ/dirac_operator_tmQ.cpp \
 	%D%/tmQ2/dirac_operator_tmQ2.cpp \
@@ -44,5 +43,6 @@ EXTRA_DIST= \
 	%D%/tmQ/dirac_operator_tmQ_portable.cpp
 
 # %D%/overlap/dirac_operator_overlap_kernel_portable.cpp \
+# %D%/stD/dirac_operator_stD.cpp \
 # %D%/overlap/dirac_operator_overlap_kernel2.cpp \
 # %D%/overlap/dirac_operator_overlap.cpp
