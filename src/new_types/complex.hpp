@@ -12,7 +12,7 @@
 #define RE 0
 #define IM 1
 
-#include <base/metaprogramming.hpp>
+#include <metaprogramming/inline.hpp>
 
 namespace nissa
 {

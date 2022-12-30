@@ -8,10 +8,90 @@
 
 using namespace nissa;
 
+CUDA_DEVICE int device;
+
+constexpr bool compilingForDevice=
+#ifdef COMPILING_FOR_DEVICE
+	    true
+#else
+	    false
+#endif
+	    ;
+
+// constexpr bool compilingForHost=
+// 	    not compilingForDevice;
+
+// CUDA_DEVICE
+// int& testDevice()
+// {
+//   return device;
+// }
+
+// int host;
+
+// //CUDA_HOST_AND_DEVICE
+// int& testHost()
+// {
+//   return host;
+// }
+
+template <bool B>
+struct Foo;
+
+template <>
+struct Foo<false>
+{
+  __host__ static int foo(int x) {
+// Code to be executed on the host
+}
+};
+
+template <>
+struct Foo<true>
+{
+__device__ static int foo(int x) {
+  // Code to be executed on the device
+}
+};
+
+  
+
+// template <bool b,
+// 	  bool is=compilingForDevice>
+// //CUDA_HOST_AND_DEVICE
+// INLINE_FUNCTION int& test()
+// {
+//   if constexpr (is)
+//     {
+//       static_assert(b,"");
+//       return testDevice();
+//     }
+//   else
+//     {
+//       static_assert(not b,"");
+//       return testHost();
+//     }
+// }
+
+// CUDA_DEVICE void a()
+// {
+//   //Foo<false>::foo(1);
+//   Foo<>::foo(1);
+// }
+
+//  void b()
+// {
+//   //Foo<false>::foo(1);
+//   Foo<>::foo(1);
+// }
+
 void test_unitarity(FILE *fout,
 		    LxField<quad_su3>& conf,
 		    char *filename)
 {
+  Foo<false>::foo(1);
+  //b();  
+  //test();
   double loc_max=0,loc_avg=0;
   
   read_ildg_gauge_conf(conf,filename);
@@ -23,6 +103,9 @@ void test_unitarity(FILE *fout,
       CAPTURE(TO_WRITE(conf)),
       ivol,
       {
+	//Foo<false>::foo(1);
+	Foo<true>::foo(1);
+	//a();
       });
   master_printf("writing, conf has valid halo: %d\n",conf.haloIsValid);
   master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));

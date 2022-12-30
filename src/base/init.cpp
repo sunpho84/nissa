@@ -2,8 +2,10 @@
  #include "config.hpp"
 #endif
 
+#include <base/init.hpp>
+
 #ifdef USE_MPI
- #include <mpi.h>
+# include <mpi.h>
 #endif
 #include <signal.h>
 #include <stdlib.h>
@@ -67,7 +69,7 @@ namespace nissa
     //check terminal output
     int width=w.ws_col;
     int is_terminal=isatty(STDOUT_FILENO);
-    if(!is_terminal) width=message_width+10;
+    if(not is_terminal) width=message_width+10;
     
     //set the bordr
     if(width>=message_width)

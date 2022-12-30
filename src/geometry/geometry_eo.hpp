@@ -2,7 +2,7 @@
 #define _GEOMETRY_EO_HPP
 
 #ifndef EXTERN_GEOMETRY_EO
- #define EXTERN_GEOMETRY_EO extern
+# define EXTERN_GEOMETRY_EO extern
 #endif
 
 //ODD/EVN
@@ -13,9 +13,8 @@
 
 #define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<locVolh;a++)
 
-#include "base/metaprogramming.hpp"
-#include "geometry_lx.hpp"
-#include "new_types/su3.hpp"
+#include <geometry/geometry_lx.hpp>
+#include <new_types/su3.hpp>
 
 namespace nissa
 {
@@ -29,14 +28,19 @@ namespace nissa
     /// Inner pointer pairs
     Tptr data[2];
     
-    /// Constant access to data[i]
-    CUDA_HOST_AND_DEVICE
-    const Tptr& operator[](const int i) const
-    {
-      return data[i];
+#define PROVIDE_SUBSCRIBE_OPERATOR(CONST)	\
+    /*! Constant access to data[i] */		\
+    CUDA_HOST_AND_DEVICE			\
+    CONST Tptr& operator[](const int i) CONST	\
+    {						\
+      return data[i];\
     }
     
-    PROVIDE_ALSO_NON_CONST_METHOD_GPU(operator[]);
+    PROVIDE_SUBSCRIBE_OPERATOR(const);
+    
+    PROVIDE_SUBSCRIBE_OPERATOR(/* non-const */);
+    
+#undef PROVIDE_SUBSCRIBE_OPERATOR
     
     /// Create from a pair of pointers
     CUDA_HOST_AND_DEVICE eo_ptr(Tptr a,Tptr b) :

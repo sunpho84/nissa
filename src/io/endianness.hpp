@@ -5,7 +5,7 @@
 # include "config.hpp"
 #endif
 
-#include <base/metaprogramming.hpp>
+#include <metaprogramming/inline.hpp>
 
 namespace nissa
 {

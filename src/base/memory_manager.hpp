@@ -14,13 +14,14 @@
 #endif
 
 #ifndef EXTERN_MEMORY_MANAGER
- #define EXTERN_MEMORY_MANAGER extern
+# define EXTERN_MEMORY_MANAGER extern
 #endif
 
 #include <base/debug.hpp>
-#include <base/metaprogramming.hpp>
-#include <routines/ios.hpp>
 #include <new_types/value_with_extreme.hpp>
+#include <metaprogramming/constnessChanger.hpp>
+#include <metaprogramming/crtp.hpp>
+#include <routines/ios.hpp>
 
 namespace nissa
 {
@@ -38,7 +39,7 @@ namespace nissa
   
   /// Memory manager, base type
   template <typename C>
-  class BaseMemoryManager : public Crtp<C>
+  class BaseMemoryManager
   {
   protected:
     
@@ -219,7 +220,7 @@ namespace nissa
       else
 	{
 	  popFromUsed(ptr);
-	  this->crtp().deAllocateRaw(ptr);
+	  DE_CRTPFY(C,this).deAllocateRaw(ptr);
 	}
     }
     
@@ -240,7 +241,7 @@ namespace nissa
 	  // Increment iterator before releasing
 	  el++;
 	  
-	  this->crtp().release(ptr);
+	  DE_CRTPFY(C,this).release(ptr);
 	}
     }
     
@@ -271,7 +272,7 @@ namespace nissa
 	      void* ptr=popFromCache(size,DEFAULT_ALIGNMENT);
 	      
 	      verbosity_lv3_master_printf("ptr: %p\n",ptr);
-	      this->crtp().deAllocateRaw(ptr);
+	      DE_CRTPFY(C,this).deAllocateRaw(ptr);
 	    }
 	}
     }

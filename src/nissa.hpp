@@ -3,7 +3,7 @@
 
 //including config.hpp
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include "base/bench.hpp"
@@ -14,7 +14,6 @@
 #endif
 #include "base/field.hpp"
 #include "base/init.hpp"
-#include "base/metaprogramming.hpp"
 #include "base/multiGridParams.hpp"
 #include "base/random.hpp"
 #include "base/sitmo.hpp"
@@ -133,6 +132,13 @@
 #include "measures/gauge/topological_charge.hpp"
 #include "measures/gauge/watusso.hpp"
 
+#include "metaprogramming/constnessChanger.hpp"
+#include "metaprogramming/crtp.hpp"
+#include "metaprogramming/extent.hpp"
+#include "metaprogramming/feature.hpp"
+#include "metaprogramming/inline.hpp"
+#include "metaprogramming/templateEnabler.hpp"
+
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/float_128.hpp"
@@ -175,6 +181,9 @@
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #include "routines/mpi_routines.hpp"
+
 #include "threads/threads.hpp"
+
+#include "tuples/tupleFilter.hpp"
 
 #endif

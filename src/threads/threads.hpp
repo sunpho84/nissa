@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <cstdio>
 
-#include <base/metaprogramming.hpp>
 #include <routines/mpi_routines.hpp>
 
 #define TO_READ(A) A=A.getReadable()
@@ -27,7 +26,7 @@ namespace nissa
 	    typename IMax,
 	    typename F>
   INLINE_FUNCTION
-  void openmp_parallel_for(const int line,
+  void openmpParallelFor(const int line,
 			   const char* file,
 			   const IMin min,
 			   const IMax max,
@@ -53,7 +52,7 @@ namespace nissa
   }
 }
 
-# define THREADS_PARALLEL_LOOP(ARGS...) openmp_parallel_for(__LINE__,__FILE__,ARGS)
+# define THREADS_PARALLEL_LOOP(ARGS...) openmpParallelFor(__LINE__,__FILE__,ARGS)
 
 #else
 
@@ -71,9 +70,9 @@ namespace nissa
 	    typename IMax,
 	    typename F>
   __global__
-  void cuda_generic_kernel(const IMin min,
-			   const IMax max,
-			   F f)
+  void cudaGenericKernel(const IMin min,
+			 const IMax max,
+			 F f) // Needs to take by value
   {
     const auto i=min+blockIdx.x*blockDim.x+threadIdx.x;
     if(i<max)
@@ -83,15 +82,15 @@ namespace nissa
   template <typename IMin,
 	    typename IMax,
 	    typename F>
-  void cuda_parallel_for(const int line,
+  void cudaParallelFor(const int line,
 			 const char* file,
 			 const IMin min,
 			 const IMax max,
-			 F f)
+		       F f) // Needs to take by value
   {
     const auto length=(max-min);
-    const dim3 block_dimension(128); // to be improved
-    const dim3 grid_dimension((length+block_dimension.x-1)/block_dimension.x);
+    const dim3 blockDimension(128); // to be improved
+    const dim3 gridDimension((length+blockDimension.x-1)/blockDimension.x);
     
     double initTime=0;
     extern int rank,verbosity_lv;
@@ -100,13 +99,13 @@ namespace nissa
     if(print)
       {
 	printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
-	   line,file,(int64_t)min,(int64_t)max,block_dimension.x,grid_dimension.x);
+	   line,file,(int64_t)min,(int64_t)max,blockDimension.x,gridDimension.x);
 	initTime=take_time();
       }
     
     if(length>0)
       {
-	cuda_generic_kernel<<<grid_dimension,block_dimension>>>(min,max,f);
+	cudaGenericKernel<<<gridDimension,blockDimension>>>(min,max,f);
 	cudaDeviceSynchronize();
       }
     
@@ -115,7 +114,7 @@ namespace nissa
   }
 }
 
-# define CUDA_PARALLEL_LOOP(ARGS...) cuda_parallel_for(__LINE__,__FILE__,ARGS)
+# define CUDA_PARALLEL_LOOP(ARGS...) cudaParallelFor(__LINE__,__FILE__,ARGS)
 
 #else
 
