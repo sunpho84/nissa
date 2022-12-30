@@ -52,6 +52,12 @@
 
 #include "eigenvalues/eigenvalues.hpp"
 
+#include "expr/baseComp.hpp"
+#include "expr/comp.hpp"
+#include "expr/comps.hpp"
+#include "expr/compRwCl.hpp"
+#include "expr/indexComputer.hpp"
+#include "expr/stackTens.hpp"
 
 #include "free_theory/cg_eoprec_twisted_free_operator.hpp"
 #include "free_theory/free_theory_types.hpp"
@@ -136,6 +142,7 @@
 #include "metaprogramming/crtp.hpp"
 #include "metaprogramming/extent.hpp"
 #include "metaprogramming/feature.hpp"
+#include "metaprogramming/hasMember.hpp"
 #include "metaprogramming/inline.hpp"
 #include "metaprogramming/templateEnabler.hpp"
 

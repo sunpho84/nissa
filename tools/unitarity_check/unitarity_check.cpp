@@ -35,24 +35,24 @@ constexpr bool compilingForDevice=
 //   return host;
 // }
 
-template <bool B>
-struct Foo;
+// template <bool B>
+// struct Foo;
 
-template <>
-struct Foo<false>
-{
-  __host__ static int foo(int x) {
-// Code to be executed on the host
-}
-};
+// template <>
+// struct Foo<false>
+// {
+//   __host__ static int foo(int x) {
+// // Code to be executed on the host
+// }
+// };
 
-template <>
-struct Foo<true>
-{
-__device__ static int foo(int x) {
-  // Code to be executed on the device
-}
-};
+// template <>
+// struct Foo<true>
+// {
+// __device__ static int foo(int x) {
+//   // Code to be executed on the device
+// }
+// };
 
   
 
@@ -85,11 +85,22 @@ __device__ static int foo(int x) {
 //   Foo<>::foo(1);
 // }
 
+DECLARE_UNTRANSPOSABLE_COMP(SpaceTime,int,12,spaceTime);
+DECLARE_UNTRANSPOSABLE_COMP(Compl,int,2,cmplx);
+
 void test_unitarity(FILE *fout,
 		    LxField<quad_su3>& conf,
 		    char *filename)
 {
-  Foo<false>::foo(1);
+  StackTens<CompsList<SpaceTime,Compl>,double> d,e;
+
+  auto& b=e(cmplx(0),spaceTime(1));//=d;
+  b=0;
+  e(cmplx(0))=e(cmplx(1));
+  compsLoop<CompsList<SpaceTime,Compl>>([](const SpaceTime&,const Compl&){},{});
+  
+  
+  // Foo<false>::foo(1);
   //b();  
   //test();
   double loc_max=0,loc_avg=0;
@@ -103,8 +114,8 @@ void test_unitarity(FILE *fout,
       CAPTURE(TO_WRITE(conf)),
       ivol,
       {
-	//Foo<false>::foo(1);
-	Foo<true>::foo(1);
+	// //Foo<false>::foo(1);
+	// Foo<true>::foo(1);
 	//a();
       });
   master_printf("writing, conf has valid halo: %d\n",conf.haloIsValid);

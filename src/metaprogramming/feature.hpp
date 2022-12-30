@@ -1,6 +1,9 @@
 #ifndef _FEATURE_HPP
 #define _FEATURE_HPP
 
+#include <metaprogramming/inline.hpp>
+#include <type_traits>
+
 namespace nissa
 {
   /* Usable to recognize a FEAT */
@@ -31,7 +34,11 @@ namespace nissa
     {						\
       return *(const F*)this;			\
     }						\
-  }
+  };						\
+  						\
+  template <typename T>				\
+  inline constexpr bool is ## NAME =		\
+    std::is_base_of_v<NAME ## Feat<T>,T>
 }
 
 #endif

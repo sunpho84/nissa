@@ -7,5 +7,6 @@ include_HEADERS+= \
 	%D%/crtp.hpp \
 	%D%/extent.hpp \
 	%D%/feature.hpp \
+	%D%/hasMember.hpp \
 	%D%/inline.hpp \
 	%D%/templateEnabler.hpp
