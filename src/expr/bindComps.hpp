@@ -9,16 +9,18 @@
 
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
+#include <expr/exprRefOrVal.hpp>
 // #include <expr/assign/executionSpace.hpp>
 #include <expr/nodeDeclaration.hpp>
-#include <expr/exprRefOrVal.hpp>
+#include <expr/subNodes.hpp>
+#include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/templateEnabler.hpp>
 #include <tuples/tupleFilter.hpp>
 #include <tuples/tupleHasType.hpp>
 
 namespace nissa
 {
-  PROVIDE_FEATURE(CompsBinder);
+  PROVIDE_DETECTABLE_AS(CompsBinder);
   
   /// Component binder
   ///
@@ -30,7 +32,7 @@ namespace nissa
   struct CompsBinder;
   
 #define THIS					\
-  CompsBinder<CompsList<Bc...>,_E,CompsList<C...>,_Fund>
+  CompsBinder<CompsList<Bc...>,std::tuple<_E...>,CompsList<C...>,_Fund>
   
 #define BASE					\
     Node<THIS>
@@ -38,12 +40,13 @@ namespace nissa
   /// Component binder
   ///
   template <typename...Bc,
-	    typename _E,
+	    typename..._E,
 	    typename...C,
 	    typename _Fund>
   struct THIS :
     DynamicCompsProvider<CompsList<C...>>,
-    CompsBinderFeat<THIS>,
+    DetectableAsCompsBinder,
+    SubNodes<_E...>,
     BASE
   {
     /// Import the base expression
@@ -55,6 +58,8 @@ namespace nissa
     
 #undef THIS
     
+    static_assert(sizeof...(_E)==1,"Expecting 1 argument");
+    
     /// Components
     using Comps=
       CompsList<C...>;
@@ -62,11 +67,13 @@ namespace nissa
     /// Fundamental tye
     using Fund=_Fund;
     
+    IMPORT_SUBNODE_TYPES;
+    
     /// Bound type
-    using BoundExpr=std::decay_t<_E>;
+    using BoundExpr=SubNode<0>;
     
     /// Holds the bound expression
-    NodeRefOrVal<_E> boundExpr;
+    BoundExpr& boundExpr=SUBNODE(0);
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
@@ -188,7 +195,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     CompsBinder(T&& arg,
 		const BoundComps& boundComps) :
-      boundExpr(std::forward<T>(arg)),
+      SubNodes<_E...>(std::forward<T>(arg)),
       boundComps(boundComps)
     {
     }
@@ -221,7 +228,7 @@ namespace nissa
     
     return
       CompsBinder<BoundComps,
-		  decltype(e),
+		  std::tuple<decltype(e)>,
 		  Comps,
 		  Fund>(std::forward<_E>(e),bc);
   }

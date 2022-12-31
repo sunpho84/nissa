@@ -56,7 +56,9 @@
 #include "expr/comp.hpp"
 #include "expr/comps.hpp"
 #include "expr/compRwCl.hpp"
+#include "expr/conj.hpp"
 #include "expr/indexComputer.hpp"
+#include "expr/prod.hpp"
 #include "expr/stackTens.hpp"
 
 #include "free_theory/cg_eoprec_twisted_free_operator.hpp"

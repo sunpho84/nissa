@@ -86,18 +86,18 @@ constexpr bool compilingForDevice=
 // }
 
 DECLARE_UNTRANSPOSABLE_COMP(SpaceTime,int,12,spaceTime);
-DECLARE_UNTRANSPOSABLE_COMP(Compl,int,2,cmplx);
 
 void test_unitarity(FILE *fout,
 		    LxField<quad_su3>& conf,
 		    char *filename)
 {
-  StackTens<CompsList<SpaceTime,Compl>,double> d,e;
+  StackTens<CompsList<SpaceTime,ComplId>,double> d,e;
 
-  auto& b=e(cmplx(0),spaceTime(1));//=d;
+  auto& b=e(reIm(0),spaceTime(1));//=d;
   b=0;
-  e(cmplx(0))=e(cmplx(1));
-  compsLoop<CompsList<SpaceTime,Compl>>([](const SpaceTime&,const Compl&){},{});
+  e*e;
+  e(reIm(0))=e(reIm(1));
+  compsLoop<CompsList<SpaceTime,ComplId>>([](const SpaceTime&,const ComplId&){},{});
   
   
   // Foo<false>::foo(1);

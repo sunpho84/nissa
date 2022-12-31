@@ -9,6 +9,7 @@
 
 #include <expr/baseComp.hpp>
 #include <expr/compRwCl.hpp>
+#include <metaprogramming/detectableAs.hpp>
 
 namespace nissa
 {
@@ -25,11 +26,14 @@ namespace nissa
   
   PROVIDE_FEATURE(TransposableComp);
   
+  PROVIDE_DETECTABLE_AS(Transposable);
+  
 #define DECLARE_TRANSPOSABLE_COMP(NAME,TYPE,SIZE,FACTORY)	\
   template <RwCl _RC=RwCl::ROW>					\
   struct NAME ## RwOrCl :					\
     BaseComp<NAME ## RwOrCl<_RC>,TYPE,SIZE>,			\
-    TransposableCompFeat<NAME ## RwOrCl<_RC>>			\
+    TransposableCompFeat<NAME ## RwOrCl<_RC>>,			\
+    DetectableAsTransposable					\
   {								\
     using Base=							\
       BaseComp<NAME ## RwOrCl<_RC>,				\
@@ -71,6 +75,8 @@ namespace nissa
       SIZE>;							\
 								\
     using Base::Base;						\
+								\
+    using Transp=NAME;						\
   };								\
 								\
   DECLARE_COMPONENT_FACTORY(FACTORY,NAME)
