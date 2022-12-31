@@ -13,7 +13,7 @@
 //#include <expr/comps/prodCompsDeducer.hpp>
 #include <expr/producerDeclaration.hpp>
 #include <expr/subNodes.hpp>
-//#include <metaprogramming/arithmeticTraits.hpp>
+#include <metaprogramming/arithmeticTraits.hpp>
 //#include <metaprogramming/asConstexpr.hpp>
 #include <tuples/tupleCat.hpp>
 #include <tuples/uniqueTupleFromTuple.hpp>
@@ -258,7 +258,7 @@ namespace nissa
       Fund res;
       setToZero(res);
       
-      compsLoop<ContractedComps>(dynamicSizes,[this,&allNccs,&res](const auto&..._ccs) INLINE_ATTRIBUTE
+      compsLoop<ContractedComps>([this,&allNccs,&res](const auto&..._ccs) INLINE_ATTRIBUTE
       {
 	auto ccs2=
 	  std::make_tuple(std::make_tuple(transp(_ccs)...),
@@ -321,7 +321,7 @@ namespace nissa
 	  }
 	else
 	  sumAssignTheProd(res,e0(),e1());
-      });
+      },dynamicSizes);
       
       return res;
     }

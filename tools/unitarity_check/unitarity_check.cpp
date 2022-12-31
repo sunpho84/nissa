@@ -87,15 +87,16 @@ constexpr bool compilingForDevice=
 
 DECLARE_UNTRANSPOSABLE_COMP(SpaceTime,int,12,spaceTime);
 
+DECLARE_TRANSPOSABLE_COMP(Spin,int,4,spin);
+
 void test_unitarity(FILE *fout,
 		    LxField<quad_su3>& conf,
 		    char *filename)
 {
-  StackTens<CompsList<SpaceTime,ComplId>,double> d,e;
+  StackTens<CompsList<SpinRow,SpinCln,ComplId>,double> d,e;
 
-  auto& b=e(reIm(0),spaceTime(1));//=d;
-  b=0;
-  e*e;
+  e=e*e;
+  //decltype(E)::Comps r=1;
   e(reIm(0))=e(reIm(1));
   compsLoop<CompsList<SpaceTime,ComplId>>([](const SpaceTime&,const ComplId&){},{});
   
