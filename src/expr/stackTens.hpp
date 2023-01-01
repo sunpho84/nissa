@@ -129,14 +129,15 @@ namespace nissa
     }
     
     /// Copy constructor
-    constexpr INLINE_FUNCTION
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     StackTens(const StackTens& oth)
     {
       if constexpr(std::is_class_v<_Fund>)
 	for(std::decay_t<decltype(nElements)> iEl=0;iEl<nElements;iEl++)
 	  new(&storage[iEl]) _Fund(oth.storage[iEl]);
       else
-	std::copy(oth.storage,oth.storage+nElements,storage);
+	for(int i=0;i<nElements;i++)
+	  storage[i]=oth.storage[i];
     }
     
     /// Construct from another node

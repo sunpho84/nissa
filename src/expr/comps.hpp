@@ -107,6 +107,7 @@ namespace nissa
 	      typename F,
 	      typename...Dc,
 	      typename...ProcessedComps>
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     void _compsLoop(F f,
 		    const CompsList<Dc...>& dynamicComps,
 		    const CompFeat<ProcessedComps>&...pc)
@@ -122,8 +123,10 @@ namespace nissa
 	  f(*pc...,val);
       };
       
-      if constexpr(Head::sizeIsKnownAtCompileTime)
-	for(Head head=0;head<Head::sizeAtCompileTime;head++)
+      constexpr int s=Head::sizeIsKnownAtCompileTime;
+      
+      if constexpr(s)
+	for(Head head=0;head<s;head++)
 	  iter(head);
       else
 	for(Head head=0;head<std::get<Head>(dynamicComps);head++)
@@ -139,7 +142,7 @@ namespace nissa
     {
       template <typename F,
 		typename...Dc>
-      static INLINE_FUNCTION
+      INLINE_FUNCTION static CUDA_HOST_AND_DEVICE
       void exec(F f,
 		const CompsList<Dc...> &dynamicComps)
       {
@@ -151,7 +154,7 @@ namespace nissa
   template <typename Tp,
 	    typename F,
 	    typename...Dc>
-  INLINE_FUNCTION
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
   void compsLoop(F f,
 		 const CompsList<Dc...>& dynamicComps)
   {

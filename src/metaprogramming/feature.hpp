@@ -12,24 +12,28 @@ namespace nissa
   struct NAME ## Feat				\
   {						\
     /* Cast to derived type */			\
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
     F* operator->()				\
     {						\
       return (F*)this;				\
     }						\
 						\
     /* Const cast to derived type*/		\
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
     const F* operator->() const			\
     {						\
       return (const F*)this;			\
     }						\
 						\
     /* Cast to derived type*/			\
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
     F& operator*()				\
     {						\
       return *(F*)this;				\
     }						\
 						\
     /* Const cast to derived type*/		\
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
     const F& operator*() const			\
     {						\
       return *(const F*)this;			\
