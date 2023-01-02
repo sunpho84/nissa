@@ -32,8 +32,10 @@ void in_main(int narg,char **arg)
   
   {
     verbosity_lv=3;
-  Field2<OfComps<SpinRow>,double> df;
-  df.getReadable();
+    Field2<OfComps<SpinRow>,double> df;
+    auto rdf=df.getWritable();
+    
+    rdf(spinRow(0),locLxSite(0))=1.0;
   }
   verbosity_lv=1;
 

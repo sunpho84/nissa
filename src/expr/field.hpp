@@ -228,14 +228,14 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Total allocated sites
+    const Site externalSize;
+    
     /// Storage data
     Data data;
     
     /// Presence of halo and edges
     const HaloEdgesPresence haloEdgesPresence;
-    
-    /// Total allocated sites
-    const Site externalSize;
     
     /// States whether the halo is updated
     mutable bool haloIsValid;
@@ -358,9 +358,9 @@ namespace nissa
     
     /// Create a field
     Field2(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
+      externalSize(FieldSizes<sitesCoverage>::nSitesToAllocate(haloEdgesPresence)),
       data(std::make_tuple(externalSize)),
       haloEdgesPresence(haloEdgesPresence),
-      externalSize(FieldSizes<sitesCoverage>::nSitesToAllocate(haloEdgesPresence)),
       haloIsValid(false),
       edgesAreValid(false)
     {
@@ -374,9 +374,9 @@ namespace nissa
 	      bool B=IsRef,
 	      ENABLE_THIS_TEMPLATE_IF(B and isField2<O>)>
     Field2(O&& oth) :
+      externalSize(oth.externalSize),
       data(oth.data),
       haloEdgesPresence(oth.haloEdgesPresence),
-      externalSize(oth.externalSize),
       haloIsValid(oth.haloIsValid),
       edgesAreValid(oth.edgesAreValid)
     {
