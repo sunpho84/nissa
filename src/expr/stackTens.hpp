@@ -36,7 +36,7 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     DynamicCompsProvider<CompsList<C...>>,
-    Node<THIS>
+    BASE
   {
     using This=THIS;
     

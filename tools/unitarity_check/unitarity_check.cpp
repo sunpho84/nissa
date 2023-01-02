@@ -93,18 +93,20 @@ void test_unitarity(FILE *fout,
 		    LxField<quad_su3>& conf,
 		    char *filename)
 {
-  StackTens<CompsList<SpinRow,SpinCln,ComplId>,double> d,e;
-
+  StackTens<CompsList<SpinRow,SpinCln,ComplId>,double> e;
+  DynamicTens<CompsList<SpinRow,SpinCln,ComplId>,double,MemoryType::CPU> d;
+  
   e=e*e;
   //decltype(E)::Comps r=1;
   e(reIm(0))=e(reIm(1));
   compsLoop<CompsList<SpaceTime,ComplId>>([](const SpaceTime&,const ComplId&){},{});
-  
-  
+  auto sd=d.getReadable();
   // Foo<false>::foo(1);
   //b();  
   //test();
   double loc_max=0,loc_avg=0;
+  
+  StackTens<OfComps<SpaceTime,Spin>,double> ss;
   
   read_ildg_gauge_conf(conf,filename);
   master_printf("conf has valid halo: %d\n",conf.haloIsValid);
@@ -112,12 +114,13 @@ void test_unitarity(FILE *fout,
   conf.updateHalo();
   master_printf("forced update, conf has valid halo: %d\n",conf.haloIsValid);
   PAR(0,1,
-      CAPTURE(TO_WRITE(conf)),
+      CAPTURE(d,TO_WRITE(conf)),
       ivol,
       {
 	// //Foo<false>::foo(1);
 	// Foo<true>::foo(1);
 	//a();
+	d(spinRow(0),spinCln(1),reIm(1));
       });
   master_printf("writing, conf has valid halo: %d\n",conf.haloIsValid);
   master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
