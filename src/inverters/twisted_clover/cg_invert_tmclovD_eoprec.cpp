@@ -228,7 +228,7 @@ namespace nissa
 #ifdef USE_DDALPHAAMG
     if(multiGrid::checkIfMultiGridAvailableAndRequired(mass) and not solved)
       {
-	if(source_lx.fieldLayout!=CPU_LAYOUT)
+	if(source_lx.fieldLayout!=CPU)
 	  crash("wrong layout");
 	
 	double call_time=take_time();

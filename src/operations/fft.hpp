@@ -58,7 +58,7 @@ namespace nissa
 	const double& sign,
 	const bool& normalize)
   {
-    LxField<T,CPU_LAYOUT> tmp("tmp");
+    LxField<T,FieldLayout::CPU> tmp("tmp");
     tmp=f;
     
     fft4d(tmp,sign,normalize);
@@ -67,7 +67,7 @@ namespace nissa
   }
   
   template <typename T>
-  void fft4d(LxField<T,CPU_LAYOUT>& f,
+  void fft4d(LxField<T,FieldLayout::CPU>& f,
 	const double& sign,
 	const bool& normalize)
   {

@@ -100,7 +100,7 @@ void test_unitarity(FILE *fout,
   //decltype(E)::Comps r=1;
   e(reIm(0))=e(reIm(1));
   compsLoop<CompsList<SpaceTime,ComplId>>([](const SpaceTime&,const ComplId&){},{});
-  auto sd=d.getReadable();
+  auto sd=d.getWritable();
   // Foo<false>::foo(1);
   //b();  
   //test();

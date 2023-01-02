@@ -31,6 +31,16 @@ namespace nissa
 #endif
   };
   
+  /// Default memory to be used
+  constexpr MemoryType defaultMemoryType=
+	      MemoryType::
+#ifdef USE_CUDA
+	      GPU
+#else
+	      CPU
+#endif
+	      ;
+  
   /// Type used for size
   using Size=int64_t;
   
@@ -38,15 +48,10 @@ namespace nissa
 #define DEFAULT_ALIGNMENT 16
   
   /// Memory manager, base type
-  template <typename C>
-  class BaseMemoryManager
+  struct MemoryManager
   {
-  protected:
-    
     /// Number of allocation performed
     Size nAlloc{0};
-    
-  private:
     
     /// List of dynamical allocated memory
     std::map<void*,Size> used;
@@ -170,8 +175,6 @@ namespace nissa
       pushToCache(ptr,size);
     }
     
-  public:
-    
     /// Enable cache usage
     void enableCache()
     {
@@ -185,6 +188,9 @@ namespace nissa
       
       clearCache();
     }
+    
+    virtual void* allocateRaw(const Size& size,            ///< Amount of memory to allocate
+			      const Size& alignment) =0;   ///< Required alignment
     
     /// Allocate or get from cache after computing the proper size
     template <class T>
@@ -202,7 +208,7 @@ namespace nissa
       
       // If not found in the cache, allocate new memory
       if(ptr==nullptr)
-	ptr=this->crtp().allocateRaw(size,alignment);
+	ptr=allocateRaw(size,alignment);
       else
 	nCachedReused++;
       
@@ -211,17 +217,22 @@ namespace nissa
       return static_cast<T*>(ptr);
     }
     
+    /// Properly free
+    virtual void deAllocateRaw(void* ptr) =0;
+    
     /// Declare unused the memory and possibly free it
     template <typename T>
     void release(T* &ptr) ///< Pointer getting freed
     {
       if(useCache)
-	moveToCache(static_cast<void*>(ptr));
+	moveToCache(ptr);
       else
 	{
 	  popFromUsed(ptr);
-	  DE_CRTPFY(C,this).deAllocateRaw(ptr);
+	  deAllocateRaw(ptr);
 	}
+      
+      ptr=nullptr;
     }
     
     /// Release all used memory
@@ -241,7 +252,7 @@ namespace nissa
 	  // Increment iterator before releasing
 	  el++;
 	  
-	  DE_CRTPFY(C,this).release(ptr);
+	  release(ptr);
 	}
     }
     
@@ -272,7 +283,7 @@ namespace nissa
 	      void* ptr=popFromCache(size,DEFAULT_ALIGNMENT);
 	      
 	      verbosity_lv3_master_printf("ptr: %p\n",ptr);
-	      DE_CRTPFY(C,this).deAllocateRaw(ptr);
+	      deAllocateRaw(ptr);
 	    }
 	}
     }
@@ -285,7 +296,7 @@ namespace nissa
     }
     
     /// Create the memory manager
-    BaseMemoryManager() :
+    MemoryManager() :
       usedSize(0),
       cachedSize(0)
     {
@@ -293,7 +304,7 @@ namespace nissa
     }
     
     /// Destruct the memory manager
-    ~BaseMemoryManager()
+    virtual ~MemoryManager()
     {
       master_printf("Stopping the memory manager\n");
       
@@ -306,13 +317,14 @@ namespace nissa
   };
   
   /// Manager of CPU memory
-  struct CPUMemoryManager : public BaseMemoryManager<CPUMemoryManager>
+  struct CPUMemoryManager :
+    MemoryManager
   {
     /// Get memory
     ///
     /// Call the system routine which allocate memory
-    void* allocateRaw(const Size size,        ///< Amount of memory to allocate
-		      const Size alignment)   ///< Required alignment
+    void* allocateRaw(const Size& size,        ///< Amount of memory to allocate
+		      const Size& alignment)   ///< Required alignment
     {
       /// Result
       void* ptr=nullptr;
@@ -329,26 +341,26 @@ namespace nissa
     }
     
     /// Properly free
-    void deAllocateRaw(void* &ptr)
+    void deAllocateRaw(void* ptr)
     {
       verbosity_lv3_master_printf("Freeing from CPU memory %p\n",ptr);
       free(ptr);
-      ptr=nullptr;
     }
   };
   
-  EXTERN_MEMORY_MANAGER CPUMemoryManager *cpu_memory_manager;
+  EXTERN_MEMORY_MANAGER MemoryManager* cpuMemoryManager;
   
 #ifdef USE_CUDA
   
   /// Manager of GPU memory
-  struct GPUMemoryManager : public BaseMemoryManager<GPUMemoryManager>
+  struct GPUMemoryManager :
+    MemoryManager
   {
     /// Get memory on GPU
     ///
     /// Call the system routine which allocate memory
-    void* allocateRaw(const Size size,        ///< Amount of memory to allocate
-		      const Size alignment)   ///< Required alignment
+    void* allocateRaw(const Size& size,        ///< Amount of memory to allocate
+		      const Size& alignment)   ///< Required alignment
     {
       /// Result
       void* ptr=nullptr;
@@ -363,17 +375,32 @@ namespace nissa
     }
     
     /// Properly free
-    void deAllocateRaw(void* &ptr)
+    void deAllocateRaw(void* ptr)
     {
       master_printf("Freeing from GPU memory %p\n",ptr);
       decript_cuda_error(cudaFree(ptr),"Freeing from GPU");
-      ptr=nullptr;
     }
   };
   
-  EXTERN_MEMORY_MANAGER GPUMemoryManager *gpu_memory_manager;
-
+  EXTERN_MEMORY_MANAGER MemoryManager* gpuMemoryManager;
+  
 #endif
+  
+  template <MemoryType MT>
+  inline MemoryManager* memoryManager()
+  {
+    switch (MT)
+      {
+      case MemoryType::CPU:
+	return cpuMemoryManager;
+	break;
+#ifdef USE_CUDA
+      case MemoryType::GPU:
+	return gpuMemoryManager;
+	break;
+#endif
+    }
+  }
 }
 
 #undef EXTERN_MEMORY_MANAGER

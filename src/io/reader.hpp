@@ -18,14 +18,14 @@ namespace nissa
 				 ILDG_File file,
 				 ILDG_header header)
   {
-    LxField<T,CPU_LAYOUT> buf("buf");
+    LxField<T,FieldLayout::CPU> buf("buf");
     read_real_vector_internal(buf,file,header);
     
     out=buf;
   }
   
   template <typename T>
-  void read_real_vector_internal(LxField<T,CPU_LAYOUT>& out,
+  void read_real_vector_internal(LxField<T,FieldLayout::CPU>& out,
 				 ILDG_File file,
 				 ILDG_header header)
   {

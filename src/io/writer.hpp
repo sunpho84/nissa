@@ -20,7 +20,7 @@ namespace nissa
 				  const LxField<T,FL>& in,
 				  const char* headerMessage)
   {
-    LxField<T,CPU_LAYOUT> buf("buf");
+    LxField<T,FieldLayout::CPU> buf("buf");
     buf=in;
     
     write_real_vector_internal(file,buf,headerMessage);
@@ -28,7 +28,7 @@ namespace nissa
   
   template <typename T>
   void write_real_vector_internal(ILDG_File file,
-				  const LxField<T,CPU_LAYOUT>& in,
+				  const LxField<T,FieldLayout::CPU>& in,
 				  const char* headerMessage)
   {
     const int nrealsPerSite=LxField<T>::nInternalDegs;
@@ -76,7 +76,7 @@ namespace nissa
 			 const char *header_message,
 			 ILDG_message *mess=nullptr)
   {
-    LxField<T,CPU_LAYOUT> buf("buf");
+    LxField<T,FieldLayout::CPU> buf("buf");
     buf=in;
     
     write_real_vector(file,buf,nbits,header_message,mess);

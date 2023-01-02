@@ -7,7 +7,7 @@
 
 /// \file expr/dynamicTens.hpp
 
-#include <base/vectors.hpp>
+#include <base/memory_manager.hpp>
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
@@ -36,6 +36,7 @@ namespace nissa
     DetectableAsDynamicTens
   {
     using This=THIS;
+    
     using Base=BASE;
     
 #undef BASE
@@ -64,7 +65,6 @@ namespace nissa
 	crash("trying to assign to unsassignable tensor");
       
       std::swap(this->storage,oth.storage);
-      std::swap(this->allocated,oth.allocated);
       
       return *this;
     }
@@ -97,18 +97,25 @@ namespace nissa
     }
     
     /// Pointer to storage
-    Fund* storage;
+    Fund* storage{nullptr};
     
     /// Number of elements
     int64_t nElements;
     
-    /// Determine if allocated
-    bool allocated{false};
-    
     /// Returns whether can assign
-    bool canAssign()
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    bool canAssign() const
     {
-      return allocated;
+      if constexpr(IsRef)
+	return true;
+      else
+	return isAllocated();
+    }
+    
+    /// Check if the tensor is allocated
+    bool isAllocated() const
+    {
+      return storage!=nullptr;
     }
     
 #define PROVIDE_EVAL(CONST_ATTRIB)					\
@@ -129,24 +136,27 @@ namespace nissa
     static constexpr bool storeByRef=true;
     
     /// Allocate the storage
-    template <typename...T,
-	      ENABLE_THIS_TEMPLATE_IF(tupleHaveTypes<std::tuple<T...>,DynamicComps>)>
+    template <bool B=IsRef,
+	      typename...T,
+	      ENABLE_THIS_TEMPLATE_IF(tupleHaveTypes<std::tuple<T...>,DynamicComps> and not B)>
     void allocate(const std::tuple<T...>& _dynamicSizes)
     {
-      if(allocated)
+      static_assert(not IsRef,"Cannot allocate a reference");
+      
+      if(isAllocated())
 	crash("Already allocated");
       
       tupleFillWithSubset(dynamicSizes,_dynamicSizes);
       
       nElements=indexMaxValue<C...>(this->dynamicSizes);
       
-      storage=nissa_malloc("Storage",nElements,Fund);
-      
-      allocated=true;
+      storage=memoryManager<MT>()->template provide<Fund>(nElements);
     }
     
     /// Allocate the storage
-    template <typename...T>
+    template <bool B=IsRef,
+	      typename...T,
+	      ENABLE_THIS_TEMPLATE_IF(not B)>
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     void allocate(const CompFeat<T>&...td)
     {
@@ -156,7 +166,9 @@ namespace nissa
     }
     
     /// Initialize the tensor with the knowledge of the dynamic sizes as a list
-    template <typename...T>
+    template <bool B=IsRef,
+	      typename...T,
+	      ENABLE_THIS_TEMPLATE_IF(not B)>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     explicit DynamicTens(const CompFeat<T>&...td)
     {
@@ -166,6 +178,8 @@ namespace nissa
     }
     
     /// Initialize the tensor with the knowledge of the dynamic sizes
+    template <bool B=IsRef,
+	      ENABLE_THIS_TEMPLATE_IF(not B)>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     explicit DynamicTens(const DynamicComps& td)
     {
@@ -174,15 +188,13 @@ namespace nissa
 #endif
     }
     
-    /// Initialize the tensor without allocating
+    /// Default constructor
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     DynamicTens()
     {
       // if constexpr(DynamicCompsProvider<Comps>::nDynamicComps==0)
       // 	allocate();
       // else
-      allocated=false;
-      storage=nullptr;
     }
     
     /// Create from another node
@@ -207,18 +219,29 @@ namespace nissa
 #endif
 	}
       else
-	{
-	  this->storage=oth.storage;
-	}
+	this->storage=oth.storage;
     }
     
-    // /Move constructor
+    /// Copy constructor when reference
+    template <typename O,
+	      bool B=IsRef,
+	      ENABLE_THIS_TEMPLATE_IF(B and isDynamicTens<O>)>
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    DynamicTens(O&& oth) :
+      dynamicSizes(oth.getDynamicSizes()),
+      storage(oth.storage)
+    {
+    }
+    
+    /// Move constructor
     DynamicTens(DynamicTens&& oth) :
-      dynamicSizes(oth.dynamicSizes),storage(oth.storage),nElements(oth.nElements)
+      dynamicSizes(oth.dynamicSizes),
+      storage(oth.storage),
+      nElements(oth.nElements)
     {
       verbosity_lv3_master_printf("Using move constructor of DynamicTens");
       
-      oth.allocated=false;
+      oth.storage=nullptr;
     }
     
   /////////////////////////////////////////////////////////////////
@@ -229,7 +252,8 @@ namespace nissa
       DynamicTens<Comps,ATTRIB Fund,MT,true> res;			\
       									\
       res.storage=storage;						\
-									\
+      res.nElements=nElements;						\
+      									\
       return res;							\
     }
   
@@ -239,12 +263,14 @@ namespace nissa
     
 #undef PROVIDE_GET_REF
     
+    /// Gets a writeable reference
     constexpr INLINE_FUNCTION
     auto getWritable()
     {
-      return this->getRef();;
+      return this->getRef();
     }
     
+    /// Gets a read-only reference
     constexpr INLINE_FUNCTION
     auto getReadable() const
     {
@@ -257,12 +283,14 @@ namespace nissa
     CUDA_HOST_AND_DEVICE
     ~DynamicTens()
     {
+      if constexpr(not IsRef)
+	{
 #ifndef __CUDA_ARCH__
-      if(allocated)
-	nissa_free(storage);
-      allocated=false;
-      nElements=0;
+	  if(storage!=nullptr)
+	    memoryManager<MT>()->release(storage);
+	  nElements=0;
 #endif
+	}
     }
   };
   

@@ -58,6 +58,7 @@
 #include "expr/compRwCl.hpp"
 #include "expr/conj.hpp"
 #include "expr/dynamicTens.hpp"
+#include "expr/field.hpp"
 #include "expr/indexComputer.hpp"
 #include "expr/prod.hpp"
 #include "expr/stackTens.hpp"

@@ -5,7 +5,6 @@ LDADD=$(top_builddir)/lib/libnissa.a
 AUTOMAKE_OPTIONS=subdir-objects
 
 bin_PROGRAMS+= \
-	$(top_builddir)/tools/benchmarks/stag \
 	$(top_builddir)/tools/conf_measure/topo \
 	$(top_builddir)/tools/conf_transform/convert/eo_to_ildg \
 	$(top_builddir)/tools/conf_transform/convert/gpu_to_ildg \
@@ -37,7 +36,7 @@ bin_PROGRAMS+= \
 	$(top_builddir)/tools/spinors/sources_compare \
 	$(top_builddir)/tools/unitarity_check/unitarity_check
 
-__top_builddir__tools_benchmarks_stag_SOURCES=benchmarks/stag.cpp
+#__top_builddir__tools_benchmarks_stag_SOURCES=benchmarks/stag.cpp
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES=find_best_vir_partitioning/find.cpp
 __top_builddir__tools_remez_algorithm_remez_create_SOURCES=remez_algorithm/remez_create.cpp
 __top_builddir__tools_conf_measure_topo_SOURCES=conf_measure/topo.cpp
@@ -76,3 +75,5 @@ if ASSEMBLY_REPORT
 BUILT_SOURCES+=$(assembly_reports)
 CLEANFILES+=$(assembly_reports)
 endif
+
+#	$(top_builddir)/tools/benchmarks/stag

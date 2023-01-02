@@ -14,6 +14,8 @@ using namespace nissa;
 //   return res;
 // }
 
+DECLARE_TRANSPOSABLE_COMP(Spin,int,4,spin);
+
 void in_main(int narg,char **arg)
 {
   const int T=16,L=16;
@@ -21,6 +23,23 @@ void in_main(int narg,char **arg)
   init_grid(T,L);
   
   LxField<quad_su3> conf("conf");
+  
+  {
+    DynamicTens<OfComps<SpinRow>,double, MemoryType::CPU> d(std::make_tuple());
+    auto e=d.getReadable();
+    // e(spinRow(1))=1.0;
+  }
+  
+  {
+    verbosity_lv=3;
+  Field2<OfComps<SpinRow>,double> df;
+  df.getReadable();
+  }
+  verbosity_lv=1;
+
+  crash("");
+  
+  /////////////////////////////////////////////////////////////////
   
   master_printf("allocated in %p\n",conf._data);
   {

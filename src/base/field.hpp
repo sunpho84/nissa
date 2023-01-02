@@ -77,7 +77,7 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   /// Memory layout
-  enum FieldLayout{CPU_LAYOUT,GPU_LAYOUT};
+  enum class FieldLayout{CPU,GPU};
   
   /// Coverage of the field
   enum SitesCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE,EVEN_OR_ODD_SITES};
@@ -86,7 +86,14 @@ namespace nissa
   enum HaloEdgesPresence{WITHOUT_HALO,WITH_HALO,WITH_HALO_EDGES};
   
   /// Predefinite memory layout
-  constexpr FieldLayout DefaultFieldLayout=GPU_LAYOUT;
+  constexpr FieldLayout defaultFieldLayout=
+	      FieldLayout::
+#ifdef USE_CUDA
+	      GPU
+#else
+	      CPU
+#endif
+	      ;
   
   /////////////////////////////////////////////////////////////////
   
@@ -316,7 +323,7 @@ namespace nissa
   /// Field
   template <typename T,
 	    SitesCoverage SC,
-	    FieldLayout FL=DefaultFieldLayout>
+	    FieldLayout FL=defaultFieldLayout>
   struct Field :
     FieldFeat<Field<T,SC,FL>>,
     FieldSizes<SC>
@@ -368,7 +375,7 @@ namespace nissa
 		     const int& internalDeg,
 		     const int& externalSize)
     {
-      if constexpr(FL==CPU_LAYOUT)
+      if constexpr(FL==FieldLayout::CPU)
 	return internalDeg+nInternalDegs*site;
       else
 	return site+externalSize*internalDeg;
@@ -656,7 +663,7 @@ namespace nissa
 	return								\
 	  _data[site];							\
       else								\
-	if constexpr(FL==CPU_LAYOUT)					\
+	if constexpr(FL==FieldLayout::CPU)				\
 	  return ((CONST T*)_data)[site];				\
 	else								\
 	  return							\
@@ -1038,22 +1045,22 @@ namespace nissa
   
   /// Lexicographic field
   template <typename T,
-	    FieldLayout FL=DefaultFieldLayout>
+	    FieldLayout FL=defaultFieldLayout>
   using LxField=Field<T,FULL_SPACE,FL>;
   
   /// Field over even sites
   template <typename T,
-	    FieldLayout FL=DefaultFieldLayout>
+	    FieldLayout FL=defaultFieldLayout>
   using EvnField=Field<T,EVEN_SITES,FL>;
   
   /// Field over odd sites
   template <typename T,
-	    FieldLayout FL=DefaultFieldLayout>
+	    FieldLayout FL=defaultFieldLayout>
   using OddField=Field<T,ODD_SITES,FL>;
   
   /// Field over even or odd sites
   template <typename T,
-	    FieldLayout FL=DefaultFieldLayout>
+	    FieldLayout FL=defaultFieldLayout>
   using EvenOrOddField=Field<T,EVEN_OR_ODD_SITES,FL>;
   
   /////////////////////////////////////////////////////////////////
@@ -1082,7 +1089,7 @@ namespace nissa
   
   /// Structure to hold an even/old field
   template <typename T,
-	    FieldLayout FL=DefaultFieldLayout,
+	    FieldLayout FL=defaultFieldLayout,
 	    typename Fevn=Field<T,EVEN_SITES,FL>,
 	    typename Fodd=Field<T,ODD_SITES,FL>>
   struct EoField
