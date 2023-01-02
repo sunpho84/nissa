@@ -65,7 +65,7 @@ namespace nissa
 	    typename LX>
   void get_evn_or_odd_part_of_lx_vector(EoO&& outEo,
 					const LX& inLx,
-					const SitesCoverage& par)
+					const FieldCoverage& par)
   {
     START_TIMING(remap_time,nremap);
     

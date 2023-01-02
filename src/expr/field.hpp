@@ -30,7 +30,7 @@ namespace nissa
   /// Forward declaration of internal implementation
   template <typename TP,
 	    typename F,
-	    SitesCoverage SC,
+	    FieldCoverage FC,
 	    FieldLayout FL>
   struct FieldCompsProvider;
   
@@ -39,7 +39,7 @@ namespace nissa
   template <typename...C,						\
 	    typename F>							\
   struct FieldCompsProvider<CompsList<C...>,F,				\
-			    SitesCoverage::COVERAGE,			\
+			    FieldCoverage::COVERAGE,			\
 			    FieldLayout::LAYOUT>			\
   {									\
     using Comps=CompsList<TYPES>;					\
@@ -65,12 +65,12 @@ namespace nissa
   
   PROVIDE_DETECTABLE_AS(Field2);
   
-#define FIELD_COMPS_PROVIDER FieldCompsProvider<CompsList<C...>,_Fund,SC,FL>
+#define FIELD_COMPS_PROVIDER FieldCompsProvider<CompsList<C...>,_Fund,FC,FL>
   
 #define FIELD_COMPS typename FIELD_COMPS_PROVIDER::Comps
   
 #define THIS						\
-  Field2<CompsList<C...>,_Fund,SC,FL,MT,IsRef>
+  Field2<CompsList<C...>,_Fund,FC,FL,MT,IsRef>
   
 #define BASE					\
   Node<THIS>
@@ -78,7 +78,7 @@ namespace nissa
   /// Defines a field
   template <typename...C,
 	    typename _Fund,
-	    SitesCoverage SC,
+	    FieldCoverage FC,
 	    FieldLayout FL,
 	    MemoryType MT,
 	    bool IsRef>
@@ -118,7 +118,7 @@ namespace nissa
       return *this;
     }
     
-    static constexpr SitesCoverage sitesCoverage=SC;
+    static constexpr FieldCoverage fieldCoverage=FC;
     
     static constexpr FieldLayout fieldLayout=FL;
     
@@ -139,7 +139,7 @@ namespace nissa
     
     /// Fundamental tye
     using Fund=
-      typename FieldCompsProvider<CompsList<C...>,_Fund,SC,FL>::Fund;
+      typename FieldCompsProvider<CompsList<C...>,_Fund,FC,FL>::Fund;
     
     /// Internal storage type
     using Data=
@@ -153,14 +153,17 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static void assertHasDefinedCoverage()
     {
-      static_assert(sitesCoverage==FULL_SPACE or sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES,"Trying to probe some feature of a field with unknwon coverage. If you are accessing an EvnOrOddField subfield, do it without subscribing them, or cast to the specific subspace");
+      static_assert(fieldCoverage==FULL_SPACE or
+		    fieldCoverage==EVEN_SITES or
+		    fieldCoverage==ODD_SITES,
+		    "Trying to probe some feature of a field with unknwon coverage. If you are accessing an EvnOrOddField subfield, do it without subscribing them, or cast to the specific subspace");
     }
     
     /// Number of sites covered by the field
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static constexpr const Site& nSites()
     {
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return locVol;
       else
 	return locVolh;
@@ -170,7 +173,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static constexpr const Site& nHaloSites()
     {
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return bord_vol;
       else
 	return bord_volh;
@@ -180,7 +183,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static constexpr const Site& nEdgesSites()
     {
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return edge_vol;
       else
 	return edge_volh;
@@ -206,11 +209,12 @@ namespace nissa
     {
       assertHasDefinedCoverage();
       
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return surflxOfBordlx[iHalo];
       else
-	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
-	  return surfeo_of_bordeo[sitesCoverage][iHalo];
+	if constexpr(fieldCoverage==EVEN_SITES or
+		     fieldCoverage==ODD_SITES)
+	  return surfeo_of_bordeo[fieldCoverage][iHalo];
     }
     
     /// Surface site of a site in the e
@@ -219,11 +223,12 @@ namespace nissa
     {
       assertHasDefinedCoverage();
       
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return surflxOfEdgelx[iEdge];
       else
-	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
-	  return surfeo_of_edgeo[sitesCoverage][iEdge];
+	if constexpr(fieldCoverage==EVEN_SITES or
+		     fieldCoverage==ODD_SITES)
+	  return surfeo_of_edgeo[fieldCoverage][iEdge];
     }
     
     /////////////////////////////////////////////////////////////////
@@ -271,7 +276,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
 #define PROVIDE_GET_REF(ATTRIB)						\
-    Field2<CompsList<C...>,ATTRIB _Fund,SC,FL,MT,true> getRef() ATTRIB	\
+    Field2<CompsList<C...>,ATTRIB _Fund,FC,FL,MT,true> getRef() ATTRIB	\
     {									\
       return *this;							\
     }
@@ -358,7 +363,7 @@ namespace nissa
     
     /// Create a field
     Field2(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
-      externalSize(FieldSizes<sitesCoverage>::nSitesToAllocate(haloEdgesPresence)),
+      externalSize(FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence)),
       data(std::make_tuple(externalSize)),
       haloEdgesPresence(haloEdgesPresence),
       haloIsValid(false),
@@ -369,11 +374,13 @@ namespace nissa
       invalidateHalo();
     }
     
-    /// Create a refence to a field
-    template <typename O,
-	      bool B=IsRef,
-	      ENABLE_THIS_TEMPLATE_IF(B and isField2<O>)>
-    Field2(O&& oth) :
+    /// Used to dispatch the copy constructor
+    struct _CopyConstructInternalDispatcher;
+    
+    /// Copy constructor, internal implementation
+    template <typename O>
+    Field2(O&& oth,
+	   _CopyConstructInternalDispatcher*) :
       externalSize(oth.externalSize),
       data(oth.data),
       haloEdgesPresence(oth.haloEdgesPresence),
@@ -382,16 +389,21 @@ namespace nissa
     {
     }
     
-    // /// Copy constructor
-    // INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    // Field(const Field& oth) :
-    //   lattice(oth.lattice),
-    //   data(oth.data),
-    //   haloPresence(oth.haloPresence),
-    //   haloStatus(oth.haloStatus)
-    // {
-    // }
+    /// Copy construct, taking as input a non-reference when this is a reference
+    template <typename O,
+	      bool B=IsRef,
+	      ENABLE_THIS_TEMPLATE_IF(B and isField2<O>)>
+    Field2(O&& oth) :
+      Field2(std::forward<O>(oth),(_CopyConstructInternalDispatcher*)nullptr)
+    {
+    }
     
+    /// Copy constructor
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    Field2(const Field2& oth) :
+      Field2(oth,(_CopyConstructInternalDispatcher*)nullptr)
+    {
+    }
     
     /// Set edges as invalid
     void invalidateEdges()

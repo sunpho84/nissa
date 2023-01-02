@@ -40,13 +40,13 @@ namespace nissa
 			  const double& mu,
 			  const OddField<spincolor>& in)
   {
-    tmn2Deo_or_tmn2Doe_eos(out.castSitesCoverage<EVEN_SITES>(),conf,in);
+    tmn2Deo_or_tmn2Doe_eos(out.castFieldCoverage<EVEN_SITES>(),conf,in);
     inv_tmDee_or_oo_eos(temp,kappa,mu,out);
     tmn2Deo_or_tmn2Doe_eos(out,conf,temp);
     
     tmDee_or_oo_eos(temp,kappa,mu,in);
     
-    tmDkern_eoprec_eos_put_together_and_include_gamma5(out,temp.castSitesCoverage<ODD_SITES>());
+    tmDkern_eoprec_eos_put_together_and_include_gamma5(out,temp.castFieldCoverage<ODD_SITES>());
   }
   
   //square of Koo

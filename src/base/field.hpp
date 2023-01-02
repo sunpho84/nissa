@@ -80,7 +80,7 @@ namespace nissa
   enum class FieldLayout{CPU,GPU};
   
   /// Coverage of the field
-  enum SitesCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE,EVEN_OR_ODD_SITES};
+  enum FieldCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE,EVEN_OR_ODD_SITES};
   
   /// Has or not the halo and the edges
   enum HaloEdgesPresence{WITHOUT_HALO,WITH_HALO,WITH_HALO_EDGES};
@@ -98,21 +98,24 @@ namespace nissa
   /////////////////////////////////////////////////////////////////
   
   /// Number of sites contained in the field
-  template <SitesCoverage sitesCoverage>
+  template <FieldCoverage fieldCoverage>
   struct FieldSizes
   {
     /// Assert that the coverage is definite
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static void assertHasDefinedCoverage()
     {
-      static_assert(sitesCoverage==FULL_SPACE or sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES,"Trying to probe some feature of a field with unknwon coverage. If you are accessing an EvnOrOddField subfield, do it without subscribing them, or cast to the specific subspace");
+      static_assert(fieldCoverage==FULL_SPACE or
+		    fieldCoverage==EVEN_SITES or
+		    fieldCoverage==ODD_SITES,
+		    "Trying to probe some feature of a field with unknwon coverage. If you are accessing an EvnOrOddField subfield, do it without subscribing them, or cast to the specific subspace");
     }
     
     /// Number of sites covered by the field
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static constexpr int& nSites()
     {
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return locVol;
       else
 	return locVolh;
@@ -122,7 +125,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static constexpr int& nHaloSites()
     {
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return bord_vol;
       else
 	return bord_volh;
@@ -132,7 +135,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
     static constexpr int& nEdgesSites()
     {
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return edge_vol;
       else
 	return edge_volh;
@@ -158,11 +161,11 @@ namespace nissa
     {
       assertHasDefinedCoverage();
       
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return surflxOfBordlx[iHalo];
       else
-	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
-	  return surfeo_of_bordeo[sitesCoverage][iHalo];
+	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
+	  return surfeo_of_bordeo[fieldCoverage][iHalo];
     }
     
     /// Surface site of a site in the e
@@ -171,11 +174,11 @@ namespace nissa
     {
       assertHasDefinedCoverage();
       
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return surflxOfEdgelx[iEdge];
       else
-	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
-	  return surfeo_of_edgeo[sitesCoverage][iEdge];
+	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
+	  return surfeo_of_edgeo[fieldCoverage][iEdge];
     }
     
 #define PROVIDE_NEIGH(UD)						\
@@ -187,12 +190,12 @@ namespace nissa
     {									\
       assertHasDefinedCoverage();					\
       									\
-      if constexpr(sitesCoverage==FULL_SPACE)				\
+      if constexpr(fieldCoverage==FULL_SPACE)				\
 	return loclxNeigh ## UD[site][mu];				\
       else								\
-	if constexpr(sitesCoverage==EVEN_SITES or			\
-		     sitesCoverage==ODD_SITES)				\
-	  return loceo_neigh ## UD[sitesCoverage][site][mu];		\
+	if constexpr(fieldCoverage==EVEN_SITES or			\
+		     fieldCoverage==ODD_SITES)				\
+	  return loceo_neigh ## UD[fieldCoverage][site][mu];		\
     }
     
     PROVIDE_NEIGH(dw);
@@ -210,11 +213,11 @@ namespace nissa
     {
       assertHasDefinedCoverage();
       
-      if constexpr(sitesCoverage==FULL_SPACE)
+      if constexpr(fieldCoverage==FULL_SPACE)
 	return glbCoordOfLoclx[site][mu];
       else
-	if constexpr(sitesCoverage==EVEN_SITES or sitesCoverage==ODD_SITES)
-	  return glbCoordOfLoclx[loclx_of_loceo[sitesCoverage][site]][mu];
+	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
+	  return glbCoordOfLoclx[loclx_of_loceo[fieldCoverage][site]][mu];
     }
   };
   
@@ -322,15 +325,15 @@ namespace nissa
   
   /// Field
   template <typename T,
-	    SitesCoverage SC,
+	    FieldCoverage FC,
 	    FieldLayout FL=defaultFieldLayout>
   struct Field :
-    FieldFeat<Field<T,SC,FL>>,
-    FieldSizes<SC>
+    FieldFeat<Field<T,FC,FL>>,
+    FieldSizes<FC>
   {
     /// Coefficient which divides the space time, if the field is covering only half the space
     static constexpr const int divCoeff=
-      (SC==FULL_SPACE)?1:2;
+      (FC==FULL_SPACE)?1:2;
     
     mutable int nRef;
     
@@ -345,7 +348,7 @@ namespace nissa
     using Comps=T;
     
     /// Coverage of sites
-    static constexpr SitesCoverage sitesCoverage=SC;
+    static constexpr FieldCoverage fieldCoverage=FC;
     
     /// Memory layout of the field
     static constexpr FieldLayout fieldLayout=FL;
@@ -472,7 +475,7 @@ namespace nissa
     /// Squared norm
     double norm2() const
     {
-      Field<Fund,SC> buf("buf");
+      Field<Fund,FC> buf("buf");
       
       PAR(0,this->nSites(),
 	  CAPTURE(t=this->getReadable(),
@@ -528,7 +531,7 @@ namespace nissa
     void scalarProdWith(complex& out,
 			const Field& oth) const
     {
-      Field<complex,SC> buf("buf");
+      Field<complex,FC> buf("buf");
       
       using NT=Fund[nInternalDegs][2];
       const auto& l=castComponents<NT>();
@@ -554,7 +557,7 @@ namespace nissa
     /// Re(*this,out)
     double realPartOfScalarProdWith(const Field& oth) const
     {
-      Field<double,SC> buf("buf");
+      Field<double,FC> buf("buf");
       
       PAR(0,this->nSites(),
 	  CAPTURE(TO_WRITE(buf),
@@ -575,27 +578,27 @@ namespace nissa
     }
     
 #define PROVIDE_CASTS(CONST)						\
-    /* Cast to a different sitesCoverage */				\
-    template <SitesCoverage NSC,					\
+    /* Cast to a different fieldCoverage */				\
+    template <FieldCoverage NFC,					\
 	      bool Force=false>						\
-    CONST Field<T,NSC,FL>& castSitesCoverage() CONST			\
+    CONST Field<T,NFC,FL>& castFieldCoverage() CONST			\
     {									\
-      if constexpr(not (Force or SC==EVEN_OR_ODD_SITES))		\
-	static_assert(NSC==EVEN_SITES or NSC==ODD_SITES,		\
-		      "incompatible sitesCoverage! Force the change if needed"); \
+      if constexpr(not (Force or FC== EVEN_OR_ODD_SITES))	\
+	static_assert(NFC==EVEN_SITES or NFC==ODD_SITES, \
+		      "incompatible fieldCoverage! Force the change if needed"); \
 									\
-      return *(CONST Field<T,NSC,FL>*)this;				\
+      return *(CONST Field<T,NFC,FL>*)this;				\
     }									\
 									\
     /* Cast to a different comps */					\
     template <typename NT,						\
 	      bool Force=false>						\
-    CONST Field<NT,SC,FL>& castComponents() CONST			\
+    CONST Field<NT,FC,FL>& castComponents() CONST			\
     {									\
       static_assert(Force or sizeof(T)==sizeof(NT),			\
 		    "incompatible components! Force the change if needed"); \
       									\
-      return *(CONST Field<NT,SC,FL>*)this;				\
+      return *(CONST Field<NT,FC,FL>*)this;				\
     }
     
     PROVIDE_CASTS(const);
@@ -610,7 +613,7 @@ namespace nissa
       nRef(0),
       name(name),
       haloEdgesPresence(haloEdgesPresence),
-      externalSize(FieldSizes<sitesCoverage>::nSitesToAllocate(haloEdgesPresence)),
+      externalSize(FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence)),
       haloIsValid(false),
       edgesAreValid(false)
     {
@@ -1014,7 +1017,7 @@ namespace nissa
     /// Assigns from a different layout
     template <FieldLayout OFl>
     INLINE_FUNCTION
-    Field& operator=(const Field<T,SC,OFl>& oth)
+    Field& operator=(const Field<T,FC,OFl>& oth)
     {
       assign(oth);
       
@@ -1095,7 +1098,7 @@ namespace nissa
   struct EoField
   {
     /// Type representing a pointer to type T
-    template <SitesCoverage EO>
+    template <FieldCoverage EO>
     using F=Field<T,EO,FL>;
     
     Fevn evenPart;
@@ -1130,7 +1133,7 @@ namespace nissa
     CONST auto& operator[](const int eo) CONST				\
     {									\
       using EOOF=							\
-	CONST Field<T,EVEN_OR_ODD_SITES,FL>;				\
+	CONST Field<T,EVEN_OR_ODD_SITES,FL>;		\
       									\
       EOOF* t[2]={(EOOF*)&evenPart,(EOOF*)&oddPart};			\
       									\

@@ -33,6 +33,7 @@ void in_main(int narg,char **arg)
   {
     verbosity_lv=3;
     Field2<OfComps<SpinRow>,double> df;
+    Field2<OfComps<SpinRow>,double> cdf=df;
     auto rdf=df.getWritable();
     
     rdf(spinRow(0),locLxSite(0))=1.0;
