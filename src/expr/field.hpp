@@ -97,7 +97,7 @@ namespace nissa
     /// Importing assignment operator from BaseTens
     using Base::operator=;
     
-    /// Copy assign
+    /// Aassign from another expression
     template <typename O>
     INLINE_FUNCTION
     void assign(O&& oth)
@@ -107,7 +107,14 @@ namespace nissa
 		  TO_READ(oth)),
 	  site,
 	  {
-	    self(site)=oth(site);
+	    using RhsComps=typename std::decay_t<O>::Comps;
+	    
+	    // we need to take care that the rhs might not have the site (such in the case of a scalar)
+	    
+	    if constexpr(tupleHasType<RhsComps,Site>)
+	      self(site)=oth(site);
+	    else
+	      self(site)=oth;
 	  });
     }
     

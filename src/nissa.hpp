@@ -62,6 +62,7 @@
 #include "expr/field.hpp"
 #include "expr/indexComputer.hpp"
 #include "expr/prod.hpp"
+#include "expr/scalar.hpp"
 #include "expr/stackTens.hpp"
 
 #include "free_theory/cg_eoprec_twisted_free_operator.hpp"

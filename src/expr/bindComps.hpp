@@ -12,6 +12,7 @@
 #include <expr/exprRefOrVal.hpp>
 // #include <expr/assign/executionSpace.hpp>
 #include <expr/nodeDeclaration.hpp>
+#include <expr/scalar.hpp>
 #include <expr/subNodes.hpp>
 #include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/templateEnabler.hpp>

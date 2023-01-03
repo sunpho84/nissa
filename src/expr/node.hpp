@@ -134,8 +134,8 @@ namespace nissa
 	      ENABLE_THIS_TEMPLATE_IF(std::is_arithmetic_v<Oth>)>
     constexpr INLINE_FUNCTION
     T& operator=(const Oth& value)
-    {
-      return (*this)=scalar(value);
+    { //Use the derived assignement
+      return (*(*this))=scalar(value);
     }
     
     /// Define the assignment operator with the same expression type
