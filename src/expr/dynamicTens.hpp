@@ -229,7 +229,8 @@ namespace nissa
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     DynamicTens(O&& oth) :
       dynamicSizes(oth.getDynamicSizes()),
-      storage(oth.storage)
+      storage(oth.storage),
+      nElements(oth.nElements)
     {
     }
     

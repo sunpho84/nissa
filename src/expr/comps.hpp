@@ -113,7 +113,7 @@ namespace nissa
 		    const CompFeat<ProcessedComps>&...pc)
     {
       auto iter=
-	[f,&dynamicComps,pc...](const Head& val)
+	[f,&dynamicComps,&pc...](const Head& val)
       {
 	(void)dynamicComps; // avoid warning
 	

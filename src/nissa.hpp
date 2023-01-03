@@ -57,6 +57,7 @@
 #include "expr/comps.hpp"
 #include "expr/compRwCl.hpp"
 #include "expr/conj.hpp"
+#include "expr/dagger.hpp"
 #include "expr/dynamicTens.hpp"
 #include "expr/eoField.hpp"
 #include "expr/field.hpp"
@@ -64,6 +65,7 @@
 #include "expr/prod.hpp"
 #include "expr/scalar.hpp"
 #include "expr/stackTens.hpp"
+#include "expr/transp.hpp"
 
 #include "free_theory/cg_eoprec_twisted_free_operator.hpp"
 #include "free_theory/free_theory_types.hpp"

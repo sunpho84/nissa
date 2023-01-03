@@ -41,15 +41,15 @@ void in_main(int narg,char **arg)
   
   {
     verbosity_lv=3;
-    Field2<OfComps<SpinRow>,double> df;
-    Field2<OfComps<>,double> ds;
+    Field2<OfComps<SpinRow,ComplId>,double> df;
+    Field2<OfComps<ComplId>,double> ds;
     // EoField2<OfComps<SpinRow>,double> df2;
     //auto rdf=df.getWritable();
     // auto rdf2=df2.getWritable();
     df=1;
-    master_printf("written 1? %lg\n",df(locLxSite(0),spinRow(0)));
-    ds=df(spinRow(0));
-    master_printf("copied 1? %lg\n",ds(locLxSite(0)));
+    master_printf("written 1? %lg\n",df(locLxSite(0),spinRow(1),reIm(0)));
+    ds=dag(df(spinRow(0)));
+    master_printf("copied 1? %lg\n",ds(locLxSite(0),reIm(0)));
     // rdf(spinRow(0),locLxSite(0))=1.0;
     // rdf2(parity(0),spinRow(0),locEoSite(0))=1.0;
   }
