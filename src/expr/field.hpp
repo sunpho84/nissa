@@ -18,6 +18,7 @@
 namespace nissa
 {
   DECLARE_UNTRANSPOSABLE_COMP(Parity,int,2,parity);
+  DECLARE_UNTRANSPOSABLE_COMP(Dir,int,4,dir);
   
   DECLARE_UNTRANSPOSABLE_COMP(LocLxSite,int,0,locLxSite);
   DECLARE_UNTRANSPOSABLE_COMP(LocEoSite,int,0,locEoSite);
@@ -81,7 +82,6 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     DynamicCompsProvider<FIELD_COMPS>,
-    GetReadWritable<THIS>,
     DetectableAsField2,
     BASE
   {
@@ -98,11 +98,34 @@ namespace nissa
     using Base::operator=;
     
     /// Copy assign
+    template <typename O>
+    INLINE_FUNCTION
+    void assign(O&& oth)
+    {
+      PAR(0,this->externalSize,
+	  CAPTURE(self=this->getWritable(),
+		  TO_READ(oth)),
+	  site,
+	  {
+	    self(site)=oth(site);
+	  });
+    }
+    
+    /// Copy assign
     INLINE_FUNCTION
     Field2& operator=(const Field2& oth)
     {
-#warning crash("critical");
-      // Base::operator=(oth);
+      assign(oth);
+      
+      return *this;
+    }
+    
+    /// Assigns another node
+    template <typename O>
+    INLINE_FUNCTION
+    Field2& operator=(const Node<O>& oth)
+    {
+      assign(*oth);
       
       return *this;
     }
@@ -120,6 +143,10 @@ namespace nissa
     
     static constexpr FieldLayout fieldLayout=FL;
     
+    /// Internal components
+    using InnerComps=
+      CompsList<C...>;
+    
     /// Components
     using Comps=
       FIELD_COMPS;
@@ -135,7 +162,7 @@ namespace nissa
     using Fund=typename FIELD_COMPS_PROVIDER::Fund;
     
 #undef FIELD_COMPS
-
+    
 #undef FIELD_COMPS_PROVIDER
     
     /// Internal storage type
@@ -200,32 +227,70 @@ namespace nissa
       return res;
     }
     
+    
     /// Surface site of a site in the halo
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static auto surfSiteOfHaloSite(const Site& iHalo)
+    static Site surfSiteOfHaloSite(const Site& iHalo)
     {
       assertHasDefinedCoverage();
       
       if constexpr(fieldCoverage==FULL_SPACE)
 	return surflxOfBordlx[iHalo];
       else
-	if constexpr(fieldCoverage==EVEN_SITES or
-		     fieldCoverage==ODD_SITES)
+	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
 	  return surfeo_of_bordeo[fieldCoverage][iHalo];
     }
     
     /// Surface site of a site in the e
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static auto surfSiteOfEdgeSite(const Site& iEdge)
+    static Site surfSiteOfEdgeSite(const Site& iEdge)
     {
       assertHasDefinedCoverage();
       
       if constexpr(fieldCoverage==FULL_SPACE)
 	return surflxOfEdgelx[iEdge];
       else
-	if constexpr(fieldCoverage==EVEN_SITES or
-		     fieldCoverage==ODD_SITES)
+	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
 	  return surfeo_of_edgeo[fieldCoverage][iEdge];
+    }
+    
+#define PROVIDE_NEIGH(UD)						\
+									\
+    /* Neighbor in the UD orientation */				\
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION				\
+    static Site locNeigh ## UD(const Site& site,				\
+			       const Dir& mu)				\
+    {									\
+      assertHasDefinedCoverage();					\
+      									\
+      if constexpr(fieldCoverage==FULL_SPACE)				\
+	return loclxNeigh ## UD[site][mu];				\
+      else								\
+	if constexpr(fieldCoverage==EVEN_SITES or			\
+		     fieldCoverage==ODD_SITES)				\
+	  return loceo_neigh ## UD[fieldCoverage][site][mu];		\
+    }
+    
+    PROVIDE_NEIGH(dw);
+    
+    PROVIDE_NEIGH(up);
+    
+#undef PROVIDE_NEIGH
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Global coordinates
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    static auto glbCoord(const Site& site,
+			 const Dir& mu)
+    {
+      assertHasDefinedCoverage();
+      
+      if constexpr(fieldCoverage==FULL_SPACE)
+	return glbCoordOfLoclx[site][mu];
+      else
+	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
+	  return glbCoordOfLoclx[loclx_of_loceo[fieldCoverage][site]][mu];
     }
     
     /////////////////////////////////////////////////////////////////
@@ -362,6 +427,7 @@ namespace nissa
     
     /// Copy constructor, internal implementation
     template <typename O>
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     Field2(O&& oth,
 	   _CopyConstructInternalDispatcher*) :
       externalSize(oth.externalSize),
@@ -376,6 +442,7 @@ namespace nissa
     template <typename O,
 	      bool B=IsRef,
 	      ENABLE_THIS_TEMPLATE_IF(B and isField2<O>)>
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     Field2(O&& oth) :
       Field2(std::forward<O>(oth),(_CopyConstructInternalDispatcher*)nullptr)
     {

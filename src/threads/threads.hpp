@@ -27,10 +27,10 @@ namespace nissa
 	    typename F>
   INLINE_FUNCTION
   void openmpParallelFor(const int line,
-			   const char* file,
-			   const IMin min,
-			   const IMax max,
-			   F&& f)
+			 const char* file,
+			 const IMin min,
+			 const IMax max,
+			 F&& f)
   {
     double initTime=0;
     extern int rank,verbosity_lv;
@@ -38,14 +38,14 @@ namespace nissa
 		      and rank==0);
     if(print)
       {
-	printf("at line %d of file %s launching openmp loop [%ld,%ld)\n",
-	   line,file,(int64_t)min,(int64_t)max);
+	printf("at line %d of file %s launching openmp loop [%d,%d)\n",
+	   line,file,(int)min,(int)max);
 	initTime=take_time();
       }
     
 #pragma omp parallel for
-    for(auto i=min;i<max;i++)
-      f(i);
+    for(int i=min;i<(int)max;i++)
+      f(IMax(i));
     
     if(print)
       printf(" finished in %lg s\n",take_time()-initTime);
@@ -74,7 +74,7 @@ namespace nissa
 			 const IMax max,
 			 F f) // Needs to take by value
   {
-    const auto i=min+blockIdx.x*blockDim.x+threadIdx.x;
+    const IMax i=(int)(min+blockIdx.x*blockDim.x+threadIdx.x);
     if(i<max)
       f(i);
   }
@@ -88,7 +88,7 @@ namespace nissa
 			 const IMax max,
 		       F f) // Needs to take by value
   {
-    const auto length=(max-min);
+    const auto length=(int)max-(int)min;
     const dim3 blockDimension(128); // to be improved
     const dim3 gridDimension((length+blockDimension.x-1)/blockDimension.x);
     
@@ -98,8 +98,8 @@ namespace nissa
 		      and rank==0);
     if(print)
       {
-	printf("at line %d of file %s launching kernel on loop [%ld,%ld) using blocks of size %d and grid of size %d\n",
-	   line,file,(int64_t)min,(int64_t)max,blockDimension.x,gridDimension.x);
+	printf("at line %d of file %s launching kernel on loop [%d,%d) using blocks of size %d and grid of size %d\n",
+	   line,file,(int)min,(int)max,blockDimension.x,gridDimension.x);
 	initTime=take_time();
       }
     
@@ -123,10 +123,10 @@ namespace nissa
 #endif
 
 #define HOST_PARALLEL_LOOP(MIN,MAX,CAPTURES,INDEX,A...) \
-  THREADS_PARALLEL_LOOP(MIN,MAX,[CAPTURES] (const int& INDEX) mutable A)
+  THREADS_PARALLEL_LOOP(MIN,MAX,[CAPTURES] (const auto& INDEX) mutable A)
 
 #define DEVICE_PARALLEL_LOOP(MIN,MAX,CAPTURES,INDEX,A...) \
-  CUDA_PARALLEL_LOOP(MIN,MAX,[CAPTURES] CUDA_DEVICE (const int& INDEX) mutable A)
+  CUDA_PARALLEL_LOOP(MIN,MAX,[CAPTURES] CUDA_DEVICE (const auto& INDEX) mutable A)
 
 #if THREADS_TYPE == CUDA_THREADS
 # define DEFAULT_PARALLEL_LOOP DEVICE_PARALLEL_LOOP

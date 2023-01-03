@@ -56,7 +56,6 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     DynamicCompsProvider<FIELD_COMPS>,
-    GetReadWritable<THIS>,
     DetectableAsEoField2,
     BASE
   {
@@ -105,9 +104,13 @@ namespace nissa
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     auto getDynamicSizes() const
     {
-      return std::make_tuple(locEoSite(locVolh));
+      return std::apply([](const auto&...c)
+      {
+	return std::make_tuple(compCast<LocEoSite,LocEvnSite>(c)...);
+      },evenPart.data.getDynamicSizes());
     }
     
+    /// Provide evaluator
 #define PROVIDE_EVAL(ATTRIB)						\
     template <typename...U>						\
     CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION			\
@@ -117,12 +120,12 @@ namespace nissa
       									\
       const Parity parity=std::get<Parity>(c);				\
       									\
-      const Site site=std::get<Site>(c); \
+      const Site site=std::get<Site>(c);				\
       									\
       if(parity==0)							\
-	return evenPart(locEvnSite(~site),std::get<C...>(c)); \
+	return evenPart(locEvnSite(~site),std::get<C...>(c));		\
       else								\
-	return oddPart(locOddSite(~site),std::get<C...>(c)); \
+	return oddPart(locOddSite(~site),std::get<C...>(c));		\
     }
     
     PROVIDE_EVAL(const);

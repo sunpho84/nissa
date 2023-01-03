@@ -42,12 +42,13 @@ void in_main(int narg,char **arg)
   {
     verbosity_lv=3;
     Field2<OfComps<SpinRow>,double> df;
-    EoField2<OfComps<SpinRow>,double> df2;
-    auto rdf=df.getWritable();
-    auto rdf2=df2.getWritable();
-    
-    rdf(spinRow(0),locLxSite(0))=1.0;
-    rdf2(parity(0),spinRow(0),locEoSite(0))=1.0;
+    Field2<OfComps<>,double> ds;
+    // EoField2<OfComps<SpinRow>,double> df2;
+    //auto rdf=df.getWritable();
+    // auto rdf2=df2.getWritable();
+    ds=df(spinRow(0));
+    // rdf(spinRow(0),locLxSite(0))=1.0;
+    // rdf2(parity(0),spinRow(0),locEoSite(0))=1.0;
   }
   verbosity_lv=1;
 

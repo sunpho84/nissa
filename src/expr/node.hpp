@@ -30,7 +30,8 @@
 namespace nissa
 {
   template <typename T>
-  struct Node
+  struct Node :
+    Crtp<Node<T>,T>
   {
     // /// Define the move-assignment operator
     // INLINE_FUNCTION
@@ -144,6 +145,19 @@ namespace nissa
       return this->assign(oth);
     }
     
+    /// Gets a writeable reference
+    constexpr INLINE_FUNCTION
+    auto getWritable()
+    {
+      return (*(*this)).getRef();
+    }
+    
+    /// Gets a read-only reference
+    constexpr INLINE_FUNCTION
+    auto getReadable() const
+    {
+      return (*(*this)).getRef();
+    }
     /// Returns the expression as a dynamic tensor
     auto fillDynamicTens() const;
     

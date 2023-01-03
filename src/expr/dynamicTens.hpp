@@ -12,7 +12,6 @@
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/dynamicTensDeclaration.hpp>
-#include <expr/getReadWritable.hpp>
 #include <expr/node.hpp>
 #include <expr/indexComputer.hpp>
 #include <metaprogramming/constnessChanger.hpp>
@@ -33,7 +32,6 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     BASE,
-    GetReadWritable<THIS>,
     DynamicCompsProvider<CompsList<C...>>,
     DetectableAsDynamicTens
   {
@@ -211,7 +209,7 @@ namespace nissa
     /// Copy constructor
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     DynamicTens(const DynamicTens& oth) :
-      DynamicTens(oth.getDynamicSizes())
+      dynamicSizes(oth.getDynamicSizes())
     {
       if constexpr(not IsRef)
 	{

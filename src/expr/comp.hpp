@@ -105,6 +105,25 @@ namespace nissa
   {
     return *t;
   }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  template <typename Tout,
+	    typename Tin,
+	    typename F>
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  const F& compCast(const CompFeat<F>& t)
+  {
+    return *t;
+  }
+  
+  template <typename Tout,
+	    typename Tin>
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  Tout compCast(const Tin& t)
+  {
+    return ~t;
+  }
 }
 
 #endif
