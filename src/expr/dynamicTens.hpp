@@ -12,6 +12,7 @@
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/dynamicTensDeclaration.hpp>
+#include <expr/getReadWritable.hpp>
 #include <expr/node.hpp>
 #include <expr/indexComputer.hpp>
 #include <metaprogramming/constnessChanger.hpp>
@@ -32,6 +33,7 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     BASE,
+    GetReadWritable<THIS>,
     DynamicCompsProvider<CompsList<C...>>,
     DetectableAsDynamicTens
   {
@@ -262,21 +264,6 @@ namespace nissa
   PROVIDE_GET_REF(/* non const */);
     
 #undef PROVIDE_GET_REF
-    
-    /// Gets a writeable reference
-    constexpr INLINE_FUNCTION
-    auto getWritable()
-    {
-      return this->getRef();
-    }
-    
-    /// Gets a read-only reference
-    constexpr INLINE_FUNCTION
-    auto getReadable() const
-    {
-      return this->getRef();
-    }
-    
     /////////////////////////////////////////////////////////////////
     
     /// Destructor

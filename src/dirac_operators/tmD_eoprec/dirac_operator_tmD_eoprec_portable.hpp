@@ -35,8 +35,8 @@ namespace nissa
 			      const EoField<quad_su3>& conf,
 			      const I& in)
   {
-    constexpr int xPar=O::sitesCoverage;
-    static_assert(xPar!=I::sitesCoverage,"calling with messed up parities");
+    constexpr int xPar=O::fieldCoverage;
+    static_assert(xPar!=I::fieldCoverage,"calling with messed up parities");
     
     conf.updateHalo();
     in.updateHalo();

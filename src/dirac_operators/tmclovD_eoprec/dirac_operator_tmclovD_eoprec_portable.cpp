@@ -54,16 +54,16 @@ namespace nissa
 			      const OddField<spincolor>& in)
   {
     /// Improve
-    EvnField<spincolor>& outAsEvnTmp=out.castSitesCoverage<EVEN_SITES>();
-    // EvnField<spincolor>& tmpEvn=extTmp.castSitesCoverage<EVEN_SITES>();
-    // OddField<spincolor>& tmpOdd=extTmp.castSitesCoverage<ODD_SITES>();
+    EvnField<spincolor>& outAsEvnTmp=out.castFieldCoverage<EVEN_SITES>();
+    // EvnField<spincolor>& tmpEvn=extTmp.castFieldCoverage<EVEN_SITES>();
+    // OddField<spincolor>& tmpOdd=extTmp.castFieldCoverage<ODD_SITES>();
     tmn2Deo_or_tmn2Doe_eos(outAsEvnTmp,conf,in);
     inv_tmclovDee_or_oo_eos(tmp,invCl_evn,dag,outAsEvnTmp);
     tmn2Deo_or_tmn2Doe_eos(out,conf,tmp);
     
-    tmclovDee_or_oo_eos(tmp.castSitesCoverage<ODD_SITES>(),kappa,Cl_odd,dag,mu,in);
+    tmclovDee_or_oo_eos(tmp.castFieldCoverage<ODD_SITES>(),kappa,Cl_odd,dag,mu,in);
     
-    tmDkern_eoprec_eos_put_together_and_include_gamma5(out,tmp.castSitesCoverage<ODD_SITES>());
+    tmDkern_eoprec_eos_put_together_and_include_gamma5(out,tmp.castFieldCoverage<ODD_SITES>());
   }
   
   //square of Koo

@@ -3,6 +3,9 @@ bin_PROGRAMS+= \
 	$(top_builddir)/bin/test_wip \
 	$(top_builddir)/bin/checks
 
+assembly_reports+=\
+        %D%/smallTest.s
+
 # $(top_builddir)/bin/checks_ib
 # $(top_builddir)/bin/EU3_source
 # 	$(top_builddir)/bin/disco3

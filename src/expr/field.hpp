@@ -24,10 +24,7 @@ namespace nissa
   DECLARE_UNTRANSPOSABLE_COMP(LocEvnSite,int,0,locEvnSite);
   DECLARE_UNTRANSPOSABLE_COMP(LocOddSite,int,0,locOddSite);
   
-  /// Has or not the halo and the edges
-  /// Actual components to be exposed for a field
-  ///
-  /// Forward declaration of internal implementation
+  /// Specifies the order of components
   template <typename TP,
 	    typename F,
 	    FieldCoverage FC,
@@ -53,7 +50,7 @@ namespace nissa
   PROVIDE_FIELD_COMPS_PROVIDER(EVEN_OR_ODD_SITES,CPU,LocEoSite,Parity,LocEoSite,C...);
   PROVIDE_FIELD_COMPS_PROVIDER(EVEN_SITES,CPU,LocEvnSite,LocEvnSite,C...);
   PROVIDE_FIELD_COMPS_PROVIDER(ODD_SITES,CPU,LocOddSite,LocOddSite,C...);
-
+  
   PROVIDE_FIELD_COMPS_PROVIDER(FULL_SPACE,GPU,LocLxSite,C...,LocLxSite);
   PROVIDE_FIELD_COMPS_PROVIDER(EVEN_OR_ODD_SITES,GPU,LocEoSite,C...,Parity,LocEoSite);
   PROVIDE_FIELD_COMPS_PROVIDER(EVEN_SITES,GPU,LocEvnSite,C...,LocEvnSite);
@@ -84,6 +81,7 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     DynamicCompsProvider<FIELD_COMPS>,
+    GetReadWritable<THIS>,
     DetectableAsField2,
     BASE
   {
@@ -133,13 +131,12 @@ namespace nissa
     /// Type used for the site
     using Site=typename FIELD_COMPS_PROVIDER::Site;
     
+    /// Fundamental tye
+    using Fund=typename FIELD_COMPS_PROVIDER::Fund;
+    
 #undef FIELD_COMPS
 
 #undef FIELD_COMPS_PROVIDER
-    
-    /// Fundamental tye
-    using Fund=
-      typename FieldCompsProvider<CompsList<C...>,_Fund,FC,FL>::Fund;
     
     /// Internal storage type
     using Data=
@@ -286,20 +283,6 @@ namespace nissa
     PROVIDE_GET_REF(/* non const */);
     
 #undef PROVIDE_GET_REF
-    
-    /// Gets a writeable reference
-    constexpr INLINE_FUNCTION
-    auto getWritable()
-    {
-      return this->getRef();
-    }
-    
-    /// Gets a read-only reference
-    constexpr INLINE_FUNCTION
-    auto getReadable() const
-    {
-      return this->getRef();
-    }
     
     /////////////////////////////////////////////////////////////////
     

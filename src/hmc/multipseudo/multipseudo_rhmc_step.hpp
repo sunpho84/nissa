@@ -183,8 +183,8 @@ namespace nissa
 	      const int& par=EVN,
 	      const int& dir=0)
     {
-      if(is_stag) generate_fully_undiluted_eo_source(stag->castSitesCoverage<EVEN_OR_ODD_SITES,true>(),rtype,twall,par,dir);
-      else generate_fully_undiluted_eo_source(Wils->castSitesCoverage<EVEN_OR_ODD_SITES,true>(),rtype,twall,par,dir);
+      if(is_stag) generate_fully_undiluted_eo_source(stag->castFieldCoverage<EVEN_OR_ODD_SITES,true>(),rtype,twall,par,dir);
+      else generate_fully_undiluted_eo_source(Wils->castFieldCoverage<EVEN_OR_ODD_SITES,true>(),rtype,twall,par,dir);
     }
     
     // //normalize and return the size

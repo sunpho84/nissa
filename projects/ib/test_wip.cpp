@@ -16,6 +16,15 @@ using namespace nissa;
 
 DECLARE_TRANSPOSABLE_COMP(Spin,int,4,spin);
 
+void testPar(EoField2<OfComps<SpinRow>,double>& f,
+	     const LocEoSite& locEo,
+	     const SpinRow& spinRow)
+{
+  ASM_BOOKMARK_BEGIN("testPar");
+  f(parity(0),locEo,spinRow)=9.9;
+  ASM_BOOKMARK_END("testPar");
+}
+
 void in_main(int narg,char **arg)
 {
   const int T=16,L=16;
@@ -33,10 +42,12 @@ void in_main(int narg,char **arg)
   {
     verbosity_lv=3;
     Field2<OfComps<SpinRow>,double> df;
-    Field2<OfComps<SpinRow>,double> cdf=df;
+    EoField2<OfComps<SpinRow>,double> df2;
     auto rdf=df.getWritable();
+    auto rdf2=df2.getWritable();
     
     rdf(spinRow(0),locLxSite(0))=1.0;
+    rdf2(parity(0),spinRow(0),locEoSite(0))=1.0;
   }
   verbosity_lv=1;
 
