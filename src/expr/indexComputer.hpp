@@ -81,7 +81,7 @@ namespace nissa
     auto operator%(const I lhs,
 		   const _StackIndTerm<T>& rhs)
     {
-      return rhs.value+T::sizeAtCompileTime*lhs;
+      return ~rhs.value+T::sizeAtCompileTime*lhs;
     }
   }
   

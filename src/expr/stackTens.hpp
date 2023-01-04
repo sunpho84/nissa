@@ -66,6 +66,12 @@ namespace nissa
       return *this;
     }
     
+    /// Since this is on stack, we make a copy
+    StackTens getRef() const
+    {
+      return *this;
+    }
+    
     static_assert((C::sizeIsKnownAtCompileTime and ... and true),"Trying to instantiate a stack tensor with dynamic comps");
     
     /// Components

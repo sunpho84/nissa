@@ -40,13 +40,16 @@ void in_main(int narg,char **arg)
   }
   
   {
+    constexpr StackTens<OfComps<ComplId>,double> I{0,1};
+    
     verbosity_lv=3;
     Field2<OfComps<SpinRow,ComplId>,double> df;
     Field2<OfComps<ComplId>,double> ds;
     // EoField2<OfComps<SpinRow>,double> df2;
     //auto rdf=df.getWritable();
     // auto rdf2=df2.getWritable();
-    df=1;
+    df=I;
+    master_printf("written 0? %lg\n",df(locLxSite(0),spinRow(0),reIm(0)));
     master_printf("written 1? %lg\n",df(locLxSite(0),spinRow(0),reIm(1)));
     ds=dag(df(spinRow(0)));
     master_printf("copied 1? %lg\n",ds(locLxSite(0),reIm(1)));

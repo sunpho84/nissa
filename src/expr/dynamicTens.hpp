@@ -121,7 +121,7 @@ namespace nissa
 #define PROVIDE_EVAL(CONST_ATTRIB)					\
     template <typename...U>						\
     CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION			\
-    CONST_ATTRIB auto& eval(const U&...cs) CONST_ATTRIB			\
+    CONST_ATTRIB Fund& eval(const U&...cs) CONST_ATTRIB			\
     {									\
       return storage[orderedIndex<C...>(dynamicSizes,cs...)];		\
     }
