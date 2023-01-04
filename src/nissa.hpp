@@ -57,6 +57,7 @@
 #include "expr/comps.hpp"
 #include "expr/compRwCl.hpp"
 #include "expr/conj.hpp"
+#include "expr/cWiseCombine.hpp"
 #include "expr/dagger.hpp"
 #include "expr/dynamicTens.hpp"
 #include "expr/eoField.hpp"

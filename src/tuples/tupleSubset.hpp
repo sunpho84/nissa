@@ -23,6 +23,9 @@ namespace nissa
   }
   
   /// Fill a tuple with the elements from another tuple
+  ///
+  /// Note that all elements of out must be in in, but the opposite is
+  /// not necessary
   template <typename...Tout,
 	    typename...Tin>
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
@@ -46,6 +49,21 @@ namespace nissa
     tupleFillWithSubset(out,in);
     
     return out;
+  }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Fill a tuple with the elements from another tuple
+  ///
+  /// Note that all elements of in must be in out, but the opposite is
+  /// not necessary
+  template <typename...Tout,
+	    typename...Tin>
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  void tupleSubsetFillWith(std::tuple<Tout...>& out,
+			   const std::tuple<Tin...>& in)
+  {
+    ((std::get<Tin>(out)=std::get<Tin>(in)),...);
   }
 }
 

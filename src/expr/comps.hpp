@@ -77,7 +77,7 @@ namespace nissa
   {
     /// This fills
     DcsOut dcsOut;
-    ((tupleFillWithSubset(dcsOut,dcsIns)),...);
+    ((tupleSubsetFillWith(dcsOut,dcsIns)),...);
     
     /// Check a specific component list
     auto checkDc=
@@ -88,7 +88,7 @@ namespace nissa
     };
     
     /// Check all componnent lists
-    auto b=
+    const auto b=
       (std::apply(checkDc,dcsIns) and...);
     
     if(not b)
