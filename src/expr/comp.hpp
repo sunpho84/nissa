@@ -24,10 +24,6 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  PROVIDE_FEATURE(TransposableComp);
-  
-  PROVIDE_DETECTABLE_AS(Transposable);
-  
 #define DECLARE_TRANSPOSABLE_COMP(NAME,TYPE,SIZE,FACTORY)	\
   template <RwCl _RC=RwCl::ROW>					\
   struct NAME ## RwOrCl :					\

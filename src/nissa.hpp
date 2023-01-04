@@ -65,6 +65,7 @@
 #include "expr/prod.hpp"
 #include "expr/scalar.hpp"
 #include "expr/stackTens.hpp"
+#include "expr/trace.hpp"
 #include "expr/transp.hpp"
 
 #include "free_theory/cg_eoprec_twisted_free_operator.hpp"
