@@ -4,7 +4,7 @@ bin_PROGRAMS+= \
 	$(top_builddir)/bin/checks
 
 assembly_reports+=\
-        %D%/smallTest.s
+        %D%/test_wip.s
 
 # $(top_builddir)/bin/checks_ib
 # $(top_builddir)/bin/EU3_source

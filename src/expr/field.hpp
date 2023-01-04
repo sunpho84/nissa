@@ -102,20 +102,33 @@ namespace nissa
     INLINE_FUNCTION
     void assign(O&& oth)
     {
-      PAR(0,this->externalSize,
-	  CAPTURE(self=this->getWritable(),
-		  TO_READ(oth)),
-	  site,
-	  {
-	    using RhsComps=typename std::decay_t<O>::Comps;
-	    
-	    // we need to take care that the rhs might not have the site (such in the case of a scalar)
-	    
-	    if constexpr(tupleHasType<RhsComps,Site>)
-	      self(site)=oth(site);
-	    else
-	      self(site)=oth;
-	  });
+#define LOOP(TYPE)				\
+      TYPE(0,this->externalSize,		\
+	   CAPTURE(self=this->getWritable(),	\
+		   TO_READ(oth)),		\
+	   site,				\
+	   {							\
+	     using RhsComps=typename std::decay_t<O>::Comps;	\
+									\
+	     /*! we need to take care that the rhs might not have the site (such in the case of a scalar) */ \
+									\
+	     if constexpr(tupleHasType<RhsComps,Site>)			\
+	       self(site)=oth(site);					\
+	     else							\
+	       self(site)=oth;						\
+	   })
+      
+#ifdef USE_CUDA
+      if constexpr(MT==MemoryType::GPU)
+	LOOP(DEVICE_PARALLEL_LOOP);
+      else
+#endif
+	if constexpr(MT==MemoryType::CPU)
+	  LOOP(HOST_PARALLEL_LOOP);
+	else
+	  crash("unkwnown condition");
+      
+#undef LOOP
     }
     
     /// Copy assign

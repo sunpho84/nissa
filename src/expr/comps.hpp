@@ -123,7 +123,7 @@ namespace nissa
 	  f(*pc...,val);
       };
       
-      constexpr int s=Head::sizeIsKnownAtCompileTime;
+      constexpr auto s=Head::sizeAtCompileTime;
       
       if constexpr(s)
 	for(Head head=0;head<s;head++)

@@ -60,7 +60,7 @@ namespace nissa
     
     return index(index,0,DE_CRTPFY(const C,&comps)...);
   }
-
+  
   namespace impl
   {
     template <typename T>
