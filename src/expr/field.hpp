@@ -371,6 +371,22 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    using FlattenedInnerComp=MergedComp<InnerComps>;
+    
+#define PROVIDE_FLATTEN(ATTRIB)						\
+    ATTRIB auto& flatten() ATTRIB					\
+    {									\
+      return *((Field2<CompsList<FlattenedInnerComp>,ATTRIB _Fund,FC,FL,MT,true>*)this); \
+    }
+    
+    PROVIDE_FLATTEN(const);
+    
+    PROVIDE_FLATTEN(/* non const */);
+    
+#undef PROVIDE_FLATTEN
+    
+    /////////////////////////////////////////////////////////////////
+    
 #define PROVIDE_RECREATE_FROM_EXPR(ATTRIB)			\
     /*! Returns itself */					\
     INLINE_FUNCTION						\

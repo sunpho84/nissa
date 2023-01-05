@@ -245,7 +245,26 @@ namespace nissa
       oth.storage=nullptr;
     }
     
-  /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    
+#define PROVIDE_COMPS_CAST(CONST_ATTRIB)				\
+    template <typename NComps,						\
+	      typename NDC>						\
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+    DynamicTens<NComps,CONST_ATTRIB Fund,MT,true> compsCast(const NDC& newDynamicSizes) CONST_ATTRIB \
+    {									\
+      auto cast=((CONST_ATTRIB DynamicTens<NComps,CONST_ATTRIB Fund,MT,IsRef>*)this)->getRef(); \
+									\
+      cast.dynamicSizes=newDynamicSizes;				\
+									\
+      return cast;							\
+    }
+    
+    PROVIDE_COMPS_CAST(const);
+    
+    PROVIDE_COMPS_CAST(/* not const */);
+    
+    /////////////////////////////////////////////////////////////////
   
 #define PROVIDE_GET_REF(ATTRIB)						\
     auto getRef() ATTRIB						\
@@ -263,6 +282,23 @@ namespace nissa
   PROVIDE_GET_REF(/* non const */);
     
 #undef PROVIDE_GET_REF
+    
+    /////////////////////////////////////////////////////////////////
+    
+#define PROVIDE_RECREATE_FROM_EXPR(ATTRIB)			\
+    /*! Returns itself */					\
+    INLINE_FUNCTION						\
+    decltype(auto) recreateFromExprs() ATTRIB			\
+    {								\
+      return *this;						\
+    }
+    
+    PROVIDE_RECREATE_FROM_EXPR(/* non const */);
+    
+    PROVIDE_RECREATE_FROM_EXPR(const);
+    
+#undef PROVIDE_RECREATE_FROM_EXPR
+    
     /////////////////////////////////////////////////////////////////
     
     /// Destructor

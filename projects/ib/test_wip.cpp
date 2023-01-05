@@ -34,7 +34,7 @@ void in_main(int narg,char **arg)
   LxField<quad_su3> conf("conf");
   
   {
-    DynamicTens<OfComps<SpinRow>,double, MemoryType::CPU> d(std::make_tuple());
+    DynamicTens<OfComps<SpinRow,LocEoSite>,double, MemoryType::CPU> d(std::make_tuple(locEoSite(locVolh)));
     auto e=d.getReadable();
     // e(spinRow(1))=1.0;
   }
@@ -44,6 +44,8 @@ void in_main(int narg,char **arg)
     
     verbosity_lv=3;
     Field2<OfComps<SpinRow,ComplId>,double> df;
+    auto fl=df.flatten();
+    fl(decltype(df)::FlattenedInnerComp(0));
     Field2<OfComps<ComplId>,double> ds;
     // EoField2<OfComps<SpinRow>,double> df2;
     //auto rdf=df.getWritable();
@@ -51,15 +53,18 @@ void in_main(int narg,char **arg)
     df=I;
     master_printf("written 0? %lg\n",df(locLxSite(0),spinRow(0),reIm(0)));
     master_printf("written 1? %lg\n",df(locLxSite(0),spinRow(0),reIm(1)));
+    df=df+I;
     ds=trace(dag(df(spinRow(0))));
-    ds+I;
-    master_printf("copied 1? %lg\n",ds(locLxSite(0),reIm(1)));
+    master_printf("written 2? %lg\n",df(locLxSite(0),spinRow(0),reIm(1)));
+    master_printf("copied -2? %lg\n",ds(locLxSite(0),reIm(1)));
     // rdf(spinRow(0),locLxSite(0))=1.0;
     // rdf2(parity(0),spinRow(0),locEoSite(0))=1.0;
   }
   verbosity_lv=1;
   
   crash("");
+  
+  auto u=mergedComp<CompsList<Spin,ComplId>>(0);
   
   /////////////////////////////////////////////////////////////////
   
