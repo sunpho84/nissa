@@ -19,6 +19,18 @@ namespace nissa
   struct Crtp
   {
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    Der* operator->()
+    {
+      return (Der*)this;
+    }
+    
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    const Der* operator->() const
+    {
+      return (const Der*)this;
+    }
+    
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     Der& operator*()
     {
       return *static_cast<Der*>(this);
