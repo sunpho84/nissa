@@ -18,7 +18,7 @@
 namespace nissa
 {
   DECLARE_UNTRANSPOSABLE_COMP(Parity,int,2,parity);
-  DECLARE_UNTRANSPOSABLE_COMP(Dir,int,4,dir);
+  DECLARE_UNTRANSPOSABLE_COMP(Dir,int,NDIM,dir);
   
   DECLARE_UNTRANSPOSABLE_COMP(LocLxSite,int,0,locLxSite);
   DECLARE_UNTRANSPOSABLE_COMP(LocEoSite,int,0,locEoSite);

@@ -107,13 +107,13 @@ namespace nissa
 	      typename F,
 	      typename...Dc,
 	      typename...ProcessedComps>
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     void _compsLoop(F f,
 		    const CompsList<Dc...>& dynamicComps,
 		    const CompFeat<ProcessedComps>&...pc)
     {
       auto iter=
-	[f,&dynamicComps,&pc...](const Head& val)
+	[f,&dynamicComps,&pc...] (const Head& val) INLINE_ATTRIBUTE constexpr
       {
 	(void)dynamicComps; // avoid warning
 	
@@ -142,7 +142,7 @@ namespace nissa
     {
       template <typename F,
 		typename...Dc>
-      INLINE_FUNCTION static CUDA_HOST_AND_DEVICE
+      static INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
       void exec(F f,
 		const CompsList<Dc...> &dynamicComps)
       {
@@ -155,12 +155,14 @@ namespace nissa
   template <typename Tp,
 	    typename F,
 	    typename...Dc>
-  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
   void compsLoop(F f,
 		 const CompsList<Dc...>& dynamicComps)
   {
     impl::_CompsLoop<Tp>::exec(f,dynamicComps);
   }
+  
+  /////////////////////////////////////////////////////////////////
   
   template <typename T>
   struct MergedComp;

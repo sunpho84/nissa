@@ -123,11 +123,14 @@ namespace nissa
     
 #undef PROVIDE_EVAL
     
+    static constexpr bool fundNeedsConstrutor=
+      std::is_class_v<_Fund> and not std::is_aggregate_v<_Fund>;
+    
     /// Default constructor
     constexpr INLINE_FUNCTION
     StackTens(const CompsList<> ={})
     {
-      if constexpr(std::is_class_v<_Fund>)
+      if constexpr(fundNeedsConstrutor)
 	{
 	  for(std::decay_t<decltype(nElements)> iEl=0;iEl<nElements;iEl++)
 	    new(&storage[iEl]) _Fund;
@@ -138,7 +141,7 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     StackTens(const StackTens& oth)
     {
-      if constexpr(std::is_class_v<_Fund>)
+      if constexpr(fundNeedsConstrutor)
 	for(std::decay_t<decltype(nElements)> iEl=0;iEl<nElements;iEl++)
 	  new(&storage[iEl]) _Fund(oth.storage[iEl]);
       else
