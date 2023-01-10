@@ -43,7 +43,8 @@ void in_main(int narg,char **arg)
     constexpr StackTens<OfComps<ComplId>,double> I{0,1};
     
     verbosity_lv=3;
-    Field2<OfComps<SpinRow,ComplId>,double> df;
+    Field2<OfComps<SpinRow,ComplId>,double> df(WITH_HALO);
+    df.updateHalo();
     auto fl=df.flatten();
     fl(decltype(df)::FlattenedInnerComp(0));
     Field2<OfComps<ComplId>,double> ds;

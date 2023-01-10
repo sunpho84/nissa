@@ -113,15 +113,15 @@ namespace nissa
 		    const CompFeat<ProcessedComps>&...pc)
     {
       auto iter=
-	[f,&dynamicComps,&pc...] (const Head& val) INLINE_ATTRIBUTE constexpr
-      {
-	(void)dynamicComps; // avoid warning
-	
-	if constexpr(sizeof...(Tail))
-	  return _compsLoop<Tail...>(f,dynamicComps,*pc...,val);
-	else
-	  f(*pc...,val);
-      };
+	[f,&dynamicComps,&pc...](const Head& val) CONSTEXPR_INLINE_ATTRIBUTE
+	{
+	  (void)dynamicComps; // avoid warning
+	  
+	  if constexpr(sizeof...(Tail))
+	    return _compsLoop<Tail...>(f,dynamicComps,*pc...,val);
+	  else
+	    f(*pc...,val);
+	};
       
       constexpr auto s=Head::sizeAtCompileTime;
       

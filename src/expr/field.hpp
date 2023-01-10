@@ -17,6 +17,10 @@
 
 namespace nissa
 {
+  /// Start the communications of buffer interpreted as halo
+  std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
+						     const size_t& bps);
+  
   DECLARE_UNTRANSPOSABLE_COMP(Parity,int,2,parity);
   DECLARE_UNTRANSPOSABLE_COMP(Dir,int,NDIM,dir);
   
@@ -176,14 +180,20 @@ namespace nissa
       typename DynamicCompsProvider<FIELD_COMPS>::DynamicComps;
     
     /// Type used for the site
-    using Site=typename FIELD_COMPS_PROVIDER::Site;
+    using Site=
+      typename FIELD_COMPS_PROVIDER::Site;
     
     /// Fundamental tye
-    using Fund=typename FIELD_COMPS_PROVIDER::Fund;
+    using Fund=
+      typename FIELD_COMPS_PROVIDER::Fund;
     
 #undef FIELD_COMPS
     
 #undef FIELD_COMPS_PROVIDER
+    
+    /// Coefficient which divides the space time, if the field is covering only half the space
+    static constexpr const int divCoeff=
+      (FC==FULL_SPACE)?1:2;
     
     /// Internal storage type
     using Data=
@@ -205,7 +215,7 @@ namespace nissa
     
     /// Number of sites covered by the field
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr const Site& nSites()
+    static constexpr const Site nSites()
     {
       if constexpr(fieldCoverage==FULL_SPACE)
 	return locVol;
@@ -215,7 +225,7 @@ namespace nissa
     
     /// Number of sites in the halo of the field (not necessarily allocated)
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr const Site& nHaloSites()
+    static constexpr const Site nHaloSites()
     {
       if constexpr(fieldCoverage==FULL_SPACE)
 	return bord_vol;
@@ -225,7 +235,7 @@ namespace nissa
     
     /// Number of sites in the edges of the field (not necessarily allocated)
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    static constexpr const Site& nEdgesSites()
+    static constexpr const Site nEdgesSites()
     {
       if constexpr(fieldCoverage==FULL_SPACE)
 	return edge_vol;
@@ -255,10 +265,10 @@ namespace nissa
       assertHasDefinedCoverage();
       
       if constexpr(fieldCoverage==FULL_SPACE)
-	return surflxOfBordlx[iHalo];
+	return surflxOfBordlx[~iHalo];
       else
 	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
-	  return surfeo_of_bordeo[fieldCoverage][iHalo];
+	  return surfeo_of_bordeo[fieldCoverage][~iHalo];
     }
     
     /// Surface site of a site in the e
@@ -318,8 +328,11 @@ namespace nissa
     /// Total allocated sites
     const Site externalSize;
     
+    /// Number of internal degrees of freedom - this will be made dynamic
+    static constexpr int nInternalDegs=indexMaxValue<C...>();
+    
     /// Storage data
-    Data data;
+    mutable Data data;
     
     /// Presence of halo and edges
     const HaloEdgesPresence haloEdgesPresence;
@@ -503,6 +516,286 @@ namespace nissa
       haloIsValid=false;
       
       invalidateEdges();
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Fill the sending buf using the data with a given function
+    template <typename F>
+    void fillSendingBufWith(const F& f,
+			    const Site& n) const
+    {
+      PAR(0,n,
+	  CAPTURE(f,
+		  t=this->getReadable(),
+		  dynamicSizes=this->getDynamicSizes()),
+	  i,
+	  {
+	    compsLoop<InnerComps>([i,
+				   t,
+				   dynamicSizes,
+				   f] CUDA_DEVICE(const auto&...c) INLINE_ATTRIBUTE
+	    {
+	      const auto internalDeg=~index(dynamicSizes,c...);
+	      
+	      ((Fund*)send_buf)[internalDeg+nInternalDegs*~i]=
+		t(f(i),c...);
+	    },dynamicSizes);
+	  });
+    }
+    
+    /// Fill the sending buf using the data on the surface of a field
+    void fillSendingBufWithSurface() const
+    {
+      fillSendingBufWith([] CUDA_DEVICE(const Site& i) INLINE_ATTRIBUTE
+      {
+	return surfSiteOfHaloSite(i);
+      },bord_vol/divCoeff);
+    }
+    
+    /// Fill the sending buf using the data on the surface edge
+    void fillSendingBufWithEdgesSurface() const
+    {
+      fillSendingBufWith([] CUDA_DEVICE(const Site& i) INLINE_ATTRIBUTE
+      {
+	return surfSiteOfEdgeSite(i);
+      },edge_vol/divCoeff);
+    }
+    
+    /// Fill the surface using the data from the buffer
+    template <typename B,
+	      typename F>
+    void fillSurfaceWithReceivingBuf(const F& f)
+    {
+      for(int bf=0;bf<2;bf++)
+	for(int mu=0;mu<NDIM;mu++)
+	  PAR(0,bord_dir_vol[mu]/divCoeff,
+	      CAPTURE(f,bf,mu,
+		      t=this->getWritable()),
+	      iHaloOriDir,
+	      {
+		const int iHalo=
+		  bf*bord_volh/divCoeff+
+		  iHaloOriDir+bord_offset[mu]/divCoeff;
+		
+		const int iSurf=
+		  surfSiteOfHaloSite(iHalo);
+		
+		f(t[iSurf],
+		  ((B*)recv_buf)[iHalo],
+		  bf,
+		  mu);
+	      });
+    }
+    
+    /// Fill the sending buf using the data with a given function
+    INLINE_FUNCTION
+    void fillHaloOrEdgesWithReceivingBuf(const Site& offset,
+					 const Site& n) const
+    {
+      PAR(0,n,
+	  CAPTURE(data=this->data.getWritable(),
+		  offset,
+		  dynamicSizes=this->getDynamicSizes()),
+	  i,
+	  {
+	    compsLoop<InnerComps>([offset,
+				   i,
+				   &data,
+				   dynamicSizes] CUDA_DEVICE(const auto&...c) INLINE_ATTRIBUTE
+	    {
+	      const auto internalDeg=~index(dynamicSizes,c...);
+	      
+	      data(offset+i,c...)=
+		((Fund*)recv_buf)[internalDeg+nInternalDegs*~i];
+	    },dynamicSizes);
+	  });
+    }
+    
+    /// Fills the halo with the received buffer
+    void fillHaloWithReceivingBuf() const
+    {
+      assertHasHalo();
+      
+      fillHaloOrEdgesWithReceivingBuf(locVol/divCoeff,bord_vol/divCoeff);
+    }
+    
+    /// Fills the halo with the received buffer
+    void fillEdgesWithReceivingBuf() const
+    {
+      assertHasEdges();
+      
+      fillHaloOrEdgesWithReceivingBuf((locVol+bord_vol)/divCoeff,edge_vol/divCoeff);
+    }
+    
+    /// Fills the sending buffer with the halo, compressing into elements of B using f
+    template <typename B,
+	      typename F>
+    void fillSendingBufWithHalo(const F& f) const
+    {
+      for(int bf=0;bf<2;bf++)
+	for(int mu=0;mu<NDIM;mu++)
+	  PAR(0,bord_dir_vol[mu]/divCoeff,
+	      CAPTURE(bf,mu,f,
+		      t=this->getReadable()),
+	      iHaloOriDir,
+	      {
+		const int iHalo=
+		  bf*bord_volh/divCoeff+
+		  iHaloOriDir+bord_offset[mu]/divCoeff;
+		
+		f(((B*)send_buf)[iHalo],
+		  t[locVol/divCoeff+iHalo],
+		  bf,
+		  mu);
+	      });
+    }
+    
+    /// Start the communications of halo
+    static std::vector<MPI_Request> startHaloAsyincComm()
+    {
+      return startBufHaloNeighExchange(divCoeff,nInternalDegs*sizeof(Fund));
+    }
+    
+    /// Start the communications of edges
+    static std::vector<MPI_Request> startEdgesAsyincComm()
+    {
+      return startBufEdgesNeighExchange(divCoeff,nInternalDegs*sizeof(Fund));
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Assert that can communicate n sites
+    static void assertCanCommunicate(const Site& n)
+    {
+      /// Needed size in the buffer
+      const size_t neededBufSize=
+	nInternalDegs*~n;
+      
+      const size_t maxBufSize=
+	std::min(send_buf_size,recv_buf_size);
+      
+      if(neededBufSize>maxBufSize)
+	crash("asking to create a communicator that needs %d large buffer (%d allocated)",
+		  neededBufSize,maxBufSize);
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Start communication using halo
+    std::vector<MPI_Request> startCommunicatingHalo() const
+    {
+      /// Pending requests
+      std::vector<MPI_Request> requests;
+      
+      assertCanCommunicate(Field2::nHaloSites());
+      
+      //take time and write some debug output
+      START_TIMING(tot_comm_time,ntot_comm);
+      verbosity_lv3_master_printf("Start communication of borders\n");
+      
+      //fill the communicator buffer, start the communication and take time
+      fillSendingBufWithSurface();
+      requests=startHaloAsyincComm();
+      STOP_TIMING(tot_comm_time);
+      
+      return requests;
+    }
+    
+    /// Finalize communications
+    void finishCommunicatingHalo(std::vector<MPI_Request> requests) const
+    {
+      //take note of passed time and write some debug info
+      START_TIMING(tot_comm_time,ntot_comm);
+      verbosity_lv3_master_printf("Finish communication of halo\n");
+      
+      //wait communication to finish, fill back the vector and take time
+      waitAsyncCommsFinish(requests);
+      fillHaloWithReceivingBuf();
+      STOP_TIMING(tot_comm_time);
+      
+      haloIsValid=true;
+    }
+    
+    /// Crash if the halo is not allocated
+    void assertHasHalo() const
+    {
+      if(not (haloEdgesPresence>=WITH_HALO))
+	crash("needs halo allocated!");
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Start communication using edges
+    std::vector<MPI_Request> startCommunicatingEdges() const
+    {
+      /// Pending requests
+      std::vector<MPI_Request> requests;
+      
+      assertCanCommunicate(Field2::nEdgesSites());
+      
+      //take time and write some debug output
+      START_TIMING(tot_comm_time,ntot_comm);
+      verbosity_lv3_master_printf("Start communication of edges\n");
+      
+      //fill the communicator buffer, start the communication and take time
+      fillSendingBufWithEdgesSurface();
+      requests=startEdgesAsyincComm();
+      STOP_TIMING(tot_comm_time);
+      
+      return requests;
+    }
+    
+    /// Finalize communications
+    void finishCommunicatingEdges(std::vector<MPI_Request> requests) const
+    {
+      //take note of passed time and write some debug info
+      START_TIMING(tot_comm_time,ntot_comm);
+      verbosity_lv3_master_printf("Finish communication of edgess\n");
+      
+      //wait communication to finish, fill back the vector and take time
+      waitAsyncCommsFinish(requests);
+      fillEdgesWithReceivingBuf();
+      STOP_TIMING(tot_comm_time);
+      
+      haloIsValid=true;
+    }
+    
+    /// Crash if the edges are not allocated
+    void assertHasEdges() const
+    {
+      if(not (haloEdgesPresence>=WITH_HALO_EDGES))
+	crash("needs edges allocated!");
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Communicate the halo
+    void updateHalo(const bool& force=false) const
+    {
+      if(force or not haloIsValid)
+	{
+	  verbosity_lv3_master_printf("Sync communication of halo\n");
+	  
+	  const std::vector<MPI_Request> requests=
+	    startCommunicatingHalo();
+	  finishCommunicatingHalo(requests);
+      }
+    }
+    
+    /// Communicate the edges
+    void updateEdges(const bool& force=false) const
+    {
+      updateHalo(force);
+      
+      if(force or not edgesAreValid)
+	{
+	  verbosity_lv3_master_printf("Sync communication of edges\n");
+	  
+	  const std::vector<MPI_Request> requests=
+	    startCommunicatingEdges();
+	  finishCommunicatingEdges(requests);
+      }
     }
   };
 }

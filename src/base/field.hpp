@@ -956,6 +956,36 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
+    /// Communicate the halo
+    void updateHalo(const bool& force=false) const
+    {
+      if(force or not haloIsValid)
+	{
+	  verbosity_lv3_master_printf("Sync communication of halo of %s\n",name);
+	  
+	  const std::vector<MPI_Request> requests=
+	    startCommunicatingHalo();
+	  finishCommunicatingHalo(requests);
+      }
+    }
+    
+    /// Communicate the edges
+    void updateEdges(const bool& force=false) const
+    {
+      updateHalo(force);
+      
+      if(force or not edgesAreValid)
+	{
+	  verbosity_lv3_master_printf("Sync communication of edges of %s\n",name);
+	  
+	  const std::vector<MPI_Request> requests=
+	    startCommunicatingEdges();
+	  finishCommunicatingEdges(requests);
+      }
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
     /// Compare
     INLINE_FUNCTION
     bool operator==(const Field& oth) const
