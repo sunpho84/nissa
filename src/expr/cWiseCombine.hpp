@@ -121,25 +121,25 @@ namespace nissa
     /// Type of the combining function
     using Comb=_Comb;
     
-    /// \todo improve
+    // /// \todo improve
     
-    /// Components on which simdifying
-    using SimdifyingComp=typename SubNode<0>::SimdifyingComp;
+//     /// Components on which simdifying
+//     using SimdifyingComp=typename SubNode<0>::SimdifyingComp;
     
-#define PROVIDE_SIMDIFY(ATTRIB)					\
-    /*! Returns a ATTRIB simdified view */			\
-    INLINE_FUNCTION						\
-    auto simdify() ATTRIB					\
-    {								\
-      return							\
-	Comb::compute(SUBNODE(Is).simdify()...);		\
-    }
+// #define PROVIDE_SIMDIFY(ATTRIB)					\
+//     /*! Returns a ATTRIB simdified view */			\
+//     INLINE_FUNCTION						\
+//     auto simdify() ATTRIB					\
+//     {								\
+//       return							\
+// 	Comb::compute(SUBNODE(Is).simdify()...);		\
+//     }
     
-    PROVIDE_SIMDIFY(const);
+//     PROVIDE_SIMDIFY(const);
     
-    PROVIDE_SIMDIFY(/* non const */);
+//     PROVIDE_SIMDIFY(/* non const */);
     
-#undef PROVIDE_SIMDIFY
+// #undef PROVIDE_SIMDIFY
     
     /////////////////////////////////////////////////////////////////
     

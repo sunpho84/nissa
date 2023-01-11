@@ -26,7 +26,7 @@ namespace nissa
   {
     /// Returned type
     using GlbIndex=
-      std::common_type_t<int,std::decay_t<decltype(~*comps)>...>;
+      std::common_type_t<int,std::decay_t<decltype((*comps)())>...>;
     
     /// Recursive computer
     auto index=
@@ -45,11 +45,11 @@ namespace nissa
       if constexpr(Head::sizeIsKnownAtCompileTime)
 	size=Head::sizeAtCompileTime;
       else
-	size=~std::get<Head>(dynamicSizes);
+	size=std::get<Head>(dynamicSizes)();
       
       /// Value of the index when including this component
       const GlbIndex inner=
-	outer*size+(~head);
+	outer*size+head();
       
       if constexpr(sizeof...(tail))
 	return
@@ -81,7 +81,7 @@ namespace nissa
     auto operator%(const I lhs,
 		   const _StackIndTerm<T>& rhs)
     {
-      return ~rhs.value+T::sizeAtCompileTime*lhs;
+      return rhs.value()+T::sizeAtCompileTime*lhs;
     }
   }
   
@@ -95,7 +95,7 @@ namespace nissa
   {
     /// Returned type
     using GlbIndex=
-      std::common_type_t<int,std::decay_t<decltype(~*comps)>...>;
+      std::common_type_t<int,std::decay_t<decltype((*comps)())>...>;
     
     return (GlbIndex(0)%...%impl::_StackIndTerm(DE_CRTPFY(const C,&comps)));
   }
@@ -124,7 +124,7 @@ namespace nissa
       if constexpr(T::sizeIsKnownAtCompileTime)
 	return T::sizeAtCompileTime;
       else
-	return ~std::get<T>(dynamicSizes);
+	return std::get<T>(dynamicSizes)();
     }
   }
   

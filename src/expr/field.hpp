@@ -106,8 +106,8 @@ namespace nissa
     INLINE_FUNCTION
     void assign(O&& oth)
     {
-#define LOOP(TYPE)				\
-      TYPE(0,this->externalSize,		\
+#define LOOP(LOOP_TYPE)				\
+      LOOP_TYPE(0,this->nSites(),		\
 	   CAPTURE(self=this->getWritable(),	\
 		   TO_READ(oth)),		\
 	   site,				\
@@ -265,10 +265,10 @@ namespace nissa
       assertHasDefinedCoverage();
       
       if constexpr(fieldCoverage==FULL_SPACE)
-	return surflxOfBordlx[~iHalo];
+	return surflxOfBordlx[iHalo()];
       else
 	if constexpr(fieldCoverage==EVEN_SITES or fieldCoverage==ODD_SITES)
-	  return surfeo_of_bordeo[fieldCoverage][~iHalo];
+	  return surfeo_of_bordeo[fieldCoverage][iHalo()];
     }
     
     /// Surface site of a site in the e
@@ -326,7 +326,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Total allocated sites
-    const Site externalSize;
+    const Site nTotalAllocatedSites;
     
     /// Number of internal degrees of freedom - this will be made dynamic
     static constexpr int nInternalDegs=indexMaxValue<C...>();
@@ -347,7 +347,7 @@ namespace nissa
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     auto getDynamicSizes() const
     {
-      return std::make_tuple(externalSize);
+      return std::make_tuple(nSites());
     }
     
 #define PROVIDE_EVAL(ATTRIB)					\
@@ -460,8 +460,8 @@ namespace nissa
     
     /// Create a field
     Field2(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
-      externalSize(FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence)),
-      data(std::make_tuple(externalSize)),
+      nTotalAllocatedSites(FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence)),
+      data(std::make_tuple(nTotalAllocatedSites)),
       haloEdgesPresence(haloEdgesPresence),
       haloIsValid(false),
       edgesAreValid(false)
@@ -479,7 +479,7 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     Field2(O&& oth,
 	   _CopyConstructInternalDispatcher*) :
-      externalSize(oth.externalSize),
+      nTotalAllocatedSites(oth.nTotalAllocatedSites),
       data(oth.data),
       haloEdgesPresence(oth.haloEdgesPresence),
       haloIsValid(oth.haloIsValid),
@@ -536,9 +536,9 @@ namespace nissa
 				   dynamicSizes,
 				   f] CUDA_DEVICE(const auto&...c) INLINE_ATTRIBUTE
 	    {
-	      const auto internalDeg=~index(dynamicSizes,c...);
+	      const auto internalDeg=index(dynamicSizes,c...);
 	      
-	      ((Fund*)send_buf)[internalDeg+nInternalDegs*~i]=
+	      ((Fund*)send_buf)[internalDeg+nInternalDegs*i()]=
 		t(f(i),c...);
 	    },dynamicSizes);
 	  });
@@ -604,10 +604,10 @@ namespace nissa
 				   &data,
 				   dynamicSizes] CUDA_DEVICE(const auto&...c) INLINE_ATTRIBUTE
 	    {
-	      const auto internalDeg=~index(dynamicSizes,c...);
+	      const auto internalDeg=index(dynamicSizes,c...);
 	      
 	      data(offset+i,c...)=
-		((Fund*)recv_buf)[internalDeg+nInternalDegs*~i];
+		((Fund*)recv_buf)[internalDeg+nInternalDegs*i()];
 	    },dynamicSizes);
 	  });
     }
@@ -670,7 +670,7 @@ namespace nissa
     {
       /// Needed size in the buffer
       const size_t neededBufSize=
-	nInternalDegs*~n;
+	nInternalDegs*n();
       
       const size_t maxBufSize=
 	std::min(send_buf_size,recv_buf_size);

@@ -169,7 +169,7 @@ namespace nissa
   
 #define THIS MergedComp<CompsList<Cp...>>
   
-#define BASE BaseComp<THIS,decltype(((~(Cp{}))*...*1)),(Cp::sizeAtCompileTime*...*1)>
+#define BASE BaseComp<THIS,decltype(((Cp{}())*...*1)),(Cp::sizeAtCompileTime*...*1)>
   
   template <typename...Cp>
   struct THIS :

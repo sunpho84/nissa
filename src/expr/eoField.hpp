@@ -123,9 +123,9 @@ namespace nissa
       const Site site=std::get<Site>(c);				\
       									\
       if(parity==0)							\
-	return evenPart(locEvnSite(~site),std::get<C...>(c));		\
+	return evenPart(locEvnSite(site()),std::get<C...>(c));		\
       else								\
-	return oddPart(locOddSite(~site),std::get<C...>(c));		\
+	return oddPart(locOddSite(site()),std::get<C...>(c));		\
     }
     
     PROVIDE_EVAL(const);

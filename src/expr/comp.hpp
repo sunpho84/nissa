@@ -92,7 +92,7 @@ namespace nissa
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
   typename T::Transp transp(const TransposableCompFeat<T>& t)
   {
-    return ~*t;
+    return (*t)();
   }
   
   template<typename T>
@@ -118,7 +118,7 @@ namespace nissa
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
   Tout compCast(const Tin& t)
   {
-    return ~t;
+    return t();
   }
 }
 

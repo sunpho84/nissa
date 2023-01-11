@@ -240,7 +240,7 @@ namespace nissa
       storage(oth.storage),
       nElements(oth.nElements)
     {
-      verbosity_lv3_master_printf("Using move constructor of DynamicTens");
+      verbosity_lv3_master_printf("Using move constructor of DynamicTens\n");
       
       oth.storage=nullptr;
     }

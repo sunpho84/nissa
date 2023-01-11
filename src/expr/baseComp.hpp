@@ -91,7 +91,7 @@ namespace nissa
 									\
     /*! Convert to actual reference with or without const attribute */	\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
-    explicit operator ATTRIB Index&() ATTRIB					\
+    explicit operator ATTRIB Index&() ATTRIB				\
     {									\
       return i;								\
     }
@@ -104,7 +104,7 @@ namespace nissa
     
     /// Convert to actual reference with const attribute
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    const Index& operator~() const
+    const Index& operator()() const
     {
       return i;
     }
