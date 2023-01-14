@@ -239,9 +239,9 @@ namespace nissa
   {									\
     template <typename...Args>						\
     constexpr INLINE_FUNCTION						\
-    static auto CUDA_HOST_AND_DEVICE compute(const Args&...s)		\
-    {									\
-      return (s OP ...);						\
+    static auto CUDA_HOST_AND_DEVICE compute(Args&&...s)		\
+    {	/* forwarding is needed to preserve value category */		\
+      return (std::forward<Args>(s) OP ...);				\
     }									\
   };  									\
   									\
@@ -249,7 +249,7 @@ namespace nissa
   template <typename E1,						\
 	    typename E2,						\
 	    ENABLE_THIS_TEMPLATE_IF(isNode<E1> and isNode<E2>)>		\
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE				\
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
   auto operator OP(E1&& e1,						\
 		   E2&& e2)						\
   {									\
