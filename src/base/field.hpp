@@ -43,14 +43,6 @@ namespace nissa
     return startBufEdgesNeighExchange(divCoeff,sizeof(T));
   }
   
-  /// Wait for communications to finish
-  inline void waitAsyncCommsFinish(std::vector<MPI_Request> requests)
-  {
-    verbosity_lv3_master_printf("Entering MPI comm wait\n");
-    
-    MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
-  }
-  
   /// Communicates the buffers as halo
   template <typename T>
   void exchangeHaloNeighBuf(const int& divCoeff)
@@ -666,12 +658,9 @@ namespace nissa
 	return								\
 	  _data[site];							\
       else								\
-	if constexpr(FL==FieldLayout::CPU)				\
-	  return ((CONST T*)_data)[site];				\
-	else								\
-	  return							\
-	    SubscribedField<CONST Field,				\
-	    std::remove_extent_t<T>>(*this,site,nullptr);		\
+	return								\
+	  SubscribedField<CONST Field,					\
+	  std::remove_extent_t<T>>(*this,site,nullptr);			\
     }
     
     PROVIDE_SUBSCRIBE_OPERATOR(const);

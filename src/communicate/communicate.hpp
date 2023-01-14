@@ -6,6 +6,10 @@
 #endif
 
 #include <stdint.h>
+#include <mpi.h>
+#include <vector>
+
+#include <routines/ios.hpp>
 
 #define NISSA_DEFAULT_USE_ASYNC_COMMUNICATIONS 1
 
@@ -75,6 +79,14 @@ namespace nissa
   //buffers
   EXTERN_COMMUNICATE uint64_t recv_buf_size,send_buf_size;
   CUDA_MANAGED EXTERN_COMMUNICATE char *recv_buf,*send_buf;
+  
+  /// Wait for communications to finish
+  inline void waitAsyncCommsFinish(std::vector<MPI_Request> requests)
+  {
+    verbosity_lv3_master_printf("Entering MPI comm wait\n");
+    
+    MPI_Waitall(requests.size(),&requests[0],MPI_STATUS_IGNORE);
+  }
 }
 
 #undef EXTERN_COMMUNICATE
