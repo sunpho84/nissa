@@ -234,7 +234,7 @@ namespace nissa
       Res(dc,UNIVERSAL_CONSTRUCTOR_CALL,std::forward<_E>(e)...);
   }
   
-#define CATCH_OPERATOR(OP,NAMED_OP)					\
+#define CATCH_BINARY_OPERATOR(OP,NAMED_OP)					\
   struct NAMED_OP							\
   {									\
     template <typename...Args>						\
@@ -258,25 +258,55 @@ namespace nissa
       cWiseCombine<NAMED_OP>(std::forward<E1>(e1),std::forward<E2>(e2)); \
   }
   
-  CATCH_OPERATOR(+,plus);
+  CATCH_BINARY_OPERATOR(+,plus);
   
-  CATCH_OPERATOR(-,minus);
+  CATCH_BINARY_OPERATOR(-,minus);
   
-  CATCH_OPERATOR(/,divide);
+  CATCH_BINARY_OPERATOR(/,divide);
   
-  CATCH_OPERATOR(%,modulo);
+  CATCH_BINARY_OPERATOR(%,modulo);
   
-  CATCH_OPERATOR(==,compare);
+  CATCH_BINARY_OPERATOR(==,compare);
   
-  CATCH_OPERATOR(!=,differ);
+  CATCH_BINARY_OPERATOR(!=,differ);
   
-  CATCH_OPERATOR(and,andOp);
+  CATCH_BINARY_OPERATOR(and,andOp);
   
-  CATCH_OPERATOR(or,orOp);
+  CATCH_BINARY_OPERATOR(or,orOp);
   
-  CATCH_OPERATOR(xor,xorOp);
+  CATCH_BINARY_OPERATOR(xor,xorOp);
   
-#undef CATCH_OPERATOR
+#undef CATCH_BINARY_OPERATOR
+  
+  /////////////////////////////////////////////////////////////////
+  
+#define CATCH_UNARY_OPERATOR(OP,NAMED_OP)				\
+  struct NAMED_OP							\
+  {									\
+    template <typename Arg>						\
+    constexpr INLINE_FUNCTION						\
+    static auto CUDA_HOST_AND_DEVICE compute(Arg&& s)			\
+    {	/* forwarding is needed to preserve value category */		\
+      return OP std::forward<Arg>(s);					\
+    }									\
+  };  									\
+  									\
+  /*! Catch the OP operator */						\
+  template <typename E,							\
+	    ENABLE_THIS_TEMPLATE_IF(isNode<E>)>				\
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
+  auto operator OP(E&& e)						\
+  {									\
+									\
+    return								\
+      cWiseCombine<NAMED_OP>(std::forward<E>(e)); \
+  }
+  
+  CATCH_UNARY_OPERATOR(+,uPlus);
+  
+  CATCH_UNARY_OPERATOR(-,uMinus);
+  
+  #undef CATCH_UNARY_OPERATOR
 }
 
 #endif
