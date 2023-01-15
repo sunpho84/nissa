@@ -134,7 +134,7 @@ namespace nissa
     const DynamicComps dynamicSizes;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
       return dynamicSizes;
@@ -340,7 +340,7 @@ namespace nissa
   
   template <typename..._E,
 	    ENABLE_THIS_TEMPLATE_IF(isNode<_E> and...)>
-  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
   auto prod(_E&&...e)
   {
     /// Computes the product components

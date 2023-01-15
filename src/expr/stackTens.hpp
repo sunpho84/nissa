@@ -93,8 +93,8 @@ namespace nissa
       true;
     
     /// Returns empty dynamic sizes
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    constexpr const CompsList<> getDynamicSizes() const
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    const CompsList<> getDynamicSizes() const
     {
       return {};
     }

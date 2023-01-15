@@ -40,7 +40,7 @@ namespace nissa
     //   ExecSpace::HOST_DEVICE;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     CompsList<> getDynamicSizes() const
     {
       return {};

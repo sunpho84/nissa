@@ -74,7 +74,7 @@ namespace nissa
     SubNode<0>& conjExpr=SUBNODE(0);
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
       return SUBNODE(0).getDynamicSizes();
@@ -82,7 +82,7 @@ namespace nissa
     
     /// Returns whether can assign
     INLINE_FUNCTION
-    bool canAssign()
+    constexpr bool canAssign()
     {
       return false;
     }
