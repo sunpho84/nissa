@@ -65,8 +65,6 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
-  PROVIDE_DETECTABLE_AS(Field2);
-  
 #define FIELD_COMPS_PROVIDER FieldCompsProvider<CompsList<C...>,_Fund,FC,FL>
   
 #define FIELD_COMPS typename FIELD_COMPS_PROVIDER::Comps
@@ -288,7 +286,7 @@ namespace nissa
 									\
     /* Neighbor in the UD orientation */				\
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION				\
-    static Site locNeigh ## UD(const Site& site,				\
+    static Site locNeigh ## UD(const Site& site,			\
 			       const Dir& mu)				\
     {									\
       assertHasDefinedCoverage();					\

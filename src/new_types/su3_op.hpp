@@ -805,7 +805,7 @@ namespace nissa
   void unsafe_su3_prod_su3(A&& a,
 			   const B& b,
 			   const C& c,
-			   const size_t nr_max=NCOL)
+			   const int& nr_max=NCOL)
   {
     for(int ir_out=0;ir_out<nr_max;ir_out++)
       for(int ic_out=0;ic_out<NCOL;ic_out++)
@@ -1316,10 +1316,11 @@ namespace nissa
   }
   
   /// Unitarize an su3 matrix by taking explicitely the inverse and averaging with it
+  template <>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION
   void su3_unitarize_explicitly_inverting(su3& new_link,
 					  const su3& prop_link,
-					  const double tol=1e-15)
+					  const double tol)
   {
     su3 inv,temp_link;
     double gamma,residue;
@@ -2445,7 +2446,10 @@ typename B>
 	    for(int c3=0;c3<NCOL;c3++)
 	      complex_summ_the_conj1_prod(a[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
   }
-
+  
+  CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,
+								       const su3& Q);
+  
   template <typename A>
   CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,
 								       const A& Q)
@@ -2454,9 +2458,6 @@ typename B>
     su3_copy(temp,Q);
     hermitian_exact_i_exponentiate_ingredients(out,temp);
   }
-  
-  CUDA_HOST_AND_DEVICE void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,
-								       const su3& Q);
   
   /// Build the exponential from the ingredients
   template <typename A>

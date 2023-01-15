@@ -7,7 +7,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	%D%/gauge_fixing.cpp \
 	%D%/gaugeconf.cpp \
 	%D%/remap_vector.cpp \
-	%D%/remez/remez_algorithm.cpp \
 	%D%/source.cpp \
 	%D%/smearing/hex.cpp \
 	%D%/smearing/HYP.cpp \
@@ -50,5 +49,6 @@ include_HEADERS+= \
 	%D%/su3_paths/squared_staples.hpp \
 	%D%/vector_gather.hpp
 
+#	%D%/remez/remez_algorithm.cpp \
 #	%D%/su3_paths/rectangular_staples.cpp \
 #	%D%/su3_paths/squared_staples.cpp 
