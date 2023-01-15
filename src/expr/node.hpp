@@ -177,7 +177,7 @@ namespace nissa
     /// Returns the closed expression
     auto close() const;
     
-#define PROVIDE_SUBSCRIBE(ATTRIB)					\
+#define PROVIDE_CALL(ATTRIB)						\
     template <typename...C>						\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
     decltype(auto) operator()(const CompFeat<C>&...cs) ATTRIB		\
@@ -198,6 +198,22 @@ namespace nissa
 	return t.eval(*cs...);						\
       else								\
 	return bindComps(t,std::make_tuple(*cs...));			\
+    }
+    
+    PROVIDE_CALL(const);
+    
+    PROVIDE_CALL(/* non const */);
+    
+#undef PROVIDE_CALL
+    
+    /////////////////////////////////////////////////////////////////
+    
+#define PROVIDE_SUBSCRIBE(ATTRIB)					\
+    template <typename C>						\
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
+    decltype(auto) operator[](const CompFeat<C>& c) ATTRIB		\
+    {									\
+      return (*this)(*c);						\
     }
     
     PROVIDE_SUBSCRIBE(const);

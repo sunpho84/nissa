@@ -10,6 +10,7 @@
             #include <base/field.hpp>
 
 #include <base/memory_manager.hpp>
+#include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/hasMember.hpp>
 #include <tuples/tupleHasType.hpp>
 
@@ -29,6 +30,8 @@ namespace nissa
 	    MemoryType MT=defaultMemoryType,
 	    bool IsRef=false>
   struct Field2;
+  
+  PROVIDE_DETECTABLE_AS(Field2);
 }
 
 #endif
