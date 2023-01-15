@@ -149,14 +149,14 @@ namespace nissa
     constexpr INLINE_FUNCTION
     auto getWritable()
     {
-      return (*(*this)).getRef();
+      return (*this)->getRef();
     }
     
     /// Gets a read-only reference
     constexpr INLINE_FUNCTION
     auto getReadable() const
     {
-      return (*(*this)).getRef();
+      return (*this)->getRef();
     }
     /// Returns the expression as a dynamic tensor
     auto fillDynamicTens() const;
