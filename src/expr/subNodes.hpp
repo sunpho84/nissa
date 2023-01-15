@@ -46,7 +46,7 @@ namespace nissa
     /// Type of the I-th subnode
     template <int I>
     using SubNode=
-      std::decay_t<std::tuple_element_t<I,std::tuple<_E...>>>;
+      std::remove_reference_t<std::tuple_element_t<I,std::tuple<_E...>>>;
     
     /// Constructor
     template <typename...T>
