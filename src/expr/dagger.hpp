@@ -22,10 +22,10 @@ namespace nissa
     using E=std::decay_t<_E>;
     
     if constexpr(isConjugator<E>)
-      return transpose(FORWARD_MEMBER_VAR(_E,e,template subNode<0>));
+      return transpose(FORWARD_MEMBER_VAR(_E,std::forward<E>(e),template subNode<0>));
     else
       if constexpr(isTransposer<E>)
-	return conj(FORWARD_MEMBER_VAR(_E,e,transpExpr));
+	return conj(FORWARD_MEMBER_VAR(_E,std::forward<E>(e),transpExpr));
       else
 	return transp(conj(std::forward<_E>(e)));
   }
