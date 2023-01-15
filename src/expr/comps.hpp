@@ -102,6 +102,17 @@ namespace nissa
   
   namespace impl
   {
+    template <typename F,
+	      typename...Dc,
+	      typename...ProcessedComps>
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    void _compsLoop(F f,
+		    const CompsList<Dc...>& dynamicComps,
+		    const CompFeat<ProcessedComps>&...pc)
+    {
+      f(*pc...);
+    }
+    
     template <typename Head,
 	      typename...Tail,
 	      typename F,
