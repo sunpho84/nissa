@@ -17,6 +17,22 @@
 namespace nissa
 {
   DECLARE_UNTRANSPOSABLE_COMP(ComplId,int,2,reIm);
+
+#define PROVIDE_REAL_OR_IMAG(NAME,VAL)			\
+  template <typename T>					\
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
+  auto NAME(T&& t)					\
+  {							\
+    std::forward<T>(t)(reIm(VAL));			\
+  }
+  
+  PROVIDE_REAL_OR_IMAG(real,0);
+  
+  PROVIDE_REAL_OR_IMAG(imag,1);
+  
+#undef PROVIDE_REAL_OR_IMAG
+  
+  /////////////////////////////////////////////////////////////////
   
   PROVIDE_DETECTABLE_AS(Conjugator);
   
