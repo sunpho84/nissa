@@ -67,7 +67,7 @@ namespace nissa
     //   SubNode<0>::execSpace;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     decltype(auto) getDynamicSizes() const
     {
       return SUBNODE(0).getDynamicSizes();

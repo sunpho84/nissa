@@ -342,7 +342,7 @@ namespace nissa
     mutable bool edgesAreValid;
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     auto getDynamicSizes() const
     {
       return std::make_tuple(nSites());

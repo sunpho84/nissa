@@ -77,7 +77,7 @@ namespace nissa
     BoundExpr& boundExpr=SUBNODE(0);
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     const auto getDynamicSizes() const
     {
       return tupleGetSubset<typename CompsBinder::DynamicComps>(boundExpr.getDynamicSizes());

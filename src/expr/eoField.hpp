@@ -101,7 +101,7 @@ namespace nissa
 #undef EO_FIELD2_COMPS_PROVIDER
     
     /// Returns the dynamic sizes
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     auto getDynamicSizes() const
     {
       return std::apply([](const auto&...c)
