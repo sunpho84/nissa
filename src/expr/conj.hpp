@@ -17,18 +17,28 @@
 namespace nissa
 {
   DECLARE_UNTRANSPOSABLE_COMP(ComplId,int,2,reIm);
-
+  
 #define PROVIDE_REAL_OR_IMAG(NAME,VAL)			\
   template <typename T>					\
   INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
   auto NAME(T&& t)					\
   {							\
-    std::forward<T>(t)(reIm(VAL));			\
+    return						\
+      std::forward<T>(t)(reIm(VAL));			\
   }
   
   PROVIDE_REAL_OR_IMAG(real,0);
   
   PROVIDE_REAL_OR_IMAG(imag,1);
+  
+#define FOR_REIM_PARTS(NAME)		\
+  FOR_ALL_COMPONENT_VALUES(ComplId,NAME)
+  
+  /// Real component index - we cannot rely on a constexpr inline as the compiler does not propagate it correctly
+#define Re ComplId(0)
+  
+  /// Imaginary component index
+#define Im ComplId(1)
   
 #undef PROVIDE_REAL_OR_IMAG
   
@@ -220,33 +230,6 @@ namespace nissa
 	      Conjugator<std::tuple<_E>,Comps,Fund>(std::forward<_E>(e),UNIVERSAL_CONSTRUCTOR_CALL);
 	  }
       }
-  }
-  
-#define FOR_REIM_PARTS(NAME)		\
-  FOR_ALL_COMPONENT_VALUES(ComplId,NAME)
-  
-  /// Real component index - we cannot rely on a constexpr inline as the compiler does not propagate it correctly
-#define Re ComplId(0)
-  
-  /// Imaginary component index
-#define Im ComplId(1)
-  
-  /// Returns the real part, subscribing the complex component to Re value
-  template <typename _E>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-  decltype(auto) real(_E&& e)
-  {
-    return
-      e(Re);
-  }
-  
-  /// Returns the imaginary part, subscribing the complex component to Im value
-  template <typename _E>
-  CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-  decltype(auto) imag(_E&& e)
-  {
-    return
-      e(Im);
   }
 }
 

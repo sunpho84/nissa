@@ -255,7 +255,7 @@ namespace nissa
       using MaybeComplId=
 	std::conditional_t<isComplProd,CompsList<ComplId>,CompsList<>>;
       
-      Fund res;
+      Fund res{};
       setToZero(res);
       
       compsLoop<ContractedComps>([this,&allNccs,&res](const auto&..._ccs) INLINE_ATTRIBUTE
