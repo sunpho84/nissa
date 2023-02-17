@@ -24,10 +24,10 @@ namespace nissa
   DECLARE_UNTRANSPOSABLE_COMP(Parity,int,2,parity);
   DECLARE_UNTRANSPOSABLE_COMP(Dir,int,NDIM,dir);
   
-  DECLARE_UNTRANSPOSABLE_COMP(LocLxSite,int,0,locLxSite);
-  DECLARE_UNTRANSPOSABLE_COMP(LocEoSite,int,0,locEoSite);
-  DECLARE_UNTRANSPOSABLE_COMP(LocEvnSite,int,0,locEvnSite);
-  DECLARE_UNTRANSPOSABLE_COMP(LocOddSite,int,0,locOddSite);
+  DECLARE_PARALLELIZABLE_COMP(LocLxSite,int,locLxSite);
+  DECLARE_PARALLELIZABLE_COMP(LocEoSite,int,locEoSite);
+  DECLARE_PARALLELIZABLE_COMP(LocEvnSite,int,locEvnSite);
+  DECLARE_PARALLELIZABLE_COMP(LocOddSite,int,locOddSite);
   
   /// Specifies the order of components
   template <typename TP,
@@ -96,8 +96,8 @@ namespace nissa
     
 #undef THIS
     
-    /// Importing assignment operator from BaseTens
-    using Base::operator=;
+    // /// Importing assignment operator from BaseTens
+    // using Base::operator=;
     
     /// Aassign from another expression
     template <typename O>
@@ -365,6 +365,56 @@ namespace nissa
     /// Return whether can be assigned at compile time
     static constexpr bool canAssignAtCompileTime=
       not std::is_const_v<Fund>;
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Computes the squared norm, overloading default expression
+    Fund norm2() const
+    {
+      Field2<CompsList<>,_Fund,FC,FL,MT> buf;
+      
+      PAR(0,this->nSites(),
+	  CAPTURE(t=this->getReadable(),
+		  TO_WRITE(buf)),
+	  site,
+	  {
+	    buf(site)=t(site).norm2();
+	  });
+      
+      Fund res;
+      glb_reduce(&res,buf,this->nSites()());
+      
+      return res;
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    void locReduce()
+    {
+      const Site nOri=nSites();
+      Site n=nSites();
+      //verbosity_lv2_master_printf("n: %d, nori: %d\n",n(),nOri());
+      
+      while(n>1)
+	{
+	  const Site stride=(n+1)/2;
+	  const Site nReductions=n/2;
+	  //verbosity_lv3_master_printf("n: %d, stride: %d, nreductions: %d \n",n(),stride(),nReductions());
+	  
+	  PAR(0,nReductions,
+	      CAPTURE(stride,
+		      t=this->getWritable()),
+	      iReduction,
+	      {
+		const Site first=iReduction;
+		const Site second=first+stride;
+		
+		t(first)=t(first)+t(second);
+	      });
+	  
+	  n=stride;
+	}
+    }
     
     /////////////////////////////////////////////////////////////////
     

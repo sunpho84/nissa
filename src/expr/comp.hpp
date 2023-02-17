@@ -79,6 +79,28 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  PROVIDE_FEATURE(ParallelizableComp);
+  
+#define DECLARE_PARALLELIZABLE_COMP(NAME,TYPE,FACTORY)		\
+  struct NAME :							\
+    BaseComp<NAME,TYPE,0>,					\
+    ParallelizableCompFeat<NAME>,				\
+    UntransposableCompFeat<NAME>				\
+  {								\
+    using Base=							\
+      BaseComp<NAME,						\
+      TYPE,							\
+      0>;							\
+								\
+    using Base::Base;						\
+								\
+    using Transp=NAME;						\
+  };								\
+								\
+  DECLARE_COMPONENT_FACTORY(FACTORY,NAME)
+  
+  /////////////////////////////////////////////////////////////////
+  
   /// Predicate if a certain component has known size at compile time
   template <typename T>
   struct SizeIsKnownAtCompileTime

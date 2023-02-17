@@ -221,8 +221,24 @@ namespace nissa
     PROVIDE_SUBSCRIBE(/* non const */);
     
 #undef PROVIDE_SUBSCRIBE
+    
+    /// Computes the squared norm
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    auto norm2() const
+    {
+      std::decay_t<typename T::Fund> s2=0.0;
+      
+      compsLoop<typename T::Comps>([t=this->getReadable(),
+				    &s2] // CUDA_DEVICE // seems to be making conflict...
+				   (const auto&...c) INLINE_ATTRIBUTE
+      {
+	s2+=sqr(t(c...));
+      },(*this)->getDynamicSizes());
+      
+      return s2;
+    }
   };
-
+  
 #define PROVIDE_CATCH_OP_WITH_ARITHMETIC(OP)				\
 									\
   /* Catch operator OP between a node and an arithmetic type */		\

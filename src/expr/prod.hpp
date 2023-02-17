@@ -21,7 +21,7 @@
 
 namespace nissa
 {
-    /// Product component deducer
+  /// Product component deducer
   ///
   /// Takes as argument the components of the first factor, the
   /// components of the second factor, and puts in the output the
