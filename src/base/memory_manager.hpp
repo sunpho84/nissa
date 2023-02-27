@@ -303,8 +303,11 @@ namespace nissa
       master_printf("Starting the memory manager\n");
     }
     
+    /// Base destructor
+    virtual ~MemoryManager() =default;
+    
     /// Destruct the memory manager
-    virtual ~MemoryManager()
+    void destroy()
     {
       master_printf("Stopping the memory manager\n");
       
@@ -346,6 +349,12 @@ namespace nissa
       verbosity_lv3_master_printf("Freeing from CPU memory %p\n",ptr);
       free(ptr);
     }
+    
+    /// Destruct calling common procedure
+    ~CPUMemoryManager()
+    {
+      destroy();
+    }
   };
   
   EXTERN_MEMORY_MANAGER MemoryManager* cpuMemoryManager;
@@ -380,6 +389,12 @@ namespace nissa
       master_printf("Freeing from GPU memory %p\n",ptr);
       decript_cuda_error(cudaFree(ptr),"Freeing from GPU");
     }
+    
+    /// Destruct calling common procedure
+    ~GPUMemoryManager()
+    {
+      destroy();
+    }
   };
   
   EXTERN_MEMORY_MANAGER MemoryManager* gpuMemoryManager;
@@ -389,7 +404,7 @@ namespace nissa
   template <MemoryType MT>
   inline MemoryManager* memoryManager()
   {
-    switch (MT)
+    switch(MT)
       {
       case MemoryType::CPU:
 	return cpuMemoryManager;
