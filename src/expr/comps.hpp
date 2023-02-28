@@ -19,12 +19,6 @@ namespace nissa
   using OfComps=
     CompsList<Tc...>;
   
-  /// Determine whether the component list is transposible
-  template <typename...C>
-  inline
-  constexpr bool compsAreTransposable=
-    (isTransposableComp<C> and...);
-  
   /////////////////////////////////////////////////////////////////
   
   namespace impl

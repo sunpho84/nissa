@@ -7,6 +7,10 @@
 
 /// \file expr/nodes/transp.hpp
 
+//#include <typeinfo>
+
+//#include <routines/ios.hpp>
+
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
 #include <expr/node.hpp>
@@ -173,7 +177,7 @@ namespace nissa
   decltype(auto) transp(_E&& e)
   {
 #if 0
-    LOGGER<<"Now inside transp";
+    master_printf("Now inside transp\n");
 #endif
     
     /// Base passed type
@@ -184,14 +188,17 @@ namespace nissa
       return e.template subNode<0>;
     else
       {
+	using ArgComps=
+	  typename E::Comps;
+	
 	/// Components
 	using Comps=
-	  TranspMatrixTensorComps<typename E::Comps>;
+	  TranspMatrixTensorComps<ArgComps>;
 	
-	if constexpr(not compsAreTransposable<Comps>)
+	if constexpr(std::is_same_v<Comps,ArgComps>)
 	  {
 #if 0
-	    LOGGER<<"no need to transpose, returning the argument, which is "<<&e<<" "<<demangle(typeid(_E).name())<<(std::is_lvalue_reference_v<decltype(e)>?"&":(std::is_rvalue_reference_v<decltype(e)>?"&&":""));
+	    master_printf("no need to transpose, returning the argument, which is %p %s %s",&e,typeid(_E).name(),(std::is_lvalue_reference_v<decltype(e)>?"&":(std::is_rvalue_reference_v<decltype(e)>?"&&":"")));
 #endif
 	    
 	    return RemoveRValueReference<_E>(e);
