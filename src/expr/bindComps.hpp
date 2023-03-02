@@ -5,12 +5,9 @@
 # include <config.hpp>
 #endif
 
-/// \file expr/nodes/bindComps.hpp
-
 #include <expr/comps.hpp>
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/exprRefOrVal.hpp>
-// #include <expr/assign/executionSpace.hpp>
 #include <expr/nodeDeclaration.hpp>
 #include <expr/scalar.hpp>
 #include <expr/subNodes.hpp>
@@ -73,21 +70,31 @@ namespace nissa
     /// Bound type
     using BoundExpr=SubNode<0>;
     
-    /// Holds the bound expression
-    BoundExpr& boundExpr=SUBNODE(0);
+#define PROVIDE_BOUND_EXPR(ATTRIB)		\
+    /*! Returns the bound expression */		\
+    ATTRIB BoundExpr& boundExpr() ATTRIB	\
+    {						\
+      return SUBNODE(0);			\
+    }
+    
+    PROVIDE_BOUND_EXPR(/* non const */);
+    
+    PROVIDE_BOUND_EXPR(const);
+    
+#undef PROVIDE_BOUND_EXPR
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     const auto getDynamicSizes() const
     {
-      return tupleGetSubset<typename CompsBinder::DynamicComps>(boundExpr.getDynamicSizes());
+      return tupleGetSubset<typename CompsBinder::DynamicComps>(boundExpr().getDynamicSizes());
     }
     
     /// Returns whether can assign
     INLINE_FUNCTION
     bool canAssign()
     {
-      return boundExpr.canAssign();
+      return boundExpr().canAssign();
     }
     
     /// This is a lightweight object
@@ -165,7 +172,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return boundExpr.getRef()(std::get<Bc>(boundComps)...);	\
+      return boundExpr().getRef()(std::get<Bc>(boundComps)...);	\
     }
     
     PROVIDE_GET_REF(const);
@@ -182,7 +189,7 @@ namespace nissa
     decltype(auto) eval(const U&...cs) ATTRIB				\
     {									\
       return								\
-	boundExpr.eval(std::get<Bc>(boundComps)...,cs...);		\
+	boundExpr().eval(std::get<Bc>(boundComps)...,cs...);		\
     }
     
     PROVIDE_EVAL(const);

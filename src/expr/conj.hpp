@@ -96,7 +96,7 @@ namespace nissa
     /// Type of the conjugated expression
     using ConjExpr=SubNode<0>;
     
-    /// Conjugated 
+    /// Conjugated
     SubNode<0>& conjExpr=SUBNODE(0);
     
     /// Returns the dynamic sizes
@@ -181,7 +181,7 @@ namespace nissa
 	std::get<ComplId>(std::make_tuple(td...));
       
       /// Nested result
-      decltype(auto) nestedRes=
+      const Fund nestedRes=
 	SUBNODE(0)(td...);
       
       if(reIm==0)

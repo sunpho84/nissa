@@ -133,7 +133,7 @@ namespace nissa
 #undef PROVIDE_EVAL
     
     /// We keep referring to the original object
-    static constexpr bool storeByRef=true;
+    static constexpr bool storeByRef=not IsRef;
     
     /// Allocate the storage
     template <bool B=IsRef,

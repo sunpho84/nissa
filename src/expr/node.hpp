@@ -158,6 +158,7 @@ namespace nissa
     {
       return (*this)->getRef();
     }
+    
     /// Returns the expression as a dynamic tensor
     auto fillDynamicTens() const;
     
@@ -192,7 +193,7 @@ namespace nissa
       using ResidualComps=						\
 	TupleFilterAllTypes<Comps,SubsComps>;				\
       									\
-      ATTRIB auto& t=DE_CRTPFY(ATTRIB T,this);				\
+      decltype(auto) t=DE_CRTPFY(ATTRIB T,this);			\
       									\
       if constexpr(std::tuple_size_v<ResidualComps> ==0)		\
 	return t.eval(*cs...);						\
