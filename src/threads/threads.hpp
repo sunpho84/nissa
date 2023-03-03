@@ -18,7 +18,7 @@
   for(auto i=MIN;i<MAX;i++)			\
     F(i)
 
-#ifdef HAVE_OPENMP
+#if THREADS_TYPE == OPENMP_THREADS
 
 namespace nissa
 {
