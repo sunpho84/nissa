@@ -18,6 +18,7 @@
   for(auto i=MIN;i<MAX;i++)			\
     F(i)
 
+
 #if THREADS_TYPE == OPENMP_THREADS
 
 namespace nissa
@@ -56,7 +57,38 @@ namespace nissa
 
 #else
 
-# define THREADS_PARALLEL_LOOP(ARGS...) SERIAL_LOOP(ARGS)
+namespace nissa
+{
+  template <typename IMin,
+        typename IMax,
+        typename F>
+  INLINE_FUNCTION
+  void serialFor(const int line,
+             const char* file,
+             const IMin min,
+             const IMax max,
+             F&& f)
+  {
+    double initTime=0;
+    extern int rank,verbosity_lv;
+    const bool print=(verbosity_lv>=1// 2
+              and rank==0);
+    if(print)
+      {
+    printf("at line %d of file %s launching serial loop [%d,%d)\n",
+       line,file,(int)min,(int)max);
+    initTime=take_time();
+      }
+
+    for(int i=min;i<(int)max;i++)
+      f(IMax(i));
+
+    if(print)
+      printf(" finished in %lg s\n",take_time()-initTime);
+  }
+}
+
+# define THREADS_PARALLEL_LOOP(ARGS...) serialFor(__LINE__,__FILE__,ARGS)
 
 #endif
 
@@ -118,7 +150,7 @@ namespace nissa
 
 #else
 
-# define CUDA_PARALLEL_LOOP(ARGS...) SERIAL_LOOP(ARGS)
+# define CUDA_PARALLEL_LOOP(ARGS...) serialFor(__LINE__,__FILE__,ARGS)
 
 #endif
 

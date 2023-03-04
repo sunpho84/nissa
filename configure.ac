@@ -120,8 +120,8 @@ AX_OPENMP
 
 #cuda
 AX_CHECK_CUDA
-AM_CONDITIONAL([USE_CUDA],[test "$CXX" == "nvcc"])
-if test "$CXX" == "nvcc"
+AM_CONDITIONAL([USE_CUDA],[test "$(basename $CXX)" == "nvcc"])
+if test "$(basename $CXX)" == "nvcc"
 then
 	AC_DEFINE([USE_CUDA],1,"Using CUDA")
 fi

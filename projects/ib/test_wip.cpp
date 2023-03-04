@@ -63,26 +63,26 @@ void in_main(int narg,char **arg)
   }
   verbosity_lv=1;
   
-  crash("");
-  
-  auto u=mergedComp<CompsList<Spin,ComplId>>(0);
-  
-  /////////////////////////////////////////////////////////////////
-  
-  master_printf("allocated in %p\n",conf._data);
-  {
-    auto c=conf.getWritable();
-    master_printf("allocated in %p\n",c._data);
-    double& e=c[locVol-1][3][2][2][1];
-    master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2-1);
-  }
-  
-  PAR(0,locVol,
-      CAPTURE(TO_WRITE(conf)),
-      ivol,
-      {
-	su3_put_to_id(conf[ivol][0]);
-      });
+//  crash("");
+//  
+//  auto u=mergedComp<CompsList<Spin,ComplId>>(0);
+//  
+//  /////////////////////////////////////////////////////////////////
+//  
+//  master_printf("allocated in %p\n",conf._data);
+//  {
+//    auto c=conf.getWritable();
+//    master_printf("allocated in %p\n",c._data);
+//    double& e=c[locVol-1][3][2][2][1];
+//    master_printf("end: %p, should be %p\n",&e,c._data+locVol*4*3*3*2-1);
+//  }
+//  
+//  PAR(0,locVol,
+//      CAPTURE(TO_WRITE(conf)),
+//      ivol,
+//      {
+//	su3_put_to_id(conf[ivol][0]);
+//      });
   
   // start_loc_rnd_gen(235235);
   
