@@ -70,11 +70,12 @@ namespace nissa
     /// Bound type
     using BoundExpr=SubNode<0>;
     
-#define PROVIDE_BOUND_EXPR(ATTRIB)		\
-    /*! Returns the bound expression */		\
-    ATTRIB BoundExpr& boundExpr() ATTRIB	\
-    {						\
-      return SUBNODE(0);			\
+#define PROVIDE_BOUND_EXPR(ATTRIB)			\
+    /*! Returns the bound expression */			\
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
+    ATTRIB BoundExpr& boundExpr() ATTRIB		\
+    {							\
+      return SUBNODE(0);				\
     }
     
     PROVIDE_BOUND_EXPR(/* non const */);

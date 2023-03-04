@@ -14,6 +14,11 @@
 #define TO_WRITE(A) A=A.getWritable()
 #define CAPTURE(A...) A
 
+#define SERIAL_LOOP(MIN,MAX,F...)		\
+  for(auto i=MIN;i<MAX;i++)			\
+    F(i)
+
+
 #if THREADS_TYPE == OPENMP_THREADS
 
 namespace nissa
