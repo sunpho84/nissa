@@ -13,8 +13,8 @@
 #include "new_types/complex.hpp"
 #include "routines/mpi_routines.hpp"
 
-#if THREADS_TYPE == OPENMP_THREADS
- #include <omp.h>
+#ifdef USE_OPENMP
+# include <omp.h>
 #endif
 
 #ifndef EXTERN_IOS
@@ -89,7 +89,7 @@ namespace nissa
   template <class T> T master_fscan(FILE *stream,const char *tag)
   {
     int thread_id=
-#if THREADS_TYPE == OPENMP_THREADS
+#ifdef USE_OPENMP
       omp_get_thread_num()
 #else
       0

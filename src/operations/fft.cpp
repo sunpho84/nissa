@@ -365,13 +365,14 @@ namespace nissa
 	    remap_lx_vector_to_locd(buf,out,ncpp*sizeof(complex),mu);
 	    
 	    //makes all the fourier transform
-	    HOST_PARALLEL_LOOP(0,locd_perp_size_per_dir[mu],
-			       CAPTURE(plans,idir,buf,mu,ncpp),ioff,
-				{
-				  fftw_execute_dft(plans[idir],buf+ioff*glbSize[mu]*ncpp,buf+ioff*glbSize[mu]*ncpp);
-				});
+	    crash("reimplement");
+	    // HOST_PARALLEL_LOOP(0,locd_perp_size_per_dir[mu],
+	    // 		       CAPTURE(plans,idir,buf,mu,ncpp),ioff,
+	    // 			{
+	    // 			  fftw_execute_dft(plans[idir],buf+ioff*glbSize[mu]*ncpp,buf+ioff*glbSize[mu]*ncpp);
+	    // 			});
 	    
-	    remap_locd_vector_to_lx(out,buf,ncpp*sizeof(complex),mu);
+	    // remap_locd_vector_to_lx(out,buf,ncpp*sizeof(complex),mu);
 	  }
 	
 	//destroy plans
@@ -380,14 +381,15 @@ namespace nissa
 	//put normaliisation
 	if(normalize)
 	  {
-	    double norm=glbSize[list_dirs[0]];
-	    for(int idir=1;idir<ndirs;idir++) norm*=glbSize[idir];
-	    PAR(0,locVol*ncpp,
-		CAPTURE(out,norm),
-		i,
-		{
-		  complex_prodassign_double(out[i],1/norm);
-		});
+	    crash("reimplement");
+	    // double norm=glbSize[list_dirs[0]];
+	    // for(int idir=1;idir<ndirs;idir++) norm*=glbSize[idir];
+	    // PAR(0,locVol*ncpp,
+	    // 	CAPTURE(out,norm),
+	    // 	i,
+	    // 	{
+	    // 	  complex_prodassign_double(out[i],1/norm);
+	    // 	});
 	  }
 	
 	nissa_free(buf);

@@ -62,7 +62,7 @@ namespace nissa
 //     int is_increasing=1;
 //     double old_eig_max;
     
-// #if THREADS_TYPE == CUDA_THREADS
+// #if USE_CUDA
 //     const char DOE_TEST[]="DOE_TEST";
 //     if(getenv(DOE_TEST)!=NULL)
 //       {

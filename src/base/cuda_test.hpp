@@ -9,7 +9,7 @@
 #include <new_types/su3.hpp>
 #include <routines/ios.hpp>
 
-#if THREADS_TYPE == CUDA_THREADS
+#ifdef USE_CUDA
 
 namespace nissa
 {
