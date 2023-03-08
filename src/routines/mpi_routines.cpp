@@ -52,10 +52,10 @@ namespace nissa
   {
 #ifdef USE_MPI
     
- #if THREADS_TYPE != NO_THREADS
+# ifdef USE_OPENMP
     int provided;
     MPI_Init_thread(&narg,&arg,MPI_THREAD_SERIALIZED,&provided);
- #else
+# else
     MPI_Init(&narg,&arg);
  #endif
 #endif

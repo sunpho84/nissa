@@ -159,7 +159,7 @@ namespace nissa
 #define ALLOCATING_ERROR						\
     "could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) " \
       "request on line %d of file %s",tag,nel,type,size,line,file
-#if THREADS_TYPE==CUDA_THREADS
+#ifdef USE_CUDA
     decript_cuda_error(cudaMallocManaged(&nv,tot_size),ALLOCATING_ERROR);
 #else
     nv=(nissa_vect*)malloc(tot_size);
@@ -274,7 +274,7 @@ namespace nissa
 	required_memory-=(vect->size_per_el*vect->nel);
 	
 	//really free
-#if THREADS_TYPE == CUDA_THREADS
+#ifdef USE_CUDA
 	decript_cuda_error(cudaFree(vect),"freeing the memory for vector");
 #else
 	free(vect);

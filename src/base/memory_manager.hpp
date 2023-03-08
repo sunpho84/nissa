@@ -10,7 +10,7 @@
 #include <cstdint>
 
 #ifdef USE_CUDA
- #include <cuda_runtime.h>
+# include <cuda_runtime.h>
 #endif
 
 #ifndef EXTERN_MEMORY_MANAGER
