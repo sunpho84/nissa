@@ -289,7 +289,7 @@ namespace nissa
 //     if(nrect!=irect) crash("expected %d rects, obtained %d",nrect,irect);
 //     for(int imu01=0;imu01<12;imu01++) nissa_free(transp_conf[imu01]);
     
-// #if THREADS_TYPE == OPENMP_THREADS
+// #ifdef USE_OPENMP
 //     if(nthreads>1)
 //       if(IS_MASTER_THREAD)
 // 	for(int other_thread=1;other_thread<nthreads;other_thread++)

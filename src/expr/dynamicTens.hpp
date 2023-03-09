@@ -118,11 +118,27 @@ namespace nissa
       return storage!=nullptr;
     }
     
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    void assertCorrectMemorySpace() const
+    {
+#ifdef USE_CUDA
+# ifdef COMPILING_FOR_DEVICE
+      if constexpr(MT==MemoryType::CPU)
+	crash("Cannot evaluate on CPU");
+# else
+      if constexpr(MT==MemoryType::GPU)
+	crash("Cannot evaluate on GPU");
+# endif
+#endif
+    }
+    
 #define PROVIDE_EVAL(CONST_ATTRIB)					\
     template <typename...U>						\
     CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION			\
     CONST_ATTRIB Fund& eval(const U&...cs) CONST_ATTRIB			\
     {									\
+      assertCorrectMemorySpace();					\
+      									\
       return storage[orderedIndex<C...>(dynamicSizes,cs...)];		\
     }
     

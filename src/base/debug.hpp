@@ -6,10 +6,10 @@
 #endif
 
 #ifndef EXTERN_DEBUG
- #define EXTERN_DEBUG extern
- #define INIT_DEBUG_TO(var)
+# define EXTERN_DEBUG extern
+# define INIT_DEBUG_TO(var)
 #else
- #define INIT_DEBUG_TO(var) =var
+# define INIT_DEBUG_TO(var) =var
 #endif
 
 #ifdef USE_CUDA

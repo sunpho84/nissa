@@ -26,4 +26,16 @@ AC_DEFUN([AX_OPENMP], [
 		      	 AC_DEFINE([HAVE_OPENMP],1,"Define to 1 if you have OpenMP support")
 		      fi		      
 		      
+		      if test "$enable_openmp" != no
+		      then
+			if test "$have_openmp" != yes
+			then
+				AC_MSG_ERROR(["Asked to enable OpenMP when the compiler is not supporting it"])
+			fi
+		      	 AC_DEFINE([USE_OPENMP],1,"Define to 1 if enabling OpenMP support")
+			 CFLAGS="$CFLAGS $OPENMP_CFLAGS"
+			 CPPFLAGS="$CPPFLAGS $OPENMP_CPPFLAGS"
+			 CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+		      fi		      
+		      
 		      AC_MSG_RESULT([checking for OpenMP... ${have_openmp}])])
