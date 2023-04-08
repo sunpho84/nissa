@@ -21,8 +21,16 @@ namespace nissa
   std::vector<MPI_Request> startBufHaloNeighExchange(const int& divCoeff,
 						     const size_t& bps);
   
-  DECLARE_UNTRANSPOSABLE_COMP(Parity,int,2,parity);
-  DECLARE_UNTRANSPOSABLE_COMP(Dir,int,NDIM,dir);
+  DECLARE_UNTRANSPOSABLE_COMP(Parity,int,2,createParity);
+  DECLARE_UNTRANSPOSABLE_COMP(Dir,int,NDIM,createDir);
+  
+  DECLARE_UNTRANSPOSABLE_COMP(Ori,int,2,createOri);
+  
+  /// Backward, see real imag comment
+#define bw Ori(0)
+  
+  /// Forward
+#define fw Ori(1)
   
   DECLARE_PARALLELIZABLE_COMP(LocLxSite,int,locLxSite);
   DECLARE_PARALLELIZABLE_COMP(LocEoSite,int,locEoSite);

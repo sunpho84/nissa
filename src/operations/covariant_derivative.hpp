@@ -181,21 +181,21 @@ namespace nissa
 	      {
 		int ifw=loclxNeighup[ivol][mu];
 		int ibw=loclxNeighdw[ivol][mu];
-		spincolor fw,bw;
-		unsafe_su3_prod_spincolor(fw,conf[ivol][mu],in[ifw]);
-		unsafe_su3_dag_prod_spincolor(bw,conf[ibw][mu],in[ibw]);
-		spincolor_prodassign_complex(fw,fact_fw);
-		spincolor_prodassign_complex(bw,fact_bw);
+		spincolor fws,bws;
+		unsafe_su3_prod_spincolor(fws,conf[ivol][mu],in[ifw]);
+		unsafe_su3_dag_prod_spincolor(bws,conf[ibw][mu],in[ibw]);
+		spincolor_prodassign_complex(fws,fact_fw);
+		spincolor_prodassign_complex(bws,fact_bw);
 		complex fw_curr,bw_curr;
 		
 		currCalc(fw_curr,ivol,mu,1.0);
 		currCalc(bw_curr,ibw,mu,-1.0);
 		
-		spincolor_prodassign_complex(fw,fw_curr);
-		spincolor_prodassign_complex(bw,bw_curr);
+		spincolor_prodassign_complex(fws,fw_curr);
+		spincolor_prodassign_complex(bws,bw_curr);
 		spincolor bw_M_fw, bw_P_fw;
-		spincolor_subt(bw_M_fw, bw, fw);
-		spincolor_summ(bw_P_fw, bw, fw);
+		spincolor_subt(bw_M_fw, bws, fws);
+		spincolor_summ(bw_P_fw, bws, fws);
 		spincolor GAMMA_bw_P_fw;
 		unsafe_dirac_prod_spincolor(GAMMA_bw_P_fw, GAMMA, bw_P_fw);
 		spincolor_summassign(out[ivol], GAMMA_bw_P_fw);

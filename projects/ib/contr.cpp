@@ -771,7 +771,7 @@ namespace nissa
 	handcuffs_side_map_t &h=handcuffs_side_map[iside];
 	std::string side_name=h.name;
 	
-        normSides.insert({side_name,Q[h.fw].ori_source_norm2*Q[h.bw].ori_source_norm2});
+        normSides.insert({side_name,Q[h.fws].ori_source_norm2*Q[h.bws].ori_source_norm2});
 	
 	sides[side_name]=new LxField<spin1field>(side_name.c_str());
 	LxField<spin1field>& si=*sides[side_name];
@@ -779,8 +779,8 @@ namespace nissa
 	
 	//check r are the same (that is, opposite!)
 	if(twisted_run and (not loc_hadr_curr)) {
-	  if(Q[h.fw].r==Q[h.bw].r and (not Q[h.bw].is_source))
-	    crash("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fw.c_str(),h.bw.c_str());
+	  if(Q[h.fws].r==Q[h.bws].r and (not Q[h.bws].is_source))
+	    crash("conserved current needs opposite r (before reverting), but quarks %s and %s have the same",h.fws.c_str(),h.bws.c_str());
 	}
 	
 	//compute dirac combo
@@ -793,7 +793,7 @@ namespace nissa
 	g=base_gamma[ig];
 	
 	//compute the matrix element
-	local_or_conserved_vector_current_mel(si,g,h.bw,h.fw,revert);
+	local_or_conserved_vector_current_mel(si,g,h.bws,h.fws,revert);
 	
 	//if(h.store) store_spin1field(combine("%s/handcuff_side_%s",outfolder,h.name.c_str()),si);
       }

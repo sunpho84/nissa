@@ -214,16 +214,16 @@ namespace nissa
 	    read_str(name,1024);
 	    int igamma;
 	    read_int(&igamma);
-	    char bw[1024];
-	    char fw[1024];
-	    read_str(bw,1024);
-	    read_str(fw,1024);
+	    char bws[1024];
+	    char fws[1024];
+	    read_str(bws,1024);
+	    read_str(fws,1024);
 	    int store;
 	    read_int(&store);
 	    
-	    handcuffs_side_map.push_back(handcuffs_side_map_t(name,igamma,bw,fw,store));
-	    if(Q.find(bw)==Q.end()) crash("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw);
-	    if(Q.find(fw)==Q.end()) crash("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw);
+	    handcuffs_side_map.push_back(handcuffs_side_map_t(name,igamma,bws,fws,store));
+	    if(Q.find(bws)==Q.end()) crash("for bubble \'%s\' the first propagator \'%s\' is not present",name,bw);
+	    if(Q.find(fws)==Q.end()) crash("for bubble \'%s\' the second propagator \'%s\' is not present",name,fw);
 	  }
 	
 	

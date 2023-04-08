@@ -1,0 +1,244 @@
+#ifndef _SHIFT_HPP
+#define _SHIFT_HPP
+
+#include <expr/field.hpp>
+#include <expr/node.hpp>
+#include <metaprogramming/templateEnabler.hpp>
+#include <metaprogramming/universalReference.hpp>
+#include <tuples/tupleSwapTypes.hpp>
+
+namespace nissa
+{
+  PROVIDE_DETECTABLE_AS(Shifter);
+  
+  /// Conjugator
+  ///
+  /// Forward declaration to capture the components
+  template <typename _E,
+	    typename _Comps,
+	    typename _Fund>
+  struct Shifter;
+  
+#define THIS					\
+  Shifter<std::tuple<_E...>,CompsList<C...>,_Fund>
+  
+#define BASE					\
+    Node<THIS>
+  
+  /// Shifter
+  ///
+  template <typename..._E,
+	    typename...C,
+	    typename _Fund>
+  struct THIS :
+    DynamicCompsProvider<CompsList<C...>>,
+    DetectableAsShifter,
+    SubNodes<_E...>,
+    BASE
+  {
+    /// Import the base expression
+    using Base=BASE;
+    
+    using This=THIS;
+    
+#undef BASE
+    
+#undef THIS
+    
+    IMPORT_SUBNODE_TYPES;
+    
+    /// Components
+    using Comps=
+      CompsList<C...>;
+    
+    /// Fundamental tye
+    using Fund=_Fund;
+    
+    // /// Executes where allocated
+    // static constexpr ExecSpace execSpace=
+    //   SubNode<0>::execSpace;
+    
+    /// Type of the conjugated expression
+    using ShiftedExpr=SubNode<0>;
+    
+    /// Shifted expression
+    SubNode<0>& shiftedExpr=SUBNODE(0);
+    
+    /// Returns the dynamic sizes
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    decltype(auto) getDynamicSizes() const
+    {
+      return SUBNODE(0).getDynamicSizes();
+    }
+    
+    /// Returns whether can assign
+    INLINE_FUNCTION
+    constexpr bool canAssign()
+    {
+      return ShiftedExpr::canAssign();
+    }
+    
+    /// Return whether can be assigned at compile time
+    static constexpr bool canAssignAtCompileTime=ShiftedExpr::canAssignAtCompileTime;
+    
+    /// Shift orientation
+    const Ori ori;
+    
+    /// Shift direction
+    const Dir dir;
+    
+    /// This is a lightweight object
+    static constexpr bool storeByRef=false;
+    
+    /// Import assignment operator
+    using Base::operator=;
+    
+//     /// States whether the tensor can be simdified
+//     static constexpr bool canSimdify=
+//       SubNode<0>::canSimdify and
+//       not std::is_same_v<ComplId,typename SubNode<0>::SimdifyingComp>;
+    
+//     /// Components on which simdifying
+//     using SimdifyingComp=
+//       std::conditional_t<canSimdify,typename SubNode<0>::SimdifyingComp,void>;
+    
+// #define PROVIDE_SIMDIFY(ATTRIB)					\
+//     /*! Returns a ATTRIB simdified view */			\
+//     INLINE_FUNCTION						\
+//     auto simdify() ATTRIB					\
+//     {								\
+//       return conj(SUBNODE(0).simdify());			\
+//     }
+    
+//     PROVIDE_SIMDIFY(const);
+    
+//     PROVIDE_SIMDIFY(/* non const */);
+    
+// #undef PROVIDE_SIMDIFY
+    
+    /////////////////////////////////////////////////////////////////
+    
+    //// Returns a shifter on a different expression
+    template <typename T>
+    INLINE_FUNCTION
+    decltype(auto) recreateFromExprs(T&& t) const
+    {
+      return shift(std::forward<T>(t),ori,dir);
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+#define PROVIDE_GET_REF(ATTRIB)					\
+    /*! Returns a reference */					\
+    INLINE_FUNCTION						\
+    auto getRef() ATTRIB					\
+    {								\
+      return shift(SUBNODE(0).getRef(),ori,dir);		\
+    }
+    
+    PROVIDE_GET_REF(const);
+    
+    PROVIDE_GET_REF(/* non const */);
+    
+#undef PROVIDE_GET_REF
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Evaluates a generic argument
+    template <typename T>
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    decltype(auto) argEval(T&& t) const
+    {
+      return t;
+    }
+    
+    /// Evaluates the shift of a LocLxSite
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    LocLxSite argEval(const LocLxSite& t) const
+    {
+      return loclx_neigh[1-ori()][t()][dir()];
+    }
+    
+    /// Evaluates the shift of a LocEvn site
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    LocOddSite argEval(const LocEvnSite& t) const
+    {
+      const coords_t* loceo_neigh[2]={loceo_neighup[EVN],loceo_neighdw[EVN]};
+      
+      return loceo_neigh[ori()][t()][dir()];
+    }
+    
+    /// Evaluates the shift of a LocOdd site
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    LocEvnSite argEval(const LocOddSite& t) const
+    {
+      const coords_t* loceo_neigh[2]={loceo_neighup[ODD],loceo_neighdw[ODD]};
+      
+      return loceo_neigh[ori()][t()][dir()];
+    }
+    
+    /// Evaluates the shift of a parity
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    Parity argEval(const Parity& t) const
+    {
+      return 1-t();
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    /// Evaluate
+    template <typename...TD>
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    Fund eval(const TD&...td) const
+    {
+      return shiftedExpr(argEval(td)...);
+    }
+    
+    /// Construct
+    template <typename T>
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
+    Shifter(T&& arg,
+	    const Ori& ori,
+	    const Dir& dir) :
+      SubNodes<_E...>(std::forward<T>(arg)),
+      ori(ori),
+      dir(dir)
+    {
+    }
+  };
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Create a shifter
+  template <typename _E,
+	    ENABLE_THIS_TEMPLATE_IF(isNode<_E>)>
+  decltype(auto) shift(_E&& e,
+		       const Ori& ori,
+		       const Dir& dir)
+  {
+    /// Base passed type
+    using E=
+      std::decay_t<_E>;
+    
+    using Comps=
+      typename E::Comps;
+    
+    using Fund=
+      typename E::Fund;
+    
+    if constexpr(tupleHasType<Comps,LocLxSite> or tupleHasType<Comps,LocEoSite>)
+      return Shifter<std::tuple<_E>,Comps,Fund>(std::forward<_E>(e),ori,dir);
+    else
+      if constexpr(tupleHasType<Comps,LocEvnSite> or tupleHasType<Comps,LocOddSite>)
+	{
+	  using OutComps=
+	    TupleSwapTypes<Comps,LocEvnSite,LocOddSite>;
+	  
+	  return Shifter<std::tuple<_E>,OutComps,Fund>(std::forward<_E>(e),ori,dir);
+	}
+      else
+	return e;
+  }
+}
+
+#endif

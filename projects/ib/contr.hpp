@@ -86,9 +86,9 @@ namespace nissa
   {
     std::string name;
     int igamma;
-    std::string bw,fw;
+    std::string bws,fws;
     int store;
-    handcuffs_side_map_t(std::string name,int igamma,std::string bw,std::string fw,int store) : name(name),igamma(igamma),bw(bw),fw(fw),store(store) {}
+    handcuffs_side_map_t(std::string name,int igamma,std::string bws,std::string fws,int store) : name(name),igamma(igamma),bws(bws),fws(fws),store(store) {}
   };
   EXTERN_CONTR std::vector<handcuffs_side_map_t> handcuffs_side_map;
   

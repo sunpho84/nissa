@@ -65,6 +65,7 @@
 #include <expr/indexComputer.hpp>
 #include <expr/prod.hpp>
 #include <expr/scalar.hpp>
+#include <expr/shift.hpp>
 #include <expr/stackTens.hpp>
 #include <expr/trace.hpp>
 #include <expr/transp.hpp>

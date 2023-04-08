@@ -143,8 +143,8 @@ namespace nissa
     
     /// Contract two quarks with a specific gamma
     static void undiluted_meson_contr(complex* contr,
-				      spincolor *bw,
-				      spincolor *fw,
+				      spincolor *bws,
+				      spincolor *fws,
 				      const int& igamma,
 				      const int source_coord);
     
