@@ -35,6 +35,17 @@ SUMMARY_RESULT="---"
 
 AX_ASSEMBLY_REPORT
 
+#demangle
+AC_CHECK_HEADERS([cxxabi.h])
+if test "$ac_cv_header_cxxabi_h" == "yes"
+then
+	CAN_DEMANGLE=1
+else
+	CAN_DEMANGLE=0
+fi
+AC_DEFINE_UNQUOTED([CAN_DEMANGLE],${CAN_DEMANGLE},[Enable demangling])
+AC_MSG_RESULT([can demangle... $ac_cv_header_cxxabi_h])
+
 #check if we enable fortran
 AC_ARG_ENABLE(fortran,
 	AS_HELP_STRING([--enable-fortran],[Enable fortran support]),

@@ -1,9 +1,16 @@
 #ifndef _DEBUG_HPP
 #define _DEBUG_HPP
 
+
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include <config.hpp>
 #endif
+
+#if CAN_DEMANGLE
+# include <cxxabi.h>
+#endif
+
+#include <string>
 
 #ifndef EXTERN_DEBUG
 # define EXTERN_DEBUG extern
@@ -42,8 +49,13 @@ namespace nissa
   void testEoHaloExchange();
   void testLxEdgesExchange();
   void testEoEdgesExchange();
+  
+  /// Demangle a string
+  ///
+  /// If the compiler has no abi functionality, the original string is
+  /// returned.
+  std::string demangle(const std::string& what);  ///< What to demangle
 }
-
 
 #undef EXTERN_DEBUG
 #undef INIT_DEBUG_TO
