@@ -123,7 +123,7 @@ namespace nissa
     INLINE_FUNCTION
     decltype(auto) recreateFromExprs(T&& t) const
     {
-      return shift(std::forward<T>(t),ori,dir);
+      return shift(std::forward<T>(t),ori,dir,std::bool_constant<false>{});
     }
     
     /////////////////////////////////////////////////////////////////
@@ -133,7 +133,7 @@ namespace nissa
     INLINE_FUNCTION						\
     auto getRef() ATTRIB					\
     {								\
-      return shift(SUBNODE(0).getRef(),ori,dir);		\
+      return recreateFromExprs(SUBNODE(0).getRef());		\
     }
     
     PROVIDE_GET_REF(const);
@@ -209,12 +209,35 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  template <typename T>
+  INLINE_FUNCTION
+  static void updateHaloForShift(T&& t)
+  {
+    if constexpr(isField2<T>)
+      // {
+      // 	printf("%s updating halo\n",demangle(typeid(t).name()).c_str());
+	t.updateHalo();
+      // }
+    else
+      if constexpr(hasMember_subNodes<T>)
+	{
+	  // std::apply([](auto&& s){printf("%s updating subexprs halo %s\n",demangle(typeid(t).name()).c_str(),demangle(typeid(s).name()).c_str());},t.subNodes);
+	  std::apply([](auto&& s)
+	  {
+	    updateHaloForShift(s);
+	  },t.subNodes);
+	}
+  }
+  
   /// Create a shifter
   template <typename _E,
+	    bool SyncHalo=true,
 	    ENABLE_THIS_TEMPLATE_IF(isNode<_E>)>
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
   decltype(auto) shift(_E&& e,
 		       const Ori& ori,
-		       const Dir& dir)
+		       const Dir& dir,
+		       std::bool_constant<SyncHalo> =std::bool_constant<SyncHalo>{})
   {
     /// Base passed type
     using E=
@@ -227,10 +250,15 @@ namespace nissa
       typename E::Fund;
     
     if constexpr(tupleHasType<Comps,LocLxSite> or tupleHasType<Comps,LocEoSite>)
-      return Shifter<std::tuple<_E>,Comps,Fund>(std::forward<_E>(e),ori,dir);
+      {
+	updateHaloForShift(e);
+	return Shifter<std::tuple<_E>,Comps,Fund>(std::forward<_E>(e),ori,dir);
+      }
     else
       if constexpr(tupleHasType<Comps,LocEvnSite> or tupleHasType<Comps,LocOddSite>)
 	{
+	  updateHaloForShift(e);
+	  
 	  using OutComps=
 	    TupleSwapTypes<Comps,LocEvnSite,LocOddSite>;
 	  
@@ -239,6 +267,23 @@ namespace nissa
       else
 	return e;
   }
+  
+#define PROVIDE_ORIENTED_SHIFTER(NAME,ORI)	\
+  /*! Create a shifter in ORI direction*/	\
+  template <typename E,				\
+	    ENABLE_THIS_TEMPLATE_IF(isNode<E>)>	\
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE\
+  decltype(auto) shift ## NAME(E&& e,		\
+			       const Dir& dir)	\
+  {						\
+    return shift(std::forward<E>(e),ORI,dir);	\
+  }
+  
+  PROVIDE_ORIENTED_SHIFTER(back,bw);
+  
+  PROVIDE_ORIENTED_SHIFTER(forw,fw);
+  
+#undef PROVIDE_ORIENTED_SHIFTER
 }
 
 #endif
