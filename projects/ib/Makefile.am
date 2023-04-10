@@ -1,10 +1,11 @@
 bin_PROGRAMS+= \
-	$(top_builddir)/bin/ib \
-	$(top_builddir)/bin/test_wip \
-	$(top_builddir)/bin/checks
+	$(top_builddir)/bin/test_wip
 
 assembly_reports+=\
         %D%/test_wip.s
+
+#	$(top_builddir)/bin/ib
+#	$(top_builddir)/bin/checks
 
 # $(top_builddir)/bin/checks_ib
 # $(top_builddir)/bin/EU3_source
@@ -37,17 +38,17 @@ bin_PROGRAMS+= \
  __top_builddir__bin_test_quda_LDFLAGS=$(LDFLAGS)
 endif
 
-__top_builddir__bin_checks_SOURCES=%D%/checks.cpp
-__top_builddir__bin_checks_LDADD=$(LDADD)
-__top_builddir__bin_checks_LDFLAGS=$(LDFLAGS)
+# __top_builddir__bin_checks_SOURCES=%D%/checks.cpp
+# __top_builddir__bin_checks_LDADD=$(LDADD)
+# __top_builddir__bin_checks_LDFLAGS=$(LDFLAGS)
 
 __top_builddir__bin_test_wip_SOURCES=%D%/test_wip.cpp
 __top_builddir__bin_test_wip_LDADD=$(LDADD)
 __top_builddir__bin_test_wip_LDFLAGS=$(LDFLAGS)
 
-__top_builddir__bin_ib_SOURCES=%D%/ib.cpp $(common_sources)
-__top_builddir__bin_ib_LDADD=$(LDADD)
-__top_builddir__bin_ib_LDFLAGS=$(LDFLAGS)
+# __top_builddir__bin_ib_SOURCES=%D%/ib.cpp $(common_sources)
+# __top_builddir__bin_ib_LDADD=$(LDADD)
+# __top_builddir__bin_ib_LDFLAGS=$(LDFLAGS)
 
 # __top_builddir__bin_EU3_source_SOURCES=%D%/EU3_source.cpp $(common_sources)
 # __top_builddir__bin_EU3_source_LDADD=$(LDADD)
@@ -81,3 +82,9 @@ __top_builddir__bin_ib_LDFLAGS=$(LDFLAGS)
 # __top_builddir__bin_check_fftw_SOURCES=%D%/check_fftw.cpp
 # __top_builddir__bin_check_fftw_ib_LDADD=$(LDADD)
 # __top_builddir__bin_check_fftw_LDFLAGS=$(LDFLAGS)
+
+#generate assembly report if asked
+if ASSEMBLY_REPORT
+BUILT_SOURCES+=$(assembly_reports)
+CLEANFILES+=$(assembly_reports)
+endif
