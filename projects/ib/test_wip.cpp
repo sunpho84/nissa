@@ -14,16 +14,8 @@ using namespace nissa;
 //   return res;
 // }
 
-DECLARE_TRANSPOSABLE_COMP(Spin,int,4,spin);
-
-void testPar(EoField2<OfComps<SpinRow>,double>& f,
-	     const LocEoSite& locEo,
-	     const SpinRow& spinRow)
-{
-  ASM_BOOKMARK_BEGIN("testPar");
-  f(parity(0),locEo,spinRow)=9.9;
-  ASM_BOOKMARK_END("testPar");
-}
+DECLARE_TRANSPOSABLE_COMP(Spin,int,NDIRAC,spin);
+DECLARE_TRANSPOSABLE_COMP(Color,int,NCOL,color);
 
 void in_main(int narg,char **arg)
 {

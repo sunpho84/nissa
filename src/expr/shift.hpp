@@ -81,6 +81,17 @@ namespace nissa
     /// Return whether can be assigned at compile time
     static constexpr bool canAssignAtCompileTime=ShiftedExpr::canAssignAtCompileTime;
     
+    /// Describe a shifter
+    void describe(const std::string pref="") const
+    {
+      master_printf("%sShifter %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
+      master_printf("%s Orientation: %d\n",pref.c_str(),ori());
+      master_printf("%s Direction: %d\n",pref.c_str(),dir());
+      master_printf("%s Shifted quantity %s, description:\n",pref.c_str(),demangle(typeid(SubNode<0>).name()).c_str());
+      SUBNODE(0).describe(pref+" ");
+      master_printf("%sEnd of shifter\n",pref.c_str());
+    }
+    
     /// Shift orientation
     const Ori ori;
     

@@ -374,6 +374,21 @@ namespace nissa
     static constexpr bool canAssignAtCompileTime=
       not std::is_const_v<Fund>;
     
+    /// Describe a field2
+    void describe(const std::string& pref="") const
+    {
+      master_printf("%sField2 %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
+      master_printf("%s Components:\n",pref.c_str());
+      (master_printf("%s  %s\n",pref.c_str(),demangle(typeid(C).name()).c_str()),...);
+      master_printf("%s Site type: %s\n",pref.c_str(),demangle(typeid(decltype(this->nSites())).name()).c_str());
+      master_printf("%s Fund: %s\n",pref.c_str(),demangle(typeid(_Fund).name()).c_str());
+      master_printf("%s FieldCoverage: %d\n",pref.c_str(),FC);
+      master_printf("%s FieldLayout: %d\n",pref.c_str(),FL);
+      master_printf("%s MemoryType: %d\n",pref.c_str(),MT);
+      master_printf("%s FieldLayout: %d\n",pref.c_str(),FL);
+      master_printf("%s IsRef: %d\n",pref.c_str(),IsRef);
+      master_printf("%sEnd of Field2\n",pref.c_str());
+    }
     /////////////////////////////////////////////////////////////////
     
     /// Computes the squared norm, overloading default expression

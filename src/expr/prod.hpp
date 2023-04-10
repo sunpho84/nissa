@@ -15,9 +15,10 @@
 #include <expr/subNodes.hpp>
 #include <metaprogramming/arithmeticTraits.hpp>
 //#include <metaprogramming/asConstexpr.hpp>
+#include <metaprogramming/asConstexpr.hpp>
+#include <routines/ios.hpp>
 #include <tuples/tupleCat.hpp>
 #include <tuples/uniqueTupleFromTuple.hpp>
-#include <metaprogramming/asConstexpr.hpp>
 
 namespace nissa
 {
@@ -155,6 +156,17 @@ namespace nissa
     
     /// Return whether can be assigned at compile time
     static constexpr bool canAssignAtCompileTime=false;
+    
+    /// Describe the producer
+    void describe(const std::string pref="") const
+    {
+      master_printf("%sProducer %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
+      master_printf("%s First factor %s, description:\n",pref.c_str(),demangle(typeid(SubNode<0>).name()).c_str());
+      SUBNODE(0).describe(pref+" ");
+      master_printf("%s Second factor %s, description:\n",pref.c_str(),demangle(typeid(SubNode<1>).name()).c_str());
+      SUBNODE(1).describe(pref+" ");
+      master_printf("%sEnd of producer\n",pref.c_str());
+    }
     
 //     template <int I>
 //     using SimdifyingCompOfSubNode=

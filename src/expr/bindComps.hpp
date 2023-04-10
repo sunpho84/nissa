@@ -13,6 +13,7 @@
 #include <expr/subNodes.hpp>
 #include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/templateEnabler.hpp>
+#include <routines/ios.hpp>
 #include <tuples/tupleFilter.hpp>
 #include <tuples/tupleHasType.hpp>
 
@@ -118,6 +119,21 @@ namespace nissa
     /// Return whether can be assigned at compile time
     static constexpr bool canAssignAtCompileTime=
       BoundExpr::canAssignAtCompileTime;
+    
+    /// Describe a binder
+    void describe(const std::string& pref="") const
+    {
+      master_printf("%sBinder %s address %p\n",pref.c_str(),demangle(typeid(*this).name()).c_str(),this);
+      master_printf("%s Bound components:\n",pref.c_str());
+      std::apply([&pref](auto&& t)
+      {
+	master_printf("%s %s val %d\n",pref.c_str(),demangle(typeid(t).name()).c_str(),t());
+	
+      },boundComps);
+      master_printf("%s Bound quantity %s, is ref: %d description:\n",pref.c_str(),demangle(typeid(SubNode<0>).name()).c_str(),std::is_reference_v<std::tuple_element_t<0,std::tuple<_E...>>>);
+      SUBNODE(0).describe(pref+" ");
+      master_printf("%sEnd of binder\n",pref.c_str());
+    }
     
     // /// States whether the tensor can be simdified
     // static constexpr bool canSimdify=
