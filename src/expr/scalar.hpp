@@ -93,6 +93,12 @@ namespace nissa
       value(value)
     {
     }
+    
+    /// Cast to fundamental
+    operator const Fund&() const
+    {
+      return value;
+    }
   };
   
   /// Creates a scalar
