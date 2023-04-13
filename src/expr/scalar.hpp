@@ -95,6 +95,7 @@ namespace nissa
     }
     
     /// Cast to fundamental
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     operator const Fund&() const
     {
       return value;

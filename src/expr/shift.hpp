@@ -60,9 +60,20 @@ namespace nissa
     
     /// Type of the conjugated expression
     using ShiftedExpr=SubNode<0>;
+
+#define PROVIDE_SHIFTED_EXPR(ATTRIB)			\
+    /*! Returns the shifted expression */		\
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
+    ATTRIB SubNode<0>& shiftedExpr() ATTRIB		\
+    {							\
+      return SUBNODE(0);				\
+    }
     
-    /// Shifted expression
-    SubNode<0>& shiftedExpr=SUBNODE(0);
+    PROVIDE_SHIFTED_EXPR(const);
+    
+    PROVIDE_SHIFTED_EXPR(/* non const */);
+    
+#undef PROVIDE_SHIFTED_EXPR
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
@@ -202,7 +213,7 @@ namespace nissa
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
     Fund eval(const TD&...td) const
     {
-      return shiftedExpr(argEval(td)...);
+      return shiftedExpr()(argEval(td)...);
     }
     
     /// Construct
@@ -244,7 +255,7 @@ namespace nissa
   template <typename _E,
 	    bool SyncHalo=true,
 	    ENABLE_THIS_TEMPLATE_IF(isNode<_E>)>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+  INLINE_FUNCTION constexpr
   decltype(auto) shift(_E&& e,
 		       const Ori& ori,
 		       const Dir& dir,

@@ -96,8 +96,19 @@ namespace nissa
     /// Type of the conjugated expression
     using ConjExpr=SubNode<0>;
     
-    /// Conjugated
-    SubNode<0>& conjExpr=SUBNODE(0);
+#define PROVIDE_CONJ_EXPR(ATTRIB)			\
+    /*! Returns the conj expression */		\
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
+    ATTRIB SubNode<0>& conjExpr() ATTRIB		\
+    {							\
+      return SUBNODE(0);				\
+    }
+    
+    PROVIDE_CONJ_EXPR(const);
+    
+    PROVIDE_CONJ_EXPR(/* non const */);
+    
+#undef PROVIDE_CONJ_EXPR
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
