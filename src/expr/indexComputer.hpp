@@ -24,41 +24,46 @@ namespace nissa
   auto index(const CompsList<D...>& dynamicSizes,
 	     const CompFeat<C>&...comps)
   {
-    /// Returned type
-    using GlbIndex=
-      std::common_type_t<int,std::decay_t<decltype((*comps)())>...>;
-    
-    /// Recursive computer
-    auto index=
-      [&dynamicSizes](const auto& index,
+    if constexpr(sizeof...(C)==0)
+      return 0;
+    else
+      {
+	/// Returned type
+	using GlbIndex=
+	  std::common_type_t<int,std::decay_t<decltype((*comps)())>...>;
+	
+	/// Recursive computer
+	auto index=
+	  [&dynamicSizes](const auto& index,
 		      const GlbIndex& outer,
-		      const auto& head,
-		      const auto&...tail) INLINE_ATTRIBUTE
-    {
-      /// Type of the component
-      using Head=
-	std::decay_t<decltype(head)>;
-      
-      /// Maximal value
-      GlbIndex size;
-      
-      if constexpr(Head::sizeIsKnownAtCompileTime)
-	size=Head::sizeAtCompileTime;
-      else
-	size=std::get<Head>(dynamicSizes)();
-      
-      /// Value of the index when including this component
-      const GlbIndex inner=
-	outer*size+head();
-      
-      if constexpr(sizeof...(tail))
-	return
-	  index(index,inner,tail...);
-      else
-	return inner;
-    };
-    
-    return index(index,0,DE_CRTPFY(const C,&comps)...);
+			  const auto& head,
+			  const auto&...tail) INLINE_ATTRIBUTE
+	  {
+	    /// Type of the component
+	    using Head=
+	      std::decay_t<decltype(head)>;
+	    
+	    /// Maximal value
+	    GlbIndex size;
+	    
+	    if constexpr(Head::sizeIsKnownAtCompileTime)
+	      size=Head::sizeAtCompileTime;
+	    else
+	      size=std::get<Head>(dynamicSizes)();
+	    
+	    /// Value of the index when including this component
+	    const GlbIndex inner=
+	      outer*size+head();
+	    
+	    if constexpr(sizeof...(tail))
+	      return
+		index(index,inner,tail...);
+	    else
+	      return inner;
+	  };
+	
+	return index(index,0,DE_CRTPFY(const C,&comps)...);
+      }
   }
   
   namespace impl
