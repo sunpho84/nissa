@@ -177,7 +177,7 @@ namespace nissa
     void allocate(const CompFeat<T>&...td)
     {
 #ifndef __CUDA_ARCH__
-      allocate(Base::filterDynamicComps(td...));
+      allocate(DynamicCompsProvider<Comps>::filterDynamicComps(td...));
 #endif
     }
     
@@ -189,7 +189,7 @@ namespace nissa
     explicit DynamicTens(const CompFeat<T>&...td)
     {
 #ifndef __CUDA_ARCH__
-      allocate(Base::filterDynamicComps(td...));
+      allocate(DynamicCompsProvider<Comps>::filterDynamicComps(td...));
 #endif
     }
     
@@ -208,8 +208,8 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     DynamicTens()
     {
-      // if constexpr(DynamicCompsProvider<Comps>::nDynamicComps==0)
-      // 	allocate();
+      if constexpr(DynamicCompsProvider<Comps>::nDynamicComps==0)
+	allocate(std::tuple<>());
       // else
     }
     
