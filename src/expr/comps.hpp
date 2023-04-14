@@ -164,7 +164,10 @@ namespace nissa
   void compsLoop(F f,
 		 const CompsList<Dc...>& dynamicComps)
   {
-    impl::_CompsLoop<Tp>::exec(f,dynamicComps);
+    if constexpr(std::tuple_size_v<Tp>!=0)
+      impl::_CompsLoop<Tp>::exec(f,dynamicComps);
+    else
+      f();
   }
   
   /////////////////////////////////////////////////////////////////
