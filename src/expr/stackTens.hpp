@@ -157,24 +157,22 @@ namespace nissa
       const auto& oth=DE_CRTPFY(const TOth,&_oth);
       
       // if constexpr(std::is_class_v<_Fund>)
-	compsLoop<Comps>({},
-			 [this,&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+	compsLoop<Comps>([this,&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
 			 {
 			   const auto cs=tupleGetSubset<typename TOth::Comps>(std::make_tuple(c...));
 			   
 			   new(&(*this)(c...)) _Fund(std::apply(oth,cs));
-			 });
+			 },std::tuple<>{});
     }
     
     /// Construct from fundamental
     constexpr INLINE_FUNCTION
     StackTens(const Fund& oth)
     {
-      compsLoop<Comps>({},
-		       [this,&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+      compsLoop<Comps>([this,&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
 		       {
 			 new(&(*this)(c...)) _Fund(oth);
-		       });
+		       },std::tuple<>{});
     }
     
     // /// Construct from an invocable
