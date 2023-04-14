@@ -40,6 +40,9 @@ namespace nissa
 								\
     using Transp=						\
       NAME ## RwOrCl<transpRwCl<_RC>>;				\
+								\
+    static constexpr bool isTransposable=			\
+      true;							\
     								\
     using Base::Base;						\
   };								\
@@ -72,6 +75,9 @@ namespace nissa
 								\
     using Base::Base;						\
 								\
+    static constexpr bool isTransposable=			\
+      false;							\
+    								\
     using Transp=NAME;						\
   };								\
 								\
@@ -94,6 +100,9 @@ namespace nissa
 								\
     using Base::Base;						\
 								\
+    static constexpr bool isTransposable=			\
+      false;							\
+    								\
     using Transp=NAME;						\
   };								\
 								\
