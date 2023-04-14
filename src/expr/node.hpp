@@ -11,6 +11,7 @@
 
 #include <type_traits>
 
+#include <expr/assignDispatcher.hpp>
 #include <base/debug.hpp>
 #include <expr/bindComps.hpp>
 // #include <expr/comps/compLoops.hpp>
@@ -80,7 +81,8 @@ namespace nissa
     }
     
     /// Assign from another expression
-    template <typename Rhs>
+    template <typename OP=DirectAssign,
+	      typename Rhs>
     constexpr INLINE_FUNCTION
     T& assign(const Node<Rhs>& u)
     {
@@ -114,29 +116,38 @@ namespace nissa
 	
 	const auto rhsCompsTup=tupleGetSubset<typename Rhs::Comps>(lhsCompsTup);
 	
-	lhs(lhsComps...)=std::apply(rhs,rhsCompsTup);
+	OP::dispatch(lhs(lhsComps...),std::apply(rhs,rhsCompsTup));
       },lhs.getDynamicSizes());
       
       return lhs;
     }
     
-    /// Assign from another expression
-    template <typename Rhs,
-	      ENABLE_THIS_TEMPLATE_IF(not std::is_same_v<T,Rhs>)>
-    constexpr INLINE_FUNCTION
-    T& operator=(const Node<Rhs>& u)
-    {
-      return this->assign(u);
+#define PROVIDE_ASSIGN_VARIATION(SYMBOL,OP)				\
+									\
+    /*! Assign from another expression */				\
+    template <typename Rhs,						\
+	      ENABLE_THIS_TEMPLATE_IF(not std::is_same_v<T,Rhs>)>	\
+    constexpr INLINE_FUNCTION						\
+    T& operator SYMBOL(const Node<Rhs>& u)				\
+    {									\
+      return this->assign<OP>(u);					\
+    }									\
+									\
+									\
+    /*! Assign from a scalar */						\
+    template <typename Oth,						\
+	      ENABLE_THIS_TEMPLATE_IF(std::is_arithmetic_v<Oth>)>	\
+    constexpr INLINE_FUNCTION						\
+    T& operator SYMBOL(const Oth& value)				\
+    {									\
+      return (*(*this)) SYMBOL scalar(value);				\
     }
     
-    /// Assign from a scalar
-    template <typename Oth,
-	      ENABLE_THIS_TEMPLATE_IF(std::is_arithmetic_v<Oth>)>
-    constexpr INLINE_FUNCTION
-    T& operator=(const Oth& value)
-    { //Use the derived assignement
-      return (*(*this))=scalar(value);
-    }
+    PROVIDE_ASSIGN_VARIATION(=,DirectAssign);
+    PROVIDE_ASSIGN_VARIATION(+=,SumAssign);
+    PROVIDE_ASSIGN_VARIATION(-=,SubtAssign);
+    
+#undef PROVIDE_ASSIGN_VARIATION
     
     /// Define the assignment operator with the same expression type
     constexpr INLINE_FUNCTION
