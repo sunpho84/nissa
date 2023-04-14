@@ -425,14 +425,12 @@ namespace nissa
 	    buf(site)=t(site).norm2();
 	  });
       
-      Fund res;
-      glb_reduce(&res,buf,this->nSites()());
-      
-      return res;
+      return buf.glbReduce();
     }
     
     /////////////////////////////////////////////////////////////////
     
+    /// Makes the value in the origin equal to the sum over all sites
     void locReduce()
     {
       const Site nOri=nSites();
@@ -458,6 +456,19 @@ namespace nissa
 	  
 	  n=stride;
 	}
+    }
+    
+    /// Performs a global reduction
+    auto glbReduce()
+    {
+      locReduce();
+      
+      StackTens<OfComps<C...>,Fund> res=(*this)(Site(0));
+      
+      MPI_Allreduce(MPI_IN_PLACE,res.storage,res.nElements,
+		    MPI_Datatype_of<Fund>(),MPI_SUM,MPI_COMM_WORLD);
+      
+      return res;
     }
     
     /////////////////////////////////////////////////////////////////
@@ -561,6 +572,23 @@ namespace nissa
       static_assert(not IsRef,"Can allocate only if not a reference");
       
       invalidateHalo();
+    }
+    
+    /// Assign another expression
+    template <typename O>
+    INLINE_FUNCTION
+    explicit Field2(const Node<O>& oth) :
+      Field2()
+    {
+      assign<DirectAssign>(*oth);
+    }
+    
+    /// Assign from fund
+    INLINE_FUNCTION
+    explicit Field2(const Fund& oth) :
+      Field2()
+    {
+      assign<DirectAssign>(scalar(oth));
     }
     
     /// Used to dispatch the copy constructor
