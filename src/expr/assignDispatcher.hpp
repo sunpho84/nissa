@@ -26,9 +26,9 @@ namespace nissa
     }								\
   }
   
-  PROVIDE_DISPATCH(directAssign,=);
-  PROVIDE_DISPATCH(sumAssign,+=);
-  PROVIDE_DISPATCH(subtAssign,-=);
+  PROVIDE_DISPATCH(DirectAssign,=);
+  PROVIDE_DISPATCH(SumAssign,+=);
+  PROVIDE_DISPATCH(SubtAssign,-=);
 }
 
 #endif
