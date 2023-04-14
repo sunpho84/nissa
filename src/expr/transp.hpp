@@ -195,7 +195,7 @@ namespace nissa
 	using Comps=
 	  TranspMatrixTensorComps<ArgComps>;
 	
-	if constexpr(std::is_same_v<Comps,ArgComps>)
+	if constexpr(not compsAreTransposable<Comps>)
 	  {
 #if 0
 	    master_printf("no need to transpose, returning the argument, which is %p %s %s",&e,typeid(_E).name(),(std::is_lvalue_reference_v<decltype(e)>?"&":(std::is_rvalue_reference_v<decltype(e)>?"&&":"")));
