@@ -33,9 +33,11 @@ namespace nissa
     PROVIDE_HAS_MEMBER(canAssignAtCompileTime);
     PROVIDE_HAS_MEMBER(recreateFromExprs);
     
-    template <typename T>
+    template <typename _T>
     constexpr INLINE_FUNCTION bool _isNode()
     {
+      using T=std::remove_reference_t<_T>;
+      
       using namespace constraints;
       
       return
