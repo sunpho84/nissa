@@ -658,7 +658,7 @@ namespace nissa
 	    {
 	      const auto internalDeg=index(dynamicSizes,c...);
 	      
-	      ((Fund*)send_buf)[internalDeg+nInternalDegs*i()]=
+	      ((std::remove_const_t<Fund>*)send_buf)[internalDeg+nInternalDegs*i()]=
 		t(f(i),c...);
 	    },dynamicSizes);
 	  });
@@ -726,7 +726,7 @@ namespace nissa
 	    {
 	      const auto internalDeg=index(dynamicSizes,c...);
 	      
-	      data(offset+i,c...)=
+	      asMutable(data(offset+i,c...))=
 		((Fund*)recv_buf)[internalDeg+nInternalDegs*i()];
 	    },dynamicSizes);
 	  });
