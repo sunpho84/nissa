@@ -5,11 +5,13 @@
 # include <config.hpp>
 #endif
 
-/// \file grill/field.hpp
+/// \file expr/field.hpp
 
+#include <expr/assignDispatcher.hpp>
 #include <expr/comps.hpp>
 #include <expr/dynamicTens.hpp>
 #include <expr/fieldDeclaration.hpp>
+#include <expr/stackTens.hpp>
 
 // #include <lattice/parityProvider.hpp>
 // #include <lattice/lattice.hpp>
@@ -104,29 +106,30 @@ namespace nissa
     
 #undef THIS
     
-    // /// Importing assignment operator from BaseTens
-    // using Base::operator=;
+    /// Importing assignment operator from BaseTens
+    using Base::operator=;
     
     /// Aassign from another expression
-    template <typename O>
+    template <typename OP=DirectAssign,
+	      typename O>
     INLINE_FUNCTION
     void assign(O&& oth)
     {
 #define LOOP(LOOP_TYPE)				\
       LOOP_TYPE(0,this->nSites(),		\
-	   CAPTURE(self=this->getWritable(),	\
-		   TO_READ(oth)),		\
-	   site,				\
-	   {							\
-	     using RhsComps=typename std::decay_t<O>::Comps;	\
-									\
-	     /*! we need to take care that the rhs might not have the site (such in the case of a scalar) */ \
-									\
-	     if constexpr(tupleHasType<RhsComps,Site>)			\
-	       self(site)=oth(site);					\
-	     else							\
-	       self(site)=oth;						\
-	   })
+		CAPTURE(self=this->getWritable(),	\
+			TO_READ(oth)),			\
+		site,						\
+		{						\
+		  using RhsComps=typename std::decay_t<O>::Comps;	\
+		  							\
+		  /*! we need to take care that the rhs might not have the site (such in the case of a scalar) */ \
+		  							\
+		  if constexpr(tupleHasType<RhsComps,Site>)		\
+		    OP::dispatch(self(site),oth(site));			\
+		  else							\
+		    OP::dispatch(self(site),oth);			\
+		})
       
 #ifdef USE_CUDA
       if constexpr(MT==MemoryType::GPU)
@@ -150,6 +153,15 @@ namespace nissa
       return *this;
     }
     
+    /// Move assign
+    INLINE_FUNCTION
+    Field2& operator=(Field2&& oth)
+    {
+      std::swap(data,oth.data);
+      
+      return *this;
+    }
+    
     /// Assigns another node
     template <typename O>
     INLINE_FUNCTION
@@ -160,14 +172,23 @@ namespace nissa
       return *this;
     }
     
-    /// Move assign
+    /// Sumassigns another node
+    template <typename O>
     INLINE_FUNCTION
-    Field2& operator=(Field2&& oth)
+    Field2& operator+=(const Node<O>& oth)
     {
-      std::swap(data,oth.data);
+      assign<SumAssign>(*oth);
       
       return *this;
     }
+    
+    // /// Assigns a scalar
+    // Field2& operator=(const _Fund& oth)
+    // {
+    //   *this=Scalar<_Fund>(oth);
+      
+    //   return *this;
+    // }
     
     static constexpr FieldCoverage fieldCoverage=FC;
     

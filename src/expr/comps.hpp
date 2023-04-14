@@ -21,6 +21,20 @@ namespace nissa
   
   /////////////////////////////////////////////////////////////////
   
+  /// Determine whether the component list is transposable
+  ///
+  /// Default case
+  template <typename Tp>
+  constexpr bool compsAreTransposable=false;
+  
+  /// Determine whether the component list is transposible
+  template <typename...C>
+  inline
+  constexpr bool compsAreTransposable<CompsList<C...>> =
+    (C::isTransposable or ...);
+  
+  /////////////////////////////////////////////////////////////////
+  
   namespace impl
   {
     /// Transposes a list of components, considering the components as matrix
