@@ -27,7 +27,7 @@ namespace nissa
   template <typename Tp>
   constexpr bool compsAreTransposable=false;
   
-  /// Determine whether the component list is transposible
+  /// Determine whether the component list is transposable
   template <typename...C>
   inline
   constexpr bool compsAreTransposable<CompsList<C...>> =

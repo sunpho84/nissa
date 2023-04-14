@@ -33,7 +33,7 @@ namespace nissa
   
   /// Swap type TA with type TB inside tuple Tp
   template <typename Tp,typename TA,typename TB>
-  using TupleSwapTypes=details::_TupleSwapTypes<Tp,TA,TB>;
+  using TupleSwapTypes=typename details::_TupleSwapTypes<Tp,TA,TB>::type;
 }
 
 #endif
