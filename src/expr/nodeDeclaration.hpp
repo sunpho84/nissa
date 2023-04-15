@@ -56,10 +56,10 @@ namespace nissa
     }
   }
   
+  /// Predicate whether T is a node
   template <typename T>
   constexpr inline bool isNode=
     constraints::_isNode<T>();
-  
 }
 
 #endif

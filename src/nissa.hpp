@@ -62,6 +62,7 @@
 #include <expr/dynamicTens.hpp>
 #include <expr/eoField.hpp>
 #include <expr/field.hpp>
+#include <expr/funcExpr.hpp>
 #include <expr/indexComputer.hpp>
 #include <expr/prod.hpp>
 #include <expr/scalar.hpp>

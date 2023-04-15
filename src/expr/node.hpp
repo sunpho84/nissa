@@ -34,6 +34,28 @@ namespace nissa
   struct Node :
     Crtp<Node<T>,T>
   {
+    /// Determine whether the expression can be automatically cast to fund
+    static constexpr bool canBeCastToFund()
+    {
+      return
+	std::tuple_size_v<typename T::Comps> ==0;
+    }
+    
+#define PROVIDE_AUTOMATIC_CAST_TO_FUND(ATTRIB)		\
+    /*! Provide automatic cast to fund if needed */	\
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE	\
+    operator decltype(auto)() ATTRIB			\
+    {							\
+      if constexpr(canBeCastToFund())			\
+	return DE_CRTPFY(ATTRIB T,this).eval();		\
+    }
+    
+    PROVIDE_AUTOMATIC_CAST_TO_FUND(const);
+    
+    PROVIDE_AUTOMATIC_CAST_TO_FUND(/* non const */);
+    
+#undef PROVIDE_AUTOMATIC_CAST_TO_FUND
+    
     // /// Define the move-assignment operator
     // INLINE_FUNCTION
     // Node& operator=(Node&& oth)
