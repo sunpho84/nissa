@@ -11,7 +11,6 @@
 
 #include <type_traits>
 
-#include <expr/assignDispatcher.hpp>
 #include <base/debug.hpp>
 #include <expr/bindComps.hpp>
 // #include <expr/comps/compLoops.hpp>
@@ -19,6 +18,7 @@
 // #include <expr/assign/directAssign.hpp>
 // #include <expr/assign/executionSpace.hpp>
 // #include <expr/nodes/scalar.hpp>
+#include <expr/assignDispatcher.hpp>
 #include <expr/nodeDeclaration.hpp>
 // #include <expr/assign/simdAssign.hpp>
 // #include <expr/assign/threadAssign.hpp>
@@ -30,6 +30,7 @@
 
 namespace nissa
 {
+  /// Node, the base type to be evaluated as an expression
   template <typename T>
   struct Node :
     Crtp<Node<T>,T>

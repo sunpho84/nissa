@@ -113,8 +113,9 @@ int main(int narg,char **arg)
   
   //print the plaquette and write the conf
   master_printf("Global plaquette: %16.16lg\n",global_plaquette_lx_conf(out_conf));
-  write_ildg_gauge_conf(arg[4],out_conf,64);
-
+  crash("reimplement");
+  //write_ildg_gauge_conf(arg[4],out_conf,64);
+  
   nissa_free(out_conf);
   
   ///////////////////////////////////////////

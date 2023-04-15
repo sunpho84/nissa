@@ -5,109 +5,43 @@
 # include <config.hpp>
 #endif
 
-/// \file expr/nodes/scalar.hpp
+/// \file expr/scalar.hpp
 
-#include <expr/comps.hpp>
-#include <expr/dynamicCompsProvider.hpp>
-#include <expr/nodeDeclaration.hpp>
+#include <expr/funcExpr.hpp>
 
 namespace nissa
 {
-  PROVIDE_DETECTABLE_AS(Scalar);
-  
-  /// Scalar
-  ///
-  /// Forward declaration
-  template <typename F>
-  struct Scalar:
-    DynamicCompsProvider<CompsList<>>,
-    DetectableAsScalar,
-    Node<Scalar<F>>
+  /// Wraps a scalar quantity
+  template <typename Fund>
+  struct ScalarWrapFunctor
   {
-    using Base=Node<Scalar<F>>;
+    /// Stored value
+    const Fund val;
     
-    /// Import base class assigners
-    using Base::operator=;
-    
-    /// Components
-    using Comps=CompsList<>;
-    
-    /// Fundamental type
-    using Fund=F;
-    
-    /// Executes where allocated
-    // static constexpr auto execSpace=
-    //   ExecSpace::HOST_DEVICE;
-    
-    /// Returns the dynamic sizes
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    CompsList<> getDynamicSizes() const
-    {
-      return {};
-    }
-    
-    /// No dynamic component
-    using DynamicComps=CompsList<>;
-    
-    /// Value
-    const Fund value;
-    
-    /// We can easily copy
-    static constexpr bool storeByRef=false;
-    
-    /// Evaluate returning always the value
-    template <typename...C>
-    constexpr INLINE_FUNCTION
-    Fund eval(const C&...) const
-    {
-      return value;
-    }
-    
-    /// States whether the scalar can be simdified
-    static constexpr bool canSimdify=
-      false;
-    
-    /// Components on which simdifying
-    using SimdifyingComp=
-      void;
-    
-    /// Gets a copy
-    Scalar<F> getRef() const
-    {
-      return value;
-    }
-    
-    /////////////////////////////////////////////////////////////////
-    
-    /// Returns from another F
-    INLINE_FUNCTION
-    Scalar<F> recreateFromExprs(F& val) const
-    {
-      return scalar(val);
-    }
-    
-    /////////////////////////////////////////////////////////////////
-    
-    /// Constructor
-    constexpr Scalar(const F& value) :
-      value(value)
+    /// Default constructor
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    explicit ScalarWrapFunctor(const Fund& val) :
+      val(val)
     {
     }
     
-    /// Cast to fundamental
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    operator const Fund&() const
+    /// Evaluate
+    constexpr CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    const Fund& operator()() const
     {
-      return value;
+      return val;
     }
   };
   
-  /// Creates a scalar
+  /// Scalar quantity
   template <typename F>
-  constexpr INLINE_FUNCTION
-  Scalar<F> scalar(const F& val)
+  using Scalar=FuncExpr<ScalarWrapFunctor<F>,OfComps<>,F>;
+  
+  /// Creates a Scalar of type F
+  template <typename F>
+  Scalar<F> scalar(const F& f)
   {
-    return Scalar(val);
+    return ScalarWrapFunctor<F>(f);
   }
 }
 
