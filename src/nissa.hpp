@@ -161,11 +161,13 @@
 #include <new_types/complex.hpp>
 #include <new_types/dirac.hpp>
 #include <new_types/float_128.hpp>
+#include <new_types/float128class.hpp>
 #include <new_types/float_256.hpp>
 #include <new_types/high_prec.hpp>
 #include <new_types/metadynamics.hpp>
 #include <new_types/rat_approx.hpp>
 #include <new_types/read_new_types.hpp>
+#include <new_types/rng.hpp>
 #include <new_types/spin.hpp>
 #include <new_types/su3.hpp>
 
