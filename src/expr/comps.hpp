@@ -34,6 +34,19 @@ namespace nissa
     (C::isTransposable or ...);
   
   /////////////////////////////////////////////////////////////////
+
+  /// Determine whether the component list contains any dynamic component
+  ///
+  /// Default case
+  template <typename Tp>
+  constexpr bool compsAreDynamic=false;
+  
+  /// Determine whether the component list is transposable
+  template <typename...C>
+  inline constexpr bool compsAreDynamic<CompsList<C...>> =
+    ((not C::sizeIsKnownAtCompileTime) or  ...);
+  
+  /////////////////////////////////////////////////////////////////
   
   namespace impl
   {
