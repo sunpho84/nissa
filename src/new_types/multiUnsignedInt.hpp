@@ -38,6 +38,13 @@ namespace nissa
     
 #undef PROVIDE_SUBSCRIBE_OPERATOR
     
+    /// Construct from value
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    MultiUint(const U& u=0) :
+      val{u}
+    {
+    }
+    
     /// Increment of a certain amount
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     MultiUint operator+(const U& z) const
