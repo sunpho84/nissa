@@ -17,125 +17,6 @@
 
 namespace nissa
 {
-  /// Random number generator status
-  ///
-  /// Keeps track of the point in the stream of random numbers
-  struct RngState
-  {
-    /// Encrypter used to draw 32 bits of randomness
-    Encrypter encrypter;
-    
-    /// Type used to keep track of the state
-    using Counter=MultiUint<uint64_t,4>;
-    
-    /// Keep track of the state
-    Counter counter;
-    
-    /// Generates the state
-    RngState(const uint64_t& seed=3472291050,
-	     const Counter& counter=0lu):
-      encrypter(createEncrypterFromSeed(seed)),
-      counter(counter)
-    {
-    }
-    
-    /// Generate the encrypter from the seed
-    static Encrypter createEncrypterFromSeed(const uint64_t& seed)
-    {
-      /// Temporary word
-      Encrypter::Word word;
-      
-      /// Generator used to blow the seed
-      std::mt19937_64 gen(seed);
-      
-      for(int i=0;i<4;i++)
-	word[i]=gen();
-      
-      return word;
-    }
-  };
-  
-  /// Keeps track of a window over a stream of uint32_t
-  ///
-  /// Takes care of not treepassing the number of reserved numbers
-  struct RngView
-  {
-    /// State of the uint32_t flow
-    const RngState state;
-    
-    /// Number of reserved uint32_t
-    const uint64_t nReserved;
-    
-    /// Draw 32 bits of randomness
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    uint32_t draw32bitsWithOffset(const uint64_t& offset) const
-    {
-      if(offset>=nReserved)
-	crash("going beyond the number of rserved uint32_t");
-      
-      union
-      {/// Temporary result of the encpter
-	Encrypter::Word temp;
-	
-	/// Output to be returned
-	const uint32_t out{};
-      };
-      
-      temp=state.encrypter.encrypt((state.counter+offset).val);
-      
-      return out;
-    }
-    
-    /// Create the view and advances
-    RngView(RngState& state,
-	    const uint64_t& nReserved) :
-      state(state),
-      nReserved(nReserved)
-    {
-      state.counter+=nReserved;
-    }
-  };
-  
-  /// Keeps track of a window over a stream of float
-  ///
-  /// Takes care of not treepassing the number of reserved
-  /// numbers. The target distribution is parametrized with the D type
-  template <typename D>
-  struct RngDistrView
-  {
-    /// View over the uint32_t stream
-    const RngView view;
-    
-    /// Number of target type reserved
-    const uint64_t nReserved;
-    
-    /// Generates a random number according to the target distribution
-    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    auto draw(const uint64_t& offset) const
-    {
-      if(offset>=nReserved)
-	crash("going beyond the number of reserved uint32_t");
-      
-      /// Set of uint32_t needed to draw number from the target distribution
-      std::array<uint32_t,D::nDraw> tmp;
-      
-      for(int i=0;i<D::nDraw;i++)
-	tmp[i]=view.draw32bitsWithOffset(D::nDraw*offset+i);
-      
-      return D::transform(tmp);
-    }
-    
-    /// Construct from the RngState and reserved numbers
-    RngDistrView(RngState& state,
-		 const uint64_t& nReserved) :
-      view(state,D::nDraw*nReserved),
-      nReserved(nReserved)
-    {
-      if(nReserved>=~0lu/D::nDraw)
-	crash("asking to reserve too many numbers");
-    }
-  };
-  
   namespace ProbDistr
   {
     /// Parametrize numbers uniformly distributed in the range [0,1)
@@ -163,20 +44,11 @@ namespace nissa
       /// Number of uint32_t needed to draw a number
       static constexpr int nDraw=2;
     };
-  }
-  
-  /// Generate numbers uniformly distributed in the range [0,1)
-  using RngUniformHighPrecDistrView=
-    RngDistrView<ProbDistr::UniformRngDistr>;
-  
-  /////////////////////////////////////////////////////////////////
-  
-  namespace ProbDistr
-  {
+    
     /// Parametrize normally distributed with average 0 and sigma 1
     ///
     /// Uses the Box-Muller transformation of two Float128 uniformly distributed
-    struct GaussRngDistr
+    struct NormalRngDistr
     {
       
       /// Transforms two uint32_t into cos() with x uniformly distributed
@@ -245,9 +117,167 @@ namespace nissa
     };
   }
   
+  /////////////////////////////////////////////////////////////////
+  
+  template <typename D>
+  struct RngDistrView;
+  
+  /// Generate numbers uniformly distributed in the range [0,1)
+  using RngUniformHighPrecDistrView=
+    RngDistrView<ProbDistr::UniformRngDistr>;
+  
   /// Generate numbers normally distributed with average 0 and sigma 1
-  using RngGaussDistrView=
-    RngDistrView<ProbDistr::GaussRngDistr>;
+  using RngNormalDistrView=
+    RngDistrView<ProbDistr::NormalRngDistr>;
+  
+  /// Random number generator status
+  ///
+  /// Keeps track of the point in the stream of random numbers
+  struct RngState
+  {
+    /// Encrypter used to draw 32 bits of randomness
+    Encrypter encrypter;
+    
+    /// Type used to keep track of the state
+    using Counter=MultiUint<uint64_t,4>;
+    
+    /// Keep track of the state
+    Counter counter;
+    
+    /// Generates the state
+    RngState(const uint64_t& seed=3472291050,
+	     const Counter& counter=0lu):
+      encrypter(createEncrypterFromSeed(seed)),
+      counter(counter)
+    {
+    }
+    
+    /// Generate the encrypter from the seed
+    static Encrypter createEncrypterFromSeed(const uint64_t& seed)
+    {
+      /// Temporary word
+      Encrypter::Word word;
+      
+      /// Generator used to blow the seed
+      std::mt19937_64 gen(seed);
+      
+      for(int i=0;i<4;i++)
+	word[i]=gen();
+      
+      return word;
+    }
+    
+    /// Create a distribution view
+    template <typename D>
+    RngDistrView<D> getDistr(const uint64_t& nReserved)
+    {
+      return {*this,nReserved};
+    }
+    
+    auto getUniformDistr(const uint64_t& nReserved);
+    
+    auto getNormalDistr(const uint64_t& nReserved);
+  };
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Keeps track of a window over a stream of uint32_t
+  ///
+  /// Takes care of not treepassing the number of reserved numbers
+  struct RngView
+  {
+    /// State of the uint32_t flow
+    const RngState state;
+    
+    /// Number of reserved uint32_t
+    const uint64_t nReserved;
+    
+    /// Draw 32 bits of randomness
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    uint32_t draw32bitsWithOffset(const uint64_t& offset) const
+    {
+      if(offset>=nReserved)
+	crash("going beyond the number of reserved uint32_t");
+      
+      union
+      {/// Temporary result of the encpter
+	Encrypter::Word temp;
+	
+	/// Output to be returned
+	const uint32_t out{};
+      };
+      
+      temp=state.encrypter.encrypt((state.counter+offset).val);
+      
+      return out;
+    }
+    
+    /// Create the view and advances
+    RngView(RngState& state,
+	    const uint64_t& nReserved) :
+      state(state),
+      nReserved(nReserved)
+    {
+      state.counter+=nReserved;
+    }
+  };
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Keeps track of a window over a stream of float
+  ///
+  /// Takes care of not treepassing the number of reserved
+  /// numbers. The target distribution is parametrized with the D type
+  template <typename D>
+  struct RngDistrView
+  {
+    /// View over the uint32_t stream
+    const RngView view;
+    
+    /// Number of target type reserved
+    const uint64_t nReserved;
+    
+    /// Generates a random number according to the target distribution
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    auto draw(const uint64_t& offset) const
+    {
+      if(offset>=nReserved)
+	crash("going beyond the number of reserved uint32_t");
+      
+      /// Set of uint32_t needed to draw number from the target distribution
+      std::array<uint32_t,D::nDraw> tmp;
+      
+      for(int i=0;i<D::nDraw;i++)
+	tmp[i]=view.draw32bitsWithOffset(D::nDraw*offset+i);
+      
+      return D::transform(tmp);
+    }
+    
+    /// Construct from the RngState and reserved numbers
+    RngDistrView(RngState& state,
+		 const uint64_t& nReserved) :
+      view(state,D::nDraw*nReserved),
+      nReserved(nReserved)
+    {
+      if(nReserved>=~0lu/D::nDraw)
+	crash("asking to reserve too many numbers");
+    }
+  };
+  
+  /////////////////////////////////////////////////////////////////
+  
+#define PROVIDE_DISTR_CREATOR(NAME)					\
+									\
+  inline auto RngState::get ## NAME ## Distr(const uint64_t& nReserved)	\
+  {									\
+    return getDistr<ProbDistr::NAME ##RngDistr>(nReserved);		\
+  }
+  
+  PROVIDE_DISTR_CREATOR(Uniform);
+  
+  PROVIDE_DISTR_CREATOR(Normal);
+  
+#undef PROVIDE_DISTR_CREATOR
   
   //   /// Generates a random number distributed in the range [0,1)
   //   ///
