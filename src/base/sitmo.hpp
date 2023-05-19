@@ -1,6 +1,10 @@
 #ifndef _SITMO_HPP
 #define _SITMO_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <cstdint>
 #include <random>
 
@@ -57,14 +61,14 @@ namespace nissa
     T data[N];
     
     /// Access to internal data, constant attribute
-    CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     const T& operator[](const int& i) const
     {
       return data[i];
     }
-  
+    
     /// Access to internal data
-    CUDA_HOST_AND_DEVICE
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     T& operator[](const int& i)
     {
       return data[i];
@@ -83,9 +87,9 @@ namespace Sitmo
     nissa::Arr<uint64_t,4>;
   
   /// Encrypts the input
-  CUDA_HOST_AND_DEVICE
-  inline Word encrypt(const Key& key,  ///< Key to encrypt
-		      Word x)          ///< Input to encrypt
+  constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  Word encrypt(const Key& key,  ///< Key to encrypt
+	       Word x)          ///< Input to encrypt
   {
     for(int j=0;j<5;j++)
       {
@@ -128,7 +132,8 @@ namespace Sitmo
   }
   
   /// Build a key from a word
-  inline Key buildKey(const Word& word)
+  INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  Key buildKey(const Word& word)
   {
     /// Output
     Key key;
@@ -153,7 +158,8 @@ namespace Sitmo
     }
     
     /// Holds the state of the generator
-    struct State : public Sitmo::Word
+    struct State :
+      Sitmo::Word
     {
       /// Increment of a certain amount
       CUDA_HOST_AND_DEVICE
@@ -180,12 +186,14 @@ namespace Sitmo
       }
       
       /// Self increment
+      INLINE_FUNCTION
       State operator+=(const uint64_t& z)
       {
 	return(*this)=(*this)+z;
       }
       
       /// Unitary self-increment
+      INLINE_FUNCTION
       State operator++()
       {
 	return (*this)+=1;
@@ -238,7 +246,7 @@ namespace Sitmo
     }
     
     /// Generate a number with a given offset w.r.t current state
-    CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     ResultType generateNth(const uint64_t& offset)
     {
       union
@@ -269,7 +277,7 @@ namespace Sitmo
 namespace nissa
 {
   //Embeds the Sitmo rng at a certain point in the stream
-  struct RngView
+  struct RngViewOld
   {
     /// Field random number generator
     Sitmo::Rng& ref;
@@ -291,7 +299,7 @@ namespace nissa
     
     //Constructor
     CUDA_HOST_AND_DEVICE
-    RngView(Sitmo::Rng& ref,const uint64_t& irng) :
+    RngViewOld(Sitmo::Rng& ref,const uint64_t& irng) :
       ref(ref),irng(irng)
     {
     }
@@ -332,7 +340,7 @@ namespace nissa
     
     /// Returns a view on a specific site and real number
     CUDA_HOST_AND_DEVICE
-    RngView getRngViewOnGlbSiteIRndReal(const int& glblx,
+    RngViewOld getRngViewOnGlbSiteIRndReal(const int& glblx,
 					const int& irnd_real_per_site)
     {
       //Computes the number in the stream of reals
@@ -341,7 +349,7 @@ namespace nissa
       //Computes the offset in the rng stream
       const uint64_t irnd_uint32_t=2*irnd_double;
       
-      return RngView(rng,irnd_uint32_t);
+      return RngViewOld(rng,irnd_uint32_t);
     }
     
     /// Fill a specific site
