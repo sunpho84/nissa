@@ -34,7 +34,7 @@ namespace nissa
     (C::isTransposable or ...);
   
   /////////////////////////////////////////////////////////////////
-
+  
   /// Determine whether the component list contains any dynamic component
   ///
   /// Default case

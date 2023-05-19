@@ -5,7 +5,7 @@
 # include <config.hpp>
 #endif
 
-/// \file expr/nodes/dynamicTensorDeclaration.hpp
+/// \file expr/dynamicTensorDeclaration.hpp
 
 #include <base/memory_manager.hpp>
 #include <metaprogramming/detectableAs.hpp>

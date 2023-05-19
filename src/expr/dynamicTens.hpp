@@ -173,39 +173,37 @@ namespace nissa
     template <bool B=IsRef,
 	      typename...T,
 	      ENABLE_THIS_TEMPLATE_IF(not B)>
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION
     void allocate(const CompFeat<T>&...td)
     {
-#ifndef __CUDA_ARCH__
       allocate(DynamicCompsProvider<Comps>::filterDynamicComps(td...));
-#endif
     }
     
     /// Initialize the tensor with the knowledge of the dynamic sizes as a list
+    ///
+    /// Can only be allocated on host
     template <bool B=IsRef,
 	      typename...T,
 	      ENABLE_THIS_TEMPLATE_IF(not B)>
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr
     explicit DynamicTens(const CompFeat<T>&...td)
     {
-#ifndef __CUDA_ARCH__
       allocate(DynamicCompsProvider<Comps>::filterDynamicComps(td...));
-#endif
     }
     
     /// Initialize the tensor with the knowledge of the dynamic sizes
+    ///
+    /// Can only be allocated on host
     template <bool B=IsRef,
 	      ENABLE_THIS_TEMPLATE_IF(not B)>
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr
     explicit DynamicTens(const DynamicComps& td)
     {
-#ifndef __CUDA_ARCH__
       allocate(td);
-#endif
     }
     
     /// Default constructor
-    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    INLINE_FUNCTION constexpr
     DynamicTens()
     {
       if constexpr(DynamicCompsProvider<Comps>::nDynamicComps==0)
