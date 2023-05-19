@@ -36,7 +36,7 @@ namespace nissa
     template <typename E,
 	      typename...C>
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-    static decltype(auto) castExprToFund(E&& t,
+    decltype(auto) castExprToFund(E&& t,
 					 CompsList<C...>*)
     {
       if constexpr(((C::sizeAtCompileTime==1) and ...))
