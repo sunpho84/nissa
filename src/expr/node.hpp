@@ -30,25 +30,32 @@
 
 namespace nissa
 {
+  namespace impl
+  {
+    /// Casts an expression to fund if possible
+    template <typename E,
+	      typename...C>
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    static decltype(auto) castExprToFund(E&& t,
+					 CompsList<C...>*)
+    {
+      if constexpr(((C::sizeAtCompileTime==1) and ...))
+	return t.eval((C)0 ...);
+    }
+  }
+  
   /// Node, the base type to be evaluated as an expression
   template <typename T>
   struct Node :
     Crtp<Node<T>,T>
   {
-    /// Determine whether the expression can be automatically cast to fund
-    static constexpr bool canBeCastToFund()
-    {
-      return
-	std::tuple_size_v<typename T::Comps> ==0;
-    }
-    
-#define PROVIDE_AUTOMATIC_CAST_TO_FUND(ATTRIB)		\
-    /*! Provide automatic cast to fund if needed */	\
-    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE	\
-    operator decltype(auto)() ATTRIB			\
-    {							\
-      if constexpr(canBeCastToFund())			\
-	return DE_CRTPFY(ATTRIB T,this).eval();		\
+#define PROVIDE_AUTOMATIC_CAST_TO_FUND(ATTRIB)			\
+    /*! Provide automatic cast to fund if needed */		\
+    constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
+    operator decltype(auto)() ATTRIB				\
+    {								\
+      return impl::castExprToFund(DE_CRTPFY(ATTRIB T,this),	\
+				  (typename T::Comps*)nullptr);	\
     }
     
     PROVIDE_AUTOMATIC_CAST_TO_FUND(const);
