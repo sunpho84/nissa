@@ -246,43 +246,44 @@ namespace nissa
   //perform the remapping
   void all_to_all_comm_t::communicate(void *out,void *in,size_t bps,void *ext_out_buf,void *ext_in_buf,int tag) const
   {
-    crash("reimplement");
+    //allocate a buffer where to repack data
+    char *out_buf=(ext_out_buf==NULL)?nissa_malloc("out_buf",nel_out*bps,char):(char*)ext_out_buf;
+    char *in_buf=(ext_in_buf==NULL)?nissa_malloc("in_buf",nel_in*bps,char):(char*)ext_in_buf;
+    int *source=this->out_buf_source;
     
-    // //allocate a buffer where to repack data
-    // char *out_buf=(ext_out_buf==NULL)?nissa_malloc("out_buf",nel_out*bps,char):(char*)ext_out_buf;
-    // char *in_buf=(ext_in_buf==NULL)?nissa_malloc("in_buf",nel_in*bps,char):(char*)ext_in_buf;
-    // int *source=this->out_buf_source;
+    //copy data on the out-going buffer
+    PAR(0,nel_out,
+	CAPTURE(out_buf,bps,in,source),
+	iel_out,
+	{
+	  memcpy(out_buf+iel_out*bps,(char*)in+source[iel_out]*bps,bps);
+	});
     
-    // //copy data on the out-going buffer
-    // PAR(0,nel_out,
-    // 	CAPTURE(out_buf,bps,in,source),
-    // 	iel_out,
-    // 	{
-    // 	  memcpy(out_buf+iel_out*bps,(char*)in+source[iel_out]*bps,bps);
-    // 	});
+    MPI_Request req_list[nranks_to+nranks_fr];
+    int ireq=0;
+    for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
+      MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
+		list_ranks_fr[irank_fr],909,MPI_COMM_WORLD,&req_list[ireq++]);
+    for(int irank_to=0;irank_to<nranks_to;irank_to++)
+      MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
+		list_ranks_to[irank_to],909,MPI_COMM_WORLD,&req_list[ireq++]);
+    if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
+    MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
     
-    // MPI_Request req_list[nranks_to+nranks_fr];
-    // int ireq=0;
-    // for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
-    //   MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
-    // 		list_ranks_fr[irank_fr],909,MPI_COMM_WORLD,&req_list[ireq++]);
-    // for(int irank_to=0;irank_to<nranks_to;irank_to++)
-    //   MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
-    // 		list_ranks_to[irank_to],909,MPI_COMM_WORLD,&req_list[ireq++]);
-    // if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
-    // MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
+    int *dest=in_buf_dest;
     
-    // int *dest=in_buf_dest;
-    
-    // //sort out data from the incoming buffer
-    // NISSA_PARALLEL_LOOP(iel_in,0,nel_in)
-    //   memcpy((char*)out+dest[iel_in]*bps,in_buf+iel_in*bps,bps);
-    // NISSA_PARALLEL_LOOP_END;
+    //sort out data from the incoming buffer
+    PAR(0,nel_in,
+	CAPTURE(out,bps,in_buf,dest),
+	iel_in,
+	{
+	  memcpy((char*)out+dest[iel_in]*bps,in_buf+iel_in*bps,bps);
+	});
     
     // set_borders_invalid(out);
     
-    // if(ext_out_buf==NULL) nissa_free(out_buf);
-    // if(ext_in_buf==NULL) nissa_free(in_buf);
+    if(ext_out_buf==NULL) nissa_free(out_buf);
+    if(ext_in_buf==NULL) nissa_free(in_buf);
   }
   
   //add links to the buffer of the conf if needed
