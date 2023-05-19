@@ -106,11 +106,7 @@ namespace nissa
 	    //su3_print(prod);
 	    printf("The norm was: %16.16lg and the trace: %16.16lg\n",rotating_norm,su3_real_trace(prod));
 	    if(iter>niter_max)
-#ifdef COMPILING_FOR_DEVICE
-	      __trap();
-#else
 	      crash("%lg",rotating_norm);
-#endif
 	  }
       }
     while(not converged);

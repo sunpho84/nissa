@@ -217,11 +217,8 @@ namespace nissa
 	      }
 	    while(res>=target_res and iter<niter_max);
 	    if(iter>=niter_max)
-#ifndef COMPILING_FOR_DEVICE
 	      crash("exceeded maximal number of iterations %d, arrived to %d with residue %lg, target %lg",niter_max,iter,res,target_res);
- #else
-	    __trap();
-#endif
+	    
 	    //halfspincolor ap;
 	    //apply_point_squared_twisted_clover_term_to_halfspincolor(ap,mass,kappa,Cl+2*x_high_low,x);
 	    //halfspincolor_summ_the_prod_double(ap,b,-1);
