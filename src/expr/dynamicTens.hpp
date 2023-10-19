@@ -5,6 +5,8 @@
 # include <config.hpp>
 #endif
 
+#include <assert.h>
+
 /// \file expr/dynamicTens.hpp
 
 #include <base/memory_manager.hpp>
@@ -124,10 +126,10 @@ namespace nissa
 #ifdef USE_CUDA
 # ifdef COMPILING_FOR_DEVICE
       if constexpr(MT==MemoryType::CPU)
-	crash("Cannot evaluate on CPU");
+	assert(execSpace==MemoryType::GPU);
 # else
       if constexpr(MT==MemoryType::GPU)
-	crash("Cannot evaluate on GPU");
+	crash("Cannot evaluate on CPU");
 # endif
 #endif
     }
