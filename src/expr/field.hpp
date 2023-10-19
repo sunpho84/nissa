@@ -115,12 +115,12 @@ namespace nissa
     INLINE_FUNCTION
     void assign(O&& oth)
     {
-#define LOOP(LOOP_TYPE)				\
-      LOOP_TYPE(0,this->nSites(),		\
-		CAPTURE(self=this->getWritable(),	\
-			TO_READ(oth)),			\
-		site,						\
-		{						\
+#define LOOP(LOOP_TYPE)							\
+      LOOP_TYPE(0,this->nSites(),					\
+		CAPTURE(self=this->getWritable(),			\
+			TO_READ(oth)),					\
+		site,							\
+		{							\
 		  using RhsComps=typename std::decay_t<O>::Comps;	\
 		  							\
 		  /*! we need to take care that the rhs might not have the site (such in the case of a scalar) */ \

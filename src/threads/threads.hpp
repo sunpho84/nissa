@@ -125,7 +125,7 @@ namespace nissa
     if(length>0)
       {
 	cudaGenericKernel<<<gridDimension,blockDimension>>>(min,max,f);
-	cudaDeviceSynchronize();
+	decript_cuda_error(cudaDeviceSynchronize(),"during kernel execution");
       }
     
     if(print)
