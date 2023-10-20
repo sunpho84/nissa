@@ -9,7 +9,7 @@ AM_CPPFLAGS=-I$(top_srcdir)/src
 include $(top_srcdir)/config/baseMakefile.am
 
 #include $(srcdir)/generate_confs/Makefile.am
-include $(srcdir)/hmc/Makefile.am
+#include $(srcdir)/hmc/Makefile.am
 include $(srcdir)/ib/Makefile.am
 #include $(srcdir)/nucleons/Makefile.am
 #include $(srcdir)/reno_const/Makefile.am
