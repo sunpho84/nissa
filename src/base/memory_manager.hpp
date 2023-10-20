@@ -416,6 +416,39 @@ namespace nissa
 #endif
     }
   }
+  
+#ifdef USE_CUDA
+  
+  template <MemoryType FROM,
+	    MemoryType TO>
+  cudaMemcpyKind cudaMemcpyKindForTransferFromTo;
+  
+#define PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER(MFROM,MTO,CFROM,CTO)	\
+  template <>								\
+  constexpr								\
+  cudaMemcpyKind cudaMemcpyKindForTransferFromTo<MemoryType::MFROM,MemoryType::MTO> =cudaMemcpy ## CFROM ## To ## CTO
+  
+  PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER(CPU,CPU,Host,Host);
+  PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER(CPU,GPU,Host,Device);
+  PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER(GPU,CPU,Device,Host);
+  PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER(GPU,GPU,Device,Device);
+
+#undef PROVIDE_CUDA_MEMCPY_KIND_FOR_TRANSFER
+  
+#endif
+  
+  template <MemoryType TO,
+	    MemoryType FROM>
+  void memcpy(void* dst,
+	      const void* src,
+	      const size_t& count)
+  {
+#if USE_CUDA
+    decript_cuda_error(cudaMemcpy(dst,src,count,cudaMemcpyKindForTransferFromTo<FROM,TO>),"calling cudaMemcpy");
+#else
+    ::memcpy(dst,src,count);
+#endif
+  }
 }
 
 #undef EXTERN_MEMORY_MANAGER

@@ -1587,7 +1587,7 @@ namespace nissa
   {halfspincolor_summ_the_prod_double(a,a,b,c);}
   
   CUDA_HOST_AND_DEVICE inline void halfspincolor_copy(halfspincolor a,const halfspincolor b)
-  {memcpy(a,b,sizeof(halfspincolor));}
+  {::memcpy(a,b,sizeof(halfspincolor));}
   
   CUDA_HOST_AND_DEVICE inline void halfspincolor_put_to_zero(halfspincolor a)
   {memset(a,0,sizeof(halfspincolor));}
