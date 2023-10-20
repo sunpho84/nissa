@@ -15,10 +15,12 @@ using namespace nissa;
 // }
 
 namespace nissa
-{DECLARE_TRANSPOSABLE_COMP(Spin,int,NDIRAC,spin);
-DECLARE_TRANSPOSABLE_COMP(Color,int,NCOL,color);
-DECLARE_TRANSPOSABLE_COMP(Fuf,int,1,fuf);
+{
+  DECLARE_TRANSPOSABLE_COMP(Spin,int,NDIRAC,spin);
+  DECLARE_TRANSPOSABLE_COMP(Color,int,NCOL,color);
+  DECLARE_TRANSPOSABLE_COMP(Fuf,int,1,fuf);
 }
+
 void in_main(int narg,char **arg)
 {
   const int T=8,L=4;

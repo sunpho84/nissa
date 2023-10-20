@@ -27,21 +27,24 @@ namespace nissa
   {								\
     return i;							\
   }
-
+  
+  /// Provide the specific member function, with const and non const 
 #define PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,ATTRIB)	\
   template <typename I>							\
+  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
   auto FACTORY(const I& i) ATTRIB					\
   {									\
     return DE_CRTPFY(ATTRIB N,this)(TYPE(i));				\
   }									\
-  
-#define DECLARE_COMPONENT_SUBSCRIBER(FACTORY,TYPE)		\
-  /* Provide FACTORY as member function subscribing index i */	\
-  template <typename N>						\
-  struct ProvideMemberSubscriber<N,TYPE>			\
-  {								\
-    PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,const);			\
-    PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,/*non const*/);		\
+
+  /// Specialize the component subscriber to support a method named FACTORY, subscribint type TYPE
+#define DECLARE_COMPONENT_SUBSCRIBER(FACTORY,TYPE)			\
+  /* Provide FACTORY as member function subscribing index i */		\
+  template <typename N>							\
+  struct ProvideMemberSubscriber<N,TYPE>				\
+  {									\
+    PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,const);		\
+    PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,/*non const*/);	\
   }
   
 #define DECLARE_COMPONENT_FACTORY_AND_SUBSCRIBER_MEMBER(FACTORY,TYPE)	\
