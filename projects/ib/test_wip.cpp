@@ -96,7 +96,7 @@ void in_main(int narg,char **arg)
   // 	// }
   //   }
   
-  return ;
+  //return ;
   LxField<quad_su3> conf("conf");
   {
     DynamicTens<OfComps<SpinRow,LocEoSite>,double, MemoryType::CPU> d(std::make_tuple(locEoSite(locVolh)));
@@ -105,26 +105,32 @@ void in_main(int narg,char **arg)
   }
   
   {
+    [[maybe_unused]]
     constexpr StackTens<OfComps<ComplId>,double> I{0,1};
     
-    verbosity_lv=3;
-    Field2<OfComps<SpinRow,ComplId>,double> df(WITH_HALO);
+    // verbosity_lv=3;
+    // Field2<OfComps<SpinRow,ComplId>,double> df(WITH_HALO);
     
-    for(int loclxsite=0;loclxsite<locVol;loclxsite++)
-      df(LocLxSite(loclxsite),Spin(0),Re)=loclxsite;
-    printf("%lg %d\n",shift(conj(df),bw,Dir(2))(LocLxSite(0),Spin(0),Re),loclxNeighup[0][2]);
-    printf("%lg %d\n",shift(df,fw,Dir(2))(LocLxSite(0),Spin(0),Re),loclxNeighdw[0][2]);
+    // for(int loclxsite=0;loclxsite<locVol;loclxsite++)
+    //   df(LocLxSite(loclxsite),Spin(0),Re)=loclxsite;
+    // printf("%lg %d\n",shift(conj(df),bw,Dir(2))(LocLxSite(0),Spin(0),Re),loclxNeighup[0][2]);
+    // printf("%lg %d\n",shift(df,fw,Dir(2))(LocLxSite(0),Spin(0),Re),loclxNeighdw[0][2]);
     
     LxField<quad_su3> gcr("gcr",WITH_HALO);
     read_ildg_gauge_conf(gcr,"../test/data/L4T8conf");
-    Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gc(WITH_HALO);
+    Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double,FULL_SPACE,FieldLayout::GPU,MemoryType::CPU> gcH(WITH_HALO);
+    
+    master_printf("Copying the conf to field2\n");
     for(LocLxSite site=0;site<locVol;site++)
       for(Dir mu=0;mu<NDIM;mu++)
 	for(ColorRow cr=0;cr<NCOL;cr++)
 	  for(ColorCln cc=0;cc<NCOL;cc++)
 	    for(ComplId reIm=0;reIm<2;reIm++)
-	      gc(site,mu,cr,cc,reIm)=gcr[site()][mu()][cr()][cc()][reIm()];
-
+	      gcH(site,mu,cr,cc,reIm)=gcr[site()][mu()][cr()][cc()][reIm()];
+    Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gc(WITH_HALO);
+    master_printf("Copying the conf from host to device\n");
+    gc=gcH;
+    
     ASM_BOOKMARK_BEGIN("scalarWrap");
     //FuncExpr<ScalarWrapFunctor<double>,CompsList<>,double> fe(ScalarWrapFunctor<double>(12));
     // gc=gc*scalar(12);
@@ -149,7 +155,19 @@ void in_main(int narg,char **arg)
 	  // temp2=gc(nu)*gc(mu);
 	  // auto a1=(gc(mu)*shift(gc,bw,mu)(nu));
 	  // a1.getRef().describe();
+	  master_printf("Computing temp1\n");
+      // 	  DEVICE_PARALLEL_LOOP(0,LocLxSite(2),				
+      // 		CAPTURE(TO_READ(gc)),					
+      // 		site,							
+      // 		{
+      // // 		  if constexpr(decltype(gc)::execSpace==MemoryType::CPU)
+      // // 		    crash("Cannot evaluate on CPU");
+      // // gc.data.assertCorrectMemorySpace();
+      // 		  double u=gc.data.eval(Dir(0),ColorRow(0),ColorCln(0),Re,site);
+      // 		});
+	  temp1=gc(mu);
 	  temp1=(gc(mu)*shift(gc(nu),bw,mu));
+	  master_printf("Computing temp2\n");
 	  temp2=(gc(nu)*shift(gc(mu),bw,nu));
 	  // StackTens<OfComps<ColorRow,ColorCln,ComplId>,double> temp3=temp1(ori)*dag(temp2(ori));
 	  // su3 t1;
@@ -171,25 +189,25 @@ void in_main(int narg,char **arg)
 	  pl+=real(trace(temp1*dag(temp2)));
 	}
 
-    StackTens<OfComps<>,double> d;
-    d=9.9;
+    // StackTens<OfComps<>,double> d;
+    // d=9.9;
 
-    double ee=d;
+    // double ee=d;
     
-    // const double p=pl.glbReduce()()/glbVol/(2*NCOL*NCOL);
+     const double p=pl.glbReduce()()/glbVol/(2*NCOL*NCOL);
     // //pl.norm2();
     // gc.glbReduce();
     // ASM_BOOKMARK_END("plaq");
-    // printf("plaq: %.16lg\n",p);
+     printf("plaq: %.16lg\n",p);
     
-    df.updateHalo();
-    auto fl=df.flatten();
-    fl(decltype(df)::FlattenedInnerComp(0));
-    Field2<OfComps<ComplId>,double> ds;
-    // EoField2<OfComps<SpinRow>,double> df2;
-    //auto rdf=df.getWritable();
-    // auto rdf2=df2.getWritable();
-    df=I;
+    // df.updateHalo();
+    // auto fl=df.flatten();
+    // fl(decltype(df)::FlattenedInnerComp(0));
+    // Field2<OfComps<ComplId>,double> ds;
+    // // EoField2<OfComps<SpinRow>,double> df2;
+    // //auto rdf=df.getWritable();
+    // // auto rdf2=df2.getWritable();
+    // df=I;
     // master_printf("written 0? %lg\n",df(locLxSite(0),spinRow(0),reIm(0)));
     // master_printf("written 1? %lg\n",df(locLxSite(0),spinRow(0),reIm(1)));
     // df=df+I;
