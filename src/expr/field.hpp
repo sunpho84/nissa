@@ -109,6 +109,21 @@ namespace nissa
     /// Importing assignment operator from BaseTens
     using Base::operator=;
     
+    template <MemoryType OES,
+	      bool OIR>
+    INLINE_FUNCTION
+    Field2& operator=(const Field2<CompsList<C...>,_Fund,FC,FL,OES,OIR>& oth)
+    {
+      if(this->getDynamicSizes()!=oth.getDynamicSizes())
+	crash("trying to assign fields on different memory space, having different dynamic sizes");
+      
+      this->data=oth.data;
+      
+      haloIsValid=oth.haloIsValid;
+      
+      return *this;
+    }
+    
     /// Aassign from another expression
     template <typename OP=DirectAssign,
 	      typename O>
@@ -206,6 +221,9 @@ namespace nissa
     using DynamicComps=
       typename DynamicCompsProvider<FIELD_COMPS>::DynamicComps;
     
+    /// Determine if we have dynamic comps
+    using DynamicCompsProvider<Comps>::hasDynamicComps;
+    
     /// Type used for the site
     using Site=
       typename FIELD_COMPS_PROVIDER::Site;
@@ -283,7 +301,6 @@ namespace nissa
       
       return res;
     }
-    
     
     /// Surface site of a site in the halo
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
@@ -430,12 +447,11 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-    /// Makes the value in the origin equal to the sum over all sites
-    void locReduce()
+    /// Make the origin have the sum over all sites
+    void selfReduce()
     {
       const Site nOri=nSites();
       Site n=nSites();
-      //verbosity_lv2_master_printf("n: %d, nori: %d\n",n(),nOri());
       
       while(n>1)
 	{
@@ -458,12 +474,27 @@ namespace nissa
 	}
     }
     
-    /// Performs a global reduction
-    auto glbReduce()
+    /// Returns the sum over all sites
+    StackTens<CompsList<C...>,Fund> locReduce() const
     {
-      locReduce();
+      //verbosity_lv2_master_printf("n: %d, nori: %d\n",n(),nOri());
       
-      StackTens<OfComps<C...>,Fund> res=(*this)(Site(0));
+      /// Make spacetime the external component
+      Field2<CompsList<C...>,Fund,FieldCoverage::FULL_SPACE,FieldLayout::CPU,execSpace> buf(*this);
+      buf.selfReduce();
+      
+      StackTens<CompsList<C...>,Fund> res;
+      memcpy<MemoryType::CPU,execSpace>(res.storage,buf.data.storage,res.nElements*sizeof(Fund));
+      
+      return res;
+    }
+    
+    /// Performs a global reduction
+    auto glbReduce() const
+    {
+      auto res=locReduce();
+      
+      // StackTens<OfComps<C...>,Fund> res=;
       
       MPI_Allreduce(MPI_IN_PLACE,res.storage,res.nElements,
 		    MPI_Datatype_of<Fund>(),MPI_SUM,MPI_COMM_WORLD);
