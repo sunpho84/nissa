@@ -8,20 +8,20 @@
 
 namespace nissa
 {
-  void inv_stD_cg(EoField<color>& sol,
-		  const std::optional<EvnField<color>>& guess,
+  void inv_stD_cg(EoField<color0>& sol,
+		  const std::optional<EvnField<color0>>& guess,
 		  const EoField<quad_su3>& conf,
 		  const double& m,
 		  const int& niter,
 		  const double& residue,
-		  const EoField<color>& source);
+		  const EoField<color0>& source);
   
-  inline void inv_stD_cg(EoField<color>& sol,
+  inline void inv_stD_cg(EoField<color0>& sol,
 			 const EoField<quad_su3>& conf,
 			 const double& m,
 			 const int& niter,
 			 const double& residue,
-			 const EoField<color>& source)
+			 const EoField<color0>& source)
   {
     inv_stD_cg(sol,nullptr,conf,m,niter,residue,source);
   }

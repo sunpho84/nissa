@@ -60,7 +60,7 @@ namespace nissa
     
     /// Type of the conjugated expression
     using ShiftedExpr=SubNode<0>;
-
+    
 #define PROVIDE_SHIFTED_EXPR(ATTRIB)			\
     /*! Returns the shifted expression */		\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\

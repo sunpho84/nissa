@@ -33,7 +33,7 @@ namespace nissa
   
   namespace stag
   {
-    typedef eo_ptr<color> field_t;
+    typedef eo_ptr<color0> field_t;
 #define NEW_FIELD_T(A)					\
     field_t A;						\
     A[0]=nissa_malloc(#A,locVolh+bord_volh,color);	\
@@ -63,52 +63,52 @@ namespace nissa
       summ_the_trace((double*)A,point_result,B,C);			\
       if(ihit==meas_pars.nhits-1) PRINT(A)
       
-    void fill_source(eo_ptr<color> src,int twall,rnd_t noise_type);
-    void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> right,complex *point_result);
+    void fill_source(eo_ptr<color0> src,int twall,rnd_t noise_type);
+    void compute_fw_bw_der_mel(complex *res_fw_bw,eo_ptr<color0> left,eo_ptr<quad_su3> conf,int mu,eo_ptr<color0> right,complex *point_result);
     
-    void mult_Minv(EoField<color>& prop,
+    void mult_Minv(EoField<color0>& prop,
 		   EoField<quad_su3> conf,
 		   const EoField<quad_u1>& u1b,
 		   const double& m,
 		   const double& residue,
-		   const EoField<color>& source);
+		   const EoField<color0>& source);
     
-    void mult_Minv(EoField<color>& prop,
+    void mult_Minv(EoField<color0>& prop,
 		   const EoField<quad_su3>& conf,
 		   const theory_pars_t& pars,
 		   const int& iflav,
 		   const double& residue,
-		   const EoField<color>& source);
+		   const EoField<color0>& source);
     
-    void mult_dMdmu(EoField<color>& out,
+    void mult_dMdmu(EoField<color0>& out,
 		    const theory_pars_t& theory_pars,
 		    EoField<quad_su3> conf,
 		    const int& iflav,
 		    const int& ord,
-		    const EoField<color>& in);
+		    const EoField<color0>& in);
     
     void insert_external_source_handle(complex out,eo_ptr<spin1field> aux,int par,int ieo,int mu,void *pars);
-    void insert_vector_vertex(eo_ptr<color> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
+    void insert_vector_vertex(eo_ptr<color0> out,eo_ptr<quad_su3> conf,theory_pars_t *theory_pars,int iflav,eo_ptr<spin1field> curr,eo_ptr<color0> in,complex fact_fw,complex fact_bw,void(*get_curr)(complex out,eo_ptr<spin1field> curr,int par,int ieo,int mu,void *pars),int t,void *pars=NULL);
     
     void summ_the_trace(complex& out,
 			LxField<complex>& point_result,
-			const EoField<color>& A,
-			const EoField<color>& B);
+			const EoField<color0>& A,
+			const EoField<color0>& B);
     
     enum shift_orie_t{UP,DW,BOTH};
-    void apply_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side=BOTH);
-    void summ_covariant_shift(eo_ptr<color> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color> in,shift_orie_t side);
-    void apply_shift_op(eo_ptr<color> out,eo_ptr<color> single_perm,eo_ptr<color> internal_temp,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,int shift,eo_ptr<color> in);
+    void apply_covariant_shift(eo_ptr<color0> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color0> in,shift_orie_t side=BOTH);
+    void summ_covariant_shift(eo_ptr<color0> out,eo_ptr<quad_su3> conf,int mu,eo_ptr<color0> in,shift_orie_t side);
+    void apply_shift_op(eo_ptr<color0> out,eo_ptr<color0> single_perm,eo_ptr<color0> internal_temp,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,int shift,eo_ptr<color0> in);
     
-    void put_stag_phases(eo_ptr<color> source,int mask);
+    void put_stag_phases(eo_ptr<color0> source,int mask);
     enum GAMMA_INT{IDENTITY,GAMMA_0,GAMMA_1,SIGMA_0_1,GAMMA_2,SIGMA_0_2,SIGMA_1_2,GAMMA_5_SIGMA_3,GAMMA_3,SIGMA_0_3,SIGMA_1_3,GAMMA5_GAMMA_2,SIGMA_2_3,GAMMA_5_GAMMA_1,GAMMA_5_GAMMA_0,GAMMA_5};
-    inline void apply_stag_op(eo_ptr<color> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,GAMMA_INT spin,GAMMA_INT taste,eo_ptr<color> in)
+    inline void apply_stag_op(eo_ptr<color0> out,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> u1b,GAMMA_INT spin,GAMMA_INT taste,eo_ptr<color0> in)
     {
       //Allocate temp
-      eo_ptr<color> temp[2];
+      eo_ptr<color0> temp[2];
       for(int itemp=0;itemp<2;itemp++)
 	for(int eo=0;eo<2;eo++)
-	  temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color);
+	  temp[itemp][eo]=nissa_malloc("temp",locVolh+bord_volh,color0);
       
       //Form the mask and shift
       int shift=(spin^taste);
@@ -124,8 +124,8 @@ namespace nissa
 	  nissa_free(temp[itemp][eo]);
     }
     
-    void summ_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta);
-    inline void compute_dens(complex *dens,eo_ptr<color> quark,eo_ptr<color> temp0,eo_ptr<color> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color> chi,eo_ptr<color> eta)
+    void summ_dens(complex *dens,eo_ptr<color0> quark,eo_ptr<color0> temp0,eo_ptr<color0> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color0> chi,eo_ptr<color0> eta);
+    inline void compute_dens(complex *dens,eo_ptr<color0> quark,eo_ptr<color0> temp0,eo_ptr<color0> temp1,eo_ptr<quad_su3> conf,eo_ptr<quad_u1> backfield,int shift,int mask,eo_ptr<color0> chi,eo_ptr<color0> eta)
     {
       vector_reset(dens);
       summ_dens(dens,quark,temp0,temp1,conf,backfield,shift,mask,chi,eta);

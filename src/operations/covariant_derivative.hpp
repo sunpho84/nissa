@@ -144,10 +144,10 @@ namespace nissa
 				const LxField<su3spinspin>& in,
 				const int& it=-1);
   
-  void Laplace_operator_2_links(LxField<color>& out,
+  void Laplace_operator_2_links(LxField<color0>& out,
 				const LxField<quad_su3>& conf,
 				const which_dir_t& dirs,
-				const LxField<color>& in);
+				const LxField<color0>& in);
   void Laplace_operator(LxField<spincolor>& out,
 			const LxField<quad_su3>& conf,
 			const which_dir_t& dirs,

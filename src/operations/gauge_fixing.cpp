@@ -90,7 +90,7 @@ namespace nissa
   }
   
   //transform a color field
-  void gauge_transform_color(eo_ptr<color> out,eo_ptr<su3> g,eo_ptr<color> in)
+  void gauge_transform_color(eo_ptr<color0> out,eo_ptr<su3> g,eo_ptr<color0> in)
   {
     crash("reimplement");
     // //communicate borders

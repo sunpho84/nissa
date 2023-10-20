@@ -14,10 +14,10 @@
 namespace nissa
 {
   //covariant shift backward: i=i+mu
-  void cshift_bw(LxField<color>& out,
+  void cshift_bw(LxField<color0>& out,
 		 const LxField<quad_su3>& conf,
 		 const int& mu,
-		 const LxField<color>& in,
+		 const LxField<color0>& in,
 		 const bool& reset_first=true)
   {
     in.updateHalo();
@@ -36,10 +36,10 @@ namespace nissa
   }
   
   //covariant shift forward: i=i-mu
-  void cshift_fw(LxField<color>& out,
+  void cshift_fw(LxField<color0>& out,
 		 const LxField<quad_su3>& conf,
 		 const int& mu,
-		 const LxField<color>& in,
+		 const LxField<color0>& in,
 		 const bool& reset_first=true)
   {
     in.updateHalo();

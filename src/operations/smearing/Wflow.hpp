@@ -91,10 +91,10 @@ namespace nissa
     }
     
     //call the 2-links Laplace operator, for staggered fields
-    inline void Laplace_operator_switch(LxField<color>&out,
+    inline void Laplace_operator_switch(LxField<color0>&out,
 					const LxField<quad_su3>& c,
 					const which_dir_t& dirs,
-					const LxField<color>& in)
+					const LxField<color0>& in)
     {
        Laplace_operator_2_links(out,c,dirs,in);
     }
@@ -173,7 +173,7 @@ namespace nissa
   /////////////////////////////////////////////////// fermions /////////////////////////////////////////////////////////
   
   //store conf used to perform fermionic flow
-  template <typename T=color,
+  template <typename T=color0,
 	    int nint_steps=3>
   struct internal_fermion_flower_t
   {
@@ -300,7 +300,7 @@ namespace nissa
   };
   
   //adjoint fermion flower
-  template <typename T=color,
+  template <typename T=color0,
 	    int nint_steps=3>
   struct fermion_adjoint_flower_t :
     public internal_fermion_flower_t<T,nint_steps>

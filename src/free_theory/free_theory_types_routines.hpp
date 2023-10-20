@@ -27,13 +27,13 @@ namespace nissa
 					 const momentum_t& bc);
   
   
-  void get_spin_from_spinspin(LxField<spin>& out,
+  void get_spin_from_spinspin(LxField<spin0>& out,
 			      const LxField<spinspin>& in,
 			      const int& id_so);
   
   
   void put_spin_into_spinspin(LxField<spinspin>& out,
-			      const LxField<spin>& in,
+			      const LxField<spin0>& in,
 			      const int& id_so);
 }
 

@@ -355,7 +355,7 @@ namespace nissa
   }
   
   //generate a fully undiluted source
-  void generate_fully_undiluted_lx_source(LxField<color>& source,
+  void generate_fully_undiluted_lx_source(LxField<color0>& source,
 					  const rnd_t& rtype,
 					  const int& twall,
 					  const int& dir)
@@ -371,7 +371,7 @@ namespace nissa
   }
   
   //eo version
-  void generate_fully_undiluted_eo_source(EvenOrOddField<color>& source,
+  void generate_fully_undiluted_eo_source(EvenOrOddField<color0>& source,
 					  const rnd_t& rtype,
 					  const int& twall,
 					  const int& par,
@@ -388,7 +388,7 @@ namespace nissa
 	});
   }
   
-  void generate_fully_undiluted_eo_source(EoField<color>& source,
+  void generate_fully_undiluted_eo_source(EoField<color0>& source,
 					  const rnd_t& rtype,
 					  const int& twall,
 					  const int& dir)
@@ -514,7 +514,7 @@ namespace nissa
   
   // A gauss vector has complex components z which are gaussian distributed
   // with <z~ z> = sigma
-  void color_put_to_gauss(color& H,rnd_gen *gen,double sigma)
+  void color_put_to_gauss(color0& H,rnd_gen *gen,double sigma)
   {
     complex ave={0,0};
     for(size_t ic=0;ic<NCOL;ic++) rnd_get_gauss_complex(H[ic],gen,ave,sigma);

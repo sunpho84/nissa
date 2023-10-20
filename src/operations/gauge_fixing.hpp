@@ -249,7 +249,7 @@ namespace nissa
   
   void gauge_transform_conf(eo_ptr<quad_su3> uout,eo_ptr<su3> g,eo_ptr<quad_su3> uin);
   
-  void gauge_transform_color(eo_ptr<color> out,eo_ptr<su3> g,eo_ptr<color> in);
+  void gauge_transform_color(eo_ptr<color0> out,eo_ptr<su3> g,eo_ptr<color0> in);
   
   void Landau_or_Coulomb_gauge_fix(LxField<quad_su3>& fixed_conf,
 				   const LC_gauge_fixing_pars_t& pars,

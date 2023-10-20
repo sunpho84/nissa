@@ -34,7 +34,7 @@ namespace nissa
 	// const bool p=(X==loclx_of_coord_list(0,8,23,7));
 	
 	int Xup,Xdw;
-	color temp_c0,temp_c1,temp_c2,temp_c3;
+	color0 temp_c0,temp_c1,temp_c2,temp_c3;
 	
 	//Clover term
 	spincolor Clin;

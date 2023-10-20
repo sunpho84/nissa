@@ -42,8 +42,8 @@ namespace nissa
 							 const tm_quark_info& qu,
 							 const tm_basis_t& base);
   
-  void multiply_from_left_by_x_space_twisted_propagator_by_inv(LxField<spin>& prop,
-							       const LxField<spin>& source,
+  void multiply_from_left_by_x_space_twisted_propagator_by_inv(LxField<spin0>& prop,
+							       const LxField<spin0>& source,
 							       const tm_quark_info& qu,
 							       const tm_basis_t& base);
   
@@ -83,7 +83,7 @@ namespace nissa
     return twisted_on_shell_operator_of_imom(proj,qu,imom,false,sign[part_apart],base);
   }
   
-  void twisted_wavefunction_of_imom(spin& wf,
+  void twisted_wavefunction_of_imom(spin0& wf,
 				    const tm_quark_info& qu,
 				    const int& imom,
 				    const int& par_apar,
@@ -95,7 +95,7 @@ namespace nissa
 						  const int& imom,
 						  const int& esign);
   
-  void naive_massless_wavefunction_of_imom(spin& wf,
+  void naive_massless_wavefunction_of_imom(spin0& wf,
 					   const momentum_t& bc,
 					   const int& imom,
 					   const int& par_apar,
@@ -113,7 +113,7 @@ namespace nissa
 							   const tm_basis_t& base)
   
   DEFINE_MULTIPLY_MOM_SPACE_TWISTED_PROPAGATOR(spinspin);
-  DEFINE_MULTIPLY_MOM_SPACE_TWISTED_PROPAGATOR(spin);
+  DEFINE_MULTIPLY_MOM_SPACE_TWISTED_PROPAGATOR(spin0);
   DEFINE_MULTIPLY_MOM_SPACE_TWISTED_PROPAGATOR(spincolor);
   
   //compute the m0 corresponding to a certain kappa
@@ -167,7 +167,7 @@ namespace nissa
   }
   
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(spinspin);
-  DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(spin);
+  DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(spin0);
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(spincolor);
   
 #undef DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT

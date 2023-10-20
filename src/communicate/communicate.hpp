@@ -67,7 +67,7 @@
 */
 
 #ifndef EXTERN_COMMUNICATE
- #define EXTERN_COMMUNICATE extern
+# define EXTERN_COMMUNICATE extern
 #endif
 
 namespace nissa

@@ -19,12 +19,12 @@
 namespace nissa
 {
   //invert Koo defined in equation (7)
-  void inv_tmDkern_eoprec_square_eos(OddField<spin>& sol,
-				     const std::optional<OddField<spin>>& guess,
+  void inv_tmDkern_eoprec_square_eos(OddField<spin0>& sol,
+				     const std::optional<OddField<spin0>>& guess,
 				     const tm_quark_info& qu,
 				     const int& nMaxIter,
 				     const double& residue,
-				     const OddField<spin>& source)
+				     const OddField<spin0>& source)
   {
     crash("reimplement");
     
@@ -118,12 +118,12 @@ namespace nissa
   }
   
   //Invert twisted mass operator using e/o preconditioning.
-  void inv_tmD_cg_eoprec_eos(LxField<spin>& solution_lx,
-			     std::optional<OddField<spin>> guess_Koo,
+  void inv_tmD_cg_eoprec_eos(LxField<spin0>& solution_lx,
+			     std::optional<OddField<spin0>> guess_Koo,
 			     const tm_quark_info& qu,
 			     const int& nitermax,
 			     const double& residue,
-			     const LxField<spin>& source_lx)
+			     const LxField<spin0>& source_lx)
   {
     crash("reimplement");
     

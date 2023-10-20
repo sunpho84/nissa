@@ -50,7 +50,7 @@ namespace nissa
     return create_twisted_quark_info(kappa,0,bc,0);
   }
   
-  void get_spin_from_spinspin(LxField<spin>& out,
+  void get_spin_from_spinspin(LxField<spin0>& out,
 			      const LxField<spinspin>& in,
 			      const int& id_so)
   {
@@ -65,7 +65,7 @@ namespace nissa
   }
   
   void put_spin_into_spinspin(LxField<spinspin>& out,
-			      const LxField<spin>& in,
+			      const LxField<spin0>& in,
 			      const int& id_so)
   {
     PAR(0,locVol,

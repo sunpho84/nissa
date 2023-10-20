@@ -94,6 +94,8 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     DynamicCompsProvider<FIELD_COMPS>,
+    ProvideMemberSubscriber<THIS,C>...,
+    ProvideMemberSubscriber<THIS,typename FieldCompsProvider<CompsList<C...>,_Fund,FC,FL>::Site>,
     DetectableAsField2,
     BASE
   {
@@ -124,7 +126,7 @@ namespace nissa
       return *this;
     }
     
-    /// Aassign from another expression
+    /// Assign from another expression
     template <typename OP=DirectAssign,
 	      typename O>
     INLINE_FUNCTION
@@ -637,6 +639,13 @@ namespace nissa
     {
     }
     
+    /// Return a copy on the given memory space
+    template <MemoryType OES>
+    Field2<CompsList<C...>,_Fund,FC,FL,OES> copyToMemorySpace() const
+    {
+      return *this;
+    }
+    
     /// Copy construct, taking as input a non-reference when this is a reference
     template <typename O,
 	      bool B=IsRef,
@@ -652,6 +661,16 @@ namespace nissa
     Field2(const Field2& oth) :
       Field2(oth,(_CopyConstructInternalDispatcher*)nullptr)
     {
+    }
+    
+    /// Construct from another exec space
+    template <MemoryType OES,
+	      bool OIR>
+    INLINE_FUNCTION
+    Field2 (const Field2<CompsList<C...>,_Fund,FC,FL,OES,OIR>& oth) :
+      Field2(oth.haloEdgesPresence)
+    {
+      (*this)=oth;
     }
     
     /// Set edges as invalid
@@ -701,6 +720,9 @@ namespace nissa
       {
 	return surfSiteOfHaloSite(i);
       },bord_vol/divCoeff);
+      
+      // for(size_t i=0;i<bord_vol*StackTens<CompsList<C...>,Fund>::nElements;i++)
+      // 	master_printf("s %zu %lg\n",i,((Fund*)send_buf)[i]);
     }
     
     /// Fill the sending buf using the data on the surface edge
@@ -760,6 +782,9 @@ namespace nissa
 		((Fund*)recv_buf)[internalDeg+nInternalDegs*i()];
 	    },dynamicSizes);
 	  });
+      
+      // for(size_t i=0;i<bord_vol*StackTens<CompsList<C...>,Fund>::nElements;i++)
+      // 	master_printf("r %zu %lg\n",i,((Fund*)recv_buf)[i]);
     }
     
     /// Fills the halo with the received buffer

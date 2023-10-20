@@ -46,7 +46,7 @@ namespace nissa
 	  
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
-	      color temp_c0,temp_c1,temp_c2,temp_c3;
+	      color0 temp_c0,temp_c1,temp_c2,temp_c3;
 	      
 	      //Forward
 	      const int Xup=loclxNeighup[X][mu];

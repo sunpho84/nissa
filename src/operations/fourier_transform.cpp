@@ -340,8 +340,8 @@ namespace nissa
       });
   }
   
-  void pass_spin_from_mom_to_x_space(LxField<spin>& out,
-				     const LxField<spin>& in,
+  void pass_spin_from_mom_to_x_space(LxField<spin0>& out,
+				     const LxField<spin0>& in,
 				     const which_dir_t& dirs,
 				     const momentum_t& bc,
 				     const int& source_or_sink,
@@ -380,8 +380,8 @@ namespace nissa
       });
   }
   
-  void pass_spin_from_x_to_mom_space(LxField<spin>& out,
-				     const LxField<spin>& in,
+  void pass_spin_from_x_to_mom_space(LxField<spin0>& out,
+				     const LxField<spin0>& in,
 				     const which_dir_t& dirs,
 				     const momentum_t& bc,
 				     const int& source_or_sink,

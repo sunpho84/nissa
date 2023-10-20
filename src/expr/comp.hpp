@@ -13,6 +13,12 @@
 
 namespace nissa
 {
+  template <typename N,
+	    typename C>
+  struct ProvideMemberSubscriber
+  {
+  };
+  
   /// Promotes the argument i to a component of type TYPE
 #define DECLARE_COMPONENT_FACTORY(FACTORY,TYPE)			\
   template <typename T>						\
@@ -21,6 +27,26 @@ namespace nissa
   {								\
     return i;							\
   }
+
+#define PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,ATTRIB)	\
+  template <typename I>							\
+  auto FACTORY(const I& i) ATTRIB					\
+  {									\
+    return DE_CRTPFY(ATTRIB N,this)(TYPE(i));				\
+  }									\
+  
+#define DECLARE_COMPONENT_SUBSCRIBER(FACTORY,TYPE)		\
+  /* Provide FACTORY as member function subscribing index i */	\
+  template <typename N>						\
+  struct ProvideMemberSubscriber<N,TYPE>			\
+  {								\
+    PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,const);			\
+    PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,/*non const*/);		\
+  }
+  
+#define DECLARE_COMPONENT_FACTORY_AND_SUBSCRIBER_MEMBER(FACTORY,TYPE)	\
+  DECLARE_COMPONENT_FACTORY(FACTORY,TYPE);				\
+  DECLARE_COMPONENT_SUBSCRIBER(FACTORY,TYPE)
   
   /////////////////////////////////////////////////////////////////
   
@@ -53,9 +79,9 @@ namespace nissa
   								\
   using NAME ## Cln=NAME ## RwOrCl<RwCl::CLN>;			\
   								\
-  DECLARE_COMPONENT_FACTORY(FACTORY ## Row,NAME ## Row);	\
-								\
-  DECLARE_COMPONENT_FACTORY(FACTORY ## Cln,NAME ## Cln);	\
+  DECLARE_COMPONENT_FACTORY_AND_SUBSCRIBER_MEMBER(FACTORY ## Row,NAME ## Row); \
+  									\
+  DECLARE_COMPONENT_FACTORY_AND_SUBSCRIBER_MEMBER(FACTORY ## Cln,NAME ## Cln); \
 								\
   DECLARE_COMPONENT_FACTORY(FACTORY,NAME)
   

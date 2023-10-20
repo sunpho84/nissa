@@ -13,24 +13,24 @@
 
 namespace nissa
 {
-  typedef complex color[NCOL];
+  typedef complex color0[NCOL];
   
   typedef complex color2[2];
   typedef color2 su2[2];
   
-  typedef color halfspincolor[NDIRAC/2];
+  typedef color0 halfspincolor[NDIRAC/2];
   typedef halfspincolor color_halfspincolor[NCOL];
   typedef color_halfspincolor halfspincolor_halfspincolor[NDIRAC/2];
   
-  typedef color spincolor[NDIRAC];
-  typedef spin colorspin[NCOL];
+  typedef color0 spincolor[NDIRAC];
+  typedef spin0 colorspin[NCOL];
   
   typedef colorspin spincolorspin[NDIRAC];
   typedef spincolorspin colorspincolorspin[NCOL];
   
   typedef spinspin colorspinspin[NCOL];
   
-  typedef color su3[NCOL];
+  typedef color0 su3[NCOL];
   typedef su3 quad_su3[NDIM];
   typedef su3 oct_su3[2*NDIM];
   

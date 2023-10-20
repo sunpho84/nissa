@@ -248,8 +248,8 @@ namespace nissa
 	  allocate(dynamicSizes);
 	  (*this)=oth;
 #else
-	  constexpr cannotCopyConstructNonRefOnDefice=false;
-	  assert(CopyConstructNonRefOnDefice);
+	  constexpr bool cannotCopyConstructNonRefOnDefice=false;
+	  assert(cannotCopyConstructNonRefOnDefice);
 #endif
 	}
       else
@@ -266,6 +266,13 @@ namespace nissa
       storage(oth.storage),
       nElements(oth.nElements)
     {
+    }
+    
+    /// Return a copy on the given memory space
+    template <MemoryType OES>
+    DynamicTens<Comps,Fund,OES> copyToMemorySpace() const
+    {
+      return *this;
     }
     
     /// Move constructor

@@ -193,7 +193,7 @@ namespace nissa
   }
   
   //filter the points retaining only those having all even coord
-  void filter_hypercube_origin_sites(color **vec)
+  void filter_hypercube_origin_sites(color0 **vec)
   {
     NISSA_LOC_VOL_LOOP(ivol)
     {
@@ -202,7 +202,7 @@ namespace nissa
 	save=save and glbCoordOfLoclx[ivol][mu]%2==0;
       
       if(!save)
-	memset(vec[loclx_parity[ivol]][loceo_of_loclx[ivol]],0,sizeof(color));
+	memset(vec[loclx_parity[ivol]][loceo_of_loclx[ivol]],0,sizeof(color0));
     }
   }
 }

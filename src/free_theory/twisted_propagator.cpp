@@ -214,13 +214,13 @@ namespace nissa
   //aparticle are associated with         phi_s, eigenvectors of (1-g0)
   //particles are associated with \tilde{phi}_s, eigenvectors of (1+g0)
   //so take ompg0_eig[!par_apar][s]
-  spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
+  spin0 ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
 			 {{ 0, 0},{+W, 0},{ 0, 0},{+W, 0}}},
 			{{{+W, 0},{ 0, 0},{-W, 0},{ 0, 0}},
 			 {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
   
   //return the wave function of "u_r(p)" (particle) or "v_r(-p)" (antiparticle)
-  void twisted_wavefunction_of_imom(spin& wf,
+  void twisted_wavefunction_of_imom(spin0& wf,
 				    const tm_quark_info& qu,
 				    const int& imom,
 				    const int& par_apar,
@@ -238,7 +238,7 @@ namespace nissa
   }
   
   //same for naive massless fermions
-  void naive_massless_wavefunction_of_imom(spin& wf,
+  void naive_massless_wavefunction_of_imom(spin0& wf,
 					   const momentum_t& bc,
 					   const int& imom,
 					   const int& par_apar,
@@ -302,7 +302,7 @@ namespace nissa
   /////////////////////////////////////////////// multiply from left or right a spin ///////////////////////////////////////////////
   
   //multiply from left
-#define DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(TYPE) \
+#define DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(TYPE,CALL) \
   void multiply_from_left_by_mom_space_twisted_propagator(LxField<TYPE>& out, \
 							  const LxField<TYPE>& in, \
 							  const tm_quark_info& qu, \
@@ -315,7 +315,7 @@ namespace nissa
 	{								\
 	  spinspin prop;						\
 	  mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
-	  NAME2(safe_spinspin_prod,TYPE)(out[imom],prop,in[imom]);	\
+	  NAME2(safe_spinspin_prod,CALL)(out[imom],prop,in[imom]);	\
 	});								\
   }									\
   									\
@@ -332,19 +332,19 @@ namespace nissa
       {									\
 	spinspin prop;							\
 	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
-	NAME3(safe,TYPE,prod_spinspin)(out[imom],in[imom],prop);	\
+	NAME3(safe,CALL,prod_spinspin)(out[imom],in[imom],prop);	\
       });								\
   }									\
   
-  DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spin);
-  DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spincolor);
-  DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spinspin);
+  DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spin0,spin);
+  DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spincolor,spincolor);
+  DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spinspin,spinspin);
   
   ////////////////////////////////////////////// by inversion /////////////////////////////////////////////
   
   //multiply the source for the twisted propagator by inverting twisted Dirac operator
-  void multiply_from_left_by_x_space_twisted_propagator_by_inv(LxField<spin>& prop,
-							       const LxField<spin>& source,
+  void multiply_from_left_by_x_space_twisted_propagator_by_inv(LxField<spin0>& prop,
+							       const LxField<spin0>& source,
 							       const tm_quark_info& qu,
 							       const tm_basis_t& base)
   {
@@ -360,8 +360,8 @@ namespace nissa
 							       const tm_basis_t& base)
   {
     //source and temp prop
-    LxField<spin> tsource("tsource",WITH_HALO);
-    LxField<spin> tprop("tprop",WITH_HALO);
+    LxField<spin0> tsource("tsource",WITH_HALO);
+    LxField<spin0> tprop("tprop",WITH_HALO);
     
     //loop over the source index
     for(int id_so=0;id_so<NDIRAC;id_so++)

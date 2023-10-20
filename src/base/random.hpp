@@ -48,7 +48,7 @@ namespace nissa
   EXTERN_RANDOM bool loc_rnd_gen_inited;
   
   rnd_t convert_str_to_rnd_t(const char *str);
-  void color_put_to_gauss(color H,rnd_gen *gen,double sigma);
+  void color_put_to_gauss(color0 H,rnd_gen *gen,double sigma);
   void convert_text_to_rnd_gen(rnd_gen *gen,const char *text);
   void convert_rnd_gen_to_text(char *text,rnd_gen *gen,int size);
   CUDA_HOST_AND_DEVICE double rnd_get_unif(rnd_gen *gen,double min,double max);
@@ -85,19 +85,19 @@ namespace nissa
 				 const int& twall);
   
   //generate a fully undiluted source
-  void generate_fully_undiluted_lx_source(LxField<color>& source,
+  void generate_fully_undiluted_lx_source(LxField<color0>& source,
 					  const rnd_t& rtype,
 					  const int& twall,
 					  const int& dir=0);
   
   //eo version
-  void generate_fully_undiluted_eo_source(EvenOrOddField<color>& source,
+  void generate_fully_undiluted_eo_source(EvenOrOddField<color0>& source,
 					  const rnd_t& rtype,
 					  const int& twall,
 					  const int& par,
 					  const int& dir=0);
   
-  void generate_fully_undiluted_eo_source(EoField<color>& source,
+  void generate_fully_undiluted_eo_source(EoField<color0>& source,
 					  const rnd_t& rtype,
 					  const int& twall,
 					  const int& dir=0);

@@ -41,7 +41,7 @@ namespace nissa
   
   DEFINE_PASS(spinspin);
   DEFINE_PASS(spin1prop);
-  DEFINE_PASS(spin);
+  DEFINE_PASS(spin0);
   DEFINE_PASS(spincolor);
   DEFINE_PASS(spin1field);
 }

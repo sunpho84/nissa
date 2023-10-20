@@ -67,6 +67,7 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     DynamicCompsProvider<CompsList<C...>>,
+    ProvideMemberSubscriber<THIS,C>...,
     DetectableAsConjugator,
     SubNodes<_E...>,
     BASE

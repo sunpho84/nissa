@@ -4,7 +4,6 @@
 
 using namespace nissa;
 
-
 // double rel_diff_norm(spincolor *test,spincolor *ref)
 // {
 //   double_vector_subtassign((double*)test,(double*)ref,locVol*sizeof(spincolor)/sizeof(double));
@@ -15,10 +14,11 @@ using namespace nissa;
 //   return res;
 // }
 
-DECLARE_TRANSPOSABLE_COMP(Spin,int,NDIRAC,spin);
+namespace nissa
+{DECLARE_TRANSPOSABLE_COMP(Spin,int,NDIRAC,spin);
 DECLARE_TRANSPOSABLE_COMP(Color,int,NCOL,color);
 DECLARE_TRANSPOSABLE_COMP(Fuf,int,1,fuf);
-
+}
 void in_main(int narg,char **arg)
 {
   const int T=8,L=4;
@@ -120,6 +120,8 @@ void in_main(int narg,char **arg)
     read_ildg_gauge_conf(gcr,"../test/data/L4T8conf");
     Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double,FULL_SPACE,FieldLayout::GPU,MemoryType::CPU> gcH(WITH_HALO);
     
+    gcH.colorRow(0);
+    
     master_printf("Copying the conf to field2\n");
     for(LocLxSite site=0;site<locVol;site++)
       for(Dir mu=0;mu<NDIM;mu++)
@@ -169,6 +171,12 @@ void in_main(int narg,char **arg)
 	  temp1=(gc(mu)*shift(gc(nu),bw,mu));
 	  master_printf("Computing temp2\n");
 	  temp2=(gc(nu)*shift(gc(mu),bw,nu));
+
+	  const auto gcH=gc.copyToMemorySpace<MemoryType::CPU>();
+	  master_printf("HALO IS VALID: %d %d\n",gc.haloIsValid,gcH.haloIsValid);
+	  const double e=shift(gcH(Dir(0)),fw,Dir(0))(ColorRow(0))(ColorCln(0))(reIm(0))(LocLxSite(0));
+	  master_printf("out of bord %lg\n",e);
+	  
 	  // StackTens<OfComps<ColorRow,ColorCln,ComplId>,double> temp3=temp1(ori)*dag(temp2(ori));
 	  // su3 t1;
 	  // unsafe_su3_prod_su3(t1,gcr[0][mu()],gcr[loclxNeighup[0][mu()]][nu()]);
@@ -198,7 +206,7 @@ void in_main(int narg,char **arg)
     // //pl.norm2();
     // gc.glbReduce();
     // ASM_BOOKMARK_END("plaq");
-     printf("plaq: %.16lg\n",p);
+     master_printf("plaq with new method: %.16lg\n",p);
     
     // df.updateHalo();
     // auto fl=df.flatten();

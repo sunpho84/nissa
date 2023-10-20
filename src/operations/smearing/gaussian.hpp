@@ -11,7 +11,7 @@
 namespace nissa
 {
   //apply kappa*H
-#define DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(TYPE)			\
+#define DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(TYPE,CALL)		\
   void inline NAME2(gaussian_smearing_apply_kappa_H,TYPE)(LxField<TYPE>& H, \
 							  const momentum_t& kappa, \
 							  const LxField<quad_su3>& conf, \
@@ -35,9 +35,9 @@ namespace nissa
 	    const int ivdw=loclxNeighdw[ivol][mu];			\
 	    TYPE temp;							\
 									\
-	    NAME2(unsafe_su3_prod,TYPE)(temp,conf[ivol][mu],in[ivup]);	\
-	    NAME2(su3_dag_summ_the_prod,TYPE)(temp,conf[ivdw][mu],in[ivdw]);	\
-	    NAME2(TYPE,summ_the_prod_double)(H[ivol],temp,kappa[mu]);		\
+	    NAME2(unsafe_su3_prod,CALL)(temp,conf[ivol][mu],in[ivup]);	\
+	    NAME2(su3_dag_summ_the_prod,CALL)(temp,conf[ivdw][mu],in[ivdw]);	\
+	    NAME2(CALL,summ_the_prod_double)(H[ivol],temp,kappa[mu]);		\
 	  }								\
       });								\
 }									\
@@ -64,7 +64,7 @@ namespace nissa
 	LxField<TYPE>& temp=*_temp;					\
 									\
 	LxField<TYPE> *_H=ext_H;					\
-	if(ext_H==nullptr) _H=new LxField<TYPE>("H",WITH_HALO);	\
+	if(ext_H==nullptr) _H=new LxField<TYPE>("H",WITH_HALO);		\
 	LxField<TYPE>& H=*_H;						\
   									\
 	const double norm_fact=1/(1+2*(kappa[1]+kappa[2]+kappa[3]));	\
@@ -93,17 +93,17 @@ namespace nissa
       }									\
   }									\
   
-  DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(su3spinspin)
+  DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(su3spinspin,su3spinspin)
   DEFINE_GAUSSIAN_SMEARING(su3spinspin)
   
-  DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(colorspinspin)
+  DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(colorspinspin,colorspinspin)
   DEFINE_GAUSSIAN_SMEARING(colorspinspin)
   
-  DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(spincolor)
+  DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(spincolor,spincolor)
   DEFINE_GAUSSIAN_SMEARING(spincolor)
   
-  DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(color)
-  DEFINE_GAUSSIAN_SMEARING(color)
+  DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(color0,color)
+  DEFINE_GAUSSIAN_SMEARING(color0)
   
 #undef DEFINE_GAUSSIAN_SMEARING
 #undef DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H

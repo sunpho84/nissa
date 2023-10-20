@@ -174,7 +174,7 @@ namespace nissa
     int is_stag;
     // double *double_ptr;
     
-    EvnField<color> *stag;
+    EvnField<color0> *stag;
     EvnField<spincolor> *Wils;
     
     //fill to random
@@ -233,7 +233,7 @@ namespace nissa
       is_stag=ferm_discretiz::is_stag(discretiz);
       
       if(is_stag)
-	stag=new EvnField<color>("stag",WITH_HALO);
+	stag=new EvnField<color0>("stag",WITH_HALO);
       else
 	Wils=new EvnField<spincolor>("Wils",WITH_HALO);
     }
