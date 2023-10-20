@@ -44,7 +44,7 @@ namespace nissa
 #undef BASE
 #undef THIS
     
-    /// Importing assignment operator from BaseTens
+    /// Importing assignment operator from Node
     using Base::operator=;
     
     /// Copy assign
@@ -80,6 +80,20 @@ namespace nissa
     
     /// Fundamental type
     using Fund=_Fund;
+    
+    /// Assign from different execution space
+    template <MemoryType OES,
+	      bool OIR>
+    INLINE_FUNCTION
+    DynamicTens& operator=(const DynamicTens<Comps,Fund,OES,OIR>& oth)
+    {
+      if(dynamicSizes!=oth.dynamicSizes)
+	crash("trying to assign different dynamic sized tensor");
+      
+      memcpy<execSpace,OES>(storage,oth.storage,nElements*sizeof(Fund));
+      
+      return *this;
+    }
     
     /// Return whether can be assigned at compile time
     static constexpr bool canAssignAtCompileTime=
@@ -121,7 +135,7 @@ namespace nissa
     }
     
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    void assertCorrectMemorySpace() const
+    void assertCorrectExecSpace() const
     {
 #ifdef USE_CUDA
 # ifdef COMPILING_FOR_DEVICE
@@ -133,13 +147,13 @@ namespace nissa
 # endif
 #endif
     }
-    
+
 #define PROVIDE_EVAL(CONST_ATTRIB)					\
     template <typename...U>						\
     CUDA_HOST_AND_DEVICE constexpr INLINE_FUNCTION			\
     CONST_ATTRIB Fund& eval(const U&...cs) CONST_ATTRIB			\
     {									\
-      assertCorrectMemorySpace();					\
+      assertCorrectExecSpace();						\
       									\
       return storage[orderedIndex<C...>(dynamicSizes,cs...)];		\
     }
@@ -231,8 +245,8 @@ namespace nissa
 	{
 #ifndef __CUDA_ARCH__
 	  verbosity_lv3_master_printf("Using copy constructor of DynamicTens");
-	  (*this)=oth;
 #endif
+	  (*this)=oth;
 	}
       else
 	this->storage=oth.storage;
@@ -251,6 +265,7 @@ namespace nissa
     }
     
     /// Move constructor
+    INLINE_FUNCTION
     DynamicTens(DynamicTens&& oth) :
       dynamicSizes(oth.dynamicSizes),
       storage(oth.storage),
@@ -259,6 +274,15 @@ namespace nissa
       verbosity_lv3_master_printf("Using move constructor of DynamicTens\n");
       
       oth.storage=nullptr;
+    }
+    
+    /// Construct from another exec space
+    template <MemoryType OES>
+    INLINE_FUNCTION
+    DynamicTens(const DynamicTens<Comps,Fund,OES>& oth) :
+      DynamicTens(this->getDynamicSizes())
+    {
+      (*this)=oth;
     }
     
     /////////////////////////////////////////////////////////////////
