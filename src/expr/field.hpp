@@ -450,7 +450,6 @@ namespace nissa
     /// Make the origin have the sum over all sites
     void selfReduce()
     {
-      const Site nOri=nSites();
       Site n=nSites();
       
       while(n>1)

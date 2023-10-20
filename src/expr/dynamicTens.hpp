@@ -243,10 +243,14 @@ namespace nissa
     {
       if constexpr(not IsRef)
 	{
-#ifndef __CUDA_ARCH__
+#ifndef COMPILING_FOR_DEVICE
 	  verbosity_lv3_master_printf("Using copy constructor of DynamicTens");
-#endif
+	  allocate(dynamicSizes);
 	  (*this)=oth;
+#else
+	  constexpr cannotCopyConstructNonRefOnDefice=false;
+	  assert(CopyConstructNonRefOnDefice);
+#endif
 	}
       else
 	this->storage=oth.storage;
