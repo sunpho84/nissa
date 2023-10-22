@@ -35,7 +35,8 @@ namespace nissa
   
   /// Scalar quantity
   template <typename F>
-  using Scalar=FuncExpr<ScalarWrapFunctor<F>,OfComps<>,F>;
+  using Scalar=
+    FuncExpr<ScalarWrapFunctor<F>,OfComps<>,F>;
   
   /// Creates a Scalar of type F
   template <typename F>

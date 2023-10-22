@@ -16,7 +16,7 @@ namespace nissa
 {
   PROVIDE_DETECTABLE_AS(FuncExpr);
   
-  /// Conjugator
+  /// Functional expression
   ///
   /// Forward declaration to capture the components
   template <typename Func,

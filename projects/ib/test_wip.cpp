@@ -121,8 +121,8 @@ void in_main(int narg,char **arg)
     LxField<quad_su3> gcr("gcr",WITH_HALO);
     read_ildg_gauge_conf(gcr,"../test/data/L4T8conf");
     Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double,FULL_SPACE,FieldLayout::GPU,MemoryType::CPU> gcH(WITH_HALO);
-    
-    gcH.colorRow(0);
+    LocLxSite e;
+    gcH.locLxSite(2);
     
     master_printf("Copying the conf to field2\n");
     for(LocLxSite site=0;site<locVol;site++)

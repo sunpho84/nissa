@@ -52,7 +52,7 @@ namespace nissa
 	    typename...Ci>
   struct THIS :
     NodeFeat<T>,
-    MemberSubscribeProvider<T,Ci>...,
+    MemberCompSubscribeProvider<T,Ci>...,
     DynamicCompsProvider<CompsList<Ci...>>
   {
     using This=THIS;
