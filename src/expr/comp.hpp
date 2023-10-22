@@ -13,9 +13,12 @@
 
 namespace nissa
 {
+  /// Provide member method to subscribe a component
+  ///
+  /// Generic case where subscribing with the member method is not possible
   template <typename N,
 	    typename C>
-  struct ProvideMemberSubscriber
+  struct MemberSubscribeProvider
   {
   };
   
@@ -41,7 +44,7 @@ namespace nissa
 #define DECLARE_COMPONENT_SUBSCRIBER(FACTORY,TYPE)			\
   /* Provide FACTORY as member function subscribing index i */		\
   template <typename N>							\
-  struct ProvideMemberSubscriber<N,TYPE>				\
+  struct MemberSubscribeProvider<N,TYPE>				\
   {									\
     PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,const);		\
     PROVIDE_MEMBER_COMPONENT_SUBSCRIBER(FACTORY,TYPE,/*non const*/);	\

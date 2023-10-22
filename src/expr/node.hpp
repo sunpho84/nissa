@@ -48,6 +48,7 @@ namespace nissa
   template <typename T>
   struct Node :
     Crtp<Node<T>,T>
+    MemberSubscribeProvider<T,Ci>...,
     DynamicCompsProvider<CompsList<Ci...>>
   {
 #define PROVIDE_AUTOMATIC_CAST_TO_FUND(ATTRIB)			\

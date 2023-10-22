@@ -93,8 +93,6 @@ namespace nissa
 	    MemoryType MT,
 	    bool IsRef>
   struct THIS :
-    ProvideMemberSubscriber<THIS,C>...,
-    ProvideMemberSubscriber<THIS,typename FieldCompsProvider<CompsList<C...>,_Fund,FC,FL>::Site>,
     DetectableAsField2,
     BASE
   {
