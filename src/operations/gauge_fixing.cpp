@@ -513,7 +513,7 @@ namespace nissa
       }
     
     //put back the fixer
-    *fixer=*ori_fixer;
+    ~fixer=~ori_fixer;
     
     return alpha;
   }

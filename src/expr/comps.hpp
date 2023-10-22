@@ -150,9 +150,9 @@ namespace nissa
 	  (void)dynamicComps; // avoid warning
 	  
 	  if constexpr(sizeof...(Tail))
-	    return _compsLoop<Tail...>(f,dynamicComps,*pc...,val);
+	    return _compsLoop<Tail...>(f,dynamicComps,~pc...,val);
 	  else
-	    f(*pc...,val);
+	    f(~pc...,val);
 	};
       
       constexpr auto s=Head::sizeAtCompileTime;

@@ -244,8 +244,8 @@ namespace nissa
    {
      verbosity_lv2_master_printf("Computing inverse clover term for quark of mass %lg and kappa %lg\n",mass,kappa);
      
-     InvClF& invCl=*_invCl;
-     const ClF& Cl=*_Cl;
+     InvClF& invCl=~_invCl;
+     const ClF& Cl=~_Cl;
      
      PAR(0,Cl.nSites(),
 	 CAPTURE(mass,kappa,

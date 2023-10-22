@@ -27,7 +27,7 @@ namespace nissa
     FOR_BOTH_PARITIES(par,
     {
       PAR(0,locVolh,
-	  CAPTURE(par,outLx=_outLx->getWritable(),
+	  CAPTURE(par,outLx=(~_outLx).getWritable(),
 		  TO_READ(inEo)),
 	  eo,
 	  {

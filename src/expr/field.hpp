@@ -181,7 +181,7 @@ namespace nissa
     INLINE_FUNCTION
     Field2& operator=(const Node<O>& oth)
     {
-      assign(*oth);
+      assign(~oth);
       
       return *this;
     }
@@ -189,9 +189,9 @@ namespace nissa
     /// Sumassigns another node
     template <typename O>
     INLINE_FUNCTION
-    Field2& operator+=(const Node<O>& oth)
+    Field2& operator+=(const NodeFeat<O>& oth)
     {
-      assign<SumAssign>(*oth);
+      assign<SumAssign>(~oth);
       
       return *this;
     }
@@ -609,7 +609,7 @@ namespace nissa
     explicit Field2(const Node<O>& oth) :
       Field2()
     {
-      assign<DirectAssign>(*oth);
+      assign<DirectAssign>(~oth);
     }
     
     /// Assign from fund

@@ -66,6 +66,8 @@ namespace nissa
     
 #undef PROVIDE_AUTOMATIC_CAST_TO_FUND
     
+    using NodeFeat<T>::operator~;
+    
     // /// Define the move-assignment operator
     // INLINE_FUNCTION
     // Node& operator=(Node&& oth)
@@ -98,8 +100,8 @@ namespace nissa
       
       static_assert(T::canAssignAtCompileTime,"Trying to assign to a non-assignable expression");
       
-      auto& lhs=DE_CRTPFY(T,this);
-      const auto& rhs=DE_CRTPFY(const U,&_rhs);
+      auto& lhs=~*this;
+      const auto& rhs=~_rhs;
       
       if constexpr(not T::canAssignAtCompileTime)
 	crash("Trying to assign to a non-assignable expression");
@@ -148,10 +150,10 @@ namespace nissa
 	
 	const auto rhsCompsTup=tupleGetSubset<typename Rhs::Comps>(lhsCompsTup);
 	
-	OP::dispatch(lhs(lhsComps...),std::apply(rhs,rhsCompsTup));
-      },lhs.getDynamicSizes());
+	OP::dispatch((~(*this))(lhsComps...),std::apply(~u,rhsCompsTup));
+      },(~u).getDynamicSizes());
       
-      return lhs;
+      return ~*this;
     }
     
 #define PROVIDE_ASSIGN_VARIATION(SYMBOL,OP)				\
@@ -162,7 +164,7 @@ namespace nissa
     constexpr INLINE_FUNCTION						\
     T& operator SYMBOL(const Node<Rhs>& u)				\
     {									\
-      return this->assign<OP>(u);					\
+      return (~*this).template assign<OP>(~u);				\
     }									\
 									\
 									\
@@ -172,7 +174,7 @@ namespace nissa
     constexpr INLINE_FUNCTION						\
     T& operator SYMBOL(const Oth& value)				\
     {									\
-      return (*(*this)) SYMBOL scalar(value);				\
+      return (~*this) SYMBOL scalar(value);				\
     }
     
     PROVIDE_ASSIGN_VARIATION(=,DirectAssign);
@@ -192,18 +194,25 @@ namespace nissa
     constexpr INLINE_FUNCTION
     auto getWritable()
     {
-      return (*this)->getRef();
+      return (~*this).getRef();
     }
     
     /// Gets a read-only reference
     constexpr INLINE_FUNCTION
     auto getReadable() const
     {
-      return (*this)->getRef();
+      return (~*this).getRef();
     }
     
     /// Returns the expression as a dynamic tensor
-    auto fillDynamicTens() const;
+    auto fillDynamicTens() const
+    {
+      DynamicTens<typename T::Comps,typename T::Fund,T::execSpace> res((~*this).getDynamicSizes());
+      
+      res=~*this;
+      
+      return res;
+    }
     
     /// Close the expression into an appropriate tensor or field
     template <typename Res,
@@ -213,7 +222,7 @@ namespace nissa
     {
       Res res(std::forward<Args>(args)...);
       
-      res=*this;
+      res=~*this;
       
       return res;
     }
@@ -236,12 +245,10 @@ namespace nissa
       using ResidualComps=						\
 	TupleFilterAllTypes<Comps,SubsComps>;				\
       									\
-      decltype(auto) t=DE_CRTPFY(ATTRIB T,this);			\
-      									\
       if constexpr(std::tuple_size_v<ResidualComps> ==0)		\
-	return t.eval(*cs...);						\
+	return (~*this).eval(~cs...);					\
       else								\
-	return bindComps(t,std::make_tuple(*cs...));			\
+	return bindComps(~*this,std::make_tuple(~cs...));		\
     }
     
     PROVIDE_CALL(const);
@@ -257,7 +264,7 @@ namespace nissa
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE			\
     decltype(auto) operator[](const CompFeat<C>& c) ATTRIB		\
     {									\
-      return (*this)(*c);						\
+      return (~*this)(~c);						\
     }
     
     PROVIDE_SUBSCRIBE(const);
@@ -277,7 +284,7 @@ namespace nissa
 				   (const auto&...c) INLINE_ATTRIBUTE
       {
 	s2+=sqr(t(c...));
-      },(*this)->getDynamicSizes());
+      },(~*this).getDynamicSizes());
       
       return s2;
     }

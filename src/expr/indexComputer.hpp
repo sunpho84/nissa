@@ -30,12 +30,12 @@ namespace nissa
       {
 	/// Returned type
 	using GlbIndex=
-	  std::common_type_t<int,std::decay_t<decltype((*comps)())>...>;
+	  std::common_type_t<int,std::decay_t<decltype((~comps)())>...>;
 	
 	/// Recursive computer
 	auto index=
 	  [&dynamicSizes](const auto& index,
-		      const GlbIndex& outer,
+			  const GlbIndex& outer,
 			  const auto& head,
 			  const auto&...tail) INLINE_ATTRIBUTE
 	  {
@@ -100,9 +100,9 @@ namespace nissa
   {
     /// Returned type
     using GlbIndex=
-      std::common_type_t<int,std::decay_t<decltype((*comps)())>...>;
+      std::common_type_t<int,std::decay_t<decltype((~comps)())>...>;
     
-    return (GlbIndex(0)%...%impl::_StackIndTerm(DE_CRTPFY(const C,&comps)));
+    return (GlbIndex(0)%...%impl::_StackIndTerm(~comps));
   }
   
   /// Returns the index after reordering elements
