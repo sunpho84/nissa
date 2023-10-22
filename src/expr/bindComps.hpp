@@ -34,7 +34,7 @@ namespace nissa
   CompsBinder<CompsList<Bc...>,std::tuple<_E...>,CompsList<C...>,_Fund>
   
 #define BASE					\
-    Node<THIS>
+  Node<THIS,CompsList<C...>>
   
   /// Component binder
   ///
@@ -43,7 +43,6 @@ namespace nissa
 	    typename...C,
 	    typename _Fund>
   struct THIS :
-    DynamicCompsProvider<CompsList<C...>>,
     DetectableAsCompsBinder,
     SubNodes<_E...>,
     BASE

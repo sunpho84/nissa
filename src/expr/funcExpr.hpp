@@ -36,7 +36,6 @@ namespace nissa
 	    typename...C,
 	    typename _Fund>
   struct FuncExpr<_Func,CompsList<C...>,_Fund> :
-    DynamicCompsProvider<CompsList<C...>>,
     DetectableAsFuncExpr,
     Node<THIS>
   {

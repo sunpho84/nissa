@@ -110,7 +110,7 @@ namespace nissa
     using Transp=NAME;						\
   };								\
 								\
-  DECLARE_COMPONENT_FACTORY(FACTORY,NAME)
+  DECLARE_COMPONENT_FACTORY_AND_SUBSCRIBER_MEMBER(FACTORY,NAME)
   
   /////////////////////////////////////////////////////////////////
   
@@ -135,7 +135,7 @@ namespace nissa
     using Transp=NAME;						\
   };								\
 								\
-  DECLARE_COMPONENT_FACTORY(FACTORY,NAME)
+  DECLARE_COMPONENT_FACTORY_AND_SUBSCRIBER_MEMBER(FACTORY,NAME)
   
   /////////////////////////////////////////////////////////////////
   

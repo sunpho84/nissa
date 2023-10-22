@@ -88,7 +88,6 @@ namespace nissa
 	    typename _Fund,
 	    int...Is>
   struct THIS :
-    DynamicCompsProvider<CompsList<C...>>,
     DetectableAsProducer,
     SubNodes<_E...>,
     BASE

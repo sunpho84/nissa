@@ -29,13 +29,12 @@ namespace nissa
     StackTens<CompsList<C...>,_Fund>
   
 #define BASE					\
-  Node<THIS>
+  Node<THIS,CompsList<C...>>
   
   /// Tensor
   template <typename...C,
 	    typename _Fund>
   struct THIS :
-    DynamicCompsProvider<CompsList<C...>>,
     BASE
   {
     using This=THIS;

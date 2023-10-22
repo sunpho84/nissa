@@ -48,6 +48,7 @@ namespace nissa
   template <typename T>
   struct Node :
     Crtp<Node<T>,T>
+    DynamicCompsProvider<CompsList<Ci...>>
   {
 #define PROVIDE_AUTOMATIC_CAST_TO_FUND(ATTRIB)			\
     /*! Provide automatic cast to fund if needed */		\

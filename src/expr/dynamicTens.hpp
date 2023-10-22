@@ -25,7 +25,7 @@ namespace nissa
   DynamicTens<CompsList<C...>,_Fund,MT,IsRef>
   
 #define BASE					\
-  Node<THIS>
+  Node<THIS,CompsList<C...>>
   
   /// Dynamic Tensor
   template <typename...C,
@@ -34,7 +34,6 @@ namespace nissa
 	    bool IsRef>
   struct THIS :
     BASE,
-    DynamicCompsProvider<CompsList<C...>>,
     DetectableAsDynamicTens
   {
     using This=THIS;

@@ -35,7 +35,7 @@ namespace nissa
   CWiseCombiner<std::tuple<_E...>,CompsList<C...>,_Fund,_Comb,std::integer_sequence<int,Is...>>
   
 #define BASE					\
-    Node<THIS>
+  Node<THIS,CompsList<C...>>
   
   /// CWiseCombiner
   ///

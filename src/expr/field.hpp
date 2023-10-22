@@ -93,7 +93,6 @@ namespace nissa
 	    MemoryType MT,
 	    bool IsRef>
   struct THIS :
-    DynamicCompsProvider<FIELD_COMPS>,
     ProvideMemberSubscriber<THIS,C>...,
     ProvideMemberSubscriber<THIS,typename FieldCompsProvider<CompsList<C...>,_Fund,FC,FL>::Site>,
     DetectableAsField2,

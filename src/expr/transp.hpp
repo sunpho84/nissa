@@ -41,7 +41,6 @@ namespace nissa
 	    typename...C,
 	    typename _Fund>
   struct THIS :
-    DynamicCompsProvider<CompsList<C...>>,
     DetectableAsTransposer,
     SubNodes<_E...>,
     BASE

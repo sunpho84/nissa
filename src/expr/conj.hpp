@@ -56,9 +56,9 @@ namespace nissa
   
 #define THIS					\
   Conjugator<std::tuple<_E...>,CompsList<C...>,_Fund>
-
+  
 #define BASE					\
-    Node<THIS>
+  Node<THIS,CompsList<C...>>
   
   /// Conjugator
   ///
@@ -66,8 +66,6 @@ namespace nissa
 	    typename...C,
 	    typename _Fund>
   struct THIS :
-    DynamicCompsProvider<CompsList<C...>>,
-    ProvideMemberSubscriber<THIS,C>...,
     DetectableAsConjugator,
     SubNodes<_E...>,
     BASE

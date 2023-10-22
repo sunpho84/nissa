@@ -75,7 +75,6 @@ namespace nissa
 	    typename...C,
 	    typename _Fund>
   struct THIS :
-    DynamicCompsProvider<CompsList<C...>>,
     DetectableAsTracer,
     SubNodes<_E...>,
     BASE
