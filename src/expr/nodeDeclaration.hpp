@@ -36,7 +36,7 @@ namespace nissa
     PROVIDE_HAS_MEMBER(recreateFromExprs);
     
     template <typename _T>
-    constexpr INLINE_FUNCTION bool _isNode()
+    constexpr INLINE_FUNCTION bool _assertIsNode()
     {
       using T=std::remove_reference_t<_T>;
       
@@ -60,8 +60,10 @@ namespace nissa
   
   /// Predicate whether T is a node
   template <typename T>
-  constexpr inline bool isNode=
-    constraints::_isNode<T>();
+  constexpr inline bool assertIsNode=
+    constraints::_assertIsNode<T>();
+  
+  PROVIDE_FEATURE(Node);
 }
 
 #endif

@@ -367,18 +367,6 @@ namespace nissa
     }
   };
   
-  /// Fill a dynamic tensor and returns it
-  template <typename T>
-  INLINE_FUNCTION
-  auto Node<T>::fillDynamicTens() const
-  {
-    DynamicTens<typename T::Comps,typename T::Fund,T::execSpace> res(DE_CRTPFY(const T,this).getDynamicSizes());
-    
-    res=*this;
-    
-    return res;
-  }
-  
 //   /////////////////////////////////////////////////////////////////
 // #define PROVIDE_FUND_CAST(ATTRIB)					\
 //   template <typename...C,						\

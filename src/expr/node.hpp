@@ -19,6 +19,7 @@
 // #include <expr/assign/executionSpace.hpp>
 // #include <expr/nodes/scalar.hpp>
 #include <expr/assignDispatcher.hpp>
+#include <expr/dynamicTensDeclaration.hpp>
 #include <expr/nodeDeclaration.hpp>
 // #include <expr/assign/simdAssign.hpp>
 // #include <expr/assign/threadAssign.hpp>
@@ -93,14 +94,14 @@ namespace nissa
     /// Used to check that the derived type satisfy the Node criterion
     constexpr Node()
     {
-      static_assert(isNode<T>,
+      static_assert(assertIsNode<T>,
 		    "Incomplete node type");
     }
     
     /// Assert assignability
     template <typename U>
-    INLINE_FUNCTION
-    constexpr void assertCanAssign(const Node<U>& _rhs)
+      INLINE_FUNCTION
+      constexpr void assertCanAssign(const NodeFeat<U>& _rhs)
     {
       //static_assert(tuplesContainsSameTypes<typename T::Comps,typename U::Comps>,"Cannot assign two expressions which differ for the components");
       
@@ -124,12 +125,9 @@ namespace nissa
     template <typename OP=DirectAssign,
 	      typename Rhs>
     constexpr INLINE_FUNCTION
-    T& assign(const Node<Rhs>& u)
+      T& assign(const NodeFeat<Rhs>& u)
     {
       this->assertCanAssign(u);
-      
-      auto& lhs=DE_CRTPFY(T,this);
-      const auto& rhs=DE_CRTPFY(const Rhs,&u);
       
 // #if ENABLE_SIMD
 //       if constexpr(T::canSimdify and
@@ -150,7 +148,7 @@ namespace nissa
 // #endif
 // 	    directAssign(lhs,rhs);
       
-      compsLoop<typename T::Comps>([&lhs,&rhs](const auto&...lhsComps)
+      compsLoop<typename T::Comps>([this,&u](const auto&...lhsComps)
       {
 	const auto lhsCompsTup=std::make_tuple(lhsComps...);
 	
@@ -163,12 +161,12 @@ namespace nissa
     }
     
 #define PROVIDE_ASSIGN_VARIATION(SYMBOL,OP)				\
-									\
+    									\
     /*! Assign from another expression */				\
-    template <typename Rhs,						\
-	      ENABLE_THIS_TEMPLATE_IF(not std::is_same_v<T,Rhs>)>	\
+      template <typename Rhs,						\
+    ENABLE_THIS_TEMPLATE_IF(not std::is_same_v<T,Rhs>)>			\
     constexpr INLINE_FUNCTION						\
-    T& operator SYMBOL(const Node<Rhs>& u)				\
+	T& operator SYMBOL(const NodeFeat<Rhs>& u)			\
     {									\
       return (~*this).template assign<OP>(~u);				\
     }									\
@@ -314,9 +312,10 @@ namespace nissa
 	    typename Oth,						\
 	    ENABLE_THIS_TEMPLATE_IF(std::is_arithmetic_v<Oth>)>		\
   constexpr INLINE_FUNCTION						\
-  auto operator OP(const Oth& value,const Node<T>& node)		\
+  auto operator OP(const Oth& value,					\
+		   const NodeFeat<T>& node)				\
   {									\
-    return scalar(value) OP DE_CRTPFY(const T,&node);			\
+    return scalar(value) OP (*node);					\
   }
   
   PROVIDE_CATCH_OP_WITH_ARITHMETIC(+);

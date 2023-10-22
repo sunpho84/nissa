@@ -167,10 +167,11 @@ namespace nissa
     constexpr INLINE_FUNCTION
     StackTens(const Fund& oth)
     {
-      compsLoop<Comps>([this,&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
-		       {
-			 new(&(*this)(c...)) _Fund(oth);
-		       },std::tuple<>{});
+      compsLoop<Comps>([this,
+			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+      {
+	new(&(*this)(c...)) _Fund(oth);
+      },std::tuple<>{});
     }
     
     // /// Construct from an invocable
