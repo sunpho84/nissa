@@ -66,7 +66,7 @@ namespace nissa
   Tracer<CompsList<Tc...>,std::tuple<_E...>,CompsList<C...>,_Fund>
   
 #define BASE					\
-  Node<THIS>
+  Node<THIS,CompsList<C...>>
   
   /// Tracer
   ///

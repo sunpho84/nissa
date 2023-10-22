@@ -9,13 +9,15 @@
 ///
 /// \brief Declares a node in the syntactic tree
 
+#include <metaprogramming/feature.hpp>
 #include <metaprogramming/hasMember.hpp>
 #include <metaprogramming/inline.hpp>
 
 namespace nissa
 {
   /// Base type representing a node
-  template <typename T>
+  template <typename T,
+	    typename C>
   struct Node;
   
   namespace constraints

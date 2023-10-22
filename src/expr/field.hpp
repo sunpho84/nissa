@@ -17,6 +17,8 @@
 // #include <lattice/lattice.hpp>
 // #include <resources/Mpi.hpp>
 
+/// \todo: Components must all be provided externally
+
 namespace nissa
 {
   /// Start the communications of buffer interpreted as halo
@@ -83,7 +85,7 @@ namespace nissa
   Field2<CompsList<C...>,_Fund,FC,FL,MT,IsRef>
   
 #define BASE					\
-  Node<THIS>
+  Node<THIS,FIELD_COMPS>
   
   /// Defines a field
   template <typename...C,
@@ -179,7 +181,7 @@ namespace nissa
     /// Assigns another node
     template <typename O>
     INLINE_FUNCTION
-    Field2& operator=(const Node<O>& oth)
+    Field2& operator=(const NodeFeat<O>& oth)
     {
       assign(~oth);
       
@@ -606,7 +608,7 @@ namespace nissa
     /// Assign another expression
     template <typename O>
     INLINE_FUNCTION
-    explicit Field2(const Node<O>& oth) :
+    explicit Field2(const NodeFeat<O>& oth) :
       Field2()
     {
       assign<DirectAssign>(~oth);

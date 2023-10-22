@@ -15,7 +15,7 @@
 namespace nissa
 {
   PROVIDE_DETECTABLE_AS(FuncExpr);
-
+  
   /// Conjugator
   ///
   /// Forward declaration to capture the components
@@ -28,7 +28,8 @@ namespace nissa
   FuncExpr<_Func,CompsList<C...>,_Fund>
   
 #define BASE					\
-    Node<THIS>
+  Node<THIS,CompsList<C...>>
+  
   /// Functional expression
   ///
   /// Forward declaration
@@ -37,7 +38,7 @@ namespace nissa
 	    typename _Fund>
   struct FuncExpr<_Func,CompsList<C...>,_Fund> :
     DetectableAsFuncExpr,
-    Node<THIS>
+    BASE
   {
     /// Import the base expression
     using Base=BASE;

@@ -46,7 +46,7 @@ namespace nissa
   EoField2<CompsList<C...>,_Fund,FL,MT,IsRef>
   
 #define BASE					\
-  Node<THIS>
+  Node<THIS,CompsList<C...>>
   
   /// Structure to hold an even/old field
   template <typename...C,

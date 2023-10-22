@@ -79,7 +79,7 @@ namespace nissa
   Producer<CompsList<Cc...>,std::tuple<_E...>,CompsList<C...>,_Fund,std::integer_sequence<int,Is...>>
   
 #define BASE					\
-  Node<THIS>
+  Node<THIS,CompsList<C...>>
   
   /// Producer
   template <typename...Cc,

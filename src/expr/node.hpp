@@ -37,20 +37,26 @@ namespace nissa
 	      typename...C>
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     decltype(auto) castExprToFund(E&& t,
-					 CompsList<C...>*)
+				  CompsList<C...>*)
     {
       if constexpr(((C::sizeAtCompileTime==1) and ...))
 	return t.eval((C)0 ...);
     }
   }
   
+#define THIS Node<T,CompsList<Ci...>>
+  
   /// Node, the base type to be evaluated as an expression
-  template <typename T>
-  struct Node :
-    Crtp<Node<T>,T>
+  template <typename T,
+	    typename...Ci>
+  struct THIS :
+    NodeFeat<T>,
     MemberSubscribeProvider<T,Ci>...,
     DynamicCompsProvider<CompsList<Ci...>>
   {
+    using This=THIS;
+#undef THIS
+
 #define PROVIDE_AUTOMATIC_CAST_TO_FUND(ATTRIB)			\
     /*! Provide automatic cast to fund if needed */		\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
@@ -297,9 +303,10 @@ namespace nissa
 	    typename Oth,						\
 	    ENABLE_THIS_TEMPLATE_IF(std::is_arithmetic_v<Oth>)>		\
   constexpr INLINE_FUNCTION						\
-  auto operator OP(const Node<T>& node,const Oth& value)		\
+  auto operator OP(const NodeFeat<T>& node,				\
+		   const Oth& value)					\
   {									\
-    return DE_CRTPFY(const T,&node) OP scalar(value);			\
+    return (*node) OP scalar(value);					\
   }									\
   									\
   /* Catch operator OP between an arithmetic type and a node */		\

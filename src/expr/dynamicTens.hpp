@@ -227,9 +227,10 @@ namespace nissa
     }
     
     /// Create from another node
-    template <typename TOth>
+    template <typename TOth,
+	      typename Co>
     constexpr INLINE_FUNCTION
-    explicit DynamicTens(const Node<TOth>& oth) :
+    explicit DynamicTens(const Node<TOth,Co>& oth) :
       DynamicTens(DE_CRTPFY(const TOth,&oth).getDynamicSizes())
     {
       (*this)=DE_CRTPFY(const TOth,&oth);

@@ -23,7 +23,7 @@ namespace nissa
   Shifter<std::tuple<_E...>,CompsList<C...>,_Fund>
   
 #define BASE					\
-    Node<THIS>
+  Node<THIS,CompsList<C...>>
   
   /// Shifter
   ///

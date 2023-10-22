@@ -151,17 +151,16 @@ namespace nissa
     /// Construct from another node
     template <typename TOth>
     constexpr INLINE_FUNCTION
-    StackTens(const Node<TOth>& _oth)
+    StackTens(const NodeFeat<TOth>& _oth)
     {
-      const auto& oth=DE_CRTPFY(const TOth,&_oth);
-      
       // if constexpr(std::is_class_v<_Fund>)
-	compsLoop<Comps>([this,&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
-			 {
-			   const auto cs=tupleGetSubset<typename TOth::Comps>(std::make_tuple(c...));
-			   
-			   new(&(*this)(c...)) _Fund(std::apply(oth,cs));
-			 },std::tuple<>{});
+      compsLoop<Comps>([this,
+			&oth=*_oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+      {
+	const auto cs=tupleGetSubset<typename TOth::Comps>(std::make_tuple(c...));
+	
+	new(&(*this)(c...)) _Fund(std::apply(oth,cs));
+      },std::tuple<>{});
     }
     
     /// Construct from fundamental
