@@ -59,13 +59,8 @@ namespace nissa
     INLINE_FUNCTION
     DynamicTens& operator=(DynamicTens&& oth)
     {
-      if(dynamicSizes!=oth.dynamicSizes)
-	crash("trying to assign different dynamic sized tensor");
-      
-      if(not canAssign())
-	crash("trying to assign to unsassignable tensor");
-      
-      std::swap(this->storage,oth.storage);
+      std::swap(dynamicSizes,oth.dynamicSizes);
+      std::swap(storage,oth.storage);
       
       return *this;
     }
@@ -128,6 +123,7 @@ namespace nissa
     }
     
     /// Check if the tensor is allocated
+    inline CUDA_HOST_AND_DEVICE
     bool isAllocated() const
     {
       return storage!=nullptr;

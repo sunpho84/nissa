@@ -126,6 +126,10 @@ namespace nissa
     static constexpr bool isComplProd=
       (tupleHasType<typename std::decay_t<_E>::Comps,ComplId> and...);
     
+    /// Detects matrix product
+    static constexpr bool isMatrProd=
+      sizeof...(Cc)>0;
+    
     /// List of dynamic comps
     using DynamicComps=
       typename DynamicCompsProvider<Comps>::DynamicComps;
@@ -395,6 +399,28 @@ namespace nissa
   {
     return
       prod(std::forward<E1>(e1),std::forward<E2>(e2));
+  }
+  
+  /// Catch the self-product operator
+  template <typename E1,
+	    typename E2,
+	    ENABLE_THIS_TEMPLATE_IF(isNode<E1> and isNode<E2>)>
+  INLINE_FUNCTION constexpr // CUDA_HOST_AND_DEVICE
+  auto operator*=(E1&& e1,
+		  E2&& e2)
+  {
+    using PCD=
+      ProdCompsDeducer<typename std::decay_t<E1>::Comps,
+		       typename std::decay_t<E1>::Comps>;
+    
+    constexpr bool needsBuf=
+		(tupleHasType<typename PCD::VisibleComps,ComplId> or
+		 std::tuple_size_v<typename PCD::ContractedComps>);
+    
+    if(needsBuf)
+      e1=std::move(e1.createEquivalentStorage()=e1*e2);
+    else
+      e1=e1*e2;
   }
 }
 

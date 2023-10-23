@@ -548,6 +548,18 @@ namespace nissa
     
 #undef PROVIDE_RECREATE_FROM_EXPR
     
+    /// Creates a copy
+    Field2<CompsList<C...>,std::decay_t<_Fund>,FC,FL,MT> createEquivalentStorage() const
+    {
+      return haloEdgesPresence;
+    }
+    
+    /// Creates a copy
+    auto createCopy() const
+    {
+      return createEquivalentStorage()=*this;
+    }
+    
     /////////////////////////////////////////////////////////////////
     
 // #define PROVIDE_SIMDIFY(ATTRIB)						\

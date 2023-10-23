@@ -222,9 +222,9 @@ namespace nissa
     template <typename Res,
 	      typename...Args>
     INLINE_FUNCTION
-    Res closeAs(Args&&...args) const
+    auto closeAs(Args&&...args) const
     {
-      Res res(std::forward<Args>(args)...);
+      std::decay_t<Res> res(std::forward<Args>(args)...);
       
       res=~*this;
       
