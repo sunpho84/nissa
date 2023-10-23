@@ -158,8 +158,11 @@ namespace nissa
 			&oth=~_oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
       {
 	const auto cs=tupleGetSubset<typename TOth::Comps>(std::make_tuple(c...));
-	
-	new(&(*this)(c...)) _Fund(std::apply(oth,cs));
+
+	if constexpr(fundNeedsConstrutor)
+	  new(&(*this)(c...)) _Fund(std::apply(oth,cs));
+	else
+	  (*this)(c...)=std::apply(oth,cs);
       },std::tuple<>{});
     }
     
@@ -170,7 +173,10 @@ namespace nissa
       compsLoop<Comps>([this,
 			&oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
       {
-	new(&(*this)(c...)) _Fund(oth);
+	if constexpr(fundNeedsConstrutor)
+	  new(&(*this)(c...)) _Fund(oth);
+	else
+	  (*this)(c...)=std::apply(oth);
       },std::tuple<>{});
     }
     
