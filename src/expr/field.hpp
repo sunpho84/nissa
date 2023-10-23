@@ -550,8 +550,18 @@ namespace nissa
     
 #undef PROVIDE_RECREATE_FROM_EXPR
     
+    /// Type to define the closing of the expression
+    using ClosingType=
+      Field2<CompsList<C...>,std::decay_t<_Fund>,FC,FL,MT>;
+    
+    /// Parameters to recreate an equivalent storage
+    auto getEquivalentStoragePars() const
+    {
+      return std::make_tuple(haloEdgesPresence);
+    }
+    
     /// Creates a copy
-    Field2<CompsList<C...>,std::decay_t<_Fund>,FC,FL,MT> createEquivalentStorage() const
+    ClosingType createEquivalentStorage() const
     {
       return haloEdgesPresence;
     }

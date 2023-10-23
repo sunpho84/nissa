@@ -219,20 +219,23 @@ namespace nissa
     }
     
     /// Close the expression into an appropriate tensor or field
-    template <typename Res,
-	      typename...Args>
+    template <typename C>
     INLINE_FUNCTION
-    auto closeAs(Args&&...args) const
+    auto closeAs(C&& c) const
     {
-      std::decay_t<Res> res(std::forward<Args>(args)...);
+      auto getStorage=
+	[](auto&&...args)
+	{
+	  return typename std::decay_t<C>::ClosingType(args...);
+	};
+      
+      auto res=
+	std::apply(getStorage,c.getEquivalentStoragePars());
       
       res=~*this;
       
       return res;
     }
-    
-    /// Returns the closed expression
-    auto close() const;
     
 #define PROVIDE_CALL(ATTRIB)						\
     template <typename...C>						\
