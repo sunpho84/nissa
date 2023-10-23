@@ -303,7 +303,7 @@ namespace nissa
   
   CATCH_UNARY_OPERATOR(-,uMinus);
   
-  #undef CATCH_UNARY_OPERATOR
+#undef CATCH_UNARY_OPERATOR
 }
 
 #endif

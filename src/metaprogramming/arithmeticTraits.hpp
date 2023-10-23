@@ -105,7 +105,8 @@ namespace nissa
   PROVIDE_PRINTER(__m256d);
   
   INLINE_FUNCTION
-  auto assign(__m256d& lhs,const double& rhs)
+  __m256d& assign(__m256d& lhs,
+		  const double& rhs)
   {
     return lhs=_mm256_set1_pd(rhs);
   }
@@ -117,7 +118,8 @@ namespace nissa
 // };
   
   INLINE_FUNCTION
-  auto assign(__m256& lhs,const float& rhs)
+  __m256& assign(__m256& lhs,
+		 const float& rhs)
   {
     return lhs=_mm256_set1_ps(rhs);
   }
@@ -187,8 +189,8 @@ namespace nissa
 	    typename T2,
 	    ENABLE_THIS_TEMPLATE_IF(canAssign<T1,T2>)>
   constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-  auto assign(T1& lhs,
-	      const T2& rhs)
+  T1& assign(T1& lhs,
+	     const T2& rhs)
   {
     return lhs=rhs;
   }
