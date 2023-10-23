@@ -174,6 +174,8 @@ namespace nissa
     Field2& operator=(Field2&& oth)
     {
       std::swap(data,oth.data);
+      std::swap(haloIsValid,oth.haloIsValid);
+      std::swap(edgesAreValid,oth.edgesAreValid);
       
       return *this;
     }
