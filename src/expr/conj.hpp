@@ -244,7 +244,7 @@ namespace nissa
   }
   
   /// Imaginary unit
-  constexpr StackTens<OfComps<ComplId>,double> I{0,1};
+  CUDA_DEVICE constexpr StackTens<OfComps<ComplId>,double> I{0,1};
 }
 
 #endif
