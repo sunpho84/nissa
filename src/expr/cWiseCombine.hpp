@@ -45,7 +45,6 @@ namespace nissa
 	    typename _Comb,
 	    int...Is>
   struct THIS :
-    DynamicCompsProvider<CompsList<C...>>,
     DetectableAsCWiseCombiner,
     SubNodes<_E...>,
     BASE
@@ -58,8 +57,6 @@ namespace nissa
 #undef BASE
     
 #undef THIS
-    
-    //static_assert(sizeof...(_E)==2,"Expecting 2 addends");
     
     IMPORT_SUBNODE_TYPES;
     
@@ -179,7 +176,7 @@ namespace nissa
     template <int I,
 	      typename...Cs>
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
-    static auto getCompsForAddend(const Cs&...cs)
+    static auto getCompsForSubexpr(const Cs&...cs)
     {
       return tupleGetSubset<typename SubNode<I>::Comps>(std::make_tuple(cs...));
     }
@@ -190,7 +187,7 @@ namespace nissa
     Fund eval(const Cs&...cs) const
     {
       return
-	Comb::compute(std::apply(SUBNODE(Is),getCompsForAddend<Is>(cs...))...);
+	Comb::compute(std::apply(SUBNODE(Is),getCompsForSubexpr<Is>(cs...))...);
     }
     
     /// Construct
