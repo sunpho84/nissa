@@ -10,6 +10,7 @@
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
 #include <expr/node.hpp>
+#include <expr/stackTens.hpp>
 #include <expr/subNodes.hpp>
 #include <metaprogramming/detectableAs.hpp>
 #include <metaprogramming/universalReference.hpp>
@@ -241,6 +242,9 @@ namespace nissa
 	  }
       }
   }
+  
+  /// Imaginary unit
+  constexpr StackTens<OfComps<ComplId>,double> I{0,1};
 }
 
 #endif
