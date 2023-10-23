@@ -45,56 +45,6 @@ namespace nissa
 //   void set_lx_or_eo_comm(comm_t &comm,int lx_eo,int nbytes_per_site);
 //   void comm_unset(comm_t &comm);
   
-//   #define DEFINE_EO_BORDERS_ROUTINES(TYPE)				\
-//   inline void NAME3(communicate_ev_and_od,TYPE,borders)(eo_ptr<TYPE> s)	\
-//   {communicate_ev_and_od_borders({s[EVN],s[ODD]},NAME3(lx,TYPE,comm));}	\
-//   inline void NAME3(communicate_ev_or_od,TYPE,borders)(TYPE *s,int eo)	\
-//   {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),eo);}		\
-//   inline void NAME3(start_communicating_ev_or_od,TYPE,borders)(TYPE *s,int eo) \
-//   {start_communicating_ev_or_od_borders(NAME3(eo,TYPE,comm),s,eo);}	\
-//   inline void NAME3(finish_communicating_ev_or_od,TYPE,borders)(TYPE *s) \
-//   {finish_communicating_ev_or_od_borders(s,NAME3(eo,TYPE,comm));}	\
-//   inline void NAME3(communicate_ev,TYPE,borders)(TYPE *s)		\
-//   {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),EVN);}		\
-//   inline void NAME3(communicate_od,TYPE,borders)(TYPE *s)		\
-//   {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),ODD);}
-  
-// #define DEFINE_LX_BORDERS_ROUTINES(TYPE)			\
-//   inline void NAME3(communicate_lx,TYPE,borders)(TYPE *s)	\
-//   {communicate_lx_borders(s,NAME3(lx,TYPE,comm));}			\
-//   inline void NAME3(start_communicating_lx,TYPE,borders)(TYPE *s)	\
-//   {start_communicating_lx_borders(NAME3(lx,TYPE,comm),s);}		\
-//   inline void NAME3(finish_communicating_lx,TYPE,borders)(TYPE *s)	\
-//   {finish_communicating_lx_borders(s,NAME3(lx,TYPE,comm));}
-  
-// #define DEFINE_LEBEO_BORDERS_ROUTINES(TYPE)				\
-//   inline void NAME3(communicate_Leb_ev_and_od,TYPE,borders)(eo_ptr<TYPE> s)	\
-//   {communicate_Leb_ev_and_od_borders({s[EVN],s[ODD]},NAME3(lx,TYPE,comm));} \
-//   inline void NAME3(communicate_Leb_ev_or_od,TYPE,borders)(TYPE *s,int eo) \
-//   {communicate_Leb_ev_or_od_borders(s,NAME3(eo,TYPE,comm),eo);}	\
-//   inline void NAME3(start_communicating_Leb_ev_or_od,TYPE,borders)(TYPE *s,int eo) \
-//   {start_communicating_Leb_ev_or_od_borders(NAME3(eo,TYPE,comm),s,eo);} \
-//   inline void NAME3(finish_communicating_Leb_ev_or_od,TYPE,borders)(TYPE *s) \
-//   {finish_communicating_Leb_ev_or_od_borders(s,NAME3(eo,TYPE,comm));} \
-//   inline void NAME3(communicate_Leb_ev,TYPE,borders)(TYPE *s)		\
-//   {communicate_Leb_ev_or_od_borders(s,NAME3(eo,TYPE,comm),EVN);}	\
-//   inline void NAME3(communicate_Leb_od,TYPE,borders)(TYPE *s)		\
-//   {communicate_Leb_ev_or_od_borders(s,NAME3(eo,TYPE,comm),ODD);}
-  
-// #define DEFINE_LEBLX_BORDERS_ROUTINES(TYPE)				\
-//   inline void NAME3(communicate_Leblx,TYPE,borders)(TYPE *s)		\
-//   {communicate_Leblx_borders(s,NAME3(lx,TYPE,comm));}		\
-//   inline void NAME3(start_communicating_Leblx,TYPE,borders)(TYPE *s)	\
-//   {start_communicating_Leblx_borders(NAME3(lx,TYPE,comm),s);}	\
-//   inline void NAME3(finish_communicating_Leblx,TYPE,borders)(TYPE *s)	\
-//   {finish_communicating_Leblx_borders(s,NAME3(lx,TYPE,comm));}
-
-// #define DEFINE_BORDERS_ROUTINES(TYPE)		\
-//   DEFINE_LX_BORDERS_ROUTINES(TYPE)		\
-//   DEFINE_EO_BORDERS_ROUTINES(TYPE)		\
-//   DEFINE_LEBLX_BORDERS_ROUTINES(TYPE)		\
-//   DEFINE_LEBEO_BORDERS_ROUTINES(TYPE)
-  
 //   DEFINE_BORDERS_ROUTINES(spin)
 //   DEFINE_BORDERS_ROUTINES(spin1field)
 //   DEFINE_BORDERS_ROUTINES(color)
