@@ -155,7 +155,7 @@ namespace nissa
     {
       // if constexpr(std::is_class_v<_Fund>)
       compsLoop<Comps>([this,
-			&oth=*_oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
+			&oth=~_oth](const auto&...c) CONSTEXPR_INLINE_ATTRIBUTE
       {
 	const auto cs=tupleGetSubset<typename TOth::Comps>(std::make_tuple(c...));
 	

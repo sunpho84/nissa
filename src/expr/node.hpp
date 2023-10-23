@@ -304,7 +304,7 @@ namespace nissa
   auto operator OP(const NodeFeat<T>& node,				\
 		   const Oth& value)					\
   {									\
-    return (*node) OP scalar(value);					\
+    return (~node) OP scalar(value);					\
   }									\
   									\
   /* Catch operator OP between an arithmetic type and a node */		\
@@ -315,7 +315,7 @@ namespace nissa
   auto operator OP(const Oth& value,					\
 		   const NodeFeat<T>& node)				\
   {									\
-    return scalar(value) OP (*node);					\
+    return scalar(value) OP (~node);					\
   }
   
   PROVIDE_CATCH_OP_WITH_ARITHMETIC(+);
