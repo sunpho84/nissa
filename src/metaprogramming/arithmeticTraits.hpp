@@ -161,7 +161,9 @@ namespace nissa
 	    typename T2,
 	    typename T3>
   constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-  auto sumAssignTheProd(T1& a,const T2& f1,const T3& f2)
+  T1& sumAssignTheProd(T1& a,
+		       const T2& f1,
+		       const T3& f2)
   {
     return a+=f1*f2;
   }
@@ -171,7 +173,9 @@ namespace nissa
 	    typename T2,
 	    typename T3>
   constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-  auto subAssignTheProd(T1& a,const T2& f1,const T3& f2)
+  T1& subAssignTheProd(T1& a,
+		       const T2& f1,
+		       const T3& f2)
   {
     return a-=f1*f2;
   }
