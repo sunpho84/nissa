@@ -65,6 +65,7 @@
 #include <expr/field.hpp>
 #include <expr/funcExpr.hpp>
 #include <expr/indexComputer.hpp>
+#include <expr/mergedComps.hpp>
 #include <expr/prod.hpp>
 #include <expr/scalar.hpp>
 #include <expr/shift.hpp>

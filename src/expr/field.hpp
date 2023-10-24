@@ -11,6 +11,7 @@
 #include <expr/comps.hpp>
 #include <expr/dynamicTens.hpp>
 #include <expr/fieldDeclaration.hpp>
+#include <expr/mergedComps.hpp>
 #include <expr/stackTens.hpp>
 
 // #include <lattice/parityProvider.hpp>
@@ -376,7 +377,8 @@ namespace nissa
     const Site nTotalAllocatedSites;
     
     /// Number of internal degrees of freedom - this will be made dynamic
-    static constexpr int nInternalDegs=indexMaxValue<C...>();
+    static constexpr int nInternalDegs=
+      indexMaxValue<C...>();
     
     /// Storage data
     mutable Data data;

@@ -147,6 +147,65 @@ namespace nissa
   {
     return (internal::_getMaxCompValue<C>(null)*...*1);
   }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  namespace impl
+  {
+    template <typename C>
+    struct _IndexDecompose;
+    
+    template <>
+    struct _IndexDecompose<CompsList<>>
+    {
+      template <typename...D,
+		typename I>
+      static constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+      auto decompose(const CompsList<D...>& dynamicSizes,
+		     const I& i)
+      {
+	return std::make_tuple(CompsList<>{},i);
+      }
+    };
+    
+    template <typename Head,
+	      typename...Tail>
+    struct _IndexDecompose<CompsList<Head,Tail...>>
+    {
+      template <typename...D,
+		typename I>
+      static constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+      auto decompose(const CompsList<D...>& dynamicSizes,
+		     const I& i)
+      {
+	Head size;
+	
+	if constexpr(Head::sizeIsKnownAtCompileTime)
+	  size=Head::sizeAtCompileTime;
+	else
+	  size=std::get<Head>(dynamicSizes);
+	
+	const auto [cs,j]=
+	  _IndexDecompose<CompsList<Tail...>>::decompose(dynamicSizes,i);
+	
+	const Head comp=
+	  static_cast<typename Head::Index>(j%size());
+	
+	return std::make_tuple(std::tuple_cat(std::make_tuple(comp),cs),j/size());
+      }
+    };
+  }
+  
+  template <typename C,
+	    typename D,
+	    typename I>
+   constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+  C indexDecompose(const D& dynamicSizes,
+		   const I& i)
+  {
+    return std::get<0>(impl::_IndexDecompose<C>::decompose(dynamicSizes,i));
+  }
+
 }
 
 #endif

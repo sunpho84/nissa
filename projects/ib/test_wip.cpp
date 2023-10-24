@@ -3,6 +3,7 @@
 // #include "base/quda_bridge.hpp"
 
 using namespace nissa;
+StackTens<OfComps<ComplId>,double> fd;
 
 // double rel_diff_norm(spincolor *test,spincolor *ref)
 // {
@@ -19,6 +20,92 @@ namespace nissa
   DECLARE_TRANSPOSABLE_COMP(Spin,int,NDIRAC,spin);
   DECLARE_TRANSPOSABLE_COMP(Color,int,NCOL,color);
   DECLARE_TRANSPOSABLE_COMP(Fuf,int,1,fuf);
+}
+
+template <typename F,
+	  typename Float=typename F::Fund>
+Float plaquette(const F& conf)
+{
+  ASM_BOOKMARK_BEGIN("plaq");
+  
+  Field2<OfComps<ColorRow,ColorCln,ComplId>,Float> temp1,temp2;
+  Field2<OfComps<>,Float> squares(0.0);
+  
+  for(Dir mu=0;mu<NDIM;mu++)
+    for(Dir nu=mu+1;nu<NDIM;nu++)
+      {
+	temp1=(conf(mu)*shift(conf(nu),bw,mu));
+	temp2=(conf(nu)*shift(conf(mu),bw,nu));
+	
+	squares+=real(trace(temp1*dag(temp2)));
+      }
+  
+  const Float plaq=
+    squares.glbReduce()/glbVol/(2*NCOL*NCOL);
+  
+  ASM_BOOKMARK_END("plaq");
+  
+  return plaq;
+}
+
+namespace nissa
+{
+  DECLARE_UNTRANSPOSABLE_COMP(FFTComp,int64_t,0,fftComp);
+  DECLARE_UNTRANSPOSABLE_COMP(FFTOrthoComp,int64_t,0,fftOtherComp);
+  DECLARE_UNTRANSPOSABLE_COMP(FFTMergedComp,int64_t,0,fftMergedComps);
+  
+}
+
+template <typename T>
+void fft(const T& f)
+{
+  using Fund=
+    typename T::Fund;
+  
+  using Compl=
+    std::array<Fund,2>;
+  
+  const Dir dir{0};
+  
+  const FFTComp fftDirSize=
+    locSize[dir()];
+  const FFTOrthoComp fftOrthoDirSize=
+    f.nSites()()/locSize[dir()];
+  const FFTMergedComp fftMergedCompSize=
+    f.nInternalDegs*fftOrthoDirSize()/2;
+  
+  DynamicTens<OfComps<FFTComp,FFTMergedComp>,Compl,T::execSpace> buf(std::make_tuple(fftDirSize,fftMergedCompSize));
+  
+  PAR(0,locVol,CAPTURE(dir,
+		       fftOrthoDirSize,
+		       TO_WRITE(buf),
+		       TO_READ(f)),
+      site,
+      {
+	const FFTComp fftComp=
+	  locCoordOfLoclx[site][dir()];
+	
+	FFTOrthoComp fftOrthoComp=0;
+	for(size_t iDir=0;iDir<NDIM;iDir++)
+	  {
+	    const Dir orthoDir=perp_dir[dir()][iDir];
+	    fftOrthoComp=fftOrthoComp*glbSize[orthoDir()]+locCoordOfLoclx[site][orthoDir()];
+	  }
+	
+	compsLoop<TupleFilterAllTypes<typename T::Comps,
+				      CompsList<ComplId,LocLxSite>>>([&fftComp,
+								      &fftOrthoComp,
+								      &fftOrthoDirSize,
+								      &buf,
+								      &site,
+								      &f](const auto&...c)
+				      {
+					const FFTMergedComp mergedComp=
+					  index(std::make_tuple(fftOrthoDirSize),fftOrthoComp,c...);
+					for(int rI=0;rI<2;rI++)
+					  buf(fftComp,mergedComp)[rI]=f(LocLxSite(site),c...,reIm(rI));
+				      },std::make_tuple());
+      });
 }
 
 void in_main(int narg,char **arg)
@@ -107,9 +194,6 @@ void in_main(int narg,char **arg)
   }
   
   {
-    [[maybe_unused]]
-    constexpr StackTens<OfComps<ComplId>,double> I{0,1};
-    
     // verbosity_lv=3;
     // Field2<OfComps<SpinRow,ComplId>,double> df(WITH_HALO);
     
@@ -121,8 +205,16 @@ void in_main(int narg,char **arg)
     LxField<quad_su3> gcr("gcr",WITH_HALO);
     read_ildg_gauge_conf(gcr,"../test/data/L4T8conf");
     Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double,FULL_SPACE,FieldLayout::GPU,MemoryType::CPU> gcH(WITH_HALO);
-    LocLxSite e;
+    
     gcH.locLxSite(2);
+    ASM_BOOKMARK_BEGIN("expI");
+    StackTens<OfComps<Dir>,double> phases{1,0,0,0};
+    StackTens<OfComps<Dir>,int> glbSizes{8,4,4,4};
+    StackTens<OfComps<Dir,ComplId>,double> expI=exp(I*M_PI*phases/glbSizes);
+    ASM_BOOKMARK_END("expI");
+    
+    master_printf("Let's see if we complain: %lg %lg\n",real(I),imag(I));
+    master_printf("Let's see if we complain: %lg %lg\n",real(expI)(Dir(0)),imag(expI)(Dir(0)));
     
     master_printf("Copying the conf to field2\n");
     for(LocLxSite site=0;site<locVol;site++)
@@ -134,81 +226,25 @@ void in_main(int narg,char **arg)
     Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gc(WITH_HALO);
     master_printf("Copying the conf from host to device\n");
     gc=gcH;
+    master_printf("plaq with new method: %.16lg\n",plaquette(gc));
+    Field2<OfComps<Dir,ColorRow,ColorCln,ComplId>,double> gcp(WITH_HALO);
     
-    ASM_BOOKMARK_BEGIN("scalarWrap");
-    //FuncExpr<ScalarWrapFunctor<double>,CompsList<>,double> fe(ScalarWrapFunctor<double>(12));
-    // gc=gc*scalar(12);
-    ASM_BOOKMARK_END("scalarWrap");
+    // auto rrr=(gc*expI).template closeAs<std::decay_t<decltype(gc.createCopy())>>();
+    gc*=expI;
+    
+    auto e=(gc*expI).closeAs(gc);
+    
+    master_printf("plaq after phasing: %.16lg\n",plaquette(gc));
+    master_printf("plaq after phasing: %.16lg\n",plaquette(e));
+    fft(e);
     
 // memcpy(gc.data.storage,gcr._data,sizeof(quad_su3)*locVol);
-    Field2<OfComps<ColorRow,ColorCln,ComplId>,double> temp1,temp2;
-    Field2<OfComps<>,double> pl(0.0);
-    
-    ASM_BOOKMARK_BEGIN("plaq");
     // Field2<OfComps<>,double> t(WITH_HALO);
     // Field2<OfComps<>,double> u;
     // t=0.875;
     // u=shift(t,fw,Dir(0))*shift(t,fw,Dir(0));
     // printf("u: %lg\n",u(LocLxSite(0)));
     
-    for(Dir mu=0;mu<NDIM;mu++)
-      for(Dir nu=mu+1;nu<NDIM;nu++)
-	{
-	  // constexpr LocLxSite ori(0);
-	  // temp1=gc(mu)*gc(nu);
-	  // temp2=gc(nu)*gc(mu);
-	  // auto a1=(gc(mu)*shift(gc,bw,mu)(nu));
-	  // a1.getRef().describe();
-	  master_printf("Computing temp1\n");
-      // 	  DEVICE_PARALLEL_LOOP(0,LocLxSite(2),				
-      // 		CAPTURE(TO_READ(gc)),					
-      // 		site,							
-      // 		{
-      // // 		  if constexpr(decltype(gc)::execSpace==MemoryType::CPU)
-      // // 		    crash("Cannot evaluate on CPU");
-      // // gc.data.assertCorrectMemorySpace();
-      // 		  double u=gc.data.eval(Dir(0),ColorRow(0),ColorCln(0),Re,site);
-      // 		});
-	  temp1=gc(mu);
-	  temp1=(gc(mu)*shift(gc(nu),bw,mu));
-	  master_printf("Computing temp2\n");
-	  temp2=(gc(nu)*shift(gc(mu),bw,nu));
-
-	  const auto gcH=gc.copyToMemorySpace<MemoryType::CPU>();
-	  master_printf("HALO IS VALID: %d %d\n",gc.haloIsValid,gcH.haloIsValid);
-	  const double e=shift(gcH(Dir(0)),fw,Dir(0))(ColorRow(0))(ColorCln(0))(reIm(0))(LocLxSite(0));
-	  master_printf("out of bord %lg\n",e);
-	  
-	  // StackTens<OfComps<ColorRow,ColorCln,ComplId>,double> temp3=temp1(ori)*dag(temp2(ori));
-	  // su3 t1;
-	  // unsafe_su3_prod_su3(t1,gcr[0][mu()],gcr[loclxNeighup[0][mu()]][nu()]);
-	  // su3 t2;
-	  // unsafe_su3_prod_su3(t2,gcr[0][nu()],gcr[loclxNeighup[0][nu()]][mu()]);
-	  // su3 t3;
-	  // unsafe_su3_prod_su3_dag(t3,t1,t2);
-			 
-	  // for(ColorRow cr=0;cr<NCOL;cr++)
-	  //   for(ColorCln cc=0;cc<NCOL;cc++)
-	  //     {
-	  // 	printf("ttt1 %lg\n",t1[cr()][cc()][0]/temp1[LocLxSite(0)][cr][cc][reIm(0)]-1.0);
-	  // 	printf("ttt2 %lg\n",t2[cr()][cc()][0]/temp2[LocLxSite(0)][cr][cc][reIm(0)]-1.0);
-	  // 	printf("ttt3 %lg\n",t3[cr()][cc()][0]/temp3(cr,cc,reIm(0))-1.0);
-		
-	  //     }
-	  
-	  pl+=real(trace(temp1*dag(temp2)));
-	}
-
-    // StackTens<OfComps<>,double> d;
-    // d=9.9;
-
-    // double ee=d;
-    
-     const double p=pl.glbReduce()()/glbVol/(2*NCOL*NCOL);
-    // //pl.norm2();
-    // gc.glbReduce();
-    // ASM_BOOKMARK_END("plaq");
-     master_printf("plaq with new method: %.16lg\n",p);
     
     // df.updateHalo();
     // auto fl=df.flatten();

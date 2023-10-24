@@ -196,38 +196,6 @@ namespace nissa
     else
       f();
   }
-  
-  /////////////////////////////////////////////////////////////////
-  
-  template <typename T>
-  struct MergedComp;
-  
-#define THIS MergedComp<CompsList<Cp...>>
-  
-#define BASE BaseComp<THIS,decltype(((Cp{}())*...*1)),(Cp::sizeAtCompileTime*...*1)>
-  
-  template <typename...Cp>
-  struct THIS :
-    BASE
-  {
-    static_assert((isComp<Cp> and ...),"Cannot merge other than components");
-    
-    using Base=BASE;
-    
-#undef BASE
-    
-#undef THIS
-    
-    using Base::Base;
-  };
-  
-  template <typename Tp,
-	    typename T>
-  INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-  MergedComp<Tp> mergedComp(T&& i)
-  {
-    return i;
-  };
 }
 
 #endif
