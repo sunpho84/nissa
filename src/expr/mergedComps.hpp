@@ -70,6 +70,16 @@ namespace nissa
     {
       return this->decompose(std::make_tuple(),*this);
     }
+    
+    /// Initialize from dynamicSizes and components
+    template <typename D,
+	      typename...E>
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    MergedComp(const D& dynamicSizes,
+	       const CompFeat<E>&...e) :
+      MergedComp(MergedComp::template merge<Comps>(dynamicSizes,e...))
+    {
+    }
   };
   
   template <typename Tp,
