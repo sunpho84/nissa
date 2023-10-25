@@ -166,7 +166,7 @@ namespace nissa
 	      const auto [fftComp,fftOrthoComp]=
 		sizes.decomposeSite(site);
 	      
-	      const FFTMergedComp mergedComp(std::make_tuple(sizes.orthoDirSize),fftOrthoComp,c...);
+	      const FFTMergedComp mergedComp(std::make_tuple(sizes.orthoDirSize),fftOrthoComp,FFTInternalDegComp(c...));
 	      
 	      for(int rI=0;rI<2;rI++)
 		buf(fftComp,mergedComp)[rI]=f(LocLxSite(site),c...,reIm(rI));
@@ -201,7 +201,7 @@ namespace nissa
 		const auto [fftCompTo,fftOrthoCompTo]=
 		  sizesTo.decomposeCoords(siteCoords);
 		
-		const FFTMergedComp mergedCompTo(std::make_tuple(sizesTo.orthoDirSize),fftOrthoCompTo);
+		const FFTMergedComp mergedCompTo(std::make_tuple(sizesTo.orthoDirSize),fftOrthoCompTo,internalDeg);
 		
 		for(int rI=0;rI<2;rI++)
 		  buf2(fftCompTo,mergedCompTo)[rI]=
@@ -213,34 +213,29 @@ namespace nissa
       
       /////////////////////////////////////////////////////////////////
       
-      // Sizes sizes3(f,3);
-      // PAR(0,sizes3.mergedCompSize(),
-      // 	  CAPTURE(sizes3,
-      // 		  TO_READ(buf),
-      // 		  TO_WRITE(f)),
-      // 	  mergedComp,
-      // 	  {
-      // 	    // const auto [siteCoords,internalDeg]=
-      // 	    //   sizes3.decomposeMergedComp(mergedComp);
+      Sizes sizes3(f,3);
+      PAR(0,sizes3.mergedCompSize()*sizes3.dirSize(),
+	  CAPTURE(sizes3,
+		  TO_READ(buf),
+		  TO_WRITE(f)),
+	  elemFrom,
+	  {
+	    const auto [fftCompFrom,mergedCompFrom]=
+	      BufEl::decompose(std::make_tuple(sizes3.dirSize,sizes3.mergedCompSize),elemFrom);
 	    
-      // 	  //   for(FFTComp fftComp=0;fftComp<glbSize[3];fftComp++)
-      // 	  //     {
-      // 	  // 	coords_t c;
-      // 	  // 	for(int iDir=0;iDir<NDIM-1;iDir++)
-      // 	  // 	  {
-      // 	  // 	    const Dir orthoDir=perp_dir[3][iDir];
-      // 	  // 	    fftOrthoComp=fftOrthoComp*glbSize[orthoDir()]+coords[orthoDir()];
-      // 	  // }
-      // 	  // 	for()
-      // 	  //   internalDeg.decompose();
-      // 	    //   const FFTMergedComp mergedComp=
-      // 	    // 	index(std::make_tuple(sizes.orthoDirSize),fftOrthoComp,c...);
-	      
-      // 	    //   for(int rI=0;rI<2;rI++)
-      // 	    // 	buf(fftComp,mergedComp)[rI]=f(LocLxSite(site),c...,reIm(rI));
-      // 	    // },std::make_tuple());
-      // 	  });
-      
+	    const auto [siteCoords,internalDeg]=
+	      sizes3.getCoordsInternalDegFromBufComps(fftCompFrom,mergedCompFrom);
+	    
+	    const LocLxSite locLxSite=
+	      loclx_of_coord(siteCoords);
+	    
+	    const auto comps=
+	      internalDeg.decompose();
+	    
+	    for(int rI=0;rI<2;rI++)
+	      std::apply(f(locLxSite,reIm(rI)),comps)=
+		buf(fftCompFrom,mergedCompFrom)[rI];
+	  });
     }
   };
 }
