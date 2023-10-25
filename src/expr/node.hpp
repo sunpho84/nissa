@@ -155,7 +155,7 @@ namespace nissa
 	const auto rhsCompsTup=tupleGetSubset<typename Rhs::Comps>(lhsCompsTup);
 	
 	OP::dispatch((~*this)(lhsComps...),std::apply(~u,rhsCompsTup));
-      },(~u).getDynamicSizes());
+      },(~*this).getDynamicSizes());
       
       return ~*this;
     }
