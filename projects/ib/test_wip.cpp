@@ -57,8 +57,11 @@ namespace nissa
   template <typename T>
   struct FFT
   {
+    using Comps=
+      typename T::Comps;
+    
     using InternalDegComps=
-      TupleFilterAllTypes<typename T::Comps,
+      TupleFilterAllTypes<Comps,
 			  CompsList<ComplId,LocLxSite>>;
     
     using FFTInternalDegComp=
@@ -79,9 +82,12 @@ namespace nissa
     using Compl=
       std::array<Fund,2>;
     
+    using Buf=
+      DynamicTens<BufComps,Compl,T::execSpace>;
+    
     struct Sizes
     {
-      const int dir;
+      const Dir dir;
       
       const FFTComp dirSize;
       
@@ -92,10 +98,10 @@ namespace nissa
       const FFTMergedComp mergedCompSize;
       
       Sizes(const T& t,
-	    const int dir) :
+	    const Dir dir) :
 	dir{dir},
-	dirSize{locSize[dir]},
-	orthoDirSize{t.nSites()()/locSize[dir]},
+	dirSize{locSize[dir()]},
+	orthoDirSize{t.nSites()()/locSize[dir()]},
 	nInternalDegs{t.nInternalDegs/2},
 	mergedCompSize{nInternalDegs()*orthoDirSize()}
       {
@@ -105,13 +111,13 @@ namespace nissa
       std::tuple<FFTComp,FFTOrthoComp> decomposeCoords(const coords_t& coords) const
       {
 	const FFTComp fftComp=
-	  coords[dir];
+	  coords[dir()];
 	
 	FFTOrthoComp fftOrthoComp=0;
 	
 	for(int iDir=0;iDir<NDIM-1;iDir++)
 	  {
-	    const Dir orthoDir=perp_dir[dir][iDir];
+	    const Dir orthoDir=perp_dir[dir()][iDir];
 	    fftOrthoComp=fftOrthoComp*glbSize[orthoDir()]+coords[orthoDir()];
 	  }
 	
@@ -132,11 +138,11 @@ namespace nissa
 	  mergedComp.decompose(std::make_tuple(orthoDirSize));
 	
 	coords_t coords;
-	coords[dir]=fftComp();
+	coords[dir()]=fftComp();
 	
-	for(int iDir=NDIM-1;iDir>=0;iDir--)
+	for(int iDir=NDIM-2;iDir>=0;iDir--)
 	  {
-	    const Dir orthoDir=perp_dir[dir][iDir];
+	    const Dir orthoDir=perp_dir[dir()][iDir];
 	    coords[orthoDir()]=fftOrthoComp()%glbSize[orthoDir()];
 	    fftOrthoComp=fftOrthoComp/glbSize[orthoDir()];
 	  }
@@ -145,15 +151,28 @@ namespace nissa
       }
     };
     
-    static void fft(T& f)
+    static auto makeLocalDir(T& f,
+			     const Dir& dir,
+			     const double& bef)
     {
-      const int dir0=0;
+      Sizes sizes(f,dir);
+      const auto bufDynamicSizes=
+	std::make_tuple(sizes.dirSize,sizes.mergedCompSize);
       
-      Sizes sizes(f,dir0);
+      Buf buf(bufDynamicSizes);
+      // const double* s00=&buf.fftComp(0)(FFTMergedComp(0))[0];
+      // const double* s01=&buf.fftComp(0)(FFTMergedComp(1))[0];
+      // const double* s10=&buf.fftComp(1)(FFTMergedComp(0))[0];
+      // printf("%ld %ld\n",(s01-s00)/2,(s10-s00)/2);
       
-      DynamicTens<BufComps,Compl,T::execSpace> buf(std::make_tuple(sizes.dirSize,sizes.mergedCompSize));
+      //printf("buf dynamicSizes: %s\n",std::apply([](const auto&...c){return nissa::compsConvertToString(c...);},buf.getDynamicSizes()).c_str());
       
+      const auto fftMergedCompDynamicSizes=
+	std::make_tuple(sizes.orthoDirSize);
+      
+      // buf=scalar(Compl{0.0,0.0});
       PAR(0,locVol,CAPTURE(sizes,
+			   fftMergedCompDynamicSizes,
 			   TO_WRITE(buf),
 			   TO_READ(f)),
 	  site,
@@ -161,55 +180,131 @@ namespace nissa
 	    compsLoop<InternalDegComps>([&sizes,
 					 &buf,
 					 &site,
-					 &f](const auto&...c)
+					 &f,
+					 &fftMergedCompDynamicSizes](const auto&...c)
 	    {
+	      //printf("buf buf dynamicSizes: %s\n",std::apply([](const auto&...c){return nissa::compsConvertToString(c...);},buf.getDynamicSizes()).c_str());
 	      const auto [fftComp,fftOrthoComp]=
 		sizes.decomposeSite(site);
 	      
-	      const FFTMergedComp mergedComp(std::make_tuple(sizes.orthoDirSize),fftOrthoComp,FFTInternalDegComp(c...));
+	      const FFTMergedComp mergedComp(fftMergedCompDynamicSizes,fftOrthoComp,FFTInternalDegComp(c...));
+	      
+	      // printf("site %d internalDeg %s decompose into %s merged %s buf el %ld\n",
+	      // 	     site,
+	      // 	     compsConvertToString(c...).c_str(),
+	      // 	     compsConvertToString(fftComp,fftOrthoComp).c_str(),
+	      // 	     compsConvertToString(mergedComp).c_str(),
+	      // 	     ((&(buf(fftComp,mergedComp)[0]))-&buf.storage[0][0])/2);
 	      
 	      for(int rI=0;rI<2;rI++)
 		buf(fftComp,mergedComp)[rI]=f(LocLxSite(site),c...,reIm(rI));
 	    },std::make_tuple());
 	  });
       
-      /////////////////////////////////////////////////////////////////
+      checkBef(buf,bef,fftMergedCompDynamicSizes);
+      
+      return buf;
+    }
+    
+    static Buf changeToNextLocDir(const Buf& buf,
+				  const Dir& dirFrom,
+				  const T& f,
+				  const double& bef)
+    {
+      const int dirTo{dirFrom+1};
+      
+      master_printf("\n\nTransposing dir %d to %d\n",dirFrom,dirTo);
+      
+      const Sizes sizesFrom(f,dirFrom);
+      
+      const Sizes sizesTo(f,dirTo);
+      
+      DynamicTens<BufComps,Compl,T::execSpace> buf2(std::make_tuple(sizesTo.dirSize,sizesTo.mergedCompSize));
+      
+      const auto fftMergedCompDynamicSizesTo=
+	std::make_tuple(sizesTo.orthoDirSize);
+      
+      PAR(0,sizesFrom.mergedCompSize()*sizesFrom.dirSize(),
+	  CAPTURE(sizesFrom,
+		  sizesTo,
+		  fftMergedCompDynamicSizesTo,
+		  TO_WRITE(buf2),
+		  TO_READ(buf)),
+	  elemFrom,
+	  {
+	    const auto [fftCompFrom,mergedCompFrom]=
+	      BufEl::decompose(std::make_tuple(sizesFrom.dirSize,sizesFrom.mergedCompSize),elemFrom);
+	    
+	    const auto [siteCoords,internalDeg]=
+	      sizesFrom.getCoordsInternalDegFromBufComps(fftCompFrom,mergedCompFrom);
+	    
+	    // printf("%s %s goes into coords (%d %d %d %d)\n",compConvertToString(fftCompFrom).c_str(),compsConvertToString(mergedCompFrom.decompose(fftMergedCompDynamicSizesTo)).c_str(),siteCoords[0],siteCoords[1],siteCoords[2],siteCoords[3]);
+	    
+	    const auto [fftCompTo,fftOrthoCompTo]=
+	      sizesTo.decomposeCoords(siteCoords);
+	    
+	    // printf("coords (%d %d %d %d) goes into %s\n",siteCoords[0],siteCoords[1],siteCoords[2],siteCoords[3],compsConvertToString(fftCompTo,fftOrthoCompTo).c_str());
+	    // printf("\n");
+	    
+	    const FFTMergedComp mergedCompTo(fftMergedCompDynamicSizesTo,fftOrthoCompTo,internalDeg);
+	    
+	    for(int rI=0;rI<2;rI++)
+	      buf2(fftCompTo,mergedCompTo)[rI]=
+		buf(fftCompFrom,FFTMergedComp(mergedCompFrom))[rI];
+	  });
+      
+      checkBef(buf2,bef,fftMergedCompDynamicSizesTo);
+      
+      return buf2;
+    }
+    
+    
+    template <typename B>
+    static void checkBef(const B& buf,
+			 const double& bef,
+			 const CompsList<FFTOrthoComp>& fftMergedCompDynamicSizes)
+    {
+      compsLoop<BufComps>([&buf,
+			   &bef,
+			   fftMergedCompDynamicSizes](const auto&...c)
+      {
+	for(int ri=0;ri<2;ri++)
+	  if(buf(c...)[ri]==bef)
+	    {
+	      master_printf("Found %s\n",compsConvertToString(c...).c_str());
+	      const auto fftMergedComps=
+		std::get<1>(std::make_tuple(c...)).decompose(fftMergedCompDynamicSizes);
+	      const auto internalDegComps=std::get<1>(fftMergedComps).decompose();
+	      master_printf(" mergedComps: %s\n",compsConvertToString(fftMergedComps).c_str());
+	      master_printf(" internalDegComps: %s\n",compsConvertToString(internalDegComps).c_str());
+	    }
+      },buf.getDynamicSizes());
+    }
+    
+    static void fft(T& f)
+    {
+      auto getBef=
+	[&f]()
+	{
+	  return f.locLxSite(loclx_of_coord({5,3,1,2})).dir(3).colorRow(1).colorCln(2).reIm(0);
+	};
+      
+      const double bef=getBef();
+      
+      master_printf("before fft %lg\n",bef);
+      
+      auto buf=
+	makeLocalDir(f,0,bef);
+      
+      // f=0;
+      // for(LocLxSite locLxSite=0;locLxSite<locVol;locLxSite++)
+      // 	f(locLxSite)=locLxSite();
+      
+      
+    /////////////////////////////////////////////////////////////////
       
       for(int dirFrom=0;dirFrom<NDIM-1;dirFrom++)
-	{
-	  const int dirTo{dirFrom+1};
-	  
-	  const Sizes sizesFrom(f,dirFrom);
-	  
-	  const Sizes sizesTo(f,dirTo);
-	  
-	  DynamicTens<BufComps,Compl,T::execSpace> buf2(std::make_tuple(sizesTo.dirSize,sizesTo.mergedCompSize));
-	  
-	  PAR(0,sizesFrom.mergedCompSize()*sizesFrom.dirSize(),
-	      CAPTURE(sizesFrom,
-		      sizesTo,
-		      TO_WRITE(buf2),
-		      TO_READ(buf)),
-	      elemFrom,
-	      {
-		const auto [fftCompFrom,mergedCompFrom]=
-		  BufEl::decompose(std::make_tuple(sizesFrom.dirSize,sizesFrom.mergedCompSize),elemFrom);
-		
-		const auto [siteCoords,internalDeg]=
-		  sizesFrom.getCoordsInternalDegFromBufComps(fftCompFrom,mergedCompFrom);
-		
-		const auto [fftCompTo,fftOrthoCompTo]=
-		  sizesTo.decomposeCoords(siteCoords);
-		
-		const FFTMergedComp mergedCompTo(std::make_tuple(sizesTo.orthoDirSize),fftOrthoCompTo,internalDeg);
-		
-		for(int rI=0;rI<2;rI++)
-		  buf2(fftCompTo,mergedCompTo)[rI]=
-		    buf(fftCompTo,FFTMergedComp(mergedCompFrom))[rI];
-	      });
-	  
-	  std::swap(buf,buf2);
-	}
+	buf=changeToNextLocDir(buf,dirFrom,f,bef);
       
       /////////////////////////////////////////////////////////////////
       
@@ -236,6 +331,8 @@ namespace nissa
 	      std::apply(f(locLxSite,reIm(rI)),comps)=
 		buf(fftCompFrom,mergedCompFrom)[rI];
 	  });
+      
+      master_printf("after fft %lg\n",getBef());
     }
   };
 }
@@ -369,6 +466,7 @@ void in_main(int narg,char **arg)
     master_printf("plaq after phasing: %.16lg\n",plaquette(gc));
     master_printf("plaq after phasing: %.16lg\n",plaquette(e));
     FFT<std::decay_t<decltype(e)>>::fft(e);
+    // master_printf("after fft %lg\n",);
     
 // memcpy(gc.data.storage,gcr._data,sizeof(quad_su3)*locVol);
     // Field2<OfComps<>,double> t(WITH_HALO);
