@@ -37,13 +37,13 @@ namespace nissa
       CompsList<Cp...>;
     
     /// Returns the merged component from the unmerged one
-    template <typename D,
+    template <typename...D,
 	      typename...E>
     static INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    MergedComp merge(const D& dynamicSizes,
+    MergedComp merge(const std::tuple<D...>& dynamicSizes,
 		     const CompFeat<E>&...e)
     {
-      return orderedIndex<Comps>(dynamicSizes,~e...);
+      return orderedIndex<Cp...>(dynamicSizes,~e...);
     }
     
     /// Gets the components of a merged component
@@ -55,6 +55,13 @@ namespace nissa
       return indexDecompose<Comps>(dynamicSizes,i());
     }
     
+    /// Gets the components of a merged component
+    static INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    Comps decompase(const MergedComp& i)
+    {
+      return indexDecompose<Comps>(std::tuple<>{},i());
+    }
+    
     /// Gets the components of this merged component
     template <typename D>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
@@ -64,7 +71,6 @@ namespace nissa
     }
     
     /// Gets the components of this merged component
-    template <typename D>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
     Comps decompose() const
     {
@@ -72,12 +78,20 @@ namespace nissa
     }
     
     /// Initialize from dynamicSizes and components
-    template <typename D,
+    template <typename...D,
 	      typename...E>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    MergedComp(const D& dynamicSizes,
+    MergedComp(const std::tuple<D...>& dynamicSizes,
 	       const CompFeat<E>&...e) :
-      MergedComp(MergedComp::template merge<Comps>(dynamicSizes,e...))
+      MergedComp(MergedComp::merge(dynamicSizes,e...))
+    {
+    }
+    
+    /// Initialize from components
+    template <typename...E>
+    INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
+    MergedComp(const CompFeat<E>&...e) :
+      MergedComp(std::tuple<>{},e...)
     {
     }
   };
