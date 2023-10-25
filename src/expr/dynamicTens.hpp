@@ -322,6 +322,7 @@ namespace nissa
     {									\
       DynamicTens<Comps,ATTRIB Fund,MT,true> res;			\
       									\
+      res.dynamicSizes=dynamicSizes;					\
       res.storage=storage;						\
       res.nElements=nElements;						\
       									\
