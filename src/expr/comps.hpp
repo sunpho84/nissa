@@ -196,6 +196,23 @@ namespace nissa
     else
       f();
   }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Convert components to string
+  template <typename...E>
+  auto compsConvertToString(const CompFeat<E>&...e)
+  {
+    return (compConvertToString(e)+...+"");
+  }
+  
+  /// Convert components to string
+  template <typename...E,
+	    ENABLE_THIS_TEMPLATE_IF((isComp<E> and...))>
+  auto compsConvertToString(const std::tuple<E...>& e)
+  {
+    return std::apply(compsConvertToString<E...>,e);
+  }
 }
 
 #endif

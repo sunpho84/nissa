@@ -50,6 +50,8 @@ namespace nissa
     INLINE_FUNCTION
     DynamicTens& operator=(const DynamicTens& oth)
     {
+      //master_printf("Assigning through copy constructor\n");
+      
       Base::operator=(oth);
       
       return *this;
@@ -59,6 +61,8 @@ namespace nissa
     INLINE_FUNCTION
     DynamicTens& operator=(DynamicTens&& oth)
     {
+      //master_printf("Assigning through move constructor\n");
+      
       std::swap(dynamicSizes,oth.dynamicSizes);
       std::swap(storage,oth.storage);
       
@@ -149,7 +153,7 @@ namespace nissa
     CONST_ATTRIB Fund& eval(const U&...cs) CONST_ATTRIB			\
     {									\
       assertCorrectExecSpace();						\
-      									\
+      /* printf("eval dynamicSizes: %s comps: %s\n",compsConvertToString(dynamicSizes).c_str(),compsConvertToString(cs...).c_str());*/ \
       return storage[orderedIndex<C...>(dynamicSizes,cs...)];		\
     }
     

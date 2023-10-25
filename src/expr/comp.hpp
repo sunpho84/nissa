@@ -7,6 +7,10 @@
 
 /// \file expr/comp.hpp
 
+#include <string>
+#include <typeinfo>
+
+#include <base/debug.hpp>
 #include <expr/baseComp.hpp>
 #include <expr/compRwCl.hpp>
 #include <metaprogramming/detectableAs.hpp>
@@ -183,6 +187,16 @@ namespace nissa
   {
     return t();
   }
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Converting the component into a descriptive string
+  template <typename E>
+  auto compConvertToString(const CompFeat<E>& e)
+  {
+    return (std::string)"("+demangle(typeid(E).name())+" "+std::to_string((~e)())+")";
+  }
+  
 }
 
 #endif
