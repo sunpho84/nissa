@@ -67,6 +67,12 @@ namespace nissa
     using FFTMergedComp=
       MergedComp<CompsList<FFTOrthoComp,FFTInternalDegComp>>;
     
+    using BufComps=
+      OfComps<FFTComp,FFTMergedComp>;
+    
+    using BufEl=
+      MergedComp<BufComps>;
+    
     using Fund=
       typename T::Fund;
     
@@ -119,43 +125,33 @@ namespace nissa
       }
       
       INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-      std::tuple<coords_t,FFTInternalDegComp> decomposeMergedComp(const FFTMergedComp& mergedComp) const
+      std::tuple<coords_t,FFTInternalDegComp> getCoordsInternalDegFromBufComps(const FFTComp& fftComp,
+									       const FFTMergedComp& mergedComp) const
       {
-	const auto [fftOrthoComp,fftInternalDegComp]=
+	auto [fftOrthoComp,fftInternalDegComp]=
 	  mergedComp.decompose(std::make_tuple(orthoDirSize));
-	  // indexDecompose<CompsList<FFTOrthoComp,FFTInternalDegComp>>(std::make_tuple(orthoDirSize),mergedComp);
-	
-	
-	FFTOrthoComp FFTOrthoComp=
-	  mergedComp()/nInternalDegs();
-	
-	const FFTInternalDegComp FFTInternalDegComp=
-	  (int)mergedComp()%nInternalDegs();
-	
-	printf("check1 %ld %ld \n",fftOrthoComp(),FFTOrthoComp());
-	printf("check2 %d %d \n",fftInternalDegComp(),FFTInternalDegComp());
 	
 	coords_t coords;
-	coords[dir]=FFTOrthoComp();
+	coords[dir]=fftComp();
 	
 	for(int iDir=NDIM-1;iDir>=0;iDir--)
 	  {
 	    const Dir orthoDir=perp_dir[dir][iDir];
-	    coords[orthoDir()]=FFTOrthoComp()%glbSize[orthoDir()];
-	    FFTOrthoComp=FFTOrthoComp/glbSize[orthoDir()];
+	    coords[orthoDir()]=fftOrthoComp()%glbSize[orthoDir()];
+	    fftOrthoComp=fftOrthoComp/glbSize[orthoDir()];
 	  }
 	
-	return {coords,FFTInternalDegComp};
+	return {coords,fftInternalDegComp};
       }
     };
     
-    static void fft(const T& f)
+    static void fft(T& f)
     {
       const int dir0=0;
       
       Sizes sizes(f,dir0);
       
-      DynamicTens<OfComps<FFTComp,FFTMergedComp>,Compl,T::execSpace> buf(std::make_tuple(sizes.dirSize,sizes.mergedCompSize));
+      DynamicTens<BufComps,Compl,T::execSpace> buf(std::make_tuple(sizes.dirSize,sizes.mergedCompSize));
       
       PAR(0,locVol,CAPTURE(sizes,
 			   TO_WRITE(buf),
@@ -170,8 +166,7 @@ namespace nissa
 	      const auto [fftComp,fftOrthoComp]=
 		sizes.decomposeSite(site);
 	      
-	      const FFTMergedComp mergedComp=
-		index(std::make_tuple(sizes.orthoDirSize),fftOrthoComp,c...);
+	      const FFTMergedComp mergedComp(std::make_tuple(sizes.orthoDirSize),fftOrthoComp,c...);
 	      
 	      for(int rI=0;rI<2;rI++)
 		buf(fftComp,mergedComp)[rI]=f(LocLxSite(site),c...,reIm(rI));
@@ -188,30 +183,64 @@ namespace nissa
 	  
 	  const Sizes sizesTo(f,dirTo);
 	  
-	  DynamicTens<OfComps<FFTComp,FFTMergedComp>,Compl,T::execSpace> buf2(std::make_tuple(sizesTo.dirSize,sizesTo.mergedCompSize));
+	  DynamicTens<BufComps,Compl,T::execSpace> buf2(std::make_tuple(sizesTo.dirSize,sizesTo.mergedCompSize));
 	  
-	  PAR(0,sizesFrom.mergedCompSize(),
+	  PAR(0,sizesFrom.mergedCompSize()*sizesFrom.dirSize(),
 	      CAPTURE(sizesFrom,
 		      sizesTo,
 		      TO_WRITE(buf2),
 		      TO_READ(buf)),
-	      mergedCompFrom,
+	      elemFrom,
 	      {
+		const auto [fftCompFrom,mergedCompFrom]=
+		  BufEl::decompose(std::make_tuple(sizesFrom.dirSize,sizesFrom.mergedCompSize),elemFrom);
+		
 		const auto [siteCoords,internalDeg]=
-		  sizesFrom.decomposeMergedComp(mergedCompFrom);
+		  sizesFrom.getCoordsInternalDegFromBufComps(fftCompFrom,mergedCompFrom);
 		
 		const auto [fftCompTo,fftOrthoCompTo]=
 		  sizesTo.decomposeCoords(siteCoords);
 		
-		const FFTMergedComp mergedCompTo=
-		  index(std::make_tuple(sizesTo.orthoDirSize),fftOrthoCompTo);
+		const FFTMergedComp mergedCompTo(std::make_tuple(sizesTo.orthoDirSize),fftOrthoCompTo);
 		
 		for(int rI=0;rI<2;rI++)
-		  buf2(fftCompTo,mergedCompTo)[rI]=buf(fftCompTo,FFTMergedComp(mergedCompFrom))[rI];
+		  buf2(fftCompTo,mergedCompTo)[rI]=
+		    buf(fftCompTo,FFTMergedComp(mergedCompFrom))[rI];
 	      });
 	  
 	  std::swap(buf,buf2);
 	}
+      
+      /////////////////////////////////////////////////////////////////
+      
+      // Sizes sizes3(f,3);
+      // PAR(0,sizes3.mergedCompSize(),
+      // 	  CAPTURE(sizes3,
+      // 		  TO_READ(buf),
+      // 		  TO_WRITE(f)),
+      // 	  mergedComp,
+      // 	  {
+      // 	    // const auto [siteCoords,internalDeg]=
+      // 	    //   sizes3.decomposeMergedComp(mergedComp);
+	    
+      // 	  //   for(FFTComp fftComp=0;fftComp<glbSize[3];fftComp++)
+      // 	  //     {
+      // 	  // 	coords_t c;
+      // 	  // 	for(int iDir=0;iDir<NDIM-1;iDir++)
+      // 	  // 	  {
+      // 	  // 	    const Dir orthoDir=perp_dir[3][iDir];
+      // 	  // 	    fftOrthoComp=fftOrthoComp*glbSize[orthoDir()]+coords[orthoDir()];
+      // 	  // }
+      // 	  // 	for()
+      // 	  //   internalDeg.decompose();
+      // 	    //   const FFTMergedComp mergedComp=
+      // 	    // 	index(std::make_tuple(sizes.orthoDirSize),fftOrthoComp,c...);
+	      
+      // 	    //   for(int rI=0;rI<2;rI++)
+      // 	    // 	buf(fftComp,mergedComp)[rI]=f(LocLxSite(site),c...,reIm(rI));
+      // 	    // },std::make_tuple());
+      // 	  });
+      
     }
   };
 }
