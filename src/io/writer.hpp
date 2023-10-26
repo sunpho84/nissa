@@ -125,7 +125,7 @@ namespace nissa
 	    "  <lz>%d</lz>\n"
 	    "  <lt>%d</lt>\n"
 	    "</ildgFormat>",
-	    nBits,glbSize[3],glbSize[2],glbSize[1],glbSize[0]);
+	    nBits,glbSizes[3],glbSizes[2],glbSizes[1],glbSizes[0]);
     ILDG_File_write_text_record(file,"ildg-format",ildgFormatMessage);
     
     //reorder in ILDG

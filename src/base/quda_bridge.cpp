@@ -597,7 +597,7 @@ namespace quda_iface
 		const int nu=
 		  (mu+1)%NDIM;
 		
-		int extent=glbSize[nu];
+		int extent=glbSizes[nu];
 		
 		//determine how many lattice sites remain at the current level
 		for(int k=level;k>0;k--)

@@ -355,7 +355,7 @@ namespace nissa
 	//allocate plans
 	fftw_plan *plans=nissa_malloc("plans",ndirs,fftw_plan);
 	  for(int idir=0;idir<ndirs;idir++)
-	    plans[idir]=fftw_plan_many_dft(1,&glbSize[list_dirs[idir]],ncpp,buf,NULL,ncpp,1,buf,NULL,ncpp,1,sign,FFTW_ESTIMATE);
+	    plans[idir]=fftw_plan_many_dft(1,&glbSizes[list_dirs[idir]],ncpp,buf,NULL,ncpp,1,buf,NULL,ncpp,1,sign,FFTW_ESTIMATE);
 	
 	//transpose each dir in turn and take fft
 	for(int idir=0;idir<ndirs;idir++)

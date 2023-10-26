@@ -45,7 +45,7 @@ namespace nissa
   //nomenclature:
   //-glb is relative to the global grid
   //-loc to the local one
-  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t glbSize,locSize;
+  CUDA_MANAGED EXTERN_GEOMETRY_LX coords_t glbSizes,locSize;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int64_t glbVol,glbSpatVol,glbVolh;
   CUDA_MANAGED EXTERN_GEOMETRY_LX int locVol,locSpatVol,locVolh;
   EXTERN_GEOMETRY_LX int64_t bulkVol,nonBwSurfVol,nonFwSurfVol;
@@ -198,7 +198,7 @@ namespace nissa
   //get mirrorized coord
   inline int get_mirrorized_site_coord(const int& c,const int& mu,const bool& flip)
   {
-    return (glbSize[mu]+(1-2*flip)*c)%glbSize[mu];
+    return (glbSizes[mu]+(1-2*flip)*c)%glbSizes[mu];
   }
   
   //get mirrorized coords according to a bit decomposition of imir

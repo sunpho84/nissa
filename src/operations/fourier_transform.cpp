@@ -242,7 +242,7 @@ namespace nissa
 	complex ph[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    double pmu=dirs[mu]*si*M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu]*include_phases)/glbSize[mu];
+	    double pmu=dirs[mu]*si*M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu]*include_phases)/glbSizes[mu];
 	    double pmuh=pmu*0.5;
 	    ph[mu][RE]=cos(pmuh);
 	    ph[mu][IM]=sin(pmuh);
@@ -258,7 +258,7 @@ namespace nissa
     //compute steps
     momentum_t steps;
     for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSizes[mu];
     
     //add the fractional phase
     PAR(0,locVol,
@@ -294,7 +294,7 @@ namespace nissa
     //compute steps
     momentum_t steps;
     for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSizes[mu];
     
     //add the fractional phase
     PAR(0,locVol,
@@ -329,7 +329,7 @@ namespace nissa
 	complex ph[NDIM];
 	for(int mu=0;mu<NDIM;mu++)
 	  {
-	    double pmu=dirs[mu]*si*M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu]*include_phases)/glbSize[mu];
+	    double pmu=dirs[mu]*si*M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu]*include_phases)/glbSizes[mu];
 	    double pmuh=pmu*0.5;
 	    ph[mu][RE]=cos(pmuh);
 	    ph[mu][IM]=sin(pmuh);
@@ -358,7 +358,7 @@ namespace nissa
     //compute steps
     momentum_t steps;
     for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSizes[mu];
     
     //add the fractional phase
     PAR(0,locVol,
@@ -393,7 +393,7 @@ namespace nissa
     //compute steps
     momentum_t steps;
     for(int mu=0;mu<NDIM;mu++)
-      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSize[mu];
+      steps[mu]=dirs[mu]*s*bc[mu]*M_PI/glbSizes[mu];
     
     //add the fractional phase
     PAR(0,locVol,

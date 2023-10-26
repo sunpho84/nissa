@@ -16,7 +16,7 @@ namespace nissa
       prop_out=prop_in;
     
     //put to zero everywhere but on the slice
-    if(timeslice>=0 and timeslice<glbSize[0])
+    if(timeslice>=0 and timeslice<glbSizes[0])
       {
 	FOR_EACH_SITE_DEG_OF_FIELD(prop_out,
 				   CAPTURE(timeslice,

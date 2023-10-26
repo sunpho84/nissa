@@ -191,7 +191,7 @@ namespace nissa
   {
     coords_t c;
     for(int mu=0;mu<NDIM;mu++)
-      c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSize[mu]));
+      c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glbSizes[mu]));
     
     return c;
   }

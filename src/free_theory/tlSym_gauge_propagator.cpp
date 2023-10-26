@@ -94,7 +94,7 @@ namespace nissa
     double ktpo2[4][4],ktso2[4][4];
     for(int mu=0;mu<4;mu++)
       {
-	k[mu]=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSize[mu];
+	k[mu]=M_PI*(2*glbCoordOfLoclx[imom][mu]+gl.bc[mu])/glbSizes[mu];
 	kt[mu]=2*sin(k[mu]/2);
 	kt2_dir[mu]=kt[mu]*kt[mu];
 	kt4_dir[mu]=kt2_dir[mu]*kt2_dir[mu];
@@ -401,7 +401,7 @@ namespace nissa
     const coords_t c=glb_coord_of_glblx(imom);
     for(int mu=1;mu<NDIM;mu++)
       {
-	double p=M_PI*(2*c[mu]+gl.bc[mu])/glbSize[mu];
+	double p=M_PI*(2*c[mu]+gl.bc[mu])/glbSizes[mu];
 	p2+=sqr(2*sin(p/2));
       }
     

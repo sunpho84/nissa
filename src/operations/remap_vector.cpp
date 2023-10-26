@@ -28,11 +28,11 @@ namespace nissa
       int glb_perp_site=0;
       for(int nu=0;nu<NDIM;nu++)
 	if(mu!=nu)
-	  glb_perp_site=glb_perp_site*glbSize[nu]+glbCoordOfLoclx[iloc_lx][nu];
+	  glb_perp_site=glb_perp_site*glbSizes[nu]+glbCoordOfLoclx[iloc_lx][nu];
       
       const int irank_locld=glb_perp_site/prp_max_vol;
       int iloc_locld=glb_perp_site-irank_locld*prp_max_vol;
-      iloc_locld=iloc_locld*glbSize[mu]+glbCoordOfLoclx[iloc_lx][mu];
+      iloc_locld=iloc_locld*glbSizes[mu]+glbCoordOfLoclx[iloc_lx][mu];
       
       return std::make_pair(irank_locld,iloc_locld);
     };
@@ -45,8 +45,8 @@ namespace nissa
     return [mu,prp_max_vol](int iloc_locld) // don't make constant
     {
       coords_t c;
-      c[mu]=iloc_locld%glbSize[mu];
-      iloc_locld/=glbSize[mu];
+      c[mu]=iloc_locld%glbSizes[mu];
+      iloc_locld/=glbSizes[mu];
       
       int glb_perp_site=
 	iloc_locld+rank*prp_max_vol;
@@ -54,8 +54,8 @@ namespace nissa
       for(int nu=NDIM-1;nu>=0;nu--)
 	if(mu!=nu)
 	  {
-	    c[nu]=glb_perp_site%glbSize[nu];
-	    glb_perp_site/=glbSize[nu];
+	    c[nu]=glb_perp_site%glbSizes[nu];
+	    glb_perp_site/=glbSizes[nu];
 	  }
       //int &irank_lx,int &iloc_lx;
       return get_loclx_and_rank_of_coord(c);

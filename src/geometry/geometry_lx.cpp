@@ -87,7 +87,7 @@ namespace nissa
   //wrappers
   int glblx_of_coord(const coords_t& x)
   {
-    return lx_of_coord(x,glbSize);
+    return lx_of_coord(x,glbSizes);
   }
   
   int glblx_of_coord_list(int a,int b,int c,int d)
@@ -105,8 +105,8 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	co[mu]=glbCoordOfLoclx[b][mu]*wb+glbCoordOfLoclx[c][mu]*wc;
-	while(co[mu]<0) co[mu]+=glbSize[mu];
-	co[mu]%=glbSize[mu];
+	while(co[mu]<0) co[mu]+=glbSizes[mu];
+	co[mu]%=glbSizes[mu];
       }
     
     return glblx_of_coord(co);
@@ -118,8 +118,8 @@ namespace nissa
     
     for(int mu=NDIM-1;mu>=0;mu--)
       {
-	int next=gx/glbSize[mu];
-	x[mu]=gx-next*glbSize[mu];
+	int next=gx/glbSizes[mu];
+	x[mu]=gx-next*glbSizes[mu];
 	gx=next;
       }
     
@@ -189,8 +189,8 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	x[mu]=ext_x[mu];
-	while(x[mu]<0) x[mu]+=glbSize[mu];
-	while(x[mu]>=glbSize[mu]) x[mu]-=glbSize[mu];
+	while(x[mu]<0) x[mu]+=glbSizes[mu];
+	while(x[mu]>=glbSizes[mu]) x[mu]-=glbSizes[mu];
       }
     
     //check locality
@@ -210,7 +210,7 @@ namespace nissa
 	is_bord[mu]=0;
 	if(is_dir_parallel[mu])
 	  {
-	    if(x[mu]==glbSize[mu]-1) is_bord[mu]=-1;
+	    if(x[mu]==glbSizes[mu]-1) is_bord[mu]=-1;
 	    if(x[mu]==locSize[mu]) is_bord[mu]=+1;
 	  }
       }
@@ -345,7 +345,7 @@ namespace nissa
 	  {
 	    //compute global coordinates, assigning
 	    for(int nu=0;nu<NDIM;nu++)
-	      glbCoordOfLoclx[iloc][nu]=(x[nu]+rank_coord[nu]*locSize[nu]+glbSize[nu])%glbSize[nu];
+	      glbCoordOfLoclx[iloc][nu]=(x[nu]+rank_coord[nu]*locSize[nu]+glbSizes[nu])%glbSizes[nu];
 	    
 	    //find the global index
 	    int iglb=glblx_of_coord(glbCoordOfLoclx[iloc]);
@@ -543,10 +543,10 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	remap_lx_to_locd[mu]=remap_locd_to_lx[mu]=NULL;
-	max_locd_perp_size_per_dir[mu]=(glbVol/glbSize[mu]+nranks-1)/nranks;
-	locd_perp_size_per_dir[mu]=(int)std::min((int64_t)max_locd_perp_size_per_dir[mu],glbVol/glbSize[mu]-max_locd_perp_size_per_dir[mu]*rank);
+	max_locd_perp_size_per_dir[mu]=(glbVol/glbSizes[mu]+nranks-1)/nranks;
+	locd_perp_size_per_dir[mu]=(int)std::min((int64_t)max_locd_perp_size_per_dir[mu],glbVol/glbSizes[mu]-max_locd_perp_size_per_dir[mu]*rank);
 	verbosity_lv3_master_printf("rank %d locd_perp_size_per_dir[%d]: %d\n",rank,mu,locd_perp_size_per_dir[mu]);
-	locd_size_per_dir[mu]=locd_perp_size_per_dir[mu]*glbSize[mu];
+	locd_size_per_dir[mu]=locd_perp_size_per_dir[mu]*glbSizes[mu];
 	max_locd_size=std::max(max_locd_size,locd_size_per_dir[mu]);
       }
     
@@ -557,7 +557,7 @@ namespace nissa
   int glblx_neighup(const int& gx,const int& mu)
   {
     coords_t c=glb_coord_of_glblx(gx);
-    c[mu]=(c[mu]+1)%glbSize[mu];
+    c[mu]=(c[mu]+1)%glbSizes[mu];
     
     return glblx_of_coord(c);
   }
@@ -565,7 +565,7 @@ namespace nissa
   int glblx_neighdw(const int& gx,const int& mu)
   {
     coords_t c=glb_coord_of_glblx(gx);
-    c[mu]=(c[mu]+glbSize[mu]-1)%glbSize[mu];
+    c[mu]=(c[mu]+glbSizes[mu]-1)%glbSizes[mu];
     
     return glblx_of_coord(c);
   }
@@ -660,7 +660,7 @@ namespace nissa
       k2[imom]=ktilde2[imom]=0;
       for(int mu=0;mu<NDIM;mu++)
 	{
-	  k[imom][mu]=M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu])/glbSize[mu];
+	  k[imom][mu]=M_PI*(2*glbCoordOfLoclx[imom][mu]+bc[mu])/glbSizes[mu];
 	  ktilde[imom][mu]=sin(k[imom][mu]);
 	  
 	  k2[imom]+=k[imom][mu]*k[imom][mu];

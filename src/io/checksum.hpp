@@ -43,7 +43,7 @@ namespace nissa
 	  const coords_t& X=glbCoordOfLoclx[ivol];
 	  uint32_t ildg_ivol=X[0];
 	  for(int mu=NDIM-1;mu>0;mu--)
-	    ildg_ivol=ildg_ivol*glbSize[mu]+X[mu];
+	    ildg_ivol=ildg_ivol*glbSizes[mu]+X[mu];
 	  const uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
 	  
 	  uint32_t crc=0xffffffffL;

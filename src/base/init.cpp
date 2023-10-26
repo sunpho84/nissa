@@ -552,30 +552,30 @@ namespace nissa
     //set the volume
     if(T>0 and L>0)
       {
-	glbSize[0]=T;
-	for(int mu=1;mu<NDIM;mu++) glbSize[mu]=L;
+	glbSizes[0]=T;
+	for(int mu=1;mu<NDIM;mu++) glbSizes[mu]=L;
       }
     
     //broadcast the global sizes
-    coords_broadcast(glbSize);
+    coords_broadcast(glbSizes);
     
     //calculate global volume, initialize local one
     glbVol=1;
     for(int mu=0;mu<NDIM;mu++)
       {
-	locSize[mu]=glbSize[mu];
-	glbVol*=glbSize[mu];
+	locSize[mu]=glbSizes[mu];
+	glbVol*=glbSizes[mu];
       }
-    glbSpatVol=glbVol/glbSize[0];
+    glbSpatVol=glbVol/glbSizes[0];
     glb_vol2=(double)glbVol*glbVol;
     
-    master_printf("Global lattice:\t%d",glbSize[0]);
-    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glbSize[mu]);
+    master_printf("Global lattice:\t%d",glbSizes[0]);
+    for(int mu=1;mu<NDIM;mu++) master_printf("x%d",glbSizes[mu]);
     master_printf(" = %d\n",glbVol);
     master_printf("Number of running ranks: %d\n",nranks);
     
     //find the grid minimizing the surface
-    find_minimal_surface_grid(nrank_dir,glbSize,nranks);
+    find_minimal_surface_grid(nrank_dir,glbSizes,nranks);
     
     //check that lattice is commensurable with the grid
     //and check wether the mu dir is parallelized or not
@@ -586,8 +586,8 @@ namespace nissa
       {
 	ok&=(nrank_dir[mu]>0);
 	if(!ok) crash("nrank_dir[%d]: %d",mu,nrank_dir[mu]);
-	ok&=(glbSize[mu]%nrank_dir[mu]==0);
-	if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",mu,mu,glbSize[mu]%nrank_dir[mu]);
+	ok&=(glbSizes[mu]%nrank_dir[mu]==0);
+	if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",mu,mu,glbSizes[mu]%nrank_dir[mu]);
 	is_dir_parallel[mu]=(nrank_dir[mu]>1);
 	nparal_dir+=is_dir_parallel[mu];
       }
@@ -600,7 +600,7 @@ namespace nissa
     create_MPI_cartesian_grid();
     
     //calculate the local volume
-    for(int mu=0;mu<NDIM;mu++) locSize[mu]=glbSize[mu]/nrank_dir[mu];
+    for(int mu=0;mu<NDIM;mu++) locSize[mu]=glbSizes[mu]/nrank_dir[mu];
     locVol=glbVol/nranks;
     locSpatVol=locVol/locSize[0];
     loc_vol2=(double)locVol*locVol;

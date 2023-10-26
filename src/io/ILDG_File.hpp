@@ -109,8 +109,8 @@ namespace nissa
     for(int mu=NDIM-1;mu>=0;mu--)
       {
 	int nu=scidac_mapping[mu];
-	xto[nu]=iglb_ILDG%glbSize[nu];
-	iglb_ILDG/=glbSize[nu];
+	xto[nu]=iglb_ILDG%glbSizes[nu];
+	iglb_ILDG/=glbSizes[nu];
       }
     
     return get_loclx_and_rank_of_coord(xto);
@@ -126,7 +126,7 @@ namespace nissa
     for(int mu=0;mu<NDIM;mu++)
       {
 	const int nu=scidac_mapping[mu];
-	iglb_ILDG=iglb_ILDG*glbSize[nu]+glbCoordOfLoclx[iloc_lx][nu];
+	iglb_ILDG=iglb_ILDG*glbSizes[nu]+glbCoordOfLoclx[iloc_lx][nu];
       }
     
     const int irank_ILDG=iglb_ILDG/locVol;

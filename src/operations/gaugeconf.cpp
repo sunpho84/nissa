@@ -42,9 +42,9 @@ namespace nissa
     int d2=1+(axis-1+2)%3;
     
     //check that the two directions have the same size and that we are not asking 0 as axis
-    if(glbSize[d1]!=glbSize[d2]) crash("Rotation works only if dir %d and %d have the same size!",glbSize[d1],glbSize[d2]);
+    if(glbSizes[d1]!=glbSizes[d2]) crash("Rotation works only if dir %d and %d have the same size!",glbSizes[d1],glbSizes[d2]);
     if(axis==0) crash("Error, only spatial rotations implemented");
-    int L=glbSize[d1];
+    int L=glbSizes[d1];
     
     //allocate destinations and sources
     coords_t *xto=nissa_malloc("xto",locVol,coords_t);
@@ -130,8 +130,8 @@ namespace nissa
     complex theta[NDIM];
     for(int idir=0;idir<NDIM;idir++)
       {
-	theta[idir][0]=cos(theta_in_pi[idir]*M_PI/glbSize[idir]);
-	theta[idir][1]=sin(theta_in_pi[idir]*M_PI/glbSize[idir]);
+	theta[idir][0]=cos(theta_in_pi[idir]*M_PI/glbSizes[idir]);
+	theta[idir][1]=sin(theta_in_pi[idir]*M_PI/glbSizes[idir]);
       }
     
     int nsite=locVol;

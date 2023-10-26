@@ -364,10 +364,10 @@ namespace nissa
     coords_t& A=glbCoordOfLoclx[ivol];                            //       P---O---N
     coords_t B,C,/*D,*/E,F,G,H,I,J,K,L,M,/*N,*/O,P;               //       |   |   |
     //find coord mu                                             //   H---G---F---E---D
-    K[mu]=L[mu]=M[mu]=(A[mu]-1+glbSize[mu])%glbSize[mu];      //   |   |   |   |   |
+    K[mu]=L[mu]=M[mu]=(A[mu]-1+glbSizes[mu])%glbSizes[mu];      //   |   |   |   |   |
     I[mu]=J[mu]=B[mu]=C[mu]=A[mu];                              //   I---J---A---B---C
-    /*D[mu]=*/E[mu]=F[mu]=G[mu]=H[mu]=(A[mu]+1)%glbSize[mu];   //       |   |   |
-    /*N[mu]=*/O[mu]=P[mu]=(A[mu]+2)%glbSize[mu];               //       K---L---M
+    /*D[mu]=*/E[mu]=F[mu]=G[mu]=H[mu]=(A[mu]+1)%glbSizes[mu];   //       |   |   |
+    /*N[mu]=*/O[mu]=P[mu]=(A[mu]+2)%glbSizes[mu];               //       K---L---M
     for(int inu=0;inu<NDIM-1;inu++)
       {
 	int nu=perp_dir[mu][inu];
@@ -382,11 +382,11 @@ namespace nissa
 #endif
 	
 	//find coord nu
-	H[nu]=I[nu]=(A[nu]-2+glbSize[nu])%glbSize[nu];
-	K[nu]=J[nu]=G[nu]=P[nu]=(I[nu]+1)%glbSize[nu];
+	H[nu]=I[nu]=(A[nu]-2+glbSizes[nu])%glbSizes[nu];
+	K[nu]=J[nu]=G[nu]=P[nu]=(I[nu]+1)%glbSizes[nu];
 	L[nu]=F[nu]=O[nu]=A[nu];
-	M[nu]=B[nu]=E[nu]=/*N[nu]=*/(A[nu]+1)%glbSize[nu];
-	C[nu]=/*D[nu]=*/(A[nu]+2)%glbSize[nu];
+	M[nu]=B[nu]=E[nu]=/*N[nu]=*/(A[nu]+1)%glbSizes[nu];
+	C[nu]=/*D[nu]=*/(A[nu]+2)%glbSizes[nu];
 	
 	//backward square staple
 	*(ilink_to_be_used++)=gat.add_conf_link_for_paths(J,nu);
@@ -600,7 +600,7 @@ namespace nissa
     coords_t B,F,G,J;                                       //       G---F---E
     //find coord mu                                         //       |   |   |
     J[mu]=B[mu]=A[mu];                                      //       J---A---B
-    F[mu]=G[mu]=(A[mu]+1)%glbSize[mu];
+    F[mu]=G[mu]=(A[mu]+1)%glbSizes[mu];
     for(int inu=0;inu<NDIM-1;inu++)
       {
 	int nu=perp_dir[mu][inu];
@@ -615,9 +615,9 @@ namespace nissa
 #endif
 	
 	//find coord nu
-	J[nu]=G[nu]=(A[nu]-1+glbSize[nu])%glbSize[nu];
+	J[nu]=G[nu]=(A[nu]-1+glbSizes[nu])%glbSizes[nu];
 	F[nu]=A[nu];
-	B[nu]=(A[nu]+1)%glbSize[nu];
+	B[nu]=(A[nu]+1)%glbSizes[nu];
 	
 	//backward square staple
 	*(ilink_to_be_used++)=gat.add_conf_link_for_paths(J,nu);

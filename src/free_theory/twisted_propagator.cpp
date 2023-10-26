@@ -31,7 +31,7 @@ namespace nissa
     coords_t c=glb_coord_of_glblx(imom);
     for(int mu=1;mu<NDIM;mu++)
       {
-	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSize[mu];
+	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSizes[mu];
 	double sinph=sin(p/2);
 	double sinph2=sinph*sinph;
 	double sinph4=sinph2*sinph2;
@@ -53,7 +53,7 @@ namespace nissa
   {
     double sinh2E=0;
     const coords_t c=glb_coord_of_glblx(imom);
-    for(int mu=1;mu<NDIM;mu++) sinh2E+=sqr(sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
+    for(int mu=1;mu<NDIM;mu++) sinh2E+=sqr(sin(M_PI*(2*c[mu]+bc[mu])/glbSizes[mu]));
     return asinh(sqrt(sinh2E));
   }
   
@@ -69,7 +69,7 @@ namespace nissa
     sin2_mom=sin2_momh=0;
     for(int mu=0;mu<NDIM;mu++)
       {
-	double p=M_PI*(2*glbCoordOfLoclx[imom][mu]+qu.bc[mu])/glbSize[mu];
+	double p=M_PI*(2*glbCoordOfLoclx[imom][mu]+qu.bc[mu])/glbSizes[mu];
 	sin_mom[mu]=sin(p);
 	sin2_mom+=sqr(sin_mom[mu]);
 	sin2_momh+=sqr(sin(p/2));
@@ -169,7 +169,7 @@ namespace nissa
     const coords_t c=glb_coord_of_glblx(imom);
     for(int mu=1;mu<NDIM;mu++)
       {
-	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSize[mu];
+	double p=M_PI*(2*c[mu]+qu.bc[mu])/glbSizes[mu];
 	sin_mom[mu]=sin(p);
 	//sin2_mom+=sqr(sin_mom[mu]);
 	sin2_momh+=sqr(sin(p/2));
@@ -204,7 +204,7 @@ namespace nissa
     
     spinspin_dirac_prod_double(proj,base_gamma[igamma_of_mu[0]],-sinh(e));
     const coords_t c=glb_coord_of_glblx(imom);
-    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[igamma_of_mu[mu]],sin(M_PI*(2*c[mu]+bc[mu])/glbSize[mu]));
+    for(int mu=1;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma[igamma_of_mu[mu]],sin(M_PI*(2*c[mu]+bc[mu])/glbSizes[mu]));
     
     return abse;
   }

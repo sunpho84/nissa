@@ -87,10 +87,10 @@ namespace nissa
   //ipercubicly mirrorize an already gathered vector
   void gathered_vector_mirrorize(double *vec,int dps)
   {
-    if(glbSize[0]%2 || glbSize[1]%2) crash("Error, impossible to mirrorize if sites are odds");
+    if(glbSizes[0]%2 || glbSizes[1]%2) crash("Error, impossible to mirrorize if sites are odds");
     
-    int TH=glbSize[0]/2;
-    int LH=glbSize[1]/2;
+    int TH=glbSizes[0]/2;
+    int LH=glbSizes[1]/2;
     
     int x[4];
     for(x[0]=0;x[0]<=TH;x[0]++)
@@ -104,7 +104,7 @@ namespace nissa
 		{
 		  coords_t xmirr;
 		  for(int mu=0;mu<4;mu++)
-		    xmirr[mu]=(imirr & (1<<mu)) ? (glbSize[mu]-x[mu])%glbSize[mu] : x[mu];
+		    xmirr[mu]=(imirr & (1<<mu)) ? (glbSizes[mu]-x[mu])%glbSizes[mu] : x[mu];
 		  ivol[imirr]=glblx_of_coord(xmirr);
 		}
 	      
@@ -116,10 +116,10 @@ namespace nissa
   //symmetrize an already gathered vector
   void gathered_vector_cubic_symmetrize(double *vec,int dps)
   {
-    if(glbSize[0]%2 || glbSize[1]%2) crash("Error, impossible to symmetrize if sites are odds");
+    if(glbSizes[0]%2 || glbSizes[1]%2) crash("Error, impossible to symmetrize if sites are odds");
     
-    int TH=glbSize[0]/2;
-    int LH=glbSize[1]/2;
+    int TH=glbSizes[0]/2;
+    int LH=glbSizes[1]/2;
     
     int perm[6][3]={{1,2,3},{2,3,1},{3,1,2},{1,3,2},{3,2,1},{2,1,3}};
     
