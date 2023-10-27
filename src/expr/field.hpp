@@ -180,9 +180,11 @@ namespace nissa
     INLINE_FUNCTION
     Field2& operator=(Field2&& oth)
     {
+      std::swap(nTotalAllocatedSites,oth.nTotalAllocatedSites);
       std::swap(data,oth.data);
       std::swap(haloIsValid,oth.haloIsValid);
       std::swap(edgesAreValid,oth.edgesAreValid);
+      std::swap(haloEdgesPresence,oth.haloEdgesPresence);
       
       return *this;
     }
