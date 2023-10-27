@@ -344,6 +344,13 @@ Float plaquette(const F& conf)
 //   };
 // }
 
+// constexpr bool compilingForDevice=
+// #ifdef COMPILING_FOR_DEVICE
+//   true
+// #else
+//   false
+// #endif
+//   ;
 
 
 void in_main(int narg,char **arg)
@@ -405,7 +412,20 @@ void in_main(int narg,char **arg)
   printf("d d d %.017lg\n",e);
   printf("d d d %.017lg\n",f);
   printf("d d d %.017lg\n",g);
-  
+
+  master_printf("/////////////////////////// defining //////////////////////////////////////\n");
+  MirroredNode<CompsList<LocLxSite,ComplId>,Field2<CompsList<ComplId>,double,FieldCoverage::FULL_SPACE,FieldLayout::CPU,MemoryType::CPU>> a(doNotAllocate);
+  master_printf("//////////////////////////// allocating /////////////////////////////////////\n");
+  a.allocate(WITH_HALO);
+  master_printf("//////////////////////////// assigning /////////////////////////////////////\n");
+  a=1;
+  master_printf("///////////////////////////// updating the copy ////////////////////////////////////\n");
+  a.updateDeviceCopy();
+  master_printf("/////////////////////////////////////////////////////////////////\n");
+
+  auto b=a.deviceVal.template copyToMemorySpace<MemoryType::CPU>();
+  master_printf("Is 1? %lg\n",b.locLxSite(0).reIm(0));
+  crash("");
   // printf("%lu\n",state.counter.val[0]);
   // RngGaussDistrView gaussDistr(state,2);
   // printf("%lu\n",state.counter.val[0]);
@@ -472,6 +492,10 @@ void in_main(int narg,char **arg)
     
     auto e=(gc*expI).closeAs(gc);
     
+    
+    
+    
+    //gcH=s;
     master_printf("plaq after phasing: %.16lg\n",plaquette(gc));
     master_printf("plaq after phasing: %.16lg\n",plaquette(e));
     // FFT<std::decay_t<decltype(e)>>::fft(e);

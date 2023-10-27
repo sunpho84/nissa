@@ -154,9 +154,17 @@ AH_VERBATIM([COMPILING_FOR_DEVICE],
  /// A convenient macro to detect that we are compiling on device
 # define COMPILING_FOR_DEVICE
 
+#define compilingForDevice true
+
+# define COMPILATION_CONTEXT device
+
 # define _ASM_BOOKMARK_SYMBOL "//"
 
 #else
+
+#define compilingForDevice false
+
+# define COMPILATION_CONTEXT host
 
 # define _ASM_BOOKMARK_SYMBOL "#"
 
