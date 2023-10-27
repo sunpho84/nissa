@@ -291,7 +291,7 @@ namespace nissa
     template <MemoryType OES>
     INLINE_FUNCTION
     DynamicTens(const DynamicTens<Comps,Fund,OES>& oth) :
-      DynamicTens(this->getDynamicSizes())
+      DynamicTens(oth.getDynamicSizes())
     {
       (*this)=oth;
     }
