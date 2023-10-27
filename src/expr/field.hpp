@@ -382,7 +382,7 @@ namespace nissa
     /////////////////////////////////////////////////////////////////
     
     /// Total allocated sites
-    const Site nTotalAllocatedSites;
+    Site nTotalAllocatedSites;
     
     /// Number of internal degrees of freedom - this will be made dynamic
     static constexpr int nInternalDegs=
@@ -392,7 +392,7 @@ namespace nissa
     mutable Data data;
     
     /// Presence of halo and edges
-    const HaloEdgesPresence haloEdgesPresence;
+    HaloEdgesPresence haloEdgesPresence;
     
     /// States whether the halo is updated
     mutable bool haloIsValid;
