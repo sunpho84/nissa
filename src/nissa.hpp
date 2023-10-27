@@ -66,6 +66,7 @@
 #include <expr/funcExpr.hpp>
 #include <expr/indexComputer.hpp>
 #include <expr/mergedComps.hpp>
+#include <expr/mirroredNode.hpp>
 #include <expr/prod.hpp>
 #include <expr/scalar.hpp>
 #include <expr/shift.hpp>
