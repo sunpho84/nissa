@@ -10,7 +10,6 @@
 /// \file expr/mirroredNode.hpp
 
 #include <expr/comps.hpp>
-#include <expr/subNodes.hpp>
 #include <expr/node.hpp>
 
 namespace nissa
@@ -39,11 +38,6 @@ namespace nissa
 	    typename _Fund>
   struct THIS :
     BASE,
-#ifdef USE_CUDA
-    SubNodes<H,D>,
-#else
-    SubNodes<H>,
-#endif
     DetectableAsMirroredNode
   {
     using This=THIS;
@@ -61,13 +55,11 @@ namespace nissa
 #endif
       ;
     
-    static constexpr int contextNodeId=
-#ifdef COMPILING_FOR_DEVICE
-      1
-#else
-      0
+    H hostVal;
+    
+#ifdef USE_CUDA
+    D deviceVal;
 #endif
-      ;
     
     /// Components
     using Comps=CompsList<C...>;
@@ -85,9 +77,9 @@ namespace nissa
 #define PROVIDE_GET_FOR_CURRENT_CONTEXT(ATTRIB)		\
 							\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
-    decltype(auto) getForCurrentContext() ATTRIB	\
+    ATTRIB auto& getForCurrentContext() ATTRIB		\
     {							\
-      return this->template subNode<contextNodeId>();	\
+      return CONCAT(COMPILATION_CONTEXT,Val);		\
     }
     
     PROVIDE_GET_FOR_CURRENT_CONTEXT(const);
@@ -123,10 +115,9 @@ namespace nissa
     template <typename...T>
     INLINE_FUNCTION constexpr
     explicit MirroredNode(const T&...t) :
+      hostVal(t...)
 #ifdef USE_CUDA
-      SubNodes<H,D>(H(t...),D(t...))
-#else
-      SubNodes<H>(H(t...))
+      ,deviceVal(t...)
 #endif
     {
     }
@@ -135,8 +126,7 @@ namespace nissa
     void updateDeviceCopy()
     {
 #ifdef USE_CUDA
-      this->template subNode<1>()=
-	this->template subNode<0>();
+      deviceVal=hostVal;
 #endif
     }
     
@@ -144,9 +134,9 @@ namespace nissa
     INLINE_FUNCTION constexpr
     void allocate(const T&...t)
     {
-      this->template subNode<0>().allocate(t...);
+      hostVal.allocate(t...);
 #ifdef USE_CUDA
-      this->template subNode<1>().allocate(t...);
+      deviceVal.allocate(t...);
 #endif
     }
     

@@ -23,7 +23,8 @@ namespace nissa
   template <typename..._E>
   struct SubNodes
   {
-    using type=std::tuple<NodeRefOrVal<_E>...>;
+    using type=
+      std::tuple<NodeRefOrVal<_E>...>;
     
     /// Subnodes
     type subNodes;
