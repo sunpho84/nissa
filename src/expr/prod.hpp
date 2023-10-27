@@ -132,7 +132,7 @@ namespace nissa
     
     /// List of dynamic comps
     using DynamicComps=
-      typename DynamicCompsProvider<Comps>::DynamicComps;
+      typename Base::DynamicComps;
     
     /// Sizes of the dynamic components
     const DynamicComps dynamicSizes;
