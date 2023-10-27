@@ -42,6 +42,10 @@ namespace nissa
 #undef BASE
 #undef THIS
     
+    /// Equivalent Dynamic tens on the device
+    using DeviceEquivalent=
+      DynamicTens<CompsList<C...>,_Fund,maybeGpuMemoryType,IsRef>;
+    
     /// Importing assignment operator from Node
     using Base::operator=;
     
