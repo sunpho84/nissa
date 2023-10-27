@@ -114,15 +114,20 @@ namespace nissa
     ///  Equivalent Field on device
     using DeviceEquivalent=
       Field2<CompsList<C...>,_Fund,FC,FieldLayout::GPU,maybeGpuMemoryType,IsRef>;
+    
+    template <FieldLayout OFL,
+	      MemoryType OES,
+	      bool OIR,
+	      ENABLE_THIS_TEMPLATE_IF(OFL!=FL or OES!=MT)>
     INLINE_FUNCTION
-    Field2& operator=(const Field2<CompsList<C...>,_Fund,FC,FL,OES,OIR>& oth)
+    Field2& operator=(const Field2<CompsList<C...>,_Fund,FC,OFL,OES,OIR>& oth)
     {
       if(this->getDynamicSizes()!=oth.getDynamicSizes())
 	crash("trying to assign fields on different memory space, having different dynamic sizes");
       
-      this->data=oth.data;
+      this->assign(oth.template copyToMemorySpaceIfNeeded<execSpace>());
       
-      haloIsValid=oth.haloIsValid;
+      invalidateHalo();
       
       return *this;
     }
