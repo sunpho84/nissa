@@ -248,7 +248,7 @@ namespace nissa
       if constexpr(not IsRef)
 	{
 #ifndef COMPILING_FOR_DEVICE
-	  verbosity_lv3_master_printf("Using copy constructor of DynamicTens");
+	  verbosity_lv3_master_printf("Using copy constructor of DynamicTens\n");
 	  allocate(dynamicSizes);
 	  (*this)=oth;
 #else
