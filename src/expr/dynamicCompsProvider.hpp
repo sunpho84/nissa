@@ -50,7 +50,7 @@ namespace nissa
     INLINE_FUNCTION
     static DynamicComps filterDynamicComps(const CompFeat<T>&...td)
     {
-      return filterDynamicComps(~td...);
+      return filterDynamicComps(std::make_tuple(~td...));
     }
   };
 }
