@@ -626,17 +626,29 @@ namespace nissa
       return canAssignAtCompileTime;
     }
     
+    /// Default constructor
+    Field2(const DoNotAllocate)
+    {
+      master_printf("avoiding allocation\n");
+      
+      static_assert(not IsRef,"Can avoid allocate only if not a reference (check trueness)");
+    }
+    
+    void allocate(const HaloEdgesPresence& _haloEdgesPresence=WITHOUT_HALO)
+    {
+      nTotalAllocatedSites=FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence);
+      data.allocate(std::make_tuple(nTotalAllocatedSites));
+      haloEdgesPresence=_haloEdgesPresence;
+      
+      invalidateHalo();
+    }
+    
     /// Create a field
-    Field2(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO) :
-      nTotalAllocatedSites(FieldSizes<fieldCoverage>::nSitesToAllocate(haloEdgesPresence)),
-      data(std::make_tuple(nTotalAllocatedSites)),
-      haloEdgesPresence(haloEdgesPresence),
-      haloIsValid(false),
-      edgesAreValid(false)
+    Field2(const HaloEdgesPresence& haloEdgesPresence=WITHOUT_HALO)
     {
       static_assert(not IsRef,"Can allocate only if not a reference");
       
-      invalidateHalo();
+      allocate(haloEdgesPresence);
     }
     
     /// Assign another expression
@@ -670,14 +682,34 @@ namespace nissa
       haloIsValid(oth.haloIsValid),
       edgesAreValid(oth.edgesAreValid)
     {
+#ifndef COMPILING_FOR_DEVICE
+      verbosity_lv3_master_printf("Using copy constructor of Field2, isRef: %d\n",IsRef);
+#endif
     }
     
     /// Return a copy on the given memory space
     template <MemoryType OES>
     Field2<CompsList<C...>,_Fund,FC,FL,OES> copyToMemorySpace() const
     {
-      return *this;
+      Field2<CompsList<C...>,_Fund,FC,FL,OES> res(haloEdgesPresence);
+      res.data=data;
+      
+      return res;
     }
+    
+    /* Return a copy on the given memory space, only if needed */
+#define PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(ATTRIB)			\
+    template <MemoryType OES>						\
+    RefIf<OES==execSpace,ATTRIB Field2<CompsList<C...>,_Fund,FC,FL,OES>> copyToMemorySpaceIfNeeded() ATTRIB \
+    {									\
+      return *this;							\
+    }
+    
+    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(const);
+    
+    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(/* non const */);
+    
+#undef PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED
     
     /// Copy construct, taking as input a non-reference when this is a reference
     template <typename O,
