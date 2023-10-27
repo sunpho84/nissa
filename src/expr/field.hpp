@@ -111,8 +111,9 @@ namespace nissa
     /// Importing assignment operator from BaseTens
     using Base::operator=;
     
-    template <MemoryType OES,
-	      bool OIR>
+    ///  Equivalent Field on device
+    using DeviceEquivalent=
+      Field2<CompsList<C...>,_Fund,FC,FieldLayout::GPU,maybeGpuMemoryType,IsRef>;
     INLINE_FUNCTION
     Field2& operator=(const Field2<CompsList<C...>,_Fund,FC,FL,OES,OIR>& oth)
     {
