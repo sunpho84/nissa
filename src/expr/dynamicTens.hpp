@@ -12,7 +12,6 @@
 #include <base/memory_manager.hpp>
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
-#include <expr/dynamicCompsProvider.hpp>
 #include <expr/dynamicTensDeclaration.hpp>
 #include <expr/node.hpp>
 #include <expr/indexComputer.hpp>
@@ -69,15 +68,15 @@ namespace nissa
       return *this;
     }
     
-    /// List of dynamic comps
-    using DynamicComps=
-      typename DynamicCompsProvider<CompsList<C...>>::DynamicComps;
-    
     /// Components
     using Comps=CompsList<C...>;
     
     /// Fundamental type
     using Fund=_Fund;
+    
+    /// List of dynamic comps
+    using DynamicComps=
+      typename Base::DynamicComps;
     
     /// Assign from different execution space
     template <MemoryType OES,
