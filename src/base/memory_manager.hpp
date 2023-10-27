@@ -25,6 +25,16 @@
 
 namespace nissa
 {
+  /// Class needed to dispatch not allocation
+  struct DoNotAllocate
+  {
+  };
+  
+  /// Handle to avoid allocation
+  constexpr DoNotAllocate doNotAllocate;
+  
+  /////////////////////////////////////////////////////////////////
+  
   enum class MemoryType{CPU ///< Memory allocated on CPU side
 #ifdef USE_CUDA
 			,GPU ///< Memory allocated on GPU side
@@ -41,7 +51,17 @@ namespace nissa
 #endif
 	      ;
   
-  /// Type used for size
+  /// GPU memory type if compiling for device, CPU otherwise
+  constexpr MemoryType maybeGpuMemoryType=
+	      MemoryType::
+#ifdef USE_CUDA
+	      GPU
+#else
+	      CPU
+#endif
+	      ;
+  
+		  /// Type used for size
   using Size=int64_t;
   
   /// Minimal alignment
