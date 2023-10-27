@@ -728,11 +728,40 @@ namespace nissa
     {
     }
     
-    /// Construct from another exec space
-    template <MemoryType OES,
+    /// Move constructor
+    INLINE_FUNCTION
+    Field2(Field2&& oth) :
+      nTotalAllocatedSites(oth.nTotalAllocatedSites),
+      data(oth.data),
+      haloEdgesPresence(oth.haloEdgesPresence),
+      haloIsValid(oth.haloIsValid),
+      edgesAreValid(oth.edgesAreValid)
+    {
+#ifndef COMPILING_FOR_DEVICE
+      verbosity_lv3_master_printf("Using move constructor of Field2\n");
+#endif
+    }
+    
+    /// Construct from another exec space and/or field layout
+    template <FieldLayout OFL,
+	      MemoryType OES,
+	      bool OIR,
+	      ENABLE_THIS_TEMPLATE_IF(OFL!=FL or OES!=MT)>
+    INLINE_FUNCTION
+    Field2(const Field2<CompsList<C...>,_Fund,FC,OFL,OES,OIR>& oth) :
+      Field2(oth.haloEdgesPresence)
+    {
+      if constexpr(OES!=execSpace)
+	(*this)=oth.template copyToMemorySpace<execSpace>();
+      else
+	(*this)=oth;
+    }
+    
+    /// Construct from another exec space and/or field layout
+    template <FieldLayout OFL,
 	      bool OIR>
     INLINE_FUNCTION
-    Field2 (const Field2<CompsList<C...>,_Fund,FC,FL,OES,OIR>& oth) :
+    Field2(const Field2<CompsList<C...>,_Fund,FC,OFL,MT,OIR>& oth) :
       Field2(oth.haloEdgesPresence)
     {
       (*this)=oth;
