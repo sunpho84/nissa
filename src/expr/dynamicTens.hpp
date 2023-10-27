@@ -64,6 +64,7 @@ namespace nissa
       
       std::swap(dynamicSizes,oth.dynamicSizes);
       std::swap(storage,oth.storage);
+      std::swap(nElements,oth.nElements);
       
       return *this;
     }
