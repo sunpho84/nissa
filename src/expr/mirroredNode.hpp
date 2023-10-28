@@ -9,6 +9,8 @@
 
 /// \file expr/mirroredNode.hpp
 
+/// Mirrored node exec normally on cpu, the device part is a mere mirror
+
 #include <expr/comps.hpp>
 #include <expr/node.hpp>
 
@@ -74,6 +76,16 @@ namespace nissa
     /// Importing assignment operator from Node
     using Base::operator=;
     
+    /// Assign a node
+    template <typename O>
+    INLINE_FUNCTION
+    MirroredNode& operator=(const NodeFeat<O>& oth)
+    {
+      this->hostVal=~oth;
+      
+      return *this;
+    }
+    
 #define PROVIDE_GET_FOR_CURRENT_CONTEXT(ATTRIB)		\
 							\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
@@ -109,7 +121,13 @@ namespace nissa
     
 #undef DELEGATE_TO_CONTEXT
     
-    static constexpr bool storeByRef=false;
+#ifdef USE_CUDA
+    static_assert(D::storeByRef==H::storeByRef,"Storying by ref must agree between device and host val");
+#endif
+    
+    /// Store by ref according to the argument
+    static constexpr bool storeByRef=
+      H::storeByRef;
     
     /// Default constructor
     template <typename...T>

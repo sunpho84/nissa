@@ -422,6 +422,7 @@ void in_main(int narg,char **arg)
   master_printf("///////////////////////////// updating the copy ////////////////////////////////////\n");
   a.updateDeviceCopy();
   master_printf("/////////////////////////////////////////////////////////////////\n");
+  master_printf("Is 1? %lg\n",a.locLxSite(0).reIm(0));
 
   auto b=a.deviceVal.template copyToMemorySpace<MemoryType::CPU>();
   master_printf("Is 1? %lg\n",b.locLxSite(0).reIm(0));
