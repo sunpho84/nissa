@@ -683,7 +683,8 @@ namespace nissa
       edgesAreValid(oth.edgesAreValid)
     {
 #ifndef COMPILING_FOR_DEVICE
-      verbosity_lv3_master_printf("Using copy constructor of Field2, isRef: %d\n",IsRef);
+      if constexpr(not IsRef)
+	verbosity_lv3_master_printf("Using copy constructor of Field2, isRef: %d\n",IsRef);
 #endif
     }
     
