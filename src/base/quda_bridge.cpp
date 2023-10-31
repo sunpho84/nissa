@@ -204,7 +204,7 @@ namespace quda_iface
 	
 	initCommsGridQuda(NDIM,grid,get_rank_of_quda_coords,NULL);
 	
-	initQuda(iCudaDevice);
+	initQuda(-1);
 	
 	inited=1;
       }
@@ -429,9 +429,10 @@ namespace quda_iface
     inv_param.output_location=QUDA_CPU_FIELD_LOCATION;
     
     //inv_param.tune=QUDA_TUNE_YES;
-    
-    inv_param.sp_pad=0;
-    inv_param.cl_pad=0;
+    // QUDA commit https://github.com/lattice/quda/commit/50864ffde1bd8f46fd4a2a2b2e6d44a5a588e2c2
+    // has removed these
+    //inv_param.sp_pad=0;
+    //inv_param.cl_pad=0; 
     
     inv_param.Ls=1;
     
@@ -929,7 +930,7 @@ namespace quda_iface
       printf("mu_factor: %lg\n",i.mu_factor[ilev]);
     for(int ilev=0;ilev<nlev;ilev++)
       printf("transfer_type: %d\n",i.transfer_type[ilev]);
-    printf("use_mma: %d\n",i.use_mma);
+    // printf("use_mma: %d\n",i.use_mma);
     printf("thin_update_only: %d\n",i.thin_update_only);
   }
 
@@ -1009,8 +1010,8 @@ namespace quda_iface
     printf("return_clover: %d\n",i.return_clover);
     printf("return_clover_inverse: %d\n",i.return_clover_inverse);
     printf("verbosity: %d\n",i.verbosity);
-    printf("sp_pad: %d\n",i.sp_pad);
-    printf("cl_pad: %d\n",i.cl_pad);
+    //printf("sp_pad: %d\n",i.sp_pad);
+    //printf("cl_pad: %d\n",i.cl_pad);
     printf("iter: %d\n",i.iter);
     printf("gflops: %lg\n",i.gflops);
     printf("secs: %lg\n",i.secs);
