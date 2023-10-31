@@ -76,7 +76,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE
   void reduceSummer(A&& out,const B& in)
   {
-    if constexpr(std::is_pod_v<B> and not std::is_array_v<B>)
+    if constexpr(std::is_trivial_v<B> and not std::is_array_v<B>)
       out+=in;
     else //hack
       complex_summassign(out,in);
@@ -87,7 +87,7 @@ namespace nissa
   CUDA_HOST_AND_DEVICE
   void reduceAssigner(A&& out,const B& in)
   {
-    if constexpr(std::is_pod_v<B> and not std::is_array_v<B>)
+    if constexpr(std::is_trivial_v<B> and not std::is_array_v<B>)
       out=in;
     else //hack
       complex_copy(out,in);

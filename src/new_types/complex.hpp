@@ -654,33 +654,33 @@ namespace nissa
   //reciprocal of a complex
   CUDA_HOST_AND_DEVICE inline void complex_reciprocal(complex rec,const complex c)
   {
-    const double module=c[0]*c[0]+c[1]*c[1];
+    const double cNorm=c[0]*c[0]+c[1]*c[1];
     
-    rec[0]=c[0]/module;
-    rec[1]=-c[1]/module;
+    rec[0]=c[0]/cNorm;
+    rec[1]=-c[1]/cNorm;
   }
   
   //squared root of a complex
   inline void complex_sqrt(complex res,const complex base)
   {
-    double module=sqrt(base[0]*base[0]+base[1]*base[1]);
-    const double cost=base[0]/module;
+    double cNorm=sqrt(base[0]*base[0]+base[1]*base[1]);
+    const double cost=base[0]/cNorm;
     const double sinth=sqrt(0.5*(1-cost));
     const double costh=sqrt(0.5*(1+cost));
-    module=sqrt(module);
-    if(base[1]>=0) res[0]=+module*costh;
-    else           res[0]=-module*costh;
-    res[1]=module*sinth;
+    cNorm=sqrt(cNorm);
+    if(base[1]>=0) res[0]=+cNorm*costh;
+    else           res[0]=-cNorm*costh;
+    res[1]=cNorm*sinth;
   }
   
   //power of a complex
   CUDA_HOST_AND_DEVICE inline void complex_pow(complex res,const complex base,const double exp)
   {
-    const double module=pow(base[0]*base[0]+base[1]*base[1],exp/2);
+    const double cNorm=pow(base[0]*base[0]+base[1]*base[1],exp/2);
     const double anomaly=atan2(base[1],base[0])*exp;
     
-    res[0]=module*cos(anomaly);
-    res[1]=module*sin(anomaly);
+    res[0]=cNorm*cos(anomaly);
+    res[1]=cNorm*sin(anomaly);
   }
 }
 #endif
