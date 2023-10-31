@@ -361,14 +361,24 @@ namespace nissa
     CUDA_HOST_AND_DEVICE
     ~DynamicTens()
     {
-      if constexpr(not IsRef)
-	{
+// #ifndef __CUDA_ARCH__
+//       master_printf("Destroying Dynamictens, isRef: %d\n",IsRef);
+// #endif
+	
+	if constexpr(not IsRef)
+	  {
 #ifndef __CUDA_ARCH__
-	  if(storage!=nullptr)
-	    memoryManager<MT>()->release(storage);
-	  nElements=0;
+	    if(storage!=nullptr)
+	      memoryManager<MT>()->release(storage);
+	    nElements=0;
 #endif
-	}
+	  }
+// 	else
+// 	  {
+// #ifndef __CUDA_ARCH__
+// 	    master_printf("Not deallocating Dynamictens, isRef\n");
+// #endif
+// 	  }
     }
   };
   

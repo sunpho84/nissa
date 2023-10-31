@@ -12,6 +12,7 @@
 #include <base/bench.hpp>
 #include <base/vectors.hpp>
 #include <communicate/communicate.hpp>
+#include <expr/fieldDeclaration.hpp>
 #include <geometry/geometry_eo.hpp>
 #include <geometry/geometry_lx.hpp>
 #include <linalgs/reduce.hpp>
@@ -65,27 +66,6 @@ namespace nissa
   template <typename F,
 	    typename P>
   struct SubscribedField;
-  
-  /////////////////////////////////////////////////////////////////
-  
-  /// Memory layout
-  enum class FieldLayout{CPU,GPU};
-  
-  /// Coverage of the field
-  enum FieldCoverage{EVEN_SITES,ODD_SITES,FULL_SPACE,EVEN_OR_ODD_SITES};
-  
-  /// Has or not the halo and the edges
-  enum HaloEdgesPresence{WITHOUT_HALO,WITH_HALO,WITH_HALO_EDGES};
-  
-  /// Predefinite memory layout
-  constexpr FieldLayout defaultFieldLayout=
-	      FieldLayout::
-#ifdef USE_CUDA
-	      GPU
-#else
-	      CPU
-#endif
-	      ;
   
   /////////////////////////////////////////////////////////////////
   

@@ -527,7 +527,6 @@ void in_main(int narg,char **arg)
     // rdf(spinRow(0),locLxSite(0))=1.0;
     // rdf2(parity(0),spinRow(0),locEoSite(0))=1.0;
   }
-  verbosity_lv=1;
   
 //  crash("");
 //  
