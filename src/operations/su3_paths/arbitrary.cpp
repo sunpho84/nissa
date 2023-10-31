@@ -4,7 +4,7 @@
 
 #include <mpi.h>
 #include <stdlib.h>
-#include <string.h>
+#include <cstring>
 #include <unistd.h>
 
 #include "base/debug.hpp"
@@ -179,7 +179,7 @@ namespace nissa
 	    
 	    //store
 	    ranks_to_send_list[nranks_to_send]=rank_to_send;
-	    memcpy(links_to_send_list+ntot_links_to_send,links_to_send,nlinks_to_send*sizeof(int));
+	    std::memcpy(links_to_send_list+ntot_links_to_send,links_to_send,nlinks_to_send*sizeof(int));
 	    nlinks_to_send_list[nranks_to_send]=nlinks_to_send;
 	    
 	    //increase

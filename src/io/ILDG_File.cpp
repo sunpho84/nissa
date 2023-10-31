@@ -2,12 +2,12 @@
 //arXiv:1106.4177
 
 #ifdef HAVE_CONFIG_H
- #include "config.hpp"
+# include "config.hpp"
 #endif
 
 #include <mpi.h>
 #include <stdlib.h>
-#include <string.h>
+#include <cstring>
 
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
@@ -69,7 +69,7 @@ namespace nissa
     
     //copy data
     last_mess->data=(char*)malloc(length);
-    memcpy(last_mess->data,data,length);
+    std::memcpy(last_mess->data,data,length);
     
     //allocate new last message (empty)
     last_mess->next=(ILDG_message*)malloc(sizeof(ILDG_message));
@@ -456,7 +456,7 @@ namespace nissa
     //pad with 0
     size_t len=ceil_to_next_eight_multiple(ext_len);
     char *buf_out=nissa_malloc("buf",len,char);
-    memcpy(buf_out,ext_buf,ext_len);
+    std::memcpy(buf_out,ext_buf,ext_len);
     memset(buf_out+ext_len,0,len-ext_len);
     
     //prepare the header and write it
