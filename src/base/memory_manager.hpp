@@ -333,9 +333,9 @@ namespace nissa
       
       printStatistics();
       
-      releaseAllUsedMemory();
+      disableCache();
       
-      clearCache();
+      releaseAllUsedMemory();
     }
   };
   
