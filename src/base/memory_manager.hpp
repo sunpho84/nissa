@@ -258,6 +258,8 @@ namespace nissa
     /// Release all used memory
     void releaseAllUsedMemory()
     {
+      verbosity_lv2_master_printf("Releasing all used memory\n");
+      
       /// Iterator on elements to release
       auto el=
 	used.begin();
@@ -279,7 +281,7 @@ namespace nissa
     /// Release all memory from cache
     void clearCache()
     {
-      verbosity_lv3_master_printf("Clearing cache\n");
+      verbosity_lv2_master_printf("Clearing cache\n");
       
       /// Iterator to elements of the cached memory list
       auto el=cached.begin();
