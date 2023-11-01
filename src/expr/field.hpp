@@ -7,12 +7,15 @@
 
 /// \file expr/field.hpp
 
+#include <base/field.hpp>
 #include <expr/assignDispatcher.hpp>
 #include <expr/comps.hpp>
 #include <expr/dynamicTens.hpp>
 #include <expr/fieldDeclaration.hpp>
 #include <expr/mergedComps.hpp>
 #include <expr/stackTens.hpp>
+#include <geometry/geometry_eo.hpp>
+#include <threads/threads.hpp>
 
 // #include <lattice/parityProvider.hpp>
 // #include <lattice/lattice.hpp>
