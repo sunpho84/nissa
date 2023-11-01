@@ -31,6 +31,7 @@
 # include <base/cuda.hpp>
 #endif
 
+#include <communicate/allToAll.hpp>
 #include <communicate/borders.hpp>
 #include <communicate/communicate.hpp>
 #include <communicate/edges.hpp>
