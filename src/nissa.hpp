@@ -154,6 +154,7 @@
 #include <measures/gauge/topological_charge.hpp>
 #include <measures/gauge/watusso.hpp>
 
+#include <metaprogramming/concepts.hpp>
 #include <metaprogramming/constnessChanger.hpp>
 #include <metaprogramming/crtp.hpp>
 #include <metaprogramming/extent.hpp>
