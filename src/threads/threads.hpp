@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstdio>
 
+#include <expr/comp.hpp>
 #include <routines/mpi_routines.hpp>
 
 #define TO_READ(A) A=A.getReadable()
@@ -21,15 +22,17 @@
 namespace nissa
 {
   template <typename IMin,
-        typename IMax,
-        typename F>
+	    typename IMax,
+	    typename F>
   INLINE_FUNCTION
   void serialFor(const int line,
-             const char* file,
-             const IMin min,
-             const IMax max,
-             F&& f)
+		 const char* file,
+		 const IMin min,
+		 const IMax max,
+		 F&& f)
   {
+    using Idx=std::common_type_t<IMin,IMax>;
+    
     double initTime=0;
     extern int rank,verbosity_lv;
     const bool print=(verbosity_lv>=1// 2
@@ -41,8 +44,8 @@ namespace nissa
 	initTime=take_time();
       }
     
-    for(int i=min;i<(int)max;i++)
-      f(IMax(i));
+    for(auto i=compDecay(min);i<compDecay(max);i++)
+      f(Idx(i));
     
     if(print)
       printf(" finished in %lg s\n",take_time()-initTime);
@@ -60,6 +63,8 @@ namespace nissa
 			 const IMax max,
 			 F&& f)
   {
+    using Idx=std::common_type_t<IMin,IMax>;
+    
     double initTime=0;
     extern int rank,verbosity_lv;
     const bool print=(verbosity_lv>=1// 2
@@ -67,13 +72,13 @@ namespace nissa
     if(print)
       {
 	printf("at line %d of file %s launching openmp loop [%d,%d)\n",
-	   line,file,(int)min,(int)max);
+	       line,file,(int)compDecay(min),(int)compDecay(max));
 	initTime=take_time();
       }
     
 #pragma omp parallel for
-    for(int i=min;i<(int)max;i++)
-      f(IMax(i));
+    for(auto i=compDecay(min);i<compDecay(max);i++)
+      f(Idx(i));
     
     if(print)
       printf(" finished in %lg s\n",take_time()-initTime);
@@ -93,7 +98,12 @@ namespace nissa
 			 const IMax max,
 			 F f) // Needs to take by value
   {
-    const IMax i=(int)(min+blockIdx.x*blockDim.x+threadIdx.x);
+    using Idx=
+      std::common_type_t<IMin,IMax>;
+    
+    const Idx i=
+      min+blockIdx.x*blockDim.x+threadIdx.x;
+    
     if(i<max)
       f(i);
   }
@@ -107,7 +117,7 @@ namespace nissa
 		       const IMax max,
 		       F f) // Needs to take by value
   {
-    const auto length=(int)max-(int)min;
+    const auto length=compDecay(max)-compDecay(min);
     const dim3 blockDimension(128); // to be improved
     const dim3 gridDimension((length+blockDimension.x-1)/blockDimension.x);
     
@@ -118,7 +128,7 @@ namespace nissa
     if(print)
       {
 	printf("at line %d of file %s launching kernel on loop [%d,%d) using blocks of size %d and grid of size %d\n",
-	       line,file,(int)min,(int)max,blockDimension.x,gridDimension.x);
+	       line,file,(int)compDecay(min),(int)compDecay(max),blockDimension.x,gridDimension.x);
 	initTime=take_time();
       }
     
