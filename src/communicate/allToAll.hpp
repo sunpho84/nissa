@@ -57,11 +57,16 @@ namespace nissa
 	      const CDst& nDst,
 	      F&& f)
     {
+      constexpr bool debug=true;
+      
       if(inited)
 	crash("Cannot init twice");
       inited=true;
       
       outBufOfSrc.allocate(nSrc);
+      if constexpr(debug)
+	outBufOfSrc=-1;
+      
       dstOfInBuf.allocate(BufComp(nDst()));
       
       /// For each destination rank, list all local sources
@@ -98,17 +103,30 @@ namespace nissa
 	    dstOfInBuf[nInBuf++]=bufDst;
 	  
 	  for(const CSrc& locSrc : locSrcsGroupedByDstRank[sendRank])
-	    outBufOfSrc[locSrc]=nOutBuf++;
+	    {
+	      // printf("AllToAll Rank %d filling %zu with nOutBuf %zu to be sent to rank %d\n",rank,locSrc(),nOutBuf(),sendRank);
+	      outBufOfSrc[locSrc]=nOutBuf++;
+	    }
 	  
 	  if(const size_t s=dstOfBufFrRank.size();s)
-	    nRecvFrRank.emplace_back(MpiRank(recvRank),s);
+	    nRecvFrRank.emplace_back(recvRank,s);
 	  
-	  if(const size_t s=remDstsGroupedByDstRank.size();s)
-	    nSendToRank.emplace_back(MpiRank(sendRank),s);
+	  if(const size_t s=remDstsGroupedByDstRank[sendRank].size();s)
+	    nSendToRank.emplace_back(sendRank,s);
 	}
       
       dstOfInBuf.updateDeviceCopy();
       outBufOfSrc.updateDeviceCopy();
+      
+      for(BufComp nInBuf=0;
+	  auto [recvRank,nToRec] : nRecvFrRank)
+	while(nToRec--)
+	  printf("AllToAll Rank %d From rank %d fill dest %ld\n",rank,recvRank(),dstOfInBuf[nInBuf++]());
+      
+      for(CSrc nOutBuf=0;
+	  auto [sendRank,nToSnd] : nSendToRank)
+	while(nToSnd--)
+	    printf("AllToAll Rank %d To rank %d fill buf[%ld] %ld\n",rank,sendRank(),nOutBuf(),outBufOfSrc[nOutBuf++]());
     }
     
     // int nel_out{0},nel_in{0};
