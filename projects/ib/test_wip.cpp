@@ -359,6 +359,16 @@ void in_main(int narg,char **arg)
   
   init_grid(T,L);
   
+  AllToAllComm<LocLxSite,GlbLxSite> aa;
+  
+  aa.init(LocLxSite(locVol),
+	  GlbLxSite((rank==0)?glbVol:0),
+	  [](const LocLxSite& locLxSite) -> CompsList<MpiRank,GlbLxSite>
+	  {
+	    return {0,glblxOfLoclx[locLxSite()]};
+	  });
+  
+  return ;
   //constexpr Float128 a=(1e-60);
   //const double c=(a<0.5)?std::log1p(-a.roundDown()):log((1-a).roundDown());
   
@@ -424,9 +434,10 @@ void in_main(int narg,char **arg)
   master_printf("/////////////////////////////////////////////////////////////////\n");
   master_printf("Is 1? %lg\n",a.locLxSite(0).reIm(0));
 
-  auto b=a.deviceVal.template copyToMemorySpace<MemoryType::CPU>();
-  master_printf("Is 1? %lg\n",b.locLxSite(0).reIm(0));
-  crash("");
+  // auto b=a.deviceVal.template copyToMemorySpace<MemoryType::CPU>();
+  // master_printf("Is 1? %lg\n",b.locLxSite(0).reIm(0));
+  // crash("");
+
   // printf("%lu\n",state.counter.val[0]);
   // RngGaussDistrView gaussDistr(state,2);
   // printf("%lu\n",state.counter.val[0]);
