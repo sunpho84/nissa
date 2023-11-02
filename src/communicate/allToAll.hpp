@@ -5,6 +5,8 @@
 # include <config.hpp>
 #endif
 
+/// \file expr/allToAll.hpp
+
 #include <algorithm>
 #include <map>
 #include <vector>
@@ -87,20 +89,10 @@ namespace nissa
 	  const int sendRank=(rank+nranks+dRank)%nranks;
 	  const int recvRank=(rank+nranks-dRank)%nranks;
 	  
-	  const size_t nRemDstOfRank=
-	    remDstsGroupedByDstRank[sendRank].size();
+	  const std::vector<CDst> dstOfBufFrRank=
+	    mpiSendrecv(sendRank,remDstsGroupedByDstRank[sendRank],recvRank);
 	  
-	  size_t nRcvFrRank;
-	  MPI_Sendrecv(&nRemDstOfRank,1,MPI_UINT64_T,sendRank,0,
-		       &nRcvFrRank,   1,MPI_UINT64_T,recvRank,0,
-		       MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-	  
-	  printf("AllToAll Rank %d dRank %d sent to rank %d value nRemDstOfRank=%zu received from rank %d value %zu\n",rank,dRank,sendRank,nRemDstOfRank,recvRank,nRcvFrRank);
-	  
-	  std::vector<CDst> dstOfBufFrRank(nRcvFrRank);
-	  MPI_Sendrecv(&remDstsGroupedByDstRank[0],nRemDstOfRank*sizeof(CDst),MPI_CHAR,sendRank,0,
-		       &dstOfBufFrRank[0],nRcvFrRank*sizeof(CDst),MPI_CHAR,recvRank,0,
-		       MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+	  printf("AllToAll Rank %d dRank %d sent to rank %d value nRemDstOfRank=%zu received from rank %d value %zu\n",rank,dRank,sendRank,remDstsGroupedByDstRank[sendRank].size(),recvRank,dstOfBufFrRank.size());
 	  
 	  for(const CDst& bufDst : dstOfBufFrRank)
 	    dstOfInBuf[nInBuf++]=bufDst;
