@@ -57,17 +57,14 @@ namespace nissa
 	      const CDst& nDst,
 	      F&& f)
     {
-      constexpr bool debug=true;
-      
       if(inited)
 	crash("Cannot init twice");
       inited=true;
       
       outBufOfSrc.allocate(nSrc);
-      if constexpr(debug)
-	outBufOfSrc=-1;
       
-      dstOfInBuf.allocate(BufComp(nDst()));
+      BufComp inBufSize(nDst());
+      dstOfInBuf.allocate(inBufSize);
       
       /// For each destination rank, list all local sources
       std::vector<std::vector<CSrc>> locSrcsGroupedByDstRank(nranks);
@@ -85,27 +82,40 @@ namespace nissa
 	  remDstsGroupedByDstRank[dstRank()].emplace_back(remDst);
 	}
       
-      for(MpiRank iRank=0;iRank<nranks;iRank++)
-	printf("AllToAll Rank %d transmitting to rank %d: %zu el\n",rank,iRank(),locSrcsGroupedByDstRank[iRank()].size());
+      // for(MpiRank iRank=0;iRank<nranks;iRank++)
+      // 	printf("AllToAll Rank %d transmitting to rank %d: %zu el\n",rank,iRank(),locSrcsGroupedByDstRank[iRank()].size());
       
       BufComp nInBuf=0,nOutBuf=0;
       for(int dRank=0;dRank<nranks;dRank++)
 	{
-	  const int sendRank=(rank+nranks+dRank)%nranks;
-	  const int recvRank=(rank+nranks-dRank)%nranks;
-	  
-	  const std::vector<CDst> dstOfBufFrRank=
-	    mpiSendrecv(sendRank,remDstsGroupedByDstRank[sendRank],recvRank);
-	  
-	  printf("AllToAll Rank %d dRank %d sent to rank %d value nRemDstOfRank=%zu received from rank %d value %zu\n",rank,dRank,sendRank,remDstsGroupedByDstRank[sendRank].size(),recvRank,dstOfBufFrRank.size());
-	  
-	  for(const CDst& bufDst : dstOfBufFrRank)
-	    dstOfInBuf[nInBuf++]=bufDst;
+	  /// Rank towards which to send
+	  const int sendRank=
+	    (rank+nranks+dRank)%nranks;
 	  
 	  for(const CSrc& locSrc : locSrcsGroupedByDstRank[sendRank])
 	    {
-	      // printf("AllToAll Rank %d filling %zu with nOutBuf %zu to be sent to rank %d\n",rank,locSrc(),nOutBuf(),sendRank);
+	      printf("AllToAll Rank %d filling %zu with nOutBuf %zu to be sent to rank %d\n",rank,locSrc(),nOutBuf(),sendRank);
 	      outBufOfSrc[locSrc]=nOutBuf++;
+	    }
+	  
+	  /// Rank from which to receive
+	  const int recvRank=
+	    (rank+nranks-dRank)%nranks;
+	  
+	  /// List of position in the ouput where to store the portion of the buffer relative to recvRank
+	  const std::vector<CDst> dstOfBufFrRank=
+	    mpiSendrecv(sendRank,remDstsGroupedByDstRank[sendRank],recvRank);
+	  
+	  // printf("AllToAll Rank %d dRank %d sent to rank %d value
+	  // nRemDstOfRank=%zu received from rank %d value
+	  // %zu\n",rank,dRank,sendRank,remDstsGroupedByDstRank[sendRank].size(),recvRank,dstOfBufFrRank.size());
+	  
+	  for(const CDst& bufDst : dstOfBufFrRank)
+	    {
+	      if(bufDst>=nDst)
+		crash("on rank %d expecting at most %ld destinations, but element %ld of buf, coming from rank %d has to be stored to %ld",
+		      rank,(int64_t)nDst(),(int64_t)nInBuf(),recvRank,(int64_t)bufDst());
+	      dstOfInBuf[nInBuf++]=bufDst;
 	    }
 	  
 	  if(const size_t s=dstOfBufFrRank.size();s)
@@ -115,18 +125,31 @@ namespace nissa
 	    nSendToRank.emplace_back(sendRank,s);
 	}
       
+      if(nInBuf!=nDst)
+	crash("on rank %d expecting to receive %ld values but asked %ld",rank,(int64_t)nDst(),(int64_t)nInBuf());
+      
       dstOfInBuf.updateDeviceCopy();
       outBufOfSrc.updateDeviceCopy();
       
-      for(BufComp nInBuf=0;
-	  auto [recvRank,nToRec] : nRecvFrRank)
-	while(nToRec--)
-	  printf("AllToAll Rank %d From rank %d fill dest %ld\n",rank,recvRank(),dstOfInBuf[nInBuf++]());
+      std::vector<BufComp> inBufOfDest(nDst(),-1);
+      for(BufComp i=0;i<inBufSize;i++)
+	{
+	  auto& p=inBufOfDest[dstOfInBuf[i]()];
+	  if(p!=-1)
+	    crash("On rank %d destination %ld is filled by %ld and at least %ld at the same time",
+		  rank,(int64_t)dstOfInBuf[i](),(int64_t)p(),(int64_t)i());
+	  p=i;
+	}
       
-      for(CSrc nOutBuf=0;
-	  auto [sendRank,nToSnd] : nSendToRank)
-	while(nToSnd--)
-	    printf("AllToAll Rank %d To rank %d fill buf[%ld] %ld\n",rank,sendRank(),nOutBuf(),outBufOfSrc[nOutBuf++]());
+      // for(BufComp nInBuf=0;
+      // 	  auto [recvRank,nToRec] : nRecvFrRank)
+      // 	while(nToRec--)
+      // 	  printf("AllToAll Rank %d From rank %d fill dest %ld\n",rank,recvRank(),dstOfInBuf[nInBuf++]());
+      
+      // for(CSrc nOutBuf=0;
+      // 	  auto [sendRank,nToSnd] : nSendToRank)
+      // 	while(nToSnd--)
+      // 	    printf("AllToAll Rank %d To rank %d fill buf[%ld] %ld\n",rank,sendRank(),nOutBuf(),outBufOfSrc[nOutBuf++]());
     }
     
     // int nel_out{0},nel_in{0};
