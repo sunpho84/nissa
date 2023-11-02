@@ -197,6 +197,15 @@ namespace nissa
     return (std::string)"("+demangle(typeid(E).name())+" "+std::to_string((~e)())+")";
   }
   
+  /// Returns the underlying type if comp
+  template <typename T>
+  decltype(auto) compDecay(T&& t)
+  {
+    if constexpr(isComp<T>)
+      return t();
+    else
+      return t;
+  }
 }
 
 #endif
