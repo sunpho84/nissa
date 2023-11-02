@@ -4,6 +4,7 @@
 #include <mpi.h>
 #include <algorithm>
 
+#include "expr/baseComp.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "math_routines.hpp"
 #include "new_types/float_128.hpp"
@@ -124,6 +125,14 @@ namespace nissa
   }
   
   std::string MPI_get_processor_name();
+  
+  /// Component used to store a rank id
+  struct MpiRank :
+    BaseComp<MpiRank,int,0>
+  {
+    using Base=BaseComp<MpiRank,int,0>;
+    using Base::Base;
+  };
 }
 
 #endif
