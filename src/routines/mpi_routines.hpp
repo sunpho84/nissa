@@ -1,19 +1,25 @@
 #ifndef _MPI_ROUTINES_HPP
 #define _MPI_ROUTINES_HPP
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <mpi.h>
 #include <algorithm>
+#include <concepts>
 
 #include "expr/baseComp.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "math_routines.hpp"
+#include "metaprogramming/concepts.hpp"
 #include "new_types/float_128.hpp"
 
 #ifndef EXTERN_MPI
- #define EXTERN_MPI extern
- #define INIT_MPI_TO(...)
+# define EXTERN_MPI extern
+# define INIT_MPI_TO(...)
 #else
- #define INIT_MPI_TO(ARGS...) ARGS
+# define INIT_MPI_TO(ARGS...) ARGS
 #endif
 
 namespace nissa
@@ -133,6 +139,43 @@ namespace nissa
     using Base=BaseComp<MpiRank,int,0>;
     using Base::Base;
   };
+  
+  /////////////////////////////////////////////////////////////////
+  
+  /// Send and receive a trivial type
+  template <TriviallyCopyable T>
+  T mpiSendrecv(const size_t& rankTo,
+		const T& toSend,
+		const size_t& rankFr)
+  {
+    T toRecv;
+    
+    MPI_Sendrecv(&toSend,sizeof(T),MPI_CHAR,rankTo,0,
+		 &toRecv,sizeof(T),MPI_CHAR,rankFr,0,
+		 MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+    
+    return toRecv;
+  }
+  
+  /// Specialization of sendrecv for std::vector
+  template <TriviallyCopyable T>
+  std::vector<T> mpiSendrecv(const size_t& rankTo,
+			     const std::vector<T>& toSend,
+			     const size_t& rankFr)
+  {
+    const size_t nToSend=
+      toSend.size();
+    
+    const size_t nToRecv=
+      mpiSendrecv(rankTo,nToSend,rankFr);
+    
+    std::vector<T> toRecv(nToRecv);
+    MPI_Sendrecv(&toSend[0],nToSend*sizeof(T),MPI_CHAR,rankTo,0,
+		 &toRecv[0],nToRecv*sizeof(T),MPI_CHAR,rankFr,0,
+		 MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+    
+    return toRecv;
+  }
 }
 
 #endif

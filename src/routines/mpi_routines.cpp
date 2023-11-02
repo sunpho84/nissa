@@ -2,6 +2,8 @@
 # include "config.hpp"
 #endif
 
+/// \file routines/mpi_routines.cpp
+
 #ifdef USE_MPI
 # include <mpi.h>
 #endif
