@@ -41,7 +41,7 @@ namespace nissa
     {
       static_assert(sizeIsKnownAtCompileTime,"Size not known at compile time!");
       
-      return C::sizeAtCompileTime;
+      return sizeAtCompileTime;
     }
     
     /// Size known at compile time
@@ -49,7 +49,7 @@ namespace nissa
     
     /// Determine whether the size is known at compile time
     static constexpr bool sizeIsKnownAtCompileTime=
-      (C::sizeAtCompileTime!=0);
+      (sizeAtCompileTime!=0);
     
     /// Default constructor
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
@@ -57,6 +57,9 @@ namespace nissa
       i(0)
     {
     }
+    
+    /// Define default copy constructor
+    BaseComp(const BaseComp&)=default;
     
     /// Init from value
     template <typename T=Index,
@@ -77,12 +80,8 @@ namespace nissa
     }
     
     /// Assignment operator of a TensComp
-    INLINE_FUNCTION CUDA_HOST_AND_DEVICE constexpr
-    BaseComp& operator=(const BaseComp& oth) &
-    {
-      return
-	(*this)=oth.i;
-    }
+    INLINE_FUNCTION constexpr
+    BaseComp& operator=(const BaseComp& oth) & = default;
     
     /// Forbid assignement to a temporary
     BaseComp& operator=(const BaseComp& oth) && = delete;
