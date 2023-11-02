@@ -46,8 +46,12 @@ namespace nissa
     
     MirroredTens<CompsList<BufComp>,CDst,IsRef> dstOfInBuf;
     
+    std::vector<std::pair<MpiRank,size_t>> nSendToRank;
+    
+    std::vector<std::pair<MpiRank,size_t>> nRecvFrRank;
+    
     template <typename F>
-    void init(const CSrc& nScr,
+    void init(const CSrc& nSrc,
 	      const CDst& nDst,
 	      F&& f)
     {
@@ -55,15 +59,15 @@ namespace nissa
 	crash("Cannot init twice");
       inited=true;
       
-      outBufOfSrc.allocate();
-      dstOfInBuf.allocate();
+      outBufOfSrc.allocate(nSrc);
+      dstOfInBuf.allocate(BufComp(nDst()));
       
       /// For each destination rank, list all local sources
       std::vector<std::vector<CSrc>> locSrcsGroupedByDstRank(nranks);
       
       /// For each destination rank, list all remote destinations
       std::vector<std::vector<CDst>> remDstsGroupedByDstRank(nranks);
-      for(CSrc locSrc=0;locSrc<nScr;locSrc++)
+      for(CSrc locSrc=0;locSrc<nSrc;locSrc++)
 	{
 	  const auto [dstRank,remDst]=f(locSrc);
 	  
@@ -74,30 +78,45 @@ namespace nissa
 	  remDstsGroupedByDstRank[dstRank()].emplace_back(remDst);
 	}
       
+      for(MpiRank iRank=0;iRank<nranks;iRank++)
+	printf("AllToAll Rank %d transmitting to rank %d: %zu el\n",rank,iRank(),locSrcsGroupedByDstRank[iRank()].size());
+      
       BufComp nInBuf=0,nOutBuf=0;
       for(int dRank=0;dRank<nranks;dRank++)
 	{
-	  const int dstRank=(rank+nranks+dRank)%nranks;
-	  const int rcvRank=(rank+nranks-dRank)%nranks;
+	  const int sendRank=(rank+nranks+dRank)%nranks;
+	  const int recvRank=(rank+nranks-dRank)%nranks;
 	  
 	  const size_t nRemDstOfRank=
-	    remDstsGroupedByDstRank.size();
-	  size_t nRcvFromRank;
-	  MPI_Sendrecv(&nRemDstOfRank,1,MPI_UINT64_T,dstRank,0,
-		       &nRcvFromRank, 1,MPI_UINT64_T,rcvRank,0,
+	    remDstsGroupedByDstRank[sendRank].size();
+	  
+	  size_t nRcvFrRank;
+	  MPI_Sendrecv(&nRemDstOfRank,1,MPI_UINT64_T,sendRank,0,
+		       &nRcvFrRank,   1,MPI_UINT64_T,recvRank,0,
 		       MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 	  
-	  std::vector<CDst> dstOfBufFrRank(nRcvFromRank);
-	  MPI_Sendrecv(&remDstsGroupedByDstRank[0],nRemDstOfRank*sizeof(CDst),MPI_CHAR,dstRank,0,
-		       &dstOfBufFrRank[0],          nRcvFromRank*sizeof(CDst),MPI_CHAR,rcvRank,0,
+	  printf("AllToAll Rank %d dRank %d sent to rank %d value nRemDstOfRank=%zu received from rank %d value %zu\n",rank,dRank,sendRank,nRemDstOfRank,recvRank,nRcvFrRank);
+	  
+	  std::vector<CDst> dstOfBufFrRank(nRcvFrRank);
+	  MPI_Sendrecv(&remDstsGroupedByDstRank[0],nRemDstOfRank*sizeof(CDst),MPI_CHAR,sendRank,0,
+		       &dstOfBufFrRank[0],nRcvFrRank*sizeof(CDst),MPI_CHAR,recvRank,0,
 		       MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 	  
 	  for(const CDst& bufDst : dstOfBufFrRank)
 	    dstOfInBuf[nInBuf++]=bufDst;
 	  
-	  for(const CSrc& locSrc : locSrcsGroupedByDstRank[dstRank])
+	  for(const CSrc& locSrc : locSrcsGroupedByDstRank[sendRank])
 	    outBufOfSrc[locSrc]=nOutBuf++;
-      }
+	  
+	  if(const size_t s=dstOfBufFrRank.size();s)
+	    nRecvFrRank.emplace_back(MpiRank(recvRank),s);
+	  
+	  if(const size_t s=remDstsGroupedByDstRank.size();s)
+	    nSendToRank.emplace_back(MpiRank(sendRank),s);
+	}
+      
+      dstOfInBuf.updateDeviceCopy();
+      outBufOfSrc.updateDeviceCopy();
     }
     
     // int nel_out{0},nel_in{0};
