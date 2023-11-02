@@ -19,13 +19,17 @@ namespace nissa
   {
 #define PROVIDE_POSTFIX_OPERATOR(OP)			\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
-    ReturnedType& operator OP (int)			\
+    ReturnedType operator OP (int)			\
     {							\
-      auto& This=DE_CRTPFY(ReturnedType,this);		\
+      auto& self=					\
+	DE_CRTPFY(ReturnedType,this);			\
+							\
+      auto cloned=					\
+	self;						\
       							\
-      ((CastToExec&)This) OP;				\
+      ((CastToExec&)self) OP;				\
       							\
-      return This;					\
+      return cloned;					\
     }
     
     PROVIDE_POSTFIX_OPERATOR(++);
@@ -38,9 +42,11 @@ namespace nissa
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
     RETURNED_TYPE operator OP(const ArithmeticOperators& oth) const	\
     {									\
-      const auto& This=DE_CRTPFY(const ReturnedType,this);		\
+      const auto& This=							\
+	DE_CRTPFY(const ReturnedType,this);				\
       									\
-      const auto& Oth=DE_CRTPFY(const ReturnedType,&oth);		\
+      const auto& Oth=							\
+	DE_CRTPFY(const ReturnedType,&oth);				\
 									\
       return ((const CastToExec&)This) OP ((const CastToExec&)Oth);	\
     }									\
