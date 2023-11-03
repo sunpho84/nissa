@@ -94,7 +94,7 @@ namespace nissa
 	  
 	  for(const CSrc& locSrc : locSrcsGroupedByDstRank[sendRank])
 	    {
-	      printf("AllToAll Rank %d filling %zu with nOutBuf %zu to be sent to rank %d\n",rank,locSrc(),nOutBuf(),sendRank);
+	      // printf("AllToAll Rank %d filling %zu with nOutBuf %zu to be sent to rank %d\n",rank,locSrc(),nOutBuf(),sendRank);
 	      outBufOfSrc[locSrc]=nOutBuf++;
 	    }
 	  
