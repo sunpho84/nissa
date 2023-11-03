@@ -78,9 +78,6 @@ namespace nissa
       
       outBufOfSrc.allocate(nSrc);
       
-      BufComp inBufSize(nDst());
-      dstOfInBuf.allocate(inBufSize);
-      
       /// For each destination rank, list all local sources
       std::vector<std::vector<CSrc>> locSrcsGroupedByDstRank(nranks);
       
@@ -100,7 +97,10 @@ namespace nissa
       // for(MpiRank iRank=0;iRank<nranks;iRank++)
       // 	printf("AllToAll Rank %d transmitting to rank %d: %zu el\n",rank,iRank(),locSrcsGroupedByDstRank[iRank()].size());
       
-      BufComp nInBuf=0,nOutBuf=0;
+      /// Progressive storage of the dst
+      std::vector<CDst> buildDstOfInBuf;
+      
+      BufComp nOutBuf=0;
       for(int dRank=0;dRank<nranks;dRank++)
 	{
 	  /// Rank towards which to send
