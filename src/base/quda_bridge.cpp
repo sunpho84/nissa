@@ -440,8 +440,10 @@ namespace quda_iface
     
     inv_param.residual_type=QUDA_L2_RELATIVE_RESIDUAL;
     inv_param.tol_hq=0.1;
-    inv_param.reliable_delta=1e-4;
+    inv_param.reliable_delta=0.01;//1e-4;
     inv_param.use_sloppy_partial_accumulator=0;
+    inv_param.chrono_precision = QUDA_SINGLE_PRECISION;
+
   }
   
   /// Apply the dirac operator
@@ -547,16 +549,16 @@ namespace quda_iface
 	  inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	
 	inv_param.inv_type=QUDA_GCR_INVERTER;
-	inv_param.gcrNkrylov=10; //from default in read_input.l
+	inv_param.gcrNkrylov=24;// 10; //from default in read_input.l
 	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
 	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
-	inv_param.reliable_delta=1e-10;
-	inv_param.reliable_delta_refinement=1e-10;
+	inv_param.reliable_delta=0.01;//1e-10;
+	inv_param.reliable_delta_refinement=0.0001;//1e-10;
 	inv_param.precondition_cycle=1;
 	inv_param.tol_precondition=1e-1;
 	inv_param.maxiter_precondition=1;
 	inv_param.gamma_basis=QUDA_CHIRAL_GAMMA_BASIS;
-	inv_param.solve_type=QUDA_DIRECT_SOLVE;
+	inv_param.solve_type=QUDA_DIRECT_PC_SOLVE;//QUDA_DIRECT_SOLVE;
 	
 	inv_param.omega=1.0;
 	
@@ -675,7 +677,7 @@ namespace quda_iface
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
-	    constexpr double t[3]={0.25,0.22,0.46};
+	    constexpr double t[3]={0.15, 0.25, 0.2};//{0.25,0.22,0.46};
 	    quda_mg_param.coarse_solver_tol[level]=t[level];          //Suggest setting each level to 0.25
 	    quda_mg_param.coarse_solver_maxiter[level]=100;//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
@@ -691,13 +693,14 @@ namespace quda_iface
 	    
 	    quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
 	    quda_mg_param.smoother[level]=(level+1==nlevels)?QUDA_MR_INVERTER:QUDA_CA_GCR_INVERTER;
-	    quda_mg_param.smoother_tol[level]=(level+1==nlevels)?0.25:0.22;                 //Suggest setting each level to 0.25
+      constexpr double tt[3]={0.1, 0.1, 0.15};
+	    quda_mg_param.smoother_tol[level]=tt[level];//(level+1==nlevels)?0.25:0.22;                 //Suggest setting each level to 0.25
 	    quda_mg_param.smoother_schwarz_cycle[level]=1;          //Experimental, set to 1 for each level
 	    //Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
 	    //Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
 	    quda_mg_param.smoother_schwarz_type[level]=QUDA_INVALID_SCHWARZ;
-	    //quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
+	    quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
 	    
 	    // when the Schwarz-alternating smoother is used, this can be set to NO, otherwise it must be YES
 	    quda_mg_param.global_reduction[level]=QUDA_BOOLEAN_YES;
