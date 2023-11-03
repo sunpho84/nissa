@@ -52,6 +52,21 @@ namespace nissa
     
     std::vector<std::pair<MpiRank,size_t>> nRecvFrRank;
     
+    /// Gets the destination size, which is equal to the in buffer size
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    CDst getNDst() const
+    {
+      return getInBufSize()();
+    }
+    
+    /// Gets the incoming buffer size
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    const BufComp& getInBufSize() const
+    {
+      return dstOfInBuf.template getCompSize<BufComp>();
+    }
+    
+    /// Initializes the AllToAll communicator
     template <typename F>
     void init(const CSrc& nSrc,
 	      const CDst& nDst,
@@ -127,12 +142,15 @@ namespace nissa
       
       if(nInBuf!=nDst)
 	crash("on rank %d expecting to receive %ld values but asked %ld",rank,(int64_t)nDst(),(int64_t)nInBuf());
+      dstOfInBuf.allocate((BufComp)(int64_t)buildDstOfInBuf.size());
+      for(BufComp bc=0;const CDst& cDst : buildDstOfInBuf)
+	dstOfInBuf[bc++]=cDst;
       
       dstOfInBuf.updateDeviceCopy();
       outBufOfSrc.updateDeviceCopy();
       
-      std::vector<BufComp> inBufOfDest(nDst(),-1);
-      for(BufComp i=0;i<inBufSize;i++)
+      std::vector<BufComp> inBufOfDest(getNDst()(),-1);
+      for(BufComp i=0;i<getInBufSize();i++)
 	{
 	  auto& p=inBufOfDest[dstOfInBuf[i]()];
 	  if(p!=-1)
