@@ -69,7 +69,6 @@ namespace nissa
     /// Initializes the AllToAll communicator
     template <typename F>
     void init(const CSrc& nSrc,
-	      const CDst& nDst,
 	      F&& f)
     {
       if(inited)

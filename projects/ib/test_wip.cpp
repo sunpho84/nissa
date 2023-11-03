@@ -362,7 +362,6 @@ void in_main(int narg,char **arg)
   AllToAllComm<LocLxSite,GlbLxSite> aa;
   
   aa.init(LocLxSite(locVol),
-	  GlbLxSite((rank==0)?glbVol:0),
 	  [](const LocLxSite& locLxSite) -> CompsList<MpiRank,GlbLxSite>
 	  {
 	    return {0,glblxOfLoclx[locLxSite()]};
