@@ -126,12 +126,7 @@ namespace nissa
 	  // %zu\n",rank,dRank,sendRank,remDstsGroupedByDstRank[sendRank].size(),recvRank,dstOfBufFrRank.size());
 	  
 	  for(const CDst& bufDst : dstOfBufFrRank)
-	    {
-	      if(bufDst>=nDst)
-		crash("on rank %d expecting at most %ld destinations, but element %ld of buf, coming from rank %d has to be stored to %ld",
-		      rank,(int64_t)nDst(),(int64_t)nInBuf(),recvRank,(int64_t)bufDst());
-	      dstOfInBuf[nInBuf++]=bufDst;
-	    }
+	    buildDstOfInBuf.emplace_back(bufDst);
 	  
 	  if(const size_t s=dstOfBufFrRank.size();s)
 	    nRecvFrRank.emplace_back(recvRank,s);
@@ -140,8 +135,6 @@ namespace nissa
 	    nSendToRank.emplace_back(sendRank,s);
 	}
       
-      if(nInBuf!=nDst)
-	crash("on rank %d expecting to receive %ld values but asked %ld",rank,(int64_t)nDst(),(int64_t)nInBuf());
       dstOfInBuf.allocate((BufComp)(int64_t)buildDstOfInBuf.size());
       for(BufComp bc=0;const CDst& cDst : buildDstOfInBuf)
 	dstOfInBuf[bc++]=cDst;
