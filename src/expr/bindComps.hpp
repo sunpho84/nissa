@@ -86,7 +86,7 @@ namespace nissa
     
     /// Returns the dynamic sizes
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    const auto getDynamicSizes() const
+    decltype(auto) getDynamicSizes() const
     {
       return tupleGetSubset<typename CompsBinder::DynamicComps>(boundExpr().getDynamicSizes());
     }
