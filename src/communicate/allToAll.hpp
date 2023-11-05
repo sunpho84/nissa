@@ -124,12 +124,15 @@ namespace nissa
 	  // nRemDstOfRank=%zu received from rank %d value
 	  // %zu\n",rank,dRank,sendRank,remDstsGroupedByDstRank[sendRank].size(),recvRank,dstOfBufFrRank.size());
 	  
+	  // Increment the list of object to pull out from the buffer
 	  for(const CDst& bufDst : dstOfBufFrRank)
 	    buildDstOfInBuf.emplace_back(bufDst);
 	  
+	  // If the node has to receive, mark the node in the list with the size attached
 	  if(const size_t s=dstOfBufFrRank.size();s)
 	    nRecvFrRank.emplace_back(recvRank,s);
 	  
+	  // If the node has to send, mark the node to the list with the size attached
 	  if(const size_t s=remDstsGroupedByDstRank[sendRank].size();s)
 	    nSendToRank.emplace_back(sendRank,s);
 	}
