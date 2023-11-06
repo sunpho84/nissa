@@ -675,8 +675,7 @@ namespace quda_iface
 	    
 	    //Set for all levels except 0. Suggest using QUDA_GCR_INVERTER on all intermediate grids and QUDA_CA_GCR_INVERTER on the bottom.
 	    quda_mg_param.coarse_solver[level]=(level+1==nlevels)?QUDA_CA_GCR_INVERTER:QUDA_GCR_INVERTER;
-	    constexpr double t[3]={0.25,0.22,0.46};
-	    quda_mg_param.coarse_solver_tol[level]=t[level];          //Suggest setting each level to 0.25
+	    quda_mg_param.coarse_solver_tol[level]=nissa::multiGrid::coarse_solver_tol[level];          //Suggest setting each level to 0.25
 	    quda_mg_param.coarse_solver_maxiter[level]=100;//(level+1==nlevels)?50:100;        //Suggest setting in the range 8-100
 	    quda_mg_param.spin_block_size[level]=(level==0)?2:1;  //2 for level 0, and 1 thereafter
 	    quda_mg_param.n_vec[level]=(level==1)?32:24;          //24 or 32 is supported presently
@@ -691,7 +690,7 @@ namespace quda_iface
 	    
 	    quda_mg_param.preserve_deflation=QUDA_BOOLEAN_FALSE;
 	    quda_mg_param.smoother[level]=(level+1==nlevels)?QUDA_MR_INVERTER:QUDA_CA_GCR_INVERTER;
-	    quda_mg_param.smoother_tol[level]=(level+1==nlevels)?0.25:0.22;                 //Suggest setting each level to 0.25
+	    quda_mg_param.smoother_tol[level]=nissa::multiGrid::smoother_tol[level];                 //Suggest setting each level to 0.25
 	    quda_mg_param.smoother_schwarz_cycle[level]=1;          //Experimental, set to 1 for each level
 	    //Suggest setting to QUDA_DIRECT_PC_SOLVE for all levels
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
