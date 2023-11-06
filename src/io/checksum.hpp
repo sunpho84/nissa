@@ -54,7 +54,7 @@ namespace nissa
 	      
 	      EndiannessMask<BigEndian,nativeEndianness,Fund> mask(temp);
 	      
-	      for(int i=0;i<sizeof(temp);i++)
+	      for(size_t i=0;i<sizeof(temp);i++)
 		crc=crcValue(((int)crc^mask[i])&0xff)^(crc>>8);
 	    }
 	  crc^=0xffffffffL;
