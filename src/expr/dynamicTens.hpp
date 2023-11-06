@@ -13,10 +13,12 @@
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
 #include <expr/dynamicTensDeclaration.hpp>
+#include <expr/mergedComps.hpp>
 #include <expr/node.hpp>
 #include <expr/indexComputer.hpp>
 #include <metaprogramming/constnessChanger.hpp>
 #include <tuples/tupleDiscriminate.hpp>
+#include <tuples/typePosition.hpp>
 
 namespace nissa
 {
@@ -119,6 +121,39 @@ namespace nissa
     
     /// Number of elements
     int64_t nElements;
+    
+    /// Determine whether can hard-medge a set of components
+    template <typename MC>
+    static constexpr bool canHardMedge=
+      typesAreConsecutiveInTuple<MC,Comps>;
+    
+#define PROVIDE_MERGE(ATTRIB)						\
+    template <typename MCL,						\
+	      typename ResComps=ConsecutiveCompsMerge<MCL,CompsList<C...>>, \
+	      typename Res=DynamicTens<ResComps,ATTRIB _Fund,MT,true>,	\
+	      ENABLE_THIS_TEMPLATE_IF(std::tuple_size_v<MCL>!=0 and canHardMedge<MCL>)>	\
+    Res merge()	ATTRIB							\
+    {									\
+      using MC=								\
+	MergedComp<MCL>;						\
+									\
+      const MC mc=							\
+	std::apply([this]<typename...Ci>(const Ci&...)			\
+		   {							\
+		     return (this->template getCompSize<Ci>()()*...*1);	\
+		   },MCL{});						\
+									\
+      const auto ds=							\
+	tupleGetSubset<typename Res::DynamicComps>(std::tuple_cat(this->getDynamicSizes(),std::make_tuple(mc))); \
+									\
+      return {ds,this->storage,nElements};				\
+    }
+    
+    PROVIDE_MERGE(const);
+    
+    PROVIDE_MERGE(/* non const */);
+    
+#undef PROVIDE_MERGE
     
     /// Returns whether can assign
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
