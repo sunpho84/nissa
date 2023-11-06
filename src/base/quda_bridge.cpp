@@ -442,6 +442,7 @@ namespace quda_iface
     inv_param.tol_hq=0.1;
     inv_param.reliable_delta=nissa::multiGrid::reliable_delta;
     inv_param.use_sloppy_partial_accumulator=0;
+    inv_param.chrono_precision=QUDA_SINGLE_PRECISION;
   }
   
   /// Apply the dirac operator
@@ -696,7 +697,7 @@ namespace quda_iface
 	    quda_mg_param.smoother_solve_type[level]=QUDA_DIRECT_PC_SOLVE;
 	    //Experimental, set to QUDA_INVALID_SCHWARZ for each level unless you know what you're doing
 	    quda_mg_param.smoother_schwarz_type[level]=QUDA_INVALID_SCHWARZ;
-	    //quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
+	    quda_mg_param.smoother_halo_precision[level]=QUDA_HALF_PRECISION;
 	    
 	    // when the Schwarz-alternating smoother is used, this can be set to NO, otherwise it must be YES
 	    quda_mg_param.global_reduction[level]=QUDA_BOOLEAN_YES;
