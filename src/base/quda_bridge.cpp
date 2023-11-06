@@ -523,7 +523,7 @@ namespace quda_iface
     inv_param.tol=sqrt(residue);
     inv_param.maxiter=niter;
     inv_param.pipeline=0;
-    inv_param.gcrNkrylov=24;
+    inv_param.gcrNkrylov=nissa::multiGrid::gcrNkrylov;
     
     // domain decomposition preconditioner parameters
     inv_param.inv_type_precondition=QUDA_CG_INVERTER;
@@ -547,7 +547,7 @@ namespace quda_iface
 	  inv_param.matpc_type=QUDA_MATPC_EVEN_EVEN;
 	
 	inv_param.inv_type=QUDA_GCR_INVERTER;
-	inv_param.gcrNkrylov=10; //from default in read_input.l
+	inv_param.gcrNkrylov=nissa::multiGrid::gcrNkrylov;
 	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
 	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
 	inv_param.reliable_delta=1e-10;

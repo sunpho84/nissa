@@ -23,6 +23,7 @@ namespace nissa
     EXTERN_MULTIGRID int nlevels INIT_TO(1);
     EXTERN_MULTIGRID int nsetups[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int smoother_iterations;
+    EXTERN_MULTIGRID int gcrNkrylov INIT_TO(24);
     EXTERN_MULTIGRID double mu_factor[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int nu_pre[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int nu_post[MAX_MG_LEVELS];

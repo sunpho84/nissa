@@ -77,6 +77,7 @@ namespace nissa
 		    }
 #ifdef USE_QUDA
 		READ_VAR(int,"%d",nEigenvectors);
+		READ_VAR(int,"%d",gcrNkrylov);
 		READ_VAR(double,"%lg",eig_min);
 		READ_VAR(double,"%lg",eig_max);
 		READ_ARR(int,"%d",nu_pre);
