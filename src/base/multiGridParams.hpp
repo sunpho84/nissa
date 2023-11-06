@@ -29,6 +29,7 @@ namespace nissa
     EXTERN_MULTIGRID double smoother_tol[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int nu_pre[MAX_MG_LEVELS];
     EXTERN_MULTIGRID int nu_post[MAX_MG_LEVELS];
+    EXTERN_MULTIGRID double omega[MAX_MG_LEVELS];
     EXTERN_MULTIGRID double max_mass INIT_TO(1e300);
     EXTERN_MULTIGRID double reliable_delta INIT_TO(0.01);
     EXTERN_MULTIGRID double reliable_delta_refinement INIT_TO(0.0001);

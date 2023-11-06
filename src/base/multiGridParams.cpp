@@ -30,6 +30,9 @@ namespace nissa
     for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++) coarse_solver_tol[ilev]=def_coarse_solver_tol[ilev];
     constexpr double def_smoother_tol[MAX_MG_LEVELS]={0.1,0.1,0.15};
     for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++) smoother_tol[ilev]=def_smoother_tol[ilev];
+    constexpr double def_omega[MAX_MG_LEVELS]={0.85,0.85,0.85};
+    for(int ilev=0;ilev<MAX_MG_LEVELS;ilev++) omega[ilev]=def_omega[ilev];
+    
     
     if(nissa::file_exists(path))
       {
@@ -88,6 +91,7 @@ namespace nissa
 		READ_VAR(double,"%lg",eig_min);
 		READ_VAR(double,"%lg",eig_max);
 		
+		READ_ARR(double,"%lg",omega);
 		READ_ARR(double,"%lg",coarse_solver_tol);
 		READ_ARR(double,"%lg",smoother_tol);
 		READ_ARR(int,"%d",nu_pre);
