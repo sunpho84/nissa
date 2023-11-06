@@ -171,47 +171,6 @@ namespace nissa
       master_printf("%sEnd of producer\n",pref.c_str());
     }
     
-//     template <int I>
-//     using SimdifyingCompOfSubNode=
-//       typename SubNode<I>::SimdifyingComp;
-    
-//     /// Determine if product can be simdified - to be extended
-//     static constexpr bool simdifyCase()
-//     {
-//       return
-// 	(SubNode<Is>::canSimdify and...) and
-// 	((not tupleHasType<ContractedCompsForFact<Is>,SimdifyingCompOfSubNode<Is>>) and...) and
-// 	std::is_same_v<SimdifyingCompOfSubNode<Is>...> and
-// 	not (isComplProd and (std::is_same_v<ComplId,SimdifyingCompOfSubNode<Is>> or...));
-//     }
-    
-//     /// States whether the operations can be simdified
-//     static constexpr bool canSimdify=
-//       simdifyCase();
-    
-//     /// \todo improve
-    
-//     /// Components on which simdifying
-//     using SimdifyingComp=
-//       typename SubNode<0>::SimdifyingComp;
-    
-//     /////////////////////////////////////////////////////////////////
-    
-// #define PROVIDE_SIMDIFY(ATTRIB)					\
-//     /*! Returns a ATTRIB simdified view */			\
-//     INLINE_FUNCTION						\
-//     auto simdify() ATTRIB					\
-//     {								\
-//       return							\
-// 	(SUBNODE(Is).simdify()*...);				\
-//     }
-    
-//     PROVIDE_SIMDIFY(const);
-    
-//     PROVIDE_SIMDIFY(/* non const */);
-    
-// #undef PROVIDE_SIMDIFY
-    
     /////////////////////////////////////////////////////////////////
     
 #define PROVIDE_GET_REF(ATTRIB)					\

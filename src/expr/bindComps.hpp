@@ -134,37 +134,10 @@ namespace nissa
       master_printf("%sEnd of binder\n",pref.c_str());
     }
     
-    // /// States whether the tensor can be simdified
-    // static constexpr bool canSimdify=
-    //   SubNode<0>::canSimdify and
-    //   not tupleHasType<BoundComps,typename SubNode<0>::SimdifyingComp>;
-    
-    // /// Components on which simdifying
-    // using SimdifyingComp=
-    //   std::conditional_t<canSimdify,typename SubNode<0>::SimdifyingComp,void>;
-    
     /// Components that have been bound
     const BoundComps boundComps;
     
-// #define PROVIDE_SIMDIFY(ATTRIB)						\
-//     /*! Returns a ATTRIB simdified view */				\
-//     INLINE_FUNCTION							\
-//     auto simdify() ATTRIB						\
-//     {									\
-//       if constexpr(0)							\
-// 	LOGGER<<" simdifying binder from "<<typeid(SUBNODE(0)).name()	\
-// 	      <<" to "<<typeid(SUBNODE(0).simdify()).name();		\
-//       									\
-//       return bindComps(SUBNODE(0).simdify(),boundComps);		\
-//     }
-    
-//     PROVIDE_SIMDIFY(const);
-    
-//     PROVIDE_SIMDIFY(/* non const */);
-    
-// #undef PROVIDE_SIMDIFY
-    
-//     /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
     
 #define PROVIDE_RECREATE_FROM_EXPR(ATTRIB)			\
     /*! Returns a ATTRIB similar version */			\

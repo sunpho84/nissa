@@ -589,30 +589,6 @@ namespace nissa
     
     /////////////////////////////////////////////////////////////////
     
-// #define PROVIDE_SIMDIFY(ATTRIB)						\
-//     INLINE_FUNCTION							\
-//     auto simdify() ATTRIB						\
-//     {									\
-//       if constexpr(FL==FieldLayout::SIMDIFIABLE)			\
-// 	return Field<CompsList<C...>,ATTRIB _Fund,L,LC,FieldLayout::SIMDIFIED,ES,true> \
-// 	  (*lattice,haloPresence,(void*)data.storage,data.nElements,data.getDynamicSizes()); \
-//       else								\
-// 	{								\
-// 	  using Traits=CompsListSimdifiableTraits<CompsList<C...>,_Fund>; \
-// 	  								\
-// 	  using SimdFund=typename Traits::SimdFund;			\
-// 	  								\
-// 	  return Field<typename Traits::Comps,ATTRIB SimdFund,L,LC,FieldLayout::SERIAL,ES,true> \
-// 	    (*lattice,haloPresence,(ATTRIB void*)data.storage,data.nElements,data.getDynamicSizes()); \
-// 	}								\
-//     }
-    
-//     PROVIDE_SIMDIFY(const);
-    
-//     PROVIDE_SIMDIFY(/* non const */);
-    
-// #undef PROVIDE_SIMDIFY
-    
     /// States whether the field can be simdified
     static constexpr bool canSimdify=
       false;//      FL!=FieldLayout::SIMDIFIED and Data::canSimdify;

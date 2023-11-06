@@ -133,29 +133,6 @@ namespace nissa
     /// Import assignment operator
     using Base::operator=;
     
-//     /// States whether the tensor can be simdified
-//     static constexpr bool canSimdify=
-//       SubNode<0>::canSimdify and
-//       not std::is_same_v<ComplId,typename SubNode<0>::SimdifyingComp>;
-    
-//     /// Components on which simdifying
-//     using SimdifyingComp=
-//       std::conditional_t<canSimdify,typename SubNode<0>::SimdifyingComp,void>;
-    
-// #define PROVIDE_SIMDIFY(ATTRIB)					\
-//     /*! Returns a ATTRIB simdified view */			\
-//     INLINE_FUNCTION						\
-//     auto simdify() ATTRIB					\
-//     {								\
-//       return conj(SUBNODE(0).simdify());			\
-//     }
-    
-//     PROVIDE_SIMDIFY(const);
-    
-//     PROVIDE_SIMDIFY(/* non const */);
-    
-// #undef PROVIDE_SIMDIFY
-    
     /////////////////////////////////////////////////////////////////
     
     //// Returns a conjugator on a different expression

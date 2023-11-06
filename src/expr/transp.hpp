@@ -93,36 +93,6 @@ namespace nissa
     static constexpr bool canAssignAtCompileTime=
       SubNode<0>::canAssignAtCompileTime;
     
-//     /// States whether the tensor can be simdified
-//     static constexpr bool canSimdify=
-//       SubNode<0>::canSimdify;
-    
-//     static constexpr auto _simdifyingCompHelper()
-//     {
-//       using S=typename SubNode<0>::SimdifyingComp;
-      
-//       if constexpr(not std::is_void_v<S>)
-// 	return Transp<S>{};
-//     }
-    
-//     /// Components on which simdifying
-//     using SimdifyingComp=
-//       decltype(_simdifyingCompHelper());
-    
-// #define PROVIDE_SIMDIFY(ATTRIB)					\
-//     /*! Returns a ATTRIB simdified view */			\
-//     INLINE_FUNCTION						\
-//     auto simdify() ATTRIB					\
-//     {								\
-//       return transp(SUBNODE(0).simdify());			\
-//     }
-    
-//     PROVIDE_SIMDIFY(const);
-    
-//     PROVIDE_SIMDIFY(/* non const */);
-    
-// #undef PROVIDE_SIMDIFY
-    
     /////////////////////////////////////////////////////////////////
     
     //// Returns a transposer on a different expression

@@ -130,30 +130,6 @@ namespace nissa
     /// Return whether can be assigned at compile time
     static constexpr bool canAssignAtCompileTime=false;
     
-    // /// States whether the tensor can be simdified
-    // static constexpr bool canSimdify=
-    //   SubNode<0>::canSimdify and not tupleHasType<TracedComps,typename SubNode<0>::SimdifyingComp>;
-    
-    // /// Components on which simdifying
-    // using SimdifyingComp=
-    //   typename SubNode<0>::SimdifyingComp;
-    
-    /////////////////////////////////////////////////////////////////
-    
-// #define PROVIDE_SIMDIFY(ATTRIB)					\
-//     /*! Returns a ATTRIB simdified view */			\
-//     INLINE_FUNCTION						\
-//     auto simdify() ATTRIB					\
-//     {								\
-//       return trace(SUBNODE(0).simdify());			\
-//     }
-    
-//     PROVIDE_SIMDIFY(const);
-    
-//     PROVIDE_SIMDIFY(/* non const */);
-    
-// #undef PROVIDE_SIMDIFY
-    
     /////////////////////////////////////////////////////////////////
     
     //// Returns a tracer on a different expression
