@@ -76,6 +76,8 @@ namespace nissa
 			}
 		    }
 #ifdef USE_QUDA
+		READ_VAR(double,"%lg",reliable_delta);
+		READ_VAR(double,"%lg",reliable_delta_refinement);
 		READ_VAR(int,"%d",nEigenvectors);
 		READ_VAR(int,"%d",gcrNkrylov);
 		READ_VAR(double,"%lg",eig_min);
