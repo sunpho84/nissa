@@ -260,15 +260,26 @@ namespace nissa
 	this->storage=oth.storage;
     }
     
+    /// Copy constructor when reference, passing pointer and components
+    INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+    DynamicTens(const DynamicComps& ds,
+		Fund* storage,
+		const int64_t& nElements) :
+      dynamicSizes(ds),
+      storage(storage),
+      nElements(nElements)
+    {
+    }
+    
     /// Copy constructor when reference
     template <typename O,
 	      bool B=IsRef,
 	      ENABLE_THIS_TEMPLATE_IF(B and isDynamicTens<O>)>
     INLINE_FUNCTION CUDA_HOST_AND_DEVICE
     DynamicTens(O&& oth) :
-      dynamicSizes(oth.getDynamicSizes()),
-      storage(oth.storage),
-      nElements(oth.nElements)
+      DynamicTens(oth.getDynamicSizes(),
+		  oth.storage,
+		  oth.nElements)
     {
     }
     
