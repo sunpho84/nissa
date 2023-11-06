@@ -211,10 +211,10 @@ namespace nissa
     /// Returns the size of the component
     template <typename Comp>
       constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-      const Comp& getCompSize() const
+      Comp getCompSize() const
     {
       if constexpr(Comp::sizeIsKnownAtCompileTime)
-	return (Comp&)Comp::sizeAtCompileTime;
+	return Comp::sizeAtCompileTime;
       else
 	return std::get<Comp>((~*this).getDynamicSizes());
     }

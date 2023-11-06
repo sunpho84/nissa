@@ -45,7 +45,8 @@ namespace nissa
     }
     
     /// Size known at compile time
-    static constexpr Index sizeAtCompileTime=SizeATCompileTime;
+    static constexpr Index sizeAtCompileTime=
+      SizeATCompileTime;
     
     /// Determine whether the size is known at compile time
     static constexpr bool sizeIsKnownAtCompileTime=

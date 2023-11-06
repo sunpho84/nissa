@@ -61,7 +61,7 @@ namespace nissa
     
     /// Gets the incoming buffer size
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
-    const BufComp& getInBufSize() const
+    constexpr BufComp getInBufSize() const
     {
       return dstOfInBuf.template getCompSize<BufComp>();
     }
