@@ -57,7 +57,7 @@ namespace nissa
   {
     using This=THIS;
 #undef THIS
-
+    
 #define PROVIDE_AUTOMATIC_CAST_TO_FUND(ATTRIB)			\
     /*! Provide automatic cast to fund if needed */		\
     constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\

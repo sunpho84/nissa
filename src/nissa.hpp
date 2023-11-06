@@ -211,5 +211,6 @@
 #include <threads/threads.hpp>
 
 #include <tuples/tupleFilter.hpp>
+#include <tuples/typePosition.hpp>
 
 #endif
