@@ -550,8 +550,8 @@ namespace quda_iface
 	inv_param.gcrNkrylov=nissa::multiGrid::gcrNkrylov;
 	inv_param.inv_type_precondition=QUDA_MG_INVERTER;
 	inv_param.schwarz_type=QUDA_ADDITIVE_SCHWARZ;
-	inv_param.reliable_delta_refinement=1e-10;
 	inv_param.reliable_delta=nissa::multiGrid::reliable_delta;
+	inv_param.reliable_delta_refinement=nissa::multiGrid::reliable_delta_refinement;
 	inv_param.precondition_cycle=1;
 	inv_param.tol_precondition=1e-1;
 	inv_param.maxiter_precondition=1;
