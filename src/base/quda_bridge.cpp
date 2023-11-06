@@ -431,8 +431,8 @@ namespace quda_iface
     
     //inv_param.tune=QUDA_TUNE_YES;
     
-    inv_param.sp_pad=0;
-    inv_param.cl_pad=0;
+    // inv_param.sp_pad=0;
+    // inv_param.cl_pad=0;
     
     inv_param.Ls=1;
     
@@ -1010,8 +1010,8 @@ namespace quda_iface
     printf("return_clover: %d\n",i.return_clover);
     printf("return_clover_inverse: %d\n",i.return_clover_inverse);
     printf("verbosity: %d\n",i.verbosity);
-    printf("sp_pad: %d\n",i.sp_pad);
-    printf("cl_pad: %d\n",i.cl_pad);
+    // printf("sp_pad: %d\n",i.sp_pad);
+    // printf("cl_pad: %d\n",i.cl_pad);
     printf("iter: %d\n",i.iter);
     printf("gflops: %lg\n",i.gflops);
     printf("secs: %lg\n",i.secs);
