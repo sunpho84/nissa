@@ -86,7 +86,7 @@ void inMain(int narg,char **arg)
 	      "  <version>1.0</version>\n"
 	      "  <field>photonField</field>\n"
 	      "  <precision>%zu</precision>\n"
-	      "  <dof>4</dof>"
+	      "  <dof>4</dof>\n"
 	      "  <lx>%d</lx>\n"
 	      "  <ly>%d</ly>\n"
 	      "  <lz>%d</lz>\n"
