@@ -127,12 +127,12 @@ namespace nissa
     static constexpr bool canHardMedge=
       typesAreConsecutiveInTuple<MC,Comps>;
     
-#define PROVIDE_MERGE(ATTRIB)						\
+#define PROVIDE_MERGE_COMPS(ATTRIB)					\
     template <typename MCL,						\
 	      typename ResComps=CompsMerge<MCL,CompsList<C...>>,	\
 	      typename Res=DynamicTens<ResComps,ATTRIB _Fund,MT,true>,	\
 	      ENABLE_THIS_TEMPLATE_IF(std::tuple_size_v<MCL>!=0 and canHardMedge<MCL>)>	\
-    Res merge()	ATTRIB							\
+    Res mergeComps()	ATTRIB						\
     {									\
       using MC=								\
 	MergedComp<MCL>;						\
@@ -145,11 +145,11 @@ namespace nissa
       return {ds,this->storage,nElements};				\
     }
     
-    PROVIDE_MERGE(const);
+    PROVIDE_MERGE_COMPS(const);
     
-    PROVIDE_MERGE(/* non const */);
+    PROVIDE_MERGE_COMPS(/* non const */);
     
-#undef PROVIDE_MERGE
+#undef PROVIDE_MERGE_COMPS
     
     /// Returns whether can assign
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
