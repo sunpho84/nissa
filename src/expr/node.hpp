@@ -219,6 +219,17 @@ namespace nissa
 	return std::get<Comp>((~*this).getDynamicSizes());
     }
     
+    template <typename MCL>
+      constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
+      auto mergedCompsSize() const
+    {
+      return
+	invokeWithTypesOfTuple<MCL>([this]<typename...MC>()
+				    {
+				      return (this->template getCompSize<MC>()()*...*1);
+				    });
+    }
+    
     /// Returns the expression as a dynamic tensor
     auto fillDynamicTens() const
     {

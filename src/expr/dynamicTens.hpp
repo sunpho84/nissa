@@ -137,15 +137,11 @@ namespace nissa
       using MC=								\
 	MergedComp<MCL>;						\
 									\
-      const MC mc=							\
-	invokeWithTypesOfTuple<MCL>([this]<typename...Ci>()		\
-		   {							\
-		     return (this->template getCompSize<Ci>()()*...*1);	\
-		   });							\
-      									\
       const auto ds=							\
-	tupleGetSubset<typename Res::DynamicComps>(std::tuple_cat(this->getDynamicSizes(),std::make_tuple(mc))); \
-									\
+	tupleGetSubset<typename Res::DynamicComps>			\
+	(std::tuple_cat(this->getDynamicSizes(),			\
+			std::tuple<MC>(this->template mergedCompsSize<MCL>()))); \
+      									\
       return {ds,this->storage,nElements};				\
     }
     
