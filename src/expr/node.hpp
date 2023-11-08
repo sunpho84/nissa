@@ -91,6 +91,21 @@ namespace nissa
     /// Unless explicitly overloaded
     static constexpr bool canAssignAtCompileTime=false;
     
+#define PROVIDE_MERGE_COMPS(ATTRIB)				\
+    /*! Provides possibility to merge a list of components  */	\
+      template <typename...MC>					\
+	constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE		\
+	auto mergeComps() ATTRIB				\
+      {								\
+	return mergeComps<MC...>(~*this);			\
+      }
+    
+    PROVIDE_MERGE_COMPS(const);
+    
+    PROVIDE_MERGE_COMPS(/* non const */);
+    
+#undef PROVIDE_MERGE_COMPS
+    
     /// Used to check that the derived type satisfy the Node criterion
     constexpr Node()
     {
