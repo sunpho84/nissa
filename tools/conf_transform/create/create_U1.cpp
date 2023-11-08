@@ -75,7 +75,29 @@ void inMain(int narg,char **arg)
       snprintf(outPath,128,pattern,iConf);
       if(strncasecmp(outPath,pattern,128)==0)
 	crash("pattern %s cannot be used to creat the conf name, try something like: conf%%04d.dat",pattern);
-      write_real_vector(outPath,realPhotonField,64,"test");
+      
+      ILDG_File file=ILDG_File_open_for_write(outPath);
+      char ildg_format_message[1024];
+      sprintf(ildg_format_message,
+	      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+	      "<ildgFormat xmlns=\"http://www.lqcd.org/ildg\"\n"
+	      "            xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
+	      "            xsi:schemaLocation=\"http://www.lqcd.org/ildg filefmt.xsd\">\n"
+	      "  <version>1.0</version>\n"
+	      "  <field>photonField</field>\n"
+	      "  <precision>%zu</precision>\n"
+	      "  <dof>4</dof>"
+	      "  <lx>%d</lx>\n"
+	      "  <ly>%d</ly>\n"
+	      "  <lz>%d</lz>\n"
+	      "  <lt>%d</lt>\n"
+	      "</ildgFormat>",
+	      64lu,glbSize[3],glbSize[2],glbSize[1],glbSize[0]);
+      ILDG_File_write_text_record(file,"ildg-format",ildg_format_message);
+      
+      write_real_vector(file,realPhotonField,64,"ildg-binary-data");
+      
+      ILDG_File_close(file);
       
       // pass_spin1field_from_x_to_mom_space(photonEta,photonField,gl.bc,true,true);
       
