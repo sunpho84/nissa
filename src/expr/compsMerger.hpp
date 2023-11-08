@@ -203,7 +203,7 @@ namespace nissa
   };
   
   /// Merges a subset of components
-  template <typename...MCs,
+  template <typename MC,
 	    typename _E,
 	    ENABLE_THIS_TEMPLATE_IF(isNode<_E>)>
   CUDA_HOST_AND_DEVICE INLINE_FUNCTION constexpr
@@ -217,16 +217,12 @@ namespace nissa
     using Fund=
       typename E::Fund;
     
-    /// Components to merge
-    using CompsToBeMerged=
-      CompsList<MCs...>;
-    
     /// Visible components
     using Comps=
-      CompsMerge<CompsToBeMerged,typename E::Comps>;
+      CompsMerge<MC,typename E::Comps>;
     
     return
-      CompsMerger<CompsToBeMerged,
+      CompsMerger<MC,
 		  std::tuple<decltype(e)>,
 		  Comps,
 		  Fund>(std::forward<_E>(e));
