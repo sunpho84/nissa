@@ -56,6 +56,7 @@
 #include <expr/baseComp.hpp>
 #include <expr/comp.hpp>
 #include <expr/comps.hpp>
+#include <expr/compsMerger.hpp>
 #include <expr/compRwCl.hpp>
 #include <expr/conj.hpp>
 #include <expr/cWiseCombine.hpp>
