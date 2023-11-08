@@ -55,13 +55,6 @@ namespace nissa
       return indexDecompose<Comps>(dynamicSizes,i());
     }
     
-    /// Gets the components of a merged component
-    static INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
-    Comps decompase(const MergedComp& i)
-    {
-      return indexDecompose<Comps>(std::tuple<>{},i());
-    }
-    
     /// Gets the components of this merged component
     template <typename D>
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE
