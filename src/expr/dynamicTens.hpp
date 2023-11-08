@@ -129,7 +129,7 @@ namespace nissa
     
 #define PROVIDE_MERGE(ATTRIB)						\
     template <typename MCL,						\
-	      typename ResComps=ConsecutiveCompsMerge<MCL,CompsList<C...>>, \
+	      typename ResComps=CompsMerge<MCL,CompsList<C...>>,	\
 	      typename Res=DynamicTens<ResComps,ATTRIB _Fund,MT,true>,	\
 	      ENABLE_THIS_TEMPLATE_IF(std::tuple_size_v<MCL>!=0 and canHardMedge<MCL>)>	\
     Res merge()	ATTRIB							\

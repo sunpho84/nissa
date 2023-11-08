@@ -108,90 +108,72 @@ namespace nissa
   
   namespace impl
   {
-    /// Merge consecutive compontents
+    /// Merge components
     ///
     /// Forward declaration
     template <typename PastComps,
 	      typename ToMerge,
-	      typename CompsToBeProcessed,
-	      bool Inserted>
-    struct _ConsecutiveCompsMerge;
+	      typename CompsToProcess,
+	      bool MergedHasAlreadyBeenInserted>
+    struct _CompsMerge;
     
-    /// Merge consecutive compontents
+    /// Merge components
     ///
     /// Case in which the processed component matches the first of the
     /// components to be merged
     template <typename...PastComps,
-	      typename HeadMerge,
-	      typename...TailMerge,
-	      typename...TailProc,
-	      bool Inserted>
-    struct _ConsecutiveCompsMerge<CompsList<PastComps...>,
-		       CompsList<HeadMerge,TailMerge...>,
-		       CompsList<HeadMerge,TailProc...>,
-		       Inserted>
+	      typename...ToMerge,
+	      typename HeadToProcess,
+	      typename...TailToProcess,
+	      bool MergedHasAlreadyBeenInserted>
+    struct _CompsMerge<CompsList<PastComps...>,
+		       CompsList<ToMerge...>,
+		       CompsList<HeadToProcess,TailToProcess...>,
+		       MergedHasAlreadyBeenInserted>
     {
+      static constexpr bool hasHeadToProcessToBeMerged=
+	(std::is_same_v<HeadToProcess,ToMerge> or...);
+      
       /// Resulting components: if the merged components have been
       /// inserted, drops the first component to be merged, otherwise
       /// insert all the components
       using ResComps=
-	std::conditional_t<Inserted,
-			   CompsList<PastComps...>,
-			   CompsList<PastComps...,MergedComp<CompsList<HeadMerge,TailMerge...>>>>;
+	std::conditional_t<hasHeadToProcessToBeMerged,
+			   std::conditional_t<MergedHasAlreadyBeenInserted,
+					      CompsList<PastComps...>,
+					      CompsList<PastComps...,MergedComp<CompsList<ToMerge...>>>>,
+			   CompsList<PastComps...,HeadToProcess>>;
       
       /// Resulting type, detected iteratively, pointing out that the
       /// merged component has for sure been inserted
       using type=
-	typename _ConsecutiveCompsMerge<ResComps,CompsList<TailMerge...>,CompsList<TailProc...>,true>::type;
+	typename _CompsMerge<ResComps,
+			     CompsList<ToMerge...>,
+			     CompsList<TailToProcess...>,
+			     MergedHasAlreadyBeenInserted or hasHeadToProcessToBeMerged>::type;
     };
     
-    /// Merge consecutive compontents
-    ///
-    /// Case in which the processed component does not match the first
-    /// of the components to be merged
-    template <typename...PastComps,
-	      typename HeadMerge,
-	      typename...TailMerge,
-	      typename HeadProc,
-	      typename...TailProc,
-	      bool Inserted>
-    struct _ConsecutiveCompsMerge<CompsList<PastComps...>,
-				  CompsList<HeadMerge,TailMerge...>,
-				  CompsList<HeadProc,TailProc...>,
-				  Inserted>
-    {
-      static_assert(not Inserted,"Trying to merge non-consecutive comps?");
-      
-      /// Resulting type, transfers the first component to be
-      /// processed to the result, detect remaining components
-      /// iteratively pointing out that the merged component has for
-      /// sure not been inserted
-      using type=
-	typename _ConsecutiveCompsMerge<CompsList<PastComps...,HeadProc>,CompsList<HeadMerge,TailMerge...>,CompsList<TailProc...>,false>::type;
-    };
-    
-    /// Merge consecutive compontents
+    /// Merge components
     ///
     /// Case in which no component needs to be processed
-    template <typename...PastComps,
-	      typename...Proc>
-    struct _ConsecutiveCompsMerge<CompsList<PastComps...>,
-				  CompsList<>,
-				  CompsList<Proc...>,
-				  true>
+    template <typename C,
+	      typename M>
+    struct _CompsMerge<C,
+		       M,
+		       CompsList<>,
+		       true>
     {
       /// Resulting type obtained passing all components to be
       /// processed to the output
-      using type=
-	CompsList<PastComps...,Proc...>;
+      using type=C;
     };
   }
   
-  /// Merge consecutive compontents
+  /// Merge compontents
   template <typename MC,
 	    typename C>
-  using ConsecutiveCompsMerge=
-    impl::_ConsecutiveCompsMerge<CompsList<>,MC,C,false>::type;
+  using CompsMerge=
+    impl::_CompsMerge<CompsList<>,MC,C,false>::type;
 }
 
 #endif

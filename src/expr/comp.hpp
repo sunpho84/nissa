@@ -150,7 +150,8 @@ namespace nissa
   template <typename T>
   struct SizeIsKnownAtCompileTime
   {
-    static constexpr bool value=T::sizeIsKnownAtCompileTime;
+    static constexpr bool value=
+      T::sizeIsKnownAtCompileTime;
   };
   
   /////////////////////////////////////////////////////////////////
