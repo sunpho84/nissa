@@ -140,7 +140,7 @@ namespace nissa
       const auto ds=							\
 	tupleGetSubset<typename Res::DynamicComps>			\
 	(std::tuple_cat(this->getDynamicSizes(),			\
-			std::tuple<MC>(this->template mergedCompsSize<MCL>()))); \
+			std::tuple<MC>(this->template getMergedCompsSize<MCL>()))); \
       									\
       return {ds,this->storage,nElements};				\
     }

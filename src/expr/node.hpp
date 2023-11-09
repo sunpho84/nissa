@@ -236,7 +236,7 @@ namespace nissa
     
     template <typename MCL>
       constexpr INLINE_FUNCTION CUDA_HOST_AND_DEVICE
-      auto mergedCompsSize() const
+      auto getMergedCompsSize() const
     {
       return
 	invokeWithTypesOfTuple<MCL>([this]<typename...MC>()
