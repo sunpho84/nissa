@@ -321,6 +321,24 @@ namespace nissa
       return *this;
     }
     
+#define PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(ATTRIB)			\
+    /* Return a copy on the given memory space, only if needed */	\
+    template <MemoryType OES>						\
+    decltype(auto) copyToMemorySpaceIfNeeded() ATTRIB			\
+    {									\
+      if constexpr(OES==execSpace)					\
+	return *this;							\
+      else								\
+	return copyToMemorySpace<OES>();				\
+      return *this;							\
+    }
+    
+    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(const);
+    
+    PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(/* non const */);
+    
+#undef PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED
+    
     /// Move constructor
     INLINE_FUNCTION
     DynamicTens(DynamicTens&& oth) :
