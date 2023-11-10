@@ -76,14 +76,13 @@ namespace nissa
 #undef PROVIDE_OPERATOR
     
 #define PROVIDE_SELF_OPERATOR(OP)					\
+    template <typename Oth>						\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE			\
-    ReturnedType& operator OP ##=(const ArithmeticOperators& oth)	\
+    ReturnedType& operator OP ##=(const Oth& oth)			\
     {									\
-      const auto& Oth=DE_CRTPFY(const ReturnedType,&oth);		\
-									\
       auto& This=DE_CRTPFY(ReturnedType,this);				\
 									\
-      (CastToExec&)This OP ## =(const CastToExec&)Oth;			\
+      (CastToExec&)This OP ## = oth;			\
 									\
       return This;							\
     }
