@@ -86,6 +86,32 @@ namespace nissa
       return *this;
     }
     
+#ifdef USE_CUDA
+# define PROVIDE_GET_REF_FOR_EXEC_SPACE_BODY	\
+    if constexpr(ES==MemoryType::GPU)		\
+      return deviceVal.getRef();		\
+    else
+#else
+# define PROVIDE_GET_REF_FOR_EXEC_SPACE_BODY
+#endif
+    
+#define PROVIDE_GET_REF_FOR_EXEC_SPACE(ATTRIB)	\
+    template <MemoryType ES>			\
+    decltype(auto) getRefForExecSpace() ATTRIB	\
+    {						\
+      PROVIDE_GET_REF_FOR_EXEC_SPACE_BODY	\
+	return hostVal.getRef();		\
+    }
+    
+    PROVIDE_GET_REF_FOR_EXEC_SPACE(const);
+    
+    PROVIDE_GET_REF_FOR_EXEC_SPACE(/* non const */);
+    
+#undef PROVIDE_GET_REF_FOR_EXEC_SPACE
+#undef PROVIDE_GET_REF_FOR_EXEC_SPACE_BODY
+    
+    /////////////////////////////////////////////////////////////////
+    
 #define PROVIDE_GET_FOR_CURRENT_CONTEXT(ATTRIB)		\
 							\
     INLINE_FUNCTION constexpr CUDA_HOST_AND_DEVICE	\
