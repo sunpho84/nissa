@@ -15,9 +15,12 @@
 #include <expr/dynamicCompsProvider.hpp>
 #include <expr/dynamicTens.hpp>
 #include <expr/mirroredNode.hpp>
+#include <threads/threads.hpp>
+#include <tuples/tupleCat.hpp>
 
 namespace nissa
 {
+  /// Tensor to be used to store buffer source and dest
   template <typename Comps,
 	    typename Fund,
 	    bool IsRef=false>
@@ -25,8 +28,8 @@ namespace nissa
     MirroredNode<Comps,DynamicTens<Comps,Fund,MemoryType::CPU,IsRef>>;
   
   /// All to all communicators
-  template <typename CSrc,
-	    typename CDst,
+  template <DerivedFromComp CDst,
+	    DerivedFromComp CSrc,
 	    bool IsRef=false>
   struct AllToAllComm
   {
@@ -54,10 +57,10 @@ namespace nissa
     MirroredTens<CompsList<BufComp>,CDst,IsRef> dstOfInBuf;
     
     /// Keeps track of the number of elements to be sent to each given rank
-    std::vector<std::pair<MpiRank,size_t>> nSendToRank;
+    std::vector<std::pair<MpiRank,int64_t>> nSendToRank;
     
     /// Keeps track of the number of elements to be received from each given rank
-    std::vector<std::pair<MpiRank,size_t>> nRecvFrRank;
+    std::vector<std::pair<MpiRank,int64_t>> nRecvFrRank;
     
     /// Gets the destination size, which is equal to the in buffer size
     CUDA_HOST_AND_DEVICE INLINE_FUNCTION
@@ -71,6 +74,20 @@ namespace nissa
     constexpr BufComp getInBufSize() const
     {
       return dstOfInBuf.template getCompSize<BufComp>();
+    }
+    
+    /// Gets the source size, which is equal to the out buffer size
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    CSrc getNSrc() const
+    {
+      return getOutBufSize()();
+    }
+    
+    /// Gets the outgoing buffer size
+    CUDA_HOST_AND_DEVICE INLINE_FUNCTION
+    constexpr BufComp getOutBufSize() const
+    {
+      return outBufOfSrc.template getCompSize<CSrc>()();
     }
     
     /// Initializes the AllToAll communicator
@@ -162,6 +179,97 @@ namespace nissa
 	}
     }
     
+    /// Communicate the expression
+    template <DerivedFromNode _DstExpr,
+	      DerivedFromNode SrcExpr>
+    void communicate(_DstExpr&& out,
+		     const SrcExpr& in) const
+    {
+      using DstExpr=std::decay_t<_DstExpr>;
+      
+      static_assert(tupleHasType<typename DstExpr::Comps,CDst>,"Destination does not have the destination component");
+      static_assert(tupleHasType<typename SrcExpr::Comps,CSrc>,"Source does not have the source component");
+      
+      constexpr MemoryType dstExecSpace=DstExpr::execSpace;
+      constexpr MemoryType srcExecSpace=SrcExpr::execSpace;
+      constexpr MemoryType execSpace=srcExecSpace;
+      
+      static_assert(dstExecSpace==srcExecSpace,"Needs to have same exec space for src and dest");
+      
+      using DstRedComps=TupleFilterAllTypes<typename DstExpr::Comps,std::tuple<CDst>>;
+      using SrcRedComps=TupleFilterAllTypes<typename SrcExpr::Comps,std::tuple<CSrc>>;
+      static_assert(tupleHaveTypes<DstRedComps,SrcRedComps>,"Components in the source must be the same apart from CDst and CSrc");
+      
+      using Fund=DstExpr::Fund;
+      
+      using BufComps=
+	TupleCat<DstRedComps,CompsList<BufComp>>;
+      
+      DynamicTens<BufComps,Fund,execSpace> outBuf(std::tuple_cat(std::make_tuple(getOutBufSize()),in.getDynamicSizes()));
+      
+      const CSrc nSrc=in.template getCompSize<CSrc>();
+      if(nSrc()!=getOutBufSize()())
+	crash("Size of the in epxression %ld different from expected %ld\n",(int64_t)nSrc(),(int64_t)getOutBufSize()());
+      
+      PAR_ON_EXEC_SPACE(execSpace,
+			0,
+			nSrc,
+			CAPTURE(TO_READ(in),
+				outBufOfSrc=outBufOfSrc.template getRefForExecSpace<execSpace>(),
+				TO_WRITE(outBuf)),
+			iIn,
+			{
+			  const BufComp iOutBuf=outBufOfSrc(iIn);
+			  
+			  outBuf(iOutBuf)=in(iIn);
+			});
+      
+      decltype(auto) hostOutBuf=
+	outBuf.template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
+      const auto mergedHostOutBuf=hostOutBuf.template mergeComps<DstRedComps>();
+      
+      DynamicTens<BufComps,Fund,MemoryType::CPU> hostInBuf(std::tuple_cat(std::make_tuple(getInBufSize()),out.getDynamicSizes()));
+      auto mergedHostInBuf=hostInBuf.template mergeComps<DstRedComps>();
+      
+      /// SendRecv
+      const int nReqs=nSendToRank.size()+nRecvFrRank.size();
+      MPI_Request reqs[nReqs];
+      MPI_Request* req=reqs;
+      const auto nDof=mergedHostOutBuf.template getCompSize<MergedComp<DstRedComps>>()();
+      for(BufComp sendOffset=0;const auto& [dstRank,nEl] : nSendToRank)
+	{
+	  MPI_Isend(&mergedHostOutBuf(sendOffset,MergedComp<DstRedComps>(0)),
+		    nEl*nDof*sizeof(Fund),
+		    MPI_CHAR,dstRank(),0,MPI_COMM_WORLD,req++);
+	  sendOffset+=nEl;
+	}
+      
+      for(BufComp recvOffset=0;const auto& [rcvRank,nEl] : nRecvFrRank)
+	{
+	  MPI_Irecv(&mergedHostInBuf(recvOffset,MergedComp<DstRedComps>(0)),
+		    nEl*nDof*sizeof(Fund),
+		    MPI_CHAR,rcvRank(),0,MPI_COMM_WORLD,req++);
+	  recvOffset+=nEl;
+	}
+      MPI_Waitall(nReqs,reqs,MPI_STATUS_IGNORE);
+      
+      decltype(auto) inBuf=
+	hostInBuf.template copyToMemorySpaceIfNeeded<execSpace>();
+      
+      PAR_ON_EXEC_SPACE(execSpace,
+			0,
+			getInBufSize(),
+			CAPTURE(TO_READ(inBuf),
+				dstOfInBuf=dstOfInBuf.template getRefForExecSpace<execSpace>(),
+				TO_WRITE(out)),
+			iInBuf,
+			{
+			  const CDst iOut=dstOfInBuf(iInBuf);
+			  
+			  out(iOut)=inBuf(iInBuf);
+			});
+      
+    }
   };
 }
 
