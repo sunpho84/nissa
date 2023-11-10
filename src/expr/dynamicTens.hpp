@@ -244,10 +244,11 @@ namespace nissa
     /// Initialize the tensor with the knowledge of the dynamic sizes
     ///
     /// Can only be allocated on host
-    template <bool B=IsRef,
+    template <DerivedFromComp...Cs,
+	      bool B=IsRef,
 	      ENABLE_THIS_TEMPLATE_IF(not B)>
     INLINE_FUNCTION constexpr
-    explicit DynamicTens(const DynamicComps& td)
+    explicit DynamicTens(const CompsList<Cs...>& td)
     {
       allocate(td);
     }
