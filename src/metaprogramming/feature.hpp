@@ -28,7 +28,12 @@ namespace nissa
   							\
   template <typename T>					\
   inline constexpr bool is ## NAME =			\
-    std::is_base_of_v<NAME ## Feat<std::decay_t<T>>,std::decay_t<T>>
+    std::is_base_of_v<NAME ## Feat<std::decay_t<T>>,	\
+		      std::decay_t<T>>;			\
+  							\
+  template <typename T>					\
+  concept DerivedFrom ## NAME = is ## NAME<T>
+
 }
 
 #endif
