@@ -226,12 +226,13 @@ namespace nissa
       
       decltype(auto) hostOutBuf=
 	outBuf.template copyToMemorySpaceIfNeeded<MemoryType::CPU>();
-      const auto mergedHostOutBuf=hostOutBuf.template mergeComps<DstRedComps>();
+      const auto mergedHostOutBuf=
+	hostOutBuf.template mergeComps<DstRedComps>();
       
       DynamicTens<BufComps,Fund,MemoryType::CPU> hostInBuf(std::tuple_cat(std::make_tuple(getInBufSize()),out.getDynamicSizes()));
-      auto mergedHostInBuf=hostInBuf.template mergeComps<DstRedComps>();
+      auto mergedHostInBuf=
+	hostInBuf.template mergeComps<DstRedComps>();
       
-      /// SendRecv
       const int nReqs=nSendToRank.size()+nRecvFrRank.size();
       MPI_Request reqs[nReqs];
       MPI_Request* req=reqs;
