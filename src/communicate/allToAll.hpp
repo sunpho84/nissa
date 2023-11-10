@@ -30,8 +30,10 @@ namespace nissa
 	    bool IsRef=false>
   struct AllToAllComm
   {
+    /// Status: is the communicator inited?
     bool inited;
     
+    /// Component to be used for the buffer
     struct BufComp :
       BaseComp<BufComp,int64_t,0>
     {
@@ -39,17 +41,22 @@ namespace nissa
       using Base::Base;
     };
     
+    /// Default constructor
     AllToAllComm() :
       inited{false}
     {
     }
     
+    /// Destination of the source, in the buffer
     MirroredTens<CompsList<CSrc>,BufComp,IsRef> outBufOfSrc;
     
+    /// Destination of the buffer, in the final storage
     MirroredTens<CompsList<BufComp>,CDst,IsRef> dstOfInBuf;
     
+    /// Keeps track of the number of elements to be sent to each given rank
     std::vector<std::pair<MpiRank,size_t>> nSendToRank;
     
+    /// Keeps track of the number of elements to be received from each given rank
     std::vector<std::pair<MpiRank,size_t>> nRecvFrRank;
     
     /// Gets the destination size, which is equal to the in buffer size
@@ -153,71 +160,8 @@ namespace nissa
 		  rank,(int64_t)dstOfInBuf[i](),(int64_t)p(),(int64_t)i());
 	  p=i;
 	}
-      
-      // for(BufComp nInBuf=0;
-      // 	  auto [recvRank,nToRec] : nRecvFrRank)
-      // 	while(nToRec--)
-      // 	  printf("AllToAll Rank %d From rank %d fill dest %ld\n",rank,recvRank(),dstOfInBuf[nInBuf++]());
-      
-      // for(CSrc nOutBuf=0;
-      // 	  auto [sendRank,nToSnd] : nSendToRank)
-      // 	while(nToSnd--)
-      // 	    printf("AllToAll Rank %d To rank %d fill buf[%ld] %ld\n",rank,sendRank(),nOutBuf(),outBufOfSrc[nOutBuf++]());
     }
     
-    // int nel_out{0},nel_in{0};
-    // int nranks_fr{0},*list_ranks_fr{nullptr},*in_buf_dest{nullptr},*nper_rank_fr{nullptr},*in_buf_off_per_rank{nullptr};
-    // int nranks_to{0},*list_ranks_to{nullptr},*out_buf_source{nullptr},*nper_rank_to{nullptr},*out_buf_off_per_rank{nullptr};
-    
-    // all_to_all_comm_t(const all_to_all_gathering_list_t &gl);
-    // all_to_all_comm_t(const all_to_all_scattering_list_t &sl);
-    // all_to_all_comm_t(all_to_all_comm_t &&oth)
-    // {
-    //   std::swap(inited,oth.inited);
-    //   std::swap(nel_out,oth.nel_out);
-    //   std::swap(nel_in,oth.nel_in);
-    //   std::swap(nranks_fr,oth.nranks_fr);
-    //   std::swap(list_ranks_fr,oth.list_ranks_fr);
-    //   std::swap(in_buf_dest,oth.in_buf_dest);
-    //   std::swap(nper_rank_fr,oth.nper_rank_fr);
-    //   std::swap(in_buf_off_per_rank,oth.in_buf_off_per_rank);
-    //   std::swap(nranks_to,oth.nranks_to);
-    //   std::swap(list_ranks_to,oth.list_ranks_to);
-    //   std::swap(out_buf_source,oth.out_buf_source);
-    //   std::swap(nper_rank_to,oth.nper_rank_to);
-    //   std::swap(out_buf_off_per_rank,oth.out_buf_off_per_rank);
-    // }
-    
-    // ~all_to_all_comm_t(){destroy();}
-    // void destroy()
-    // {
-    //   if(inited)
-    // 	{
-    // 	  inited=false;
-	  
-    // 	  nissa_free(list_ranks_to);
-    // 	  nissa_free(list_ranks_fr);
-    // 	  nissa_free(in_buf_dest);
-    // 	  nissa_free(out_buf_source);
-    // 	  nissa_free(nper_rank_fr);
-    // 	  nissa_free(nper_rank_to);
-    // 	  nissa_free(out_buf_off_per_rank);
-    // 	  nissa_free(in_buf_off_per_rank);
-    // 	}
-    // }
-    
-    // void communicate(void *out,
-    // 		     void *in,
-    // 		     size_t bps,
-    // 		     void *buf_out=NULL,
-    // 		     void *buf_in=NULL,
-    // 		     int tag=-1) const;
-    
-    // void setup_knowing_where_to_send(const all_to_all_scattering_list_t &sl);
-    // void setup_knowing_what_to_ask(const all_to_all_gathering_list_t &gl);
-    // void setup_nper_rank_other_temp(int *nper_rank_other_temp,int *nper_rank_temp);
-    // void common_setup_part1(temp_build_t &build);
-    // void common_setup_part2(int nel_note,int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,int *nper_rank_note,int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,int *nper_rank_expl);
   };
 }
 
