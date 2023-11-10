@@ -331,7 +331,6 @@ namespace nissa
 	return *this;							\
       else								\
 	return copyToMemorySpace<OES>();				\
-      return *this;							\
     }
     
     PROVIDE_COPY_TO_MEMORY_SPACE_IF_NEEDED(const);
