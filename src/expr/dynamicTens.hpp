@@ -123,16 +123,19 @@ namespace nissa
     int64_t nElements;
     
     /// Determine whether can hard-medge a set of components
-    template <typename MC>
+    template <typename...MC>
     static constexpr bool canHardMedge=
-      typesAreConsecutiveInTuple<MC,Comps>;
+      typesAreConsecutiveInTuple<CompsList<MC...>,Comps>;
+    
+    using Base::mergeComps;
     
 #define PROVIDE_MERGE_COMPS(ATTRIB)					\
-    template <typename MCL,						\
+    template <typename...MCS,						\
+	      typename MCL=CompsList<MCS...>,				\
+	      ENABLE_THIS_TEMPLATE_IF(sizeof...(MCS)>1 and canHardMedge<MCL>), \
 	      typename ResComps=CompsMerge<MCL,CompsList<C...>>,	\
-	      typename Res=DynamicTens<ResComps,ATTRIB _Fund,MT,true>,	\
-	      ENABLE_THIS_TEMPLATE_IF(std::tuple_size_v<MCL>!=0 and canHardMedge<MCL>)>	\
-    Res mergeComps()	ATTRIB						\
+	      typename Res=DynamicTens<ResComps,ATTRIB _Fund,MT,true>>	\
+    Res mergeCompsa()	ATTRIB						\
     {									\
       using MC=								\
 	MergedComp<MCL>;						\

@@ -201,7 +201,7 @@ namespace nissa
       SubNodes<_E...>(std::forward<T>(arg))
     {
       if constexpr(mergedCompHasDynamicSize)
-	std::get<ThisMergedComp>(extraDynamicSizes)=mergedExpr().template getMergedCompsSize<ThisMergedComp>();
+	std::get<ThisMergedComp>(extraDynamicSizes)=mergedExpr().template getMergedCompsSize<CompsList<Mc...>>();
     }
   };
   
